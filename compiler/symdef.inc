@@ -335,11 +335,11 @@
       end;
 
 
-    function tdef.get_rtti_label : plabel;
+    function tdef.get_rtti_label : string;
       begin
          if not(has_rtti) then
            generate_rtti;
-         get_rtti_label:=rtti_label;
+         get_rtti_label:=lab2str(rtti_label);
       end;
 
 
@@ -798,7 +798,7 @@
          rttilist^.concat(new(pai_const,init_32bit(min)));
          rttilist^.concat(new(pai_const,init_32bit(max)));
          if assigned(basedef) then
-           rttilist^.concat(new(pai_const,init_symbol(strpnew(lab2str(basedef^.get_rtti_label)))))
+           rttilist^.concat(new(pai_const,init_symbol(strpnew(basedef^.get_rtti_label))))
          else
            rttilist^.concat(new(pai_const,init_32bit(0)));
          {!!!!!!! Name list }
@@ -1405,7 +1405,7 @@
       begin
          rttilist^.concat(new(pai_const,init_8bit(tkSet)));
          rttilist^.concat(new(pai_const,init_8bit(otULong)));
-         rttilist^.concat(new(pai_const,init_symbol(strpnew(lab2str(setof^.get_rtti_label)))));
+         rttilist^.concat(new(pai_const,init_symbol(strpnew(setof^.get_rtti_label))));
       end;
 
 
@@ -1595,7 +1595,7 @@
          { count of elements }
          rttilist^.concat(new(pai_const,init_32bit(highrange-lowrange+1)));
          { element type }
-         rttilist^.concat(new(pai_const,init_symbol(strpnew(lab2str(definition^.get_rtti_label)))));
+         rttilist^.concat(new(pai_const,init_symbol(strpnew(definition^.get_rtti_label))));
       end;
 
 
@@ -1814,7 +1814,7 @@
 
     procedure write_field_rtti(sym : psym);{$ifndef fpc}far;{$endif}
       begin
-         rttilist^.concat(new(pai_const,init_symbol(strpnew(lab2str(pvarsym(sym)^.definition^.get_rtti_label)))));
+         rttilist^.concat(new(pai_const,init_symbol(strpnew(pvarsym(sym)^.definition^.get_rtti_label))));
          rttilist^.concat(new(pai_const,init_32bit(pvarsym(sym)^.address)));
       end;
 
@@ -2657,6 +2657,7 @@
          if (name^='TOBJECT') and not(cs_compilesystem in aktmoduleswitches) and
            isclass and (childof=pointer($ffffffff)) then
            class_tobject:=@self;
+         has_rtti:=true;
        end;
 
 
@@ -3076,7 +3077,7 @@
            proctypesinfo:=0;
          if (sym^.typ=propertysym) and ((sym^.properties and sp_published)<>0) then
            begin
-              rttilist^.concat(new(pai_const,init_symbol(strpnew(lab2str(ppropertysym(sym)^.proptype^.get_rtti_label)))));
+              rttilist^.concat(new(pai_const,init_symbol(strpnew(ppropertysym(sym)^.proptype^.get_rtti_label))));
               writeproc(ppropertysym(sym)^.readaccesssym,ppropertysym(sym)^.readaccessdef,0);
               writeproc(ppropertysym(sym)^.writeaccesssym,ppropertysym(sym)^.writeaccessdef,2);
               { isn't it stored ? }
@@ -3152,7 +3153,7 @@
 
          { write owner typeinfo }
          if assigned(childof) and ((childof^.options and oo_can_have_published)<>0) then
-           rttilist^.concat(new(pai_const,init_symbol(strpnew(lab2str(childof^.get_rtti_label)))))
+           rttilist^.concat(new(pai_const,init_symbol(strpnew(childof^.get_rtti_label))))
          else
            rttilist^.concat(new(pai_const,init_32bit(0)));
 
@@ -3186,6 +3187,11 @@
          is_publishable:=isclass;
       end;
 
+    function  tobjectdef.get_rtti_label : string;
+
+      begin
+         get_rtti_label:=rtti_name;
+      end;
 
 {****************************************************************************
                                   TERRORDEF
@@ -3207,7 +3213,10 @@
 
 {
   $Log$
-  Revision 1.70  1998-11-18 15:44:16  peter
+  Revision 1.71  1998-11-20 15:35:59  florian
+    * problems with rtti fixed, hope it works
+
+  Revision 1.70  1998/11/18 15:44:16  peter
     * VALUEPARA for tp7 compatible value parameters
 
   Revision 1.69  1998/11/10 17:54:56  peter

@@ -83,7 +83,7 @@
           procedure write_child_init_data;virtual;
 
           { rtti }
-          function  get_rtti_label : plabel;
+          function  get_rtti_label : string;virtual;
           procedure generate_rtti;virtual;
           procedure write_rtti_data;virtual;
           procedure write_child_rtti_data;virtual;
@@ -192,6 +192,7 @@
           procedure write_child_init_data;virtual;
 
           { rtti }
+          function  get_rtti_label : string;virtual;
           procedure generate_rtti;virtual;
           procedure write_rtti_data;virtual;
           procedure write_child_rtti_data;virtual;
@@ -483,7 +484,10 @@
 
 {
   $Log$
-  Revision 1.9  1998-11-10 10:09:14  peter
+  Revision 1.10  1998-11-20 15:36:00  florian
+    * problems with rtti fixed, hope it works
+
+  Revision 1.9  1998/11/10 10:09:14  peter
     * va_list -> array of const
 
   Revision 1.8  1998/11/09 11:44:37  peter

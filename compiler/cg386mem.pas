@@ -148,7 +148,7 @@ implementation
                   begin
                      new(r);
                      reset_reference(r^);
-                     r^.symbol:=stringdup(lab2str(ppointerdef(p^.left^.resulttype)^.definition^.get_rtti_label));
+                     r^.symbol:=stringdup(lab2str(ppointerdef(p^.left^.resulttype)^.definition^.get_inittable_label));
                      emitpushreferenceaddr(exprasmlist,r^);
                      { push pointer adress }
                      case p^.left^.location.loc of
@@ -168,7 +168,7 @@ implementation
                   begin
                      new(r);
                      reset_reference(r^);
-                     r^.symbol:=stringdup(lab2str(ppointerdef(p^.left^.resulttype)^.definition^.get_rtti_label));
+                     r^.symbol:=stringdup(lab2str(ppointerdef(p^.left^.resulttype)^.definition^.get_inittable_label));
                      emitpushreferenceaddr(exprasmlist,r^);
                      { push pointer adress }
                      case p^.left^.location.loc of
@@ -702,7 +702,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  1998-11-17 00:36:40  peter
+  Revision 1.19  1998-11-20 15:35:55  florian
+    * problems with rtti fixed, hope it works
+
+  Revision 1.18  1998/11/17 00:36:40  peter
     * more ansistring fixes
 
   Revision 1.17  1998/11/16 15:35:09  pierre
