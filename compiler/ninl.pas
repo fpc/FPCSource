@@ -29,7 +29,7 @@ interface
     uses
        node,htypechk;
 
-    {$i innr.inc}
+    {$i compinnr.inc}
 
     type
        tinlinenode = class(tunarynode)
@@ -1464,7 +1464,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2000-10-31 22:02:48  peter
+  Revision 1.13  2000-11-04 16:48:32  florian
+    * innr.inc renamed to make compiler compilation easier because the rtl contains
+      a file of the same name
+
+  Revision 1.12  2000/10/31 22:02:48  peter
     * symtable splitted, no real code changes
 
   Revision 1.11  2000/10/26 14:15:06  jonas

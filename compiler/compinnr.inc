@@ -101,7 +101,11 @@ const
 
 {
   $Log$
-  Revision 1.4  2000-10-21 18:16:11  florian
+  Revision 1.1  2000-11-04 16:48:32  florian
+    * innr.inc renamed to make compiler compilation easier because the rtl contains
+      a file of the same name
+
+  Revision 1.4  2000/10/21 18:16:11  florian
     * a lot of changes:
        - basic dyn. array support
        - basic C++ support
