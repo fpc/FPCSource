@@ -95,6 +95,7 @@ begin
   begin
     Text:=CodeCompleteWords^.Lookup(WordS,CIndex);
     OK:=(CIndex<>-1) and (length(Text)<>length(WordS));
+    Index:=-1;
     if OK and ShowOnlyUnique and (CIndex<CodeCompleteWords^.Count-1) then
       begin
         St:=PString(CodeCompleteWords^.At(CIndex+1))^;
@@ -638,7 +639,10 @@ END.
 
 {
  $Log$
- Revision 1.12  2002-12-18 01:19:20  pierre
+ Revision 1.13  2004-03-04 05:37:14  pierre
+  * fix a possibly uninitiated var
+
+ Revision 1.12  2002/12/18 01:19:20  pierre
   + Use TEditorInputLine instead of TInputLine
 
  Revision 1.11  2002/09/26 13:00:41  pierre
