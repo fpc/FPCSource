@@ -1151,8 +1151,8 @@ begin
   if not assigned(p) then
    exit;
   len:=Strlen(p);
-  if len+idx>size then
-   Resize(len+idx);
+  if len+1+idx>size then
+   Resize(len+1+idx);
   Move(p^,buf[idx],len);
   inc(idx,len);
   buf[idx]:=#0;
@@ -1163,8 +1163,8 @@ procedure tgdbbuffer.lappend(p:pchar;len : longint);
 begin
   if not assigned(p) then
    exit;
-  if len+idx>size then
-   Resize(len+idx);
+  if len+idx+1>size then
+   Resize(len+idx+1);
   Move(p^,buf[idx],len);
   inc(idx,len);
   buf[idx]:=#0;
@@ -2456,7 +2456,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2004-11-06 17:58:35  peter
+  Revision 1.24  2004-12-04 23:06:38  peter
+    * fix buffer overflow
+
+  Revision 1.23  2004/11/06 17:58:35  peter
     * use full static libnames for linux
 
   Revision 1.22  2004/11/05 17:57:04  peter
