@@ -57,7 +57,6 @@ var
    { used for keyboard specific stuff }
    KeyBoardLayout : HKL;
    Inited : Boolean;
-   hklold    : HKL    {$Ifndef ver1_0} = 0 {$endif};   // can be used to force kbd redetect.
    HasAltGr  : Boolean{$ifndef ver1_0} = false {$endif};
 
 
@@ -244,29 +243,25 @@ var ahkl : HKL;
     i    : integer;
 
  begin
-   HasAltGr:=FALSE;
+   HasAltGr:=false;
 
    ahkl:=GetKeyboardLayout(0);
-   if (hklOld<>ahkl) then
-     Begin
-       hklOld:=ahkl;
-       i:=$20;
-       while i<$100 do
-         begin
-           // <MSDN>
-           // For keyboard layouts that use the right-hand ALT key as ashift key
-           // (for example, the French keyboard layout), the shift state is
-           // represented by the value 6, because the right-hand ALT key is
-           // converted internally into CTRL+ALT.
-           // </MSDN>
-          if (HIBYTE(VkKeyScanEx(chr(i),ahkl))=6) then
-            begin
-              HasAltGr:=TRUE;
-              break;
-            end;
-         inc(i);
+   i:=$20;
+   while i<$100 do
+     begin
+       // <MSDN>
+       // For keyboard layouts that use the right-hand ALT key as ashift key
+       // (for example, the French keyboard layout), the shift state is
+       // represented by the value 6, because the right-hand ALT key is
+       // converted internally into CTRL+ALT.
+       // </MSDN>
+      if (HIBYTE(VkKeyScanEx(chr(i),ahkl))=6) then
+        begin
+          HasAltGr:=true;
+          break;
         end;
-     end;
+     inc(i);
+    end;
 end;
 
 
@@ -881,7 +876,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2004-11-21 12:38:45  marco
+  Revision 1.12  2005-01-07 18:59:22  florian
+    * AltGr fixed
+
+  Revision 1.11  2004/11/21 12:38:45  marco
    * altgr handling now gets OS information. Works for default layout, not for manually (tray) changed layouts
 
   Revision 1.10  2003/10/27 15:28:07  peter
