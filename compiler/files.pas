@@ -96,6 +96,8 @@ unit files;
        tfilemanager = object
           files : pinputfile;
           last_ref_index : longint;
+          cacheindex : longint;
+          cacheinputfile : pinputfile;
           constructor init;
           destructor done;
           procedure register_file(f : pinputfile);
@@ -501,6 +503,8 @@ uses
       begin
          files:=nil;
          last_ref_index:=0;
+         cacheindex:=0;
+         cacheinputfile:=nil;
       end;
 
 
@@ -525,10 +529,13 @@ uses
          f^.ref_next:=files;
          f^.ref_index:=last_ref_index;
          files:=f;
+         { update cache }
+         cacheindex:=last_ref_index;
+         cacheinputfile:=f;
 {$ifdef FPC}
-{$ifdef heaptrc}
+  {$ifdef heaptrc}
          writeln(stderr,f^.name^,' index ',current_module^.unit_index*100000+f^.ref_index);
-{$endif heaptrc}
+  {$endif heaptrc}
 {$endif FPC}
       end;
 
@@ -545,7 +552,9 @@ uses
              f^.ref_index:=last_ref_index-f^.ref_index+1;
              f:=f^.ref_next;
           end;
-
+        { reset cache }
+        cacheindex:=0;
+        cacheinputfile:=nil;
      end;
 
 
@@ -554,10 +563,16 @@ uses
      var
         ff : pinputfile;
      begin
-        ff:=files;
-        while assigned(ff) and (ff^.ref_index<>l) do
+       { check cache }
+       if (l=cacheindex) and assigned(cacheinputfile) then
+        begin
+          get_file:=cacheinputfile;
+          exit;
+        end;
+       ff:=files;
+       while assigned(ff) and (ff^.ref_index<>l) do
          ff:=ff^.ref_next;
-        get_file:=ff;
+       get_file:=ff;
      end;
 
 
@@ -1077,7 +1092,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.84  1999-01-14 11:38:39  daniel
+  Revision 1.85  1999-01-14 21:47:11  peter
+    * status.currentmodule is now also updated
+    + status.currentsourcepath
+
+  Revision 1.84  1999/01/14 11:38:39  daniel
   * Exe name derived from target_info instead of target_os
 
   Revision 1.83  1999/01/13 15:02:00  daniel

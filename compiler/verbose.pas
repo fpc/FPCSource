@@ -253,13 +253,16 @@ begin
      ((current_module^.unit_index<>lastmoduleidx) or
       (aktfilepos.fileindex<>lastfileidx)) then
    begin
+     { update status record }
+     status.currentmodule:=current_module^.modulename^;
      status.currentsource:=current_module^.sourcefiles^.get_file_name(aktfilepos.fileindex);
-     lastmoduleidx:=current_module^.unit_index;
+     status.currentsourcepath:=current_module^.sourcefiles^.get_file_path(aktfilepos.fileindex);
      { update lastfileidx only if name known PM }
      if status.currentsource<>'' then
        lastfileidx:=aktfilepos.fileindex
      else
        lastfileidx:=0;
+     lastmoduleidx:=current_module^.unit_index;
    end;
 end;
 
@@ -429,7 +432,11 @@ end.
 
 {
   $Log$
-  Revision 1.32  1998-12-15 10:23:33  peter
+  Revision 1.33  1999-01-14 21:47:10  peter
+    * status.currentmodule is now also updated
+    + status.currentsourcepath
+
+  Revision 1.32  1998/12/15 10:23:33  peter
     + -iSO, -iSP, -iTO, -iTP
 
   Revision 1.31  1998/12/11 00:04:04  peter
