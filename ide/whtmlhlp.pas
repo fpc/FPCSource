@@ -38,7 +38,43 @@ type
 
     TParagraphAlign = (paLeft,paCenter,paRight);
 
+    PTableElement = ^TTableElement;
+    TTableElement = object(Tobject)
+      TextBegin,TextEnd : sw_word;
+      Alignment : TParagraphAlign;
+      NextEl : PTableElement;
+      constructor init(AAlignment : TParagraphAlign);
+    end;
+
+    PTableLine = ^TTableLine;
+    TTableLine = object(Tobject)
+      NumElements : sw_word;
+      Nextline : PTableLine;
+      FirstEl,LastEl : PTableElement;
+      constructor Init;
+      procedure AddElement(PTE : PTableElement);
+      destructor Done; virtual;
+    end;
+
     PHTMLTopicRenderer = ^THTMLTopicRenderer;
+    PTable = ^TTable;
+    TTable = object(Tobject)
+      NumLines,NumCols : sw_word;
+      GlobalOffset,
+      GlobalTextBegin : sw_word;
+      WithBorder : boolean;
+      FirstLine : PTableLine;
+      LastLine : PTableLine;
+      PreviousTable : PTable;
+      Renderer : PHTMLTopicRenderer;
+      constructor Init(Previous : PTable);
+      procedure AddLine(PL : PTableLine);
+      procedure AddElement(PTE : PTableElement);
+      procedure TextInsert(Pos : sw_word;const S : string);
+      procedure FormatTable;
+      destructor Done; virtual;
+    end;
+
     THTMLTopicRenderer = object(THTMLParser)
       function  BuildTopic(P: PTopic; AURL: string; HTMLFile: PTextFile; ATopicLinks: PTopicLinkCollection): boolean;
     public
@@ -97,8 +133,11 @@ type
       LinkPtr: sw_integer;
       LastTextChar: char;
 {      Anchor: TAnchor;}
+      { Table stuff }
+      CurrentTable : PTable;
       procedure AddText(S: string);
       procedure AddChar(C: char);
+      procedure AddCharAt(C: char;AtPtr : sw_word);
     end;
 
     PCustomHTMLHelpFile = ^TCustomHTMLHelpFile;
@@ -162,6 +201,211 @@ implementation
 uses Views,WConsts,WUtils,WViews,WHTMLScn;
 
 
+
+constructor TTableElement.init(AAlignment : TParagraphAlign);
+begin
+  Alignment:=AAlignment;
+  NextEl:=nil;
+  TextBegin:=0;
+  TextEnd:=0;
+end;
+
+
+{ TTableLine methods }
+
+constructor TTableLine.Init;
+begin
+  NumElements:=0;
+  NextLine:=nil;
+  Firstel:=nil;
+  LastEl:=nil;
+end;
+
+procedure TTableLine.AddElement(PTE : PTableElement);
+begin
+  if not assigned(FirstEl) then
+    FirstEl:=PTE;
+  if assigned(LastEl) then
+    LastEl^.NextEl:=PTE;
+  LastEl:=PTE;
+  Inc(NumElements);
+end;
+
+destructor TTableLine.Done;
+begin
+  LastEl:=FirstEl;
+  while assigned(LastEl) do
+    begin
+      LastEl:=FirstEl^.NextEl;
+      Dispose(FirstEl,Done);
+      FirstEl:=LastEl;
+    end;
+  inherited Done;
+end;
+
+{ TTable methods }
+constructor TTable.Init(Previous : PTable);
+begin
+  PreviousTable:=Previous;
+  NumLines:=0;
+  NumCols:=0;
+  GlobalOffset:=0;
+  GlobalTextBegin:=0;
+  FirstLine:=nil;
+  LastLine:=nil;
+
+  WithBorder:=false;
+end;
+
+procedure TTable.AddLine(PL : PTableLine);
+begin
+  If not assigned(FirstLine) then
+    FirstLine:=PL;
+  if Assigned(LastLine) then
+    LastLine^.NextLine:=PL;
+  LastLine:=PL;
+  Inc(NumLines);
+end;
+
+procedure TTable.AddElement(PTE : PTableElement);
+begin
+  if assigned(LastLine) then
+    begin
+      LastLine^.AddElement(PTE);
+      If LastLine^.NumElements>NumCols then
+        NumCols:=LastLine^.NumElements;
+    end;
+end;
+
+procedure TTable.TextInsert(Pos : sw_word;const S : string);
+var
+  i : longint;
+begin
+  for i:=1 to Length(S) do
+    begin
+      Renderer^.AddCharAt(S[i],Pos+i-1+GlobalOffset);
+    end;
+  GlobalOffset:=GlobalOffset+length(S);
+end;
+
+procedure TTable.FormatTable;
+const
+  MaxCols = 200;
+type
+  TLengthArray = Array [ 1 .. MaxCols] of sw_word;
+  PLengthArray = ^TLengthArray;
+var
+  ColLengthArray : PLengthArray;
+  CurLine : PTableLine;
+  CurEl : PTableElement;
+  Align : TParagraphAlign;
+  TextBegin,TextEnd : sw_word;
+  i,j,Length : sw_word;
+begin
+  GetMem(ColLengthArray,Sizeof(sw_word)*NumCols);
+  FillChar(ColLengthArray^,Sizeof(sw_word)*NumCols,#0);
+  { Compute the largest cell }
+  CurLine:=FirstLine;
+  For i:=1 to NumLines do
+    begin
+      CurEl:=CurLine^.FirstEl;
+      For j:=1 to NumCols do
+        begin
+          if not assigned(CurEl) then
+            break;
+          Length:=CurEl^.TextEnd-CurEl^.TextBegin;
+          if Length>ColLengthArray^[j] then
+            ColLengthArray^[j]:=Length;
+          CurEl:=CurEl^.NextEl;
+        end;
+      CurLine:=CurLine^.NextLine;
+    end;
+  { Adjust to largest cell }
+  CurLine:=FirstLine;
+  TextBegin:=GlobalTextBegin;
+  If (NumLines>0) and WithBorder then
+    Begin
+      TextInsert(TextBegin,#218);
+      For j:=1 to NumCols do
+        begin
+          TextInsert(TextBegin,CharStr(#196,ColLengthArray^[j]));
+          if j<NumCols then
+            TextInsert(TextBegin,#194);
+        end;
+      TextInsert(TextBegin,#191);
+      TextInsert(TextBegin,hscLineBreak);
+    End;
+  For i:=1 to NumLines do
+    begin
+      CurEl:=CurLine^.FirstEl;
+      For j:=1 to NumCols do
+        begin
+          if not assigned(CurEl) then
+            begin
+              Length:=0;
+              Align:=paLeft;
+            end
+          else
+            begin
+              TextBegin:=CurEl^.TextBegin;
+              TextEnd:=CurEl^.TextEnd;
+              Length:=CurEl^.TextEnd-CurEl^.TextBegin;
+              Align:=CurEl^.Alignment;
+            end;
+          if WithBorder then
+            TextInsert(TextBegin,#179);
+          if Length<ColLengthArray^[j] then
+            begin
+              case Align of
+                paLeft:
+                  TextInsert(TextEnd,CharStr(' ',ColLengthArray^[j]-Length));
+                paRight:
+                  TextInsert(TextBegin,CharStr(' ',ColLengthArray^[j]-Length));
+                paCenter:
+                  begin
+                    TextInsert(TextBegin,CharStr(' ',(ColLengthArray^[j]-Length) div 2));
+                    TextInsert(TextEnd,CharStr(' ',(ColLengthArray^[j]-Length)- ((ColLengthArray^[j]-Length) div 2)));
+                  end;
+                end;
+            end;
+          if Assigned(CurEl) then
+            CurEl:=CurEl^.NextEl;
+        end;
+      if WithBorder then
+        TextInsert(TextEnd,#179);
+      CurLine:=CurLine^.NextLine;
+    end;
+  If (NumLines>0) and WithBorder then
+    Begin
+      TextInsert(TextEnd,hscLineBreak);
+      TextInsert(TextEnd,#192);
+      For j:=1 to NumCols do
+        begin
+          TextInsert(TextEnd,CharStr(#196,ColLengthArray^[j]));
+          if j<NumCols then
+            TextInsert(TextEnd,#193);
+        end;
+      TextInsert(TextEnd,#217);
+      TextInsert(TextEnd,hscLineBreak);
+    End;
+
+end;
+
+destructor TTable.Done;
+begin
+  LastLine:=FirstLine;
+  while assigned(LastLine) do
+    begin
+      LastLine:=FirstLine^.NextLine;
+      Dispose(FirstLine,Done);
+      FirstLine:=LastLine;
+    end;
+  if Assigned(PreviousTable) then
+    Inc(PreviousTable^.GlobalOffset,GlobalOffset);
+  inherited Done;
+end;
+
+
 {    THTMLAnsiConsole methods      }
 
 procedure THTMLAnsiConsole.GotoXY(X,Y : integer);
@@ -217,7 +461,10 @@ begin
            if ord(c)>16 then
              HTMLOwner^.AddChar(c)
            else
-             HTMLOwner^.AddChar('*');
+             begin
+               HTMLOwner^.AddChar(hscDirect);
+               HTMLOwner^.AddChar(c);
+             end;
          end;
        { Write start of next line in normal color, for correct alignment }
        HTMLOwner^.AddChar(hscNormText);
@@ -622,23 +869,77 @@ begin
 end;
 
 procedure THTMLTopicRenderer.DocTable(Entered: boolean);
+var
+  ATable : PTable;
+  Border : String;
 begin
   if AnyCharsInLine then
-    DocBreak;
+    begin
+      AddChar(hscLineBreak);
+      AnyCharsInLine:=false;
+    end;
   if Entered then
-    DocBreak;
+    begin
+      DocBreak;
+      New(ATable,Init(CurrentTable));
+      CurrentTable:=ATable;
+      CurrentTable^.Renderer:=@Self;
+      if DocGetTagParam('BORDER',border) then
+        CurrentTable^.WithBorder:=true;
+    end
+  else
+    begin
+      CurrentTable^.FormatTable;
+      ATable:=CurrentTable;
+      CurrentTable:=ATable^.PreviousTable;
+      Dispose(ATable,Done);
+    end;
 end;
 
 procedure THTMLTopicRenderer.DocTableRow(Entered: boolean);
+var
+  ATableLine : PTableLine;
 begin
   if AnyCharsInLine then
-    DocBreak;
+    begin
+      AddChar(hscLineBreak);
+      AnyCharsInLine:=false;
+    end;
+  if Entered then
+    begin
+      New(ATableLine,Init);
+      if CurrentTable^.GlobalTextBegin=0 then
+      CurrentTable^.GlobalTextBegin:=TextPtr;
+      CurrentTable^.AddLine(ATableLine);
+    end;
 end;
 
 procedure THTMLTopicRenderer.DocTableItem(Entered: boolean);
+var
+  Align : String;
+  NewEl : PTableElement;
+  PAlignEl : TParagraphAlign;
 begin
   if Entered then
-    AddText(' - ');
+    begin
+      if assigned(CurrentTable^.LastLine) and Assigned(CurrentTable^.LastLine^.LastEl) then
+        begin
+          NewEl:=CurrentTable^.LastLine^.LastEl;
+          NewEl^.TextEnd:=TextPtr;
+        end;
+      PAlignEl:=paLeft;
+      if DocGetTagParam('ALIGN',Align) then
+        DecodeAlign(Align,PAlignEl);
+      New(NewEl,Init(PAlignEl));
+      CurrentTable^.AddElement(NewEl);
+      NewEl^.TextBegin:=TextPtr;
+      { AddText(' - ');}
+    end
+  else
+    begin
+      NewEl:=CurrentTable^.LastLine^.LastEl;
+      NewEl^.TextEnd:=TextPtr;
+    end;
 end;
 
 procedure THTMLTopicRenderer.DocHorizontalRuler;
@@ -659,6 +960,19 @@ begin
   Inc(TextPtr);
   if (C>#15) and ((C<>' ') or (InPreFormatted=true)) then
     AnyCharsInLine:=true;
+end;
+
+procedure THTMLTopicRenderer.AddCharAt(C: char;AtPtr : sw_word);
+begin
+  if (Topic=nil) or (TextPtr=MaxBytes) then Exit;
+  if AtPtr>TextPtr then
+    AtPtr:=TextPtr
+  else
+    begin
+      Move(Topic^.Text^[AtPtr],Topic^.Text^[AtPtr+1],TextPtr-AtPtr);
+    end;
+  Topic^.Text^[AtPtr]:=ord(C);
+  Inc(TextPtr);
 end;
 
 procedure THTMLTopicRenderer.AddText(S: string);
@@ -919,7 +1233,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.3  2002-03-20 17:16:11  pierre
+  Revision 1.4  2002-04-11 07:04:23  pierre
+   + handle tables
+
+  Revision 1.3  2002/03/20 17:16:11  pierre
    * correct some ansii file conversion problems
 
   Revision 1.2  2001/09/18 11:33:53  pierre
