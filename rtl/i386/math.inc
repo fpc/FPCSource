@@ -115,7 +115,7 @@
     function cos(d : ValReal) : ValReal;[internproc:fpc_in_cos_real];
 {$endif}
 
-    {$define FPC_SYSTEM_HAS_EXP}
+  {$define FPC_SYSTEM_HAS_EXP}
   {$ifdef INTERNCONSTINTF}
     function fpc_exp_real(d : ValReal) : ValReal;assembler;compilerproc;
   {$else}
@@ -288,7 +288,10 @@
 
 {
   $Log$
-  Revision 1.22  2005-02-14 17:13:22  peter
+  Revision 1.23  2005-03-09 20:50:11  florian
+    * C. Western: utf-8 reading from resource files
+
+  Revision 1.22  2005/02/14 17:13:22  peter
     * truncate log
 
 }
