@@ -385,3 +385,4 @@ bug0263.pp   export directive is not necessary in delphi anymore
 bug0265.pp   nested proc with for-counter in other lex level
 bug0281.pp   dup id checking with property is wrong
 bug0293.pp   no error with variable name = type name
+bug0296.pp   exit(string) does not work (web form bug 613)
