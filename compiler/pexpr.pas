@@ -794,7 +794,8 @@ unit pexpr;
                          (m_tp_procvar in aktmodeswitches) and
                          proc_to_procvar_equal(pprocsym(sym)^.definition,getprocvardef))
                         ,again,p1,pd);
-                      if (block_type=bt_const) then
+                      if (block_type=bt_const) and
+                         getprocvar then
                         handle_procvar(getprocvardef,p1);
                       { now we know the real method e.g. we can check for a class method }
                       if isclassref and
@@ -1174,7 +1175,8 @@ unit pexpr;
                                  (m_tp_procvar in aktmodeswitches) and
                                  proc_to_procvar_equal(pprocsym(srsym)^.definition,getprocvardef)),
                                 again,p1,pd);
-                              if (block_type=bt_const) then
+                              if (block_type=bt_const) and
+                                 getprocvar then
                                 handle_procvar(getprocvardef,p1);
                               if possible_error and
                                  not(po_classmethod in p1^.procdefinition^.procoptions) then
@@ -2106,7 +2108,10 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.144  1999-09-26 21:30:19  peter
+  Revision 1.145  1999-09-27 11:59:42  peter
+    * fix for pointer reading in const with @type.method
+
+  Revision 1.144  1999/09/26 21:30:19  peter
     + constant pointer support which can happend with typecasting like
       const p=pointer(1)
     * better procvar parsing in typed consts
