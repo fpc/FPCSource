@@ -78,6 +78,8 @@ type
     FName: String;
     FParent: TPasElement;
   public
+    SourceFilename: String;
+    SourceLinenumber: Integer;
     constructor Create(const AName: String; AParent: TPasElement); virtual;
     procedure AddRef;
     procedure Release;
@@ -1390,7 +1392,11 @@ end.
 
 {
   $Log$
-  Revision 1.1  2003-03-13 21:47:42  sg
+  Revision 1.2  2003-11-22 12:12:38  sg
+  * Parse tree elements now can store a line number and source file for the
+    position of their declaration
+
+  Revision 1.1  2003/03/13 21:47:42  sg
   * First version as part of FCL
 
 }
