@@ -929,7 +929,8 @@ Var S,F : String;
 
 begin
   Setlength(F,fmtlen);
-  Move(fmt,F[1],fmtlen);
+  if fmtlen > 0 then
+    Move(fmt,F[1],fmtlen);
   S:=Format (F,Args);
   If cardinal(Length(S))>Buflen then
     Result:=Length(S)
@@ -1227,7 +1228,12 @@ const
 
 {
   $Log$
-  Revision 1.1.2.5  2000-12-16 15:58:18  jonas
+  Revision 1.1.2.6  2001-07-30 10:17:50  sg
+  * Two moves with a string as target are now only exectuted if the number of
+    bytes to move is greater than 0. This prevents RTE201's when compiled
+    with range checks enabled.
+
+  Revision 1.1.2.5  2000/12/16 15:58:18  jonas
     * removed warnings about possible range check errors
 
   Revision 1.1.2.4  2000/12/07 21:48:57  michael
