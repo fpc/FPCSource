@@ -28,6 +28,7 @@ uses
 
 var
    ChangeMouseEvents : TCriticalSection;
+   LastHandlerMouseEvent : TMouseEvent;
 
 procedure MouseEventHandler(var ir:INPUT_RECORD);
 
@@ -47,8 +48,26 @@ procedure MouseEventHandler(var ir:INPUT_RECORD);
           if (ir.Event.MouseEvent.dwButtonState and RIGHTMOST_BUTTON_PRESSED<>0) then
             e.buttons:=e.buttons or MouseRightButton;
 
-          { can we compress the events? }
-          if (PendingMouseEvents>0) and
+
+          if (Lasthandlermouseevent.x<>e.x) or (LasthandlerMouseEvent.y<>e.y) then
+            e.Action:=MouseActionMove;
+          if (LastHandlerMouseEvent.Buttons<>e.Buttons) then
+           begin
+            if (LasthandlerMouseEvent.Buttons=0) then
+              e.Action:=MouseActionDown
+            else
+              e.Action:=MouseActionUp;
+           end;
+
+
+//
+//  The mouse event compression here was flawed and could lead
+//  to "zero" mouse actions if the new (x,y) was the same as the
+//  previous one. (bug 2312)
+//
+
+           { can we compress the events? }
+         if (PendingMouseEvents>0) and
             (e.buttons=PendingMouseTail^.buttons) and
             (e.action=PendingMouseTail^.action) then
             begin
@@ -57,7 +76,12 @@ procedure MouseEventHandler(var ir:INPUT_RECORD);
             end
           else
             begin
-               PutMouseEvent(e);
+
+               if e.action<>0 then
+                 begin
+                   LastHandlermouseEvent:=e;
+                   PutMouseEvent(e);
+                 end;
                // this should be done in PutMouseEvent, now it is PM
                // inc(PendingMouseEvents);
             end;
@@ -139,6 +163,7 @@ begin
      else
       MouseEvent.Action:=MouseActionUp;
    end;
+  if MouseEvent.action=0 then MousEevent.action:=MouseActionMove; // can sometimes happen due to compression of events.
   LastMouseEvent:=MouseEvent;
   LeaveCriticalSection(ChangeMouseEvents);
 end;
@@ -218,7 +243,10 @@ Begin
 end.
 {
   $Log$
-  Revision 1.7  2004-11-04 10:21:07  peter
+  Revision 1.8  2004-11-21 15:24:35  marco
+   * fix for bug 2246, zero events surpressed by moving compression into handler
+
+  Revision 1.7  2004/11/04 10:21:07  peter
   GetMouse[X,Y,Buttons] based on LastMouseEvent
 
   Revision 1.6  2002/09/07 16:01:29  peter
