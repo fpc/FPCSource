@@ -1096,6 +1096,7 @@ implementation
            write(t,printnodeindention,'(');
            printnodeindent;
            hp.printnodeinfo(t);
+           writeln(t);
            printnode(t,hp.left);
            writeln(t);
            printnodeunindent;
@@ -1127,7 +1128,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.96  2005-02-14 17:13:06  peter
+  Revision 1.97  2005-03-05 16:17:30  jonas
+    * fixed printnodelist indentation
+
+  Revision 1.96  2005/02/14 17:13:06  peter
     * truncate log
 
   Revision 1.95  2005/01/04 16:39:46  peter
