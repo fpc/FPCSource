@@ -78,8 +78,8 @@ Begin {CheckSequence}
   OrgRegResult := False;
   RegCounter := R_EAX;
   GetLastInstruction(p, PrevNonRemovablePai);
-  While (PPaiProp(PrevNonRemovablePai^.fileinfo.line)^.Regs[RegCounter].Typ <> Con_Ref)
-         And (RegCounter <= R_EDI) Do
+  While (RegCounter <= R_EDI) And
+        (PPaiProp(PrevNonRemovablePai^.fileinfo.line)^.Regs[RegCounter].Typ <> Con_Ref) Do
     Inc(RegCounter);
   While (RegCounter <= R_EDI) Do
     Begin
@@ -248,7 +248,7 @@ Var Cnt, Cnt2: Longint;
 {$endif csdebug}
     RegInfo: TRegInfo;
     RegCounter: TRegister;
-    TmpState: Word;
+    TmpState: Byte;
 Begin
   p := First;
   If (p^.typ in (SkipInstr+[ait_marker])) Then
@@ -275,7 +275,8 @@ Begin
                       Begin {destination is always a register in this case}
                         With PPaiProp(p^.fileinfo.line)^.Regs[Reg32(Tregister(Pai386(p)^.op2))] Do
                           Begin
-  {so we don't try to check a sequence when the register only contains a constant}
+                            If GetLastInstruction (p, hp1) Then
+{so we don't try to check a sequence when p is the first instruction of the block}
                                If CheckSequence(p, TRegister(Pai386(p)^.op2), Cnt, RegInfo) And
                                   (Cnt > 0)
                                  Then
@@ -383,9 +384,9 @@ Begin
                                                hp3 := hp2;
                                                For Cnt := 1 to Pred(Cnt2) Do
                                                  GetNextInstruction(hp3, hp3);
-                                               TmpState := PPaiProp(hp3^.fileinfo.line)^.Regs[RegCounter].State;
+                                               TmpState := PPaiProp(hp3^.fileinfo.line)^.Regs[RegCounter].WState;
                                                GetNextInstruction(hp3, hp3);
-                                               If (TmpState <> PPaiProp(hp3^.fileinfo.line)^.Regs[RegCounter].State) Or
+                                               If (TmpState <> PPaiProp(hp3^.fileinfo.line)^.Regs[RegCounter].WState) Or
                                                   Not(RegCounter in PPaiProp(hp3^.fileinfo.line)^.UsedRegs) Then
                                                  Begin
 {$ifdef csdebug}
@@ -397,10 +398,10 @@ Begin
  {first change the contents of the register inside the sequence}
                                                    For Cnt := 1 to Cnt2 Do
                                                      Begin
- {save the state of the last pai object of the sequence for later use}
-                                                       TmpState := PPaiProp(hp3^.fileinfo.line)^.Regs[RegCounter].State;
+ {save the WState of the last pai object of the sequence for later use}
+                                                       TmpState := PPaiProp(hp3^.fileinfo.line)^.Regs[RegCounter].WState;
 {$ifdef csdebug}
-             hp5 := new(pai_asm_comment,init(strpnew('State for '+att_reg2str[Regcounter]+': '
+             hp5 := new(pai_asm_comment,init(strpnew('WState for '+att_reg2str[Regcounter]+': '
                                                       +tostr(tmpstate))));
              InsertLLItem(AsmL, hp3, pai(hp3^.next), hp5);
 {$endif csdebug}
@@ -408,16 +409,16 @@ Begin
                                                          PPaiProp(hp4^.fileinfo.line)^.Regs[RegCounter];
                                                        GetNextInstruction(hp3, hp3);
                                                      End;
- {here, hp3 = p = Pai object right after the sequence, TmpState = state of
+ {here, hp3 = p = Pai object right after the sequence, TmpState = WState of
   RegCounter at the last Pai object of the sequence}
                                                    GetLastInstruction(hp3, hp3);
                                                    While GetNextInstruction(hp3, hp3) And
-                                                         (PPaiProp(hp3^.fileinfo.line)^.Regs[RegCounter].State
+                                                         (PPaiProp(hp3^.fileinfo.line)^.Regs[RegCounter].WState
                                                           = TmpState) Do
 {$ifdef csdebug}
         begin
-             hp5 := new(pai_asm_comment,init(strpnew('State for '+att_reg2str[Regcounter]+': '+
-                                                      tostr(PPaiProp(hp3^.fileinfo.line)^.Regs[RegCounter].State))));
+             hp5 := new(pai_asm_comment,init(strpnew('WState for '+att_reg2str[Regcounter]+': '+
+                                                      tostr(PPaiProp(hp3^.fileinfo.line)^.Regs[RegCounter].WState))));
              InsertLLItem(AsmL, hp3, pai(hp3^.next), hp5);
 {$endif csdebug}
                                                      PPaiProp(hp3^.fileinfo.line)^.Regs[RegCounter] :=
@@ -563,7 +564,11 @@ End.
 
 {
  $Log$
- Revision 1.10  1998-10-02 17:29:23  jonas
+ Revision 1.11  1998-10-07 16:24:52  jonas
+   * changed state to WState (WriteState), added RState for future use in
+      instruction scheduling
+
+ Revision 1.10  1998/10/02 17:29:23  jonas
    * much better interregister CSE
 
  Revision 1.9  1998/10/01 20:21:49  jonas
