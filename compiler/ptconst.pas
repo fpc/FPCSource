@@ -724,8 +724,17 @@ unit ptconst;
            begin
               if ([oo_has_vmt,oo_is_class]*pobjectdef(def)^.objectoptions)<>[] then
                 begin
-                   Message(parser_e_type_const_not_possible);
-                   consume_all_until(_RKLAMMER);
+                   { support nil assignment for classes }
+                   if pobjectdef(def)^.is_class and
+                      try_to_consume(_NIL) then
+                    begin
+                      curconstsegment^.concat(new(pai_const,init_32bit(0)));
+                    end
+                   else
+                    begin
+                      Message(parser_e_type_const_not_possible);
+                      consume_all_until(_RKLAMMER);
+                    end;
                 end
               else
                 begin
@@ -800,7 +809,10 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.4  2000-08-16 13:06:06  florian
+  Revision 1.5  2000-08-24 19:13:18  peter
+    * allow nil for class typed consts (merged)
+
+  Revision 1.4  2000/08/16 13:06:06  florian
     + support of 64 bit integer constants
 
   Revision 1.3  2000/08/05 13:25:06  peter
