@@ -162,6 +162,7 @@ endif
 
 distclean: clean
         -rm -f dotest$(EXEEXT) dotest$(OEXT) redir$(PPUEXT) redir$(OEXT)
+	-rm -f teststr$(PPUEXT) teststr$(OEXT) digest$(EXEEXT) digest$(OEXT)
 
 #
 # Main rules
