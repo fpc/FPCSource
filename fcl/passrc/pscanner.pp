@@ -401,7 +401,7 @@ begin
   else
     begin
     I:=0;
-    While (Result=Nil) and I<FIncludePaths.Count do
+    While (Result=Nil) and (I<FIncludePaths.Count) do
       begin
       Try
         FN:=FIncludePaths[i]+AName;
@@ -1035,7 +1035,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2004-08-25 09:32:39  michael
+  Revision 1.9  2004-09-05 08:56:56  michael
+  + Fixed line 404 - missing brackets
+
+  Revision 1.8  2004/08/25 09:32:39  michael
   + Fix for relative pathnames in include files, and code cleanup
 
   Revision 1.7  2004/07/23 23:41:10  michael
