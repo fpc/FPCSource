@@ -195,6 +195,9 @@ Implementation
       finput,
       gdb,
 {$endif GDB}
+{$ifdef m68k}
+      cpuinfo,
+{$endif m68k}
       cpubase,aasmcpu
       ;
 
@@ -1614,7 +1617,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.51  2003-04-22 14:33:38  peter
+  Revision 1.52  2003-04-23 13:48:07  peter
+    * m68k fix
+
+  Revision 1.51  2003/04/22 14:33:38  peter
     * removed some notes/hints
 
   Revision 1.50  2003/03/10 18:16:00  olle
