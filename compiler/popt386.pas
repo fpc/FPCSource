@@ -995,8 +995,9 @@ Begin
                                      (Paicpu(hp2)^.opsize = Paicpu(p)^.opsize) and
                                      (Paicpu(hp2)^.oper[1].typ = top_reg) And
                                      (Paicpu(hp2)^.oper[0].typ = top_ref) And
-                                     RefsEqual(Paicpu(hp2)^.oper[0].ref^, Paicpu(hp1)^.oper[1].ref^) Then
-                                    If (Paicpu(p)^.oper[1].reg in [R_DI,R_EDI]) and
+                                     RefsEqual(Paicpu(hp2)^.oper[0].ref^, Paicpu(hp1)^.oper[1].ref^)  Then
+                                    If not regInRef(Paicpu(hp2)^.oper[1].reg,Paicpu(hp2)^.oper[0].ref^) and
+                                       (Paicpu(p)^.oper[1].reg in [R_DI,R_EDI]) and
                                        not(RegUsedAfterInstruction(R_EDI,hp1,tmpUsedRegs)) Then
                              {   mov mem1, %edi
                                  mov %edi, mem2
@@ -1048,12 +1049,10 @@ Begin
                                             allocRegBetween(asmL,paicpu(p)^.oper[1].reg,p,hp2);
                                           end
                                         else
-                                          if not(regInRef(paicpu(hp2)^.oper[1].reg,
-                                                          paicpu(hp2)^.oper[0].ref^)) then
-                                            begin
-                                              asmL^.Remove(hp2);
-                                              dispose(hp2, done);
-                                            end
+                                          begin
+                                            asmL^.Remove(hp2);
+                                            dispose(hp2, done);
+                                          end
                                 End;
                             End
                           Else
@@ -1933,8 +1932,8 @@ End.
 
 {
  $Log$
- Revision 1.96  2000-07-10 07:14:41  jonas
-   * fixed web bug 1032
+ Revision 1.97  2000-07-10 08:00:22  jonas
+   * real fix for web bug 1032 (removed previous coment since it was false)
 
  Revision 1.95  2000/07/06 12:30:31  jonas
    * moved "<flag setting operation>; test/or reg,reg" to "<flag setting
