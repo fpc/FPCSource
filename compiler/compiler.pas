@@ -128,11 +128,10 @@ uses
 {$ifdef BrowserLog}
   browlog,
 {$endif BrowserLog}
-{$ifdef Delphi}
-  dmisc,
-{$else Delphi}
+{$IFDEF USE_SYSUTILS}
+{$ELSE USE_SYSUTILS}
   dos,
-{$endif Delphi}
+{$ENDIF USE_SYSUTILS}
   verbose,comphook,systems,
   cutils,cclasses,globals,options,fmodule,parser,symtable,
   assemble,link,import,export,tokens,pass_1
@@ -229,6 +228,9 @@ function Compile(const cmd:string):longint;
 implementation
 
 uses
+{$IFDEF USE_SYSUTILS}
+  SysUtils,
+{$ENDIF USE_SYSUTILS}
   aasmcpu;
 
 {$ifdef EXTDEBUG}
@@ -353,10 +355,19 @@ function Compile(const cmd:string):longint;
 
   function getrealtime : real;
   var
+{$IFDEF USE_SYSUTILS}
+    h,m,s,s1000 : word;
+{$ELSE USE_SYSUTILS}
     h,m,s,s100 : word;
+{$ENDIF USE_SYSUTILS}
   begin
+{$IFDEF USE_SYSUTILS}
+    DecodeTime(Time,h,m,s,s1000);
+    getrealtime:=h*3600.0+m*60.0+s+s1000/1000.0;
+{$ELSE USE_SYSUTILS}
     gettime(h,m,s,s100);
     getrealtime:=h*3600.0+m*60.0+s+s100/100.0;
+{$ENDIF USE_SYSUTILS}
   end;
 
 var
@@ -429,7 +440,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.47  2004-09-08 11:23:31  michael
+  Revision 1.48  2004-10-14 17:17:25  mazen
+  * use SysUtils unit instead of Dos Unit
+
+  Revision 1.47  2004/09/08 11:23:31  michael
   + Check if outputdir exists,  Fix exitcode when displaying help pages
 
   Revision 1.46  2004/09/04 21:18:47  armin
