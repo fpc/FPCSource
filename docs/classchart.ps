@@ -437,7 +437,7 @@ setfont
   (EAccessViolation) Ready newclass
   (EBitsError) Ready newclass
   (EConvertError) Ready newclass
-  (EDatabaseError) Missing newclass 
+  (EDatabaseError) Ready newclass 
     (EDBCLient) Missing newchildclass
       (EReconcileError) Missing newchildclass 
       onelevelback
@@ -507,8 +507,15 @@ setfont
 newcolumn
 (TBits) Untested newclass
 (TCollection) Untested newclass
+  (TCheckConstraints) Untested newchildclass
+  onelevelback
 (TCollectionItem) Untested newclass
-(TEZcgi) Ready newclass
+  (TCheckConstraint) Untested newchildclass
+  onelevelback
+(TDatabase) Untested newclass
+(TDataset) Ready newclass
+  (TDBdatset) Untested newchildclass
+  onelevelback
 (TDOMimplementation) Ready newclass
 (TDOMNode) Ready newclass
   (TDOMCharacterdata) Ready newchildclass
@@ -531,10 +538,43 @@ newcolumn
   (TDOMNotation) Ready newclass
   (TDOMProcessinginstruction) Ready newclass
   onelevelback
+(TEZcgi) Ready newclass
+(TField) Ready newclass
+  (TBooleanField) Ready newchildclass
+  (TBinaryField) Ready newclass
+    (TBytesField) Ready newchildclass
+      (TVarBytesField) Ready newchildclass
+      onelevelback
+    onelevelback 
+  (TBlobField) Ready newclass
+    (TGraphicsField) Ready newchildclass
+    (TMemoField) Ready newclass
+    onelevelback
+  (TDateTimeField) Ready newclass
+    (TDateField) Ready newchildclass
+    (TTimeField) Ready newclass
+    onelevelback
+  (TNumericField) Ready newclass
+    (TBCDField) Ready newchildclass
+    (TFloatField) Ready newclass
+    (TLongintField) Ready newclass
+      (TAutoIncField) Ready newchildclass
+      onelevelback
+    (TSmallIntField) Ready newclass
+    (TWordField) Ready newclass
+    onelevelback
+  (TStringField) Ready newclass
+  onelevelback
+(TFieldDef) Ready newclass
+(TFieldDefs) Ready newclass
+(TFields) Ready newclass
+newcolumn
 (TFiler) Untested newclass
   (TReader) Untested newchildclass
   (TWriter) Untested newclass
   onelevelback
+(TIndexDef) Untested newclass
+(TIndexDefs) Untested newclass
 (TInifile) Ready newclass
 (TInterface) Missing newclass % 40 mm newclassxmoved
   (TIAddInNotifier) Missing newchildclass
@@ -620,7 +660,10 @@ showpage
 
 %
 %   $Log$
-%   Revision 1.13  1999-09-08 19:50:11  michael
+%   Revision 1.14  1999-10-28 19:53:01  michael
+%   Added many classes
+%
+%   Revision 1.13  1999/09/08 19:50:11  michael
 %   + Added BAse64encodingstream
 %
 %   Revision 1.12  1999/08/29 22:08:57  michael
