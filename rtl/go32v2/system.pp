@@ -151,7 +151,6 @@ type
   end;
 
 var
-  doscmd    : string[128];  { Dos commandline copied from PSP, max is 128 chars }
   old_int00 : tseginfo;cvar;
   old_int75 : tseginfo;cvar;
 
@@ -294,6 +293,23 @@ var
 
 
 procedure setup_arguments;
+type
+  arrayword = array [0..255] of word;
+var
+  psp      : word;
+  proxy_s  : string[50];
+  proxy_argc,proxy_seg,proxy_ofs,lin : longint;
+  rm_argv  : ^arrayword;
+  argv0len : longint;
+  useproxy : boolean;
+  hp       : ppchar;
+  doscmd   : string[129];  { Dos commandline copied from PSP, max is 128 chars +1 for terminating zero }
+  arglen,
+  count   : longint;
+  argstart,
+  pc,arg  : pchar;
+  quote   : char;
+  argvlen : longint;
 
   function atohex(s : pchar) : longint;
   var
@@ -313,80 +329,176 @@ procedure setup_arguments;
     atohex:=rv;
   end;
 
-type
-  arrayword = array [0..255] of word;
-var
-  psp : word;
-  i,j : longint;
-  quote : char;
-  proxy_s : string[50];
-  al,proxy_argc,proxy_seg,proxy_ofs,lin : longint;
-  largs : array[0..127] of pchar;
-  rm_argv : ^arrayword;
-  argv0len : longint;
-  useproxy : boolean;
-  hp : ppchar;
+  procedure allocarg(idx,len:longint);
+  begin
+    if idx>=argvlen then
+     begin
+       argvlen:=(idx+8) and (not 7);
+       sysreallocmem(argv,argvlen*sizeof(pointer));
+     end;
+    { use realloc to reuse already existing memory }
+    if len<>0 then
+     sysreallocmem(argv[idx],len+1);
+  end;
+
 begin
-  fillchar(largs,sizeof(largs),0);
+  count:=0;
+  argc:=1;
+  argv:=nil;
+  argvlen:=0;
+  { load commandline from psp }
   psp:=stub_info^.psp_selector;
-  largs[0]:=dos_argv0;
-  argc := 1;
   sysseg_move(psp, 128, get_ds, longint(@doscmd), 128);
+  doscmd[length(doscmd)+1]:=#0;
 {$IfDef SYSTEM_DEBUG_STARTUP}
   Writeln(stderr,'Dos command line is #',doscmd,'# size = ',length(doscmd));
 {$EndIf }
-
-{ setup cmdline variable }
+  { create argv[0] }
   argv0len:=strlen(dos_argv0);
-  cmdline:=sysgetmem(argv0len+length(doscmd)+1);
+  allocarg(count,argv0len);
+  move(dos_argv0^,argv[count]^,argv0len);
+  inc(count);
+  { setup cmdline variable }
+  cmdline:=Getmem(argv0len+length(doscmd)+2);
   move(dos_argv0^,cmdline^,argv0len);
+  cmdline[argv0len]:=' ';
+  inc(argv0len);
   move(doscmd[1],cmdline[argv0len],length(doscmd));
-  cmdline[argv0len+length(doscmd)]:=#0;
-
-  j := 1;
-  quote := #0;
-  for i:=1 to length(doscmd) do
-   Begin
-     if doscmd[i] = quote then
+  cmdline[argv0len+length(doscmd)+1]:=#0;
+  { parse dos commandline }
+  pc:=@doscmd[1];
+  while pc^<>#0 do
+   begin
+     { skip leading spaces }
+     while pc^ in [#1..#32] do
+      inc(pc);
+     { calc argument length }
+     quote:=' ';
+     argstart:=pc;
+     arglen:=0;
+     while (pc^<>#0) do
       begin
-        quote := #0;
-        if (i>1) and ((doscmd[i-1]='''') or (doscmd[i-1]='"')) then
-          begin
-          j := i+1;
-          doscmd[i] := #0;
-          continue;
-          end;
-        doscmd[i] := #0;
-        largs[argc]:=@doscmd[j];
-        inc(argc);
-        j := i+1;
-      end
-     else
-      if (quote = #0) and ((doscmd[i] = '''') or (doscmd[i]='"')) then
-       begin
-         quote := doscmd[i];
-         j := i + 1;
-       end else
-     if (quote = #0) and ((doscmd[i] = ' ')
-       or (doscmd[i] = #9) or (doscmd[i] = #10) or
-       (doscmd[i] = #12) or (doscmd[i] = #9)) then
-       begin
-       doscmd[i]:=#0;
-       if j<i then
-         begin
-         largs[argc]:=@doscmd[j];
-         inc(argc);
-         j := i+1;
-         end else inc(j);
-       end else
-     if (i = length(doscmd)) then
-       begin
-       doscmd[i+1]:=#0;
-       largs[argc]:=@doscmd[j];
-       inc(argc);
-       end;
-  end;
-
+        case pc^ of
+          #1..#32 :
+            begin
+              if quote<>' ' then
+               inc(arglen)
+              else
+               break;
+            end;
+          '"' :
+            begin
+              if quote<>'''' then
+               begin
+                 if pchar(pc+1)^<>'"' then
+                  begin
+                    if quote='"' then
+                     quote:=' '
+                    else
+                     quote:='"';
+                  end
+                 else
+                  inc(pc);
+               end
+              else
+               inc(arglen);
+            end;
+          '''' :
+            begin
+              if quote<>'"' then
+               begin
+                 if pchar(pc+1)^<>'''' then
+                  begin
+                    if quote=''''  then
+                     quote:=' '
+                    else
+                     quote:='''';
+                  end
+                 else
+                  inc(pc);
+               end
+              else
+               inc(arglen);
+            end;
+          else
+            inc(arglen);
+        end;
+        inc(pc);
+      end;
+     { copy argument }
+     allocarg(count,arglen);
+     quote:=' ';
+     pc:=argstart;
+     arg:=argv[count];
+     while (pc^<>#0) do
+      begin
+        case pc^ of
+          #1..#32 :
+            begin
+              if quote<>' ' then
+               begin
+                 arg^:=pc^;
+                 inc(arg);
+               end
+              else
+               break;
+            end;
+          '"' :
+            begin
+              if quote<>'''' then
+               begin
+                 if pchar(pc+1)^<>'"' then
+                  begin
+                    if quote='"' then
+                     quote:=' '
+                    else
+                     quote:='"';
+                  end
+                 else
+                  inc(pc);
+               end
+              else
+               begin
+                 arg^:=pc^;
+                 inc(arg);
+               end;
+            end;
+          '''' :
+            begin
+              if quote<>'"' then
+               begin
+                 if pchar(pc+1)^<>'''' then
+                  begin
+                    if quote=''''  then
+                     quote:=' '
+                    else
+                     quote:='''';
+                  end
+                 else
+                  inc(pc);
+               end
+              else
+               begin
+                 arg^:=pc^;
+                 inc(arg);
+               end;
+            end;
+          else
+            begin
+              arg^:=pc^;
+              inc(arg);
+            end;
+        end;
+        inc(pc);
+      end;
+     arg^:=#0;
+ {$IfDef SYSTEM_DEBUG_STARTUP}
+     Writeln(stderr,'dos arg ',count,' #',arglen,'#',argv[count],'#');
+ {$EndIf SYSTEM_DEBUG_STARTUP}
+     inc(count);
+   end;
+  argc:=count;
+  { check for !proxy for long commandlines passed using environment }
   hp:=envp;
   useproxy:=false;
   while assigned(hp^) do
@@ -399,54 +511,53 @@ begin
            proxy_s[13]:=#0;
            proxy_s[18]:=#0;
            proxy_s[23]:=#0;
-           largs[2]:=@proxy_s[9];
-           largs[3]:=@proxy_s[14];
-           largs[4]:=@proxy_s[19];
+           argv[2]:=@proxy_s[9];
+           argv[3]:=@proxy_s[14];
+           argv[4]:=@proxy_s[19];
            useproxy:=true;
            break;
          end;
       end;
      inc(hp);
    end;
-
+  { check for !proxy for long commandlines passed using commandline }
   if (not useproxy) and
-     (argc > 1) and (far_strlen(get_ds,longint(largs[1])) = 6)  then
+     (argc > 1) and (far_strlen(get_ds,longint(argv[1])) = 6)  then
    begin
-     move(largs[1]^,proxy_s[1],6);
+     move(argv[1]^,proxy_s[1],6);
      proxy_s[0] := #6;
      if (proxy_s = '!proxy') then
       useproxy:=true;
    end;
-
+  { use proxy when found }
   if useproxy then
    begin
-     proxy_argc := atohex(largs[2]);
-     proxy_seg  := atohex(largs[3]);
-     proxy_ofs := atohex(largs[4]);
+     proxy_argc:=atohex(argv[2]);
+     proxy_seg:=atohex(argv[3]);
+     proxy_ofs:=atohex(argv[4]);
 {$IfDef SYSTEM_DEBUG_STARTUP}
      Writeln(stderr,'proxy command line found');
      writeln(stderr,'argc: ',proxy_argc,' seg: ',proxy_seg,' ofs: ',proxy_ofs);
 {$EndIf SYSTEM_DEBUG_STARTUP}
-     if proxy_argc>128 then
-      proxy_argc:=128;
-     rm_argv := sysgetmem(proxy_argc*sizeof(word));
+     rm_argv:=SysGetmem(proxy_argc*sizeof(word));
      sysseg_move(dos_selector,proxy_seg*16+proxy_ofs, get_ds,longint(rm_argv),proxy_argc*sizeof(word));
-     for i:=0 to proxy_argc - 1 do
+     for count:=0 to proxy_argc - 1 do
       begin
-        lin := proxy_seg*16 + rm_argv^[i];
-        al :=far_strlen(dos_selector, lin);
-        largs[i] := sysgetmem(al+1);
-        sysseg_move(dos_selector, lin, get_ds,longint(largs[i]), al+1);
+        lin:=proxy_seg*16+rm_argv^[count];
+        arglen:=far_strlen(dos_selector,lin);
+        allocarg(count,arglen);
+        sysseg_move(dos_selector,lin,get_ds,longint(argv[count]),arglen+1);
 {$IfDef SYSTEM_DEBUG_STARTUP}
-        Writeln(stderr,'arg ',i,' #',rm_argv^[i],'#',al,'#',largs[i],'#');
+        Writeln(stderr,'arg ',count,' #',rm_argv^[count],'#',arglen,'#',argv[count],'#');
 {$EndIf SYSTEM_DEBUG_STARTUP}
-      end;
-     sysfreemem(rm_argv);
-     argc := proxy_argc;
+    end;
+     SysFreemem(rm_argv);
+     argc:=proxy_argc;
    end;
-  argv := sysgetmem(argc shl 2);
-  for i := 0 to argc-1  do
-   argv[i]:=largs[i];
+  { create an nil entry }
+  allocarg(argc,0);
+  { free unused memory }
+  sysreallocmem(argv,(argc+1)*sizeof(pointer));
   _args:=argv;
 end;
 
@@ -1420,7 +1531,11 @@ Begin
 End.
 {
   $Log$
-  Revision 1.7  2001-03-21 23:29:40  florian
+  Revision 1.8  2001-06-01 22:23:21  peter
+    * same argument parsing -"abc" becomes -abc. This is compatible with
+      delphi and with unix shells (merged)
+
+  Revision 1.7  2001/03/21 23:29:40  florian
     + sLineBreak and misc. stuff for Kylix compatiblity
 
   Revision 1.6  2001/03/21 21:08:20  hajny

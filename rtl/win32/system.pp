@@ -718,67 +718,181 @@ var
   arglen,
   count   : longint;
   argstart,
-  pc      : pchar;
-  quote   : set of char;
-  argsbuf : array[0..127] of pchar;
+  pc,arg  : pchar;
+  quote   : char;
+  argvlen : longint;
+
+  procedure allocarg(idx,len:longint);
+  begin
+    if idx>=argvlen then
+     begin
+       argvlen:=(idx+8) and (not 7);
+       sysreallocmem(argv,argvlen*sizeof(pointer));
+     end;
+    { use realloc to reuse already existing memory }
+    if len<>0 then
+     sysreallocmem(argv[idx],len+1);
+  end;
+
 begin
   { create commandline, it starts with the executed filename which is argv[0] }
   { Win32 passes the command NOT via the args, but via getmodulefilename}
   count:=0;
+  argv:=nil;
+  argvlen:=0;
   pc:=getcommandfile;
   Arglen:=0;
   repeat
     Inc(Arglen);
   until (pc[Arglen]=#0);
-  getmem(argsbuf[count],arglen+1);
-  move(pc^,argsbuf[count]^,arglen);
-  { Now skip the first one }
-  pc:=GetCommandLine;
-  repeat
-    { skip leading spaces }
-    while pc^ in [' ',#9,#13] do
-     inc(pc);
-    case pc^ of
-      #0 : break;
-     '"' : begin
-             quote:=['"'];
-             inc(pc);
-           end;
-    '''' : begin
-             quote:=[''''];
-             inc(pc);
-           end;
-    else
-     quote:=[' ',#9,#13];
-    end;
-  { scan until the end of the argument }
-    argstart:=pc;
-    while (pc^<>#0) and not(pc^ in quote) do
-     inc(pc);
-    { Don't copy the first one, it is already there.}
-    If Count<>0 then
-     begin
-       { reserve some memory }
-       arglen:=pc-argstart;
-       getmem(argsbuf[count],arglen+1);
-       move(argstart^,argsbuf[count]^,arglen);
-       argsbuf[count][arglen]:=#0;
-     end;
-    { skip quote }
-    if pc^ in quote then
-     inc(pc);
-    inc(count);
-  until false;
-{ create argc }
-  argc:=count;
-{ create an nil entry }
-  argsbuf[count]:=nil;
-  inc(count);
-{ create the argv }
-  getmem(argv,count shl 2);
-  move(argsbuf,argv^,count shl 2);
-{ Setup cmdline variable }
+  allocarg(count,arglen);
+  move(pc^,argv[count]^,arglen);
+  { Setup cmdline variable }
   cmdline:=GetCommandLine;
+  { process arguments }
+  pc:=cmdline;
+{$IfDef SYSTEM_DEBUG_STARTUP}
+  Writeln(stderr,'Win32 GetCommandLine is #',pc,'#');
+{$EndIf }
+  while pc^<>#0 do
+   begin
+     { skip leading spaces }
+     while pc^ in [#1..#32] do
+      inc(pc);
+     { calc argument length }
+     quote:=' ';
+     argstart:=pc;
+     arglen:=0;
+     while (pc^<>#0) do
+      begin
+        case pc^ of
+          #1..#32 :
+            begin
+              if quote<>' ' then
+               inc(arglen)
+              else
+               break;
+            end;
+          '"' :
+            begin
+              if quote<>'''' then
+               begin
+                 if pchar(pc+1)^<>'"' then
+                  begin
+                    if quote='"' then
+                     quote:=' '
+                    else
+                     quote:='"';
+                  end
+                 else
+                  inc(pc);
+               end
+              else
+               inc(arglen);
+            end;
+          '''' :
+            begin
+              if quote<>'"' then
+               begin
+                 if pchar(pc+1)^<>'''' then
+                  begin
+                    if quote=''''  then
+                     quote:=' '
+                    else
+                     quote:='''';
+                  end
+                 else
+                  inc(pc);
+               end
+              else
+               inc(arglen);
+            end;
+          else
+            inc(arglen);
+        end;
+        inc(pc);
+      end;
+     { copy argument }
+     { Don't copy the first one, it is already there.}
+     If Count<>0 then
+      begin
+        allocarg(count,arglen);
+        quote:=' ';
+        pc:=argstart;
+        arg:=argv[count];
+        while (pc^<>#0) do
+         begin
+           case pc^ of
+             #1..#32 :
+               begin
+                 if quote<>' ' then
+                  begin
+                    arg^:=pc^;
+                    inc(arg);
+                  end
+                 else
+                  break;
+               end;
+             '"' :
+               begin
+                 if quote<>'''' then
+                  begin
+                    if pchar(pc+1)^<>'"' then
+                     begin
+                       if quote='"' then
+                        quote:=' '
+                       else
+                        quote:='"';
+                     end
+                    else
+                     inc(pc);
+                  end
+                 else
+                  begin
+                    arg^:=pc^;
+                    inc(arg);
+                  end;
+               end;
+             '''' :
+               begin
+                 if quote<>'"' then
+                  begin
+                    if pchar(pc+1)^<>'''' then
+                     begin
+                       if quote=''''  then
+                        quote:=' '
+                       else
+                        quote:='''';
+                     end
+                    else
+                     inc(pc);
+                  end
+                 else
+                  begin
+                    arg^:=pc^;
+                    inc(arg);
+                  end;
+               end;
+             else
+               begin
+                 arg^:=pc^;
+                 inc(arg);
+               end;
+           end;
+           inc(pc);
+         end;
+        arg^:=#0;
+      end;
+ {$IfDef SYSTEM_DEBUG_STARTUP}
+     Writeln(stderr,'dos arg ',count,' #',arglen,'#',argv[count],'#');
+ {$EndIf SYSTEM_DEBUG_STARTUP}
+     inc(count);
+   end;
+  { get argc and create an nil entry }
+  argc:=count;
+  allocarg(argc,0);
+  { free unused memory }
+  sysreallocmem(argv,(argc+1)*sizeof(pointer));
 end;
 
 
@@ -1434,7 +1548,11 @@ end.
 
 {
   $Log$
-  Revision 1.9  2001-03-21 23:29:40  florian
+  Revision 1.10  2001-06-01 22:23:21  peter
+    * same argument parsing -"abc" becomes -abc. This is compatible with
+      delphi and with unix shells (merged)
+
+  Revision 1.9  2001/03/21 23:29:40  florian
     + sLineBreak and misc. stuff for Kylix compatiblity
 
   Revision 1.8  2001/03/21 21:08:20  hajny
