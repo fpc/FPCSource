@@ -14,12 +14,7 @@ packagename=util
 sourcesubdirs=0
 
 [require]
-packages=fcl
-packages_linux=zlib
-packages_os2=paszlib
-packages_win32=paszlib
-packages_go32v2=paszlib
-packages_freebsd=zlib
+packages=fcl paszlib
 
 [tools]
 tooldata2inc=1
