@@ -52,7 +52,7 @@ unit typinfo;
                    tkWString,tkVariant,tkArray,tkRecord,tkInterface,
                    tkClass,tkObject,tkWChar,tkBool);
 
-       TTOrdType = (otSByte,otUByte,otChar,otSWord,otUWord,otWChar,otSLong,otULong);
+       TTOrdType = (otSByte,otUByte,otSWord,otUWord,otSLong,otULong);
 
        TFloatType = (ftSingle,ftDouble,ftExtended,ftComp,ftCurr,
                      ftFixed16,ftFixed32);
@@ -485,6 +485,7 @@ unit typinfo;
 
       var
          value,Index,Ivalue : longint;
+	 TypeInfo: PTypeInfo;
 
       begin
          SetIndexValues(PropInfo,Index,Ivalue);
@@ -497,12 +498,20 @@ unit typinfo;
               Value:=CallIntegerFunc(Instance,PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^,Index,IValue);
          end;
          { cut off unnecessary stuff }
-         case GetTypeData(PropInfo^.PropType)^.OrdType of
-            otSWord,otUWord,otWChar:
-              Value:=Value and $ffff;
-            otSByte,otUByte,otChar:
-              Value:=Value and $ff;
-         end;
+	 TypeInfo := PropInfo^.PropType;
+	 case TypeInfo^.Kind of
+	   tkChar, tkBool:
+	     Value:=Value and $ff;
+	   tkWChar:
+	     Value:=Value and $ffff;
+	   tkInteger:
+	     case GetTypeData(TypeInfo)^.OrdType of
+        	otSWord,otUWord:
+                  Value:=Value and $ffff;
+        	otSByte,otUByte:
+                  Value:=Value and $ff;
+             end;
+	 end;
          GetOrdProp:=Value;
       end;
 
@@ -807,7 +816,10 @@ end.
 
 {
   $Log$
-  Revision 1.33  2000-01-06 00:23:24  pierre
+  Revision 1.34  2000-01-06 01:08:33  sg
+  * _This_ is the real revision 1.32... :-)
+
+  Revision 1.33  2000/01/06 00:23:24  pierre
    * missing declarations for otChar andotWChar added
 
   Revision 1.32  2000/01/05 18:59:56  sg
