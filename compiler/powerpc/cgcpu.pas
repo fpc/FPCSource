@@ -2129,7 +2129,7 @@ const
 {$ifndef newra}
          free_scratch_reg(list,dst.base);
 {$else newra}
-         rg.ungetregisterint(list,dest.base);
+         rg.ungetregisterint(list,dst.base);
 {$endif newra}
        if delsource then
          tg.ungetiftemp(list,source);
@@ -2702,7 +2702,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.113  2003-07-06 20:25:03  jonas
+  Revision 1.114  2003-07-20 16:15:58  jonas
+    * fixed bug in g_concatcopy with -dnewra
+
+  Revision 1.113  2003/07/06 20:25:03  jonas
     * fixed ppc compiler
 
   Revision 1.112  2003/07/05 20:11:42  jonas
