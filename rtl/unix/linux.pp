@@ -1339,6 +1339,7 @@ Function OpenDir(F:String):PDir;
 begin
   F:=F+#0;
   OpenDir:=OpenDir(@F[1]);
+  LinuxError:=ErrNo;
 end;
 
 
@@ -2956,7 +2957,10 @@ End.
 
 {
   $Log$
-  Revision 1.15  2001-08-12 18:08:59  peter
+  Revision 1.16  2001-09-17 21:36:31  peter
+    * merged fixes
+
+  Revision 1.15  2001/08/12 18:08:59  peter
     * Range check fix with epoch (merged)
 
   Revision 1.14  2001/07/16 20:27:30  marco

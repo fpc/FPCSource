@@ -30,9 +30,9 @@ implementation
 
 uses
   Unix,Video
-{$ifndef NOMOUSE}
+{$ifndef NOGPM}
   ,gpm
-{$endif ndef NOMOUSE}
+{$endif ndef NOGPM}
   ;
 
 const
@@ -82,11 +82,11 @@ var
 {$endif ndef NOGPM}
 begin
 {$ifndef NOMOUSE}
-{$ifndef NOGPM}
   PendingMouseHead:=@PendingMouseEvent;
   PendingMouseTail:=@PendingMouseEvent;
   PendingMouseEvents:=0;
   FillChar(LastMouseEvent,sizeof(TMouseEvent),0);
+{$ifndef NOGPM}
   if gpm_fs=-1 then
     begin
     { open gpm }
@@ -405,7 +405,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2001-08-05 12:24:20  peter
+  Revision 1.4  2001-09-17 21:36:31  peter
+    * merged fixes
+
+  Revision 1.3  2001/08/05 12:24:20  peter
     * m68k merges
 
   Revision 1.2  2001/01/21 20:21:40  marco
