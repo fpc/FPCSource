@@ -304,7 +304,7 @@ end;
                           Init / Exit / ExitProc
 *****************************************************************************}
 
-Procedure HandleError (Errno : longint);[alias : 'FPC_HANDLEERROR'];
+Procedure HandleError (Errno : longint);[public,alias : 'FPC_HANDLEERROR'];
 {
   Procedure to handle internal errors, i.e. not user-invoked errors
   Internal function should ALWAYS call HandleError instead of RunError.
@@ -475,7 +475,10 @@ end;
 
 {
   $Log$
-  Revision 1.37  1998-10-07 11:40:08  jonas
+  Revision 1.38  1998-10-12 12:43:37  florian
+    * made FPC_HANDLEERROR public
+
+  Revision 1.37  1998/10/07 11:40:08  jonas
     * changed seed2 and seed3 to cardinal to prevent overflow
 
   Revision 1.36  1998/10/05 12:32:51  peter
