@@ -24,19 +24,20 @@ unit cresstr;
   interface
 
     procedure insertresourcestrings;
-    procedure registerresourcestring(p : pchar;len : longint);
+    procedure registerresourcestring(Const name : string;p : pchar;len,hash : longint);
     function calc_resstring_hashvalue(p : pchar;len : longint) : longint;
 
   implementation
 
     uses
-       aasm,verbose,files;
+       globals,aasm,verbose,files;
 
     const
        { we can use a static constant because we compile a program only once }
        { per compiler call                                                   }
        resstrcount : longint = 0;
-
+       resourcefilename = 'resource.rst';
+       
     { calcs the hash value for a give resourcestring, len is }
     { necessary because the resourcestring can contain #0    }
     function calc_resstring_hashvalue(p : pchar;len : longint) : longint;
@@ -45,7 +46,7 @@ unit cresstr;
 
       begin
          hash:=len;
-         For I:=0 to Len-1 do
+         For I:=0 to Len-2 do // 0 terminated
            begin
            hash:=hash shl 4;
            inc(Hash,Ord(p[i]));
@@ -71,25 +72,85 @@ unit cresstr;
          resourcestringlist^.insert(new(pai_symbol,initname_global('RESOURCESTRINGLIST')));
       end;
 
-    procedure registerresourcestring(p : pchar;len : longint);
+    Procedure AppendToResourceFile(const name : string;p : pchar;len,hash : longint);
+    
+    Type
+       TMode = (quoted,unquoted);
+    
+    Var F : Text;
+        Mode : TMode;
+        C : char;
+        Col,i : longint;
+        
+       Procedure Add(Const S : String);
+       
+       begin
+         Write(F,S);
+         Col:=Col+length(s);
+       end;
+        
+    begin
+      Assign(F,ResourceFileName);
+      Append(f);
+      writeln(f);
+      Writeln (f,'# hash value = ',hash);
+      Add(Name+'=');
+      Mode:=unquoted;
+      col:=0;
+      For I:=0 to Len do
+        begin
+        C:=P[i];
+        If (ord(C)>31) and (Ord(c)<=128) and (c<>'''') then
+          begin
+          If mode=Quoted then 
+            Add(c)
+          else
+            begin
+            Add(''''+c);
+            mode:=quoted
+            end
+          end
+        else
+          begin
+          If Mode=quoted then
+            begin
+            Add('''');
+            mode:=unquoted;
+            end;
+          Add('#'+tostr(ord(c)));  
+          end;
+        If Col>72 then
+          begin 
+          if mode=quoted then
+            Write (F,'''');
+          Writeln(F,'+');
+          Col:=0;
+          Mode:=unQuoted;
+          end;
+        end;
+      if mode=quoted then writeln (f,'''');  
+      Writeln(f);
+      close(f);
+    end;
+
+    procedure registerresourcestring(const name : string;p : pchar;len,hash : longint);
 
       var
          l1 : pasmlabel;
          s : pchar;
 
       begin
-         { shall we generate a po file? }
-         { !!!!!! not yet implemented   }
-
          { we don't need to generate consts in units }
-         if current_module^.is_unit then
+         if (main_module^.is_unit) then
            exit;
 
          if not(assigned(resourcestringlist)) then
            resourcestringlist:=new(paasmoutput,init);
 
          inc(resstrcount);
-
+         
+         AppendToResourceFile(Name,P,Len,Hash);  
+         
          { an empty ansi string is nil! }
          if (p=nil) or (len=0) then
            resourcestringlist^.concat(new(pai_const,init_32bit(0)))
@@ -112,14 +173,16 @@ unit cresstr;
               consts^.concat(new(pai_const,init_8bit(0)));
            end;
          resourcestringlist^.concat(new(pai_const,init_32bit(0)));
-         resourcestringlist^.concat(new(pai_const,init_32bit(
-           calc_resstring_hashvalue(p,len))));
+         resourcestringlist^.concat(new(pai_const,init_32bit(hash)));
       end;
 
 end.
 {
   $Log$
-  Revision 1.2  1999-07-22 20:04:58  michael
+  Revision 1.3  1999-07-24 15:12:58  michael
+  changes for resourcestrings
+
+  Revision 1.2  1999/07/22 20:04:58  michael
   + Added computehashvalue
 
   Revision 1.1  1999/07/22 09:34:04  florian

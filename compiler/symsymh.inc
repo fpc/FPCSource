@@ -283,6 +283,7 @@
        tconstsym = object(tsym)
           definition : pdef;
           consttype  : tconsttype;
+          reshash,    { needed for resource strings }
           value,
           len        : longint; { len is needed for string length }
           constructor init(const n : string;t : tconsttype;v : longint);
@@ -332,7 +333,10 @@
 
 {
   $Log$
-  Revision 1.27  1999-07-22 09:37:57  florian
+  Revision 1.28  1999-07-24 15:13:01  michael
+  changes for resourcestrings
+
+  Revision 1.27  1999/07/22 09:37:57  florian
     + resourcestring implemented
     + start of longstring support
 

@@ -1487,6 +1487,7 @@
          typ:=constsym;
          consttype:=t;
          value:=v;
+         reshash:=0;
          definition:=nil;
          len:=0;
       end;
@@ -1512,7 +1513,10 @@
          definition:=nil;
          len:=l;
          if t=constresourcestring then
-           registerresourcestring(pchar(value),len);
+           begin
+           reshash:=calc_resstring_hashvalue(pchar(value),len);
+           registerresourcestring(name,pchar(value),len,reshash);
+           end;
       end;
 
     constructor tconstsym.load;
@@ -1538,7 +1542,10 @@
                getmem(pchar(value),len+1);
                current_ppu^.getdata(pchar(value)^,len);
                if consttype=constresourcestring then
-                 registerresourcestring(pchar(value),len);
+                 begin
+                 reshash:=readlong;
+                 registerresourcestring(name,pchar(value),len,reshash);
+                 end;
              end;
            constreal :
              begin
@@ -1606,6 +1613,8 @@
              begin
                writelong(len);
                current_ppu^.putdata(pchar(value)^,len);
+               If consttype = constresourcestring then
+                 writelong(reshash);
              end;
            constreal :
              writereal(pbestreal(value)^);
@@ -2002,7 +2011,10 @@
 
 {
   $Log$
-  Revision 1.102  1999-07-24 13:36:23  michael
+  Revision 1.103  1999-07-24 15:12:59  michael
+  changes for resourcestrings
+
+  Revision 1.102  1999/07/24 13:36:23  michael
   * Fixed resourcestring writing to units
 
   Revision 1.101  1999/07/23 20:59:23  peter
