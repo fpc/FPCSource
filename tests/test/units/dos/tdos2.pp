@@ -9,25 +9,6 @@ Program TestDos;
 
 Uses Dos;
 
-{----------------------------------------------------------------------}
-{ The following routines are not portable, and therefore have not been }
-{ added in this test unit:                                             }
-{----------------------------------------------------------------------}
-{ o GetIntVec                                                          }
-{ o SetIntVec                                                          }
-{ o Intr                                                               }
-{ o Keep                                                               }
-{ o MSDOS                                                              }
-{ o Swapvectors (can't really be tested)                               }
-{----------------------------------------------------------------------}
-{ ROUTINES LEFT TO DO:
-DosExitCode | Func | Returns the exit code of a subprocess.
-Exec        | Proc | Executes a specified program with a specified command
-            |      | line.
-FExpand     | Func | Expands a file name into a fully-qualified file name.
-FSearch     | Func | Searches for a file.
-GetEnv      | Func | Returns the value of a specified environment variable.
-}
 {**********************************************************************}
 { Some specific OS verifications : }
 { Mainly for file attributes:      }
@@ -228,19 +209,29 @@ Begin
  else
   Begin
     WriteLn(s+'FAILURE.');
-{    Halt;}
   end;
  s:='Testing GetVerify...';
  SetVerify(FALSE);
  CheckDosError(0);
  GetVerify(b);
  CheckDosError(0);
+{ verify actually only works under dos       }  
+{ and always returns TRUE on other platforms }
+{$ifdef go32v2} 
  if NOT b then
    WriteLn(s+'Success.')
  else
   Begin
     WriteLn(s+'FAILURE.');
   end;
+{$else}  
+ if b then
+   WriteLn(s+'Success.')
+ else
+  Begin
+    WriteLn(s+'FAILURE.');
+  end;
+{$endif}  
  PauseScreen;
 end;
 
@@ -264,6 +255,8 @@ Begin
   Begin
     WriteLn(s+'FAILURE.');
   end;
+{ actually setting Ctrl-C only works under DOS }  
+{$ifdef go32v2}  
  s:='Testing GetCBreak...';
  SetCBreak(FALSE);
  CheckDosError(0);
@@ -275,6 +268,7 @@ Begin
   Begin
     WriteLn(s+'FAILURE.');
   end;
+{$endif}  
  PauseScreen;
 end;
 
@@ -301,24 +295,15 @@ Begin
  Write('DD-MM-YYYY : ',Day,'-',Month,'-',Year);
  WriteLn(' (',Week[DayOfWeek],')');
  PauseScreen;
+  
  WriteLn('----------------------------------------------------------------------');
  WriteLn('                            SETDATE                                   ');
  WriteLn('----------------------------------------------------------------------');
-{ WriteLn(' Note: GetDate should return the same value as previous test.         ');
- WriteLn('----------------------------------------------------------------------');}
- { We'll change each field to an invalid field separately }
- s:='Testing with invalid year....';
- SetDate(2200,Month,Day);
+ { normal call }
+ SetDate(Year,Month,Day);
  CheckDosError(0);
- GetDate(Year1,Month1,Day1,DayOfWeek1);
- CheckDosError(0);
- if (Year1 <> Year) or (Month1 <> month) or (Day1 <> Day) then
-  Begin
-     WriteLn(s+'FAILURE.');
-  end
- else
-  WriteLn(s+'Success.');
-
+ { setdate and settime is not supported on most platforms }
+{$ifdef go32v2}
  s:='Testing with invalid year....';
  SetDate(98,Month,Day);
  CheckDosError(0);
@@ -372,6 +357,7 @@ Begin
  CheckDosError(0);
  WriteLn('DD-MM-YYYY : ',Day1,'-',Month1,'-',Year1);
  PauseScreen;
+{$endif}
 end;
 
 Procedure TestsystemTime;
@@ -402,6 +388,8 @@ Begin
  GetTime(Hour1,Minute1,Second1,Sec1001);
  CheckDosError(0);
  WriteLn('HH:MIN:SEC ',Hour1,':',Minute1,':',Second1);
+ { actual settime is only supported under DOS }
+{$ifdef go32v2} 
  SetTime(Hour,32000,Second,Sec100);
  CheckDosError(0);
  GetTime(Hour1,Minute1,Second1,Sec1001);
@@ -423,6 +411,7 @@ Begin
  GetTime(Hour1,Minute1,Second1,Sec1001);
  CheckDosError(0);
  WriteLn('HH:MIN:SEC ',Hour1,':',Minute1,':',Second1);
+ {$endif}
 end;
 
 
@@ -953,8 +942,7 @@ var
  F: File;
  Attr : Word;
 Begin
-{ ClrScr;}
- { TestdiskSize; }
+ TestDiskSize;
  TestDosVersion;
  TestEnvCount;
  TestVerify;
@@ -982,17 +970,11 @@ Begin
 end.
 
 {
-DosExitCode | Func | Returns the exit code of a subprocess.
-Exec        | Proc | Executes a specified program with a specified command
-            |      | line.
-FExpand     | Func | Expands a file name into a fully-qualified file name.
-FSearch     | Func | Searches for a file.
-GetEnv      | Func | Returns the value of a specified environment variable.
-}
-
-{
   $Log$
-  Revision 1.5  2001-08-12 18:55:00  carl
+  Revision 1.6  2001-11-23 01:57:30  carl
+  * updated some tests so they work on other systems
+
+  Revision 1.5  2001/08/12 18:55:00  carl
   + added printing the number of ENV vars.
 
   Revision 1.4  2001/08/09 01:14:57  carl
