@@ -988,7 +988,9 @@ implementation
                     include(vs.varoptions,vo_is_dll_var)
                    else
                     include(vs.varoptions,vo_is_C_var);
-                   vs.set_mangledname(C_Name);
+                   if (not is_dll) or
+                      (target_info.system <> system_powerpc_darwin) then
+                     vs.set_mangledname(C_Name);
                    if export_var then
                     begin
                       inc(vs.refs);
@@ -1165,7 +1167,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.69  2004-03-04 17:24:42  peter
+  Revision 1.70  2004-03-05 21:13:22  jonas
+    * fixed wrong name mangling for imported variables under Darwin
+
+  Revision 1.69  2004/03/04 17:24:42  peter
     * support enums in property array ranges
 
   Revision 1.68  2004/02/26 16:10:23  peter
