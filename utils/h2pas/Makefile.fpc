@@ -1,9 +1,8 @@
 #
-#   Makefile.fpc for shedit
+#   Makefile.fpc for h2pas
 #
 
 [targets]
-units=
 programs=h2pas
 
 [clean]
@@ -54,4 +53,3 @@ yacc:
 lex :
         $(PLEX) scan.l
 endif
-
