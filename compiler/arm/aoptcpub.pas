@@ -24,6 +24,8 @@
 }
 Unit aoptcpub; { Assembler OPTimizer CPU specific Base }
 
+{$i fpcdefs.inc}
+
 { enable the following define if memory references can have both a base and }
 { index register in 1 operand                                               }
 
@@ -41,7 +43,7 @@ Unit aoptcpub; { Assembler OPTimizer CPU specific Base }
 Interface
 
 Uses
-  aasmcpu,AOptBase;
+  cpubase,aasmcpu,AOptBase;
 
 Type
 
@@ -62,7 +64,7 @@ Type
 { **************************** TAoptBaseCpu ******************************* }
 { ************************************************************************* }
 
-  TAoptBaseCpu = Object(TAoptBase)
+  TAoptBaseCpu = class(TAoptBase)
   End;
 
 
@@ -100,6 +102,9 @@ Const
 
   StoreDst = 1;
 
+  aopt_uncondjmp = A_B;
+  aopt_condjmp = A_B;
+    
 Implementation
 
 { ************************************************************************* }
@@ -117,7 +122,10 @@ End.
 
 {
  $Log$
- Revision 1.1  2005-02-20 19:11:04  florian
+ Revision 1.2  2005-02-20 19:36:03  florian
+   * optimizer files fixed
+
+ Revision 1.1  2005/02/20 19:11:04  florian
    * initial commit
 
  Revision 1.7  2005/02/14 17:13:10  peter

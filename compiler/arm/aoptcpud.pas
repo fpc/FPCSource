@@ -24,14 +24,15 @@
 }
 Unit aoptcpud;
 
+{$i fpcdefs.inc}
+
 Interface
 
 uses
   AOptDA;
 
 Type
-  PAOptDFACpu = ^TAOptDFACpu;
-  TAOptDFACpu = Object(TAOptDFA)
+  TAOptDFACpu = class(TAOptDFA)
   End;
 
 Implementation
@@ -41,7 +42,10 @@ End.
 
 {
   $Log$
-  Revision 1.1  2005-02-20 19:11:04  florian
+  Revision 1.2  2005-02-20 19:36:03  florian
+    * optimizer files fixed
+
+  Revision 1.1  2005/02/20 19:11:04  florian
     * initial commit
 
   Revision 1.6  2005/02/14 17:13:10  peter

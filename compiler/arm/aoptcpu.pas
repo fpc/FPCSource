@@ -25,12 +25,14 @@
 
 Unit aoptcpu;
 
+{$i fpcdefs.inc}
+
 Interface
 
 uses cpubase, aoptobj, aoptcpub;
 
 Type
-  TAOptCpu = Object(TAoptObj)
+  TAOptCpu = class(TAoptObj)
     { uses the same constructor as TAopObj }
   End;
 
@@ -39,7 +41,10 @@ Implementation
 End.
 {
  $Log$
- Revision 1.1  2005-02-20 19:11:04  florian
+ Revision 1.2  2005-02-20 19:36:03  florian
+   * optimizer files fixed
+
+ Revision 1.1  2005/02/20 19:11:04  florian
    * initial commit
 
  Revision 1.6  2005/02/14 17:13:10  peter
