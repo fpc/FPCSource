@@ -96,7 +96,7 @@ uses
   dos,
 {$endif Delphi}
   verbose,comphook,systems,
-  cutils,cobjects,globals,options,fmodule,parser,symtable,
+  cutils,cclasses,globals,options,fmodule,parser,symtable,
   link,import,export,tokens,
   { cpu overrides }
   cpuswtch,cpunode
@@ -224,13 +224,13 @@ function Compile(const cmd:string):longint;
 
   procedure writepathlist(w:longint;l:TSearchPathList);
   var
-    hp : pstringqueueitem;
+    hp : tstringlistitem;
   begin
-    hp:=l.first;
+    hp:=tstringlistitem(l.first);
     while assigned(hp) do
      begin
-       Message1(w,hp^.data^);
-       hp:=hp^.next;
+       Message1(w,hp.str);
+       hp:=tstringlistitem(hp.next);
      end;
   end;
 
@@ -321,7 +321,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  2000-12-24 12:24:38  peter
+  Revision 1.14  2000-12-25 00:07:25  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.13  2000/12/24 12:24:38  peter
     * moved preprocessfile into a conditional
 
   Revision 1.11  2000/11/29 00:30:30  florian

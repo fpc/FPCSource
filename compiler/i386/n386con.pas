@@ -79,7 +79,7 @@ implementation
           (ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_none,ait_none);
 
       var
-         hp1 : pai;
+         hp1 : tai;
          lastlabel : pasmlabel;
          realait : tait;
 
@@ -104,20 +104,20 @@ implementation
               if not assigned(lab_real) then
                 begin
                    { tries to find an old entry }
-                   hp1:=pai(consts^.first);
+                   hp1:=tai(Consts.first);
                    while assigned(hp1) do
                      begin
-                        if hp1^.typ=ait_label then
-                          lastlabel:=pai_label(hp1)^.l
+                        if hp1.typ=ait_label then
+                          lastlabel:=tai_label(hp1).l
                         else
                           begin
-                             if (hp1^.typ=realait) and (lastlabel<>nil) then
+                             if (hp1.typ=realait) and (lastlabel<>nil) then
                                begin
                                   if(
-                                     ((realait=ait_real_32bit) and (pai_real_32bit(hp1)^.value=value_real)) or
-                                     ((realait=ait_real_64bit) and (pai_real_64bit(hp1)^.value=value_real)) or
-                                     ((realait=ait_real_80bit) and (pai_real_80bit(hp1)^.value=value_real)) or
-                                     ((realait=ait_comp_64bit) and (pai_comp_64bit(hp1)^.value=value_real))
+                                     ((realait=ait_real_32bit) and (tai_real_32bit(hp1).value=value_real)) or
+                                     ((realait=ait_real_64bit) and (tai_real_64bit(hp1).value=value_real)) or
+                                     ((realait=ait_real_80bit) and (tai_real_80bit(hp1).value=value_real)) or
+                                     ((realait=ait_comp_64bit) and (tai_comp_64bit(hp1).value=value_real))
                                     ) then
                                     begin
                                        { found! }
@@ -127,7 +127,7 @@ implementation
                                end;
                              lastlabel:=nil;
                           end;
-                        hp1:=pai(hp1^.next);
+                        hp1:=tai(hp1.next);
                      end;
                    { :-(, we must generate a new entry }
                    if not assigned(lab_real) then
@@ -135,17 +135,17 @@ implementation
                         getdatalabel(lastlabel);
                         lab_real:=lastlabel;
                         if (cs_create_smart in aktmoduleswitches) then
-                         consts^.concat(new(pai_cut,init));
-                        consts^.concat(new(pai_label,init(lastlabel)));
+                         Consts.concat(Tai_cut.Create);
+                        Consts.concat(Tai_label.Create(lastlabel));
                         case realait of
                           ait_real_32bit :
-                            consts^.concat(new(pai_real_32bit,init(value_real)));
+                            Consts.concat(Tai_real_32bit.Create(value_real));
                           ait_real_64bit :
-                            consts^.concat(new(pai_real_64bit,init(value_real)));
+                            Consts.concat(Tai_real_64bit.Create(value_real));
                           ait_real_80bit :
-                            consts^.concat(new(pai_real_80bit,init(value_real)));
+                            Consts.concat(Tai_real_80bit.Create(value_real));
                           ait_comp_64bit :
-                            consts^.concat(new(pai_comp_64bit,init(value_real)));
+                            Consts.concat(Tai_comp_64bit.Create(value_real));
                         else
                           internalerror(10120);
                         end;
@@ -185,10 +185,10 @@ implementation
            begin
               getdatalabel(l);
               if (cs_create_smart in aktmoduleswitches) then
-                consts^.concat(new(pai_cut,init));
-              consts^.concat(new(pai_label,init(l)));
-              consts^.concat(new(pai_const,init_32bit(longint(lo(value)))));
-              consts^.concat(new(pai_const,init_32bit(longint(hi(value)))));
+                Consts.concat(Tai_cut.Create);
+              Consts.concat(Tai_label.Create(l));
+              Consts.concat(Tai_const.Create_32bit(longint(lo(value))));
+              Consts.concat(Tai_const.Create_32bit(longint(hi(value))));
               reset_reference(location.reference);
               location.reference.symbol:=l;
            end
@@ -220,7 +220,7 @@ implementation
 
     procedure ti386stringconstnode.pass_2;
       var
-         hp1 : pai;
+         hp1 : tai;
          l1,l2,
          lastlabel   : pasmlabel;
          pc       : pchar;
@@ -249,11 +249,11 @@ implementation
               if not(is_widestring(resulttype)) then
                 begin
                   { tries to found an old entry }
-                  hp1:=pai(consts^.first);
+                  hp1:=tai(Consts.first);
                   while assigned(hp1) do
                     begin
-                       if hp1^.typ=ait_label then
-                         lastlabel:=pai_label(hp1)^.l
+                       if hp1.typ=ait_label then
+                         lastlabel:=tai_label(hp1).l
                        else
                          begin
                             { when changing that code, be careful that }
@@ -262,15 +262,15 @@ implementation
                             { currently, this is no problem, because   }
                             { typed consts have no leading length or   }
                             { they have no trailing zero           }
-                            if (hp1^.typ=ait_string) and (lastlabel<>nil) and
-                               (pai_string(hp1)^.len=mylength) then
+                            if (hp1.typ=ait_string) and (lastlabel<>nil) and
+                               (tai_string(hp1).len=mylength) then
                               begin
                                  same_string:=true;
                                  { if shortstring then check the length byte first and
                                    set the start index to 1 }
                                  if is_shortstring(resulttype) then
                                   begin
-                                    if len<>ord(pai_string(hp1)^.str[0]) then
+                                    if len<>ord(tai_string(hp1).str[0]) then
                                      same_string:=false;
                                     j:=1;
                                   end
@@ -281,7 +281,7 @@ implementation
                                   begin
                                     for i:=0 to len do
                                      begin
-                                       if pai_string(hp1)^.str[j]<>value_str[i] then
+                                       if tai_string(hp1).str[j]<>value_str[i] then
                                         begin
                                           same_string:=false;
                                           break;
@@ -297,8 +297,8 @@ implementation
                                     if (stringtype in [st_ansistring,st_widestring]) then
                                      begin
                                        getdatalabel(l2);
-                                       consts^.concat(new(pai_label,init(l2)));
-                                       consts^.concat(new(pai_const_symbol,init(lab_str)));
+                                       Consts.concat(Tai_label.Create(l2));
+                                       Consts.concat(Tai_const_symbol.Create(lab_str));
                                        { return the offset of the real string }
                                        lab_str:=l2;
                                      end;
@@ -307,7 +307,7 @@ implementation
                               end;
                             lastlabel:=nil;
                          end;
-                       hp1:=pai(hp1^.next);
+                       hp1:=tai(hp1.next);
                     end;
                 end;
               { :-(, we must generate a new entry }
@@ -316,31 +316,31 @@ implementation
                    getdatalabel(lastlabel);
                    lab_str:=lastlabel;
                    if (cs_create_smart in aktmoduleswitches) then
-                    consts^.concat(new(pai_cut,init));
-                   consts^.concat(new(pai_label,init(lastlabel)));
+                    Consts.concat(Tai_cut.Create);
+                   Consts.concat(Tai_label.Create(lastlabel));
                    { generate an ansi string ? }
                    case stringtype of
                       st_ansistring:
                         begin
                            { an empty ansi string is nil! }
                            if len=0 then
-                             consts^.concat(new(pai_const,init_32bit(0)))
+                             Consts.concat(Tai_const.Create_32bit(0))
                            else
                              begin
                                 getdatalabel(l1);
                                 getdatalabel(l2);
-                                consts^.concat(new(pai_label,init(l2)));
-                                consts^.concat(new(pai_const_symbol,init(l1)));
-                                consts^.concat(new(pai_const,init_32bit(len)));
-                                consts^.concat(new(pai_const,init_32bit(len)));
-                                consts^.concat(new(pai_const,init_32bit(-1)));
-                                consts^.concat(new(pai_label,init(l1)));
+                                Consts.concat(Tai_label.Create(l2));
+                                Consts.concat(Tai_const_symbol.Create(l1));
+                                Consts.concat(Tai_const.Create_32bit(len));
+                                Consts.concat(Tai_const.Create_32bit(len));
+                                Consts.concat(Tai_const.Create_32bit(-1));
+                                Consts.concat(Tai_label.Create(l1));
                                 getmem(pc,len+2);
                                 move(value_str^,pc^,len);
                                 pc[len]:=#0;
                                 { to overcome this problem we set the length explicitly }
                                 { with the ending null char }
-                                consts^.concat(new(pai_string,init_length_pchar(pc,len+1)));
+                                Consts.concat(Tai_string.Create_length_pchar(pc,len+1));
                                 { return the offset of the real string }
                                 lab_str:=l2;
                              end;
@@ -349,24 +349,24 @@ implementation
                         begin
                            { an empty wide string is nil! }
                            if len=0 then
-                             consts^.concat(new(pai_const,init_32bit(0)))
+                             Consts.concat(Tai_const.Create_32bit(0))
                            else
                              begin
                                 getdatalabel(l1);
                                 getdatalabel(l2);
-                                consts^.concat(new(pai_label,init(l2)));
-                                consts^.concat(new(pai_const_symbol,init(l1)));
+                                Consts.concat(Tai_label.Create(l2));
+                                Consts.concat(Tai_const_symbol.Create(l1));
 
                                 { we use always UTF-16 coding for constants }
                                 { at least for now                          }
-                                consts^.concat(new(pai_const,init_8bit(2)));
-                                consts^.concat(new(pai_const,init_32bit(len)));
-                                consts^.concat(new(pai_const,init_32bit(len)));
-                                consts^.concat(new(pai_const,init_32bit(-1)));
-                                consts^.concat(new(pai_label,init(l1)));
+                                Consts.concat(Tai_const.Create_8bit(2));
+                                Consts.concat(Tai_const.Create_32bit(len));
+                                Consts.concat(Tai_const.Create_32bit(len));
+                                Consts.concat(Tai_const.Create_32bit(-1));
+                                Consts.concat(Tai_label.Create(l1));
                                 for i:=0 to len-1 do
-                                  consts^.concat(new(pai_const,init_16bit(
-                                    pcompilerwidestring(value_str)^.data[i])));
+                                  Consts.concat(Tai_const.Create_16bit(
+                                    pcompilerwidestring(value_str)^.data[i]));
                                 { return the offset of the real string }
                                 lab_str:=l2;
                              end;
@@ -385,7 +385,7 @@ implementation
                           { to overcome this problem we set the length explicitly }
                           { with the ending null char }
                           pc[l+1]:=#0;
-                          consts^.concat(new(pai_string,init_length_pchar(pc,l+2)));
+                          Consts.concat(Tai_string.Create_length_pchar(pc,l+2));
                         end;
                    end;
                 end;
@@ -402,7 +402,7 @@ implementation
 
     procedure ti386setconstnode.pass_2;
       var
-         hp1     : pai;
+         hp1     : tai;
          lastlabel   : pasmlabel;
          i         : longint;
          neededtyp   : tait;
@@ -424,25 +424,25 @@ implementation
         if not assigned(lab_set) then
           begin
              { tries to found an old entry }
-             hp1:=pai(consts^.first);
+             hp1:=tai(Consts.first);
              while assigned(hp1) do
                begin
-                  if hp1^.typ=ait_label then
-                    lastlabel:=pai_label(hp1)^.l
+                  if hp1.typ=ait_label then
+                    lastlabel:=tai_label(hp1).l
                   else
                     begin
-                      if (lastlabel<>nil) and (hp1^.typ=neededtyp) then
+                      if (lastlabel<>nil) and (hp1.typ=neededtyp) then
                         begin
-                          if (hp1^.typ=ait_const_8bit) then
+                          if (hp1.typ=ait_const_8bit) then
                            begin
                              { compare normal set }
                              i:=0;
                              while assigned(hp1) and (i<32) do
                               begin
-                                if pai_const(hp1)^.value<>value_set^[i] then
+                                if tai_const(hp1).value<>value_set^[i] then
                                  break;
                                 inc(i);
-                                hp1:=pai(hp1^.next);
+                                hp1:=tai(hp1.next);
                               end;
                              if i=32 then
                               begin
@@ -451,14 +451,14 @@ implementation
                                 break;
                               end;
                              { leave when the end of consts is reached, so no
-                               hp1^.next is done }
+                               hp1.next is done }
                              if not assigned(hp1) then
                               break;
                            end
                           else
                            begin
                              { compare small set }
-                             if plongint(value_set)^=pai_const(hp1)^.value then
+                             if plongint(value_set)^=tai_const(hp1).value then
                               begin
                                 { found! }
                                 lab_set:=lastlabel;
@@ -468,7 +468,7 @@ implementation
                         end;
                       lastlabel:=nil;
                     end;
-                  hp1:=pai(hp1^.next);
+                  hp1:=tai(hp1.next);
                end;
              { :-(, we must generate a new entry }
              if not assigned(lab_set) then
@@ -476,17 +476,17 @@ implementation
                  getdatalabel(lastlabel);
                  lab_set:=lastlabel;
                  if (cs_create_smart in aktmoduleswitches) then
-                  consts^.concat(new(pai_cut,init));
-                 consts^.concat(new(pai_label,init(lastlabel)));
+                  Consts.concat(Tai_cut.Create);
+                 Consts.concat(Tai_label.Create(lastlabel));
                  if psetdef(resulttype)^.settype=smallset then
                   begin
                     move(value_set^,i,sizeof(longint));
-                    consts^.concat(new(pai_const,init_32bit(i)));
+                    Consts.concat(Tai_const.Create_32bit(i));
                   end
                  else
                   begin
                     for i:=0 to 31 do
-                      consts^.concat(new(pai_const,init_8bit(value_set^[i])));
+                      Consts.concat(Tai_const.Create_8bit(value_set^[i]));
                   end;
                end;
           end;
@@ -518,7 +518,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-11-29 00:30:47  florian
+  Revision 1.6  2000-12-25 00:07:32  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.5  2000/11/29 00:30:47  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

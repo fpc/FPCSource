@@ -690,10 +690,10 @@ implementation
                 getdatalabel(l1);
                 getlabel(l2);
                 emitjmp(C_Z,l2);
-                consts^.concat(new(pai_label,init(l1)));
+                Consts.concat(Tai_label.Create(l1));
                 { I got this constant from a test progtram (FK) }
-                consts^.concat(new(pai_const,init_32bit(0)));
-                consts^.concat(new(pai_const,init_32bit(1138753536)));
+                Consts.concat(Tai_const.Create_32bit(0));
+                Consts.concat(Tai_const.Create_32bit(1138753536));
                 r:=new_reference(R_NO,0);
                 r^.symbol:=l1;
                 emit_ref(A_FADD,S_FL,r);
@@ -1227,14 +1227,14 @@ implementation
               begin
                  del_reference(left.location.reference);
                  hreg:=getregister32;
-                 exprasmlist^.concat(new(paicpu,op_ref_reg(
-                   A_MOV,S_L,newreference(left.location.reference),hreg)));
+                 exprasmList.concat(Taicpu.Op_ref_reg(
+                   A_MOV,S_L,newreference(left.location.reference),hreg));
               end;
             LOC_CREGISTER:
               begin
                  hreg:=getregister32;
-                 exprasmlist^.concat(new(paicpu,op_reg_reg(
-                   A_MOV,S_L,left.location.register,hreg)));
+                 exprasmList.concat(Taicpu.Op_reg_reg(
+                   A_MOV,S_L,left.location.register,hreg));
               end;
             LOC_REGISTER:
               hreg:=left.location.register;
@@ -1493,7 +1493,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2000-12-07 17:19:46  jonas
+  Revision 1.11  2000-12-25 00:07:32  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.10  2000/12/07 17:19:46  jonas
     * new constant handling: from now on, hex constants >$7fffffff are
       parsed as unsigned constants (otherwise, $80000000 got sign extended
       and became $ffffffff80000000), all constants in the longint range

@@ -727,7 +727,7 @@ implementation
     function _asm_statement : tnode;
       var
         asmstat : tasmnode;
-        Marker : Pai;
+        Marker : tai;
       begin
          Inside_asm_statement:=true;
          case aktasmmode of
@@ -823,10 +823,10 @@ implementation
            this is needed for the optimizer }
          If Assigned(AsmStat.p_asm) Then
            Begin
-             Marker := New(Pai_Marker, Init(AsmBlockStart));
-             AsmStat.p_asm^.Insert(Marker);
-             Marker := New(Pai_Marker, Init(AsmBlockEnd));
-             AsmStat.p_asm^.Concat(Marker);
+             Marker := Tai_Marker.Create(AsmBlockStart);
+             AsmStat.p_asm.Insert(Marker);
+             Marker := Tai_Marker.Create(AsmBlockEnd);
+             AsmStat.p_asm.Concat(Marker);
            End;
          Inside_asm_statement:=false;
          _asm_statement:=asmstat;
@@ -1259,7 +1259,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  2000-12-23 19:59:35  peter
+  Revision 1.19  2000-12-25 00:07:27  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.18  2000/12/23 19:59:35  peter
     * object to class for ow/og objects
     * split objectdata from objectoutput
 

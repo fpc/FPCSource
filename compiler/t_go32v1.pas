@@ -31,30 +31,30 @@ interface
     link;
 
   type
-    plinkergo32v1=^tlinkergo32v1;
-    tlinkergo32v1=object(tlinker)
+    tlinkergo32v1=class(tlinker)
     private
        Function  WriteResponseFile(isdll:boolean) : Boolean;
     public
-       constructor Init;
-       procedure SetDefaultInfo;virtual;
-       function  MakeExecutable:boolean;virtual;
+       constructor Create;
+       procedure SetDefaultInfo;override;
+       function  MakeExecutable:boolean;override;
     end;
 
 
   implementation
 
     uses
-       cutils,globtype,globals,cobjects,systems,verbose,script,fmodule;
+       cutils,cclasses,
+       globtype,globals,systems,verbose,script,fmodule;
 
 
 {****************************************************************************
                                TLinkergo32v1
 ****************************************************************************}
 
-Constructor TLinkergo32v1.Init;
+Constructor TLinkergo32v1.Create;
 begin
-  Inherited Init;
+  Inherited Create;
   { allow duplicated libs (PM) }
   SharedLibFiles.doubles:=true;
   StaticLibFiles.doubles:=true;
@@ -75,7 +75,7 @@ Function TLinkergo32v1.WriteResponseFile(isdll:boolean) : Boolean;
 Var
   linkres  : TLinkRes;
   i        : longint;
-  HPath    : PStringQueueItem;
+  HPath    : TStringListItem;
   s        : string;
   linklibc : boolean;
 begin
@@ -85,24 +85,24 @@ begin
   LinkRes.Init(outputexedir+Info.ResName);
 
   { Write path to search libraries }
-  HPath:=current_module^.locallibrarysearchpath.First;
+  HPath:=TStringListItem(current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
    begin
-     LinkRes.Add('-L'+HPath^.Data^);
-     HPath:=HPath^.Next;
+     LinkRes.Add('-L'+HPath.Str);
+     HPath:=TStringListItem(HPath.Next);
    end;
-  HPath:=LibrarySearchPath.First;
+  HPath:=TStringListItem(LibrarySearchPath.First);
   while assigned(HPath) do
    begin
-     LinkRes.Add('-L'+HPath^.Data^);
-     HPath:=HPath^.Next;
+     LinkRes.Add('-L'+HPath.Str);
+     HPath:=TStringListItem(HPath.Next);
    end;
 
   { add objectfiles, start with prt0 always }
   LinkRes.AddFileName(FindObjectFile('prt0',''));
   while not ObjectFiles.Empty do
    begin
-     s:=ObjectFiles.Get;
+     s:=ObjectFiles.GetFirst;
      if s<>'' then
       LinkRes.AddFileName(s);
    end;
@@ -113,7 +113,7 @@ begin
      LinkRes.Add('-(');
      While not StaticLibFiles.Empty do
       begin
-        S:=StaticLibFiles.Get;
+        S:=StaticLibFiles.GetFirst;
         LinkRes.AddFileName(s)
       end;
      LinkRes.Add('-)');
@@ -124,7 +124,7 @@ begin
   linklibc:=false;
   While not SharedLibFiles.Empty do
    begin
-     S:=SharedLibFiles.Get;
+     S:=SharedLibFiles.GetFirst;
      if s<>'c' then
       begin
         i:=Pos(target_os.sharedlibext,S);
@@ -161,7 +161,7 @@ var
   StripStr : string[40];
 begin
   if not(cs_link_extern in aktglobalswitches) then
-   Message1(exec_i_linking,current_module^.exefilename^);
+   Message1(exec_i_linking,current_module.exefilename^);
 
 { Create some replacements }
   StripStr:='';
@@ -173,7 +173,7 @@ begin
 
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',current_module^.exefilename^);
+  Replace(cmdstr,'$EXE',current_module.exefilename^);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$RES',outputexedir+Info.ResName);
   Replace(cmdstr,'$STRIP',StripStr);
@@ -189,7 +189,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-09-24 15:06:30  peter
+  Revision 1.5  2000-12-25 00:07:30  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.4  2000/09/24 15:06:30  peter
     * use defines.inc
 
   Revision 1.3  2000/08/27 16:11:54  peter

@@ -67,39 +67,39 @@ unit n386bas;
         end;
 
       var
-        hp,hp2 : pai;
+        hp,hp2 : tai;
         localfixup,parafixup,
         i : longint;
         skipnode : boolean;
       begin
          if inlining_procedure then
            begin
-             InitUsedAsmSymbolList;
+             CreateUsedAsmSymbolList;
              localfixup:=aktprocsym^.definition^.localst^.address_fixup;
              parafixup:=aktprocsym^.definition^.parast^.address_fixup;
-             hp:=pai(p_asm^.first);
+             hp:=tai(p_asm.first);
              while assigned(hp) do
               begin
-                hp2:=pai(hp^.getcopy);
+                hp2:=tai(hp.getcopy);
                 skipnode:=false;
-                case hp2^.typ of
+                case hp2.typ of
                   ait_label :
                      begin
                        { regenerate the labels by setting altsymbol }
-                       ReLabel(pasmsymbol(pai_label(hp2)^.l));
+                       ReLabel(pasmsymbol(tai_label(hp2).l));
                      end;
                   ait_const_rva,
                   ait_const_symbol :
                      begin
-                       ReLabel(pai_const_symbol(hp2)^.sym);
+                       ReLabel(tai_const_symbol(hp2).sym);
                      end;
                   ait_instruction :
                      begin
 {$ifdef i386}
                        { fixup the references }
-                       for i:=1 to paicpu(hp2)^.ops do
+                       for i:=1 to taicpu(hp2).ops do
                         begin
-                          with paicpu(hp2)^.oper[i-1] do
+                          with taicpu(hp2).oper[i-1] do
                            begin
                              case typ of
                                top_ref :
@@ -125,29 +125,29 @@ unit n386bas;
                    ait_marker :
                      begin
                      { it's not an assembler block anymore }
-                       if (pai_marker(hp2)^.kind in [AsmBlockStart, AsmBlockEnd]) then
+                       if (tai_marker(hp2).kind in [AsmBlockStart, AsmBlockEnd]) then
                         skipnode:=true;
                      end;
                    else
                 end;
                 if not skipnode then
-                 exprasmlist^.concat(hp2)
+                 exprasmList.concat(hp2)
                 else
-                 dispose(hp2,done);
-                hp:=pai(hp^.next);
+                 hp2.free;
+                hp:=tai(hp.next);
               end;
              { restore used symbols }
              UsedAsmSymbolListResetAltSym;
-             DoneUsedAsmSymbolList;
+             DestroyUsedAsmSymbolList;
            end
          else
            begin
              { if the routine is an inline routine, then we must hold a copy
                because it can be necessary for inlining later }
              if (pocall_inline in aktprocsym^.definition^.proccalloptions) then
-               exprasmlist^.concatlistcopy(p_asm)
+               exprasmList.concatlistcopy(p_asm)
              else
-               exprasmlist^.concatlist(p_asm);
+               exprasmList.concatlist(p_asm);
            end;
          if not (nf_object_preserved in flags) then
           begin
@@ -174,7 +174,7 @@ unit n386bas;
                cleartempgen;
                {!!!!!!
                oldrl:=temptoremove;
-               temptoremove:=new(plinkedlist,init);
+               temptoremove:=new(TLinkedList,init);
                }
                secondpass(tstatementnode(hp).right);
                { !!!!!!!
@@ -204,7 +204,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-11-29 00:30:46  florian
+  Revision 1.5  2000-12-25 00:07:32  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.4  2000/11/29 00:30:46  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

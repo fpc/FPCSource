@@ -27,36 +27,34 @@ unit cresstr;
 interface
 
 uses
-  cobjects;
+  cclasses;
 
 Type
   { These are used to form a singly-linked list, ordered by hash value }
-  PResourceStringItem = ^TResourceStringItem;
-  TResourceStringItem = object(TLinkedList_Item)
+  TResourceStringItem = class(TLinkedListItem)
     Name  : String;
     Value : Pchar;
     Len,
     hash  : longint;
-    constructor Init(const AName:string;AValue:pchar;ALen:longint);
-    destructor  Done;virtual;
+    constructor Create(const AName:string;AValue:pchar;ALen:longint);
+    destructor  Destroy;override;
     procedure CalcHash;
   end;
 
-  PResourceStrings=^TResourceStrings;
-  TResourceStrings=object
+  TResourceStrings=class
   private
     List : TLinkedList;
   public
     ResStrCount : longint;
-    constructor Init;
-    destructor  Done;
+    constructor Create;
+    destructor  Destroy;override;
     function  Register(Const name : string;p : pchar;len : longint) : longint;
     procedure CreateResourceStringList;
     Procedure WriteResourceFile(FileName : String);
   end;
 
 var
-  ResourceStrings : PResourceStrings;
+  ResourceStrings : TResourceStrings;
 
 
 implementation
@@ -73,9 +71,9 @@ uses
                           TRESOURCESTRING_ITEM
   ---------------------------------------------------------------------}
 
-constructor TResourceStringItem.Init(const AName:string;AValue:pchar;ALen:longint);
+constructor TResourceStringItem.Create(const AName:string;AValue:pchar;ALen:longint);
 begin
-  inherited Init;
+  inherited Create;
   Name:=AName;
   Len:=ALen;
   GetMem(Value,Len);
@@ -84,7 +82,7 @@ begin
 end;
 
 
-destructor TResourceStringItem.Done;
+destructor TResourceStringItem.Destroy;
 begin
   FreeMem(Value,Len);
 end;
@@ -123,16 +121,16 @@ end;
                           TRESOURCESTRINGS
   ---------------------------------------------------------------------}
 
-Constructor TResourceStrings.Init;
+Constructor TResourceStrings.Create;
 begin
-  List.Init;
+  List:=TStringList.Create;
   ResStrCount:=0;
 end;
 
 
-Destructor TResourceStrings.Done;
+Destructor TResourceStrings.Destroy;
 begin
-  List.Done;
+  List.Free;
 end;
 
 
@@ -142,63 +140,63 @@ end;
 
 procedure TResourceStrings.CreateResourceStringList;
 
-  Procedure AppendToAsmResList (P : PResourceStringItem);
+  Procedure AppendToAsmResList (P : TResourceStringItem);
   Var
     l1 : pasmlabel;
     s : pchar;
     l : longint;
   begin
-    With P^ Do
+    With P Do
      begin
        if (Value=nil) or (len=0) then
-         resourcestringlist^.concat(new(pai_const,init_32bit(0)))
+         resourcestringlist.concat(tai_const.create_32bit(0))
        else
          begin
             getdatalabel(l1);
-            resourcestringlist^.concat(new(pai_const_symbol,init(l1)));
-            consts^.concat(new(pai_const,init_32bit(len)));
-            consts^.concat(new(pai_const,init_32bit(len)));
-            consts^.concat(new(pai_const,init_32bit(-1)));
-            consts^.concat(new(pai_label,init(l1)));
+            resourcestringlist.concat(tai_const_symbol.create(l1));
+            consts.concat(tai_const.create_32bit(len));
+            consts.concat(tai_const.create_32bit(len));
+            consts.concat(tai_const.create_32bit(-1));
+            consts.concat(tai_label.create(l1));
             getmem(s,len+1);
             move(Value^,s^,len);
             s[len]:=#0;
-            consts^.concat(new(pai_string,init_length_pchar(s,len)));
-            consts^.concat(new(pai_const,init_8bit(0)));
+            consts.concat(tai_string.create_length_pchar(s,len));
+            consts.concat(tai_const.create_8bit(0));
          end;
        { append Current value (nil) and hash...}
-       resourcestringlist^.concat(new(pai_const,init_32bit(0)));
-       resourcestringlist^.concat(new(pai_const,init_32bit(hash)));
+       resourcestringlist.concat(tai_const.create_32bit(0));
+       resourcestringlist.concat(tai_const.create_32bit(hash));
        { Append the name as a ansistring. }
        getdatalabel(l1);
        L:=Length(Name);
-       resourcestringlist^.concat(new(pai_const_symbol,init(l1)));
-       consts^.concat(new(pai_const,init_32bit(l)));
-       consts^.concat(new(pai_const,init_32bit(l)));
-       consts^.concat(new(pai_const,init_32bit(-1)));
-       consts^.concat(new(pai_label,init(l1)));
+       resourcestringlist.concat(tai_const_symbol.create(l1));
+       consts.concat(tai_const.create_32bit(l));
+       consts.concat(tai_const.create_32bit(l));
+       consts.concat(tai_const.create_32bit(-1));
+       consts.concat(tai_label.create(l1));
        getmem(s,l+1);
        move(Name[1],s^,l);
        s[l]:=#0;
-       consts^.concat(new(pai_string,init_length_pchar(s,l)));
-       consts^.concat(new(pai_const,init_8bit(0)));
+       consts.concat(tai_string.create_length_pchar(s,l));
+       consts.concat(tai_const.create_8bit(0));
      end;
   end;
 
 Var
-  R : PresourceStringItem;
+  R : tresourceStringItem;
 begin
   if not(assigned(resourcestringlist)) then
-    resourcestringlist:=new(paasmoutput,init);
-  resourcestringlist^.insert(new(pai_const,init_32bit(resstrcount)));
-  resourcestringlist^.insert(new(pai_symbol,initdataname_global(current_module^.modulename^+'_'+'RESOURCESTRINGLIST',0)));
-  R:=PResourceStringItem(List.First);
+    resourcestringlist:=taasmoutput.create;
+  resourcestringlist.insert(tai_const.create_32bit(resstrcount));
+  resourcestringlist.insert(tai_symbol.createdataname_global(current_module.modulename^+'_'+'RESOURCESTRINGLIST',0));
+  R:=TResourceStringItem(List.First);
   While assigned(R) do
    begin
      AppendToAsmResList(R);
-     R:=PResourceStringItem(R^.Next);
+     R:=TResourceStringItem(R.Next);
    end;
-  resourcestringlist^.concat(new(pai_symbol_end,initname(current_module^.modulename^+'_'+'RESOURCESTRINGLIST')));
+  resourcestringlist.concat(tai_symbol_end.createname(current_module.modulename^+'_'+'RESOURCESTRINGLIST'));
 end;
 
 
@@ -208,7 +206,7 @@ end;
 
 function  TResourceStrings.Register(const name : string;p : pchar;len : longint) : longint;
 begin
-  List.Concat(new(PResourceStringItem,Init(lower(current_module^.modulename^+'.'+Name),p,len)));
+  List.Concat(tResourceStringItem.Create(lower(current_module.modulename^+'.'+Name),p,len));
   Register:=ResStrCount;
   inc(ResStrCount);
 end;
@@ -220,7 +218,7 @@ Type
 Var
   F : Text;
   Mode : TMode;
-  R : PResourceStringItem;
+  R : TResourceStringItem;
   C : char;
   Col,i : longint;
 
@@ -233,7 +231,7 @@ Var
 begin
   If List.Empty then
     exit;
-  FileName:=current_module^.outputpath^+FixFileName(ForceExtension(FileName,'.rst'));
+  FileName:=current_module.outputpath^+FixFileName(ForceExtension(FileName,'.rst'));
   message1 (general_i_writingresourcefile,filename);
   Assign(F,Filename);
   {$i-}
@@ -244,17 +242,17 @@ begin
     message(general_e_errorwritingresourcefile);
     exit;
     end;
-  R:=PResourceStringItem(List.First);
+  R:=TResourceStringItem(List.First);
   While assigned(R) do
    begin
      writeln(f);
-     Writeln(f,'# hash value = ',R^.hash);
+     Writeln(f,'# hash value = ',R.hash);
      col:=0;
-     Add(R^.Name+'=');
+     Add(R.Name+'=');
      Mode:=unquoted;
-     For I:=0 to R^.Len-1 do
+     For I:=0 to R.Len-1 do
       begin
-        C:=R^.Value[i];
+        C:=R.Value[i];
         If (ord(C)>31) and (Ord(c)<=128) and (c<>'''') then
          begin
            If mode=Quoted then
@@ -286,7 +284,7 @@ begin
      if mode=quoted then
       writeln (f,'''');
      Writeln(f);
-     R:=PResourceStringItem(R^.Next);
+     R:=TResourceStringItem(R.Next);
    end;
   close(f);
 end;
@@ -295,7 +293,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2000-11-13 14:44:35  jonas
+  Revision 1.8  2000-12-25 00:07:25  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.7  2000/11/13 14:44:35  jonas
     * fixes so no more range errors with improved range checking code
 
   Revision 1.6  2000/09/24 15:06:14  peter

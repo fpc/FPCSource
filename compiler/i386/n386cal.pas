@@ -33,7 +33,7 @@ interface
 
     type
        ti386callparanode = class(tcallparanode)
-          procedure secondcallparan(defcoll : pparaitem;
+          procedure secondcallparan(defcoll : TParaItem;
                    push_from_left_to_right,inlined,is_cdecl : boolean;
                    para_alignment,para_offset : longint);override;
        end;
@@ -69,15 +69,15 @@ implementation
                              TI386CALLPARANODE
 *****************************************************************************}
 
-    procedure ti386callparanode.secondcallparan(defcoll : pparaitem;
+    procedure ti386callparanode.secondcallparan(defcoll : TParaItem;
                 push_from_left_to_right,inlined,is_cdecl : boolean;para_alignment,para_offset : longint);
 
       procedure maybe_push_high;
         begin
            { open array ? }
-           { defcoll^.data can be nil for read/write }
-           if assigned(defcoll^.paratype.def) and
-              push_high_param(defcoll^.paratype.def) then
+           { defcoll.data can be nil for read/write }
+           if assigned(defcoll.paratype.def) and
+              push_high_param(defcoll.paratype.def) then
              begin
                if assigned(hightree) then
                 begin
@@ -103,7 +103,7 @@ implementation
 
          { push from left to right if specified }
          if push_from_left_to_right and assigned(right) then
-           tcallparanode(right).secondcallparan(pparaitem(defcoll^.next),push_from_left_to_right,
+           tcallparanode(right).secondcallparan(TParaItem(defcoll.next),push_from_left_to_right,
              inlined,is_cdecl,para_alignment,para_offset);
          otlabel:=truelabel;
          oflabel:=falselabel;
@@ -115,9 +115,9 @@ implementation
            begin
              { nothing, everything is already pushed }
            end
-         { in codegen.handleread.. defcoll^.data is set to nil }
-         else if assigned(defcoll^.paratype.def) and
-           (defcoll^.paratype.def^.deftype=formaldef) then
+         { in codegen.handleread.. defcoll.data is set to nil }
+         else if assigned(defcoll.paratype.def) and
+           (defcoll.paratype.def^.deftype=formaldef) then
            begin
               { allow @var }
               inc(pushedparasize,4);
@@ -157,16 +157,16 @@ implementation
                 end;
            end
          { handle call by reference parameter }
-         else if (defcoll^.paratyp in [vs_var,vs_out]) then
+         else if (defcoll.paratyp in [vs_var,vs_out]) then
            begin
               if (left.location.loc<>LOC_REFERENCE) then
                 CGMessage(cg_e_var_must_be_reference);
               maybe_push_high;
-              if (defcoll^.paratyp=vs_out) and
-                 assigned(defcoll^.paratype.def) and
-                 not is_class(defcoll^.paratype.def) and
-                 defcoll^.paratype.def^.needs_inittable then
-                finalize(defcoll^.paratype.def,left.location.reference,false);
+              if (defcoll.paratyp=vs_out) and
+                 assigned(defcoll.paratype.def) and
+                 not is_class(defcoll.paratype.def) and
+                 defcoll.paratype.def^.needs_inittable then
+                finalize(defcoll.paratype.def,left.location.reference,false);
               inc(pushedparasize,4);
               if inlined then
                 begin
@@ -189,9 +189,9 @@ implementation
               { open array must always push the address, this is needed to
                 also push addr of small open arrays and with cdecl functions (PFV) }
               if (
-                  assigned(defcoll^.paratype.def) and
-                  (is_open_array(defcoll^.paratype.def) or
-                   is_array_of_const(defcoll^.paratype.def))
+                  assigned(defcoll.paratype.def) and
+                  (is_open_array(defcoll.paratype.def) or
+                   is_array_of_const(defcoll.paratype.def))
                  ) or
                  (
                   push_addr_param(resulttype) and
@@ -223,7 +223,7 @@ implementation
          falselabel:=oflabel;
          { push from right to left }
          if not push_from_left_to_right and assigned(right) then
-           tcallparanode(right).secondcallparan(pparaitem(defcoll^.next),push_from_left_to_right,
+           tcallparanode(right).secondcallparan(TParaItem(defcoll.next),push_from_left_to_right,
              inlined,is_cdecl,para_alignment,para_offset);
       end;
 
@@ -313,9 +313,9 @@ implementation
              Comment(V_debug,
                'inlined parasymtable is at offset '
                +tostr(pprocdef(procdefinition)^.parast^.address_fixup));
-             exprasmlist^.concat(new(pai_asm_comment,init(
+             exprasmList.concat(Tai_asm_comment.Create(
                strpnew('inlined parasymtable is at offset '
-               +tostr(pprocdef(procdefinition)^.parast^.address_fixup)))));
+               +tostr(pprocdef(procdefinition)^.parast^.address_fixup))));
 {$endif extdebug}
               { disable further inlining of the same proc
                 in the args }
@@ -390,8 +390,8 @@ implementation
                emit_const_reg(A_SUB,S_L,pop_size,R_ESP);
 {$ifdef GDB}
                if (cs_debuginfo in aktmoduleswitches) and
-                  (exprasmlist^.first=exprasmlist^.last) then
-                 exprasmlist^.concat(new(pai_force_line,init));
+                  (exprasmList.first=exprasmList.last) then
+                 exprasmList.concat(Tai_force_line.Create);
 {$endif GDB}
              end;
           end;
@@ -450,12 +450,12 @@ implementation
                 para_offset:=0;
               if not(inlined) and
                  assigned(right) then
-                tcallparanode(params).secondcallparan(pparaitem(pabstractprocdef(right.resulttype)^.para^.first),
+                tcallparanode(params).secondcallparan(TParaItem(pabstractprocdef(right.resulttype)^.Para.first),
                   (pocall_leftright in procdefinition^.proccalloptions),inlined,
                   (([pocall_cdecl,pocall_cppdecl]*procdefinition^.proccalloptions)<>[]),
                   para_alignment,para_offset)
               else
-                tcallparanode(params).secondcallparan(pparaitem(procdefinition^.para^.first),
+                tcallparanode(params).secondcallparan(TParaItem(procdefinition^.Para.first),
                   (pocall_leftright in procdefinition^.proccalloptions),inlined,
                   (([pocall_cdecl,pocall_cppdecl]*procdefinition^.proccalloptions)<>[]),
                   para_alignment,para_offset);
@@ -1083,9 +1083,9 @@ implementation
                        getexplicitregister32(R_EDI);
                        emit_reg(A_POP,S_L,R_EDI);
                        ungetregister32(R_EDI);
-                       exprasmlist^.concat(new(pairegalloc,alloc(R_ESI)));
+                       exprasmList.concat(Tairegalloc.Alloc(R_ESI));
                        emit_reg(A_POP,S_L,R_ESI);
-                       exprasmlist^.concat(new(pairegalloc,alloc(R_ESI)));
+                       exprasmList.concat(Tairegalloc.Alloc(R_ESI));
                     end
                 else if pushedparasize<>0 then
                   emit_const_reg(A_ADD,S_L,pushedparasize,R_ESP);
@@ -1136,7 +1136,7 @@ implementation
               r^.base:=R_EDI;
               emit_ref(A_CALL,S_NO,r);
               ungetregister32(R_EDI);
-              exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+              exprasmList.concat(Tairegalloc.Alloc(R_EAX));
               emitlab(constructorfailed);
               emit_reg_reg(A_MOV,S_L,R_ESI,R_EAX);
            end;
@@ -1397,8 +1397,7 @@ implementation
            oldprocinfo : pprocinfo;
            oldinlining_procedure,
            nostackframe,make_global : boolean;
-           proc_names : tstringcontainer;
-           inlineentrycode,inlineexitcode : paasmoutput;
+           inlineentrycode,inlineexitcode : TAAsmoutput;
            oldexitlabel,oldexit2label,oldquickexitlabel:Pasmlabel;
            oldunused,oldusableregs : tregisterset;
            oldc_usableregs : longint;
@@ -1478,13 +1477,13 @@ implementation
               st^.address_fixup:=gettempofsizepersistant(st^.datasize)+st^.datasize;
 {$ifdef extdebug}
               Comment(V_debug,'local symtable is at offset '+tostr(st^.address_fixup));
-              exprasmlist^.concat(new(pai_asm_comment,init(strpnew(
-                'local symtable is at offset '+tostr(st^.address_fixup)))));
+              exprasmList.concat(Tai_asm_comment.Create(strpnew(
+                'local symtable is at offset '+tostr(st^.address_fixup))));
 {$endif extdebug}
             end;
-          exprasmlist^.concat(new(Pai_Marker, Init(InlineStart)));
+          exprasmList.concat(Tai_Marker.Create(InlineStart));
 {$ifdef extdebug}
-          exprasmlist^.concat(new(pai_asm_comment,init(strpnew('Start of inlined proc'))));
+          exprasmList.concat(Tai_asm_comment.Create(strpnew('Start of inlined proc')));
 {$endif extdebug}
 {$ifdef GDB}
           if (cs_debuginfo in aktmoduleswitches) then
@@ -1510,31 +1509,30 @@ implementation
                   strpcopy(strend(pp),'-');
                   strpcopy(strend(pp),oldprocsym^.definition^.mangledname);
                 end;
-              withdebuglist^.concat(new(pai_stabn,init(strnew(pp))));
+              withdebugList.concat(Tai_stabn.Create(strnew(pp)));
             end;
 {$endif GDB}
           { takes care of local data initialization }
-          inlineentrycode:=new(paasmoutput,init);
-          inlineexitcode:=new(paasmoutput,init);
-          proc_names.init;
+          inlineentrycode:=TAAsmoutput.Create;
+          inlineexitcode:=TAAsmoutput.Create;
           ps:=para_size;
           make_global:=false; { to avoid warning }
-          genentrycode(inlineentrycode,proc_names,make_global,0,ps,nostackframe,true);
+          genentrycode(inlineentrycode,make_global,0,ps,nostackframe,true);
           if po_assembler in aktprocsym^.definition^.procoptions then
-            inlineentrycode^.insert(new(pai_marker,init(asmblockstart)));
-          exprasmlist^.concatlist(inlineentrycode);
+            inlineentrycode.insert(Tai_marker.Create(asmblockstart));
+          exprasmList.concatlist(inlineentrycode);
           secondpass(inlinetree);
           genexitcode(inlineexitcode,0,false,true);
           if po_assembler in aktprocsym^.definition^.procoptions then
-            inlineexitcode^.concat(new(pai_marker,init(asmblockend)));
-          exprasmlist^.concatlist(inlineexitcode);
+            inlineexitcode.concat(Tai_marker.Create(asmblockend));
+          exprasmList.concatlist(inlineexitcode);
 
-          dispose(inlineentrycode,done);
-          dispose(inlineexitcode,done);
+          inlineentrycode.free;
+          inlineexitcode.free;
 {$ifdef extdebug}
-          exprasmlist^.concat(new(pai_asm_comment,init(strpnew('End of inlined proc'))));
+          exprasmList.concat(Tai_asm_comment.Create(strpnew('End of inlined proc')));
 {$endif extdebug}
-          exprasmlist^.concat(new(Pai_Marker, Init(InlineEnd)));
+          exprasmList.concat(Tai_Marker.Create(InlineEnd));
 
           {we can free the local data now, reset also the fixup address }
           if st^.datasize>0 then
@@ -1555,7 +1553,7 @@ implementation
                  strpcopy(strend(pp),'-');
                  strpcopy(strend(pp),oldprocsym^.definition^.mangledname);
                end;
-              withdebuglist^.concat(new(pai_stabn,init(strnew(pp))));
+              withdebugList.concat(Tai_stabn.Create(strnew(pp)));
               freemem(pp,mangled_length+50);
             end;
 {$endif GDB}
@@ -1592,7 +1590,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2000-12-09 10:45:40  florian
+  Revision 1.16  2000-12-25 00:07:32  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.15  2000/12/09 10:45:40  florian
     * AfterConstructor isn't called anymore when a constructor failed
 
   Revision 1.14  2000/12/07 17:19:46  jonas

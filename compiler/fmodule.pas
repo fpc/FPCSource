@@ -40,7 +40,7 @@ unit fmodule;
 interface
 
     uses
-       cutils,cobjects,
+       cutils,cobjects,cclasses,
        globals,ppu,finput;
 
     const
@@ -52,34 +52,30 @@ interface
          rr_asmolder,rr_crcchanged
        );
 
-       plinkcontaineritem=^tlinkcontaineritem;
-       tlinkcontaineritem=object(tcontaineritem)
-          data     : pstring;
-          needlink : longint;
-          constructor init(const s:string;m:longint);
-          destructor  done;virtual;
+       tlinkcontaineritem=class(tlinkedlistitem)
+       public
+          data : pstring;
+          needlink : cardinal;
+          constructor Create(const s:string;m:cardinal);
+          destructor Destroy;override;
        end;
 
-       plinkcontainer=^tlinkcontainer;
-       tlinkcontainer=object(tcontainer)
-          constructor Init;
-          procedure insert(const s : string;m:longint);
-          function get(var m:longint) : string;
-          function getusemask(mask:longint) : string;
+       tlinkcontainer=class(tlinkedlist)
+          procedure add(const s : string;m:cardinal);
+          function get(var m:cardinal) : string;
+          function getusemask(mask:cardinal) : string;
           function find(const s:string):boolean;
        end;
-
-       pmodule = ^tmodule;
 
 {$ifndef NEWMAP}
        tunitmap = array[0..maxunits-1] of pointer;
        punitmap = ^tunitmap;
 {$else NEWMAP}
-       tunitmap = array[0..maxunits-1] of pmodule;
+       tunitmap = array[0..maxunits-1] of tmodule;
        punitmap = ^tunitmap;
 {$endif NEWMAP}
 
-       tmodule = object(tmodulebase)
+       tmodule = class(tmodulebase)
           ppufile       : pppufile; { the PPU file }
           crc,
           interface_crc,
@@ -105,12 +101,12 @@ interface
           globalsymtable,           { pointer to the local/static symtable of this unit }
           localsymtable : pointer;  { pointer to the psymtable of this unit }
           scanner       : pointer;  { scanner object used }
-          loaded_from   : pmodule;
+          loaded_from   : tmodule;
           uses_imports  : boolean;  { Set if the module imports from DLL's.}
-          imports       : plinkedlist;
-          _exports      : plinkedlist;
+          imports       : tlinkedlist;
+          _exports      : tlinkedlist;
 
-          resourcefiles : tstringcontainer;
+          resourcefiles : tstringlist;
 
           linkunitofiles,
           linkunitstaticlibs,
@@ -134,16 +130,15 @@ interface
           crc_array2 : pointer;
           crc_size2 : longint;
 {$endif def Test_Double_checksum}
-          constructor init(const s:string;_is_unit:boolean);
-          destructor done;virtual;
+          constructor create(const s:string;_is_unit:boolean);
+          destructor destroy;override;
           procedure reset;
           procedure setfilename(const fn:string;allowoutput:boolean);
           function  openppu:boolean;
           function  search_unit(const n : string;onlysource:boolean):boolean;
        end;
 
-       pused_unit = ^tused_unit;
-       tused_unit = object(tlinkedlist_item)
+       tused_unit = class(tlinkedlistitem)
           unitid          : longint;
           name            : pstring;
           checksum,
@@ -152,28 +147,27 @@ interface
           in_uses,
           in_interface,
           is_stab_written : boolean;
-          u               : pmodule;
-          constructor init(_u : pmodule;intface:boolean);
-          constructor init_to_load(const n:string;c,intfc:longint;intface:boolean);
-          destructor done;virtual;
+          u               : tmodule;
+          constructor create(_u : tmodule;intface:boolean);
+          constructor create_to_load(const n:string;c,intfc:longint;intface:boolean);
+          destructor destroy;override;
        end;
 
-       pdependent_unit = ^tdependent_unit;
-       tdependent_unit = object(tlinkedlist_item)
-          u : pmodule;
-          constructor init(_u : pmodule);
+       tdependent_unit = class(tlinkedlistitem)
+          u : tmodule;
+          constructor create(_u : tmodule);
        end;
 
     var
-       main_module       : pmodule;     { Main module of the program }
-       current_module    : pmodule;     { Current module which is compiled or loaded }
-       compiled_module   : pmodule;     { Current module which is compiled }
+       main_module       : tmodule;     { Main module of the program }
+       current_module    : tmodule;     { Current module which is compiled or loaded }
+       compiled_module   : tmodule;     { Current module which is compiled }
        usedunits         : tlinkedlist; { Used units for this program }
        loaded_units      : tlinkedlist; { All loaded units }
-       SmartLinkOFiles   : TStringContainer; { List of .o files which are generated,
-                                               used to delete them after linking }
+       SmartLinkOFiles   : TStringList; { List of .o files which are generated,
+                                          used to delete them after linking }
 
-function get_source_file(moduleindex,fileindex : longint) : pinputfile;
+function get_source_file(moduleindex,fileindex : longint) : tinputfile;
 
 
 implementation
@@ -193,15 +187,15 @@ uses
                              Global Functions
 *****************************************************************************}
 
-    function get_source_file(moduleindex,fileindex : longint) : pinputfile;
+    function get_source_file(moduleindex,fileindex : longint) : tinputfile;
       var
-         hp : pmodule;
+         hp : tmodule;
       begin
-         hp:=pmodule(loaded_units.first);
-         while assigned(hp) and (hp^.unit_index<>moduleindex) do
-           hp:=pmodule(hp^.next);
+         hp:=tmodule(loaded_units.first);
+         while assigned(hp) and (hp.unit_index<>moduleindex) do
+           hp:=tmodule(hp.next);
          if assigned(hp) then
-          get_source_file:=hp^.sourcefiles^.get_file(fileindex)
+          get_source_file:=hp.sourcefiles.get_file(fileindex)
          else
           get_source_file:=nil;
       end;
@@ -211,92 +205,83 @@ uses
                              TLinkContainerItem
  ****************************************************************************}
 
-constructor TLinkContainerItem.Init(const s:string;m:longint);
-begin
-  inherited Init;
-  data:=stringdup(s);
-  needlink:=m;
-end;
+    constructor TLinkContainerItem.Create(const s:string;m:cardinal);
+      begin
+        inherited Create;
+        data:=stringdup(s);
+        needlink:=m;
+      end;
 
 
-destructor TLinkContainerItem.Done;
-begin
-  stringdispose(data);
-end;
+    destructor TLinkContainerItem.Destroy;
+      begin
+        stringdispose(data);
+      end;
 
 
 {****************************************************************************
                            TLinkContainer
  ****************************************************************************}
 
-    constructor TLinkContainer.Init;
+    procedure TLinkContainer.add(const s : string;m:cardinal);
       begin
-        inherited init;
+        inherited concat(TLinkContainerItem.Create(s,m));
       end;
 
 
-    procedure TLinkContainer.insert(const s : string;m:longint);
+    function TLinkContainer.get(var m:cardinal) : string;
       var
-        newnode : plinkcontaineritem;
+        p : tlinkcontaineritem;
       begin
-         {if find(s) then
-          exit; }
-         new(newnode,init(s,m));
-         inherited insert(newnode);
-      end;
-
-
-    function TLinkContainer.get(var m:longint) : string;
-      var
-        p : plinkcontaineritem;
-      begin
-        p:=plinkcontaineritem(inherited get);
+        p:=tlinkcontaineritem(inherited getfirst);
         if p=nil then
          begin
            get:='';
            m:=0;
-           exit;
+         end
+        else
+         begin
+           get:=p.data^;
+           m:=p.needlink;
+           p.free;
          end;
-        get:=p^.data^;
-        m:=p^.needlink;
-        dispose(p,done);
       end;
 
 
-    function TLinkContainer.getusemask(mask:longint) : string;
+    function TLinkContainer.getusemask(mask:cardinal) : string;
       var
-         p : plinkcontaineritem;
+         p : tlinkcontaineritem;
          found : boolean;
       begin
         found:=false;
         repeat
-          p:=plinkcontaineritem(inherited get);
+          p:=tlinkcontaineritem(inherited getfirst);
           if p=nil then
            begin
              getusemask:='';
              exit;
            end;
-          getusemask:=p^.data^;
-          found:=(p^.needlink and mask)<>0;
-          dispose(p,done);
+          getusemask:=p.data^;
+          found:=(p.needlink and mask)<>0;
+          p.free;
         until found;
       end;
 
 
     function TLinkContainer.find(const s:string):boolean;
       var
-        newnode : plinkcontaineritem;
+        newnode : tlinkcontaineritem;
       begin
         find:=false;
-        newnode:=plinkcontaineritem(root);
+        newnode:=tlinkcontaineritem(First);
         while assigned(newnode) do
          begin
-           if newnode^.data^=s then
+           if newnode.data^=s then
             begin
               find:=true;
               exit;
             end;
-           newnode:=plinkcontaineritem(newnode^.next);
+           newnode:=tlinkcontaineritem(newnode.next);
          end;
       end;
 
@@ -542,17 +527,17 @@ end;
 
          Function SearchPathList(list:TSearchPathList):boolean;
          var
-           hp : PStringQueueItem;
+           hp : TStringListItem;
            found : boolean;
          begin
            found:=false;
-           hp:=list.First;
+           hp:=TStringListItem(list.First);
            while assigned(hp) do
             begin
-              found:=SearchPath(hp^.data^);
+              found:=SearchPath(hp.Str);
               if found then
                break;
-              hp:=hp^.next;
+              hp:=TStringListItem(hp.next);
             end;
            SearchPathList:=found;
          end;
@@ -571,13 +556,13 @@ end;
          if not onlysource then
           begin
             fnd:=PPUSearchPath('.');
-            if (not fnd) and (current_module^.outputpath^<>'') then
-             fnd:=PPUSearchPath(current_module^.outputpath^);
+            if (not fnd) and (current_module.outputpath^<>'') then
+             fnd:=PPUSearchPath(current_module.outputpath^);
            end;
          if (not fnd) then
           fnd:=SourceSearchPath('.');
          if (not fnd) then
-          fnd:=SearchPathList(current_module^.LocalUnitSearchPath);
+          fnd:=SearchPathList(current_module.LocalUnitSearchPath);
          if (not fnd) then
           fnd:=SearchPathList(UnitSearchPath);
 
@@ -588,7 +573,7 @@ end;
             filename:=copy(filename,1,8);
             fnd:=SearchPath('.');
             if (not fnd) then
-             fnd:=SearchPathList(current_module^.LocalUnitSearchPath);
+             fnd:=SearchPathList(current_module.LocalUnitSearchPath);
             if not fnd then
              fnd:=SearchPathList(UnitSearchPath);
           end;
@@ -599,7 +584,7 @@ end;
 
     procedure tmodule.reset;
       var
-         pm : pdependent_unit;
+         pm : tdependent_unit;
       begin
         if assigned(scanner) then
           pscannerfile(scanner)^.invalid:=true;
@@ -623,43 +608,43 @@ end;
            dispose(ppufile,done);
            ppufile:=nil;
          end;
-        sourcefiles^.done;
-        sourcefiles^.init;
-        imports^.done;
-        imports^.init;
-        _exports^.done;
-        _exports^.init;
-        used_units.done;
-        used_units.init;
+        sourcefiles.free;
+        sourcefiles:=tinputfilemanager.create;
+        imports.free;
+        imports:=tlinkedlist.create;
+        _exports.free;
+        _exports:=tlinkedlist.create;
+        used_units.free;
+        used_units:=TLinkedList.Create;
         { all units that depend on this one must be recompiled ! }
-        pm:=pdependent_unit(dependent_units.first);
+        pm:=tdependent_unit(dependent_units.first);
         while assigned(pm) do
           begin
-            if pm^.u^.in_second_compile then
-             Comment(v_debug,'No reload already in second compile: '+pm^.u^.modulename^)
+            if pm.u.in_second_compile then
+             Comment(v_debug,'No reload already in second compile: '+pm.u.modulename^)
             else
              begin
-               pm^.u^.do_reload:=true;
-               Comment(v_debug,'Reloading '+pm^.u^.modulename^+' needed because '+modulename^+' is reloaded');
+               pm.u.do_reload:=true;
+               Comment(v_debug,'Reloading '+pm.u.modulename^+' needed because '+modulename^+' is reloaded');
              end;
-            pm:=pdependent_unit(pm^.next);
+            pm:=tdependent_unit(pm.next);
           end;
-        dependent_units.done;
-        dependent_units.init;
-        resourcefiles.done;
-        resourcefiles.init;
-        linkunitofiles.done;
-        linkunitofiles.init;
-        linkunitstaticlibs.done;
-        linkunitstaticlibs.init;
-        linkunitsharedlibs.done;
-        linkunitsharedlibs.init;
-        linkotherofiles.done;
-        linkotherofiles.init;
-        linkotherstaticlibs.done;
-        linkotherstaticlibs.init;
-        linkothersharedlibs.done;
-        linkothersharedlibs.init;
+        dependent_units.free;
+        dependent_units:=TLinkedList.Create;
+        resourcefiles.Free;
+        resourcefiles:=TStringList.Create;
+        linkunitofiles.Free;
+        linkunitofiles:=TLinkContainer.Create;
+        linkunitstaticlibs.Free;
+        linkunitstaticlibs:=TLinkContainer.Create;
+        linkunitsharedlibs.Free;
+        linkunitsharedlibs:=TLinkContainer.Create;
+        linkotherofiles.Free;
+        linkotherofiles:=TLinkContainer.Create;
+        linkotherstaticlibs.Free;
+        linkotherstaticlibs:=TLinkContainer.Create;
+        linkothersharedlibs.Free;
+        linkothersharedlibs:=TLinkContainer.Create;
         uses_imports:=false;
         do_assemble:=false;
         do_compile:=false;
@@ -678,7 +663,7 @@ end;
       end;
 
 
-    constructor tmodule.init(const s:string;_is_unit:boolean);
+    constructor tmodule.create(const s:string;_is_unit:boolean);
       var
         p : dirstr;
         n : namestr;
@@ -717,20 +702,20 @@ end;
         outputpath:=nil;
         path:=nil;
         setfilename(p+n,true);
-        localunitsearchpath.init;
-        localobjectsearchpath.init;
-        localincludesearchpath.init;
-        locallibrarysearchpath.init;
-        used_units.init;
-        dependent_units.init;
-        new(sourcefiles,init);
-        resourcefiles.init;
-        linkunitofiles.init;
-        linkunitstaticlibs.init;
-        linkunitsharedlibs.init;
-        linkotherofiles.init;
-        linkotherstaticlibs.init;
-        linkothersharedlibs.init;
+        localunitsearchpath:=TSearchPathList.Create;
+        localobjectsearchpath:=TSearchPathList.Create;
+        localincludesearchpath:=TSearchPathList.Create;
+        locallibrarysearchpath:=TSearchPathList.Create;
+        used_units:=TLinkedList.Create;
+        dependent_units:=TLinkedList.Create;
+        sourcefiles:=TInputFileManager.Create;
+        resourcefiles:=TStringList.Create;
+        linkunitofiles:=TLinkContainer.Create;
+        linkunitstaticlibs:=TLinkContainer.Create;
+        linkunitsharedlibs:=TLinkContainer.Create;
+        linkotherofiles:=TLinkContainer.Create;
+        linkotherstaticlibs:=TLinkContainer.Create;
+        linkothersharedlibs:=TLinkContainer.Create;
         ppufile:=nil;
         scanner:=nil;
         map:=nil;
@@ -758,8 +743,8 @@ end;
         is_unit:=_is_unit;
         islibrary:=false;
         uses_imports:=false;
-        imports:=new(plinkedlist,init);
-        _exports:=new(plinkedlist,init);
+        imports:=TLinkedList.Create;
+        _exports:=TLinkedList.Create;
       { search the PPU file if it is an unit }
         if is_unit then
          begin
@@ -774,7 +759,7 @@ end;
       end;
 
 
-    destructor tmodule.done;
+    destructor tmodule.Destroy;
 {$ifdef MEMDEBUG}
       var
         d : tmemdebug;
@@ -786,25 +771,25 @@ end;
          dispose(ppufile,done);
         ppufile:=nil;
         if assigned(imports) then
-         dispose(imports,done);
+         imports.free;
         imports:=nil;
         if assigned(_exports) then
-         dispose(_exports,done);
+         _exports.free;
         _exports:=nil;
         if assigned(scanner) then
           pscannerfile(scanner)^.invalid:=true;
         if assigned(sourcefiles) then
-         dispose(sourcefiles,done);
+         sourcefiles.Free;
         sourcefiles:=nil;
-        used_units.done;
-        dependent_units.done;
-        resourcefiles.done;
-        linkunitofiles.done;
-        linkunitstaticlibs.done;
-        linkunitsharedlibs.done;
-        linkotherofiles.done;
-        linkotherstaticlibs.done;
-        linkothersharedlibs.done;
+        used_units.free;
+        dependent_units.free;
+        resourcefiles.Free;
+        linkunitofiles.Free;
+        linkunitstaticlibs.Free;
+        linkunitsharedlibs.Free;
+        linkotherofiles.Free;
+        linkotherstaticlibs.Free;
+        linkothersharedlibs.Free;
         stringdispose(objfilename);
         stringdispose(asmfilename);
         stringdispose(ppufilename);
@@ -817,10 +802,10 @@ end;
         stringdispose(realmodulename);
         stringdispose(mainsource);
         stringdispose(asmprefix);
-        localunitsearchpath.done;
-        localobjectsearchpath.done;
-        localincludesearchpath.done;
-        locallibrarysearchpath.done;
+        localunitsearchpath.Free;
+        localobjectsearchpath.free;
+        localincludesearchpath.free;
+        locallibrarysearchpath.free;
 {$ifdef MEMDEBUG}
         d.init('symtable');
 {$endif}
@@ -833,7 +818,7 @@ end;
 {$ifdef MEMDEBUG}
         d.done;
 {$endif}
-        inherited done;
+        inherited Destroy;
       end;
 
 
@@ -841,21 +826,21 @@ end;
                               TUSED_UNIT
  ****************************************************************************}
 
-    constructor tused_unit.init(_u : pmodule;intface:boolean);
+    constructor tused_unit.create(_u : tmodule;intface:boolean);
       begin
         u:=_u;
         in_interface:=intface;
         in_uses:=false;
         is_stab_written:=false;
         loaded:=true;
-        name:=stringdup(_u^.modulename^);
-        checksum:=_u^.crc;
-        interface_checksum:=_u^.interface_crc;
+        name:=stringdup(_u.modulename^);
+        checksum:=_u.crc;
+        interface_checksum:=_u.interface_crc;
         unitid:=0;
       end;
 
 
-    constructor tused_unit.init_to_load(const n:string;c,intfc:longint;intface:boolean);
+    constructor tused_unit.create_to_load(const n:string;c,intfc:longint;intface:boolean);
       begin
         u:=nil;
         in_interface:=intface;
@@ -869,10 +854,10 @@ end;
       end;
 
 
-    destructor tused_unit.done;
+    destructor tused_unit.destroy;
       begin
         stringdispose(name);
-        inherited done;
+        inherited destroy;
       end;
 
 
@@ -880,7 +865,7 @@ end;
                             TDENPENDENT_UNIT
  ****************************************************************************}
 
-    constructor tdependent_unit.init(_u : pmodule);
+    constructor tdependent_unit.create(_u : tmodule);
       begin
          u:=_u;
       end;
@@ -888,7 +873,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2000-11-07 20:48:33  peter
+  Revision 1.6  2000-12-25 00:07:25  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.5  2000/11/07 20:48:33  peter
     * removed ref_count from pinputfile it's not used
 
   Revision 1.4  2000/10/31 22:02:46  peter

@@ -114,7 +114,7 @@ begin
                        Message(scan_n_stack_check_global_under_linux);
                  end;
       modulesw : begin
-                   if current_module^.in_global then
+                   if current_module.in_global then
                     begin
                       if state='+' then
                         aktmoduleswitches:=aktmoduleswitches+[tmoduleswitch(setsw)]
@@ -130,7 +130,7 @@ begin
                     Message(scan_w_switch_is_global);
                  end;
       globalsw : begin
-                   if current_module^.in_global and (current_module=main_module) then
+                   if current_module.in_global and (current_module=main_module) then
                     begin
                       if state='+' then
                        aktglobalswitches:=aktglobalswitches+[tglobalswitch(setsw)]
@@ -177,7 +177,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2000-09-24 15:06:28  peter
+  Revision 1.6  2000-12-25 00:07:29  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.5  2000/09/24 15:06:28  peter
     * use defines.inc
 
   Revision 1.4  2000/09/21 11:30:49  jonas

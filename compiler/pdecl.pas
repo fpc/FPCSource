@@ -25,8 +25,16 @@ unit pdecl;
 {$i defines.inc}
 
 interface
+
     uses
-      cobjects,symsym,node;
+      { common }
+      cobjects,
+      { global }
+      globals,
+      { symtable }
+      symsym,
+      { pass_1 }
+      node;
 
     function  readconstant(const name:string;const filepos:tfileposinfo):pconstsym;
 
@@ -43,7 +51,7 @@ implementation
        { common }
        cutils,
        { global }
-       globtype,globals,tokens,verbose,
+       globtype,tokens,verbose,
        systems,
        { aasm }
        aasm,
@@ -536,7 +544,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  2000-12-07 17:19:42  jonas
+  Revision 1.24  2000-12-25 00:07:27  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.23  2000/12/07 17:19:42  jonas
     * new constant handling: from now on, hex constants >$7fffffff are
       parsed as unsigned constants (otherwise, $80000000 got sign extended
       and became $ffffffff80000000), all constants in the longint range

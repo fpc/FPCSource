@@ -692,10 +692,10 @@ implementation
                           (pstringdef(ppn.left.resulttype)^.string_typ =
                             st_shortstring) then
                          begin
-                           dummycoll.init;
+                           dummycoll:=tparaitem.create;
                            dummycoll.paratyp:=vs_var;
                            dummycoll.paratype.setdef(openshortstringdef);
-                           tcallparanode(ppn).firstcallparan(@dummycoll,false);
+                           tcallparanode(ppn).firstcallparan(dummycoll,false);
                            if codegenerror then
                              exit;
                          end;
@@ -1491,7 +1491,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2000-12-17 14:35:41  peter
+  Revision 1.21  2000-12-25 00:07:26  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.20  2000/12/17 14:35:41  peter
     * fixed crash with val()
 
   Revision 1.19  2000/11/29 00:30:33  florian

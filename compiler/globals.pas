@@ -40,7 +40,8 @@ interface
       strings,
       dos,
 {$endif}
-      globtype,version,systems,cutils,cobjects;
+      cutils,cobjects,cclasses,
+      globtype,version,systems;
 
     const
 {$ifdef unix}
@@ -73,7 +74,14 @@ interface
          [m_gpc,m_all];
 
     type
-       TSearchPathList = object(TStringQueue)
+       pfileposinfo = ^tfileposinfo;
+       tfileposinfo = record
+         line      : longint;
+         column    : word;
+         fileindex : word;
+       end;
+
+       TSearchPathList = class(TStringList)
          procedure AddPath(s:string;addfirst:boolean);
          procedure AddList(list:TSearchPathList;addfirst:boolean);
          function  FindFile(const f : string;var b : boolean) : string;
@@ -134,7 +142,7 @@ interface
        inlining_procedure : boolean;     { are we inlining a procedure }
 
      { commandline values }
-       initdefines        : tlinkedlist;
+       initdefines        : tstringlist;
        initglobalswitches : tglobalswitches;
        initmoduleswitches : tmoduleswitches;
        initlocalswitches  : tlocalswitches;
@@ -661,13 +669,13 @@ implementation
        CurrentDir,
        CurrPath : string;
        dir      : searchrec;
-       hp       : PStringQueueItem;
+       hp       : TStringListItem;
 
        procedure addcurrpath;
        begin
          if addfirst then
           begin
-            Delete(currPath);
+            Remove(currPath);
             Insert(currPath);
           end
          else
@@ -753,38 +761,38 @@ implementation
      var
        s : string;
        hl : TSearchPathList;
-       hp,hp2 : PStringQueueItem;
+       hp,hp2 : TStringListItem;
      begin
        if list.empty then
         exit;
        { create temp and reverse the list }
        if addfirst then
         begin
-          hl.Init;
-          hp:=list.first;
+          hl:=TSearchPathList.Create;
+          hp:=TStringListItem(list.first);
           while assigned(hp) do
            begin
-             hl.insert(hp^.data^);
-             hp:=hp^.next;
+             hl.insert(hp.Str);
+             hp:=TStringListItem(hp.next);
            end;
           while not hl.empty do
            begin
-             s:=hl.Get;
-             Delete(s);
+             s:=hl.GetFirst;
+             Remove(s);
              Insert(s);
            end;
-          hl.done;
+          hl.Free;
         end
        else
         begin
-          hp:=list.first;
+          hp:=TStringListItem(list.first);
           while assigned(hp) do
            begin
-             hp2:=Find(hp^.data^);
+             hp2:=Find(hp.Str);
              { Check if already in path, then we don't add it }
              if not assigned(hp2) then
-              Concat(hp^.data^);
-             hp:=hp^.next;
+              Concat(hp.Str);
+             hp:=TStringListItem(hp.next);
            end;
         end;
      end;
@@ -792,20 +800,20 @@ implementation
 
    function TSearchPathList.FindFile(const f : string;var b : boolean) : string;
      Var
-       p : PStringQueueItem;
+       p : TStringListItem;
      begin
        FindFile:='';
        b:=false;
-       p:=first;
+       p:=TStringListItem(first);
        while assigned(p) do
         begin
-          If FileExists(p^.data^+f) then
+          If FileExists(p.Str+f) then
            begin
-             FindFile:=p^.data^;
+             FindFile:=p.Str;
              b:=true;
              exit;
            end;
-          p:=p^.next;
+          p:=TStringListItem(p.next);
         end;
      end;
 
@@ -1173,16 +1181,16 @@ implementation
 
    procedure DoneGlobals;
      begin
-       initdefines.done;
+       initdefines.free;
        if assigned(DLLImageBase) then
          StringDispose(DLLImageBase);
        RelocSection:=true;
        RelocSectionSetExplicitly:=false;
        UseDeffileForExport:=true;
-       librarysearchpath.Done;
-       unitsearchpath.Done;
-       objectsearchpath.Done;
-       includesearchpath.Done;
+       librarysearchpath.Free;
+       unitsearchpath.Free;
+       objectsearchpath.Free;
+       includesearchpath.Free;
      end;
 
    procedure InitGlobals;
@@ -1205,10 +1213,10 @@ implementation
         utilsdirectory:='';
 
       { Search Paths }
-        librarysearchpath.Init;
-        unitsearchpath.Init;
-        includesearchpath.Init;
-        objectsearchpath.Init;
+        librarysearchpath:=TSearchPathList.Create;
+        unitsearchpath:=TSearchPathList.Create;
+        includesearchpath:=TSearchPathList.Create;
+        objectsearchpath:=TSearchPathList.Create;
 
       { Def file }
         usewindowapi:=false;
@@ -1244,7 +1252,7 @@ implementation
   {$endif m68k}
 {$endif i386}
         initinterfacetype:=it_interfacecom;
-        initdefines.init;
+        initdefines:=TStringList.Create;
 
       { memory sizes, will be overriden by parameter or default for target
         in options or init_parser }
@@ -1270,7 +1278,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2000-11-13 15:26:12  marco
+  Revision 1.21  2000-12-25 00:07:26  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.20  2000/11/13 15:26:12  marco
    * Renamefest
 
   Revision 1.19  2000/11/12 22:20:37  peter

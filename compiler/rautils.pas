@@ -110,7 +110,7 @@ type
     destructor  done;virtual;
     Procedure InitOperands;virtual;
     Procedure BuildOpcode;virtual;
-    procedure ConcatInstruction(p:PAasmoutput);virtual;
+    procedure ConcatInstruction(p:TAAsmoutput);virtual;
     Procedure SwapOperands;
   end;
 
@@ -189,16 +189,16 @@ Function SearchIConstant(const s:string; var l:longint): boolean;
                   Instruction generation routines
 ---------------------------------------------------------------------}
 
-  Procedure ConcatPasString(p : paasmoutput;s:string);
-  Procedure ConcatDirect(p : paasmoutput;s:string);
-  Procedure ConcatLabel(p: paasmoutput;var l : pasmlabel);
-  Procedure ConcatConstant(p : paasmoutput;value: longint; maxvalue: longint);
-  Procedure ConcatConstSymbol(p : paasmoutput;const sym:string;l:longint);
-  Procedure ConcatRealConstant(p : paasmoutput;value: bestreal; real_typ : tfloattype);
-  Procedure ConcatString(p : paasmoutput;s:string);
-  procedure ConcatAlign(p:paasmoutput;l:longint);
-  Procedure ConcatPublic(p:paasmoutput;const s : string);
-  Procedure ConcatLocal(p:paasmoutput;const s : string);
+  Procedure ConcatPasString(p : TAAsmoutput;s:string);
+  Procedure ConcatDirect(p : TAAsmoutput;s:string);
+  Procedure ConcatLabel(p: TAAsmoutput;var l : pasmlabel);
+  Procedure ConcatConstant(p : TAAsmoutput;value: longint; maxvalue: longint);
+  Procedure ConcatConstSymbol(p : TAAsmoutput;const sym:string;l:longint);
+  Procedure ConcatRealConstant(p : TAAsmoutput;value: bestreal; real_typ : tfloattype);
+  Procedure ConcatString(p : TAAsmoutput;s:string);
+  procedure ConcatAlign(p:TAAsmoutput;l:longint);
+  Procedure ConcatPublic(p:TAAsmoutput;const s : string);
+  Procedure ConcatLocal(p:TAAsmoutput;const s : string);
   Procedure ConcatGlobalBss(const s : string;size : longint);
   Procedure ConcatLocalBss(const s : string;size : longint);
 
@@ -1088,7 +1088,7 @@ Begin
 end;
 
 
-procedure TInstruction.ConcatInstruction(p:PAasmOutput);
+procedure TInstruction.ConcatInstruction(p:TAAsmOutput);
 begin
   abstract;
 end;
@@ -1387,7 +1387,7 @@ end;
  {*************************************************************************}
 
 
-   Procedure ConcatString(p : paasmoutput;s:string);
+   Procedure ConcatString(p : TAAsmoutput;s:string);
   {*********************************************************************}
   { PROCEDURE ConcatString(s:string);                                   }
   {  Description: This routine adds the character chain pointed to in   }
@@ -1397,10 +1397,10 @@ end;
    pc: PChar;
   Begin
      getmem(pc,length(s)+1);
-     p^.concat(new(pai_string,init_length_pchar(strpcopy(pc,s),length(s))));
+     p.concat(Tai_string.Create_length_pchar(strpcopy(pc,s),length(s)));
   end;
 
-  Procedure ConcatPasString(p : paasmoutput;s:string);
+  Procedure ConcatPasString(p : TAAsmoutput;s:string);
   {*********************************************************************}
   { PROCEDURE ConcatPasString(s:string);                                }
   {  Description: This routine adds the character chain pointed to in   }
@@ -1408,10 +1408,10 @@ end;
   {  uses a pascal style string, so it conserves null characters.       }
   {*********************************************************************}
   Begin
-     p^.concat(new(pai_string,init(s)));
+     p.concat(Tai_string.Create(s));
   end;
 
-  Procedure ConcatDirect(p : paasmoutput;s:string);
+  Procedure ConcatDirect(p : TAAsmoutput;s:string);
   {*********************************************************************}
   { PROCEDURE ConcatDirect(s:string)                                    }
   {  Description: This routine output the string directly to the asm    }
@@ -1423,13 +1423,13 @@ end;
    pc: PChar;
   Begin
      getmem(pc,length(s)+1);
-     p^.concat(new(pai_direct,init(strpcopy(pc,s))));
+     p.concat(Tai_direct.Create(strpcopy(pc,s)));
   end;
 
 
 
 
-Procedure ConcatConstant(p: paasmoutput; value: longint; maxvalue: longint);
+Procedure ConcatConstant(p: TAAsmoutput; value: longint; maxvalue: longint);
 {*********************************************************************}
 { PROCEDURE ConcatConstant(value: longint; maxvalue: longint);        }
 {  Description: This routine adds the value constant to the current   }
@@ -1447,23 +1447,23 @@ Begin
      value:=maxvalue;
    end;
   if maxvalue = $ff then
-   p^.concat(new(pai_const,init_8bit(byte(value))))
+   p.concat(Tai_const.Create_8bit(byte(value)))
   else
    if maxvalue = $ffff then
-    p^.concat(new(pai_const,init_16bit(word(value))))
+    p.concat(Tai_const.Create_16bit(word(value)))
   else
    if maxvalue = longint($ffffffff) then
-    p^.concat(new(pai_const,init_32bit(longint(value))));
+    p.concat(Tai_const.Create_32bit(longint(value)));
 end;
 
 
-  Procedure ConcatConstSymbol(p : paasmoutput;const sym:string;l:longint);
+  Procedure ConcatConstSymbol(p : TAAsmoutput;const sym:string;l:longint);
   begin
-    p^.concat(new(pai_const_symbol,initname_offset(sym,l)));
+    p.concat(Tai_const_symbol.Createname_offset(sym,l));
   end;
 
 
-  Procedure ConcatRealConstant(p : paasmoutput;value: bestreal; real_typ : tfloattype);
+  Procedure ConcatRealConstant(p : TAAsmoutput;value: bestreal; real_typ : tfloattype);
   {***********************************************************************}
   { PROCEDURE ConcatRealConstant(value: bestreal; real_typ : tfloattype); }
   {  Description: This routine adds the value constant to the current     }
@@ -1477,52 +1477,52 @@ end;
   {***********************************************************************}
     Begin
        case real_typ of
-          s32real : p^.concat(new(pai_real_32bit,init(value)));
-          s64real : p^.concat(new(pai_real_64bit,init(value)));
-          s80real : p^.concat(new(pai_real_80bit,init(value)));
-          s64comp : p^.concat(new(pai_comp_64bit,init(value)));
-          f32bit  : p^.concat(new(pai_const,init_32bit(trunc(value*$10000))));
+          s32real : p.concat(Tai_real_32bit.Create(value));
+          s64real : p.concat(Tai_real_64bit.Create(value));
+          s80real : p.concat(Tai_real_80bit.Create(value));
+          s64comp : p.concat(Tai_comp_64bit.Create(value));
+          f32bit  : p.concat(Tai_const.Create_32bit(trunc(value*$10000)));
        end;
     end;
 
-   Procedure ConcatLabel(p: paasmoutput;var l : pasmlabel);
+   Procedure ConcatLabel(p: TAAsmoutput;var l : pasmlabel);
   {*********************************************************************}
   { PROCEDURE ConcatLabel                                               }
   {  Description: This routine either emits a label or a labeled        }
   {  instruction to the linked list of instructions.                    }
   {*********************************************************************}
    begin
-     p^.concat(new(pai_label,init(l)));
+     p.concat(Tai_label.Create(l));
    end;
 
-   procedure ConcatAlign(p:paasmoutput;l:longint);
+   procedure ConcatAlign(p:TAAsmoutput;l:longint);
   {*********************************************************************}
   { PROCEDURE ConcatPublic                                              }
   {  Description: This routine emits an global   definition to the      }
   {  linked list of instructions.(used by AT&T styled asm)              }
   {*********************************************************************}
    begin
-     p^.concat(new(pai_align,init(l)));
+     p.concat(Tai_align.Create(l));
    end;
 
-   procedure ConcatPublic(p:paasmoutput;const s : string);
+   procedure ConcatPublic(p:TAAsmoutput;const s : string);
   {*********************************************************************}
   { PROCEDURE ConcatPublic                                              }
   {  Description: This routine emits an global   definition to the      }
   {  linked list of instructions.(used by AT&T styled asm)              }
   {*********************************************************************}
    begin
-       p^.concat(new(pai_symbol,initname_global(s,0)));
+       p.concat(Tai_symbol.Createname_global(s,0));
    end;
 
-   procedure ConcatLocal(p:paasmoutput;const s : string);
+   procedure ConcatLocal(p:TAAsmoutput;const s : string);
   {*********************************************************************}
   { PROCEDURE ConcatLocal                                               }
   {  Description: This routine emits an local    definition to the      }
   {  linked list of instructions.                                       }
   {*********************************************************************}
    begin
-       p^.concat(new(pai_symbol,initname(s,0)));
+       p.concat(Tai_symbol.Createname(s,0));
    end;
 
   Procedure ConcatGlobalBss(const s : string;size : longint);
@@ -1532,7 +1532,7 @@ end;
   {  linked list of instructions.                                       }
   {*********************************************************************}
    begin
-       bsssegment^.concat(new(pai_datablock,init_global(s,size)));
+       bssSegment.concat(Tai_datablock.Create_global(s,size));
    end;
 
   Procedure ConcatLocalBss(const s : string;size : longint);
@@ -1542,13 +1542,17 @@ end;
   {  linked list of instructions.                                       }
   {*********************************************************************}
    begin
-       bsssegment^.concat(new(pai_datablock,init(s,size)));
+       bssSegment.concat(Tai_datablock.Create(s,size));
    end;
 
 end.
 {
   $Log$
-  Revision 1.13  2000-12-07 17:19:43  jonas
+  Revision 1.14  2000-12-25 00:07:28  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.13  2000/12/07 17:19:43  jonas
     * new constant handling: from now on, hex constants >$7fffffff are
       parsed as unsigned constants (otherwise, $80000000 got sign extended
       and became $ffffffff80000000), all constants in the longint range

@@ -51,7 +51,7 @@ type
     procedure CheckOperandSizes;
     procedure CheckNonCommutativeOpcodes;
     { opcode adding }
-    procedure ConcatInstruction(p : paasmoutput);virtual;
+    procedure ConcatInstruction(p : taasmoutput);virtual;
   end;
 
 
@@ -443,11 +443,11 @@ end;
                               opcode Adding
 *****************************************************************************}
 
-procedure T386Instruction.ConcatInstruction(p : paasmoutput);
+procedure T386Instruction.ConcatInstruction(p : taasmoutput);
 var
   siz  : topsize;
   i    : longint;
-  ai   : paicpu;
+  ai   : taicpu;
 begin
 { Get Opsize }
   if (opsize<>S_NO) or (Ops=0) then
@@ -484,29 +484,29 @@ begin
        message(asmr_w_enter_not_supported_by_linux);
      end;
 
-  ai:=new(paicpu,op_none(opcode,siz));
-  ai^.Ops:=Ops;
+  ai:=taicpu.op_none(opcode,siz);
+  ai.Ops:=Ops;
   for i:=1to Ops do
    begin
      case operands[i]^.opr.typ of
        OPR_CONSTANT :
-         ai^.loadconst(i-1,operands[i]^.opr.val);
+         ai.loadconst(i-1,operands[i]^.opr.val);
        OPR_REGISTER:
-         ai^.loadreg(i-1,operands[i]^.opr.reg);
+         ai.loadreg(i-1,operands[i]^.opr.reg);
        OPR_SYMBOL:
-         ai^.loadsymbol(i-1,operands[i]^.opr.symbol,operands[i]^.opr.symofs);
+         ai.loadsymbol(i-1,operands[i]^.opr.symbol,operands[i]^.opr.symofs);
        OPR_REFERENCE:
-         ai^.loadref(i-1,newreference(operands[i]^.opr.ref));
+         ai.loadref(i-1,newreference(operands[i]^.opr.ref));
      end;
    end;
 
  { Condition ? }
   if condition<>C_None then
-   ai^.SetCondition(condition);
+   ai.SetCondition(condition);
 
  { Concat the opcode or give an error }
   if assigned(ai) then
-   p^.concat(ai)
+   p.concat(ai)
   else
    Message(asmr_e_invalid_opcode_and_operand);
 end;
@@ -514,7 +514,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-11-29 00:30:50  florian
+  Revision 1.4  2000-12-25 00:07:34  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.3  2000/11/29 00:30:50  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

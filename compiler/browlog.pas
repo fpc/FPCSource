@@ -26,7 +26,8 @@ unit browlog;
 
 interface
 uses
-  cobjects,globtype,
+  cobjects,cclasses,
+  globtype,
   fmodule,finput,
   symbase,symconst,symtype,symsym,symdef,symtable;
 
@@ -40,7 +41,7 @@ type
     logopen  : boolean;
     stderrlog : boolean;
     f        : file;
-    elements_to_list : pstringqueue;
+    elements_to_list : tstringlist;
     buf      : pchar;
     bufidx   : longint;
     identidx : longint;
@@ -77,7 +78,7 @@ implementation
 
     function get_file_line(ref:pref): string;
       var
-         inputfile : pinputfile;
+         inputfile : tinputfile;
       begin
         get_file_line:='';
         with ref^ do
@@ -88,10 +89,10 @@ implementation
              { for use with rhide
                add warning so that it does not interpret
                this as an error !! }
-               get_file_line:=lower(inputfile^.name^)
+               get_file_line:=lower(inputfile.name^)
                  +':'+tostr(posinfo.line)+': warning: '+tostr(posinfo.column)+':'
              else
-               get_file_line:=inputfile^.name^
+               get_file_line:=inputfile.name^
                  +'('+tostr(posinfo.line)+','+tostr(posinfo.column)+')'
            else
              if status.use_gccoutput then
@@ -111,7 +112,7 @@ implementation
       begin
         fname:=FixFileName('browser.log');
         logopen:=false;
-        elements_to_list:=new(pstringqueue,init);
+        elements_to_list:=TStringList.Create;
       end;
 
 
@@ -119,7 +120,7 @@ implementation
       begin
         if logopen then
          closelog;
-        dispose(elements_to_list,done);
+        elements_to_list.free;
       end;
 
 
@@ -182,8 +183,8 @@ implementation
          stderrlog:=true;
          getmem(buf,logbufsize);
          logopen:=true;
-         while not elements_to_list^.empty do
-           browse_symbol(elements_to_list^.get);
+         while not elements_to_list.empty do
+           browse_symbol(elements_to_list.getfirst);
          flushlog;
          logopen:=false;
          freemem(buf,logbufsize);
@@ -196,20 +197,20 @@ implementation
       end;
 {$else debug}
       var
-         hp : pmodule;
-         ff : pinputfile;
+         hp : tmodule;
+         ff : tinputfile;
       begin
-         hp:=pmodule(loaded_units.first);
+         hp:=tmodule(loaded_units.first);
          while assigned(hp) do
            begin
-              addlog('Unit '+hp^.modulename^+' has index '+tostr(hp^.unit_index));
-              ff:=hp^.sourcefiles^.files;
+              addlog('Unit '+hp.modulename^+' has index '+tostr(hp.unit_index));
+              ff:=hp.sourcefiles.files;
               while assigned(ff) do
                 begin
-                   addlog('File '+ff^.name^+' index '+tostr(ff^.ref_index));
-                   ff:=ff^.ref_next;
+                   addlog('File '+ff.name^+' index '+tostr(ff.ref_index));
+                   ff:=ff.ref_next;
                 end;
-              hp:=pmodule(hp^.next);
+              hp:=tmodule(hp.next);
            end;
       end;
 {$endif debug}
@@ -261,7 +262,7 @@ implementation
       var
          sym,symb : pstoredsym;
          symt : psymtable;
-         hp : pmodule;
+         hp : tmodule;
          s,ss : string;
          p : byte;
 
@@ -311,15 +312,15 @@ implementation
            begin
               symt:=nil;
               { try all loaded_units }
-              hp:=pmodule(loaded_units.first);
+              hp:=tmodule(loaded_units.first);
               while assigned(hp) do
                 begin
-                   if hp^.modulename^=upper(ss) then
+                   if hp.modulename^=upper(ss) then
                      begin
-                        symt:=hp^.globalsymtable;
+                        symt:=hp.globalsymtable;
                         break;
                      end;
-                   hp:=pmodule(hp^.next);
+                   hp:=tmodule(hp.next);
                 end;
               if not assigned(symt) then
                 begin
@@ -452,7 +453,7 @@ implementation
                         begin
                           browserlog.AddLog('***'+prdef^.mangledname);
                           browserlog.AddLogRefs(prdef^.defref);
-                          if (current_module^.flags and uf_local_browser)<>0 then
+                          if (current_module.flags and uf_local_browser)<>0 then
                             begin
                                if assigned(prdef^.parast) then
                                  writesymtable(prdef^.parast);
@@ -483,23 +484,23 @@ implementation
    procedure WriteBrowserLog;
      var
        p : pstoredsymtable;
-       hp : pmodule;
+       hp : tmodule;
      begin
        browserlog.CreateLog;
        browserlog.list_debug_infos;
-       hp:=pmodule(loaded_units.first);
+       hp:=tmodule(loaded_units.first);
        while assigned(hp) do
          begin
-            p:=pstoredsymtable(hp^.globalsymtable);
+            p:=pstoredsymtable(hp.globalsymtable);
             if assigned(p) then
               writesymtable(p);
             if cs_local_browser in aktmoduleswitches then
               begin
-                 p:=pstoredsymtable(hp^.localsymtable);
+                 p:=pstoredsymtable(hp.localsymtable);
                  if assigned(p) then
                    writesymtable(p);
               end;
-            hp:=pmodule(hp^.next);
+            hp:=tmodule(hp.next);
          end;
        browserlog.CloseLog;
      end;
@@ -518,7 +519,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2000-10-31 22:02:46  peter
+  Revision 1.6  2000-12-25 00:07:25  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.5  2000/10/31 22:02:46  peter
     * symtable splitted, no real code changes
 
   Revision 1.4  2000/09/24 15:06:11  peter

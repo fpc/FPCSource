@@ -36,8 +36,8 @@ interface
 implementation
 
     uses
-      globtype,version,tokens,systems,
-      cutils,cobjects,globals,verbose,
+      cutils,cobjects,cclasses,
+      globtype,version,tokens,systems,globals,verbose,
       symbase,symtable,symsym,fmodule,aasm,
       hcodegen,
       script,gendef,
@@ -70,9 +70,9 @@ implementation
          compiled_module:=nil;
          procinfo:=nil;
 
-         loaded_units.init;
+         loaded_units:=TLinkedList.Create;
 
-         usedunits.init;
+         usedunits:=TLinkedList.Create;
 
          { global switches }
          aktglobalswitches:=initglobalswitches;
@@ -98,35 +98,35 @@ implementation
          DefFile.Init(outputexedir+inputfile+target_os.defext);
 
          { list of generated .o files, so the linker can remove them }
-         SmartLinkOFiles.init;
+         SmartLinkOFiles:=TStringList.Create;
       end;
 
 
     procedure doneparser;
       begin
          { unload units }
-         loaded_units.done;
-         usedunits.done;
+         loaded_units.free;
+         usedunits.free;
 
          { close ppas,deffile }
          asmres.done;
          deffile.done;
 
          { free list of .o files }
-         SmartLinkOFiles.done;
+         SmartLinkOFiles.Free;
       end;
 
 
     procedure default_macros;
       var
-        hp : pstring_item;
+        hp : tstringlistitem;
       begin
       { commandline }
-        hp:=pstring_item(initdefines.first);
+        hp:=tstringlistitem(initdefines.first);
         while assigned(hp) do
          begin
-           current_scanner^.def_macro(hp^.str^);
-           hp:=pstring_item(hp^.next);
+           current_scanner^.def_macro(hp.str);
+           hp:=tstringlistitem(hp.next);
          end;
       { set macros for version checking }
         current_scanner^.set_macro('FPC_VERSION',version_nr);
@@ -149,7 +149,7 @@ implementation
          main_module:=current_module;
        { startup scanner, and save in current_module }
          current_scanner:=new(pscannerfile,Init(filename));
-         current_module^.scanner:=current_scanner;
+         current_module.scanner:=current_scanner;
        { loop until EOF is found }
          repeat
            current_scanner^.readtoken;
@@ -240,10 +240,10 @@ implementation
          oldexprasmlist,
          olddebuglist,
          oldwithdebuglist,
-         oldconsts     : paasmoutput;
+         oldconsts     : taasmoutput;
          oldasmsymbollist : pdictionary;
        { resourcestrings }
-         OldResourceStrings : PResourceStrings;
+         OldResourceStrings : tResourceStrings;
        { akt.. things }
          oldaktlocalswitches  : tlocalswitches;
          oldaktmoduleswitches : tmoduleswitches;
@@ -256,7 +256,7 @@ implementation
          oldaktasmmode      : tasmmode;
          oldaktinterfacetype: tinterfacetypes;
          oldaktmodeswitches : tmodeswitches;
-         old_compiled_module : pmodule;
+         old_compiled_module : tmodule;
          prev_name          : pstring;
 {$ifdef USEEXCEPT}
 {$ifndef Delphi}
@@ -352,14 +352,14 @@ implementation
        { reset the unit or create a new program }
          if assigned(current_module) then
            begin
-              {current_module^.reset this is wrong !! }
-               scanner:=current_module^.scanner;
-               current_module^.reset;
-               current_module^.scanner:=scanner;
+              {current_module.reset this is wrong !! }
+               scanner:=current_module.scanner;
+               current_module.reset;
+               current_module.scanner:=scanner;
            end
          else
           begin
-            current_module:=new(pmodule,init(filename,false));
+            current_module:=tmodule.create(filename,false);
             main_module:=current_module;
           end;
 
@@ -367,7 +367,7 @@ implementation
          SetCompileModule(current_module);
 
          compiled_module:=current_module;
-         current_module^.in_compile:=true;
+         current_module.in_compile:=true;
        { Load current state from the init values }
          aktlocalswitches:=initlocalswitches;
          aktmoduleswitches:=initmoduleswitches;
@@ -392,8 +392,8 @@ implementation
          default_macros;
        { read the first token }
          current_scanner^.readtoken;
-         prev_scanner:=current_module^.scanner;
-         current_module^.scanner:=current_scanner;
+         prev_scanner:=current_module.scanner;
+         current_module.scanner:=current_scanner;
 
        { init code generator for a new module }
          codegen_newmodule;
@@ -420,7 +420,7 @@ implementation
 
             if (token=_UNIT) or (compile_level>1) then
               begin
-                current_module^.is_unit:=true;
+                current_module.is_unit:=true;
                 proc_unit;
               end
             else
@@ -454,15 +454,15 @@ implementation
 {$endif newcg}
 
        { free ppu }
-         if assigned(current_module^.ppufile) then
+         if assigned(current_module.ppufile) then
           begin
-            dispose(current_module^.ppufile,done);
-            current_module^.ppufile:=nil;
+            dispose(current_module.ppufile,done);
+            current_module.ppufile:=nil;
           end;
        { free scanner }
          dispose(current_scanner,done);
        { restore previous scanner !! }
-         current_module^.scanner:=prev_scanner;
+         current_module.scanner:=prev_scanner;
          if assigned(prev_scanner) then
            prev_scanner^.invalid:=true;
 
@@ -542,7 +542,7 @@ implementation
               if (cs_browser_log in aktglobalswitches) and
                  (cs_browser in aktmoduleswitches) then
                  begin
-                 if browserlog.elements_to_list^.empty then
+                 if browserlog.elements_to_list.empty then
                    begin
                    Message1(parser_i_writing_browser_log,browserlog.Fname);
                    WriteBrowserLog;
@@ -556,13 +556,13 @@ implementation
                  do_extractsymbolinfo{$ifdef FPC}(){$endif};
               end;
 
-         if current_module^.in_second_compile then
+         if current_module.in_second_compile then
            begin
-             current_module^.in_second_compile:=false;
-             current_module^.in_compile:=true;
+             current_module.in_second_compile:=false;
+             current_module.in_compile:=true;
            end
          else
-           current_module^.in_compile:=false;
+           current_module.in_compile:=false;
 
           (* Obsolete code aktprocsym
              is disposed by the localsymtable disposal (PM)
@@ -570,7 +570,7 @@ implementation
             if assigned(aktprocsym) and (aktprocsym^.owner=nil) then
              begin
                { init parts are not needed in units !! }
-               if current_module^.is_unit then
+               if current_module.is_unit then
                  aktprocsym^.definition^.forwarddef:=false;
                dispose(aktprocsym,done);
              end; *)
@@ -589,7 +589,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2000-12-24 12:24:38  peter
+  Revision 1.13  2000-12-25 00:07:27  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.12  2000/12/24 12:24:38  peter
     * moved preprocessfile into a conditional
 
   Revision 1.11  2000/11/29 00:30:34  florian

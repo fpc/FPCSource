@@ -42,8 +42,8 @@ interface
        end;
 
        tasmnode = class(tnode)
-          p_asm : paasmoutput;
-          constructor create(p : paasmoutput);virtual;
+          p_asm : taasmoutput;
+          constructor create(p : taasmoutput);virtual;
           destructor destroy;override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
@@ -72,8 +72,8 @@ interface
 implementation
 
     uses
-      globtype,systems,
-      cutils,verbose,globals,
+      cutils,cclasses,
+      verbose,globals,globtype,systems,
       symtype,symdef,types,
       pass_1,
       nflw,tgcpu,hcodegen
@@ -295,7 +295,7 @@ implementation
                              TASMNODE
 *****************************************************************************}
 
-    constructor tasmnode.create(p : paasmoutput);
+    constructor tasmnode.create(p : taasmoutput);
 
       begin
          inherited create(asmn);
@@ -305,7 +305,7 @@ implementation
     destructor tasmnode.destroy;
       begin
         if assigned(p_asm) then
-         dispose(p_asm,done);
+         p_asm.free;
         inherited destroy;
       end;
 
@@ -316,8 +316,8 @@ implementation
         n := tasmnode(inherited getcopy);
         if assigned(p_asm) then
           begin
-            new(n.p_asm,init);
-            n.p_asm^.concatlistcopy(p_asm);
+            n.p_asm:=taasmoutput.create;
+            n.p_asm.concatlistcopy(p_asm);
           end
         else n.p_asm := nil;
         getcopy := n;
@@ -338,7 +338,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-11-29 00:30:31  florian
+  Revision 1.6  2000-12-25 00:07:26  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.5  2000/11/29 00:30:31  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

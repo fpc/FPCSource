@@ -26,37 +26,34 @@ unit import;
 interface
 
 uses
-  cutils,cobjects;
+  cutils,cclasses;
 
 type
-   pimported_item = ^timported_item;
-   timported_item = object(tlinkedlist_item)
+   timported_item = class(tlinkedlistitem)
       ordnr  : word;
       name,
       func   : pstring;
       lab    : pointer; { should be plabel, but this gaves problems with circular units }
       is_var : boolean;
-      constructor init(const n,s : string;o : word);
-      constructor init_var(const n,s : string);
-      destructor done;virtual;
+      constructor Create(const n,s : string;o : word);
+      constructor Create_var(const n,s : string);
+      destructor Destroy;override;
    end;
 
-   pimportlist = ^timportlist;
-   timportlist = object(tlinkedlist_item)
+   timportlist = class(tlinkedlistitem)
       dllname : pstring;
-      imported_items : plinkedlist;
-      constructor init(const n : string);
-      destructor done;virtual;
+      imported_items : tlinkedlist;
+      constructor Create(const n : string);
+      destructor Destroy;Override;
    end;
 
-   pimportlib=^timportlib;
-   timportlib=object
+   timportlib=class
    private
       notsupmsg : boolean;
       procedure NotSupported;
    public
-      constructor Init;
-      destructor Done;
+      constructor Create;
+      destructor Destroy;override;
       procedure preparelib(const s:string);virtual;
       procedure importprocedure(const func,module:string;index:longint;const name:string);virtual;
       procedure importvariable(const varname,module:string;const name:string);virtual;
@@ -65,7 +62,7 @@ type
    end;
 
 var
-  importlib : pimportlib;
+  importlib : timportlib;
 
 procedure InitImport;
 procedure DoneImport;
@@ -115,9 +112,9 @@ uses
                            Timported_item
 ****************************************************************************}
 
-constructor timported_item.init(const n,s : string;o : word);
+constructor timported_item.Create(const n,s : string;o : word);
 begin
-  inherited init;
+  inherited Create;
   func:=stringdup(n);
   name:=stringdup(s);
   ordnr:=o;
@@ -126,9 +123,9 @@ begin
 end;
 
 
-constructor timported_item.init_var(const n,s : string);
+constructor timported_item.create_var(const n,s : string);
 begin
-  inherited init;
+  inherited Create;
   func:=stringdup(n);
   name:=stringdup(s);
   ordnr:=0;
@@ -137,11 +134,11 @@ begin
 end;
 
 
-destructor timported_item.done;
+destructor timported_item.destroy;
 begin
   stringdispose(name);
   stringdispose(func);
-  inherited done;
+  inherited destroy;
 end;
 
 
@@ -149,17 +146,17 @@ end;
                               TImportlist
 ****************************************************************************}
 
-constructor timportlist.init(const n : string);
+constructor timportlist.Create(const n : string);
 begin
-  inherited init;
+  inherited Create;
   dllname:=stringdup(n);
-  imported_items:=new(plinkedlist,init);
+  imported_items:=Tlinkedlist.Create;
 end;
 
 
-destructor timportlist.done;
+destructor timportlist.destroy;
 begin
-  dispose(imported_items,done);
+  imported_items.free;
   stringdispose(dllname);
 end;
 
@@ -168,13 +165,13 @@ end;
                               TImportLib
 ****************************************************************************}
 
-constructor timportlib.Init;
+constructor timportlib.Create;
 begin
   notsupmsg:=false;
 end;
 
 
-destructor timportlib.Done;
+destructor timportlib.Destroy;
 begin
 end;
 
@@ -223,7 +220,7 @@ end;
 procedure DoneImport;
 begin
   if assigned(importlib) then
-    dispose(importlib,done);
+    importlib.free;
 end;
 
 
@@ -232,30 +229,30 @@ begin
   case target_info.target of
 {$ifdef i386}
     target_i386_Linux :
-      importlib:=new(pimportliblinux,Init);
+      importlib:=Timportliblinux.Create;
     target_i386_freebsd:
-      importlib:=new(pimportlibfreebsd,Init);
+      importlib:=Timportlibfreebsd.Create;
          target_i386_Win32 :
-      importlib:=new(pimportlibwin32,Init);
+      importlib:=Timportlibwin32.Create;
     target_i386_OS2 :
-      importlib:=new(pimportlibos2,Init);
+      importlib:=Timportlibos2.Create;
     target_i386_Netware :
-      importlib:=new(pimportlibnetware,Init);
+      importlib:=Timportlibnetware.Create;
 {$endif i386}
 {$ifdef m68k}
     target_m68k_Linux :
-      importlib:=new(pimportliblinux,Init);
+      importlib:=Timportliblinux.Create;
 {$endif m68k}
 {$ifdef alpha}
     target_alpha_Linux :
-      importlib:=new(pimportliblinux,Init);
+      importlib:=Timportliblinux.Create;
 {$endif alpha}
 {$ifdef powerpc}
     target_alpha_Linux :
-      importlib:=new(pimportliblinux,Init);
+      importlib:=Timportliblinux.Create;
 {$endif powerpc}
     else
-      importlib:=new(pimportlib,Init);
+      importlib:=Timportlib.Create;
   end;
 end;
 
@@ -263,7 +260,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2000-09-24 15:06:18  peter
+  Revision 1.7  2000-12-25 00:07:26  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.6  2000/09/24 15:06:18  peter
     * use defines.inc
 
   Revision 1.5  2000/09/16 12:22:52  peter

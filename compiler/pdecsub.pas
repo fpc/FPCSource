@@ -44,7 +44,7 @@ interface
 
     procedure parameter_dec(aktprocdef:pabstractprocdef);
 
-    procedure parse_proc_directives(Anames:Pstringcontainer;var pdflags:word);
+    procedure parse_proc_directives(var pdflags:word);
 
     procedure parse_proc_head(options:tproctypeoption);
     procedure parse_proc_dec;
@@ -92,7 +92,7 @@ implementation
       }
       var
         is_procvar : boolean;
-        sc      : Pstringcontainer;
+        sc      : tidstringlist;
         s       : string;
         hpos,
         storetokenpos : tfileposinfo;
@@ -217,10 +217,10 @@ implementation
                       begin
                         if try_to_consume(_EQUAL) then
                          begin
-                           s:=sc^.get_with_tokeninfo(hpos);
-                           if not sc^.empty then
+                           s:=sc.get(hpos);
+                           if not sc.empty then
                             Comment(V_Error,'default value only allowed for one parameter');
-                           sc^.insert_with_tokeninfo(s,hpos);
+                           sc.add(s,hpos);
                            { prefix 'def' to the parameter name }
                            pdefaultvalue:=ReadConstant('$def'+Upper(s),hpos);
                            if assigned(pdefaultvalue) then
@@ -247,9 +247,9 @@ implementation
                if not is_procvar then
                 hs2:=pprocdef(aktprocdef)^.mangledname;
                storetokenpos:=akttokenpos;
-               while not sc^.empty do
+               while not sc.empty do
                 begin
-                  s:=sc^.get_with_tokeninfo(akttokenpos);
+                  s:=sc.get(akttokenpos);
                   aktprocdef^.concatpara(tt,varspez,pdefaultvalue);
                   { For proc vars we only need the definitions }
                   if not is_procvar then
@@ -293,7 +293,7 @@ implementation
                if PStringContainer(strContStack.pop) <> sc then
                   writeln('problem with strContStack in pdecl (1)');
 {$endif fixLeaksOnError}
-               dispose(sc,done);
+               sc.free;
                akttokenpos:=storetokenpos;
             end;
           { set the new mangled name }
@@ -741,17 +741,17 @@ end;
                         Procedure directive handlers
 ****************************************************************************}
 
-procedure pd_far(const procnames:Tstringcontainer);
+procedure pd_far;
 begin
   Message(parser_w_proc_far_ignored);
 end;
 
-procedure pd_near(const procnames:Tstringcontainer);
+procedure pd_near;
 begin
   Message(parser_w_proc_near_ignored);
 end;
 
-procedure pd_export(const procnames:Tstringcontainer);
+procedure pd_export;
 begin
   if assigned(procinfo^._class) then
     Message(parser_e_methods_dont_be_export);
@@ -760,39 +760,39 @@ begin
   { only os/2 needs this }
   if target_info.target=target_i386_os2 then
    begin
-     procnames.insert(aktprocsym^.realname);
+     aktprocsym^.definition^.aliasnames.insert(aktprocsym^.realname);
      procinfo^.exported:=true;
      if cs_link_deffile in aktglobalswitches then
        deffile.AddExport(aktprocsym^.definition^.mangledname);
    end;
 end;
 
-procedure pd_inline(const procnames:Tstringcontainer);
+procedure pd_inline;
 begin
   if not(cs_support_inline in aktmoduleswitches) then
    Message(parser_e_proc_inline_not_supported);
 end;
 
-procedure pd_forward(const procnames:Tstringcontainer);
+procedure pd_forward;
 begin
   aktprocsym^.definition^.forwarddef:=true;
 end;
 
-procedure pd_stdcall(const procnames:Tstringcontainer);
+procedure pd_stdcall;
 begin
 end;
 
-procedure pd_safecall(const procnames:Tstringcontainer);
+procedure pd_safecall;
 begin
 end;
 
-procedure pd_alias(const procnames:Tstringcontainer);
+procedure pd_alias;
 begin
   consume(_COLON);
-  procnames.insert(get_stringconst);
+  aktprocsym^.definition^.aliasnames.insert(get_stringconst);
 end;
 
-procedure pd_asmname(const procnames:Tstringcontainer);
+procedure pd_asmname;
 begin
   aktprocsym^.definition^.setmangledname(target_os.Cprefix+pattern);
   if token=_CCHAR then
@@ -803,13 +803,13 @@ begin
   aktprocsym^.definition^.forwarddef:=false;
 end;
 
-procedure pd_intern(const procnames:Tstringcontainer);
+procedure pd_intern;
 begin
   consume(_COLON);
   aktprocsym^.definition^.extnumber:=get_intconst;
 end;
 
-procedure pd_interrupt(const procnames:Tstringcontainer);
+procedure pd_interrupt;
 begin
 {$ifndef i386}
   Message(parser_w_proc_interrupt_ignored);
@@ -819,12 +819,12 @@ begin
 {$endif i386}
 end;
 
-procedure pd_system(const procnames:Tstringcontainer);
+procedure pd_system;
 begin
   aktprocsym^.definition^.setmangledname(aktprocsym^.realname);
 end;
 
-procedure pd_abstract(const procnames:Tstringcontainer);
+procedure pd_abstract;
 begin
   if (po_virtualmethod in aktprocsym^.definition^.procoptions) then
     include(aktprocsym^.definition^.procoptions,po_abstractmethod)
@@ -834,7 +834,7 @@ begin
   aktprocsym^.definition^.forwarddef:=false;
 end;
 
-procedure pd_virtual(const procnames:Tstringcontainer);
+procedure pd_virtual;
 {$ifdef WITHDMT}
 var
   pt : tnode;
@@ -863,7 +863,7 @@ begin
 {$endif WITHDMT}
 end;
 
-procedure pd_static(const procnames:Tstringcontainer);
+procedure pd_static;
 begin
   if (cs_static_keyword in aktmoduleswitches) then
     begin
@@ -872,17 +872,17 @@ begin
     end;
 end;
 
-procedure pd_override(const procnames:Tstringcontainer);
+procedure pd_override;
 begin
   if not(is_class_or_interface(aktprocsym^.definition^._class)) then
     Message(parser_e_no_object_override);
 end;
 
-procedure pd_overload(const procnames:Tstringcontainer);
+procedure pd_overload;
 begin
 end;
 
-procedure pd_message(const procnames:Tstringcontainer);
+procedure pd_message;
 var
   pt : tnode;
 begin
@@ -890,7 +890,7 @@ begin
   if not(po_containsself in aktprocsym^.definition^.procoptions) and
      ((aktprocsym^.definition^.minparacount<>1) or
       (aktprocsym^.definition^.maxparacount<>1) or
-      (pparaitem(aktprocsym^.definition^.para^.first)^.paratyp<>vs_var)) then
+      (TParaItem(aktprocsym^.definition^.Para.first).paratyp<>vs_var)) then
    Message(parser_e_ill_msg_param);
   pt:=comp_expr(true);
   do_firstpass(pt);
@@ -920,7 +920,7 @@ begin
 end;
 
 
-procedure pd_cdecl(const procnames:Tstringcontainer);
+procedure pd_cdecl;
 begin
   if aktprocsym^.definition^.deftype<>procvardef then
     aktprocsym^.definition^.setmangledname(target_os.Cprefix+aktprocsym^.realname);
@@ -930,7 +930,7 @@ begin
     aktprocsym^.definition^.parast^.foreach({$ifdef FPCPROCVAR}@{$endif}resetvaluepara);
 end;
 
-procedure pd_cppdecl(const procnames:Tstringcontainer);
+procedure pd_cppdecl;
 begin
   if aktprocsym^.definition^.deftype<>procvardef then
     aktprocsym^.definition^.setmangledname(
@@ -942,7 +942,7 @@ begin
 end;
 
 
-procedure pd_pascal(const procnames:Tstringcontainer);
+procedure pd_pascal;
 var st,parast : psymtable;
     lastps,ps : psym;
 begin
@@ -966,26 +966,26 @@ begin
 end;
 
 
-procedure pd_register(const procnames:Tstringcontainer);
+procedure pd_register;
 begin
   Message1(parser_w_proc_directive_ignored,'REGISTER');
 end;
 
 
-procedure pd_reintroduce(const procnames:Tstringcontainer);
+procedure pd_reintroduce;
 begin
   Message1(parser_w_proc_directive_ignored,'REINTRODUCE');
 end;
 
 
-procedure pd_syscall(const procnames:Tstringcontainer);
+procedure pd_syscall;
 begin
   aktprocsym^.definition^.forwarddef:=false;
   aktprocsym^.definition^.extnumber:=get_intconst;
 end;
 
 
-procedure pd_external(const procnames:Tstringcontainer);
+procedure pd_external;
 {
   If import_dll=nil the procedure is assumed to be in another
   object file. In that object file it should have the name to
@@ -1027,22 +1027,22 @@ begin
           Message(parser_w_empty_import_name);}
         { this should work both for win32 and Linux !! PM }
         import_name:=aktprocsym^.realname;
-      if not(current_module^.uses_imports) then
+      if not(current_module.uses_imports) then
        begin
-         current_module^.uses_imports:=true;
-         importlib^.preparelib(current_module^.modulename^);
+         current_module.uses_imports:=true;
+         importlib.preparelib(current_module.modulename^);
        end;
       if not(m_repeat_forward in aktmodeswitches) then
         begin
           { we can only have one overloaded here ! }
           if assigned(aktprocsym^.definition^.nextoverloaded) then
-            importlib^.importprocedure(aktprocsym^.definition^.nextoverloaded^.mangledname,
+            importlib.importprocedure(aktprocsym^.definition^.nextoverloaded^.mangledname,
               import_dll,import_nr,import_name)
           else
-            importlib^.importprocedure(aktprocsym^.mangledname,import_dll,import_nr,import_name);
+            importlib.importprocedure(aktprocsym^.mangledname,import_dll,import_nr,import_name);
         end
       else
-        importlib^.importprocedure(aktprocsym^.mangledname,import_dll,import_nr,import_name);
+        importlib.importprocedure(aktprocsym^.mangledname,import_dll,import_nr,import_name);
     end
   else
     begin
@@ -1062,7 +1062,7 @@ begin
 end;
 
 type
-   pd_handler=procedure(const procnames:Tstringcontainer);
+   pd_handler=procedure;
    proc_dir_rec=record
      idtok     : ttoken;
      pd_flags  : longint;
@@ -1392,7 +1392,7 @@ begin
 end;
 
 
-function parse_proc_direc(const proc_names:Tstringcontainer;var pdflags:word):boolean;
+function parse_proc_direc(var pdflags:word):boolean;
 {
   Parse the procedure directive, returns true if a correct directive is found
 }
@@ -1494,12 +1494,12 @@ begin
      pstoredsymtable(aktprocsym^.definition^.parast)^.set_alignment(target_os.size_of_longint);
 
 { Call the handler }
-  if pointer({$ifndef FPC}@{$endif}proc_direcdata[p].handler)<>nil then
-    proc_direcdata[p].handler(proc_names);
+  if pointer({$ifndef FPCPROCVAR}@{$endif}proc_direcdata[p].handler)<>nil then
+    proc_direcdata[p].handler{$ifdef FPCPROCVAR}(){$endif};
 end;
 
 
-procedure parse_proc_directives(Anames:Pstringcontainer;var pdflags:word);
+procedure parse_proc_directives(var pdflags:word);
 {
   Parse the procedure directives. It does not matter if procedure directives
   are written using ;procdir; or ['procdir'] syntax.
@@ -1512,14 +1512,14 @@ begin
      if try_to_consume(_LECKKLAMMER) then
       begin
         repeat
-          parse_proc_direc(Anames^,pdflags);
+          parse_proc_direc(pdflags);
         until not try_to_consume(_COMMA);
         consume(_RECKKLAMMER);
         { we always expect at least '[];' }
         res:=true;
       end
      else
-      res:=parse_proc_direc(Anames^,pdflags);
+      res:=parse_proc_direc(pdflags);
    { A procedure directive normally followed by a semicolon, but in
      a const section we should stop when _EQUAL is found }
      if res then
@@ -1539,13 +1539,11 @@ end;
 
 procedure parse_var_proc_directives(var sym : psym);
 var
-  anames  : pstringcontainer;
   pdflags : word;
   oldsym  : pprocsym;
   pd      : pabstractprocdef;
 begin
   oldsym:=aktprocsym;
-  anames:=new(pstringcontainer,init);
   pdflags:=pd_procvar;
   { we create a temporary aktprocsym to read the directives }
   aktprocsym:=new(pprocsym,init(sym^.name));
@@ -1564,26 +1562,22 @@ begin
   pabstractprocdef(aktprocsym^.definition):=pd;
   { names should never be used anyway }
   inc(lexlevel);
-  parse_proc_directives(anames,pdflags);
+  parse_proc_directives(pdflags);
   dec(lexlevel);
   aktprocsym^.definition:=nil;
   dispose(aktprocsym,done);
-  dispose(anames,done);
   aktprocsym:=oldsym;
 end;
 
 
 procedure parse_object_proc_directives(var sym : pprocsym);
 var
-  anames : pstringcontainer;
   pdflags : word;
 begin
   pdflags:=pd_object;
-  anames:=new(pstringcontainer,init);
   inc(lexlevel);
-  parse_proc_directives(anames,pdflags);
+  parse_proc_directives(pdflags);
   dec(lexlevel);
-  dispose(anames,done);
   if (po_containsself in aktprocsym^.definition^.procoptions) and
      (([po_msgstr,po_msgint]*aktprocsym^.definition^.procoptions)=[]) then
     Message(parser_e_self_in_non_message_handler);
@@ -1749,6 +1743,9 @@ begin
                    else
                      if hd^.extnumber=-1 then
                        hd^.extnumber:=aktprocsym^.definition^.extnumber;
+                   { copy all aliasnames }
+                   while not aktprocsym^.definition^.aliasnames.empty do
+                    hd^.aliasnames.insert(aktprocsym^.definition^.aliasnames.getfirst);
                    { switch parast for warning in implementation  PM }
                    if (m_repeat_forward in aktmodeswitches) or
                       aktprocsym^.definition^.haspara then
@@ -1867,7 +1864,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2000-11-29 00:30:35  florian
+  Revision 1.10  2000-12-25 00:07:27  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.9  2000/11/29 00:30:35  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

@@ -29,7 +29,7 @@ Interface
 
 Uses aasm;
 
-procedure doRenaming(asml: paasmoutput; first, last: pai);
+procedure doRenaming(asml: TAAsmoutput; first, last: Tai);
 
 Implementation
 
@@ -37,36 +37,36 @@ Uses
   {$ifdef replaceregdebug}cutils,{$endif}
   verbose,globals,cpubase,cpuasm,daopt386,csopt386,tgcpu;
 
-function canBeFirstSwitch(p: paicpu; reg: tregister): boolean;
+function canBeFirstSwitch(p: Taicpu; reg: tregister): boolean;
 { checks whether an operation on reg can be switched to another reg without an }
 { additional mov, e.g. "addl $4,%reg1" can be changed to "leal 4(%reg1),%reg2" }
 begin
   canBeFirstSwitch := false;
-  case p^.opcode of
+  case p.opcode of
     A_MOV,A_MOVZX,A_MOVSX,A_LEA:
       canBeFirstSwitch :=
-        (p^.oper[1].typ = top_reg) and
-        (reg32(p^.oper[1].reg) = reg);
+        (p.oper[1].typ = top_reg) and
+        (reg32(p.oper[1].reg) = reg);
     A_IMUL:
       canBeFirstSwitch :=
-        (p^.ops >= 2) and
-        (reg32(p^.oper[p^.ops-1].reg) = reg) and
-        (p^.oper[0].typ <> top_ref);
+        (p.ops >= 2) and
+        (reg32(p.oper[p.ops-1].reg) = reg) and
+        (p.oper[0].typ <> top_ref);
     A_INC,A_DEC,A_SUB,A_ADD:
       canBeFirstSwitch :=
-        (p^.oper[1].typ = top_reg) and
-        (p^.opsize = S_L) and
-        (reg32(p^.oper[1].reg) = reg) and
-        (p^.oper[0].typ <> top_ref) and
-        ((p^.opcode <> A_SUB) or
-         (p^.oper[0].typ = top_const));
+        (p.oper[1].typ = top_reg) and
+        (p.opsize = S_L) and
+        (reg32(p.oper[1].reg) = reg) and
+        (p.oper[0].typ <> top_ref) and
+        ((p.opcode <> A_SUB) or
+         (p.oper[0].typ = top_const));
     A_SHL:
       canBeFirstSwitch :=
-        (p^.opsize = S_L) and
-        (p^.oper[1].typ = top_reg) and
-        (p^.oper[1].reg = reg) and
-        (p^.oper[0].typ = top_const) and
-        (p^.oper[0].val in [1,2,3]);
+        (p.opsize = S_L) and
+        (p.oper[1].typ = top_reg) and
+        (p.oper[1].reg = reg) and
+        (p.oper[0].typ = top_const) and
+        (p.oper[0].val in [1,2,3]);
   end;
 end;
 
@@ -100,88 +100,88 @@ begin
   end;
 end;
 
-procedure doSwitchReg(hp: paicpu; reg1,reg2: tregister);
+procedure doSwitchReg(hp: Taicpu; reg1,reg2: tregister);
 var
   opCount: longint;
 begin
-  for opCount := 0 to hp^.ops-1 do
-    switchOp(hp^.oper[opCount],reg1,reg2);
+  for opCount := 0 to hp.ops-1 do
+    switchOp(hp.oper[opCount],reg1,reg2);
 end;
 
 
-procedure doFirstSwitch(p: paicpu; reg1, reg2: tregister);
+procedure doFirstSwitch(p: Taicpu; reg1, reg2: tregister);
 var
   tmpRef: treference;
 begin
-  case p^.opcode of
+  case p.opcode of
     A_MOV,A_MOVZX,A_MOVSX,A_LEA:
        begin
-         changeOp(p^.oper[1],reg1,reg2);
-         changeOp(p^.oper[0],reg2,reg1);
+         changeOp(p.oper[1],reg1,reg2);
+         changeOp(p.oper[0],reg2,reg1);
        end;
     A_IMUL:
       begin
-        p^.ops := 3;
-        p^.loadreg(2,p^.oper[1].reg);
-        changeOp(p^.oper[2],reg1,reg2);
+        p.ops := 3;
+        p.loadreg(2,p.oper[1].reg);
+        changeOp(p.oper[2],reg1,reg2);
       end;
     A_INC,A_DEC:
       begin
         reset_reference(tmpref);
         tmpref.base := reg1;
-        case p^.opcode of
+        case p.opcode of
           A_INC:
             tmpref.offset := 1;
           A_DEC:
             tmpref.offset := -1;
         end;
-        p^.ops := 2;
-        p^.opcode := A_LEA;
-        p^.loadreg(1,reg2);
-        p^.loadref(0,newreference(tmpref));
+        p.ops := 2;
+        p.opcode := A_LEA;
+        p.loadreg(1,reg2);
+        p.loadref(0,newreference(tmpref));
       end;
     A_SUB,A_ADD:
       begin
         reset_reference(tmpref);
         tmpref.base := reg1;
-        case p^.oper[0].typ of
+        case p.oper[0].typ of
           top_const:
             begin
-              tmpref.offset := p^.oper[0].val;
-              if p^.opcode = A_SUB then
+              tmpref.offset := p.oper[0].val;
+              if p.opcode = A_SUB then
                 tmpref.offset := - tmpRef.offset;
             end;
           top_symbol:
-            tmpref.symbol := p^.oper[0].sym;
+            tmpref.symbol := p.oper[0].sym;
           top_reg:
             begin
-              tmpref.index := p^.oper[0].reg;
+              tmpref.index := p.oper[0].reg;
               tmpref.scalefactor := 1;
             end;
           else internalerror(200010031);
         end;
-        p^.opcode := A_LEA;
-        p^.loadref(0,newreference(tmpref));
-        p^.loadreg(1,reg2);
+        p.opcode := A_LEA;
+        p.loadref(0,newreference(tmpref));
+        p.loadreg(1,reg2);
       end;
     A_SHL:
       begin
         reset_reference(tmpref);
         tmpref.index := reg1;
-        tmpref.scalefactor := 1 shl p^.oper[0].val;
-        p^.opcode := A_LEA;
-        p^.loadref(0,newreference(tmpref));
-        p^.loadreg(1,reg2);
+        tmpref.scalefactor := 1 shl p.oper[0].val;
+        p.opcode := A_LEA;
+        p.loadref(0,newreference(tmpref));
+        p.loadreg(1,reg2);
       end;
     else internalerror(200010032);
   end;
 end;
 
 
-function switchRegs(asml: paasmoutput; reg1, reg2: tregister; start: pai): Boolean;
+function switchRegs(asml: TAAsmoutput; reg1, reg2: tregister; start: Tai): Boolean;
 { change movl  %reg1,%reg2 ... bla ... to ... bla with reg1 and reg2 switched }
 var
-  endP, hp: pai;
+  endP, hp: Tai;
   switchDone, switchLast, tmpResult, sequenceEnd, reg1Modified, reg2Modified: boolean;
   reg1StillUsed, reg2StillUsed, isInstruction: boolean;
 begin
@@ -196,15 +196,15 @@ begin
       tmpResult :=
         getNextInstruction(endP,endP);
       If tmpResult and
-         not ppaiprop(endP^.optinfo)^.canBeRemoved then
+         not pTaiprop(endp.optinfo)^.canBeRemoved then
         begin
           { if the newReg gets stored back to the oldReg, we can change }
           { "mov %oldReg,%newReg; <operations on %newReg>; mov %newReg, }
           { %oldReg" to "<operations on %oldReg>"                       }
           switchLast := storeBack(endP,reg1,reg2);
-          reg1StillUsed := reg1 in ppaiprop(endP^.optinfo)^.usedregs;
-          reg2StillUsed := reg2 in ppaiprop(endP^.optinfo)^.usedregs;
-          isInstruction := endP^.typ = ait_instruction;
+          reg1StillUsed := reg1 in pTaiprop(endp.optinfo)^.usedregs;
+          reg2StillUsed := reg2 in pTaiprop(endp.optinfo)^.usedregs;
+          isInstruction := endp.typ = ait_instruction;
           sequenceEnd :=
             switchLast or
             { if both registers are released right before an instruction }
@@ -212,13 +212,13 @@ begin
             (not reg1StillUsed and not reg2StillUsed) or
             { no support for (i)div, mul and imul with hardcoded operands }
             (((not isInstruction) or
-              noHardCodedRegs(paicpu(endP),reg1,reg2)) and
+              noHardCodedRegs(Taicpu(endP),reg1,reg2)) and
              (not reg1StillUsed or
               (isInstruction and findRegDealloc(reg1,endP) and
-               regLoadedWithNewValue(reg1,false,paicpu(endP)))) and
+               regLoadedWithNewValue(reg1,false,Taicpu(endP)))) and
              (not reg2StillUsed or
               (isInstruction and findRegDealloc(reg2,endP) and
-               regLoadedWithNewValue(reg2,false,paicpu(endP)))));
+               regLoadedWithNewValue(reg2,false,Taicpu(endP)))));
 
           { we can't switch reg1 and reg2 in something like }
           {   movl  %reg1,%reg2                             }
@@ -234,7 +234,7 @@ begin
           if not reg1Modified then
             begin
               reg1Modified := regModifiedByInstruction(reg1,endP);
-              if reg1Modified and not canBeFirstSwitch(paicpu(endP),reg1) then
+              if reg1Modified and not canBeFirstSwitch(Taicpu(endP),reg1) then
                 begin
                   tmpResult := false;
                   break;
@@ -247,10 +247,10 @@ begin
             break;
 
           tmpResult :=
-            (endP^.typ <> ait_label) and
+            (endp.typ <> ait_label) and
             ((not isInstruction) or
-             (NoHardCodedRegs(paicpu(endP),reg1,reg2) and
-               RegSizesOk(reg1,reg2,paicpu(endP))));
+             (NoHardCodedRegs(Taicpu(endP),reg1,reg2) and
+               RegSizesOk(reg1,reg2,Taicpu(endP))));
         end;
     end;
 
@@ -262,8 +262,8 @@ begin
       getNextInstruction(start,hp);
       while hp <> endP do
         begin
-          if (not ppaiprop(hp^.optinfo)^.canberemoved) and
-             (hp^.typ = ait_instruction) then
+          if (not pTaiprop(hp.optinfo)^.canberemoved) and
+             (hp.typ = ait_instruction) then
             begin
               switchDone := false;
               if not reg1Modified then
@@ -271,55 +271,55 @@ begin
                   reg1Modified := regModifiedByInstruction(reg1,hp);
                   if reg1Modified then
                     begin
-                      doFirstSwitch(paicpu(hp),reg1,reg2);
+                      doFirstSwitch(Taicpu(hp),reg1,reg2);
                       switchDone := true;
                     end;
                 end;
               if not switchDone then
                 if reg1Modified then
-                  doSwitchReg(paicpu(hp),reg1,reg2)
+                  doSwitchReg(Taicpu(hp),reg1,reg2)
                 else
-                  doReplaceReg(paicpu(hp),reg2,reg1);
+                  doReplaceReg(Taicpu(hp),reg2,reg1);
             end;
           getNextInstruction(hp,hp);
         end;
       if switchLast then
-        doSwitchReg(paicpu(hp),reg1,reg2)
+        doSwitchReg(Taicpu(hp),reg1,reg2)
       else getLastInstruction(hp,hp);
       allocRegBetween(asmL,reg1,start,hp);
       allocRegBetween(asmL,reg2,start,hp);
     end;
 end;
 
-procedure doRenaming(asml: paasmoutput; first, last: pai);
+procedure doRenaming(asml: TAAsmoutput; first, last: Tai);
 var
-  p: pai;
+  p: Tai;
 begin
   p := First;
   SkipHead(p);
   while p <> last do
     begin
-      case p^.typ of
+      case p.typ of
         ait_instruction:
           begin
-            case paicpu(p)^.opcode of
+            case Taicpu(p).opcode of
               A_MOV:
                 begin
-                  if not(ppaiprop(p^.optinfo)^.canBeRemoved) and
-                     (paicpu(p)^.oper[0].typ = top_reg) and
-                     (paicpu(p)^.oper[1].typ = top_reg) and
-                     (paicpu(p)^.opsize = S_L) and
-                     (paicpu(p)^.oper[0].reg in (usableregs+[R_EDI])) and
-                     (paicpu(p)^.oper[1].reg in (usableregs+[R_EDI])) then
-                    if switchRegs(asml,paicpu(p)^.oper[0].reg,
-                         paicpu(p)^.oper[1].reg,p) then
+                  if not(pTaiprop(p.optinfo)^.canBeRemoved) and
+                     (Taicpu(p).oper[0].typ = top_reg) and
+                     (Taicpu(p).oper[1].typ = top_reg) and
+                     (Taicpu(p).opsize = S_L) and
+                     (Taicpu(p).oper[0].reg in (usableregs+[R_EDI])) and
+                     (Taicpu(p).oper[1].reg in (usableregs+[R_EDI])) then
+                    if switchRegs(asml,Taicpu(p).oper[0].reg,
+                         Taicpu(p).oper[1].reg,p) then
                       begin
 {                        getnextinstruction(p,hp);
                         asmL^.remove(p);
                         dispose(p,done);
                         p := hp;
                         continue }
-                        ppaiprop(p^.optinfo)^.canBeRemoved := true;
+                        pTaiprop(p.optinfo)^.canBeRemoved := true;
                       end;
                 end;
             end;
@@ -334,7 +334,11 @@ End.
 
 {
   $Log$
-  Revision 1.4  2000-12-05 09:32:47  jonas
+  Revision 1.5  2000-12-25 00:07:34  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.4  2000/12/05 09:32:47  jonas
     * fixed bug where "shl $1,%reg" was changed to "leal (%reg),%reg2"
       instread of to "leal (,%reg,2),%reg2"
 

@@ -33,13 +33,13 @@ interface
        cpubase;
 
     procedure assign_regvars(p: tnode);
-    procedure load_regvars(asml: paasmoutput; p: tnode);
-    procedure cleanup_regvars(asml: paasmoutput);
+    procedure load_regvars(asml: TAAsmoutput; p: tnode);
+    procedure cleanup_regvars(asml: TAAsmoutput);
 {$ifdef i386}
-    procedure store_regvar(asml: paasmoutput; reg: tregister);
-    procedure load_regvar(asml: paasmoutput; vsym: pvarsym);
-    procedure load_regvar_reg(asml: paasmoutput; reg: tregister);
-    procedure load_all_regvars(asml: paasmoutput);
+    procedure store_regvar(asml: TAAsmoutput; reg: tregister);
+    procedure load_regvar(asml: TAAsmoutput; vsym: pvarsym);
+    procedure load_regvar_reg(asml: TAAsmoutput; reg: tregister);
+    procedure load_all_regvars(asml: TAAsmoutput);
 {$endif i386}
 
 implementation
@@ -286,7 +286,7 @@ implementation
 
 
 {$ifdef i386}
-    procedure store_regvar(asml: paasmoutput; reg: tregister);
+    procedure store_regvar(asml: TAAsmoutput; reg: tregister);
     var
       i: longint;
       hr: preference;
@@ -309,15 +309,15 @@ implementation
                   hr^.offset:=-vsym^.address+vsym^.owner^.address_fixup
                 else hr^.offset:=vsym^.address+vsym^.owner^.address_fixup;
                 hr^.base:=procinfo^.framepointer;
-                asml^.concat(new(paicpu,op_reg_ref(A_MOV,regsize(vsym^.reg),vsym^.reg,hr)));
-                asml^.concat(new(pairegalloc,dealloc(reg32(reg))));
+                asml.concat(Taicpu.op_reg_ref(A_MOV,regsize(vsym^.reg),vsym^.reg,hr));
+                asml.concat(Tairegalloc.dealloc(reg32(reg)));
                 regvar_loaded[reg32(reg)] := false;
               end;
             break;
           end;
     end;
 
-    procedure load_regvar(asml: paasmoutput; vsym: pvarsym);
+    procedure load_regvar(asml: TAAsmoutput; vsym: pvarsym);
     var
       hr: preference;
       opsize: topsize;
@@ -325,7 +325,7 @@ implementation
     begin
       if not regvar_loaded[reg32(vsym^.reg)] then
         begin
-          asml^.concat(new(pairegalloc,alloc(reg32(vsym^.reg))));
+          asml.concat(Tairegalloc.alloc(reg32(vsym^.reg)));
           { zero the regvars because the upper 48bits must be clear }
           { for 8bits vars when using them with btrl                }
           { don't care about sign extension, since the upper 24/16  }
@@ -347,23 +347,22 @@ implementation
                 opcode := A_MOVZX;
               end;
           end;
-          asml^.concat(new(pairegalloc,alloc(reg32(vsym^.reg))));
+          asml.concat(Tairegalloc.alloc(reg32(vsym^.reg)));
           new(hr);
           reset_reference(hr^);
           if vsym^.owner^.symtabletype in [inlinelocalsymtable,localsymtable] then
             hr^.offset:=-vsym^.address+vsym^.owner^.address_fixup
           else hr^.offset:=vsym^.address+vsym^.owner^.address_fixup;
           hr^.base:=procinfo^.framepointer;
-          asml^.concat(new(paicpu,op_ref_reg(opcode,opsize,hr,reg32(vsym^.reg))));
+          asml.concat(Taicpu.op_ref_reg(opcode,opsize,hr,reg32(vsym^.reg)));
           regvar_loaded[reg32(vsym^.reg)] := true;
         end;
     end;
 
-    procedure load_regvar_reg(asml: paasmoutput; reg: tregister);
+    procedure load_regvar_reg(asml: TAAsmoutput; reg: tregister);
     var
       i: longint;
       regvarinfo: pregvarinfo;
-      vsym: pvarsym;
     begin
       regvarinfo := pregvarinfo(aktprocsym^.definition^.regvarinfo);
       if not assigned(regvarinfo) then
@@ -375,7 +374,7 @@ implementation
           load_regvar(asml,pvarsym(regvarinfo^.regvars[i]))
     end;
 
-    procedure load_all_regvars(asml: paasmoutput);
+    procedure load_all_regvars(asml: TAAsmoutput);
     var
       i: longint;
       regvarinfo: pregvarinfo;
@@ -392,10 +391,10 @@ implementation
 {$endif i386}
 
 
-    procedure load_regvars(asml: paasmoutput; p: tnode);
+    procedure load_regvars(asml: TAAsmoutput; p: tnode);
     var
       i: longint;
-      hr      : preference;
+      {hr      : preference;}
       regvarinfo: pregvarinfo;
     begin
       if (cs_regalloc in aktglobalswitches) and
@@ -419,7 +418,7 @@ implementation
                   reset_reference(hr^);
                   hr^.offset:=pvarsym(regvarinfo^.regvars[i])^.address+procinfo^.para_offset;
                   hr^.base:=procinfo^.framepointer;
-                  asml^.concat(new(paicpu,op_ref_reg(A_MOVE,regsize(regvarinfo^.regvars[i]^.reg),
+                  asml.concat(Taicpu,op_ref_reg(A_MOVE,regsize(regvarinfo^.regvars[i]^.reg),
                     hr,regvarinfo^.regvars[i]^.reg)));
                 end
             end;
@@ -429,9 +428,9 @@ implementation
              if assigned(regvarinfo^.regvars[i]) then
                begin
                 if cs_asm_source in aktglobalswitches then
-                 asml^.insert(new(pai_asm_comment,init(strpnew(regvarinfo^.regvars[i]^.name+
+                 asml.insert(Tai_asm_comment.Create(strpnew(regvarinfo^.regvars[i]^.name+
                   ' with weight '+tostr(regvarinfo^.regvars[i]^.refs)+' assigned to register '+
-                  reg2str(regvarinfo^.regvars[i]^.reg)))));
+                  reg2str(regvarinfo^.regvars[i]^.reg))));
                 if (status.verbosity and v_debug)=v_debug then
                  Message3(cg_d_register_weight,reg2str(regvarinfo^.regvars[i]^.reg),
                   tostr(regvarinfo^.regvars[i]^.refs),regvarinfo^.regvars[i]^.name);
@@ -444,7 +443,7 @@ implementation
 {$ifdef i386}
                   { reserve place on the FPU stack }
                   regvarinfo^.fpuregvars[i]^.reg:=correct_fpuregister(R_ST0,i-1);
-                  asml^.concat(new(paicpu,op_none(A_FLDZ,S_NO)));
+                  asml.concat(Taicpu.op_none(A_FLDZ,S_NO));
 {$endif i386}
 {$ifdef dummy}
                   { parameter must be load }
@@ -459,11 +458,11 @@ implementation
                       hr^.offset:=pvarsym(regvarinfo^.regvars[i])^.address+procinfo^.para_offset;
                       hr^.base:=procinfo^.framepointer;
 {$ifdef i386}
-                      asml^.concat(new(paicpu,op_ref_reg(A_MOV,regsize(regvarinfo^.regvars[i]^.reg),
+                      asml.concat(Taicpu,op_ref_reg(A_MOV,regsize(regvarinfo^.regvars[i]^.reg),
                         hr,regvarinfo^.regvars[i]^.reg)));
 {$endif i386}
 {$ifdef m68k}
-                      asml^.concat(new(paicpu,op_ref_reg(A_MOVE,regsize(regvarinfo^.regvars[i]^.reg),
+                      asml.concat(Taicpu,op_ref_reg(A_MOVE,regsize(regvarinfo^.regvars[i]^.reg),
                         hr,regvarinfo^.regvars[i]^.reg)));
 {$endif m68k}
                     end;
@@ -472,28 +471,28 @@ implementation
             end;
           if assigned(p) then
             if cs_asm_source in aktglobalswitches then
-              asml^.insert(new(pai_asm_comment,init(strpnew(tostr(p.registersfpu)+
-              ' registers on FPU stack used by temp. expressions'))));
+              asml.insert(Tai_asm_comment.Create(strpnew(tostr(p.registersfpu)+
+              ' registers on FPU stack used by temp. expressions')));
           for i:=1 to maxfpuvarregs do
             begin
                if assigned(regvarinfo^.fpuregvars[i]) then
                  begin
                     if cs_asm_source in aktglobalswitches then
-                      asml^.insert(new(pai_asm_comment,init(strpnew(regvarinfo^.fpuregvars[i]^.name+
+                      asml.insert(Tai_asm_comment.Create(strpnew(regvarinfo^.fpuregvars[i]^.name+
                         ' with weight '+tostr(regvarinfo^.fpuregvars[i]^.refs)+' assigned to register '+
-                        reg2str(regvarinfo^.fpuregvars[i]^.reg)))));
+                        reg2str(regvarinfo^.fpuregvars[i]^.reg))));
                     if (status.verbosity and v_debug)=v_debug then
                       Message3(cg_d_register_weight,reg2str(regvarinfo^.fpuregvars[i]^.reg),
                         tostr(regvarinfo^.fpuregvars[i]^.refs),regvarinfo^.fpuregvars[i]^.name);
                  end;
             end;
           if cs_asm_source in aktglobalswitches then
-            asml^.insert(new(pai_asm_comment,init(strpnew('Register variable assignment:'))));
+            asml.insert(Tai_asm_comment.Create(strpnew('Register variable assignment:')));
         end;
     end;
 
 
-    procedure cleanup_regvars(asml: paasmoutput);
+    procedure cleanup_regvars(asml: TAAsmoutput);
     var
       i: longint;
     begin
@@ -508,11 +507,11 @@ implementation
             for i:=1 to maxfpuvarregs do
               if assigned(fpuregvars[i]) then
                 { ... and clean it up }
-                asml^.concat(new(paicpu,op_reg(A_FSTP,S_NO,R_ST0)));
+                asml.concat(Taicpu.op_reg(A_FSTP,S_NO,R_ST0));
             for i := 1 to maxvarregs do
               if assigned(regvars[i]) and
                  (regvar_loaded[reg32(regvars[i]^.reg)]) then
-                asml^.concat(new(pairegalloc,dealloc(reg32(regvars[i]^.reg))));
+                asml.concat(Tairegalloc.dealloc(reg32(regvars[i]^.reg)));
           end;
 {$endif i386}
     end;
@@ -521,7 +520,11 @@ end.
 
 {
   $Log$
-  Revision 1.14  2000-12-05 11:44:32  jonas
+  Revision 1.15  2000-12-25 00:07:28  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.14  2000/12/05 11:44:32  jonas
     + new integer regvar handling, should be much more efficient
 
   Revision 1.13  2000/11/29 00:30:39  florian

@@ -27,9 +27,10 @@ unit hcodegen;
   interface
 
     uses
+      { common }
       cobjects,
       { global }
-      verbose,
+      globals,verbose,
       { symtable }
       symconst,symtype,symdef,symsym,
       { aasm }
@@ -94,21 +95,11 @@ unit hcodegen;
 
           { code for the current procedure }
           aktproccode,aktentrycode,
-          aktexitcode,aktlocaldata : paasmoutput;
+          aktexitcode,aktlocaldata : taasmoutput;
           { local data is used for smartlink }
 
           constructor init;
           destructor done;
-       end;
-
-       { some kind of temp. types needs to be destructed }
-       { for example ansistring, this is done using this }
-       { list                                       }
-       ptemptodestroy = ^ttemptodestroy;
-       ttemptodestroy = object(tlinkedlist_item)
-          typ : pdef;
-          address : treference;
-          constructor init(const a : treference;p : pdef);
        end;
 
        pregvarinfo = ^tregvarinfo;
@@ -173,7 +164,8 @@ unit hcodegen;
 implementation
 
      uses
-        systems,globals,cresstr
+        systems,
+        cresstr
 {$ifdef fixLeaksOnError}
         ,comphook
 {$endif fixLeaksOnError}
@@ -312,19 +304,19 @@ implementation
         exported:=false;
         no_fast_exit:=false;
 
-        aktentrycode:=new(paasmoutput,init);
-        aktexitcode:=new(paasmoutput,init);
-        aktproccode:=new(paasmoutput,init);
-        aktlocaldata:=new(paasmoutput,init);
+        aktentrycode:=Taasmoutput.Create;
+        aktexitcode:=Taasmoutput.Create;
+        aktproccode:=Taasmoutput.Create;
+        aktlocaldata:=Taasmoutput.Create;
       end;
 
 
     destructor tprocinfo.done;
       begin
-         dispose(aktentrycode,done);
-         dispose(aktexitcode,done);
-         dispose(aktproccode,done);
-         dispose(aktlocaldata,done);
+         aktentrycode.free;
+         aktexitcode.free;
+         aktproccode.free;
+         aktlocaldata.free;
       end;
 
 
@@ -361,14 +353,14 @@ implementation
 
     procedure codegen_newmodule;
       begin
-         exprasmlist:=new(paasmoutput,init);
-         datasegment:=new(paasmoutput,init);
-         codesegment:=new(paasmoutput,init);
-         bsssegment:=new(paasmoutput,init);
-         debuglist:=new(paasmoutput,init);
-         withdebuglist:=new(paasmoutput,init);
-         consts:=new(paasmoutput,init);
-         rttilist:=new(paasmoutput,init);
+         exprasmlist:=taasmoutput.create;
+         datasegment:=taasmoutput.create;
+         codesegment:=taasmoutput.create;
+         bsssegment:=taasmoutput.create;
+         debuglist:=taasmoutput.create;
+         withdebuglist:=taasmoutput.create;
+         consts:=taasmoutput.create;
+         rttilist:=taasmoutput.create;
          ResourceStringList:=Nil;
          importssection:=nil;
          exportssection:=nil;
@@ -377,7 +369,7 @@ implementation
          asmsymbollist:=new(pdictionary,init);
          asmsymbollist^.usehash;
          { resourcestrings }
-         new(ResourceStrings,Init);
+         ResourceStrings:=TResourceStrings.Create;
       end;
 
 
@@ -391,22 +383,22 @@ implementation
 {$ifdef MEMDEBUG}
          d.init('asmlist');
 {$endif}
-         dispose(exprasmlist,done);
-         dispose(codesegment,done);
-         dispose(bsssegment,done);
-         dispose(datasegment,done);
-         dispose(debuglist,done);
-         dispose(withdebuglist,done);
-         dispose(consts,done);
-         dispose(rttilist,done);
+         exprasmlist.free;
+         codesegment.free;
+         bsssegment.free;
+         datasegment.free;
+         debuglist.free;
+         withdebuglist.free;
+         consts.free;
+         rttilist.free;
          if assigned(ResourceStringList) then
-          dispose(ResourceStringList,done);
+          ResourceStringList.free;
          if assigned(importssection) then
-          dispose(importssection,done);
+          importssection.free;
          if assigned(exportssection) then
-          dispose(exportssection,done);
+          exportssection.free;
          if assigned(resourcesection) then
-          dispose(resourcesection,done);
+          resourcesection.free;
 {$ifdef MEMDEBUG}
          d.done;
 {$endif}
@@ -419,19 +411,7 @@ implementation
          d.done;
 {$endif}
          { resource strings }
-         dispose(ResourceStrings,done);
-      end;
-
-
-{*****************************************************************************
-                              TTempToDestroy
-*****************************************************************************}
-
-    constructor ttemptodestroy.init(const a : treference;p : pdef);
-      begin
-         inherited init;
-         address:=a;
-         typ:=p;
+         ResourceStrings.free;
       end;
 
 {$ifdef fixLeaksOnError}
@@ -457,7 +437,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2000-11-30 22:16:49  florian
+  Revision 1.9  2000-12-25 00:07:26  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.8  2000/11/30 22:16:49  florian
     * moved to i386
 
   Revision 1.7  2000/10/31 22:02:47  peter

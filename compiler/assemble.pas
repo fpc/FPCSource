@@ -77,7 +77,7 @@ type
     procedure AsmCreate(Aplace:tcutplace);
     procedure AsmClose;
     procedure Synchronize;
-    procedure WriteTree(p:paasmoutput);virtual;
+    procedure WriteTree(p:TAAsmoutput);virtual;
     procedure WriteAsmList;virtual;
   end;
 
@@ -259,12 +259,12 @@ begin
     cut_begin :
       begin
         inc(SmartHeaderCount);
-        s:=current_module^.asmprefix^+tostr(SmartHeaderCount)+'h';
+        s:=current_module.asmprefix^+tostr(SmartHeaderCount)+'h';
       end;
     cut_normal :
-      s:=current_module^.asmprefix^+tostr(SmartHeaderCount)+'s';
+      s:=current_module.asmprefix^+tostr(SmartHeaderCount)+'s';
     cut_end :
-      s:=current_module^.asmprefix^+tostr(SmartHeaderCount)+'t';
+      s:=current_module.asmprefix^+tostr(SmartHeaderCount)+'t';
   end;
   AsmFile:=Path+FixFileName(s+tostr(SmartFilesCount)+target_info.asmext);
   ObjFile:=Path+FixFileName(s+tostr(SmartFilesCount)+target_info.objext);
@@ -386,9 +386,9 @@ begin
 {$endif}
    begin
    {Touch Assembler time to ppu time is there is a ppufilename}
-     if Assigned(current_module^.ppufilename) then
+     if Assigned(current_module.ppufilename) then
       begin
-        Assign(f,current_module^.ppufilename^);
+        Assign(f,current_module.ppufilename^);
         {$I-}
          reset(f,1);
         {$I+}
@@ -409,16 +409,16 @@ end;
 procedure TAsmList.Synchronize;
 begin
 {Touch Assembler time to ppu time is there is a ppufilename}
-  if Assigned(current_module^.ppufilename) then
+  if Assigned(current_module.ppufilename) then
    begin
-     SynchronizeFileTime(current_module^.ppufilename^,asmfile);
+     SynchronizeFileTime(current_module.ppufilename^,asmfile);
      if not(cs_asm_extern in aktglobalswitches) then
-       SynchronizeFileTime(current_module^.ppufilename^,objfile);
+       SynchronizeFileTime(current_module.ppufilename^,objfile);
    end;
 end;
 
 
-procedure TAsmList.WriteTree(p:paasmoutput);
+procedure TAsmList.WriteTree(p:TAAsmoutput);
 begin
 end;
 
@@ -465,9 +465,9 @@ end;
 Constructor TAsmList.Init(smart:boolean);
 begin
 { load start values }
-  asmfile:=current_module^.asmfilename^;
-  objfile:=current_module^.objfilename^;
-  name:=FixFileName(current_module^.modulename^);
+  asmfile:=current_module.asmfilename^;
+  objfile:=current_module.objfilename^;
+  name:=FixFileName(current_module.modulename^);
   OutCnt:=0;
   SmartFilesCount:=0;
   SmartLinkOFiles.Clear;
@@ -477,12 +477,12 @@ begin
 { Which path will be used ? }
   if SmartAsm then
    begin
-     path:=current_module^.outputpath^+FixFileName(current_module^.modulename^)+target_info.smartext;
+     path:=current_module.outputpath^+FixFileName(current_module.modulename^)+target_info.smartext;
      CreateSmartLinkPath(path);
      path:=FixPath(path,false);
    end
   else
-   path:=current_module^.outputpath^;
+   path:=current_module.outputpath^;
 end;
 
 
@@ -525,12 +525,12 @@ begin
          end;
          b^.WriteBin;
          dispose(b,done);
-         if assigned(current_module^.ppufilename) then
+         if assigned(current_module.ppufilename) then
           begin
             if smart then
-              SynchronizeFileTime(current_module^.ppufilename^,current_module^.staticlibfilename^)
+              SynchronizeFileTime(current_module.ppufilename^,current_module.staticlibfilename^)
             else
-              SynchronizeFileTime(current_module^.ppufilename^,current_module^.objfilename^);
+              SynchronizeFileTime(current_module.ppufilename^,current_module.objfilename^);
           end;
          exit;
        end;
@@ -596,7 +596,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2000-11-13 15:26:12  marco
+  Revision 1.8  2000-12-25 00:07:25  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.7  2000/11/13 15:26:12  marco
    * Renamefest
 
   Revision 1.6  2000/10/01 19:48:23  peter

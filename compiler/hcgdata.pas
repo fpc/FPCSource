@@ -37,7 +37,7 @@ interface
     function genpublishedmethodstable(_class : pobjectdef) : pasmlabel;
 
     { generates a VMT for _class }
-    procedure genvmt(list : paasmoutput;_class : pobjectdef);
+    procedure genvmt(list : TAAsmoutput;_class : pobjectdef);
 
 {$ifdef WITHDMT}
     { generates a DMT for _class }
@@ -55,7 +55,7 @@ implementation
 {$else}
        strings,
 {$endif}
-       cutils,cobjects,
+       cutils,cclasses,cobjects,
        globtype,globals,verbose,
        symtable,symconst,symtype,symsym,types,
        systems
@@ -189,9 +189,9 @@ implementation
          getdatalabel(p^.nl);
          if assigned(p^.l) then
            writenames(p^.l);
-         datasegment^.concat(new(pai_label,init(p^.nl)));
-         datasegment^.concat(new(pai_const,init_8bit(strlen(p^.p^.messageinf.str))));
-         datasegment^.concat(new(pai_string,init_pchar(p^.p^.messageinf.str)));
+         dataSegment.concat(Tai_label.Create(p^.nl));
+         dataSegment.concat(Tai_const.Create_8bit(strlen(p^.p^.messageinf.str)));
+         dataSegment.concat(Tai_string.Create_pchar(p^.p^.messageinf.str));
          if assigned(p^.r) then
            writenames(p^.r);
       end;
@@ -203,8 +203,8 @@ implementation
            writestrentry(p^.l);
 
          { write name label }
-         datasegment^.concat(new(pai_const_symbol,init(p^.nl)));
-         datasegment^.concat(new(pai_const_symbol,initname(p^.p^.mangledname)));
+         dataSegment.concat(Tai_const_symbol.Create(p^.nl));
+         dataSegment.concat(Tai_const_symbol.Createname(p^.p^.mangledname));
 
          if assigned(p^.r) then
            writestrentry(p^.r);
@@ -228,9 +228,9 @@ implementation
 
          { now start writing of the message string table }
          getdatalabel(r);
-         datasegment^.concat(new(pai_label,init(r)));
+         dataSegment.concat(Tai_label.Create(r));
          genstrmsgtab:=r;
-         datasegment^.concat(new(pai_const,init_32bit(count)));
+         dataSegment.concat(Tai_const.Create_32bit(count));
          if assigned(root) then
            begin
               writestrentry(root);
@@ -246,8 +246,8 @@ implementation
            writeintentry(p^.l);
 
          { write name label }
-         datasegment^.concat(new(pai_const,init_32bit(p^.p^.messageinf.i)));
-         datasegment^.concat(new(pai_const_symbol,initname(p^.p^.mangledname)));
+         dataSegment.concat(Tai_const.Create_32bit(p^.p^.messageinf.i));
+         dataSegment.concat(Tai_const_symbol.Createname(p^.p^.mangledname));
 
          if assigned(p^.r) then
            writeintentry(p^.r);
@@ -266,9 +266,9 @@ implementation
 
          { now start writing of the message string table }
          getdatalabel(r);
-         datasegment^.concat(new(pai_label,init(r)));
+         dataSegment.concat(Tai_label.Create(r));
          genintmsgtab:=r;
-         datasegment^.concat(new(pai_const,init_32bit(count)));
+         dataSegment.concat(Tai_const.Create_32bit(count));
          if assigned(root) then
            begin
               writeintentry(root);
@@ -308,7 +308,7 @@ implementation
       begin
          if assigned(p^.l) then
            writedmtindexentry(p^.l);
-         datasegment^.concat(new(pai_const,init_32bit(p^.p^.messageinf.i)));
+         dataSegment.concat(Tai_const.Create_32bit(p^.p^.messageinf.i));
          if assigned(p^.r) then
            writedmtindexentry(p^.r);
       end;
@@ -318,7 +318,7 @@ implementation
       begin
          if assigned(p^.l) then
            writedmtaddressentry(p^.l);
-         datasegment^.concat(new(pai_const_symbol,initname(p^.p^.mangledname)));
+         dataSegment.concat(Tai_const_symbol.Createname(p^.p^.mangledname));
          if assigned(p^.r) then
            writedmtaddressentry(p^.r);
       end;
@@ -339,12 +339,12 @@ implementation
            begin
               getdatalabel(r);
               gendmt:=r;
-              datasegment^.concat(new(pai_label,init(r)));
+              dataSegment.concat(Tai_label.Create(r));
               { entries for caching }
-              datasegment^.concat(new(pai_const,init_32bit(0)));
-              datasegment^.concat(new(pai_const,init_32bit(0)));
+              dataSegment.concat(Tai_const.Create_32bit(0));
+              dataSegment.concat(Tai_const.Create_32bit(0));
 
-              datasegment^.concat(new(pai_const,init_32bit(count)));
+              dataSegment.concat(Tai_const.Create_32bit(count));
               if assigned(root) then
                 begin
                    writedmtindexentry(root);
@@ -377,12 +377,12 @@ implementation
                 internalerror(1209992);
               getdatalabel(l);
 
-              consts^.concat(new(pai_label,init(l)));
-              consts^.concat(new(pai_const,init_8bit(length(p^.name))));
-              consts^.concat(new(pai_string,init(p^.name)));
+              Consts.concat(Tai_label.Create(l));
+              Consts.concat(Tai_const.Create_8bit(length(p^.name)));
+              Consts.concat(Tai_string.Create(p^.name));
 
-              datasegment^.concat(new(pai_const_symbol,init(l)));
-              datasegment^.concat(new(pai_const_symbol,initname(hp^.mangledname)));
+              dataSegment.concat(Tai_const_symbol.Create(l));
+              dataSegment.concat(Tai_const_symbol.Createname(hp^.mangledname));
            end;
       end;
 
@@ -397,8 +397,8 @@ implementation
          if count>0 then
            begin
               getdatalabel(l);
-              datasegment^.concat(new(pai_label,init(l)));
-              datasegment^.concat(new(pai_const,init_32bit(count)));
+              dataSegment.concat(Tai_label.Create(l));
+              dataSegment.concat(Tai_const.Create_32bit(count));
               _class^.symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}genpubmethodtableentry);
               genpublishedmethodstable:=l;
            end
@@ -670,7 +670,7 @@ implementation
             end;
        end;
 
-    procedure genvmt(list : paasmoutput;_class : pobjectdef);
+    procedure genvmt(list : TAAsmoutput;_class : pobjectdef);
 
       procedure do_genvmt(p : pobjectdef);
 
@@ -737,12 +737,11 @@ implementation
                                   if (po_abstractmethod in procdefcoll^.data^.procoptions) then
                                     begin
                                        include(_class^.objectoptions,oo_has_abstract);
-                                       list^.concat(new(pai_const_symbol,initname('FPC_ABSTRACTERROR')));
+                                       List.concat(Tai_const_symbol.Createname('FPC_ABSTRACTERROR'));
                                     end
                                   else
                                     begin
-                                      list^.concat(new(pai_const_symbol,
-                                        initname(procdefcoll^.data^.mangledname)));
+                                      List.concat(Tai_const_symbol.createname(procdefcoll^.data^.mangledname));
                                     end;
                                end;
                           end;
@@ -760,7 +759,7 @@ implementation
           upper(_class^.implementedinterfaces^.interfaces(intfindex)^.objname^)+'_$$_VTBL';
       end;
 
-    procedure gintfcreatevtbl(_class: pobjectdef; intfindex: integer; rawdata,rawcode: paasmoutput);
+    procedure gintfcreatevtbl(_class: pobjectdef; intfindex: integer; rawdata,rawcode: TAAsmoutput);
       var
         implintf: pimplementedinterfaces;
         curintf: pobjectdef;
@@ -770,7 +769,7 @@ implementation
       begin
         implintf:=_class^.implementedinterfaces;
         curintf:=implintf^.interfaces(intfindex);
-        rawdata^.concat(new(pai_symbol,initname(gintfgetvtbllabelname(_class,intfindex),0)));
+        rawdata.concat(Tai_symbol.Createname(gintfgetvtbllabelname(_class,intfindex),0));
         count:=implintf^.implproccount(intfindex);
         for i:=1 to count do
           begin
@@ -778,11 +777,11 @@ implementation
             { create wrapper code }
             cgintfwrapper(rawcode,implintf^.implprocs(intfindex,i),tmps,implintf^.ioffsets(intfindex)^);
             { create reference }
-            rawdata^.concat(new(pai_const_symbol,initname(tmps)));
+            rawdata.concat(Tai_const_symbol.Createname(tmps));
           end;
       end;
 
-    procedure gintfgenentry(_class: pobjectdef; intfindex, contintfindex: integer; rawdata: paasmoutput);
+    procedure gintfgenentry(_class: pobjectdef; intfindex, contintfindex: integer; rawdata: TAAsmoutput);
       var
         implintf: pimplementedinterfaces;
         curintf: pobjectdef;
@@ -796,32 +795,32 @@ implementation
           begin
             { label for GUID }
             getdatalabel(tmplabel);
-            rawdata^.concat(new(pai_label,init(tmplabel)));
-            rawdata^.concat(new(pai_const,init_32bit(curintf^.iidguid.D1)));
-            rawdata^.concat(new(pai_const,init_16bit(curintf^.iidguid.D2)));
-            rawdata^.concat(new(pai_const,init_16bit(curintf^.iidguid.D3)));
+            rawdata.concat(Tai_label.Create(tmplabel));
+            rawdata.concat(Tai_const.Create_32bit(curintf^.iidguid.D1));
+            rawdata.concat(Tai_const.Create_16bit(curintf^.iidguid.D2));
+            rawdata.concat(Tai_const.Create_16bit(curintf^.iidguid.D3));
             for i:=Low(curintf^.iidguid.D4) to High(curintf^.iidguid.D4) do
-              rawdata^.concat(new(pai_const,init_8bit(curintf^.iidguid.D4[i])));
-            datasegment^.concat(new(pai_const_symbol,init(tmplabel)));
+              rawdata.concat(Tai_const.Create_8bit(curintf^.iidguid.D4[i]));
+            dataSegment.concat(Tai_const_symbol.Create(tmplabel));
           end
         else
           begin
             { nil for Corba interfaces }
-            datasegment^.concat(new(pai_const,init_32bit(0))); { nil }
+            dataSegment.concat(Tai_const.Create_32bit(0)); { nil }
           end;
         { VTable }
-        datasegment^.concat(new(pai_const_symbol,initname(gintfgetvtbllabelname(_class,contintfindex))));
+        dataSegment.concat(Tai_const_symbol.Createname(gintfgetvtbllabelname(_class,contintfindex)));
         { IOffset field }
-        datasegment^.concat(new(pai_const,init_32bit(implintf^.ioffsets(contintfindex)^)));
+        dataSegment.concat(Tai_const.Create_32bit(implintf^.ioffsets(contintfindex)^));
         { IIDStr }
         getdatalabel(tmplabel);
-        rawdata^.concat(new(pai_label,init(tmplabel)));
-        rawdata^.concat(new(pai_const,init_8bit(length(curintf^.iidstr^))));
+        rawdata.concat(Tai_label.Create(tmplabel));
+        rawdata.concat(Tai_const.Create_8bit(length(curintf^.iidstr^)));
         if curintf^.objecttype=odt_interfacecom then
-          rawdata^.concat(new(pai_string,init(upper(curintf^.iidstr^))))
+          rawdata.concat(Tai_string.Create(upper(curintf^.iidstr^)))
         else
-          rawdata^.concat(new(pai_string,init(curintf^.iidstr^)));
-        datasegment^.concat(new(pai_const_symbol,init(tmplabel)));
+          rawdata.concat(Tai_string.Create(curintf^.iidstr^));
+        dataSegment.concat(Tai_const_symbol.Create(tmplabel));
       end;
 
     procedure gintfoptimizevtbls(_class: pobjectdef; implvtbl : plongint);
@@ -915,9 +914,9 @@ implementation
 
         gintfoptimizevtbls(_class,impintfindexes);
 
-        rawdata.init;
-        rawcode.init;
-        datasegment^.concat(new(pai_const,init_16bit(max)));
+        rawdata:=TAAsmOutput.Create;
+        rawcode:=TAAsmOutput.Create;
+        dataSegment.concat(Tai_const.Create_16bit(max));
         { Two pass, one for allocation and vtbl creation }
         for i:=1 to max do
           begin
@@ -934,7 +933,7 @@ implementation
                     datasize:=datasize+target_os.size_of_pointer;
                   end;
                 { write vtbl }
-                gintfcreatevtbl(_class,i,@rawdata,@rawcode);
+                gintfcreatevtbl(_class,i,rawdata,rawcode);
               end;
           end;
         { second pass: for fill interfacetable and remained ioffsets }
@@ -942,15 +941,15 @@ implementation
           begin
             if i<>impintfindexes[i] then { why execute x:=x ? }
               with _class^.implementedinterfaces^ do
-	        ioffsets(i)^:=ioffsets(impintfindexes[i])^;
-            gintfgenentry(_class,i,impintfindexes[i],@rawdata);
+                ioffsets(i)^:=ioffsets(impintfindexes[i])^;
+            gintfgenentry(_class,i,impintfindexes[i],rawdata);
           end;
-        datasegment^.insertlist(@rawdata);
-        rawdata.done;
+        dataSegment.insertlist(rawdata);
+        rawdata.free;
         if (cs_create_smart in aktmoduleswitches) then
-          rawcode.insert(new(pai_cut,init));
-        codesegment^.insertlist(@rawcode);
-        rawcode.done;
+          rawcode.insert(Tai_cut.Create);
+        codeSegment.insertlist(rawcode);
+        rawcode.free;
         freemem(impintfindexes,(max+1)*sizeof(longint));
       end;
 
@@ -1029,7 +1028,7 @@ implementation
         { 2. step calc required fieldcount and their offsets in the object memory map
              and write data }
         getdatalabel(intftable);
-        datasegment^.concat(new(pai_label,init(intftable)));
+        dataSegment.concat(Tai_label.Create(intftable));
         gintfwritedata(_class);
         _class^.implementedinterfaces^.clearimplprocs; { release temporary information }
         genintftable:=intftable;
@@ -1053,25 +1052,29 @@ implementation
       if c^.isiidguidvalid then
         begin
           if (cs_create_smart in aktmoduleswitches) then
-            datasegment^.concat(new(pai_cut,init));
-          datasegment^.concat(new(pai_symbol,initname_global('IID$_'+s1,0)));
-          datasegment^.concat(new(pai_const,init_32bit(c^.iidguid.D1)));
-          datasegment^.concat(new(pai_const,init_16bit(c^.iidguid.D2)));
-          datasegment^.concat(new(pai_const,init_16bit(c^.iidguid.D3)));
+            dataSegment.concat(Tai_cut.Create);
+          dataSegment.concat(Tai_symbol.Createname_global('IID$_'+s1,0));
+          dataSegment.concat(Tai_const.Create_32bit(c^.iidguid.D1));
+          dataSegment.concat(Tai_const.Create_16bit(c^.iidguid.D2));
+          dataSegment.concat(Tai_const.Create_16bit(c^.iidguid.D3));
           for i:=Low(c^.iidguid.D4) to High(c^.iidguid.D4) do
-            datasegment^.concat(new(pai_const,init_8bit(c^.iidguid.D4[i])));
+            dataSegment.concat(Tai_const.Create_8bit(c^.iidguid.D4[i]));
         end;
       if (cs_create_smart in aktmoduleswitches) then
-        datasegment^.concat(new(pai_cut,init));
-      datasegment^.concat(new(pai_symbol,initname_global('IIDSTR$_'+s1,0)));
-      datasegment^.concat(new(pai_const,init_8bit(length(c^.iidstr^))));
-      datasegment^.concat(new(pai_string,init(c^.iidstr^)));
+        dataSegment.concat(Tai_cut.Create);
+      dataSegment.concat(Tai_symbol.Createname_global('IIDSTR$_'+s1,0));
+      dataSegment.concat(Tai_const.Create_8bit(length(c^.iidstr^)));
+      dataSegment.concat(Tai_string.Create(c^.iidstr^));
     end;
 
 end.
 {
   $Log$
-  Revision 1.16  2000-11-29 00:30:30  florian
+  Revision 1.17  2000-12-25 00:07:26  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.16  2000/11/29 00:30:30  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

@@ -27,7 +27,7 @@ unit scanner;
 interface
 
     uses
-       cobjects,
+       cobjects,cclasses,
        globtype,globals,version,tokens,
        verbose,comphook,
        finput,
@@ -70,7 +70,7 @@ interface
 
        pscannerfile = ^tscannerfile;
        tscannerfile = object
-          inputfile    : pinputfile;  { current inputfile list }
+          inputfile    : tinputfile;  { current inputfile list }
 
           inputbuffer,                { input buffer }
           inputpointer : pchar;
@@ -86,7 +86,7 @@ interface
           comment_level,
           yylexcount     : longint;
           lastasmgetchar : char;
-          ignoredirectives : tstringcontainer; { ignore directives, used to give warnings only once }
+          ignoredirectives : tstringlist; { ignore directives, used to give warnings only once }
           preprocstack   : ppreprocstack;
           invalid        : boolean; { flag if sourcefiles have been destroyed ! }
           macros         : pdictionary;
@@ -102,7 +102,7 @@ interface
           procedure saveinputfile;
           procedure restoreinputfile;
           procedure nextfile;
-          procedure addfile(hp:pinputfile);
+          procedure addfile(hp:tinputfile);
           procedure reload;
           procedure insertmacro(const macname:string;p:pchar;len:longint);
         { Scanner things }
@@ -314,7 +314,7 @@ implementation
       begin
         inputfile:=do_openinputfile(fn);
         if assigned(current_module) then
-          current_module^.sourcefiles^.register_file(inputfile);
+          current_module.sourcefiles.register_file(inputfile);
       { reset localinput }
         inputbuffer:=nil;
         inputpointer:=nil;
@@ -330,7 +330,7 @@ implementation
         lasttoken:=NOTOKEN;
         nexttoken:=NOTOKEN;
         lastasmgetchar:=#0;
-        ignoredirectives.init;
+        ignoredirectives:=TStringList.Create;
         invalid:=false;
         in_asm_string:=false;
         new(macros,init);
@@ -355,13 +355,13 @@ implementation
               checkpreprocstack;
            { close file, but only if we are the first compile }
            { probably not necessary anymore with invalid flag PM }
-             if not current_module^.in_second_compile then
+             if not current_module.in_second_compile then
               begin
-                if not inputfile^.closed then
+                if not inputfile.closed then
                  closeinputfile;
               end;
           end;
-         ignoredirectives.done;
+         ignoredirectives.free;
          dispose(macros,done);
        end;
 
@@ -408,11 +408,11 @@ implementation
 
     function tscannerfile.openinputfile:boolean;
       begin
-        openinputfile:=inputfile^.open;
+        openinputfile:=inputfile.open;
       { load buffer }
-        inputbuffer:=inputfile^.buf;
-        inputpointer:=inputfile^.buf;
-        inputstart:=inputfile^.bufstart;
+        inputbuffer:=inputfile.buf;
+        inputpointer:=inputfile.buf;
+        inputstart:=inputfile.bufstart;
       { line }
         line_no:=0;
         lastlinepos:=0;
@@ -422,7 +422,7 @@ implementation
 
     procedure tscannerfile.closeinputfile;
       begin
-        inputfile^.close;
+        inputfile.close;
       { reset buffer }
         inputbuffer:=nil;
         inputpointer:=nil;
@@ -436,18 +436,18 @@ implementation
 
     function tscannerfile.tempopeninputfile:boolean;
       begin
-        tempopeninputfile:=inputfile^.tempopen;
+        tempopeninputfile:=inputfile.tempopen;
       { reload buffer }
-        inputbuffer:=inputfile^.buf;
-        inputpointer:=inputfile^.buf;
-        inputstart:=inputfile^.bufstart;
+        inputbuffer:=inputfile.buf;
+        inputpointer:=inputfile.buf;
+        inputstart:=inputfile.bufstart;
       end;
 
 
     procedure tscannerfile.tempcloseinputfile;
       begin
-        inputfile^.setpos(inputstart+(inputpointer-inputbuffer));
-        inputfile^.tempclose;
+        inputfile.setpos(inputstart+(inputpointer-inputbuffer));
+        inputfile.tempclose;
       { reset buffer }
         inputbuffer:=nil;
         inputpointer:=nil;
@@ -457,47 +457,47 @@ implementation
 
     procedure tscannerfile.saveinputfile;
       begin
-        inputfile^.saveinputpointer:=inputpointer;
-        inputfile^.savelastlinepos:=lastlinepos;
-        inputfile^.saveline_no:=line_no;
+        inputfile.saveinputpointer:=inputpointer;
+        inputfile.savelastlinepos:=lastlinepos;
+        inputfile.saveline_no:=line_no;
       end;
 
 
     procedure tscannerfile.restoreinputfile;
       begin
-        inputpointer:=inputfile^.saveinputpointer;
-        lastlinepos:=inputfile^.savelastlinepos;
-        line_no:=inputfile^.saveline_no;
-        if not inputfile^.is_macro then
-          parser_current_file:=inputfile^.name^;
+        inputpointer:=inputfile.saveinputpointer;
+        lastlinepos:=inputfile.savelastlinepos;
+        line_no:=inputfile.saveline_no;
+        if not inputfile.is_macro then
+          parser_current_file:=inputfile.name^;
       end;
 
 
     procedure tscannerfile.nextfile;
       var
-        to_dispose : pinputfile;
+        to_dispose : tinputfile;
       begin
-        if assigned(inputfile^.next) then
+        if assigned(inputfile.next) then
          begin
-           if inputfile^.is_macro then
+           if inputfile.is_macro then
              to_dispose:=inputfile
            else
              to_dispose:=nil;
            { we can allways close the file, no ? }
-           inputfile^.close;
-           inputfile:=inputfile^.next;
+           inputfile.close;
+           inputfile:=inputfile.next;
            if assigned(to_dispose) then
-             dispose(to_dispose,done);
+             to_dispose.free;
            restoreinputfile;
          end;
       end;
 
 
-    procedure tscannerfile.addfile(hp:pinputfile);
+    procedure tscannerfile.addfile(hp:tinputfile);
       begin
         saveinputfile;
       { add to list }
-        hp^.next:=inputfile;
+        hp.next:=inputfile;
         inputfile:=hp;
       { load new inputfile }
         restoreinputfile;
@@ -506,7 +506,7 @@ implementation
 
     procedure tscannerfile.reload;
       begin
-        with inputfile^ do
+        with inputfile do
          begin
            { when nothing more to read then leave immediatly, so we
              don't change the aktfilepos and leave it point to the last
@@ -518,7 +518,7 @@ implementation
              as a seperator, this can't be used for macro's which can change
              the place of the #0 in the buffer with tempopen }
              if (c=#0) and (bufsize>0) and
-                not(inputfile^.is_macro) and
+                not(inputfile.is_macro) and
                 (inputpointer-inputbuffer<bufsize) then
               begin
                 c:=' ';
@@ -537,7 +537,7 @@ implementation
                  begin
                    line_no:=1;
                    if cs_asm_source in aktglobalswitches then
-                     inputfile^.setline(line_no,bufstart);
+                     inputfile.setline(line_no,bufstart);
                  end;
               end
              else
@@ -547,7 +547,7 @@ implementation
               { close file }
                 closeinputfile;
               { no next module, than EOF }
-                if not assigned(inputfile^.next) then
+                if not assigned(inputfile.next) then
                  begin
                    c:=#26;
                    exit;
@@ -556,7 +556,7 @@ implementation
                 nextfile;
                 tempopeninputfile;
               { status }
-                Message1(scan_t_back_in,inputfile^.name^);
+                Message1(scan_t_back_in,inputfile.name^);
               end;
            { load next char }
              c:=inputpointer^;
@@ -568,7 +568,7 @@ implementation
 
     procedure tscannerfile.insertmacro(const macname:string;p:pchar;len:longint);
       var
-        hp : pinputfile;
+        hp : tinputfile;
       begin
       { save old postion and decrease linebreak }
         if c=newline then
@@ -579,7 +579,7 @@ implementation
         { use special name to dispose after !! }
         hp:=do_openinputfile('_Macro_.'+macname);
         addfile(hp);
-        with inputfile^ do
+        with inputfile do
          begin
            setmacro(p,len);
          { local buffer }
@@ -603,7 +603,7 @@ implementation
         lasttokenpos:=inputstart+(inputpointer-inputbuffer);
         akttokenpos.line:=line_no;
         akttokenpos.column:=lasttokenpos-lastlinepos;
-        akttokenpos.fileindex:=inputfile^.ref_index;
+        akttokenpos.fileindex:=inputfile.ref_index;
         aktfilepos:=akttokenpos;
       end;
 
@@ -641,7 +641,7 @@ implementation
          oldtokenpos,
          oldaktfilepos : tfileposinfo;
       begin
-        with inputfile^ do
+        with inputfile do
          begin
            if (byte(inputpointer^)=0) and not(endoffile) then
             begin
@@ -662,7 +662,7 @@ implementation
            inc(line_no);
          { update linebuffer }
            if cs_asm_source in aktglobalswitches then
-             inputfile^.setline(line_no,lastlinepos);
+             inputfile.setline(line_no,lastlinepos);
          { update for status and call the show status routine,
            but don't touch aktfilepos ! }
            oldaktfilepos:=aktfilepos;
@@ -1270,9 +1270,9 @@ implementation
                 if parapreprocess then
                  begin
                    if c=#10 then
-                    preprocfile^.eolfound:=true
+                    preprocfile.eolfound:=true
                    else
-                    preprocfile^.spacefound:=true;
+                    preprocfile.spacefound:=true;
                  end;
 {$endif PREPROCWRITE}
                 skipspace;
@@ -1946,7 +1946,11 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.12  2000-12-24 12:24:38  peter
+  Revision 1.13  2000-12-25 00:07:28  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.12  2000/12/24 12:24:38  peter
     * moved preprocessfile into a conditional
 
   Revision 1.11  2000/12/18 17:59:01  peter

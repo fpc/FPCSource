@@ -28,7 +28,7 @@ uses
   aasm,
   symbase,symtype,symtable,symdef,symsym;
 
-procedure cgintfwrapper(asmlist: paasmoutput; procdef: pprocdef; const labelname: string; ioffset: longint);
+procedure cgintfwrapper(asmlist: TAAsmoutput; procdef: pprocdef; const labelname: string; ioffset: longint);
 
 implementation
 
@@ -94,7 +94,7 @@ begin
 end;
 
 
-procedure cgintfwrapper(asmlist: paasmoutput; procdef: pprocdef; const labelname: string; ioffset: longint);
+procedure cgintfwrapper(asmlist: TAAsmoutput; procdef: pprocdef; const labelname: string; ioffset: longint);
   procedure checkvirtual;
   begin
     if (procdef^.extnumber=-1) then
@@ -133,7 +133,7 @@ procedure cgintfwrapper(asmlist: paasmoutput; procdef: pprocdef; const labelname
   end;
 
 var
-  oldexprasmlist: paasmoutput;
+  oldexprasmlist: TAAsmoutput;
   lab : pasmsymbol;
 
 begin
@@ -147,7 +147,7 @@ begin
   oldexprasmlist:=exprasmlist;
   exprasmlist:=asmlist;
 
-  exprasmlist^.concat(new(pai_symbol,initname(labelname,0)));
+  exprasmList.concat(Tai_symbol.Createname(labelname,0));
 
   { set param1 interface to self  }
   adjustselfvalue(ioffset);
@@ -202,7 +202,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-11-29 00:30:47  florian
+  Revision 1.4  2000-12-25 00:07:33  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.3  2000/11/29 00:30:47  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

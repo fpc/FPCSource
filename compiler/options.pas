@@ -99,50 +99,21 @@ procedure def_symbol(const s : string);
 begin
   if s='' then
    exit;
-  initdefines.concat(new(pstring_item,init(upper(s))));
+  initdefines.insert(upper(s));
 end;
 
 
 procedure undef_symbol(const s : string);
-var
-  item,next : pstring_item;
 begin
   if s='' then
    exit;
-  item:=pstring_item(initdefines.first);
-  while assigned(item) do
-   begin
-     if (item^.str^=s) then
-      begin
-        next:=pstring_item(item^.next);
-        initdefines.remove(item);
-        dispose(item,done);
-        item:=next;
-      end
-     else
-      if item<>pstring_item(item^.next) then
-       item:=pstring_item(item^.next)
-      else
-       break;
-   end;
+  InitDefines.Remove(s);
 end;
 
 
 function check_symbol(const s:string):boolean;
-var
-  hp : pstring_item;
 begin
-  hp:=pstring_item(initdefines.first);
-  while assigned(hp) do
-   begin
-     if (hp^.str^=s) then
-      begin
-        check_symbol:=true;
-        exit;
-      end;
-     hp:=pstring_item(hp^.next);
-   end;
-  check_symbol:=false;
+  check_symbol:=(initdefines.find(s)<>nil);
 end;
 
 
@@ -394,7 +365,7 @@ begin
                           end
                         else if More<>'+' then
 {$ifdef BrowserLog}
-                          browserlog.elements_to_list^.insert(more);
+                          browserlog.elements_to_list.insert(more);
 {$else}
                           IllegalPara(opt);
 {$endif}
@@ -1211,19 +1182,19 @@ begin
   FirstPass:=false;
   FileLevel:=0;
   Quickinfo:='';
-  ParaIncludePath.Init;
-  ParaObjectPath.Init;
-  ParaUnitPath.Init;
-  ParaLibraryPath.Init;
+  ParaIncludePath:=TSearchPathList.Create;
+  ParaObjectPath:=TSearchPathList.Create;
+  ParaUnitPath:=TSearchPathList.Create;
+  ParaLibraryPath:=TSearchPathList.Create;
 end;
 
 
 destructor TOption.destroy;
 begin
-  ParaIncludePath.Done;
-  ParaObjectPath.Done;
-  ParaUnitPath.Done;
-  ParaLibraryPath.Done;
+  ParaIncludePath.Free;
+  ParaObjectPath.Free;
+  ParaUnitPath.Free;
+  ParaLibraryPath.Free;
 end;
 
 
@@ -1538,7 +1509,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.23  2000-12-24 12:21:41  peter
+  Revision 1.24  2000-12-25 00:07:26  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.23  2000/12/24 12:21:41  peter
     * use system.paramstr()
 
   Revision 1.22  2000/12/23 19:46:49  peter

@@ -161,7 +161,7 @@ implementation
                     if not(r in unused) then
                      begin
                         { then save it }
-                        exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,r)));
+                        exprasmlist.concat(Taicpu.Op_reg(A_PUSH,S_L,r));
 
                         { here was a big problem  !!!!!}
                         { you cannot do that for a register that is
@@ -187,13 +187,11 @@ implementation
               { if the mmx register is in use, save it }
               if not(r in unused) then
                 begin
-                   exprasmlist^.concat(new(paicpu,op_const_reg(
-                     A_SUB,S_L,8,R_ESP)));
+                   exprasmList.concat(Taicpu.Op_const_reg(A_SUB,S_L,8,R_ESP));
                    new(hr);
                    reset_reference(hr^);
                    hr^.base:=R_ESP;
-                   exprasmlist^.concat(new(paicpu,op_reg_ref(
-                     A_MOVQ,S_NO,r,hr)));
+                   exprasmList.concat(Taicpu.Op_reg_ref(A_MOVQ,S_NO,r,hr));
                    if not(is_reg_var[r]) then
                      begin
                        unused:=unused+[r];
@@ -210,9 +208,9 @@ implementation
 {$endif TEMPREGDEBUG}
       end;
 
-    
+
     procedure saveregvars(b: byte);
-    
+
       var
          r : tregister;
 
@@ -246,7 +244,7 @@ implementation
                         { then save it }
                         gettempofsizereference(4,hr);
                         saved[r]:=hr.offset;
-                        exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,r,newreference(hr))));
+                        exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,r,newreference(hr)));
                         { here was a big problem  !!!!!}
                         { you cannot do that for a register that is
                         globally assigned to a var
@@ -271,8 +269,7 @@ implementation
               if not(r in unused) then
                 begin
                    gettempofsizereference(8,hr);
-                   exprasmlist^.concat(new(paicpu,op_reg_ref(
-                     A_MOVQ,S_NO,r,newreference(hr))));
+                   exprasmList.concat(Taicpu.Op_reg_ref(A_MOVQ,S_NO,r,newreference(hr)));
                    if not(is_reg_var[r]) then
                      begin
                        unused:=unused+[r];
@@ -306,10 +303,10 @@ implementation
                    new(hr);
                    reset_reference(hr^);
                    hr^.base:=R_ESP;
-                   exprasmlist^.concat(new(paicpu,op_ref_reg(
-                     A_MOVQ,S_NO,hr,r)));
-                   exprasmlist^.concat(new(paicpu,op_const_reg(
-                     A_ADD,S_L,8,R_ESP)));
+                   exprasmList.concat(Taicpu.Op_ref_reg(
+                     A_MOVQ,S_NO,hr,r));
+                   exprasmList.concat(Taicpu.Op_const_reg(
+                     A_ADD,S_L,8,R_ESP));
                    unused:=unused-[r];
 {$ifdef TEMPREGDEBUG}
                    dec(usableregmmx);
@@ -320,7 +317,7 @@ implementation
          for r:=R_EBX downto R_EAX do
            if pushed[r] then
              begin
-                exprasmlist^.concat(new(paicpu,op_reg(A_POP,S_L,r)));
+                exprasmList.concat(Taicpu.Op_reg(A_POP,S_L,r));
 {$ifdef TEMPREGDEBUG}
                 if not (r in unused) then
                   { internalerror(10)
@@ -352,8 +349,8 @@ implementation
                    reset_reference(hr);
                    hr.base:=frame_pointer;
                    hr.offset:=saved[r];
-                   exprasmlist^.concat(new(paicpu,op_ref_reg(
-                     A_MOVQ,S_NO,newreference(hr),r)));
+                   exprasmList.concat(Taicpu.Op_ref_reg(
+                     A_MOVQ,S_NO,newreference(hr),r));
                    unused:=unused-[r];
 {$ifdef TEMPREGDEBUG}
                    dec(usableregmmx);
@@ -368,7 +365,7 @@ implementation
                 reset_reference(hr);
                 hr.base:=frame_pointer;
                 hr.offset:=saved[r];
-                exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOV,S_L,newreference(hr),r)));
+                exprasmList.concat(Taicpu.Op_ref_reg(A_MOV,S_L,newreference(hr),r));
 {$ifdef TEMPREGDEBUG}
                 if not (r in unused) then
                   internalerror(10)
@@ -405,7 +402,7 @@ implementation
          if (r = R_EDI) or
             ((not assigned(procinfo^._class)) and (r = R_ESI)) then
            begin
-             exprasmlist^.concat(new(pairegalloc,dealloc(r)));
+             exprasmList.concat(Tairegalloc.DeAlloc(r));
              exit;
            end;
          if cs_regalloc in aktglobalswitches then
@@ -439,7 +436,7 @@ implementation
               reg_releaser[r]:=curptree^;
 {$endif TEMPREGDEBUG}
            end;
-         exprasmlist^.concat(new(pairegalloc,dealloc(r)));
+         exprasmList.concat(Tairegalloc.DeAlloc(r));
 {$ifdef TEMPREGDEBUG}
         testregisters32;
 {$endif TEMPREGDEBUG}
@@ -554,7 +551,7 @@ implementation
 {$ifdef TEMPREGDEBUG}
               reg_user[R_EAX]:=curptree^;
 {$endif TEMPREGDEBUG}
-              exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+              exprasmList.concat(Tairegalloc.Alloc(R_EAX));
            end
          else if R_EDX in unused then
            begin
@@ -564,7 +561,7 @@ implementation
 {$ifdef TEMPREGDEBUG}
               reg_user[R_EDX]:=curptree^;
 {$endif TEMPREGDEBUG}
-              exprasmlist^.concat(new(pairegalloc,alloc(R_EDX)));
+              exprasmList.concat(Tairegalloc.Alloc(R_EDX));
            end
          else if R_EBX in unused then
            begin
@@ -574,7 +571,7 @@ implementation
 {$ifdef TEMPREGDEBUG}
               reg_user[R_EBX]:=curptree^;
 {$endif TEMPREGDEBUG}
-              exprasmlist^.concat(new(pairegalloc,alloc(R_EBX)));
+              exprasmList.concat(Tairegalloc.Alloc(R_EBX));
            end
          else if R_ECX in unused then
            begin
@@ -584,7 +581,7 @@ implementation
 {$ifdef TEMPREGDEBUG}
               reg_user[R_ECX]:=curptree^;
 {$endif TEMPREGDEBUG}
-              exprasmlist^.concat(new(pairegalloc,alloc(R_ECX)));
+              exprasmList.concat(Tairegalloc.Alloc(R_ECX));
            end
          else internalerror(10);
 {$ifdef TEMPREGDEBUG}
@@ -597,7 +594,7 @@ implementation
       begin
          if r in [R_ESI,R_EDI] then
            begin
-             exprasmlist^.concat(new(pairegalloc,alloc(r)));
+             exprasmList.concat(Tairegalloc.Alloc(r));
              getexplicitregister32 := r;
              exit;
            end;
@@ -611,7 +608,7 @@ implementation
 {$endif TEMPREGDEBUG}
               unused:=unused-[r];
               usedinproc:=usedinproc or ($80 shr byte(r));
-              exprasmlist^.concat(new(pairegalloc,alloc(r)));
+              exprasmList.concat(Tairegalloc.Alloc(r));
               getexplicitregister32:=r;
 {$ifdef TEMPREGDEBUG}
          testregisters32;
@@ -677,7 +674,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-12-05 11:44:34  jonas
+  Revision 1.3  2000-12-25 00:07:34  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.2  2000/12/05 11:44:34  jonas
     + new integer regvar handling, should be much more efficient
 
   Revision 1.1  2000/11/29 00:30:51  florian

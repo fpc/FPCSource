@@ -54,34 +54,27 @@ Const
     N_EXCL  = $C2;
 
     type
-       pai_stabs = ^tai_stabs;
-
-       tai_stabs = object(tai)
+       tai_stabs = class(tai)
           str : pchar;
-          constructor init(_str : pchar);
-          destructor done; virtual;
+          constructor Create(_str : pchar);
+          destructor Destroy;override;
        end;
 
-       pai_stabn = ^tai_stabn;
-
-       tai_stabn = object(tai)
+       tai_stabn = class(tai)
           str : pchar;
-          constructor init(_str : pchar);
-          destructor done; virtual;
+          constructor Create(_str : pchar);
+          destructor Destroy;override;
        end;
 
        { insert a cut to split into several smaller files }
-       pai_force_line = ^tai_force_line;
-       tai_force_line = object(tai)
-          constructor init;
+       tai_force_line = class(tai)
+          constructor Create;
        end;
 
-       pai_stab_function_name = ^tai_stab_function_name;
-
-       tai_stab_function_name = object(tai)
+       tai_stab_function_name = class(tai)
           str : pchar;
-          constructor init(_str : pchar);
-          destructor done; virtual;
+          constructor create(_str : pchar);
+          destructor destroy;override;
        end;
 
     const
@@ -197,10 +190,10 @@ N_BINCL to N_EINCL
      end;
 
 
-    constructor tai_stabs.init(_str : pchar);
+    constructor tai_stabs.create(_str : pchar);
 
       begin
-         inherited init;
+         inherited create;
          typ:=ait_stabs;
          str:=_str;
          if do_count_dbx then
@@ -209,54 +202,58 @@ N_BINCL to N_EINCL
            end;
       end;
 
-    destructor tai_stabs.done;
+    destructor tai_stabs.destroy;
 
       begin
          strdispose(str);
-         inherited done;
+         inherited destroy;
       end;
 
-    constructor tai_stabn.init(_str : pchar);
+    constructor tai_stabn.create(_str : pchar);
 
       begin
-         inherited init;
+         inherited create;
          typ:=ait_stabn;
          str:=_str;
       end;
 
-    destructor tai_stabn.done;
+    destructor tai_stabn.destroy;
 
       begin
          strdispose(str);
-         inherited done;
+         inherited destroy;
       end;
 
-    constructor tai_force_line.init;
+    constructor tai_force_line.create;
 
       begin
-         inherited init;
+         inherited create;
          typ:=ait_force_line;
       end;
 
-    constructor tai_stab_function_name.init(_str : pchar);
+    constructor tai_stab_function_name.create(_str : pchar);
 
       begin
-         inherited init;
+         inherited create;
          typ:=ait_stab_function_name;
          str:=_str;
       end;
 
-    destructor tai_stab_function_name.done;
+    destructor tai_stab_function_name.destroy;
 
       begin
          strdispose(str);
-         inherited done;
+         inherited destroy;
       end;
 end.
 
 {
   $Log$
-  Revision 1.4  2000-11-29 00:30:30  florian
+  Revision 1.5  2000-12-25 00:07:26  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.4  2000/11/29 00:30:30  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

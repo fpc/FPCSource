@@ -123,18 +123,18 @@ interface
     procedure emitloadord2reg(const location:Tlocation;orddef:Porddef;destreg:Tregister;delloc:boolean);
     procedure concatcopy(source,dest : treference;size : longint;delsource : boolean;loadref:boolean);
 
-    procedure genentrycode(alist : paasmoutput;const proc_names:Tstringcontainer;make_global:boolean;
+    procedure genentrycode(alist : TAAsmoutput;make_global:boolean;
                            stackframe:longint;
                            var parasize:longint;var nostackframe:boolean;
                            inlined : boolean);
-    procedure genexitcode(alist : paasmoutput;parasize:longint;
+    procedure genexitcode(alist : TAAsmoutput;parasize:longint;
                           nostackframe,inlined:boolean);
 
     { if a unit doesn't have a explicit init/final code,  }
     { we've to generate one, if the units has ansistrings }
     { in the interface or implementation                  }
-    procedure genimplicitunitfinal(alist : paasmoutput);
-    procedure genimplicitunitinit(alist : paasmoutput);
+    procedure genimplicitunitfinal(alist : TAAsmoutput);
+    procedure genimplicitunitinit(alist : TAAsmoutput);
 {$ifdef test_dest_loc}
 
 const
@@ -331,36 +331,36 @@ implementation
     procedure emitlab(var l : pasmlabel);
       begin
          if not l^.is_set then
-          exprasmlist^.concat(new(pai_label,init(l)))
+          exprasmList.concat(Tai_label.Create(l))
          else
           internalerror(7453984);
       end;
 
     procedure emitjmp(c : tasmcond;var l : pasmlabel);
       var
-        ai : Paicpu;
+        ai : taicpu;
       begin
         if c=C_None then
-          ai := new(paicpu,op_sym(A_JMP,S_NO,l))
+          ai := Taicpu.Op_sym(A_JMP,S_NO,l)
         else
           begin
-            ai:=new(paicpu,op_sym(A_Jcc,S_NO,l));
-            ai^.SetCondition(c);
+            ai:=Taicpu.Op_sym(A_Jcc,S_NO,l);
+            ai.SetCondition(c);
           end;
-        ai^.is_jmp:=true;
-        exprasmlist^.concat(ai);
+        ai.is_jmp:=true;
+        exprasmList.concat(ai);
       end;
 
 
     procedure emit_flag2reg(flag:tresflags;hregister:tregister);
       var
-        ai : paicpu;
+        ai : taicpu;
         hreg : tregister;
       begin
          hreg:=makereg8(hregister);
-         ai:=new(paicpu,op_reg(A_Setcc,S_B,hreg));
-         ai^.SetCondition(flag_2_cond[flag]);
-         exprasmlist^.concat(ai);
+         ai:=Taicpu.Op_reg(A_Setcc,S_B,hreg);
+         ai.SetCondition(flag_2_cond[flag]);
+         exprasmList.concat(ai);
          if hreg<>hregister then
           begin
             if hregister in regset16bit then
@@ -373,89 +373,89 @@ implementation
 
     procedure emit_none(i : tasmop;s : topsize);
       begin
-         exprasmlist^.concat(new(paicpu,op_none(i,s)));
+         exprasmList.concat(Taicpu.Op_none(i,s));
       end;
 
     procedure emit_reg(i : tasmop;s : topsize;reg : tregister);
       begin
-         exprasmlist^.concat(new(paicpu,op_reg(i,s,reg)));
+         exprasmList.concat(Taicpu.Op_reg(i,s,reg));
       end;
 
     procedure emit_ref(i : tasmop;s : topsize;ref : preference);
       begin
-         exprasmlist^.concat(new(paicpu,op_ref(i,s,ref)));
+         exprasmList.concat(Taicpu.Op_ref(i,s,ref));
       end;
 
     procedure emit_const(i : tasmop;s : topsize;c : longint);
       begin
-         exprasmlist^.concat(new(paicpu,op_const(i,s,c)));
+         exprasmList.concat(Taicpu.Op_const(i,s,c));
       end;
 
     procedure emit_const_reg(i : tasmop;s : topsize;c : longint;reg : tregister);
       begin
-         exprasmlist^.concat(new(paicpu,op_const_reg(i,s,c,reg)));
+         exprasmList.concat(Taicpu.Op_const_reg(i,s,c,reg));
       end;
 
     procedure emit_const_ref(i : tasmop;s : topsize;c : longint;ref : preference);
       begin
-         exprasmlist^.concat(new(paicpu,op_const_ref(i,s,c,ref)));
+         exprasmList.concat(Taicpu.Op_const_ref(i,s,c,ref));
       end;
 
     procedure emit_ref_reg(i : tasmop;s : topsize;ref : preference;reg : tregister);
       begin
-         exprasmlist^.concat(new(paicpu,op_ref_reg(i,s,ref,reg)));
+         exprasmList.concat(Taicpu.Op_ref_reg(i,s,ref,reg));
       end;
 
     procedure emit_reg_ref(i : tasmop;s : topsize;reg : tregister;ref : preference);
       begin
-         exprasmlist^.concat(new(paicpu,op_reg_ref(i,s,reg,ref)));
+         exprasmList.concat(Taicpu.Op_reg_ref(i,s,reg,ref));
       end;
 
     procedure emit_reg_reg(i : tasmop;s : topsize;reg1,reg2 : tregister);
       begin
          if (reg1<>reg2) or (i<>A_MOV) then
-           exprasmlist^.concat(new(paicpu,op_reg_reg(i,s,reg1,reg2)));
+           exprasmList.concat(Taicpu.Op_reg_reg(i,s,reg1,reg2));
       end;
 
     procedure emit_const_reg_reg(i : tasmop;s : topsize;c : longint;reg1,reg2 : tregister);
       begin
-         exprasmlist^.concat(new(paicpu,op_const_reg_reg(i,s,c,reg1,reg2)));
+         exprasmList.concat(Taicpu.Op_const_reg_reg(i,s,c,reg1,reg2));
       end;
 
     procedure emit_reg_reg_reg(i : tasmop;s : topsize;reg1,reg2,reg3 : tregister);
       begin
-         exprasmlist^.concat(new(paicpu,op_reg_reg_reg(i,s,reg1,reg2,reg3)));
+         exprasmList.concat(Taicpu.Op_reg_reg_reg(i,s,reg1,reg2,reg3));
       end;
 
     procedure emit_sym(i : tasmop;s : topsize;op : pasmsymbol);
       begin
-        exprasmlist^.concat(new(paicpu,op_sym(i,s,op)));
+        exprasmList.concat(Taicpu.Op_sym(i,s,op));
       end;
 
     procedure emit_sym_ofs(i : tasmop;s : topsize;op : pasmsymbol;ofs : longint);
       begin
-        exprasmlist^.concat(new(paicpu,op_sym_ofs(i,s,op,ofs)));
+        exprasmList.concat(Taicpu.Op_sym_ofs(i,s,op,ofs));
       end;
 
     procedure emit_sym_ofs_reg(i : tasmop;s : topsize;op : pasmsymbol;ofs:longint;reg : tregister);
       begin
-        exprasmlist^.concat(new(paicpu,op_sym_ofs_reg(i,s,op,ofs,reg)));
+        exprasmList.concat(Taicpu.Op_sym_ofs_reg(i,s,op,ofs,reg));
       end;
 
     procedure emit_sym_ofs_ref(i : tasmop;s : topsize;op : pasmsymbol;ofs:longint;ref : preference);
       begin
-        exprasmlist^.concat(new(paicpu,op_sym_ofs_ref(i,s,op,ofs,ref)));
+        exprasmList.concat(Taicpu.Op_sym_ofs_ref(i,s,op,ofs,ref));
       end;
 
     procedure emitcall(const routine:string);
       begin
-        exprasmlist^.concat(new(paicpu,op_sym(A_CALL,S_NO,newasmsymbol(routine))));
+        exprasmList.concat(Taicpu.Op_sym(A_CALL,S_NO,newasmsymbol(routine)));
       end;
 
     { only usefull in startup code }
     procedure emitinsertcall(const routine:string);
       begin
-        exprasmlist^.insert(new(paicpu,op_sym(A_CALL,S_NO,newasmsymbol(routine))));
+        exprasmList.insert(Taicpu.Op_sym(A_CALL,S_NO,newasmsymbol(routine)));
       end;
 
 
@@ -469,8 +469,8 @@ implementation
         case t.loc of
           LOC_REGISTER,
          LOC_CREGISTER : begin
-                           exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,siz,
-                             t.register,newreference(ref))));
+                           exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,siz,
+                             t.register,newreference(ref)));
                            ungetregister32(t.register); { the register is not needed anymore }
                          end;
                LOC_MEM,
@@ -501,8 +501,8 @@ implementation
                                emit_ref_reg(A_MOV,siz,
                                  newreference(t.reference),hreg);
                                del_reference(t.reference);
-                               exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,siz,
-                                 hreg,newreference(ref))));
+                               exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,siz,
+                                 hreg,newreference(ref)));
                                if siz=S_B then
                                  begin
                                     if pushedeax then
@@ -564,8 +564,8 @@ implementation
                              internalerror(334)
                            else
                              begin
-                               exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,RegSize(Reg),
-                                 Reg,newreference(t.reference))));
+                               exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,RegSize(Reg),
+                                 Reg,newreference(t.reference)));
                              end;
                          end;
         else
@@ -611,11 +611,11 @@ implementation
                              internalerror(334)
                            else
                              begin
-                               exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,
-                                 Reglow,newreference(t.reference))));
+                               exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,
+                                 Reglow,newreference(t.reference)));
                                inc(t.reference.offset,4);
-                               exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,
-                                 Reghigh,newreference(t.reference))));
+                               exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,
+                                 Reghigh,newreference(t.reference)));
                              end;
                          end;
         else
@@ -634,20 +634,20 @@ implementation
             LOC_REGISTER,
             LOC_CREGISTER:
               begin
-                 exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,
-                   t.registerhigh)));
-                 exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,
-                   t.registerlow)));
+                 exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,
+                   t.registerhigh));
+                 exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,
+                   t.registerlow));
               end;
             LOC_MEM,
             LOC_REFERENCE:
               begin
                  hr:=newreference(t.reference);
                  inc(hr^.offset,4);
-                 exprasmlist^.concat(new(paicpu,op_ref(A_PUSH,S_L,
-                   hr)));
-                 exprasmlist^.concat(new(paicpu,op_ref(A_PUSH,S_L,
-                   newreference(t.reference))));
+                 exprasmList.concat(Taicpu.Op_ref(A_PUSH,S_L,
+                   hr));
+                 exprasmList.concat(Taicpu.Op_ref(A_PUSH,S_L,
+                   newreference(t.reference)));
                  ungetiftemp(t.reference);
               end;
             else internalerror(331);
@@ -713,15 +713,15 @@ implementation
         case t.loc of
           LOC_REGISTER,
          LOC_CREGISTER : begin
-                           exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,makereg32(t.register))));
+                           exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,makereg32(t.register)));
                            ungetregister(t.register); { the register is not needed anymore }
                          end;
                LOC_MEM,
          LOC_REFERENCE : begin
                            if t.reference.is_immediate then
-                             exprasmlist^.concat(new(paicpu,op_const(A_PUSH,S_L,t.reference.offset)))
+                             exprasmList.concat(Taicpu.Op_const(A_PUSH,S_L,t.reference.offset))
                            else
-                             exprasmlist^.concat(new(paicpu,op_ref(A_PUSH,S_L,newreference(t.reference))));
+                             exprasmList.concat(Taicpu.Op_ref(A_PUSH,S_L,newreference(t.reference)));
                            del_reference(t.reference);
                            ungetiftemp(t.reference);
                          end;
@@ -739,9 +739,9 @@ implementation
           LOC_REGISTER,
          LOC_CREGISTER : begin
                            if target_os.stackalignment=4 then
-                             exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,makereg32(t.register))))
+                             exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,makereg32(t.register)))
                            else
-                             exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_W,makereg16(t.register))));
+                             exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_W,makereg16(t.register)));
                            ungetregister(t.register); { the register is not needed anymore }
                          end;
                LOC_MEM,
@@ -751,9 +751,9 @@ implementation
                            else
                             opsize:=S_W;
                            if t.reference.is_immediate then
-                             exprasmlist^.concat(new(paicpu,op_const(A_PUSH,opsize,t.reference.offset)))
+                             exprasmList.concat(Taicpu.Op_const(A_PUSH,opsize,t.reference.offset))
                            else
-                             exprasmlist^.concat(new(paicpu,op_ref(A_PUSH,opsize,newreference(t.reference))));
+                             exprasmList.concat(Taicpu.Op_ref(A_PUSH,opsize,newreference(t.reference)));
                            del_reference(t.reference);
                            ungetiftemp(t.reference);
                          end;
@@ -775,8 +775,8 @@ implementation
                                getexplicitregister32(R_EDI);
                                emit_ref_reg(A_LEA,S_L,
                                  newreference(t.reference),R_EDI);
-                               exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,
-                                 R_EDI,newreference(ref))));
+                               exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,
+                                 R_EDI,newreference(ref)));
                                ungetregister32(R_EDI);
                              end;
                             { release the registers }
@@ -802,7 +802,7 @@ implementation
                                getexplicitregister32(R_EDI);
                                emit_ref_reg(A_LEA,S_L,
                                  newreference(t.reference),R_EDI);
-                               exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,R_EDI)));
+                               exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,R_EDI));
                                ungetregister32(R_EDI);
                              end;
                            if freetemp then
@@ -823,9 +823,9 @@ implementation
           begin
             if (size=4) or
                (target_os.stackalignment=4) then
-              exprasmlist^.concat(new(paicpu,op_const(A_PUSH,S_L,t.offset)))
+              exprasmList.concat(Taicpu.Op_const(A_PUSH,S_L,t.offset))
             else
-              exprasmlist^.concat(new(paicpu,op_const(A_PUSH,S_W,t.offset)));
+              exprasmList.concat(Taicpu.Op_const(A_PUSH,S_W,t.offset));
           end
         else
           if size < 4 then
@@ -836,12 +836,12 @@ implementation
                 2: s := S_WL;
                 else internalerror(200008071);
               end;
-              exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVZX,s,
-                newreference(t),R_EDI)));
+              exprasmList.concat(Taicpu.Op_ref_reg(A_MOVZX,s,
+                newreference(t),R_EDI));
               if target_os.stackalignment=4 then
-                exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,R_EDI)))
+                exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,R_EDI))
               else
-                exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_W,R_DI)));
+                exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_W,R_DI));
               ungetregister32(R_EDI);
             end
           else
@@ -977,7 +977,6 @@ implementation
 
       var
          pushedregs : tpushed;
-         r : treference;
 
       begin
          pushusedregisters(pushedregs,$ff);
@@ -1097,11 +1096,11 @@ implementation
              begin
                getexplicitregister32(R_EDI);
                emit_reg_reg(A_XOR,S_L,R_EDI,R_EDI);
-               exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,R_EDI)));
+               exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,R_EDI));
                ungetregister32(R_EDI);
              end
            else
-             exprasmlist^.concat(new(paicpu,op_const(A_PUSH,S_L,l)));
+             exprasmList.concat(Taicpu.Op_const(A_PUSH,S_L,l));
       end;
 
     procedure emit_push_mem(const ref : treference);
@@ -1117,10 +1116,10 @@ implementation
                  begin
                    getexplicitregister32(R_EDI);
                    emit_ref_reg(A_MOV,S_L,newreference(ref),R_EDI);
-                   exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,R_EDI)));
+                   exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,R_EDI));
                    ungetregister32(R_EDI);
                  end
-               else exprasmlist^.concat(new(paicpu,op_ref(A_PUSH,S_L,newreference(ref))));
+               else exprasmList.concat(Taicpu.Op_ref(A_PUSH,S_L,newreference(ref)));
            end;
       end;
 
@@ -1144,18 +1143,18 @@ implementation
               if ref.segment<>R_NO then
                 CGMessage(cg_e_cant_use_far_pointer_there);
               if (ref.base=R_NO) and (ref.index=R_NO) then
-                exprasmlist^.concat(new(paicpu,op_sym_ofs(A_PUSH,S_L,ref.symbol,ref.offset)))
+                exprasmList.concat(Taicpu.Op_sym_ofs(A_PUSH,S_L,ref.symbol,ref.offset))
               else if (ref.base=R_NO) and (ref.index<>R_NO) and
                  (ref.offset=0) and (ref.scalefactor=0) and (ref.symbol=nil) then
-                exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,ref.index)))
+                exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,ref.index))
               else if (ref.base<>R_NO) and (ref.index=R_NO) and
                  (ref.offset=0) and (ref.symbol=nil) then
-                exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,ref.base)))
+                exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,ref.base))
               else
                 begin
                    getexplicitregister32(R_EDI);
                    emit_ref_reg(A_LEA,S_L,newreference(ref),R_EDI);
-                   exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,R_EDI)));
+                   exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,R_EDI));
                    ungetregister32(R_EDI);
                 end;
            end;
@@ -1197,8 +1196,8 @@ implementation
          s : topsize;
       begin
          floatloadops(t,op,s);
-         exprasmlist^.concat(new(paicpu,op_ref(op,s,
-           newreference(ref))));
+         exprasmList.concat(Taicpu.Op_ref(op,s,
+           newreference(ref)));
          inc(fpuvaroffset);
       end;
 
@@ -1234,8 +1233,8 @@ implementation
          s : topsize;
       begin
          floatstoreops(t,op,s);
-         exprasmlist^.concat(new(paicpu,op_ref(op,s,
-           newreference(ref))));
+         exprasmList.concat(Taicpu.Op_ref(op,s,
+           newreference(ref)));
          dec(fpuvaroffset);
       end;
 
@@ -1261,7 +1260,7 @@ implementation
          begin
            if not(R_ECX in unused) then
              begin
-               exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,R_ECX)));
+               exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,R_ECX));
                ecxpushed:=true;
              end
            else getexplicitregister32(R_ECX);
@@ -1285,7 +1284,7 @@ implementation
                    If (size = 4) and delsource then
                      del_reference(source);
 {$endif regallocfix}
-                   exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,newreference(dest))));
+                   exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,R_EDI,newreference(dest)));
                    inc(source.offset,4);
                    inc(dest.offset,4);
                    dec(size,4);
@@ -1297,7 +1296,7 @@ implementation
                    If (size = 2) and delsource then
                      del_reference(source);
 {$endif regallocfix}
-                   exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_W,R_DI,newreference(dest))));
+                   exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_W,R_DI,newreference(dest)));
                    inc(source.offset,2);
                    inc(dest.offset,2);
                    dec(size,2);
@@ -1343,7 +1342,7 @@ implementation
                    If delsource then
                      del_reference(source);
 {$endif regallocfix}
-                   exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_B,reg8,newreference(dest))));
+                   exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_B,reg8,newreference(dest)));
                    if swap then
                      begin
                        emit_reg_reg(A_MOV,S_L,R_EDI,reg32);
@@ -1361,7 +1360,7 @@ implementation
              {is this ok?? (JM)}
               del_reference(dest);
 {$endif regallocfix}
-              exprasmlist^.concat(new(pairegalloc,alloc(R_ESI)));
+              exprasmList.concat(Tairegalloc.Alloc(R_ESI));
               if loadref then
                 emit_ref_reg(A_MOV,S_L,newreference(source),R_ESI)
               else
@@ -1373,14 +1372,14 @@ implementation
 {$endif regallocfix}
                 end;
 
-              exprasmlist^.concat(new(paicpu,op_none(A_CLD,S_NO)));
+              exprasmList.concat(Taicpu.Op_none(A_CLD,S_NO));
               ecxpushed:=false;
               if cs_littlesize in aktglobalswitches  then
                 begin
                    maybepushecx;
                    emit_const_reg(A_MOV,S_L,size,R_ECX);
-                   exprasmlist^.concat(new(paicpu,op_none(A_REP,S_NO)));
-                   exprasmlist^.concat(new(paicpu,op_none(A_MOVSB,S_NO)));
+                   exprasmList.concat(Taicpu.Op_none(A_REP,S_NO));
+                   exprasmList.concat(Taicpu.Op_none(A_MOVSB,S_NO));
                 end
               else
                 begin
@@ -1390,22 +1389,22 @@ implementation
                     begin
                       maybepushecx;
                       emit_const_reg(A_MOV,S_L,helpsize,R_ECX);
-                      exprasmlist^.concat(new(paicpu,op_none(A_REP,S_NO)));
+                      exprasmList.concat(Taicpu.Op_none(A_REP,S_NO));
                     end;
                    if helpsize>0 then
-                    exprasmlist^.concat(new(paicpu,op_none(A_MOVSD,S_NO)));
+                    exprasmList.concat(Taicpu.Op_none(A_MOVSD,S_NO));
                    if size>1 then
                      begin
                         dec(size,2);
-                        exprasmlist^.concat(new(paicpu,op_none(A_MOVSW,S_NO)));
+                        exprasmList.concat(Taicpu.Op_none(A_MOVSW,S_NO));
                      end;
                    if size=1 then
-                     exprasmlist^.concat(new(paicpu,op_none(A_MOVSB,S_NO)));
+                     exprasmList.concat(Taicpu.Op_none(A_MOVSB,S_NO));
                 end;
               ungetregister32(R_EDI);
-              exprasmlist^.concat(new(pairegalloc,dealloc(R_ESI)));
+              exprasmList.concat(Tairegalloc.DeAlloc(R_ESI));
               if ecxpushed then
-                exprasmlist^.concat(new(paicpu,op_reg(A_POP,S_L,R_ECX)))
+                exprasmList.concat(Taicpu.Op_reg(A_POP,S_L,R_ECX))
               else
                 ungetregister32(R_ECX);
 
@@ -1422,7 +1421,7 @@ implementation
 
     {A lot smaller and less bug sensitive than the original unfolded loads.}
 
-    var tai:Paicpu;
+    var tai:Taicpu;
         r:Preference;
 
     begin
@@ -1432,16 +1431,16 @@ implementation
                 begin
                     case orddef^.typ of
                         u8bit:
-                            tai:=new(paicpu,op_reg_reg(A_MOVZX,S_BL,location.register,destreg));
+                            tai:=Taicpu.Op_reg_reg(A_MOVZX,S_BL,location.register,destreg);
                         s8bit:
-                            tai:=new(paicpu,op_reg_reg(A_MOVSX,S_BL,location.register,destreg));
+                            tai:=Taicpu.Op_reg_reg(A_MOVSX,S_BL,location.register,destreg);
                         u16bit:
-                            tai:=new(paicpu,op_reg_reg(A_MOVZX,S_WL,location.register,destreg));
+                            tai:=Taicpu.Op_reg_reg(A_MOVZX,S_WL,location.register,destreg);
                         s16bit:
-                            tai:=new(paicpu,op_reg_reg(A_MOVSX,S_WL,location.register,destreg));
+                            tai:=Taicpu.Op_reg_reg(A_MOVSX,S_WL,location.register,destreg);
                         u32bit,s32bit:
                             if location.register <> destreg then
-                              tai:=new(paicpu,op_reg_reg(A_MOV,S_L,location.register,destreg));
+                              tai:=Taicpu.Op_reg_reg(A_MOV,S_L,location.register,destreg);
                     end;
                     if delloc then
                         ungetregister(location.register);
@@ -1450,23 +1449,23 @@ implementation
             LOC_REFERENCE:
                 begin
                     if location.reference.is_immediate then
-                     tai:=new(paicpu,op_const_reg(A_MOV,S_L,location.reference.offset,destreg))
+                     tai:=Taicpu.Op_const_reg(A_MOV,S_L,location.reference.offset,destreg)
                     else
                      begin
                        r:=newreference(location.reference);
                        case orddef^.typ of
                          u8bit:
-                            tai:=new(paicpu,op_ref_reg(A_MOVZX,S_BL,r,destreg));
+                            tai:=Taicpu.Op_ref_reg(A_MOVZX,S_BL,r,destreg);
                          s8bit:
-                            tai:=new(paicpu,op_ref_reg(A_MOVSX,S_BL,r,destreg));
+                            tai:=Taicpu.Op_ref_reg(A_MOVSX,S_BL,r,destreg);
                          u16bit:
-                            tai:=new(paicpu,op_ref_reg(A_MOVZX,S_WL,r,destreg));
+                            tai:=Taicpu.Op_ref_reg(A_MOVZX,S_WL,r,destreg);
                          s16bit:
-                            tai:=new(paicpu,op_ref_reg(A_MOVSX,S_WL,r,destreg));
+                            tai:=Taicpu.Op_ref_reg(A_MOVSX,S_WL,r,destreg);
                          u32bit:
-                            tai:=new(paicpu,op_ref_reg(A_MOV,S_L,r,destreg));
+                            tai:=Taicpu.Op_ref_reg(A_MOV,S_L,r,destreg);
                          s32bit:
-                            tai:=new(paicpu,op_ref_reg(A_MOV,S_L,r,destreg));
+                            tai:=Taicpu.Op_ref_reg(A_MOV,S_L,r,destreg);
                        end;
                      end;
                     if delloc then
@@ -1476,7 +1475,7 @@ implementation
                 internalerror(6);
         end;
         if assigned(tai) then
-          exprasmlist^.concat(tai);
+          exprasmList.concat(tai);
     end;
 
     { if necessary ESI is reloaded after a call}
@@ -1490,7 +1489,7 @@ implementation
       begin
          if assigned(procinfo^._class) then
            begin
-              exprasmlist^.concat(new(pairegalloc,alloc(R_ESI)));
+              exprasmList.concat(Tairegalloc.Alloc(R_ESI));
               if lexlevel>normal_function_level then
                 begin
                    new(hp);
@@ -1543,12 +1542,12 @@ implementation
               getaddrlabel(pl);
               emitinsertcall('mcount');
               usedinproc:=usedinproc or ($80 shr byte(R_EDX));
-              exprasmlist^.insert(new(paicpu,op_sym_ofs_reg(A_MOV,S_L,pl,0,R_EDX)));
-              exprasmlist^.insert(new(pai_section,init(sec_code)));
-              exprasmlist^.insert(new(pai_const,init_32bit(0)));
-              exprasmlist^.insert(new(pai_label,init(pl)));
-              exprasmlist^.insert(new(pai_align,init(4)));
-              exprasmlist^.insert(new(pai_section,init(sec_data)));
+              exprasmList.insert(Taicpu.Op_sym_ofs_reg(A_MOV,S_L,pl,0,R_EDX));
+              exprasmList.insert(Tai_section.Create(sec_code));
+              exprasmList.insert(Tai_const.Create_32bit(0));
+              exprasmList.insert(Tai_label.Create(pl));
+              exprasmList.insert(Tai_align.Create(4));
+              exprasmList.insert(Tai_section.Create(sec_data));
            end;
 
          target_i386_go32v2:
@@ -1562,18 +1561,18 @@ implementation
     procedure generate_interrupt_stackframe_entry;
       begin
          { save the registers of an interrupt procedure }
-         exprasmlist^.insert(new(paicpu,op_reg(A_PUSH,S_L,R_EAX)));
-         exprasmlist^.insert(new(paicpu,op_reg(A_PUSH,S_L,R_EBX)));
-         exprasmlist^.insert(new(paicpu,op_reg(A_PUSH,S_L,R_ECX)));
-         exprasmlist^.insert(new(paicpu,op_reg(A_PUSH,S_L,R_EDX)));
-         exprasmlist^.insert(new(paicpu,op_reg(A_PUSH,S_L,R_ESI)));
-         exprasmlist^.insert(new(paicpu,op_reg(A_PUSH,S_L,R_EDI)));
+         exprasmList.insert(Taicpu.Op_reg(A_PUSH,S_L,R_EAX));
+         exprasmList.insert(Taicpu.Op_reg(A_PUSH,S_L,R_EBX));
+         exprasmList.insert(Taicpu.Op_reg(A_PUSH,S_L,R_ECX));
+         exprasmList.insert(Taicpu.Op_reg(A_PUSH,S_L,R_EDX));
+         exprasmList.insert(Taicpu.Op_reg(A_PUSH,S_L,R_ESI));
+         exprasmList.insert(Taicpu.Op_reg(A_PUSH,S_L,R_EDI));
 
          { .... also the segment registers }
-         exprasmlist^.insert(new(paicpu,op_reg(A_PUSH,S_W,R_DS)));
-         exprasmlist^.insert(new(paicpu,op_reg(A_PUSH,S_W,R_ES)));
-         exprasmlist^.insert(new(paicpu,op_reg(A_PUSH,S_W,R_FS)));
-         exprasmlist^.insert(new(paicpu,op_reg(A_PUSH,S_W,R_GS)));
+         exprasmList.insert(Taicpu.Op_reg(A_PUSH,S_W,R_DS));
+         exprasmList.insert(Taicpu.Op_reg(A_PUSH,S_W,R_ES));
+         exprasmList.insert(Taicpu.Op_reg(A_PUSH,S_W,R_FS));
+         exprasmList.insert(Taicpu.Op_reg(A_PUSH,S_W,R_GS));
       end;
 
 
@@ -1581,21 +1580,21 @@ implementation
       begin
          { restore the registers of an interrupt procedure }
          { this was all with entrycode instead of exitcode !!}
-         procinfo^.aktexitcode^.concat(new(paicpu,op_reg(A_POP,S_L,R_EAX)));
-         procinfo^.aktexitcode^.concat(new(paicpu,op_reg(A_POP,S_L,R_EBX)));
-         procinfo^.aktexitcode^.concat(new(paicpu,op_reg(A_POP,S_L,R_ECX)));
-         procinfo^.aktexitcode^.concat(new(paicpu,op_reg(A_POP,S_L,R_EDX)));
-         procinfo^.aktexitcode^.concat(new(paicpu,op_reg(A_POP,S_L,R_ESI)));
-         procinfo^.aktexitcode^.concat(new(paicpu,op_reg(A_POP,S_L,R_EDI)));
+         procinfo^.aktexitcode.concat(Taicpu.Op_reg(A_POP,S_L,R_EAX));
+         procinfo^.aktexitcode.concat(Taicpu.Op_reg(A_POP,S_L,R_EBX));
+         procinfo^.aktexitcode.concat(Taicpu.Op_reg(A_POP,S_L,R_ECX));
+         procinfo^.aktexitcode.concat(Taicpu.Op_reg(A_POP,S_L,R_EDX));
+         procinfo^.aktexitcode.concat(Taicpu.Op_reg(A_POP,S_L,R_ESI));
+         procinfo^.aktexitcode.concat(Taicpu.Op_reg(A_POP,S_L,R_EDI));
 
          { .... also the segment registers }
-         procinfo^.aktexitcode^.concat(new(paicpu,op_reg(A_POP,S_W,R_DS)));
-         procinfo^.aktexitcode^.concat(new(paicpu,op_reg(A_POP,S_W,R_ES)));
-         procinfo^.aktexitcode^.concat(new(paicpu,op_reg(A_POP,S_W,R_FS)));
-         procinfo^.aktexitcode^.concat(new(paicpu,op_reg(A_POP,S_W,R_GS)));
+         procinfo^.aktexitcode.concat(Taicpu.Op_reg(A_POP,S_W,R_DS));
+         procinfo^.aktexitcode.concat(Taicpu.Op_reg(A_POP,S_W,R_ES));
+         procinfo^.aktexitcode.concat(Taicpu.Op_reg(A_POP,S_W,R_FS));
+         procinfo^.aktexitcode.concat(Taicpu.Op_reg(A_POP,S_W,R_GS));
 
         { this restores the flags }
-         procinfo^.aktexitcode^.concat(new(paicpu,op_none(A_IRET,S_NO)));
+         procinfo^.aktexitcode.concat(Taicpu.Op_none(A_IRET,S_NO));
       end;
 
 
@@ -1609,7 +1608,7 @@ implementation
        if (psym(p)^.typ=varsym) and
           (vo_is_thread_var in pvarsym(p)^.varoptions) then
          begin
-            exprasmlist^.concat(new(paicpu,op_const(A_PUSH,S_L,pvarsym(p)^.getsize)));
+            exprasmList.concat(Taicpu.Op_const(A_PUSH,S_L,pvarsym(p)^.getsize));
             reset_reference(hr);
             hr.symbol:=newasmsymbol(pvarsym(p)^.mangledname);
             emitpushreferenceaddr(hr);
@@ -1640,8 +1639,8 @@ implementation
               hr.symbol:=pstoreddef(t)^.get_inittable_label;
               emitpushreferenceaddr(hr);
               if is_already_ref then
-                exprasmlist^.concat(new(paicpu,op_ref(A_PUSH,S_L,
-                  newreference(ref))))
+                exprasmList.concat(Taicpu.Op_ref(A_PUSH,S_L,
+                  newreference(ref)))
               else
                 emitpushreferenceaddr(ref);
               emitcall('FPC_INITIALIZE');
@@ -1672,8 +1671,8 @@ implementation
               r.symbol:=pstoreddef(t)^.get_inittable_label;
               emitpushreferenceaddr(r);
               if is_already_ref then
-                exprasmlist^.concat(new(paicpu,op_ref(A_PUSH,S_L,
-                  newreference(ref))))
+                exprasmList.concat(Taicpu.Op_ref(A_PUSH,S_L,
+                  newreference(ref)))
               else
                 emitpushreferenceaddr(ref);
               emitcall('FPC_FINALIZE');
@@ -1756,7 +1755,7 @@ implementation
                {$ifndef noAllocEdi}
                getexplicitregister32(R_EDI);
                {$endif noAllocEdi}
-               exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOV,S_L,newreference(hrv),R_EDI)));
+               exprasmList.concat(Taicpu.Op_ref_reg(A_MOV,S_L,newreference(hrv),R_EDI));
                reset_reference(hr);
                hr.base:=R_EDI;
                initialize(pvarsym(p)^.vartype.def,hr,false);
@@ -1857,22 +1856,15 @@ implementation
               r^.base:=procinfo^.framepointer;
               r^.offset:=pvarsym(p)^.address+4+procinfo^.para_offset;
               getexplicitregister32(R_EDI);
-              exprasmlist^.concat(new(paicpu,
-                op_ref_reg(A_MOV,S_L,r,R_EDI)));
-
-              exprasmlist^.concat(new(paicpu,
-                op_reg(A_INC,S_L,R_EDI)));
-
+              exprasmList.concat(Taicpu.op_ref_reg(A_MOV,S_L,r,R_EDI));
+              exprasmList.concat(Taicpu.op_reg(A_INC,S_L,R_EDI));
               if (parraydef(pvarsym(p)^.vartype.def)^.elesize<>1) then
                begin
                  if ispowerof2(parraydef(pvarsym(p)^.vartype.def)^.elesize, power) then
-                   exprasmlist^.concat(new(paicpu,
-                     op_const_reg(A_SHL,S_L,
-                       power,R_EDI)))
+                   exprasmList.concat(Taicpu.op_const_reg(A_SHL,S_L,power,R_EDI))
                  else
-                   exprasmlist^.concat(new(paicpu,
-                     op_const_reg(A_IMUL,S_L,
-                     parraydef(pvarsym(p)^.vartype.def)^.elesize,R_EDI)));
+                   exprasmList.concat(Taicpu.op_const_reg(A_IMUL,S_L,
+                     parraydef(pvarsym(p)^.vartype.def)^.elesize,R_EDI));
                end;
 {$ifndef NOTARGETWIN32}
               { windows guards only a few pages for stack growing, }
@@ -1882,20 +1874,15 @@ implementation
                    getlabel(again);
                    getlabel(ok);
                    emitlab(again);
-                   exprasmlist^.concat(new(paicpu,
-                     op_const_reg(A_CMP,S_L,winstackpagesize,R_EDI)));
+                   exprasmList.concat(Taicpu.op_const_reg(A_CMP,S_L,winstackpagesize,R_EDI));
                    emitjmp(C_C,ok);
-                   exprasmlist^.concat(new(paicpu,
-                     op_const_reg(A_SUB,S_L,winstackpagesize-4,R_ESP)));
-                   exprasmlist^.concat(new(paicpu,
-                     op_reg(A_PUSH,S_L,R_EAX)));
-                   exprasmlist^.concat(new(paicpu,
-                     op_const_reg(A_SUB,S_L,winstackpagesize,R_EDI)));
+                   exprasmList.concat(Taicpu.op_const_reg(A_SUB,S_L,winstackpagesize-4,R_ESP));
+                   exprasmList.concat(Taicpu.op_reg(A_PUSH,S_L,R_EAX));
+                   exprasmList.concat(Taicpu.op_const_reg(A_SUB,S_L,winstackpagesize,R_EDI));
                    emitjmp(C_None,again);
 
                    emitlab(ok);
-                   exprasmlist^.concat(new(paicpu,
-                     op_reg_reg(A_SUB,S_L,R_EDI,R_ESP)));
+                   exprasmList.concat(Taicpu.op_reg_reg(A_SUB,S_L,R_EDI,R_ESP));
                    ungetregister32(R_EDI);
                    { now reload EDI }
                    new(r);
@@ -1903,57 +1890,45 @@ implementation
                    r^.base:=procinfo^.framepointer;
                    r^.offset:=pvarsym(p)^.address+4+procinfo^.para_offset;
                    getexplicitregister32(R_EDI);
-                   exprasmlist^.concat(new(paicpu,
-                     op_ref_reg(A_MOV,S_L,r,R_EDI)));
+                   exprasmList.concat(Taicpu.op_ref_reg(A_MOV,S_L,r,R_EDI));
 
-                   exprasmlist^.concat(new(paicpu,
-                     op_reg(A_INC,S_L,R_EDI)));
+                   exprasmList.concat(Taicpu.op_reg(A_INC,S_L,R_EDI));
 
                    if (parraydef(pvarsym(p)^.vartype.def)^.elesize<>1) then
                     begin
                       if ispowerof2(parraydef(pvarsym(p)^.vartype.def)^.elesize, power) then
-                        exprasmlist^.concat(new(paicpu,
-                          op_const_reg(A_SHL,S_L,
-                            power,R_EDI)))
+                        exprasmList.concat(Taicpu.op_const_reg(A_SHL,S_L,power,R_EDI))
                       else
-                        exprasmlist^.concat(new(paicpu,
-                          op_const_reg(A_IMUL,S_L,
-                          parraydef(pvarsym(p)^.vartype.def)^.elesize,R_EDI)));
+                        exprasmList.concat(Taicpu.op_const_reg(A_IMUL,S_L,
+                          parraydef(pvarsym(p)^.vartype.def)^.elesize,R_EDI));
                     end;
                 end
               else
 {$endif NOTARGETWIN32}
-                exprasmlist^.concat(new(paicpu,
-                  op_reg_reg(A_SUB,S_L,R_EDI,R_ESP)));
+                exprasmList.concat(Taicpu.op_reg_reg(A_SUB,S_L,R_EDI,R_ESP));
               { load destination }
-              exprasmlist^.concat(new(paicpu,
-                op_reg_reg(A_MOV,S_L,R_ESP,R_EDI)));
+              exprasmList.concat(Taicpu.op_reg_reg(A_MOV,S_L,R_ESP,R_EDI));
 
               { don't destroy the registers! }
-              exprasmlist^.concat(new(paicpu,
-                op_reg(A_PUSH,S_L,R_ECX)));
-              exprasmlist^.concat(new(paicpu,
-                op_reg(A_PUSH,S_L,R_ESI)));
+              exprasmList.concat(Taicpu.op_reg(A_PUSH,S_L,R_ECX));
+              exprasmList.concat(Taicpu.op_reg(A_PUSH,S_L,R_ESI));
 
               { load count }
               new(r);
               reset_reference(r^);
               r^.base:=procinfo^.framepointer;
               r^.offset:=pvarsym(p)^.address+4+procinfo^.para_offset;
-              exprasmlist^.concat(new(paicpu,
-                op_ref_reg(A_MOV,S_L,r,R_ECX)));
+              exprasmList.concat(Taicpu.op_ref_reg(A_MOV,S_L,r,R_ECX));
 
               { load source }
               new(r);
               reset_reference(r^);
               r^.base:=procinfo^.framepointer;
               r^.offset:=pvarsym(p)^.address+procinfo^.para_offset;
-              exprasmlist^.concat(new(paicpu,
-                op_ref_reg(A_MOV,S_L,r,R_ESI)));
+              exprasmList.concat(Taicpu.op_ref_reg(A_MOV,S_L,r,R_ESI));
 
               { scheduled .... }
-              exprasmlist^.concat(new(paicpu,
-                op_reg(A_INC,S_L,R_ECX)));
+              exprasmList.concat(Taicpu.op_reg(A_INC,S_L,R_ECX));
 
               { calculate size }
               len:=parraydef(pvarsym(p)^.vartype.def)^.elesize;
@@ -1971,32 +1946,25 @@ implementation
                 end;
 
               if ispowerof2(len, power) then
-                exprasmlist^.concat(new(paicpu,
-                  op_const_reg(A_SHL,S_L,
-                    power,R_ECX)))
+                exprasmList.concat(Taicpu.op_const_reg(A_SHL,S_L,power,R_ECX))
               else
-                exprasmlist^.concat(new(paicpu,
-                op_const_reg(A_IMUL,S_L,len,R_ECX)));
-              exprasmlist^.concat(new(paicpu,
-                op_none(A_REP,S_NO)));
+                exprasmList.concat(Taicpu.op_const_reg(A_IMUL,S_L,len,R_ECX));
+              exprasmList.concat(Taicpu.op_none(A_REP,S_NO));
               case opsize of
-                S_B : exprasmlist^.concat(new(paicpu,op_none(A_MOVSB,S_NO)));
-                S_W : exprasmlist^.concat(new(paicpu,op_none(A_MOVSW,S_NO)));
-                S_L : exprasmlist^.concat(new(paicpu,op_none(A_MOVSD,S_NO)));
+                S_B : exprasmList.concat(Taicpu.Op_none(A_MOVSB,S_NO));
+                S_W : exprasmList.concat(Taicpu.Op_none(A_MOVSW,S_NO));
+                S_L : exprasmList.concat(Taicpu.Op_none(A_MOVSD,S_NO));
               end;
               ungetregister32(R_EDI);
-              exprasmlist^.concat(new(paicpu,
-                op_reg(A_POP,S_L,R_ESI)));
-              exprasmlist^.concat(new(paicpu,
-                op_reg(A_POP,S_L,R_ECX)));
+              exprasmList.concat(Taicpu.op_reg(A_POP,S_L,R_ESI));
+              exprasmList.concat(Taicpu.op_reg(A_POP,S_L,R_ECX));
 
               { patch the new address }
               new(r);
               reset_reference(r^);
               r^.base:=procinfo^.framepointer;
               r^.offset:=pvarsym(p)^.address+procinfo^.para_offset;
-              exprasmlist^.concat(new(paicpu,
-                op_reg_ref(A_MOV,S_L,R_ESP,r)));
+              exprasmList.concat(Taicpu.op_reg_ref(A_MOV,S_L,R_ESP,r));
            end
           else
            if is_shortstring(pvarsym(p)^.vartype.def) then
@@ -2087,7 +2055,7 @@ implementation
          ls:=pvarsym(p)^.getvaluesize;
     end;
 
-  procedure alignstack(alist : paasmoutput);
+  procedure alignstack(alist : TAAsmoutput);
 
     begin
 {$ifdef dummy}
@@ -2097,12 +2065,12 @@ implementation
             ls:=0;
             aktprocsym^.definition^.localst^.foreach({$ifndef TP}@{$endif}largest_size);
             if ls>=8 then
-              alist^.insert(new(paicpu,op_const_reg(A_AND,S_L,-8,R_ESP)));
+              aList.insert(Taicpu.Op_const_reg(A_AND,S_L,-8,R_ESP));
          end;
 {$endif dummy}
     end;
 
-  procedure genentrycode(alist : paasmoutput;const proc_names:Tstringcontainer;make_global:boolean;
+  procedure genentrycode(alist : TAAsmoutput;make_global:boolean;
                          stackframe:longint;
                          var parasize:longint;var nostackframe:boolean;
                          inlined : boolean);
@@ -2112,13 +2080,13 @@ implementation
     var
       hs : string;
 {$ifdef GDB}
-      stab_function_name : Pai_stab_function_name;
+      stab_function_name : tai_stab_function_name;
 {$endif GDB}
       hr : preference;
       p : psymtable;
       r : treference;
       oldlist,
-      oldexprasmlist : paasmoutput;
+      oldexprasmlist : TAAsmoutput;
       again : pasmlabel;
       i : longint;
 
@@ -2129,21 +2097,21 @@ implementation
            begin
               emitinsertcall('FPC_INITIALIZEUNITS');
               oldlist:=exprasmlist;
-              exprasmlist:=new(paasmoutput,init);
+              exprasmlist:=TAAsmoutput.Create;
               p:=symtablestack;
               while assigned(p) do
                 begin
                    p^.foreach({$ifndef TP}@{$endif}initialize_threadvar);
                    p:=p^.next;
                 end;
-              oldlist^.insertlist(exprasmlist);
-              dispose(exprasmlist,done);
+              oldList.insertlist(exprasmlist);
+              exprasmlist.free;
               exprasmlist:=oldlist;
            end;
 
 {$ifdef GDB}
       if (not inlined) and (cs_debuginfo in aktmoduleswitches) then
-        exprasmlist^.insert(new(pai_force_line,init));
+        exprasmList.insert(Tai_force_line.Create);
 {$endif GDB}
 
       { a constructor needs a help procedure }
@@ -2152,15 +2120,15 @@ implementation
           if is_class(procinfo^._class) then
             begin
               procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
-              exprasmlist^.insert(new(paicpu,op_cond_sym(A_Jcc,C_Z,S_NO,faillabel)));
+              exprasmList.insert(Taicpu.Op_cond_sym(A_Jcc,C_Z,S_NO,faillabel));
               emitinsertcall('FPC_NEW_CLASS');
             end
           else if is_object(procinfo^._class) then
             begin
-              exprasmlist^.insert(new(paicpu,op_cond_sym(A_Jcc,C_Z,S_NO,faillabel)));
+              exprasmList.insert(Taicpu.Op_cond_sym(A_Jcc,C_Z,S_NO,faillabel));
               emitinsertcall('FPC_HELP_CONSTRUCTOR');
               getexplicitregister32(R_EDI);
-              exprasmlist^.insert(new(paicpu,op_const_reg(A_MOV,S_L,procinfo^._class^.vmt_offset,R_EDI)));
+              exprasmList.insert(Taicpu.Op_const_reg(A_MOV,S_L,procinfo^._class^.vmt_offset,R_EDI));
             end
           else
             Internalerror(200006161);
@@ -2183,23 +2151,23 @@ implementation
            reset_reference(hr^);
            hr^.offset:=procinfo^.selfpointer_offset;
            hr^.base:=procinfo^.framepointer;
-           exprasmlist^.insert(new(paicpu,op_ref_reg(A_MOV,S_L,hr,R_ESI)));
-           exprasmlist^.insert(new(pairegalloc,alloc(R_ESI)));
+           exprasmList.insert(Taicpu.Op_ref_reg(A_MOV,S_L,hr,R_ESI));
+           exprasmList.insert(Tairegalloc.Alloc(R_ESI));
         end;
       { should we save edi,esi,ebx like C ? }
       if (po_savestdregs in aktprocsym^.definition^.procoptions) then
        begin
          if (aktprocsym^.definition^.usedregisters and ($80 shr byte(R_EBX)))<>0 then
-           exprasmlist^.insert(new(paicpu,op_reg(A_PUSH,S_L,R_EBX)));
-         exprasmlist^.insert(new(paicpu,op_reg(A_PUSH,S_L,R_ESI)));
-         exprasmlist^.insert(new(paicpu,op_reg(A_PUSH,S_L,R_EDI)));
+           exprasmList.insert(Taicpu.Op_reg(A_PUSH,S_L,R_EBX));
+         exprasmList.insert(Taicpu.Op_reg(A_PUSH,S_L,R_ESI));
+         exprasmList.insert(Taicpu.Op_reg(A_PUSH,S_L,R_EDI));
        end;
 
       { for the save all registers we can simply use a pusha,popa which
         push edi,esi,ebp,esp(ignored),ebx,edx,ecx,eax }
       if (po_saveregisters in aktprocsym^.definition^.procoptions) then
         begin
-          exprasmlist^.insert(new(paicpu,op_none(A_PUSHA,S_L)));
+          exprasmList.insert(Taicpu.Op_none(A_PUSHA,S_L));
         end;
 
       { omit stack frame ? }
@@ -2213,8 +2181,7 @@ implementation
               else
                 parasize:=aktprocsym^.definition^.parast^.datasize+procinfo^.para_offset-4;
               if stackframe<>0 then
-                exprasmlist^.insert(new(paicpu,
-                  op_const_reg(A_SUB,S_L,stackframe,R_ESP)));
+                exprasmList.insert(Taicpu.op_const_reg(A_SUB,S_L,stackframe,R_ESP));
           end
         else
           begin
@@ -2234,7 +2201,7 @@ implementation
                                                 target_i386_linux,target_i386_win32]) then
                                 begin
                                   emitinsertcall('FPC_STACKCHECK');
-                                  exprasmlist^.insert(new(paicpu,op_const(A_PUSH,S_L,stackframe)));
+                                  exprasmList.insert(Taicpu.Op_const(A_PUSH,S_L,stackframe));
                                 end;
                               if cs_profile in aktmoduleswitches then
                                 genprofilecode;
@@ -2242,11 +2209,11 @@ implementation
                             { %edi is already saved when pocdecl is used
                               if ((target_info.target=target_linux) or (target_info.target=target_freebsd)) and
                                ((aktprocsym^.definition^.options and poexports)<>0) then
-                                  exprasmlist^.insert(new(Paicpu,op_reg(A_PUSH,S_L,R_EDI))); }
+                                  exprasmList.insert(Taicpu.Op_reg(A_PUSH,S_L,R_EDI)); }
                               { ATTENTION:
                                 never use ENTER in linux !!! (or freebsd MvdV)
                                 the stack page fault does not support it PM }
-                              exprasmlist^.insert(new(paicpu,op_const_const(A_ENTER,S_NO,stackframe,0)))
+                              exprasmList.insert(Taicpu.Op_const_const(A_ENTER,S_NO,stackframe,0)))
                           end
                       else
 {$endif unused}
@@ -2258,56 +2225,49 @@ implementation
                               begin
                                   if stackframe div winstackpagesize<=5 then
                                     begin
-                                       exprasmlist^.insert(new(paicpu,op_const_reg(A_SUB,S_L,stackframe-4,R_ESP)));
+                                       exprasmList.insert(Taicpu.Op_const_reg(A_SUB,S_L,stackframe-4,R_ESP));
                                        for i:=1 to stackframe div winstackpagesize do
                                          begin
                                             hr:=new_reference(R_ESP,stackframe-i*winstackpagesize);
-                                            exprasmlist^.concat(new(paicpu,
-                                              op_const_ref(A_MOV,S_L,0,hr)));
+                                            exprasmList.concat(Taicpu.op_const_ref(A_MOV,S_L,0,hr));
                                          end;
-                                       exprasmlist^.concat(new(paicpu,
-                                         op_reg(A_PUSH,S_L,R_EAX)));
+                                       exprasmList.concat(Taicpu.op_reg(A_PUSH,S_L,R_EAX));
                                     end
                                   else
                                     begin
                                        getlabel(again);
                                        getexplicitregister32(R_EDI);
-                                       exprasmlist^.concat(new(paicpu,
-                                         op_const_reg(A_MOV,S_L,stackframe div winstackpagesize,R_EDI)));
+                                       exprasmList.concat(Taicpu.op_const_reg(A_MOV,S_L,stackframe div winstackpagesize,R_EDI));
                                        emitlab(again);
-                                       exprasmlist^.concat(new(paicpu,
-                                         op_const_reg(A_SUB,S_L,winstackpagesize-4,R_ESP)));
-                                       exprasmlist^.concat(new(paicpu,
-                                         op_reg(A_PUSH,S_L,R_EAX)));
-                                       exprasmlist^.concat(new(paicpu,
-                                         op_reg(A_DEC,S_L,R_EDI)));
+                                       exprasmList.concat(Taicpu.op_const_reg(A_SUB,S_L,winstackpagesize-4,R_ESP));
+                                       exprasmList.concat(Taicpu.op_reg(A_PUSH,S_L,R_EAX));
+                                       exprasmList.concat(Taicpu.op_reg(A_DEC,S_L,R_EDI));
                                        emitjmp(C_NZ,again);
                                        ungetregister32(R_EDI);
-                                       exprasmlist^.concat(new(paicpu,
-                                         op_const_reg(A_SUB,S_L,stackframe mod winstackpagesize,R_ESP)));
+                                       exprasmList.concat(Taicpu.op_const_reg(A_SUB,S_L,stackframe mod winstackpagesize,R_ESP));
                                     end
                               end
                             else
-                              exprasmlist^.insert(new(paicpu,op_const_reg(A_SUB,S_L,stackframe,R_ESP)));
+                              exprasmList.insert(Taicpu.Op_const_reg(A_SUB,S_L,stackframe,R_ESP));
                             if (cs_check_stack in aktlocalswitches) and
                               not(target_info.target in [target_i386_freebsd,
                                          target_i386_linux,target_i386_win32]) then
                               begin
                                  emitinsertcall('FPC_STACKCHECK');
-                                 exprasmlist^.insert(new(paicpu,op_const(A_PUSH,S_L,stackframe)));
+                                 exprasmList.insert(Taicpu.Op_const(A_PUSH,S_L,stackframe));
                               end;
                             if cs_profile in aktmoduleswitches then
                               genprofilecode;
-                            exprasmlist^.insert(new(paicpu,op_reg_reg(A_MOV,S_L,R_ESP,R_EBP)));
-                            exprasmlist^.insert(new(paicpu,op_reg(A_PUSH,S_L,R_EBP)));
+                            exprasmList.insert(Taicpu.Op_reg_reg(A_MOV,S_L,R_ESP,R_EBP));
+                            exprasmList.insert(Taicpu.Op_reg(A_PUSH,S_L,R_EBP));
                           end;
                   end { endif stackframe <> 0 }
               else
                  begin
                    if cs_profile in aktmoduleswitches then
                      genprofilecode;
-                   exprasmlist^.insert(new(paicpu,op_reg_reg(A_MOV,S_L,R_ESP,R_EBP)));
-                   exprasmlist^.insert(new(paicpu,op_reg(A_PUSH,S_L,R_EBP)));
+                   exprasmList.insert(Taicpu.Op_reg_reg(A_MOV,S_L,R_ESP,R_EBP));
+                   exprasmList.insert(Taicpu.Op_reg(A_PUSH,S_L,R_EBP));
                  end;
           end;
 
@@ -2329,10 +2289,10 @@ implementation
       case aktprocsym^.definition^.proctypeoption of
          potype_unitinit:
            begin
-              { using current_module^.globalsymtable is hopefully      }
+              { using current_module.globalsymtable is hopefully      }
               { more robust than symtablestack and symtablestack^.next }
-              psymtable(current_module^.globalsymtable)^.foreach({$ifndef TP}@{$endif}initialize_data);
-              psymtable(current_module^.localsymtable)^.foreach({$ifndef TP}@{$endif}initialize_data);
+              psymtable(current_module.globalsymtable)^.foreach({$ifndef TP}@{$endif}initialize_data);
+              psymtable(current_module.localsymtable)^.foreach({$ifndef TP}@{$endif}initialize_data);
            end;
          { units have seperate code for initilization and finalization }
          potype_unitfinalize: ;
@@ -2360,15 +2320,12 @@ implementation
             usedinproc:=usedinproc or ($80 shr byte(R_EAX));
 
             { Type of stack-frame must be pushed}
-            exprasmlist^.concat(new(paicpu,op_const(A_PUSH,S_L,1)));
+            exprasmList.concat(Taicpu.Op_const(A_PUSH,S_L,1));
             emitcall('FPC_PUSHEXCEPTADDR');
-            exprasmlist^.concat(new(paicpu,
-              op_reg(A_PUSH,S_L,R_EAX)));
+            exprasmList.concat(Taicpu.op_reg(A_PUSH,S_L,R_EAX));
             emitcall('FPC_SETJMP');
-            exprasmlist^.concat(new(paicpu,
-              op_reg(A_PUSH,S_L,R_EAX)));
-            exprasmlist^.concat(new(paicpu,
-              op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
+            exprasmList.concat(Taicpu.op_reg(A_PUSH,S_L,R_EAX));
+            exprasmList.concat(Taicpu.op_reg_reg(A_TEST,S_L,R_EAX,R_EAX));
             emitjmp(C_NE,aktexitlabel);
             { probably we've to reload self here }
             maybe_loadesi;
@@ -2381,27 +2338,27 @@ implementation
             (assigned(procinfo^._class) and (procinfo^._class^.owner^.symtabletype=globalsymtable)) then
               make_global:=true;
 
-         hs:=proc_names.get;
+         hs:=aktprocsym^.definition^.aliasnames.getfirst;
 
 {$ifdef GDB}
          if (cs_debuginfo in aktmoduleswitches) and target_os.use_function_relative_addresses then
-           stab_function_name := new(pai_stab_function_name,init(strpnew(hs)));
+           stab_function_name := Tai_stab_function_name.Create(strpnew(hs));
 {$EndIf GDB}
 
          while hs<>'' do
           begin
             if make_global then
-              exprasmlist^.insert(new(pai_symbol,initname_global(hs,0)))
+              exprasmList.insert(Tai_symbol.Createname_global(hs,0))
             else
-              exprasmlist^.insert(new(pai_symbol,initname(hs,0)));
+              exprasmList.insert(Tai_symbol.Createname(hs,0));
 
 {$ifdef GDB}
             if (cs_debuginfo in aktmoduleswitches) and
                target_os.use_function_relative_addresses then
-              exprasmlist^.insert(new(pai_stab_function_name,init(strpnew(hs))));
+              exprasmList.insert(Tai_stab_function_name.Create(strpnew(hs)));
 {$endif GDB}
 
-            hs:=proc_names.get;
+            hs:=aktprocsym^.definition^.aliasnames.getfirst;
           end;
 
          if make_global or ((procinfo^.flags and pi_is_global) <> 0) then
@@ -2411,18 +2368,18 @@ implementation
          if (cs_debuginfo in aktmoduleswitches) then
           begin
             if target_os.use_function_relative_addresses then
-             exprasmlist^.insert(stab_function_name);
-            exprasmlist^.insert(new(pai_stabs,init(aktprocsym^.stabstring)));
+             exprasmList.insert(stab_function_name);
+            exprasmList.insert(Tai_stabs.Create(aktprocsym^.stabstring));
             aktprocsym^.isstabwritten:=true;
           end;
 {$endif GDB}
 
        { Align, gprof uses 16 byte granularity }
          if (cs_profile in aktmoduleswitches) then
-          exprasmlist^.insert(new(pai_align,init_op(16,$90)))
+          exprasmList.insert(Tai_align.Create_op(16,$90))
          else
           if not(cs_littlesize in aktglobalswitches) then
-           exprasmlist^.insert(new(pai_align,init(16)));
+           exprasmList.insert(Tai_align.Create(16));
        end;
        if inlined then
          load_regvars(exprasmlist,nil);
@@ -2451,13 +2408,13 @@ implementation
               if (procinfo^.returntype.def^.deftype in [orddef,enumdef]) then
                 begin
                   uses_eax:=true;
-                  exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+                  exprasmList.concat(Tairegalloc.Alloc(R_EAX));
                   case procinfo^.returntype.def^.size of
                    8:
                      begin
                         emit_ref_reg(A_MOV,S_L,hr,R_EAX);
                         hr:=new_reference(procinfo^.framepointer,procinfo^.return_offset+4);
-                        exprasmlist^.concat(new(pairegalloc,alloc(R_EDX)));
+                        exprasmList.concat(Tairegalloc.Alloc(R_EDX));
                         emit_ref_reg(A_MOV,S_L,hr,R_EDX);
                         uses_edx:=true;
                      end;
@@ -2476,14 +2433,14 @@ implementation
                 if ret_in_acc(procinfo^.returntype.def) then
                   begin
                     uses_eax:=true;
-                    exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+                    exprasmList.concat(Tairegalloc.Alloc(R_EAX));
                     emit_ref_reg(A_MOV,S_L,hr,R_EAX);
                   end
               else
                  if (procinfo^.returntype.def^.deftype=floatdef) then
                    begin
                       floatloadops(pfloatdef(procinfo^.returntype.def)^.typ,op,s);
-                      exprasmlist^.concat(new(paicpu,op_ref(op,s,hr)))
+                      exprasmList.concat(Taicpu.Op_ref(op,s,hr));
                    end
               else
                 dispose(hr);
@@ -2491,7 +2448,7 @@ implementation
   end;
 
 
-  procedure genexitcode(alist : paasmoutput;parasize:longint;nostackframe,inlined:boolean);
+  procedure genexitcode(alist : TAAsmoutput;parasize:longint;nostackframe,inlined:boolean);
 
     var
 {$ifdef GDB}
@@ -2502,8 +2459,8 @@ implementation
        nofinal,okexitlabel,noreraiselabel,nodestroycall : pasmlabel;
        hr : treference;
        uses_eax,uses_edx,uses_esi : boolean;
-       oldexprasmlist : paasmoutput;
-       ai : paicpu;
+       oldexprasmlist : TAAsmoutput;
+       ai : taicpu;
        pd : pprocdef;
 
   begin
@@ -2511,7 +2468,7 @@ implementation
       exprasmlist:=alist;
 
       if aktexitlabel^.is_used then
-        exprasmlist^.insert(new(pai_label,init(aktexitlabel)));
+        exprasmList.insert(Tai_label.Create(aktexitlabel));
 
       { call the destructor help procedure }
       if (aktprocsym^.definition^.proctypeoption=potype_destructor) and
@@ -2525,23 +2482,23 @@ implementation
             begin
               emitinsertcall('FPC_HELP_DESTRUCTOR');
               getexplicitregister32(R_EDI);
-              exprasmlist^.insert(new(paicpu,op_const_reg(A_MOV,S_L,procinfo^._class^.vmt_offset,R_EDI)));
+              exprasmList.insert(Taicpu.Op_const_reg(A_MOV,S_L,procinfo^._class^.vmt_offset,R_EDI));
               { must the object be finalized ? }
               if procinfo^._class^.needs_inittable then
                 begin
                    getlabel(nofinal);
-                   exprasmlist^.insert(new(pai_label,init(nofinal)));
+                   exprasmList.insert(Tai_label.Create(nofinal));
                    emitinsertcall('FPC_FINALIZE');
                    ungetregister32(R_EDI);
-                   exprasmlist^.insert(new(paicpu,op_reg(A_PUSH,S_L,R_ESI)));
-                   exprasmlist^.insert(new(paicpu,op_sym(A_PUSH,S_L,procinfo^._class^.get_inittable_label)));
-                   ai:=new(paicpu,op_sym(A_Jcc,S_NO,nofinal));
-                   ai^.SetCondition(C_Z);
-                   exprasmlist^.insert(ai);
+                   exprasmList.insert(Taicpu.Op_reg(A_PUSH,S_L,R_ESI));
+                   exprasmList.insert(Taicpu.Op_sym(A_PUSH,S_L,procinfo^._class^.get_inittable_label));
+                   ai:=Taicpu.Op_sym(A_Jcc,S_NO,nofinal);
+                   ai.SetCondition(C_Z);
+                   exprasmList.insert(ai);
                    reset_reference(hr);
                    hr.base:=R_EBP;
                    hr.offset:=8;
-                   exprasmlist^.insert(new(paicpu,op_const_ref(A_CMP,S_L,0,newreference(hr))));
+                   exprasmList.insert(Taicpu.Op_const_ref(A_CMP,S_L,0,newreference(hr)));
                 end;
             end
           else
@@ -2557,10 +2514,10 @@ implementation
       case aktprocsym^.definition^.proctypeoption of
          potype_unitfinalize:
            begin
-              { using current_module^.globalsymtable is hopefully      }
+              { using current_module.globalsymtable is hopefully      }
               { more robust than symtablestack and symtablestack^.next }
-              psymtable(current_module^.globalsymtable)^.foreach({$ifndef TP}@{$endif}finalize_data);
-              psymtable(current_module^.localsymtable)^.foreach({$ifndef TP}@{$endif}finalize_data);
+              psymtable(current_module.globalsymtable)^.foreach({$ifndef TP}@{$endif}finalize_data);
+              psymtable(current_module.localsymtable)^.foreach({$ifndef TP}@{$endif}finalize_data);
            end;
          { units have seperate code for initialization and finalization }
          potype_unitinit: ;
@@ -2583,11 +2540,9 @@ implementation
 
            getlabel(noreraiselabel);
            emitcall('FPC_POPADDRSTACK');
-           exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
-           exprasmlist^.concat(new(paicpu,
-             op_reg(A_POP,S_L,R_EAX)));
-           exprasmlist^.concat(new(paicpu,
-             op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
+           exprasmList.concat(Tairegalloc.Alloc(R_EAX));
+           exprasmList.concat(Taicpu.op_reg(A_POP,S_L,R_EAX));
+           exprasmList.concat(Taicpu.op_reg_reg(A_TEST,S_L,R_EAX,R_EAX));
            ungetregister32(R_EAX);
            emitjmp(C_E,noreraiselabel);
            if (aktprocsym^.definition^.proctypeoption=potype_constructor) then
@@ -2691,7 +2646,7 @@ implementation
                   { AfterConstruction                          }
                   if is_object(procinfo^._class) then
                     begin
-                       exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+                       exprasmList.concat(Tairegalloc.Alloc(R_EAX));
                        emit_reg_reg(A_MOV,S_L,R_ESI,R_EAX);
                        uses_eax:=true;
                     end;
@@ -2704,16 +2659,16 @@ implementation
          ((cs_debuginfo in aktmoduleswitches) and not inlined) then
         emitlab(aktexit2label);
       { gives problems for long mangled names }
-      {list^.concat(new(pai_symbol,init(aktprocsym^.definition^.mangledname+'_end')));}
+      {List.concat(Tai_symbol.Create(aktprocsym^.definition^.mangledname+'_end'));}
 
       { should we restore edi ? }
       { for all i386 gcc implementations }
       if (po_savestdregs in aktprocsym^.definition^.procoptions) then
         begin
           if (aktprocsym^.definition^.usedregisters and ($80 shr byte(R_EBX)))<>0 then
-           exprasmlist^.concat(new(paicpu,op_reg(A_POP,S_L,R_EBX)));
-          exprasmlist^.concat(new(paicpu,op_reg(A_POP,S_L,R_ESI)));
-          exprasmlist^.concat(new(paicpu,op_reg(A_POP,S_L,R_EDI)));
+           exprasmList.concat(Taicpu.Op_reg(A_POP,S_L,R_EBX));
+          exprasmList.concat(Taicpu.Op_reg(A_POP,S_L,R_ESI));
+          exprasmList.concat(Taicpu.Op_reg(A_POP,S_L,R_EDI));
           { here we could reset R_EBX
             but that is risky because it only works
             if genexitcode is called after genentrycode
@@ -2728,23 +2683,22 @@ implementation
       if (po_saveregisters in aktprocsym^.definition^.procoptions) then
         begin
           if uses_esi then
-            exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_ESI,new_reference(R_ESP,4))));
+            exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,R_ESI,new_reference(R_ESP,4)));
           if uses_edx then
-            exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDX,new_reference(R_ESP,20))));
+            exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,R_EDX,new_reference(R_ESP,20)));
           if uses_eax then
-            exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EAX,new_reference(R_ESP,28))));
-          exprasmlist^.concat(new(paicpu,op_none(A_POPA,S_L)))
+            exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,R_EAX,new_reference(R_ESP,28)));
+          exprasmList.concat(Taicpu.Op_none(A_POPA,S_L));
         end;
       if not(nostackframe) then
         begin
           if not inlined then
-            exprasmlist^.concat(new(paicpu,op_none(A_LEAVE,S_NO)));
+            exprasmList.concat(Taicpu.Op_none(A_LEAVE,S_NO));
         end
       else
         begin
           if (gettempsize<>0) and not inlined then
-            exprasmlist^.insert(new(paicpu,
-              op_const_reg(A_ADD,S_L,gettempsize,R_ESP)));
+            exprasmList.insert(Taicpu.op_const_reg(A_ADD,S_L,gettempsize,R_ESP));
         end;
 
       { parameters are limited to 65535 bytes because }
@@ -2758,16 +2712,16 @@ implementation
       if (po_interrupt in aktprocsym^.definition^.procoptions) then
           begin
              if uses_esi then
-               exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_ESI,new_reference(R_ESP,16))));
+               exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,R_ESI,new_reference(R_ESP,16)));
              if uses_edx then
                begin
-                 exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
-                 exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDX,new_reference(R_ESP,12))));
+                 exprasmList.concat(Tairegalloc.Alloc(R_EAX));
+                 exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,R_EDX,new_reference(R_ESP,12)));
                end;
              if uses_eax then
                begin
-                 exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
-                 exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EAX,new_reference(R_ESP,0))));
+                 exprasmList.concat(Tairegalloc.Alloc(R_EAX));
+                 exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,R_EAX,new_reference(R_ESP,0)));
                end;
              generate_interrupt_stackframe_exit;
           end
@@ -2780,19 +2734,19 @@ implementation
 {$ifndef OLD_C_STACK}
              { complex return values are removed from stack in C code PM }
              if ret_in_param(aktprocsym^.definition^.rettype.def) then
-               exprasmlist^.concat(new(paicpu,op_const(A_RET,S_NO,4)))
+               exprasmList.concat(Taicpu.Op_const(A_RET,S_NO,4))
              else
 {$endif not OLD_C_STACK}
-               exprasmlist^.concat(new(paicpu,op_none(A_RET,S_NO)));
+               exprasmList.concat(Taicpu.Op_none(A_RET,S_NO));
            end
          else if (parasize=0) then
-          exprasmlist^.concat(new(paicpu,op_none(A_RET,S_NO)))
+          exprasmList.concat(Taicpu.Op_none(A_RET,S_NO))
          else
-          exprasmlist^.concat(new(paicpu,op_const(A_RET,S_NO,parasize)));
+          exprasmList.concat(Taicpu.Op_const(A_RET,S_NO,parasize));
        end;
 
       if not inlined then
-        exprasmlist^.concat(new(pai_symbol_end,initname(aktprocsym^.definition^.mangledname)));
+        exprasmList.concat(Tai_symbol_end.Createname(aktprocsym^.definition^.mangledname));
 
 {$ifdef GDB}
       if (cs_debuginfo in aktmoduleswitches) and not inlined  then
@@ -2807,9 +2761,9 @@ implementation
                         (potype_constructor=aktprocsym^.definition^.proctypeoption)) or
                        (po_staticmethod in aktprocsym^.definition^.procoptions) then
                       begin
-                        exprasmlist^.concat(new(pai_stabs,init(strpnew(
+                        exprasmList.concat(Tai_stabs.Create(strpnew(
                          '"pvmt:p'+pvmtdef^.numberstring+'",'+
-                         tostr(N_PSYM)+',0,0,'+tostr(procinfo^.selfpointer_offset)))));
+                         tostr(N_PSYM)+',0,0,'+tostr(procinfo^.selfpointer_offset))));
                       end
                     else
                       begin
@@ -2817,9 +2771,9 @@ implementation
                           st:='v'
                         else
                           st:='p';
-                        exprasmlist^.concat(new(pai_stabs,init(strpnew(
+                        exprasmList.concat(Tai_stabs.Create(strpnew(
                          '"$t:'+st+procinfo^._class^.numberstring+'",'+
-                         tostr(N_PSYM)+',0,0,'+tostr(procinfo^.selfpointer_offset)))));
+                         tostr(N_PSYM)+',0,0,'+tostr(procinfo^.selfpointer_offset))));
                       end;
                   end
                 else
@@ -2828,37 +2782,37 @@ implementation
                       st:='*'
                     else
                       st:='';
-                    exprasmlist^.concat(new(pai_stabs,init(strpnew(
+                    exprasmList.concat(Tai_stabs.Create(strpnew(
                      '"$t:r'+st+procinfo^._class^.numberstring+'",'+
-                     tostr(N_RSYM)+',0,0,'+tostr(GDB_i386index[R_ESI])))));
+                     tostr(N_RSYM)+',0,0,'+tostr(GDB_i386index[R_ESI]))));
                   end;
 
               { define calling EBP as pseudo local var PM }
               { this enables test if the function is a local one !! }
               if  assigned(procinfo^.parent) and (lexlevel>normal_function_level) then
-                exprasmlist^.concat(new(pai_stabs,init(strpnew(
+                exprasmList.concat(Tai_stabs.Create(strpnew(
                  '"parent_ebp:'+voidpointerdef^.numberstring+'",'+
-                 tostr(N_LSYM)+',0,0,'+tostr(procinfo^.framepointer_offset)))));
+                 tostr(N_LSYM)+',0,0,'+tostr(procinfo^.framepointer_offset))));
 
               if (pdef(aktprocsym^.definition^.rettype.def) <> pdef(voiddef)) then
                 begin
                   if ret_in_param(aktprocsym^.definition^.rettype.def) then
-                    exprasmlist^.concat(new(pai_stabs,init(strpnew(
+                    exprasmList.concat(Tai_stabs.Create(strpnew(
                      '"'+aktprocsym^.name+':X*'+pstoreddef(aktprocsym^.definition^.rettype.def)^.numberstring+'",'+
-                     tostr(N_PSYM)+',0,0,'+tostr(procinfo^.return_offset)))))
+                     tostr(N_PSYM)+',0,0,'+tostr(procinfo^.return_offset))))
                   else
-                    exprasmlist^.concat(new(pai_stabs,init(strpnew(
+                    exprasmList.concat(Tai_stabs.Create(strpnew(
                      '"'+aktprocsym^.name+':X'+pstoreddef(aktprocsym^.definition^.rettype.def)^.numberstring+'",'+
-                     tostr(N_PSYM)+',0,0,'+tostr(procinfo^.return_offset)))));
+                     tostr(N_PSYM)+',0,0,'+tostr(procinfo^.return_offset))));
                   if (m_result in aktmodeswitches) then
                     if ret_in_param(aktprocsym^.definition^.rettype.def) then
-                      exprasmlist^.concat(new(pai_stabs,init(strpnew(
+                      exprasmList.concat(Tai_stabs.Create(strpnew(
                        '"RESULT:X*'+pstoreddef(aktprocsym^.definition^.rettype.def)^.numberstring+'",'+
-                       tostr(N_PSYM)+',0,0,'+tostr(procinfo^.return_offset)))))
+                       tostr(N_PSYM)+',0,0,'+tostr(procinfo^.return_offset))))
                     else
-                      exprasmlist^.concat(new(pai_stabs,init(strpnew(
+                      exprasmList.concat(Tai_stabs.Create(strpnew(
                        '"RESULT:X'+pstoreddef(aktprocsym^.definition^.rettype.def)^.numberstring+'",'+
-                       tostr(N_PSYM)+',0,0,'+tostr(procinfo^.return_offset)))));
+                       tostr(N_PSYM)+',0,0,'+tostr(procinfo^.return_offset))));
                 end;
               mangled_length:=length(aktprocsym^.definition^.mangledname);
               getmem(p,2*mangled_length+50);
@@ -2869,8 +2823,8 @@ implementation
                   strpcopy(strend(p),'-');
                   strpcopy(strend(p),aktprocsym^.definition^.mangledname);
                 end;
-              exprasmlist^.concat(new(pai_stabn,init(strnew(p))));
-              {list^.concat(new(pai_stabn,init(strpnew('192,0,0,'
+              exprasmList.concat(Tai_stabn.Create(strnew(p)));
+              {List.concat(Tai_stabn.Create(strpnew('192,0,0,'
                +aktprocsym^.definition^.mangledname))));
               p[0]:='2';p[1]:='2';p[2]:='4';
               strpcopy(strend(p),'_end');}
@@ -2880,9 +2834,8 @@ implementation
                   strpcopy(strend(p),'-');
                   strpcopy(strend(p),aktprocsym^.definition^.mangledname);
                 end;
-              exprasmlist^.concatlist(withdebuglist);
-              exprasmlist^.concat(new(pai_stabn,init(
-                strnew(p))));
+              exprasmList.concatlist(withdebuglist);
+              exprasmList.concat(Tai_stabn.Create(strnew(p)));
                { strpnew('224,0,0,'
                +aktprocsym^.definition^.mangledname+'_end'))));}
               freemem(p,2*mangled_length+50);
@@ -2893,40 +2846,40 @@ implementation
       exprasmlist:=oldexprasmlist;
   end;
 
-    procedure genimplicitunitfinal(alist : paasmoutput);
+    procedure genimplicitunitfinal(alist : TAAsmoutput);
 
       begin
-         { using current_module^.globalsymtable is hopefully      }
+         { using current_module.globalsymtable is hopefully      }
          { more robust than symtablestack and symtablestack^.next }
-         psymtable(current_module^.globalsymtable)^.foreach({$ifndef TP}@{$endif}finalize_data);
-         psymtable(current_module^.localsymtable)^.foreach({$ifndef TP}@{$endif}finalize_data);
-         exprasmlist^.insert(new(pai_symbol,initname_global('FINALIZE$$'+current_module^.modulename^,0)));
-         exprasmlist^.insert(new(pai_symbol,initname_global(target_os.cprefix+current_module^.modulename^+'_finalize',0)));
+         psymtable(current_module.globalsymtable)^.foreach({$ifndef TP}@{$endif}finalize_data);
+         psymtable(current_module.localsymtable)^.foreach({$ifndef TP}@{$endif}finalize_data);
+         exprasmList.insert(Tai_symbol.Createname_global('FINALIZE$$'+current_module.modulename^,0));
+         exprasmList.insert(Tai_symbol.Createname_global(target_os.cprefix+current_module.modulename^+'_finalize',0));
 {$ifdef GDB}
          if (cs_debuginfo in aktmoduleswitches) and
            target_os.use_function_relative_addresses then
-           exprasmlist^.insert(new(pai_stab_function_name,init(strpnew('FINALIZE$$'+current_module^.modulename^))));
+           exprasmList.insert(Tai_stab_function_name.Create(strpnew('FINALIZE$$'+current_module.modulename^)));
 {$endif GDB}
-         exprasmlist^.concat(new(paicpu,op_none(A_RET,S_NO)));
-         alist^.concatlist(exprasmlist);
+         exprasmList.concat(Taicpu.Op_none(A_RET,S_NO));
+         aList.concatlist(exprasmlist);
       end;
 
-    procedure genimplicitunitinit(alist : paasmoutput);
+    procedure genimplicitunitinit(alist : TAAsmoutput);
 
       begin
-         { using current_module^.globalsymtable is hopefully      }
+         { using current_module.globalsymtable is hopefully      }
          { more robust than symtablestack and symtablestack^.next }
-         psymtable(current_module^.globalsymtable)^.foreach({$ifndef TP}@{$endif}finalize_data);
-         psymtable(current_module^.localsymtable)^.foreach({$ifndef TP}@{$endif}finalize_data);
-         exprasmlist^.insert(new(pai_symbol,initname_global('INIT$$'+current_module^.modulename^,0)));
-         exprasmlist^.insert(new(pai_symbol,initname_global(target_os.cprefix+current_module^.modulename^+'_init',0)));
+         psymtable(current_module.globalsymtable)^.foreach({$ifndef TP}@{$endif}finalize_data);
+         psymtable(current_module.localsymtable)^.foreach({$ifndef TP}@{$endif}finalize_data);
+         exprasmList.insert(Tai_symbol.Createname_global('INIT$$'+current_module.modulename^,0));
+         exprasmList.insert(Tai_symbol.Createname_global(target_os.cprefix+current_module.modulename^+'_init',0));
 {$ifdef GDB}
          if (cs_debuginfo in aktmoduleswitches) and
            target_os.use_function_relative_addresses then
-           exprasmlist^.insert(new(pai_stab_function_name,init(strpnew('INIT$$'+current_module^.modulename^))));
+           exprasmList.insert(Tai_stab_function_name.Create(strpnew('INIT$$'+current_module.modulename^)));
 {$endif GDB}
-         exprasmlist^.concat(new(paicpu,op_none(A_RET,S_NO)));
-         alist^.concatlist(exprasmlist);
+         exprasmList.concat(Taicpu.Op_none(A_RET,S_NO));
+         aList.concatlist(exprasmlist);
       end;
 
 {$ifdef test_dest_loc}
@@ -2942,7 +2895,7 @@ implementation
             else
             if (dest_loc.loc=LOC_REFERENCE) or (dest_loc.loc=LOC_MEM) then
               begin
-                exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,s,reg,newreference(dest_loc.reference))));
+                exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,s,reg,newreference(dest_loc.reference)));
                 set_location(p^.location,dest_loc);
                 in_dest_loc:=true;
               end
@@ -2955,7 +2908,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2000-12-05 11:44:32  jonas
+  Revision 1.16  2000-12-25 00:07:31  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.15  2000/12/05 11:44:32  jonas
     + new integer regvar handling, should be much more efficient
 
   Revision 1.14  2000/11/29 00:30:43  florian

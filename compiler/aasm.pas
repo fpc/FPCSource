@@ -27,7 +27,7 @@ unit aasm;
 interface
 
     uses
-       cutils,cobjects,
+       cutils,cobjects,cclasses,
        globtype,globals,systems;
 
     type
@@ -129,7 +129,7 @@ interface
        pasmlabel = ^tasmlabel;
        tasmlabel = object(tasmsymbol)
 {$ifdef PACKENUMFIXED}
-         { this is set by the pai_label.init }
+         { this is set by the tai_label.Init }
          is_set,
          { is the label only there for getting an address (e.g. for i/o }
          { checks -> true) or is it a jump target (false)               }
@@ -148,8 +148,7 @@ interface
 
 
        { the short name makes typing easier }
-       pai = ^tai;
-       tai = object(tlinkedlist_item)
+       tai = class(tlinkedlistitem)
 {$ifndef PACKENUMFIXED}
           typ      : tait;
 {$endif}
@@ -160,23 +159,21 @@ interface
           { still 3 bytes left after the next field }
           typ      : tait;
 {$endif}
-          constructor init;
+          constructor Create;
        end;
 
-       pai_string = ^tai_string;
-       tai_string = object(tai)
+       tai_string = class(tai)
           str : pchar;
           { extra len so the string can contain an \0 }
           len : longint;
-          constructor init(const _str : string);
-          constructor init_pchar(_str : pchar);
-          constructor init_length_pchar(_str : pchar;length : longint);
-          destructor done;virtual;
+          constructor Create(const _str : string);
+          constructor Create_pchar(_str : pchar);
+          constructor Create_length_pchar(_str : pchar;length : longint);
+          destructor Destroy;override;
        end;
 
        { generates a common label }
-       pai_symbol = ^tai_symbol;
-       tai_symbol = object(tai)
+       tai_symbol = class(tai)
 {$ifdef PACKENUMFIXED}
           is_global : boolean;
 {$endif}
@@ -185,22 +182,20 @@ interface
 {$ifndef PACKENUMFIXED}
           is_global : boolean;
 {$endif}
-          constructor init(_sym:PAsmSymbol;siz:longint);
-          constructor initname(const _name : string;siz:longint);
-          constructor initname_global(const _name : string;siz:longint);
-          constructor initdataname(const _name : string;siz:longint);
-          constructor initdataname_global(const _name : string;siz:longint);
+          constructor Create(_sym:PAsmSymbol;siz:longint);
+          constructor Createname(const _name : string;siz:longint);
+          constructor Createname_global(const _name : string;siz:longint);
+          constructor Createdataname(const _name : string;siz:longint);
+          constructor Createdataname_global(const _name : string;siz:longint);
        end;
 
-       pai_symbol_end = ^tai_symbol_end;
-       tai_symbol_end = object(tai)
+       tai_symbol_end = class(tai)
           sym : pasmsymbol;
-          constructor init(_sym:PAsmSymbol);
-          constructor initname(const _name : string);
+          constructor Create(_sym:PAsmSymbol);
+          constructor Createname(const _name : string);
        end;
 
-       pai_label = ^tai_label;
-       tai_label = object(tai)
+       tai_label = class(tai)
 {$ifdef PACKENUMFIXED}
           is_global : boolean;
 {$endif}
@@ -208,56 +203,48 @@ interface
 {$ifndef PACKENUMFIXED}
           is_global : boolean;
 {$endif}
-          constructor init(_l : pasmlabel);
+          constructor Create(_l : pasmlabel);
        end;
 
-       pai_direct = ^tai_direct;
-       tai_direct = object(tai)
+       tai_direct = class(tai)
           str : pchar;
-          constructor init(_str : pchar);
-          destructor done; virtual;
+          constructor Create(_str : pchar);
+          destructor Destroy; override;
        end;
-
 
        { to insert a comment into the generated assembler file }
-       pai_asm_comment = ^tai_asm_comment;
-       tai_asm_comment = object(tai)
+       tai_asm_comment = class(tai)
           str : pchar;
-          constructor init(_str : pchar);
-          destructor done; virtual;
+          constructor Create(_str : pchar);
+          destructor Destroy; override;
        end;
 
 
        { alignment for operator }
-
 {$ifdef i386}
-       pai_align_abstract = ^tai_align_abstract;
-       tai_align_abstract = object(tai)
+       tai_align_abstract = class(tai)
 {$else i386}
-       pai_align = ^tai_align;
-       tai_align = object(tai)
+       tai_align = class(tai)
 {$endif i386}
           buf       : array[0..63] of char; { buf used for fill }
           aligntype : byte;   { 1 = no align, 2 = word align, 4 = dword align }
           fillsize  : byte;   { real size to fill }
           fillop    : byte;   { value to fill with - optional }
           use_op    : boolean;
-          constructor init(b:byte);
-          constructor init_op(b: byte; _op: byte);
+          constructor Create(b:byte);
+          constructor Create_op(b: byte; _op: byte);
           function getfillbuf:pchar;
        end;
 
        { Insert a section/segment directive }
-       pai_section = ^tai_section;
-       tai_section = object(tai)
+       tai_section = class(tai)
           sec : tsection;
-          constructor init(s : tsection);
+          constructor Create(s : tsection);
        end;
 
 
        { generates an uninitializised data block }
-       pai_datablock = ^tai_datablock;
-       tai_datablock = object(tai)
+       tai_datablock = class(tai)
 {$ifdef PACKENUMFIXED}
           is_global : boolean;
 {$endif}
@@ -266,83 +253,76 @@ interface
 {$ifndef PACKENUMFIXED}
           is_global : boolean;
 {$endif}
-          constructor init(const _name : string;_size : longint);
-          constructor init_global(const _name : string;_size : longint);
+          constructor Create(const _name : string;_size : longint);
+          constructor Create_global(const _name : string;_size : longint);
        end;
 
 
        { generates a long integer (32 bit) }
-       pai_const = ^tai_const;
-       tai_const = object(tai)
+       tai_const = class(tai)
           value : longint;
-          constructor init_32bit(_value : longint);
-          constructor init_16bit(_value : word);
-          constructor init_8bit(_value : byte);
+          constructor Create_32bit(_value : longint);
+          constructor Create_16bit(_value : word);
+          constructor Create_8bit(_value : byte);
        end;
 
-       pai_const_symbol = ^tai_const_symbol;
-       tai_const_symbol = object(tai)
+       tai_const_symbol = class(tai)
           sym    : pasmsymbol;
           offset : longint;
-          constructor init(_sym:PAsmSymbol);
-          constructor init_offset(_sym:PAsmSymbol;ofs:longint);
-          constructor init_rva(_sym:PAsmSymbol);
-          constructor initname(const name:string);
-          constructor initname_offset(const name:string;ofs:longint);
-          constructor initname_rva(const name:string);
+          constructor Create(_sym:PAsmSymbol);
+          constructor Create_offset(_sym:PAsmSymbol;ofs:longint);
+          constructor Create_rva(_sym:PAsmSymbol);
+          constructor Createname(const name:string);
+          constructor Createname_offset(const name:string;ofs:longint);
+          constructor Createname_rva(const name:string);
        end;
 
        { generates a single (32 bit real) }
-       pai_real_32bit = ^tai_real_32bit;
-       tai_real_32bit = object(tai)
+       tai_real_32bit = class(tai)
           value : ts32real;
-          constructor init(_value : ts32real);
+          constructor Create(_value : ts32real);
        end;
 
        { generates a double (64 bit real) }
-       pai_real_64bit = ^tai_real_64bit;
-       tai_real_64bit = object(tai)
+       tai_real_64bit = class(tai)
           value : ts64real;
-          constructor init(_value : ts64real);
+          constructor Create(_value : ts64real);
        end;
 
        { generates an extended (80 bit real) }
-       pai_real_80bit = ^tai_real_80bit;
-       tai_real_80bit = object(tai)
+       tai_real_80bit = class(tai)
           value : ts80real;
-          constructor init(_value : ts80real);
+          constructor Create(_value : ts80real);
        end;
 
        { generates an comp (integer over 64 bits) }
-       pai_comp_64bit = ^tai_comp_64bit;
-       tai_comp_64bit = object(tai)
+       tai_comp_64bit = class(tai)
           value : ts64comp;
-          constructor init(_value : ts64comp);
+          constructor Create(_value : ts64comp);
        end;
 
        { insert a cut to split into several smaller files }
 
        tcutplace=(cut_normal,cut_begin,cut_end);
 
-       pai_cut = ^tai_cut;
-       tai_cut = object(tai)
+       tai_cut = class(tai)
           place : tcutplace;
-          constructor init;
-          constructor init_begin;
-          constructor init_end;
+          constructor Create;
+          constructor Create_begin;
+          constructor Create_end;
        end;
 
        TMarker = (NoPropInfoStart, NoPropInfoEnd,
          AsmBlockStart, AsmBlockEnd,
-         InlineStart,InlineEnd);
-       pai_marker = ^tai_marker;
-       tai_marker = object(tai)
+         InlineStart,InlineEnd
+       );
+
+       tai_marker = class(tai)
          Kind: TMarker;
-         Constructor init(_Kind: TMarker);
+         Constructor Create(_Kind: TMarker);
        end;
 
-       paitempalloc = ^taitempalloc;
-       taitempalloc = object(tai)
+       taitempalloc = class(tai)
 {$ifdef PACKENUMFIXED}
           allocation : boolean;
 {$endif}
@@ -361,20 +341,16 @@ interface
 const
        ait_bestreal = ait_real_80bit;
 type
-       pai_bestreal = pai_real_80bit;
        tai_bestreal = tai_real_80bit;
 {$endif i386}
 {$ifdef m68k}
 const
        ait_bestreal = ait_real_32bit;
 type
-       pai_bestreal = pai_real_32bit;
        tai_bestreal = tai_real_32bit;
 {$endif m68k}
 
-
-       paasmoutput = ^taasmoutput;
-       taasmoutput = object(tlinkedlist)
+       taasmoutput = class(tlinkedlist)
          function getlasttaifilepos : pfileposinfo;
        end;
 
@@ -390,7 +366,7 @@ type
       debuglist,withdebuglist,consts,
       importssection,exportssection,
       resourcesection,rttilist,
-      resourcestringlist         : paasmoutput;
+      resourcestringlist         : taasmoutput;
     { asm symbol list }
       asmsymbollist : pdictionary;
       usedasmsymbollist : psinglelist;
@@ -414,8 +390,8 @@ type
     function  getasmsymbol(const s : string) : pasmsymbol;
     function  renameasmsymbol(const sold, snew : string):pasmsymbol;
 
-    procedure InitUsedAsmSymbolList;
-    procedure DoneUsedAsmSymbolList;
+    procedure CreateUsedAsmSymbolList;
+    procedure DestroyUsedAsmSymbolList;
     procedure UsedAsmSymbolListInsert(p:pasmsymbol);
     procedure UsedAsmSymbolListReset;
     procedure UsedAsmSymbolListResetAltSym;
@@ -436,7 +412,7 @@ uses
                              TAI
  ****************************************************************************}
 
-    constructor tai.init;
+    constructor tai.Create;
       begin
         optinfo := nil;
         fileinfo:=aktfilepos;
@@ -446,9 +422,9 @@ uses
                              TAI_SECTION
  ****************************************************************************}
 
-    constructor tai_section.init(s : tsection);
+    constructor tai_section.Create(s : tsection);
       begin
-         inherited init;
+         inherited Create;
          typ:=ait_section;
          sec:=s;
       end;
@@ -458,10 +434,10 @@ uses
                              TAI_DATABLOCK
  ****************************************************************************}
 
-    constructor tai_datablock.init(const _name : string;_size : longint);
+    constructor tai_datablock.Create(const _name : string;_size : longint);
 
       begin
-         inherited init;
+         inherited Create;
          typ:=ait_datablock;
          sym:=newasmsymboltype(_name,AB_LOCAL,AT_DATA);
          { keep things aligned }
@@ -472,9 +448,9 @@ uses
       end;
 
 
-    constructor tai_datablock.init_global(const _name : string;_size : longint);
+    constructor tai_datablock.Create_global(const _name : string;_size : longint);
       begin
-         inherited init;
+         inherited Create;
          typ:=ait_datablock;
          sym:=newasmsymboltype(_name,AB_GLOBAL,AT_DATA);
          { keep things aligned }
@@ -489,45 +465,45 @@ uses
                                TAI_SYMBOL
  ****************************************************************************}
 
-    constructor tai_symbol.init(_sym:PAsmSymbol;siz:longint);
+    constructor tai_symbol.Create(_sym:PAsmSymbol;siz:longint);
       begin
-         inherited init;
+         inherited Create;
          typ:=ait_symbol;
          sym:=_sym;
          size:=siz;
          is_global:=(sym^.defbind=AB_GLOBAL);
       end;
 
-    constructor tai_symbol.initname(const _name : string;siz:longint);
+    constructor tai_symbol.Createname(const _name : string;siz:longint);
       begin
-         inherited init;
+         inherited Create;
          typ:=ait_symbol;
          sym:=newasmsymboltype(_name,AB_LOCAL,AT_FUNCTION);
          size:=siz;
          is_global:=false;
       end;
 
-    constructor tai_symbol.initname_global(const _name : string;siz:longint);
+    constructor tai_symbol.Createname_global(const _name : string;siz:longint);
       begin
-         inherited init;
+         inherited Create;
          typ:=ait_symbol;
          sym:=newasmsymboltype(_name,AB_GLOBAL,AT_FUNCTION);
          size:=siz;
          is_global:=true;
       end;
 
-    constructor tai_symbol.initdataname(const _name : string;siz:longint);
+    constructor tai_symbol.Createdataname(const _name : string;siz:longint);
       begin
-         inherited init;
+         inherited Create;
          typ:=ait_symbol;
          sym:=newasmsymboltype(_name,AB_LOCAL,AT_DATA);
          size:=siz;
          is_global:=false;
       end;
 
-    constructor tai_symbol.initdataname_global(const _name : string;siz:longint);
+    constructor tai_symbol.Createdataname_global(const _name : string;siz:longint);
       begin
-         inherited init;
+         inherited Create;
          typ:=ait_symbol;
          sym:=newasmsymboltype(_name,AB_GLOBAL,AT_DATA);
          size:=siz;
@@ -539,16 +515,16 @@ uses
                                TAI_SYMBOL
  ****************************************************************************}
 
-    constructor tai_symbol_end.init(_sym:PAsmSymbol);
+    constructor tai_symbol_end.Create(_sym:PAsmSymbol);
       begin
-         inherited init;
+         inherited Create;
          typ:=ait_symbol_end;
          sym:=_sym;
       end;
 
-    constructor tai_symbol_end.initname(const _name : string);
+    constructor tai_symbol_end.Createname(const _name : string);
       begin
-         inherited init;
+         inherited Create;
          typ:=ait_symbol_end;
          sym:=newasmsymboltype(_name,AB_GLOBAL,AT_NONE);
       end;
@@ -558,26 +534,26 @@ uses
                                TAI_CONST
  ****************************************************************************}
 
-    constructor tai_const.init_32bit(_value : longint);
+    constructor tai_const.Create_32bit(_value : longint);
 
       begin
-         inherited init;
+         inherited Create;
          typ:=ait_const_32bit;
          value:=_value;
       end;
 
-    constructor tai_const.init_16bit(_value : word);
+    constructor tai_const.Create_16bit(_value : word);
 
       begin
-         inherited init;
+         inherited Create;
          typ:=ait_const_16bit;
          value:=_value;
       end;
 
-    constructor tai_const.init_8bit(_value : byte);
+    constructor tai_const.Create_8bit(_value : byte);
 
       begin
-         inherited init;
+         inherited Create;
          typ:=ait_const_8bit;
          value:=_value;
       end;
@@ -587,9 +563,9 @@ uses
                                TAI_CONST_SYMBOL_OFFSET
  ****************************************************************************}
 
-    constructor tai_const_symbol.init(_sym:PAsmSymbol);
+    constructor tai_const_symbol.Create(_sym:PAsmSymbol);
       begin
-         inherited init;
+         inherited Create;
          typ:=ait_const_symbol;
          sym:=_sym;
          offset:=0;
@@ -597,9 +573,9 @@ uses
          inc(sym^.refs);
       end;
 
-    constructor tai_const_symbol.init_offset(_sym:PAsmSymbol;ofs:longint);
+    constructor tai_const_symbol.Create_offset(_sym:PAsmSymbol;ofs:longint);
       begin
-         inherited init;
+         inherited Create;
          typ:=ait_const_symbol;
          sym:=_sym;
          offset:=ofs;
@@ -607,9 +583,9 @@ uses
          inc(sym^.refs);
       end;
 
-    constructor tai_const_symbol.init_rva(_sym:PAsmSymbol);
+    constructor tai_const_symbol.Create_rva(_sym:PAsmSymbol);
       begin
-         inherited init;
+         inherited Create;
          typ:=ait_const_rva;
          sym:=_sym;
          offset:=0;
@@ -617,9 +593,9 @@ uses
          inc(sym^.refs);
       end;
 
-    constructor tai_const_symbol.initname(const name:string);
+    constructor tai_const_symbol.Createname(const name:string);
       begin
-         inherited init;
+         inherited Create;
          typ:=ait_const_symbol;
          sym:=newasmsymbol(name);
          offset:=0;
@@ -627,9 +603,9 @@ uses
          inc(sym^.refs);
       end;
 
-    constructor tai_const_symbol.initname_offset(const name:string;ofs:longint);
+    constructor tai_const_symbol.Createname_offset(const name:string;ofs:longint);
       begin
-         inherited init;
+         inherited Create;
          typ:=ait_const_symbol;
          sym:=newasmsymbol(name);
          offset:=ofs;
@@ -637,9 +613,9 @@ uses
          inc(sym^.refs);
       end;
 
-    constructor tai_const_symbol.initname_rva(const name:string);
+    constructor tai_const_symbol.Createname_rva(const name:string);
       begin
-         inherited init;
+         inherited Create;
          typ:=ait_const_rva;
          sym:=newasmsymbol(name);
          offset:=0;
@@ -652,10 +628,10 @@ uses
                                TAI_real_32bit
  ****************************************************************************}
 
-    constructor tai_real_32bit.init(_value : ts32real);
+    constructor tai_real_32bit.Create(_value : ts32real);
 
       begin
-         inherited init;
+         inherited Create;
          typ:=ait_real_32bit;
          value:=_value;
       end;
@@ -664,10 +640,10 @@ uses
                                TAI_real_64bit
  ****************************************************************************}
 
-    constructor tai_real_64bit.init(_value : ts64real);
+    constructor tai_real_64bit.Create(_value : ts64real);
 
       begin
-         inherited init;
+         inherited Create;
          typ:=ait_real_64bit;
          value:=_value;
       end;
@@ -676,10 +652,10 @@ uses
                                TAI_real_80bit
  ****************************************************************************}
 
-    constructor tai_real_80bit.init(_value : ts80real);
+    constructor tai_real_80bit.Create(_value : ts80real);
 
       begin
-         inherited init;
+         inherited Create;
          typ:=ait_real_80bit;
          value:=_value;
       end;
@@ -688,10 +664,10 @@ uses
                                Tai_comp_64bit
  ****************************************************************************}
 
-    constructor tai_comp_64bit.init(_value : ts64comp);
+    constructor tai_comp_64bit.Create(_value : ts64comp);
 
       begin
-         inherited init;
+         inherited Create;
          typ:=ait_comp_64bit;
          value:=_value;
       end;
@@ -701,41 +677,41 @@ uses
                                TAI_STRING
  ****************************************************************************}
 
-     constructor tai_string.init(const _str : string);
+     constructor tai_string.Create(const _str : string);
 
        begin
-          inherited init;
+          inherited Create;
           typ:=ait_string;
           getmem(str,length(_str)+1);
           strpcopy(str,_str);
           len:=length(_str);
        end;
 
-     constructor tai_string.init_pchar(_str : pchar);
+     constructor tai_string.Create_pchar(_str : pchar);
 
        begin
-          inherited init;
+          inherited Create;
           typ:=ait_string;
           str:=_str;
           len:=strlen(_str);
        end;
 
-    constructor tai_string.init_length_pchar(_str : pchar;length : longint);
+    constructor tai_string.Create_length_pchar(_str : pchar;length : longint);
 
        begin
-          inherited init;
+          inherited Create;
           typ:=ait_string;
           str:=_str;
           len:=length;
        end;
 
-    destructor tai_string.done;
+    destructor tai_string.destroy;
 
       begin
          { you can have #0 inside the strings so }
          if str<>nil then
            freemem(str,len+1);
-         inherited done;
+         inherited Destroy;
       end;
 
 
@@ -743,9 +719,9 @@ uses
                                TAI_LABEL
  ****************************************************************************}
 
-    constructor tai_label.init(_l : pasmlabel);
+    constructor tai_label.create(_l : pasmlabel);
       begin
-        inherited init;
+        inherited Create;
         typ:=ait_label;
         l:=_l;
         l^.is_set:=true;
@@ -757,38 +733,38 @@ uses
                               TAI_DIRECT
  ****************************************************************************}
 
-     constructor tai_direct.init(_str : pchar);
+     constructor tai_direct.Create(_str : pchar);
 
        begin
-          inherited init;
+          inherited Create;
           typ:=ait_direct;
           str:=_str;
        end;
 
-    destructor tai_direct.done;
+    destructor tai_direct.destroy;
 
       begin
          strdispose(str);
-         inherited done;
+         inherited Destroy;
       end;
 
 {****************************************************************************
           TAI_ASM_COMMENT  comment to be inserted in the assembler file
  ****************************************************************************}
 
-     constructor tai_asm_comment.init(_str : pchar);
+     constructor tai_asm_comment.Create(_str : pchar);
 
        begin
-          inherited init;
+          inherited Create;
           typ:=ait_comment;
           str:=_str;
        end;
 
-    destructor tai_asm_comment.done;
+    destructor tai_asm_comment.destroy;
 
       begin
          strdispose(str);
-         inherited done;
+         inherited Destroy;
       end;
 
 {****************************************************************************
@@ -796,12 +772,12 @@ uses
  ****************************************************************************}
 
 {$ifdef i386}
-     constructor tai_align_abstract.init(b: byte);
+     constructor tai_align_abstract.Create(b: byte);
 {$else i386}
-     constructor tai_align.init(b: byte);
+     constructor tai_align.Create(b: byte);
 {$endif i386}
        begin
-          inherited init;
+          inherited Create;
           typ:=ait_align;
           if b in [1,2,4,8,16,32] then
             aligntype := b
@@ -814,12 +790,12 @@ uses
 
 
 {$ifdef i386}
-     constructor tai_align_abstract.init_op(b: byte; _op: byte);
+     constructor tai_align_abstract.Create_op(b: byte; _op: byte);
 {$else i386}
-     constructor tai_align.init_op(b: byte; _op: byte);
+     constructor tai_align.Create_op(b: byte; _op: byte);
 {$endif i386}
        begin
-          inherited init;
+          inherited Create;
           typ:=ait_align;
           if b in [1,2,4,8,16,32] then
             aligntype := b
@@ -845,25 +821,25 @@ uses
                               TAI_CUT
  ****************************************************************************}
 
-     constructor tai_cut.init;
+     constructor tai_cut.Create;
        begin
-          inherited init;
+          inherited Create;
           typ:=ait_cut;
           place:=cut_normal;
        end;
 
 
-     constructor tai_cut.init_begin;
+     constructor tai_cut.Create_begin;
        begin
-          inherited init;
+          inherited Create;
           typ:=ait_cut;
           place:=cut_begin;
        end;
 
 
-     constructor tai_cut.init_end;
+     constructor tai_cut.Create_end;
        begin
-          inherited init;
+          inherited Create;
           typ:=ait_cut;
           place:=cut_end;
        end;
@@ -873,9 +849,9 @@ uses
                              Tai_Marker
  ****************************************************************************}
 
-     Constructor Tai_Marker.Init(_Kind: TMarker);
+     Constructor Tai_Marker.Create(_Kind: TMarker);
      Begin
-       Inherited Init;
+       Inherited Create;
        typ := ait_marker;
        Kind := _Kind;
      End;
@@ -886,7 +862,7 @@ uses
 
     constructor taitempalloc.alloc(pos,size:longint);
       begin
-        inherited init;
+        inherited Create;
         typ:=ait_tempalloc;
         allocation:=true;
         temppos:=pos;
@@ -896,7 +872,7 @@ uses
 
     constructor taitempalloc.dealloc(pos,size:longint);
       begin
-        inherited init;
+        inherited Create;
         typ:=ait_tempalloc;
         allocation:=false;
         temppos:=pos;
@@ -909,7 +885,7 @@ uses
                                   AsmSymbol
 *****************************************************************************}
 
-    constructor tasmsymbol.init(const s:string;_bind:TAsmsymbind;_typ:Tasmsymtype);
+    constructor tasmsymbol.Init(const s:string;_bind:TAsmsymbind;_typ:Tasmsymtype);
       begin;
         inherited initname(s);
         reset;
@@ -963,7 +939,7 @@ uses
                                   AsmLabel
 *****************************************************************************}
 
-    constructor tasmlabel.init;
+    constructor tasmlabel.Init;
       begin;
         labelnr:=nextlabelnr;
         inc(nextlabelnr);
@@ -974,12 +950,12 @@ uses
       end;
 
 
-    constructor tasmlabel.initdata;
+    constructor tasmlabel.Initdata;
       begin;
         labelnr:=nextlabelnr;
         inc(nextlabelnr);
         if (cs_create_smart in aktmoduleswitches) then
-          inherited init('_$'+current_module^.modulename^+'$_L'+tostr(labelnr),AB_GLOBAL,AT_DATA)
+          inherited init('_$'+current_module.modulename^+'$_L'+tostr(labelnr),AB_GLOBAL,AT_DATA)
         else
           inherited init(target_asm.labelprefix+tostr(labelnr),AB_LOCAL,AT_DATA);
         is_set:=false;
@@ -988,9 +964,9 @@ uses
         refs:=1;
       end;
 
-    constructor tasmlabel.initaddr;
+    constructor tasmlabel.Initaddr;
       begin;
-        init;
+        Init;
         is_addr := true;
       end;
 
@@ -1054,7 +1030,7 @@ uses
                               Used AsmSymbolList
 *****************************************************************************}
 
-    procedure InitUsedAsmSymbolList;
+    procedure CreateUsedAsmSymbolList;
       begin
         if assigned(usedasmsymbollist) then
          internalerror(78455782);
@@ -1062,7 +1038,7 @@ uses
       end;
 
 
-    procedure DoneUsedAsmSymbolList;
+    procedure DestroyUsedAsmSymbolList;
       begin
         dispose(usedasmsymbollist,done);
         usedasmsymbollist:=nil;
@@ -1176,7 +1152,7 @@ uses
     function taasmoutput.getlasttaifilepos : pfileposinfo;
       begin
          if assigned(last) then
-           getlasttaifilepos:=@pai(last)^.fileinfo
+           getlasttaifilepos:=@tai(last).fileinfo
          else
            getlasttaifilepos:=nil;
       end;
@@ -1184,7 +1160,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.14  2000-11-29 00:30:30  florian
+  Revision 1.15  2000-12-25 00:07:25  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.14  2000/11/29 00:30:30  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

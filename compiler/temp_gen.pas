@@ -46,7 +46,7 @@ interface
       ptemprecord = ^ttemprecord;
       ttemprecord = record
          temptype   : ttemptype;
-         pos    : longint;
+         pos        : longint;
          size       : longint;
          next       : ptemprecord;
          nextfree   : ptemprecord; { for faster freeblock checking }
@@ -101,7 +101,7 @@ interface
         while assigned(templist) do
          begin
 {$ifdef EXTDEBUG}
-           case templist^.temptype of
+           case tempList^.temptype of
              tt_normal,
              tt_persistant :
                Comment(V_Warning,'temporary assignment of size '+
@@ -256,7 +256,7 @@ const
 {$ifdef EXTDEBUG}
          tl^.posinfo:=aktfilepos;
 {$endif}
-         exprasmlist^.concat(new(paitempalloc,alloc(ofs,size)));
+         exprasmList.concat(Taitempalloc.alloc(ofs,size));
          gettempofsize:=ofs;
       end;
 
@@ -332,7 +332,7 @@ const
 {$endif}
             templist^.temptype:=usedtype;
           end;
-         exprasmlist^.concat(new(paitempalloc,alloc(ref.offset,target_os.size_of_pointer)));
+         exprasmList.concat(Taitempalloc.alloc(ref.offset,target_os.size_of_pointer));
       end;
 
     function ungettemppointeriftype(const ref : treference; const usedtype, freetype: ttemptype) : boolean;
@@ -349,7 +349,7 @@ const
                begin
                  tl^.temptype:=freetype;
                  ungettemppointeriftype:=true;
-                 exprasmlist^.concat(new(paitempalloc,dealloc(tl^.pos,tl^.size)));
+                 exprasmList.concat(Taitempalloc.dealloc(tl^.pos,tl^.size));
                  exit;
 {$ifdef EXTDEBUG}
                end
@@ -467,7 +467,7 @@ const
                 begin
                   exit;
                 end;
-               exprasmlist^.concat(new(paitempalloc,dealloc(hp^.pos,hp^.size)));
+               exprasmList.concat(Taitempalloc.dealloc(hp^.pos,hp^.size));
                { set this block to free }
                hp^.temptype:=tt_free;
                { Update tempfreelist }
@@ -556,7 +556,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2000-11-30 22:16:50  florian
+  Revision 1.9  2000-12-25 00:07:30  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.8  2000/11/30 22:16:50  florian
     * moved to i386
 
   Revision 1.7  2000/11/29 00:30:42  florian

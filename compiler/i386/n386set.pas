@@ -540,7 +540,7 @@ implementation
          { true, if we can omit the range check of the jump table }
          jumptable_no_range : boolean;
          { where to put the jump table }
-         jumpsegment : paasmoutput;
+         jumpsegment : TAAsmoutput;
          min_label : TConstExprInt;
 
       procedure gentreejmp(p : pcaserecord);
@@ -771,9 +771,9 @@ implementation
                genitem(t^.less);
              { fill possible hole }
              for i:=last+1 to t^._low-1 do
-               jumpsegment^.concat(new(pai_const_symbol,init(elselabel)));
+               jumpSegment.concat(Tai_const_symbol.Create(elselabel));
              for i:=t^._low to t^._high do
-               jumpsegment^.concat(new(pai_const_symbol,init(t^.statement)));
+               jumpSegment.concat(Tai_const_symbol.Create(t^.statement));
               last:=t^._high;
              if assigned(t^.greater) then
                genitem(t^.greater);
@@ -819,9 +819,9 @@ implementation
            emit_ref(A_JMP,S_NO,hr);
            { !!!!! generate tables
              if not(cs_littlesize in aktlocalswitches) then
-             jumpsegment^.concat(new(paicpu,op_const(A_ALIGN,S_NO,4)));
+             jumpSegment.concat(Taicpu.Op_const(A_ALIGN,S_NO,4));
            }
-           jumpsegment^.concat(new(pai_label,init(table)));
+           jumpSegment.concat(Tai_label.Create(table));
              last:=min_;
            genitem(hp);
              { !!!!!!!
@@ -1045,7 +1045,7 @@ implementation
               cleartempgen;
               secondpass(tbinarynode(hp).right);
               { don't come back to case line }
-              aktfilepos:=exprasmlist^.getlasttaifilepos^;
+              aktfilepos:=exprasmList.getlasttaifilepos^;
               load_all_regvars(exprasmlist);
               emitjmp(C_None,endlabel);
               hp:=tbinarynode(hp).left;
@@ -1069,7 +1069,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2000-12-18 17:45:32  jonas
+  Revision 1.10  2000-12-25 00:07:33  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.9  2000/12/18 17:45:32  jonas
     * int64 case fixes
     * explicit longint type casts for constants used in assembler code
       generation s,ice they can be cardinals too (or even int64's in case of

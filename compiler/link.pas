@@ -32,7 +32,8 @@ unit link;
 
 interface
 uses
-  cobjects,fmodule;
+  cobjects,cclasses,
+  fmodule;
 
 Type
     TLinkerInfo=record
@@ -43,17 +44,16 @@ Type
       DynamicLinker : string[100];
     end;
 
-    PLinker=^TLinker;
-    TLinker = Object
+    TLinker = class
     public
        Info            : TLinkerInfo;
        ObjectFiles,
        SharedLibFiles,
-       StaticLibFiles  : TStringContainer;
+       StaticLibFiles  : TStringList;
      { Methods }
-       Constructor Init;
-       Destructor Done;
-       procedure AddModuleFiles(hp:pmodule);
+       Constructor Create;
+       Destructor Destroy;override;
+       procedure AddModuleFiles(hp:tmodule);
        function  FindObjectFile(s : string;const unitpath:string) : string;
        function  FindLibraryFile(s:string;const ext:string;var found : boolean) : string;
        Procedure AddObject(const S,unitpath : String);
@@ -69,7 +69,7 @@ Type
      end;
 
 Var
-  Linker : PLinker;
+  Linker : TLinker;
 
 procedure InitLinker;
 procedure DoneLinker;
@@ -129,11 +129,11 @@ uses
                                    TLINKER
 *****************************************************************************}
 
-Constructor TLinker.Init;
+Constructor TLinker.Create;
 begin
-  ObjectFiles.Init_no_double;
-  SharedLibFiles.Init_no_double;
-  StaticLibFiles.Init_no_double;
+  ObjectFiles:=TStringList.Create_no_double;
+  SharedLibFiles:=TStringList.Create_no_double;
+  StaticLibFiles:=TStringList.Create_no_double;
 { set generic defaults }
   FillChar(Info,sizeof(Info),0);
   Info.ResName:='link.res';
@@ -150,11 +150,11 @@ begin
 end;
 
 
-Destructor TLinker.Done;
+Destructor TLinker.Destroy;
 begin
-  ObjectFiles.Done;
-  SharedLibFiles.Done;
-  StaticLibFiles.Done;
+  ObjectFiles.Free;
+  SharedLibFiles.Free;
+  StaticLibFiles.Free;
 end;
 
 
@@ -163,11 +163,11 @@ begin
 end;
 
 
-procedure TLinker.AddModuleFiles(hp:pmodule);
+procedure TLinker.AddModuleFiles(hp:tmodule);
 var
   mask : longint;
 begin
-  with hp^ do
+  with hp do
    begin
    { link unit files }
      if (flags and uf_no_link)=0 then
@@ -297,7 +297,7 @@ begin
   if (not found) then
    findobjectfile:=UnitSearchPath.FindFile(s,found)+s;
   if (not found) then
-   findobjectfile:=current_module^.localobjectsearchpath.FindFile(s,found)+s;
+   findobjectfile:=current_module.localobjectsearchpath.FindFile(s,found)+s;
   if (not found) then
    findobjectfile:=objectsearchpath.FindFile(s,found)+s;
   if (not found) then
@@ -330,7 +330,7 @@ begin
   found:=false;
   findlibraryfile:=FindFile(s,'.'+DirSep,found)+s;
   if (not found) then
-   findlibraryfile:=current_module^.locallibrarysearchpath.FindFile(s,found)+s;
+   findlibraryfile:=current_module.locallibrarysearchpath.FindFile(s,found)+s;
   if (not found) then
    findlibraryfile:=librarysearchpath.FindFile(s,found)+s;
   if (not found) then
@@ -408,9 +408,9 @@ begin
      if showinfo then
        begin
          if DLLsource then
-           AsmRes.AddLinkCommand(Command,Para,current_module^.sharedlibfilename^)
+           AsmRes.AddLinkCommand(Command,Para,current_module.sharedlibfilename^)
          else
-           AsmRes.AddLinkCommand(Command,Para,current_module^.exefilename^);
+           AsmRes.AddLinkCommand(Command,Para,current_module.exefilename^);
        end
      else
       AsmRes.AddLinkCommand(Command,Para,'');
@@ -441,24 +441,24 @@ var
 begin
   MakeStaticLibrary:=false;
 { remove the library, to be sure that it is rewritten }
-  RemoveFile(current_module^.staticlibfilename^);
+  RemoveFile(current_module.staticlibfilename^);
 { Call AR }
-  smartpath:=current_module^.outputpath^+FixPath(FixFileName(current_module^.modulename^)+target_info.smartext,false);
+  smartpath:=current_module.outputpath^+FixPath(FixFileName(current_module.modulename^)+target_info.smartext,false);
   SplitBinCmd(target_ar.arcmd,binstr,cmdstr);
-  Replace(cmdstr,'$LIB',current_module^.staticlibfilename^);
-  Replace(cmdstr,'$FILES',FixFileName(smartpath+current_module^.asmprefix^+'*'+target_info.objext));
+  Replace(cmdstr,'$LIB',current_module.staticlibfilename^);
+  Replace(cmdstr,'$FILES',FixFileName(smartpath+current_module.asmprefix^+'*'+target_info.objext));
   success:=DoExec(FindUtil(binstr),cmdstr,false,true);
 { Clean up }
   if not(cs_asm_leave in aktglobalswitches) then
    if not(cs_link_extern in aktglobalswitches) then
     begin
       while not SmartLinkOFiles.Empty do
-       RemoveFile(SmartLinkOFiles.Get);
+       RemoveFile(SmartLinkOFiles.GetFirst);
       RemoveDir(smartpath);
     end
    else
     begin
-      AsmRes.AddDeleteCommand(FixFileName(smartpath+current_module^.asmprefix^+'*'+target_info.objext));
+      AsmRes.AddDeleteCommand(FixFileName(smartpath+current_module.asmprefix^+'*'+target_info.objext));
       AsmRes.Add('rmdir '+smartpath);
     end;
   MakeStaticLibrary:=success;
@@ -475,57 +475,57 @@ begin
 {$ifdef i386}
   {$ifndef NOTARGETLINUX}
     target_i386_linux :
-      linker:=new(plinkerlinux,Init);
+      linker:=Tlinkerlinux.Create;
   {$endif}
   {$ifndef NOTARGETFreeBSD}
     target_i386_FreeBSD :
-      linker:=new(plinkerFreeBSD,Init);
+      linker:=TlinkerFreeBSD.Create;
   {$endif}
   {$ifndef NOTARGETWIN32}
     target_i386_Win32 :
-      linker:=new(plinkerwin32,Init);
+      linker:=Tlinkerwin32.Create;
   {$endif}
   {$ifndef NOTARGETNETWARE}
     target_i386_Netware :
-      linker:=new(plinkernetware,Init);
+      linker:=Tlinkernetware.Create;
   {$endif}
   {$ifndef NOTARGETGO32V1}
     target_i386_Go32v1 :
-      linker:=new(plinkergo32v1,Init);
+      linker:=TLinkergo32v1.Create;
   {$endif}
   {$ifndef NOTARGETGO32V2}
     target_i386_Go32v2 :
-      linker:=new(plinkergo32v2,Init);
+      linker:=TLinkergo32v2.Create;
   {$endif}
   {$ifndef NOTARGETOS2}
     target_i386_os2 :
-      linker:=new(plinkeros2,Init);
+      linker:=TLinkeros2.Create;
   {$endif}
 {$endif i386}
 {$ifdef m68k}
   {$ifndef NOTARGETPALMOS}
     target_m68k_palmos:
-      linker:=new(plinker,Init);
+      linker:=Tlinker.Create;
   {$endif}
   {$ifndef NOTARGETLINUX}
     target_m68k_linux :
-      linker:=new(plinkerlinux,Init);
+      linker:=Tlinkerlinux.Create;
   {$endif}
 {$endif m68k}
 {$ifdef alpha}
   {$ifndef NOTARGETLINUX}
     target_alpha_linux :
-      linker:=new(plinkerlinux,Init);
+      linker:=Tlinkerlinux.Create;
   {$endif}
 {$endif alpha}
 {$ifdef powerpc}
   {$ifndef NOTARGETLINUX}
     target_powerpc_linux :
-      linker:=new(plinkerlinux,Init);
+      linker:=Tlinkerlinux.Create;
   {$endif}
 {$endif powerpc}
     else
-      linker:=new(plinker,Init);
+      linker:=Tlinker.Create;
   end;
 end;
 
@@ -533,14 +533,18 @@ end;
 procedure DoneLinker;
 begin
   if assigned(linker) then
-   dispose(linker,done);
+   Linker.Free;
 end;
 
 
 end.
 {
   $Log$
-  Revision 1.10  2000-11-29 00:30:31  florian
+  Revision 1.11  2000-12-25 00:07:26  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.10  2000/11/29 00:30:31  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

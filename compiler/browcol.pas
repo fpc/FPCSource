@@ -1612,7 +1612,7 @@ begin
            if Assigned(hp^.loaded_from) then
              if assigned(hp^.loaded_from^.globalsymtable) then
                UnitS^.SetLoadedFrom(psymtable(hp^.loaded_from^.globalsymtable)^.name^);
-{           pimportlist(current_module^.imports^.first);}
+{           pimportlist(current_module.imports^.first);}
 
            if assigned(hp^.sourcefiles) then
            begin
@@ -2095,7 +2095,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2000-11-08 09:27:45  pierre
+  Revision 1.14  2000-12-25 00:07:25  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.13  2000/11/08 09:27:45  pierre
    * fix for new is_class function
 
   Revision 1.12  2000/11/02 15:01:22  pierre

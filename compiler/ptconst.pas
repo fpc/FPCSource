@@ -70,7 +70,7 @@ implementation
          p,hp      : tnode;
          i,l,offset,
          strlength : longint;
-         curconstsegment : paasmoutput;
+         curconstsegment : TAAsmoutput;
          ll        : pasmlabel;
          s         : string;
          ca        : pchar;
@@ -108,35 +108,35 @@ implementation
                     bool8bit :
                       begin
                          if is_constboolnode(p) then
-                           curconstsegment^.concat(new(pai_const,init_8bit(tordconstnode(p).value)))
+                           curconstSegment.concat(Tai_const.Create_8bit(tordconstnode(p).value))
                          else
                            Message(cg_e_illegal_expression);
                       end;
                     bool16bit :
                       begin
                          if is_constboolnode(p) then
-                           curconstsegment^.concat(new(pai_const,init_16bit(tordconstnode(p).value)))
+                           curconstSegment.concat(Tai_const.Create_16bit(tordconstnode(p).value))
                          else
                            Message(cg_e_illegal_expression);
                       end;
                     bool32bit :
                       begin
                          if is_constboolnode(p) then
-                           curconstsegment^.concat(new(pai_const,init_32bit(tordconstnode(p).value)))
+                           curconstSegment.concat(Tai_const.Create_32bit(tordconstnode(p).value))
                          else
                            Message(cg_e_illegal_expression);
                       end;
                     uchar :
                       begin
                          if is_constcharnode(p) then
-                           curconstsegment^.concat(new(pai_const,init_8bit(tordconstnode(p).value)))
+                           curconstSegment.concat(Tai_const.Create_8bit(tordconstnode(p).value))
                          else
                            Message(cg_e_illegal_expression);
                       end;
                     uwidechar :
                       begin
                          if is_constcharnode(p) then
-                           curconstsegment^.concat(new(pai_const,init_16bit(tordconstnode(p).value)))
+                           curconstSegment.concat(Tai_const.Create_16bit(tordconstnode(p).value))
                          else
                            Message(cg_e_illegal_expression);
                       end;
@@ -145,7 +145,7 @@ implementation
                       begin
                          if is_constintnode(p) then
                            begin
-                              curconstsegment^.concat(new(pai_const,init_8bit(tordconstnode(p).value)));
+                              curconstSegment.concat(Tai_const.Create_8bit(tordconstnode(p).value));
                               check_range;
                            end
                          else
@@ -156,7 +156,7 @@ implementation
                       begin
                          if is_constintnode(p) then
                            begin
-                             curconstsegment^.concat(new(pai_const,init_16bit(tordconstnode(p).value)));
+                             curconstSegment.concat(Tai_const.Create_16bit(tordconstnode(p).value));
                              check_range;
                            end
                          else
@@ -167,7 +167,7 @@ implementation
                       begin
                          if is_constintnode(p) then
                            begin
-                              curconstsegment^.concat(new(pai_const,init_32bit(tordconstnode(p).value)));
+                              curconstSegment.concat(Tai_const.Create_32bit(tordconstnode(p).value));
                               if porddef(def)^.typ<>u32bit then
                                check_range;
                            end
@@ -180,8 +180,8 @@ implementation
                          if is_constintnode(p) then
                            begin
                               {!!!!! hmmm, we can write yet only consts til 2^32-1 :( (FK) }
-                              curconstsegment^.concat(new(pai_const,init_32bit(tordconstnode(p).value)));
-                              curconstsegment^.concat(new(pai_const,init_32bit(0)));
+                              curconstSegment.concat(Tai_const.Create_32bit(tordconstnode(p).value));
+                              curconstSegment.concat(Tai_const.Create_32bit(0));
                            end
                          else
                            Message(cg_e_illegal_expression);
@@ -204,15 +204,15 @@ implementation
 
               case pfloatdef(def)^.typ of
                  s32real :
-                   curconstsegment^.concat(new(pai_real_32bit,init(value)));
+                   curconstSegment.concat(Tai_real_32bit.Create(value));
                  s64real :
-                   curconstsegment^.concat(new(pai_real_64bit,init(value)));
+                   curconstSegment.concat(Tai_real_64bit.Create(value));
                  s80real :
-                   curconstsegment^.concat(new(pai_real_80bit,init(value)));
+                   curconstSegment.concat(Tai_real_80bit.Create(value));
                  s64comp :
-                   curconstsegment^.concat(new(pai_comp_64bit,init(value)));
+                   curconstSegment.concat(Tai_comp_64bit.Create(value));
                  f32bit :
-                   curconstsegment^.concat(new(pai_const,init_32bit(trunc(value*65536))));
+                   curconstSegment.concat(Tai_const.Create_32bit(trunc(value*65536)));
                  else
                    internalerror(18);
               end;
@@ -228,11 +228,11 @@ implementation
                       if not(pobjectdef(pclassrefdef(p.resulttype)^.pointertype.def)^.is_related(
                         pobjectdef(pclassrefdef(def)^.pointertype.def))) then
                         Message(cg_e_illegal_expression);
-                      curconstsegment^.concat(new(pai_const_symbol,init(newasmsymbol(pobjectdef(
-                        pclassrefdef(p.resulttype)^.pointertype.def)^.vmt_mangledname))));
+                      curconstSegment.concat(Tai_const_symbol.Create(newasmsymbol(pobjectdef(
+                        pclassrefdef(p.resulttype)^.pointertype.def)^.vmt_mangledname)));
                    end;
                  niln:
-                   curconstsegment^.concat(new(pai_const,init_32bit(0)));
+                   curconstSegment.concat(Tai_const.Create_32bit(0));
                  else Message(cg_e_illegal_expression);
               end;
               p.free;
@@ -261,15 +261,15 @@ implementation
                 end;
               { nil pointer ? }
               if p.nodetype=niln then
-                curconstsegment^.concat(new(pai_const,init_32bit(0)))
+                curconstSegment.concat(Tai_const.Create_32bit(0))
               { maybe pchar ? }
               else
                 if is_char(ppointerdef(def)^.pointertype.def) and
                    (p.nodetype<>addrn) then
                   begin
                     getdatalabel(ll);
-                    curconstsegment^.concat(new(pai_const_symbol,init(ll)));
-                    consts^.concat(new(pai_label,init(ll)));
+                    curconstSegment.concat(Tai_const_symbol.Create(ll));
+                    Consts.concat(Tai_label.Create(ll));
                     if p.nodetype=stringconstn then
                       begin
                         len:=tstringconstnode(p).len;
@@ -279,11 +279,11 @@ implementation
                          len:=255;
                         getmem(ca,len+2);
                         move(tstringconstnode(p).value_str^,ca^,len+1);
-                        consts^.concat(new(pai_string,init_length_pchar(ca,len+1)));
+                        Consts.concat(Tai_string.Create_length_pchar(ca,len+1));
                       end
                     else
                       if is_constcharnode(p) then
-                        consts^.concat(new(pai_string,init(char(byte(tordconstnode(p).value))+#0)))
+                        Consts.concat(Tai_string.Create(char(byte(tordconstnode(p).value))+#0))
                     else
                       Message(cg_e_illegal_expression);
                 end
@@ -336,7 +336,7 @@ implementation
                           end;
                         if tloadnode(hp).symtableentry^.typ=constsym then
                           Message(type_e_variable_id_expected);
-                        curconstsegment^.concat(new(pai_const_symbol,initname_offset(tloadnode(hp).symtableentry^.mangledname,offset)));
+                        curconstSegment.concat(Tai_const_symbol.Createname_offset(tloadnode(hp).symtableentry^.mangledname,offset));
                       end
                     else
                       Message(cg_e_illegal_expression);
@@ -348,8 +348,8 @@ implementation
                   begin
                     if (tinlinenode(p).left.nodetype=typen) then
                       begin
-                        curconstsegment^.concat(new(pai_const_symbol,
-                          initname(pobjectdef(tinlinenode(p).left.resulttype)^.vmt_mangledname)));
+                        curconstSegment.concat(Tai_const_symbol.createname(
+                          pobjectdef(tinlinenode(p).left.resulttype)^.vmt_mangledname));
                       end
                     else
                       Message(cg_e_illegal_expression);
@@ -371,7 +371,7 @@ implementation
                      begin
 {$ifdef i386}
                         for l:=0 to def^.size-1 do
-                          curconstsegment^.concat(new(pai_const,init_8bit(tsetconstnode(p).value_set^[l])));
+                          curconstSegment.concat(Tai_const.Create_8bit(tsetconstnode(p).value_set^[l]));
 {$endif}
 {$ifdef m68k}
                         j:=0;
@@ -379,10 +379,10 @@ implementation
                         { HORRIBLE HACK because of endian       }
                         { now use intel endian for constant sets }
                          begin
-                           curconstsegment^.concat(new(pai_const,init_8bit(tordconstnode(p).value_set^[j+3])));
-                           curconstsegment^.concat(new(pai_const,init_8bit(tordconstnode(p).value_set^[j+2])));
-                           curconstsegment^.concat(new(pai_const,init_8bit(tordconstnode(p).value_set^[j+1])));
-                           curconstsegment^.concat(new(pai_const,init_8bit(tordconstnode(p).value_set^[j])));
+                           curconstSegment.concat(Tai_const.Create_8bit(tordconstnode(p).value_set^[j+3]));
+                           curconstSegment.concat(Tai_const.Create_8bit(tordconstnode(p).value_set^[j+2]));
+                           curconstSegment.concat(Tai_const.Create_8bit(tordconstnode(p).value_set^[j+1]));
+                           curconstSegment.concat(Tai_const.Create_8bit(tordconstnode(p).value_set^[j]));
                            Inc(j,4);
                          end;
 {$endif}
@@ -402,9 +402,9 @@ implementation
                      is_subequal(p.resulttype,def) then
                    begin
                      case p.resulttype^.size of
-                       1 : curconstsegment^.concat(new(pai_const,init_8bit(tordconstnode(p).value)));
-                       2 : curconstsegment^.concat(new(pai_const,init_16bit(tordconstnode(p).value)));
-                       4 : curconstsegment^.concat(new(pai_const,init_32bit(tordconstnode(p).value)));
+                       1 : curconstSegment.concat(Tai_const.Create_8bit(tordconstnode(p).value));
+                       2 : curconstSegment.concat(Tai_const.Create_16bit(tordconstnode(p).value));
+                       4 : curconstSegment.concat(Tai_const.Create_32bit(tordconstnode(p).value));
                      end;
                    end
                   else
@@ -449,12 +449,12 @@ implementation
                           message2(parser_w_string_too_long,strpas(strval),tostr(def^.size-1));
                           strlength:=def^.size-1;
                         end;
-                       curconstsegment^.concat(new(pai_const,init_8bit(strlength)));
+                       curconstSegment.concat(Tai_const.Create_8bit(strlength));
                        { this can also handle longer strings }
                        getmem(ca,strlength+1);
                        move(strval^,ca^,strlength);
                        ca[strlength]:=#0;
-                       curconstsegment^.concat(new(pai_string,init_length_pchar(ca,strlength)));
+                       curconstSegment.concat(Tai_string.Create_length_pchar(ca,strlength));
                        { fillup with spaces if size is shorter }
                        if def^.size>strlength then
                         begin
@@ -464,40 +464,40 @@ implementation
                           fillchar(ca[0],def^.size-strlength-1,' ');
                           ca[def^.size-strlength-1]:=#0;
                           { this can also handle longer strings }
-                          curconstsegment^.concat(new(pai_string,init_length_pchar(ca,def^.size-strlength-1)));
+                          curconstSegment.concat(Tai_string.Create_length_pchar(ca,def^.size-strlength-1));
                         end;
                      end;
 {$ifdef UseLongString}
                    st_longstring:
                      begin
                        { first write the maximum size }
-                       curconstsegment^.concat(new(pai_const,init_32bit(strlength)))));
+                       curconstSegment.concat(Tai_const.Create_32bit(strlength))));
                        { fill byte }
-                       curconstsegment^.concat(new(pai_const,init_8bit(0)));
+                       curconstSegment.concat(Tai_const.Create_8bit(0));
                        getmem(ca,strlength+1);
                        move(strval^,ca^,strlength);
                        ca[strlength]:=#0;
                        generate_pascii(consts,ca,strlength);
-                       curconstsegment^.concat(new(pai_const,init_8bit(0)));
+                       curconstSegment.concat(Tai_const.Create_8bit(0));
                      end;
 {$endif UseLongString}
                    st_ansistring:
                      begin
                         { an empty ansi string is nil! }
                         if (strlength=0) then
-                          curconstsegment^.concat(new(pai_const,init_32bit(0)))
+                          curconstSegment.concat(Tai_const.Create_32bit(0))
                         else
                           begin
                             getdatalabel(ll);
-                            curconstsegment^.concat(new(pai_const_symbol,init(ll)));
+                            curconstSegment.concat(Tai_const_symbol.Create(ll));
                             { first write the maximum size }
-                            consts^.concat(new(pai_const,init_32bit(strlength)));
+                            Consts.concat(Tai_const.Create_32bit(strlength));
                             { second write the real length }
-                            consts^.concat(new(pai_const,init_32bit(strlength)));
+                            Consts.concat(Tai_const.Create_32bit(strlength));
                             { redondent with maxlength but who knows ... (PM) }
                             { third write use count (set to -1 for safety ) }
-                            consts^.concat(new(pai_const,init_32bit(-1)));
-                            consts^.concat(new(pai_label,init(ll)));
+                            Consts.concat(Tai_const.Create_32bit(-1));
+                            Consts.concat(Tai_label.Create(ll));
                             getmem(ca,strlength+2);
                             move(strval^,ca^,strlength);
                             { The terminating #0 to be stored in the .data section (JM) }
@@ -505,7 +505,7 @@ implementation
                             { End of the PChar. The memory has to be allocated because in }
                             { tai_string.done, there is a freemem(len+1) (JM)             }
                             ca[strlength+1]:=#0;
-                            consts^.concat(new(pai_string,init_length_pchar(ca,strlength+1)));
+                            Consts.concat(Tai_string.Create_length_pchar(ca,strlength+1));
                           end;
                      end;
                  end;
@@ -557,12 +557,12 @@ implementation
                      begin
                         if i+1-Parraydef(def)^.lowrange<=len then
                           begin
-                             curconstsegment^.concat(new(pai_const,init_8bit(byte(ca^))));
+                             curconstSegment.concat(Tai_const.Create_8bit(byte(ca^)));
                              inc(ca);
                           end
                         else
                           {Fill the remaining positions with #0.}
-                          curconstsegment^.concat(new(pai_const,init_8bit(0)));
+                          curconstSegment.concat(Tai_const.Create_8bit(0));
                      end;
                    p.free;
                 end
@@ -578,7 +578,7 @@ implementation
               { under tp:  =nil or =var under fpc: =nil or =@var }
               if token=_NIL then
                 begin
-                   curconstsegment^.concat(new(pai_const,init_32bit(0)));
+                   curconstSegment.concat(Tai_const.Create_32bit(0));
                    consume(_NIL);
                    exit;
                 end
@@ -662,8 +662,8 @@ implementation
               if (p.nodetype=loadn) and
                  (tloadnode(p).symtableentry^.typ=procsym) then
                begin
-                 curconstsegment^.concat(new(pai_const_symbol,
-                   initname(pprocsym(tloadnode(p).symtableentry)^.definition^.mangledname)));
+                 curconstSegment.concat(Tai_const_symbol.createname(
+                   pprocsym(tloadnode(p).symtableentry)^.definition^.mangledname));
                end
               else
                Message(cg_e_illegal_expression);
@@ -685,11 +685,11 @@ implementation
                       p.free;
                       if string2guid(s,tmpguid) then
                         begin
-                          curconstsegment^.concat(new(pai_const,init_32bit(tmpguid.D1)));
-                          curconstsegment^.concat(new(pai_const,init_16bit(tmpguid.D2)));
-                          curconstsegment^.concat(new(pai_const,init_16bit(tmpguid.D3)));
+                          curconstSegment.concat(Tai_const.Create_32bit(tmpguid.D1));
+                          curconstSegment.concat(Tai_const.Create_16bit(tmpguid.D2));
+                          curconstSegment.concat(Tai_const.Create_16bit(tmpguid.D3));
                           for i:=Low(tmpguid.D4) to High(tmpguid.D4) do
-                            curconstsegment^.concat(new(pai_const,init_8bit(tmpguid.D4[i])));
+                            curconstSegment.concat(Tai_const.Create_8bit(tmpguid.D4[i]));
                         end
                       else
                         Message(parser_e_improper_guid_syntax);
@@ -725,7 +725,7 @@ implementation
                              { if needed fill }
                              if pvarsym(srsym)^.address>aktpos then
                                for i:=1 to pvarsym(srsym)^.address-aktpos do
-                                 curconstsegment^.concat(new(pai_const,init_8bit(0)));
+                                 curconstSegment.concat(Tai_const.Create_8bit(0));
 
                              { new position }
                              aktpos:=pvarsym(srsym)^.address+pvarsym(srsym)^.vartype.def^.size;
@@ -739,7 +739,7 @@ implementation
                           end;
                    end;
                  for i:=1 to def^.size-aktpos do
-                   curconstsegment^.concat(new(pai_const,init_8bit(0)));
+                   curconstSegment.concat(Tai_const.Create_8bit(0));
                  consume(_RKLAMMER);
               end;
            end;
@@ -757,7 +757,7 @@ implementation
                     end
                   else
                     begin
-                      curconstsegment^.concat(new(pai_const,init_32bit(0)));
+                      curconstSegment.concat(Tai_const.Create_32bit(0));
                     end;
                   p.free;
                 end
@@ -801,7 +801,7 @@ implementation
                              { if needed fill }
                              if pvarsym(srsym)^.address>aktpos then
                                for i:=1 to pvarsym(srsym)^.address-aktpos do
-                                 curconstsegment^.concat(new(pai_const,init_8bit(0)));
+                                 curconstSegment.concat(Tai_const.Create_8bit(0));
 
                              { new position }
                              aktpos:=pvarsym(srsym)^.address+pvarsym(srsym)^.vartype.def^.size;
@@ -815,7 +815,7 @@ implementation
                           end;
                      end;
                    for i:=1 to def^.size-aktpos do
-                     curconstsegment^.concat(new(pai_const,init_8bit(0)));
+                     curconstSegment.concat(Tai_const.Create_8bit(0));
                    consume(_RKLAMMER);
                 end;
            end;
@@ -837,7 +837,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2000-12-10 20:24:18  peter
+  Revision 1.15  2000-12-25 00:07:28  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.14  2000/12/10 20:24:18  peter
     * allow subtypes for enums
 
   Revision 1.13  2000/11/29 00:30:38  florian

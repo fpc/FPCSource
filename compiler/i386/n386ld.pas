@@ -69,8 +69,8 @@ implementation
          hp : preference;
          s : pasmsymbol;
          popeax : boolean;
-         pushed : tpushed;
-         hr : treference;
+         //pushed : tpushed;
+         //hr : treference;
 
       begin
          simple_loadn:=true;
@@ -403,7 +403,7 @@ implementation
          fputyp : tfloattype;
          loc : tloc;
          r : preference;
-         ai : paicpu;
+         ai : taicpu;
          op : tasmop;
          pushed : boolean;
          regspushed : tpushed;
@@ -492,7 +492,7 @@ implementation
                   case right.location.loc of
                      LOC_REGISTER,LOC_CREGISTER:
                        begin
-                          exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,right.location.register)));
+                          exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,right.location.register));
                           ungetregister32(right.location.register);
                        end;
                      LOC_REFERENCE,LOC_MEM:
@@ -803,9 +803,9 @@ implementation
                                 emit_flag2reg(right.location.resflags,left.location.register)
                               else
                                 begin
-                                  ai:=new(paicpu,op_ref(A_Setcc,S_B,newreference(left.location.reference)));
-                                  ai^.SetCondition(flag_2_cond[right.location.resflags]);
-                                  exprasmlist^.concat(ai);
+                                  ai:=Taicpu.Op_ref(A_Setcc,S_B,newreference(left.location.reference));
+                                  ai.SetCondition(flag_2_cond[right.location.resflags]);
+                                  exprasmList.concat(ai);
                                 end;
 {$IfDef regallocfix}
                               del_reference(left.location.reference);
@@ -1061,7 +1061,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2000-12-05 11:44:33  jonas
+  Revision 1.11  2000-12-25 00:07:33  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.10  2000/12/05 11:44:33  jonas
     + new integer regvar handling, should be much more efficient
 
   Revision 1.9  2000/11/29 00:30:48  florian

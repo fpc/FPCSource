@@ -30,6 +30,7 @@ interface
 
     uses
       cobjects,
+      globals,
       cpubase,aasm,
       fmodule,finput,
       ogbase,assemble;
@@ -46,10 +47,10 @@ interface
       private
         { the aasmoutput lists that need to be processed }
         lists        : byte;
-        list         : array[1..maxoutputlists] of paasmoutput;
+        list         : array[1..maxoutputlists] of TAAsmoutput;
         { current processing }
         currlistidx  : byte;
-        currlist     : paasmoutput;
+        currlist     : TAAsmoutput;
         currpass     : byte;
 {$ifdef GDB}
         n_line       : byte;     { different types of source lines }
@@ -64,10 +65,10 @@ interface
         procedure StartFileLineInfo;
         procedure EndFileLineInfo;
 {$endif}
-        function  MaybeNextList(var hp:pai):boolean;
-        function  TreePass0(hp:pai):pai;
-        function  TreePass1(hp:pai):pai;
-        function  TreePass2(hp:pai):pai;
+        function  MaybeNextList(var hp:Tai):boolean;
+        function  TreePass0(hp:Tai):Tai;
+        function  TreePass1(hp:Tai):Tai;
+        function  TreePass2(hp:Tai):Tai;
         procedure writetree;
         procedure writetreesmart;
       end;
@@ -80,7 +81,7 @@ interface
 {$else}
        strings,
 {$endif}
-       cutils,globtype,globals,systems,verbose,
+       cutils,globtype,systems,verbose,
        cpuasm,
 {$ifdef GDB}
        gdb,
@@ -274,7 +275,7 @@ interface
       var
         curr_n : byte;
         hp : pasmsymbol;
-        infile : pinputfile;
+        infile : tinputfile;
       begin
         if not ((cs_debuginfo in aktmoduleswitches) or
            (cs_gdb_lineinfo in aktglobalswitches)) then
@@ -283,7 +284,7 @@ interface
         if (fileinfo.fileindex<>0) and
            (stabslastfileinfo.fileindex<>fileinfo.fileindex) then
          begin
-           infile:=current_module^.sourcefiles^.get_file(fileinfo.fileindex);
+           infile:=current_module.sourcefiles.get_file(fileinfo.fileindex);
            if includecount=0 then
             curr_n:=n_sourcefile
            else
@@ -298,10 +299,10 @@ interface
            else
              objectdata.writesymbol(hp);
            { emit stabs }
-           if (infile^.path^<>'') then
-             EmitStabs('"'+lower(BsToSlash(FixPath(infile^.path^,false)))+'",'+tostr(curr_n)+
+           if (infile.path^<>'') then
+             EmitStabs('"'+lower(BsToSlash(FixPath(infile.path^,false)))+'",'+tostr(curr_n)+
                ',0,0,Ltext'+ToStr(IncludeCount));
-           EmitStabs('"'+lower(FixFileName(infile^.name^))+'",'+tostr(curr_n)+
+           EmitStabs('"'+lower(FixFileName(infile.name^))+'",'+tostr(curr_n)+
              ',0,0,Ltext'+ToStr(IncludeCount));
            inc(includecount);
          end;
@@ -351,7 +352,7 @@ interface
 {$endif GDB}
 
 
-    function ti386binasmlist.MaybeNextList(var hp:pai):boolean;
+    function ti386binasmlist.MaybeNextList(var hp:Tai):boolean;
       begin
         { maybe end of list }
         while not assigned(hp) do
@@ -360,7 +361,7 @@ interface
             begin
               inc(currlistidx);
               currlist:=list[currlistidx];
-              hp:=pai(currlist^.first);
+              hp:=Tai(currList.first);
             end
            else
             begin
@@ -372,42 +373,42 @@ interface
       end;
 
 
-    function ti386binasmlist.TreePass0(hp:pai):pai;
+    function ti386binasmlist.TreePass0(hp:Tai):Tai;
       var
         l : longint;
       begin
         while assigned(hp) do
          begin
-           case hp^.typ of
+           case hp.typ of
              ait_align :
                begin
                  { always use the maximum fillsize in this pass to avoid possible
                    short jumps to become out of range }
-                 pai_align(hp)^.fillsize:=pai_align(hp)^.aligntype;
-                 objectalloc.sectionalloc(pai_align(hp)^.fillsize);
+                 Tai_align(hp).fillsize:=Tai_align(hp).aligntype;
+                 objectalloc.sectionalloc(Tai_align(hp).fillsize);
                end;
              ait_datablock :
                begin
                  if not SmartAsm then
                   begin
-                    if not pai_datablock(hp)^.is_global then
+                    if not Tai_datablock(hp).is_global then
                      begin
-                        l:=pai_datablock(hp)^.size;
+                        l:=Tai_datablock(hp).size;
                         if l>2 then
                           objectalloc.sectionalign(4)
                         else if l>1 then
                           objectalloc.sectionalign(2);
-                        objectalloc.sectionalloc(pai_datablock(hp)^.size);
+                        objectalloc.sectionalloc(Tai_datablock(hp).size);
                      end;
                   end
                  else
                   begin
-                    l:=pai_datablock(hp)^.size;
+                    l:=Tai_datablock(hp).size;
                     if l>2 then
                       objectalloc.sectionalign(4)
                     else if l>1 then
                       objectalloc.sectionalign(2);
-                    objectalloc.sectionalloc(pai_datablock(hp)^.size);
+                    objectalloc.sectionalloc(Tai_datablock(hp).size);
                   end;
                end;
              ait_const_32bit :
@@ -428,30 +429,30 @@ interface
              ait_const_symbol :
                objectalloc.sectionalloc(4);
              ait_section:
-               objectalloc.setsection(pai_section(hp)^.sec);
+               objectalloc.setsection(Tai_section(hp).sec);
              ait_symbol :
-               pai_symbol(hp)^.sym^.setaddress(objectalloc.currsec,objectalloc.sectionsize,0);
+               Tai_symbol(hp).sym^.setaddress(objectalloc.currsec,objectalloc.sectionsize,0);
              ait_label :
-               pai_label(hp)^.l^.setaddress(objectalloc.currsec,objectalloc.sectionsize,0);
+               Tai_label(hp).l^.setaddress(objectalloc.currsec,objectalloc.sectionsize,0);
              ait_string :
-               objectalloc.sectionalloc(pai_string(hp)^.len);
+               objectalloc.sectionalloc(Tai_string(hp).len);
              ait_instruction :
                begin
                  { reset instructions which could change in pass 2 }
-                 paicpu(hp)^.resetpass2;
-                 objectalloc.sectionalloc(paicpu(hp)^.Pass1(objectalloc.sectionsize));
+                 Taicpu(hp).resetpass2;
+                 objectalloc.sectionalloc(Taicpu(hp).Pass1(objectalloc.sectionsize));
                end;
              ait_cut :
                if SmartAsm then
                 break;
            end;
-           hp:=pai(hp^.next);
+           hp:=Tai(hp.next);
          end;
         TreePass0:=hp;
       end;
 
 
-    function ti386binasmlist.TreePass1(hp:pai):pai;
+    function ti386binasmlist.TreePass1(hp:Tai):Tai;
       var
         i,l : longint;
       begin
@@ -463,21 +464,21 @@ interface
              (cs_gdb_lineinfo in aktglobalswitches)) then
             begin
               if (objectalloc.currsec<>sec_none) and
-                 not(hp^.typ in  [
+                 not(hp.typ in  [
                      ait_label,
                      ait_regalloc,ait_tempalloc,
                      ait_stabn,ait_stabs,ait_section,
                      ait_cut,ait_marker,ait_align,ait_stab_function_name]) then
-               WriteFileLineInfo(hp^.fileinfo);
+               WriteFileLineInfo(hp.fileinfo);
             end;
 {$endif GDB}
-           case hp^.typ of
+           case hp.typ of
              ait_align :
                begin
                  { here we must determine the fillsize which is used in pass2 }
-                 pai_align(hp)^.fillsize:=align(objectalloc.sectionsize,pai_align(hp)^.aligntype)-
+                 Tai_align(hp).fillsize:=align(objectalloc.sectionsize,Tai_align(hp).aligntype)-
                    objectalloc.sectionsize;
-                 objectalloc.sectionalloc(pai_align(hp)^.fillsize);
+                 objectalloc.sectionalloc(Tai_align(hp).fillsize);
                end;
              ait_datablock :
                begin
@@ -485,36 +486,36 @@ interface
                   Message(asmw_e_alloc_data_only_in_bss);
                  if not SmartAsm then
                   begin
-                    if pai_datablock(hp)^.is_global then
+                    if Tai_datablock(hp).is_global then
                      begin
-                       pai_datablock(hp)^.sym^.setaddress(sec_none,pai_datablock(hp)^.size,pai_datablock(hp)^.size);
+                       Tai_datablock(hp).sym^.setaddress(sec_none,Tai_datablock(hp).size,Tai_datablock(hp).size);
                        { force to be common/external, must be after setaddress as that would
                          set it to AS_GLOBAL }
-                       pai_datablock(hp)^.sym^.bind:=AB_COMMON;
+                       Tai_datablock(hp).sym^.bind:=AB_COMMON;
                      end
                     else
                      begin
-                       l:=pai_datablock(hp)^.size;
+                       l:=Tai_datablock(hp).size;
                        if l>2 then
                          objectalloc.sectionalign(4)
                        else if l>1 then
                          objectalloc.sectionalign(2);
-                       pai_datablock(hp)^.sym^.setaddress(objectalloc.currsec,objectalloc.sectionsize,
-                         pai_datablock(hp)^.size);
-                       objectalloc.sectionalloc(pai_datablock(hp)^.size);
+                       Tai_datablock(hp).sym^.setaddress(objectalloc.currsec,objectalloc.sectionsize,
+                         Tai_datablock(hp).size);
+                       objectalloc.sectionalloc(Tai_datablock(hp).size);
                      end;
                    end
                   else
                    begin
-                     l:=pai_datablock(hp)^.size;
+                     l:=Tai_datablock(hp).size;
                      if l>2 then
                        objectalloc.sectionalign(4)
                      else if l>1 then
                        objectalloc.sectionalign(2);
-                     pai_datablock(hp)^.sym^.setaddress(objectalloc.currsec,objectalloc.sectionsize,pai_datablock(hp)^.size);
-                     objectalloc.sectionalloc(pai_datablock(hp)^.size);
+                     Tai_datablock(hp).sym^.setaddress(objectalloc.currsec,objectalloc.sectionsize,Tai_datablock(hp).size);
+                     objectalloc.sectionalloc(Tai_datablock(hp).size);
                    end;
-                 UsedAsmSymbolListInsert(pai_datablock(hp)^.sym);
+                 UsedAsmSymbolListInsert(Tai_datablock(hp).sym);
                end;
              ait_const_32bit :
                objectalloc.sectionalloc(4);
@@ -534,13 +535,13 @@ interface
              ait_const_symbol :
                begin
                  objectalloc.sectionalloc(4);
-                 UsedAsmSymbolListInsert(pai_const_symbol(hp)^.sym);
+                 UsedAsmSymbolListInsert(Tai_const_symbol(hp).sym);
                end;
              ait_section:
                begin
-                 objectalloc.setsection(pai_section(hp)^.sec);
+                 objectalloc.setsection(Tai_section(hp).sec);
 {$ifdef GDB}
-                 case pai_section(hp)^.sec of
+                 case Tai_section(hp).sec of
                   sec_code : n_line:=n_textline;
                   sec_data : n_line:=n_dataline;
                    sec_bss : n_line:=n_bssline;
@@ -552,14 +553,14 @@ interface
                end;
 {$ifdef GDB}
              ait_stabn :
-               convertstabs(pai_stabn(hp)^.str);
+               convertstabs(Tai_stabn(hp).str);
              ait_stabs :
-               convertstabs(pai_stabs(hp)^.str);
+               convertstabs(Tai_stabs(hp).str);
              ait_stab_function_name :
                begin
-                 if assigned(pai_stab_function_name(hp)^.str) then
+                 if assigned(Tai_stab_function_name(hp).str) then
                   begin
-                    funcname:=getasmsymbol(strpas(pai_stab_function_name(hp)^.str));
+                    funcname:=getasmsymbol(strpas(Tai_stab_function_name(hp).str));
                     UsedAsmSymbolListInsert(funcname);
                   end
                  else
@@ -570,31 +571,31 @@ interface
 {$endif}
              ait_symbol :
                begin
-                 pai_symbol(hp)^.sym^.setaddress(objectalloc.currsec,objectalloc.sectionsize,0);
-                 UsedAsmSymbolListInsert(pai_symbol(hp)^.sym);
+                 Tai_symbol(hp).sym^.setaddress(objectalloc.currsec,objectalloc.sectionsize,0);
+                 UsedAsmSymbolListInsert(Tai_symbol(hp).sym);
                end;
              ait_symbol_end :
                begin
                  if target_info.target=target_i386_linux then
                   begin
-                    pai_symbol(hp)^.sym^.size:=objectalloc.sectionsize-pai_symbol(hp)^.sym^.address;
-                    UsedAsmSymbolListInsert(pai_symbol(hp)^.sym);
+                    Tai_symbol(hp).sym^.size:=objectalloc.sectionsize-Tai_symbol(hp).sym^.address;
+                    UsedAsmSymbolListInsert(Tai_symbol(hp).sym);
                   end;
                 end;
              ait_label :
                begin
-                 pai_label(hp)^.l^.setaddress(objectalloc.currsec,objectalloc.sectionsize,0);
-                 UsedAsmSymbolListInsert(pai_label(hp)^.l);
+                 Tai_label(hp).l^.setaddress(objectalloc.currsec,objectalloc.sectionsize,0);
+                 UsedAsmSymbolListInsert(Tai_label(hp).l);
                end;
              ait_string :
-               objectalloc.sectionalloc(pai_string(hp)^.len);
+               objectalloc.sectionalloc(Tai_string(hp).len);
              ait_instruction :
                begin
-                 objectalloc.sectionalloc(paicpu(hp)^.Pass1(objectalloc.sectionsize));
+                 objectalloc.sectionalloc(Taicpu(hp).Pass1(objectalloc.sectionsize));
                  { fixup the references }
-                 for i:=1 to paicpu(hp)^.ops do
+                 for i:=1 to Taicpu(hp).ops do
                   begin
-                    with paicpu(hp)^.oper[i-1] do
+                    with Taicpu(hp).oper[i-1] do
                      begin
                        case typ of
                          top_ref :
@@ -616,13 +617,13 @@ interface
                if SmartAsm then
                 break;
            end;
-           hp:=pai(hp^.next);
+           hp:=Tai(hp.next);
          end;
         TreePass1:=hp;
       end;
 
 
-    function ti386binasmlist.TreePass2(hp:pai):pai;
+    function ti386binasmlist.TreePass2(hp:Tai):Tai;
       var
         l  : longint;
 {$ifdef I386}
@@ -638,22 +639,22 @@ interface
              (cs_gdb_lineinfo in aktglobalswitches)) then
             begin
               if (objectdata.currsec<>sec_none) and
-                 not(hp^.typ in [
+                 not(hp.typ in [
                      ait_label,
                      ait_regalloc,ait_tempalloc,
                      ait_stabn,ait_stabs,ait_section,
                      ait_cut,ait_marker,ait_align,ait_stab_function_name]) then
-               WriteFileLineInfo(hp^.fileinfo);
+               WriteFileLineInfo(hp.fileinfo);
             end;
 {$endif GDB}
-           case hp^.typ of
+           case hp.typ of
              ait_align :
-               objectdata.writebytes(pai_align(hp)^.getfillbuf^,pai_align(hp)^.fillsize);
+               objectdata.writebytes(Tai_align(hp).getfillbuf^,Tai_align(hp).fillsize);
              ait_section :
                begin
-                 objectdata.defaultsection(pai_section(hp)^.sec);
+                 objectdata.defaultsection(Tai_section(hp).sec);
 {$ifdef GDB}
-                 case pai_section(hp)^.sec of
+                 case Tai_section(hp).sec of
                   sec_code : n_line:=n_textline;
                   sec_data : n_line:=n_dataline;
                    sec_bss : n_line:=n_bssline;
@@ -665,69 +666,69 @@ interface
                end;
              ait_symbol :
                begin
-                 objectdata.writesymbol(pai_symbol(hp)^.sym);
-                 objectoutput.exportsymbol(pai_symbol(hp)^.sym);
+                 objectdata.writesymbol(Tai_symbol(hp).sym);
+                 objectoutput.exportsymbol(Tai_symbol(hp).sym);
                end;
              ait_datablock :
                begin
-                 objectdata.writesymbol(pai_datablock(hp)^.sym);
-                 objectoutput.exportsymbol(pai_datablock(hp)^.sym);
-                 if SmartAsm or (not pai_datablock(hp)^.is_global) then
+                 objectdata.writesymbol(Tai_datablock(hp).sym);
+                 objectoutput.exportsymbol(Tai_datablock(hp).sym);
+                 if SmartAsm or (not Tai_datablock(hp).is_global) then
                    begin
-                     l:=pai_datablock(hp)^.size;
+                     l:=Tai_datablock(hp).size;
                      if l>2 then
                        objectdata.allocalign(4)
                      else if l>1 then
                        objectdata.allocalign(2);
-                     objectdata.alloc(pai_datablock(hp)^.size);
+                     objectdata.alloc(Tai_datablock(hp).size);
                    end;
                end;
              ait_const_32bit :
-               objectdata.writebytes(pai_const(hp)^.value,4);
+               objectdata.writebytes(Tai_const(hp).value,4);
              ait_const_16bit :
-               objectdata.writebytes(pai_const(hp)^.value,2);
+               objectdata.writebytes(Tai_const(hp).value,2);
              ait_const_8bit :
-               objectdata.writebytes(pai_const(hp)^.value,1);
+               objectdata.writebytes(Tai_const(hp).value,1);
              ait_real_80bit :
-               objectdata.writebytes(pai_real_80bit(hp)^.value,10);
+               objectdata.writebytes(Tai_real_80bit(hp).value,10);
              ait_real_64bit :
-               objectdata.writebytes(pai_real_64bit(hp)^.value,8);
+               objectdata.writebytes(Tai_real_64bit(hp).value,8);
              ait_real_32bit :
-               objectdata.writebytes(pai_real_32bit(hp)^.value,4);
+               objectdata.writebytes(Tai_real_32bit(hp).value,4);
              ait_comp_64bit :
                begin
 {$ifdef FPC}
-                 co:=comp(pai_comp_64bit(hp)^.value);
+                 co:=comp(Tai_comp_64bit(hp).value);
 {$else}
-                 co:=pai_comp_64bit(hp)^.value;
+                 co:=Tai_comp_64bit(hp).value;
 {$endif}
                  objectdata.writebytes(co,8);
                end;
              ait_string :
-               objectdata.writebytes(pai_string(hp)^.str^,pai_string(hp)^.len);
+               objectdata.writebytes(Tai_string(hp).str^,Tai_string(hp).len);
              ait_const_rva :
-               objectdata.writereloc(pai_const_symbol(hp)^.offset,4,
-                 pai_const_symbol(hp)^.sym,relative_rva);
+               objectdata.writereloc(Tai_const_symbol(hp).offset,4,
+                 Tai_const_symbol(hp).sym,relative_rva);
              ait_const_symbol :
-               objectdata.writereloc(pai_const_symbol(hp)^.offset,4,
-                 pai_const_symbol(hp)^.sym,relative_false);
+               objectdata.writereloc(Tai_const_symbol(hp).offset,4,
+                 Tai_const_symbol(hp).sym,relative_false);
              ait_label :
                begin
-                 objectdata.writesymbol(pai_label(hp)^.l);
+                 objectdata.writesymbol(Tai_label(hp).l);
                  { exporting shouldn't be necessary as labels are local,
                    but it's better to be on the safe side (PFV) }
-                 objectoutput.exportsymbol(pai_label(hp)^.l);
+                 objectoutput.exportsymbol(Tai_label(hp).l);
                end;
              ait_instruction :
-               paicpu(hp)^.Pass2;
+               Taicpu(hp).Pass2;
 {$ifdef GDB}
              ait_stabn :
-               convertstabs(pai_stabn(hp)^.str);
+               convertstabs(Tai_stabn(hp).str);
              ait_stabs :
-               convertstabs(pai_stabs(hp)^.str);
+               convertstabs(Tai_stabs(hp).str);
              ait_stab_function_name :
-               if assigned(pai_stab_function_name(hp)^.str) then
-                 funcname:=getasmsymbol(strpas(pai_stab_function_name(hp)^.str))
+               if assigned(Tai_stab_function_name(hp).str) then
+                 funcname:=getasmsymbol(strpas(Tai_stab_function_name(hp).str))
                else
                  funcname:=nil;
              ait_force_line :
@@ -737,7 +738,7 @@ interface
                if SmartAsm then
                 break;
            end;
-           hp:=pai(hp^.next);
+           hp:=Tai(hp.next);
          end;
         TreePass2:=hp;
       end;
@@ -745,7 +746,7 @@ interface
 
     procedure ti386binasmlist.writetree;
       var
-        hp : pai;
+        hp : Tai;
       label
         doexit;
       begin
@@ -755,7 +756,7 @@ interface
         objectdata:=objectoutput.initwriting(cut_normal);
         objectdata.defaultsection(sec_code);
       { reset the asmsymbol list }
-        InitUsedAsmsymbolList;
+        CreateUsedAsmsymbolList;
 
 {$ifdef MULTIPASS}
       { Pass 0 }
@@ -764,7 +765,7 @@ interface
         { start with list 1 }
         currlistidx:=1;
         currlist:=list[currlistidx];
-        hp:=pai(currlist^.first);
+        hp:=Tai(currList.first);
         while assigned(hp) do
          begin
            hp:=TreePass0(hp);
@@ -785,7 +786,7 @@ interface
         { start with list 1 }
         currlistidx:=1;
         currlist:=list[currlistidx];
-        hp:=pai(currlist^.first);
+        hp:=Tai(currList.first);
         while assigned(hp) do
          begin
            hp:=TreePass1(hp);
@@ -811,7 +812,7 @@ interface
         { start with list 1 }
         currlistidx:=1;
         currlist:=list[currlistidx];
-        hp:=pai(currlist^.first);
+        hp:=Tai(currList.first);
         while assigned(hp) do
          begin
            hp:=TreePass2(hp);
@@ -833,13 +834,13 @@ interface
         { reset the used symbols back, must be after the .o has been
           written }
         UsedAsmsymbolListReset;
-        DoneUsedAsmsymbolList;
+        DestroyUsedAsmsymbolList;
       end;
 
 
     procedure ti386binasmlist.writetreesmart;
       var
-        hp : pai;
+        hp : Tai;
         startsec : tsection;
         place: tcutplace;
       begin
@@ -853,11 +854,11 @@ interface
         { start with list 1 }
         currlistidx:=1;
         currlist:=list[currlistidx];
-        hp:=pai(currlist^.first);
+        hp:=Tai(currList.first);
         while assigned(hp) do
          begin
          { reset the asmsymbol list }
-           InitUsedAsmSymbolList;
+           CreateUsedAsmSymbolList;
 
 {$ifdef MULTIPASS}
          { Pass 0 }
@@ -911,7 +912,7 @@ interface
            { reset the used symbols back, must be after the .o has been
              written }
            UsedAsmsymbolListReset;
-           DoneUsedAsmsymbolList;
+           DestroyUsedAsmsymbolList;
 
            { end of lists? }
            if not MaybeNextList(hp) then
@@ -923,25 +924,25 @@ interface
            { we will start a new objectfile so reset everything }
            { The place can still change in the next while loop, so don't init }
            { the writer yet (JM)                                              }
-           if (hp^.typ=ait_cut) then
-            place := pai_cut(hp)^.place
+           if (hp.typ=ait_cut) then
+            place := Tai_cut(hp).place
            else
             place := cut_normal;
 
            { avoid empty files }
-           while assigned(hp^.next) and
-                 (pai(hp^.next)^.typ in [ait_marker,ait_comment,ait_section,ait_cut]) do
+           while assigned(hp.next) and
+                 (Tai(hp.next).typ in [ait_marker,ait_comment,ait_section,ait_cut]) do
             begin
-              if pai(hp^.next)^.typ=ait_section then
-               startsec:=pai_section(hp^.next)^.sec
-              else if (pai(hp^.next)^.typ=ait_cut) then
-               place := pai_cut(hp)^.place;
-              hp:=pai(hp^.next);
+              if Tai(hp.next).typ=ait_section then
+               startsec:=Tai_section(hp.next).sec
+              else if (Tai(hp.next).typ=ait_cut) then
+               place := Tai_cut(hp).place;
+              hp:=Tai(hp.next);
             end;
 
            objectdata:=objectoutput.initwriting(place);
 
-           hp:=pai(hp^.next);
+           hp:=Tai(hp.next);
 
            { there is a problem if startsec is sec_none !! PM }
            if startsec=sec_none then
@@ -955,7 +956,7 @@ interface
 
     procedure ti386binasmlist.writebin;
 
-        procedure addlist(p:paasmoutput);
+        procedure addlist(p:TAAsmoutput);
         begin
           inc(lists);
           list[lists]:=p;
@@ -1025,7 +1026,11 @@ interface
 end.
 {
   $Log$
-  Revision 1.3  2000-12-23 19:59:35  peter
+  Revision 1.4  2000-12-25 00:07:31  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.3  2000/12/23 19:59:35  peter
     * object to class for ow/og objects
     * split objectdata from objectoutput
 

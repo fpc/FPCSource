@@ -53,7 +53,7 @@ implementation
 
     procedure read_exports;
       var
-         hp        : pexported_item;
+         hp        : texported_item;
          DefString : string;
          ProcName  : string;
          InternalProcName : string;
@@ -64,7 +64,7 @@ implementation
          consume(_EXPORTS);
          while true do
            begin
-              hp:=new(pexported_item,init);
+              hp:=texported_item.create;
               if token=_ID then
                 begin
                    getsym(pattern,true);
@@ -77,8 +77,8 @@ implementation
                    consume(_ID);
                    if assigned(srsym) then
                      begin
-                        hp^.sym:=srsym;
-                        if ((hp^.sym^.typ<>procsym) or
+                        hp.sym:=srsym;
+                        if ((hp.sym^.typ<>procsym) or
                             ((tf_need_export in target_info.flags) and
                              not(po_exports in pprocdef(pprocsym(srsym)^.definition)^.procoptions)
                             )
@@ -87,8 +87,8 @@ implementation
                          Message(parser_e_illegal_symbol_exported)
                         else
                          begin
-                          ProcName:=hp^.sym^.name;
-                          InternalProcName:=hp^.sym^.mangledname;
+                          ProcName:=hp.sym^.name;
+                          InternalProcName:=hp.sym^.mangledname;
                           { This is wrong if the first is not
                             an underline }
                           if InternalProcName[1]='_' then
@@ -108,16 +108,16 @@ implementation
                              pt:=comp_expr(true);
                              do_firstpass(pt);
                              if pt.nodetype=ordconstn then
-                               hp^.index:=tordconstnode(pt).value
+                               hp.index:=tordconstnode(pt).value
                              else
                                 begin
-                                   hp^.index:=0;
+                                   hp.index:=0;
                                    consume(_INTCONST);
                                 end;
-                             hp^.options:=hp^.options or eo_index;
+                             hp.options:=hp.options or eo_index;
                              pt.free;
                              if target_os.id=os_i386_win32 then
-                               DefString:=ProcName+'='+InternalProcName+' @ '+tostr(hp^.index)
+                               DefString:=ProcName+'='+InternalProcName+' @ '+tostr(hp.index)
                              else
                                DefString:=ProcName+'='+InternalProcName; {Index ignored!}
                           end;
@@ -127,28 +127,28 @@ implementation
                              pt:=comp_expr(true);
                              do_firstpass(pt);
                              if pt.nodetype=stringconstn then
-                               hp^.name:=stringdup(strpas(tstringconstnode(pt).value_str))
+                               hp.name:=stringdup(strpas(tstringconstnode(pt).value_str))
                              else
                                 begin
-                                   hp^.name:=stringdup('');
+                                   hp.name:=stringdup('');
                                    consume(_CSTRING);
                                 end;
-                             hp^.options:=hp^.options or eo_name;
+                             hp.options:=hp.options or eo_name;
                              pt.free;
-                             DefString:=hp^.name^+'='+InternalProcName;
+                             DefString:=hp.name^+'='+InternalProcName;
                           end;
                         if (idtoken=_RESIDENT) then
                           begin
                              consume(_RESIDENT);
-                             hp^.options:=hp^.options or eo_resident;
+                             hp.options:=hp.options or eo_resident;
                              DefString:=ProcName+'='+InternalProcName;{Resident ignored!}
                           end;
                         if (DefString<>'') and UseDeffileForExport then
                          DefFile.AddExport(DefString);
-                        if hp^.sym^.typ=procsym then
-                          exportlib^.exportprocedure(hp)
+                        if hp.sym^.typ=procsym then
+                          exportlib.exportprocedure(hp)
                         else
-                          exportlib^.exportvar(hp);
+                          exportlib.exportvar(hp);
                      end;
                 end
               else
@@ -167,7 +167,11 @@ end.
 
 {
   $Log$
-  Revision 1.8  2000-11-29 00:30:36  florian
+  Revision 1.9  2000-12-25 00:07:27  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.8  2000/11/29 00:30:36  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

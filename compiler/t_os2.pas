@@ -37,21 +37,19 @@ uses
   import,link,comprsrc;
 
 type
-  pimportlibos2=^timportlibos2;
-  timportlibos2=object(timportlib)
-    procedure preparelib(const s:string);virtual;
-    procedure importprocedure(const func,module:string;index:longint;const name:string);virtual;
-    procedure generatelib;virtual;
+  timportlibos2=class(timportlib)
+    procedure preparelib(const s:string);override;
+    procedure importprocedure(const func,module:string;index:longint;const name:string);override;
+    procedure generatelib;override;
   end;
 
-    plinkeros2=^tlinkeros2;
-    tlinkeros2=object(tlinker)
+    tlinkeros2=class(tlinker)
     private
        Function  WriteResponseFile(isdll:boolean) : Boolean;
     public
-       constructor Init;
-       procedure SetDefaultInfo;virtual;
-       function  MakeExecutable:boolean;virtual;
+       constructor Create;
+       procedure SetDefaultInfo;override;
+       function  MakeExecutable:boolean;override;
     end;
 
 
@@ -69,7 +67,8 @@ implementation
      strings,
      dos,
 {$endif Delphi}
-     cutils,globtype,cobjects,comphook,systems,
+     cutils,cclasses,
+     globtype,comphook,systems,
      globals,verbose,fmodule,script;
 
 const   profile_flag:boolean=false;
@@ -284,8 +283,8 @@ var
 begin
     libname:=FixFileName(s+'.ao2');
     seq_no:=1;
-    current_module^.linkunitstaticlibs.insert(libname,link_allways);
-    assign(out_file,current_module^.outputpath^+libname);
+    current_module.linkunitstaticlibs.add(libname,link_allways);
+    assign(out_file,current_module.outputpath^+libname);
     rewrite(out_file,1);
     blockwrite(out_file,ar_magic,sizeof(ar_magic));
 end;
@@ -352,9 +351,9 @@ end;
                                TLinkeros2
 ****************************************************************************}
 
-Constructor TLinkeros2.Init;
+Constructor TLinkeros2.Create;
 begin
-  Inherited Init;
+  Inherited Create;
   { allow duplicated libs (PM) }
   SharedLibFiles.doubles:=true;
   StaticLibFiles.doubles:=true;
@@ -375,7 +374,7 @@ Function TLinkeros2.WriteResponseFile(isdll:boolean) : Boolean;
 Var
   linkres  : TLinkRes;
   i        : longint;
-  HPath    : PStringQueueItem;
+  HPath    : TStringListItem;
   s        : string;
 begin
   WriteResponseFile:=False;
@@ -384,24 +383,24 @@ begin
   LinkRes.Init(outputexedir+Info.ResName);
 
   { Write path to search libraries }
-  HPath:=current_module^.locallibrarysearchpath.First;
+  HPath:=TStringListItem(current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
    begin
-     LinkRes.Add('-L'+HPath^.Data^);
-     HPath:=HPath^.Next;
+     LinkRes.Add('-L'+HPath.Str);
+     HPath:=TStringListItem(HPath.Next);
    end;
-  HPath:=LibrarySearchPath.First;
+  HPath:=TStringListItem(LibrarySearchPath.First);
   while assigned(HPath) do
    begin
-     LinkRes.Add('-L'+HPath^.Data^);
-     HPath:=HPath^.Next;
+     LinkRes.Add('-L'+HPath.Str);
+     HPath:=TStringListItem(HPath.Next);
    end;
 
   { add objectfiles, start with prt0 always }
   LinkRes.AddFileName(FindObjectFile('prt0',''));
   while not ObjectFiles.Empty do
    begin
-     s:=ObjectFiles.Get;
+     s:=ObjectFiles.GetFirst;
      if s<>'' then
       LinkRes.AddFileName(s);
    end;
@@ -410,7 +409,7 @@ begin
   { No group !! This will not work correctly PM }
   While not StaticLibFiles.Empty do
    begin
-     S:=StaticLibFiles.Get;
+     S:=StaticLibFiles.GetFirst;
      LinkRes.AddFileName(s)
    end;
 
@@ -418,7 +417,7 @@ begin
     here to be sure that it gets linked this is needed for glibc2 systems (PFV) }
   While not SharedLibFiles.Empty do
    begin
-     S:=SharedLibFiles.Get;
+     S:=SharedLibFiles.GetFirst;
      i:=Pos(target_os.sharedlibext,S);
      if i>0 then
       Delete(S,i,255);
@@ -444,7 +443,7 @@ var
   RsrcStr : string;
 begin
   if not(cs_link_extern in aktglobalswitches) then
-   Message1(exec_i_linking,current_module^.exefilename^);
+   Message1(exec_i_linking,current_module.exefilename^);
 
 { Create some replacements }
   if (cs_link_strip in aktglobalswitches) then
@@ -455,13 +454,13 @@ begin
    PMStr := '-p'
   else
    PMStr := '';
-  if not (Current_Module^.ResourceFiles.Empty) then
-   RsrcStr := '-r ' + Current_Module^.ResourceFiles.Get
+  if not (Current_module.ResourceFiles.Empty) then
+   RsrcStr := '-r ' + Current_module.ResourceFiles.GetFirst
   else
    RsrcStr := '';
 (* Only one resource file supported, discard everything else
    (should be already empty anyway, however. *)
-  Current_Module^.ResourceFiles.Clear;
+  Current_module.ResourceFiles.Clear;
 { Write used files and libraries }
   WriteResponseFile(false);
 
@@ -483,7 +482,7 @@ begin
         Replace(cmdstr,'$RES',outputexedir+Info.ResName);
         Replace(cmdstr,'$OPT',Info.ExtraOptions);
         Replace(cmdstr,'$RSRC',RsrcStr);
-        Replace(cmdstr,'$EXE',current_module^.exefilename^);
+        Replace(cmdstr,'$EXE',current_module.exefilename^);
         success:=DoExec(FindUtil(binstr),cmdstr,(i=1),false);
 (* We still want to have the PPAS script complete, right?
         if not success then
@@ -503,7 +502,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2000-09-24 15:06:31  peter
+  Revision 1.6  2000-12-25 00:07:30  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.5  2000/09/24 15:06:31  peter
     * use defines.inc
 
   Revision 1.4  2000/09/20 19:38:34  peter

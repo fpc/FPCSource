@@ -88,7 +88,7 @@ begin
      Message(exec_w_res_not_found);
      aktglobalswitches:=aktglobalswitches+[cs_link_extern];
    end;
-  resobj:=ForceExtension(current_module^.objfilename^,target_info.resobjext);
+  resobj:=ForceExtension(current_module.objfilename^,target_info.resobjext);
   s:=target_res.rescmd;
   Replace(s,'$OBJ',resobj);
   Replace(s,'$RES',fname);
@@ -115,7 +115,7 @@ begin
   { Update asmres when externmode is set }
   if cs_link_extern in aktglobalswitches then
     AsmRes.AddLinkCommand(resbin,s,'');
-  current_module^.linkotherofiles.insert(resobj,link_allways);
+  current_module.linkotherofiles.add(resobj,link_allways);
 end;
 
 
@@ -125,11 +125,11 @@ var
 begin
 (* OS/2 (EMX) must be processed elsewhere (in the linking/binding stage). *)
   if target_info.target <> target_i386_os2 then
-   While not Current_module^.ResourceFiles.Empty do
+   While not current_module.ResourceFiles.Empty do
     begin
       case target_info.target of
         target_i386_win32:
-          hr:=new(presourcefile,init(Current_module^.ResourceFiles.get));
+          hr:=new(presourcefile,init(current_module.ResourceFiles.getfirst));
         else
           Message(scan_e_resourcefiles_not_supported);
       end;
@@ -142,7 +142,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2000-09-24 15:06:14  peter
+  Revision 1.6  2000-12-25 00:07:25  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.5  2000/09/24 15:06:14  peter
     * use defines.inc
 
   Revision 1.4  2000/08/27 16:11:50  peter

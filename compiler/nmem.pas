@@ -306,7 +306,7 @@ implementation
     function taddrnode.pass_1 : tnode;
       var
          hp  : tnode;
-         hp2 : pparaitem;
+         hp2 : TParaItem;
          hp3 : pabstractprocdef;
       begin
          pass_1:=nil;
@@ -411,11 +411,11 @@ implementation
                          include(pprocvardef(resulttype)^.procoptions,po_methodpointer);
                        { we need to process the parameters reverse so they are inserted
                          in the correct right2left order (PFV) }
-                       hp2:=pparaitem(hp3^.para^.last);
+                       hp2:=TParaItem(hp3^.Para.last);
                        while assigned(hp2) do
                          begin
-                            pprocvardef(resulttype)^.concatpara(hp2^.paratype,hp2^.paratyp,hp2^.defaultvalue);
-                            hp2:=pparaitem(hp2^.previous);
+                            pprocvardef(resulttype)^.concatpara(hp2.paratype,hp2.paratyp,hp2.defaultvalue);
+                            hp2:=TParaItem(hp2.previous);
                          end;
                     end
                   else
@@ -873,7 +873,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2000-12-05 15:19:50  jonas
+  Revision 1.13  2000-12-25 00:07:26  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.12  2000/12/05 15:19:50  jonas
     * fixed webbug 1268 ("merged")
 
   Revision 1.11  2000/11/29 00:30:34  florian

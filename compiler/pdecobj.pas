@@ -35,7 +35,7 @@ interface
 implementation
 
     uses
-      cutils,cobjects,
+      cutils,cobjects,cclasses,
       globals,verbose,systems,tokens,
       aasm,symconst,symbase,symsym,symtable,types,
 {$ifdef GDB}
@@ -88,7 +88,7 @@ implementation
 
         var
            sym : psym;
-           propertyparas : plinkedlist;
+           propertyparas : tlinkedlist;
 
         { returns the matching procedure to access a property }
         function get_procdef : pprocdef;
@@ -109,12 +109,12 @@ implementation
           end;
 
         var
-           hp2,datacoll : pparaitem;
+           hp2,datacoll : tparaitem;
            p : ppropertysym;
            overriden : psym;
            hs : string;
            varspez : tvarspez;
-           sc : pstringcontainer;
+           sc : tidstringlist;
            s : string;
            tt : ttype;
            declarepos : tfileposinfo;
@@ -127,7 +127,7 @@ implementation
            if not(is_class_or_interface(aktclass)) then
             Message(parser_e_syntax_error);
            consume(_PROPERTY);
-           new(propertyparas,init);
+           propertyparas:=TParaLinkedList.Create;
            datacoll:=nil;
            if token=_ID then
              begin
@@ -190,26 +190,26 @@ implementation
                        else
                          tt.setdef(cformaldef);
                        repeat
-                         s:=sc^.get_with_tokeninfo(declarepos);
+                         s:=sc.get(declarepos);
                          if s='' then
                           break;
-                         new(hp2,init);
-                         hp2^.paratyp:=varspez;
-                         hp2^.paratype:=tt;
-                         propertyparas^.insert(hp2);
+                         hp2:=TParaItem.create;
+                         hp2.paratyp:=varspez;
+                         hp2.paratype:=tt;
+                         propertyparas.insert(hp2);
                        until false;
 {$ifdef fixLeaksOnError}
                        if strContStack.pop <> sc then
                          writeln('problem with strContStack in ptype');
 {$endif fixLeaksOnError}
-                       dispose(sc,done);
+                       sc.free;
                      until not try_to_consume(_SEMICOLON);
                      dec(testcurobject);
                      consume(_RECKKLAMMER);
                   end;
                 { overriden property ?                                 }
                 { force property interface, if there is a property parameter }
-                if (token=_COLON) or not(propertyparas^.empty) then
+                if (token=_COLON) or not(propertyparas.empty) then
                   begin
                      consume(_COLON);
                      single_type(p^.proptype,hs,false);
@@ -229,14 +229,14 @@ implementation
                           p^.indextype.setdef(pt.resulttype);
                           include(p^.propoptions,ppo_indexed);
                           { concat a longint to the para template }
-                          new(hp2,init);
-                          hp2^.paratyp:=vs_value;
-                          hp2^.paratype:=p^.indextype;
-                          propertyparas^.insert(hp2);
+                          hp2:=TParaItem.Create;
+                          hp2.paratyp:=vs_value;
+                          hp2.paratype:=p^.indextype;
+                          propertyparas.insert(hp2);
                           pt.free;
                        end;
                      { the parser need to know if a property has parameters }
-                     if not(propertyparas^.empty) then
+                     if not(propertyparas.empty) then
                        include(p^.propoptions,ppo_hasparameters);
                   end
                 else
@@ -258,9 +258,9 @@ implementation
                   Message(parser_e_cant_publish_that_property);
 
                 { create data defcoll to allow correct parameter checks }
-                new(datacoll,init);
-                datacoll^.paratyp:=vs_value;
-                datacoll^.paratype:=p^.proptype;
+                datacoll:=TParaItem.Create;
+                datacoll.paratyp:=vs_value;
+                datacoll.paratype:=p^.proptype;
 
                 if (idtoken=_READ) then
                   begin
@@ -303,7 +303,7 @@ implementation
                               end;
                             varsym :
                               begin
-                                if not(propertyparas^.empty) or
+                                if not(propertyparas.empty) or
                                    not(is_equal(pvarsym(sym)^.vartype.def,p^.proptype.def)) then
                                   Message(parser_e_ill_property_access_sym);
                               end;
@@ -347,17 +347,17 @@ implementation
                             procsym :
                               begin
                                  { insert data entry to check access method }
-                                 propertyparas^.insert(datacoll);
+                                 propertyparas.insert(datacoll);
                                  pp:=get_procdef;
                                  { ... and remove it }
-                                 propertyparas^.remove(datacoll);
+                                 propertyparas.remove(datacoll);
                                  if not(assigned(pp)) then
                                    Message(parser_e_ill_property_access_sym);
                                  p^.writeaccess^.setdef(pp);
                               end;
                             varsym :
                               begin
-                                 if not(propertyparas^.empty) or
+                                 if not(propertyparas.empty) or
                                     not(is_equal(pvarsym(sym)^.vartype.def,p^.proptype.def)) then
                                    Message(parser_e_ill_property_access_sym);
                               end
@@ -413,7 +413,7 @@ implementation
                                            while assigned(pp) do
                                              begin
                                                 { the stored function shouldn't have any parameters }
-                                                if pp^.para^.empty then
+                                                if pp^.Para.empty then
                                                   break;
                                                  pp:=pp^.nextoverloaded;
                                              end;
@@ -425,7 +425,7 @@ implementation
                                          end;
                                        varsym :
                                          begin
-                                           if not(propertyparas^.empty) or
+                                           if not(propertyparas.empty) or
                                               not(is_equal(pvarsym(sym)^.vartype.def,booldef)) then
                                              Message(parser_e_stored_property_must_be_boolean);
                                          end;
@@ -451,7 +451,7 @@ implementation
                             is_64bitint(p^.proptype.def) or
                             ((p^.proptype.def^.deftype=setdef) and
                              (psetdef(p^.proptype.def)^.settype=smallset))) or
-                        not(propertyparas^.empty) then
+                        not(propertyparas.empty) then
                        Message(parser_e_property_cant_have_a_default_value);
                      { Get the result of the default, the firstpass is
                        needed to support values like -1 }
@@ -494,21 +494,21 @@ implementation
                      }
                        begin
                           include(p^.propoptions,ppo_defaultproperty);
-                          if propertyparas^.empty then
+                          if propertyparas.empty then
                             message(parser_e_property_need_paras);
                        end;
                      consume(_SEMICOLON);
                   end;
                 { clean up }
                 if assigned(datacoll) then
-                  dispose(datacoll,done);
+                  datacoll.free;
              end
            else
              begin
                 consume(_ID);
                 consume(_SEMICOLON);
              end;
-           dispose(propertyparas,done);
+           propertyparas.free;
         end;
 
 
@@ -522,7 +522,7 @@ implementation
             Message(parser_e_destructorname_must_be_done);
            include(aktclass^.objectoptions,oo_has_destructor);
            consume(_SEMICOLON);
-           if not(aktprocsym^.definition^.para^.empty) then
+           if not(aktprocsym^.definition^.Para.empty) then
              if not (m_tp in aktmodeswitches) then
                Message(parser_e_no_paras_for_destructor);
            { no return value }
@@ -602,8 +602,8 @@ implementation
            dmtlabel:=gendmt(aktclass);
 {$endif WITHDMT}
            { this generates the entries }
-           vmtlist.init;
-           genvmt(@vmtlist,aktclass);
+           vmtlist:=TAasmoutput.Create;
+           genvmt(vmtlist,aktclass);
 
            { write tables for classes, this must be done before the actual
              class is written, because we need the labels defined }
@@ -616,16 +616,16 @@ implementation
                aktclass^.generate_rtti;
               { write class name }
               getdatalabel(classnamelabel);
-              datasegment^.concat(new(pai_label,init(classnamelabel)));
-              datasegment^.concat(new(pai_const,init_8bit(length(aktclass^.objname^))));
-              datasegment^.concat(new(pai_string,init(aktclass^.objname^)));
+              dataSegment.concat(Tai_label.Create(classnamelabel));
+              dataSegment.concat(Tai_const.Create_8bit(length(aktclass^.objname^)));
+              dataSegment.concat(Tai_string.Create(aktclass^.objname^));
               { generate message and dynamic tables }
               if (oo_has_msgstr in aktclass^.objectoptions) then
                 strmessagetable:=genstrmsgtab(aktclass);
               if (oo_has_msgint in aktclass^.objectoptions) then
                 intmessagetable:=genintmsgtab(aktclass)
               else
-                datasegment^.concat(new(pai_const,init_32bit(0)));
+                dataSegment.concat(Tai_const.Create_32bit(0));
               if aktclass^.implementedinterfaces^.count>0 then
                 interfacetable:=genintftable(aktclass);
             end;
@@ -636,23 +636,23 @@ implementation
            begin
              do_count_dbx:=true;
              if assigned(aktclass^.owner) and assigned(aktclass^.owner^.name) then
-               datasegment^.concat(new(pai_stabs,init(strpnew('"vmt_'+aktclass^.owner^.name^+n+':S'+
-                 typeglobalnumber('__vtbl_ptr_type')+'",'+tostr(N_STSYM)+',0,0,'+aktclass^.vmt_mangledname))));
+               dataSegment.concat(Tai_stabs.Create(strpnew('"vmt_'+aktclass^.owner^.name^+n+':S'+
+                 typeglobalnumber('__vtbl_ptr_type')+'",'+tostr(N_STSYM)+',0,0,'+aktclass^.vmt_mangledname)));
            end;
 {$endif GDB}
-           datasegment^.concat(new(pai_symbol,initdataname_global(aktclass^.vmt_mangledname,0)));
+           dataSegment.concat(Tai_symbol.Createdataname_global(aktclass^.vmt_mangledname,0));
 
            { determine the size with symtable^.datasize, because }
            { size gives back 4 for classes                    }
-           datasegment^.concat(new(pai_const,init_32bit(aktclass^.symtable^.datasize)));
-           datasegment^.concat(new(pai_const,init_32bit(-aktclass^.symtable^.datasize)));
+           dataSegment.concat(Tai_const.Create_32bit(aktclass^.symtable^.datasize));
+           dataSegment.concat(Tai_const.Create_32bit(-aktclass^.symtable^.datasize));
 {$ifdef WITHDMT}
            if classtype=ct_object then
              begin
                 if assigned(dmtlabel) then
-                  datasegment^.concat(new(pai_const_symbol,init(dmtlabel)))
+                  dataSegment.concat(Tai_const_symbol.Create(dmtlabel)))
                 else
-                  datasegment^.concat(new(pai_const,init_32bit(0)));
+                  dataSegment.concat(Tai_const.Create_32bit(0));
              end;
 {$endif WITHDMT}
            { write pointer to parent VMT, this isn't implemented in TP }
@@ -661,60 +661,60 @@ implementation
            { it is not written for parents that don't have any vmt !! }
            if assigned(aktclass^.childof) and
               (oo_has_vmt in aktclass^.childof^.objectoptions) then
-             datasegment^.concat(new(pai_const_symbol,initname(aktclass^.childof^.vmt_mangledname)))
+             dataSegment.concat(Tai_const_symbol.Createname(aktclass^.childof^.vmt_mangledname))
            else
-             datasegment^.concat(new(pai_const,init_32bit(0)));
+             dataSegment.concat(Tai_const.Create_32bit(0));
 
            { write extended info for classes, for the order see rtl/inc/objpash.inc }
            if classtype=odt_class then
             begin
               { pointer to class name string }
-              datasegment^.concat(new(pai_const_symbol,init(classnamelabel)));
+              dataSegment.concat(Tai_const_symbol.Create(classnamelabel));
               { pointer to dynamic table }
               if (oo_has_msgint in aktclass^.objectoptions) then
-                datasegment^.concat(new(pai_const_symbol,init(intmessagetable)))
+                dataSegment.concat(Tai_const_symbol.Create(intmessagetable))
               else
-                datasegment^.concat(new(pai_const,init_32bit(0)));
+                dataSegment.concat(Tai_const.Create_32bit(0));
               { pointer to method table }
               if assigned(methodnametable) then
-                datasegment^.concat(new(pai_const_symbol,init(methodnametable)))
+                dataSegment.concat(Tai_const_symbol.Create(methodnametable))
               else
-                datasegment^.concat(new(pai_const,init_32bit(0)));
+                dataSegment.concat(Tai_const.Create_32bit(0));
               { pointer to field table }
-              datasegment^.concat(new(pai_const_symbol,init(fieldtablelabel)));
+              dataSegment.concat(Tai_const_symbol.Create(fieldtablelabel));
               { pointer to type info of published section }
               if (oo_can_have_published in aktclass^.objectoptions) then
-                datasegment^.concat(new(pai_const_symbol,initname(aktclass^.rtti_name)))
+                dataSegment.concat(Tai_const_symbol.Createname(aktclass^.rtti_name))
               else
-                datasegment^.concat(new(pai_const,init_32bit(0)));
+                dataSegment.concat(Tai_const.Create_32bit(0));
               { inittable for con-/destruction }
               {
               if aktclass^.needs_inittable then
               }
               { we generate the init table for classes always, because needs_inittable }
               { for classes is always false, it applies only for objects               }
-              datasegment^.concat(new(pai_const_symbol,init(aktclass^.get_inittable_label)));
+              dataSegment.concat(Tai_const_symbol.Create(aktclass^.get_inittable_label));
               {
               else
-                datasegment^.concat(new(pai_const,init_32bit(0)));
+                dataSegment.concat(Tai_const.Create_32bit(0));
               }
               { auto table }
-              datasegment^.concat(new(pai_const,init_32bit(0)));
+              dataSegment.concat(Tai_const.Create_32bit(0));
               { interface table }
               if aktclass^.implementedinterfaces^.count>0 then
-                datasegment^.concat(new(pai_const_symbol,init(interfacetable)))
+                dataSegment.concat(Tai_const_symbol.Create(interfacetable))
               else
-                datasegment^.concat(new(pai_const,init_32bit(0)));
+                dataSegment.concat(Tai_const.Create_32bit(0));
               { table for string messages }
               if (oo_has_msgstr in aktclass^.objectoptions) then
-                datasegment^.concat(new(pai_const_symbol,init(strmessagetable)))
+                dataSegment.concat(Tai_const_symbol.Create(strmessagetable))
               else
-                datasegment^.concat(new(pai_const,init_32bit(0)));
+                dataSegment.concat(Tai_const.Create_32bit(0));
             end;
-           datasegment^.concatlist(@vmtlist);
-           vmtlist.done;
+           dataSegment.concatlist(vmtlist);
+           vmtlist.free;
            { write the size of the VMT }
-           datasegment^.concat(new(pai_symbol_end,initname(aktclass^.vmt_mangledname)));
+           dataSegment.concat(Tai_symbol_end.Createname(aktclass^.vmt_mangledname));
         end;
 
       procedure setinterfacemethodoptions;
@@ -856,9 +856,7 @@ implementation
 
       procedure readinterfaceiid;
         var
-          tt: ttype;
           p : tnode;
-
         begin
           p:=comp_expr(true);
           do_firstpass(p);
@@ -877,8 +875,8 @@ implementation
             end;
         end;
 
-      procedure readparentclasses;
 
+      procedure readparentclasses;
         begin
            { reads the parent class }
            if token=_LKLAMMER then
@@ -1144,7 +1142,7 @@ implementation
             ) then
            aktclass^.insertvmt;
          if (cs_create_smart in aktmoduleswitches) then
-           datasegment^.concat(new(pai_cut,init));
+           dataSegment.concat(Tai_cut.Create);
 
          if is_interface(aktclass) then
            writeinterfaceids(aktclass);
@@ -1170,7 +1168,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2000-11-29 00:30:35  florian
+  Revision 1.15  2000-12-25 00:07:27  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.14  2000/11/29 00:30:35  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

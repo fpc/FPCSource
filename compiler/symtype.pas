@@ -250,7 +250,7 @@ implementation
         if pos<>nil then
           posinfo:=pos^;
         if assigned(current_module) then
-          moduleindex:=current_module^.unit_index;
+          moduleindex:=current_module.unit_index;
         if assigned(ref) then
           ref^.nextref:=@self;
         is_written:=false;
@@ -493,9 +493,9 @@ implementation
              derefunit :
                begin
 {$ifdef NEWMAP}
-                 st:=psymtable(current_module^.map^[p^.index]^.globalsymtable);
+                 st:=psymtable(current_module.map^[p^.index]^.globalsymtable);
 {$else NEWMAP}
-                 st:=psymtable(current_module^.map^[p^.index]);
+                 st:=psymtable(current_module.map^[p^.index]);
 {$endif NEWMAP}
                end;
              derefrecord :
@@ -567,7 +567,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2000-11-29 00:30:42  florian
+  Revision 1.4  2000-12-25 00:07:30  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.3  2000/11/29 00:30:42  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

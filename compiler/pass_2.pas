@@ -294,14 +294,18 @@ implementation
                 procinfo^.def^.fpu_used:=p.registersfpu;
 
            end;
-         procinfo^.aktproccode^.concatlist(exprasmlist);
+         procinfo^.aktproccode.concatlist(exprasmlist);
          make_const_global:=false;
       end;
 
 end.
 {
   $Log$
-  Revision 1.11  2000-11-29 00:30:35  florian
+  Revision 1.12  2000-12-25 00:07:27  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.11  2000/11/29 00:30:35  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

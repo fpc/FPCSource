@@ -87,37 +87,35 @@ interface
     import,export,link;
 
   type
-    pimportlibnetware=^timportlibnetware;
-    timportlibnetware=object(timportlib)
-      procedure preparelib(const s:string);virtual;
-      procedure importprocedure(const func,module:string;index:longint;const name:string);virtual;
-      procedure importvariable(const varname,module:string;const name:string);virtual;
-      procedure generatelib;virtual;
+    timportlibnetware=class(timportlib)
+      procedure preparelib(const s:string);override;
+      procedure importprocedure(const func,module:string;index:longint;const name:string);override;
+      procedure importvariable(const varname,module:string;const name:string);override;
+      procedure generatelib;override;
     end;
 
-    pexportlibnetware=^texportlibnetware;
-    texportlibnetware=object(texportlib)
-      procedure preparelib(const s : string);virtual;
-      procedure exportprocedure(hp : pexported_item);virtual;
-      procedure exportvar(hp : pexported_item);virtual;
-      procedure generatelib;virtual;
+    texportlibnetware=class(texportlib)
+      procedure preparelib(const s : string);override;
+      procedure exportprocedure(hp : texported_item);override;
+      procedure exportvar(hp : texported_item);override;
+      procedure generatelib;override;
     end;
 
-    plinkernetware=^tlinkernetware;
-    tlinkernetware=object(tlinker)
+    tlinkernetware=class(tlinker)
     private
       Function  WriteResponseFile(isdll:boolean) : Boolean;
     public
-      constructor Init;
-      procedure SetDefaultInfo;virtual;
-      function  MakeExecutable:boolean;virtual;
+      constructor Create;
+      procedure SetDefaultInfo;override;
+      function  MakeExecutable:boolean;override;
     end;
 
 
 implementation
 
   uses
-    cutils,verbose,systems,globtype,globals,
+    cutils,
+    verbose,systems,globtype,globals,
     symconst,script,
     fmodule,aasm,cpuasm,cpubase,symsym;
 
@@ -133,7 +131,7 @@ end;
 procedure timportlibnetware.importprocedure(const func,module : string;index : longint;const name : string);
 begin
   { insert sharedlibrary }
-  current_module^.linkothersharedlibs.insert(SplitName(module),link_allways);
+  current_module.linkothersharedlibs.add(SplitName(module),link_allways);
   { do nothing with the procedure, only set the mangledname }
   if name<>'' then
     aktprocsym^.definition^.setmangledname(name)
@@ -145,7 +143,7 @@ end;
 procedure timportlibnetware.importvariable(const varname,module:string;const name:string);
 begin
   { insert sharedlibrary }
-  current_module^.linkothersharedlibs.insert(SplitName(module),link_allways);
+  current_module.linkothersharedlibs.add(SplitName(module),link_allways);
   { reset the mangledname and turn off the dll_var option }
   aktvarsym^.setmangledname(name);
   exclude(aktvarsym^.varoptions,vo_is_dll_var);
@@ -166,76 +164,76 @@ begin
 end;
 
 
-procedure texportlibnetware.exportprocedure(hp : pexported_item);
+procedure texportlibnetware.exportprocedure(hp : texported_item);
 var
-  hp2 : pexported_item;
+  hp2 : texported_item;
 begin
   { first test the index value }
-  if (hp^.options and eo_index)<>0 then
+  if (hp.options and eo_index)<>0 then
    begin
      Comment(V_Error,'can''t export with index under netware');
      exit;
    end;
   { use pascal name is none specified }
-  if (hp^.options and eo_name)=0 then
+  if (hp.options and eo_name)=0 then
     begin
-       hp^.name:=stringdup(hp^.sym^.name);
-       hp^.options:=hp^.options or eo_name;
+       hp.name:=stringdup(hp.sym^.name);
+       hp.options:=hp.options or eo_name;
     end;
   { now place in correct order }
-  hp2:=pexported_item(current_module^._exports^.first);
+  hp2:=texported_item(current_module._exports.first);
   while assigned(hp2) and
-     (hp^.name^>hp2^.name^) do
-    hp2:=pexported_item(hp2^.next);
+     (hp.name^>hp2.name^) do
+    hp2:=texported_item(hp2.next);
   { insert hp there !! }
-  if assigned(hp2) and (hp2^.name^=hp^.name^) then
+  if assigned(hp2) and (hp2.name^=hp.name^) then
     begin
       { this is not allowed !! }
-      Message1(parser_e_export_name_double,hp^.name^);
+      Message1(parser_e_export_name_double,hp.name^);
       exit;
     end;
-  if hp2=pexported_item(current_module^._exports^.first) then
-    current_module^._exports^.insert(hp)
+  if hp2=texported_item(current_module._exports.first) then
+    current_module._exports.insert(hp)
   else if assigned(hp2) then
     begin
-       hp^.next:=hp2;
-       hp^.previous:=hp2^.previous;
-       if assigned(hp2^.previous) then
-         hp2^.previous^.next:=hp;
-       hp2^.previous:=hp;
+       hp.next:=hp2;
+       hp.previous:=hp2.previous;
+       if assigned(hp2.previous) then
+         hp2.previous.next:=hp;
+       hp2.previous:=hp;
     end
   else
-    current_module^._exports^.concat(hp);
+    current_module._exports.concat(hp);
 end;
 
 
-procedure texportlibnetware.exportvar(hp : pexported_item);
+procedure texportlibnetware.exportvar(hp : texported_item);
 begin
-  hp^.is_var:=true;
+  hp.is_var:=true;
   exportprocedure(hp);
 end;
 
 
 procedure texportlibnetware.generatelib;
 var
-  hp2 : pexported_item;
+  hp2 : texported_item;
 begin
-  hp2:=pexported_item(current_module^._exports^.first);
+  hp2:=texported_item(current_module._exports.first);
   while assigned(hp2) do
    begin
-     if not hp2^.is_var then
+     if not hp2.is_var then
       begin
 {$ifdef i386}
         { place jump in codesegment }
-        codesegment^.concat(new(pai_align,init_op(4,$90)));
-        codesegment^.concat(new(pai_symbol,initname_global(hp2^.name^,0)));
-        codesegment^.concat(new(paicpu,op_sym(A_JMP,S_NO,newasmsymbol(hp2^.sym^.mangledname))));
-        codesegment^.concat(new(pai_symbol_end,initname(hp2^.name^)));
+        codeSegment.concat(Tai_align.Create_op(4,$90));
+        codeSegment.concat(Tai_symbol.Createname_global(hp2.name^,0));
+        codeSegment.concat(Taicpu.Op_sym(A_JMP,S_NO,newasmsymbol(hp2.sym^.mangledname)));
+        codeSegment.concat(Tai_symbol_end.Createname(hp2.name^));
 {$endif i386}
       end
      else
       Comment(V_Error,'Exporting of variables is not supported under netware');
-     hp2:=pexported_item(hp2^.next);
+     hp2:=texported_item(hp2.next);
    end;
 end;
 
@@ -244,9 +242,9 @@ end;
                                   TLINKERNETWARE
 *****************************************************************************}
 
-Constructor TLinkerNetware.Init;
+Constructor TLinkerNetware.Create;
 begin
-  Inherited Init;
+  Inherited Create;
 end;
 
 
@@ -269,11 +267,11 @@ Var
   found        : boolean;
   ProgNam      : string [80];
   NlmNam       : string [80];
-  hp2          : pexported_item;  { for exports }
+  hp2          : texported_item;  { for exports }
 begin
   WriteResponseFile:=False;
 
-  ProgNam := current_module^.exefilename^;
+  ProgNam := current_module.exefilename^;
   i:=Pos(target_os.exeext,ProgNam);
   if i>0 then
     Delete(ProgNam,i,255);
@@ -299,7 +297,7 @@ begin
   { main objectfiles }
   while not ObjectFiles.Empty do
    begin
-     s:=ObjectFiles.Get;
+     s:=ObjectFiles.GetFirst;
      if s<>'' then
       LinkRes.Add ('INPUT ' + FindObjectFile (s,''));
    end;
@@ -320,7 +318,7 @@ begin
    begin
      While not StaticLibFiles.Empty do
       begin
-        S:=lower (StaticLibFiles.Get);
+        S:=lower (StaticLibFiles.GetFirst);
         if s<>'' then
          begin
            i:=Pos(target_os.staticlibext,S);
@@ -343,7 +341,7 @@ begin
          the module clib or clib.nlm we add IMPORT @clib.imp and also
          the module clib.nlm (autoload)
          ? may it be better to set autoload's via StaticLibFiles ? }
-        S:=lower (SharedLibFiles.Get);
+        S:=lower (SharedLibFiles.GetFirst);
         if s<>'' then
          begin
            s2:=s;
@@ -359,21 +357,21 @@ begin
    end;
 
   { write exports }
-  hp2:=pexported_item(current_module^._exports^.first);
+  hp2:=texported_item(current_module._exports.first);
   while assigned(hp2) do
    begin
-     if not hp2^.is_var then
+     if not hp2.is_var then
       begin
         { Export the Symbol
           Warning: The Symbol is converted to upper-case if not explicitly
           specified by >>Exports BlaBla NAME 'BlaBla';<< }
-        Comment(V_Debug,'Exporting '+hp2^.name^);
-        LinkRes.Add ('EXPORT '+hp2^.name^);
+        Comment(V_Debug,'Exporting '+hp2.name^);
+        LinkRes.Add ('EXPORT '+hp2.name^);
       end
      else
       { really ? }
       Comment(V_Error,'Exporting of variables is not supported under netware');
-     hp2:=pexported_item(hp2^.next);
+     hp2:=texported_item(hp2.next);
    end;
 
 { Write and Close response }
@@ -394,7 +392,7 @@ var
   StripStr   : string[40];
 begin
   if not(cs_link_extern in aktglobalswitches) then
-   Message1(exec_i_linking,current_module^.exefilename^);
+   Message1(exec_i_linking,current_module.exefilename^);
 
 { Create some replacements }
   StaticStr:='';
@@ -406,7 +404,7 @@ begin
 
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',current_module^.exefilename^);
+  Replace(cmdstr,'$EXE',current_module.exefilename^);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$RES',outputexedir+Info.ResName);
   Replace(cmdstr,'$STATIC',StaticStr);
@@ -424,7 +422,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-11-29 00:30:42  florian
+  Revision 1.5  2000-12-25 00:07:30  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.4  2000/11/29 00:30:42  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

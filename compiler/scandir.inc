@@ -626,7 +626,7 @@ const
         path  : dirstr;
         name  : namestr;
         ext   : extstr;
-        hp    : pinputfile;
+        hp    : tinputfile;
         i     : longint;
         found : boolean;
       begin
@@ -656,7 +656,7 @@ const
              hs:=getdatestr
            else
             if hs='FILE' then
-             hs:=current_module^.sourcefiles^.get_file_name(aktfilepos.fileindex)
+             hs:=current_module.sourcefiles.get_file_name(aktfilepos.fileindex)
            else
             if hs='LINE' then
              hs:=tostr(aktfilepos.line)
@@ -685,9 +685,9 @@ const
            found:=false;
            if path<>'' then
              path:=path+';';
-           path:=FindFile(name+ext,path+current_scanner^.inputfile^.path^+';.'+DirSep,found);
+           path:=FindFile(name+ext,path+current_scanner^.inputfile.path^+';.'+DirSep,found);
            if (not found) then
-            path:=current_module^.localincludesearchpath.FindFile(name+ext,found);
+            path:=current_module.localincludesearchpath.FindFile(name+ext,found);
            if (not found) then
             path:=includesearchpath.FindFile(name+ext,found);
          { save old postion and decrease linebreak }
@@ -701,7 +701,7 @@ const
            current_scanner^.addfile(hp);
            if not current_scanner^.openinputfile then
             Message1(scan_f_cannot_open_includefile,hs);
-           Message1(scan_t_start_include_file,current_scanner^.inputfile^.path^+current_scanner^.inputfile^.name^);
+           Message1(scan_t_start_include_file,current_scanner^.inputfile.path^+current_scanner^.inputfile.name^);
            current_scanner^.reload;
          { process first read char }
            case c of
@@ -710,7 +710,7 @@ const
             #13 : current_scanner^.linebreak;
            end;
          { register for refs }
-           current_module^.sourcefiles^.register_file(hp);
+           current_module.sourcefiles.register_file(hp);
          end;
       end;
 
@@ -799,13 +799,7 @@ const
       begin
         current_scanner^.skipspace;
         s:=AddExtension(FixFileName(current_scanner^.readcomment),target_info.objext);
-      {$IFDEF NEWST}
-        current_module^.linkotherofiles.
-         insert(new(Plinkitem,init(s,link_allways)));
-      {$ELSE}
-        current_module^.linkotherofiles.
-         insert(s,link_allways);
-      {$ENDIF NEWST}
+        current_module.linkotherofiles.add(s,link_allways);
       end;
 
 
@@ -821,15 +815,15 @@ const
           if Assigned(Current_Module) then
             begin
             delete(S,1,1);
-            insert(lower(current_module^.modulename^),S,1);
+            insert(lower(current_module.modulename^),S,1);
             end;
         s:=AddExtension(FixFileName(s),target_info.resext);
         if target_info.res<>res_none then
           if (target_info.res = res_i386_emx) and
-                                 not (Current_Module^.ResourceFiles.Empty) then
+                                 not (Current_module.ResourceFiles.Empty) then
             Message(scan_w_only_one_resourcefile_supported)
           else
-            current_module^.resourcefiles.insert(FixFileName(s))
+            current_module.resourcefiles.insert(FixFileName(s))
         else
           Message(scan_e_resourcefiles_not_supported);
       end;
@@ -863,13 +857,7 @@ const
                 s:=s+orgpattern;
               end;
           end;
-      {$IFDEF NEWST}
-        current_module^.linkOtherSharedLibs.
-         insert(new(Plinkitem,init(s,link_allways)));
-      {$ELSE}
-        current_module^.linkOtherSharedLibs.
-         insert(s,link_allways);
-      {$ENDIF}
+        current_module.linkOtherSharedLibs.add(s,link_allways);
       end;
 {$else PAVEL_LINKLIB}
     procedure dir_linklib(t:tdirectivetoken);
@@ -932,21 +920,9 @@ const
        linkMode:=ExtractLinkMode;
        MangleLibName(linkMode);
        if linkMode=lm_static then
-{$IFDEF NEWST}
-        current_module^.linkOtherStaticLibs.
-         insert(new(Plinkitem,init(FixFileName(libname),link_allways)))
-{$ELSE}
-        current_module^.linkOtherStaticLibs.
-         insert(FixFileName(libname),link_allways)
-{$ENDIF}
+        current_module.linkOtherStaticLibs.add(FixFileName(libname),link_allways)
        else
-{$IFDEF NEWST}
-        current_module^.linkOtherSharedLibs.
-         insert(new(Plinkitem,init(FixFileName(libname),link_allways)));
-{$ELSE}
-        current_module^.linkOtherSharedLibs.
-         insert(FixFileName(libname),link_allways);
-{$ENDIF}
+        current_module.linkOtherSharedLibs.add(FixFileName(libname),link_allways);
       end;
 
 
@@ -955,7 +931,7 @@ const
 
     procedure dir_outputformat(t:tdirectivetoken);
       begin
-        if not current_module^.in_global then
+        if not current_module.in_global then
          Message(scan_w_switch_is_global)
         else
           begin
@@ -970,55 +946,55 @@ const
 
     procedure dir_unitpath(t:tdirectivetoken);
       begin
-        if not current_module^.in_global then
+        if not current_module.in_global then
          Message(scan_w_switch_is_global)
         else
           begin
             current_scanner^.skipspace;
-            current_module^.localunitsearchpath.AddPath(current_scanner^.readcomment,false);
+            current_module.localunitsearchpath.AddPath(current_scanner^.readcomment,false);
           end;
       end;
 
 
     procedure dir_includepath(t:tdirectivetoken);
       begin
-        if not current_module^.in_global then
+        if not current_module.in_global then
          Message(scan_w_switch_is_global)
         else
           begin
             current_scanner^.skipspace;
-            current_module^.localincludesearchpath.AddPath(current_scanner^.readcomment,false);
+            current_module.localincludesearchpath.AddPath(current_scanner^.readcomment,false);
           end;
       end;
 
 
     procedure dir_librarypath(t:tdirectivetoken);
       begin
-        if not current_module^.in_global then
+        if not current_module.in_global then
          Message(scan_w_switch_is_global)
         else
           begin
             current_scanner^.skipspace;
-            current_module^.locallibrarysearchpath.AddPath(current_scanner^.readcomment,false);
+            current_module.locallibrarysearchpath.AddPath(current_scanner^.readcomment,false);
           end;
       end;
 
 
     procedure dir_objectpath(t:tdirectivetoken);
       begin
-        if not current_module^.in_global then
+        if not current_module.in_global then
          Message(scan_w_switch_is_global)
         else
           begin
             current_scanner^.skipspace;
-            current_module^.localobjectsearchpath.AddPath(current_scanner^.readcomment,false);
+            current_module.localobjectsearchpath.AddPath(current_scanner^.readcomment,false);
           end;
       end;
 
 
     procedure dir_mode(t:tdirectivetoken);
       begin
-        if not current_module^.in_global then
+        if not current_module.in_global then
          Message(scan_w_switch_is_global)
         else
           begin
@@ -1155,7 +1131,7 @@ const
       begin
         if target_info.target<>target_i386_win32 then
           Message(scan_w_app_type_not_support);
-        if not current_module^.in_global then
+        if not current_module.in_global then
           Message(scan_w_switch_is_global)
         else
           begin
@@ -1385,20 +1361,20 @@ const
          current_scanner^.gettokenpos;
          current_scanner^.readchar; {Remove the $}
          hs:=current_scanner^.readid;
+{$ifdef PREPROCWRITE}
          if parapreprocess then
           begin
             t:=Get_Directive(hs);
             if not(is_conditional(t) or (t=_DIR_DEFINE) or (t=_DIR_UNDEF)) then
              begin
-{$ifdef PREPROCWRITE}
                preprocfile^.AddSpace;
                preprocfile^.Add('{$'+hs+current_scanner^.readcomment+'}');
-{$endif PREPROCWRITE}
                exit;
              end;
           end;
+{$endif PREPROCWRITE}
          { skip this directive? }
-         if current_scanner^.ignoredirectives.find(hs) then
+         if (current_scanner^.ignoredirectives.find(hs)<>nil) then
           begin
             if (current_scanner^.comment_level>0) then
              current_scanner^.readcomment;
@@ -1461,7 +1437,11 @@ const
 
 {
   $Log$
-  Revision 1.14  2000-12-24 12:24:38  peter
+  Revision 1.15  2000-12-25 00:07:28  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.14  2000/12/24 12:24:38  peter
     * moved preprocessfile into a conditional
 
   Revision 1.13  2000/12/12 19:48:52  peter

@@ -432,12 +432,12 @@ implementation
         SmartFilesCount:=0;
         SmartHeaderCount:=0;
         objsmart:=smart;
-        objfile:=current_module^.objfilename^;
+        objfile:=current_module.objfilename^;
       { Which path will be used ? }
         if objsmart and
            (cs_asm_leave in aktglobalswitches) then
          begin
-           path:=current_module^.path^+FixFileName(current_module^.modulename^)+target_info.smartext;
+           path:=current_module.path^+FixFileName(current_module.modulename^)+target_info.smartext;
            {$I-}
             mkdir(path);
            {$I+}
@@ -445,11 +445,11 @@ implementation
            path:=FixPath(path,false);
          end
         else
-         path:=current_module^.path^;
+         path:=current_module.path^;
       { init writer }
         if objsmart and
            not(cs_asm_leave in aktglobalswitches) then
-          writer:=tarobjectwriter.create(current_module^.staticlibfilename^)
+          writer:=tarobjectwriter.create(current_module.staticlibfilename^)
         else
           writer:=tobjectwriter.create;
       end;
@@ -469,9 +469,9 @@ implementation
         if SmartFilesCount>999999 then
          Message(asmw_f_too_many_asm_files);
         if (cs_asm_leave in aktglobalswitches) then
-         s:=current_module^.asmprefix^
+         s:=current_module.asmprefix^
         else
-         s:=current_module^.modulename^;
+         s:=current_module.modulename^;
         case place of
           cut_begin :
             begin
@@ -529,7 +529,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2000-12-24 12:25:31  peter
+  Revision 1.5  2000-12-25 00:07:26  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.4  2000/12/24 12:25:31  peter
     + cstreams unit
     * dynamicarray object to class
 

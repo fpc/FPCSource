@@ -72,7 +72,7 @@ interface
           procedure load_browser;
           procedure write_browser;
 {$ifdef GDB}
-          procedure concatstabto(asmlist : paasmoutput);virtual;
+          procedure concatstabto(asmlist : taasmoutput);virtual;
           function getnewtypecount : word; virtual;
 {$endif GDB}
        end;
@@ -92,7 +92,7 @@ interface
           destructor done;virtual;
           procedure writeasunit;
 {$ifdef GDB}
-          procedure concattypestabto(asmlist : paasmoutput);
+          procedure concattypestabto(asmlist : taasmoutput);
           function getnewtypecount : word; virtual;
 {$endif GDB}
           procedure load_symtable_refs;
@@ -273,7 +273,7 @@ implementation
             { do not claim for unit name itself !! }
             (punitsym(p)^.unitsymtable^.symtabletype=unitsymtable) then
            MessagePos2(psym(p)^.fileinfo,sym_n_unit_not_used,
-             p^.name,current_module^.modulename^);
+             p^.name,current_module.modulename^);
       end;
 
     procedure varsymbolused(p : pnamedindexobject);
@@ -335,7 +335,7 @@ implementation
              { all program functions are declared global
                but unused should still be signaled PM }
                 ((psym(p)^.owner^.symtabletype=staticsymtable) and
-                not current_module^.is_unit) then
+                not current_module.is_unit) then
              MessagePos2(psym(p)^.fileinfo,sym_h_local_symbol_not_used,SymTypeName[psym(p)^.typ],psym(p)^.realname);
           end;
       end;
@@ -360,7 +360,7 @@ implementation
 
 {$ifdef GDB}
     var
-      asmoutput : paasmoutput;
+      asmoutput : taasmoutput;
 
     procedure concatstab(p : pnamedindexobject);
       begin
@@ -833,9 +833,9 @@ implementation
              begin
                symtablelevel:=0;
 {$ifndef NEWMAP}
-               current_module^.map^[0]:=@self;
+               current_module.map^[0]:=@self;
 {$else NEWMAP}
-               current_module^.globalsymtable:=@self;
+               current_module.globalsymtable:=@self;
 {$endif NEWMAP}
              end;
            recordsymtable,
@@ -884,7 +884,7 @@ implementation
              begin
 {$ifdef NEWMAP}
                { necessary for dependencies }
-               current_module^.globalsymtable:=nil;
+               current_module.globalsymtable:=nil;
 {$endif NEWMAP}
              end;
            recordsymtable,
@@ -1014,7 +1014,7 @@ implementation
                       end;
                    end;
                 end
-              else if (current_module^.flags and uf_local_browser)=0 then
+              else if (current_module.flags and uf_local_browser)=0 then
                 internalerror(43789);
            end;
 
@@ -1149,7 +1149,7 @@ implementation
            { this was buggy anyway because we could use }
            { unitsyms from other units in _USES !!      }
            {if (symtabletype=unitsymtable) and (hp^.typ=unitsym) and
-              assigned(current_module) and (current_module^.globalsymtable<>@self) then
+              assigned(current_module) and (current_module.globalsymtable<>@self) then
              hp:=nil;}
            if assigned(hp) and
               (cs_browser in aktmoduleswitches) and make_ref then
@@ -1240,7 +1240,7 @@ implementation
 {$endif CHAINPROCSYMS}
 
 {$ifdef GDB}
-    procedure tstoredsymtable.concatstabto(asmlist : paasmoutput);
+    procedure tstoredsymtable.concatstabto(asmlist : taasmoutput);
       begin
         asmoutput:=asmlist;
         if symtabletype in [inlineparasymtable,inlinelocalsymtable] then
@@ -1286,25 +1286,25 @@ implementation
 
     procedure writesourcefiles;
       var
-        hp    : pinputfile;
+        hp  : tinputfile;
         i,j : longint;
       begin
       { second write the used source files }
         current_ppu^.do_crc:=false;
-        hp:=current_module^.sourcefiles^.files;
+        hp:=current_module.sourcefiles.files;
       { write source files directly in good order }
         j:=0;
         while assigned(hp) do
           begin
             inc(j);
-            hp:=hp^.ref_next;
+            hp:=hp.ref_next;
           end;
         while j>0 do
           begin
-            hp:=current_module^.sourcefiles^.files;
+            hp:=current_module.sourcefiles.files;
             for i:=1 to j-1 do
-              hp:=hp^.ref_next;
-            current_ppu^.putstring(hp^.name^);
+              hp:=hp.ref_next;
+            current_ppu^.putstring(hp.name^);
             dec(j);
          end;
         current_ppu^.writeentry(ibsourcefiles);
@@ -1332,23 +1332,23 @@ implementation
 
     procedure writeusedunit;
       var
-        hp      : pused_unit;
+        hp : tused_unit;
       begin
         numberunits;
-        hp:=pused_unit(current_module^.used_units.first);
+        hp:=tused_unit(current_module.used_units.first);
         while assigned(hp) do
          begin
            { implementation units should not change
              the CRC PM }
-           current_ppu^.do_crc:=hp^.in_interface;
-           current_ppu^.putstring(hp^.name^);
+           current_ppu^.do_crc:=hp.in_interface;
+           current_ppu^.putstring(hp.name^);
            { the checksum should not affect the crc of this unit ! (PFV) }
            current_ppu^.do_crc:=false;
-           current_ppu^.putlongint(hp^.checksum);
-           current_ppu^.putlongint(hp^.interface_checksum);
-           current_ppu^.putbyte(byte(hp^.in_interface));
+           current_ppu^.putlongint(hp.checksum);
+           current_ppu^.putlongint(hp.interface_checksum);
+           current_ppu^.putbyte(byte(hp.in_interface));
            current_ppu^.do_crc:=true;
-           hp:=pused_unit(hp^.next);
+           hp:=tused_unit(hp.next);
          end;
         current_ppu^.do_interface_crc:=true;
         current_ppu^.writeentry(ibloadunit);
@@ -1361,7 +1361,7 @@ implementation
         s : string;
         mask : longint;
       begin
-        hcontainer.init;
+        hcontainer:=TLinkContainer.Create;
         while not p.empty do
          begin
            s:=p.get(mask);
@@ -1370,7 +1370,7 @@ implementation
            else
             current_ppu^.putstring(s);
            current_ppu^.putlongint(mask);
-           hcontainer.insert(s,mask);
+           hcontainer.add(s,mask);
          end;
         current_ppu^.writeentry(id);
         p:=hcontainer;
@@ -1382,7 +1382,7 @@ implementation
          Message1(unit_u_ppu_write,s);
 
        { create unit flags }
-         with Current_Module^ do
+         with Current_Module do
           begin
 {$ifdef GDB}
             if cs_gdb_dbx in aktglobalswitches then
@@ -1417,10 +1417,10 @@ implementation
            end
          else
            begin
-             current_ppu^.crc_test:=Current_Module^.crc_array;
-             current_ppu^.crc_index:=Current_Module^.crc_size;
-             current_ppu^.crc_test2:=Current_Module^.crc_array2;
-             current_ppu^.crc_index2:=Current_Module^.crc_size2;
+             current_ppu^.crc_test:=current_module.crc_array;
+             current_ppu^.crc_index:=current_module.crc_size;
+             current_ppu^.crc_test2:=current_module.crc_array2;
+             current_ppu^.crc_index2:=current_module.crc_size2;
            end;
 {$endif def Test_Double_checksum}
 
@@ -1437,21 +1437,21 @@ implementation
          current_ppu^.header.compiler:=wordversion;
          current_ppu^.header.cpu:=word(target_cpu);
          current_ppu^.header.target:=word(target_info.target);
-         current_ppu^.header.flags:=current_module^.flags;
+         current_ppu^.header.flags:=current_module.flags;
          If not only_crc then
            current_ppu^.writeheader;
        { save crc in current_module also }
-         current_module^.crc:=current_ppu^.crc;
-         current_module^.interface_crc:=current_ppu^.interface_crc;
+         current_module.crc:=current_ppu^.crc;
+         current_module.interface_crc:=current_ppu^.interface_crc;
          if only_crc then
           begin
 {$ifdef Test_Double_checksum}
-            Current_Module^.crc_array:=current_ppu^.crc_test;
+            current_module.crc_array:=current_ppu^.crc_test;
             current_ppu^.crc_test:=nil;
-            Current_Module^.crc_size:=current_ppu^.crc_index2;
-            Current_Module^.crc_array2:=current_ppu^.crc_test2;
+            current_module.crc_size:=current_ppu^.crc_index2;
+            current_module.crc_array2:=current_ppu^.crc_test2;
             current_ppu^.crc_test2:=nil;
-            Current_Module^.crc_size2:=current_ppu^.crc_index2;
+            current_module.crc_size2:=current_ppu^.crc_index2;
 {$endif def Test_Double_checksum}
             closecurrentppu;
           end;
@@ -1478,17 +1478,17 @@ implementation
              begin
 {$ifndef EXTDEBUG}
            { if we don't have the sources why tell }
-              if current_module^.sources_avail then
+              if current_module.sources_avail then
 {$endif ndef EXTDEBUG}
                if (not was_defined_at_startup) and
                   was_used and
                   mac^.defined_at_startup then
-                Message2(unit_h_cond_not_set_in_last_compile,hs,current_module^.mainsource^);
+                Message2(unit_h_cond_not_set_in_last_compile,hs,current_module.mainsource^);
              end
            else { not assigned }
              if was_defined_at_startup and
                 was_used then
-              Message2(unit_h_cond_not_set_in_last_compile,hs,current_module^.mainsource^);
+              Message2(unit_h_cond_not_set_in_last_compile,hs,current_module.mainsource^);
          end;
       end;
 
@@ -1502,19 +1502,19 @@ implementation
         is_main       : boolean;
         ppufiletime,
         source_time   : longint;
-        hp            : pinputfile;
+        hp            : tinputfile;
       begin
-        ppufiletime:=getnamedfiletime(current_module^.ppufilename^);
-        current_module^.sources_avail:=true;
+        ppufiletime:=getnamedfiletime(current_module.ppufilename^);
+        current_module.sources_avail:=true;
         is_main:=true;
         main_dir:='';
         while not current_ppu^.endofentry do
          begin
            hs:=current_ppu^.getstring;
            temp_dir:='';
-           if (current_module^.flags and uf_in_library)<>0 then
+           if (current_module.flags and uf_in_library)<>0 then
             begin
-              current_module^.sources_avail:=false;
+              current_module.sources_avail:=false;
               temp:=' library';
             end
            else if pos('Macro ',hs)=1 then
@@ -1526,11 +1526,11 @@ implementation
            else
             begin
               { check the date of the source files }
-              Source_Time:=GetNamedFileTime(current_module^.path^+hs);
+              Source_Time:=GetNamedFileTime(current_module.path^+hs);
               incfile_found:=false;
               main_found:=false;
               if Source_Time<>-1 then
-                hs:=current_module^.path^+hs
+                hs:=current_module.path^+hs
               else
                if not(is_main) then
                 begin
@@ -1552,7 +1552,7 @@ implementation
                 end;
               if Source_Time=-1 then
                begin
-                 current_module^.sources_avail:=false;
+                 current_module.sources_avail:=false;
                  temp:=' not found';
                end
               else
@@ -1569,30 +1569,30 @@ implementation
                     temp:=' time '+filetimestring(source_time);
                     if (source_time>ppufiletime) then
                      begin
-                       current_module^.do_compile:=true;
-                       current_module^.recompile_reason:=rr_sourcenewer;
+                       current_module.do_compile:=true;
+                       current_module.recompile_reason:=rr_sourcenewer;
                        temp:=temp+' *'
                      end;
                   end;
                end;
-              new(hp,init(hs));
+              hp:=tinputfile.create(hs);
               { the indexing is wrong here PM }
-              current_module^.sourcefiles^.register_file(hp);
+              current_module.sourcefiles.register_file(hp);
             end;
            if is_main then
              begin
-               stringdispose(current_module^.mainsource);
-               current_module^.mainsource:=stringdup(hs);
+               stringdispose(current_module.mainsource);
+               current_module.mainsource:=stringdup(hs);
              end;
            Message1(unit_u_ppu_source,hs+temp);
            is_main:=false;
          end;
       { check if we want to rebuild every unit, only if the sources are
         available }
-        if do_build and current_module^.sources_avail then
+        if do_build and current_module.sources_avail then
           begin
-             current_module^.do_compile:=true;
-             current_module^.recompile_reason:=rr_build;
+             current_module.do_compile:=true;
+             current_module.recompile_reason:=rr_build;
           end;
       end;
 
@@ -1610,7 +1610,7 @@ implementation
            checksum:=current_ppu^.getlongint;
            intfchecksum:=current_ppu^.getlongint;
            in_interface:=(current_ppu^.getbyte<>0);
-           current_module^.used_units.concat(new(pused_unit,init_to_load(hs,checksum,intfchecksum,in_interface)));
+           current_module.used_units.concat(tused_unit.create_to_load(hs,checksum,intfchecksum,in_interface));
          end;
       end;
 
@@ -1624,7 +1624,7 @@ implementation
          begin
            s:=current_ppu^.getstring;
            m:=current_ppu^.getlongint;
-           p.insert(s,m);
+           p.add(s,m);
          end;
       end;
 
@@ -1641,12 +1641,12 @@ implementation
              ibmodulename :
                begin
                  newmodulename:=current_ppu^.getstring;
-                 if upper(newmodulename)<>current_module^.modulename^ then
-                   Message2(unit_f_unit_name_error,current_module^.realmodulename^,newmodulename);
-                 stringdispose(current_module^.modulename);
-                 stringdispose(current_module^.realmodulename);
-                 current_module^.modulename:=stringdup(upper(newmodulename));
-                 current_module^.realmodulename:=stringdup(newmodulename);
+                 if upper(newmodulename)<>current_module.modulename^ then
+                   Message2(unit_f_unit_name_error,current_module.realmodulename^,newmodulename);
+                 stringdispose(current_module.modulename);
+                 stringdispose(current_module.realmodulename);
+                 current_module.modulename:=stringdup(upper(newmodulename));
+                 current_module.realmodulename:=stringdup(newmodulename);
                end;
              ibsourcefiles :
                readsourcefiles;
@@ -1655,17 +1655,17 @@ implementation
              ibloadunit :
                readloadunit;
              iblinkunitofiles :
-               readlinkcontainer(current_module^.LinkUnitOFiles);
+               readlinkcontainer(current_module.LinkUnitOFiles);
              iblinkunitstaticlibs :
-               readlinkcontainer(current_module^.LinkUnitStaticLibs);
+               readlinkcontainer(current_module.LinkUnitStaticLibs);
              iblinkunitsharedlibs :
-               readlinkcontainer(current_module^.LinkUnitSharedLibs);
+               readlinkcontainer(current_module.LinkUnitSharedLibs);
              iblinkotherofiles :
-               readlinkcontainer(current_module^.LinkotherOFiles);
+               readlinkcontainer(current_module.LinkotherOFiles);
              iblinkotherstaticlibs :
-               readlinkcontainer(current_module^.LinkotherStaticLibs);
+               readlinkcontainer(current_module.LinkotherStaticLibs);
              iblinkothersharedlibs :
-               readlinkcontainer(current_module^.LinkotherSharedLibs);
+               readlinkcontainer(current_module.LinkotherSharedLibs);
              ibendinterface :
                break;
            else
@@ -1701,10 +1701,10 @@ implementation
              unittypecount:=1;
              if (symtabletype=globalsymtable) then
                pglobaltypecount := @unittypecount;
-             unitid:=current_module^.unitcount;
-             debuglist^.concat(new(pai_asm_comment,init(strpnew('Global '+name^+' has index '+tostr(unitid)))));
-             debuglist^.concat(new(pai_stabs,init(strpnew('"'+name^+'",'+tostr(N_BINCL)+',0,0,0'))));
-             inc(current_module^.unitcount);
+             unitid:=current_module.unitcount;
+             debugList.concat(Tai_asm_comment.Create(strpnew('Global '+name^+' has index '+tostr(unitid))));
+             debugList.concat(Tai_stabs.Create(strpnew('"'+name^+'",'+tostr(N_BINCL)+',0,0,0')));
+             inc(current_module.unitcount);
              dbx_count_ok:=false;
              dbx_counter:=@dbx_count;
              do_count_dbx:=true;
@@ -1735,11 +1735,11 @@ implementation
          inherited loadas(unitsymtable);
 
        { set the name after because it is set to nil in tstoredsymtable.load !! }
-         name:=stringdup(current_module^.modulename^);
+         name:=stringdup(current_module.modulename^);
 
        { dbx count }
 {$ifdef GDB}
-         if (current_module^.flags and uf_has_dbx)<>0 then
+         if (current_module.flags and uf_has_dbx)<>0 then
            begin
               b := current_ppu^.readentry;
               if b <> ibdbxcount then
@@ -1784,14 +1784,14 @@ implementation
             b : byte;
             unitindex : word;
          begin
-         if ((current_module^.flags and uf_local_browser)<>0) then
+         if ((current_module.flags and uf_local_browser)<>0) then
            begin
-              current_module^.localsymtable:=new(punitsymtable,loadas(staticppusymtable));
-              psymtable(current_module^.localsymtable)^.name:=
-                stringdup('implementation of '+psymtable(current_module^.globalsymtable)^.name^);
+              current_module.localsymtable:=new(punitsymtable,loadas(staticppusymtable));
+              psymtable(current_module.localsymtable)^.name:=
+                stringdup('implementation of '+psymtable(current_module.globalsymtable)^.name^);
            end;
          { load browser }
-         if (current_module^.flags and uf_has_browser)<>0 then
+         if (current_module.flags and uf_has_browser)<>0 then
            begin
               {if not (cs_browser in aktmoduleswitches) then
                 current_ppu^.skipuntilentry(ibendbrowser)
@@ -1799,7 +1799,7 @@ implementation
                 begin
                    load_browser;
                    unitindex:=1;
-                   while assigned(current_module^.map^[unitindex]) do
+                   while assigned(current_module.map^[unitindex]) do
                      begin
                         {each unit wrote one browser entry }
                         load_browser;
@@ -1810,17 +1810,17 @@ implementation
                      Message1(unit_f_ppu_invalid_entry,tostr(b));
                 end;
            end;
-         if ((current_module^.flags and uf_local_browser)<>0) then
-           pstoredsymtable(current_module^.localsymtable)^.load_browser;
+         if ((current_module.flags and uf_local_browser)<>0) then
+           pstoredsymtable(current_module.localsymtable)^.load_browser;
          end;
 
 
     procedure tunitsymtable.writeasunit;
       var
-         pu        : pused_unit;
+         pu : tused_unit;
       begin
       { first the unitname }
-        current_ppu^.putstring(current_module^.realmodulename^);
+        current_ppu^.putstring(current_module.realmodulename^);
         current_ppu^.writeentry(ibmodulename);
 
         writesourcefiles;
@@ -1833,12 +1833,12 @@ implementation
         the link.res. All doesn't depend on the crc! It doesn't matter
         if a unit is in a .o or .a file }
         current_ppu^.do_crc:=false;
-        writelinkcontainer(current_module^.linkunitofiles,iblinkunitofiles,true);
-        writelinkcontainer(current_module^.linkunitstaticlibs,iblinkunitstaticlibs,true);
-        writelinkcontainer(current_module^.linkunitsharedlibs,iblinkunitsharedlibs,true);
-        writelinkcontainer(current_module^.linkotherofiles,iblinkotherofiles,false);
-        writelinkcontainer(current_module^.linkotherstaticlibs,iblinkotherstaticlibs,true);
-        writelinkcontainer(current_module^.linkothersharedlibs,iblinkothersharedlibs,true);
+        writelinkcontainer(current_module.linkunitofiles,iblinkunitofiles,true);
+        writelinkcontainer(current_module.linkunitstaticlibs,iblinkunitstaticlibs,true);
+        writelinkcontainer(current_module.linkunitsharedlibs,iblinkunitsharedlibs,true);
+        writelinkcontainer(current_module.linkotherofiles,iblinkotherofiles,false);
+        writelinkcontainer(current_module.linkotherstaticlibs,iblinkotherstaticlibs,true);
+        writelinkcontainer(current_module.linkothersharedlibs,iblinkothersharedlibs,true);
         current_ppu^.do_crc:=true;
 
         current_ppu^.writeentry(ibendinterface);
@@ -1865,24 +1865,24 @@ implementation
 
          { write static symtable
            needed for local debugging of unit functions }
-        if ((current_module^.flags and uf_local_browser)<>0) and
-           assigned(current_module^.localsymtable) then
-          pstoredsymtable(current_module^.localsymtable)^.writeas;
+        if ((current_module.flags and uf_local_browser)<>0) and
+           assigned(current_module.localsymtable) then
+          pstoredsymtable(current_module.localsymtable)^.writeas;
       { write all browser section }
-        if (current_module^.flags and uf_has_browser)<>0 then
+        if (current_module.flags and uf_has_browser)<>0 then
          begin
            write_browser;
-           pu:=pused_unit(current_module^.used_units.first);
+           pu:=tused_unit(current_module.used_units.first);
            while assigned(pu) do
             begin
-              pstoredsymtable(pu^.u^.globalsymtable)^.write_browser;
-              pu:=pused_unit(pu^.next);
+              pstoredsymtable(pu.u.globalsymtable)^.write_browser;
+              pu:=tused_unit(pu.next);
             end;
            current_ppu^.writeentry(ibendbrowser);
          end;
-        if ((current_module^.flags and uf_local_browser)<>0) and
-           assigned(current_module^.localsymtable) then
-          pstoredsymtable(current_module^.localsymtable)^.write_browser;
+        if ((current_module.flags and uf_local_browser)<>0) and
+           assigned(current_module.localsymtable) then
+          pstoredsymtable(current_module.localsymtable)^.write_browser;
 
       { the last entry ibend is written automaticly }
       end;
@@ -1905,37 +1905,36 @@ implementation
       end;
 
 
-      procedure tunitsymtable.concattypestabto(asmlist : paasmoutput);
+      procedure tunitsymtable.concattypestabto(asmlist : taasmoutput);
         var prev_dbx_count : plongint;
         begin
            if is_stab_written then exit;
            if not assigned(name) then name := stringdup('Main_program');
            if (symtabletype = unitsymtable) and
-              (current_module^.globalsymtable<>@Self) then
+              (current_module.globalsymtable<>@Self) then
              begin
-                unitid:=current_module^.unitcount;
-                inc(current_module^.unitcount);
+                unitid:=current_module.unitcount;
+                inc(current_module.unitcount);
              end;
-           asmlist^.concat(new(pai_asm_comment,init(strpnew('Begin unit '+name^
-                  +' has index '+tostr(unitid)))));
+           asmList.concat(Tai_asm_comment.Create(strpnew('Begin unit '+name^
+                  +' has index '+tostr(unitid))));
            if cs_gdb_dbx in aktglobalswitches then
              begin
                 if dbx_count_ok then
                   begin
-                     asmlist^.concat(new(pai_asm_comment,init(strpnew('"repeated" unit '+name^
-                              +' has index '+tostr(unitid)+' dbx count = '+tostr(dbx_count)))));
-                     asmlist^.concat(new(pai_stabs,init(strpnew('"'+name^+'",'
-                       +tostr(N_EXCL)+',0,0,'+tostr(dbx_count)))));
+                     asmList.concat(Tai_asm_comment.Create(strpnew('"repeated" unit '+name^
+                              +' has index '+tostr(unitid)+' dbx count = '+tostr(dbx_count))));
+                     asmList.concat(Tai_stabs.Create(strpnew('"'+name^+'",'
+                       +tostr(N_EXCL)+',0,0,'+tostr(dbx_count))));
                      exit;
                   end
-                else if (current_module^.globalsymtable<>@Self) then
+                else if (current_module.globalsymtable<>@Self) then
                   begin
                     prev_dbx_count := dbx_counter;
                     dbx_counter := nil;
                     do_count_dbx:=false;
                     if symtabletype = unitsymtable then
-                      asmlist^.concat(new(pai_stabs,init(strpnew('"'+name^+'",'
-                        +tostr(N_BINCL)+',0,0,0'))));
+                      asmList.concat(Tai_stabs.Create(strpnew('"'+name^+'",'+tostr(N_BINCL)+',0,0,0')));
                     dbx_counter := @dbx_count;
                     dbx_count:=0;
                     do_count_dbx:=assigned(dbx_counter);
@@ -1945,14 +1944,14 @@ implementation
            foreach({$ifdef FPCPROCVAR}@{$endif}concattypestab);
            if cs_gdb_dbx in aktglobalswitches then
              begin
-                if (current_module^.globalsymtable<>@Self) then
+                if (current_module.globalsymtable<>@Self) then
                   begin
                     dbx_counter := prev_dbx_count;
                     do_count_dbx:=false;
-                    asmlist^.concat(new(pai_asm_comment,init(strpnew('End unit '+name^
-                      +' has index '+tostr(unitid)))));
-                    asmlist^.concat(new(pai_stabs,init(strpnew('"'+name^+'",'
-                      +tostr(N_EINCL)+',0,0,0'))));
+                    asmList.concat(Tai_asm_comment.Create(strpnew('End unit '+name^
+                      +' has index '+tostr(unitid))));
+                    asmList.concat(Tai_stabs.Create(strpnew('"'+name^+'",'
+                      +tostr(N_EINCL)+',0,0,0')));
                     do_count_dbx:=assigned(dbx_counter);
                     dbx_count_ok := {true}false;
                   end;
@@ -1968,29 +1967,29 @@ implementation
     procedure numberunits;
       var
         counter : longint;
-        hp      : pused_unit;
-        hp1     : pmodule;
+        hp      : tused_unit;
+        hp1     : tmodule;
       begin
         { Reset all numbers to -1 }
-        hp1:=pmodule(loaded_units.first);
+        hp1:=tmodule(loaded_units.first);
         while assigned(hp1) do
          begin
-           if assigned(hp1^.globalsymtable) then
-             psymtable(hp1^.globalsymtable)^.unitid:=$ffff;
-           hp1:=pmodule(hp1^.next);
+           if assigned(hp1.globalsymtable) then
+             psymtable(hp1.globalsymtable)^.unitid:=$ffff;
+           hp1:=tmodule(hp1.next);
          end;
         { Our own symtable gets unitid 0, for a program there is
           no globalsymtable }
-        if assigned(current_module^.globalsymtable) then
-          psymtable(current_module^.globalsymtable)^.unitid:=0;
+        if assigned(current_module.globalsymtable) then
+          psymtable(current_module.globalsymtable)^.unitid:=0;
         { number units }
         counter:=1;
-        hp:=pused_unit(current_module^.used_units.first);
+        hp:=tused_unit(current_module.used_units.first);
         while assigned(hp) do
          begin
-           psymtable(hp^.u^.globalsymtable)^.unitid:=counter;
+           psymtable(hp.u.globalsymtable)^.unitid:=counter;
            inc(counter);
-           hp:=pused_unit(hp^.next);
+           hp:=tused_unit(hp.next);
          end;
       end;
 
@@ -2033,7 +2032,7 @@ implementation
              if assigned(st) and (st^.unitid<>0) then
                Message2(sym_h_duplicate_id_where,'unit '+st^.name^,tostr(line))
              else
-               Message2(sym_h_duplicate_id_where,current_module^.sourcefiles^.get_file_name(fileindex),tostr(line));
+               Message2(sym_h_duplicate_id_where,current_module.sourcefiles.get_file_name(fileindex),tostr(line));
            end;
        end;
 
@@ -2092,11 +2091,11 @@ implementation
                 exit
               else
                begin
-                  if (punitsymtable(srsymtable)=punitsymtable(current_module^.globalsymtable)) then
+                  if (punitsymtable(srsymtable)=punitsymtable(current_module.globalsymtable)) then
                     begin
-                       getsymonlyin(psymtable(current_module^.localsymtable),s);
+                       getsymonlyin(psymtable(current_module.localsymtable),s);
                        if assigned(srsym) then
-                         srsymtable:=psymtable(current_module^.localsymtable)
+                         srsymtable:=psymtable(current_module.localsymtable)
                        else
                          identifier_not_found(s);
                     end
@@ -2282,8 +2281,8 @@ implementation
            begin
              if (p^.symtabletype=unitsymtable) and
                assigned(punitsymtable(p)^.unitsym) and
-               ((punitsymtable(p)^.unitsym^.owner=psymtable(current_module^.globalsymtable)) or
-                (punitsymtable(p)^.unitsym^.owner=psymtable(current_module^.localsymtable))) then
+               ((punitsymtable(p)^.unitsym^.owner=psymtable(current_module.globalsymtable)) or
+                (punitsymtable(p)^.unitsym^.owner=psymtable(current_module.localsymtable))) then
                  punitsymtable(p)^.unitsym^.restoreunitsym;
              p:=p^.next;
            end;
@@ -2371,7 +2370,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  2000-12-23 19:50:09  peter
+  Revision 1.23  2000-12-25 00:07:30  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.22  2000/12/23 19:50:09  peter
     * fixed mem leak with withsymtable
 
   Revision 1.21  2000/12/10 20:25:32  peter

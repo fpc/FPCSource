@@ -30,7 +30,7 @@ Interface
 Uses
   aasm;
 
-Procedure Optimize(AsmL: PAasmOutput);
+Procedure Optimize(AsmL: TAasmOutput);
 
 
 Implementation
@@ -41,9 +41,9 @@ Uses
   DAOpt386,POpt386,CSOpt386;
 
 
-Procedure Optimize(AsmL: PAasmOutput);
+Procedure Optimize(AsmL: TAAsmOutput);
 Var
-  BlockStart, BlockEnd, HP: Pai;
+  BlockStart, BlockEnd, HP: Tai;
   pass: longint;
   slowopt, changed, lastLoop: boolean;
 Begin
@@ -58,7 +58,7 @@ Begin
        (pass = 4);
      changed := false;
    { Setup labeltable, always necessary }
-     BlockStart := Pai(AsmL^.First);
+     BlockStart := Tai(AsmL.First);
      BlockEnd := DFAPass1(AsmL, BlockStart);
    { Blockend now either contains an ait_marker with Kind = AsmBlockStart, }
    { or nil                                                                }
@@ -92,18 +92,18 @@ Begin
         { assembler block or nil                                         }
          BlockStart := BlockEnd;
          While Assigned(BlockStart) And
-               (BlockStart^.typ = ait_Marker) And
-               (Pai_Marker(BlockStart)^.Kind = AsmBlockStart) Do
+               (BlockStart.typ = ait_Marker) And
+               (Tai_Marker(BlockStart).Kind = AsmBlockStart) Do
            Begin
            { We stopped at an assembler block, so skip it }
             Repeat
-              BlockStart := Pai(BlockStart^.Next);
-            Until (BlockStart^.Typ = Ait_Marker) And
-                  (Pai_Marker(Blockstart)^.Kind = AsmBlockEnd);
-           { Blockstart now contains a pai_marker(asmblockend) }
+              BlockStart := Tai(BlockStart.Next);
+            Until (BlockStart.Typ = Ait_Marker) And
+                  (Tai_Marker(Blockstart).Kind = AsmBlockEnd);
+           { Blockstart now contains a Tai_marker(asmblockend) }
              If GetNextInstruction(BlockStart, HP) And
-                ((HP^.typ <> ait_Marker) Or
-                 (Pai_Marker(HP)^.Kind <> AsmBlockStart)) Then
+                ((HP.typ <> ait_Marker) Or
+                 (Tai_Marker(HP).Kind <> AsmBlockStart)) Then
              { There is no assembler block anymore after the current one, so }
              { optimize the next block of "normal" instructions              }
                BlockEnd := DFAPass1(AsmL, BlockStart)
@@ -118,7 +118,11 @@ End;
 End.
 {
   $Log$
-  Revision 1.2  2000-10-24 10:40:53  jonas
+  Revision 1.3  2000-12-25 00:07:31  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.2  2000/10/24 10:40:53  jonas
     + register renaming ("fixes" bug1088)
     * changed command line options meanings for optimizer:
         O2 now means peepholopts, CSE and register renaming in 1 pass

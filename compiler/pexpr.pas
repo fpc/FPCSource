@@ -828,10 +828,10 @@ implementation
                          while assigned(plist) do
                           begin
                             if p1=nil then
-                              p1:=genloadnode(pvarsym(plist^.sym),st)
+                              p1:=genloadnode(pvarsym(pList^.sym),st)
                             else
-                              p1:=gensubscriptnode(pvarsym(plist^.sym),p1);
-                            plist:=plist^.next;
+                              p1:=gensubscriptnode(pvarsym(pList^.sym),p1);
+                            plist:=pList^.next;
                           end;
                          include(tcallnode(p1).flags,nf_isproperty);
                          consume(_ASSIGNMENT);
@@ -868,10 +868,10 @@ implementation
                           while assigned(plist) do
                            begin
                              if p1=nil then
-                               p1:=genloadnode(pvarsym(plist^.sym),st)
+                               p1:=genloadnode(pvarsym(pList^.sym),st)
                              else
-                               p1:=gensubscriptnode(pvarsym(plist^.sym),p1);
-                             plist:=plist^.next;
+                               p1:=gensubscriptnode(pvarsym(pList^.sym),p1);
+                             plist:=pList^.next;
                            end;
                           include(p1.flags,nf_isproperty);
                        end;
@@ -1755,7 +1755,7 @@ implementation
                          again:=false
                        else
                          if (token=_LKLAMMER) or
-                            ((pprocvardef(pd)^.para^.empty) and
+                            ((pprocvardef(pd)^.para.empty) and
                              (not((token in [_ASSIGNMENT,_UNEQUAL,_EQUAL]))) and
                              (not afterassignment) and
                              (not in_args)) then
@@ -2420,7 +2420,11 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.23  2000-12-19 20:36:03  peter
+  Revision 1.24  2000-12-25 00:07:27  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.23  2000/12/19 20:36:03  peter
     * cardinal const expr fix from jonas
 
   Revision 1.22  2000/12/17 14:00:18  peter

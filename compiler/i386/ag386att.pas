@@ -26,12 +26,15 @@ unit ag386att;
 
 interface
 
-    uses cobjects,aasm,assemble;
+    uses
+      cobjects,
+      globals,
+      aasm,assemble;
 
     type
       pi386attasmlist=^ti386attasmlist;
       ti386attasmlist=object(tasmlist)
-        procedure WriteTree(p:paasmoutput);virtual;
+        procedure WriteTree(p:TAAsmoutput);virtual;
         procedure WriteAsmList;virtual;
 {$ifdef GDB}
         procedure WriteFileLineInfo(var fileinfo : tfileposinfo);
@@ -49,7 +52,7 @@ interface
       strings,
       dos,
 {$endif Delphi}
-      cutils,globtype,globals,systems,
+      cutils,globtype,systems,
       fmodule,finput,verbose,cpubase,cpuasm
 {$ifdef GDB}
       ,gdb
@@ -70,7 +73,7 @@ interface
       lastsec      : tsection; { last section type written }
       lastfileinfo : tfileposinfo;
       infile,
-      lastinfile   : pinputfile;
+      lastinfile   : tinputfile;
       symendcount  : longint;
 
    function fixline(s:string):string;
@@ -299,19 +302,19 @@ interface
           if (fileinfo.fileindex<>0) and
              (stabslastfileinfo.fileindex<>fileinfo.fileindex) then
            begin
-             infile:=current_module^.sourcefiles^.get_file(fileinfo.fileindex);
+             infile:=current_module.sourcefiles.get_file(fileinfo.fileindex);
              if assigned(infile) then
               begin
                 if includecount=0 then
                  curr_n:=n_sourcefile
                 else
                  curr_n:=n_includefile;
-                if (infile^.path^<>'') then
+                if (infile.path^<>'') then
                  begin
-                   AsmWriteLn(#9'.stabs "'+lower(BsToSlash(FixPath(infile^.path^,false)))+'",'+
+                   AsmWriteLn(#9'.stabs "'+lower(BsToSlash(FixPath(infile.path^,false)))+'",'+
                      tostr(curr_n)+',0,0,'+'Ltext'+ToStr(IncludeCount));
                  end;
-                AsmWriteLn(#9'.stabs "'+lower(FixFileName(infile^.name^))+'",'+
+                AsmWriteLn(#9'.stabs "'+lower(FixFileName(infile.name^))+'",'+
                   tostr(curr_n)+',0,0,'+'Ltext'+ToStr(IncludeCount));
                 AsmWriteLn('Ltext'+ToStr(IncludeCount)+':');
                 inc(includecount);
@@ -351,7 +354,7 @@ interface
 {$endif GDB}
 
 
-    procedure ti386attasmlist.WriteTree(p:paasmoutput);
+    procedure ti386attasmlist.WriteTree(p:TAAsmoutput);
     const
       allocstr : array[boolean] of string[10]=(' released',' allocated');
       nolinetai =[ait_label,
@@ -364,7 +367,7 @@ interface
       t32bitarray = array[0..3] of byte;
     var
       ch       : char;
-      hp       : pai;
+      hp       : tai;
       consttyp : tait;
       s        : string;
       found    : boolean;
@@ -386,34 +389,34 @@ interface
       do_line:=(cs_asm_source in aktglobalswitches) or
                ((cs_lineinfo in aktmoduleswitches)
                  and (p=codesegment));
-      hp:=pai(p^.first);
+      hp:=tai(p.first);
       while assigned(hp) do
        begin
-         aktfilepos:=hp^.fileinfo;
+         aktfilepos:=hp.fileinfo;
 
-         if not(hp^.typ in nolinetai) then
+         if not(hp.typ in nolinetai) then
           begin
 {$ifdef GDB}
              { write stabs }
              if (cs_debuginfo in aktmoduleswitches) or
                 (cs_gdb_lineinfo in aktglobalswitches) then
-               WriteFileLineInfo(hp^.fileinfo);
+               WriteFileLineInfo(hp.fileinfo);
 {$endif GDB}
 
              if do_line then
               begin
               { load infile }
-                if lastfileinfo.fileindex<>hp^.fileinfo.fileindex then
+                if lastfileinfo.fileindex<>hp.fileinfo.fileindex then
                  begin
-                   infile:=current_module^.sourcefiles^.get_file(hp^.fileinfo.fileindex);
+                   infile:=current_module.sourcefiles.get_file(hp.fileinfo.fileindex);
                    if assigned(infile) then
                     begin
                       { open only if needed !! }
                       if (cs_asm_source in aktglobalswitches) then
-                       infile^.open;
+                       infile.open;
                     end;
                    { avoid unnecessary reopens of the same file !! }
-                   lastfileinfo.fileindex:=hp^.fileinfo.fileindex;
+                   lastfileinfo.fileindex:=hp.fileinfo.fileindex;
                    { be sure to change line !! }
                    lastfileinfo.line:=-1;
                  end;
@@ -423,65 +426,65 @@ interface
                  begin
                    if (infile<>lastinfile) then
                      begin
-                       AsmWriteLn(target_asm.comment+'['+infile^.name^+']');
+                       AsmWriteLn(target_asm.comment+'['+infile.name^+']');
                        if assigned(lastinfile) then
-                         lastinfile^.close;
+                         lastinfile.close;
                      end;
-                   if (hp^.fileinfo.line<>lastfileinfo.line) and
-                      ((hp^.fileinfo.line<infile^.maxlinebuf) or (InlineLevel>0)) then
+                   if (hp.fileinfo.line<>lastfileinfo.line) and
+                      ((hp.fileinfo.line<infile.maxlinebuf) or (InlineLevel>0)) then
                      begin
-                       if (hp^.fileinfo.line<>0) and
-                          ((infile^.linebuf^[hp^.fileinfo.line]>=0) or (InlineLevel>0)) then
-                         AsmWriteLn(target_asm.comment+'['+tostr(hp^.fileinfo.line)+'] '+
-                           fixline(infile^.GetLineStr(hp^.fileinfo.line)));
+                       if (hp.fileinfo.line<>0) and
+                          ((infile.linebuf^[hp.fileinfo.line]>=0) or (InlineLevel>0)) then
+                         AsmWriteLn(target_asm.comment+'['+tostr(hp.fileinfo.line)+'] '+
+                           fixline(infile.GetLineStr(hp.fileinfo.line)));
                        { set it to a negative value !
                        to make that is has been read already !! PM }
-                       if (infile^.linebuf^[hp^.fileinfo.line]>=0) then
-                         infile^.linebuf^[hp^.fileinfo.line]:=-infile^.linebuf^[hp^.fileinfo.line]-1;
+                       if (infile.linebuf^[hp.fileinfo.line]>=0) then
+                         infile.linebuf^[hp.fileinfo.line]:=-infile.linebuf^[hp.fileinfo.line]-1;
                      end;
                  end;
-                lastfileinfo:=hp^.fileinfo;
+                lastfileinfo:=hp.fileinfo;
                 lastinfile:=infile;
               end;
           end;
 
-         case hp^.typ of
+         case hp.typ of
 
            ait_comment :
              Begin
                AsmWrite(target_asm.comment);
-               AsmWritePChar(pai_asm_comment(hp)^.str);
+               AsmWritePChar(tai_asm_comment(hp).str);
                AsmLn;
              End;
 
            ait_regalloc :
              begin
                if (cs_asm_regalloc in aktglobalswitches) then
-                 AsmWriteLn(target_asm.comment+'Register '+att_reg2str[pairegalloc(hp)^.reg]+
-                   allocstr[pairegalloc(hp)^.allocation]);
+                 AsmWriteLn(target_asm.comment+'Register '+att_reg2str[tairegalloc(hp).reg]+
+                   allocstr[tairegalloc(hp).allocation]);
              end;
 
            ait_tempalloc :
              begin
                if (cs_asm_tempalloc in aktglobalswitches) then
-                 AsmWriteLn(target_asm.comment+'Temp '+tostr(paitempalloc(hp)^.temppos)+','+
-                   tostr(paitempalloc(hp)^.tempsize)+allocstr[paitempalloc(hp)^.allocation]);
+                 AsmWriteLn(target_asm.comment+'Temp '+tostr(taitempalloc(hp).temppos)+','+
+                   tostr(taitempalloc(hp).tempsize)+allocstr[taitempalloc(hp).allocation]);
              end;
 
            ait_align :
              begin
-               AsmWrite(#9'.balign '+tostr(pai_align(hp)^.aligntype));
-               if pai_align(hp)^.use_op then
-                AsmWrite(','+tostr(pai_align(hp)^.fillop));
+               AsmWrite(#9'.balign '+tostr(tai_align(hp).aligntype));
+               if tai_align(hp).use_op then
+                AsmWrite(','+tostr(tai_align(hp).fillop));
                AsmLn;
              end;
 
            ait_section :
              begin
-               if pai_section(hp)^.sec<>sec_none then
+               if tai_section(hp).sec<>sec_none then
                 begin
                   AsmLn;
-                  AsmWriteLn(ait_section2str(pai_section(hp)^.sec));
+                  AsmWriteLn(ait_section2str(tai_section(hp).sec));
 {$ifdef GDB}
                   lastfileinfo.line:=-1;
 {$endif GDB}
@@ -490,27 +493,27 @@ interface
 
            ait_datablock :
              begin
-               if pai_datablock(hp)^.is_global then
+               if tai_datablock(hp).is_global then
                 AsmWrite(#9'.comm'#9)
                else
                 AsmWrite(#9'.lcomm'#9);
-               AsmWrite(pai_datablock(hp)^.sym^.name);
-               AsmWriteLn(','+tostr(pai_datablock(hp)^.size));
+               AsmWrite(tai_datablock(hp).sym^.name);
+               AsmWriteLn(','+tostr(tai_datablock(hp).size));
              end;
 
            ait_const_32bit,
            ait_const_16bit,
            ait_const_8bit :
              begin
-               AsmWrite(ait_const2str[hp^.typ]+tostr(pai_const(hp)^.value));
-               consttyp:=hp^.typ;
+               AsmWrite(ait_const2str[hp.typ]+tostr(tai_const(hp).value));
+               consttyp:=hp.typ;
                l:=0;
                repeat
-                 found:=(not (Pai(hp^.next)=nil)) and (Pai(hp^.next)^.typ=consttyp);
+                 found:=(not (tai(hp.next)=nil)) and (tai(hp.next).typ=consttyp);
                  if found then
                   begin
-                    hp:=Pai(hp^.next);
-                    s:=','+tostr(pai_const(hp)^.value);
+                    hp:=tai(hp.next);
+                    s:=','+tostr(tai_const(hp).value);
                     AsmWrite(s);
                     inc(l,length(s));
                   end;
@@ -520,24 +523,24 @@ interface
 
            ait_const_symbol :
              begin
-               AsmWrite(#9'.long'#9+pai_const_symbol(hp)^.sym^.name);
-               if pai_const_symbol(hp)^.offset>0 then
-                 AsmWrite('+'+tostr(pai_const_symbol(hp)^.offset))
-               else if pai_const_symbol(hp)^.offset<0 then
-                 AsmWrite(tostr(pai_const_symbol(hp)^.offset));
+               AsmWrite(#9'.long'#9+tai_const_symbol(hp).sym^.name);
+               if tai_const_symbol(hp).offset>0 then
+                 AsmWrite('+'+tostr(tai_const_symbol(hp).offset))
+               else if tai_const_symbol(hp).offset<0 then
+                 AsmWrite(tostr(tai_const_symbol(hp).offset));
                AsmLn;
              end;
 
            ait_const_rva :
-             AsmWriteLn(#9'.rva'#9+pai_const_symbol(hp)^.sym^.name);
+             AsmWriteLn(#9'.rva'#9+tai_const_symbol(hp).sym^.name);
 
            ait_real_80bit :
              begin
                if do_line then
-                AsmWriteLn(target_asm.comment+extended2str(pai_real_80bit(hp)^.value));
+                AsmWriteLn(target_asm.comment+extended2str(tai_real_80bit(hp).value));
              { Make sure e is a extended type, bestreal could be
                a different type (bestreal) !! (PFV) }
-               e:=pai_real_80bit(hp)^.value;
+               e:=tai_real_80bit(hp).value;
                AsmWrite(#9'.byte'#9);
                for i:=0 to 9 do
                 begin
@@ -551,8 +554,8 @@ interface
            ait_real_64bit :
              begin
                if do_line then
-                AsmWriteLn(target_asm.comment+double2str(pai_real_64bit(hp)^.value));
-               d:=pai_real_64bit(hp)^.value;
+                AsmWriteLn(target_asm.comment+double2str(tai_real_64bit(hp).value));
+               d:=tai_real_64bit(hp).value;
                AsmWrite(#9'.byte'#9);
                for i:=0 to 7 do
                 begin
@@ -566,8 +569,8 @@ interface
            ait_real_32bit :
              begin
                if do_line then
-                AsmWriteLn(target_asm.comment+single2str(pai_real_32bit(hp)^.value));
-               sin:=pai_real_32bit(hp)^.value;
+                AsmWriteLn(target_asm.comment+single2str(tai_real_32bit(hp).value));
+               sin:=tai_real_32bit(hp).value;
                AsmWrite(#9'.byte'#9);
                for i:=0 to 3 do
                 begin
@@ -581,12 +584,12 @@ interface
            ait_comp_64bit :
              begin
                if do_line then
-                AsmWriteLn(target_asm.comment+comp2str(pai_comp_64bit(hp)^.value));
+                AsmWriteLn(target_asm.comment+comp2str(tai_comp_64bit(hp).value));
                AsmWrite(#9'.byte'#9);
 {$ifdef FPC}
-               co:=comp(pai_comp_64bit(hp)^.value);
+               co:=comp(tai_comp_64bit(hp).value);
 {$else}
-               co:=pai_comp_64bit(hp)^.value;
+               co:=tai_comp_64bit(hp).value;
 {$endif}
                for i:=0 to 7 do
                 begin
@@ -599,14 +602,14 @@ interface
 
            ait_direct :
              begin
-               AsmWritePChar(pai_direct(hp)^.str);
+               AsmWritePChar(tai_direct(hp).str);
                AsmLn;
 {$IfDef GDB}
-               if strpos(pai_direct(hp)^.str,'.data')<>nil then
+               if strpos(tai_direct(hp).str,'.data')<>nil then
                  n_line:=n_dataline
-               else if strpos(pai_direct(hp)^.str,'.text')<>nil then
+               else if strpos(tai_direct(hp).str,'.text')<>nil then
                  n_line:=n_textline
-               else if strpos(pai_direct(hp)^.str,'.bss')<>nil then
+               else if strpos(tai_direct(hp).str,'.bss')<>nil then
                  n_line:=n_bssline;
 {$endif GDB}
              end;
@@ -614,14 +617,14 @@ interface
            ait_string :
              begin
                pos:=0;
-               for i:=1 to pai_string(hp)^.len do
+               for i:=1 to tai_string(hp).len do
                 begin
                   if pos=0 then
                    begin
                      AsmWrite(#9'.ascii'#9'"');
                      pos:=20;
                    end;
-                  ch:=pai_string(hp)^.str[i-1];
+                  ch:=tai_string(hp).str[i-1];
                   case ch of
                      #0, {This can't be done by range, because a bug in FPC}
                 #1..#31,
@@ -633,7 +636,7 @@ interface
                   end;
                   AsmWrite(s);
                   inc(pos,length(s));
-                  if (pos>line_length) or (i=pai_string(hp)^.len) then
+                  if (pos>line_length) or (i=tai_string(hp).len) then
                    begin
                      AsmWriteLn('"');
                      pos:=0;
@@ -643,45 +646,45 @@ interface
 
            ait_label :
              begin
-               if (pai_label(hp)^.l^.is_used) then
+               if (tai_label(hp).l^.is_used) then
                 begin
-                  if pai_label(hp)^.l^.defbind=AB_GLOBAL then
+                  if tai_label(hp).l^.defbind=AB_GLOBAL then
                    begin
                      AsmWrite('.globl'#9);
-                     AsmWriteLn(pai_label(hp)^.l^.name);
+                     AsmWriteLn(tai_label(hp).l^.name);
                    end;
-                  AsmWrite(pai_label(hp)^.l^.name);
+                  AsmWrite(tai_label(hp).l^.name);
                   AsmWriteLn(':');
                 end;
              end;
 
            ait_symbol :
              begin
-               if pai_symbol(hp)^.is_global then
+               if tai_symbol(hp).is_global then
                 begin
                   AsmWrite('.globl'#9);
-                  AsmWriteLn(pai_symbol(hp)^.sym^.name);
+                  AsmWriteLn(tai_symbol(hp).sym^.name);
                 end;
                if target_info.target=target_i386_linux then
                 begin
                    AsmWrite(#9'.type'#9);
-                   AsmWrite(pai_symbol(hp)^.sym^.name);
-                   if assigned(pai(hp^.next)) and
-                      (pai(hp^.next)^.typ in [ait_const_symbol,ait_const_rva,
+                   AsmWrite(tai_symbol(hp).sym^.name);
+                   if assigned(tai(hp.next)) and
+                      (tai(hp.next).typ in [ait_const_symbol,ait_const_rva,
                          ait_const_32bit,ait_const_16bit,ait_const_8bit,ait_datablock,
                          ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit]) then
                     AsmWriteLn(',@object')
                    else
                     AsmWriteLn(',@function');
-                   if pai_symbol(hp)^.sym^.size>0 then
+                   if tai_symbol(hp).sym^.size>0 then
                     begin
                       AsmWrite(#9'.size'#9);
-                      AsmWrite(pai_symbol(hp)^.sym^.name);
+                      AsmWrite(tai_symbol(hp).sym^.name);
                       AsmWrite(', ');
-                      AsmWriteLn(tostr(pai_symbol(hp)^.sym^.size));
+                      AsmWriteLn(tostr(tai_symbol(hp).sym^.size));
                     end;
                 end;
-               AsmWrite(pai_symbol(hp)^.sym^.name);
+               AsmWrite(tai_symbol(hp).sym^.name);
                AsmWriteLn(':');
              end;
 
@@ -693,18 +696,18 @@ interface
                   inc(symendcount);
                   AsmWriteLn(s+':');
                   AsmWrite(#9'.size'#9);
-                  AsmWrite(pai_symbol(hp)^.sym^.name);
+                  AsmWrite(tai_symbol(hp).sym^.name);
                   AsmWrite(', '+s+' - ');
-                  AsmWriteLn(pai_symbol(hp)^.sym^.name);
+                  AsmWriteLn(tai_symbol(hp).sym^.name);
                 end;
              end;
 
            ait_instruction :
              begin
-               op:=paicpu(hp)^.opcode;
+               op:=taicpu(hp).opcode;
                calljmp:=is_calljmp(op);
              { call maybe not translated to call }
-               s:=#9+att_op2str[op]+cond2str[paicpu(hp)^.condition];
+               s:=#9+att_op2str[op]+cond2str[taicpu(hp).condition];
                { suffix needed ?  fnstsw,fldcw don't support suffixes
                  with binutils 2.9.5 under linux }
                if (not calljmp) and
@@ -713,12 +716,12 @@ interface
                   (op<>A_FNSTCW) and (op<>A_FSTCW) and
                   (op<>A_FLDCW) and
                   not(
-                   (paicpu(hp)^.oper[0].typ=top_reg) and
-                   (paicpu(hp)^.oper[0].reg in [R_ST..R_ST7])
+                   (taicpu(hp).oper[0].typ=top_reg) and
+                   (taicpu(hp).oper[0].reg in [R_ST..R_ST7])
                   ) then
-                  s:=s+att_opsize2str[paicpu(hp)^.opsize];
+                  s:=s+att_opsize2str[taicpu(hp).opsize];
              { process operands }
-               if paicpu(hp)^.ops<>0 then
+               if taicpu(hp).ops<>0 then
                 begin
                 { call and jmp need an extra handling                          }
                 { this code is only called if jmp isn't a labeled instruction  }
@@ -726,17 +729,17 @@ interface
                   if calljmp then
                     begin
                        AsmWrite(s+#9);
-                       s:=getopstr_jmp(paicpu(hp)^.oper[0]);
+                       s:=getopstr_jmp(taicpu(hp).oper[0]);
                     end
                   else
                    begin
-                     for i:=0 to paicpu(hp)^.ops-1 do
+                     for i:=0 to taicpu(hp).ops-1 do
                       begin
                         if i=0 then
                          sep:=#9
                         else
                          sep:=',';
-                        s:=s+sep+getopstr(paicpu(hp)^.oper[i])
+                        s:=s+sep+getopstr(taicpu(hp).oper[i])
                       end;
                    end;
                 end;
@@ -747,14 +750,14 @@ interface
            ait_stabs :
              begin
                AsmWrite(#9'.stabs ');
-               AsmWritePChar(pai_stabs(hp)^.str);
+               AsmWritePChar(tai_stabs(hp).str);
                AsmLn;
              end;
 
            ait_stabn :
              begin
                AsmWrite(#9'.stabn ');
-               AsmWritePChar(pai_stabn(hp)^.str);
+               AsmWritePChar(tai_stabn(hp).str);
                AsmLn;
              end;
 
@@ -762,7 +765,7 @@ interface
              stabslastfileinfo.line:=0;
 
            ait_stab_function_name:
-             funcname:=pai_stab_function_name(hp)^.str;
+             funcname:=tai_stab_function_name(hp).str;
 {$endif GDB}
 
            ait_cut :
@@ -776,21 +779,21 @@ interface
                    begin
                      AsmClose;
                      DoAssemble;
-                     AsmCreate(pai_cut(hp)^.place);
+                     AsmCreate(tai_cut(hp).place);
                    end;
                 { avoid empty files }
-                  while assigned(hp^.next) and (pai(hp^.next)^.typ in [ait_cut,ait_section,ait_comment]) do
+                  while assigned(hp.next) and (tai(hp.next).typ in [ait_cut,ait_section,ait_comment]) do
                    begin
-                     if pai(hp^.next)^.typ=ait_section then
-                       lastsec:=pai_section(hp^.next)^.sec;
-                     hp:=pai(hp^.next);
+                     if tai(hp.next).typ=ait_section then
+                       lastsec:=tai_section(hp.next).sec;
+                     hp:=tai(hp.next);
                    end;
 {$ifdef GDB}
                   { force write of filename }
                   FillChar(stabslastfileinfo,sizeof(stabslastfileinfo),0);
                   includecount:=0;
                   funcname:=nil;
-                  WriteFileLineInfo(hp^.fileinfo);
+                  WriteFileLineInfo(hp.fileinfo);
 {$endif GDB}
                   if lastsec<>sec_none then
                     AsmWriteLn(ait_section2str(lastsec));
@@ -799,15 +802,15 @@ interface
              end;
 
            ait_marker :
-             if pai_marker(hp)^.kind=InlineStart then
+             if tai_marker(hp).kind=InlineStart then
                inc(InlineLevel)
-             else if pai_marker(hp)^.kind=InlineEnd then
+             else if tai_marker(hp).kind=InlineEnd then
                dec(InlineLevel);
 
            else
              internalerror(10000);
          end;
-         hp:=pai(hp^.next);
+         hp:=tai(hp.next);
        end;
     end;
 
@@ -823,8 +826,8 @@ interface
 
     begin
 {$ifdef EXTDEBUG}
-      if assigned(current_module^.mainsource) then
-       Comment(v_info,'Start writing att-styled assembler output for '+current_module^.mainsource^);
+      if assigned(current_module.mainsource) then
+       Comment(v_info,'Start writing att-styled assembler output for '+current_module.mainsource^);
 {$endif}
 
       LastSec:=sec_none;
@@ -834,8 +837,8 @@ interface
       FillChar(lastfileinfo,sizeof(lastfileinfo),0);
       LastInfile:=nil;
 
-      if assigned(current_module^.mainsource) then
-       fsplit(current_module^.mainsource^,p,n,e)
+      if assigned(current_module.mainsource) then
+       fsplit(current_module.mainsource^,p,n,e)
       else
        begin
          p:=inputdir;
@@ -880,8 +883,8 @@ interface
 
       AsmLn;
 {$ifdef EXTDEBUG}
-      if assigned(current_module^.mainsource) then
-       comment(v_info,'Done writing att-styled assembler output for '+current_module^.mainsource^);
+      if assigned(current_module.mainsource) then
+       comment(v_info,'Done writing att-styled assembler output for '+current_module.mainsource^);
 {$endif EXTDEBUG}
     end;
 
@@ -889,7 +892,11 @@ interface
 end.
 {
   $Log$
-  Revision 1.1  2000-11-30 22:18:48  florian
+  Revision 1.2  2000-12-25 00:07:31  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.1  2000/11/30 22:18:48  florian
     * moved to i386
 
   Revision 1.6  2000/09/24 15:06:10  peter

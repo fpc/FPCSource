@@ -151,6 +151,9 @@ type
 
 implementation
 
+  Type
+    PByte = ^Byte;
+
 {*****************************************************************************
                                    TCStream
 *****************************************************************************}
@@ -209,7 +212,7 @@ implementation
 
     begin
        CStreamError:=0;
-       CopyFrom:=0;
+       Result:=0;
        while Count>0 do
          begin
             if (Count>sizeof(buffer)) then
@@ -219,7 +222,7 @@ implementation
             i:=Source.Read(buffer,i);
             i:=Write(buffer,i);
             dec(count,i);
-            CopyFrom:=CopyFrom+i;
+            inc(Result,i);
             if i=0 then
               exit;
          end;
@@ -294,8 +297,6 @@ implementation
     end;
 
   Function TCStream.ReadAnsiString : AnsiString;
-  Type
-    PByte = ^Byte;
   Var
     TheSize : Longint;
     P : PByte ;
@@ -306,7 +307,7 @@ implementation
     if TheSize>0 then
      begin
        ReadBuffer (Pointer(Result)^,TheSize);
-       P:=Pointer(Result)+TheSize;
+       P:=PByte(Longint(Result)+TheSize);
        p^:=0;
      end;
    end;
@@ -450,7 +451,7 @@ begin
     begin
     Result:=FSize-FPosition;
     If Result>Count then Result:=Count;
-    Move ((FMemory+FPosition)^,Buffer,Result);
+    Move (Pointer(Longint(FMemory)+FPosition)^,Buffer,Result);
     FPosition:=Fposition+Result;
     end;
 end;
@@ -590,7 +591,10 @@ Var NewPos : Longint;
 
 begin
   If Count=0 then
-    exit(0);
+   begin
+     Result:=0;
+     exit;
+   end;
   NewPos:=FPosition+Count;
   If NewPos>Fsize then
     begin
@@ -598,7 +602,7 @@ begin
       SetCapacity (NewPos);
     FSize:=Newpos;
     end;
-  System.Move (Buffer,(FMemory+FPosition)^,Count);
+  System.Move (Buffer,Pointer(Longint(FMemory)+FPosition)^,Count);
   FPosition:=NewPos;
   Result:=Count;
 end;
@@ -606,7 +610,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-12-24 12:25:31  peter
+  Revision 1.2  2000-12-25 00:07:25  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.1  2000/12/24 12:25:31  peter
     + cstreams unit
     * dynamicarray object to class
 

@@ -384,8 +384,8 @@ implementation
                 minusdef:=nil;
               while assigned(minusdef) do
                 begin
-                   if is_equal(pparaitem(minusdef^.para^.first)^.paratype.def,left.resulttype) and
-                      (pparaitem(minusdef^.para^.first)^.next=nil) then
+                   if is_equal(tparaitem(minusdef^.para.first).paratype.def,left.resulttype) and
+                      (tparaitem(minusdef^.para.first).next=nil) then
                      begin
                         t:=gencallnode(overloaded_operators[_minus],nil);
                         tcallnode(t).left:=gencallparanode(left,nil);
@@ -502,8 +502,8 @@ implementation
                 notdef:=nil;
               while assigned(notdef) do
                 begin
-                   if is_equal(pparaitem(notdef^.para^.first)^.paratype.def,left.resulttype) and
-                      (pparaitem(notdef^.para^.first)^.next=nil) then
+                   if is_equal(tparaitem(notdef^.para.first).paratype.def,left.resulttype) and
+                      (tparaitem(notdef^.para.first).next=nil) then
                      begin
                         t:=gencallnode(overloaded_operators[_op_not],nil);
                         tcallnode(t).left:=gencallparanode(left,nil);
@@ -529,7 +529,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2000-12-16 15:54:01  jonas
+  Revision 1.11  2000-12-25 00:07:26  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.10  2000/12/16 15:54:01  jonas
     * 'resulttype of cardinal shl/shr x' is cardinal instead of longint
 
   Revision 1.9  2000/11/29 00:30:34  florian

@@ -64,7 +64,7 @@ implementation
     { => the procedure is also used to read     }
     { a sequence of variable declaration        }
 
-      procedure insert_syms(st : psymtable;sc : pstringcontainer;tt : ttype;is_threadvar : boolean);
+      procedure insert_syms(st : psymtable;sc : tidstringlist;tt : ttype;is_threadvar : boolean);
       { inserts the symbols of sc in st with def as definition or sym as ptypesym, sc is disposed }
         var
            s : string;
@@ -72,9 +72,9 @@ implementation
            ss : pvarsym;
         begin
            filepos:=akttokenpos;
-           while not sc^.empty do
+           while not sc.empty do
              begin
-                s:=sc^.get_with_tokeninfo(akttokenpos);
+                s:=sc.get(akttokenpos);
                 ss:=new(pvarsym,init(s,tt));
                 if is_threadvar then
                   include(ss^.varoptions,vo_is_thread_var);
@@ -91,12 +91,12 @@ implementation
              if strContStack.pop <> sc then
                writeln('problem with strContStack in pdecl (2)');
 {$endif fixLeaksOnError}
-           dispose(sc,done);
+           sc.free;
            akttokenpos:=filepos;
         end;
 
       var
-         sc : pstringcontainer;
+         sc : tidstringList;
          s : stringid;
          old_block_type : tblock_type;
          declarepos,storetokenpos : tfileposinfo;
@@ -170,14 +170,14 @@ implementation
              if is_gpc_name then
                begin
                   storetokenpos:=akttokenpos;
-                  s:=sc^.get_with_tokeninfo(akttokenpos);
-                  if not sc^.empty then
+                  s:=sc.get(akttokenpos);
+                  if not sc.empty then
                    Message(parser_e_absolute_only_one_var);
 {$ifdef fixLeaksOnError}
                    if strContStack.pop <> sc then
                      writeln('problem with strContStack in pdecl (3)');
 {$endif fixLeaksOnError}
-                  dispose(sc,done);
+                  sc.free;
                   aktvarsym:=new(pvarsym,init_C(s,target_os.Cprefix+C_name,tt));
                   include(aktvarsym^.varoptions,vo_is_external);
                   symtablestack^.insert(aktvarsym);
@@ -190,14 +190,14 @@ implementation
               begin
                 consume(_ABSOLUTE);
                 { only allowed for one var }
-                s:=sc^.get_with_tokeninfo(declarepos);
-                if not sc^.empty then
+                s:=sc.get(declarepos);
+                if not sc.empty then
                  Message(parser_e_absolute_only_one_var);
 {$ifdef fixLeaksOnError}
                  if strContStack.pop <> sc then
                    writeln('problem with strContStack in pdecl (4)');
 {$endif fixLeaksOnError}
-                dispose(sc,done);
+                sc.free;
                 { parse the rest }
                 if token=_ID then
                  begin
@@ -277,8 +277,8 @@ implementation
                 not is_record and not is_object then
                begin
                   storetokenpos:=akttokenpos;
-                  s:=sc^.get_with_tokeninfo(akttokenpos);
-                  if not sc^.empty then
+                  s:=sc.get(akttokenpos);
+                  if not sc.empty then
                     Message(parser_e_initialized_only_one_var);
                   pconstsym:=new(ptypedconstsym,inittype(s,tt,false));
                   symtablestack^.insert(pconstsym);
@@ -308,14 +308,14 @@ implementation
                    (idtoken in [_EXPORT,_EXTERNAL,_PUBLIC,_CVAR]) then
                  begin
                    { only allowed for one var }
-                   s:=sc^.get_with_tokeninfo(declarepos);
-                   if not sc^.empty then
+                   s:=sc.get(declarepos);
+                   if not sc.empty then
                     Message(parser_e_absolute_only_one_var);
 {$ifdef fixLeaksOnError}
                    if strContStack.pop <> sc then
                      writeln('problem with strContStack in pdecl (5)');
 {$endif fixLeaksOnError}
-                   dispose(sc,done);
+                   sc.free;
                    { defaults }
                    is_dll:=false;
                    is_cdecl:=false;
@@ -384,12 +384,12 @@ implementation
                     begin
                       if is_dll then
                        begin
-                         if not(current_module^.uses_imports) then
+                         if not(current_module.uses_imports) then
                           begin
-                            current_module^.uses_imports:=true;
-                            importlib^.preparelib(current_module^.modulename^);
+                            current_module.uses_imports:=true;
+                            importlib.preparelib(current_module.modulename^);
                           end;
-                         importlib^.importvariable(aktvarsym^.mangledname,dll_name,C_name)
+                         importlib.importvariable(aktvarsym^.mangledname,dll_name,C_name)
                        end
                     end;
                    symdone:=true;
@@ -515,7 +515,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2000-12-17 14:00:18  peter
+  Revision 1.6  2000-12-25 00:07:27  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.5  2000/12/17 14:00:18  peter
     * fixed static variables
 
   Revision 1.4  2000/11/29 00:30:36  florian

@@ -29,8 +29,7 @@ interface
     uses
        cobjects;
 
-    procedure compile_proc_body(const proc_names:Tstringcontainer;
-                                make_global,parent_has_class:boolean);
+    procedure compile_proc_body(make_global,parent_has_class:boolean);
 
     { reads the declaration blocks }
     procedure read_declarations(islibrary : boolean);
@@ -174,7 +173,7 @@ implementation
            end;
 
          {Unit initialization?.}
-         if (lexlevel=unit_init_level) and (current_module^.is_unit)
+         if (lexlevel=unit_init_level) and (current_module.is_unit)
             or islibrary then
            begin
              if (token=_END) then
@@ -191,12 +190,12 @@ implementation
                 begin
                    if token=_INITIALIZATION then
                      begin
-                        current_module^.flags:=current_module^.flags or uf_init;
+                        current_module.flags:=current_module.flags or uf_init;
                         block:=statement_block(_INITIALIZATION);
                      end
                    else if (token=_FINALIZATION) then
                      begin
-                        if (current_module^.flags and uf_finalize)<>0 then
+                        if (current_module.flags and uf_finalize)<>0 then
                           block:=statement_block(_FINALIZATION)
                         else
                           begin
@@ -208,7 +207,7 @@ implementation
                      end
                    else
                      begin
-                        current_module^.flags:=current_module^.flags or uf_init;
+                        current_module.flags:=current_module.flags or uf_init;
                         block:=statement_block(_BEGIN);
                      end;
                 end;
@@ -222,8 +221,7 @@ implementation
                        PROCEDURE/FUNCTION COMPILING
 ****************************************************************************}
 
-    procedure compile_proc_body(const proc_names:Tstringcontainer;
-                                make_global,parent_has_class:boolean);
+    procedure compile_proc_body(make_global,parent_has_class:boolean);
       {
         Compile the body of a procedure
       }
@@ -322,7 +320,7 @@ implementation
          entryswitches:=aktlocalswitches;
          localmaxfpuregisters:=aktmaxfpuregisters;
          { parse the code ... }
-         code:=block(current_module^.islibrary);
+         code:=block(current_module.islibrary);
          { get a better entry point }
          if assigned(code) then
            entrypos:=code.fileinfo;
@@ -379,7 +377,7 @@ implementation
            cg^.g_entrycode(procinfo^.aktentrycode,proc_names,make_global,stackframe,parasize,nostackframe,false);
 {$else newcg}
          if assigned(code) then
-           genentrycode(procinfo^.aktentrycode,proc_names,make_global,stackframe,parasize,nostackframe,false);
+           genentrycode(procinfo^.aktentrycode,make_global,stackframe,parasize,nostackframe,false);
 {$endif newcg}
 
          { FPC_POPADDRSTACK destroys all registers (JM) }
@@ -402,8 +400,8 @@ implementation
 {$else newcg}
              aktprocsym^.definition^.usedregisters:=usedinproc;
 {$endif newcg}
-             procinfo^.aktproccode^.insertlist(procinfo^.aktentrycode);
-             procinfo^.aktproccode^.concatlist(procinfo^.aktexitcode);
+             procinfo^.aktproccode.insertlist(procinfo^.aktentrycode);
+             procinfo^.aktproccode.concatlist(procinfo^.aktexitcode);
 {$ifdef i386}
    {$ifndef NoOpt}
              if (cs_optimize in aktglobalswitches) and
@@ -414,18 +412,18 @@ implementation
 {$endif i386}
              { save local data (casetable) also in the same file }
              if assigned(procinfo^.aktlocaldata) and
-                (not procinfo^.aktlocaldata^.empty) then
+                (not procinfo^.aktlocaldata.empty) then
                begin
-                  procinfo^.aktproccode^.concat(new(pai_section,init(sec_data)));
-                  procinfo^.aktproccode^.concatlist(procinfo^.aktlocaldata);
-                  procinfo^.aktproccode^.concat(new(pai_section,init(sec_code)));
+                  procinfo^.aktproccode.concat(Tai_section.Create(sec_data));
+                  procinfo^.aktproccode.concatlist(procinfo^.aktlocaldata);
+                  procinfo^.aktproccode.concat(Tai_section.Create(sec_code));
                end;
              { now we can insert a cut }
              if (cs_create_smart in aktmoduleswitches) then
-               codesegment^.concat(new(pai_cut,init));
+               codeSegment.concat(Tai_cut.Create);
 
              { add the procedure to the codesegment }
-             codesegment^.concatlist(procinfo^.aktproccode);
+             codeSegment.concatlist(procinfo^.aktproccode);
            end;
 {$else NOPASS2}
          if assigned(code) then
@@ -561,7 +559,6 @@ implementation
         oldprocinfo      : pprocinfo;
         oldconstsymtable : Psymtable;
         oldfilepos       : tfileposinfo;
-        names           : Pstringcontainer;
         pdflags         : word;
         prevdef,stdef   : pprocdef;
       begin
@@ -571,10 +568,6 @@ implementation
          oldconstsymtable:=constsymtable;
          oldprocinfo:=procinfo;
       { create a new procedure }
-         new(names,init);
-{$ifdef fixLeaksOnError}
-         strContStack.push(names);
-{$endif fixLeaksOnError}
          codegen_newprocedure;
          with procinfo^ do
           begin
@@ -607,9 +600,9 @@ implementation
          else
           begin
             pdflags:=pd_body;
-            if current_module^.in_implementation then
+            if current_module.in_implementation then
              pdflags:=pdflags or pd_implemen;
-            if (not current_module^.is_unit) or (cs_create_smart in aktmoduleswitches) then
+            if (not current_module.is_unit) or (cs_create_smart in aktmoduleswitches) then
              pdflags:=pdflags or pd_global;
             procinfo^.exported:=false;
             aktprocsym^.definition^.forwarddef:=false;
@@ -617,7 +610,7 @@ implementation
 
       { parse the directives that may follow }
          inc(lexlevel);
-         parse_proc_directives(names,pdflags);
+         parse_proc_directives(pdflags);
          dec(lexlevel);
 
       { set aktfilepos to the beginning of the function declaration }
@@ -694,14 +687,14 @@ implementation
            begin
              Message1(parser_p_procedure_start,
                       aktprocsym^.definition^.fullprocname);
-             names^.insert(aktprocsym^.definition^.mangledname);
+             aktprocsym^.definition^.aliasnames.insert(aktprocsym^.definition^.mangledname);
             { set _FAIL as keyword if constructor }
             if (aktprocsym^.definition^.proctypeoption=potype_constructor) then
               tokeninfo^[_FAIL].keyword:=m_all;
             if assigned(aktprocsym^.definition^._class) then
               tokeninfo^[_SELF].keyword:=m_all;
 
-             compile_proc_body(names^,((pdflags and pd_global)<>0),assigned(oldprocinfo^._class));
+             compile_proc_body(((pdflags and pd_global)<>0),assigned(oldprocinfo^._class));
 
             { reset _FAIL as normal }
             if (aktprocsym^.definition^.proctypeoption=potype_constructor) then
@@ -711,11 +704,6 @@ implementation
              consume(_SEMICOLON);
            end;
       { close }
-{$ifdef fixLeaksOnError}
-         if names <> strContStack.pop then
-           writeln('problem with strContStack in psub!');
-{$endif fixLeaksOnError}
-         dispose(names,done);
          codegen_doneprocedure;
       { Restore old state }
          constsymtable:=oldconstsymtable;
@@ -789,7 +777,7 @@ implementation
                    Not_supported_for_inline(token);
                    { here we should be at lexlevel 1, no ? PM }
                    if (lexlevel<>main_program_level) or
-                      (current_module^.is_unit) then
+                      (current_module.is_unit) then
                      begin
                         Message(parser_e_syntax_error);
                         consume_all_until(_SEMICOLON);
@@ -835,7 +823,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  2000-11-29 00:30:37  florian
+  Revision 1.24  2000-12-25 00:07:27  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.23  2000/11/29 00:30:37  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

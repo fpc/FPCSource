@@ -31,157 +31,109 @@ interface
 
 {$ifdef OLD}
     type
-       pfileposinfo = ^tfileposinfo;
-       tfileposinfo = record
-         line      : longint;
-         column    : word;
-         fileindex : word;
-       end;
-
        pmemdebug = ^tmemdebug;
        tmemdebug = object
           constructor init(const s:string);
           destructor  done;
           procedure show;
        private
-          startmem : longint;
+          startmem : integer;
           infostr  : string[40];
        end;
+{$endif OLD}
 
-       plinkedlist_item = ^tlinkedlist_item;
-       tlinkedlist_item = object
-          next,previous : plinkedlist_item;
-          { does nothing }
-          constructor init;
-          destructor done;virtual;
-          function getcopy:plinkedlist_item;virtual;
+{********************************************
+                TLinkedList
+********************************************}
+
+    type
+       TLinkedListItem = class
+       public
+          Previous,
+          Next : TLinkedListItem;
+          Constructor Create;
+          Destructor Destroy;override;
+          Function GetCopy:TLinkedListItem;virtual;
        end;
 
-       pstring_item = ^tstring_item;
-       tstring_item = object(tlinkedlist_item)
-          str : pstring;
-          constructor init(const s : string);
-          destructor done;virtual;
-       end;
+       TLinkedListItemClass = class of TLinkedListItem;
 
-
-       { this implements a double linked list }
-       plinkedlist = ^tlinkedlist;
-       tlinkedlist = object
-          first,last : plinkedlist_item;
-          constructor init;
-          destructor done;
-
-          { disposes the items of the list }
-          procedure clear;
-
-          { concats a new item at the end }
-          procedure concat(p : plinkedlist_item);
-
-          { inserts a new item at the begin }
-          procedure insert(p : plinkedlist_item);
-
-          { inserts another list at the begin and make this list empty }
-          procedure insertlist(p : plinkedlist);
-
-          { concats another list at the end and make this list empty }
-          procedure concatlist(p : plinkedlist);
-
-          procedure concatlistcopy(p : plinkedlist);
-
-          { removes p from the list (p isn't disposed) }
-          { it's not tested if p is in the list !      }
-          procedure remove(p : plinkedlist_item);
-
-          { is the linkedlist empty ? }
-          function  empty:boolean;
-
-          { items in the list }
-          function  count:longint;
-       end;
-
-       { some help data types }
-       pstringqueueitem = ^tstringqueueitem;
-       tstringqueueitem = object
-          data : pstring;
-          next : pstringqueueitem;
+       TLinkedList = class
+       private
+          FCount : integer;
+          FFirst,
+          FLast  : TLinkedListItem;
+       public
+          constructor Create;
+          destructor  Destroy;override;
+          { true when the List is empty }
+          function  Empty:boolean;
+          { deletes all Items }
+          procedure Clear;
+          { inserts an Item }
+          procedure Insert(Item:TLinkedListItem);
+          { concats an Item }
+          procedure Concat(Item:TLinkedListItem);
+          { deletes an Item }
+          procedure Remove(Item:TLinkedListItem);
+          { Gets First Item }
+          function  GetFirst:TLinkedListItem;
+          { Gets last Item }
+          function  GetLast:TLinkedListItem;
+          { inserts another List at the begin and make this List empty }
+          procedure insertList(p : TLinkedList);
+          { concats another List at the end and make this List empty }
+          procedure concatList(p : TLinkedList);
+          { concats another List at the end and makes a copy }
+          procedure insertListcopy(p : TLinkedList);
+          { concats another List at the end and makes a copy }
+          procedure concatListcopy(p : TLinkedList);
+          property First:TLinkedListItem read FFirst;
+          property Last:TLinkedListItem read FLast;
+          property Count:Integer read FCount;
        end;
 
 {********************************************
-                 Queue
+                TStringList
 ********************************************}
 
-       { String Queue}
-       PStringQueue=^TStringQueue;
-       TStringQueue=object
-         first,last : PStringqueueItem;
-         constructor Init;
-         destructor Done;
-         function Empty:boolean;
-         function Get:string;
-         function Find(const s:string):PStringqueueItem;
-         function Delete(const s:string):boolean;
-         procedure Insert(const s:string);
-         procedure Concat(const s:string);
-         procedure Clear;
-       end;
-
-{********************************************
-                 Container
-********************************************}
-
-       { containeritem }
-       pcontaineritem = ^tcontaineritem;
-       tcontaineritem = object
-          next : pcontaineritem;
-          constructor init;
-          destructor  done;virtual;
-       end;
-
-       { container }
-       pcontainer = ^tcontainer;
-       tcontainer = object
-          root,
-          last    : pcontaineritem;
-          constructor init;
-          destructor  done;
-          { true when the container is empty }
-          function  empty:boolean;
-          { amount of strings in the container }
-          function  count:longint;
-          { inserts a string }
-          procedure insert(item:pcontaineritem);
-          { gets a string }
-          function  get:pcontaineritem;
-          { deletes all items }
-          procedure clear;
-       end;
-
-       { containeritem }
-       pstringcontaineritem = ^tstringcontaineritem;
-       tstringcontaineritem = object(tcontaineritem)
-          data : pstring;
-          file_info : tfileposinfo;
-          constructor init(const s:string);
-          constructor Init_TokenInfo(const s:string;const pos:tfileposinfo);
-          destructor  done;virtual;
+       { string containerItem }
+       TStringListItem = class(TLinkedListItem)
+          FPStr : PString;
+       public
+          constructor Create(const s:string);
+          destructor  Destroy;override;
+          function GetCopy:TLinkedListItem;override;
+          function Str:string;
        end;
 
        { string container }
-       pstringcontainer = ^tstringcontainer;
-       tstringcontainer = object(tcontainer)
-          doubles : boolean;  { if this is set to true, doubles are allowed }
-          constructor init;
-          constructor init_no_double;
-          procedure insert(const s : string);
-          procedure insert_with_tokeninfo(const s : string;const file_info : tfileposinfo);
-          { gets a string }
-          function get : string;
-          function get_with_tokeninfo(var file_info : tfileposinfo) : string;
+       TStringList = class(TLinkedList)
+       private
+          FDoubles : boolean;  { if this is set to true, doubles are allowed }
+       public
+          constructor Create;
+          constructor Create_No_Double;
+          { inserts an Item }
+          procedure Insert(const s:string);
+          { concats an Item }
+          procedure Concat(const s:string);
+          { deletes an Item }
+          procedure Remove(const s:string);
+          { Gets First Item }
+          function  GetFirst:string;
+          { Gets last Item }
+          function  GetLast:string;
           { true if string is in the container }
-          function find(const s:string):boolean;
+          function Find(const s:string):TStringListItem;
+          { inserts an object }
+          procedure InsertItem(item:TStringListItem);
+          { concats an object }
+          procedure ConcatItem(item:TStringListItem);
+          property Doubles:boolean read FDoubles write FDoubles;
        end;
 
+{$ifdef OLD}
 {********************************************
                 Dictionary
 ********************************************}
@@ -195,15 +147,15 @@ interface
        Pnamedindexobject=^Tnamedindexobject;
        Tnamedindexobject=object
        { indexarray }
-         indexnr    : longint;
-         indexnext  : Pnamedindexobject;
+         indexnr    : integer;
+         indexNext  : Pnamedindexobject;
        { dictionary }
          _name      : Pstring;
          _valuename : Pstring; { uppercase name }
          left,right : Pnamedindexobject;
-         speedvalue : longint;
-       { singlelist }
-         listnext   : Pnamedindexobject;
+         speedvalue : integer;
+       { singleList }
+         ListNext   : Pnamedindexobject;
          constructor init;
          constructor initname(const n:string);
          destructor  done;virtual;
@@ -228,20 +180,20 @@ interface
          function  empty:boolean;
          procedure foreach(proc2call:Tnamedindexcallback);
          function  insert(obj:Pnamedindexobject):Pnamedindexobject;
-         function  rename(const olds,news : string):Pnamedindexobject;
+         function  rename(const olds,News : string):Pnamedindexobject;
          function  search(const s:string):Pnamedindexobject;
-         function  speedsearch(const s:string;speedvalue:longint):Pnamedindexobject;
+         function  speedsearch(const s:string;speedvalue:integer):Pnamedindexobject;
        private
          root      : Pnamedindexobject;
          hasharray : Pdictionaryhasharray;
          procedure cleartree(obj:Pnamedindexobject);
-         function  insertnode(newnode:Pnamedindexobject;var currnode:Pnamedindexobject):Pnamedindexobject;
+         function  insertNode(NewNode:Pnamedindexobject;var currNode:Pnamedindexobject):Pnamedindexobject;
          procedure inserttree(currtree,currroot:Pnamedindexobject);
        end;
 
-       psinglelist=^tsinglelist;
-       tsinglelist=object
-         first,
+       psingleList=^tsingleList;
+       tsingleList=object
+         First,
          last    : Pnamedindexobject;
          constructor init;
          destructor  done;
@@ -256,27 +208,27 @@ interface
       pindexarray=^tindexarray;
       tindexarray=object
         noclear : boolean;
-        first   : Pnamedindexobject;
-        count   : longint;
-        constructor init(Agrowsize:longint);
+        First   : Pnamedindexobject;
+        count   : integer;
+        constructor init(Agrowsize:integer);
         destructor  done;
         procedure clear;
         procedure foreach(proc2call : Tnamedindexcallback);
         procedure deleteindex(p:Pnamedindexobject);
         procedure delete(var p:Pnamedindexobject);
         procedure insert(p:Pnamedindexobject);
-        function  search(nr:longint):Pnamedindexobject;
+        function  search(nr:integer):Pnamedindexobject;
       private
         growsize,
-        size  : longint;
+        size  : integer;
         data  : Pnamedindexobjectarray;
-        procedure grow(gsize:longint);
+        procedure grow(gsize:integer);
       end;
 
 {$ifdef fixLeaksOnError}
     PStackItem = ^TStackItem;
     TStackItem = record
-      next: PStackItem;
+      Next: PStackItem;
       data: pointer;
     end;
 
@@ -306,32 +258,32 @@ interface
        pdynamicblock = ^tdynamicblock;
        tdynamicblock = record
          pos,
-         used : longint;
-         next : pdynamicblock;
-         data : array[0..high(longint)-20] of byte;
+         used : integer;
+         Next : pdynamicblock;
+         data : array[0..high(integer)-20] of byte;
        end;
 
        pdynamicarray = ^tdynamicarray;
        tdynamicarray = class
        private
-         FPosn       : longint;
+         FPosn       : integer;
          FPosnblock  : pdynamicblock;
-         FBlocksize  : longint;
+         FBlocksize  : integer;
          FFirstblock,
          FLastblock  : pdynamicblock;
          procedure grow;
        public
-         constructor Create(Ablocksize:longint);
+         constructor Create(Ablocksize:integer);
          destructor  Destroy;override;
-         function  size:longint;
-         procedure align(i:longint);
-         procedure seek(i:longint);
-         function  read(var d;len:longint):longint;
-         procedure write(const d;len:longint);
+         function  size:integer;
+         procedure align(i:integer);
+         procedure seek(i:integer);
+         function  read(var d;len:integer):integer;
+         procedure write(const d;len:integer);
          procedure writestr(const s:string);
          procedure readstream(f:TCStream);
          procedure writestream(f:TCStream);
-         property  BlockSize : longint read FBlocksize;
+         property  BlockSize : integer read FBlocksize;
          property  FirstBlock : PDynamicBlock read FFirstBlock;
        end;
 
@@ -357,7 +309,7 @@ implementation
     procedure tmemdebug.show;
 {$ifndef Delphi}
       var
-        l : longint;
+        l : integer;
 {$endif}
       begin
 {$ifndef Delphi}
@@ -389,9 +341,9 @@ end;
 procedure TStack.push(p: pointer);
 var s: PStackItem;
 begin
-  new(s);
+  New(s);
   s^.data := p;
-  s^.next := head;
+  s^.Next := head;
   head := s;
 end;
 
@@ -401,7 +353,7 @@ begin
   pop := top;
   if assigned(head) then
     begin
-      s := head^.next;
+      s := head^.Next;
       dispose(head);
       head := s;
     end
@@ -424,7 +376,7 @@ var temp: PStackItem;
 begin
   while head <> nil do
     begin
-      temp := head^.next;
+      temp := head^.Next;
       dispose(head);
       head := temp;
     end;
@@ -432,585 +384,384 @@ end;
 {$endif fixLeaksOnError}
 
 
-{****************************************************************************
-                                  TStringQueue
-****************************************************************************}
-
-constructor TStringQueue.Init;
-begin
-  first:=nil;
-  last:=nil;
-end;
-
-
-function TStringQueue.Empty:boolean;
-begin
-  Empty:=(first=nil);
-end;
-
-
-function TStringQueue.Get:string;
-var
-  newnode : pstringqueueitem;
-begin
-  if first=nil then
-   begin
-     Get:='';
-     exit;
-   end;
-  Get:=first^.data^;
-  stringdispose(first^.data);
-  newnode:=first;
-  first:=first^.next;
-  dispose(newnode);
-end;
-
-
-function TStringQueue.Find(const s:string):PStringqueueItem;
-var
-  p : PStringqueueItem;
-begin
-  p:=first;
-  while assigned(p) do
-   begin
-     if p^.data^=s then
-      break;
-     p:=p^.next;
-   end;
-  Find:=p;
-end;
-
-
-function TStringQueue.Delete(const s:string):boolean;
-var
-  prev,p : PStringqueueItem;
-begin
-  Delete:=false;
-  prev:=nil;
-  p:=first;
-  while assigned(p) do
-   begin
-     if p^.data^=s then
-      begin
-        if p=last then
-          last:=prev;
-        if assigned(prev) then
-         prev^.next:=p^.next
-        else
-         first:=p^.next;
-        dispose(p^.data);
-        dispose(p);
-        Delete:=true;
-        exit;
-      end;
-     prev:=p;
-     p:=p^.next;
-   end;
-end;
-
-
-procedure TStringQueue.Insert(const s:string);
-var
-  newnode : pstringqueueitem;
-begin
-  new(newnode);
-  newnode^.next:=first;
-  newnode^.data:=stringdup(s);
-  first:=newnode;
-  if last=nil then
-   last:=newnode;
-end;
-
-
-procedure TStringQueue.Concat(const s:string);
-var
-  newnode : pstringqueueitem;
-begin
-  new(newnode);
-  newnode^.next:=nil;
-  newnode^.data:=stringdup(s);
-  if first=nil then
-   first:=newnode
-  else
-   last^.next:=newnode;
-  last:=newnode;
-end;
-
-
-procedure TStringQueue.Clear;
-var
-  newnode : pstringqueueitem;
-begin
-  while (first<>nil) do
-   begin
-     newnode:=first;
-     stringdispose(first^.data);
-     first:=first^.next;
-     dispose(newnode);
-   end;
-  last:=nil;
-end;
-
-
-destructor TStringQueue.Done;
-begin
-  Clear;
-end;
-
+{$endif OLD}
 
 {****************************************************************************
-                                TContainerItem
+                             TLinkedListItem
  ****************************************************************************}
 
-constructor TContainerItem.Init;
-begin
-end;
-
-
-destructor TContainerItem.Done;
-begin
-end;
-
-
-{****************************************************************************
-                             TStringContainerItem
- ****************************************************************************}
-
-constructor TStringContainerItem.Init(const s:string);
-begin
-  inherited Init;
-  data:=stringdup(s);
-  file_info.fileindex:=0;
-  file_info.line:=0;
-  file_info.column:=0;
-end;
-
-
-constructor TStringContainerItem.Init_TokenInfo(const s:string;const pos:tfileposinfo);
-begin
-  inherited Init;
-  data:=stringdup(s);
-  file_info:=pos;
-end;
-
-
-destructor TStringContainerItem.Done;
-begin
-  stringdispose(data);
-end;
-
-
-{****************************************************************************
-                                   TCONTAINER
- ****************************************************************************}
-
-    constructor tcontainer.init;
+    constructor TLinkedListItem.Create;
       begin
-         root:=nil;
-         last:=nil;
+        Previous:=nil;
+        Next:=nil;
       end;
 
 
-    destructor tcontainer.done;
+    destructor TLinkedListItem.Destroy;
       begin
-         clear;
       end;
 
 
-    function tcontainer.empty:boolean;
-      begin
-        empty:=(root=nil);
-      end;
-
-
-    function tcontainer.count:longint;
+    function TLinkedListItem.GetCopy:TLinkedListItem;
       var
-        i : longint;
-        p : pcontaineritem;
+        p : TLinkedListItem;
+        l : integer;
       begin
-        i:=0;
-        p:=root;
-        while assigned(p) do
+        p:=TLinkedListItemClass(ClassType).Create;
+        l:=InstanceSize;
+        Move(pointer(self)^,pointer(p)^,l);
+        Result:=p;
+      end;
+
+
+{****************************************************************************
+                                   TLinkedList
+ ****************************************************************************}
+
+    constructor TLinkedList.Create;
+      begin
+        FFirst:=nil;
+        Flast:=nil;
+        FCount:=0;
+      end;
+
+
+    destructor TLinkedList.destroy;
+      begin
+        Clear;
+      end;
+
+
+    function TLinkedList.empty:boolean;
+      begin
+        Empty:=(FFirst=nil);
+      end;
+
+
+    procedure TLinkedList.Insert(Item:TLinkedListItem);
+      begin
+        if FFirst=nil then
          begin
-           p:=p^.next;
-           inc(i);
-         end;
-        count:=i;
-      end;
-
-
-    procedure tcontainer.insert(item:pcontaineritem);
-      begin
-         item^.next:=nil;
-         if root=nil then
-          root:=item
-         else
-          last^.next:=item;
-         last:=item;
-      end;
-
-
-    procedure tcontainer.clear;
-      var
-         newnode : pcontaineritem;
-      begin
-         newnode:=root;
-         while assigned(newnode) do
-           begin
-              root:=newnode^.next;
-              dispose(newnode,done);
-              newnode:=root;
-           end;
-         last:=nil;
-         root:=nil;
-      end;
-
-
-    function tcontainer.get:pcontaineritem;
-      begin
-         if root=nil then
-          get:=nil
-         else
-          begin
-            get:=root;
-            root:=root^.next;
-          end;
-      end;
-
-
-{****************************************************************************
-                           TSTRINGCONTAINER
- ****************************************************************************}
-
-    constructor tstringcontainer.init;
-      begin
-         inherited init;
-         doubles:=true;
-      end;
-
-
-    constructor tstringcontainer.init_no_double;
-      begin
-         inherited init;
-         doubles:=false;
-      end;
-
-
-    procedure tstringcontainer.insert(const s : string);
-      var
-        newnode : pstringcontaineritem;
-      begin
-         if (s='') or
-            ((not doubles) and find(s)) then
-          exit;
-         new(newnode,init(s));
-         inherited insert(newnode);
-      end;
-
-
-    procedure tstringcontainer.insert_with_tokeninfo(const s : string; const file_info : tfileposinfo);
-      var
-        newnode : pstringcontaineritem;
-      begin
-         if (not doubles) and find(s) then
-          exit;
-         new(newnode,init_tokeninfo(s,file_info));
-         inherited insert(newnode);
-      end;
-
-
-    function tstringcontainer.get : string;
-      var
-         p : pstringcontaineritem;
-      begin
-         p:=pstringcontaineritem(inherited get);
-         if p=nil then
-          get:=''
-         else
-          begin
-            get:=p^.data^;
-            dispose(p,done);
-          end;
-      end;
-
-
-    function tstringcontainer.get_with_tokeninfo(var file_info : tfileposinfo) : string;
-      var
-         p : pstringcontaineritem;
-      begin
-         p:=pstringcontaineritem(inherited get);
-         if p=nil then
-          begin
-            get_with_tokeninfo:='';
-            file_info.fileindex:=0;
-            file_info.line:=0;
-            file_info.column:=0;
-          end
-         else
-          begin
-            get_with_tokeninfo:=p^.data^;
-            file_info:=p^.file_info;
-            dispose(p,done);
-          end;
-      end;
-
-
-    function tstringcontainer.find(const s:string):boolean;
-      var
-        newnode : pstringcontaineritem;
-      begin
-        find:=false;
-        newnode:=pstringcontaineritem(root);
-        while assigned(newnode) do
-         begin
-           if newnode^.data^=s then
-            begin
-              find:=true;
-              exit;
-            end;
-           newnode:=pstringcontaineritem(newnode^.next);
-         end;
-      end;
-
-
-{****************************************************************************
-                            TLINKEDLIST_ITEM
- ****************************************************************************}
-
-    constructor tlinkedlist_item.init;
-      begin
-        previous:=nil;
-        next:=nil;
-      end;
-
-
-    destructor tlinkedlist_item.done;
-      begin
-      end;
-
-
-    function tlinkedlist_item.getcopy:plinkedlist_item;
-      var
-        l : longint;
-        p : plinkedlist_item;
-      begin
-        l:=sizeof(self);
-        getmem(p,l);
-        move(self,p^,l);
-        getcopy:=p;
-      end;
-
-
-{****************************************************************************
-                            TSTRING_ITEM
- ****************************************************************************}
-
-    constructor tstring_item.init(const s : string);
-      begin
-         str:=stringdup(s);
-      end;
-
-
-    destructor tstring_item.done;
-      begin
-         stringdispose(str);
-         inherited done;
-      end;
-
-
-{****************************************************************************
-                               TLINKEDLIST
- ****************************************************************************}
-
-    constructor tlinkedlist.init;
-      begin
-         first:=nil;
-         last:=nil;
-      end;
-
-
-    destructor tlinkedlist.done;
-      begin
-         clear;
-      end;
-
-
-    procedure tlinkedlist.clear;
-      var
-         newnode : plinkedlist_item;
-      begin
-         newnode:=first;
-         while assigned(newnode) do
-           begin
-              first:=newnode^.next;
-              dispose(newnode,done);
-              newnode:=first;
-           end;
-      end;
-
-
-    procedure tlinkedlist.insertlist(p : plinkedlist);
-      begin
-         { empty list ? }
-         if not(assigned(p^.first)) then
-           exit;
-
-         p^.last^.next:=first;
-
-         { we have a double linked list }
-         if assigned(first) then
-           first^.previous:=p^.last;
-
-         first:=p^.first;
-
-         if not(assigned(last)) then
-           last:=p^.last;
-
-         { p becomes empty }
-         p^.first:=nil;
-         p^.last:=nil;
-      end;
-
-
-    procedure tlinkedlist.concat(p : plinkedlist_item);
-      begin
-        if not(assigned(first)) then
-         begin
-           first:=p;
-           p^.previous:=nil;
-           p^.next:=nil;
+           FLast:=Item;
+           Item.Previous:=nil;
+           Item.Next:=nil;
          end
         else
          begin
-           last^.next:=p;
-           p^.previous:=last;
-           p^.next:=nil;
+           FFirst.Previous:=Item;
+           Item.Previous:=nil;
+           Item.Next:=FFirst;
          end;
-        last:=p;
+        FFirst:=Item;
+        inc(FCount);
       end;
 
 
-    procedure tlinkedlist.insert(p : plinkedlist_item);
+    procedure TLinkedList.Concat(Item:TLinkedListItem);
       begin
-         if not(assigned(first)) then
-          begin
-            last:=p;
-            p^.previous:=nil;
-            p^.next:=nil;
-          end
-         else
-          begin
-            first^.previous:=p;
-            p^.previous:=nil;
-            p^.next:=first;
-          end;
-         first:=p;
-      end;
-
-
-    procedure tlinkedlist.remove(p : plinkedlist_item);
-      begin
-         if not(assigned(p)) then
-           exit;
-         if (first=p) and (last=p) then
-           begin
-              first:=nil;
-              last:=nil;
-           end
-         else if first=p then
-           begin
-              first:=p^.next;
-              if assigned(first) then
-                first^.previous:=nil;
-           end
-         else if last=p then
-           begin
-              last:=last^.previous;
-              if assigned(last) then
-                last^.next:=nil;
-           end
-         else
-           begin
-              p^.previous^.next:=p^.next;
-              p^.next^.previous:=p^.previous;
-           end;
-         p^.next:=nil;
-         p^.previous:=nil;
-      end;
-
-
-    procedure tlinkedlist.concatlist(p : plinkedlist);
-     begin
-         if not(assigned(p^.first)) then
-           exit;
-
-         if not(assigned(first)) then
-           first:=p^.first
-           else
-             begin
-                last^.next:=p^.first;
-                p^.first^.previous:=last;
-             end;
-
-         last:=p^.last;
-
-         { make p empty }
-         p^.last:=nil;
-         p^.first:=nil;
-      end;
-
-
-    procedure tlinkedlist.concatlistcopy(p : plinkedlist);
-      var
-        newnode,newnode2 : plinkedlist_item;
-      begin
-         newnode:=p^.first;
-         while assigned(newnode) do
-          begin
-            newnode2:=newnode^.getcopy;
-            if assigned(newnode2) then
-             begin
-               if not(assigned(first)) then
-                begin
-                  first:=newnode2;
-                  newnode2^.previous:=nil;
-                  newnode2^.next:=nil;
-                end
-               else
-                begin
-                  last^.next:=newnode2;
-                  newnode2^.previous:=last;
-                  newnode2^.next:=nil;
-                end;
-               last:=newnode2;
-             end;
-            newnode:=newnode^.next;
-          end;
-      end;
-
-
-    function tlinkedlist.empty:boolean;
-      begin
-        empty:=(first=nil);
-      end;
-
-
-    function tlinkedlist.count:longint;
-      var
-        i : longint;
-        hp : plinkedlist_item;
-      begin
-        hp:=first;
-        i:=0;
-        while assigned(hp) do
+        if FFirst=nil then
          begin
-           inc(i);
-           hp:=hp^.next;
+           FFirst:=Item;
+           Item.Previous:=nil;
+           Item.Next:=nil;
+         end
+        else
+         begin
+           Flast.Next:=Item;
+           Item.Previous:=Flast;
+           Item.Next:=nil;
          end;
-        count:=i;
+        Flast:=Item;
+        inc(FCount);
       end;
 
 
+    procedure TLinkedList.remove(Item:TLinkedListItem);
+      begin
+         if Item=nil then
+           exit;
+         if (FFirst=Item) and (Flast=Item) then
+           begin
+              FFirst:=nil;
+              Flast:=nil;
+           end
+         else if FFirst=Item then
+           begin
+              FFirst:=Item.Next;
+              if assigned(FFirst) then
+                FFirst.Previous:=nil;
+           end
+         else if Flast=Item then
+           begin
+              Flast:=Flast.Previous;
+              if assigned(Flast) then
+                Flast.Next:=nil;
+           end
+         else
+           begin
+              Item.Previous.Next:=Item.Next;
+              Item.Next.Previous:=Item.Previous;
+           end;
+         Item.Next:=nil;
+         Item.Previous:=nil;
+         dec(FCount);
+      end;
+
+
+    procedure TLinkedList.clear;
+      var
+        NewNode : TLinkedListItem;
+      begin
+        NewNode:=FFirst;
+        while assigned(NewNode) do
+         begin
+           FFirst:=NewNode.Next;
+           NewNode.Free;
+           NewNode:=FFirst;
+          end;
+        FLast:=nil;
+        FFirst:=nil;
+        FCount:=0;
+      end;
+
+
+    function TLinkedList.GetFirst:TLinkedListItem;
+      begin
+         if FFirst=nil then
+          GetFirst:=nil
+         else
+          begin
+            GetFirst:=FFirst;
+            if FFirst=FLast then
+             FLast:=nil;
+            FFirst:=FFirst.Next;
+            dec(FCount);
+          end;
+      end;
+
+
+    function TLinkedList.GetLast:TLinkedListItem;
+      begin
+         if FLast=nil then
+          Getlast:=nil
+         else
+          begin
+            Getlast:=FLast;
+            if FLast=FFirst then
+             FFirst:=nil;
+            FLast:=FLast.Previous;
+            dec(FCount);
+          end;
+      end;
+
+
+    procedure TLinkedList.insertList(p : TLinkedList);
+      begin
+         { empty List ? }
+         if (p.FFirst=nil) then
+           exit;
+         p.Flast.Next:=FFirst;
+         { we have a double Linked List }
+         if assigned(FFirst) then
+           FFirst.Previous:=p.Flast;
+         FFirst:=p.FFirst;
+         if (FLast=nil) then
+           Flast:=p.Flast;
+         { p becomes empty }
+         p.FFirst:=nil;
+         p.Flast:=nil;
+      end;
+
+
+    procedure TLinkedList.concatList(p : TLinkedList);
+      begin
+        if (p.FFirst=nil) then
+         exit;
+        if FFirst=nil then
+         FFirst:=p.FFirst
+        else
+         begin
+           FLast.Next:=p.FFirst;
+           p.FFirst.Previous:=Flast;
+         end;
+        Flast:=p.Flast;
+        { make p empty }
+        p.Flast:=nil;
+        p.FFirst:=nil;
+      end;
+
+
+    procedure TLinkedList.insertListcopy(p : TLinkedList);
+      var
+        NewNode,NewNode2 : TLinkedListItem;
+      begin
+        NewNode:=p.First;
+        while assigned(NewNode) do
+         begin
+           NewNode2:=NewNode.Getcopy;
+           if assigned(NewNode2) then
+            Insert(NewNode2);
+           NewNode:=NewNode.Next;
+         end;
+      end;
+
+
+    procedure TLinkedList.concatListcopy(p : TLinkedList);
+      var
+        NewNode,NewNode2 : TLinkedListItem;
+      begin
+        NewNode:=p.First;
+        while assigned(NewNode) do
+         begin
+           NewNode2:=NewNode.Getcopy;
+           if assigned(NewNode2) then
+            Concat(NewNode2);
+           NewNode:=NewNode.Next;
+         end;
+      end;
+
+
+{****************************************************************************
+                             TStringListItem
+ ****************************************************************************}
+
+    constructor TStringListItem.Create(const s:string);
+      begin
+        inherited Create;
+        FPStr:=stringdup(s);
+      end;
+
+
+    destructor TStringListItem.Destroy;
+      begin
+        stringdispose(FPStr);
+      end;
+
+
+    function TStringListItem.Str:string;
+      begin
+        Str:=FPStr^;
+      end;
+
+
+    function TStringListItem.GetCopy:TLinkedListItem;
+      begin
+        Result:=(inherited GetCopy);
+        TStringListItem(Result).FPStr:=stringdup(FPstr^);
+      end;
+
+
+{****************************************************************************
+                           TSTRINGList
+ ****************************************************************************}
+
+    constructor tstringList.Create;
+      begin
+         inherited Create;
+         FDoubles:=true;
+      end;
+
+
+    constructor tstringList.Create_no_double;
+      begin
+         inherited Create;
+         FDoubles:=false;
+      end;
+
+
+    procedure tstringList.insert(const s : string);
+      begin
+         if (s='') or
+            ((not FDoubles) and (find(s)<>nil)) then
+          exit;
+         inherited insert(tstringListItem.create(s));
+      end;
+
+
+    procedure tstringList.concat(const s : string);
+      begin
+         if (s='') or
+            ((not FDoubles) and (find(s)<>nil)) then
+          exit;
+         inherited concat(tstringListItem.create(s));
+      end;
+
+
+    procedure tstringList.remove(const s : string);
+      var
+        p : tstringListItem;
+      begin
+        if s='' then
+         exit;
+        p:=find(s);
+        if assigned(p) then
+         inherited Remove(p);
+      end;
+
+
+    function tstringList.GetFirst : string;
+      var
+         p : tstringListItem;
+      begin
+         p:=tstringListItem(inherited GetFirst);
+         if p=nil then
+          GetFirst:=''
+         else
+          begin
+            GetFirst:=p.FPStr^;
+            p.free;
+          end;
+      end;
+
+
+    function tstringList.Getlast : string;
+      var
+         p : tstringListItem;
+      begin
+         p:=tstringListItem(inherited Getlast);
+         if p=nil then
+          Getlast:=''
+         else
+          begin
+            Getlast:=p.FPStr^;
+            p.free;
+          end;
+      end;
+
+
+    function tstringList.find(const s:string):TstringListItem;
+      var
+        NewNode : tstringListItem;
+      begin
+        find:=nil;
+        if s='' then
+         exit;
+        NewNode:=tstringListItem(FFirst);
+        while assigned(NewNode) do
+         begin
+           if NewNode.FPStr^=s then
+            begin
+              find:=NewNode;
+              exit;
+            end;
+           NewNode:=tstringListItem(NewNode.Next);
+         end;
+      end;
+
+
+    procedure TStringList.InsertItem(item:TStringListItem);
+      begin
+        inherited Insert(item);
+      end;
+
+
+    procedure TStringList.ConcatItem(item:TStringListItem);
+      begin
+        inherited Concat(item);
+      end;
+
+
+{$ifdef OLD}
 {****************************************************************************
                                Tnamedindexobject
  ****************************************************************************}
@@ -1019,28 +770,28 @@ constructor Tnamedindexobject.init;
 begin
   { index }
   indexnr:=-1;
-  indexnext:=nil;
+  indexNext:=nil;
   { dictionary }
   left:=nil;
   right:=nil;
   _name:=nil;
   speedvalue:=-1;
-  { list }
-  listnext:=nil;
+  { List }
+  ListNext:=nil;
 end;
 
 constructor Tnamedindexobject.initname(const n:string);
 begin
   { index }
   indexnr:=-1;
-  indexnext:=nil;
+  indexNext:=nil;
   { dictionary }
   left:=nil;
   right:=nil;
   speedvalue:=-1;
   _name:=stringdup(n);
-  { list }
-  listnext:=nil;
+  { List }
+  ListNext:=nil;
 end;
 
 destructor Tnamedindexobject.done;
@@ -1085,7 +836,7 @@ end;
         if not(assigned(root)) and
            not(assigned(hasharray)) then
          begin
-           new(hasharray);
+           New(hasharray);
            fillchar(hasharray^,sizeof(hasharray^),0);
          end;
       end;
@@ -1113,7 +864,7 @@ end;
 
     procedure Tdictionary.clear;
       var
-        w : longint;
+        w : integer;
       begin
         if assigned(root) then
           cleartree(root);
@@ -1125,7 +876,7 @@ end;
 
     function Tdictionary.delete(const s:string):Pnamedindexobject;
 
-    var p,speedvalue:longint;
+    var p,speedvalue:integer;
         n:Pnamedindexobject;
 
         procedure insert_right_bottom(var root,Atree:Pnamedindexobject);
@@ -1175,7 +926,7 @@ end;
                 end;
             if root^.left<>nil then
                 begin
-                    {Now the node pointing to root must point to the left
+                    {Now the Node pointing to root must point to the left
                      subtree of root. The right subtree of root must be
                      connected to the right bottom of the left subtree.}
                     if lr=left then
@@ -1186,7 +937,7 @@ end;
                         insert_right_bottom(root^.left,root^.right);
                 end
             else
-                {There is no left subtree. So we can just replace the node to
+                {There is no left subtree. So we can just replace the Node to
                  delete with the right subtree.}
                 if lr=left then
                     oldroot^.left:=root^.right
@@ -1196,20 +947,20 @@ end;
         end;
 
     begin
-        speedvalue:=getspeedvalue(s);
+        speedvalue:=Getspeedvalue(s);
         n:=root;
         if assigned(hasharray) then
             begin
-                {First, check if the node to delete directly located under
+                {First, check if the Node to delete directly located under
                  the hasharray.}
                 p:=speedvalue mod hasharraysize;
                 n:=hasharray^[p];
                 if (n<>nil) and (n^.speedvalue=speedvalue) and
                  (n^._name^=s) then
                     begin
-                        {The node to delete is directly located under the
+                        {The Node to delete is directly located under the
                          hasharray. Make the hasharray point to the left
-                         subtree of the node and place the right subtree on
+                         subtree of the Node and place the right subtree on
                          the right-bottom of the left subtree.}
                         if n^.left<>nil then
                             begin
@@ -1225,7 +976,7 @@ end;
             end
         else
             begin
-                {First check if the node to delete is the root.}
+                {First check if the Node to delete is the root.}
                 if (root<>nil) and (n^.speedvalue=speedvalue)
                  and (n^._name^=s) then
                     begin
@@ -1246,7 +997,7 @@ end;
 
     function Tdictionary.empty:boolean;
       var
-        w : longint;
+        w : integer;
       begin
         if assigned(hasharray) then
          begin
@@ -1273,7 +1024,7 @@ end;
         end;
 
       var
-        i : longint;
+        i : integer;
       begin
         if assigned(hasharray) then
          begin
@@ -1289,47 +1040,47 @@ end;
 
     function Tdictionary.insert(obj:Pnamedindexobject):Pnamedindexobject;
       begin
-        obj^.speedvalue:=getspeedvalue(obj^._name^);
+        obj^.speedvalue:=Getspeedvalue(obj^._name^);
         if assigned(hasharray) then
-         insert:=insertnode(obj,hasharray^[obj^.speedvalue mod hasharraysize])
+         insert:=insertNode(obj,hasharray^[obj^.speedvalue mod hasharraysize])
         else
-         insert:=insertnode(obj,root);
+         insert:=insertNode(obj,root);
       end;
 
 
-    function tdictionary.insertnode(newnode:Pnamedindexobject;var currnode:Pnamedindexobject):Pnamedindexobject;
+    function tdictionary.insertNode(NewNode:Pnamedindexobject;var currNode:Pnamedindexobject):Pnamedindexobject;
       begin
-        if currnode=nil then
+        if currNode=nil then
          begin
-           currnode:=newnode;
-           insertnode:=newnode;
+           currNode:=NewNode;
+           insertNode:=NewNode;
          end
-        { first check speedvalue, to allow a fast insert }
+        { First check speedvalue, to allow a fast insert }
         else
-         if currnode^.speedvalue>newnode^.speedvalue then
-          insertnode:=insertnode(newnode,currnode^.right)
+         if currNode^.speedvalue>NewNode^.speedvalue then
+          insertNode:=insertNode(NewNode,currNode^.right)
         else
-         if currnode^.speedvalue<newnode^.speedvalue then
-          insertnode:=insertnode(newnode,currnode^.left)
+         if currNode^.speedvalue<NewNode^.speedvalue then
+          insertNode:=insertNode(NewNode,currNode^.left)
         else
          begin
-           if currnode^._name^>newnode^._name^ then
-            insertnode:=insertnode(newnode,currnode^.right)
+           if currNode^._name^>NewNode^._name^ then
+            insertNode:=insertNode(NewNode,currNode^.right)
            else
-            if currnode^._name^<newnode^._name^ then
-             insertnode:=insertnode(newnode,currnode^.left)
+            if currNode^._name^<NewNode^._name^ then
+             insertNode:=insertNode(NewNode,currNode^.left)
            else
             begin
               if replace_existing and
-                 assigned(currnode) then
+                 assigned(currNode) then
                 begin
-                  newnode^.left:=currnode^.left;
-                  newnode^.right:=currnode^.right;
-                  currnode:=newnode;
-                  insertnode:=newnode;
+                  NewNode^.left:=currNode^.left;
+                  NewNode^.right:=currNode^.right;
+                  currNode:=NewNode;
+                  insertNode:=NewNode;
                 end
               else
-               insertnode:=currnode;
+               insertNode:=currNode;
              end;
          end;
       end;
@@ -1343,18 +1094,18 @@ end;
            inserttree(currtree^.right,currroot);
            currtree^.right:=nil;
            currtree^.left:=nil;
-           insertnode(currtree,currroot);
+           insertNode(currtree,currroot);
          end;
       end;
 
 
-    function tdictionary.rename(const olds,news : string):Pnamedindexobject;
+    function tdictionary.rename(const olds,News : string):Pnamedindexobject;
       var
-        spdval : longint;
+        spdval : integer;
         lasthp,
         hp,hp2,hp3 : Pnamedindexobject;
       begin
-        spdval:=getspeedvalue(olds);
+        spdval:=Getspeedvalue(olds);
         if assigned(hasharray) then
          hp:=hasharray^[spdval mod hasharraysize]
         else
@@ -1377,7 +1128,7 @@ end;
              begin
                if (hp^.name=olds) then
                 begin
-                  { get in hp2 the replacer for the root or hasharr }
+                  { Get in hp2 the replacer for the root or hasharr }
                   hp2:=hp^.left;
                   hp3:=hp^.right;
                   if not assigned(hp2) then
@@ -1402,17 +1153,17 @@ end;
                    end;
                   { reinsert the hp3 in the tree from hp2 }
                   inserttree(hp3,hp2);
-                  { reset node with new values }
+                  { reset Node with New values }
                   stringdispose(hp^._name);
-                  hp^._name:=stringdup(news);
-                  hp^.speedvalue:=getspeedvalue(news);
+                  hp^._name:=stringdup(News);
+                  hp^.speedvalue:=Getspeedvalue(News);
                   hp^.left:=nil;
                   hp^.right:=nil;
                   { reinsert }
                   if assigned(hasharray) then
-                   rename:=insertnode(hp,hasharray^[hp^.speedvalue mod hasharraysize])
+                   rename:=insertNode(hp,hasharray^[hp^.speedvalue mod hasharraysize])
                   else
-                   rename:=insertnode(hp,root);
+                   rename:=insertNode(hp,root);
                   exit;
                 end
                else
@@ -1433,37 +1184,37 @@ end;
 
     function Tdictionary.search(const s:string):Pnamedindexobject;
       begin
-        search:=speedsearch(s,getspeedvalue(s));
+        search:=speedsearch(s,Getspeedvalue(s));
       end;
 
 
-    function Tdictionary.speedsearch(const s:string;speedvalue:longint):Pnamedindexobject;
+    function Tdictionary.speedsearch(const s:string;speedvalue:integer):Pnamedindexobject;
       var
-        newnode:Pnamedindexobject;
+        NewNode:Pnamedindexobject;
       begin
         if assigned(hasharray) then
-         newnode:=hasharray^[speedvalue mod hasharraysize]
+         NewNode:=hasharray^[speedvalue mod hasharraysize]
         else
-         newnode:=root;
-        while assigned(newnode) do
+         NewNode:=root;
+        while assigned(NewNode) do
          begin
-           if speedvalue>newnode^.speedvalue then
-            newnode:=newnode^.left
+           if speedvalue>NewNode^.speedvalue then
+            NewNode:=NewNode^.left
            else
-            if speedvalue<newnode^.speedvalue then
-             newnode:=newnode^.right
+            if speedvalue<NewNode^.speedvalue then
+             NewNode:=NewNode^.right
            else
             begin
-              if (newnode^._name^=s) then
+              if (NewNode^._name^=s) then
                begin
-                 speedsearch:=newnode;
+                 speedsearch:=NewNode;
                  exit;
                end
               else
-               if s>newnode^._name^ then
-                newnode:=newnode^.left
+               if s>NewNode^._name^ then
+                NewNode:=NewNode^.left
               else
-               newnode:=newnode^.right;
+               NewNode:=NewNode^.right;
             end;
          end;
         speedsearch:=nil;
@@ -1471,65 +1222,65 @@ end;
 
 
 {****************************************************************************
-                               tsinglelist
+                               tsingleList
  ****************************************************************************}
 
-    constructor tsinglelist.init;
+    constructor tsingleList.init;
       begin
-        first:=nil;
+        First:=nil;
         last:=nil;
       end;
 
 
-    destructor tsinglelist.done;
+    destructor tsingleList.done;
       begin
       end;
 
 
-    procedure tsinglelist.reset;
+    procedure tsingleList.reset;
       begin
-        first:=nil;
+        First:=nil;
         last:=nil;
       end;
 
 
-    procedure tsinglelist.clear;
+    procedure tsingleList.clear;
       var
         hp,hp2 : pnamedindexobject;
       begin
-        hp:=first;
+        hp:=First;
         while assigned(hp) do
          begin
            hp2:=hp;
-           hp:=hp^.listnext;
+           hp:=hp^.ListNext;
            dispose(hp2,done);
          end;
-        first:=nil;
+        First:=nil;
         last:=nil;
       end;
 
 
-    procedure tsinglelist.insert(p:Pnamedindexobject);
+    procedure tsingleList.insert(p:Pnamedindexobject);
       begin
-        if not assigned(first) then
-         first:=p
+        if not assigned(First) then
+         First:=p
         else
-         last^.listnext:=p;
+         last^.ListNext:=p;
         last:=p;
-        p^.listnext:=nil;
+        p^.ListNext:=nil;
       end;
 
 {****************************************************************************
                                tindexarray
  ****************************************************************************}
 
-    constructor tindexarray.create(Agrowsize:longint);
+    constructor tindexarray.create(Agrowsize:integer);
       begin
         growsize:=Agrowsize;
         size:=0;
         count:=0;
         data:=nil;
-        first:=nil;
+        First:=nil;
         noclear:=false;
       end;
 
@@ -1545,7 +1296,7 @@ end;
       end;
 
 
-    function tindexarray.search(nr:longint):Pnamedindexobject;
+    function tindexarray.search(nr:integer):Pnamedindexobject;
       begin
         if nr<=count then
          search:=data^[nr]
@@ -1556,7 +1307,7 @@ end;
 
     procedure tindexarray.clear;
       var
-        i : longint;
+        i : integer;
       begin
         for i:=1 to count do
          if assigned(data^[i]) then
@@ -1565,13 +1316,13 @@ end;
             data^[i]:=nil;
           end;
         count:=0;
-        first:=nil;
+        First:=nil;
       end;
 
 
     procedure tindexarray.foreach(proc2call : Tnamedindexcallback);
       var
-        i : longint;
+        i : integer;
       begin
         for i:=1 to count do
          if assigned(data^[i]) then
@@ -1579,9 +1330,9 @@ end;
       end;
 
 
-    procedure tindexarray.grow(gsize:longint);
+    procedure tindexarray.grow(gsize:integer);
       var
-        osize : longint;
+        osize : integer;
       begin
         osize:=size;
         inc(size,gsize);
@@ -1592,28 +1343,28 @@ end;
 
     procedure tindexarray.deleteindex(p:Pnamedindexobject);
       var
-        i : longint;
+        i : integer;
       begin
         i:=p^.indexnr;
         { update counter }
         if i=count then
          dec(count);
-        { update linked list }
+        { update Linked List }
         while (i>0) do
          begin
            dec(i);
            if (i>0) and assigned(data^[i]) then
             begin
-              data^[i]^.indexnext:=data^[p^.indexnr]^.indexnext;
+              data^[i]^.indexNext:=data^[p^.indexnr]^.indexNext;
               break;
             end;
          end;
         if i=0 then
-         first:=p^.indexnext;
+         First:=p^.indexNext;
         data^[p^.indexnr]:=nil;
         { clear entry }
         p^.indexnr:=-1;
-        p^.indexnext:=nil;
+        p^.indexNext:=nil;
       end;
 
 
@@ -1627,7 +1378,7 @@ end;
 
     procedure tindexarray.insert(p:Pnamedindexobject);
       var
-        i  : longint;
+        i  : integer;
       begin
         if p^.indexnr=-1 then
          begin
@@ -1640,32 +1391,32 @@ end;
          grow(((count div growsize)+1)*growsize);
         Assert(not assigned(data^[p^.indexnr]) or (p=data^[p^.indexnr]));
         data^[p^.indexnr]:=p;
-        { update linked list backward }
+        { update Linked List backward }
         i:=p^.indexnr;
         while (i>0) do
          begin
            dec(i);
            if (i>0) and assigned(data^[i]) then
             begin
-              data^[i]^.indexnext:=p;
+              data^[i]^.indexNext:=p;
               break;
             end;
          end;
         if i=0 then
-         first:=p;
-        { update linked list forward }
+         First:=p;
+        { update Linked List forward }
         i:=p^.indexnr;
         while (i<=count) do
          begin
            inc(i);
            if (i<=count) and assigned(data^[i]) then
             begin
-              p^.indexnext:=data^[i];
+              p^.indexNext:=data^[i];
               exit;
             end;
          end;
         if i>count then
-         p^.indexnext:=nil;
+         p^.indexNext:=nil;
       end;
 {$endif OLD}
 
@@ -1674,7 +1425,7 @@ end;
                                 tdynamicarray
 ****************************************************************************}
 
-    constructor tdynamicarray.create(Ablocksize:longint);
+    constructor tdynamicarray.create(Ablocksize:integer);
       begin
         FPosn:=0;
         FPosnblock:=nil;
@@ -1692,13 +1443,13 @@ end;
         while assigned(FFirstblock) do
          begin
            hp:=FFirstblock;
-           FFirstblock:=FFirstblock^.next;
+           FFirstblock:=FFirstblock^.Next;
            freemem(hp,blocksize+dynamicblockbasesize);
          end;
       end;
 
 
-    function  tdynamicarray.size:longint;
+    function  tdynamicarray.size:integer;
       begin
         if assigned(FLastblock) then
          size:=FLastblock^.pos+FLastblock^.used
@@ -1711,7 +1462,7 @@ end;
       var
         nblock : pdynamicblock;
       begin
-        getmem(nblock,blocksize+dynamicblockbasesize);
+        Getmem(nblock,blocksize+dynamicblockbasesize);
         if not assigned(FFirstblock) then
          begin
            FFirstblock:=nblock;
@@ -1720,19 +1471,19 @@ end;
          end
         else
          begin
-           FLastblock^.next:=nblock;
+           FLastblock^.Next:=nblock;
            nblock^.pos:=FLastblock^.pos+FLastblock^.used;
          end;
         nblock^.used:=0;
-        nblock^.next:=nil;
+        nblock^.Next:=nil;
         fillchar(nblock^.data,blocksize,0);
         FLastblock:=nblock;
       end;
 
 
-    procedure tdynamicarray.align(i:longint);
+    procedure tdynamicarray.align(i:integer);
       var
-        j : longint;
+        j : integer;
       begin
         j:=(FPosn mod i);
         if j<>0 then
@@ -1751,7 +1502,7 @@ end;
       end;
 
 
-    procedure tdynamicarray.seek(i:longint);
+    procedure tdynamicarray.seek(i:integer);
       begin
         if (i<FPosnblock^.pos) or (i>FPosnblock^.pos+blocksize) then
          begin
@@ -1763,7 +1514,7 @@ end;
             begin
               if FPosnblock^.pos+blocksize>i then
                break;
-              FPosnblock:=FPosnblock^.next;
+              FPosnblock:=FPosnblock^.Next;
             end;
            { not found ? then increase blocks }
            if not assigned(FPosnblock) then
@@ -1782,10 +1533,10 @@ end;
       end;
 
 
-    procedure tdynamicarray.write(const d;len:longint);
+    procedure tdynamicarray.write(const d;len:integer);
       var
         p : pchar;
-        i,j : longint;
+        i,j : integer;
       begin
         p:=pchar(@d);
         while (len>0) do
@@ -1799,8 +1550,8 @@ end;
               inc(FPosn,j);
               dec(len,j);
               FPosnblock^.used:=blocksize;
-              if assigned(FPosnblock^.next) then
-               FPosnblock:=FPosnblock^.next
+              if assigned(FPosnblock^.Next) then
+               FPosnblock:=FPosnblock^.Next
               else
                begin
                  grow;
@@ -1827,10 +1578,10 @@ end;
       end;
 
 
-    function tdynamicarray.read(var d;len:longint):longint;
+    function tdynamicarray.read(var d;len:integer):integer;
       var
         p : pchar;
-        i,j,res : longint;
+        i,j,res : integer;
       begin
         res:=0;
         p:=pchar(@d);
@@ -1845,8 +1596,8 @@ end;
               inc(FPosn,j);
               inc(res,j);
               dec(len,j);
-              if assigned(FPosnblock^.next) then
-               FPosnblock:=FPosnblock^.next
+              if assigned(FPosnblock^.Next) then
+               FPosnblock:=FPosnblock^.Next
               else
                break;
             end
@@ -1865,7 +1616,7 @@ end;
 
     procedure tdynamicarray.readstream(f:TCStream);
       var
-        i,left : longint;
+        i,left : integer;
       begin
         repeat
           left:=blocksize-FPosnblock^.used;
@@ -1873,8 +1624,8 @@ end;
           inc(FPosnblock^.used,i);
           if FPosnblock^.used=blocksize then
            begin
-             if assigned(FPosnblock^.next) then
-              FPosnblock:=FPosnblock^.next
+             if assigned(FPosnblock^.Next) then
+              FPosnblock:=FPosnblock^.Next
              else
               begin
                 grow;
@@ -1893,7 +1644,7 @@ end;
         while assigned(hp) do
          begin
            f.Write(hp^.data,hp^.used);
-           hp:=hp^.next;
+           hp:=hp^.Next;
          end;
       end;
 
@@ -1901,7 +1652,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-12-24 12:25:31  peter
+  Revision 1.2  2000-12-25 00:07:25  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.1  2000/12/24 12:25:31  peter
     + cstreams unit
     * dynamicarray object to class
 

@@ -60,7 +60,7 @@ interface
           procedure insert_in_data;virtual;
 {$ifdef GDB}
           function  stabstring : pchar;virtual;
-          procedure concatstabto(asmlist : paasmoutput);virtual;
+          procedure concatstabto(asmlist : taasmoutput);virtual;
 {$endif GDB}
           procedure load_references;virtual;
           function  write_references : boolean;virtual;
@@ -89,7 +89,7 @@ interface
           procedure write;virtual;
           procedure restoreunitsym;
 {$ifdef GDB}
-          procedure concatstabto(asmlist : paasmoutput);virtual;
+          procedure concatstabto(asmlist : taasmoutput);virtual;
 {$endif GDB}
        end;
 
@@ -121,7 +121,7 @@ interface
           function  write_references : boolean;virtual;
 {$ifdef GDB}
           function stabstring : pchar;virtual;
-          procedure concatstabto(asmlist : paasmoutput);virtual;
+          procedure concatstabto(asmlist : taasmoutput);virtual;
 {$endif GDB}
        end;
 
@@ -147,7 +147,7 @@ interface
           function  write_references : boolean;virtual;
 {$ifdef GDB}
           function stabstring : pchar;virtual;
-          procedure concatstabto(asmlist : paasmoutput);virtual;
+          procedure concatstabto(asmlist : taasmoutput);virtual;
 {$endif GDB}
        end;
 
@@ -176,7 +176,7 @@ interface
           function  getpushsize : longint;
 {$ifdef GDB}
           function  stabstring : pchar;virtual;
-          procedure concatstabto(asmlist : paasmoutput);virtual;
+          procedure concatstabto(asmlist : taasmoutput);virtual;
 {$endif GDB}
        private
           _mangledname  : pchar;
@@ -203,7 +203,7 @@ interface
           procedure dooverride(overriden:ppropertysym);
 {$ifdef GDB}
           function  stabstring : pchar;virtual;
-          procedure concatstabto(asmlist : paasmoutput);virtual;
+          procedure concatstabto(asmlist : taasmoutput);virtual;
 {$endif GDB}
        end;
 
@@ -219,7 +219,7 @@ interface
           procedure deref;virtual;
           procedure insert_in_data;virtual;
 {$ifdef GDB}
-          procedure concatstabto(asmlist : paasmoutput);virtual;
+          procedure concatstabto(asmlist : taasmoutput);virtual;
 {$endif GDB}
        end;
 
@@ -237,7 +237,7 @@ interface
           procedure write;virtual;
           procedure insert_in_data;virtual;
 {$ifdef GDB}
-          procedure concatstabto(asmlist : paasmoutput);virtual;
+          procedure concatstabto(asmlist : taasmoutput);virtual;
 {$endif GDB}
        end;
 
@@ -277,7 +277,7 @@ interface
           procedure write;virtual;
 {$ifdef GDB}
           function  stabstring : pchar;virtual;
-          procedure concatstabto(asmlist : paasmoutput);virtual;
+          procedure concatstabto(asmlist : taasmoutput);virtual;
 {$endif GDB}
        end;
 
@@ -292,7 +292,7 @@ interface
           procedure deref;virtual;
           procedure order;
 {$ifdef GDB}
-          procedure concatstabto(asmlist : paasmoutput);virtual;
+          procedure concatstabto(asmlist : taasmoutput);virtual;
 {$endif GDB}
        end;
 
@@ -304,7 +304,7 @@ interface
           destructor  done;virtual;
           procedure write;virtual;
 {$ifdef GDB}
-          procedure concatstabto(asmlist : paasmoutput);virtual;
+          procedure concatstabto(asmlist : taasmoutput);virtual;
 {$endif GDB}
        end;
 
@@ -455,7 +455,7 @@ implementation
           ref:=defref;
         while assigned(ref) do
          begin
-           if ref^.moduleindex=current_module^.unit_index then
+           if ref^.moduleindex=current_module.unit_index then
              begin
               { write address to this symbol }
                 if not symref_written then
@@ -520,7 +520,7 @@ implementation
            tostr(fileinfo.line)+',0');
       end;
 
-    procedure tstoredsym.concatstabto(asmlist : paasmoutput);
+    procedure tstoredsym.concatstabto(asmlist : taasmoutput);
 
     var stab_str : pchar;
       begin
@@ -528,7 +528,7 @@ implementation
            begin
               stab_str := stabstring;
               { count_dbx(stab_str); moved to GDB.PAS }
-              asmlist^.concat(new(pai_stabs,init(stab_str)));
+              asmList.concat(Tai_stabs.Create(stab_str));
               isstabwritten:=true;
           end;
     end;
@@ -612,7 +612,7 @@ implementation
       begin
          inherited load;
          typ:=unitsym;
-         unitsymtable:=punitsymtable(current_module^.globalsymtable);
+         unitsymtable:=punitsymtable(current_module.globalsymtable);
          prevsym:=nil;
       end;
 
@@ -657,7 +657,7 @@ implementation
       end;
 
 {$ifdef GDB}
-    procedure tunitsym.concatstabto(asmlist : paasmoutput);
+    procedure tunitsym.concatstabto(asmlist : taasmoutput);
       begin
       {Nothing to write to stabs !}
       end;
@@ -913,11 +913,11 @@ implementation
      freemem(p,length(stabsstr)+255);
     end;
 
-    procedure tprocsym.concatstabto(asmlist : paasmoutput);
+    procedure tprocsym.concatstabto(asmlist : taasmoutput);
     begin
       if (pocall_internproc in definition^.proccalloptions) then exit;
       if not isstabwritten then
-        asmlist^.concat(new(pai_stabs,init(stabstring)));
+        asmList.concat(Tai_stabs.Create(stabstring));
       isstabwritten := true;
       if assigned(definition^.parast) then
         pstoredsymtable(definition^.parast)^.concatstabto(asmlist);
@@ -1067,7 +1067,7 @@ implementation
          stabstring:=strpnew('');
       end;
 
-    procedure tpropertysym.concatstabto(asmlist : paasmoutput);
+    procedure tpropertysym.concatstabto(asmlist : taasmoutput);
       begin
          { !!!! don't know how to handle }
       end;
@@ -1117,7 +1117,7 @@ implementation
       end;
 
 {$ifdef GDB}
-    procedure tfuncretsym.concatstabto(asmlist : paasmoutput);
+    procedure tfuncretsym.concatstabto(asmlist : taasmoutput);
       begin
         { Nothing to do here, it is done in genexitcode  }
       end;
@@ -1268,7 +1268,7 @@ implementation
 
 
 {$ifdef GDB}
-    procedure tabsolutesym.concatstabto(asmlist : paasmoutput);
+    procedure tabsolutesym.concatstabto(asmlist : taasmoutput);
       begin
       { I don't know how to handle this !! }
       end;
@@ -1547,7 +1547,7 @@ implementation
                    { enable unitialized warning for local symbols }
                    varstate:=vs_declared;
                    if (cs_create_smart in aktmoduleswitches) then
-                     bsssegment^.concat(new(pai_cut,init));
+                     bssSegment.concat(Tai_cut.Create);
                    ali:=data_align(l);
                    if ali>1 then
                      begin
@@ -1564,9 +1564,9 @@ implementation
                       DLLSource or
                       (vo_is_exported in varoptions) or
                       (vo_is_C_var in varoptions) then
-                     bsssegment^.concat(new(pai_datablock,init_global(mangledname,l)))
+                     bssSegment.concat(Tai_datablock.Create_global(mangledname,l))
                    else
-                     bsssegment^.concat(new(pai_datablock,init(mangledname,l)));
+                     bssSegment.concat(Tai_datablock.Create(mangledname,l));
                    { increase datasize }
                    inc(owner^.datasize,l);
                    { this symbol can't be loaded to a register }
@@ -1576,7 +1576,7 @@ implementation
                globalsymtable :
                  begin
                    if (cs_create_smart in aktmoduleswitches) then
-                     bsssegment^.concat(new(pai_cut,init));
+                     bssSegment.concat(Tai_cut.Create);
                    ali:=data_align(l);
                    if ali>1 then
                      begin
@@ -1588,7 +1588,7 @@ implementation
                    if cs_debuginfo in aktmoduleswitches then
                      concatstabto(bsssegment);
 {$endif GDB}
-                   bsssegment^.concat(new(pai_datablock,init_global(mangledname,l)));
+                   bssSegment.concat(Tai_datablock.Create_global(mangledname,l));
                    inc(owner^.datasize,l);
                    { this symbol can't be loaded to a register }
                    exclude(varoptions,vo_regable);
@@ -1775,7 +1775,7 @@ implementation
          stabstring := inherited stabstring;
   end;
 
-    procedure tvarsym.concatstabto(asmlist : paasmoutput);
+    procedure tvarsym.concatstabto(asmlist : taasmoutput);
 {$ifdef i386}
       var stab_str : pchar;
 {$endif i386}
@@ -1791,7 +1791,7 @@ implementation
                      +pstoreddef(vartype.def)^.numberstring+'",'+
                      tostr(N_RSYM)+',0,'+
                      tostr(fileinfo.line)+','+tostr(GDB_i386index[reg]));
-              asmlist^.concat(new(pai_stabs,init(stab_str)));
+              asmList.concat(Tai_stabs.Create(stab_str));
            end;
 {$endif i386}
       end;
@@ -1869,7 +1869,7 @@ implementation
 
     procedure ttypedconstsym.insert_in_data;
       var
-        curconstsegment : paasmoutput;
+        curconstsegment : taasmoutput;
         l,ali,modulo : longint;
         storefilepos : tfileposinfo;
       begin
@@ -1880,12 +1880,12 @@ implementation
         else
           curconstsegment:=datasegment;
         if (cs_create_smart in aktmoduleswitches) then
-          curconstsegment^.concat(new(pai_cut,init));
+          curconstSegment.concat(Tai_cut.Create);
         l:=getsize;
         ali:=data_align(l);
         if ali>1 then
           begin
-             curconstsegment^.concat(new(pai_align,init(ali)));
+             curconstSegment.concat(Tai_align.Create(ali));
              modulo:=owner^.datasize mod ali;
              if modulo>0 then
                inc(owner^.datasize,ali-modulo);
@@ -1898,16 +1898,16 @@ implementation
 {$endif GDB}
         if owner^.symtabletype=globalsymtable then
           begin
-             curconstsegment^.concat(new(pai_symbol,initdataname_global(mangledname,getsize)));
+             curconstSegment.concat(Tai_symbol.Createdataname_global(mangledname,getsize));
           end
         else
           if owner^.symtabletype<>unitsymtable then
             begin
               if (cs_create_smart in aktmoduleswitches) or
                  DLLSource then
-                curconstsegment^.concat(new(pai_symbol,initdataname_global(mangledname,getsize)))
+                curconstSegment.concat(Tai_symbol.Createdataname_global(mangledname,getsize))
               else
-                curconstsegment^.concat(new(pai_symbol,initdataname(mangledname,getsize)));
+                curconstSegment.concat(Tai_symbol.Createdataname(mangledname,getsize));
             end;
         aktfilepos:=storefilepos;
       end;
@@ -1964,7 +1964,7 @@ implementation
          consttype.reset;
          len:=l;
          if t=constresourcestring then
-           ResStrIndex:=ResourceStrings^.Register(name,
+           ResStrIndex:=ResourceStrings.Register(name,
              pchar(tpointerord(value)),len);
       end;
 
@@ -2160,7 +2160,7 @@ implementation
                     tostr(fileinfo.line)+',0');
     end;
 
-    procedure tconstsym.concatstabto(asmlist : paasmoutput);
+    procedure tconstsym.concatstabto(asmlist : taasmoutput);
       begin
         if consttyp <> conststring then
           inherited concatstabto(asmlist);
@@ -2240,7 +2240,7 @@ implementation
 
 
 {$ifdef GDB}
-    procedure tenumsym.concatstabto(asmlist : paasmoutput);
+    procedure tenumsym.concatstabto(asmlist : taasmoutput);
     begin
     {enum elements have no stab !}
     end;
@@ -2419,7 +2419,7 @@ implementation
       stabstring := strpnew(short);
     end;
 
-    procedure ttypesym.concatstabto(asmlist : paasmoutput);
+    procedure ttypesym.concatstabto(asmlist : taasmoutput);
       begin
       {not stabs for forward defs }
       if assigned(restype.def) then
@@ -2462,7 +2462,7 @@ implementation
       end;
 
 {$ifdef GDB}
-    procedure tsyssym.concatstabto(asmlist : paasmoutput);
+    procedure tsyssym.concatstabto(asmlist : taasmoutput);
       begin
       end;
 {$endif GDB}
@@ -2471,7 +2471,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2000-11-28 00:25:17  pierre
+  Revision 1.7  2000-12-25 00:07:30  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.6  2000/11/28 00:25:17  pierre
    + use int64tostr function for integer consts
 
   Revision 1.5  2000/11/13 14:44:35  jonas

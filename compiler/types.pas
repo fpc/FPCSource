@@ -27,7 +27,7 @@ unit types;
 interface
 
     uses
-       cobjects,
+       cobjects,cclasses,
        cpuinfo,
        node,
        symbase,symtype,symdef,symsym;
@@ -205,12 +205,12 @@ interface
     type
       compare_type = ( cp_none, cp_value_equal_const, cp_all);
 
-    function equal_paras(paralist1,paralist2 : plinkedlist; acp : compare_type) : boolean;
+    function equal_paras(paralist1,paralist2 : tlinkedlist; acp : compare_type) : boolean;
 
 
     { true if a type can be allowed for another one
       in a func var }
-    function convertable_paras(paralist1,paralist2 : plinkedlist; acp : compare_type) : boolean;
+    function convertable_paras(paralist1,paralist2 : tlinkedlist; acp : compare_type) : boolean;
 
     { true if a function can be assigned to a procvar }
     function proc_to_procvar_equal(def1:pprocdef;def2:pprocvardef) : boolean;
@@ -312,21 +312,21 @@ implementation
 
     {  compare_type = ( cp_none, cp_value_equal_const, cp_all); }
 
-    function equal_paras(paralist1,paralist2 : plinkedlist; acp : compare_type) : boolean;
+    function equal_paras(paralist1,paralist2 : TLinkedList; acp : compare_type) : boolean;
       var
-        def1,def2 : pparaitem;
+        def1,def2 : TParaItem;
       begin
-         def1:=pparaitem(paralist1^.first);
-         def2:=pparaitem(paralist2^.first);
+         def1:=TParaItem(paralist1.first);
+         def2:=TParaItem(paralist2.first);
          while (assigned(def1)) and (assigned(def2)) do
            begin
              case acp of
               cp_value_equal_const :
                 begin
-                   if not(is_equal(def1^.paratype.def,def2^.paratype.def)) or
-                     ((def1^.paratyp<>def2^.paratyp) and
-                      ((def1^.paratyp in [vs_var,vs_out]) or
-                       (def2^.paratyp in [vs_var,vs_out])
+                   if not(is_equal(def1.paratype.def,def2.paratype.def)) or
+                     ((def1.paratyp<>def2.paratyp) and
+                      ((def1.paratyp in [vs_var,vs_out]) or
+                       (def2.paratyp in [vs_var,vs_out])
                       )
                      ) then
                      begin
@@ -336,8 +336,8 @@ implementation
                 end;
               cp_all :
                 begin
-                   if not(is_equal(def1^.paratype.def,def2^.paratype.def)) or
-                     (def1^.paratyp<>def2^.paratyp) then
+                   if not(is_equal(def1.paratype.def,def2.paratype.def)) or
+                     (def1.paratyp<>def2.paratyp) then
                      begin
                         equal_paras:=false;
                         exit;
@@ -345,16 +345,16 @@ implementation
                 end;
               cp_none :
                 begin
-                   if not(is_equal(def1^.paratype.def,def2^.paratype.def)) then
+                   if not(is_equal(def1.paratype.def,def2.paratype.def)) then
                      begin
                         equal_paras:=false;
                         exit;
                      end;
                    { also check default value if both have it declared }
-                   if assigned(def1^.defaultvalue) and
-                      assigned(def2^.defaultvalue) then
+                   if assigned(def1.defaultvalue) and
+                      assigned(def2.defaultvalue) then
                     begin
-                      if not equal_constsym(pconstsym(def1^.defaultvalue),pconstsym(def2^.defaultvalue)) then
+                      if not equal_constsym(pconstsym(def1.defaultvalue),pconstsym(def2.defaultvalue)) then
                        begin
                          equal_paras:=false;
                          exit;
@@ -362,8 +362,8 @@ implementation
                     end;
                 end;
               end;
-              def1:=pparaitem(def1^.next);
-              def2:=pparaitem(def2^.next);
+              def1:=TParaItem(def1.next);
+              def2:=TParaItem(def2.next);
            end;
          if (def1=nil) and (def2=nil) then
            equal_paras:=true
@@ -371,22 +371,22 @@ implementation
            equal_paras:=false;
       end;
 
-    function convertable_paras(paralist1,paralist2 : plinkedlist;acp : compare_type) : boolean;
+    function convertable_paras(paralist1,paralist2 : TLinkedList;acp : compare_type) : boolean;
       var
-        def1,def2 : pparaitem;
+        def1,def2 : TParaItem;
         doconv : tconverttype;
       begin
-         def1:=pparaitem(paralist1^.first);
-         def2:=pparaitem(paralist2^.first);
+         def1:=TParaItem(paralist1.first);
+         def2:=TParaItem(paralist2.first);
          while (assigned(def1)) and (assigned(def2)) do
            begin
               case acp of
               cp_value_equal_const :
                 begin
-                   if (isconvertable(def1^.paratype.def,def2^.paratype.def,doconv,nil,callparan,false)=0) or
-                     ((def1^.paratyp<>def2^.paratyp) and
-                      ((def1^.paratyp in [vs_out,vs_var]) or
-                       (def2^.paratyp in [vs_out,vs_var])
+                   if (isconvertable(def1.paratype.def,def2.paratype.def,doconv,nil,callparan,false)=0) or
+                     ((def1.paratyp<>def2.paratyp) and
+                      ((def1.paratyp in [vs_out,vs_var]) or
+                       (def2.paratyp in [vs_out,vs_var])
                       )
                      ) then
                      begin
@@ -396,8 +396,8 @@ implementation
                 end;
               cp_all :
                 begin
-                   if (isconvertable(def1^.paratype.def,def2^.paratype.def,doconv,nil,callparan,false)=0) or
-                     (def1^.paratyp<>def2^.paratyp) then
+                   if (isconvertable(def1.paratype.def,def2.paratype.def,doconv,nil,callparan,false)=0) or
+                     (def1.paratyp<>def2.paratyp) then
                      begin
                         convertable_paras:=false;
                         exit;
@@ -405,15 +405,15 @@ implementation
                 end;
               cp_none :
                 begin
-                   if (isconvertable(def1^.paratype.def,def2^.paratype.def,doconv,nil,callparan,false)=0) then
+                   if (isconvertable(def1.paratype.def,def2.paratype.def,doconv,nil,callparan,false)=0) then
                      begin
                         convertable_paras:=false;
                         exit;
                      end;
                 end;
               end;
-              def1:=pparaitem(def1^.next);
-              def2:=pparaitem(def2^.next);
+              def1:=TParaItem(def1.next);
+              def2:=TParaItem(def2.next);
            end;
          if (def1=nil) and (def2=nil) then
            convertable_paras:=true
@@ -1187,8 +1187,8 @@ implementation
           while passproc<>nil do
             begin
               if is_equal(passproc^.rettype.def,to_def) and
-                 (is_equal(pparaitem(passproc^.para^.first)^.paratype.def,from_def) or
-                 (isconvertable(from_def,pparaitem(passproc^.para^.first)^.paratype.def,convtyp,nil,ordconstn,false)=1)) then
+                 (is_equal(TParaItem(passproc^.Para.first).paratype.def,from_def) or
+                 (isconvertable(from_def,TParaItem(passproc^.Para.first).paratype.def,convtyp,nil,ordconstn,false)=1)) then
                 begin
                    assignment_overloaded:=passproc;
                    break;
@@ -1730,7 +1730,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  2000-12-22 22:38:12  peter
+  Revision 1.29  2000-12-25 00:07:30  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.28  2000/12/22 22:38:12  peter
     * fixed bug #1286
 
   Revision 1.27  2000/12/20 15:59:40  jonas

@@ -27,13 +27,13 @@ unit Script;
 interface
 
 uses
-  CObjects;
+  cclasses;
 
 type
   PScript=^TScript;
   TScript=object
     fn   : string[80];
-    data : TStringQueue;
+    data : TStringList;
     executable : boolean;
     constructor Init(const s:string);
     constructor InitExec(const s:string);
@@ -81,7 +81,7 @@ constructor TScript.Init(const s:string);
 begin
   fn:=FixFileName(s);
   executable:=false;
-  data.Init;
+  data:=TStringList.Create;
 end;
 
 
@@ -89,13 +89,13 @@ constructor TScript.InitExec(const s:string);
 begin
   fn:=FixFileName(s)+source_os.scriptext;
   executable:=true;
-  data.Init;
+  data:=TStringList.Create;
 end;
 
 
 destructor TScript.Done;
 begin
-  data.done;
+  data.Free;
 end;
 
 
@@ -124,7 +124,7 @@ begin
   Assign(t,fn);
   Rewrite(t);
   while not data.Empty do
-   Writeln(t,data.Get);
+   Writeln(t,data.GetFirst);
   Close(t);
 {$ifdef Unix}
   if executable then
@@ -237,7 +237,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-11-13 15:43:07  marco
+  Revision 1.5  2000-12-25 00:07:29  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.4  2000/11/13 15:43:07  marco
    * Renamefest
 
   Revision 1.3  2000/09/24 15:06:28  peter

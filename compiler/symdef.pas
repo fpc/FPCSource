@@ -27,7 +27,7 @@ interface
 
     uses
        { common }
-       cutils,cobjects,
+       cutils,cobjects,cclasses,
        { global }
        globtype,globals,tokens,
        { symtable }
@@ -71,10 +71,10 @@ interface
           { debug }
 {$ifdef GDB}
           function  stabstring : pchar;virtual;
-          procedure concatstabto(asmlist : paasmoutput);virtual;
+          procedure concatstabto(asmlist : taasmoutput);virtual;
           function  NumberString:string;
           procedure set_globalnb;virtual;
-          function  allstabstring : pchar;
+          function  allstabstring : pchar;virtual;
 {$endif GDB}
           { init. tables }
           function  needs_inittable : boolean;virtual;
@@ -101,8 +101,7 @@ interface
 
        tvarspez = (vs_value,vs_const,vs_var,vs_out);
 
-       pparaitem = ^tparaitem;
-       tparaitem = object(tlinkedlist_item)
+       tparaitem = class(tlinkedlistitem)
           paratype     : ttype;
           paratyp      : tvarspez;
           argconvtyp   : targconvtyp;
@@ -113,8 +112,7 @@ interface
 
        { this is only here to override the count method,
          which can't be used }
-       pparalinkedlist = ^tparalinkedlist;
-       tparalinkedlist = object(tlinkedlist)
+       tparalinkedlist = class(tlinkedlist)
           function count:longint;
        end;
 
@@ -136,7 +134,7 @@ interface
           { debug }
 {$ifdef GDB}
           function  stabstring : pchar;virtual;
-          procedure concatstabto(asmlist : paasmoutput);virtual;
+          procedure concatstabto(asmlist : taasmoutput);virtual;
 {$endif GDB}
        end;
 
@@ -148,7 +146,7 @@ interface
           function  gettypename:string;virtual;
 {$ifdef GDB}
           function  stabstring : pchar;virtual;
-          procedure concatstabto(asmlist : paasmoutput);virtual;
+          procedure concatstabto(asmlist : taasmoutput);virtual;
 {$endif GDB}
        end;
 
@@ -191,7 +189,7 @@ interface
           { debug }
 {$ifdef GDB}
           function  stabstring : pchar;virtual;
-          procedure concatstabto(asmlist : paasmoutput);virtual;
+          procedure concatstabto(asmlist : taasmoutput);virtual;
 {$endif GDB}
        end;
 
@@ -241,7 +239,7 @@ interface
           function stabstring : pchar;virtual;
           procedure set_globalnb;virtual;
           function  classnumberstring : string;
-          procedure concatstabto(asmlist : paasmoutput);virtual;
+          procedure concatstabto(asmlist : taasmoutput);virtual;
           function  allstabstring : pchar;virtual;
 {$endif GDB}
           { init/final }
@@ -294,7 +292,7 @@ interface
           { debug }
 {$ifdef GDB}
           function stabstring : pchar;virtual;
-          procedure concatstabto(asmlist : paasmoutput);virtual;
+          procedure concatstabto(asmlist : taasmoutput);virtual;
 {$endif GDB}
        end;
 
@@ -316,7 +314,7 @@ interface
           procedure write;virtual;
 {$ifdef GDB}
           function stabstring : pchar;virtual;
-          procedure concatstabto(asmlist : paasmoutput);virtual;
+          procedure concatstabto(asmlist : taasmoutput);virtual;
 {$endif GDB}
           procedure deref;virtual;
           function size : longint;virtual;
@@ -347,7 +345,7 @@ interface
           { debug }
 {$ifdef GDB}
           function  stabstring : pchar;virtual;
-          procedure concatstabto(asmlist : paasmoutput);virtual;
+          procedure concatstabto(asmlist : taasmoutput);virtual;
 {$endif GDB}
           { init/final }
           procedure write_init_data;virtual;
@@ -405,7 +403,7 @@ interface
           proctypeoption  : tproctypeoption;
           proccalloptions : tproccalloptions;
           procoptions     : tprocoptions;
-          para            : pparalinkedlist;
+          para            : tparalinkedlist;
           maxparacount,
           minparacount    : longint;
           symtablelevel   : byte;
@@ -423,7 +421,7 @@ interface
           { debug }
 {$ifdef GDB}
           function  stabstring : pchar;virtual;
-          procedure concatstabto(asmlist : paasmoutput);virtual;
+          procedure concatstabto(asmlist : taasmoutput);virtual;
 {$endif GDB}
        end;
 
@@ -438,7 +436,7 @@ interface
           { debug }
 {$ifdef GDB}
           function stabstring : pchar;virtual;
-          procedure concatstabto(asmlist : paasmoutput); virtual;
+          procedure concatstabto(asmlist : taasmoutput); virtual;
 {$endif GDB}
           { rtti }
           procedure write_child_rtti_data;virtual;
@@ -463,6 +461,8 @@ interface
           fileinfo : tfileposinfo;
           { symbol owning this definition }
           procsym : psym;
+          { alias names }
+          aliasnames : tstringlist;
           { symtables }
           parast,
           localst : psymtable;
@@ -511,7 +511,7 @@ interface
           { debug }
 {$ifdef GDB}
           function  stabstring : pchar;virtual;
-          procedure concatstabto(asmlist : paasmoutput);virtual;
+          procedure concatstabto(asmlist : taasmoutput);virtual;
 {$endif GDB}
        end;
 
@@ -535,7 +535,7 @@ interface
           { debug }
 {$ifdef GDB}
           function  stabstring : pchar;virtual;
-          procedure concatstabto(asmlist : paasmoutput);virtual;
+          procedure concatstabto(asmlist : taasmoutput);virtual;
 {$endif GDB}
           { init/final }
           function  needs_inittable : boolean;virtual;
@@ -591,7 +591,7 @@ interface
           { debug }
 {$ifdef GDB}
           function  stabstring : pchar;virtual;
-          procedure concatstabto(asmlist : paasmoutput);virtual;
+          procedure concatstabto(asmlist : taasmoutput);virtual;
 {$endif GDB}
           { rtti }
           procedure write_rtti_data;virtual;
@@ -723,7 +723,7 @@ implementation
 ****************************************************************************}
 
 {$ifdef GDB}
-    procedure forcestabto(asmlist : paasmoutput; pd : pdef);
+    procedure forcestabto(asmlist : taasmoutput; pd : pdef);
       begin
         if pstoreddef(pd)^.is_def_stab_written = not_written then
          begin
@@ -840,7 +840,7 @@ implementation
          is_in_current:=false;
          while assigned(p) do
            begin
-              if (p=current_module^.globalsymtable) or (p=current_module^.localsymtable)
+              if (p=current_module.globalsymtable) or (p=current_module.localsymtable)
                  or (p^.symtabletype in [globalsymtable,staticsymtable]) then
                 begin
                    is_in_current:=true;
@@ -982,7 +982,7 @@ implementation
       end;
 
 
-    procedure tstoreddef.concatstabto(asmlist : paasmoutput);
+    procedure tstoreddef.concatstabto(asmlist : taasmoutput);
      var stab_str : pchar;
     begin
     if ((typesym = nil) or ptypesym(typesym)^.isusedinstab or (cs_gdb_dbx in aktglobalswitches))
@@ -1008,7 +1008,7 @@ implementation
       { to avoid infinite loops }
       is_def_stab_written := being_written;
       stab_str := allstabstring;
-      asmlist^.concat(new(pai_stabs,init(stab_str)));
+      asmList.concat(Tai_stabs.Create(stab_str));
       is_def_stab_written := written;
       end;
     end;
@@ -1023,9 +1023,9 @@ implementation
             has_rtti:=true;
             getdatalabel(rtti_label);
             write_child_rtti_data;
-            rttilist^.concat(new(pai_symbol,init(rtti_label,0)));
+            rttiList.concat(Tai_symbol.Create(rtti_label,0));
             write_rtti_data;
-            rttilist^.concat(new(pai_symbol_end,init(rtti_label)));
+            rttiList.concat(Tai_symbol_end.Create(rtti_label));
           end;
       end;
 
@@ -1049,7 +1049,7 @@ implementation
          has_inittable:=true;
          getdatalabel(inittable_label);
          write_child_init_data;
-         rttilist^.concat(new(pai_label,init(inittable_label)));
+         rttiList.concat(Tai_label.Create(inittable_label));
          write_init_data;
       end;
 
@@ -1082,10 +1082,10 @@ implementation
          if assigned(typesym) then
            begin
               str:=ptypesym(typesym)^.realname;
-              rttilist^.concat(new(pai_string,init(chr(length(str))+str)));
+              rttiList.concat(Tai_string.Create(chr(length(str))+str));
            end
          else
-           rttilist^.concat(new(pai_string,init(#0)))
+           rttiList.concat(Tai_string.Create(#0))
       end;
 
 
@@ -1313,7 +1313,7 @@ implementation
     end;
 
 
-    procedure tstringdef.concatstabto(asmlist : paasmoutput);
+    procedure tstringdef.concatstabto(asmlist : taasmoutput);
       begin
         inherited concatstabto(asmlist);
       end;
@@ -1340,24 +1340,24 @@ implementation
          case string_typ of
             st_ansistring:
               begin
-                 rttilist^.concat(new(pai_const,init_8bit(tkAString)));
+                 rttiList.concat(Tai_const.Create_8bit(tkAString));
                  write_rtti_name;
               end;
             st_widestring:
               begin
-                 rttilist^.concat(new(pai_const,init_8bit(tkWString)));
+                 rttiList.concat(Tai_const.Create_8bit(tkWString));
                  write_rtti_name;
               end;
             st_longstring:
               begin
-                 rttilist^.concat(new(pai_const,init_8bit(tkLString)));
+                 rttiList.concat(Tai_const.Create_8bit(tkLString));
                  write_rtti_name;
               end;
             st_shortstring:
               begin
-                 rttilist^.concat(new(pai_const,init_8bit(tkSString)));
+                 rttiList.concat(Tai_const.Create_8bit(tkSString));
                  write_rtti_name;
-                 rttilist^.concat(new(pai_const,init_8bit(len)));
+                 rttiList.concat(Tai_const.Create_8bit(len));
               end;
          end;
       end;
@@ -1482,7 +1482,7 @@ implementation
     function tenumdef.getrangecheckstring : string;
       begin
          if (cs_create_smart in aktmoduleswitches) then
-           getrangecheckstring:='R_'+current_module^.modulename^+tostr(rangenr)
+           getrangecheckstring:='R_'+current_module.modulename^+tostr(rangenr)
          else
            getrangecheckstring:='R_'+tostr(rangenr);
       end;
@@ -1495,11 +1495,11 @@ implementation
               { generate two constant for bounds }
               getlabelnr(rangenr);
               if (cs_create_smart in aktmoduleswitches) then
-                datasegment^.concat(new(pai_symbol,initname_global(getrangecheckstring,8)))
+                dataSegment.concat(Tai_symbol.Createname_global(getrangecheckstring,8))
               else
-                datasegment^.concat(new(pai_symbol,initname(getrangecheckstring,8)));
-              datasegment^.concat(new(pai_const,init_32bit(min)));
-              datasegment^.concat(new(pai_const,init_32bit(max)));
+                dataSegment.concat(Tai_symbol.Createname(getrangecheckstring,8));
+              dataSegment.concat(Tai_const.Create_32bit(min));
+              dataSegment.concat(Tai_const.Create_32bit(max));
            end;
       end;
 
@@ -1575,30 +1575,30 @@ implementation
          hp : penumsym;
 
       begin
-         rttilist^.concat(new(pai_const,init_8bit(tkEnumeration)));
+         rttiList.concat(Tai_const.Create_8bit(tkEnumeration));
          write_rtti_name;
          case savesize of
             1:
-              rttilist^.concat(new(pai_const,init_8bit(otUByte)));
+              rttiList.concat(Tai_const.Create_8bit(otUByte));
             2:
-              rttilist^.concat(new(pai_const,init_8bit(otUWord)));
+              rttiList.concat(Tai_const.Create_8bit(otUWord));
             4:
-              rttilist^.concat(new(pai_const,init_8bit(otULong)));
+              rttiList.concat(Tai_const.Create_8bit(otULong));
          end;
-         rttilist^.concat(new(pai_const,init_32bit(min)));
-         rttilist^.concat(new(pai_const,init_32bit(max)));
+         rttiList.concat(Tai_const.Create_32bit(min));
+         rttiList.concat(Tai_const.Create_32bit(max));
          if assigned(basedef) then
-           rttilist^.concat(new(pai_const_symbol,initname(basedef^.get_rtti_label)))
+           rttiList.concat(Tai_const_symbol.Createname(basedef^.get_rtti_label))
          else
-           rttilist^.concat(new(pai_const,init_32bit(0)));
+           rttiList.concat(Tai_const.Create_32bit(0));
          hp:=penumsym(firstenum);
          while assigned(hp) do
            begin
-              rttilist^.concat(new(pai_const,init_8bit(length(hp^.name))));
-              rttilist^.concat(new(pai_string,init(lower(hp^.name))));
+              rttiList.concat(Tai_const.Create_8bit(length(hp^.name)));
+              rttiList.concat(Tai_string.Create(lower(hp^.name)));
               hp:=hp^.nextenum;
            end;
-         rttilist^.concat(new(pai_const,init_8bit(0)));
+         rttiList.concat(Tai_const.Create_8bit(0));
       end;
 
 
@@ -1706,7 +1706,7 @@ implementation
 
       begin
          if (cs_create_smart in aktmoduleswitches) then
-           getrangecheckstring:='R_'+current_module^.modulename^+tostr(rangenr)
+           getrangecheckstring:='R_'+current_module.modulename^+tostr(rangenr)
          else
            getrangecheckstring:='R_'+tostr(rangenr);
       end;
@@ -1724,21 +1724,21 @@ implementation
               { generate two constant for bounds }
               getlabelnr(rangenr);
               if (cs_create_smart in aktmoduleswitches) then
-                datasegment^.concat(new(pai_symbol,initname_global(getrangecheckstring,rangechecksize)))
+                dataSegment.concat(Tai_symbol.Createname_global(getrangecheckstring,rangechecksize))
               else
-                datasegment^.concat(new(pai_symbol,initname(getrangecheckstring,rangechecksize)));
+                dataSegment.concat(Tai_symbol.Createname(getrangecheckstring,rangechecksize));
               if low<=high then
                 begin
-                   datasegment^.concat(new(pai_const,init_32bit(low)));
-                   datasegment^.concat(new(pai_const,init_32bit(high)));
+                   dataSegment.concat(Tai_const.Create_32bit(low));
+                   dataSegment.concat(Tai_const.Create_32bit(high));
                 end
               { for u32bit we need two bounds }
               else
                 begin
-                   datasegment^.concat(new(pai_const,init_32bit(low)));
-                   datasegment^.concat(new(pai_const,init_32bit($7fffffff)));
-                   datasegment^.concat(new(pai_const,init_32bit(longint($80000000))));
-                   datasegment^.concat(new(pai_const,init_32bit(high)));
+                   dataSegment.concat(Tai_const.Create_32bit(low));
+                   dataSegment.concat(Tai_const.Create_32bit($7fffffff));
+                   dataSegment.concat(Tai_const.Create_32bit(longint($80000000)));
+                   dataSegment.concat(Tai_const.Create_32bit(high));
                 end;
            end;
       end;
@@ -1788,53 +1788,53 @@ implementation
             (otUByte,otUByte,otUWord,otULong,otSByte,otSWord,otSLong,otUByte);
         begin
           write_rtti_name;
-          rttilist^.concat(new(pai_const,init_8bit(byte(trans[typ]))));
-          rttilist^.concat(new(pai_const,init_32bit(low)));
-          rttilist^.concat(new(pai_const,init_32bit(high)));
+          rttiList.concat(Tai_const.Create_8bit(byte(trans[typ])));
+          rttiList.concat(Tai_const.Create_32bit(low));
+          rttiList.concat(Tai_const.Create_32bit(high));
         end;
 
       begin
         case typ of
           s64bit :
             begin
-              rttilist^.concat(new(pai_const,init_8bit(tkInt64)));
+              rttiList.concat(Tai_const.Create_8bit(tkInt64));
               write_rtti_name;
               { low }
-              rttilist^.concat(new(pai_const,init_32bit($0)));
-              rttilist^.concat(new(pai_const,init_32bit($8000)));
+              rttiList.concat(Tai_const.Create_32bit($0));
+              rttiList.concat(Tai_const.Create_32bit($8000));
               { high }
-              rttilist^.concat(new(pai_const,init_32bit($ffff)));
-              rttilist^.concat(new(pai_const,init_32bit($7fff)));
+              rttiList.concat(Tai_const.Create_32bit($ffff));
+              rttiList.concat(Tai_const.Create_32bit($7fff));
             end;
           u64bit :
             begin
-              rttilist^.concat(new(pai_const,init_8bit(tkQWord)));
+              rttiList.concat(Tai_const.Create_8bit(tkQWord));
               write_rtti_name;
               { low }
-              rttilist^.concat(new(pai_const,init_32bit($0)));
-              rttilist^.concat(new(pai_const,init_32bit($0)));
+              rttiList.concat(Tai_const.Create_32bit($0));
+              rttiList.concat(Tai_const.Create_32bit($0));
               { high }
-              rttilist^.concat(new(pai_const,init_32bit($0)));
-              rttilist^.concat(new(pai_const,init_32bit($8000)));
+              rttiList.concat(Tai_const.Create_32bit($0));
+              rttiList.concat(Tai_const.Create_32bit($8000));
             end;
           bool8bit:
             begin
-              rttilist^.concat(new(pai_const,init_8bit(tkBool)));
+              rttiList.concat(Tai_const.Create_8bit(tkBool));
               dointeger;
             end;
           uchar:
             begin
-              rttilist^.concat(new(pai_const,init_8bit(tkChar)));
+              rttiList.concat(Tai_const.Create_8bit(tkChar));
               dointeger;
             end;
           uwidechar:
             begin
-              rttilist^.concat(new(pai_const,init_8bit(tkWChar)));
+              rttiList.concat(Tai_const.Create_8bit(tkWChar));
               dointeger;
             end;
           else
             begin
-              rttilist^.concat(new(pai_const,init_8bit(tkInteger)));
+              rttiList.concat(Tai_const.Create_8bit(tkInteger));
               dointeger;
             end;
         end;
@@ -1938,9 +1938,9 @@ implementation
          translate : array[tfloattype] of byte =
            (ftSingle,ftDouble,ftExtended,ftComp,ftFixed16,ftFixed32);
       begin
-         rttilist^.concat(new(pai_const,init_8bit(tkFloat)));
+         rttiList.concat(Tai_const.Create_8bit(tkFloat));
          write_rtti_name;
-         rttilist^.concat(new(pai_const,init_8bit(translate[typ])));
+         rttiList.concat(Tai_const.Create_8bit(translate[typ]));
       end;
 
 
@@ -2084,7 +2084,7 @@ implementation
       end;
 
 
-    procedure tfiledef.concatstabto(asmlist : paasmoutput);
+    procedure tfiledef.concatstabto(asmlist : taasmoutput);
       begin
       { most file defs are unnamed !!! }
       if ((typesym = nil) or ptypesym(typesym)^.isusedinstab or (cs_gdb_dbx in aktglobalswitches)) and
@@ -2200,7 +2200,7 @@ implementation
       end;
 
 
-    procedure tpointerdef.concatstabto(asmlist : paasmoutput);
+    procedure tpointerdef.concatstabto(asmlist : taasmoutput);
       var st,nb : string;
           sym_line_no : longint;
       begin
@@ -2233,7 +2233,7 @@ implementation
                       end;
                     st := '"'+st+':t'+numberstring+'=*'+nb
                           +'=xs'+pointertype.def^.typesym^.name+':",'+tostr(N_LSYM)+',0,'+tostr(sym_line_no)+',0';
-                    asmlist^.concat(new(pai_stabs,init(strpnew(st))));
+                    asmList.concat(Tai_stabs.Create(strpnew(st)));
                     end;
               end
             else
@@ -2301,7 +2301,7 @@ implementation
       end;
 
 
-    procedure tclassrefdef.concatstabto(asmlist : paasmoutput);
+    procedure tclassrefdef.concatstabto(asmlist : taasmoutput);
       begin
         inherited concatstabto(asmlist);
       end;
@@ -2410,7 +2410,7 @@ implementation
       end;
 
 
-    procedure tsetdef.concatstabto(asmlist : paasmoutput);
+    procedure tsetdef.concatstabto(asmlist : taasmoutput);
       begin
       if ( not assigned(typesym) or ptypesym(typesym)^.isusedinstab or (cs_gdb_dbx in aktglobalswitches)) and
           (is_def_stab_written = not_written) then
@@ -2432,10 +2432,10 @@ implementation
 
     procedure tsetdef.write_rtti_data;
       begin
-         rttilist^.concat(new(pai_const,init_8bit(tkSet)));
+         rttiList.concat(Tai_const.Create_8bit(tkSet));
          write_rtti_name;
-         rttilist^.concat(new(pai_const,init_8bit(otULong)));
-         rttilist^.concat(new(pai_const_symbol,initname(elementtype.def^.get_rtti_label)));
+         rttiList.concat(Tai_const.Create_8bit(otULong));
+         rttiList.concat(Tai_const_symbol.Createname(elementtype.def^.get_rtti_label));
       end;
 
 
@@ -2475,10 +2475,10 @@ implementation
          registerdef:=stregdef;
          { formaldef must be registered at unit level !! }
          if registerdef and assigned(current_module) then
-            if assigned(current_module^.localsymtable) then
-              psymtable(current_module^.localsymtable)^.registerdef(@self)
-            else if assigned(current_module^.globalsymtable) then
-              psymtable(current_module^.globalsymtable)^.registerdef(@self);
+            if assigned(current_module.localsymtable) then
+              psymtable(current_module.localsymtable)^.registerdef(@self)
+            else if assigned(current_module.globalsymtable) then
+              psymtable(current_module.globalsymtable)^.registerdef(@self);
          savesize:=target_os.size_of_pointer;
       end;
 
@@ -2505,7 +2505,7 @@ implementation
       end;
 
 
-    procedure tformaldef.concatstabto(asmlist : paasmoutput);
+    procedure tformaldef.concatstabto(asmlist : taasmoutput);
       begin
       { formaldef can't be stab'ed !}
       end;
@@ -2557,7 +2557,7 @@ implementation
     function tarraydef.getrangecheckstring : string;
       begin
          if (cs_create_smart in aktmoduleswitches) then
-           getrangecheckstring:='R_'+current_module^.modulename^+tostr(rangenr)
+           getrangecheckstring:='R_'+current_module.modulename^+tostr(rangenr)
          else
            getrangecheckstring:='R_'+tostr(rangenr);
       end;
@@ -2570,21 +2570,21 @@ implementation
               { generates the data for range checking }
               getlabelnr(rangenr);
               if (cs_create_smart in aktmoduleswitches) then
-                datasegment^.concat(new(pai_symbol,initname_global(getrangecheckstring,8)))
+                dataSegment.concat(Tai_symbol.Createname_global(getrangecheckstring,8))
               else
-                datasegment^.concat(new(pai_symbol,initname(getrangecheckstring,8)));
+                dataSegment.concat(Tai_symbol.Createname(getrangecheckstring,8));
               if lowrange<=highrange then
                 begin
-                  datasegment^.concat(new(pai_const,init_32bit(lowrange)));
-                  datasegment^.concat(new(pai_const,init_32bit(highrange)));
+                  dataSegment.concat(Tai_const.Create_32bit(lowrange));
+                  dataSegment.concat(Tai_const.Create_32bit(highrange));
                 end
               { for big arrays we need two bounds }
               else
                 begin
-                  datasegment^.concat(new(pai_const,init_32bit(lowrange)));
-                  datasegment^.concat(new(pai_const,init_32bit($7fffffff)));
-                  datasegment^.concat(new(pai_const,init_32bit(longint($80000000))));
-                  datasegment^.concat(new(pai_const,init_32bit(highrange)));
+                  dataSegment.concat(Tai_const.Create_32bit(lowrange));
+                  dataSegment.concat(Tai_const.Create_32bit($7fffffff));
+                  dataSegment.concat(Tai_const.Create_32bit(longint($80000000)));
+                  dataSegment.concat(Tai_const.Create_32bit(highrange));
                 end;
            end;
       end;
@@ -2618,7 +2618,7 @@ implementation
       end;
 
 
-    procedure tarraydef.concatstabto(asmlist : paasmoutput);
+    procedure tarraydef.concatstabto(asmlist : taasmoutput);
       begin
       if (not assigned(typesym) or ptypesym(typesym)^.isusedinstab or (cs_gdb_dbx in aktglobalswitches))
         and (is_def_stab_written = not_written) then
@@ -2703,17 +2703,17 @@ implementation
     procedure tarraydef.write_rtti_data;
       begin
          if IsDynamicArray then
-           rttilist^.concat(new(pai_const,init_8bit(tkdynarray)))
+           rttiList.concat(Tai_const.Create_8bit(tkdynarray))
          else
-           rttilist^.concat(new(pai_const,init_8bit(tkarray)));
+           rttiList.concat(Tai_const.Create_8bit(tkarray));
          write_rtti_name;
          { size of elements }
-         rttilist^.concat(new(pai_const,init_32bit(elesize)));
+         rttiList.concat(Tai_const.Create_32bit(elesize));
          { count of elements }
          if not(IsDynamicArray) then
-           rttilist^.concat(new(pai_const,init_32bit(highrange-lowrange+1)));
+           rttiList.concat(Tai_const.Create_32bit(highrange-lowrange+1));
          { element type }
-         rttilist^.concat(new(pai_const_symbol,initname(elementtype.def^.get_rtti_label)));
+         rttiList.concat(Tai_const_symbol.Createname(elementtype.def^.get_rtti_label));
          { variant type }
          // !!!!!!!!!!!!!!!!
       end;
@@ -2951,7 +2951,7 @@ implementation
       end;
 
 
-    procedure trecorddef.concatstabto(asmlist : paasmoutput);
+    procedure trecorddef.concatstabto(asmlist : taasmoutput);
       begin
         if (not assigned(typesym) or ptypesym(typesym)^.isusedinstab or (cs_gdb_dbx in aktglobalswitches)) and
            (is_def_stab_written = not_written)  then
@@ -2986,16 +2986,16 @@ implementation
             ((pvarsym(sym)^.vartype.def^.deftype<>objectdef) or
              not(is_class(pvarsym(sym)^.vartype.def))) then
            begin
-              rttilist^.concat(new(pai_const_symbol,init(pstoreddef(pvarsym(sym)^.vartype.def)^.get_inittable_label)));
-              rttilist^.concat(new(pai_const,init_32bit(pvarsym(sym)^.address)));
+              rttiList.concat(Tai_const_symbol.Create(pstoreddef(pvarsym(sym)^.vartype.def)^.get_inittable_label));
+              rttiList.concat(Tai_const.Create_32bit(pvarsym(sym)^.address));
            end;
       end;
 
 
     procedure write_field_rtti(sym : pnamedindexobject);
       begin
-         rttilist^.concat(new(pai_const_symbol,initname(pvarsym(sym)^.vartype.def^.get_rtti_label)));
-         rttilist^.concat(new(pai_const,init_32bit(pvarsym(sym)^.address)));
+         rttiList.concat(Tai_const_symbol.Createname(pvarsym(sym)^.vartype.def^.get_rtti_label));
+         rttiList.concat(Tai_const.Create_32bit(pvarsym(sym)^.address));
       end;
 
 
@@ -3028,24 +3028,24 @@ implementation
 
     procedure trecorddef.write_rtti_data;
       begin
-         rttilist^.concat(new(pai_const,init_8bit(tkrecord)));
+         rttiList.concat(Tai_const.Create_8bit(tkrecord));
          write_rtti_name;
-         rttilist^.concat(new(pai_const,init_32bit(size)));
+         rttiList.concat(Tai_const.Create_32bit(size));
          count:=0;
          symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}count_fields);
-         rttilist^.concat(new(pai_const,init_32bit(count)));
+         rttiList.concat(Tai_const.Create_32bit(count));
          symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}write_field_rtti);
       end;
 
 
     procedure trecorddef.write_init_data;
       begin
-         rttilist^.concat(new(pai_const,init_8bit(tkrecord)));
+         rttiList.concat(Tai_const.Create_8bit(tkrecord));
          write_rtti_name;
-         rttilist^.concat(new(pai_const,init_32bit(size)));
+         rttiList.concat(Tai_const.Create_32bit(size));
          count:=0;
          symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}count_inittable_fields);
-         rttilist^.concat(new(pai_const,init_32bit(count)));
+         rttiList.concat(Tai_const.Create_32bit(count));
          symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}write_field_inittable);
       end;
 
@@ -3063,7 +3063,7 @@ implementation
     constructor tabstractprocdef.init;
       begin
          inherited init;
-         new(para,init);
+         para:=TParaLinkedList.Create;
          minparacount:=0;
          maxparacount:=0;
          fpu_used:=0;
@@ -3078,21 +3078,21 @@ implementation
 
     destructor tabstractprocdef.done;
       begin
-         dispose(para,done);
+         Para.Free;
          inherited done;
       end;
 
 
     procedure tabstractprocdef.concatpara(tt:ttype;vsp : tvarspez;defval:psym);
       var
-        hp : pparaitem;
+        hp : TParaItem;
       begin
-        new(hp,init);
-        hp^.paratyp:=vsp;
-        hp^.paratype:=tt;
-        hp^.register:=R_NO;
-        hp^.defaultvalue:=defval;
-        para^.insert(hp);
+        hp:=TParaItem.Create;
+        hp.paratyp:=vsp;
+        hp.paratype:=tt;
+        hp.register:=R_NO;
+        hp.defaultvalue:=defval;
+        Para.insert(hp);
         if not assigned(defval) then
          inc(minparacount);
         inc(maxparacount);
@@ -3114,27 +3114,27 @@ implementation
 
     procedure tabstractprocdef.deref;
       var
-         hp : pparaitem;
+         hp : TParaItem;
       begin
          inherited deref;
          rettype.resolve;
-         hp:=pparaitem(para^.first);
+         hp:=TParaItem(Para.first);
          while assigned(hp) do
           begin
-            hp^.paratype.resolve;
-            resolvesym(psym(hp^.defaultvalue));
-            hp:=pparaitem(hp^.next);
+            hp.paratype.resolve;
+            resolvesym(psym(hp.defaultvalue));
+            hp:=TParaItem(hp.next);
           end;
       end;
 
 
     constructor tabstractprocdef.load;
       var
-         hp : pparaitem;
+         hp : TParaItem;
          count,i : word;
       begin
          inherited load;
-         new(para,init);
+         Para:=TParaLinkedList.Create;
          minparacount:=0;
          maxparacount:=0;
          rettype.load;
@@ -3146,23 +3146,23 @@ implementation
          savesize:=target_os.size_of_pointer;
          for i:=1 to count do
           begin
-            new(hp,init);
-            hp^.paratyp:=tvarspez(readbyte);
-            { hp^.register:=tregister(readbyte); }
-            hp^.register:=R_NO;
-            hp^.paratype.load;
-            hp^.defaultvalue:=psym(readderef);
-            if not assigned(hp^.defaultvalue) then
+            hp:=TParaItem.Create;
+            hp.paratyp:=tvarspez(readbyte);
+            { hp.register:=tregister(readbyte); }
+            hp.register:=R_NO;
+            hp.paratype.load;
+            hp.defaultvalue:=psym(readderef);
+            if not assigned(hp.defaultvalue) then
              inc(minparacount);
             inc(maxparacount);
-            para^.concat(hp);
+            Para.concat(hp);
           end;
       end;
 
 
     procedure tabstractprocdef.write;
       var
-        hp : pparaitem;
+        hp : TParaItem;
         oldintfcrc : boolean;
       begin
          inherited write;
@@ -3175,38 +3175,38 @@ implementation
          writesmallset(procoptions);
          current_ppu^.do_interface_crc:=oldintfcrc;
          writeword(maxparacount);
-         hp:=pparaitem(para^.first);
+         hp:=TParaItem(Para.first);
          while assigned(hp) do
           begin
-            writebyte(byte(hp^.paratyp));
-            { writebyte(byte(hp^.register)); }
-            hp^.paratype.write;
-            writederef(hp^.defaultvalue);
-            hp:=pparaitem(hp^.next);
+            writebyte(byte(hp.paratyp));
+            { writebyte(byte(hp.register)); }
+            hp.paratype.write;
+            writederef(hp.defaultvalue);
+            hp:=TParaItem(hp.next);
           end;
       end;
 
 
     function tabstractprocdef.para_size(alignsize:longint) : longint;
       var
-         pdc : pparaitem;
+         pdc : TParaItem;
          l : longint;
       begin
          l:=0;
-         pdc:=pparaitem(para^.first);
+         pdc:=TParaItem(Para.first);
          while assigned(pdc) do
           begin
-            case pdc^.paratyp of
+            case pdc.paratyp of
               vs_out,
               vs_var   : inc(l,target_os.size_of_pointer);
               vs_value,
-              vs_const : if push_addr_param(pdc^.paratype.def) then
+              vs_const : if push_addr_param(pdc.paratype.def) then
                           inc(l,target_os.size_of_pointer)
                          else
-                          inc(l,pdc^.paratype.def^.size);
+                          inc(l,pdc.paratype.def^.size);
             end;
             l:=align(l,alignsize);
-            pdc:=pparaitem(pdc^.next);
+            pdc:=TParaItem(pdc.next);
           end;
          para_size:=l;
       end;
@@ -3215,10 +3215,10 @@ implementation
     function tabstractprocdef.demangled_paras : string;
       var
         hs,s : string;
-        hp : pparaitem;
+        hp : TParaItem;
         hpc : pconstsym;
       begin
-        hp:=pparaitem(para^.last);
+        hp:=TParaItem(Para.last);
         if not(assigned(hp)) then
           begin
              demangled_paras:='';
@@ -3227,18 +3227,18 @@ implementation
         s:='(';
         while assigned(hp) do
          begin
-           if assigned(hp^.paratype.def^.typesym) then
-             s:=s+hp^.paratype.def^.typesym^.realname
-           else if hp^.paratyp=vs_var then
+           if assigned(hp.paratype.def^.typesym) then
+             s:=s+hp.paratype.def^.typesym^.realname
+           else if hp.paratyp=vs_var then
              s:=s+'var'
-           else if hp^.paratyp=vs_const then
+           else if hp.paratyp=vs_const then
              s:=s+'const'
-           else if hp^.paratyp=vs_out then
+           else if hp.paratyp=vs_out then
              s:=s+'out';
            { default value }
-           if assigned(hp^.defaultvalue) then
+           if assigned(hp.defaultvalue) then
             begin
-              hpc:=pconstsym(hp^.defaultvalue);
+              hpc:=pconstsym(hp.defaultvalue);
               hs:='';
               case hpc^.consttyp of
                 conststring,
@@ -3266,7 +3266,7 @@ implementation
               if hs<>'' then
                s:=s+'="'+hs+'"';
             end;
-           hp:=pparaitem(hp^.previous);
+           hp:=TParaItem(hp.previous);
            if assigned(hp) then
             s:=s+',';
          end;
@@ -3325,7 +3325,7 @@ implementation
       end;
 
 
-    procedure tabstractprocdef.concatstabto(asmlist : paasmoutput);
+    procedure tabstractprocdef.concatstabto(asmlist : taasmoutput);
       begin
          if (not assigned(typesym) or ptypesym(typesym)^.isusedinstab or (cs_gdb_dbx in aktglobalswitches))
             and (is_def_stab_written = not_written)  then
@@ -3349,6 +3349,7 @@ implementation
          nextoverloaded:=nil;
          fileinfo:=aktfilepos;
          extnumber:=-1;
+         aliasnames:=tstringlist.create;
          localst:=new(pstoredsymtable,init(localsymtable));
          parast:=new(pstoredsymtable,init(parasymtable));
          localst^.defowner:=@self;
@@ -3415,6 +3416,8 @@ implementation
             (po_exports in procoptions) then
            deffile.AddExport(mangledname);
 
+         aliasnames:=tstringlist.create;
+
          parast:=new(pstoredsymtable,loadas(parasymtable));
          parast^.defowner:=@self;
          {new(localst,loadas(localsymtable));
@@ -3446,6 +3449,7 @@ implementation
         s:=s+procsym^.realname+demangled_paras;
         fullprocname:=s;
       end;
+
 
     function tprocdef.fullprocnamewithret:string;
       var
@@ -3494,7 +3498,7 @@ Const local_symtable_index : longint = $8001;
          end;
         if move_last then
           lastwritten:=lastref;
-        if ((current_module^.flags and uf_local_browser)<>0)
+        if ((current_module.flags and uf_local_browser)<>0)
            and is_in_current then
           begin
 {$ifndef NOLOCALBROWSER}
@@ -3531,7 +3535,7 @@ Const local_symtable_index : longint = $8001;
         move_last : boolean;
       begin
         move_last:=lastwritten=lastref;
-        if move_last and (((current_module^.flags and uf_local_browser)=0)
+        if move_last and (((current_module.flags and uf_local_browser)=0)
            or not is_in_current) then
           exit;
       { write address of this symbol }
@@ -3543,7 +3547,7 @@ Const local_symtable_index : longint = $8001;
           ref:=defref;
         while assigned(ref) do
          begin
-           if ref^.moduleindex=current_module^.unit_index then
+           if ref^.moduleindex=current_module.unit_index then
              begin
                 writeposinfo(ref^.posinfo);
                 ref^.is_written:=true;
@@ -3558,7 +3562,7 @@ Const local_symtable_index : longint = $8001;
          end;
         current_ppu^.writeentry(ibdefref);
         write_references:=true;
-        if ((current_module^.flags and uf_local_browser)<>0)
+        if ((current_module.flags and uf_local_browser)<>0)
            and is_in_current then
           begin
 {$ifndef NOLOCALBROWSER}
@@ -3616,6 +3620,7 @@ Const local_symtable_index : longint = $8001;
              defref^.freechain;
              dispose(defref,done);
            end;
+         aliasnames.free;
          if assigned(parast) then
            dispose(parast,done);
          if assigned(localst) and (localst^.symtabletype<>staticsymtable) then
@@ -3766,7 +3771,7 @@ Const local_symtable_index : longint = $8001;
       end;
 
 
-    procedure tprocdef.concatstabto(asmlist : paasmoutput);
+    procedure tprocdef.concatstabto(asmlist : taasmoutput);
       begin
       end;
 {$endif GDB}
@@ -3832,7 +3837,7 @@ Const local_symtable_index : longint = $8001;
 
       var
          s,s2 : string;
-         param : pparaitem;
+         param : TParaItem;
 
       begin
          s := procsym^.realname;
@@ -3857,15 +3862,15 @@ Const local_symtable_index : longint = $8001;
          { !!!!! }
 
          { now we handle the parameters }
-         param := pparaitem(para^.first);
+         param := TParaItem(Para.first);
          if assigned(param) then
            while assigned(param) do
              begin
-                s2:=getcppparaname(param^.paratype.def);
-                if param^.paratyp in [vs_var,vs_out] then
+                s2:=getcppparaname(param.paratype.def);
+                if param.paratyp in [vs_var,vs_out] then
                   s2:='R'+s2;
                 s:=s+s2;
-                param:=pparaitem(param^.next);
+                param:=TParaItem(param.next);
              end
          else
            s:=s+'v';
@@ -3979,7 +3984,7 @@ Const local_symtable_index : longint = $8001;
       end;
 
 
-    procedure tprocvardef.concatstabto(asmlist : paasmoutput);
+    procedure tprocvardef.concatstabto(asmlist : taasmoutput);
       begin
          if ( not assigned(typesym) or ptypesym(typesym)^.isusedinstab or (cs_gdb_dbx in aktglobalswitches))
            and (is_def_stab_written = not_written)  then
@@ -3991,13 +3996,13 @@ Const local_symtable_index : longint = $8001;
 
     procedure tprocvardef.write_rtti_data;
       var
-         pdc : pparaitem;
+         pdc : TParaItem;
          methodkind, paraspec : byte;
       begin
         if po_methodpointer in procoptions then
           begin
              { write method id and name }
-             rttilist^.concat(new(pai_const,init_8bit(tkmethod)));
+             rttiList.concat(Tai_const.Create_8bit(tkmethod));
              write_rtti_name;
 
              { write kind of method (can only be function or procedure)}
@@ -4005,37 +4010,37 @@ Const local_symtable_index : longint = $8001;
                methodkind := mkProcedure
              else
                methodkind := mkFunction;
-             rttilist^.concat(new(pai_const,init_8bit(methodkind)));
+             rttiList.concat(Tai_const.Create_8bit(methodkind));
 
              { get # of parameters }
-             rttilist^.concat(new(pai_const,init_8bit(maxparacount)));
+             rttiList.concat(Tai_const.Create_8bit(maxparacount));
 
              { write parameter info. The parameters must be written in reverse order
                if this method uses right to left parameter pushing! }
              if (pocall_leftright in proccalloptions) then
-              pdc:=pparaitem(para^.last)
+              pdc:=TParaItem(Para.last)
              else
-              pdc:=pparaitem(para^.first);
+              pdc:=TParaItem(Para.first);
              while assigned(pdc) do
                begin
-                 case pdc^.paratyp of
+                 case pdc.paratyp of
                    vs_value: paraspec := 0;
                    vs_const: paraspec := pfConst;
                    vs_var  : paraspec := pfVar;
                    vs_out  : paraspec := pfOut;
                  end;
                  { write flags for current parameter }
-                 rttilist^.concat(new(pai_const,init_8bit(paraspec)));
+                 rttiList.concat(Tai_const.Create_8bit(paraspec));
                  { write name of current parameter ### how can I get this??? (sg)}
-                 rttilist^.concat(new(pai_const,init_8bit(0)));
+                 rttiList.concat(Tai_const.Create_8bit(0));
 
                  { write name of type of current parameter }
-                 pstoreddef(pdc^.paratype.def)^.write_rtti_name;
+                 pstoreddef(pdc.paratype.def)^.write_rtti_name;
 
                  if (pocall_leftright in proccalloptions) then
-                  pdc:=pparaitem(pdc^.previous)
+                  pdc:=TParaItem(pdc.previous)
                  else
-                  pdc:=pparaitem(pdc^.next);
+                  pdc:=TParaItem(pdc.next);
                end;
 
              { write name of result type }
@@ -4469,7 +4474,7 @@ Const local_symtable_index : longint = $8001;
         news, newrec : pchar;
         pd,ipd : pprocdef;
         lindex : longint;
-        para : pparaitem;
+        para : TParaItem;
         arglength : byte;
         sp : char;
 
@@ -4501,33 +4506,33 @@ Const local_symtable_index : longint = $8001;
 
                 { arguments are not listed here }
                 {we don't need another definition}
-                 para := pparaitem(pd^.para^.first);
+                 para := TParaItem(pd^.Para.first);
                  while assigned(para) do
                    begin
-                   if para^.paratype.def^.deftype = formaldef then
+                   if Para.paratype.def^.deftype = formaldef then
                      begin
-                        if para^.paratyp=vs_var then
+                        if Para.paratyp=vs_var then
                           argnames := argnames+'3var'
-                        else if para^.paratyp=vs_const then
+                        else if Para.paratyp=vs_const then
                           argnames:=argnames+'5const'
-                        else if para^.paratyp=vs_out then
+                        else if Para.paratyp=vs_out then
                           argnames:=argnames+'3out';
                      end
                    else
                      begin
                      { if the arg definition is like (v: ^byte;..
                      there is no sym attached to data !!! }
-                     if assigned(para^.paratype.def^.typesym) then
+                     if assigned(Para.paratype.def^.typesym) then
                        begin
-                          arglength := length(para^.paratype.def^.typesym^.name);
-                          argnames := argnames + tostr(arglength)+para^.paratype.def^.typesym^.name;
+                          arglength := length(Para.paratype.def^.typesym^.name);
+                          argnames := argnames + tostr(arglength)+Para.paratype.def^.typesym^.name;
                        end
                      else
                        begin
                           argnames:=argnames+'11unnamedtype';
                        end;
                      end;
-                   para := pparaitem(para^.next);
+                   para := TParaItem(Para.next);
                    end;
                 ipd^.is_def_stab_written := written;
                 { here 2A must be changed for private and protected }
@@ -4667,7 +4672,7 @@ Const local_symtable_index : longint = $8001;
       strdispose(ss);
       end;
 
-    procedure tobjectdef.concatstabto(asmlist : paasmoutput);
+    procedure tobjectdef.concatstabto(asmlist : taasmoutput);
       var st : pstring;
       begin
         if objecttype<>odt_class then
@@ -4713,22 +4718,22 @@ Const local_symtable_index : longint = $8001;
       begin
          case objecttype of
             odt_class:
-              rttilist^.concat(new(pai_const,init_8bit(tkclass)));
+              rttiList.concat(Tai_const.Create_8bit(tkclass));
             odt_object:
-              rttilist^.concat(new(pai_const,init_8bit(tkobject)));
+              rttiList.concat(Tai_const.Create_8bit(tkobject));
             odt_interfacecom:
-              rttilist^.concat(new(pai_const,init_8bit(tkinterface)));
+              rttiList.concat(Tai_const.Create_8bit(tkinterface));
             odt_interfacecorba:
-              rttilist^.concat(new(pai_const,init_8bit(tkinterfaceCorba)));
+              rttiList.concat(Tai_const.Create_8bit(tkinterfaceCorba));
           else
             exit;
           end;
 
          { generate the name }
-         rttilist^.concat(new(pai_const,init_8bit(length(objname^))));
-         rttilist^.concat(new(pai_string,init(objname^)));
+         rttiList.concat(Tai_const.Create_8bit(length(objname^)));
+         rttiList.concat(Tai_string.Create(objname^));
 
-         rttilist^.concat(new(pai_const,init_32bit(size)));
+         rttiList.concat(Tai_const.Create_32bit(size));
          count:=0;
          if objecttype in [odt_interfacecom,odt_interfacecorba] then
            begin
@@ -4736,7 +4741,7 @@ Const local_symtable_index : longint = $8001;
          else
            begin
               symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}count_inittable_fields);
-              rttilist^.concat(new(pai_const,init_32bit(count)));
+              rttiList.concat(Tai_const.Create_32bit(count));
               symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}write_field_inittable);
            end;
       end;
@@ -4789,7 +4794,7 @@ Const local_symtable_index : longint = $8001;
         begin
            if not(assigned(proc) and assigned(proc^.firstsym))  then
              begin
-                rttilist^.concat(new(pai_const,init_32bit(1)));
+                rttiList.concat(Tai_const.Create_32bit(1));
                 typvalue:=3;
              end
            else if proc^.firstsym^.sym^.typ=varsym then
@@ -4801,21 +4806,21 @@ Const local_symtable_index : longint = $8001;
                      inc(address,pvarsym(hp^.sym)^.address);
                      hp:=hp^.next;
                   end;
-                rttilist^.concat(new(pai_const,init_32bit(address)));
+                rttiList.concat(Tai_const.Create_32bit(address));
                 typvalue:=0;
              end
            else
              begin
                 if not(po_virtualmethod in pprocdef(proc^.def)^.procoptions) then
                   begin
-                     rttilist^.concat(new(pai_const_symbol,initname(pprocdef(proc^.def)^.mangledname)));
+                     rttiList.concat(Tai_const_symbol.Createname(pprocdef(proc^.def)^.mangledname));
                      typvalue:=1;
                   end
                 else
                   begin
                      { virtual method, write vmt offset }
-                     rttilist^.concat(new(pai_const,init_32bit(
-                       pprocdef(proc^.def)^._class^.vmtmethodoffset(pprocdef(proc^.def)^.extnumber))));
+                     rttiList.concat(Tai_const.Create_32bit(
+                       pprocdef(proc^.def)^._class^.vmtmethodoffset(pprocdef(proc^.def)^.extnumber)));
                      typvalue:=2;
                   end;
              end;
@@ -4833,20 +4838,20 @@ Const local_symtable_index : longint = $8001;
                      internalerror(1509992);
                    { access to implicit class property as field }
                    proctypesinfo:=(0 shl 0) or (0 shl 2) or (0 shl 4);
-                   rttilist^.concat(new(pai_const_symbol,initname(pvarsym(sym)^.vartype.def^.get_rtti_label)));
-                   rttilist^.concat(new(pai_const,init_32bit(pvarsym(sym)^.address)));
-                   rttilist^.concat(new(pai_const,init_32bit(pvarsym(sym)^.address)));
+                   rttiList.concat(Tai_const_symbol.Createname(pvarsym(sym^.vartype.def^.get_rtti_label)));
+                   rttiList.concat(Tai_const.Create_32bit(pvarsym(sym^.address)));
+                   rttiList.concat(Tai_const.Create_32bit(pvarsym(sym^.address)));
                    { per default stored }
-                   rttilist^.concat(new(pai_const,init_32bit(1)));
+                   rttiList.concat(Tai_const.Create_32bit(1));
                    { index as well as ... }
-                   rttilist^.concat(new(pai_const,init_32bit(0)));
+                   rttiList.concat(Tai_const.Create_32bit(0));
                    { default value are zero }
-                   rttilist^.concat(new(pai_const,init_32bit(0)));
-                   rttilist^.concat(new(pai_const,init_16bit(count)));
+                   rttiList.concat(Tai_const.Create_32bit(0));
+                   rttiList.concat(Tai_const.Create_16bit(count));
                    inc(count);
-                   rttilist^.concat(new(pai_const,init_8bit(proctypesinfo)));
-                   rttilist^.concat(new(pai_const,init_8bit(length(pvarsym(sym)^.realname))));
-                   rttilist^.concat(new(pai_string,init(pvarsym(sym)^.realname)));
+                   rttiList.concat(Tai_const.Create_8bit(proctypesinfo));
+                   rttiList.concat(Tai_const.Create_8bit(length(pvarsym(sym^.realname))));
+                   rttiList.concat(Tai_string.Create(pvarsym(sym^.realname)));
 {$endif dummy}
                 end;
               propertysym:
@@ -4855,24 +4860,24 @@ Const local_symtable_index : longint = $8001;
                      proctypesinfo:=$40
                    else
                      proctypesinfo:=0;
-                   rttilist^.concat(new(pai_const_symbol,initname(ppropertysym(sym)^.proptype.def^.get_rtti_label)));
+                   rttiList.concat(Tai_const_symbol.Createname(ppropertysym(sym)^.proptype.def^.get_rtti_label));
                    writeproc(ppropertysym(sym)^.readaccess,0);
                    writeproc(ppropertysym(sym)^.writeaccess,2);
                    { isn't it stored ? }
                    if not(ppo_stored in ppropertysym(sym)^.propoptions) then
                      begin
-                        rttilist^.concat(new(pai_const,init_32bit(0)));
+                        rttiList.concat(Tai_const.Create_32bit(0));
                         proctypesinfo:=proctypesinfo or (3 shl 4);
                      end
                    else
                      writeproc(ppropertysym(sym)^.storedaccess,4);
-                   rttilist^.concat(new(pai_const,init_32bit(ppropertysym(sym)^.index)));
-                   rttilist^.concat(new(pai_const,init_32bit(ppropertysym(sym)^.default)));
-                   rttilist^.concat(new(pai_const,init_16bit(count)));
+                   rttiList.concat(Tai_const.Create_32bit(ppropertysym(sym)^.index));
+                   rttiList.concat(Tai_const.Create_32bit(ppropertysym(sym)^.default));
+                   rttiList.concat(Tai_const.Create_16bit(count));
                    inc(count);
-                   rttilist^.concat(new(pai_const,init_8bit(proctypesinfo)));
-                   rttilist^.concat(new(pai_const,init_8bit(length(ppropertysym(sym)^.realname))));
-                   rttilist^.concat(new(pai_string,init(ppropertysym(sym)^.realname)));
+                   rttiList.concat(Tai_const.Create_8bit(proctypesinfo));
+                   rttiList.concat(Tai_const.Create_8bit(length(ppropertysym(sym)^.realname)));
+                   rttiList.concat(Tai_string.Create(ppropertysym(sym)^.realname));
                 end;
               else internalerror(1509992);
            end;
@@ -4909,45 +4914,44 @@ Const local_symtable_index : longint = $8001;
             has_rtti:=true;
             getdatalabel(rtti_label);
             write_child_rtti_data;
-            rttilist^.concat(new(pai_symbol,initname_global(rtti_name,0)));
-            rttilist^.concat(new(pai_label,init(rtti_label)));
+            rttiList.concat(Tai_symbol.Createname_global(rtti_name,0));
+            rttiList.concat(Tai_label.Create(rtti_label));
             write_rtti_data;
-            rttilist^.concat(new(pai_symbol_end,initname(rtti_name)));
+            rttiList.concat(Tai_symbol_end.Createname(rtti_name));
           end;
       end;
 
     type
-       tclasslistitem = object(tlinkedlist_item)
+       tclasslistitem = class(tlinkedlistitem)
           index : longint;
           p : pobjectdef;
        end;
-       pclasslistitem = ^tclasslistitem;
 
     var
        classtablelist : tlinkedlist;
        tablecount : longint;
 
-    function searchclasstablelist(p : pobjectdef) : pclasslistitem;
+    function searchclasstablelist(p : pobjectdef) : tclasslistitem;
 
       var
-         hp : pclasslistitem;
+         hp : tclasslistitem;
 
       begin
-         hp:=pclasslistitem(classtablelist.first);
+         hp:=tclasslistitem(classtablelist.first);
          while assigned(hp) do
-           if hp^.p=p then
+           if hp.p=p then
              begin
                 searchclasstablelist:=hp;
                 exit;
              end
            else
-             hp:=pclasslistitem(hp^.next);
+             hp:=tclasslistitem(hp.next);
          searchclasstablelist:=nil;
       end;
 
     procedure count_published_fields(sym:pnamedindexobject);
       var
-         hp : pclasslistitem;
+         hp : tclasslistitem;
       begin
          if needs_prop_entry(psym(sym)) and
           (psym(sym)^.typ=varsym) then
@@ -4957,9 +4961,9 @@ Const local_symtable_index : longint = $8001;
              hp:=searchclasstablelist(pobjectdef(pvarsym(sym)^.vartype.def));
              if not(assigned(hp)) then
                begin
-                  hp:=new(pclasslistitem,init);
-                  hp^.p:=pobjectdef(pvarsym(sym)^.vartype.def);
-                  hp^.index:=tablecount;
+                  hp:=tclasslistitem.create;
+                  hp.p:=pobjectdef(pvarsym(sym)^.vartype.def);
+                  hp.index:=tablecount;
                   classtablelist.concat(hp);
                   inc(tablecount);
                end;
@@ -4969,18 +4973,18 @@ Const local_symtable_index : longint = $8001;
 
     procedure writefields(sym:pnamedindexobject);
       var
-         hp : pclasslistitem;
+         hp : tclasslistitem;
       begin
          if needs_prop_entry(psym(sym)) and
           (psym(sym)^.typ=varsym) then
           begin
-             rttilist^.concat(new(pai_const,init_32bit(pvarsym(sym)^.address)));
+             rttiList.concat(Tai_const.Create_32bit(pvarsym(sym)^.address));
              hp:=searchclasstablelist(pobjectdef(pvarsym(sym)^.vartype.def));
              if not(assigned(hp)) then
                internalerror(0206002);
-             rttilist^.concat(new(pai_const,init_16bit(hp^.index)));
-             rttilist^.concat(new(pai_const,init_8bit(length(pvarsym(sym)^.realname))));
-             rttilist^.concat(new(pai_string,init(pvarsym(sym)^.realname)));
+             rttiList.concat(Tai_const.Create_16bit(hp.index));
+             rttiList.concat(Tai_const.Create_8bit(length(pvarsym(sym)^.realname)));
+             rttiList.concat(Tai_string.Create(pvarsym(sym)^.realname));
           end;
       end;
 
@@ -4989,32 +4993,32 @@ Const local_symtable_index : longint = $8001;
       var
          fieldtable,
          classtable : pasmlabel;
-         hp : pclasslistitem;
+         hp : tclasslistitem;
 
       begin
-         classtablelist.init;
+         classtablelist:=TLinkedList.Create;
          getdatalabel(fieldtable);
          getdatalabel(classtable);
          count:=0;
          tablecount:=0;
          symtable^.foreach({$ifdef FPC}@{$endif}count_published_fields);
-         rttilist^.concat(new(pai_label,init(fieldtable)));
-         rttilist^.concat(new(pai_const,init_16bit(count)));
-         rttilist^.concat(new(pai_const_symbol,init(classtable)));
+         rttiList.concat(Tai_label.Create(fieldtable));
+         rttiList.concat(Tai_const.Create_16bit(count));
+         rttiList.concat(Tai_const_symbol.Create(classtable));
          symtable^.foreach({$ifdef FPC}@{$endif}writefields);
 
          { generate the class table }
-         rttilist^.concat(new(pai_label,init(classtable)));
-         rttilist^.concat(new(pai_const,init_16bit(tablecount)));
-         hp:=pclasslistitem(classtablelist.first);
+         rttiList.concat(Tai_label.Create(classtable));
+         rttiList.concat(Tai_const.Create_16bit(tablecount));
+         hp:=tclasslistitem(classtablelist.first);
          while assigned(hp) do
            begin
-              rttilist^.concat(new(pai_const_symbol,initname(pobjectdef(hp^.p)^.vmt_mangledname)));
-              hp:=pclasslistitem(hp^.next);
+              rttiList.concat(Tai_const_symbol.Createname(pobjectdef(hp.p)^.vmt_mangledname));
+              hp:=tclasslistitem(hp.next);
            end;
 
          generate_field_table:=fieldtable;
-         classtablelist.done;
+         classtablelist.free;
       end;
 
     function tobjectdef.next_free_name_index : longint;
@@ -5034,29 +5038,29 @@ Const local_symtable_index : longint = $8001;
     procedure tobjectdef.write_rtti_data;
       begin
          case objecttype of
-           odt_class: rttilist^.concat(new(pai_const,init_8bit(tkclass)));
-           odt_object: rttilist^.concat(new(pai_const,init_8bit(tkobject)));
-           odt_interfacecom: rttilist^.concat(new(pai_const,init_8bit(tkinterface)));
-           odt_interfacecorba: rttilist^.concat(new(pai_const,init_8bit(tkinterfaceCorba)));
+           odt_class: rttiList.concat(Tai_const.Create_8bit(tkclass));
+           odt_object: rttiList.concat(Tai_const.Create_8bit(tkobject));
+           odt_interfacecom: rttiList.concat(Tai_const.Create_8bit(tkinterface));
+           odt_interfacecorba: rttiList.concat(Tai_const.Create_8bit(tkinterfaceCorba));
          else
            exit;
          end;
 
 
          { generate the name }
-         rttilist^.concat(new(pai_const,init_8bit(length(objname^))));
-         rttilist^.concat(new(pai_string,init(objname^)));
+         rttiList.concat(Tai_const.Create_8bit(length(objname^)));
+         rttiList.concat(Tai_string.Create(objname^));
 
          if objecttype in [odt_interfacecom,odt_interfacecorba] then
-           rttilist^.concat(new(pai_const,init_32bit(0)))
+           rttiList.concat(Tai_const.Create_32bit(0))
          else
-           rttilist^.concat(new(pai_const_symbol,initname(vmt_mangledname)));
+           rttiList.concat(Tai_const_symbol.Createname(vmt_mangledname));
 
          { write owner typeinfo }
          if assigned(childof) and (oo_can_have_published in childof^.objectoptions) then
-           rttilist^.concat(new(pai_const_symbol,initname(childof^.get_rtti_label)))
+           rttiList.concat(Tai_const_symbol.Createname(childof^.get_rtti_label))
          else
-           rttilist^.concat(new(pai_const,init_32bit(0)));
+           rttiList.concat(Tai_const.Create_32bit(0));
 
          { count total number of properties }
          if assigned(childof) and (oo_can_have_published in childof^.objectoptions) then
@@ -5066,16 +5070,16 @@ Const local_symtable_index : longint = $8001;
 
          { write it }
          symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}count_published_properties);
-         rttilist^.concat(new(pai_const,init_16bit(count)));
+         rttiList.concat(Tai_const.Create_16bit(count));
 
          { write unit name }
-         rttilist^.concat(new(pai_const,init_8bit(length(current_module^.realmodulename^))));
-         rttilist^.concat(new(pai_string,init(current_module^.realmodulename^)));
+         rttiList.concat(Tai_const.Create_8bit(length(current_module.realmodulename^)));
+         rttiList.concat(Tai_string.Create(current_module.realmodulename^));
 
          { write published properties count }
          count:=0;
          symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}count_published_properties);
-         rttilist^.concat(new(pai_const,init_16bit(count)));
+         rttiList.concat(Tai_const.Create_16bit(count));
 
          { count is used to write nameindex   }
 
@@ -5475,7 +5479,7 @@ Const local_symtable_index : longint = $8001;
               ptypesym(def^.typesym)^.isusedinstab:=false;
             def^.is_def_stab_written:=not_written;
 {$endif GDB}
-            {if not current_module^.in_implementation then}
+            {if not current_module.in_implementation then}
               begin
                 { reset rangenr's }
                 case def^.deftype of
@@ -5554,7 +5558,11 @@ Const local_symtable_index : longint = $8001;
 end.
 {
   $Log$
-  Revision 1.18  2000-12-24 12:20:45  peter
+  Revision 1.19  2000-12-25 00:07:29  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.18  2000/12/24 12:20:45  peter
     * classes, enum stabs fixes merged from 1.0.x
 
   Revision 1.17  2000/12/07 17:19:43  jonas

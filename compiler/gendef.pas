@@ -26,7 +26,7 @@ unit gendef;
 
 interface
 uses
-  cobjects;
+  cclasses;
 
 type
   pdeffile=^tdeffile;
@@ -42,7 +42,7 @@ type
     is_empty : boolean;
     WrittenOnDisk : boolean;
     exportlist,
-    importlist   : tstringcontainer;
+    importlist   : tstringlist;
   end;
 var
   deffile : tdeffile;
@@ -62,26 +62,18 @@ begin
   fname:=fn;
   WrittenOnDisk:=false;
   is_empty:=true;
-  importlist.init;
-  exportlist.init;
+  importlist:=TStringList.Create;
+  exportlist:=TStringList.Create;
 end;
 
 
 destructor tdeffile.done;
-var
-  f : file;
 begin
   if WrittenOnDisk and
      not(cs_link_extern in aktglobalswitches) then
-   begin
-     assign(f,fname);
-     {$I-}
-      erase(f);
-     {$I+}
-     if ioresult<>0 then;
-   end;
-  importlist.done;
-  exportlist.done;
+   DeleteFile(FName);
+  importlist.Free;
+  exportlist.Free;
 end;
 
 
@@ -149,7 +141,7 @@ begin
      writeln(t,'');
      writeln(t,'IMPORTS');
      while not importlist.empty do
-      writeln(t,#9+importlist.get);
+      writeln(t,#9+importlist.getfirst);
    end;
 
 {write exports}
@@ -158,7 +150,7 @@ begin
      writeln(t,'');
      writeln(t,'EXPORTS');
      while not exportlist.empty do
-      writeln(t,#9+exportlist.get);
+      writeln(t,#9+exportlist.getfirst);
    end;
 
   close(t);
@@ -168,7 +160,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-09-24 15:06:16  peter
+  Revision 1.5  2000-12-25 00:07:26  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.4  2000/09/24 15:06:16  peter
     * use defines.inc
 
   Revision 1.3  2000/08/27 16:11:50  peter

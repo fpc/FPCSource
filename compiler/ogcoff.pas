@@ -204,7 +204,7 @@ implementation
            createsection(sec_stabstr);
            writestabs(sec_none,0,nil,0,0,0,false);
            { write zero pchar and name together (PM) }
-           s:=#0+SplitFileName(current_module^.mainsource^)+#0;
+           s:=#0+SplitFileName(current_module.mainsource^)+#0;
            sects[sec_stabstr].write(s[1],length(s));
          end;
       end;
@@ -483,7 +483,7 @@ implementation
         if (cs_debuginfo in aktmoduleswitches) then
          begin
            inc(s[sec_stab],sizeof(coffstab));
-           inc(s[sec_stabstr],length(SplitFileName(current_module^.mainsource^))+2);
+           inc(s[sec_stabstr],length(SplitFileName(current_module.mainsource^))+2);
          end;
         { calc mempos }
         mempos:=0;
@@ -609,7 +609,7 @@ implementation
            { The `.file' record, and the file name auxiliary record }
            write_symbol ('.file', -1, 0, -2, $67, 1);
            fillchar(filename,sizeof(filename),0);
-           filename:=SplitFileName(current_module^.mainsource^);
+           filename:=SplitFileName(current_module.mainsource^);
            writer.write(filename[1],sizeof(filename)-1);
            { The section records, with their auxiliaries, also store the
              symbol index }
@@ -778,7 +778,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2000-12-24 12:25:31  peter
+  Revision 1.8  2000-12-25 00:07:26  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.7  2000/12/24 12:25:31  peter
     + cstreams unit
     * dynamicarray object to class
 

@@ -102,8 +102,8 @@ implementation
          oldclabel,oldblabel : pasmlabel;
          otlabel,oflabel : pasmlabel;
 
-         start_regvars_loaded,
-         then_regvars_loaded: regvar_booleanarray;
+         //start_regvars_loaded,
+         //then_regvars_loaded: regvar_booleanarray;
 
       begin
          getlabel(lloop);
@@ -126,9 +126,9 @@ implementation
          cleartempgen;
          if assigned(right) then
            secondpass(right);
-         
+
          load_all_regvars(exprasmlist);
-         
+
          emitlab(lcont);
          otlabel:=truelabel;
          oflabel:=falselabel;
@@ -145,7 +145,7 @@ implementation
           end;
          cleartempgen;
          secondpass(left);
-         
+
          load_all_regvars(exprasmlist);
 
          maketojumpbool(left);
@@ -193,7 +193,7 @@ implementation
                 begin
                    getlabel(hl);
                    { do go back to if line !! }
-                   aktfilepos:=exprasmlist^.getlasttaifilepos^;
+                   aktfilepos:=exprasmList.getlasttaifilepos^;
                    emitjmp(C_None,hl);
                 end;
               emitlab(falselabel);
@@ -346,7 +346,7 @@ implementation
 
          { align loop target }
          if not(cs_littlesize in aktglobalswitches) then
-           exprasmlist^.concat(new(pai_align,init_op(4,$90)));
+           exprasmList.concat(Tai_align.Create_op(4,$90));
 
          emitlab(l3);
 
@@ -696,10 +696,10 @@ do_jmp:
 
       begin
          emitcall('FPC_POPOBJECTSTACK');
-         exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+         exprasmList.concat(Tairegalloc.Alloc(R_EAX));
          emit_reg(A_PUSH,S_L,R_EAX);
          emitcall('FPC_DESTROYEXCEPTION');
-         exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
+         exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
          maybe_loadesi;
       end;
 
@@ -710,10 +710,10 @@ do_jmp:
       begin
          emitcall('FPC_POPADDRSTACK');
          { allocate eax }
-         exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+         exprasmList.concat(Tairegalloc.Alloc(R_EAX));
          emit_reg(A_POP,S_L,R_EAX);
          { deallocate eax }
-         exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
+         exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
       end;
 
     procedure ti386tryexceptnode.pass_2;
@@ -776,13 +776,13 @@ do_jmp:
          push_int (1); { push type of exceptionframe }
          emitcall('FPC_PUSHEXCEPTADDR');
          { allocate eax }
-         exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+         exprasmList.concat(Tairegalloc.Alloc(R_EAX));
          emit_reg(A_PUSH,S_L,R_EAX);
          emitcall('FPC_SETJMP');
          emit_reg(A_PUSH,S_L,R_EAX);
          emit_reg_reg(A_TEST,S_L,R_EAX,R_EAX);
          { deallocate eax }
-         exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
+         exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
          emitjmp(C_NE,exceptlabel);
 
          { try block }
@@ -807,10 +807,10 @@ do_jmp:
          emitlab(exceptlabel);
          emitcall('FPC_POPADDRSTACK');
 
-         exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+         exprasmList.concat(Tairegalloc.Alloc(R_EAX));
          emit_reg(A_POP,S_L,R_EAX);
          emit_reg_reg(A_TEST,S_L,R_EAX,R_EAX);
-         exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
+         exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
 
          emitjmp(C_E,endexceptlabel);
          emitlab(doexceptlabel);
@@ -850,19 +850,16 @@ do_jmp:
               { guarded by an exception frame                        }
               getlabel(doobjectdestroy);
               getlabel(doobjectdestroyandreraise);
-              exprasmlist^.concat(new(paicpu,op_const(A_PUSH,S_L,1)));
+              exprasmList.concat(Taicpu.Op_const(A_PUSH,S_L,1));
               emitcall('FPC_PUSHEXCEPTADDR');
-              exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
-              exprasmlist^.concat(new(paicpu,
-                op_reg(A_PUSH,S_L,R_EAX)));
-              exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
+              exprasmList.concat(Tairegalloc.Alloc(R_EAX));
+              exprasmList.concat(Taicpu.op_reg(A_PUSH,S_L,R_EAX));
+              exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
               emitcall('FPC_SETJMP');
-              exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
-              exprasmlist^.concat(new(paicpu,
-                op_reg(A_PUSH,S_L,R_EAX)));
-              exprasmlist^.concat(new(paicpu,
-                op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
-              exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
+              exprasmList.concat(Tairegalloc.Alloc(R_EAX));
+              exprasmList.concat(Taicpu.op_reg(A_PUSH,S_L,R_EAX));
+              exprasmList.concat(Taicpu.op_reg_reg(A_TEST,S_L,R_EAX,R_EAX));
+              exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
               emitjmp(C_NE,doobjectdestroyandreraise);
 
               oldexceptblock:=aktexceptblock;
@@ -875,18 +872,16 @@ do_jmp:
 
               emitlab(doobjectdestroyandreraise);
               emitcall('FPC_POPADDRSTACK');
-              exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
-              exprasmlist^.concat(new(paicpu,
-                op_reg(A_POP,S_L,R_EAX)));
-              exprasmlist^.concat(new(paicpu,
-                op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
-              exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
+              exprasmList.concat(Tairegalloc.Alloc(R_EAX));
+              exprasmList.concat(Taicpu.op_reg(A_POP,S_L,R_EAX));
+              exprasmList.concat(Taicpu.op_reg_reg(A_TEST,S_L,R_EAX,R_EAX));
+              exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
               emitjmp(C_E,doobjectdestroy);
               emitcall('FPC_POPSECONDOBJECTSTACK');
-              exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+              exprasmList.concat(Tairegalloc.Alloc(R_EAX));
               emit_reg(A_PUSH,S_L,R_EAX);
               emitcall('FPC_DESTROYEXCEPTION');
-              exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
+              exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
               { we don't need to restore esi here because reraise never }
               { returns                                                 }
               emitcall('FPC_RERAISE');
@@ -1000,7 +995,7 @@ do_jmp:
            newasmsymbol(excepttype^.vmt_mangledname));
          emitcall('FPC_CATCHES');
          { allocate eax }
-         exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+         exprasmList.concat(Tairegalloc.Alloc(R_EAX));
          emit_reg_reg(A_TEST,S_L,R_EAX,R_EAX);
          emitjmp(C_E,nextonlabel);
          ref.symbol:=nil;
@@ -1013,24 +1008,21 @@ do_jmp:
          emit_reg_ref(A_MOV,S_L,
            R_EAX,newreference(ref));
          { deallocate eax }
-         exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
+         exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
 
          { in the case that another exception is risen }
          { we've to destroy the old one                }
          getlabel(doobjectdestroyandreraise);
-         exprasmlist^.concat(new(paicpu,op_const(A_PUSH,S_L,1)));
+         exprasmList.concat(Taicpu.Op_const(A_PUSH,S_L,1));
          emitcall('FPC_PUSHEXCEPTADDR');
-         exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
-         exprasmlist^.concat(new(paicpu,
-           op_reg(A_PUSH,S_L,R_EAX)));
-         exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
+         exprasmList.concat(Tairegalloc.Alloc(R_EAX));
+         exprasmList.concat(Taicpu.op_reg(A_PUSH,S_L,R_EAX));
+         exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
          emitcall('FPC_SETJMP');
-         exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
-         exprasmlist^.concat(new(paicpu,
-           op_reg(A_PUSH,S_L,R_EAX)));
-         exprasmlist^.concat(new(paicpu,
-           op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
-         exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
+         exprasmList.concat(Tairegalloc.Alloc(R_EAX));
+         exprasmList.concat(Taicpu.op_reg(A_PUSH,S_L,R_EAX));
+         exprasmList.concat(Taicpu.op_reg_reg(A_TEST,S_L,R_EAX,R_EAX));
+         exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
          emitjmp(C_NE,doobjectdestroyandreraise);
 
          if assigned(right) then
@@ -1060,18 +1052,16 @@ do_jmp:
          getlabel(doobjectdestroy);
          emitlab(doobjectdestroyandreraise);
          emitcall('FPC_POPADDRSTACK');
-         exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
-         exprasmlist^.concat(new(paicpu,
-           op_reg(A_POP,S_L,R_EAX)));
-         exprasmlist^.concat(new(paicpu,
-           op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
-         exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
+         exprasmList.concat(Tairegalloc.Alloc(R_EAX));
+         exprasmList.concat(Taicpu.op_reg(A_POP,S_L,R_EAX));
+         exprasmList.concat(Taicpu.op_reg_reg(A_TEST,S_L,R_EAX,R_EAX));
+         exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
          emitjmp(C_E,doobjectdestroy);
          emitcall('FPC_POPSECONDOBJECTSTACK');
-         exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+         exprasmList.concat(Tairegalloc.Alloc(R_EAX));
          emit_reg(A_PUSH,S_L,R_EAX);
          emitcall('FPC_DESTROYEXCEPTION');
-         exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
+         exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
          { we don't need to restore esi here because reraise never }
          { returns                                                 }
          emitcall('FPC_RERAISE');
@@ -1175,13 +1165,13 @@ do_jmp:
          push_int(1); { Type of stack-frame must be pushed}
          emitcall('FPC_PUSHEXCEPTADDR');
          { allocate eax }
-         exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+         exprasmList.concat(Tairegalloc.Alloc(R_EAX));
          emit_reg(A_PUSH,S_L,R_EAX);
          emitcall('FPC_SETJMP');
          emit_reg(A_PUSH,S_L,R_EAX);
          emit_reg_reg(A_TEST,S_L,R_EAX,R_EAX);
          { deallocate eax }
-         exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
+         exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
          emitjmp(C_NE,finallylabel);
 
          { try code }
@@ -1209,7 +1199,7 @@ do_jmp:
          if codegenerror then
            exit;
          { allocate eax }
-         exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+         exprasmList.concat(Tairegalloc.Alloc(R_EAX));
          emit_reg(A_POP,S_L,R_EAX);
          emit_reg_reg(A_TEST,S_L,R_EAX,R_EAX);
          emitjmp(C_E,endfinallylabel);
@@ -1237,7 +1227,7 @@ do_jmp:
               emitjmp(C_Z,oldaktcontinuelabel);
            end;
          { deallocate eax }
-         exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
+         exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
          emitlab(reraiselabel);
          emitcall('FPC_RERAISE');
          { do some magic for exit,break,continue in the try block }
@@ -1245,9 +1235,9 @@ do_jmp:
            begin
               emitlab(exitfinallylabel);
               { allocate eax }
-              exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+              exprasmList.concat(Tairegalloc.Alloc(R_EAX));
               emit_reg(A_POP,S_L,R_EAX);
-              exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+              exprasmList.concat(Tairegalloc.Alloc(R_EAX));
               emit_const(A_PUSH,S_L,2);
               emitjmp(C_NONE,finallylabel);
            end;
@@ -1255,19 +1245,19 @@ do_jmp:
           begin
              emitlab(breakfinallylabel);
              { allocate eax }
-             exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+             exprasmList.concat(Tairegalloc.Alloc(R_EAX));
              emit_reg(A_POP,S_L,R_EAX);
              { deallocate eax }
-             exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
+             exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
              emit_const(A_PUSH,S_L,3);
              emitjmp(C_NONE,finallylabel);
            end;
          if fc_continue in tryflowcontrol then
            begin
               emitlab(continuefinallylabel);
-              exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+              exprasmList.concat(Tairegalloc.Alloc(R_EAX));
               emit_reg(A_POP,S_L,R_EAX);
-              exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+              exprasmList.concat(Tairegalloc.Alloc(R_EAX));
               emit_const(A_PUSH,S_L,4);
               emitjmp(C_NONE,finallylabel);
            end;
@@ -1312,7 +1302,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-12-05 11:44:33  jonas
+  Revision 1.5  2000-12-25 00:07:32  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.4  2000/12/05 11:44:33  jonas
     + new integer regvar handling, should be much more efficient
 
   Revision 1.3  2000/11/29 00:30:47  florian

@@ -27,7 +27,7 @@ unit finput;
 interface
 
     uses
-      cutils,cobjects;
+      cutils,cobjects,cclasses;
 
     const
        InputFileBufSize=32*1024;
@@ -37,10 +37,9 @@ interface
        tlongintarr = array[0..1000000] of longint;
        plongintarr = ^tlongintarr;
 
-       pinputfile = ^tinputfile;
-       tinputfile = object
+       tinputfile = class
          path,name : pstring;       { path and filename }
-         next      : pinputfile;    { next file for reading }
+         next      : tinputfile;    { next file for reading }
 
          is_macro,
          endoffile,                 { still bytes left to read }
@@ -59,10 +58,10 @@ interface
          maxlinebuf : longint;
 
          ref_index  : longint;      { to handle the browser refs }
-         ref_next   : pinputfile;
+         ref_next   : tinputfile;
 
-         constructor init(const fn:string);
-         destructor done;
+         constructor create(const fn:string);
+         destructor  destroy;override;
          procedure setpos(l:longint);
          procedure seekbuf(fpos:longint);
          procedure readbuf;
@@ -73,7 +72,7 @@ interface
          procedure setmacro(p:pchar;len:longint);
          procedure setline(line,linepos:longint);
          function  getlinestr(l:longint):string;
-       {$ifdef FPC}protected{$else}public{$endif}
+       protected
          function fileopen(const filename: string): boolean; virtual;
          function fileseek(pos: longint): boolean; virtual;
          function fileread(var databuf; maxsize: longint): longint; virtual;
@@ -81,29 +80,27 @@ interface
          function fileclose: boolean; virtual;
        end;
 
-       pdosinputfile = ^tdosinputfile;
-       tdosinputfile = object(tinputfile)
-       {$ifdef FPC}protected{$else}public{$endif}
-         function fileopen(const filename: string): boolean; virtual;
-         function fileseek(pos: longint): boolean; virtual;
-         function fileread(var databuf; maxsize: longint): longint; virtual;
-         function fileeof: boolean; virtual;
-         function fileclose: boolean; virtual;
+       tdosinputfile = class(tinputfile)
+       protected
+         function fileopen(const filename: string): boolean; override;
+         function fileseek(pos: longint): boolean; override;
+         function fileread(var databuf; maxsize: longint): longint; override;
+         function fileeof: boolean; override;
+         function fileclose: boolean; override;
        private
          f            : file;       { current file handle }
        end;
 
-       pinputfilemanager = ^tinputfilemanager;
-       tinputfilemanager = object
-          files : pinputfile;
+       tinputfilemanager = class
+          files : tinputfile;
           last_ref_index : longint;
           cacheindex : longint;
-          cacheinputfile : pinputfile;
-          constructor init;
-          destructor done;
-          procedure register_file(f : pinputfile);
+          cacheinputfile : tinputfile;
+          constructor create;
+          destructor destroy;override;
+          procedure register_file(f : tinputfile);
           procedure inverse_register_indexes;
-          function  get_file(l:longint) : pinputfile;
+          function  get_file(l:longint) : tinputfile;
           function  get_file_name(l :longint):string;
           function  get_file_path(l :longint):string;
        end;
@@ -112,12 +109,11 @@ interface
                                 TModuleBase
  ****************************************************************************}
 
-       pmodulebase = ^tmodulebase;
-       tmodulebase = object(tlinkedlist_item)
+       tmodulebase = class(TLinkedListItem)
           { index }
           unit_index    : longint;  { global counter for browser }
           { sources }
-          sourcefiles   : pinputfilemanager;
+          sourcefiles   : tinputfilemanager;
           { paths and filenames }
           path,                     { path where the module is find/created }
           outputpath,               { path where the .s / .o / exe are created }
@@ -130,8 +126,8 @@ interface
           sharedlibfilename,        { fullname of the shared libraryfile }
           exefilename,              { fullname of the exefile }
           mainsource   : pstring;   { name of the main sourcefile }
-          constructor init(const s:string);
-          destructor done;virtual;
+          constructor create(const s:string);
+          destructor destroy;override;
           procedure setfilename(const fn:string;allowoutput:boolean);
        end;
 
@@ -151,7 +147,7 @@ uses
                                   TINPUTFILE
  ****************************************************************************}
 
-    constructor tinputfile.init(const fn:string);
+    constructor tinputfile.create(const fn:string);
       var
         p:dirstr;
         n:namestr;
@@ -182,7 +178,7 @@ uses
       end;
 
 
-    destructor tinputfile.done;
+    destructor tinputfile.destroy;
       begin
         if not closed then
          close;
@@ -485,7 +481,7 @@ uses
                                 Tinputfilemanager
  ****************************************************************************}
 
-    constructor tinputfilemanager.init;
+    constructor tinputfilemanager.create;
       begin
          files:=nil;
          last_ref_index:=0;
@@ -494,35 +490,35 @@ uses
       end;
 
 
-    destructor tinputfilemanager.done;
+    destructor tinputfilemanager.destroy;
       var
-         hp : pinputfile;
+         hp : tinputfile;
       begin
          hp:=files;
          while assigned(hp) do
           begin
-            files:=files^.ref_next;
-            dispose(hp,done);
+            files:=files.ref_next;
+            hp.free;
             hp:=files;
           end;
          last_ref_index:=0;
       end;
 
 
-    procedure tinputfilemanager.register_file(f : pinputfile);
+    procedure tinputfilemanager.register_file(f : tinputfile);
       begin
          { don't register macro's }
-         if f^.is_macro then
+         if f.is_macro then
           exit;
          inc(last_ref_index);
-         f^.ref_next:=files;
-         f^.ref_index:=last_ref_index;
+         f.ref_next:=files;
+         f.ref_index:=last_ref_index;
          files:=f;
          { update cache }
          cacheindex:=last_ref_index;
          cacheinputfile:=f;
 {$ifdef HEAPTRC}
-         writeln(stderr,f^.name^,' index ',current_module^.unit_index*100000+f^.ref_index);
+         writeln(stderr,f.name^,' index ',current_module.unit_index*100000+f.ref_index);
 {$endif HEAPTRC}
       end;
 
@@ -531,13 +527,13 @@ uses
      sources files from a PPU file  PM }
    procedure tinputfilemanager.inverse_register_indexes;
      var
-        f : pinputfile;
+        f : tinputfile;
      begin
         f:=files;
         while assigned(f) do
           begin
-             f^.ref_index:=last_ref_index-f^.ref_index+1;
-             f:=f^.ref_next;
+             f.ref_index:=last_ref_index-f.ref_index+1;
+             f:=f.ref_next;
           end;
         { reset cache }
         cacheindex:=0;
@@ -546,9 +542,9 @@ uses
 
 
 
-   function tinputfilemanager.get_file(l :longint) : pinputfile;
+   function tinputfilemanager.get_file(l :longint) : tinputfile;
      var
-        ff : pinputfile;
+        ff : tinputfile;
      begin
        { check cache }
        if (l=cacheindex) and assigned(cacheinputfile) then
@@ -557,19 +553,19 @@ uses
           exit;
         end;
        ff:=files;
-       while assigned(ff) and (ff^.ref_index<>l) do
-         ff:=ff^.ref_next;
+       while assigned(ff) and (ff.ref_index<>l) do
+         ff:=ff.ref_next;
        get_file:=ff;
      end;
 
 
    function tinputfilemanager.get_file_name(l :longint):string;
      var
-       hp : pinputfile;
+       hp : tinputfile;
      begin
        hp:=get_file(l);
        if assigned(hp) then
-        get_file_name:=hp^.name^
+        get_file_name:=hp.name^
        else
         get_file_name:='';
      end;
@@ -577,11 +573,11 @@ uses
 
    function tinputfilemanager.get_file_path(l :longint):string;
      var
-       hp : pinputfile;
+       hp : tinputfile;
      begin
        hp:=get_file(l);
        if assigned(hp) then
-        get_file_path:=hp^.path^
+        get_file_path:=hp.path^
        else
         get_file_path:='';
      end;
@@ -641,7 +637,7 @@ uses
       end;
 
 
-    constructor tmodulebase.init(const s:string);
+    constructor tmodulebase.create(const s:string);
       begin
         modulename:=stringdup(Upper(s));
         realmodulename:=stringdup(s);
@@ -658,14 +654,14 @@ uses
         inc(global_unit_count);
         unit_index:=global_unit_count;
         { sources }
-        new(sourcefiles,init);
+        sourcefiles:=TInputFileManager.Create;
       end;
 
 
-    destructor tmodulebase.done;
+    destructor tmodulebase.destroy;
       begin
         if assigned(sourcefiles) then
-         dispose(sourcefiles,done);
+         sourcefiles.free;
         sourcefiles:=nil;
         stringdispose(objfilename);
         stringdispose(asmfilename);
@@ -678,14 +674,18 @@ uses
         stringdispose(modulename);
         stringdispose(realmodulename);
         stringdispose(mainsource);
-        inherited done;
+        inherited destroy;
       end;
 
 end.
 {
   $Log$
-  Revision 1.5  2000-11-07 20:48:33  peter
-    * removed ref_count from pinputfile it's not used
+  Revision 1.6  2000-12-25 00:07:25  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.5  2000/11/07 20:48:33  peter
+    * removed ref_count from tinputfile it's not used
 
   Revision 1.4  2000/10/31 22:02:46  peter
     * symtable splitted, no real code changes

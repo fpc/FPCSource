@@ -214,7 +214,7 @@ implementation
 
          pushusedregisters(pushed,$ff);
          saveregvars($ff);
-         
+
          { call the mem handling procedures }
          case nodetype of
            simpledisposen:
@@ -461,7 +461,7 @@ implementation
          t   : tnode;
          hp  : preference;
          href : treference;
-         tai : Paicpu;
+         tai : Taicpu;
          pushed : tpushed;
          hightree : tnode;
          hl,otl,ofl : pasmlabel;
@@ -811,11 +811,11 @@ implementation
                       { Booleans are stored in an 8 bit memory location, so
                         the use of MOVL is not correct }
                       case right.resulttype^.size of
-                       1 : tai:=new(paicpu,op_ref_reg(A_MOVZX,S_BL,newreference(right.location.reference),ind));
-                       2 : tai:=new(Paicpu,op_ref_reg(A_MOVZX,S_WL,newreference(right.location.reference),ind));
-                       4 : tai:=new(Paicpu,op_ref_reg(A_MOV,S_L,newreference(right.location.reference),ind));
+                       1 : tai:=Taicpu.Op_ref_reg(A_MOVZX,S_BL,newreference(right.location.reference),ind);
+                       2 : tai:=Taicpu.Op_ref_reg(A_MOVZX,S_WL,newreference(right.location.reference),ind);
+                       4 : tai:=Taicpu.Op_ref_reg(A_MOV,S_L,newreference(right.location.reference),ind);
                       end;
-                      exprasmlist^.concat(tai);
+                      exprasmList.concat(tai);
                    end;
                  else
                    internalerror(5913428);
@@ -995,10 +995,10 @@ implementation
                       getaddrlabel(withstartlabel);
                       getaddrlabel(withendlabel);
                       emitlab(withstartlabel);
-                      withdebuglist^.concat(new(pai_stabs,init(strpnew(
+                      withdebugList.concat(Tai_stabs.Create(strpnew(
                          '"with'+tostr(withlevel)+':'+tostr(symtablestack^.getnewtypecount)+
                          '=*'+pstoreddef(left.resulttype)^.numberstring+'",'+
-                         tostr(N_LSYM)+',0,0,'+tostr(withreference^.offset)))));
+                         tostr(N_LSYM)+',0,0,'+tostr(withreference^.offset))));
                       mangled_length:=length(aktprocsym^.definition^.mangledname);
                       getmem(pp,mangled_length+50);
                       strpcopy(pp,'192,0,0,'+withstartlabel^.name);
@@ -1007,7 +1007,7 @@ implementation
                           strpcopy(strend(pp),'-');
                           strpcopy(strend(pp),aktprocsym^.definition^.mangledname);
                         end;
-                      withdebuglist^.concat(new(pai_stabn,init(strnew(pp))));
+                      withdebugList.concat(Tai_stabn.Create(strnew(pp)));
                     end;
 {$endif GDB}
                 end;
@@ -1029,7 +1029,7 @@ implementation
                           strpcopy(strend(pp),'-');
                           strpcopy(strend(pp),aktprocsym^.definition^.mangledname);
                         end;
-                       withdebuglist^.concat(new(pai_stabn,init(strnew(pp))));
+                       withdebugList.concat(Tai_stabn.Create(strnew(pp)));
                        freemem(pp,mangled_length+50);
                        dec(withlevel);
                      end;
@@ -1060,7 +1060,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2000-12-05 11:44:33  jonas
+  Revision 1.8  2000-12-25 00:07:33  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.7  2000/12/05 11:44:33  jonas
     + new integer regvar handling, should be much more efficient
 
   Revision 1.6  2000/11/29 00:30:48  florian

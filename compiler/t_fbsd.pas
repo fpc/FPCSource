@@ -32,40 +32,38 @@ interface
     import,export,link;
 
   type
-    pimportlibfreebsd=^timportlibfreebsd;
-    timportlibfreebsd=object(timportlib)
-      procedure preparelib(const s:string);virtual;
-      procedure importprocedure(const func,module:string;index:longint;const name:string);virtual;
-      procedure importvariable(const varname,module:string;const name:string);virtual;
-      procedure generatelib;virtual;
+    timportlibfreebsd=class(timportlib)
+      procedure preparelib(const s:string);override;
+      procedure importprocedure(const func,module:string;index:longint;const name:string);override;
+      procedure importvariable(const varname,module:string;const name:string);override;
+      procedure generatelib;override;
     end;
 
-    pexportlibfreebsd=^texportlibfreebsd;
-    texportlibfreebsd=object(texportlib)
-      procedure preparelib(const s : string);virtual;
-      procedure exportprocedure(hp : pexported_item);virtual;
-      procedure exportvar(hp : pexported_item);virtual;
-      procedure generatelib;virtual;
+    texportlibfreebsd=class(texportlib)
+      procedure preparelib(const s : string);override;
+      procedure exportprocedure(hp : texported_item);override;
+      procedure exportvar(hp : texported_item);override;
+      procedure generatelib;override;
     end;
 
-    plinkerfreebsd=^tlinkerfreebsd;
-    tlinkerfreebsd=object(tlinker)
+    tlinkerfreebsd=class(tlinker)
     private
       Glibc2,
       Glibc21 : boolean;
       Function  WriteResponseFile(isdll:boolean) : Boolean;
     public
-      constructor Init;
-      procedure SetDefaultInfo;virtual;
-      function  MakeExecutable:boolean;virtual;
-      function  MakeSharedLibrary:boolean;virtual;
+      constructor Create;
+      procedure SetDefaultInfo;override;
+      function  MakeExecutable:boolean;override;
+      function  MakeSharedLibrary:boolean;override;
     end;
 
 
 implementation
 
   uses
-    cutils,verbose,cobjects,systems,globtype,globals,
+    cutils,cclasses,
+    verbose,systems,globtype,globals,
     symconst,script,
     fmodule,aasm,cpuasm,cpubase,symsym;
 
@@ -81,7 +79,7 @@ end;
 procedure timportlibfreebsd.importprocedure(const func,module : string;index : longint;const name : string);
 begin
   { insert sharedlibrary }
-  current_module^.linkothersharedlibs.insert(SplitName(module),link_allways);
+  current_module.linkothersharedlibs.add(SplitName(module),link_allways);
   { do nothing with the procedure, only set the mangledname }
   if name<>'' then
     aktprocsym^.definition^.setmangledname(name)
@@ -93,7 +91,7 @@ end;
 procedure timportlibfreebsd.importvariable(const varname,module:string;const name:string);
 begin
   { insert sharedlibrary }
-  current_module^.linkothersharedlibs.insert(SplitName(module),link_allways);
+  current_module.linkothersharedlibs.add(SplitName(module),link_allways);
   { reset the mangledname and turn off the dll_var option }
   aktvarsym^.setmangledname(name);
   exclude(aktvarsym^.varoptions,vo_is_dll_var);
@@ -114,76 +112,76 @@ begin
 end;
 
 
-procedure texportlibfreebsd.exportprocedure(hp : pexported_item);
+procedure texportlibfreebsd.exportprocedure(hp : texported_item);
 var
-  hp2 : pexported_item;
+  hp2 : texported_item;
 begin
   { first test the index value }
-  if (hp^.options and eo_index)<>0 then
+  if (hp.options and eo_index)<>0 then
    begin
      Message1(parser_e_no_export_with_index_for_target,'freebsd');
      exit;
    end;
   { use pascal name is none specified }
-  if (hp^.options and eo_name)=0 then
+  if (hp.options and eo_name)=0 then
     begin
-       hp^.name:=stringdup(hp^.sym^.name);
-       hp^.options:=hp^.options or eo_name;
+       hp.name:=stringdup(hp.sym^.name);
+       hp.options:=hp.options or eo_name;
     end;
   { now place in correct order }
-  hp2:=pexported_item(current_module^._exports^.first);
+  hp2:=texported_item(current_module._exports.first);
   while assigned(hp2) and
-     (hp^.name^>hp2^.name^) do
-    hp2:=pexported_item(hp2^.next);
+     (hp.name^>hp2.name^) do
+    hp2:=texported_item(hp2.next);
   { insert hp there !! }
-  if assigned(hp2) and (hp2^.name^=hp^.name^) then
+  if assigned(hp2) and (hp2.name^=hp.name^) then
     begin
       { this is not allowed !! }
-      Message1(parser_e_export_name_double,hp^.name^);
+      Message1(parser_e_export_name_double,hp.name^);
       exit;
     end;
-  if hp2=pexported_item(current_module^._exports^.first) then
-    current_module^._exports^.insert(hp)
+  if hp2=texported_item(current_module._exports.first) then
+    current_module._exports.concat(hp)
   else if assigned(hp2) then
     begin
-       hp^.next:=hp2;
-       hp^.previous:=hp2^.previous;
-       if assigned(hp2^.previous) then
-         hp2^.previous^.next:=hp;
-       hp2^.previous:=hp;
+       hp.next:=hp2;
+       hp.previous:=hp2.previous;
+       if assigned(hp2.previous) then
+         hp2.previous.next:=hp;
+       hp2.previous:=hp;
     end
   else
-    current_module^._exports^.concat(hp);
+    current_module._exports.concat(hp);
 end;
 
 
-procedure texportlibfreebsd.exportvar(hp : pexported_item);
+procedure texportlibfreebsd.exportvar(hp : texported_item);
 begin
-  hp^.is_var:=true;
+  hp.is_var:=true;
   exportprocedure(hp);
 end;
 
 
 procedure texportlibfreebsd.generatelib;
 var
-  hp2 : pexported_item;
+  hp2 : texported_item;
 begin
-  hp2:=pexported_item(current_module^._exports^.first);
+  hp2:=texported_item(current_module._exports.first);
   while assigned(hp2) do
    begin
-     if not hp2^.is_var then
+     if not hp2.is_var then
       begin
 {$ifdef i386}
         { place jump in codesegment }
-        codesegment^.concat(new(pai_align,init_op(4,$90)));
-        codesegment^.concat(new(pai_symbol,initname_global(hp2^.name^,0)));
-        codesegment^.concat(new(paicpu,op_sym(A_JMP,S_NO,newasmsymbol(hp2^.sym^.mangledname))));
-        codesegment^.concat(new(pai_symbol_end,initname(hp2^.name^)));
+        codeSegment.concat(Tai_align.Create_op(4,$90));
+        codeSegment.concat(Tai_symbol.Createname_global(hp2.name^,0));
+        codeSegment.concat(Taicpu.Op_sym(A_JMP,S_NO,newasmsymbol(hp2.sym^.mangledname)));
+        codeSegment.concat(Tai_symbol_end.Createname(hp2.name^));
 {$endif i386}
       end
      else
       Message1(parser_e_no_export_of_variables_for_target,'freebsd');
-     hp2:=pexported_item(hp2^.next);
+     hp2:=texported_item(hp2.next);
    end;
 end;
 
@@ -192,9 +190,9 @@ end;
                                   TLINKERLINUX
 *****************************************************************************}
 
-Constructor TLinkerFreeBSD.Init;
+Constructor TLinkerFreeBSD.Create;
 begin
-  Inherited Init;
+  Inherited Create;
   LibrarySearchPath.AddPath('/lib;/usr/lib;/usr/X11R6/lib',true);
 end;
 
@@ -241,7 +239,7 @@ Var
   cprtobj,
   gprtobj,
   prtobj       : string[80];
-  HPath        : PStringQueueItem;
+  HPath        : TStringListItem;
   s            : string;
   found,
   linkdynamic,
@@ -250,7 +248,7 @@ begin
   WriteResponseFile:=False;
 { set special options for some targets }
   linkdynamic:=not(SharedLibFiles.empty);
-  linklibc:=SharedLibFiles.Find('c');
+  linklibc:=(SharedLibFiles.Find('c')<>nil);
   prtobj:='prt0';
   cprtobj:='cprt0';
   gprtobj:='gprt0';
@@ -277,17 +275,17 @@ begin
   LinkRes.Init(outputexedir+Info.ResName);
 
   { Write path to search libraries }
-  HPath:=current_module^.locallibrarysearchpath.First;
+  HPath:=TStringListItem(current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
    begin
-     LinkRes.Add('SEARCH_DIR('+HPath^.Data^+')');
-     HPath:=HPath^.Next;
+     LinkRes.Add('SEARCH_DIR('+HPath.Str+')');
+     HPath:=TStringListItem(HPath.Next);
    end;
-  HPath:=LibrarySearchPath.First;
+  HPath:=TStringListItem(LibrarySearchPath.First);
   while assigned(HPath) do
    begin
-     LinkRes.Add('SEARCH_DIR('+HPath^.Data^+')');
-     HPath:=HPath^.Next;
+     LinkRes.Add('SEARCH_DIR('+HPath.Str+')');
+     HPath:=TStringListItem(HPath.Next);
    end;
 
   LinkRes.Add('INPUT(');
@@ -307,7 +305,7 @@ begin
   { main objectfiles }
   while not ObjectFiles.Empty do
    begin
-     s:=ObjectFiles.Get;
+     s:=ObjectFiles.GetFirst;
      if s<>'' then
       LinkRes.AddFileName(s);
    end;
@@ -329,7 +327,7 @@ begin
      LinkRes.Add('GROUP(');
      While not StaticLibFiles.Empty do
       begin
-        S:=StaticLibFiles.Get;
+        S:=StaticLibFiles.GetFirst;
         LinkRes.AddFileName(s)
       end;
      LinkRes.Add(')');
@@ -342,7 +340,7 @@ begin
      LinkRes.Add('INPUT(');
      While not SharedLibFiles.Empty do
       begin
-        S:=SharedLibFiles.Get;
+        S:=SharedLibFiles.GetFirst;
         if s<>'c' then
          begin
            i:=Pos(target_os.sharedlibext,S);
@@ -384,7 +382,7 @@ var
   StripStr   : string[40];
 begin
   if not(cs_link_extern in aktglobalswitches) then
-   Message1(exec_i_linking,current_module^.exefilename^);
+   Message1(exec_i_linking,current_module.exefilename^);
 
 { Create some replacements }
   StaticStr:='';
@@ -403,7 +401,7 @@ begin
 
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',current_module^.exefilename^);
+  Replace(cmdstr,'$EXE',current_module.exefilename^);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$RES',outputexedir+Info.ResName);
   Replace(cmdstr,'$STATIC',StaticStr);
@@ -427,14 +425,14 @@ var
 begin
   MakeSharedLibrary:=false;
   if not(cs_link_extern in aktglobalswitches) then
-   Message1(exec_i_linking,current_module^.sharedlibfilename^);
+   Message1(exec_i_linking,current_module.sharedlibfilename^);
 
 { Write used files and libraries }
   WriteResponseFile(true);
 
 { Call linker }
   SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',current_module^.sharedlibfilename^);
+  Replace(cmdstr,'$EXE',current_module.sharedlibfilename^);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$RES',outputexedir+Info.ResName);
   success:=DoExec(FindUtil(binstr),cmdstr,true,false);
@@ -443,7 +441,7 @@ begin
   if success and (cs_link_strip in aktglobalswitches) then
    begin
      SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
-     Replace(cmdstr,'$EXE',current_module^.sharedlibfilename^);
+     Replace(cmdstr,'$EXE',current_module.sharedlibfilename^);
      success:=DoExec(FindUtil(binstr),cmdstr,true,false);
    end;
 
@@ -457,7 +455,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-10-31 22:02:53  peter
+  Revision 1.5  2000-12-25 00:07:30  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.4  2000/10/31 22:02:53  peter
     * symtable splitted, no real code changes
 
   Revision 1.3  2000/09/24 21:33:47  peter

@@ -114,7 +114,7 @@ const
 var
   _asmsorted     : boolean;
   inexpression   : boolean;
-  curlist        : paasmoutput;
+  curlist        : TAAsmoutput;
   c              : char;
   prevasmtoken   : tasmtoken;
   actasmtoken    : tasmtoken;
@@ -1809,7 +1809,7 @@ Begin
      SetupTables;
      _asmsorted:=TRUE;
    end;
-  curlist:=new(paasmoutput,init);
+  curlist:=TAAsmoutput.Create;
   { setup label linked list }
   new(LocalLabelList,Init);
   { start tokenizer }
@@ -1920,7 +1920,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-12-07 17:19:46  jonas
+  Revision 1.6  2000-12-25 00:07:34  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.5  2000/12/07 17:19:46  jonas
     * new constant handling: from now on, hex constants >$7fffffff are
       parsed as unsigned constants (otherwise, $80000000 got sign extended
       and became $ffffffff80000000), all constants in the longint range

@@ -291,7 +291,7 @@ implementation
         shstrtabsect:=telf32section.createname('.shstrtab',3,0,0,0,1,0);
         { insert the empty and filename as first in strtab }
         strtabsect.writestr(#0);
-        strtabsect.writestr(SplitFileName(current_module^.mainsource^)+#0);
+        strtabsect.writestr(SplitFileName(current_module.mainsource^)+#0);
         { we need at least the following sections }
         createsection(sec_code);
         createsection(sec_data);
@@ -303,7 +303,7 @@ implementation
            createsection(sec_stabstr);
            writestabs(sec_none,0,nil,0,0,0,false);
            { write zero pchar and name together (PM) }
-           s:=#0+SplitFileName(current_module^.mainsource^)+#0;
+           s:=#0+SplitFileName(current_module.mainsource^)+#0;
            sects[sec_stabstr].write(s[1],length(s));
          end;
       end;
@@ -844,7 +844,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2000-12-24 12:25:32  peter
+  Revision 1.5  2000-12-25 00:07:26  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.4  2000/12/24 12:25:32  peter
     + cstreams unit
     * dynamicarray object to class
 

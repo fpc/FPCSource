@@ -229,7 +229,7 @@ implementation
 
         begin
            { here we don't use register calling conventions }
-           dummycoll.init;
+           dummycoll:=TParaItem.Create;
            dummycoll.register:=R_NO;
            { I/O check }
            if (cs_check_io in aktlocalswitches) and
@@ -356,7 +356,7 @@ implementation
                         else
                           if (is_chararray(tcallparanode(hp).resulttype)) then
                             dummycoll.paratype.setdef(openchararraydef);
-                        tcallparanode(hp).secondcallparan(@dummycoll,false,false,false,0,0);
+                        tcallparanode(hp).secondcallparan(dummycoll,false,false,false,0,0);
                         if ft=ft_typed then
                           never_copy_const_param:=false;
                       end;
@@ -401,7 +401,7 @@ implementation
                                    tcallparanode(hp).right:=nil;
                                    dummycoll.paratype.setdef(hp.resulttype);
                                    dummycoll.paratyp:=vs_value;
-                                   tcallparanode(hp).secondcallparan(@dummycoll,false,false,false,0,0);
+                                   tcallparanode(hp).secondcallparan(dummycoll,false,false,false,0,0);
                                    tcallparanode(hp).right:=node;
                                    if codegenerror then
                                      exit;
@@ -419,7 +419,7 @@ implementation
                                    tcallparanode(hp).right:=nil;
                                    dummycoll.paratype.setdef(hp.resulttype);
                                    dummycoll.paratyp:=vs_value;
-                                   tcallparanode(hp).secondcallparan(@dummycoll,false,false,false,0,0);
+                                   tcallparanode(hp).secondcallparan(dummycoll,false,false,false,0,0);
                                    tcallparanode(hp).right:=node;
                                    if pararesult^.deftype<>floatdef then
                                      CGMessage(parser_e_illegal_colon_qualifier);
@@ -558,7 +558,7 @@ implementation
            procedureprefix : string;
 
           begin
-           dummycoll.init;
+           dummycoll:=TParaItem.Create;
            dummycoll.register:=R_NO;
            pushusedregisters(pushed,$ff);
            node:=tcallparanode(left);
@@ -585,7 +585,7 @@ implementation
            else
              dummycoll.paratype.setdef(hp.resulttype);
            procedureprefix:='FPC_'+pstringdef(hp.resulttype)^.stringtypname+'_';
-           tcallparanode(hp).secondcallparan(@dummycoll,false,false,false,0,0);
+           tcallparanode(hp).secondcallparan(dummycoll,false,false,false,0,0);
            if codegenerror then
              exit;
 
@@ -607,7 +607,7 @@ implementation
              begin
                 dummycoll.paratype.setdef(hp.resulttype);
                 dummycoll.paratyp:=vs_value;
-                tcallparanode(hp).secondcallparan(@dummycoll,false,false,false,0,0);
+                tcallparanode(hp).secondcallparan(dummycoll,false,false,false,0,0);
                 if codegenerror then
                   exit;
                 hp.free;
@@ -624,7 +624,7 @@ implementation
              begin
                 dummycoll.paratype.setdef(hp.resulttype);
                 dummycoll.paratyp:=vs_value;
-                tcallparanode(hp).secondcallparan(@dummycoll,false,false,false,0,0);
+                tcallparanode(hp).secondcallparan(dummycoll,false,false,false,0,0);
                 if codegenerror then
                   exit;
                 hp.free;
@@ -648,7 +648,7 @@ implementation
            { last arg longint or real }
            dummycoll.paratype.setdef(hp.resulttype);
            dummycoll.paratyp:=vs_value;
-           tcallparanode(hp).secondcallparan(@dummycoll,false,false,false,0,0);
+           tcallparanode(hp).secondcallparan(dummycoll,false,false,false,0,0);
            if codegenerror then
              exit;
 
@@ -688,7 +688,7 @@ implementation
            r : preference;
 
           begin
-           dummycoll.init;
+           dummycoll:=TParaItem.Create;
            dummycoll.register:=R_NO;
            node:=tcallparanode(left);
            hp:=node;
@@ -720,7 +720,7 @@ implementation
           {load and push the address of the destination}
            dummycoll.paratyp:=vs_var;
            dummycoll.paratype.setdef(dest_para.resulttype);
-           dest_para.secondcallparan(@dummycoll,false,false,false,0,0);
+           dest_para.secondcallparan(dummycoll,false,false,false,0,0);
            if codegenerror then
              exit;
 
@@ -734,7 +734,7 @@ implementation
              Begin
                dummycoll.paratyp:=vs_var;
                dummycoll.paratype.setdef(code_para.resulttype);
-               code_para.secondcallparan(@dummycoll,false,false,false,0,0);
+               code_para.secondcallparan(dummycoll,false,false,false,0,0);
                if codegenerror then
                  exit;
                code_para.free;
@@ -749,7 +749,7 @@ implementation
           {node = first parameter = string}
            dummycoll.paratyp:=vs_const;
            dummycoll.paratype.setdef(node.resulttype);
-           node.secondcallparan(@dummycoll,false,false,false,0,0);
+           node.secondcallparan(dummycoll,false,false,false,0,0);
            if codegenerror then
              exit;
 
@@ -940,7 +940,7 @@ implementation
                  { lineno }
                  emit_const(A_PUSH,S_L,aktfilepos.line);
                  { filename string }
-                 hp2:=genstringconstnode(current_module^.sourcefiles^.get_file_name(aktfilepos.fileindex),st_shortstring);
+                 hp2:=genstringconstnode(current_module.sourcefiles.get_file_name(aktfilepos.fileindex),st_shortstring);
                  secondpass(hp2);
                  if codegenerror then
                   exit;
@@ -1428,10 +1428,10 @@ implementation
                   if not(is_dynamic_array(def)) and
                      (pstringdef(def)^.string_typ = st_shortstring) then
                     begin
-                      dummycoll.init;
+                      dummycoll:=TParaItem.Create;
                       dummycoll.paratyp:=vs_var;
                       dummycoll.paratype.setdef(openshortstringdef);
-                      tcallparanode(hp).secondcallparan(@dummycoll,false,false,false,0,0);
+                      tcallparanode(hp).secondcallparan(dummycoll,false,false,false,0,0);
                       if codegenerror then
                         exit;
                     end
@@ -1682,7 +1682,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2000-12-09 22:51:37  florian
+  Revision 1.11  2000-12-25 00:07:33  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.10  2000/12/09 22:51:37  florian
     * helper name of val for qword fixed
 
   Revision 1.9  2000/12/07 17:19:46  jonas

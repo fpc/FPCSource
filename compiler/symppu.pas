@@ -24,7 +24,7 @@ interface
 
     uses
        cobjects,
-       globtype,
+       globtype,globals,
        symbase,
        ppu;
 
@@ -59,7 +59,6 @@ interface
 implementation
 
     uses
-       globals,
        symconst,
        verbose;
 
@@ -335,7 +334,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2000-11-29 00:30:41  florian
+  Revision 1.4  2000-12-25 00:07:29  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.3  2000/11/29 00:30:41  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

@@ -70,8 +70,8 @@ interface
           procedure gen_high_tree(openstring:boolean);
           { tcallparanode doesn't use pass_1 }
           { tcallnode takes care of this     }
-          procedure firstcallparan(defcoll : pparaitem;do_count : boolean);virtual;
-          procedure secondcallparan(defcoll : pparaitem;
+          procedure firstcallparan(defcoll : tparaitem;do_count : boolean);virtual;
+          procedure secondcallparan(defcoll : tparaitem;
                    push_from_left_to_right,inlined,is_cdecl : boolean;
                    para_alignment,para_offset : longint);virtual;abstract;
        end;
@@ -174,7 +174,7 @@ interface
       begin
       end;
 
-    procedure tcallparanode.firstcallparan(defcoll : pparaitem;do_count : boolean);
+    procedure tcallparanode.firstcallparan(defcoll : tparaitem;do_count : boolean);
       var
         old_get_para_resulttype : boolean;
         old_array_constructor : boolean;
@@ -197,7 +197,7 @@ interface
               if defcoll=nil then
                 tcallparanode(right).firstcallparan(nil,do_count)
               else
-                tcallparanode(right).firstcallparan(pparaitem(defcoll^.next),do_count);
+                tcallparanode(right).firstcallparan(tparaitem(defcoll.next),do_count);
               registers32:=right.registers32;
               registersfpu:=right.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -228,13 +228,13 @@ interface
                 it here before the arrayconstructor node breaks the tree
                 with its conversions of enum->ord }
               if (left.nodetype=arrayconstructorn) and
-                 (defcoll^.paratype.def^.deftype=setdef) then
-                left:=gentypeconvnode(left,defcoll^.paratype.def);
+                 (defcoll.paratype.def^.deftype=setdef) then
+                left:=gentypeconvnode(left,defcoll.paratype.def);
 
               { set some settings needed for arrayconstructor }
               if is_array_constructor(left.resulttype) then
                begin
-                 if is_array_of_const(defcoll^.paratype.def) then
+                 if is_array_of_const(defcoll.paratype.def) then
                   begin
                     if assigned(aktcallprocsym) and
                        (([pocall_cppdecl,pocall_cdecl]*aktcallprocsym^.definition^.proccalloptions)<>[]) and
@@ -246,21 +246,21 @@ interface
                  else
                   begin
                     include(left.flags,nf_novariaallowed);
-                    tarrayconstructornode(left).constructordef:=parraydef(defcoll^.paratype.def)^.elementtype.def;
+                    tarrayconstructornode(left).constructordef:=parraydef(defcoll.paratype.def)^.elementtype.def;
                   end;
                end;
 
               if do_count then
                begin
                  { not completly proper, but avoids some warnings }
-                 if (defcoll^.paratyp in [vs_var,vs_out]) then
+                 if (defcoll.paratyp in [vs_var,vs_out]) then
                    set_funcret_is_valid(left);
 
                  { protected has nothing to do with read/write
-                 if (defcoll^.paratyp in [vs_var,vs_out]) then
+                 if (defcoll.paratyp in [vs_var,vs_out]) then
                    test_protected(left);
                  }
-                 { set_varstate(left,defcoll^.paratyp<>vs_var);
+                 { set_varstate(left,defcoll.paratyp<>vs_var);
                    must only be done after typeconv PM }
                  { only process typeconvn and arrayconstructn, else it will
                    break other trees }
@@ -278,67 +278,67 @@ interface
                end;
               { check if local proc/func is assigned to procvar }
               if left.resulttype^.deftype=procvardef then
-                test_local_to_procvar(pprocvardef(left.resulttype),defcoll^.paratype.def);
+                test_local_to_procvar(pprocvardef(left.resulttype),defcoll.paratype.def);
               { property is not allowed as var parameter }
-              if (defcoll^.paratyp in [vs_out,vs_var]) and
+              if (defcoll.paratyp in [vs_out,vs_var]) and
                  (nf_isproperty in left.flags) then
                 CGMessagePos(left.fileinfo,type_e_argument_cant_be_assigned);
               { generate the high() value tree }
-              if push_high_param(defcoll^.paratype.def) then
-                gen_high_tree(is_open_string(defcoll^.paratype.def));
+              if push_high_param(defcoll.paratype.def) then
+                gen_high_tree(is_open_string(defcoll.paratype.def));
               if not(is_shortstring(left.resulttype) and
-                     is_shortstring(defcoll^.paratype.def)) and
-                     (defcoll^.paratype.def^.deftype<>formaldef) then
+                     is_shortstring(defcoll.paratype.def)) and
+                     (defcoll.paratype.def^.deftype<>formaldef) then
                 begin
-                   if (defcoll^.paratyp in [vs_var,vs_out]) and
+                   if (defcoll.paratyp in [vs_var,vs_out]) and
                    { allows conversion from word to integer and
                      byte to shortint }
                      (not(
                         (left.resulttype^.deftype=orddef) and
-                        (defcoll^.paratype.def^.deftype=orddef) and
-                        (left.resulttype^.size=defcoll^.paratype.def^.size)
+                        (defcoll.paratype.def^.deftype=orddef) and
+                        (left.resulttype^.size=defcoll.paratype.def^.size)
                          ) and
                    { an implicit pointer conversion is allowed }
                      not(
                         (left.resulttype^.deftype=pointerdef) and
-                        (defcoll^.paratype.def^.deftype=pointerdef)
+                        (defcoll.paratype.def^.deftype=pointerdef)
                          ) and
                    { child classes can be also passed }
                      not(
                         (left.resulttype^.deftype=objectdef) and
-                        (defcoll^.paratype.def^.deftype=objectdef) and
-                        pobjectdef(left.resulttype)^.is_related(pobjectdef(defcoll^.paratype.def))
+                        (defcoll.paratype.def^.deftype=objectdef) and
+                        pobjectdef(left.resulttype)^.is_related(pobjectdef(defcoll.paratype.def))
                         ) and
                    { passing a single element to a openarray of the same type }
                      not(
-                        (is_open_array(defcoll^.paratype.def) and
-                        is_equal(parraydef(defcoll^.paratype.def)^.elementtype.def,left.resulttype))
+                        (is_open_array(defcoll.paratype.def) and
+                        is_equal(parraydef(defcoll.paratype.def)^.elementtype.def,left.resulttype))
                         ) and
                    { an implicit file conversion is also allowed }
                    { from a typed file to an untyped one           }
                      not(
                         (left.resulttype^.deftype=filedef) and
-                        (defcoll^.paratype.def^.deftype=filedef) and
-                        (pfiledef(defcoll^.paratype.def)^.filetyp = ft_untyped) and
+                        (defcoll.paratype.def^.deftype=filedef) and
+                        (pfiledef(defcoll.paratype.def)^.filetyp = ft_untyped) and
                         (pfiledef(left.resulttype)^.filetyp = ft_typed)
                          ) and
-                     not(is_equal(left.resulttype,defcoll^.paratype.def))) then
+                     not(is_equal(left.resulttype,defcoll.paratype.def))) then
                        begin
                           CGMessagePos2(left.fileinfo,parser_e_call_by_ref_without_typeconv,
-                            left.resulttype^.typename,defcoll^.paratype.def^.typename);
+                            left.resulttype^.typename,defcoll.paratype.def^.typename);
                        end;
                    { Process open parameters }
-                   if push_high_param(defcoll^.paratype.def) then
+                   if push_high_param(defcoll.paratype.def) then
                     begin
                       { insert type conv but hold the ranges of the array }
                       oldtype:=left.resulttype;
-                      left:=gentypeconvnode(left,defcoll^.paratype.def);
+                      left:=gentypeconvnode(left,defcoll.paratype.def);
                       firstpass(left);
                       left.resulttype:=oldtype;
                     end
                    else
                     begin
-                      left:=gentypeconvnode(left,defcoll^.paratype.def);
+                      left:=gentypeconvnode(left,defcoll.paratype.def);
                       firstpass(left);
                     end;
                    if codegenerror then
@@ -350,10 +350,10 @@ interface
               { check var strings }
               if (cs_strict_var_strings in aktlocalswitches) and
                  is_shortstring(left.resulttype) and
-                 is_shortstring(defcoll^.paratype.def) and
-                 (defcoll^.paratyp in [vs_out,vs_var]) and
-                 not(is_open_string(defcoll^.paratype.def)) and
-                 not(is_equal(left.resulttype,defcoll^.paratype.def)) then
+                 is_shortstring(defcoll.paratype.def) and
+                 (defcoll.paratyp in [vs_out,vs_var]) and
+                 not(is_open_string(defcoll.paratype.def)) and
+                 not(is_equal(left.resulttype,defcoll.paratype.def)) then
                  begin
                     aktfilepos:=left.fileinfo;
                     CGMessage(type_e_strict_var_string_violation);
@@ -363,9 +363,9 @@ interface
               { into a register }
               { is this usefull here ? }
               { this was missing in formal parameter list   }
-              if (defcoll^.paratype.def=pdef(cformaldef)) then
+              if (defcoll.paratype.def=pdef(cformaldef)) then
                 begin
-                  if defcoll^.paratyp in [vs_var,vs_out] then
+                  if defcoll.paratyp in [vs_var,vs_out] then
                     begin
                       if not valid_for_formal_var(left) then
                         begin
@@ -373,7 +373,7 @@ interface
                            CGMessage(parser_e_illegal_parameter_list);
                         end;
                     end;
-                  if defcoll^.paratyp=vs_const then
+                  if defcoll.paratyp=vs_const then
                     begin
                       if not valid_for_formal_const(left) then
                         begin
@@ -383,24 +383,24 @@ interface
                     end;
                 end;
 
-              if defcoll^.paratyp in [vs_var,vs_const] then
+              if defcoll.paratyp in [vs_var,vs_const] then
                 begin
                    { Causes problems with const ansistrings if also }
                    { done for vs_const (JM)                         }
-                   if defcoll^.paratyp = vs_var then
+                   if defcoll.paratyp = vs_var then
                      set_unique(left);
                    make_not_regable(left);
                 end;
 
               { ansistrings out paramaters doesn't need to be  }
               { unique, they are finalized                     }
-              if defcoll^.paratyp=vs_out then
+              if defcoll.paratyp=vs_out then
                 make_not_regable(left);
 
               if do_count then
-                set_varstate(left,not(defcoll^.paratyp in [vs_var,vs_out]));
+                set_varstate(left,not(defcoll.paratyp in [vs_var,vs_out]));
               { must only be done after typeconv PM }
-              resulttype:=defcoll^.paratype.def;
+              resulttype:=defcoll.paratype.def;
            end;
          if left.registers32>registers32 then
            registers32:=left.registers32;
@@ -532,8 +532,8 @@ interface
          pprocdefcoll = ^tprocdefcoll;
          tprocdefcoll = record
             data      : pprocdef;
-            nextpara  : pparaitem;
-            firstpara : pparaitem;
+            nextpara  : tparaitem;
+            firstpara : tparaitem;
             next      : pprocdefcoll;
          end;
       var
@@ -546,7 +546,7 @@ interface
          exactmatch,inlined : boolean;
          paralength,lastpara : longint;
          lastparatype : pdef;
-         pdc : pparaitem;
+         pdc : tparaitem;
 {$ifdef TEST_PROCSYMS}
          nextprocsym : pprocsym;
          symt : psymtable;
@@ -687,12 +687,12 @@ interface
               set_varstate(right,true);
 
               { check the parameters }
-              pdc:=pparaitem(pprocvardef(right.resulttype)^.para^.first);
+              pdc:=tparaitem(pprocvardef(right.resulttype)^.Para.first);
               pt:=tcallparanode(left);
               while assigned(pdc) and assigned(pt) do
                 begin
                    pt:=tcallparanode(pt.right);
-                   pdc:=pparaitem(pdc^.next);
+                   pdc:=tparaitem(pdc.next);
                 end;
               if assigned(pt) or assigned(pdc) then
                 begin
@@ -703,7 +703,7 @@ interface
               { insert type conversions }
               if assigned(left) then
                 begin
-                   tcallparanode(left).firstcallparan(pparaitem(pprocvardef(right.resulttype)^.para^.first),true);
+                   tcallparanode(left).firstcallparan(tparaitem(pprocvardef(right.resulttype)^.Para.first),true);
                    if codegenerror then
                      goto errorexit;
                 end;
@@ -773,11 +773,11 @@ interface
                              new(hp);
                              hp^.data:=pd;
                              hp^.next:=procs;
-                             hp^.firstpara:=pparaitem(pd^.para^.first);
+                             hp^.firstpara:=tparaitem(pd^.Para.first);
                              { if not all parameters are given, then skip the
                                default parameters }
                              for i:=1 to pd^.maxparacount-paralength do
-                              hp^.firstpara:=pparaitem(hp^.firstpara^.next);
+                              hp^.firstpara:=tparaitem(hp^.firstPara.next);
                              hp^.nextpara:=hp^.firstpara;
                              procs:=hp;
                           end;
@@ -825,7 +825,7 @@ interface
                            1. pt.exact_match_found if one parameter has an exact match
                            2. exactmatch if an equal or exact match is found
 
-                           3. para^.argconvtyp to exact,equal or convertable
+                           3. Para.argconvtyp to exact,equal or convertable
                                 (when convertable then also convertlevel is set)
                            4. pt.convlevel1found if there is a convertlevel=1
                            5. pt.convlevel2found if there is a convertlevel=2
@@ -834,23 +834,23 @@ interface
                         hp:=procs;
                         while assigned(hp) do
                           begin
-                             if is_equal(pt,hp^.nextpara^.paratype.def) then
+                             if is_equal(pt,hp^.nextPara.paratype.def) then
                                begin
-                                  if hp^.nextpara^.paratype.def=pt.resulttype then
+                                  if hp^.nextPara.paratype.def=pt.resulttype then
                                     begin
                                        include(pt.callparaflags,cpf_exact_match_found);
-                                       hp^.nextpara^.argconvtyp:=act_exact;
+                                       hp^.nextPara.argconvtyp:=act_exact;
                                     end
                                   else
-                                    hp^.nextpara^.argconvtyp:=act_equal;
+                                    hp^.nextPara.argconvtyp:=act_equal;
                                   exactmatch:=true;
                                end
                              else
                                begin
-                                 hp^.nextpara^.argconvtyp:=act_convertable;
-                                 hp^.nextpara^.convertlevel:=isconvertable(pt.resulttype,hp^.nextpara^.paratype.def,
+                                 hp^.nextPara.argconvtyp:=act_convertable;
+                                 hp^.nextPara.convertlevel:=isconvertable(pt.resulttype,hp^.nextPara.paratype.def,
                                      hcvt,pt.left,pt.left.nodetype,false);
-                                 case hp^.nextpara^.convertlevel of
+                                 case hp^.nextPara.convertlevel of
                                   1 : include(pt.callparaflags,cpf_convlevel1found);
                                   2 : include(pt.callparaflags,cpf_convlevel2found);
                                  end;
@@ -868,7 +868,7 @@ interface
                               begin
                                  hp2:=hp^.next;
                                  { keep if not convertable }
-                                 if (hp^.nextpara^.argconvtyp<>act_convertable) then
+                                 if (hp^.nextPara.argconvtyp<>act_convertable) then
                                   begin
                                     hp^.next:=procs;
                                     procs:=hp;
@@ -888,7 +888,7 @@ interface
                               begin
                                  hp2:=hp^.next;
                                  { keep if not convertable }
-                                 if (hp^.nextpara^.convertlevel<>0) then
+                                 if (hp^.nextPara.convertlevel<>0) then
                                   begin
                                     hp^.next:=procs;
                                     procs:=hp;
@@ -896,7 +896,7 @@ interface
                                  else
                                   begin
                                     { save the type for nice error message }
-                                    lastparatype:=hp^.nextpara^.paratype.def;
+                                    lastparatype:=hp^.nextPara.paratype.def;
                                     dispose(hp);
                                   end;
                                  hp:=hp2;
@@ -906,7 +906,7 @@ interface
                         hp:=procs;
                         while assigned(hp) do
                           begin
-                             hp^.nextpara:=pparaitem(hp^.nextpara^.next);
+                             hp^.nextpara:=tparaitem(hp^.nextPara.next);
                              hp:=hp^.next;
                           end;
                         { load next parameter or quit loop if no procs left }
@@ -961,12 +961,12 @@ interface
                              hp:=procs;
                              while assigned(hp) do
                                begin
-                                  if not is_equal(pt,hp^.nextpara^.paratype.def) then
+                                  if not is_equal(pt,hp^.nextPara.paratype.def) then
                                     begin
-                                       def_to:=hp^.nextpara^.paratype.def;
+                                       def_to:=hp^.nextPara.paratype.def;
                                        if ((def_from^.deftype=orddef) and (def_to^.deftype=orddef)) and
                                          (is_in_limit(def_from,def_to) or
-                                         ((hp^.nextpara^.paratyp in [vs_var,vs_out]) and
+                                         ((hp^.nextPara.paratyp in [vs_var,vs_out]) and
                                          (def_from^.size=def_to^.size))) then
                                          begin
                                             exactmatch:=true;
@@ -980,7 +980,7 @@ interface
                              if exactmatch then
                                begin
                                   { the first .... }
-                                  while (assigned(procs)) and not(is_in_limit(def_from,procs^.nextpara^.paratype.def)) do
+                                  while (assigned(procs)) and not(is_in_limit(def_from,procs^.nextPara.paratype.def)) do
                                     begin
                                        hp:=procs^.next;
                                        dispose(procs);
@@ -990,7 +990,7 @@ interface
                                   hp:=procs;
                                   while (assigned(hp)) and assigned(hp^.next) do
                                     begin
-                                       if not(is_in_limit(def_from,hp^.next^.nextpara^.paratype.def)) then
+                                       if not(is_in_limit(def_from,hp^.next^.nextPara.paratype.def)) then
                                          begin
                                             hp2:=hp^.next^.next;
                                             dispose(hp^.next);
@@ -998,7 +998,7 @@ interface
                                          end
                                        else
                                          begin
-                                           def_to:=hp^.next^.nextpara^.paratype.def;
+                                           def_to:=hp^.next^.nextPara.paratype.def;
                                            if (conv_to^.size>def_to^.size) or
                                               ((porddef(conv_to)^.low<porddef(def_to)^.low) and
                                               (porddef(conv_to)^.high>porddef(def_to)^.high)) then
@@ -1017,7 +1017,7 @@ interface
                              hp:=procs;
                              while assigned(hp) do
                                begin
-                                  hp^.nextpara:=pparaitem(hp^.nextpara^.next);
+                                  hp^.nextpara:=tparaitem(hp^.nextPara.next);
                                   hp:=hp^.next;
                                end;
                              pt:=tcallparanode(pt.right);
@@ -1047,7 +1047,7 @@ interface
                                    begin
                                       hp2:=hp^.next;
                                       { keep the exact matches, dispose the others }
-                                      if (hp^.nextpara^.argconvtyp=act_exact) then
+                                      if (hp^.nextPara.argconvtyp=act_exact) then
                                        begin
                                          hp^.next:=procs;
                                          procs:=hp;
@@ -1061,7 +1061,7 @@ interface
                              hp:=procs;
                              while assigned(hp) do
                                begin
-                                  hp^.nextpara:=pparaitem(hp^.nextpara^.next);
+                                  hp^.nextpara:=tparaitem(hp^.nextPara.next);
                                   hp:=hp^.next;
                                end;
                              pt:=tcallparanode(pt.right);
@@ -1092,7 +1092,7 @@ interface
                                hp:=procs;
                                while assigned(hp) do
                                 begin
-                                  def_to:=hp^.nextpara^.paratype.def;
+                                  def_to:=hp^.nextPara.paratype.def;
                                   { to be sure, it couldn't be something else,
                                     also the defs here are all in the range
                                     so now find the closest range }
@@ -1115,7 +1115,7 @@ interface
                                 begin
                                   hp2:=hp^.next;
                                   { keep matching bestord, dispose the others }
-                                  if (porddef(hp^.nextpara^.paratype.def)=bestord) then
+                                  if (porddef(hp^.nextPara.paratype.def)=bestord) then
                                    begin
                                      hp^.next:=procs;
                                      procs:=hp;
@@ -1130,7 +1130,7 @@ interface
                             hp:=procs;
                             while assigned(hp) do
                              begin
-                               hp^.nextpara:=pparaitem(hp^.nextpara^.next);
+                               hp^.nextpara:=tparaitem(hp^.nextPara.next);
                                hp:=hp^.next;
                              end;
                             pt:=tcallparanode(pt.right);
@@ -1164,8 +1164,8 @@ interface
                                    begin
                                       hp2:=hp^.next;
                                       { keep all not act_convertable and all convertlevels=1 }
-                                      if (hp^.nextpara^.argconvtyp<>act_convertable) or
-                                         (hp^.nextpara^.convertlevel=1) then
+                                      if (hp^.nextPara.argconvtyp<>act_convertable) or
+                                         (hp^.nextPara.convertlevel=1) then
                                        begin
                                          hp^.next:=procs;
                                          procs:=hp;
@@ -1179,7 +1179,7 @@ interface
                              hp:=procs;
                              while assigned(hp) do
                                begin
-                                  hp^.nextpara:=pparaitem(hp^.nextpara^.next);
+                                  hp^.nextpara:=tparaitem(hp^.nextPara.next);
                                   hp:=hp^.next;
                                end;
                              pt:=tcallparanode(pt.right);
@@ -1293,25 +1293,25 @@ interface
                  (paralength<procdefinition^.maxparacount) then
                begin
                  { add default parameters, just read back the skipped
-                   paras starting from firstpara^.previous, when not available
+                   paras starting from firstPara.previous, when not available
                    (all parameters are default) then start with the last
                    parameter and read backward (PFV) }
                  if not assigned(procs^.firstpara) then
-                  pdc:=pparaitem(procs^.data^.para^.last)
+                  pdc:=tparaitem(procs^.data^.Para.last)
                  else
-                  pdc:=pparaitem(procs^.firstpara^.previous);
+                  pdc:=tparaitem(procs^.firstPara.previous);
                  while assigned(pdc) do
                   begin
-                    if not assigned(pdc^.defaultvalue) then
+                    if not assigned(pdc.defaultvalue) then
                      internalerror(751349858);
-                    left:=gencallparanode(genconstsymtree(pconstsym(pdc^.defaultvalue)),left);
-                    pdc:=pparaitem(pdc^.previous);
+                    left:=gencallparanode(genconstsymtree(pconstsym(pdc.defaultvalue)),left);
+                    pdc:=tparaitem(pdc.previous);
                   end;
                end;
 
               { work trough all parameters to insert the type conversions }
               if assigned(left) then
-                tcallparanode(left).firstcallparan(pparaitem(procdefinition^.para^.first),true);
+                tcallparanode(left).firstcallparan(tparaitem(procdefinition^.Para.first),true);
 {$ifndef newcg}
 {$ifdef i386}
               incrementregisterpushed(pprocdef(procdefinition)^.usedregisters);
@@ -1535,7 +1535,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2000-12-17 14:35:12  peter
+  Revision 1.20  2000-12-25 00:07:26  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.19  2000/12/17 14:35:12  peter
     * fixed crash with procvar load in tp mode
 
   Revision 1.18  2000/11/29 00:30:32  florian

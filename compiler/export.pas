@@ -27,7 +27,7 @@ unit export;
 interface
 
 uses
-  cutils,cobjects,
+  cutils,cclasses,
   symtype;
 
 const
@@ -37,33 +37,31 @@ const
    eo_name     = $4;
 
 type
-   pexported_item = ^texported_item;
-   texported_item = object(tlinkedlist_item)
+   texported_item = class(tlinkedlistitem)
       sym : psym;
       index : longint;
       name : pstring;
       options : word;
       is_var : boolean;
-      constructor init;
-      destructor done;virtual;
+      constructor create;
+      destructor destroy;override;
    end;
 
-   pexportlib=^texportlib;
-   texportlib=object
+   texportlib=class
    private
       notsupmsg : boolean;
       procedure NotSupported;
    public
-      constructor Init;
-      destructor Done;
+      constructor Create;
+      destructor Destroy;override;
       procedure preparelib(const s : string);virtual;
-      procedure exportprocedure(hp : pexported_item);virtual;
-      procedure exportvar(hp : pexported_item);virtual;
+      procedure exportprocedure(hp : texported_item);virtual;
+      procedure exportvar(hp : texported_item);virtual;
       procedure generatelib;virtual;
    end;
 
 var
-   exportlib : pexportlib;
+   exportlib : texportlib;
 
 procedure InitExport;
 procedure DoneExport;
@@ -113,9 +111,9 @@ uses
                            TImported_procedure
 ****************************************************************************}
 
-constructor texported_item.init;
+constructor texported_item.Create;
 begin
-  inherited init;
+  inherited Create;
   sym:=nil;
   index:=-1;
   name:=nil;
@@ -124,10 +122,10 @@ begin
 end;
 
 
-destructor texported_item.done;
+destructor texported_item.destroy;
 begin
   stringdispose(name);
-  inherited done;
+  inherited destroy;
 end;
 
 
@@ -135,13 +133,13 @@ end;
                               TImportLib
 ****************************************************************************}
 
-constructor texportlib.Init;
+constructor texportlib.Create;
 begin
   notsupmsg:=false;
 end;
 
 
-destructor texportlib.Done;
+destructor texportlib.Destroy;
 begin
 end;
 
@@ -163,13 +161,13 @@ begin
 end;
 
 
-procedure texportlib.exportprocedure(hp : pexported_item);
+procedure texportlib.exportprocedure(hp : texported_item);
 begin
   NotSupported;
 end;
 
 
-procedure texportlib.exportvar(hp : pexported_item);
+procedure texportlib.exportvar(hp : texported_item);
 begin
   NotSupported;
 end;
@@ -184,7 +182,7 @@ end;
 procedure DoneExport;
 begin
   if assigned(exportlib) then
-    dispose(exportlib,done);
+    exportlib.free;
 end;
 
 
@@ -193,32 +191,32 @@ begin
   case target_info.target of
 {$ifdef i386}
     target_i386_Linux :
-      exportlib:=new(pexportliblinux,Init);
+      exportlib:=Texportliblinux.Create;
     target_i386_freebsd:
-      exportlib:=new(pexportlibfreebsd,Init);
+      exportlib:=Texportlibfreebsd.Create;
     target_i386_Win32 :
-      exportlib:=new(pexportlibwin32,Init);
+      exportlib:=Texportlibwin32.Create;
     target_i386_Netware :
-      exportlib:=new(pexportlibnetware,Init);
+      exportlib:=Texportlibnetware.Create;
 {
     target_i386_OS2 :
-      exportlib:=new(pexportlibos2,Init);
+      exportlib:=Texportlibos2.Create;
 }
 {$endif i386}
 {$ifdef m68k}
     target_m68k_Linux :
-      exportlib:=new(pexportlib,Init);
+      exportlib:=Texportliblinux.Create;
 {$endif m68k}
 {$ifdef alpha}
     target_alpha_Linux :
-      exportlib:=new(pexportlib,Init);
+      exportlib:=Texportliblinux.Create;
 {$endif alpha}
 {$ifdef powerpc}
     target_alpha_Linux :
-      exportlib:=new(pexportlib,Init);
+      exportlib:=Texportliblinux.Create;
 {$endif powerpc}
     else
-      exportlib:=new(pexportlib,Init);
+      exportlib:=Texportlib.Create;
   end;
 end;
 
@@ -226,7 +224,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2000-11-29 00:30:30  florian
+  Revision 1.9  2000-12-25 00:07:25  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.8  2000/11/29 00:30:30  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

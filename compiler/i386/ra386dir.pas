@@ -63,7 +63,7 @@ interface
          c : char;
          ende : boolean;
          sym : psym;
-         code : paasmoutput;
+         code : TAAsmoutput;
          i,l : longint;
 
        procedure writeasmline;
@@ -75,7 +75,7 @@ interface
             dec(i);
            s[0]:=chr(i);
            if s<>'' then
-            code^.concat(new(pai_direct,init(strpnew(s))));
+            code.concat(Tai_direct.Create(strpnew(s)));
             { consider it set function set if the offset was loaded }
            if assigned(procinfo^.returntype.def) and
               (pos(retstr,upper(s))>0) then
@@ -95,7 +95,7 @@ interface
        else
          retstr:='';
          c:=current_scanner^.asmgetchar;
-         code:=new(paasmoutput,init);
+         code:=TAAsmoutput.Create;
          while not(ende) do
            begin
               { wrong placement
@@ -288,7 +288,11 @@ interface
 end.
 {
   $Log$
-  Revision 1.3  2000-11-29 00:30:50  florian
+  Revision 1.4  2000-12-25 00:07:34  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.3  2000/11/29 00:30:50  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

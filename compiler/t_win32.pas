@@ -34,35 +34,32 @@ interface
      winstackpagesize = 4096;
 
   type
-    pimportlibwin32=^timportlibwin32;
-    timportlibwin32=object(timportlib)
-      procedure preparelib(const s:string);virtual;
-      procedure importprocedure(const func,module:string;index:longint;const name:string);virtual;
-      procedure importvariable(const varname,module:string;const name:string);virtual;
-      procedure generatelib;virtual;
-      procedure generatesmartlib;virtual;
+    timportlibwin32=class(timportlib)
+      procedure preparelib(const s:string);override;
+      procedure importprocedure(const func,module:string;index:longint;const name:string);override;
+      procedure importvariable(const varname,module:string;const name:string);override;
+      procedure generatelib;override;
+      procedure generatesmartlib;override;
     end;
 
-    pexportlibwin32=^texportlibwin32;
-    texportlibwin32=object(texportlib)
+    texportlibwin32=class(texportlib)
       st : string;
       last_index : longint;
-      procedure preparelib(const s:string);virtual;
-      procedure exportprocedure(hp : pexported_item);virtual;
-      procedure exportvar(hp : pexported_item);virtual;
-      procedure generatelib;virtual;
+      procedure preparelib(const s:string);override;
+      procedure exportprocedure(hp : texported_item);override;
+      procedure exportvar(hp : texported_item);override;
+      procedure generatelib;override;
     end;
 
-    plinkerwin32=^tlinkerwin32;
-    tlinkerwin32=object(tlinker)
+    tlinkerwin32=class(tlinker)
     private
        Function  WriteResponseFile(isdll:boolean) : Boolean;
        Function  PostProcessExecutable(const fn:string;isdll:boolean) : Boolean;
     public
-       Constructor Init;
-       Procedure SetDefaultInfo;virtual;
-       function  MakeExecutable:boolean;virtual;
-       function  MakeSharedLibrary:boolean;virtual;
+       Constructor Create;
+       Procedure SetDefaultInfo;override;
+       function  MakeExecutable:boolean;override;
+       function  MakeSharedLibrary:boolean;override;
     end;
 
 
@@ -77,7 +74,8 @@ implementation
 {$endif Delphi}
        impdef,
 {$endif PAVEL_LINKLIB}
-       cutils,aasm,fmodule,globtype,globals,cobjects,systems,verbose,
+       cutils,cclasses,
+       aasm,fmodule,globtype,globals,systems,verbose,
        script,gendef,
        cpubase,cpuasm
 {$ifdef GDB}
@@ -103,82 +101,82 @@ implementation
     procedure timportlibwin32.preparelib(const s : string);
       begin
          if not(assigned(importssection)) then
-           importssection:=new(paasmoutput,init);
+           importssection:=TAAsmoutput.create;
       end;
 
 
     procedure timportlibwin32.importprocedure(const func,module : string;index : longint;const name : string);
       var
-         hp1 : pimportlist;
-         hp2 : pimported_item;
+         hp1 : timportlist;
+         hp2 : timported_item;
          hs  : string;
       begin
          hs:=DllName(module);
          { search for the module }
-         hp1:=pimportlist(current_module^.imports^.first);
+         hp1:=timportlist(current_module.imports.first);
          while assigned(hp1) do
            begin
-              if hs=hp1^.dllname^ then
+              if hs=hp1.dllname^ then
                 break;
-              hp1:=pimportlist(hp1^.next);
+              hp1:=timportlist(hp1.next);
            end;
          { generate a new item ? }
          if not(assigned(hp1)) then
            begin
-              hp1:=new(pimportlist,init(hs));
-              current_module^.imports^.concat(hp1);
+              hp1:=timportlist.create(hs);
+              current_module.imports.concat(hp1);
            end;
          { search for reuse of old import item }
-         hp2:=pimported_item(hp1^.imported_items^.first);
+         hp2:=timported_item(hp1.imported_items.first);
          while assigned(hp2) do
           begin
-            if hp2^.func^=func then
+            if hp2.func^=func then
              break;
-            hp2:=pimported_item(hp2^.next);
+            hp2:=timported_item(hp2.next);
           end;
          if not assigned(hp2) then
           begin
-            hp2:=new(pimported_item,init(func,name,index));
-            hp1^.imported_items^.concat(hp2);
+            hp2:=timported_item.create(func,name,index);
+            hp1.imported_items.concat(hp2);
           end;
       end;
 
 
     procedure timportlibwin32.importvariable(const varname,module:string;const name:string);
       var
-         hp1 : pimportlist;
-         hp2 : pimported_item;
+         hp1 : timportlist;
+         hp2 : timported_item;
          hs  : string;
       begin
          hs:=DllName(module);
          { search for the module }
-         hp1:=pimportlist(current_module^.imports^.first);
+         hp1:=timportlist(current_module.imports.first);
          while assigned(hp1) do
            begin
-              if hs=hp1^.dllname^ then
+              if hs=hp1.dllname^ then
                 break;
-              hp1:=pimportlist(hp1^.next);
+              hp1:=timportlist(hp1.next);
            end;
          { generate a new item ? }
          if not(assigned(hp1)) then
            begin
-              hp1:=new(pimportlist,init(hs));
-              current_module^.imports^.concat(hp1);
+              hp1:=timportlist.create(hs);
+              current_module.imports.concat(hp1);
            end;
-         hp2:=new(pimported_item,init_var(varname,name));
-         hp1^.imported_items^.concat(hp2);
+         hp2:=timported_item.create_var(varname,name);
+         hp1.imported_items.concat(hp2);
       end;
 
 
     procedure timportlibwin32.generatesmartlib;
       var
-         hp1 : pimportlist;
-         hp2 : pimported_item;
+         hp1 : timportlist;
+         hp2 : timported_item;
          lhead,lname,lcode,
          lidata4,lidata5 : pasmlabel;
          r : preference;
       begin
-         hp1:=pimportlist(current_module^.imports^.first);
+         hp1:=timportlist(current_module.imports.first);
          while assigned(hp1) do
            begin
            { Get labels for the sections }
@@ -187,35 +185,35 @@ implementation
              getaddrlabel(lidata4);
              getaddrlabel(lidata5);
            { create header for this importmodule }
-             importssection^.concat(new(pai_cut,init_begin));
-             importssection^.concat(new(pai_section,init(sec_idata2)));
-             importssection^.concat(new(pai_label,init(lhead)));
+             importsSection.concat(Tai_cut.Create_begin);
+             importsSection.concat(Tai_section.Create(sec_idata2));
+             importsSection.concat(Tai_label.Create(lhead));
              { pointer to procedure names }
-             importssection^.concat(new(pai_const_symbol,init_rva(lidata4)));
+             importsSection.concat(Tai_const_symbol.Create_rva(lidata4));
              { two empty entries follow }
-             importssection^.concat(new(pai_const,init_32bit(0)));
-             importssection^.concat(new(pai_const,init_32bit(0)));
+             importsSection.concat(Tai_const.Create_32bit(0));
+             importsSection.concat(Tai_const.Create_32bit(0));
              { pointer to dll name }
-             importssection^.concat(new(pai_const_symbol,init_rva(lname)));
+             importsSection.concat(Tai_const_symbol.Create_rva(lname));
              { pointer to fixups }
-             importssection^.concat(new(pai_const_symbol,init_rva(lidata5)));
+             importsSection.concat(Tai_const_symbol.Create_rva(lidata5));
              { first write the name references }
-             importssection^.concat(new(pai_section,init(sec_idata4)));
-             importssection^.concat(new(pai_const,init_32bit(0)));
-             importssection^.concat(new(pai_label,init(lidata4)));
+             importsSection.concat(Tai_section.Create(sec_idata4));
+             importsSection.concat(Tai_const.Create_32bit(0));
+             importsSection.concat(Tai_label.Create(lidata4));
              { then the addresses and create also the indirect jump }
-             importssection^.concat(new(pai_section,init(sec_idata5)));
-             importssection^.concat(new(pai_const,init_32bit(0)));
-             importssection^.concat(new(pai_label,init(lidata5)));
+             importsSection.concat(Tai_section.Create(sec_idata5));
+             importsSection.concat(Tai_const.Create_32bit(0));
+             importsSection.concat(Tai_label.Create(lidata5));
 
              { create procedures }
-             hp2:=pimported_item(hp1^.imported_items^.first);
+             hp2:=timported_item(hp1.imported_items.first);
              while assigned(hp2) do
                begin
                  { insert cuts }
-                 importssection^.concat(new(pai_cut,init));
+                 importsSection.concat(Tai_cut.Create);
                  { create indirect jump }
-                 if not hp2^.is_var then
+                 if not hp2.is_var then
                   begin
                     getlabel(lcode);
                     new(r);
@@ -223,114 +221,114 @@ implementation
                     r^.symbol:=lcode;
                     { place jump in codesegment, insert a code section in the
                       importsection to reduce the amount of .s files (PFV) }
-                    importssection^.concat(new(pai_section,init(sec_code)));
+                    importsSection.concat(Tai_section.Create(sec_code));
 {$IfDef GDB}
                     if (cs_debuginfo in aktmoduleswitches) then
-                     importssection^.concat(new(pai_stab_function_name,init(nil)));
+                     importsSection.concat(Tai_stab_function_name.Create(nil));
 {$EndIf GDB}
-                    importssection^.concat(new(pai_symbol,initname_global(hp2^.func^,0)));
-                    importssection^.concat(new(paicpu,op_ref(A_JMP,S_NO,r)));
-                    importssection^.concat(new(pai_align,init_op(4,$90)));
+                    importsSection.concat(Tai_symbol.Createname_global(hp2.func^,0));
+                    importsSection.concat(Taicpu.Op_ref(A_JMP,S_NO,r));
+                    importsSection.concat(Tai_align.Create_op(4,$90));
                   end;
                  { create head link }
-                 importssection^.concat(new(pai_section,init(sec_idata7)));
-                 importssection^.concat(new(pai_const_symbol,init_rva(lhead)));
+                 importsSection.concat(Tai_section.Create(sec_idata7));
+                 importsSection.concat(Tai_const_symbol.Create_rva(lhead));
                  { fixup }
-                 getlabel(pasmlabel(hp2^.lab));
-                 importssection^.concat(new(pai_section,init(sec_idata4)));
-                 importssection^.concat(new(pai_const_symbol,init_rva(hp2^.lab)));
+                 getlabel(pasmlabel(hp2.lab));
+                 importsSection.concat(Tai_section.Create(sec_idata4));
+                 importsSection.concat(Tai_const_symbol.Create_rva(hp2.lab));
                  { add jump field to importsection }
-                 importssection^.concat(new(pai_section,init(sec_idata5)));
-                 if hp2^.is_var then
-                  importssection^.concat(new(pai_symbol,initname_global(hp2^.func^,0)))
+                 importsSection.concat(Tai_section.Create(sec_idata5));
+                 if hp2.is_var then
+                  importsSection.concat(Tai_symbol.Createname_global(hp2.func^,0))
                  else
-                  importssection^.concat(new(pai_label,init(lcode)));
-                  if hp2^.name^<>'' then
-                    importssection^.concat(new(pai_const_symbol,init_rva(hp2^.lab)))
+                  importsSection.concat(Tai_label.Create(lcode));
+                  if hp2.name^<>'' then
+                    importsSection.concat(Tai_const_symbol.Create_rva(hp2.lab))
                   else
-                    importssection^.concat(new(pai_const,init_32bit($80000000 or hp2^.ordnr)));
+                    importsSection.concat(Tai_const.Create_32bit($80000000 or hp2.ordnr));
                  { finally the import information }
-                 importssection^.concat(new(pai_section,init(sec_idata6)));
-                 importssection^.concat(new(pai_label,init(hp2^.lab)));
-                 importssection^.concat(new(pai_const,init_16bit(hp2^.ordnr)));
-                 importssection^.concat(new(pai_string,init(hp2^.name^+#0)));
-                 importssection^.concat(new(pai_align,init_op(2,0)));
-                 hp2:=pimported_item(hp2^.next);
+                 importsSection.concat(Tai_section.Create(sec_idata6));
+                 importsSection.concat(Tai_label.Create(hp2.lab));
+                 importsSection.concat(Tai_const.Create_16bit(hp2.ordnr));
+                 importsSection.concat(Tai_string.Create(hp2.name^+#0));
+                 importsSection.concat(Tai_align.Create_op(2,0));
+                 hp2:=timported_item(hp2.next);
                end;
 
               { write final section }
-              importssection^.concat(new(pai_cut,init_end));
+              importsSection.concat(Tai_cut.Create_end);
               { end of name references }
-              importssection^.concat(new(pai_section,init(sec_idata4)));
-              importssection^.concat(new(pai_const,init_32bit(0)));
+              importsSection.concat(Tai_section.Create(sec_idata4));
+              importsSection.concat(Tai_const.Create_32bit(0));
               { end if addresses }
-              importssection^.concat(new(pai_section,init(sec_idata5)));
-              importssection^.concat(new(pai_const,init_32bit(0)));
+              importsSection.concat(Tai_section.Create(sec_idata5));
+              importsSection.concat(Tai_const.Create_32bit(0));
               { dllname }
-              importssection^.concat(new(pai_section,init(sec_idata7)));
-              importssection^.concat(new(pai_label,init(lname)));
-              importssection^.concat(new(pai_string,init(hp1^.dllname^+#0)));
+              importsSection.concat(Tai_section.Create(sec_idata7));
+              importsSection.concat(Tai_label.Create(lname));
+              importsSection.concat(Tai_string.Create(hp1.dllname^+#0));
 
-              hp1:=pimportlist(hp1^.next);
+              hp1:=timportlist(hp1.next);
            end;
        end;
 
 
     procedure timportlibwin32.generatelib;
       var
-         hp1 : pimportlist;
-         hp2 : pimported_item;
+         hp1 : timportlist;
+         hp2 : timported_item;
          l1,l2,l3,l4 : pasmlabel;
          r : preference;
       begin
-         hp1:=pimportlist(current_module^.imports^.first);
+         hp1:=timportlist(current_module.imports.first);
          while assigned(hp1) do
            begin
               { align codesegment for the jumps }
-              importssection^.concat(new(pai_section,init(sec_code)));
-              importssection^.concat(new(pai_align,init_op(4,$90)));
+              importsSection.concat(Tai_section.Create(sec_code));
+              importsSection.concat(Tai_align.Create_op(4,$90));
               { Get labels for the sections }
               getlabel(l1);
               getlabel(l2);
               getlabel(l3);
-              importssection^.concat(new(pai_section,init(sec_idata2)));
+              importsSection.concat(Tai_section.Create(sec_idata2));
               { pointer to procedure names }
-              importssection^.concat(new(pai_const_symbol,init_rva(l2)));
+              importsSection.concat(Tai_const_symbol.Create_rva(l2));
               { two empty entries follow }
-              importssection^.concat(new(pai_const,init_32bit(0)));
-              importssection^.concat(new(pai_const,init_32bit(0)));
+              importsSection.concat(Tai_const.Create_32bit(0));
+              importsSection.concat(Tai_const.Create_32bit(0));
               { pointer to dll name }
-              importssection^.concat(new(pai_const_symbol,init_rva(l1)));
+              importsSection.concat(Tai_const_symbol.Create_rva(l1));
               { pointer to fixups }
-              importssection^.concat(new(pai_const_symbol,init_rva(l3)));
+              importsSection.concat(Tai_const_symbol.Create_rva(l3));
 
               { only create one section for each else it will
                 create a lot of idata* }
 
               { first write the name references }
-              importssection^.concat(new(pai_section,init(sec_idata4)));
-              importssection^.concat(new(pai_label,init(l2)));
+              importsSection.concat(Tai_section.Create(sec_idata4));
+              importsSection.concat(Tai_label.Create(l2));
 
-              hp2:=pimported_item(hp1^.imported_items^.first);
+              hp2:=timported_item(hp1.imported_items.first);
               while assigned(hp2) do
                 begin
-                   getlabel(pasmlabel(hp2^.lab));
-                   if hp2^.name^<>'' then
-                     importssection^.concat(new(pai_const_symbol,init_rva(hp2^.lab)))
+                   getlabel(pasmlabel(hp2.lab));
+                   if hp2.name^<>'' then
+                     importsSection.concat(Tai_const_symbol.Create_rva(hp2.lab))
                    else
-                     importssection^.concat(new(pai_const,init_32bit($80000000 or hp2^.ordnr)));
-                   hp2:=pimported_item(hp2^.next);
+                     importsSection.concat(Tai_const.Create_32bit($80000000 or hp2.ordnr));
+                   hp2:=timported_item(hp2.next);
                 end;
               { finalize the names ... }
-              importssection^.concat(new(pai_const,init_32bit(0)));
+              importsSection.concat(Tai_const.Create_32bit(0));
 
               { then the addresses and create also the indirect jump }
-              importssection^.concat(new(pai_section,init(sec_idata5)));
-              importssection^.concat(new(pai_label,init(l3)));
-              hp2:=pimported_item(hp1^.imported_items^.first);
+              importsSection.concat(Tai_section.Create(sec_idata5));
+              importsSection.concat(Tai_label.Create(l3));
+              hp2:=timported_item(hp1.imported_items.first);
               while assigned(hp2) do
                 begin
-                   if not hp2^.is_var then
+                   if not hp2.is_var then
                     begin
                       getlabel(l4);
                       { create indirect jump }
@@ -338,42 +336,42 @@ implementation
                       reset_reference(r^);
                       r^.symbol:=l4;
                       { place jump in codesegment }
-                      importssection^.concat(new(pai_section,init(sec_code)));
-                      importssection^.concat(new(pai_symbol,initname_global(hp2^.func^,0)));
-                      importssection^.concat(new(paicpu,op_ref(A_JMP,S_NO,r)));
-                      importssection^.concat(new(pai_align,init_op(4,$90)));
+                      importsSection.concat(Tai_section.Create(sec_code));
+                      importsSection.concat(Tai_symbol.Createname_global(hp2.func^,0));
+                      importsSection.concat(Taicpu.Op_ref(A_JMP,S_NO,r));
+                      importsSection.concat(Tai_align.Create_op(4,$90));
                       { add jump field to importsection }
-                      importssection^.concat(new(pai_section,init(sec_idata5)));
-                      importssection^.concat(new(pai_label,init(l4)));
+                      importsSection.concat(Tai_section.Create(sec_idata5));
+                      importsSection.concat(Tai_label.Create(l4));
                     end
                    else
                     begin
-                      importssection^.concat(new(pai_symbol,initname_global(hp2^.func^,0)));
+                      importsSection.concat(Tai_symbol.Createname_global(hp2.func^,0));
                     end;
-                   importssection^.concat(new(pai_const_symbol,init_rva(hp2^.lab)));
-                   hp2:=pimported_item(hp2^.next);
+                   importsSection.concat(Tai_const_symbol.Create_rva(hp2.lab));
+                   hp2:=timported_item(hp2.next);
                 end;
               { finalize the addresses }
-              importssection^.concat(new(pai_const,init_32bit(0)));
+              importsSection.concat(Tai_const.Create_32bit(0));
 
               { finally the import information }
-              importssection^.concat(new(pai_section,init(sec_idata6)));
-              hp2:=pimported_item(hp1^.imported_items^.first);
+              importsSection.concat(Tai_section.Create(sec_idata6));
+              hp2:=timported_item(hp1.imported_items.first);
               while assigned(hp2) do
                 begin
-                   importssection^.concat(new(pai_label,init(hp2^.lab)));
+                   importsSection.concat(Tai_label.Create(hp2.lab));
                    { the ordinal number }
-                   importssection^.concat(new(pai_const,init_16bit(hp2^.ordnr)));
-                   importssection^.concat(new(pai_string,init(hp2^.name^+#0)));
-                   importssection^.concat(new(pai_align,init_op(2,0)));
-                   hp2:=pimported_item(hp2^.next);
+                   importsSection.concat(Tai_const.Create_16bit(hp2.ordnr));
+                   importsSection.concat(Tai_string.Create(hp2.name^+#0));
+                   importsSection.concat(Tai_align.Create_op(2,0));
+                   hp2:=timported_item(hp2.next);
                 end;
               { create import dll name }
-              importssection^.concat(new(pai_section,init(sec_idata7)));
-              importssection^.concat(new(pai_label,init(l1)));
-              importssection^.concat(new(pai_string,init(hp1^.dllname^+#0)));
+              importsSection.concat(Tai_section.Create(sec_idata7));
+              importsSection.concat(Tai_label.Create(l1));
+              importsSection.concat(Tai_string.Create(hp1.dllname^+#0));
 
-              hp1:=pimportlist(hp1^.next);
+              hp1:=timportlist(hp1.next);
            end;
       end;
 
@@ -385,80 +383,80 @@ implementation
     procedure texportlibwin32.preparelib(const s:string);
       begin
          if not(assigned(exportssection)) then
-           exportssection:=new(paasmoutput,init);
+           exportssection:=TAAsmoutput.create;
          last_index:=0;
       end;
 
 
 
-    procedure texportlibwin32.exportvar(hp : pexported_item);
+    procedure texportlibwin32.exportvar(hp : texported_item);
       begin
          { same code used !! PM }
          exportprocedure(hp);
       end;
 
 
-    procedure texportlibwin32.exportprocedure(hp : pexported_item);
+    procedure texportlibwin32.exportprocedure(hp : texported_item);
       { must be ordered at least for win32 !! }
       var
-        hp2 : pexported_item;
+        hp2 : texported_item;
       begin
         { first test the index value }
-        if (hp^.options and eo_index)<>0 then
+        if (hp.options and eo_index)<>0 then
           begin
-             if (hp^.index<=0) or (hp^.index>$ffff) then
+             if (hp.index<=0) or (hp.index>$ffff) then
                begin
-                 message1(parser_e_export_invalid_index,tostr(hp^.index));
+                 message1(parser_e_export_invalid_index,tostr(hp.index));
                  exit;
                end;
-             if (hp^.index<=last_index) then
+             if (hp.index<=last_index) then
                begin
-                 message1(parser_e_export_ordinal_double,tostr(hp^.index));
+                 message1(parser_e_export_ordinal_double,tostr(hp.index));
                  { disregard index value }
                  inc(last_index);
-                 hp^.index:=last_index;
+                 hp.index:=last_index;
                  exit;
                end
              else
                begin
-                 last_index:=hp^.index;
+                 last_index:=hp.index;
                end;
           end
         else
           begin
              inc(last_index);
-             hp^.index:=last_index;
+             hp.index:=last_index;
           end;
         { use pascal name is none specified }
-        if (hp^.options and eo_name)=0 then
+        if (hp.options and eo_name)=0 then
           begin
-             hp^.name:=stringdup(hp^.sym^.name);
-             hp^.options:=hp^.options or eo_name;
+             hp.name:=stringdup(hp.sym^.name);
+             hp.options:=hp.options or eo_name;
           end;
         { now place in correct order }
-        hp2:=pexported_item(current_module^._exports^.first);
+        hp2:=texported_item(current_module._exports.first);
         while assigned(hp2) and
-           (hp^.name^>hp2^.name^) do
-          hp2:=pexported_item(hp2^.next);
+           (hp.name^>hp2.name^) do
+          hp2:=texported_item(hp2.next);
         { insert hp there !! }
-        if assigned(hp2) and (hp2^.name^=hp^.name^) then
+        if assigned(hp2) and (hp2.name^=hp.name^) then
           begin
              { this is not allowed !! }
-             message1(parser_e_export_name_double,hp^.name^);
+             message1(parser_e_export_name_double,hp.name^);
              exit;
           end;
-        if hp2=pexported_item(current_module^._exports^.first) then
-          current_module^._exports^.insert(hp)
+        if hp2=texported_item(current_module._exports.first) then
+          current_module._exports.concat(hp)
         else if assigned(hp2) then
           begin
-             hp^.next:=hp2;
-             hp^.previous:=hp2^.previous;
-             if assigned(hp2^.previous) then
-               hp2^.previous^.next:=hp;
-             hp2^.previous:=hp;
+             hp.next:=hp2;
+             hp.previous:=hp2.previous;
+             if assigned(hp2.previous) then
+               hp2.previous.next:=hp;
+             hp2.previous:=hp;
           end
         else
-          current_module^._exports^.concat(hp);
+          current_module._exports.concat(hp);
       end;
 
 
@@ -469,13 +467,13 @@ implementation
          entries,named_entries : longint;
          name_label,dll_name_label,export_address_table : pasmlabel;
          export_name_table_pointers,export_ordinal_table : pasmlabel;
-         hp,hp2 : pexported_item;
-         tempexport : plinkedlist;
+         hp,hp2 : texported_item;
+         temtexport : TLinkedList;
          address_table,name_table_pointers,
-         name_table,ordinal_table : paasmoutput;
+         name_table,ordinal_table : TAAsmoutput;
       begin
 
-         hp:=pexported_item(current_module^._exports^.first);
+         hp:=texported_item(current_module._exports.first);
          if not assigned(hp) then
            exit;
 
@@ -492,13 +490,13 @@ implementation
          while assigned(hp) do
            begin
               inc(entries);
-              if (hp^.index>ordinal_max) then
-                ordinal_max:=hp^.index;
-              if (hp^.index>0) and (hp^.index<ordinal_min) then
-                ordinal_min:=hp^.index;
-              if assigned(hp^.name) then
+              if (hp.index>ordinal_max) then
+                ordinal_max:=hp.index;
+              if (hp.index>0) and (hp.index<ordinal_min) then
+                ordinal_min:=hp.index;
+              if assigned(hp.name) then
                 inc(named_entries);
-              hp:=pexported_item(hp^.next);
+              hp:=texported_item(hp.next);
            end;
 
          { no support for higher ordinal base yet !! }
@@ -507,118 +505,118 @@ implementation
          { we must also count the holes !! }
          entries:=ordinal_max-ordinal_base+1;
 
-         exportssection^.concat(new(pai_section,init(sec_edata)));
+         exportsSection.concat(Tai_section.Create(sec_edata));
          { export flags }
-         exportssection^.concat(new(pai_const,init_32bit(0)));
+         exportsSection.concat(Tai_const.Create_32bit(0));
          { date/time stamp }
-         exportssection^.concat(new(pai_const,init_32bit(0)));
+         exportsSection.concat(Tai_const.Create_32bit(0));
          { major version }
-         exportssection^.concat(new(pai_const,init_16bit(0)));
+         exportsSection.concat(Tai_const.Create_16bit(0));
          { minor version }
-         exportssection^.concat(new(pai_const,init_16bit(0)));
+         exportsSection.concat(Tai_const.Create_16bit(0));
          { pointer to dll name }
-         exportssection^.concat(new(pai_const_symbol,init_rva(dll_name_label)));
+         exportsSection.concat(Tai_const_symbol.Create_rva(dll_name_label));
          { ordinal base normally set to 1 }
-         exportssection^.concat(new(pai_const,init_32bit(ordinal_base)));
+         exportsSection.concat(Tai_const.Create_32bit(ordinal_base));
          { number of entries }
-         exportssection^.concat(new(pai_const,init_32bit(entries)));
+         exportsSection.concat(Tai_const.Create_32bit(entries));
          { number of named entries }
-         exportssection^.concat(new(pai_const,init_32bit(named_entries)));
+         exportsSection.concat(Tai_const.Create_32bit(named_entries));
          { address of export address table }
-         exportssection^.concat(new(pai_const_symbol,init_rva(export_address_table)));
+         exportsSection.concat(Tai_const_symbol.Create_rva(export_address_table));
          { address of name pointer pointers }
-         exportssection^.concat(new(pai_const_symbol,init_rva(export_name_table_pointers)));
+         exportsSection.concat(Tai_const_symbol.Create_rva(export_name_table_pointers));
          { address of ordinal number pointers }
-         exportssection^.concat(new(pai_const_symbol,init_rva(export_ordinal_table)));
+         exportsSection.concat(Tai_const_symbol.Create_rva(export_ordinal_table));
          { the name }
-         exportssection^.concat(new(pai_label,init(dll_name_label)));
+         exportsSection.concat(Tai_label.Create(dll_name_label));
          if st='' then
-           exportssection^.concat(new(pai_string,init(current_module^.modulename^+target_os.sharedlibext+#0)))
+           exportsSection.concat(Tai_string.Create(current_module.modulename^+target_os.sharedlibext+#0))
          else
-           exportssection^.concat(new(pai_string,init(st+target_os.sharedlibext+#0)));
+           exportsSection.concat(Tai_string.Create(st+target_os.sharedlibext+#0));
 
          {  export address table }
-         address_table:=new(paasmoutput,init);
-         address_table^.concat(new(pai_align,init_op(4,0)));
-         address_table^.concat(new(pai_label,init(export_address_table)));
-         name_table_pointers:=new(paasmoutput,init);
-         name_table_pointers^.concat(new(pai_align,init_op(4,0)));
-         name_table_pointers^.concat(new(pai_label,init(export_name_table_pointers)));
-         ordinal_table:=new(paasmoutput,init);
-         ordinal_table^.concat(new(pai_align,init_op(4,0)));
-         ordinal_table^.concat(new(pai_label,init(export_ordinal_table)));
-         name_table:=new(paasmoutput,init);
-         name_table^.concat(new(pai_align,init_op(4,0)));
+         address_table:=TAAsmoutput.create;
+         address_table.concat(Tai_align.Create_op(4,0));
+         address_table.concat(Tai_label.Create(export_address_table));
+         name_table_pointers:=TAAsmoutput.create;
+         name_table_pointers.concat(Tai_align.Create_op(4,0));
+         name_table_pointers.concat(Tai_label.Create(export_name_table_pointers));
+         ordinal_table:=TAAsmoutput.create;
+         ordinal_table.concat(Tai_align.Create_op(4,0));
+         ordinal_table.concat(Tai_label.Create(export_ordinal_table));
+         name_table:=TAAsmoutput.Create;
+         name_table.concat(Tai_align.Create_op(4,0));
          { write each address }
-         hp:=pexported_item(current_module^._exports^.first);
+         hp:=texported_item(current_module._exports.first);
          while assigned(hp) do
            begin
-              if (hp^.options and eo_name)<>0 then
+              if (hp.options and eo_name)<>0 then
                 begin
                    getlabel(name_label);
-                   name_table_pointers^.concat(new(pai_const_symbol,init_rva(name_label)));
-                   ordinal_table^.concat(new(pai_const,init_16bit(hp^.index-ordinal_base)));
-                   name_table^.concat(new(pai_align,init_op(2,0)));
-                   name_table^.concat(new(pai_label,init(name_label)));
-                   name_table^.concat(new(pai_string,init(hp^.name^+#0)));
+                   name_table_pointers.concat(Tai_const_symbol.Create_rva(name_label));
+                   ordinal_table.concat(Tai_const.Create_16bit(hp.index-ordinal_base));
+                   name_table.concat(Tai_align.Create_op(2,0));
+                   name_table.concat(Tai_label.Create(name_label));
+                   name_table.concat(Tai_string.Create(hp.name^+#0));
                 end;
-              hp:=pexported_item(hp^.next);
+              hp:=texported_item(hp.next);
            end;
          { order in increasing ordinal values }
-         { into tempexport list }
-         tempexport:=new(plinkedlist,init);
-         hp:=pexported_item(current_module^._exports^.first);
+         { into temtexport list }
+         temtexport:=TLinkedList.Create;
+         hp:=texported_item(current_module._exports.first);
          while assigned(hp) do
            begin
-              current_module^._exports^.remove(hp);
-              hp2:=pexported_item(tempexport^.first);
-              while assigned(hp2) and (hp^.index>hp2^.index) do
+              current_module._exports.remove(hp);
+              hp2:=texported_item(temtexport.first);
+              while assigned(hp2) and (hp.index>hp2.index) do
                 begin
-                   hp2:=pexported_item(hp2^.next);
+                   hp2:=texported_item(hp2.next);
                 end;
-              if hp2=pexported_item(tempexport^.first) then
-                 tempexport^.insert(hp)
+              if hp2=texported_item(temtexport.first) then
+                 temtexport.insert(hp)
               else
                 begin
                    if assigned(hp2) then
                      begin
-                        hp^.next:=hp2;
-                        hp^.previous:=hp2^.previous;
-                        hp2^.previous:=hp;
-                        if assigned(hp^.previous) then
-                          hp^.previous^.next:=hp;
+                        hp.next:=hp2;
+                        hp.previous:=hp2.previous;
+                        hp2.previous:=hp;
+                        if assigned(hp.previous) then
+                          hp.previous.next:=hp;
                       end
                     else
-                      tempexport^.concat(hp);
+                      temtexport.concat(hp);
                 end;
-              hp:=pexported_item(current_module^._exports^.first);;
+              hp:=texported_item(current_module._exports.first);;
            end;
 
          { write the export adress table }
          current_index:=ordinal_base;
-         hp:=pexported_item(tempexport^.first);
+         hp:=texported_item(temtexport.first);
          while assigned(hp) do
            begin
               { fill missing values }
-              while current_index<hp^.index do
+              while current_index<hp.index do
                 begin
-                   address_table^.concat(new(pai_const,init_32bit(0)));
+                   address_table.concat(Tai_const.Create_32bit(0));
                    inc(current_index);
                 end;
-              address_table^.concat(new(pai_const_symbol,initname_rva(hp^.sym^.mangledname)));
+              address_table.concat(Tai_const_symbol.Createname_rva(hp.sym^.mangledname));
               inc(current_index);
-              hp:=pexported_item(hp^.next);
+              hp:=texported_item(hp.next);
            end;
 
-         exportssection^.concatlist(address_table);
-         exportssection^.concatlist(name_table_pointers);
-         exportssection^.concatlist(ordinal_table);
-         exportssection^.concatlist(name_table);
-         dispose(address_table,done);
-         dispose(name_table_pointers,done);
-         dispose(ordinal_table,done);
-         dispose(name_table,done);
-         dispose(tempexport,done);
+         exportsSection.concatlist(address_table);
+         exportsSection.concatlist(name_table_pointers);
+         exportsSection.concatlist(ordinal_table);
+         exportsSection.concatlist(name_table);
+         address_table.Free;
+         name_table_pointers.free;
+         ordinal_table.free;
+         name_table.free;
+         temtexport.free;
       end;
 
 
@@ -627,9 +625,9 @@ implementation
 ****************************************************************************}
 
 
-Constructor TLinkerWin32.Init;
+Constructor TLinkerWin32.Create;
 begin
-  Inherited Init;
+  Inherited Create;
   { allow duplicated libs (PM) }
   SharedLibFiles.doubles:=true;
   StaticLibFiles.doubles:=true;
@@ -661,7 +659,7 @@ Function TLinkerWin32.WriteResponseFile(isdll:boolean) : Boolean;
 Var
   linkres  : TLinkRes;
   i        : longint;
-  HPath    : PStringQueueItem;
+  HPath    : TStringListItem;
   s,s2        : string;
   found,linklibc : boolean;
 begin
@@ -671,17 +669,17 @@ begin
   LinkRes.Init(outputexedir+Info.ResName);
 
   { Write path to search libraries }
-  HPath:=current_module^.locallibrarysearchpath.First;
+  HPath:=TStringListItem(current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
    begin
-     LinkRes.Add('SEARCH_DIR('+GetShortName(HPath^.Data^)+')');
-     HPath:=HPath^.Next;
+     LinkRes.Add('SEARCH_DIR('+GetShortName(HPath.Str)+')');
+     HPath:=TStringListItem(HPath.Next);
    end;
-  HPath:=LibrarySearchPath.First;
+  HPath:=TStringListItem(LibrarySearchPath.First);
   while assigned(HPath) do
    begin
-     LinkRes.Add('SEARCH_DIR('+GetShortName(HPath^.Data^)+')');
-     HPath:=HPath^.Next;
+     LinkRes.Add('SEARCH_DIR('+GetShortName(HPath.Str)+')');
+     HPath:=TStringListItem(HPath.Next);
    end;
 
   { add objectfiles, start with prt0 always }
@@ -692,7 +690,7 @@ begin
    LinkRes.AddFileName(GetShortName(FindObjectFile('wprt0','')));
   while not ObjectFiles.Empty do
    begin
-     s:=ObjectFiles.Get;
+     s:=ObjectFiles.GetFirst;
      if s<>'' then
       LinkRes.AddFileName(GetShortName(s));
    end;
@@ -704,7 +702,7 @@ begin
      LinkRes.Add('GROUP(');
      While not StaticLibFiles.Empty do
       begin
-        S:=StaticLibFiles.Get;
+        S:=StaticLibFiles.GetFirst;
         LinkRes.AddFileName(GetShortName(s));
       end;
      LinkRes.Add(')');
@@ -718,7 +716,7 @@ begin
      LinkRes.Add('INPUT(');
      While not SharedLibFiles.Empty do
       begin
-        S:=SharedLibFiles.Get;
+        S:=SharedLibFiles.GetFirst;
         if pos('.',s)=0 then
           { we never directly link a DLL
             its allways through an import library PM }
@@ -889,7 +887,7 @@ begin
   LinkRes.Init(outputexedir+Info.ResName);
 
   { Write path to search libraries }
-  HPath:=current_module^.locallibrarysearchpath.First;
+  HPath:=current_module.locallibrarysearchpath.First;
   while assigned(HPath) do
    begin
      LinkRes.Add('SEARCH_DIR('+GetShortName(HPath^.Data^)+')');
@@ -951,7 +949,7 @@ var
   ImageBaseStr : string[40];
 begin
   if not(cs_link_extern in aktglobalswitches) then
-   Message1(exec_i_linking,current_module^.exefilename^);
+   Message1(exec_i_linking,current_module.exefilename^);
 
 { Create some replacements }
   RelocStr:='';
@@ -979,7 +977,7 @@ begin
      SplitBinCmd(Info.ExeCmd[i],binstr,cmdstr);
      if binstr<>'' then
       begin
-        Replace(cmdstr,'$EXE',current_module^.exefilename^);
+        Replace(cmdstr,'$EXE',current_module.exefilename^);
         Replace(cmdstr,'$OPT',Info.ExtraOptions);
         Replace(cmdstr,'$RES',outputexedir+Info.ResName);
         Replace(cmdstr,'$APPTYPE',AppTypeStr);
@@ -1002,7 +1000,7 @@ begin
 
 { Post process }
   if success then
-   success:=PostProcessExecutable(current_module^.exefilename^,false);
+   success:=PostProcessExecutable(current_module.exefilename^,false);
 
 { Remove ReponseFile }
   if (success) and not(cs_link_extern in aktglobalswitches) then
@@ -1032,7 +1030,7 @@ var
 begin
   MakeSharedLibrary:=false;
   if not(cs_link_extern in aktglobalswitches) then
-   Message1(exec_i_linking,current_module^.sharedlibfilename^);
+   Message1(exec_i_linking,current_module.sharedlibfilename^);
 
 { Create some replacements }
   RelocStr:='';
@@ -1060,7 +1058,7 @@ begin
      SplitBinCmd(Info.DllCmd[i],binstr,cmdstr);
      if binstr<>'' then
       begin
-        Replace(cmdstr,'$EXE',current_module^.sharedlibfilename^);
+        Replace(cmdstr,'$EXE',current_module.sharedlibfilename^);
         Replace(cmdstr,'$OPT',Info.ExtraOptions);
         Replace(cmdstr,'$RES',outputexedir+Info.ResName);
         Replace(cmdstr,'$APPTYPE',AppTypeStr);
@@ -1083,7 +1081,7 @@ begin
 
 { Post process }
   if success then
-   success:=PostProcessExecutable(current_module^.sharedlibfilename^,true);
+   success:=PostProcessExecutable(current_module.sharedlibfilename^,true);
 
 { Remove ReponseFile }
   if (success) and not(cs_link_extern in aktglobalswitches) then
@@ -1305,7 +1303,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2000-11-12 22:20:37  peter
+  Revision 1.7  2000-12-25 00:07:30  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.6  2000/11/12 22:20:37  peter
     * create generic toutputsection for binary writers
 
   Revision 1.5  2000/09/24 15:06:31  peter

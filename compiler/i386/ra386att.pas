@@ -99,7 +99,7 @@ const
   firsttoken : boolean = TRUE;
 var
   _asmsorted     : boolean;
-  curlist        : paasmoutput;
+  curlist        : TAAsmoutput;
   c              : char;
   actasmtoken    : tasmtoken;
   prevasmtoken   : tasmtoken;
@@ -1883,7 +1883,7 @@ Begin
      SetupTables;
      _asmsorted:=TRUE;
    end;
-  curlist:=new(paasmoutput,init);
+  curlist:=TAAsmoutput.Create;
   lastsec:=sec_code;
   { setup label linked list }
   new(LocalLabelList,Init);
@@ -1917,14 +1917,14 @@ Begin
 
       AS_DATA:
         Begin
-          curlist^.Concat(new(pai_section,init(sec_data)));
+          curList.Concat(Tai_section.Create(sec_data));
           lastsec:=sec_data;
           Consume(AS_DATA);
         end;
 
       AS_TEXT:
         Begin
-          curlist^.Concat(new(pai_section,init(sec_code)));
+          curList.Concat(Tai_section.Create(sec_code));
           lastsec:=sec_code;
           Consume(AS_TEXT);
         end;
@@ -2089,7 +2089,7 @@ Begin
   if lastsec<>sec_code then
    begin
      Message(asmr_w_assembler_code_not_returned_to_text);
-     curlist^.Concat(new(pai_section,init(sec_code)));
+     curList.Concat(Tai_section.Create(sec_code));
    end;
   { Return the list in an asmnode }
   assemble:=casmnode.create(curlist);
@@ -2120,7 +2120,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-12-07 17:19:46  jonas
+  Revision 1.6  2000-12-25 00:07:34  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.5  2000/12/07 17:19:46  jonas
     * new constant handling: from now on, hex constants >$7fffffff are
       parsed as unsigned constants (otherwise, $80000000 got sign extended
       and became $ffffffff80000000), all constants in the longint range

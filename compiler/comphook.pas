@@ -98,7 +98,7 @@ function  def_internalerror(i:longint):boolean;
 procedure def_initsymbolinfo;
 procedure def_donesymbolinfo;
 procedure def_extractsymbolinfo;
-function  def_openinputfile(const filename: string): pinputfile;
+function  def_openinputfile(const filename: string): tinputfile;
 Function  def_getnamedfiletime(Const F : String) : Longint;
 {$ifdef DEBUG}
 { allow easy stopping in GDB
@@ -118,7 +118,7 @@ type
   tinitsymbolinfoproc = procedure;
   tdonesymbolinfoproc = procedure;
   textractsymbolinfoproc = procedure;
-  topeninputfilefunc = function(const filename: string): pinputfile;
+  topeninputfilefunc = function(const filename: string): tinputfile;
   tgetnamedfiletimefunc = function(const filename: string): longint;
 
 const
@@ -331,9 +331,9 @@ procedure def_extractsymbolinfo;
 begin
 end;
 
-function  def_openinputfile(const filename: string): pinputfile;
+function  def_openinputfile(const filename: string): tinputfile;
 begin
-  def_openinputfile:=new(pdosinputfile, init(filename));
+  def_openinputfile:=tdosinputfile.create(filename);
 end;
 
 
@@ -366,7 +366,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2000-11-13 15:26:12  marco
+  Revision 1.10  2000-12-25 00:07:25  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.9  2000/11/13 15:26:12  marco
    * Renamefest
 
   Revision 1.8  2000/09/30 16:07:20  peter

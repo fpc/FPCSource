@@ -27,7 +27,8 @@ unit pbase;
 interface
 
     uses
-       cobjects,tokens,globals,
+       cutils,cobjects,cclasses,
+       tokens,globals,
        symbase,symdef,symsym
 {$ifdef fixLeaksOnError}
        ,comphook
@@ -42,6 +43,20 @@ interface
        getprocvar : boolean = false;
        getprocvardef : pprocvardef = nil;
 
+    type
+       { listitem }
+       tidstringlistitem = class(tlinkedlistitem)
+          data : pstring;
+          file_info : tfileposinfo;
+          constructor Create(const s:string;const pos:tfileposinfo);
+          destructor  Destroy;override;
+       end;
+
+       tidstringlist=class(tlinkedlist)
+          procedure add(const s : string;const file_info : tfileposinfo);
+          function  get(var file_info : tfileposinfo) : string;
+          function  find(const s:string):boolean;
+       end;
 
     var
        { size of data segment, set by proc_unit or proc_program }
@@ -83,18 +98,89 @@ interface
     { consumes tokens while they are semicolons }
     procedure emptystats;
 
-    { reads a list of identifiers into a string container }
-    function idlist : pstringcontainer;
+    { reads a list of identifiers into a string list }
+    function idlist : tidstringlist;
 
     { just for an accurate position of the end of a procedure (PM) }
     var
        last_endtoken_filepos: tfileposinfo;
 
 
-  implementation
+implementation
 
     uses
        scanner,systems,verbose;
+
+{****************************************************************************
+                           TIdStringlistItem
+****************************************************************************}
+
+    constructor TIDStringlistItem.Create(const s:string;const pos:tfileposinfo);
+      begin
+        data:=stringdup(s);
+        file_info:=pos;
+      end;
+
+
+    destructor  TIDStringlistItem.Destroy;
+      begin
+        stringdispose(data);
+      end;
+
+
+{****************************************************************************
+                             TIdStringlist
+****************************************************************************}
+
+    procedure tidstringlist.add(const s : string; const file_info : tfileposinfo);
+      begin
+         if find(s) then
+          exit;
+         inherited concat(tidstringlistitem.create(s,file_info));
+      end;
+
+
+    function tidstringlist.get(var file_info : tfileposinfo) : string;
+      var
+         p : tidstringlistitem;
+      begin
+         p:=tidstringlistitem(inherited getfirst);
+         if p=nil then
+          begin
+            get:='';
+            file_info.fileindex:=0;
+            file_info.line:=0;
+            file_info.column:=0;
+          end
+         else
+          begin
+            get:=p.data^;
+            file_info:=p.file_info;
+            p.free;
+          end;
+      end;
+
+    function tidstringlist.find(const s:string):boolean;
+      var
+        newnode : tidstringlistitem;
+      begin
+        find:=false;
+        newnode:=tidstringlistitem(First);
+        while assigned(newnode) do
+         begin
+           if newnode.data^=s then
+            begin
+              find:=true;
+              exit;
+            end;
+           newnode:=tidstringlistitem(newnode.next);
+         end;
+      end;
+
+
+{****************************************************************************
+                               Token Parsing
+****************************************************************************}
 
     function tokenstring(i : ttoken):string;
       begin
@@ -153,14 +239,14 @@ interface
       end;
 
 
-    { reads a list of identifiers into a string container }
-    function idlist : pstringcontainer;
+    { reads a list of identifiers into a string list }
+    function idlist : tidstringlist;
       var
-        sc : pstringcontainer;
+        sc : tIdstringlist;
       begin
-         sc:=new(pstringcontainer,init);
+         sc:=TIdStringlist.Create;
          repeat
-           sc^.insert_with_tokeninfo(orgpattern,akttokenpos);
+           sc.add(orgpattern,akttokenpos);
            consume(_ID);
          until not try_to_consume(_COMMA);
          idlist:=sc;
@@ -168,13 +254,13 @@ interface
 
 {$ifdef fixLeaksOnError}
 procedure pbase_do_stop;
-var names: PStringContainer;
+var names: PStringlist;
 begin
-  names := PStringContainer(strContStack.pop);
+  names := PStringlist(strContStack.pop);
   while names <> nil do
     begin
       dispose(names,done);
-      names := PStringContainer(strContStack.pop);
+      names := PStringlist(strContStack.pop);
     end;
   strContStack.done;
   do_stop := pbase_old_do_stop;
@@ -190,7 +276,11 @@ end.
 
 {
   $Log$
-  Revision 1.6  2000-10-31 22:02:49  peter
+  Revision 1.7  2000-12-25 00:07:27  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.6  2000/10/31 22:02:49  peter
     * symtable splitted, no real code changes
 
   Revision 1.5  2000/09/24 15:06:21  peter

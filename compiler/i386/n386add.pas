@@ -1179,23 +1179,23 @@ interface
                          release_loc(left.location);
                          { allocate EAX }
                          if R_EAX in unused then
-                           exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+                           exprasmList.concat(Tairegalloc.Alloc(R_EAX));
                          { load he right value }
                          emitloadord2reg(right.location,u32bitdef,R_EAX,true);
                          release_loc(right.location);
                          { allocate EAX if it isn't yet allocated (JM) }
                          if (R_EAX in unused) then
-                           exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+                           exprasmList.concat(Tairegalloc.Alloc(R_EAX));
                          { also allocate EDX, since it is also modified by }
                          { a mul (JM)                                      }
                          if R_EDX in unused then
-                           exprasmlist^.concat(new(pairegalloc,alloc(R_EDX)));
+                           exprasmList.concat(Tairegalloc.Alloc(R_EDX));
                          emit_reg(A_MUL,S_L,R_EDI);
                          ungetregister32(R_EDI);
                          if R_EDX in unused then
-                           exprasmlist^.concat(new(pairegalloc,dealloc(R_EDX)));
+                           exprasmList.concat(Tairegalloc.DeAlloc(R_EDX));
                          if R_EAX in unused then
-                           exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
+                           exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
                          location.register := getregister32;
                          emit_reg_reg(A_MOV,S_L,R_EAX,location.register);
                          if popedx then
@@ -2289,7 +2289,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2000-12-16 15:56:18  jonas
+  Revision 1.8  2000-12-25 00:07:32  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.7  2000/12/16 15:56:18  jonas
     - removed all ifdef cardinalmulfix code
 
   Revision 1.6  2000/12/05 11:44:32  jonas
