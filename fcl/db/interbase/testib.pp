@@ -10,7 +10,7 @@ uses Interbase,SysUtils,db;
 {$linklib crypt}
 
 const
-  dbpath = 'obelix.wisa.be:/home/interbase/helpdesk.gdb';
+  dbpath = 'testdb.gdb';
   
 var
   DBS : TIBDatabase;
@@ -25,8 +25,18 @@ begin
   DBS.DatabaseName := dbpath;
   DBS.UserName := 'SYSDBA';
   DBS.Password := 'masterkey';
-  DBS.Connected:=True;
-  DS.SQL.Add('select * from scholen');
+  WriteLn('Clearing ''John Doe'' entry from table');
+  DS.SQL.Add('delete from fpdev where username = ''John Doe''');
+  DS.Open;
+  DS.Close;
+  DS.sql.clear;
+  WriteLn('Inserting ''John Doe'' developer to fpdev table');
+  DS.SQL.Add('insert into fpdev values (9,''John Doe'',''jd@unknown.net'')');
+  DS.Open;
+  DS.Close;
+  DS.sql.clear;
+  WriteLn('Making list from fpdev table');
+  DS.SQL.Add('select * from fpdev');
   DS.Open;
   while not DS.EOF do
   begin
@@ -35,10 +45,11 @@ begin
     WriteLn(DS.Fields[DS.FieldCount-1].AsString);
     DS.Next;
   end;
+  
   DS.Close;
   DS.SQL.Clear;
   DS.Free;
-{
+
   WriteLn;
   WriteLn('Trying to perform test of datatypes interpretation...');
   WriteLn('Some problems with TDateTimeField, see source');
@@ -58,7 +69,6 @@ begin
     DS.Next;
   end;
   DS.Free;
-}
   DBS.EndTransaction;
   DBS.Close;
   DBS.Free;
@@ -66,8 +76,8 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-06-04 08:15:43  michael
-  + Initial implementation in FCL
+  Revision 1.2  2000-06-04 08:24:38  michael
+  + Correct example committed
 
   Revision 1.1.1.1  2000/06/02 06:56:37  stingp1
   Initial release
