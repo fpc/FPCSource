@@ -163,6 +163,7 @@ interface
           tc_not_possible,
           tc_string_2_string,
           tc_char_2_string,
+          tc_char_2_chararray,
           tc_pchar_2_string,
           tc_cchar_2_pchar,
           tc_cstring_2_pchar,
@@ -1548,6 +1549,15 @@ implementation
                            b:=1;
                          end;
                       end;
+                    orddef:
+                      begin
+                        if is_chararray(def_to) and
+                           is_char(def_from) then
+                          begin
+                            doconv:=tc_char_2_chararray;
+                            b:=2;
+                          end;
+                      end;
                     recorddef :
                       begin
                         { tvarrec -> array of constconst }
@@ -1858,7 +1868,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.55  2001-11-02 22:58:09  peter
+  Revision 1.56  2001-11-02 23:24:12  jonas
+    * fixed web bug 1665 (allow char to chararray type conversion) ("merged")
+
+  Revision 1.55  2001/11/02 22:58:09  peter
     * procsym definition rewrite
 
   Revision 1.54  2001/10/28 17:22:25  peter

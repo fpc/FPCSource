@@ -385,6 +385,7 @@ implementation
            @second_nothing, {not_possible}
            @second_nothing, {second_string_to_string, handled in resulttype pass }
            @second_char_to_string,
+           @second_nothing, {char_to_charray}
            @second_nothing, { pchar_to_string, handled in resulttype pass }
            @second_nothing, {cchar_to_pchar}
            @second_cstring_to_pchar,
@@ -490,7 +491,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2001-09-30 21:28:34  peter
+  Revision 1.27  2001-11-02 23:24:12  jonas
+    * fixed web bug 1665 (allow char to chararray type conversion) ("merged")
+
+  Revision 1.26  2001/09/30 21:28:34  peter
     * int64->boolean fixed
 
   Revision 1.25  2001/09/30 16:12:47  jonas

@@ -46,6 +46,7 @@ interface
           function resulttype_string_to_chararray : tnode;
           function resulttype_string_to_string : tnode;
           function resulttype_char_to_string : tnode;
+          function resulttype_char_to_chararray : tnode;
           function resulttype_int_to_real : tnode;
           function resulttype_real_to_real : tnode;
           function resulttype_cchar_to_pchar : tnode;
@@ -591,6 +592,24 @@ implementation
       end;
 
 
+    function ttypeconvnode.resulttype_char_to_chararray : tnode;
+
+      begin
+        if resulttype.def.size <> 1 then
+          begin
+            { convert first to string, then to chararray }
+            inserttypeconv(left,cshortstringtype);
+            inserttypeconv(left,resulttype);
+            result:=left;
+            left := nil;
+            exit;
+          end;
+        result := nil;
+        { a chararray with 1 element is the same as a char }
+        set_location(location,left.location);
+      end;
+
+
     function ttypeconvnode.resulttype_char_to_char : tnode;
 
       var
@@ -720,6 +739,7 @@ implementation
           {not_possible} nil,
           { string_2_string } @ttypeconvnode.resulttype_string_to_string,
           { char_2_string } @ttypeconvnode.resulttype_char_to_string,
+          { char_2_chararray } @ttypeconvnode.resulttype_char_to_chararray,
           { pchar_2_string } @ttypeconvnode.resulttype_pchar_to_string,
           { cchar_2_pchar } @ttypeconvnode.resulttype_cchar_to_pchar,
           { cstring_2_pchar } @ttypeconvnode.resulttype_cstring_to_pchar,
@@ -1361,6 +1381,7 @@ implementation
            @ttypeconvnode.first_nothing, {not_possible}
            nil, { removed in resulttype_string_to_string }
            @ttypeconvnode.first_char_to_string,
+           @ttypeconvnode.first_nothing, { char_2_chararray, needs nothing extra }
            nil, { removed in resulttype_chararray_to_string }
            @ttypeconvnode.first_cchar_to_pchar,
            @ttypeconvnode.first_cstring_to_pchar,
@@ -1597,7 +1618,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2001-11-02 22:58:02  peter
+  Revision 1.44  2001-11-02 23:24:11  jonas
+    * fixed web bug 1665 (allow char to chararray type conversion) ("merged")
+
+  Revision 1.43  2001/11/02 22:58:02  peter
     * procsym definition rewrite
 
   Revision 1.42  2001/10/28 17:22:25  peter
