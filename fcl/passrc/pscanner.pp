@@ -26,6 +26,9 @@ resourcestring
   SErrInvalidCharacter = 'Invalid character ''%s''';
   SErrOpenString = 'String exceeds end of line';
   SErrIncludeFileNotFound = 'Could not find include file ''%s''';
+  SErrIfXXXNestingLimitReached = 'Nesting of $IFxxx too deep';
+  SErrInvalidPPElse = '$ELSE without matching $IFxxx';
+  SErrInvalidPPEndif = '$ENDIF without matching $IFxxx';
 
 type
 
@@ -49,6 +52,7 @@ type
     tkColon,		// ':'
     tkSemicolon,	// ';'
     tkEqual,		// '='
+    tkAt,		// '@'
     tkSquaredBraceOpen,	// '['
     tkSquaredBraceClose,// ']'
     tkCaret,		// '^'
@@ -159,6 +163,9 @@ type
 
   EScannerError = class(Exception);
 
+  TPascalScannerPPSkipMode = (ppSkipNone, ppSkipIfBranch, ppSkipElseBranch,
+    ppSkipAll);
+
   TPascalScanner = class
   private
     FFileResolver: TFileResolver;
@@ -168,16 +175,26 @@ type
     FCurToken: TToken;
     FCurTokenString: String;
     FCurLine: String;
+    FDefines: TStrings;
     TokenStr: PChar;
     FIncludeStack: TList;
+
+    // Preprocessor $IFxxx skipping data
+    PPSkipMode: TPascalScannerPPSkipMode;
+    PPIsSkipping: Boolean;
+    PPSkipStackIndex: Integer;
+    PPSkipModeStack: array[0..255] of TPascalScannerPPSkipMode;
+    PPIsSkippingStack: array[0..255] of Boolean;
+
     function GetCurColumn: Integer;
   protected
     procedure Error(const Msg: String);
     procedure Error(const Msg: String; Args: array of Const);
     function DoFetchToken: TToken;
   public
-    constructor Create(AFileResolver: TFileResolver; const AFilename: String);
+    constructor Create(AFileResolver: TFileResolver);
     destructor Destroy; override;
+    procedure OpenFile(const AFilename: String);
     function FetchToken: TToken;
 
     property FileResolver: TFileResolver read FFileResolver;
@@ -190,6 +207,8 @@ type
 
     property CurToken: TToken read FCurToken;
     property CurTokenString: String read FCurTokenString;
+
+    property Defines: TStrings read FDefines;
   end;
 
 const
@@ -212,6 +231,7 @@ const
     ':',
     ';',
     '=',
+    '@',
     '[',
     ']',
     '^',
@@ -352,11 +372,14 @@ end;
 
 function TFileResolver.FindSourceFile(const AName: String): TLineReader;
 begin
-  try
-    Result := TFileLineReader.Create(AName);
-  except
-    Result := nil;
-  end;
+  if not FileExists(AName) then
+    Result := nil
+  else
+    try
+      Result := TFileLineReader.Create(AName);
+    except
+      Result := nil;
+    end;
 end;
 
 function TFileResolver.FindIncludeFile(const AName: String): TLineReader;
@@ -377,25 +400,33 @@ begin
 end;
 
 
-constructor TPascalScanner.Create(AFileResolver: TFileResolver;
-  const AFilename: String);
+constructor TPascalScanner.Create(AFileResolver: TFileResolver);
 begin
   inherited Create;
   FFileResolver := AFileResolver;
-  FCurSourceFile := FileResolver.FindSourceFile(AFilename);
-  FCurFilename := AFilename;
   FIncludeStack := TList.Create;
+  FDefines := TStringList.Create;
 end;
 
 destructor TPascalScanner.Destroy;
 begin
+  FDefines.Free;
   // Dont' free the first element, because it is CurSourceFile
   while FIncludeStack.Count > 1 do
+  begin
     TFileResolver(FIncludeStack[1]).Free;
+    FIncludeStack.Delete(1);
+  end;
   FIncludeStack.Free;
 
   CurSourceFile.Free;
   inherited Destroy;
+end;
+
+procedure TPascalScanner.OpenFile(const AFilename: String);
+begin
+  FCurSourceFile := FileResolver.FindSourceFile(AFilename);
+  FCurFilename := AFilename;
 end;
 
 function TPascalScanner.FetchToken: TToken;
@@ -424,7 +455,8 @@ begin
       end else
         break
     else
-      break;
+      if not PPIsSkipping then
+        break;
   end;
 end;
 
@@ -459,7 +491,7 @@ function TPascalScanner.DoFetchToken: TToken;
 var
   TokenStart, CurPos: PChar;
   i: TToken;
-  OldLength, SectionLength, NestingLevel: Integer;
+  OldLength, SectionLength, NestingLevel, Index: Integer;
   Directive, Param: String;
   IncludeStackItem: TIncludeStackItem;
 begin
@@ -644,9 +676,35 @@ begin
     '0'..'9':
       begin
         TokenStart := TokenStr;
-	repeat
+	while True do
+	begin
 	  Inc(TokenStr);
-	until not (TokenStr[0] in ['0'..'9', '.', 'e', 'E']);
+	  case TokenStr[0] of
+	    '.':
+	      begin
+	        if TokenStr[1] in ['0'..'9', 'e', 'E'] then
+	        begin
+	          Inc(TokenStr);
+	          repeat
+	            Inc(TokenStr);
+	          until not (TokenStr[0] in ['0'..'9', 'e', 'E']);
+		end;
+		break;
+	      end;
+	    '0'..'9': ;
+	    'e', 'E':
+	      begin
+	        Inc(TokenStr);
+		if TokenStr[0] = '-'  then
+		  Inc(TokenStr);
+		while TokenStr[0] in ['0'..'9'] do
+		  Inc(TokenStr);
+		break;
+	      end;
+	    else
+	      break;
+	  end;
+	end;
 	SectionLength := TokenStr - TokenStart;
 	SetLength(FCurTokenString, SectionLength);
 	if SectionLength > 0 then
@@ -672,6 +730,11 @@ begin
       begin
         Inc(TokenStr);
         Result := tkEqual;
+      end;
+    '@':
+      begin
+        Inc(TokenStr);
+        Result := tkAt;
       end;
     '[':
       begin
@@ -756,20 +819,117 @@ begin
   	    // WriteLn('Direktive: "', Directive, '", Param: "', Param, '"');
 	    if (Directive = 'I') or (Directive = 'INCLUDE') then
 	    begin
-	      IncludeStackItem := TIncludeStackItem.Create;
-	      IncludeStackItem.SourceFile := CurSourceFile;
-	      IncludeStackItem.Filename := CurFilename;
-	      IncludeStackItem.Token := CurToken;
-	      IncludeStackItem.TokenString := CurTokenString;
-	      IncludeStackItem.Line := CurLine;
-	      IncludeStackItem.Row := CurRow;
-	      IncludeStackItem.TokenStr := TokenStr;
-	      FIncludeStack.Add(IncludeStackItem);
-	      FCurSourceFile := FileResolver.FindIncludeFile(Param);
-	      if not Assigned(CurSourceFile) then
-	        Error(SErrIncludeFileNotFound, [Param]);
-	      FCurFilename := Param;
-	      FCurRow := 0;
+	      if not PPIsSkipping then
+	      begin
+	        IncludeStackItem := TIncludeStackItem.Create;
+	        IncludeStackItem.SourceFile := CurSourceFile;
+	        IncludeStackItem.Filename := CurFilename;
+	        IncludeStackItem.Token := CurToken;
+	        IncludeStackItem.TokenString := CurTokenString;
+	        IncludeStackItem.Line := CurLine;
+	        IncludeStackItem.Row := CurRow;
+	        IncludeStackItem.TokenStr := TokenStr;
+	        FIncludeStack.Add(IncludeStackItem);
+	        FCurSourceFile := FileResolver.FindIncludeFile(Param);
+	        if not Assigned(CurSourceFile) then
+	          Error(SErrIncludeFileNotFound, [Param]);
+	        FCurFilename := Param;
+	        FCurRow := 0;
+	      end;
+	    end else if Directive = 'DEFINE' then
+	    begin
+	      if not PPIsSkipping then
+	      begin
+	        Param := UpperCase(Param);
+	        if Defines.IndexOf(Param) < 0 then
+	          Defines.Add(Param);
+	      end;
+	    end else if Directive = 'UNDEF' then
+	    begin
+	      if not PPIsSkipping then
+	      begin
+	        Param := UpperCase(Param);
+	        Index := Defines.IndexOf(Param);
+	        if Index >= 0 then
+	          Defines.Delete(Index);
+	      end;
+	    end else if Directive = 'IFDEF' then
+	    begin
+	      if PPSkipStackIndex = High(PPSkipModeStack) then
+	        Error(SErrIfXXXNestingLimitReached);
+	      PPSkipModeStack[PPSkipStackIndex] := PPSkipMode;
+	      PPIsSkippingStack[PPSkipStackIndex] := PPIsSkipping;
+	      Inc(PPSkipStackIndex);
+	      if PPIsSkipping then
+	      begin
+	        PPSkipMode := ppSkipAll;
+		PPIsSkipping := True;
+	      end else
+	      begin
+	        Param := UpperCase(Param);
+	        Index := Defines.IndexOf(Param);
+	        if Index < 0 then
+	        begin
+	          PPSkipMode := ppSkipIfBranch;
+		  PPIsSkipping := True;
+	        end else
+	          PPSkipMode := ppSkipElseBranch;
+	      end;
+	    end else if Directive = 'IFNDEF' then
+	    begin
+	      if PPSkipStackIndex = High(PPSkipModeStack) then
+	        Error(SErrIfXXXNestingLimitReached);
+	      PPSkipModeStack[PPSkipStackIndex] := PPSkipMode;
+	      PPIsSkippingStack[PPSkipStackIndex] := PPIsSkipping;
+	      Inc(PPSkipStackIndex);
+	      if PPIsSkipping then
+	      begin
+	        PPSkipMode := ppSkipAll;
+		PPIsSkipping := True;
+	      end else
+	      begin
+	        Param := UpperCase(Param);
+	        Index := Defines.IndexOf(Param);
+	        if Index >= 0 then
+	        begin
+	          PPSkipMode := ppSkipIfBranch;
+		  PPIsSkipping := True;
+	        end else
+	          PPSkipMode := ppSkipElseBranch;
+	      end;
+	    end else if Directive = 'IFOPT' then
+	    begin
+	      if PPSkipStackIndex = High(PPSkipModeStack) then
+	        Error(SErrIfXXXNestingLimitReached);
+	      PPSkipModeStack[PPSkipStackIndex] := PPSkipMode;
+	      PPIsSkippingStack[PPSkipStackIndex] := PPIsSkipping;
+	      Inc(PPSkipStackIndex);
+	      if PPIsSkipping then
+	      begin
+	        PPSkipMode := ppSkipAll;
+		PPIsSkipping := True;
+	      end else
+	      begin
+	        { !!!: Currently, options are not supported, so they are just
+		  assumed as not being set. }
+	        PPSkipMode := ppSkipIfBranch;
+		PPIsSkipping := True;
+	      end;
+	    end else if Directive = 'ELSE' then
+	    begin
+	      if PPSkipStackIndex = 0 then
+	        Error(SErrInvalidPPElse);
+	      if PPSkipMode = ppSkipIfBranch then
+	        PPIsSkipping := False
+	      else if PPSkipMode = ppSkipElseBranch then
+	        PPIsSkipping := True;
+	    end else if Directive = 'ENDIF' then
+	    begin
+	      if PPSkipStackIndex = 0 then
+	        Error(SErrInvalidPPEndif);
+	      Dec(PPSkipStackIndex);
+	      PPSkipMode := PPSkipModeStack[PPSkipStackIndex];
+	      PPIsSkipping := PPIsSkippingStack[PPSkipStackIndex];
 	    end;
 	  end else
 	    Directive := '';
@@ -815,7 +975,11 @@ end.
 
 {
   $Log$
-  Revision 1.1  2003-03-13 21:47:42  sg
+  Revision 1.2  2003-03-27 16:32:48  sg
+  * Added $IFxxx support
+  * Lots of small fixes
+
+  Revision 1.1  2003/03/13 21:47:42  sg
   * First version as part of FCL
 
 }
