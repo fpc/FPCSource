@@ -1539,28 +1539,27 @@ implementation
         if not (cs_fp_emulation in aktmoduleswitches) then
           exit;
 
-        procname := 'FPC_REAL_';
         case nodetype of
-          addn : procname := procname + 'ADD';
-          muln : procname := procname + 'MUL';
-          subn : procname := procname + 'SUB';
-          slashn : procname := procname + 'DIV';
-          ltn : procname := procname + 'LESS_THAN';
-          lten: procname := procname + 'LESS_EQUAL_THAN';
+          addn : procname := 'float32_add';
+          muln : procname := 'float32_mul';
+          subn : procname := 'float32_sub';
+          slashn : procname := 'float32_div';
+          ltn : procname := 'float32_lt';
+          lten: procname := 'float32_le';
           gtn:
             begin
-             procname := procname + 'LESS_EQUAL_THAN';
+             procname := 'float32_le';
              notnode := true;
             end;
           gten:
             begin
-              procname := procname + 'LESS_THAN';
+              procname := 'float32_lt';
               notnode := true;
             end;
-          equaln: procname := procname + 'EQUAL';
+          equaln: procname := 'float32_eq';
           unequaln :
             begin
-              procname := procname + 'EQUAL';
+              procname := 'float32_eq';
               notnode := true;
             end;
           else
@@ -1915,7 +1914,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.75  2002-11-27 13:11:38  peter
+  Revision 1.76  2002-11-30 21:32:24  carl
+    + Add loading of softfpu in emulation mode
+    + Correct routine call for softfpu
+    * Extended type must also be defined even with softfpu
+
+  Revision 1.75  2002/11/27 13:11:38  peter
     * more currency fixes, taddcurr runs now successfull
 
   Revision 1.74  2002/11/27 11:28:40  peter

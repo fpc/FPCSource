@@ -441,6 +441,18 @@ implementation
         make_ref:=false;
         readconstdefs;
         make_ref:=true;
+      { Floating point emulation unit? }
+        if (cs_fp_emulation in aktmoduleswitches) then
+         begin
+           hp:=loadunit('softfpu','');
+           tsymtable(hp.globalsymtable).next:=symtablestack;
+           symtablestack:=hp.globalsymtable;
+           { add to the used units }
+           current_module.used_units.concat(tused_unit.create(hp,true));
+           unitsym:=tunitsym.create('Softfpu',hp.globalsymtable);
+           inc(unitsym.refs);
+           refsymtable.insert(unitsym);
+         end;
       { Thread support unit? }
         if (cs_threading in aktmoduleswitches) then
          begin
@@ -1441,7 +1453,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.84  2002-11-15 01:58:53  peter
+  Revision 1.85  2002-11-30 21:32:24  carl
+    + Add loading of softfpu in emulation mode
+    + Correct routine call for softfpu
+    * Extended type must also be defined even with softfpu
+
+  Revision 1.84  2002/11/15 01:58:53  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing

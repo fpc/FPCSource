@@ -132,6 +132,8 @@ implementation
             { extended size is the best real type for the target }
             addtype('Real',s32floattype);
             pbestrealtype:=@s32floattype;
+            { extended size is the best real type for the target }
+            addtype('Extended',pbestrealtype^);
           end
         else
           begin
@@ -475,7 +477,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  2002-10-05 12:43:27  carl
+  Revision 1.43  2002-11-30 21:32:26  carl
+    + Add loading of softfpu in emulation mode
+    + Correct routine call for softfpu
+    * Extended type must also be defined even with softfpu
+
+  Revision 1.42  2002/10/05 12:43:27  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 
