@@ -726,7 +726,10 @@ implementation
            asmmode_i386_intel:
              asmstat:=tasmnode(ra386int.assemble);
   {$endif NoRA386Int}
-{$else}
+{$else not i386}
+           asmmode_standard:
+             asmstat:=tasmnode(rasm.assemble);
+{$endif i386}
            asmmode_direct:
              begin
                if not target_asm.allowdirect then
@@ -739,10 +742,6 @@ implementation
                  End;
                asmstat:=tasmnode(radirect.assemble);
              end;
-
-           asmmode_standard:
-             asmstat:=tasmnode(rasm.assemble);
-{$endif}
 
          else
            Message(parser_f_assembler_reader_not_supported);
@@ -1145,7 +1144,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.73  2002-08-25 19:25:20  peter
+  Revision 1.74  2002-09-01 14:43:12  peter
+    * fixed direct assembler for i386
+
+  Revision 1.73  2002/08/25 19:25:20  peter
     * sym.insert_in_data removed
     * symtable.insertvardata/insertconstdata added
     * removed insert_in_data call from symtable.insert, it needs to be
