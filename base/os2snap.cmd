@@ -151,28 +151,57 @@ echo *Error: Unknown parameter - %PARAMS%
 goto End
 
 :CleanRTL
+if %@eval[0] == 0 goto JPCleanRTL
 echo *Cleaning up the RTL (error messages are OK here) ...
 del %FPCSRC%\RTL\OS2\*.ppo
 del %FPCSRC%\RTL\OS2\*.oo2
 del %FPCSRC%\RTL\OS2\ppas.bat
 del %FPCSRC%\RTL\OS2\ppas.cmd
 del %FPCSRC%\RTL\OS2\link.res
+goto ContCleanRTL
+:JPCleanRTL
+echo *Cleaning up the RTL ...
+del %FPCSRC%\RTL\OS2\*.ppo >& nul
+del %FPCSRC%\RTL\OS2\*.oo2 >& nul
+del %FPCSRC%\RTL\OS2\ppas.bat >& nul
+del %FPCSRC%\RTL\OS2\ppas.cmd >& nul
+del %FPCSRC%\RTL\OS2\link.res >& nul
+:ContCleanRTL
 if %PARAMS% == rtl goto Branches
 :CleanCompiler
+if %@eval[0] == 0 goto JPCleanComp
 echo *Cleaning up the compiler (error messages are OK here) ...
 del %FPCSRC%\COMPILER\*.ppo
 del %FPCSRC%\COMPILER\*.oo2
-del %FPCSRC%\COMPILER\pp.
+del %FPCSRC%\COMPILER\pp
 del %FPCSRC%\COMPILER\pp.exe
 del %FPCSRC%\COMPILER\ppos2.exe
 del %FPCSRC%\COMPILER\ppas.bat
 del %FPCSRC%\COMPILER\ppas.cmd
 del %FPCSRC%\COMPILER\link.res
+goto ContCleanComp
+:JPCleanComp
+echo *Cleaning up the compiler ...
+del %FPCSRC%\COMPILER\*.ppo >& nul
+del %FPCSRC%\COMPILER\*.oo2 >& nul
+del %FPCSRC%\COMPILER\pp >& nul
+del %FPCSRC%\COMPILER\pp.exe >& nul
+del %FPCSRC%\COMPILER\ppos2.exe >& nul
+del %FPCSRC%\COMPILER\ppas.bat >& nul
+del %FPCSRC%\COMPILER\ppas.cmd >& nul
+del %FPCSRC%\COMPILER\link.res >& nul
+:ContCleanComp
 if %PARAMS% == compiler goto Branches
 if %PARAMS% == both goto Branches
 :CleanSnapshot
+if %@eval[0] == 0 goto JPCleanSnap
 echo *Deleting the old snapshot (error messages are OK here) ...
 del %FPCSRC%\snap-os2.zip
+goto ContCleanSnap
+:JPCleanSnap
+echo *Deleting the old snapshot ...
+del %FPCSRC%\snap-os2.zip >& nul
+:ContCleanSnap
 
 :Branches
 if %PARAMS% == both goto RTL1
@@ -316,7 +345,10 @@ goto End
 
 
   $Log$
-  Revision 1.3  1999-10-01 09:00:21  hajny
+  Revision 1.4  1999-12-26 19:13:10  hajny
+    * little enhancements for 4os2/4dos
+
+  Revision 1.3  1999/10/01 09:00:21  hajny
     + PMGPI and DIVE added
 
   Revision 1.2  1999/09/15 07:31:49  hajny
