@@ -269,3 +269,5 @@ bug0202.pp   flag results not supported with case
 bug0203.pp   problem with changed mangledname of procedures after use
 bug0204.pp   can typecast the result var in an assignment
 bug0205.pp   and parsing bug, generates wrong code (tp7 gives parser error)
+bug0206.pp   sets with variable ranges doesn't work
+bug0207.pp   a class destructor doesn't release the memory
