@@ -35,7 +35,7 @@ uses
 Type
     TLinkerInfo=record
       ExeCmd,
-      DllCmd        : array[1..3] of string[100];
+      DllCmd        : array[1..3] of string;
       ResName       : string[100];
       ScriptName    : string[100];
       ExtraOptions  : string;
@@ -706,7 +706,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.47  2004-12-22 16:32:45  peter
+  Revision 1.48  2005-01-01 20:18:24  armin
+  * increased maxsize of ExeCmd and DllCmd
+
+  Revision 1.47  2004/12/22 16:32:45  peter
     * maybequoted() added
 
   Revision 1.46  2004/11/03 22:22:51  peter
