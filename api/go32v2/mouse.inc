@@ -5,10 +5,7 @@
 }
 
 uses
-{$ifdef custommouse}
-  video,
-{$endif custommouse}
-  go32;
+  video,go32;
 
 var
   RealSeg : Word;                                    { Real mode segment }
@@ -32,7 +29,6 @@ const
   MouseError   : longint = 0;
   CallCounter  : longint = 0;
 {$endif DEBUG}
-{$ifdef custommouse}
   drawmousecursor : boolean = false;
   mouseisvisible : boolean = false;
   { position where the mouse was drawn the last time }
@@ -57,7 +53,6 @@ procedure unlockmouse;
   begin
      mouselock:=false;
   end;
-{$endif custommouse}
 
 
 {$ASMMODE ATT}
@@ -68,7 +63,6 @@ asm
         movw    %dx,mousewherey
         shrw    $3,%cx
         shrw    $3,%dx
-{$ifdef custommouse}
         { should we draw the mouse cursor? }
         cmpb    $0,drawmousecursor
         je      .Lmouse_nocursor
@@ -80,7 +74,7 @@ asm
         { check lock }
         movb    $1,%al
         xchgb   mouselock,%al
-        orl     %al,%al
+        orb     %al,%al
         { don't update the cursor yet, because hide/showcursor is called }
         jne    .Ldont_draw
 
@@ -90,12 +84,12 @@ asm
         movw    dosmemselector,%fs
 
         { calculate address of old mouse cursor }
-        movzwl  oldmousey,%eax
+        movl    oldmousey,%eax
         imulw   screenwidth,%ax
-        addw    oldmousex,%ax
+        addl    oldmousex,%eax
         leal    1(%edi,%eax,2),%eax
         { remove old cursor }
-        xorb    $0xff,%fs:(%eax)
+        xorb    $0x7f,%fs:(%eax)
 
         { store position of old cursor }
         movw    %cx,oldmousex
@@ -107,7 +101,7 @@ asm
         addw    %cx,%ax
         leal    1(%edi,%eax,2),%eax
         { draw new cursor }
-        xorb    $0xff,%fs:(%eax)
+        xorb    $0x7f,%fs:(%eax)
 
         { unlock mouse }
         movb    $0,mouselock
@@ -117,7 +111,6 @@ asm
         popl    %eax
         popw    %fs
 .Lmouse_nocursor:
-{$endif custommouse}
         cmpb    MouseEventBufSize,PendingMouseEvents
         je      .Lmouse_exit
         movl    PendingMouseTail,%edi
@@ -145,7 +138,7 @@ ASM
    PUSH %DS;                                          { Save DS register }
    PUSHL %EDI;                                        { Save register }
    PUSHL %ESI;                                        { Save register }
-   ;{ caution : ds is not the selector for our data !! }
+   { ; caution : ds is not the selector for our data !! }
 {$ifdef DEBUG}
    MOVL  %EDI,%ES:EntryEDI
    MOVL  %ESI,%ES:EntryESI
@@ -363,12 +356,10 @@ begin
     end;
   If MouseCallBack=Nil then
     Mouse_Action($ffff, @MouseInt);                    { Set masks/interrupt }
-{$ifdef custommouse}
   drawmousecursor:=false;
   mouseisvisible:=false;
   if (screenwidth>80) or (screenheight>50) then
     DoCustomMouse(true);
-{$endif custommouse}
   ShowMouse;
 end;
 
@@ -401,7 +392,7 @@ end;
 
 
 procedure ShowMouse;
-{$ifdef custommouse}
+
 begin
    if drawmousecursor then
      begin
@@ -411,7 +402,7 @@ begin
              oldmousex:=getmousex-1;
              oldmousey:=getmousey-1;
              mem[videoseg:(((screenwidth*oldmousey)+oldmousex)*2)+1]:=
-               mem[videoseg:(((screenwidth*oldmousey)+oldmousex)*2)+1] xor $ff;
+               mem[videoseg:(((screenwidth*oldmousey)+oldmousex)*2)+1] xor $7f;
              mouseisvisible:=true;
           end;
         unlockmouse;
@@ -427,22 +418,9 @@ begin
      .LShowMouseExit:
      end;
 end;
-{$else custommouse}
-assembler;
-asm
-        cmpb    $1,MousePresent
-        jne     .LShowMouseExit
-        movl    $1,%eax
-        pushl   %ebp
-        int     $0x33
-        popl    %ebp
-.LShowMouseExit:
-end;
-{$endif custommouse}
 
 
 procedure HideMouse;
-{$ifdef custommouse}
 
 begin
    if drawmousecursor then
@@ -452,7 +430,7 @@ begin
           begin
              mouseisvisible:=false;
              mem[videoseg:(((screenwidth*oldmousey)+oldmousex)*2)+1]:=
-               mem[videoseg:(((screenwidth*oldmousey)+oldmousex)*2)+1] xor $ff;
+               mem[videoseg:(((screenwidth*oldmousey)+oldmousex)*2)+1] xor $7f;
              oldmousex:=-1;
              oldmousey:=-1;
           end;
@@ -469,18 +447,6 @@ begin
      .LHideMouseExit:
      end;
 end;
-{$else custommouse}
-assembler;
-asm
-        cmpb    $1,MousePresent
-        jne     .LHideMouseExit
-        movl    $2,%eax
-        pushl   %ebp
-        int     $0x33
-        popl    %ebp
-.LHideMouseExit:
-end;
-{$endif custommouse}
 
 
 function GetMouseX:word;assembler;
@@ -545,8 +511,6 @@ asm
 .LSetMouseXYExit:
 end;
 
-{$ifdef custommouse}
-
 Procedure SetMouseXRange (Min,Max:Longint);
 begin
   If Not(MousePresent) Then Exit;
@@ -591,8 +555,6 @@ procedure DoCustomMouse(b : boolean);
        drawmousecursor:=false;
      unlockmouse;
   end;
-
-{$endif custommouse}
 
 const
   LastCallcounter : longint = 0;
@@ -644,7 +606,11 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-02-06 14:29:45  florian
+  Revision 1.3  2000-02-07 22:54:44  florian
+    * custommouse define removed, i.e. code is always active
+    * the xor value for the mouse cursor must be $7f instead of $ff
+
+  Revision 1.2  2000/02/06 14:29:45  florian
     * mouse support for vesa resolutions under go32v2, needs currently the define
       custommouse
 

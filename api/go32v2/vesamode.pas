@@ -91,9 +91,7 @@ unit vesamode;
               mem[$40:$4a]:=ScreenWidth;
               memw[$40:$4c]:=ScreenHeight*((ScreenWidth shl 1)-1);
               }
-{$ifdef custommouse}
               DoCustomMouse(true);
-{$endif custommouse}
            end;
       end;
 
@@ -134,7 +132,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-02-06 14:29:45  florian
+  Revision 1.3  2000-02-07 22:54:44  florian
+    * custommouse define removed, i.e. code is always active
+    * the xor value for the mouse cursor must be $7f instead of $ff
+
+  Revision 1.2  2000/02/06 14:29:45  florian
     * mouse support for vesa resolutions under go32v2, needs currently the define
       custommouse
 

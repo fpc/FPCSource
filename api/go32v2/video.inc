@@ -179,9 +179,7 @@ begin
   regs.bx:=wordrec(Params).hi;
   realintr($10,regs);
   defaultvideomodeselector:=true;
-{$ifdef custommouse}
   DoCustomMouse(false);
-{$endif custommouse}
 end;
 
 function VideoModeSelector8x8(const VideoMode: TVideoMode; Params: Longint): Boolean;
@@ -202,9 +200,7 @@ begin
   ScreenColor:=true;
   ScreenWidth:=80;
   ScreenHeight:=50;
-{$ifdef custommouse}
   DoCustomMouse(false);
-{$endif custommouse}
 end;
 
 procedure ClearScreen;
@@ -270,7 +266,11 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-02-06 14:29:45  florian
+  Revision 1.3  2000-02-07 22:54:44  florian
+    * custommouse define removed, i.e. code is always active
+    * the xor value for the mouse cursor must be $7f instead of $ff
+
+  Revision 1.2  2000/02/06 14:29:45  florian
     * mouse support for vesa resolutions under go32v2, needs currently the define
       custommouse
 
