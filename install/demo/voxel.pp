@@ -15,7 +15,7 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
- **********************************************************************}
+ **********************************************************************
 
 The sources for this game was found in SWAG, and was also posted to the
 International FIDO Pascal area.
@@ -40,7 +40,7 @@ A voxel source from Swag patched for FPC.
    typecasts in the array-parameters.
 
 Still BP compatible, Gameunit contains some BP alternatives for Go32
-procedures needed.
+procedures needed.}
 
 PROGRAM voxel;
 
@@ -165,7 +165,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-01-01 14:58:01  marco
+  Revision 1.2  2000-01-03 13:51:08  marco
+   * Fixed broken comment
+
+  Revision 1.1  2000/01/01 14:58:01  marco
    * initial version
 
 }
