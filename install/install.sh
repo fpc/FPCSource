@@ -1,14 +1,14 @@
 #!/bin/sh
 #
 # Free Pascal installation script for Linux.
-# Copyright 1996-2000 Michael Van Canneyt and Peter Vreman
+# Copyright 1996-2002 Michael Van Canneyt and Peter Vreman
 #
 # Don't edit this file. 
 # Everything can be set when the script is run.
 #
 
 # Release Version
-VERSION=1.0.4
+VERSION=1.0.6
 
 # some useful functions
 # ask displays 1st parameter, and ask new value for variable, whose name is
@@ -108,25 +108,25 @@ ln -sf $LIBDIR/ppc386 $EXECDIR/ppc386
 echo Installing utilities...
 unztar utillinux.tar.gz $PREFIX
 if yesno "Install FCL"; then
-    unztar unitsfcllinux.tar.gz $PREFIX
+    unztar ufcllinux.tar.gz $PREFIX
 fi
 if yesno "Install API"; then
-    unztar unitsapilinux.tar.gz $PREFIX
+    unztar uapilinux.tar.gz $PREFIX
 fi
 if yesno "Install Base (zlib,ncurses,x11) Packages"; then
-    unztar unitsbaselinux.tar.gz $PREFIX
+    unztar ubaselinux.tar.gz $PREFIX
 fi
 if yesno "Install Net (inet,uncgi) Packages"; then
-    unztar unitsnetlinux.tar.gz $PREFIX
+    unztar unetlinux.tar.gz $PREFIX
 fi
 if yesno "Install Database (mysql,interbase,postgres) Packages"; then
-    unztar unitsdblinux.tar.gz $PREFIX
+    unztar udblinux.tar.gz $PREFIX
 fi
 if yesno "Install Graphics (svgalib,opengl,ggi,forms) Packages"; then
-    unztar unitsgfxlinux.tar.gz $PREFIX
+    unztar ugfxlinux.tar.gz $PREFIX
 fi
 if yesno "Install Misc (utmp,paszlib) Packages"; then
-    unztar unitsmisclinux.tar.gz $PREFIX
+    unztar umisclinux.tar.gz $PREFIX
 fi
 rm -f *linux.tar.gz
 echo Done.

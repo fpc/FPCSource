@@ -1,17 +1,17 @@
 Name: fpc
-Version: 1.0.5
+Version: 1.0.6
 Release: 1
 ExclusiveArch: i386 i586 i686
 Copyright: GPL
 Group: Development/Languages
-Source: fpc-1.0.5-src.tar.gz
+Source: fpc-1.0.6-src.tar.gz
 Summary: Free Pascal Compiler
 Packager: Peter Vreman (peter@freepascal.org)
 URL: http://www.freepascal.org/
 BuildRoot: /tmp/fpc-build
 BuildRequires: fpc
 
-%define fpcversion 1.0.5
+%define fpcversion 1.0.6
 %define fpcdir /usr/lib/fpc/%{fpcversion}
 %define docdir /usr/doc/fpc-%{fpcversion}
 
