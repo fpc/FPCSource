@@ -141,18 +141,23 @@ end;
 
 Procedure TList.Delete(Index: Integer);
 
+Var
+  OldPointer :Pointer;
+
 begin
   If (Index<0) or (Index>=FCount) then
     Error (SListIndexError,Index);
   FCount:=FCount-1;
+  OldPointer:=Flist^[Index];
   System.Move (FList^[Index+1],FList^[Index],(FCount-Index)*SizeOf(Pointer));
-
   // Shrink the list if appropiate
   if (FCapacity > 256) and (FCount < FCapacity shr 2) then
   begin
     FCapacity := FCapacity shr 1;
     ReallocMem(FList, SizeOf(Pointer) * FCapacity);
   end;
+  If OldPointer<>nil then
+    Notify(OldPointer,lnDeleted);
 end;
 
 
@@ -228,6 +233,8 @@ begin
     System.Move (Flist^[Index],Flist^[Index+1],(FCount-Index)*SizeOf(Pointer));
   FList^[Index]:=Item;
   FCount:=FCount+1;
+  If Item<>NIl then
+    Notify(Item,lnAdded);
 end;
 
 
@@ -253,10 +260,12 @@ begin
   If (NewINdex<0) then
     Error(SlistIndexError,NewIndex);
   Temp:=FList^[CurIndex];
+  FList^[CurIndex]:=Nil;
   Self.Delete(CurIndex);
   // ?? If NewIndex>CurIndex then NewIndex:=NewIndex-1;
   // Newindex changes when deleting ??
-  Self.Insert (NewIndex,Temp);
+  Self.Insert (NewIndex,Nil);
+  FList^[NewIndex]:=Temp;
 end;
 
 
@@ -431,7 +440,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2002-07-16 14:00:55  florian
+  Revision 1.8  2002-08-16 10:04:58  michael
+  + Notify correctly implemented
+
+  Revision 1.7  2002/07/16 14:00:55  florian
     * raise takes now a void pointer as at and frame address
       instead of a longint, fixed
 
