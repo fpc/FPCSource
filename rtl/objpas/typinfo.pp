@@ -42,13 +42,15 @@ unit typinfo;
                    tkClass,tkObject,tkWChar,tkBool,tkInt64,tkQWord,
                    tkDynArray,tkInterfaceRaw);
 
-       TTOrdType = (otSByte,otUByte,otSWord,otUWord,otSLong,otULong);
+       TTOrdType  = (otSByte,otUByte,otSWord,otUWord,otSLong,otULong);
 
        TFloatType = (ftSingle,ftDouble,ftExtended,ftComp,ftCurr);
        TMethodKind = (mkProcedure,mkFunction,mkConstructor,mkDestructor,
                       mkClassProcedure, mkClassFunction);
-       TParamFlags = set of (pfVar,pfConst,pfArray,pfAddress,pfReference,pfOut);
-       TIntfFlags = set of (ifHasGuid,ifDispInterface,ifDispatch);
+       TParamFlags    = set of (pfVar,pfConst,pfArray,pfAddress,pfReference,pfOut);
+       TIntfFlag      = (ifHasGuid,ifDispInterface,ifDispatch);
+       TIntfFlags     = set of TIntfFlag;
+       TIntfFlagsBase = set of TIntfFlag;
 
 {$MINENUMSIZE DEFAULT}
 
@@ -1214,7 +1216,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.18  2003-10-24 08:37:20  marco
+  Revision 1.19  2003-12-22 11:32:04  marco
+   * splitted up tintfflags into several components
+
+  Revision 1.18  2003/10/24 08:37:20  marco
    * Fix from Peter
 
   Revision 1.17  2003/10/17 20:58:27  olle
