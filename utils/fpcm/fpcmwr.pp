@@ -792,6 +792,8 @@ implementation
             Add('default: all');
            { Supported targets by this Makefile }
            AddMakefileTargets;
+           { Add misc defines }
+           AddIniSection('defines');
            { Add automatic detect sections }
            AddIniSection('osdetect');
            { Forced target }
@@ -931,7 +933,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  2004-04-01 12:26:56  olle
+  Revision 1.30  2004-04-20 22:59:31  olle
+    * support for new fpcini section [defines]
+
+  Revision 1.29  2004/04/01 12:26:56  olle
     + a tool not found is replaced by the fake command __missing_command__, so that make stops, if it tries to run the command.
 
   Revision 1.28  2003/04/25 20:53:33  peter
