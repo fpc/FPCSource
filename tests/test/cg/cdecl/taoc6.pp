@@ -1,4 +1,6 @@
-{ %SKIPTARGET=macos Crashes when assembling, linking or running}
+{ %cpu=i386 }
+
+{ This test expects values on the stack, which is i386 only }
 
 { sixth simple array of const test
   for int64 values }

@@ -1,3 +1,6 @@
+{ %cpu=i386 }
+
+{ This test expects values on the stack, which is i386 only }
 
 { fifth simple array of const test }
 
