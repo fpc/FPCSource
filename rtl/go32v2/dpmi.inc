@@ -45,7 +45,10 @@ asm
 
 {
 $Log$
-Revision 1.2  1999-07-12 13:27:10  jonas
+Revision 1.1  1999-11-08 11:15:21  peter
+  * move graph.inc to the target dir
+
+Revision 1.2  1999/07/12 13:27:10  jonas
   + added Log and Id tags
   * added first FPC support, only VGA works to some extend for now
   * use -dasmgraph to use assembler routines, otherwise Pascal

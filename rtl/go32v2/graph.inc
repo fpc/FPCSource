@@ -2,6 +2,10 @@
      $Id$
 }
 
+{$ifdef DPMI}
+{$i vesah.inc}
+{$endif DPMI}
+
 {$ifndef fpc}
   {$ifndef noasmgraph}
     {$define asmgraph}
@@ -2460,7 +2464,10 @@ const CrtAddress: word = 0;
 
 {
 $Log$
-Revision 1.26  1999-11-05 12:18:23  jonas
+Revision 1.1  1999-11-08 11:15:21  peter
+  * move graph.inc to the target dir
+
+Revision 1.26  1999/11/05 12:18:23  jonas
   * fixed pascal version of (direct)putpixelx
 
 Revision 1.25  1999/11/03 20:23:01  florian

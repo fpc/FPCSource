@@ -2124,18 +2124,7 @@ end;
 
 {$i modes.inc}
 {$i palette.inc}
-
-{$ifdef win32}
-{$i win32.inc}
-{$else win32}
-
-{$ifdef DPMI}
-{$i vesah.inc}
-{$endif DPMI}
-
 {$i graph.inc}
-
-{$endif win32}
 
   function InstallUserDriver(Name: string; AutoDetectPtr: Pointer): integer;
    begin
@@ -2972,7 +2961,10 @@ SetGraphBufSize
 
 {
   $Log$
-  Revision 1.34  1999-11-03 20:23:01  florian
+  Revision 1.35  1999-11-08 11:15:22  peter
+    * move graph.inc to the target dir
+
+  Revision 1.34  1999/11/03 20:23:01  florian
     + first release of win32 gui support
 
   Revision 1.33  1999/10/17 10:20:13  jonas

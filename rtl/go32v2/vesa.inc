@@ -1938,7 +1938,10 @@ end;
 
 {
 $Log$
-Revision 1.21  1999-11-03 20:23:01  florian
+Revision 1.1  1999-11-08 11:15:21  peter
+  * move graph.inc to the target dir
+
+Revision 1.21  1999/11/03 20:23:01  florian
   + first release of win32 gui support
 
 Revision 1.20  1999/10/24 15:50:23  carl

@@ -64,7 +64,10 @@ var
                           { initialized in QueryAdapterInfo in graph.inc }
 {
   $Log$
-  Revision 1.2  1999-09-26 13:31:07  jonas
+  Revision 1.1  1999-11-08 11:15:21  peter
+    * move graph.inc to the target dir
+
+  Revision 1.2  1999/09/26 13:31:07  jonas
     * changed name of modeinfo variable to vesamodeinfo and fixed
       associated errors (fillchar(modeinfo,sizeof(tmodeinfo),#0) instead
       of sizeof(TVesamodeinfo) etc)

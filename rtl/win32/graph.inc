@@ -521,7 +521,10 @@ function queryadapterinfo : pmodeinfo;
 
 {
   $Log$
-  Revision 1.1  1999-11-03 20:23:02  florian
+  Revision 1.1  1999-11-08 11:15:22  peter
+    * move graph.inc to the target dir
+
+  Revision 1.1  1999/11/03 20:23:02  florian
     + first release of win32 gui support
 
 }
