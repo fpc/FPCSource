@@ -8,13 +8,14 @@ The main makefile is located ABOVE the RTL tree. It uses the FPC
 makefile.fpc to guess reasonable defaults for everything it needs.
 (these files can be found in base.zip on the FTP site)
 
-The only variable that you may want to set are
-PP              - What compiler to use. Use an absolute path. 
-                  (default is ppc386)
-UNITINSTALLDIR  - Where to install the RTL units 
-OPT             - any special options you want to set for the compiler.
+Some variables that you may want to set (using 'make <variable>="value"') are:
+
+  FPC             - What compiler to use. Use an absolute path.
+                    (default is ppc386)
+  UNITINSTALLDIR  - Where to install the RTL units
+  OPT             - any special options you want to set for the compiler.
 
 In principle, you can also descend into the subdirectory of your OS, and
-type 'make' there, that should also compile everything.
+type 'make' there, that will also compile everything.
 
 Enjoy.
