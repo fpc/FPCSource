@@ -129,6 +129,8 @@ procedure InitTemplates;
   procedure ScanDir(Dir: PathStr);
   var SR: SearchRec;
       S: string;
+      PT : PTemplate;
+      i : sw_integer; 
   begin
     if copy(Dir,length(Dir),1)<>DirSep then Dir:=Dir+DirSep;
     FindFirst(Dir+'*.pt',AnyFile,SR);
@@ -137,7 +139,11 @@ procedure InitTemplates;
       S:=NameOf(SR.Name);
       S:=LowerCaseStr(S);
       S[1]:=Upcase(S[1]);
-      Templates^.Insert(NewTemplate(S,FExpand(Dir+SR.Name)));
+      PT:=NewTemplate(S,FExpand(Dir+SR.Name));
+      if not Templates^.Search(PT,i) then
+        Templates^.Insert(PT)
+      else
+        DisposeTemplate(PT);
       FindNext(SR);
     end;
   {$ifdef FPC}
@@ -164,7 +170,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.7  1999-03-08 14:58:11  peter
+  Revision 1.8  1999-06-25 00:33:40  pierre
+   * avoid lost memory on duplicate Template Items
+
+  Revision 1.7  1999/03/08 14:58:11  peter
     + prompt with dialogs for tools
 
   Revision 1.6  1999/03/01 15:42:03  peter
