@@ -858,12 +858,14 @@ implementation
                 calcregisters(p,0,0,0)
               else
                 calcregisters(p,1,0,0);
+{$ifdef newoptimizations2}
 {$ifdef i386}
               { not always necessary, only if it is not a constant char and }
               { not a regvar, but don't know how to check this here (JM)    }
               if is_char(rd) then
                 inc(p^.registers32);
 {$endif i386}
+{$endif newoptimizations2}
               convdone:=true;
            end
          else
@@ -1293,7 +1295,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2000-09-21 11:30:49  jonas
+  Revision 1.10  2000-09-21 12:22:17  jonas
+    * put piece of code between -dnewoptimizations2 since it wasn't
+      necessary otherwise
+
+  Revision 1.9  2000/09/21 11:30:49  jonas
     + support for full boolean evaluation (b+/b-), default remains short
       circuit boolean evaluation
 
