@@ -222,6 +222,8 @@ type
     procedure AddKeyDef(AMethod: TKeyboardActionProc; ADescr: String;
       AKeyCode: Integer; AShiftState: TShiftState);
 
+    procedure FocusIn;
+    procedure FocusOut;
     procedure DrawContent(x1, y1, x2, y2: Integer);
     procedure KeyPressed(KeyCode: LongWord; ShiftState: TShiftState); virtual;
 
@@ -310,7 +312,6 @@ constructor TSHTextEdit.Create(ADoc: TTextDoc; ARenderer: ISHRenderer);
 var
   i: Integer;
 begin
-
   FDoc := ADoc;
   // The document must not be empty
   if FDoc.LineCount = 0 then
@@ -328,6 +329,8 @@ begin
   Shortcuts := TCollection.Create(TShortcut);
 
   FRenderer.SetLineCount(FDoc.LineCount);
+  CursorX:=0;
+  CursorY:=0;
 end;
 
 procedure TSHTextEdit.ModifiedChanged(Sender: TObject);
@@ -335,6 +338,18 @@ begin
   if Assigned(OnModifiedChange) then
     OnModifiedChange(Self);
 end;
+
+procedure TSHTextEdit.FocusIn;
+begin
+  CursorVisible := 0;
+  ShowCursor;
+end;
+
+procedure TSHTextEdit.FocusOut;
+begin
+  HideCursor;
+end;
+
 
 procedure TSHTextEdit.SetCursorX(NewCursorX: Integer);
 begin
@@ -367,7 +382,11 @@ end.
 
 {
   $Log$
-  Revision 1.2  1999-11-15 21:47:36  peter
+  Revision 1.3  1999-12-06 21:27:27  peter
+    * gtk updates, redrawing works now much better and clears only between
+      x1 and x2
+
+  Revision 1.2  1999/11/15 21:47:36  peter
     * first working keypress things
 
   Revision 1.1  1999/10/29 15:59:04  peter

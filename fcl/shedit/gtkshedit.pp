@@ -99,9 +99,9 @@ type
     procedure HideCursor(x, y: Integer); override;
 
     // Scrolling support
-    //function  GetVertPos: Integer; override;
-    //procedure SetVertPos(y: Integer); override;
-    //function  GetPageHeight: Integer; override;
+    function  GetVertPos: Integer; override;
+    procedure SetVertPos(y: Integer); override;
+    function  GetPageHeight: Integer; override;
     procedure SetLineCount(count: Integer); override;
 
     // Clipboard support
@@ -112,6 +112,8 @@ type
     Widget: PGtkWidget;  // this is the outer editor widget
 
     constructor Create;
+
+    procedure SetFocus;
 
     function  AddSHStyle(AName: String; AColor, ABackground: LongWord;
       AStyle: TSHFontStyle): Integer;
@@ -129,10 +131,14 @@ var
   x1, y1, x2, y2: Integer;
 begin
   x1 := event^.area.x div edit.CharW;
+  if x1>0 then
+   dec(x1);
   y1 := event^.area.y div edit.CharH;
-  x2 := (event^.area.x + event^.area.width - 1) div edit.CharW;
-  y2 := (event^.area.y + event^.area.height - 1) div edit.CharH;
-//  WriteLn(Format('Expose(%d/%d - %d/%d) for %s', [x1, y1, x2, y2, edit.ClassName]));
+  if y1>0 then
+   dec(y1);
+  x2 := (event^.area.x + event^.area.width - 1) div edit.CharW+1;
+  y2 := (event^.area.y + event^.area.height - 1) div edit.CharH+1;
+  WriteLn(Format('Expose(%d/%d - %d/%d) for %s', [x1, y1, x2, y2, edit.ClassName]));
 
   edit.GdkWnd := edit.PaintBox^.window;
   edit.GC := gdk_gc_new(edit.GdkWnd);
@@ -190,6 +196,22 @@ begin
 end;
 
 
+function TGtkShEdit_FocusInEvent(GtkWidget: PGtkWidget; event: PGdkEventFocus; edit: TGtkSHEdit): Integer; cdecl;
+begin
+  Writeln('focus in');
+  edit.Edit.FocusIn;
+  result:=1;
+end;
+
+
+function TGtkShEdit_FocusOutEvent(GtkWidget: PGtkWidget; event: PGdkEventFocus; edit: TGtkSHEdit): Integer; cdecl;
+begin
+  Writeln('focus out');
+  edit.Edit.FocusOut;
+  result:=1;
+end;
+
+
 {*****************************************************************************
                                  TGtkSHEdit
 *****************************************************************************}
@@ -238,6 +260,10 @@ begin
     GTK_SIGNAL_FUNC(@TGtkSHEdit_KeyPressed), self);
   gtk_signal_connect(PGtkObject(PaintBox), 'button-press-event',
     GTK_SIGNAL_FUNC(@TGtkSHEdit_KeyPressed), self);
+  gtk_signal_connect(PGtkObject(PaintBox), 'focus-in-event',
+    GTK_SIGNAL_FUNC(@TGtkSHEdit_FocusInEvent), self);
+  gtk_signal_connect(PGtkObject(PaintBox), 'focus-out-event',
+    GTK_SIGNAL_FUNC(@TGtkSHEdit_FocusOutEvent), self);
   gtk_widget_show(Widget);
 end;
 
@@ -318,45 +344,69 @@ end;
 procedure TGtkSHEdit.DrawTextLine(x1, x2, y: Integer; s: PChar);
 var
   CurColor: LongWord;
-  rx1, rx2: Integer;
+  rx1,rx2 : Integer;
 
-  procedure DoErase;
+  procedure doerase;
   begin
-    SetGCColor(CurColor);
-    gdk_draw_rectangle(PGdkDrawable(GdkWnd), GC, 1,
-      rx1 * CharW, y * CharH, (rx2 - rx1 + 1) * CharW, CharH);
-    rx1 := rx2;
+    if rx2>rx1 then
+     begin
+       SetGCColor(CurColor);
+       gdk_draw_rectangle(PGdkDrawable(GdkWnd), GC, 1,
+                          x1 * CharW + LeftIndent, y * CharH, (rx2 - rx1 + 1) * CharW + LeftIndent, CharH);
+       rx1:=rx2;
+     end;
   end;
 
 var
   RequestedColor: Char;
   i, j, px: Integer;
   NewColor: LongWord;
+  hs : pchar;
 begin
   {WriteLn(Format('DrawTextLine(%d) for %s ', [y, ClassName]));}
 
   // Erase the (potentially multi-coloured) background
 
-  rx1 := 0;
+  rx1 := x1;
   rx2 := 0;
   j := 0;
   CurColor := SHStyles^[shWhitespace].Background;
 
-  while (s[j] <> #0) and (rx2 <= x2) do begin
-    if s[j] = LF_Escape then begin
-      NewColor := SHStyles^[Ord(s[j + 1])].Background;
-      if NewColor = colDefault then
-        NewColor := SHStyles^[shWhitespace].Background;
-      if NewColor <> CurColor then begin
-        DoErase;
-        CurColor := NewColor;
-      end;
-      Inc(j, 2);
-    end else begin
-      Inc(rx2);
-      Inc(j);
+  // Clear background
+  hs:=s;
+  rx2:=0;
+  repeat
+    case hs[0] of
+      #0 :
+        break;
+      LF_Escape :
+        begin
+          NewColor := SHStyles^[Ord(hs[1])].Background;
+          if NewColor = colDefault then
+           NewColor := SHStyles^[shWhitespace].Background;
+          if (NewColor <> CurColor) then
+           begin
+             DoErase;
+             CurColor := NewColor;
+           end;
+          Inc(hs, 2);
+        end;
+      #9 :
+        begin
+          repeat
+            Inc(rx2, CharW);
+            Inc(i);
+          until (i and 7) = 0;
+          Inc(hs);
+        end;
+      else
+        begin
+          Inc(hs);
+          Inc(i);
+          Inc(rx2);
+        end;
     end;
-  end;
+  until false;
   rx2 := x2;
   DoErase;
 
@@ -365,40 +415,79 @@ begin
   CurGCColor := colInvalid;
   i := 0;
   px := 0;
-  while s[0] <> #0 do begin
-    if s[0] = LF_Escape then begin
-      RequestedColor := s[1];
-      Inc(s, 2);
-    end else if s[0] = #9 then begin
-      repeat
-        Inc(px, CharW);
-        Inc(i);
-      until (i and 7) = 0;
-      Inc(s);
-    end else begin
-      if (px >= x1) and (px <= x2) then begin
-        SetGCColor(SHStyles^[Ord(RequestedColor)].Color);
-        gdk_draw_text(PGdkDrawable(GdkWnd),
-          Font[SHStyles^[Ord(RequestedColor)].FontStyle], GC,
-          px * CharW + LeftIndent, (y + 1) * CharH - 3, s, 1);
-      end;
-      Inc(s);
-      Inc(i);
-      Inc(px);
+  repeat
+    case s[0] of
+      #0 :
+        break;
+      LF_Escape :
+        begin
+          RequestedColor := s[1];
+          Inc(s, 2);
+        end;
+      #9 :
+        begin
+          repeat
+            Inc(px, CharW);
+            Inc(i);
+          until (i and 7) = 0;
+          Inc(s);
+        end;
+      else
+        begin
+          if (px >= x1) and (px <= x2) then
+           begin
+             SetGCColor(SHStyles^[Ord(RequestedColor)].Color);
+             gdk_draw_text(PGdkDrawable(GdkWnd),
+                           Font[SHStyles^[Ord(RequestedColor)].FontStyle], GC,
+                           px * CharW + LeftIndent, (y + 1) * CharH - 3, s, 1);
+           end;
+          Inc(s);
+          Inc(i);
+          Inc(px);
+        end;
     end;
-  end;
+  until false;
+{ Also draw the cursor }
+{  if y=edit.CursorY then
+   DrawCursor; }
+end;
+
+
+procedure TGtkSHEdit.SetFocus;
+begin
+  gtk_window_set_focus(PGtkWindow(gtk_widget_get_toplevel(Paintbox)),Paintbox);
 end;
 
 
 procedure TGtkSHEdit.ShowCursor(x, y: Integer);
+var
+  r : TGdkRectangle;
+  px,py : integer;
 begin
-  // !!!!!!
+  writeln('Showcursor ',x,',',y);
+    px:=x*CharW + LeftIndent;
+    py:=y*CharH;
+    SetGCColor(colBlack);
+    gdk_draw_rectangle(PGdkDrawable(GdkWnd), GC, 1, px, py, px+2, py+CharH);
+
+{  r.x:=x * CharW;
+  r.y:=y * CharH;
+  r.Width:=CharW;
+  r.Height:=CharH;
+  gtk_widget_draw(PGtkWidget(PaintBox), @r); }
 end;
 
 
 procedure TGtkSHEdit.HideCursor(x, y: Integer);
+var
+  r : TGdkRectangle;
 begin
-  // !!!!!!
+  writeln('Hidecursor ',x,',',y);
+  r.x:=x * CharW + LeftIndent;
+  r.y:=y * CharH;
+  r.Width:=CharW;
+  r.Height:=CharH;
+  gtk_widget_draw(PGtkWidget(PaintBox), @r);
 end;
 
 
@@ -410,10 +499,31 @@ begin
 end;
 
 
+function TGtkSHEdit.GetVertPos: Integer;
+begin
+  Result := Trunc(vadj^.value) div CharH;
+end;
+
+
+procedure TGtkSHEdit.SetVertPos(y: Integer);
+begin
+  gtk_adjustment_set_value(vadj, y*CharH);
+end;
+
+
+function TGtkSHEdit.GetPageHeight: Integer;
+begin
+  Result := Trunc(vadj^.page_size) div CharH;
+end;
+
 end.
 {
   $Log$
-  Revision 1.1  1999-11-15 21:47:36  peter
+  Revision 1.2  1999-12-06 21:27:27  peter
+    * gtk updates, redrawing works now much better and clears only between
+      x1 and x2
+
+  Revision 1.1  1999/11/15 21:47:36  peter
     * first working keypress things
 
 }
