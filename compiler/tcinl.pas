@@ -670,11 +670,20 @@ implementation
                        { file is not typed.                             }
                        if assigned(hp) and assigned(hp^.resulttype) then
                          Begin
-                           if (hp^.resulttype^.deftype=filedef) and
-                              (pfiledef(hp^.resulttype)^.filetyp=ft_typed) then
+                           if (hp^.resulttype^.deftype=filedef) then
+                           if (pfiledef(hp^.resulttype)^.filetyp=ft_untyped) then
+                             begin
+                              if (p^.inlinenumber in [in_readln_x,in_writeln_x]) then
+                                CGMessage(type_e_no_readln_writeln_for_typed_file)
+                              else
+                                CGMessage(type_e_no_read_write_for_untyped_file);
+                             end
+                           else if (pfiledef(hp^.resulttype)^.filetyp=ft_typed) then
                             begin
                               file_is_typed:=true;
                               { test the type }
+                              if (p^.inlinenumber in [in_readln_x,in_writeln_x]) then
+                                CGMessage(type_e_no_readln_writeln_for_typed_file);
                               hpp:=p^.left;
                               while (hpp<>hp) do
                                begin
@@ -1306,7 +1315,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.71  2000-03-22 17:34:53  jonas
+  Revision 1.72  2000-03-27 09:42:50  pierre
+    + add error if trying to use readln or writeln for files
+      or read or write on untyped files.
+      Reset and rewrite are still incompatible with BP
+      (reset(dat,1); is allowed for typed file !)
+
+  Revision 1.71  2000/03/22 17:34:53  jonas
     * fix for webbug 886
 
   Revision 1.70  2000/03/21 09:12:40  florian

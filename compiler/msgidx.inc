@@ -243,6 +243,8 @@ type tmsgconst=(
   type_e_strict_var_string_violation,
   type_e_succ_and_pred_enums_with_assign_not_possible,
   type_e_cant_read_write_type,
+  type_e_no_readln_writeln_for_typed_file,
+  type_e_no_read_write_for_untyped_file,
   type_e_typeconflict_in_set,
   type_w_maybe_wrong_hi_lo,
   type_e_integer_or_real_expr_expected,

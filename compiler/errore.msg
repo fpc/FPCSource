@@ -922,6 +922,10 @@ type_e_cant_read_write_type=E_Can't read or write variables of this type
 % You are trying to \var{read} or \var{write} a variable from or to a
 % file of type text, which doesn't support that. Only integer types,
 % booleans, reals, pchars and strings can be read from/written to a text file.
+type_e_no_readln_writeln_for_typed_file=E_Can't use readln or writeln on typed file
+% \var{readln} and \var{writeln} are only allowed for text files.
+type_e_no_read_write_for_untyped_file=E_Can't use read or write on untyped file.
+% \var{read} and \var{write} are only allowed for text or typed files.
 type_e_typeconflict_in_set=E_Type conflict between set elements
 % There is at least one set element which is of the wrong type, i.e. not of
 % the set type.
