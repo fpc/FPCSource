@@ -1289,11 +1289,20 @@ unit pass_1;
            end
          else
 
-         { is one of the sides a string ? }
-           if (ld^.deftype=stringdef) or (rd^.deftype=stringdef) then
+         { is one of the sides a shortstring ? }
+           if (rd^.deftype=stringdef) or (ld^.deftype=stringdef) then
             begin
-            { convert other side to a string, if not both site are strings,
-              the typeconv will put give an error if it's not possible }
+              {
+              if is_widestring(rd) or is_widestring(ld) then
+                begin
+                end
+              else if is_ansistring(rd) or is_ansistring(ld) then
+                begin
+                end
+              else if is_longstring(rd) or is_longstring(ld) then
+                begin
+                end
+              }
               if not((rd^.deftype=stringdef) and (ld^.deftype=stringdef)) then
                begin
                  if ld^.deftype=stringdef then
@@ -5781,7 +5790,10 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.91  1998-09-23 12:03:53  peter
+  Revision 1.92  1998-09-23 15:46:37  florian
+    * problem with with and classes fixed
+
+  Revision 1.91  1998/09/23 12:03:53  peter
     * overloading fix for array of const
 
   Revision 1.90  1998/09/23 09:58:49  peter

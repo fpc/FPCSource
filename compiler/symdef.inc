@@ -1558,10 +1558,11 @@
          inherited done;
       end;
 
-
     var
        binittable : boolean;
+
     procedure check_rec_inittable(s : psym);
+
       begin
          if (s^.typ=varsym) and
             ((pvarsym(s)^.definition^.deftype<>objectdef)
@@ -3024,7 +3025,10 @@
 
 {
   $Log$
-  Revision 1.49  1998-09-23 12:03:55  peter
+  Revision 1.50  1998-09-23 15:46:40  florian
+    * problem with with and classes fixed
+
+  Revision 1.49  1998/09/23 12:03:55  peter
     * overloading fix for array of const
 
   Revision 1.48  1998/09/22 15:37:23  peter

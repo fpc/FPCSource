@@ -437,7 +437,7 @@ unit pexpr;
 
 
     { the following procedure handles the access to a property symbol }
-    procedure handle_propertysym(sym : psym;var p1 : ptree;
+    procedure handle_propertysym(sym : psym;st : psymtable;var p1 : ptree;
       var pd : pdef);
 
       var
@@ -470,8 +470,7 @@ unit pexpr;
                      begin
                         { generate the method call }
                         p1:=genmethodcallnode(pprocsym(
-                          ppropertysym(sym)^.writeaccesssym),
-                          ppropertysym(sym)^.writeaccesssym^.owner,p1);
+                          ppropertysym(sym)^.writeaccesssym),st,p1);
                         { we know the procedure to call, so
                           force the usage of that procedure }
                         p1^.procdefinition:=pprocdef(ppropertysym(sym)^.writeaccessdef);
@@ -488,8 +487,7 @@ unit pexpr;
                         { subscribed access? }
                         if p1=nil then
                           begin
-                             p1:=genloadnode(pvarsym(ppropertysym(sym)^.readaccesssym),
-                               ppropertysym(sym)^.readaccesssym^.owner);
+                             p1:=genloadnode(pvarsym(ppropertysym(sym)^.readaccesssym),st);
                           end
                         else
                           p1:=gensubscriptnode(pvarsym(
@@ -524,8 +522,8 @@ unit pexpr;
                         { subscribed access? }
                         if p1=nil then
                           begin
-                             p1:=genloadnode(pvarsym(ppropertysym(sym)^.readaccesssym),
-                               ppropertysym(sym)^.readaccesssym^.owner);
+                             p1:=genloadnode(pvarsym(
+                              ppropertysym(sym)^.readaccesssym),st);
                           end
                         else
                           p1:=gensubscriptnode(pvarsym(
@@ -535,8 +533,7 @@ unit pexpr;
                      begin
                         { generate the method call }
                         p1:=genmethodcallnode(pprocsym(
-                          ppropertysym(sym)^.readaccesssym),
-                          ppropertysym(sym)^.readaccesssym^.owner,p1);
+                          ppropertysym(sym)^.readaccesssym),st,p1);
                         { we know the procedure to call, so
                           force the usage of that procedure }
                         p1^.procdefinition:=pprocdef(ppropertysym(sym)^.readaccessdef);
@@ -638,7 +635,7 @@ unit pexpr;
                    begin
                       if isclassref then
                         Message(parser_e_only_class_methods_via_class_ref);
-                      handle_propertysym(sym,p1,pd);
+                      handle_propertysym(sym,srsymtable,p1,pd);
                    end;
                  else internalerror(16);
               end;
@@ -941,7 +938,7 @@ unit pexpr;
                                Message(parser_e_only_class_methods);
                               { no method pointer }
                               p1:=nil;
-                              handle_propertysym(srsym,p1,pd);
+                              handle_propertysym(srsym,srsymtable,p1,pd);
                             end;
                  errorsym : begin
                               p1:=genzeronode(errorn);
@@ -1078,7 +1075,7 @@ unit pexpr;
                         else
                           begin
                              p1:=nil;
-                             handle_propertysym(propsym,p1,pd);
+                             handle_propertysym(propsym,propsym^.owner,p1,pd);
                           end;
                       end
                     else
@@ -1751,7 +1748,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.53  1998-09-23 09:58:54  peter
+  Revision 1.54  1998-09-23 15:46:39  florian
+    * problem with with and classes fixed
+
+  Revision 1.53  1998/09/23 09:58:54  peter
     * first working array of const things
 
   Revision 1.52  1998/09/20 09:38:45  florian

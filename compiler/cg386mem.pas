@@ -619,8 +619,13 @@ implementation
                secondpass(p^.left);
                ref.symbol:=nil;
                gettempofsizereference(4,ref);
-               exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,
-                 newreference(p^.left^.location.reference),R_EDI)));
+               if (p^.left^.resulttype^.deftype=objectdef) and
+                 pobjectdef(p^.left^.resulttype)^.isclass then
+                 exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                   newreference(p^.left^.location.reference),R_EDI)))
+               else
+                 exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,
+                   newreference(p^.left^.location.reference),R_EDI)));
                exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
                  R_EDI,newreference(ref))));
                del_reference(p^.left^.location.reference);
@@ -644,7 +649,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  1998-09-17 09:42:18  peter
+  Revision 1.12  1998-09-23 15:46:36  florian
+    * problem with with and classes fixed
+
+  Revision 1.11  1998/09/17 09:42:18  peter
     + pass_2 for cg386
     * Message() -> CGMessage() for pass_1/pass_2
 
