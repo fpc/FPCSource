@@ -76,7 +76,8 @@
      DWORDLONG  = qword;  { was unsigned long  }
      PDWORDLONG = ^DWORDLONG;
 
-     HANDLE = longint;    { or should it be cardinal ?? PM }
+     HANDLE = type Cardinal;
+     HRESULT = System.HResult;
 
      HACCEL = HANDLE;
      HBITMAP = HANDLE;
@@ -111,7 +112,6 @@
      HPALETTE = HANDLE;
      HPEN = HANDLE;
      HRASCONN = HANDLE;
-     HRESULT = HANDLE;
      HRGN = HANDLE;
      HRSRC = HANDLE;
      HSTMT = HANDLE;
@@ -937,7 +937,11 @@ type
 
 {
   $Log$
-  Revision 1.15  2002-12-12 17:34:35  peter
+  Revision 1.16  2003-04-01 15:37:17  peter
+    * HResult is alias for System.HResult
+    * Handle is unique type of Cardinal
+
+  Revision 1.15  2002/12/12 17:34:35  peter
     * Renaming INT type to WINT
 
   Revision 1.14  2002/11/27 20:08:21  peter
