@@ -67,20 +67,20 @@ Var hp2, hp3, EndMod: Pai;
   consequently all instructions containg %eax are removed}
   Begin
     TmpResult := True;
-    If (Pai(oldp)^.typ = ait_instruction) Then {oldp and newp are the same instruction}
-      Case Pai386(oldp)^.op1t Of
+    If (Pai(NewP)^.typ = ait_instruction) Then
+      Case Pai386(NewP)^.op1t Of
         Top_Reg:
-          If (Reg32(TRegister(Pai386(oldp)^.op1)) in RegsNotYetChecked) Then
+          If (Reg32(TRegister(Pai386(NewP)^.op1)) in RegsNotYetChecked) Then
             Begin
-              RegsNotYetChecked := RegsNotYetChecked - [Reg32(TRegister(Pai386(oldp)^.op1))];
+              RegsNotYetChecked := RegsNotYetChecked - [Reg32(TRegister(Pai386(NewP)^.op1))];
               TmpP := NewP;
               While GetLastInstruction(TmpP, TmpP) And
                     PPaiProp(TmpP^.fileinfo.Line)^.CanBeRemoved Do;
               TmpResult := Assigned(TmpP) And
-                             RegsSameContent(oldp, TmpP, Reg32(TRegister(Pai386(oldp)^.op1)))
+                             RegsSameContent(oldp, TmpP, Reg32(TRegister(Pai386(Newp)^.op1)))
             End;
         Top_Ref:
-          With TReference(Pai386(oldp)^.op1^) Do
+          With TReference(Pai386(NewP)^.op1^) Do
             Begin
               If (Base in RegsNotYetChecked) And
                  (Base <> R_NO) Then
@@ -101,7 +101,7 @@ Var hp2, hp3, EndMod: Pai;
                   While GetLastInstruction(TmpP, TmpP) And
                         PPaiProp(TmpP^.fileinfo.Line)^.CanBeRemoved Do;
                   TmpResult := Assigned(TmpP) And
-                               RegsSameContent(oldp, TmpP, Index)
+                               RegsSameContent(oldp, TmpP, Index);
                 End;
             End;
       End;
@@ -125,6 +125,11 @@ Begin {CheckSequence}
          InstructionsEqual(hp2, hp3) And
          NoChangedRegInRef(EndMod, hp3) Do
     Begin
+      If (hp2^.typ = ait_instruction) And
+         (Pai386(hp2)^._operator in [a_mov, a_movsx, a_movzx]) And
+         (Pai386(hp2)^.op2t = top_reg)
+        Then RegsNotYetChecked := RegsNotYetChecked -
+                                  [Reg32(TRegister(Pai386(hp2)^.op2))];
       GetNextInstruction(hp2, hp2);
       GetNextInstruction(hp3, hp3);
       Inc(Found)
@@ -387,7 +392,10 @@ End.
 
 {
  $Log$
- Revision 1.5  1998-09-16 17:59:59  jonas
+ Revision 1.6  1998-09-17 21:54:21  jonas
+   * big error (with little consequences) corrected in NoChangedRegInRef
+
+ Revision 1.5  1998/09/16 17:59:59  jonas
    * optimizer now completely dependant on GetNext/GetLast instruction, works again with -dRegAlloc
 
  Revision 1.4  1998/08/06 19:40:27  jonas
