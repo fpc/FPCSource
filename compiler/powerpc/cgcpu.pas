@@ -769,7 +769,7 @@ const
             op := A_CMPW
           else op := A_CMPLW;
           r.enum:=R_CR0;
-          list.concat(taicpu.op_reg_reg_reg(op,r,reg1,reg2));
+          list.concat(taicpu.op_reg_reg_reg(op,r,reg2,reg1));
           a_jmp(list,A_BC,TOpCmp2AsmCond[cmp_op],0,l);
         end;
 
@@ -2353,7 +2353,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.82  2003-04-25 20:55:34  florian
+  Revision 1.83  2003-04-26 15:25:29  florian
+    * fixed cmp_reg_reg_reg, cmp operands were emitted in the wrong order
+
+  Revision 1.82  2003/04/25 20:55:34  florian
     * stack frame calculations are now completly done using the code generator
       routines instead of generating directly assembler so also large stack frames
       are handle properly
