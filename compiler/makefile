@@ -242,7 +242,7 @@ $(MAKEDEP) : $(RTLDIR)/utils/mkdep.pp
 	$(CP) $(RTLDIR)/utils/$(MAKEDEP) $(MAKEDEP)
 
 dependencies : $(MAKEDEP)
-	$(MAKEDEP) pp.pas $(PPDEFS) '-A$$(COMPILER)' > depend
+	$(MAKEDEP) pp.pas $(PPDEFS) '-F$$(COMPILER)' > depend
 
 include depend
 endif
@@ -419,7 +419,10 @@ rtlclean :
 # Test of log at the end
 # does CVS add # at start of each line ??
 # $Log$
-# Revision 1.18  1998-06-10 10:42:44  peter
+# Revision 1.19  1998-06-23 14:00:15  peter
+#   * renamed RA* units
+#
+# Revision 1.18  1998/06/10 10:42:44  peter
 #   * ifndef TARGET to allow target on commandline
 #
 # Revision 1.17  1998/06/08 09:22:02  michael

@@ -239,7 +239,10 @@ unit radi386;
 end.
 {
   $Log$
-  Revision 1.5  1998-06-12 10:32:32  pierre
+  Revision 1.1  1998-06-23 14:00:18  peter
+    * renamed RA* units
+
+  Revision 1.5  1998/06/12 10:32:32  pierre
     * column problem hopefully solved
     + C vars declaration changed
 

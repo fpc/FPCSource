@@ -3691,7 +3691,10 @@ end.
 
 {
   $Log$
-  Revision 1.13  1998-06-16 08:56:29  peter
+  Revision 1.1  1998-06-23 14:00:17  peter
+    * renamed RA* units
+
+  Revision 1.13  1998/06/16 08:56:29  peter
     + targetcpu
     * cleaner pmodules for newppu
 

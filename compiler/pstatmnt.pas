@@ -48,19 +48,19 @@ unit pstatmnt;
 {$ifdef i386}
        ,i386,tgeni386
   {$ifndef NoRa386Int}
-       ,rai386
+       ,ra386int
   {$endif NoRa386Int}
   {$ifndef NoRa386Att}
-       ,ratti386
+       ,ra386att
   {$endif NoRa386Att}
   {$ifndef NoRa386Dir}
-       ,radi386
+       ,ra386dir
   {$endif NoRa386Dir}
 {$endif i386}
 {$ifdef m68k}
        ,m68k,tgen68k
   {$ifndef NoRa68kMot}
-       ,ra68k
+       ,ra68kmot
   {$endif NoRa68kMot}
 {$endif m68k}
        ;
@@ -1136,7 +1136,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.19  1998-06-08 22:59:50  peter
+  Revision 1.20  1998-06-23 14:00:16  peter
+    * renamed RA* units
+
+  Revision 1.19  1998/06/08 22:59:50  peter
     * smartlinking works for win32
     * some defines to exclude some compiler parts
 
