@@ -21,6 +21,9 @@ interface
     {$ifdef linux}
        linux
     {$else}
+      {$ifdef win32}
+       windows,
+      {$endif}
        dos
       {$ifdef go32v2}
          ,go32
@@ -268,7 +271,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.18  1998-12-15 22:43:12  peter
+    Revision 1.19  1999-02-03 16:18:58  michael
+    + Uses Windows on win32 platform
+
+    Revision 1.18  1998/12/15 22:43:12  peter
       * removed temp symbols
 
     Revision 1.17  1998/10/20 19:26:37  michael
