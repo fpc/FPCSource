@@ -49,7 +49,7 @@ unit inststr;
 
        msg_nocomponents = 'No components selected.'#13#13'Abort installation?';
        msg_overwrite_cfg = 'Config %s already exists, continue writing default config?';
-       msg_problems_writing_cfg = #3'Default config not written.'#13#3'%s'#13#3'couldn''t be created';
+       msg_problems_writing_cfg = #3'A config not written.'#13#3'%s'#13#3'couldn''t be created';
        msg_problems_create_dir = 'A file with the name chosen as the installation '+
                                  'directory exists already. Cannot create this directory!';
        msg_no_components_selected = 'No components selected.'#13#13'Create a configfile ?';
@@ -81,6 +81,7 @@ unit inststr;
        str_is_not = 'is not';
        str_might_not_be = 'might not be';
        str_to_compile = 'To compile files enter ';
+       str_start_ide = 'To start the IDE (Integrated Development Environment) type ''fp'' at a command line prompt';
        str_libpath = 'and your LIBPATH with ';
        str_extend_libpath = 'Extend your LIBPATH with ';
        str_dll = 'dll';
@@ -93,7 +94,10 @@ unit inststr;
 end.
 {
   $Log$
-  Revision 1.3  2000-09-22 12:15:49  florian
+  Revision 1.4  2000-10-11 15:57:47  peter
+    * merged ide additions
+
+  Revision 1.3  2000/09/22 12:15:49  florian
     + support of Russian (Windows)
 
   Revision 1.2  2000/09/22 11:07:51  florian

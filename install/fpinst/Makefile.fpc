@@ -23,7 +23,7 @@ packages=api fv
 [dirs]
 fpcdir=..
 targetdir=.
-
+unitdir=../../ide/text
 
 [rules]
 installer.pas: install.pas

@@ -70,11 +70,12 @@ program install;
 {$IFDEF DLL}
      unzipdll,
 {$ENDIF}
-     app,dialogs,views,menus,msgbox,colortxt,tabs,inststr,scroll;
+     app,dialogs,views,menus,msgbox,colortxt,tabs,inststr,scroll,
+     HelpCtx,WHTMLScn;
 
 
   const
-     installerversion='1.02';
+     installerversion='1.0.2';
 
 
      {$ifdef TP}lfnsupport=false;{$endif}
@@ -83,11 +84,15 @@ program install;
      maxpackages=20;
      maxdefcfgs=1024;
 
+     HTMLIndexExt = '.htx';
      CfgExt = '.dat';
 
      MaxStatusPos = 4;
      StatusChars: string [MaxStatusPos] = '/-\|';
      StatusPos: byte = 1;
+     { this variable is set to true if an ide is installed }
+     haside : boolean = false;
+     hashtmlhelp : boolean = false;
 
 {$IFDEF LINUX}
      DirSep='/';
@@ -121,6 +126,8 @@ program install;
        name     : string[12];
        binsub   : string[40];
        ppc386   : string[20];
+       defidecfgfile,
+       defideinifile,
        defcfgfile : string[12];
        include  : boolean;
        filechk  : string[40];
@@ -128,15 +135,23 @@ program install;
        package  : array[1..maxpackages] of tpackage;
      end;
 
+     tcfgarray = array[1..maxdefcfgs] of pstring;
+
      cfgrec=record
        title    : string[80];
        version  : string[20];
        language : string[30];
+       helpidx,
+       docsub,
        basepath : DirStr;
        packs    : word;
        pack     : array[1..maxpacks] of tpack;
+       defideinis,
+       defidecfgs,
        defcfgs  : longint;
-       defcfg   : array[1..maxdefcfgs] of pstring;
+       defideini,
+       defidecfg,
+       defcfg   : tcfgarray;
      end;
 
      datarec=packed record
@@ -166,6 +181,19 @@ program install;
      planguagedialog = ^tlanguagedialog;
      tlanguagedialog = object(tdialog)
         constructor init;
+     end;
+
+     PFPHTMLFileLinkScanner = ^TFPHTMLFileLinkScanner;
+     TFPHTMLFileLinkScanner = object(THTMLFileLinkScanner)
+        function    CheckURL(const URL: string): boolean; virtual;
+        function    CheckText(const Text: string): boolean; virtual;
+        procedure   ProcessDoc(Doc: PHTMLLinkScanFile); virtual;
+     end;
+
+     phtmlindexdialog = ^thtmlindexdialog;
+     thtmlindexdialog = object(tdialog)
+       text : pstatictext;
+       constructor init(var Bounds: TRect; ATitle: TTitleStr);
      end;
 
      tapp = object(tapplication)
@@ -393,12 +421,176 @@ program install;
        GetProgDir := D;
     end;
 
+  function RTrim(const S: string): string;
+  var
+    i : longint;
+  begin
+    i:=length(s);
+    while (i>0) and (s[i]=' ') do
+     dec(i);
+    RTrim:=Copy(s,1,i);
+  end;
+
+  function LTrim(const S: string): string;
+  var
+    i : longint;
+  begin
+    i:=1;
+    while (i<length(s)) and (s[i]=' ') do
+     inc(i);
+    LTrim:=Copy(s,i,255);
+  end;
+
+  function Trim(const S: string): string;
+  begin
+    Trim:=RTrim(LTrim(S));
+  end;
+
+  function CompareText(S1, S2: string): integer;
+  var R: integer;
+  begin
+    S1:=Upcase(S1);
+    S2:=Upcase(S2);
+    if S1<S2 then R:=-1 else
+    if S1>S2 then R:= 1 else
+    R:=0;
+    CompareText:=R;
+  end;
+
+  function ExtOf(const S: string): string;
+  var D: DirStr; E: ExtStr; N: NameStr;
+  begin
+    FSplit(S,D,N,E);
+    ExtOf:=E;
+  end;
+
+  function DirAndNameOf(const S: string): string;
+  var D: DirStr; E: ExtStr; N: NameStr;
+  begin
+    FSplit(S,D,N,E);
+    DirAndNameOf:=D+N;
+  end;
+
+{*****************************************************************************
+                          HTML-Index Generation
+*****************************************************************************}
+  var
+     indexdlg : phtmlindexdialog;
+
+  constructor thtmlindexdialog.Init(var Bounds: TRect; ATitle: TTitleStr);
+    var
+      r : trect;
+    begin
+      inherited init(bounds,atitle);
+      R.Assign (4, 2,bounds.B.X-Bounds.A.X-2, 4);
+      text:=new(pstatictext,init(r,'Please wait ...'));
+      insert(text);
+    end;
+
+  procedure TFPHTMLFileLinkScanner.ProcessDoc(Doc: PHTMLLinkScanFile);
+
+    var
+       oldtext : pstring;
+    begin
+       oldtext:=indexdlg^.text^.text;
+       indexdlg^.text^.text:=newstr('Processing '+Doc^.GetDocumentURL);
+       indexdlg^.text^.drawview;
+       inherited ProcessDoc(Doc);
+       disposestr(indexdlg^.text^.text);
+       indexdlg^.text^.text:=oldtext;
+       indexdlg^.text^.drawview;
+    end;
+
+  function TFPHTMLFileLinkScanner.CheckURL(const URL: string): boolean;
+  var OK: boolean;
+  const HTTPPrefix = 'http:';
+        FTPPrefix  = 'ftp:';
+  begin
+    OK:=inherited CheckURL(URL);
+    if OK then OK:=DirAndNameOf(URL)<>'';
+    if OK then OK:=CompareText(copy(ExtOf(URL),1,4),'.HTM')=0;
+    if OK then OK:=CompareText(copy(URL,1,length(HTTPPrefix)),HTTPPrefix)<>0;
+    if OK then OK:=CompareText(copy(URL,1,length(FTPPrefix)),FTPPrefix)<>0;
+    CheckURL:=OK;
+  end;
+
+  function TFPHTMLFileLinkScanner.CheckText(const Text: string): boolean;
+  var OK: boolean;
+      S: string;
+  begin
+    S:=Trim(Text);
+    OK:=(S<>'') and (copy(S,1,1)<>'[');
+    CheckText:=OK;
+  end;
+
+  procedure writehlpindex(filename : string);
+
+    var
+       LS : PFPHTMLFileLinkScanner;
+       BS : PBufStream;
+       S : String;
+       Re : Word;
+       params : array[0..0] of pointer;
+       dir    : searchrec;
+       r : trect;
+
+    begin
+       S:='HTML Index';
+       r.assign(10,10,70,15);
+       indexdlg:=new(phtmlindexdialog,init(r,'Creating HTML index file, please wait ...'));
+       desktop^.insert(indexdlg);
+       New(LS, Init);
+       LS^.ProcessDocument(FileName,[soSubDocsOnly]);
+       if LS^.GetDocumentCount=0 then
+         begin
+           params[0]:=@filename;
+           MessageBox('Problem creating help index %1, abording',@params,
+                  mferror+mfyesbutton+mfnobutton);
+         end
+       else
+         begin
+           FileName:=DirAndNameOf(FileName)+HTMLIndexExt;
+           findfirst(filename,AnyFile,dir);
+           if doserror=0 then
+             begin
+                params[0]:=@filename;
+                Re:=MessageBox('Help index %s already exists, overwrite it?',@params,
+                  mfinformation+mfyesbutton+mfnobutton);
+             end;
+           if Re<>cmNo then
+           begin
+             New(BS, Init(FileName, stCreate, 4096));
+             if Assigned(BS)=false then
+               begin
+                  MessageBox('Error while writing help index! '+
+                    'No help index is created',@params,
+                    mferror+mfokbutton);
+                  Re:=cmCancel;
+               end
+             else
+               begin
+                 LS^.StoreDocuments(BS^);
+                 if BS^.Status<>stOK then
+                   begin
+                      MessageBox('Error while writing help index!'#13+
+                        'No help index is created',@params,
+                        mferror+mfokbutton);
+                      Re:=cmCancel;
+                   end;
+                 Dispose(BS, Done);
+               end;
+           end;
+         end;
+       Dispose(LS, Done);
+       desktop^.delete(indexdlg);
+       dispose(indexdlg,done);
+    end;
 
 {*****************************************************************************
                           Writing of ppc386.cfg
 *****************************************************************************}
 
-  procedure writedefcfg(const fn:string);
+  procedure writedefcfg(const fn:string;const cfgdata : tcfgarray;count : longint);
     var
       t      : text;
       i      : longint;
@@ -432,10 +624,10 @@ program install;
          MessageBox(msg_problems_writing_cfg,@params,mfinformation+mfokbutton);
          exit;
        end;
-      for i:=1 to cfg.defcfgs do
-       if assigned(cfg.defcfg[i]) then
+      for i:=1 to count do
+       if assigned(cfgdata[i]) then
          begin
-           s:=cfg.defcfg[i]^;
+           s:=cfgdata[i]^;
            Replace(s,'$1',data.basepath);
 
            { error msg file entry? }
@@ -574,7 +766,10 @@ program install;
       EMXName: array [1..4] of char = 'EMX'#0;
 {$ENDIF}
     begin
-      YB := 14;
+      if haside then
+        YB := 15
+      else
+        YB := 14;
 
 {$IFNDEF LINUX}
       s:='';
@@ -624,16 +819,23 @@ program install;
           S := str_libpath+'''' + S + '\'+str_dll+''''
          else
           S := str_extend_libpath+'''' + S + '\'+str_dll+'''';
-         R.Assign (2, YB - 13, 64, YB - 11);
+         R.Assign (2, YB - 14, 64, YB - 12);
          P := New (PStaticText, Init (R, S));
          Insert (P);
        end;
   {$ENDIF}
 {$ENDIF}
 
-      R.Assign(2, YB - 11, 64, YB - 10);
+      R.Assign(2, YB - 13, 64, YB - 12);
       P:=new(pstatictext,init(r,str_to_compile+''''+cfg.pack[1].ppc386+str_file2+''''));
       insert(P);
+
+      if haside then
+        begin
+           R.Assign(2, YB - 12, 64, YB - 10);
+           P:=new(pstatictext,init(r,str_start_ide));
+           insert(P);
+        end;
 
       R.Assign (29, YB - 9, 39, YB - 7);
       Control := New (PButton, Init (R,str_ok, cmOK, bfDefault));
@@ -981,6 +1183,29 @@ program install;
        DSize,Space,ASpace : longint;
        S: DirStr;
 {$endif}
+
+    procedure doconfigwrite;
+
+      var
+         i : longint;
+
+      begin
+         for i:=1 to cfg.packs do
+           if cfg.pack[i].defcfgfile<>'' then
+             writedefcfg(data.basepath+cfg.pack[i].binsub+DirSep+cfg.pack[i].defcfgfile,cfg.defcfg,cfg.defcfgs);
+         if haside then
+           begin
+              for i:=1 to cfg.packs do
+                if cfg.pack[i].defidecfgfile<>'' then
+                 writedefcfg(data.basepath+cfg.pack[i].binsub+DirSep+cfg.pack[i].defidecfgfile,cfg.defidecfg,cfg.defidecfgs);
+              for i:=1 to cfg.packs do
+                if cfg.pack[i].defideinifile<>'' then
+                 writedefcfg(data.basepath+cfg.pack[i].binsub+DirSep+cfg.pack[i].defideinifile,cfg.defideini,cfg.defideinis);
+              if hashtmlhelp then
+                writehlpindex(data.basepath+DirSep+cfg.DocSub+DirSep+cfg.helpidx);
+           end;
+      end;
+
     begin
       data.basepath:=cfg.basepath;
       data.cfgval:=0;
@@ -1054,11 +1279,7 @@ program install;
                      result:=messagebox(msg_no_components_selected,nil,
                                                 mfinformation+mfyesbutton+mfnobutton);
                      if (result=cmYes) and createinstalldir(data.basepath) then
-                      begin
-                        for i:=1 to cfg.packs do
-                         if cfg.pack[i].defcfgfile<>'' then
-                          writedefcfg(data.basepath+cfg.pack[i].binsub+DirSep+cfg.pack[i].defcfgfile);
-                      end;
+                       doconfigwrite;
                      exit;
                    end
                   else
@@ -1093,11 +1314,7 @@ program install;
 
     { write config }
       if (data.cfgval and 1)<>0 then
-       begin
-         for i:=1 to cfg.packs do
-          if cfg.pack[i].defcfgfile<>'' then
-           writedefcfg(data.basepath+cfg.pack[i].binsub+DirSep+cfg.pack[i].defcfgfile);
-       end;
+        doconfigwrite;
 
     { show end message }
       p3:=new(penddialog,init);
@@ -1180,6 +1397,12 @@ program install;
                 if item='BASEPATH' then
                  cfg.basepath:=s
                else
+                if item='HELPIDX' then
+                   cfg.helpidx:=s
+               else
+                if item='DOCSUB' then
+                   cfg.docsub:=s
+               else
                 if item='DEFAULTCFG' then
                  begin
                    repeat
@@ -1190,6 +1413,32 @@ program install;
                       begin
                         inc(cfg.defcfgs);
                         cfg.defcfg[cfg.defcfgs]:=newstr(s);
+                      end;
+                   until false;
+                 end
+                else if item='DEFAULTIDECFG' then
+                 begin
+                   repeat
+                     readln(t,s);
+                     if upper(s)='ENDCFG' then
+                      break;
+                     if cfg.defidecfgs<maxdefcfgs then
+                      begin
+                        inc(cfg.defidecfgs);
+                        cfg.defidecfg[cfg.defidecfgs]:=newstr(s);
+                      end;
+                   until false;
+                 end
+                else if item='DEFAULTIDEINI' then
+                 begin
+                   repeat
+                     readln(t,s);
+                     if upper(s)='ENDCFG' then
+                      break;
+                     if cfg.defideinis<maxdefcfgs then
+                      begin
+                        inc(cfg.defideinis);
+                        cfg.defideini[cfg.defideinis]:=newstr(s);
                       end;
                    until false;
                  end
@@ -1213,6 +1462,26 @@ program install;
                       halt(1);
                     end;
                    cfg.pack[cfg.packs].defcfgfile:=s
+                 end
+               else
+                if item='IDECFGFILE' then
+                 begin
+                   if cfg.packs=0 then
+                    begin
+                      writeln('No pack set');
+                      halt(1);
+                    end;
+                   cfg.pack[cfg.packs].defidecfgfile:=s
+                 end
+               else
+                if item='IDEINIFILE' then
+                 begin
+                   if cfg.packs=0 then
+                    begin
+                      writeln('No pack set');
+                      halt(1);
+                    end;
+                   cfg.pack[cfg.packs].defideinifile:=s
                  end
                else
                 if item='PPC386' then
@@ -1252,6 +1521,10 @@ program install;
                       writeln('No pack set');
                       halt(1);
                     end;
+                   if copy(s,1,3)='ide' then
+                     haside:=true;
+                   if copy(s,1,7)='doc-htm' then
+                     hashtmlhelp:=true;
                    with cfg.pack[cfg.packs] do
                     begin
                       j:=pos(',',s);
@@ -1407,6 +1680,8 @@ var
    i : longint;
 
 begin
+   { register objects for help streaming }
+   RegisterWHTMLScan;
 {$ifdef FPC}
 {$ifdef win32}
   Dos.Exec(GetEnv('COMSPEC'),'/C echo This dummy call gets the mouse to become visible');
@@ -1483,7 +1758,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2000-10-08 18:43:17  hajny
+  Revision 1.10  2000-10-11 15:57:47  peter
+    * merged ide additions
+
+  Revision 1.9  2000/10/08 18:43:17  hajny
     * the language dialog repaired
 
   Revision 1.8  2000/09/24 10:52:36  peter
