@@ -66,9 +66,13 @@ type
  constructor op_sym_ofs(op:tasmop;_size:topsize;_op1:tasmsymbol;_op1ofs:longint);
  constructor op_sym_ofs_reg(op:tasmop;_size:topsize;_op1:tasmsymbol;_op1ofs:longint;_op2:tregister);
  constructor op_sym_ofs_ref(op:tasmop;_size:topsize;_op1:tasmsymbol;_op1ofs:longint;const _op2:treference);
+  constructor op_caddr_reg(op:TAsmOp;rgb:TRegister;cnst:Integer;reg:TRegister);
+  constructor op_raddr_reg(op:TAsmOp;rg1,rg2:TRegister;reg:TRegister);
  procedure changeopsize(siz:topsize);
  function  GetString:string;
  procedure CheckNonCommutativeOpcodes;
+  procedure loadcaddr(opidx:longint;aReg:TRegister;cnst:Integer);
+  procedure loadraddr(opidx:longint;rg1,rg2:TRegister);
   private
  FOperandOrder:TOperandOrder;
  procedure init(_size:topsize);{this need to be called by all constructor}
@@ -330,6 +334,24 @@ constructor taicpu.op_sym_ofs_ref(op:tasmop;_size:topsize;_op1:tasmsymbol;_op1of
      loadref(1,_op2);
   end;
 
+constructor taicpu.op_caddr_reg(op:TAsmOp;rgb:TRegister;cnst:Integer;reg:TRegister);
+  begin
+    inherited create(op);
+    init(S_L);
+    ops:=2;
+        WriteLn(1,std_reg2str[rgb]);
+    loadcaddr(0,rgb,cnst);
+        WriteLn(2,std_reg2str[rgb]);
+    loadreg(1,reg);
+  end;
+constructor taicpu.op_raddr_reg(op:TAsmOp;rg1,rg2,reg:TRegister);
+  begin
+    inherited create(op);
+    init(S_L);
+    ops:=2;
+    loadraddr(0,rg1,rg2);
+    loadreg(1,reg);
+  end;
 function taicpu.GetString:string;
   var
     i:longint;
@@ -1099,6 +1121,30 @@ end;
   until false;
   calcsize:=len;
 end;
+procedure taicpu.loadcaddr(opidx:longint;aReg:TRegister;cnst:Integer);
+  begin
+    if opidx>=ops
+    then
+      ops:=opidx+1;
+    with oper[opidx] do
+      begin
+        typ:=top_caddr;
+        regb:=aReg;
+        const13:=cnst;
+      end;
+  end;
+procedure taicpu.loadraddr(opidx:longint;rg1,rg2:TRegister);
+  begin
+    if opidx>=ops
+    then
+      ops:=opidx+1;
+    with oper[opidx] do
+      begin
+        typ:=top_caddr;
+        reg1:=rg1;
+        reg2:=rg2;
+      end;
+  end;
 procedure DoneAsm;
   begin
   end;
@@ -1108,7 +1154,10 @@ procedure InitAsm;
 end.
 {
     $Log$
-    Revision 1.6  2002-10-19 20:35:07  mazen
+    Revision 1.7  2002-10-20 19:01:38  mazen
+    + op_raddr_reg and op_caddr_reg added to fix functions prologue
+
+    Revision 1.6  2002/10/19 20:35:07  mazen
     * carl's patch applied
 
     Revision 1.5  2002/10/15 09:00:28  mazen

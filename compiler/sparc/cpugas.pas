@@ -54,58 +54,40 @@ function GetReferenceString(var ref:TReference):string;
   var
     s:string;
   begin
+    s:='';
     with ref do
       begin
         inc(offset,offsetfixup);
-        offsetfixup:=0;
-       { have we a segment prefix ? }
-       { These are probably not correctly handled under GAS }
-       { should be replaced by coding the segment override  }
-       { directly! - DJGPP FAQ                              }
-        if segment<>R_NONE
-        then
-          s:=gas_reg2str[segment]+':'
-        else
-          s:='';
         if assigned(symbol)
         then
           s:=s+symbol.name;
-        if offset<0
+        if base<>R_NONE
         then
-          s:=s+tostr(offset)
-        else if (offset>0)
-        then
-          begin
-            if assigned(symbol)
-            then
-              s:=s+'+'+tostr(offset)
-            else
-              s:=s+tostr(offset);
-          end
-        else if (index=R_NONE) and (base=R_NONE) and not assigned(symbol)
-        then
-          s:=s+'0';
-        if (index<>R_NONE) and (base=R_NONE)
+          s:=s+gas_reg2str[base]+'+';
+        if index<>R_NONE
         then
           begin
-            s:='['+gas_reg2str[index]+s;
-            if scalefactor<>0
+            if ScaleFactor<>0
             then
-              s:=tostr(scalefactor)+'+'+s;
-            s:=s+']';
-          end
-        else if (index=R_NONE) and (base<>R_NONE)
-        then
-          s:='['+gas_reg2str[base]+'+'+s+']'
-        else if (index<>R_NONE) and (base<>R_NONE)
-        then
-          begin
-            s:='['+gas_reg2str[base]+'+'+gas_reg2str[index];
-            if scalefactor<>0
-            then
-              s:=tostr(scalefactor)+'+'+s;
-            s:= s+']';
+              s:=s+ToStr(ScaleFactor)+'*';
+            s:=s+gas_reg2str[index]+'+';
           end;
+        if Offset=0
+        then
+          SetLength(s,Length(s)-1)
+        else if offset<0
+        then
+          begin
+            SetLength(s,Length(s)-1);
+            s:=s+tostr(offset);
+          end
+        else if offset>0
+        then
+          if assigned(symbol)
+          then
+            s:=s+'+'+tostr(offset)
+          else
+            s:=s+tostr(offset);
       end;
       getreferencestring:=s;
   end;
@@ -118,7 +100,7 @@ function getopstr(const Oper:TOper):string;
         top_reg:
           getopstr:=gas_reg2str[reg];
         top_ref:
-          getopstr:=getreferencestring(ref^);
+          getopstr:='['+getreferencestring(ref^)+']';
         top_const:
           getopstr:={'$'+}tostr(longint(val));
         top_symbol:
@@ -137,6 +119,10 @@ function getopstr(const Oper:TOper):string;
                hs:=hs+'0';
             getopstr:=hs;
           end;
+        top_raddr:
+          getopstr:=std_reg2str[reg1]+'+'+std_reg2str[reg2];
+        top_caddr:
+          getopstr:=std_reg2str[regb]+'+'+ToStr(const13);
         else
           internalerror(10001);
       end;
@@ -230,7 +216,10 @@ initialization
 end.
 {
     $Log$
-    Revision 1.6  2002-10-15 09:00:28  mazen
+    Revision 1.7  2002-10-20 19:01:38  mazen
+    + op_raddr_reg and op_caddr_reg added to fix functions prologue
+
+    Revision 1.6  2002/10/15 09:00:28  mazen
     * sone coding style modified
 
 }

@@ -836,8 +836,6 @@ procedure tcgSPARC.g_restore_frame_pointer(list:TAasmOutput);
 delay slot of the return instrucion done in g_return_from_proc}
   end;
 procedure tcgSPARC.g_return_from_proc(list:TAasmOutput;parasize:aword);
-  var
-    RetReference:TReference;
   begin
 {According to the SPARC ABI, the stack is cleared using the RESTORE instruction
 which is genereted in the g_restore_frame_pointer. Notice that SPARC has no
@@ -852,8 +850,7 @@ If no inversion we can use just
     with list do
       begin
 {Return address is computed by adding 8 to the CALL address saved onto %i6}
-        reference_reset_base(RetReference,R_I7,8);
-        concat(Taicpu.Op_ref_reg(A_JMPL,S_L,RetReference,R_G0));
+        concat(Taicpu.Op_caddr_reg(A_JMPL,R_I7,8,R_G0));
 {We use trivial restore in the delay slot of the JMPL instruction, as we
 already set result onto %i0}
         concat(Taicpu.Op_reg_const_reg(A_RESTORE,S_L,R_G0,0,R_G0));
@@ -1264,7 +1261,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.16  2002-10-13 21:46:07  mazen
+  Revision 1.17  2002-10-20 19:01:38  mazen
+  + op_raddr_reg and op_caddr_reg added to fix functions prologue
+
+  Revision 1.16  2002/10/13 21:46:07  mazen
   * assembler output format fixed
 
   Revision 1.15  2002/10/11 13:35:14  mazen

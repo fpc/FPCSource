@@ -264,26 +264,22 @@ TYPE
 {*****************************************************************************
                                 Operands
 *****************************************************************************}
-
-       { Types of operand }
-        toptype=(top_none,top_reg,top_ref,top_CONST,top_symbol);
-
-        toper=record
-          ot  : LongInt;
-          case typ : toptype of
-           top_none   : ();
-           top_reg    : (reg:tregister);
-           top_ref    : (ref:poperreference);
-           top_CONST  : (val:aword);
-           top_symbol : (sym:tasmsymbol;symofs:LongInt);
-        END;
-
-
-
+  { Types of operand }
+  toptype=(top_none,top_reg,top_ref,top_const,top_symbol,top_raddr,top_caddr);
+  toper=record
+    ot:LongInt;
+    case typ:toptype of
+      top_none:();
+      top_reg:(reg:tregister);
+      top_ref:(ref:poperreference);
+      top_const:(val:aword);
+      top_symbol:(sym:tasmsymbol;symofs:LongInt);
+      top_raddr:(reg1,reg2:TRegister);
+      top_caddr:(regb:TRegister;const13:Integer);
+  end;
 {*****************************************************************************
                              Argument Classification
 *****************************************************************************}
-
 TYPE
   TArgClass = (
      { the following classes should be defined by all processor implemnations }
@@ -541,7 +537,10 @@ function flags_to_cond(const f:TResFlags):TAsmCond;
 END.
 {
   $Log$
-  Revision 1.13  2002-10-19 20:35:07  mazen
+  Revision 1.14  2002-10-20 19:01:38  mazen
+  + op_raddr_reg and op_caddr_reg added to fix functions prologue
+
+  Revision 1.13  2002/10/19 20:35:07  mazen
   * carl's patch applied
 
   Revision 1.12  2002/10/11 13:35:14  mazen

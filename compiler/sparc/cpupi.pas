@@ -28,9 +28,10 @@ uses
 	cgbase,cpuinfo;
 type
   TSparcprocinfo=class(TProcInfo)
-    {overall size of allocated stack space, currently this is used for the PowerPC only}
+    {overall size of allocated stack space, currently this is used for the
+    PowerPC only}
     localsize:aword;
-    {max. of space need for parameters, currently used by the PowerPC port only}
+    {max of space need for parameters, currently used by the PowerPC port only}
     maxpushedparasize:aword;
     constructor create;override;
     procedure after_header;override;
@@ -55,26 +56,23 @@ procedure TSparcprocinfo.after_header;
 procedure TSparcprocinfo.after_pass1;
 	begin
 		procdef.parast.address_fixup:=align(maxpushedparasize,16);
-		if cs_asm_source in aktglobalswitches
-		then
-			aktproccode.insert(Tai_comment.Create(strpnew('Parameter copies start at: %i6+'+tostr(procdef.parast.address_fixup))));
-     procdef.localst.address_fixup:=align(procdef.parast.address_fixup+procdef.parast.datasize,16);
-		if cs_asm_source in aktglobalswitches
-		then
-			aktproccode.insert(Tai_comment.Create(strpnew('Locals start at: %o6+'+tostr(procdef.localst.address_fixup))));
+	  WriteLn('Parameter copies start at: %i6+'+tostr(procdef.parast.address_fixup));
+    procdef.localst.address_fixup:=align(procdef.parast.address_fixup+procdef.parast.datasize,16);
+		WriteLn(strpnew('Locals start at: %o6+'+tostr(procdef.localst.address_fixup)));
 		procinfo.firsttemp_offset:=align(procdef.localst.address_fixup+procdef.localst.datasize,16);
-		if cs_asm_source in aktglobalswitches
-		then
-			aktproccode.insert(Tai_comment.Create(strpnew('Temp. space start: %o6+'+tostr(procinfo.firsttemp_offset))));
+	  WriteLn('Temp. space start: %o6+'+tostr(procinfo.firsttemp_offset));
 		tg.firsttemp:=procinfo.firsttemp_offset;
 		tg.lasttemp:=procinfo.firsttemp_offset;
 	end;
 begin
-   cprocinfo:=TSparcprocinfo;
+  cprocinfo:=TSparcprocinfo;
 end.
 {
   $Log$
-  Revision 1.3  2002-10-10 15:10:39  mazen
+  Revision 1.4  2002-10-20 19:01:38  mazen
+  + op_raddr_reg and op_caddr_reg added to fix functions prologue
+
+  Revision 1.3  2002/10/10 15:10:39  mazen
   * Internal error fixed, but usually i386 parameter model used
 
   Revision 1.2  2002/08/29 11:02:36  mazen
