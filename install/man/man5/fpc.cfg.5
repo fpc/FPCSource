@@ -22,7 +22,7 @@ Everything from the # on will be ignored, unless it is one of the keywords (see 
 
 The compiler looks for the fpc.cfg file in the following places :
 .PP
-\	\fI\- Under Linux\fP
+\	\fI\- Under Linux and unix\fP
 .br
 \	\	\- The current directory.
 .br
@@ -214,8 +214,9 @@ and will then switch on debugging information in the compiler.
 "filename" before continuing to process options in the current file.
 
 This can be useful if you want to have a particular configuration file
-for a project (or, under Linux, in your home directory), but still want to
-have the global options that are set in a global configuration file.
+for a project (or, under Unix like systems (such as Linux), in 
+your home directory), but  still want to have the global options that are 
+set in a global configuration file.
 
 .IP \fIExample\fP
 #IFDEF LINUX
@@ -233,7 +234,7 @@ have the global options that are set in a global configuration file.
 #ENDIF
 .br
 .PP
-This will include /etc/fpc.cfg if you're on a linux machine,
+This will include /etc/fpc.cfg if you're on a unix like machine (like linux),
 and will include c:\\pp\\bin\\fpc.cfg on a dos machine.
 .RE
 .IP \fI#SECTION\fP
@@ -277,9 +278,8 @@ A standard block often used in (the Linux version of) fpc.cfg is
 #ENDIF
 .PP
 The block is copied into the fpc.cfg file for each version you use (normally
-the latest release (0.99.12 is released any day now) and the lastest developpers
-snapshot (which will be version 0.99.13, even numbers are releases, odd are
-development versions).
+the latest release  and the lastest developpers
+snapshot.
 
 .SH SEE ALSO
 .BR  ppc386 (1)
