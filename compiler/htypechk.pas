@@ -628,7 +628,7 @@ implementation
         end;
         valid_for_formal_var:=v;
      end;
-     
+
    function  valid_for_formal_const(p : ptree) : boolean;
      var
         v : boolean;
@@ -636,11 +636,12 @@ implementation
         { p must have been firstpass'd before }
         { accept about anything but not a statement ! }
         v:=true;
-        if not assigned(p^.resulttype) or (p^.resulttype=voiddef) then
+        if (p^.treetype in [calln,statementn]) then
+      {  if not assigned(p^.resulttype) or (p^.resulttype=pdef(voiddef)) then }
           v:=false;
         valid_for_formal_const:=v;
      end;
-     
+
     function is_procsym_load(p:Ptree):boolean;
       begin
          is_procsym_load:=((p^.treetype=loadn) and (p^.symtableentry^.typ=procsym)) or
@@ -683,7 +684,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  1999-04-21 22:00:01  pierre
+  Revision 1.23  1999-04-26 09:30:47  peter
+    * small tp7 fix
+    * fix void pointer with formaldef
+
+  Revision 1.22  1999/04/21 22:00:01  pierre
     + valid_for_formal_var and valid_for_formal_const added
 
   Revision 1.21  1999/04/21 16:31:40  pierre

@@ -277,7 +277,7 @@ implementation
               { into a register }
               { is this usefull here ? }
               { this was missing in formal parameter list   }
-              if (defcoll^.data=cformaldef) then
+              if (defcoll^.data=pdef(cformaldef)) then
                 begin
                   if defcoll^.paratyp=vs_var then
                     if not valid_for_formal_var(p^.left) then
@@ -286,7 +286,7 @@ implementation
                     if not valid_for_formal_const(p^.left) then
                       CGMessage(parser_e_illegal_parameter_list);
                 end;
-                
+
               if defcoll^.paratyp=vs_var then
                 begin
                    set_unique(p^.left);
@@ -1149,7 +1149,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  1999-04-21 21:49:18  pierre
+  Revision 1.36  1999-04-26 09:30:46  peter
+    * small tp7 fix
+    * fix void pointer with formaldef
+
+  Revision 1.35  1999/04/21 21:49:18  pierre
    * previous log corrected
 
   Revision 1.34  1999/04/21 16:31:46  pierre
