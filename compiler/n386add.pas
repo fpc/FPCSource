@@ -29,10 +29,11 @@ unit n386add;
        nadd;
 
     ti386addnode = class(taddnode)
-      procedure pass_2;override;
-      function getresflags(unsigned : boolean) : tresflags;
-      procedure SetResultLocation(cmpop,unsigned : boolean);
-      procedure addstring;
+       procedure pass_2;override;
+       function getresflags(unsigned : boolean) : tresflags;
+       procedure SetResultLocation(cmpop,unsigned : boolean);
+       procedure addstring;
+       procedure addset;
     end;
 
   implementation
@@ -94,10 +95,10 @@ unit n386add;
             ((left.resulttype^.deftype<>setdef) or (psetdef(left.resulttype)^.settype=smallset)) and
             (left.location.loc in [LOC_MEM,LOC_REFERENCE]) then
            ungetiftemp(left.location.reference);
-         if (right^.resulttype^.deftype<>stringdef) and
-            ((right^.resulttype^.deftype<>setdef) or (psetdef(right^.resulttype)^.settype=smallset)) and
-            (right^.location.loc in [LOC_MEM,LOC_REFERENCE]) then
-           ungetiftemp(right^.location.reference);
+         if (right.resulttype^.deftype<>stringdef) and
+            ((right.resulttype^.deftype<>setdef) or (psetdef(right.resulttype)^.settype=smallset)) and
+            (right.location.loc in [LOC_MEM,LOC_REFERENCE]) then
+           ungetiftemp(right.location.reference);
          { in case of comparison operation the put result in the flags }
          if cmpop then
            begin
@@ -450,7 +451,7 @@ unit n386add;
                                 Addset
 *****************************************************************************}
 
-    procedure addset(var p : ptree);
+    procedure ti386addnode.addset;
       var
         createset,
         cmpop,
@@ -644,15 +645,15 @@ unit n386add;
         else
           CGMessage(type_e_mismatch);
         end;
-        SetResultLocation(cmpop,true,p);
+        SetResultLocation(cmpop,true);
       end;
 
 
 {*****************************************************************************
-                                SecondAdd
+                                pass_2
 *****************************************************************************}
 
-    procedure secondadd(var p : ptree);
+    procedure ti386addnode.pass_2;
     { is also being used for xor, and "mul", "sub, or and comparative }
     { operators                                                }
 
@@ -962,7 +963,7 @@ unit n386add;
                                 begin
                                 { adding elements is not commutative }
                                   if swaped and (left.treetype=setelementn) then
-                                   swaptree(p);
+                                   swaptree;
                                 { are we adding set elements ? }
                                   if right.treetype=setelementn then
                                    begin
@@ -2311,7 +2312,7 @@ unit n386add;
 {$endif SUPPORT_MMX}
               else CGMessage(type_e_mismatch);
            end;
-       SetResultLocation(cmpop,unsigned,p);
+       SetResultLocation(cmpop,unsigned);
     end;
 
     procedure ti386addnode.pass_2;
@@ -2324,7 +2325,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-09-21 12:24:22  jonas
+  Revision 1.3  2000-09-22 22:42:52  florian
+    * more fixes
+
+  Revision 1.2  2000/09/21 12:24:22  jonas
     * small fix to my changes for full boolean evaluation support (moved
       opsize determination for boolean operations back in boolean
       processing block)
@@ -2332,5 +2336,4 @@ end.
 
   Revision 1.1  2000/09/20 21:23:32  florian
     * initial revision
-
 }

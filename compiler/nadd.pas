@@ -32,14 +32,13 @@ interface
           function firstpass : tnode;override;
           procedure make_bool_equal_size;
        end;
-       tcaddnode : class of taddnode;
 
     var
        { caddnode is used to create nodes of the add type }
        { the virtual constructor allows to assign         }
        { another class type to caddnode => processor      }
        { specific node types can be created               }
-       caddnode : tcaddnode;
+       caddnode : class of taddnode;
 
     function isbinaryoverloaded(var p : pnode) : boolean;
 
@@ -1228,7 +1227,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-09-21 12:22:42  jonas
+  Revision 1.5  2000-09-22 22:42:52  florian
+    * more fixes
+
+  Revision 1.4  2000/09/21 12:22:42  jonas
     * put piece of code between -dnewoptimizations2 since it wasn't
       necessary otherwise
     + support for full boolean evaluation (from tcadd)
