@@ -453,7 +453,11 @@ CONSTRUCTOR TMenuView.Load (Var S: TStream);
            S.Read(HelpCtx, 2);                        { Menu item help ctx }
            If (Name <> Nil) Then
              If Command = 0 Then
+{$ifdef PPC_FPC}
+               SubMenu := DoLoadMenu()                  { Load submenu }
+{$else not PPC_FPC}
                SubMenu := DoLoadMenu                  { Load submenu }
+{$endif not PPC_FPC}
                  Else Param := S.ReadStr;             { Read param string }
          End;
        End;
@@ -1669,6 +1673,9 @@ END;
 
 END.
 {
- $Log				$
+ $Log$
+ Revision 1.4  2001-04-10 21:57:55  pierre
+  + first adds for Use_API define
+
 
 }

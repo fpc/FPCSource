@@ -124,11 +124,15 @@ USES
        BseDos, Os2Def,                                { Standard units }
      {$ENDIF}
    {$ENDIF}
-
+   {$ifdef Use_API}
+   video,
+   {$endif Use_API}
    GFVGraph,                                          { GFV graphics unit }
+   {$ifndef Use_API}
    {$IFDEF OS_DOS}                                    { DOS/DPMI CODE }
    Graph,                                             { Standard bp unit }
    {$ENDIF}
+   {$endif not Use_API}
    Common, Objects;                                   { GFV standard units }
 
 {***************************************************************************}
@@ -293,7 +297,8 @@ TYPE
           Case Integer Of
             0: (KeyCode: Word);                       { Full key code }
             1: (CharCode: Char;                       { Char code }
-                ScanCode: Byte));                     { Scan code }
+                ScanCode: Byte;                       { Scan code }
+                KeyShift: byte));                     { Shift states }
         evMessage: (                                  { ** MESSAGE EVENT ** }
           Command: Word;                              { Message command }
           Id     : Word;                              { Message id }
@@ -317,6 +322,9 @@ TYPE
 {***************************************************************************}
 {                            INTERFACE ROUTINES                             }
 {***************************************************************************}
+
+{ Get Dos counter ticks }
+Function GetDosTicks:longint; { returns ticks at 18.2 Hz, just like DOS }
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                          BUFFER MOVE ROUTINES                             }
@@ -652,24 +660,38 @@ VAR
    MouseButtons: Byte;                                { Mouse button state }
    ScreenWidth : Byte;                                { Screen text width }
    ScreenHeight: Byte;                                { Screen text height }
+{$ifndef Use_API}
    ScreenMode  : Word;                                { Screen mode }
+{$else Use_API}
+   ScreenMode  : TVideoMode;                         { Screen mode }
+{$endif Use_API}
    MouseWhere  : TPoint;                              { Mouse position }
 
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                                IMPLEMENTATION
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
-
+{$ifdef Use_API}
+{ API Units }
+  USES Keyboard,Mouse;
+{$else not Use_API}
 {$IFDEF OS_DOS}                                       { DOS/DPMI CODE }
   {$IFDEF PPC_FPC}                                    { FPC DOS COMPILER }
   USES Go32;                                          { Standard unit }
   {$ENDIF}
 {$ENDIF}
+{$endif not Use_API}
 
 {***************************************************************************}
 {                        PRIVATE INTERNAL CONSTANTS                         }
 {***************************************************************************}
 
-{$IFDEF OS_DOS}                                       { DOS/DPMI CODE }
+{$IFDEF OS_DOS}                                       { DOS/DPMI/API CODE }
+{$define Has_vars}
+{$ENDIF OS_DOS}
+{$IFDEF Use_API}
+{$define Has_vars}
+{$ENDIF Use_API}
+{$IFDEF HAS_VARS}                                       { DOS/DPMI/API CODE }
 {---------------------------------------------------------------------------}
 {                 DOS/DPMI MOUSE INTERRUPT EVENT QUEUE SIZE                 }
 {---------------------------------------------------------------------------}
@@ -796,9 +818,9 @@ CONST
 {                 PRIVATE INTERNAL UNINITIALIZED VARIABLES                  }
 {***************************************************************************}
 
-{$IFDEF OS_DOS}                                       { DOS/DPMI CODE }
+{$ifdef Has_vars}
 {---------------------------------------------------------------------------}
-{                     UNINITIALIZED DOS/DPMI VARIABLES                      }
+{                     UNINITIALIZED DOS/DPMI/API VARIABLES                      }
 {---------------------------------------------------------------------------}
 VAR
    LastDouble : Boolean;                              { Last double buttons }
@@ -812,6 +834,8 @@ VAR
    LastWhereY : Word;                                 { Last y position }
    DownWhereX : Word;                                 { Last x position }
    DownWhereY : Word;                                 { Last y position }
+   LastWhere  : TPoint;                               { Last mouse position }
+   DownWhere  : TPoint;                               { Last down position }
    EventQHead : Pointer;                              { Head of queue }
    EventQTail : Pointer;                              { Tail of queue }
    EventQueue : Array [0..EventQSize - 1] Of TEvent;  { Event queue }
@@ -820,17 +844,55 @@ VAR
 {---------------------------------------------------------------------------}
 {                ABSOLUTE PRIVATE DOS/DPMI ADDRESS VARIABLES                }
 {---------------------------------------------------------------------------}
-VAR
+   {$ifdef OS_DOS}
    {$IFNDEF GO32V1}
+VAR
    ShiftState: Byte Absolute $40:$17;                 { Shift state mask }
    Ticks: Word Absolute $40:$6C;                      { DOS tick counter }
    {$ENDIF}
+   {$endif OS_DOS}
 
    {$IFDEF GO32V2}                                    { GO32V2 registers }
+VAR
    ActionRegs: TRealRegs;                             { Real mode registers }
    {$ENDIF}
 
+{$ENDIF Has_Vars}
+
+{---------------------------------------------------------------------------}
+{  GetDosTicks (18.2 Hz)                                                    }
+{---------------------------------------------------------------------------}
+
+Function GetDosTicks:longint; { returns ticks at 18.2 Hz, just like DOS }
+{$IFDEF OS_OS2}
+  const
+    QSV_MS_COUNT = 14;
+  var
+    L: longint;
+  begin
+    DosQuerySysInfo (QSV_MS_COUNT, QSV_MS_COUNT, L, 4);
+    GetDosTicks := L div 55;
+  end;
 {$ENDIF}
+{$IFDEF OS_LINUX}
+  var
+    tv : TimeVal;
+  {  tz : TimeZone;}
+  begin
+    GetTimeOfDay(tv{,tz});
+    GetDosTicks:=((tv.Sec mod 86400) div 60)*1092+((tv.Sec mod 60)*1000000+tv.USec) div 54945;
+  end;
+{$ENDIF OS_LINUX}
+{$IFDEF OS_WINDOWS}
+  begin
+     GetDosTicks:=GetTickCount div 55;
+  end;
+{$ENDIF OS_WINDOWS}
+{$IFDEF OS_DOS}
+  begin
+    GetDosTicks:=MemL[$40:$6c];
+  end;
+{$ENDIF OS_DOS}
 
 {---------------------------------------------------------------------------}
 {                UNINITIALIZED DOS/DPMI/WIN/NT/OS2 VARIABLES                }
@@ -886,6 +948,7 @@ END;
 {$ENDIF}
 
 {$IFDEF PPC_FPC}                                      { FPC COMPILER CODE }
+{$ifndef Use_API}
 {---------------------------------------------------------------------------}
 {  Mouse_Action -> Platforms DPMI - FPC COMPILER Updated 10Sep98 LdB        }
 {---------------------------------------------------------------------------}
@@ -1090,6 +1153,7 @@ ASM
 .L_Exit:
 END;
 {$ENDIF}
+{$endif not Use_API}
 
 {---------------------------------------------------------------------------}
 {  HideMouseCursor -> Platforms DOS/DPMI - Updated 10Sep98 LdB              }
@@ -1169,6 +1233,7 @@ ASM
 END;
 {$ENDIF}
 
+{$ifndef Use_API}
 {---------------------------------------------------------------------------}
 {  HookMouse -> Platforms DOS/DPMI - Updated 27Aug98 LdB                    }
 {---------------------------------------------------------------------------}
@@ -1249,6 +1314,7 @@ ASM
    MOVW %DX, (%EDI);                                  { Return y position }
 END;
 {$ENDIF}
+{$endif not Use_API}
 
 {$ENDIF}
 
@@ -1269,6 +1335,15 @@ END;
 {---------------------------------------------------------------------------}
 {  DetectVideo -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 19May98 LdB       }
 {---------------------------------------------------------------------------}
+{$ifdef Use_API}
+procedure DetectVideo;
+VAR
+  CurrMode : TVideoMode;
+begin
+  GetVideoMode(CurrMode);
+  ScreenMode:=CurrMode;
+end;
+{$else not Use_API}
 PROCEDURE DetectVideo;
 {$IFDEF OS_DOS}                                       { DOS/DPMI CODE }
 ASSEMBLER;
@@ -1368,9 +1443,16 @@ BEGIN
    WinReleasePS(Ps);                                  { Release desktop PS }
 END;
 {$ENDIF}
+{$endif not Use_API}
 
 {---------------------------------------------------------------------------}
 {  DetectMouse -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 19May98 LdB       }
+{$ifdef Use_API}
+FUNCTION DetectMouse: Byte;
+begin
+  DetectMouse:=Mouse.DetectMouse;
+end;
+{$else not Use_API}
 {---------------------------------------------------------------------------}
 FUNCTION DetectMouse: Byte;
 {$IFDEF OS_DOS}                                       { DOS/DPMI CODE }
@@ -1428,6 +1510,7 @@ BEGIN
      SV_CMouseButtons);                               { Buttons present }
 END;
 {$ENDIF}
+{$endif not Use_API}
 
 {***************************************************************************}
 {                            INTERFACE ROUTINES                             }
@@ -1586,6 +1669,158 @@ BEGIN
      End;
 END;
 
+{$ifdef Use_API}
+{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
+{                        KEYBOARD CONTROL ROUTINES                          }
+{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
+
+{---------------------------------------------------------------------------}
+{  GetShiftState -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 08Jul96 LdB     }
+{---------------------------------------------------------------------------}
+FUNCTION GetShiftState: Byte;
+begin
+  GetShiftState:=Keyboard.GetKeyEventShiftState(Keyboard.PollShiftStateEvent);
+end;
+
+{---------------------------------------------------------------------------}
+{  GetKeyEvent -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 19May98 LdB       }
+{---------------------------------------------------------------------------}
+procedure GetKeyEvent (Var Event: TEvent);
+var
+  key      : TKeyEvent;
+  keycode  : word;
+  keyshift : byte;
+begin
+  if Keyboard.PollKeyEvent<>0 then
+   begin
+     key:=Keyboard.GetKeyEvent;
+     keycode:=Keyboard.GetKeyEventCode(key);
+     keyshift:=KeyBoard.GetKeyEventShiftState(key);
+     { fixup shift-keys }
+     if keyshift and kbShift<>0 then
+       begin
+         case keycode of
+           $5200 : keycode:=kbShiftIns;
+           $5300 : keycode:=kbShiftDel;
+           $8500 : keycode:=kbShiftF1;
+           $8600 : keycode:=kbShiftF2;
+         end;
+       end
+     { fixup ctrl-keys }
+     else if keyshift and kbCtrl<>0 then
+       begin
+         case keycode of
+           $5200,
+           $9200 : keycode:=kbCtrlIns;
+           $5300,
+           $9300 : keycode:=kbCtrlDel;
+         end;
+       end
+     { fixup alt-keys }
+     else if keyshift and kbAlt<>0 then
+       begin
+         case keycode of
+           $0e08,
+           $0e00 : keycode:=kbAltBack;
+         end;
+       end
+     { fixup normal keys }
+     else
+       begin
+         case keycode of
+           $e00d : keycode:=kbEnter;
+         end;
+       end;
+     Event.What:=evKeyDown;
+     Event.KeyCode:=keycode;
+     Event.KeyShift:=keyshift;
+   end
+  else
+   Event.What:=evNothing;
+end;
+
+
+{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
+{                          MOUSE CONTROL ROUTINES                           }
+{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
+
+{---------------------------------------------------------------------------}
+{  HideMouse -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Jun98 LdB         }
+{---------------------------------------------------------------------------}
+procedure HideMouse;
+begin
+{ Is mouse hidden yet?
+  If (HideCount = 0) Then}
+    Mouse.HideMouse;
+{  Inc(HideCount);}
+end;
+
+{---------------------------------------------------------------------------}
+{  ShowMouse -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Jun98 LdB         }
+{---------------------------------------------------------------------------}
+procedure ShowMouse;
+begin
+{  if HideCount>0 then
+    dec(HideCount);
+  if (HideCount=0) then}
+   Mouse.ShowMouse;
+end;
+
+{---------------------------------------------------------------------------}
+{  GetMouseEvent -> Platforms DOS/DPMI/WINDOWS/OS2 - Updated 30Jun98 LdB    }
+{---------------------------------------------------------------------------}
+procedure GetMouseEvent (Var Event: TEvent);
+var
+  e : Mouse.TMouseEvent;
+begin
+  if Mouse.PollMouseEvent(e) then
+   begin
+     Mouse.GetMouseEvent(e);
+     MouseWhere.X:=e.x;
+     MouseWhere.Y:=e.y;
+     Event.Double:=false;
+     case e.Action of
+       MouseActionMove :
+         Event.What:=evMouseMove;
+       MouseActionDown :
+         begin
+           Event.What:=evMouseDown;
+           if (DownButtons=e.Buttons) and (LastWhere.X=e.x) and (LastWhere.Y=e.y) and
+              (GetDosTicks-DownTicks<=DoubleDelay) then
+             Event.Double:=true;
+           DownButtons:=e.Buttons;
+           DownWhere.X:=e.x;
+           DownWhere.Y:=e.y;
+           DownTicks:=GetDosTicks;
+           AutoTicks:=GetDosTicks;
+           AutoDelay:=RepeatDelay;
+         end;
+       MouseActionUp :
+         begin
+           Event.What:=evMouseUp;
+         end;
+       else
+         begin
+           if GetDosTicks-AutoTicks>=AutoDelay then
+            begin
+              Event.What:=evMouseAuto;
+              AutoTicks:=GetDosTicks;
+              AutoDelay:=1;
+            end;
+         end;
+     end;
+     Event.Buttons:=e.Buttons;
+     Event.Where.X:=e.x;
+     Event.Where.Y:=e.y;
+     LastButtons:=Event.Buttons;
+     LastWhere.x:=Event.Where.x;
+     LastWhere.y:=Event.Where.y;
+   end
+  else
+   FillChar(Event,sizeof(TEvent),0);
+end;
+
+{$else not Use_API}
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                        KEYBOARD CONTROL ROUTINES                          }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -2181,6 +2416,7 @@ BEGIN
    End;
 END;
 {$ENDIF}
+{$endif not Use_API}
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                      EVENT HANDLER CONTROL ROUTINES                       }
@@ -2191,6 +2427,24 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE InitEvents;
 BEGIN
+{$ifdef Use_API}
+   If (ButtonCount <> 0) Then
+    begin                   { Mouse is available }
+     Mouse.InitMouse;                                 { Hook the mouse }
+     { this is required by the use of HideCount variable }
+     Mouse.ShowMouse;                                 { visible by default }
+     { HideCount:=0;  }
+     LastButtons := 0;                                { Clear last buttons }
+     DownButtons := 0;                                { Clear down buttons }
+     MouseWhere.X:=Mouse.GetMouseX;
+     MouseWhere.Y:=Mouse.GetMouseY;                   { Get mouse position }
+     LastWhere.x:=MouseWhere.x;
+     LastWhereX:=MouseWhere.x;
+     LastWhere.y:=MouseWhere.y;
+     LastWhereY:=MouseWhere.y;
+     MouseEvents := True;                             { Set initialized flag }
+   end;
+{$else not Use_API}
    If (ButtonCount <> 0) Then Begin                   { Mouse is available }
      {$IFDEF OS_DOS}                                  { DOS/DPMI CODE }
      EventQHead := @EventQueue;                       { Initialize head }
@@ -2216,6 +2470,7 @@ BEGIN
      MouseEvents := True;                             { Set initialized flag }
      {$ENDIF}
    End;
+{$endif not Use_API}
 END;
 
 {---------------------------------------------------------------------------}
@@ -2223,6 +2478,8 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE DoneEvents;
 BEGIN
+{$ifdef Use_API}
+{$else not Use_API}
    If MouseEvents Then Begin                          { Initialized check }
      {$IFDEF OS_DOS}                                  { DOS/DPMI CODE }
      HideMouseCursor;                                 { Hide the mouse }
@@ -2240,11 +2497,13 @@ BEGIN
      MouseEvents := False;                            { Clr initialized flag }
      {$ENDIF}
    End;
+{$endif not Use_API}
 END;
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                           VIDEO CONTROL ROUTINES                          }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
+{$ifndef Use_API}
 {$IFDEF OS_DOS}                                       { DOS/DPMI CODE }
 {$IFDEF PPC_FPC}                                      { FPC COMPILER ONLY }
 { ******************************* REMARK ****************************** }
@@ -2272,15 +2531,24 @@ BEGIN
 END;
 {$ENDIF}
 {$ENDIF}
+{$endif not Use_API}
 
 {---------------------------------------------------------------------------}
 {  InitVideo -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 26Nov99 LdB         }
 {---------------------------------------------------------------------------}
 PROCEDURE InitVideo;
+{$ifndef Use_API}
 VAR {$IFDEF OS_DOS} I, J: Integer; Ts: TextSettingsType; {$ENDIF}
     {$IFDEF OS_WINDOWS} Dc, Mem: HDc; TempFont: TLogFont; Tm: TTextmetric; {$ENDIF}
     {$IFDEF OS_OS2} Ts, Fs: Integer; Ps: HPs; Tm: FontMetrics; {$ENDIF}
+{$endif not Use_API}
 BEGIN
+   {$ifdef Use_API}
+   Video.InitVideo;
+   ScreenWidth:=Video.ScreenWidth;
+   ScreenHeight:=Video.ScreenHeight;
+   GetVideoMode(ScreenMode);
+   {$else not Use_API}
    {$IFDEF OS_DOS}                                    { DOS/DPMI CODE }
      If (TextModeGFV = True) Then Begin               { TEXT MODE GFV }
        I := ScreenWidth*8 -1;                         { Mouse width }
@@ -2443,6 +2711,7 @@ BEGIN
      Inc(SysScreenHeight, Ts);                        { Max screen height }
      {$ENDIF}
    {$ENDIF}
+   {$endif not Use_API}
 END;
 
 {---------------------------------------------------------------------------}
@@ -2450,6 +2719,9 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE DoneVideo;
 BEGIN
+   {$ifdef Use_API}
+    Video.DoneVideo;
+   {$else not Use_API}
    {$IFDEF OS_DOS}                                    { DOS/DPMI CODE }
      {$IFDEF PPC_FPC}
      MouseMoveProc := Nil;                            { Clr mouse move ptr }
@@ -2480,6 +2752,7 @@ BEGIN
      If (DefGFVFont <> 0) Then                        { Check font created }
        DeleteObject(DefGFVFont);                      { Delete the font }
    {$ENDIF}
+   {$endif not Use_API}
 END;
 
 {---------------------------------------------------------------------------}
@@ -2487,6 +2760,9 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE ClearScreen;
 BEGIN
+   {$ifdef Use_API}
+    Video.ClearScreen;
+   {$endif Use_API}
 END;
 
 {---------------------------------------------------------------------------}
@@ -2704,16 +2980,22 @@ END;
 BEGIN
    ButtonCount := DetectMouse;                        { Detect mouse }
    DetectVideo;                                       { Detect video }
+   {$ifdef Use_API}
+   TextModeGFV:=True;
+   {$endif Use_API}
    SaveExit := ExitProc;                              { Save old exit }
    ExitProc := @ExitDrivers;                          { Set new exit }
 END.
 {
  $Log$
- Revision 1.3  2001-04-10 21:29:55  pierre
+ Revision 1.4  2001-04-10 21:57:55  pierre
+  + first adds for Use_API define
+
+ Revision 1.3  2001/04/10 21:29:55  pierre
   * import of Leon de Boer's files
 
  Revision 1.2  2000/08/24 12:00:21  marco
   * CVS log and ID tags
-	
+
 
 }

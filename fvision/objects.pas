@@ -175,7 +175,7 @@ CONST
    MaxCollectionSize = 65520 DIV SizeOf(Pointer);     { Max collection size }
 
 {***************************************************************************}
-{                          PUBLIC TYPE DEFINITIONS                          }
+{                          PTBMIC TYPE DEFINITIONS                          }
 {***************************************************************************}
 
 {---------------------------------------------------------------------------}
@@ -3189,7 +3189,10 @@ END.
 
 {
  $Log$
- Revision 1.3  2001-04-10 21:29:55  pierre
+ Revision 1.4  2001-04-10 21:57:55  pierre
+  + first adds for Use_API define
+
+ Revision 1.3  2001/04/10 21:29:55  pierre
   * import of Leon de Boer's files
 
  Revision 1.2  2000/08/24 12:00:22  marco

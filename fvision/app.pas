@@ -404,6 +404,11 @@ CONST
                                 IMPLEMENTATION
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
 
+{$ifdef Use_API}
+  uses
+    Video,Mouse;
+{$endif Use_API}
+
 {***************************************************************************}
 {                        PRIVATE DEFINED CONSTANTS                          }
 {***************************************************************************}
@@ -941,6 +946,7 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TProgram.InitScreen;
 BEGIN
+{$ifndef Use_API}
    If (Lo(ScreenMode) <> smMono) Then Begin           { Coloured mode }
      If (ScreenMode AND smFont8x8 <> 0) Then
        ShadowSize.X := 1 Else                         { Single bit shadow }
@@ -955,6 +961,23 @@ BEGIN
      ShowMarkers := True;                             { Show markers }
      AppPalette := apMonochrome;                      { Mono palette }
    End;
+{$else Use_API}
+  { the orginal code can't be used here because of the limited
+    video unit capabilities, the mono modus can't be handled
+  }
+  if (ScreenMode.Col div ScreenMode.Row<2) then
+    ShadowSize.X := 1
+  else
+    ShadowSize.X := 2;
+
+  ShadowSize.Y := 1;
+  ShowMarkers := False;
+  if ScreenMode.color then
+    AppPalette := apColor
+  else
+    AppPalette := apBlackWhite;
+  Buffer := Views.PVideoBuf(VideoBuf);
+{$endif Use_API}
 END;
 
 {--TProgram-----------------------------------------------------------------}
@@ -1031,7 +1054,7 @@ BEGIN
        If (Event.What = evNothing) Then Begin
          GetKeyEvent(Event);                          { Fetch key event }
          If (Event.What = evNothing) Then Begin       { No mouse event }
-           GetMouseEvent(Event);                      { Load mouse event }
+           Drivers.GetMouseEvent(Event);                      { Load mouse event }
            If (Event.What = evNothing) Then Idle;     { Idle if no event }
          End;
        End;
@@ -1300,7 +1323,10 @@ END;
 END.
 {
  $Log$
- Revision 1.3  2001-04-10 21:29:54  pierre
+ Revision 1.4  2001-04-10 21:57:55  pierre
+  + first adds for Use_API define
+
+ Revision 1.3  2001/04/10 21:29:54  pierre
   * import of Leon de Boer's files
 
  Revision 1.2  2000/08/24 11:43:13  marco
