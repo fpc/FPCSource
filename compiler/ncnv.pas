@@ -43,6 +43,7 @@ interface
        private
           function resulttype_cord_to_pointer : tnode;
           function resulttype_chararray_to_string : tnode;
+          function resulttype_string_to_chararray : tnode;
           function resulttype_string_to_string : tnode;
           function resulttype_char_to_string : tnode;
           function resulttype_int_to_real : tnode;
@@ -57,7 +58,6 @@ interface
           function first_int_to_int : tnode;virtual;
           function first_cstring_to_pchar : tnode;virtual;
           function first_string_to_chararray : tnode;virtual;
-          function first_string_to_string : tnode;virtual;
           function first_char_to_string : tnode;virtual;
           function first_nothing : tnode;virtual;
           function first_array_to_pointer : tnode;virtual;
@@ -430,6 +430,32 @@ implementation
         resulttypepass(result);
       end;
     
+    function ttypeconvnode.resulttype_string_to_chararray : tnode;
+      var
+        arrsize: longint;
+      begin
+         with tarraydef(resulttype.def) do
+          begin
+            if highrange<lowrange then
+             internalerror(75432653);
+            arrsize := highrange-lowrange+1;
+          end;
+         if (left.nodetype = stringconstn) and
+            { left.length+1 since there's always a terminating #0 character (JM) }
+            (tstringconstnode(left).len+1 >= arrsize) and
+            (tstringdef(left.resulttype.def).string_typ=st_shortstring) then
+           begin
+             { handled separately }
+             result := nil;
+             exit;
+           end;
+        result := ccallnode.createinternres(
+          'fpc_'+lower(tstringdef(left.resulttype.def).stringtypname)+
+          '_to_chararray',ccallparanode.create(left,ccallparanode.create(
+          cordconstnode.create(arrsize,s32bittype),nil)),resulttype);
+        left := nil;
+        resulttypepass(result);
+      end;
     
     function ttypeconvnode.resulttype_string_to_string : tnode;
       var
@@ -653,7 +679,7 @@ implementation
           { cchar_2_pchar } @ttypeconvnode.resulttype_cchar_to_pchar,
           { cstring_2_pchar } @ttypeconvnode.resulttype_cstring_to_pchar,
           { ansistring_2_pchar } nil,
-          { string_2_chararray } nil,
+          { string_2_chararray } @ttypeconvnode.resulttype_string_to_chararray,
           { chararray_2_string } @ttypeconvnode.resulttype_chararray_to_string,
           { array_2_pointer } nil,
           { pointer_2_array } nil,
@@ -1068,23 +1094,6 @@ implementation
       end;
 
 
-    function ttypeconvnode.first_string_to_string : tnode;
-      begin
-         first_string_to_string:=nil;
-         if tstringdef(resulttype.def).string_typ<>
-            tstringdef(left.resulttype.def).string_typ then
-           begin
-             procinfo^.flags:=procinfo^.flags or pi_do_call;
-           end;
-         { for simplicity lets first keep all ansistrings
-           as LOC_MEM, could also become LOC_REGISTER }
-         if tstringdef(resulttype.def).string_typ in [st_ansistring,st_widestring] then
-           { we may use ansistrings so no fast exit here }
-           procinfo^.no_fast_exit:=true;
-         location.loc:=LOC_MEM;
-      end;
-
-
     function ttypeconvnode.first_char_to_string : tnode;
       begin
          first_char_to_string:=nil;
@@ -1262,14 +1271,14 @@ implementation
          firstconvert : array[tconverttype] of pointer = (
            @ttypeconvnode.first_nothing, {equal}
            @ttypeconvnode.first_nothing, {not_possible}
-           @ttypeconvnode.first_string_to_string,
+           nil, { removed in resulttype_string_to_string }
            @ttypeconvnode.first_char_to_string,
-           @ttypeconvnode.first_nothing, { removed in resulttype_chararray_to_string }
+           nil, { removed in resulttype_chararray_to_string }
            @ttypeconvnode.first_cchar_to_pchar,
            @ttypeconvnode.first_cstring_to_pchar,
            @ttypeconvnode.first_ansistring_to_pchar,
            @ttypeconvnode.first_string_to_chararray,
-           @ttypeconvnode.first_nothing, { removed in resulttype_chararray_to_string }
+           nil, { removed in resulttype_chararray_to_string }
            @ttypeconvnode.first_array_to_pointer,
            @ttypeconvnode.first_pointer_to_array,
            @ttypeconvnode.first_int_to_int,
@@ -1477,7 +1486,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2001-08-29 12:18:07  jonas
+  Revision 1.35  2001-08-29 19:49:03  jonas
+    * some fixes in compilerprocs for chararray to string conversions
+    * conversion from string to chararray is now also done via compilerprocs
+
+  Revision 1.34  2001/08/29 12:18:07  jonas
     + new createinternres() constructor for tcallnode to support setting a
       custom resulttype
     * compilerproc typeconversions now set the resulttype from the type

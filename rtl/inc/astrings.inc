@@ -314,6 +314,8 @@ begin
     { result is automatically set to '' }
     exit;
   i:=IndexChar(arr,high(arr)+1,#0);
+  if i = -1 then
+    i := high(arr)+1;
   SetLength(fpc_CharArray_To_AnsiStr,i);
   Move (arr[0],Pointer(fpc_CharArray_To_AnsiStr)^,i);
 end;
@@ -321,13 +323,46 @@ end;
 { old style helper }
 {$ifndef hascompilerproc}
 { the declaration below is the same as                                              }
-{ Procedure fpc_CharArray_To_AnsiStr(var a : ansistring; p: pointer; len: longint); }
 { which is what the old helper was (we need the parameter as "array of char" type   }
 { so we can pass it to the new style helper (JM)                                    }
-Procedure fpc_CharArray_To_AnsiStr(var a : ansistring; const arr: array of char);[Public,Alias : 'FPC_CHARARRAY_TO_ANSISTR'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_CharArray_To_AnsiStr(var a : ansistring; p: pointer; len: longint);[Public,Alias : 'FPC_CHARARRAY_TO_ANSISTR'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+var
+  src: pchar;
+  i: longint;
 begin
-  pointer(a) := pointer(fpc_CharArray_To_AnsiStr(arr));
+  src := pchar(p);
+  if src[0]=#0 Then
+    { result is automatically set to '' }
+    begin
+      pointer(a) := nil;
+      exit;
+    end;
+  i:=IndexChar(src^,len,#0);
+  if i = -1 then
+    i := len;
+  pointer(a) := NewAnsiString(i);
+  Move (src^,a[1],i);
 end;
+{$endif not hascompilerproc}
+
+
+{$ifdef hascompilerproc}
+
+{ note: inside the compiler, the resulttype is modified to be the length }
+{ of the actual chararray to which we convert (JM)                       }
+function fpc_ansistr_to_chararray(arraysize: longint; const src: ansistring): fpc_big_chararray; [public, alias: 'FPC_ANSISTR_TO_CHARARRAY']; compilerproc;
+var
+  len: longint;
+begin
+  len := length(src);
+  if len > arraysize then
+    len := arraysize;
+  { make sure we don't try to access element 1 of the ansistring if it's nil }
+  if len > 0 then
+    move(src[1],fpc_ansistr_to_chararray[0],len);
+  fillchar(fpc_ansistr_to_chararray[len],arraysize-len,0);
+end;
+
 {$endif hascompilerproc}
 
 
@@ -759,7 +794,11 @@ end;
 
 {
   $Log$
-  Revision 1.19  2001-08-28 13:24:47  jonas
+  Revision 1.20  2001-08-29 19:49:04  jonas
+    * some fixes in compilerprocs for chararray to string conversions
+    * conversion from string to chararray is now also done via compilerprocs
+
+  Revision 1.19  2001/08/28 13:24:47  jonas
     + compilerproc implementation of most string-related type conversions
     - removed all code from the compiler which has been replaced by
       compilerproc implementations (using {$ifdef hascompilerproc} is not

@@ -614,20 +614,49 @@ function strpas(p:pchar):shortstring; [external name 'FPC_PCHAR_TO_SHORTSTR'];
 
 {$ifndef FPC_SYSTEM_HAS_FPC_CHARARRAY_TO_SHORTSTR}
 
-function fpc_chararray_to_shortstr(p:pchar; l : longint):shortstring;[public,alias:'FPC_CHARARRAY_TO_SHORTSTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
+{$ifdef hascompilerproc}
+function fpc_chararray_to_shortstr(p:pchar; l : longint):shortstring;[public,alias:'FPC_CHARARRAY_TO_SHORTSTR'];
 var
- s: shortstring;
+  l: longint;
+{$else hascompilerproc}
+function fpc_chararray_to_shortstr(const arr: array of char):shortstring;[public,alias:'FPC_CHARARRAY_TO_SHORTSTR']; compilerproc;
+{$endif hascompilerproc}
 begin
+{$ifdef hascompilerproc}
+  l := high(arr)+1;
+{$endif hascompilerproc}
   if l>=256 then
     l:=255
   else if l<0 then
     l:=0;
-  move(p^,s[1],l);
-  s[0]:=chr(l);
-  strchararray := s;
+  move(arr[0],fpc_chararray_to_shortstr[1],l);
+  fpc_chararray_to_shortstr[0]:=chr(l);
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_CHARARRAY_TO_SHORTSTR}
+
+{$ifdef hascompilerproc}
+
+{$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_TO_CHARARRAY}
+
+{ inside the compiler, the resulttype is modified to that of the actual }
+{ chararray we're converting to (JM)                                    }
+function fpc_shortstr_to_chararray(arraysize: longint; const src: ShortString): fpc_big_chararray;[public,alias: 'FPC_SHORTSTR_TO_CHARARRAY']; compilerproc;
+var
+  len: longint;
+begin
+  len := length(src);
+  if len > arraysize then
+    len := arraysize;
+  { make sure we don't access char 1 if length is 0 (JM) }
+  if len > 0 then
+    move(src[1],fpc_shortstr_to_chararray[0],len);
+  fillchar(fpc_shortstr_to_chararray[len],arraysize-len,0);
+end;
+
+{$endif FPC_SYSTEM_HAS_FPC_SHORTSTR_TO_CHARARRAY}
+
+{$else hascompilerproc}
 
 {$ifopt r+}
 {$define rangeon}
@@ -664,12 +693,15 @@ begin
     move(src^,dest^,len);
   fillchar(dest[len],arraysize-len,0);
 end;
+
 {$endif FPC_SYSTEM_HAS_FPC_STR_TO_CHARARRAY}
 
 {$ifdef rangeon}
 {$r+}
 {undef rangeon}
 {$endif rangeon}
+
+{$endif hascompilerproc}
 
 {$ifndef FPC_SYSTEM_HAS_STRLEN}
 
@@ -857,7 +889,11 @@ end;
 
 {
   $Log$
-  Revision 1.18  2001-08-28 13:24:47  jonas
+  Revision 1.19  2001-08-29 19:49:04  jonas
+    * some fixes in compilerprocs for chararray to string conversions
+    * conversion from string to chararray is now also done via compilerprocs
+
+  Revision 1.18  2001/08/28 13:24:47  jonas
     + compilerproc implementation of most string-related type conversions
     - removed all code from the compiler which has been replaced by
       compilerproc implementations (using {$ifdef hascompilerproc} is not

@@ -24,6 +24,9 @@
 
 {$ifdef hascompilerproc}
 
+type
+  fpc_big_chararray = array[0..maxlongint] of char;
+
 procedure fpc_Shortstr_SetLength(var s:shortstring;len:StrLenInt); compilerproc;
 function fpc_shortstr_to_shortstr(len:longint; const sstr: shortstring): shortstring; compilerproc;
 procedure fpc_shortstr_concat(const s1,s2:shortstring); compilerproc;
@@ -31,7 +34,8 @@ function fpc_shortstr_compare(const dstr,sstr:shortstring) : longint; compilerpr
 function fpc_pchar_to_shortstr(p:pchar):shortstring; compilerproc;
 
 function fpc_chararray_to_shortstr(const arr: array of char):shortstring; compilerproc;
-procedure fpc_str_to_chararray(strtyp, arraysize: longint; src,dest: pchar);compilerproc;
+function fpc_shortstr_to_chararray(arraysize: longint; const src: ShortString): fpc_big_chararray; compilerproc;
+
 
 function fpc_dynarray_length(p : pointer) : tdynarrayindex; compilerproc;
 function fpc_dynarray_high(p : pointer) : tdynarrayindex; compilerproc;
@@ -61,6 +65,7 @@ Function fpc_ShortStr_To_AnsiStr (Const S2 : ShortString): ansistring; compilerp
 Function fpc_Char_To_AnsiStr(const c : Char): AnsiString; compilerproc;
 Function fpc_PChar_To_AnsiStr(const p : pchar): ansistring; compilerproc;
 Function fpc_CharArray_To_AnsiStr(const arr: array of char): ansistring; compilerproc;
+function fpc_ansistr_to_chararray(arraysize: longint; const src: ansistring): fpc_big_chararray; compilerproc;
 Function fpc_AnsiStr_Compare(S1,S2 : Pointer): Longint; compilerproc;
 Procedure fpc_AnsiStr_CheckZero(p : pointer); compilerproc;
 Procedure fpc_AnsiStr_CheckRange(len,index : longint); compilerproc;
@@ -81,6 +86,7 @@ Procedure fpc_WideStr_Concat (S1,S2 : Pointer;var S3 : Pointer); compilerproc;
 Function fpc_Char_To_WideStr(const c : Char): WideString; compilerproc;
 Function fpc_PChar_To_WideStr(const p : pchar): WideString; compilerproc;
 Function fpc_CharArray_To_WideStr(const arr: array of char): WideString; compilerproc;
+function fpc_widestr_to_chararray(arraysize: longint; const src: WideString): fpc_big_chararray; compilerproc;
 Function fpc_WideStr_Compare(S1,S2 : Pointer): Longint; compilerproc;
 Procedure fpc_WideStr_CheckZero(p : pointer); compilerproc;
 Procedure fpc_WideStr_CheckRange(len,index : longint); compilerproc;
@@ -231,7 +237,11 @@ Procedure fpc_typed_read(TypeSize : Longint;var f : TypedFile;var Buf); compiler
 
 {
   $Log$
-  Revision 1.5  2001-08-28 13:24:47  jonas
+  Revision 1.6  2001-08-29 19:49:04  jonas
+    * some fixes in compilerprocs for chararray to string conversions
+    * conversion from string to chararray is now also done via compilerprocs
+
+  Revision 1.5  2001/08/28 13:24:47  jonas
     + compilerproc implementation of most string-related type conversions
     - removed all code from the compiler which has been replaced by
       compilerproc implementations (using {$ifdef hascompilerproc} is not

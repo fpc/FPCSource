@@ -888,6 +888,11 @@ begin
         cld
         movl    arr,%esi
         movl    arr+4,%ecx
+{$ifdef hascompilerproc}
+        { previous implementations passed length(arr), with compilerproc }
+        { we only have high(arr), so add one (JM)                        }
+        incl    %ecx
+{$endif hascompilerproc}
         orl     %esi,%esi
         jnz     .LStrCharArrayNotNil
         movl    $0,%ecx
@@ -1139,7 +1144,11 @@ procedure inclocked(var l : longint);assembler;
 
 {
   $Log$
-  Revision 1.15  2001-08-28 13:24:47  jonas
+  Revision 1.16  2001-08-29 19:49:04  jonas
+    * some fixes in compilerprocs for chararray to string conversions
+    * conversion from string to chararray is now also done via compilerprocs
+
+  Revision 1.15  2001/08/28 13:24:47  jonas
     + compilerproc implementation of most string-related type conversions
     - removed all code from the compiler which has been replaced by
       compilerproc implementations (using {$ifdef hascompilerproc} is not

@@ -402,19 +402,47 @@ begin
     { result is automatically set to '' }
     exit;
   i:=IndexChar(arr,high(arr)+1,#0);
+  if i = -1 then
+    i := high(arr)+1;
   SetLength(fpc_CharArray_To_WideStr,i);
   Ansi2WideMoveProc (pchar(@arr),PWideChar(Pointer(fpc_CharArray_To_WideStr)),i);
 end;
 
 { old style helper }
 {$ifndef hascompilerproc}
-{ the declaration below is the same as                                              }
-{ Procedure fpc_CharArray_To_WideStr(var a : WideString; p: pointer; len: longint); }
-{ which is what the old helper was (we need the parameter as "array of char" type   }
-{ so we can pass it to the new style helper (JM)                                    }
-Procedure fpc_CharArray_To_WideStr(var a : WideString; const arr: array of char);[Public,Alias : 'FPC_CHARARRAY_TO_WIDESTR'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_CharArray_To_WideStr(var a : WideString; p: pointer; len: longint); [Public,Alias : 'FPC_CHARARRAY_TO_WIDESTR'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+var
+  src: pchar;
+  i: longint;
 begin
-  pointer(a) := pointer(fpc_CharArray_To_WideStr(arr));
+  src := pchar(p);
+  if src[0]=#0 Then
+    begin
+      pointer(a) := nil;
+      exit;
+    end;
+  i:=IndexChar(src^,len,#0);
+  if i = -1 then
+    i := len;
+  pointer(a) := NewWideString(i);
+  Ansi2WideMoveProc (src,PWideChar(Pointer(@a[1])),i);
+end;
+{$endif not hascompilerproc}
+
+{$ifdef hascompilerproc}
+{ inside the compiler, the resulttype is modified to that of the actual }
+{ chararray we're converting to (JM)                                    }
+function fpc_widestr_to_chararray(arraysize: longint; const src: WideString): fpc_big_chararray;[public,alias: 'FPC_WIDESTR_TO_CHARARRAY']; compilerproc;
+var
+  len: longint;
+begin
+  len := length(src);
+  if len > arraysize then
+    len := arraysize;
+  { make sure we don't dereference src if it can be nil (JM) }
+  if len > 0 then
+    wide2ansimoveproc(pwidechar(@src[1]),pchar(@fpc_widestr_to_chararray[0]),len);
+  fillchar(fpc_widestr_to_chararray[len],arraysize-len,0);
 end;
 {$endif hascompilerproc}
 
@@ -812,7 +840,11 @@ end;
 
 {
   $Log$
-  Revision 1.13  2001-08-28 13:24:47  jonas
+  Revision 1.14  2001-08-29 19:49:04  jonas
+    * some fixes in compilerprocs for chararray to string conversions
+    * conversion from string to chararray is now also done via compilerprocs
+
+  Revision 1.13  2001/08/28 13:24:47  jonas
     + compilerproc implementation of most string-related type conversions
     - removed all code from the compiler which has been replaced by
       compilerproc implementations (using {$ifdef hascompilerproc} is not

@@ -265,19 +265,10 @@ implementation
 
     procedure ti386typeconvnode.second_string_to_chararray;
       var
-         pushedregs: tpushed;
-         //l1 : tasmlabel;
-         //hr : preference;
-         arrsize, strtype: longint;
-         regstopush: byte;
+        arrsize: longint;
       begin
          with tarraydef(resulttype.def) do
-          begin
-            if highrange<lowrange then
-             internalerror(75432653);
-            arrsize := highrange-lowrange+1;
-          end;
-
+           arrsize := highrange-lowrange+1;
          if (left.nodetype = stringconstn) and
             { left.length+1 since there's always a terminating #0 character (JM) }
             (tstringconstnode(left).len+1 >= arrsize) and
@@ -285,67 +276,10 @@ implementation
            begin
              inc(location.reference.offset);
              exit;
-           end;
-         clear_location(location);
-         location.loc := LOC_REFERENCE;
-         gettempofsizereference(arrsize,location.reference);
-
-         regstopush := $ff;
-         remove_non_regvars_from_loc(left.location,regstopush);
-         pushusedregisters(pushedregs,regstopush);
-
-         emit_push_lea_loc(location,false);
-
-         case tstringdef(left.resulttype.def).string_typ of
-           st_shortstring :
-             begin
-               { 0 means shortstring }
-               strtype := 0;
-               del_reference(left.location.reference);
-               emit_push_lea_loc(left.location,true);
-               ungetiftemp(left.location.reference);
-             end;
-           st_ansistring :
-             begin
-               { 1 means ansistring }
-               strtype := 1;
-               case left.location.loc of
-                  LOC_CREGISTER,LOC_REGISTER:
-                    begin
-                      ungetregister(left.location.register);
-                      emit_push_loc(left.location);
-                    end;
-                  LOC_MEM,LOC_REFERENCE:
-                    begin
-                      del_reference(left.location.reference);
-                      emit_push_loc(left.location);
-                      ungetiftemp(left.location.reference);
-                    end;
-               end;
-             end;
-           st_longstring:
-             begin
-               {!!!!!!!}
-               { 2 means longstring, but still needs support in FPC_STR_TO_CHARARRAY,
-                 which is in i386.inc and/or generic.inc (JM) }
-               strtype := 2;
-
-               internalerror(8888);
-             end;
-           st_widestring:
-             begin
-               {!!!!!!!}
-               { 3 means widestring, but still needs support in FPC_STR_TO_CHARARRAY,
-                 which is in i386.inc and/or generic.inc (JM) }
-               strtype := 3;
-               internalerror(8888);
-             end;
-         end;
-         push_int(arrsize);
-         push_int(strtype);
-         saveregvars(regstopush);
-         emitcall('FPC_STR_TO_CHARARRAY');
-         popusedregisters(pushedregs);
+           end
+         else
+           { should be handled already in resulttype pass (JM) }
+           internalerror(200108292);
       end;
 
 
@@ -1066,7 +1000,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2001-08-28 13:24:47  jonas
+  Revision 1.22  2001-08-29 19:49:03  jonas
+    * some fixes in compilerprocs for chararray to string conversions
+    * conversion from string to chararray is now also done via compilerprocs
+
+  Revision 1.21  2001/08/28 13:24:47  jonas
     + compilerproc implementation of most string-related type conversions
     - removed all code from the compiler which has been replaced by
       compilerproc implementations (using {$ifdef hascompilerproc} is not
