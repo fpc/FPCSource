@@ -992,19 +992,18 @@ end;
 
 function fexpand(const path:pathstr):pathstr;
 
-    function get_current_drive:byte;assembler;
+{    function get_current_drive:byte;assembler;
 
     asm
         movb $0x19,%ah
         call syscall
     end;
+}
 
-var s,pa:string;
+var s,pa:PathStr;
     i,j:longint;
 
 begin
-    getdir(0,s);
-    i:=ioresult;
     if FileNameCaseSensitive then
         pa := path
     else
@@ -1019,12 +1018,12 @@ begin
             if (pa[1] in ['a'..'z']) then
                 pa[1]:=Chr(Ord(Pa[1])-32);
             {We must get the right directory}
-            getdir(byte(pa[1])-byte('A')+1,s);
+            getdir (Ord (Pa [1]) - Ord ('A') + 1, S);
             i:=ioresult;
-            if pa[0] = #2 then
-                pa := s
+            case Length (Pa) of
+                2: Pa := S;
             else
-                if (byte(pa[0])>2) and (pa[3]<>'\') then
+                if Pa [3] <> '\' then
                     if pa[1]=s[1] then
                         begin
                             { remove ending slash if it already exists }
@@ -1034,18 +1033,27 @@ begin
                         end
                     else
                         pa:=pa[1]+':\'+copy (pa,3,length(pa))
+            end;
         end
     else
-        if pa[1]='\' then
+        begin
+            getdir(0,s);
+            i:=ioresult;
+            if (Length (Pa) > 0) and (Pa [1] = '\') then
             begin
                 { Do not touch Network drive names }
                 if not ((Length(pa)>1) and (pa[2]='\')) then
                     pa:=s[1]+':'+pa
             end
-        else if s[0]=#3 then
+            else
+                if Length (S) = 3 then
             pa:=s+pa
         else
+                    if Length (Pa) = 0 then
+                        Pa := S + '\'
+                    else
             pa:=s+'\'+pa;
+        end;
     {First remove all references to '\.\'}
     i:=pos('\.\',pa);
     while i<>0 do
@@ -1058,15 +1066,40 @@ begin
         i:=pos('\..\',pa);
         if i<>0 then
             begin
-                j:=i-1;
-                while (j>1) and (pa[j]<>'\') do
-                    dec(j);
-                if pa[j+1] = ':' then
-                    j := 3;
-                delete (pa,j,i-j+3);
+                J := Pred (I);
+                while (J > 0) and (Pa [J] <> '\') do
+                    Dec (J);
+                if (J = 0) or (J = 1) and (I = 2) then
+                    Delete (Pa, Succ (I), 3)
+                else
+                    Delete (Pa, Succ (J), I - J + 3);
             end;
     until i=0;
-
+    {Now remove also any reference to '\..' at the end of line
+    + of course previous dir..}
+    i:=pos('\..',pa);
+    if (I <> 0) and (I = Length (Pa) - 2) then
+        begin
+            J := Pred (I);
+            while (J >= 1) and (Pa [J] <> '\') do
+                Dec (J);
+            if (J = 0) or (J = 1) and (I = 2) then
+                Delete (Pa, Succ (I), 2)
+            else
+                Delete (Pa, Succ (J), I - J + 2);
+        end;
+    {Now remove also any reference to '\.' at the end of line}
+    I := Pos ('\.', Pa);
+    if (I <> 0) and (I = Pred (Length (Pa))) then
+        if (I = 3) and (Pa [2] = ':') or (I = 2) and (Pa [1] = '\') then
+            Dec (Pa [0])
+        else
+            Delete (Pa, I, 2);
+    {Remove ending \ if not supplied originally and original string
+    wasn't empty (to stay compatible) and if not really needed}
+    if (Length (Pa) > 3) and (Pa [Length (Pa)] = '\')
+                and (Length (Path) <> 0) and (Path [Length (Path)] <> '\') then
+        Dec (Pa [0]);
     fexpand:=pa;
 end;
 
@@ -1136,7 +1169,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-10-28 16:58:34  hajny
+  Revision 1.5  2000-11-05 22:21:47  hajny
+    * more FExpand fixes
+
+  Revision 1.4  2000/10/28 16:58:34  hajny
     * many FExpand fixes
 
   Revision 1.3  2000/09/29 21:49:41  jonas
@@ -1144,8 +1180,5 @@ end.
 
   Revision 1.2  2000/07/14 10:33:10  michael
   + Conditionals fixed
-
-  Revision 1.1  2000/07/13 06:31:04  michael
-  + Initial import
 
 }
