@@ -578,8 +578,10 @@ uses
         while assigned(pm) do
          begin
            { We do not have to reload the unit that wants to load
-             this unit }
-           if pm.u=callermodule then
+             this unit, unless this unit is already compiled during
+             the loading }
+           if (pm.u=callermodule) and
+              (pm.u.state<>ms_compiled) then
              Message1(unit_u_no_reload_is_caller,pm.u.modulename^)
            else
             if pm.u.state=ms_second_compile then
@@ -650,7 +652,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.36  2003-06-07 20:26:32  peter
+  Revision 1.37  2003-08-23 22:31:42  peter
+    * reload also caller module when it is already compiled
+
+  Revision 1.36  2003/06/07 20:26:32  peter
     * re-resolving added instead of reloading from ppu
     * tderef object added to store deref info for resolving
 
