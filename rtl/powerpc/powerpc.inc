@@ -719,6 +719,7 @@ LShortStrCopyLoop:
         lbzu    r0,1(r5)
         stbu    r0,1(r3)
         bdnz    LShortStrCopyLoop
+LShortStrCopyDone:
 end ['R0','R3','R4','R5','R10','CR0','CTR'];
 
 
@@ -747,6 +748,7 @@ LShortStrCopyLoop2:
         lbzu    r0,1(r4)
         stbu    r0,1(r5)
         bdnz    LShortStrCopyLoop2
+LShortStrCopyDone2:
 end ['R0','R3','R4','R5','R10','CR0','CTR'];
 
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
@@ -950,7 +952,10 @@ end ['R3','R10'];
 
 {
   $Log$
-  Revision 1.15  2002-08-31 13:11:11  florian
+  Revision 1.16  2002-08-31 16:08:36  florian
+    * fixed undefined labels
+
+  Revision 1.15  2002/08/31 13:11:11  florian
     * several fixes for Linux/PPC compilation
 
   Revision 1.14  2002/08/18 22:11:10  florian
