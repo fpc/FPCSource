@@ -108,6 +108,19 @@ type
    EAbstractError   = Class(Exception);
    EAssertionFailed = Class(Exception);
 
+   { Exception handling routines }
+   function ExceptObject: TObject;
+   function ExceptAddr: Pointer;
+   function ExceptionErrorMessage(ExceptObject: TObject; ExceptAddr: Pointer;
+                                  Buffer: PChar; Size: Integer): Integer;
+   procedure ShowException(ExceptObject: TObject; ExceptAddr: Pointer);
+   procedure Abort;
+   procedure OutOfMemoryError;
+   procedure Beep;
+
+Var
+   OnShowException : Procedure (Msg : ShortString);
+
   { FileRec/TextRec }
   {$i filerec.inc}
   {$i textrec.inc}
@@ -294,8 +307,89 @@ begin
   InvalidPointer:=EInvalidPointer.Create(SInvalidPointer);
   AssertErrorProc:=@AssertErrorHandler;
   ErrorProc:=@RunErrorToExcept;
+  OnShowException:=Nil;
 end;
 
+{ Exception handling routines }
+
+function ExceptObject: TObject;
+
+begin
+  If RaiseList=Nil then
+    Result:=Nil
+  else
+    Result:=RaiseList^.FObject;
+end;
+
+function ExceptAddr: Pointer;
+
+begin
+  If RaiseList=Nil then
+    Result:=Nil
+  else
+    Result:=RaiseList^.Addr;
+end;
+
+function ExceptionErrorMessage(ExceptObject: TObject; ExceptAddr: Pointer;
+                               Buffer: PChar; Size: Integer): Integer;
+
+Var
+  S : AnsiString;
+  Len : Integer;
+  
+begin
+  S:=Format(SExceptionErrorMessage,[ExceptObject.ClassName,ExceptAddr]);
+  If ExceptObject is Exception then
+    S:=Format('%s:'#10'%s',[S,Exception(ExceptObject).Message]);
+  Len:=Length(S);
+  If S[Len]<>'.' then
+    begin
+    S:=S+'.';
+    Inc(len);
+    end;
+  If Len>Size then
+    Len:=Size;
+  Move(S[1],Buffer^,Len);
+  Result:=Len;
+end;
+
+procedure ShowException(ExceptObject: TObject; ExceptAddr: Pointer);
+
+// use shortstring. On exception, the heap may be corrupt.
+
+Var
+  Buf : ShortString;
+
+begin
+  SetLength(Buf,ExceptionErrorMessage(ExceptObject,ExceptAddr,@Buf[1],255));
+  If IsConsole Then
+    writeln(Buf)
+  else
+    If Assigned(OnShowException) Then
+      OnShowException (Buf);
+end;
+
+procedure Abort;
+
+begin
+  Raise EAbort.Create(SAbortError) at Get_Caller_addr(Get_Frame)
+end;
+
+procedure OutOfMemoryError;
+
+begin
+  Raise OutOfMemory;
+end;
+
+procedure Beep;
+
+begin
+  {$ifdef win32}
+  MessageBeep(0);
+  {$else}
+  
+  {$endif}
+end;
 
 {  Initialization code. }
 
@@ -308,7 +402,11 @@ Finalization
 end.
 {
     $Log$
-    Revision 1.46  2000-06-11 07:07:23  peter
+    Revision 1.47  2000-06-22 18:05:18  michael
+    + Added ExceptObject, ExceptAddr,ExceptionErrorMessage
+       ShowException Abort; OutOfMemoryError; Beep;
+
+    Revision 1.46  2000/06/11 07:07:23  peter
       + TSysCharSet
 
     Revision 1.45  2000/04/24 13:34:29  peter

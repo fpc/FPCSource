@@ -55,9 +55,15 @@ Const
    SUnderflow = 'Floating point underflow';
    SIntOverflow = 'Arithmetic overflow';
    SInvalidOp = 'Invalid floating point operation';
+   SAbortError = 'Operation aborted';
+   SExceptionErrorMessage = 'exception at %p';
 {
   $Log$
-  Revision 1.10  2000-02-09 16:59:32  peter
+  Revision 1.11  2000-06-22 18:05:18  michael
+  + Added ExceptObject, ExceptAddr,ExceptionErrorMessage
+     ShowException Abort; OutOfMemoryError; Beep;
+
+  Revision 1.10  2000/02/09 16:59:32  peter
     * truncated log
 
   Revision 1.9  2000/01/07 16:41:44  daniel
