@@ -68,7 +68,7 @@ unit i_win32;
             Cprefix      : '_';
             newline      : #13#10;
             dirsep       : '\';
-            files_case_relevent : false;
+            files_case_relevent : true;
             assem        : as_i386_pecoff;
             assemextern  : as_gas;
             link         : nil;
@@ -112,7 +112,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.8  2004-06-20 08:55:32  florian
+  Revision 1.9  2004-08-28 20:01:46  peter
+    * enable case sensitive to support mixed case unit/filenames
+
+  Revision 1.8  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.7  2004/03/14 20:09:27  peter
