@@ -14,6 +14,10 @@
 
  **********************************************************************}
 
+
+Var
+  CurrentTM : TThreadManager;
+
 {*****************************************************************************
                            Threadvar initialization
 *****************************************************************************}
@@ -31,7 +35,7 @@
         { Stack checking }
         StackLength:=stklen;
         StackBottom:=Sptr - StackLength;
-        ThreadID := SysGetCurrentThreadID;
+        ThreadID := CurrentTM.GetCurrentThreadID();
       end;
 
 {*****************************************************************************
@@ -78,9 +82,6 @@
       begin
         EndThread(0);
       end;
-
-Var
-  CurrentTM : TThreadManager;
 
 function BeginThread(sa : Pointer;stacksize : dword; ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword;  var ThreadId : DWord) : DWord;
 
@@ -321,7 +322,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2004-01-20 23:13:53  hajny
+  Revision 1.8  2004-01-21 20:11:06  peter
+    * fixed compile for unix
+
+  Revision 1.7  2004/01/20 23:13:53  hajny
     * ExecuteProcess fixes, ProcessID and ThreadID added
 
   Revision 1.6  2003/11/29 17:33:09  michael
