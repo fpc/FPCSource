@@ -31,14 +31,8 @@ uses
   Dmisc;
 {$ENDIF Delphi}
 {$IFDEF FPC}
-{$ifdef go32v2}
-uses
-  dpmiexcp,Dos;
-{$endif go32v2}
-{$ifdef win32}
 uses
   Dos;
-{$endif win32}
 {$ENDIF FPC}
 
 
