@@ -984,9 +984,26 @@ end;
 
 
 procedure chdir(const s : string);[IOCheck];
+var
+  regs : trealregs;
 begin
   If InOutRes <> 0 then
    exit;
+{ First handle Drive changes }
+  if (length(s)>=2) and (s[2]=':') then
+   begin
+     regs.realedx:=(ord(s[1]) and (not 32))-ord('A');
+     regs.realeax:=$0e00;
+     sysrealintr($21,regs);
+     regs.realeax:=$1900;
+     sysrealintr($21,regs);
+     if byte(regs.realeax)<>byte(regs.realedx) then
+      begin
+        Inoutres:=15;
+        exit;
+      end;
+   end;
+{ do the normal dos chdir }
   DosDir($3b,s);
 end;
 
@@ -1050,21 +1067,22 @@ end;
 function CheckLFN:boolean;
 var
   regs     : TRealRegs;
-  Buffers,
   RootName : pchar;
 begin
-  RootName:='C:\'+#0;
-  Buffers:='                    '+#0;
+{ Check LFN API on drive c:\ }
+  RootName:='C:\';
   syscopytodos(longint(RootName),strlen(RootName)+1);
+{ Call 'Get Volume Information' ($71A0) }
   regs.realeax:=$71a0;
   regs.reales:=tb_segment;
   regs.realedi:=tb_offset;
-  regs.realecx:=strlen(Buffers)+1;
+  regs.realecx:=32;
   regs.realds:=tb_segment;
   regs.realedx:=tb_offset;
+  regs.realflags:=carryflag;
   sysrealintr($21,regs);
-  syscopyfromdos(longint(Buffers),strlen(Buffers)+1);
-  CheckLFN:=(regs.realecx=255);
+{ If carryflag=0 and LFN API bit in ebx is set then use Long file names }
+  CheckLFN:=(regs.realflags and carryflag=0) and (regs.realebx and $4000=$4000);
 end;
 {$endif RTLLITE}
 
@@ -1088,7 +1106,11 @@ Begin
 End.
 {
   $Log$
-  Revision 1.17  1998-08-27 10:30:51  pierre
+  Revision 1.18  1998-08-28 10:48:04  peter
+    * fixed chdir with drive changing
+    * updated checklfn from mailinglist
+
+  Revision 1.17  1998/08/27 10:30:51  pierre
     * go32v1 RTL did not compile (LFNsupport outside go32v2 defines !)
       I renamed tb_selector to tb_segment because
         it is a real mode segment as opposed to
