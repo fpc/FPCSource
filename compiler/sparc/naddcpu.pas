@@ -108,21 +108,21 @@ function TSparcAddNode.GetResFlags(unsigned:Boolean):TResFlags;
   end;
 procedure TSparcAddNode.left_must_be_reg(OpSize:TOpSize;NoSwap:Boolean);
   begin
-    if(left.location.loc<>LOC_REGISTER)
-    then{left location is not a register}
+    if(left.location.loc=LOC_REGISTER)
+    then
+      exit;
+  {left location is not a register}
+    if(not NoSwap)and(right.location.loc=LOC_REGISTER)
+    then{right is register so we can swap the locations}
       begin
-        if(not NoSwap)and(right.location.loc=LOC_REGISTER)
-        then{right is register so we can swap the locations}
-          begin
-            location_swap(left.location,right.location);
-            toggleflag(nf_swaped);
-          end
-        else
-          begin
+        location_swap(left.location,right.location);
+        toggleflag(nf_swaped);
+      end
+    else
+      begin
 {maybe we can reuse a constant register when the operation is a comparison that
 doesn't change the value of the register}
-            location_force_reg(exprasmlist,left.location,opsize_2_cgsize[opsize],(nodetype IN [ltn,lten,gtn,gten,equaln,unequaln]));
-          end;
+        location_force_reg(exprasmlist,left.location,opsize_2_cgsize[opsize],(nodetype IN [ltn,lten,gtn,gten,equaln,unequaln]));
       end;
   end;
 procedure TSparcAddNode.emit_generic_code(op:TAsmOp;OpSize:TOpSize;unsigned,extra_not,mboverflow:Boolean);
@@ -276,41 +276,25 @@ procedures }
       orddef:
         if is_boolean(left.resulttype.def)and is_boolean(right.resulttype.def)
         then{handling boolean expressions}
-          begin
-            InternalError(20020726);//second_addboolean;
-            exit;
-          end
+          InternalError(20020726)//second_addboolean;
         else if is_64bitint(left.resulttype.def)
         then{64bit operations}
-          begin
             InternalError(20020726);//second_add64bit;
-            exit;
-          end;
       stringdef:
-        begin
-          InternalError(20020726);//second_addstring;
-          exit;
-        end;
+        InternalError(20020726);//second_addstring;
       setdef:
-        begin
-          {normalsets are already handled in pass1}
-          if(tsetdef(left.resulttype.def).settype<>smallset)
-          then
-            internalerror(200109041);
+        {normalsets are already handled in pass1}
+        if(tsetdef(left.resulttype.def).settype<>smallset)
+        then
+          internalerror(200109041)
+        else
           InternalError(20020726);//second_addsmallset;
-          exit;
-        end;
       arraydef :
-        begin
-        end;
+        InternalError(2002110600);
       floatdef :
-        begin
-          InternalError(20020726);//second_addfloat;
-          exit;
-        end;
+        InternalError(20020726);//second_addfloat;
     end;
 {defaults}
-    {is_in_dest:=false;}
     extra_not:=false;
     mboverflow:=false;
     cmpop:=false;
@@ -318,13 +302,13 @@ procedures }
               not(is_signed(right.resulttype.def));
     opsize:=def_opsize(left.resulttype.def);
     pass_left_and_right;
-    IF(left.resulttype.def.deftype=pointerdef)OR
-      (right.resulttype.def.deftype=pointerdef) or
-      (is_class_or_interface(right.resulttype.def) and is_class_or_interface(left.resulttype.def)) or
+    if(left.resulttype.def.deftype=pointerdef)or
+      (right.resulttype.def.deftype=pointerdef)or
+      (is_class_or_interface(right.resulttype.def)and is_class_or_interface(left.resulttype.def)) or
       (left.resulttype.def.deftype=classrefdef) or
       (left.resulttype.def.deftype=procvardef) or
-      ((left.resulttype.def.deftype=enumdef)and(left.resulttype.def.size=4)) or
-      ((left.resulttype.def.deftype=orddef)and(torddef(left.resulttype.def).typ in [s32bit,u32bit])) or
+      ((left.resulttype.def.deftype=enumdef)and(left.resulttype.def.size=4))or
+      ((left.resulttype.def.deftype=orddef)and(torddef(left.resulttype.def).typ in [s32bit,u32bit]))or
       ((right.resulttype.def.deftype=orddef)and(torddef(right.resulttype.def).typ in [s32bit,u32bit]))
     then
       begin
@@ -361,134 +345,29 @@ procedures }
             op:=A_OR;
           andn:
             op:=A_AND;
-        ELSE
+        else
           CGMessage(type_e_mismatch);
         end;
-  { filter MUL, which requires special handling }
-        IF op=A_UMUL
-        THEN
+   { Convert flags to register first }
+        if(left.location.loc=LOC_FLAGS)
+        then
+          location_force_reg(exprasmlist,left.location,opsize_2_cgsize[opsize],false);
+        if (right.location.loc=LOC_FLAGS)
+        then
+          location_force_reg(exprasmlist,right.location,opsize_2_cgsize[opsize],false);
+        left_must_be_reg(OpSize,false);
+        emit_generic_code(op,opsize,unsigned,extra_not,mboverflow);
+        location_freetemp(exprasmlist,right.location);
+        location_release(exprasmlist,right.location);
+        if cmpop and(left.location.loc<>LOC_CREGISTER)
+        then
           begin
-            popeax:=false;
-            popedx:=false;
-              { here you need to free the symbol first }
-              { left.location and right.location must }
-              { only be freed when they are really released,  }
-              { because the optimizer NEEDS correct regalloc  }
-              { info!!! (JM)                                  }
-              { the location.register will be filled in later (JM) }
-            location_reset(location,LOC_REGISTER,OS_INT);
-{$IfNDef NoShlMul}
-            IF right.nodetype=ordconstn
-            THEN
-              swapleftright;
-            IF(left.nodetype=ordconstn)and
-              ispowerof2(tordconstnode(left).value, power)and
-              not(cs_check_overflow in aktlocalswitches)
-            THEN
-              begin
-                  { This release will be moved after the next }
-                  { instruction by the optimizer. No need to  }
-                  { release left.location, since it's a   }
-                  { constant (JM)                             }
-                location_release(exprasmlist,right.location);
-                location.register:=rg.getregisterint(exprasmlist);
-                cg.a_load_loc_reg(exprasmlist,right.location,location.register);
-                cg.a_op_const_reg(exprasmlist,OP_SHL,power,location.register);
-              end
-            ELSE
-              begin
-{$EndIf NoShlMul}
-{In SPARC there is no push/pop mechanism. There is a windowing mechanism using
- SAVE and RESTORE instructions.}
-                //regstopush:=all_registers;
-                //remove_non_regvars_from_loc(right.location,regstopush);
-                //remove_non_regvars_from_loc(left.location,regstopush);
-                {left.location can be R_EAX !!!}
-//              rg.GetExplicitRegisterInt(exprasmlist,R_EDI);
-                {load the left value}
-//                cg.a_load_loc_reg(exprasmlist,left.location,R_EDI);
-//                location_release(exprasmlist,left.location);
-                  { allocate EAX }
-//                if R_EAX in rg.unusedregsint then
-//                  exprasmList.concat(tai_regalloc.Alloc(R_EAX));
-                  { load he right value }
-//                cg.a_load_loc_reg(exprasmlist,right.location,R_EAX);
-//                location_release(exprasmlist,right.location);
-                  { allocate EAX if it isn't yet allocated (JM) }
-//                if (R_EAX in rg.unusedregsint) then
-//                  exprasmList.concat(tai_regalloc.Alloc(R_EAX));
-                  { also allocate EDX, since it is also modified by }
-                  { a mul (JM)                                      }
-{                if R_EDX in rg.unusedregsint then
-                    exprasmList.concat(tai_regalloc.Alloc(R_EDX));
-                  emit_reg(A_MUL,S_L,R_EDI);
-                  rg.ungetregisterint(exprasmlist,R_EDI);
-                  if R_EDX in rg.unusedregsint then
-                    exprasmList.concat(tai_regalloc.DeAlloc(R_EDX));
-                  if R_EAX in rg.unusedregsint then
-                    exprasmList.concat(tai_regalloc.DeAlloc(R_EAX));
-                  location.register:=rg.getregisterint(exprasmlist);
-                  emit_reg_reg(A_MOV,S_L,R_EAX,location.register);
-                  if popedx then
-                  emit_reg(A_POP,S_L,R_EDX);
-                  if popeax then
-                  emit_reg(A_POP,S_L,R_EAX);}
-{$IfNDef NoShlMul}
-                End;
-{$endif NoShlMul}
-              location_freetemp(exprasmlist,left.location);
-              location_freetemp(exprasmlist,right.location);
-              exit;
-            end;
-
-            { Convert flags to register first }
-            if (left.location.loc=LOC_FLAGS) then
-            location_force_reg(exprasmlist,left.location,opsize_2_cgsize[opsize],false);
-            if (right.location.loc=LOC_FLAGS) then
-            location_force_reg(exprasmlist,right.location,opsize_2_cgsize[opsize],false);
-
-            left_must_be_reg(OpSize,false);
-            emit_generic_code(op,opsize,unsigned,extra_not,mboverflow);
-            location_freetemp(exprasmlist,right.location);
-            location_release(exprasmlist,right.location);
-            if cmpop and
-              (left.location.loc<>LOC_CREGISTER) then
-            begin
-              location_freetemp(exprasmlist,left.location);
-              location_release(exprasmlist,left.location);
-            end;
-            set_result_location(cmpop,unsigned);
+            location_freetemp(exprasmlist,left.location);
+            location_release(exprasmlist,left.location);
           end;
-
-        { 8/16 bit enum,char,wchar types }
-{         else
-          if ((left.resulttype.def.deftype=orddef) and
-              (torddef(left.resulttype.def).typ in [uchar,uwidechar])) or
-            ((left.resulttype.def.deftype=enumdef) and
-              ((left.resulttype.def.size=1) or
-              (left.resulttype.def.size=2))) then
-          begin
-            case nodetype of
-              ltn,lten,gtn,gten,
-              equaln,unequaln :
-                cmpop:=true;
-              else
-                CGMessage(type_e_mismatch);
-            end;
-            left_must_be_reg(opsize,false);
-            emit_op_right_left(A_CMP,opsize);
-            location_freetemp(exprasmlist,right.location);
-            location_release(exprasmlist,right.location);
-            if left.location.loc<>LOC_CREGISTER then
-              begin
-                location_freetemp(exprasmlist,left.location);
-                location_release(exprasmlist,left.location);
-              end;
-            set_result_location(true,true);
-          end
-        else
-          CGMessage(type_e_mismatch);}
+        set_result_location(cmpop,unsigned);
       end;
+   end;
 procedure TSparcAddNode.pass_left_and_right;
   var
     pushedregs:tmaybesave;
@@ -525,7 +404,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.7  2002-11-06 11:31:24  mazen
+    Revision 1.8  2002-11-06 15:34:00  mazen
+    *** empty log message ***
+
+    Revision 1.7  2002/11/06 11:31:24  mazen
     * op_reg_reg_reg don't need any more a TOpSize parameter
 
     Revision 1.6  2002/11/05 16:15:00  mazen
