@@ -117,6 +117,7 @@ type tmsgconst=(
   parser_e_cant_access_protected_member,
   parser_e_cant_access_private_member,
   parser_w_overloaded_are_not_both_virtual,
+  parser_w_overloaded_are_not_both_non_virtual,
   parser_e_overloaded_methodes_not_same_ret,
   parser_e_dont_nest_export,
   parser_e_methods_dont_be_export,

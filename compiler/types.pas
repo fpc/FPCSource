@@ -1107,7 +1107,11 @@ unit types;
                                             else
                                               if _c=hp^._class then
                                                 begin
-                                                   Message1(parser_w_overloaded_are_not_both_virtual,_c^.name^+'.'+_name);
+                                                   if (procdefcoll^.data^.options and povirtualmethod)<>0 then
+                                                     Message1(parser_w_overloaded_are_not_both_virtual,_c^.name^+'.'+_name)
+                                                   else
+                                                     Message1(parser_w_overloaded_are_not_both_non_virtual,
+                                                       _c^.name^+'.'+_name);
                                                    newentry;
                                                    exit;
                                                 end;
@@ -1284,7 +1288,11 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.51  1999-02-22 23:33:31  florian
+  Revision 1.52  1999-02-24 09:51:44  florian
+    * wrong warning fixed, if a non-virtual method was hidden by a virtual
+      method (repoerted by Matthias Koeppe)
+
+  Revision 1.51  1999/02/22 23:33:31  florian
     + message directive for integers added
 
   Revision 1.50  1999/02/22 20:13:42  florian
