@@ -106,19 +106,19 @@ var
 
 function getheapstart:pointer;assembler;
 {$undef fpc_getheapstart_ok}
-{$ifdef i386}
+{$ifdef cpui386}
 {$define fpc_getheapstart_ok}
 asm
         leal    _HEAP,%eax
 end ['EAX'];
-{$endif i386}
-{$ifdef m68k}
+{$endif cpui386}
+{$ifdef cpum68k}
 {$define fpc_getheapstart_ok}
 asm
         lea.l   _HEAP,a0
         move.l  a0,d0
 end['A0','D0'];
-{$endif m68k}
+{$endif cpum68k}
 {$ifdef cpupowerpc}
 {$define fpc_getheapstart_ok}
 asm
@@ -135,18 +135,18 @@ end;
 
 function getheapsize:longint;assembler;
 {$undef fpc_getheapsize_ok}
-{$ifdef i386}
+{$ifdef cpui386}
 {$define fpc_getheapsize_ok}
 asm
         movl    _HEAPSIZE,%eax
 end ['EAX'];
-{$endif i386}
-{$ifdef m68k}
+{$endif cpui386}
+{$ifdef cpum68k}
 {$define fpc_getheapsize_ok}
 asm
         move.l   _HEAPSIZE,d0
 end ['D0'];
-{$endif m68k}
+{$endif cpum68k}
 {$ifdef cpupowerpc}
 {$define fpc_getheapsize_ok}
 asm
@@ -212,8 +212,8 @@ begin
    Sys_EEXIST,
    Sys_EISDIR,
    Sys_ENOTEMPTY,
-   Sys_EACCES : Inoutres:=5;
-  Sys_ETXTBSY : Inoutres:=162;
+   Sys_EACCES,
+  Sys_ETXTBSY : Inoutres:=5;
   else
     InOutRes := Integer(Errno);
   end;
@@ -629,7 +629,7 @@ begin
       begin
     { this is not allways necessary but I don't know yet
       how to tell if it is or not PM }
-{$ifdef I386}
+{$ifdef cpui386}
           fpustate:=0;
           res:=200;
   {$ifndef FreeBSD}
@@ -662,7 +662,7 @@ begin
               else
                 res:=207;  {'Coprocessor Error'}
             end;
-{$endif I386}
+{$endif cpui386}
           SysResetFPU;
         end;
    SIGILL,
@@ -673,7 +673,7 @@ begin
 { give runtime error at the position where the signal was raised }
   if res<>0 then
    begin
-{$ifdef I386}
+{$ifdef cpui386}
      {$ifdef FreeBSD}
       HandleErrorAddrFrame(res,SigContext.sc_eip,SigContext.sc_ebp);
      {$else}
@@ -804,7 +804,11 @@ End.
 
 {
   $Log$
-  Revision 1.35  2003-10-13 21:24:04  hajny
+  Revision 1.36  2003-10-17 20:45:58  olle
+    * Changed mapping of Sys_ETXTBSY to 5
+    * Changed m68k to cpum68k, i386 to cpui386
+
+  Revision 1.35  2003/10/13 21:24:04  hajny
     * sbrk error handling corrected
 
   Revision 1.34  2003/09/27 11:52:36  peter
