@@ -273,6 +273,7 @@ interface
     function  TargetFixFileName(const s:string):string;
     procedure SplitBinCmd(const s:string;var bstr,cstr:string);
     function  FindFile(const f : string;path : string;var foundfile:string):boolean;
+    function  FindFilePchar(const f : string;path : pchar;var foundfile:string):boolean;
     function  FindExe(const bin:string;var foundfile:string):boolean;
     function  GetShortName(const n:string):string;
 
@@ -1019,13 +1020,73 @@ implementation
      end;
 
 
-   function  FindExe(const bin:string;var foundfile:string):boolean;
+   function FindFilePchar(const f : string;path : pchar;var foundfile:string):boolean;
+      Var
+        singlepathstring : string;
+        startpc,pc : pchar;
+        sepch : char;
      begin
-{$ifdef delphi}
-       FindExe:=FindFile(FixFileName(AddExtension(bin,source_info.exeext)),'.;'+exepath+';'+dmisc.getenv('PATH'),foundfile);
-{$else delphi}
-       FindExe:=FindFile(FixFileName(AddExtension(bin,source_info.exeext)),'.;'+exepath+';'+dos.getenv('PATH'),foundfile);
-{$endif delphi}
+{$ifdef Unix}
+       sepch:=':';
+{$else}
+       sepch:=';';
+{$endif Unix}
+       FindFilePchar:=false;
+       pc:=path;
+       repeat
+          startpc:=pc;
+          while (pc^<>sepch) and (pc^<>';') and (pc^<>#0) do
+           inc(pc);
+          move(startpc^,singlepathstring[1],pc-startpc);
+          singlepathstring[0]:=char(longint(pc-startpc));
+          singlepathstring:=FixPath(singlepathstring,false);
+          {
+            Search order for case sensitive systems:
+             1. lowercase
+             2. NormalCase
+             3. UPPERCASE
+            None case sensitive only lowercase
+          }
+          FoundFile:=singlepathstring+Lower(f);
+          If FileExists(FoundFile) then
+           begin
+             FindFilePchar:=true;
+             exit;
+           end;
+{$ifdef UNIX}
+          FoundFile:=singlepathstring+f;
+          If FileExists(FoundFile) then
+           begin
+             FindFilePchar:=true;
+             exit;
+           end;
+          FoundFile:=singlepathstring+Upper(f);
+          If FileExists(FoundFile) then
+           begin
+             FindFilePchar:=true;
+             exit;
+           end;
+{$endif UNIX}
+          if (pc^=#0) then
+           break;
+          inc(pc);
+       until false;
+     end;
+
+
+   function  FindExe(const bin:string;var foundfile:string):boolean;
+     var
+       p : pchar;
+       found : boolean;
+     begin
+       found:=FindFile(FixFileName(AddExtension(bin,source_info.exeext)),'.;'+exepath,foundfile);
+       if not found then
+        begin
+          p:=GetEnvPchar('PATH');
+          found:=FindFilePChar(FixFileName(AddExtension(bin,source_info.exeext)),p,foundfile);
+          FreeEnvPChar(p);
+        end;
+       FindExe:=found;
      end;
 
 
@@ -1390,6 +1451,7 @@ implementation
      var
        hs1 : namestr;
        hs2 : extstr;
+       p   : pchar;
      begin
 {$ifdef delphi}
        exepath:=dmisc.getenv('PPC_EXEC_PATH');
@@ -1404,11 +1466,9 @@ implementation
           if pos(source_info.exeext,hs1) <>
                (length(hs1) - length(source_info.exeext)+1) then
             hs1 := hs1 + source_info.exeext;
-      {$ifdef delphi}
-          findfile(hs1,dmisc.getenv('PATH'),exepath);
-      {$else delphi}
-          findfile(hs1,dos.getenv('PATH'),exepath);
-      {$endif delphi}
+          p:=GetEnvPchar('PATH');
+          found:=FindFilePChar(hs1,p,exepath);
+          FreeEnvPChar(p);
           exepath:=SplitPath(exepath);
         end;
 {$endif need_path_search}
@@ -1515,7 +1575,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.89  2003-05-15 18:58:53  peter
+  Revision 1.90  2003-05-23 14:39:56  peter
+    * FindFilePChar added to allow PATH variables > 256 chars
+
+  Revision 1.89  2003/05/15 18:58:53  peter
     * removed selfpointer_offset, vmtpointer_offset
     * tvarsym.adjusted_address
     * address in localsymtable is now in the real direction
