@@ -231,13 +231,15 @@ unit tgobj;
          bestslot:=nil;
          tl:=nil;
          bestsize:=0;
-{$ifdef EXTDEBUG}
+
          if size=0 then
           begin
+{$ifdef EXTDEBUG}
             Comment(V_Warning,'Temp of size 0 requested, allocating 4 bytes');
+{$endif}
             size:=4;
           end;
-{$endif}
+
          freetype:=Used2Free[temptype];
          if freetype=tt_none then
           internalerror(200208201);
@@ -427,7 +429,7 @@ unit tgobj;
 
 
     procedure ttgobj.GetTemp(list: taasmoutput; size : longint;temptype:ttemptype;var ref : treference);
-    
+
     begin
       reference_reset_base(ref,procinfo.framepointer,alloctemp(list,size,temptype));
     end;
@@ -542,7 +544,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.27  2003-03-11 21:46:24  jonas
+  Revision 1.28  2003-04-22 09:46:17  peter
+    * always allocate 4 bytes when 0 bytes are asked
+
+  Revision 1.27  2003/03/11 21:46:24  jonas
     * lots of new regallocator fixes, both in generic and ppc-specific code
       (ppc compiler still can't compile the linux system unit though)
 
