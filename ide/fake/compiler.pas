@@ -14,14 +14,20 @@ uses
 
 function Compile(const cmd:string):longint;
 begin
-  do_comment(V_Info,'Fake Compiler');
-  do_comment(V_Info,'Cmd = "'+cmd+'"');
+  status.verbosity:=V_Default;
+  status.maxerrorcount:=50;
+  do_comment(V_Error,'Fake Compiler');
+  do_comment(V_Error,'Cmd = "'+cmd+'"');
 end;
 
 end.
 {
   $Log$
-  Revision 1.1  1998-12-22 14:27:54  peter
+  Revision 1.2  1998-12-28 15:44:59  peter
+    * use V_Error
+    * set status.verbosity
+
+  Revision 1.1  1998/12/22 14:27:54  peter
     * moved
 
   Revision 1.1  1998/12/10 23:54:28  peter
