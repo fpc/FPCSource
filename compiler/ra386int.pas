@@ -3159,6 +3159,9 @@ var
                 end;
          { // Typecast, Constant Expression, Type Specifier // }
          AS_DWORD,AS_BYTE,AS_WORD,AS_TBYTE,AS_QWORD: Begin
+                                 { tell that the instruction was overriden }
+                                 { so we will NEVER override the opsize    }
+                                 instr.operands[operandnum].overriden := TRUE;
                                   Case actasmtoken of
                                    AS_DWORD: instr.operands[operandnum].size := S_L;
                                    AS_WORD:  instr.operands[operandnum].size := S_W;
@@ -3170,9 +3173,6 @@ var
                                   Case actasmtoken of
                                   { // Reference // }
                                   AS_PTR: Begin
-                                           { tell that the instruction was overriden }
-                                           { so we will NEVER override the opsize    }
-                                           instr.operands[operandnum].overriden := TRUE;
                                            initAsmRef(instr);
                                            Consume(AS_PTR);
                                            BuildOperand(instr);
@@ -3376,7 +3376,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  1998-08-27 00:42:17  carl
+  Revision 1.7  1998-09-02 01:23:40  carl
+    * bugfix of operand overrides, VERY stupid bugfix BTW...
+
+  Revision 1.6  1998/08/27 00:42:17  carl
     * bugfix of leal problem
     * bugfix of using overrides with record offsets
     * bugfix if using records to load values
