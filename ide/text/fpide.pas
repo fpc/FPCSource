@@ -34,6 +34,7 @@ type
       function    SaveAll: boolean;
       procedure   Idle; virtual;
       procedure   Update;
+      procedure   UpdateTarget;                                                                                                                                                                                                                                
       procedure   HandleEvent(var Event: TEvent); virtual;
       procedure   GetTileRect(var R: TRect); virtual;
       function    GetPalette: PPalette; virtual;
@@ -52,6 +53,7 @@ type
       procedure Objects;
       procedure Modules;
       procedure Globals;
+      procedure SearchSymbol;
       procedure Parameters;
       procedure DoStepOver;
       procedure DoTraceInto;
@@ -66,6 +68,10 @@ type
       procedure DoUserScreen;
       procedure DoOpenGDBWindow;
       procedure DoToggleBreak;
+      procedure DoShowCallStack;
+      procedure DoShowBreakpointList;
+      procedure DoAddWatch;
+
       procedure DoInformation;
       procedure Messages;
       procedure Calculator;
@@ -146,8 +152,13 @@ constructor TIDEApp.Init;
 var R: TRect;
 begin
   {$ifndef EDITORS}
+{$ifdef TP}
   UseSyntaxHighlight:=IDEUseSyntaxHighlight;
   UseTabsPattern:=IDEUseTabsPattern;
+{$else TP}
+  UseSyntaxHighlight:=@IDEUseSyntaxHighlight;
+  UseTabsPattern:=@IDEUseTabsPattern;
+{$endif TP}
   {$endif}
   inherited Init;
   New(ClipboardWindow, Init);
@@ -210,7 +221,9 @@ begin
       NewItem('~O~bjects','', kbNoKey, cmObjects, hcObjects,
       NewItem('Mod~u~les','', kbNoKey, cmModules, hcModules,
       NewItem('G~l~obals','', kbNoKey, cmGlobals, hcGlobals,
-      nil))))))))))),
+      NewLine(
+      NewItem('S~y~mbol','', kbNoKey, cmSymbol, hcSymbol,
+      nil))))))))))))),
     NewSubMenu('~R~un',hcRunMenu, NewMenu(
       NewItem('~R~un','Ctrl+F9', kbCtrlF9, cmRun, hcRun,
       NewItem('~S~tep over','F8', kbF8, cmStepOver, hcRun,
@@ -235,8 +248,12 @@ begin
       NewItem('~O~utput','', kbNoKey, cmUserScreenWindow, hcUserScreenWindow,
       NewItem('~U~ser screen','Alt+F5', kbAltF5, cmUserScreen, hcUserScreen,
       NewItem('~B~reakpoint','Ctrl+F8', kbCtrlF8, cmToggleBreakpoint, hcToggleBreakpoint,
+      NewItem('~C~all stack','Ctrl+F3', kbCtrlF3, cmStack, hcStack,
+      NewItem('Add ~W~atch','', kbNoKey, cmAddWatch, hcAddWatch,
+      NewItem('Breakpoint ~L~ist','', kbNoKey, cmBreakpointList, hcBreakpointList,
+      NewLine(
       NewItem('~G~DB window','', kbNoKey, cmOpenGDBWindow, hcOpenGDBWindow,
-      nil))))),
+      nil))))))))),
     NewSubMenu('~T~ools', hcToolsMenu, NewMenu(
       NewItem('~M~essages', 'F11', kbF11, cmToolsMessages, hcToolsMessages,
       NewItem('Goto ~n~ext','Alt+F8', kbAltF8, cmToolsMsgNext, hcToolsMsgNext,
@@ -386,6 +403,7 @@ begin
              cmObjects       : Objects;
              cmModules       : Modules;
              cmGlobals       : Globals;
+             cmSymbol        : SearchSymbol;
            { -- Run menu -- }
              cmParameters    : Parameters;
              cmStepOver      : DoStepOver;
@@ -405,6 +423,9 @@ begin
            { -- Debug menu -- }
              cmUserScreen    : DoUserScreen;
              cmToggleBreakpoint : DoToggleBreak;
+             cmStack         : DoShowCallStack;
+             cmBreakpointList : DoShowBreakpointList;
+             cmAddWatch      :  DoAddWatch;
              cmOpenGDBWindow : DoOpenGDBWindow;
            { -- Options menu -- }
              cmSwitchesMode  : SetSwitchesMode;
@@ -555,7 +576,7 @@ procedure TIDEApp.Update;
 begin
   SetCmdState([cmSaveAll],IsThereAnyEditor);
   SetCmdState([cmCloseAll,cmTile,cmCascade,cmWindowList],IsThereAnyWindow);
-  SetCmdState([cmFindProcedure,cmObjects,cmModules,cmGlobals{,cmInformation}],IsSymbolInfoAvailable);
+  SetCmdState([cmFindProcedure,cmObjects,cmModules,cmGlobals,cmSymbol{,cmInformation}],IsSymbolInfoAvailable);
 {$ifndef NODEBUG}
   SetCmdState([cmResetDebugger],assigned(debugger) and debugger^.debugger_started);
 {$endif}
@@ -740,7 +761,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.27  1999-05-22 13:44:30  peter
+  Revision 1.28  1999-06-25 00:46:33  pierre
+     + UpdateTarget to show current target
+     + SearchSymbol, not scope aware (this will need a PPU change !)
+
+  Revision 1.27  1999/05/22 13:44:30  peter
     * fixed couple of bugs
 
   Revision 1.26  1999/04/07 21:55:47  peter
