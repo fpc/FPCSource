@@ -13,7 +13,7 @@ type
 
 procedure tbla.doset;
   begin
-     l:=$deadbeaf;
+     l:=$12345678;
   end;
 
 function tbla.get : longint;
@@ -33,7 +33,7 @@ var
 begin
   bla:=tbla.bla;
   bla.doset;
-  if bla.get<>$deadbeaf then
+  if bla.get<>$12345678 then
     begin
       writeln('Problem');
       halt(1);
