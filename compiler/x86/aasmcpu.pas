@@ -1285,8 +1285,6 @@ implementation
          exit;
         aktfilepos:=fileinfo;
         { Segment override }
-        if segprefix.enum>lastreg then
-          internalerror(200201081);
         if segprefix.enum=R_INTREGISTER then
           begin
             if segprefix.number<>NR_NO then
@@ -1305,15 +1303,15 @@ implementation
               end;
           end
         else
-          if (segprefix.enum<>R_NO) then
+          if (segprefix.number<>NR_NO) then
            begin
-             case segprefix.enum of
-               R_CS : c:=$2e;
-               R_DS : c:=$3e;
-               R_ES : c:=$26;
-               R_FS : c:=$64;
-               R_GS : c:=$65;
-               R_SS : c:=$36;
+             case segprefix.number of
+               NR_CS : c:=$2e;
+               NR_DS : c:=$3e;
+               NR_ES : c:=$26;
+               NR_FS : c:=$64;
+               NR_GS : c:=$65;
+               NR_SS : c:=$36;
              end;
              sec.writebytes(c,1);
              { fix the offset for GenNode }
@@ -1339,16 +1337,14 @@ implementation
               ia:=(i<>NR_NO) and (i and $ff<>R_SUBD);
             end
           else
-            ia:=not(oper[opidx].ref^.index.enum in [R_NO,R_EAX,R_EBX,R_ECX,R_EDX,R_EBP,R_ESP,R_ESI,R_EDI]);
+            internalerror(200308191);
           if oper[opidx].ref^.base.enum=R_INTREGISTER then
             begin
               b:=oper[opidx].ref^.base.number;
               ba:=(b<>NR_NO) and (b and $ff<>R_SUBD);
             end
           else
-            ba:=not(oper[opidx].ref^.base.enum in [R_NO,R_EAX,R_EBX,R_ECX,R_EDX,R_EBP,R_ESP,R_ESI,R_EDI]);
-          b:=oper[opidx].ref^.base.number;
-          i:=oper[opidx].ref^.index.number;
+            internalerror(200308191);
           if ia or ba then
             needaddrprefix:=true;
         end;
@@ -1381,6 +1377,7 @@ implementation
             end;
         end;
       end;
+
 
     function regval_new(r:Tnewregister):byte;
 
@@ -1436,67 +1433,35 @@ implementation
 
 
     function process_ea(const input:toper;var output:ea;rfield:longint):boolean;
-      const
-        regs : array[0..63] of Toldregister=(
-          R_MM0, R_EAX, R_AX, R_AL, R_XMM0, R_NO, R_NO, R_NO,
-          R_MM1, R_ECX, R_CX, R_CL, R_XMM1, R_NO, R_NO, R_NO,
-          R_MM2, R_EDX, R_DX, R_DL, R_XMM2, R_NO, R_NO, R_NO,
-          R_MM3, R_EBX, R_BX, R_BL, R_XMM3, R_NO, R_NO, R_NO,
-          R_MM4, R_ESP, R_SP, R_AH, R_XMM4, R_NO, R_NO, R_NO,
-          R_MM5, R_EBP, R_BP, R_CH, R_XMM5, R_NO, R_NO, R_NO,
-          R_MM6, R_ESI, R_SI, R_DH, R_XMM6, R_NO, R_NO, R_NO,
-          R_MM7, R_EDI, R_DI, R_BH, R_XMM7, R_NO, R_NO, R_NO
-        );
+
       var
         j     : longint;
-{        i,b   : Toldregister;}
         sym   : tasmsymbol;
         md,s,rv  : byte;
         base,index,scalefactor,
         o     : longint;
-        ireg  : Tregister;
         ir,br : Tnewregister;
       begin
         process_ea:=false;
-      { register ? }
+        {Register ?}
         if (input.typ=top_reg) then
-         begin
-           ireg:=input.reg;
-           if ireg.enum=R_INTREGISTER then
-             rv:=regval_new(ireg.number)
-           else
-             begin
-               j:=0;
-               while (j<=high(regs)) do
-                 begin
-                   if ireg.enum=regs[j] then
-                     break;
-                   inc(j);
-                 end;
-               if j<=high(regs) then
-                 rv:=j shr 3
-               else
-                 rv:=255;
-             end;
-           if rv<>255 then
-            begin
-              output.sib_present:=false;
-              output.bytes:=0;
-              output.modrm:=$c0 or (rfield shl 3) or rv;
-              output.size:=1;
-              process_ea:=true;
-            end;
-           exit;
+          begin
+            if input.reg.enum=R_INTREGISTER then
+              rv:=regval_new(input.reg.number)
+            else
+              rv:=regval(input.reg.enum);
+            output.sib_present:=false;
+            output.bytes:=0;
+            output.modrm:=$c0 or (rfield shl 3) or rv;
+            output.size:=1;
+            process_ea:=true;
+            exit;
          end;
-      { memory reference }
+        {No register, so memory reference.}
         if (input.ref^.index.enum<>R_INTREGISTER) or (input.ref^.base.enum<>R_INTREGISTER) then
           internalerror(200301081);
         ir:=input.ref^.index.number;
         br:=input.ref^.base.number;
-{        convert_register_to_enum(ir);
-        convert_register_to_enum(br);
-        i:=ir.enum;
-        b:=br.enum;}
         s:=input.ref^.scalefactor;
         o:=input.ref^.offset+input.ref^.offsetfixup;
         sym:=input.ref^.symbol;
@@ -1807,61 +1772,35 @@ implementation
               end;
             4,6 :
               begin
-                case oper[0].reg.enum of
-                  R_CS :
-                    begin
-                      if c=4 then
-                       bytes[0]:=$f
-                      else
-                       bytes[0]:=$e;
-                    end;
-                  R_NO,
-                  R_DS :
-                    begin
-                      if c=4 then
-                       bytes[0]:=$1f
-                      else
-                       bytes[0]:=$1e;
-                    end;
-                  R_ES :
-                    begin
-                      if c=4 then
-                       bytes[0]:=$7
-                      else
-                       bytes[0]:=$6;
-                    end;
-                  R_SS :
-                    begin
-                      if c=4 then
-                       bytes[0]:=$17
-                      else
-                       bytes[0]:=$16;
-                    end;
+                case oper[0].reg.number of
+                  NR_CS:
+                    bytes[0]:=$e;
+                  NR_NO,
+                  NR_DS:
+                    bytes[0]:=$1e;
+                  NR_ES:
+                    bytes[0]:=$6;
+                  NR_SS:
+                    bytes[0]:=$16;
                   else
-                    InternalError(777004);
+                    internalerror(777004);
                 end;
+                if c=4 then
+                  inc(bytes[0]);
                 sec.writebytes(bytes,1);
               end;
             5,7 :
               begin
-                case oper[0].reg.enum of
-                  R_FS :
-                    begin
-                      if c=5 then
-                       bytes[0]:=$a1
-                      else
-                       bytes[0]:=$a0;
-                    end;
-                  R_GS :
-                    begin
-                      if c=5 then
-                       bytes[0]:=$a9
-                      else
-                       bytes[0]:=$a8;
-                    end;
+                case oper[0].reg.number of
+                  NR_FS:
+                    bytes[0]:=$a0;
+                  NR_GS:
+                    bytes[0]:=$a8;
                   else
-                    InternalError(777005);
+                    internalerror(777005);
                 end;
+                if c=5 then
+                  inc(bytes[0]);
                 sec.writebytes(bytes,1);
               end;
             8,9,10 :
@@ -2456,7 +2395,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2003-08-20 09:07:00  daniel
+  Revision 1.14  2003-08-20 16:52:01  daniel
+    * Some old register convention code removed
+    * A few changes to eliminate a few lines of code
+
+  Revision 1.13  2003/08/20 09:07:00  daniel
     * New register coding now mandatory, some more convert_registers calls
       removed.
 
