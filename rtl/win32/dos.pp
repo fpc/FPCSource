@@ -479,7 +479,7 @@ begin
   else
     begin
        if GetDiskFreeSpace(@disk,secs,bytes,free,total) then
-         diskfree:=free*secs*bytes
+         diskfree:=int64(free)*secs*bytes
        else
          diskfree:=-1;
     end;
@@ -516,7 +516,7 @@ begin
   else
     begin
        if GetDiskFreeSpace(@disk,secs,bytes,free,total) then
-         disksize:=total*secs*bytes
+         disksize:=int64(total)*secs*bytes
        else
          disksize:=-1;
     end;
@@ -932,7 +932,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2000-01-24 21:57:56  florian
+  Revision 1.32  2000-02-02 17:32:59  pierre
+   * use int64 typecast in diskfree and disksize
+
+  Revision 1.31  2000/01/24 21:57:56  florian
     * disksize/diskfree return now a int64
 
   Revision 1.30  2000/01/11 13:45:19  pierre
