@@ -68,18 +68,14 @@ implementation
        globtype,globals,verbose,
        systems,
        cpuinfo,
-       { aasm }
-       aasmbase,
        { symtable }
        symbase,symtable,defutil,defcmp,paramgr,cpupara,
        { pass 1 }
        node,htypechk,
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,
        { parser }
-       fmodule,scanner,
-       pbase,pexpr,ptype,pdecl,
-       { linking }
-       import,gendef
+       scanner,
+       pbase,pexpr,ptype,pdecl
        ;
 
     const
@@ -1814,8 +1810,10 @@ const
                     { Win32 imports need to use the normal name since to functions
                       can refer to the same DLL function. This is also needed for compatability
                       with Delphi and TP7 }
-                    if assigned(pd.import_dll) and
-                       not(target_info.system in [system_i386_win32,system_i386_wdosx]) then
+                    if not(
+                           assigned(pd.import_dll) and
+                           (target_info.system in [system_i386_win32,system_i386_wdosx])
+                          ) then
                       pd.setmangledname(pd.import_name^);
                   end
                 else
@@ -2178,6 +2176,7 @@ const
                      { Body declaration is external? }
                      if (po_external in pd.procoptions) then
                        begin
+{$ifdef EXTDEBUG}
                          { Win32 supports declaration in interface and external in
                            implementation for dll imports. Support this for backwards
                            compatibility with Tp7 and Delphi }
@@ -2186,6 +2185,7 @@ const
                                 assigned(pd.import_dll)
                                ) then
                            MessagePos(pd.fileinfo,parser_e_proc_no_external_allowed);
+{$endif EXTDEBUG}
                        end;
 
                    { Check parameters }
@@ -2328,7 +2328,10 @@ const
 end.
 {
   $Log$
-  Revision 1.208  2004-11-17 22:21:35  peter
+  Revision 1.209  2004-11-17 22:41:41  peter
+    * make some checks EXTDEBUG only for now so linux cycles again
+
+  Revision 1.208  2004/11/17 22:21:35  peter
   mangledname setting moved to place after the complete proc declaration is read
   import generation moved to place where body is also parsed (still gives problems with win32)
 

@@ -4368,11 +4368,19 @@ implementation
 
     procedure tprocdef.setmangledname(const s : string);
       begin
+{$ifdef EXTDEBUG}
         { This is not allowed anymore, the forward declaration
           already needs to create the correct mangledname, no changes
           afterwards are allowed (PFV) }
         if assigned(_mangledname) then
           internalerror(200411171);
+{$else}
+        if assigned(_mangledname) then
+          begin
+            objectlibrary.renameasmsymbol(_mangledname^,s);
+            stringdispose(_mangledname);
+          end;
+{$endif EXTDEBUG}
       {$ifdef compress}
         _mangledname:=stringdup(minilzw_encode(s));
       {$else}
@@ -6134,7 +6142,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.273  2004-11-17 22:21:35  peter
+  Revision 1.274  2004-11-17 22:41:41  peter
+    * make some checks EXTDEBUG only for now so linux cycles again
+
+  Revision 1.273  2004/11/17 22:21:35  peter
   mangledname setting moved to place after the complete proc declaration is read
   import generation moved to place where body is also parsed (still gives problems with win32)
 
