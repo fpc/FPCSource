@@ -147,7 +147,7 @@ Const
       ReallocMem : @CReAllocMem;
       MemSize : @CMemSize;
       MemAvail : @CMemAvail;
-      MaxAvail : @MaxAvail;
+      MaxAvail : @CMaxAvail;
       HeapSize : @CHeapSize;
     );
 
@@ -164,7 +164,10 @@ end.
 
 {
  $Log$
- Revision 1.2  2004-03-16 15:25:16  peter
+ Revision 1.3  2004-03-17 12:50:53  michael
+ * Fixed: Macavail -> CMaxAvail (from Marc Weustinc)
+
+ Revision 1.2  2004/03/16 15:25:16  peter
    * adaption to compile with 1.0.x in new rtl
 
  Revision 1.1  2004/03/15 21:48:26  peter
