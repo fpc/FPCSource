@@ -14,7 +14,7 @@ type
 
   Int                  = LongInt;
   Long                 = LongInt;
-  Short                = Integer;
+  Short                = SmallInt;
   Float                = Single;
 
   { Pointers to basic types }
