@@ -208,6 +208,36 @@ Begin {CheckSequence}
 {$endif fpc}
 End; {CheckSequence}
 
+Procedure AllocRegBetween(AsmL: PAasmOutput; Reg: TRegister; p1, p2: Pai);
+{ allocates register Reg between (and including) instructions p1 and p2 }
+{ the type of p1 and p2 must not be in SkipInstr                        }
+var hp: pai;
+Begin
+  If not(assigned(p1)) Then
+    { this happens with registers which are loaded implicitely, outside the }
+    { current block (e.g. esi with self)                                    }
+    exit;
+  Repeat
+    If Assigned(p1^.OptInfo) Then
+      Include(PPaiProp(p1^.OptInfo)^.UsedRegs,Reg);
+    p1 := Pai(p1^.next);
+    Repeat
+      While (p1^.typ in (SkipInstr-[ait_regalloc])) Do
+        p1 := Pai(p1^.next);
+{ remove all allocation/deallocation info about the register in between }
+      If (p1^.typ = ait_regalloc) Then
+        If (PaiRegAlloc(p1)^.Reg = Reg) Then
+          Begin
+            hp := Pai(p1^.Next);
+            AsmL^.Remove(p1);
+            Dispose(p1, Done);
+            p1 := hp;
+          End
+        Else p1 := Pai(p1^.next);
+    Until Not(p1^.typ in SkipInstr);
+  Until p1 = p2;
+End;
+
 Procedure DoCSE(AsmL: PAasmOutput; First, Last: Pai);
 {marks the instructions that can be removed by RemoveInstructs. They're not
  removed immediately because sometimes an instruction needs to be checked in
@@ -288,8 +318,6 @@ Begin
                                    InsertLLItem(AsmL, Pai(hp2^.Previous), hp2, hp3);
  {hp4 is used to get the contents of the registers before the sequence}
                                    GetLastInstruction(hp2, hp4);
- { If some registers were different in the old and the new sequence, move }
- { the contents of those old registers to the new ones                    }
 {$IfDef CSDebug}
               For RegCounter := R_EAX To R_EDI Do
                 If (RegCounter in RegInfo.RegsLoadedForRef) Then
@@ -299,18 +327,21 @@ Begin
            InsertLLItem(AsmL, Pai(hp2^.previous), hp2, hp5);
                   End;
 {$EndIf CSDebug}
+ { If some registers were different in the old and the new sequence, move }
+ { the contents of those old registers to the new ones                    }
                                    For RegCounter := R_EAX To R_EDI Do
-                                     Begin
-                                       If (RegInfo.New2OldReg[RegCounter] <> R_NO) Then
+                                     If Not(RegCounter in [R_ESP,procinfo^.framepointer]) And
+                                        (RegInfo.New2OldReg[RegCounter] <> R_NO) Then
+                                       Begin
+                                         AllocRegBetween(AsmL,RegInfo.New2OldReg[RegCounter],
+                                           PPaiProp(hp4^.OptInfo)^.Regs[RegInfo.New2OldReg[RegCounter]].StartMod,hp2);
                                          If Not(RegCounter In RegInfo.RegsLoadedForRef) And
-                                                        {old reg              new reg}
+                                                        {old reg                new reg}
                                             (RegInfo.New2OldReg[RegCounter] <> RegCounter) Then
-
                                            Begin
                                              hp3 := New(Paicpu,Op_Reg_Reg(A_MOV, S_L,
                                                                   {old reg          new reg}
                                                     RegInfo.New2OldReg[RegCounter], RegCounter));
-                                             hp3^.fileinfo := hp2^.fileinfo;
                                              InsertLLItem(AsmL, Pai(hp2^.previous), hp2, hp3);
                                            End
                                          Else
@@ -322,7 +353,7 @@ Begin
 {    jne l1                       jne l1                                   }
 {    movl 8(%ebp), %eax                                                    }
 {    movl (%eax), %edi            movl %eax, %edi                          }
-{    movl %edi, -4(%ebp)          movl %edi, -4(%ebp)                      }
+{     movl %edi, -4(%ebp)          movl %edi, -4(%ebp)                      }
 {    movl 8(%ebp), %eax                                                    }
 {    pushl 70(%eax)               pushl 70(%eax)                           }
 {                                                                          }
@@ -331,60 +362,59 @@ Begin
 {   registers that are completely removed from a sequence (= registers in  }
 {   RegLoadedForRef, have to be changed to their contents from before the  }
 {   sequence.                                                              }
-                                           Begin
-
+                                        Begin
 {load Cnt2 with the total number of instructions of this sequence}
-                                             Cnt2 := PPaiProp(hp4^.OptInfo)^.
-                                                     Regs[RegInfo.New2OldReg[RegCounter]].NrOfMods;
+                                           Cnt2 := PPaiProp(hp4^.OptInfo)^.
+                                                   Regs[RegInfo.New2OldReg[RegCounter]].NrOfMods;
 
-                                             hp3 := hp2;
-                                             For Cnt := 1 to Pred(Cnt2) Do
-                                               GetNextInstruction(hp3, hp3);
-                                             TmpState := PPaiProp(hp3^.OptInfo)^.Regs[RegCounter].WState;
+                                           hp3 := hp2;
+                                           For Cnt := 1 to Pred(Cnt2) Do
                                              GetNextInstruction(hp3, hp3);
+                                           TmpState := PPaiProp(hp3^.OptInfo)^.Regs[RegCounter].WState;
+                                           GetNextInstruction(hp3, hp3);
 {$ifdef csdebug}
-           Writeln('Cnt2: ',Cnt2);
-           hp5 := new(pai_asm_comment,init(strpnew('starting here...')));
-           InsertLLItem(AsmL, Pai(hp2^.previous), hp2, hp5);
+         Writeln('Cnt2: ',Cnt2);
+         hp5 := new(pai_asm_comment,init(strpnew('starting here...')));
+         InsertLLItem(AsmL, Pai(hp2^.previous), hp2, hp5);
 {$endif csdebug}
-                                                 hp3 := hp2;
+                                               hp3 := hp2;
 {first change the contents of the register inside the sequence}
-                                                 For Cnt := 1 to Cnt2 Do
-                                                   Begin
+                                               For Cnt := 1 to Cnt2 Do
+                                                 Begin
 {save the WState of the last pai object of the sequence for later use}
-                                                     TmpState := PPaiProp(hp3^.OptInfo)^.Regs[RegCounter].WState;
+                                                   TmpState := PPaiProp(hp3^.OptInfo)^.Regs[RegCounter].WState;
 {$ifdef csdebug}
-           hp5 := new(pai_asm_comment,init(strpnew('WState for '+att_reg2str[Regcounter]+': '
-                                                    +tostr(tmpstate))));
-           InsertLLItem(AsmL, hp3, pai(hp3^.next), hp5);
-{$endif csdebug}
-                                                     PPaiProp(hp3^.OptInfo)^.Regs[RegCounter] :=
-                                                       PPaiProp(hp4^.OptInfo)^.Regs[RegCounter];
-                                                     GetNextInstruction(hp3, hp3);
-                                                   End;
-{here, hp3 = p = Pai object right after the sequence, TmpState = WState of
- RegCounter at the last Pai object of the sequence}
-                                                 GetLastInstruction(hp3, hp3);
-                                                 While GetNextInstruction(hp3, hp3) And
-                                                       (PPaiProp(hp3^.OptInfo)^.Regs[RegCounter].WState
-                                                        = TmpState) Do
-{$ifdef csdebug}
-      begin
-           hp5 := new(pai_asm_comment,init(strpnew('WState for '+att_reg2str[Regcounter]+': '+
-                                                    tostr(PPaiProp(hp3^.OptInfo)^.Regs[RegCounter].WState))));
-           InsertLLItem(AsmL, hp3, pai(hp3^.next), hp5);
+         hp5 := new(pai_asm_comment,init(strpnew('WState for '+att_reg2str[Regcounter]+': '
+                                                  +tostr(tmpstate))));
+         InsertLLItem(AsmL, hp3, pai(hp3^.next), hp5);
 {$endif csdebug}
                                                    PPaiProp(hp3^.OptInfo)^.Regs[RegCounter] :=
                                                      PPaiProp(hp4^.OptInfo)^.Regs[RegCounter];
+                                                   GetNextInstruction(hp3, hp3);
+                                                 End;
+{here, hp3 = p = Pai object right after the sequence, TmpState = WState of
+ RegCounter at the last Pai object of the sequence}
+                                               GetLastInstruction(hp3, hp3);
+                                               While GetNextInstruction(hp3, hp3) And
+                                                     (PPaiProp(hp3^.OptInfo)^.Regs[RegCounter].WState
+                                                      = TmpState) Do
 {$ifdef csdebug}
-      end;
+    begin
+         hp5 := new(pai_asm_comment,init(strpnew('WState for '+att_reg2str[Regcounter]+': '+
+                                                  tostr(PPaiProp(hp3^.OptInfo)^.Regs[RegCounter].WState))));
+         InsertLLItem(AsmL, hp3, pai(hp3^.next), hp5);
+{$endif csdebug}
+                                                 PPaiProp(hp3^.OptInfo)^.Regs[RegCounter] :=
+                                                   PPaiProp(hp4^.OptInfo)^.Regs[RegCounter];
+{$ifdef csdebug}
+    end;
 {$endif csdebug}
 {$ifdef csdebug}
-           hp5 := new(pai_asm_comment,init(strpnew('stopping here...')));
-           InsertLLItem(AsmL, hp3, pai(hp3^.next), hp5);
+         hp5 := new(pai_asm_comment,init(strpnew('stopping here...')));
+         InsertLLItem(AsmL, hp3, pai(hp3^.next), hp5);
 {$endif csdebug}
-                                           End;
-                                     End;
+                                         End;
+                                       End;
                                    hp3 := New(Pai_Marker,Init(NoPropInfoEnd));
                                    InsertLLItem(AsmL, Pai(hp2^.Previous), hp2, hp3);
                                    If hp1 <> nil Then p := hp1;
@@ -499,7 +529,10 @@ End.
 
 {
  $Log$
- Revision 1.26  1999-09-30 14:43:13  jonas
+ Revision 1.27  1999-10-01 13:51:40  jonas
+   * CSE now updates the RegAlloc's
+
+ Revision 1.26  1999/09/30 14:43:13  jonas
    * fixed small efficiency which caused some missed optimizations (saves 1
      assembler instruction on the whole compiler/RTL source tree! :)
 
