@@ -698,10 +698,8 @@ implementation
            { also don't count the value parameters which have local copies }
            { also don't claim for high param of open parameters (PM) }
            if (Errorcount<>0) or
-              (vo_is_self in tvarsym(p).varoptions) or
-              (vo_is_vmt in tvarsym(p).varoptions) or
-              (vo_is_high_value in tvarsym(p).varoptions) or
-              (copy(p.name,1,6)='hidden') then
+              (assigned(tvarsym(p).paraitem) and
+               tvarsym(p).paraitem.is_hidden) then
              exit;
            if (tvarsym(p).refs=0) then
              begin
@@ -2261,7 +2259,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.112  2003-10-02 21:13:46  peter
+  Revision 1.113  2003-10-03 14:43:29  peter
+    * don't report unused hidden parameters
+
+  Revision 1.112  2003/10/02 21:13:46  peter
     * protected visibility fixes
 
   Revision 1.111  2003/10/01 19:05:33  peter
