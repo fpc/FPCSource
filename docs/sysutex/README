@@ -37,3 +37,9 @@ ex34.pp contains an example of the ExtractFileName function.
 ex35.pp contains an example of the ExtractRelativePath function.
 ex36.pp contains an example of the FileAge function.
 ex37.pp contains an example of the FileCreate function.
+exex38.pp contains an example of the FileExists function.
+ex39.pp contains an example of the FileGetDate function.
+ex40.pp contains an example of the FileGetAttr function.
+ex41.pp contains an example of the FileSearch function.
+ex42.pp contains an example of the FileSetAttr function.
+ex43.pp contains an example of the FindFirst function.
