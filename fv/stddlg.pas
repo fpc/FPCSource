@@ -577,6 +577,82 @@ type
   end;
 
 {****************************************************************************}
+{ PathValid                        }
+{****************************************************************************}
+{$ifdef go32v2}
+{$define NetDrive}
+{$endif go32v2}
+{$ifdef win32}
+{$define NetDrive}
+{$endif win32}
+
+procedure RemoveDoubleDirSep(var ExpPath : PathStr);
+var
+  p: longint;
+{$ifdef NetDrive}
+  OneDirSepRemoved: boolean;
+{$endif NetDrive}
+begin
+  p:=pos(DirSeparator+DirSeparator,ExpPath);
+{$ifdef NetDrive}
+  if p=1 then
+    begin
+      ExpPath:=Copy(ExpPath,1,high(ExpPath));
+      OneDirSepRemoved:=true;
+      p:=pos(DirSeparator+DirSeparator,ExpPath);
+    end
+  else
+    OneDirSepRemoved:=false;
+{$endif NetDrive}
+  while p>0 do
+    begin
+      ExpPath:=Copy(ExpPath,1,p)+Copy(ExpPath,p+2,high(ExpPath));
+      p:=pos(DirSeparator+DirSeparator,ExpPath);
+    end;
+{$ifdef NetDrive}
+  if OneDirSepRemoved then
+    ExpPath:=DirSeparator+ExpPath;
+{$endif NetDrive}
+end;
+
+function PathValid (var Path: PathStr): Boolean;
+var
+  ExpPath: PathStr;
+  SR: SearchRec;
+begin
+  RemoveDoubleDirSep(Path);
+  ExpPath := FExpand(Path);
+{$ifdef HAS_DOS_DRIVES}
+  if (Length(ExpPath) <= 3) then
+    PathValid := DriveValid(ExpPath[1])
+  else
+{$endif}
+  begin
+    { do not change '/' into '' }
+    if (Length(ExpPath)>1) and (ExpPath[Length(ExpPath)] = DirSeparator) then
+      Dec(ExpPath[0]);
+    FindFirst(ExpPath, Directory, SR);
+    PathValid := (DosError = 0) and (SR.Attr and Directory <> 0);
+{$ifdef NetDrive}
+    if (DosError<>0) and (length(ExpPath)>2) and
+       (ExpPath[1]='\') and (ExpPath[2]='\')then
+      begin
+        { Checking '\\machine\sharedfolder' directly always fails..
+          rather try '\\machine\sharedfolder\*' PM }
+      {$ifdef fpc}
+        FindClose(SR);
+      {$endif}
+        FindFirst(ExpPath+'\*',AnyFile,SR);
+        PathValid:=(DosError = 0);
+      end;
+{$endif NetDrive}
+    {$ifdef fpc}
+    FindClose(SR);
+   {$endif}
+  end;
+end;
+
+{****************************************************************************}
 { TDirValidator Object                        }
 {****************************************************************************}
 {****************************************************************************}
@@ -1196,6 +1272,7 @@ end;
 {****************************************************************************}
 { TFileHistory.HandleEvent                                                       }
 {****************************************************************************}
+
 procedure TFileHistory.HandleEvent(var Event: TEvent);
 var
   HistoryWindow: PHistoryWindow;
@@ -1218,6 +1295,7 @@ begin
     else
      Rslt:='';
     Rslt:=Simplify(Rslt,Link^.Data^);
+    RemoveDoubleDirSep(Rslt);
     If IsWild(Rslt) then
       RecordHistory(Rslt);
     Link^.GetBounds(R);
@@ -1250,6 +1328,7 @@ begin
       else
        Rslt:='';
       Rslt:=Simplify(Rslt,Link^.Data^);
+      RemoveDoubleDirSep(Rslt);
       If IsWild(Rslt) then
         RecordHistory(Rslt);
     end;
@@ -2489,51 +2568,6 @@ begin
       if (not CheckOnReplace) or (not ReplaceFile(AFile)) then
    Exit;
     OpenNewFile := True;
-  end;
-end;
-
-{****************************************************************************}
-{ PathValid                        }
-{****************************************************************************}
-{$ifdef go32v2}
-{$define NetDrive}
-{$endif go32v2}
-{$ifdef win32}
-{$define NetDrive}
-{$endif win32}
-function PathValid (var Path: PathStr): Boolean;
-var
-  ExpPath: PathStr;
-  SR: SearchRec;
-begin
-  ExpPath := FExpand(Path);
-{$ifdef HAS_DOS_DRIVES}
-  if (Length(ExpPath) <= 3) then
-    PathValid := DriveValid(ExpPath[1])
-  else
-{$endif}
-  begin
-    { do not change '/' into '' }
-    if (Length(ExpPath)>1) and (ExpPath[Length(ExpPath)] = DirSeparator) then
-      Dec(ExpPath[0]);
-    FindFirst(ExpPath, Directory, SR);
-    PathValid := (DosError = 0) and (SR.Attr and Directory <> 0);
-{$ifdef NetDrive}
-    if (DosError<>0) and (length(ExpPath)>2) and
-       (ExpPath[1]='\') and (ExpPath[2]='\')then
-      begin
-        { Checking '\\machine\sharedfolder' directly always fails..
-          rather try '\\machine\sharedfolder\*' PM }
-      {$ifdef fpc}
-        FindClose(SR);
-      {$endif}
-        FindFirst(ExpPath+'\*',AnyFile,SR);
-        PathValid:=(DosError = 0);
-      end;
-{$endif NetDrive}
-    {$ifdef fpc}
-    FindClose(SR);
-   {$endif}
   end;
 end;
 
