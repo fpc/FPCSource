@@ -1707,7 +1707,7 @@ implementation
               in_low_x,
               in_high_x:
                 begin
-                  set_varstate(left,vs_used,false);
+                  set_varstate(left,vs_used,true);
                   case left.resulttype.def.deftype of
                     orddef,
                     enumdef:
@@ -2471,7 +2471,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.158  2005-01-23 21:47:14  florian
+  Revision 1.159  2005-02-04 16:30:56  peter
+    * low(var) var must be valid
+
+  Revision 1.158  2005/01/23 21:47:14  florian
     * another improvement of pi handling
 
   Revision 1.157  2005/01/23 21:09:12  florian
