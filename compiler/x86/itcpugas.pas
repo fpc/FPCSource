@@ -49,7 +49,8 @@ interface
        's','l','q',
        's','l','t','v','x',
        'd',
-       '','',''
+       '','','',
+       't'
      );
 {$else x86_64}
      gas_opsize2str : array[topsize] of string[2] = ('',
@@ -57,7 +58,8 @@ interface
        's','l','q',
        's','l','t','v','',
        'd',
-       '','',''
+       '','','',
+       't'
      );
 {$endif x86_64}
 
@@ -135,7 +137,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2004-06-20 08:55:32  florian
+  Revision 1.5  2004-12-12 10:50:35  florian
+    * fixed operand size calculation for sse operands
+    + all nasm assembler targets to help page output added
+
+  Revision 1.4  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.3  2004/02/05 18:28:37  peter

@@ -104,8 +104,8 @@ interface
                   OS_F32,OS_F64,OS_F80,OS_C64,OS_F128,
                  { multi-media sizes: split in byte, word, dword, ... }
                  { entities, then the signed counterparts             }
-                  OS_M8,OS_M16,OS_M32,OS_M64,OS_M128,OS_MS8,OS_MS16,OS_MS32,
-                  OS_MS64,OS_MS128);
+                  OS_M8,OS_M16,OS_M32,OS_M64,OS_M128,
+                  OS_MS8,OS_MS16,OS_MS32,OS_MS64,OS_MS128);
 
       { Register types }
       TRegisterType = (
@@ -597,7 +597,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.98  2004-11-09 22:32:59  peter
+  Revision 1.99  2004-12-12 10:50:34  florian
+    * fixed operand size calculation for sse operands
+    + all nasm assembler targets to help page output added
+
+  Revision 1.98  2004/11/09 22:32:59  peter
     * small m68k updates to bring it up2date
     * give better error for external local variable
 

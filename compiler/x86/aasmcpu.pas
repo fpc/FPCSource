@@ -359,21 +359,24 @@ implementation
           OT_BITS16,OT_BITS32,OT_BITS64,
           OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_NONE,
           OT_BITS64,
-          OT_NEAR,OT_FAR,OT_SHORT
+          OT_NEAR,OT_FAR,OT_SHORT,
+          OT_NONE
          ),
          (OT_NONE,
           OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS64,OT_BITS8,OT_BITS8,OT_BITS16,OT_BITS8,OT_BITS16,OT_BITS32,
           OT_BITS16,OT_BITS32,OT_BITS64,
           OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_NONE,
           OT_BITS64,
-          OT_NEAR,OT_FAR,OT_SHORT
+          OT_NEAR,OT_FAR,OT_SHORT,
+          OT_NONE
          ),
          (OT_NONE,
           OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS64,OT_NONE,OT_NONE,OT_NONE,OT_NONE,OT_NONE,OT_NONE,
           OT_BITS16,OT_BITS32,OT_BITS64,
           OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_NONE,
           OT_BITS64,
-          OT_NEAR,OT_FAR,OT_SHORT
+          OT_NEAR,OT_FAR,OT_SHORT,
+          OT_NONE
          )
        );
 
@@ -388,21 +391,24 @@ implementation
           OT_BITS16,OT_BITS32,OT_BITS64,
           OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_NONE,
           OT_BITS64,
-          OT_NEAR,OT_FAR,OT_SHORT
+          OT_NEAR,OT_FAR,OT_SHORT,
+          OT_NONE
          ),
          (OT_NONE,
           OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS64,OT_BITS8,OT_BITS8,OT_BITS16,
           OT_BITS16,OT_BITS32,OT_BITS64,
           OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_NONE,
           OT_BITS64,
-          OT_NEAR,OT_FAR,OT_SHORT
+          OT_NEAR,OT_FAR,OT_SHORT,
+          OT_NONE
          ),
          (OT_NONE,
           OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS64,OT_NONE,OT_NONE,OT_NONE,
           OT_BITS16,OT_BITS32,OT_BITS64,
           OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_NONE,
           OT_BITS64,
-          OT_NEAR,OT_FAR,OT_SHORT
+          OT_NEAR,OT_FAR,OT_SHORT,
+          OT_NONE
          )
       );
 
@@ -2111,7 +2117,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.63  2004-11-08 22:09:59  peter
+  Revision 1.64  2004-12-12 10:50:34  florian
+    * fixed operand size calculation for sse operands
+    + all nasm assembler targets to help page output added
+
+  Revision 1.63  2004/11/08 22:09:59  peter
     * tvarsym splitted
 
   Revision 1.62  2004/10/31 21:45:04  peter

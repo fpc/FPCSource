@@ -2134,6 +2134,8 @@ option_help_pages=11025_[
 3*2Aas_assemble using GNU AS
 3*2Anasmcoff_coff (Go32v2) file using Nasm
 3*2Anasmelf_elf32 (Linux) file using Nasm
+3*2Anasmwin32_Win32 object file using Nasm
+3*2Anasmwdosx_Win32/WDOSX object file using Nasm
 3*2Awasm_obj file using Wasm (Watcom)
 3*2Anasmobj_obj file using Nasm
 3*2Amasm_obj file using Masm (Microsoft)

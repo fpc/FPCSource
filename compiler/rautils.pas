@@ -905,8 +905,10 @@ Begin
           orddef,
           enumdef,
           pointerdef,
+          arraydef,
           floatdef :
             SetSize(tabstractvarsym(sym).getsize,false);
+          { makes no sense when using sse instructions (FK)
           arraydef :
             begin
               { for arrays try to get the element size, take care of
@@ -917,6 +919,7 @@ Begin
                harrdef:=tarraydef(harrdef.elementtype.def);
               SetSize(harrdef.elesize,false);
             end;
+          }
         end;
         hasvar:=true;
         SetupVar:=true;
@@ -1617,7 +1620,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.97  2004-11-29 18:50:15  peter
+  Revision 1.98  2004-12-12 10:50:34  florian
+    * fixed operand size calculation for sse operands
+    + all nasm assembler targets to help page output added
+
+  Revision 1.97  2004/11/29 18:50:15  peter
     * os2 fixes for import
     * asmsymtype support for intel reader
 

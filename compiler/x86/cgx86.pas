@@ -132,14 +132,16 @@ unit cgx86;
    const
 {$ifdef x86_64}
       TCGSize2OpSize: Array[tcgsize] of topsize =
-        (S_NO,S_B,S_W,S_L,S_Q,S_Q,S_B,S_W,S_L,S_Q,S_Q,
+        (S_NO,S_B,S_W,S_L,S_Q,S_T,S_B,S_W,S_L,S_Q,S_Q,
          S_FS,S_FL,S_FX,S_IQ,S_FXX,
-         S_NO,S_NO,S_NO,S_MD,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO);
+         S_NO,S_NO,S_NO,S_MD,S_T,
+         S_NO,S_NO,S_NO,S_NO,S_T);
 {$else x86_64}
       TCGSize2OpSize: Array[tcgsize] of topsize =
-        (S_NO,S_B,S_W,S_L,S_L,S_L,S_B,S_W,S_L,S_L,S_L,
+        (S_NO,S_B,S_W,S_L,S_L,S_T,S_B,S_W,S_L,S_L,S_L,
          S_FS,S_FL,S_FX,S_IQ,S_FXX,
-         S_NO,S_NO,S_NO,S_MD,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO);
+         S_NO,S_NO,S_NO,S_MD,S_T,
+         S_NO,S_NO,S_NO,S_NO,S_T);
 {$endif x86_64}
 
 {$ifndef NOTARGETWIN32}
@@ -1733,7 +1735,11 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.139  2004-11-08 20:23:29  florian
+  Revision 1.140  2004-12-12 10:50:35  florian
+    * fixed operand size calculation for sse operands
+    + all nasm assembler targets to help page output added
+
+  Revision 1.139  2004/11/08 20:23:29  florian
     * fixed open arrays when using register variables
 
   Revision 1.138  2004/11/02 20:50:54  florian

@@ -232,6 +232,7 @@ implementation
                      S_IQ : AsmWrite('qword ptr ');
                      S_FS : AsmWrite('dword ptr ');
                      S_FL : AsmWrite('qword ptr ');
+                     S_T,
                      S_FX : AsmWrite('tbyte ptr ');
                      S_BW : if dest then
                              AsmWrite('word ptr ')
@@ -874,7 +875,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.53  2004-10-31 21:45:03  peter
+  Revision 1.54  2004-12-12 10:50:34  florian
+    * fixed operand size calculation for sse operands
+    + all nasm assembler targets to help page output added
+
+  Revision 1.53  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 
