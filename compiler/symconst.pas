@@ -434,6 +434,7 @@ const
     po_containsself,
     po_interrupt,
     po_iocheck,
+    po_varargs,
     po_exports
   ];
 
@@ -449,7 +450,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  2001-06-04 11:53:13  peter
+  Revision 1.20  2001-06-04 18:14:54  peter
+    * varargs added for proc to procvar comparison
+
+  Revision 1.19  2001/06/04 11:53:13  peter
     + varargs directive
 
   Revision 1.18  2001/06/03 21:57:38  peter
