@@ -1161,7 +1161,11 @@ var
      negative := false;
      s:='';
      { Workaround: }
+{$ifdef ver1_0}
+     if (l shr 32=$80000000) and ((l and $ffffffff)=0) then
+{$else}
      if l=int64($8000000000000000) then
+{$endif}     
        begin
          s:='-9223372036854775808';
          exit;
@@ -1221,7 +1225,10 @@ end;
 
 {
   $Log$
-  Revision 1.76  2004-05-01 23:55:18  peter
+  Revision 1.77  2004-05-02 00:31:03  peter
+    * fixed compile with 1.0.x
+
+  Revision 1.76  2004/05/01 23:55:18  peter
     * replace strlenint with sizeint
 
   Revision 1.75  2004/05/01 20:52:50  peter
