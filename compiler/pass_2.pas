@@ -153,7 +153,6 @@ implementation
         else
           p := strpnew('second '+secondnames[ht]+' (exit)');
         exprasmlist.concat(tai_comment.create(p));
-        WriteLn(p);
       end;
 {$endif EXTDEBUG}
 
@@ -333,7 +332,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  2002-12-21 23:21:47  mazen
+  Revision 1.41  2002-12-22 14:35:39  peter
+    * removed Writeln
+
+  Revision 1.40  2002/12/21 23:21:47  mazen
   + added support for the shift nodes
   + added debug output on screen with -an command line option
 
