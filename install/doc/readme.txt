@@ -30,6 +30,7 @@ Free Pascal 1.9.6 is currently available for the following platforms:
 - FreeBSD i386
 - Mac OS X/Darwin for PowerPC
 - Mac OS (classic) for PowerPC
+- Netware-i386
 
 More platforms will be supported in future 1.9.x beta releases.
 Because release building is quite time intensive, we decide to start the
