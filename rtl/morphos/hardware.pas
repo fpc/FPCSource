@@ -467,7 +467,6 @@ type
   end;
 
 
-{$IFDEF ECS_SPECIFIC}
 const
   VARVBLANK   = $1000;
   LOLDIS      = $0800;
@@ -496,7 +495,6 @@ const
   BPLCON3_ZDCLKEN   = (1 Shl 2);
   BPLCON3_BRDNTRAN  = (1 Shl 4);
   BPLCON3_BRDNBLNK  = (1 Shl 5);
-{$ENDIF ECS_SPECIFIC}
 
 
 
@@ -586,7 +584,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2004-11-16 02:45:42  karoly
+  Revision 1.2  2004-11-16 21:16:26  karoly
+   - removed IFDEF to allow graphics unit compile
+
+  Revision 1.1  2004/11/16 02:45:42  karoly
    * Initial revision
 
 }
