@@ -133,14 +133,12 @@ Begin
   If InOutRes <> 0 then
    exit;
   case FileRec(f).Mode of
-    fmInOut,fmOutput : ;
-  else
-    begin
-      InOutRes:=103;
-      exit;
-    end;
+    fmInOut,fmOutput :
+      Result:=Do_Write(FileRec(f).Handle,Longint(@Buf),Count*FileRec(f).RecSize)
+        div FileRec(f).RecSize;
+    fmInPut: inOutRes := 105;
+    else InOutRes:=103;
   end;
-  Result:=Do_Write(FileRec(f).Handle,Longint(@Buf),Count*FileRec(f).RecSize) div FileRec(f).RecSize;
 End;
 
 
@@ -192,14 +190,12 @@ Begin
   If InOutRes <> 0 then
    exit;
   case FileRec(f).Mode of
-    fmInOut,fmInput : ;
-  else
-    begin
-      InOutRes:=103;
-      exit;
-    end;
+    fmInOut,fmInput : 
+      Result:=Do_Read(FileRec(f).Handle,Longint(@Buf),count*FileRec(f).RecSize)
+        div FileRec(f).RecSize;
+    fmOutput: inOutRes := 104;
+    else InOutRes:=103;
   end;
-  Result:=Do_Read(FileRec(f).Handle,Longint(@Buf),count*FileRec(f).RecSize) div FileRec(f).RecSize;
 End;
 
 
@@ -252,14 +248,11 @@ Begin
   If InOutRes <> 0 then
    exit;
   case FileRec(f).Mode of
-    fmInOut,fmInput,fmOutput : ;
-  else
-    begin
+    fmInOut,fmInput,fmOutput :
+      FilePos:=Do_FilePos(FileRec(f).Handle) div FileRec(f).RecSize;
+    else
       InOutRes:=103;
-      exit;
-    end;
   end;
-  FilePos:=Do_FilePos(FileRec(f).Handle) div FileRec(f).RecSize;
 End;
 
 
@@ -272,15 +265,13 @@ Begin
   If InOutRes <> 0 then
    exit;
   case FileRec(f).Mode of
-    fmInOut,fmInput,fmOutput : ;
-  else
-    begin
-      InOutRes:=103;
-      exit;
-    end;
+    fmInOut,fmInput,fmOutput :
+      begin
+        if (FileRec(f).RecSize>0) then
+          FileSize:=Do_FileSize(FileRec(f).Handle) div FileRec(f).RecSize;
+      end;
+    else InOutRes:=103;
   end;
-  if (FileRec(f).RecSize>0) then
-   FileSize:=Do_FileSize(FileRec(f).Handle) div FileRec(f).RecSize;
 End;
 
 
@@ -293,15 +284,10 @@ Begin
   If InOutRes <> 0 then
    exit;
   case FileRec(f).Mode of
-    fmInOut,fmInput,fmOutput : ;
-  else
-    begin
-      InOutRes:=103;
-      exit;
-    end;
+    {Can't use do_ routines because we need record support}
+    fmInOut,fmInput,fmOutput : Eof:=(FileSize(f)<=FilePos(f));
+    else InOutRes:=103;
   end;
-  {Can't use do_ routines because we need record support}
-  Eof:=(FileSize(f)<=FilePos(f));
 End;
 
 
@@ -313,14 +299,10 @@ Begin
   If InOutRes <> 0 then
    exit;
   case FileRec(f).Mode of
-    fmInOut,fmInput,fmOutput : ;
-  else
-    begin
-      InOutRes:=103;
-      exit;
-    end;
+    fmInOut,fmInput,fmOutput :
+      Do_Seek(FileRec(f).Handle,Pos*FileRec(f).RecSize);
+    else InOutRes:=103;
   end;
-  Do_Seek(FileRec(f).Handle,Pos*FileRec(f).RecSize);
 End;
 
 
@@ -332,14 +314,10 @@ Begin
   If InOutRes <> 0 then
    exit;
   case FileRec(f).Mode of
-    fmInOut,fmOutput : ;
-  else
-    begin
-      InOutRes:=103;
-      exit;
-    end;
+    fmInOut,fmOutput :
+      Do_Truncate(FileRec(f).Handle,FilePos(f)*FileRec(f).RecSize);
+    else InOutRes:=103;
   end;
-  Do_Truncate(FileRec(f).Handle,FilePos(f)*FileRec(f).RecSize);
 End;
 
 
@@ -351,15 +329,13 @@ Begin
   If InOutRes <> 0 then
    exit;
   case FileRec(f).Mode of
-    fmInOut,fmInput,fmOutput : ;
-  else
-    begin
-      InOutRes:=103;
-      exit;
-    end;
+    fmInOut,fmInput,fmOutput :
+      begin
+        Do_Close(FileRec(f).Handle);
+        FileRec(f).mode:=fmClosed;
+      end
+    else InOutRes:=103;
   end;
-  FileRec(f).mode:=fmClosed;
-  Do_Close(FileRec(f).Handle);
 End;
 
 
@@ -409,7 +385,14 @@ End;
 
 {
   $Log$
-  Revision 1.19  2000-02-09 16:59:29  peter
+  Revision 1.20  2000-03-24 10:26:18  jonas
+    * changed a lot of "if fm.mode = fmClosed then" to case statements,
+      because if f is not yet initialized, the mode is invalid and can
+      contain another value even though the file is closed
+    + check if a file is open in writeln_end (caused crash if used on
+      not opened files)
+
+  Revision 1.19  2000/02/09 16:59:29  peter
     * truncated log
 
   Revision 1.18  2000/01/17 20:02:30  peter

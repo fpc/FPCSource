@@ -66,9 +66,13 @@ Procedure Int_Typed_Write(TypeSize : Longint;var f : TypedFile;var Buf);[IOCheck
 Begin
   If InOutRes <> 0 then
    exit;
-  Do_Write(FileRec(f).Handle,Longint(@Buf),TypeSize);
+  case fileRec(f).mode of
+    fmOutPut,fmInOut:
+      Do_Write(FileRec(f).Handle,Longint(@Buf),TypeSize);
+    fmInput: inOutRes := 105;
+    else inOutRes := 103;
+  end;
 End;
-
 
 Procedure Int_Typed_Read(TypeSize : Longint;var f : TypedFile;var Buf);[IOCheck, Public, Alias :'FPC_TYPED_READ'];
 var
@@ -76,14 +80,28 @@ var
 Begin
   If InOutRes <> 0 then
    exit;
-  Result:=Do_Read(FileRec(f).Handle,Longint(@Buf),TypeSize);
-  If Result<TypeSize Then
-   InOutRes:=100;
+  case FileRec(f).mode of
+    fmInput,fmInOut:
+      begin
+        Result:=Do_Read(FileRec(f).Handle,Longint(@Buf),TypeSize);
+        If Result<TypeSize Then
+         InOutRes:=100
+      end;
+    fmOutPut: inOutRes := 104
+    else inOutRes := 103;
+  end;
 End;
 
 {
   $Log$
-  Revision 1.9  2000-02-09 16:59:31  peter
+  Revision 1.10  2000-03-24 10:26:19  jonas
+    * changed a lot of "if fm.mode = fmClosed then" to case statements,
+      because if f is not yet initialized, the mode is invalid and can
+      contain another value even though the file is closed
+    + check if a file is open in writeln_end (caused crash if used on
+      not opened files)
+
+  Revision 1.9  2000/02/09 16:59:31  peter
     * truncated log
 
   Revision 1.8  2000/01/07 16:41:37  daniel

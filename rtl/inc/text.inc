@@ -32,7 +32,6 @@ Begin
   t.Handle:=UnusedHandle;
 End;
 
-
 Procedure FileReadFunc(var t:TextRec);
 Begin
   t.BufEnd:=Do_Read(t.Handle,Longint(t.Bufptr),t.BufSize);
@@ -46,7 +45,7 @@ var
 Begin
   i:=Do_Write(t.Handle,Longint(t.Bufptr),t.BufPos);
   if i<>t.BufPos then
-   InOutRes:=101;
+    InOutRes:=101;
   t.BufPos:=0;
 End;
 
@@ -112,21 +111,24 @@ Procedure Close(var t : Text);[IOCheck];
 Begin
   if InOutRes<>0 then
    Exit;
-  If (TextRec(t).mode<>fmClosed) Then
-   Begin
-   { Write pending buffer }
-     If Textrec(t).Mode=fmoutput then
-       FileFunc(TextRec(t).InOutFunc)(TextRec(t));
-     TextRec(t).mode:=fmClosed;
-   { Only close functions not connected to stdout.}
-     If ((TextRec(t).Handle<>StdInputHandle) and
-         (TextRec(t).Handle<>StdOutputHandle) and
-         (TextRec(t).Handle<>StdErrorHandle)) Then
-      FileFunc(TextRec(t).CloseFunc)(TextRec(t));
-   { Reset buffer for safety }
-     TextRec(t).BufPos:=0;
-     TextRec(t).BufEnd:=0;
-   End;
+  case TextRec(t).mode of
+    fmInput,fmOutPut,fmAppend:
+      Begin
+        { Write pending buffer }
+        If Textrec(t).Mode=fmoutput then
+          FileFunc(TextRec(t).InOutFunc)(TextRec(t));
+        { Only close functions not connected to stdout.}
+        If ((TextRec(t).Handle<>StdInputHandle) and
+            (TextRec(t).Handle<>StdOutputHandle) and
+            (TextRec(t).Handle<>StdErrorHandle)) Then
+          FileFunc(TextRec(t).CloseFunc)(TextRec(t));
+        TextRec(t).mode := fmClosed;
+        { Reset buffer for safety }
+        TextRec(t).BufPos:=0;
+        TextRec(t).BufEnd:=0;
+      End
+    else inOutRes := 103;
+  End;
 End;
 
 
@@ -181,10 +183,10 @@ Begin
    exit;
   if TextRec(t).mode<>fmOutput then
    begin
-     if TextRec(t).mode=fmClosed then
-      InOutRes:=103
+     if TextRec(t).mode=fmInput then
+      InOutRes:=105
      else
-      InOutRes:=105;
+      InOutRes:=103;
      exit;
    end;
 { Not the flushfunc but the inoutfunc should be used, becuase that
@@ -244,10 +246,10 @@ Begin
    exit(true);
   if (TextRec(t).mode<>fmInput) Then
    begin
-     if TextRec(t).mode=fmClosed then
-      InOutRes:=103
+     if TextRec(t).mode=fmOutput then
+      InOutRes:=104
      else
-      InOutRes:=104;
+      InOutRes:=103;
      exit(true);
    end;
   If TextRec(t).BufPos>=TextRec(t).BufEnd Then
@@ -276,10 +278,10 @@ Begin
    exit(true);
   if (TextRec(t).mode<>fmInput) Then
    begin
-     if TextRec(t).mode=fmClosed then
-      InOutRes:=103
+     if TextRec(t).mode=fmOutPut then
+      InOutRes:=104
      else
-      InOutRes:=104;
+      InOutRes:=103;
      exit(true);
    end;
   repeat
@@ -313,10 +315,10 @@ Begin
    exit(true);
   if (TextRec(t).mode<>fmInput) Then
    begin
-     if TextRec(t).mode=fmClosed then
-      InOutRes:=103
+     if TextRec(t).mode=fmOutPut then
+      InOutRes:=104
      else
-      InOutRes:=104;
+      InOutRes:=103;
      exit(true);
    end;
   If TextRec(t).BufPos>=TextRec(t).BufEnd Then
@@ -341,10 +343,10 @@ Begin
    exit(true);
   if (TextRec(t).mode<>fmInput) Then
    begin
-     if TextRec(t).mode=fmClosed then
-      InOutRes:=103
+     if TextRec(t).mode=fmOutput then
+      InOutRes:=104
      else
-      InOutRes:=104;
+      InOutRes:=103;
      exit(true);
    end;
   repeat
@@ -447,11 +449,18 @@ const
 {$ENDIF SHORT_LINEBREAK}
 begin
   If InOutRes <> 0 then exit;
-{ Write EOL }
-  WriteBuffer(f,eol,eollen);
-{ Flush }
-  if f.FlushFunc<>nil then
-   FileFunc(f.FlushFunc)(f);
+  case f.mode of
+    fmOutput { fmAppend gets changed to fmOutPut in do_open (JM) }:
+      begin
+        { Write EOL }
+        WriteBuffer(f,eol,eollen);
+        { Flush }
+        if f.FlushFunc<>nil then
+          FileFunc(f.FlushFunc)(f);
+      end;
+    fmInput: InOutRes:=105
+    else InOutRes:=103;
+  end;
 end;
 
 
@@ -459,17 +468,16 @@ Procedure Write_Str(Len : Longint;var f : TextRec;const s : String);[Public,Alia
 Begin
   If (InOutRes<>0) then
    exit;
-  if (f.mode<>fmOutput) Then
-   begin
-     if TextRec(f).mode=fmClosed then
-      InOutRes:=103
-     else
-      InOutRes:=105;
-     exit;
-   end;
-  If Len>Length(s) Then
-   WriteBlanks(f,Len-Length(s));
-  WriteBuffer(f,s[1],Length(s));
+  case f.mode of
+    fmOutput { fmAppend gets changed to fmOutPut in do_open (JM) }:
+      begin
+        If Len>Length(s) Then
+          WriteBlanks(f,Len-Length(s));
+        WriteBuffer(f,s[1],Length(s));
+      end;
+    fmInput: InOutRes:=105
+    else InOutRes:=103;
+  end;
 End;
 
 
@@ -480,21 +488,20 @@ var
 Begin
   If (InOutRes<>0) then
    exit;
-  if (f.mode<>fmOutput) Then
-   begin
-     if TextRec(f).mode=fmClosed then
-      InOutRes:=103
-     else
-      InOutRes:=105;
-     exit;
-   end;
-  p:=pchar(@s);
-  ArrayLen:=StrLen(p);
-  if ArrayLen>sizeof(s) then
-   ArrayLen:=sizeof(s);
-  If Len>ArrayLen Then
-   WriteBlanks(f,Len-ArrayLen);
-  WriteBuffer(f,p^,ArrayLen);
+  case f.mode of
+    fmOutput { fmAppend gets changed to fmOutPut in do_open (JM) }:
+      begin
+        p:=pchar(@s);
+        ArrayLen:=StrLen(p);
+        if ArrayLen>sizeof(s) then
+          ArrayLen:=sizeof(s);
+        If Len>ArrayLen Then
+          WriteBlanks(f,Len-ArrayLen);
+        WriteBuffer(f,p^,ArrayLen);
+      end;
+    fmInput: InOutRes:=105
+    else InOutRes:=103;
+  end;
 End;
 
 
@@ -504,18 +511,17 @@ var
 Begin
   If (p=nil) or (InOutRes<>0) then
    exit;
-  if (f.mode<>fmOutput) Then
-   begin
-     if TextRec(f).mode=fmClosed then
-      InOutRes:=103
-     else
-      InOutRes:=105;
-     exit;
-   end;
-  PCharLen:=StrLen(p);
-  If Len>PCharLen Then
-   WriteBlanks(f,Len-PCharLen);
-  WriteBuffer(f,p^,PCharLen);
+  case f.mode of
+    fmOutput { fmAppend gets changed to fmOutPut in do_open (JM) }:
+      begin
+        PCharLen:=StrLen(p);
+        If Len>PCharLen Then
+          WriteBlanks(f,Len-PCharLen);
+        WriteBuffer(f,p^,PCharLen);
+      end;
+    fmInput: InOutRes:=105
+    else InOutRes:=103;
+  end;
 End;
 
 
@@ -686,10 +692,12 @@ Begin
    exit;
   if (f.mode<>fmInput) Then
    begin
-     if TextRec(f).mode=fmClosed then
-      InOutRes:=103
-     else
-      InOutRes:=104;
+     case TextRec(f).mode of
+      fmOutPut,fmAppend:
+        InOutRes:=104
+       else
+         InOutRes:=103;
+     end;
      exit;
    end;
   if f.BufPos>=f.BufEnd Then
@@ -744,10 +752,12 @@ Begin
    exit;
   if (f.mode<>fmInput) Then
    begin
-     if TextRec(f).mode=fmClosed then
-      InOutRes:=103
-     else
-      InOutRes:=104;
+     case TextRec(f).mode of
+       fmOutPut,fmAppend:
+         InOutRes:=104
+       else
+         InOutRes:=103;
+     end;
      exit;
    end;
 { Read maximal until Maxlen is reached }
@@ -824,10 +834,12 @@ Begin
    exit;
   if (f.mode<>fmInput) Then
    begin
-     if TextRec(f).mode=fmClosed then
-      InOutRes:=103
-     else
-      InOutRes:=104;
+     case TextRec(f).mode of
+       fmOutPut,fmAppend:
+         InOutRes:=104
+       else
+         InOutRes:=103;
+     end;
      exit;
    end;
 { Read next char or EOF }
@@ -853,10 +865,12 @@ Begin
    exit;
   if (f.mode<>fmInput) Then
    begin
-     if TextRec(f).mode=fmClosed then
-      InOutRes:=103
-     else
-      InOutRes:=104;
+     case TextRec(f).mode of
+       fmOutPut,fmAppend:
+         InOutRes:=104
+       else
+         InOutRes:=103;
+     end;
      exit;
    end;
   If f.BufPos>=f.BufEnd Then
@@ -881,10 +895,12 @@ Begin
    exit;
   if (f.mode<>fmInput) Then
    begin
-     if TextRec(f).mode=fmClosed then
-      InOutRes:=103
-     else
-      InOutRes:=104;
+     case TextRec(f).mode of
+       fmOutPut,fmAppend:
+         InOutRes:=104
+       else
+         InOutRes:=103;
+     end;
      exit;
    end;
   If f.BufPos>=f.BufEnd Then
@@ -909,10 +925,12 @@ begin
    exit;
   if (f.mode<>fmInput) Then
    begin
-     if TextRec(f).mode=fmClosed then
-      InOutRes:=103
-     else
-      InOutRes:=104;
+     case TextRec(f).mode of
+       fmOutPut,fmAppend:
+         InOutRes:=104
+       else
+         InOutRes:=103;
+     end;
      exit;
    end;
   If f.BufPos>=f.BufEnd Then
@@ -938,10 +956,12 @@ Begin
    exit;
   if (f.mode<>fmInput) Then
    begin
-     if TextRec(f).mode=fmClosed then
-      InOutRes:=103
-     else
-      InOutRes:=104;
+     case TextRec(f).mode of
+       fmOutPut,fmAppend:
+         InOutRes:=104
+       else
+         InOutRes:=103;
+     end;
      exit;
    end;
   If f.BufPos>=f.BufEnd Then
@@ -965,10 +985,12 @@ Begin
    exit;
   if (f.mode<>fmInput) Then
    begin
-     if TextRec(f).mode=fmClosed then
-      InOutRes:=103
-     else
-      InOutRes:=104;
+     case TextRec(f).mode of
+       fmOutPut,fmAppend:
+         InOutRes:=104
+       else
+         InOutRes:=103;
+     end;
      exit;
    end;
   If f.BufPos>=f.BufEnd Then
@@ -1009,7 +1031,14 @@ end;
 
 {
   $Log$
-  Revision 1.71  2000-03-19 08:36:41  peter
+  Revision 1.72  2000-03-24 10:26:18  jonas
+    * changed a lot of "if fm.mode = fmClosed then" to case statements,
+      because if f is not yet initialized, the mode is invalid and can
+      contain another value even though the file is closed
+    + check if a file is open in writeln_end (caused crash if used on
+      not opened files)
+
+  Revision 1.71  2000/03/19 08:36:41  peter
     * length check for readnumeric
 
   Revision 1.70  2000/03/17 21:27:56  jonas
