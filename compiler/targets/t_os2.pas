@@ -294,6 +294,9 @@ var tmp1,tmp2,tmp3:string;
     sym_mcount,sym_import:longint;
     fixup_mcount,fixup_import:longint;
 begin
+    { force the current mangledname }
+    aktprocdef.has_mangledname:=true;
+
     aout_init;
     tmp2:=func;
     if profile_flag and not (copy(func,1,4)='_16_') then
@@ -590,7 +593,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.11  2001-09-18 11:32:00  michael
+  Revision 1.12  2002-01-27 12:58:42  hajny
+    * fix for a problem with importprocedure
+
+  Revision 1.11  2001/09/18 11:32:00  michael
   * Fixes win32 linking problems with import libraries
   * LINKLIB Libraries are now looked for using C file extensions
   * get_exepath fix
