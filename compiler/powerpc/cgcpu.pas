@@ -70,7 +70,7 @@ unit cgcpu;
           l : tasmlabel);override;
         procedure a_cmp_reg_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel); override;
 
-	procedure a_jmp_always(list : taasmoutput;l: tasmlabel); override;
+        procedure a_jmp_always(list : taasmoutput;l: tasmlabel); override;
         procedure a_jmp_flags(list : taasmoutput;const f : TResFlags;l: tasmlabel); override;
 
         procedure g_flags2reg(list: taasmoutput; const f: TResFlags; reg: TRegister); override;
@@ -436,7 +436,9 @@ const
                 exit;
               end
             else if (longint(a) >= low(smallint)) and
-               (longint(a) <= high(smallint)) then
+               (longint(a) <= high(smallint)) and
+               (not(op in [OP_AND,OP_OR]) or
+                not get_rlwi_const(a,l1,l2)) then
               begin
                 list.concat(taicpu.op_reg_reg_const(oplo,dst,src,a));
                 exit;
@@ -1293,7 +1295,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2002-07-11 14:41:34  florian
+  Revision 1.24  2002-07-21 17:00:23  jonas
+    * make sure we use rlwi* when possible instead of andi.
+
+  Revision 1.23  2002/07/11 14:41:34  florian
     * start of the new generic parameter handling
 
   Revision 1.22  2002/07/11 07:38:28  jonas
