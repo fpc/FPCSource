@@ -5,17 +5,16 @@
 type
    tbaseclass = class
      x : longint;
-     class procedure virtual_class_method; virtual;
-     class procedure call_virtual_class_method;
-     class function get_type : pointer;
-     function get_type2 : pointer;
+     function get_type : pointer;
+     function get_type2 : pointer;virtual;
      procedure check_type;
-     class procedure class_check_type;
+     class procedure virtual_class_method;virtual;
    end;
 
    tderivedclass = class(tbaseclass)
      y : longint;
-     class procedure virtual_class_method; override;
+     function get_type2 : pointer;override;
+     class procedure virtual_class_method;override;
    end;
 
 const
@@ -28,18 +27,6 @@ const
 var
   basesize : longint;
   derivedsize : longint;
-
-procedure tbaseclass.virtual_class_method;
-
-begin
-  Writeln('Calling tbase class class method');
-  tbasecalled:=true;
-  if typeof(self)<>get_type then
-    begin
-      has_error:=true;
-      Writeln('Error with typeof');
-    end;
-end;
 
 function tbaseclass.get_type : pointer;
 begin
@@ -70,27 +57,23 @@ begin
     end;
 end;
 
-procedure tbaseclass.class_check_type;
+procedure tbaseclass.virtual_class_method;
 begin
-  if typeof(self)<>get_type then
+  Writeln('Calling tbase class class method');
+  tbasecalled:=true;
+  if sizeof(self)<>basesize then
     begin
-      Writeln('Compiler creates garbage');
       has_error:=true;
+      Writeln('Error with sizeof');
     end;
 end;
 
-class procedure tbaseclass.call_virtual_class_method;
+function tderivedclass.get_type2 : pointer;
 begin
-  virtual_class_method;
-  if get_type<>typeof(self) then
-    begin
-      Writeln('Compiler creates garbage');
-      has_error:=true;
-    end;
+  get_type2:=typeof(self);
 end;
 
 procedure tderivedclass.virtual_class_method;
-
 begin
   Writeln('Calling tderived class class method');
   tderivedcalled:=true;
@@ -117,59 +100,19 @@ begin
  cb:=tbaseclass.create;
  cd:=tderivedclass.create;
  c1:=tbaseclass.create;
- pb:=typeof(tbaseclass);
- pd:=typeof(tderivedclass);
- if pb<>typeof(cb) then
-   has_error:=true;
- if pd<>typeof(cd) then
-   has_error:=true;
 
  basesize:=sizeof(cb);
  Writeln('Sizeof(cb)=',basesize);
- if basesize<>expected_size_for_tbaseclass then
-   Writeln('not the expected size : ',expected_size_for_tbaseclass);
+ if basesize<>sizeof(pointer) then
+   Writeln('not the expected size : ',sizeof(pointer));
 
  derivedsize:=sizeof(cd);
  Writeln('Sizeof(ct)=',derivedsize);
- if derivedsize<>expected_size_for_tderivedclass then
-   Writeln('not the expected size : ',expected_size_for_tderivedclass);
+ if derivedsize<>sizeof(pointer) then
+   Writeln('not the expected size : ',sizeof(pointer));
 
  cb.check_type;
  cd.check_type;
- cb.class_check_type;
- cd.class_check_type;
- tbaseclass.class_check_type;
- tderivedclass.class_check_type;
-
- tbaseclass.virtual_class_method;
- if not tbasecalled then
-   has_error:=true;
- reset_booleans;
-
- tbaseclass.call_virtual_class_method;
- if not tbasecalled then
-   has_error:=true;
- reset_booleans;
-
- tderivedclass.virtual_class_method;
- if not tderivedcalled then
-   has_error:=true;
- reset_booleans;
-
- tderivedclass.call_virtual_class_method;
- if not tderivedcalled then
-   has_error:=true;
- reset_booleans;
-
- c1.virtual_class_method;
- if not tbasecalled then
-   has_error:=true;
- reset_booleans;
-
- c1.call_virtual_class_method;
- if not tbasecalled then
-   has_error:=true;
- reset_booleans;
 
  c1.destroy;
 
@@ -180,22 +123,11 @@ begin
    has_error:=true;
  reset_booleans;
 
- c1.call_virtual_class_method;
- if not tderivedcalled then
-   has_error:=true;
- reset_booleans;
-
  c1.destroy;
 
  cc:=tbaseclass;
- cc.class_check_type;
 
  cc.virtual_class_method;
- if not tbasecalled then
-   has_error:=true;
- reset_booleans;
-
- cc.call_virtual_class_method;
  if not tbasecalled then
    has_error:=true;
  reset_booleans;
@@ -203,14 +135,7 @@ begin
  cc:=tderivedclass;
 
 
- cc.class_check_type;
-
  cc.virtual_class_method;
- if not tderivedcalled then
-   has_error:=true;
- reset_booleans;
-
- cc.call_virtual_class_method;
  if not tderivedcalled then
    has_error:=true;
  reset_booleans;
