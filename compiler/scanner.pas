@@ -445,7 +445,10 @@ implementation
       var
          oldaktfilepos : tfileposinfo;
       begin
-         inc(comment_level);
+         if (m_nested_comment in aktmodeswitches) then
+           inc(comment_level)
+         else
+           comment_level:=1;
          if (comment_level>1) then
           begin
              oldaktfilepos:=aktfilepos;
@@ -458,10 +461,7 @@ implementation
 
     procedure tscannerfile.dec_comment_level;
       begin
-         if (m_nested_comment in aktmodeswitches) then
-           dec(comment_level)
-         else
-           comment_level:=0;
+        dec(comment_level)
       end;
 
 
@@ -892,7 +892,10 @@ implementation
               #26 : Message(scan_f_end_of_file);
               '*' : begin
                       if found=3 then
-                       inc_comment_level
+                       begin
+                         inc_comment_level;
+                         found:=0;
+                       end
                       else
                        found:=1;
                     end;
@@ -901,7 +904,9 @@ implementation
                        begin
                          dec_comment_level;
                          if comment_level=0 then
-                          found:=2;
+                          found:=2
+                         else
+                          found:=0;
                        end;
                     end;
               '(' : found:=3;
@@ -922,6 +927,7 @@ implementation
          end;
       end;
 
+
     procedure tscannerfile.skipccomment;
       var
         found : longint;
@@ -940,7 +946,10 @@ implementation
               #26 : Message(scan_f_end_of_file);
               '*' : begin
                       if found=3 then
-                       inc_comment_level
+                       begin
+                         inc_comment_level;
+                         found:=0;
+                       end
                       else
                        found:=1;
                     end;
@@ -949,7 +958,9 @@ implementation
                        begin
                          dec_comment_level;
                          if comment_level=0 then
-                          found:=2;
+                          found:=2
+                         else
+                          found:=0;
                        end
                       else found:=3;
                     end;
@@ -1559,7 +1570,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.72  1999-02-02 00:15:10  florian
+  Revision 1.73  1999-03-02 22:49:35  peter
+    * fixed nested comments for old style tp and c
+
+  Revision 1.72  1999/02/02 00:15:10  florian
     + c styled comments
 
   Revision 1.71  1999/01/27 13:05:45  pierre
