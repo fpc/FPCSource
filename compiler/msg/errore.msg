@@ -1095,7 +1095,7 @@ type_w_signed_unsigned_always_true=04045_W_Comparison is always true due to rang
 % There is a comparison between an unsigned value and a signed constant which is
 % less than zero. Because of type promotion, the statement will always evaluate to
 % true. Exlicitly typecast the constant to the correct range to avoid this problem.
-type_w_instance_with_abstract=04046_W_Constructing a class "$1" with abstract method "$2"
+type_w_instance_with_abstract=04046_W_Constructing a class "$1" with abstract methods
 % An instance of a class is created which contains non-implemented abstract
 % methods. This will probably lead to a runtime error 211 in the code if that
 % routine is ever called. All abstract methods should be overriden.
@@ -1890,6 +1890,13 @@ unit_u_finished_loading_unit=10056_U_Finished loading unit $1
 unit_u_registering_new_unit=10057_U_Registering new unit $1
 % When you use the \var{-vu} flag, the compiler warns that it has
 % found a new unit and registers it in the internal lists.
+unit_u_reresolving_unit=10058_U_Re-resolving unit $1
+% When you use the \var{-vu} flag, the compiler warns that it
+% has to recalculate the internal data of the unit
+unit_u_skipping_reresolving_unit=10059_E_Skipping re-resolving unit $1, still loading used units
+% When you use the \var{-vu} flag, the compiler warns that it
+% skips to recalculate the internal data of the unit because there
+% is no data to recalculate
 % \end{description}
 # EndOfTeX
 

@@ -1093,15 +1093,15 @@ type
         { also, this checking can only be done if the constructor is directly
           called, indirect constructor calls cannot be checked.
         }
-        if assigned(methodpointer) and assigned(methodpointer.resulttype.def) then
-            if (methodpointer.resulttype.def.deftype = classrefdef) and
-              (methodpointer.nodetype in [typen,loadvmtaddrn]) then
-              begin
-                if (tclassrefdef(methodpointer.resulttype.def).pointertype.def.deftype = objectdef) then
-                    objectdf := tobjectdef(tclassrefdef(methodpointer.resulttype.def).pointertype.def);
-
-              end;
-        if not assigned(objectdf) then exit;
+        if assigned(methodpointer) and
+           (methodpointer.resulttype.def.deftype = classrefdef) and
+           (methodpointer.nodetype in [typen,loadvmtaddrn]) then
+          begin
+            if (tclassrefdef(methodpointer.resulttype.def).pointertype.def.deftype = objectdef) then
+              objectdf := tobjectdef(tclassrefdef(methodpointer.resulttype.def).pointertype.def);
+          end;
+        if not assigned(objectdf) then
+          exit;
         if assigned(objectdf.symtable.name) then
           _classname := objectdf.symtable.name^
         else
@@ -1134,11 +1134,12 @@ type
         if assigned(parents) then
           parents.free;
         { Finally give out a warning for each abstract method still in the list }
+        Message1(type_w_instance_with_abstract,objectdf.objname^);
         stritem := tstringlistitem(AbstractMethodsList.first);
         while assigned(stritem) do
          begin
            if assigned(stritem.fpstr) then
-              Message2(type_w_instance_with_abstract,lower(_classname),lower(stritem.fpstr^));
+             Message1(sym_h_param_list,stritem.str);
            stritem := tstringlistitem(stritem.next);
          end;
         if assigned(AbstractMethodsList) then
@@ -2139,6 +2140,10 @@ type
                   (tloadnode(hpt).symtableentry.typ=varsym) then
                  tvarsym(tloadnode(hpt).symtableentry).varstate:=vs_used;
              end;
+
+            { if we are calling the constructor }
+            if procdefinition.proctypeoption=potype_constructor then
+              verifyabstractcalls;
           end
          else
           begin
@@ -2438,10 +2443,6 @@ type
                  registersmmx:=max(methodpointer.registersmmx,registersmmx);
 {$endif SUPPORT_MMX}
                end;
-
-              { if we are calling the constructor }
-              if procdefinition.proctypeoption=potype_constructor then
-                verifyabstractcalls;
            end;
 
          { determine the registers of the procedure variable }
@@ -2591,7 +2592,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.165  2003-06-07 20:26:32  peter
+  Revision 1.166  2003-06-08 11:42:33  peter
+    * creating class with abstract call checking fixed
+    * there will be only one warning for each class, the methods
+      are listed as hint
+
+  Revision 1.165  2003/06/07 20:26:32  peter
     * re-resolving added instead of reloading from ppu
     * tderef object added to store deref info for resolving
 
