@@ -129,7 +129,8 @@ implementation
            exit;
          reset_reference(p^.location.reference);
          case p^.left^.location.loc of
-            LOC_REGISTER,
+            LOC_REGISTER:
+              p^.location.reference.index:=p^.left^.location.register;
             LOC_CREGISTER:
               begin
                  p^.location.reference.index:=getregister32;
@@ -850,7 +851,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.52  1999-08-19 13:08:52  pierre
+  Revision 1.53  1999-08-23 23:49:21  pierre
+   * hnewn location corrected
+
+  Revision 1.52  1999/08/19 13:08:52  pierre
    * emit_??? used
 
   Revision 1.51  1999/08/16 23:20:28  peter
