@@ -2,6 +2,7 @@
 { Submitted by "Danny Milosavljevic" on  2004-12-31 }
 { e-mail: danny_milo@yahoo.com }
 program ivar;
+{$mode objfpc}
 uses variants;
 
 type
