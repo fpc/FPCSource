@@ -24,13 +24,20 @@ Interface
 {$endif}
 
 {$ifdef TP}
-  {$define in_dos}
-  {$define usedup}
+{$define implemented}
 {$endif TP}
 {$ifdef Go32v2}
-  {$define in_dos}
-  { $define usedup}
+{$define implemented}
 {$endif}
+{$ifdef linux}
+{$define implemented}
+{$endif}
+
+{ be sure msdos is not set for FPC compiler }
+{$ifdef FPC}
+{$UnDef MsDos}
+{$endif FPC}
+
 
 Var
   IOStatus      : Integer;
@@ -53,19 +60,29 @@ Uses
 {$ifdef go32v2}
   go32,
 {$endif go32v2}
+{$ifdef linux}
+  linux,
+{$endif linux}
   dos;
 
-
 {*****************************************************************************
-                                     Dos
+				     Dos
 *****************************************************************************}
 
-{$ifdef in_dos}
+{$ifdef implemented}
+
+{$ifdef TP}
+
+const
+  UnusedHandle    = -1;
+  StdInputHandle  = 0;
+  StdOutputHandle = 1;
+  StdErrorHandle  = 2;
 
 Type
   PtrRec = packed record
-             Ofs, Seg : Word;
-           end;
+	     Ofs, Seg : Word;
+	   end;
 
   PHandles = ^THandles;
   THandles = Array [Byte] of Byte;
@@ -74,24 +91,24 @@ Type
 
 Var
   PrefSeg      : Word;
-{$IfDef MsDos}
   MinBlockSize : Word;
   MyBlockSize  : Word;
-{$endif}
-  F,FE         : File;
-  RedirChanged : Boolean;
-  RedirErrorChanged : Boolean;
-  OldHandle,OldErrorHandle    : Byte;
-{$ifdef UseDUP}
-  TempH, TempErrorH : longint;
-{$endif}
-{$ifdef FPC}
-  HandlesOffset : word;
-{$else}
   Handles      : PHandles;
-{$endif FPC}
+  OldHandle,OldErrorHandle    : Byte;
+{$endif TP}
 
-function dup(fh : longint) : longint;
+Var
+  F,FE	            : File;
+  RedirChanged      : Boolean;
+  RedirErrorChanged : Boolean;
+  TempH, TempErrorH : longint;
+
+{ For linux the following functions exist
+Function  Dup(oldfile:longint;var newfile:longint):Boolean;
+Function  Dup2(oldfile,newfile:longint):Boolean; }
+{$ifdef go32v2}
+
+function dup(fh : longint;var nh : longint) : boolean;
   var
     Regs : Registers;
 
@@ -99,31 +116,30 @@ begin
     Regs.ah:=$45;
     Regs.bx:=fh;
     MsDos (Regs);
+    Dup:=true;
     If (Regs.Flags and fCarry)=0 then
-      Dup:=Regs.Ax
+      nh:=Regs.Ax
     else
-      Dup:=-1;
+      Dup:=false;
 end;
 
-function dup2(fh,nh : longint) : longint;
+function dup2(fh,nh : longint) : boolean;
   var
     Regs : Registers;
 
 begin
+    Dup2:=true;
     If fh=nh then
-      begin
-        dup2:=nh;
-        exit;
-      end;
+      exit;
     Regs.ah:=$46;
     Regs.bx:=fh;
     Regs.cx:=nh;
     MsDos (Regs);
-    If (Regs.Flags and fCarry)=0 then
-      Dup2:=nh
-    else
-      Dup2:=-1;
+    If (Regs.Flags and fCarry)<>0 then
+      Dup2:=false;
 end;
+
+{$endif def go32v2}
 
 {$I-}
 function FileExist(const FileName : PathStr) : Boolean;
@@ -140,7 +156,6 @@ end;
 {............................................................................}
 
 function ChangeRedir(Const Redir : String; AppendToFile : Boolean) : Boolean;
-  var temp : byte;
   begin
     ChangeRedir:=False;
     If Redir = '' then Exit;
@@ -154,29 +169,20 @@ function ChangeRedir(Const Redir : String; AppendToFile : Boolean) : Boolean;
     RedirError:=IOResult;
     IOStatus:=RedirError;
     If IOStatus <> 0 then Exit;
-{$ifdef UseDUP}
-    TempH:=dup(1);
-    if dup2(1,FileRec(F).Handle)=FileRec(F).Handle then
-{$else UseDUP}
-  {$ifndef FPC}
+{$ifndef FPC}
     Handles:=Ptr (prefseg, PWord (Ptr (prefseg, $34))^);
     OldHandle:=Handles^[1];
     Handles^[1]:=Handles^[FileRec (F).Handle];
-  {$else}
-    DosMemGet(prefseg,HandlesOffset+1,OldHandle,1);
-    DosMemGet(prefseg,HandlesOffset+FileRec(F).handle,temp,1);
-    dosmemput(prefseg,HandlesOffset+1,temp,1);
-    { NO MEM use as %fs is distroyed somewhere !!
-    OldHandle:=Mem[prefseg:HandlesOffset+1];
-    Mem[prefseg:HandlesOffset+1]:=Mem[prefseg:HandlesOffset+FileRec(F).handle];}
-  {$endif}
-{$endif UseDUP}
+    ChangeRedir:=True;
+{$else}
+    if dup(StdOutputHandle,TempH) and
+       dup2(FileRec(F).Handle,StdOutputHandle) then
       ChangeRedir:=True;
+{$endif def FPC}
      RedirChanged:=True;
   end;
 
 function ChangeErrorRedir(Const Redir : String; AppendToFile : Boolean) : Boolean;
-  var temp : byte;
   begin
     ChangeErrorRedir:=False;
     If Redir = '' then Exit;
@@ -192,29 +198,21 @@ function ChangeErrorRedir(Const Redir : String; AppendToFile : Boolean) : Boolea
     RedirError:=IOResult;
     IOStatus:=RedirError;
     If IOStatus <> 0 then Exit;
-{$ifdef UseDUP}
-    TempErrorH:=dup(2);
-    if dup2(2,FileRec(F).Handle)=FileRec(F).Handle then
-{$else UseDUP}
-  {$ifndef FPC}
+{$ifndef FPC}
     Handles:=Ptr (prefseg, PWord (Ptr (prefseg, $34))^);
     OldErrorHandle:=Handles^[2];
     Handles^[2]:=Handles^[FileRec (FE).Handle];
-  {$else}
-    DosMemGet(prefseg,HandlesOffset+2,OldErrorHandle,1);
-    DosMemGet(prefseg,HandlesOffset+FileRec(F).handle,temp,1);
-    dosmemput(prefseg,HandlesOffset+1,temp,1);
-    {OldErrorHandle:=Mem[prefseg:HandlesOffset+2];
-    Mem[prefseg:HandlesOffset+2]:=Mem[prefseg:HandlesOffset+FileRec(FE).handle];}
-  {$endif}
-{$endif UseDUP}
+    ChangeErrorRedir:=True;
+{$else}
+    if dup(StdErrorHandle,TempErrorH) and
+       dup2(FileRec(FE).Handle,StdErrorHandle) then
       ChangeErrorRedir:=True;
-     RedirErrorChanged:=True;
+{$endif}
+    RedirErrorChanged:=True;
   end;
 
 
 {$IfDef MsDos}
-
 {Set HeapEnd Pointer to Current Used Heapsize}
 Procedure SmallHeap;assembler;
 asm
@@ -252,16 +250,12 @@ end;
 
   begin
     If not RedirChanged then Exit;
-{$ifdef UseDUP}
-    dup2(1,TempH);
-{$else UseDUP}
 {$ifndef FPC}
-     Handles^[1]:=OldHandle;
+    Handles^[1]:=OldHandle;
+    OldHandle:=StdOutputHandle;
 {$else}
-    dosmemput(prefseg,HandlesOffset+1,OldHandle,1);
-    {Mem[prefseg:HandlesOffset+1]:=OldHandle;}
+    dup2(TempH,StdOutputHandle);
 {$endif}
-{$endif UseDUP}
     Close (F);
     RedirChanged:=false;
   end;
@@ -274,13 +268,9 @@ end;
     If not RedirErrorChanged then Exit;
 {$ifndef FPC}
     Handles^[2]:=OldErrorHandle;
+    OldErrorHandle:=StdErrorHandle;
 {$else}
-{$ifdef UseDUP}
-    dup2(1,TempErrorH);
-{$else UseDUP}
-    dosmemput(prefseg,HandlesOffset+2,OldErrorHandle,1);
-    {Mem[prefseg:HandlesOffset+2]:=OldErrorHandle;}
-{$endif UseDUP}
+    dup2(TempErrorH,StdErrorHandle);
 {$endif}
     Close (FE);
     RedirErrorChanged:=false;
@@ -322,28 +312,13 @@ Begin
 End;
 
 
-procedure InitRedir;
-begin
-{$ifndef FPC}
-  PrefSeg:=PrefixSeg;
-{$else FPC}
- {$ifdef go32v2}
-  PrefSeg:=go32_info_block.linear_address_of_original_psp div 16;
-  HandlesOffset:=Memw[prefseg:$34];
- {$else }
-  PrefSeg:=0;
- {$endif }
-{$endif FPC}
-end;
-
-{$endif indos}
+{$else not  implemented}
 
 
 {*****************************************************************************
-                                 Linux
+				 Linux
 *****************************************************************************}
 
-{$ifdef linux}
 
 function ExecuteRedir (Const ProgName, ComLine, RedirStdOut, RedirStdErr : String) : boolean;
 begin
@@ -372,19 +347,21 @@ procedure InitRedir;
 begin
 end;
 
-{$endif linux}
+{$endif not implemented}
 
 
 {*****************************************************************************
-                                  Initialize
+				  Initialize
 *****************************************************************************}
 
-Begin
-  InitRedir;
 End.
 {
   $Log$
-  Revision 1.8  1999-02-22 02:15:18  peter
+  Revision 1.9  1999-02-22 11:12:33  pierre
+    * dup and dup2 work for go32v2
+    + also should work for linux (after linux.pp patch)
+
+  Revision 1.8  1999/02/22 02:15:18  peter
     + default extension for save in the editor
     + Separate Text to Find for the grep dialog
     * fixed redir crash with tp7
