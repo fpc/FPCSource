@@ -65,7 +65,7 @@ Type
   end;
 
 Var
-  ArBin,LDBin,
+  ArBin,LDBin,StripBin,
   OutputFile,
   DestPath,
   PPLExt,
@@ -261,6 +261,15 @@ begin
      Error('Error: Wrong PPU Version : '+PPUFn,false);
      Exit;
    end;
+{ No .o file generated for this ppu, just skip }
+  if (inppu^.header.flags and uf_no_link)<>0 then
+   begin
+     dispose(inppu,done);
+     If Not Quiet then
+      Writeln (' No files.');
+     DoPPU:=true;
+     Exit;
+   end;
 { Already a lib? }
   if (inppu^.header.flags and uf_in_library)<>0 then
    begin
@@ -452,7 +461,11 @@ begin
   If MakeStatic then
    Err:=Shell(arbin+' rs '+outputfile+' '+names)<>0
   else
-   Err:=Shell(ldbin+' -shared -o '+OutputFile+' '+names)<>0;
+   begin
+     Err:=Shell(ldbin+' -shared -o '+OutputFile+' '+names)<>0;
+     if not Err then
+      Shell(stripbin+' --strip-unneeded '+OutputFile);
+   end;
   If Err then
    Error('Fatal: Library building stage failed.',true);
 { Rename to the destpath }
@@ -492,6 +505,7 @@ begin
   PPLExt:='ppu';
   ArBin:='ar';
   LdBin:='ld';
+  StripBin:='strip';
   repeat
     c:=Getopt (ShortOpts);
     Case C of
@@ -582,7 +596,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  1999-11-23 09:44:15  peter
+  Revision 1.7  1999-11-25 00:00:39  peter
+    * strip created .so file with strip --strip-unneeded
+
+  Revision 1.6  1999/11/23 09:44:15  peter
     * updated
 
   Revision 1.5  1999/07/29 01:40:21  peter
