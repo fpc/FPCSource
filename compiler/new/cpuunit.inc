@@ -24,11 +24,14 @@
        ,i386base
        ,i386asm
 {$else}
-       ,procbase
+       ,cpubase
 {$endif}
 {
   $Log$
-  Revision 1.3  1999-08-01 23:04:51  michael
+  Revision 1.4  1999-08-01 23:07:13  michael
+  + Procbase- -> cpubase
+
+  Revision 1.3  1999/08/01 23:04:51  michael
   + Changes for Alpha
 
   Revision 1.2  1999/08/01 18:22:34  florian
