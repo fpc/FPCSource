@@ -71,7 +71,7 @@ const
     ReAllocMem: @SysReAllocMem;
     MemSize: @SysMemSize;
     GetHeapStatus: @SysGetHeapStatus;
-    GetFPCHeapStatus: @SysGetFPCHeapStatus;
+    GetFPCHeapStatus: @SysFPCGetHeapStatus;
   );
 
   MemoryMutexManager: TMemoryMutexManager = (
@@ -1322,7 +1322,10 @@ end;
 
 {
   $Log$
-  Revision 1.45  2005-03-02 10:46:10  marco
+  Revision 1.46  2005-03-02 14:25:19  marco
+   * small typo fix on last commit
+
+  Revision 1.45  2005/03/02 10:46:10  marco
    * getfpcheapstatus now also on memmgr
 
   Revision 1.44  2005/02/28 15:38:38  marco
