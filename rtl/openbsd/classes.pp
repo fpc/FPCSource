@@ -26,6 +26,7 @@ interface
 uses
   sysutils,
   rtlconst,
+  types,
   typinfo;
 
 {$i classesh.inc}
@@ -53,7 +54,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.3  2004-01-22 13:46:14  marco
+  Revision 1.4  2004-01-22 17:11:23  peter
+    * classes uses types to import TPoint and TRect
+
+  Revision 1.3  2004/01/22 13:46:14  marco
   bsd
 
   Revision 1.6  2004/01/10 20:13:40  michael

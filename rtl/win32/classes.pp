@@ -31,6 +31,7 @@ interface
 uses
   rtlconst,
   sysutils,
+  types,
   typinfo,
   windows;
 
@@ -53,7 +54,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.4  2004-01-13 18:04:25  florian
+  Revision 1.5  2004-01-22 17:11:23  peter
+    * classes uses types to import TPoint and TRect
+
+  Revision 1.4  2004/01/13 18:04:25  florian
     * make win32 fixed
 
   Revision 1.3  2004/01/10 19:35:18  michael
