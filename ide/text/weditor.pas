@@ -1324,7 +1324,8 @@ begin
         end;
     evKeyDown :
       begin
-        if InASCIIMode and (Event.ScanCode=0) then
+        { Scancode is almost never zero PM }
+        if InASCIIMode {and (Event.CharCode<>0)} then
           AddChar(Event.CharCode)
         else
           begin
@@ -3061,7 +3062,22 @@ begin
         TrackCursor(true);
         SetHighlight(A,B);
         UnLock;
-        if (DoReplace=false) then CanExit:=true else
+        CurDY:=0;
+        if (DoReplace=false) then
+          begin
+            CanExit:=true;
+            If SForward then
+              begin
+                X:=B.X;
+                Y:=B.Y;
+              end
+            else
+              begin
+                X:=A.X;
+                Y:=A.Y;
+              end;
+          end
+        else
           begin
             if Confirm=false then CanReplace:=true else
               begin
@@ -3084,7 +3100,30 @@ begin
                 SetSelection(A,B);
                 DelSelect;
                 InsertText(ReplaceStr);
+                if SForward then
+                  begin
+                    X:=CurPos.X;
+                    Y:=CurPos.Y;
+                  end
+                else
+                  begin
+                    X:=A.X;
+                    Y:=A.Y;
+                  end;
                 UnLock;
+              end
+            else
+              begin
+                If SForward then
+                  begin
+                    X:=B.X;
+                    Y:=B.Y;
+                  end
+                else
+                  begin
+                    X:=A.X;
+                    Y:=A.Y;
+                  end;
               end;
             if (DoReplaceAll=false) then
               CanExit:=true;
@@ -3111,6 +3150,11 @@ begin
     UnLock;}
   if (FoundCount=0) then
     EditorDialog(edSearchFailed,nil);
+  if (FindFlags and ffmScope)=ffSelectedText then
+    { restore selection PM }
+    begin
+      SetSelection(AreaStart,AreaEnd);
+    end;
 end;
 
 procedure TCodeEditor.SetInsertMode(InsertMode: boolean);
@@ -4421,7 +4465,12 @@ end;
 END.
 {
   $Log$
-  Revision 1.48  1999-09-22 16:16:26  pierre
+  Revision 1.49  1999-09-23 16:33:30  pierre
+    * ^B^A now prints out the ascii 1 char
+    * In SearchReplace Several occurence of a pattern in the same line
+      should now be found correctly
+
+  Revision 1.48  1999/09/22 16:16:26  pierre
    + added HistLists for several dialogs
 
   Revision 1.47  1999/09/21 17:08:59  pierre
