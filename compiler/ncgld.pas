@@ -73,6 +73,7 @@ implementation
       {$endif}
         dorelocatelab,
         norelocatelab : tasmlabel;
+        paraloc: tparalocation;
       begin
          { we don't know the size of all arrays }
          newsize:=def_cgsize(resulttype.def);
@@ -132,6 +133,8 @@ implementation
                     begin
                        objectlibrary.getlabel(dorelocatelab);
                        objectlibrary.getlabel(norelocatelab);
+                       { make sure hregister can't allocate the register necessary for the parameter }
+                       paraloc := paramanager.getintparaloc(exprasmlist,1);
                        { we've to allocate the register before we save the used registers }
                        hregister:=rg.getaddressregister(exprasmlist);
                        reference_reset_symbol(href,objectlibrary.newasmsymboldata('FPC_THREADVAR_RELOCATE'),0);
@@ -150,7 +153,7 @@ implementation
                        rg.saveusedintregisters(exprasmlist,pushed,[RS_FUNCTION_RESULT_REG]-[hregister.number shr 8]);
                     {$endif}
                        reference_reset_symbol(href,objectlibrary.newasmsymboldata(tvarsym(symtableentry).mangledname),0);
-                       cg.a_param_ref(exprasmlist,OS_ADDR,href,paramanager.getintparaloc(exprasmlist,1));
+                       cg.a_param_ref(exprasmlist,OS_ADDR,href,paraloc);
                        { the called procedure isn't allowed to change }
                        { any register except EAX                    }
                        cg.a_call_reg(exprasmlist,hregister);
@@ -951,7 +954,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.72  2003-06-15 15:13:12  jonas
+  Revision 1.73  2003-07-06 15:25:54  jonas
+    * newra fix for threadvars
+
+  Revision 1.72  2003/06/15 15:13:12  jonas
     * fixed register allocation for threadvar loads with newra
 
   Revision 1.71  2003/06/13 21:19:30  peter
