@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
 
     A file in Amiga system run time library.
-    Copyright (c) 1998 by Nils Sjoholm
+    Copyright (c) 1998-2000 by Nils Sjoholm
     member of the Amiga RTL development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -29,7 +29,7 @@ type
 const
     BOOTSECTS   = 2;    { 1K bootstrap }
 
-    BBID_DOS    : PChar = 'DOS\0';
+    BBID_DOS    : PChar = 'DOS';
     BBID_KICK   : PChar = 'KICK';
 
     BBNAME_DOS  = $444F5300;    { DOS\0 as an Integer }
@@ -40,3 +40,11 @@ IMPLEMENTATION
 end.
 
 
+{
+  $Log$
+  Revision 1.2  2002-11-18 20:51:04  nils
+    * typo
+
+}
+
+  
