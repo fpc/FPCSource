@@ -158,6 +158,7 @@ begin
     end
   else
     begin
+       { we need to return the exception object to dispose it }
        PopObjectStack:=ExceptObjectStack^.FObject;
        hp:=ExceptObjectStack;
        ExceptObjectStack:=ExceptObjectStack^.next;
@@ -165,6 +166,30 @@ begin
     end;
 end;
 
+{ this is for popping exception objects when a second exception is risen }
+{ in an except/on                                                        }
+function PopSecondObjectStack : TObject;[Public, Alias : 'FPC_POPSECONDOBJECTSTACK'];
+var
+  hp : PExceptObject;
+begin
+{$ifdef excdebug}
+  writeln ('In PopObjectstack');
+{$endif}
+  If not(assigned(ExceptObjectStack)) or
+     not(assigned(ExceptObjectStack^.next)) then
+    begin
+    writeln ('At end of ExceptionObjectStack');
+    halt (1);
+    end
+  else
+    begin
+       { we need to return the exception object to dispose it }
+       PopSecondObjectStack:=ExceptObjectStack^.next^.FObject;
+       hp:=ExceptObjectStack^.next;
+       ExceptObjectStack^.next:=hp^.next;
+       dispose(hp);
+    end;
+end;
 
 Procedure ReRaise;[Public, Alias : 'FPC_RERAISE'];
 begin
@@ -217,7 +242,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.16  2000-02-09 16:59:29  peter
+  Revision 1.17  2000-02-09 22:16:50  florian
+    + popsecondobjectstack added
+
+  Revision 1.16  2000/02/09 16:59:29  peter
     * truncated log
 
   Revision 1.15  2000/02/06 17:17:57  florian
@@ -231,5 +259,4 @@ end;
 
   Revision 1.12  1999/07/26 12:11:28  florian
     * reraise doesn't call popaddrstack anymode
-
 }
