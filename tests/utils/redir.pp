@@ -870,12 +870,20 @@ end;
 {$ifdef UNIX}
     IOStatus:=0;
     ExecuteResult:=Shell(FixPath(Progname)+' '+Comline);
+  {$ifdef ver1_0}
     { Signal that causes the stop of the shell }
     IOStatus:=ExecuteResult and $7F;
     { Exit Code seems to be in the second byte,
       is this also true for BSD ??
       $80 bit is a CoreFlag apparently }
     ExecuteResult:=(ExecuteResult and $ff00) shr 8;
+  {$else}
+    if ExecuteResult<0 then
+      begin
+        IOStatus:=(-ExecuteResult) and $7f;
+        ExecuteResult:=((-ExecuteResult) and $ff00) shr 8;
+      end;
+  {$endif}
 {$else}
   {$ifdef win32}
     StoreInherit:=ExecInheritsHandles;
@@ -922,7 +930,10 @@ finalization
 End.
 {
   $Log$
-  Revision 1.12  2003-01-12 19:46:50  hajny
+  Revision 1.13  2003-06-05 20:03:22  peter
+    * Shell return adapted for 1.1
+
+  Revision 1.12  2003/01/12 19:46:50  hajny
     + newer functions made available under OS/2
 
   Revision 1.11  2002/12/05 16:03:04  pierre
