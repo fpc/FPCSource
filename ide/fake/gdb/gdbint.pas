@@ -159,11 +159,11 @@ procedure TGDBInterface.DoUserScreen;
 begin
 end;
 
-function  tgdbinterface.AllowQuit : boolean;                                                                                                                                                                                                                   
-begin                                                                                                                                                                                                                                                          
-  AllowQuit:=true;                                                                                                                                                                                                                                             
-end;                                                                                                                                                                                                                                                           
-                                                                                                                                                                                                                                                               
+function  tgdbinterface.AllowQuit : boolean;
+begin
+  AllowQuit:=true;
+end;
+
 function  GDBVersion : string;
 begin
   GDBVersion:='Fake GDB';
@@ -266,7 +266,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  1999-07-13 11:25:57  peter
+  Revision 1.4  1999-08-17 13:25:17  peter
+    * updates with the compiler browcol
+
+  Revision 1.3  1999/07/13 11:25:57  peter
     * fixed typo in gdbversion
 
   Revision 1.2  1999/07/12 13:08:20  pierre

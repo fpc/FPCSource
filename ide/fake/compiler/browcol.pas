@@ -126,11 +126,29 @@ type
        function At(Index: Sw_Integer): PReference;
     end;
 
+    PSourceFile = ^TSourceFile;
+    TSourceFile = object(TObject)
+      SourceFileName: PString;
+      ObjFileName: PString;
+      PPUFileName: PString;
+      constructor Init(ASourceFileName, AObjFileName, APPUFileName: string);
+      destructor  Done; virtual;
+      function    GetSourceFilename: string;
+      function    GetObjFileName: string;
+      function    GetPPUFileName: string;
+    end;
+
+    PSourceFileCollection = ^TSourceFileCollection;
+    TSourceFileCollection = object(TCollection)
+      function At(Index: sw_Integer): PSourceFile;
+    end;
+
 const
   Modules     : PSymbolCollection = nil;
   ModuleNames : PModuleNameCollection = nil;
   TypeNames   : PTypeNameCollection = nil;
   ObjectTree  : PObjectSymbol = nil;
+  SourceFiles : PSourceFileCollection = nil;
 
 function SearchObjectForSymbol(O: PSymbol): PObjectSymbol;
 
@@ -142,6 +160,20 @@ procedure StoreBrowserCol(S: PStream);
 procedure RegisterSymbols;
 
 implementation
+
+
+{****************************************************************************
+                                   Helpers
+****************************************************************************}
+
+function GetStr(P: PString): string;
+begin
+  if P=nil then
+    GetStr:=''
+  else
+    GetStr:=P^;
+end;
+
 
 {****************************************************************************
                                 TStoreCollection
@@ -347,6 +379,45 @@ destructor TObjectSymbol.Done;
 begin
 end;
 
+{****************************************************************************
+                                TSourceFile
+****************************************************************************}
+
+constructor TSourceFile.Init(ASourceFileName, AObjFileName, APPUFileName: string);
+begin
+  inherited Init;
+  SourceFileName:=NewStr(ASourceFileName);
+  ObjFileName:=NewStr(AObjFileName);
+  PPUFileName:=NewStr(APPUFileName);
+end;
+
+destructor TSourceFile.Done;
+begin
+  inherited Done;
+  if assigned(SourceFileName) then DisposeStr(SourceFileName);
+  if assigned(ObjFileName) then DisposeStr(ObjFileName);
+  if assigned(PPUFileName) then DisposeStr(PPUFileName);
+end;
+
+function TSourceFile.GetSourceFilename: string;
+begin
+  GetSourceFilename:=GetStr(SourceFileName);
+end;
+
+function TSourceFile.GetObjFileName: string;
+begin
+  GetObjFilename:=GetStr(ObjFileName);
+end;
+
+function TSourceFile.GetPPUFileName: string;
+begin
+  GetPPUFilename:=GetStr(PPUFileName);
+end;
+
+function TSourceFileCollection.At(Index: sw_Integer): PSourceFile;
+begin
+  At:=inherited At(Index);
+end;
 
 {*****************************************************************************
                               Main Routines
@@ -429,7 +500,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  1999-08-05 16:54:35  peter
+  Revision 1.4  1999-08-17 13:25:16  peter
+    * updates with the compiler browcol
+
+  Revision 1.3  1999/08/05 16:54:35  peter
     * win32 fixes
 
   Revision 1.2  1999/04/07 21:55:39  peter
