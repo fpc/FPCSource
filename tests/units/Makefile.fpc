@@ -29,8 +29,8 @@ fcl:
         $(MAKE) -C ../../fcl install $(INSTALLOPT)
 
 clean : cleanall
-        $(MAKE) -C ../../rtl clean
-        $(MAKE) -C ../../fcl clean
+#        $(MAKE) -C ../../rtl clean
+#        $(MAKE) -C ../../fcl clean
 
 else
 
