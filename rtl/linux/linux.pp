@@ -2022,14 +2022,14 @@ end;
 
 
 Function PClose(Var F:text) :longint;
+
 var
   sr  : syscallregs;
   pl  : ^longint;
   res : longint;
 
-
-
 begin
+  flush (f);
   sr.reg2:=Textrec(F).Handle;
   SysCall (syscall_nr_close,sr);
 { closed our side, Now wait for the other - this appears to be needed ?? }
@@ -2047,8 +2047,8 @@ var
 
 
 begin
- sr.reg2:=FileRec(F).Handle;
- SysCall (Syscall_nr_close,sr);
+  sr.reg2:=FileRec(F).Handle;
+  SysCall (Syscall_nr_close,sr);
 { closed our side, Now wait for the other - this appears to be needed ?? }
   pl:=@(filerec(f).userdata[2]);
   waitpid(pl^,@res,0);
@@ -3505,7 +3505,10 @@ End.
 
 {
   $Log$
-  Revision 1.9  1998-06-03 11:55:33  michael
+  Revision 1.10  1998-06-16 08:21:58  michael
+  * PClose didn't flush textfiles before closing. Now it does
+
+  Revision 1.9  1998/06/03 11:55:33  michael
   + Added IO port calls
 
   Revision 1.8  1998/05/06 18:45:32  peter
