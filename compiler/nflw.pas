@@ -45,7 +45,9 @@ interface
          { Do a test at the begin of the loop?}
          lnf_testatbegin,
          { Negate the loop test? }
-         lnf_checknegate);
+         lnf_checknegate,
+         { Should the value of the loop variable on exit be correct. }
+         lnf_dont_mind_loopvar_on_exit);
     const
          { loop flags which must match to consider loop nodes equal regarding the flags }
          loopflagsequal = [lnf_backward];
@@ -661,6 +663,16 @@ implementation
                                        symbol:Tsym);
 
     begin
+      {If there is a read access, the value of the loop counter is important;
+       at the end of the loop the loop variable should contain the value it
+       had in the last iteration.}
+      if not_type=vn_onwrite then
+        begin
+          include(loopflags,lnf_dont_mind_loopvar_on_exit);
+        writeln('Loopvar does not matter on exit');
+        end
+      else
+        writeln('Loopvar does matter on exit');
     end;
 {$endif}
 
@@ -742,17 +754,20 @@ implementation
          resulttypepass(right);
          set_varstate(right,true);
          inserttypeconv(right,t2.resulttype);
+(*
       {$ifdef var_notification}
          if (hp.nodetype=loadn) and (Tloadnode(hp).symtableentry.typ=varsym) then
             loopvar_notid:=Tvarsym(Tloadnode(hp).symtableentry).
              register_notification([vn_onread,vn_onwrite],@loop_var_access);
       {$endif}
+*)
       end;
 
 
     function tfornode.pass_1 : tnode;
       var
          old_t_times : longint;
+         hp : Tnode;
      begin
          result:=nil;
          { Calc register weight }
@@ -800,6 +815,17 @@ implementation
 
          rg.cleartempgen;
          firstpass(right);
+      {$ifdef var_notification}
+         { Check count var, record fields are also allowed in tp7 }
+         hp:=t2;
+         while (hp.nodetype=subscriptn) or
+               ((hp.nodetype=vecn) and
+                is_constintnode(tvecnode(hp).right)) do
+           hp:=tunarynode(hp).left;
+         if (hp.nodetype=loadn) and (Tloadnode(hp).symtableentry.typ=varsym) then
+            loopvar_notid:=Tvarsym(Tloadnode(hp).symtableentry).
+             register_notification([vn_onread,vn_onwrite],@loop_var_access);
+      {$endif}
          if right.registers32>registers32 then
            registers32:=right.registers32;
          if right.registersfpu>registersfpu then
@@ -1437,7 +1463,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.58  2002-12-27 15:25:40  peter
+  Revision 1.59  2002-12-30 22:44:53  daniel
+  * Some work on notifications
+
+  Revision 1.58  2002/12/27 15:25:40  peter
     * do not allow threadvar as loop counter
 
   Revision 1.57  2002/11/28 11:17:02  florian

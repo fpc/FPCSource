@@ -158,6 +158,9 @@ implementation
       symtable,paramgr,defutil,defcmp,
       htypechk,pass_1,
       ncon,ninl,ncnv,nmem,ncal,cpubase,rgobj,cginfo,cgbase
+{$ifdef var_notification}
+      ,symnot
+{$endif}
       ;
 
 {*****************************************************************************
@@ -358,13 +361,23 @@ implementation
                    internalerror(22799);
               end;
             varsym :
-                begin
-                  { if it's refered by absolute then it's used }
-                  if nf_absolute in flags then
-                   tvarsym(symtableentry).varstate:=vs_used
-                  else
-                   resulttype:=tvarsym(symtableentry).vartype;
-                end;
+              begin
+                { if it's refered by absolute then it's used }
+                if nf_absolute in flags then
+                  tvarsym(symtableentry).varstate:=vs_used
+                else
+                  begin
+                    resulttype:=tvarsym(symtableentry).vartype;
+(*
+{$ifdef var_notification}                   
+                    if nf_write in flags then
+                      Tvarsym(symtableentry).trigger_notifications(vn_onwrite)
+                    else
+                      Tvarsym(symtableentry).trigger_notifications(vn_onread);
+{$endif}
+*)
+                  end;
+              end;
             typedconstsym :
                 if not(nf_absolute in flags) then
                   resulttype:=ttypedconstsym(symtableentry).typedconsttype;
@@ -422,6 +435,7 @@ implementation
 
     begin
       include(flags,nf_write);
+      writeln('Mark ',symtableentry.name);
     end;
 {$endif}
 
@@ -479,6 +493,12 @@ implementation
 
                    if ([vo_is_thread_var,vo_is_dll_var]*tvarsym(symtableentry).varoptions)<>[] then
                      registers32:=1;
+{$ifdef var_notification}                   
+                    if nf_write in flags then
+                      Tvarsym(symtableentry).trigger_notifications(vn_onwrite)
+                    else
+                      Tvarsym(symtableentry).trigger_notifications(vn_onread);
+{$endif}
                    { count variable references }
 
                      { this will create problem with local var set by
@@ -1278,7 +1298,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.75  2002-12-27 15:27:25  peter
+  Revision 1.76  2002-12-30 22:44:53  daniel
+  * Some work on notifications
+
+  Revision 1.75  2002/12/27 15:27:25  peter
     * remove property indicator when calling internal helpers
 
   Revision 1.74  2002/12/24 16:53:19  peter

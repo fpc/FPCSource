@@ -195,6 +195,7 @@ interface
           function  getsize : longint;
           function  getvaluesize : longint;
 {$ifdef var_notification}
+          procedure trigger_notifications(what:Tnotification_flag);
           function register_notification(flags:Tnotification_flags;
                                          callback:Tnotification_callback):cardinal;
 {$endif}
@@ -1713,6 +1714,23 @@ implementation
 
 
 {$ifdef var_notification}
+    procedure Tvarsym.trigger_notifications(what:Tnotification_flag);
+    
+    var p:Tnotification;
+    
+    begin
+        if assigned(notifications) then
+          begin
+            p:=Tnotification(notifications.first);
+            while assigned(p) do
+              begin
+                if what in p.flags then
+                  p.callback(what,self);
+                p:=Tnotification(p.next);
+              end;
+          end;
+    end;
+    
     function Tvarsym.register_notification(flags:Tnotification_flags;callback:
                                            Tnotification_callback):cardinal;
 
@@ -2520,7 +2538,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.85  2002-12-27 18:07:44  peter
+  Revision 1.86  2002-12-30 22:44:53  daniel
+  * Some work on notifications
+
+  Revision 1.85  2002/12/27 18:07:44  peter
     * fix crashes when searching symbols
 
   Revision 1.84  2002/12/20 16:02:22  peter
