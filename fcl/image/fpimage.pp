@@ -255,6 +255,7 @@ function ConvertColorToData (const From : TFPColor; Fmt : TColorFormat) : TColor
 function ConvertColorToData (const From : TDeviceColor; Fmt : TColorFormat) : TColorData;
 function ConvertColor (const From : TFPColor; Fmt : TColorFormat) : TDeviceColor;
 function ConvertColor (const From : TDeviceColor; Fmt : TColorFormat) : TDeviceColor;
+function FPColor (r,g,b,a:word) : TFPColor;
 
 operator = (const c,d:TFPColor) : boolean;
 operator or (const c,d:TFPColor) : TFPColor;
@@ -316,6 +317,17 @@ end;
 {$i FPImage.inc}
 {$i FPColCnv.inc}
 
+function FPColor (r,g,b,a:word) : TFPColor;
+begin
+  with result do
+    begin
+    red := r;
+    green := g;
+    blue := b;
+    alpha := a;
+    end;
+end;
+
 operator = (const c,d:TFPColor) : boolean;
 begin
   result := (c.Red = d.Red) and
@@ -349,6 +361,8 @@ begin
   result := SetFullColorData(GetFullColorData(c) XOR GetFullColorData(d));
 end;
 
+var x,h,l : int64;
+
 initialization
   ImageHandlers := TImageHandlersManager.Create;
   ColorBits [cfRGBA64,1] := ColorBits [cfRGBA64,1] shl 32;
@@ -357,6 +371,10 @@ initialization
   ColorBits [cfABGR64,0] := ColorBits [cfABGR64,0] shl 32;
   ColorBits [cfABGR64,3] := ColorBits [cfABGR64,3] shl 16;
   ColorBits [cfBGR48,3] := ColorBits [cfBGR48,3] shl 16;
+  x := 1 shl 32;
+  writeln ('1:(',ColorBits[cfBGR48,1] div x,',',ColorBits[cfBGR48,1] mod x,'),(',
+                   ColorBits[cfBGR48,2] div x,',',ColorBits[cfBGR48,2] mod x,'),(',
+                   ColorBits[cfBGR48,3] div x,',',ColorBits[cfBGR48,3] mod x,'),');
 finalization
   ImageHandlers.Free;
 
