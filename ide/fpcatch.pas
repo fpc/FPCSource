@@ -85,7 +85,7 @@ var
   l : plongint;
 begin
   { Force a SIGSEGV }
-  l:=$ffffffff;
+  l:=pointer (ptrint ($ffffffff));
   l^:=1;
 end;
 
@@ -230,7 +230,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2003-09-29 14:36:59  peter
+  Revision 1.10  2004-09-15 19:23:26  hajny
+    * corrections for debug mode
+
+  Revision 1.9  2003/09/29 14:36:59  peter
     * win32 fixed
 
   Revision 1.8  2003/09/27 14:03:45  peter
