@@ -69,6 +69,12 @@ $(EXEFILES): %$(EXEEXT): %$(PASEXT)
 $(UNITFILES): %$(PPUEXT): %$(PASEXT)
 	$(COMPILER) $*
 
+objpas$(PPUEXT): objpas$(PASEXT) $(INC)/except.inc 
+
+# Need to change language file !!
+sysutils$(PPUEXT): objpas$(PPUEXT) sysutils$(PASEXT) sysstr.inc sysstrh.inc\
+                   stre.inc syspch.inc syspchh.inc dati.inc datih.inc \
+                   finah.inc fina.inc
 
 targetdir:
 ifdef UNITTARGETDIR
@@ -122,7 +128,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.5  1998-10-02 09:26:02  peter
+# Revision 1.6  1998-10-02 10:41:08  michael
+# Included explicit dependencies for all targets
+#
+# Revision 1.5  1998/10/02 09:26:02  peter
 #   * fixed rtl path
 #
 # Revision 1.4  1998/09/16 16:47:29  peter
