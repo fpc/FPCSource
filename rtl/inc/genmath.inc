@@ -133,7 +133,7 @@ End;
       aSign: flag;
       aExp, shiftCount: smallint;
       aSig0, aSig1, absZ, aSigExtra: longint;
-      z: smallint;
+      z: longint;
       label invalid;
    Begin
      aSig1 := extractFloat64Frac1( a );
@@ -163,11 +163,11 @@ End;
          aSigExtra := ( aSig0 shl ( shiftCount and 31 ) ) OR  aSig1;
          absZ := aSig0 shr ( - shiftCount );
      End;
-     if aSign <> 0 then
-       z := - absZ
+     if aSign<>0 then
+       z:=-absZ
      else
-       z := absZ;
-     if ( (( aSign xor flag( z < 0 )) <> 0) AND  (z<>0) ) then
+       z:=absZ;
+     if ((aSign<>0) xor (z<0)) AND  (z<>0) then
      Begin
   invalid:
         HandleError(207);
@@ -192,9 +192,6 @@ End;
   Begin
     extractFloat32Sign := a shr 31;
   End;
-
-
-
 
 Function float32_to_int32_round_to_zero( a: Float32 ): longint;
  Var
@@ -233,7 +230,6 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
  End;
 
 
-  {$warning FIX ME !! }
   function trunc(d : real) : int64;[internconst:in_const_trunc];
     var
      l: longint;
@@ -248,6 +244,12 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
      if sizeof(D)=8 then
        begin
          move(d,f64,sizeof(f64));
+{$ifdef arm}
+         { the arm fpu has a strange opinion how a double has to be stored }
+         l:=f64.low;
+         f64.low:=f64.high;
+         f64.high:=l;
+{$endif arm}         
          trunc:=float64_to_int32_round_to_zero(f64);
        end
      else
@@ -272,9 +274,17 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
         i0, j0: longint;
         i1: cardinal;
         sx: longint;
+        f64 : float64;
       begin
-        i0 := float64(d).high;
-        i1 := cardinal(float64(d).low);
+         move(d,f64,sizeof(f64));
+{$ifdef arm}
+         { the arm fpu has a strange opinion how a double has to be stored }
+         i0:=f64.low;
+         f64.low:=f64.high;
+         f64.high:=i0;
+{$endif arm}         
+        i0 := f64.high;
+        i1 := cardinal(f64.low);
         sx := i0 and $80000000;
         j0 := ((i0 shr 20) and $7ff) - $3ff;
         if (j0 < 20) then
@@ -282,13 +292,13 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
             if (j0 < 0) then
               begin
                 { the magnitude of the number is < 1 so the result is +-0. }
-                float64(d).high := sx;
-                float64(d).low := 0;
+                f64.high := sx;
+                f64.low := 0;
               end
             else
               begin
-                float64(d).high := sx or (i0 and not($fffff shr j0));
-                float64(d).low := 0;
+                f64.high := sx or (i0 and not($fffff shr j0));
+                f64.low := 0;
               end
           end
         else if (j0 > 51) then
@@ -299,8 +309,8 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
           end
         else
           begin
-            float64(d).high := i0;
-            float64(d).low := longint(i1 and not(cardinal($ffffffff) shr (j0 - 20)));
+            f64.high := i0;
+            f64.low := longint(i1 and not(cardinal($ffffffff) shr (j0 - 20)));
           end;
         result := d;
       end;
@@ -457,9 +467,6 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
     end;
 
 
-
-
-
 {$ifndef FPC_SYSTEM_HAS_SQR}
     function sqr(d : Real) : Real;[internconst:in_const_sqr];
     begin
@@ -538,8 +545,6 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
 {$endif hascompilerproc}
 
 {$endif}
-
-
 
 
 {$ifndef FPC_SYSTEM_HAS_EXP}
@@ -1184,8 +1189,9 @@ function fpc_int64_to_double(i : int64): double; compilerproc;
 
 {
   $Log$
-  Revision 1.19  2004-01-24 01:32:00  florian
-    * some const inserted
+  Revision 1.20  2004-01-24 18:15:58  florian
+    * fixed small bugs
+    * fixed some arm issues
 
   Revision 1.18  2004/01/06 21:34:07  peter
     * abs(double) added
