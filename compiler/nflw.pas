@@ -395,17 +395,29 @@ implementation
          set_varstate(left,vs_used,true);
          if codegenerror then
            exit;
-	   
+
          if not is_boolean(left.resulttype.def) then
            CGMessage1(type_e_boolean_expr_expected,left.resulttype.def.typename);
-	 	   
+
          { optimize constant expressions }
-         if (left.nodetype=ordconstn) and
-            (tordconstnode(left).value=0) then
+         if (left.nodetype=ordconstn) then
            begin
-	     if assigned(right) then
-               CGMessagePos(right.fileinfo,cg_w_unreachable_code);
-             result:=cnothingnode.create;
+             { while false do }
+             if (lnf_testatbegin in loopflags) and
+                (tordconstnode(left).value=0) then
+               begin
+                 if assigned(right) then
+                   CGMessagePos(right.fileinfo,cg_w_unreachable_code);
+                 result:=cnothingnode.create;
+               end
+             else
+             { repeat until true }
+               if not(lnf_testatbegin in loopflags) and
+                  (tordconstnode(left).value=1) then
+                 begin
+                   result:=right;
+                   right:=nil;
+                 end;
            end;
       end;
 
@@ -568,7 +580,7 @@ implementation
 
          if not is_boolean(left.resulttype.def) then
            Message1(type_e_boolean_expr_expected,left.resulttype.def.typename);
-	   
+
          { optimize constant expressions }
          if left.nodetype=ordconstn then
            begin
@@ -579,7 +591,7 @@ implementation
                    else
                      result:=cnothingnode.create;
                    right:=nil;
-		   if assigned(t1) then
+                   if assigned(t1) then
                      CGMessagePos(t1.fileinfo,cg_w_unreachable_code);
                 end
               else
@@ -589,7 +601,7 @@ implementation
                    else
                      result:=cnothingnode.create;
                    t1:=nil;
-		   if assigned(right) then
+                   if assigned(right) then
                      CGMessagePos(right.fileinfo,cg_w_unreachable_code);
                 end;
            end;
@@ -1429,7 +1441,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.105  2005-01-16 10:50:32  peter
+  Revision 1.106  2005-01-16 14:44:03  peter
+    * fix unreachable code check for repeat loop
+
+  Revision 1.105  2005/01/16 10:50:32  peter
     * give warning for unreachable code in while/if statements
 
   Revision 1.104  2005/01/03 17:55:57  florian
