@@ -61,7 +61,7 @@ type
   );
 
   { string types }
-  tstringtype = (
+  tstringtype = (st_default,
     st_shortstring, st_longstring, st_ansistring, st_widestring
   );
 
@@ -212,7 +212,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2000-01-07 01:14:39  peter
+  Revision 1.10  2000-01-09 23:16:06  peter
+    * added st_default stringtype
+    * genstringconstnode extended with stringtype parameter using st_default
+      will do the old behaviour
+
+  Revision 1.9  2000/01/07 01:14:39  peter
     * updated copyright to 2000
 
   Revision 1.8  1999/12/18 14:55:21  florian

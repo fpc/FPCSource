@@ -298,7 +298,7 @@ implementation
       begin
          if p^.left^.treetype=ordconstn then
            begin
-              hp:=genstringconstnode(chr(p^.left^.value));
+              hp:=genstringconstnode(chr(p^.left^.value),st_default);
               hp^.stringtype:=pstringdef(p^.resulttype)^.string_typ;
               firstpass(hp);
               disposetree(p);
@@ -975,7 +975,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.57  2000-01-07 01:14:44  peter
+  Revision 1.58  2000-01-09 23:16:07  peter
+    * added st_default stringtype
+    * genstringconstnode extended with stringtype parameter using st_default
+      will do the old behaviour
+
+  Revision 1.57  2000/01/07 01:14:44  peter
     * updated copyright to 2000
 
   Revision 1.56  1999/12/19 12:08:27  florian

@@ -595,7 +595,7 @@
 
     function tstringdef.stringtypname:string;
       const
-        typname:array[tstringtype] of string[8]=(
+        typname:array[tstringtype] of string[8]=('',
           'SHORTSTR','LONGSTR','ANSISTR','WIDESTR'
         );
       begin
@@ -689,8 +689,8 @@
     function tstringdef.gettypename : string;
 
       const
-         names : array[tstringtype] of string[20] =
-           ('ShortString','LongString','AnsiString','WideString');
+         names : array[tstringtype] of string[20] = ('',
+           'ShortString','LongString','AnsiString','WideString');
 
       begin
          gettypename:=names[string_typ];
@@ -3854,7 +3854,12 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.186  2000-01-07 01:14:39  peter
+  Revision 1.187  2000-01-09 23:16:06  peter
+    * added st_default stringtype
+    * genstringconstnode extended with stringtype parameter using st_default
+      will do the old behaviour
+
+  Revision 1.186  2000/01/07 01:14:39  peter
     * updated copyright to 2000
 
   Revision 1.185  2000/01/03 19:26:03  peter

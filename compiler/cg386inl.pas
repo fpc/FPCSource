@@ -915,7 +915,7 @@ implementation
                  { lineno }
                  emit_const(A_PUSH,S_L,aktfilepos.line);
                  { filename string }
-                 hp:=genstringconstnode(current_module^.sourcefiles^.get_file_name(aktfilepos.fileindex));
+                 hp:=genstringconstnode(current_module^.sourcefiles^.get_file_name(aktfilepos.fileindex),st_shortstring);
                  secondpass(hp);
                  if codegenerror then
                   exit;
@@ -1510,7 +1510,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.89  2000-01-09 12:35:00  jonas
+  Revision 1.90  2000-01-09 23:16:05  peter
+    * added st_default stringtype
+    * genstringconstnode extended with stringtype parameter using st_default
+      will do the old behaviour
+
+  Revision 1.89  2000/01/09 12:35:00  jonas
     * changed edi allocation to use getexplicitregister32/ungetregister
       (adapted tgeni386 a bit for this) and enabled it by default
     * fixed very big and stupid bug of mine in cg386mat that broke the

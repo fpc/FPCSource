@@ -263,7 +263,7 @@ unit tree;
     function genmethodcallnode(v : pprocsym;st : psymtable;mp : ptree) : ptree;
 
     { allow pchar or string for defining a pchar node }
-    function genstringconstnode(const s : string) : ptree;
+    function genstringconstnode(const s : string;st:tstringtype) : ptree;
     { length is required for ansistrings }
     function genpcharconstnode(s : pchar;length : longint) : ptree;
     { helper routine for conststring node }
@@ -850,7 +850,7 @@ unit tree;
       end;
 
 
-    function genstringconstnode(const s : string) : ptree;
+    function genstringconstnode(const s : string;st:tstringtype) : ptree;
 
       var
          p : ptree;
@@ -873,16 +873,23 @@ unit tree;
          move(s[1],p^.value_str^,l);
          p^.value_str[l]:=#0;
          p^.lab_str:=nil;
-         if cs_ansistrings in aktlocalswitches then
+         if st=st_default then
           begin
-            p^.stringtype:=st_ansistring;
-            p^.resulttype:=cansistringdef;
+            if cs_ansistrings in aktlocalswitches then
+             p^.stringtype:=st_ansistring
+            else
+             p^.stringtype:=st_shortstring;
           end
          else
-          begin
-            p^.stringtype:=st_shortstring;
-            p^.resulttype:=cshortstringdef;
-          end;
+          p^.stringtype:=st;
+         case p^.stringtype of
+           st_shortstring :
+             p^.resulttype:=cshortstringdef;
+           st_ansistring :
+            p^.resulttype:=cansistringdef;
+           else
+             internalerror(44990099);
+         end;
          genstringconstnode:=p;
       end;
 
@@ -1911,7 +1918,12 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.108  2000-01-07 01:14:48  peter
+  Revision 1.109  2000-01-09 23:16:07  peter
+    * added st_default stringtype
+    * genstringconstnode extended with stringtype parameter using st_default
+      will do the old behaviour
+
+  Revision 1.108  2000/01/07 01:14:48  peter
     * updated copyright to 2000
 
   Revision 1.107  2000/01/06 01:10:33  pierre

@@ -496,7 +496,7 @@ unit pexpr;
               else
                begin
                  { then insert an empty string }
-                 p2:=genstringconstnode('');
+                 p2:=genstringconstnode('',st_default);
                end;
               statement_syssym:=geninlinenode(l,false,gencallparanode(p1,gencallparanode(p2,nil)));
               consume(_RKLAMMER);
@@ -1777,7 +1777,7 @@ unit pexpr;
                   p1:=gentypenode(pd,nil);
                end;
     _CSTRING : begin
-                 p1:=genstringconstnode(pattern);
+                 p1:=genstringconstnode(pattern,st_default);
                  consume(_CSTRING);
                end;
       _CCHAR : begin
@@ -2100,7 +2100,12 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.165  2000-01-07 01:14:28  peter
+  Revision 1.166  2000-01-09 23:16:05  peter
+    * added st_default stringtype
+    * genstringconstnode extended with stringtype parameter using st_default
+      will do the old behaviour
+
+  Revision 1.165  2000/01/07 01:14:28  peter
     * updated copyright to 2000
 
   Revision 1.164  1999/12/20 21:24:29  pierre
