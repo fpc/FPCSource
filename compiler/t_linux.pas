@@ -216,10 +216,10 @@ begin
      if FileExists(DynamicLinker) then
       begin
         Glibc2:=true;
-        { also glibc 2.1 / 2.1.1 / 2.1.2 ? }
-        if FileExists('/lib/ld-2.1.so') or
-           FileExists('/lib/ld-2.1.1.so') or
-           FileExists('/lib/ld-2.1.2.so') then
+        { Check for 2.0 files, else use the glibc 2.1 stub }
+        if FileExists('/lib/ld-2.0.*') then
+         Glibc21:=false
+        else
          Glibc21:=true;
       end
      else
@@ -447,7 +447,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2000-02-09 10:35:48  peter
+  Revision 1.10  2000-02-27 14:46:04  peter
+    * check for ld-so.2.0.* then no glibc21 is used, else glibc21 is used
+
+  Revision 1.9  2000/02/09 10:35:48  peter
     * -Xt option to link staticly against c libs
 
   Revision 1.8  2000/01/11 09:52:07  peter
