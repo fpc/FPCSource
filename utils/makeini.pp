@@ -138,7 +138,7 @@ begin
    if line <> '' then
    begin
       str := Trim(line);
-      if (str[1] = brackets[0]) and (str[Length(str)] = brackets[1]) then
+      if (str<>'') and (str[1] = brackets[0]) and (str[Length(str)] = brackets[1]) then
          result := True;
    end;
 end;
@@ -151,7 +151,7 @@ begin
    if line <> '' then
    begin
       str := Trim(line);
-      result := (str[1]=comment);
+      result := (str<>'') and (str[1]=comment);
    end;
 end;
 
@@ -484,7 +484,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 10:16:22  michael
+  Revision 1.2  2000-09-01 21:37:30  peter
+    * targetdir support (merged)
+
+  Revision 1.1  2000/07/13 10:16:22  michael
   + Initial import
 
   Revision 1.1  2000/05/11 17:59:12  peter

@@ -1206,8 +1206,7 @@ begin
         AddSection(userini.libgcc,'command_gcclib');
         AddSection(userini.libother,'command_otherlib');
         AddSection((userini.dirinc<>''),'command_inc');
-        AddSection((userini.dirtarget<>''),'command_target');
-        AddSection((userini.dirunittarget<>''),'command_unittarget');
+        AddSection(true,'command_target');
         AddSection(true,'command_end');
         AddSection(true,'command_win32env');
         AddSection(true,'command_compiler');
@@ -1350,7 +1349,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 10:16:22  michael
+  Revision 1.2  2000-09-01 21:37:30  peter
+    * targetdir support (merged)
+
+  Revision 1.1  2000/07/13 10:16:22  michael
   + Initial import
 
   Revision 1.38  2000/07/04 19:05:54  peter
