@@ -1106,6 +1106,7 @@ begin
   {$ifdef MACOS_USE_STDCLIB}
      OpenStdIO(Input,fmInput,StdInputHandle);
      OpenStdIO(Output,fmOutput,StdOutputHandle);
+     OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
      OpenStdIO(StdOut,fmOutput,StdOutputHandle);
      OpenStdIO(StdErr,fmOutput,StdErrorHandle);
   {$endif }
@@ -1199,7 +1200,10 @@ end.
 
 {
   $Log$
-  Revision 1.24  2004-10-25 15:38:59  peter
+  Revision 1.25  2004-11-04 09:32:31  peter
+  ErrOutput added
+
+  Revision 1.24  2004/10/25 15:38:59  peter
     * compiler defined HEAP and HEAPSIZE removed
 
   Revision 1.23  2004/10/19 19:56:59  olle

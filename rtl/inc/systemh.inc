@@ -358,6 +358,7 @@ Var
 {$endif SUPPORT_THREADVAR}
   ThreadID    : SizeUInt;
   { Standard In- and Output }
+  ErrOutput,
   Output,
   Input,
   StdOut,
@@ -769,7 +770,10 @@ const
 
 {
   $Log$
-  Revision 1.105  2004-10-30 20:49:10  marco
+  Revision 1.106  2004-11-04 09:32:31  peter
+  ErrOutput added
+
+  Revision 1.105  2004/10/30 20:49:10  marco
    * arraytostring added
 
   Revision 1.104  2004/10/14 17:39:33  florian

@@ -1549,6 +1549,7 @@ procedure SysInitStdIO;
 begin
   OpenStdIO(Input,fmInput,StdInputHandle);
   OpenStdIO(Output,fmOutput,StdOutputHandle);
+  OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
   OpenStdIO(StdOut,fmOutput,StdOutputHandle);
   OpenStdIO(StdErr,fmOutput,StdErrorHandle);
 end;
@@ -1602,7 +1603,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.42  2004-11-02 13:35:35  peter
+  Revision 1.43  2004-11-04 09:32:31  peter
+  ErrOutput added
+
+  Revision 1.42  2004/11/02 13:35:35  peter
     * second try for data too large
 
   Revision 1.41  2004/11/02 07:43:50  peter

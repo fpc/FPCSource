@@ -623,6 +623,7 @@ Begin
 { Setup stdin, stdout and stderr }
   OpenStdIO(Input,fmInput,StdInputHandle);
   OpenStdIO(Output,fmOutput,StdOutputHandle);
+  OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
   OpenStdIO(StdOut,fmOutput,StdOutputHandle);
   OpenStdIO(StdErr,fmOutput,StdErrorHandle);
 { Reset IO Error }
@@ -631,7 +632,10 @@ End.
 *)
 {
  $Log$
- Revision 1.8  2004-10-25 15:38:59  peter
+ Revision 1.9  2004-11-04 09:32:31  peter
+ ErrOutput added
+
+ Revision 1.8  2004/10/25 15:38:59  peter
    * compiler defined HEAP and HEAPSIZE removed
 
  Revision 1.7  2002/11/14 12:18:03  marco

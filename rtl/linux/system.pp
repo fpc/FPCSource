@@ -102,7 +102,7 @@ function fpgetcwd(buf:pchar;_size:size_t):pchar; cdecl; external name 'getcwd';
 {$I osmain.inc}                         // base wrappers *nix RTL (derivatives)
 
 {*****************************************************************************
-      OS Memory allocation / deallocation 
+      OS Memory allocation / deallocation
  ****************************************************************************}
 
 function SysOSAlloc(size: ptrint): pointer;
@@ -139,6 +139,7 @@ procedure SysInitStdIO;
 begin
   OpenStdIO(Input,fmInput,StdInputHandle);
   OpenStdIO(Output,fmOutput,StdOutputHandle);
+  OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
   OpenStdIO(StdOut,fmOutput,StdOutputHandle);
   OpenStdIO(StdErr,fmOutput,StdErrorHandle);
 end;
@@ -184,7 +185,10 @@ End.
 
 {
   $Log$
-  Revision 1.18  2004-07-09 22:31:22  peter
+  Revision 1.19  2004-11-04 09:32:31  peter
+  ErrOutput added
+
+  Revision 1.18  2004/07/09 22:31:22  peter
     * fixed execpathstr setting
 
   Revision 1.17  2004/07/08 21:22:15  daniel

@@ -273,6 +273,7 @@ Begin
 { Setup stdin, stdout and stderr }
   OpenStdIO(Input,fmInput,StdInputHandle);
   OpenStdIO(Output,fmOutput,StdOutputHandle);
+  OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
   OpenStdIO(StdOut,fmOutput,StdOutputHandle);
   OpenStdIO(StdErr,fmOutput,StdErrorHandle);
 { Setup environment and arguments }
@@ -286,7 +287,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.13  2004-10-25 15:38:59  peter
+  Revision 1.14  2004-11-04 09:32:31  peter
+  ErrOutput added
+
+  Revision 1.13  2004/10/25 15:38:59  peter
     * compiler defined HEAP and HEAPSIZE removed
 
   Revision 1.12  2004/09/03 19:26:57  olle

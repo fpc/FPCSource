@@ -1073,8 +1073,10 @@ begin
 
   {$ifdef StdErrToConsole}
   AssignStdErrConsole(StdErr);
+  AssignStdErrConsole(ErrOutput);
   {$else}
   OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+  OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
   {$endif}
 end;
 
@@ -1185,7 +1187,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.6  2004-10-25 18:11:49  armin
+  Revision 1.7  2004-11-04 09:32:31  peter
+  ErrOutput added
+
+  Revision 1.6  2004/10/25 18:11:49  armin
   * saveregisters no longer supported by compiler, for now save all registers in stackcheck
 
   Revision 1.5  2004/10/25 15:38:59  peter

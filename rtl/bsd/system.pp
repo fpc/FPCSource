@@ -60,7 +60,7 @@ function geterrnolocation: Plibcint; cdecl;external clib name '__error';
 {$else}
 {$ifdef NetBSD} // from a sparc dump.
 function geterrnolocation: Plibcint; cdecl;external clib name '__errno';
-{$else} 
+{$else}
 {$ifdef Darwin}
 function geterrnolocation: Plibcint; cdecl;external clib name '__error';
 {$else}
@@ -117,7 +117,7 @@ end;
 {$I system.inc}
 
 {*****************************************************************************
-      OS Memory allocation / deallocation 
+      OS Memory allocation / deallocation
  ****************************************************************************}
 
 { OS dependant parts  }
@@ -161,6 +161,7 @@ procedure SysInitStdIO;
 begin
   OpenStdIO(Input,fmInput,StdInputHandle);
   OpenStdIO(Output,fmOutput,StdOutputHandle);
+  OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
   OpenStdIO(StdOut,fmOutput,StdOutputHandle);
   OpenStdIO(StdErr,fmOutput,StdErrorHandle);
 end;
@@ -208,12 +209,15 @@ Begin
   ThreadID := 1;
 {$ifdef HASVARIANT}
   initvariantmanager;
-{$endif HASVARIANT}  
+{$endif HASVARIANT}
 End.
 
 {
   $Log$
-  Revision 1.19  2004-07-17 15:31:03  jonas
+  Revision 1.20  2004-11-04 09:32:31  peter
+  ErrOutput added
+
+  Revision 1.19  2004/07/17 15:31:03  jonas
     * initialise StackLength (fixes stack checking in general, and tw2897 in
       particular)
 

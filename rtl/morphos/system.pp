@@ -856,6 +856,7 @@ begin
   { * MorphOS doesn't have a separate stderr, just like AmigaOS (???) * }
   StdErrorHandle:=StdOutputHandle;
   // OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+  // OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
 end;
 
 
@@ -891,7 +892,10 @@ end.
 
 {
   $Log$
-  Revision 1.20  2004-10-25 15:38:59  peter
+  Revision 1.21  2004-11-04 09:32:31  peter
+  ErrOutput added
+
+  Revision 1.20  2004/10/25 15:38:59  peter
     * compiler defined HEAP and HEAPSIZE removed
 
   Revision 1.19  2004/09/03 19:26:15  olle

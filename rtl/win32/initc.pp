@@ -14,8 +14,8 @@ type libcint   = longint;
 { this unit is just ment to run
   startup code to get C code to work correctly PM }
 
-function fpgetCerrno:libcint; 
-procedure fpsetCerrno(err:libcint); 
+function fpgetCerrno:libcint;
+procedure fpsetCerrno(err:libcint);
 
 {$ifndef ver1_0}
 property cerrno:libcint read fpgetCerrno write fpsetcerrno;
@@ -30,12 +30,12 @@ uses
 
 function geterrnolocation: Plibcint; cdecl;external name '___errno';
 
-function fpgetCerrno:libcint; 
+function fpgetCerrno:libcint;
 begin
   fpgetCerrno:=geterrnolocation^;
 end;
 
-procedure fpsetCerrno(err:libcint); 
+procedure fpsetCerrno(err:libcint);
 begin
   geterrnolocation^:=err;
 end;
@@ -106,8 +106,9 @@ initialization
 { Reinitialize std handles that can be changed }
   UpdateStdHandle(TextRec(Input),StdInputHandle,GetStdHandle(STD_INPUT_HANDLE));
   UpdateStdHandle(TextRec(Output),StdOutputHandle,GetStdHandle(STD_OUTPUT_HANDLE));
+  UpdateStdHandle(TextRec(ErrOutput),StdErrorHandle,GetStdHandle(STD_ERROR_HANDLE));
   TextRec(StdOut).Handle:=StdOutputHandle;
-  UpdateStdHandle(TextRec(Stderr),StdErrorHandle,GetStdHandle(STD_ERROR_HANDLE));
+  TextRec(StdErr).Handle:=StdErrorHandle;
 
 finalization
 { should we pass exit code ?
@@ -124,7 +125,10 @@ if setjmp(exitjmpbuf)=0 then
 end.
 {
   $Log$
-  Revision 1.12  2004-09-14 20:08:58  hajny
+  Revision 1.13  2004-11-04 09:32:31  peter
+  ErrOutput added
+
+  Revision 1.12  2004/09/14 20:08:58  hajny
     * use errno from cygwin (like in fixes branch)
 
   Revision 1.11  2004/09/12 17:41:40  hajny
