@@ -71,7 +71,7 @@ begin
   end;
 
   // Redraw all lines with changed SH flags
-  FWidget.InvalidateRect(line, 0, (CurLine - line) + 1, FWidget.PageWidth);
+  FWidget.InvalidateRect(line, 0, FWidget.PageWidth, (CurLine - line) + 1);
 end;
 
 
@@ -258,7 +258,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2000-01-31 19:23:37  sg
+  Revision 1.10  2000-02-10 18:11:30  sg
+  * Fixed operand order for InvalidateRect in "ChangeInLine"
+
+  Revision 1.9  2000/01/31 19:23:37  sg
   * Fixed selection redrawing bugs
   * Changed "x1, y2, x2, y2" arguments to "x, y, w, h"
 
