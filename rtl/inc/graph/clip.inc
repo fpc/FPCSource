@@ -42,7 +42,7 @@ const
    code1, code2: longint;
    done:boolean;
    code: longint;
-   newx,newy: integer;
+   newx,newy: word;
 
 
     function outcode(x,y:integer): longint;
@@ -59,13 +59,12 @@ const
     begin
       code := 0;
       if (x<xmin) then
-         code:=code or LEFT;
-      if (x>xmax) then
-         code:=code or RIGHT;
-
+        code:=code or LEFT
+      else if (x>xmax) then
+        code:=code or RIGHT;
       if (y>ymax) then
-        code:=code or BOTTOM;
-      if (y<ymin) then
+        code:=code or BOTTOM
+      else if (y<ymin) then
         code:=code or TOP;
 
       outcode:=code;
@@ -84,8 +83,8 @@ const
          begin
            done:=TRUE;
            LineClipped:=FALSE;
-  	       exit;
-   	     end
+               exit;
+             end
        else
        { Reject trivially }
        { Neither points are in window }
@@ -131,7 +130,7 @@ const
               x1 := newx;  y1:= newy;
               code1:=outcode(x1,y1)
             end
-	       else
+               else
             begin
               x2:= newx; y2:= newy;
               code2:=outcode(x2,y2);
@@ -143,7 +142,14 @@ end;
 
 {
 $Log$
-Revision 1.3  1999-07-12 13:27:09  jonas
+Revision 1.4  1999-09-12 17:28:59  jonas
+  * several changes to internalellipse to make it faster
+    and to make sure it updates the ArcCall correctly
+    (not yet done for width = 3)
+  * Arc mostly works now, only sometimes an endless loop, don't know
+    why
+
+Revision 1.3  1999/07/12 13:27:09  jonas
   + added Log and Id tags
   * added first FPC support, only VGA works to some extend for now
   * use -dasmgraph to use assembler routines, otherwise Pascal

@@ -618,7 +618,23 @@ CONST
     ScrOfs:=y*ScrWidth+x div 8;
     HLength:=x2 div 8-x div 8;
     LMask:=$ff shr (x and 7);
+{$ifopt r+}
+{$define rangeOn}
+{$r-}
+{$endif}
+{$ifopt q+}
+{$define overflowOn}
+{$q-}
+{$endif}
     RMask:=$ff shl (7-(x2 and 7));
+{$ifdef rangeOn}
+{$undef rangeOn}
+{$r+}
+{$endif}
+{$ifdef overflowOn}
+{$undef overflowOn}
+{$q+}
+{$endif}
     if HLength=0 then
       LMask:=LMask and RMask;
     port[$3ce]:=0;
@@ -2563,7 +2579,14 @@ const CrtAddress: word = 0;
 
 {
 $Log$
-Revision 1.10  1999-09-11 19:43:01  jonas
+Revision 1.11  1999-09-12 17:28:59  jonas
+  * several changes to internalellipse to make it faster
+    and to make sure it updates the ArcCall correctly
+    (not yet done for width = 3)
+  * Arc mostly works now, only sometimes an endless loop, don't know
+    why
+
+Revision 1.10  1999/09/11 19:43:01  jonas
   * FloodFill: did not take into account current viewport settings
   * GetScanLine: only get line inside viewport, data outside of it
     is not used anyway

@@ -616,8 +616,8 @@
          { This is only valid for stroked fonts }
          if (charsize <> usercharsize) then
          begin
-            CurrentXRatio := charsize / 4;
-            CurrentYRatio := charsize / 4;
+            CurrentXRatio := charsize div 4;
+            CurrentYRatio := charsize div 4;
          end;
          { if this is a stroked font then load it if not already loaded }
          { into memory...                                               }
@@ -684,13 +684,20 @@
 
     procedure SetUserCharSize(Multx,Divx,Multy,Divy : word);
       begin
-         CurrentXRatio := MultX / DivX;
-         CurrentYRatio := MultY / DivY;
+         CurrentXRatio := MultX div DivX;
+         CurrentYRatio := MultY div DivY;
       end;
 
 {
 $Log$
-Revision 1.6  1999-09-12 08:02:22  florian
+Revision 1.7  1999-09-12 17:29:00  jonas
+  * several changes to internalellipse to make it faster
+    and to make sure it updates the ArcCall correctly
+    (not yet done for width = 3)
+  * Arc mostly works now, only sometimes an endless loop, don't know
+    why
+
+Revision 1.6  1999/09/12 08:02:22  florian
   * fixed outtext(''), c was a byte, this leads to an underflow and
     garbage was written
 

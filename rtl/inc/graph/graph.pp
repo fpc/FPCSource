@@ -393,6 +393,17 @@ Interface
              xend,yend : integer;
        end;
 
+{$IFDEF FPC}
+        graph_int = longint;      { platform specific integer used for indexes;
+                                    should be 16 bits on TP/BP and 32 bits on every-
+                                    thing else for speed reasons }
+        graph_float = single;   { the platform's preferred floating point size }
+{$ELSE}
+        graph_int = integer;    { platform specific integer used for indexes;
+                                                          should be 16 bits on TP/BP and 32 bits on every-
+                                                          thing else for speed reasons }
+        graph_float = real;     { the platform's preferred floating point size }
+{$ENDIF}
 
   const
        fillpatternTable : array[0..12] of FillPatternType = (
@@ -661,7 +672,7 @@ Implementation
 {$ifdef fpc}
   {$ifdef go32v2}
     {$define dpmi}
-    uses go32;
+    uses go32,ports;
     Type TDPMIRegisters = go32.registers;
   {$endif go32v2}
 {$else fpc}
@@ -752,8 +763,7 @@ var
 
   { information for Text Output routines }
   CurrentTextInfo : TextSettingsType;
-  CurrentXRatio: Real;
-  CurrentYRatio: Real;
+  CurrentXRatio, CurrentYRatio: graph_float;
   installedfonts: longint;  { Number of installed fonts }
 
 
@@ -1282,19 +1292,37 @@ var
   Procedure InternalEllipseDefault(X,Y: Integer;XRadius: word;
     YRadius:word; stAngle,EndAngle: word); far;
    var
-    i:integer;
-    xpt: pinttable;
-    ypt: pinttable;
-    j,Delta:real;
+    j,Delta, DeltaEnd: graph_float;
     NumOfPixels: longint;
     NumOfPix: Array[0..2] of longint;
     count: longint;
-    ConvFac,TempTerm: real;
+    ConvFac,TempTerm: graph_float;
     aval,bval: integer;
-    OldcurrentColor: word;
     TmpAngle: word;
     DeltaAngle: word;
+    xtemp, ytemp, xp, yp, xm, ym: integer;
+    q1p, q2p, q3p, q4p: PointType;
   Begin
+   With q1p Do
+     Begin
+       x := $7fff;
+       y := $7fff;
+     End;
+   With q2p Do
+     Begin
+       x := $7fff;
+       y := $7fff;
+     End;
+   With q3p Do
+     Begin
+       x := $7fff;
+       y := $7fff;
+     End;
+   With q4p Do
+     Begin
+       x := $7fff;
+       y := $7fff;
+     End;
    If xradius = 0 then inc(x);
    if yradius = 0 then inc(y);
    inc(xradius);
@@ -1311,94 +1339,145 @@ var
      end;
    { calculate difference of angle now so we don't always have to calculate it }
    DeltaAngle:= EndAngle-StAngle;
-   i:=0;
    if LineInfo.Thickness=NormWidth then
      Begin
        { approximate the number of pixels required by using the circumference }
        { equation of an ellipse.                                              }
-       NumOfPixels:=8*Round(2.5*sqrt((sqr(XRadius)+sqr(YRadius)) div 2));
-       GetMem(xpt,NumOfpixels*sizeof(word));
-       GetMem(ypt,NumOfPixels*sizeof(word));
+       { In the worst case, we have to calculate everything from the }
+       { quadrant, so divide the circumference value by 4 (JM)       }
+       NumOfPixels:=(8 div 4)*Round(2.5*sqrt((sqr(XRadius)+sqr(YRadius)) div 2));
        { Calculate the angle precision required }
-       Delta := DeltaAngle / (NumOfPixels);
+       { Note: to get the same precision as before, we have to divide by an }
+       { extra 4 (JM)                                                       }
+       Delta := DeltaAngle / (NumOfPixels*4);
        { Adjust for screen aspect ratio }
        XRadius:=(longint(XRadius)*10000) div XAspect;
        YRadius:=(longint(YRadius)*10000) div YAspect;
-       { Initial counter value }
-       j:=Delta+StAngle;
        { removed from inner loop to make faster }
        ConvFac:=Pi/180.0;
+       { store some arccall info }
+       { Initial counter value }
+       TempTerm := (Delta+StAngle)*ConvFac;
+       ArcCall.XStart := round(XRadius*Cos(TempTerm)) + X;
+       ArcCall.XEnd := ArcCall.XStart;
+       ArcCall.YStart := round(YRadius*Sin(TempTerm+Pi)) + Y;
+       ArcCall.YEnd := ArcCall.YStart;
+
+       { convert the DeltaAngle to the new boundaries (JM) }
+       j := Delta;
+       DeltaAngle := 90;
+       { calculate stop position (JM)}
+       DeltaEnd := j + DeltaAngle;
        Repeat
-             { this used by both sin and cos }
+             { this is used by both sin and cos }
              TempTerm := j*ConvFac;
              { Calculate points }
-             xpt^[i]:=round(XRadius*Cos(TempTerm));
-         { calculate the value of y }
-             ypt^[i]:=round(YRadius*Sin(TempTerm+Pi));
+             xtemp := round(XRadius*Cos(TempTerm));
+             ytemp := round(YRadius*Sin(TempTerm+Pi));
+
+             xp := x + xtemp;
+             xm := x - xtemp;
+             yp := y + ytemp;
+             ym := y - ytemp;
+             If (j >= StAngle) and (j <= EndAngle) then
+               begin
+                 q1p.x := xp;
+                 q1p.y := yp;
+                 PutPixel(xp,yp,CurrentColor);
+               end;
+             If ((180-j) >= StAngle) and ((180-j) <= EndAngle) then
+               begin
+                 If (q2p.x = $7fff) then
+                   Begin
+                     q2p.x := xm;
+                     q2p.y := yp;
+                   End;
+                 PutPixel(xm,yp,CurrentColor);
+               end;
+             If ((j+180) >= StAngle) and ((j+180) <= EndAngle) then
+               begin
+                 q3p.x := xm;
+                 q3p.y := ym;
+                 PutPixel(xm,ym,CurrentColor);
+               end;
+             If ((360-j) >= StAngle) and ((360-j) <= EndAngle) then
+               begin
+                 If (q4p.x = $7fff) then
+                   Begin
+                     q4p.x := xp;
+                     q4p.y := ym;
+                   End;
+                 PutPixel(xp,ym,CurrentColor);
+               end;
              j:=j+Delta;
-             inc(i);
-       Until j > DeltaAngle;
+       Until j > (DeltaEnd);
      end
    else
    {******************************************}
    {  CIRCLE OR ELLIPSE WITH THICKNESS=3      }
    {******************************************}
     Begin
-      NumOfPix[1]:=8*Round(2.5*sqrt((sqr(XRadius)+sqr(YRadius)) div 2));
-      NumOfPix[0]:=8*Round(2.5*sqrt((sqr(XRadius-1)+sqr(YRadius-1)) div 2));
-      NumOfPix[2]:=8*Round(2.5*sqrt((sqr(XRadius+1)+sqr(YRadius+1)) div 2));
-      GetMem(xpt,(NumOfPix[1]+NumOfPix[2]+NumOfPix[0])*sizeof(word));
-      GetMem(ypt,(NumOfPix[1]+NumOfPix[2]+NumOfPix[0])*sizeof(word));
+      Writeln('thickness 3');
+      NumOfPix[1]:=2*Round(2.5*sqrt((sqr(XRadius)+sqr(YRadius)) div 2));
+      NumOfPix[0]:=2*Round(2.5*sqrt((sqr(XRadius-1)+sqr(YRadius-1)) div 2));
+      NumOfPix[2]:=2*Round(2.5*sqrt((sqr(XRadius+1)+sqr(YRadius+1)) div 2));
       { removed from inner loop to make faster }
       ConvFac:=Pi/180.0;
       for Count:=0 to 2 do
-            Begin
-             aval:=XRadius+Count-1;
-             bval:=YRadius+Count-1;
-             Delta := DeltaAngle / (NumOfPix[Count]);
-             aval:= (longint(aval)*10000) div XAspect;
-             bval:= (longint(bval)*10000) div YAspect;
-             j:=Delta+Stangle;
-             Repeat
-               { this used by both sin and cos }
-               TempTerm := j*ConvFac;
-               xpt^[i]:=round((aval)*Cos(TempTerm));
-               { calculate the value of y }
-               ypt^[i]:=round(bval*Sin(TempTerm+Pi));
-               j:=j+Delta;
-               inc(i);
-             Until j > DeltaAngle;
-            end;
+        Begin
+          aval:=XRadius+Count-1;
+          bval:=YRadius+Count-1;
+          Delta := DeltaAngle / (4*NumOfPix[Count]);
+          aval:= (longint(aval)*10000) div XAspect;
+          bval:= (longint(bval)*10000) div YAspect;
+          j:=Delta+Stangle;
+{ store some ArcCall info }
+          TempTerm := j*ConvFac;
+          ArcCall.XStart := round(aval*Cos(TempTerm)) + X;
+          ArcCall.YStart := round(bval*Sin(TempTerm)) + Y;
+{ plot ellipse }
+          Repeat
+            { this used by both sin and cos }
+            TempTerm := j*ConvFac;
+            xtemp:=round(aval*Cos(TempTerm));
+            ytemp:=round(bval*Sin(TempTerm));
+            PutPixel(x+xtemp,y+ytemp,CurrentColor);
+            PutPixel(x+xtemp,y-ytemp,CurrentColor);
+            PutPixel(x-xtemp,y+ytemp,CurrentColor);
+            PutPixel(x-xtemp,y-ytemp,CurrentColor);
+            j:=j+Delta;
+          Until j > (DeltaAngle/4);
+        end;
     end;
    {******************************************}
    {  NOW ALL PIXEL POINTS ARE IN BUFFER      }
    {  plot them all to the screen             }
    {******************************************}
    Count:=0;
-   OldcurrentColor:=currentColor;
-   Repeat
-     PutPixel(xpt^[Count]+X,ypt^[Count]+Y,CurrentColor);
-     inc(count);
-   until Count>=i;
-
+   If q4p.x <> $7fff Then
+     Begin
+       ArcCall.XEnd := q4p.x;
+       ArcCall.YEnd := q4p.y
+     End
+   Else If q3p.x <> $7fff Then
+     Begin
+       ArcCall.XEnd := q3p.x;
+       ArcCall.YEnd := q3p.y
+     End
+   Else If q2p.x <> $7fff Then
+     Begin
+       ArcCall.XEnd := q2p.x;
+       ArcCall.YEnd := q2p.y
+     End
+   Else If q1p.x <> $7fff Then
+     Begin
+       ArcCall.XEnd := q1p.x;
+       ArcCall.YEnd := q1p.y
+     End;
    { Get End and Start points into the ArcCall information record }
    ArcCall.X := X;
    ArcCall.Y := Y;
-   ArcCall.XStart := xpt^[0] + X;
-   ArcCall.YStart := ypt^[0] + Y;
-   ArcCall.XEnd := xpt^[Count-1] + X;
-   ArcCall.YEnd := ypt^[Count-1] + Y;
-   CurrentColor:=OldCurrentColor;
-   if LineInfo.Thickness=NormWidth then
-     Begin
-       Freemem(xpt,NumOfPixels*sizeof(word));
-       Freemem(ypt,NumOfPixels*sizeof(word));
-     end
-   else
-     Begin
-       FreeMem(xpt,(NumOfPix[1]+NumOfPix[2]+NumOfPix[0])*sizeof(word));
-       FreeMem(ypt,(NumOfPix[1]+NumOfPix[2]+NumOfPix[0])*sizeof(word));
-     end;
+
   end;
 
 
@@ -1426,7 +1505,7 @@ Procedure InternalEllipseDefault (x, y : integer;
 { Draw an ellipse arc. Crude but it works (anyone have a better one?) }
 Var
   aSqr, bSqr, twoaSqr, twobSqr, xa, ya, twoXbSqr, twoYaSqr, error : LongInt;
-  Alpha : Real;
+  Alpha : graph_float;
 const
   RadToDeg = 180/Pi;
 
@@ -1570,7 +1649,7 @@ End;
          OldCurrentColor := CurrentColor;
          CurrentColor := CurrentBkColor;
 { hline converts the coordinates to global ones, but that has been done }
-{ already here!!! Convert them bak to local ones... (JM)                }
+{ already here!!! Convert them back to local ones... (JM)                }
          HLine(x1-StartXViewPort,x2-StartXViewPort,y-StartYViewPort);
          CurrentColor := OldCurrentColor;
        end
@@ -2020,24 +2099,28 @@ end;
     OldWriteMode: word;
 
    Begin
-     if (Radius = 0) then
-           Exit;
-
-     if (Radius = 1) then
-       begin
-         { must use clipping ... }
-         { don't need to explicitly set NormalPut mode }
-         { because PutPixel only supports normal put   }
-             PutPixel(X, Y,CurrentColor);
-             Exit;
-       end;
+     if (Radius <= 1) then
+       Begin
+         With ArcCall Do
+           Begin
+             X := X;
+             Y := Y;
+             XStart := X;
+             YStart := Y;
+             XEnd := X;
+             YEnd := Y;
+           End;
+         If Radius = 1 then
+           PutPixel(X, Y,CurrentColor);
+         Exit;
+       End;
 
      { Only if we are using thickwidths lines do we accept }
      { XORput write modes.                                 }
      OldWriteMode := CurrentWriteMode;
      if (LineInfo.Thickness = NormWidth) then
        CurrentWriteMode := NormalPut;
-         InternalEllipse(X,Y,Radius,Radius,StAngle,Endangle);
+     InternalEllipse(X,Y,Radius,Radius,StAngle,Endangle);
      CurrentWriteMode := OldWriteMode;
    end;
 
@@ -2070,7 +2153,7 @@ end;
     { only normal put supported }
     OldWriteMode := CurrentWriteMode;
     CurrentWriteMode := NormalPut;
-    InternalEllipse(X,Y,XRadius,YRadius,0,360);
+    InternalEllipse(X,Y,XRadius+1,YRadius+1,0,360);
     if (XRadius > 0) and (YRadius > 0) then
       FloodFill(X,Y,CurrentColor);
     { restore old write mode }
@@ -2121,7 +2204,7 @@ end;
 
 
  procedure Sector(x, y: Integer; StAngle,EndAngle, XRadius, YRadius: Word);
-  var angle : real;
+  var angle : graph_float;
       writemode : word;
   begin
      Ellipse(x,y,stAngle,endAngle,XRadius,YRadius);
@@ -2138,9 +2221,9 @@ end;
      PutPixel(ArcCall.xend,ArcCall.yend,CurrentColor);
      stangle:=Stangle mod 360; EndAngle:=Endangle mod 360;
      if stAngle<=Endangle then
-       Angle:=(stAngle+EndAngle)/2
+       Angle:=(stAngle+EndAngle) div 2
      else
-       angle:=(stAngle-360+EndAngle)/2;
+       angle:=(stAngle-360+EndAngle) div 2;
      { fill from the point in the middle of the slice }
      XRadius:=(longint(XRadius)*10000) div XAspect;
      YRadius:=(longint(YRadius)*10000) div YAspect;
@@ -2537,7 +2620,7 @@ end;
 
 
   procedure PieSlice(X,Y,stangle,endAngle:integer;Radius: Word);
-  var angle : real;
+  var angle : graph_float;
       XRadius, YRadius : word;
       writemode : word;
   begin
@@ -2551,9 +2634,9 @@ end;
      PutPixel(ArcCall.xend,ArcCall.yend,CurrentColor);
      Stangle:=stAngle mod 360; EndAngle:=Endangle mod 360;
      if Stangle<=Endangle then
-       angle:=(StAngle+EndAngle)/2
+       angle:=(StAngle+EndAngle) div 2
      else
-       angle:=(Stangle-360+Endangle)/2;
+       angle:=(Stangle-360+Endangle) div 2;
      { fill from the point in the middle of the slice }
      XRadius:=(longint(Radius)*10000) div XAspect;
      YRadius:=(longint(Radius)*10000) div YAspect;
@@ -2690,7 +2773,14 @@ DetectGraph
 
 {
   $Log$
-  Revision 1.19  1999-09-11 19:43:01  jonas
+  Revision 1.20  1999-09-12 17:29:00  jonas
+    * several changes to internalellipse to make it faster
+      and to make sure it updates the ArcCall correctly
+      (not yet done for width = 3)
+    * Arc mostly works now, only sometimes an endless loop, don't know
+      why
+
+  Revision 1.19  1999/09/11 19:43:01  jonas
     * FloodFill: did not take into account current viewport settings
     * GetScanLine: only get line inside viewport, data outside of it
       is not used anyway

@@ -17,17 +17,6 @@
 {$R-}   { No range checking here, because we do some special typecasts }
 
 type
-{$IFDEF FPC}
-        graph_int = longint;      { platform specific integer used for indexes;
-                                                          should be 16 bits on TP/BP and 32 bits on every-
-                                                          thing else for speed reasons }
-        graph_float = double;   { the platform's preferred floating point size }
-{$ELSE}
-        graph_int = integer;    { platform specific integer used for indexes;
-                                                          should be 16 bits on TP/BP and 32 bits on every-
-                                                          thing else for speed reasons }
-        graph_float = real;     { the platform's preferred floating point size }
-{$ENDIF}
 
         pedge = ^edge;
         edge = packed record    { an edge structure }
@@ -172,7 +161,7 @@ begin
                 p := @ptable^[j];
                 q := @ptable^[index];
         end;
-        deltax := (q^.x-p^.x)/(q^.y-p^.y);
+        deltax := (q^.x-p^.x) div (q^.y-p^.y);
         with activetable^[activepoints] do begin
                 dx := deltax;
                 x := dx * (y { + 0.5} - p^.y) + p^.x;
@@ -274,7 +263,7 @@ begin
                 end;
         end;
 {$ifdef debug}
-{$R+}
+{$R+,Q+}
 {$endif debug}
         freemem(activetable, sizeof(edge) * numpoints);
         freemem(indextable, sizeof(graph_int) * numpoints);
@@ -418,14 +407,11 @@ var
    BackupColor : Word;
    x1, x2: integer;
    Index : Integer;
-{ !!! }
-   allocated: longint;
   Begin
     { Save current drawing color }
     BackupColor := CurrentColor;
     CurrentColor := FillSettings.Color;
     { MaxX is based on zero index }
-    allocated := (ViewWidth+1)*2;
     GetMem (s1,(ViewWidth+1)*2);  { A pixel color represents a word }
     GetMem (s2,(ViewWidth+1)*2);  { A pixel color represents a word }
     GetMem (s3,(ViewWidth+1)*2);  { A pixel color represents a word }
@@ -506,7 +492,14 @@ var
 
 {
 $Log$
-Revision 1.5  1999-09-11 19:43:00  jonas
+Revision 1.6  1999-09-12 17:28:59  jonas
+  * several changes to internalellipse to make it faster
+    and to make sure it updates the ArcCall correctly
+    (not yet done for width = 3)
+  * Arc mostly works now, only sometimes an endless loop, don't know
+    why
+
+Revision 1.5  1999/09/11 19:43:00  jonas
   * FloodFill: did not take into account current viewport settings
   * GetScanLine: only get line inside viewport, data outside of it
     is not used anyway
