@@ -119,6 +119,13 @@ begin
 end;
 
 
+Function FileSeek (Handle : Longint; FOffset,Origin : Int64) : Int64;
+begin
+  {$warning need to add 64bit call }
+  FileSeek:=FileSeek(Handle,Longint(FOffset),Longint(Origin));
+end;
+
+
 Procedure FileClose (Handle : Longint);
 
 begin
@@ -294,12 +301,12 @@ begin
   RenameFile:=(_rename(pchar(OldName),pchar(NewName)) = 0);
 end;
 
-
+{ ad: 27 Feb 2002: now implemented globaly ??
 Function FileSearch (Const Name, DirList : String) : String;
 begin
   FileSearch:=Dos.FSearch(Name,Dirlist);
 end;
-
+}
 
 {****************************************************************************
                               Disk Functions
@@ -480,7 +487,10 @@ end.
 {
 
   $Log$
-  Revision 1.4  2001-06-03 15:18:01  peter
+  Revision 1.5  2002-03-08 19:10:14  armin
+  * added 64 bit fileseek (currently only 32 bit supported)
+
+  Revision 1.4  2001/06/03 15:18:01  peter
     * eoutofmemory and einvalidpointer fix
 
   Revision 1.3  2001/04/16 18:39:50  florian
