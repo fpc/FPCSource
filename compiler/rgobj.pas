@@ -1402,6 +1402,16 @@ unit rgobj;
             r:=newreg(regtype,u,subreg);
             if assigned(live_start) then
               begin
+                { these can be removed by the register allocator and thus }
+                { live_start/end can become invalid in this case! (JM)    }
+                while live_start.typ = ait_regalloc do
+                    begin
+                    if (live_end = live_start) then
+                      live_end := tai(live_end.next);
+                    live_start := tai(live_start.next);
+                  end;
+                if not assigned(live_start) then
+                  internalerror(2004103110);
                 list.insertbefore(Tai_regalloc.alloc(r,live_start),live_start);
                 { Insert live end deallocation before reg allocations
                   to reduce conflicts }
@@ -1993,7 +2003,14 @@ unit rgobj;
 end.
 {
   $Log$
-  Revision 1.147  2004-10-31 21:45:03  peter
+  Revision 1.148  2004-10-31 23:18:29  jonas
+    * make sure live_start/end is never a tai_regalloc, as those can be
+      removed by the register allocator and thus become invalid. This fixed
+      make cycle with -Or for ppc, but I'm not sure what the warning on
+      symsym.pas:1663 means. Since the tlocation change, even regular make
+      cycle doesn't work anymore though...
+
+  Revision 1.147  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 
