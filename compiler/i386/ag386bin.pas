@@ -729,6 +729,8 @@ interface
     procedure ti386binasmlist.writetree;
       var
         hp : pai;
+      label
+        doexit;
       begin
         objectalloc^.resetsections;
         objectalloc^.setsection(sec_code);
@@ -753,7 +755,7 @@ interface
          end;
         { leave if errors have occured }
         if errorcount>0 then
-         exit;
+         goto doexit;
 {$endif}
 
       { Pass 1 }
@@ -782,7 +784,7 @@ interface
         objectoutput^.setsectionsizes(objectalloc^.secsize);
         { leave if errors have occured }
         if errorcount>0 then
-         exit;
+         goto doexit;
 
       { Pass 2 }
         currpass:=2;
@@ -804,11 +806,12 @@ interface
 
         { leave if errors have occured }
         if errorcount>0 then
-         exit;
+         goto doexit;
 
         { write last objectfile }
         objectoutput^.donewriting;
 
+      doexit:
         { reset the used symbols back, must be after the .o has been
           written }
         UsedAsmsymbolListReset;
@@ -1003,7 +1006,10 @@ interface
 end.
 {
   $Log$
-  Revision 1.1  2000-11-30 22:18:48  florian
+  Revision 1.2  2000-12-12 19:50:21  peter
+    * clear usedasmsymbol at exit of writetree
+
+  Revision 1.1  2000/11/30 22:18:48  florian
     * moved to i386
 
   Revision 1.9  2000/11/12 22:20:37  peter
