@@ -457,9 +457,9 @@ unit i_linux;
                 constalignmax   : 4;
                 varalignmin     : 0;
                 varalignmax     : 4;
-                localalignmin   : 4;
+                localalignmin   : 0;
                 localalignmax   : 4;
-                recordalignmin  : 4;
+                recordalignmin  : 0;
                 recordalignmax  : 4;
                 maxCrecordalign : 4
               );
@@ -514,7 +514,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.20  2004-01-12 22:11:39  peter
+  Revision 1.21  2004-01-26 19:05:56  florian
+    * fixed several arm issues
+
+  Revision 1.20  2004/01/12 22:11:39  peter
     * use localalign info for alignment for locals and temps
     * sparc fpu flags branching added
     * moved powerpc copy_valye_openarray to generic

@@ -36,68 +36,115 @@ unit rgcpu;
 
      type
        trgcpu = class(trgobj)
-       {
-         function getexplicitregisterfpu(list : taasmoutput; r : Toldregister) : tregister;override;
-         procedure ungetregisterfpu(list: taasmoutput; r : tregister; size:TCGsize);override;
-         procedure cleartempgen; override;
-       private
-         usedpararegs: Tsupregset;
-         usedparafpuregs: tregisterset;
-       }
+         procedure add_cpu_interferences(p : tai);override;
+         procedure DoSpillRead(list : taasmoutput;instr : taicpu_abstract;pos: tai; regidx: longint;
+          const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);override;
+         procedure DoSpillWritten(list : taasmoutput;instr : taicpu_abstract;pos: tai; regidx: longint;
+          const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);override;
+         procedure DoSpillReadWritten(list : taasmoutput;instr : taicpu_abstract;pos: tai; regidx: longint;
+          const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);override;
        end;
 
   implementation
 
     uses
-      cgobj, verbose, cutils;
+      cgobj, verbose, cutils,
+      aasmcpu;
 
-    {
-    function trgcpu.getexplicitregisterfpu(list : taasmoutput; r : Toldregister) : tregister;
+
+    procedure trgcpu.add_cpu_interferences(p : tai);
       begin
-        if (r in [R_F0..R_F3]) and
-           not is_reg_var_other[r] then
+        if p.typ=ait_instruction then
           begin
-            if r in usedparafpuregs then
-              internalerror(2003060902);
-            include(usedparafpuregs,r);
-            result.enum := r;
-            cg.a_reg_alloc(list,result);
-          end
-        else
-          result:=inherited getexplicitregisterfpu(list,r);
+            if (taicpu(p).opcode=A_MUL) then
+              add_edge(getsupreg(taicpu(p).oper[0]^.reg),getsupreg(taicpu(p).oper[1]^.reg));
+          end;
       end;
 
 
-    procedure trgcpu.ungetregisterfpu(list: taasmoutput; r : tregister; size:TCGsize);
+    procedure trgcpu.DoSpillRead(list : taasmoutput;instr : taicpu_abstract;pos: tai; regidx: longint;
+      const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);
+      var
+        helpins: tai;
+        ref : treference;
       begin
-        if (r.enum in [R_F0..R_F3]) and
-           not is_reg_var_other[r.enum] then
+        ref:=spilltemplist[regs[regidx].orgreg];
+        helpins:=taicpu.op_reg_ref(A_LDR,regs[regidx].tempreg,ref);
+        if pos=nil then
+          list.insertafter(helpins,list.first)
+        else
+          list.insertafter(helpins,pos.next);
+        ungetregisterinline(list,instr,regs[regidx].tempreg);
+        forward_allocation(tai(helpins.next),instr);
+      end;
+
+
+    procedure trgcpu.DoSpillWritten(list : taasmoutput;instr : taicpu_abstract;pos: tai; regidx: longint;
+      const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);
+      var
+        helpins: tai;
+        ref : treference;
+      begin
+        ref:=spilltemplist[regs[regidx].orgreg];
+        helpins:=taicpu.op_reg_ref(A_STR,regs[regidx].tempreg,ref);
+        list.insertafter(helpins,instr);
+        ungetregisterinline(list,helpins,regs[regidx].tempreg);
+      end;
+
+
+    procedure trgcpu.DoSpillReadWritten(list : taasmoutput;instr : taicpu_abstract;pos: tai; regidx: longint;
+      const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);
+      var
+        helpins1, helpins2: tai;
+        tmpref,ref : treference;
+        tmpreg : tregister;
+
+      begin
+        ref:=spilltemplist[regs[regidx].orgreg];
+        {
+        if abs(ref.offset)>4095 then
           begin
-            if not(r.enum in usedparafpuregs) then
-              internalerror(2003060903);
-            exclude(usedparafpuregs,r.enum);
-            cg.a_reg_dealloc(list,r);
-          end
+            reference_reset(tmpref);
+            { create consts entry }
+            objectlibrary.getlabel(l);
+            cg.a_label(current_procinfo.aktlocaldata,l);
+            tmpref.symboldata:=current_procinfo.aktlocaldata.last;
+
+            current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(ref.offset));
+
+            { load consts entry }
+            getregisterinline(list,pos,defaultsub,tmpreg);
+            tmpref.symbol:=l;
+            tmpref.base:=NR_R15;
+            list.concat(taicpu.op_reg_ref(A_LDR,tmpreg,tmpref));
+
+            if ref.index<>NR_NO then
+              internalerror(200401263);
+            ref.index:=tmpreg;
+            ref.offset:=0;
+          end;
+        }
+        helpins1:=taicpu.op_reg_ref(A_LDR,regs[regidx].tempreg,ref);
+        if pos=nil then
+          list.insertafter(helpins1,list.first)
         else
-          inherited ungetregisterfpu(list,r,size);
+          list.insertafter(helpins1,pos.next);
+        ref:=spilltemplist[regs[regidx].orgreg];
+        ref.symboldata:=nil;
+        helpins2:=taicpu.op_reg_ref(A_STR,regs[regidx].tempreg,ref);
+        list.insertafter(helpins2,instr);
+        ungetregisterinline(list,helpins2,regs[regidx].tempreg);
+        forward_allocation(tai(helpins1.next),instr);
       end;
-
-
-    procedure trgcpu.cleartempgen;
-
-      begin
-        inherited cleartempgen;
-        usedpararegs := [];
-        usedparafpuregs := [];
-      end;
-
-    }
 
 end.
 
 {
   $Log$
-  Revision 1.5  2003-11-02 14:30:03  florian
+  Revision 1.6  2004-01-26 19:05:56  florian
+    * fixed several arm issues
+
+  Revision 1.5  2003/11/02 14:30:03  florian
     * fixed ARM for new reg. allocation scheme
 
   Revision 1.4  2003/09/11 11:55:00  florian

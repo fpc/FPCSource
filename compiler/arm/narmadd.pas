@@ -281,12 +281,24 @@ interface
             exprasmlist.concat(setoppostfix(taicpu.op_reg_reg_reg(A_SUB,tmpreg,right.location.register64.reglo,left.location.register64.reglo),PF_S));
             exprasmlist.concat(setoppostfix(taicpu.op_reg_reg_reg(A_SBC,tmpreg,right.location.register64.reghi,left.location.register64.reghi),PF_S));
             cg.ungetregister(exprasmlist,tmpreg);
-            if location.resflags=F_GT then
-              location.resflags:=F_LT
-            else if location.resflags=F_LE then
-              location.resflags:=F_GE
+            if nf_swaped in flags then
+              begin
+                if location.resflags=F_LT then
+                  location.resflags:=F_GT
+                else if location.resflags=F_GE then
+                  location.resflags:=F_LE
+                else
+                  internalerror(200401221);
+              end
             else
-              internalerror(200401221);
+              begin
+                if location.resflags=F_GT then
+                  location.resflags:=F_LT
+                else if location.resflags=F_LE then
+                  location.resflags:=F_GE
+                else
+                  internalerror(200401221);
+              end;
           end;
 
         release_reg_left_right;
@@ -332,7 +344,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2004-01-24 20:19:46  florian
+  Revision 1.11  2004-01-26 19:05:56  florian
+    * fixed several arm issues
+
+  Revision 1.10  2004/01/24 20:19:46  florian
     * fixed some spilling stuff
     + not(<int64>) implemented
     + small set comparisations implemented

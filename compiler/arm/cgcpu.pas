@@ -369,24 +369,17 @@ unit cgcpu;
                if dst=src2 then
                  begin
                    if dst<>src1 then
-                     begin
-                       rg[R_INTREGISTER].add_edge(getsupreg(dst),getsupreg(src1));
-                       list.concat(taicpu.op_reg_reg_reg(A_MUL,dst,src1,src2));
-                     end
+                     list.concat(taicpu.op_reg_reg_reg(A_MUL,dst,src1,src2))
                    else
                      begin
                        tmpreg:=getintregister(list,size);
                        a_load_reg_reg(list,size,size,src2,dst);
-                       rg[R_INTREGISTER].add_edge(getsupreg(dst),getsupreg(tmpreg));
                        ungetregister(list,tmpreg);
                        list.concat(taicpu.op_reg_reg_reg(A_MUL,dst,tmpreg,src1));
                      end;
                  end
                else
-                 begin
-                   rg[R_INTREGISTER].add_edge(getsupreg(dst),getsupreg(src2));
-                   list.concat(taicpu.op_reg_reg_reg(A_MUL,dst,src2,src1));
-                 end;
+                 list.concat(taicpu.op_reg_reg_reg(A_MUL,dst,src2,src1));
              end;
            else
              list.concat(setoppostfix(taicpu.op_reg_reg_reg(op_reg_reg_opcg2asmop[op],dst,src2,src1),toppostfix(ord(setflags)*ord(PF_S))));
@@ -718,7 +711,7 @@ unit cgcpu;
        end;
 
 
-     {  comparison operations }
+    {  comparison operations }
     procedure tcgarm.a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
       l : tasmlabel);
       var
@@ -749,20 +742,20 @@ unit cgcpu;
       end;
 
 
-     procedure tcgarm.a_jmp_always(list : taasmoutput;l: tasmlabel);
-       begin
-         list.concat(taicpu.op_sym(A_B,objectlibrary.newasmsymbol(l.name)));
-       end;
+    procedure tcgarm.a_jmp_always(list : taasmoutput;l: tasmlabel);
+      begin
+        list.concat(taicpu.op_sym(A_B,objectlibrary.newasmsymbol(l.name)));
+      end;
 
 
-     procedure tcgarm.a_jmp_flags(list : taasmoutput;const f : TResFlags;l: tasmlabel);
-       var
-         ai : taicpu;
-       begin
-         ai:=setcondition(taicpu.op_sym(A_B,l),flags_to_cond(f));
-         ai.is_jmp:=true;
-         list.concat(ai);
-       end;
+    procedure tcgarm.a_jmp_flags(list : taasmoutput;const f : TResFlags;l: tasmlabel);
+      var
+        ai : taicpu;
+      begin
+        ai:=setcondition(taicpu.op_sym(A_B,l),flags_to_cond(f));
+        ai.is_jmp:=true;
+        list.concat(ai);
+      end;
 
 
     procedure tcgarm.g_flags2reg(list: taasmoutput; size: TCgSize; const f: TResFlags; reg: TRegister);
@@ -1228,7 +1221,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2004-01-24 20:19:46  florian
+  Revision 1.40  2004-01-26 19:05:56  florian
+    * fixed several arm issues
+
+  Revision 1.39  2004/01/24 20:19:46  florian
     * fixed some spilling stuff
     + not(<int64>) implemented
     + small set comparisations implemented

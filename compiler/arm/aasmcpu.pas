@@ -95,7 +95,7 @@ uses
 implementation
 
   uses
-    cutils,rgobj;
+    cutils,rgobj,itcpugas;
 
 
     procedure taicpu.loadshifterop(opidx:longint;const so:tshifterop);
@@ -313,13 +313,13 @@ implementation
 
     function taicpu.spilling_create_load(const ref:treference;r:tregister): tai;
       begin
-        result:=taicpu.op_reg_ref(A_LDR,r,ref);
+        internalerror(200401261);
       end;
 
 
     function taicpu.spilling_create_store(r:tregister; const ref:treference): tai;
       begin
-        result:=taicpu.op_reg_ref(A_STR,r,ref);
+        internalerror(200401262);
       end;
 
 
@@ -427,7 +427,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  2004-01-24 20:19:46  florian
+  Revision 1.25  2004-01-26 19:05:56  florian
+    * fixed several arm issues
+
+  Revision 1.24  2004/01/24 20:19:46  florian
     * fixed some spilling stuff
     + not(<int64>) implemented
     + small set comparisations implemented
