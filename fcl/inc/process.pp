@@ -64,10 +64,6 @@ Const
   STARTF_USEHOTKEY        = $200; // Ignored
 
 Type
-
-  DWord = Longword;
-  THandle = Integer;
-
   PProcessInformation = ^TProcessInformation;
   TProcessInformation = record
     hProcess: THandle;
@@ -903,7 +899,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2001-12-14 07:53:32  michael
+  Revision 1.11  2001-12-15 19:53:37  michael
+  + Removed DWord and THandle
+
+  Revision 1.10  2001/12/14 07:53:32  michael
     - Removed trect as well.
 
   Revision 1.9  2001/12/13 18:34:59  michael
