@@ -461,10 +461,31 @@ Begin
    begin
      Oflags:=Oflags and not(Open_RDWR);
      FileRec(f).Handle:=sys_open(p,oflags,438);
-   end;     
+   end;
+
   Errno2Inoutres;
 {$endif}
 End;
+
+
+Function Do_IsDevice(Handle:Longint):boolean;
+{
+  Interface to Unix ioctl call.
+  Performs various operations on the filedescriptor Handle.
+  Ndx describes the operation to perform.
+  Data points to data needed for the Ndx function. The structure of this
+  data is function-dependent.
+}
+var
+  sr: SysCallRegs;
+  Data : array[0..255] of byte; {Large enough for termios info}
+begin
+  sr.reg2:=Handle;
+  sr.reg3:=$5401; {=TCGETS}
+  sr.reg4:=Longint(@Data);
+  Do_IsDevice:=(SysCall(Syscall_nr_ioctl,sr)=0);
+end;
+
 
 {*****************************************************************************
                            UnTyped File Handling
@@ -639,34 +660,23 @@ begin
 end;
 
 
-procedure OpenStdIO(var f:text;mode:word;const std:string;hdl:longint);
-begin
-  Assign(f,std);
-  TextRec(f).Handle:=hdl;
-  TextRec(f).Mode:=mode;
-  TextRec(f).InOutFunc:=@FileInOutFunc;
-  TextRec(f).FlushFunc:=@FileInOutFunc;
-  TextRec(f).Closefunc:=@fileclosefunc;
-end;
-
-
 Begin
 { Set up segfault Handler }
   InstallSegFaultHandler;
 { Setup heap }
   InitHeap;
 { Setup stdin, stdout and stderr }
-  OpenStdIO(Input,fmInput,'stdin',StdInputHandle);
-  OpenStdIO(Output,fmOutput,'stdout',StdOutputHandle);
-  OpenStdIO(StdErr,fmOutput,'stderr',StdErrorHandle);
+  OpenStdIO(Input,fmInput,StdInputHandle);
+  OpenStdIO(Output,fmOutput,StdOutputHandle);
+  OpenStdIO(StdErr,fmOutput,StdErrorHandle);
 { Reset IO Error }
   InOutRes:=0;
 End.
 
 {
   $Log$
-  Revision 1.5  1998-06-23 16:57:17  peter
-    * fixed the filesize() problems under linux and filerec.size=0 error
+  Revision 1.6  1998-07-01 15:30:01  peter
+    * better readln/writeln
 
   Revision 1.4  1998/05/30 14:18:43  peter
     * fixed to remake with -Rintel in the ppc386.cfg

@@ -168,7 +168,7 @@ _is_not_lowest:
 {$endif SYSTEMDEBUG}
         movl    __stkbottom,%ebx
         cmpl    %eax,%ebx
-		jae     __short_on_stack
+        jae     __short_on_stack
         popl    %ebx
         popl    %eax
         leave
@@ -244,7 +244,7 @@ end;
               movw dseg,%ax
               movw %ax,%es
               movw sseg,%ax
-			  movw %ax,%ds
+              movw %ax,%ds
               movl %ecx,%eax
               shrl $2,%ecx
               rep
@@ -282,7 +282,7 @@ end;
               rep
               movsb
               incl %esi
-			  incl %edi
+              incl %edi
            .LSEG_MOVE1:
               subl $4,%esi
               subl $4,%edi
@@ -316,11 +316,11 @@ end;
 procedure setup_arguments;
 type  arrayword = array [0..0] of word;
 var psp : word;
-	i,j : byte;
-	quote : char;
-	proxy_s : string[7];
-	tempargv : ppchar;
-	al,proxy_argc,proxy_seg,proxy_ofs,lin : longint;
+    i,j : byte;
+    quote : char;
+    proxy_s : string[7];
+    tempargv : ppchar;
+    al,proxy_argc,proxy_seg,proxy_ofs,lin : longint;
     largs : array[0..127] of pchar;
     rm_argv : ^arrayword;
 begin
@@ -342,7 +342,7 @@ for i:=1 to length(doscmd) do
     quote := #0;
     doscmd[i] := #0;
     largs[argc]:=@doscmd[j];
-	inc(argc);
+    inc(argc);
     j := i+1;
     end else
   if (quote = #0) and ((doscmd[i] = '''') or (doscmd[i]='"')) then
@@ -380,7 +380,7 @@ if (argc > 1) and (far_strlen(get_ds,longint(largs[1])) = 6)  then
     Writeln('proxy command line ');
 {$EndIf SYSTEMDEBUG}
     proxy_argc := atohex(largs[2]);
-	proxy_seg  := atohex(largs[3]);
+    proxy_seg  := atohex(largs[3]);
     proxy_ofs := atohex(largs[4]);
     getmem(rm_argv,proxy_argc*sizeof(word));
     sysseg_move(dos_selector,proxy_seg*16+proxy_ofs, get_ds,longint(rm_argv),proxy_argc*sizeof(word));
@@ -418,7 +418,7 @@ function strcopy(dest,source : pchar) : pchar;
             movl 12(%ebp),%edi
             movl $0xffffffff,%ecx
             xorb %al,%al
-			repne
+            repne
             scasb
             not %ecx
             movl 8(%ebp),%edi
@@ -494,7 +494,7 @@ end;
      begin
         if len > tb_size then runerror(217);
         sysseg_move(dos_selector,tb,get_ds,addr,len);
-	 end;
+     end;
 
     procedure sysrealintr(intnr : word;var regs : trealregs);
 
@@ -653,24 +653,24 @@ begin
   writesize:=0;
   while len > 0 do
    begin
-	 if len>tb_size then
-	  size:=tb_size
-	 else
-	  size:=len;
-	 syscopytodos(addr+writesize,size);
-	 regs.realecx:=size;
-	 regs.realedx:=tb and 15;
-	 regs.realds:=tb shr 4;
-	 regs.realebx:=h;
-	 regs.realeax:=$4000;
-	 sysrealintr($21,regs);
-	 if (regs.realflags and carryflag) <> 0 then
-	  begin
-		InOutRes:=lo(regs.realeax);
-		exit(writesize);
-	  end;
-	 len:=len-size;
-	 writesize:=writesize+size;
+     if len>tb_size then
+      size:=tb_size
+     else
+      size:=len;
+     syscopytodos(addr+writesize,size);
+     regs.realecx:=size;
+     regs.realedx:=tb and 15;
+     regs.realds:=tb shr 4;
+     regs.realebx:=h;
+     regs.realeax:=$4000;
+     sysrealintr($21,regs);
+     if (regs.realflags and carryflag) <> 0 then
+      begin
+        InOutRes:=lo(regs.realeax);
+        exit(writesize);
+      end;
+     len:=len-size;
+     writesize:=writesize+size;
    end;
   Do_Write:=WriteSize
 end;
@@ -702,7 +702,7 @@ begin
         exit;
       end
      else
-	  if regs.realeax<size then
+      if regs.realeax<size then
        begin
          syscopyfromdos(addr+readsize,regs.realeax);
          do_read:=readsize+regs.realeax;
@@ -816,7 +816,7 @@ begin
       fminput,fmoutput,fminout : Do_Close(filerec(f).handle);
       fmclosed : ;
      else
-	  begin
+      begin
         inoutres:=102; {not assigned}
         exit;
       end;
@@ -865,8 +865,8 @@ begin
   sysrealintr($21,regs);
   if (regs.realflags and carryflag) <> 0 then
    begin
-	 InOutRes:=lo(regs.realeax);
-	 exit;
+     InOutRes:=lo(regs.realeax);
+     exit;
    end
   else
    filerec(f).handle:=regs.realeax;
@@ -881,19 +881,33 @@ begin
 { append mode }
   if (flags and $10)<>0 then
    begin
-	 do_seekend(filerec(f).handle);
-	 filerec(f).mode:=fmoutput; {fool fmappend}
+     do_seekend(filerec(f).handle);
+     filerec(f).mode:=fmoutput; {fool fmappend}
    end;
 end;
 
+
+function do_isdevice(handle:longint):boolean;
+var
+  regs : trealregs;
+begin
+  regs.realebx:=handle;
+  regs.realeax:=$4400;
+  sysrealintr($21,regs);
+  do_isdevice:=(regs.realedx and $80)<>0;
+  if (regs.realflags and carryflag) <> 0 then
+   InOutRes:=lo(regs.realeax);
+end;
+
+
 {*****************************************************************************
-						   UnTyped File Handling
+                           UnTyped File Handling
 *****************************************************************************}
 
 {$i file.inc}
 
 {*****************************************************************************
-						   Typed File Handling
+                           Typed File Handling
 *****************************************************************************}
 
 {$i typefile.inc}
@@ -969,8 +983,8 @@ begin
   sysrealintr($21,regs);
   if (regs.realflags and carryflag) <> 0 then
    Begin
-	 InOutRes:=lo(regs.realeax);
-	 exit;
+     InOutRes:=lo(regs.realeax);
+     exit;
    end
   else
    syscopyfromdos(longint(@temp),251);
@@ -978,10 +992,10 @@ begin
   i:=0;
   while (temp[i]<>#0) do
    begin
-	 if temp[i]='/' then
-	  temp[i]:='\';
-	 dir[i+4]:=temp[i];
-	 inc(i);
+     if temp[i]='/' then
+      temp[i]:='\';
+     dir[i+4]:=temp[i];
+     inc(i);
    end;
   dir[2]:=':';
   dir[3]:='\';
@@ -994,16 +1008,16 @@ begin
    begin
    { We need to get the current drive from DOS function 19H  }
    { because the drive was the default, which can be unknown }
-	 regs.realeax:=$1900;
-	 sysrealintr($21,regs);
-	 i:= (regs.realeax and $ff) + ord('A');
-	 dir[1]:=chr(i);
+     regs.realeax:=$1900;
+     sysrealintr($21,regs);
+     i:= (regs.realeax and $ff) + ord('A');
+     dir[1]:=chr(i);
    end;
 end;
 
 
 {*****************************************************************************
-						 SystemUnit Initialization
+                         SystemUnit Initialization
 *****************************************************************************}
 
 {$ifndef RTLLITE}
@@ -1018,20 +1032,7 @@ end;
 {$endif RTLLITE}
 
 
-procedure OpenStdIO(var f:text;mode:word;hdl:longint);
-begin
-  Assign(f,'');
-  TextRec(f).Handle:=hdl;
-  TextRec(f).Mode:=mode;
-  TextRec(f).InOutFunc:=@FileInOutFunc;
-  TextRec(f).FlushFunc:=@FileInOutFunc;
-  TextRec(f).Closefunc:=@fileclosefunc;
-end;
-
-
 Begin
-{ Initialize ExitProc }
-  ExitProc:=Nil;
 { to test stack depth }
   loweststack:=maxlongint;
 { Setup heap }
@@ -1050,7 +1051,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.8  1998-06-26 08:19:10  pierre
+  Revision 1.9  1998-07-01 15:29:57  peter
+    * better readln/writeln
+
+  Revision 1.8  1998/06/26 08:19:10  pierre
     + all debug in ifdef SYSTEMDEBUG
     + added local arrays :
       opennames names of opened files
@@ -1059,7 +1063,6 @@ End.
       many open files !!
 
   Revision 1.7  1998/06/15 15:17:08  daniel
-
   * RTLLITE conditional added to produce smaller RTL.
 
   Revision 1.6  1998/05/31 14:18:29  peter

@@ -687,6 +687,7 @@ end ['EAX'];
          end;
       end;
 
+{$IFNDEF NEW_READWRITE}
     procedure f1;[public,alias: 'FLUSH_STDOUT'];
 
       begin
@@ -698,6 +699,7 @@ end ['EAX'];
             popal
          end;
       end;
+{$ENDIF NEW_READWRITE}
 
 
 Function Sptr : Longint;
@@ -728,7 +730,10 @@ end;
 
 {
   $Log$
-  Revision 1.13  1998-06-26 08:20:57  daniel
+  Revision 1.14  1998-07-01 15:29:58  peter
+    * better readln/writeln
+
+  Revision 1.13  1998/06/26 08:20:57  daniel
   - Doerror removed.
 
   Revision 1.12  1998/05/31 14:15:47  peter

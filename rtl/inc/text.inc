@@ -1,4 +1,5 @@
-{    $Id$
+{
+    $Id$
     This file is part of the Free Pascal Run time library.
     Copyright (c) 1993,97 by the Free Pascal development team
 
@@ -35,42 +36,54 @@ Begin
 End;
 
 
-Procedure FileInOutFunc(var t:TextRec);
+Procedure FileReadFunc(var t:TextRec);
 Begin
-  Case t.mode Of
-   fmoutput : Do_Write(t.Handle,Longint(t.Bufptr),t.BufPos);
-    fminput : t.BufEnd:=Do_Read(t.Handle,Longint(t.Bufptr),t.BufSize);
-  else
-   RunError(102);
-  End;
+  t.BufEnd:=Do_Read(t.Handle,Longint(t.Bufptr),t.BufSize);
   t.BufPos:=0;
 End;
+
+
+Procedure FileWriteFunc(var t:TextRec);
+Begin
+  Do_Write(t.Handle,Longint(t.Bufptr),t.BufPos);
+  t.BufPos:=0;
+End;
+
 
 
 Procedure FileOpenFunc(var t:TextRec);
 var
   Flags : Longint;
 Begin
-  t.InOutFunc:=@FileInOutFunc;
-  t.FlushFunc:=@FileInOutFunc;
-  t.CloseFunc:=@FileCloseFunc;
   Case t.mode Of
     fmInput : Flags:=$1000;
    fmOutput : Flags:=$1101;
    fmAppend : Flags:=$1011;
+  else
+   RunError(102);
   End;
-  Do_Open(t,PChar(@TextRec(t).Name),Flags);
+  Do_Open(t,PChar(@t.Name),Flags);
+  t.CloseFunc:=@FileCloseFunc;
+  t.FlushFunc:=nil;
+  if t.Mode=fmInput then
+   t.InOutFunc:=@FileReadFunc
+  else
+   begin
+     t.InOutFunc:=@FileWriteFunc;
+   { Only install flushing if its a NOT a file }
+     if Do_Isdevice(t.Handle) then
+      t.FlushFunc:=@FileWriteFunc;
+   end;
 End;
 
 
 Procedure assign(var t:Text;const s:String);
 Begin
   FillChar(t,SizEof(TextRec),0);
+{ only set things that are not zero }
   TextRec(t).Handle:=UnusedHandle;
   TextRec(t).mode:=fmClosed;
   TextRec(t).BufSize:=128;
-  TextRec(t).Bufpos:=0;
-  TextRec(T).Bufend:=0;
   TextRec(t).Bufptr:=@TextRec(t).Buffer;
   TextRec(t).OpenFunc:=@FileOpenFunc;
   Move(s[1],TextRec(t).Name,Length(s));
@@ -93,9 +106,10 @@ Procedure Close(var t : Text);[Public,Alias: 'CLOSE_TEXT',IOCheck];
 Begin
   If (TextRec(t).mode<>fmClosed) Then
    Begin
-     FileFunc(TextRec(t).FlushFunc)(TextRec(t));
+   { Write pending buffer }
+     FileFunc(TextRec(t).InOutFunc)(TextRec(t));
      TextRec(t).mode:=fmClosed;
-     { Only close functions not connected to stdout.}
+   { Only close functions not connected to stdout.}
      If ((TextRec(t).Handle<>StdInputHandle) or
          (TextRec(t).Handle<>StdOutputHandle) or
          (TextRec(t).Handle<>StdErrorHandle)) Then
@@ -116,15 +130,7 @@ Begin
    End;
   End;
   TextRec(t).mode:=word(mode);
-{  If TextRec(t).Name[0]<>#0 Then }
-   FileFunc(TextRec(t).OpenFunc)(TextRec(t))
-{  else
-   Begin
-     TextRec(t).Handle:=defHdl;
-     TextRec(t).InOutFunc:=@FileInOutFunc;
-     TextRec(t).FlushFunc:=@FileInOutFunc;
-     TextRec(t).CloseFunc:=@FileCloseFunc;
-   End; }
+  FileFunc(TextRec(t).OpenFunc)(TextRec(t))
 End;
 
 
@@ -150,7 +156,9 @@ Procedure Flush(var t : Text);[IOCheck];
 Begin
   If TextRec(t).mode<>fmOutput Then
    exit;
-  FileFunc(TextRec(t).FlushFunc)(TextRec(t));
+{ Not the flushfunc but the inoutfunc should be used, becuase that
+  writes the data, flushfunc doesn't need to be assigned }
+  FileFunc(TextRec(t).InOutFunc)(TextRec(t));
 End;
 
 
@@ -342,101 +350,120 @@ End;
                                Write(Ln)
 *****************************************************************************}
 
-Procedure w(Len : Longint;var f : TextRec;var s : String);[Public,Alias: 'WRITE_TEXT_STRING'];
+Procedure WriteBuffer(var f:TextRec;var b;len:longint);
 var
-  hbytes,Pos,copybytes : Longint;
-  hs : String;
+  p   : pchar;
+  left,
+  idx : longint;
+begin
+  p:=pchar(@b);
+  idx:=0;
+  left:=f.BufSize-f.BufPos;
+  while len>left do
+   begin
+     move(p[idx],f.Bufptr^[f.BufPos],left);
+     dec(len,left);
+     inc(idx,left);
+     inc(f.BufPos,left);
+     FileFunc(f.InOutFunc)(f);
+     left:=f.BufSize-f.BufPos;
+   end;
+  move(p[idx],f.Bufptr^[f.BufPos],len);
+  inc(f.BufPos,len);
+end;
+
+
+Procedure WriteBlanks(var f:TextRec;len:longint);
+var
+  left : longint;
+begin
+  left:=f.BufSize-f.BufPos;
+  while len>left do
+   begin
+     FillChar(f.Bufptr^[f.BufPos],left,' ');
+     dec(len,left);
+     inc(f.BufPos,left);
+     FileFunc(f.InOutFunc)(f);
+     left:=f.BufSize-f.BufPos;
+   end;
+  FillChar(f.Bufptr^[f.BufPos],len,' ');
+  inc(f.BufPos,len);
+end;
+
+
+Procedure Write_End(var f:TextRec);[Public,Alias:'WRITE_END'];
+begin
+  if f.FlushFunc<>nil then
+   FileFunc(f.FlushFunc)(f);
+end;
+
+
+Procedure Writeln_End(var f:TextRec);[Public,Alias:'WRITELN_END'];
+const
+{$IFDEF SHORT_LINEBREAK}
+  eollen=1;
+  eol : array[0..0] of char=(#10);
+{$ELSE SHORT_LINEBREAK}
+  eollen=2;
+  eol : array[0..1] of char=(#13,#10);
+{$ENDIF SHORT_LINEBREAK}
+begin
+{ Write EOL }
+  WriteBuffer(f,eol,eollen);
+{ Flush }
+  if f.FlushFunc<>nil then
+   FileFunc(f.FlushFunc)(f);
+end;
+
+
+Procedure Write_Str(Len : Longint;var f : TextRec;const s : String);[Public,Alias: 'WRITE_TEXT_STRING'];
 Begin
   If f.mode<>fmOutput Then
    exit;
-  copybytes:=Length(s);
-  If Len>copybytes Then
-   Begin
-     hs:=Space(Len-copybytes);
-     w(0,f,hs);
-   End;
-  Pos:=1;
-  hbytes:=f.BufSize-f.BufPos;
-  { If no room in Buffer, do a flush. }
-  If hbytes=0 Then
-   FileFunc(f.FlushFunc)(f);
-  while copybytes>hbytes Do
-   Begin
-     Move(s[Pos],f.Bufptr^[f.BufPos],hbytes);
-     f.BufPos:=f.BufPos+hbytes;
-     copybytes:=copybytes-hbytes;
-     pos:=pos+hbytes;
-     FileFunc(f.InOutFunc)(f);
-     hbytes:=f.BufSize-f.BufPos;
-   End;
-  Move(s[Pos],f.Bufptr^[f.BufPos],copybytes);
-  f.BufPos:=f.BufPos+copybytes;
-End;
-
-
-Procedure w(var t : TextRec);[Public,Alias: 'WRITELN_TEXT'];
-var
-  hs : String;
-Begin
-{$IFDEF SHORT_LINEBREAK}
-  hs:=#10;
-{$ELSE}
-  hs:=#13#10;
-{$ENDIF}
-  w(0,t,hs);
+  If Len>Length(s) Then
+   WriteBlanks(f,Len-Length(s));
+  WriteBuffer(f,s[1],Length(s));
 End;
 
 
 Type
    array00 = array[0..0] Of Char;
-Procedure w(Len : Longint;var f : TextRec;const p : array00);[Public,Alias: 'WRITE_TEXT_PCHAR_AS_ARRAY'];
+Procedure Write_Array(Len : Longint;var f : TextRec;const p : array00);[Public,Alias: 'WRITE_TEXT_PCHAR_AS_ARRAY'];
 var
-  hbytes,Pos,copybytes : Longint;
-  hs : String;
+  ArrayLen : longint;
 Begin
   If f.mode<>fmOutput Then
    exit;
-  copybytes:=StrLen(p);
-  If Len>copybytes Then
-   Begin
-     hs:=Space(Len-copybytes);
-     w(0,f,hs);
-   End;
-  Pos:=0;
-  hbytes:=f.BufSize-f.BufPos;
-  { If no room in buffer , do a flush. }
-  If hbytes=0 Then
-    FileFunc(f.FlushFunc)(f);
-  while copybytes>hbytes Do
-   Begin
-     Move(p[Pos],f.Bufptr^[f.BufPos],hbytes);
-     f.BufPos:=f.BufPos+hbytes;
-     copybytes:=copybytes-hbytes;
-     pos:=pos+hbytes;
-     FileFunc(f.InOutFunc)(f);
-     hbytes:=f.BufSize-f.BufPos;
-   End;
-  Move(p[Pos],f.Bufptr^[f.BufPos],copybytes);
-  f.BufPos:=f.BufPos+copybytes;
+  ArrayLen:=StrLen(p);
+  If Len>ArrayLen Then
+   WriteBlanks(f,Len-ArrayLen);
+  WriteBuffer(f,p,ArrayLen);
 End;
 
 
-Procedure wa(Len : Longint;var f : TextRec;p : PChar);[Public,Alias: 'WRITE_TEXT_PCHAR_AS_POINTER'];
+Procedure Write_PChar(Len : Longint;var f : TextRec;p : PChar);[Public,Alias: 'WRITE_TEXT_PCHAR_AS_POINTER'];
+var
+  PCharLen : longint;
 Begin
-  w(Len,f,p);
+  If f.mode<>fmOutput Then
+   exit;
+  PCharLen:=StrLen(p);
+  If Len>PCharLen Then
+   WriteBlanks(f,Len-PCharLen);
+  WriteBuffer(f,p^,PCharLen);
 End;
 
 
-Procedure w(Len : Longint;var t : TextRec;l : Longint);[Public,Alias: 'WRITE_TEXT_LONGINT'];
+Procedure Write_LongInt(Len : Longint;var t : TextRec;l : Longint);[Public,Alias: 'WRITE_TEXT_LONGINT'];
 var
   s : String;
 Begin
   Str(l,s);
-  w(Len,t,s);
+  Write_Str(Len,t,s);
 End;
 
 
-Procedure w(fixkomma,Len : Longint;var t : TextRec;r : real);[Public,Alias: 'WRITE_TEXT_REAL'];
+Procedure Write_Real(fixkomma,Len : Longint;var t : TextRec;r : real);[Public,Alias: 'WRITE_TEXT_REAL'];
 var
    s : String;
 Begin
@@ -445,86 +472,95 @@ Begin
 {$else}
    Str_real(Len,fixkomma,r,rt_s32real,s);
 {$endif}
-   w(Len,t,s);
+   Write_Str(Len,t,s);
 End;
 
 
-Procedure w(Len : Longint;var t : TextRec;l : cardinal);[Public,Alias: 'WRITE_TEXT_CARDINAL'];
+Procedure Write_Cardinal(Len : Longint;var t : TextRec;l : cardinal);[Public,Alias: 'WRITE_TEXT_CARDINAL'];
 var
   s : String;
 Begin
   Str(L,s);
-  w(Len,t,s);
+  Write_Str(Len,t,s);
 End;
 
 
-Procedure w(fixkomma,Len : Longint;var t : TextRec;r : single);[Public,Alias: 'WRITE_TEXT_SINGLE'];
+Procedure Write_Single(fixkomma,Len : Longint;var t : TextRec;r : single);[Public,Alias: 'WRITE_TEXT_SINGLE'];
 var
   s : String;
 Begin
   Str_real(Len,fixkomma,r,rt_s32real,s);
-  w(Len,t,s);
+  Write_Str(Len,t,s);
 End;
 
 
 {$ifdef SUPPORT_EXTENDED}
-Procedure w(fixkomma,Len : Longint;var t : TextRec;r : extended);[Public,Alias: 'WRITE_TEXT_EXTENDED'];
+Procedure Write_Extended(fixkomma,Len : Longint;var t : TextRec;r : extended);[Public,Alias: 'WRITE_TEXT_EXTENDED'];
 var
   s : String;
 Begin
   Str_real(Len,fixkomma,r,rt_s80real,s);
-  w(Len,t,s);
+  Write_Str(Len,t,s);
 End;
 {$endif SUPPORT_EXTENDED}
 
 
 {$ifdef SUPPORT_COMP}
-Procedure w(fixkomma,Len : Longint;var t : TextRec;r : comp);[Public,Alias: 'WRITE_TEXT_COMP'];
+Procedure Write_Comp(fixkomma,Len : Longint;var t : TextRec;r : comp);[Public,Alias: 'WRITE_TEXT_COMP'];
 var
   s : String;
 Begin
   Str_real(Len,fixkomma,r,rt_s64bit,s);
-  w(Len,t,s);
+  Write_Str(Len,t,s);
 End;
 {$endif SUPPORT_COMP}
 
-Procedure w(fixkomma,Len : Longint;var t : TextRec;r : fixed);[Public,Alias: 'WRITE_TEXT_FIXED'];
+
+Procedure Write_Fixed(fixkomma,Len : Longint;var t : TextRec;r : fixed);[Public,Alias: 'WRITE_TEXT_FIXED'];
 var
   s : String;
 Begin
   Str_real(Len,fixkomma,r,rt_f32bit,s);
-  w(Len,t,s);
+  Write_Str(Len,t,s);
 End;
 
 
-{ Is called wc to avoid recursive calling. }
-Procedure wc(Len : Longint;var t : TextRec;b : Boolean);[Public,Alias: 'WRITE_TEXT_BOOLEAN'];
-const
-  BoolString:array[0..1] Of String[5]=('FALSE','TRUE');
+Procedure Write_Boolean(Len : Longint;var t : TextRec;b : Boolean);[Public,Alias: 'WRITE_TEXT_BOOLEAN'];
 Begin
-   if b then
-     w(Len,t,String(BoolString[1]))
-   else
-     w(Len,t,String(BoolString[0]));
+{ Can't use array[boolean] because b can be >0 ! }
+  if b then
+    Write_Str(Len,t,'TRUE')
+  else
+    Write_Str(Len,t,'FALSE');
 End;
 
 
-Procedure wc(Len : Longint;var t : TextRec;c : Char);[Public,Alias: 'WRITE_TEXT_CHAR'];
-var
-   hs : String;
+Procedure Write_Char(Len : Longint;var t : TextRec;c : Char);[Public,Alias: 'WRITE_TEXT_CHAR'];
 Begin
   If t.mode<>fmOutput Then
    exit;
   If Len>1 Then
-   Begin
-     hs:=Space(Len-1);
-     w(0,t,hs);
-   End;
+   WriteBlanks(t,Len-1);
   If t.BufPos+1>=t.BufSize Then
-   FileFunc(t.FlushFunc)(t);
+   FileFunc(t.InOutFunc)(t);
   t.Bufptr^[t.BufPos]:=c;
   Inc(t.BufPos);
 End;
+
+
+{$IFNDEF NEW_READWRITE}
+Procedure w(var t : TextRec);[Public,Alias: 'WRITELN_TEXT'];
+var
+  hs : String;
+Begin
+  {$IFDEF SHORT_LINEBREAK}
+   hs:=#10;
+  {$ELSE}
+   hs:=#13#10;
+  {$ENDIF}
+  Write_Str(0,t,hs);
+End;
+{$ENDIF NEW_READWRITE}
 
 
 {*****************************************************************************
@@ -624,10 +660,18 @@ begin
 end;
 
 
-Procedure r(var f : TextRec);[Public,Alias: 'READLN_TEXT'];
+Procedure Read_End(var f:TextRec);[Public,Alias:'READ_END'];
+begin
+  if f.FlushFunc<>nil then
+   FileFunc(f.FlushFunc)(f);
+end;
+
+
+Procedure ReadLn_End(var f : TextRec);[Public,Alias: 'READLN_END'];
 Begin
   if not OpenInput(f) then
    exit;
+{ Read until a linebreak }
   while (f.BufPos<f.BufEnd) do
    begin
      inc(f.BufPos);
@@ -636,10 +680,13 @@ Begin
      If f.BufPos>=f.BufEnd Then
       FileFunc(f.InOutFunc)(f);
    end;
+{ Flush if set }
+  if f.FlushFunc<>nil then
+   FileFunc(f.FlushFunc)(f);
 End;
 
 
-Procedure r(var f : TextRec;var s : String);[Public,Alias: 'READ_TEXT_STRING'];
+Procedure Read_String(var f : TextRec;var s : String);[Public,Alias: 'READ_TEXT_STRING'];
 var
   Temp,sPos : Word;
 Begin
@@ -659,6 +706,7 @@ Begin
       Begin
         Move (f.Bufptr^[f.BufPos],s[sPos],Temp-f.BufPos);
         sPos:=sPos+Temp-f.BufPos;
+      { Remove #13 from a #13#10 break }
         If s[sPos-1]=#13 Then
          dec(sPos);
       End
@@ -680,7 +728,7 @@ Begin
 End;
 
 
-Procedure r(var f : TextRec;var c : Char);[Public,Alias: 'READ_TEXT_CHAR'];
+Procedure Read_Char(var f : TextRec;var c : Char);[Public,Alias: 'READ_TEXT_CHAR'];
 Begin
   c:=#0;
   if not OpenInput(f) then
@@ -693,7 +741,7 @@ Begin
 End;
 
 
-Procedure r(var f : TextRec;var s : PChar);[Public,Alias:'READ_TEXT_PCHAR_AS_POINTER'];
+Procedure Read_PChar(var f : TextRec;var s : PChar);[Public,Alias:'READ_TEXT_PCHAR_AS_POINTER'];
 var
   p    : PChar;
   Temp : byte;
@@ -711,7 +759,7 @@ Begin
       inc(Temp);
      { copy string. }
      Move (f.Bufptr^[f.BufPos],p^,Temp-f.BufPos);
-     longint(p):=longint(p)+(temp-f.bufpos);
+     Inc(Longint(p),Temp-f.BufPos);
      If pchar(p-1)^=#13 Then
       dec(p);
      { update f.BufPos }
@@ -726,7 +774,7 @@ Begin
 End;
 
 
-Procedure r(var f : TextRec;var s : array00);[Public,Alias:'READ_TEXT_PCHAR_AS_ARRAY'];
+Procedure Read_Array(var f : TextRec;var s : array00);[Public,Alias:'READ_TEXT_PCHAR_AS_ARRAY'];
 var
   p    : PChar;
   Temp : byte;
@@ -744,7 +792,7 @@ Begin
       inc(Temp);
      { copy string. }
      Move (f.Bufptr^[f.BufPos],p^,Temp-f.BufPos);
-     longint(p):=longint(p)+(temp-f.bufpos);
+     Inc(Longint(p),Temp-f.BufPos);
      If pchar(p-1)^=#13 Then
       dec(p);
      { update f.BufPos }
@@ -759,7 +807,7 @@ Begin
 End;
 
 
-Procedure r(var f : TextRec;var l : Longint);[Public,Alias: 'READ_TEXT_LONGINT'];
+Procedure Read_Longint(var f : TextRec;var l : Longint);[Public,Alias: 'READ_TEXT_LONGINT'];
 var
   hs   : String;
   code : Word;
@@ -777,11 +825,11 @@ Begin
 End;
 
 
-Procedure r(var f : TextRec;var l : Integer);[Public,Alias: 'READ_TEXT_INTEGER'];
+Procedure Read_Integer(var f : TextRec;var l : Integer);[Public,Alias: 'READ_TEXT_INTEGER'];
 var
   ll : Longint;
 Begin
-  r(f,ll);
+  Read_Longint(f,ll);
   l:=0;
   If (ll<-32768) or (ll>32767) Then
    RunError(106);
@@ -789,11 +837,11 @@ Begin
 End;
 
 
-Procedure r(var f : TextRec;var l : Word);[Public,Alias: 'READ_TEXT_WORD'];
+Procedure Read_Word(var f : TextRec;var l : Word);[Public,Alias: 'READ_TEXT_WORD'];
 var
   ll : Longint;
 Begin
-  r(f,ll);
+  Read_Longint(f,ll);
   l:=0;
   If (ll<0) or (ll>$ffff) Then
    RunError(106);
@@ -801,11 +849,11 @@ Begin
 End;
 
 
-Procedure r(var f : TextRec;var l : byte);[Public,Alias: 'READ_TEXT_BYTE'];
+Procedure Read_Byte(var f : TextRec;var l : byte);[Public,Alias: 'READ_TEXT_BYTE'];
 var
   ll : Longint;
 Begin
-  r(f,ll);
+  Read_Longint(f,ll);
   l:=0;
   If (ll<0) or (ll>255) Then
    RunError(106);
@@ -813,11 +861,11 @@ Begin
 End;
 
 
-Procedure r(var f : TextRec;var l : shortint);[Public,Alias: 'READ_TEXT_SHORTINT'];
+Procedure Read_Shortint(var f : TextRec;var l : shortint);[Public,Alias: 'READ_TEXT_SHORTINT'];
 var
    ll : Longint;
 Begin
-  r(f,ll);
+  Read_Longint(f,ll);
   l:=0;
   If (ll<-128) or (ll>127) Then
    RunError(106);
@@ -825,7 +873,7 @@ Begin
 End;
 
 
-Procedure r(var f : TextRec;var l : cardinal);[Public,Alias: 'READ_TEXT_CARDINAL'];
+Procedure Read_Cardinal(var f : TextRec;var l : cardinal);[Public,Alias: 'READ_TEXT_CARDINAL'];
 var
   hs   : String;
   code : Word;
@@ -843,7 +891,7 @@ Begin
 End;
 
 
-Procedure r(var f : TextRec;var d : Real);[Public,Alias: 'READ_TEXT_REAL'];
+Procedure Read_Real(var f : TextRec;var d : Real);[Public,Alias: 'READ_TEXT_REAL'];
 var
   hs   : String;
   code : Word;
@@ -881,7 +929,7 @@ End;
 
 
 {$ifdef SUPPORT_EXTENDED}
-Procedure r(var f : TextRec;var d : extended);[Public,Alias: 'READ_TEXT_EXTENDED'];
+Procedure Read_Extended(var f : TextRec;var d : extended);[Public,Alias: 'READ_TEXT_EXTENDED'];
 var
   hs   : String;
   code : Word;
@@ -920,7 +968,7 @@ End;
 
 
 {$ifdef SUPPORT_COMP}
-Procedure r(var f : TextRec;var d : comp);[Public,Alias: 'READ_TEXT_COMP'];
+Procedure Read_Comp(var f : TextRec;var d : comp);[Public,Alias: 'READ_TEXT_COMP'];
 var
   hs   : String;
   code : Word;
@@ -957,9 +1005,52 @@ Begin
 End;
 {$endif SUPPORT_COMP}
 
+
+{$IFNDEF NEW_READWRITE}
+Procedure r(var f : TextRec);[Public,Alias: 'READLN_TEXT'];
+Begin
+  if not OpenInput(f) then
+   exit;
+  while (f.BufPos<f.BufEnd) do
+   begin
+     inc(f.BufPos);
+     if (f.BufPtr^[f.BufPos-1]=#10) then
+      exit;
+     If f.BufPos>=f.BufEnd Then
+      FileFunc(f.InOutFunc)(f);
+   end;
+End;
+{$ENDIF NEW_READWRITE}
+
+
+{*****************************************************************************
+                               Initializing
+*****************************************************************************}
+
+procedure OpenStdIO(var f:text;mode:word;hdl:longint);
+begin
+  Assign(f,'');
+  TextRec(f).Handle:=hdl;
+  TextRec(f).Mode:=mode;
+  TextRec(f).Closefunc:=@FileCloseFunc;
+  case mode of
+  fmInput : TextRec(f).InOutFunc:=@FileReadFunc;
+ fmOutput : begin
+              TextRec(f).InOutFunc:=@FileWriteFunc;
+              TextRec(f).FlushFunc:=@FileWriteFunc;
+            end;
+  else
+   RunError(102);
+  end;
+end;
+
+
 {
   $Log$
-  Revision 1.12  1998-07-01 14:48:10  carl
+  Revision 1.13  1998-07-01 15:30:00  peter
+    * better readln/writeln
+
+  Revision 1.12  1998/07/01 14:48:10  carl
     * bugfix of WRITE_TEXT_BOOLEAN , was not TP compatible
     + added explicit typecast in OpenText
 

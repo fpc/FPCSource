@@ -442,6 +442,25 @@ begin
    do_seekend(filerec(f).handle);
 end;
 
+
+function do_isdevice(handle : longint):boolean;assembler;
+asm
+        movl    $0x4400,%eax
+        movl    handle,%ebx
+        pushl   %ebp
+        int     $0x21
+        popl    %ebp
+        jnc     .LDOSSEEK1
+        movw    %ax,inoutres
+	xorl	%edx,%edx
+.LDOSSEEK1:
+	movl	%edx,%eax
+	shrl	$7,%eax
+	andl	$1,%eax
+end;
+
+
+
 {*****************************************************************************
                            UnTyped File Handling
 *****************************************************************************}
@@ -555,20 +574,7 @@ end;
                          SystemUnit Initialization
 *****************************************************************************}
 
-procedure OpenStdIO(var f:text;mode:word;hdl:longint);
-begin
-  Assign(f,'');
-  TextRec(f).Handle:=hdl;
-  TextRec(f).Mode:=mode;
-  TextRec(f).InOutFunc:=@FileInOutFunc;
-  TextRec(f).FlushFunc:=@FileInOutFunc;
-  TextRec(f).Closefunc:=@fileclosefunc;
-end;
-
-
 Begin
-{ Initialize ExitProc }
-  ExitProc:=Nil;
 { to test stack depth }
   loweststack:=maxlongint;
 { Setup heap }
@@ -582,7 +588,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.4  1998-05-31 14:18:19  peter
+  Revision 1.5  1998-07-01 15:29:56  peter
+    * better readln/writeln
+
+  Revision 1.4  1998/05/31 14:18:19  peter
     * force att or direct assembling
     * cleanup of some files
 

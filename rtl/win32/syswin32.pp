@@ -18,12 +18,18 @@
 unit syswin32;
 
 {$I os.inc}
+{$DEFINE WINHEAP}
 
 interface
 
 { include system-independent routine headers }
 
 {$I systemh.inc}
+
+{$ifndef WinHeap}
+  { include heap support headers }
+  {$I heaph.inc}
+{$endif}
 
 const
 { Default filehandles }
@@ -55,16 +61,25 @@ type
   end;
 
 var
+{ C compatible arguments }
+  argc  : longint;
+  argv  : ppchar;
+{ Win32 Info }
   startupinfo : tstartupinfo;
   hprevinst,
   hinstance,
   cmdshow     : longint;
-  heaperror   : pointer;
+
+{$ifdef WinHeap}
+var
+  heaperror  : pointer;
+
+function HeapSize:longint;
+{$endif}
 
 implementation
 
 { include system independent routines }
-
 {$I system.inc}
 
 { some declarations for Win32 API calls }
@@ -79,12 +94,10 @@ type
    function MessageBox(w1:longint;l1,l2:pointer;w2:longint):longint;
      external 'user32' name 'MessageBoxA';
 
-   { command line/enviroment functions }
-   function GetCommandLine : LPTSTR;
-     external 'kernel32' name 'GetCommandLineA';
    { time and date functions }
    function GetTickCount : longint;
      external 'kernel32' name 'GetTickCount';
+
    { process functions }
    procedure ExitProcess(uExitCode : UINT);
      external 'kernel32' name 'ExitProcess';
@@ -131,92 +144,22 @@ end;
 procedure halt(errnum : byte);
 begin
   do_exit;
-  flush(stderr);
   ExitProcess(errnum);
 end;
 
 
 function paramcount : longint;
-var
-  count   : longint;
-  cmdline : pchar;
-  quote   : set of char;
 begin
-  cmdline:=GetCommandLine;
-  count:=0;
-  while true do
-   begin
-     { skip leading spaces }
-     while cmdline^ in [' ',#9] do
-       cmdline:=cmdline+1;
-     if cmdline^='"' then
-       begin
-          quote:=['"'];
-          cmdline:=cmdline+1;
-       end
-     else
-       quote:=[' ',#9];
-     if cmdline^=#0 then
-       break;
-     inc(count);
-     while (cmdline^<>#0) and not(cmdline^ in quote) do
-       cmdline:=cmdline+1;
-     { skip quote }
-     if cmdline^ in quote then
-       cmdline:=cmdline+1;
-   end;
-  paramcount:=count-1;
+  paramcount := argc - 1;
 end;
 
 
 function paramstr(l : longint) : string;
-var
-  s       : string;
-  count   : longint;
-  cmdline : pchar;
-  quote   : set of char;
 begin
-  s:='';
-  if (l>=0) and (l<=paramcount) then
-    begin
-       cmdline:=GetCommandLine;
-       count:=0;
-       while true do
-         begin
-            { skip leading spaces }
-            while cmdline^ in [' ',#9] do
-              cmdline:=cmdline+1;
-            if cmdline^='"' then
-              begin
-                 quote:=['"'];
-                 cmdline:=cmdline+1;
-              end
-            else
-              quote:=[' ',#9];
-            if cmdline^=#0 then
-              break;
-            if count=l then
-              begin
-                 while (cmdline^<>#0) and not(cmdline^ in quote) do
-                   begin
-                      s:=s+cmdline^;
-                      cmdline:=cmdline+1;
-                   end;
-                 break;
-              end
-            else
-              begin
-                 while (cmdline^<>#0) and not(cmdline^ in quote) do
-                   cmdline:=cmdline+1;
-              end;
-            { skip quote }
-            if cmdline^ in quote then
-              cmdline:=cmdline+1;
-            inc(count);
-         end;
-
-    end;
-  paramstr:=s;
+  if (l>=0) and (l+1<=argc) then
+   paramstr:=strpas(argv[l])
+  else
+   paramstr:='';
 end;
 
 
@@ -230,8 +173,50 @@ end;
                               Heap Management
 *****************************************************************************}
 
-{ Include Windows Heap manager }
-{$I winheap.inc}
+{$ifdef WinHeap}
+
+  {$i winheap.inc}
+
+{$else}
+
+   { memory functions }
+   function GlobalAlloc(mode,size:longint):longint;
+     external 'kernel32' name 'GlobalAlloc';
+   function GlobalReAlloc(mode,size:longint):longint;
+     external 'kernel32' name 'GlobalReAlloc';
+   function GlobalHandle(p:pointer):longint;
+     external 'kernel32' name 'GlobalHandle';
+   function GlobalLock(handle:longint):pointer;
+     external 'kernel32' name 'GlobalLock';
+   function GlobalUnlock(h:longint):longint;
+     external 'kernel32' name 'GlobalUnlock';
+   function GlobalFree(h:longint):longint;
+     external 'kernel32' name 'GlobalFree';
+   function GlobalSize(h:longint):longint;
+     external 'kernel32' name 'GlobalSize';
+   procedure GlobalMemoryStatus(p:pointer);
+     external 'kernel32' name 'GlobalMemoryStatus';
+   function LocalAlloc(uFlags : UINT;uBytes :UINT) : HLOCAL;
+     external 'kernel32' name 'LocalAlloc';
+   function LocalFree(hMem:HLOCAL):HLOCAL;
+     external 'kernel32' name 'LocalFree';
+
+function Sbrk(size : longint):longint;
+var
+  h,l : longint;
+begin
+  h:=GlobalAlloc(258,size);
+  GlobalLock(h);
+  l:=GlobalSize(h);
+  writeln(l);
+  sbrk:=l;
+end;
+
+{ include standard heap management }
+{$I heap.inc}
+
+{$endif WinHeap}
+
 
 {*****************************************************************************
                           Low Level File Routines
@@ -258,6 +243,8 @@ end;
      external 'kernel32' name 'CreateFileA';
    function SetEndOfFile(h : longint) : boolean;
      external 'kernel32' name 'SetEndOfFile';
+   function GetFileType(Handle:DWORD):DWord;
+     external 'kernel32' name 'GetFileType';
 
 
 procedure AllowSlash(p:pchar);
@@ -442,6 +429,14 @@ begin
    inoutres:=GetLastError;
 end;
 
+
+function do_isdevice(handle:longint):boolean;
+begin
+  do_isdevice:=(getfiletype(handle)=2);
+end;
+
+
+
 {*****************************************************************************
                            UnTyped File Handling
 *****************************************************************************}
@@ -539,15 +534,80 @@ procedure getdir(drivenr:byte;var dir:string);
    function GetStdHandle(nStdHandle:DWORD):THANDLE;
      external 'kernel32' name 'GetStdHandle';
 
+   { command line/enviroment functions }
+   function GetCommandLine : pchar;
+     external 'kernel32' name 'GetCommandLineA';
+
    { module functions }
    function GetModuleFileName(l1:longint;p:pointer;l2:longint):longint;
      external 'kernel32' name 'GetModuleFileNameA';
    function GetModuleHandle(p : pointer) : longint;
      external 'kernel32' name 'GetModuleHandleA';
 
+var
+  ModuleName : array[0..255] of char;
+function GetCommandFile:pchar;
+begin
+  GetModuleFileName(0,@ModuleName,255);
+  GetCommandFile:=@ModuleName;
+end;
+
+
+procedure setup_arguments;
+var
+  arglen,
+  count   : longint;
+  argstart,
+  cmdline : pchar;
+  quote   : set of char;
+  argsbuf : array[0..127] of pchar;
+begin
+{ create commandline, it starts with the executed filename which is argv[0] }
+  cmdline:=GetCommandLine;
+  count:=0;
+  repeat
+  { skip leading spaces }
+    while cmdline^ in [' ',#9,#13] do
+     inc(longint(cmdline));
+    case cmdline^ of
+      #0 : break;
+     '"' : begin
+             quote:=['"'];
+             inc(longint(cmdline));
+           end;
+    '''' : begin
+             quote:=[''''];
+             inc(longint(cmdline));
+           end;
+    else
+     quote:=[' ',#9,#13];
+    end;
+  { scan until the end of the argument }
+    argstart:=cmdline;
+    while (cmdline^<>#0) and not(cmdline^ in quote) do
+     inc(longint(cmdline));
+  { reserve some memory }
+    arglen:=cmdline-argstart;
+    getmem(argsbuf[count],arglen+1);
+    move(argstart^,argsbuf[count]^,arglen);
+    argsbuf[count][arglen]:=#0;
+  { skip quote }
+    if cmdline^ in quote then
+     inc(longint(cmdline));
+    inc(count);
+  until false;
+{ create argc }
+  argc:=count;
+{ create an nil entry }
+  argsbuf[count]:=nil;
+  inc(count);
+{ create the argv }
+  getmem(argv,count shl 2);
+  move(argsbuf,argv^,count shl 2);
+end;
+
 
 {$ASMMODE DIRECT}
-
 procedure Entry;[public,alias: '_mainCRTStartup'];
 begin
    { call to the pascal main }
@@ -557,32 +617,22 @@ begin
    { that's all folks }
    ExitProcess(0);
 end;
-
 {$ASMMODE ATT}
 
 
-procedure OpenStdIO(var f:text;mode:word;hdl:longint);
-begin
-  Assign(f,'');
-  TextRec(f).Handle:=hdl;
-  TextRec(f).Mode:=mode;
-  TextRec(f).InOutFunc:=@FileInOutFunc;
-  TextRec(f).FlushFunc:=@FileInOutFunc;
-  TextRec(f).Closefunc:=@fileclosefunc;
-end;
-
-
-var
-  s : string;
 begin
 { get some helpful informations }
   GetStartupInfo(@startupinfo);
-{ Initialize ExitProc }
-  ExitProc:=Nil;
+{ some misc Win32 stuff }
+  hprevinst:=0;
+  hinstance:=getmodulehandle(GetCommandFile);
+  cmdshow:=startupinfo.wshowwindow;
 { to test stack depth }
   loweststack:=maxlongint;
 { Setup heap }
-{!!!  InitHeap; }
+{$ifndef WinHeap}
+  InitHeap;
+{$endif WinHeap}
 { Setup stdin, stdout and stderr }
   StdInputHandle:=longint(GetStdHandle(STD_INPUT_HANDLE));
   StdOutputHandle:=longint(GetStdHandle(STD_OUTPUT_HANDLE));
@@ -590,18 +640,18 @@ begin
   OpenStdIO(Input,fmInput,StdInputHandle);
   OpenStdIO(Output,fmOutput,StdOutputHandle);
   OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+{ Arguments }
+  setup_arguments;
 { Reset IO Error }
   InOutRes:=0;
-{ some misc Win32 stuff }
-  hprevinst:=0;
-  getmodulefilename(0,@s,256);
-  hinstance:=getmodulehandle(@s);
-  cmdshow:=startupinfo.wshowwindow;
 end.
 
 {
   $Log$
-  Revision 1.9  1998-06-10 10:39:17  peter
+  Revision 1.10  1998-07-01 15:30:02  peter
+    * better readln/writeln
+
+  Revision 1.9  1998/06/10 10:39:17  peter
     * working w32 rtl
 
   Revision 1.8  1998/06/08 23:07:47  peter
