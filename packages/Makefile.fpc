@@ -17,14 +17,15 @@ pkgs_linux=base{zlib,ncurses,x11} \
            db{mysql,ibase,postgres} \
            gfx{opengl,forms,svgalib,ggi} \
            misc{utmp,syslog,gdbint,paszlib}
-pkgs_win32=base{paszlib} \
+# We use shorternames due the 8.3 limit of fat16
+pkgs_win32=bas{paszlib} \
            gtk{gtk} \
            net{uncgi} \
            db{ibase,mysql} \
-           misc{gdbint}
-pkgs_go32v2=base{paszlib} \
+           mis{gdbint}
+pkgs_go32v2=bas{paszlib} \
             net{uncgi} \
-            misc{gdbint}
+            mis{gdbint}
 
 [install]
 packagename=packages
