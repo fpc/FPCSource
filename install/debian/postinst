@@ -1,10 +1,10 @@
 #! /bin/sh
 
 # create link
-ln -sf /usr/lib/fpc/0.99.9/ppc386 /usr/bin/ppc386
+ln -sf /usr/lib/fpc/0.99.10/ppc386 /usr/bin/ppc386
 
 # create /etc/ppc386.cfg
-/usr/lib/fpc/0.99.9/samplecfg `dirname \`find /usr/lib/gcc-lib/ -name libgcc.a -print | grep -v egcs \``
+/usr/lib/fpc/0.99.10/samplecfg /usr/lib/fpc/0.99.10 `dirname \`find /usr/lib/gcc-lib/ -name libgcc.a -print | grep -v egcs \``
 
 # update ld.so cache
 ldconfig

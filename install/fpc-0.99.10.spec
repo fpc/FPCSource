@@ -41,7 +41,7 @@ make -C rtl/utils clean
 make -C rtl/linux libsclean
 
 %post
-%{vlibdir}/samplecfg `dirname \`find /usr/lib/gcc-lib/ -name libgcc.a -print | grep -v egcs \``
+%{vlibdir}/samplecfg %{vlibdir} `dirname \`find /usr/lib/gcc-lib/ -name libgcc.a -print | grep -v egcs \``
 ldconfig
 
 %files

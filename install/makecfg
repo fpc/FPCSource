@@ -8,18 +8,11 @@
 #
 #   Needs 4 Arguments:
 #    $1 = filename to create
-#    $2 = Path to the RTL Units (with subdirs /linuxunits /sharedunits /staticunits)
-#    $3 = Path to the .msg files
-#    $4 = Path to the GCC lib
 #
-if [ $# != 4 ]; then
+if [ $# != 1 ]; then
   echo 'Usage :'
-  echo 'makecfg filename rtlpath msgpath libgccpath'
+  echo 'makecfg filename'
   echo 'filename   = filename to create'
-  echo 'rtlpath    = Path to the RTL Units'
-  echo '             (with subdirs /linuxunits /sharedunits /staticunits)'
-  echo 'msgpath    = Path to the .msg files'
-  echo 'libgccpath = Path to the GCC lib'
   exit 1
 fi
 cat <<EOFCREATE >$1
@@ -27,6 +20,13 @@ cat <<EOFCREATE >$1
 #
 #  Generate Free Pascal configuration file
 #
+if [ \$# != 2 ]; then
+  echo 'Usage :'
+  echo 'samplecfg basepath libgccpath'
+  echo 'basepath   = Path where FPC is installed'
+  echo 'libgccpath = Path to the GCC lib'
+  exit 1
+fi
 if [ -f /etc/ppc386.cfg ] ; then
   mv /etc/ppc386.cfg /etc/ppc386.orig  >/dev/null 2>&1
   if [ \$? == 0 ]; then
@@ -38,10 +38,7 @@ fi
 echo Writing sample configuration file to /etc/ppc386.cfg
 cat <<EOFCFG > /etc/ppc386.cfg
 #
-# Example ppc386.cfg for Free Pascal Compiler Version 0.99.8
-#
-# Possible argument:
-#  \$1 = path to libgcc.a
+# Example ppc386.cfg for Free Pascal Compiler Version 0.99.10
 #
 
 # ----------------------
@@ -99,10 +96,9 @@ cat <<EOFCFG > /etc/ppc386.cfg
 # -So   tries to be TP/BP 7.0 compatible
 # -Ss   constructor name must be init (destructor must be done)
 # -St   allows static keyword in objects
-# -Sv   allow C-variablen
 
 # Allow goto, inline, C-operators, C-vars
--Sgicv
+-Sgic
 
 # ---------------
 # Code generation
@@ -147,12 +143,11 @@ cat <<EOFCFG > /etc/ppc386.cfg
 
 # path to the messagefile, not necessary anymore but can be used to override
 # the default language
-#-Fr$3/errore.msg
-#-Fr$3/errorn.msg
+#-Fr\$2/msg/errore.msg
+#-Fr\$2/msg/errorn.msg
 
 # path to the gcclib
-#-Fg$4
--Fg\$1
+-Fg\$2
 
 # searchpath for includefiles
 #-Fi/pp/inc;/pp/rtl/inc
@@ -160,14 +155,14 @@ cat <<EOFCFG > /etc/ppc386.cfg
 # searchpath for units (does the same as -Up)
 # For statically, smartlinked units
 #IFDEF FPC_LINK_STATIC
--Fu$2/staticunits
+-Fu\$1/staticunits
 #ENDIF
 # For Dynamically linked units
 #IFDEF FPC_LINK_DYNAMIC
--Fu$2/sharedunits
+-Fu\$1/sharedunits
 #ENDIF
 # For normal units
--Fu$2/linuxunits
+-Fu\$1/linuxunits
 #-Fu/pp/units;/pp/rtl/dos/go32v2
 #-Fu/usr/lib/ppc/units;/usr/lib/ppc/linuxunits
 

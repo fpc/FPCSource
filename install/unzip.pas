@@ -1,41 +1,4 @@
 UNIT Unzip;
-{
-Unzips deflated, imploded, shrunk and stored files
-  ** COMPATIBLE WITH
-        * Turbo Pascal v7.x     (DOS)
-        * Borland Pascal v7.x   (Dos, DPMI, and Windows)
-        * Delphi v1.x
-        * Delphi v2.x
-        * Delphi v3.x
-        * Virtual Pascal v2.0   (Win32)
-}
-
-{
-  Original version (1.x): Christian Ghisler
-   C code by info-zip group, translated to pascal by Christian Ghisler
-   based on unz51g.zip;
-   Special thanks go to Mark Adler,who wrote the main inflate and
-   explode code, and did NOT copyright it!!!
-
- v2.00: March 1998: Dr Abimbola Olowofoyeku (The African Chief)
-        Homepage: http://ourworld.compuserve.com/homepages/African_Chief
-   * modified to compile for Delphi v2.x and Delphi v3.x
-
- v2.01: April 1998: Dr Abimbola Olowofoyeku (The African Chief)
-   * source files merged into a single source (this) file
-   * several high level functions added - i.e.,
-              FileUnzip()
-              FileUnzipEx()
-              ViewZip()
-              UnzipSize()
-              SetUnzipReportProc()
-              SetUnzipQuestionProc()
-              ChfUnzip_Init()
-   * callbacks added
-   * modified to support Virtual Pascal v2.0 (Win32)
-   * Delphi component added (chfunzip.pas)
-}
-
 INTERFACE
 
 {$IFNDEF FPC}
@@ -2297,7 +2260,9 @@ FUNCTION unzipfile ( in_name : pchar;out_name : pchar;offset : longint;
 VAR err : integer;
     header : plocalheader;
     buf : ARRAY [ 0..80 ] of char;
+{$ifndef linux}
     buf0 : ARRAY [ 0..3 ] of char;
+{$endif}
     timedate : longint;
     originalcrc : longint;    {crc from zip-header}
     ziptype, aResult : integer;
@@ -2403,17 +2368,17 @@ BEGIN
   {$I+}
   err := ioresult;
   {create directories not yet in path}
-  isadir := ( out_name [ strlen ( out_name ) -1 ] = '/' )
-       OR ( out_name [ strlen ( out_name ) -1 ] = '\' );
+  isadir := ( out_name [ strlen ( out_name ) -1 ] in ['/','\'] );
   IF ( err = 3 ) OR isadir THEN BEGIN  {path not found}
     {$I-}
     getdir ( 0, oldcurdir );
     {$I+}
     err := ioresult;
     strcopy ( buf, out_name );
-    p1 := strrscan ( buf, '\' );
+    p1 := strrscan ( buf, DirSep );
     IF p1 <> NIL THEN inc ( p1 );  {pointer to filename}
-    p := strtok ( buf, '\' );
+    p := strtok ( buf, DirSep );
+{$ifndef linux}
     IF ( p <> NIL ) AND ( p [ 1 ] = ':' ) THEN BEGIN
       strcopy ( buf0, 'c:\' );    {set drive}
       buf0 [ 0 ] := p [ 0 ];
@@ -2425,8 +2390,9 @@ BEGIN
       {$I+}
       err := ioresult;
       {$endif}
-      p := strtok ( NIL, '\' );
+      p := strtok ( p, '\' );
     END;
+{$endif}
     WHILE ( p <> NIL ) AND ( p <> p1 ) DO BEGIN
       {$ifdef windows}
        {$ifdef Delphi}
@@ -2461,7 +2427,7 @@ BEGIN
           err := ioresult;
       END;
       IF err = 0 THEN
-        p := strtok ( NIL, '\' )
+        p := strtok ( p, DirSep )
       ELSE
         p := NIL;
     END;
@@ -2649,11 +2615,17 @@ BEGIN
   buf^ [ offs ] := #0;  {Repair signature of next block!}
   strlcopy ( filename, pchar ( @buf^ [ localstart + sizeof ( header^ ) ] ), sizeof ( filename ) -1 );
   buf^ [ offs ] := old;
+{$ifndef linux}
   REPEAT           {Convert slash to backslash!}
     p := strscan ( filename, '/' );
     IF p <> NIL THEN p [ 0 ] := '\';
   UNTIL p = NIL;
-
+{$else}
+  REPEAT           {Convert backslash to slash!}
+    p := strscan ( filename, '\' );
+    IF p <> NIL THEN p [ 0 ] := '/';
+  UNTIL p = NIL;
+{$endif}
   incr := header^.filename_len + header^.extra_field_len +
         header^.file_comment_len + sizeof ( header^ );
   IF incr <= 0 THEN BEGIN
@@ -2847,7 +2819,7 @@ BEGIN
     AND ( strpos ( filename, '.exe' ) = NIL ) THEN BEGIN
     strcopy ( myname, filename );
     l := strlen ( myname );
-    IF myname [ l -1 ] = '\' THEN myname [ l -1 ] := #0;
+    IF myname [ l -1 ] = DirSep THEN myname [ l -1 ] := #0;
     {$I-}
     chdir ( Strpas ( myname ) );
     {$I+}
@@ -2995,8 +2967,8 @@ BEGIN
 
   Strcopy ( thename, SourceZipFile );
   Strcopy ( target, TargetDirectory );
-  IF ( target [ 0 ] <> #0 ) AND ( target [ strlen ( target ) -1 ] <> '\' )
-  THEN strcat ( target, '\' );
+  IF ( target [ 0 ] <> #0 ) AND ( target [ strlen ( target ) -1 ] <> DirSep )
+  THEN strcat ( target, DirSep );
   FileUnzip := unzip_NotZipFile;
   IF NOT iszip ( thename ) THEN exit;
 
@@ -3034,7 +3006,7 @@ BEGIN
 
       WITH ZipRec DO BEGIN { report start of file }
            s := StrPas ( Buf );
-           IsaDir := s [ length ( s ) ] = '\';
+           IsaDir := s [ length ( s ) ] = DirSep;
            Time := r.Time;
            Size := r.Size;
            CompressSize := r.CompressSize;

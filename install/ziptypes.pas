@@ -1,35 +1,26 @@
 UNIT ziptypes;
-{
-Type definitions for UNZIP
-  * original version by Christian Ghisler
-  * extended
-    and
-    amended for Win32 by Dr Abimbola Olowofoyeku (The African Chief)
- Homepage: http://ourworld.compuserve.com/homepages/African_Chief
-}
-
 INTERFACE
 
-{$ifdef Win32}
 TYPE
-nWord   = longint;
-{$else Win32}
-TYPE
-nWord = Word;
-{$endif Win32}
-
-{$ifdef VirtualPascal}
-TYPE
-Integer = Longint; // Default Integer is 16 bit!
-{$endif VirtualPascal}
+  nWord = Longint;
+  Integer = Longint;
 
 CONST
-tBufSize = {$ifdef Win32}256{$else}63{$endif} * 1024;   {buffer size}
-tFSize   = {$ifdef Win32}259{$else}79{$endif};          {filename length}
+  tBufSize = 256*1024;     {buffer size}
+  tFSize   = 255;          {filename length}
+
+{$ifdef linux}
+  DirSep = '/';
+{$else}
+  DirSep = '\';
+{$endif}
+
 
 { Record for UNZIP }
-TYPE buftype  = ARRAY [ 0..tBufSize ] of char;
-TYPE TDirtype = ARRAY [ 0..tFSize ] of char;
+TYPE
+     buftype  = ARRAY [ 0..tBufSize ] of char;
+     TDirtype = ARRAY [ 0..tFSize ] of char;
+
      TZipRec = PACKED RECORD
        buf : ^buftype;        {please}         {buffer containing central dir}
        bufsize,               {do not}         {size of buffer}
@@ -44,9 +35,8 @@ TYPE TDirtype = ARRAY [ 0..tFSize ] of char;
      END; { TZipRec }
 
 { record for callback progress Reports, etc. }
-TYPE
-pReportRec = ^TReportRec;     {passed to callback functions}
-TReportRec = PACKED RECORD
+     pReportRec = ^TReportRec;     {passed to callback functions}
+     TReportRec = PACKED RECORD
        FileName : tdirtype;   {name of individual file}
        Time,                  {date and time stamp of individual file}
        Size,                  {uncompressed and time stamp of individual file}
@@ -56,22 +46,21 @@ TReportRec = PACKED RECORD
        Ratio : byte;          {compression ratio of individual file}
        Status : longint;      {callback status code to show where we are}
        IsaDir : Boolean;      {is this file a directory?}
-END; {TReportRec}
+     END; {TReportRec}
 
 { callback status codes }
 CONST
-file_starting    = -1000;  {beginning the unzip process; file}
-file_unzipping   = -1001;  {continuing the unzip process; file}
-file_completed   = -1002;  {completed the unzip process; file}
-file_Failure     = -1003;  {failure in unzipping file}
-unzip_starting   = -1004;  {starting with a new ZIP file}
-unzip_completed  = -1005;  {completed this ZIP file}
+  file_starting    = -1000;  {beginning the unzip process; file}
+  file_unzipping   = -1001;  {continuing the unzip process; file}
+  file_completed   = -1002;  {completed the unzip process; file}
+  file_Failure     = -1003;  {failure in unzipping file}
+  unzip_starting   = -1004;  {starting with a new ZIP file}
+  unzip_completed  = -1005;  {completed this ZIP file}
 
 
 { procedural types for callbacks }
 TYPE
-UnzipReportProc  = PROCEDURE ( Retcode : longint;Rec : pReportRec );
-{$ifdef Delphi32}STDCALL;{$endif}
+  UnzipReportProc  = PROCEDURE ( Retcode : longint;Rec : pReportRec );
 { procedural type for "Report" callback: the callback function
   (if any) is called several times during the unzip process
 
@@ -96,7 +85,6 @@ UnzipReportProc  = PROCEDURE ( Retcode : longint;Rec : pReportRec );
 }
 
 UnzipQuestionProc = FUNCTION ( Rec : pReportRec ) : Boolean;
-{$ifdef Delphi32}STDCALL;{$endif}
 { procedural type for "Question" callback:if a file already
   exists, the callback (if any) will be called to ask whether
   the file should be overwritten by the one in the ZIP file;
@@ -131,28 +119,28 @@ CONST
 
 { the various unzip methods }
 CONST
-Unzipmethods : ARRAY [ 0..9 ] of pchar =
-  ( 'stored', 'shrunk', 'reduced 1', 'reduced 2', 'reduced 3',
-   'reduced 4', 'imploded', 'tokenized', 'deflated', 'skipped' );
+  Unzipmethods : ARRAY [ 0..9 ] of pchar =
+   ( 'stored', 'shrunk', 'reduced 1', 'reduced 2', 'reduced 3',
+     'reduced 4', 'imploded', 'tokenized', 'deflated', 'skipped' );
 
 { unzip actions being undertaken }
-CONST
-UnzipActions : ARRAY [ 0..9 ] of pchar =
-  ( 'copying', 'unshrinking', 'unreducing 1', 'unreducing 2', 'unreducing 3',
-   'unreducing 4', 'exploding', 'un-tokenizing', 'inflating', 'skipping' );
+  UnzipActions : ARRAY [ 0..9 ] of pchar =
+   ( 'copying', 'unshrinking', 'unreducing 1', 'unreducing 2', 'unreducing 3',
+     'unreducing 4', 'exploding', 'un-tokenizing', 'inflating', 'skipping' );
 
 { rudimentary "uppercase" function }
-FUNCTION Upper ( s : String ) : String;
+FUNCTION Upper (s : String ) : String;
 
 { remove path and return filename only }
 FUNCTION StripPath ( CONST s : String ) : String;
 
 IMPLEMENTATION
 
-FUNCTION Upper ( s : String ) : String;
+FUNCTION Upper (s : String ) : String;
 VAR i : integer;
 BEGIN
-   FOR i := 1 TO length ( s ) DO s [ i ] := Upcase ( s [ i ] );
+   FOR i := 1 TO length ( s ) DO
+     s [ i ] := Upcase ( s [ i ] );
    Upper := s;
 END;
 

@@ -1,7 +1,7 @@
 Source: fpc
 Section: devel
 Priority: optional
-Maintainer: root <root@cooldown.demon.nl>
+Maintainer: Peter Vreman <pfv@cooldown.demon.nl>
 Standards-Version: 2.4.1.2
 
 Package: fpc

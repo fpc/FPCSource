@@ -1,9 +1,41 @@
 
                             Free Pascal Compiler
 
-                               Version 0.99.8
+                               Version 0.99.10
 
+******************************************************************************
+                            Whats New in 0.99.10
+******************************************************************************
 
+Compiler:
+  + better optimizer
+  + ansistring support
+  + array of const support for FormatStr
+  + automatic heaptrc unit including with the -gh option
+  + open strings ($P+) support
+  + DLL generation for Win32
+  + printf support for cdecl using array of const
+  * exceptions are finally working
+  * fixed some ppu problems
+  * fixed unit interdependency problems
+  * better range checking, also for enums
+  * size of objects without virtuals is now the same as tp7
+  * lot of fixes for the assembler readers
+  * more constant expression evalutations
+  * removed all memoryleaks
+  * almost all reported bugs are fixed
+  
+RTL:
+  + heaptrc unit to detect memoryleaks and other problems with the heap
+  + graph unit works and some missing functions are added
+  * objects unit fully works
+  * more functions for the classes,sysutils unit
+
+Utils:
+  * ppudump updated for new ppu entries  
+  * h2pas updated to write new cdecl declaration
+  
+  
 ******************************************************************************
                             Whats New in 0.99.8
 ******************************************************************************

@@ -170,7 +170,10 @@ program install;
 
   function createdir(var s : string) : boolean;
     var
-      result : longint;
+      start,
+      s1 : string;
+      i,result : longint;
+      err : boolean;
       dir : searchrec;
       params : array[0..0] of pointer;
     begin
@@ -186,10 +189,30 @@ program install;
             createdir:=(result=cmNo);
             exit;
          end;
+       err:=false;
        {$I-}
-        mkdir(s);
+       getdir(0,start);	 
+       repeat
+         i:=Pos(DirSep,s);
+	 if i=0 then
+	  i:=255;
+         s1:=Copy(s,1,i-1);
+	 Delete(s,1,i);
+	 ChDir(s1);
+	 if ioresult<>0 then
+	  begin
+	    mkdir(s1);
+	    chdir(s1);
+	    if ioresult<>0 then
+	     begin
+	       err:=true;
+  	       break;
+	     end;  
+	  end;
+       until s='';
+       chdir(start);	 
        {$I+}
-       if ioresult<>0 then
+       if err then
          begin
             params[0]:=@s;
             messagebox('The installation directory %s couldn''t be created',
@@ -597,7 +620,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  1998-12-16 00:25:34  peter
+  Revision 1.13  1998-12-21 13:11:39  peter
+    * updates for 0.99.10
+
+  Revision 1.12  1998/12/16 00:25:34  peter
     * updated for 0.99.10
     * new end dialogbox
 

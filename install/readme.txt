@@ -1,7 +1,7 @@
 
                             Free Pascal Compiler
 
-                               Version 0.99.8
+                               Version 0.99.10
 
 
 ****************************************************************************
@@ -35,7 +35,7 @@ The current version is only an evaluation version.
 
 Quick start
 -----------
-Download dos09908.zip and unzip it into a temporary directory.
+Download dos09910.zip and unzip it into a temporary directory.
 
 Start the install program INSTALL.EXE and follow the instructions.
 
@@ -55,7 +55,7 @@ All standard packages contain a part that is specific for the target platform
 and a few files which are target independent. All files are also available
 as separate files to reduce file size if the default file is too big.
 
-dos09908.zip specific:
+dos09910.zip specific:
 ----------------------
   basego32.zip    contains a DOS (Go32V2) compiler, run time library and
                   additional files.
@@ -66,7 +66,7 @@ dos09908.zip specific:
       Strip 2.8.1 for Go32V2
   gdbgo32.zip     contains the GNU Debugger 4.16 for Go32V2
 
-w3209908.zip specific:
+w3209910.zip specific:
 ----------------------
   basew32.zip     contains a Win32 compiler, run time library and
                   additional files.
@@ -78,7 +78,7 @@ w3209908.zip specific:
       Strip 980119 for Win32
   gdbw32.zip      contains the GNU Debugger 4.16.1 for Win32
 
-common files in dos09908.zip and w3209908.zip:
+common files in dos09910.zip and w3209910.zip:
 ----------------------------------------------
   gnuutils.zip    contains additional GNU utilities which are neccessary to
                   compile the run time library:
@@ -96,11 +96,11 @@ common files in dos09908.zip and w3209908.zip:
   readme.txt      this readme file
   whatsnew.txt    what's been changed
 
-Optional source package src09908.zip:
+Optional source package src09910.zip:
 -------------------------------------
-  pp09908s.zip    contains the compiler sources
-  rl09908s.zip    contains the run time library sources
-  doc110s.zip     contains the TeX sources of the doc
+  pp09910s.zip    contains the compiler sources
+  rl09910s.zip    contains the run time library sources
+  doc120s.zip     contains the TeX sources of the doc
 
 
 ****************************************************************************
