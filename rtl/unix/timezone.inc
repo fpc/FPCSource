@@ -229,8 +229,14 @@ Const
   TimeZoneLocationFile = '/etc/timezone';
   // SuSE has link in /usr/lib/zoneinfo/localtime to /etc/localtime
   // RedHat uses /etc/localtime
-  TimeZoneFile = '/usr/lib/zoneinfo/localtime';
-  AltTimeZoneFile = '/etc/localtime';
+  
+  TimeZoneFile = '/etc/localtime'; 			// POSIX
+  AltTimeZoneFile = '/usr/lib/zoneinfo/localtime';	// Other
+{$ifdef BSD}
+  BSDTimeZonefile = '/usr/share/zoneinfo';	// BSD usually is POSIX 
+						// compliant though
+{$ENDIF} 
+  
 
 function GetTimezoneFile:string;
 var
@@ -256,7 +262,12 @@ begin
     GetTimeZoneFile:=TimeZoneFile
   // Try RedHat
   else If fpstat(AltTimeZoneFile,{$ifdef oldlinuxstat}baseunix.stat(info){$else}info{$endif})>=0 then
-      GetTimeZoneFile:=AltTimeZoneFile;
+      GetTimeZoneFile:=AltTimeZoneFile
+{$ifdef BSD}
+  else
+       If fpstat(BSDTimeZoneFile,{$ifdef oldlinuxstat}baseunix.stat(info){$else}info{$endif})>=0 then  
+            GetTimeZoneFile:=BSDTimeZoneFile
+{$ENDIF}
 end;
 
 
@@ -286,7 +297,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2003-09-16 16:06:02  peter
+  Revision 1.6  2003-09-17 18:49:16  marco
+   * small *BSD fix
+
+  Revision 1.5  2003/09/16 16:06:02  peter
     * add typecasts for oldlinuxstat
 
   Revision 1.4  2003/09/14 20:15:01  marco
