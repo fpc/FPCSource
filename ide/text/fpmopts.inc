@@ -252,20 +252,20 @@ var R,R2,R3: TRect;
     ILs: array[0..10] of PIntegerLine;
     I: integer;
 begin
-  R.Assign(0,0,40,2+MemorySizeSwitches^.ItemCount*2);
+  R.Assign(0,0,40,2+MemorySwitches^.ItemCount*2);
   New(D, Init(R, 'Memory sizes'));
   with D^ do
   begin
     GetExtent(R); R.Grow(-3,-1);
     R2.Copy(R); Inc(R2.A.Y); R2.B.Y:=R2.A.Y+1;
-    for I:=0 to MemorySizeSwitches^.ItemCount-1 do
+    for I:=0 to MemorySwitches^.ItemCount-1 do
      begin
        R3.Copy(R2); R3.A.X:=21; R3.B.X:=R3.A.X+10;
        New(ILs[I], Init(R3, MinMemSize, MaxMemSize));
-       ILs[I]^.Data^:=IntToStr(MemorySizeSwitches^.GetLongintItem(I));
+       ILs[I]^.Data^:=IntToStr(MemorySwitches^.GetLongintItem(I));
        Insert(ILs[I]);
        R3.Copy(R2); R3.B.X:=21;
-       Insert(New(PLabel, Init(R3, MemorySizeSwitches^.ItemName(I), ILs[I])));
+       Insert(New(PLabel, Init(R3, MemorySwitches^.ItemName(I), ILs[I])));
        R2.Move(0,2);
      end;
 
@@ -280,9 +280,9 @@ begin
   ILs[0]^.Select;
   if Desktop^.ExecView(D)=cmOK then
   begin
-    for I:=0 to MemorySizeSwitches^.ItemCount-1 do
+    for I:=0 to MemorySwitches^.ItemCount-1 do
      begin
-       MemorySizeSwitches^.SetLongintItem(I,StrToInt(ILs[I]^.Data^));
+       MemorySwitches^.SetLongintItem(I,StrToInt(ILs[I]^.Data^));
      end;
 {    SetStackSize(StrToInt(IL1^.Data^));
     SetHeapSize(StrToInt(IL2^.Data^));}
@@ -713,7 +713,10 @@ end;
 
 {
   $Log$
-  Revision 1.12  1999-02-08 17:41:34  pierre
+  Revision 1.13  1999-02-10 09:52:43  pierre
+   * MemorySizeSwitches -> MemorySwitches (were duplicates)
+
+  Revision 1.12  1999/02/08 17:41:34  pierre
    + CustomArg added to debug dialog
 
   Revision 1.11  1999/02/08 10:37:45  peter
