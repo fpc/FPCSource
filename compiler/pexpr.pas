@@ -1106,8 +1106,11 @@ implementation
 
                 varsym :
                   begin
-                    { are we in a class method ? }
-                    if (srsym.owner.symtabletype=objectsymtable) and
+                    { are we in a class method, we check here the
+                      srsymtable, because a field in another object
+                      also has objectsymtable. And withsymtable is
+                      not possible for self in class methods (PFV) }
+                    if (srsymtable.symtabletype=objectsymtable) and
                        assigned(aktprocsym) and
                        (po_classmethod in aktprocdef.procoptions) then
                       Message(parser_e_only_class_methods);
@@ -2344,7 +2347,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.105  2003-03-27 17:44:13  peter
+  Revision 1.106  2003-04-11 14:50:08  peter
+    * fix tw2454
+
+  Revision 1.105  2003/03/27 17:44:13  peter
     * fixed small mem leaks
 
   Revision 1.104  2003/03/17 18:55:30  peter
