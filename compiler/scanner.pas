@@ -412,6 +412,11 @@ implementation
       begin
         with inputfile^ do
          begin
+           { when nothing more to read then leave immediatly, so we
+             don't change the aktfilepos and leave it point to the last
+             char }
+           if (c=#26) and (not assigned(next)) then
+            exit;
            repeat
            { still more to read?, then change the #0 to a space so its seen
              as a seperator, this can't be used for macro's which can change
@@ -1777,7 +1782,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.103  2000-01-07 01:14:38  peter
+  Revision 1.104  2000-01-30 19:28:25  peter
+    * fixed filepos when eof is read, it'll now stay on the eof position
+
+  Revision 1.103  2000/01/07 01:14:38  peter
     * updated copyright to 2000
 
   Revision 1.102  1999/12/02 17:34:34  peter
