@@ -31,7 +31,7 @@ type
 which is part of the stardrad calling mechanism. This function will do nothing.
 the frame pointer register is the stack pointer register of the caller, and is
 set when generating function prologue in cgcpu.tcgSPARC.g_stackframe_entry}
-    procedure load_framepointer;override;
+    procedure push_framepointer;override;
   end;
 implementation
 uses
@@ -54,7 +54,7 @@ function TSparcCallNode.pass_1:TNode;
         then
           TSparcProcInfo(procinfo).maxpushedparasize:=datasize;
   end;
-procedure TSparcCallNode.load_framepointer;
+procedure TSparcCallNode.push_framepointer;
   begin
     InternalError(2002101000);
   end;
@@ -63,7 +63,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2003-02-05 22:44:55  mazen
+  Revision 1.9  2003-04-04 15:38:56  peter
+    * moved generic code from n386cal to ncgcal, i386 now also
+      uses the generic ncgcal
+
+  Revision 1.8  2003/02/05 22:44:55  mazen
   * making UNIT lower case.
 
   Revision 1.7  2003/02/04 21:50:54  mazen

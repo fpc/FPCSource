@@ -32,7 +32,7 @@ interface
     type
        tppccallnode = class(tcgcallnode)
           function pass_1 : tnode;override;
-          procedure load_framepointer;override;
+          procedure push_framepointer;override;
        end;
 
 implementation
@@ -71,7 +71,7 @@ implementation
          end;
     end;
 
-  procedure tppccallnode.load_framepointer;
+  procedure tppccallnode.push_framepointer;
 
     begin
        {
@@ -111,7 +111,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2002-12-05 14:28:12  florian
+  Revision 1.5  2003-04-04 15:38:56  peter
+    * moved generic code from n386cal to ncgcal, i386 now also
+      uses the generic ncgcal
+
+  Revision 1.4  2002/12/05 14:28:12  florian
     * some variant <-> dyn. array stuff
 
   Revision 1.3  2002/11/25 17:43:28  peter

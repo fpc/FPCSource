@@ -1938,6 +1938,14 @@ type
             tcallparanode(left).insert_typeconv(tparaitem(procdefinition.Para.first),true);
           end;
 
+         { direct call to inherited abstract method, then we
+           can already give a error in the compiler instead
+           of a runtime error }
+         if assigned(methodpointer) and
+            (methodpointer.nodetype=typen) and
+            (po_abstractmethod in procdefinition.procoptions) then
+           CGMessage(cg_e_cant_call_abstract_method);
+
       errorexit:
          aktcallprocdef:=oldcallprocdef;
       end;
@@ -2399,7 +2407,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.131  2003-03-17 18:54:23  peter
+  Revision 1.132  2003-04-04 15:38:56  peter
+    * moved generic code from n386cal to ncgcal, i386 now also
+      uses the generic ncgcal
+
+  Revision 1.131  2003/03/17 18:54:23  peter
     * fix missing self setting for method to procvar conversion in
       tp_procvar mode
 
