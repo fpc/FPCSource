@@ -237,7 +237,7 @@ unit cpupara;
                 end;
               { make sure all alignment bytes are 0 as well }
               fillchar(paraloc,sizeof(paraloc),0);
-              paraloc.Alignment:=4;
+              paraloc.alignment:= std_param_align;
               case loc of
                  LOC_REGISTER:
                    begin
@@ -324,6 +324,7 @@ unit cpupara;
 
         { Function return }
         fillchar(paraloc,sizeof(tparalocation),0);
+        paraloc.alignment:= std_param_align;
         paraloc.size:=def_cgsize(p.rettype.def);
         { Return in FPU register? }
         if p.rettype.def.deftype=floatdef then
@@ -358,8 +359,8 @@ begin
 end.
 {
   $Log$
-  Revision 1.48  2003-10-08 14:11:36  mazen
-  + Alignement field added to TParaLocation (=4 as 32 bits archs)
+  Revision 1.49  2003-10-08 21:15:27  olle
+    * changed to symbolic const for alignment
 
   Revision 1.47  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
