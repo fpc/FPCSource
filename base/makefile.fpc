@@ -44,6 +44,15 @@ inWinNT=1
 endif
 endif
 
+# Detect OS/2 - OS/2 has OS2_SHELL defined
+ifndef inlinux
+ifndef inWinNT
+ifdef OS2_SHELL
+inOS2=1
+endif
+endif
+endif
+
 # The extension of executables
 ifdef inlinux
 EXEEXT=
@@ -71,7 +80,11 @@ endif
 
 # What compiler to use ?
 ifndef PP
+ifdef inOS2
+PP=ppos2$(EXEEXT)
+else
 PP=ppc386$(EXEEXT)
+endif
 endif
 
 # Target OS
@@ -182,7 +195,11 @@ endif
 ifdef inlinux
 PPAS=ppas.sh
 else
+ifdef inOS2
+PPAS=ppas.cmd
+else
 PPAS=ppas.bat
+endif
 endif
 
 # The path which is search separated by spaces
@@ -228,9 +245,9 @@ endif
 ifndef ECHO
 ECHO=$(strip $(wildcard $(addsuffix /echo$(EXEEXT),$(SEARCHPATH))))
 ifeq ($(ECHO),)
-ECHO=@echo
+export ECHO:=echo
 else
-export ECHO:=@$(firstword $(ECHO))
+export ECHO:=$(firstword $(ECHO))
 endif
 endif
 
@@ -608,7 +625,7 @@ endif
 
 ifdef DATE
 DATESTR=$(shell $(DATE) +%Y%m%d)
-else	
+else
 DATESTR=
 endif
 
@@ -732,12 +749,15 @@ ifdef LOADEROBJECTS
 endif
 ifdef UNITOBJECTS
 	$(ECHO) $(addprefix "\n"$(UNITINSTALLDIR)/,$(wildcard $(UNITPPUFILES) $(UNITOFILES) $(UNITAFILES)))
-endif	
+endif
 ifdef EXTRAINSTALLUNITS
 	$(ECHO) $(addprefix "\n"$(UNITINSTALLDIR)/,$(wildcard $(addsuffix $(OEXT),$(EXTRAINSTALLUNITS)) $(addsuffix $(STATICLIBEXT),$(EXTRAINSTALLUNITS)) $(addsuffix $(PPUEXT),$(EXTRAINSTALLUNITS))))
-endif	
+endif
 
 fpc_install : all
+	$(MAKE) fpc_install2
+
+fpc_install2 :
 # Create UnitInstallFiles
 ifdef EXTRAINSTALLUNITS
 override EXTRAINSTALLFILES=$(wildcard $(addsuffix $(OEXT),$(EXTRAINSTALLUNITS)) $(addsuffix $(STATICLIBEXT),$(EXTRAINSTALLUNITS)) $(addsuffix $(PPUEXT),$(EXTRAINSTALLUNITS)))
@@ -759,8 +779,8 @@ endif
 ifdef UNITOBJECTS
 	$(MKDIR) $(UNITINSTALLDIR)
 	$(INSTALL) $(wildcard $(UNITPPUFILES) $(UNITOFILES) $(UNITAFILES)) $(UNITINSTALLDIR)
-endif	
-ifdef EXTRAINSTALLUNITS
+endif
+ifneq ($(wildcard $(addsuffix $(OEXT),$(EXTRAINSTALLUNITS)) $(addsuffix $(STATICLIBEXT),$(EXTRAINSTALLUNITS)) $(addsuffix $(PPUEXT),$(EXTRAINSTALLUNITS))),)
 	$(MKDIR) $(UNITINSTALLDIR)
 	$(INSTALL) $(wildcard $(addsuffix $(OEXT),$(EXTRAINSTALLUNITS)) $(addsuffix $(STATICLIBEXT),$(EXTRAINSTALLUNITS)) $(addsuffix $(PPUEXT),$(EXTRAINSTALLUNITS))) $(UNITINSTALLDIR)
 endif
@@ -858,6 +878,9 @@ endif
 #####################################################################
 
 fpc_clean:
+	make fpc_clean2
+
+fpc_clean2:
 ifdef EXEOBJECTS
 	-$(DEL) $(EXEFILES) $(EXEOFILES)
 endif
@@ -866,10 +889,10 @@ ifdef LOADEROBJECTS
 endif
 ifdef UNITOBJECTS
 	-$(DEL) $(wildcard $(UNITPPUFILES) $(UNITOFILES) $(UNITAFILES))
-endif	
-ifdef EXTRACLEANUNITS
+endif
+ifneq ($(wildcard $(addsuffix $(OEXT),$(EXTRACLEANUNITS)) $(addsuffix $(STATICLIBEXT),$(EXTRACLEANUNITS)) $(addsuffix $(PPUEXT),$(EXTRACLEANUNITS))) ,)
 	-$(DEL) $(wildcard $(addsuffix $(OEXT),$(EXTRACLEANUNITS)) $(addsuffix $(STATICLIBEXT),$(EXTRACLEANUNITS)) $(addsuffix $(PPUEXT),$(EXTRACLEANUNITS)))
-endif	
+endif
 	-$(DEL) $(PPAS) link.res log
 
 fpc_libsclean: clean
@@ -992,7 +1015,7 @@ fpc_installinfo:
 	@$(ECHO)  MsgInstallDir........ $(MSGINSTALLDIR)
 	@$(ECHO)  DocInstallDir........ $(DOCINSTALLDIR)
 	@$(ECHO)
-	
+
 # try to get the files in the currentdir
 PASFILES:=$(wildcard *.pas)
 PPFILES:=$(wildcard *.pp)
@@ -1022,8 +1045,45 @@ endif
 
 #
 # $Log$
-# Revision 1.31.2.5  1999-07-17 11:29:02  peter
+# Revision 1.31.2.6  1999-07-22 16:08:04  peter
+#   * install,clean fixes
+#
+# Revision 1.41  1999/07/21 14:21:00  peter
+#   * install works again
+#
+# Revision 1.40  1999/07/17 14:22:54  peter
+#   * ECHO is now again without @
+#
+# Revision 1.39  1999/07/17 11:30:23  peter
+#   * merged
+#
+# Revision 1.38  1999/07/16 13:45:24  peter
+#   * 0.99.12b updates
+#   * merges
+#
+# Revision 1.37  1999/07/05 21:37:35  peter
+#   * display extraunits in info
+#
+# Revision 1.36  1999/07/01 18:20:01  jonas
+#   * changed RELEASE=1 processor option from -Op2 to -Op3
+#
+# Revision 1.35  1999/06/18 11:03:08  peter
+#   * merged
+#
+# Revision 1.34  1999/06/18 10:11:18  peter
+#   * merged
+#
+# Revision 1.33  1999/06/13 22:43:23  peter
+#   * merged from fixes
+#
+# Revision 1.32  1999/06/11 13:31:14  hajny
+#   * fixes for OS/2
+#
+# Revision 1.31.2.5  1999/07/17 11:29:02  peter
 #   * more extrainstallunits,extracleanunits updates
+#
+# Revision 1.31.2.4  1999/07/16 13:40:56  peter
+#   + extrainstallunits,extracleanunits
 #
 # Revision 1.31.2.3  1999/06/18 10:55:31  peter
 #   * version fixes
@@ -1034,6 +1094,9 @@ endif
 #
 # Revision 1.31.2.1  1999/06/13 22:36:38  peter
 #   * install msg files in msg/ instead of bin for not linux
+#
+# Revision 1.31  1999/06/10 15:02:08  peter
+#   * last fixes for 0.99.12 release
 #
 # Revision 1.30  1999/06/03 09:36:31  peter
 #   * first things for sharedlib to work again
