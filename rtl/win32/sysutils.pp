@@ -32,7 +32,7 @@ uses
   {$ENDIF}
   dos,
   windows;
-  
+
 
 { Include platform independent interface part }
 {$i sysutilh.inc}
@@ -328,7 +328,7 @@ end;
 
 function GetDiskFreeSpace(drive:pchar;var sector_cluster,bytes_sector,
                           freeclusters,totalclusters:longint):longbool;
-         external 'kernel32' name 'GetDiskFreeSpaceA';
+         stdcall;external 'kernel32' name 'GetDiskFreeSpaceA';
 type
   {$IFDEF VIRTUALPASCAL}
    {&StdCall+}
@@ -615,7 +615,7 @@ function FormatMessageA(dwFlags     : DWORD;
                         dwLanguageId: DWORD;
                         lpBuffer    : PCHAR;
                         nSize       : DWORD;
-                        Arguments   : Pointer): DWORD; external 'kernel32' name 'FormatMessageA';
+                        Arguments   : Pointer): DWORD; stdcall;external 'kernel32' name 'FormatMessageA';
 
 function SysErrorMessage(ErrorCode: Integer): String;
 const
@@ -675,13 +675,13 @@ var
    kernel32dll : THandle;
 
 function FreeLibrary(hLibModule : THANDLE) : longbool;
-  external 'kernel32' name 'FreeLibrary';
+  stdcall;external 'kernel32' name 'FreeLibrary';
 function GetVersionEx(var VersionInformation:TOSVERSIONINFO) : longbool;
-  external 'kernel32' name 'GetVersionExA';
+  stdcall;external 'kernel32' name 'GetVersionExA';
 function LoadLibrary(lpLibFileName : pchar):THandle;
-  external 'kernel32' name 'LoadLibraryA';
+  stdcall;external 'kernel32' name 'LoadLibraryA';
 function GetProcAddress(hModule : THandle;lpProcName : pchar) : pointer;
-  external 'kernel32' name 'GetProcAddress';
+  stdcall;external 'kernel32' name 'GetProcAddress';
 
 
 Initialization
@@ -712,7 +712,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.23  2003-09-06 22:23:35  marco
+  Revision 1.24  2003-09-17 15:06:36  peter
+    * stdcall patch
+
+  Revision 1.23  2003/09/06 22:23:35  marco
    * VP fixes.
 
   Revision 1.22  2003/04/01 15:57:41  peter

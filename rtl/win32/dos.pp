@@ -206,15 +206,15 @@ var
 ******************************************************************************}
 
    function GetLastError : DWORD;
-     external 'kernel32' name 'GetLastError';
+     stdcall; external 'kernel32' name 'GetLastError';
    function FileTimeToDosDateTime(const ft :TWin32FileTime;var data,time : word) : longbool;
-     external 'kernel32' name 'FileTimeToDosDateTime';
+     stdcall; external 'kernel32' name 'FileTimeToDosDateTime';
    function DosDateTimeToFileTime(date,time : word;var ft :TWin32FileTime) : longbool;
-     external 'kernel32' name 'DosDateTimeToFileTime';
+     stdcall; external 'kernel32' name 'DosDateTimeToFileTime';
    function FileTimeToLocalFileTime(const ft : TWin32FileTime;var lft : TWin32FileTime) : longbool;
-     external 'kernel32' name 'FileTimeToLocalFileTime';
+     stdcall; external 'kernel32' name 'FileTimeToLocalFileTime';
    function LocalFileTimeToFileTime(const lft : TWin32FileTime;var ft : TWin32FileTime) : longbool;
-     external 'kernel32' name 'LocalFileTimeToFileTime';
+     stdcall; external 'kernel32' name 'LocalFileTimeToFileTime';
 
 type
   Longrec=packed record
@@ -294,11 +294,11 @@ type
   end;
 
    function GetVersion : longint;
-     external 'kernel32' name 'GetVersion';
+     stdcall; external 'kernel32' name 'GetVersion';
    procedure GetLocalTime(var t : TSystemTime);
-     external 'kernel32' name 'GetLocalTime';
+     stdcall; external 'kernel32' name 'GetLocalTime';
    function SetLocalTime(const t : TSystemTime) : longbool;
-     external 'kernel32' name 'SetLocalTime';
+     stdcall; external 'kernel32' name 'SetLocalTime';
 
 function dosversion : word;
 begin
@@ -400,13 +400,13 @@ type
                bInheritHandles: Longbool; dwCreationFlags: DWORD; lpEnvironment: Pointer;
                lpCurrentDirectory: PChar; const lpStartupInfo: TStartupInfo;
                var lpProcessInformation: TProcessInformation): longbool;
-     external 'kernel32' name 'CreateProcessA';
+     stdcall; external 'kernel32' name 'CreateProcessA';
    function getExitCodeProcess(h:TWin32Handle;var code:longint):longbool;
-     external 'kernel32' name 'GetExitCodeProcess';
+     stdcall; external 'kernel32' name 'GetExitCodeProcess';
    function WaitForSingleObject(hHandle: TWin32Handle; dwMilliseconds: DWORD): DWORD;
-     external 'kernel32' name 'WaitForSingleObject';
+     stdcall; external 'kernel32' name 'WaitForSingleObject';
    function CloseHandle(h : TWin32Handle) : longint;
-     external 'kernel32' name 'CloseHandle';
+     stdcall; external 'kernel32' name 'CloseHandle';
 
 var
   lastdosexitcode : longint;
@@ -497,7 +497,7 @@ end;
 
    function GetDiskFreeSpace(drive:pchar;var sector_cluster,bytes_sector,
                              freeclusters,totalclusters:longint):longbool;
-     external 'kernel32' name 'GetDiskFreeSpaceA';
+     stdcall; external 'kernel32' name 'GetDiskFreeSpaceA';
 type
    TGetDiskFreeSpaceEx = function(drive:pchar;var availableforcaller,
                              total,free):longbool;stdcall;
@@ -587,11 +587,11 @@ end;
 { Needed kernel calls }
 
    function FindFirstFile (lpFileName: PChar; var lpFindFileData: TWIN32FindData): TWin32Handle;
-     external 'kernel32' name 'FindFirstFileA';
+     stdcall; external 'kernel32' name 'FindFirstFileA';
    function FindNextFile  (hFindFile: TWin32Handle; var lpFindFileData: TWIN32FindData): LongBool;
-     external 'kernel32' name 'FindNextFileA';
+     stdcall; external 'kernel32' name 'FindNextFileA';
    function FindCloseFile (hFindFile: TWin32Handle): LongBool;
-     external 'kernel32' name 'FindClose';
+     stdcall; external 'kernel32' name 'FindClose';
 
 Procedure StringToPchar (Var S : String);
 Var L : Longint;
@@ -686,13 +686,13 @@ end;
 ******************************************************************************}
 
    function GeTWin32FileTime(h : longint;creation,lastaccess,lastwrite : PWin32FileTime) : longbool;
-     external 'kernel32' name 'GetFileTime';
+     stdcall; external 'kernel32' name 'GetFileTime';
    function SeTWin32FileTime(h : longint;creation,lastaccess,lastwrite : PWin32FileTime) : longbool;
-     external 'kernel32' name 'SetFileTime';
+     stdcall; external 'kernel32' name 'SetFileTime';
    function SetFileAttributes(lpFileName : pchar;dwFileAttributes : longint) : longbool;
-     external 'kernel32' name 'SetFileAttributesA';
+     stdcall; external 'kernel32' name 'SetFileAttributesA';
    function GetFileAttributes(lpFileName : pchar) : longint;
-     external 'kernel32' name 'GetFileAttributesA';
+     stdcall; external 'kernel32' name 'GetFileAttributesA';
 
 procedure fsplit(path : pathstr;var dir : dirstr;var name : namestr;var ext : extstr);
 var
@@ -740,10 +740,10 @@ end;
 { <immobilizer> }
 
 function GetFullPathName(lpFileName: PChar; nBufferLength: Longint; lpBuffer: PChar; var lpFilePart : PChar):DWORD;
-    external 'kernel32' name 'GetFullPathNameA';
+    stdcall; external 'kernel32' name 'GetFullPathNameA';
 
 function GetShortPathName(lpszLongPath:pchar; lpszShortPath:pchar; cchBuffer:DWORD):DWORD;
-    external 'kernel32' name 'GetShortPathNameA';
+    stdcall; external 'kernel32' name 'GetShortPathNameA';
 
 
 (*
@@ -761,7 +761,7 @@ function FExpand (const Path: PathStr): PathStr;
 
 
   function SearchPath(lpPath : PChar; lpFileName : PChar; lpExtension : PChar; nBufferLength : Longint; lpBuffer : PChar;
-    var lpFilePart : PChar) : Longint; external 'kernel32' name 'SearchPathA';
+    var lpFilePart : PChar) : Longint; stdcall; external 'kernel32' name 'SearchPathA';
 
 Function FSearch(path: pathstr; dirlist: string): pathstr;
 var temp        : PChar;
@@ -957,9 +957,9 @@ end;
 }
 
    function GetEnvironmentStrings : pchar;
-     external 'kernel32' name 'GetEnvironmentStringsA';
+     stdcall; external 'kernel32' name 'GetEnvironmentStringsA';
    function FreeEnvironmentStrings(p : pchar) : longbool;
-     external 'kernel32' name 'FreeEnvironmentStringsA';
+     stdcall; external 'kernel32' name 'FreeEnvironmentStringsA';
 
 function envcount : longint;
 var
@@ -1048,13 +1048,13 @@ Begin
 End;
 
 function FreeLibrary(hLibModule : TWin32Handle) : longbool;
-  external 'kernel32' name 'FreeLibrary';
+  stdcall; external 'kernel32' name 'FreeLibrary';
 function GetVersionEx(var VersionInformation:OSVERSIONINFO) : longbool;
-  external 'kernel32' name 'GetVersionExA';
+  stdcall; external 'kernel32' name 'GetVersionExA';
 function LoadLibrary(lpLibFileName : pchar):TWin32Handle;
-  external 'kernel32' name 'LoadLibraryA';
+  stdcall; external 'kernel32' name 'LoadLibraryA';
 function GetProcAddress(hModule : TWin32Handle;lpProcName : pchar) : pointer;
-  external 'kernel32' name 'GetProcAddress';
+  stdcall; external 'kernel32' name 'GetProcAddress';
 
 var
    oldexitproc : pointer;
@@ -1085,7 +1085,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2003-06-10 11:16:15  jonas
+  Revision 1.20  2003-09-17 15:06:36  peter
+    * stdcall patch
+
+  Revision 1.19  2003/06/10 11:16:15  jonas
     * fix from Peter
 
   Revision 1.18  2002/12/24 15:35:15  peter

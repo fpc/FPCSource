@@ -206,6 +206,47 @@ begin
 end;
 
 
+{$ifdef unix}
+{ mimic the linux fpWrite/fpRead calls for the file/text socket wrapper }
+function fpWrite(handle : longint;Const bufptr;size : dword) : dword;
+begin
+  fpWrite := dword(WinSock.send(handle, bufptr, size, 0));
+  if fpWrite = dword(SOCKET_ERROR) then
+  begin
+    SocketError := WSAGetLastError;
+    fpWrite := 0;
+  end
+  else
+    SocketError := 0;
+end;
+
+function fpRead(handle : longint;var bufptr;size : dword) : dword;
+  var
+     d : dword;
+
+  begin
+     if ioctlsocket(handle,FIONREAD,@d) = SOCKET_ERROR then
+       begin
+         SocketError:=WSAGetLastError;
+         fpRead:=0;
+         exit;
+       end;
+     if d>0 then
+       begin
+         if size>d then
+           size:=d;
+         fpRead := dword(WinSock.recv(handle, bufptr, size, 0));
+         if fpRead = dword(SOCKET_ERROR) then
+         begin
+           SocketError:= WSAGetLastError;
+           fpRead := 0;
+         end else
+           SocketError:=0;
+       end
+     else
+       SocketError:=0;
+  end;
+{$else}
 { mimic the linux fdWrite/fdRead calls for the file/text socket wrapper }
 function fdWrite(handle : longint;Const bufptr;size : dword) : dword;
 begin
@@ -245,7 +286,7 @@ function fdRead(handle : longint;var bufptr;size : dword) : dword;
      else
        SocketError:=0;
   end;
-
+{$endif}
 
 {$i sockets.inc}
 
@@ -260,7 +301,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.11  2003-03-23 17:47:15  armin
+  Revision 1.12  2003-09-17 15:06:36  peter
+    * stdcall patch
+
+  Revision 1.11  2003/03/23 17:47:15  armin
   * CloseSocket added
 
   Revision 1.10  2003/01/01 14:34:22  peter

@@ -57,31 +57,31 @@ const
   GMEM_ZEROINIT = 64;
 
 function TlsAlloc : DWord;
-  external 'kernel32' name 'TlsAlloc';
+  stdcall;external 'kernel32' name 'TlsAlloc';
 function TlsGetValue(dwTlsIndex : DWord) : pointer;
-  external 'kernel32' name 'TlsGetValue';
+  stdcall;external 'kernel32' name 'TlsGetValue';
 function TlsSetValue(dwTlsIndex : DWord;lpTlsValue : pointer) : LongBool;
-  external 'kernel32' name 'TlsSetValue';
+  stdcall;external 'kernel32' name 'TlsSetValue';
 function TlsFree(dwTlsIndex : DWord) : LongBool;
-  external 'kernel32' name 'TlsFree';
+  stdcall;external 'kernel32' name 'TlsFree';
 function CreateThread(lpThreadAttributes : pointer;
   dwStackSize : DWord; lpStartAddress : pointer;lpParameter : pointer;
   dwCreationFlags : DWord;var lpThreadId : DWord) : Dword;
-  external 'kernel32' name 'CreateThread';
+  stdcall;external 'kernel32' name 'CreateThread';
 procedure ExitThread(dwExitCode : DWord);
-  external 'kernel32' name 'ExitThread';
+  stdcall;external 'kernel32' name 'ExitThread';
 function GlobalAlloc(uFlags:DWord; dwBytes:DWORD):Pointer;
-  external 'kernel32' name 'GlobalAlloc';
-function GlobalFree(hMem : Pointer):Pointer; external 'kernel32' name 'GlobalFree';
-procedure Sleep(dwMilliseconds: DWord); external 'kernel32' name 'Sleep';
-function  SuspendThread (threadHandle : dword) : dword; external 'kernel32' name 'SuspendThread';
-function  ResumeThread  (threadHandle : dword) : dword; external 'kernel32' name 'ResumeThread';
-function  TerminateThread  (threadHandle : dword; var exitCode : dword) : boolean; external 'kernel32' name 'TerminateThread';
-function  GetLastError : dword; external 'kernel32' name 'GetLastError';
-function  WaitForSingleObject (hHandle,Milliseconds: dword): dword; external 'kernel32' name 'WaitForSingleObject';
-function  ThreadSetPriority (threadHandle : dword; Prio: longint): boolean; external 'kernel32' name 'SetThreadPriority';
-function  ThreadGetPriority (threadHandle : dword): Integer; external 'kernel32' name 'GetThreadPriority';
-function  GetCurrentThreadHandle : dword; external 'kernel32' name 'GetCurrentThread';
+  stdcall;external 'kernel32' name 'GlobalAlloc';
+function GlobalFree(hMem : Pointer):Pointer; stdcall;external 'kernel32' name 'GlobalFree';
+procedure Sleep(dwMilliseconds: DWord); stdcall;external 'kernel32' name 'Sleep';
+function  WinSuspendThread (threadHandle : dword) : dword; stdcall;external 'kernel32' name 'SuspendThread';
+function  WinResumeThread  (threadHandle : dword) : dword; stdcall;external 'kernel32' name 'ResumeThread';
+function  TerminateThread  (threadHandle : dword; var exitCode : dword) : boolean; stdcall;external 'kernel32' name 'TerminateThread';
+function  GetLastError : dword; stdcall;external 'kernel32' name 'GetLastError';
+function  WaitForSingleObject (hHandle,Milliseconds: dword): dword; stdcall;external 'kernel32' name 'WaitForSingleObject';
+function  WinThreadSetPriority (threadHandle : dword; Prio: longint): boolean; stdcall;external 'kernel32' name 'SetThreadPriority';
+function  WinThreadGetPriority (threadHandle : dword): Integer; stdcall;external 'kernel32' name 'GetThreadPriority';
+function  WinGetCurrentThreadHandle : dword; stdcall;external 'kernel32' name 'GetCurrentThread';
 
 {*****************************************************************************
                              Threadvar support
@@ -224,6 +224,18 @@ function  GetCurrentThreadHandle : dword; external 'kernel32' name 'GetCurrentTh
     end;
 
 
+    function  SuspendThread (threadHandle : dword) : dword;
+    begin
+      SuspendThread:=WinSuspendThread(threadHandle);
+    end;
+
+
+    function  ResumeThread  (threadHandle : dword) : dword;
+    begin
+      ResumeThread:=WinResumeThread(threadHandle);
+    end;
+
+
     function  KillThread (threadHandle : dword) : dword;
     var exitCode : dword;
     begin
@@ -240,24 +252,61 @@ function  GetCurrentThreadHandle : dword; external 'kernel32' name 'GetCurrentTh
     end;
 
 
+    function  ThreadSetPriority (threadHandle : dword; Prio: longint): boolean;            {-15..+15, 0=normal}
+    begin
+      ThreadSetPriority:=WinThreadSetPriority(threadHandle,Prio);
+    end;
+
+
+    function  ThreadGetPriority (threadHandle : dword): Integer;
+    begin
+      ThreadGetPriority:=WinThreadGetPriority(threadHandle);
+    end;
+
+
+    function  GetCurrentThreadHandle : dword;
+    begin
+      GetCurrentThreadHandle:=WinGetCurrentThreadHandle;
+    end;
 
 {*****************************************************************************
                           Delphi/Win32 compatibility
 *****************************************************************************}
 
-{ we implement these procedures for win32 by importing them }
-{ directly from windows                                     }
+procedure WinInitCriticalSection(var cs : TRTLCriticalSection);
+  stdcall;external 'kernel32' name 'InitializeCriticalSection';
+
+procedure WinDoneCriticalSection(var cs : TRTLCriticalSection);
+  stdcall;external 'kernel32' name 'DeleteCriticalSection';
+
+procedure WinEnterCriticalSection(var cs : TRTLCriticalSection);
+  stdcall;external 'kernel32' name 'EnterCriticalSection';
+
+procedure WinLeaveCriticalSection(var cs : TRTLCriticalSection);
+  stdcall;external 'kernel32' name 'LeaveCriticalSection';
+
 procedure InitCriticalSection(var cs : TRTLCriticalSection);
-  external 'kernel32' name 'InitializeCriticalSection';
+begin
+  WinInitCriticalSection(cs);
+end;
+
 
 procedure DoneCriticalSection(var cs : TRTLCriticalSection);
-  external 'kernel32' name 'DeleteCriticalSection';
+begin
+  WinDoneCriticalSection(cs);
+end;
+
 
 procedure EnterCriticalSection(var cs : TRTLCriticalSection);
-  external 'kernel32' name 'EnterCriticalSection';
+begin
+  WinEnterCriticalSection(cs);
+end;
+
 
 procedure LeaveCriticalSection(var cs : TRTLCriticalSection);
-  external 'kernel32' name 'LeaveCriticalSection';
+begin
+  WinLeaveCriticalSection(cs);
+end;
 
 
 {*****************************************************************************
@@ -306,7 +355,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2003-03-27 17:14:27  armin
+  Revision 1.5  2003-09-17 15:06:36  peter
+    * stdcall patch
+
+  Revision 1.4  2003/03/27 17:14:27  armin
   * more platform independent thread routines, needs to be implemented for unix
 
   Revision 1.3  2003/03/24 16:12:01  jonas

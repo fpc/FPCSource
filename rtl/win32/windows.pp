@@ -19,6 +19,8 @@ unit windows;
 {$smartlink on}
 {$endif}
 
+{$calling stdcall}
+
 interface
 
 {$define read_interface}
@@ -62,7 +64,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2002-11-04 12:19:01  marco
+  Revision 1.6  2003-09-17 15:06:36  peter
+    * stdcall patch
+
+  Revision 1.5  2002/11/04 12:19:01  marco
    * Move tmsg and family to messages.inc. windows.pp needed include sequence patch
 
   Revision 1.4  2002/10/10 14:58:16  florian

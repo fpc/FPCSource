@@ -134,7 +134,7 @@ end;
 
 {$IFDEF FPC}
 function WriteConsoleOutput(hConsoleOutput:HANDLE; lpBuffer:pointer; dwBufferSize:COORD; dwBufferCoord:COORD;
-   var lpWriteRegion:SMALL_RECT):WINBOOL; external 'kernel32' name 'WriteConsoleOutputA';
+   var lpWriteRegion:SMALL_RECT):WINBOOL; stdcall;external 'kernel32' name 'WriteConsoleOutputA';
 {$ENDIF}
 
 procedure SysUpdateScreen(Force: Boolean);
@@ -276,7 +276,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.10  2002-12-15 20:22:56  peter
+  Revision 1.11  2003-09-17 15:06:36  peter
+    * stdcall patch
+
+  Revision 1.10  2002/12/15 20:22:56  peter
     * fix updatescreen compare that was wrong when the last char was
       different
 

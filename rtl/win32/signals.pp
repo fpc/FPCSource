@@ -37,7 +37,7 @@ interface
 
   type
 
-    SignalHandler  = function (v : longint) : longint;
+    SignalHandler  = function (v : longint) : longint;cdecl;
 
     PSignalHandler = ^SignalHandler; { to be compatible with linux.pp }
 
@@ -151,7 +151,7 @@ const
 
      function SetUnhandledExceptionFilter(lpTopLevelExceptionFilter : LPTOP_LEVEL_EXCEPTION_FILTER)
        : LPTOP_LEVEL_EXCEPTION_FILTER;
-       external 'kernel32' name 'SetUnhandledExceptionFilter';
+       stdcall; external 'kernel32' name 'SetUnhandledExceptionFilter';
 
 var
   signal_list : Array[SIGABRT..SIGMAX] of SignalHandler;

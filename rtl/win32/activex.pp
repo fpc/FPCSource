@@ -2632,13 +2632,13 @@ TYPE
 {$i wininc/objbase.inc}
 
 { redefinitions }
-  function CoCreateGuid(out _para1:TGUID):HRESULT;external 'ole32.dll' name 'CoCreateGuid';
+  function CoCreateGuid(out _para1:TGUID):HRESULT;stdcall;external 'ole32.dll' name 'CoCreateGuid';
 
 { additional definitions }
 
-  function IsEqualGUID(const guid1,guid2 : TGUID) : Boolean;external 'ole32.dll' name 'IsEqualGUID';
-  function IsEqualIID(const iid1,iid2 : TIID) : Boolean;external 'ole32.dll' name 'IsEqualGUID';
-  function IsEqualCLSID(const clsid1,clsid2 : TCLSID) : Boolean;external 'ole32.dll' name 'IsEqualGUID';
+  function IsEqualGUID(const guid1,guid2 : TGUID) : Boolean;stdcall;external 'ole32.dll' name 'IsEqualGUID';
+  function IsEqualIID(const iid1,iid2 : TIID) : Boolean;stdcall;external 'ole32.dll' name 'IsEqualGUID';
+  function IsEqualCLSID(const clsid1,clsid2 : TCLSID) : Boolean;stdcall;external 'ole32.dll' name 'IsEqualGUID';
 
 {$ENDIF HASINTF}
 
@@ -2650,7 +2650,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2002-12-12 17:52:35  peter
+  Revision 1.9  2003-09-17 15:06:36  peter
+    * stdcall patch
+
+  Revision 1.8  2002/12/12 17:52:35  peter
     * INT renamed to WINT
 
   Revision 1.7  2002/10/10 16:10:45  florian

@@ -176,15 +176,15 @@ var
 
    { misc. functions }
    function GetLastError : DWORD;
-     external 'kernel32' name 'GetLastError';
+     stdcall;external 'kernel32' name 'GetLastError';
 
    { time and date functions }
    function GetTickCount : longint;
-     external 'kernel32' name 'GetTickCount';
+     stdcall;external 'kernel32' name 'GetTickCount';
 
    { process functions }
    procedure ExitProcess(uExitCode : UINT);
-     external 'kernel32' name 'ExitProcess';
+     stdcall;external 'kernel32' name 'ExitProcess';
 
 
    Procedure Errno2InOutRes;
@@ -220,9 +220,9 @@ end;
 
    { module functions }
    function GetModuleFileName(l1:longint;p:pointer;l2:longint):longint;
-     external 'kernel32' name 'GetModuleFileNameA';
+     stdcall;external 'kernel32' name 'GetModuleFileNameA';
    function GetModuleHandle(p : pointer) : longint;
-     external 'kernel32' name 'GetModuleHandleA';
+     stdcall;external 'kernel32' name 'GetModuleHandleA';
    function GetCommandFile:pchar;forward;
 
 function paramstr(l : longint) : string;
@@ -245,12 +245,12 @@ end;
 *****************************************************************************}
    { memory functions }
    function GetProcessHeap : DWord;
-     external 'kernel32' name 'GetProcessHeap';
+     stdcall;external 'kernel32' name 'GetProcessHeap';
    function HeapAlloc(hHeap : DWord; dwFlags : DWord; dwBytes : DWord) : Longint;
-     external 'kernel32' name 'HeapAlloc';
+     stdcall;external 'kernel32' name 'HeapAlloc';
 {$IFDEF SYSTEMDEBUG}
    function WinAPIHeapSize(hHeap : DWord; dwFlags : DWord; ptr : Pointer) : DWord;
-     external 'kernel32' name 'HeapSize';
+     stdcall;external 'kernel32' name 'HeapSize';
 {$ENDIF}
 
 var
@@ -294,29 +294,29 @@ end;
 
    function WriteFile(fh:longint;buf:pointer;len:longint;var loaded:longint;
      overlap:pointer):longint;
-     external 'kernel32' name 'WriteFile';
+     stdcall;external 'kernel32' name 'WriteFile';
    function ReadFile(fh:longint;buf:pointer;len:longint;var loaded:longint;
      overlap:pointer):longint;
-     external 'kernel32' name 'ReadFile';
+     stdcall;external 'kernel32' name 'ReadFile';
    function CloseHandle(h : longint) : longint;
-     external 'kernel32' name 'CloseHandle';
+     stdcall;external 'kernel32' name 'CloseHandle';
    function DeleteFile(p : pchar) : longint;
-     external 'kernel32' name 'DeleteFileA';
+     stdcall;external 'kernel32' name 'DeleteFileA';
    function MoveFile(old,_new : pchar) : longint;
-     external 'kernel32' name 'MoveFileA';
+     stdcall;external 'kernel32' name 'MoveFileA';
    function SetFilePointer(l1,l2 : longint;l3 : pointer;l4 : longint) : longint;
-     external 'kernel32' name 'SetFilePointer';
+     stdcall;external 'kernel32' name 'SetFilePointer';
    function GetFileSize(h:longint;p:pointer) : longint;
-     external 'kernel32' name 'GetFileSize';
+     stdcall;external 'kernel32' name 'GetFileSize';
    function CreateFile(name : pointer;access,sharing : longint;
      security : PSecurityAttributes;how,attr,template : longint) : longint;
-     external 'kernel32' name 'CreateFileA';
+     stdcall;external 'kernel32' name 'CreateFileA';
    function SetEndOfFile(h : longint) : longbool;
-     external 'kernel32' name 'SetEndOfFile';
+     stdcall;external 'kernel32' name 'SetEndOfFile';
    function GetFileType(Handle:DWORD):DWord;
-     external 'kernel32' name 'GetFileType';
+     stdcall;external 'kernel32' name 'GetFileType';
    function GetFileAttributes(p : pchar) : dword;
-     external 'kernel32' name 'GetFileAttributesA';
+     stdcall;external 'kernel32' name 'GetFileAttributesA';
 
 procedure AllowSlash(p:pchar);
 var
@@ -586,13 +586,13 @@ end;
 *****************************************************************************}
 
    function CreateDirectory(name : pointer;sec : pointer) : longbool;
-     external 'kernel32' name 'CreateDirectoryA';
+     stdcall;external 'kernel32' name 'CreateDirectoryA';
    function RemoveDirectory(name:pointer):longbool;
-     external 'kernel32' name 'RemoveDirectoryA';
+     stdcall;external 'kernel32' name 'RemoveDirectoryA';
    function SetCurrentDirectory(name : pointer) : longbool;
-     external 'kernel32' name 'SetCurrentDirectoryA';
+     stdcall;external 'kernel32' name 'SetCurrentDirectoryA';
    function GetCurrentDirectory(bufsize : longint;name : pchar) : longbool;
-     external 'kernel32' name 'GetCurrentDirectoryA';
+     stdcall;external 'kernel32' name 'GetCurrentDirectoryA';
 
 type
  TDirFnType=function(name:pointer):longbool;
@@ -676,13 +676,13 @@ end;
 
    { Startup }
    procedure GetStartupInfo(p : pointer);
-     external 'kernel32' name 'GetStartupInfoA';
+     stdcall;external 'kernel32' name 'GetStartupInfoA';
    function GetStdHandle(nStdHandle:DWORD):THANDLE;
-     external 'kernel32' name 'GetStdHandle';
+     stdcall;external 'kernel32' name 'GetStdHandle';
 
    { command line/enviroment functions }
    function GetCommandLine : pchar;
-     external 'kernel32' name 'GetCommandLineA';
+     stdcall;external 'kernel32' name 'GetCommandLineA';
 
 
 var
@@ -887,10 +887,10 @@ end;
 
   procedure install_exception_handlers;forward;
   procedure remove_exception_handlers;forward;
-  procedure PascalMain;external name 'PASCALMAIN';
-  procedure fpc_do_exit;external name 'FPC_DO_EXIT';
+  procedure PascalMain;stdcall;external name 'PASCALMAIN';
+  procedure fpc_do_exit;stdcall;external name 'FPC_DO_EXIT';
   Procedure ExitDLL(Exitcode : longint); forward;
-  procedure asm_exit; external name 'asm_exit';
+  procedure asm_exit; stdcall;external name 'asm_exit';
 
 Procedure system_exit;
 begin
@@ -1201,7 +1201,7 @@ type
         TTopLevelExceptionFilter = function (excep : PExceptionPointers) : Longint;stdcall;
 
 function SetUnhandledExceptionFilter(lpTopLevelExceptionFilter : TTopLevelExceptionFilter) : TTopLevelExceptionFilter;
-        external 'kernel32' name 'SetUnhandledExceptionFilter';
+        stdcall;external 'kernel32' name 'SetUnhandledExceptionFilter';
 
 const
         MaxExceptionLevel = 16;
@@ -1335,12 +1335,12 @@ begin
                         res := SysHandleErrorFrame(217, frame, true);
                 STATUS_PRIVILEGED_INSTRUCTION:
                   res := SysHandleErrorFrame(218, frame, false);
-                else 
+                else
                   begin
                     if ((excep^.ExceptionRecord^.ExceptionCode and SEVERITY_ERROR) = SEVERITY_ERROR) then
                       res  :=  SysHandleErrorFrame(217, frame, true)
                     else
-                      res := SysHandleErrorFrame(255, frame, true);                  
+                      res := SysHandleErrorFrame(255, frame, true);
                   end;
         end;
         syswin32_i386_exception_handler := res;
@@ -1397,7 +1397,7 @@ end;
 ****************************************************************************}
 
 function MessageBox(w1:longint;l1,l2:pointer;w2:longint):longint;
-   external 'user32' name 'MessageBoxA';
+   stdcall;external 'user32' name 'MessageBoxA';
 
 const
   ErrorBufferLength = 1024;
@@ -1530,7 +1530,10 @@ end.
 
 {
   $Log$
-  Revision 1.41  2003-09-12 12:33:43  olle
+  Revision 1.42  2003-09-17 15:06:36  peter
+    * stdcall patch
+
+  Revision 1.41  2003/09/12 12:33:43  olle
     * nice-ified
 
   Revision 1.40  2003/01/01 20:56:57  florian

@@ -31,6 +31,7 @@ Unit ShellApi;
 
 Interface
 {$PACKRECORDS C}
+{$calling stdcall}
 {$mode Delphi}
 
 Uses Windows;

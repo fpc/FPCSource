@@ -43,31 +43,31 @@ CONST
 
    { misc. functions }
    function GetLastError : DWORD;
-     external 'kernel32' name 'GetLastError';
+     stdcall;external 'kernel32' name 'GetLastError';
 
    function WriteFile(fh:longint;buf:pointer;len:longint;var loaded:longint;
      overlap:pointer):longint;
-     external 'kernel32' name 'WriteFile';
+     stdcall;external 'kernel32' name 'WriteFile';
    function ReadFile(fh:longint;buf:pointer;len:longint;var loaded:longint;
      overlap:pointer):longint;
-     external 'kernel32' name 'ReadFile';
+     stdcall;external 'kernel32' name 'ReadFile';
    function CloseHandle(h : longint) : longint;
-     external 'kernel32' name 'CloseHandle';
+     stdcall;external 'kernel32' name 'CloseHandle';
    function DeleteFile(p : pchar) : longint;
-     external 'kernel32' name 'DeleteFileA';
+     stdcall;external 'kernel32' name 'DeleteFileA';
    function MoveFile(old,_new : pchar) : longint;
-     external 'kernel32' name 'MoveFileA';
+     stdcall;external 'kernel32' name 'MoveFileA';
    function SetFilePointer(l1,l2 : longint;l3 : pointer;l4 : longint) : longint;
-     external 'kernel32' name 'SetFilePointer';
+     stdcall;external 'kernel32' name 'SetFilePointer';
    function GetFileSize(h:longint;p:pointer) : longint;
-     external 'kernel32' name 'GetFileSize';
+     stdcall;external 'kernel32' name 'GetFileSize';
    function CreateFile(name : pointer;access,sharing : longint;
      security : pointer;how,attr,template : longint) : longint;
-     external 'kernel32' name 'CreateFileA';
+     stdcall;external 'kernel32' name 'CreateFileA';
    function SetEndOfFile(h : longint) : boolean;
-     external 'kernel32' name 'SetEndOfFile';
+     stdcall;external 'kernel32' name 'SetEndOfFile';
    function GetFileType(Handle:DWORD):DWord;
-     external 'kernel32' name 'GetFileType';
+     stdcall;external 'kernel32' name 'GetFileType';
 
 
 {---------------------------------------------------------------------------}
@@ -185,7 +185,10 @@ END;
 
 {
   $Log$
-  Revision 1.6  2002-09-07 21:28:10  carl
+  Revision 1.7  2003-09-17 15:06:36  peter
+    * stdcall patch
+
+  Revision 1.6  2002/09/07 21:28:10  carl
     - removed os_types
     * fix range check errors
 
