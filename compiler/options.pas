@@ -245,6 +245,15 @@ begin
 {$ifdef i386}
       '3',
 {$endif}
+{$ifdef powerpc}
+      'P',
+{$endif}
+{$ifdef vis}
+      'V',
+{$endif}
+{$ifdef sparc}
+      'S',
+{$endif}
 {$ifdef m68k}
       '6',
 {$endif}
@@ -1746,14 +1755,6 @@ begin
   end;
 
 {$ifdef m68k}
-  { Disable fpu emulation for linux and netbsd on m68k machines }
-  { FIXME: this overrides possible explicit command line emulation setting,
-    but this isn't supported yet anyhow PM }
-  if (target_info.system in [system_m68k_netbsd,system_m68k_linux]) then
-   exclude(initmoduleswitches,cs_fp_emulation)
-  else
-   def_symbol('FPC_FPU_INTERNAL');
-
   if initoptprocessor=MC68020 then
     def_symbol('CPUM68020');
 {$endif m68k}
@@ -1886,7 +1887,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.89  2002-11-30 21:29:56  carl
+  Revision 1.90  2002-11-30 23:14:55  carl
+    - removed cs_fp_emulation checking for m68k, its now controled
+      by a global switch
+    + added powerpc/sparc/vis message options support
+
+  Revision 1.89  2002/11/30 21:29:56  carl
     + -Ce for softfpu
 
   Revision 1.88  2002/11/15 01:58:52  peter
