@@ -29,10 +29,17 @@ unit ag386int;
 
 interface
 
-    uses aasmbase,aasmtai,aasmcpu,assemble;
+    uses
+      cpubase,
+      aasmbase,aasmtai,aasmcpu,assemble;
 
     type
       T386IntelAssembler = class(TExternalAssembler)
+      private
+        procedure WriteReference(var ref : treference);
+        procedure WriteOper(const o:toper;s : topsize; opcode: tasmop;dest : boolean);
+        procedure WriteOper_jmp(const o:toper;s : topsize);
+      public
         procedure WriteTree(p:TAAsmoutput);override;
         procedure WriteAsmList;override;
         Function  DoAssemble:boolean;override;
@@ -49,7 +56,7 @@ interface
       sysutils,
 {$endif}
       cutils,globtype,globals,systems,cclasses,
-      verbose,cpubase,finput,fmodule,script,cpuinfo
+      verbose,finput,fmodule,script,cpuinfo
       ;
 
     const
@@ -120,157 +127,6 @@ interface
          comp2str:=double2str(dd^);
       end;
 
-    function getreferencestring(var ref : treference) : string;
-    var
-      s     : string;
-      first : boolean;
-    begin
-      with ref do
-        begin
-          first:=true;
-          inc(offset,offsetfixup);
-          offsetfixup:=0;
-          if ref.segment<>R_NO then
-           s:=std_reg2str[segment]+':['
-          else
-           s:='[';
-         if assigned(symbol) then
-          begin
-            if (aktoutputformat = as_i386_tasm) then
-              s:=s+'dword ptr ';
-            s:=s+symbol.name;
-            first:=false;
-          end;
-         if (base<>R_NO) then
-          begin
-            if not(first) then
-             s:=s+'+'
-            else
-             first:=false;
-             s:=s+std_reg2str[base];
-          end;
-         if (index<>R_NO) then
-           begin
-             if not(first) then
-               s:=s+'+'
-             else
-               first:=false;
-             s:=s+std_reg2str[index];
-             if scalefactor<>0 then
-               s:=s+'*'+tostr(scalefactor);
-           end;
-         if offset<0 then
-           s:=s+tostr(offset)
-         else if (offset>0) then
-           s:=s+'+'+tostr(offset);
-         if s[length(s)]='[' then
-           s:=s+'0';
-         s:=s+']';
-        end;
-       getreferencestring:=s;
-     end;
-
-
-    function getopstr(const o:toper;s : topsize; opcode: tasmop;dest : boolean) : string;
-    var
-      hs : string;
-    begin
-      case o.typ of
-        top_reg :
-          getopstr:=std_reg2str[o.reg];
-        top_const :
-          getopstr:=tostr(longint(o.val));
-        top_symbol :
-          begin
-            if assigned(o.sym) then
-              hs:='offset '+o.sym.name
-            else
-              hs:='offset ';
-            if o.symofs>0 then
-             hs:=hs+'+'+tostr(o.symofs)
-            else
-             if o.symofs<0 then
-              hs:=hs+tostr(o.symofs)
-            else
-             if not(assigned(o.sym)) then
-               hs:=hs+'0';
-            getopstr:=hs;
-          end;
-        top_ref :
-          begin
-            hs:=getreferencestring(o.ref^);
-            if ((opcode <> A_LGS) and (opcode <> A_LSS) and
-                (opcode <> A_LFS) and (opcode <> A_LDS) and
-                (opcode <> A_LES)) then
-             Begin
-               case s of
-                S_B : hs:='byte ptr '+hs;
-                S_W : hs:='word ptr '+hs;
-                S_L : hs:='dword ptr '+hs;
-               S_IS : hs:='word ptr '+hs;
-               S_IL : hs:='dword ptr '+hs;
-               S_IQ : hs:='qword ptr '+hs;
-               S_FS : hs:='dword ptr '+hs;
-               S_FL : hs:='qword ptr '+hs;
-               S_FX : hs:='tbyte ptr '+hs;
-               S_BW : if dest then
-                       hs:='word ptr '+hs
-                      else
-                       hs:='byte ptr '+hs;
-               S_BL : if dest then
-                       hs:='dword ptr '+hs
-                      else
-                       hs:='byte ptr '+hs;
-               S_WL : if dest then
-                       hs:='dword ptr '+hs
-                      else
-                       hs:='word ptr '+hs;
-               end;
-             end;
-            getopstr:=hs;
-          end;
-        else
-          internalerror(10001);
-      end;
-    end;
-
-    function getopstr_jmp(const o:toper;s : topsize) : string;
-    var
-      hs : string;
-    begin
-      case o.typ of
-        top_reg :
-          getopstr_jmp:=std_reg2str[o.reg];
-        top_const :
-          getopstr_jmp:=tostr(longint(o.val));
-        top_symbol :
-          begin
-            hs:=o.sym.name;
-            if o.symofs>0 then
-             hs:=hs+'+'+tostr(o.symofs)
-            else
-             if o.symofs<0 then
-              hs:=hs+tostr(o.symofs);
-            getopstr_jmp:=hs;
-          end;
-        top_ref :
-          { what about lcall or ljmp ??? }
-          begin
-            if (aktoutputformat = as_i386_tasm) then
-              hs:=''
-            else
-              begin
-                if s=S_FAR then
-                  hs:='far ptr '
-                else
-                  hs:='dword ptr ';
-              end;
-            getopstr_jmp:=hs+getreferencestring(o.ref^);
-          end;
-        else
-          internalerror(10001);
-      end;
-    end;
 
    function fixline(s:string):string;
    {
@@ -295,6 +151,154 @@ interface
 {****************************************************************************
                                T386IntelAssembler
  ****************************************************************************}
+
+    procedure T386IntelAssembler.WriteReference(var ref : treference);
+      var
+        first : boolean;
+      begin
+        with ref do
+         begin
+           first:=true;
+           inc(offset,offsetfixup);
+           offsetfixup:=0;
+           if ref.segment<>R_NO then
+            AsmWrite(std_reg2str[segment]+':[')
+           else
+            AsmWrite('[');
+           if assigned(symbol) then
+            begin
+              if (aktoutputformat = as_i386_tasm) then
+                AsmWrite('dword ptr ');
+              AsmWrite(symbol.name);
+              first:=false;
+            end;
+           if (base<>R_NO) then
+            begin
+              if not(first) then
+               AsmWrite('+')
+              else
+               first:=false;
+               AsmWrite(std_reg2str[base]);
+            end;
+           if (index<>R_NO) then
+            begin
+              if not(first) then
+               AsmWrite('+')
+              else
+               first:=false;
+              AsmWrite(std_reg2str[index]);
+              if scalefactor<>0 then
+               AsmWrite('*'+tostr(scalefactor));
+            end;
+           if offset<0 then
+            begin
+              AsmWrite(tostr(offset));
+              first:=false;
+            end
+           else if (offset>0) then
+            begin
+              AsmWrite('+'+tostr(offset));
+              first:=false;
+            end;
+           if first then
+             AsmWrite('0');
+           AsmWrite(']');
+         end;
+      end;
+
+
+    procedure T386IntelAssembler.WriteOper(const o:toper;s : topsize; opcode: tasmop;dest : boolean);
+      begin
+        case o.typ of
+          top_reg :
+            AsmWrite(std_reg2str[o.reg]);
+          top_const :
+            AsmWrite(tostr(longint(o.val)));
+          top_symbol :
+            begin
+              AsmWrite('offset ');
+              if assigned(o.sym) then
+                AsmWrite(o.sym.name);
+              if o.symofs>0 then
+               AsmWrite('+'+tostr(o.symofs))
+              else
+               if o.symofs<0 then
+                AsmWrite(tostr(o.symofs))
+              else
+               if not(assigned(o.sym)) then
+                 AsmWrite('0');
+            end;
+          top_ref :
+            begin
+              if ((opcode <> A_LGS) and (opcode <> A_LSS) and
+                  (opcode <> A_LFS) and (opcode <> A_LDS) and
+                  (opcode <> A_LES)) then
+               Begin
+                 case s of
+                  S_B : AsmWrite('byte ptr ');
+                  S_W : AsmWrite('word ptr ');
+                  S_L : AsmWrite('dword ptr ');
+                 S_IS : AsmWrite('word ptr ');
+                 S_IL : AsmWrite('dword ptr ');
+                 S_IQ : AsmWrite('qword ptr ');
+                 S_FS : AsmWrite('dword ptr ');
+                 S_FL : AsmWrite('qword ptr ');
+                 S_FX : AsmWrite('tbyte ptr ');
+                 S_BW : if dest then
+                         AsmWrite('word ptr ')
+                        else
+                         AsmWrite('byte ptr ');
+                 S_BL : if dest then
+                         AsmWrite('dword ptr ')
+                        else
+                         AsmWrite('byte ptr ');
+                 S_WL : if dest then
+                         AsmWrite('dword ptr ')
+                        else
+                         AsmWrite('word ptr ');
+                 end;
+               end;
+              WriteReference(o.ref^);
+            end;
+          else
+            internalerror(10001);
+        end;
+      end;
+
+
+    procedure T386IntelAssembler.WriteOper_jmp(const o:toper;s : topsize);
+    begin
+      case o.typ of
+        top_reg :
+          AsmWrite(std_reg2str[o.reg]);
+        top_const :
+          AsmWrite(tostr(longint(o.val)));
+        top_symbol :
+          begin
+            AsmWrite(o.sym.name);
+            if o.symofs>0 then
+             AsmWrite('+'+tostr(o.symofs))
+            else
+             if o.symofs<0 then
+              AsmWrite(tostr(o.symofs));
+          end;
+        top_ref :
+          { what about lcall or ljmp ??? }
+          begin
+            if (aktoutputformat <> as_i386_tasm) then
+              begin
+                if s=S_FAR then
+                  AsmWrite('far ptr ')
+                else
+                  AsmWrite('dword ptr ');
+              end;
+            WriteReference(o.ref^);
+          end;
+        else
+          internalerror(10001);
+      end;
+    end;
+
 
     var
       LasTSec : TSection;
@@ -342,7 +346,6 @@ interface
       found,
       do_line,DoNotSplitLine,
       quoted   : boolean;
-      sep      : char;
     begin
       if not assigned(p) then
        exit;
@@ -591,23 +594,21 @@ interface
                      end;
    ait_instruction : begin
                        taicpu(hp).CheckNonCommutativeOpcodes;
-                     { We need intel order, no At&t }
                        taicpu(hp).SetOperandOrder(op_intel);
-                     { Reset }
+                       { Reset }
                        suffix:='';
                        prefix:= '';
-                       s:='';
-                      { We need to explicitely set
-                        word prefix to get selectors
-                        to be pushed in 2 bytes  PM }
-                      if (taicpu(hp).opsize=S_W) and
-                         ((taicpu(hp).opcode=A_PUSH) or
-                          (taicpu(hp).opcode=A_POP)) and
-                          (taicpu(hp).oper[0].typ=top_reg) and
-                          ((taicpu(hp).oper[0].reg>=firstsreg) and
-                           (taicpu(hp).oper[0].reg<=lastsreg)) then
-                        AsmWriteln(#9#9'DB'#9'066h');
-                     { added prefix instructions, must be on same line as opcode }
+                       { We need to explicitely set
+                         word prefix to get selectors
+                         to be pushed in 2 bytes  PM }
+                       if (taicpu(hp).opsize=S_W) and
+                          ((taicpu(hp).opcode=A_PUSH) or
+                           (taicpu(hp).opcode=A_POP)) and
+                           (taicpu(hp).oper[0].typ=top_reg) and
+                           ((taicpu(hp).oper[0].reg>=firstsreg) and
+                            (taicpu(hp).oper[0].reg<=lastsreg)) then
+                         AsmWriteln(#9#9'DB'#9'066h');
+                       { added prefix instructions, must be on same line as opcode }
                        if (taicpu(hp).ops = 0) and
                           ((taicpu(hp).opcode = A_REP) or
                            (taicpu(hp).opcode = A_LOCK) or
@@ -621,8 +622,7 @@ interface
                         { this is theorically impossible... }
                           if hp=nil then
                            begin
-                             s:=#9#9+prefix;
-                             AsmWriteLn(s);
+                             AsmWriteLn(#9#9+prefix);
                              break;
                            end;
                           { nasm prefers prefix on a line alone
@@ -636,23 +636,27 @@ interface
                         end
                        else
                         prefix:= '';
+                       AsmWrite(#9#9+prefix+std_op2str[taicpu(hp).opcode]+cond2str[taicpu(hp).condition]+suffix);
                        if taicpu(hp).ops<>0 then
                         begin
                           if is_calljmp(taicpu(hp).opcode) then
-                           s:=#9+getopstr_jmp(taicpu(hp).oper[0],taicpu(hp).opsize)
+                           begin
+                             AsmWrite(#9);
+                             WriteOper_jmp(taicpu(hp).oper[0],taicpu(hp).opsize);
+                           end
                           else
                            begin
                              for i:=0to taicpu(hp).ops-1 do
                               begin
                                 if i=0 then
-                                 sep:=#9
+                                 AsmWrite(#9)
                                 else
-                                 sep:=',';
-                                s:=s+sep+getopstr(taicpu(hp).oper[i],taicpu(hp).opsize,taicpu(hp).opcode,(i=2));
+                                 AsmWrite(',');
+                                WriteOper(taicpu(hp).oper[i],taicpu(hp).opsize,taicpu(hp).opcode,(i=2));
                               end;
                            end;
                         end;
-                       AsmWriteLn(#9#9+prefix+std_op2str[taicpu(hp).opcode]+cond2str[taicpu(hp).condition]+suffix+s);
+                       AsmLn;
                      end;
 {$ifdef GDB}
              ait_stabn,
@@ -840,7 +844,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.30  2002-11-17 16:31:58  carl
+  Revision 1.31  2002-12-24 18:10:34  peter
+    * Long symbol names support
+
+  Revision 1.30  2002/11/17 16:31:58  carl
     * memory optimization (3-4%) : cleanup of tai fields,
        cleanup of tdef and tsym fields.
     * make it work for m68k

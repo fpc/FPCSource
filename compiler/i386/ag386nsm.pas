@@ -27,10 +27,17 @@ unit ag386nsm;
 
 interface
 
-    uses aasmbase,aasmtai,aasmcpu,assemble;
+    uses
+      cpubase,
+      aasmbase,aasmtai,aasmcpu,assemble;
 
     type
       T386NasmAssembler = class(texternalassembler)
+      private
+        procedure WriteReference(var ref : treference);
+        procedure WriteOper(const o:toper;s : topsize; opcode: tasmop;ops:longint;dest : boolean);
+        procedure WriteOper_jmp(const o:toper; op : tasmop);
+      public
         procedure WriteTree(p:taasmoutput);override;
         procedure WriteAsmList;override;
         procedure WriteExternals;
@@ -45,7 +52,7 @@ interface
       sysutils,
 {$endif}
       cutils,globtype,globals,systems,cclasses,
-      fmodule,finput,verbose,cpubase,cpuinfo
+      fmodule,finput,verbose,cpuinfo
       ;
 
     const
@@ -154,54 +161,6 @@ interface
       end;
 
 
-    function getreferencestring(var ref : treference) : string;
-    var
-      s     : string;
-      first : boolean;
-    begin
-      with ref do
-        begin
-          first:=true;
-          inc(offset,offsetfixup);
-          offsetfixup:=0;
-          if ref.segment<>R_NO then
-           s:='['+std_reg2str[segment]+':'
-          else
-           s:='[';
-         if assigned(symbol) then
-          begin
-            s:=s+symbol.name;
-            first:=false;
-          end;
-         if (base<>R_NO) then
-          begin
-            if not(first) then
-             s:=s+'+'
-            else
-             first:=false;
-             s:=s+std_reg2str[base];
-          end;
-         if (index<>R_NO) then
-           begin
-             if not(first) then
-               s:=s+'+'
-             else
-               first:=false;
-             s:=s+std_reg2str[index];
-             if scalefactor<>0 then
-               s:=s+'*'+tostr(scalefactor);
-           end;
-         if offset<0 then
-           s:=s+tostr(offset)
-         else if (offset>0) then
-           s:=s+'+'+tostr(offset);
-         if s[length(s)]='[' then
-           s:=s+'0';
-         s:=s+']';
-        end;
-       getreferencestring:=s;
-     end;
-
     function sizestr(s:topsize;dest:boolean):string;
       begin
         case s of
@@ -232,85 +191,23 @@ interface
       end;
 
 
-    function getopstr(const o:toper;s : topsize; opcode: tasmop;ops:longint;dest : boolean) : string;
+    Function PadTabs(const p:string;addch:char):string;
       var
-        hs : string;
+        s : string;
+        i : longint;
       begin
-        case o.typ of
-          top_reg :
-            getopstr:=int_nasmreg2str[o.reg];
-          top_const :
-            begin
-              if (ops=1) and (opcode<>A_RET) then
-               getopstr:=sizestr(s,dest)+tostr(longint(o.val))
-              else
-               getopstr:=tostr(longint(o.val));
-            end;
-          top_symbol :
-            begin
-              if assigned(o.sym) then
-               hs:='dword '+o.sym.name
-              else
-               hs:='dword ';
-              if o.symofs>0 then
-               hs:=hs+'+'+tostr(o.symofs)
-              else
-               if o.symofs<0 then
-                hs:=hs+tostr(o.symofs)
-               else
-                if not(assigned(o.sym)) then
-                 hs:=hs+'0';
-              getopstr:=hs;
-            end;
-          top_ref :
-            begin
-              hs:=getreferencestring(o.ref^);
-              if not ((opcode = A_LEA) or (opcode = A_LGS) or
-                      (opcode = A_LSS) or (opcode = A_LFS) or
-                      (opcode = A_LES) or (opcode = A_LDS) or
-                      (opcode = A_SHR) or (opcode = A_SHL) or
-                      (opcode = A_SAR) or (opcode = A_SAL) or
-                      (opcode = A_OUT) or (opcode = A_IN)) then
-               begin
-                 hs:=sizestr(s,dest)+hs;
-               end;
-              getopstr:=hs;
-            end;
-          else
-            internalerror(10001);
-        end;
-      end;
-
-    function getopstr_jmp(const o:toper; op : tasmop) : string;
-      var
-        hs : string;
-      begin
-        case o.typ of
-          top_reg :
-            getopstr_jmp:=int_nasmreg2str[o.reg];
-          top_ref :
-            getopstr_jmp:=getreferencestring(o.ref^);
-          top_const :
-            getopstr_jmp:=tostr(longint(o.val));
-          top_symbol :
-            begin
-              hs:=o.sym.name;
-              if o.symofs>0 then
-               hs:=hs+'+'+tostr(o.symofs)
-              else
-               if o.symofs<0 then
-                hs:=hs+tostr(o.symofs);
-              if (op=A_JCXZ) or (op=A_JECXZ) or
-                 (op=A_LOOP) or (op=A_LOOPE) or
-                 (op=A_LOOPNE) or (op=A_LOOPNZ) or
-                 (op=A_LOOPZ) then
-                getopstr_jmp:=hs
-              else
-                getopstr_jmp:='NEAR '+hs;
-            end;
-          else
-            internalerror(10001);
-        end;
+        i:=length(p);
+        if addch<>#0 then
+         begin
+           inc(i);
+           s:=p+addch;
+         end
+        else
+         s:=p;
+        if i<8 then
+         PadTabs:=s+#9#9
+        else
+         PadTabs:=s+#9;
       end;
 
 
@@ -318,32 +215,137 @@ interface
                                T386NasmAssembler
  ****************************************************************************}
 
+    procedure T386NasmAssembler.WriteReference(var ref : treference);
+      var
+        first : boolean;
+      begin
+        with ref do
+         begin
+           AsmWrite('[');
+           first:=true;
+           inc(offset,offsetfixup);
+           offsetfixup:=0;
+           if ref.segment<>R_NO then
+            AsmWrite(std_reg2str[segment]+':');
+           if assigned(symbol) then
+            begin
+              AsmWrite(symbol.name);
+              first:=false;
+            end;
+           if (base<>R_NO) then
+            begin
+              if not(first) then
+               AsmWrite('+')
+              else
+               first:=false;
+              AsmWrite(int_nasmreg2str[base]);
+            end;
+           if (index<>R_NO) then
+             begin
+               if not(first) then
+                 AsmWrite('+')
+               else
+                 first:=false;
+               AsmWrite(int_nasmreg2str[index]);
+               if scalefactor<>0 then
+                 AsmWrite('*'+tostr(scalefactor));
+             end;
+           if offset<0 then
+             begin
+               AsmWrite(tostr(offset));
+               first:=false;
+             end
+           else if (offset>0) then
+             begin
+               AsmWrite('+'+tostr(offset));
+               first:=false;
+             end;
+           if first then
+             AsmWrite('0');
+           AsmWrite(']');
+         end;
+       end;
+
+
+    procedure T386NasmAssembler.WriteOper(const o:toper;s : topsize; opcode: tasmop;ops:longint;dest : boolean);
+      begin
+        case o.typ of
+          top_reg :
+            AsmWrite(int_nasmreg2str[o.reg]);
+          top_const :
+            begin
+              if (ops=1) and (opcode<>A_RET) then
+               AsmWrite(sizestr(s,dest));
+              AsmWrite(tostr(longint(o.val)));
+            end;
+          top_symbol :
+            begin
+              AsmWrite('dword ');
+              if assigned(o.sym) then
+               AsmWrite(o.sym.name);
+              if o.symofs>0 then
+               AsmWrite('+'+tostr(o.symofs))
+              else
+               if o.symofs<0 then
+                AsmWrite(tostr(o.symofs))
+               else
+                if not(assigned(o.sym)) then
+                 AsmWrite('0');
+            end;
+          top_ref :
+            begin
+              if not ((opcode = A_LEA) or (opcode = A_LGS) or
+                      (opcode = A_LSS) or (opcode = A_LFS) or
+                      (opcode = A_LES) or (opcode = A_LDS) or
+                      (opcode = A_SHR) or (opcode = A_SHL) or
+                      (opcode = A_SAR) or (opcode = A_SAL) or
+                      (opcode = A_OUT) or (opcode = A_IN)) then
+                AsmWrite(sizestr(s,dest));
+              WriteReference(o.ref^);
+            end;
+          else
+            internalerror(10001);
+        end;
+      end;
+
+
+    procedure T386NasmAssembler.WriteOper_jmp(const o:toper; op : tasmop);
+      begin
+        case o.typ of
+          top_reg :
+            AsmWrite(int_nasmreg2str[o.reg]);
+          top_ref :
+            WriteReference(o.ref^);
+          top_const :
+            AsmWrite(tostr(longint(o.val)));
+          top_symbol :
+            begin
+              if not(
+                     (op=A_JCXZ) or (op=A_JECXZ) or
+                     (op=A_LOOP) or (op=A_LOOPE) or
+                     (op=A_LOOPNE) or (op=A_LOOPNZ) or
+                     (op=A_LOOPZ)
+                    ) then
+                AsmWrite('NEAR ');
+              AsmWrite(o.sym.name);
+              if o.symofs>0 then
+               AsmWrite('+'+tostr(o.symofs))
+              else
+               if o.symofs<0 then
+                AsmWrite(tostr(o.symofs));
+            end;
+          else
+            internalerror(10001);
+        end;
+      end;
+
+
     var
       LasTSec : TSection;
 
     const
       ait_const2str:array[ait_const_32bit..ait_const_8bit] of string[8]=
         (#9'DD'#9,#9'DW'#9,#9'DB'#9);
-
-    Function PadTabs(const p:string;addch:char):string;
-    var
-      s : string;
-      i : longint;
-    begin
-      i:=length(p);
-      if addch<>#0 then
-       begin
-         inc(i);
-         s:=p+addch;
-       end
-      else
-       s:=p;
-      if i<8 then
-       PadTabs:=s+#9#9
-      else
-       PadTabs:=s+#9;
-    end;
-
 
     procedure T386NasmAssembler.WriteTree(p:taasmoutput);
     const
@@ -360,7 +362,6 @@ interface
       found,
       do_line,
       quoted   : boolean;
-      sep      : char;
     begin
       if not assigned(p) then
        exit;
@@ -375,7 +376,7 @@ interface
 
          if not(hp.typ in SkipLineInfo) then
            begin
-             hp1:=hp as tailineinfo; 
+             hp1:=hp as tailineinfo;
              aktfilepos:=hp1.fileinfo;
              if do_line then
               begin
@@ -633,11 +634,8 @@ interface
            ait_instruction :
              begin
                taicpu(hp).CheckNonCommutativeOpcodes;
-             { We need intel order, no At&t }
+               { We need intel order, no At&t }
                taicpu(hp).SetOperandOrder(op_intel);
-             { Reset
-               suffix:='';
-               prefix:='';}
                s:='';
                if ((taicpu(hp).opcode=A_FADDP) or
                    (taicpu(hp).opcode=A_FMULP))
@@ -649,38 +647,42 @@ interface
                    taicpu(hp).oper[1].typ:=top_reg;
                    taicpu(hp).oper[1].reg:=R_ST;
                  end;
-               if taicpu(hp).ops<>0 then
-                begin
-                  if is_calljmp(taicpu(hp).opcode) then
-                   s:=#9+getopstr_jmp(taicpu(hp).oper[0],taicpu(hp).opcode)
-                  else
-                   begin
-                      { We need to explicitely set
-                        word prefix to get selectors
-                        to be pushed in 2 bytes  PM }
-                      if (taicpu(hp).opsize=S_W) and
-                         ((taicpu(hp).opcode=A_PUSH) or
-                          (taicpu(hp).opcode=A_POP)) and
-                          (taicpu(hp).oper[0].typ=top_reg) and
-                          ((taicpu(hp).oper[0].reg>=firstsreg) and
-                           (taicpu(hp).oper[0].reg<=lastsreg)) then
-                        AsmWriteln(#9#9'DB'#9'066h');
-                     for i:=0 to taicpu(hp).ops-1 do
-                      begin
-                        if i=0 then
-                         sep:=#9
-                        else
-                         sep:=',';
-                        s:=s+sep+getopstr(taicpu(hp).oper[i],taicpu(hp).opsize,taicpu(hp).opcode,
-                          taicpu(hp).ops,(i=2));
-                      end;
-                   end;
-                end;
                if taicpu(hp).opcode=A_FWAIT then
                 AsmWriteln(#9#9'DB'#9'09bh')
                else
-                AsmWriteLn(#9#9+{prefix+}std_op2str[taicpu(hp).opcode]+
-                  cond2str[taicpu(hp).condition]+{suffix+}s);
+                begin
+                  { We need to explicitely set
+                    word prefix to get selectors
+                    to be pushed in 2 bytes  PM }
+                  if (taicpu(hp).opsize=S_W) and
+                     ((taicpu(hp).opcode=A_PUSH) or
+                      (taicpu(hp).opcode=A_POP)) and
+                      (taicpu(hp).oper[0].typ=top_reg) and
+                      ((taicpu(hp).oper[0].reg>=firstsreg) and
+                       (taicpu(hp).oper[0].reg<=lastsreg)) then
+                    AsmWriteln(#9#9'DB'#9'066h');
+                  AsmWrite(#9#9+std_op2str[taicpu(hp).opcode]+cond2str[taicpu(hp).condition]);
+                  if taicpu(hp).ops<>0 then
+                   begin
+                     if is_calljmp(taicpu(hp).opcode) then
+                      begin
+                        AsmWrite(#9);
+                        WriteOper_jmp(taicpu(hp).oper[0],taicpu(hp).opcode);
+                      end
+                     else
+                      begin
+                        for i:=0 to taicpu(hp).ops-1 do
+                         begin
+                           if i=0 then
+                            AsmWrite(#9)
+                           else
+                            AsmWrite(',');
+                           WriteOper(taicpu(hp).oper[i],taicpu(hp).opsize,taicpu(hp).opcode,taicpu(hp).ops,(i=2));
+                         end;
+                      end;
+                   end;
+                  AsmLn;
+                end;
              end;
 {$ifdef GDB}
            ait_stabn,
@@ -893,7 +895,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.28  2002-11-17 16:31:59  carl
+  Revision 1.29  2002-12-24 18:10:34  peter
+    * Long symbol names support
+
+  Revision 1.28  2002/11/17 16:31:59  carl
     * memory optimization (3-4%) : cleanup of tai fields,
        cleanup of tdef and tsym fields.
     * make it work for m68k

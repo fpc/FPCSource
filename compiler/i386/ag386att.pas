@@ -35,6 +35,10 @@ interface
 
     type
       T386ATTAssembler=class(TGNUassembler)
+      private
+        procedure WriteReference(var ref : treference);
+        procedure WriteOper(const o:toper);
+        procedure WriteOper_jmp(const o:toper);
       public
         procedure WriteInstruction(hp: tai);override;
       end;
@@ -72,176 +76,161 @@ interface
       verbose;
 
 
-
-    function getreferencestring(var ref : treference) : string;
-    var
-      s : string;
-    begin
-      with ref do
-       begin
-         inc(offset,offsetfixup);
-         offsetfixup:=0;
-       { have we a segment prefix ? }
-       { These are probably not correctly handled under GAS }
-       { should be replaced by coding the segment override  }
-       { directly! - DJGPP FAQ                              }
-         if segment<>R_NO then
-          s:=gas_reg2str[segment]+':'
-         else
-          s:='';
-         if assigned(symbol) then
-          s:=s+symbol.name;
-         if offset<0 then
-          s:=s+tostr(offset)
-         else
-          if (offset>0) then
-           begin
-             if assigned(symbol) then
-              s:=s+'+'+tostr(offset)
-             else
-              s:=s+tostr(offset);
-           end
-         else if (index=R_NO) and (base=R_NO) and not assigned(symbol) then
-           s:=s+'0';
-         if (index<>R_NO) and (base=R_NO) then
-          begin
-            s:=s+'(,'+gas_reg2str[index];
-            if scalefactor<>0 then
-             s:=s+','+tostr(scalefactor)+')'
-            else
-             s:=s+')';
-          end
-         else
-          if (index=R_NO) and (base<>R_NO) then
-           s:=s+'('+gas_reg2str[base]+')'
-          else
-           if (index<>R_NO) and (base<>R_NO) then
-            begin
-              s:=s+'('+gas_reg2str[base]+','+gas_reg2str[index];
-              if scalefactor<>0 then
-               s:=s+','+tostr(scalefactor)+')'
-              else
-               s := s+')';
-            end;
-       end;
-      getreferencestring:=s;
-    end;
-
-    function getopstr(const o:toper) : string;
-    var
-      hs : string;
-    begin
-      case o.typ of
-        top_reg :
-          getopstr:=gas_reg2str[o.reg];
-        top_ref :
-          getopstr:=getreferencestring(o.ref^);
-        top_const :
-          getopstr:='$'+tostr(longint(o.val));
-        top_symbol :
-          begin
-            if assigned(o.sym) then
-              hs:='$'+o.sym.name
-            else
-              hs:='$';
-            if o.symofs>0 then
-             hs:=hs+'+'+tostr(o.symofs)
-            else
-             if o.symofs<0 then
-              hs:=hs+tostr(o.symofs)
-            else
-             if not(assigned(o.sym)) then
-               hs:=hs+'0';
-            getopstr:=hs;
-          end;
-        else
-          internalerror(10001);
-      end;
-    end;
-
-    function getopstr_jmp(const o:toper) : string;
-    var
-      hs : string;
-    begin
-      case o.typ of
-        top_reg :
-          getopstr_jmp:='*'+gas_reg2str[o.reg];
-        top_ref :
-          getopstr_jmp:='*'+getreferencestring(o.ref^);
-        top_const :
-          getopstr_jmp:=tostr(longint(o.val));
-        top_symbol :
-          begin
-            hs:=o.sym.name;
-            if o.symofs>0 then
-             hs:=hs+'+'+tostr(o.symofs)
-            else
-             if o.symofs<0 then
-              hs:=hs+tostr(o.symofs);
-            getopstr_jmp:=hs;
-          end;
-        else
-          internalerror(10001);
-      end;
-    end;
-
-
 {****************************************************************************
                             TI386ATTASMOUTPUT
  ****************************************************************************}
 
-
-
-    procedure T386AttAssembler. WriteInstruction(hp: tai);
-    var
-      op       : tasmop;
-      s        : string;
-      sep      : char;
-      calljmp  : boolean;
-      i        : integer;
-     begin
-       if hp.typ <> ait_instruction then exit;
-       taicpu(hp).SetOperandOrder(op_att);
-       op:=taicpu(hp).opcode;
-       calljmp:=is_calljmp(op);
-       { call maybe not translated to call }
-       s:=#9+gas_op2str[op]+cond2str[taicpu(hp).condition];
-       { suffix needed ?  fnstsw,fldcw don't support suffixes
-         with binutils 2.9.5 under linux }
-       if (not calljmp) and
-           (gas_needsuffix[op]<>AttSufNONE) and
-           (op<>A_FNSTSW) and (op<>A_FSTSW) and
-           (op<>A_FNSTCW) and (op<>A_FSTCW) and
-           (op<>A_FLDCW) and not(
-           (taicpu(hp).oper[0].typ=top_reg) and
-           (taicpu(hp).oper[0].reg in [R_ST..R_ST7])
-          ) then
-              s:=s+gas_opsize2str[taicpu(hp).opsize];
-       { process operands }
-       if taicpu(hp).ops<>0 then
+    procedure T386AttAssembler.WriteReference(var ref : treference);
+      begin
+        with ref do
          begin
-           { call and jmp need an extra handling                          }
-           { this code is only called if jmp isn't a labeled instruction  }
-           { quick hack to overcome a problem with manglednames=255 chars }
-           if calljmp then
-              begin
-                AsmWrite(s+#9);
-                s:=getopstr_jmp(taicpu(hp).oper[0]);
-              end
+           inc(offset,offsetfixup);
+           offsetfixup:=0;
+         { have we a segment prefix ? }
+         { These are probably not correctly handled under GAS }
+         { should be replaced by coding the segment override  }
+         { directly! - DJGPP FAQ                              }
+           if segment<>R_NO then
+            AsmWrite(gas_reg2str[segment]+':');
+           if assigned(symbol) then
+             AsmWrite(symbol.name);
+           if offset<0 then
+            AsmWrite(tostr(offset))
+           else
+            if (offset>0) then
+             begin
+               if assigned(symbol) then
+                AsmWrite('+'+tostr(offset))
+               else
+                AsmWrite(tostr(offset));
+             end
+           else if (index=R_NO) and (base=R_NO) and not assigned(symbol) then
+             AsmWrite('0');
+           if (index<>R_NO) and (base=R_NO) then
+            begin
+              AsmWrite('(,'+gas_reg2str[index]);
+              if scalefactor<>0 then
+               AsmWrite(','+tostr(scalefactor)+')')
+              else
+               AsmWrite(')');
+            end
+           else
+            if (index=R_NO) and (base<>R_NO) then
+             AsmWrite('('+gas_reg2str[base]+')')
             else
+             if (index<>R_NO) and (base<>R_NO) then
               begin
-                for i:=0 to taicpu(hp).ops-1 do
-                  begin
-                    if i=0 then
-                      sep:=#9
-                    else
-                      sep:=',';
-                    s:=s+sep+getopstr(taicpu(hp).oper[i])
-                  end;
+                AsmWrite('('+gas_reg2str[base]+','+gas_reg2str[index]);
+                if scalefactor<>0 then
+                 AsmWrite(','+tostr(scalefactor));
+                AsmWrite(')');
               end;
          end;
-         AsmWriteLn(s);
-     end;
+      end;
+
+
+    procedure T386AttAssembler.WriteOper(const o:toper);
+      begin
+        case o.typ of
+          top_reg :
+            AsmWrite(gas_reg2str[o.reg]);
+          top_ref :
+            WriteReference(o.ref^);
+          top_const :
+            AsmWrite('$'+tostr(longint(o.val)));
+          top_symbol :
+            begin
+              AsmWrite('$');
+              if assigned(o.sym) then
+               AsmWrite(o.sym.name);
+              if o.symofs>0 then
+               AsmWrite('+'+tostr(o.symofs))
+              else
+               if o.symofs<0 then
+                AsmWrite(tostr(o.symofs))
+              else
+               if not(assigned(o.sym)) then
+                 AsmWrite('0');
+            end;
+          else
+            internalerror(10001);
+        end;
+      end;
+
+
+    procedure T386AttAssembler.WriteOper_jmp(const o:toper);
+      begin
+        case o.typ of
+          top_reg :
+            AsmWrite('*'+gas_reg2str[o.reg]);
+          top_ref :
+            begin
+              AsmWrite('*');
+              WriteReference(o.ref^);
+            end;
+          top_const :
+            AsmWrite(tostr(longint(o.val)));
+          top_symbol :
+            begin
+              AsmWrite(o.sym.name);
+              if o.symofs>0 then
+               AsmWrite('+'+tostr(o.symofs))
+              else
+               if o.symofs<0 then
+                AsmWrite(tostr(o.symofs));
+            end;
+          else
+            internalerror(10001);
+        end;
+      end;
+
+
+    procedure T386AttAssembler.WriteInstruction(hp: tai);
+      var
+       op       : tasmop;
+       calljmp  : boolean;
+       i        : integer;
+      begin
+        if hp.typ <> ait_instruction then
+          exit;
+        taicpu(hp).SetOperandOrder(op_att);
+        op:=taicpu(hp).opcode;
+        calljmp:=is_calljmp(op);
+        { call maybe not translated to call }
+        AsmWrite(#9+gas_op2str[op]+cond2str[taicpu(hp).condition]);
+        { suffix needed ?  fnstsw,fldcw don't support suffixes
+          with binutils 2.9.5 under linux }
+        if (not calljmp) and
+            (gas_needsuffix[op]<>AttSufNONE) and
+            (op<>A_FNSTSW) and (op<>A_FSTSW) and
+            (op<>A_FNSTCW) and (op<>A_FSTCW) and
+            (op<>A_FLDCW) and not(
+            (taicpu(hp).oper[0].typ=top_reg) and
+            (taicpu(hp).oper[0].reg in [R_ST..R_ST7])
+           ) then
+          AsmWrite(gas_opsize2str[taicpu(hp).opsize]);
+        { process operands }
+        if taicpu(hp).ops<>0 then
+          begin
+            if calljmp then
+             begin
+               AsmWrite(#9);
+               WriteOper_jmp(taicpu(hp).oper[0]);
+             end
+            else
+             begin
+               for i:=0 to taicpu(hp).ops-1 do
+                 begin
+                   if i=0 then
+                     AsmWrite(#9)
+                   else
+                     AsmWrite(',');
+                   WriteOper(taicpu(hp).oper[i]);
+                 end;
+             end;
+          end;
+        AsmLn;
+      end;
 
 
 {*****************************************************************************
@@ -314,7 +303,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.26  2002-08-12 15:08:40  carl
+  Revision 1.27  2002-12-24 18:10:34  peter
+    * Long symbol names support
+
+  Revision 1.26  2002/08/12 15:08:40  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
     + tprocessor enumeration moved to cpuinfo
     + linker in target_info is now a class
