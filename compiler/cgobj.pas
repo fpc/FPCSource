@@ -1405,62 +1405,64 @@ unit cgobj;
     procedure tcg.g_incrrefcount(list : taasmoutput;t: tdef; const ref: treference);
       var
         href : treference;
-        pushedregs : tpushedsaved;
-        decrfunc : string;
+        incrfunc : string;
       begin
-         rg.saveusedregisters(list,pushedregs,all_registers);
+         { These functions should not change the registers (they use
+           the saveregister proc directive }
          if is_interfacecom(t) then
-          decrfunc:='FPC_INTF_INCR_REF'
+          incrfunc:='FPC_INTF_INCR_REF'
          else if is_ansistring(t) then
-          decrfunc:='FPC_ANSISTR_INCR_REF'
+          incrfunc:='FPC_ANSISTR_INCR_REF'
          else if is_widestring(t) then
-          decrfunc:='FPC_WIDESTR_INCR_REF'
+          incrfunc:='FPC_WIDESTR_INCR_REF'
+         else if is_dynamic_array(t) then
+          incrfunc:='FPC_DYNARRAY_INCR_REF'
          else
-          decrfunc:='';
-         { call the special decr function or the generic decref }
-         if decrfunc<>'' then
-          cg.a_param_ref(list,OS_ADDR,ref,1)
+          incrfunc:='';
+         { call the special incr function or the generic addref }
+         if incrfunc<>'' then
+          begin
+            a_param_ref(list,OS_ADDR,ref,1);
+            a_call_name(list,incrfunc,0);
+          end
          else
           begin
             reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
             a_paramaddr_ref(list,href,2);
             a_paramaddr_ref(list,ref,1);
-            decrfunc:='FPC_ADDREF';
+            a_call_name(list,'FPC_ADDREF',0);
          end;
-        rg.saveregvars(exprasmlist,all_registers);
-        a_call_name(list,decrfunc,0);
-        rg.restoreusedregisters(list,pushedregs);
       end;
 
 
     procedure tcg.g_decrrefcount(list : taasmoutput;t: tdef; const ref: treference);
       var
         href : treference;
-        pushedregs : tpushedsaved;
         decrfunc : string;
       begin
-         rg.saveusedregisters(list,pushedregs,all_registers);
          if is_interfacecom(t) then
           decrfunc:='FPC_INTF_DECR_REF'
          else if is_ansistring(t) then
           decrfunc:='FPC_ANSISTR_DECR_REF'
          else if is_widestring(t) then
           decrfunc:='FPC_WIDESTR_DECR_REF'
+         else if is_dynamic_array(t) then
+          decrfunc:='FPC_DYNARRAY_INCR_REF'
          else
           decrfunc:='';
          { call the special decr function or the generic decref }
          if decrfunc<>'' then
-          cg.a_paramaddr_ref(list,ref,1)
+          begin
+            a_paramaddr_ref(list,ref,1);
+            a_call_name(list,decrfunc,0);
+          end
          else
           begin
             reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
             a_paramaddr_ref(list,href,2);
             a_paramaddr_ref(list,ref,1);
-            decrfunc:='FPC_DECREF';
+            a_call_name(list,'FPC_DECREF',0);
          end;
-        rg.saveregvars(exprasmlist,all_registers);
-        a_call_name(list,decrfunc,0);
-        rg.restoreusedregisters(list,pushedregs);
       end;
 
 
@@ -1636,7 +1638,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.18  2002-04-25 20:16:38  peter
+  Revision 1.19  2002-04-26 15:19:04  peter
+    * use saveregisters for incr routines, saves also problems with
+      the optimizer
+
+  Revision 1.18  2002/04/25 20:16:38  peter
     * moved more routines from cga/n386util
 
   Revision 1.17  2002/04/22 16:30:05  peter

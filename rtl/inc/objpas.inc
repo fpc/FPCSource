@@ -36,11 +36,11 @@
 
 {$ifndef HASINTF}
     { dummies for make cycle with 1.0.x }
-    procedure intf_decr_ref(var i: pointer);[public,alias: 'FPC_INTF_DECR_REF'];
+    procedure intf_decr_ref(var i: pointer);saveregisters;[public,alias: 'FPC_INTF_DECR_REF'];
       begin
       end;
 
-    procedure intf_incr_ref(const i: pointer);[public,alias: 'FPC_INTF_INCR_REF'];
+    procedure intf_incr_ref(const i: pointer);saveregisters;[public,alias: 'FPC_INTF_INCR_REF'];
       begin
       end;
 
@@ -54,7 +54,7 @@
 
 {$else HASINTF}
     { interface helpers }
-    procedure fpc_intf_decr_ref(var i: pointer);[public,alias: 'FPC_INTF_DECR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
+    procedure fpc_intf_decr_ref(var i: pointer);saveregisters;[public,alias: 'FPC_INTF_DECR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
       begin
         if assigned(i) then
           IUnknown(i)._Release;
@@ -63,11 +63,11 @@
 
     {$ifdef hascompilerproc}
     { local declaration for intf_decr_ref for local access }
-    procedure intf_decr_ref(var i: pointer); [external name 'FPC_INTF_DECR_REF'];
+    procedure intf_decr_ref(var i: pointer);saveregisters; [external name 'FPC_INTF_DECR_REF'];
     {$endif hascompilerproc}
 
 
-    procedure fpc_intf_incr_ref(i: pointer);[public,alias: 'FPC_INTF_INCR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
+    procedure fpc_intf_incr_ref(i: pointer);saveregisters;[public,alias: 'FPC_INTF_INCR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
       begin
          if assigned(i) then
            IUnknown(i)._AddRef;
@@ -75,7 +75,7 @@
 
     {$ifdef hascompilerproc}
     { local declaration of intf_incr_ref for local access }
-    procedure intf_incr_ref(i: pointer); [external name 'FPC_INTF_INCR_REF'];
+    procedure intf_incr_ref(i: pointer);saveregisters; [external name 'FPC_INTF_INCR_REF'];
     {$endif hascompilerproc}
 
     procedure fpc_intf_assign(var D: pointer; const S: pointer);[public,alias: 'FPC_INTF_ASSIGN']; {$ifdef hascompilerproc} compilerproc; {$endif}
@@ -696,7 +696,11 @@
 
 {
   $Log$
-  Revision 1.20  2002-04-25 20:14:57  peter
+  Revision 1.21  2002-04-26 15:19:05  peter
+    * use saveregisters for incr routines, saves also problems with
+      the optimizer
+
+  Revision 1.20  2002/04/25 20:14:57  peter
     * updated compilerprocs
     * incr ref count has now a value argument instead of var
 

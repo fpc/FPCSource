@@ -161,7 +161,7 @@ begin
 end;
 
 
-Procedure fpc_WideStr_Decr_Ref (Var S : Pointer);[Public,Alias:'FPC_WIDESTR_DECR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_WideStr_Decr_Ref (Var S : Pointer);saveregisters;[Public,Alias:'FPC_WIDESTR_DECR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   Decreases the ReferenceCount of a non constant widestring;
   If the reference count is zero, deallocate the string;
@@ -187,13 +187,13 @@ end;
 
 {$ifdef hascompilerproc}
 { alias for internal use }
-Procedure fpc_WideStr_Decr_Ref (Var S : Pointer);[external name 'FPC_WIDESTR_DECR_REF'];
+Procedure fpc_WideStr_Decr_Ref (Var S : Pointer);saveregisters;[external name 'FPC_WIDESTR_DECR_REF'];
 {$endif compilerproc}
 
 {$ifdef hascompilerproc}
-Procedure fpc_WideStr_Incr_Ref (S : Pointer);[Public,Alias:'FPC_WIDESTR_INCR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_WideStr_Incr_Ref (S : Pointer);saveregisters;[Public,Alias:'FPC_WIDESTR_INCR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {$else}
-Procedure fpc_WideStr_Incr_Ref (Var S : Pointer);[Public,Alias:'FPC_WIDESTR_INCR_REF'];
+Procedure fpc_WideStr_Incr_Ref (Var S : Pointer);saveregisters;[Public,Alias:'FPC_WIDESTR_INCR_REF'];
 {$endif compilerproc}
 Begin
   If S=Nil then
@@ -849,7 +849,11 @@ end;
 
 {
   $Log$
-  Revision 1.16  2002-04-25 20:14:57  peter
+  Revision 1.17  2002-04-26 15:19:05  peter
+    * use saveregisters for incr routines, saves also problems with
+      the optimizer
+
+  Revision 1.16  2002/04/25 20:14:57  peter
     * updated compilerprocs
     * incr ref count has now a value argument instead of var
 

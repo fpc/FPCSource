@@ -418,6 +418,11 @@ implementation
             (right.registers32>=left.registers32)) then
          begin
            secondpass(right);
+           { increment source reference counter, this is
+             useless for string constants}
+           if (right.resulttype.def.needs_inittable) and
+              (right.nodetype<>stringconstn) then
+            cg.g_incrrefcount(exprasmlist,right.resulttype.def,right.location.reference);
            if codegenerror then
              exit;
 
@@ -430,6 +435,9 @@ implementation
               { can be false                                             }
               pushed:=maybe_push(left.registers32,right,false);
               secondpass(left);
+              { decrement destination reference counter }
+              if (left.resulttype.def.needs_inittable) then
+               cg.g_decrrefcount(exprasmlist,left.resulttype.def,left.location.reference);
               if pushed then
                 restore(right,false);
               if codegenerror then
@@ -443,43 +451,27 @@ implementation
            if not(nf_concat_string in flags) then
             begin
               secondpass(left);
+              { decrement destination reference counter }
+              if (left.resulttype.def.needs_inittable) then
+               cg.g_decrrefcount(exprasmlist,left.resulttype.def,left.location.reference);
               if codegenerror then
                exit;
             end;
-
-{$ifdef test_dest_loc}
-           { lets try to optimize this (PM)            }
-           { define a dest_loc that is the location      }
-           { and a ptree to verify that it is the right }
-           { place to insert it                    }
-           if (aktexprlevel<4) then
-             begin
-                dest_loc_known:=true;
-                dest_loc:=left.location;
-                dest_loc_tree:=right;
-             end;
-{$endif test_dest_loc}
 
            { left can't be never a 64 bit LOC_REGISTER, so the 3. arg }
            { can be false                                             }
            pushed:=maybe_push(right.registers32,left,is_64bitint(right.resulttype.def));
            secondpass(right);
+           { increment source reference counter, this is
+             useless for string constants}
+           if (right.resulttype.def.needs_inittable) and
+              (right.nodetype<>stringconstn) then
+            cg.g_incrrefcount(exprasmlist,right.resulttype.def,right.location.reference);
            if pushed  then
              restore(left,false);
 
            if codegenerror then
              exit;
-
-{$ifdef test_dest_loc}
-           dest_loc_known:=false;
-           if in_dest_loc then
-             begin
-                truelabel:=otlabel;
-                falselabel:=oflabel;
-                in_dest_loc:=false;
-                exit;
-             end;
-{$endif test_dest_loc}
          end;
 
         if not(left.location.loc in [LOC_REFERENCE,LOC_CFPUREGISTER,
@@ -575,19 +567,6 @@ implementation
                     LOC_REFERENCE,
                     LOC_CREFERENCE :
                       begin
-                        if (right.resulttype.def.needs_inittable) then
-                          begin
-                             { this would be a problem }
-                             if not(left.resulttype.def.needs_inittable) then
-                               internalerror(3457);
-                             { increment source reference counter, this is
-                               useless for string constants}
-                             if right.nodetype<>stringconstn then
-                              cg.g_incrrefcount(exprasmlist,right.resulttype.def,right.location.reference);
-                             { decrement destination reference counter }
-                             cg.g_decrrefcount(exprasmlist,left.resulttype.def,left.location.reference);
-                          end;
-
                         concatcopy(right.location.reference,
                                    left.location.reference,left.resulttype.def.size,true,false);
                         { right.location is already released by concatcopy }
@@ -744,7 +723,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2002-04-25 20:16:40  peter
+  Revision 1.40  2002-04-26 15:19:05  peter
+    * use saveregisters for incr routines, saves also problems with
+      the optimizer
+
+  Revision 1.39  2002/04/25 20:16:40  peter
     * moved more routines from cga/n386util
 
   Revision 1.38  2002/04/22 16:30:06  peter

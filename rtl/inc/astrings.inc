@@ -106,7 +106,7 @@ begin
 end;
 
 
-Procedure fpc_AnsiStr_Decr_Ref (Var S : Pointer);[Public,Alias:'FPC_ANSISTR_DECR_REF'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_AnsiStr_Decr_Ref (Var S : Pointer);saveregisters;[Public,Alias:'FPC_ANSISTR_DECR_REF'];  {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   Decreases the ReferenceCount of a non constant ansistring;
   If the reference count is zero, deallocate the string;
@@ -132,13 +132,13 @@ end;
 
 {$ifdef hascompilerproc}
 { also define alias for internal use in the system unit }
-Procedure fpc_AnsiStr_Decr_Ref (Var S : Pointer); [external name 'FPC_ANSISTR_DECR_REF'];
+Procedure fpc_AnsiStr_Decr_Ref (Var S : Pointer);saveregisters; [external name 'FPC_ANSISTR_DECR_REF'];
 {$endif hascompilerproc}
 
 {$ifdef hascompilerproc}
-Procedure fpc_AnsiStr_Incr_Ref (S : Pointer);[Public,Alias:'FPC_ANSISTR_INCR_REF'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_AnsiStr_Incr_Ref (S : Pointer);saveregisters;[Public,Alias:'FPC_ANSISTR_INCR_REF'];  {$ifdef hascompilerproc} compilerproc; {$endif}
 {$else}
-Procedure fpc_AnsiStr_Incr_Ref (Var S : Pointer);[Public,Alias:'FPC_ANSISTR_INCR_REF'];
+Procedure fpc_AnsiStr_Incr_Ref (Var S : Pointer);saveregisters;[Public,Alias:'FPC_ANSISTR_INCR_REF'];
 {$endif}
 Begin
   If S=Nil then
@@ -150,7 +150,7 @@ end;
 
 {$ifdef hascompilerproc}
 { also define alias which can be used inside the system unit }
-Procedure fpc_AnsiStr_Incr_Ref (S : Pointer); [external name 'FPC_ANSISTR_INCR_REF'];
+Procedure fpc_AnsiStr_Incr_Ref (S : Pointer);saveregisters; [external name 'FPC_ANSISTR_INCR_REF'];
 {$endif hascompilerproc}
 
 Procedure fpc_AnsiStr_Assign (Var S1 : Pointer;S2 : Pointer);[Public,Alias:'FPC_ANSISTR_ASSIGN'];  {$ifdef hascompilerproc} compilerproc; {$endif}
@@ -801,7 +801,11 @@ end;
 
 {
   $Log$
-  Revision 1.24  2002-04-25 20:14:56  peter
+  Revision 1.25  2002-04-26 15:19:05  peter
+    * use saveregisters for incr routines, saves also problems with
+      the optimizer
+
+  Revision 1.24  2002/04/25 20:14:56  peter
     * updated compilerprocs
     * incr ref count has now a value argument instead of var
 

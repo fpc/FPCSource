@@ -76,7 +76,7 @@ Procedure fpc_dynarray_clear (var p : pointer;ti : pointer);[external name 'FPC_
 {$endif hascompilerproc}
 
 
-procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer);[Public,Alias:'FPC_DYNARRAY_DECR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer);saveregisters;[Public,Alias:'FPC_DYNARRAY_DECR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
   var
      realp : pdynarray;
   begin
@@ -96,10 +96,10 @@ procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer);[Public,Alias:'FPC
 
 {$ifdef hascompilerproc}
 { provide local access to dynarr_decr_ref for dynarr_setlength }
-procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer); [external name 'FPC_DYNARRAY_DECR_REF'];
+procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer);saveregisters; [external name 'FPC_DYNARRAY_DECR_REF'];
 {$endif}
 
-procedure fpc_dynarray_incr_ref(p : pointer);[Public,Alias:'FPC_DYNARRAY_INCR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_dynarray_incr_ref(p : pointer);saveregisters;[Public,Alias:'FPC_DYNARRAY_INCR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
   var
      realp : pdynarray;
   begin
@@ -115,7 +115,7 @@ procedure fpc_dynarray_incr_ref(p : pointer);[Public,Alias:'FPC_DYNARRAY_INCR_RE
 
 {$ifdef hascompilerproc}
 { provide local access to dynarr_decr_ref for dynarr_setlength }
-procedure fpc_dynarray_incr_ref(p : pointer); [external name 'FPC_DYNARRAY_INCR_REF'];
+procedure fpc_dynarray_incr_ref(p : pointer);saveregisters; [external name 'FPC_DYNARRAY_INCR_REF'];
 {$endif}
 
 { provide local access to dynarr_setlength }
@@ -261,7 +261,11 @@ function fpc_dynarray_copy(var p : pointer;ti : pointer;
 
 {
   $Log$
-  Revision 1.16  2002-04-25 20:14:56  peter
+  Revision 1.17  2002-04-26 15:19:05  peter
+    * use saveregisters for incr routines, saves also problems with
+      the optimizer
+
+  Revision 1.16  2002/04/25 20:14:56  peter
     * updated compilerprocs
     * incr ref count has now a value argument instead of var
 
