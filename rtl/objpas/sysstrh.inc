@@ -30,8 +30,12 @@ type
    
    { For FloatToText } 
    TFloatFormat = (ffGeneral, ffExponent, ffFixed, ffNumber, ffCurrency);
-
    
+const
+  { For floattodatetime }
+  MinDateTime: TDateTime = -657434.0;      { 01/01/0100 12:00:00.000 AM }
+  MaxDateTime: TDateTime =  2958465.99999; { 12/31/9999 11:59:59.999 PM }
+       
 function NewStr(const S: string): PString;
 procedure DisposeStr(S: PString);
 procedure AssignStr(var P: PString; const S: string);
@@ -84,6 +88,14 @@ Function FloatToStr(Value: Extended): String;
 Function StrToFloat(Value : String) : Extended;
 Function FloatToText(Buffer: PChar; Value: Extended; format: TFloatFormat; Precision, Digits: Integer): Longint;
 
+Function FloatToDateTime (Const Value : Extended) : TDateTime;
+Function FloattoCurr (Const Value : Extended) : Currency;
+Function CurrToStr(Value: Currency): string;
+function StrToCurr(const S: string): Currency;
+function StrToBool(const S: string): Boolean;
+function BoolToStr(B: Boolean): string;
+
+
 {==============================================================================}
 {   extra functions                                                            }
 {==============================================================================}
@@ -94,7 +106,10 @@ function BCDToInt(Value: integer): integer;
 
 {
   $Log$
-  Revision 1.3  2000-08-09 07:48:05  marco
+  Revision 1.4  2000-08-13 17:55:38  michael
+  + Added some missing functions needed for variant support
+
+  Revision 1.3  2000/08/09 07:48:05  marco
    * Uncommented some int64 functions, now that int64 support is ok
 
   Revision 1.2  2000/07/13 11:33:51  michael

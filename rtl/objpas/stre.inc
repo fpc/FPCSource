@@ -23,6 +23,7 @@ Const
 
    { Error messages for exceptions }
    
+   SAbortError = 'Operation aborted';
    SAbstractError = 'Abstract method called';
    SAccessDenied = 'Access denied';
    SAccessViolation = 'Access violation';
@@ -32,34 +33,39 @@ Const
    SDiskFull = 'Disk Full';
    SDivByZero = 'Division by zero';
    SEndOfFile = 'Read past end of file';
-   SFileNotFound = 'File not found';
+   SExceptionErrorMessage = 'exception at %p';
    SFileNotAssigned = 'File not assigned';
+   SFileNotFound = 'File not found';
    SFileNotOpen = 'File not open';
    SFileNotOpenForInput = 'File not open for input';
    SFileNotOpenForOutput = 'File not open for output';
+   SInValidFileName = 'Invalid filename';
+   SIntOverflow = 'Arithmetic overflow';
    SInvalidArgIndex = 'Invalid argument index in format "%s"';
+   SInvalidBoolean = '"%s" is not a valid boolean.';
+   SInvalidCast = 'Invalid type cast';
+   SInvalidDateTime = '%f is not a valid datee/time value.';
    SInvalidDrive = 'Invalid drive specified';
    SInvalidFileHandle = 'Invalid file handle';
-   SInValidFileName = 'Invalid filename';
    SInvalidFloat = '"%s" is an invalid float';
    SInvalidFormat = 'Invalid format specifier : "%s"';
    SInvalidInput = 'Invalid input';
    SInvalidInteger = '"%s" is an invalid integer';
+   SInvalidOp = 'Invalid floating point operation';
    SInvalidPointer = 'Invalid pointer operation';
    SOutOfMemory = 'Out of memory';
+   SOverflow = 'Floating point overflow';
    SRangeError = 'Range check error';
-   SInvalidCast = 'Invalid type cast';
    STooManyOpenFiles = 'Too many open files';
    SUnKnownRunTimeError = 'Unknown Run-Time error : %3.3d';
-   SOverflow = 'Floating point overflow';
    SUnderflow = 'Floating point underflow';
-   SIntOverflow = 'Arithmetic overflow';
-   SInvalidOp = 'Invalid floating point operation';
-   SAbortError = 'Operation aborted';
-   SExceptionErrorMessage = 'exception at %p';
+     
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:51  michael
+  Revision 1.3  2000-08-13 17:55:38  michael
+  + Added some missing functions needed for variant support
+
+  Revision 1.2  2000/07/13 11:33:51  michael
   + removed logs
  
 }

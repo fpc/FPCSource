@@ -1125,6 +1125,54 @@ Begin
   End;
 End;
 
+Function FloatToDateTime (Const Value : Extended) : TDateTime;
+begin
+  If (Value<MinDateTime) or (Value>MaxDateTime) then
+    Raise EConvertError.CreateFmt (SInvalidDateTime,[Value]);
+  Result:=Value;
+end; 
+
+Function FloatToCurr (Const Value : Extended) : Currency;
+begin
+    
+end; 
+
+Function CurrToStr(Value: Currency): string;
+begin
+end; 
+
+function StrToCurr(const S: string): Currency;
+begin
+end; 
+
+function StrToBool(const S: string): Boolean;
+
+Var 
+  Temp : String;
+  D : Double;
+  Code : word;
+
+begin
+  Temp:=upcase(S);
+  Val(temp,D,code);
+  If Code=0 then
+    Result:=(D<>0.0)
+  else If Temp='TRUE' then
+    result:=true
+  else if Temp='FALSE' then
+    result:=false
+  else
+    Raise EConvertError.CreateFmt(SInvalidBoolean,[S]);
+end; 
+
+function BoolToStr(B: Boolean): string;
+begin
+  If B then
+    Result:='TRUE'
+  else
+    Result:='FALSE'; 
+end;
+
 {==============================================================================}
 {   extra functions                                                            }
 {==============================================================================}
@@ -1217,7 +1265,10 @@ const
 
 {
   $Log$
-  Revision 1.3  2000-08-09 07:48:05  marco
+  Revision 1.4  2000-08-13 17:55:38  michael
+  + Added some missing functions needed for variant support
+
+  Revision 1.3  2000/08/09 07:48:05  marco
    * Uncommented some int64 functions, now that int64 support is ok
 
   Revision 1.2  2000/07/13 11:33:51  michael
