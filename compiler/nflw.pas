@@ -620,11 +620,16 @@ implementation
 *****************************************************************************}
 
     constructor texitnode.create(l:tnode);
+      begin
+        inherited create(exitn,l);
+      end;
+
+
+    function texitnode.det_resulttype:tnode;
       var
          pt : tnode;
       begin
-        inherited create(exitn,l);
-
+        result:=nil;
         { Check the 2 types }
         if assigned(left) then
          begin
@@ -635,18 +640,12 @@ implementation
               left:=cassignmentnode.create(pt,left);
             end;
          end;
-      end;
-
-
-    function texitnode.det_resulttype:tnode;
-      begin
-        result:=nil;
-         if assigned(left) then
-           begin
-              resulttypepass(left);
-              set_varstate(left,true);
-              procinfo^.funcret_state:=vs_assigned;
-           end;
+        if assigned(left) then
+         begin
+           resulttypepass(left);
+           set_varstate(left,true);
+           procinfo^.funcret_state:=vs_assigned;
+         end;
         resulttype:=voidtype;
       end;
 
@@ -1169,7 +1168,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2001-04-21 15:36:29  peter
+  Revision 1.20  2001-04-26 21:56:08  peter
+    * moved some code from exitnode.create to det_resulttype
+
+  Revision 1.19  2001/04/21 15:36:29  peter
     * fixed crash with for counter
 
   Revision 1.18  2001/04/15 09:48:30  peter
