@@ -311,15 +311,71 @@ implementation
           current_scanner.preproc_token:=current_scanner.readpreproc;
         end;
 
+        function readpreproc: string;
+        var
+          hs: string;
+          mac : tmacro;
+          len : integer;
+        begin
+          hs := current_scanner.preproc_pattern;
+          mac:=tmacro(current_scanner.macros.search(hs));
+          if assigned(mac) then
+          begin
+            if mac.defined and assigned(mac.buftext) then
+            begin
+              if mac.buflen>255 then
+              begin
+                len:=255;
+                Message(scan_w_macro_cut_after_255_chars);
+              end
+              else
+                len:=mac.buflen;
+              hs[0]:=char(len);
+              move(mac.buftext^,hs[1],len);
+            end;
+          end;
+          readpreproc := hs;
+        end;
+
         function read_factor : string;
         var
            hs : string;
-           mac : tmacro;
-           len : byte;
+           mac: tmacro;
         begin
            if current_scanner.preproc_token=_ID then
              begin
-                if current_scanner.preproc_pattern='NOT' then
+                if readpreproc='DEFINED' then
+                begin
+                  preproc_consume(_ID);
+                  current_scanner.skipspace;
+                  if current_scanner.preproc_token =_LKLAMMER then
+                  begin
+                    preproc_consume(_LKLAMMER);
+                    current_scanner.skipspace;
+                  end
+                  else
+                    Message(scan_e_error_in_preproc_expr);
+                  if current_scanner.preproc_token =_ID then
+                  begin
+                    hs := current_scanner.preproc_pattern;
+                    mac := tmacro(current_scanner.macros.search(hs));
+                    if assigned(mac) then
+                      hs := '1'
+                    else
+                      hs := '0';
+                    read_factor := hs;
+                    preproc_consume(_ID);
+                    current_scanner.skipspace;
+                  end
+                  else
+                    Message(scan_e_error_in_preproc_expr);
+                  if current_scanner.preproc_token =_RKLAMMER then
+                    preproc_consume(_RKLAMMER)
+                  else
+                    Message(scan_e_error_in_preproc_expr);
+                end
+                else
+                if readpreproc='NOT' then
                   begin
                      preproc_consume(_ID);
                      hs:=read_expr;
@@ -330,31 +386,12 @@ implementation
                   end
                 else
                   begin
-                     mac:=tmacro(current_scanner.macros.search(hs));
-                     hs:=current_scanner.preproc_pattern;
+                     hs:=readpreproc;
                      preproc_consume(_ID);
-                     if assigned(mac) then
-                       begin
-                          if mac.defined and assigned(mac.buftext) then
-                            begin
-                               if mac.buflen>255 then
-                                 begin
-                                    len:=255;
-                                    Message(scan_w_macro_cut_after_255_chars);
-                                 end
-                               else
-                                 len:=mac.buflen;
-                               hs[0]:=char(len);
-                               move(mac.buftext^,hs[1],len);
-                            end
-                          else
-                            read_factor:='';
-                       end
-                     else
-                       read_factor:=hs;
+                     read_factor:=hs;
                   end
              end
-           else if current_scanner.preproc_token=_LKLAMMER then
+           else if current_scanner.preproc_token =_LKLAMMER then
              begin
                 preproc_consume(_LKLAMMER);
                 read_factor:=read_expr;
@@ -367,18 +404,25 @@ implementation
         function read_term : string;
         var
            hs1,hs2 : string;
+           l1,l2 : longint;
+           w : integer;
         begin
            hs1:=read_factor;
            while true do
              begin
                 if (current_scanner.preproc_token=_ID) then
                   begin
-                     if current_scanner.preproc_pattern='AND' then
+                     if readpreproc='AND' then
                        begin
                           preproc_consume(_ID);
-                          hs2:=read_factor;
-                          if (hs1<>'0') and (hs2<>'0') then
-                            hs1:='1';
+                          hs2:=read_expr;
+                          valint(hs1,l1,w); valint(hs2,l2,w);
+                          if (l1>0) and (l2>0) then
+                            hs1:='1'
+                          else
+                            hs1:='0';
+                          read_term := hs1;
+                          exit;
                        end
                      else
                        break;
@@ -393,18 +437,25 @@ implementation
         function read_simple_expr : string;
         var
            hs1,hs2 : string;
+           l1,l2 : longint;
+           w : integer;
         begin
            hs1:=read_term;
            while true do
              begin
                 if (current_scanner.preproc_token=_ID) then
                   begin
-                     if current_scanner.preproc_pattern='OR' then
+                     if readpreproc='OR' then
                        begin
                           preproc_consume(_ID);
-                          hs2:=read_term;
-                          if (hs1<>'0') or (hs2<>'0') then
-                            hs1:='1';
+                          hs2:=read_expr;
+                          valint(hs1,l1,w); valint(hs2,l2,w);
+                          if (l1>0) or (l2>0) then
+                            hs1:='1'
+                          else
+                            hs1:='0';
+                          read_simple_expr := hs1;
+                          exit;
                        end
                      else
                        break;
@@ -647,7 +698,7 @@ implementation
              hs:=target_cpu_string
            else
             if hs='FPCTARGETOS' then
-             hs:=target_info.name
+             hs:=target_info.shortname
            else
              hs:=getenv(hs);
            if hs='' then
@@ -1710,6 +1761,18 @@ implementation
                  else
                    next_char_loaded:=true;
                end;
+             '/' :
+               begin
+                 readchar;
+                 if c='/' then
+                   begin
+                     readchar;
+                     skipdelphicomment;
+                     aktcommentstyle:=oldcommentstyle;
+                   end
+                 else
+                   next_char_loaded:=true;
+               end;
              else
                found:=0;
            end;
@@ -2662,7 +2725,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.29  2002-01-27 21:44:26  peter
+  Revision 1.30  2002-03-01 12:39:26  peter
+    * support // parsing in skipuntildirective
+
+  Revision 1.29  2002/01/27 21:44:26  peter
     * FPCTARGETOS/FPCTARGETCPU added as internal environment variable
 
   Revision 1.28  2002/01/24 18:25:50  peter
