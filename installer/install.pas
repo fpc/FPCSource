@@ -776,7 +776,7 @@ program install;
          wild:=AllFiles + #0;
          again:=false;
          FileUnzipEx(@fn[1],@dir[1],@wild[1]);
-         if (UnzipErr <> 0) then
+         if (UnzipErr <> 0) and (UnzipErr <> 1) then
            begin
               s:=GetZipErrorInfo(UnzipErr);
               { Str(UnzipErr,s);}
@@ -1920,7 +1920,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2002-06-02 17:24:27  marco
+  Revision 1.12  2002-07-06 11:51:04  carl
+  + Unzip DLL fixes for warnings
+
+  Revision 1.11  2002/06/02 17:24:27  marco
    * Renamefest
 
   Revision 1.10  2002/06/01 19:43:07  marco
