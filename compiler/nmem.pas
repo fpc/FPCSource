@@ -433,7 +433,8 @@ implementation
                  hp2:=TParaItem(hp3.Para.first);
                  while assigned(hp2) do
                    begin
-                      tprocvardef(resulttype.def).concatpara(nil,hp2.paratype,hp2.parasym,hp2.paratyp,hp2.defaultvalue);
+                      tprocvardef(resulttype.def).concatpara(nil,hp2.paratype,hp2.parasym,
+                          hp2.defaultvalue,hp2.is_hidden);
                       hp2:=TParaItem(hp2.next);
                    end;
               end
@@ -1059,7 +1060,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.51  2003-04-27 11:21:33  peter
+  Revision 1.52  2003-05-05 14:53:16  peter
+    * vs_hidden replaced by is_hidden boolean
+
+  Revision 1.51  2003/04/27 11:21:33  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be

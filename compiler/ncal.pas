@@ -645,7 +645,7 @@ type
              resulttype:=left.resulttype;
            end
          else
-          if (paraitem.paratyp = vs_hidden) then
+          if (paraitem.is_hidden) then
            begin
              set_varstate(left,true);
              resulttype:=left.resulttype;
@@ -1320,7 +1320,7 @@ type
                end;
               while assigned(currpara) do
                begin
-                 if (currpara.paratyp<>vs_hidden) then
+                 if (not currpara.is_hidden) then
                    Comment(lvl,'    - '+currpara.paratype.def.typename+' : '+EqualTypeName[currpara.eqval]);
                  currpara:=tparaitem(currpara.previous);
                end;
@@ -1352,7 +1352,7 @@ type
              were we need to start comparing }
            currparanr:=paralength;
            currpara:=hp^.firstpara;
-           while assigned(currpara) and (currpara.paratyp=vs_hidden) do
+           while assigned(currpara) and (currpara.is_hidden) do
              currpara:=tparaitem(currpara.previous);
            pt:=tcallparanode(left);
            while assigned(pt) and assigned(currpara) do
@@ -1472,7 +1472,7 @@ type
                  { Ignore vs_hidden parameters }
                  repeat
                    currpara:=tparaitem(currpara.previous);
-                 until (not assigned(currpara)) or (currpara.paratyp<>vs_hidden);
+                 until (not assigned(currpara)) or (not currpara.is_hidden);
                end;
               dec(currparanr);
             end;
@@ -1605,7 +1605,7 @@ type
         currpara:=tparaitem(procdefinition.Para.last);
         while assigned(currpara) do
          begin
-           if (currpara.paratyp=vs_hidden) then
+           if currpara.is_hidden then
             begin
               { generate hidden tree }
               used_by_callnode:=false;
@@ -1706,7 +1706,7 @@ type
 
               { Compare parameters from right to left }
               currpara:=tparaitem(procdefinition.Para.last);
-              while assigned(currpara) and (currpara.paratyp=vs_hidden) do
+              while assigned(currpara) and (currpara.is_hidden) do
                 currpara:=tparaitem(currpara.previous);
               pt:=tcallparanode(left);
               lastpara:=paralength;
@@ -1718,7 +1718,7 @@ type
                    begin
                      repeat
                        currpara:=tparaitem(currpara.previous);
-                     until (not assigned(currpara)) or (currpara.paratyp<>vs_hidden);
+                     until (not assigned(currpara)) or (not currpara.is_hidden);
                    end;
                   pt:=tcallparanode(pt.right);
                   dec(lastpara);
@@ -2517,7 +2517,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.147  2003-04-27 11:21:33  peter
+  Revision 1.148  2003-05-05 14:53:16  peter
+    * vs_hidden replaced by is_hidden boolean
+
+  Revision 1.147  2003/04/27 11:21:33  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be

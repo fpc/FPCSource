@@ -103,6 +103,7 @@ interface
           defaultvalue : tsym; { tconstsym }
           paratyp      : tvarspez; { required for procvar }
           paraloc      : tparalocation;
+          is_hidden    : boolean; { is this a hidden (implicit) parameter }
 {$ifdef EXTDEBUG}
           eqval        : tequaltype;
 {$endif EXTDEBUG}
@@ -428,8 +429,8 @@ interface
           procedure  ppuwrite(ppufile:tcompilerppufile);override;
           procedure deref;override;
           procedure releasemem;
-          function  concatpara(afterpara:tparaitem;const tt:ttype;sym : tsym;vsp : tvarspez;defval:tsym):tparaitem;
-          function  insertpara(const tt:ttype;sym : tsym;vsp : tvarspez;defval:tsym):tparaitem;
+          function  concatpara(afterpara:tparaitem;const tt:ttype;sym : tsym;defval:tsym;vhidden:boolean):tparaitem;
+          function  insertpara(const tt:ttype;sym : tsym;defval:tsym;vhidden:boolean):tparaitem;
           procedure removepara(currpara:tparaitem);
           function  para_size(alignsize:longint) : longint;
           function  typename_paras(showhidden:boolean): string;
@@ -3097,14 +3098,15 @@ implementation
       end;
 
 
-    function tabstractprocdef.concatpara(afterpara:tparaitem;const tt:ttype;sym : tsym;vsp : tvarspez;defval:tsym):tparaitem;
+    function tabstractprocdef.concatpara(afterpara:tparaitem;const tt:ttype;sym : tsym;defval:tsym;vhidden:boolean):tparaitem;
       var
         hp : TParaItem;
       begin
         hp:=TParaItem.Create;
-        hp.paratyp:=vsp;
+        hp.paratyp:=tvarsym(sym).varspez;
         hp.parasym:=sym;
         hp.paratype:=tt;
+        hp.is_hidden:=vhidden;
         hp.defaultvalue:=defval;
         { Parameters are stored from left to right }
         if assigned(afterpara) then
@@ -3112,7 +3114,7 @@ implementation
         else
           Para.concat(hp);
         { Don't count hidden parameters }
-        if (vsp<>vs_hidden) then
+        if not vhidden then
          begin
            if not assigned(defval) then
             inc(minparacount);
@@ -3122,19 +3124,20 @@ implementation
       end;
 
 
-    function tabstractprocdef.insertpara(const tt:ttype;sym : tsym;vsp : tvarspez;defval:tsym):tparaitem;
+    function tabstractprocdef.insertpara(const tt:ttype;sym : tsym;defval:tsym;vhidden:boolean):tparaitem;
       var
         hp : TParaItem;
       begin
         hp:=TParaItem.Create;
-        hp.paratyp:=vsp;
+        hp.paratyp:=tvarsym(sym).varspez;
         hp.parasym:=sym;
         hp.paratype:=tt;
+        hp.is_hidden:=vhidden;
         hp.defaultvalue:=defval;
         { Parameters are stored from left to right }
         Para.insert(hp);
         { Don't count hidden parameters }
-        if (vsp<>vs_hidden) then
+        if (not vhidden) then
          begin
            if not assigned(defval) then
             inc(minparacount);
@@ -3147,7 +3150,7 @@ implementation
     procedure tabstractprocdef.removepara(currpara:tparaitem);
       begin
         { Don't count hidden parameters }
-        if (currpara.paratyp<>vs_hidden) then
+        if (not currpara.is_hidden) then
          begin
            if not assigned(currpara.defaultvalue) then
             dec(minparacount);
@@ -3221,13 +3224,14 @@ implementation
             ppufile.gettype(hp.paratype);
             hp.defaultvalue:=tsym(ppufile.getderef);
             hp.parasym:=tsym(ppufile.getderef);
+            hp.is_hidden:=boolean(ppufile.getbyte);
             { later, we'll gerate this on the fly (FK) }
             paraloclen:=ppufile.getbyte;
             if paraloclen<>sizeof(tparalocation) then
               internalerror(200304261);
             ppufile.getdata(hp.paraloc,sizeof(tparalocation));
             { Don't count hidden parameters }
-            if (hp.paratyp<>vs_hidden) then
+            if (not hp.is_hidden) then
              begin
                if not assigned(hp.defaultvalue) then
                 inc(minparacount);
@@ -3264,6 +3268,7 @@ implementation
             ppufile.puttype(hp.paratype);
             ppufile.putderef(hp.defaultvalue);
             ppufile.putderef(hp.parasym);
+            ppufile.putbyte(byte(hp.is_hidden));
             { write the length of tparalocation so ppudump can
               parse the .ppu without knowing the tparalocation size }
             ppufile.putbyte(sizeof(tparalocation));
@@ -3309,7 +3314,7 @@ implementation
         first:=true;
         while assigned(hp) do
          begin
-           if (hp.paratyp<>vs_hidden) or
+           if (not hp.is_hidden) or
               (showhidden) then
             begin
                if first then
@@ -3326,8 +3331,6 @@ implementation
                    s:=s+'const';
                  vs_out :
                    s:=s+'out';
-                 vs_hidden :
-                   s:=s+'hidden';
                end;
                if assigned(hp.paratype.def.typesym) then
                  begin
@@ -4010,7 +4013,7 @@ implementation
         hp:=TParaItem(Para.first);
         while assigned(hp) do
          begin
-           if hp.paratyp<>vs_hidden then
+           if not hp.is_hidden then
              s:=s+'$'+hp.paratype.def.mangledparaname;
            hp:=TParaItem(hp.next);
          end;
@@ -5748,7 +5751,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.139  2003-05-01 07:59:43  florian
+  Revision 1.140  2003-05-05 14:53:16  peter
+    * vs_hidden replaced by is_hidden boolean
+
+  Revision 1.139  2003/05/01 07:59:43  florian
     * introduced defaultordconsttype to decribe the default size of ordinal constants
       on 64 bit CPUs it's equal to cs64bitdef while on 32 bit CPUs it's equal to s32bitdef
     + added defines CPU32 and CPU64 for 32 bit and 64 bit CPUs

@@ -119,7 +119,7 @@ implementation
            vs.varspez:=vs_var;
            pd.parast.insert(vs);
            { Also insert a hidden parameter as first }
-           pd.insertpara(vs.vartype,vs,vs_hidden,nil);
+           pd.insertpara(vs.vartype,vs,nil,true);
 
            akttokenpos:=storepos;
          end;
@@ -162,7 +162,7 @@ implementation
 
                 pd.parast.insert(vs);
                 { Also insert a hidden parameter as first }
-                pd.insertpara(vs.vartype,vs,vs_hidden,nil);
+                pd.insertpara(vs.vartype,vs,nil,true);
 
                 akttokenpos:=storepos;
               end;
@@ -240,7 +240,7 @@ implementation
                end
               else
                hvs:=nil;
-              pd.concatpara(currpara,s32bittype,hvs,vs_hidden,nil);
+              pd.concatpara(currpara,s32bittype,hvs,nil,true);
             end
            else
             begin
@@ -492,7 +492,7 @@ implementation
                    paramanager.push_addr_param(tt.def,pd.proccalloption) then
                   include(vs.varoptions,vo_regable);
               end;
-             hpara:=pd.concatpara(nil,tt,vs,varspez,tdefaultvalue);
+             hpara:=pd.concatpara(nil,tt,vs,tdefaultvalue,false);
              { save position of self parameter }
              if vs.name='SELF' then
               pd.selfpara:=hpara;
@@ -2170,7 +2170,10 @@ const
 end.
 {
   $Log$
-  Revision 1.120  2003-04-30 09:42:42  florian
+  Revision 1.121  2003-05-05 14:53:16  peter
+    * vs_hidden replaced by is_hidden boolean
+
+  Revision 1.120  2003/04/30 09:42:42  florian
     + first changes to make self a hidden parameter
 
   Revision 1.119  2003/04/27 11:21:33  peter

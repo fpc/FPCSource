@@ -1085,7 +1085,7 @@ implementation
           begin
             currpara:=tparaitem(pd^.def.para.first);
             { ignore vs_hidden parameters }
-            while assigned(currpara) and (currpara.paratyp=vs_hidden) do
+            while assigned(currpara) and (currpara.is_hidden) do
              currpara:=tparaitem(currpara.next);
             if assigned(currpara) then
              begin
@@ -1121,7 +1121,7 @@ implementation
              begin
                currpara:=Tparaitem(pd^.def.para.first);
                { ignore vs_hidden parameters }
-               while assigned(currpara) and (currpara.paratyp=vs_hidden) do
+               while assigned(currpara) and (currpara.is_hidden) do
                 currpara:=tparaitem(currpara.next);
                if assigned(currpara) then
                 begin
@@ -1165,7 +1165,7 @@ implementation
           begin
             currpara:=Tparaitem(pd^.def.para.first);
             { ignore vs_hidden parameters }
-            while assigned(currpara) and (currpara.paratyp=vs_hidden) do
+            while assigned(currpara) and (currpara.is_hidden) do
              currpara:=tparaitem(currpara.next);
             if assigned(currpara) then
              begin
@@ -1177,14 +1177,14 @@ implementation
                   { Ignore vs_hidden parameters }
                   repeat
                     currpara:=tparaitem(currpara.next);
-                  until (not assigned(currpara)) or (currpara.paratyp<>vs_hidden);
+                  until (not assigned(currpara)) or (not currpara.is_hidden);
                   if assigned(currpara) then
                    begin
                      { Ignore vs_hidden parameters }
                      nextpara:=currpara;
                      repeat
                        nextpara:=tparaitem(nextpara.next);
-                     until (not assigned(nextpara)) or (nextpara.paratyp<>vs_hidden);
+                     until (not assigned(nextpara)) or (not nextpara.is_hidden);
                      { There should be no other parameters left }
                      if not assigned(nextpara) then
                       begin
@@ -2557,7 +2557,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.100  2003-04-27 11:21:34  peter
+  Revision 1.101  2003-05-05 14:53:16  peter
+    * vs_hidden replaced by is_hidden boolean
+
+  Revision 1.100  2003/04/27 11:21:34  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be

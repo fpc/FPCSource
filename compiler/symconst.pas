@@ -280,7 +280,7 @@ type
     vs_set_but_first_not_passed,vs_assigned,vs_used
   );
 
-  tvarspez = (vs_value,vs_const,vs_var,vs_out,vs_hidden);
+  tvarspez = (vs_value,vs_const,vs_var,vs_out);
 
   absolutetyp = (tovar,toasm,toaddr);
 
@@ -350,7 +350,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.52  2003-04-27 11:21:34  peter
+  Revision 1.53  2003-05-05 14:53:16  peter
+    * vs_hidden replaced by is_hidden boolean
+
+  Revision 1.52  2003/04/27 11:21:34  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be

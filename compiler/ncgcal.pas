@@ -111,7 +111,6 @@ implementation
          oflabel : tasmlabel;
          tmpreg  : tregister;
          href    : treference;
-         varspez : tvarspez;
       begin
          if not(assigned(paraitem.paratype.def) or
                 assigned(paraitem.parasym)) then
@@ -137,11 +136,6 @@ implementation
          objectlibrary.getlabel(truelabel);
          objectlibrary.getlabel(falselabel);
          secondpass(left);
-         { retrieve the type of parameter, for hidden parameters
-           the value is stored in the parasym }
-         varspez:=paraitem.paratyp;
-         if varspez=vs_hidden then
-           varspez:=tvarsym(paraitem.parasym).varspez;
          { handle varargs first, because defcoll is not valid }
          if (nf_varargs_para in flags) then
            begin
@@ -164,7 +158,7 @@ implementation
                  (paraitem.paratype.def.deftype=formaldef) then
            begin
               { allow passing of a constant to a const formaldef }
-              if (varspez=vs_const) and
+              if (tvarsym(paraitem.parasym).varspez=vs_const) and
                  (left.location.loc=LOC_CONSTANT) then
                 location_force_mem(exprasmlist,left.location);
 
@@ -209,7 +203,7 @@ implementation
                 end;
            end
          { handle call by reference parameter }
-         else if (varspez in [vs_var,vs_out]) then
+         else if (paraitem.paratyp in [vs_var,vs_out]) then
            begin
               if (left.location.loc<>LOC_REFERENCE) then
                begin
@@ -219,7 +213,7 @@ implementation
                         (left.nodetype=selfn)) then
                   internalerror(200106041);
                end;
-              if (varspez=vs_out) and
+              if (paraitem.paratyp=vs_out) and
                  assigned(paraitem.paratype.def) and
                  not is_class(paraitem.paratype.def) and
                  paraitem.paratype.def.needs_inittable then
@@ -1443,7 +1437,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.57  2003-04-30 20:53:32  florian
+  Revision 1.58  2003-05-05 14:53:16  peter
+    * vs_hidden replaced by is_hidden boolean
+
+  Revision 1.57  2003/04/30 20:53:32  florian
     * error when address of an abstract method is taken
     * fixed some x86-64 problems
     * merged some more x86-64 and i386 code

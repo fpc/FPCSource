@@ -279,6 +279,7 @@ implementation
                   sc.reset;
                   repeat
                     readvs:=tvarsym.create(orgpattern,generrortype);
+                    readvs.varspez:=varspez;
                     readprocdef.parast.insert(readvs);
                     sc.insert(readvs);
                     consume(_ID);
@@ -304,11 +305,11 @@ implementation
                   readvs:=tvarsym(sc.first);
                   while assigned(readvs) do
                    begin
-                     readprocdef.concatpara(nil,tt,readvs,varspez,nil);
+                     readprocdef.concatpara(nil,tt,readvs,nil,false);
                      { also update the writeprocdef }
                      hvs:=tvarsym.create(readvs.realname,generrortype);
                      writeprocdef.parast.insert(hvs);
-                     writeprocdef.concatpara(nil,tt,hvs,varspez,nil);
+                     writeprocdef.concatpara(nil,tt,hvs,nil,false);
                      readvs:=tvarsym(readvs.listnext);
                    end;
                 until not try_to_consume(_SEMICOLON);
@@ -345,10 +346,10 @@ implementation
                      { concat a longint to the para templates }
                      hvs:=tvarsym.create('$index',p.indextype);
                      readprocdef.parast.insert(hvs);
-                     readprocdef.concatpara(nil,p.indextype,hvs,vs_value,nil);
+                     readprocdef.concatpara(nil,p.indextype,hvs,nil,false);
                      hvs:=tvarsym.create('$index',p.indextype);
                      writeprocdef.parast.insert(hvs);
-                     writeprocdef.concatpara(nil,p.indextype,hvs,vs_value,nil);
+                     writeprocdef.concatpara(nil,p.indextype,hvs,nil,false);
                      pt.free;
                   end;
              end
@@ -423,7 +424,7 @@ implementation
                        writeprocdef.rettype:=voidtype;
                        hvs:=tvarsym.create('$value',p.proptype);
                        writeprocdef.parast.insert(hvs);
-                       writeprocdef.concatpara(nil,p.proptype,hvs,vs_value,nil);
+                       writeprocdef.concatpara(nil,p.proptype,hvs,nil,false);
                        { Insert hidden parameters }
                        calc_parast(writeprocdef);
                        { search procdefs matching writeprocdef }
@@ -1144,7 +1145,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.63  2003-04-27 11:21:33  peter
+  Revision 1.64  2003-05-05 14:53:16  peter
+    * vs_hidden replaced by is_hidden boolean
+
+  Revision 1.63  2003/04/27 11:21:33  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
