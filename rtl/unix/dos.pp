@@ -258,7 +258,7 @@ end;
 
 Procedure SetDate(Year, Month, Day: Word);
 Begin
-  Unix.SetDate ( Year, Month, Day ); 
+  Unix.SetDate ( Year, Month, Day );
 End;
 
 
@@ -453,7 +453,7 @@ Begin
      If i<=RtlFindSize Then
       Begin
         RtlFindRecs[i].SearchNum:=0;
-        if f.dirptr>0 then
+        if f.dirptr<>0 then
          closedir(pdir(f.dirptr));
       End;
    end;
@@ -557,7 +557,7 @@ Begin
            DirName[f.NamePos] := #0;
          End;
         f.DirPtr := longint(opendir(@(DirName)));
-        If f.DirPtr > 0 Then
+        If f.DirPtr <> 0 Then
          begin
            ArrayPos:=FindLastUsed;
            If RtlFindRecs[ArrayPos].SearchNum > 0 Then
@@ -621,7 +621,7 @@ Begin
 {Create Info}
   f.SearchSpec := Path;
   f.SearchAttr := Attr;
-  f.SearchPos:=0;
+  f.SearchPos  := 0;
   f.NamePos := Length(f.SearchSpec);
   while (f.NamePos>0) and (f.SearchSpec[f.NamePos]<>'/') do
    dec(f.NamePos);
@@ -877,7 +877,10 @@ End.
 
 {
   $Log$
-  Revision 1.8  2001-07-12 12:42:39  marco
+  Revision 1.9  2001-07-30 21:38:55  peter
+    * m68k updates merged
+
+  Revision 1.8  2001/07/12 12:42:39  marco
    * Fixes to the FreeBSD compability of the datetime patches
 
   Revision 1.7  2001/07/12 07:20:05  michael

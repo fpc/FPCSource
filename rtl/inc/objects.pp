@@ -764,7 +764,7 @@ end ['EAX'];
 {$endif}
 {$ifdef m68k}
 {$define FPC_PreviousFramePointer_Implemented}
-    move.l a6,d0
+    move.l (a6),d0
 end ['D0'];
 {$endif}
 {$ifndef FPC_PreviousFramePointer_Implemented}
@@ -2833,7 +2833,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.6  2001-07-15 11:57:16  peter
+  Revision 1.7  2001-07-30 21:38:55  peter
+    * m68k updates merged
+
+  Revision 1.6  2001/07/15 11:57:16  peter
     * merged m68k updates
 
   Revision 1.5  2001/05/06 17:13:22  jonas

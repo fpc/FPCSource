@@ -728,7 +728,7 @@ begin
           setne   DoUpdate
      end;
 {$else not i386}
-     p1:=plongint(VideoBuf^);
+     p1:=plongint(VideoBuf);
      p2:=plongint(OldVideoBuf);
      for i:=0 to VideoBufSize div 2 do
        if (p1^<>p2^) then
@@ -836,7 +836,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.3  2001-07-13 22:05:09  peter
+  Revision 1.4  2001-07-30 21:38:55  peter
+    * m68k updates merged
+
+  Revision 1.3  2001/07/13 22:05:09  peter
     * cygwin updates
 
   Revision 1.2  2001/01/21 20:21:41  marco

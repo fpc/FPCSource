@@ -1,9 +1,9 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by the Free Pascal development team
+    Copyright (c) 1999-2001 by the Free Pascal development team
 
-    Implementation of mathamatical Routines (only for real)
+    Implementation of mathematical routines (for extended type)
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -19,15 +19,24 @@
                        EXTENDED data type routines
  ****************************************************************************}
 
+    {$define FPC_SYSTEM_HAS_PI}
     function pi : extended;[internproc:in_pi];
+    {$define FPC_SYSTEM_HAS_ABS}
     function abs(d : extended) : extended;[internproc:in_abs_extended];
+    {$define FPC_SYSTEM_HAS_SQR}
     function sqr(d : extended) : extended;[internproc:in_sqr_extended];
+    {$define FPC_SYSTEM_HAS_SQRT}
     function sqrt(d : extended) : extended;[internproc:in_sqrt_extended];
+    {$define FPC_SYSTEM_HAS_ARCTAN}
     function arctan(d : extended) : extended;[internproc:in_arctan_extended];
+    {$define FPC_SYSTEM_HAS_LN}
     function ln(d : extended) : extended;[internproc:in_ln_extended];
+    {$define FPC_SYSTEM_HAS_SIN}
     function sin(d : extended) : extended;[internproc:in_sin_extended];
+    {$define FPC_SYSTEM_HAS_COS}
     function cos(d : extended) : extended;[internproc:in_cos_extended];
 
+    {$define FPC_SYSTEM_HAS_EXP}
     function exp(d : extended) : extended;assembler;[internconst:in_const_exp];
        asm
             // comes from DJ GPP
@@ -61,6 +70,7 @@
       end;
 
 
+    {$define FPC_SYSTEM_HAS_FRAC}
     function frac(d : extended) : extended;assembler;[internconst:in_const_frac];
       asm
             subl $16,%esp
@@ -81,6 +91,7 @@
       end ['ECX'];
 
 
+    {$define FPC_SYSTEM_HAS_INT}
     function int(d : extended) : extended;assembler;[internconst:in_const_int];
       asm
             subl $16,%esp
@@ -98,7 +109,9 @@
       end ['ECX'];
 
 
-    function trunc(d : extended) : longint;assembler;[internconst:in_const_trunc];
+
+    {$define FPC_SYSTEM_HAS_TRUNC}
+    function trunc(d : extended) : int64;assembler;[internconst:in_const_trunc];
       asm
             subl $16,%esp
             fnstcw -4(%ebp)
@@ -109,12 +122,14 @@
             fldcw -8(%ebp)
             fwait
             fldt d
-            fistpl -8(%ebp)
-            movl -8(%ebp),%eax
+            fistpq -12(%ebp)
+            movl -12(%ebp),%eax
+            movl -8(%ebp),%edx
             fldcw -4(%ebp)
-      end ['EAX','ECX'];
+      end ['EAX','ECX','EDX'];
 
 
+    {$define FPC_SYSTEM_HAS_ROUND}
     function round(d : extended) : longint;assembler;[internconst:in_const_round];
       asm
             subl $8,%esp
@@ -130,6 +145,7 @@
       end ['EAX','ECX'];
 
 
+    {$define FPC_SYSTEM_HAS_POWER}
    function power(bas,expo : extended) : extended;
      begin
         if bas=0 then
@@ -179,6 +195,7 @@
          end;
      end;
 
+
 {****************************************************************************
                     Helper routines to support old TP styled reals
  ****************************************************************************}
@@ -210,138 +227,20 @@
          real2double:=double(res);
       end;
 
-{****************************************************************************
-                         Fixed data type routines
- ****************************************************************************}
-
-{$ifdef HASFIXED} { Not yet allowed }
-
-    function sqrt(d : fixed) : fixed;
-
-      begin
-         asm
-            movl d,%eax
-            movl %eax,%ebx
-            movl %eax,%ecx
-            jecxz .L_kl
-            xorl %esi,%esi
-         .L_it:
-            xorl %edx,%edx
-            idivl %ebx
-            addl %ebx,%eax
-            shrl $1,%eax
-            subl %eax,%esi
-            cmpl $1,%esi
-            jbe .L_kl
-            movl %eax,%esi
-            movl %eax,%ebx
-            movl %ecx,%eax
-            jmp .L_it
-         .L_kl:
-            shl $8,%eax
-            leave
-            ret $4
-         end;
-      end;
-
-
-    function int(d : fixed) : fixed;
-    {*****************************************************************}
-    { Returns the integral part of d                                  }
-    {*****************************************************************}
-    begin
-      int:=d and $ffff0000;       { keep only upper bits      }
-    end;
-
-
-    function trunc(d : fixed) : longint;
-    {*****************************************************************}
-    { Returns the Truncated integral part of d                        }
-    {*****************************************************************}
-    begin
-      trunc:=longint(integer(d shr 16));   { keep only upper 16 bits  }
-    end;
-
-    function frac(d : fixed) : fixed;
-    {*****************************************************************}
-    { Returns the Fractional part of d                                }
-    {*****************************************************************}
-    begin
-      frac:=d AND $ffff;         { keep only decimal parts - lower 16 bits }
-    end;
-
-    function abs(d : fixed) : fixed;
-    {*****************************************************************}
-    { Returns the Absolute value of d                                 }
-    {*****************************************************************}
-    begin
-       asm
-           movl d,%eax
-           rol $16,%eax             { Swap high & low word.}
-           {Absolute value: Invert all bits and increment when <0 .}
-           cwd                      { When ax<0, dx contains $ffff}
-           xorw %dx,%ax             { Inverts all bits when dx=$ffff.}
-           subw %dx,%ax             { Increments when dx=$ffff.}
-           rol $16,%eax             { Swap high & low word.}
-           leave
-           ret $4
-       end;
-    end;
-
-
-    function sqr(d : fixed) : fixed;
-    {*****************************************************************}
-    { Returns the Absolute squared value of d                         }
-    {*****************************************************************}
-    begin
-            {16-bit precision needed, not 32 =)}
-       sqr := d*d;
-{       sqr := (d SHR 8 * d) SHR 8; }
-    end;
-
-
-    function Round(x: fixed): longint;
-    {*****************************************************************}
-    { Returns the Rounded value of d as a longint                     }
-    {*****************************************************************}
-    var
-     lowf:integer;
-     highf:integer;
-    begin
-      lowf:=x and $ffff;       { keep decimal part ... }
-      highf :=integer(x shr 16);
-      if lowf > 5 then
-        highf:=highf+1
-      else
-      if lowf = 5 then
-      begin
-        { here we must check the sign ...       }
-        { if greater or equal to zero, then     }
-        { greater value will be found by adding }
-        { one...                                }
-         if highf >= 0 then
-           Highf:=Highf+1;
-      end;
-      Round:= longint(highf);
-    end;
-
-{$endif HASFIXED}
-
 {
   $Log$
-  Revision 1.5  2001-04-13 22:26:32  peter
-    * remove warnings
+  Revision 1.6  2001-07-30 21:38:54  peter
+    * m68k updates merged
 
-  Revision 1.4  2000/10/21 18:20:17  florian
-    * a lot of small changes:
-       - setlength is internal
-       - win32 graph unit extended
-       ....
+  Revision 1.1.2.3  2001/07/29 23:56:28  carl
+  - removed internamth define (always internal)
 
-  Revision 1.3  2000/07/14 10:33:10  michael
-  + Conditionals fixed
+  Revision 1.1.2.2  2001/04/16 10:56:13  peter
+    * fixes for stricter compiler
 
-  Revision 1.2  2000/07/13 11:33:41  michael
-  + removed logs
+  Revision 1.1.2.1  2001/04/03 20:33:01  marco
+   * Quickfixed trunc to int64 for Sebastian.
 
+  Revision 1.1  2000/07/13 06:30:42  michael
+  + Initial import
 }

@@ -78,6 +78,15 @@ Type
   { Comp type does not exist on fpu }
   Comp    = int64;
   {$define SUPPORT_SINGLE}
+  {$IFDEF LINUX}
+    { Linux FPU emulator will be used }
+    {$define SUPPORT_DOUBLE}
+  {$ENDIF}
+  {$IFOPT E-}
+    { If not compiling with emulation }
+    { then support double type.       }
+    {$define SUPPORT_DOUBLE}
+  {$ENDIF}
 {$endif}
 
 { Zero - terminated strings }
@@ -137,7 +146,6 @@ Type
 {$ifdef HASWIDECHAR}
   PWideChar           = ^WideChar;
   PPWideChar          = ^PWideChar;
-  WChar		      = WideChar;
 {$endif HASWIDECHAR}
 {$ifdef HASWIDESTRING}
   PWideString         = ^WideString;
@@ -520,8 +528,8 @@ const
 
 {
   $Log$
-  Revision 1.30  2001-07-30 14:34:29  marco
-   * Added wchar=widechar. * Added wchar=widechar. * Added wchar=widechar. * Added wchar=widechar. * Added wchar=widechar. * Added wchar=widechar. * Added wchar=widechar. * Added wchar=widechar. * Added wchar=widechar.
+  Revision 1.31  2001-07-30 21:38:55  peter
+    * m68k updates merged
 
   Revision 1.29  2001/07/29 13:49:15  peter
     * m68k updates merged
