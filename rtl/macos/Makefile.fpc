@@ -7,11 +7,10 @@ main=rtl
 
 [target]
 loaders=
-units=system
-# exec strings \
-#      dos crt objects printer \
-#      objpas \
-#      heaptrc lineinfo getopts graph \
+units=system strings objpas objects heaptrc getopts 
+# exec  \
+#      dos crt printer \
+#      lineinfo  graph \
 #      sysutils math typinfo
 # rsts=math
 
