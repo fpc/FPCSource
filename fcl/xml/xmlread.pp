@@ -55,7 +55,7 @@ type
   TXMLReader = class
   protected
     doc: TXMLDocument;
-    buf: PChar;
+    buf, BufStart: PChar;
 
     procedure RaiseExc(descr: String);
     function  SkipWhitespace: Boolean;
@@ -91,8 +91,25 @@ type
 
 
 procedure TXMLReader.RaiseExc(descr: String);
+var
+  apos: PChar;
+  x, y: Integer;
 begin
-  raise Exception.Create('In XML reader: ' + descr);
+  // find out the line in which the error occured
+  apos := BufStart;
+  x := 1;
+  y := 1;
+  while apos < buf do begin
+    if apos[0] = #10 then begin
+      Inc(y);
+      x := 1;
+    end else
+      Inc(x);
+    Inc(apos);
+  end;
+
+  raise Exception.Create('In XML reader (line ' + IntToStr(y) + ' pos ' +
+    IntToStr(x) + '): ' + descr);
 end;
 
 function TXMLReader.SkipWhitespace: Boolean;
@@ -154,6 +171,7 @@ var
   LastNodeBeforeDoc: TDOMNode;
 begin
   buf := ABuf;
+  BufStart := ABuf;
 
   doc := TXMLDocument.Create;
   ExpectProlog;
@@ -262,12 +280,13 @@ begin
   if CheckFor('<?') then begin
     StrLCopy(checkbuf, buf, 3);
     if UpCase(StrPas(checkbuf)) = 'XML' then
-      RaiseExc('"<?XML" processing instruction not allowed here');
+      RaiseExc('"<?xml" processing instruction not allowed here');
     ExpectName;
     if SkipWhitespace then
-      while (buf[0] <> #0) and (buf[1] <> #0) and
-        (buf[0] <> '?') and (buf[1] <> '>') do Inc(buf);
+      while (buf[0] <> #0) and (buf[1] <> #0) and not
+        ((buf[0] = '?') and (buf[1] = '>')) do Inc(buf);
     ExpectString('?>');
+    Result := True;
   end else
     Result := False;
 end;
@@ -324,7 +343,7 @@ begin
   // Check for "Misc*"
   ParseMisc(doc);
 
-  // Check for "(doctypedecl Misc*)?"
+  // Check for "(doctypedecl Misc*)?"    [28]
   if CheckFor('<!DOCTYPE') then begin
     SkipWhitespace;
     ExpectName;
@@ -338,6 +357,7 @@ begin
       ExpectString(']');
       SkipWhitespace;
     end;
+    ExpectString('>');
     ParseMisc(doc);
   end;
 
@@ -537,8 +557,9 @@ function TXMLReader.ParseMarkupDecl: Boolean;    // [29]
       while not CheckFor(strdel) do
         if ParsePEReference then
 	else if ParseReference(NewEntity) then
-	else
-	  RaiseExc('Expected entity or PE reference');
+	else begin
+	  Inc(buf);		// Normal haracter
+	end;
       Result := True;
     end;
 
@@ -555,7 +576,7 @@ function TXMLReader.ParseMarkupDecl: Boolean;    // [29]
 	else
 	  RaiseExc('Expected entity value or external ID');
       end else begin    // [71]
-        ExpectName;
+        NewEntity := doc.CreateEntity(ExpectName);
 	ExpectWhitespace;
 	// Get EntityDef [73]
 	if ParseEntityValue then
@@ -601,9 +622,10 @@ begin
     Result := True;
 end;
 
-function TXMLReader.ProcessDTD(ABuf: PChar): TXMLDocument;    // [1]
+function TXMLReader.ProcessDTD(ABuf: PChar): TXMLDocument;
 begin
   buf := ABuf;
+  BufStart := ABuf;
 
   doc := TXMLDocument.Create;
   ParseMarkupDecl;
@@ -719,7 +741,7 @@ begin
     RaiseExc('Expected element');
 end;
 
-function TXMLReader.ParsePEReference: Boolean;
+function TXMLReader.ParsePEReference: Boolean;    // [69]
 begin
   if CheckFor('%') then begin
     ExpectName;
@@ -735,7 +757,15 @@ begin
     Result := False;
     exit;
   end;
-  AOwner.AppendChild(doc.CreateEntityReference(ExpectName));
+  if CheckFor('#') then begin    // Test for CharRef [66]
+    if CheckFor('x') then begin
+      // *** there must be at leat one digit
+      while buf[0] in ['0'..'9', 'a'..'f', 'A'..'F'] do Inc(buf);
+    end else
+      // *** there must be at leat one digit
+      while buf[0] in ['0'..'9'] do Inc(buf);
+  end else
+    AOwner.AppendChild(doc.CreateEntityReference(ExpectName));
   ExpectString(';');
   Result := True;
 end;
@@ -924,7 +954,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  1999-07-09 21:05:51  michael
+  Revision 1.4  1999-07-11 20:20:12  michael
+  + Fixes from Sebastian Guenther
+
+  Revision 1.3  1999/07/09 21:05:51  michael
   + fixes from Guenther Sebastian
 
   Revision 1.2  1999/07/09 10:42:50  michael

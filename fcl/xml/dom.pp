@@ -348,7 +348,7 @@ type
     FAttributes: TDOMNamedNodeMap;
     function FGetAttributes: TDOMNamedNodeMap; override;
 
-    constructor Create(AOwner: TDOMDocument);virtual;
+    constructor Create(AOwner: TDOMDocument); virtual;
   public
     property  TagName: DOMString read FNodeName;
     function  GetAttribute(const name: DOMString): DOMString;
@@ -993,11 +993,22 @@ begin
 end;
 
 function TDOMAttr.FGetNodeValue: DOMString;
+var
+  child: TDOMNode;
 begin
   if FFirstChild = nil then
     Result := ''
-  else
-    Result := FFirstChild.NodeValue;
+  else begin
+    Result := '';
+    child := FFirstChild;
+    while child <> nil do begin
+      if child.NodeType = ENTITY_REFERENCE_NODE then
+        Result := Result + '&' + child.NodeName + ';'
+      else
+        Result := Result + child.NodeValue;
+      child := child.NextSibling;
+    end;
+  end;
 end;
 
 procedure TDOMAttr.FSetNodeValue(AValue: DOMString);
@@ -1228,7 +1239,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  1999-07-10 21:48:26  michael
+  Revision 1.4  1999-07-11 20:20:11  michael
+  + Fixes from Sebastian Guenther
+
+  Revision 1.3  1999/07/10 21:48:26  michael
   + Made domelement constructor virtual, needs overriding in thtmlelement
 
   Revision 1.2  1999/07/09 21:05:49  michael
