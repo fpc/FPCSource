@@ -8,17 +8,14 @@ unit UTF8BIDI;
 
 interface
 
+uses
+  FreeBIDI;
+
 type
   TUCS32Char = Cardinal;
   TUCS16Char = Word;
   TUTF8Char = String[4];
   TUTF8String = UTF8String;
-  TDirection=(
-    drNONE,
-    drRTL,
-    drLTR
-  );
-  TVisualToLogical = Array[Byte]Of Byte;
 
 {****************************Conversion routines*******************************}
 {Converts an UCS 16/32 bits charcater to UTF8 character}
@@ -26,7 +23,9 @@ function UnicodeToUTF8(aChar:TUCS32Char):TUTF8Char;
 {Converts a wide char UCS 16 bits chcarcter to UTF8 character}
 function UnicodeToUTF8(aChar:WideChar):TUTF8Char;
 {Converts an UTF8 character to UCS 32 bits character}
-function UTF8ToUnicode(const UTF8Char:TUTF8Char):TUCS32Char;
+function UTF8ToUCS32(const UTF8Char:TUTF8Char):TUCS32Char;
+{Converts an UTF8 string to UCS 16 bits string}
+function UTF8ToUnicode(const Src:TUTF8String):TString;
 {Converts an UTF8 string to a double byte string}
 function UTF8ToDoubleByteString(const UTF8Str:TUTF8String):String;
 function UTF8ToDoubleByte(UTF8Str:PChar; Len:Cardinal; DBStr:PByte):Cardinal;
@@ -39,11 +38,9 @@ function LPos(const UTF8Str:TUTF8String; vp:Integer; pDir:TDirection):Cardinal;
 function LCharOf(UTF8String:TUTF8String; lp:Integer):TUTF8Char;
 {****************************Visual aspects************************************}
 {Returns the number of visual characters}
-function VLength(const UTF8Str:TUTF8String):Cardinal;
-function VLength(p: PChar; Count:Cardinal):Cardinal;
+function VLength(const Src:TUTF8String; pDir:TDirection):Cardinal;
 {Converts a logical position to a visual position}
 function VPos(const UTF8Str:TUTF8String; lp:Integer; pDir, cDir:TDirection):Cardinal;
-function VPos(UTF8Char:PChar; Len:integer; BytePos:integer):Cardinal;
 {Returns character at a given visual position according to paragraph direction}
 function VCharOf(UTF8Str:TUTF8String; vp:Integer; dir:TDirection):TUTF8Char;
 {Inserts a string into an other paying attention of RTL/LTR direction}
@@ -52,7 +49,7 @@ procedure VInsert(const Src:TUTF8String; var Dest:TUTF8String; vp:Integer; pDir:
 procedure VDelete(var str:TUTF8String; vp, len:Integer; pDir:TDirection);
 {****************************Helper routines***********************************}
 {Returns direction of a character}
-function DirectionOf(UTF8Char:TUTF8Char):TDirection;
+function DirectionOf(Character:TUTF8Char):TDirection;
 {Returns contextual direction of caracter in a string}
 function DirectionOf(UTF8String:TUTF8String; lp:Integer; pDir:TDirection):TDirection;
 {Inserts a char as if it was typed using keyboard in the most user friendly way.
@@ -150,7 +147,7 @@ begin
   Result := UnicodeToUTF8(Word(aChar));
 end;
 
-function UTF8ToUnicode(const UTF8Char:TUTF8Char):TUCS32Char;
+function UTF8ToUCS32(const UTF8Char:TUTF8Char):TUCS32Char;
 begin
   case ComputeCharLength(@UTF8Char[1]) of
     1:{regular single byte character (#0 is a normal char, this is UTF8Charascal ;)}
@@ -172,11 +169,26 @@ begin
   end
 end;
 
+function UTF8ToUnicode(const Src:TUTF8String):TString;
+var
+  lp:Integer;
+  c:TUTF8Char;
+begin
+  lp := 1;
+  Result := '';
+  while lp <= Length(Src) do
+  begin
+    c := LCharOf(Src, lp);
+    Result += WideChar(UTF8ToUCS32(c));
+    lp += Length(c);
+  end;
+end;
+
 function UTF8ToDoubleByteString(const UTF8Str: TUTF8String): string;
 var
   Len: Integer;
 begin
-  Len:=VLength(UTF8Str);
+  Len:=VLength(UTF8Str, drLTR);
   SetLength(Result,Len*2);
   if Len=0 then exit;
   UTF8ToDoubleByte(PChar(UTF8Str),length(UTF8Str),PByte(Result));
@@ -193,7 +205,7 @@ begin
   DestPos:=DBStr;
   Result:=0;
   while Len>0 do begin
-    u:=UTF8ToUnicode(SrcPos);
+    u:=UTF8ToUCS32(SrcPos);
     DestPos^:=byte((u shr 8) and $ff);
     inc(DestPos);
     DestPos^:=byte(u and $ff);
@@ -203,6 +215,7 @@ begin
     inc(Result);
   end;
 end;
+
 {****************************Logical aspects***********************************}
 function LLength(const UTF8Str:TUTF8String):Cardinal;
 begin
@@ -229,7 +242,6 @@ begin
     Exit('');
   while(lp > 0) and ((Ord(UTF8String[lp]) and $F0) in [$80..$B0]) do
 begin
-writeln(lp,' ',HexStr(Ord(UTF8String[lp]),2),'!',HexStr(Ord(UTF8String[lp]) and $F0,2));
     Dec(lp);
 end;
   if lp = 0
@@ -239,22 +251,9 @@ end;
   SetLength(Result, ComputeCharLength(@Result[1]));
 end;
 {****************************Visual aspects************************************}
-function VLength(const UTF8Str:TUTF8String):Cardinal;
+function VLength(const Src:TUTF8String; pDir:TDirection):Cardinal;
 begin
-  Result := VLength(PChar(UTF8Str),LLength(UTF8Str));
-end;
-
-function VLength(p:PChar; Count:Cardinal):Cardinal;
-var
-  CharLen: LongInt;
-begin
-  Result := 0;
-  while (Count>0) do begin
-    inc(Result);
-    CharLen:=ComputeCharLength(p);
-    inc(p,CharLen);
-    dec(Count,CharLen);
-  end;
+  Result := VLength(UTF8ToUnicode(Src), pDir);
 end;
 
 function VPos(const UTF8Str:TUTF8String; lp:Integer; pDir, cDir:TDirection):Cardinal;
@@ -285,10 +284,14 @@ begin
 end;
 
 {****************************Helper routines***********************************}
-function DirectionOf(UTF8Char:TUTF8Char):TDirection;
+function DirectionOf(Character:TUTF8Char):TDirection;
 begin
-  case UTF8Char[1] of
-    #9,#32,'/','{','}','[',']','(',')':
+  case Character[1] of
+    #9,#32,
+    '/',
+    '{','}',
+    '[',']',
+    '(',')':
       Result := drNONE;
     #$D8,#$D9:
       Result := drRTL;
@@ -300,15 +303,35 @@ end;
 function DirectionOf(UTF8String:TUTF8String; lp:Integer; pDir:TDirection):TDirection;
 var
   c:TUTF8Char;
+  lDir,rDir:TDirection;
+  p:Integer;
 begin
+  if(lp <= 0)
+  then
+    lp := 1;
+{Seek for proper character direction}
   c := LCharOf(UTF8String, lp);
-  Result := DirectionOf(c);
-  while(lp > 1) and (Result = drNONE)do
+  lDir := DirectionOf(c);
+{Seek for left character direction if it is neutral}
+  p := lp;
+  while(p > 1) and (lDir = drNONE)do
   begin
-    c := LCharOf(UTF8String, lp - 1);
-    Result := DirectionOf(c);
-    lp := lp - Length(c);
+    c := LCharOf(UTF8String, p - 1);
+    lDir := DirectionOf(c);
+    p := p - Length(c);
   end;
+{Seek for right character direction if it is neutral}
+  p := lp;
+  repeat
+    c := LCharOf(UTF8String, p);
+    rDir := DirectionOf(c);
+    p := p + Length(c);
+  until(p > Length(UTF8String)) or (rDir <> drNONE);
+  if(lDir = rDir)
+  then
+    Result := rDir
+  else
+    Result := pDir;
 end;
 
 function VisualToLogical(const UTF8String:TUTF8String; pDir:TDirection):TVisualToLogical;
@@ -328,13 +351,14 @@ function VisualToLogical(const UTF8String:TUTF8String; pDir:TDirection):TVisualT
     end;
 var
   lp, vp : Integer;
-  cDir:TDirection;
+  cDir,lDir:TDirection;
   Character:TUTF8Char;
 i:Integer;
 begin
   Result[0] := 0;
   lp := 1;
   vp := 1;
+  lDir := drNONE;
   while lp <= Length(UTF8String) do
   begin
     Character := LCharOf(UTF8String, lp);
@@ -343,11 +367,11 @@ begin
     case cDir of
       drRTL:
         begin
-          pDir := drRTL;
+          lDir := drRTL;
         end;
       drLTR:
         begin
-          pDir := drLTR;
+          lDir := drLTR;
           vp := Result[0];
         end;
     else
@@ -384,13 +408,10 @@ begin
     drRTL:
       begin
         Result := vp;
-Write(Result);
         while (Result > 0) and (DirectionOf(LCharOf(Dest, v2l[Result])) <> drLTR) do
           Result := Result - 1;
-Write('-->',Result);
         while (Result < vp) and (DirectionOf(LCharOf(Dest, v2l[Result])) <> drRTL) do
           Result := Result + 1;
-WriteLn('-->',Result)
       end;
     drLTR:
       begin
@@ -402,12 +423,26 @@ WriteLn('-->',Result)
     end;
   end;
   Insert(Src, Dest, lp);
-WriteLn('vp=',vp,' lp=',lp,' len=', Length(Dest),' Result=', Result);
 end;
 
 procedure VInsert(const Src:TUTF8String;var Dest:TUTF8String; vp:Integer; pDir:TDirection);
+  function VStr(const Src:TUTF8String; pDir:TDirection):TUTF8String;
+  var
+    v2lSrc:TVisualToLogical;
+    i:Integer;
+  begin
+    v2lSrc := VisualToLogical(Src,pDir);
+    Result := '';
+    for i := 1 to v2lSrc[0] do
+      Result := Result + LCharOf(Src,v2lSrc[i]);
+  end;
+var
+  vSrc,vDest:TUTF8String;
 begin
-  Insert(Src, Dest, LPos(Dest, vp, pDir));
+  vSrc := VStr(Src,pDir);
+  vDest := VStr(Dest,pDir);
+  Insert(vSrc, vDest, vp);
+  Dest := VStr(vDest, pDir);
 end;
 
 procedure VDelete(var str:TUTF8String; vp, len:Integer; pDir:TDirection);
