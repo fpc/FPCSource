@@ -4875,7 +4875,7 @@ begin
   SetStoreUndo(false);
   S:=GetLineText(CurPos.Y);
   CI:=LinePosToCharIdx(CurPos.Y,CurPos.X);
-  if CI>length(S) then
+  if (CI>length(S)) or (S='') then
    begin
      if CurPos.Y<GetLineCount-1 then
       begin
@@ -7104,7 +7104,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.23  2002-08-26 13:01:38  pierre
+  Revision 1.24  2002-08-26 14:00:48  pierre
+   * fix for bug report 2025
+
+  Revision 1.23  2002/08/26 13:01:38  pierre
    + fill the Now field for Editor actions
 
   Revision 1.22  2002/06/13 14:50:35  pierre
