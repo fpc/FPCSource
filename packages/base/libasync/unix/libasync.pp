@@ -339,10 +339,6 @@ begin
   Handle^.Data.CurIOCallback := nil;
   Handle^.Data.NextIOCallback := nil;
   Handle^.Data.IsRunning := False;
-
-  WriteLn('DoBreak: ', Handle^.Data.DoBreak);
-  Writeln('HasCallbacks: ', Handle^.Data.HasCallbacks);
-  WriteLn('FirstCallback: ', Integer(Handle^.Data.HasCallbacks));
 end;
 
 procedure asyncBreak(Handle: TAsyncHandle); cdecl;
@@ -554,7 +550,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2002-09-15 15:43:30  sg
+  Revision 1.4  2002-09-15 15:51:09  sg
+  * Removed debugging output code
+
+  Revision 1.3  2002/09/15 15:43:30  sg
   * Improved error reporting
 
   Revision 1.1  2002/01/29 17:54:53  peter
