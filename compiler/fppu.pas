@@ -325,8 +325,9 @@ uses
             2. look for ppu in outputpath if set, this is tp7 compatible (PFV)
             3. look for the specified source file (from the uses line)
             4. look for source in cwd
-            5. local unit pathlist
-            6. global unit pathlist }
+            5. look in same path as local unit
+            6. local unit pathlist
+            7. global unit pathlist }
          fnd:=false;
          if not onlysource then
           begin
@@ -358,7 +359,13 @@ uses
          if not fnd then
            fnd:=SourceSearchPath('.');
          if (not fnd) and Assigned(Loaded_From) then
-           fnd:=SearchPathList(Loaded_From.LocalUnitSearchPath);
+           begin
+             fnd:=PPUSearchPath(Loaded_From.Path^);
+             if not fnd then
+               fnd:=SourceSearchPath(Loaded_From.Path^);
+             if not fnd then
+               fnd:=SearchPathList(Loaded_From.LocalUnitSearchPath);
+           end;
          if not fnd then
            fnd:=SearchPathList(UnitSearchPath);
 
@@ -1507,7 +1514,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.49  2003-12-22 22:15:43  peter
+  Revision 1.50  2004-01-22 17:23:56  peter
+    * also check in the same dir as the unit we are loading from, this
+      makes UNITPATH working better
+
+  Revision 1.49  2003/12/22 22:15:43  peter
     * deref implementation after implementation units are loaded and
       numbered
 
