@@ -496,7 +496,7 @@ begin
   else
     begin
       FM:=FileMode; FileMode:=0;
-      EatIO; DosError:=0;
+      EatIO; Dos.DosError:=0;
       Assign(f,FileName);
       {$I-}
       Reset(f);
@@ -506,7 +506,7 @@ begin
           Close(f);
         end;
       {$I+}
-      if (EatIO<>0) or (DosError<>0) then T:=-1;
+      if (EatIO<>0) or (Dos.DosError<>0) then T:=-1;
       FileMode:=FM;
     end;
   GetFileTime:=T;
@@ -1035,7 +1035,7 @@ var
   Dir : SearchRec;
 begin
   Dos.FindFirst(FileName,Archive+ReadOnly,Dir);
-  ExistsFile:=(DosError=0);
+  ExistsFile:=(Dos.DosError=0);
 {$ifdef FPC}
   Dos.FindClose(Dir);
 {$endif def FPC}
@@ -1046,7 +1046,7 @@ var
   Dir : SearchRec;
 begin
   Dos.FindFirst(TrimEndSlash(DirName),Directory,Dir);
-  ExistsDir:=(DosError=0);
+  ExistsDir:=(Dos.DosError=0);
 {$ifdef FPC}
   Dos.FindClose(Dir);
 {$endif def FPC}
@@ -1161,7 +1161,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.5  2000-10-31 22:35:56  pierre
+  Revision 1.6  2000-11-04 20:04:33  hajny
+    * wrong DosError was used under OS/2
+
+  Revision 1.5  2000/10/31 22:35:56  pierre
    * New big merge from fixes branch
 
   Revision 1.4  2000/10/28 17:20:42  hajny
