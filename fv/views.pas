@@ -3410,7 +3410,10 @@ BEGIN
          SetDrawMask(vdInner);                        { Set draw masks }
          DrawView;                                    { Redraw changed }
        End;
-       If (State AND sfVisible <> 0) Then ScrollDraw; { Send update message }
+       {If (State AND sfVisible <> 0) Then }
+       { We need to inform the owner if the value changes
+         even if not visible !! }
+       ScrollDraw;                                    { Send update message }
      End;
    End;
    PgStep := APgStep;                                 { Hold page step }
@@ -5767,7 +5770,10 @@ END.
 
 {
  $Log$
- Revision 1.31  2002-06-06 06:42:21  pierre
+ Revision 1.32  2002-06-10 12:39:43  pierre
+  * always call ScrooDraw if TscrollBar.value filed is changed
+
+ Revision 1.31  2002/06/06 06:42:21  pierre
   + use gfvgraph cursor functions for UseFixedFont
 
  Revision 1.30  2002/05/31 13:36:42  pierre
