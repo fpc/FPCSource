@@ -25,6 +25,8 @@
 
 unit agppcgas;
 
+{$i fpcdefs.inc}
+
   interface
 
     uses
@@ -286,7 +288,7 @@ unit agppcgas;
           else
             begin
               internalerror(2002070601);
-              { not yet implementer !!!!!!!!!!!!!!!!!!!!! }
+              { not yet implemented !!!!!!!!!!!!!!!!!!!!! }
               { case tempstr := 'tw';}
             end;
       end;
@@ -300,9 +302,14 @@ unit agppcgas;
     begin
       op:=taicpu(hp).opcode;
       if is_calljmp(op) then
-      { direct BO/BI in op[0] and op[1] not supported, put them in condition! }
-        s:=cond2str(op,taicpu(hp).condition)+
-           getopstr_jmp(taicpu(hp).oper[0])
+        begin
+          { direct BO/BI in op[0] and op[1] not supported, put them in condition! }
+          if op <> A_B then
+            s:=cond2str(op,taicpu(hp).condition)+','
+          else
+            s:='';
+          s := s+getopstr_jmp(taicpu(hp).oper[0]);
+        end
       else
         { process operands }
         begin
@@ -330,7 +337,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2002-07-07 09:44:31  florian
+  Revision 1.2  2002-07-09 19:45:01  jonas
+    * unarynminus and shlshr node fixed for 32bit and smaller ordinals
+    * small fixes in the assembler writer
+    * changed scratch registers, because they were used by the linker (r11
+      and r12) and by the abi under linux (r31)
+
+  Revision 1.1  2002/07/07 09:44:31  florian
     * powerpc target fixed, very simple units can be compiled
 
   Revision 1.6  2002/05/18 13:34:26  peter

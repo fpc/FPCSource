@@ -71,6 +71,7 @@ unit cgcpu;
           l : tasmlabel);override;
         procedure a_cmp_reg_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel); override;
 
+	procedure a_jmp_always(list : taasmoutput;l: tasmlabel); override;
         procedure a_jmp_flags(list : taasmoutput;const f : TResFlags;l: tasmlabel); override;
 
         procedure g_flags2reg(list: taasmoutput; const f: TResFlags; reg: TRegister); override;
@@ -320,7 +321,8 @@ const
      procedure tcgppc.a_load_reg_reg(list : taasmoutput;size : tcgsize;reg1,reg2 : tregister);
 
        begin
-         list.concat(taicpu.op_reg_reg(A_MR,reg2,reg1));
+         if (reg1 <> reg2) then
+           list.concat(taicpu.op_reg_reg(A_MR,reg2,reg1));
        end;
 
 
@@ -576,6 +578,12 @@ const
 
        begin
          a_jmp(list,A_BC,TOpCmp2AsmCond[cond],0,l);
+       end;
+
+     procedure tcgppc.a_jmp_always(list : taasmoutput;l: tasmlabel); 
+
+       begin
+         a_jmp(list,A_B,C_None,0,l);
        end;
 
      procedure tcgppc.a_jmp_flags(list : taasmoutput;const f : TResFlags;l: tasmlabel);
@@ -853,8 +861,8 @@ const
                  ref2.base,tmpref))
              else
                list.concat(taicpu.op_reg_ref(A_LIS,tmpreg,tmpref));
-             ref2.base := tmpreg;
-             ref2.symaddr := refs_l;
+             tmpref.base := tmpreg;
+             tmpref.symaddr := refs_l;
              { can be folded with one of the next instructions by the }
              { optimizer probably                                     }
              list.concat(taicpu.op_reg_reg_ref(A_ADDI,tmpreg,tmpreg,tmpref));
@@ -887,6 +895,18 @@ const
         count, count2: aword;
 
       begin
+        { make sure short loads are handled as optimally as possible }
+
+        if not loadref then
+          if (len <= 4) and
+             (byte(len) in [1,2,4]) then
+            begin
+              a_load_ref_ref(list,int_cgsize(len),source,dest);
+              if delsource then
+                reference_release(exprasmlist,source);
+              exit;
+            end;
+
         { make sure source and dest are valid }
         src := source;
         fixref(list,src);
@@ -911,9 +931,9 @@ const
             { the offsets are zero after the a_loadaddress_ref_reg and just }
             { have to be set to 4. I put an Inc there so debugging may be   }
             { easier (should offset be different from zero here, it will be }
-            { easy to notice in the genreated assembler                     }
-            Inc(dst.offset,4);
-            Inc(src.offset,4);
+            { easy to notice in the generated assembler                     }
+            inc(dst.offset,4);
+            inc(src.offset,4);
             list.concat(taicpu.op_reg_reg_const(A_SUBI,src.base,src.base,4));
             list.concat(taicpu.op_reg_reg_const(A_SUBI,dst.base,dst.base,4));
             countreg := get_scratch_reg_int(list);
@@ -930,33 +950,38 @@ const
             list.concat(taicpu.op_reg_reg_const(A_SUBI,countreg,countreg,1));
             a_jmp(list,A_BC,C_NE,0,lab);
             free_scratch_reg(list,countreg);
+            a_reg_dealloc(list,R_0);
           end
         else
           { unrolled loop }
           begin
-            tempreg := get_scratch_reg_int(list);
+            a_reg_alloc(list,R_0);
             for count2 := 1 to count do
               begin
-                a_load_ref_reg(list,OS_32,src,tempreg);
-                a_load_reg_ref(list,OS_32,tempreg,dst);
+                a_load_ref_reg(list,OS_32,src,R_0);
+                a_load_reg_ref(list,OS_32,R_0,dst);
                 inc(src.offset,4);
                 inc(dst.offset,4);
-              end
+              end;
+            a_reg_dealloc(list,R_0);
           end;
        { copy the leftovers }
        if (len and 2) <> 0 then
          begin
-           a_load_ref_reg(list,OS_16,src,tempreg);
-           a_load_reg_ref(list,OS_16,tempreg,dst);
+           a_reg_alloc(list,R_0);
+           a_load_ref_reg(list,OS_16,src,R_0);
+           a_load_reg_ref(list,OS_16,R_0,dst);
            inc(src.offset,2);
            inc(dst.offset,2);
+           a_reg_dealloc(list,R_0);
          end;
        if (len and 1) <> 0 then
          begin
-           a_load_ref_reg(list,OS_8,src,tempreg);
-           a_load_reg_ref(list,OS_8,tempreg,dst);
+           a_load_reg_ref(list,OS_16,R_0,dst);
+           a_load_ref_reg(list,OS_8,src,R_0);
+           a_load_reg_ref(list,OS_8,R_0,dst);
+           a_reg_dealloc(list,R_0);
          end;
-       a_reg_dealloc(list,tempreg);
        free_scratch_reg(list,src.base);
        free_scratch_reg(list,dst.base);
       end;
@@ -1165,7 +1190,8 @@ const
 
       begin
         p := taicpu.op_sym(op,newasmsymbol(l.name));
-        create_cond_norm(c,crval,p.condition);
+        if op <> A_B then
+          create_cond_norm(c,crval,p.condition);
         p.is_jmp := true;
         list.concat(p)
       end;
@@ -1175,7 +1201,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2002-07-07 09:44:31  florian
+  Revision 1.21  2002-07-09 19:45:01  jonas
+    * unarynminus and shlshr node fixed for 32bit and smaller ordinals
+    * small fixes in the assembler writer
+    * changed scratch registers, because they were used by the linker (r11
+      and r12) and by the abi under linux (r31)
+
+  Revision 1.20  2002/07/07 09:44:31  florian
     * powerpc target fixed, very simple units can be compiled
 
   Revision 1.19  2002/05/20 13:30:41  carl

@@ -463,7 +463,7 @@ uses
          routine calls or in assembler blocks.
       }
       max_scratch_regs = 3;
-      scratch_regs: Array[1..max_scratch_regs] of TRegister = (R_11,R_12,R_31);
+      scratch_regs: Array[1..max_scratch_regs] of TRegister = (R_28,R_29,R_30);
 
 {*****************************************************************************
                           Default generic sizes
@@ -544,7 +544,8 @@ uses
 
     function  is_calljmp(o:tasmop):boolean;
 
-    procedure inverse_cond(c: TAsmCond;var r : TAsmCond);
+    procedure inverse_flags(var r : TResFlags);
+    procedure inverse_cond(const c: TAsmCond;var r : TAsmCond);
     function  flags_to_cond(const f: TResFlags) : TAsmCond;
     procedure create_cond_imm(BO,BI:byte;var r : TAsmCond);
     procedure create_cond_norm(cond: TAsmCondFlag; cr: byte;var r : TasmCond);
@@ -568,15 +569,24 @@ implementation
         end;
       end;
 
+ 
+    procedure inverse_flags(var r: TResFlags);
+      const
+        inv_flags: array[F_EQ..F_GE] of TResFlagsEnum =
+          (F_NE,F_EQ,F_GE,F_GE,F_LE,F_LT);
+      begin
+        r.flag := inv_flags[r.flag];
+      end;
 
-    procedure inverse_cond(c: TAsmCond;var r : TAsmCond);
+
+    procedure inverse_cond(const c: TAsmCond;var r : TAsmCond);
       const
         inv_condflags:array[TAsmCondFlag] of TAsmCondFlag=(C_None,
           C_GE,C_GT,C_NE,C_LT,C_LE,C_LT,C_EQ,C_GT,C_NS,C_SO,C_NU,C_UN,
           C_F,C_T,C_DNZ,C_DNZF,C_DNZT,C_DZ,C_DZF,C_DZT);
       begin
-        c.cond := inv_condflags[c.cond];
         r := c;
+        r.cond := inv_condflags[c.cond];
       end;
 
 
@@ -617,7 +627,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2002-07-07 09:44:31  florian
+  Revision 1.16  2002-07-09 19:45:01  jonas
+    * unarynminus and shlshr node fixed for 32bit and smaller ordinals
+    * small fixes in the assembler writer
+    * changed scratch registers, because they were used by the linker (r11
+      and r12) and by the abi under linux (r31)
+
+  Revision 1.15  2002/07/07 09:44:31  florian
     * powerpc target fixed, very simple units can be compiled
 
   Revision 1.14  2002/05/18 13:34:26  peter

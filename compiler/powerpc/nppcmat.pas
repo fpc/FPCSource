@@ -206,7 +206,7 @@ implementation
                    location.registerhigh := hregisterhigh;
                    hregisterlow := rg.getregisterint(exprasmlist);
                    location.registerlow := hregisterlow;
-                   tcg64f32(cg).a_load64_ref_reg(exprasmlist,
+                   cg64.a_load64_ref_reg(exprasmlist,
                      left.location.reference,joinreg64(hregisterlow,hregisterhigh));
                  end;
              end;
@@ -315,25 +315,17 @@ implementation
          else
            begin
              { load left operators in a register }
-             if (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+             location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),true);
+             location_copy(location,left.location);
+             resultreg := location.register;
+             hregister1 := location.register;
+             if (location.loc = LOC_CREGISTER) then
                begin
-                 reference_release(exprasmlist,left.location.reference);
-                 hregister1 := rg.getregisterint(exprasmlist);
-                 { OS_32 because everything is always converted to longint/ }
-                 { cardinal in the resulttype pass (JM)                     }
-                 cg.a_load_ref_reg(exprasmlist,OS_32,left.location.reference,
-                   hregister1);
-                 resultreg := hregister1;
-               end
-             else
-               begin
-                 hregister1 := left.location.register;
-                 if left.location.loc = LOC_CREGISTER then
-                   resultreg := rg.getregisterint(exprasmlist)
-                 else
-                   resultreg := hregister1;
+                 location.loc := LOC_REGISTER;
+                 resultreg := rg.getregisterint(exprasmlist);
+                 location.register := resultreg;
                end;
-
+              
               { determine operator }
               if nodetype=shln then
                 op:=OP_SHL
@@ -347,29 +339,14 @@ implementation
               else
                 begin
                   { load shift count in a register if necessary }
-                  case right.location.loc of
-                    LOC_CREGISTER, LOC_REGISTER:
-                      hregister2 := right.location.register;
-                    LOC_REFERENCE, LOC_CREFERENCE:
-                      begin
-                        hregister2 := cg.get_scratch_reg_int(exprasmlist);
-                        cg.a_load_ref_reg(exprasmlist,OS_32,
-                          right.location.reference,hregister2);
-                        reference_release(exprasmlist,right.location.reference);
-                      end;
-                  end;
+                  location_force_reg(exprasmlist,right.location,def_cgsize(right.resulttype.def),true);
+                  hregister2 := right.location.register;
 
                   tcgppc(cg).a_op_reg_reg_reg(exprasmlist,op,OS_32,hregister1,
                     hregister2,resultreg);
 
-                  if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
-                    cg.free_scratch_reg(exprasmlist,hregister2)
-                  else
-                    rg.ungetregister(exprasmlist,hregister2);
+                  rg.ungetregister(exprasmlist,hregister2);
                 end;
-              { set result location }
-              location.loc:=LOC_REGISTER;
-              location.register:=resultreg;
            end;
       end;
 
@@ -391,8 +368,8 @@ implementation
              location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),false);
              location_copy(location,left.location);
              exprasmlist.concat(taicpu.op_reg_reg(A_NEG,location.registerlow,
-               src1));
-             cg.a_op_reg_reg(exprasmlist,OP_NOT,OS_32,src2,location.registerhigh);
+               location.registerlow));
+             cg.a_op_reg_reg(exprasmlist,OP_NOT,OS_32,location.registerhigh,location.registerhigh);
              tmp := cg.get_scratch_reg_int(exprasmlist);
              cg.a_op_const_reg_reg(exprasmlist,OP_SAR,OS_32,31,location.registerlow,
                tmp);
@@ -406,6 +383,7 @@ implementation
            end
          else
            begin
+              location_copy(location,left.location);
               location.loc:=LOC_REGISTER;
               case left.location.loc of
                 LOC_FPUREGISTER, LOC_REGISTER:
@@ -495,26 +473,18 @@ implementation
                 end;
               LOC_FLAGS :
                 begin
-                  location.resflags:=left.location.resflags;
-{$warning !!!}
-//                  inverse_flags(left.location.resflags);
+                  location_copy(location,left.location);
+                  inverse_flags(location.resflags);
                 end;
               LOC_REGISTER, LOC_CREGISTER, LOC_REFERENCE, LOC_CREFERENCE :
                 begin
-                  if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-                    regl := left.location.register
-                  else
-                    begin
-                      regl := rg.getregisterint(exprasmlist);
-                      cg.a_load_ref_reg(exprasmlist,def_cgsize(left.resulttype.def),
-                        left.location.reference,regl);
-                    end;
-                  location.loc:=LOC_FLAGS;
+                  location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),true);
+                  exprasmlist.concat(taicpu.op_reg_const(A_CMPWI,left.location.register,0));
+                  location_release(exprasmlist,left.location);
+                  location_reset(location,LOC_FLAGS,OS_NO);
                   location.resflags.cr:=r_cr0;
                   location.resflags.flag:=F_EQ;
-                  exprasmlist.concat(taicpu.op_reg_const(A_CMPWI,regl,0));
-                  rg.ungetregister(exprasmlist,regl);
-                end;
+               end;  
             end;
           end
          else if is_64bitint(left.resulttype.def) then
@@ -524,9 +494,9 @@ implementation
              location_copy(location,left.location);
              { perform the NOT operation }
              exprasmlist.concat(taicpu.op_reg_reg(A_NOT,location.registerhigh,
-               regh));
+               location.registerhigh));
              exprasmlist.concat(taicpu.op_reg_reg(A_NOT,location.registerlow,
-               regl));
+               location.registerlow));
            end
          else
            begin
@@ -549,7 +519,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2002-07-07 09:44:32  florian
+  Revision 1.12  2002-07-09 19:45:01  jonas
+    * unarynminus and shlshr node fixed for 32bit and smaller ordinals
+    * small fixes in the assembler writer
+    * changed scratch registers, because they were used by the linker (r11
+      and r12) and by the abi under linux (r31)
+
+  Revision 1.11  2002/07/07 09:44:32  florian
     * powerpc target fixed, very simple units can be compiled
 
   Revision 1.10  2002/05/20 13:30:42  carl
