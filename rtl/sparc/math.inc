@@ -15,25 +15,6 @@
 
  **********************************************************************}
 
-{$ifdef unused}
-
-{****************************************************************************
-                         Int to real helpers
- ****************************************************************************}
-
-const
-  longint_to_real_helper: int64 = $4330000080000000;
-  cardinal_to_real_helper: int64 = $430000000000000;
-  int_to_real_factor: double = double(high(cardinal))+1.0;
-
-
-{****************************************************************************
-                       EXTENDED data type routines
- ****************************************************************************}
-
-    {$define FPC_SYSTEM_HAS_PI}
-    function pi : double;[internproc:in_pi];
-
     {$define FPC_SYSTEM_HAS_ABS}
     function abs(d : extended) : extended;[internproc:in_abs_extended];
 
@@ -43,80 +24,12 @@ const
     {$define FPC_SYSTEM_HAS_SQRT}
     function sqrt(d : extended) : extended;[internproc:in_sqrt_extended];
 
-    {
-    function arctan(d : extended) : extended;[internconst:in_arctan_extended];
-      begin
-        runerror(207);
-      end;
-
-    function ln(d : extended) : extended;[internconst:in_ln_extended];
-      begin
-        runerror(207);
-      end;
-
-    function sin(d : extended) : extended;[internconst: in_sin_extended];
-      begin
-        runerror(207);
-      end;
-
-    function cos(d : extended) : extended;[internconst:in_cos_extended];
-      begin
-        runerror(207);
-      end;
-
-    function exp(d : extended) : extended;[internconst:in_const_exp];
-      begin
-        runerror(207);
-      end;
-
-
-    function frac(d : extended) : extended;[internconst:in_const_frac];
-      begin
-        runerror(207);
-      end;
-
-
-    }
-    { define FPC_SYSTEM_HAS_INT}
-    {$warning FIX ME}
-    function int(d : extended) : extended;[internconst:in_const_int];
-      begin
-        runerror(207);
-      end;
-
-
-    { define FPC_SYSTEM_HAS_TRUNC}
-    {$warning FIX ME}
-    function trunc(d : extended) : int64;{assembler;}[internconst:in_const_trunc];
-      { input: d in fr1      }
-      { output: result in r3 }
-      {assembler;}
-      var
-        temp: packed record
-            case byte of
-              0: (l1,l2: longint);
-              1: (d: double);
-          end;
-      begin{asm}
-{        fctiwz   f1,f1
-        stfd     f1,temp
-        lwz      r3,temp
-        lwz      r4,4+temp}
-      end{ ['R3','F1']};
-
-
-    { define FPC_SYSTEM_HAS_ROUND}
-    function round(d : extended) : int64;[internconst:in_const_round, external name 'FPC_ROUND'];
-
-    function fpc_round(d : extended) : int64;[public, alias:'FPC_ROUND'];compilerproc;
-      begin
-      end;
-
-{$endif}
-
 {
   $Log$
-  Revision 1.9  2004-05-31 14:31:57  peter
+  Revision 1.10  2004-10-03 12:41:30  florian
+    * made sqrt, sqr and abs internal for the sparc
+
+  Revision 1.9  2004/05/31 14:31:57  peter
     * remove comment warnings
 
   Revision 1.8  2004/01/06 21:33:38  peter

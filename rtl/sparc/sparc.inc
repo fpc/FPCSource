@@ -81,7 +81,7 @@ function Sptr:Pointer;assembler;nostackframe;
     mov %sp,%o0
   end;
 
-{ $ifdef dummy}
+
 {$define FPC_SYSTEM_HAS_MOVE}
 procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];assembler;
 {
@@ -279,11 +279,28 @@ procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];
     nop
   .Lmoveexit:
   end;
-{ $endif dummy}
+
+
+{****************************************************************************
+                               Integer math
+****************************************************************************}
+
+{$define FPC_SYSTEM_HAS_ABS_LONGINT}
+function abs(l:longint):longint; assembler;{$ifdef SYSTEMINLINE}inline;{$endif}nostackframe;[internconst:in_const_abs];
+asm
+  sra %o0,31,%g1
+  add %o0,%g1,%o0
+  xor %o0,%g1,%o0
+end;
+
+
 
 {
   $Log$
-  Revision 1.11  2004-10-02 20:46:20  florian
+  Revision 1.12  2004-10-03 12:41:30  florian
+    * made sqrt, sqr and abs internal for the sparc
+
+  Revision 1.11  2004/10/02 20:46:20  florian
     * made assembler implementation of move
 
   Revision 1.10  2004/09/23 11:30:41  florian

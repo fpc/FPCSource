@@ -116,38 +116,58 @@ implementation
         if hp.typ<>ait_instruction then
           exit;
         op:=taicpu(hp).opcode;
-        { FMOVd does not exist, rewrite it using 2 FMOVs }
-        if op=A_FMOVD then
-          begin
-            if (taicpu(hp).ops<>2) or
-               (taicpu(hp).oper[0]^.typ<>top_reg) or
-               (taicpu(hp).oper[1]^.typ<>top_reg) then
-              internalerror(200401045);
-            { FMOVs %f<even>,%f<even> }
-            s:=#9+std_op2str[A_FMOVs]+#9+getopstr(taicpu(hp).oper[0]^)+','+getopstr(taicpu(hp).oper[1]^);
-            AsmWriteLn(s);
-            { FMOVs %f<odd>,%f<odd> }
-            inc(taicpu(hp).oper[0]^.reg);
-            inc(taicpu(hp).oper[1]^.reg);
-            s:=#9+std_op2str[A_FMOVs]+#9+getopstr(taicpu(hp).oper[0]^)+','+getopstr(taicpu(hp).oper[1]^);
-            dec(taicpu(hp).oper[0]^.reg);
-            dec(taicpu(hp).oper[1]^.reg);
-            AsmWriteLn(s);
-          end
-        else
-          begin
-            { call maybe not translated to call }
-            s:=#9+std_op2str[op]+cond2str[taicpu(hp).condition];
-            if taicpu(hp).delayslot_annulled then
-              s:=s+',a';
-            if taicpu(hp).ops>0 then
-              begin
-                s:=s+#9+getopstr(taicpu(hp).oper[0]^);
-                for i:=1 to taicpu(hp).ops-1 do
-                  s:=s+','+getopstr(taicpu(hp).oper[i]^);
-              end;
-            AsmWriteLn(s);
-          end;
+        { translate pseudoops, this should be move to a separate pass later, so it's done before
+          peephole optimization }
+        case op of
+          A_FABSd:
+            begin
+              if (taicpu(hp).ops<>2) or
+                 (taicpu(hp).oper[0]^.typ<>top_reg) or
+                 (taicpu(hp).oper[1]^.typ<>top_reg) then
+                internalerror(200401045);
+              { FABSs %f<even>,%f<even> }
+              s:=#9+std_op2str[A_FABSs]+#9+getopstr(taicpu(hp).oper[0]^)+','+getopstr(taicpu(hp).oper[1]^);
+              AsmWriteLn(s);
+              { FMOVs %f<odd>,%f<odd> }
+              inc(taicpu(hp).oper[0]^.reg);
+              inc(taicpu(hp).oper[1]^.reg);
+              s:=#9+std_op2str[A_FMOVs]+#9+getopstr(taicpu(hp).oper[0]^)+','+getopstr(taicpu(hp).oper[1]^);
+              dec(taicpu(hp).oper[0]^.reg);
+              dec(taicpu(hp).oper[1]^.reg);
+              AsmWriteLn(s);
+            end;
+          A_FMOVd:
+            begin
+              if (taicpu(hp).ops<>2) or
+                 (taicpu(hp).oper[0]^.typ<>top_reg) or
+                 (taicpu(hp).oper[1]^.typ<>top_reg) then
+                internalerror(200401045);
+              { FMOVs %f<even>,%f<even> }
+              s:=#9+std_op2str[A_FMOVs]+#9+getopstr(taicpu(hp).oper[0]^)+','+getopstr(taicpu(hp).oper[1]^);
+              AsmWriteLn(s);
+              { FMOVs %f<odd>,%f<odd> }
+              inc(taicpu(hp).oper[0]^.reg);
+              inc(taicpu(hp).oper[1]^.reg);
+              s:=#9+std_op2str[A_FMOVs]+#9+getopstr(taicpu(hp).oper[0]^)+','+getopstr(taicpu(hp).oper[1]^);
+              dec(taicpu(hp).oper[0]^.reg);
+              dec(taicpu(hp).oper[1]^.reg);
+              AsmWriteLn(s);
+            end
+          else
+            begin
+              { call maybe not translated to call }
+              s:=#9+std_op2str[op]+cond2str[taicpu(hp).condition];
+              if taicpu(hp).delayslot_annulled then
+                s:=s+',a';
+              if taicpu(hp).ops>0 then
+                begin
+                  s:=s+#9+getopstr(taicpu(hp).oper[0]^);
+                  for i:=1 to taicpu(hp).ops-1 do
+                    s:=s+','+getopstr(taicpu(hp).oper[i]^);
+                end;
+              AsmWriteLn(s);
+            end;
+        end;
       end;
 
 
@@ -169,7 +189,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.28  2004-06-20 08:55:32  florian
+    Revision 1.29  2004-10-03 12:42:22  florian
+      * made sqrt, sqr and abs internal for the sparc
+
+    Revision 1.28  2004/06/20 08:55:32  florian
       * logs truncated
 
     Revision 1.27  2004/06/20 07:11:32  florian

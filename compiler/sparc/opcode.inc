@@ -68,11 +68,16 @@ A_set,
 A_skipz,A_skipnz,
 A_tst,
 { Internal instructions }
-A_FMOVD
+A_FMOVd,
+A_FABSd,
+A_FABSq
 
 {
         $Log$
-        Revision 1.14  2004-06-20 08:55:32  florian
+        Revision 1.15  2004-10-03 12:42:22  florian
+          * made sqrt, sqr and abs internal for the sparc
+
+        Revision 1.14  2004/06/20 08:55:32  florian
           * logs truncated
 
         Revision 1.13  2004/06/16 20:07:11  florian

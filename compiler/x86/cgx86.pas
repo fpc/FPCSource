@@ -335,7 +335,6 @@ unit cgx86;
             OS_F64 :
               begin
                  op:=A_FLD;
-                 { ???? }
                  s:=S_FL;
               end;
             OS_F80 :
@@ -1673,7 +1672,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.125  2004-09-25 14:23:55  peter
+  Revision 1.126  2004-10-03 12:42:22  florian
+    * made sqrt, sqr and abs internal for the sparc
+
+  Revision 1.125  2004/09/25 14:23:55  peter
     * ungetregister is now only used for cpuregisters, renamed to
       ungetcpuregister
     * renamed (get|unget)explicitregister(s) to ..cpuregister
