@@ -30,6 +30,36 @@ NEEDUNITDIR=../api ../fv
 UNITOBJECTS=ziptypes unzip
 EXEOBJECTS=install
 
+
+#####################################################################
+# Common targets
+#####################################################################
+
+.PHONY: all clean install info \
+	staticlib sharedlib libsclean \
+	staticinstall sharedinstall libinstall \
+
+all: testfpcmake fpc_all h2pas_all
+
+clean: testfpcmake fpc_clean h2pas_clean
+
+install: testfpcmake fpc_install h2pas_install
+
+info: testfpcmake fpc_info
+
+staticlib: testfpcmake fpc_staticlib
+
+sharedlib: testfpcmake fpc_sharedlib
+
+libsclean: testfpcmake fpc_libsclean
+
+staticinstall: testfpcmake fpc_staticinstall
+
+sharedinstall: testfpcmake fpc_sharedinstall
+
+libinstall: testfpcmake fpc_libinstall
+
+
 #####################################################################
 # Include default makefile
 #####################################################################
@@ -58,12 +88,13 @@ endif
 
 override FPCMAKE:=$(strip $(wildcard $(FPCMAKE)))
 ifeq ($(FPCMAKE),)
-nofpcmake:
+testfpcmake:
 	@echo makefile.fpc not found!
 	@echo Check the FPCMAKE and FPCDIR environment variables.
 	@exit
 else
 include $(FPCMAKE)
+testfpcmake:
 endif
 
 
@@ -73,7 +104,10 @@ endif
 
 #
 # $Log$
-# Revision 1.2  1999-03-09 01:35:53  peter
+# Revision 1.3  1999-05-02 14:27:39  peter
+#   * update to new standards
+#
+# Revision 1.2	1999/03/09 01:35:53  peter
 #   * makefile.fpc updates and defaultfpcdir var
 #
 #
