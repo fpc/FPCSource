@@ -108,7 +108,8 @@ Begin
   If (TextRec(t).mode<>fmClosed) Then
    Begin
    { Write pending buffer }
-     FileFunc(TextRec(t).InOutFunc)(TextRec(t));
+     If Textrec(t).Mode=fmoutput then
+       FileFunc(TextRec(t).InOutFunc)(TextRec(t));
      TextRec(t).mode:=fmClosed;
    { Only close functions not connected to stdout.}
      If ((TextRec(t).Handle<>StdInputHandle) or
@@ -1196,7 +1197,10 @@ end;
 
 {
   $Log$
-  Revision 1.20  1998-08-11 00:05:28  peter
+  Revision 1.21  1998-08-17 22:42:17  michael
+  + Flush on close only for output files cd ../inc
+
+  Revision 1.20  1998/08/11 00:05:28  peter
     * $ifdef ver0_99_5 updates
 
   Revision 1.19  1998/07/30 13:26:16  michael
