@@ -7,16 +7,17 @@ main=rtl
 
 [target]
 loaders=nwpre prelude
-units=$(SYSTEMUNIT) systhrds objpas macpas strings \
-      lineinfo winsock heaptrc matrix initc \
-      dos crt objects \
-      sysutils classes typinfo math varutils \
-      cpu mmx getopts   \
-      sockets \
-      video mouse keyboard types dateutils rtlconst sysconst \
-      strutils convutils \
+units=$(SYSTEMUNIT) objpas macpas strings \
+      lineinfo winsock heaptrc matrix \
+      dos crt objects sysconst \
+      initc sysutils types typinfo systhrds classes \
+      cpu mmx getopts \
+      dateutils strutils convutils \
+      charset ucomplex variants \
+      rtlconst math varutils freebidi utf8bidi \
+      mouse video mouse keyboard cmem sockets \
       aio nwsnut nwserv nwnit nwprot netware
-rsts=math varutils typinfo classes dateutils sysconst convutils rtlconst systhrds
+rsts=math varutils variants typinfo classes dateutils sysconst convutils rtlconst systhrds
 
 [require]
 nortl=y
@@ -113,10 +114,11 @@ prelude$(OEXT) : prelude.as
 # System Units (System, Objpas, Strings)
 #
 
-#ifdef COMPILER_UNITTARGETDIR
-#endif
-
-$(SYSTEMUNIT)$(PPUEXT) : copyimpfiles $(SYSTEMUNIT).pp nwsys.inc $(SYSDEPS)
+# always copy the imp files to the ppu dir, does not work
+# with system.pp copyimpfile nwsys.inc ...
+# because this will always build system.ppu
+$(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp nwsys.inc $(SYSDEPS)
+	$(COPY) $(IMPFILES) $(COMPILER_UNITTARGETDIR)
         $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp
 
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
@@ -179,6 +181,13 @@ varutils$(PPUEXT) : varutils.pp $(OBJPASDIR)/cvarutil.inc \
                     objpas$(PPUEXT) $(OBJPASDIR)/varutilh.inc
         $(COMPILER) -I$(OBJPASDIR) varutils.pp
 
+freebidi$(PPUEXT) : $(OBJPASDIR)/freebidi.pp
+
+utf8bidi$(PPUEXT) : $(OBJPASDIR)/utf8bidi.pp freebidi$(PPUEXT)
+        $(COMPILER) -Sc $(OBJPASDIR)/utf8bidi.pp
+
+variants$(PPUEXT) : $(INC)/variants.pp varutils$(PPUEXT)
+
 types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
 
@@ -219,6 +228,20 @@ heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
 
 lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
 
+charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
+
+ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+
+mouse$(PPUEXT) : $(INC)/mouseh.inc $(SYSTEMUNIT)$(PPUEXT)
+
+video$(PPUEXT) : $(INC)/video.inc $(SYSTEMUNIT)$(PPUEXT)
+
+keyboard$(PPUEXT) : $(INC)/keyboard.inc $(INC)/keybrdh.inc $(SYSTEMUNIT)$(PPUEXT)
+
+cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
+
+
+
 #
 # Other system-dependent RTL Units
 #
@@ -232,10 +255,3 @@ aio$(PPUEXT) : aio.pp $(SYSTEMUNIT)$(PPUEXT)
 #
 override INSTALLPPUFILES+=$(IMPFILES)
 override CLEANPPUFILES+=$(addprefix $(COMPILER_UNITTARGETDIR)/,$(IMPFILES))
-
-# the smartlinked objects will not be installed by the
-# standard makefile ????
-
-#override UNITPPUFILES+=cpu.a crt.a dos.a getopts.a heaptrc.a keyboard.a \
-#lineinfo.a math.a mmx.a mouse.a netware.a objects.a objpas.a sockets.a \
-#strings.a system.a sysutils.a typinfo.a varutils.a video.a winsock2.a
