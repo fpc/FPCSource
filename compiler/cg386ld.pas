@@ -960,6 +960,7 @@ implementation
                      end
                     else
                      emit_push_loc(hp^.left^.location);
+                    inc(pushedparasize); 
                   end
                  else
                   begin
@@ -1003,7 +1004,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.97  2000-01-21 12:17:42  jonas
+  Revision 1.98  2000-02-01 12:54:20  peter
+    * cargs must also increase pushedparasize else it won't be 'popped'
+
+  Revision 1.97  2000/01/21 12:17:42  jonas
     * regallocation fixes
 
   Revision 1.96  2000/01/09 12:35:01  jonas
