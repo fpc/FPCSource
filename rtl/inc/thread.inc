@@ -31,6 +31,7 @@
         { Stack checking }
         StackLength:=stklen;
         StackBottom:=Sptr - StackLength;
+        ThreadID := SysGetCurrentThreadID;
       end;
 
 {*****************************************************************************
@@ -320,7 +321,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  2003-11-29 17:33:09  michael
+  Revision 1.7  2004-01-20 23:13:53  hajny
+    * ExecuteProcess fixes, ProcessID and ThreadID added
+
+  Revision 1.6  2003/11/29 17:33:09  michael
   + Removed dummy variable from SetNothreadManager
 
   Revision 1.5  2003/11/29 17:29:32  michael

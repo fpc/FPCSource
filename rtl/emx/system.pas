@@ -466,10 +466,10 @@ asm
     pushl %ebx
 {$IFDEF REGCALL}
     movl %eax,%ebx
-{$IFDEF REGCALL}
+{$ELSE REGCALL}
     movl handle,%ebx
     movl pos,%edx
-{$IFDEF REGCALL}
+{$ENDIF REGCALL}
     movw $0x4200,%ax
     call syscall
     jnc .LDOSSEEK1
@@ -1184,6 +1184,9 @@ end;
 var TIB: PThreadInfoBlock;
     PIB: PProcessInfoBlock;
 
+const
+ FatalHeap: array [0..33] of char = 'FATAL: Cannot initialize heap!!'#13#10'$';
+
 begin
     IsLibrary := FALSE;
     {Determine the operating system we are running on.}
@@ -1200,13 +1203,15 @@ begin
         mov os_mode, 2
     @noRSX:
     {Enable the brk area by initializing it with the initial heap size.}
-
         mov eax, 7F01h
         mov edx, heap_brk
         add edx, heap_base
         call syscall
         cmp eax, -1
         jnz @heapok
+        lea edx, FatalHeap
+        mov eax, 900h
+        call syscall
         pop ebx
         push dword 204
         call HandleError
@@ -1229,7 +1234,6 @@ begin
 {$ENDIF CONTHEAP}
         pop ebx
     end ['eax', 'ecx', 'edx'];
-
     { in OS/2 this will always be nil, but in DOS mode }
     { this can be changed.                             }
     first_meg := nil;
@@ -1261,7 +1265,8 @@ begin
                                                      also the stack bottom.}
                 ApplicationType := 1;   (* Running under DOS. *)
                 IsConsole := true;
-                DosEnvInit;
+                ProcessID := 1;
+                ThreadID := 1;
             end;
         osOS2:
             begin
@@ -1269,6 +1274,8 @@ begin
                 StackBottom := pointer (TIB^.Stack);
                 Environment := pointer (PIB^.Env);
                 ApplicationType := PIB^.ProcType;
+                ProcessID := PIB^.PID;
+                ThreadID := TIB^.TIB2^.TID;
                 IsConsole := ApplicationType <> 3;
             end;
         osDPMI:
@@ -1277,7 +1284,8 @@ begin
                                      always zero.}
                 ApplicationType := 1;   (* Running under DOS. *)
                 IsConsole := true;
-                DosEnvInit;
+                ProcessID := 1;
+                ThreadID := 1;
             end;
     end;
     exitproc:=nil;
@@ -1298,6 +1306,9 @@ begin
     initvariantmanager;
 {$endif HASVARIANT}
 
+    if os_Mode in [osDOS,osDPMI] then
+        DosEnvInit;
+
 {$IFDEF DUMPGROW}
  {$IFDEF CONTHEAP}
     WriteLn ('Initial brk size is ', GetHeapSize);
@@ -1307,7 +1318,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2003-12-26 22:20:44  hajny
+  Revision 1.23  2004-01-20 23:05:31  hajny
+    * ExecuteProcess fixes, ProcessID and ThreadID added
+
+  Revision 1.22  2003/12/26 22:20:44  hajny
     * regcall fixes
 
   Revision 1.21  2003/12/17 22:52:39  hajny

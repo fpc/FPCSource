@@ -25,6 +25,7 @@ interface
 uses
  Dos;
 
+{$DEFINE HAS_SLEEP}
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -46,44 +47,65 @@ implementation
 (* conflicts, so needed parts had to be redefined here). *)
 
 type
- TFileStatus = object
-               end;
- PFileStatus = ^TFileStatus;
+        TFileStatus = object
+        end;
+        PFileStatus = ^TFileStatus;
 
- TFileStatus0 = object (TFileStatus)
-                 DateCreation,        {Date of file creation.}
-                 TimeCreation,        {Time of file creation.}
-                 DateLastAccess,      {Date of last access to file.}
-                 TimeLastAccess,      {Time of last access to file.}
-                 DateLastWrite,       {Date of last modification of file.}
-                 TimeLastWrite: word; {Time of last modification of file.}
-                 FileSize,            {Size of file.}
-                 FileAlloc: cardinal; {Amount of space the file really
-                                       occupies on disk.}
-                end;
- PFileStatus0 = ^TFileStatus0;
+        TFileStatus3 = object (TFileStatus)
+            DateCreation,               {Date of file creation.}
+            TimeCreation,               {Time of file creation.}
+            DateLastAccess,             {Date of last access to file.}
+            TimeLastAccess,             {Time of last access to file.}
+            DateLastWrite,              {Date of last modification of file.}
+            TimeLastWrite:word;         {Time of last modification of file.}
+            FileSize,                   {Size of file.}
+            FileAlloc:cardinal;         {Amount of space the file really
+                                         occupies on disk.}
+            AttrFile:cardinal;          {Attributes of file.}
+        end;
+        PFileStatus3=^TFileStatus3;
 
- TFileStatus3 = object (TFileStatus)
-                 NextEntryOffset: cardinal; {Offset of next entry}
-                 DateCreation,             {Date of file creation.}
-                 TimeCreation,             {Time of file creation.}
-                 DateLastAccess,           {Date of last access to file.}
-                 TimeLastAccess,           {Time of last access to file.}
-                 DateLastWrite,            {Date of last modification of file.}
-                 TimeLastWrite: word;      {Time of last modification of file.}
-                 FileSize,                 {Size of file.}
-                 FileAlloc: cardinal;      {Amount of space the file really
-                                            occupies on disk.}
-                 AttrFile: cardinal;       {Attributes of file.}
-                end;
- PFileStatus3 = ^TFileStatus3;
+        TFileStatus4=object(TFileStatus3)
+            cbList:cardinal;            {Length of entire EA set.}
+        end;
+        PFileStatus4=^TFileStatus4;
 
- TFileFindBuf3 = object (TFileStatus3)
-                  Name: ShortString;       {Also possible to use as ASCIIZ.
-                                            The byte following the last string
-                                            character is always zero.}
-                 end;
- PFileFindBuf3 = ^TFileFindBuf3;
+        TFileFindBuf3=object(TFileStatus)
+            NextEntryOffset: cardinal;  {Offset of next entry}
+            DateCreation,               {Date of file creation.}
+            TimeCreation,               {Time of file creation.}
+            DateLastAccess,             {Date of last access to file.}
+            TimeLastAccess,             {Time of last access to file.}
+            DateLastWrite,              {Date of last modification of file.}
+            TimeLastWrite:word;         {Time of last modification of file.}
+            FileSize,                   {Size of file.}
+            FileAlloc:cardinal;         {Amount of space the file really
+                                         occupies on disk.}
+            AttrFile:cardinal;          {Attributes of file.}
+            Name:string;                {Also possible to use as ASCIIZ.
+                                         The byte following the last string
+                                         character is always zero.}
+        end;
+        PFileFindBuf3=^TFileFindBuf3;
+
+        TFileFindBuf4=object(TFileStatus)
+            NextEntryOffset: cardinal;  {Offset of next entry}
+            DateCreation,               {Date of file creation.}
+            TimeCreation,               {Time of file creation.}
+            DateLastAccess,             {Date of last access to file.}
+            TimeLastAccess,             {Time of last access to file.}
+            DateLastWrite,              {Date of last modification of file.}
+            TimeLastWrite:word;         {Time of last modification of file.}
+            FileSize,                   {Size of file.}
+            FileAlloc:cardinal;         {Amount of space the file really
+                                         occupies on disk.}
+            AttrFile:cardinal;          {Attributes of file.}
+            cbList:longint;             {Size of the file's extended attributes.}
+            Name:string;                {Also possible to use as ASCIIZ.
+                                         The byte following the last string
+                                         character is always zero.}
+        end;
+        PFileFindBuf4=^TFileFindBuf4;
 
  TFSInfo = record
             case word of
@@ -172,38 +194,154 @@ type
               end;
  PCountryInfo=^TCountryInfo;
 
+ TRequestData=record
+               PID,                {ID of process that wrote element.}
+               Data: cardinal;     {Information from process writing the data.}
+              end;
+ PRequestData=^TRequestData;
+
+{Queue data structure for synchronously started sessions.}
+ TChildInfo = record
+  case boolean of
+   false:
+    (SessionID,
+     Return: word);  {Return code from the child process.}
+   true:
+    (usSessionID,
+     usReturn: word);     {Return code from the child process.}
+ end;
+ PChildInfo = ^TChildInfo;
+
+ TStartData=record
+  {Note: to omit some fields, use a length smaller than SizeOf(TStartData).}
+  Length:word;                {Length, in bytes, of datastructure
+                               (24/30/32/50/60).}
+  Related:word;               {Independent/child session (0/1).}
+  FgBg:word;                  {Foreground/background (0/1).}
+  TraceOpt:word;              {No trace/trace this/trace all (0/1/2).}
+  PgmTitle:PChar;             {Program title.}
+  PgmName:PChar;              {Filename to program.}
+  PgmInputs:PChar;            {Command parameters (nil allowed).}
+  TermQ:PChar;                {System queue. (nil allowed).}
+  Environment:PChar;          {Environment to pass (nil allowed).}
+  InheritOpt:word;            {Inherit enviroment from shell/
+                               inherit environment from parent (0/1).}
+  SessionType:word;           {Auto/full screen/window/presentation
+                               manager/full screen Dos/windowed Dos
+                               (0/1/2/3/4/5/6/7).}
+  Iconfile:PChar;             {Icon file to use (nil allowed).}
+  PgmHandle:cardinal;         {0 or the program handle.}
+  PgmControl:word;            {Bitfield describing initial state
+                               of windowed sessions.}
+  InitXPos,InitYPos:word;     {Initial top coordinates.}
+  InitXSize,InitYSize:word;   {Initial size.}
+  Reserved:word;
+  ObjectBuffer:PChar;         {If a module cannot be loaded, its
+                               name will be returned here.}
+  ObjectBuffLen:cardinal;     {Size of your buffer.}
+ end;
+ PStartData=^TStartData;
+
 const
  ilStandard      = 1;
  ilQueryEAsize   = 2;
  ilQueryEAs      = 3;
  ilQueryFullName = 5;
 
+ quFIFO     = 0;
+ quLIFO     = 1;
+ quPriority = 2;
+
+ quNoConvert_Address = 0;
+ quConvert_Address   = 4;
+
+{Start the new session independent or as a child.}
+ ssf_Related_Independent = 0;    {Start new session independent
+                                  of the calling session.}
+ ssf_Related_Child       = 1;    {Start new session as a child 
+                                  session to the calling session.}
+
+{Start the new session in the foreground or in the background.}
+ ssf_FgBg_Fore           = 0;    {Start new session in foreground.}
+ ssf_FgBg_Back           = 1;    {Start new session in background.}
+
+{Should the program started in the new session
+ be executed under conditions for tracing?}
+ ssf_TraceOpt_None       = 0;    {No trace.}
+ ssf_TraceOpt_Trace      = 1;    {Trace with no notification
+                                  of descendants.}
+ ssf_TraceOpt_TraceAll   = 2;    {Trace all descendant sessions.  
+                                  A termination queue must be 
+                                  supplied and Related must be 
+                                  ssf_Related_Child (=1).}
+
+{Will the new session inherit open file handles
+ and environment from the calling process.}
+ ssf_InhertOpt_Shell     = 0;    {Inherit from the shell.}
+ ssf_InhertOpt_Parent    = 1;    {Inherit from the calling process.}
+
+{Specifies the type of session to start.}
+ ssf_Type_Default        = 0;    {Use program's type.}
+ ssf_Type_FullScreen     = 1;    {OS/2 full screen.}
+ ssf_Type_WindowableVIO  = 2;    {OS/2 window.}
+ ssf_Type_PM             = 3;    {Presentation Manager.}
+ ssf_Type_VDM            = 4;    {DOS full screen.}
+ ssf_Type_WindowedVDM    = 7;    {DOS window.}
+{Additional values for Windows programs}
+ Prog_31_StdSeamlessVDM    = 15; {Windows 3.1 program in its
+                                  own windowed session.}
+ Prog_31_StdSeamlessCommon = 16; {Windows 3.1 program in a
+                                  common windowed session.}
+ Prog_31_EnhSeamlessVDM    = 17; {Windows 3.1 program in enhanced
+                                  compatibility mode in its own
+                                  windowed session.}
+ Prog_31_EnhSeamlessCommon = 18; {Windows 3.1 program in enhanced
+                                  compatibility mode in a common
+                                  windowed session.}
+ Prog_31_Enh               = 19; {Windows 3.1 program in enhanced
+                                  compatibility mode in a full
+                                  screen session.}
+ Prog_31_Std               = 20; {Windows 3.1 program in a full
+                                  screen session.}
+
+{Specifies the initial attributes for a OS/2 window or DOS window session.}
+ ssf_Control_Visible      = 0;   {Window is visible.}
+ ssf_Control_Invisible    = 1;   {Window is invisible.}
+ ssf_Control_Maximize     = 2;   {Window is maximized.}
+ ssf_Control_Minimize     = 4;   {Window is minimized.}
+ ssf_Control_NoAutoClose  = 8;   {Window will not close after
+                                  the program has ended.}
+ ssf_Control_SetPos   = 32768;   {Use InitXPos, InitYPos,
+                                  InitXSize, and InitYSize for
+                                  the size and placement.}
+
+
 {This is the correct way to call external assembler procedures.}
 procedure syscall;external name '___SYSCALL';
 
-function DosSetFileInfo (Handle: longint; InfoLevel: cardinal; AFileStatus: PFileStatus;
+function DosSetFileInfo (Handle: THandle; InfoLevel: cardinal; AFileStatus: PFileStatus;
         FileStatusLen: cardinal): cardinal; cdecl; external 'DOSCALLS' index 218;
 
 function DosQueryFSInfo (DiskNum, InfoLevel: cardinal; var Buffer: TFSInfo;
                BufLen: cardinal): cardinal; cdecl; external 'DOSCALLS' index 278;
 
-function DosQueryFileInfo (Handle: longint; InfoLevel: cardinal;
+function DosQueryFileInfo (Handle: THandle; InfoLevel: cardinal;
            AFileStatus: PFileStatus; FileStatusLen: cardinal): cardinal; cdecl;
                                                  external 'DOSCALLS' index 279;
 
 function DosScanEnv (Name: PChar; var Value: PChar): cardinal; cdecl;
                                                  external 'DOSCALLS' index 227;
 
-function DosFindFirst (FileMask: PChar; var Handle: longint; Attrib: cardinal;
+function DosFindFirst (FileMask: PChar; var Handle: THandle; Attrib: cardinal;
                        AFileStatus: PFileStatus; FileStatusLen: cardinal;
                     var Count: cardinal; InfoLevel: cardinal): cardinal; cdecl;
                                                  external 'DOSCALLS' index 264;
 
-function DosFindNext (Handle: longint; AFileStatus: PFileStatus;
+function DosFindNext (Handle: THandle; AFileStatus: PFileStatus;
                 FileStatusLen: cardinal; var Count: cardinal): cardinal; cdecl;
                                                  external 'DOSCALLS' index 265;
 
-function DosFindClose (Handle: longint): cardinal; cdecl;
+function DosFindClose (Handle: THandle): cardinal; cdecl;
                                                  external 'DOSCALLS' index 263;
 
 function DosQueryCtryInfo (Size: cardinal; var Country: TCountryCode;
@@ -212,6 +350,27 @@ function DosQueryCtryInfo (Size: cardinal; var Country: TCountryCode;
 
 function DosMapCase (Size: cardinal; var Country: TCountryCode;
                       AString: PChar): cardinal; cdecl; external 'NLS' index 7;
+
+procedure DosSleep (MSec: cardinal); cdecl; external 'DOSCALLS' index 229;
+
+function DosCreateQueue (var Handle: THandle; Priority:longint;
+                        Name: PChar): cardinal; cdecl;
+                                                  external 'QUECALLS' index 16;
+
+function DosReadQueue (Handle: THandle; var ReqBuffer: TRequestData;
+                      var DataLen: cardinal; var DataPtr: pointer;
+                      Element, Wait: cardinal; var Priority: byte;
+                      ASem: THandle): cardinal; cdecl;
+                                                   external 'QUECALLS' index 9;
+
+function DosCloseQueue (Handle: THandle): cardinal; cdecl;
+                                                  external 'QUECALLS' index 11;
+
+function DosStartSession (var AStartData: TStartData;
+                          var SesID, PID: cardinal): cardinal; cdecl;
+                                                    external 'SESMGR' index 37;
+
+function DosFreeMem(P:pointer):cardinal; cdecl; external 'DOSCALLS' index 304;
 
 
 {****************************************************************************
@@ -259,7 +418,7 @@ asm
 end {['eax', 'ebx', 'ecx', 'edx']};
 
 
-function FileCreate (const FileName: string; Mode: longint): longint;
+function FileCreate (const FileName: string; Mode: integer): longint;
 begin
   FileCreate:=FileCreate(FileName);
 end;
@@ -514,7 +673,7 @@ end {['eax', 'ebx', 'ecx', 'edx']};
 
 
 function FileSetDate (Handle, Age: longint): longint;
-var FStat: PFileStatus0;
+var FStat: PFileStatus3;
     RC: cardinal;
 begin
     if os_mode = osOS2 then
@@ -871,6 +1030,87 @@ begin
 end;
 
 
+{$ASMMODE INTEL}
+procedure Sleep (Milliseconds: cardinal);
+
+begin
+ if os_mode = osOS2 then DosSleep (Milliseconds) else
+  asm
+   mov edx, Milliseconds
+   mov eax, 7F30h
+   call syscall
+  end ['eax', 'edx'];
+end;
+{$ASMMODE DEFAULT}
+
+
+function ExecuteProcess (const Path: AnsiString; const ComLine: AnsiString):
+                                                                       integer;
+var
+ HQ: THandle;
+ SPID, STID, QName: shortstring;
+ SD: TStartData;
+ SID, PID: cardinal;
+ RD: TRequestData;
+ PCI: PChildInfo;
+ CISize: cardinal;
+ Prio: byte;
+ E: EOSError;
+ CommandLine: ansistring;
+
+begin
+ if os_Mode = osOS2 then
+  begin
+   FillChar (SD, SizeOf (SD), 0);
+   SD.Length := 24;
+   SD.Related := ssf_Related_Child;
+   SD.PgmName := PChar (Path);
+   SD.PgmInputs := PChar (ComLine);
+   Str (ProcessID, SPID);
+   Str (ThreadID, STID);
+   QName := '\QUEUES\FPC_ExecuteProcess_p' + SPID + 't' + STID + '.QUE'#0;
+   SD.TermQ := @QName [1];
+   Result := DosCreateQueue (HQ, quFIFO or quConvert_Address, @QName [1]);
+   if Result = 0 then
+    begin
+     Result := DosStartSession (SD, SID, PID);
+     if (Result = 0) or (Result = 457) then
+      begin
+       Result := DosReadQueue (HQ, RD, CISize, PCI, 0, 0, Prio, 0);
+       if Result = 0 then
+       begin
+        Result := PCI^.Return;
+        DosCloseQueue (HQ);
+        DosFreeMem (PCI);
+        Exit;
+       end;
+      end;
+     DosCloseQueue (HQ);
+    end;
+    if ComLine = '' then
+     CommandLine := Path
+    else
+     CommandLine := Path + ' ' + ComLine;
+    E := EOSError.CreateFmt (SExecuteProcessFailed, [CommandLine, Result]);
+    E.ErrorCode := Result;
+    raise E;
+  end else
+  begin
+   Dos.Exec (Path, ComLine);
+   if DosError <> 0 then
+    begin
+    if ComLine = '' then
+     CommandLine := Path
+    else
+     CommandLine := Path + ' ' + ComLine;
+      E := EOSError.CreateFmt (SExecuteProcessFailed, [CommandLine, DosError]);
+      E.ErrorCode := DosError;
+      raise E;
+    end;
+   ExecuteProcess := DosExitCode;
+  end;
+end;
+
 {****************************************************************************
                               Initialization code
 ****************************************************************************}
@@ -884,7 +1124,10 @@ end.
 
 {
   $Log$
-  Revision 1.13  2003-11-26 20:00:19  florian
+  Revision 1.14  2004-01-20 23:05:31  hajny
+    * ExecuteProcess fixes, ProcessID and ThreadID added
+
+  Revision 1.13  2003/11/26 20:00:19  florian
     * error handling for Variants improved
 
   Revision 1.12  2003/10/19 09:35:28  hajny

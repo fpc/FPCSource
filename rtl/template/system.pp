@@ -25,6 +25,10 @@ interface
 
 {$I systemh.inc}
 
+type
+ THandle = longint;
+
+
 { include heap support headers }
 
 {$I heaph.inc}
@@ -288,10 +292,16 @@ Begin
   Setup_Arguments;
 { Reset IO Error }
   InOutRes:=0;
+(* This should be changed to a real value during *)
+(* thread driver initialization if appropriate.  *)
+  ThreadID := 1;
 End.
 {
   $Log$
-  Revision 1.9  2003-09-27 11:52:36  peter
+  Revision 1.10  2004-01-20 23:12:49  hajny
+    * ExecuteProcess fixes, ProcessID and ThreadID added
+
+  Revision 1.9  2003/09/27 11:52:36  peter
     * sbrk returns pointer
 
   Revision 1.8  2002/09/07 16:01:27  peter

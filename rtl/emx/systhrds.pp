@@ -223,6 +223,7 @@ end;
         { Open all stdio fds again }
         SysInitStdio;
         InOutRes:=0;
+        ThreadID := ...;
         // ErrNo:=0;
         { Stack checking }
         StackLength:=stklen;
@@ -379,7 +380,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2003-10-19 09:35:28  hajny
+  Revision 1.5  2004-01-20 23:05:31  hajny
+    * ExecuteProcess fixes, ProcessID and ThreadID added
+
+  Revision 1.4  2003/10/19 09:35:28  hajny
     * fixes from OS/2 merged to EMX
 
   Revision 1.3  2003/03/23 23:11:17  hajny

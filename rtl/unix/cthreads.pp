@@ -365,7 +365,8 @@ begin
   Result:=True;
 {$else}  
   Result:=LoadPthreads;
-{$endif}  
+{$endif}
+  ThreadID := SizeUInt (pthread_self);
   Writeln('InitThreads : ',Result);
 end;
 
@@ -420,7 +421,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.6  2004-01-07 17:40:56  jonas
+  Revision 1.7  2004-01-20 23:13:53  hajny
+    * ExecuteProcess fixes, ProcessID and ThreadID added
+
+  Revision 1.6  2004/01/07 17:40:56  jonas
     * Darwin does not have a lib_r, libc itself is already reentrant
 
   Revision 1.5  2003/12/16 09:43:04  daniel

@@ -4,7 +4,7 @@
     Copyright (c) 1999-2000 by Florian Klaempfl
     member of the Free Pascal development team
 
-    Sysutils unit for linux
+    Sysutils unit for BeOS
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -255,6 +255,25 @@ begin
   Result:=StrPas(beos.Getenv(PChar(EnvVar)));
 end;
 
+function ExecuteProcess (const Path: AnsiString; const ComLine: AnsiString):
+                                                                       integer;
+
+var
+  CommandLine: AnsiString;
+
+begin
+  { always surround the name of the application by quotes
+    so that long filenames will always be accepted. But don't
+    do it if there are already double quotes!
+  }
+  if pos('"',path)=0 then
+    CommandLine:='"'+path+'"'
+  else
+    CommandLine:=path;
+  if ComLine <> '' then
+   CommandLine := Commandline + ' ' + ComLine;
+  ExecuteProcess := beos.shell (CommandLine);
+end;
 
 {****************************************************************************
                               Initialization code
@@ -268,7 +287,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.7  2003-11-26 20:00:19  florian
+  Revision 1.8  2004-01-20 23:09:14  hajny
+    * ExecuteProcess fixes, ProcessID and ThreadID added
+
+  Revision 1.7  2003/11/26 20:00:19  florian
     * error handling for Variants improved
 
   Revision 1.5  2003/03/29 15:16:26  hajny

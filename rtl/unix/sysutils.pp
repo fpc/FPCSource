@@ -483,23 +483,31 @@ var
   pid    : longint;
   err    : longint;
   e : EOSError;
-  
+  CommandLine: AnsiString;
+
 Begin
+  { always surround the name of the application by quotes
+    so that long filenames will always be accepted. But don't
+    do it if there are already double quotes!
+  }
+  if Pos ('"', Path) = 0 then
+    CommandLine := '"' + Path + '"'
+  else
+    CommandLine := Path;
+  if ComLine <> '' then
+    CommandLine := Commandline + ' ' + ComLine;
   pid:=fpFork;
   if pid=0 then
    begin
    {The child does the actual exec, and then exits}
-     if ComLine='' then
-       Execl(Path)
-     else
-       Execl(Path+' '+ComLine);
+     Execl(CommandLine);
      { If the execve fails, we return an exitvalue of 127, to let it be known}
      fpExit(127);
    end
   else
    if pid=-1 then         {Fork failed}
     begin
-      e:=EOSError.CreateFmt('Failed to execute %s : %d',[ComLine,-1]);
+      e:=EOSError.CreateFmt(SExecuteProcessFailed,[CommandLine,-1]);
       e.ErrorCode:=-1;
       raise e;
     end;
@@ -511,7 +519,7 @@ Begin
     result:=0
   else
     begin
-      e:=EOSError.CreateFmt('Failed to execute %s : %d',[ComLine,result]);
+      e:=EOSError.CreateFmt(SExecuteProcessFailed,[CommandLine,result]);
       e.ErrorCode:=result;
       raise e;
     end;
@@ -549,7 +557,10 @@ end.
 {
 
   $Log$
-  Revision 1.30  2004-01-10 17:34:36  michael
+  Revision 1.31  2004-01-20 23:13:53  hajny
+    * ExecuteProcess fixes, ProcessID and ThreadID added
+
+  Revision 1.30  2004/01/10 17:34:36  michael
   + Implemented sleep() on Unix.
 
   Revision 1.29  2004/01/05 22:42:35  florian

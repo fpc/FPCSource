@@ -1812,6 +1812,9 @@ begin
   Initial:=FALSE;
 { Reset IO Error }
   InOutRes:=0;
+(* This should be changed to a real value during *)
+(* thread driver initialization if appropriate.  *)
+  ThreadID := 1;
 { Startup }
   { Only AmigaOS v2.04 or greater is supported }
   If KickVersion < 36 then
@@ -1830,7 +1833,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2003-10-25 23:42:35  hajny
+  Revision 1.10  2004-01-20 23:05:31  hajny
+    * ExecuteProcess fixes, ProcessID and ThreadID added
+
+  Revision 1.9  2003/10/25 23:42:35  hajny
     * THandle in sysutils common using System.THandle
 
   Revision 1.8  2003/09/29 18:52:36  hajny

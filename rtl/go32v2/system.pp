@@ -1597,6 +1597,7 @@ Begin
    FileNameCaseSensitive:=true;
 { Reset IO Error }
   InOutRes:=0;
+  ThreadID := 1;
 {$ifdef  EXCEPTIONS_IN_SYSTEM}
   InitDPMIExcp;
   InstallDefaultHandlers;
@@ -1607,7 +1608,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.31  2004-01-10 10:49:24  jonas
+  Revision 1.32  2004-01-20 23:09:14  hajny
+    * ExecuteProcess fixes, ProcessID and ThreadID added
+
+  Revision 1.31  2004/01/10 10:49:24  jonas
     * fixed compilation
 
   Revision 1.30  2003/12/17 20:40:38  hajny

@@ -2475,6 +2475,67 @@ function DosQueryMessageCP(var Buf;BufSize:longint;const FileName:string;
 
 ****************************************************************************}
 
+const
+{Start the new session independent or as a child.}
+    ssf_Related_Independent = 0;    {Start new session independent
+                                     of the calling session.}
+    ssf_Related_Child       = 1;    {Start new session as a child 
+                                     session to the calling session.}
+
+{Start the new session in the foreground or in the background.}
+    ssf_FgBg_Fore           = 0;    {Start new session in foreground.}
+    ssf_FgBg_Back           = 1;    {Start new session in background.}
+
+{Should the program started in the new session
+ be executed under conditions for tracing?}
+    ssf_TraceOpt_None       = 0;    {No trace.}
+    ssf_TraceOpt_Trace      = 1;    {Trace with no notification
+                                     of descendants.}
+    ssf_TraceOpt_TraceAll   = 2;    {Trace all descendant sessions.  
+                                     A termination queue must be 
+                                     supplied and Related must be 
+                                     ssf_Related_Child (=1).}
+
+{Will the new session inherit open file handles
+ and environment from the calling process.}
+    ssf_InhertOpt_Shell     = 0;    {Inherit from the shell.}
+    ssf_InhertOpt_Parent    = 1;    {Inherit from the calling process.}
+
+{Specifies the type of session to start.}
+    ssf_Type_Default        = 0;    {Use program's type.}
+    ssf_Type_FullScreen     = 1;    {OS/2 full screen.}
+    ssf_Type_WindowableVIO  = 2;    {OS/2 window.}
+    ssf_Type_PM             = 3;    {Presentation Manager.}
+    ssf_Type_VDM            = 4;    {DOS full screen.}
+    ssf_Type_WindowedVDM    = 7;    {DOS window.}
+{Additional values for Windows programs}
+    Prog_31_StdSeamlessVDM    = 15; {Windows 3.1 program in its
+                                     own windowed session.}
+    Prog_31_StdSeamlessCommon = 16; {Windows 3.1 program in a
+                                     common windowed session.}
+    Prog_31_EnhSeamlessVDM    = 17; {Windows 3.1 program in enhanced
+                                     compatibility mode in its own
+                                     windowed session.}
+    Prog_31_EnhSeamlessCommon = 18; {Windows 3.1 program in enhanced
+                                     compatibility mode in a common
+                                     windowed session.}
+    Prog_31_Enh               = 19; {Windows 3.1 program in enhanced
+                                     compatibility mode in a full
+                                     screen session.}
+    Prog_31_Std               = 20; {Windows 3.1 program in a full
+                                     screen session.}
+
+{Specifies the initial attributes for a OS/2 window or DOS window session.}
+    ssf_Control_Visible      = 0;   {Window is visible.}
+    ssf_Control_Invisible    = 1;   {Window is invisible.}
+    ssf_Control_Maximize     = 2;   {Window is maximized.}
+    ssf_Control_Minimize     = 4;   {Window is minimized.}
+    ssf_Control_NoAutoClose  = 8;   {Window will not close after
+                                     the program has ended.}
+    ssf_Control_SetPos   = 32768;   {Use InitXPos, InitYPos,
+                                     InitXSize, and InitYSize for
+                                     the size and placement.}
+
 type    TStatusData=record
             Length:word;                {Length, in bytes, of datastructure.}
             SelectIND:word;             {Determines if the session can be
@@ -2526,13 +2587,13 @@ type    TStartData=record
  AStartData         = A startdata record.
  SesID              = Receives session ID of session created.
  PID                = Receives process ID of process created.}
-function DosStartSession(const AStartData:TStartData;
-                         var SesID,PID:longint):longint; cdecl;
+function DosStartSession (var AStartData:TStartData;
+                          var SesID,PID:longint):longint; cdecl;
 
 {Set the status of a child session.
  SesID              = ID of session.
  AStatus            = Status to set.}
-function DosSetSession(SesID:longint;const AStatus:TStatusData):longint; cdecl;
+function DosSetSession(SesID:longint;var AStatus:TStatusData):longint; cdecl;
 
 {Bring a child session to the foreground.
  SesID              = ID of session.}
@@ -4471,12 +4532,12 @@ begin
     DosPutMessage:=DosPutMessage(Handle,Length(Buf),@Buf[1]);
 end;
 
-function DosStartSession(const AStartData:TStartData;
-                         var SesID,PID:longint):longint; cdecl;
+function DosStartSession (var AStartData:TStartData;
+                          var SesID,PID:longint):longint; cdecl;
 
 external 'SESMGR' index 37;
 
-function DosSetSession(SesID:longint;const AStatus:TStatusData):longint; cdecl;
+function DosSetSession(SesID:longint;var AStatus:TStatusData):longint; cdecl;
 
 external 'SESMGR' index 39;
 
@@ -4713,7 +4774,10 @@ external 'DOSCALLS' index 582;
 end.
 {
   $Log$
-  Revision 1.24  2003-12-04 21:22:38  peter
+  Revision 1.25  2004-01-20 23:11:20  hajny
+    * ExecuteProcess fixes, ProcessID and ThreadID added
+
+  Revision 1.24  2003/12/04 21:22:38  peter
     * regcall updates (untested)
 
   Revision 1.23  2003/11/02 00:25:09  hajny

@@ -1130,6 +1130,9 @@ begin
   { Reset IO Error }
   InOutRes:=0;
   errno:=0;
+(* This should be changed to a real value during *)
+(* thread driver initialization if appropriate.  *)
+  ThreadID := 1;
 {$ifdef HASVARIANT}
   initvariantmanager;
 {$endif HASVARIANT}
@@ -1138,7 +1141,10 @@ end.
 
 {
   $Log$
-  Revision 1.11  2004-01-04 21:06:43  jonas
+  Revision 1.12  2004-01-20 23:11:20  hajny
+    * ExecuteProcess fixes, ProcessID and ThreadID added
+
+  Revision 1.11  2004/01/04 21:06:43  jonas
     * make the C-main public
 
   Revision 1.10  2003/10/29 22:34:52  olle

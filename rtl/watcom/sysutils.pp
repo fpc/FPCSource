@@ -24,6 +24,7 @@ interface
 uses
   watcom,dos;
 
+{$DEFINE HAS_SLEEP}
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -759,6 +760,93 @@ begin
    end;
 end;
 
+function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integer;
+
+var
+  e : EOSError;
+  CommandLine: AnsiString;
+
+begin
+  dos.exec(path,comline);
+
+  if (Dos.DosError <> 0) then
+    begin
+      if ComLine <> '' then
+       CommandLine := Path + ' ' + ComLine
+      else
+       CommandLine := Path;
+      e:=EOSError.CreateFmt(SExecuteProcessFailed,[CommandLine,Dos.DosError]);
+      e.ErrorCode:=Dos.DosError;
+      raise e;
+    end;
+  Result := DosExitCode;
+end;
+
+{*************************************************************************
+                                   Sleep (copied from crt.Delay)
+*************************************************************************}
+
+var
+  DelayCnt : Longint;
+
+
+procedure Delayloop;assembler;
+asm
+.LDelayLoop1:
+        subl    $1,%eax
+        jc      .LDelayLoop2
+        cmpl    %fs:(%edi),%ebx
+        je      .LDelayLoop1
+.LDelayLoop2:
+end;
+
+
+procedure initdelay;assembler;
+asm
+	pushl %ebx
+	pushl %edi
+        { for some reason, using int $31/ax=$901 doesn't work here }
+        { and interrupts are always disabled at this point when    }
+        { running a program inside gdb(pas). Web bug 1345 (JM)     }
+        sti
+        movl    $0x46c,%edi
+        movl    $-28,%edx
+        movl    %fs:(%edi),%ebx
+.LInitDel1:
+        cmpl    %fs:(%edi),%ebx
+        je      .LInitDel1
+        movl    %fs:(%edi),%ebx
+        movl    %edx,%eax
+        call    DelayLoop
+
+        notl    %eax
+        xorl    %edx,%edx
+        movl    $55,%ecx
+        divl    %ecx
+        movl    %eax,DelayCnt
+	popl %edi
+	popl %ebx
+end;
+
+
+procedure Sleep(MilliSeconds: Cardinal);assembler;
+asm
+	pushl %ebx
+	pushl %edi
+        movl  MilliSeconds,%ecx
+        jecxz   .LDelay2
+        movl    $0x400,%edi
+        movl    DelayCnt,%edx
+        movl    %fs:(%edi),%ebx
+.LDelay1:
+        movl    %edx,%eax
+        call    DelayLoop
+        loop    .LDelay1
+.LDelay2:
+	popl %edi
+	popl %ebx
+end;
+
 {****************************************************************************
                               Initialization code
 ****************************************************************************}
@@ -766,13 +854,17 @@ end;
 Initialization
   InitExceptions;       { Initialize exceptions. OS independent }
   InitInternational;    { Initialize internationalization settings }
+  InitDelay;
 Finalization
   DoneExceptions;
 end.
 
 {
   $Log$
-  Revision 1.3  2003-12-15 15:57:49  peter
+  Revision 1.4  2004-01-20 23:12:49  hajny
+    * ExecuteProcess fixes, ProcessID and ThreadID added
+
+  Revision 1.3  2003/12/15 15:57:49  peter
     * patches from wiktor
 
   Revision 1.2  2003/11/26 20:00:19  florian

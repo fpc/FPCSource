@@ -688,7 +688,7 @@ begin
   FillChar(SI, SizeOf(SI), 0);
   SI.cb:=SizeOf(SI);
   SI.wShowWindow:=1;
-  { always surroound the name of the application by quotes
+  { always surround the name of the application by quotes
     so that long filenames will always be accepted. But don't
     do it if there are already double quotes, since Win32 does not
     like double quotes which are duplicated!
@@ -697,12 +697,15 @@ begin
     CommandLine:='"'+path+'"'
   else
     CommandLine:=path;
-  CommandLine:=Commandline+' '+ComLine+#0;
+  if ComLine <> '' then
+    CommandLine:=Commandline+' '+ComLine+#0
+  else
+    CommandLine := CommandLine + #0;
 
   if not CreateProcess(nil, pchar(CommandLine),
     Nil, Nil, ExecInheritsHandles,$20, Nil, Nil, SI, PI) then
     begin
-      e:=EOSError.CreateFmt('Failed to execute %s : %d',[CommandLine,GetLastError]);
+      e:=EOSError.CreateFmt(SExecuteProcessFailed,[CommandLine,GetLastError]);
       e.ErrorCode:=GetLastError;
       raise e;
     end;
@@ -716,7 +719,7 @@ begin
     end
   else
     begin
-      e:=EOSError.CreateFmt('Failed to execute %s : %d',[CommandLine,GetLastError]);
+      e:=EOSError.CreateFmt(SExecuteProcessFailed,[CommandLine,GetLastError]);
       e.ErrorCode:=GetLastError;
       CloseHandle(Proc);
       raise e;
@@ -790,7 +793,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.30  2004-01-16 20:53:33  michael
+  Revision 1.31  2004-01-20 23:12:49  hajny
+    * ExecuteProcess fixes, ProcessID and ThreadID added
+
+  Revision 1.30  2004/01/16 20:53:33  michael
   + DirectoryExists now closes findfirst handle
 
   Revision 1.29  2004/01/10 17:40:25  michael

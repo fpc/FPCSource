@@ -4,7 +4,7 @@
     Copyright (c) 2000 by Marco van de Voort
     member of the Free Pascal development team.
 
-    System unit for the *BSD's.
+    System unit for Linux.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -164,6 +164,9 @@ Begin
   SysInitStdIO;
 { Reset IO Error }
   InOutRes:=0;
+(* This should be changed to a real value during *)
+(* thread driver initialization if appropriate.  *)
+  ThreadID := 1;
 {$ifdef HASVARIANT}
   initvariantmanager;
 {$endif HASVARIANT}
@@ -171,7 +174,10 @@ End.
 
 {
   $Log$
-  Revision 1.13  2004-01-01 14:16:55  marco
+  Revision 1.14  2004-01-20 23:09:14  hajny
+    * ExecuteProcess fixes, ProcessID and ThreadID added
+
+  Revision 1.13  2004/01/01 14:16:55  marco
    * getcwd missed cdecl
 
   Revision 1.12  2003/12/31 20:20:57  marco

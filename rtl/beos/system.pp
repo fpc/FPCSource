@@ -532,13 +532,19 @@ begin
 
 { Reset IO Error }
   InOutRes:=0;
+(* This should be changed to a real value during *)
+(* thread driver initialization if appropriate.  *)
+  ThreadID := 1;
 {$ifdef HASVARIANT}
   initvariantmanager;
 {$endif HASVARIANT}
 end.
 {
   $Log$
-  Revision 1.10  2003-10-25 23:42:35  hajny
+  Revision 1.11  2004-01-20 23:09:14  hajny
+    * ExecuteProcess fixes, ProcessID and ThreadID added
+
+  Revision 1.10  2003/10/25 23:42:35  hajny
     * THandle in sysutils common using System.THandle
 
   Revision 1.9  2003/09/27 11:52:35  peter

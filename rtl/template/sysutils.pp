@@ -249,6 +249,27 @@ begin
   Result:=StrPas(beos.Getenv(PChar(EnvVar)));
 end;
 
+function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integer;
+
+var
+  e : EOSError;
+  CommandLine: AnsiString;
+
+begin
+  dos.exec(path,comline);
+
+  if (Dos.DosError <> 0) then
+    begin
+      if ComLine <> '' then
+       CommandLine := Path + ' ' + ComLine
+      else
+       CommandLine := Path;
+      e:=EOSError.CreateFmt(SExecuteProcessFailed,[CommandLine,Dos.DosError]);
+      e.ErrorCode:=Dos.DosError;
+      raise e;
+    end;
+  Result := DosExitCode;
+end;
 
 {****************************************************************************
                               Initialization code
@@ -263,7 +284,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.3  2003-03-29 15:16:26  hajny
+  Revision 1.4  2004-01-20 23:12:49  hajny
+    * ExecuteProcess fixes, ProcessID and ThreadID added
+
+  Revision 1.3  2003/03/29 15:16:26  hajny
     * dummy DirectoryExists added
 
   Revision 1.2  2002/09/07 16:01:27  peter

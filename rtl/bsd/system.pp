@@ -163,6 +163,9 @@ Begin
   SysInitStdIO;
 { Reset IO Error }
   InOutRes:=0;
+(* This should be changed to a real value during *)
+(* thread driver initialization if appropriate.  *)
+  ThreadID := 1;
 {$ifdef HASVARIANT}
   initvariantmanager;
 {$endif HASVARIANT}  
@@ -170,7 +173,10 @@ End.
 
 {
   $Log$
-  Revision 1.12  2004-01-04 20:32:05  jonas
+  Revision 1.13  2004-01-20 23:09:14  hajny
+    * ExecuteProcess fixes, ProcessID and ThreadID added
+
+  Revision 1.12  2004/01/04 20:32:05  jonas
     + geterrnolocation for Darwin
     + C-style main for Darwin (generic, can be used for anything)
 

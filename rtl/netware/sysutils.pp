@@ -487,6 +487,28 @@ begin
 end;
 
 
+function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integer;
+
+var
+  e : EOSError;
+  CommandLine: AnsiString;
+
+begin
+  dos.exec(path,comline);
+
+  if (Dos.DosError <> 0) then
+    begin
+      if ComLine <> '' then
+       CommandLine := Path + ' ' + ComLine
+      else
+       CommandLine := Path;
+      e:=EOSError.CreateFmt(SExecuteProcessFailed,[CommandLine,Dos.DosError]);
+      e.ErrorCode:=Dos.DosError;
+      raise e;
+    end;
+  Result := DosExitCode;
+end;
+
 {****************************************************************************
                               Initialization code
 ****************************************************************************}
@@ -500,7 +522,10 @@ end.
 {
 
   $Log$
-  Revision 1.13  2003-11-26 20:00:19  florian
+  Revision 1.14  2004-01-20 23:11:20  hajny
+    * ExecuteProcess fixes, ProcessID and ThreadID added
+
+  Revision 1.13  2003/11/26 20:00:19  florian
     * error handling for Variants improved
 
   Revision 1.12  2003/10/25 23:42:35  hajny

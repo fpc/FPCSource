@@ -210,6 +210,7 @@ function DosClose(Handle:longint): longint; cdecl;
 function DosRead(Handle:longint; Buffer: Pointer;Count:longint;
                  var ActCount:longint):longint; cdecl;
     external 'DOSCALLS' index 281;
+
 function DosWrite(Handle:longint; Buffer: Pointer;Count:longint;
                   var ActCount:longint):longint; cdecl;
     external 'DOSCALLS' index 282;
@@ -1391,6 +1392,8 @@ begin
 
     {Set type of application}
     ApplicationType := PIB^.ProcType;
+    ProcessID := PIB^.PID;
+    ThreadID := TIB^.TIB2^.TID;
     IsConsole := ApplicationType <> 3;
 
     exitproc:=nil;
@@ -1438,7 +1441,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.61  2003-12-04 21:22:38  peter
+  Revision 1.62  2004-01-20 23:11:20  hajny
+    * ExecuteProcess fixes, ProcessID and ThreadID added
+
+  Revision 1.61  2003/12/04 21:22:38  peter
     * regcall updates (untested)
 
   Revision 1.60  2003/11/23 07:21:16  yuri

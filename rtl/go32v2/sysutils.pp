@@ -764,19 +764,22 @@ end;
 function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integer;
 var
   e : EOSError;
+  CommandLine: AnsiString;
+
 begin
   dos.exec(path,comline);
 
-  result := dos.doserror;
-  { (dos)exit code is irrelevant, at least the unix implementation }
-  { does not }
-  { take it into account                                               }
-  if (result <> 0) then
+  if (Dos.DosError <> 0) then
     begin
-      e:=EOSError.CreateFmt('Failed to execute %s : %d',[ComLine,result]);
-      e.ErrorCode:=result;
+      if ComLine <> '' then
+       CommandLine := Path + ' ' + ComLine
+      else
+       CommandLine := Path;
+      e:=EOSError.CreateFmt(SExecuteProcessFailed,[CommandLine,Dos.DosError]);
+      e.ErrorCode:=Dos.DosError;
       raise e;
     end;
+  Result := DosExitCode;
 end;
 
 {*************************************************************************
@@ -851,12 +854,16 @@ end;
 Initialization
   InitExceptions;       { Initialize exceptions. OS independent }
   InitInternational;    { Initialize internationalization settings }
+  InitDelay;
 Finalization
   DoneExceptions;
 end.
 {
   $Log$
-  Revision 1.21  2004-01-10 20:25:14  michael
+  Revision 1.22  2004-01-20 23:09:14  hajny
+    * ExecuteProcess fixes, ProcessID and ThreadID added
+
+  Revision 1.21  2004/01/10 20:25:14  michael
   + Added rtlconst dependency to classes.ppu and implemented sysutils.sleep
 
   Revision 1.20  2004/01/10 10:49:24  jonas

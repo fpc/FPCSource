@@ -802,6 +802,10 @@ Begin
 
 { Reset IO Error }
   InOutRes:=0;
+
+(* This should be changed to a real value during *)
+(* thread driver initialization if appropriate.  *)
+  ThreadID := 1;
   
   SysInitStdIO;  
 
@@ -815,7 +819,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.20  2003-10-25 23:43:59  hajny
+  Revision 1.21  2004-01-20 23:11:20  hajny
+    * ExecuteProcess fixes, ProcessID and ThreadID added
+
+  Revision 1.20  2003/10/25 23:43:59  hajny
     * THandle in sysutils common using System.THandle
 
   Revision 1.19  2003/10/17 22:12:02  olle

@@ -326,6 +326,8 @@ const
   fmAppend = $D7B4;
   Filemode : byte = 2;
   CmdLine : PChar = nil;
+  ProcessID: SizeUInt = 1;
+(* Value should be changed during system initialization as appropriate. *)
 
   { assume that this program will not spawn other threads, when the
     first thread is started the following constants need to be filled }
@@ -347,6 +349,7 @@ ThreadVar
 {$else SUPPORT_THREADVAR}
 Var
 {$endif SUPPORT_THREADVAR}
+  ThreadID    : SizeUInt;
   { Standard In- and Output }
   Output,
   Input,
@@ -717,7 +720,10 @@ const
 
 {
   $Log$
-  Revision 1.81  2003-12-29 19:24:12  florian
+  Revision 1.82  2004-01-20 23:13:53  hajny
+    * ExecuteProcess fixes, ProcessID and ThreadID added
+
+  Revision 1.81  2003/12/29 19:24:12  florian
     + introduced PtrInt and PtrUInt
     * made strscan 64 bit safe
 

@@ -694,6 +694,9 @@ end;
    function GetCommandLine : pchar;
      stdcall;external 'kernel32' name 'GetCommandLineA';
 
+   function GetCurrentThread : dword;
+     stdcall; external 'kernel32' name 'GetCurrentThread';
+
 
 var
   ModuleName : array[0..255] of char;
@@ -1539,6 +1542,7 @@ begin
   setup_arguments;
   { Reset IO Error }
   InOutRes:=0;
+  ThreadID := GetCurrentThread;
   { Reset internal error variable }
   errno:=0;
 {$ifdef HASVARIANT}
@@ -1548,7 +1552,10 @@ end.
 
 {
   $Log$
-  Revision 1.51  2003-12-17 21:56:33  peter
+  Revision 1.52  2004-01-20 23:12:49  hajny
+    * ExecuteProcess fixes, ProcessID and ThreadID added
+
+  Revision 1.51  2003/12/17 21:56:33  peter
     * win32 regcall patches
 
   Revision 1.50  2003/12/04 20:52:41  peter

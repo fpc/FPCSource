@@ -1525,6 +1525,7 @@ Begin
    FileNameCaseSensitive:=true;
 { Reset IO Error }
   InOutRes:=0;
+  ThreadID := 1;
 {$ifdef  EXCEPTIONS_IN_SYSTEM}
   InitDPMIExcp;
   InstallDefaultHandlers;
@@ -1534,11 +1535,12 @@ Begin
 {$endif HASVARIANT}
 End.
 
-END.
-
 {
   $Log$
-  Revision 1.11  2004-01-11 23:08:39  hajny
+  Revision 1.12  2004-01-20 23:12:49  hajny
+    * ExecuteProcess fixes, ProcessID and ThreadID added
+
+  Revision 1.11  2004/01/11 23:08:39  hajny
     * merged Jonas fix from GO32v2
 
   Revision 1.10  2004/01/11 22:54:44  hajny

@@ -42,6 +42,7 @@ resourcestring
   SErrInvalidTimeStamp   = 'Invalid date/timestamp : "%s"';
   SExceptionErrorMessage = 'exception at %p';
   SExceptionStack        = 'Exception stack error';
+  SExecuteProcessFailed  = 'Failed to execute %s : %d';
   SExternalException     = 'External exception %x';
   SFileNotAssigned       = 'File not assigned';
   SFileNotFound          = 'File not found';
@@ -205,7 +206,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2004-01-10 19:35:17  michael
+  Revision 1.8  2004-01-20 23:05:31  hajny
+    * ExecuteProcess fixes, ProcessID and ThreadID added
+
+  Revision 1.7  2004/01/10 19:35:17  michael
   + Moved all resource strings to rtlconst/sysconst
 
   Revision 1.6  2004/01/10 17:55:45  michael
