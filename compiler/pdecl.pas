@@ -564,6 +564,9 @@ implementation
         consume(_THREADVAR);
         if not(symtablestack.symtabletype in [staticsymtable,globalsymtable]) then
           message(parser_e_threadvars_only_sg);
+        if not(cs_threading in aktmoduleswitches) and
+           not(cs_compilesystem in aktmoduleswitches) then
+          Comment(V_Error,'Threading is turned off');
         read_var_decs(false,false,true);
       end;
 
@@ -627,7 +630,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.54  2002-10-06 12:25:05  florian
+  Revision 1.55  2002-10-14 19:45:02  peter
+    * only allow threadvar when threading switch is defined
+
+  Revision 1.54  2002/10/06 12:25:05  florian
     + proper support of type <id> = type <another id>;
 
   Revision 1.53  2002/08/25 19:25:19  peter
