@@ -21,7 +21,10 @@ LIBDIR=/usr/lib/gcc-lib/i486-linux/2.7.2.3
 endif
 
 # We always need the API and FV
-NEEDUNITDIR=../../api ../../fv ../../fv/base ../../fv/app ../../fv/dialogs
+NEEDUNITDIR=../../api ../../fv
+# Adding these is not possible, because it will then find views.pas before
+# it finds views.ppu !! (PFV)
+# ../../fv/base ../../fv/app ../../fv/dialogs
 
 # when making a full version include the compiler
 ifdef FULL
@@ -96,7 +99,10 @@ clean_compiler:
 
 #
 # $Log$
-# Revision 1.7  1999-02-04 13:32:00  pierre
+# Revision 1.8  1999-02-04 17:19:23  peter
+#   * linux fixes
+#
+# Revision 1.7  1999/02/04 13:32:00  pierre
 #   * Several things added (I cannot commit them independently !)
 #   + added TBreakpoint and TBreakpointCollection
 #   + added cmResetDebugger,cmGrep,CmToggleBreakpoint

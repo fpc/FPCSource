@@ -94,7 +94,7 @@ const
       ffFromCursor       = $0000;
       ffEntireScope      = $0020;
 
-      coTextColor  = 0;
+      coTextColor         = 0;
       coWhiteSpaceColor   = 1;
       coCommentColor      = 2;
       coReservedWordColor = 3;
@@ -105,10 +105,10 @@ const
       coSymbolColor       = 8;
       coDirectiveColor    = 9;
       coHexNumberColor    = 10;
-      coTabColor    = 11;
-      coBreakColor   = 12;
-      coFirstColor   = 0;
-      coLastColor  = coTabColor;
+      coTabColor          = 11;
+      coBreakColor        = 12;
+      coFirstColor  = 0;
+      coLastColor   = coBreakColor;
 
       CIndicator    = #2#3#1;
       CEditor       = #33#34#35#36#37#38#39#40#41#42#43#44#45#46#47#48#49;
@@ -1393,7 +1393,7 @@ begin
         Color:=ColorTab[coBreakColor];
         FreeFormat[X]:=false;
       end;
-      
+
       if (0<=X-1-Delta.X) and (X-1-Delta.X<MaxViewWidth) then
       MoveChar(B[X-1-Delta.X],C,Color,1);
     end;
@@ -3290,7 +3290,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.10  1999-02-04 10:13:00  pierre
+  Revision 1.11  1999-02-04 17:19:26  peter
+    * linux fixes
+
+  Revision 1.10  1999/02/04 10:13:00  pierre
     + GetCurrentWord (used in Find/Replace)
     + DefUseTabsPattern (pattern forcing tabs to be kept)
       used for all makefiles !!

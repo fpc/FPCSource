@@ -4,7 +4,7 @@
     Copyright (c) 1998 by Berczi Gabor
 
     Unit to redirect output and error to files
-    
+
     Adapted from code donated to public domain by Schwartz Gabriel.   20/03/1993.
 
     See the file COPYING.FPC, included in this distribution,
@@ -15,12 +15,20 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-
-{$R-,S-}
-
 Unit FPRedir;
-
 Interface
+
+{$R-}
+{$ifndef linux}
+  {$S-}
+{$endif}
+
+{$ifdef TP}
+  {$define in_dos}
+{$endif TP}
+{$ifdef Go32v2}
+  {$define in_dos}
+{$endif}
 
 Var
   IOStatus      : Integer;
@@ -36,26 +44,31 @@ procedure RestoreRedir;
 function ChangeErrorRedir(Const Redir : String; AppendToFile : Boolean) : Boolean;
 procedure RestoreErrorRedir;
 
+
 Implementation
 
 Uses
-{$ifdef FPC}
- {$ifdef go32v2}
- go32,
- {$define in_dos}
- {$endif go32v2}
-{$else : not FPC}
- {$ifdef TP}
-  {$define in_dos}
- {$endif TP}
-{$endif not FPC}
+{$ifdef go32v2}
+  go32,
+{$endif go32v2}
   dos;
 
-Type
 
-  PtrRec = record
+{*****************************************************************************
+                                     Dos
+*****************************************************************************}
+
+{$ifdef in_dos}
+
+Type
+  PtrRec = packed record
              Ofs, Seg : Word;
            end;
+
+  PHandles = ^THandles;
+  THandles = Array [Byte] of Byte;
+
+  PWord = ^Word;
 
 Var
   PrefSeg      : Word;
@@ -63,17 +76,6 @@ Var
   FName        : PathStr;
   F,FE         : File;
   MyBlockSize  : Word;
-
-{------------------------------------------------------------------------------}
-
-
-type
-  PHandles = ^THandles;
-  THandles = Array [Byte] of Byte;
-
-  PWord = ^Word;
-
-var
   RedirChanged : Boolean;
   RedirErrorChanged : Boolean;
   Handles      : PHandles;
@@ -300,7 +302,6 @@ Begin
   RedirError:=0;
   ExecuteResult:=0;
   IOStatus:=0;
-{$ifdef in_dos}
   if RedirStdOut<>'' then
     ChangeRedir(RedirStdOut,false);
   if RedirStdErr<>'stderr' then
@@ -308,14 +309,12 @@ Begin
   DosExecute(ProgName,ComLine);
   RestoreRedir;
   RestoreErrorRedir;
-{$else : not in_dos}
-  DosExecute(ProgName,ComLine+' 1!>'+RedirStdOut+' 2!>'+RedirStdErr);
-{$endif in_dos}
   ExecuteRedir:=(IOStatus=0) and (RedirError=0) and (ExecuteResult=0);
 End;
 
-{------------------------------------------------------------------------------}
-Begin
+
+procedure InitRedir;
+begin
 {$ifndef FPC}
   PrefSeg:=PrefixSeg;
 {$else FPC}
@@ -324,6 +323,50 @@ Begin
   HandlesOffset:=Memw[prefseg:$34];
  {$else }
   PrefSeg:=0;
- {$endif } 
+ {$endif }
 {$endif FPC}
+end;
+
+{$endif in_dos}
+
+
+{*****************************************************************************
+                                 Linux
+*****************************************************************************}
+
+
+function ExecuteRedir (Const ProgName, ComLine, RedirStdOut, RedirStdErr : String) : boolean;
+begin
+  ExecuteRedir:=false;
+end;
+
+function ChangeRedir(Const Redir : String; AppendToFile : Boolean) : Boolean;
+begin
+  ChangeRedir:=false;
+end;
+
+procedure RestoreRedir;
+begin
+end;
+
+function ChangeErrorRedir(Const Redir : String; AppendToFile : Boolean) : Boolean;
+begin
+  ChangeErrorRedir:=false;
+end;
+
+procedure RestoreErrorRedir;
+begin
+end;
+
+procedure InitRedir;
+begin
+end;
+
+
+{*****************************************************************************
+                                  Initialize
+*****************************************************************************}
+
+Begin
+  InitRedir;
 End.

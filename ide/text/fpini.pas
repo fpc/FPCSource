@@ -41,25 +41,25 @@ uses
 
 const
   { INI file sections }
-  secFiles	   = 'Files';
-  secRun	     = 'Run';
-  secCompile	 = 'Compile';
-  secColors	  = 'Colors';
-  secHelp	    = 'Help';
-  secEditor	  = 'Editor';
+  secFiles       = 'Files';
+  secRun         = 'Run';
+  secCompile     = 'Compile';
+  secColors      = 'Colors';
+  secHelp        = 'Help';
+  secEditor      = 'Editor';
   secBreakpoint  = 'Breakpoints';
-  secHighlight       = 'Highlight';
-  secMouse	   = 'Mouse';
-  secSearch	  = 'Search';
-  secTools	   = 'Tools';
+  secHighlight   = 'Highlight';
+  secMouse       = 'Mouse';
+  secSearch      = 'Search';
+  secTools       = 'Tools';
 
   { INI file tags }
   ieRecentFile       = 'RecentFile';
   ieRunParameters    = 'Parameters';
   iePrimaryFile      = 'PrimaryFile';
-  ieCompileMode      = 'CompileMode';																									
-  iePalette	     = 'Palette';
-  ieHelpFiles	     = 'Files';
+  ieCompileMode      = 'CompileMode';
+  iePalette          = 'Palette';
+  ieHelpFiles        = 'Files';
   ieDefaultTabSize   = 'DefaultTabSize';
   ieDefaultEditorFlags='DefaultFlags';
   ieHighlightExts    = 'Exts';
@@ -68,8 +68,8 @@ const
   ieReverseButtons   = 'ReverseButtons';
   ieAltClickAction   = 'AltClickAction';
   ieCtrlClickAction  = 'CtrlClickAction';
-  ieFindFlags	= 'FindFlags';
-  ieToolName	 = 'Title';
+  ieFindFlags        = 'FindFlags';
+  ieToolName         = 'Title';
   ieToolProgram      = 'Program';
   ieToolParams       = 'Params';
   ieToolHotKey       = 'HotKey';
@@ -122,13 +122,13 @@ begin
     P:=Pos('#',copy(S,I,255)); if P>0 then P:=I+P-1 else P:=length(S)+1;
     if Hex=false then
       begin
-	X:=StrToInt(copy(S,I,P-I));
-	OK:=(LastStrToIntResult=0) and (0<=X) and (X<=255);
+        X:=StrToInt(copy(S,I,P-I));
+        OK:=(LastStrToIntResult=0) and (0<=X) and (X<=255);
       end
     else
       begin
-	X:=HexToInt(copy(S,I,P-I));
-	OK:=(LastHexToIntResult=0) and (0<=X) and (X<=255);
+        X:=HexToInt(copy(S,I,P-I));
+        OK:=(LastHexToIntResult=0) and (0<=X) and (X<=255);
       end;
     if OK then C:=C+chr(X);
     Inc(I,P-I);
@@ -165,7 +165,7 @@ var PB : PBreakpoint;
     Line : longint;
     typ : BreakpointType;
     state : BreakpointState;
-    
+
 begin
   Str(I,S2);
   typ:=bt_invalid;
@@ -218,12 +218,12 @@ begin
       if (S='') and (RecentFileCount>I-1) then RecentFileCount:=I-1;
       with RecentFiles[I] do
       begin
-	P:=Pos(',',S); if P=0 then P:=length(S)+1;
-	FileName:=copy(S,1,P-1); Delete(S,1,P);
-	P:=Pos(',',S); if P=0 then P:=length(S)+1;
-	LastPos.X:=Max(0,StrToInt(copy(S,1,P-1))); Delete(S,1,P);
-	P:=Pos(',',S); if P=0 then P:=length(S)+1;
-	LastPos.Y:=Max(0,StrToInt(copy(S,1,P-1))); Delete(S,1,P);
+        P:=Pos(',',S); if P=0 then P:=length(S)+1;
+        FileName:=copy(S,1,P-1); Delete(S,1,P);
+        P:=Pos(',',S); if P=0 then P:=length(S)+1;
+        LastPos.X:=Max(0,StrToInt(copy(S,1,P-1))); Delete(S,1,P);
+        P:=Pos(',',S); if P=0 then P:=length(S)+1;
+        LastPos.Y:=Max(0,StrToInt(copy(S,1,P-1))); Delete(S,1,P);
       end;
     end;
   SetRunParameters(INIFile^.GetEntry(secRun,ieRunParameters,GetRunParameters));
@@ -234,9 +234,9 @@ begin
   for ts:=low(TSwitchMode) to high(TSwitchMode) do
     begin
       if SwitchesModeStr[ts]=S then
-	begin
-	  SwitchesMode:=ts;
-	end;
+        begin
+          SwitchesMode:=ts;
+        end;
     end;
   S:=INIFile^.GetEntry(secHelp,ieHelpFiles,'');
   repeat
@@ -260,7 +260,7 @@ begin
   BreakpointCount:=INIFile^.GetIntEntry(secBreakpoint,ieBreakpointCount,0);
   for i:=1 to BreakpointCount do
     ReadOneBreakPointEntry(i-1,INIFile);
-    
+
   for I:=1 to MaxToolCount do
     begin
       S:=IntToStr(I);
@@ -302,9 +302,9 @@ begin
   for I:=1 to High(RecentFiles) do
     begin
       if I<=RecentFileCount then
-	 with RecentFiles[I] do S:=FileName+','+IntToStr(LastPos.X)+','+IntToStr(LastPos.Y)
+         with RecentFiles[I] do S:=FileName+','+IntToStr(LastPos.X)+','+IntToStr(LastPos.Y)
       else
-	 S:='';
+         S:='';
       INIFile^.SetEntry(secFiles,ieRecentFile+IntToStr(I),S);
     end;
   INIFile^.SetEntry(secRun,ieRunParameters,GetRunParameters);
@@ -363,7 +363,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  1999-02-04 13:32:04  pierre
+  Revision 1.7  1999-02-04 17:19:24  peter
+    * linux fixes
+
+  Revision 1.6  1999/02/04 13:32:04  pierre
     * Several things added (I cannot commit them independently !)
     + added TBreakpoint and TBreakpointCollection
     + added cmResetDebugger,cmGrep,CmToggleBreakpoint

@@ -11,6 +11,9 @@ type
   TGDBInterface=object
     constructor Init;
     destructor  Done;
+    { functions }
+    function  error:boolean;
+    function  error_num:longint;
     { Hooks }
     procedure DoSelectSourceline(const fn:string;line:longint);virtual;
     procedure DoStartSession;virtual;
@@ -34,6 +37,7 @@ type
     procedure StartTrace;
     procedure TraceStep;
     procedure TraceNext;
+    procedure Continue;
     { needed for dos because newlines are only #10 (PM) }
     procedure WriteErrorBuf;
     procedure WriteOutputBuf;
@@ -68,6 +72,7 @@ end;
 
 function TGDBController.LoadFile(const fn:string):boolean;
 begin
+  LoadFile:=true;
 end;
 
 
@@ -98,6 +103,11 @@ begin
 end;
 
 
+procedure TGDBController.Continue;
+begin
+end;
+
+
 procedure TGDBController.ClearSymbols;
 begin
 end;
@@ -122,6 +132,16 @@ destructor TGDBInterface.Done;
 begin
 end;
 
+
+function tgdbinterface.error:boolean;
+begin
+  error:=false;
+end;
+
+function tgdbinterface.error_num:longint;
+begin
+  error_num:=0;
+end;
 
 procedure TGDBInterface.DoSelectSourceline(const fn:string;line:longint);
 begin
@@ -157,7 +177,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1999-02-02 16:38:05  peter
+  Revision 1.2  1999-02-04 17:19:22  peter
+    * linux fixes
+
+  Revision 1.1  1999/02/02 16:38:05  peter
     * renamed for better tp7 usage
 
   Revision 1.1  1999/01/28 19:56:12  peter
