@@ -397,7 +397,7 @@ end;
 
 Function ValUnsignedInt(Const S: ShortString; var Code: ValSInt): ValUInt; [public, alias:'FPC_VAL_UINT_SHORTSTR'];
 var
-  u, prev, maxValue: ValUInt;
+  u, prev : ValUInt;
   base : byte;
   negative : boolean;
 begin
@@ -546,7 +546,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  2001-04-13 18:06:28  peter
+  Revision 1.11  2001-04-13 22:30:04  peter
+    * remove warnings
+
+  Revision 1.10  2001/04/13 18:06:28  peter
     * removed rtllite define
 
   Revision 1.9  2001/03/03 12:38:53  jonas

@@ -148,8 +148,10 @@ end;
 
 
 Procedure PopAddrStack;[Public, Alias : 'FPC_POPADDRSTACK'];
+{$ifndef HAS_ADDR_STACK_ON_STACK}
 var
   hp : PExceptAddr;
+{$endif HAS_ADDR_STACK_ON_STACK}
 begin
 {$ifdef excdebug}
   writeln ('In Popaddrstack');
@@ -161,11 +163,13 @@ begin
     end
   else
     begin
+{$ifndef HAS_ADDR_STACK_ON_STACK}
       hp:=ExceptAddrStack;
       ExceptAddrStack:=ExceptAddrStack^.Next;
-{$ifndef HAS_ADDR_STACK_ON_STACK}
       dispose(hp^.buf);
       dispose(hp);
+{$else HAS_ADDR_STACK_ON_STACK}
+      ExceptAddrStack:=ExceptAddrStack^.Next;
 {$endif HAS_ADDR_STACK_ON_STACK}
     end;
 end;
@@ -269,7 +273,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.5  2001-01-24 21:47:18  florian
+  Revision 1.6  2001-04-13 22:30:04  peter
+    * remove warnings
+
+  Revision 1.5  2001/01/24 21:47:18  florian
     + more MT stuff added
 
   Revision 1.4  2001/01/05 17:35:50  florian

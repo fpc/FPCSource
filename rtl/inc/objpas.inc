@@ -623,7 +623,7 @@
          if getinterface(iid,obj) then
            result:=0
          else
-           result:=$80004002;
+           result:=longint($80004002);
       end;
 
     function TInterfacedObject._AddRef : longint;stdcall;
@@ -678,7 +678,10 @@
 
 {
   $Log$
-  Revision 1.13  2000-12-20 21:38:23  florian
+  Revision 1.14  2001-04-13 22:30:04  peter
+    * remove warnings
+
+  Revision 1.13  2000/12/20 21:38:23  florian
     * is-operator fixed
 
   Revision 1.12  2000/11/12 23:23:34  florian

@@ -31,7 +31,7 @@
          r:=0;
          for i:=0 to 31 do
            begin
-              if (tqwordrec(q).high and (longint($80000000) shr i))<>0 then
+              if (tqwordrec(q).high and (dword($80000000) shr i))<>0 then
                 begin
                    count_leading_zeros:=r;
                    exit;
@@ -40,7 +40,7 @@
            end;
          for i:=0 to 31 do
            begin
-              if (tqwordrec(q).low and (longint($80000000) shr i))<>0 then
+              if (tqwordrec(q).low and (dword($80000000) shr i))<>0 then
                 begin
                    count_leading_zeros:=r;
                    exit;
@@ -296,7 +296,7 @@
               ((q1>q3) or (q2>q3) or
                 { the bit 63 can be only set if we have $80000000 00000000 }
                 { and sign is true                                         }
-                ((tqwordrec(q3).high and longint($80000000))<>0) and
+                ((tqwordrec(q3).high and dword($80000000))<>0) and
                  ((q3<>(qword(1) shl 63)) or not(sign))
                 ) then
                 HandleErrorFrame(215,get_frame);
@@ -450,8 +450,8 @@
       Exit;
     with qwordrec(maxqword) do
       begin
-        l1 := $ffffffff;
-        l2 := $ffffffff;
+        l1 := longint($ffffffff);
+        l2 := longint($ffffffff);
       end;
     while Code<=Length(s) do
      begin
@@ -477,7 +477,10 @@
 
 {
   $Log$
-  Revision 1.8  2001-03-03 12:39:09  jonas
+  Revision 1.9  2001-04-13 22:30:04  peter
+    * remove warnings
+
+  Revision 1.8  2001/03/03 12:39:09  jonas
     * fixed qword_str for values with bit 63 = 1
 
   Revision 1.7  2000/12/10 15:00:14  florian

@@ -33,7 +33,7 @@
             // comes from DJ GPP
             fldt        d
             fldl2e
-            fmulp       %st(1)
+            fmulp       %st,%st(1)
             fstcw      .LCW1
             fstcw      .LCW2
             andw        $0xf3ff,.LCW2
@@ -46,7 +46,7 @@
             fsub        %st(1),%st
             f2xm1
             fld1
-            faddp       %st(1)
+            faddp       %st,%st(1)
             fscale
             fstp        %st(1)
             jmp         .LCW3
@@ -74,7 +74,7 @@
             fldt d
             frndint
             fldt d
-            fsub %st(1)
+            fsub %st(1),%st
             fstp %st(1)
             fclex
             fldcw -4(%ebp)
@@ -329,7 +329,10 @@
 
 {
   $Log$
-  Revision 1.4  2000-10-21 18:20:17  florian
+  Revision 1.5  2001-04-13 22:26:32  peter
+    * remove warnings
+
+  Revision 1.4  2000/10/21 18:20:17  florian
     * a lot of small changes:
        - setlength is internal
        - win32 graph unit extended
