@@ -514,18 +514,22 @@ Begin
   Halt(0);
 End;
 
+function do_isdevice(handle:longint):boolean;forward;
+
 
 Procedure dump_stack(var f : text;bp : Longint);
 var
   i, prevbp : Longint;
+  is_dev : boolean;
 Begin
   prevbp:=bp-1;
   i:=0;
+  is_dev:=do_isdevice(textrec(f).Handle);
   while bp > prevbp Do
    Begin
      Writeln(f,BackTraceStrFunc(get_caller_addr(bp)));
      Inc(i);
-     If i>max_frame_dump Then
+     If ((i>max_frame_dump) and is_dev) or (i>256) Then
       exit;
      prevbp:=bp;
      bp:=get_caller_frame(bp);
@@ -617,7 +621,10 @@ end;
 
 {
   $Log$
-  Revision 1.86  2000-04-02 09:39:25  florian
+  Revision 1.87  2000-04-14 12:17:12  pierre
+   + get longer backtrace when redirected to file
+
+  Revision 1.86  2000/04/02 09:39:25  florian
     * halt in the finalization statement of a unit lead to an endless loop; fixed
 
   Revision 1.85  2000/03/14 07:31:57  pierre
