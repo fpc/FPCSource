@@ -99,6 +99,7 @@
        pstringmessagetable = ^tstringmessagetable;
 
        tobject = class
+       public
           { please don't change the order of virtual methods, because      }
           { their vmt offsets are used by some assembler code which uses   }
           { hard coded addresses      (FK)                                 }
@@ -219,7 +220,10 @@
        end;
 {
   $Log$
-  Revision 1.4  1999-08-09 22:20:03  peter
+  Revision 1.5  1999-12-02 19:28:53  peter
+    * public added to TObject
+
+  Revision 1.4  1999/08/09 22:20:03  peter
     * classes vmt changed to only positive addresses
     * sharedlib creation is working
 
