@@ -3469,7 +3469,8 @@ value is stored as a 4 byte value (longword).
 Floating point type sizes and mapping vary from one
 processor to another. Except for the Intel 80x86
 architecture, the \var{extended} type maps to the IEEE
-double type.
+double type if a hardware floating point coprocessor
+is present.
 
 \begin{FPCltable}{lr}{Processor mapping of real type}{RealMapping}
 Processor & Real type mapping\\
@@ -3489,7 +3490,9 @@ point value.
 
 The \var{single} type occupies 4 bytes of storage space,
 and its memory structure is the same as the IEEE-754 single
-type.
+type. This type is the only type which is guaranteed to
+be available on all platforms (either emulated via software
+or directly via hardware).
 
 The memory format of the \var{single} format looks like
 \begin{htmlonly}
@@ -3540,7 +3543,7 @@ like what is shown in \seefig{doubleformat}.
 
 
 On processors which do not support co-processor operations (and which have
-the \{\$E-\} switch), the \var{double} type does not exist.
+the \{\$E+\} switch), the \var{double} type does not exist.
 
 
 
@@ -3551,11 +3554,11 @@ takes up 10 bytes of memory space. For more information
 on the extended type consult the Intel Programmer's reference.
 
 For all other processors which support floating point operations,
-the \var{extended} type is a nickname for the \var{double} type. 
-It has the same format and size as the \var{double} type. On
-processors which do not support co-processor operations (and which have
-the \{\$E-\} switch), the
-\var{extended} type does not exist.
+the \var{extended} type is a nickname for the type which supports
+the most precision, this is usually the \var{double} type. 
+On processors which do not support co-processor operations (and which have
+the \{\$E+\} switch), the \var{extended} type usually maps to the
+\var{single} type.
 
 \subsubsection{comp}
 
