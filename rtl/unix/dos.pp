@@ -66,7 +66,7 @@ Procedure AddDisk(const path:string);
 Implementation
 
 Uses
-  Strings,SysUtils,Unix,BaseUnix,Syscall;
+  Strings,Unix,BaseUnix,Syscall;
 
 
 {$i sysnr.inc}
@@ -129,7 +129,7 @@ Function LocalToEpoch(year,month,day,hour,minute,second:Word):Longint;
 {
   Transforms local time (year,month,day,hour,minutes,second) to Epoch time
    (seconds since 00:00, january 1 1970, corrected for local time zone)
-}  
+}
 Begin
   LocalToEpoch:=((GregorianToJulian(Year,Month,Day)-c1970)*86400)+
                 (LongInt(Hour)*3600)+(Longint(Minute)*60)+Second-TZSeconds;
@@ -151,7 +151,7 @@ Begin
      inc(YYear);
      dec(TempMonth,12);
    End;
-  inc(TempMonth,3);  
+  inc(TempMonth,3);
   Month := TempMonth;
   Year:=YYear+(JulianDN*100);
 end;
@@ -227,15 +227,14 @@ begin
    end;
 end;
 
+
 Procedure GetDate(Var Year, Month, MDay, WDay: Word);
-
-var t  :TSystemtime;
-
-Begin
-  sysutils.getlocaltime(t);
-  mday:=t.day;
-  month:=t.month;
-  year:=t.year;
+var
+  tz:timeval;
+  hour,min,sec : word;
+begin
+  fpgettimeofday(@tz,nil);
+  EpochToLocal(tz.tv_sec,year,month,mday,hour,min,sec);
   Wday:=weekday(Year,Month,MDay);
 end;
 
@@ -243,7 +242,7 @@ end;
 procedure  SetTime(Hour,Minute,Second,sec100:word);
 var
   dow,Year, Month, Day : Word;
-  
+
   tv : timeval;
 begin
   GetDate (Year, Month, Day,dow);
@@ -270,15 +269,13 @@ begin
 end;
 
 Procedure GetTime(Var Hour, Minute, Second, Sec100: Word);
-
-var t  :TSystemtime;
-
-Begin
-  sysutils.getlocaltime(t);
-  sec100:=0;
-  second:=t.second;
-  minute:=t.minute;
-  hour  :=t.hour; 
+var
+  tz:timeval;
+  year,month,day : word;
+begin
+  fpgettimeofday(@tz,nil);
+  EpochToLocal(tz.tv_sec,year,month,day,hour,minute,second);
+  sec100:=tz.tv_usec div 10000;
 end;
 
 Procedure packtime(var t : datetime;var p : longint);
@@ -355,9 +352,9 @@ Procedure Exec (Const Path: PathStr; Const ComLine: ComStr);
 var
   pid      : longint; // pid_t?
   cmdline2 : ppchar;
-  commandline : ansistring;	
+  commandline : ansistring;
   realpath : ansistring;
- 
+
 // The Error-Checking in the previous Version failed, since halt($7F) gives an WaitPid-status of $7F00
 Begin
   LastDosExitCode:=0;
@@ -378,10 +375,10 @@ Begin
          cmdline2^:=pchar(realPath);
          cmdline2[1]:=nil;
        end;
-   {The child does the actual exec, and then exits}
-   fpExecv(pchar(realPath),cmdline2);
-   {If the execve fails, we return an exitvalue of 127, to let it be known}
-   fpExit(127);
+     {The child does the actual exec, and then exits}
+     fpExecv(pchar(realPath),cmdline2);
+     {If the execve fails, we return an exitvalue of 127, to let it be known}
+     fpExit(127);
    end
   else
    if pid=-1 then         {Fork failed}
@@ -389,12 +386,12 @@ Begin
       DosError:=8;
       exit
     end;
-{We're in the parent, let's wait.}
+  {We're in the parent, let's wait.}
   LastDosExitCode:=WaitProcess(pid); // WaitPid and result-convert
   if (LastDosExitCode>=0) and (LastDosExitCode<>127) then
-   DosError:=0
+    DosError:=0
   else
-   DosError:=8; // perhaps one time give an better error
+    DosError:=8; // perhaps one time give an better error
 End;
 
 
@@ -1047,7 +1044,10 @@ End.
 
 {
   $Log$
-  Revision 1.36  2004-10-30 20:55:54  marco
+  Revision 1.37  2004-10-31 16:20:58  peter
+    * remove sysutils
+
+  Revision 1.36  2004/10/30 20:55:54  marco
    * unix interface cleanup
 
   Revision 1.35  2004/09/25 15:09:57  peter
