@@ -1422,7 +1422,7 @@ BEGIN
    if (TextModeGFV) then
      begin
        Cursor.Y:=0;
-       Cursor.X:=CurPos-FirstPos;
+       Cursor.X:=CurPos-FirstPos+1;
        TView.ResetCursor;
      end
    else If (State AND sfFocused <> 0) Then Begin           { Focused window }
@@ -4200,7 +4200,10 @@ END;
 END.
 {
  $Log$
- Revision 1.15  2002-05-23 12:16:11  pierre
+ Revision 1.16  2002-05-24 21:00:10  pierre
+  * correct cursor position for TInputLine
+
+ Revision 1.15  2002/05/23 12:16:11  pierre
   * fix textmode button to be displayed like in TV
 
  Revision 1.14  2002/05/23 09:06:53  pierre
