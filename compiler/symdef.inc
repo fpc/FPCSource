@@ -2637,7 +2637,7 @@
     procedure count_published_properties(sym : psym);{$ifndef fpc}far;{$endif}
 
       begin
-         if (sym^.properties and sp_published)<>0 then
+         if (sym^.typ=propertysym) and ((sym^.properties and sp_published)<>0) then
            inc(count);
       end;
 
@@ -2730,6 +2730,21 @@
          write_rtti_data;
       end;
 
+    function tobjectdef.next_free_name_index : longint;
+
+      var
+         i : longint;
+
+      begin
+         if assigned(childof) and ((childof^.options and oo_can_have_published)<>0) then
+           i:=childof^.next_free_name_index
+         else
+           i:=0;
+         count:=0;
+         publicsyms^.foreach(count_published_properties);
+         next_free_name_index:=i+count;
+      end;
+
     procedure tobjectdef.write_rtti_data;
 
       begin
@@ -2767,8 +2782,11 @@
 
          { count is used to write nameindex   }
          { but we need an offset of the owner }
-         { !!!!!!!!!!!!}
-         count:=$ffff;
+         { to give each property an own slot  }
+         if assigned(childof) and ((childof^.options and oo_can_have_published)<>0) then
+           count:=childof^.next_free_name_index
+         else
+           count:=0;
          publicsyms^.foreach(write_property_info);
       end;
 
@@ -2791,7 +2809,14 @@
 
 {
   $Log$
-  Revision 1.36  1998-09-07 17:37:01  florian
+  Revision 1.37  1998-09-07 19:33:24  florian
+    + some stuff for property rtti added:
+       - NameIndex of the TPropInfo record is now written correctly
+       - the DEFAULT/NODEFAULT keyword is supported now
+       - the default value and the storedsym/def are now written to
+         the PPU fiel
+
+  Revision 1.36  1998/09/07 17:37:01  florian
     * first fixes for published properties
 
   Revision 1.35  1998/09/06 22:42:02  florian

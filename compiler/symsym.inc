@@ -544,12 +544,15 @@
          proptype:=readdefref;
          options:=readlong;
          index:=readlong;
+         default:=readlong;
          { it's hack ... }
          readaccesssym:=psym(stringdup(readstring));
          writeaccesssym:=psym(stringdup(readstring));
+         storedsym:=psym(stringdup(readstring));
          { now the defs: }
          readaccessdef:=readdefref;
          writeaccessdef:=readdefref;
+         storeddef:=readdefref;
       end;
 
     procedure tpropertysym.deref;
@@ -558,6 +561,7 @@
          resolvedef(proptype);
          resolvedef(readaccessdef);
          resolvedef(writeaccessdef);
+         resolvedef(storeddef);
          { solve the hack we did in load: }
          if pstring(readaccesssym)^<>'' then
            begin
@@ -569,6 +573,7 @@
            srsym:=nil;
          stringdispose(pstring(readaccesssym));
          readaccesssym:=srsym;
+
          if pstring(writeaccesssym)^<>'' then
            begin
               srsym:=search_class_member(pobjectdef(owner^.defowner),pstring(writeaccesssym)^);
@@ -579,6 +584,17 @@
            srsym:=nil;
          stringdispose(pstring(writeaccesssym));
          writeaccesssym:=srsym;
+
+         if pstring(storedsym)^<>'' then
+           begin
+              srsym:=search_class_member(pobjectdef(owner^.defowner),pstring(storedsym)^);
+              if not(assigned(srsym)) then
+                srsym:=generrorsym;
+           end
+         else
+           srsym:=nil;
+         stringdispose(pstring(storedsym));
+         storedsym:=srsym;
       end;
 
     function tpropertysym.getsize : longint;
@@ -594,6 +610,7 @@
          writedefref(proptype);
          writelong(options);
          writelong(index);
+         writelong(default);
          if assigned(readaccesssym) then
            writestring(readaccesssym^.name)
          else
@@ -602,8 +619,13 @@
            writestring(writeaccesssym^.name)
          else
            writestring('');
+         if assigned(storedsym) then
+           writestring(storedsym^.name)
+         else
+           writestring('');
          writedefref(readaccessdef);
          writedefref(writeaccessdef);
+         writedefref(storeddef);
          current_ppu^.writeentry(ibpropertysym);
       end;
 
@@ -1624,7 +1646,14 @@
 
 {
   $Log$
-  Revision 1.41  1998-09-07 18:46:12  peter
+  Revision 1.42  1998-09-07 19:33:25  florian
+    + some stuff for property rtti added:
+       - NameIndex of the TPropInfo record is now written correctly
+       - the DEFAULT/NODEFAULT keyword is supported now
+       - the default value and the storedsym/def are now written to
+         the PPU fiel
+
+  Revision 1.41  1998/09/07 18:46:12  peter
     * update smartlinking, uses getdatalabel
     * renamed ptree.value vars to value_str,value_real,value_set
 

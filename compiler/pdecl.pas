@@ -698,6 +698,8 @@ unit pdecl;
            s : string;
            filepos : tfileposinfo;
            pp : pprocdef;
+           pt : ptree;
+           propname : stringid;
 
         begin
            { check for a class }
@@ -707,6 +709,7 @@ unit pdecl;
            if token=ID then
              begin
                 p:=new(ppropertysym,init(pattern));
+                propname:=pattern;
                 consume(ID);
                 propertyparas:=nil;
                 datacoll:=nil;
@@ -795,7 +798,7 @@ unit pdecl;
                 else
                   begin
                      { do an property override }
-                     overriden:=search_class_member(aktclass,pattern);
+                     overriden:=search_class_member(aktclass,propname);
                      if assigned(overriden) and (overriden^.typ=propertysym) then
                        begin
                           { take the whole info: }
@@ -806,6 +809,9 @@ unit pdecl;
                           p^.readaccesssym:=ppropertysym(overriden)^.readaccesssym;
                           p^.writeaccessdef:=ppropertysym(overriden)^.writeaccessdef;
                           p^.readaccessdef:=ppropertysym(overriden)^.readaccessdef;
+                          p^.storedsym:=ppropertysym(overriden)^.storedsym;
+                          p^.storeddef:=ppropertysym(overriden)^.storeddef;
+                          p^.default:=ppropertysym(overriden)^.default;
                        end
                      else
                        begin
@@ -899,13 +905,29 @@ unit pdecl;
                 if (token=ID) and (pattern='DEFAULT') then
                   begin
                      consume(ID);
-                     { !!!!!!! storage }
-                     consume(SEMICOLON);
+                     if not(is_ordinal(p^.proptype) or
+                       ((p^.proptype^.deftype=setdef) and
+                        (psetdef(p^.proptype)^.settype=smallset)
+                       ) or
+                       assigned(propertyparas)
+                       ) then
+                       Message(parser_e_property_cant_have_a_default_value);
+                     pt:=comp_expr(true);
+                     pt:=gentypeconvnode(pt,p^.proptype);
+                     do_firstpass(pt);
+                     if not(is_constnode(pt)) then
+                       Message(parser_e_property_default_value_must_const);
+
+                     if pt^.treetype=setconstn then
+                       p^.default:=plongint(pt^.value_set)^
+                     else
+                       p^.default:=pt^.value;
+                     disposetree(pt);
                   end
                 else if (token=ID) and (pattern='NODEFAULT') then
                   begin
                      consume(ID);
-                     { !!!!!!!! }
+                     p^.default:=0;
                   end;
                 symtablestack^.insert(p);
                 { default property ? }
@@ -1311,12 +1333,13 @@ unit pdecl;
          testcurobject:=0;
          curobjectname:='';
 
-         aktclass^.generate_rtti;
          if (cs_smartlink in aktmoduleswitches) then
            datasegment^.concat(new(pai_cut,init));
          { write extended info for classes }
          if is_a_class then
            begin
+              if (aktclass^.options and oo_can_have_published)<>0 then
+                aktclass^.generate_rtti;
               { write class name }
               getlabel(classnamelabel);
               datasegment^.concat(new(pai_label,init(classnamelabel)));
@@ -1969,7 +1992,14 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.50  1998-09-07 18:46:08  peter
+  Revision 1.51  1998-09-07 19:33:22  florian
+    + some stuff for property rtti added:
+       - NameIndex of the TPropInfo record is now written correctly
+       - the DEFAULT/NODEFAULT keyword is supported now
+       - the default value and the storedsym/def are now written to
+         the PPU fiel
+
+  Revision 1.50  1998/09/07 18:46:08  peter
     * update smartlinking, uses getdatalabel
     * renamed ptree.value vars to value_str,value_real,value_set
 
