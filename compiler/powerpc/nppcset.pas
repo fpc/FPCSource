@@ -47,7 +47,7 @@ implementation
       cpuinfo,
       pass_2,cgcpu,
       ncon,
-      cga,tgobj,ncgutil,regvars,rgobj,aasmcpu;
+      tgobj,ncgutil,regvars,rgobj,aasmcpu;
 
 
 
@@ -158,7 +158,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2003-09-03 19:35:24  peter
+  Revision 1.10  2003-09-03 19:39:16  peter
+    * removed empty cga unit
+
+  Revision 1.9  2003/09/03 19:35:24  peter
     * powerpc compiles again
 
   Revision 1.8  2003/06/14 22:32:43  jonas

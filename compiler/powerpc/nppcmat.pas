@@ -59,7 +59,7 @@ implementation
       cgbase,cgobj,pass_1,pass_2,
       ncon,
       cpubase,cpuinfo,cginfo,
-      ncgutil,cga,cgcpu,cg64f32,rgobj;
+      ncgutil,cgcpu,cg64f32,rgobj;
 
 {*****************************************************************************
                              TPPCMODDIVNODE
@@ -508,7 +508,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2003-09-03 19:35:24  peter
+  Revision 1.33  2003-09-03 19:39:16  peter
+    * removed empty cga unit
+
+  Revision 1.32  2003/09/03 19:35:24  peter
     * powerpc compiles again
 
   Revision 1.31  2003/06/14 22:32:43  jonas

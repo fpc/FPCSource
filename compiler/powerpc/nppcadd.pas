@@ -57,7 +57,7 @@ interface
       cgbase,cpuinfo,pass_1,pass_2,regvars,
       cpupara,
       ncon,nset,
-      cga,ncgutil,tgobj,rgobj,rgcpu,cgobj,cg64f32;
+      ncgutil,tgobj,rgobj,rgcpu,cgobj,cg64f32;
 
 
 {*****************************************************************************
@@ -1428,7 +1428,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2003-09-03 19:35:24  peter
+  Revision 1.35  2003-09-03 19:39:16  peter
+    * removed empty cga unit
+
+  Revision 1.34  2003/09/03 19:35:24  peter
     * powerpc compiles again
 
   Revision 1.33  2003/06/14 22:32:43  jonas
