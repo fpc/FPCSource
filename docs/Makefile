@@ -57,7 +57,7 @@ override FPC:=$(subst \,/,$(FPC))$(SRCEXEEXT)
 
 HOSTOS=$(shell $(FPC) -iSO)
 # Which docs are made when 'html' is specified
-HTML = user units ref prog fpdoc fcl chart
+HTML = user rtl ref prog fpdoc fcl chart
 
 # Can be 'report','book', 'html', 'hevea', 'ts3' 'ts4'
 ifdef USEHEVEA
@@ -189,7 +189,7 @@ endif
 
 .PHONY: clean dvi help html ps psdist htmldist pdfdist txtdist \
         htm txt pdf refex alldist messages onechap gtk \
-        user ref prog units
+        user ref prog rtl units
 
 .SUFFIXES: .dvi .tex .ps .txt .pdf
 
@@ -357,8 +357,7 @@ endif
 #####################################################################
 # Tex from XML
 #####################################################################
-FCLOPTS=--package=fcl
- --descr=classes.xml --input='$(FPCSRCDIR)/rtl/$(HOSTOS)/classes.pp -Fi$(FPCSRCDIR)/rtl/objpas/classes'
+FCLOPTS=--package=fcl --descr=classes.xml --input='$(FPCSRCDIR)/rtl/$(HOSTOS)/classes.pp -Fi$(FPCSRCDIR)/rtl/objpas/classes'
 
 fcl.inc: classes.xml
 	$(FPDOC) --output=fcl.inc $(FCLOPTS) --format=latex
@@ -366,43 +365,44 @@ fcl.inc: classes.xml
 XMLUNITS=sysutils strutils dateutils systhrds strings mouse keyboard \
          crt video dos sockets objects heaptrc mmx ipc printer typinfo\
          ports getopts emu387 dxeload go32 gpm graph oldlinux baseunix\
-         unixtype unix classes unixutil x86 dynlibs linux math
-RTLXML=$(addsuffix .xml,$(XMLUNITS))
-# RTLXML=baseunix.xml
+         unixtype unix classes unixutil x86 dynlibs linux math system
+#RTLXML=$(addsuffix .xml,$(XMLUNITS))
+RTLXML=system.xml
 RTLOPTS=--package=rtl
-RTLOPTS+=--descr=strutils.xml --input="../rtl/objpas/strutils.pp" 
-RTLOPTS+=--descr=systhrds.xml --input="../rtl/unix/systhrds.pp -Fi../rtl/inc" 
-RTLOPTS+=--descr=sysutils.xml --input="../rtl/unix/sysutils.pp -Fi../rtl/objpas/sysutils -Fi../rtl/inc"  
-RTLOPTS+=--descr=strings.xml --input="../rtl/inc/strings.pp -Fi../rtl/i386 -Fi../rtl/inc"  
-RTLOPTS+=--descr=mouse.xml --input="../rtl/unix/mouse.pp -Fi../rtl/inc"  
-RTLOPTS+=--descr=keyboard.xml --input="../rtl/unix/keyboard.pp -Fi../rtl/inc"  
-RTLOPTS+=--descr=crt.xml --input="../rtl/unix/crt.pp -Fi../rtl/inc"  
-RTLOPTS+=--descr=video.xml --input="../rtl/unix/video.pp -Fi../rtl/inc"  
-RTLOPTS+=--descr=dos.xml --input="../rtl/unix/dos.pp -Fi../rtl/inc -dcpui386"  
-RTLOPTS+=--descr=sockets.xml --input="../rtl/unix/sockets.pp -Fi../rtl/inc -Fi../rtl/$(HOSTOS)"  
-RTLOPTS+=--descr=objects.xml --input="../rtl/inc/objects.pp -Fi../rtl/i386 -Fi../rtl/$(HOSTOS)"  
-RTLOPTS+=--descr=heaptrc.xml --input="../rtl/inc/heaptrc.pp -Fi../rtl/i386 -Fi../rtl/$(HOSTOS)"  
-RTLOPTS+=--descr=mmx.xml --input="../rtl/i386/mmx.pp -Fi../rtl/$(HOSTOS)"  
-RTLOPTS+=--descr=ipc.xml --input="../rtl/unix/ipc.pp -Fi../rtl/$(HOSTOS)"  
-RTLOPTS+=--descr=printer.xml --input="../rtl/unix/printer.pp -Fi../rtl/$(HOSTOS)"  
-RTLOPTS+=--descr=typinfo.xml --input="../rtl/objpas/typinfo.pp -Fi../rtl/$(HOSTOS)"  
-RTLOPTS+=--descr=ports.xml --input="../rtl/unix/ports.pp -Fi../rtl/$(HOSTOS)"  
-RTLOPTS+=--descr=getopts.xml --input="../rtl/inc/getopts.pp -Fi../rtl/$(HOSTOS)"  
-RTLOPTS+=--descr=emu387.xml --input="../rtl/go32v2/emu387.pp -Fi../rtl/i386"  
-RTLOPTS+=--descr=dxeload.xml --input="../rtl/go32v2/dxeload.pp -Fi../rtl/i386"  
-RTLOPTS+=--descr=go32.xml --input="../rtl/go32v2/go32.pp -Fi../rtl/i386"  
-RTLOPTS+=--descr=gpm.xml --input="-dVER1_0 ../rtl/unix/gpm.pp -Fi../rtl/i386"  
-RTLOPTS+=--descr=graph.xml --input="../rtl/unix/graph.pp -Fi../rtl/i386 -Fi../rtl/inc/graph"  
-RTLOPTS+=--descr=oldlinux.xml --input="../rtl/unix/oldlinux.pp -Fi../rtl/linux -Fi../rtl/unix"  
-RTLOPTS+=--descr=unixtype.xml --input="../rtl/unix/unixtype.pp -Fi../rtl/unix -Fi../rtl/linux -Fi../rtl/linux/i386" 
-RTLOPTS+=--descr=baseunix.xml --input="../rtl/linux/baseunix.pp -Fi../rtl/unix -Fi../rtl/linux -Fi../rtl/linux/i386"  
-RTLOPTS+=--descr=unix.xml  --input="../rtl/unix/unix.pp -Fi../rtl/unix -Fi../rtl/linux -Fi../rtl/linux/i386" 
-RTLOPTS+=--descr=classes.xml --input='$(FPCSRCDIR)/rtl/$(HOSTOS)/classes.pp -Fi$(FPCSRCDIR)/rtl/objpas/classes'
-RTLOPTS+= --descr=unixutil.xml --input="../rtl/unix/unixutil.pp"
-RTLOPTS+= --descr=x86.xml --input="../rtl/unix/x86.pp"
-RTLOPTS+=--descr=dynlibs.xml --input="../rtl/inc/dynlibs.pp -Fi../rtl/unix"
-RTLOPTS+=--descr=linux.xml --input="../rtl/unix/linux.pp -Fi../rtl/linux -Fi../rtl/unix"
-RTLOPTS+=--descr=math.xml --input="../rtl/objpas/math.pp -Fi../rtl/i386 -dFPC_HAS_TYPE_EXTENDED"
+#RTLOPTS+=--descr=strutils.xml --input="../rtl/objpas/strutils.pp" 
+#RTLOPTS+=--descr=systhrds.xml --input="../rtl/unix/systhrds.pp -Fi../rtl/inc" 
+#RTLOPTS+=--descr=sysutils.xml --input="../rtl/unix/sysutils.pp -Fi../rtl/objpas/sysutils -Fi../rtl/inc"  
+#RTLOPTS+=--descr=strings.xml --input="../rtl/inc/strings.pp -Fi../rtl/i386 -Fi../rtl/inc"  
+#RTLOPTS+=--descr=mouse.xml --input="../rtl/unix/mouse.pp -Fi../rtl/inc"  
+#RTLOPTS+=--descr=keyboard.xml --input="../rtl/unix/keyboard.pp -Fi../rtl/inc"  
+#RTLOPTS+=--descr=crt.xml --input="../rtl/unix/crt.pp -Fi../rtl/inc"  
+#RTLOPTS+=--descr=video.xml --input="../rtl/unix/video.pp -Fi../rtl/inc"  
+#RTLOPTS+=--descr=dos.xml --input="../rtl/unix/dos.pp -Fi../rtl/inc -dcpui386"  
+#RTLOPTS+=--descr=sockets.xml --input="../rtl/unix/sockets.pp -Fi../rtl/inc -Fi../rtl/$(HOSTOS)"  
+#RTLOPTS+=--descr=objects.xml --input="../rtl/inc/objects.pp -Fi../rtl/i386 -Fi../rtl/$(HOSTOS)"  
+#RTLOPTS+=--descr=heaptrc.xml --input="../rtl/inc/heaptrc.pp -Fi../rtl/i386 -Fi../rtl/$(HOSTOS)"  
+#RTLOPTS+=--descr=mmx.xml --input="../rtl/i386/mmx.pp -Fi../rtl/$(HOSTOS)"  
+#RTLOPTS+=--descr=ipc.xml --input="../rtl/unix/ipc.pp -Fi../rtl/$(HOSTOS)"  
+#RTLOPTS+=--descr=printer.xml --input="../rtl/unix/printer.pp -Fi../rtl/$(HOSTOS)"  
+#RTLOPTS+=--descr=typinfo.xml --input="../rtl/objpas/typinfo.pp -Fi../rtl/$(HOSTOS)"  
+#RTLOPTS+=--descr=ports.xml --input="../rtl/unix/ports.pp -Fi../rtl/$(HOSTOS)"  
+#RTLOPTS+=--descr=getopts.xml --input="../rtl/inc/getopts.pp -Fi../rtl/$(HOSTOS)"  
+#RTLOPTS+=--descr=emu387.xml --input="../rtl/go32v2/emu387.pp -Fi../rtl/i386"  
+#RTLOPTS+=--descr=dxeload.xml --input="../rtl/go32v2/dxeload.pp -Fi../rtl/i386"  
+#RTLOPTS+=--descr=go32.xml --input="../rtl/go32v2/go32.pp -Fi../rtl/i386"  
+#RTLOPTS+=--descr=gpm.xml --input="-dVER1_0 ../rtl/unix/gpm.pp -Fi../rtl/i386"  
+#RTLOPTS+=--descr=graph.xml --input="../rtl/unix/graph.pp -Fi../rtl/i386 -Fi../rtl/inc/graph"  
+#RTLOPTS+=--descr=oldlinux.xml --input="../rtl/unix/oldlinux.pp -Fi../rtl/linux -Fi../rtl/unix"  
+#RTLOPTS+=--descr=unixtype.xml --input="../rtl/unix/unixtype.pp -Fi../rtl/unix -Fi../rtl/linux -Fi../rtl/linux/i386" 
+#RTLOPTS+=--descr=baseunix.xml --input="../rtl/linux/baseunix.pp -Fi../rtl/unix -Fi../rtl/linux -Fi../rtl/linux/i386"  
+#RTLOPTS+=--descr=unix.xml  --input="../rtl/unix/unix.pp -Fi../rtl/unix -Fi../rtl/linux -Fi../rtl/linux/i386" 
+#RTLOPTS+=--descr=classes.xml --input='$(FPCSRCDIR)/rtl/$(HOSTOS)/classes.pp -Fi$(FPCSRCDIR)/rtl/objpas/classes'
+#RTLOPTS+= --descr=unixutil.xml --input="../rtl/unix/unixutil.pp"
+#RTLOPTS+= --descr=x86.xml --input="../rtl/unix/x86.pp"
+#RTLOPTS+=--descr=dynlibs.xml --input="../rtl/inc/dynlibs.pp -Fi../rtl/unix"
+#RTLOPTS+=--descr=linux.xml --input="../rtl/unix/linux.pp -Fi../rtl/linux -Fi../rtl/unix"
+#RTLOPTS+=--descr=math.xml --input="../rtl/objpas/math.pp -Fi../rtl/i386 -dFPC_HAS_TYPE_EXTENDED"
+RTLOPTS+=--descr=system.xml --input="-dfpdocsystem -dSUPPORT_DOUBLE ../rtl/$(HOSTOS)/system.pp -Fi../rtl/unix -Fi../rtl/inc -Fi../rtl/i386 -dFPC_HAS_TYPE_EXTENDED"
 
 rtl.inc: $(RTLXML)
 	$(FPDOC) --output=rtl.inc $(RTLOPTS) --format=latex
@@ -647,7 +647,10 @@ execute:
 
 #
 # $Log$
-# Revision 1.30  2004-10-22 23:02:40  michael
+# Revision 1.31  2004-12-06 22:43:41  michael
+# * Hopefully fixed make. Not yet tested, as my XML file is currently faulty.
+#
+# Revision 1.30  2004/10/22 23:02:40  michael
 # + Math.xml now ok to be used
 #
 # Revision 1.29  2004/10/22 20:45:50  michael
