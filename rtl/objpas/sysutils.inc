@@ -37,6 +37,8 @@
   { Read pchar handling functions implementation }
   {$i syspch.inc}
 
+  { CPU Specific code }
+  {$i sysutilp.inc}
 
     procedure FreeAndNil(var obj);
       var
@@ -328,7 +330,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  2001-08-19 21:02:02  florian
+  Revision 1.7  2001-10-22 21:40:55  peter
+    * InterLocked routines added
+
+  Revision 1.6  2001/08/19 21:02:02  florian
     * fixed and added a lot of stuff to get the Jedi DX( headers
       compiled
 
