@@ -75,7 +75,7 @@ begin
                 Delete (Pa, 1, 1)
             else
                 if S [Length (S)] = DirSep then
-                    Pa := S + Copy (Pa, 3, Length (Pa - 2))
+                    Pa := S + Copy (Pa, 3, Length (Pa) - 2)
                 else
                     Pa := S + Copy (Pa, 2, Pred (Length (Pa)));
    end;
@@ -200,7 +200,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2001-03-10 09:57:51  hajny
+  Revision 1.3  2001-03-19 21:05:42  hajny
+    * mistyping in the Unix part fixed
+
+  Revision 1.2  2001/03/10 09:57:51  hajny
     * FExpand without IOResult change, remaining direct asm removed
 
  
