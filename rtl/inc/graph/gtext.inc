@@ -358,17 +358,16 @@
        end;
       var
          i,j,k,c       : longint;
-         oldvalues     : linesettingstype;
          xpos,ypos     : longint;
          counter       : longint;
          FontBitmap    : TBitmapChar;
-         chr: char;
          cnt1,cnt2     : integer;
          cnt3,cnt4     : integer;
          charsize      : word;
-
          WriteMode     : word;
          CurX, CurY    : integer;
+         oldvalues     : linesettingstype;
+         chr           : char;
 
       begin
          { save current write mode }
@@ -728,7 +727,14 @@
 
 {
 $Log$
-Revision 1.5  1999-09-27 23:34:42  peter
+Revision 1.6  1999-09-28 13:56:29  jonas
+  * reordered some local variables (first 4 byte vars, then 2 byte vars
+    etc)
+  * font data is now disposed in exitproc, exitproc is now called
+    GraphExitProc (was CleanModes) and resides in graph.pp instead of in
+    modes.inc
+
+Revision 1.5  1999/09/27 23:34:42  peter
   * new graph unit is default for go32v2
   * removed warnings/notes
 

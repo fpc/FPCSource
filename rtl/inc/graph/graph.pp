@@ -583,6 +583,7 @@ VAR
 
   SaveVideoState : SaveStateProc;
   RestoreVideoState: RestoreStateProc;
+  ExitSave: pointer;
 
 
 Procedure Closegraph;
@@ -2399,22 +2400,22 @@ end;
 
      case Fillsettings.pattern of
      EmptyFill :
-           begin
-                     Currentcolor:=CurrentBkColor;
-                     for y:=y1 to y2 do
-                       Hline(x1,x2,y);
-                   end;
+       begin
+         Currentcolor:=CurrentBkColor;
+         for y:=y1 to y2 do
+           Hline(x1,x2,y);
+       end;
      SolidFill :
-           begin
-                     CurrentColor:=FillSettings.color;
-                     for y:=y1 to y2 do
-                       Hline(x1,x2,y);
-                  end;
+       begin
+         CurrentColor:=FillSettings.color;
+           for y:=y1 to y2 do
+              Hline(x1,x2,y);
+       end;
      else
       Begin
-            CurrentColor:=FillSettings.color;
+        CurrentColor:=FillSettings.color;
         for y:=y1 to y2 do
-                  patternline(x1,x2,y);
+          patternline(x1,x2,y);
       end;
     end;
     CurrentColor:= Origcolor;
@@ -2803,6 +2804,38 @@ end;
     GetDirectVideo := DirectVideo;
   end;
 
+ procedure GraphExitProc; {$ifndef fpc} far; {$endif fpc}
+ { deallocates all memory allocated by the graph unit }
+  var
+    list: PModeInfo;
+    tmp : PModeInfo;
+    c: graph_int;
+  begin
+   { restore old exitproc! }
+   exitproc := exitsave;
+{$ifdef testsave}
+   restorevideostate;
+{$endif testsave}
+   { release memory allocated for fonts }
+   for c := 1 to installedfonts do
+     If assigned(fonts[c].instr) Then
+       Freemem(fonts[c].instr,strlen(fonts[c].instr));
+   { release memory allocated for modelist }
+   list := ModeList;
+   while assigned(list) do
+     begin
+       tmp := list;
+       list:=list^.next;
+       dispose(tmp);
+     end;
+{$IFDEF DPMI}
+  { We had copied the buffer of mode information }
+  { and allocated it dynamically... now free it  }
+  { Warning: if GetVESAInfo returned false, this buffer is not allocated! (JM)}
+   If hasVesa then
+     Dispose(VESAInfo.ModeList);
+{$ENDIF}
+  end;
 
 
 begin
@@ -2831,7 +2864,7 @@ begin
  InstallUserFont('GOTH');
  { This installs an exit procedure which cleans up the mode list...}
  ExitSave := ExitProc;
- ExitProc := @CleanMode;
+ ExitProc := @GraphExitProc;
 {$ifdef testsave}
  savevideostate;
 {$endif testsave}
@@ -2843,7 +2876,14 @@ SetGraphBufSize
 
 {
   $Log$
-  Revision 1.30  1999-09-27 23:34:41  peter
+  Revision 1.31  1999-09-28 13:56:25  jonas
+    * reordered some local variables (first 4 byte vars, then 2 byte vars
+      etc)
+    * font data is now disposed in exitproc, exitproc is now called
+      GraphExitProc (was CleanModes) and resides in graph.pp instead of in
+      modes.inc
+
+  Revision 1.30  1999/09/27 23:34:41  peter
     * new graph unit is default for go32v2
     * removed warnings/notes
 

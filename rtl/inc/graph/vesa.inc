@@ -98,7 +98,7 @@ end;
 {$ifndef fpc}
     ModeSel: word;
     offs: longint;
-{$endif}
+{$endif fpc}
     { added... }
     modelist: PmodeList;
     i: longint;
@@ -949,8 +949,8 @@ end;
 
   procedure DirectPutPixVESA32k(x, y : integer); {$ifndef fpc}far;{$endif fpc}
   var
-     col : word;
      offs : longint;
+     col : word;
   begin
      offs := longint(y) * BytesPerLine + 2*x;
      SetWriteBank(integer((offs shr 16) and $ff));
@@ -982,8 +982,8 @@ end;
 
   procedure DirectPutPixVESA64k(x, y : integer); {$ifndef fpc}far;{$endif fpc}
   var
-     Col : word;
      offs : longint;
+     Col : word;
   begin
      offs := longint(y) * BytesPerLine + 2*x;
      SetWriteBank(integer(offs shr 16));
@@ -1167,7 +1167,7 @@ end;
     pal: PalRec;
 {$ifndef fpc}
     palptr : ^PalRec;
-{$endif}
+{$endif fpc}
     regs : TDPMIRegisters;
     RealSeg: word;
     ptr: longint;
@@ -1292,8 +1292,8 @@ end;
 
 
 
-  Procedure GetVESARGBPalette(ColorNum: integer; Var
-      RedValue, GreenValue, BlueValue : integer); far;
+  Procedure GetVESARGBPalette(ColorNum: integer; Var RedValue, GreenValue,
+              BlueValue : integer); far;
    var
     Error: boolean;
     pal: ^palrec;
@@ -1873,7 +1873,14 @@ end;
 
 {
 $Log$
-Revision 1.17  1999-09-27 23:34:42  peter
+Revision 1.18  1999-09-28 13:56:31  jonas
+  * reordered some local variables (first 4 byte vars, then 2 byte vars
+    etc)
+  * font data is now disposed in exitproc, exitproc is now called
+    GraphExitProc (was CleanModes) and resides in graph.pp instead of in
+    modes.inc
+
+Revision 1.17  1999/09/27 23:34:42  peter
   * new graph unit is default for go32v2
   * removed warnings/notes
 

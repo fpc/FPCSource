@@ -18,8 +18,6 @@
 {-----------------------------------------------------------------------}
 {                          Internal routines                            }
 {-----------------------------------------------------------------------}
-var
- ExitSave: pointer;
 
  procedure addmode(mode: TModeInfo);
   {********************************************************}
@@ -35,18 +33,10 @@ var
     if not assigned(ModeList) then
       begin
         new(ModeList);
-{$ifdef logging}
-        LogLn('Modelist = '+strf(Longint(modelist)));
-        LogLn('Adding mode 1 and modelist^.next = '+strf(Longint(mode.next)));
-{$endif logging}
         move(mode, ModeList^, sizeof(Mode));
       end
     else
       begin
-{$ifdef logging}
-        LogLn('Adding another mode, modelist = '+strf(Longint(modelist)));
-        LogLn('and modelist^.next = '+strf(Longint(modelist^.next)));
-{$endif logging}
         list := ModeList;
         { go to the end of the list }
         while assigned(list^.next) do
@@ -96,52 +86,6 @@ var
           end;
     end;
 
-
-   procedure cleanmode; {$ifndef fpc}far;{$endif fpc}
-  {********************************************************}
-  { Procedure CleanMode()                                  }
-  {--------------------------------------------------------}
-  { This routine deallocates the mode list.                }
-  { It is called as an exit procedure ONLY.                }
-  {********************************************************}
-    var
-      list: PModeInfo;
-      tmp : PModeInfo;
-{$ifdef logging}
-      c: word;
-{$endif logging}
-    begin
-{$ifdef testsave}
-      restorevideostate;
-{$endif testsave}
-      { restore old exitproc! }
-      exitproc := exitsave;
-{$ifdef logging}
-      LogLn('Modelist at exit: '+strf(longint(modelist)));
-      LogLn('Modelist^.next at exit: '+strf(longint(modelist^.next)));
-      c := 1;
-{$endif logging}
-        list := ModeList;
-        { go to the end of the list }
-        while assigned(list) do
-        begin
-          tmp := list;
-          list:=list^.next;
-{$ifdef logging}
-          LogLn('disposing mode '+strf(c));
-          inc(c);
-{$endif logging}
-          dispose(tmp);
-        end;
-{$IFDEF DPMI}
-      { We had copied the buffer of mode information }
-      { and allocated it dynamically... now free it  }
-      { Warning: if GetVESAInfo returned false, this buffer is not allocated!
-        (JM)}
-      If hasVesa then
-        Dispose(VESAInfo.ModeList);
-{$ENDIF}
-    end;
 
 {-----------------------------------------------------------------------}
 {                          External routines                            }
@@ -354,7 +298,14 @@ var
 
 {
 $Log$
-Revision 1.11  1999-09-26 13:31:07  jonas
+Revision 1.12  1999-09-28 13:56:31  jonas
+  * reordered some local variables (first 4 byte vars, then 2 byte vars
+    etc)
+  * font data is now disposed in exitproc, exitproc is now called
+    GraphExitProc (was CleanModes) and resides in graph.pp instead of in
+    modes.inc
+
+Revision 1.11  1999/09/26 13:31:07  jonas
   * changed name of modeinfo variable to vesamodeinfo and fixed
     associated errors (fillchar(modeinfo,sizeof(tmodeinfo),#0) instead
     of sizeof(TVesamodeinfo) etc)
