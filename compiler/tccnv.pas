@@ -867,9 +867,7 @@ implementation
         { ordinal contants can be directly converted }
         if (p^.left^.treetype=ordconstn) and is_ordinal(p^.resulttype) then
           begin
-             { perform range checking }
-             if not(p^.explizit and (m_tp in aktmodeswitches)) then
-               testrange(p^.resulttype,p^.left^.value);
+             { range checking is done in genordinalconstnode (PFV) }
              hp:=genordinalconstnode(p^.left^.value,p^.resulttype);
              disposetree(p);
              firstpass(hp);
@@ -951,7 +949,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  1998-12-30 22:13:47  peter
+  Revision 1.14  1999-01-19 12:17:45  peter
+    * removed rangecheck warning which was shown twice
+
+  Revision 1.13  1998/12/30 22:13:47  peter
     * if explicit cnv then also handle the ordinal consts direct
 
   Revision 1.12  1998/12/11 00:03:53  peter
