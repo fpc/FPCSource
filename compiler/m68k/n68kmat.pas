@@ -51,8 +51,8 @@ implementation
       symconst,symdef,aasmbase,aasmtai,aasmcpu,
       pass_1,pass_2,
       ncon,
-      cpuinfo,paramgr,defutil,
-      tgobj,ncgutil,cgobj,rgobj,rgcpu,cgcpu,cg64f32;
+      cpuinfo,paramgr,defutil,parabase,
+      tgobj,ncgutil,cgobj,cgutils,rgobj,rgcpu,cgcpu,cg64f32;
 
 
 
@@ -91,7 +91,7 @@ implementation
               LOC_FLAGS :
                 begin
                   location_copy(location,left.location);
-                  location_release(exprasmlist,left.location);
+//                  location_release(exprasmlist,left.location);
                   inverse_flags(location.resflags);
                 end;
               LOC_CONSTANT,
@@ -102,7 +102,7 @@ implementation
                 begin
                   location_force_reg(exprasmlist,left.location,def_cgsize(resulttype.def),true);
                   exprasmlist.concat(taicpu.op_reg(A_TST,tcgsize2opsize[opsize],left.location.register));
-                  location_release(exprasmlist,left.location);
+//                  location_release(exprasmlist,left.location);
                   location_reset(location,LOC_FLAGS,OS_NO);
                   location.resflags:=F_E;
                 end;
@@ -138,6 +138,7 @@ implementation
    var
      continuelabel : tasmlabel;
      reg_d0,reg_d1 : tregister;
+     paraloc1 : tcgpara;
    begin
      { no RTL call, so inline a zero denominator verification }
      if aktoptprocessor <> MC68000 then
@@ -146,7 +147,9 @@ implementation
          objectlibrary.getlabel(continuelabel);
          { compare against zero, if not zero continue }
          cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_NE,0,denum,continuelabel);
-         cg.a_param_const(exprasmlist, OS_S32,200,paramanager.getintparaloc(pocall_default,1));
+//	 paraloc1.init;
+//         cg.a_param_const(exprasmlist,OS_S32,200,paramanager.getintparaloc(pocall_default,1,paraloc1));
+
          cg.a_call_name(exprasmlist,'FPC_HANDLEERROR');
          cg.a_label(exprasmlist, continuelabel);
          if signed then
@@ -172,8 +175,8 @@ implementation
          else
              cg.a_call_name(exprasmlist,'FPC_DIV_CARDINAL');
         cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,reg_d0,denum);
-        cg.ungetregister(exprasmlist,reg_d0);
-        cg.ungetregister(exprasmlist,reg_d1);
+        cg.ungetcpuregister(exprasmlist,reg_d0);
+        cg.ungetcpuregister(exprasmlist,reg_d1);
        end;
    end;
 
@@ -190,7 +193,7 @@ implementation
          objectlibrary.getlabel(continuelabel);
          { compare against zero, if not zero continue }
          cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_NE,0,denum,continuelabel);
-         cg.a_param_const(exprasmlist, OS_S32,200,paramanager.getintparaloc(pocall_default,1));
+//         cg.a_param_const(exprasmlist, OS_S32,200,paramanager.getintparaloc(pocall_default,1));
          cg.a_call_name(exprasmlist,'FPC_HANDLEERROR');
          cg.a_label(exprasmlist, continuelabel);
 
@@ -215,7 +218,7 @@ implementation
            exprasmlist.concat(taicpu.op_reg_reg_reg(A_DIVUL,S_L,denum,tmpreg,num));
          { remainder in tmpreg }
          cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,tmpreg,denum);
-         cg.ungetregister(exprasmlist,tmpreg);
+         cg.ungetcpuregister(exprasmlist,tmpreg);
        end
      else
        begin
@@ -233,8 +236,8 @@ implementation
          else
              cg.a_call_name(exprasmlist,'FPC_MOD_CARDINAL');
         cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,Reg_D0,denum);
-        cg.ungetregister(exprasmlist,Reg_D0);
-        cg.ungetregister(exprasmlist,Reg_D1);
+        cg.ungetcpuregister(exprasmlist,Reg_D0);
+        cg.ungetcpuregister(exprasmlist,Reg_D1);
        end;
     end;
 
@@ -246,7 +249,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2004-10-31 21:45:03  peter
+  Revision 1.12  2005-01-08 04:11:26  karoly
+    * made m68k to compile again
+
+  Revision 1.11  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 

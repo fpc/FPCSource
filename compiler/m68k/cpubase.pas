@@ -128,7 +128,8 @@ unit cpubase;
       first_mm_supreg    = 0;
       first_mm_imreg     = 0;
 
-      regnumber_count_bsstart = 64;
+{$WARNING TODO FIX BSSTART}
+      regnumber_count_bsstart = 16;
 
       regnumber_table : array[tregisterindex] of tregister = (
         {$i r68knum.inc}
@@ -466,7 +467,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  2004-11-09 22:32:59  peter
+  Revision 1.34  2005-01-08 04:10:36  karoly
+    * made m68k to compile again
+
+  Revision 1.33  2004/11/09 22:32:59  peter
     * small m68k updates to bring it up2date
     * give better error for external local variable
 

@@ -20,6 +20,7 @@
 
  ****************************************************************************
 }
+{$WARNINGS OFF}
 unit cgcpu;
 
 {$i fpcdefs.inc}
@@ -61,17 +62,21 @@ unit cgcpu;
         procedure a_jmp_flags(list : taasmoutput;const f : TResFlags;l: tasmlabel); override;
         procedure g_flags2reg(list: taasmoutput; size: TCgSize; const f: tresflags; reg: TRegister); override;
 
-        procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint;delsource,loadref : boolean);override;
+        procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint);override;
         { generates overflow checking code for a node }
         procedure g_overflowcheck(list: taasmoutput; const l:tlocation; def:tdef); override;
-        procedure g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint); override;
-        procedure g_stackframe_entry(list : taasmoutput;localsize : longint);override;
-        procedure g_restore_frame_pointer(list : taasmoutput);override;
-        procedure g_return_from_proc(list : taasmoutput;parasize : aint);override;
+        procedure g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint;destreg:tregister);override;
+
+        procedure g_proc_entry(list : taasmoutput;localsize : longint;nostackframe:boolean);override;
+        procedure g_proc_exit(list : taasmoutput;parasize:longint;nostackframe:boolean);override;
+
+//        procedure g_restore_frame_pointer(list : taasmoutput);override;
+//        procedure g_return_from_proc(list : taasmoutput;parasize : aint);override;
         procedure g_restore_standard_registers(list:Taasmoutput);override;
         procedure g_save_standard_registers(list:Taasmoutput);override;
-        procedure g_save_all_registers(list : taasmoutput);override;
-        procedure g_restore_all_registers(list : taasmoutput;const funcretparaloc:TCGPara);override;
+
+//        procedure g_save_all_registers(list : taasmoutput);override;
+//        procedure g_restore_all_registers(list : taasmoutput;const funcretparaloc:TCGPara);override;
      protected
         function fixref(list: taasmoutput; var ref: treference): boolean;
      private
@@ -85,7 +90,7 @@ unit cgcpu;
 
      tcg64f68k = class(tcg64f32)
        procedure a_op64_reg_reg(list : taasmoutput;op:TOpCG;regsrc,regdst : tregister64);override;
-       procedure a_op64_const_reg(list : taasmoutput;op:TOpCG;value : qword;reg : tregister64);override;
+       procedure a_op64_const_reg(list : taasmoutput;op:TOpCG;value : int64;regdst : tregister64);override;
      end;
 
      { This function returns true if the reference+offset is valid.
@@ -108,10 +113,9 @@ unit cgcpu;
   implementation
 
     uses
-       globtype,globals,verbose,systems,cutils,
+       globals,verbose,systems,cutils,
        symdef,symsym,defutil,paramgr,procinfo,
-       rgobj,tgobj,rgcpu,
-       cgutils;
+       rgobj,tgobj,rgcpu;
 
 
     const
@@ -428,14 +432,15 @@ unit cgcpu;
                    begin
                      r:=NR_D0;
                      r2:=NR_D1;
-                     getcpuregister(list,NR_D0);
-                     getcpuregister(list,NR_D1);
+		     cg.getcpuregister(list,NR_D0);
+                     cg.getcpuregister(list,NR_D1);
                      list.concat(taicpu.op_const_reg(A_MOVE,S_L,a, r));
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg, r2));
                      cg.a_call_name(list,'FPC_MUL_LONGINT');
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,r, reg));
-                     ungetregister(list,r);
-                     ungetregister(list,r2);
+                     cg.ungetcpuregister(list,r);
+                     cg.ungetcpuregister(list,r2);
+		     
                    end
                   else
                     begin
@@ -445,7 +450,7 @@ unit cgcpu;
                          list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg, scratch_reg));
                          list.concat(taicpu.op_const_reg(A_MULS,S_L,a,scratch_reg));
                          list.concat(taicpu.op_reg_reg(A_MOVE,S_L,scratch_reg,reg));
-                         cg.ungetregister(list,scratch_reg);
+                         cg.ungetcpuregister(list,scratch_reg);
                        end
                       else
                          list.concat(taicpu.op_const_reg(A_MULS,S_L,a,reg));
@@ -457,14 +462,14 @@ unit cgcpu;
                    begin
                      r:=NR_D0;
                      r2:=NR_D1;
-                     getcpuregister(list,NR_D0);
-                     getcpuregister(list,NR_D1);
+                     cg.getcpuregister(list,NR_D0);
+                     cg.getcpuregister(list,NR_D1);
                      list.concat(taicpu.op_const_reg(A_MOVE,S_L,a, r));
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg, r2));
                      cg.a_call_name(list,'FPC_MUL_LONGWORD');
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,r, reg));
-                     ungetregister(list,r);
-                     ungetregister(list,r2);
+                     cg.ungetcpuregister(list,r);
+                     cg.ungetcpuregister(list,r2);
                    end
                   else
                     begin
@@ -474,7 +479,7 @@ unit cgcpu;
                          list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg, scratch_reg));
                          list.concat(taicpu.op_const_reg(A_MULU,S_L,a,scratch_reg));
                          list.concat(taicpu.op_reg_reg(A_MOVE,S_L,scratch_reg,reg));
-                         cg.ungetregister(list,scratch_reg);
+                         cg.ungetcpuregister(list,scratch_reg);
                        end
                       else
                          list.concat(taicpu.op_const_reg(A_MULU,S_L,a,reg));
@@ -493,7 +498,7 @@ unit cgcpu;
                        list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg, scratch_reg));
                        list.concat(taicpu.op_const_reg(opcode,S_L,a, scratch_reg));
                        list.concat(taicpu.op_reg_reg(A_MOVE,S_L,scratch_reg,reg));
-                       cg.ungetregister(list,scratch_reg);
+                       cg.ungetcpuregister(list,scratch_reg);
                      end
                    else
                      list.concat(taicpu.op_const_reg(opcode,S_L,a, reg));
@@ -510,11 +515,11 @@ unit cgcpu;
                        list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg, scratch_reg2));
                        list.concat(taicpu.op_reg_reg(opcode,S_L,scratch_reg, scratch_reg2));
                        list.concat(taicpu.op_reg_reg(A_MOVE,S_L,scratch_reg2,reg));
-                       cg.ungetregister(list,scratch_reg2);
+                       cg.ungetcpuregister(list,scratch_reg2);
                      end
                    else
                      list.concat(taicpu.op_reg_reg(opcode,S_L,scratch_reg, reg));
-                   cg.ungetregister(list,scratch_reg);
+                   cg.ungetcpuregister(list,scratch_reg);
                  end;
               end;
           OP_SUB :
@@ -597,12 +602,12 @@ unit cgcpu;
                   end;
 
                  if reg1 <> hreg1 then
-                    cg.ungetregister(list,hreg1);
+                    cg.ungetcpuregister(list,hreg1);
                  { move back result into destination register }
                  if reg2 <> hreg2 then
                    begin
                       list.concat(taicpu.op_reg_reg(A_MOVE,S_L,hreg2,reg2));
-                      cg.ungetregister(list,hreg2);
+                      cg.ungetcpuregister(list,hreg2);
                    end;
               end;
           OP_DIV :
@@ -621,14 +626,14 @@ unit cgcpu;
                    begin
                      r:=NR_D0;
                      r2:=NR_D1;
-                     getcpuregister(list,NR_D0);
-                     getcpuregister(list,NR_D1);
+                     cg.getcpuregister(list,NR_D0);
+                     cg.getcpuregister(list,NR_D1);
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg1, r));
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg2, r2));
                      cg.a_call_name(list,'FPC_MUL_LONGINT');
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,r, reg2));
-                     ungetregister(list,r);
-                     ungetregister(list,r2);
+                     cg.ungetcpuregister(list,r);
+                     cg.ungetcpuregister(list,r2);
                    end
                   else
                     begin
@@ -647,12 +652,12 @@ unit cgcpu;
                      list.concat(taicpu.op_reg_reg(A_MULS,S_L,reg1,reg2));
 
                      if reg1 <> hreg1 then
-                       cg.ungetregister(list,hreg1);
+                       cg.ungetcpuregister(list,hreg1);
                      { move back result into destination register }
                      if reg2 <> hreg2 then
                        begin
                           list.concat(taicpu.op_reg_reg(A_MOVE,S_L,hreg2,reg2));
-                          cg.ungetregister(list,hreg2);
+                          cg.ungetcpuregister(list,hreg2);
                        end;
                     end;
               end;
@@ -664,14 +669,14 @@ unit cgcpu;
                    begin
                      r:=NR_D0;
                      r2:=NR_D1;
-                     getcpuregister(list,NR_D0);
-                     getcpuregister(list,NR_D1);
+                     cg.getcpuregister(list,NR_D0);
+                     cg.getcpuregister(list,NR_D1);
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg1, r));
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg2, r2));
                      cg.a_call_name(list,'FPC_MUL_LONGWORD');
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,r, reg2));
-                     ungetregister(list,r);
-                     ungetregister(list,r2);
+                     cg.ungetcpuregister(list,r);
+                     cg.ungetcpuregister(list,r2);
                    end
                   else
                     begin
@@ -695,12 +700,12 @@ unit cgcpu;
                      list.concat(taicpu.op_reg_reg(A_MULU,S_L,reg1,reg2));
 
                      if reg1<>hreg1 then
-                       cg.ungetregister(list,hreg1);
+                       cg.ungetcpuregister(list,hreg1);
                      { move back result into destination register }
                      if reg2<>hreg2 then
                        begin
                           list.concat(taicpu.op_reg_reg(A_MOVE,S_L,hreg2,reg2));
-                          cg.ungetregister(list,hreg2);
+                          cg.ungetcpuregister(list,hreg2);
                        end;
                     end;
               end;
@@ -736,7 +741,7 @@ unit cgcpu;
                 if reg2 <> hreg2 then
                   begin
                     list.concat(taicpu.op_reg_reg(A_MOVE,S_L,hreg2,reg2));
-                    cg.ungetregister(list,hreg2);
+                    cg.ungetcpuregister(list,hreg2);
                   end;
 
               end;
@@ -770,7 +775,7 @@ unit cgcpu;
                { sign/zero extend the register }
                sign_extend(list, size,hregister);
                list.concat(taicpu.op_const_reg(A_CMPI,S_L,a,hregister));
-               cg.ungetregister(list,hregister);
+               cg.ungetcpuregister(list,hregister);
              end
            else
              begin
@@ -835,7 +840,7 @@ unit cgcpu;
                   list.concat(taicpu.op_reg(A_NEG,S_B,hreg));
                 end;
              list.concat(taicpu.op_reg_reg(A_MOVE,S_L,hreg,reg));
-             ungetregister(list,hreg);
+             cg.ungetcpuregister(list,hreg);
             end
           else
           begin
@@ -862,7 +867,8 @@ unit cgcpu;
 
 
 
-    procedure tcg68k.g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint;delsource,loadref : boolean);
+    procedure tcg68k.g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint);
+
      var
          helpsize : longint;
          i : byte;
@@ -884,13 +890,13 @@ unit cgcpu;
          { this should never occur }
          if len > 65535 then
            internalerror(0);
-         hregister := getintregister(list,OS_INT);
-         if delsource then
-            reference_release(list,source);
+         hregister := cg.getintregister(list,OS_INT);
+//         if delsource then
+//            reference_release(list,source);
 
 
          { from 12 bytes movs is being used }
-         if (not loadref) and ((len<=8) or (not(cs_littlesize in aktglobalswitches) and (len<=12))) then
+         if {(not loadref) and} ((len<=8) or (not(cs_littlesize in aktglobalswitches) and (len<=12))) then
            begin
               srcref := source;
               dstref := dest;
@@ -898,8 +904,8 @@ unit cgcpu;
               { move a dword x times }
               for i:=1 to helpsize do
                 begin
-                   a_load_ref_reg(list,OS_INT,OS_INT,srcref,hregister);
-                   a_load_reg_ref(list,OS_INT,OS_INT,hregister,dstref);
+                   cg.a_load_ref_reg(list,OS_INT,OS_INT,srcref,hregister);
+                   cg.a_load_reg_ref(list,OS_INT,OS_INT,hregister,dstref);
                    inc(srcref.offset,4);
                    inc(dstref.offset,4);
                    dec(len,4);
@@ -907,8 +913,8 @@ unit cgcpu;
               { move a word }
               if len>1 then
                 begin
-                   a_load_ref_reg(list,OS_16,OS_16,srcref,hregister);
-                   a_load_reg_ref(list,OS_16,OS_16,hregister,dstref);
+                   cg.a_load_ref_reg(list,OS_16,OS_16,srcref,hregister);
+                   cg.a_load_reg_ref(list,OS_16,OS_16,hregister,dstref);
                    inc(srcref.offset,2);
                    inc(dstref.offset,2);
                    dec(len,2);
@@ -916,14 +922,14 @@ unit cgcpu;
               { move a single byte }
               if len>0 then
                 begin
-                   a_load_ref_reg(list,OS_8,OS_8,srcref,hregister);
-                   a_load_reg_ref(list,OS_8,OS_8,hregister,dstref);
+                   cg.a_load_ref_reg(list,OS_8,OS_8,srcref,hregister);
+                   cg.a_load_reg_ref(list,OS_8,OS_8,hregister,dstref);
                 end
            end
          else
            begin
-              iregister:=getaddressregister(list);
-              jregister:=getaddressregister(list);
+              iregister:=cg.getaddressregister(list);
+              jregister:=cg.getaddressregister(list);
               { reference for move (An)+,(An)+ }
               reference_reset(hp1);
               hp1.base := iregister;   { source register }
@@ -934,12 +940,12 @@ unit cgcpu;
               { iregister = source }
               { jregister = destination }
 
-              if loadref then
-                 a_load_ref_reg(list,OS_INT,OS_INT,source,iregister)
-              else
-                 a_loadaddr_ref_reg(list,source,iregister);
+{              if loadref then
+                 cg.a_load_ref_reg(list,OS_INT,OS_INT,source,iregister)
+              else}
+                 cg.a_loadaddr_ref_reg(list,source,iregister);
 
-              a_loadaddr_ref_reg(list,dest,jregister);
+              cg.a_loadaddr_ref_reg(list,dest,jregister);
 
               { double word move only on 68020+ machines }
               { because of possible alignment problems   }
@@ -950,9 +956,9 @@ unit cgcpu;
                    len := len mod 4;
                    list.concat(taicpu.op_const_reg(A_MOVE,S_L,helpsize div 4,hregister));
                    objectlibrary.getlabel(hl2);
-                   a_jmp_always(list,hl2);
+                   cg.a_jmp_always(list,hl2);
                    objectlibrary.getlabel(hl);
-                   a_label(list,hl);
+                   cg.a_label(list,hl);
                    list.concat(taicpu.op_ref_ref(A_MOVE,S_L,hp1,hp2));
                    cg.a_label(list,hl2);
                    list.concat(taicpu.op_reg_sym(A_DBRA,S_L,hregister,hl));
@@ -970,41 +976,41 @@ unit cgcpu;
                    helpsize := len;
                    list.concat(taicpu.op_const_reg(A_MOVE,S_L,helpsize,hregister));
                    objectlibrary.getlabel(hl2);
-                   a_jmp_always(list,hl2);
+                   cg.a_jmp_always(list,hl2);
                    objectlibrary.getlabel(hl);
-                   a_label(list,hl);
+                   cg.a_label(list,hl);
                    list.concat(taicpu.op_ref_ref(A_MOVE,S_B,hp1,hp2));
-                   a_label(list,hl2);
+                   cg.a_label(list,hl2);
                    list.concat(taicpu.op_reg_sym(A_DBRA,S_L,hregister,hl));
                 end;
 
               { restore the registers that we have just used olny if they are used! }
-              ungetregister(list, iregister);
-              ungetregister(list, jregister);
+              cg.ungetcpuregister(list, iregister);
+              cg.ungetcpuregister(list, jregister);
               if jregister = NR_A1 then
                 hp2.base := NR_NO;
               if iregister = NR_A0 then
                 hp1.base := NR_NO;
-              reference_release(list,hp1);
-              reference_release(list,hp2);
+//              reference_release(list,hp1);
+//              reference_release(list,hp2);
            end;
 
-           if delsource then
-               tg.ungetiftemp(list,source);
+//           if delsource then
+//               tg.ungetiftemp(list,source);
 
-           ungetregister(list,hregister);
+           cg.ungetcpuregister(list,hregister);
     end;
 
     procedure tcg68k.g_overflowcheck(list: taasmoutput; const l:tlocation; def:tdef);
       begin
       end;
 
-    procedure tcg68k.g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint);
+    procedure tcg68k.g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint;destreg:tregister);
       begin
       end;
 
 
-    procedure tcg68k.g_stackframe_entry(list : taasmoutput;localsize : longint);
+    procedure tcg68k.g_proc_entry(list : taasmoutput;localsize : longint;nostackframe:boolean);
       var
         r,rsp:Tregister;
         ref : treference;
@@ -1030,16 +1036,16 @@ unit cgcpu;
       end;
 
 
-    procedure tcg68k.g_restore_frame_pointer(list : taasmoutput);
+{    procedure tcg68k.g_restore_frame_pointer(list : taasmoutput);
       var
         r:Tregister;
       begin
         r:=NR_FRAME_POINTER_REG;
         list.concat(taicpu.op_reg(A_UNLK,S_NO,r));
       end;
+}
 
-
-    procedure tcg68k.g_return_from_proc(list : taasmoutput;parasize : aint);
+    procedure tcg68k.g_proc_exit(list : taasmoutput;parasize:longint;nostackframe:boolean);
       var
         r,hregister : tregister;
         ref : treference;
@@ -1074,7 +1080,7 @@ unit cgcpu;
 
                 { save the PC counter (pop it from the stack)         }
                 hregister:=NR_A3;
-                a_reg_alloc(list,hregister);
+                cg.a_reg_alloc(list,hregister);
                 reference_reset_base(ref,NR_STACK_POINTER_REG,0);
                 ref.direction:=dir_inc;
                 list.concat(taicpu.op_ref_reg(A_MOVE,S_L,ref,hregister));
@@ -1089,7 +1095,7 @@ unit cgcpu;
                 reference_reset_base(ref,NR_STACK_POINTER_REG,0);
                 ref.direction:=dir_dec;
                 list.concat(taicpu.op_reg_ref(A_MOVE,S_L,hregister,ref));
-                a_reg_alloc(list,hregister);
+                cg.a_reg_alloc(list,hregister);
                 list.concat(taicpu.op_none(A_RTS,S_NO));
                end;
            end;
@@ -1130,7 +1136,7 @@ unit cgcpu;
       }
       end;
 
-
+{
     procedure tcg68k.g_save_all_registers(list : taasmoutput);
       begin
       end;
@@ -1138,7 +1144,7 @@ unit cgcpu;
     procedure tcg68k.g_restore_all_registers(list : taasmoutput;const funcretparaloc:TCGPara);
       begin
       end;
-
+}
     procedure tcg68k.sign_extend(list: taasmoutput;_oldsize : tcgsize; reg: tregister);
       begin
         case _oldsize of
@@ -1257,27 +1263,27 @@ unit cgcpu;
   end;
 
 
- procedure tcg64f68k.a_op64_const_reg(list : taasmoutput;op:TOpCG;value : qword;reg : tregister64);
+ procedure tcg64f68k.a_op64_const_reg(list : taasmoutput;op:TOpCG;value : int64;regdst : tregister64);
   var
    lowvalue : cardinal;
    highvalue : cardinal;
   begin
     { is it optimized out ? }
-    if optimize64_op_const_reg(list,op,value,reg) then
-       exit;
+//    if cg.optimize64_op_const_reg(list,op,value,reg) then
+//       exit;
 
     lowvalue := cardinal(value);
     highvalue:= value shr 32;
 
    { the destination registers must be data registers }
-   if  isaddressregister(reg.reglo) or
-       isaddressregister(reg.reghi) then
+   if  isaddressregister(regdst.reglo) or
+       isaddressregister(regdst.reghi) then
          internalerror(20020817);
    case op of
       OP_ADD :
          begin
-            list.concat(taicpu.op_const_reg(A_ADD,S_L,lowvalue,reg.reglo));
-            list.concat(taicpu.op_const_reg(A_ADDX,S_L,highvalue,reg.reglo));
+            list.concat(taicpu.op_const_reg(A_ADD,S_L,lowvalue,regdst.reglo));
+            list.concat(taicpu.op_const_reg(A_ADDX,S_L,highvalue,regdst.reglo));
          end;
       OP_AND :
           begin
@@ -1296,13 +1302,13 @@ unit cgcpu;
       OP_SAR,OP_SHL,OP_SHR: internalerror(2002081702);
       OP_SUB:
          begin
-            list.concat(taicpu.op_const_reg(A_SUB,S_L,lowvalue,reg.reglo));
-            list.concat(taicpu.op_const_reg(A_SUBX,S_L,highvalue,reg.reglo));
+            list.concat(taicpu.op_const_reg(A_SUB,S_L,lowvalue,regdst.reglo));
+            list.concat(taicpu.op_const_reg(A_SUBX,S_L,highvalue,regdst.reglo));
          end;
       OP_XOR:
         begin
-            list.concat(taicpu.op_const_reg(A_EOR,S_L,lowvalue,reg.reglo));
-            list.concat(taicpu.op_const_reg(A_EOR,S_L,highvalue,reg.reglo));
+            list.concat(taicpu.op_const_reg(A_EOR,S_L,lowvalue,regdst.reglo));
+            list.concat(taicpu.op_const_reg(A_EOR,S_L,highvalue,regdst.reglo));
         end;
     end; { end case }
   end;
@@ -1314,7 +1320,10 @@ end.
 
 {
   $Log$
-  Revision 1.32  2004-11-27 16:16:02  florian
+  Revision 1.33  2005-01-08 04:10:36  karoly
+    * made m68k to compile again
+
+  Revision 1.32  2004/11/27 16:16:02  florian
     * some m68k stuff updated
 
   Revision 1.31  2004/11/09 22:32:59  peter

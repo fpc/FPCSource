@@ -48,7 +48,7 @@ implementation
       ncon,ncal,
       ncgutil,
       cpubase,aasmcpu,
-      rgobj,tgobj,cgobj,globtype,cgcpu;
+      rgobj,tgobj,cgobj,cgutils,globtype,cgcpu;
 
 
 {*****************************************************************************
@@ -187,9 +187,9 @@ implementation
                      cg.a_load_ref_reg(exprasmlist,opsize,opsize,
                         left.location.reference,hreg2);
                      exprasmlist.concat(taicpu.op_reg(A_TST,TCGSize2OpSize[opsize],hreg2));
-                     cg.ungetregister(exprasmlist,hreg2);
+                     cg.ungetcpuregister(exprasmlist,hreg2);
                   end;
-                reference_release(exprasmlist,left.location.reference);
+//                reference_release(exprasmlist,left.location.reference);
                 resflags:=F_NE;
                 hreg1:=cg.getintregister(exprasmlist,opsize);
               end;
@@ -197,7 +197,7 @@ implementation
               begin
                 hreg2:=left.location.register;
                 exprasmlist.concat(taicpu.op_reg(A_TST,TCGSize2OpSize[opsize],hreg2));
-                cg.ungetregister(exprasmlist,hreg2);
+                cg.ungetcpuregister(exprasmlist,hreg2);
                 hreg1:=cg.getintregister(exprasmlist,opsize);
                 resflags:=F_NE;
               end;
@@ -240,7 +240,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2004-06-20 08:55:31  florian
+  Revision 1.14  2005-01-08 04:10:36  karoly
+    * made m68k to compile again
+
+  Revision 1.13  2004/06/20 08:55:31  florian
     * logs truncated
 
   Revision 1.12  2004/04/25 21:26:16  florian

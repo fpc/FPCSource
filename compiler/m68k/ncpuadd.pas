@@ -49,7 +49,7 @@ implementation
       symconst,symdef,paramgr,
       aasmbase,aasmtai,aasmcpu,defutil,htypechk,
       cgbase,cpuinfo,pass_1,pass_2,regvars,
-      cpupara,
+      cpupara,cgutils,
       ncon,nset,
       ncgutil,tgobj,rgobj,rgcpu,cgobj,cg64f32;
 
@@ -147,7 +147,7 @@ implementation
                     exprasmlist.concat(taicpu.op_reg_reg(A_AND,S_L,
                       right.location.register,left.location.register));
                 end;
-              cg.ungetregister(exprasmlist,tmpreg);
+              cg.ungetcpuregister(exprasmlist,tmpreg);
               location.resflags := getresflags(true);
             end;
           else
@@ -227,7 +227,7 @@ implementation
             begin
               exprasmlist.concat(taicpu.op_reg_reg(op,S_L,
                 left.location.register,tmpreg));
-              cg.ungetregister(exprasmlist,tmpreg);
+              cg.ungetcpuregister(exprasmlist,tmpreg);
             end
         else
           exprasmlist.concat(taicpu.op_reg_reg(op,S_L,
@@ -311,7 +311,7 @@ implementation
          location.resflags := getresflags(true);
         end;
 
-        release_reg_left_right;
+        //release_reg_left_right;
       end;
 
 
@@ -426,7 +426,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2004-10-31 21:45:03  peter
+  Revision 1.7  2005-01-08 04:10:36  karoly
+    * made m68k to compile again
+
+  Revision 1.6  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 

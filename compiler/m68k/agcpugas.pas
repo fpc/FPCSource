@@ -96,21 +96,21 @@ interface
      gas_opsize2str : array[topsize] of string[2] =
      ('','.b','.w','.l','.s','.d','.x',''
      );
-
-     gas_reg2str : reg2strtable =
+{
+     gas_reg2str : treg2strtable =
       ('', '%d0','%d1','%d2','%d3','%d4','%d5','%d6','%d7',
        '%a0','%a1','%a2','%a3','%a4','%a5','%a6','%sp',
        '-(%sp)','(%sp)+',
        '%ccr','%fp0','%fp1','%fp2','%fp3','%fp4','%fp5',
        '%fp6','%fp7','%fpcr','%sr','%ssp','%dfc',
        '%sfc','%vbr','%fpsr');
-
+}
 
   implementation
 
     uses
       cutils,systems,
-      cgbase,
+      cgbase,cgutils,
       verbose,itcpugas;
 
 
@@ -345,16 +345,9 @@ interface
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
             supported_target : system_any;
-            outputbinary: false;
-            allowdirect : true;
-            needar : true;
-            labelprefix_only_inside_procedure : false;
+            flags : [af_allowdirect,af_needar,af_smartlink_sections];
             labelprefix : '.L';
             comment : '# ';
-            secnames : ('',
-              '.text','.data','.bss',
-              '','','','','','',
-              '.stab','.stabstr','COMMON')
           );
 
 initialization
@@ -362,7 +355,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.13  2004-06-20 08:55:31  florian
+  Revision 1.14  2005-01-08 04:10:36  karoly
+    * made m68k to compile again
+
+  Revision 1.13  2004/06/20 08:55:31  florian
     * logs truncated
 
   Revision 1.12  2004/06/16 20:07:10  florian
