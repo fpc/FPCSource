@@ -126,7 +126,6 @@ install : all
 clean :
 	-$(DEL) *$(OEXT) *$(ASMEXT) *$(PPUEXT) $(PPAS) link.res log
 	-$(DELTREE) *$(SMARTEXT)
-	-make -C $(OBJPASDIR) clean
 
 
 #####################################################################
@@ -261,7 +260,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.2  1998-12-21 14:20:37  pierre
+# Revision 1.3  1998-12-28 23:37:39  peter
+#   * clean target fix, theres no objpas dir to clean anymore
+#
+# Revision 1.2  1998/12/21 14:20:37  pierre
 #  * initc unit added
 #
 # Revision 1.1  1998/12/21 13:07:02  peter
