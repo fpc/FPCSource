@@ -860,8 +860,8 @@ ait_stab_function_name : ;
                 begin
                    if ReplaceForbiddenChars(s) then
                      begin
-                        currentasmlist.AsmWriteLn(#9'import'#9'.'+s+' <= ''.'+p.name+'[PR]''');
-                        currentasmlist.AsmWriteLn(#9'import'#9+s+' <= '''+p.name+'[DS]''');
+                        currentasmlist.AsmWriteLn(#9'import'#9'.'+s+'[PR] <= ''.'+p.name+'[PR]''');
+                        currentasmlist.AsmWriteLn(#9'import'#9+s+'[DS] <= '''+p.name+'[DS]''');
                      end
                    else
                      begin
@@ -990,7 +990,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.10  2002-10-10 19:39:37  florian
+  Revision 1.11  2002-10-19 23:52:40  olle
+    * import directive changed
+
+  Revision 1.10  2002/10/10 19:39:37  florian
     * changes from Olle to get simple programs compiled and assembled
 
   Revision 1.9  2002/10/07 21:19:53  florian
