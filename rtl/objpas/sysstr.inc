@@ -174,11 +174,21 @@ var
    LowerCaseTable: TCaseTranslationTable;
 
 function AnsiUpperCase(const s: string): string;
+var len, i: integer;
 begin
+len := length(s);
+SetLength(result, len);
+for i := 1 to len do
+   result[i] := UpperCaseTable[ord(s[i])];
 end ;
 
 function AnsiLowerCase(const s: string): string;
+var len, i: integer;
 begin
+len := length(s);
+SetLength(result, len);
+for i := 1 to len do
+   result[i] := LowerCaseTable[ord(s[i])];
 end ;
 
 function AnsiCompareStr(const S1, S2: string): integer;
@@ -207,10 +217,24 @@ end ;
 
 function AnsiStrLower(Str: PChar): PChar;
 begin
+if Str <> Nil then begin
+   while Str^ <> #0 do begin
+      Str^ := LowerCaseTable[byte(Str^)];
+      Str := Str + 1;
+      end ;
+   end ;
+result := Str;
 end ;
 
 function AnsiStrUpper(Str: PChar): PChar;
 begin
+if Str <> Nil then begin
+   while Str^ <> #0 do begin
+      Str^ := UpperCaseTable[byte(Str^)];
+      Str := Str + 1;
+      end ;
+   end ;
+result := Str;
 end ;
 
 function AnsiLastChar(const S: string): PChar;
@@ -454,6 +478,60 @@ for i := 0 to SizeOf(Value) shr 1 - 1 do begin
    end ;
 end ;
 
+{  Case Translation Tables  }
+
+   {  Although these tables can be obtained through system calls  }
+   {  it is better to not use those, since most implementation are not 100%  }
+
+   {  WARNING:  }
+   {  before modifying a translation table make sure that the current codepage  }
+   {  of the OS corresponds to the one you make changes to  }
+
+const
+   { upper case translation table for character set 850 }
+   CP850UCT: array[128..255] of char =
+   ('Ä', 'ö', 'ê', '∂', 'é', '∂', 'è', 'Ä', '“', '”', '‘', 'ÿ', '◊', 'ﬁ', 'é', 'è',
+    'ê', 'í', 'í', '‚', 'ô', '„', 'Í', 'Î', 'Y', 'ô', 'ö', 'ù', 'ú', 'ù', 'û', 'ü',
+    'µ', '÷', '‡', 'È', '•', '•', '¶', 'ß', '®', '©', '™', '´', '¨', '≠', 'Æ', 'Ø',
+    '∞', '±', '≤', '≥', '¥', 'µ', '∂', '∑', '∏', 'π', '∫', 'ª', 'º', 'Ω', 'æ', 'ø',
+    '¿', '¡', '¬', '√', 'ƒ', '≈', '«', '«', '»', '…', ' ', 'À', 'Ã', 'Õ', 'Œ', 'œ',
+    '–', '—', '“', '”', '‘', '’', '÷', '◊', 'ÿ', 'Ÿ', '⁄', '€', '‹', '›', 'ﬁ', 'ﬂ',
+    '‡', '·', '‚', '„', 'Â', 'Â', 'Ê', 'Ì', 'Ë', 'È', 'Í', 'Î', 'Ì', 'Ì', 'Ó', 'Ô',
+    '', 'Ò', 'Ú', 'Û', 'Ù', 'ı', 'ˆ', '˜', '¯', '˘', '˙', '˚', '¸', '˝', '˛', 'ˇ');
+
+   { lower case translation table for character set 850 }
+   CP850LCT: array[128..255] of char =
+   ('á', 'Å', 'Ç', 'É', 'Ñ', 'Ö', 'Ü', 'á', 'à', 'â', 'ä', 'ã', 'å', 'ç', 'Ñ', 'Ü',
+    'Ç', 'ë', 'ë', 'ì', 'î', 'ï', 'ñ', 'ó', 'ò', 'î', 'Å', 'õ', 'ú', 'õ', 'û', 'ü',
+    '†', '°', '¢', '£', '§', '§', '¶', 'ß', '®', '©', '™', '´', '¨', '≠', 'Æ', 'Ø',
+    '∞', '±', '≤', '≥', '¥', '†', 'É', 'Ö', '∏', 'π', '∫', 'ª', 'º', 'Ω', 'æ', 'ø',
+    '¿', '¡', '¬', '√', 'ƒ', '≈', '∆', '∆', '»', '…', ' ', 'À', 'Ã', 'Õ', 'Œ', 'œ',
+    '–', '—', 'à', 'â', 'ä', '’', '°', 'å', 'ã', 'Ÿ', '⁄', '€', '‹', '›', 'ç', 'ﬂ',
+    '¢', '·', 'ì', 'ï', '‰', '‰', 'Ê', 'Ì', 'Ë', '£', 'ñ', 'ó', 'Ï', 'Ï', 'Ó', 'Ô',
+    '', 'Ò', 'Ú', 'Û', 'Ù', 'ı', 'ˆ', '˜', '¯', '˘', '˙', '˚', '¸', '˝', '˛', 'ˇ');
+
+   { upper case translation table for character set ISO 8859/1  Latin 1  }
+   CPISO88591UCT: array[192..255] of char =
+   ( #192, #193, #194, #195, #196, #197, #198, #199,
+     #200, #201, #202, #203, #204, #205, #206, #207,
+     #208, #209, #210, #211, #212, #213, #214, #215,
+     #216, #217, #218, #219, #220, #221, #222, #223,
+     #192, #193, #194, #195, #196, #197, #198, #199,
+     #200, #201, #202, #203, #204, #205, #206, #207,
+     #208, #209, #210, #211, #212, #213, #214, #247,
+     #216, #217, #218, #219, #220, #221, #222, #89 );
+
+   { lower case translation table for character set ISO 8859/1  Latin 1  }
+   CPISO88591LCT: array[192..255] of char =
+   ( #224, #225, #226, #227, #228, #229, #230, #231,
+     #232, #233, #234, #235, #236, #237, #238, #239,
+     #240, #241, #242, #243, #244, #245, #246, #215,
+     #248, #249, #250, #251, #252, #253, #254, #223,
+     #224, #225, #226, #227, #228, #229, #230, #231,
+     #232, #233, #234, #235, #236, #237, #238, #239,
+     #240, #241, #242, #243, #244, #245, #246, #247,
+     #248, #249, #250, #251, #252, #253, #254, #255 );
+
 {$IFDEF GO32V2}
 
 {  Codepage constants  }
@@ -499,35 +577,73 @@ Regs.ES := transfer_buffer div 16;
 Regs.DI := transfer_buffer and 15;
 Regs.CX := SizeOf(TCountryInfo);
 RealIntr($21, Regs);
-DosMemGet(transfer_buffer div 16, transfer_buffer and 15, CountryInfo, Regs.CX );
+DosMemGet(transfer_buffer shr 16, transfer_buffer and 65535, CountryInfo, Regs.CX );
 end ;
 
 procedure InitAnsi;
-var CountryInfo: TCountryInfo;
+var CountryInfo: TCountryInfo; i: integer;
 begin
-GetExtendedCountryInfo(2, $FFFF, $FFFF, CountryInfo);
+{  Fill table entries 0 to 127  }
+for i := 0 to 96 do
+   UpperCaseTable[i] := chr(i);
+for i := 97 to 122 do
+   UpperCaseTable[i] := chr(i - 32);
+for i := 123 to 127 do
+   UpperCaseTable[i] := chr(i);
+for i := 0 to 64 do
+   LowerCaseTable[i] := chr(i);
+for i := 65 to 90 do
+   LowerCaseTable[i] := chr(i + 32);
+for i := 91 to 255 do
+   LowerCaseTable[i] := chr(i);
+{  Get country and codepage info  }
+GetExtendedCountryInfo(1, $FFFF, $FFFF, CountryInfo);
+if CountryInfo.CodePage = 850 then begin
+   Move(CP850UCT, UpperCaseTable[128], 128);
+   Move(CP850LCT, LowerCaseTable[128], 128);
+   end
+else begin
 { this needs to be checked !!
   this is correct only if UpperCaseTable is
   and Offset:Segment word record (PM) }
-DosMemGet(CountryInfo.UpperCaseTable shl 16, 2 + (CountryInfo.UpperCaseTable and $FFFF), UpperCaseTable[128], 128);
+   {  get the uppercase table from dosmemory  }
+   GetExtendedCountryInfo(2, $FFFF, $FFFF, CountryInfo);
+   DosMemGet(CountryInfo.UpperCaseTable shr 16, 2 + CountryInfo.UpperCaseTable and 65535, UpperCaseTable[128], 128);
+   for i := 128 to 255 do begin
+      if UpperCaseTable[i] <> chr(i) then
+         LowerCaseTable[ord(UpperCaseTable[i])] := chr(i);
+      end ;
+   end ;
 end ;
 
+{$ELSE}
+// {$IFDEF LINUX}
+
+procedure InitAnsi;
+begin
+end ;
+
+// {$ENDIF}
 {$ENDIF}
 
 {
   $Log$
-  Revision 1.3  1998-09-16 14:34:37  pierre
+  Revision 1.4  1998-09-17 12:39:52  michael
+  + Further fixes from GertJan Schouten
+
+  Revision 1.3  1998/09/16 14:34:37  pierre
     * go32v2 did not compile
     * wrong code in systr.inc corrected
 
   Revision 1.2  1998/09/16 08:28:42  michael
   Update from gertjan Schouten, plus small fix for linux
 
+  $Log$
+  Revision 1.4  1998-09-17 12:39:52  michael
+  + Further fixes from GertJan Schouten
+
   Revision 1.1  1998/04/10 15:17:46  michael
   + Initial implementation; Donated by Gertjan Schouten
     His file was split into several files, to keep it a little bit structured.
-
-  27 April 1998:
-  Function: BCDToInt added
 }
 
