@@ -70,6 +70,9 @@ const
 
   implementation
 
+    var
+      Initial: boolean;
+
     {$I system.inc}
     {$I lowmath.inc}
 
@@ -84,11 +87,12 @@ const
          { called when trying to get local stack }
          { if the compiler directive $S is set   }
          { it must preserve all registers !!     }
-        ADD.L   A7,D0     {  stacksize + actual stackpointer }
-        MOVE.L  _ExecBase,A0
-        MOVE.L  276(A0),A0       { ExecBase.thisTask }
-        CMP.L   58(A0),D0        { Task.SpLower      }
-        BGT     @Ok
+        move.l  stack_size, d0
+        add.l   sp,d0     { stacksize + actual stackpointer  }
+        move.l  _ExecBase,a0
+        move.l  276(A0),A0       { ExecBase.thisTask }
+        cmp.l   58(A0),D0        { Task.SpLower      }
+        bgt     @Ok
         move.l  #202,d0
         jsr     HALT_ERROR       { stack overflow    }
     @Ok:
@@ -96,15 +100,17 @@ const
    end;
 
 
-    procedure CloseLibrary(lib : pointer); Assembler;
+    procedure CloseLibrary(lib : pointer);
     {  Close the library pointed to in lib }
-    asm
-      MOVE.L  A6,-(A7)
-      MOVE.L  _ExecBase,A6
-      MOVE.L  lib,a1
-      JSR     _LVOCloseLibrary(A6)
-      MOVE.L  (A7)+,A6
-   end;
+    Begin
+      asm
+         MOVE.L  A6,-(A7)
+         MOVE.L  lib,a1
+         MOVE.L  _ExecBase,A6
+         JSR     _LVOCloseLibrary(A6)
+         MOVE.L  (A7)+,A6
+      end;
+    end;
 
 
    Function KickVersion: word; assembler;
@@ -115,8 +121,16 @@ const
 
     procedure halt(errnum : byte);
       begin
-         do_exit;
-         flush(stderr);
+        { WE can only FLUSH the stdio   }
+        { if the handles have correctly }
+        { been set.                     }
+        { No exit procedures exist      }
+        { if in initial state           }
+        If NOT Initial then
+        Begin
+          do_exit;
+          flush(stderr);
+        end;
          { close the libraries }
          If _UtilityBase <> nil then
          Begin
@@ -211,8 +225,8 @@ begin
   asm
            move.l  a6,d6               { save a6 }
 
-           move.l  _DOSBase,a6
            move.l  p,d1
+           move.l  _DOSBase,a6
            jsr     _LVODeleteFile(a6)
            tst.l   d0                  { zero = failure }
            bne     @noerror
@@ -249,14 +263,19 @@ end;
 
 function do_write(h,addr,len : longint) : longint;
 begin
+  if len <= 0 then
+   Begin
+    do_write:=0;
+    exit;
+   end;
   asm
             move.l  a6,d6
 
             movem.l d2/d3,-(sp)
+            move.l  h,d1             { we must of course set up the }
+            move.l  addr,d2          { parameters BEFORE getting    }
+            move.l  len,d3           { _DOSBase                     }
             move.l  _DOSBase,a6
-            move.l  h,d1
-            move.l  addr,d2
-            move.l  len,d3
             jsr     _LVOWrite(a6)
             movem.l (sp)+,d2/d3
 
@@ -266,23 +285,32 @@ begin
             move.l  d0,InOutRes
             bra     @doswrend2
           @doswrend:
+            { we must restore the base pointer before setting the result }
+            move.l  d6,a6
             move.l  d0,@RESULT
+            bra     @end
           @doswrend2:
             move.l  d6,a6
+          @end:
   end;
 end;
 
 
 function do_read(h,addr,len : longint) : longint;
 begin
+  if len <= 0 then
+  Begin
+     do_read:=0;
+     exit;
+  end;
   asm
             move.l  a6,d6
 
             movem.l d2/d3,-(sp)
-            move.l  _DOSBase,a6
-            move.l  h,d1
-            move.l  addr,d2
+            move.l  h,d1         { we must set up aparamters BEFORE }
+            move.l  addr,d2      { setting up a6 for the OS call    }
             move.l  len,d3
+            move.l  _DOSBase,a6
             jsr     _LVORead(a6)
             movem.l (sp)+,d2/d3
 
@@ -292,9 +320,15 @@ begin
             move.l  d0,InOutRes
             bra     @doswrend2
           @doswrend:
+            { to store a result for the function  }
+            { we must of course first get back the}
+            { base pointer!                       }
+            move.l  d6,a6
             move.l  d0,@RESULT
+            bra     @end
           @doswrend2:
             move.l  d6,a6
+          @end:
   end;
 end;
 
@@ -310,6 +344,7 @@ begin
 
              clr.l   d2                    { offset 0 }
              move.l  #0,d3                 { OFFSET_CURRENT }
+             move.l  _DOSBase,a6
              jsr    _LVOSeek(a6)
 
              move.l  (sp)+,d3              { restore registers }
@@ -320,9 +355,12 @@ begin
              move.l  d0,InOutRes
              bra     @fposend
       @noerr:
+             move.l  d6,a6                 { restore a6 }
              move.l  d0,@Result
+             bra     @end
       @fposend:
              move.l  d6,a6                 { restore a6 }
+      @end:
   end;
 end;
 
@@ -338,6 +376,7 @@ begin
 
              move.l  pos,d2
              move.l  #-1,d3                 { OFFSET_BEGINNING }
+             move.l  _DOSBase,a6
              jsr    _LVOSeek(a6)
 
              move.l  (sp)+,d3              { restore registers }
@@ -366,6 +405,7 @@ begin
 
              clr.l   d2
              move.l  #1,d3                 { OFFSET_END }
+             move.l  _DOSBase,a6
              jsr    _LVOSeek(a6)
 
              move.l  (sp)+,d3              { restore registers }
@@ -376,9 +416,12 @@ begin
              move.l  d0,InOutRes
              bra     @seekend
       @noerr:
+             move.l  d6,a6                 { restore a6 }
              move.l  d0,@Result
+             bra     @end
       @seekend:
              move.l  d6,a6                 { restore a6 }
+      @end:
   end;
 end;
 
@@ -475,10 +518,12 @@ begin
              move.l  d0,InOutRes
              bra     @openend
           @noopenerror:
-             move.l  d0,i
-          @openend:
-
              move.l  d6,a6                 { restore a6 }
+             move.l  d0,i                  { we need the base pointer to access this variable }
+             bra     @end
+          @openend:
+             move.l  d6,a6                 { restore a6 }
+          @end:
          end;
     filerec(f).handle:=i;
     if (flags and $10)<>0 then
@@ -515,9 +560,11 @@ begin
   buffer[length(s)]:=#0;
   asm
         move.l  a6,d6
-        move.l  _DosBase,a6
+        { we must load the parameters BEFORE setting up the }
+        { OS call with a6                                   }
         lea     buffer,a0
         move.l  a0,d1
+        move.l  _DosBase,a6
         jsr     _LVOCreateDir(a6)
         tst.l   d0
         bne     @noerror
@@ -546,9 +593,9 @@ begin
   buffer[length(s)]:=#0;
   asm
         move.l  a6,d6
-        move.l  _DosBase,a6
         lea     buffer,a1
         move.l  a1,d1
+        move.l  _DosBase,a6
         jsr     _LVOSetCurrentDirName(a6)
         bne     @noerror
         move.l  #1,InOutRes
@@ -574,9 +621,9 @@ begin
    Begin
      asm
         move.l  a6,d6
-        move.l  _DosBase,a6
         move.l  p,d1
         move.l  l,d2
+        move.l  _DosBase,a6
         jsr     _LVOGetCurrentDirName(a6)
         bne     @noerror
         move.l  #1,InOutRes
@@ -590,7 +637,7 @@ begin
   dir:=upcase(dir);
 end;
 
-        
+
 {*****************************************************************************
                          SystemUnit Initialization
 *****************************************************************************}
@@ -622,19 +669,19 @@ asm
     {   dos.library                             }
 
     moveq.l  #0,d0
-    lea      intuitionname,a1
+    move.l   intuitionname,a1      { directly since it is a pchar }
     jsr      _LVOOpenLibrary(a6)
     move.l   d0,_IntuitionBase
     beq      @exitprg
 
     moveq.l  #0,d0
-    lea      utilityname,a1
+    move.l   utilityname,a1        { directly since it is a pchar }
     jsr      _LVOOpenLibrary(a6)
     move.l   d0,_UtilityBase
     beq      @exitprg
 
     moveq.l  #0,d0
-    lea      dosname,a1
+    move.l   dosname,a1            { directly since it is a pchar }
     jsr      _LVOOpenLibrary(a6)
     move.l   d0,_DOSBase
     beq      @exitprg
@@ -686,16 +733,12 @@ end;
 
 
 begin
-{ Startup }
-  Startup;
-  { Only AmigaOS v2.04 or greater is supported }
-  If KickVersion < 36 then
-   Begin
-     WriteLn('v36 or greater of Kickstart required.');
-     Halt(1);
-   end;
+{  Initial state is on -- in case of RunErrors before the i/o handles are }
+{  ok.                                                                    }
+  Initial:=TRUE;
 { Initialize ExitProc }
   ExitProc:=Nil;
+  Startup;
 { to test stack depth }
   loweststack:=maxlongint;
 { Setup heap }
@@ -703,16 +746,38 @@ begin
 { Setup stdin, stdout and stderr }
   OpenStdIO(Input,fmInput,StdInputHandle);
   OpenStdIO(Output,fmOutput,StdOutputHandle);
+  { The Amiga does not seem to have a StdError }
+  { handle, therefore make the StdError handle }
+  { equal to the StdOutputHandle.              }
+  StdErrorHandle := StdOutputHandle;
   OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+{ Now Handles and function handlers are setup }
+{ correctly.                                  }
+  Initial:=FALSE;
 { Reset IO Error }
   InOutRes:=0;
+{ Startup }
+  { Only AmigaOS v2.04 or greater is supported }
+  If KickVersion < 36 then
+   Begin
+     WriteLn('v36 or greater of Kickstart required.');
+     Halt(1);
+   end;
 end.
 
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:47  root
-  Initial revision
+  Revision 1.2  1998-05-25 12:08:49  carl
+     * Handles now proprely setup
+     * Correct Exit code on init failure
+     * Library pointer now ok (Thanks to Nils Sjoholm)
+     * OpenStdError was never initialized
+     * ;assembler; routines problems bugfixed
+     * stackcheck routine fix
+
+  Revision 1.1.1.1  1998/03/25 11:18:47  root
+  * Restored version
 
   Revision 1.14  1998/03/21 04:20:09  carl
     * correct ExecBase pointer (from Nils Sjoholm)
