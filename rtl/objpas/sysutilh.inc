@@ -31,6 +31,7 @@ type
    tfilename = string;
 
    tsyscharset = set of char;
+   tintegerset = set of 0..sizeof(integer)*8-1;
 
    longrec = packed record
       lo,hi : word;
@@ -138,7 +139,10 @@ Type
 
 {
   $Log$
-  Revision 1.5  2000-09-24 21:55:07  peter
+  Revision 1.6  2000-12-07 09:15:18  florian
+    + tintegerset added
+
+  Revision 1.5  2000/09/24 21:55:07  peter
     * ttextrec,tfilerec added (merged)
 
   Revision 1.4  2000/08/30 18:29:34  hajny
