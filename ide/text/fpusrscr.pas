@@ -649,7 +649,7 @@ begin
     end;
   ReadConsoleOutput(Src, PChar_info(LineBuf),
     BufSize, BufCoord, @WriteRegion);
-  WriteConsoleOutput(Dest, PChar_info(LineBuf)^,
+  WriteConsoleOutput(Dest, PChar_info(LineBuf),
     BufSize, BufCoord, @WriteRegion);
   FreeMem(LineBuf,SizeOf(CharInfoArray));
   GetConsoleScreenBufferInfo(Src,
@@ -715,7 +715,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  2000-04-25 08:42:33  pierre
+  Revision 1.13  2000-06-16 15:00:20  pierre
+   * accord to new WriteConsoleOuput declarations
+
+  Revision 1.12  2000/04/25 08:42:33  pierre
    * New Gabor changes : see fixes.txt
 
   Revision 1.11  2000/04/18 11:42:37  pierre
