@@ -3,40 +3,23 @@ Please indent tasks which are done with 8 spaces.
 
 Persons:
 
-TH - Tomas Hajny
+DM - Daniel Mantione (as daniel)
+TH - Tomas Hajny (as hajny)
 RB - Ramon Bosque
 KB - Karoly Balogh
-YP - Yuri Prokushev
+YP - Yuri Prokushev (as yuri)
 AS - Andry Svirgunov
-BM - Bob Martin
 
 Item                                          Priority        Implemented by
 -----------------------------------------------------------------------------
-Free Vision                                   high
-          - Keyboard................................................TH
-          - Video...................................................TH
-          - Mouse...................................................TH
+          - Free Vision.............................................TH/YP
+          - Presentation Manager....................................RB/TH/YP
 
-finish PM support                             high
-          - PMWin...................................................RB
-          - PMGPI...................................................RB
-          - PMBitmap................................................RB
-          - PMStdDlg................................................YP
-          - PMHelp..................................................YP
-          - PMDev...................................................YP
-          - PMSpl...................................................TH
-          - PMShl...................................................YP
-          - PMBidi..................................................YP
     - PMDdi
-    - PMdjp.h (PMWin?)
-    - PMFont.h (PMWin?)
-    - PMSei.h (PMWin?)
-          - PMWP....................................................YP
-          - PMWSock.................................................YP
 
 RTL                                           high
     - sockets
-    - winsock
+          - winsock.................................................YP
     - graph
     - pass dos compatibility tests
     - exception handler
@@ -45,35 +28,39 @@ RTL                                           high
 libgdb                                        medium
 
 OS/2 native rtl                               high
-  - System
-  - CRT
-  - DOS
+  - system.pas
+  - crt.pas
+          - dos.pas.................................................YP
   - sysutils.pp
+  - ports.pas
+  - thread.inc
   - linker (LINK386, Internal, ...)
-  - loaders (prt*) for EXEs and DLLs
+  - loader (prt*) for EXEs
+  - loader (prt*) for DLLs
   - autothunking for 16-bit calls
+    - compiler support
+    - kbdcalls
+    - moncalls
+    - moucalls
+    - viocalls
   - smartlinking
   - {$linklib dllname} (autolinking like for win32/linux)
   - interfaces support (SOM/DSOM)
+          - move emx.pas to emx rtl.................................YP
+          - move emx.imp to emx rtl.................................YP
+          - move wrap.imp to emx rtl as emxwrap.imp.................YP
+  - external variables import
+  - new place for exe.pas/newexe.pas
 
 FCL                                           medium
           - disk.inc................................................TH
           - filutil.inc.............................................TH
           - thread.inc..............................................TH
           - pipes.inc...............................................TH
+          - eventlog.inc............................................TH
+  - process.inc
   - ? unit SyncObjs
   - ? unit HTTPApp
-
-other OS/2 APIs                               low
-  - SOM (SOM2/SOM3?)
-    - Base API
-    - Base classes
-    - WPS
-      - Base classes
-      - IBM MM classes (seems to be obsolete in eCS 1.1+)
-      - CW MM classes (seems to be replacement for IBM MM classes in eCS 1.1+)
-    - XWorkplace classes (seems to be a part of future eCS)
-    - OpenDoc classes (obsolete since OS/2 4.5)
 
 native packages                               medium
   - NetAPI (NetBIOS)
@@ -81,24 +68,32 @@ native packages                               medium
   - LAN Manager
   - Web Explorer (obsolete since OS/2 4.5)
   - EPM
-  - LVM (new since OS/2 4.5)
-  - MMOS/2
-          - mmbase.pas..............................................AS/YP
-          - mci.pas.................................................AS/YP
-          - mciapi.pas..............................................AS/YP
-          - mcidrv.pas..............................................AS/YP
-          - mmio.pas................................................AS/YP
-          - dive.pas................................................KB
-          - sw.pas..................................................YP
-  - WarpOverlay!
-          - hwvideo.pas.............................................YP
+          - LVM (new since OS/2 4.5)................................YP
+          - MMOS/2..................................................AS/YP/KB
+    - remove mmos2\buildall.pas
+          - WarpOverlay!(os2.kiev.ua)...............................YP
   - TCP/IP
     - Sockets (so32dll)
     - tcp32dll
           - FTP API.................................................YP
+  - LibC (Which lib to use? Native libc or EMX or Innotek or all of them?
+          Anyway, interface must be compatible with libc package)
+  - SOM (SOM2, not SOM3, because all current OS/2 implementations based on SOM2)
+    - Base API
+    - Base classes
+    - WPS
+      - Base classes
+        - CW BubblePad class
+      - IBM MM classes (seems to be obsolete in eCS 1.1+)
+        - CW MM classes (seems to be replacement for IBM MM classes in eCS 1.1+)
+      - eWorkplace/XWorkplace classes (new since eCS 1.1)
+    - OpenDoc classes (obsolete since OS/2 4.5)
+  - DSOM
+  - Security/2 (os2.kiev.ua)
+  - UniAud/2 (os2.kiev.ua)
 
 cross-platform packages                       low
-  - SVGAlib
+  - SVGAlib (?)
   - Xlib (Everblue, XFreeOS/2)
           - Base....................................................YP
     - GTK
@@ -107,53 +102,73 @@ cross-platform packages                       low
           - gtk.....................................................YP
       - gtkgl
           - fpgtk...................................................YP
+      - fix display detection bug
     - Gnome
-      - art
+      - art_lgpl
       - gnome
       - gnomeui
-  - tcl
-  - ncurses
-  - libpng
-  - gd
-  - syslog
+      - zvt
+      - gconf
+      - gconfclient
+  - libgd
+          - tcl.....................................................YP
+          - libpng..................................................YP
+          - imlib...................................................YP
+  - OpenGL/MesaGL/Mesa3D/WarpMesaGL
   - REXX
     - rxstrings.pp (overloaded functions like len, pos, etc.)
           - rexxsaa.pp..............................................YP
-  - OpenGL/MesaGL/Mesa3D/WarpMesaGL
+  - SciTech SNAP SDK
+  - SciTech MGL
+  - Twain (STi/CFM/Win32)
 
-documentation (pasdoc/fpdoc?)                 low
-  - CPI
-    - os2defs
-    - doscalls
-    - kbdcalls
-    - moucalls
-    - moncalls
-  - PM
-    - PMWin
-    - PMGPI
-    - PMBitmap
-    - PMStdDlg
-    - PMHelp
-    - PMDev
-    - PMSpl
-  - TCP/IP
-    - ftpapi
-    - so32dll
-    - tcp32dll
-  - MMOS/2
-    - mmbase.pas
-    - mci.pas
-    - mciapi.pas
-    - mcidrv.pas
-    - mmio.pas
-    - dive.pas
-    - sw.pas
-  - WarpOverlay!
-    - hwvideo.pas
-  - REXX
-    - rexxsaa.pp
-    - rxstrings.pp
+Odin32 target (as fast as native fpc/2 will be ready)  low
+  - New compiler target (t_odin32.pas)
+  - Add Win32 units compiltation to Makefiles
+
+documentation (fpdoc)                         low
+  - TeX to INF converter
+  - Inf support for fpdoc
+  - RTL
+    - CPI
+      - os2defs
+      - doscalls
+      - kbdcalls
+      - moucalls
+      - moncalls
+    - PM
+      - PMWin
+      - PMGPI
+      - PMBitmap
+      - PMStdDlg
+      - PMHelp
+      - PMDev
+      - PMSpl
+      - PMShl
+      - PMWP
+      - PMWSock
+  - native packages
+    - TCP/IP
+      - ftpapi
+      - so32dll
+      - tcp32dll
+    - MMOS/2
+      - mmbase.pas
+      - mci.pas
+      - mciapi.pas
+      - mcidrv.pas
+      - mmio.pas
+      - dive.pas
+      - sw.pas
+    - WarpOverlay!
+      - hwvideo.pas
+  - cross-platform packages
+    - REXX
+      - rexxsaa.pp
+      - rxstrings.pp
 
 sample programs                               low
 
-installation (WarpIN?)                        low
+installation (PM installer with WarpIN DB)    low
+  - Warpin database unit
+  - PM interface to standard FPC installer
