@@ -535,7 +535,7 @@ asm
 end;
 
 {$define FPC_SYSTEM_HAS_FPC_HELP_FAIL}
-procedure fpc_help_fail;assembler;[public,alias:'FPC_HELP_FAIL']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_help_fail;assembler;[public,alias:'FPC_HELP_FAIL']; compilerproc;
 assembler;
 asm
 {$warning FIX ME!}
@@ -550,7 +550,7 @@ procedure fpc_help_destructor;assembler;[public,alias:'FPC_HELP_DESTRUCTOR']; {$
 *)
 
 {$define FPC_SYSTEM_HAS_FPC_NEW_CLASS}
-procedure fpc_new_class;assembler;[public,alias:'FPC_NEW_CLASS']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_new_class;assembler;[public,alias:'FPC_NEW_CLASS']; compilerproc;
 assembler;
 asm
 {$warning FIX ME!}
@@ -559,7 +559,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_DISPOSE_CLASS}
-procedure fpc_dispose_class;assembler;[public,alias:'FPC_DISPOSE_CLASS']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_dispose_class;assembler;[public,alias:'FPC_DISPOSE_CLASS']; compilerproc;
 assembler;
 asm
 {$warning FIX ME!}
@@ -578,18 +578,22 @@ end;
 
 
 
-{define FPC_SYSTEM_HAS_FPC_CHECK_OBJECT}
-{ we want the stack for debugging !! PM }
-(*
-use generic implementation for now
-procedure fpc_check_object(obj : pointer);[public,alias:'FPC_CHECK_OBJECT']; {$ifdef hascompilerproc} compilerproc; {$endif}
-*)
+{$define FPC_SYSTEM_HAS_FPC_CHECK_OBJECT}
+{ use generic implementation for now }
+{ that's a problem currently, the generic has a another prototy than this defined in compproc.inc (FK) }
+procedure fpc_check_object(obj : pointer);assembler; compilerproc;
+asm
+{$warning FIX ME!}
+// !!!!!!!!!!!
+end;
 
 { use generic implementation for now }
 { that's a problem currently, the generic has a another prototy than this defined in compproc.inc (FK) }
 {$define FPC_SYSTEM_HAS_FPC_CHECK_OBJECT_EXT}
 procedure fpc_check_object_ext; compilerproc;assembler;
 asm
+{$warning FIX ME!}
+// !!!!!!!!!!!
 end;
 
 {****************************************************************************
@@ -852,7 +856,10 @@ end ['r3','r10'];
 
 {
   $Log$
-  Revision 1.9  2002-07-28 20:43:49  florian
+  Revision 1.10  2002-07-28 21:39:29  florian
+    * made abs a compiler proc if it is generic
+
+  Revision 1.9  2002/07/28 20:43:49  florian
     * several fixes for linux/powerpc
     * several fixes to MT
 

@@ -268,14 +268,14 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
 
 
 {$ifndef FPC_SYSTEM_HAS_ABS}
-    function abs(d : Real) : Real;[internconst:in_const_abs];
+    function fpc_abs_real(d : Real) : Real; compilerproc;
     begin
        if( d < 0.0 ) then
-         abs := -d
+         fpc_abs_real := -d
       else
-         abs := d ;
+         fpc_abs_real := d ;
     end;
-{$endif}
+{$endif not FPC_SYSTEM_HAS_ABS}
 
 
     function frexp(x:Real; var e:Integer ):Real;
@@ -1020,7 +1020,10 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
 
 {
   $Log$
-  Revision 1.4  2002-07-28 20:43:48  florian
+  Revision 1.5  2002-07-28 21:39:29  florian
+    * made abs a compiler proc if it is generic
+
+  Revision 1.4  2002/07/28 20:43:48  florian
     * several fixes for linux/powerpc
     * several fixes to MT
 

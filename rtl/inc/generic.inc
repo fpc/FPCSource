@@ -497,7 +497,7 @@ begin
    RunError(220);
 end;
 
-{$endif ndef FPC_SYSTEM_HAS_FPC_CHECK_OBJECT_EXT}
+{$endif not FPC_SYSTEM_HAS_FPC_CHECK_OBJECT_EXT}
 
 
 {****************************************************************************
@@ -945,7 +945,10 @@ end;
 
 {
   $Log$
-  Revision 1.28  2002-07-28 20:43:47  florian
+  Revision 1.29  2002-07-28 21:39:28  florian
+    * made abs a compiler proc if it is generic
+
+  Revision 1.28  2002/07/28 20:43:47  florian
     * several fixes for linux/powerpc
     * several fixes to MT
 

@@ -26,8 +26,8 @@
         pi := 3.14159265358979320;
       end;
 
-    {$define FPC_SYSTEM_HAS_ABS}
-    function abs(d : extended) : extended;[internproc:in_abs_extended];
+    { $define FPC_SYSTEM_HAS_ABS}
+    // function abs(d : extended) : extended;[internproc:in_abs_extended];
 
     {$define FPC_SYSTEM_HAS_SQR}
     function sqr(d : extended) : extended;[internproc:in_sqr_extended];
@@ -68,11 +68,13 @@
       end;
 
 
+    }
+    {$define FPC_SYSTEM_HAS_INT}
+    {$warning FIX ME}
     function int(d : extended) : extended;[internconst:in_const_int];
       begin
         runerror(207);
       end;
-    }
 
     {$define FPC_SYSTEM_HAS_TRUNC}
     {$warning FIX ME}
@@ -265,7 +267,10 @@ end ['r0','r3','f0','f1','f2','f3'];
 
 {
   $Log$
-  Revision 1.4  2002-07-28 20:43:49  florian
+  Revision 1.5  2002-07-28 21:39:29  florian
+    * made abs a compiler proc if it is generic
+
+  Revision 1.4  2002/07/28 20:43:49  florian
     * several fixes for linux/powerpc
     * several fixes to MT
 
