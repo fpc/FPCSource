@@ -6,7 +6,7 @@ PROGRAM Concat;
 VAR
   InputFile,OutputFile:File;
   c:Char;
-  Buffer:Array[DWord]OF Byte;
+  Buffer:Array[PtrInt]OF Byte;
   ReadCount,WriteCount:DWord;
 BEGIN
   Assign(OutputFile,'Maple.tar.gz');

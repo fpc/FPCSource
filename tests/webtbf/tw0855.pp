@@ -5,7 +5,7 @@ type
   TMyRec = record
     x: Integer;
   end;
-  TMyArray = array[LongWord] of TMyRec;
+  TMyArray = array[Ptrint] of TMyRec;
   PMyArray = ^TMyArray;
 var
   a: PMyArray;
