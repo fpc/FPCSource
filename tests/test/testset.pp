@@ -4,8 +4,8 @@
   Program to test set functions
 }
 
-{ $define FPC_HAS_SET_INEQUALITIES
-  <,> <= and >= are not implemented yet (PM) }
+{$define FPC_HAS_SET_INEQUALITIES}
+
 program TestSet;
 
 Procedure InitMSTimer;
