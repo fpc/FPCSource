@@ -38,10 +38,10 @@ interface
        tcompare_paras_type = ( cp_none, cp_value_equal_const, cp_all,cp_procvar);
        tcompare_paras_option = (cpo_allowdefaults,cpo_ignorehidden,cpo_allowconvert,cpo_comparedefaultvalue);
        tcompare_paras_options = set of tcompare_paras_option;
-       
+
        tcompare_defs_option = (cdo_explicit,cdo_check_operator,cdo_allow_variant);
        tcompare_defs_options = set of tcompare_defs_option;
-        
+
        tconverttype = (
           tc_equal,
           tc_not_possible,
@@ -399,8 +399,9 @@ implementation
                        eq:=te_equal
                      else
                        begin
-                         if not(cdo_explicit in cdoptions) or
-                            not(m_delphi in aktmodeswitches) then
+                         if (fromtreetype=realconstn) or
+                            not((cdo_explicit in cdoptions) and
+                                (m_delphi in aktmodeswitches)) then
                            begin
                              doconv:=tc_real_2_real;
                              { do we loose precision? }
@@ -618,7 +619,7 @@ implementation
                 end;
              end;
            variantdef :
-             begin 
+             begin
                if (cdo_allow_variant in cdoptions) then
                  begin
                    case def_from.deftype of
@@ -636,7 +637,7 @@ implementation
                             end;
                        end;
                    end;
-                 end;  
+                 end;
              end;
 
            pointerdef :
@@ -1019,12 +1020,12 @@ implementation
           then we search also the := operator }
         if (eq=te_incompatible) and
            (
-            { Check for variants? } 
+            { Check for variants? }
             (
              (cdo_allow_variant in cdoptions) and
              ((def_from.deftype=variantdef) or (def_to.deftype=variantdef))
             ) or
-            { Check for operators? } 
+            { Check for operators? }
             (
              (cdo_check_operator in cdoptions) and
              ((def_from.deftype in [objectdef,recorddef,arraydef,stringdef,variantdef]) or
@@ -1266,7 +1267,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  2004-02-13 15:42:21  peter
+  Revision 1.46  2004-02-15 12:18:22  peter
+    * allow real_2_real conversion for realconstn, fixes 2971
+
+  Revision 1.45  2004/02/13 15:42:21  peter
     * compare_defs_ext has now a options argument
     * fixes for variants
 
