@@ -26,7 +26,6 @@
 
 {  Link with VGA, gl and c libraries }
 {$linklib vga}
-{$linklib vgagl}
 {$linklib c}
 
 Const
@@ -146,18 +145,16 @@ var
  Function vga_hasmode(mode: Longint): Boolean; Cdecl; External;
  Function vga_getmodeinfo(mode: Longint): pvga_modeinfo; Cdecl; External;
  Function vga_setmode(mode: Longint): Longint; Cdecl; External;
- { gl functions }
- procedure gl_setpixel(x, y, c: LongInt); Cdecl; External;
- function  gl_getpixel(x, y: LongInt): LongInt; cdecl; external;
- procedure gl_fillbox(x, y, w, h, c: LongInt); Cdecl; External;
- procedure gl_getbox(x, y, w, h: LongInt; dp: pointer); Cdecl; External;
- procedure gl_putbox(x, y, w, h: LongInt; dp: pointer); Cdecl; External;
- function  gl_setcontextvga(m: LongInt): LongInt; Cdecl; External;
- function  gl_allocatecontext: PGraphicsContext; Cdecl; External;
- procedure gl_getcontext(gc: PGraphicsContext); Cdecl; External;
- procedure gl_setrgbpalette; Cdecl; External;
- Procedure gl_setpalettecolor(c, r, b, g: LongInt); cdecl;external;
- Procedure gl_getpalettecolor(c: LongInt; var r, b, g: LongInt); cdecl;external;
+ Function vga_getcolors: Longint; cdecl;external;
+ Function vga_setpalette(index: Longint; red: Longint; green: Longint; blue: Longint) : longint; cdecl;external;
+ Function vga_getpalette(index: Longint; var red: Longint; var green: Longint; var blue: Longint): Longint; cdecl;external;
+ Function vga_setegacolor(Color: Longint) : longint; cdecl;external;
+ Function vga_setcolor(color: Longint): Longint; cdecl;external;
+ Function vga_drawpixel(x, y: Longint): Longint; cdecl;external;
+ Function vga_getpixel(x, y: Longint): Longint; cdecl;external;
+ Function vga_drawline(x1, y1, x2, y2: Longint): Longint; cdecl;external;
+ function vga_screenoff: Longint; Cdecl; External;
+ function vga_screenon: Longint;  Cdecl; External;
 
 { ---------------------------------------------------------------------
     Required procedures
@@ -187,19 +184,21 @@ var
   i: Integer;
 begin
   for i:=0 to 15 do
-    gl_setpalettecolor(I,BgiColors[i] shr 16,
-                       (BgiColors[i] shr 8) and 255,
-                       BgiColors[i] and 255)
+    vga_setpalette(I,BgiColors[i] shr 16,
+                     (BgiColors[i] shr 8) and 255,
+                      BgiColors[i] and 255)
 end;
 
 procedure libvga_initmodeproc;
+
+Var Nrcolors : Longint;
+
 begin
   vga_setmode(IntCurrentMode);
-  gl_setcontextvga(IntCurrentMode);
-  PhysicalScreen := gl_allocatecontext;
-  gl_getcontext(PhysicalScreen);
-  if (PhysicalScreen^.colors = 256) then gl_setrgbpalette;
-  InitColors;
+  vga_screenon;
+  nrColors:=vga_getcolors;
+  if (nrColors=16) or (nrcolors=256) then
+    InitColors;
 end;
 
 Function ClipCoords (Var X,Y : Integer) : Boolean;
@@ -251,24 +250,32 @@ begin
   else
     Color:=CurrentColor;
   end;
-  gl_setpixel(x, y, Color);
+  vga_setegaColor(Color);
+  vga_drawpixel(x, y);
 end;
 
 procedure libvga_putpixelproc(X,Y: Integer; Color: Word);
 begin
   If Not ClipCoords(X,Y) Then exit;
-  gl_setpixel(x, y, Color);
+  vga_setegaColor(Color);
+  vga_drawpixel(x, y);
 end;
 
 function libvga_getpixelproc (X,Y: Integer): word;
 begin
  ClipCoords(X,Y);
- libvga_getpixelproc:=gl_getpixel(x, y);
+ libvga_getpixelproc:=vga_getpixel(x, y);
 end;
 
 procedure libvga_clrviewproc;
+
+Var I,Xmax : longint;
+
 begin
-  gl_fillbox(StartXViewPort,StartYViewPort,ViewWidth,ViewHeight,CurrentBkColor);
+  vga_SetegaColor(CurrentBkColor);
+  Xmax:=StartXViewPort+ViewWidth-1;
+  For i:=StartYViewPort to StartYViewPort+ViewHeight-1 do
+    vga_drawline(StartXViewPort,I,Xmax,I);
 end;
 
 { Bitmap utilities }
@@ -281,18 +288,21 @@ type
 
 procedure libvga_putimageproc (X,Y: Integer; var Bitmap; BitBlt: Word);
 begin
+{
   With TBitMap(BitMap) do
     gl_putbox(x, y, width, height, @Data);
+}
 end;
 
 procedure libvga_getimageproc (X1,Y1,X2,Y2: Integer; Var Bitmap);
 begin
-  with TBitmap(Bitmap) do
+{  with TBitmap(Bitmap) do
     begin
     Width := x2 - x1 + 1;
     Height := y2 - y1 + 1;
     gl_getbox(x1,y1, x2 - x1 + 1, y2 - y1 + 1, @Data);
     end;
+}
 end;
 
 function  libvga_imagesizeproc (X1,Y1,X2,Y2: Integer): longint;
@@ -344,7 +354,7 @@ end;
 
 procedure libvga_setrgbpaletteproc(ColorNum, RedValue, GreenValue, BlueValue: Integer);
 begin
-  gl_setpalettecolor(ColorNum,RedValue,GreenValue,BlueValue);
+  vga_setpalette(ColorNum,RedValue,GreenValue,BlueValue);
 end;
 
 procedure libvga_getrgbpaletteproc (ColorNum: integer;
@@ -353,7 +363,7 @@ procedure libvga_getrgbpaletteproc (ColorNum: integer;
 Var R,G,B : longint;
 
 begin
-  gl_getpalettecolor(ColorNum,R,G,B);
+  vga_getpalette(ColorNum,R,G,B);
   RedValue:=R;
   GreenValue:=G;
   BlueValue:=B;
@@ -440,7 +450,10 @@ end;
 
 {
 $Log$
-Revision 1.5  2000-01-07 16:41:42  daniel
+Revision 1.6  2000-02-03 20:39:58  michael
++ Version using only vgalib
+
+Revision 1.5  2000/01/07 16:41:42  daniel
   * copyright 2000
 
 Revision 1.4  1999/12/20 11:22:38  peter
