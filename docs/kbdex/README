@@ -5,3 +5,7 @@ keybutil.pp contains some routines to convert keyevents to readable strings.
 ex1.pp contains an example of the GetKeyEvent function.
 ex2.pp contains an example of the GetKeyEventCode function.
 ex3.pp contains an example of the GetKeyEventShiftState function.
+ex4.pp contains an example of the PollKeyEvent function.
+ex5.pp contains an example of the PutKeyEvent function.
+ex6.pp contains an example of the PollShiftStateEvent function.
+ex7.pp contains an example of the IsFunctionKey function.
