@@ -1,6 +1,7 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl and Pierre Muller
+    Copyright (c) 1998-2000 by Berczi Gabor
+    Modifications Copyright (c) 1999-2000 Florian Klaempfl and Pierre Muller
 
     Support routines for getting browser info in collections
 
@@ -132,6 +133,7 @@ type
     end;
 
     TSymbolCollection = object(TSortedCollection)
+       constructor Init(ALimit, ADelta: Integer);
        function  At(Index: Sw_Integer): PSymbol;
        procedure Insert(Item: Pointer); virtual;
        function  LookUp(const S: string; var Idx: sw_integer): string; virtual;
@@ -151,6 +153,7 @@ type
     end;
 
     TObjectSymbolCollection = object(TSortedCollection)
+      constructor Init(ALimit, ADelta: Integer);
       function  Compare(Key1, Key2: Pointer): Sw_Integer; virtual;
       function  LookUp(const S: string; var Idx: sw_integer): string; virtual;
        function At(Index: Sw_Integer): PObjectSymbol;
@@ -333,6 +336,12 @@ end;
                                 TSymbolCollection
 ****************************************************************************}
 
+constructor TSymbolCollection.Init(ALimit, ADelta: Integer);
+begin
+  inherited Init(ALimit,ADelta);
+{  Duplicates:=true;}
+end;
+
 function TSymbolCollection.At(Index: Sw_Integer): PSymbol;
 begin
   At:=inherited At(Index);
@@ -373,11 +382,14 @@ begin
   S2:=Upper(K2^.GetName);
   if S1<S2 then R:=-1 else
   if S1>S2 then R:=1 else
+   if K1^.TypeID=K2^.TypeID then R:=0 else
     begin
       S1:=K1^.GetName;
       S2:=K2^.GetName;
       if S1<S2 then R:=-1 else
       if S1>S2 then R:=1 else
+       if K1^.TypeID<K2^.TypeID then R:=-1 else
+       if K1^.TypeID>K2^.TypeID then R:= 1 else
         R:=0;
     end;
   Compare:=R;
@@ -463,7 +475,7 @@ var K1: PSymbol absolute Key1;
     R: Sw_integer;
 begin
   if K1^.TypeID<K2^.TypeID then R:=-1 else
-  if K1^.TypeID>K2^.TypeID then R:=1 else
+  if K1^.TypeID>K2^.TypeID then R:= 1 else
   R:=0;
   Compare:=R;
 end;
@@ -493,6 +505,11 @@ begin
   At:=inherited At(Index);
 end;
 
+constructor TObjectSymbolCollection.Init(ALimit, ADelta: Integer);
+begin
+  inherited Init(ALimit,ADelta);
+end;
+
 function TObjectSymbolCollection.Compare(Key1, Key2: Pointer): Sw_Integer;
 var K1: PObjectSymbol absolute Key1;
     K2: PObjectSymbol absolute Key2;
@@ -503,6 +520,9 @@ begin
   S2:=Upper(K2^.GetName);
   if S1<S2 then R:=-1 else
   if S1>S2 then R:=1 else
+  { make sure that we distinguish between different objects with the same name }
+  if K1^.Symbol<K2^.Symbol then R:=-1 else
+  if K1^.Symbol>K2^.Symbol then R:= 1 else
   R:=0;
   Compare:=R;
 end;
@@ -1790,7 +1810,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2000-03-14 15:04:19  pierre
+  Revision 1.38  2000-04-20 08:52:01  pierre
+   * allow to view objects having the same name
+
+  Revision 1.37  2000/03/14 15:04:19  pierre
    * DebuggerValue moved to fpsymbol unit
 
   Revision 1.36  2000/03/13 20:28:12  pierre
