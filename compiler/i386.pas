@@ -102,14 +102,33 @@ unit i386;
          A_PMULLW,A_POR,A_PSLLD,A_PSLLQ,A_PSLLW,A_PSRAD,A_PSRAW,
          A_PSRLD,A_PSRLQ,A_PSRLW,A_PSUBB,A_PSUBD,A_PSUBSB,A_PSUBSW,
          A_PSUBUSB,A_PSUBUSW,A_PSUBW,A_PUNPCKHBW,A_PUNPCKHDQ,
-         A_PUNPCKHWD,A_PUNPCKLBW,A_PUNPCKLDQ,A_PUNPCKLWD,A_PXOR);
+         A_PUNPCKHWD,A_PUNPCKLBW,A_PUNPCKLDQ,A_PUNPCKLWD,A_PXOR,
+         { KNI instructions: (intel katmai) }
+	 A_ADDPS,A_ADDSS,A_ANDNPS,A_ANDNSS,A_ANDPS,A_ANDSS,A_CMPEQPS,A_CMPEQSS,
+	 A_CMPLEPS,A_CMPLESS,A_CMPLTPS,A_CMPLTSS,A_CMPNEQPS,A_CMPNEQSS,
+	 A_CMPNLEPS,A_CMPNLESS,A_CMPNLTPS,A_CMPNLTSS,A_CMPORDPS,A_CMPORDSS,
+	 A_CMPUNORDPS,A_CMPUNORDSS,A_COMISS,A_CVTPI2PS,A_CVTPS2PI,
+	 A_CVTSI2SS,A_CVTTPS2PI,A_CVTTSS2SI,A_DIVPS,A_DIVSS,A_FXRSTOR,A_FXSAVE,
+	 A_LDMXCSR,A_MASKMOVQ,A_MAXPS,A_MAXSS,A_MINPS,A_MINSS,A_MOVAPS,
+	 A_MOVHPS,A_MOVLPS,A_MOVMSKPS,A_MOVNTPS,A_MOVNTQ,A_MOVSS,A_MOVUPS,
+	 A_MULPS,A_MULSS,A_ORPS,A_PAVGB,A_PAVGW,A_PEXTRW,A_PINSRW,A_PMAXSW,
+	 A_PMAXUB,A_PMINSW,A_PMINUB,A_PMOVMSKB,A_PMULHUW,A_PREFETCHNT,
+	 A_PREFETCH0,A_PREFETCH1,A_PREFETCH2,A_PSADBW,A_PSHUFW,A_RCPPS,A_RCPSS,
+	 A_RSQRTPS,A_RSQRTSS,A_SFENCE,A_SHUFPS,A_SQRTPS,A_SQRTSS,A_STMXCSR,
+	 A_SUBPS,A_SUBSS,A_UCOMISS,A_UNPCKHPS,A_UNPCKLPS,A_XORPS,
+         { 3Dnow instructions: (amd k6-2) }
+	 A_FEMMS,A_PAVGUSB,A_PF2ID,A_PFACC,A_PFADD,A_PFCMPEQ,A_PFCMPGE,
+	 A_PFCMPGT,A_PFMAX,A_PFMIN,A_PFMUL,A_PFRCP,A_PFRCPIT1,A_PFRCPIT2,
+	 A_PFRSQIT1,A_PFRSQRT,A_PFSUB,A_PFSUBR,A_PI2FD,A_PMULHRW,A_PREFETCH,
+	 A_PREFETCHW
+         );
     const
       firstop = A_MOV;
-      lastop  = A_PXOR;
+      lastop  = A_PREFETCHW;
 
     type
-       { enumeration for registers, don't change this }
-       { it's used by the register size converstaions }
+       { enumeration for registers, don't change order.     }
+       { this enum is used by the register size conversions }
        tregister = (
          R_NO,R_EAX,R_ECX,R_EDX,R_EBX,R_ESP,R_EBP,R_ESI,R_EDI,
          R_AX,R_CX,R_DX,R_BX,R_SP,R_BP,R_SI,R_DI,
@@ -117,7 +136,9 @@ unit i386;
          { for an easier assembler generation }
          R_DEFAULT_SEG,R_CS,R_DS,R_ES,R_FS,R_GS,R_SS,
          R_ST,R_ST0,R_ST1,R_ST2,R_ST3,R_ST4,R_ST5,R_ST6,R_ST7,
-         R_MM0,R_MM1,R_MM2,R_MM3,R_MM4,R_MM5,R_MM6,R_MM7);
+         R_MM0,R_MM1,R_MM2,R_MM3,R_MM4,R_MM5,R_MM6,R_MM7,
+         R_XMM0,R_XMM1,R_XMM2,R_XMM3,R_XMM4,R_XMM5,R_XMM6,R_XMM7
+         );
 
        { S_NO = No Size of operand }
        { S_B  = Byte size operand  }
@@ -134,9 +155,10 @@ unit i386;
        { S_IQ  = integer on 64 bits   }
        { S_IL  = integer on 32 bits   }
        { S_IS  = integer on 16 bits   }
-       { S_D   = integer on  bits for MMX }
+       { S_D   = integer on ? bits for MMX }
+       { S_FV  = floating point vector 4*32 bit = 128 bit (for KNI) }
        topsize = (S_NO,S_B,S_W,S_L,S_BW,S_BL,S_WL,
-                  S_IS,S_IL,S_IQ,S_FS,S_FL,S_FX,S_D);
+                  S_IS,S_IL,S_IQ,S_FS,S_FL,S_FX,S_D,S_FV);
        { S_FS and S_FL added
          S_X renamed to S_FX
          S_IL added
@@ -151,11 +173,10 @@ unit i386;
        { information about the location of an operand }
        { LOC_FPUSTACK    FPU stack }
        { LOC_REGISTER    in a processor register }
-       { LOC_MEM         in the memory }
+       { LOC_MEM         in memory }
        { LOC_REFERENCE   like LOC_MEM, but lvalue }
-       { LOC_JUMP        nur bool'sche Resultate, Sprung zu false- oder }
-       {                 truelabel }
-       { LOC_FLAGS       nur bool'sche Rsultate, Flags sind gesetzt }
+       { LOC_JUMP        boolean results only, jump to false or true label }
+       { LOC_FLAGS       boolean results only, flags are set }
        { LOC_CREGISTER   register which shouldn't be modified }
        { LOC_INVALID     added for tracking problems}
 
@@ -228,8 +249,8 @@ unit i386;
 
        frame_pointer = R_EBP;
 
-       {This constant is an alias for the accumulator, as it's name may
-        differ from processor to processor.}
+       { This constant is an alias for the accumulator, as it's name may
+         differ from processor to processor. }
        accumulator = R_EAX;
 
        firstregister = R_EAX;
@@ -359,9 +380,9 @@ unit i386;
        ao_reg16 = $2;
        { 32 bit reg }
        ao_reg32 = $4;
-       ao_reg = (ao_reg8 or ao_reg16 or ao_reg32);
+       { see far below for ao_reg const assignment }
 
-       { for  push/pop operands }
+       { for push/pop operands }
        ao_wordreg = (ao_reg16 or ao_reg32);
        ao_imm8 = $8;        { 8 bit immediate }
        ao_imm8S   = $10;        { 8 bit immediate sign extended }
@@ -369,7 +390,7 @@ unit i386;
        ao_imm32   = $40;        { 32 bit immediate }
        ao_imm1    = $80;        { 1 bit immediate }
 
-       { for  unknown expressions }
+       { for unknown expressions }
        ao_immunknown = ao_imm32;
 
        { gen'l immediate }
@@ -381,7 +402,7 @@ unit i386;
        { general displacement }
        ao_disp    = (ao_disp8 or ao_disp16 or ao_disp32);
 
-       { for  unknown size displacements }
+       { for unknown size displacements }
        ao_dispunknown = ao_disp32;
        ao_mem8    = $1000;
        ao_mem16   = $2000;
@@ -427,7 +448,17 @@ unit i386;
        ao_abs16 = $10000000;
        ao_abs32 = $20000000;
        ao_abs = (ao_abs8 or ao_abs16 or ao_abs32);
+       
+       { packed int or float number, 8*8 bit = 4*16 bit = 2*32 bit = 64 bit 
+         - for MMX and 3DNow! }
+       ao_reg64 = $40000000;
+       { floating point vector, 4*32 bit = 128 bit 
+         - for KNI }
+       ao_reg128 = $80000000;
 
+       { bitmask for any possible register }
+       ao_reg = (ao_reg8 or ao_reg16 or ao_reg32 or ao_reg64 or ao_reg128);
+       
        ao_none = $ff;
 
 
@@ -444,9 +475,9 @@ unit i386;
        shortform = $10;
        { shortform and w-bit is=$8 }
        Shortformw = $20;
-       seg2shortform = $40; { encoding of load segment reg insns }
-       seg3shortform = $80; { fs/gs segment register insns. }
-       jump = $100;     { special case for jump insns. }
+       seg2shortform = $40; { encoding of load segment reg instructions }
+       seg3shortform = $80; { fs/gs segment register instructions }
+       jump = $100;     { special case for jump instructions }
        jumpintersegment = $200; { special case for intersegment leaps/calls }
        dont_use = $400;
        noModrm = $800;
@@ -938,7 +969,41 @@ unit i386;
          (i : A_REPE;ops : 0;oc : $f3;eb : ao_none;m : NoModrm;o1 : 0;o2 : 0;o3 : 0),
          (i : A_REPNE;ops : 0;oc : $f2;eb : ao_none;m : NoModrm;o1 : 0;o2 : 0;o3 : 0),
          (i : A_CPUID;ops : 0;oc : $0fa2;eb : ao_none;m : NoModrm;o1 : 0;o2 : 0;o3 : 0),
-         (i : A_EMMS;ops : 0;oc : $0f77;eb : ao_none;m : NoModrm;o1 : 0;o2 : 0;o3 : 0),
+         (i : A_EMMS;ops : 0;oc : $0f77;eb : ao_none;m : NoModrm;o1 : 0;o2 : 0;o3 : 0),       
+         { MMX instructions: }
+(* TODO        
+         A_EMMS,A_MOVD,A_MOVQ,A_PACKSSDW,A_PACKSSWB,A_PACKUSWB,
+         A_PADDB,A_PADDD,A_PADDSB,A_PADDSW,A_PADDUSB,A_PADDUSW,
+         A_PADDW,A_PAND,A_PANDN,A_PCMPEQB,A_PCMPEQD,A_PCMPEQW,
+         A_PCMPGTB,A_PCMPGTD,A_PCMPGTW,A_PMADDWD,A_PMULHW,
+         A_PMULLW,A_POR,A_PSLLD,A_PSLLQ,A_PSLLW,A_PSRAD,A_PSRAW,
+         A_PSRLD,A_PSRLQ,A_PSRLW,A_PSUBB,A_PSUBD,A_PSUBSB,A_PSUBSW,
+         A_PSUBUSB,A_PSUBUSW,A_PSUBW,A_PUNPCKHBW,A_PUNPCKHDQ,
+         A_PUNPCKHWD,A_PUNPCKLBW,A_PUNPCKLDQ,A_PUNPCKLWD,A_PXOR,
+*)
+         { KNI instructions: (intel katmai) }
+(* TODO - add syntax description for these opcodes:
+   really required for the first turn??
+	 A_ADDPS,A_ADDSS,A_ANDNPS,A_ANDNSS,A_ANDPS,A_ANDSS,A_CMPEQPS,A_CMPEQSS,
+	 A_CMPLEPS,A_CMPLESS,A_CMPLTPS,A_CMPLTSS,A_CMPNEQPS,A_CMPNEQSS,
+	 A_CMPNLEPS,A_CMPNLESS,A_CMPNLTPS,A_CMPNLTSS,A_CMPORDPS,A_CMPORDSS,
+	 A_CMPUNORDPS,A_CMPUNORDSS,A_COMISS,A_CVTPI2PS,A_CVTPS2PI,
+	 A_CVTSI2SS,A_CVTTPS2PI,A_CVTTSS2SI,A_DIVPS,A_DIVSS,A_FXRSTOR,A_FXSAVE,
+	 A_LDMXCSR,A_MASKMOVQ,A_MAXPS,A_MAXSS,A_MINPS,A_MINSS,A_MOVAPS,
+	 A_MOVHPS,A_MOVLPS,A_MOVMSKPS,A_MOVNTPS,A_MOVNTQ,A_MOVSS,A_MOVUPS,
+	 A_MULPS,A_MULSS,A_ORPS,A_PAVGB,A_PAVGW,A_PEXTRW,A_PINSRW,A_PMAXSW,
+	 A_PMAXUB,A_PMINSW,A_PMINUB,A_PMOVMSKB,A_PMULHUW,A_PREFETCHNT,
+	 A_PREFETCH0,A_PREFETCH1,A_PREFETCH2,A_PSADBW,A_PSHUFW,A_RCPPS,A_RCPSS,
+	 A_RSQRTPS,A_RSQRTSS,A_SFENCE,A_SHUFPS,A_SQRTPS,A_SQRTSS,A_STMXCSR,
+	 A_SUBPS,A_SUBSS,A_UCOMISS,A_UNPCKHPS,A_UNPCKLPS,A_XORPS,
+*)	 
+         { 3Dnow instructions: (amd k6-2) }
+(* TODO         
+	 A_FEMMS,A_PAVGUSB,A_PF2ID,A_PFACC,A_PFADD,A_PFCMPEQ,A_PFCMPGE,
+	 A_PFCMPGT,A_PFMAX,A_PFMIN,A_PFMUL,A_PFRCP,A_PFRCPIT1,A_PFRCPIT2,
+	 A_PFRSQIT1,A_PFRSQRT,A_PFSUB,A_PFSUBR,A_PI2FD,A_PMULHRW,A_PREFETCH,
+	 A_PREFETCHW,
+*)	 
          (i : A_NONE));
 {$endif NOITTABLE}
 
@@ -1000,13 +1065,34 @@ unit i386;
         'pmullw','por','pslld','psllq','psllw','psrad','psraw',
         'psrld','psrlq','psrlw','psubb','psubd','psubsb','psubsw',
         'psubusb','psubusw','psubw','punpckhbw','punpckhdq',
-        'punpckhwd','punpcklbw','punpckldq','punpcklwd','pxor');
+        'punpckhwd','punpcklbw','punpckldq','punpcklwd','pxor',
+        { KNI instructions (intel katmai) 
+          - sorry, dont know how ATT mnemonics will be called }
+	'addps','addss','andnps','andnss','andps','andss','cmpeqps','cmpeqps',
+	'cmpleps','cmpless','cmpltps','cmpltss','cmpneqps','cmpneqss',
+	'cmpnleps','cmpnless','cmpnltps','cmpnltss','cmpordps','cmpordss',
+	'cmpunordps','cmpunordss','comiss','cvtpi2ps','cvtps2pi','cvtsi2ss',
+	'cvttps2pi','cvttss2si','divps','divss','fxrstor','fxsave','ldmxcsr',
+	'maskmovq','maxps','maxss','minps','minss','movaps','movhps','movlps',
+	'movmskps','movntps','movntq','movss','movups','mulps','mulss','orps',
+	'pavgb','pavgw','pextrw','pinsrw','pmaxsw','pmaxub','pminsw','pminub',
+	'pmovmskb','pmulhuw','prefetchnt','prefetch0','prefetch1','prefetch2',
+	'psadbw','pshufw','rcpps','rcpss','rsqrtps','rsqrtss','sfence',
+	'shufps','sqrtps','sqrtss','stmxcsr','subps','subss','ucomiss',
+	'unpckhps','unpcklps','xorps',
+        { 3Dnow instructions (amd k6-2) 
+          - sorry, dont know how ATT mnemonics are called }
+	 'femms','pavgusb','pf2id','pfacc','pfadd','pfcmpeq','pfcmpge',
+	 'pfcmpgt','pfmax','pfmin','pfmul','pfrcp','pfrcpit1','pfrcpit2',
+	 'pfrsqit1','pfrsqrt','pfsub','pfsubr','pi2fd','pmulhrw','prefetch',
+	 'prefetchw'
+        );
 
      {  topsize = (S_NO,S_B,S_W,S_L,S_BW,S_BL,S_WL,
-                  S_IS,S_IL,S_IQ,S_FS,S_FL,S_FX,S_D); }
+                  S_IS,S_IL,S_IQ,S_FS,S_FL,S_FX,S_D,S_FV); }
      att_opsize2str : array[topsize] of string[2] =
        ('','b','w','l','bw','bl','wl',
-        's','l','q','s','l','t','d');
+        's','l','q','s','l','t','d','v');  { dont know how vector will be coded }
 
      att_reg2str : array[tregister] of string[6] =
        ('','%eax','%ecx','%edx','%ebx','%esp','%ebp','%esi','%edi',
@@ -1016,7 +1102,10 @@ unit i386;
         '%st','%st(0)','%st(1)','%st(2)','%st(3)','%st(4)',
         '%st(5)','%st(6)','%st(7)',
         '%mm0','%mm1','%mm2','%mm3',
-        '%mm4','%mm5','%mm6','%mm7');
+        '%mm4','%mm5','%mm6','%mm7',
+        '%xmm0','%xmm1','%xmm2','%xmm3',
+        '%xmm4','%xmm5','%xmm6','%xmm7'
+        );
 
 {$ifndef NOINTOP}
       int_op2str : array[firstop..lastop] of string[9] =
@@ -1072,7 +1161,26 @@ unit i386;
         'pmullw','por','pslld','psllq','psllw','psrad','psraw',
         'psrld','psrlq','psrlw','psubb','psubd','psubsb','psubsw',
         'psubusb','psubusw','psubw','punpckhbw','punpckhdq',
-        'punpckhwd','punpcklbw','punpckldq','punpcklwd','pxor');
+        'punpckhwd','punpcklbw','punpckldq','punpcklwd','pxor',
+        { KNI instructions (intel katmai) }
+	'addps','addss','andnps','andnss','andps','andss','cmpeqps','cmpeqps',
+	'cmpleps','cmpless','cmpltps','cmpltss','cmpneqps','cmpneqss',
+	'cmpnleps','cmpnless','cmpnltps','cmpnltss','cmpordps','cmpordss',
+	'cmpunordps','cmpunordss','comiss','cvtpi2ps','cvtps2pi','cvtsi2ss',
+	'cvttps2pi','cvttss2si','divps','divss','fxrstor','fxsave','ldmxcsr',
+	'maskmovq','maxps','maxss','minps','minss','movaps','movhps','movlps',
+	'movmskps','movntps','movntq','movss','movups','mulps','mulss','orps',
+	'pavgb','pavgw','pextrw','pinsrw','pmaxsw','pmaxub','pminsw','pminub',
+	'pmovmskb','pmulhuw','prefetchnt','prefetch0','prefetch1','prefetch2',
+	'psadbw','pshufw','rcpps','rcpss','rsqrtps','rsqrtss','sfence',
+	'shufps','sqrtps','sqrtss','stmxcsr','subps','subss','ucomiss',
+	'unpckhps','unpcklps','xorps',
+        { 3Dnow instructions (amd k6-2) }
+	 'femms','pavgusb','pf2id','pfacc','pfadd','pfcmpeq','pfcmpge',
+	 'pfcmpgt','pfmax','pfmin','pfmul','pfrcp','pfrcpit1','pfrcpit2',
+	 'pfrsqit1','pfrsqrt','pfsub','pfsubr','pi2fd','pmulhrw','prefetch',
+	 'prefetchw'
+        );
 
      int_reg2str : array[tregister] of string[5] =
        ('','eax','ecx','edx','ebx','esp','ebp','esi','edi',
@@ -1080,7 +1188,9 @@ unit i386;
         'al','cl','dl','bl','ah','ch','bh','dh',
         '','cs','ds','es','fs','gs','ss',
         'st','st(0)','st(1)','st(2)','st(3)','st(4)','st(5)','st(6)','st(7)',
-        'mm0','mm1','mm2','mm3','mm4','mm5','mm6','mm7');
+        'mm0','mm1','mm2','mm3','mm4','mm5','mm6','mm7',
+        'xmm0','xmm1','xmm2','xmm3','xmm4','xmm5','xmm6','xmm7'
+        );
 
      int_nasmreg2str : array[tregister] of string[5] =
        ('','eax','ecx','edx','ebx','esp','ebp','esi','edi',
@@ -1088,7 +1198,9 @@ unit i386;
         'al','cl','dl','bl','ah','ch','bh','dh',
         '','cs','ds','es','fs','gs','ss',
         'st0','st0','st1','st2','st3','st4','st5','st6','st7',
-        'mm0','mm1','mm2','mm3','mm4','mm5','mm6','mm7');
+        'mm0','mm1','mm2','mm3','mm4','mm5','mm6','mm7',
+        'xmm0','xmm1','xmm2','xmm3','xmm4','xmm5','xmm6','xmm7'
+        );
 {$endif}
 
 
@@ -1777,7 +1889,15 @@ unit i386;
 end.
 {
   $Log$
-  Revision 1.25  1998-12-28 15:49:03  peter
+  Revision 1.26  1999-01-08 12:39:24  florian
+    Changes of Alexander Stohr integrated:
+      + added KNI opcodes
+      + added KNI registers
+      + added 3DNow! opcodes
+      + added 64 bit and 128 bit register flags
+      * translated a few comments into english
+
+  Revision 1.25  1998/12/28 15:49:03  peter
     * no it table necessary if no asm parser is used
 
   Revision 1.24  1998/12/20 16:21:24  peter

@@ -98,6 +98,7 @@ const          DBX_counter : plongint = nil;
            -1,10,12,13,14,15,11,
            -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
            { I think, GDB doesn't know MMX (FK) }
+           -1,-1,-1,-1,-1,-1,-1,-1,
            -1,-1,-1,-1,-1,-1,-1,-1);
 {$endif i386}
 
@@ -257,7 +258,15 @@ end.
 
 {
   $Log$
-  Revision 1.5  1998-12-11 00:03:16  peter
+  Revision 1.6  1999-01-08 12:39:23  florian
+    Changes of Alexander Stohr integrated:
+      + added KNI opcodes
+      + added KNI registers
+      + added 3DNow! opcodes
+      + added 64 bit and 128 bit register flags
+      * translated a few comments into english
+
+  Revision 1.5  1998/12/11 00:03:16  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.4  1998/11/12 11:19:45  pierre
