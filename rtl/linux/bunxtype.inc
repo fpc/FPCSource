@@ -36,7 +36,7 @@ CONST
 {$else}
    wordsinsigset   = 4;		// words in sigset_t
 {$endif}
-   ln2bitsinword   = 5;         { 32bit : ln(32)/ln(2)=5 } 
+   ln2bitsinword   = 5;         { 32bit : ln(32)/ln(2)=5 }
    ln2bitmask	   = 1 shl ln2bitsinword - 1;
 
 TYPE
@@ -62,7 +62,7 @@ TYPE
                 Version : Array[0..UTSNAME_LENGTH -1] OF Char;   // Version level.
                 Machine : Array[0..UTSNAME_LENGTH -1] OF Char;   // Hardware type.
 	       {$ifdef usedomain}
-	        Domain  : array[0..UTSNAME_DOMAIN_LENGTH-1] of char;  // Linux addition "Domain"           
+	        Domain  : array[0..UTSNAME_DOMAIN_LENGTH-1] of char;  // Linux addition "Domain"
 	       {$endif}
 	       end;
   TUtsName   = UtsName;
@@ -81,7 +81,7 @@ TYPE
 
 {$ifdef notused} // 64-bit support needs some work still :-)
   { file characteristics services }
-   stat64    = record 
+   stat64    = record
         st_dev        : dev_t;             // inode's device
 	pad1	      : cushort;
 	{$ifdef 64bitfs}		   // ??
@@ -115,21 +115,21 @@ TYPE
 	{$ifdef 64bitfs}
 	st_ino	      : ino64_t
 	{$else}
-	unused4	      : culong;	
+	unused4	      : culong;
         unused5	      : culong;
 	{$endif}
    end;
 {$endif}
 
   { directory services }
-  
+
   Dirent     = packed record
 	       {$ifndef 64bitfs}
         	d_fileno      : ino_t;                          // file number of entry
-        	d_off         : off_t;     
+        	d_off         : off_t;
 		{$else}
         	d_fileno      : ino64_t;                        // file number of entry
-        	d_off         : off64_t;            
+        	d_off         : off64_t;
 	       {$endif}
 		d_reclen      : cushort;                        // length of string in d_name
 	       {$ifdef Uselibc}	// Libc different from kernel record!
@@ -143,7 +143,7 @@ TYPE
 {$ifdef oldreaddir}
 	   { Still old one. This is a userland struct}
 
-   Dir       = packed record
+   Dir       = record
                 dd_fd     : integer;
                 dd_loc    : longint;
                 dd_size   : integer;
@@ -164,7 +164,7 @@ TYPE
 	        offset    : size_t;
 	        filepos   : off_t;
 	        end;
-{$endif}   
+{$endif}
 
    TDir	     = Dir;
    pDir      = ^Dir;
@@ -175,7 +175,7 @@ TYPE
 	         modtime : time_t;
 	        end;
 
-   TUtimBuf  = UtimBuf;   
+   TUtimBuf  = UtimBuf;
    pUtimBuf  = ^UtimBuf;
 
    FLock     = Record
@@ -269,7 +269,11 @@ const
 
 {
   $Log$
-  Revision 1.6  2003-12-31 20:17:06  marco
+  Revision 1.7  2004-01-31 16:17:38  florian
+    * removed packed directive from Dir type because it's not properly aligned
+      and it's never passed to the OS
+
+  Revision 1.6  2003/12/31 20:17:06  marco
    * sigset size adaption for FPC_USE_LIBC
 
   Revision 1.5  2003/12/02 00:04:34  sg
