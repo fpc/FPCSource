@@ -1850,7 +1850,7 @@ option_help_press_enter=11029__*** press enter ***
 #
 option_logo=11023_[
 Free Pascal Compiler version $FPCVER [$FPCDATE] for $FPCTARGET
-Copyright (c) 1993-2000 by Florian Klaempfl
+Copyright (c) 1993-2002 by Florian Klaempfl
 ]
 
 #

@@ -1674,7 +1674,7 @@ option_asm_forced=11022_W_Verwendung des Assemblers "$1" erzwungen
 #
 option_logo=11023_[
 Free Pascal Compiler Version $FPCVER [$FPCDATE] fÅr $FPCTARGET
-Copyright (c) 1993-2000 Florian KlÑmpfl
+Copyright (c) 1993-2002 Florian KlÑmpfl
 ]
 
 #
