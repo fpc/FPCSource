@@ -57,7 +57,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 implementation
 
    uses
-     verbose,cobjects,systems,globals,files,
+     cobjects,verbose,comphook,systems,globals,files,
      symtable,types,aasm,scanner,
      pass_1,hcodegen,temp_gen
 {$ifdef GDB}
@@ -474,7 +474,7 @@ implementation
                                { dummy }
                                regsize:=S_W;
                           end;
-                        if (verbosity and v_debug)=v_debug then
+                        if (status.verbosity and v_debug)=v_debug then
                           begin
                              for i:=1 to maxvarregs do
                                begin
@@ -507,7 +507,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  1998-07-30 13:30:34  florian
+  Revision 1.46  1998-08-10 10:18:23  peter
+    + Compiler,Comphook unit which are the new interface units to the
+      compiler
+
+  Revision 1.45  1998/07/30 13:30:34  florian
     * final implemenation of exception support, maybe it needs
       some fixes :)
 

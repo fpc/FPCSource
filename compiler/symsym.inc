@@ -467,23 +467,25 @@
 
       var
          pd : pprocdef;
-
+         oldaktfilepos : tfileposinfo;
       begin
          pd:=definition;
          while assigned(pd) do
            begin
               if pd^.forwarddef then
                 begin
-{$ifdef GDB}
+                   oldaktfilepos:=aktfilepos;
+                   aktfilepos:=fileinfo;
                    if assigned(pd^._class) then
                      Message1(sym_e_forward_not_resolved,pd^._class^.name^+'.'+name+demangledparas(pd^.demangled_paras))
                    else
-{$endif GDB}
-                     Message1(sym_e_forward_not_resolved,name+pd^.demangled_paras)
+                     Message1(sym_e_forward_not_resolved,name+pd^.demangled_paras);
+                   aktfilepos:=oldaktfilepos;
                 end;
               pd:=pd^.nextoverloaded;
            end;
       end;
+
 
     procedure tprocsym.deref;
       var t : ttoken;
@@ -1650,7 +1652,11 @@
 
 {
   $Log$
-  Revision 1.25  1998-07-30 11:18:19  florian
+  Revision 1.26  1998-08-10 10:18:35  peter
+    + Compiler,Comphook unit which are the new interface units to the
+      compiler
+
+  Revision 1.25  1998/07/30 11:18:19  florian
     + first implementation of try ... except on .. do end;
     * limitiation of 65535 bytes parameters for cdecl removed
 

@@ -32,7 +32,6 @@ uses messages;
 {$i msgidx.inc}
 
 Const
-  MaxErrorCount : longint = 50;
 { <$10000 will show file and line }
   V_Fatal       = $0;
   V_Error       = $1;
@@ -53,59 +52,60 @@ Const
   V_All         = $ffffffff;
   V_Default     = V_Fatal + V_Error + V_Normal;
 
-  Verbosity     : longint=V_Default;
-
-type
-  TCompileStatus = record
-    currentmodule,
-    currentsource : string;   { filename }
-    currentline,
-    currentcolumn : longint;  { current line and column }
-    compiledlines : longint;  { the number of lines which are compiled }
-    errorcount    : longint;  { number of generated errors }
-  end;
-
-
 var
-  status      : tcompilestatus;
   msg         : pmessage;
-  UseStdErr,
-  Use_Rhide   : boolean;
   lastfileidx,
   lastmoduleidx : longint;
 
-procedure LoadMsgFile(const fn:string);
+procedure SetRedirectFile(const fn:string);
 function  SetVerbosity(const s:string):boolean;
 
-procedure stop;
-procedure comment(l:longint;const s:string);
-procedure internalerror(i:longint);
+procedure LoadMsgFile(const fn:string);
+
+procedure Stop;
+procedure ShowStatus;
+procedure Internalerror(i:longint);
+procedure Comment(l:longint;const s:string);
 procedure Message(w:tmsgconst);
 procedure Message1(w:tmsgconst;const s1:string);
 procedure Message2(w:tmsgconst;const s1,s2:string);
 procedure Message3(w:tmsgconst;const s1,s2,s3:string);
 
-{ Function redirecting for IDE support }
-type
-  tstopprocedure         = procedure;
-  tcommentfunction       = function(Level:Longint;const s:string):boolean;
-  tinternalerrorfunction = function(i:longint):boolean;
-var
-  do_stop          : tstopprocedure;
-  do_comment       : tcommentfunction;
-  do_internalerror : tinternalerrorfunction;
+procedure InitVerbose;
 
 
 implementation
 uses
-  files,
+  files,comphook,
   globals;
 
-procedure LoadMsgFile(const fn:string);
+var
+  redirexitsave : pointer;
+
+{****************************************************************************
+                       Extra Handlers for default compiler
+****************************************************************************}
+
+procedure DoneRedirectFile;{$ifndef FPC}far;{$ENDIF}
 begin
-  if not (msg=nil) then
-   dispose(msg,Done);
-  msg:=new(pmessage,InitExtern(fn,ord(endmsgconst)));
+  exitproc:=redirexitsave;
+  if status.use_redir then
+   close(status.redirfile);
+end;
+
+
+procedure SetRedirectFile(const fn:string);
+begin
+  assign(status.redirfile,fn);
+  {$I-}
+   rewrite(status.redirfile);
+  {$I+}
+  status.use_redir:=(ioresult=0);
+  if status.use_redir then
+   begin
+     redirexitsave:=exitproc;
+     exitproc:=@DoneRedirectFile;
+   end;
 end;
 
 
@@ -116,10 +116,10 @@ var
   inverse : boolean;
   c : char;
 begin
-  setverbosity:=false;
+  Setverbosity:=false;
   val(s,m,i);
   if (i=0) and (s<>'') then
-   verbosity:=m
+   status.verbosity:=m
   else
    begin
      for i:=1 to length(s) do
@@ -134,75 +134,83 @@ begin
             inverse:=false;
           case upcase(s[i]) of
           { Special cases }
-           'A' : Verbosity:=V_All;
-           '0' : Verbosity:=V_Default;
+           'A' : status.verbosity:=V_All;
+           '0' : status.verbosity:=V_Default;
            'R' : begin
                     if inverse then
                       begin
-                         Use_rhide:=false;
-                         UseStdErr:=false;
+                         status.use_gccoutput:=false;
+                         status.use_stderr:=false;
                       end
                     else
                       begin
-                         Use_rhide:=true;
-                         UseStdErr:=true;
+                         status.use_gccoutput:=true;
+                         status.use_stderr:=true;
                       end;
                  end;
           { Normal cases - do an or }
            'E' : if inverse then
-                   Verbosity:=Verbosity and (not V_Error)
+                   status.verbosity:=status.verbosity and (not V_Error)
                  else
-                   Verbosity:=Verbosity or V_Error;
+                   status.verbosity:=status.verbosity or V_Error;
            'I' : if inverse then
-                   Verbosity:=Verbosity and (not V_Info)
+                   status.verbosity:=status.verbosity and (not V_Info)
                  else
-                   Verbosity:=Verbosity or V_Info;
+                   status.verbosity:=status.verbosity or V_Info;
            'W' : if inverse then
-                   Verbosity:=Verbosity and (not V_Warning)
+                   status.verbosity:=status.verbosity and (not V_Warning)
                  else
-                   Verbosity:=Verbosity or V_Warning;
+                   status.verbosity:=status.verbosity or V_Warning;
            'N' : if inverse then
-                   Verbosity:=Verbosity and (not V_Note)
+                   status.verbosity:=status.verbosity and (not V_Note)
                  else
-                   Verbosity:=Verbosity or V_Note;
+                   status.verbosity:=status.verbosity or V_Note;
            'H' : if inverse then
-                   Verbosity:=Verbosity and (not V_Hint)
+                   status.verbosity:=status.verbosity and (not V_Hint)
                  else
-                   Verbosity:=Verbosity or V_Hint;
+                   status.verbosity:=status.verbosity or V_Hint;
            'L' : if inverse then
-                   Verbosity:=Verbosity and (not V_Status)
+                   status.verbosity:=status.verbosity and (not V_Status)
                  else
-                   Verbosity:=Verbosity or V_Status;
+                   status.verbosity:=status.verbosity or V_Status;
            'U' : if inverse then
-                   Verbosity:=Verbosity and (not V_Used)
+                   status.verbosity:=status.verbosity and (not V_Used)
                  else
-                   Verbosity:=Verbosity or V_Used;
+                   status.verbosity:=status.verbosity or V_Used;
            'T' : if inverse then
-                   Verbosity:=Verbosity and (not V_Tried)
+                   status.verbosity:=status.verbosity and (not V_Tried)
                  else
-                   Verbosity:=Verbosity or V_Tried;
+                   status.verbosity:=status.verbosity or V_Tried;
            'M' : if inverse then
-                   Verbosity:=Verbosity and (not V_Macro)
+                   status.verbosity:=status.verbosity and (not V_Macro)
                  else
-                   Verbosity:=Verbosity or V_Macro;
+                   status.verbosity:=status.verbosity or V_Macro;
            'P' : if inverse then
-                   Verbosity:=Verbosity and (not V_Procedure)
+                   status.verbosity:=status.verbosity and (not V_Procedure)
                  else
-                   Verbosity:=Verbosity or V_Procedure;
+                   status.verbosity:=status.verbosity or V_Procedure;
            'C' : if inverse then
-                   Verbosity:=Verbosity and (not V_Conditional)
+                   status.verbosity:=status.verbosity and (not V_Conditional)
                  else
-                   Verbosity:=Verbosity or V_Conditional;
+                   status.verbosity:=status.verbosity or V_Conditional;
            'D' : if inverse then
-                   Verbosity:=Verbosity and (not V_Debug)
+                   status.verbosity:=status.verbosity and (not V_Debug)
                  else
-                   Verbosity:=Verbosity or V_Debug;
+                   status.verbosity:=status.verbosity or V_Debug;
            end;
        end;
      end;
-  if Verbosity=0 then
-   Verbosity:=V_Default;
+  if status.verbosity=0 then
+   status.verbosity:=V_Default;
   setverbosity:=true;
+end;
+
+
+procedure LoadMsgFile(const fn:string);
+begin
+  if not (msg=nil) then
+   dispose(msg,Done);
+  msg:=new(pmessage,InitExtern(fn,ord(endmsgconst)));
 end;
 
 
@@ -212,6 +220,18 @@ begin
   do_stop();
 {$else}
   do_stop;
+{$endif}
+end;
+
+
+procedure ShowStatus;
+begin
+{$ifndef TP}
+  if do_status() then
+   stop;
+{$else}
+  if do_status then
+   stop;
 {$endif}
 end;
 
@@ -242,7 +262,7 @@ begin
      lastfileidx:=current_module^.current_index;
    end;
 { show comment }
-  if do_comment(l,s) or dostop or (status.errorcount>=maxerrorcount) then
+  if do_comment(l,s) or dostop or (status.errorcount>=status.maxerrorcount) then
    stop
 end;
 
@@ -267,6 +287,7 @@ begin
          case upcase(s[i]) of
           'F' : begin
                   v:=v or V_Fatal;
+                  inc(status.errorcount);
                   dostop:=true;
                 end;
           'E' : begin
@@ -305,7 +326,7 @@ begin
      lastfileidx:=current_module^.current_index;
    end;
 { show comment }
-  if do_comment(v,s) or dostop or (status.errorcount>=maxerrorcount) then
+  if do_comment(v,s) or dostop or (status.errorcount>=status.maxerrorcount) then
    stop;
 end;
 
@@ -334,6 +355,14 @@ begin
 end;
 
 
+procedure InitVerbose;
+begin
+{ Init }
+  FillChar(Status,sizeof(TCompilerStatus),0);
+  status.verbosity:=V_Default;
+  Status.MaxErrorCount:=50;
+end;
+
 begin
 {$IFNDEF EXTERN_MSG}
   msg:=new(pmessage,Init(@msgtxt,ord(endmsgconst)));
@@ -342,7 +371,11 @@ end.
 
 {
   $Log$
-  Revision 1.11  1998-07-14 14:47:13  peter
+  Revision 1.12  1998-08-10 10:18:37  peter
+    + Compiler,Comphook unit which are the new interface units to the
+      compiler
+
+  Revision 1.11  1998/07/14 14:47:13  peter
     * released NEWINPUT
 
   Revision 1.10  1998/07/07 12:32:56  peter

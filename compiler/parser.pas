@@ -33,7 +33,7 @@ unit parser;
   implementation
 
     uses
-      systems,cobjects,globals,verbose,
+      cobjects,verbose,comphook,systems,globals,
       symtable,files,aasm,hcodegen,
       assemble,link,script,gendef,
 {$ifdef UseBrowser}
@@ -390,7 +390,11 @@ done:
 end.
 {
   $Log$
-  Revision 1.31  1998-07-14 21:46:46  peter
+  Revision 1.32  1998-08-10 10:18:28  peter
+    + Compiler,Comphook unit which are the new interface units to the
+      compiler
+
+  Revision 1.31  1998/07/14 21:46:46  peter
     * updated messages file
 
   Revision 1.30  1998/07/14 14:46:49  peter

@@ -2,6 +2,8 @@
     $Id$
     Copyright (c) 1993-98 by Florian Klaempfl
 
+    Commandline compiler for Free Pascal
+
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -27,8 +29,6 @@
   GDB*                support of the GNU Debugger
   I386                generate a compiler for the Intel i386+
   M68K                generate a compiler for the M68000
-  MULLER              release special debug code of Pierre Muller
-                      (needs some extra units)
   USEOVERLAY          compiles a TP version which uses overlays
   EXTDEBUG            some extra debug code is executed
   SUPPORT_MMX         only i386: releases the compiler switch
@@ -94,51 +94,20 @@ program pp;
 {$ENDIF}
 {$ifdef FPC}
   {$UNDEF USEOVERLAY}
-  {$UNDEF USEPMD}
 {$ENDIF}
 
 uses
-{$ifdef fpc}
-  {$ifdef GO32V2}
-    emu387,
-    dpmiexcp,
-  {$endif GO32V2}
-{$endif}
 {$ifdef useoverlay}
   {$ifopt o+}
     Overlay,ppovin,
   {$else}
-  {$error You must compile with the $O+ switch}
+    {$error You must compile with the $O+ switch}
   {$endif}
 {$endif useoverlay}
-{$ifdef lock}
-  lock,
-{$endif lock}
 {$ifdef profile}
   profile,
 {$endif profile}
-{$ifdef muller}
-  openfile,
-  {$ifdef usepmd}
-    usepmd,
-  {$endif usepmd}
-{$endif}
-{$ifdef LINUX}
-  catch,
-{$endif LINUX}
-{$IfDef PMD}
-     OpenFile,
-     BBError,
-     ObjMemory,
-     PMD, MemCheck,
-{$EndIf}
-{$ifdef TP}
-  objects,
-{$endif}
-
-  dos,cobjects,
-  globals,parser,systems,tree,symtable,options,link,import,files,
-  verb_def,verbose;
+  globals,compiler;
 
 {$ifdef useoverlay}
   {$O files}
@@ -165,7 +134,7 @@ uses
   {$O script}
   {$O switches}
   {$O temp_gen}
-  {$O verb_def}
+  {$O comphook}
   {$O dos}
   {$O scanner}
   {$O symtable}
@@ -226,26 +195,12 @@ uses
   {$endif}
 {$endif useoverlay}
 
-
-function getrealtime : real;
-var
-  h,m,s,s100 : word;
-begin
-  dos.gettime(h,m,s,s100);
-  getrealtime:=h*3600.0+m*60.0+s+s100/100.0;
-end;
-
-
-
 var
   oldexit : pointer;
 procedure myexit;{$ifndef FPC}far;{$endif}
 begin
   exitproc:=oldexit;
-{$ifdef tp}
-  if use_big then
-   symbolstream.done;
-{$endif}
+{ Show Runtime error if there was an error }
   if (erroraddr<>nil) then
    begin
      case exitcode of
@@ -258,64 +213,10 @@ begin
               Writeln('Error: Out of memory');
             end;
      end;
-   {when the module is assigned, then the messagefile is also loaded}
      Writeln('Compilation aborted at line ',aktfilepos.line);
    end;
 end;
 
-
-{$ifdef tp}
-  procedure do_streamerror;
-  begin
-    if symbolstream.status=-2 then
-     WriteLn('Error: Not enough EMS memory')
-    else
-     WriteLn('Error: EMS Error ',symbolstream.status);
-  {$ifndef MULLER}
-    halt(1);
-  {$else MULLER}
-    runerror(190);
-  {$endif MULLER}
-  end;
-
-  {$ifdef USEOVERLAY}
-    function _heaperror(size:word):integer;far;
-    type
-      heaprecord=record
-        next:pointer;
-        values:longint;
-      end;
-    var
-      l,m:longint;
-    begin
-      l:=ovrgetbuf-ovrminsize;
-      if (size>maxavail) and (l>=size) then
-       begin
-         m:=((longint(size)+$3fff) and $ffffc000);
-         {Clear the overlay buffer.}
-         ovrclearbuf;
-         {Shrink it.}
-         ovrheapend:=ovrheapend-m shr 4;
-         heaprecord(ptr(ovrheapend,0)^).next:=freelist;
-         heaprecord(ptr(ovrheapend,0)^).values:=m shl 12;
-         heaporg:=ptr(ovrheapend,0);
-         freelist:=heaporg;
-         Writeln('Warning: Overlay buffer shrinked, because of memory shortage');
-         _heaperror:=2;
-       end
-      else
-       _heaperror:=0;
-    end;
-  {$endif USEOVERLAY}
-{$endif TP}
-
-
-
-var
-  start : real;
-{$IfDef Extdebug}
-  EntryMemAvail : longint;
-{$EndIf}
 begin
   oldexit:=exitproc;
   exitproc:=@myexit;
@@ -326,91 +227,29 @@ begin
     heapblocks:=true;
   {$endif}
 {$endif}
-{$ifdef EXTDEBUG}
-   EntryMemAvail:=MemAvail;
-{$endif}
-{$ifdef MULLER}
-  {$ifdef DPMI}
-     HeapBlock:=$ff00;
-  {$endif DPMI}
-{$endif MULLER}
-{$ifdef TP}
-  {$IFDEF USEOVERLAY}
-    heaperror:=@_heaperror;
-  {$ENDIF USEOVERLAY}
-   if use_big then
-    begin
-      streamerror:=@do_streamerror;
-    { symbolstream.init('TMPFILE',stcreate,16000); }
-    {$ifndef dpmi}
-      symbolstream.init(10000,4000000); {using ems streams}
-    {$else}
-      symbolstream.init(1000000,16000); {using memory streams}
-    {$endif}
-      if symbolstream.errorinfo=stiniterror then
-       do_streamerror;
-    { write something, because pos 0 means nil pointer }
-      symbolstream.writestr(@inputfile);
-    end;
-{$endif tp}
-
-   { inits which need to be done  before the arguments are parsed }
-   get_exepath;
-   init_tree;
-   globalsinit;
-   init_symtable;
-   linker.init;
-
-   { read the arguments }
-   read_arguments;
-
-   { inits which depend on arguments }
-   initparser;
-   initimport;
-
-   {show some info}
-   Message1(general_i_compilername,FixFileName(paramstr(0)));
-   Message1(general_i_unitsearchpath,unitsearchpath);
-   Message1(general_d_sourceos,source_os.name);
-   Message1(general_i_targetos,target_os.name);
-   Message1(general_u_exepath,exepath);
-{$ifdef linux}
-   Message1(general_u_gcclibpath,Linker.librarysearchpath);
-{$endif}
-{$ifdef TP}
-   Comment(V_Info,'Memory: '+tostr(MemAvail)+' Bytes Free');
+{$ifdef UseOverlay}
+  InitOverlay;
 {$endif}
 
-   start:=getrealtime;
-   compile(inputdir+inputfile+inputextension,false);
-   if status.errorcount=0 then
-    begin
-      start:=getrealtime-start;
-      Message2(general_i_abslines_compiled,tostr(status.compiledlines),tostr(trunc(start))+'.'+tostr(trunc(frac(start)*10)));
-    end;
-
-   done_symtable;
-
-{$ifdef TP}
-   Comment(V_Info,'Memory: '+tostr(MemAvail)+' Bytes Free');
-{$endif}
-{$ifdef EXTDEBUG}
-   Comment(V_Info,'Memory lost = '+tostr(EntryMemAvail-MemAvail));
-{$endif EXTDEBUG}
-{ exits with error 1 if no codegeneration }
-   if status.errorcount=0 then
-    halt(0)
-   else
-    halt(1);
+{ Call the compiler with empty command, so it will take the parameters }
+  Halt(Compile(''));
 end.
 {
   $Log$
-  Revision 1.23  1998-08-05 16:00:16  florian
+  Revision 1.24  1998-08-10 10:18:32  peter
+    + Compiler,Comphook unit which are the new interface units to the
+      compiler
+
+  Revision 1.23  1998/08/05 16:00:16  florian
     * some fixes for ansi strings
-    * $log$ to $Log$ changed
+    * $log$ to $Log$
+    * $log$ to Revision 1.24  1998-08-10 10:18:32  peter
+    * $log$ to   + Compiler,Comphook unit which are the new interface units to the
+    * $log$ to     compiler
+    * $log$ to changed
 
   Revision 1.22  1998/08/04 16:28:40  jonas
-  * added support for NoRa386* in the {$O ...} section
+  * added support for NoRa386* in the $O ... section
 
   Revision 1.21  1998/07/18 17:11:12  florian
     + ansi string constants fixed

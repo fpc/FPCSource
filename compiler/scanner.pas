@@ -28,7 +28,7 @@ unit scanner;
   interface
 
     uses
-       cobjects,globals,verbose,files;
+       cobjects,globals,verbose,comphook,files;
 
     const
 {$ifdef TP}
@@ -510,11 +510,13 @@ implementation
         if closed then
          exit;
         repeat
-        { still more to read, then we have an illegal char }
+        { still more to read?, then change the #0 to a space so its seen
+          as a seperator }
           if (bufsize>0) and (inputpointer-inputbuffer<bufsize) then
            begin
-             gettokenpos;
-             Message(scan_f_illegal_char);
+             c:=' ';
+             inc(longint(inputpointer));
+             exit;
            end;
         { can we read more from this file ? }
           if filenotatend then
@@ -561,7 +563,7 @@ implementation
       begin
         lasttokenpos:=bufstart+(inputpointer-inputbuffer);
         tokenpos.line:=line_no;
-        tokenpos.column:=lasttokenpos-lastlinepos+1;
+        tokenpos.column:=lasttokenpos-lastlinepos;
         tokenpos.fileindex:=current_module^.current_index;
         aktfilepos:=tokenpos;
       end;
@@ -627,10 +629,10 @@ implementation
          end;
         plongint(longint(linebuf)+line_no*2)^:=lastlinepos;
 {$endif SourceLine}
-      { update for status }
+      { update for status and call the show status routine }
         aktfilepos.line:=line_no; { update for v_status }
         inc(status.compiledlines);
-        Comment(V_Status,'');
+        ShowStatus;
       end;
 
 
@@ -729,10 +731,8 @@ implementation
                          c:=inputpointer^;
                          inc(longint(inputpointer));
                        end;
-
                   #0 : reload;
              #13,#10 : begin
-
                          linebreak;
                          break;
                        end;
@@ -740,7 +740,6 @@ implementation
            break;
           end;
         until false;
-
         orgpattern[0]:=chr(i);
         pattern[0]:=chr(i);
       end;
@@ -1549,7 +1548,11 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.37  1998-07-23 12:40:41  michael
+  Revision 1.38  1998-08-10 10:18:34  peter
+    + Compiler,Comphook unit which are the new interface units to the
+      compiler
+
+  Revision 1.37  1998/07/23 12:40:41  michael
   No nested comments in Delphi mode.
 
   Revision 1.36  1998/07/20 22:17:17  florian

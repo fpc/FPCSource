@@ -37,7 +37,7 @@ unit pmodules;
   implementation
 
     uses
-       cobjects,verbose,systems,globals,
+       cobjects,verbose,comphook,systems,globals,
        symtable,aasm,hcodegen,
        link,assemble,import
 {$ifndef OLDPPU}
@@ -1166,7 +1166,11 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.36  1998-07-14 14:46:54  peter
+  Revision 1.37  1998-08-10 10:18:31  peter
+    + Compiler,Comphook unit which are the new interface units to the
+      compiler
+
+  Revision 1.36  1998/07/14 14:46:54  peter
     * released NEWINPUT
 
   Revision 1.35  1998/07/08 12:39:38  peter

@@ -35,8 +35,8 @@ unit pass_1;
   implementation
 
      uses
-        scanner,cobjects,verbose,systems,globals,aasm,symtable,
-        types,strings,hcodegen,files
+        cobjects,verbose,comphook,systems,globals,
+	aasm,symtable,types,strings,hcodegen,files
 {$ifdef i386}
         ,i386
         ,tgeni386
@@ -5177,7 +5177,11 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.50  1998-08-08 21:51:39  peter
+  Revision 1.51  1998-08-10 10:18:29  peter
+    + Compiler,Comphook unit which are the new interface units to the
+      compiler
+
+  Revision 1.50  1998/08/08 21:51:39  peter
     * small crash prevent is firstassignment
 
   Revision 1.49  1998/07/30 16:07:08  florian

@@ -24,50 +24,72 @@ unit ppovin;
 
 interface
 
-var ovrminsize:longint;
+var
+  ovrminsize:longint;
+
+procedure InitOverlay;
 
 implementation
+uses overlay;
 
-uses    overlay;
 
-var s:string;
-
+function _heaperror(size:word):integer;far;
+type
+  heaprecord=record
+    next:pointer;
+    values:longint;
+  end;
+var
+  l,m:longint;
 begin
-    s:=paramstr(0);
-    ovrinit(copy(s,1,length(s)-3)+'ovr');
-    if ovrresult=ovrok then
-        begin
-            {May fail if no EMS memory is available. No need for error
-             checking, though, as the overlay manager happily runs without
-             EMS.}
-            ovrinitEMS;
-            ovrminsize:=ovrgetbuf;
-            ovrsetbuf(ovrminsize+$20000);
-        end
-    else
-        runerror($da);
+  l:=ovrgetbuf-ovrminsize;
+  if (size>maxavail) and (l>=size) then
+   begin
+     m:=((longint(size)+$3fff) and $ffffc000);
+     {Clear the overlay buffer.}
+     ovrclearbuf;
+     {Shrink it.}
+     ovrheapend:=ovrheapend-m shr 4;
+     heaprecord(ptr(ovrheapend,0)^).next:=freelist;
+     heaprecord(ptr(ovrheapend,0)^).values:=m shl 12;
+     heaporg:=ptr(ovrheapend,0);
+     freelist:=heaporg;
+     Writeln('Warning: Overlay buffer shrinked, because of memory shortage');
+     _heaperror:=2;
+   end
+  else
+   _heaperror:=0;
+end;
+
+procedure InitOverlay;
+begin
+  heaperror:=@_heaperror;
+end;
+
+
+var
+  s:string;
+begin
+  s:=paramstr(0);
+  ovrinit(copy(s,1,length(s)-3)+'ovr');
+  if ovrresult=ovrok then
+   begin
+     {May fail if no EMS memory is available. No need for error
+      checking, though, as the overlay manager happily runs without
+      EMS.}
+     ovrinitEMS;
+     ovrminsize:=ovrgetbuf;
+     ovrsetbuf(ovrminsize+$20000);
+   end
+  else
+   runerror($da);
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:15  root
-  Initial revision
+  Revision 1.2  1998-08-10 10:18:33  peter
+    + Compiler,Comphook unit which are the new interface units to the
+      compiler
 
-  Revision 1.5  1998/03/10 01:17:24  peter
-    * all files have the same header
-    * messages are fully implemented, EXTDEBUG uses Comment()
-    + AG... files for the Assembler generation
-
-
-  Pre CVS Log:
-
-  FK     Florian Klaempfl
-  DM     Dani‰l Mantione
-  +      feature added
-  -      removed
-  *      bug fixed or changed
-
-  12th October 1997:
-        Rewritten (DM).
 }
 
 
