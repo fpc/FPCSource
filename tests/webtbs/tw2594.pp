@@ -1,7 +1,13 @@
 { Source provided for Free Pascal Bug Report 2594 }
 { Submitted by "Pavel V. Ozerski" on  2003-07-24 }
 { e-mail: ozerski@list.ru }
-{$apptype console}
+
+{$ifndef MACOS}
+{$APPTYPE CONSOLE}
+{$else}
+{$APPTYPE TOOL}
+{$endif}
+
 {$ifdef fpc}
 {$mode delphi}
 {$endif}

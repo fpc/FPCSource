@@ -5,7 +5,11 @@ program ttrunc;
   {$define SKIP_CURRENCY_TEST}
 {$endif }
 
+{$ifndef MACOS}
 {$APPTYPE CONSOLE}
+{$else}
+{$APPTYPE TOOL}
+{$endif}
 
 const
   RESULT_ONE = 1234;
@@ -228,7 +232,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2002-10-15 10:26:36  pierre
+  Revision 1.4  2004-04-25 13:42:11  olle
+    * changed to $APPTYPE TOOL on MacOS
+
+  Revision 1.3  2002/10/15 10:26:36  pierre
    * add code to remember that currency is only implemented in 1.1 compiler
 
   Revision 1.2  2002/09/18 18:30:30  carl

@@ -5,7 +5,12 @@
 program tstring;
 {$R+}
 {$Q+}
+
+{$ifndef MACOS}
 {$APPTYPE CONSOLE}
+{$else}
+{$APPTYPE TOOL}
+{$endif}
 
 {$ifdef fpc}
   {$ifndef ver1_0}

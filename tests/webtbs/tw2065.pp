@@ -3,7 +3,12 @@
 { e-mail: thomas.lavergne@laposte.net }
 program test;
 
+{$ifndef MACOS}
 {$APPTYPE CONSOLE}
+{$else}
+{$APPTYPE TOOL}
+{$endif}
+
 {$LONGSTRINGS ON}
 
 type

@@ -6,7 +6,12 @@
 program tsetstr;
 {$R+}
 {$Q+}
+
+{$ifndef MACOS}
 {$APPTYPE CONSOLE}
+{$else}
+{$APPTYPE TOOL}
+{$endif}
 
 {$ifdef fpc}
   {$ifndef ver1_0}
@@ -168,7 +173,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2003-03-04 18:19:48  jonas
+  Revision 1.4  2004-04-25 13:42:11  olle
+    * changed to $APPTYPE TOOL on MacOS
+
+  Revision 1.3  2003/03/04 18:19:48  jonas
     * adapted tests to fixed implementation
 
   Revision 1.2  2002/12/16 20:40:36  peter
