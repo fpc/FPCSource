@@ -1,5 +1,5 @@
 #
-#   Makefile.fpc for Free Component Library for Win32
+#   Makefile.fpc for Free Component Library for Linux
 #
 
 [defaults]
@@ -8,7 +8,7 @@ defaultcpu=i386
 defaultoptions=-S2
 
 [packages]
-packages=$(ZLIBPACKAGE)
+packages=zlib
 
 [dirs]
 fpcdir=../..
@@ -29,14 +29,6 @@ XML=../xml
 include $(INC)/Makefile.inc
 include $(XML)/Makefile.inc
 
-# Which package to use
-ifndef ZLIBPACKAGE
-ifdef inlinux
-ZLIBPACKAGE=zlib
-else
-ZLIBPACKAGE=paszlib
-endif
-endif
 
 [rules]
 INCFILES=$(addprefix $(INC)/,$(INCNAMES))

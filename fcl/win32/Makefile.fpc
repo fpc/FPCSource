@@ -8,7 +8,7 @@ defaultcpu=i386
 defaultoptions=-S2
 
 [packages]
-packages=$(ZLIBPACKAGE)
+packages=paszlib
 
 [dirs]
 fpcdir=../..
@@ -19,6 +19,7 @@ sourcesdir=$(INC) $(XML)
 [targets]
 units=classes $(INCUNITS) $(XMLUNITS) zstream
 
+
 [presettings]
 # Include files
 INC=../inc
@@ -28,15 +29,6 @@ XML=../xml
 # They are default units for all platforms.
 include $(INC)/Makefile.inc
 include $(XML)/Makefile.inc
-
-# Which package to use
-ifndef ZLIBPACKAGE
-ifdef inlinux
-ZLIBPACKAGE=zlib
-else
-ZLIBPACKAGE=paszlib
-endif
-endif
 
 [rules]
 INCFILES=$(addprefix $(INC)/,$(INCNAMES))

@@ -7,6 +7,9 @@ defaulttarget=go32v2
 defaultcpu=i386
 defaultoptions=-S2
 
+[packages]
+packages=paszlib
+
 [dirs]
 fpcdir=../..
 targetdir=.
@@ -14,7 +17,7 @@ incdir=$(INC)
 sourcesdir=$(INC) $(XML)
 
 [targets]
-units=classes $(INCUNITS) $(XMLUNITS)
+units=classes $(INCUNITS) $(XMLUNITS) zstream
 
 
 [presettings]
