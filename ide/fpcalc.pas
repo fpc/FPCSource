@@ -50,6 +50,7 @@ type
     Operand: extended;
     Memory: extended;
     DispNumber: extended;
+    HexShown : boolean;
     constructor Init(var Bounds: TRect);
     constructor Load(var S: TStream);
     function  CalcKey(Key: string): boolean;
@@ -162,6 +163,7 @@ begin
   EventMask := evKeyDown + evBroadcast;
   Clear;
   HelpCtx:={hcCalculatorLine}0;
+  HexShown:=false;
 end;
 
 constructor TCalcDisplay.Load(var S: TStream);
@@ -169,6 +171,7 @@ begin
   inherited Load(S);
   S.Read(Status, SizeOf(Status) + SizeOf(Number) + SizeOf(Sign) +
     SizeOf(_Operator) + SizeOf(Operand));
+  HexShown:=false;
 end;
 
 procedure TCalcDisplay.GetDisplay(var R: extended);
@@ -239,7 +242,8 @@ begin
     fldcw fpucw
   end;
 {$endif}
-  ErrorBox('Error while computing math expression',nil);
+  { ErrorBox('Error while computing math expression',nil);
+    was only there for debugging PM }
 {$ifdef go32v2}
   Dpmi_LongJmp(CalcSigJmp,1);
 {$else : not go32v2}
@@ -255,6 +259,7 @@ end;
 function TCalcDisplay.CalcKey(Key: string): boolean;
 var
   R,D: extended;
+  X : cardinal;
 procedure CheckFirst;
 begin
   if Status = csFirst then
@@ -287,6 +292,14 @@ begin
       StoreSigFPE:=Signal(SIGFPE,@CalcSigFPE);
 {$endif HasSignal}
       if (Status = csError) and (Key <> 'C') then Key := ' ';
+      if HexShown then
+        begin
+          GetDisplay(R);
+          SetDisplay(R,false);
+          HexShown := false;
+          if Key = 'H' then
+            Key := ' ';
+        end;
       if Key='X^Y' then Key:='^';
       if length(Key)>1 then
          begin
@@ -326,8 +339,19 @@ begin
             if Length(Number) = 1 then Number := '0' else Dec(Number[0]);
             SetDisplay(StrToExtended(Number),true); { !!! }
           end;
+        'H':
+          begin
+            GetDisplay(R);
+            X:=trunc(abs(R));
+            Number:=HexStr(X,8);
+            HexShown:=true;
+          end;
         '_', #241:
-          if Sign = ' ' then Sign := '-' else Sign := ' ';
+          begin
+            if Sign = ' ' then Sign := '-' else Sign := ' ';
+            GetDisplay(R);
+            SetDisplay(-R,true);
+          end;
         '+', '-', '*', '/', '=', '%', #13, '^':
           begin
             if Status = csValid then
@@ -547,7 +571,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2002-01-22 13:56:04  pierre
+  Revision 1.5  2002-01-22 14:56:37  pierre
+    * fix wrong sign change handling
+    + add 'H' to view current value as hexadecimal
+
+  Revision 1.4  2002/01/22 13:56:04  pierre
    * fix multiple FPU excpetion trapping problem for unix
 
   Revision 1.3  2001/11/14 23:55:38  pierre
