@@ -15,7 +15,10 @@
 
  **********************************************************************
 }
+
+{$S- do not use stackcheck here .. PM }
 Unit profile;
+
 interface
 
 type
@@ -327,7 +330,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  1998-05-31 14:18:28  peter
+  Revision 1.3  1998-11-17 09:43:22  pierre
+   + No stack check
+
+  Revision 1.2  1998/05/31 14:18:28  peter
     * force att or direct assembling
     * cleanup of some files
 
