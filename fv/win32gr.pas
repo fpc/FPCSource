@@ -570,7 +570,7 @@ function fvisioncharmessagehandler (Window: hwnd; AMessage, WParam,
                                   LParam: Longint): Longint;
 var
   ir : INPUT_RECORD;
-  NumWritten : longint;
+  NumWritten : dword;
   vKey : byte;
   scancode : integer;
   ach, ch : array[0..1] of char;
@@ -718,7 +718,7 @@ function fvisionmousemessagehandler (Window: hwnd; AMessage, WParam,
 
 var
   ir : INPUT_RECORD;
-  NumWritten : longint;
+  NumWritten : dword;
 begin
   fvisionmousemessagehandler:=0;
   ir.EventType:=_MOUSE_EVENT;
@@ -814,7 +814,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2002-05-31 13:35:33  pierre
+  Revision 1.6  2003-01-12 23:25:51  pierre
+   * fix win32 graph version compilation failure
+
+  Revision 1.5  2002/05/31 13:35:33  pierre
    * recognize Enter key with kbEnter
 
   Revision 1.4  2002/05/29 21:20:49  pierre
