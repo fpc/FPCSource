@@ -98,127 +98,182 @@ type
   flag = byte;
 
   Function extractFloat64Frac0(const a: float64): longint;
-  Begin
-    extractFloat64Frac0 := a.high and $000FFFFF;
-  End;
+    Begin
+      extractFloat64Frac0 := a.high and $000FFFFF;
+    End;
+
 
   Function extractFloat64Frac1(const a: float64): longint;
-  Begin
-    extractFloat64Frac1 := a.low;
-  End;
+    Begin
+      extractFloat64Frac1 := a.low;
+    End;
 
- Function extractFloat64Exp(const a: float64): smallint;
- Begin
-    extractFloat64Exp:= ( a.high shr 20 ) AND $7FF;
- End;
 
- Function extractFloat64Sign(const a: float64) : flag;
- Begin
-    extractFloat64Sign := a.high shr 31;
- End;
+  Function extractFloat64Exp(const a: float64): smallint;
+    Begin
+       extractFloat64Exp:= ( a.high shr 20 ) AND $7FF;
+    End;
 
-Procedure
- shortShift64Left(
-     a0:longint; a1:longint; count:smallint; VAR z0Ptr:longint; VAR z1Ptr:longint );
-Begin
-    z1Ptr := a1 shl count;
-    if count = 0 then
-      z0Ptr := a0
-    else
-      z0Ptr := ( a0 shl count ) OR ( a1 shr ( ( - count ) AND 31 ) );
-End;
+
+  Function extractFloat64Frac(const a: float64): int64;
+    Begin
+      extractFloat64Frac:=int64(a) and $000FFFFFFFFFFFFF;
+    End;
+
+
+  Function extractFloat64Sign(const a: float64) : flag;
+    Begin
+       extractFloat64Sign := a.high shr 31;
+    End;
+
+
+  Procedure shortShift64Left(a0:longint; a1:longint; count:smallint; VAR z0Ptr:longint; VAR z1Ptr:longint );
+    Begin
+        z1Ptr := a1 shl count;
+        if count = 0 then
+          z0Ptr := a0
+        else
+          z0Ptr := ( a0 shl count ) OR ( a1 shr ( ( - count ) AND 31 ) );
+    End;
 
    function float64_to_int32_round_to_zero(a: float64 ): longint;
-    Var
-      aSign: flag;
-      aExp, shiftCount: smallint;
-      aSig0, aSig1, absZ, aSigExtra: longint;
-      z: longint;
-   Begin
-     aSig1 := extractFloat64Frac1( a );
-     aSig0 := extractFloat64Frac0( a );
-     aExp := extractFloat64Exp( a );
-     aSign := extractFloat64Sign( a );
-     shiftCount := aExp - $413;
-     if ( 0 <= shiftCount ) then
+     Var
+       aSign: flag;
+       aExp, shiftCount: smallint;
+       aSig0, aSig1, absZ, aSigExtra: longint;
+       z: longint;
      Begin
-        if (aExp=$7FF)  and ((aSig0 or aSig1)<>0) then
-          HandleError(207);
-        shortShift64Left(
-          aSig0 OR  $00100000, aSig1, shiftCount, absZ, aSigExtra );
-     End
-     else
-     Begin
-         if ( aExp < $3FF ) then
-           begin
-             float64_to_int32_round_to_zero := 0;
-             exit;
-           end;
-         aSig0 := aSig0 or $00100000;
-         aSigExtra := ( aSig0 shl ( shiftCount and 31 ) ) OR  aSig1;
-         absZ := aSig0 shr ( - shiftCount );
+       aSig1 := extractFloat64Frac1( a );
+       aSig0 := extractFloat64Frac0( a );
+       aExp := extractFloat64Exp( a );
+       aSign := extractFloat64Sign( a );
+       shiftCount := aExp - $413;
+       if 0<=shiftCount then
+       Begin
+          if (aExp=$7FF)  and ((aSig0 or aSig1)<>0) then
+            HandleError(207);
+          shortShift64Left(aSig0 OR  $00100000, aSig1, shiftCount, absZ, aSigExtra );
+       End
+       else
+       Begin
+           if aExp<$3FF then
+             begin
+               float64_to_int32_round_to_zero := 0;
+               exit;
+             end;
+           aSig0 := aSig0 or $00100000;
+           aSigExtra := ( aSig0 shl ( shiftCount and 31 ) ) OR  aSig1;
+           absZ := aSig0 shr ( - shiftCount );
+       End;
+       if aSign<>0 then
+         z:=-absZ
+       else
+         z:=absZ;
+       if ((aSign<>0) xor (z<0)) AND  (z<>0) then
+         HandleError(207);
+      float64_to_int32_round_to_zero := z;
      End;
-     if aSign<>0 then
-       z:=-absZ
-     else
-       z:=absZ;
-     if ((aSign<>0) xor (z<0)) AND  (z<>0) then
-       HandleError(207);
-    float64_to_int32_round_to_zero := z;
-   End;
 
 
- Function ExtractFloat32Frac(a : Float32) : longint;
- Begin
-    ExtractFloat32Frac := A AND $007FFFFF;
- End;
+{$ifndef VER1_0}
+   function float64_to_int64_round_to_zero(a : float64) : int64;
+     var
+       aSign : flag;
+       aExp, shiftCount : smallint;
+       aSig : int64;
+       z : int64;
+     begin
+       aSig:=extractFloat64Frac(a);
+       aExp:=extractFloat64Exp(a);
+       aSign:=extractFloat64Sign(a);
+       if aExp<>0 then
+         aSig:=aSig or $0010000000000000;
+       shiftCount:= aExp-$433;
+       if 0<=shiftCount then
+         begin
+           if aExp>=$43e then
+             begin
+               if int64(a)<>$C3E0000000000000 then
+                 HandleError(207);
+               { pascal doesn't know Inf for int64 }
+               HandleError(207);
+             end;
+           z:=aSig shl shiftCount;
+         end
+       else
+         begin
+           if aExp<$3fe then
+             begin
+               if (aExp or aSig)<>0 then
+                 HandleError(207);
+               result:=0;
+               exit;
+           end;
+           z:=aSig shr -shiftCount;
+           {
+           if (aSig shl (shiftCount and 63))<>0 then
+             float_exception_flags |= float_flag_inexact;
+           }
+         end;
+       if aSign<>0 then
+         z:=-z;
+       result:=z;
+     end;
+{$endif VER1_0}
+
+  Function ExtractFloat32Frac(a : Float32) : longint;
+    Begin
+       ExtractFloat32Frac := A AND $007FFFFF;
+    End;
 
 
- Function extractFloat32Exp( a: float32 ): smallint;
-  Begin
-    extractFloat32Exp := (a shr 23) AND $FF;
-  End;
+  Function extractFloat32Exp( a: float32 ): smallint;
+    Begin
+      extractFloat32Exp := (a shr 23) AND $FF;
+    End;
 
- Function extractFloat32Sign( a: float32 ): Flag;
-  Begin
-    extractFloat32Sign := a shr 31;
-  End;
 
-Function float32_to_int32_round_to_zero( a: Float32 ): longint;
- Var
-    aSign : flag;
-    aExp, shiftCount : smallint;
-    aSig : longint;
-    z : longint;
- Begin
-    aSig := extractFloat32Frac( a );
-    aExp := extractFloat32Exp( a );
-    aSign := extractFloat32Sign( a );
-    shiftCount := aExp - $9E;
-    if ( 0 <= shiftCount ) then
-      Begin
-        if ( a <> Float32($CF000000) ) then
-          Begin
-            if ( (aSign=0) or ( ( aExp = $FF ) and (aSig<>0) ) ) then
-              Begin
-                HandleError(207);
-                exit;
-              end;
-          End;
-        HandleError(207);
-        exit;
-      End
-    else
-      if ( aExp <= $7E ) then
-      Begin
-        float32_to_int32_round_to_zero := 0;
-        exit;
-      End;
-    aSig := ( aSig or $00800000 ) shl 8;
-    z := aSig shr ( - shiftCount );
-    if ( aSign<>0 ) then z := - z;
-    float32_to_int32_round_to_zero := z;
- End;
+  Function extractFloat32Sign( a: float32 ): Flag;
+    Begin
+      extractFloat32Sign := a shr 31;
+    End;
+
+
+  Function float32_to_int32_round_to_zero( a: Float32 ): longint;
+    Var
+       aSign : flag;
+       aExp, shiftCount : smallint;
+       aSig : longint;
+       z : longint;
+    Begin
+       aSig := extractFloat32Frac( a );
+       aExp := extractFloat32Exp( a );
+       aSign := extractFloat32Sign( a );
+       shiftCount := aExp - $9E;
+       if ( 0 <= shiftCount ) then
+         Begin
+           if ( a <> Float32($CF000000) ) then
+             Begin
+               if ( (aSign=0) or ( ( aExp = $FF ) and (aSig<>0) ) ) then
+                 Begin
+                   HandleError(207);
+                   exit;
+                 end;
+             End;
+           HandleError(207);
+           exit;
+         End
+       else
+         if ( aExp <= $7E ) then
+         Begin
+           float32_to_int32_round_to_zero := 0;
+           exit;
+         End;
+       aSig := ( aSig or $00800000 ) shl 8;
+       z := aSig shr ( - shiftCount );
+       if ( aSign<>0 ) then z := - z;
+       float32_to_int32_round_to_zero := z;
+    End;
 
 
   function trunc(d : real) : int64;[internconst:in_const_trunc];
@@ -243,7 +298,11 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
          f64.low:=f64.high;
          f64.high:=l;
 {$endif cpuarm}
+{$ifdef VER1_0}
          trunc:=float64_to_int32_round_to_zero(f64);
+{$else VER1_0}
+         trunc:=float64_to_int64_round_to_zero(f64);
+{$endif VER1_0}
        end
      else
        begin
@@ -252,7 +311,6 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
        end;
     end;
 {$endif}
-
 
 
 
@@ -1188,7 +1246,10 @@ function fpc_int64_to_double(i : int64): double; compilerproc;
 
 {
   $Log$
-  Revision 1.24  2004-05-31 20:25:04  peter
+  Revision 1.25  2004-10-03 14:00:21  florian
+    + made generic trunc 64 bit aware
+
+  Revision 1.24  2004/05/31 20:25:04  peter
     * removed warnings
 
   Revision 1.23  2004/03/13 18:33:52  florian
