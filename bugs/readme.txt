@@ -137,6 +137,7 @@ Fixed bugs:
   bug0126.pp   packed array isn't allowed                            OK 0.99.6 (FK)
   bug0128.pp   problem with ^[                                       OK 0.99.6 (PFV)
   bug0129.pp   endless loop with while/continue                      OK 0.99.6 (FK)
+  bug0134.pp   'continue' keyword is buggy.                          OK 0.99.6 (FK)
 
 Unproducable bugs:
 ------------------
@@ -180,4 +181,3 @@ bug0130.pp   in [..#255] problem
 bug0131.pp   internal error 10 with highdimension arrays
 bug0132.pp   segmentation fault with type loop
 bug0133.pp   object type declaration not 100% compatibile with TP7
-bug0134.pp   'continue' keyword is buggy.
