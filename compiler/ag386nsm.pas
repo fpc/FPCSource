@@ -161,86 +161,90 @@ unit ag386nsm;
 
 {$ifdef AG386BIN}
 
-    function getopstr(t : byte;o : pointer;s : topsize; opcode: tasmop;dest : boolean) : string;
+    function getopstr(const o:toper;s : topsize; opcode: tasmop;dest : boolean) : string;
     var
       hs : string;
     begin
-      if ((t and OT_REGISTER)=OT_REGISTER) or ((t and OT_FPUREG)=OT_FPUREG) then
-        getopstr:=int_nasmreg2str[tregister(o)]
-      else
-       if (t and OT_SYMBOL)=OT_SYMBOL then
-        begin
-          hs:='dword '+preference(o)^.symbol^.name;
-          if preference(o)^.offset>0 then
-           hs:=hs+'+'+tostr(preference(o)^.offset)
-          else
-           if preference(o)^.offset<0 then
-            hs:=hs+tostr(preference(o)^.offset);
-          getopstr:=hs;
-        end
-      else
-       if (t and (OT_IMMEDIATE or OT_MEMORY))<>0 then
-        begin
-          hs:=getreferencestring(preference(o)^);
-          if not ((opcode = A_LEA) or (opcode = A_LGS) or
-                  (opcode = A_LSS) or (opcode = A_LFS) or
-                  (opcode = A_LES) or (opcode = A_LDS) or
-                  (opcode = A_SHR) or (opcode = A_SHL) or
-                  (opcode = A_SAR) or (opcode = A_SAL) or
-                  (opcode = A_OUT) or (opcode = A_IN)) then
-           begin
-             case s of
-                S_B : hs:='byte '+hs;
-                S_W : hs:='word '+hs;
-                S_L : hs:='dword '+hs;
-                S_IS : hs:='word '+hs;
-                S_IL : hs:='dword '+hs;
-                S_IQ : hs:='qword '+hs;
-                S_FS : hs:='dword '+hs;
-                S_FL : hs:='qword '+hs;
-                S_FX : hs:='tword '+hs;
-                S_BW : if dest then
-                    hs:='word '+hs
-                  else
-                    hs:='byte '+hs;
-                S_BL : if dest then
-                    hs:='dword '+hs
-                  else
-                    hs:='byte '+hs;
-                S_WL : if dest then
-                    hs:='dword '+hs
-                  else
-                    hs:='word '+hs;
-             end
-           end;
-          getopstr:=hs;
-        end
-      else
-        internalerror(10001);
+      case o.typ of
+        top_reg :
+          getopstr:=int_nasmreg2str[o.reg];
+        top_const :
+          getopstr:=tostr(o.val);
+        top_symbol :
+          begin
+            hs:='dword '+o.sym^.name;
+            if o.symofs>0 then
+             hs:=hs+'+'+tostr(o.symofs)
+            else
+             if o.symofs<0 then
+              hs:=hs+tostr(o.symofs);
+            getopstr:=hs;
+          end;
+        top_ref :
+          begin
+            hs:=getreferencestring(o.ref^);
+            if not ((opcode = A_LEA) or (opcode = A_LGS) or
+                    (opcode = A_LSS) or (opcode = A_LFS) or
+                    (opcode = A_LES) or (opcode = A_LDS) or
+                    (opcode = A_SHR) or (opcode = A_SHL) or
+                    (opcode = A_SAR) or (opcode = A_SAL) or
+                    (opcode = A_OUT) or (opcode = A_IN)) then
+             begin
+               case s of
+                  S_B : hs:='byte '+hs;
+                  S_W : hs:='word '+hs;
+                  S_L : hs:='dword '+hs;
+                  S_IS : hs:='word '+hs;
+                  S_IL : hs:='dword '+hs;
+                  S_IQ : hs:='qword '+hs;
+                  S_FS : hs:='dword '+hs;
+                  S_FL : hs:='qword '+hs;
+                  S_FX : hs:='tword '+hs;
+                  S_BW : if dest then
+                      hs:='word '+hs
+                    else
+                      hs:='byte '+hs;
+                  S_BL : if dest then
+                      hs:='dword '+hs
+                    else
+                      hs:='byte '+hs;
+                  S_WL : if dest then
+                      hs:='dword '+hs
+                    else
+                      hs:='word '+hs;
+               end
+             end;
+            getopstr:=hs;
+          end;
+        else
+          internalerror(10001);
+      end;
     end;
 
-    function getopstr_jmp(t : byte;o : pointer) : string;
+    function getopstr_jmp(const o:toper) : string;
     var
       hs : string;
     begin
-      if ((t and OT_REGISTER)=OT_REGISTER) or ((t and OT_FPUREG)=OT_FPUREG) then
-       getopstr_jmp:=int_nasmreg2str[tregister(o)]
-      else
-       if (t and OT_SYMBOL)=OT_SYMBOL then
-        begin
-          hs:=preference(o)^.symbol^.name;
-          if preference(o)^.offset>0 then
-           hs:=hs+'+'+tostr(preference(o)^.offset)
-          else
-           if preference(o)^.offset<0 then
-            hs:=hs+tostr(preference(o)^.offset);
-          getopstr_jmp:=hs;
-        end
-      else
-       if (t and (OT_MEMORY or OT_IMMEDIATE))<>0 then
-        getopstr_jmp:=getreferencestring(preference(o)^)
-      else
-        internalerror(10001);
+      case o.typ of
+        top_reg :
+          getopstr_jmp:=int_nasmreg2str[o.reg];
+        top_ref :
+          getopstr_jmp:=getreferencestring(o.ref^);
+        top_const :
+          getopstr_jmp:=tostr(o.val);
+        top_symbol :
+          begin
+            hs:=o.sym^.name;
+            if o.symofs>0 then
+             hs:=hs+'+'+tostr(o.symofs)
+            else
+             if o.symofs<0 then
+              hs:=hs+tostr(o.symofs);
+            getopstr_jmp:=hs;
+          end;
+        else
+          internalerror(10001);
+      end;
     end;
 
 {$else}
@@ -557,7 +561,7 @@ ait_labeled_instruction :
                        if pai386(hp)^.ops<>0 then
                         begin
                           if pai386(hp)^.opcode=A_CALL then
-                           s:=#9+getopstr_jmp(pai386(hp)^.opertype[0],pai386(hp)^.oper[0])
+                           s:=#9+getopstr_jmp(pai386(hp)^.oper[0])
                           else
                            begin
                              for i:=0to pai386(hp)^.ops-1 do
@@ -566,35 +570,12 @@ ait_labeled_instruction :
                                  sep:=#9
                                 else
                                  sep:=',';
-                                s:=s+sep+getopstr(pai386(hp)^.opertype[i],pai386(hp)^.oper[i],
-                                  pai386(hp)^.opsize,pai386(hp)^.opcode,(i=1))
+                                s:=s+sep+getopstr(pai386(hp)^.oper[i],pai386(hp)^.opsize,pai386(hp)^.opcode,(i=1));
                               end;
                            end;
                         end
                        else
-                        begin
-                          { check if string instruction }
-                          { long form, otherwise may give range check errors }
-                          { in turbo pascal...                               }
-                       {   if ((pai386(hp)^.opcode = A_CMPS) or
-                             (pai386(hp)^.opcode = A_INS) or
-                             (pai386(hp)^.opcode = A_OUTS) or
-                             (pai386(hp)^.opcode = A_SCAS) or
-                             (pai386(hp)^.opcode = A_STOS) or
-                             (pai386(hp)^.opcode = A_MOVS) or
-                             (pai386(hp)^.opcode = A_LODS) or
-                             (pai386(hp)^.opcode = A_XLAT)) then
-                           Begin
-                             case pai386(hp)^.opsize of
-                              S_B: suffix:='b';
-                              S_W: suffix:='w';
-                              S_L: suffix:='d';
-                             else
-                              Message(assem_f_invalid_suffix_intel);
-                             end;
-                           end; }
-                          s:='';
-                        end;
+                        s:='';
                        if pai386(hp)^.opcode=A_FWAIT then
                         AsmWriteln(#9#9'DB'#9'09bh')
                        else
@@ -752,7 +733,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.24  1999-03-10 13:25:44  pierre
+  Revision 1.25  1999-03-29 16:05:44  peter
+    * optimizer working for ag386bin
+
+  Revision 1.24  1999/03/10 13:25:44  pierre
     section order changed to get closer output from coff writer
 
   Revision 1.23  1999/03/04 13:55:39  pierre
