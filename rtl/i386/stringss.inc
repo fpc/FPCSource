@@ -77,7 +77,10 @@ end ['EDI','ESI','EBX','EAX','ECX'];
 
 {
   $Log$
-  Revision 1.8  2000-01-11 22:56:57  pierre
+  Revision 1.9  2000-02-09 16:59:29  peter
+    * truncated log
+
+  Revision 1.8  2000/01/11 22:56:57  pierre
     * wrong change for StrPas function corrected
 
   Revision 1.7  2000/01/11 21:12:15  marco
@@ -85,18 +88,5 @@ end ['EDI','ESI','EBX','EAX','ECX'];
 
   Revision 1.6  2000/01/07 16:41:33  daniel
     * copyright 2000
-
-  Revision 1.5  1999/04/08 11:30:58  peter
-    * removed warnings
-
-  Revision 1.4  1999/03/30 16:58:51  peter
-    * use assembler and remove all rets
-
-  Revision 1.3  1999/03/01 15:41:01  peter
-    * use external names
-    * removed all direct assembler modes
-
-  Revision 1.2  1999/02/25 10:07:02  michael
-  + Added header and log
 
 }

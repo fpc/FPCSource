@@ -428,40 +428,13 @@ end;
 
 {
   $Log$
-  Revision 1.12  2000-01-07 16:41:33  daniel
+  Revision 1.13  2000-02-09 16:59:29  peter
+    * truncated log
+
+  Revision 1.12  2000/01/07 16:41:33  daniel
     * copyright 2000
 
   Revision 1.11  2000/01/07 16:32:24  daniel
     * copyright 2000 added
-
-  Revision 1.10  1999/03/01 15:40:59  peter
-    * use external names
-    * removed all direct assembler modes
-
-  Revision 1.9  1999/01/20 17:48:02  jonas
-    + fixed bug0163 (set1 <= set2 support)
-
-  Revision 1.8  1998/12/15 22:43:00  peter
-    * removed temp symbols
-
-  Revision 1.7  1998/11/24 12:54:01  peter
-    + FPC_SET_CREATE_ELEMENT
-
-  Revision 1.6  1998/10/22 14:50:08  pierre
-   + added FPC_SET_UNSET_BYTE for exclude of normsets
-
-  Revision 1.5  1998/10/22 12:48:29  peter
-    * fixed for stackaligment also on 4 bytes, never use 'ret $..' direct
-
-  Revision 1.4  1998/09/14 10:48:12  peter
-    * FPC_ names
-    * Heap manager is now system independent
-
-  Revision 1.3  1998/08/14 18:13:44  peter
-    + set_load_small
-    * fixed set_set_range
-
-  Revision 1.2  1998/05/31 14:15:51  peter
-    * force to use ATT or direct parsing
 
 }

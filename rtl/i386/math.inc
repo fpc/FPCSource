@@ -370,7 +370,10 @@
 
 {
   $Log$
-  Revision 1.19  2000-01-07 16:41:33  daniel
+  Revision 1.20  2000-02-09 16:59:29  peter
+    * truncated log
+
+  Revision 1.19  2000/01/07 16:41:33  daniel
     * copyright 2000
 
   Revision 1.18  2000/01/07 16:32:24  daniel
@@ -382,52 +385,5 @@
 
   Revision 1.16  1999/09/15 20:24:11  florian
     * some math functions are now coded inline by the compiler
-
-  Revision 1.15  1999/07/06 15:35:59  peter
-    * removed temp defines
-
-  Revision 1.14  1999/03/01 15:40:57  peter
-    * use external names
-    * removed all direct assembler modes
-
-  Revision 1.13  1998/12/15 22:42:56  peter
-    * removed temp symbols
-
-  Revision 1.12  1998/11/24 12:54:57  peter
-    * removed all explicit leave;ret commands and let them generate by
-      the compiler (needed for stack alignment)
-
-  Revision 1.11  1998/11/16 14:26:03  pierre
-   * changed fsqrtl to fsqrt (needed by as v2.9.4 for win32)
-
-  Revision 1.10  1998/10/02 09:25:29  peter
-    * more constant expression evals
-
-  Revision 1.9  1998/09/11 17:38:49  pierre
-     merge for fixes branch
-
-  Revision 1.8.2.1  1998/09/11 17:37:25  pierre
-    * correction respective to stricter as v2.9.1 syntax
-
-  Revision 1.8  1998/09/01 17:36:18  peter
-    + internconst
-
-  Revision 1.7  1998/08/25 08:49:05  florian
-    * corrected exp() function
-
-  Revision 1.6  1998/08/11 21:39:04  peter
-    * splitted default_extended from support_extended
-
-  Revision 1.5  1998/08/11 00:04:50  peter
-    * $ifdef ver0_99_5 updates
-
-  Revision 1.4  1998/08/10 15:54:50  peter
-    * removed dup power(longint)
-
-  Revision 1.3  1998/08/08 12:28:09  florian
-    * a lot small fixes to the extended data type work
-
-  Revision 1.2  1998/05/31 14:15:49  peter
-    * force to use ATT or direct parsing
 
 }

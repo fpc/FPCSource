@@ -102,12 +102,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2000-01-07 16:41:52  daniel
+  Revision 1.4  2000-02-09 16:59:34  peter
+    * truncated log
+
+  Revision 1.3  2000/01/07 16:41:52  daniel
     * copyright 2000
 
-  Revision 1.2  1999/04/08 12:23:06  peter
-    * removed os.inc
-
-  Revision 1.1  1998/10/11 13:42:55  michael
-  Added disk functions
 }

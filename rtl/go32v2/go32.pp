@@ -1171,7 +1171,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2000-01-07 16:41:31  daniel
+  Revision 1.8  2000-02-09 16:59:28  peter
+    * truncated log
+
+  Revision 1.7  2000/01/07 16:41:31  daniel
     * copyright 2000
 
   Revision 1.6  2000/01/07 16:32:23  daniel
@@ -1182,34 +1185,4 @@ end.
     * global_dos_alloc returns zero and set int31error
       if DPMI call fails
 
-  Revision 1.4  1999/05/13 21:54:27  peter
-    * objpas fixes
-
-  Revision 1.3  1999/03/26 00:01:52  peter
-    * fixed rounding in global_dos_alloc
-
-  Revision 1.2  1999/03/01 15:40:51  peter
-    * use external names
-    * removed all direct assembler modes
-
-  Revision 1.1  1998/12/21 13:07:03  peter
-    * use -FE
-
-  Revision 1.12  1998/08/27 10:30:50  pierre
-    * go32v1 RTL did not compile (LFNsupport outside go32v2 defines !)
-      I renamed tb_selector to tb_segment because
-        it is a real mode segment as opposed to
-        a protected mode selector
-      Fixed it for go32v1 (remove the $E0000000 offset !)
-
-  Revision 1.11  1998/08/26 10:04:02  peter
-    * new lfn check from mailinglist
-    * renamed win95 -> LFNSupport
-    + tb_selector, tb_offset for easier access to transferbuffer
-
-  Revision 1.10  1998/08/11 00:07:17  peter
-    * $ifdef ver0_99_5 instead of has_property
-
-  Revision 1.9  1998/07/21 12:06:03  carl
-    * restored working version
 }

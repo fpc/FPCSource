@@ -929,17 +929,10 @@ unit winsock;
 end.
 {
   $Log$
-  Revision 1.4  2000-01-07 16:41:53  daniel
+  Revision 1.5  2000-02-09 16:59:35  peter
+    * truncated log
+
+  Revision 1.4  2000/01/07 16:41:53  daniel
     * copyright 2000
 
-  Revision 1.3  1999/06/30 07:50:39  michael
-  + Fixed PServEnt
-
-  Revision 1.2  1999/06/21 12:41:34  florian
-    * minor typos in winsock.pp fixed
-    + makefile for sockets.pp updated
-
-  Revision 1.1  1999/06/18 13:58:59  florian
-    + initial revision, should be completly compatible with the delphi
-      winsock unit
 }

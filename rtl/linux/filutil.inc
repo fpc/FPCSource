@@ -285,43 +285,13 @@ end;
 
 {
   $Log$
-  Revision 1.13  2000-01-16 22:25:38  peter
+  Revision 1.14  2000-02-09 16:59:31  peter
+    * truncated log
+
+  Revision 1.13  2000/01/16 22:25:38  peter
     * check handle for file closing
 
   Revision 1.12  2000/01/07 16:41:40  daniel
     * copyright 2000
-
-  Revision 1.11  1999/05/14 22:19:34  michael
-  * Some more fixes.
-
-  Revision 1.10  1999/05/13 21:54:09  michael
-  * Fixed FileAge and corrected FileGetAttr
-
-  Revision 1.9  1999/04/08 11:31:01  peter
-    * removed warnings
-
-  Revision 1.8  1999/02/28 13:18:10  michael
-  + Added internationalization support
-
-  Revision 1.7  1999/02/24 15:57:29  michael
-  + Moved getlocaltime to system-dependent files
-
-  Revision 1.6  1999/02/04 21:43:08  michael
-  FileCreate must truncate the file
-
-  Revision 1.5  1999/02/02 21:20:34  michael
-  + Added filetruncate, corrected FileCreate
-
-  Revision 1.4  1998/12/15 22:43:07  peter
-    * removed temp symbols
-
-  Revision 1.3  1998/11/10 14:57:55  peter
-    * renamed rename -> FRename
-
-  Revision 1.2  1998/10/13 10:20:07  peter
-    * fix for 0.99.8 which has no auto pchar-string ;)
-
-  Revision 1.1  1998/10/11 12:21:01  michael
-  Added file calls. Implemented for linux only
 
 }

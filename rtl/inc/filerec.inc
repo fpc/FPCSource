@@ -35,19 +35,13 @@ type
 
 {
   $Log$
-  Revision 1.7  2000-01-07 16:41:34  daniel
+  Revision 1.8  2000-02-09 16:59:29  peter
+    * truncated log
+
+  Revision 1.7  2000/01/07 16:41:34  daniel
     * copyright 2000
 
   Revision 1.6  2000/01/07 16:32:24  daniel
     * copyright 2000 added
 
-  Revision 1.5  1998/09/14 10:48:15  peter
-    * FPC_ names
-    * Heap manager is now system independent
-
-  Revision 1.4  1998/09/04 18:16:13  peter
-    * uniform filerec/textrec (with recsize:longint and name:0..255)
-
-  Revision 1.3  1998/05/21 11:55:59  carl
-   * works with all OS
 }

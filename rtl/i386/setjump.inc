@@ -48,21 +48,13 @@ end;
 
 {
   $Log$
-  Revision 1.7  2000-01-07 16:41:33  daniel
+  Revision 1.8  2000-02-09 16:59:29  peter
+    * truncated log
+
+  Revision 1.7  2000/01/07 16:41:33  daniel
     * copyright 2000
 
   Revision 1.6  1999/08/18 10:42:13  pierre
    * loading of esp value corrected
-
-  Revision 1.5  1999/03/01 15:41:00  peter
-    * use external names
-    * removed all direct assembler modes
-
-  Revision 1.4  1998/09/14 10:48:13  peter
-    * FPC_ names
-    * Heap manager is now system independent
-
-  Revision 1.3  1998/08/11 00:04:52  peter
-    * $ifdef ver0_99_5 updates
 
 }

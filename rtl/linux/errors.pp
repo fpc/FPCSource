@@ -175,21 +175,13 @@ end.
 
 {
   $Log$
-  Revision 1.5  2000-01-07 16:41:40  daniel
+  Revision 1.6  2000-02-09 16:59:31  peter
+    * truncated log
+
+  Revision 1.5  2000/01/07 16:41:40  daniel
     * copyright 2000
 
   Revision 1.4  2000/01/07 16:32:26  daniel
     * copyright 2000 added
 
-  Revision 1.3  1999/06/30 15:44:26  peter
-    * merged
-
-  Revision 1.2.6.1  1999/06/30 15:43:54  peter
-    * better strerror() from mailinglist
-
-  Revision 1.2  1998/05/06 12:35:26  michael
-  + Removed log from before restored version.
-
-  Revision 1.1.1.1  1998/03/25 11:18:43  root
-  * Restored version
 }

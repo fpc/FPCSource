@@ -967,7 +967,10 @@ begin
 end. { unit Crt }
 {
   $Log$
-  Revision 1.12  1999-10-22 14:36:20  peter
+  Revision 1.13  2000-02-09 16:59:34  peter
+    * truncated log
+
+  Revision 1.12  1999/10/22 14:36:20  peter
     * crtreturn also needs f:textrec as parameter
 
   Revision 1.11  1999/08/28 09:30:39  peter
@@ -975,29 +978,5 @@ end. { unit Crt }
 
   Revision 1.10  1999/08/24 13:15:44  peter
     * Removeline fixed
-
-  Revision 1.9  1999/07/06 22:44:11  florian
-    * some fixes to compile ddraw units from the jedi project
-
-  Revision 1.8  1999/06/09 16:46:11  peter
-    * fixed fullwin,textbackground
-
-  Revision 1.7  1999/05/22 14:01:01  peter
-    * more fixed from Maarten Bekkers
-
-  Revision 1.6  1999/05/19 16:22:02  peter
-    * fixed left crt bugs
-
-  Revision 1.5  1999/05/01 13:18:26  peter
-    * changed back fixes
-
-  Revision 1.4  1999/04/30 11:34:27  michael
-  + Fixed some compiling errors
-
-  Revision 1.3  1999/04/23 09:06:17  michael
-  + now it REALLY compiles
-
-  Revision 1.2  1999/04/20 11:34:12  peter
-    + crt unit that compiles
 
 }

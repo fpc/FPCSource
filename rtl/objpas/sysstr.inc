@@ -1138,7 +1138,10 @@ const
 
 {
   $Log$
-  Revision 1.30  2000-02-01 12:53:23  peter
+  Revision 1.31  2000-02-09 16:59:33  peter
+    * truncated log
+
+  Revision 1.30  2000/02/01 12:53:23  peter
     * fixed rangecheck error in format()
 
   Revision 1.29  1999/11/06 14:41:31  peter
@@ -1159,52 +1162,6 @@ const
 
   Revision 1.24  1999/08/16 22:38:53  peter
     * fixed newstr/disposestr
-
-  Revision 1.23  1999/07/18 17:27:28  michael
-  + Fixed bug in format, reported by Romio Pedchecko
-
-  Revision 1.22  1999/06/19 07:39:44  michael
-  Implemented strtofloat
-
-  Revision 1.21  1999/06/05 20:47:03  michael
-  + Final fixes: RightStr
-
-  Revision 1.20  1999/05/31 20:50:45  peter
-    * removed warnings
-
-  Revision 1.19  1999/05/30 07:53:15  michael
-  + Small fix. Delete not recognised without system in front of it  ?
-
-  Revision 1.18  1999/05/28 20:08:20  michael
-  * too may fixes to list
-
-  Revision 1.17  1999/04/08 11:31:03  peter
-    * removed warnings
-
-  Revision 1.16  1999/04/08 10:19:41  peter
-    * pchar support for %s
-
-  Revision 1.15  1999/04/04 10:19:07  peter
-    * format support for ansistring (from mailinglist)
-    * fixed length checking in Trim()
-
-  Revision 1.14  1999/03/01 12:40:06  michael
-  changed delete to system.delete
-
-  Revision 1.13  1999/02/28 13:17:35  michael
-  + Added internationalization support and more format functions
-
-  Revision 1.12  1999/02/24 15:56:29  michael
-  + Small fixes. Moved getlocaltime to system-dependent files
-
-  Revision 1.11  1999/02/10 22:15:12  michael
-  + Changed to ansistrings
-
-  Revision 1.10  1998/12/15 22:43:09  peter
-    * removed temp symbols
-
-  Revision 1.9  1998/11/04 10:20:52  peter
-    * ansistring fixes
 
 }
 

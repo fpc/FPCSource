@@ -217,7 +217,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.15  2000-02-06 17:17:57  florian
+  Revision 1.16  2000-02-09 16:59:29  peter
+    * truncated log
+
+  Revision 1.15  2000/02/06 17:17:57  florian
     * popobjectstack is now a function
 
   Revision 1.14  2000/01/07 16:41:33  daniel
@@ -229,18 +232,4 @@ end;
   Revision 1.12  1999/07/26 12:11:28  florian
     * reraise doesn't call popaddrstack anymode
 
-  Revision 1.11  1999/06/14 00:47:35  peter
-    * merged
-
-  Revision 1.10.2.1  1999/06/14 00:38:18  peter
-    * don't pop object stack in catches, because it's needed for reraise
-
-  Revision 1.10  1999/05/13 18:38:26  florian
-    * more memory leaks fixed:
-         - exceptaddrobject is now properly disposed
-         - after the end of the on ... do block the exception
-           class instance is disposed
-
-  Revision 1.9  1999/05/13 16:30:18  florian
-    * popaddrstack didn't release any memory, fixed
 }

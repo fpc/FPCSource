@@ -184,7 +184,10 @@ END;
 
 {
   $Log$
-  Revision 1.4  2000-01-07 16:41:52  daniel
+  Revision 1.5  2000-02-09 16:59:34  peter
+    * truncated log
+
+  Revision 1.4  2000/01/07 16:41:52  daniel
     * copyright 2000
 
   Revision 1.3  2000/01/07 16:32:34  daniel
@@ -192,19 +195,6 @@ END;
 
   Revision 1.2  1999/08/24 08:44:43  michael
   + Fixed setfilepos and openfile
-
-  Revision 1.1  1998/07/07 12:38:46  carl
-    + First version
-
-  Revision 1.4  1998/07/06 12:26:19  carl
-    * Glurbl.... now work perfectly! Do not change :)
-
-  Revision 1.3  1998/07/02 12:25:27  carl
-    * NOTHING would work, FileOpen is now correct!!
-
-  Revision 1.2  1998/05/31 14:18:18  peter
-    * force att or direct assembling
-    * cleanup of some files
 
 }
 

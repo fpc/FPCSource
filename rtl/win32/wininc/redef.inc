@@ -102,20 +102,13 @@ type
 
 {
   $Log$
-  Revision 1.2  2000-01-07 16:41:56  daniel
+  Revision 1.3  2000-02-09 16:59:36  peter
+    * truncated log
+
+  Revision 1.2  2000/01/07 16:41:56  daniel
     * copyright 2000
 
   Revision 1.1  1999/09/16 13:38:24  peter
     * windows unit include moved to wininc/
-
-  Revision 1.4  1999/06/18 13:59:50  florian
-    * changes for the winsock unit
-
-  Revision 1.3  1999/04/20 11:36:16  peter
-    * compatibility fixes
-
-  Revision 1.2  1999/03/22 22:12:51  florian
-    + addition and changes to compile the direct draw unit
-      of Erik Ungerer (with -dv2com and indirect disabled)
 
 }

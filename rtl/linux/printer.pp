@@ -254,7 +254,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2000-01-07 16:41:41  daniel
+  Revision 1.7  2000-02-09 16:59:32  peter
+    * truncated log
+
+  Revision 1.6  2000/01/07 16:41:41  daniel
     * copyright 2000
 
   Revision 1.5  2000/01/07 16:32:28  daniel
@@ -263,12 +266,4 @@ end.
   Revision 1.4  1999/09/08 16:14:43  peter
     * pointer fixes
 
-  Revision 1.3  1998/11/16 10:21:29  peter
-    * fixes for H+
-
-  Revision 1.2  1998/05/06 12:35:26  michael
-  + Removed log from before restored version.
-
-  Revision 1.1.1.1  1998/03/25 11:18:43  root
-  * Restored version
 }

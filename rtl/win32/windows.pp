@@ -67,7 +67,10 @@ unit windows;
 end.
 {
   $Log$
-  Revision 1.6  2000-01-07 16:41:53  daniel
+  Revision 1.7  2000-02-09 16:59:35  peter
+    * truncated log
+
+  Revision 1.6  2000/01/07 16:41:53  daniel
     * copyright 2000
 
   Revision 1.5  2000/01/07 16:32:35  daniel
@@ -75,18 +78,5 @@ end.
 
   Revision 1.4  1999/09/16 13:38:21  peter
     * windows unit include moved to wininc/
-
-  Revision 1.3  1999/05/10 19:34:15  florian
-    * moved all opengl32.dll stuff to a newly created opengl32 unit, so
-      win32 programs should also run on Windows without opengl32.dll
-
-  Revision 1.2  1999/01/09 07:29:51  florian
-    * some updates to compile API units for win32
-
-  Revision 1.1  1998/08/31 11:54:02  pierre
-    * compilable windows.inc file
-      still to do :
-       - findout problems
-       - findout the correct DLL for each call !!
 
 }

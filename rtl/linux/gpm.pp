@@ -208,13 +208,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-01-26 21:51:34  peter
+  Revision 1.4  2000-02-09 16:59:31  peter
+    * truncated log
+
+  Revision 1.3  2000/01/26 21:51:34  peter
     * removed gpm_ctlfd
 
   Revision 1.2  2000/01/07 16:41:40  daniel
     * copyright 2000
-
-  Revision 1.1  1999/07/01 19:39:43  peter
-    + gpm unit
 
 }

@@ -110,20 +110,10 @@ end;
 
 {
  $Log$
- Revision 1.5  2000-01-07 16:41:40  daniel
+ Revision 1.6  2000-02-09 16:59:31  peter
+   * truncated log
+
+ Revision 1.5  2000/01/07 16:41:40  daniel
    * copyright 2000
-
- Revision 1.4  1999/04/26 09:34:32  peter
-   * fixed diskfree,disksize
-   * dir functions now return error status instead of true
-
- Revision 1.3  1999/04/26 07:40:40  michael
- + Fixed removedir
-
- Revision 1.2  1999/04/08 11:31:00  peter
-   * removed warnings
-
- Revision 1.1  1998/10/11 13:42:04  michael
- + Added disk and directory functions
 
 }

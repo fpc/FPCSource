@@ -963,7 +963,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2000-01-07 16:41:54  daniel
+  Revision 1.5  2000-02-09 16:59:35  peter
+    * truncated log
+
+  Revision 1.4  2000/01/07 16:41:54  daniel
     * copyright 2000
 
   Revision 1.3  2000/01/07 16:32:35  daniel
@@ -974,37 +977,5 @@ end.
 
   Revision 1.1  1999/09/16 13:38:22  peter
     * windows unit include moved to wininc/
-
-  Revision 1.12  1999/04/20 11:36:10  peter
-    * compatibility fixes
-
-  Revision 1.11  1999/03/30 17:00:22  peter
-    * fixes for 0.99.10
-
-  Revision 1.10  1999/01/09 07:29:47  florian
-    * some updates to compile API units for win32
-
-  Revision 1.9  1998/12/28 23:35:14  peter
-    * small fixes for better compatibility
-
-  Revision 1.8  1998/10/27 11:17:11  peter
-    * type HINSTANCE -> HINST
-
-  Revision 1.7  1998/09/08 14:30:03  pierre
-    * WINBOOL changed from longint to longbool
-
-  Revision 1.6  1998/09/04 17:17:32  pierre
-    + all unknown function ifdef with
-      conditionnal unknown_functions
-      testwin works now, but windowcreate still fails !!
-
-  Revision 1.5  1998/08/31 11:53:53  pierre
-    * compilable windows.pp file
-      still to do :
-       - findout problems
-       - findout the correct DLL for each call !!
-
-  Revision 1.4  1998/06/10 10:39:11  peter
-    * working w32 rtl
 
 }

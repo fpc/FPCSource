@@ -2295,7 +2295,10 @@ const
 end.
 {
   $Log$
-  Revision 1.10  2000-01-09 20:48:04  hajny
+  Revision 1.11  2000-02-09 16:59:33  peter
+    * truncated log
+
+  Revision 1.10  2000/01/09 20:48:04  hajny
     * FPK changed to FPC
 
   Revision 1.9  2000/01/07 16:41:49  daniel
@@ -2309,8 +2312,5 @@ end.
 
   Revision 1.6  1999/08/04 15:51:05  hajny
     * merging changes by RB and DM :-(
-
-  Revision 1.5  1999/06/02 16:01:29  hajny
-    * changes by Ramon Bosque
 
 }

@@ -2761,7 +2761,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.34  2000-01-07 16:41:34  daniel
+  Revision 1.35  2000-02-09 16:59:30  peter
+    * truncated log
+
+  Revision 1.34  2000/01/07 16:41:34  daniel
     * copyright 2000
 
   Revision 1.33  2000/01/07 16:32:24  daniel
@@ -2775,66 +2778,5 @@ END.
 
   Revision 1.30  1999/09/10 17:15:13  peter
     * fixed freeall
-
-  Revision 1.29  1999/06/14 17:48:04  peter
-    * merged
-
-  Revision 1.28.2.1  1999/06/14 17:43:20  peter
-    * fixed lastthat
-
-  Revision 1.28  1999/02/25 21:25:26  peter
-    + SetStr() function
-
-  Revision 1.27  1999/02/22 15:04:45  peter
-    * fixed typecasting in firstthat
-
-  Revision 1.26  1999/02/21 23:13:01  florian
-    * tpcompatible flags for tstream introduced, thanks to Matthias Koeppe
-
-  Revision 1.25  1999/01/22 10:21:55  peter
-    + prect=^trect
-
-  Revision 1.24  1999/01/12 14:21:50  peter
-    * fixed TColletcion.AtInsert
-
-  Revision 1.23  1999/01/06 10:11:06  daniel
-  * Removed on more handle:=-1 statement
-
-  Revision 1.22  1998/12/30 10:26:16  peter
-    * reinserted old version, because daniel skipped 3 versions !!
-
-  Revision 1.19  1998/12/18 17:21:28  peter
-    * fixed firstthat,lastthat
-
-  Revision 1.18  1998/12/16 21:57:20  peter
-    * fixed currentframe,previousframe
-    + testcall to test the callspec unit
-
-  Revision 1.17  1998/12/16 00:22:25  peter
-    * more temp symbols removed
-
-  Revision 1.16  1998/12/08 10:11:27  peter
-    * tpoint contains now sw_integer (needed to support 64k files in the
-      editor)
-
-  Revision 1.15  1998/11/26 14:41:22  michael
-  + Fixed TREsourcefile.init
-
-  Revision 1.14  1998/11/24 17:11:22  peter
-    * made a real fpc only version, no platform.inc
-    * applied fixes from the mailinglist
-    + included some routines from callspec
-
-  Revision 1.13  1998/11/16 10:21:24  peter
-    * fixes for H+
-
-  Revision 1.12  1998/11/12 11:54:50  peter
-    * fixed for 0.99.8
-
-  Revision 1.11  1998/11/12 11:45:09  peter
-    + released object registration
-
-  Revision 1.10  1998/10/23 16:51:18  pierre
-   * vmtlink type changed to pointer
 
 }

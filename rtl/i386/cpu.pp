@@ -75,24 +75,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2000-01-07 16:41:32  daniel
+  Revision 1.7  2000-02-09 16:59:29  peter
+    * truncated log
+
+  Revision 1.6  2000/01/07 16:41:32  daniel
     * copyright 2000
-
-  Revision 1.5  1998/09/14 10:48:06  peter
-    * FPC_ names
-    * Heap manager is now system independent
-
-  Revision 1.4  1998/08/11 00:04:46  peter
-    * $ifdef ver0_99_5 updates
-
-  Revision 1.3  1998/05/25 10:51:27  pierre
-    * CR0 works now (written using DB to allow to use it we INTEL and ATT output)
-    * floating_emulation bit set correctly
-
-  Revision 1.2  1998/05/12 10:42:41  peter
-    * moved getopts to inc/, all supported OS's need argc,argv exported
-    + strpas, strlen are now exported in the systemunit
-    * removed logs
-    * removed $ifdef ver_above
 
 }

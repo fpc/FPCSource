@@ -40,18 +40,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-01-07 16:41:32  daniel
+  Revision 1.4  2000-02-09 16:59:29  peter
+    * truncated log
+
+  Revision 1.3  2000/01/07 16:41:32  daniel
     * copyright 2000
 
   Revision 1.2  2000/01/07 16:32:23  daniel
     * copyright 2000 added
-
-  Revision 1.1  1998/12/21 13:07:03  peter
-    * use -FE
-
-  Revision 1.2  1998/05/22 00:39:26  peter
-    * go32v1, go32v2 recompiles with the new objects
-    * remake3 works again with go32v2
-    - removed some "optimizes" from daniel which were wrong
 
 }

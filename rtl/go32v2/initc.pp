@@ -95,7 +95,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2000-01-09 00:35:17  pierre
+  Revision 1.6  2000-02-09 16:59:29  peter
+    * truncated log
+
+  Revision 1.5  2000/01/09 00:35:17  pierre
    * initc now loads dpmiexcp unit to avoid linker problems
 
   Revision 1.4  2000/01/07 16:41:32  daniel
@@ -103,14 +106,5 @@ end.
 
   Revision 1.3  2000/01/07 16:32:23  daniel
     * copyright 2000 added
-
-  Revision 1.2  1998/12/21 14:13:07  pierre
-   * problems with procvar address solved
-
-  Revision 1.1  1998/12/21 13:14:30  peter
-    * moved
-
-  Revision 1.1  1998/12/21 11:56:26  pierre
-   First implementation of intc unit
 
 }

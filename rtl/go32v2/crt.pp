@@ -820,7 +820,10 @@ end.
 
 {
   $Log$
-  Revision 1.11  2000-01-07 16:41:30  daniel
+  Revision 1.12  2000-02-09 16:59:28  peter
+    * truncated log
+
+  Revision 1.11  2000/01/07 16:41:30  daniel
     * copyright 2000
 
   Revision 1.10  2000/01/07 16:32:23  daniel
@@ -837,62 +840,5 @@ end.
 
   Revision 1.6  1999/10/22 14:36:20  peter
     * crtreturn also needs f:textrec as parameter
-
-  Revision 1.5  1999/06/09 16:46:09  peter
-    * fixed fullwin,textbackground
-
-  Revision 1.4  1999/03/26 00:00:17  peter
-    * fixed lastmode at startup for > 25 lines
-
-  Revision 1.3  1999/02/03 09:56:17  florian
-    + added simple support for monochrome video cards (not cursors yet),
-      thanks to Jeff Patterson
-
-  Revision 1.2  1999/01/22 11:12:09  florian
-    + support of font8x8 added
-
-  Revision 1.1  1998/12/21 13:07:02  peter
-    * use -FE
-
-  Revision 1.17  1998/12/15 22:42:49  peter
-    * removed temp symbols
-
-  Revision 1.16  1998/12/09 23:04:36  jonas
-    * fixed bug in InsLine (changed "my" from "WinMaxY -1" to "WinMaxY - WinMinY")
-
-  Revision 1.15  1998/11/28 14:09:48  peter
-    * NOATTCDQ define
-
-  Revision 1.14  1998/11/26 23:14:52  jonas
-    * changed cdq to cltd in AT&T assembler block
-
-  Revision 1.13  1998/08/26 10:01:54  peter
-    * fixed readln cursor position
-
-  Revision 1.12  1998/08/19 17:57:55  peter
-    * fixed crtread with wrong cursor position
-
-  Revision 1.11  1998/08/19 14:55:44  peter
-    * fixed removeline which scrolled too much lines
-
-  Revision 1.10  1998/08/18 13:32:46  carl
-    * bugfix to make it work with FPC 0.99.5 (Delayloop is not correctly
-  converted by ATT parser)
-
-  Revision 1.9  1998/08/15 17:00:10  peter
-    * moved delaycnt from interface to implementation
-
-  Revision 1.8  1998/08/08 21:56:45  peter
-    * updated crt with new delay, almost like bp7 routine
-
-  Revision 1.5  1998/05/31 14:18:12  peter
-    * force att or direct assembling
-    * cleanup of some files
-
-  Revision 1.4  1998/05/28 10:21:38  pierre
-    * Handles of input and output restored
-
-  Revision 1.3  1998/05/27 00:19:16  peter
-    * fixed crt input
 
 }

@@ -369,10 +369,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2000-01-07 16:41:40  daniel
-    * copyright 2000
+  Revision 1.8  2000-02-09 16:59:31  peter
+    * truncated log
 
-  Revision 1.6  1999/05/27 21:38:31  peter
-    * log inserted
+  Revision 1.7  2000/01/07 16:41:40  daniel
+    * copyright 2000
 
 }

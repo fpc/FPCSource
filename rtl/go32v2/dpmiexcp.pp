@@ -893,7 +893,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2000-01-10 12:14:57  pierre
+  Revision 1.11  2000-02-09 16:59:28  peter
+    * truncated log
+
+  Revision 1.10  2000/01/10 12:14:57  pierre
    * add $goto on to avoid problems
 
   Revision 1.9  2000/01/07 16:41:31  daniel
@@ -902,68 +905,4 @@ end.
   Revision 1.8  2000/01/07 16:32:23  daniel
     * copyright 2000 added
 
-  Revision 1.7  1999/03/01 15:40:49  peter
-    * use external names
-    * removed all direct assembler modes
-
-  Revision 1.6  1999/02/05 12:49:25  pierre
-   <> debug conditionnal renamed DPMIEXCP_DEBUG
-
-  Revision 1.5  1999/01/22 15:46:33  pierre
-   * PsignalHandler is now a pointer as changed in linux.pp
-
-  Revision 1.4  1999/01/22 12:39:19  pierre
-   + added text arg for dump_stack
-
-  Revision 1.3  1999/01/18 09:14:20  pierre
-   * exception_level counting was wrong if dpmi_jmp_buf was copied
-
-  Revision 1.2  1998/12/21 14:23:12  pierre
-  dpmiexcp.pp
-
-  Revision 1.1  1998/12/21 13:07:02  peter
-    * use -FE
-
-  Revision 1.11  1998/11/17 09:42:50  pierre
-   * position check of signal handler was wrong
-
-  Revision 1.10  1998/10/13 21:42:42  peter
-    * cleanup and use of external var
-    * fixed ctrl-break crashes
-
-  Revision 1.9  1998/08/20 08:08:36  pierre
-    * dpmiexcp did not compile with older versions
-      due to the proc to procvar bug
-    * makefile separator problem fixed
-
-  Revision 1.8  1998/08/19 10:56:33  pierre
-    + added some special code for C interface
-      to avoid loading of crt1.o or dpmiexcp.o from the libc.a
-
-  Revision 1.7  1998/08/15 17:01:13  peter
-    * smartlinking the units works now
-    * setjmp/longjmp -> dmpi_setjmp/dpmi_longjmp to solve systemunit
-      conflict
-
-  Revision 1.6  1998/08/04 13:31:32  pierre
-    * changed all FPK into FPC
-
-  Revision 1.5  1998/07/08 12:02:19  carl
-    * make it compiler under fpc v0995
-
-  Revision 1.4  1998/06/26 08:19:08  pierre
-    + all debug in ifdef SYSTEMDEBUG
-    + added local arrays :
-      opennames names of opened files
-      fileopen boolean array to know if still open
-      usefull with gdb if you get problems about too
-      many open files !!
-
-  Revision 1.3  1998/05/31 14:18:23  peter
-    * force att or direct assembling
-    * cleanup of some files
-
-  Revision 1.2  1998/04/21 14:46:33  pierre
-    + debug info better output
-      no normal code changed
 }

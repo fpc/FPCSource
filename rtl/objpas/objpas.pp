@@ -360,7 +360,10 @@ end.
 
 {
   $Log$
-  Revision 1.47  2000-01-07 16:41:44  daniel
+  Revision 1.48  2000-02-09 16:59:32  peter
+    * truncated log
+
+  Revision 1.47  2000/01/07 16:41:44  daniel
     * copyright 2000
 
   Revision 1.46  2000/01/07 16:32:29  daniel
@@ -420,19 +423,5 @@ end.
 
   Revision 1.28  1999/07/23 22:51:11  michael
   * Added HasResourceStrings check
-
-  Revision 1.27  1999/07/22 20:30:13  michael
-  + Implemented resource stuff
-
-  Revision 1.26  1999/07/07 10:04:04  michael
-  + Paramstr now returns cmdline args >255 chars in ansistring objpas.pp
-
-  Revision 1.25  1999/07/06 22:44:22  florian
-    + implemented a paramstr function which returns an ansistring, nevertheless
-      it is limited to 255 chars because it maps to the system.paramstr, maybe
-      we should use cmdline instead
-
-  Revision 1.24  1999/05/17 21:52:43  florian
-    * most of the Object Pascal stuff moved to the system unit
 
 }

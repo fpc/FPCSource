@@ -51,18 +51,11 @@ procedure StrDispose(Str: PChar);
 
 {
   $Log$
-  Revision 1.4  1999-08-24 13:14:51  peter
+  Revision 1.5  2000-02-09 16:59:32  peter
+    * truncated log
+
+  Revision 1.4  1999/08/24 13:14:51  peter
     * disposestr allocstr compatible with delphi
-
-  Revision 1.3  1999/02/25 07:39:58  michael
-  * Joined strings and sysutils
-
-  Revision 1.2  1998/09/16 08:28:41  michael
-  Update from gertjan Schouten, plus small fix for linux
-
-  Revision 1.1  1998/04/10 15:17:46  michael
-  + Initial implementation; Donated by Gertjan Schouten
-    His file was split into several files, to keep it a little bit structured.
 
 }
 

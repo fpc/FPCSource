@@ -188,22 +188,7 @@ end;
 
 {
   $Log$
-  Revision 1.6  1999-05-13 21:51:42  michael
-  * several fixes
+  Revision 1.7  2000-02-09 16:59:32  peter
+    * truncated log
 
-  Revision 1.5  1998/12/19 14:52:28  peter
-    * removed temp define
-
-  Revision 1.4  1998/10/05 21:35:41  peter
-    * fixed for 0.99.8
-
-  Revision 1.3  1998/10/04 20:19:56  michael
-  + Added missing functions and some extra
-
-  Revision 1.2  1998/09/16 08:28:38  michael
-  Update from gertjan Schouten, plus small fix for linux
-
-  Revision 1.1  1998/04/10 15:17:46  michael
-  + Initial implementation; Donated by Gertjan Schouten
-    His file was split into several files, to keep it a little bit structured.
 }

@@ -2521,7 +2521,10 @@ const CrtAddress: word = 0;
 
 {
 $Log$
-Revision 1.12  2000-01-02 19:00:30  jonas
+Revision 1.13  2000-02-09 16:59:28  peter
+  * truncated log
+
+Revision 1.12  2000/01/02 19:00:30  jonas
   * another small fix to getpixel320 and putpixel320 (when clip = off)
 
 Revision 1.11  1999/12/29 16:43:44  jonas
@@ -2608,84 +2611,5 @@ Revision 1.19  1999/09/24 22:52:38  jonas
     initialization of graph unit)
   * bugfix for notput in 32k and 64k vesa modes
   * a div replaced by / in fillpoly
-
-Revision 1.18  1999/09/24 14:22:38  jonas
-  + getscanline16
-
-Revision 1.17  1999/09/24 11:31:38  jonas
-  * fixed another typo :(
-
-Revision 1.16  1999/09/23 14:00:41  jonas
-  * -dlogging no longer required to fuction correctly
-  * some typo's fixed
-
-Revision 1.15  1999/09/22 13:13:34  jonas
-  * renamed text.inc -> gtext.inc to avoid conflict with system unit
-  * fixed textwidth
-  * isgraphmode now gets properly updated, so mode restoring works
-    again
-
-Revision 1.14  1999/09/18 22:21:09  jonas
-  + hlinevesa256 and vlinevesa256
-  + supPort for not/xor/or/andput in vesamodes with 32k/64k colors
-  * lots of changes to avoid warnings under FPC
-
-Revision 1.13  1999/09/18 16:03:36  jonas
-  * graph.pp: removed pieslice and sector from ToDo list
-  * closegraph: exits now immidiately if isgraphmode = false (caused
-    RTE 204 with VESA enabled if you set exitproc to call closegraph
-    and also called closegraph explicitely before exit, like bgidemo)
-
-Revision 1.12  1999/09/15 13:37:50  jonas
-  * small change to internalellipsedef to be TP compatible
-  * fixed directputpixel for vga 320*200*256
-
-Revision 1.11  1999/09/12 17:28:59  jonas
-  * several changes to internalellipse to make it faster
-    and to make sure it updates the ArcCall correctly
-    (not yet done for width = 3)
-  * Arc mostly works now, only sometimes an endless loop, don't know
-    why
-
-Revision 1.10  1999/09/11 19:43:01  jonas
-  * FloodFill: did not take into account current viewPort settings
-  * GetScanLine: only get line inside viewPort, data outside of it
-    is not used anyway
-  * InternalEllipseDefault: fix for when xradius or yradius = 0 and
-    increase xradius and yradius always by one (TP does this too)
-  * fixed conlict in vesa.inc from last update
-  * some conditionals to avoid range check and overflow errors in
-    places where it doesn't matter
-
-Revision 1.9  1999/08/01 14:50:51  jonas
-  * fixed hline16 and vline16 for notput (also TP supports copy, and, or, xor and
-    notput for lines!!)
-  * fixed directputpixel16 to support all the different put types
-
-Revision 1.8  1999/07/18 15:07:19  jonas
-  + xor-, and and- orput supPort for VESA256 modes
-  * compile with -dlogging if you want some info to be logged to grlog.txt
-
-Revision 1.7  1999/07/14 18:18:02  florian
-  * cosmetic changes
-
-Revision 1.6  1999/07/14 18:16:23  florian
-  * HLine16 and VLine16 implemented
-
-Revision 1.5  1999/07/14 14:32:12  florian
-  * small VGA detection problem solved
-
-Revision 1.4  1999/07/12 13:27:08  jonas
-  + added Log and Id tags
-  * added first FPC supPort, only VGA works to some extend for now
-  * use -dasmgraph to use assembler routines, otherwise Pascal
-    equivalents are used
-  * use -dsupPortVESA to supPort VESA (crashes under FPC for now)
-  * only dispose vesainfo at closegrph if a vesa card was detected
-  * changed int32 to longint (int32 is not declared under FPC)
-  * changed the declaration of almost every procedure in graph.inc to
-    "far;" because otherwise you can't assign them to procvars under TP
-    real mode (but unexplainable "data segnment too large" errors prevent
-    it from working under real mode anyway)
 
 }

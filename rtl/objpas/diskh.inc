@@ -23,13 +23,13 @@ Function RemoveDir (Const Dir : String) : Boolean;
 
 {
  $Log$
- Revision 1.3  2000-01-07 16:41:43  daniel
+ Revision 1.4  2000-02-09 16:59:32  peter
+   * truncated log
+
+ Revision 1.3  2000/01/07 16:41:43  daniel
    * copyright 2000
 
  Revision 1.2  1999/11/06 14:41:30  peter
    * truncated log
-
- Revision 1.1  1998/10/11 13:41:32  michael
- + Added disk functions
 
 }

@@ -1722,61 +1722,14 @@ End.
 
 {
   $Log$
-  Revision 1.12  2000-01-07 16:41:28  daniel
+  Revision 1.13  2000-02-09 16:59:28  peter
+    * truncated log
+
+  Revision 1.12  2000/01/07 16:41:28  daniel
     * copyright 2000
 
   Revision 1.11  2000/01/07 16:32:21  daniel
     * copyright 2000 added
-
-  Revision 1.10  1998/10/14 10:46:14  pierre
-  added several ; missing
-
-  Revision 1.9  1998/09/14 20:20:57  carl
-    * FSplit bugfix
-    * Structures bugfixes by Nils Sjoholm
-
-  Revision 1.8  1998/08/19 14:52:52  carl
-    * SearchRec was not aligned!! so BOUM!...
-
-  Revision 1.7  1998/08/17 12:30:42  carl
-    * FExpand removes dot characters
-    * Findfirst single/double dot expansion
-    + SetFtime implemented
-
-  Revision 1.6  1998/08/13 13:18:45  carl
-    * FSearch bugfix
-    * FSplit bugfix
-    + GetFAttr,SetFAttr and GetFTime accept dos dir separators
-
-  Revision 1.5  1998/08/04 13:37:10  carl
-    * bugfix of findfirst, was not convberting correctl backslahes
-
-       History (Nils Sjoholm):
-       10.02.1999-2000 by First version for Amiga.
-                   Just GetDate and GetTime.
-
-       11.02.1999-2000 by Added AmigaToDt and DtToAmiga
-                   Changed GetDate and GetTime to
-                   use AmigaToDt and DtToAmiga.
-
-                   Added DiskSize and DiskFree.
-                   They are using a string as arg
-                   have to try to fix that.
-
-       12.02.1999-2000 by Added Fsplit and FExpand.
-                   Cleaned up the unit and removed
-                   stuff that was not used yet.
-
-       13.02.1999-2000 by Added CToPas and PasToC and removed
-                   the uses of strings.
-
-       14.02.1999-2000 by Removed AmigaToDt and DtToAmiga
-                   from public area.
-                   Added deviceids and devicenames
-                   arrays so now diskfree and disksize
-                   is compatible with dos.
-
-
 
 }
 

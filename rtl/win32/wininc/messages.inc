@@ -1210,7 +1210,10 @@ end.
 {$endif windows_include_files}
 {
   $Log$
-  Revision 1.3  2000-01-07 16:41:56  daniel
+  Revision 1.4  2000-02-09 16:59:36  peter
+    * truncated log
+
+  Revision 1.3  2000/01/07 16:41:56  daniel
     * copyright 2000
 
   Revision 1.2  2000/01/07 16:32:36  daniel
@@ -1218,14 +1221,5 @@ end.
 
   Revision 1.1  1999/09/16 13:38:23  peter
     * windows unit include moved to wininc/
-
-  Revision 1.4  1998/08/31 11:53:58  pierre
-    * compilable windows.pp file
-      still to do :
-       - findout problems
-       - findout the correct DLL for each call !!
-
-  Revision 1.3  1998/06/10 10:39:15  peter
-    * working w32 rtl
 
 }

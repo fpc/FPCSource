@@ -1370,7 +1370,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.32  2000-02-09 12:41:14  peter
+  Revision 1.33  2000-02-09 16:59:29  peter
+    * truncated log
+
+  Revision 1.32  2000/02/09 12:41:14  peter
     * halt moved to system.inc
 
   Revision 1.31  2000/01/24 11:57:18  daniel
@@ -1424,46 +1427,5 @@ End.
 
   Revision 1.15  1999/08/19 14:03:16  pierre
    * use sysgetmem for startup and debug allocations
-
-  Revision 1.14  1999/07/19 07:57:49  michael
-  + Small fix from Michael Baikov in setup_params
-
-  Revision 1.13  1999/05/19 16:54:21  pierre
-   * closes all handles >+ 5
-
-  Revision 1.12  1999/05/17 21:52:33  florian
-    * most of the Object Pascal stuff moved to the system unit
-
-  Revision 1.11  1999/05/04 23:28:40  pierre
-    SYSTEM_DEBUG_STARTUP used to output args and env at start
-
-  Revision 1.10  1999/04/28 11:42:45  peter
-    + FileNameCaseSensetive boolean
-
-  Revision 1.9  1999/04/28 06:01:25  florian
-    * define MT for multithreading introduced
-
-  Revision 1.8  1999/04/08 12:23:02  peter
-    * removed os.inc
-
-  Revision 1.7  1999/03/10 22:15:28  florian
-    + system.cmdline variable for go32v2 and win32 added
-
-  Revision 1.6  1999/03/01 15:40:52  peter
-    * use external names
-    * removed all direct assembler modes
-
-  Revision 1.5  1999/01/18 10:05:50  pierre
-   + system_exit procedure added
-
-  Revision 1.4  1998/12/30 22:17:59  peter
-    * fixed mem decls to use $0:$0
-
-  Revision 1.3  1998/12/28 15:50:45  peter
-    + stdout, which is needed when you write something in the system unit
-      to the screen. Like the runtime error
-
-  Revision 1.2  1998/12/21 14:22:02  pierre
-   * old_int?? transformed to cvar to be readable by dpmiexcp
 
 }

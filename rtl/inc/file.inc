@@ -409,7 +409,10 @@ End;
 
 {
   $Log$
-  Revision 1.18  2000-01-17 20:02:30  peter
+  Revision 1.19  2000-02-09 16:59:29  peter
+    * truncated log
+
+  Revision 1.18  2000/01/17 20:02:30  peter
     * open with mode 2 in rewrite
 
   Revision 1.17  2000/01/16 22:25:38  peter
@@ -432,40 +435,5 @@ End;
 
   Revision 1.11  1999/09/07 15:54:18  hajny
     * fixed problem with Close under OS/2
-
-  Revision 1.10  1998/11/29 23:10:12  peter
-    * also check fmInput,fmOutput
-
-  Revision 1.9  1998/11/29 22:28:11  peter
-    + io-error 103 added
-
-  Revision 1.8  1998/09/17 16:34:16  peter
-    * new eof,eoln,seekeoln,seekeof
-    * speed upgrade for read_string
-    * inoutres 104/105 updates for read_* and write_*
-
-  Revision 1.7  1998/09/04 18:16:12  peter
-    * uniform filerec/textrec (with recsize:longint and name:0..255)
-
-  Revision 1.6  1998/07/19 19:55:32  michael
-  + fixed rename. Changed p to p^
-
-  Revision 1.5  1998/07/02 12:15:39  carl
-    + Each IOCheck routine now checks for InOures before executing, like TP
-
-  Revision 1.4  1998/06/23 16:57:16  peter
-    * fixed the filesize() problems under linux and filerec.size=0 error
-
-  Revision 1.3  1998/05/21 19:30:56  peter
-    * objects compiles for linux
-    + assign(pchar), assign(char), rename(pchar), rename(char)
-    * fixed read_text_as_array
-    + read_text_as_pchar which was not yet in the rtl
-
-  Revision 1.2  1998/05/12 10:42:44  peter
-    * moved getopts to inc/, all supported OS's need argc,argv exported
-    + strpas, strlen are now exported in the systemunit
-    * removed logs
-    * removed $ifdef ver_above
 
 }

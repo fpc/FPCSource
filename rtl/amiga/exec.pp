@@ -1555,31 +1555,12 @@ END. (* UNIT EXEC *)
 
 {
   $Log$
-  Revision 1.4  2000-01-07 16:41:28  daniel
+  Revision 1.5  2000-02-09 16:59:28  peter
+    * truncated log
+
+  Revision 1.4  2000/01/07 16:41:28  daniel
     * copyright 2000
 
-  Revision 1.3  1998/09/14 20:22:32  carl
-    * Several bugfixes by Nils Sjoholm
-
-  Revision 1.1.1.1  1998/03/25 11:18:47  root
-  * Restored version
-
-  Revision 1.3  1998/01/26 12:02:42  michael
-  + Added log at the end
-
-
-
-  Working file: rtl/amiga/exec.pp
-  description:
-  ----------------------------
-  revision 1.2
-  date: 1997/12/14 19:02:47;  author: carl;  state: Exp;  lines: +11 -10
-  * small bugfixes
-  ----------------------------
-  revision 1.1
-  date: 1997/12/10 13:48:45;  author: carl;  state: Exp;
-  + exec dynamic library definitions and calls.
-  =============================================================================
 }
 
 

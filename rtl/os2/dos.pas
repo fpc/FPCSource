@@ -1001,7 +1001,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.19  2000-01-09 20:51:03  hajny
+  Revision 1.20  2000-02-09 16:59:33  peter
+    * truncated log
+
+  Revision 1.19  2000/01/09 20:51:03  hajny
     * FPK changed to FPC
 
   Revision 1.18  2000/01/07 16:41:45  daniel
@@ -1021,30 +1024,5 @@ end.
 
   Revision 1.13  1999/09/09 09:20:43  hajny
     * FSearch under OS/2 fixed
-
-  Revision 1.12  1999/01/22 16:25:58  pierre
-   + findclose added
-
-  Revision 1.11  1999/01/18 16:22:51  jonas
-    - removed "noattcdq" define
-
-  Revision 1.10  1998/12/10 16:05:39  daniel
-  * Fsearch bug fixed
-
-  Revision 1.9  1998/12/07 18:55:41  jonas
-    * fixed bug reported in the mailing list by Frank McCormick (fsearch: changed
-      "if p1 = 0" to "if p1 <> 0"
-
-  Revision 1.8  1998/10/16 14:18:02  daniel
-  * Updates
-
-  Revision 1.7  1998/07/08 14:44:11  daniel
-  + Added moucalls and viocalls written by Tomas Hajny.
-  + Final routines in doscalls implemented.
-  * Fixed bugs in dos.pas.
-  * Changed some old $ifdef FPK into $ifdef FPC.
-  - Removed go32 stuff from dos.pas.
-  - Removed '/' to '\' translation from system unit - EMX does this
-  automatically.
 
 }

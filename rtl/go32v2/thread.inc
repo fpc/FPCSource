@@ -39,12 +39,10 @@ function relocate_threadvar(offset : dword) : pointer;[public,alias: 'FPC_RELOCA
 
 {
   $Log$
-  Revision 1.3  2000-01-07 16:41:32  daniel
+  Revision 1.4  2000-02-09 16:59:29  peter
+    * truncated log
+
+  Revision 1.3  2000/01/07 16:41:32  daniel
     * copyright 2000
 
-  Revision 1.2  1999/04/28 06:01:26  florian
-    * define MT for multithreading introduced
-
-  Revision 1.1  1999/04/27 19:41:06  florian
-    + first implementation for DOS, only a dummy
 }

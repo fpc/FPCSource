@@ -316,7 +316,10 @@ end.
 
 {
   $Log$
-  Revision 1.12  2000-01-07 16:41:41  daniel
+  Revision 1.13  2000-02-09 16:59:32  peter
+    * truncated log
+
+  Revision 1.12  2000/01/07 16:41:41  daniel
     * copyright 2000
 
   Revision 1.11  2000/01/07 16:32:28  daniel
@@ -324,35 +327,5 @@ end.
 
   Revision 1.10  1999/11/14 21:35:04  peter
     * removed warnings
-
-  Revision 1.9  1999/07/03 15:16:47  michael
-  + Fixed Connect call
-
-  Revision 1.8  1999/06/27 16:04:25  michael
-  + Updated to Florians system independent sockets unit
-
-  Revision 1.7  1999/06/08 18:35:24  michael
-  + Beter return values for connect and accept
-
-  Revision 1.6  1999/06/08 18:19:24  michael
-  + Fixes for connect calls
-
-  Revision 1.5  1999/06/08 16:08:33  michael
-  + completed (hopefully) Fix by stian (my_wave@ypsilonia.net)
-
-  Revision 1.4  1999/06/08 16:05:08  michael
-  + Fix by stian (my_wave@ypsilonia.net)
-
-  Revision 1.3  1998/11/16 10:21:30  peter
-    * fixes for H+
-
-  Revision 1.2  1998/07/16 10:36:45  michael
-  + added connect call for inet sockets
-
-  Revision 1.1.1.1  1998/03/25 11:18:43  root
-  * Restored version
-
-  Revision 1.1  1998/02/13 08:35:05  michael
-  + Initial implementation
 
 }

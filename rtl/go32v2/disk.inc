@@ -77,18 +77,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2000-01-07 16:41:30  daniel
+  Revision 1.4  2000-02-09 16:59:28  peter
+    * truncated log
+
+  Revision 1.3  2000/01/07 16:41:30  daniel
     * copyright 2000
 
-  Revision 1.2  1999/04/08 12:22:58  peter
-    * removed os.inc
-
-  Revision 1.1  1998/12/21 13:07:02  peter
-    * use -FE
-
-  Revision 1.2  1998/10/30 14:13:13  michael
-  + Implementation of functions by Gertjan Schouten
-
-  Revision 1.1  1998/10/11 13:42:55  michael
-  Added disk functions
 }

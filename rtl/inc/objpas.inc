@@ -405,7 +405,10 @@
 
 {
   $Log$
-  Revision 1.13  2000-01-07 16:41:36  daniel
+  Revision 1.14  2000-02-09 16:59:31  peter
+    * truncated log
+
+  Revision 1.13  2000/01/07 16:41:36  daniel
     * copyright 2000
 
   Revision 1.12  2000/01/07 16:32:25  daniel
@@ -424,20 +427,5 @@
 
   Revision 1.8  1999/09/08 16:14:41  peter
     * pointer fixes
-
-  Revision 1.7  1999/07/11 14:10:48  michael
-  + Adaptes Dispatch(STr) to cope with empty/non-existent message tables
-
-  Revision 1.6  1999/07/11 14:05:50  michael
-  + Added
-
-  Revision 1.5  1999/07/05 20:04:24  peter
-    * removed temp defines
-
-  Revision 1.4  1999/05/19 13:20:09  peter
-    * fixed dispatchstr
-
-  Revision 1.3  1999/05/17 21:52:37  florian
-    * most of the Object Pascal stuff moved to the system unit
 
 }

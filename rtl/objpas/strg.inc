@@ -36,16 +36,14 @@ Const
    
 {
   $Log$
-  Revision 1.4  2000-01-07 16:41:44  daniel
+  Revision 1.5  2000-02-09 16:59:32  peter
+    * truncated log
+
+  Revision 1.4  2000/01/07 16:41:44  daniel
     * copyright 2000
 
   Revision 1.3  1999/08/28 14:53:27  florian
     * bug 471 fixed: run time error 2 is now converted into a file not
       found exception
 
-  Revision 1.2  1999/07/02 17:03:23  florian
-    + added some runtime->excpetin wrappers: eintoverflow, eoverflow, eunderflow, einvalidop
-
-  Revision 1.1  1998/10/01 16:26:06  florian
-    * Initial revision
 }   

@@ -428,7 +428,10 @@ const
 
 {
   $Log$
-  Revision 1.77  2000-02-06 17:19:22  peter
+  Revision 1.78  2000-02-09 16:59:31  peter
+    * truncated log
+
+  Revision 1.77  2000/02/06 17:19:22  peter
     * lineinfo unit added which uses stabs to get lineinfo for backtraces
 
   Revision 1.76  2000/01/21 15:32:07  jonas
@@ -479,61 +482,5 @@ const
 
   Revision 1.62  1999/08/19 11:16:13  peter
     * settextbuf size is now longint
-
-  Revision 1.61  1999/07/05 20:04:28  peter
-    * removed temp defines
-
-  Revision 1.60  1999/07/03 01:24:21  peter
-    * $ifdef int64
-
-  Revision 1.59  1999/07/02 18:06:43  florian
-    + qword/int64: lo/hi/swap
-
-  Revision 1.58  1999/06/30 22:17:22  florian
-    + fpuint64 to system unit interface added: if it is true, the rtl
-      uses the fpu to do int64 operations, if possible
-
-  Revision 1.57  1999/05/17 21:52:40  florian
-    * most of the Object Pascal stuff moved to the system unit
-
-  Revision 1.56  1999/05/06 09:05:14  peter
-    * generic write_float str_float
-
-  Revision 1.55  1999/04/17 13:10:26  peter
-    * addr() internal
-
-  Revision 1.54  1999/04/08 15:57:56  peter
-    + subrange checking for readln()
-
-  Revision 1.53  1999/03/16 17:49:37  jonas
-    * changes for internal Val code (do a "make cycle OPT=-dvalintern" to test)
-    * in text.inc: changed RTE 106 when read integer values are out of bounds to RTE 201
-    * in systemh.inc: disabled "support_fixed" for the i386 because it gave internal errors,
-
-  Revision 1.52  1999/03/10 22:15:30  florian
-    + system.cmdline variable for go32v2 and win32 added
-
-  Revision 1.51  1999/03/03 15:23:58  michael
-  + Added setstring for Delphi compatibility
-
-  Revision 1.50  1999/02/01 00:05:16  florian
-    + functions lo/hi for DWord type implemented
-
-  Revision 1.49  1999/01/29 09:23:10  pierre
-   * Fillchar(..,..,boolean) added
-
-  Revision 1.48  1999/01/22 12:39:24  pierre
-   + added text arg for dump_stack
-
-  Revision 1.47  1999/01/11 19:26:53  jonas
-    * made inster(string,string,index) a bit faster
-    + overloaded insert(char,string,index)
-
-  Revision 1.46  1998/12/28 15:50:48  peter
-    + stdout, which is needed when you write something in the system unit
-      to the screen. Like the runtime error
-
-  Revision 1.45  1998/12/15 22:43:04  peter
-    * removed temp symbols
 
 }

@@ -113,10 +113,10 @@ unit opengl32;
 end.
 {
   $Log$
-  Revision 1.2  2000-01-07 16:41:52  daniel
-    * copyright 2000
+  Revision 1.3  2000-02-09 16:59:34  peter
+    * truncated log
 
-  Revision 1.1  1999/05/10 22:07:13  florian
-    * initial version with some functions are removed from windows unit
+  Revision 1.2  2000/01/07 16:41:52  daniel
+    * copyright 2000
 
 }

@@ -522,7 +522,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.4  2000-02-08 15:23:02  pierre
+  Revision 1.5  2000-02-09 16:59:30  peter
+    * truncated log
+
+  Revision 1.4  2000/02/08 15:23:02  pierre
    * fix for directories included in stabsinfo
 
   Revision 1.3  2000/02/06 22:13:42  florian

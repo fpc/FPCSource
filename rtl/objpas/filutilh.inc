@@ -71,22 +71,10 @@ Function FileSearch (Const Name, DirList : String) : String;
 
 {
   $Log$
-  Revision 1.6  2000-01-07 16:41:43  daniel
+  Revision 1.7  2000-02-09 16:59:32  peter
+    * truncated log
+
+  Revision 1.6  2000/01/07 16:41:43  daniel
     * copyright 2000
-
-  Revision 1.5  1999/05/15 07:25:22  michael
-  + Defined seek constants
-
-  Revision 1.4  1999/02/09 12:38:43  michael
-  * Fixed INt() proble. Defined THandle, included Filemode constants
-
-  Revision 1.3  1999/02/02 21:21:37  michael
-  + Added filetruncate
-
-  Revision 1.2  1998/10/11 13:47:45  michael
-  + Added disk functions
-
-  Revision 1.1  1998/10/11 12:21:01  michael
-  Added file calls. Implemented for linux only
 
 }

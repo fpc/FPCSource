@@ -1169,7 +1169,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.21  2000-02-09 13:00:32  peter
+  Revision 1.22  2000-02-09 16:59:28  peter
+    * truncated log
+
+  Revision 1.21  2000/02/09 13:00:32  peter
     + getlongname
 
   Revision 1.20  2000/02/02 17:34:49  pierre
@@ -1209,59 +1212,6 @@ end.
   Revision 1.10  1999/08/13 21:23:15  peter
     * fsearch checks first if the specified file exists and returns that
       if it was found
-
-  Revision 1.9  1999/05/16 17:08:58  peter
-    * fixed driveletter checking
-
-  Revision 1.8  1999/05/08 19:47:22  peter
-    * check ioresult after getdir calls
-
-  Revision 1.7  1999/05/04 23:55:50  pierre
-   * unneeded assembler code converted to pascal
-
-  Revision 1.6  1999/04/28 11:42:44  peter
-    + FileNameCaseSensetive boolean
-
-  Revision 1.5  1999/04/02 00:01:29  peter
-    * fixed LFNFindfirst on network drives
-
-  Revision 1.4  1999/03/01 15:40:48  peter
-    * use external names
-    * removed all direct assembler modes
-
-  Revision 1.3  1999/01/22 15:44:59  pierre
-   Daniel change removed : broke make cycle !!
-
-  Revision 1.2  1999/01/22 10:07:03  daniel
-  - Findclose removed: This is TP incompatible!!
-
-  Revision 1.1  1998/12/21 13:07:02  peter
-    * use -FE
-
-  Revision 1.19  1998/11/23 13:53:59  peter
-    * more fexpand fixes from marco van de voort
-
-  Revision 1.18  1998/11/23 12:48:02  peter
-    * fexpand('o:') fixed to return o:\ (from the mailinglist)
-
-  Revision 1.17  1998/11/22 09:33:21  florian
-    * fexpand bug (temp. strings were too shoort) fixed, was reported
-      by Marco van de Voort
-
-  Revision 1.16  1998/11/17 09:37:41  pierre
-   * explicit conversion from word dosreg.ax to integer doserror
-
-  Revision 1.15  1998/11/01 20:27:18  peter
-    * fixed some doserror settings
-
-  Revision 1.14  1998/10/22 15:05:28  pierre
-   * fsplit adapted to long filenames
-
-  Revision 1.13  1998/09/16 16:47:24  peter
-    * merged fixes
-
-  Revision 1.11.2.2  1998/09/16 16:16:04  peter
-    * go32v1 compiles again
 
 }
 

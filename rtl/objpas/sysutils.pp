@@ -296,7 +296,10 @@ Finalization
 end.
 {
     $Log$
-    Revision 1.40  2000-01-16 19:10:25  hajny
+    Revision 1.41  2000-02-09 16:59:33  peter
+      * truncated log
+
+    Revision 1.40  2000/01/16 19:10:25  hajny
       * 'uses Dos' added for OS/2 target
 
     Revision 1.39  2000/01/07 16:41:44  daniel
@@ -329,47 +332,5 @@ end.
 
     Revision 1.29  1999/07/27 13:01:12  peter
       + filerec,textrec declarations
-
-    Revision 1.28  1999/07/08 19:32:36  michael
-    + Freed exception classes in finalization code
-
-    Revision 1.27  1999/07/02 17:03:24  florian
-      + added some runtime->excpetin wrappers: eintoverflow, eoverflow, eunderflow, einvalidop
-
-    Revision 1.26  1999/04/09 08:40:46  michael
-    + Fixed tfiletime problem
-
-    Revision 1.25  1999/04/08 16:26:31  michael
-    + Added (re)allocmem
-
-    Revision 1.24  1999/04/08 12:23:05  peter
-      * removed os.inc
-
-    Revision 1.23  1999/02/28 13:17:37  michael
-    + Added internationalization support and more format functions
-
-    Revision 1.22  1999/02/10 22:15:13  michael
-    + Changed to ansistrings
-
-    Revision 1.21  1999/02/09 14:24:50  pierre
-     * dos unit missing for go32v2 !!
-
-    Revision 1.20  1999/02/09 12:38:44  michael
-    * Fixed INt() proble. Defined THandle, included Filemode constants
-
-    Revision 1.19  1999/02/03 16:18:58  michael
-    + Uses Windows on win32 platform
-
-    Revision 1.18  1998/12/15 22:43:12  peter
-      * removed temp symbols
-
-    Revision 1.17  1998/10/20 19:26:37  michael
-    + Forgot to include disk functions
-
-    Revision 1.16  1998/10/11 12:23:41  michael
-    + More sysutils calls.
-
-    Revision 1.15  1998/10/10 09:53:10  michael
-    Added assertion handling
 
 }

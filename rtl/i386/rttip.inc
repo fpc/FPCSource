@@ -375,7 +375,10 @@ end;
 
 {
   $Log$
-  Revision 1.19  2000-01-11 21:11:34  marco
+  Revision 1.20  2000-02-09 16:59:29  peter
+    * truncated log
+
+  Revision 1.19  2000/01/11 21:11:34  marco
    * Direct params to internal assembler
 
   Revision 1.18  2000/01/07 16:41:33  daniel
@@ -383,56 +386,5 @@ end;
 
   Revision 1.17  1999/07/31 22:27:28  michael
   Object finalization data fixed
-
-  Revision 1.16  1999/03/01 15:40:58  peter
-    * use external names
-    * removed all direct assembler modes
-
-  Revision 1.15  1998/12/20 14:08:06  michael
-  + Finalize fixed after florians fix :)
-
-  Revision 1.14  1998/12/19 00:22:09  florian
-    * Finalize fixed, constant for ansistrings is 9, not 10
-
-  Revision 1.13  1998/12/15 22:42:59  peter
-    * removed temp symbols
-
-  Revision 1.12  1998/11/30 10:07:34  michael
-  + Adjusted typeinfo constants
-
-  Revision 1.11  1998/11/17 00:41:10  peter
-    * renamed string functions
-
-  Revision 1.10  1998/11/16 12:21:47  peter
-    * fixes for 0.99.8
-
-  Revision 1.9  1998/09/29 08:38:25  michael
-  + Corrections in record and array handling.
-
-  Revision 1.8  1998/09/20 17:49:07  florian
-    * some ansistring fixes
-
-  Revision 1.7  1998/09/14 10:48:11  peter
-    * FPC_ names
-    * Heap manager is now system independent
-
-  Revision 1.6  1998/08/23 20:58:50  florian
-    + rtti for objects and classes
-    + TObject.GetClassName implemented
-
-  Revision 1.5  1998/06/25 08:41:43  florian
-    * better rtti
-
-  Revision 1.4  1998/06/17 11:50:43  michael
-  + Small patch: forgot to make alias public
-
-  Revision 1.3  1998/06/10 07:46:49  michael
-  + Forgot to commit some changes
-
-  Revision 1.2  1998/06/08 19:31:03  michael
-  + Implemented DecRef
-
-  Revision 1.1  1998/06/08 15:32:12  michael
-  + Split rtti according to processor. Implemented optimized i386 code.
 
 }

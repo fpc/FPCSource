@@ -35,18 +35,11 @@ unit ole2;
 end.
 {
   $Log$
-  Revision 1.4  2000-01-07 16:41:52  daniel
+  Revision 1.5  2000-02-09 16:59:34  peter
+    * truncated log
+
+  Revision 1.4  2000/01/07 16:41:52  daniel
     * copyright 2000
-
-  Revision 1.3  1999/05/13 21:54:29  peter
-    * objpas fixes
-
-  Revision 1.2  1999/03/30 17:00:25  peter
-    * fixes for 0.99.10
-
-  Revision 1.1  1999/03/22 22:12:51  florian
-    + addition and changes to compile the direct draw unit
-      of Erik Ungerer (with -dv2com and indirect disabled)
 
 }
 

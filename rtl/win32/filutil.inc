@@ -429,7 +429,10 @@ end;
 
 {
   $Log$
-  Revision 1.13  2000-01-16 22:25:38  peter
+  Revision 1.14  2000-02-09 16:59:34  peter
+    * truncated log
+
+  Revision 1.13  2000/01/16 22:25:38  peter
     * check handle for file closing
 
   Revision 1.12  2000/01/07 16:41:52  daniel
@@ -437,35 +440,5 @@ end;
 
   Revision 1.11  1999/08/18 08:38:42  michael
   * Fixed bug 533, in findmatch
-
-  Revision 1.10  1999/04/20 11:36:13  peter
-    * compatibility fixes
-
-  Revision 1.9  1999/04/08 12:23:09  peter
-    * removed os.inc
-
-  Revision 1.8  1999/03/18 16:15:59  michael
-  - Really removed debug statements
-
-  Revision 1.7  1999/03/16 21:01:00  peter
-    * removed initernalization debug writeln's
-
-  Revision 1.6  1999/03/03 15:22:40  michael
-  Fixed internationalization support
-
-  Revision 1.5  1999/02/28 13:18:11  michael
-  + Added internationalization support
-
-  Revision 1.4  1999/02/24 15:57:30  michael
-  + Moved getlocaltime to system-dependent files
-
-  Revision 1.3  1999/02/09 12:01:03  michael
-  + Implemented filetruncate
-
-  Revision 1.2  1999/02/03 11:41:30  michael
-  + Added filetruncate
-
-  Revision 1.1  1998/10/11 12:21:01  michael
-  Added file calls. Implemented for linux only
 
 }

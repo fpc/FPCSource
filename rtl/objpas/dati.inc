@@ -680,7 +680,10 @@ end;
 
 {
   $Log$
-  Revision 1.19  1999-11-29 16:59:27  pierre
+  Revision 1.20  2000-02-09 16:59:32  peter
+    * truncated log
+
+  Revision 1.19  1999/11/29 16:59:27  pierre
    * fix for form bug 719
 
   Revision 1.18  1999/11/06 14:41:30  peter
@@ -697,53 +700,5 @@ end;
   Revision 1.15  1999/07/24 11:21:14  peter
     * fixed encode/decode date/time
 
-  Revision 1.14  1999/07/14 08:47:54  michael
-  * faster En/Decodedate routines from Frank Reichert
-  * Fixed FormatDateTime with short/longtimeformat.
-
-  Revision 1.13  1999/05/31 20:50:44  peter
-    * removed warnings
-
-  Revision 1.12  1999/05/13 21:51:41  michael
-  * several fixes
-
-  Revision 1.11  1999/05/11 09:05:13  michael
-  * SMall fixes to date/time routines
-
-  Revision 1.10  1999/04/18 19:03:03  michael
-  + Now EConvertError is used everywhere in conversions
-
-  Revision 1.9  1999/04/08 11:31:02  peter
-    * removed warnings
-
-  Revision 1.8  1999/02/24 15:56:28  michael
-  + Small fixes. Moved getlocaltime to system-dependent files
-
-  Revision 1.7  1999/02/10 22:15:10  michael
-  + Changed to ansistrings
-
-  Revision 1.6  1999/02/09 12:38:42  michael
-  * Fixed INt() proble. Defined THandle, included Filemode constants
-
-  Revision 1.5  1998/10/15 09:39:12  michael
-  Changes from Gretjan Schouten
-
-  Revision 1.4  1998/10/11 13:40:52  michael
-  + Added Conversion TDateTime <-> file date and time
-
-  Revision 1.3  1998/09/16 08:28:36  michael
-  Update from gertjan Schouten, plus small fix for linux
-
-  Revision 1.1  1998/04/10 15:17:46  michael
-  + Initial implementation; Donated by Gertjan Schouten
-    His file was split into several files, to keep it a little bit structured.
-
-  1998/08/25 Gertjan
-  + uses Go32 instead of Dos unit
-    GetLocalTime
-    DayOfWeek
-    DoDecodeDate
-    DoEncodeDate
-    FormatDateTime
 }
 

@@ -211,16 +211,13 @@ finalization
 end.
 {
   $Log$
-  Revision 1.4  2000-01-07 16:41:52  daniel
+  Revision 1.5  2000-02-09 16:59:34  peter
+    * truncated log
+
+  Revision 1.4  2000/01/07 16:41:52  daniel
     * copyright 2000
 
   Revision 1.3  2000/01/07 16:32:34  daniel
     * copyright 2000 added
-
-  Revision 1.2  1999/07/03 15:16:48  michael
-  + Fixed Connect call
-
-  Revision 1.1  1999/06/21 12:40:48  florian
-    + initial revision, derieved from the linux version
 
 }

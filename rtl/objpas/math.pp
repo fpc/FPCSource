@@ -666,7 +666,10 @@ end;
 end.
 {
     $Log$
-    Revision 1.14  2000-01-11 21:07:33  marco
+    Revision 1.15  2000-02-09 16:59:32  peter
+      * truncated log
+
+    Revision 1.14  2000/01/11 21:07:33  marco
      * Changed some (%ebp) to real parameters
 
     Revision 1.13  2000/01/07 16:41:43  daniel
@@ -675,33 +678,4 @@ end.
     Revision 1.12  1999/09/21 20:47:05  florian
       * ceil and floor still had bugs :), hopefully it's the final fix now
 
-    Revision 1.11  1999/06/04 08:44:34  jonas
-      * Ceil and Floor are now really fixed :)
-
-    Revision 1.10  1999/06/03 16:22:57  jonas
-      * fixed ceil function
-
-    Revision 1.9  1999/06/03 13:37:30  jonas
-      * fixed floor function
-
-    Revision 1.8  1999/01/15 11:44:56  peter
-      * fixed unresolved forwards
-
-    Revision 1.7  1998/12/21 13:07:06  peter
-      * use -FE
-
-    Revision 1.6  1998/11/02 12:52:46  michael
-    Minimum/maximum functions
-
-    Revision 1.5  1998/09/24 23:45:26  peter
-      * updated for auto objpas loading
-
-    Revision 1.4  1998/09/18 23:57:27  michael
-    * Changed use_excepions to useexceptions
-
-    Revision 1.3  1998/09/09 15:29:05  peter
-      * removed some warnings
-
-    Revision 1.2  1998/07/29 15:44:34  michael
-     included sysutils and math.pp as target. They compile now.
 }

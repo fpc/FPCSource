@@ -80,16 +80,13 @@ Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:file):
 
 {
   $Log$
-  Revision 1.4  2000-01-07 16:41:36  daniel
+  Revision 1.5  2000-02-09 16:59:31  peter
+    * truncated log
+
+  Revision 1.4  2000/01/07 16:41:36  daniel
     * copyright 2000
 
   Revision 1.3  2000/01/07 16:32:25  daniel
     * copyright 2000 added
-
-  Revision 1.2  1999/07/03 15:16:46  michael
-  + Fixed Connect call
-
-  Revision 1.1  1999/06/21 12:26:27  florian
-    + files created by splitting the linux sockets unit
 
 }

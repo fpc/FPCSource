@@ -109,16 +109,13 @@ type
 
 {
   $Log$
-  Revision 1.10  2000-01-25 13:15:35  florian
+  Revision 1.11  2000-02-09 16:59:34  peter
+    * truncated log
+
+  Revision 1.10  2000/01/25 13:15:35  florian
     * new constants to compile dos unit again
 
   Revision 1.9  2000/01/07 16:41:53  daniel
     * copyright 2000
-
-  Revision 1.8  1999/01/29 09:24:48  pierre
-  win32.inc
-
-  Revision 1.7  1998/06/10 10:39:18  peter
-    * working w32 rtl
 
 }

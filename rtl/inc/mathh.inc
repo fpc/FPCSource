@@ -61,24 +61,13 @@
 
 {
   $Log$
-  Revision 1.7  2000-01-07 16:41:34  daniel
+  Revision 1.8  2000-02-09 16:59:30  peter
+    * truncated log
+
+  Revision 1.7  2000/01/07 16:41:34  daniel
     * copyright 2000
 
   Revision 1.6  2000/01/07 16:32:24  daniel
     * copyright 2000 added
 
-  Revision 1.5  1998/08/11 21:39:05  peter
-    * splitted default_extended from support_extended
-
-  Revision 1.4  1998/08/11 00:05:24  peter
-    * $ifdef ver0_99_5 updates
-
-  Revision 1.3  1998/08/08 12:28:11  florian
-    * a lot small fixes to the extended data type work
-
-  Revision 1.2  1998/05/12 10:42:45  peter
-    * moved getopts to inc/, all supported OS's need argc,argv exported
-    + strpas, strlen are now exported in the systemunit
-    * removed logs
-    * removed $ifdef ver_above
 }

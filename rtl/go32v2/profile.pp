@@ -324,28 +324,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-01-07 16:41:32  daniel
+  Revision 1.5  2000-02-09 16:59:29  peter
+    * truncated log
+
+  Revision 1.4  2000/01/07 16:41:32  daniel
     * copyright 2000
 
   Revision 1.3  2000/01/07 16:32:23  daniel
     * copyright 2000 added
-
-  Revision 1.2  1999/03/02 13:56:35  peter
-    * use ATT assembler in profile
-    * use AS output in graph
-
-  Revision 1.1  1998/12/21 13:07:03  peter
-    * use -FE
-
-  Revision 1.4  1998/11/18 09:22:10  pierre
-    + added $error if compiled with -pg
-    + all output to stderr
-
-  Revision 1.3  1998/11/17 09:43:22  pierre
-   + No stack check
-
-  Revision 1.2  1998/05/31 14:18:28  peter
-    * force att or direct assembling
-    * cleanup of some files
 
 }

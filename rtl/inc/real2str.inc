@@ -353,7 +353,10 @@ end;
 
 {
   $Log$
-  Revision 1.21  2000-02-09 12:17:51  peter
+  Revision 1.22  2000-02-09 16:59:31  peter
+    * truncated log
+
+  Revision 1.21  2000/02/09 12:17:51  peter
     * moved halt to system.inc
     * syslinux doesn't use direct asm anymore
 
@@ -379,43 +382,4 @@ end;
   Revision 1.14  1999/08/03 21:58:44  peter
     * small speed improvements
 
-  Revision 1.13  1999/05/06 09:05:12  peter
-    * generic write_float str_float
-
-  Revision 1.12  1999/03/10 21:49:02  florian
-    * str and val for extended use now int constants to minimize
-      rounding error
-
-  Revision 1.11  1999/02/16 00:49:20  peter
-    * fixed rounding when correct+f < 0
-
-  Revision 1.10  1998/08/11 21:39:06  peter
-    * splitted default_extended from support_extended
-
-  Revision 1.9  1998/08/11 00:05:25  peter
-    * $ifdef ver0_99_5 updates
-
-  Revision 1.8  1998/08/10 15:56:30  peter
-    * fixed 0_9_5 typo
-
-  Revision 1.7  1998/08/08 12:28:12  florian
-    * a lot small fixes to the extended data type work
-
-  Revision 1.6  1998/07/18 17:14:22  florian
-    * strlenint type implemented
-
-  Revision 1.5  1998/07/13 21:19:10  florian
-    * some problems with ansi string support fixed
-
-  Revision 1.4  1998/06/18 08:15:33  michael
-  + Fixed error when printing zero. len was calculated wron.
-
-  Revision 1.3  1998/05/12 10:42:45  peter
-    * moved getopts to inc/, all supported OS's need argc,argv exported
-    + strpas, strlen are now exported in the systemunit
-    * removed logs
-    * removed $ifdef ver_above
-
-  Revision 1.2  1998/04/07 22:40:46  florian
-    * final fix of comp writing
 }

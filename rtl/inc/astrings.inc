@@ -642,7 +642,10 @@ end;
 
 {
   $Log$
-  Revision 1.39  2000-01-07 16:41:33  daniel
+  Revision 1.40  2000-02-09 16:59:29  peter
+    * truncated log
+
+  Revision 1.39  2000/01/07 16:41:33  daniel
     * copyright 2000
 
   Revision 1.38  2000/01/07 16:32:24  daniel
@@ -669,56 +672,5 @@ end;
 
   Revision 1.31  1999/10/04 20:48:18  peter
     * pos function speed up by a factor 40 :)
-
-  Revision 1.30  1999/07/05 20:04:21  peter
-    * removed temp defines
-
-  Revision 1.29  1999/06/14 00:47:33  peter
-    * merged
-
-  Revision 1.28.2.1  1999/06/14 00:39:07  peter
-    * setlength finally fixed when l < length(s)
-
-  Revision 1.28  1999/06/09 23:00:16  peter
-    * small ansistring fixes
-    * val_ansistr_sint destsize changed to longint
-    * don't write low/hi ascii with -al
-
-  Revision 1.27  1999/06/05 20:48:56  michael
-  Copy checks index now for negative values.
-
-  Revision 1.26  1999/05/31 20:37:39  peter
-    * fixed decr_ansistr which didn't set s to nil
-
-  Revision 1.25  1999/05/17 22:41:24  florian
-    * small fixes for the new ansistring temp. management
-
-  Revision 1.24  1999/05/17 21:52:35  florian
-    * most of the Object Pascal stuff moved to the system unit
-
-  Revision 1.23  1999/05/06 09:05:11  peter
-    * generic write_float str_float
-
-  Revision 1.22  1999/04/22 10:51:17  peter
-    * fixed pchar 2 ansi
-
-  Revision 1.21  1999/04/13 09:02:06  michael
-  + 1 byte too much allocated in new_ansiStringastrings.inc
-
-  Revision 1.20  1999/04/09 07:33:15  michael
-  * More fixes and optimizing for ansistr_concat
-
-  Revision 1.19  1999/04/08 15:57:53  peter
-    + subrange checking for readln()
-
-  Revision 1.18  1999/04/08 10:19:55  peter
-    * fixed concat when s1 or s2 was nil
-
-  Revision 1.17  1999/04/06 11:23:58  peter
-    * fixed insert on last char
-    * saver chararray 2 ansi
-
-  Revision 1.16  1999/04/06 10:06:51  michael
-  * Fixed chararray to ansistring conversion
 
 }

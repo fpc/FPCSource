@@ -510,32 +510,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2000-01-07 16:41:34  daniel
+  Revision 1.8  2000-02-09 16:59:29  peter
+    * truncated log
+
+  Revision 1.7  2000/01/07 16:41:34  daniel
     * copyright 2000
 
   Revision 1.6  2000/01/07 16:32:24  daniel
     * copyright 2000 added
-
-  Revision 1.5  1998/10/30 09:18:22  michael
-  Long options NEED -- as starting char
-
-  Revision 1.4  1998/10/29 23:06:55  peter
-    + OptSpecifier
-
-  Revision 1.3  1998/06/18 10:49:04  peter
-    * some fixes with indexes
-    * bp7 compatible
-
-  Revision 1.2  1998/05/21 19:30:57  peter
-    * objects compiles for linux
-    + assign(pchar), assign(char), rename(pchar), rename(char)
-    * fixed read_text_as_array
-    + read_text_as_pchar which was not yet in the rtl
-
-  Revision 1.1  1998/05/12 10:42:45  peter
-    * moved getopts to inc/, all supported OS's need argc,argv exported
-    + strpas, strlen are now exported in the systemunit
-    * removed logs
-    * removed $ifdef ver_above
 
 }

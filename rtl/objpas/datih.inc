@@ -106,20 +106,7 @@ Function FileDateToDateTime (Filedate : Longint) : TDateTime;
 {
 
   $Log$
-  Revision 1.5  1999-02-28 13:17:34  michael
-  + Added internationalization support and more format functions
-
-  Revision 1.4  1998/10/11 13:40:53  michael
-  + Added Conversion TDateTime <-> file date and time
-
-  Revision 1.3  1998/10/08 14:07:45  florian
-    * date and day names fixed
-
-  Revision 1.2  1998/09/16 08:28:37  michael
-  Update from gertjan Schouten, plus small fix for linux
-
-  Revision 1.1  1998/04/10 15:17:46  michael
-  + Initial implementation; Donated by Gertjan Schouten
-    His file was split into several files, to keep it a little bit structured.
+  Revision 1.6  2000-02-09 16:59:32  peter
+    * truncated log
 
 }

@@ -612,7 +612,10 @@ end;
 
 {
   $Log$
-  Revision 1.82  2000-02-09 12:17:51  peter
+  Revision 1.83  2000-02-09 16:59:31  peter
+    * truncated log
+
+  Revision 1.82  2000/02/09 12:17:51  peter
     * moved halt to system.inc
     * syslinux doesn't use direct asm anymore
 
@@ -670,57 +673,5 @@ end;
 
   Revision 1.65  1999/07/28 12:58:22  peter
     * fixed assert() to push/pop registers
-
-  Revision 1.64  1999/07/05 20:04:27  peter
-    * removed temp defines
-
-  Revision 1.63  1999/07/03 01:24:19  peter
-    * $ifdef int64
-
-  Revision 1.62  1999/07/02 18:06:42  florian
-    + qword/int64: lo/hi/swap
-
-  Revision 1.61  1999/07/01 15:39:51  florian
-    + qword/int64 type released
-
-  Revision 1.60  1999/06/11 11:47:00  peter
-    * random doesn't rte 200 with random(0)
-
-  Revision 1.59  1999/06/05 20:45:12  michael
-  + AbstractErro should call HandleError, not runerror.
-
-  Revision 1.58  1999/05/17 21:52:39  florian
-    * most of the Object Pascal stuff moved to the system unit
-
-  Revision 1.57  1999/04/17 13:10:25  peter
-    * addr() internal
-
-  Revision 1.56  1999/04/15 12:20:01  peter
-    + finalization support
-
-  Revision 1.55  1999/03/01 15:41:03  peter
-    * use external names
-    * removed all direct assembler modes
-
-  Revision 1.54  1999/02/01 00:05:14  florian
-    + functions lo/hi for DWord type implemented
-
-  Revision 1.53  1999/01/29 09:23:09  pierre
-   * Fillchar(..,..,boolean) added
-
-  Revision 1.52  1999/01/22 12:39:23  pierre
-   + added text arg for dump_stack
-
-  Revision 1.51  1999/01/18 10:05:52  pierre
-   + system_exit procedure added
-
-  Revision 1.50  1998/12/28 15:50:46  peter
-    + stdout, which is needed when you write something in the system unit
-      to the screen. Like the runtime error
-
-  Revision 1.49  1998/12/21 14:28:21  pierre
-    * HandleError -> HandleErrorFrame to avoid problem in
-      assembler code in i386.inc
-      (call to overloaded function in assembler block !)
 
 }

@@ -337,19 +337,13 @@ end;
 
 {
   $Log$
-  Revision 1.6  2000-01-07 16:41:33  daniel
+  Revision 1.7  2000-02-09 16:59:29  peter
+    * truncated log
+
+  Revision 1.6  2000/01/07 16:41:33  daniel
     * copyright 2000
 
   Revision 1.5  1999/12/18 23:08:33  florian
     * bug 766 fixed
-
-  Revision 1.4  1999/04/09 07:58:41  michael
-  +Added checking for nil on most functions.
-
-  Revision 1.3  1999/03/30 16:58:49  peter
-    * use assembler and remove all rets
-
-  Revision 1.2  1999/02/25 10:07:01  michael
-  + Added header and log
 
 }

@@ -93,30 +93,8 @@ function BCDToInt(Value: integer): integer;
 
 {
   $Log$
-  Revision 1.8  1999-06-19 07:39:43  michael
-  Implemented strtofloat
-
-  Revision 1.7  1999/05/28 20:08:21  michael
-  * too may fixes to list
-
-  Revision 1.6  1999/02/28 13:17:36  michael
-  + Added internationalization support and more format functions
-
-  Revision 1.5  1998/12/15 22:43:11  peter
-    * removed temp symbols
-
-  Revision 1.4  1998/11/04 10:20:53  peter
-    * ansistring fixes
-
-  Revision 1.3  1998/11/02 12:53:53  michael
-  + Added format function
-
-  Revision 1.2  1998/09/16 08:28:43  michael
-  Update from gertjan Schouten, plus small fix for linux
-
-  Revision 1.1  1998/04/10 15:17:46  michael
-  + Initial implementation; Donated by Gertjan Schouten
-    His file was split into several files, to keep it a little bit structured.
+  Revision 1.9  2000-02-09 16:59:33  peter
+    * truncated log
 
 }
 

@@ -722,7 +722,10 @@ End.
 
 {
   $Log$
-  Revision 1.36  2000-02-09 12:17:51  peter
+  Revision 1.37  2000-02-09 16:59:32  peter
+    * truncated log
+
+  Revision 1.36  2000/02/09 12:17:51  peter
     * moved halt to system.inc
     * syslinux doesn't use direct asm anymore
 
@@ -759,57 +762,5 @@ End.
 
   Revision 1.25  1999/07/28 23:18:36  peter
     * closedir fixes, which now disposes the pdir itself
-
-  Revision 1.24  1999/05/17 21:52:42  florian
-    * most of the Object Pascal stuff moved to the system unit
-
-  Revision 1.23  1999/04/08 12:23:04  peter
-    * removed os.inc
-
-  Revision 1.22  1999/01/18 10:05:53  pierre
-   + system_exit procedure added
-
-  Revision 1.21  1998/12/28 15:50:49  peter
-    + stdout, which is needed when you write something in the system unit
-      to the screen. Like the runtime error
-
-  Revision 1.20  1998/12/18 17:21:34  peter
-    * fixed io-error handling
-
-  Revision 1.19  1998/12/15 22:43:08  peter
-    * removed temp symbols
-
-  Revision 1.18  1998/11/16 10:21:32  peter
-    * fixes for H+
-
-  Revision 1.17  1998/10/15 08:30:00  peter
-    + sigfpe -> runerror 200
-
-  Revision 1.16  1998/09/14 10:48:27  peter
-    * FPC_ names
-    * Heap manager is now system independent
-
-  Revision 1.15  1998/09/06 19:41:40  peter
-    * fixed unusedhandle for 0.99.5
-
-  Revision 1.14  1998/09/04 18:16:16  peter
-    * uniform filerec/textrec (with recsize:longint and name:0..255)
-
-  Revision 1.13  1998/08/14 11:59:41  carl
-    + m68k fixes
-
-  Revision 1.12  1998/08/12 14:01:37  michael
-  + Small m68k fixes
-
-  Revision 1.11  1998/08/11 08:30:37  michael
-  + Fixed paramstr() - sometimes there are no 255 characters available.
-
-  Revision 1.10  1998/07/30 13:26:15  michael
-  + Added support for ErrorProc variable. All internal functions are required
-    to call HandleError instead of runerror from now on.
-    This is necessary for exception support.
-
-  Revision 1.9  1998/07/20 23:40:20  michael
-  changed sbrk to fc_sbrk, to avoid conflicts with C library.
 
 }

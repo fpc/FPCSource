@@ -906,7 +906,10 @@ End.
 
 {
   $Log$
-  Revision 1.16  2000-02-02 15:07:05  peter
+  Revision 1.17  2000-02-09 16:59:31  peter
+    * truncated log
+
+  Revision 1.16  2000/02/02 15:07:05  peter
     * gettime supports now also sec100
     * removed crtlib code as it was broken (still available in old releases)
     * int64 disksize/diskfree
@@ -926,33 +929,4 @@ End.
   Revision 1.11  1999/07/24 11:18:11  peter
     * fixed getfattr which didn't reset doserror
 
-  Revision 1.10  1999/03/05 13:09:57  peter
-    * fix for findfirst from the mailinglist
-
-  Revision 1.9  1999/02/22 11:45:19  peter
-    * fixed findlastused (from mailinglist)
-
-  Revision 1.8  1999/01/28 12:54:13  michael
-  + Fixed memory leak in findfirst/findnext
-
-  Revision 1.7  1999/01/28 12:10:42  michael
-  + Fixed findclose bug
-
-  Revision 1.6  1998/11/23 12:32:31  peter
-    * fix for findclose from the mailinglist
-
-  Revision 1.5  1998/11/05 14:24:08  peter
-    * findfirst fix from the mailinglist
-
-  Revision 1.4  1998/11/04 10:15:54  peter
-    * don't use getmem in startup (necessary for heaptrc)
-
-  Revision 1.3  1998/05/06 12:35:26  michael
-  + Removed log from before restored version.
-
-  Revision 1.2  1998/05/04 17:40:43  peter
-    * findfirst did some strange init with searchpos
-
-  Revision 1.1.1.1  1998/03/25 11:18:43  root
-  * Restored version
 }

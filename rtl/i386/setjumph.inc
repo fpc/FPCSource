@@ -26,7 +26,7 @@ Procedure longjmp (Var S : Jmp_buf; value : longint);
 
 {
   $Log$
-  Revision 1.2  1998-08-11 00:04:53  peter
-    * $ifdef ver0_99_5 updates
+  Revision 1.3  2000-02-09 16:59:29  peter
+    * truncated log
 
 }  

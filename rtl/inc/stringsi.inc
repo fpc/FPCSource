@@ -68,7 +68,10 @@
 
 {
   $Log$
-  Revision 1.6  2000-01-07 16:41:36  daniel
+  Revision 1.7  2000-02-09 16:59:31  peter
+    * truncated log
+
+  Revision 1.6  2000/01/07 16:41:36  daniel
     * copyright 2000
 
   Revision 1.5  1999/12/10 15:02:12  peter
@@ -80,8 +83,5 @@
 
   Revision 1.3  1999/09/01 09:25:10  peter
     * fixed return of strcat,strlcat
-
-  Revision 1.2  1999/02/25 10:05:07  michael
-  + Added header and log
 
 }

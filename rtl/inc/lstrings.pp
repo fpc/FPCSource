@@ -535,13 +535,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2000-01-07 16:41:34  daniel
-    * copyright 2000
+  Revision 1.4  2000-02-09 16:59:30  peter
+    * truncated log
 
-  Revision 1.2  1998/05/12 10:42:45  peter
-    * moved getopts to inc/, all supported OS's need argc,argv exported
-    + strpas, strlen are now exported in the systemunit
-    * removed logs
-    * removed $ifdef ver_above
+  Revision 1.3  2000/01/07 16:41:34  daniel
+    * copyright 2000
 
 }

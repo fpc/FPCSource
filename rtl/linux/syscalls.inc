@@ -389,7 +389,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2000-02-08 11:47:09  peter
+  Revision 1.10  2000-02-09 16:59:32  peter
+    * truncated log
+
+  Revision 1.9  2000/02/08 11:47:09  peter
     * paramstr(0) support
 
   Revision 1.8  2000/01/07 16:41:41  daniel
@@ -407,12 +410,4 @@ end;
   Revision 1.4  1999/07/28 12:14:37  michael
   * Memory leak fixed in CloseDir, by Sebastian Guenther
 
-  Revision 1.3  1998/05/30 14:18:42  peter
-    * fixed to remake with -Rintel in the ppc386.cfg
-
-  Revision 1.2  1998/05/06 12:38:22  michael
-  + Removed log from before restored version.
-
-  Revision 1.1.1.1  1998/03/25 11:18:43  root
-  * Restored version
 }

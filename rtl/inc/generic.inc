@@ -748,7 +748,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  2000-01-10 09:54:30  peter
+  Revision 1.7  2000-02-09 16:59:29  peter
+    * truncated log
+
+  Revision 1.6  2000/01/10 09:54:30  peter
     * primitives added
 
   Revision 1.5  2000/01/07 16:41:34  daniel
@@ -761,11 +764,5 @@ end;
      * some assembler functions translated to pascal
        WARNING these are not yet TESTED !!!
      + FPC_CHARARRAY_TO_SHORTSTRING added
-
-  Revision 1.2  1999/07/05 20:04:22  peter
-    * removed temp defines
-
-  Revision 1.1  1999/05/31 21:59:58  pierre
-   + generic.inc added
 
 }

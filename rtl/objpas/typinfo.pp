@@ -816,7 +816,10 @@ end.
 
 {
   $Log$
-  Revision 1.36  2000-01-07 16:41:44  daniel
+  Revision 1.37  2000-02-09 16:59:33  peter
+    * truncated log
+
+  Revision 1.36  2000/01/07 16:41:44  daniel
     * copyright 2000
 
   Revision 1.35  2000/01/07 16:32:29  daniel
@@ -857,48 +860,5 @@ end.
 
   Revision 1.24  1999/08/06 13:21:40  michael
   * Patch from Sebastian Guenther
-
-  Revision 1.23  1999/06/04 12:48:37  michael
-  * Fix by Sebastian Guenther.
-
-  Revision 1.22  1999/05/19 12:03:23  florian
-    * the set/get procedures must be called with call %edi instead call (%edi)
-    * handling of extended and string properties fixed
-
-  Revision 1.21  1999/05/07 11:02:14  florian
-    * two typos fixed
-
-  Revision 1.20  1999/05/03 07:30:07  michael
-  * Fixes in getenum*
-
-  Revision 1.19  1999/04/08 11:31:04  peter
-    * removed warnings
-
-  Revision 1.18  1999/01/19 16:08:12  pierre
-   ?? is callSStringProc a function ??
-
-  Revision 1.17  1998/12/15 22:43:13  peter
-    * removed temp symbols
-
-  Revision 1.16  1998/12/02 12:35:07  michael
-  More changes for type-information
-
-  Revision 1.15  1998/11/26 14:57:47  michael
-  + Added packrecords 1
-
-  Revision 1.11  1998/09/24 23:45:28  peter
-    * updated for auto objpas loading
-
-  Revision 1.10  1998/09/20 08:25:34  florian
-    + description of tpropinfo.propprocs bit 6 added
-
-  Revision 1.9  1998/09/19 15:25:45  florian
-    * procedure GetOrdProp added
-
-  Revision 1.8  1998/09/19 08:33:53  florian
-    + some procedures added
-
-  Revision 1.7  1998/09/08 09:52:31  florian
-    * small problems fixed
 
 }

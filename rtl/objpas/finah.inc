@@ -44,15 +44,8 @@ Function GetDirs (Var DirName : String; Var Dirs : Array of pchar) : Longint;
 
 {
   $Log$
-  Revision 1.3  1998-10-04 20:19:55  michael
-  + Added missing functions and some extra
-
-  Revision 1.2  1998/09/16 08:28:39  michael
-  Update from gertjan Schouten, plus small fix for linux
-
-  Revision 1.1  1998/04/10 15:17:46  michael
-  + Initial implementation; Donated by Gertjan Schouten
-    His file was split into several files, to keep it a little bit structured.
+  Revision 1.4  2000-02-09 16:59:32  peter
+    * truncated log
 
 }
 

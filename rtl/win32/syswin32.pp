@@ -1161,7 +1161,10 @@ end.
 
 {
   $Log$
-  Revision 1.59  2000-02-09 12:24:39  peter
+  Revision 1.60  2000-02-09 16:59:34  peter
+    * truncated log
+
+  Revision 1.59  2000/02/09 12:24:39  peter
     * halt moved to system.inc
 
   Revision 1.58  2000/01/20 23:38:02  peter
@@ -1215,135 +1218,4 @@ end.
   Revision 1.44  1999/09/10 15:40:35  peter
     * fixed do_open flags to be > $100, becuase filemode can be upto 255
 
-  Revision 1.43  1999/07/07 10:04:43  michael
-  + Small edit in paramstr
-
-  Revision 1.42  1999/07/07 09:43:16  michael
-  Better construction of commandline argv
-
-  Revision 1.41  1999/07/05 20:04:30  peter
-    * removed temp defines
-
-  Revision 1.40  1999/06/11 16:26:40  michael
-  + Fixed paramstr(0)
-
-  Revision 1.39  1999/05/17 21:52:47  florian
-    * most of the Object Pascal stuff moved to the system unit
-
-  Revision 1.38  1999/04/28 11:42:53  peter
-    + FileNameCaseSensetive boolean
-
-  Revision 1.37  1999/04/08 12:23:11  peter
-    * removed os.inc
-
-  Revision 1.36  1999/03/24 23:25:59  peter
-    * fixed file sharing
-
-  Revision 1.35  1999/03/12 00:07:48  pierre
-   + code for coff writer
-
-  Revision 1.34  1999/03/10 22:15:31  florian
-    + system.cmdline variable for go32v2 and win32 added
-
-  Revision 1.33  1999/01/18 10:05:57  pierre
-   + system_exit procedure added
-
-  Revision 1.32  1998/12/28 23:30:11  peter
-    * fixes for smartlinking
-
-  Revision 1.31  1998/12/28 15:50:51  peter
-    + stdout, which is needed when you write something in the system unit
-      to the screen. Like the runtime error
-
-  Revision 1.30  1998/12/21 14:28:23  pierre
-    * HandleError -> HandleErrorFrame to avoid problem in
-      assembler code in i386.inc
-      (call to overloaded function in assembler block !)
-
-  Revision 1.29  1998/12/15 22:43:14  peter
-    * removed temp symbols
-
-  Revision 1.28  1998/12/09 17:57:33  pierre
-   + exception handling by default
-
-  Revision 1.27  1998/12/01 14:00:08  pierre
-    + added conversion from exceptions into run time error
-      (only if syswin32 compiled with -ddebug for now !)
-    * added HandleErrorFrame(errno,frame)
-      where you specify the frame
-      needed for win32 exception handling
-
-  Revision 1.26  1998/11/30 13:13:41  pierre
-   * needs asw to link correctly wprt0 or wdllprt0 file
-
-  Revision 1.25  1998/11/30 09:16:58  pierre
-    + added the changes from Pavel Ozerski after several modifications
-      to be able to create DLLs
-
-  Revision 1.24  1998/11/16 15:48:54  peter
-    * fixed longbool returns for api calls
-
-  Revision 1.23  1998/11/16 14:14:58  pierre
-    * changed getdir(byte,string) to getdir(byte,shortstring)
-
-  Revision 1.22  1998/10/27 15:07:16  florian
-    + Is* flags added
-    + IsLibrary works also
-
-  Revision 1.21  1998/10/15 16:26:19  peter
-    + fpuinit
-    + end of backtrace indicator
-
-  Revision 1.20  1998/09/14 10:48:33  peter
-    * FPC_ names
-    * Heap manager is now system independent
-
-  Revision 1.19  1998/09/02 09:03:46  pierre
-    * do_open sometimes returns -1 as handle on fail
-      was not checked correctly
-
-  Revision 1.16  1998/08/24 14:45:22  pierre
-    * sbrk was wrong
-      heap growing now works for win32
-
-  Revision 1.15  1998/08/21 10:10:16  peter
-    * winheap turned off by default
-
-  Revision 1.14  1998/07/30 13:27:19  michael
-  + Added support for errorproc. Changed runerror to HandleError
-
-  Revision 1.13  1998/07/13 21:19:15  florian
-    * some problems with ansi string support fixed
-
-  Revision 1.12  1998/07/07 12:37:28  carl
-    * correct mapping of error codes for TP compatibility
-    + implemented stack checking in ifdef dummy
-
-  Revision 1.11  1998/07/02 12:33:18  carl
-    * IOCheck/InOutRes check for mkdir,rmdir and chdir like in TP
-
-  Revision 1.10  1998/07/01 15:30:02  peter
-    * better readln/writeln
-
-  Revision 1.9  1998/06/10 10:39:17  peter
-    * working w32 rtl
-
-  Revision 1.8  1998/06/08 23:07:47  peter
-    * dos interface is now 100% compatible
-    * fixed call PASCALMAIN which must be direct asm
-
-  Revision 1.7  1998/05/06 12:36:51  michael
-  + Removed log from before restored version.
-
-  Revision 1.6  1998/04/27 18:29:09  florian
-    + do_open implemented, the file-I/O should be now complete
-
-  Revision 1.5  1998/04/27 13:58:21  florian
-    + paramstr/paramcount implemented
-
-  Revision 1.4  1998/04/26 22:37:22  florian
-    * some small extensions
-
-  Revision 1.3  1998/04/26 21:49:57  florian
-    + more stuff added (??dir procedures etc.)
 }

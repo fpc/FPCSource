@@ -1837,7 +1837,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.3  2000-01-07 16:41:57  daniel
+  Revision 1.4  2000-02-09 16:59:37  peter
+    * truncated log
+
+  Revision 1.3  2000/01/07 16:41:57  daniel
     * copyright 2000
 
   Revision 1.2  1999/09/28 22:30:00  peter
@@ -1845,44 +1848,5 @@ end.
 
   Revision 1.1  1999/09/16 13:38:24  peter
     * windows unit include moved to wininc/
-
-  Revision 1.10  1999/07/06 22:44:17  florian
-    * some fixes to compile ddraw units from the jedi project
-
-  Revision 1.9  1999/05/10 19:34:14  florian
-    * moved all opengl32.dll stuff to a newly created opengl32 unit, so
-      win32 programs should also run on Windows without opengl32.dll
-
-  Revision 1.8  1999/05/01 12:27:54  peter
-    * fixed conflicting declarations
-
-  Revision 1.7  1999/04/20 11:36:21  peter
-    * compatibility fixes
-
-  Revision 1.6  1999/01/07 15:52:27  peter
-    * removed winspool requirement
-
-  Revision 1.5  1998/10/27 11:17:20  peter
-    * type HINSTANCE -> HINST
-
-  Revision 1.4  1998/09/04 17:17:40  pierre
-    + all unknown function ifdef with
-      conditionnal unknown_functions
-      testwin works now, but windowcreate still fails !!
-
-  Revision 1.3  1998/09/03 18:17:38  pierre
-    * small improvements in number of found functions
-      all remaining are in func.pp
-
-  Revision 1.2  1998/09/03 17:14:57  pierre
-    * most functions found in main DLL's
-      still some missing
-      use 'make dllnames' to get missing names
-
-  Revision 1.1  1998/08/31 11:54:02  pierre
-    * compilable windows.pp file
-      still to do :
-       - findout problems
-       - findout the correct DLL for each call !!
 
 }

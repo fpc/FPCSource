@@ -136,7 +136,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2000-01-07 16:41:36  daniel
+  Revision 1.5  2000-02-09 16:59:31  peter
+    * truncated log
+
+  Revision 1.4  2000/01/07 16:41:36  daniel
     * copyright 2000
 
   Revision 1.3  2000/01/07 16:32:25  daniel
@@ -145,21 +148,6 @@ end.
   Revision 1.2  1999/12/10 15:02:12  peter
     * strnew is ofcourse also different between sysutils and strings, just
       like stralloc/strdispose.
-
-  Revision 1.1  1999/02/25 07:42:03  michael
-  * Joined strings and sysutils
-
-  Revision 1.7  1998/08/05 08:59:53  michael
-  reverted to non-assmebler version, florians fix is applied.
-
-  Revision 1.4  1998/05/31 14:15:52  peter
-    * force to use ATT or direct parsing
-
-  Revision 1.3  1998/05/30 14:30:22  peter
-    * force att reading
-
-  Revision 1.2  1998/05/23 01:14:06  peter
-    + I386_ATT switch
 
 }
 

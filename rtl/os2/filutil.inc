@@ -167,16 +167,13 @@ end;
 
 {
   $Log$
-  Revision 1.4  2000-01-07 16:41:47  daniel
+  Revision 1.5  2000-02-09 16:59:33  peter
+    * truncated log
+
+  Revision 1.4  2000/01/07 16:41:47  daniel
     * copyright 2000
 
   Revision 1.3  1999/11/08 22:45:55  peter
     * updated
-
-  Revision 1.2  1998/10/12 08:35:22  pierre
-   * wrong file commited by Michael corrected
-
-  Revision 1.1  1998/10/11 12:21:01  michael
-  Added file calls. Implemented for linux only
 
 }

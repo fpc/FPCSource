@@ -433,7 +433,10 @@
 
 {
   $Log$
-  Revision 1.17  2000-01-27 15:43:02  florian
+  Revision 1.18  2000-02-09 16:59:30  peter
+    * truncated log
+
+  Revision 1.17  2000/01/27 15:43:02  florian
     * improved qword*qword code, if no overflow checking is done
 
   Revision 1.16  2000/01/23 12:27:39  florian
@@ -445,46 +448,4 @@
   Revision 1.14  2000/01/07 16:41:34  daniel
     * copyright 2000
 
-  Revision 1.13  1999/07/05 20:04:23  peter
-    * removed temp defines
-
-  Revision 1.12  1999/07/04 16:34:45  florian
-    + str routines added
-
-  Revision 1.11  1999/07/02 17:01:29  florian
-    * multiplication overflow checking fixed
-
-  Revision 1.10  1999/07/01 15:39:50  florian
-    + qword/int64 type released
-
-  Revision 1.9  1999/06/30 22:12:40  florian
-    * qword div/mod fixed
-    + int64 mod/div/* fully implemented
-    * int_str(qword) fixed
-    + dummies for read/write(qword)
-
-  Revision 1.8  1999/06/28 22:25:25  florian
-    * fixed qword division
-
-  Revision 1.7  1999/06/25 12:24:44  pierre
-   * qword one was wrong !
-
-  Revision 1.6  1999/06/02 10:13:16  florian
-    * multiplication fixed
-
-  Revision 1.5  1999/05/25 20:36:41  florian
-    * some bugs removed
-
-  Revision 1.4  1999/05/24 08:43:46  florian
-    * fixed a couple of syntax errors
-
-  Revision 1.3  1999/05/23 20:27:27  florian
-    + routines for qword div and mod
-
-  Revision 1.2  1999/01/06 12:25:03  florian
-    * naming for str(...) routines inserted
-    * don't know what in int64 changed
-
-  Revision 1.1  1998/12/12 12:15:41  florian
-    + first implementation
 }

@@ -615,7 +615,10 @@ Unit UComplex;
 end.
 {
   $Log$
-  Revision 1.4  2000-01-07 16:41:37  daniel
+  Revision 1.5  2000-02-09 16:59:31  peter
+    * truncated log
+
+  Revision 1.4  2000/01/07 16:41:37  daniel
     * copyright 2000
 
   Revision 1.3  2000/01/07 16:32:25  daniel
@@ -624,31 +627,4 @@ end.
   Revision 1.2  1999/12/20 22:24:48  pierre
     + cinv in interface
 
-  Revision 1.1  1998/06/15 15:45:42  pierre
-    + complex.pp replaced by ucomplex.pp
-      complex operations working
-
-  Revision 1.1.1.1  1998/03/25 11:18:43  root
-  * Restored version
-
-  Revision 1.3  1998/01/26 11:59:25  michael
-  + Added log at the end
-
-
-
-  Working file: rtl/inc/complex.pp
-  description:
-  ----------------------------
-  revision 1.2
-  date: 1997/12/01 15:33:30;  author: michael;  state: Exp;  lines: +14 -0
-  + added copyright reference in header.
-  ----------------------------
-  revision 1.1
-  date: 1997/11/27 08:33:46;  author: michael;  state: Exp;
-  Initial revision
-  ----------------------------
-  revision 1.1.1.1
-  date: 1997/11/27 08:33:46;  author: michael;  state: Exp;  lines: +0 -0
-  FPC RTL CVS start
-  =============================================================================
 }

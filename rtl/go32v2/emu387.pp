@@ -217,7 +217,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2000-01-07 16:41:31  daniel
+  Revision 1.8  2000-02-09 16:59:28  peter
+    * truncated log
+
+  Revision 1.7  2000/01/07 16:41:31  daniel
     * copyright 2000
 
   Revision 1.6  2000/01/07 16:32:23  daniel
@@ -226,30 +229,4 @@ end.
   Revision 1.5  1999/09/08 18:55:50  peter
     * pointer fixes
 
-  Revision 1.4  1999/04/28 00:27:43  pierre
-   * bug0230 fixed OVERFLOW and DIVZ cause FPU exception
-
-  Revision 1.3  1999/04/08 12:22:59  peter
-    * removed os.inc
-
-  Revision 1.2  1999/03/01 15:40:50  peter
-    * use external names
-    * removed all direct assembler modes
-
-  Revision 1.1  1998/12/21 13:07:02  peter
-    * use -FE
-
-  Revision 1.9  1998/10/26 14:49:45  pierre
-   * system debug info output to stderr
-
-  Revision 1.8  1998/08/15 17:01:14  peter
-    * smartlinking the units works now
-    * setjmp/longjmp -> dmpi_setjmp/dpmi_longjmp to solve systemunit
-      conflict
-
-  Revision 1.7  1998/07/22 21:37:51  michael
-  + ENViron unknow, replaced by envp
-
-  Revision 1.6  1998/07/21 12:06:56  carl
-    * restored working version
 }

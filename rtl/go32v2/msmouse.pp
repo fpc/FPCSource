@@ -391,13 +391,13 @@ Begin
 End.
 {
   $Log$
-  Revision 1.3  2000-01-07 16:41:32  daniel
+  Revision 1.4  2000-02-09 16:59:29  peter
+    * truncated log
+
+  Revision 1.3  2000/01/07 16:41:32  daniel
     * copyright 2000
 
   Revision 1.2  2000/01/07 16:32:23  daniel
     * copyright 2000 added
-
-  Revision 1.1  1999/01/21 11:54:37  peter
-    * renamed mouse->msmouse to resolve conflict with the api mouse unit
 
 }

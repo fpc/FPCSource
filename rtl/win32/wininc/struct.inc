@@ -6927,7 +6927,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.3  2000-01-07 16:41:56  daniel
+  Revision 1.4  2000-02-09 16:59:36  peter
+    * truncated log
+
+  Revision 1.3  2000/01/07 16:41:56  daniel
     * copyright 2000
 
   Revision 1.2  2000/01/07 16:32:36  daniel
@@ -6936,37 +6939,4 @@ end.
   Revision 1.1  1999/09/16 13:38:24  peter
     * windows unit include moved to wininc/
 
-  Revision 1.10  1999/07/14 08:46:27  florian
-    * some fixes (KEY_EVENT_STRUCT was wrong)
-
-  Revision 1.9  1999/05/19 16:22:03  peter
-    * fixed left crt bugs
-
-  Revision 1.8  1999/04/20 11:36:17  peter
-    * compatibility fixes
-
-  Revision 1.7  1999/03/22 22:12:52  florian
-    + addition and changes to compile the direct draw unit
-      of Erik Ungerer (with -dv2com and indirect disabled)
-
-  Revision 1.6  1998/11/12 11:41:06  peter
-    + pascal type aliases
-
-  Revision 1.5  1998/10/27 11:17:17  peter
-    * type HINSTANCE -> HINST
-
-  Revision 1.4  1998/08/31 11:53:59  pierre
-    * compilable windows.pp file
-      still to do :
-       - findout problems
-       - findout the correct DLL for each call !!
-
-  Revision 1.3  1998/06/25 08:41:48  florian
-    * better rtti
-
-  Revision 1.2  1998/05/06 12:36:50  michael
-  + Removed log from before restored version.
-
-  Revision 1.1.1.1  1998/03/25 11:18:47  root
-  * Restored version
 }

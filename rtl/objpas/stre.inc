@@ -57,32 +57,14 @@ Const
    SInvalidOp = 'Invalid floating point operation';
 {
   $Log$
-  Revision 1.9  2000-01-07 16:41:44  daniel
+  Revision 1.10  2000-02-09 16:59:32  peter
+    * truncated log
+
+  Revision 1.9  2000/01/07 16:41:44  daniel
     * copyright 2000
 
   Revision 1.8  1999/08/28 14:53:27  florian
     * bug 471 fixed: run time error 2 is now converted into a file not
       found exception
-
-  Revision 1.7  1999/07/02 17:03:22  florian
-    + added some runtime->excpetin wrappers: eintoverflow, eoverflow, eunderflow, einvalidop
-
-  Revision 1.6  1999/06/19 07:39:46  michael
-  Implemented strtofloat
-
-  Revision 1.5  1998/10/10 09:53:09  michael
-  Added assertion handling
-
-  Revision 1.4  1998/10/03 15:08:04  florian
-    * EInvalidCast added (from runerror 219)
-
-  Revision 1.3  1998/10/02 13:57:37  michael
-  Format error now causes exception
-
-  Revision 1.2  1998/10/02 13:00:09  michael
-  + More RTL error handling
-
-  Revision 1.1  1998/10/01 16:04:59  michael
-  + Initial implementation
 
 }   

@@ -328,7 +328,10 @@ End.
 
 {
   $Log$
-  Revision 1.3  2000-01-09 20:51:03  hajny
+  Revision 1.4  2000-02-09 16:59:33  peter
+    * truncated log
+
+  Revision 1.3  2000/01/09 20:51:03  hajny
     * FPK changed to FPC
 
   Revision 1.2  2000/01/07 16:41:45  daniel

@@ -123,17 +123,11 @@ begin
 end.
 {
     $Log$
-    Revision 1.5  2000-01-07 16:41:33  daniel
+    Revision 1.6  2000-02-09 16:59:29  peter
+      * truncated log
+
+    Revision 1.5  2000/01/07 16:41:33  daniel
       * copyright 2000
-
-    Revision 1.4  1998/12/15 22:42:58  peter
-      * removed temp symbols
-
-    Revision 1.3  1998/11/13 10:10:54  peter
-      * ATT reader
-
-    Revision 1.2  1998/05/31 14:15:50  peter
-      * force to use ATT or direct parsing
 
 }
 

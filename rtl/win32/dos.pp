@@ -932,7 +932,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2000-02-02 17:32:59  pierre
+  Revision 1.33  2000-02-09 16:59:34  peter
+    * truncated log
+
+  Revision 1.32  2000/02/02 17:32:59  pierre
    * use int64 typecast in diskfree and disksize
 
   Revision 1.31  2000/01/24 21:57:56  florian
@@ -977,52 +980,4 @@ end.
   Revision 1.18  1999/08/12 09:24:14  michael
   Fixed win32finddata size; searchrec.excludeattr was overwritten.
 
-  Revision 1.17  1999/05/16 17:08:59  peter
-    * fixed driveletter checking
-
-  Revision 1.16  1999/05/08 19:47:27  peter
-    * check ioresult after getdir calls
-
-  Revision 1.15  1999/04/28 11:42:52  peter
-    + FileNameCaseSensetive boolean
-
-  Revision 1.14  1999/04/08 12:23:07  peter
-    * removed os.inc
-
-  Revision 1.13  1998/11/16 15:48:53  peter
-    * fixed longbool returns for api calls
-
-  Revision 1.12  1998/10/27 10:55:55  michael
-  * environment vars are case insensitive under WinNT/DOS
-
-  Revision 1.11  1998/10/22 15:32:38  pierre
-   * fsplit adapted to long filenames
-
-  Revision 1.10  1998/10/16 14:20:06  peter
-    * removed writelns
-
-  Revision 1.9  1998/10/16 08:55:26  peter
-    * findfirst is now more delphi alike
-
-  Revision 1.8  1998/08/16 09:12:11  michael
-  Corrected fexpand behaviour.
-
-  Revision 1.7  1998/06/10 10:39:13  peter
-    * working w32 rtl
-
-  Revision 1.6  1998/06/08 23:07:45  peter
-    * dos interface is now 100% compatible
-    * fixed call PASCALMAIN which must be direct asm
-
-  Revision 1.5  1998/05/06 12:36:50  michael
-  + Removed log from before restored version.
-
-  Revision 1.4  1998/04/27 14:01:38  florian
-    * was uncompilable
-
-  Revision 1.3  1998/04/26 22:37:02  florian
-    + getftime, unpacktime, packtime
-
-  Revision 1.2  1998/04/26 21:49:09  florian
-    + first compiling and working version
 }

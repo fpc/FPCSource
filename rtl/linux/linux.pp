@@ -3848,7 +3848,10 @@ End.
 
 {
   $Log$
-  Revision 1.60  2000-02-08 12:05:58  peter
+  Revision 1.61  2000-02-09 16:59:31  peter
+    * truncated log
+
+  Revision 1.60  2000/02/08 12:05:58  peter
     + readlink
 
   Revision 1.59  2000/01/07 16:41:40  daniel
@@ -3910,39 +3913,5 @@ End.
 
   Revision 1.41  1999/07/29 15:53:55  michael
   + Added assignstream with rerouting of stderr, by Sebastian Guenther
-
-  Revision 1.40  1999/07/15 20:00:31  michael
-  + Added ansistring version of shell()
-
-  Revision 1.39  1999/05/30 11:37:27  peter
-    * clone function like the libc version
-    + sigraise, exitprocess
-
-  Revision 1.38  1999/05/26 11:05:24  michael
-  * fcntl needs file as Var argument
-
-  Revision 1.37  1999/05/10 09:13:41  peter
-    * fixed typo
-
-  Revision 1.36  1999/05/08 19:47:24  peter
-    * check ioresult after getdir calls
-
-  Revision 1.35  1999/04/22 14:48:55  peter
-    * fixed direct asm
-
-  Revision 1.34  1999/03/29 16:03:10  peter
-    + clone()
-
-  Revision 1.33  1999/03/11 12:02:03  peter
-    * s_is<x> functions have now word para instead of integer
-
-  Revision 1.32  1999/02/22 12:50:53  peter
-    * fixed dup() to have var para
-
-  Revision 1.31  1999/02/22 11:47:42  peter
-    * fixed juliantogregorian (mailinglist)
-
-  Revision 1.29  1999/02/02 21:19:54  michael
-  Corrected wrong mode error in fdopen
 
 }

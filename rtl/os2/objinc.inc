@@ -162,27 +162,14 @@ END;
 
 {
   $Log$
-  Revision 1.3  2000-01-07 16:41:48  daniel
+  Revision 1.4  2000-02-09 16:59:33  peter
+    * truncated log
+
+  Revision 1.3  2000/01/07 16:41:48  daniel
     * copyright 2000
 
   Revision 1.2  2000/01/07 16:32:32  daniel
     * copyright 2000 added
-
-  Revision 1.1  1999/03/26 14:23:14  daniel
-  + Added. Better late than never.
-
-  Revision 1.1  1998/12/21 13:07:02  peter
-	* use -FE
-
-  Revision 1.4  1998/07/06 12:26:19  carl
-	* Glurbl.... now work perfectly! Do not change :)
-
-  Revision 1.3  1998/07/02 12:25:27  carl
-	* NOTHING would work, FileOpen is now correct!!
-
-  Revision 1.2  1998/05/31 14:18:18  peter
-	* force att or direct assembling
-	* cleanup of some files
 
 }
 

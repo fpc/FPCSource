@@ -975,7 +975,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.39  2000-02-07 10:42:44  peter
+  Revision 1.40  2000-02-09 16:59:30  peter
+    * truncated log
+
+  Revision 1.39  2000/02/07 10:42:44  peter
     * use backtracestrfunc()
 
   Revision 1.38  2000/02/02 11:13:15  peter
@@ -1035,46 +1038,5 @@ end.
 
   Revision 1.20  1999/08/17 14:56:03  michael
   Removed the mode for objpas
-
-  Revision 1.19  1999/07/10 10:33:50  peter
-    * merged
-
-  Revision 1.18  1999/07/09 10:38:10  michael
-  + + heaptrc now uses finalize instead of exitproc
-
-  Revision 1.17  1999/07/05 20:22:08  peter
-    * merged
-
-  Revision 1.16.2.3  1999/07/10 10:31:56  peter
-    * removed unused var
-
-  Revision 1.16.2.2  1999/07/09 10:44:23  michael
-  + Merged finalize
-
-  Revision 1.16  1999/05/23 00:07:17  pierre
-    * support for heap allocated before TraceGetMem is used in
-      FPC_CHECKPOINTER
-    * faster CHECKPOINTER routine (list of valid blocks only !)
-
-  Revision 1.15  1999/05/18 22:15:55  pierre
-   * allow for .bss section below heaporg in go32v2 code
-
-  Revision 1.14  1999/05/16 23:56:09  pierre
-   * allow nil pointer in FPC_CHECKPOINTER !!
-
-  Revision 1.13  1999/05/12 16:49:29  pierre
-   + with EXTRA memory is filled with $F0 and checked at end
-
-  Revision 1.12  1999/05/11 12:52:42  pierre
-   + extra's with -dEXTRA, uses a CRC check for released memory
-
-  Revision 1.11  1999/03/26 19:10:34  peter
-    * show also allocation stack for a wrong size
-
-  Revision 1.10  1999/02/16 17:20:26  pierre
-   * no heap dump if program has an heap error !
-
-  Revision 1.9  1999/01/22 12:39:22  pierre
-   + added text arg for dump_stack
 
 }

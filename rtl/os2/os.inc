@@ -20,33 +20,13 @@
 
 {
   $Log$
-  Revision 1.4  2000-01-07 16:41:48  daniel
+  Revision 1.5  2000-02-09 16:59:33  peter
+    * truncated log
+
+  Revision 1.4  2000/01/07 16:41:48  daniel
     * copyright 2000
 
   Revision 1.3  2000/01/07 16:32:32  daniel
     * copyright 2000 added
 
-  Revision 1.2  1998/04/09 08:24:14  daniel
-  * Brings OS/2 directory up to date.
-
-  Revision 1.3  1998/01/26 12:01:56  michael
-  + Added log at the end
-
-
-  
-  Working file: rtl/os2/os.inc
-  description:
-  ----------------------------
-  revision 1.2
-  date: 1997/12/10 11:25:03;  author: michael;  state: Exp;  lines: +14 -0
-  + added header with copyright reference.
-  ----------------------------
-  revision 1.1
-  date: 1997/11/27 08:34:00;  author: michael;  state: Exp;
-  Initial revision
-  ----------------------------
-  revision 1.1.1.1
-  date: 1997/11/27 08:34:00;  author: michael;  state: Exp;  lines: +0 -0
-  FPC RTL CVS start
-  =============================================================================
 }

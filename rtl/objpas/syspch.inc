@@ -118,7 +118,10 @@ end ;
 
 {
   $Log$
-  Revision 1.8  1999-12-10 15:02:12  peter
+  Revision 1.9  2000-02-09 16:59:32  peter
+    * truncated log
+
+  Revision 1.8  1999/12/10 15:02:12  peter
     * strnew is ofcourse also different between sysutils and strings, just
       like stralloc/strdispose.
 
@@ -127,29 +130,5 @@ end ;
 
   Revision 1.6  1999/08/24 13:14:50  peter
     * disposestr allocstr compatible with delphi
-
-  Revision 1.5  1999/07/09 10:06:34  peter
-    * merged
-
-  Revision 1.4.2.1  1999/07/09 10:05:05  peter
-    * fixed strpcopy
-
-  Revision 1.4  1999/02/25 07:39:57  michael
-  * Joined strings and sysutils
-
-  Revision 1.3  1999/02/10 22:15:11  michael
-  + Changed to ansistrings
-
-  Revision 1.2  1998/09/16 08:28:40  michael
-  Update from gertjan Schouten, plus small fix for linux
-
-
-  1998/08/26 Gertjan
-  Most functions rewritten in pascal.
-
-  Revision 1.1  1998/04/10 15:17:46  michael
-  + Initial implementation; Donated by Gertjan Schouten
-    His file was split into several files, to keep it a little bit structured.
-
 
 }

@@ -71,16 +71,10 @@ TArrayRec = record
 
 { 
   $Log$
-  Revision 1.5  2000-01-07 16:41:36  daniel
+  Revision 1.6  2000-02-09 16:59:31  peter
+    * truncated log
+
+  Revision 1.5  2000/01/07 16:41:36  daniel
     * copyright 2000
-
-  Revision 1.4  1998/07/20 18:42:51  florian
-  *** empty log message ***
-
-  Revision 1.3  1998/07/13 21:19:11  florian
-    * some problems with ansi string support fixed
-
-  Revision 1.2  1998/06/08 15:32:15  michael
-  + Split rtti according to processor. Implemented optimized i386 code.
 
 }

@@ -5718,7 +5718,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.3  2000-01-07 16:41:54  daniel
+  Revision 1.4  2000-02-09 16:59:35  peter
+    * truncated log
+
+  Revision 1.3  2000/01/07 16:41:54  daniel
     * copyright 2000
 
   Revision 1.2  2000/01/07 16:32:35  daniel
@@ -5726,35 +5729,5 @@ end.
 
   Revision 1.1  1999/09/16 13:38:22  peter
     * windows unit include moved to wininc/
-
-  Revision 1.11  1999/07/09 21:12:23  michael
-  Fix in HKEY_DYN_DATA
-
-  Revision 1.10  1999/06/01 19:23:11  peter
-    * renamed delete -> service_delete
-
-  Revision 1.9  1999/04/20 11:36:11  peter
-    * compatibility fixes
-
-  Revision 1.8  1999/01/28 18:24:29  pierre
-   * conversion from boolean to longint must be explicit
-
-  Revision 1.7  1998/11/12 11:41:05  peter
-    + pascal type aliases
-
-  Revision 1.6  1998/10/27 11:17:12  peter
-    * type HINSTANCE -> HINST
-
-  Revision 1.5  1998/08/31 11:53:54  pierre
-    * compilable windows.pp file
-      still to do :
-       - findout problems
-       - findout the correct DLL for each call !!
-
-  Revision 1.4  1998/06/25 08:41:47  florian
-    * better rtti
-
-  Revision 1.3  1998/06/10 10:39:12  peter
-    * working w32 rtl
 
 }

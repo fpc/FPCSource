@@ -563,7 +563,10 @@ end;
 
 {
   $Log$
-  Revision 1.33  2000-01-07 16:41:36  daniel
+  Revision 1.34  2000-02-09 16:59:31  peter
+    * truncated log
+
+  Revision 1.33  2000/01/07 16:41:36  daniel
     * copyright 2000
 
   Revision 1.32  2000/01/07 16:32:25  daniel
@@ -575,73 +578,5 @@ end;
 
   Revision 1.30  1999/11/06 14:35:39  peter
     * truncated log
-
-  Revision 1.29  1999/07/05 20:04:26  peter
-    * removed temp defines
-
-  Revision 1.28  1999/05/06 09:05:13  peter
-    * generic write_float str_float
-
-  Revision 1.27  1999/04/08 15:57:54  peter
-    + subrange checking for readln()
-
-  Revision 1.26  1999/04/05 12:28:27  michael
-  + Fixed insert with char. length byte wrapped around in some cases.
-
-  Revision 1.25  1999/04/01 22:11:50  peter
-    * fixed '1.' parsing of val
-
-  Revision 1.24  1999/04/01 22:00:49  peter
-    * universal names for str/val (ansistr instead of stransi)
-    * '1.' support for val() this is compatible with tp7
-
-  Revision 1.23  1999/03/26 00:24:16  peter
-    * last para changed to long for easier pushing with 4 byte aligns
-
-  Revision 1.22  1999/03/16 17:49:36  jonas
-    * changes for internal Val code (do a "make cycle OPT=-dvalintern" to test)
-    * in text.inc: changed RTE 106 when read integer values are out of bounds to RTE 201
-    * in systemh.inc: disabled "support_fixed" for the i386 because it gave internal errors,
-
-  Revision 1.21  1999/03/10 21:49:03  florian
-    * str and val for extended use now int constants to minimize
-      rounding error
-
-  Revision 1.20  1999/03/03 15:23:57  michael
-  + Added setstring for Delphi compatibility
-
-  Revision 1.19  1999/01/25 20:24:28  peter
-    * fixed insert to support again the max string length
-
-  Revision 1.18  1999/01/11 19:26:55  jonas
-    * made inster(string,string,index) a bit faster
-    + overloaded insert(char,string,index)
-
-  Revision 1.17  1998/12/15 22:43:02  peter
-    * removed temp symbols
-
-  Revision 1.16  1998/11/05 10:29:34  pierre
-   * fix for length(char) in const expressions
-
-  Revision 1.15  1998/11/04 10:20:50  peter
-    * ansistring fixes
-
-  Revision 1.14  1998/10/11 14:30:19  peter
-    * small typo :(
-
-  Revision 1.13  1998/10/10 15:28:46  peter
-    + read single,fixed
-    + val with code:longint
-    + val for fixed
-
-  Revision 1.12  1998/09/14 10:48:19  peter
-    * FPC_ names
-    * Heap manager is now system independent
-
-  Revision 1.11  1998/08/11 21:39:07  peter
-    * splitted default_extended from support_extended
-
-  Revision 1.10  1998/08/08 12:28:13  florian
-    * a lot small fixes to the extended data type work
 
 }

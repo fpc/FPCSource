@@ -1066,7 +1066,10 @@ end;
 
 {
   $Log$
-  Revision 1.68  2000-01-31 12:11:53  jonas
+  Revision 1.69  2000-02-09 16:59:31  peter
+    * truncated log
+
+  Revision 1.68  2000/01/31 12:11:53  jonas
     * committed the rest of my fix :)
 
   Revision 1.67  2000/01/31 10:15:43  pierre
@@ -1119,43 +1122,5 @@ end;
 
   Revision 1.51  1999/07/26 09:43:24  florian
     + write helper routine for in64 implemented
-
-  Revision 1.50  1999/07/08 15:18:14  michael
-  * Now ansistring of arbitrary length can be read
-
-  Revision 1.49  1999/07/05 20:04:29  peter
-    * removed temp defines
-
-  Revision 1.48  1999/07/01 15:39:52  florian
-    + qword/int64 type released
-
-  Revision 1.47  1999/06/30 22:17:24  florian
-    + fpuint64 to system unit interface added: if it is true, the rtl
-      uses the fpu to do int64 operations, if possible
-
-  Revision 1.46  1999/05/06 09:05:16  peter
-    * generic write_float str_float
-
-  Revision 1.45  1999/04/26 18:27:26  peter
-    * fixed write array
-    * read array with maxlen
-
-  Revision 1.44  1999/04/08 15:57:57  peter
-    + subrange checking for readln()
-
-  Revision 1.43  1999/04/07 22:05:18  peter
-    * fixed bug with readln where it sometime didn't read until eol
-
-  Revision 1.42  1999/03/16 17:49:39  jonas
-    * changes for internal Val code (do a "make cycle OPT=-dvalintern" to test)
-    * in text.inc: changed RTE 106 when read integer values are out of bounds to RTE 201
-    * in systemh.inc: disabled "support_fixed" for the i386 because it gave internal errors,
-
-  Revision 1.41  1999/03/02 18:23:37  peter
-    * changed so handlerror() -> inoutres:= to have $I- support
-
-  Revision 1.40  1999/03/01 15:41:04  peter
-    * use external names
-    * removed all direct assembler modes
 
 }

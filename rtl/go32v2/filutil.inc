@@ -456,7 +456,10 @@ end;
 
 {
   $Log$
-  Revision 1.11  2000-01-16 22:25:38  peter
+  Revision 1.12  2000-02-09 16:59:28  peter
+    * truncated log
+
+  Revision 1.11  2000/01/16 22:25:38  peter
     * check handle for file closing
 
   Revision 1.10  2000/01/07 16:41:31  daniel
@@ -473,33 +476,5 @@ end;
 
   Revision 1.6  1999/08/19 14:00:08  pierre
    * bug in country info code fixed
-
-  Revision 1.5  1999/02/28 13:18:12  michael
-  + Added internationalization support
-
-  Revision 1.4  1999/02/24 15:57:28  michael
-  + Moved getlocaltime to system-dependent files
-
-  Revision 1.3  1999/02/09 17:16:59  florian
-    + typinfo is now also in the makefile for go32v2
-    + sysutils.filetruncate for go32v2
-
-  Revision 1.2  1999/02/03 11:42:31  michael
-  + Added filetruncate
-
-  Revision 1.1  1998/12/21 13:07:02  peter
-    * use -FE
-
-  Revision 1.4  1998/10/29 13:16:19  michael
-  * Fix for fileseek by gertjan schouten
-
-  Revision 1.3  1998/10/15 09:39:13  michael
-  Changes from Gretjan Schouten
-
-  Revision 1.2  1998/10/12 08:02:16  michael
-  wrong file committed
-
-  Revision 1.1  1998/10/11 12:21:01  michael
-  Added file calls. Implemented for linux only
 
 }

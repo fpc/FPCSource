@@ -127,13 +127,13 @@ type
 
 {
   $Log$
-  Revision 1.5  2000-01-07 16:41:42  daniel
+  Revision 1.6  2000-02-09 16:59:32  peter
+    * truncated log
+
+  Revision 1.5  2000/01/07 16:41:42  daniel
     * copyright 2000
 
   Revision 1.4  2000/01/07 16:32:28  daniel
     * copyright 2000 added
-
-  Revision 1.3  1998/10/15 08:31:10  peter
-    * type aliases using delphi typenaming
 
 }

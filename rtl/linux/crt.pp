@@ -1597,7 +1597,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.21  2000-01-07 16:41:39  daniel
+  Revision 1.22  2000-02-09 16:59:31  peter
+    * truncated log
+
+  Revision 1.21  2000/01/07 16:41:39  daniel
     * copyright 2000
 
   Revision 1.20  2000/01/07 16:32:26  daniel
@@ -1612,51 +1615,4 @@ End.
   Revision 1.17  1999/09/07 07:38:09  michael
   + Applied readkey patch from Deekoo L
 
-  Revision 1.16  1999/06/09 16:46:10  peter
-    * fixed fullwin,textbackground
-
-  Revision 1.15  1999/02/08 10:35:14  peter
-    * readkey fixes from the mailinglist
-    + cursoron/off/big from the mailinglist
-
-  Revision 1.14  1999/01/15 12:47:16  peter
-    * init window size to the size of the console instead of 80,25
-
-  Revision 1.13  1998/11/16 10:21:27  peter
-    * fixes for H+
-
-  Revision 1.12  1998/11/10 15:01:01  peter
-    * fixed GetXY at startup
-
-  Revision 1.11  1998/10/30 12:11:51  peter
-    * fixed fullwi, which did not check for 1,1
-
-  Revision 1.10  1998/10/27 11:13:27  peter
-    * fixed ttyWrite() with #8
-
-  Revision 1.9  1998/10/15 08:31:53  peter
-    + get winsize at startup
-    + ConsoleBuf to interface
-
-  Revision 1.8  1998/08/28 11:00:20  peter
-    * fixed #8 writing
-
-  Revision 1.7  1998/07/04 11:17:18  peter
-    * fixes for window (from "Heinz Ziegenhorn" <info@ziegenhorn.de>)
-
-  Revision 1.6  1998/06/19 16:51:50  peter
-    * added #13 -> #10 translation for CrtRead to overcome readln probs
-
-  Revision 1.5  1998/06/19 14:47:52  michael
-  + Enter key maps again to #13
-
-  Revision 1.4  1998/05/06 12:35:26  michael
-  + Removed log from before restored version.
-
-  Revision 1.3  1998/04/16 07:49:11  michael
-  * fixed bug. Clrscr and Clreol didn't take change in textattr in account.
-
-  Revision 1.2  1998/04/05 13:56:54  peter
-    - fixed mouse to compile with $i386_att
-    + linux crt supports redirecting (not Esc-codes anymore)
 }

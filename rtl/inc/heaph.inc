@@ -77,7 +77,10 @@ Procedure release(var p : pointer);
 
 {
   $Log$
-  Revision 1.16  2000-01-31 23:41:30  peter
+  Revision 1.17  2000-02-09 16:59:30  peter
+    * truncated log
+
+  Revision 1.16  2000/01/31 23:41:30  peter
     * reallocmem fixed for freemem() call when size=0
 
   Revision 1.15  2000/01/20 12:35:35  jonas
@@ -98,27 +101,4 @@ Procedure release(var p : pointer);
   Revision 1.10  1999/09/17 17:14:12  peter
     + new heap manager supporting delphi freemem(pointer)
 
-  Revision 1.9  1999/05/31 20:36:35  peter
-    * growing is now 256k or 1mb
-
-  Revision 1.8  1999/02/08 09:31:40  florian
-    * fixed small things regarding TEMPHEAP
-
-  Revision 1.7  1998/10/01 14:55:18  peter
-    + memorymanager like delphi
-
-  Revision 1.6  1998/09/08 15:03:27  peter
-    * moved getmem/freemem/memavail/maxavail to heaph.inc
-
-  Revision 1.5  1998/07/02 14:11:30  michael
-  Reinstated the heapsize function.
-
-  Revision 1.3  1998/05/12 10:42:45  peter
-    * moved getopts to inc/, all supported OS's need argc,argv exported
-    + strpas, strlen are now exported in the systemunit
-    * removed logs
-    * removed $ifdef ver_above
-
-  Revision 1.2  1998/04/21 10:23:15  peter
-    + heapblocks
 }

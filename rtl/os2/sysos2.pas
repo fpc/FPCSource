@@ -752,7 +752,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2000-02-09 12:39:11  peter
+  Revision 1.26  2000-02-09 16:59:34  peter
+    * truncated log
+
+  Revision 1.25  2000/02/09 12:39:11  peter
     * halt moved to system.inc
 
   Revision 1.24  2000/01/20 23:38:02  peter
@@ -779,12 +782,5 @@ end.
 
   Revision 1.17  1999/09/10 15:40:35  peter
     * fixed do_open flags to be > $100, becuase filemode can be upto 255
-
-  Revision 1.16  1999/06/01 13:23:16  peter
-    * fixes to work with the new makefile
-    * os2 compiles now correct under linux
-
-  Revision 1.15  1999/05/17 21:52:44  florian
-    * most of the Object Pascal stuff moved to the system unit
 
 }

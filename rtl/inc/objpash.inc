@@ -220,7 +220,10 @@
        end;
 {
   $Log$
-  Revision 1.7  2000-01-07 16:41:36  daniel
+  Revision 1.8  2000-02-09 16:59:31  peter
+    * truncated log
+
+  Revision 1.7  2000/01/07 16:41:36  daniel
     * copyright 2000
 
   Revision 1.6  2000/01/07 16:32:25  daniel
@@ -232,8 +235,5 @@
   Revision 1.4  1999/08/09 22:20:03  peter
     * classes vmt changed to only positive addresses
     * sharedlib creation is working
-
-  Revision 1.3  1999/05/17 21:52:38  florian
-    * most of the Object Pascal stuff moved to the system unit
 
 }
