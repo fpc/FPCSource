@@ -213,6 +213,12 @@ implementation
       end;
 
 
+    procedure dir_objectchecks;
+      begin
+        do_localswitch(cs_check_object);
+      end;
+
+
     procedure dir_assertions;
       begin
         do_delphiswitch('C');
@@ -841,6 +847,11 @@ implementation
         do_setverbose('W');
       end;
 
+    procedure dir_writeableconst;
+      begin
+        do_delphiswitch('J');
+      end;
+
     procedure dir_z1;
       begin
         aktpackenum:=1;
@@ -928,6 +939,7 @@ implementation
         AddDirective('MODE',{$ifdef FPCPROCVAR}@{$endif}dir_mode);
         AddDirective('NOTE',{$ifdef FPCPROCVAR}@{$endif}dir_note);
         AddDirective('NOTES',{$ifdef FPCPROCVAR}@{$endif}dir_notes);
+        AddDirective('OBJECTCHECKS',{$ifdef FPCPROCVAR}@{$endif}dir_objectchecks);
         AddDirective('OBJECTPATH',{$ifdef FPCPROCVAR}@{$endif}dir_objectpath);
         AddDirective('OPENSTRINGS',{$ifdef FPCPROCVAR}@{$endif}dir_openstrings);
         AddDirective('OUTPUT_FORMAT',{$ifdef FPCPROCVAR}@{$endif}dir_output_format);
@@ -957,6 +969,7 @@ implementation
         AddDirective('WAIT',{$ifdef FPCPROCVAR}@{$endif}dir_wait);
         AddDirective('WARNING',{$ifdef FPCPROCVAR}@{$endif}dir_warning);
         AddDirective('WARNINGS',{$ifdef FPCPROCVAR}@{$endif}dir_warnings);
+        AddDirective('WRITEABLECONST',{$ifdef FPCPROCVAR}@{$endif}dir_writeableconst);
         AddDirective('Z1',{$ifdef FPCPROCVAR}@{$endif}dir_z1);
         AddDirective('Z2',{$ifdef FPCPROCVAR}@{$endif}dir_z2);
         AddDirective('Z4',{$ifdef FPCPROCVAR}@{$endif}dir_z4);
@@ -967,7 +980,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  2002-12-07 14:06:20  carl
+  Revision 1.24  2003-01-03 21:25:01  peter
+    * OBJECTCHECKS added, equivalent of -CR
+    * WRITEABLECONST added, equivalent of $J
+
+  Revision 1.23  2002/12/07 14:06:20  carl
     * stricter version / revision checking (also remove some warnings)
 
   Revision 1.22  2002/11/20 11:12:46  mazen
