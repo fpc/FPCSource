@@ -1283,6 +1283,17 @@
          inherited init;
          deftype:=pointerdef;
          definition:=def;
+         is_far:=false;
+         savesize:=target_os.size_of_pointer;
+      end;
+
+
+    constructor tpointerdef.initfar(def : pdef);
+      begin
+         inherited init;
+         deftype:=pointerdef;
+         definition:=def;
+         is_far:=true;
          savesize:=target_os.size_of_pointer;
       end;
 
@@ -1293,6 +1304,7 @@
          deftype:=pointerdef;
          { the real address in memory is calculated later (deref) }
          definition:=readdefref;
+         is_far:=(readbyte<>0);
          savesize:=target_os.size_of_pointer;
       end;
 
@@ -1307,6 +1319,7 @@
       begin
          inherited write;
          writedefref(definition);
+         writebyte(byte(is_far));
          current_ppu^.writeentry(ibpointerdef);
       end;
 
@@ -1367,34 +1380,6 @@
 
 
 {****************************************************************************
-                             TFARPOINTERDEF
-****************************************************************************}
-
-    constructor tfarpointerdef.init(def : pdef);
-      begin
-         inherited init(def);
-         deftype:=farpointerdef;
-         savesize:=target_os.size_of_pointer;
-      end;
-
-
-    constructor tfarpointerdef.load;
-      begin
-         inherited load;
-         deftype:=farpointerdef;
-         savesize:=target_os.size_of_pointer;
-      end;
-
-
-    procedure tfarpointerdef.write;
-      begin
-         tdef.write;
-         writedefref(definition);
-         current_ppu^.writeentry(ibfarpointerdef);
-      end;
-
-
-{****************************************************************************
                               TCLASSREFDEF
 ****************************************************************************}
 
@@ -1419,6 +1404,7 @@
          { be careful, tclassdefref inherits from tpointerdef }
          tdef.write;
          writedefref(definition);
+         writebyte(byte(is_far));
          current_ppu^.writeentry(ibclassrefdef);
       end;
 
@@ -3465,7 +3451,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.105  1999-04-26 13:31:47  peter
+  Revision 1.106  1999-04-26 18:30:01  peter
+    * farpointerdef moved into pointerdef.is_far
+
+  Revision 1.105  1999/04/26 13:31:47  peter
     * release storenumber,double_checksum
 
   Revision 1.104  1999/04/21 09:43:50  peter

@@ -1201,7 +1201,7 @@ unit pexpr;
                 CARET:
                   begin
                     consume(CARET);
-                    if not(pd^.deftype in [pointerdef,farpointerdef]) then
+                    if (pd^.deftype<>pointerdef) then
                       begin
                          { ^ as binary operator is a problem!!!! (FK) }
                          again:=false;
@@ -1972,7 +1972,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.97  1999-04-19 09:27:48  peter
+  Revision 1.98  1999-04-26 18:29:56  peter
+    * farpointerdef moved into pointerdef.is_far
+
+  Revision 1.97  1999/04/19 09:27:48  peter
     * removed my property fix
 
   Revision 1.96  1999/04/19 09:13:47  peter

@@ -28,7 +28,7 @@
        tdeftype = (abstractdef,arraydef,recorddef,pointerdef,orddef,
                    stringdef,enumdef,procdef,objectdef,errordef,
                    filedef,formaldef,setdef,procvardef,floatdef,
-                   classrefdef,farpointerdef);
+                   classrefdef);
 
        pdef = ^tdef;
 {$ifndef OLDPPU}
@@ -157,22 +157,16 @@
        tpointerdef = object(tdef)
           definition : pdef;
           defsym : ptypesym;
+          is_far : boolean;
           constructor init(def : pdef);
+          constructor initfar(def : pdef);
           constructor load;
           procedure write;virtual;
 {$ifdef GDB}
-          function stabstring : pchar;virtual;
+          function  stabstring : pchar;virtual;
           procedure concatstabto(asmlist : paasmoutput);virtual;
 {$endif GDB}
           procedure deref;virtual;
-       end;
-
-
-       pfarpointerdef = ^tfarpointerdef;
-       tfarpointerdef = object(tpointerdef)
-          constructor init(def : pdef);
-          constructor load;
-          procedure write;virtual;
        end;
 
 
@@ -512,7 +506,10 @@
 
 {
   $Log$
-  Revision 1.22  1999-04-26 13:31:49  peter
+  Revision 1.23  1999-04-26 18:30:02  peter
+    * farpointerdef moved into pointerdef.is_far
+
+  Revision 1.22  1999/04/26 13:31:49  peter
     * release storenumber,double_checksum
 
   Revision 1.21  1999/04/21 09:43:52  peter

@@ -293,7 +293,7 @@ unit symtable;
 
        voidpointerdef : ppointerdef; { pointer for Void-Pointerdef      }
        charpointerdef : ppointerdef; { pointer for Char-Pointerdef      }
-       voidfarpointerdef : pfarpointerdef;
+       voidfarpointerdef : ppointerdef;
 
        voiddef   : porddef;        { Pointer to Void (procedure)       }
        cchardef  : porddef;        { Pointer to Char                   }
@@ -317,6 +317,8 @@ unit symtable;
        cansistringdef  : pstringdef;  { pointer to type of ansi string const  }
        cwidestringdef  : pstringdef;  { pointer to type of wide string const  }
        openshortstringdef : pstringdef;  { pointer to type of an open shortstring,
+                                            needed for readln() }
+       openchararraydef : parraydef;     { pointer to type of an open array of char,
                                             needed for readln() }
 
        cfiledef : pfiledef;       { get the same definition for all file }
@@ -1222,7 +1224,6 @@ const localsymtablestack : psymtable = nil;
               ibprocvardef : hp:=new(pprocvardef,load);
                  ibfiledef : hp:=new(pfiledef,load);
              ibclassrefdef : hp:=new(pclassrefdef,load);
-           ibfarpointerdef : hp:=new(pfarpointerdef,load);
                ibformaldef : hp:=new(pformaldef,load);
                  ibenddefs : break;
                      ibend : Message(unit_f_ppu_read_error);
@@ -3202,8 +3203,8 @@ const localsymtablestack : psymtable = nil;
 end.
 {
   $Log$
-  Revision 1.2  1999-04-26 15:12:25  peter
-    * reinstered
+  Revision 1.3  1999-04-26 18:30:03  peter
+    * farpointerdef moved into pointerdef.is_far
 
   Revision 1.151  1999/04/26 13:31:54  peter
     * release storenumber,double_checksum

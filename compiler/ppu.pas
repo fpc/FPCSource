@@ -110,7 +110,6 @@ const
   iblongstringdef  = 54;
   ibansistringdef  = 55;
   ibwidestringdef  = 56;
-  ibfarpointerdef  = 57;
 
 { unit flags }
   uf_init          = $1;
@@ -869,7 +868,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.29  1999-04-26 13:31:41  peter
+  Revision 1.30  1999-04-26 18:30:00  peter
+    * farpointerdef moved into pointerdef.is_far
+
+  Revision 1.29  1999/04/26 13:31:41  peter
     * release storenumber,double_checksum
 
   Revision 1.28  1999/04/26 09:33:07  peter

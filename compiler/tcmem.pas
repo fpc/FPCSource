@@ -229,7 +229,7 @@ implementation
                      if not(cs_typed_addresses in aktlocalswitches) then
                        p^.resulttype:=voidfarpointerdef
                      else
-                       p^.resulttype:=new(pfarpointerdef,init(p^.left^.resulttype));
+                       p^.resulttype:=new(ppointerdef,initfar(p^.left^.resulttype));
                    end
                   else
                    begin
@@ -311,7 +311,7 @@ implementation
          p^.registersmmx:=p^.left^.registersmmx;
 {$endif SUPPORT_MMX}
 
-         if not(p^.left^.resulttype^.deftype in [pointerdef,farpointerdef]) then
+         if p^.left^.resulttype^.deftype<>pointerdef then
           CGMessage(cg_e_invalid_qualifier);
 
          p^.resulttype:=ppointerdef(p^.left^.resulttype)^.definition;
@@ -555,7 +555,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  1999-03-02 18:24:24  peter
+  Revision 1.13  1999-04-26 18:30:05  peter
+    * farpointerdef moved into pointerdef.is_far
+
+  Revision 1.12  1999/03/02 18:24:24  peter
     * fixed overloading of array of char
 
   Revision 1.11  1999/02/22 02:15:54  peter

@@ -384,7 +384,7 @@ unit pmodules;
         st : punitsymtable;
         second_time : boolean;
         old_current_ppu : pppufile;
-        old_current_module,hp,hp2 : pmodule;
+        old_current_module,hp,hp2,hp3 : pmodule;
         name : string;{ necessary because
         current_module^.mainsource^ is reset in compile !! }
         scanner : pscannerfile;
@@ -505,7 +505,7 @@ unit pmodules;
                   if hp2^.do_reload then
                    begin
                      hp2^.do_reload:=false;
-                     loadunit(hp^.modulename^,false);
+                     hp3:=loadunit(hp^.modulename^,false);
                    end;
                   hp2:=pmodule(hp2^.next);
                 end;
@@ -1357,7 +1357,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.114  1999-04-26 13:31:39  peter
+  Revision 1.115  1999-04-26 18:29:58  peter
+    * farpointerdef moved into pointerdef.is_far
+
+  Revision 1.114  1999/04/26 13:31:39  peter
     * release storenumber,double_checksum
 
   Revision 1.113  1999/04/25 17:32:14  peter

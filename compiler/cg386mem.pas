@@ -312,7 +312,7 @@ implementation
                  p^.location.reference.base:=hr;
               end;
          end;
-         if p^.left^.resulttype^.deftype=farpointerdef then
+         if ppointerdef(p^.left^.resulttype)^.is_far then
           p^.location.reference.segment:=R_FS;
       end;
 
@@ -635,7 +635,7 @@ implementation
                      emitrangecheck(p^.right,p^.left^.resulttype);
                    end;
                end;
-               
+
               case p^.right^.location.loc of
                  LOC_REGISTER:
                    begin
@@ -882,7 +882,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  1999-03-26 11:43:26  pierre
+  Revision 1.34  1999-04-26 18:29:54  peter
+    * farpointerdef moved into pointerdef.is_far
+
+  Revision 1.33  1999/03/26 11:43:26  pierre
    * bug0236 fixed
 
   Revision 1.32  1999/03/24 23:16:53  peter
