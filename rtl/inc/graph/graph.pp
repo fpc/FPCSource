@@ -1837,6 +1837,7 @@ Begin
   OldCurColor := CurrentColor;
   CurrentColor:=CurrentBkColor;
   OldWriteMode:=CurrentWriteMode;
+  CurrentWriteMode:=NormalPut;
   GetLineSettings(LineSets);
   { reset to normal line style...}
   SetLineStyle(SolidLn, 0, NormWidth);
@@ -3002,7 +3003,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.57  2000-02-27 14:41:25  peter
+  Revision 1.58  2000-03-08 14:20:14  jonas
+    * writemode was not set to normalput during clearviewport (and it uses hline)
+
+  Revision 1.57  2000/02/27 14:41:25  peter
     * removed warnings/notes
 
   Revision 1.56  2000/02/06 01:47:15  sg
