@@ -21,38 +21,43 @@
 { //!! is used to mark unsupported things. }
 
 Function QuoteString (Const S : String; Quote : String) : String;
-
-Var I,J : Longint;
-
+Var
+  I,J : Integer;
 begin
-  I:=0;
   J:=0;
   Result:=S;
-  While I<Length(S) do
+  for i:=1to length(s) do
    begin
-   I:=I+1;
-   J:=J+1;
-   if S[i]=Quote then
-     begin
-     System.Insert(Result,Quote,J);
-     J:=J+1;
-     end;
+     inc(j);
+     if S[i]=Quote then
+      begin
+        System.Insert(Quote,Result,J);
+        inc(j);
+      end;
    end;
   Result:=Quote+Result+Quote;
 end;
 
+
 function TStrings.GetCommaText: string;
-
-Var I : Longint;
-
+Var
+  I : integer;
+  p : pchar;
 begin
   result:='';
   For i:=0 to count-1 do
-    begin
-    Result:=Result+QuoteString (Strings[I],'"');
-    if I<Count-1 then Result:=Result+',';
-    end;
-  If Length(Result)=0 then Result:='""';
+   begin
+     p:=pchar(strings[i]);
+     while not(p^ in [#0..' ','"',',']) do
+      inc(p);
+     if p^<>#0 then
+      Result:=Result+QuoteString (Strings[I],'"')
+     else
+      result:=result+strings[i];
+     if I<Count-1 then Result:=Result+',';
+   end;
+  If Length(Result)=0 then
+   Result:='""';
 end;
 
 
@@ -166,15 +171,22 @@ end;
 
 
 Procedure TStrings.SetCommaText(const Value: string);
-
-Var P : Pointer;
-    S : String;
-
+Var
+  P : PChar;
+  S : String;
 begin
-  Self.Clear;
-  P:=Pointer(Value);
-  While GetNextQuotedChar (P,S) do
-   Add (S);
+  BeginUpdate;
+  try
+    Clear;
+    P:=PChar(Value);
+    if assigned(p) then
+     begin
+       While GetNextQuotedChar (P,S) do
+        Add (S);
+     end;
+  finally
+    EndUpdate;
+  end;
 end;
 
 
@@ -1019,7 +1031,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2001-04-10 23:24:51  peter
+  Revision 1.9  2001-04-13 18:03:28  peter
+    * commatext fixes
+
+  Revision 1.8  2001/04/10 23:24:51  peter
     * merged fixes
 
   Revision 1.7  2001/02/23 22:24:08  michael
