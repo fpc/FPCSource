@@ -1755,12 +1755,12 @@ unit cgobj;
              internalerror(200303258);
             { parameter 3 : vmt_offset }
             a_param_const(list, OS_32, procinfo._class.vmt_offset, paramanager.getintparaloc(3));
-            { parameter 2 : address of pointer to vmt, will be reset to 0 when freed }
+            { parameter 2 : pointer to vmt, will be reset to 0 when freed }
             reference_reset_base(href, procinfo.framepointer,procinfo.vmtpointer_offset);
             a_paramaddr_ref(list,href,paramanager.getintparaloc(2));
-            { parameter 1 : address of self pointer   }
+            { parameter 1 : self pointer }
             reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset);
-            a_paramaddr_ref(list,href,paramanager.getintparaloc(1));
+            a_param_ref(list,OS_ADDR,href,paramanager.getintparaloc(1));
             a_call_name(list,'FPC_HELP_FAIL');
           end
         else
@@ -1838,7 +1838,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.85  2003-04-23 12:35:34  florian
+  Revision 1.86  2003-04-23 13:20:34  peter
+    * fix self passing to fpc_help_fail
+
+  Revision 1.85  2003/04/23 12:35:34  florian
     * fixed several issues with powerpc
     + applied a patch from Jonas for nested function calls (PowerPC only)
     * ...
