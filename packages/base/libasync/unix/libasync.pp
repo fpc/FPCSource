@@ -25,11 +25,11 @@ type
 
   TAsyncData = record
     IsRunning, DoBreak: Boolean;
-    HasCallbacks: Boolean;	// True as long as callbacks are set
+    HasCallbacks: Boolean;      // True as long as callbacks are set
     FirstTimer: Pointer;
     FirstIOCallback: Pointer;
-    CurIOCallback: Pointer;	// current callback being processed within 'run'
-    NextIOCallback: Pointer;	// next callback to get processed within 'run'
+    CurIOCallback: Pointer;     // current callback being processed within 'run'
+    NextIOCallback: Pointer;    // next callback to get processed within 'run'
     FDData: Pointer;
     HighestHandle: LongInt;
   end;
@@ -108,24 +108,34 @@ begin
       begin
         CurIOCallback := PIOCallbackData(Handle^.Data.CurIOCallback);
         Handle^.Data.NextIOCallback := CurIOCallback^.Next;
-        if ({$ifdef VER1_0}FD_IsSet{$else}fpFD_ISSET{$endif}(CurIOCallback^.IOHandle,CurReadFDSet)>=0) and
-	  ({$ifdef VER1_0}FD_IsSet{$else}fpFD_ISSET{$endif}(CurIOCallback^.IOHandle, PFDSet(Handle^.Data.FDData)[0])>=0) and
-	  Assigned(CurIOCallback^.ReadCallback) then
+        {$ifdef VER1_0}
+        if (FD_IsSet(CurIOCallback^.IOHandle,CurReadFDSet)) and
+           (FD_IsSet(CurIOCallback^.IOHandle, PFDSet(Handle^.Data.FDData)[0])) and
+        {$else}
+        if (fpFD_ISSET(CurIOCallback^.IOHandle,CurReadFDSet)>=0) and
+           (fpFD_ISSET(CurIOCallback^.IOHandle, PFDSet(Handle^.Data.FDData)[0])>=0) and
+        {$endif}
+          Assigned(CurIOCallback^.ReadCallback) then
         begin
-	  CurIOCallback^.ReadCallback(CurIOCallback^.ReadUserData);
-	  if Handle^.Data.DoBreak then
-	    break;
+          CurIOCallback^.ReadCallback(CurIOCallback^.ReadUserData);
+          if Handle^.Data.DoBreak then
+            break;
         end;
 
         CurIOCallback := PIOCallbackData(Handle^.Data.CurIOCallback);
         if Assigned(CurIOCallback) and
-	  ({$ifdef VER1_0}FD_IsSet{$else}fpFD_ISSET{$endif}(CurIOCallback^.IOHandle, CurWriteFDSet)>=0) and
-	  ({$ifdef VER1_0}FD_IsSet{$else}fpFD_ISSET{$endif}(CurIOCallback^.IOHandle, PFDSet(Handle^.Data.FDData)[1])>=0) and
-	  Assigned(CurIOCallback^.WriteCallback) then
+	{$ifdef VER1_0}
+           (FD_IsSet(CurIOCallback^.IOHandle, CurWriteFDSet)) and
+           (FD_IsSet(CurIOCallback^.IOHandle, PFDSet(Handle^.Data.FDData)[1])) and
+	{$else}  
+           (fpFD_ISSET(CurIOCallback^.IOHandle, CurWriteFDSet)>=0) and
+           (fpFD_ISSET(CurIOCallback^.IOHandle, PFDSet(Handle^.Data.FDData)[1])>=0) and
+	{$endif}  
+          Assigned(CurIOCallback^.WriteCallback) then
         begin
-	  CurIOCallback^.WriteCallback(CurIOCallback^.WriteUserData);
-	  if Handle^.Data.DoBreak then
-	    break;
+          CurIOCallback^.WriteCallback(CurIOCallback^.WriteUserData);
+          if Handle^.Data.DoBreak then
+            break;
         end;
 
         Handle^.Data.CurIOCallback := Handle^.Data.NextIOCallback;
@@ -173,9 +183,9 @@ begin
     Open_RdWr:
       begin
         if cbRead in CallbackTypes then
-	  {$ifdef VER1_0}FD_Set{$else}fpFD_SET{$endif}(Data^.IOHandle, PFDSet(Handle^.Data.FDData)[0]);
-	if cbWrite in CallbackTypes then
-	  {$ifdef VER1_0}FD_Set{$else}fpFD_SET{$endif}(Data^.IOHandle, PFDSet(Handle^.Data.FDData)[1]);
+          {$ifdef VER1_0}FD_Set{$else}fpFD_SET{$endif}(Data^.IOHandle, PFDSet(Handle^.Data.FDData)[0]);
+        if cbWrite in CallbackTypes then
+          {$ifdef VER1_0}FD_Set{$else}fpFD_SET{$endif}(Data^.IOHandle, PFDSet(Handle^.Data.FDData)[1]);
       end;
   end;
 end;
@@ -193,10 +203,11 @@ function asyncGetTicks: Int64; cdecl;
 var
   Time: TimeVal;
 begin
-   fpGetTimeOfDay({$ifndef ver1_0}@time,nil{$else}time{$endif});
    {$ifdef ver1_0}
+   GetTimeOfDay(time);
    Result := Int64(Time.Sec) * 1000 + Int64(Time.USec div 1000);
    {$else}
+   fpGetTimeOfDay(@time,nil);
    Result := Int64(Time.tv_Sec) * 1000 + Int64(Time.tv_USec div 1000);
    {$endif}
 end;
@@ -207,7 +218,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2003-09-19 17:46:23  marco
+  Revision 1.7  2003-09-28 09:38:17  peter
+    * fixed for 1.0.x
+
+  Revision 1.6  2003/09/19 17:46:23  marco
    * Unix reform stage III aftermath
 
   Revision 1.5  2002/09/25 21:53:39  sg
