@@ -232,7 +232,11 @@ Var P : Pchar;
 begin
   // Determine needed place
   L:=0;
-  For I:=0 to count-1 do L:=L+Length(Strings[I])+NewLineSize;
+  For I:=0 to count-1 do 
+    begin
+    L:=L+Length(Strings[I])+NewLineSize;
+    Writeln ('length needed : ',l);
+    end;
   Setlength(Result,L);
   P:=Pointer(Result);
   For i:=0 To count-1 do
@@ -559,7 +563,8 @@ begin
   SetLength (S,P-PS);
   System.Move (PS^,Pointer(S)^,P-PS);
   If P^=#13 then P:=P+1;
-  If P^<>#0 then P:=P+1; // Point to character after #10(#13)
+  If P^<>#0 then 
+    P:=P+1; // Point to character after #10(#13)
   Result:=True;
 end;
 
@@ -645,7 +650,8 @@ begin
   Changing;
   If FCount=Fcapacity then Grow;
   If Index<FCount then
-    System.Move (FList^[Index],FList^[Index+1],SizeOf(TStringItem));
+    System.Move (FList^[Index],FList^[Index+1],
+                 (FCount-Index)*SizeOf(TStringItem));
   Pointer(Flist^[Index].Fstring):=Nil;  // Needed to initialize...
   Flist^[Index].FString:=S;
   Flist^[Index].Fobject:=Nil;
@@ -938,7 +944,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  1999-04-27 07:46:18  michael
+  Revision 1.4  1999-05-26 13:22:23  michael
+  + Fixed insertitem
+
+  Revision 1.3  1999/04/27 07:46:18  michael
   * Fixed bug that caused error in loadfromstream when last line in stream has not CRLF pair
 
   Revision 1.2  1999/04/15 07:51:45  michael
