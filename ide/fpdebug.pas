@@ -46,6 +46,7 @@ type
 {    procedure DoStartSession;virtual;
     procedure DoBreakSession;virtual;}
     procedure DoEndSession(code:longint);virtual;
+    procedure DoUserSignal;virtual;
     procedure AnnotateError;
     procedure InsertBreakpoints;
     procedure RemoveBreakpoints;
@@ -1104,6 +1105,17 @@ begin
                #3+' value = '+GetStr(PB^.CurrentValue),nil);
         end;
     end;
+end;
+
+procedure TDebugController.DoUserSignal;
+var P :Array[1..2] of pstring;
+    S1, S2 : string;
+begin
+  S1:=strpas(signal_name);
+  S2:=strpas(signal_string);
+  P[1]:=@S1;
+  P[2]:=@S2;
+  WarningBox(msg_programsignal,@P);
 end;
 
 procedure TDebugController.DoEndSession(code:longint);
@@ -3955,7 +3967,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2001-11-10 00:11:45  pierre
+  Revision 1.9  2002-02-06 14:45:00  pierre
+   + handle signals
+
+  Revision 1.8  2001/11/10 00:11:45  pierre
    * change target menu name if target changed to become debug-able
 
   Revision 1.7  2001/11/07 00:28:52  pierre

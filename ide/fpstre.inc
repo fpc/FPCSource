@@ -840,6 +840,9 @@ const
       msg_programexitedwithexitcode = #3'Program exited with '#13+
                                       #3'exitcode = %d';
 
+      msg_programsignal             = #3'Program recieved signal %s'#13+
+                                      #3'%s';
+
       msg_runningprogram = 'Running...';
       msg_runninginanotherwindow = 'Executable running in another window..';
       msg_couldnotsetbreakpointat = #3'Could not set Breakpoint'#13+
@@ -1013,7 +1016,10 @@ const
 
 {
   $Log$
-  Revision 1.5  2001-11-07 00:28:53  pierre
+  Revision 1.6  2002-02-06 14:45:00  pierre
+   + handle signals
+
+  Revision 1.5  2001/11/07 00:28:53  pierre
    + Disassembly window made public
 
   Revision 1.4  2001/10/24 21:49:56  pierre
