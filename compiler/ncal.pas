@@ -460,7 +460,8 @@ type
                        include(left.flags,nf_novariaallowed);
                        { now that the resultting type is know we can insert the required
                          typeconvs for the array constructor }
-                       tarrayconstructornode(left).force_type(tarraydef(paraitem.paratype.def).elementtype);
+                       if paraitem.paratype.def.deftype=arraydef then
+                         tarrayconstructornode(left).force_type(tarraydef(paraitem.paratype.def).elementtype);
                      end;
                   end;
 
@@ -2392,7 +2393,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.244  2004-08-14 14:50:42  florian
+  Revision 1.245  2004-08-22 10:17:13  peter
+    * fixed crash when passing array constructor to formal parameter
+
+  Revision 1.244  2004/08/14 14:50:42  florian
     * fixed several sparc alignment issues
     + Jonas' inline node patch; non functional yet
 
