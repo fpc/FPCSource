@@ -203,6 +203,7 @@ parser_e_property_need_paras,
 parser_e_constructor_cannot_be_not_virtual,
 parser_e_no_default_property_available,
 parser_e_cant_have_published,
+parser_forward_declaration_must_be_resolved,
 {
   Symbol table
 }

@@ -898,14 +898,24 @@ unit pdecl;
               if (((childof^.options and oois_class)<>0) and not is_a_class) or
                  (((childof^.options and oois_class)=0) and is_a_class) then
                 Message(parser_e_mix_of_classes_and_objects);
-              consume(RKLAMMER);
               if assigned(fd) then
                 begin
+                   { the forward of the child must be resolved to get
+                     correct field addresses
+                   }
+                   if (childof^.options and oo_isforward)<>0 then
+                     Message1(parser_forward_declaration_must_be_resolved,childof^.name^);
                    fd^.childof:=childof;
                    aktclass:=fd;
+                   { ajust the size, because the child could be also
+                     forward defined
+                   }
+                   aktclass^.publicsyms^.datasize:=
+                     aktclass^.publicsyms^.datasize-4+childof^.publicsyms^.datasize;
                 end
               else
                 aktclass:=new(pobjectdef,init(n,childof));
+              consume(RKLAMMER);
            end
          { if no parent class, then a class get tobject as parent }
          else if is_a_class then
@@ -925,8 +935,18 @@ unit pdecl;
                    childof:=class_tobject;
                    if assigned(fd) then
                      begin
+                        { the forward of the child must be resolved to get
+                          correct field addresses
+                        }
+                        if (childof^.options and oo_isforward)<>0 then
+                          Message1(parser_forward_declaration_must_be_resolved,childof^.name^);
                         aktclass:=fd;
                         aktclass^.childof:=childof;
+                        { ajust the size, because the child could be also
+                          forward defined
+                        }
+                        aktclass^.publicsyms^.datasize:=
+                          aktclass^.publicsyms^.datasize-4+childof^.publicsyms^.datasize;
                      end
                    else
                      aktclass:=new(pobjectdef,init(n,childof));
@@ -1777,7 +1797,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.20  1998-05-28 14:35:54  peter
+  Revision 1.21  1998-06-03 22:14:19  florian
+    * problem with sizes of classes fixed (if the anchestor was declared
+      forward, the compiler doesn't update the child classes size)
+
+  Revision 1.20  1998/05/28 14:35:54  peter
     * nicer error message when no id is used after var
 
   Revision 1.19  1998/05/23 01:21:19  peter

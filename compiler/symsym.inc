@@ -1062,31 +1062,31 @@
                  regable:=false;
               end
             else if owner^.symtabletype in [recordsymtable,objectsymtable] then
-      begin
-         { align record and object fields }
-         if aktpackrecords=2 then
-           begin
-             { align to word }
-             modulo:=owner^.datasize and 3;
-             if (l>=2) and ((modulo and 1)<>0) then
-               inc(owner^.datasize);
-           end
-         else if aktpackrecords=4 then
-           begin
-              { align to dword }
-              if (l>=3) and (modulo<>0) then
-                inc(owner^.datasize,4-modulo)
-                { or word }
-              else if (l=2) and ((modulo and 1)<>0) then
-                inc(owner^.datasize)
-           end;
-         address:=owner^.datasize;
-         inc(owner^.datasize,l);
+              begin
+                 { align record and object fields }
+                 if aktpackrecords=2 then
+                   begin
+                     { align to word }
+                     modulo:=owner^.datasize and 3;
+                     if (l>=2) and ((modulo and 1)<>0) then
+                       inc(owner^.datasize);
+                   end
+                 else if aktpackrecords=4 then
+                   begin
+                      { align to dword }
+                      if (l>=3) and (modulo<>0) then
+                        inc(owner^.datasize,4-modulo)
+                        { or word }
+                      else if (l=2) and ((modulo and 1)<>0) then
+                        inc(owner^.datasize)
+                   end;
+                 address:=owner^.datasize;
+                 inc(owner^.datasize,l);
 
-         { this symbol can't be loaded to a register }
-         regable:=false;
-      end
-     else if owner^.symtabletype=parasymtable then
+                 { this symbol can't be loaded to a register }
+                 regable:=false;
+              end
+             else if owner^.symtabletype=parasymtable then
               begin
                  address:=owner^.datasize;
 
@@ -1112,8 +1112,8 @@
                  address:=owner^.datasize;
                  inc(owner^.datasize,l);
               end;
-         end
-      end;
+            end
+        end;
 
 {$ifdef GDB}
     function tvarsym.stabstring : pchar;
@@ -1690,7 +1690,11 @@
 
 {
   $Log$
-  Revision 1.2  1998-05-28 14:40:29  peter
+  Revision 1.3  1998-06-03 22:14:20  florian
+    * problem with sizes of classes fixed (if the anchestor was declared
+      forward, the compiler doesn't update the child classes size)
+
+  Revision 1.2  1998/05/28 14:40:29  peter
     * fixes for newppu, remake3 works now with it
 
   Revision 1.1  1998/05/27 19:45:09  peter
