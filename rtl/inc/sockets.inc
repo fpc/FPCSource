@@ -105,7 +105,7 @@ begin
   FileRec(SockOut).Handle:=Sock;
   FileRec(SockOut).RecSize:=1;
   FileRec(SockOut).userdata[1]:=S_OUT;
-  FileRec(SockOut).Mode := fmAppend;
+  FileRec(SockOut).Mode := fmOutput;
 end;
 
 {******************************************************************************
@@ -172,7 +172,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.10  2003-11-22 21:58:09  marco
+  Revision 1.11  2003-11-23 10:57:15  michael
+  + Changed mode to output for file sockets
+
+  Revision 1.10  2003/11/22 21:58:09  marco
    * johill changed his mind
 
   Revision 1.9  2003/11/22 10:59:58  marco
