@@ -140,7 +140,7 @@ var
 begin
   Result := 0;
   Count := Length(Src);
-  while (Count>0) do
+  while (Count > 0) do
   begin
     Result += CharWidth(Src[Count], FontInfoPtr);
     Count -= 1;
@@ -348,6 +348,10 @@ begin
   for vp := 1 to v2lSrc[0] do
     Result[vp] := Src[v2lSrc[vp]];
 end;
+
+initialization
+
+  CharWidth := @DefaultCharWidth;
 
 end.
 
