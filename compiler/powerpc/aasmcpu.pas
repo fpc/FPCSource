@@ -81,7 +81,7 @@ uses
 
 
          function is_nop: boolean; override;
-         function is_move:boolean; override;
+         function is_reg_move:boolean; override;
 
          { register spilling code }
          function spilling_get_operation_type(opnr: longint): topertype;override;
@@ -354,15 +354,15 @@ uses cutils,rgobj;
       end;
 
 
-    function taicpu.is_move:boolean;
+    function taicpu.is_reg_move:boolean;
       begin
-        is_move := (opcode = A_MR) or
-                   (opcode = A_EXTSB) or
-                   (opcode = A_EXTSH) or
-                   ((opcode = A_RLWINM) and
-                    (oper[2]^.val = 0) and
-                    (oper[4]^.val = 31) and
-                    (oper[3]^.val in [31-8+1,31-16+1]));
+        result:=(opcode = A_MR) or
+          (opcode = A_EXTSB) or
+          (opcode = A_EXTSH) or
+          ((opcode = A_RLWINM) and
+            (oper[2]^.val = 0) and
+            (oper[4]^.val = 31) and
+            (oper[3]^.val in [31-8+1,31-16+1]));
       end;
 
 
@@ -406,7 +406,10 @@ uses cutils,rgobj;
 end.
 {
   $Log$
-  Revision 1.20  2003-12-06 22:16:13  jonas
+  Revision 1.21  2003-12-16 21:49:47  florian
+    * fixed ppc compilation
+
+  Revision 1.20  2003/12/06 22:16:13  jonas
     * completely overhauled and fixed generic spilling code. New method:
       spilling_get_operation_type(operand_number): returns the operation
       performed by the instruction on the operand: read/write/read+write.

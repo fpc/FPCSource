@@ -190,7 +190,7 @@ unit cpupara;
       procedure assignintreg;
 
         begin
-           if nextintreg<=NR_R10 then
+           if nextintreg<=ord(NR_R10) then
              begin
                 paraloc.loc:=LOC_REGISTER;
                 paraloc.register:=newreg(R_INTREGISTER,nextintreg,R_SUBNONE);
@@ -360,7 +360,7 @@ unit cpupara;
         p.funcret_paraloc[side]:=paraloc;
       end;
 
-      
+
     function tppcparamanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tlinkedlist):longint;
       {$warning fixme!!!! tppcparamanager.create_varargs_paraloc_info}
       var
@@ -398,7 +398,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.52  2003-12-07 22:35:05  florian
+  Revision 1.53  2003-12-16 21:49:47  florian
+    * fixed ppc compilation
+
+  Revision 1.52  2003/12/07 22:35:05  florian
     + dummy tppcparamanager.create_varargs_paraloc_info added
 
   Revision 1.51  2003/11/29 16:27:19  jonas

@@ -1331,7 +1331,7 @@ const
           begin
             offset:= offset - 8;
             reference_reset_base(href, NR_STACK_POINTER_REG, offset);
-            list.concat(taicpu.op_reg_ref(A_STFD, regcounter, href));
+            list.concat(taicpu.op_reg_ref(A_STFD, tregister(regcounter), href));
           end;
         (* Optimiztion in the future:  a_call_name(list,'_savefXX'); *)
 
@@ -1341,7 +1341,7 @@ const
           begin
             offset:= offset - 4 * (RS_R31 - firstreggpr + 1);
             reference_reset_base(href,NR_STACK_POINTER_REG,offset);
-            list.concat(taicpu.op_reg_ref(A_STMW,firstreggpr,href));
+            list.concat(taicpu.op_reg_ref(A_STMW,tregister(firstreggpr),href));
               {STMW stores multiple registers}
           end
         else
@@ -1412,7 +1412,7 @@ const
           begin
             offset:= offset - 4 * (RS_R31 - firstreggpr + 1);
             reference_reset_base(href,NR_STACK_POINTER_REG,offset); //-220
-            list.concat(taicpu.op_reg_ref(A_LMW,firstreggpr,href));
+            list.concat(taicpu.op_reg_ref(A_LMW,tregister(firstreggpr),href));
               {LMW loads multiple registers}
           end
         else
@@ -2314,7 +2314,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.147  2003-12-15 21:37:09  jonas
+  Revision 1.148  2003-12-16 21:49:47  florian
+    * fixed ppc compilation
+
+  Revision 1.147  2003/12/15 21:37:09  jonas
     * fixed compilation and simplified fixref, so it never has to reallocate
       already freed registers anymore
 

@@ -342,9 +342,9 @@ begin
         end
       else
         first:=false;
-      writeln(confile,'NR_',names[i],' = ',numbers[i],';');
       writeln(supfile,'RS_',names[i],' = ',supregs[i],';');
-      write(numfile,'NR_',names[i]);
+      writeln(confile,'NR_'+names[i],' = ','tregister(',numbers[i],')',';');
+      write(numfile,'tregister(',numbers[i],')');
       write(stdfile,'''',stdnames[i],'''');
       write(gasfile,'''',gasnames[i],'''');
       write(gssfile,'''',gssnames[i],'''');
@@ -390,7 +390,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2003-12-10 22:19:28  florian
+  Revision 1.7  2003-12-16 21:49:47  florian
+    * fixed ppc compilation
+
+  Revision 1.6  2003/12/10 22:19:28  florian
     + short gas register names for smartlinking added
 
   Revision 1.5  2003/09/03 20:33:28  peter

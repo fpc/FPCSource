@@ -131,7 +131,7 @@ uses
         {$i rppcnum.inc}
       );
 
-      regstabs_table : array[tregisterindex] of tregister = (
+      regstabs_table : array[tregisterindex] of shortint = (
         {$i rppcstab.inc}
       );
 
@@ -694,7 +694,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.80  2003-12-09 20:39:43  jonas
+  Revision 1.81  2003-12-16 21:49:47  florian
+    * fixed ppc compilation
+
+  Revision 1.80  2003/12/09 20:39:43  jonas
     * forgot call to cg.g_overflowcheck() in nppcadd
     * fixed overflow flag definition
     * fixed cg.g_overflowcheck() for signed numbers (jump over call to
