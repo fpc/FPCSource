@@ -329,7 +329,7 @@ const msgtxt : array[0..000143,1..240] of char=(
   '04039_E_Class or Object ','types "$1" and "$2" are not related'#000+
   '04040_W_Class types "$1" and "$2" are not related'#000+
   '04041_E_Class or interface type expected, but got "$1"'#000+
-  '04042_E_Type "$1" is not completley defined'#000+
+  '04042_E_Type "$1" is not completely defined'#000+
   '04043_W_String literal has more characters than short s','tring length'#000+
   '04044_W_Comparison is always false due to range of values'#000+
   '04045_W_Comparison is always true due to range of values'#000+

@@ -1079,7 +1079,7 @@ type_w_classes_not_related=04040_W_Class types "$1" and "$2" are not related
 %  There is a typecast from one class or object to another while the class/object
 %  are not related. This will probably lead to errors
 type_e_class_or_interface_type_expected=04041_E_Class or interface type expected, but got "$1"
-type_e_type_is_not_completly_defined=04042_E_Type "$1" is not completley defined
+type_e_type_is_not_completly_defined=04042_E_Type "$1" is not completely defined
 type_w_string_too_long=04043_W_String literal has more characters than short string length
 % The size of the constant string, which is assigned to a shortstring,
 % is longer than the maximum size of the shortstring
