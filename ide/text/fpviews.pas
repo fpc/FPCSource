@@ -296,7 +296,7 @@ procedure TranslateMouseClick(View: PView; var Event: TEvent);
 
 function GetNextEditorBounds(var Bounds: TRect): boolean;
 function OpenEditorWindow(Bounds: PRect; FileName: string; CurX,CurY: sw_integer): PSourceWindow;
-function TryToOpenFile(Bounds: PRect; FileName: string; CurX,CurY: sw_integer): PSourceWindow;
+function TryToOpenFile(Bounds: PRect; FileName: string; CurX,CurY: sw_integer;tryexts:boolean): PSourceWindow;
 
 function StartEditor(Editor: PCodeEditor; FileName: string): boolean;
 
@@ -1286,7 +1286,7 @@ begin
       W^.Editor^.SetCurPtr(Col,Row);
     end
   else
-    W:=TryToOpenFile(@R,P^.GetModuleName,Col,Row);
+    W:=TryToOpenFile(@R,P^.GetModuleName,Col,Row,true);
   if W<>nil then
     begin
       W^.Select;
@@ -1310,7 +1310,7 @@ begin
   Desktop^.Lock;
   if P^.Row>0 then Row:=P^.Row-1 else Row:=0;
   if P^.Col>0 then Col:=P^.Col-1 else Col:=0;
-  W:=TryToOpenFile(nil,P^.GetModuleName,Col,Row);
+  W:=TryToOpenFile(nil,P^.GetModuleName,Col,Row,true);
   Message(Owner,evCommand,cmClose,nil);
   Desktop^.UnLock;
 end;
@@ -2055,84 +2055,98 @@ begin
   OpenEditorWindow:=W;
 end;
 
-function TryToOpenFile(Bounds: PRect; FileName: string; CurX,CurY: sw_integer): PSourceWindow;
+function TryToOpenFile(Bounds: PRect; FileName: string; CurX,CurY: sw_integer;tryexts:boolean): PSourceWindow;
 var D : DirStr;
     N : NameStr;
     E : ExtStr;
     DrStr : String;
 
-function CheckDir(NewDir: DirStr; NewName: NameStr; NewExt: ExtStr): boolean;
-var OK: boolean;
-begin
-  NewDir:=CompleteDir(NewDir);
-  OK:=ExistsFile(NewDir+NewName+NewExt);
-  if OK then begin D:=NewDir; N:=NewName; E:=NewExt; end;
-  CheckDir:=OK;
-end;
-function CheckExt(NewExt: ExtStr): boolean;
-var OK: boolean;
-begin
-  OK:=false;
-  if D<>'' then OK:=CheckDir(D,N,NewExt) else
-    if CheckDir('.'+DirSep,N,NewExt) then OK:=true;
-  CheckExt:=OK;
-end;
-
-function TryToOpen(const DD : dirstr): PSourceWindow;
-var Found: boolean;
-    W : PSourceWindow;
-begin
-  D:=CompleteDir(DD);
-  Found:=true;
-  if E<>'' then Found:=CheckExt(E) else
-    if CheckExt('.pp') then Found:=true else
-      if CheckExt('.pas') then Found:=true else
-        if CheckExt('.inc')=false then
-          Found:=false;
-  if Found=false then W:=nil else
-    begin
-      FileName:=FExpand(D+N+E);
-      W:=OpenEditorWindow(Bounds,FileName,CurX,CurY);
-    end;
-  TryToOpen:=W;
-end;
-function SearchOnDesktop: PSourceWindow;
-var W: PWindow;
-    I: integer;
-    Found: boolean;
-    SName : string;
-begin
-  for I:=1 to 100 do
+  function CheckDir(NewDir: DirStr; NewName: NameStr; NewExt: ExtStr): boolean;
+  var OK: boolean;
   begin
-    W:=SearchWindowWithNo(I);
-    if (W<>nil) and (W^.HelpCtx=hcSourceWindow) then
-      begin
-        if (D='') then
-          SName:=NameAndExtOf(PSourceWindow(W)^.Editor^.FileName)
-        else
-          SName:=PSourceWindow(W)^.Editor^.FileName;
-        SName:=UpcaseStr(SName);
-
-        if E<>'' then
-          begin
-            if D<>'' then
-              Found:=SName=UpcaseStr(D+N+E)
-            else
-              Found:=SName=UpcaseStr(N+E);
-          end
-        else
-          begin
-            Found:=SName=UpcaseStr(N+'.pp');
-            if Found=false then
-              Found:=SName=UpcaseStr(N+'.pas');
-          end;
-        if Found then Break;
-      end;
+    NewDir:=CompleteDir(NewDir);
+    OK:=ExistsFile(NewDir+NewName+NewExt);
+    if OK then begin D:=NewDir; N:=NewName; E:=NewExt; end;
+    CheckDir:=OK;
   end;
-  if Found=false then W:=nil;
-  SearchOnDesktop:=PSourceWindow(W);
-end;
-var W: PSourceWindow;
+
+  function CheckExt(NewExt: ExtStr): boolean;
+  var OK: boolean;
+  begin
+    OK:=false;
+    if D<>'' then OK:=CheckDir(D,N,NewExt) else
+      if CheckDir('.'+DirSep,N,NewExt) then OK:=true;
+    CheckExt:=OK;
+  end;
+
+  function TryToOpen(const DD : dirstr): PSourceWindow;
+  var Found: boolean;
+      W : PSourceWindow;
+  begin
+    D:=CompleteDir(DD);
+    Found:=true;
+    if (E<>'') or (not tryexts) then
+     Found:=CheckExt(E)
+    else
+     if CheckExt('.pp') then
+      Found:=true
+    else
+     if CheckExt('.pas') then
+      Found:=true
+    else
+     if CheckExt('.inc') then
+      Found:=true
+    else
+      Found:=false;
+    if Found=false then
+      W:=nil
+    else
+      begin
+        FileName:=FExpand(D+N+E);
+        W:=OpenEditorWindow(Bounds,FileName,CurX,CurY);
+      end;
+    TryToOpen:=W;
+  end;
+
+  function SearchOnDesktop: PSourceWindow;
+  var W: PWindow;
+      I: integer;
+      Found: boolean;
+      SName : string;
+  begin
+    for I:=1 to 100 do
+    begin
+      W:=SearchWindowWithNo(I);
+      if (W<>nil) and (W^.HelpCtx=hcSourceWindow) then
+        begin
+          if (D='') then
+            SName:=NameAndExtOf(PSourceWindow(W)^.Editor^.FileName)
+          else
+            SName:=PSourceWindow(W)^.Editor^.FileName;
+          SName:=UpcaseStr(SName);
+
+          if E<>'' then
+            begin
+              if D<>'' then
+                Found:=SName=UpcaseStr(D+N+E)
+              else
+                Found:=SName=UpcaseStr(N+E);
+            end
+          else
+            begin
+              Found:=SName=UpcaseStr(N+'.pp');
+              if Found=false then
+                Found:=SName=UpcaseStr(N+'.pas');
+            end;
+          if Found then Break;
+        end;
+    end;
+    if Found=false then W:=nil;
+    SearchOnDesktop:=PSourceWindow(W);
+  end;
+
+var
+  W : PSourceWindow;
 begin
   FSplit(FileName,D,N,E);
   W:=SearchOnDesktop;
@@ -2406,7 +2420,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.21  1999-03-08 14:58:16  peter
+  Revision 1.22  1999-03-16 00:44:45  peter
+    * forgotten in last commit :(
+
+  Revision 1.21  1999/03/08 14:58:16  peter
     + prompt with dialogs for tools
 
   Revision 1.20  1999/03/01 15:42:08  peter

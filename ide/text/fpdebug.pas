@@ -257,7 +257,7 @@ begin
     end
   else
     begin
-      W:=TryToOpenFile(nil,fn,0,Line);
+      W:=TryToOpenFile(nil,fn,0,Line,false);
       if assigned(W) then
         begin
           W^.Editor^.SetHighlightRow(Line);
@@ -281,7 +281,7 @@ begin
          else
            begin
              { should now be open }
-              W:=TryToOpenFile(nil,fn,0,Line);
+              W:=TryToOpenFile(nil,fn,0,Line,true);
               W^.Editor^.SetHighlightRow(Line);
               W^.Editor^.TrackCursor(true);
               if Not assigned(GDBWindow) or not GDBWindow^.GetState(sfActive) then
@@ -678,7 +678,10 @@ end.
 
 {
   $Log$
-  Revision 1.17  1999-03-02 13:48:28  peter
+  Revision 1.18  1999-03-16 00:44:42  peter
+    * forgotten in last commit :(
+
+  Revision 1.17  1999/03/02 13:48:28  peter
     * fixed far problem is fpdebug
     * tile/cascading with message window
     * grep fixes

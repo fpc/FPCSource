@@ -366,7 +366,7 @@ begin
   Message(Desktop,evBroadcast,cmClearLineHighlights,nil);
   Desktop^.Lock;
   P.X:=R^.Position.X-1; P.Y:=R^.Position.Y-1;
-  W:=TryToOpenFile(nil,R^.GetFileName,P.X,P.Y);
+  W:=TryToOpenFile(nil,R^.GetFileName,P.X,P.Y,true);
   if W<>nil then
   begin
     BW:=LastBrowserWindow;
@@ -387,7 +387,7 @@ function TSymbolView.GotoReference(R: PReference): boolean;
 var W: PSourceWindow;
 begin
   Desktop^.Lock;
-  W:=TryToOpenFile(nil,R^.GetFileName,R^.Position.X-1,R^.Position.Y-1);
+  W:=TryToOpenFile(nil,R^.GetFileName,R^.Position.X-1,R^.Position.Y-1,true);
   if W<>nil then W^.Select;
   Desktop^.UnLock;
   GotoReference:=W<>nil;
@@ -911,11 +911,15 @@ end;
 END.
 {
   $Log$
-  Revision 1.12  1999-03-01 15:42:02  peter
+  Revision 1.13  1999-03-16 00:44:44  peter
+    * forgotten in last commit :(
+
+  Revision 1.12  1999/03/01 15:42:02  peter
     + Added dummy entries for functions not yet implemented
     * MenuBar didn't update itself automatically on command-set changes
     * Fixed Debugging/Profiling options dialog
-    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is
+ set
     * efBackSpaceUnindents works correctly
     + 'Messages' window implemented
     + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros
