@@ -279,7 +279,7 @@ begin
         end;
         if DontClear=false then ClearEvent(Event);
       end;
-    evMouse :
+    evMouseDown :
       if Event.double then
         GotoItem(Focused);
   end;
@@ -739,7 +739,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.6  1999-02-10 09:44:59  pierre
+  Revision 1.7  1999-02-16 12:44:20  pierre
+   * DoubleClick works now
+
+  Revision 1.6  1999/02/10 09:44:59  pierre
     + added B tab for functions and vars for break/watch
       TBrowserWindow also stores the symbol itself for break/watchpoints
 
