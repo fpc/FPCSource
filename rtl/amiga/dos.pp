@@ -48,10 +48,8 @@ Unit Dos;
 { o DiskFree / Disksize don't work as expected                       }
 { o Implement SetDate and SetTime                                    }
 { o Implement Setftime                                               }
-{ o DosExitCode with Exec does not work                              }
 { o Implement EnvCount,EnvStr                                        }
 { o FindFirst should only work with correct attributes               }
-{ o FindFirst / FindNext does not set the date and time in SearchRec }
 {--------------------------------------------------------------------}
 
 
@@ -341,6 +339,7 @@ CONST
     _LVOMatchEnd   = -834;
     _LVOCli        = -492;
     _LVOExecute    = -222;
+    _LVOSystemTagList = -606;
 
 
     ERROR_NO_MORE_ENTRIES            = 232;
@@ -568,18 +567,17 @@ end;
 
 
 
-    Function _Execute(p: pchar; stdin : longint; stdout: longint): longint;
+    Function _Execute(p: pchar): longint;
      Begin
        asm
-         move.l  a6,d6                 { save base pointer    }
-         movem.l d2/d3,-(sp)
-         move.l  p,d1
-         move.l  stdin,d2
-         move.l  stdout,d3
+         move.l  a6,d6                 { save base pointer       }
+         move.l  d2,-(sp)
+         move.l  p,d1                  { command to execute      }
+         clr.l   d2                    { No TagList for command  }
          move.l  _DosBase,a6
-         jsr     _LVOExecute(a6)
-         movem.l (sp)+,d2/d3
-         move.l  d6,a6                 { restore base pointer }
+         jsr     _LVOSystemTagList(a6)
+         move.l  (sp)+,d2
+         move.l  d6,a6                 { restore base pointer    }
          move.l  d0,@RESULT
        end;
      end;
@@ -783,18 +781,35 @@ Var
 Procedure Exec (Const Path: PathStr; Const ComLine: ComStr);
   var
    p : string;
-   pCLI : pCommandLineInterface;
    buf: array[0..255] of char;
+   result : longint;
+   MyLock : longint;
   Begin
    DosError := 0;
+   LastdosExitCode := 0;
    p:=Path+' '+ComLine;
    Move(p[1],buf,length(p));
    buf[Length(p)]:=#0;
-   if _Execute(buf,0,0) = 0 then
-      DosError:=10;
-   { Get the error code }
-   pCLI:=CLI;
-   LastDosExitCode:=pCLI^.cli_ReturnCode;
+   { Here we must first check if the command we wish to execute }
+   { actually exists, because this is NOT handled by the        }
+   { _SystemTagList call (program will abort!!)                 }
+
+   { Try to open with shared lock                               }
+   MyLock:=Lock(path,-2);
+   if MyLock <> 0 then
+     Begin
+        { File exists - therefore unlock it }
+        Unlock(MyLock);
+        result:=_Execute(buf);
+        { on return of -1 the shell could not be executed }
+        { probably because there was not enough memory    }
+        if result = -1 then
+          DosError:=8
+        else
+          LastDosExitCode:=word(result);
+     end
+   else
+    DosError:=3;
   End;
 
 
@@ -1277,6 +1292,15 @@ Begin
  ver:=TRUE;
  breakflag:=TRUE;
 End.
+
+{
+  $Log$
+  Revision 1.3  1998-07-14 12:09:59  carl
+    + added log at the end
+    * exec now works correctly
+
+
+}
 
 
 
