@@ -36,21 +36,35 @@ Uses AAsm, CObjects
   {$endif}
   ;
 
+
+Type
+
+  TRegArray = Array[R_EAX..R_BL] of TRegister;
+  TRegSet = Set of TRegister;
+  TRegInfo = Record
+                RegsEncountered: TRegSet;
+                RegsLoadedForRef: TRegSet;
+                SubstRegs: TRegArray;
+              End;
+
 {*********************** Procedures and Functions ************************}
 
 Procedure InsertLLItem(AsmL: PAasmOutput; prev, foll, new_one: PLinkedList_Item);
 
 Function Reg32(Reg: TRegister): TRegister;
+Function RefsEquivalent(Const R1, R2: TReference; Var RegInfo: TRegInfo): Boolean;
 Function RefsEqual(Const R1, R2: TReference): Boolean;
 Function IsGP32Reg(Reg: TRegister): Boolean;
 Function RegInRef(Reg: TRegister; Const Ref: TReference): Boolean;
 Function RegInInstruction(Reg: TRegister; p1: Pai): Boolean;
+Function RegModifiedByInstruction(Reg: TRegister; p1: Pai): Boolean;
 
 Function GetNextInstruction(Current: Pai; Var Next: Pai): Boolean;
 Function GetLastInstruction(Current: Pai; Var Last: Pai): Boolean;
 
-Function RegsSameContent(p1, p2: Pai; Reg: TRegister): Boolean;
-Function InstructionsEqual(p1, p2: Pai): Boolean;
+Procedure UpdateUsedRegs(Var UsedRegs: TRegSet; p: Pai);
+Function RegsEquivalent(OldReg, NewReg: TRegister; Var RegInfo: TRegInfo): Boolean;
+Function InstructionsEquivalent(p1, p2: Pai; Var RegInfo: TRegInfo): Boolean;
 
 Procedure DFAPass1(AsmL: PAasmOutput);
 Function DFAPass2(AsmL: PAasmOutput): Pai;
@@ -87,21 +101,20 @@ Const
 
 Type
 
-  TRegArray = Array[R_EAX..R_EDI] of TRegister;
-  TRegSet = Set of TRegister;
-  TRegInfo = Record
-                RegsEncountered: TRegSet;
-                SubstRegs: TRegArray;
-              End;
-
-
 {What an instruction can change}
   TChange = (C_None,
+             {Read from a register}
              C_REAX, C_RECX, C_REDX, C_REBX, C_RESP, C_REBP, C_RESI, C_REDI,
+             {write from a register}
              C_WEAX, C_WECX, C_WEDX, C_WEBX, C_WESP, C_WEBP, C_WESI, C_WEDI,
+             {read and write from/to a register}
              C_RWEAX, C_RWECX, C_RWEDX, C_RWEBX, C_RWESP, C_RWEBP, C_RWESI, C_RWEDI,
              C_CDirFlag {clear direction flag}, C_SDirFlag {set dir flag},
-             C_Flags, C_FPU, C_Op1, C_Op2, C_Op3, C_MemEDI, C_All);
+             C_Flags, C_FPU,
+             C_ROp1, C_WOp1, C_RWOp1,
+             C_ROp2, C_WOp2, C_RWOp2,
+             C_ROp3, C_WOp3, C_RWOp3,
+             C_MemEDI, C_All);
 
 {the possible states of a flag}
   TFlagContents = (F_Unknown, F_NotSet, F_Set);
@@ -144,6 +157,8 @@ Type
                Regs: TRegContent;
 {               FPURegs: TRegFPUContent;} {currently not yet used}
                LineSave: Longint;
+    {allocated Registers}
+               UsedRegs: TRegSet;
     {status of the direction flag}
                DirFlag: TFlagContents;
     {can this instruction be removed?}
@@ -201,45 +216,45 @@ Uses globals, systems, strings, verbose, hcodegen,
    {$endif i386}
 
 Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
-   {MOV} (Ch: (C_Op2, C_None, C_None)),
- {MOVZX} (Ch: (C_Op2, C_None, C_None)),
- {MOVSX} (Ch: (C_Op2, C_None, C_None)),
+   {MOV} (Ch: (C_WOp2, C_None, C_None)),
+ {MOVZX} (Ch: (C_WOp2, C_None, C_None)),
+ {MOVSX} (Ch: (C_WOp2, C_None, C_None)),
  {LABEL} (Ch: (C_All, C_None, C_None)), {don't know value of any register}
-   {ADD} (Ch: (C_Op2, C_Flags, C_None)),
+   {ADD} (Ch: (C_RWOp2, C_Flags, C_None)),
   {CALL} (Ch: (C_All, C_None, C_None)), {don't know value of any register}
-  {IDIV} (Ch: (C_WEAX, C_WEDX, C_Flags)),
+  {IDIV} (Ch: (C_RWEAX, C_WEDX, C_Flags)),
   {IMUL} (Ch: (C_WEAX, C_WEDX, C_Flags)), {handled separately, because several forms exist}
    {JMP} (Ch: (C_None, C_None, C_None)),
-   {LEA} (Ch: (C_Op2, C_None, C_None)),
+   {LEA} (Ch: (C_WOp2, C_None, C_None)),
    {MUL} (Ch: (C_RWEAX, C_WEDX, C_Flags)),
-   {NEG} (Ch: (C_Op1, C_None, C_None)),
-   {NOT} (Ch: (C_Op1, C_Flags, C_None)),
-   {POP} (Ch: (C_Op1, C_RWESP, C_None)),
+   {NEG} (Ch: (C_WOp1, C_None, C_None)),
+   {NOT} (Ch: (C_WOp1, C_Flags, C_None)),
+   {POP} (Ch: (C_WOp1, C_RWESP, C_None)),
  {POPAD} (Ch: (C_None, C_None, C_None)), {don't know value of any register}
   {PUSH} (Ch: (C_RWESP, C_None, C_None)),
 {PUSHAD} (Ch: (C_RWESP, C_None, C_None)),
    {RET} (Ch: (C_None, C_None, C_None)), {don't know value of any register}
-   {SUB} (Ch: (C_Op2, C_Flags, C_None)),
-  {XCHG} (Ch: (C_Op1, C_Op2, C_None)), {(will be) handled seperately}
-   {XOR} (Ch: (C_Op2, C_Flags, C_None)),
+   {SUB} (Ch: (C_RWOp2, C_Flags, C_None)),
+  {XCHG} (Ch: (C_RWOp1, C_RWOp2, C_None)), {(will be) handled seperately}
+   {XOR} (Ch: (C_RWOp2, C_Flags, C_None)),
   {FILD} (Ch: (C_FPU, C_None, C_None)),
    {CMP} (Ch: (C_Flags, C_None, C_None)),
     {JZ} (Ch: (C_None, C_None, C_None)),
-   {INC} (Ch: (C_Op1, C_Flags, C_None)),
-   {DEC} (Ch: (C_Op1, C_Flags, C_None)),
-  {SETE} (Ch: (C_Op1, C_None, C_None)),
- {SETNE} (Ch: (C_Op1, C_None, C_None)),
-  {SETL} (Ch: (C_Op1, C_None, C_None)),
-  {SETG} (Ch: (C_Op1, C_None, C_None)),
- {SETLE} (Ch: (C_Op1, C_None, C_None)),
- {SETGE} (Ch: (C_Op1, C_None, C_None)),
+   {INC} (Ch: (C_RWOp1, C_Flags, C_None)),
+   {DEC} (Ch: (C_RWOp1, C_Flags, C_None)),
+  {SETE} (Ch: (C_WOp1, C_None, C_None)),
+ {SETNE} (Ch: (C_WOp1, C_None, C_None)),
+  {SETL} (Ch: (C_WOp1, C_None, C_None)),
+  {SETG} (Ch: (C_WOp1, C_None, C_None)),
+ {SETLE} (Ch: (C_WOp1, C_None, C_None)),
+ {SETGE} (Ch: (C_WOp1, C_None, C_None)),
     {JE} (Ch: (C_None, C_None, C_None)),
    {JNE} (Ch: (C_None, C_None, C_None)),
     {JL} (Ch: (C_None, C_None, C_None)),
     {JG} (Ch: (C_None, C_None, C_None)),
    {JLE} (Ch: (C_None, C_None, C_None)),
    {JGE} (Ch: (C_None, C_None, C_None)),
-    {OR} (Ch: (C_Op2, C_Flags, C_None)),
+    {OR} (Ch: (C_RWOp2, C_Flags, C_None)),
    {FLD} (Ch: (C_FPU, C_None, C_None)),
   {FADD} (Ch: (C_FPU, C_None, C_None)),
   {FMUL} (Ch: (C_FPU, C_None, C_None)),
@@ -250,8 +265,8 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
  {FIDIV} (Ch: (C_FPU, C_None, C_None)),
   {CLTD} (Ch: (C_WEDX, C_None, C_None)),
    {JNZ} (Ch: (C_None, C_None, C_None)),
-  {FSTP} (Ch: (C_Op1, C_None, C_None)),
-   {AND} (Ch: (C_Op2, C_Flags, C_None)),
+  {FSTP} (Ch: (C_WOp1, C_None, C_None)),
+   {AND} (Ch: (C_RWOp2, C_Flags, C_None)),
    {JNO} (Ch: (C_None, C_None, C_None)),
   {NOTH} (Ch: (C_None, C_None, C_None)), {***???***}
   {NONE} (Ch: (C_None, C_None, C_None)),
@@ -260,13 +275,13 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
    {CLD} (Ch: (C_CDirFlag, C_None, C_None)),
   {MOVS} (Ch: (C_RWESI, C_RWEDI, C_MemEDI)),
    {REP} (Ch: (C_RWECX, C_None, C_None)),
-   {SHL} (Ch: (C_Op2, C_Flags, C_None)),
-   {SHR} (Ch: (C_Op2, C_Flags, C_None)),
+   {SHL} (Ch: (C_RWOp2, C_Flags, C_None)),
+   {SHR} (Ch: (C_RWOp2, C_Flags, C_None)),
  {BOUND} (Ch: (C_None, C_None, C_None)),
    {JNS} (Ch: (C_None, C_None, C_None)),
     {JS} (Ch: (C_None, C_None, C_None)),
     {JO} (Ch: (C_None, C_None, C_None)),
-   {SAR} (Ch: (C_Op2, C_Flags, C_None)),
+   {SAR} (Ch: (C_RWOp2, C_Flags, C_None)),
   {TEST} (Ch: (C_Flags, C_None, C_None)),
   {FCOM} (Ch: (C_FPU, C_None, C_None)),
  {FCOMP} (Ch: (C_FPU, C_None, C_None)),
@@ -276,22 +291,22 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
  {FMULP} (Ch: (C_FPU, C_None, C_None)),
  {FSUBP} (Ch: (C_FPU, C_None, C_None)),
  {FDIVP} (Ch: (C_FPU, C_None, C_None)),
- {FNSTS} (Ch: (C_Op1, C_None, C_None)),
+ {FNSTS} (Ch: (C_WOp1, C_None, C_None)),
   {SAHF} (Ch: (C_Flags, C_None, C_None)),
 {FDIVRP} (Ch: (C_FPU, C_None, C_None)),
 {FSUBRP} (Ch: (C_FPU, C_None, C_None)),
-  {SETC} (Ch: (C_Op1, C_None, C_None)),
- {SETNC} (Ch: (C_Op1, C_None, C_None)),
+  {SETC} (Ch: (C_WOp1, C_None, C_None)),
+ {SETNC} (Ch: (C_WOp1, C_None, C_None)),
     {JC} (Ch: (C_None, C_None, C_None)),
    {JNC} (Ch: (C_None, C_None, C_None)),
     {JA} (Ch: (C_None, C_None, C_None)),
    {JAE} (Ch: (C_None, C_None, C_None)),
     {JB} (Ch: (C_None, C_None, C_None)),
    {JBE} (Ch: (C_None, C_None, C_None)),
-  {SETA} (Ch: (C_Op1, C_None, C_None)),
- {SETAE} (Ch: (C_Op1, C_None, C_None)),
-  {SETB} (Ch: (C_Op1, C_None, C_None)),
- {SETBE} (Ch: (C_Op1, C_None, C_None)),
+  {SETA} (Ch: (C_WOp1, C_None, C_None)),
+ {SETAE} (Ch: (C_WOp1, C_None, C_None)),
+  {SETB} (Ch: (C_WOp1, C_None, C_None)),
+ {SETBE} (Ch: (C_WOp1, C_None, C_None)),
    {AAA} (Ch: (C_RWEAX, C_Flags, C_None)),
    {AAD} (Ch: (C_RWEAX, C_Flags, C_None)),
    {AAM} (Ch: (C_RWEAX, C_Flags, C_None)),
@@ -322,32 +337,32 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {WAIT} (Ch: (C_None, C_None, C_None)),
   {XLAT} (Ch: (C_WEAX, C_None, C_None)),
  {XLATB} (Ch: (C_WEAX, C_None, C_None)),
- {MOVSB} (Ch: (C_Op2, C_None, C_None)),
-{MOVSBL} (Ch: (C_Op2, C_None, C_None)),
-{MOVSBW} (Ch: (C_Op2, C_None, C_None)),
-{MOVSWL} (Ch: (C_Op2, C_None, C_None)),
- {MOVZB} (Ch: (C_Op2, C_None, C_None)),
-{MOVZWL} (Ch: (C_Op2, C_None, C_None)),
+ {MOVSB} (Ch: (C_WOp2, C_None, C_None)),
+{MOVSBL} (Ch: (C_WOp2, C_None, C_None)),
+{MOVSBW} (Ch: (C_WOp2, C_None, C_None)),
+{MOVSWL} (Ch: (C_WOp2, C_None, C_None)),
+ {MOVZB} (Ch: (C_WOp2, C_None, C_None)),
+{MOVZWL} (Ch: (C_WOp2, C_None, C_None)),
   {POPA} (Ch: (C_None, C_None, C_None)), {don't know value of any register}
-    {IN} (Ch: (C_Op2, C_None, C_None)),
+    {IN} (Ch: (C_WOp2, C_None, C_None)),
    {OUT} (Ch: (C_None, C_None, C_None)),
-   {LDS} (Ch: (C_Op2, C_None, C_None)),
-   {LCS} (Ch: (C_Op2, C_None, C_None)),
-   {LES} (Ch: (C_Op2, C_None, C_None)),
-   {LFS} (Ch: (C_Op2, C_None, C_None)),
-   {LGS} (Ch: (C_Op2, C_None, C_None)),
-   {LSS} (Ch: (C_Op2, C_None, C_None)),
+   {LDS} (Ch: (C_WOp2, C_None, C_None)),
+   {LCS} (Ch: (C_WOp2, C_None, C_None)),
+   {LES} (Ch: (C_WOp2, C_None, C_None)),
+   {LFS} (Ch: (C_WOp2, C_None, C_None)),
+   {LGS} (Ch: (C_WOp2, C_None, C_None)),
+   {LSS} (Ch: (C_WOp2, C_None, C_None)),
   {POPF} (Ch: (C_RWESP, C_Flags, C_None)),
-   {SBB} (Ch: (C_Op2, C_Flags, C_None)),
-   {ADC} (Ch: (C_Op2, C_Flags, C_None)),
+   {SBB} (Ch: (C_RWOp2, C_Flags, C_None)),
+   {ADC} (Ch: (C_RWOp2, C_Flags, C_None)),
    {DIV} (Ch: (C_RWEAX, C_WEDX, C_Flags)),
-   {ROR} (Ch: (C_Op2, C_Flags, C_None)),
-   {ROL} (Ch: (C_Op2, C_Flags, C_None)),
-   {RCL} (Ch: (C_Op2, C_Flags, C_None)),
-   {RCR} (Ch: (C_Op2, C_Flags, C_None)),
-   {SAL} (Ch: (C_Op2, C_Flags, C_None)),
-  {SHLD} (Ch: (C_Op3, C_Flags, C_None)),
-  {SHRD} (Ch: (C_Op3, C_Flags, C_None)),
+   {ROR} (Ch: (C_RWOp2, C_Flags, C_None)),
+   {ROL} (Ch: (C_RWOp2, C_Flags, C_None)),
+   {RCL} (Ch: (C_RWOp2, C_Flags, C_None)),
+   {RCR} (Ch: (C_RWOp2, C_Flags, C_None)),
+   {SAL} (Ch: (C_RWOp2, C_Flags, C_None)),
+  {SHLD} (Ch: (C_RWOp3, C_Flags, C_None)),
+  {SHRD} (Ch: (C_RWOp3, C_Flags, C_None)),
  {LCALL} (Ch: (C_All, C_None, C_None)), {don't know value of any register}
   {LJMP} (Ch: (C_All, C_None, C_None)), {don't know value of any register}
   {LRET} (Ch: (C_All, C_None, C_None)), {don't know value of any register}
@@ -370,12 +385,12 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
    {INS} (Ch: (C_RWEDI, C_MemEDI, C_None)),
   {OUTS} (Ch: (C_RWESI, C_None, C_None)),
   {SCAS} (Ch: (C_RWEDI, C_Flags, C_None)),
-   {BSF} (Ch: (C_Op2, C_Flags, C_None)),
-   {BSR} (Ch: (C_Op2, C_Flags, C_None)),
+   {BSF} (Ch: (C_WOp2, C_Flags, C_None)),
+   {BSR} (Ch: (C_WOp2, C_Flags, C_None)),
     {BT} (Ch: (C_Flags, C_None, C_None)),
-   {BTC} (Ch: (C_Op2, C_Flags, C_None)),
-   {BTR} (Ch: (C_Op2, C_Flags, C_None)),
-   {BTS} (Ch: (C_Op2, C_Flags, C_None)),
+   {BTC} (Ch: (C_RWOp2, C_Flags, C_None)),
+   {BTR} (Ch: (C_RWOp2, C_Flags, C_None)),
+   {BTS} (Ch: (C_RWOp2, C_Flags, C_None)),
    {INT} (Ch: (C_All, C_None, C_None)), {don't know value of any register}
   {INT3} (Ch: (C_None, C_None, C_None)),
   {INTO} (Ch: (C_All, C_None, C_None)), {don't know value of any register}
@@ -385,42 +400,42 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
  {LOOPE} (Ch: (C_RWECX, C_None, C_None)),
 {LOOPNZ} (Ch: (C_RWECX, C_None, C_None)),
 {LOOPNE} (Ch: (C_RWECX, C_None, C_None)),
-  {SETO} (Ch: (C_Op1, C_None, C_None)),
- {SETNO} (Ch: (C_Op1, C_None, C_None)),
-{SETNAE} (Ch: (C_Op1, C_None, C_None)),
- {SETNB} (Ch: (C_Op1, C_None, C_None)),
-  {SETZ} (Ch: (C_Op1, C_None, C_None)),
- {SETNZ} (Ch: (C_Op1, C_None, C_None)),
- {SETNA} (Ch: (C_Op1, C_None, C_None)),
-{SETNBE} (Ch: (C_Op1, C_None, C_None)),
-  {SETS} (Ch: (C_Op1, C_None, C_None)),
- {SETNS} (Ch: (C_Op1, C_None, C_None)),
-  {SETP} (Ch: (C_Op1, C_None, C_None)),
- {SETPE} (Ch: (C_Op1, C_None, C_None)),
- {SETNP} (Ch: (C_Op1, C_None, C_None)),
- {SETPO} (Ch: (C_Op1, C_None, C_None)),
-{SETNGE} (Ch: (C_Op1, C_None, C_None)),
- {SETNL} (Ch: (C_Op1, C_None, C_None)),
- {SETNG} (Ch: (C_Op1, C_None, C_None)),
-{SETNLE} (Ch: (C_Op1, C_None, C_None)),
+  {SETO} (Ch: (C_WOp1, C_None, C_None)),
+ {SETNO} (Ch: (C_WOp1, C_None, C_None)),
+{SETNAE} (Ch: (C_WOp1, C_None, C_None)),
+ {SETNB} (Ch: (C_WOp1, C_None, C_None)),
+  {SETZ} (Ch: (C_WOp1, C_None, C_None)),
+ {SETNZ} (Ch: (C_WOp1, C_None, C_None)),
+ {SETNA} (Ch: (C_WOp1, C_None, C_None)),
+{SETNBE} (Ch: (C_WOp1, C_None, C_None)),
+  {SETS} (Ch: (C_WOp1, C_None, C_None)),
+ {SETNS} (Ch: (C_WOp1, C_None, C_None)),
+  {SETP} (Ch: (C_WOp1, C_None, C_None)),
+ {SETPE} (Ch: (C_WOp1, C_None, C_None)),
+ {SETNP} (Ch: (C_WOp1, C_None, C_None)),
+ {SETPO} (Ch: (C_WOp1, C_None, C_None)),
+{SETNGE} (Ch: (C_WOp1, C_None, C_None)),
+ {SETNL} (Ch: (C_WOp1, C_None, C_None)),
+ {SETNG} (Ch: (C_WOp1, C_None, C_None)),
+{SETNLE} (Ch: (C_WOp1, C_None, C_None)),
   {ARPL} (Ch: (C_Flags, C_None, C_None)),
-   {LAR} (Ch: (C_Op2, C_None, C_None)),
+   {LAR} (Ch: (C_WOp2, C_None, C_None)),
   {LGDT} (Ch: (C_None, C_None, C_None)),
   {LIDT} (Ch: (C_None, C_None, C_None)),
   {LLDT} (Ch: (C_None, C_None, C_None)),
   {LMSW} (Ch: (C_None, C_None, C_None)),
-   {LSL} (Ch: (C_Op2, C_Flags, C_None)),
+   {LSL} (Ch: (C_WOp2, C_Flags, C_None)),
    {LTR} (Ch: (C_None, C_None, C_None)),
-  {SGDT} (Ch: (C_Op1, C_None, C_None)),
-  {SIDT} (Ch: (C_Op1, C_None, C_None)),
-  {SLDT} (Ch: (C_Op1, C_None, C_None)),
-  {SMSW} (Ch: (C_Op1, C_None, C_None)),
-  {STR}  (Ch: (C_Op1, C_None, C_None)),
+  {SGDT} (Ch: (C_WOp1, C_None, C_None)),
+  {SIDT} (Ch: (C_WOp1, C_None, C_None)),
+  {SLDT} (Ch: (C_WOp1, C_None, C_None)),
+  {SMSW} (Ch: (C_WOp1, C_None, C_None)),
+  {STR}  (Ch: (C_WOp1, C_None, C_None)),
   {VERR} (Ch: (C_Flags, C_None, C_None)),
   {VERW} (Ch: (C_Flags, C_None, C_None)),
   {FABS} (Ch: (C_FPU, C_None, C_None)),
   {FBLD} (Ch: (C_FPU, C_None, C_None)),
- {FBSTP} (Ch: (C_Op1, C_None, C_None)),
+ {FBSTP} (Ch: (C_WOp1, C_None, C_None)),
  {FCLEX} (Ch: (C_FPU, C_None, C_None)),
 {FNCLEX} (Ch: (C_FPU, C_None, C_None)),
   {FCOS} (Ch: (C_FPU, C_None, C_None)),
@@ -439,8 +454,8 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
 {FINCSTP}(Ch: (C_FPU, C_None, C_None)),
  {FINIT} (Ch: (C_FPU, C_None, C_None)),
 {FNINIT} (Ch: (C_FPU, C_None, C_None)),
-  {FIST} (Ch: (C_Op1, C_None, C_None)),
- {FISTP} (Ch: (C_Op1, C_None, C_None)),
+  {FIST} (Ch: (C_WOp1, C_None, C_None)),
+ {FISTP} (Ch: (C_WOp1, C_None, C_None)),
  {FISUB} (Ch: (C_FPU, C_None, C_None)),
  {FSUBR} (Ch: (C_FPU, C_None, C_None)),
  {FLDCW} (Ch: (C_FPU, C_None, C_None)),
@@ -459,20 +474,20 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
  {FPTAN} (Ch: (C_FPU, C_None, C_None)),
 {FRNDINT}(Ch: (C_FPU, C_None, C_None)),
 {FRSTOR} (Ch: (C_FPU, C_None, C_None)),
- {FSAVE} (Ch: (C_Op1, C_None, C_None)),
+ {FSAVE} (Ch: (C_WOp1, C_None, C_None)),
 {FNSAVE} (Ch: (C_FPU, C_None, C_None)),
 {FSCALE} (Ch: (C_FPU, C_None, C_None)),
 {FSETPM} (Ch: (C_FPU, C_None, C_None)),
   {FSIN} (Ch: (C_FPU, C_None, C_None)),
 {FSINCOS}(Ch: (C_FPU, C_None, C_None)),
  {FSQRT} (Ch: (C_FPU, C_None, C_None)),
-   {FST} (Ch: (C_Op1, C_None, C_None)),
- {FSTCW} (Ch: (C_Op1, C_None, C_None)),
-{FNSTCW} (Ch: (C_Op1, C_None, C_None)),
-{FSTENV} (Ch: (C_Op1, C_None, C_None)),
-{FNSTENV}(Ch: (C_Op1, C_None, C_None)),
- {FSTSW} (Ch: (C_Op1, C_None, C_None)),
-{FNSTSW} (Ch: (C_Op1, C_None, C_None)),
+   {FST} (Ch: (C_WOp1, C_None, C_None)),
+ {FSTCW} (Ch: (C_WOp1, C_None, C_None)),
+{FNSTCW} (Ch: (C_WOp1, C_None, C_None)),
+{FSTENV} (Ch: (C_WOp1, C_None, C_None)),
+{FNSTENV}(Ch: (C_WOp1, C_None, C_None)),
+ {FSTSW} (Ch: (C_WOp1, C_None, C_None)),
+{FNSTSW} (Ch: (C_WOp1, C_None, C_None)),
   {FTST} (Ch: (C_FPU, C_None, C_None)),
  {FUCOM} (Ch: (C_FPU, C_None, C_None)),
 {FUCOMP} (Ch: (C_FPU, C_None, C_None)),
@@ -488,17 +503,17 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
  {FILDL} (Ch: (C_FPU, C_None, C_None)),
   {FLDL} (Ch: (C_FPU, C_None, C_None)),
   {FLDT} (Ch: (C_FPU, C_None, C_None)),
- {FISTQ} (Ch: (C_Op1, C_None, C_None)),
- {FISTS} (Ch: (C_Op1, C_None, C_None)),
- {FISTL} (Ch: (C_Op1, C_None, C_None)),
-  {FSTL} (Ch: (C_Op1, C_None, C_None)),
-  {FSTS} (Ch: (C_Op1, C_None, C_None)),
- {FSTPS} (Ch: (C_Op1, C_None, C_None)),
-{FISTPL} (Ch: (C_Op1, C_None, C_None)),
- {FSTPL} (Ch: (C_Op1, C_None, C_None)),
-{FISTPS} (Ch: (C_Op1, C_None, C_None)),
-{FISTPQ} (Ch: (C_Op1, C_None, C_None)),
- {FSTPT} (Ch: (C_Op1, C_None, C_None)),
+ {FISTQ} (Ch: (C_WOp1, C_None, C_None)),
+ {FISTS} (Ch: (C_WOp1, C_None, C_None)),
+ {FISTL} (Ch: (C_WOp1, C_None, C_None)),
+  {FSTL} (Ch: (C_WOp1, C_None, C_None)),
+  {FSTS} (Ch: (C_WOp1, C_None, C_None)),
+ {FSTPS} (Ch: (C_WOp1, C_None, C_None)),
+{FISTPL} (Ch: (C_WOp1, C_None, C_None)),
+ {FSTPL} (Ch: (C_WOp1, C_None, C_None)),
+{FISTPS} (Ch: (C_WOp1, C_None, C_None)),
+{FISTPQ} (Ch: (C_WOp1, C_None, C_None)),
+ {FSTPT} (Ch: (C_WOp1, C_None, C_None)),
 {FCOMPS} (Ch: (C_FPU, C_None, C_None)),
 {FICOMPL}(Ch: (C_FPU, C_None, C_None)),
 {FCOMPL} (Ch: (C_FPU, C_None, C_None)),
@@ -537,52 +552,52 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
  {POPFD} (Ch: (C_RWESP, C_Flags, C_None)),
 {below are the MMX instructions}
 {A_EMMS} (Ch: (C_FPU, C_None, C_None)),
-{A_MOVD} (Ch: (C_Op2, C_None, C_None)),
-{A_MOVQ} (Ch: (C_Op2, C_None, C_None)),
+{A_MOVD} (Ch: (C_WOp2, C_None, C_None)),
+{A_MOVQ} (Ch: (C_WOp2, C_None, C_None)),
 {A_PACKSSDW} (Ch: (C_All, C_None, C_None)),
 {A_PACKSSWB} (Ch: (C_All, C_None, C_None)),
 {A_PACKUSWB} (Ch: (C_All, C_None, C_None)),
-{A_PADDB} (Ch: (C_Op2, C_None, C_None)),
-{A_PADDD} (Ch: (C_Op2, C_None, C_None)),
-{A_PADDSB} (Ch: (C_Op2, C_None, C_None)),
-{A_PADDSW} (Ch: (C_Op2, C_None, C_None)),
-{A_PADDUSB} (Ch: (C_Op2, C_None, C_None)),
-{A_PADDUSW} (Ch: (C_Op2, C_None, C_None)),
-{A_PADDW} (Ch: (C_Op2, C_None, C_None)),
-{A_PAND} (Ch: (C_Op2, C_None, C_None)),
-{A_PANDN} (Ch: (C_Op2, C_None, C_None)),
+{A_PADDB} (Ch: (C_RWOp2, C_None, C_None)),
+{A_PADDD} (Ch: (C_RWOp2, C_None, C_None)),
+{A_PADDSB} (Ch: (C_RWOp2, C_None, C_None)),
+{A_PADDSW} (Ch: (C_RWOp2, C_None, C_None)),
+{A_PADDUSB} (Ch: (C_RWOp2, C_None, C_None)),
+{A_PADDUSW} (Ch: (C_RWOp2, C_None, C_None)),
+{A_PADDW} (Ch: (C_RWOp2, C_None, C_None)),
+{A_PAND} (Ch: (C_RWOp2, C_None, C_None)),
+{A_PANDN} (Ch: (C_RWOp2, C_None, C_None)),
 {A_PCMPEQB} (Ch: (C_All, C_None, C_None)),
 {A_PCMPEQD} (Ch: (C_All, C_None, C_None)),
 {A_PCMPEQW} (Ch: (C_All, C_None, C_None)),
 {A_PCMPGTB} (Ch: (C_All, C_None, C_None)),
 {A_PCMPGTD} (Ch: (C_All, C_None, C_None)),
 {A_PCMPGTW} (Ch: (C_All, C_None, C_None)),
-{A_PMADDWD} (Ch: (C_Op2, C_None, C_None)),
+{A_PMADDWD} (Ch: (C_RWOp2, C_None, C_None)),
 {A_PMULHW} (Ch: (C_All, C_None, C_None)),
 {A_PMULLW} (Ch: (C_All, C_None, C_None)),
-{A_POR} (Ch: (C_Op2, C_None, C_None)),
-{A_PSLLD} (Ch: (C_Op2, C_None, C_None)),
-{A_PSLLQ} (Ch: (C_Op2, C_None, C_None)),
-{A_PSLLW} (Ch: (C_Op2, C_None, C_None)),
-{A_PSRAD} (Ch: (C_Op2, C_None, C_None)),
-{A_PSRAW} (Ch: (C_Op2, C_None, C_None)),
-{A_PSRLD} (Ch: (C_Op2, C_None, C_None)),
-{A_PSRLQ} (Ch: (C_Op2, C_None, C_None)),
-{A_PSRLW} (Ch: (C_Op2, C_None, C_None)),
-{A_PSUBB} (Ch: (C_Op2, C_None, C_None)),
-{A_PSUBD} (Ch: (C_Op2, C_None, C_None)),
-{A_PSUBSB} (Ch: (C_Op2, C_None, C_None)),
-{A_PSUBSW} (Ch: (C_Op2, C_None, C_None)),
-{A_PSUBUSB} (Ch: (C_Op2, C_None, C_None)),
-{A_PSUBUSW} (Ch: (C_Op2, C_None, C_None)),
-{A_PSUBW} (Ch: (C_Op2, C_None, C_None)),
+{A_POR} (Ch: (C_RWOp2, C_None, C_None)),
+{A_PSLLD} (Ch: (C_RWOp2, C_None, C_None)),
+{A_PSLLQ} (Ch: (C_RWOp2, C_None, C_None)),
+{A_PSLLW} (Ch: (C_RWOp2, C_None, C_None)),
+{A_PSRAD} (Ch: (C_RWOp2, C_None, C_None)),
+{A_PSRAW} (Ch: (C_RWOp2, C_None, C_None)),
+{A_PSRLD} (Ch: (C_RWOp2, C_None, C_None)),
+{A_PSRLQ} (Ch: (C_RWOp2, C_None, C_None)),
+{A_PSRLW} (Ch: (C_RWOp2, C_None, C_None)),
+{A_PSUBB} (Ch: (C_RWOp2, C_None, C_None)),
+{A_PSUBD} (Ch: (C_RWOp2, C_None, C_None)),
+{A_PSUBSB} (Ch: (C_RWOp2, C_None, C_None)),
+{A_PSUBSW} (Ch: (C_RWOp2, C_None, C_None)),
+{A_PSUBUSB} (Ch: (C_RWOp2, C_None, C_None)),
+{A_PSUBUSW} (Ch: (C_RWOp2, C_None, C_None)),
+{A_PSUBW} (Ch: (C_RWOp2, C_None, C_None)),
 {A_PUNPCKHBW} (Ch: (C_All, C_None, C_None)),
 {A_PUNPCKHDQ} (Ch: (C_All, C_None, C_None)),
 {A_PUNPCKHWD} (Ch: (C_All, C_None, C_None)),
 {A_PUNPCKLBW} (Ch: (C_All, C_None, C_None)),
 {A_PUNPCKLDQ} (Ch: (C_All, C_None, C_None)),
 {A_PUNPCKLWD} (Ch: (C_All, C_None, C_None)),
-{A_PXOR} (Ch: (C_Op2, C_None, C_None)));
+{A_PXOR} (Ch: (C_RWOp2, C_None, C_None)));
 
 Var
  {How many instructions are between the current instruction and the last one
@@ -722,16 +737,99 @@ End;
 
 {********************* Compare parts of Pai objects *********************}
 
-Function RegsEquivalent(Reg1, Reg2: TRegister; Var RegInfo: TRegInfo): Boolean;
+Function RegsSameSize(Reg1, Reg2: TRegister): Boolean;
+{returns true if Reg1 and Reg2 are of the same size (so if they're both
+ 8bit, 16bit or 32bit)}
+Begin
+  If (Reg1 <= R_EDI)
+    Then RegsSameSize := (Reg2 <= R_EDI)
+    Else
+      If (Reg1 <= R_DI)
+        Then RegsSameSize := (Reg2 in [R_AX..R_DI])
+        Else
+          If (Reg1 <= R_BL)
+            Then RegsSameSize := (Reg2 in [R_AL..R_BL])
+            Else RegsSameSize := False
+End;
+
+Procedure AddReg2RegInfo(OldReg, NewReg: TRegister; Var RegInfo: TRegInfo);
+{updates the RegsEncountered and SubstRegs fields of RegInfo. Assumes that
+ OldReg and NewReg have the same size (has to be chcked in advance with
+ RegsSameSize) and that neither equals R_NO}
 Begin
   With RegInfo Do
-    If Not(Reg1 in RegsEncountered) Then
+    Begin
+      RegsEncountered := RegsEncountered + [NewReg];
+      SubstRegs[NewReg] := OldReg;
+      Case OldReg Of
+        R_EAX..R_EDI:
+          Begin
+            RegsEncountered := RegsEncountered + [Reg32toReg16(NewReg)];
+            SubstRegs[Reg32toReg16(NewReg)] := Reg32toReg16(OldReg);
+            If (NewReg in [R_EAX..R_EBX]) And
+               (OldReg in [R_EAX..R_EBX]) Then
+              Begin
+                RegsEncountered := RegsEncountered + [Reg32toReg8(NewReg)];
+                SubstRegs[Reg32toReg8(NewReg)] := Reg32toReg8(OldReg);
+              End;
+          End;
+        R_AX..R_DI:
+          Begin
+            RegsEncountered := RegsEncountered + [Reg16toReg32(NewReg)];
+            SubstRegs[Reg16toReg32(NewReg)] := Reg16toReg32(OldReg);
+            If (NewReg in [R_AX..R_BX]) And
+               (OldReg in [R_AX..R_BX]) Then
+              Begin
+                RegsEncountered := RegsEncountered + [Reg16toReg8(NewReg)];
+                SubstRegs[Reg16toReg8(NewReg)] := Reg16toReg8(OldReg);
+              End;
+          End;
+        R_AL..R_BL:
+          Begin
+            RegsEncountered := RegsEncountered + [Reg8toReg32(NewReg)]
+                               + [Reg8toReg16(NewReg)];
+            SubstRegs[Reg8toReg32(NewReg)] := Reg8toReg32(OldReg);
+            SubstRegs[Reg8toReg16(NewReg)] := Reg8toReg16(OldReg);
+          End;
+      End;
+    End;
+End;
+
+Procedure AddOp2RegInfo(typ: Longint; Op: Pointer; Var RegInfo: TRegInfo);
+Begin
+  Case typ Of
+    Top_Reg:
+      If (TRegister(op) <> R_NO) Then
+        AddReg2RegInfo(TRegister(op), TRegister(op), RegInfo);
+    Top_Ref:
       Begin
-        RegsEncountered := RegsEncountered + [Reg1];
-        SubstRegs[Reg1] := Reg2;
-        RegsEquivalent := True
-      End
-    Else RegsEquivalent := Reg1 = SubstRegs[Reg2];
+        If TReference(op^).base <> R_NO Then
+          AddReg2RegInfo(TReference(op^).base, TReference(op^).base, RegInfo);
+        If TReference(op^).index <> R_NO Then
+          AddReg2RegInfo(TReference(op^).index, TReference(op^).index, RegInfo);
+      End;
+  End;
+End;
+
+
+Function RegsEquivalent(OldReg, NewReg: TRegister; Var RegInfo: TRegInfo): Boolean;
+Begin
+  If Not((OldReg = R_NO) Or (NewReg = R_NO)) Then
+    If RegsSameSize(OldReg, NewReg) Then
+      With RegInfo Do
+{here we always check for the 32 bit component, because it is possible that
+ the 8 bit component has not been set, event though NewReg already has been
+ processed. This happens if it has been compared with a register that doesn't
+ have an 8 bit component (such as EDI). In that case the 8 bit component is
+ still set to R_NO and the comparison in the Else-part will fail}
+        If Not(Reg32(NewReg) in RegsEncountered) Then
+          Begin
+            AddReg2RegInfo(OldReg, NewReg, RegInfo);
+            RegsEquivalent := True
+          End
+        Else RegsEquivalent := OldReg = SubstRegs[NewReg]
+    Else RegsEquivalent := False
+  Else RegsEquivalent := OldReg = NewReg
 End;
 
 Function RefsEquivalent(Const R1, R2: TReference; var RegInfo: TRegInfo): Boolean;
@@ -750,6 +848,7 @@ Begin
               End
             Else RefsEquivalent := False;
 End;
+
 
 Function RefsEqual(Const R1, R2: TReference): Boolean;
 Begin
@@ -773,14 +872,6 @@ Begin
   If (Reg >= R_EAX) and (Reg <= R_EBX)
     Then IsGP32Reg := True
     Else IsGP32reg := False
-End;
-
-Function SubstRegInRef(Reg: TRegister; Const Ref: TReference; var RegInfo: TRegInfo): Boolean;
-Begin
-  Reg := Reg32(Reg);
-  With RegInfo Do
-    SubstRegInRef := RegsEquivalent(Reg, SubstRegs[Ref.Base], RegInfo) And
-                     RegsEquivalent(Reg, SubstRegs[Ref.Base], RegInfo);
 End;
 
 Function RegInRef(Reg: TRegister; Const Ref: TReference): Boolean;
@@ -819,18 +910,52 @@ Begin
   RegInInstruction := TmpResult
 End;
 
-{********************* GetNext and GetLastInstruction *********************}
+{Function RegInOp(Reg: TRegister; opt: Longint; op: Pointer): Boolean;
+Begin
+  RegInOp := False;
+  Case opt Of
+    top_reg: RegInOp := Reg = TRegister(Pointer);
+    top_ref: RegInOp := (Reg = TReference(op^).Base) Or
+                        (Reg = TReference(op^).Index);
+  End;
+End;}
 
+Function RegModifiedByInstruction(Reg: TRegister; p1: Pai): Boolean;
+{returns true if Reg is modified by the instruction p1. P1 is assumed to be
+ of the type ait_instruction}
+Var hp: Pai;
+Begin
+  If GetLastInstruction(p1, hp)
+    Then
+      RegModifiedByInstruction :=
+        PPAiProp(p1^.fileinfo.line)^.Regs[Reg].State <>
+          PPAiProp(hp^.fileinfo.line)^.Regs[Reg].State
+    Else RegModifiedByInstruction := True;
+End;
+
+{********************* GetNext and GetLastInstruction *********************}
 Function GetNextInstruction(Current: Pai; Var Next: Pai): Boolean;
 {skips ait_regalloc, ait_regdealloc and ait_stab* objects and puts the
  next pai object in Next. Returns false if there isn't any}
 Begin
-  Current := Pai(Current^.Next);
-  While Assigned(Current) And
-        ((Current^.typ In SkipInstr) or
-         ((Current^.typ = ait_label) And
-          Not(Pai_Label(Current)^.l^.is_used))) Do
+  Repeat
     Current := Pai(Current^.Next);
+    While Assigned(Current) And
+          ((Current^.typ In SkipInstr) or
+           ((Current^.typ = ait_label) And
+            Not(Pai_Label(Current)^.l^.is_used))) Do
+      Current := Pai(Current^.Next);
+    If Assigned(Current) And
+       (Current^.typ = ait_Marker) And
+       (Pai_Marker(Current)^.Kind = NoPropInfoStart) Then
+      Begin
+        While Assigned(Current) And
+              Not((Current^.typ = ait_Marker) And
+                  (Pai_Marker(Current)^.Kind = NoPropInfoEnd)) Do
+          Current := Pai(Current^.Next)
+      End;
+  Until Not(Assigned(Current)) Or
+        (Current^.typ <> ait_Marker);
   Next := Current;
   If Assigned(Current) And
      Not((Current^.typ In SkipInstr) or
@@ -848,13 +973,25 @@ Function GetLastInstruction(Current: Pai; Var Last: Pai): Boolean;
 {skips the ait-types in SkipInstr puts the previous pai object in
  Last. Returns false if there isn't any}
 Begin
-  Current := Pai(Current^.previous);
-  While Assigned(Current) And
-        ((Pai(Current)^.typ In SkipInstr) or
-         ((Pai(Current)^.typ = ait_label) And
-          Not(Pai_Label(Current)^.l^.is_used))) Do
+  Repeat
     Current := Pai(Current^.previous);
-  Last := Current;
+    While Assigned(Current) And
+          ((Pai(Current)^.typ In SkipInstr) or
+           ((Pai(Current)^.typ = ait_label) And
+            Not(Pai_Label(Current)^.l^.is_used))) Do
+      Current := Pai(Current^.previous);
+    If Assigned(Current) And
+       (Current^.typ = ait_Marker) And
+       (Pai_Marker(Current)^.Kind = NoPropInfoEnd) Then
+      Begin
+        While Assigned(Current) And
+              Not((Current^.typ = ait_Marker) And
+                  (Pai_Marker(Current)^.Kind = NoPropInfoStart)) Do
+          Current := Pai(Current^.previous);
+      End;
+  Until Not(Assigned(Current)) Or
+        (Current^.typ <> ait_Marker);
+ Last := Current;
   If Assigned(Current) And
      Not((Current^.typ In SkipInstr) or
          ((Current^.typ = ait_label) And
@@ -868,6 +1005,32 @@ Begin
 End;
 
 {******************* The Data Flow Analyzer functions ********************}
+
+Procedure UpdateUsedRegs(Var UsedRegs: TRegSet; p: Pai);
+{updates UsedRegs with the RegAlloc Information coming after P}
+Begin
+{  p := Pai(p^.next);}
+  Repeat
+    While Assigned(p) And
+          ((p^.typ in (SkipInstr - [ait_RegAlloc, ait_RegDealloc])) or
+           ((p^.typ = ait_label) And
+            Not(Pai_Label(p)^.l^.is_used))) Do
+         p := Pai(p^.next);
+    While Assigned(p) And
+          (p^.typ in [ait_RegAlloc, ait_RegDealloc]) Do
+      Begin
+        Case p^.typ Of
+          ait_RegAlloc: UsedRegs := UsedRegs + [PaiRegAlloc(p)^.Reg];
+          ait_regdealloc: UsedRegs := UsedRegs - [PaiRegAlloc(p)^.Reg];
+        End;
+        p := pai(p^.next);
+      End;
+  Until Not(Assigned(p)) Or
+        (Not(p^.typ in SkipInstr) And
+         Not((p^.typ = ait_label) And
+            Not(Pai_Label(p)^.l^.is_used)));
+End;
+
 
 (*Function FindZeroreg(p: Pai; Var Result: TRegister): Boolean;
 {Finds a register which contains the constant zero}
@@ -900,8 +1063,8 @@ Begin
 End;
 
 Procedure IncState(Var S: Word);
-{Increases the state by 1, wraps around at $ffff to 0 (so we won't get
- overflow errors}
+{Increases S by 1, wraps around at $ffff to 0 (so we won't get overflow
+ errors}
 Begin
   If (s <> $ffff)
     Then Inc(s)
@@ -981,7 +1144,52 @@ Begin
        End;
 End;
 
-Function OpsEqual(typ: Longint; op1, op2: Pointer): Boolean;
+{Procedure AddRegsToSet(p: Pai; Var RegSet: TRegSet);
+Begin
+  If (p^.typ = ait_instruction) Then
+    Begin
+      Case Pai386(p)^.op1t Of
+        top_reg:
+          If Not(TRegister(Pai386(p)^.op1) in [R_NO,R_ESP,ProcInfo.FramePointer]) Then
+            RegSet := RegSet + [TRegister(Pai386(p)^.op1)];
+        top_ref:
+          With TReference(Pai386(p)^.op1^) Do
+            Begin
+              If Not(Base in [ProcInfo.FramePointer,R_NO,R_ESP])
+                Then RegSet := RegSet + [Base];
+              If Not(Index in [ProcInfo.FramePointer,R_NO,R_ESP])
+                Then RegSet := RegSet + [Index];
+            End;
+      End;
+      Case Pai386(p)^.op2t Of
+        top_reg:
+          If Not(TRegister(Pai386(p)^.op2) in [R_NO,R_ESP,ProcInfo.FramePointer]) Then
+            RegSet := RegSet + [TRegister(Pai386(p)^.op2)];
+        top_ref:
+          With TReference(Pai386(p)^.op2^) Do
+            Begin
+              If Not(Base in [ProcInfo.FramePointer,R_NO,R_ESP])
+                Then RegSet := RegSet + [Base];
+              If Not(Index in [ProcInfo.FramePointer,R_NO,R_ESP])
+                Then RegSet := RegSet + [Index];
+            End;
+      End;
+    End;
+End;}
+
+Function OpsEquivalent(typ: Longint; OldOp, NewOp: Pointer; Var RegInfo: TRegInfo): Boolean;
+Begin {checks whether the two ops are equivalent}
+  Case typ Of
+    Top_Reg: OpsEquivalent := RegsEquivalent(TRegister(OldOp), TRegister(NewOp), RegInfo);
+    Top_Const: OpsEquivalent := OldOp = NewOp;
+    Top_Ref: OpsEquivalent := RefsEquivalent(TReference(OldOp^), TReference(NewOp^), RegInfo);
+    Top_None: OpsEquivalent := True
+    Else OpsEquivalent := False
+  End;
+End;
+
+
+(*Function OpsEqual(typ: Longint; op1, op2: Pointer): Boolean;
 Begin {checks whether the two ops are equal}
   Case typ Of
     Top_Reg, Top_Const: OpsEqual := op1 = op2;
@@ -989,17 +1197,118 @@ Begin {checks whether the two ops are equal}
     Top_None: OpsEqual := True
     Else OpsEqual := False
   End;
-End;
+End; *)
 
-Function RegsSameContent(p1, p2: Pai; Reg: TRegister): Boolean;
+(* Function RegsSameContent(p1, p2: Pai; Reg: TRegister): Boolean;
 {checks whether Reg has the same content in the PPaiProp of p1 and p2}
 Begin
   Reg := Reg32(Reg);
   RegsSameContent :=
     PPaiProp(p1^.fileinfo.line)^.Regs[Reg].State =
     PPaiProp(p2^.fileinfo.line)^.Regs[Reg].State;
+End; *)
+
+Function InstructionsEquivalent(p1, p2: Pai; Var RegInfo: TRegInfo): Boolean;
+Begin {checks whether two Pai386 instructions are equal}
+  If Assigned(p1) And Assigned(p2) And
+     (Pai(p1)^.typ = ait_instruction) And
+     (Pai(p1)^.typ = ait_instruction) And
+     (Pai386(p1)^._operator = Pai386(p2)^._operator) And
+     (Pai386(p1)^.op1t = Pai386(p2)^.op1t) And
+     (Pai386(p1)^.op2t = Pai386(p2)^.op2t)
+    Then
+ {both instructions have the same structure:
+  "<operator> <operand of type1>, <operand of type 2>"}
+      If (Pai386(p1)^._operator in [A_MOV, A_MOVZX, A_MOVSX]) And
+         (Pai386(p1)^.op1t = top_ref) {then op2t = top_reg} Then
+        If Not(RegInRef(TRegister(Pai386(p1)^.op2), TReference(Pai386(p1)^.op1^))) Then
+ {the "old" instruction is a load of a register with a new value, not with
+  a value based on the contents of this register (so no "mov (reg), reg")}
+          If Not(RegInRef(TRegister(Pai386(p2)^.op2), TReference(Pai386(p2)^.op1^))) And
+             RefsEqual(TReference(Pai386(p1)^.op1^), TReference(Pai386(p2)^.op1^))
+            Then
+ {the "new" instruction is also a load of a register with a new value, and
+  this value is fetched from the same memory location}
+              Begin
+                With TReference(Pai386(p2)^.op1^) Do
+                  Begin
+                    If Not(Base in [ProcInfo.FramePointer, R_NO, R_ESP])
+       {it won't do any harm if the register is already in RegsLoadedForRef}
+                      Then RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef + [Base];
+                    If Not(Index in [ProcInfo.FramePointer, R_NO, R_ESP])
+                      Then RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef + [Index];
+                  End;
+ {add the registers from the reference (op1) to the RegInfo, all registers
+  from the reference are the same in the old and in the new instruction
+  sequence}
+                AddOp2RegInfo(Pai386(p1)^.op1t, Pai386(p1)^.op1, RegInfo);
+ {the registers from op2 have to be equivalent, but not necessarily equal}
+                InstructionsEquivalent :=
+                  RegsEquivalent(TRegister(Pai386(p1)^.op2), TRegister(Pai386(p2)^.op2),
+                                 RegInfo);
+              End
+ {the registers are loaded with values from different memory locations. If
+  this was allowed, the instructions "mov -4(esi),eax" and "mov -4(ebp),eax"
+  would be considered equivalent}
+            Else InstructionsEquivalent := False
+        Else
+ {load register with a value based on the current value of this register}
+          Begin
+            With TReference(Pai386(p2)^.op1^) Do
+              Begin
+                If Not(Base in [ProcInfo.FramePointer,
+                                Reg32(TRegister(Pai386(p2)^.op2)),R_NO,R_ESP])
+ {it won't do any harm if the register is already in RegsLoadedForRef}
+                  Then
+{$ifdef csdebug}
+                    Begin
+{$endif csdebug}
+                    RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef + [Base];
+{$ifdef csdebug}
+                    Writeln(att_reg2str[base], ' added');
+                    end;
+{$endif csdebug}
+                If Not(Index in [ProcInfo.FramePointer,
+                                 Reg32(TRegister(Pai386(p2)^.op2)),R_NO,R_ESP])
+                  Then
+{$ifdef csdebug}
+                    Begin
+{$endif csdebug}
+                    RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef + [Index];
+{$ifdef csdebug}
+                    Writeln(att_reg2str[index], ' added');
+                    end;
+{$endif csdebug}
+
+              End;
+            If Not(Reg32(TRegister(Pai386(p2)^.op2)) In [ProcInfo.FramePointer,
+                                                         R_NO,R_ESP])
+              Then
+{$ifdef csdebug}
+                    Begin
+{$endif csdebug}
+
+                RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef -
+                                                 [Reg32(TRegister(Pai386(p2)^.op2))];
+{$ifdef csdebug}
+                    Writeln(att_reg2str[Reg32(TRegister(Pai386(p2)^.op2))], ' removed');
+                    end;
+{$endif csdebug}
+            InstructionsEquivalent :=
+               OpsEquivalent(Pai386(p1)^.op1t, Pai386(p1)^.op1, Pai386(p2)^.op1, RegInfo) And
+               OpsEquivalent(Pai386(p1)^.op2t, Pai386(p1)^.op2, Pai386(p2)^.op2, RegInfo)
+          End
+      Else
+ {an instruction <> mov, movzx, movsx}
+        InstructionsEquivalent :=
+           OpsEquivalent(Pai386(p1)^.op1t, Pai386(p1)^.op1, Pai386(p2)^.op1, RegInfo) And
+           OpsEquivalent(Pai386(p1)^.op2t, Pai386(p1)^.op2, Pai386(p2)^.op2, RegInfo)
+ {the instructions haven't even got the same structure, so they're certainly
+  not equivalent}
+    Else InstructionsEquivalent := False;
 End;
 
+(*
 Function InstructionsEqual(p1, p2: Pai): Boolean;
 Begin {checks whether two Pai386 instructions are equal}
   InstructionsEqual :=
@@ -1012,6 +1321,7 @@ Begin {checks whether two Pai386 instructions are equal}
      OpsEqual(Pai386(p1)^.op1t, Pai386(p1)^.op1, Pai386(p2)^.op1) And
      OpsEqual(Pai386(p1)^.op2t, Pai386(p1)^.op2, Pai386(p2)^.op2))
 End;
+*)
 
 Function RefInInstruction(Const Ref: TReference; p: Pai): Boolean;
 {checks whehter Ref is used in P}
@@ -1153,13 +1463,16 @@ Var
 {$endif AnalyzeLoops}
     Cnt, InstrCnt : Longint;
     InstrProp: TAsmInstrucProp;
+    UsedRegs: TRegSet;
     p, hp : Pai;
     TmpRef: TReference;
     TmpReg: TRegister;
 Begin
   p := First;
+  UsedRegs := [];
+  UpdateUsedregs(UsedRegs, p);
   If (First^.typ in SkipInstr) Then
-    GetNextInstruction(First, p);
+    GetNextInstruction(p, p);
   First := p;
   InstrCnt := 1;
   FillChar(NrOfInstrSinceLastMod, SizeOf(NrOfInstrSinceLastMod), 0);
@@ -1173,8 +1486,8 @@ Begin
 {$EndIf TP}
       If (p <> First)
         Then
-{$ifdef JumpAnal}
           Begin
+{$ifdef JumpAnal}
             If (p^.Typ <> ait_label) Then
 {$endif JumpAnal}
               Begin
@@ -1182,23 +1495,29 @@ Begin
                 CurProp^.Regs := PPaiProp(hp^.fileinfo.line)^.Regs;
                 CurProp^.DirFlag := PPaiProp(hp^.fileinfo.line)^.DirFlag;
               End
-{$ifdef JumpAnal}
           End
-{$endif JumpAnal}
         Else
           Begin
             FillChar(CurProp^, SizeOf(CurProp^), 0);
 {            For TmpReg := R_EAX to R_EDI Do
               CurProp^.Regs[TmpReg].State := 1;}
           End;
+      CurProp^.UsedRegs := UsedRegs;
       CurProp^.CanBeRemoved := False;
+      UpdateUsedRegs(UsedRegs, Pai(p^.Next));
+{$ifdef csdebug}
+      If R_EAX in usedregs then
+        begin
+          hp := new(pai_asm_comment,init(strpnew('eax in set')));
+          InsertLLItem(AsmL, p, p^.next, hp);
+        end;
+{$endif csdebug}
 {$ifdef TP}
       CurProp^.linesave := p^.fileinfo.line;
       PPaiProp(p^.fileinfo.line) := CurProp;
 {$Endif TP}
-{      If Not(p^.typ in SkipInstr) Then}
-        For TmpReg := R_EAX To R_EDI Do
-          Inc(NrOfInstrSinceLastMod[TmpReg]);
+      For TmpReg := R_EAX To R_EDI Do
+        Inc(NrOfInstrSinceLastMod[TmpReg]);
       Case p^.typ Of
         ait_label:
 {$Ifndef JumpAnal}
@@ -1222,8 +1541,9 @@ Begin
  {we've processed at least one jump to this label}
                       Begin
                         If (GetLastInstruction(p, hp) And
-                           Not((hp^.typ = ait_labeled_instruction) And
-                               (Pai_Labeled(hp)^._operator = A_JMP))
+                           Not(((hp^.typ = ait_labeled_instruction) or
+                                (hp^.typ = ait_instruction)) And
+                                (Pai_Labeled(hp)^._operator = A_JMP))
                           Then
   {previous instruction not a JMP -> the contents of the registers after the
    previous intruction has been executed have to be taken into account as well}
@@ -1380,7 +1700,6 @@ Begin
 {$ifdef GDB}
         ait_stabs, ait_stabn, ait_stab_function_name:;
 {$endif GDB}
-        ait_regalloc, ait_regdealloc:;
         ait_instruction:
           Begin
             InstrProp := AsmInstr[Pai386(p)^._operator];
@@ -1404,10 +1723,6 @@ Begin
                     Top_Ref:
                       Begin {destination is always a register in this case}
                         TmpReg := Reg32(TRegister(Pai386(p)^.op2));
-{$ifdef StateDebug}
-                  hp := new(pai_asm_comment,init(strpnew(att_reg2str[TmpReg]+': '+tostr(CurProp^.Regs[TmpReg].State))));
-                  InsertLLItem(AsmL, p, p^.next, hp);
-{$endif SteDebug}
                         If RegInRef(TmpReg, TReference(Pai386(p)^.op1^)) And
                            (CurProp^.Regs[TmpReg].Typ = Con_Ref)
                           Then
@@ -1433,6 +1748,11 @@ Begin
                                   NrOfMods := 1;
                                 End;
                             End;
+{$ifdef StateDebug}
+                  hp := new(pai_asm_comment,init(strpnew(att_reg2str[TmpReg]+': '+tostr(CurProp^.Regs[TmpReg].State))));
+                  InsertLLItem(AsmL, p, p^.next, hp);
+{$endif StateDebug}
+
                       End;
                     Top_Const:
                       Begin
@@ -1495,9 +1815,9 @@ Begin
                         C_WEAX..C_RWEDI: DestroyReg(CurProp, TCh2Reg(InstrProp.Ch[Cnt]));
                         C_CDirFlag: CurProp^.DirFlag := F_NotSet;
                         C_SDirFlag: CurProp^.DirFlag := F_Set;
-                        C_Op1: Destroy(p, Pai386(p)^.op1t, Pai386(p)^.op1);
-                        C_Op2: Destroy(p, Pai386(p)^.op2t, Pai386(p)^.op2);
-                        C_Op3: Destroy(p, Pai386(p)^.op2t, Pointer(Longint(TwoWords(Pai386(p)^.op2).word2)));
+                        C_WOp1..C_RWOp1: Destroy(p, Pai386(p)^.op1t, Pai386(p)^.op1);
+                        C_WOp2..C_RWOp2: Destroy(p, Pai386(p)^.op2t, Pai386(p)^.op2);
+                        C_WOp3..C_RWOp3: Destroy(p, Pai386(p)^.op3t, Pointer(Longint(TwoWords(Pai386(p)^.op2).word2)));
                         C_MemEDI:
                           Begin
                             FillChar(TmpRef, SizeOf(TmpRef), 0);
@@ -1599,7 +1919,7 @@ Begin
     Then DFAPass2 := DoDFAPass2(
 {$ifdef statedebug}
  asml,
-{$endif statedbug}
+{$endif statedebug}
     Pai(AsmL^.First))
     Else DFAPass2 := Nil;
 End;
@@ -1614,7 +1934,10 @@ End.
 
 {
  $Log$
- Revision 1.15  1998-09-20 18:00:20  florian
+ Revision 1.16  1998-10-01 20:21:47  jonas
+   * inter-register CSE, still requires some tweaks (peepholeoptpass2, better  RegAlloc)
+
+ Revision 1.15  1998/09/20 18:00:20  florian
    * small compiling problems fixed
 
  Revision 1.14  1998/09/20 17:12:36  jonas
