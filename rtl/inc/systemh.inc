@@ -680,7 +680,6 @@ function get_caller_frame(framebp:pointer):pointer;{$ifdef SYSTEMINLINE}inline;{
 
 Function IOResult:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function Sptr:Pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
-Function GetProcessID:SizeUInt;
 
 
 {*****************************************************************************
@@ -756,7 +755,10 @@ const
 
 {
   $Log$
-  Revision 1.101  2004-09-21 23:43:26  hajny
+  Revision 1.102  2004-09-22 05:56:11  hajny
+    * compilation fix
+
+  Revision 1.101  2004/09/21 23:43:26  hajny
     * SetTextLineEnding implemented, FileRec.Name position alignment for CPU64
 
   Revision 1.100  2004/09/21 15:04:22  peter
