@@ -196,6 +196,7 @@ unit cobjects;
          destructor  done;virtual;
          procedure usehash;
          procedure clear;
+         function delete(const s:string):Pnamedindexobject;
          function  empty:boolean;
          procedure foreach(proc2call:Tnamedindexcallback);
          function  insert(obj:Pnamedindexobject):Pnamedindexobject;
@@ -1120,6 +1121,128 @@ end;
            cleartree(hasharray^[w]);
       end;
 
+    function Tdictionary.delete(const s:string):Pnamedindexobject;
+
+    var p,speedvalue:longint;
+        n:Pnamedindexobject;
+
+        procedure insert_right_bottom(var root,Atree:Pnamedindexobject);
+
+        begin
+            while root^.right<>nil do
+                root:=root^.right;
+            root^.right:=Atree;
+        end;
+
+        function delete_from_tree(root:Pnamedindexobject):Pnamedindexobject;
+
+        type    leftright=(left,right);
+
+        var lr:leftright;
+            oldroot:Pnamedindexobject;
+
+        begin
+            oldroot:=nil;
+            while (root<>nil) and (root^.speedvalue<>speedvalue) do
+                begin
+                    oldroot:=root;
+                    if speedvalue<root^.speedvalue then
+                        begin
+                            root:=root^.right;
+                            lr:=right;
+                        end
+                    else
+                        begin
+                            root:=root^.left;
+                            lr:=left;
+                        end;
+                end;
+            while (root<>nil) and (root^._name^<>s) do
+                begin
+                    oldroot:=root;
+                    if s<root^._name^ then
+                        begin
+                            root:=root^.right;
+                            lr:=right;
+                        end
+                    else
+                        begin
+                            root:=root^.left;
+                            lr:=left;
+                        end;
+                end;
+            if (oldroot=nil) or (root=nil) then
+                runerror(218); {Internalerror is not available...}
+            if root^.left<>nil then
+                begin
+                    {Now the node pointing to root must point to the left
+                     subtree of root. The right subtree of root must be
+                     connected to the right bottom of the left subtree.}
+                    if lr=left then
+                        oldroot^.left:=root^.left
+                    else
+                        oldroot^.right:=root^.left;
+                    if root^.right<>nil then
+                        insert_right_bottom(root^.left,root^.right);
+                end
+            else
+                {There is no left subtree. So we can just replace the node to
+                 delete with the right subtree.}
+                if lr=left then
+                    oldroot^.left:=root^.right
+                else
+                    oldroot^.right:=root^.right;
+            delete_from_tree:=root;
+        end;
+
+    begin
+        speedvalue:=getspeedvalue(s);
+        n:=root;
+        if assigned(hasharray) then
+            begin
+                {First, check if the node to delete directly located under
+                 the hasharray.}
+                p:=speedvalue mod hasharraysize;
+                n:=hasharray^[p];
+                if (n<>nil) and (n^.speedvalue=speedvalue) and
+                 (n^._name^=s) then
+                    begin
+                        {The node to delete is directly located under the
+                         hasharray. Make the hasharray point to the left
+                         subtree of the node and place the right subtree on
+                         the right-bottom of the left subtree.}
+                        if n^.left<>nil then
+                            begin
+                                hasharray^[p]:=n^.left;
+                                if n^.right<>nil then
+                                    insert_right_bottom(n^.left,n^.right);
+                            end
+                        else
+                            hasharray^[p]:=n^.right;
+                        delete:=n;
+                        exit;
+                    end;
+            end
+        else
+            begin
+                {First check if the node to delete is the root.}
+                if (root<>nil) and (n^.speedvalue=speedvalue)
+                 and (n^._name^=s) then
+                    begin
+                        if n^.left<>nil then
+                            begin
+                                root:=n^.left;
+                                if n^.right<>nil then
+                                    insert_right_bottom(n^.left,n^.right);
+                            end
+                        else
+                            root:=n^.right;
+                        delete:=n;
+                        exit;
+                    end;
+            end;
+        delete:=delete_from_tree(n);
+    end;
 
     function Tdictionary.empty:boolean;
       var
@@ -1925,10 +2048,8 @@ end;
               w1:=l and $ffff;
               w2:=l shr 16;
               l:=swap(w2)+(longint(swap(w1)) shl 16);
-              write_data(l,sizeof(longint))
-           end
-         else
-           write_data(l,sizeof(longint))
+           end;
+         write_data(l,sizeof(longint));
       end;
 
     procedure tbufferedfile.write_word(w : word);
@@ -1937,10 +2058,8 @@ end;
          if change_endian then
            begin
               w:=swap(w);
-              write_data(w,sizeof(word))
-           end
-         else
-           write_data(w,sizeof(word));
+           end;
+         write_data(w,sizeof(word));
       end;
 
     procedure tbufferedfile.write_double(d : double);
@@ -2017,8 +2136,8 @@ end;
 end.
 {
   $Log$
-  Revision 1.34  1999-06-15 10:14:19  peter
-    * merged
+  Revision 1.35  1999-06-23 11:07:23  daniel
+  * Tdictionary.delete
 
   Revision 1.33.2.1  1999/06/15 10:12:22  peter
     * fixed inserttree which didn't reset left,right
