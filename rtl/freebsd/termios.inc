@@ -1,5 +1,3 @@
-Program termiosx;
-
 
 CONST
 
@@ -31,6 +29,16 @@ CONST
  VSTATUS	=18;	
 {		=19	   spare 2 }
  NCCS		=20;
+
+Type
+  winsize = packed record
+    ws_row,
+    ws_col,
+    ws_xpixel,
+    ws_ypixel : word;
+  end;
+  TWinSize=winsize;
+
 
 type
   Termios = packed record

@@ -1793,7 +1793,11 @@ end;
 
 Function TCGetAttr(fd:longint;var tios:TermIOS):boolean;
 begin
+ {$ifndef BSD}
   TCGetAttr:=IOCtl(fd,TCGETS,@tios);
+ {$else}
+  TCGETAttr:=IoCtl(Fd,TIOCGETA,@tios);
+ {$endif}
 end;
 
 
@@ -1802,10 +1806,17 @@ Function TCSetAttr(fd:longint;OptAct:longint;var tios:TermIOS):boolean;
 var
   nr:longint;
 begin
+ {$ifndef BSD} 
   case OptAct of
    TCSANOW   : nr:=TCSETS;
    TCSADRAIN : nr:=TCSETSW;
    TCSAFLUSH : nr:=TCSETSF;
+ {$else}
+  case OptAct of
+   TCSANOW   : nr:=TIOCSETA;
+   TCSADRAIN : nr:=TIOCSETAW;
+   TCSAFLUSH : nr:=TIOCSETAF;
+  {$endif}
   else
    begin
      ErrNo:=Sys_EINVAL;
@@ -1820,20 +1831,30 @@ end;
 
 Procedure CFSetISpeed(var tios:TermIOS;speed:Longint);
 begin
+ {$ifndef BSD}
   tios.c_cflag:=(tios.c_cflag and (not CBAUD)) or speed;
+ {$else}
+  tios.c_ispeed:=speed; {Probably the Bxxxx speed constants}
+ {$endif}
 end;
 
 
 
 Procedure CFSetOSpeed(var tios:TermIOS;speed:Longint);
 begin
-  CFSetISpeed(tios,speed);
+  {$ifndef BSD} 
+   CFSetISpeed(tios,speed);
+  {$else}
+   tios.c_ospeed:=speed;
+  {$endif}
 end;
+
 
 
 
 Procedure CFMakeRaw(var tios:TermIOS);
 begin
+ {$ifndef BSD}
   with tios do
    begin
      c_iflag:=c_iflag and (not (IGNBRK or BRKINT or PARMRK or ISTRIP or
@@ -1842,13 +1863,32 @@ begin
      c_lflag:=c_lflag and (not (ECHO or ECHONL or ICANON or ISIG or IEXTEN));
      c_cflag:=(c_cflag and (not (CSIZE or PARENB))) or CS8;
    end;
+ {$else}
+  with tios do
+   begin
+     c_iflag:=c_iflag and (not (IMAXBEL or IXOFF or INPCK or BRKINT or
+		PARMRK or ISTRIP or INLCR or IGNCR or ICRNL or IXON or
+		IGNPAR));   
+     c_iflag:=c_iflag OR IGNBRK;
+     c_oflag:=c_oflag and (not OPOST);
+     c_lflag:=c_lflag and (not (ECHO or ECHOE or ECHOK or ECHONL or ICANON or 
+				ISIG or IEXTEN or NOFLSH or TOSTOP or PENDIN));
+     c_cflag:=(c_cflag and (not (CSIZE or PARENB))) or (CS8 OR cread);
+     c_cc[VMIN]:=1;
+     c_cc[VTIME]:=0;
+   end;  
+ {$endif}
 end;
 
 
 
 Function TCSendBreak(fd,duration:longint):boolean;
 begin
+  {$ifndef BSD}
   TCSendBreak:=IOCtl(fd,TCSBRK,pointer(duration));
+  {$else}
+  TCSendBreak:=IOCtl(fd,TIOCSBRK,0);
+  {$endif}
 end;
 
 
@@ -1866,27 +1906,52 @@ begin
 end;
 
 
-
 Function TCDrain(fd:longint):boolean;
 begin
+ {$ifndef BSD}
   TCDrain:=IOCtl(fd,TCSBRK,pointer(1));
+ {$else}
+  TCDrain:=IOCtl(fd,TIOCDRAIN,0); {Should set timeout to 1 first?}
+ {$endif}
 end;
 
 
 
 Function TCFlow(fd,act:longint):boolean;
 begin
-  TCFlow:=IOCtl(fd,TCXONC,pointer(act));
+  {$ifndef BSD}
+   TCFlow:=IOCtl(fd,TCXONC,pointer(act));
+  {$else}
+    case act OF
+     TCOOFF :  TCFlow:=Ioctl(fd,TIOCSTOP,0);
+     TCOOn  :  TCFlow:=IOctl(Fd,TIOCStart,0);
+     TCIOFF :  {N/I}
+    end;
+  {$endif}
 end;
 
 
 
 Function TCFlush(fd,qsel:longint):boolean;
+
+var com:longint;
+
 begin
+ {$ifndef BSD}
   TCFlush:=IOCtl(fd,TCFLSH,pointer(qsel));
+ {$else}
+  {
+  CASE Qsel of
+   TCIFLUSH :  com:=fread;
+   TCOFLUSH :  com:=FWRITE;
+   TCIOFLUSH:  com:=FREAD OR FWRITE;
+  else
+   exit(false);
+  end;
+  }
+  TCFlush:=IOCtl(fd,TIOCFLUSH,pointer(qsel));
+ {$endif}
 end;
-
-
 
 Function IsATTY(Handle:Longint):Boolean;
 {
@@ -2538,7 +2603,10 @@ End.
 
 {
   $Log$
-  Revision 1.3  2000-10-10 12:02:35  marco
+  Revision 1.4  2000-10-11 13:59:16  marco
+   * FreeBSD TermIOS support and minor changes to some related files.
+
+  Revision 1.3  2000/10/10 12:02:35  marco
    * Terminal stuff of Linux moved to separate file. I think it is too
        much to do with ifdefs.
 
