@@ -428,7 +428,7 @@ var
   name         : string[255];
   thisdir      : stat;
 {$endif}
-  tmp          : string[4096];
+  tmp          : string[255];
 
 begin
 {$ifdef usegetcwd}
@@ -593,7 +593,10 @@ end;
 
 {
    $Log$
-   Revision 1.10  2004-01-03 12:35:39  marco
+   Revision 1.11  2004-01-03 14:56:10  marco
+    * typo fix
+
+   Revision 1.10  2004/01/03 12:35:39  marco
     * sighnd to separate file, like linux. Some comments removed
 
    Revision 1.9  2003/12/30 12:26:21  marco
