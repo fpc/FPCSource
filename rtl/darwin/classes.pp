@@ -25,6 +25,7 @@ interface
 
 uses
   sysutils,
+  rtlconst,
   typinfo;
 
 {$i classesh.inc}
@@ -50,7 +51,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.1  2004-01-04 20:05:38  jonas
+  Revision 1.2  2004-01-10 20:15:21  michael
+  + Some more fixes to rtlconst. Const strings moved from classes to rtlconst
+
+  Revision 1.1  2004/01/04 20:05:38  jonas
     * first working version of the Darwin/Mac OS X (for PowerPC) RTL
       Several non-essential units are still missing, but make cycle works
 

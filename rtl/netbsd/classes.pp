@@ -25,6 +25,7 @@ interface
 
 uses
   sysutils,
+  rtlconst,
   typinfo;
 
 {$i classesh.inc}
@@ -52,7 +53,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.2  2004-01-04 01:11:28  marco
+  Revision 1.3  2004-01-10 20:15:21  michael
+  + Some more fixes to rtlconst. Const strings moved from classes to rtlconst
+
+  Revision 1.2  2004/01/04 01:11:28  marco
    * a new qod port of the freebsd rtl. To be refined in the coming days.
 
   Revision 1.5  2004/01/03 12:18:29  marco

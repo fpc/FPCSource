@@ -25,6 +25,7 @@ interface
 
 uses
   sysutils,
+  rtlconst,
   typinfo;
 
 {$i classesh.inc}
@@ -46,7 +47,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.2  2003-11-05 09:13:59  yuri
+  Revision 1.3  2004-01-10 20:14:05  michael
+  + Some more fixes to rtlconst. Const strings moved from classes to rtlconst
+
+  Revision 1.2  2003/11/05 09:13:59  yuri
   * exec fix
   * unused units removed
 

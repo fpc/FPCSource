@@ -240,7 +240,7 @@ USELIBGGI=NO
 endif
 override TARGET_UNITS+=$(SYSTEMUNIT) baseunix strings systhrds  objpas syscall unixutil heaptrc lineinfo $(LINUXUNIT1) termio unix $(LINUXUNIT2) initc $(CPU_UNITS) dos crt objects printer ggigraph sysutils typinfo math varutils charset ucomplex getopts errors sockets gpm ipc serial terminfo dl dynlibs video mouse keyboard variants types dateutils sysconst cthreads classes strutils rtlconst
 override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 cprt21 gprt21
-override TARGET_RSTS+=math varutils typinfo variants classes sysconst rtlconst
+override TARGET_RSTS+=math varutils typinfo variants systhrds sysconst rtlconst
 override CLEAN_UNITS+=syslinux linux
 override INSTALL_FPCPACKAGE=y
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC) $(UNIXINC) $(CPU_TARGET)

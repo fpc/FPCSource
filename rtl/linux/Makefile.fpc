@@ -17,7 +17,7 @@ units=$(SYSTEMUNIT) baseunix strings systhrds  objpas syscall unixutil \
       video mouse keyboard variants types dateutils sysconst \
       cthreads classes strutils rtlconst
 
-rsts=math varutils typinfo variants classes sysconst rtlconst
+rsts=math varutils typinfo variants systhrds sysconst rtlconst
 
 [require]
 nortl=y
