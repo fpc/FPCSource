@@ -949,11 +949,12 @@ begin
    size:=size and $ffff0000;
    { Allocate by 64K size }
    { first try 1Meg }
-   NewPos:=Sbrk($100000);
-   if NewPos=-1 then
-     NewPos:=Sbrk(size)
+   if Size<$100000 then
+     NewPos:=Sbrk($100000)
    else
-     size:=$100000;
+     NewPos:=Sbrk(size);
+   if NewPos=-1 then
+     NewPos:=Sbrk(size);
    if (NewPos = -1) then
      begin
         GrowHeap:=0;
@@ -1069,7 +1070,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  1998-08-17 12:27:17  carl
+  Revision 1.6  1998-08-24 14:44:05  pierre
+    * bug allocation of more than 1 MB failed corrected
+
+  Revision 1.5  1998/08/17 12:27:17  carl
     * bugfix of heaperror, was pushing wrong parameter
 
   Revision 1.4  1998/07/08 11:54:40  carl

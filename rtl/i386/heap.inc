@@ -944,11 +944,13 @@ begin
    size:=size and $ffff0000;
    { Allocate by 64K size }
    { first try 1Meg }
-   NewPos:=Sbrk($100000);
-   if NewPos=-1 then
-     NewPos:=Sbrk(size)
+   if size<$100000 then
+     NewPos:=Sbrk($100000)
    else
-     size:=$100000;
+     NewPos:=SBrk(size);
+   { try again }
+   if NewPos=-1 then
+     NewPos:=Sbrk(size);
    if (NewPos = -1) then
      begin
         GrowHeap:=0;
@@ -1062,7 +1064,10 @@ end;
 
 {
   $Log$
-  Revision 1.14  1998-07-30 13:26:21  michael
+  Revision 1.15  1998-08-24 14:44:04  pierre
+    * bug allocation of more than 1 MB failed corrected
+
+  Revision 1.14  1998/07/30 13:26:21  michael
   + Added support for ErrorProc variable. All internal functions are required
     to call HandleError instead of runerror from now on.
     This is necessary for exception support.
