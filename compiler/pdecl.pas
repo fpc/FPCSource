@@ -937,6 +937,8 @@ unit pdecl;
                        (srsym^.typ=typesym) then
                      begin
                        ppointerdef(pd)^.pointertype:=ptypesym(srsym)^.restype;
+                       { avoid wrong unused warnings web bug 801 PM }
+                       inc(srsym^.refs);
 {$ifdef GDB}
                        if (cs_debuginfo in aktmoduleswitches) and assigned(debuglist) and
                           (psym(p)^.owner^.symtabletype in [globalsymtable,staticsymtable]) then
@@ -1208,7 +1210,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.178  2000-01-11 17:16:05  jonas
+  Revision 1.179  2000-01-20 12:29:02  pierre
+   * bug 801 fixed
+
+  Revision 1.178  2000/01/11 17:16:05  jonas
     * removed a lot of memory leaks when an error is encountered (caused by
       procinfo and pstringcontainers). There are still plenty left though :)
 
