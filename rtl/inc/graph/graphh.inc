@@ -381,7 +381,7 @@ type
        m2048x1536 = 30015;
 
        lowNewMode = 30001;
-       highNewMode = 30013;
+       highNewMode = 30015;
 
        resolutions: array[lowNewMode..highNewMode] of TResolutionRec =
        ((x:320;y:200),
@@ -804,7 +804,10 @@ Function GetDriverName: string;
 
 {
   $Log$
-  Revision 1.8  2000-06-19 01:18:19  carl
+  Revision 1.9  2000-06-19 08:57:52  jonas
+    * fixed newHighMode constant
+
+  Revision 1.8  2000/06/19 01:18:19  carl
     * bugfix of comments with tp.
     + Added Amiga/Atari graphics modes
 
