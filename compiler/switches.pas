@@ -40,8 +40,11 @@ uses globals,verbose,files,systems;
 
 procedure sw_stackcheck;
 begin
+{$ifdef i386}
   if target_info.target=target_Linux then
    Message(scan_n_stack_check_global_under_linux);
+{$endif}
+
 end;
 
 {$ifndef FPC}
@@ -158,7 +161,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  1998-05-21 19:33:36  peter
+  Revision 1.5  1998-06-04 23:52:00  peter
+    * m68k compiles
+    + .def file creation moved to gendef.pas so it could also be used
+      for win32
+
+  Revision 1.4  1998/05/21 19:33:36  peter
     + better procedure directive handling and only one table
 
   Revision 1.3  1998/05/01 07:43:56  florian

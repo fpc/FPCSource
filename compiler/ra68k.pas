@@ -73,7 +73,7 @@ var
 Implementation
 
 uses
-  files,globals,AsmUtils,strings,hcodegen,scanner,aasm,
+  files,globals,systems,AsmUtils,strings,hcodegen,scanner,aasm,
   cobjects,verbose,symtable;
 
 
@@ -1786,7 +1786,7 @@ var
                    { DIVSL/DIVS/MULS/MULU with long for MC68020 only }
                    if (actasmtoken = AS_COLON) then
                    Begin
-                     if (opt_processors = MC68020) or (cs_compilesystem in aktswitches) then
+                     if (aktoptprocessor = MC68020) or (cs_compilesystem in aktswitches) then
                      Begin
                        Consume(AS_COLON);
                        if (actasmtoken = AS_REGISTER) then
@@ -2172,7 +2172,12 @@ Begin
 end.
 {
   $Log$
-  Revision 1.3  1998-05-20 09:42:36  pierre
+  Revision 1.4  1998-06-04 23:51:56  peter
+    * m68k compiles
+    + .def file creation moved to gendef.pas so it could also be used
+      for win32
+
+  Revision 1.3  1998/05/20 09:42:36  pierre
     + UseTokenInfo now default
     * unit in interface uses and implementation uses gives error now
     * only one error for unknown symbol (uses lastsymknown boolean)

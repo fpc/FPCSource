@@ -32,7 +32,7 @@ type
      _DIR_FATAL,
      _DIR_I,_DIR_I386_ATT,_DIR_I386_DIRECT,_DIR_I386_INTEL,_DIR_IOCHECKS,
        _DIR_IF,_DIR_IFDEF,_DIR_IFNDEF,_DIR_IFOPT,_DIR_INFO,
-     _DIR_L,_DIR_LIBNAME,_DIR_LINKLIB,
+     _DIR_L,_DIR_LINKLIB,
      _DIR_MESSAGE,_DIR_MMX,
      _DIR_NOTE,
      _DIR_OUTPUT_FORMAT,
@@ -52,7 +52,7 @@ const
      'FATAL',
      'I','I386_ATT','I386_DIRECT','I386_INTEL','IOCHECKS',
        'IF','IFDEF','IFNDEF','IFOPT','INFO',
-     'L','LIBNAME','LINKLIB',
+     'L','LINKLIB',
      'MESSAGE','MMX',
      'NOTE',
      'OUTPUT_FORMAT',
@@ -639,14 +639,6 @@ const
       end;
 
 
-    procedure dir_libname(t:tdirectivetoken);
-      begin
-        skipspace;
-        stringdispose(current_module^.libfilename);
-        current_module^.libfilename:=stringdup(readstring);
-      end;
-
-
     procedure dir_outputformat(t:tdirectivetoken);
       var
         hs : string;
@@ -706,7 +698,8 @@ const
          aktasmmode:=initasmmode
         else
          if not set_string_asmmode(s,aktasmmode) then
-          Comment(V_Warning,'Unsupported asm mode specified '+s);     
+          Comment(V_Warning,'Unsupported asm mode specified '+s);
+
       end;
 
     procedure dir_oldasmmode(t:tdirectivetoken);
@@ -762,7 +755,6 @@ const
          {_DIR_IFOPT} dir_conditional,
          {_DIR_INFO} dir_message,
          {_DIR_L} dir_linkobject,
-         {_DIR_LIBNAME} dir_libname,
          {_DIR_LINKLIB} dir_linklib,
          {_DIR_MESSAGE} dir_message,
          {_DIR_MMX} dir_switch,
@@ -830,7 +822,12 @@ const
 
 {
   $Log$
-  Revision 1.10  1998-05-30 14:31:10  peter
+  Revision 1.11  1998-06-04 23:51:59  peter
+    * m68k compiles
+    + .def file creation moved to gendef.pas so it could also be used
+      for win32
+
+  Revision 1.10  1998/05/30 14:31:10  peter
     + $ASMMODE
 
   Revision 1.9  1998/05/23 01:21:28  peter

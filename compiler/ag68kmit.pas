@@ -53,15 +53,21 @@ unit ag68kmit;
     const
       line_length = 70;
 
+{$ifdef GDB}
     var
       infile : pextfile;
-      includecount,lastline : longint;
+      includecount,
+      lastline : longint;
+{$endif GDB}
 
     function double2str(d : double) : string;
       var
          hs : string;
       begin
          str(d,hs);
+      { replace space with + }
+         if hs[1]=' ' then
+          hs[1]:='+';
          double2str:=hs;
       end;
 
@@ -73,13 +79,11 @@ unit ag68kmit;
         c  : comp;
         dd : pdouble;
       begin
-         c:=d;{ this generates a warning but this is not important }
-      {$ifndef TP}
-         {$warning The following warning can be ignored}
-      {$endif TP}
+         c:=comp(d);
          dd:=pdouble(@c); { this makes a bitwise copy of c into a double }
          comp2str:=double2str(dd^);
       end;
+
 
     function getreferencestring(const ref : treference) : string;
       var
@@ -238,12 +242,17 @@ unit ag68kmit;
  ****************************************************************************}
 
     var
-       { different types of source lines }
-       n_line : byte;
+{$ifdef GDB}
+      n_line  : byte;     { different types of source lines }
+{$endif}
+      lastsec : tsection; { last section type written }
 
     const
       ait_const2str:array[ait_const_32bit..ait_const_8bit] of string[8]=
         (#9'.long'#9,'',#9'.short'#9,#9'.byte'#9);
+
+      ait_section2str : array[tsection] of string[6]=
+       ('','.text','.data','.bss','.idata');
 
     procedure tm68kmitasmlist.WriteTree(p:paasmoutput);
     var
@@ -258,6 +267,8 @@ unit ag68kmit;
       linecount : longint;
 {$endif GDB}
     begin
+      if not assigned(p) then
+       exit;
 {$ifdef GDB}
       funcname:=nil;
       linecount:=1;
@@ -288,11 +299,11 @@ unit ag68kmit;
                if (hp^.line<>lastline) and (hp^.line<>0) then
                 begin
                   if (n_line = n_textline) and assigned(funcname) and
-                     (target_info.use_function_relative_addresses) then
+                     (target_os.use_function_relative_addresses) then
                    begin
-                     AsmWriteLn(target_info.labelprefix+'l'+tostr(linecount)+':');
+                     AsmWriteLn(target_asm.labelprefix+'l'+tostr(linecount)+':');
                      AsmWriteLn(#9'.stabn '+tostr(n_line)+',0,'+tostr(hp^.line)+','+
-                                target_info.labelprefix+'l'+tostr(linecount)+' - '+StrPas(FuncName));
+                                target_asm.labelprefix+'l'+tostr(linecount)+' - '+StrPas(FuncName));
                      inc(linecount);
                    end
                   else
@@ -303,14 +314,35 @@ unit ag68kmit;
           end;
 {$endif GDB}
          case hp^.typ of
-           ait_comment :
-             Begin
-                AsmWrite(As_comment);
-                AsmWritePChar(pai_asm_comment(hp)^.str);
-                AsmLn;
-             End;
       ait_external : ; { external is ignored }
+       ait_comment : Begin
+                       AsmWrite(target_asm.comment);
+                       AsmWritePChar(pai_asm_comment(hp)^.str);
+                       AsmLn;
+                     End;
+{$ifdef DREGALLOC}
+      ait_regalloc : AsmWriteLn(target_asm.comment+'Register '+att_reg2str[pairegalloc(hp)^.reg]+' allocated');
+    ait_regdealloc : AsmWriteLn(target_asm.comment+'Register '+att_reg2str[pairegalloc(hp)^.reg]+' released');
+{$endif DREGALLOC}
          ait_align : AsmWriteLn(#9'.align '+tostr(pai_align(hp)^.aligntype));
+       ait_section : begin
+                       if pai_section(hp)^.sec<>sec_none then
+                        begin
+                          AsmLn;
+                          AsmWrite(ait_section2str[pai_section(hp)^.sec]);
+                          if pai_section(hp)^.idataidx>0 then
+                           AsmWrite('$'+tostr(pai_section(hp)^.idataidx));
+                          AsmLn;
+{$ifdef GDB}
+                          case pai_section(hp)^.sec of
+                           sec_code : n_line:=n_textline;
+                           sec_data : n_line:=n_dataline;
+                            sec_bss : n_line:=n_bssline;
+                          end;
+{$endif GDB}
+                        end;
+                       LastSec:=pai_section(hp)^.sec;
+                     end;
      ait_datablock : begin
                        { ------------------------------------------------------- }
                        { ----------- ALIGNMENT FOR ANY NON-BYTE VALUE ---------- }
@@ -366,40 +398,42 @@ unit ag68kmit;
                        until (not found) or (l>line_length);
                        AsmLn;
                      end;
-  ait_const_symbol : Begin
-                      if not(cs_littlesize in aktswitches) then
-                           AsmWriteLn(#9#9'.align 4')
-                      else
-                          AsmWriteLn(#9#9'.align 2');
-                       AsmWriteLn(#9'.long'#9+StrPas(pchar(pai_const(hp)^.value)));
+  ait_const_symbol : begin
+                       if not(cs_littlesize in aktswitches) then
+                         AsmWriteLn(#9#9'.align 4')
+                       else
+                         AsmWriteLn(#9#9'.align 2');
+                       AsmWrite(#9'.long'#9);
+                       AsmWritePChar(pchar(pai_const(hp)^.value));
+                       AsmLn;
                      end;
     ait_real_64bit : Begin
-                      if not(cs_littlesize in aktswitches) then
-                           AsmWriteLn(#9#9'.align 4')
-                      else
-                          AsmWriteLn(#9#9'.align 2');
-                      AsmWriteLn(#9'.double'#9+double2str(pai_double(hp)^.value));
+                       if not(cs_littlesize in aktswitches) then
+                         AsmWriteLn(#9#9'.align 4')
+                       else
+                         AsmWriteLn(#9#9'.align 2');
+                       AsmWriteLn(#9'.double'#9+double2str(pai_double(hp)^.value));
                      end;
     ait_real_32bit : Begin
-                      if not(cs_littlesize in aktswitches) then
-                           AsmWriteLn(#9#9'.align 4')
-                      else
-                          AsmWriteLn(#9#9'.align 2');
-                      AsmWriteLn(#9'.single'#9+double2str(pai_single(hp)^.value));
+                       if not(cs_littlesize in aktswitches) then
+                         AsmWriteLn(#9#9'.align 4')
+                       else
+                         AsmWriteLn(#9#9'.align 2');
+                       AsmWriteLn(#9'.single'#9+double2str(pai_single(hp)^.value));
                      end;
  ait_real_extended : Begin
-                      if not(cs_littlesize in aktswitches) then
-                           AsmWriteLn(#9#9'.align 4')
-                      else
-                          AsmWriteLn(#9#9'.align 2');
-                      AsmWriteLn(#9'.extend'#9+double2str(pai_extended(hp)^.value));
+                       if not(cs_littlesize in aktswitches) then
+                         AsmWriteLn(#9#9'.align 4')
+                       else
+                         AsmWriteLn(#9#9'.align 2');
+                       AsmWriteLn(#9'.extend'#9+double2str(pai_extended(hp)^.value));
                      { comp type is difficult to write so use double }
                      end;
           ait_comp : Begin
-                      if not(cs_littlesize in aktswitches) then
-                           AsmWriteLn(#9#9'.align 4')
-                      else
-                          AsmWriteLn(#9#9'.align 2');
+                       if not(cs_littlesize in aktswitches) then
+                         AsmWriteLn(#9#9'.align 4')
+                       else
+                         AsmWriteLn(#9#9'.align 2');
                        AsmWriteLn(#9'.double'#9+comp2str(pai_extended(hp)^.value));
                      end;
         ait_direct : begin
@@ -540,16 +574,18 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
     procedure tm68kmitasmlist.WriteAsmList;
 {$ifdef GDB}
     var
-      p,n,e : string;
+      p:dirstr;
+      n:namestr;
+      e:extstr;
 {$endif}
     begin
 {$ifdef EXTDEBUG}
       if assigned(current_module^.mainsource) then
        comment(v_info,'Start writing gas-styled assembler output for '+current_module^.mainsource^);
 {$endif}
+{$ifdef GDB}
       infile:=nil;
       includecount:=0;
-{$ifdef GDB}
       if assigned(current_module^.mainsource) then
        fsplit(current_module^.mainsource^,p,n,e)
       else
@@ -570,42 +606,24 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
          AsmWriteLn('Ltext0:');
        end;
       infile:=current_module^.sourcefiles.files;
-{$endif GDB}
-
     { main source file is last in list }
       while assigned(infile^._next) do
        infile:=infile^._next;
       lastline:=0;
+{$endif GDB}
+
       { there should be nothing but externals so we don't need to process
       WriteTree(externals); }
+
       WriteTree(debuglist);
-
-    { code segment }
-      AsmWriteln('.text');
-{$ifdef GDB}
-      n_line:=n_textline;
-{$endif GDB}
       WriteTree(codesegment);
-
-      AsmWriteLn('.data');
-{$ifdef EXTDEBUG}
-      AsmWriteLn(#9'.ascii'#9'"compiled by FPC '+version_string+'\0"');
-      AsmWriteLn(#9'.ascii'#9'"target: '+target_info.target_name+'\0"');
-{$endif EXTDEBUG}
-{$ifdef GDB}
-      n_line:=n_dataline;
-{$endif GDB}
-      DataSegment^.insert(new(pai_align,init(4)));
       WriteTree(datasegment);
       WriteTree(consts);
-
-    { makes problems with old GNU ASes
-      AsmWriteLn('.bss');
-      bssSegment^.insert(new(pai_align,init(4))); }
-{$ifdef GDB}
-      n_line:=n_bssline;
-{$endif GDB}
+      WriteTree(rttilist);
       WriteTree(bsssegment);
+      Writetree(importssection);
+      Writetree(exportssection);
+      Writetree(resourcesection);
 
       AsmLn;
 {$ifdef EXTDEBUG}
@@ -617,73 +635,9 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 end.
 {
   $Log$
-  Revision 1.3  1998-05-23 01:20:57  peter
-    + aktasmmode, aktoptprocessor, aktoutputformat
-    + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
-    + $LIBNAME to set the library name where the unit will be put in
-    * splitted cgi386 a bit (codeseg to large for bp7)
-    * nasm, tasm works again. nasm moved to ag386nsm.pas
-
-  Revision 1.2  1998/04/29 10:33:42  pierre
-    + added some code for ansistring (not complete nor working yet)
-    * corrected operator overloading
-    * corrected nasm output
-    + started inline procedures
-    + added starstarn : use ** for exponentiation (^ gave problems)
-    + started UseTokenInfo cond to get accurate positions
-
-  Revision 1.1.1.1  1998/03/25 11:18:16  root
-  * Restored version
-
-  Revision 1.3  1998/03/22 12:45:37  florian
-    * changes of Carl-Eric to m68k target commit:
-      - wrong nodes because of the new string cg in intel, I had to create
-        this under m68k also ... had to work it out to fix potential alignment
-        problems --> this removes the crash of the m68k compiler.
-      - added absolute addressing in m68k assembler (required for Amiga startup)
-      - fixed alignment problems (because of byte return values, alignment
-        would not be always valid) -- is this ok if i change the offset if odd in
-        setfirsttemp ?? -- it seems ok...
-
-  Revision 1.2  1998/03/10 04:22:45  carl
-    - removed in because can cause range check errors in BP
-
-  Revision 1.1  1998/03/10 01:26:10  peter
-    + new uniform names
-
-  Revision 1.8  1998/03/09 12:58:11  peter
-    * FWait warning is only showed for Go32V2 and $E+
-    * opcode tables moved to i386.pas/m68k.pas to reduce circular uses (and
-      for m68k the same tables are removed)
-    + $E for i386
-
-  Revision 1.7  1998/03/06 00:52:25  peter
-    * replaced all old messages from errore.msg, only ExtDebug and some
-      Comment() calls are left
-    * fixed options.pas
-
-  Revision 1.6  1998/03/02 01:48:44  peter
-    * renamed target_DOS to target_GO32V1
-    + new verbose system, merged old errors and verbose units into one new
-      verbose.pas, so errors.pas is obsolete
-
-  Revision 1.5  1998/02/23 02:53:52  carl
-    * some bugfix with $extdebug
-
-  Revision 1.4  1998/02/22 23:03:19  peter
-    * renamed msource->mainsource and name->unitname
-    * optimized filename handling, filename is not seperate anymore with
-      path+name+ext, this saves stackspace and a lot of fsplit()'s
-    * recompiling of some units in libraries fixed
-    * shared libraries are working again
-    + $LINKLIB <lib> to support automatic linking to libraries
-    + libraries are saved/read from the ppufile, also allows more libraries
-      per ppufile
-
-  Revision 1.3  1998/02/22 21:56:29  carl
-    * bugfix of offset with index
-
-  Revision 1.2  1998/02/21 20:20:01  carl
-    * make it work under older versions of GAS
+  Revision 1.4  1998-06-04 23:51:29  peter
+    * m68k compiles
+    + .def file creation moved to gendef.pas so it could also be used
+      for win32
 
 }

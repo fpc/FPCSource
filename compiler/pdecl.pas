@@ -1621,6 +1621,8 @@ unit pdecl;
                    { absolute address ?!? }
                    if token=INTCONST then
                      begin
+{$ifdef i386}           
+
                        if (target_info.target=target_GO32V2) then
                         begin
                           abssym:=new(pabsolutesym,init(s,p));
@@ -1643,6 +1645,8 @@ unit pdecl;
                           symtablestack^.insert(abssym);
                         end
                        else
+{$endif i386}
+
                         Message(parser_e_absolute_only_to_var_or_const);
                      end
                    else
@@ -1797,7 +1801,12 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.22  1998-06-03 22:48:59  peter
+  Revision 1.23  1998-06-04 23:51:50  peter
+    * m68k compiles
+    + .def file creation moved to gendef.pas so it could also be used
+      for win32
+
+  Revision 1.22  1998/06/03 22:48:59  peter
     + wordbool,longbool
     * rename bis,von -> high,low
     * moved some systemunit loading/creating to psystem.pas

@@ -1182,7 +1182,9 @@
   end;
 
     procedure tvarsym.concatstabto(asmlist : paasmoutput);
+{$ifdef i386}
       var stab_str : pchar;
+{$endif i386}
       begin
          inherited concatstabto(asmlist);
 {$ifdef i386}
@@ -1690,7 +1692,12 @@
 
 {
   $Log$
-  Revision 1.4  1998-06-04 09:55:46  pierre
+  Revision 1.5  1998-06-04 23:52:02  peter
+    * m68k compiles
+    + .def file creation moved to gendef.pas so it could also be used
+      for win32
+
+  Revision 1.4  1998/06/04 09:55:46  pierre
     * demangled name of procsym reworked to become independant of the mangling scheme
 
   Come test_funcret improvements (not yet working)S: ----------------------------------------------------------------------

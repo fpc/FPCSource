@@ -59,7 +59,6 @@ unit ag68kgas;
     function double2str(d : double) : string;
       var
          hs : string;
-         p : byte;
       begin
          str(d,hs);
        { replace space with + }
@@ -76,13 +75,11 @@ unit ag68kgas;
         c  : comp;
         dd : pdouble;
       begin
-         c:=d;
-      {$ifndef TP}
-         {$warning The following warning can be ignored}
-      {$endif TP}
+         c:=comp(d);
          dd:=pdouble(@c); { this makes a bitwise copy of c into a double }
          comp2str:=double2str(dd^);
       end;
+
 
     function getreferencestring(const ref : treference) : string;
       var
@@ -205,12 +202,19 @@ unit ag68kgas;
  ****************************************************************************}
 
     var
-       { different types of source lines }
+{$ifdef GDB}
+
        n_line : byte;
+{$endif}
+       lastsec : tsection;
+
 
     const
       ait_const2str:array[ait_const_32bit..ait_const_8bit] of string[8]=
         (#9'.long'#9,'',#9'.short'#9,#9'.byte'#9);
+
+      ait_section2str : array[tsection] of string[6]=
+       ('','.text','.data','.bss','.idata');
 
     procedure tm68kgasasmlist.WriteTree(p:paasmoutput);
     var
@@ -225,6 +229,8 @@ unit ag68kgas;
       linecount : longint;
 {$endif GDB}
     begin
+      if not assigned(p) then
+       exit;
 {$ifdef GDB}
       funcname:=nil;
       linecount:=1;
@@ -255,11 +261,11 @@ unit ag68kgas;
                if (hp^.line<>lastline) and (hp^.line<>0) then
                 begin
                   if (n_line = n_textline) and assigned(funcname) and
-                     (target_info.use_function_relative_addresses) then
+                     (target_os.use_function_relative_addresses) then
                    begin
-                     AsmWriteLn(target_info.labelprefix+'l'+tostr(linecount)+':');
+                     AsmWriteLn(target_asm.labelprefix+'l'+tostr(linecount)+':');
                      AsmWriteLn(#9'.stabn '+tostr(n_line)+',0,'+tostr(hp^.line)+','+
-                                target_info.labelprefix+'l'+tostr(linecount)+' - '+StrPas(FuncName));
+                                target_asm.labelprefix+'l'+tostr(linecount)+' - '+StrPas(FuncName));
                      inc(linecount);
                    end
                   else
@@ -271,14 +277,36 @@ unit ag68kgas;
 {$endif GDB}
 
          case hp^.typ of
-           ait_comment :
-             Begin
-                AsmWrite(As_comment);
-                AsmWritePChar(pai_asm_comment(hp)^.str);
-                AsmLn;
-             End;
       ait_external : ; { external is ignored }
+       ait_comment : Begin
+                       AsmWrite(target_asm.comment);
+                       AsmWritePChar(pai_asm_comment(hp)^.str);
+                       AsmLn;
+                     End;
+{$ifdef DREGALLOC}
+      ait_regalloc : AsmWriteLn(target_asm.comment+'Register '+att_reg2str[pairegalloc(hp)^.reg]+' allocated');
+    ait_regdealloc : AsmWriteLn(target_asm.comment+'Register '+att_reg2str[pairegalloc(hp)^.reg]+' released');
+{$endif DREGALLOC}
          ait_align : AsmWriteLn(#9'.align '+tostr(pai_align(hp)^.aligntype));
+       ait_section : begin
+                       if pai_section(hp)^.sec<>sec_none then
+                        begin
+                          AsmLn;
+                          AsmWrite(ait_section2str[pai_section(hp)^.sec]);
+                          if pai_section(hp)^.idataidx>0 then
+                           AsmWrite('$'+tostr(pai_section(hp)^.idataidx));
+                          AsmLn;
+{$ifdef GDB}
+
+                          case pai_section(hp)^.sec of
+                           sec_code : n_line:=n_textline;
+                           sec_data : n_line:=n_dataline;
+                            sec_bss : n_line:=n_bssline;
+                          end;
+{$endif GDB}
+                        end;
+                       LastSec:=pai_section(hp)^.sec;
+                     end;
      ait_datablock : begin
                        { ------------------------------------------------------- }
                        { ----------- ALIGNMENT FOR ANY NON-BYTE VALUE ---------- }
@@ -494,6 +522,21 @@ ait_labeled_instruction : begin
                      end;
 ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 {$endif GDB}
+{$ifdef SMARTLINK}
+           ait_cut : begin { used to split into tiny assembler files }
+                       if (cs_smartlink in aktswitches) then
+                        begin
+                          AsmClose;
+                          DoAssemble;
+                          AsmCreate;
+                          AsmWriteLn(ait_section2str[lastsec]);
+                        { avoid empty files }
+                          while assigned(hp^.next) and (pai(hp^.next)^.typ=ait_cut) do
+                           hp:=pai(hp^.next);
+                        end;
+                     end;
+{$endif SMARTLINK}              
+
          else
           internalerror(10000);
          end;
@@ -504,7 +547,9 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
     procedure tm68kgasasmlist.WriteAsmList;
 {$ifdef GDB}
     var
-      p,n,e : string;
+      p:dirstr;
+      n:namestr;
+      e:extstr;
 {$endif}
     begin
 {$ifdef EXTDEBUG}
@@ -534,42 +579,24 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
          AsmWriteLn('Ltext0:');
        end;
       infile:=current_module^.sourcefiles.files;
-{$endif GDB}
-
     { main source file is last in list }
       while assigned(infile^._next) do
        infile:=infile^._next;
       lastline:=0;
+{$endif GDB}
+
       { there should be nothing but externals so we don't need to process
       WriteTree(externals); }
+
       WriteTree(debuglist);
-
-    { code segment }
-      AsmWriteln('.text');
-{$ifdef GDB}
-      n_line:=n_textline;
-{$endif GDB}
       WriteTree(codesegment);
-
-      AsmWriteLn('.data');
-{$ifdef EXTDEBUG}
-      AsmWriteLn(#9'.ascii'#9'"compiled by FPC '+version_string+'\0"');
-      AsmWriteLn(#9'.ascii'#9'"target: '+target_info.target_name+'\0"');
-{$endif EXTDEBUG}
-{$ifdef GDB}
-      n_line:=n_dataline;
-{$endif GDB}
-      DataSegment^.insert(new(pai_align,init(4)));
       WriteTree(datasegment);
       WriteTree(consts);
-
-    { makes problems with old GNU ASes
-      AsmWriteLn('.bss');
-      bssSegment^.insert(new(pai_align,init(4))); }
-{$ifdef GDB}
-      n_line:=n_bssline;
-{$endif GDB}
+      WriteTree(rttilist);
       WriteTree(bsssegment);
+      Writetree(importssection);
+      Writetree(exportssection);
+      Writetree(resourcesection);
 
       AsmLn;
 {$ifdef EXTDEBUG}
@@ -581,148 +608,9 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 end.
 {
   $Log$
-  Revision 1.3  1998-05-23 01:20:56  peter
-    + aktasmmode, aktoptprocessor, aktoutputformat
-    + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
-    + $LIBNAME to set the library name where the unit will be put in
-    * splitted cgi386 a bit (codeseg to large for bp7)
-    * nasm, tasm works again. nasm moved to ag386nsm.pas
+  Revision 1.4  1998-06-04 23:51:28  peter
+    * m68k compiles
+    + .def file creation moved to gendef.pas so it could also be used
+      for win32
 
-  Revision 1.2  1998/04/29 10:33:41  pierre
-    + added some code for ansistring (not complete nor working yet)
-    * corrected operator overloading
-    * corrected nasm output
-    + started inline procedures
-    + added starstarn : use ** for exponentiation (^ gave problems)
-    + started UseTokenInfo cond to get accurate positions
-
-  Revision 1.1.1.1  1998/03/25 11:18:16  root
-  * Restored version
-
-  Revision 1.3  1998/03/22 12:45:37  florian
-    * changes of Carl-Eric to m68k target commit:
-      - wrong nodes because of the new string cg in intel, I had to create
-        this under m68k also ... had to work it out to fix potential alignment
-        problems --> this removes the crash of the m68k compiler.
-      - added absolute addressing in m68k assembler (required for Amiga startup)
-      - fixed alignment problems (because of byte return values, alignment
-        would not be always valid) -- is this ok if i change the offset if odd in
-        setfirsttemp ?? -- it seems ok...
-
-  Revision 1.2  1998/03/10 04:22:08  carl
-    - removed in as it can cause range check errors under BP
-
-  Revision 1.1  1998/03/10 01:26:10  peter
-    + new uniform names
-
-  Revision 1.18  1998/03/09 12:58:10  peter
-    * FWait warning is only showed for Go32V2 and $E+
-    * opcode tables moved to i386.pas/m68k.pas to reduce circular uses (and
-      for m68k the same tables are removed)
-    + $E for i386
-
-  Revision 1.17  1998/03/06 00:52:18  peter
-    * replaced all old messages from errore.msg, only ExtDebug and some
-      Comment() calls are left
-    * fixed options.pas
-
-  Revision 1.16  1998/03/02 01:48:33  peter
-    * renamed target_DOS to target_GO32V1
-    + new verbose system, merged old errors and verbose units into one new
-      verbose.pas, so errors.pas is obsolete
-
-  Revision 1.15  1998/02/23 03:00:00  carl
-    * bugfix when compiling with extdebug defined
-
-  Revision 1.14  1998/02/22 23:03:18  peter
-    * renamed msource->mainsource and name->unitname
-    * optimized filename handling, filename is not seperate anymore with
-      path+name+ext, this saves stackspace and a lot of fsplit()'s
-    * recompiling of some units in libraries fixed
-    * shared libraries are working again
-    + $LINKLIB <lib> to support automatic linking to libraries
-    + libraries are saved/read from the ppufile, also allows more libraries
-      per ppufile
-
-  Revision 1.13  1998/02/21 20:20:52  carl
-     * make it work under older versions of GAS
-
-  Revision 1.10  1998/02/15 21:16:19  peter
-    * all assembler outputs supported by assemblerobject
-    * cleanup with assembleroutputs, better .ascii generation
-    * help_constructor/destructor are now added to the externals
-    - generation of asmresponse is not outputformat depended
-
-  Revision 1.9  1998/02/13 10:34:59  daniel
-  * Made Motorola version compilable.
-  * Fixed optimizer
-
-  Revision 1.8  1998/02/12 11:50:04  daniel
-  Yes! Finally! After three retries, my patch!
-
-  Changes:
-
-  Complete rewrite of psub.pas.
-  Added support for DLL's.
-  Compiler requires less memory.
-  Platform units for each platform.
-
-  Revision 1.7  1998/01/09 19:20:49  carl
-  + added support for mul/div 68020 syntax
-  * bugfix of getreferencestring
-
-  Revision 1.4  1997/12/09 13:37:50  carl
-  + ait_align added
-  * now all non byte values are aligned correctly
-
-  Revision 1.3  1997/12/05 14:40:49  carl
-  * bugfix of scaling, was incorrect under gas.
-
-  Revision 1.2  1997/12/04 15:30:14  carl
-  * forgot to change name of unit! ugh...
-
-  Revision 1.1  1997/12/03 14:04:19  carl
-  + renamed from gasasm6.pas to ag68kgas.pas
-
-  Revision 1.3  1997/12/01 17:42:51  pierre
-     + added some more functionnality to the assembler parser
-
-  Revision 1.2  1997/11/28 18:14:32  pierre
-   working version with several bug fixes
-
-  Revision 1.1.1.1  1997/11/27 08:32:56  michael
-  FPC Compiler CVS start
-
-
-  Pre-CVS log:
-
-  CEC   Carl-Eric Codere
-  FK    Florian Klaempfl
-  PM    Pierre Muller
-  +     feature added
-  -     removed
-  *     bug fixed or changed
-
-  History:
-      30th september 1996:
-         + unit started (FK)
-      15th october 1996:
-         + ti386attasmoutput class started (FK)
-      28th november 1996:
-         ! debugging for simple programs (FK)
-      26th february 1997:
-         + op2str array completed with work of Daniel Manitone (FK)
-      25th september 1997:
-         * compiled by comment ifdef'ed (FK)
-      4th october 1997:
-         + converted to motorola 68000 (same sytnax as gas) (CEC)
-     9th october 1997:
-       * fixed constant bug. (CEC)
-       + converted from %reg to reg (untested) (CEC)
-     (according to gas docs, they are accepted).
-    28th october 1997:
-       * bugfix on increment/decrement mode (was never checked). (CEC)
-    2nd november 1997:
-       + added all opcodes , and they are now in correct order of
-         processor types. (CEC).
 }

@@ -32,7 +32,7 @@ procedure createconstdefs;
 
 implementation
 
-uses tree;
+uses globals,tree;
 
 procedure insertinternsyms(p : psymtable);
 {
@@ -231,7 +231,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  1998-06-04 08:23:57  pierre
+  Revision 1.3  1998-06-04 23:51:55  peter
+    * m68k compiles
+    + .def file creation moved to gendef.pas so it could also be used
+      for win32
+
+  Revision 1.2  1998/06/04 08:23:57  pierre
     * boolean again intern declared (needed to be able to compile
       older RTL's)
 

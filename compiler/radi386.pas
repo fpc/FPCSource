@@ -239,89 +239,9 @@ unit radi386;
 end.
 {
   $Log$
-  Revision 1.3  1998-05-20 09:42:36  pierre
-    + UseTokenInfo now default
-    * unit in interface uses and implementation uses gives error now
-    * only one error for unknown symbol (uses lastsymknown boolean)
-      the problem came from the label code !
-    + first inlined procedures and function work
-      (warning there might be allowed cases were the result is still wrong !!)
-    * UseBrower updated gives a global list of all position of all used symbols
-      with switch -gb
+  Revision 1.4  1998-06-04 23:51:58  peter
+    * m68k compiles
+    + .def file creation moved to gendef.pas so it could also be used
+      for win32
 
-  Revision 1.2  1998/04/08 16:58:06  pierre
-    * several bugfixes
-      ADD ADC and AND are also sign extended
-      nasm output OK (program still crashes at end
-      and creates wrong assembler files !!)
-      procsym types sym in tdef removed !!
-
-  Revision 1.1.1.1  1998/03/25 11:18:15  root
-  * Restored version
-
-  Revision 1.13  1998/03/24 21:48:33  florian
-    * just a couple of fixes applied:
-         - problem with fixed16 solved
-         - internalerror 10005 problem fixed
-         - patch for assembler reading
-         - small optimizer fix
-         - mem is now supported
-
-  Revision 1.12  1998/03/10 16:27:43  pierre
-    * better line info in stabs debug
-    * symtabletype and lexlevel separated into two fields of tsymtable
-    + ifdef MAKELIB for direct library output, not complete
-    + ifdef CHAINPROCSYMS for overloaded seach across units, not fully
-      working
-    + ifdef TESTFUNCRET for setting func result in underfunction, not
-      working
-
-  Revision 1.11  1998/03/10 01:17:26  peter
-    * all files have the same header
-    * messages are fully implemented, EXTDEBUG uses Comment()
-    + AG... files for the Assembler generation
-
-  Revision 1.10  1998/03/09 12:58:12  peter
-    * FWait warning is only showed for Go32V2 and $E+
-    * opcode tables moved to i386.pas/m68k.pas to reduce circular uses (and
-      for m68k the same tables are removed)
-    + $E for i386
-
-  Revision 1.9  1998/03/06 00:52:51  peter
-    * replaced all old messages from errore.msg, only ExtDebug and some
-      Comment() calls are left
-    * fixed options.pas
-
-  Revision 1.8  1998/03/03 16:45:23  peter
-    + message support for assembler parsers
-
-  Revision 1.7  1998/03/02 01:49:14  peter
-    * renamed target_DOS to target_GO32V1
-    + new verbose system, merged old errors and verbose units into one new
-      verbose.pas, so errors.pas is obsolete
-
-  Revision 1.6  1998/02/13 10:35:35  daniel
-  * Made Motorola version compilable.
-  * Fixed optimizer
-
-  Revision 1.5  1998/02/07 18:01:27  carl
-    + fwait warning for emulation
-
-  Revision 1.3  1997/11/30 18:12:17  carl
-  * bugfix of line numbering.
-
-  Revision 1.2  1997/11/28 18:14:44  pierre
-   working version with several bug fixes
-
-  Revision 1.1.1.1  1997/11/27 08:33:00  michael
-  FPC Compiler CVS start
-
-
-  Pre-CVS log:
-
-  History:
-      19th october 1996:
-         + created from old asmbl.pas
-      13th october 1996:
-         + renamed to radi386
 }

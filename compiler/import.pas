@@ -60,8 +60,14 @@ procedure InitImport;
 implementation
 
 uses
-  systems,verbose,
-  os2_targ,win_targ;
+  systems,verbose
+{$ifdef i386}
+
+  ,os2_targ
+  ,win_targ
+{$endif}
+
+  ;
 
 {****************************************************************************
                            TImported_procedure
@@ -135,18 +141,29 @@ end;
 
 procedure InitImport;
 begin
+{$ifdef i386}
+
   case target_info.target of
  target_Win32 : importlib:=new(pimportlibwin32,Init);
    target_OS2 : importlib:=new(pimportlibos2,Init);
   else
    importlib:=new(pimportlib,Init);
   end;
+{$endif i386}
+{$ifdef m68k}
+  importlib:=new(pimportlib,Init);
+{$endif m68k}
 end;
 
 end.
 {
   $Log$
-  Revision 1.2  1998-04-27 23:10:28  peter
+  Revision 1.3  1998-06-04 23:51:43  peter
+    * m68k compiles
+    + .def file creation moved to gendef.pas so it could also be used
+      for win32
+
+  Revision 1.2  1998/04/27 23:10:28  peter
     + new scanner
     * $makelib -> if smartlink
     * small filename fixes pmodule.setfilename

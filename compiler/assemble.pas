@@ -159,7 +159,7 @@ begin
        end;
    end;
   if externasm then
-   AsmRes.AddAsmCommand(command,para,asmfile);
+   AsmRes.AddAsmCommand(command,para,name);
   callassembler:=true;
 end;
 
@@ -416,7 +416,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  1998-05-23 01:21:01  peter
+  Revision 1.10  1998-06-04 23:51:33  peter
+    * m68k compiles
+    + .def file creation moved to gendef.pas so it could also be used
+      for win32
+
+  Revision 1.9  1998/05/23 01:21:01  peter
     + aktasmmode, aktoptprocessor, aktoutputformat
     + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
     + $LIBNAME to set the library name where the unit will be put in

@@ -34,13 +34,13 @@ unit parser;
 
     uses
        dos,cobjects,globals,scanner,systems,symtable,tree,aasm,
-       types,strings,pass_1,hcodegen,files,verbose,script,import
+       types,strings,pass_1,hcodegen,files,verbose,script,import,gendef
 {$ifdef i386}
-       ,i386
+{       ,i386
        ,cgi386
        ,cgai386
        ,tgeni386
-       ,aopt386
+       ,aopt386}
 {$endif i386}
 {$ifdef m68k}
         ,m68k
@@ -345,14 +345,20 @@ unit parser;
              addlinkerfiles(current_module);
 
            { Check linking  => we are at first level in compile }
-             if (compile_level=1) and (not current_module^.is_unit) then
-               begin
-                 if (cs_no_linking in initswitches) then
-                   externlink:=true;
-                 if Linker.ExeName='' then
-                   Linker.SetExeName(FileName);
-                 Linker.MakeExecutable;
-               end;
+             if (compile_level=1) then
+              begin
+                if gendeffile then
+                 deffile.writefile;
+                if (not current_module^.is_unit) then
+                 begin
+                   if (cs_no_linking in initswitches) then
+                     externlink:=true;
+                   if Linker.ExeName='' then
+                     Linker.SetExeName(FileName);
+                   Linker.MakeExecutable;
+                 end;
+              end;      
+
            end
          else
            Message1(unit_f_errors_in_unit,tostr(status.errorcount));
@@ -452,7 +458,12 @@ done:
 end.
 {
   $Log$
-  Revision 1.20  1998-06-03 22:48:55  peter
+  Revision 1.21  1998-06-04 23:51:49  peter
+    * m68k compiles
+    + .def file creation moved to gendef.pas so it could also be used
+      for win32
+
+  Revision 1.20  1998/06/03 22:48:55  peter
     + wordbool,longbool
     * rename bis,von -> high,low
     * moved some systemunit loading/creating to psystem.pas

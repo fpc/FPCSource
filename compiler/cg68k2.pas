@@ -501,7 +501,7 @@ Implementation
                                          end
                                        else
                                          begin
-                                            if (op=A_MULS) and (opsize = S_L) and (opt_processors=MC68000) then
+                                            if (op=A_MULS) and (opsize = S_L) and (aktoptprocessor=MC68000) then
                                             { Emulation for MC68000 }
                                             begin
                                               emit_reg_reg(A_MOVE,opsize,p^.right^.location.register,
@@ -511,7 +511,7 @@ Implementation
                                               emit_reg_reg(A_MOVE,opsize,R_D0,p^.location.register);
                                             end
                                             else
-                                            if (op=A_MULU) and (opsize = S_L) and (opt_processors=MC68000) then
+                                            if (op=A_MULU) and (opsize = S_L) and (aktoptprocessor=MC68000) then
                                              Message(cg_f_32bit_not_supported_in_68000)
                                             else
                                               emit_reg_reg(op,opsize,p^.right^.location.register,
@@ -530,7 +530,7 @@ Implementation
                                          end
                                        else
                                          begin
-                                            if (op=A_MULS) and (opsize = S_L) and (opt_processors=MC68000) then
+                                            if (op=A_MULS) and (opsize = S_L) and (aktoptprocessor=MC68000) then
                                             { Emulation for MC68000 }
                                             begin
                                               exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE, opsize,
@@ -540,7 +540,7 @@ Implementation
                                               emit_reg_reg(A_MOVE,opsize,R_D0,p^.location.register);
                                             end
                                             else
-                                            if (op=A_MULU) and (opsize = S_L) and (opt_processors=MC68000) then
+                                            if (op=A_MULU) and (opsize = S_L) and (aktoptprocessor=MC68000) then
                                              Message(cg_f_32bit_not_supported_in_68000)
                                             else
                                               exprasmlist^.concat(new(pai68k,op_ref_reg(op,opsize,newreference(
@@ -571,7 +571,7 @@ Implementation
                              if extra_not then
                                    exprasmlist^.concat(new(pai68k,op_reg(A_NOT,S_L,p^.right^.location.register)));
 
-                             if (op=A_MULS) and (opsize = S_L) and (opt_processors=MC68000) then
+                             if (op=A_MULS) and (opsize = S_L) and (aktoptprocessor=MC68000) then
                              { Emulation for MC68000 }
                              begin
                                emit_reg_reg(A_MOVE,opsize,p^.right^.location.register,
@@ -581,7 +581,7 @@ Implementation
                                emit_reg_reg(A_MOVE,opsize,R_D0,p^.location.register);
                              end
                              else
-                             if (op=A_MULU) and (opsize = S_L) and (opt_processors=MC68000) then
+                             if (op=A_MULU) and (opsize = S_L) and (aktoptprocessor=MC68000) then
                               Message(cg_f_32bit_not_supported_in_68000)
                              else
 
@@ -1921,7 +1921,12 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.3  1998-04-29 10:33:45  pierre
+  Revision 1.4  1998-06-04 23:51:35  peter
+    * m68k compiles
+    + .def file creation moved to gendef.pas so it could also be used
+      for win32
+
+  Revision 1.3  1998/04/29 10:33:45  pierre
     + added some code for ansistring (not complete nor working yet)
     * corrected operator overloading
     * corrected nasm output

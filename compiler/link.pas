@@ -34,6 +34,7 @@ Type
        ObjectFiles,
        SharedLibFiles,
        StaticLibFiles    : TStringContainer;
+       OutputName,
        LibrarySearchPath,                 { Search path for libraries }
        ExeName,                           { FileName of the exe to be created }
        SharedLibName,
@@ -44,6 +45,7 @@ Type
      { Methods }
        Constructor Init;
        Destructor Done;
+       Procedure SetOutputName(const s:string);
        Procedure SetExeName(const s:string);
        Procedure SetLibName(const s:string);
        function  FindObjectFile(s : string) : string;
@@ -99,6 +101,7 @@ begin
   Strip:=false;
   LinkOptions:='';
   ExeName:='';
+  OutputName:='';
   SharedLibName:='';
   StaticLibName:='';
   ObjectSearchPath:='';
@@ -117,14 +120,25 @@ begin
 end;
 
 
+Procedure TLinker.SetOutputName(const s:string);
+begin
+  OutputName:=s;
+end;
+
+
 Procedure TLinker.SetExeName(const s:string);
 var
   path : dirstr;
   name : namestr;
   ext  : extstr;
 begin
-  FSplit(s,path,name,ext);
-  ExeName:=Path+Name+target_info.ExeExt;
+  if OutputName='' then
+   begin
+     FSplit(s,path,name,ext);
+     ExeName:=Path+Name+target_info.ExeExt;
+   end
+  else
+   ExeName:=OutputName;
 end;
 
 
@@ -134,9 +148,17 @@ var
   name : namestr;
   ext  : extstr;
 begin
-  FSplit(s,path,name,ext);
-  SharedLibName:=Path+Name+target_os.SharedLibExt;
-  StaticLibName:=Path+Name+target_os.StaticLibExt;
+  if OutputName='' then
+   begin
+     FSplit(s,path,name,ext);
+     SharedLibName:=Path+Name+target_os.SharedLibExt;
+     StaticLibName:=Path+Name+target_os.StaticLibExt;
+   end
+  else
+   begin
+     SharedLibName:=OutputName;
+     StaticLibName:=OutputName;
+   end;
 end;
 
 
@@ -261,6 +283,8 @@ begin
 { set special options for some targets }
   prtobj:='prt0';
   case target_info.target of
+{$ifdef i386}
+
    target_Win32 : prtobj:='';
    target_linux : begin
                     if cs_profile in aktswitches then
@@ -270,6 +294,18 @@ begin
                        AddSharedLibrary('c');
                      end;
                   end;
+{$endif i386}
+{$ifdef m68k}
+   target_linux : begin
+                    if cs_profile in aktswitches then
+                     begin
+                       prtobj:='gprt0';
+                       AddSharedLibrary('gmon');
+                       AddSharedLibrary('c');
+                     end;
+                  end;
+{$endif}                
+
   end;
 
 { Fix command line options }
@@ -338,7 +374,7 @@ begin
 end;
 
 
-Function TLinker.MakeExecutable:boolean;
+function TLinker.MakeExecutable:boolean;
 var
   bindbin    : string[80];
   bindfound  : boolean;
@@ -439,7 +475,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  1998-05-27 00:20:31  peter
+  Revision 1.12  1998-06-04 23:51:44  peter
+    * m68k compiles
+    + .def file creation moved to gendef.pas so it could also be used
+      for win32
+
+  Revision 1.11  1998/05/27 00:20:31  peter
     * some scanner optimizes
     * automaticly aout2exe for go32v1
     * fixed dynamiclinker option which was added at the wrong place

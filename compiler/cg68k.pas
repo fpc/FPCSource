@@ -40,8 +40,11 @@ interface
 
 uses    objects,verbose,cobjects,systems,globals,tree,
         symtable,types,strings,pass_1,hcodegen,
-        aasm,m68k,tgen68k,files,cga68k,cg68k2,gdb,link;
-
+        aasm,m68k,tgen68k,files,cga68k,cg68k2,link
+{$ifdef GDB}
+        ,gdb
+{$endif}
+        ;       
 { produces assembler for the expression in variable p }
 { and produces an assembler node at the end           }
 procedure generatecode(var p : ptree);
@@ -131,6 +134,24 @@ implementation
       begin
          p^.error:=true;
          codegenerror:=true;
+      end;
+
+    procedure secondstatement(var p : ptree);
+      var
+         hp : ptree;
+
+      begin
+         hp:=p;
+         while assigned(hp) do
+           begin
+              { assignments could be distance optimized }
+              if assigned(hp^.right) then
+                begin
+                   cleartempgen;
+                   secondpass(hp^.right);
+                end;
+              hp:=hp^.left;
+           end;
       end;
 
     procedure secondload(var p : ptree);
@@ -390,7 +411,8 @@ implementation
 
               { on entering this section D1 should contain the divisor }
 
-              if (opt_processors = MC68020) then
+              if (aktoptprocessor
+                = MC68020) then
               begin
                  if (p^.treetype = modn) then
                  Begin
@@ -1157,7 +1179,8 @@ implementation
                      exprasmlist^.concat(new(pai68k,op_const_reg(A_MULS,S_W,l1,ind)))
                    else
                    { use long MC68020 long multiply }
-                   if (opt_processors = MC68020) then
+                   if (aktoptprocessor
+                    = MC68020) then
                      exprasmlist^.concat(new(pai68k,op_const_reg(A_MULS,S_L,l1,ind)))
                    else
                    { MC68000 long multiply }
@@ -1433,8 +1456,8 @@ implementation
            if (cs_rangechecking in aktswitches)  and
              { with $R+ explicit type conversations in TP aren't range checked! }
              (not(p^.explizit) or not(cs_tp_compatible in aktswitches)) and
-             ((porddef(p1)^.von>porddef(p2)^.von) or
-             (porddef(p1)^.bis<porddef(p2)^.bis) or
+             ((porddef(p1)^.low>porddef(p2)^.low) or
+             (porddef(p1)^.high<porddef(p2)^.high) or
              (porddef(p1)^.typ=u32bit) or
              (porddef(p2)^.typ=u32bit)) then
            begin
@@ -1461,7 +1484,7 @@ implementation
                      begin
                          exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_B,p^.location.register,R_D6)));
                          { byte to long }
-                         if opt_processors = MC68020 then
+                         if aktoptprocessor = MC68020 then
                              exprasmlist^.concat(new(pai68k,op_reg(A_EXTB,S_L,R_D6)))
                          else
                            begin
@@ -1473,7 +1496,7 @@ implementation
                      begin
                          exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_B,newreference(p^.location.reference),R_D6)));
                          { byte to long }
-                         if opt_processors = MC68020 then
+                         if aktoptprocessor = MC68020 then
                              exprasmlist^.concat(new(pai68k,op_reg(A_EXTB,S_L,R_D6)))
                          else
                            begin
@@ -1523,7 +1546,7 @@ implementation
               new(hp);
               reset_reference(hp^);
               hp^.symbol:=stringdup('R_'+tostr(porddef(p1)^.rangenr));
-              if porddef(p1)^.von>porddef(p1)^.bis then
+              if porddef(p1)^.low>porddef(p1)^.high then
                 begin
                    getlabel(neglabel);
                    getlabel(poslabel);
@@ -1531,7 +1554,7 @@ implementation
                    emitl(A_BLT,neglabel);
                 end;
               emit_bounds_check(hp^,hregister);
-              if porddef(p1)^.von>porddef(p1)^.bis then
+              if porddef(p1)^.low>porddef(p1)^.high then
                 begin
                    new(hp);
                    reset_reference(hp^);
@@ -1614,10 +1637,10 @@ implementation
                                       tc_s8bit_2_u32bit,
                                       tc_s8bit_2_s32bit:
                                                   begin
-                                                    if opt_processors = MC68020 then
+                                                    if aktoptprocessor = MC68020 then
                                                       exprasmlist^.concat(new(pai68k,op_reg
                                                         (A_EXTB,S_L,hregister)))
-                                                    else { else if opt_processors }
+                                                    else { else if aktoptprocessor }
                                                     begin
                                                     { byte to word }
                                                       exprasmlist^.concat(new(pai68k,op_reg
@@ -1871,7 +1894,7 @@ implementation
                    exprasmlist^.concat(new(pai68k, op_const_reg(A_AND, S_W, $FF, R_D6)));
                    del_reference(p^.left^.location.reference);
                 end;
-              if (opt_processors = MC68020) then
+              if (aktoptprocessor = MC68020) then
               { alignment is not a problem on the 68020 and higher processors }
                 Begin
                   { add length of string to word }
@@ -2183,7 +2206,7 @@ implementation
                 s8bit : begin
                            exprasmlist^.concat(new(pai68k, op_ref_reg(A_MOVE,S_B,
                               newreference(p^.left^.location.reference),hregister)));
-                           if opt_processors = MC68020 then
+                           if aktoptprocessor = MC68020 then
                               exprasmlist^.concat(new(pai68k, op_reg(A_EXTB,S_L,hregister)))
                            else
                             begin
@@ -2235,8 +2258,8 @@ implementation
            (not(p^.explizit) or not(cs_tp_compatible in aktswitches)) and
            (p^.resulttype^.deftype=orddef) and
            (hp^.resulttype^.deftype=orddef) and
-           ((porddef(p^.resulttype)^.von>porddef(hp^.resulttype)^.von) or
-           (porddef(p^.resulttype)^.bis<porddef(hp^.resulttype)^.bis)) then
+           ((porddef(p^.resulttype)^.low>porddef(hp^.resulttype)^.low) or
+           (porddef(p^.resulttype)^.high<porddef(hp^.resulttype)^.high)) then
            begin
               porddef(p^.resulttype)^.genrangecheck;
               if porddef(hp^.resulttype)^.typ=s32bit then
@@ -2309,7 +2332,7 @@ implementation
         emit_reg_reg(A_MOVE, S_L, R_A0, P^.location.register);
     end;
 
-   procedure second_bool_to_byte(p,hp : ptree;convtyp : tconverttype);
+   procedure second_bool_to_int(p,hp : ptree;convtyp : tconverttype);
 
       var
          oldtruelabel,oldfalselabel,hlabel : plabel;
@@ -2353,6 +2376,12 @@ implementation
          falselabel:=oldfalselabel;
      end;
 
+   procedure second_int_to_bool(p,hp : ptree;convtyp : tconverttype);
+     begin
+      { !!!!!!!!!!!!!!! }
+     end;
+
+
     procedure secondtypeconv(var p : ptree);
 
       const
@@ -2375,7 +2404,8 @@ implementation
                               second_smaller,second_smaller,
                               second_int_real,second_real_fix,
                               second_fix_real,second_int_fix,second_float_float,
-                              second_chararray_to_string,second_bool_to_byte,
+                              second_bool_to_int,second_int_to_bool,
+                              second_chararray_to_string,
                               second_proc_to_procvar,
                               { is constant char to pchar, is done by firstpass }
                               second_nothing);
@@ -2386,7 +2416,7 @@ implementation
 
          { this is necessary, because second_bool_byte, have to change   }
          { true- and false label before calling secondpass               }
-         if p^.convtyp<>tc_bool_2_u8bit then
+         if p^.convtyp<>tc_bool_2_int then
          begin
            secondpass(p^.left);
            set_location(p^.location,p^.left^.location);
@@ -3332,7 +3362,7 @@ implementation
               new(r);
               reset_reference(r^);
               r^.symbol:=stringdup('U_'+upper(target_info.system_unit)+io[byte(doread)]);
-           if assem_need_external_list and not (cs_compilesystem in aktswitches) then
+           if not (cs_compilesystem in aktswitches) then
                  concat_external(r^.symbol^,EXT_NEAR);
 
               exprasmlist^.concat(new(pai68k,op_ref_reg(A_LEA,S_L,r,R_A0)))
@@ -4798,6 +4828,10 @@ do_jmp:
             end;
        end;
 
+procedure secondprocinline(var p:ptree);
+begin
+end;
+
     procedure secondpass(var p : ptree);
       const
            procedures : array[ttreetyp] of secondpassproc =
@@ -4815,12 +4849,12 @@ do_jmp:
              secondnot,secondinline,secondniln,seconderror,
              secondnothing,secondhnewn,secondhdisposen,secondnewn,
              secondsimplenewdispose,secondnothing,secondsetcons,secondblockn,
-             secondnothing,secondnothing,secondifn,secondbreakn,
+             secondstatement,secondnothing,secondifn,secondbreakn,
              secondcontinuen,second_while_repeatn,second_while_repeatn,secondfor,
              secondexitn,secondwith,secondcase,secondlabel,
              secondgoto,secondsimplenewdispose,secondtryexcept,secondraise,
              secondnothing,secondtryfinally,secondis,secondas,seconderror,
-             secondfail,
+             secondfail,secondadd,secondprocinline,
              secondnothing,secondloadvmt);
       var
          oldcodegenerror : boolean;
@@ -4835,8 +4869,9 @@ do_jmp:
          oldnr:=current_module^.current_inputfile^.line_no;
 
          codegenerror:=false;
-         current_module^.current_inputfile:=p^.inputfile;
-         current_module^.current_inputfile^.line_no:=p^.line;
+         current_module^.current_inputfile:=
+           pinputfile(current_module^.sourcefiles.get_file(p^.fileinfo.fileindex));
+         current_module^.current_inputfile^.line_no:=p^.fileinfo.line;
          aktswitches:=p^.pragmas;
          if not(p^.error) then
            begin
@@ -4844,11 +4879,14 @@ do_jmp:
               p^.error:=codegenerror;
               codegenerror:=codegenerror or oldcodegenerror;
            end
-         else codegenerror:=true;
+         else
+           codegenerror:=true;
          aktswitches:=oldswitches;
          current_module^.current_inputfile:=oldis;
          current_module^.current_inputfile^.line_no:=oldnr;
       end;
+
+
 
     function do_secondpass(var p : ptree) : boolean;
 
@@ -5099,7 +5137,12 @@ end.
 
 {
   $Log$
-  Revision 1.4  1998-04-29 10:33:44  pierre
+  Revision 1.5  1998-06-04 23:51:34  peter
+    * m68k compiles
+    + .def file creation moved to gendef.pas so it could also be used
+      for win32
+
+  Revision 1.4  1998/04/29 10:33:44  pierre
     + added some code for ansistring (not complete nor working yet)
     * corrected operator overloading
     * corrected nasm output

@@ -286,7 +286,10 @@ Type
   {*********************************************************************}
   Function newpasstr(s: string): Pointer;
   Procedure SetupResult(Var Instr:TInstruction; operandnum: byte);
+{$ifdef i386}
+
   Procedure FWaitWarning;
+{$endif}
 
   {---------------------------------------------------------------------}
   {                  Instruction generation routines                    }
@@ -1012,11 +1015,15 @@ end;
   end;
 
 
+{$ifdef i386}
+
   Procedure FWaitWarning;
   begin
     if (target_info.target=target_GO32V2) and (cs_fp_emulation in aktswitches) then
      Message(assem_w_fwait_emu_prob);
   end;
+{$endif i386}
+
 
 
 
@@ -1621,7 +1628,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  1998-05-31 14:13:30  peter
+  Revision 1.4  1998-06-04 23:51:31  peter
+    * m68k compiles
+    + .def file creation moved to gendef.pas so it could also be used
+      for win32
+
+  Revision 1.3  1998/05/31 14:13:30  peter
     * fixed call bugs with assembler readers
     + OPR_SYMBOL to hold a symbol in the asm parser
     * fixed staticsymtable vars which were acessed through %ebp instead of

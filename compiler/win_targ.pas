@@ -42,9 +42,6 @@ unit win_targ;
 {$ifdef i386}
        ,i386
 {$endif}
-{$ifdef m68k}
-       ,m68k
-{$endif}
        ;
 
     procedure timportlibwin32.preparelib(const s : string);
@@ -175,7 +172,12 @@ unit win_targ;
 end.
 {
   $Log$
-  Revision 1.2  1998-05-06 18:36:55  peter
+  Revision 1.3  1998-06-04 23:52:06  peter
+    * m68k compiles
+    + .def file creation moved to gendef.pas so it could also be used
+      for win32
+
+  Revision 1.2  1998/05/06 18:36:55  peter
     * tai_section extended with code,data,bss sections and enumerated type
     * ident 'compiled by FPC' moved to pmodules
     * small fix for smartlink

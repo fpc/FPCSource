@@ -113,8 +113,15 @@ unit pmodules;
           On OS/2 the heap is also intialized by the RTL. We do
           not output a pointer }
          case target_info.target of
+{$ifdef i386}   
+
           target_OS2 : ;
+{$endif i386}
+{$ifdef m68k}   
+
        target_Mac68K : bsssegment^.concat(new(pai_datablock,init_global('HEAP',4)));
+{$endif m68k}
+
          else
            bsssegment^.concat(new(pai_datablock,init_global('HEAP',heapsize)));
          end;
@@ -127,6 +134,8 @@ unit pmodules;
       var
         i : longint;
       begin
+{$ifdef i386}
+
         case target_info.target of
        target_GO32V2 : begin
                        { stacksize can be specified }
@@ -144,6 +153,7 @@ unit pmodules;
                            importssection^.concat(new(pai_const,init_32bit(0)));
                        end;
         end;
+{$endif i386}   
       end;
 
 
@@ -982,7 +992,12 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.20  1998-06-04 09:55:42  pierre
+  Revision 1.21  1998-06-04 23:51:53  peter
+    * m68k compiles
+    + .def file creation moved to gendef.pas so it could also be used
+      for win32
+
+  Revision 1.20  1998/06/04 09:55:42  pierre
     * demangled name of procsym reworked to become independant of the mangling scheme
 
   Come test_funcret improvements (not yet working)S: ----------------------------------------------------------------------

@@ -743,6 +743,8 @@ unit pexpr;
                                else
                                  begin
                                     p2:=comp_expr(true);
+{$ifdef i386}                           
+
                                   { support SEG:OFS for go32v2 Mem[] }
                                     if (target_info.target=target_GO32V2) and
                                        (p1^.treetype=loadn) and
@@ -769,21 +771,9 @@ unit pexpr;
                                            p1^.memindex:=true;
                                          end;
                                       end
-                                    { else
-                                    if (target_info.target=target_GO32V2) and
-                                       assigned(p1^.symtableentry) and
-                                       assigned(p1^.symtableentry^.owner^.name) and
-                                       (p1^.symtableentry^.owner^.name^='SYSTEM') and
-                                       ((p1^.symtableentry^.name='PORT') or
-                                        (p1^.symtableentry^.name='PORTW') or
-                                        (p1^.symtableentry^.name='PORTL')) then
-                                         begin
-                                           p1:=gennode(vecn,p1,p2);
-                                           p1^.portindex:=true;
-                                           p
-                                         end;
-                                      end      }
                                     else
+{$endif}                                
+
                                       p1:=gennode(vecn,p1,p2);
                                     if pd^.deftype=stringdef then
                                       pd:=cchardef
@@ -929,7 +919,8 @@ unit pexpr;
     function is_func_ret(sym : psym) : boolean;
     var
        p : pprocinfo;
-       
+
+
       begin
          p:=@procinfo;
          is_func_ret:=false;
@@ -956,7 +947,8 @@ unit pexpr;
            end;
       end;
 {$endif TEST_FUNCRET}
-           
+
+
 
       var
          possible_error : boolean;
@@ -1792,7 +1784,12 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.23  1998-06-04 09:55:40  pierre
+  Revision 1.24  1998-06-04 23:51:52  peter
+    * m68k compiles
+    + .def file creation moved to gendef.pas so it could also be used
+      for win32
+
+  Revision 1.23  1998/06/04 09:55:40  pierre
     * demangled name of procsym reworked to become independant of the mangling scheme
 
   Come test_funcret improvements (not yet working)S: ----------------------------------------------------------------------

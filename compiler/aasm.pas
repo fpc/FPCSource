@@ -27,8 +27,15 @@ unit aasm;
     uses
        cobjects,files,globals;
 
-{$I version.inc}
     type
+{$ifdef i386}
+       bestreal = extended;
+{$endif}
+{$ifdef m68k}
+       bestreal = real;
+{$endif}
+
+
        tait = (
           ait_string,
           ait_label,
@@ -257,6 +264,10 @@ type
        taasmoutput = tlinkedlist;
 
     var
+    { temporary lists }
+      exprasmlist,
+    { default lists }
+
       datasegment,codesegment,bsssegment,
       internals,externals,debuglist,consts,
       importssection,exportssection,
@@ -806,7 +817,12 @@ uses
 end.
 {
   $Log$
-  Revision 1.8  1998-05-23 01:20:53  peter
+  Revision 1.9  1998-06-04 23:51:26  peter
+    * m68k compiles
+    + .def file creation moved to gendef.pas so it could also be used
+      for win32
+
+  Revision 1.8  1998/05/23 01:20:53  peter
     + aktasmmode, aktoptprocessor, aktoutputformat
     + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
     + $LIBNAME to set the library name where the unit will be put in

@@ -64,13 +64,11 @@ unit ag68kmot;
         c  : comp;
         dd : pdouble;
       begin
-         c:=d;{ this generates a warning but this is not important }
-      {$ifndef TP}
-         {$warning The following warning can be ignored}
-      {$endif TP}
+         c:=comp(d);
          dd:=pdouble(@c); { this makes a bitwise copy of c into a double }
          comp2str:=double2str(dd^);
       end;
+
 
     function getreferencestring(const ref : treference) : string;
       var
@@ -238,6 +236,13 @@ unit ag68kmot;
                               TM68KMOTASMLIST
  ****************************************************************************}
 
+    var
+      LastSec : tsection;
+
+    const
+      section2str : array[tsection] of string[6]=
+       ('','CODE','DATA','BSS','');
+
     procedure tm68kmotasmlist.WriteTree(p:paasmoutput);
     var
       hp        : pai;
@@ -246,16 +251,30 @@ unit ag68kmot;
       i,j,lines : longint;
       quoted    : boolean;
     begin
+      if not assigned(p) then
+       exit;
       hp:=pai(p^.first);
       while assigned(hp) do
        begin
          case hp^.typ of
-           ait_comment :
-             Begin
-                AsmWrite(As_comment);
-                AsmWritePChar(pai_asm_comment(hp)^.str);
-                AsmLn;
-             End;
+       ait_comment : Begin
+                       AsmWrite(target_asm.comment);
+                       AsmWritePChar(pai_asm_comment(hp)^.str);
+                       AsmLn;
+                     End;
+       ait_section : begin
+                       if pai_section(hp)^.sec<>sec_none then
+                        begin
+
+                          AsmLn;
+                          AsmWriteLn('SECTION _'+section2str[pai_section(hp)^.sec]+','+section2str[pai_section(hp)^.sec]);
+                        end;
+                       LastSec:=pai_section(hp)^.sec;
+                     end;
+{$ifdef DREGALLOC}
+      ait_regalloc : AsmWriteLn(target_asm.comment+'Register '+att_reg2str[pairegalloc(hp)^.reg]+' allocated');
+    ait_regdealloc : AsmWriteLn(target_asm.comment+'Register '+att_reg2str[pairegalloc(hp)^.reg]+' released');
+{$endif DREGALLOC}
          ait_align : AsmWriteLn(#9'CNOP 0,'+tostr(pai_align(hp)^.aligntype));
       ait_external : AsmWriteLn(#9'XREF'#9+StrPas(pai_external(hp)^.name));
  ait_real_extended : Message(assem_e_extended_not_supported);
@@ -313,7 +332,7 @@ unit ag68kmot;
                        AsmWriteLn(#9#9'DC.S'#9+double2str(pai_single(hp)^.value));
                      end;
 { TO SUPPORT SOONER OR LATER!!!
-    ait_comp       : AsmWriteLn(#9#9'DC.D'#9+comp2str(pai_extended(hp)^.value));}
+          ait_comp : AsmWriteLn(#9#9'DC.D'#9+comp2str(pai_extended(hp)^.value));}
         ait_string : begin
                        counter := 0;
                        lines := pai_string(hp)^.len div line_length;
@@ -351,7 +370,7 @@ unit ag68kmot;
                                    end;
                                 end; { end for i:=0 to... }
                                 if quoted then AsmWrite('"');
-                                AsmWrite(target_info.newline);
+                                AsmLn;
                                 counter := counter+line_length;
                                end; { end for j:=0 ... }
                                { do last line of lines }
@@ -476,10 +495,6 @@ ait_labeled_instruction :
          else
           internalerror(10000);
          end;
-{         if ((hp^.typ<>ait_label) and (hp^.typ<>ait_symbol)) or (assigned(hp^.next) and not(pai(hp^.next)^.typ in
-      [ait_const_32bit,ait_const_16bit,ait_const_8bit,ait_const_symbol,
-       ait_real_64bit,ait_string])) then
-         AsmLn}
          hp:=pai(hp^.next);
        end;
     end;
@@ -490,29 +505,24 @@ ait_labeled_instruction :
       if assigned(current_module^.mainsource) then
        comment(v_info,'Start writing motorola-styled assembler output for '+current_module^.mainsource^);
 {$endif}
+
       WriteTree(externals);
-
-      AsmLn;
-      AsmWriteLn(#9'SECTION _CODE,CODE');
+    { WriteTree(debuglist);}
       WriteTree(codesegment);
-
-      AsmLn;
-      AsmWriteLn(#9'SECTION _DATA,DATA');
-    { write a signature to the file }
-      AsmWriteLn(#9'CNOP 0,4');
-{$ifdef EXTDEBUG}
-      AsmWriteLn(#9'DC.B'#9'"compiled by FPC '+version_string+'\0"');
-      AsmWriteLn(#9'DC.B'#9'"target: '+target_info.target_name+'\0"');
-{$endif EXTDEBUG}
       WriteTree(datasegment);
       WriteTree(consts);
-
-      AsmLn;
-      AsmWriteLn(#9'SECTION _BSS,BSS');
+      WriteTree(rttilist);
       WriteTree(bsssegment);
+      Writetree(importssection);
+      Writetree(exportssection);
+      Writetree(resourcesection);
+
 
       AsmLn;
       AsmWriteLn(#9'END');
+      AsmLn;
+
+
 {$ifdef EXTDEBUG}
       if assigned(current_module^.mainsource) then
        comment(v_info,'Done writing motorola-styled assembler output for '+current_module^.mainsource^);
@@ -522,38 +532,9 @@ ait_labeled_instruction :
 end.
 {
   $Log$
-  Revision 1.3  1998-05-23 01:20:58  peter
-    + aktasmmode, aktoptprocessor, aktoutputformat
-    + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
-    + $LIBNAME to set the library name where the unit will be put in
-    * splitted cgi386 a bit (codeseg to large for bp7)
-    * nasm, tasm works again. nasm moved to ag386nsm.pas
-
-  Revision 1.2  1998/04/29 10:33:42  pierre
-    + added some code for ansistring (not complete nor working yet)
-    * corrected operator overloading
-    * corrected nasm output
-    + started inline procedures
-    + added starstarn : use ** for exponentiation (^ gave problems)
-    + started UseTokenInfo cond to get accurate positions
-
-  Revision 1.1.1.1  1998/03/25 11:18:16  root
-  * Restored version
-
-  Revision 1.3  1998/03/22 12:45:37  florian
-    * changes of Carl-Eric to m68k target commit:
-      - wrong nodes because of the new string cg in intel, I had to create
-        this under m68k also ... had to work it out to fix potential alignment
-        problems --> this removes the crash of the m68k compiler.
-      - added absolute addressing in m68k assembler (required for Amiga startup)
-      - fixed alignment problems (because of byte return values, alignment
-        would not be always valid) -- is this ok if i change the offset if odd in
-        setfirsttemp ?? -- it seems ok...
-
-  Revision 1.2  1998/03/10 04:23:33  carl
-    - removed in because can cause range check errors under BP
-
-  Revision 1.1  1998/03/10 01:26:10  peter
-    + new uniform names
+  Revision 1.4  1998-06-04 23:51:30  peter
+    * m68k compiles
+    + .def file creation moved to gendef.pas so it could also be used
+      for win32
 
 }

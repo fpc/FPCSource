@@ -29,46 +29,63 @@ unit systems;
        tendian = (endian_little,en_big_endian);
 
        tprocessors = (
-{$ifdef i386}
+       {$ifdef i386}
               i386,i486,pentium,pentiumpro,cx6x86,pentium2,amdk6
-{$endif}
-{$ifdef m68k}
+       {$endif}
+       {$ifdef m68k}
               MC68000,MC68020
-{$endif}
+       {$endif}
        );
 
 
        tasmmode = (
-{$ifdef i386}
-              I386_ATT,I386_INTEL,I386_DIRECT
-{$endif}
-{$ifdef m68k}
-              M68K_MOT
-{$endif}
-       );
-
-       ttarget = (target_GO32V1,target_GO32V2,target_LINUX,target_OS2,
-                  target_WIN32,target_Amiga,target_Atari,target_Mac68k);
-
-       tos = (os_GO32V1, os_GO32V2, os_Linux, os_OS2,
-              os_WIN32, os_Amiga, os_Atari, os_Mac68k);
-
-       tasm = (as_o
        {$ifdef i386}
-              ,as_asw,as_nasmcoff, as_nasmelf, as_nasmobj, as_tasm, as_masm
+              I386_ATT,I386_INTEL,I386_DIRECT
        {$endif}
        {$ifdef m68k}
-              ,as_gas,as_mit,as_mot
+              M68K_MOT
        {$endif}
        );
 
-       tlink = (link_ld
+
+       ttarget = (
        {$ifdef i386}
-              ,link_ldgo32v1, link_ldgo32v2, link_ldw, link_ldos2
+              target_GO32V1,target_GO32V2,target_LINUX,target_OS2,target_WIN32
        {$endif i386}
        {$ifdef m68k}
+              target_Amiga,target_Atari,target_Mac68k,target_Linux
        {$endif}
        );
+
+
+       tasm = (
+       {$ifdef i386}
+              as_o,as_asw,as_nasmcoff, as_nasmelf, as_nasmobj, as_tasm, as_masm
+       {$endif}
+       {$ifdef m68k}
+              as_o,as_gas,as_mit,as_mot
+       {$endif}
+       );
+
+       tlink = (
+       {$ifdef i386}
+              link_ld,link_ldgo32v1, link_ldgo32v2, link_ldw, link_ldos2
+       {$endif i386}
+       {$ifdef m68k}
+              link_ld
+       {$endif}
+       );
+
+
+       tos = (
+       {$ifdef i386}
+              os_GO32V1, os_GO32V2, os_Linux, os_OS2, os_WIN32
+       {$endif i386}
+       {$ifdef m68k}
+              os_Amiga, os_Atari, os_Mac68k, os_Linux
+       {$endif}
+       );
+
 
 
        tosinfo = record
@@ -150,6 +167,8 @@ implementation
                                  OS Info
 ****************************************************************************}
        os_infos : array[tos] of tosinfo = (
+{$ifdef i386}
+
           (
             name         : 'GO32 V1 DOS extender';
             sharedlibext : '.DLL';
@@ -177,7 +196,7 @@ implementation
             use_function_relative_addresses : true
           ),
           (
-            name         : 'Linux';
+            name         : 'Linux-i386';
             sharedlibext : '.so';
             staticlibext : '.a';
             sourceext    : '.pp';
@@ -214,7 +233,10 @@ implementation
             newline      : #13#10;
             endian       : endian_little;
             use_function_relative_addresses : true
-          ),
+          )
+{$endif i386}   
+
+{$ifdef m68k}
           (
             name         : 'Commodore Amiga';
             sharedlibext : '.library';
@@ -250,16 +272,32 @@ implementation
             exeext       : '.tpp';
             scriptext    : '';
             Cprefix      : '';
-            newline      : #10;
+            newline      : #13;
             endian       : en_big_endian;
             use_function_relative_addresses : false
+          ),
+          (
+            name         : 'Linux-m68k';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            sourceext    : '.pp';
+            pasext       : '.pas';
+            exeext       : '';
+            scriptext    : '.sh';
+            Cprefix      : '';
+            newline      : #10;
+            endian       : en_big_endian;
+            use_function_relative_addresses : true
           )
+{$endif m68k}
           );
+        
 
 {****************************************************************************
                              Assembler Info
 ****************************************************************************}
        as_infos : array[tasm] of tasminfo = (
+{$ifdef i386}
           (
             id     : as_o;
             idtxt  : 'O';
@@ -269,7 +307,6 @@ implementation
             labelprefix : '.L';
             comment : '# '
           )
-{$ifdef i386}
           ,(
             id     : as_asw;
             idtxt  : 'ASW';
@@ -324,8 +361,17 @@ implementation
             labelprefix : '.L';
             comment : '; '
           )
-{$endif}
+{$endif i386}
 {$ifdef m68k}
+          (
+            id     : as_o;
+            idtxt  : 'O';
+            asmbin : 'as';
+            asmcmd : '-D -o $OBJ $ASM';
+            externals : false;
+            labelprefix : '.L';
+            comment : '# '
+          )
           ,(
             id     : as_gas;
             idtxt  : 'GAS';
@@ -353,13 +399,14 @@ implementation
             labelprefix : '__L';
             comment : '| '
           )
-{$endif}
+{$endif m68k}
           );
 
 {****************************************************************************
                                 Linker Info
 ****************************************************************************}
        link_infos : array[tlink] of tlinkinfo = (
+{$ifdef i386}
           (
             linkbin : 'ld';
             linkcmd : '$OPT -o $EXE $RES';
@@ -374,7 +421,6 @@ implementation
             inputend   : ')';
             libprefix  : '-l'
           )
-{$ifdef i386}
           ,(
             linkbin : 'ld';
             linkcmd : '-oformat coff-go32 $OPT -o $EXE @$RES';
@@ -432,12 +478,31 @@ implementation
             libprefix  : ''
           )
 {$endif i386}
+{$ifdef m68k}
+          (
+            linkbin : 'ld';
+            linkcmd : '$OPT -o $EXE $RES';
+            bindbin : '';
+            bindcmd : '';
+            stripopt   : '-s';
+            libpathprefix : 'SEARCH_DIR(';
+            libpathsuffix : ')';
+            groupstart : 'GROUP(';
+            groupend   : ')';
+            inputstart : 'INPUT(';
+            inputend   : ')';
+            libprefix  : '-l'
+          )
+{$endif m68k}   
+
           );
 
 {****************************************************************************
                              Targets Info
 ****************************************************************************}
        target_infos : array[ttarget] of ttargetinfo = (
+{$ifdef i386}
+
           (
             target      : target_GO32V1;
             short_name  : 'GO32V1';
@@ -458,21 +523,21 @@ implementation
             short_name  : 'GO32V2';
             unit_env    : 'GO32V2UNITS';
             system_unit : 'SYSTEM';
-{$ifndef UseAnsiString}
+      {$ifndef UseAnsiString}
             smartext    : '.SL';
             unitext     : '.PPU';
             unitlibext  : '.PPL';
             asmext      : '.S';
             objext      : '.O';
             exeext      : '.EXE';
-{$else UseAnsiString}
+      {$else UseAnsiString}
             smartext    : '.SL';
             unitext     : '.PAU';
             unitlibext  : '.PPL';
             asmext      : '.SA';
             objext      : '.OA';
             exeext      : '.EXE';
-{$endif UseAnsiString}
+      {$endif UseAnsiString}
             os          : os_GO32V2;
             link        : link_ldgo32v2;
             assem       : as_o
@@ -521,7 +586,10 @@ implementation
             os          : os_Win32;
             link        : link_ldw;
             assem       : as_asw
-          ),
+          )
+{$endif i386}
+
+{$ifdef m68k}
           (
             target      : target_Amiga;
             short_name  : 'AMIGA';
@@ -566,7 +634,23 @@ implementation
             os          : os_Mac68k;
             link        : link_ld;
             assem       : as_o
+          ),
+          (
+            target      : target_Linux;
+            short_name  : 'LINUX';
+            unit_env    : 'LINUXUNITS';
+            system_unit : 'syslinux';
+            smartext    : '.sl';
+            unitext     : '.ppu';
+            unitlibext  : '.ppl';
+            asmext      : '.s';
+            objext      : '.o';
+            exeext      : '';
+            os          : os_Linux;
+            link        : link_ld;
+            assem       : as_o
           )
+{$endif m68k}
           );
 
 {****************************************************************************
@@ -586,13 +670,13 @@ implementation
             id    : I386_ATT;
             idtxt : 'ATT'
           )
-{$endif}
+{$endif i386}
 {$ifdef m68k}
           (
             id    : M68K_MOT;
             idtxt : 'MOT'
           )
-{$endif}
+{$endif m68k}
           );
 
 {****************************************************************************
@@ -614,27 +698,27 @@ end;
 
 function set_string_target(const s : string) : boolean;
 var
-  t : ttarget;
+  i : longint;
 begin
   set_string_target:=false;
-  for t:=target_GO32V1 to target_mac68k do
-   if target_infos[t].short_name=s then
+  for i:=0 to (sizeof(target_infos) div sizeof(ttargetinfo))-1 do
+   if target_infos[ttarget(i)].short_name=s then
     begin
+      set_target(ttarget(i));
       set_string_target:=true;
-      set_target(t);
     end;
 end;
 
 
 function set_string_asm(const s : string) : boolean;
 var
-  j : longint;
+  i : longint;
 begin
   set_string_asm:=false;
-  for j:=0 to (sizeof(as_infos) div sizeof(tasminfo))-1 do
-   if as_infos[tasm(j)].idtxt=s then
+  for i:=0 to (sizeof(as_infos) div sizeof(tasminfo))-1 do
+   if as_infos[tasm(i)].idtxt=s then
     begin
-      target_asm:=as_infos[tasm(j)];
+      target_asm:=as_infos[tasm(i)];
       set_string_asm:=true;
     end;
 end;
@@ -666,41 +750,59 @@ end;
 
 
 begin
-{$ifdef tp}
-  default_os(target_GO32V2);
-{$else}
-  {$ifdef DOS}
-    default_os(target_GO32V1);
-  {$endif}
+{$ifdef i386}
   {$ifdef GO32V1}
-    default_os(target_GO32V1);
-  {$endif}
-  {$ifdef GO32V2}
-    default_os(target_GO32V2);
-  {$endif}
-  {$ifdef OS2}
-    default_os(target_OS2);
-  {$endif}
-  {$ifdef LINUX}
-    default_os(target_LINUX);
-  {$endif}
-  {$ifdef WIN32}
-    default_os(target_WIN32);
-  {$endif}
+     default_os(target_GO32V1);
+  {$else}
+    {$ifdef GO32V2}
+      default_os(target_GO32V2);
+    {$else}
+
+      {$ifdef OS2}
+        default_os(target_OS2);
+      {$else}
+
+        {$ifdef LINUX}
+          default_os(target_LINUX);
+        {$else}
+
+           {$ifdef WIN32}
+             default_os(target_WIN32);
+           {$else}
+
+              default_os(target_GO32V2);
+           {$endif win32}
+        {$endif linux}
+      {$endif os2}
+    {$endif go32v2}
+  {$endif go32v1}
+{$endif i386}
+{$ifdef m68k}
   {$ifdef AMIGA}
-    default_os(target_AMIGA);
-  {$endif}
-  {$ifdef ATARI}
-    default_os(target_ATARI);
-  {$endif}
-  {$ifdef MACOS}
-    default_os(target_MAC68k);
-  {$endif}
-{$endif}
+    default_os(target_Amiga);
+  {$else}
+
+    {$ifdef ATARI}
+      default_os(target_Atari);
+    {$else}
+      {$ifdef MACOS}
+        default_os(target_MAC68k);
+      {$else}
+
+        default_os(target_Amiga);
+      {$endif macos}
+    {$endif atari}
+  {$endif amiga}
+{$endif m68k}
 end.
 {
   $Log$
-  Revision 1.16  1998-06-01 16:50:22  peter
+  Revision 1.17  1998-06-04 23:52:04  peter
+    * m68k compiles
+    + .def file creation moved to gendef.pas so it could also be used
+      for win32
+
+  Revision 1.16  1998/06/01 16:50:22  peter
     + boolean -> ord conversion
     * fixed ord -> boolean conversion
 

@@ -777,6 +777,8 @@
 
     procedure tfiledef.setsize;
       begin
+{$ifdef i386}
+
          case target_info.target of
             target_LINUX:
            begin
@@ -800,7 +802,18 @@
               end;
            end;
       end;
+{$endif}
+{$ifdef m68k}
+        case filetype of
+          ft_text : savesize:=256;
+         ft_typed,
+       ft_untyped : savesize:=128;
+        end;
+{$endif}
+
       end;
+
+
 
     procedure tfiledef.write;
       begin
@@ -836,6 +849,8 @@
           _private : array[1..26] of byte;
           userdata : array[1..16] of byte;
           name : string[79 or 255 for linux]; }
+{$ifdef i386}   
+
       if (target_info.target=target_GO32V1) or
          (target_info.target=target_GO32V2) then
         namesize:=79
@@ -852,6 +867,12 @@
            Handledef:='word';
            HandleBitSize:=16;
         end;
+{$endif}
+{$ifdef m68k}
+      namesize:=79;
+      Handledef:='word';
+      HandleBitSize:=16;
+{$endif}
 
       { the buffer part is still missing !! (PM) }
       { but the string could become too long !! }
@@ -1669,8 +1690,8 @@
          nextoverloaded:=pprocdef(readdefref);
          _class := pobjectdef(readdefref);
 
-        if gendeffile and ((options and poexports)<>0) then
-           writeln(deffile,#9+mangledname);
+         if gendeffile and ((options and poexports)<>0) then
+           deffile.AddExport(mangledname);
 
          parast:=nil;
          localst:=nil;
@@ -2407,7 +2428,12 @@
 
 {
   $Log$
-  Revision 1.4  1998-06-04 09:55:45  pierre
+  Revision 1.5  1998-06-04 23:52:01  peter
+    * m68k compiles
+    + .def file creation moved to gendef.pas so it could also be used
+      for win32
+
+  Revision 1.4  1998/06/04 09:55:45  pierre
     * demangled name of procsym reworked to become independant of the mangling scheme
 
   Come test_funcret improvements (not yet working)S: ----------------------------------------------------------------------

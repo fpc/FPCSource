@@ -31,7 +31,6 @@
 unit os2_targ;
 
 interface
-
 uses import;
 
 type
@@ -41,8 +40,6 @@ type
     procedure importprocedure(const func,module:string;index:longint;const name:string);virtual;
     procedure generatelib;virtual;
   end;
-
-procedure write_def_file;
 
 {***************************************************************************}
 
@@ -327,33 +324,17 @@ begin
 end;
 
 
-procedure write_def_file;
-begin
-   assign(deffile,inputdir+inputfile+'.DEF');
-   {$I+}
-    rewrite(deffile);
-   {$I-}
-   if ioresult=0 then
-    begin
-      write(deffile,'NAME '+inputfile);
-      if genpm then
-        write(deffile,' WINDOWAPI');
-      writeln(deffile,#13#10#13#10'PROTMODE'#13#10);
-      writeln(deffile,'DESCRIPTION '+''''+description+''''#13#10);
-      writeln(deffile,'DATA'#9'MULTIPLE'#13#10);
-      writeln(deffile,'STACKSIZE'#9+tostr(stacksize));
-      writeln(deffile,'HEAPSIZE'#9+tostr(heapsize)+#13#10);
-      write(deffile,'EXPORTS');
-    end
-   else
-    gendeffile:=false;
-end;
 
 end.
 
 {
   $Log$
-  Revision 1.2  1998-05-04 17:54:27  peter
+  Revision 1.3  1998-06-04 23:51:48  peter
+    * m68k compiles
+    + .def file creation moved to gendef.pas so it could also be used
+      for win32
+
+  Revision 1.2  1998/05/04 17:54:27  peter
     + smartlinking works (only case jumptable left todo)
     * redesign of systems.pas to support assemblers and linkers
     + Unitname is now also in the PPU-file, increased version to 14

@@ -444,7 +444,6 @@ unit i386;
 
     var
        ins_cache : tins_cache;
-       exprasmlist : paasmoutput;
 
     const
        it : array[0..440] of ttemplate = (
@@ -1714,7 +1713,12 @@ unit i386;
 end.
 {
   $Log$
-  Revision 1.8  1998-05-23 01:21:09  peter
+  Revision 1.9  1998-06-04 23:51:41  peter
+    * m68k compiles
+    + .def file creation moved to gendef.pas so it could also be used
+      for win32
+
+  Revision 1.8  1998/05/23 01:21:09  peter
     + aktasmmode, aktoptprocessor, aktoutputformat
     + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
     + $LIBNAME to set the library name where the unit will be put in

@@ -356,7 +356,7 @@ implementation
       { we must use the number directly !!! (PM) }
     function constlabel2str(l : plabel;ctype:tconsttype):string;
       begin
-        if (cs_smartlink in aktswitches) or (aktoutputformat in [as_tasm]) then
+        if (cs_smartlink in aktswitches) {or (aktoutputformat in [as_tasm])} then
          constlabel2str:='_$'+current_module^.modulename^+'$'+consttypestr[ctype]+'_const_'+tostr(l^.nb)
         else
          constlabel2str:=lab2str(l);
@@ -364,7 +364,7 @@ implementation
 
     function constlabelnb2str(pnb : longint;ctype:tconsttype):string;
       begin
-        if (cs_smartlink in aktswitches) or (aktoutputformat in [as_tasm]) then
+        if (cs_smartlink in aktswitches) {or (aktoutputformat in [as_tasm])} then
          constlabelnb2str:='_$'+current_module^.modulename^+'$'+consttypestr[ctype]+'_const_'+tostr(pnb)
         else
          constlabelnb2str:=target_asm.labelprefix+tostr(pnb);
@@ -375,7 +375,7 @@ implementation
       var
         s : string;
       begin
-        if (cs_smartlink in aktswitches) or (aktoutputformat in [as_tasm]) then
+        if (cs_smartlink in aktswitches) {or (aktoutputformat in [as_tasm])} then
          begin
            s:='_$'+current_module^.modulename^+'$'+consttypestr[ctype]+'_const_'+tostr(p^.nb);
            if (cs_smartlink in aktswitches) then
@@ -394,7 +394,12 @@ end.
 
 {
   $Log$
-  Revision 1.7  1998-06-04 09:55:38  pierre
+  Revision 1.8  1998-06-04 23:51:40  peter
+    * m68k compiles
+    + .def file creation moved to gendef.pas so it could also be used
+      for win32
+
+  Revision 1.7  1998/06/04 09:55:38  pierre
     * demangled name of procsym reworked to become independant of the mangling scheme
 
   Come test_funcret improvements (not yet working)S: ----------------------------------------------------------------------

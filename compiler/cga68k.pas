@@ -62,18 +62,20 @@ unit cga68k;
     procedure generate_interrupt_stackframe_entry;
     procedure generate_interrupt_stackframe_exit;
     { generate entry code for a procedure.}
-    procedure genentrycode(const proc_names:Tstringcontainer;make_global:boolean;
+    procedure genentrycode(list : paasmoutput;const proc_names:Tstringcontainer;make_global:boolean;
                            stackframe:longint;
-                           var parasize:longint;var nostackframe:boolean);
+                           var parasize:longint;var nostackframe:boolean;
+                           inlined : boolean);
     { generate the exit code for a procedure. }
-    procedure genexitcode(parasize:longint;nostackframe:boolean);
+    procedure genexitcode(list : paasmoutput;parasize:longint;
+                          nostackframe,inlined:boolean);
 
 
   implementation
 
     uses
        systems,globals,verbose,files,types,pbase,
-       tgenm68k,hcodegen
+       tgen68k,hcodegen
 {$ifdef GDB}
        ,gdb
 {$endif}
@@ -147,7 +149,7 @@ unit cga68k;
                                     A_MOVE,S_L,newreference(p^.right^.location.reference),R_D0)));
                                  del_reference(p^.right^.location.reference);
                               end;
-                            if (opt_processors = MC68020) then
+                            if (aktoptprocessor = MC68020) then
                              { alignment is not a problem on the 68020 and higher processors }
                               Begin
                                { add length of string to word }
@@ -212,8 +214,6 @@ unit cga68k;
 
       var
          pushed : boolean;
-         {hregister : tregister; }
-         reg: tregister;
       begin
          if needed>usablereg32 then
            begin
@@ -251,7 +251,7 @@ unit cga68k;
      var
       hl : plabel;
      begin
-        if (opt_processors = MC68020) then
+        if (aktoptprocessor = MC68020) then
           begin
              exprasmlist^.concat(new(pai68k, op_ref_reg(A_CMP2,S_L,newreference(hp),index)));
              getlabel(hl);
@@ -307,7 +307,7 @@ unit cga68k;
 
      begin
         exprasmlist^.concat(new(pai68k,op_csymbol(A_JSR,S_NO,newcsymbol(routine,0))));
-        if assem_need_external_list and add_to_externals and
+        if add_to_externals and
            not (cs_compilesystem in aktswitches) then
           concat_external(routine,EXT_NEAR);
      end;
@@ -378,7 +378,7 @@ unit cga68k;
     procedure push_int(l : longint);
 
       begin
-         if (l = 0) and (opt_processors = MC68020) then
+         if (l = 0) and (aktoptprocessor = MC68020) then
            begin
           exprasmlist^.concat(new(pai68k,op_reg(A_CLR,S_L,R_D6)));
               exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,
@@ -443,10 +443,11 @@ unit cga68k;
          { restore the registers of an interrupt procedure }
       end;
 
-procedure genentrycode(const proc_names:Tstringcontainer;make_global:boolean;
-                       stackframe:longint;
-                       var parasize:longint;var nostackframe:boolean);
 
+    procedure genentrycode(list : paasmoutput;const proc_names:Tstringcontainer;make_global:boolean;
+                           stackframe:longint;
+                           var parasize:longint;var nostackframe:boolean;
+                           inlined : boolean);
 {Generates the entry code for a procedure.}
 
 var hs:string;
@@ -476,8 +477,8 @@ begin
                     { call the unit init code and make it external }
                     if (hp^.u^.flags and uf_init)<>0 then
                         begin
-                           unitinits.concat(new(pai68k,op_csymbol(A_JSR,S_NO,newcsymbol('INIT$$'+hp^.u^.unitname^,0))));
-                           externals^.concat(new(pai_external,init('INIT$$'+hp^.u^.unitname^,EXT_NEAR)));
+                           unitinits.concat(new(pai68k,op_csymbol(A_JSR,S_NO,newcsymbol('INIT$$'+hp^.u^.modulename^,0))));
+                           concat_external('INIT$$'+hp^.u^.modulename^,EXT_NEAR);
                         end;
                    hp:=pused_unit(hp^.next);
                 end;
@@ -583,8 +584,7 @@ begin
     hs:=proc_names.get;
 
 {$IfDef GDB}
-    if (cs_debuginfo in aktswitches) and
-     target_info.use_function_relative_addresses then
+    if (cs_debuginfo in aktswitches) and target_os.use_function_relative_addresses then
         stab_function_name := new(pai_stab_function_name,init(strpnew(hs)));
       oldaktprocname:=aktprocsym^.name;
 {$EndIf GDB}
@@ -598,7 +598,7 @@ begin
                 procinfo.aktentrycode^.insert(new(pai_symbol,init(hs)));
 {$ifdef GDB}
             if (cs_debuginfo in aktswitches) and
-             target_info.use_function_relative_addresses then
+               target_os.use_function_relative_addresses then
             begin
             procinfo.aktentrycode^.insert(new(pai_stab_function_name,init(strpnew(hs))));
               { This is not a nice solution to save the name, change it and restore when done }
@@ -613,7 +613,7 @@ begin
 
     if (cs_debuginfo in aktswitches) then
         begin
-            if target_info.use_function_relative_addresses then
+            if target_os.use_function_relative_addresses then
                 procinfo.aktentrycode^.insert(stab_function_name);
             if make_global or ((procinfo.flags and pi_is_global) <> 0) then
                 aktprocsym^.is_global := True;
@@ -632,8 +632,7 @@ begin
 end;
 
 {Generate the exit code for a procedure.}
-procedure genexitcode(parasize:longint;nostackframe:boolean);
-
+procedure genexitcode(list : paasmoutput;parasize:longint; nostackframe,inlined:boolean);
 var hr:Preference;          {This is for function results.}
     op:Tasmop;
     s:Topsize;
@@ -756,7 +755,7 @@ begin
         else
             { return with immediate size possible here }
             { signed!                                  }
-            if (opt_processors = MC68020) and (parasize < $7FFF) then
+            if (aktoptprocessor = MC68020) and (parasize < $7FFF) then
                 procinfo.aktexitcode^.concat(new(pai68k,op_const(
                  A_RTD,S_NO,parasize)))
             { manually restore the stack }
@@ -941,7 +940,7 @@ end;
                                end;
                         s8bit: begin
                                  exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_B,location.register,destreg)));
-                                 if (opt_processors <> MC68020) then
+                                 if (aktoptprocessor <> MC68020) then
                                   begin
                                  { byte to word }
                                      exprasmlist^.concat(new(pai68k,op_reg(A_EXT,S_W,destreg)));
@@ -978,7 +977,7 @@ end;
                                end;
                         s8bit:  begin
                                  exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_B,r,destreg)));
-                                 if (opt_processors <> MC68020) then
+                                 if (aktoptprocessor <> MC68020) then
                                   begin
                                  { byte to word }
                                      exprasmlist^.concat(new(pai68k,op_reg(A_EXT,S_W,destreg)));
@@ -1217,7 +1216,12 @@ end;
   end.
 {
   $Log$
-  Revision 1.4  1998-05-07 00:17:00  peter
+  Revision 1.5  1998-06-04 23:51:36  peter
+    * m68k compiles
+    + .def file creation moved to gendef.pas so it could also be used
+      for win32
+
+  Revision 1.4  1998/05/07 00:17:00  peter
     * smartlinking for sets
     + consts labels are now concated/generated in hcodegen
     * moved some cpu code to cga and some none cpu depended code from cga

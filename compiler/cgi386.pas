@@ -3746,14 +3746,6 @@ implementation
                 begin
                    cleartempgen;
                    secondpass(hp^.right);
-                   (* if (hp^.right^.resulttype<>pdef(voiddef)) then
-                     if hp^.right^.location.loc in [LOC_MEM,LOC_REFERENCE] then
-                     { release unused temp }
-                       ungetiftemp(hp^.right^.location.reference)
-                     else if hp^.right^.location.loc=LOC_FPU then
-                     { release FPU stack }
-                       exprasmlist^.concat(new(pai386,op_none(A_FDECSTP,S_NO)));
-                     All done in secondcalln now (PM) *)
                 end;
               hp:=hp^.left;
            end;
@@ -5061,7 +5053,12 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.32  1998-06-04 09:55:35  pierre
+  Revision 1.33  1998-06-04 23:51:37  peter
+    * m68k compiles
+    + .def file creation moved to gendef.pas so it could also be used
+      for win32
+
+  Revision 1.32  1998/06/04 09:55:35  pierre
     * demangled name of procsym reworked to become independant of the mangling scheme
 
   Come test_funcret improvements (not yet working)S: ----------------------------------------------------------------------
