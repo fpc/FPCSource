@@ -86,7 +86,7 @@ asm
         movsb
         cld
 .LMoveEnd:
-end;
+end ['EAX','EBX','ECX','ESI','EDI'];
 
 
 {$define FPC_SYSTEM_HAS_FILLCHAR}
@@ -1156,7 +1156,11 @@ end;
 
 {
   $Log$
-  Revision 1.70  2000-04-06 08:39:22  florian
+  Revision 1.71  2000-04-10 09:47:15  jonas
+    + added destroyed registers list for move procedure (it doesn't destroy
+      edx)
+
+  Revision 1.70  2000/04/06 08:39:22  florian
     * the bounds check error gets now a correct stack frame
 
   Revision 1.69  2000/02/09 16:59:29  peter
