@@ -274,12 +274,25 @@ const
 	TFONTMETRICS = FONTMETRICS;
 	TCHARARRAY = CHARARRAY;
 
+{Another bunch of compatibility things}
+        HWND = cardinal;
+        HAB = cardinal;
+        HMQ = cardinal;
+        HPS = cardinal;
+        HRGN = cardinal;
+        ULONG = cardinal;
+        MParam = pointer;
+        MResult = pointer;
+
   implementation
   
 end.
 {
   $Log$
-  Revision 1.6  1999-08-05 07:37:27  hajny
+  Revision 1.7  1999-08-10 14:20:54  hajny
+    * compatibility updates
+
+  Revision 1.6  1999/08/05 07:37:27  hajny
     * 'solution' for a compiler problem
 
 }
