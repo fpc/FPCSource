@@ -789,7 +789,8 @@ implementation
       begin
          reset_reference(p^.location.reference);
          hr_valid:=false;
-         if procinfo<>pprocinfo(p^.funcretprocinfo) then
+         if (not inlining_procedure) and
+            (procinfo<>pprocinfo(p^.funcretprocinfo)) then
            begin
               hr:=getregister32;
               hr_valid:=true;
@@ -995,7 +996,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.92  1999-12-22 01:01:47  peter
+  Revision 1.93  1999-12-30 15:04:31  peter
+    * fixed funcret within inlined procedure
+
+  Revision 1.92  1999/12/22 01:01:47  peter
     - removed freelabel()
     * added undefined label detection in internal assembler, this prevents
       a lot of ld crashes and wrong .o files
