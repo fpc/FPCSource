@@ -135,6 +135,7 @@ Fixed bugs:
   bug0121.pp   cardinal -> byte conversion not work (and crashes)    OK 0.99.6 (FK) 
   bug0122.pp   exit() gives a warning that the result is not set     OK 0.99.6 (??)
   bug0126.pp   packed array isn't allowed                            OK 0.99.6 (FK)
+  bug0128.pp   problem with ^[                                       OK 0.99.6 (PFV)
   bug0129.pp   endless loop with while/continue                      OK 0.99.6 (FK)
 
 Unproducable bugs:
@@ -175,5 +176,5 @@ bug0123.pp   problem with intel assembler (shrd)
 bug0124.pp   problem with -Rintel switch and indexing (whatever the order)
 bug0125.pp   wrong colors with DOS CRT unit
 bug0127.pp   problem with cdecl in implementation part
-bug0128.pp   problem with ^[
+bug0130.pp   in [..#255] problem
 
