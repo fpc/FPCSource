@@ -66,13 +66,16 @@ data_start:
 ___fpc_brk_addr:
         .long   0
 
-.bss
+.text
         .comm operatingsystem_parameter_envp,4
         .comm operatingsystem_parameter_argc,4
         .comm operatingsystem_parameter_argv,4
 /*
   $Log$
-  Revision 1.13  2004-07-03 21:50:31  daniel
+  Revision 1.14  2004-08-18 14:26:50  karoly
+    * quick fix to make it compile
+
+  Revision 1.13  2004/07/03 21:50:31  daniel
     * Modified bootstrap code so separate prt0.as/prt0_10.as files are no
       longer necessary
 
