@@ -328,6 +328,12 @@ unit parser;
          oldresourcestringlist:=resourcestringlist;
          oldasmsymbollist:=asmsymbollist;
        { save akt... state }
+       { handle the postponed case first }
+        if localswitcheschanged then
+          begin
+            aktlocalswitches:=nextaktlocalswitches;
+            localswitcheschanged:=false;
+          end;
          oldaktlocalswitches:=aktlocalswitches;
          oldaktmoduleswitches:=aktmoduleswitches;
          oldaktpackrecords:=aktpackrecords;
@@ -603,7 +609,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.102  2000-04-24 12:45:44  peter
+  Revision 1.103  2000-05-11 06:52:37  pierre
+   * fix localswitch problem if compiling objpas
+
+  Revision 1.102  2000/04/24 12:45:44  peter
     * made overloaded_operators local per unit, but it still doesn't work
       correct
 
