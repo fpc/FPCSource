@@ -185,16 +185,21 @@ unit pstatmnt;
       var
          code,caseexpr,p,instruc,elseblock : ptree;
          hl1,hl2 : longint;
-
+         casedeferror : boolean;
       begin
          consume(_CASE);
          caseexpr:=comp_expr(true);
        { determines result type }
          cleartempgen;
          do_firstpass(caseexpr);
+         casedeferror:=false;
          casedef:=caseexpr^.resulttype;
          if not(is_ordinal(casedef) or is_64bitint(casedef)) then
-           Message(type_e_ordinal_expr_expected);
+          begin
+            Message(type_e_ordinal_expr_expected);
+            { set error flag so no rangechecks are done }
+            casedeferror:=true;
+          end;
 
          consume(_OF);
          inc(statement_level);
@@ -209,21 +214,26 @@ unit pstatmnt;
              p:=expr;
              cleartempgen;
              do_firstpass(p);
-
+             hl1:=0;
+             hl2:=0;
              if (p^.treetype=rangen) then
                begin
                   { type checking for case statements }
-                  if not is_subequal(casedef, p^.left^.resulttype) then
+                  if is_subequal(casedef, p^.left^.resulttype) and
+                     is_subequal(casedef, p^.right^.resulttype) then
+                    begin
+                      hl1:=get_ordinal_value(p^.left);
+                      hl2:=get_ordinal_value(p^.right);
+                      if hl1>hl2 then
+                        Message(parser_e_case_lower_less_than_upper_bound);
+                      if not casedeferror then
+                       begin
+                         testrange(casedef,hl1);
+                         testrange(casedef,hl2);
+                       end;
+                    end
+                  else
                     Message(parser_e_case_mismatch);
-                  { type checking for case statements }
-                  if not is_subequal(casedef, p^.right^.resulttype) then
-                    Message(parser_e_case_mismatch);
-                  hl1:=get_ordinal_value(p^.left);
-                  hl2:=get_ordinal_value(p^.right);
-                  testrange(casedef,hl1);
-                  testrange(casedef,hl2);
-                  if hl1>hl2 then
-                    Message(parser_e_case_lower_less_than_upper_bound);
                   newcaselabel(hl1,hl2,firstlabel);
                end
              else
@@ -232,7 +242,8 @@ unit pstatmnt;
                   if not is_subequal(casedef, p^.resulttype) then
                     Message(parser_e_case_mismatch);
                   hl1:=get_ordinal_value(p);
-                  testrange(casedef,hl1);
+                  if not casedeferror then
+                    testrange(casedef,hl1);
                   newcaselabel(hl1,hl1,firstlabel);
                end;
              disposetree(p);
@@ -1301,7 +1312,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.98  1999-08-05 16:53:05  peter
+  Revision 1.99  1999-08-26 21:10:08  peter
+    * better error recovery for case
+
+  Revision 1.98  1999/08/05 16:53:05  peter
     * V_Fatal=1, all other V_ are also increased
     * Check for local procedure when assigning procvar
     * fixed comment parsing because directives

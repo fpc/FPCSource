@@ -317,12 +317,12 @@ unit tree;
 
     type
       pptree = ^ptree;
-      
+
 {$ifdef TEMPREGDEBUG}
     const
       curptree : pptree = nil;
 {$endif TEMPREGDEBUG}
-      
+
 {$I innr.inc}
 
   implementation
@@ -1637,7 +1637,10 @@ unit tree;
          if p^.treetype=ordconstn then
            get_ordinal_value:=p^.value
          else
-           Message(type_e_ordinal_expr_expected);
+           begin
+             Message(type_e_ordinal_expr_expected);
+             get_ordinal_value:=0;
+           end;
       end;
 
 
@@ -1750,7 +1753,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.91  1999-08-23 23:26:00  pierre
+  Revision 1.92  1999-08-26 21:10:08  peter
+    * better error recovery for case
+
+  Revision 1.91  1999/08/23 23:26:00  pierre
     + TEMPREGDEBUG code, test of register allocation
       if a tree uses more than registers32 regs then
       internalerror(10) is issued
