@@ -17,221 +17,136 @@
 
 Function FileOpen (Const FileName : string; Mode : Integer) : Longint;
 
-Var LinuxFlags : longint;
-    
-BEGIN
-  LinuxFlags:=0;
-  Case (Mode and 3) of
-    0 : LinuxFlags:=LinuxFlags or Open_RdOnly;
-    1 : LinuxFlags:=LinuxFlags or Open_WrOnly;
-    2 : LinuxFlags:=LinuxFlags or Open_RdWr;
-  end;
-  FileOpen:=fdOpen (FileName,LinuxFlags);
-  //!! We need to set locking based on Mode !! 
+Begin
+  //!! Needs implementing    
 end;
 
 
 Function FileCreate (Const FileName : String) : Longint;
 
 begin
-  FileCreate:=FileOpen (FileName,Open_RdWr or Open_Creat);
+  //!! Needs implementing    
 end;
 
 
 Function FileRead (Handle : Longint; Var Buffer; Count : longint) : Longint;
 
 begin
-  FileRead:=fdRead (Handle,Buffer,Count);
+  //!! Needs implementing    
 end;
 
 
 Function FileWrite (Handle : Longint; Var Buffer; Count : Longint) : Longint;
 
 begin
-  FileWrite:=fdWrite (Handle,Buffer,Count);
+  //!! Needs implementing    
 end;
 
 
 Function FileSeek (Handle,Offset,Origin : Longint) : Longint;
 
 begin
-  FileSeek:=fdSeek (Handle,Offset,Origin);
+  //!! Needs implementing    
 end;
 
 
 Procedure FileClose (Handle : Longint);
 
 begin
-  fdclose(Handle);
+  //!! Needs implementing    
 end;
 
 
 Function FileAge (Const FileName : String): Longint;
 
-Var Info : Stat;
-
 begin
-  If not fstat (FileName,Info) then
-    exit(-1)
-  else
-    Exit (Info.mtime);
+  //!! Needs implementing    
 end;
 
 
 Function FileExists (Const FileName : String) : Boolean;
 
-Var Info : Stat;
-
 begin
-  FileExists:=fstat(filename,Info);
+  //!! Needs implementing    
 end;
-
-Function LinuxToWinAttr (FN : Char; Const Info : Stat) : Longint;
-
-begin
-  Result:=0;  
-  If FN='.' then 
-    Result:=Result or faHidden;
-  If (Info.Mode and STAT_IFDIR)=STAT_IFDIR then 
-    Result:=Result or faDirectory;
-  If (Info.Mode and STAT_IWUSR)=0 Then 
-     Result:=Result or faReadOnly;
-end;
-
-{
- GlobToSearch takes a glob entry, stats the file.
- The glob entry is removed. 
- If FileAttributes match, the entry is reused
-}
-
-Function GlobToTSearchRec (Info : TSearchRec) : Boolean;
-
-Var SInfo : Stat;
-    p     : Pglob;
-    TAttr : Longint;
-    
-begin
-  P:=pglob(Info.FindHandle);
-  Result:=Fstat(p^.name,SInfo);
-  Info.FindHandle:=Longint(P^.Next);
-  P^.Next:=Nil;
-  GlobFree(P);
-  If Result then
-    begin
-    Info.Attr:=LinuxToWinAttr(p^.name[0],SInfo);
-    Result:=(Info.ExcludeAttr and TAttr)<>0 ;
-    If Result Then
-       With Info do
-         begin
-         Attr:=Info.Attr;
-         Name:=strpas(p^.name);
-         Time:=Sinfo.mtime;
-         Size:=Sinfo.Size;
-         end;
-    end;
-end;
-
-Function DoFind(Var Rslt : TSearchRec) : Longint;
-
-begin
-  If Rslt.FindHandle<>0 then
-    While (Rslt.FindHandle<>0) and GlobToTSearchRec(Rslt) do;
-  If Rslt.FindHandle=0 Then 
-    Result:=-1
-  else
-    Result:=0;
-end;
-
 
 
 Function FindFirst (Const Path : String; Attr : Longint; Var Rslt : TSearchRec) : Longint;
 
 begin
-  Rslt.ExcludeAttr:=Attr; //!! Not correct !!
-  Rslt.FindHandle:=Longint(Glob(Path));
-  Result:=DoFind (Rslt);
+  //!! Needs implementing    
 end;
 
 
 Function FindNext (Var Rslt : TSearchRec) : Longint;
 
 begin
-  Result:=DoFind (Rslt);
+  //!! Needs implementing    
 end;
 
 
 Procedure FindClose (Var F : TSearchrec);
 
 begin
-  GlobFree (PGlob(F.FindHandle));
+  //!! Needs implementing    
 end;
 
 
 Function FileGetDate (Handle : Longint) : Longint;
 
-Var Info : Stat;
-
 begin
-  If Not(FStat(Handle,Info)) then
-    Result:=-1
-  else
-    Result:=Info.Mtime;
+  //!! Needs implementing    
 end;
 
 
 Function FileSetDate (Handle,Age : Longint) : Longint;
 
 begin
-  // Impossible under Linux from FileHandle !!
-  FileSetDate:=-1;
+  //!! Needs implementing    
 end;
 
 
 Function FileGetAttr (Const FileName : String) : Longint;
 
-Var Info : Stat;
-
 begin
-  If Not FStat (FileName,Info) then
-    Result:=-1
-  Else
-    Result:=LinuxToWinAttr(FileName[1],Info);    
+  //!! Needs implementing    
 end;
 
 
 Function FileSetAttr (Const Filename : String; Attr: longint) : Longint;
 
 begin
-  //!! Still Needs doing
+  //!! Needs implementing    
 end;
 
 
 Function DeleteFile (Const FileName : String) : Boolean;
 
 begin
-  Result:=UnLink (FileName);
+  //!! Needs implementing    
 end;
 
 
 Function RenameFile (Const OldName, NewName : String) : Boolean;
 
-Var P1,P2 : String;
-     
 begin
-  RenameFile:=Linux.Rename(OldNAme,NewName);
+  //!! Needs implementing    
 end;
 
 
 Function FileSearch (Const Name, DirList : String) : String;
 
 begin
-  FileSearch:=Linux.FSearch(Name,Dirlist);
+  //!! Needs implementing    
 end;
 
 
 {
   $Log$
-  Revision 1.1  1998-10-11 12:21:01  michael
+  Revision 1.2  1998-10-12 08:02:56  michael
+  wrong file committed
+
+  Revision 1.1  1998/10/11 12:21:01  michael
   Added file calls. Implemented for linux only
 
 }
