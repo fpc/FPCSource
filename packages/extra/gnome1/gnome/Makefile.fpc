@@ -3,7 +3,7 @@
 #
 
 [package]
-name=gnome1
+name=gnome
 version=1.0.6
 
 [require]
