@@ -25,10 +25,12 @@ implementation
   type
      simple_proc = procedure;
   var
-     first_ctor : simple_proc;external name 'djgpp_first_ctor';
-     last_ctor  : simple_proc;external name 'djgpp_last_ctor';
-     first_dtor : simple_proc;external name 'djgpp_first_dtor';
-     last_dtor  : simple_proc;external name 'djgpp_last_dtor';
+     first_ctor : longint;external name 'djgpp_first_ctor';
+     ctor       : array [0..maxlongint] of simple_proc;external name 'djgpp_first_ctor';
+     last_ctor  : longint;external name 'djgpp_last_ctor';
+     first_dtor : longint;external name 'djgpp_first_dtor';
+     dtor 	: array [0..maxlongint] of simple_proc;external name 'djgpp_first_dtor';
+     last_dtor  : longint;external name 'djgpp_last_dtor';
      bss_count : longint;external name '___bss_count';
   const
      save_exit : pointer = nil;
@@ -39,16 +41,17 @@ procedure run_c_constructors;
      already_done : longint = -1;
   var
      f : simple_proc;
-     i : longint;
+     i,nb : longint;
   begin
      if already_done=bss_count then
        exit;
      already_done:=bss_count;
-     f:=first_ctor;
-     for i:=1 to ((longint(last_ctor)-longint(first_ctor)) div sizeof(pointer)) do
+     f:=ctor[0];
+     nb:=((cardinal(@last_ctor)-cardinal(@first_ctor)) div sizeof(pointer));
+     for i:=1 to nb do
        begin
           f();
-          inc(longint(f),sizeof(pointer));
+          f:=ctor[i];
        end;
   end;
   
@@ -57,23 +60,24 @@ procedure run_c_destructors;
      already_done : longint = -1;
   var
      f : simple_proc;
-     i : longint;
+     i,nb : longint;
   begin
      exitproc:=save_exit;
      if already_done=bss_count then
        exit;
      already_done:=bss_count;
-     f:=first_dtor;
-     for i:=1 to ((longint(last_dtor)-longint(first_dtor)) div sizeof(pointer)) do
+     f:=dtor[0];
+     nb:=((cardinal(last_dtor)-cardinal(first_dtor)) div sizeof(pointer));
+     for i:=1 to nb do
        begin
           f();
-          inc(longint(f),sizeof(pointer));
+          f:=dtor[i];
        end;
   end;
   
 begin
    run_c_constructors;
-   If first_dtor<>last_dtor then
+   If cardinal(@first_dtor)<>cardinal(@last_dtor) then
      begin
         { can exitproc be allready non nil here ?
           you have to make really weird things to achieve
@@ -85,7 +89,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-12-21 13:14:30  peter
+  Revision 1.2  1998-12-21 14:13:07  pierre
+   * problems with procvar address solved
+
+  Revision 1.1  1998/12/21 13:14:30  peter
     * moved
 
   Revision 1.1  1998/12/21 11:56:26  pierre
