@@ -426,7 +426,7 @@ asm
         r4              count
         r5              value
 }
-                cmpwi   cr0,r3,0
+                cmpwi   cr0,r4,0
                 mtctr   r4
                 subi    r3,r3,4
                 ble    LFillDWordEnd    //if count<=0 Then Exit
@@ -897,7 +897,10 @@ end ['R3','R10'];
 
 {
   $Log$
-  Revision 1.44  2003-05-13 20:39:26  florian
+  Revision 1.45  2003-05-14 19:47:35  jonas
+    * fixed stupid bug in filldword
+
+  Revision 1.44  2003/05/13 20:39:26  florian
     * uncommented shortstring compare, buggy
 
   Revision 1.43  2003/05/12 19:39:33  jonas
