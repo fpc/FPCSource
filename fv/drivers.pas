@@ -1271,9 +1271,6 @@ VAR
   Ts : TextSettingsType;
 {$else not GRAPH_API}
   I, J: Integer;
-{$IFDEF OS_DOS}
-  Ts: TextSettingsType;
-{$ENDIF}
 {$IFDEF OS_WINDOWS}
   Dc, Mem: HDc; TempFont: TLogFont; Tm: TTextmetric;
 {$ENDIF}
@@ -1570,7 +1567,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.15  2002-05-21 12:21:53  pierre
+ Revision 1.16  2002-05-23 06:34:06  pierre
+  * fix go32v2 build failure
+
+ Revision 1.15  2002/05/21 12:21:53  pierre
   * fix various graphic problems
 
  Revision 1.14  2002/05/16 20:21:50  pierre
