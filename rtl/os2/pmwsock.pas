@@ -964,7 +964,8 @@ Procedure FD_CLR(ASocket: TSocket; var aset: fdset);
 var
   I: Cardinal;
 begin
-  for I:=0 to aset.fd_count do
+  I := 0;
+  while I <= aset.fd_count do
   begin
     if (aset.fd_array[i] = ASocket) then
     begin
@@ -976,6 +977,7 @@ begin
       Dec(aset.fd_count);
       break;
     end;
+    Inc (I);
   end;
 end;
 
@@ -1056,7 +1058,10 @@ end.
 
 {
 $Log$
-Revision 1.3  2003-10-05 20:03:58  hajny
+Revision 1.4  2004-09-13 21:12:29  hajny
+  * fix for loop variable assignment error
+
+Revision 1.3  2003/10/05 20:03:58  hajny
   * two calling conventions specified (stdcall and cdecl)
 
 Revision 1.2  2003/08/15 10:53:43  yuri
