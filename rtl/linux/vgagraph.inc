@@ -17,6 +17,16 @@
   const
    InternalDriverName = 'LinuxVGA';
 
+
+  type
+    PByte = ^Byte;
+    PLongInt = ^LongInt;
+
+    PByteArray = ^TByteArray;
+    TByteArray = array [0..MAXINT - 1] of Byte;
+
+
+
 { ---------------------------------------------------------------------
    SVGA bindings.
 
@@ -153,10 +163,25 @@ var
  Function vga_drawline(x1, y1, x2, y2: Longint): Longint; cdecl;external;
  function vga_screenoff: Longint; Cdecl; External;
  function vga_screenon: Longint;  Cdecl; External;
+ function vga_getgraphmem: PByteArray; cdecl; external;
 
 { ---------------------------------------------------------------------
     Required procedures
   ---------------------------------------------------------------------}
+
+{$INCLUDE vgagraph16.inc}	// Include graphic functions for 16 colours modes
+
+var
+  LastColor: Integer;	{Cache the last set color to improve speed}
+
+procedure SetEGAColor(color: Integer);
+begin
+  if color <> LastColor then begin
+    LastColor := color;
+    vga_setegacolor(color);
+  end;
+end;
+
 
 procedure libvga_savevideostate;
 begin
@@ -192,6 +217,7 @@ Var Nrcolors : Longint;
 begin
   vga_setmode(IntCurrentMode);
   vga_screenon;
+  VidMem := vga_getgraphmem;
   nrColors:=vga_getcolors;
   if (nrColors=16) or (nrcolors=256) then
     InitColors;
@@ -246,14 +272,14 @@ begin
   else
     Color:=CurrentColor;
   end;
-  vga_setegaColor(Color);
+  SetEGAColor(Color);
   vga_drawpixel(x, y);
 end;
 
 procedure libvga_putpixelproc(X,Y: Integer; Color: Word);
 begin
   If Not ClipCoords(X,Y) Then exit;
-  vga_setegaColor(Color);
+  SetEGAColor(Color);
   vga_drawpixel(x, y);
 end;
 
@@ -268,7 +294,7 @@ procedure libvga_clrviewproc;
 Var I,Xmax : longint;
 
 begin
-  vga_SetegaColor(CurrentBkColor);
+  SetEGAColor(CurrentBkColor);
   Xmax:=StartXViewPort+ViewWidth-1;
   For i:=StartYViewPort to StartYViewPort+ViewHeight-1 do
     vga_drawline(StartXViewPort,I,Xmax,I);
@@ -410,7 +436,7 @@ end;
            begin
            ModeNumber:=I;
            ModeName:=ModeNames[i];
-           // Pretend we're VGA always.
+           // Pretend we are VGA always.
            DriverNumber := VGA;
            MaxX:=ModeInfo.Width;
            MaxY:=ModeInfo.height;
@@ -418,24 +444,39 @@ end;
            PaletteSize := MaxColor;
            HardwarePages := 0;
            // necessary hooks ...
-           DirectPutPixel := @libvga_DirectPixelProc;
-           GetPixel       := @Libvga_GetPixelProc;
-           PutPixel       := @libvga_PutPixelProc;
+	   if (MaxColor = 16) and (LongInt(MaxX) * LongInt(MaxY) < 65536*4*2) then
+	   begin
+	     // Use optimized graphics routines for 4 bit EGA/VGA modes
+	     ScrWidth := MaxX div 8;
+             DirectPutPixel := @DirectPutPixel16;
+	     PutPixel := @PutPixel16;
+    	     GetPixel := @GetPixel16;
+             HLine := @HLine16;
+    	     VLine := @VLine16;
+             GetScanLine := @GetScanLine16;
+	   end
+	   else
+	   begin
+             DirectPutPixel := @libvga_DirectPixelProc;
+             GetPixel       := @libvga_GetPixelProc;
+             PutPixel       := @libvga_PutPixelProc;
+	     {Can be added later:
+	     HLine          := @libvga_HLineProc;
+             VLine          := @libvga_VLineProc;
+             GetScanLine    := @libvga_GetScanLineProc;}
+           end;
            SetRGBPalette  := @libvga_SetRGBPaletteProc;
            GetRGBPalette  := @libvga_GetRGBPaletteProc;
-           ClearViewPort  := libvga_ClrViewProc;
-           PutImage       := @Libvga_PutImageProc;
+           ClearViewPort  := @libvga_ClrViewProc;
+           PutImage       := @libvga_PutImageProc;
            GetImage       := @libvga_GetImageProc;
            ImageSize      := @libvga_ImageSizeProc;
            { Add later maybe ?
            SetVisualPage  := SetVisualPageProc;
            SetActivePage  := SetActivePageProc;
-           GetScanLine    := @libvga_GetScanLineProc;
            Line           := @libvga_LineProc;
            InternalEllipse:= @libvga_EllipseProc;
            PatternLine    := @libvga_PatternLineProc;
-           HLine          := @libvga_HLineProc;
-           VLine          := @libvga_VLineProc;
            }
            InitMode       := @libvga_InitModeProc;
            end;
@@ -446,7 +487,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2000-02-27 14:41:25  peter
+  Revision 1.10  2000-03-17 13:30:35  sg
+  * Added accelerated drawing functions for modes with 4 bits per pixel
+
+  Revision 1.9  2000/02/27 14:41:25  peter
     * removed warnings/notes
 
   Revision 1.8  2000/02/06 11:26:45  sg
