@@ -156,7 +156,7 @@ implementation
                      ((doconv=tc_int_2_bool) and
                       (not explicit) and
                       (not is_boolean(def_from))) then
-                   b:=true;
+                   b:=false;
                 end;
              end;
 
@@ -675,7 +675,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  1998-10-14 12:53:38  peter
+  Revision 1.7  1998-10-14 13:33:24  peter
+    * fixed small typo
+
+  Revision 1.6  1998/10/14 12:53:38  peter
     * fixed small tp7 things
     * boolean:=longbool and longbool fixed
 
