@@ -208,6 +208,8 @@ Procedure fpc_Write_Text_WideChar(Len : Longint;var t : Text;c : WideChar); comp
 procedure fpc_write_text_variant(Len : Longint;var f : Text;const v : variant); compilerproc;
 function fpc_variant_to_dynarray(const v : variant;typeinfo : pointer) : pointer;compilerproc;
 function fpc_dynarray_to_variant(dynarr : pointer;typeinfo : pointer) : variant;compilerproc;
+function fpc_variant_to_interface(const v : variant) : iinterface;compilerproc;
+function fpc_interface_to_variant(const i : iinterface) : variant;compilerproc;
 {$endif HASVARIANT}
 
 Procedure fpc_Read_End(var f:Text); compilerproc;
@@ -356,7 +358,10 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 
 {
   $Log$
-  Revision 1.63  2005-01-06 13:39:59  florian
+  Revision 1.64  2005-01-07 21:15:46  florian
+    + basic rtl support for variant <-> interface implemented
+
+  Revision 1.63  2005/01/06 13:39:59  florian
     * widecharray patch from Peter
 
   Revision 1.62  2004/12/05 11:49:06  florian

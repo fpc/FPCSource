@@ -66,7 +66,7 @@ Begin
         variantmanager.write0variant(f,v)
       else
         variantmanager.writevariant(f,v,len);
-    fmInput: 
+    fmInput:
       InOutRes:=105
     else InOutRes:=103;
   end;
@@ -77,12 +77,25 @@ function fpc_variant_to_dynarray(const v : variant;typeinfo : pointer) : pointer
   begin
     variantmanager.vartodynarray(result,v,typeinfo);
   end;
-  
+
 
 function fpc_dynarray_to_variant(dynarr : pointer;typeinfo : pointer) : variant;compilerproc;
   begin
     variantmanager.varfromdynarray(result,dynarr,typeinfo);
   end;
+
+
+function fpc_variant_to_interface(const v : variant) : iinterface;compilerproc;
+  begin
+  	variantmanager.vartointf(result,v);
+  end;
+
+
+function fpc_interface_to_variant(const i : iinterface) : variant;compilerproc;
+  begin
+  	variantmanager.varfromintf(result,i);
+  end;
+
 
 { ---------------------------------------------------------------------
     Overloaded operators.
@@ -603,7 +616,10 @@ procedure initvariantmanager;
 
 {
   $Log$
-  Revision 1.19  2004-12-05 11:49:06  florian
+  Revision 1.20  2005-01-07 21:15:46  florian
+    + basic rtl support for variant <-> interface implemented
+
+  Revision 1.19  2004/12/05 11:49:06  florian
     * implemented helper for variant<->dyn. array type cast
 
   Revision 1.18  2004/08/18 21:03:35  florian
