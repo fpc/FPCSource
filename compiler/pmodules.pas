@@ -806,22 +806,28 @@ unit pmodules;
          punitsymtable(symtablestack)^.is_stab_written:=false;
 {$endif GDB}
 
+         { leave when we got an error }
+         if status.errorcount>0 then
+          begin
+            Message1(unit_f_errors_in_unit,tostr(status.errorcount));
+            exit;
+          end;
+
          { insert own objectfile }
          insertobjectfile;
 
-         {Write out the unit if the compile was succesfull.}
-         if status.errorcount=0 then
-          begin
-             writeunitas(current_module^.ppufilename^,punitsymtable(symtablestack));
+         { Write out the ppufile }
+         writeunitas(current_module^.ppufilename^,punitsymtable(symtablestack));
+
+         { write local browser }
 {$ifdef UseBrowser}
-            if cs_local_browser in aktmoduleswitches then
-              begin
-                 current_module^.implsymtable:=refsymtable;
-                 refsymtable^.write;
-                 refsymtable^.write_browser;
-              end;
-{$endif UseBrowser}
+         if cs_local_browser in aktmoduleswitches then
+          begin
+            current_module^.implsymtable:=refsymtable;
+            refsymtable^.write;
+            refsymtable^.write_browser;
           end;
+{$endif UseBrowser}
 
 {$ifdef GDB}
          pu:=pused_unit(usedunits.first);
@@ -831,11 +837,6 @@ unit pmodules;
               pu:=pused_unit(pu^.next);
            end;
 {$endif GDB}
-         inc(datasize,symtablestack^.datasize);
-
-         { leave when we got an error }
-         if status.errorcount>0 then
-          exit;
 
          { generate imports }
          if current_module^.uses_imports then
@@ -947,11 +948,9 @@ unit pmodules;
          names.insert('PASCALMAIN');
          names.insert(target_os.cprefix+'main');
 {$ifdef m68k}
-
          if target_info.target=target_PalmOS then
            names.insert('PilotMain');
 {$endif}
-
          compile_proc_body(names,true,false);
          names.done;
 
@@ -964,7 +963,10 @@ unit pmodules;
 
          { leave when we got an error }
          if status.errorcount>0 then
-          exit;
+          begin
+            Message1(unit_f_errors_in_unit,tostr(status.errorcount));
+            exit;
+          end;
 
          { insert heap }
          insertheap;
@@ -999,7 +1001,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.58  1998-09-30 16:43:37  peter
+  Revision 1.59  1998-10-05 21:33:26  peter
+    * fixed 161,165,166,167,168
+
+  Revision 1.58  1998/09/30 16:43:37  peter
     * fixed unit interdependency with circular uses
 
   Revision 1.57  1998/09/30 12:11:52  peter

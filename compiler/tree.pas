@@ -307,10 +307,7 @@ unit tree;
   implementation
 
     uses
-{ $ifdef extdebug}
-       types,
-{ $endif extdebug}
-       verbose,files;
+       verbose,files,types;
 
 
     function getnode : ptree;
@@ -693,6 +690,7 @@ unit tree;
 {$endif SUPPORT_MMX}
          p^.resulttype:=def;
          p^.value:=v;
+         testrange(p^.resulttype,p^.value);
          genordinalconstnode:=p;
       end;
 
@@ -714,6 +712,7 @@ unit tree;
 {$endif SUPPORT_MMX}
          p^.resulttype:=v^.definition;
          p^.value:=v^.value;
+         testrange(p^.resulttype,p^.value);
          genenumnode:=p;
       end;
 
@@ -1593,12 +1592,15 @@ unit tree;
          str_length:=length(p^.value_str^);
 {$endif UseAnsiString}
       end;
-      
+
 
 end.
 {
   $Log$
-  Revision 1.44  1998-09-28 16:57:28  pierre
+  Revision 1.45  1998-10-05 21:33:33  peter
+    * fixed 161,165,166,167,168
+
+  Revision 1.44  1998/09/28 16:57:28  pierre
     * changed all length(p^.value_str^) into str_length(p)
       to get it work with and without ansistrings
     * changed sourcefiles field of tmodule to a pointer

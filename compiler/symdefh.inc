@@ -80,8 +80,7 @@
           procedure write_child_init_data;virtual;
 
           { rtti }
-          function get_rtti_label : plabel;
-
+          function  get_rtti_label : plabel;
           procedure generate_rtti;virtual;
           procedure write_rtti_data;virtual;
           procedure write_child_rtti_data;virtual;
@@ -432,6 +431,7 @@
 
        penumdef = ^tenumdef;
        tenumdef = object(tdef)
+          rangenr,
           minval,
           maxval    : longint;
           has_jumps : boolean;
@@ -448,6 +448,8 @@
           procedure setmin(_min:longint);
           function  min:longint;
           function  max:longint;
+          function  getrangecheckstring:string;
+          procedure genrangecheck;
 {$ifdef GDB}
           function stabstring : pchar;virtual;
 {$endif GDB}
@@ -477,7 +479,10 @@
 
 {
   $Log$
-  Revision 1.2  1998-10-02 07:20:40  florian
+  Revision 1.3  1998-10-05 21:33:30  peter
+    * fixed 161,165,166,167,168
+
+  Revision 1.2  1998/10/02 07:20:40  florian
     * range checking in units doesn't work if the units are smartlinked, fixed
 
   Revision 1.1  1998/09/23 12:03:57  peter

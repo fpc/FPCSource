@@ -58,6 +58,9 @@ unit types;
     { true if o is a short string def }
     function is_shortstring(p : pdef) : boolean;
 
+    { true if p is a char array def }
+    function is_chararray(p : pdef) : boolean;
+
     { true if o is a pchar def }
     function is_pchar(p : pdef) : boolean;
 
@@ -114,6 +117,7 @@ unit types;
   implementation
 
     uses verbose,aasm;
+
 
     function equal_paras(def1,def2 : pdefcoll;value_equal_const : boolean) : boolean;
       begin
@@ -273,6 +277,15 @@ unit types;
          is_shortstring:=(p^.deftype=stringdef) and
                          (pstringdef(p)^.string_typ=st_shortstring);
       end;
+
+    { true if p is a char array def }
+    function is_chararray(p : pdef) : boolean;
+      begin
+        is_chararray:=(p^.deftype=arraydef) and
+                      (parraydef(p)^.lowrange=0) and
+                      is_equal(parraydef(p)^.definition,cchardef);
+      end;
+
 
     { true if p is a pchar def }
     function is_pchar(p : pdef) : boolean;
@@ -942,7 +955,10 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.31  1998-09-23 09:58:56  peter
+  Revision 1.32  1998-10-05 21:33:35  peter
+    * fixed 161,165,166,167,168
+
+  Revision 1.31  1998/09/23 09:58:56  peter
     * first working array of const things
 
   Revision 1.30  1998/09/22 15:40:58  peter

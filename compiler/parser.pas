@@ -253,9 +253,6 @@ unit parser;
          else
            proc_program(token=_LIBRARY);
 
-         if status.errorcount>0 then
-           Message1(unit_f_errors_in_unit,tostr(status.errorcount));
-
          { clear memory }
 {$ifdef Splitheap}
          if testsplit then
@@ -364,7 +361,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.53  1998-09-30 16:43:36  peter
+  Revision 1.54  1998-10-05 21:33:23  peter
+    * fixed 161,165,166,167,168
+
+  Revision 1.53  1998/09/30 16:43:36  peter
     * fixed unit interdependency with circular uses
 
   Revision 1.52  1998/09/28 16:57:22  pierre

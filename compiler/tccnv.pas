@@ -129,8 +129,7 @@ implementation
               case p2^.resulttype^.deftype of
             enumdef,
              orddef : begin
-                        if (p2^.resulttype^.deftype=orddef) and
-                           (porddef(p2^.resulttype)^.typ in [s8bit,s16bit,s32bit,u16bit,u32bit]) then
+                        if is_integer(p2^.resulttype) then
                          begin
                            p2:=gentypeconvnode(p2,u8bitdef);
                            firstpass(p2);
@@ -140,21 +139,20 @@ implementation
                           pd:=p2^.resulttype;
                         if not(is_equal(pd,p2^.resulttype)) then
                          begin
-                           Message(type_e_typeconflict_in_set);
+                           CGMessage(type_e_typeconflict_in_set);
                            disposetree(p2);
                          end
                         else
                          begin
                            if assigned(p3) then
                             begin
-                              if (p3^.resulttype^.deftype=orddef) and
-                                 (porddef(p3^.resulttype)^.typ in [s8bit,s16bit,s32bit,u16bit,u32bit]) then
+                              if is_integer(p3^.resulttype) then
                                begin
                                  p3:=gentypeconvnode(p3,u8bitdef);
                                  firstpass(p3);
                                end;
                               if not(is_equal(pd,p3^.resulttype)) then
-                                Message(type_e_typeconflict_in_set)
+                                CGMessage(type_e_typeconflict_in_set)
                               else
                                 begin
                                   if (p2^.treetype=ordconstn) and (p3^.treetype=ordconstn) then
@@ -191,14 +189,14 @@ implementation
                         if pd=nil then
                          pd:=cchardef;
                         if not(is_equal(pd,cchardef)) then
-                         Message(type_e_typeconflict_in_set)
+                         CGMessage(type_e_typeconflict_in_set)
                         else
                          for l:=1 to length(pstring(p2^.value_str)^) do
                           do_set(ord(pstring(p2^.value_str)^[l]));
                         disposetree(p2);
                       end;
               else
-               Internalerror(4234);
+               CGMessage(type_e_ordinal_expr_expected);
               end;
             { insert the set creation tree }
               if assigned(p4) then
@@ -903,7 +901,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  1998-09-27 10:16:26  florian
+  Revision 1.4  1998-10-05 21:33:32  peter
+    * fixed 161,165,166,167,168
+
+  Revision 1.3  1998/09/27 10:16:26  florian
     * type casts pchar<->ansistring fixed
     * ansistring[..] calls does now an unique call
 

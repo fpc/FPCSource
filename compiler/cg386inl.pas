@@ -312,8 +312,7 @@ implementation
                                        end;
                                    end;
                         arraydef : begin
-                                     if (parraydef(pararesult)^.lowrange=0) and
-                                        is_equal(parraydef(pararesult)^.definition,cchardef) then
+                                     if is_chararray(pararesult) then
                                        begin
                                          if doread then
                                            emitcall('FPC_READ_TEXT_PCHAR_AS_ARRAY',true)
@@ -674,13 +673,6 @@ implementation
                    exprasmlist^.concat(new(pai386,op_const_reg(A_SHR,S_L,16,p^.location.register)));
                  p^.location.register:=reg32toreg16(p^.location.register);
               end;
-{***CHARBUG}
-{We can now comment them out, as they are handled as typecast.
- Saves an incredible amount of 8 bytes code.
- I'am not lucky about this, because it's _not_ a type cast (FK) }
-{              in_ord_char,
-               in_chr_byte,}
-{***}
             in_length_string :
               begin
                  secondpass(p^.left);
@@ -730,13 +722,9 @@ implementation
                    end
                  else p^.location.register:=p^.left^.location.register;
                  exprasmlist^.concat(new(pai386,op_reg(asmop,opsize,
-                   p^.location.register)))
-                 { here we should insert bounds check ? }
-                 { and direct call to bounds will crash the program }
-                 { if we are at the limit }
-                 { we could also simply say that pred(first)=first and succ(last)=last }
-                 { could this be usefull I don't think so (PM)
-                 emitoverflowcheck;}
+                   p^.location.register)));
+                 emitoverflowcheck(p);
+                 emitrangecheck(p);
               end;
             in_dec_x,
             in_inc_x :
@@ -827,6 +815,7 @@ implementation
                    ungetregister32(hregister);
                  end;
                 emitoverflowcheck(p^.left^.left);
+                emitrangecheck(p^.left^.left);
               end;
             in_assigned_x :
               begin
@@ -944,7 +933,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  1998-10-05 12:32:44  peter
+  Revision 1.11  1998-10-05 21:33:15  peter
+    * fixed 161,165,166,167,168
+
+  Revision 1.10  1998/10/05 12:32:44  peter
     + assert() support
 
   Revision 1.8  1998/10/02 10:35:09  peter

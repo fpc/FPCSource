@@ -606,6 +606,7 @@
          calcsavesize;
          has_jumps:=false;
          basedef:=nil;
+         rangenr:=0;
          first:=nil;
       end;
 
@@ -619,6 +620,7 @@
          basedef:=_basedef;
          calcsavesize;
          has_jumps:=false;
+         rangenr:=0;
          first:=nil;
       end;
 
@@ -694,6 +696,31 @@
          writelong(max);
          writelong(savesize);
          current_ppu^.writeentry(ibenumdef);
+      end;
+
+
+    function tenumdef.getrangecheckstring : string;
+      begin
+         if (cs_smartlink in aktmoduleswitches) then
+           getrangecheckstring:='R_'+current_module^.modulename^+tostr(rangenr)
+         else
+           getrangecheckstring:='R_'+tostr(rangenr);
+      end;
+
+
+    procedure tenumdef.genrangecheck;
+      begin
+         if rangenr=0 then
+           begin
+              { generate two constant for bounds }
+              getlabelnr(rangenr);
+              if (cs_smartlink in aktmoduleswitches) then
+                datasegment^.concat(new(pai_symbol,init_global(getrangecheckstring)))
+              else
+                datasegment^.concat(new(pai_symbol,init(getrangecheckstring)));
+              datasegment^.concat(new(pai_const,init_32bit(min)));
+              datasegment^.concat(new(pai_const,init_32bit(max)));
+           end;
       end;
 
 
@@ -777,6 +804,7 @@
          low:=v;
          high:=b;
          typ:=t;
+         rangenr:=0;
          setsize;
       end;
 
@@ -3045,7 +3073,10 @@
 
 {
   $Log$
-  Revision 1.53  1998-10-05 12:48:39  pierre
+  Revision 1.54  1998-10-05 21:33:28  peter
+    * fixed 161,165,166,167,168
+
+  Revision 1.53  1998/10/05 12:48:39  pierre
     * wrong handling of range check for arrays fixed
 
   Revision 1.52  1998/10/02 07:20:38  florian

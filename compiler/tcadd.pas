@@ -460,14 +460,25 @@ implementation
          { left side a setdef ? }
            if (ld^.deftype=setdef) then
              begin
-             { right site must also be a setdef, unless addn is used }
-                if not(p^.treetype in [subn,symdifn,addn,muln,equaln,unequaln]) or
-                   ((rd^.deftype<>setdef) and (p^.treetype<>addn)) then
-                  CGMessage(type_e_mismatch);
-
-                if ((rd^.deftype=setdef) and not(is_equal(rd,ld))) and
-                   not((rt=setelementn) and is_equal(psetdef(ld)^.setof,rd)) then
-                  CGMessage(type_e_set_element_are_not_comp);
+             { trying to add a set element? }
+                if (p^.treetype=addn) and (rd^.deftype<>setdef) then
+                 begin
+                   if (rt=setelementn) then
+                    begin
+                      if not(is_equal(psetdef(ld)^.setof,rd)) then
+                       CGMessage(type_e_set_element_are_not_comp);
+                    end
+                   else
+                    CGMessage(type_e_mismatch)
+                 end
+                else
+                 begin
+                   if not(p^.treetype in [addn,subn,symdifn,muln,equaln,unequaln]) then
+                    CGMessage(type_e_mismatch);
+                 { right def must be a also be set }
+                   if (rd^.deftype<>setdef) or not(is_equal(rd,ld)) then
+                    CGMessage(type_e_set_element_are_not_comp);
+                 end;
 
                 { ranges require normsets }
                 if (psetdef(ld)^.settype=smallset) and
@@ -883,7 +894,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  1998-09-23 20:42:24  peter
+  Revision 1.2  1998-10-05 21:33:31  peter
+    * fixed 161,165,166,167,168
+
+  Revision 1.1  1998/09/23 20:42:24  peter
     * splitted pass_1
 
 }
