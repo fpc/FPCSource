@@ -78,7 +78,11 @@ type
 
   tprocedure = procedure;
 
-  tsmallrecord = packed record
+  tsmallrecord =
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+  packed
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+  record
     b: byte;
     w: word;
   end;
@@ -1292,7 +1296,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2003-09-28 09:25:02  peter
+  Revision 1.7  2004-03-27 19:34:13  florian
+    * alignment fixed
+
+  Revision 1.6  2003/09/28 09:25:02  peter
     * popstack changed to oldfpccall (1.1 only)
 
   Revision 1.5  2003/04/22 10:24:29  florian

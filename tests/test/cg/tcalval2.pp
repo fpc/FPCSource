@@ -70,7 +70,11 @@ type
 
   tprocedure = procedure;
 
-  tsmallrecord = packed record
+  tsmallrecord =
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+  packed
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+  record
     b: byte;
     w: word;
   end;

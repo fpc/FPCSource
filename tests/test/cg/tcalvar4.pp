@@ -79,7 +79,11 @@ type
 
   tprocedure = procedure;
 
-  tsmallrecord = packed record
+  tsmallrecord =
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+  packed
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+  record
     b: byte;
     w: word;
   end;
@@ -714,7 +718,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2003-04-22 10:24:29  florian
+  Revision 1.10  2004-03-27 19:38:50  florian
+    * alignment fixed
+
+  Revision 1.9  2003/04/22 10:24:29  florian
     * fixed defines for powerpc
 
   Revision 1.8  2002/12/29 15:30:55  peter
