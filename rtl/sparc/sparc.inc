@@ -1,3 +1,7 @@
+procedure fpc_cpuinit;
+begin
+end;
+
 {$define FPC_SYSTEM_HAS_GET_FRAME}
 function get_frame:pointer;{assembler;}
 begin{asm}
@@ -31,7 +35,13 @@ begin{asm}
 end;
 {
   $Log$
-  Revision 1.4  2003-12-04 21:42:07  peter
+  Revision 1.5  2004-01-02 17:22:14  jonas
+    + fpc_cpuinit procedure to allow cpu/fpu initialisation before any unit
+      initialises
+    + fpu exceptions for invalid operations and division by zero enabled for
+      ppc
+
+  Revision 1.4  2003/12/04 21:42:07  peter
     * register calling updates
 
   Revision 1.3  2003/03/17 14:30:11  peter

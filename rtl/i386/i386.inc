@@ -21,6 +21,10 @@
                                Primitives
 ****************************************************************************}
 
+procedure fpc_cpuinit;
+begin
+end;
+
 function geteipasebx : pointer;assembler;[public,alias:'FPC_GETEIPINEBX'];
 asm
   movl (%esp),%ebx
@@ -1414,7 +1418,13 @@ end;
 
 {
   $Log$
-  Revision 1.56  2003-12-24 23:07:28  peter
+  Revision 1.57  2004-01-02 17:22:14  jonas
+    + fpc_cpuinit procedure to allow cpu/fpu initialisation before any unit
+      initialises
+    + fpu exceptions for invalid operations and division by zero enabled for
+      ppc
+
+  Revision 1.56  2003/12/24 23:07:28  peter
     * fixed indexbyte for regcall
 
   Revision 1.55  2003/12/04 21:44:39  peter

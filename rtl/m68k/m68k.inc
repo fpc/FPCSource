@@ -30,6 +30,10 @@
 {****************************************************************************}
 
 
+procedure fpc_cpuinit;
+begin
+end;
+
     { Don't call the following routines directly. }
  Procedure Hlt;[public,alias: 'FPC_HALT_ERROR'];
  { called by code generator on run-time errors. }
@@ -688,7 +692,13 @@ end;
 
 {
   $Log$
-  Revision 1.3  2002-09-07 16:01:20  peter
+  Revision 1.4  2004-01-02 17:22:14  jonas
+    + fpc_cpuinit procedure to allow cpu/fpu initialisation before any unit
+      initialises
+    + fpu exceptions for invalid operations and division by zero enabled for
+      ppc
+
+  Revision 1.3  2002/09/07 16:01:20  peter
     * old logs removed and tabs fixed
 
 }

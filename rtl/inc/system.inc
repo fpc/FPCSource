@@ -598,6 +598,8 @@ procedure fpc_InitializeUnits;[public,alias:'FPC_INITIALIZEUNITS']; {$ifdef hasc
 var
   i : longint;
 begin
+  { call cpu/fpu initialisation routine }
+  fpc_cpuinit;
   with InitFinalTable do
    begin
      for i:=1to TableCount do
@@ -857,7 +859,13 @@ end;
 
 {
   $Log$
-  Revision 1.48  2004-01-01 17:58:16  jonas
+  Revision 1.49  2004-01-02 17:21:50  jonas
+    + fpc_cpuinit procedure to allow cpu/fpu initialisation before any unit
+      initialises
+    + fpu exceptions for invalid operations and division by zero enabled for
+      ppc
+
+  Revision 1.48  2004/01/01 17:58:16  jonas
     + integer division-by-zero detection support for ppc
     + compilerproc FPC_DIVBYZERO
 

@@ -22,6 +22,58 @@
 {****************************************************************************
                            PowerPC specific stuff
 ****************************************************************************}
+{
+
+const
+  ppc_fpu_overflow     = (1 shl (32-3));
+  ppc_fpu_underflow    = (1 shl (32-4));
+  ppc_fpu_divbyzero    = (1 shl (32-5));
+  ppc_fpu_inexact      = (1 shl (32-6));
+  ppc_fpu_invalid_snan = (1 shl (32-7));
+}
+
+procedure fpc_enable_ppc_fpu_exceptions;
+assembler;
+asm
+  { clear all "exception happened" flags we care about}
+  mtfsfi 0,0
+  mtfsfi 1,0
+
+  { enable invalid operations and division by zero exceptions. }
+  { No overflow/underflow, since those give some spurious      }
+  { exceptions                                                 }
+  mtfsfi 6,9
+end;
+
+
+procedure fpc_cpuinit;
+begin
+  fpc_enable_ppc_fpu_exceptions;
+end;
+
+{
+doesn't work, at least not on linux, because there after an exception
+fpscr is set to 0 (JM)
+}
+
+(*
+function fpc_get_ppc_fpscr: cardinal;
+assembler;
+var
+  temp: record a,b:longint; end;
+asm
+  mffs f0
+  stfd f0,temp
+  lwz  r3,temp.b
+  { clear all exception flags }
+{
+  rlwinm r4,r3,0,16,31
+  stw  r4,temp.b
+  lfd  f0,temp
+  a_mtfsf f0
+}
+end;
+*)
 
 { This function is never called directly, it's a dummy to hold the register save/
   load subroutines
@@ -584,6 +636,7 @@ asm
                 { r3 still contains -1 here }
                 bne     .LIndexWordDone
                 sub     r3,r10,r0
+                srawi   r3,r3,1
 .LIndexWordDone:
 end;
 
@@ -609,6 +662,7 @@ asm
                 { r3 still contains -1 here }
                 bne     .LIndexDWordDone
                 sub     r3,r10,r0
+                srawi   r3,r3,2
 .LIndexDWordDone:
 end;
 
@@ -1006,7 +1060,13 @@ end;
 
 {
   $Log$
-  Revision 1.61  2003-12-28 21:06:56  jonas
+  Revision 1.62  2004-01-02 17:21:50  jonas
+    + fpc_cpuinit procedure to allow cpu/fpu initialisation before any unit
+      initialises
+    + fpu exceptions for invalid operations and division by zero enabled for
+      ppc
+
+  Revision 1.61  2003/12/28 21:06:56  jonas
     * fixed fillchar for SYSV abi
 
   Revision 1.60  2003/12/21 21:23:09  florian
