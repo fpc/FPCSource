@@ -190,3 +190,8 @@ bug0135.pp   Unsupported subrange type construction.
 bug0137.pp   Cannot assign child object variable to parent objcet type variable
 bug0139.pp   Cannot access protected method of ancestor class from other unit.
 bug0141.pp   Wrong Class sizes when using forwardly defined classes.
+bug0142.pp   sizeof(object) is not tp7 compatible when no constructor is used
+bug0143.pp   cannot concat string and array of char in $X+ mode
+bug0144.pp   problem with 'with object do'
+bug0145.pp   typed files with huges records (needs filerec.size:longint)
+
