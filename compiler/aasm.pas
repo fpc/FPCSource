@@ -1118,7 +1118,7 @@ uses
             begin
               if (refs>0) and
                  (section=Sec_none) and
-                 (bind<>AB_EXTERNAL) then
+                 not(bind in [AB_EXTERNAL,AB_COMMON]) then
                Message1(asmw_e_undefined_label,name);
             end;
            hp:=pasmsymbol(hp^.next);
@@ -1180,7 +1180,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.7  2000-08-12 15:34:21  peter
+  Revision 1.8  2000-08-12 19:14:58  peter
+    * ELF writer works now also with -g
+    * ELF writer is default again for linux
+
+  Revision 1.7  2000/08/12 15:34:21  peter
     + usedasmsymbollist to check and reset only the used symbols (merged)
 
   Revision 1.6  2000/08/09 19:49:44  peter

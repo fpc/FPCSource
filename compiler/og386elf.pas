@@ -81,7 +81,9 @@ unit og386elf;
           destructor  done;
           function  write(var d;l:longint):longint;
           function  writestr(const s:string):longint;
-          procedure align(l:longint);
+          procedure writealign(l:longint);
+          function  aligneddatalen:longint;
+          procedure alignsection;
           procedure alloc(l:longint);
           procedure addsymreloc(ofs:longint;p:pasmsymbol;relative:relative_type);
           procedure addsectionreloc(ofs:longint;sec:tsection;relative:relative_type);
@@ -259,6 +261,17 @@ unit og386elf;
               AType:=SHT_NOBITS;
               AAlign:=4;
             end;
+          sec_stab :
+            begin
+              AType:=SHT_PROGBITS;
+              AAlign:=4;
+              Aentsize:=sizeof(telf32stab);
+            end;
+          sec_stabstr :
+            begin
+              AType:=SHT_STRTAB;
+              AAlign:=1;
+            end;
         end;
         initname(target_asm.secnames[sec],Atype,Aflags,0,0,Aalign,Aentsize);
       end;
@@ -321,11 +334,14 @@ unit og386elf;
       end;
 
 
-    procedure telf32section.align(l:longint);
+    procedure telf32section.writealign(l:longint);
       var
         i : longint;
         empty : array[0..63] of char;
       begin
+        { no alignment needed for 0 or 1 }
+        if l<=1 then
+         exit;
         i:=datalen mod l;
         if i>0 then
          begin
@@ -336,6 +352,18 @@ unit og386elf;
             end;
            inc(datalen,l-i);
          end;
+      end;
+
+
+    function telf32section.aligneddatalen:longint;
+      begin
+        aligneddatalen:=align(datalen,addralign);
+      end;
+
+
+    procedure telf32section.alignsection;
+      begin
+        writealign(addralign);
       end;
 
 
@@ -476,9 +504,6 @@ unit og386elf;
         if (p^.section<>sec_none) and not(assigned(sects[p^.section])) then
           createsection(p^.section);
         FillChar(sym,sizeof(sym),0);
-        { symbolname, write the #0 separate to overcome 255+1 char not possible }
-        sym.name:=strtabsect^.writestr(p^.name);
-        strtabsect^.writestr(#0);
         sym.size:=p^.size;
         sym.bind:=p^.bind;
         sym.typ:=p^.typ;
@@ -499,8 +524,14 @@ unit og386elf;
         { update the asmsymbol index }
         p^.idx:=syms^.count;
         { store the symbol, but not the local ones (PM) }
-        if (sym.bind<>AB_LOCAL) {or (copy(p^.name,1,2)<>'.L')} then
-          syms^.write(sym,1);
+        if (sym.bind<>AB_LOCAL) then
+         begin
+           { symbolname, write the #0 separate to overcome 255+1 char not possible }
+           sym.name:=strtabsect^.writestr(p^.name);
+           strtabsect^.writestr(#0);
+           { symbol }
+           syms^.write(sym,1);
+         end;
         { make the exported syms known to the objectwriter
           (needed for .a generation) }
         if (sym.bind in [AB_GLOBAL,AB_COMMON]) then
@@ -525,7 +556,8 @@ unit og386elf;
 
 
     procedure telf32output.writealign(len:longint);
-      var modulo : longint;
+      var
+        modulo : longint;
       begin
         if not assigned(sects[currsec]) then
          createsection(currsec);
@@ -895,17 +927,17 @@ unit og386elf;
           begin
             sects[sec]^.datapos:=datapos;
             if assigned(sects[sec]^.data) then
-              inc(datapos,align(sects[sec]^.datalen,4));
+              inc(datapos,sects[sec]^.aligneddatalen);
           end;
         { shstrtab }
         shstrtabsect^.datapos:=datapos;
-        inc(datapos,align(shstrtabsect^.datalen,4));
+        inc(datapos,shstrtabsect^.aligneddatalen);
         { section headers }
         shoffset:=datapos;
         inc(datapos,nsects*sizeof(telf32sechdr));
         { symtab }
         symtabsect^.datapos:=datapos;
-        inc(datapos,align(symtabsect^.datalen,4));
+        inc(datapos,symtabsect^.aligneddatalen);
         { strtab }
         strtabsect^.datapos:=datapos;
         inc(datapos,align(strtabsect^.datalen,4));
@@ -915,7 +947,7 @@ unit og386elf;
             assigned(sects[sec]^.relocsect) then
           begin
             sects[sec]^.relocsect^.datapos:=datapos;
-            inc(datapos,align(sects[sec]^.relocsect^.datalen,4));
+            inc(datapos,sects[sec]^.relocsect^.aligneddatalen);
           end;
       { Write ELF Header }
         fillchar(header,sizeof(header),0);
@@ -940,19 +972,19 @@ unit og386elf;
           begin
             { For the stab section we need an HdrSym which can now be
                 calculated more easily }
-              if sec=sec_stab then
-               begin
+            if sec=sec_stab then
+             begin
                pelf32stab(sects[sec_stab]^.data^.data)^.nvalue:=sects[sec_stabstr]^.datalen;
                pelf32stab(sects[sec_stab]^.data^.data)^.strpos:=1;
                pelf32stab(sects[sec_stab]^.data^.data)^.ndesc:=
                  (sects[sec_stab]^.datalen div sizeof(telf32stab))-1{+1 according to gas output PM};
              end;
             { save the original section length }
-            sects[sec]^.align(4);
+            sects[sec]^.alignsection;
             writer^.write(sects[sec]^.data^.data^,sects[sec]^.data^.usedsize);
           end;
       { .shstrtab }
-        shstrtabsect^.align(4);
+        shstrtabsect^.alignsection;
         writer^.write(shstrtabsect^.data^.data^,shstrtabsect^.data^.usedsize);
       { section headers, start with an empty header for sh_undef }
         writer^.write(empty,sizeof(telf32sechdr));
@@ -967,26 +999,30 @@ unit og386elf;
         writesectionheader(symtabsect);
         writesectionheader(strtabsect);
       { .symtab }
-        symtabsect^.align(4);
+        symtabsect^.alignsection;
         writer^.write(symtabsect^.data^.data^,symtabsect^.data^.usedsize);
       { .strtab }
-        strtabsect^.align(4);
+        strtabsect^.writealign(4);
         writer^.write(strtabsect^.data^.data^,strtabsect^.data^.usedsize);
       { .rel sections }
         for sec:=low(tsection) to high(tsection) do
          if assigned(sects[sec]) and
             assigned(sects[sec]^.relocsect) then
           begin
-            sects[sec]^.relocsect^.align(4);
+            sects[sec]^.relocsect^.alignsection;
             writer^.write(sects[sec]^.relocsect^.data^.data^,sects[sec]^.relocsect^.data^.usedsize);
           end;
-        end;
+      end;
 
 
 end.
 {
   $Log$
-  Revision 1.3  2000-07-13 12:08:26  michael
+  Revision 1.4  2000-08-12 19:14:58  peter
+    * ELF writer works now also with -g
+    * ELF writer is default again for linux
+
+  Revision 1.3  2000/07/13 12:08:26  michael
   + patched to 1.1.0 with former 1.09patch from peter
 
   Revision 1.2  2000/07/13 11:32:43  michael

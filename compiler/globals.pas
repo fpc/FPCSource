@@ -443,7 +443,11 @@ implementation
       return value <i> aligned <a> boundary
     }
       begin
-        align:=(i+a-1) and not(a-1);
+        { for 0 and 1 no aligning is needed }
+        if a<=1 then
+         align:=i
+        else
+         align:=(i+a-1) and not(a-1);
       end;
 
 
@@ -1562,7 +1566,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-08-12 15:30:44  peter
+  Revision 1.6  2000-08-12 19:14:58  peter
+    * ELF writer works now also with -g
+    * ELF writer is default again for linux
+
+  Revision 1.5  2000/08/12 15:30:44  peter
     * IDE patch for stream reading (merged)
 
   Revision 1.4  2000/08/02 19:49:59  peter

@@ -1049,7 +1049,7 @@ implementation
             resobjext   : '.or';
             exeext      : '';
             os          : os_i386_Linux;
-            assem       : as_i386_as;
+            assem       : as_i386_elf;
             assemsrc    : as_i386_as;
             ar          : ar_i386_ar;
             res         : res_none;
@@ -1660,7 +1660,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-07-14 21:29:38  michael
+  Revision 1.5  2000-08-12 19:14:59  peter
+    * ELF writer works now also with -g
+    * ELF writer is default again for linux
+
+  Revision 1.4  2000/07/14 21:29:38  michael
   * Back to external assembler till peter fixes gdb
 
   Revision 1.3  2000/07/13 12:08:28  michael
