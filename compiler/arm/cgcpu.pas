@@ -283,7 +283,15 @@ unit cgcpu;
            OP_NEG:
              list.concat(taicpu.op_reg_reg_const(A_RSB,dst,src,0));
            OP_NOT:
-             list.concat(taicpu.op_reg_reg(A_MVN,dst,src));
+             begin
+               list.concat(taicpu.op_reg_reg(A_MVN,dst,src));
+               case size of
+                 OS_8 :
+                   a_op_const_reg_reg(list,OP_AND,OS_INT,$ff,dst,dst);
+                 OS_16 :
+                   a_op_const_reg_reg(list,OP_AND,OS_INT,$ffff,dst,dst);
+               end;
+             end
            else
              a_op_reg_reg_reg(list,op,OS_32,src,dst,dst);
          end;
@@ -1308,7 +1316,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.65  2005-01-04 20:15:05  florian
+  Revision 1.66  2005-01-04 21:00:48  florian
+    * not operator for byte/word fixed
+
+  Revision 1.65  2005/01/04 20:15:05  florian
     * load_reg_reg fixed
 
   Revision 1.64  2005/01/04 15:36:32  florian
