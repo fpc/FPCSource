@@ -32,8 +32,8 @@ endif
 
 .PHONY: all tex clean
 
-OBJECTS=buffer callback flags getrunmd int_pm keyclick meminfo outport \
-  rmpm_int sel_des softint textmess vgasel 
+OBJECTS=buffer callback flags getrunmd intpm keyclick meminfo outport \
+  rmpmint seldes softint textmess vgasel 
 
 TEXOBJECTS=$(addsuffix .tex, $(OBJECTS))
 
