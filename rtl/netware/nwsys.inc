@@ -74,13 +74,14 @@ function _SuspendThread(threadID:longint):longint; cdecl;external ThreadsNlm nam
 function _GetThreadID:longint; cdecl;external ThreadsNlm name 'GetThreadID';
 procedure _ThreadSwitchWithDelay; cdecl;external ThreadsNlm name 'ThreadSwitchWithDelay';
 function _GetThreadName(threadID:longint; var tName):longint; cdecl;external ThreadsNlm name 'GetThreadName';
-
+(*
 PROCEDURE ConsolePrintf (FormatStr : PCHAR; Param : LONGINT); CDecl; EXTERNAL CLib Name 'ConsolePrintf';
 PROCEDURE ConsolePrintf (FormatStr : PCHAR; Param : pchar); CDecl; EXTERNAL CLib Name 'ConsolePrintf';
 PROCEDURE ConsolePrintf (FormatStr : PCHAR; P1,P2 : LONGINT); CDecl; EXTERNAL CLib Name 'ConsolePrintf';
 PROCEDURE ConsolePrintf (FormatStr : PCHAR; P1,P2,P3 : LONGINT); CDecl; EXTERNAL CLib Name 'ConsolePrintf';
 PROCEDURE ConsolePrintf (FormatStr : PCHAR; P1,P2,P3,P4 : LONGINT); CDecl; EXTERNAL CLib Name 'ConsolePrintf';
 PROCEDURE ConsolePrintf (FormatStr : PCHAR); CDecl; EXTERNAL CLib Name 'ConsolePrintf';
+*)
 // this gives internal compiler error 1234124 ??
 //PROCEDURE ConsolePrintf (FormatStr : PCHAR; Param : array of const); CDecl; EXTERNAL CLib;
 
@@ -369,7 +370,10 @@ function spawnvp(mode:longint; path:Pchar; argv:PPchar):longint;cdecl;external C
 
 {
   $Log$
-  Revision 1.11  2004-09-26 19:25:49  armin
+  Revision 1.12  2004-11-25 12:32:08  armin
+  * adapted to new compiler check for externals
+
+  Revision 1.11  2004/09/26 19:25:49  armin
   * exiting threads at nlm unload
 
   Revision 1.10  2004/08/01 20:02:48  armin

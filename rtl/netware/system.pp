@@ -75,12 +75,15 @@ CONST
    envp   : ppchar = nil;   {dummy to make heaptrc happy}
 
 
-procedure ConsolePrintf (FormatStr : PCHAR; Param : LONGINT); CDecl;
-procedure ConsolePrintf (FormatStr : PCHAR; Param : pchar); CDecl;
-procedure ConsolePrintf (FormatStr : PCHAR; P1,P2 : LONGINT);  CDecl;
-procedure ConsolePrintf (FormatStr : PCHAR; P1,P2,P3 : LONGINT);  CDecl;
-procedure ConsolePrintf (FormatStr : PCHAR);  CDecl;
-procedure __EnterDebugger; cdecl;
+procedure ConsolePrintf (FormatStr : PCHAR; Param : LONGINT); CDecl; external 'clib' name 'printf';
+procedure ConsolePrintf (FormatStr : PCHAR; Param : pchar); CDecl; external 'clib' name 'printf';
+procedure ConsolePrintf (FormatStr : PCHAR; P1,P2 : LONGINT);  CDecl; external 'clib' name 'printf';
+procedure ConsolePrintf (FormatStr : PCHAR; P1,P2,P3 : LONGINT);  CDecl; external 'clib' name 'printf';
+procedure ConsolePrintf (FormatStr : PCHAR);  CDecl; external 'clib' name 'printf';
+// this gives internal compiler error 200404181
+// procedure ConsolePrintf (FormatStr : PCHAR; Param : array of const); CDecl; EXTERNAL 'clib' name 'ConsolePrintf';
+
+procedure __EnterDebugger; cdecl; external 'clib' name 'EnterDebugger';
 
 type
   TSysCloseAllRemainingSemaphores = procedure;
@@ -122,7 +125,7 @@ begin
   SetThreadDataAreaPtr := stdata;
 end;
 
-procedure __EnterDebugger; cdecl; external 'clib' name 'EnterDebugger';
+//procedure __EnterDebugger; cdecl; external 'clib' name 'EnterDebugger';
 
 
 procedure PASCALMAIN;external name 'PASCALMAIN';
@@ -976,7 +979,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.30  2004-11-04 09:32:31  peter
+  Revision 1.31  2004-11-25 12:32:08  armin
+  * adapted to new compiler check for externals
+
+  Revision 1.30  2004/11/04 09:32:31  peter
   ErrOutput added
 
   Revision 1.29  2004/10/25 18:11:49  armin
