@@ -45,8 +45,6 @@ procedure ReadDTDFile(var ADoc: TXMLDocument; var f: TStream;
 
 implementation
 
-{$i filerec.inc}
-
 const
 
   Letter = ['A'..'Z', 'a'..'z'];
@@ -979,8 +977,8 @@ end.
 
 {
   $Log$
-  Revision 1.7  1999-08-09 16:18:00  michael
-  + Added filerec.inc for xmlread changes by Sebastian guenther
+  Revision 1.8  1999-08-10 15:39:59  michael
+  * restored previous setting
 
   Revision 1.6  1999/07/27 13:01:59  peter
     * remove filerec.inc, it was missing from sysutils! You shouldn't need
