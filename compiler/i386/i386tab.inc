@@ -4530,13 +4530,6 @@
     flags   : if_willamette or if_sse2
   ),
   (
-    opcode  : A_MOVSL;
-    ops     : 0;
-    optypes : (ot_none,ot_none,ot_none);
-    code    : #209#1#165;
-    flags   : if_386
-  ),
-  (
     opcode  : A_MOVSW;
     ops     : 0;
     optypes : (ot_none,ot_none,ot_none);

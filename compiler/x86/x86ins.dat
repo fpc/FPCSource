@@ -1252,17 +1252,13 @@ xmmreg,mem            \301\333\2\x0F\x7E\110          WILLAMETTE,SSE2
 (Ch_All, Ch_None, Ch_None)
 void                  \1\xA4                          8086
 
-[MOVSD]
+[MOVSD,movsl]
 (Ch_All, Ch_None, Ch_None)
 void                  \321\1\xA5                      386
 xmmreg,xmmreg         \3\xF2\x0F\x10\110              WILLAMETTE,SSE2
 xmmreg,xmmreg         \3\xF2\x0F\x11\110              WILLAMETTE,SSE2
 mem,xmmreg            \300\3\xF2\x0F\x11\101          WILLAMETTE,SSE2
 xmmreg,mem            \301\3\xF2\x0F\x10\110          WILLAMETTE,SSE2
-
-[MOVSL]
-(Ch_All, Ch_None, Ch_None)
-void                  \321\1\xA5                      386
 
 [MOVSQ]
 (Ch_All, Ch_None, Ch_None)
@@ -3416,7 +3412,10 @@ reg32,imm               \321\10\xB8\41                  X86_64
 
 ;
 ; $Log$
-; Revision 1.9  2004-02-09 22:14:17  peter
+; Revision 1.10  2004-04-08 16:49:42  peter
+;   * MOVSL fixed
+;
+; Revision 1.9  2004/02/09 22:14:17  peter
 ;   * more x86_64 parameter fixes
 ;   * tparalocation.lochigh is now used to indicate if registerhigh
 ;     is used and what the type is
