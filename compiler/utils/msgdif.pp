@@ -13,7 +13,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
+(* May be we need to compare a prefixes of option_help_pages too? *)
+(* Currently this is not performed *)
+
 Program messagedif;
+
+{$h+} {Huge strings}
 
 Uses
   Strings;
@@ -24,7 +30,7 @@ Type
 
   PMsg = ^TMsg;
   TMsg = Record
-     Line,cnb : Longint;
+     Line, ctxt, cnb : Longint;
      enum : TEnum;
      text : TText;
      comment : pchar;
@@ -69,7 +75,7 @@ begin
     p^.text:=copy(p^.text,1,i)+s;
 end;
 
-Function NewMsg (Var RM : PMsg; L : Longint; Const E : TEnum;Const T : TText;C : pchar;NbLn : longint) : PMsg;
+Function NewMsg (Var RM : PMsg; L : Longint; Const E : TEnum;Const T : TText;C : pchar;NbLn,TxtLn : longint) : PMsg;
 
 Var
   P,R : PMsg;
@@ -83,6 +89,7 @@ begin
     enum:=E;
     comment:=c;
     cnb:=NbLn;
+    ctxt:=TxtLn;
     next:=Nil;
     prev:=Nil;
     filenext:=nil;
@@ -167,28 +174,38 @@ Const
     ArrayLength = 65500;
 Var F : Text;
     S,prevS : String;
-    J,LineNo,Count,NbLn : Longint;
+    J,LineNo,Count,NbLn,TxtLn : Longint;
     chararray : array[0..ArrayLength] of char;
     currentindex : longint;
     c : pchar;
+    multiline : boolean;
 begin
   Assign(F,FileName);
   Reset(F);
   Write ('Processing: ',Filename,'...');
   LineNo:=0;
   NbLn:=0;
+  TxtLn:=0;
   Count:=0;
   currentindex:=0;
   Root:=Nil;
   First:=nil;
   Last:=nil;
   PrevS:='';
+  multiline:=false;
   While not eof(f) do
     begin
     Readln(F,S);
     Inc(LineNo);
-    If (length(S)>0) and Not (S[1] in ['%','#']) Then
+    If multiline then
       begin
+        PrevS:=PrevS+#10+S; Inc(TxtLn);
+        if (Length(S)<>0) and (S[1]=']') then
+          multiline:=false;
+      end
+    else
+    if (length(S)>0) and Not (S[1] in ['%','#']) Then
+    begin
       J:=Pos('=',S);
       If j<1 then
         writeln (Filename,'(',LineNo,') : Invalid entry')
@@ -198,10 +215,13 @@ begin
         c:=strnew(@chararray);
         if PrevS<>'' then
           NewMsg(Root,LineNo,Copy(PrevS,1,Pos('=',PrevS)-1),
-           Copy(PrevS,Pos('=',PrevS)+1,255),c,NbLn);
+           Copy(PrevS,Pos('=',PrevS)+1,Length(PrevS)),c,NbLn,TxtLn)
+        else
+          StrDispose(c);
         currentindex:=0;
-        NbLn:=0;
-        PrevS:=S;
+        NbLn:=0; TxtLn:=0;
+        PrevS:=S; Inc(TxtLn);
+        if S[j+7]='[' then multiline:=true;
         if First=nil then
           First:=Root;
         Inc(Count);
@@ -223,7 +243,7 @@ begin
   c:=strnew(@chararray);
   if PrevS<>'' then
     NewMsg(Root,LineNo,Copy(PrevS,1,Pos('=',PrevS)-1),
-     Copy(PrevS,Pos('=',PrevS)+1,255),c,NbLn);
+     Copy(PrevS,Pos('=',PrevS)+1,Length(PrevS)),c,NbLn,TxtLn);
   Writeln (' Done. Read ',LineNo,' lines, got ',Count,' constants.');
   Close(f);
 end;
@@ -329,7 +349,7 @@ procedure WriteReorderedFile(FileName : string;orgnext,diffnext : PMsg);
              If Is_interactive then
                GetTranslation(orgnext);
              Writeln(t,orgnext^.enum,'=',orgnext^.text);
-             inc(i);
+             inc(i,orgnext^.ctxt);
              Write(t,orgnext^.comment);
              inc(i,orgnext^.cnb);
            end
@@ -360,21 +380,25 @@ procedure WriteReorderedFile(FileName : string;orgnext,diffnext : PMsg);
                      Readln(s);
                      if UpCase(s)<>'N' then
                        orgnext^.equivalent^.text:=s2+copy(orgnext^.equivalent^.text,
-                         length(s3)+1,255);
+                         length(s3)+1,Length(orgnext^.equivalent^.text));
                    end;
                end;
 
              Writeln(t,orgnext^.enum,'=',orgnext^.equivalent^.text);
+             Dec(i); Inc(i,orgnext^.equivalent^.ctxt);
              if assigned(orgnext^.equivalent^.comment) and
                (strlen(orgnext^.equivalent^.comment)>0) then
-               Write(t,orgnext^.equivalent^.comment)
+             begin
+               Write(t,orgnext^.equivalent^.comment);
+               inc(i,orgnext^.equivalent^.cnb);
+             end
              else if assigned(orgnext^.comment) and
                (strlen(orgnext^.comment)>0) then
                begin
                  Writeln('Comment from ',OrgFileName,' for enum ',orgnext^.enum,' added');
                  Write(t,orgnext^.comment);
+                 inc(i,orgnext^.cnb);
                end;
-             inc(i,orgnext^.equivalent^.cnb);
            end;
          orgnext:=orgnext^.filenext;
        end;
@@ -387,7 +411,7 @@ procedure WriteReorderedFile(FileName : string;orgnext,diffnext : PMsg);
               { maybe a renaming of an enum !}
               Writeln(diffnext^.enum,' commented out');
               Writeln(t,'%%% ',diffnext^.enum,'=',diffnext^.text);
-              inc(i);
+              inc(i,diffnext^.ctxt);
               Write(t,diffnext^.comment);
               inc(i,diffnext^.cnb);
            end;
@@ -410,7 +434,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:55  michael
+  Revision 1.3  2001-02-09 23:04:56  peter
+    * updated for new message file by Sergey Korshunoff
+
+  Revision 1.2  2000/07/13 11:32:55  michael
   + removed logs
- 
+
 }
