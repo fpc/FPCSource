@@ -146,19 +146,14 @@ implementation
 {$endif}
            then
          begin
-           dataSegment.insert(Tai_align.Create(4));
+           { align the first data } 
+           dataSegment.insert(Tai_align.Create(used_align(32,
+               aktalignment.constalignmin,aktalignment.constalignmax)));
            dataSegment.insert(Tai_string.Create('FPC '+full_version_string+
              ' ['+date_string+'] for '+target_cpu_string+' - '+target_info.shortname));
          end;
-      { finish codesegment }
-{$ifdef i386}
-        codeSegment.concat(Tai_align.Create(16));
-{$else}
-        if cs_littlesize in aktglobalswitches then
-          codesegment.concat(tai_align.create(2))
-        else
-          codesegment.concat(tai_align.create(4));
-{$endif}
+        { align code segment }         
+        codeSegment.concat(Tai_align.Create(aktalignment.procalign));
        { Insert start and end of sections }
         fixseg(codesegment,sec_code);
         fixseg(datasegment,sec_data);
@@ -1403,7 +1398,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.59  2002-04-07 17:58:38  carl
+  Revision 1.60  2002-04-14 16:53:10  carl
+  + align code section and data section according to alignment rules
+
+  Revision 1.59  2002/04/07 17:58:38  carl
   + generic stack checking
 
   Revision 1.58  2002/04/04 19:06:03  peter
