@@ -560,8 +560,8 @@ implementation
                                             LOC_CREGISTER,
                                             LOC_REGISTER:
                                               begin
-                                                 ungetregister32(p^.methodpointer^.location.register);
                                                  emit_reg_reg(A_MOV,S_L,p^.methodpointer^.location.register,R_ESI);
+                                                 ungetregister32(p^.methodpointer^.location.register);
                                               end;
                                             else
                                               begin
@@ -1202,7 +1202,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.73  1999-04-16 10:26:56  pierre
+  Revision 1.74  1999-04-16 13:42:23  jonas
+    * more regalloc fixes (still not complete)
+
+  Revision 1.73  1999/04/16 10:26:56  pierre
    * no add $0,%esp for cdecl functions without parameters
 
   Revision 1.72  1999/04/09 08:41:48  peter

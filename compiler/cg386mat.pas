@@ -113,8 +113,8 @@ implementation
                 end
               else
                 begin
-                   ungetregister32(p^.right^.location.register);
                    emit_reg_reg(A_MOV,S_L,p^.right^.location.register,R_EDI);
+                   ungetregister32(p^.right^.location.register);
                 end;
               popedx:=false;
               popeax:=false;
@@ -768,7 +768,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  1999-02-22 02:15:13  peter
+  Revision 1.21  1999-04-16 13:42:27  jonas
+    * more regalloc fixes (still not complete)
+
+  Revision 1.20  1999/02/22 02:15:13  peter
     * updates for ag386bin
 
   Revision 1.19  1999/02/04 10:49:40  florian

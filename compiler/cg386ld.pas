@@ -282,6 +282,9 @@ implementation
                               { load vmt pointer }
                               exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
                                 hp,R_EDI)));
+{$IfDef regallocfix}
+                              del_reference(hp^);
+{$EndIf regallocfix}
                               { load method address }
                               new(hp);
                               reset_reference(hp^);
@@ -292,7 +295,6 @@ implementation
                               { ... and store it }
                               exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
                                 R_EDI,newreference(p^.location.reference))));
-
                            end
                          else
                            begin
@@ -300,7 +302,6 @@ implementation
 
                               exprasmlist^.concat(new(pai386,op_sym_ofs_ref(A_MOV,S_L,s,0,
                                 newreference(p^.location.reference))));
-
                               maybe_concat_external(p^.symtable,p^.symtableentry^.mangledname);
                            end;
                       end
@@ -439,8 +440,13 @@ implementation
                     begin
                       if (p^.right^.treetype=stringconstn) and
                          (p^.right^.length=0) then
-                        exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_B,
-                          0,newreference(p^.left^.location.reference))))
+                        begin
+                          exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_B,
+                            0,newreference(p^.left^.location.reference))));
+{$IfDef regallocfix}
+                          del_reference(p^.left^.location.reference);
+{$EndIf regallocfix}
+                        end
                       else
                         loadansi2short(p^.right,p^.left);
                     end
@@ -472,16 +478,27 @@ implementation
                                  4 : opsize:=S_L;
                               end;
                               if loc=LOC_CREGISTER then
-                                exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
-                                  newreference(p^.right^.location.reference),
-                                  p^.left^.location.register)))
+                                begin
+                                  exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
+                                    newreference(p^.right^.location.reference),
+                                    p^.left^.location.register)));
+{$IfDef regallocfix}
+                                  del_reference(p^.right^.location.reference);
+{$EndIf regallocfix}
+                                end
                               else
-                                exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,opsize,
-                                  p^.right^.location.reference.offset,
-                                  newreference(p^.left^.location.reference))));
-                              {exprasmlist^.concat(new(pai386,op_const_loc(A_MOV,opsize,
-                                  p^.right^.location.reference.offset,
-                                  p^.left^.location)));}
+                                begin
+                                  exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,opsize,
+                                    p^.right^.location.reference.offset,
+                                    newreference(p^.left^.location.reference))));
+{$IfDef regallocfix}
+                                  del_reference(p^.left^.location.reference);
+{$EndIf regallocfix}
+                                {exprasmlist^.concat(new(pai386,op_const_loc(A_MOV,opsize,
+                                    p^.right^.location.reference.offset,
+                                    p^.left^.location)));}
+                                end;
+
                            end
                          else
                            begin
@@ -520,9 +537,16 @@ implementation
                                      concat_external('FPC_DECREF',EXT_NEAR);
 
                                 end;
+
+{$ifdef regallocfix}
+                              concatcopy(p^.right^.location.reference,
+                                p^.left^.location.reference,p^.left^.resulttype^.size,true,false);
+                              ungetiftemp(p^.right^.location.reference);
+{$Else regallocfix}
                               concatcopy(p^.right^.location.reference,
                                 p^.left^.location.reference,p^.left^.resulttype^.size,false,false);
                               ungetiftemp(p^.right^.location.reference);
+{$endif regallocfix}
                            end;
                       end;
 {$ifdef SUPPORT_MMX}
@@ -547,22 +571,24 @@ implementation
                               end;
                               { simplified with op_reg_loc         }
                               if loc=LOC_CREGISTER then
-                                exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,opsize,
-                                  p^.right^.location.register,
-                                  p^.left^.location.register)))
-                              else
+                                begin
+                                  exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,opsize,
+                                    p^.right^.location.register,
+                                    p^.left^.location.register)));
 {$IfDef regallocfix}
-                                Begin
+                                 ungetregister(p^.right^.location.register);
 {$EndIf regallocfix}
+                                end
+                              else
+                                Begin
                                   exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,opsize,
                                     p^.right^.location.register,
                                     newreference(p^.left^.location.reference))));
 {$IfDef regallocfix}
                                   ungetregister(p^.right^.location.register);
                                   del_reference(p^.left^.location.reference);
-                                end;
 {$EndIf regallocfix}
-
+                                end;
                               if is_64bitint(p^.right^.resulttype) then
                                 begin
                                    { simplified with op_reg_loc         }
@@ -608,8 +634,13 @@ implementation
                                   p^.left^.location.register,
                                   p^.left^.location.register)))
                               else
-                                exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_B,
-                                  0,newreference(p^.left^.location.reference))));
+                                begin
+                                  exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_B,
+                                    0,newreference(p^.left^.location.reference))));
+{$IfDef regallocfix}
+                                  del_reference(p^.left^.location.reference);
+{$EndIf regallocfix}
+                                 end;
                               emitlab(hlabel);
                            end;
             LOC_FLAGS    : begin
@@ -626,6 +657,9 @@ implementation
                                 exprasmlist^.concat(new(pai386,op_ref(flag_2_set[p^.right^.location.resflags],S_B,
                                   newreference(p^.left^.location.reference))));
 {$endif}
+{$IfDef regallocfix}
+                              del_reference(p^.left^.location.reference);
+{$EndIf regallocfix}
                            end;
          end;
          removetemps(exprasmlist,temptoremove);
@@ -807,7 +841,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  1999-04-13 18:57:48  florian
+  Revision 1.50  1999-04-16 13:42:26  jonas
+    * more regalloc fixes (still not complete)
+
+  Revision 1.49  1999/04/13 18:57:48  florian
     * classes which contain ansistring get unnecessary calls
       to addref/decref when they are assigned, fixed
 

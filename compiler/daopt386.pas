@@ -785,10 +785,15 @@ Procedure BuildLabelTableAndFixRegAlloc(AsmL: PAasmOutput; Var LabelTable: PLabe
             Var LabelDif: Longint; BlockStart, BlockEnd: Pai);
 {Builds a table with the locations of the labels in the paasmoutput.
  Also fixes some RegDeallocs like "# %eax released; push (%eax)"}
-Var p, hp1, hp2: Pai;
+Var p: Pai;
+{$IfNDef regallocfix}
+    hp1, hp2: Pai;
     UsedRegs: TRegSet;
+{$EndIf regallocfix}
 Begin
+{$IfNDef regallocfix}
   UsedRegs := [];
+{$EndIf regallocfix}
   If (LabelDif <> 0) Then
     Begin
 {$IfDef TP}
@@ -805,6 +810,7 @@ Begin
                   ait_Label:
                     If Pai_Label(p)^.l^.is_used Then
                       LabelTable^[Pai_Label(p)^.l^.nb-LowLabel].PaiObj := p;
+{$IfNDef regallocfix}
                   ait_regAlloc:
                      begin
                        if PairegAlloc(p)^.Allocation then
@@ -842,7 +848,8 @@ Begin
                               p := hp1;
                             End;
                         End;
-                     end;
+                    End;
+{$EndIf regallocfix}
                 End;
                 P := Pai(p^.Next);
                 While Assigned(p) And
@@ -2233,7 +2240,10 @@ End.
 
 {
  $Log$
- Revision 1.40  1999-04-16 11:49:41  peter
+ Revision 1.41  1999-04-16 13:42:33  jonas
+   * more regalloc fixes (still not complete)
+
+ Revision 1.40  1999/04/16 11:49:41  peter
    + tempalloc
    + -at to show temp alloc info in .s file
 

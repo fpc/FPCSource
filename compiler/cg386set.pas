@@ -794,6 +794,10 @@ implementation
            else
            { it's always not bad }
            genlinearlist(p^.nodes);
+{$IfDef regallocfix}
+           ungetregister(hregister);
+{$EndIf regallocfix}
+
 
          { now generate the instructions }
            hp:=p^.right;
@@ -820,7 +824,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  1999-04-09 08:36:36  peter
+  Revision 1.27  1999-04-16 13:42:30  jonas
+    * more regalloc fixes (still not complete)
+
+  Revision 1.26  1999/04/09 08:36:36  peter
     * fix also for -Og
 
   Revision 1.25  1999/04/08 20:59:37  florian

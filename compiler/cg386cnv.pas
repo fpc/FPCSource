@@ -134,15 +134,29 @@ implementation
            LOC_REFERENCE,LOC_MEM:
              begin
                 ungetiftemp(source^.location.reference);
+{$IfNDef regallocfix}
                 del_reference(source^.location.reference);
                 pushusedregisters(pushed,$ff);
                 emit_push_mem(source^.location.reference);
+{$Else regallocfix}
+                 pushusedregisters(pushed,$ff
+                   xor ($80 shr byte(source^.location.reference.base))
+                   xor ($80 shr byte(source^.location.reference.index)));
+                 emit_push_mem(source^.location.reference);
+                 del_reference(source^.location.reference);
+{$EndIf regallocfix}
              end;
            LOC_REGISTER,LOC_CREGISTER:
              begin
+{$IfNDef regallocfix}
                 ungetregister32(source^.location.register);
                 pushusedregisters(pushed,$ff);
                 exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,source^.location.register)));
+{$Else regallocfix}
+                 pushusedregisters(pushed, $ff xor ($80 shr byte(source^.location.register)));
+                 exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,source^.location.register)));
+                 ungetregister32(source^.location.register);
+{$EndIf regallocfix}
              end;
          end;
          push_shortstring_length(dest);
@@ -1052,18 +1066,32 @@ implementation
                 ltemptoremove^.concat(new(ptemptodestroy,init(pto^.location.reference,pto^.resulttype)));
                 exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,0,newreference(pto^.location.reference))));
                 case pfrom^.location.loc of
-                   LOC_REGISTER,LOC_CREGISTER:
-                     begin
-                        ungetregister32(pfrom^.location.register);
-                        pushusedregisters(pushed,$ff);
-                        exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,pfrom^.location.register)));
-                     end;
-                   LOC_REFERENCE,LOC_MEM:
-                     begin
-                        del_reference(pfrom^.location.reference);
-                        pushusedregisters(pushed,$ff);
-                        emit_push_mem(pfrom^.location.reference);
-                     end;
+                  LOC_REFERENCE,LOC_MEM:
+                    begin
+{$IfNDef regallocfix}
+                      del_reference(pfrom^.location.reference);
+                      pushusedregisters(pushed,$ff);
+                      emit_push_mem(pfrom^.location.reference);
+{$Else regallocfix}
+                      pushusedregisters(pushed,$ff
+                        xor ($80 shr byte(pfrom^.location.reference.base))
+                        xor ($80 shr byte(pfrom^.location.reference.index)));
+                      emit_push_mem(pfrom^.location.reference);
+                      del_reference(pfrom^.location.reference);
+{$EndIf regallocfix}
+                    end;
+                  LOC_REGISTER,LOC_CREGISTER:
+                    begin
+{$IfNDef regallocfix}
+                      ungetregister32(pfrom^.location.register);
+                      pushusedregisters(pushed,$ff);
+                      exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,pfrom^.location.register)));
+{$Else regallocfix}
+                      pushusedregisters(pushed, $ff xor ($80 shr byte(pfrom^.location.register)));
+                      exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,pfrom^.location.register)));
+                      ungetregister32(pfrom^.location.register);
+{$EndIf regallocfix}
+                   end;
                 end;
                 emitpushreferenceaddr(exprasmlist,pto^.location.reference);
                 emitcall('FPC_PCHAR_TO_ANSISTR',true);
@@ -1260,7 +1288,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.63  1999-04-15 08:56:25  peter
+  Revision 1.64  1999-04-16 13:42:25  jonas
+    * more regalloc fixes (still not complete)
+
+  Revision 1.63  1999/04/15 08:56:25  peter
     * fixed bool-bool conversion
 
   Revision 1.62  1999/04/13 18:51:47  florian

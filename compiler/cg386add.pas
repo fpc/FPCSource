@@ -299,10 +299,19 @@ implementation
                         secondpass(p^.right);
 
                         { on the right we do not need the register anymore too }
+{$IfNDef regallocfix}
                         del_reference(p^.right^.location.reference);
                         pushusedregisters(pushedregs,$ff);
+{$Else regallocfix}
+                        pushusedregisters(pushedregs,$ff
+                          xor ($80 shr byte(p^.right^.location.reference.base))
+                          xor ($80 shr byte(p^.right^.location.reference.index)));
+{$EndIf regallocfix}
                         emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
                         emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
+{$IfDef regallocfix}
+                        del_reference(p^.right^.location.reference);
+{$EndIf regallocfix}
                         emitcall('FPC_SHORTSTR_CONCAT',true);
                         maybe_loadesi;
                         popusedregisters(pushedregs);
@@ -324,8 +333,6 @@ implementation
                              pushed:=maybe_push(p^.right^.registers32,p);
                              secondpass(p^.right);
                              if pushed then restore(p);
-                             del_reference(p^.right^.location.reference);
-                             del_reference(p^.left^.location.reference);
                              { only one node can be stringconstn }
                              { else pass 1 would have evaluted   }
                              { this node                         }
@@ -335,16 +342,18 @@ implementation
                              else
                                exprasmlist^.concat(new(pai386,op_const_ref(
                                  A_CMP,S_B,0,newreference(p^.left^.location.reference))));
+                             del_reference(p^.right^.location.reference);
+                             del_reference(p^.left^.location.reference);
                           end
                         else
                           begin
                              pushusedregisters(pushedregs,$ff);
                              secondpass(p^.left);
-                             del_reference(p^.left^.location.reference);
                              emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+                             del_reference(p^.left^.location.reference);
                              secondpass(p^.right);
-                             del_reference(p^.right^.location.reference);
                              emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
+                             del_reference(p^.right^.location.reference);
                              emitcall('FPC_SHORTSTR_COMPARE',true);
                              maybe_loadesi;
                              popusedregisters(pushedregs);
@@ -402,6 +411,14 @@ implementation
         set_location(p^.location,p^.left^.location);
 
         { handle operations }
+
+{$IfDef regallocfix}
+        pushusedregisters(pushedregs,$ff
+          xor ($80 shr byte(p^.left^.location.reference.base))
+          xor ($80 shr byte(p^.left^.location.reference.index))
+          xor ($80 shr byte(p^.right^.location.reference.base))
+          xor ($80 shr byte(p^.right^.location.reference.index)));
+{$EndIf regallocfix}
         case p^.treetype of
           equaln,
         unequaln
@@ -410,21 +427,35 @@ implementation
 {$EndIf NoSetInclusion}
                   : begin
                      cmpop:=true;
+{$IfNDef regallocfix}
                      del_reference(p^.left^.location.reference);
                      del_reference(p^.right^.location.reference);
                      pushusedregisters(pushedregs,$ff);
+{$EndIf regallocfix}
 {$IfNDef NoSetInclusion}
                      If (p^.treetype in [equaln, unequaln, lten]) Then
                        Begin
 {$EndIf NoSetInclusion}
                          emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
+{$IfDef regallocfix}
+                         del_reference(p^.right^.location.reference);
+{$EndIf regallocfix}
                          emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+{$IfDef regallocfix}
+                         del_reference(p^.left^.location.reference);
+{$EndIf regallocfix}
 {$IfNDef NoSetInclusion}
                        End
                      Else  {gten = lten, if the arguments are reversed}
                        Begin
                          emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+{$IfDef regallocfix}
+                         del_reference(p^.left^.location.reference);
+{$EndIf regallocfix}
                          emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
+{$IfDef regallocfix}
+                         del_reference(p^.right^.location.reference);
+{$EndIf regallocfix}
                        End;
                      Case p^.treetype of
                        equaln, unequaln:
@@ -441,13 +472,19 @@ implementation
                    end;
             addn : begin
                    { add can be an other SET or Range or Element ! }
+{$IfNDef regallocfix}
                      del_reference(p^.left^.location.reference);
                      del_reference(p^.right^.location.reference);
                      pushusedregisters(pushedregs,$ff);
+{$EndIf regallocfix}
                      href.symbol:=nil;
                      gettempofsizereference(32,href);
                      if createset then
                       begin
+{$IfDef regallocfix}
+                        del_reference(p^.left^.location.reference);
+                        del_reference(p^.right^.location.reference);
+{$EndIf regallocfix}
                         pushsetelement(p^.right^.left);
                         emitpushreferenceaddr(exprasmlist,href);
                         emitcall('FPC_SET_CREATE_ELEMENT',true);
@@ -457,7 +494,11 @@ implementation
                       { add a range or a single element? }
                         if p^.right^.treetype=setelementn then
                          begin
+{$IfNDef regallocfix}
                            concatcopy(p^.left^.location.reference,href,32,false,false);
+{$Else regallocfix}
+                           concatcopy(p^.left^.location.reference,href,32,true,false);
+{$EndIf regallocfix}
                            if assigned(p^.right^.right) then
                             begin
                               pushsetelement(p^.right^.right);
@@ -477,7 +518,13 @@ implementation
                          { must be an other set }
                            emitpushreferenceaddr(exprasmlist,href);
                            emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
+{$IfDef regallocfix}
+                        del_reference(p^.right^.location.reference);
+{$EndIf regallocfix}
                            emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+{$IfDef regallocfix}
+                        del_reference(p^.left^.location.reference);
+{$EndIf regallocfix}
                            emitcall('FPC_SET_ADD_SETS',true);
                          end;
                       end;
@@ -491,14 +538,22 @@ implementation
             subn,
          symdifn,
             muln : begin
+{$IfNDef regallocfix}
                      del_reference(p^.left^.location.reference);
                      del_reference(p^.right^.location.reference);
-                     href.symbol:=nil;
                      pushusedregisters(pushedregs,$ff);
+{$EndIf regallocfix}
+                     href.symbol:=nil;
                      gettempofsizereference(32,href);
                      emitpushreferenceaddr(exprasmlist,href);
                      emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
+{$IfDef regallocfix}
+                     del_reference(p^.right^.location.reference);
+{$EndIf regallocfix}
                      emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+{$IfDef regallocfix}
+                     del_reference(p^.left^.location.reference);
+{$EndIf regallocfix}
                      case p^.treetype of
                       subn : emitcall('FPC_SET_SUB_SETS',true);
                    symdifn : emitcall('FPC_SET_SYMDIF_SETS',true);
@@ -734,6 +789,7 @@ implementation
                                       begin
                                         ungetiftemp(p^.left^.location.reference);
                                         del_reference(p^.left^.location.reference);
+{!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!}
                                         hregister:=getregister32;
                                         exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
                                           newreference(p^.left^.location.reference),hregister)));
@@ -1914,7 +1970,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  1999-04-16 11:44:24  peter
+  Revision 1.50  1999-04-16 13:42:35  jonas
+    * more regalloc fixes (still not complete)
+
+  Revision 1.49  1999/04/16 11:44:24  peter
     * better support for flags result
 
   Revision 1.48  1999/04/14 09:14:45  peter
