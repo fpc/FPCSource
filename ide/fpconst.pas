@@ -26,7 +26,7 @@ uses Views,App,
      WViews,WEditor,WHTMLHlp;
 
 const
-     VersionStr           = '0.9.1';
+     VersionStr           = '0.9.2';
 
      MaxRecentFileCount   = 5;
      MaxToolCount         = 16;
@@ -434,7 +434,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.3  2001-11-07 00:28:52  pierre
+  Revision 1.4  2002-01-22 16:33:51  pierre
+   Change IDE version to 0.9.2
+
+  Revision 1.3  2001/11/07 00:28:52  pierre
    + Disassembly window made public
 
   Revision 1.2  2001/08/05 02:01:47  peter
