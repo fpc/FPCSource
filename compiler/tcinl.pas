@@ -53,6 +53,9 @@ implementation
          vl,vl2  : longint;
          vr      : bestreal;
          hp,hpp  : ptree;
+{$ifndef NOCOLONCHECK}
+         frac_para,length_para : ptree;
+{$endif ndef NOCOLONCHECK}
          store_count_ref,
          isreal,
          dowrite,
@@ -597,30 +600,46 @@ implementation
                                     end;
 
                                     { some format options ? }
-                                    (* commented
+{$ifndef NOCOLONCHECK}
+                                    { commented
                                        because supposes reverse order of parameters
-                                          PM
-                                    hpp:=hp^.right;
-                                    if assigned(hpp) and hpp^.is_colon_para then
+                                          PM : now restored PM }
+                                    if hp^.is_colon_para then
                                       begin
-                                        if (not is_integer(hpp^.resulttype)) then
+                                         if hp^.right^.is_colon_para then
+                                           begin
+                                              frac_para:=hp;
+                                              length_para:=hp^.right;
+                                              hp:=hp^.right;
+                                              hpp:=hp^.right;
+                                           end
+                                         else
+                                           begin
+                                              length_para:=hp;
+                                              frac_para:=nil;
+                                              hpp:=hp^.right;
+                                           end;
+                                         isreal:=hpp^.resulttype^.deftype=floatdef;
+                                         if (not is_integer(length_para^.resulttype)) then
                                           CGMessage(type_e_integer_expr_expected)
                                         else
-                                          hpp^.left:=gentypeconvnode(hpp^.left,s32bitdef);
-                                        hpp:=hpp^.right;
-                                        if assigned(hpp) and hpp^.is_colon_para then
+                                          length_para^.left:=gentypeconvnode(length_para^.left,s32bitdef);
+                                        if assigned(frac_para) then
                                           begin
                                             if isreal then
                                              begin
-                                               if (not is_integer(hpp^.resulttype)) then
+                                               if (not is_integer(frac_para^.resulttype)) then
                                                  CGMessage(type_e_integer_expr_expected)
                                                else
-                                                 hpp^.left:=gentypeconvnode(hpp^.left,s32bitdef);
+                                                 frac_para^.left:=gentypeconvnode(frac_para^.left,s32bitdef);
                                              end
                                             else
                                              CGMessage(parser_e_illegal_colon_qualifier);
                                           end;
-                                      end;  *)
+                                        { do the checking for the colon'd arg }
+                                        hp:=length_para;
+                                      end;
+{$endif ndef NOCOLONCHECK}
 
                                   end;
                                  hp:=hp^.right;
@@ -930,7 +949,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  1999-01-21 22:10:50  peter
+  Revision 1.15  1999-01-27 16:28:22  pierre
+   * bug0157 solved : write(x:5.3) is rejected now
+
+  Revision 1.14  1999/01/21 22:10:50  peter
     * fixed array of const
     * generic platform independent high() support
 
