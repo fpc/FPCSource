@@ -148,7 +148,7 @@ Procedure AnsiStr_Assign (Var S1 : Pointer;S2 : Pointer);[Public,Alias:'FPC_ANSI
 begin
   If S2<>nil then
     If PAnsiRec(S2-FirstOff)^.Ref>0 then
-      Inc(PAnsiRec(S2-FirstOff)^.ref);
+      inclocked(PAnsiRec(S2-FirstOff)^.ref);
   { Decrease the reference count on the old S1 }
   ansistr_decr_ref (S1);
   { And finally, have S1 pointing to S2 (or its copy) }
@@ -705,7 +705,10 @@ end;
 
 {
   $Log$
-  Revision 1.13  2001-07-08 21:00:18  peter
+  Revision 1.14  2001-07-09 11:41:57  florian
+    * another MT fix
+
+  Revision 1.13  2001/07/08 21:00:18  peter
     * various widestring updates, it works now mostly without charset
       mapping supported
 
@@ -750,5 +753,4 @@ end;
 
   Revision 1.2  2000/07/13 11:33:42  michael
   + removed logs
-
 }
