@@ -1195,7 +1195,13 @@ begin
           inc(codes);
           inc(len);
         end;
-      4,5,6,7,
+      4,5,6,7 :
+        begin
+          if opsize=S_W then
+            inc(len,2)
+          else
+            inc(len);
+        end;
       15,
       12,13,14,
       16,17,18,
@@ -1337,6 +1343,13 @@ var
   ea_data : ea;
 begin
   codes:=insentry^.code;
+  { Force word push/pop for registers }
+  if (opsize=S_W) and ((codes[0]=#4) or (codes[0]=#6) or
+      ((codes[0]=#1) and ((codes[2]=#5) or (codes[2]=#7)))) then
+    begin
+      bytes[0]:=$66;
+      objectoutput^.writebytes(bytes,1);
+    end;
   repeat
     c:=ord(codes^);
     inc(codes);
@@ -1600,7 +1613,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  2000-02-09 13:22:51  peter
+  Revision 1.13  2000-05-09 14:12:35  pierre
+   * fix for test/testpusw problem
+
+  Revision 1.12  2000/02/09 13:22:51  peter
     * log truncated
 
   Revision 1.11  2000/01/23 21:29:14  florian
