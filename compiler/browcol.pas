@@ -268,7 +268,7 @@ uses
   CUtils,
   globtype,globals,comphook,
   finput,fmodule,
-  cpuinfo,aasm,
+  cpuinfo,aasmbase,aasmtai,
   symsym,symdef,symtype,symbase;
 
 const
@@ -2125,7 +2125,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2002-05-18 13:34:05  peter
+  Revision 1.26  2002-07-02 06:09:08  michael
+  + Patch from peter to fix snapshots
+
+  Revision 1.25  2002/05/18 13:34:05  peter
     * readded missing revisions
 
   Revision 1.24  2002/05/16 19:46:35  carl
