@@ -1765,12 +1765,24 @@ implementation
             begin
               rttiList.concat(Tai_const.Create_8bit(tkInt64));
               write_rtti_name;
-              { low }
-              rttiList.concat(Tai_const.Create_32bit($0));
-              rttiList.concat(Tai_const.Create_32bit($8000));
-              { high }
-              rttiList.concat(Tai_const.Create_32bit($ffff));
-              rttiList.concat(Tai_const.Create_32bit($7fff));
+              if target_info.endian=endian_little then
+                begin
+                  { low }
+                  rttiList.concat(Tai_const.Create_32bit($0));
+                  rttiList.concat(Tai_const.Create_32bit($80000000));
+                  { high }
+                  rttiList.concat(Tai_const.Create_32bit($ffffffff));
+                  rttiList.concat(Tai_const.Create_32bit($7fffffff));
+                end
+              else
+                begin
+                  { low }
+                  rttiList.concat(Tai_const.Create_32bit($80000000));
+                  rttiList.concat(Tai_const.Create_32bit($0));
+                  { high }
+                  rttiList.concat(Tai_const.Create_32bit($7fffffff));
+                  rttiList.concat(Tai_const.Create_32bit($ffffffff));
+                end;
             end;
           u64bit :
             begin
@@ -1780,8 +1792,8 @@ implementation
               rttiList.concat(Tai_const.Create_32bit($0));
               rttiList.concat(Tai_const.Create_32bit($0));
               { high }
-              rttiList.concat(Tai_const.Create_32bit($0));
-              rttiList.concat(Tai_const.Create_32bit($8000));
+              rttiList.concat(Tai_const.Create_32bit($ffffffff));
+              rttiList.concat(Tai_const.Create_32bit($ffffffff));
             end;
           bool8bit:
             begin
@@ -2633,9 +2645,7 @@ implementation
       end;
 
 
-      procedure tarraydef.setelementtype(t: ttype);
-       var
-        cachedsize: TConstExprInt;
+     procedure tarraydef.setelementtype(t: ttype);
        begin
          _elementtype:=t;
          If IsDynamicArray then
@@ -5507,7 +5517,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.102  2002-11-15 01:58:54  peter
+  Revision 1.103  2002-11-15 16:29:09  peter
+    * fixed rtti for int64 (merged)
+
+  Revision 1.102  2002/11/15 01:58:54  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing
