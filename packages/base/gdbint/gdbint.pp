@@ -23,6 +23,9 @@ interface
 {.$define DebugCommand}
 {$define NotImplemented}
 
+{$ifdef BSD}			{v4.x nearly useless for BSD. 5.x is fine}
+ {$DEFINE GDB_V502}
+{$endif}
 
 { Default version for GDB 5 is 5.01 for now PM }
 
@@ -113,7 +116,8 @@ interface
       {$LINKLIB ncurses}
       {$LINKLIB m}
       {$LINKLIB iberty}
-      {$LINKLIB dl}
+      {$LINKLIB intl}        { does not seem to exist on netbsd LINKLIB dl,
+				but I use GDB CVS snapshots for the *BSDs} 
     {$endif GDB_V5}
   {$LINKLIB c}
   {$LINKLIB gcc}
@@ -2520,7 +2524,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2002-01-29 17:54:49  peter
+  Revision 1.2  2002-02-05 11:03:59  marco
+   * library fix, and define GDB_V502 for BSD
+
+  Revision 1.1  2002/01/29 17:54:49  peter
     * splitted to base and extra
 
   Revision 1.13  2002/01/25 22:39:29  pierre
