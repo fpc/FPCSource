@@ -3,15 +3,40 @@
 { e-mail:  }
 {$mode delphi}
 
-type  tbla= class(tobject)
-              class function bla:tbla;
-              end;
+type
+  tbla= class(tobject)
+    l : longint;
+    class function bla:tbla;
+    function get : longint;virtual;
+    procedure doset;
+ end;
+
+procedure tbla.doset;
+  begin
+     l:=$deadbeaf;
+  end;
+
+function tbla.get : longint;
+  begin
+    result:=l;
+  end;
 
 class function tbla.bla:tbla;
 
-begin
- result:=Create;
-end;
+  begin
+    result:=Create;
+  end;
+
+var
+  bla : tbla;
 
 begin
+  bla:=tbla.bla;
+  bla.doset;
+  if bla.get<>$deadbeaf then
+    begin
+      writeln('Problem');
+      halt(1);
+    end;
+  bla.free;
 end.
