@@ -208,7 +208,8 @@ implementation
       begin
          if (m_tp_procvar in aktmodeswitches) and
             (not got_addrn) and
-            (not in_args) then
+            (not in_args) and
+            (block_type=bt_general) then
           begin
             { ignore vecn,subscriptn }
             hp:=p;
@@ -226,9 +227,6 @@ implementation
                begin
                   { support if procvar then for tp7 and many other expression like this }
                   do_resulttypepass(p);
-                  set_varstate(p,false);
-                  { reset varstateset to maybe set used state later web bug769 PM }
-                  unset_varstate(p);
                   if (getprocvardef=nil) and (p.resulttype.def.deftype=procvardef) then
                     begin
                        p1:=ccallnode.create(nil,nil,nil,nil);
@@ -2267,7 +2265,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.87  2002-11-18 17:31:58  peter
+  Revision 1.88  2002-11-18 17:48:21  peter
+    * fix tw2209 (merged)
+
+  Revision 1.87  2002/11/18 17:31:58  peter
     * pass proccalloption to ret_in_xxx and push_xxx functions
 
   Revision 1.86  2002/10/05 00:48:57  peter
