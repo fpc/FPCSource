@@ -212,6 +212,7 @@ function fpc_PopObjectStack : TObject; compilerproc;
 function fpc_PopSecondObjectStack : TObject; compilerproc;
 Procedure fpc_ReRaise; compilerproc;
 Function fpc_Catches(Objtype : TClass) : TObject; compilerproc;
+{$ifndef i386}
 Procedure fpc_DestroyException(o : TObject); compilerproc;
 procedure fpc_help_constructor; compilerproc;
 procedure fpc_help_fail; compilerproc;
@@ -221,6 +222,7 @@ procedure fpc_dispose_class; compilerproc;
 procedure fpc_help_fail_class; compilerproc;
 procedure fpc_check_object(obj : pointer); compilerproc;
 procedure fpc_check_object_ext; compilerproc;
+{$endif i386}
 Procedure fpc_Initialize (Data,TypeInfo : pointer); compilerproc;
 Procedure fpc_finalize (Data,TypeInfo: Pointer); compilerproc;
 Procedure fpc_Addref (Data,TypeInfo : Pointer); compilerproc;
@@ -283,7 +285,10 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 
 {
   $Log$
-  Revision 1.31  2003-01-05 21:32:35  mazen
+  Revision 1.32  2003-01-06 08:25:47  michael
+  + PAtch from peter fixing daily build
+
+  Revision 1.31  2003/01/05 21:32:35  mazen
   * fixing several bugs compiling the RTL
 
   Revision 1.30  2002/12/29 16:59:17  peter
