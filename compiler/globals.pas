@@ -66,7 +66,7 @@ unit globals;
          [m_fpc,m_all,m_string_pchar,m_nested_comment,m_repeat_forward,
           m_cvar_support,m_initfinal,m_add_pointer];
        objfpcmodeswitches : tmodeswitches=
-         [m_fpc,m_all,m_class,m_objpas,m_result,m_string_pchar,m_nested_comment,
+         [m_objfpc,m_fpc,m_all,m_class,m_objpas,m_result,m_string_pchar,m_nested_comment,
           m_repeat_forward,m_cvar_support,m_initfinal,m_add_pointer];
        tpmodeswitches     : tmodeswitches=
          [m_tp,m_all,m_tp_procvar];
@@ -1320,7 +1320,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  1999-11-08 16:27:20  pierre
+  Revision 1.31  1999-11-09 13:00:38  peter
+    * define FPC_DELPHI,FPC_OBJFPC,FPC_TP,FPC_GPC
+    * initial support for ansistring default with modes
+
+  Revision 1.30  1999/11/08 16:27:20  pierre
    + Reset AnsiStrings to clean up memory
 
   Revision 1.29  1999/11/06 14:34:20  peter

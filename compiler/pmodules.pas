@@ -804,6 +804,7 @@ unit pmodules;
        end;
 {$EndIf GDB}
 
+
     procedure parse_implementation_uses(symt:Psymtable);
       begin
          if token=_USES then
@@ -815,6 +816,43 @@ unit pmodules;
               test_symtablestack;
 {$endif DEBUG}
            end;
+      end;
+
+
+    procedure setupglobalswitches;
+
+        procedure def_symbol(const s:string);
+        var
+          mac : pmacrosym;
+        begin
+          mac:=new(pmacrosym,init(s));
+          mac^.defined:=true;
+          Message1(parser_m_macro_defined,mac^.name);
+          macros^.insert(mac);
+        end;
+
+      begin
+        { can't have local browser when no global browser }
+        if (cs_local_browser in aktmoduleswitches) and
+           not(cs_browser in aktmoduleswitches) then
+          aktmoduleswitches:=aktmoduleswitches-[cs_local_browser];
+
+        { define a symbol in delphi,objfpc,tp,gpc mode }
+        if (m_delphi in aktmodeswitches) then
+         def_symbol('FPC_DELPHI')
+        else
+         if (m_tp in aktmodeswitches) then
+          def_symbol('FPC_TP')
+        else
+         if (m_objfpc in aktmodeswitches) then
+          def_symbol('FPC_OBJFPC')
+        else
+         if (m_gpc in aktmodeswitches) then
+          def_symbol('FPC_GPC');
+
+        { turn ansistrings on by default ? }
+        if (m_default_ansistring in aktmodeswitches) then
+          aktlocalswitches:=aktlocalswitches+[cs_ansistrings];
       end;
 
 
@@ -918,10 +956,8 @@ unit pmodules;
          { global switches are read, so further changes aren't allowed }
          current_module^.in_global:=false;
 
-         { can't have local browser when no global browser }
-         if (cs_local_browser in aktmoduleswitches) and
-            not(cs_browser in aktmoduleswitches) then
-           aktmoduleswitches:=aktmoduleswitches-[cs_local_browser];
+         { handle the global switches }
+         setupglobalswitches;
 
          Message1(unit_u_start_parse_interface,current_module^.modulename^);
 
@@ -1294,10 +1330,9 @@ unit pmodules;
          { global switches are read, so further changes aren't allowed }
          current_module^.in_global:=false;
 
-         { can't have local browser when no global browser }
-         if (cs_local_browser in aktmoduleswitches) and
-            not(cs_browser in aktmoduleswitches) then
-           aktmoduleswitches:=aktmoduleswitches-[cs_local_browser];
+         { setup things using the global switches }
+         setupglobalswitches;
+
          { set implementation flag }
          current_module^.in_implementation:=true;
 
@@ -1446,7 +1481,11 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.162  1999-11-06 14:34:22  peter
+  Revision 1.163  1999-11-09 13:00:37  peter
+    * define FPC_DELPHI,FPC_OBJFPC,FPC_TP,FPC_GPC
+    * initial support for ansistring default with modes
+
+  Revision 1.162  1999/11/06 14:34:22  peter
     * truncated log to 20 revs
 
   Revision 1.161  1999/11/02 15:06:57  peter

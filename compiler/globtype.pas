@@ -124,7 +124,7 @@ interface
        { Switches which can be changed by a mode (fpc,tp7,delphi) }
        tmodeswitch = (m_none,m_all, { needed for keyword }
          { generic }
-         m_fpc,m_delphi,m_tp,m_gpc,
+         m_fpc,m_objfpc,m_delphi,m_tp,m_gpc,
          { more specific }
          m_class,               { delphi class model }
          m_objpas,              { load objpas unit }
@@ -138,7 +138,8 @@ interface
                                   procedure variables                     }
          m_autoderef,           { does auto dereferencing of struct. vars }
          m_initfinal,           { initialization/finalization for units }
-         m_add_pointer          { allow pointer add/sub operations }
+         m_add_pointer,         { allow pointer add/sub operations }
+         m_default_ansistring   { ansistring turned on by default }
        );
        tmodeswitches = set of tmodeswitch;
 
@@ -191,7 +192,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  1999-11-06 14:34:21  peter
+  Revision 1.23  1999-11-09 13:00:38  peter
+    * define FPC_DELPHI,FPC_OBJFPC,FPC_TP,FPC_GPC
+    * initial support for ansistring default with modes
+
+  Revision 1.22  1999/11/06 14:34:21  peter
     * truncated log to 20 revs
 
   Revision 1.21  1999/11/04 10:55:31  peter
