@@ -171,6 +171,10 @@ function EnsureRange(const AValue, AMin, AMax: Int64): Int64;
 function EnsureRange(const AValue, AMin, AMax: Double): Double;
 {$endif FPC_HAS_TYPE_DOUBLE}
 
+
+procedure DivMod(Dividend: Integer; Divisor: Word;  var Result, Remainder: Word);
+  
+
 // Sign functions
 Type
   TValueSign = -1..1;
@@ -1321,11 +1325,23 @@ begin
     Result:=((B-A)<=Epsilon);
 end;
 
+// Some CPUs probably allow a faster way of doing this in a single operation...
+// There weshould define CPUDIVMOD in the header mathuh.inc and implement it using asm.
+{$ifndef CPUDIVMOD}
+procedure DivMod(Dividend: Integer; Divisor: Word;  var Result, Remainder: Word);
 
+begin
+  Result:=Dividend Div Divisor;
+  Remainder:=Dividend Mod Divisor;
+end;
+{$endif}
 end.
 {
   $Log$
-  Revision 1.22  2004-05-29 12:28:59  florian
+  Revision 1.23  2004-07-25 16:46:08  michael
+  + Implemented DivMod
+
+  Revision 1.22  2004/05/29 12:28:59  florian
     * fixed IsNan and IsInf for big endian systems
 
   Revision 1.21  2004/04/08 16:37:08  peter
