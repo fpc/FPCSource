@@ -457,10 +457,15 @@ begin
     if st[i]='\' then
       st[i]:='/';
 {$ifdef win32}
-{ for win32 we should conver e:\ into //e/ PM }
+{ for win32 we should convert e:\ into //e/ PM }
   if (length(st)>2) and (st[2]=':') and (st[3]='/') then
     st:='//'+st[1]+copy(st,3,length(st));
 {$endif win32}
+{$ifdef go32v2}
+{ for go32v2 we should convert //e/ back into e:/  PM }
+  if (length(st)>3) and (st[1]='/') and (st[2]='/') and (st[4]='/') then
+    st:=st[3]+':/'+copy(st,5,length(st));
+{$endif go32v2}
   GDBFileName:=LowerCaseStr(st);
 {$endif}
 end;
@@ -889,6 +894,8 @@ begin
 end;
 
 constructor TBreakpoint.Load(var S: TStream);
+var
+  FName : PString;
 begin
   S.Read(typ,SizeOf(BreakpointType));
   S.Read(state,SizeOf(BreakpointState));
@@ -896,7 +903,11 @@ begin
   case typ of
     bt_file_line :
       begin
-        FileName:=S.ReadStr;
+        { convert to current target }
+        FName:=S.ReadStr;
+        FileName:=NewStr(GDBFileName(GetStr(FName)));
+        If Assigned(FName) then
+          DisposeStr(FName);
         S.Read(Line,SizeOf(Line));
         Name:=nil;
       end;
@@ -1134,7 +1145,7 @@ var PB : PBreakpoint;
 
   function IsThere(P : PBreakpoint) : boolean;{$ifndef FPC}far;{$endif}
   begin
-    IsThere:=(P^.typ=bt_file_line) and (GDBFileName(P^.FileName^)=FileName) and (P^.Line=LineNr);
+    IsThere:=(P^.typ=bt_file_line) and (P^.FileName^=FileName) and (P^.Line=LineNr);
   end;
 begin
     FileName:=GDBFileName(FileName);
@@ -3198,7 +3209,10 @@ end.
 
 {
   $Log$
-  Revision 1.50  2000-02-05 01:27:58  pierre
+  Revision 1.51  2000-02-06 23:43:57  pierre
+   * breakpoint path problems fixes
+
+  Revision 1.50  2000/02/05 01:27:58  pierre
     * bug with Toggle Break fixed, hopefully
     + search for local vars in parent procs avoiding
       wrong results (see test.pas source)
