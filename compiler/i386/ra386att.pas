@@ -1433,7 +1433,7 @@ Begin
            opr.reg:=actasmregister;
            if opr.reg.enum>lastreg then
              internalerror(200301081);
-           size:=reg_2_opsize[actasmregister.enum];
+           size:=reg2opsize[actasmregister.enum];
            Consume(AS_REGISTER);
          end
         else
@@ -1586,7 +1586,7 @@ Begin
              Message(asmr_e_invalid_operand_type);
            opr.typ:=OPR_REGISTER;
            opr.reg:=tempreg;
-           size:=reg_2_opsize[tempreg.enum];
+           size:=reg2opsize[tempreg.enum];
          end
         else
          Message(asmr_e_syn_operand);
@@ -2126,7 +2126,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.36  2003-01-08 18:43:57  daniel
+  Revision 1.37  2003-02-03 22:47:14  daniel
+    - Removed reg_2_opsize array
+
+  Revision 1.36  2003/01/08 18:43:57  daniel
    * Tregister changed into a record
 
   Revision 1.35  2002/12/14 15:02:03  carl

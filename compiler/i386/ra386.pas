@@ -77,20 +77,6 @@ const
     'CMOV','J','SET'
   );
 
-  { Convert reg to opsize }
-  reg_2_opsize:array[firstreg..lastreg] of topsize = (S_NO,
-    S_L,S_L,S_L,S_L,S_L,S_L,S_L,S_L,
-    S_W,S_W,S_W,S_W,S_W,S_W,S_W,S_W,
-    S_B,S_B,S_B,S_B,S_B,S_B,S_B,S_B,
-    S_W,S_W,S_W,S_W,S_W,S_W,
-    S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,
-    S_L,S_L,S_L,S_L,S_L,S_L,
-    S_L,S_L,S_L,S_L,
-    S_L,S_L,S_L,S_L,S_L,
-    S_D,S_D,S_D,S_D,S_D,S_D,S_D,S_D,
-    S_D,S_D,S_D,S_D,S_D,S_D,S_D,S_D
-  );
-
 implementation
 
 uses
@@ -698,7 +684,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.27  2003-01-08 18:43:57  daniel
+  Revision 1.28  2003-02-03 22:47:14  daniel
+    - Removed reg_2_opsize array
+
+  Revision 1.27  2003/01/08 18:43:57  daniel
    * Tregister changed into a record
 
   Revision 1.26  2002/11/15 01:58:58  peter
