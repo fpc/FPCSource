@@ -41,6 +41,14 @@ function CreateThread(lpThreadAttributes : pointer;
   external 'kernel32' name 'CreateThread';
 procedure ExitThread(dwExitCode : DWord);
   external 'kernel32' name 'ExitThread';
+function GlobalAlloc(uFlags:UINT; dwBytes:DWORD):Pointer;
+  external 'kernel32' name 'GlobalAlloc';
+function GlobalFree(hMem : Pointer):Pointer; external 'kernel32' name 'GlobalFree';
+
+const
+  { GlobalAlloc, GlobalFlags  }
+  GMEM_FIXED = 0;
+  GMEM_ZEROINIT = 64;
 
 procedure init_threadvar(var offset : dword;size : dword);[public,alias: 'FPC_INIT_THREADVAR'];
 
@@ -72,6 +80,17 @@ procedure AllocateThreadVars;
      TlsSetValue(dataindex,threadvars);
   end;
 
+procedure ReleaseThreadVars;
+
+  var
+     threadvars : pointer;
+
+  begin
+     { release thread vars }
+     threadvars:=TlsGetValue(dataindex);
+     GlobalFree(threadvars);
+  end;
+
 procedure InitThread;
 
   begin
@@ -88,13 +107,9 @@ procedure InitThread;
 
 procedure DoneThread;
 
-  var
-     threadvars : pointer;
-
   begin
      { release thread vars }
-     threadvars:=TlsGetValue(dataindex);
-     GlobalFree(threadvars);
+     ReleaseThreadVars;
   end;
 
 function ThreadMain(param : pointer) : dword;stdcall;
@@ -220,7 +235,10 @@ procedure LeaveCriticalSection(var cs : tcriticalsection);
 
 {
   $Log$
-  Revision 1.2  2001-01-24 21:47:38  florian
+  Revision 1.3  2001-01-26 16:38:03  florian
+  *** empty log message ***
+
+  Revision 1.2  2001/01/24 21:47:38  florian
     + more MT stuff added
 
   Revision 1.1  2001/01/01 19:06:36  florian

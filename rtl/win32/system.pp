@@ -28,6 +28,20 @@ interface
 { include system-independent routine headers }
 {$I systemh.inc}
 
+type
+   { the fields of this record are os dependent  }
+   { and they shouldn't be used in a program     }
+   { only the type TCriticalSection is important }
+   TCriticalSection = packed record
+      DebugInfo : pointer;
+      LockCount : longint;
+      RecursionCount : longint;
+      OwningThread : DWord;
+      LockSemaphore : DWord;
+      Reserved : DWord;
+   end;
+
+
 { include threading stuff }
 {$i threadh.inc}
 
@@ -282,9 +296,6 @@ begin
 {$endif}
   sbrk:=l;
 end;
-
-{ include threading stuff, this is os independend part }
-{$I thread.inc}
 
 { include standard heap management }
 {$I heap.inc}
@@ -650,6 +661,23 @@ end;
 
 
 {*****************************************************************************
+                             Thread Handling
+*****************************************************************************}
+
+const
+  fpucw : word = $1332;
+
+procedure InitFPU;assembler;
+
+  asm
+     fninit
+     fldcw   fpucw
+  end;
+
+{ include threading stuff, this is os independend part }
+{$I thread.inc}
+
+{*****************************************************************************
                          SystemUnit Initialization
 *****************************************************************************}
 
@@ -794,9 +822,6 @@ var
     to check if the call stack can be written on exceptions }
   _SS : longint;
 
-const
-  fpucw : word = $1332;
-
 procedure Exe_entry;[public, alias : '_FPC_EXE_Entry'];
   begin
      IsLibrary:=false;
@@ -812,8 +837,7 @@ procedure Exe_entry;[public, alias : '_FPC_EXE_Entry'];
         movl %eax,Win32StackTop
         movw %ss,%bp
         movl %ebp,_SS
-        fninit
-        fldcw   fpucw
+        call InitFPU
         xorl %ebp,%ebp
         call PASCALMAIN
         popl %ebp
@@ -860,6 +884,9 @@ var
        DLL_THREAD_ATTACH :
          begin
            inc(Thread_count);
+{$ifdef MT}
+           AllocateThreadVars;
+{$endif MT}
            if assigned(Dll_Thread_Attach_Hook) then
              Dll_Thread_Attach_Hook(DllParam);
            Dll_entry:=true; { return value is ignored }
@@ -869,6 +896,9 @@ var
            dec(Thread_count);
            if assigned(Dll_Thread_Detach_Hook) then
              Dll_Thread_Detach_Hook(DllParam);
+{$ifdef MT}
+           ReleaseThreadVars;
+{$endif MT}
            Dll_entry:=true; { return value is ignored }
          end;
        DLL_PROCESS_DETACH :
@@ -1393,7 +1423,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2001-01-24 21:47:38  florian
+  Revision 1.5  2001-01-26 16:38:03  florian
+  *** empty log message ***
+
+  Revision 1.4  2001/01/24 21:47:38  florian
     + more MT stuff added
 
   Revision 1.3  2001/01/05 15:44:35  florian

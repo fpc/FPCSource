@@ -16,6 +16,8 @@
  **********************************************************************}
 
 {$ifdef MT}
+type
+   TThreadFunc = function(parameter : pointer) : longint;
 {*****************************************************************************
                          Multithread Handling
 *****************************************************************************}
@@ -45,7 +47,10 @@ procedure LeaveCriticalsection(var cs : tcriticalsection);
 
 {
   $Log$
-  Revision 1.3  2001-01-24 21:47:18  florian
+  Revision 1.4  2001-01-26 16:37:54  florian
+  *** empty log message ***
+
+  Revision 1.3  2001/01/24 21:47:18  florian
     + more MT stuff added
 
   Revision 1.2  2001/01/05 17:35:50  florian
