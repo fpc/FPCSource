@@ -313,11 +313,12 @@ Begin
 	
       // execp puts newcmd here.
         args^:=pchar(newcmd);
-   End;
+   End else
+      newcmd:=pathname;
  // repeat
 //	if searchpath then args^:=pchar(commandtorun)
 
-  IntFpExecVEMaybeP:=fpExecVE(Args^,Args,MyEnv);
+  IntFpExecVEMaybeP:=fpExecVE(newcmd,Args,MyEnv);
 { 
 // Code that if exec fails due to permissions, tries to run it with sh 
 // Should we deallocate p on fail? -> no fpexit is run no matter what
@@ -1254,7 +1255,10 @@ End.
 
 {
   $Log$
-  Revision 1.78  2004-11-21 11:28:21  peter
+  Revision 1.79  2005-01-22 20:56:11  michael
+  + Patch for intFpExecVEMaybeP to use the right path (From Colin Western)
+
+  Revision 1.78  2004/11/21 11:28:21  peter
     * fixed bootstrap with 1.0.10 and 1.9.4
 
   Revision 1.77  2004/11/19 13:15:15  marco
