@@ -503,7 +503,7 @@ unit cgobj;
 
     uses
        globals,globtype,options,systems,cgbase,
-       verbose,defutil,paramgr,
+       verbose,defutil,paramgr,symsym,
        rgobj,cutils;
 
     const
@@ -1570,24 +1570,23 @@ unit cgobj;
     function tcg.g_load_self(list : taasmoutput):tregister;
       var
          hp : treference;
-         p : tprocinfo;
-         i : longint;
+         p  : tprocinfo;
          self_reg : tregister;
       begin
-         if not assigned(procinfo._class) then
+         if not assigned(procinfo.procdef._class) then
            internalerror(200303211);
          self_reg:=rg.getaddressregister(list);
-         if lexlevel>normal_function_level then
+         if procinfo.procdef.parast.symtablelevel>normal_function_level then
            begin
              reference_reset_base(hp,procinfo.framepointer,procinfo.framepointer_offset);
              a_load_ref_reg(list,OS_ADDR,hp,self_reg);
              p:=procinfo.parent;
-             for i:=3 to lexlevel-1 do
-               begin
-                  reference_reset_base(hp,self_reg,p.framepointer_offset);
-                  a_load_ref_reg(list,OS_ADDR,hp,self_reg);
-                  p:=p.parent;
-               end;
+             while (p.procdef.parast.symtablelevel>normal_function_level) do
+              begin
+                reference_reset_base(hp,self_reg,p.framepointer_offset);
+                a_load_ref_reg(list,OS_ADDR,hp,self_reg);
+                p:=p.parent;
+              end;
              reference_reset_base(hp,self_reg,p.selfpointer_offset);
              a_load_ref_reg(list,OS_ADDR,hp,self_reg);
            end
@@ -1651,7 +1650,7 @@ unit cgobj;
          internalerror(200303252);
         acc.enum:=R_INTREGISTER;
         acc.number:=NR_ACCUMULATOR;
-        if is_class(procinfo._class) then
+        if is_class(procinfo.procdef._class) then
           begin
             if (cs_implicit_exceptions in aktmoduleswitches) then
               procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
@@ -1668,10 +1667,10 @@ unit cgobj;
             { fail? }
             a_cmp_const_reg_label(list,OS_ADDR,OC_EQ,0,acc,faillabel);
           end
-        else if is_object(procinfo._class) then
+        else if is_object(procinfo.procdef._class) then
           begin
             { parameter 3 : vmt_offset }
-            a_param_const(list, OS_32, procinfo._class.vmt_offset, paramanager.getintparaloc(3));
+            a_param_const(list, OS_32, procinfo.procdef._class.vmt_offset, paramanager.getintparaloc(3));
             { parameter 2 : address of pointer to vmt,
               this is required to allow setting the vmt to -1 to indicate
               that memory was allocated }
@@ -1698,7 +1697,7 @@ unit cgobj;
         href : treference;
         reg  : tregister;
      begin
-        if is_class(procinfo._class) then
+        if is_class(procinfo.procdef._class) then
          begin
            if procinfo.selfpointer_offset=0 then
             internalerror(200303253);
@@ -1714,27 +1713,27 @@ unit cgobj;
            a_param_ref(list, OS_ADDR,href,paramanager.getintparaloc(1));
            a_call_name(list,'FPC_DISPOSE_CLASS')
          end
-        else if is_object(procinfo._class) then
+        else if is_object(procinfo.procdef._class) then
          begin
             if procinfo.selfpointer_offset=0 then
              internalerror(200303254);
             if procinfo.vmtpointer_offset=0 then
              internalerror(200303255);
             { must the object be finalized ? }
-            if procinfo._class.needs_inittable then
+            if procinfo.procdef._class.needs_inittable then
              begin
                objectlibrary.getlabel(nofinal);
                reference_reset_base(href,procinfo.framepointer,target_info.first_parm_offset);
                a_cmp_const_ref_label(list,OS_ADDR,OC_EQ,0,href,nofinal);
                reg:=g_load_self(list);
                reference_reset_base(href,reg,0);
-               g_finalize(list,procinfo._class,href,false);
+               g_finalize(list,procinfo.procdef._class,href,false);
                reference_release(list,href);
                a_label(list,nofinal);
              end;
             { actually call destructor }
             { parameter 3 : vmt_offset }
-            a_param_const(list, OS_32, procinfo._class.vmt_offset, paramanager.getintparaloc(3));
+            a_param_const(list, OS_32, procinfo.procdef._class.vmt_offset, paramanager.getintparaloc(3));
             { parameter 2 : pointer to vmt }
             reference_reset_base(href, procinfo.framepointer,procinfo.vmtpointer_offset);
             a_param_ref(list, OS_ADDR, href ,paramanager.getintparaloc(2));
@@ -1752,7 +1751,7 @@ unit cgobj;
       var
         href : treference;
      begin
-        if is_class(procinfo._class) then
+        if is_class(procinfo.procdef._class) then
           begin
             if procinfo.selfpointer_offset=0 then
              internalerror(200303256);
@@ -1763,14 +1762,14 @@ unit cgobj;
             a_param_ref(list, OS_ADDR,href,paramanager.getintparaloc(1));
             a_call_name(list,'FPC_DISPOSE_CLASS');
           end
-        else if is_object(procinfo._class) then
+        else if is_object(procinfo.procdef._class) then
           begin
             if procinfo.selfpointer_offset=0 then
              internalerror(200303257);
             if procinfo.vmtpointer_offset=0 then
              internalerror(200303258);
             { parameter 3 : vmt_offset }
-            a_param_const(list, OS_32, procinfo._class.vmt_offset, paramanager.getintparaloc(3));
+            a_param_const(list, OS_32, procinfo.procdef._class.vmt_offset, paramanager.getintparaloc(3));
             { parameter 2 : pointer to vmt, will be reset to 0 when freed }
             reference_reset_base(href, procinfo.framepointer,procinfo.vmtpointer_offset);
             a_paramaddr_ref(list,href,paramanager.getintparaloc(2));
@@ -1854,7 +1853,15 @@ finalization
 end.
 {
   $Log$
-  Revision 1.90  2003-04-26 20:57:17  florian
+  Revision 1.91  2003-04-27 07:29:50  peter
+    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+      a new procdef declaration
+    * aktprocsym removed
+    * lexlevel removed, use symtable.symtablelevel instead
+    * implicit init/final code uses the normal genentry/genexit
+    * funcret state checking updated for new funcret handling
+
+  Revision 1.90  2003/04/26 20:57:17  florian
     * fixed para locations of fpc_class_new helper call
 
   Revision 1.89  2003/04/26 17:21:08  florian

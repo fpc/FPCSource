@@ -123,7 +123,7 @@ interface
 
        tlocalsymtable = class(tabstractlocalsymtable)
        public
-          constructor create;
+          constructor create(level:byte);
           procedure insert(sym : tsymentry);override;
           procedure insertvardata(sym : tsymentry);override;
           procedure insertconstdata(sym : tsymentry);override;
@@ -131,7 +131,7 @@ interface
 
        tparasymtable = class(tabstractlocalsymtable)
        public
-          constructor create;
+          constructor create(level:byte);
           procedure insert(sym : tsymentry);override;
           procedure insertvardata(sym : tsymentry);override;
        end;
@@ -202,11 +202,6 @@ interface
        constsymtable  : tsymtable;      { symtable were the constants can be inserted }
        systemunit     : tglobalsymtable; { pointer to the system unit }
 
-       lexlevel       : byte;          { level of code }
-                                       { 1 for main procedure }
-                                       { 2 for normal function or proc }
-                                       { higher for locals }
-
 {****************************************************************************
                              Functions
 ****************************************************************************}
@@ -230,7 +225,6 @@ interface
     function search_default_property(pd : tobjectdef) : tpropertysym;
 
 {*** symtable stack ***}
-    procedure dellexlevel;
     procedure RestoreUnitSyms;
 {$ifdef DEBUG}
     procedure test_symtablestack;
@@ -727,32 +721,35 @@ implementation
              exit;
            if (tvarsym(p).refs=0) then
              begin
-                if (tsym(p).owner.symtabletype=parasymtable) or (vo_is_local_copy in tvarsym(p).varoptions) then
+                if (vo_is_funcret in tvarsym(p).varoptions) then
+                  begin
+                    { don't warn about the result of constructors }
+                    if (tsym(p).owner.symtabletype<>localsymtable) or
+                       (tprocdef(tsym(p).owner.defowner).proctypeoption<>potype_constructor) then
+                      MessagePos(tsym(p).fileinfo,sym_w_function_result_not_set)
+                  end
+                else if (tsym(p).owner.symtabletype=parasymtable) or
+                        (vo_is_local_copy in tvarsym(p).varoptions) then
                   MessagePos1(tsym(p).fileinfo,sym_h_para_identifier_not_used,tsym(p).realname)
                 else if (tsym(p).owner.symtabletype=objectsymtable) then
                   MessagePos2(tsym(p).fileinfo,sym_n_private_identifier_not_used,tsym(p).owner.realname^,tsym(p).realname)
-                else if p.name='result' then
-                  MessagePos(tsym(p).fileinfo,sym_w_function_result_not_set)
                 else
                   MessagePos1(tsym(p).fileinfo,sym_n_local_identifier_not_used,tsym(p).realname);
              end
            else if tvarsym(p).varstate=vs_assigned then
              begin
-                if (tsym(p).owner.symtabletype=parasymtable) then
+                if (tsym(p).owner.symtabletype=parasymtable) or
+                   (vo_is_local_copy in tvarsym(p).varoptions) then
                   begin
-                    if not(tvarsym(p).varspez in [vs_var,vs_out])  then
+                    if not(tvarsym(p).varspez in [vs_var,vs_out]) and
+                       not(vo_is_funcret in tvarsym(p).varoptions) then
                       MessagePos1(tsym(p).fileinfo,sym_h_para_identifier_only_set,tsym(p).realname)
-                  end
-                else if (vo_is_local_copy in tvarsym(p).varoptions) then
-                  begin
-                    if not(tvarsym(p).varspez in [vs_var,vs_out]) then
-                      MessagePos1(tsym(p).fileinfo,sym_h_para_identifier_only_set,tsym(p).realname);
                   end
                 else if (tsym(p).owner.symtabletype=objectsymtable) then
                   MessagePos2(tsym(p).fileinfo,sym_n_private_identifier_only_set,tsym(p).owner.realname^,tsym(p).realname)
-                else if (tsym(p).owner.symtabletype<>parasymtable) then
-                  if not (vo_is_exported in tvarsym(p).varoptions) then
-                    MessagePos1(tsym(p).fileinfo,sym_n_local_identifier_only_set,tsym(p).realname);
+                else if not(vo_is_exported in tvarsym(p).varoptions) and
+                        not(vo_is_funcret in tvarsym(p).varoptions) then
+                  MessagePos1(tsym(p).fileinfo,sym_n_local_identifier_only_set,tsym(p).realname);
              end;
          end
       else if ((tsym(p).owner.symtabletype in
@@ -765,13 +762,21 @@ implementation
            if (tstoredsym(p).refs=0) and (tsym(p).owner.symtabletype=objectsymtable) then
              MessagePos2(tsym(p).fileinfo,sym_n_private_method_not_used,tsym(p).owner.realname^,tsym(p).realname)
            { units references are problematic }
-           else if (tstoredsym(p).refs=0) and not(tsym(p).typ in [enumsym,unitsym]) then
-             if (tsym(p).typ<>procsym) or not (tprocsym(p).is_global) or
-             { all program functions are declared global
-               but unused should still be signaled PM }
-                ((tsym(p).owner.symtabletype=staticsymtable) and
-                not current_module.is_unit) then
-             MessagePos2(tsym(p).fileinfo,sym_h_local_symbol_not_used,SymTypeName[tsym(p).typ],tsym(p).realname);
+           else
+            begin
+              if (tstoredsym(p).refs=0) and
+                 not(tsym(p).typ in [enumsym,unitsym]) and
+                 not(is_funcret_sym(tsym(p))) and
+                 (
+                  (tsym(p).typ<>procsym) or
+                  not (tprocsym(p).is_global) or
+                  { all program functions are declared global
+                    but unused should still be signaled PM }
+                  ((tsym(p).owner.symtabletype=staticsymtable) and
+                   not current_module.is_unit)
+                 ) then
+                MessagePos2(tsym(p).fileinfo,sym_h_local_symbol_not_used,SymTypeName[tsym(p).typ],tsym(p).realname);
+            end;
           end;
       end;
 
@@ -1235,10 +1240,11 @@ implementation
                               TLocalSymtable
 ****************************************************************************}
 
-    constructor tlocalsymtable.create;
+    constructor tlocalsymtable.create(level:byte);
       begin
         inherited create('');
         symtabletype:=localsymtable;
+        symtablelevel:=level;
       end;
 
 
@@ -1373,11 +1379,13 @@ implementation
                               TParaSymtable
 ****************************************************************************}
 
-    constructor tparasymtable.create;
+    constructor tparasymtable.create(level:byte);
       begin
         inherited create('');
         symtabletype:=parasymtable;
+        symtablelevel:=level;
         dataalignment:=aktalignment.paraalign;
+        address_fixup:=target_info.first_parm_offset;
       end;
 
 
@@ -1386,25 +1394,20 @@ implementation
          hsym : tsym;
       begin
          { check for duplicate id in para symtable of methods }
-         if assigned(procinfo) and
-            assigned(procinfo._class) and
-            { but not in nested procedures !}
-            (not(assigned(procinfo.parent)) or
-             (assigned(procinfo.parent) and
-              not(assigned(procinfo.parent._class)))
-            ) and
-            { funcretsym is allowed !! }
+         if assigned(next) and
+            (next.symtabletype=objectsymtable) and
+            { funcretsym is allowed }
             (not is_funcret_sym(sym)) then
            begin
-              hsym:=search_class_member(procinfo._class,sym.name);
+              hsym:=search_class_member(tobjectdef(next.defowner),sym.name);
               { private ids can be reused }
               if assigned(hsym) and
-                 tstoredsym(hsym).is_visible_for_object(procinfo._class) then
+                 tstoredsym(hsym).is_visible_for_object(tobjectdef(next.defowner)) then
                begin
                  { delphi allows to reuse the names in a class, but not
                    in object (tp7 compatible) }
                  if not((m_delphi in aktmodeswitches) and
-                        is_class_or_interface(procinfo._class)) then
+                        is_class_or_interface(tobjectdef(next.defowner))) then
                   begin
                     DuplicateSym(hsym);
                     exit;
@@ -1595,6 +1598,7 @@ implementation
       begin
         inherited create(n);
         symtabletype:=staticsymtable;
+        symtablelevel:=main_program_level;
       end;
 
 
@@ -1685,6 +1689,7 @@ implementation
       begin
          inherited create(n);
          symtabletype:=globalsymtable;
+         symtablelevel:=main_program_level;
          unitid:=0;
          unitsym:=nil;
 {$ifdef GDB}
@@ -1736,8 +1741,6 @@ implementation
               PglobalTypeCount:=@UnitTypeCount;
            end;
 {$endif GDB}
-
-         symtablelevel:=0;
 
          next:=symtablestack;
          symtablestack:=self;
@@ -2328,18 +2331,6 @@ implementation
                             Symtable Stack
 ****************************************************************************}
 
-    procedure dellexlevel;
-      var
-         p : tsymtable;
-      begin
-         p:=symtablestack;
-         symtablestack:=p.next;
-         { symbol tables of unit interfaces are never disposed }
-         { this is handle by the unit unitm                 }
-         if not(p.symtabletype in [globalsymtable,stt_exceptsymtable]) then
-          p.free;
-      end;
-
     procedure RestoreUnitSyms;
       var
          p : tsymtable;
@@ -2411,7 +2402,7 @@ implementation
         pglobaltypecount:=@globaltypecount;
 {$endif GDB}
         { defs for internal use }
-        voidprocdef:=tprocdef.create;
+        voidprocdef:=tprocdef.create(unknown_level);
         { create error syms and def }
         generrorsym:=terrorsym.create;
         generrortype.setdef(terrordef.create);
@@ -2437,7 +2428,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.95  2003-04-26 00:33:07  peter
+  Revision 1.96  2003-04-27 07:29:51  peter
+    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+      a new procdef declaration
+    * aktprocsym removed
+    * lexlevel removed, use symtable.symtablelevel instead
+    * implicit init/final code uses the normal genentry/genexit
+    * funcret state checking updated for new funcret handling
+
+  Revision 1.95  2003/04/26 00:33:07  peter
     * vo_is_result flag added for the special RESULT symbol
 
   Revision 1.94  2003/04/25 20:59:35  peter

@@ -1896,35 +1896,26 @@ type
 
          { ensure that the result type is set }
          if not restypeset then
-           resulttype:=procdefinition.rettype
+          begin
+            { constructors return their current class type, not the type where the
+              constructor is declared, this can be different because of inheritance }
+            if (procdefinition.proctypeoption=potype_constructor) and
+               assigned(methodpointer) and
+               assigned(methodpointer.resulttype.def) and
+               (methodpointer.resulttype.def.deftype=classrefdef) then
+              resulttype:=tclassrefdef(methodpointer.resulttype.def).pointertype
+            else
+              resulttype:=procdefinition.rettype;
+           end
          else
            resulttype:=restype;
 
-         { modify the exit code, in case of special cases }
-         if (not is_void(resulttype.def)) then
-          begin
-            if paramanager.ret_in_reg(resulttype.def,procdefinition.proccalloption) then
-             begin
-               { wide- and ansistrings are returned in EAX    }
-               { but they are imm. moved to a memory location }
-               if is_widestring(resulttype.def) or
-                  is_ansistring(resulttype.def) then
-                 begin
-                   { we use ansistrings so no fast exit here }
-                   if assigned(procinfo) then
-                    procinfo.no_fast_exit:=true;
-                 end;
-             end;
-          end;
 
-         { constructors return their current class type, not the type where the
-           constructor is declared, this can be different because of inheritance }
-         if (procdefinition.proctypeoption=potype_constructor) then
+         if resulttype.def.needs_inittable then
            begin
-             if assigned(methodpointer) and
-                assigned(methodpointer.resulttype.def) and
-                (methodpointer.resulttype.def.deftype=classrefdef) then
-               resulttype:=tclassrefdef(methodpointer.resulttype.def).pointertype;
+             { we use ansistrings so no fast exit here }
+             if assigned(procinfo) then
+              procinfo.no_fast_exit:=true;
            end;
 
          if assigned(methodpointer) then
@@ -2473,7 +2464,6 @@ type
 
         { set new procinfo }
         procinfo.return_offset:=retoffset;
-        procinfo.para_offset:=para_offset;
         procinfo.no_fast_exit:=false;
 
         { set it to the same lexical level }
@@ -2535,7 +2525,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.144  2003-04-25 20:59:33  peter
+  Revision 1.145  2003-04-27 07:29:50  peter
+    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+      a new procdef declaration
+    * aktprocsym removed
+    * lexlevel removed, use symtable.symtablelevel instead
+    * implicit init/final code uses the normal genentry/genexit
+    * funcret state checking updated for new funcret handling
+
+  Revision 1.144  2003/04/25 20:59:33  peter
     * removed funcretn,funcretsym, function result is now in varsym
       and aliases for result and function name are added using absolutesym
     * vs_hidden parameter for funcret passed in parameter

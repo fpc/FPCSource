@@ -1937,8 +1937,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2003-04-26 09:56:24  peter
-    * length of tparalocation is now stored in ppu
+  Revision 1.41  2003-04-27 07:29:52  peter
+    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+      a new procdef declaration
+    * aktprocsym removed
+    * lexlevel removed, use symtable.symtablelevel instead
+    * implicit init/final code uses the normal genentry/genexit
+    * funcret state checking updated for new funcret handling
 
   Revision 1.39  2003/04/25 20:59:35  peter
     * removed funcretn,funcretsym, function result is now in varsym

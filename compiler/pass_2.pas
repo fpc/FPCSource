@@ -276,51 +276,6 @@ implementation
          { only do secondpass if there are no errors }
          if ErrorCount=0 then
            begin
-{$ifdef OMITSTACKFRAME}
-             if (cs_regalloc in aktglobalswitches) and
-                ((procinfo^.flags and (pi_uses_asm or pi_uses_exceptions))=0) then
-               begin
-                 { can we omit the stack frame ? }
-                 { conditions:
-                   1. procedure (not main block)
-                   2. no constructor or destructor
-                   3. no call to other procedures
-                   4. no interrupt handler
-                 }
-                 {!!!!!! this doesn work yet, because of problems with
-                    with linux and windows
-                 }
-                 (*
-                 if assigned(aktprocsym) then
-                   begin
-                     if not(assigned(procinfo^._class)) and
-                        not(aktprocdef.proctypeoption in [potype_constructor,potype_destructor]) and
-                        not(po_interrupt in aktprocdef.procoptions) and
-                        ((procinfo^.flags and pi_do_call)=0) and
-                        (lexlevel>=normal_function_level) then
-                       begin
-                        { use ESP as frame pointer }
-                         procinfo^.framepointer:=STACK_POINTER_REG;
-                         use_esp_stackframe:=true;
-
-                        { calc parameter distance new }
-                         dec(procinfo^.framepointer_offset,4);
-                         dec(procinfo^.selfpointer_offset,4);
-
-                        { is this correct ???}
-                        { retoffset can be negativ for results in eax !! }
-                        { the value should be decreased only if positive }
-                         if procinfo.retoffset>=0 then
-                           dec(procinfo.retoffset,4);
-
-                         dec(procinfo.para_offset,4);
-                         aktprocdef.parast.address_fixup:=procinfo.para_offset;
-                       end;
-                   end;
-                  *)
-                end;
-{$endif OMITSTACKFRAME}
-
               { assign parameter locations }
 {$ifndef i386}
               setparalocs(procinfo.procdef);
@@ -351,7 +306,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  2003-04-25 20:59:33  peter
+  Revision 1.48  2003-04-27 07:29:50  peter
+    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+      a new procdef declaration
+    * aktprocsym removed
+    * lexlevel removed, use symtable.symtablelevel instead
+    * implicit init/final code uses the normal genentry/genexit
+    * funcret state checking updated for new funcret handling
+
+  Revision 1.47  2003/04/25 20:59:33  peter
     * removed funcretn,funcretsym, function result is now in varsym
       and aliases for result and function name are added using absolutesym
     * vs_hidden parameter for funcret passed in parameter

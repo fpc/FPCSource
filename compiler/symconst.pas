@@ -84,12 +84,8 @@ const
   pfReference= 16;
   pfOut      = 32;
 
-  {# These are the different possible base values that can
-     be taken from the lexlevel variable when parsing. The
-     lexlevel can be bigger if parsding recursive routines.
-  }
-  main_program_level = 1;
-  unit_init_level = 1;
+  unknown_level         = 0;
+  main_program_level    = 1;
   normal_function_level = 2;
 
 
@@ -354,7 +350,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  2003-04-26 00:33:07  peter
+  Revision 1.51  2003-04-27 07:29:51  peter
+    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+      a new procdef declaration
+    * aktprocsym removed
+    * lexlevel removed, use symtable.symtablelevel instead
+    * implicit init/final code uses the normal genentry/genexit
+    * funcret state checking updated for new funcret handling
+
+  Revision 1.50  2003/04/26 00:33:07  peter
     * vo_is_result flag added for the special RESULT symbol
 
   Revision 1.49  2003/04/25 20:59:35  peter

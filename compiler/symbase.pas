@@ -106,11 +106,10 @@ interface
           { only used for parameter symtable to determine the offset relative }
           { to the frame pointer and for local inline }
           address_fixup : longint;
-          symtabletype : tsymtabletype;
+          symtabletype  : tsymtabletype;
           { each symtable gets a number }
-          unitid    : word;
-          { this saves all definition to allow a proper clean up }
-          { separate lexlevel from symtable type }
+          unitid        : word;
+          { level of symtable, used for nested procedures }
           symtablelevel : byte;
           dataalignment : byte;
           constructor Create(const s:string);
@@ -348,7 +347,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2002-12-07 14:27:09  carl
+  Revision 1.11  2003-04-27 07:29:51  peter
+    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+      a new procdef declaration
+    * aktprocsym removed
+    * lexlevel removed, use symtable.symtablelevel instead
+    * implicit init/final code uses the normal genentry/genexit
+    * funcret state checking updated for new funcret handling
+
+  Revision 1.10  2002/12/07 14:27:09  carl
     * 3% memory optimization
     * changed some types
     + added type checking with different size for call node and for

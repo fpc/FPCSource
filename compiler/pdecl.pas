@@ -218,7 +218,7 @@ implementation
                           parse_var_proc_directives(sym);
                        end;
                       { add default calling convention }
-                      handle_calling_convention(nil,tabstractprocdef(tt.def));
+                      handle_calling_convention(tabstractprocdef(tt.def));
                       paramanager.create_param_loc_info(tabstractprocdef(tt.def));
                     end;
                    if not skipequal then
@@ -633,7 +633,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.65  2003-04-01 16:17:15  peter
+  Revision 1.66  2003-04-27 07:29:50  peter
+    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+      a new procdef declaration
+    * aktprocsym removed
+    * lexlevel removed, use symtable.symtablelevel instead
+    * implicit init/final code uses the normal genentry/genexit
+    * funcret state checking updated for new funcret handling
+
+  Revision 1.65  2003/04/01 16:17:15  peter
     * reset symbol for unique types
 
   Revision 1.64  2003/01/05 15:54:15  florian

@@ -215,14 +215,14 @@ implementation
                                          location.reference.offset:=-location.reference.offset;
                                     end;
 {$endif powerpc}
-                                  if (lexlevel>symtable.symtablelevel) then
+                                  if (aktprocdef.parast.symtablelevel>symtable.symtablelevel) then
                                     begin
                                        hregister:=rg.getaddressregister(exprasmlist);
                                        { make a reference }
                                        reference_reset_base(href,procinfo.framepointer,procinfo.framepointer_offset);
                                        cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister);
                                        { walk parents }
-                                       i:=lexlevel-1;
+                                       i:=aktprocdef.parast.symtablelevel-1;
                                        while (i>symtable.symtablelevel) do
                                          begin
                                             { make a reference }
@@ -953,7 +953,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.52  2003-04-25 20:59:33  peter
+  Revision 1.53  2003-04-27 07:29:50  peter
+    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+      a new procdef declaration
+    * aktprocsym removed
+    * lexlevel removed, use symtable.symtablelevel instead
+    * implicit init/final code uses the normal genentry/genexit
+    * funcret state checking updated for new funcret handling
+
+  Revision 1.52  2003/04/25 20:59:33  peter
     * removed funcretn,funcretsym, function result is now in varsym
       and aliases for result and function name are added using absolutesym
     * vs_hidden parameter for funcret passed in parameter

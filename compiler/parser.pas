@@ -41,7 +41,7 @@ implementation
       symbase,symtable,symdef,symsym,
       finput,fmodule,fppu,
       aasmbase,aasmtai,
-      cgbase,
+      cpubase,cgbase,
       script,gendef,
 {$ifdef BrowserLog}
       browlog,
@@ -68,7 +68,6 @@ implementation
          testcurobject:=0;
 
          { Symtable }
-         aktprocsym:=nil;
          aktprocdef:=nil;
 
          objectlibrary:=nil;
@@ -117,6 +116,15 @@ implementation
          { codegen }
          if paraprintnodetree<>0 then
            printnode_reset;
+
+         { for the implicitly generated init/final. procedures for global init. variables,
+           a dummy procinfo is necessary }
+         voidprocpi:=cprocinfo.create;
+         with voidprocpi do
+           begin
+              framepointer.enum:=R_INTREGISTER;
+              framepointer.number:=NR_FRAME_POINTER_REG;
+           end;
       end;
 
 
@@ -143,6 +151,9 @@ implementation
 
          { free list of .o files }
          SmartLinkOFiles.Free;
+
+         { codegen }
+         voidprocpi.free;
       end;
 
 
@@ -316,7 +327,6 @@ implementation
             oldsymtablestack:=symtablestack;
             olddefaultsymtablestack:=defaultsymtablestack;
             oldrefsymtable:=refsymtable;
-            oldaktprocsym:=aktprocsym;
             oldaktprocdef:=aktprocdef;
             oldaktdefproccall:=aktdefproccall;
             move(overloaded_operators,oldoverloaded_operators,sizeof(toverloaded_operators));
@@ -379,7 +389,6 @@ implementation
          defaultsymtablestack:=nil;
          systemunit:=nil;
          refsymtable:=nil;
-         aktprocsym:=nil;
          aktdefproccall:=initdefproccall;
          registerdef:=true;
          statement_level:=0;
@@ -535,7 +544,6 @@ implementation
                  symtablestack:=oldsymtablestack;
                  defaultsymtablestack:=olddefaultsymtablestack;
                  aktdefproccall:=oldaktdefproccall;
-                 aktprocsym:=oldaktprocsym;
                  aktprocdef:=oldaktprocdef;
                  move(oldoverloaded_operators,overloaded_operators,sizeof(toverloaded_operators));
                  aktsourcecodepage:=oldsourcecodepage;
@@ -626,7 +634,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  2003-04-26 00:30:52  peter
+  Revision 1.51  2003-04-27 07:29:50  peter
+    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+      a new procdef declaration
+    * aktprocsym removed
+    * lexlevel removed, use symtable.symtablelevel instead
+    * implicit init/final code uses the normal genentry/genexit
+    * funcret state checking updated for new funcret handling
+
+  Revision 1.50  2003/04/26 00:30:52  peter
     * reset aktfilepos when setting new module for compile
 
   Revision 1.49  2003/04/25 20:59:33  peter

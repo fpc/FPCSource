@@ -454,7 +454,6 @@ implementation
 
       var
         p  : tnode;
-        vs : tvarsym;
         pd : tabstractprocdef;
         enumdupmsg : boolean;
       begin
@@ -597,9 +596,9 @@ implementation
             _PROCEDURE:
               begin
                 consume(_PROCEDURE);
-                tt.setdef(tprocvardef.create);
+                tt.setdef(tprocvardef.create(normal_function_level));
                 if token=_LKLAMMER then
-                 parameter_dec(tprocvardef(tt.def));
+                  parse_parameter_dec(tprocvardef(tt.def));
                 if token=_OF then
                   begin
                     consume(_OF);
@@ -611,9 +610,9 @@ implementation
             _FUNCTION:
               begin
                 consume(_FUNCTION);
-                pd:=tprocvardef.create;
+                pd:=tprocvardef.create(normal_function_level);
                 if token=_LKLAMMER then
-                 parameter_dec(pd);
+                  parse_parameter_dec(pd);
                 consume(_COLON);
                 single_type(pd.rettype,hs,false);
                 if token=_OF then
@@ -623,8 +622,7 @@ implementation
                     include(pd.procoptions,po_methodpointer);
                   end;
                 { Add implicit hidden parameters and function result }
-                insert_hidden_para(pd);
-                insert_funcret_para(pd);
+                calc_parast(pd);
                 tt.def:=pd;
               end;
             else
@@ -637,7 +635,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  2003-04-25 20:59:34  peter
+  Revision 1.52  2003-04-27 07:29:51  peter
+    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+      a new procdef declaration
+    * aktprocsym removed
+    * lexlevel removed, use symtable.symtablelevel instead
+    * implicit init/final code uses the normal genentry/genexit
+    * funcret state checking updated for new funcret handling
+
+  Revision 1.51  2003/04/25 20:59:34  peter
     * removed funcretn,funcretsym, function result is now in varsym
       and aliases for result and function name are added using absolutesym
     * vs_hidden parameter for funcret passed in parameter

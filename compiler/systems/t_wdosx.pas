@@ -74,7 +74,7 @@ begin
  b := Inherited MakeExecutable;
  if b then
   DoExec(FindUtil('stubit'),current_module.exefilename^,false,false);
- Result := b; 
+ Result := b;
 end;
 
 {****************************************************************************
@@ -102,7 +102,15 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-10-05 12:43:29  carl
+  Revision 1.3  2003-04-27 07:29:52  peter
+    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+      a new procdef declaration
+    * aktprocsym removed
+    * lexlevel removed, use symtable.symtablelevel instead
+    * implicit init/final code uses the normal genentry/genexit
+    * funcret state checking updated for new funcret handling
+
+  Revision 1.2  2002/10/05 12:43:29  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 

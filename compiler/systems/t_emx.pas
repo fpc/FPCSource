@@ -46,14 +46,14 @@ implementation
      dos,
 {$endif Delphi}
      cutils,cclasses,
-     globtype,comphook,systems,symsym,
+     globtype,comphook,systems,symsym,symdef,
      globals,verbose,fmodule,script,
      import,link,i_emx,ppu;
 
   type
     TImportLibEMX=class(timportlib)
       procedure preparelib(const s:string);override;
-      procedure importprocedure(const func,module:string;index:longint;const name:string);override;
+      procedure importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);override;
       procedure generatelib;override;
     end;
 
@@ -285,7 +285,7 @@ begin
     blockwrite(out_file,ar_magic,sizeof(ar_magic));
 end;
 
-procedure TImportLibEMX.ImportProcedure(const func,module:string;index:longint;const name:string);
+procedure TImportLibEMX.importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);
 {func       = Name of function to import.
  module     = Name of DLL to import from.
  index      = Index of function in DLL. Use 0 to import by name.
@@ -293,9 +293,11 @@ procedure TImportLibEMX.ImportProcedure(const func,module:string;index:longint;c
 var tmp1,tmp2,tmp3:string;
     sym_mcount,sym_import:longint;
     fixup_mcount,fixup_import:longint;
+    func : string;
 begin
     { force the current mangledname }
-    aktprocdef.has_mangledname:=true;
+    aprocdef.has_mangledname:=true;
+    func:=aprocdef.mangledname;
 
     aout_init;
     tmp2:=func;
@@ -516,7 +518,15 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2003-04-26 09:16:08  peter
+  Revision 1.3  2003-04-27 07:29:52  peter
+    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+      a new procdef declaration
+    * aktprocsym removed
+    * lexlevel removed, use symtable.symtablelevel instead
+    * implicit init/final code uses the normal genentry/genexit
+    * funcret state checking updated for new funcret handling
+
+  Revision 1.2  2003/04/26 09:16:08  peter
     * .o files belonging to the unit are first searched in the same dir
       as the .ppu
 

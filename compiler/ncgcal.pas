@@ -671,26 +671,28 @@ implementation
         i : integer;
       begin
         { this routine is itself not nested }
-        if lexlevel=(tprocdef(procdefinition).parast.symtablelevel) then
+        if aktprocdef.parast.symtablelevel=(tprocdef(procdefinition).parast.symtablelevel) then
           begin
             reference_reset_base(href,procinfo.framepointer,procinfo.framepointer_offset);
             cg.a_param_ref(exprasmlist,OS_ADDR,href,paramanager.getintparaloc(1));
           end
         { one nesting level }
-        else if (lexlevel=(tprocdef(procdefinition).parast.symtablelevel)-1) then
+        else if (aktprocdef.parast.symtablelevel=(tprocdef(procdefinition).parast.symtablelevel)-1) then
           begin
             cg.a_param_reg(exprasmlist,OS_ADDR,procinfo.framepointer,paramanager.getintparaloc(1));
           end
         { very complex nesting level ... }
-        else if (lexlevel>(tprocdef(procdefinition).parast.symtablelevel)) then
+        else if (aktprocdef.parast.symtablelevel>(tprocdef(procdefinition).parast.symtablelevel)) then
           begin
             hregister:=rg.getaddressregister(exprasmlist);
             reference_reset_base(href,procinfo.framepointer,procinfo.framepointer_offset);
             cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister);
-            for i:=(tprocdef(procdefinition).parast.symtablelevel) to lexlevel-1 do
+            i:=aktprocdef.parast.symtablelevel;
+            while (i>tprocdef(procdefinition).parast.symtablelevel) do
               begin
                 reference_reset_base(href,hregister,procinfo.framepointer_offset);
                 cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister);
+                dec(i);
               end;
             cg.a_param_reg(exprasmlist,OS_ADDR,hregister,paramanager.getintparaloc(1));
             rg.ungetaddressregister(exprasmlist,hregister);
@@ -1036,10 +1038,11 @@ implementation
               { push base pointer ?}
               { never when inlining, since if necessary, the base pointer }
               { can/will be gottten from the current procedure's symtable }
-              { (JM)}
+              { (JM) }
               if not inlined then
-                if (lexlevel>=normal_function_level) and assigned(tprocdef(procdefinition).parast) and
-                  ((tprocdef(procdefinition).parast.symtablelevel)>normal_function_level) then
+                if (aktprocdef.parast.symtablelevel>=normal_function_level) and
+                   assigned(tprocdef(procdefinition).parast) and
+                   ((tprocdef(procdefinition).parast.symtablelevel)>normal_function_level) then
                   push_framepointer;
 
               rg.saveintregvars(exprasmlist,regs_to_push_int);
@@ -1320,7 +1323,6 @@ implementation
 
           { set new procinfo }
           procinfo.return_offset:=retoffset;
-          procinfo.para_offset:=para_offset;
           procinfo.no_fast_exit:=false;
 
           { arg space has been filled by the parent secondcall }
@@ -1437,7 +1439,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.53  2003-04-25 20:59:33  peter
+  Revision 1.54  2003-04-27 07:29:50  peter
+    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+      a new procdef declaration
+    * aktprocsym removed
+    * lexlevel removed, use symtable.symtablelevel instead
+    * implicit init/final code uses the normal genentry/genexit
+    * funcret state checking updated for new funcret handling
+
+  Revision 1.53  2003/04/25 20:59:33  peter
     * removed funcretn,funcretsym, function result is now in varsym
       and aliases for result and function name are added using absolutesym
     * vs_hidden parameter for funcret passed in parameter

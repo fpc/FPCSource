@@ -488,11 +488,9 @@ implementation
          pu     : tused_unit;
          hp2    : tmodule;
          hp3    : tsymtable;
-         oldprocsym:tprocsym;
-         oldprocdef:tprocdef;
+         oldprocdef : tprocdef;
          unitsym : tunitsym;
       begin
-         oldprocsym:=aktprocsym;
          oldprocdef:=aktprocdef;
          consume(_USES);
 {$ifdef DEBUG}
@@ -616,7 +614,6 @@ implementation
                 end;
               pu:=tused_unit(pu.next);
            end;
-          aktprocsym:=oldprocsym;
           aktprocdef:=oldprocdef;
       end;
 
@@ -710,42 +707,96 @@ implementation
       end;
 
 
-    procedure gen_main_procsym(const name:string;options:tproctypeoption;st:tsymtable);
+    function gen_main_procsym(const name:string;potype:tproctypeoption;st:tsymtable):tprocdef;
       var
         stt : tsymtable;
+        ps  : tprocsym;
+        pd  : tprocdef;
       begin
         {Generate a procsym for main}
         make_ref:=false;
-        aktprocsym:=tprocsym.create('$'+name);
-        { main are allways used }
-        inc(aktprocsym.refs);
-        {Try to insert in in static symtable ! }
+        { try to insert in in static symtable ! }
         stt:=symtablestack;
         symtablestack:=st;
-        aktprocdef:=tprocdef.create;
-        aktprocsym.addprocdef(aktprocdef);
-        aktprocdef.procsym:=aktprocsym;
-        symtablestack:=stt;
-        aktprocdef.proctypeoption:=options;
-        aktprocdef.setmangledname(target_info.cprefix+name);
-        aktprocdef.forwarddef:=false;
+        { generate procsym }
+        ps:=tprocsym.create('$'+name);
+        { main are allways used }
+        inc(ps.refs);
+        symtablestack.insert(ps);
+        pd:=tprocdef.create(main_program_level);
+        pd.procsym:=ps;
+        ps.addprocdef(pd);
+        { restore symtable }
         make_ref:=true;
-        { The localst is a local symtable. Change it into the static
+        symtablestack:=stt;
+        { set procdef options }
+        pd.proctypeoption:=potype;
+        pd.setmangledname(target_info.cprefix+name);
+        pd.forwarddef:=false;
+        { We don't need is a local symtable. Change it into the static
           symtable }
-        aktprocdef.localst.free;
-        aktprocdef.localst:=st;
-        { and insert the procsym in symtable }
-        st.insert(aktprocsym);
-        { set some informations about the main program }
-        with procinfo do
-         begin
-           _class:=nil;
-           para_offset:=target_info.first_parm_offset;
-           framepointer.enum:=R_INTREGISTER;
-           framepointer.number:=NR_FRAME_POINTER_REG;
-           flags:=0;
-           procdef:=aktprocdef;
-         end;
+        pd.localst.free;
+        pd.localst:=st;
+        gen_main_procsym:=pd;
+      end;
+
+
+    procedure gen_implicit_initfinal(list:taasmoutput;flag:word;st:tsymtable);
+      var
+        parasize : longint;
+        nostackframe : boolean;
+        pd,
+        oldprocdef : tprocdef;
+        oldprocinfo : tprocinfo;
+        oldexitlabel,
+        oldexit2label : tasmlabel;
+      begin
+        oldprocinfo:=procinfo;
+        oldprocdef:=aktprocdef;
+        oldexitlabel:=aktexitlabel;
+        oldexit2label:=aktexit2label;
+        { update module flags }
+        current_module.flags:=current_module.flags or flag;
+        { now we can insert a cut }
+        if (cs_create_smart in aktmoduleswitches) then
+          codeSegment.concat(Tai_cut.Create);
+        { create procdef }
+        case flag of
+          uf_init :
+            begin
+              pd:=gen_main_procsym(current_module.modulename^+'_init',potype_unitinit,st);
+              pd.aliasnames.insert('INIT$$'+current_module.modulename^);
+              pd.aliasnames.insert(target_info.cprefix+current_module.modulename^+'_init');
+            end;
+          uf_finalize :
+            begin
+              pd:=gen_main_procsym(current_module.modulename^+'_finalize',potype_unitfinalize,st);
+              pd.aliasnames.insert('FINALIZE$$'+current_module.modulename^);
+              pd.aliasnames.insert(target_info.cprefix+current_module.modulename^+'_finalize');
+            end;
+          else
+            internalerror(200304253);
+        end;
+        { set procinfo and aktprocdef }
+        procinfo:=voidprocpi;
+        procinfo.procdef:=pd;
+        aktprocdef:=pd;
+        { generate a dummy function }
+        parasize:=0;
+        nostackframe:=false;
+        objectlibrary.getlabel(aktexitlabel);
+        objectlibrary.getlabel(aktexit2label);
+        genentrycode(list,true,0,parasize,nostackframe,false);
+        genexitcode(list,parasize,nostackframe,false);
+        list.convert_registers;
+        { cleanup }
+        pd.localst:=nil;
+        procinfo.procdef:=nil;
+        { restore }
+        aktexitlabel:=oldexitlabel;
+        aktexit2label:=oldexit2label;
+        aktprocdef:=oldprocdef;
+        procinfo:=oldprocinfo;
       end;
 
 
@@ -775,6 +826,7 @@ implementation
          s2  : ^string; {Saves stack space}
          force_init_final : boolean;
          initfinalcode : taasmoutput;
+         pd : tprocdef;
       begin
          initfinalcode:=taasmoutput.create;
          consume(_UNIT);
@@ -846,7 +898,6 @@ implementation
 
          { reset }
          make_ref:=true;
-         lexlevel:=0;
 
          { insert qualifier for the system unit (allows system.writeln) }
          if not(cs_compilesystem in aktmoduleswitches) then
@@ -978,15 +1029,15 @@ implementation
 //         Message1(parser_u_parsing_implementation,current_module.modulename^);
 
          { Compile the unit }
-         codegen_newprocedure;
-         gen_main_procsym(current_module.modulename^+'_init',potype_unitinit,st);
-         aktprocdef.aliasnames.insert('INIT$$'+current_module.modulename^);
-         aktprocdef.aliasnames.insert(target_info.cprefix+current_module.modulename^+'_init');
-         compile_proc_body(true,false);
-         codegen_doneprocedure;
-
-         { avoid self recursive destructor call !! PM }
-         aktprocdef.localst:=nil;
+         pd:=gen_main_procsym(current_module.modulename^+'_init',potype_unitinit,st);
+         pd.aliasnames.insert('INIT$$'+current_module.modulename^);
+         pd.aliasnames.insert(target_info.cprefix+current_module.modulename^+'_init');
+         procinfo:=voidprocpi;
+         procinfo.procdef:=pd;
+         compile_proc_body(pd,true,false);
+         procinfo.procdef:=nil;
+         { avoid self recursive destructor call }
+         pd.localst:=nil;
 
          { if the unit contains ansi/widestrings, initialization and
            finalization code must be forced }
@@ -997,12 +1048,7 @@ implementation
          { this is a hack, but how can it be done better ? }
          if force_init_final and ((current_module.flags and uf_init)=0) then
            begin
-              current_module.flags:=current_module.flags or uf_init;
-              { now we can insert a cut }
-              if (cs_create_smart in aktmoduleswitches) then
-                codeSegment.concat(Tai_cut.Create);
-              genimplicitunitinit(initfinalcode);
-              initfinalcode.convert_registers;
+              gen_implicit_initfinal(initfinalcode,uf_init,st);
               codesegment.concatlist(initfinalcode);
            end;
          { finalize? }
@@ -1012,21 +1058,18 @@ implementation
               current_module.flags:=current_module.flags or uf_finalize;
 
               { Compile the finalize }
-              codegen_newprocedure;
-              gen_main_procsym(current_module.modulename^+'_finalize',potype_unitfinalize,st);
-              aktprocdef.aliasnames.insert('FINALIZE$$'+current_module.modulename^);
-              aktprocdef.aliasnames.insert(target_info.cprefix+current_module.modulename^+'_finalize');
-              compile_proc_body(true,false);
-              codegen_doneprocedure;
+              pd:=gen_main_procsym(current_module.modulename^+'_finalize',potype_unitfinalize,st);
+              pd.aliasnames.insert('FINALIZE$$'+current_module.modulename^);
+              pd.aliasnames.insert(target_info.cprefix+current_module.modulename^+'_finalize');
+              procinfo:=voidprocpi;
+              procinfo.procdef:=pd;
+              compile_proc_body(pd,true,false);
+              procinfo.procdef:=nil;
+              pd.localst:=nil;
            end
          else if force_init_final then
            begin
-              current_module.flags:=current_module.flags or uf_finalize;
-              { now we can insert a cut }
-              if (cs_create_smart in aktmoduleswitches) then
-                codeSegment.concat(Tai_cut.Create);
-              genimplicitunitfinal(initfinalcode);
-              initfinalcode.convert_registers;
+              gen_implicit_initfinal(initfinalcode,uf_finalize,st);
               codesegment.concatlist(initfinalcode);
            end;
 
@@ -1046,10 +1089,6 @@ implementation
              ResourceStrings.WriteResourceFile(ForceExtension(current_module.ppufilename^,'.rst'));
           end;
 
-         { avoid self recursive destructor call !! PM }
-         aktprocdef.localst:=nil;
-         { absence does not matter here !! }
-         aktprocdef.forwarddef:=false;
          { test static symtable }
          if (Errorcount=0) then
            begin
@@ -1175,7 +1214,6 @@ implementation
         initfinalcode.free;
 
         Comment(V_Used,'Finished compiling module '+current_module.modulename^);
-
       end;
 
 
@@ -1185,6 +1223,7 @@ implementation
          st    : tsymtable;
          hp    : tmodule;
          initfinalcode : taasmoutput;
+         pd : tprocdef;
       begin
         initfinalcode:=taasmoutput.create;
          DLLsource:=islibrary;
@@ -1268,9 +1307,6 @@ implementation
          { load standard units (system,objpas,profile unit) }
          loaddefaultunits;
 
-         { reset }
-         lexlevel:=0;
-
          {Load the units used by the program we compile.}
          if token=_USES then
            loadunits;
@@ -1293,50 +1329,47 @@ implementation
 
          Message1(parser_u_parsing_implementation,current_module.mainsource^);
 
-         {The program intialization needs an alias, so it can be called
-          from the bootstrap code.}
-         codegen_newprocedure;
+         { The program intialization needs an alias, so it can be called
+           from the bootstrap code.}
          if islibrary then
           begin
-            gen_main_procsym(current_module.modulename^+'_main',potype_proginit,st);
-            aktprocdef.aliasnames.insert(target_info.cprefix+current_module.modulename^+'_main');
+            pd:=gen_main_procsym(current_module.modulename^+'_main',potype_proginit,st);
+            pd.aliasnames.insert(target_info.cprefix+current_module.modulename^+'_main');
             { Win32 startup code needs a single name }
 //            if (target_info.system in [system_i386_win32,system_i386_wdosx]) then
-              aktprocdef.aliasnames.insert('PASCALMAIN');
+            pd.aliasnames.insert('PASCALMAIN');
             { this code is called from C so we need to save some
               registers }
-            include(aktprocdef.procoptions,po_savestdregs);
+            include(pd.procoptions,po_savestdregs);
           end
          else
           begin
-            gen_main_procsym('main',potype_proginit,st);
-            aktprocdef.aliasnames.insert('program_init');
-            aktprocdef.aliasnames.insert('PASCALMAIN');
-            aktprocdef.aliasnames.insert(target_info.cprefix+'main');
+            pd:=gen_main_procsym('main',potype_proginit,st);
+            pd.aliasnames.insert('program_init');
+            pd.aliasnames.insert('PASCALMAIN');
+            pd.aliasnames.insert(target_info.cprefix+'main');
           end;
+         procinfo:=voidprocpi;
+         procinfo.procdef:=pd;
 {$IFDEF SPARC}
          ProcInfo.After_Header;
 {main function is declared as
   PROCEDURE main(ArgC:Integer;ArgV,EnvP:ARRAY OF PChar):Integer;CDECL;
 So, all parameters are passerd into registers in sparc architecture.}
 {$ENDIF SPARC}
-         compile_proc_body(true,false);
+         compile_proc_body(pd,true,false);
+         procinfo.procdef:=nil;
+         { remove localst, it's not needed anymore }
+         pd.localst:=nil;
 
          { should we force unit initialization? }
          if tstaticsymtable(current_module.localsymtable).needs_init_final then
            begin
-              current_module.flags:=current_module.flags or (uf_init or uf_finalize);
-              { Add initialize section }
-              if (cs_create_smart in aktmoduleswitches) then
-                codeSegment.concat(Tai_cut.Create);
-              genimplicitunitinit(initfinalcode);
-              initfinalcode.convert_registers;
+              { initialize section }
+              gen_implicit_initfinal(initfinalcode,uf_init,st);
               codesegment.concatlist(initfinalcode);
-              { Add finalize section }
-              if (cs_create_smart in aktmoduleswitches) then
-                codeSegment.concat(Tai_cut.Create);
-              genimplicitunitfinal(initfinalcode);
-              initfinalcode.convert_registers;
+              { finalize section }
+              gen_implicit_initfinal(initfinalcode,uf_finalize,st);
               codesegment.concatlist(initfinalcode);
            end;
 
@@ -1347,15 +1380,6 @@ So, all parameters are passerd into registers in sparc architecture.}
             assigned(current_module._exports.first) then
            codesegment.concat(tai_const_symbol.create(exportlib.edatalabel));
 
-         { avoid self recursive destructor call !! PM }
-         aktprocdef.localst:=nil;
-
-         { consider these symbols as global ones for browser
-           but the typecasting of the globalsymtable with tglobalsymtable
-           can then lead to problems (PFV)
-         current_module.globalsymtable:=current_module.localsymtable;
-         current_module.localsymtable:=nil;}
-
          If ResourceStrings.ResStrCount>0 then
           begin
             ResourceStrings.CreateResourceStringList;
@@ -1364,8 +1388,6 @@ So, all parameters are passerd into registers in sparc architecture.}
              ResourceStrings.WriteResourceFile(ForceExtension(current_module.ppufilename^,'.rst'));
           end;
 
-         codegen_doneprocedure;
-
          { finalize? }
          if token=_FINALIZATION then
            begin
@@ -1373,12 +1395,13 @@ So, all parameters are passerd into registers in sparc architecture.}
               current_module.flags:=current_module.flags or uf_finalize;
 
               { Compile the finalize }
-              codegen_newprocedure;
-              gen_main_procsym(current_module.modulename^+'_finalize',potype_unitfinalize,st);
-              aktprocdef.aliasnames.insert('FINALIZE$$'+current_module.modulename^);
-              aktprocdef.aliasnames.insert(target_info.cprefix+current_module.modulename^+'_finalize');
-              compile_proc_body(true,false);
-              codegen_doneprocedure;
+              pd:=gen_main_procsym(current_module.modulename^+'_finalize',potype_unitfinalize,st);
+              pd.aliasnames.insert('FINALIZE$$'+current_module.modulename^);
+              pd.aliasnames.insert(target_info.cprefix+current_module.modulename^+'_finalize');
+              procinfo:=voidprocpi;
+              procinfo.procdef:=pd;
+              compile_proc_body(pd,true,false);
+              procinfo.procdef:=nil;
            end;
 
          { consume the last point }
@@ -1469,7 +1492,15 @@ So, all parameters are passerd into registers in sparc architecture.}
 end.
 {
   $Log$
-  Revision 1.101  2003-04-23 12:35:34  florian
+  Revision 1.102  2003-04-27 07:29:50  peter
+    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+      a new procdef declaration
+    * aktprocsym removed
+    * lexlevel removed, use symtable.symtablelevel instead
+    * implicit init/final code uses the normal genentry/genexit
+    * funcret state checking updated for new funcret handling
+
+  Revision 1.101  2003/04/23 12:35:34  florian
     * fixed several issues with powerpc
     + applied a patch from Jonas for nested function calls (PowerPC only)
     * ...

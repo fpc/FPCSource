@@ -38,13 +38,13 @@ implementation
     cutils,cclasses,
     verbose,systems,globtype,globals,
     symconst,script,
-    fmodule,aasmbase,aasmtai,aasmcpu,cpubase,symsym,
+    fmodule,aasmbase,aasmtai,aasmcpu,cpubase,symsym,symdef,
     import,export,link,i_sunos;
 
   type
     timportlibsunos=class(timportlib)
       procedure preparelib(const s:string);override;
-      procedure importprocedure(const func,module:string;index:longint;const name:string);override;
+      procedure importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);override;
       procedure importvariable(vs:tvarsym;const name,module:string);override;
       procedure generatelib;override;
     end;
@@ -81,7 +81,7 @@ begin
 end;
 
 
-procedure timportlibsunos.importprocedure(const func,module : string;index : longint;const name : string);
+procedure timportlibsunos.importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);
 begin
   { insert sharedlibrary }
 {$ifDef LinkTest}
@@ -90,7 +90,9 @@ begin
   current_module.linkothersharedlibs.add(SplitName(module),link_allways);
   { do nothing with the procedure, only set the mangledname }
   if name<>'' then
-    aktprocdef.setmangledname(name)
+   begin
+     aprocdef.setmangledname(name);
+   end
   else
     message(parser_e_empty_import_name);
 end;
@@ -486,7 +488,15 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2003-04-26 09:16:08  peter
+  Revision 1.4  2003-04-27 07:29:52  peter
+    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+      a new procdef declaration
+    * aktprocsym removed
+    * lexlevel removed, use symtable.symtablelevel instead
+    * implicit init/final code uses the normal genentry/genexit
+    * funcret state checking updated for new funcret handling
+
+  Revision 1.3  2003/04/26 09:16:08  peter
     * .o files belonging to the unit are first searched in the same dir
       as the .ppu
 

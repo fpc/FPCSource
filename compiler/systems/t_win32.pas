@@ -58,11 +58,11 @@ interface
     private
       procedure win32importproc(aprocdef:tprocdef;const func,module : string;index : longint;const name : string);
       procedure importvariable_str(const s:string;const name,module:string);
+      procedure importprocedure_str(const func,module:string;index:longint;const name:string);
     public
       procedure GetDefExt(var N:longint;var P:pStr4);virtual;
       procedure preparelib(const s:string);override;
-      procedure importproceduredef(aprocdef:tprocdef;const module:string;index:longint;const name:string);override;
-      procedure importprocedure(const func,module:string;index:longint;const name:string);override;
+      procedure importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);override;
       procedure importvariable(vs:tvarsym;const name,module:string);override;
       procedure generatelib;override;
       procedure generatenasmlib;virtual;
@@ -184,13 +184,13 @@ const
       end;
 
 
-    procedure timportlibwin32.importproceduredef(aprocdef:tprocdef;const module : string;index : longint;const name : string);
+    procedure timportlibwin32.importprocedure(aprocdef:tprocdef;const module : string;index : longint;const name : string);
       begin
         win32importproc(aprocdef,aprocdef.mangledname,module,index,name);
       end;
 
 
-    procedure timportlibwin32.importprocedure(const func,module : string;index : longint;const name : string);
+    procedure timportlibwin32.importprocedure_str(const func,module : string;index : longint;const name : string);
       begin
         win32importproc(nil,func,module,index,name);
       end;
@@ -1482,7 +1482,7 @@ function tDLLScannerWin32.GetEdata(HeaderEntry:cardinal):longbool;
    if IsData then
     timportlibwin32(importlib).importvariable_str(name,_n,name)
    else
-    importlib.importprocedure(name,_n,index,name);
+    timportlibwin32(importlib).importprocedure_str(name,_n,index,name);
   end;
 
  procedure ProcessEdata;
@@ -1628,7 +1628,15 @@ initialization
 end.
 {
   $Log$
-  Revision 1.13  2003-04-26 09:16:08  peter
+  Revision 1.14  2003-04-27 07:29:52  peter
+    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+      a new procdef declaration
+    * aktprocsym removed
+    * lexlevel removed, use symtable.symtablelevel instead
+    * implicit init/final code uses the normal genentry/genexit
+    * funcret state checking updated for new funcret handling
+
+  Revision 1.13  2003/04/26 09:16:08  peter
     * .o files belonging to the unit are first searched in the same dir
       as the .ppu
 

@@ -48,6 +48,13 @@ implementation
 {$endif}
       ;
 
+    const
+      { Please leave this here, this module should NOT use
+        these variables.
+        Declaring it as string here results in an error when compiling (PFV) }
+      aktprocdef = 'error';
+
+
     function object_dec(const n : stringid;fd : tobjectdef) : tdef;
     { this function parses an object or class declaration }
       var
@@ -56,32 +63,25 @@ implementation
          childof : tobjectdef;
          aktclass : tobjectdef;
 
-      procedure constructor_head;
-
+      function constructor_head:tprocdef;
+        var
+          pd : tprocdef;
         begin
            consume(_CONSTRUCTOR);
            { must be at same level as in implementation }
-           inc(lexlevel);
-           parse_proc_head(potype_constructor);
-           dec(lexlevel);
-
-           if (cs_constructor_name in aktglobalswitches) and (aktprocsym.name<>'INIT') then
-            Message(parser_e_constructorname_must_be_init);
-
-           include(aktclass.objectoptions,oo_has_constructor);
+           pd:=parse_proc_head(aktclass,potype_constructor);
+           if (cs_constructor_name in aktglobalswitches) and
+              (pd.procsym.name<>'INIT') then
+             Message(parser_e_constructorname_must_be_init);
            consume(_SEMICOLON);
-             begin
-                if is_class(aktclass) then
-                  begin
-                     { CLASS constructors return the created instance }
-                     aktprocdef.rettype.def:=aktclass;
-                  end
-                else
-                  begin
-                     { OBJECT constructors return a boolean }
-                     aktprocdef.rettype:=booltype;
-                  end;
-             end;
+           include(aktclass.objectoptions,oo_has_constructor);
+           { Set return type, class constructors return the
+             created instance, object constructors return boolean }
+           if is_class(pd._class) then
+            pd.rettype.setdef(pd._class)
+           else
+            pd.rettype:=booltype;
+           constructor_head:=pd;
         end;
 
 
@@ -220,8 +220,6 @@ implementation
            writeprocdef : tprocvardef;
         begin
            { check for a class }
-           aktprocsym:=nil;
-           aktprocdef:=nil;
            if not((is_class_or_interface(aktclass)) or
               ((m_delphi in aktmodeswitches) and (is_object(aktclass)))) then
              Message(parser_e_syntax_error);
@@ -231,8 +229,8 @@ implementation
              procedures. the readprocdef will store all definitions }
            oldregisterdef:=registerdef;
            registerdef:=false;
-           readprocdef:=tprocvardef.create;
-           writeprocdef:=tprocvardef.create;
+           readprocdef:=tprocvardef.create(normal_function_level);
+           writeprocdef:=tprocvardef.create(normal_function_level);
            registerdef:=oldregisterdef;
 
            if token<>_ID then
@@ -384,8 +382,7 @@ implementation
                        { read is function returning the type of the property }
                        readprocdef.rettype:=p.proptype;
                        { Insert hidden parameters }
-                       insert_hidden_para(readprocdef);
-                       insert_funcret_para(readprocdef);
+                       calc_parast(readprocdef);
                        { search procdefs matching readprocdef }
                        pd:=Tprocsym(sym).search_procdef_bypara(readprocdef.para,p.proptype.def,true,false);
                        if not(assigned(pd)) then
@@ -428,8 +425,7 @@ implementation
                        writeprocdef.parast.insert(hvs);
                        writeprocdef.concatpara(nil,p.proptype,hvs,vs_value,nil);
                        { Insert hidden parameters }
-                       insert_hidden_para(writeprocdef);
-                       insert_funcret_para(writeprocdef);
+                       calc_parast(writeprocdef);
                        { search procdefs matching writeprocdef }
                        pd:=Tprocsym(sym).search_procdef_bypara(writeprocdef.para,writeprocdef.rettype.def,true,false);
                        if not(assigned(pd)) then
@@ -551,21 +547,23 @@ implementation
         end;
 
 
-      procedure destructor_head;
+      function destructor_head:tprocdef;
+        var
+          pd : tprocdef;
         begin
            consume(_DESTRUCTOR);
-           inc(lexlevel);
-           parse_proc_head(potype_destructor);
-           dec(lexlevel);
-           if (cs_constructor_name in aktglobalswitches) and (aktprocsym.name<>'DONE') then
-            Message(parser_e_destructorname_must_be_done);
-           include(aktclass.objectoptions,oo_has_destructor);
+           pd:=parse_proc_head(aktclass,potype_destructor);
+           if (cs_constructor_name in aktglobalswitches) and
+              (pd.procsym.name<>'DONE') then
+             Message(parser_e_destructorname_must_be_done);
+           if not(pd.Para.empty) and
+              (m_fpc in aktmodeswitches) then
+             Message(parser_e_no_paras_for_destructor);
            consume(_SEMICOLON);
-           if not(aktprocdef.Para.empty) then
-             if (m_fpc in aktmodeswitches) then
-               Message(parser_e_no_paras_for_destructor);
+           include(aktclass.objectoptions,oo_has_destructor);
            { no return value }
-           aktprocdef.rettype:=voidtype;
+           pd.rettype:=voidtype;
+           destructor_head:=pd;
         end;
 
       var
@@ -574,8 +572,6 @@ implementation
          tt     : ttype;
          old_object_option : tsymoptions;
          oldprocinfo : tprocinfo;
-         oldprocsym : tprocsym;
-         oldprocdef : tprocdef;
          oldparse_only : boolean;
          storetypecanbeforward : boolean;
 
@@ -900,22 +896,18 @@ implementation
                end;
         end;
 
-      procedure chkcpp;
-
+        procedure chkcpp(pd:tprocdef);
         begin
-           if is_cppclass(aktclass) then
-             begin
-                aktprocdef.proccalloption:=pocall_cppdecl;
-                aktprocdef.setmangledname(
-                  target_info.Cprefix+aktprocdef.cplusplusmangledname);
-             end;
+           if is_cppclass(pd._class) then
+            begin
+              pd.proccalloption:=pocall_cppdecl;
+              pd.setmangledname(target_info.Cprefix+pd.cplusplusmangledname);
+            end;
         end;
 
+      var
+        pd : tprocdef;
       begin
-         {Nowadays aktprocsym may already have a value, so we need to save
-          it.}
-         oldprocdef:=aktprocdef;
-         oldprocsym:=aktprocsym;
          old_object_option:=current_object_option;
 
          { forward is resolved }
@@ -957,7 +949,6 @@ implementation
          { new procinfo }
          oldprocinfo:=procinfo;
          procinfo:=cprocinfo.create;
-         procinfo._class:=aktclass;
 
          { short class declaration ? }
          if (classtype<>odt_class) or (token<>_SEMICOLON) then
@@ -1023,32 +1014,34 @@ implementation
                 _CLASS :
                   begin
                     if (sp_published in current_object_option) and
-                      not(oo_can_have_published in aktclass.objectoptions) then
+                       not(oo_can_have_published in aktclass.objectoptions) then
                       Message(parser_e_cant_have_published);
 
                     oldparse_only:=parse_only;
                     parse_only:=true;
-                    parse_proc_dec;
+                    pd:=parse_proc_dec(aktclass);
+
                     { this is for error recovery as well as forward }
                     { interface mappings, i.e. mapping to a method  }
                     { which isn't declared yet                      }
-                    if assigned(aktprocsym) then
-                      begin
-                          parse_object_proc_directives(aktprocsym);
+                    if assigned(pd) then
+                     begin
+                       parse_object_proc_directives(pd);
+                       calc_parast(pd);
 
-                          { add definition to procsym }
-                          proc_add_definition(aktprocsym,aktprocdef);
+                       { add definition to procsym }
+                       proc_add_definition(pd);
 
-                          { add procdef options to objectdef options }
-                          if (po_msgint in aktprocdef.procoptions) then
-                           include(aktclass.objectoptions,oo_has_msgint);
-                          if (po_msgstr in aktprocdef.procoptions) then
-                            include(aktclass.objectoptions,oo_has_msgstr);
-                          if (po_virtualmethod in aktprocdef.procoptions) then
-                            include(aktclass.objectoptions,oo_has_virtual);
+                       { add procdef options to objectdef options }
+                       if (po_msgint in pd.procoptions) then
+                        include(aktclass.objectoptions,oo_has_msgint);
+                       if (po_msgstr in pd.procoptions) then
+                         include(aktclass.objectoptions,oo_has_msgstr);
+                       if (po_virtualmethod in pd.procoptions) then
+                         include(aktclass.objectoptions,oo_has_virtual);
 
-                          chkcpp;
-                       end;
+                       chkcpp(pd);
+                     end;
 
                     parse_only:=oldparse_only;
                   end;
@@ -1066,18 +1059,17 @@ implementation
 
                     oldparse_only:=parse_only;
                     parse_only:=true;
-                    constructor_head;
-                    parse_object_proc_directives(aktprocsym);
+                    pd:=constructor_head;
+                    parse_object_proc_directives(pd);
+                    calc_parast(pd);
 
                     { add definition to procsym }
-                    proc_add_definition(aktprocsym,aktprocdef);
+                    proc_add_definition(pd);
 
                     { add procdef options to objectdef options }
-                    if (po_virtualmethod in aktprocdef.procoptions) then
+                    if (po_virtualmethod in pd.procoptions) then
                       include(aktclass.objectoptions,oo_has_virtual);
-
-                    chkcpp;
-
+                    chkcpp(pd);
                     parse_only:=oldparse_only;
                   end;
                 _DESTRUCTOR :
@@ -1098,17 +1090,18 @@ implementation
                     there_is_a_destructor:=true;
                     oldparse_only:=parse_only;
                     parse_only:=true;
-                    destructor_head;
-                    parse_object_proc_directives(aktprocsym);
+                    pd:=destructor_head;
+                    parse_object_proc_directives(pd);
+                    calc_parast(pd);
 
                     { add definition to procsym }
-                    proc_add_definition(aktprocsym,aktprocdef);
+                    proc_add_definition(pd);
 
                     { add procdef options to objectdef options }
-                    if (po_virtualmethod in aktprocdef.procoptions) then
+                    if (po_virtualmethod in pd.procoptions) then
                       include(aktclass.objectoptions,oo_has_virtual);
 
-                    chkcpp;
+                    chkcpp(pd);
 
                     parse_only:=oldparse_only;
                   end;
@@ -1143,9 +1136,6 @@ implementation
          {Restore procinfo}
          procinfo.free;
          procinfo:=oldprocinfo;
-         {Restore the aktprocsym.}
-         aktprocsym:=oldprocsym;
-         aktprocdef:=oldprocdef;
          current_object_option:=old_object_option;
 
          object_dec:=aktclass;
@@ -1154,7 +1144,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.61  2003-04-26 00:32:37  peter
+  Revision 1.62  2003-04-27 07:29:50  peter
+    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+      a new procdef declaration
+    * aktprocsym removed
+    * lexlevel removed, use symtable.symtablelevel instead
+    * implicit init/final code uses the normal genentry/genexit
+    * funcret state checking updated for new funcret handling
+
+  Revision 1.61  2003/04/26 00:32:37  peter
     * start search for overriden properties in the parent class
 
   Revision 1.60  2003/04/25 20:59:33  peter

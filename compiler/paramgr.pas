@@ -40,12 +40,6 @@ unit paramgr;
        tparamanager = class
           {# Returns true if the return value can be put in accumulator }
           function ret_in_acc(def : tdef;calloption : tproccalloption) : boolean;virtual;
-          {# Returns true if the return value is put in a register
-
-             Either a floating point register, or a general purpose
-             register.
-          }
-          function ret_in_reg(def : tdef;calloption : tproccalloption) : boolean;virtual;
 
           {# Returns true if the return value is actually a parameter
              pointer.
@@ -131,10 +125,6 @@ unit paramgr;
                      ((def.deftype=setdef) and (tsetdef(def).settype=smallset));
       end;
 
-    function tparamanager.ret_in_reg(def : tdef;calloption : tproccalloption) : boolean;
-      begin
-        ret_in_reg:=ret_in_acc(def,calloption) or (def.deftype=floatdef);
-      end;
 
     { true if uses a parameter as return value }
     function tparamanager.ret_in_param(def : tdef;calloption : tproccalloption) : boolean;
@@ -308,7 +298,7 @@ unit paramgr;
              end;
           else
              begin
-                if ret_in_reg(def,calloption) then
+                if ret_in_acc(def,calloption) then
                   begin
                     result.loc := LOC_REGISTER;
                     result.register.enum := accumulator;
@@ -346,7 +336,7 @@ unit paramgr;
           its useless to continue on in this
           routine
         }
-        if not paramanager.ret_in_reg(def,calloption) then
+        if paramanager.ret_in_param(def,calloption) then
           exit;
         paramloc := paramanager.getfuncresultloc(def,calloption);
         case paramloc.loc of
@@ -412,7 +402,15 @@ end.
 
 {
    $Log$
-   Revision 1.34  2003-04-23 13:15:04  peter
+   Revision 1.35  2003-04-27 07:29:50  peter
+     * aktprocdef cleanup, aktprocdef is now always nil when parsing
+       a new procdef declaration
+     * aktprocsym removed
+     * lexlevel removed, use symtable.symtablelevel instead
+     * implicit init/final code uses the normal genentry/genexit
+     * funcret state checking updated for new funcret handling
+
+   Revision 1.34  2003/04/23 13:15:04  peter
      * fix push_high_param for cdecl
 
    Revision 1.33  2003/04/23 10:14:30  peter

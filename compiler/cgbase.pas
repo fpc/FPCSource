@@ -66,8 +66,6 @@ unit cgbase;
        tprocinfo = class
           { pointer to parent in nested procedures }
           parent : tprocinfo;
-          {# current class, if we are in a method }
-          _class : tobjectdef;
           {# the definition of the routine itself }
           procdef : tprocdef;
           {# offset from frame pointer to get parent frame pointer reference
@@ -85,8 +83,6 @@ unit cgbase;
           return_offset : longint;
           {# firsttemp position }
           firsttemp_offset : longint;
-          {# offset from frame pointer to parameters }
-          para_offset : longint;
 
           {# some collected informations about the procedure
              see pi_xxxx constants above
@@ -157,6 +153,8 @@ unit cgbase;
           destructor destroy;override;
 
           procedure allocate_interrupt_stackframe;virtual;
+
+          procedure allocate_implicit_parameter;virtual;
 
           { Does the necessary stuff before a procedure body is compiled }
           procedure handle_body_start;virtual;
@@ -229,10 +227,8 @@ unit cgbase;
 
     { initialize respectively terminates the code generator }
     { for a new module or procedure                      }
-    procedure codegen_doneprocedure;
-    procedure codegen_donemodule;
     procedure codegen_newmodule;
-    procedure codegen_newprocedure;
+    procedure codegen_donemodule;
 
     {# From a definition return the abstract code generator size enum. It is
        to note that the value returned can be @var(OS_NO) }
@@ -377,7 +373,6 @@ implementation
     constructor tprocinfo.create;
       begin
         parent:=nil;
-        _class:=nil;
         procdef:=nil;
         framepointer_offset:=0;
         selfpointer_offset:=0;
@@ -385,7 +380,6 @@ implementation
         inheritedflag_offset:=0;
         return_offset:=0;
         firsttemp_offset:=0;
-        para_offset:=0;
         flags:=0;
         framepointer.enum:=R_NO;
         framepointer.number:=NR_NO;
@@ -430,7 +424,7 @@ implementation
          { because we don't know yet where the address is }
          if not is_void(procdef.rettype.def) then
            begin
-              if paramanager.ret_in_reg(procdef.rettype.def,procdef.proccalloption) then
+              if not paramanager.ret_in_param(procdef.rettype.def,procdef.proccalloption) then
                 begin
                    rg.usedinproc := rg.usedinproc +
                       getfuncretusedregisters(procdef.rettype.def,procdef.proccalloption);
@@ -439,16 +433,65 @@ implementation
       end;
 
 
+    procedure tprocinfo.allocate_implicit_parameter;
+      begin
+         { Insert implicit parameters, will be removed in the future }
+         if (procdef.parast.symtablelevel>normal_function_level) then
+           begin
+              framepointer_offset:=procdef.parast.address_fixup;
+              inc(procdef.parast.address_fixup,POINTER_SIZE);
+           end;
+         if assigned(procdef._class) then
+           begin
+              { self pointer offset, must be done after parsing the parameters }
+              { self isn't pushed in nested procedure of methods }
+              if not(po_containsself in procdef.procoptions) and
+                 (procdef.parast.symtablelevel=normal_function_level) then
+               begin
+                 selfpointer_offset:=procdef.parast.address_fixup;
+                 inc(procdef.parast.address_fixup,POINTER_SIZE);
+               end;
+
+              { Special parameters for de-/constructors }
+              case procdef.proctypeoption of
+                potype_constructor :
+                  begin
+                    vmtpointer_offset:=procdef.parast.address_fixup;
+                    inc(procdef.parast.address_fixup,POINTER_SIZE);
+                  end;
+                potype_destructor :
+                  begin
+                    if is_object(procdef._class) then
+                     begin
+                       vmtpointer_offset:=procdef.parast.address_fixup;
+                       inc(procdef.parast.address_fixup,POINTER_SIZE);
+                     end
+                    else
+                     if is_class(procdef._class) then
+                      begin
+                        inheritedflag_offset:=procdef.parast.address_fixup;
+                        inc(procdef.parast.address_fixup,POINTER_SIZE);
+                      end
+                    else
+                     internalerror(200303261);
+                  end;
+              end;
+           end;
+      end;
+
+
     procedure tprocinfo.after_header;
       begin
-        if assigned(procdef.funcretsym) then
-         begin
-           procinfo.return_offset:=tvarsym(procdef.funcretsym).address+
-                                  tvarsym(procdef.funcretsym).owner.address_fixup;
-           if tvarsym(procdef.funcretsym).owner.symtabletype=localsymtable then
-            procinfo.return_offset:=tg.direction*procinfo.return_offset;
-         end;
+         { Retrieve function result offset }
+         if assigned(procdef.funcretsym) then
+           begin
+             procinfo.return_offset:=tvarsym(procdef.funcretsym).address+
+                                     tvarsym(procdef.funcretsym).owner.address_fixup;
+             if tvarsym(procdef.funcretsym).owner.symtabletype=localsymtable then
+              procinfo.return_offset:=tg.direction*procinfo.return_offset;
+           end;
       end;
+
 
     procedure tprocinfo.after_pass1;
       begin
@@ -458,33 +501,6 @@ implementation
 {*****************************************************************************
          initialize/terminate the codegen for procedure and modules
 *****************************************************************************}
-
-    procedure codegen_newprocedure;
-      begin
-         aktbreaklabel:=nil;
-         aktcontinuelabel:=nil;
-         { aktexitlabel:=0; is store in oldaktexitlabel
-           so it must not be reset to zero before this storage !}
-         { new procinfo }
-         procinfo:=cprocinfo.create;
-{$ifdef fixLeaksOnError}
-         procinfoStack.push(procinfo);
-{$endif fixLeaksOnError}
-      end;
-
-
-
-    procedure codegen_doneprocedure;
-      begin
-{$ifdef fixLeaksOnError}
-         if procinfo <> procinfoStack.pop then
-           writeln('problem with procinfoStack!');
-{$endif fixLeaksOnError}
-         procinfo.free;
-         procinfo:=nil;
-      end;
-
-
 
     procedure codegen_newmodule;
       begin
@@ -504,14 +520,6 @@ implementation
          ResourceStrings:=TResourceStrings.Create;
          { use the librarydata from current_module }
          objectlibrary:=current_module.librarydata;
-         { for the implicitly generated init/final. procedures for global init. variables,
-           a dummy procinfo is necessary }
-         voidprocpi:=cprocinfo.create;
-         with voidprocpi do
-           begin
-              framepointer.enum:=R_INTREGISTER;
-              framepointer.number:=NR_FRAME_POINTER_REG;
-           end;
       end;
 
 
@@ -546,7 +554,6 @@ implementation
          { resource strings }
          ResourceStrings.free;
          objectlibrary:=nil;
-         // voidprocpi.free;
       end;
 
 
@@ -666,7 +673,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2003-04-26 00:31:42  peter
+  Revision 1.44  2003-04-27 07:29:50  peter
+    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+      a new procdef declaration
+    * aktprocsym removed
+    * lexlevel removed, use symtable.symtablelevel instead
+    * implicit init/final code uses the normal genentry/genexit
+    * funcret state checking updated for new funcret handling
+
+  Revision 1.43  2003/04/26 00:31:42  peter
     * set return_offset moved to after_header
 
   Revision 1.42  2003/04/25 20:59:33  peter

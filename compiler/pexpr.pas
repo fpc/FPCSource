@@ -1075,7 +1075,7 @@ implementation
                       also has objectsymtable. And withsymtable is
                       not possible for self in class methods (PFV) }
                     if (srsymtable.symtabletype=objectsymtable) and
-                       assigned(aktprocsym) and
+                       assigned(aktprocdef) and
                        (po_classmethod in aktprocdef.procoptions) then
                       Message(parser_e_only_class_methods);
                     if (sp_static in srsym.symoptions) then
@@ -1125,10 +1125,10 @@ implementation
                          begin
                            consume(_POINT);
                            if assigned(procinfo) and
-                              assigned(procinfo._class) and
+                              assigned(procinfo.procdef._class) and
                               not(getaddr) then
                             begin
-                              if procinfo._class.is_related(tobjectdef(htype.def)) then
+                              if procinfo.procdef._class.is_related(tobjectdef(htype.def)) then
                                begin
                                  p1:=ctypenode.create(htype);
                                  { search also in inherited methods }
@@ -1262,7 +1262,7 @@ implementation
                     { are we in a class method ? }
                     possible_error:=(srsym.owner.symtabletype=objectsymtable) and
                                     not(is_interface(tdef(srsym.owner.defowner))) and
-                                    assigned(aktprocsym) and
+                                    assigned(aktprocdef) and
                                     (po_classmethod in aktprocdef.procoptions);
                     do_proc_call(srsym,srsymtable,
                                  (getaddr and not(token in [_CARET,_POINT])),
@@ -1281,7 +1281,7 @@ implementation
                     { access to property in a method }
                     { are we in a class method ? }
                     if (srsym.owner.symtabletype=objectsymtable) and
-                       assigned(aktprocsym) and
+                       assigned(aktprocdef) and
                        (po_classmethod in aktprocdef.procoptions) then
                      Message(parser_e_only_class_methods);
                     { no method pointer }
@@ -1677,17 +1677,18 @@ implementation
       ---------------------------------------------}
 
       var
-         l      : longint;
-         card   : cardinal;
-         ic     : TConstExprInt;
+         l        : longint;
+         card     : cardinal;
+         ic       : TConstExprInt;
          oldp1,
-         p1     : tnode;
-         code   : integer;
+         p1       : tnode;
+         code     : integer;
          again    : boolean;
          sym      : tsym;
+         pd       : tprocdef;
          classh   : tobjectdef;
-         d      : bestreal;
-         hs : string;
+         d        : bestreal;
+         hs       : string;
          htype    : ttype;
          filepos  : tfileposinfo;
 
@@ -1728,7 +1729,7 @@ implementation
              begin
                again:=true;
                consume(_SELF);
-               if not assigned(procinfo._class) then
+               if not assigned(procinfo.procdef._class) then
                 begin
                   p1:=cerrornode.create;
                   again:=false;
@@ -1739,11 +1740,11 @@ implementation
                   if (po_classmethod in aktprocdef.procoptions) then
                    begin
                      { self in class methods is a class reference type }
-                     htype.setdef(procinfo._class);
+                     htype.setdef(procinfo.procdef._class);
                      p1:=cselfnode.create(tclassrefdef.create(htype));
                    end
                   else
-                   p1:=cselfnode.create(procinfo._class);
+                   p1:=cselfnode.create(procinfo.procdef._class);
                   postfixoperators(p1,again);
                 end;
              end;
@@ -1752,22 +1753,23 @@ implementation
              begin
                again:=true;
                consume(_INHERITED);
-               if assigned(procinfo._class) then
+               if assigned(aktprocdef._class) then
                 begin
-                  classh:=procinfo._class.childof;
+                  classh:=aktprocdef._class.childof;
                   { if inherited; only then we need the method with
                     the same name }
                   if token in endtokens then
                    begin
-                     hs:=aktprocsym.name;
+                     hs:=aktprocdef.procsym.name;
                      anon_inherited:=true;
                      { For message methods we need to search using the message
                        number or string }
-                     if (po_msgint in aktprocsym.first_procdef.procoptions) then
-                      sym:=searchsym_in_class_by_msgint(classh,aktprocsym.first_procdef.messageinf.i)
+                     pd:=tprocsym(aktprocdef.procsym).first_procdef;
+                     if (po_msgint in pd.procoptions) then
+                      sym:=searchsym_in_class_by_msgint(classh,pd.messageinf.i)
                      else
-                      if (po_msgstr in aktprocsym.first_procdef.procoptions) then
-                       sym:=searchsym_in_class_by_msgstr(classh,aktprocsym.first_procdef.messageinf.str)
+                      if (po_msgstr in pd.procoptions) then
+                       sym:=searchsym_in_class_by_msgstr(classh,pd.messageinf.str)
                      else
                       sym:=searchsym_in_class(classh,hs);
                    end
@@ -2311,7 +2313,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.111  2003-04-26 00:33:07  peter
+  Revision 1.112  2003-04-27 07:29:50  peter
+    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+      a new procdef declaration
+    * aktprocsym removed
+    * lexlevel removed, use symtable.symtablelevel instead
+    * implicit init/final code uses the normal genentry/genexit
+    * funcret state checking updated for new funcret handling
+
+  Revision 1.111  2003/04/26 00:33:07  peter
     * vo_is_result flag added for the special RESULT symbol
 
   Revision 1.110  2003/04/25 20:59:33  peter

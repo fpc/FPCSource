@@ -378,50 +378,44 @@ implementation
                    end;
               end;
             varsym :
-                begin
-                  if (symtable.symtabletype in [parasymtable,localsymtable]) and
-                      (lexlevel>symtable.symtablelevel) then
+              begin
+                if (symtable.symtabletype in [parasymtable,localsymtable]) and
+                   (aktprocdef.parast.symtablelevel>symtable.symtablelevel) then
+                  begin
+                    { if the variable is in an other stackframe then we need
+                      a register to dereference }
+                    if symtable.symtablelevel>normal_function_level then
                      begin
-                       { if the variable is in an other stackframe then we need
-                         a register to dereference }
-                       if (symtable.symtablelevel)>0 then
-                        begin
-                          registers32:=1;
-                          { further, the variable can't be put into a register }
-                          tvarsym(symtableentry).varoptions:=
-                            tvarsym(symtableentry).varoptions-[vo_fpuregable,vo_regable];
-                        end;
+                       registers32:=1;
+                       { further, the variable can't be put into a register }
+                       tvarsym(symtableentry).varoptions:=
+                         tvarsym(symtableentry).varoptions-[vo_fpuregable,vo_regable];
                      end;
-                   if (tvarsym(symtableentry).varspez=vs_const) then
-                     expectloc:=LOC_CREFERENCE;
-                   { we need a register for call by reference parameters }
-                   if (tvarsym(symtableentry).varspez in [vs_var,vs_out]) or
-                      ((tvarsym(symtableentry).varspez=vs_const) and
-                      paramanager.push_addr_param(tvarsym(symtableentry).vartype.def,pocall_none)) or
-                      { call by value open arrays are also indirect addressed }
-                      is_open_array(tvarsym(symtableentry).vartype.def) then
-                     registers32:=1;
-                   if symtable.symtabletype in [withsymtable,objectsymtable] then
-                     inc(registers32);
+                  end;
+                if (tvarsym(symtableentry).varspez=vs_const) then
+                  expectloc:=LOC_CREFERENCE;
+                { we need a register for call by reference parameters }
+                if (tvarsym(symtableentry).varspez in [vs_var,vs_out]) or
+                   ((tvarsym(symtableentry).varspez=vs_const) and
+                    paramanager.push_addr_param(tvarsym(symtableentry).vartype.def,pocall_none)) or
+                    { call by value open arrays are also indirect addressed }
+                    is_open_array(tvarsym(symtableentry).vartype.def) then
+                  registers32:=1;
+                if symtable.symtabletype in [withsymtable,objectsymtable] then
+                  inc(registers32);
 
-                   if ([vo_is_thread_var,vo_is_dll_var]*tvarsym(symtableentry).varoptions)<>[] then
-                     registers32:=1;
-                    if nf_write in flags then
-                      Tvarsym(symtableentry).trigger_notifications(vn_onwrite)
-                    else
-                      Tvarsym(symtableentry).trigger_notifications(vn_onread);
-                   { count variable references }
-
-                     { this will create problem with local var set by
-                     under_procedures
-                     if (assigned(tvarsym(symtableentry).owner) and assigned(aktprocsym)
-                       and ((tvarsym(symtableentry).owner = aktprocdef.localst)
-                       or (tvarsym(symtableentry).owner = aktprocdef.localst))) then }
-                   if rg.t_times<1 then
-                     inc(tvarsym(symtableentry).refs)
-                   else
-                     inc(tvarsym(symtableentry).refs,rg.t_times);
-                end;
+                if ([vo_is_thread_var,vo_is_dll_var]*tvarsym(symtableentry).varoptions)<>[] then
+                  registers32:=1;
+                if nf_write in flags then
+                  Tvarsym(symtableentry).trigger_notifications(vn_onwrite)
+                else
+                  Tvarsym(symtableentry).trigger_notifications(vn_onread);
+                { count variable references }
+                if rg.t_times<1 then
+                  inc(tvarsym(symtableentry).refs)
+                else
+                  inc(tvarsym(symtableentry).refs,rg.t_times);
+              end;
             typedconstsym :
                 ;
             procsym :
@@ -1135,7 +1129,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.88  2003-04-26 00:28:42  peter
+  Revision 1.89  2003-04-27 07:29:50  peter
+    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+      a new procdef declaration
+    * aktprocsym removed
+    * lexlevel removed, use symtable.symtablelevel instead
+    * implicit init/final code uses the normal genentry/genexit
+    * funcret state checking updated for new funcret handling
+
+  Revision 1.88  2003/04/26 00:28:42  peter
     * removed load_funcret
 
   Revision 1.87  2003/04/25 20:59:33  peter

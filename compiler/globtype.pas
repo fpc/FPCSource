@@ -139,8 +139,7 @@ interface
          pocall_pascal,        { pascal standard left to right }
          pocall_register,      { procedure uses register (fastcall) calling }
          pocall_safecall,      { safe call calling conventions }
-         pocall_stdcall,       { procedure uses stdcall call }
-         pocall_system         { system call }
+         pocall_stdcall        { procedure uses stdcall call }
        );
        tproccalloptions = set of tproccalloption;
 
@@ -157,8 +156,7 @@ interface
            'Pascal',
            'Register',
            'SafeCall',
-           'StdCall',
-           'System'
+           'StdCall'
          );
 
     type
@@ -210,7 +208,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  2003-04-22 23:50:22  peter
+  Revision 1.37  2003-04-27 07:29:50  peter
+    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+      a new procdef declaration
+    * aktprocsym removed
+    * lexlevel removed, use symtable.symtablelevel instead
+    * implicit init/final code uses the normal genentry/genexit
+    * funcret state checking updated for new funcret handling
+
+  Revision 1.36  2003/04/22 23:50:22  peter
     * firstpass uses expectloc
     * checks if there are differences between the expectloc and
       location.loc from secondpass in EXTDEBUG

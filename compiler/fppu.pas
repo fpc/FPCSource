@@ -985,6 +985,10 @@ uses
          crc:=ppufile.crc;
          interface_crc:=ppufile.interface_crc;
 
+         { end of implementation, to generate a correct ppufile
+           for ppudump when using INTFPPU define }
+         ppufile.writeentry(ibendimplementation);
+
 {$ifdef Test_Double_checksum}
          crc_array:=ppufile.crc_test;
          ppufile.crc_test:=nil;
@@ -1338,7 +1342,15 @@ uses
 end.
 {
   $Log$
-  Revision 1.31  2003-04-26 00:30:52  peter
+  Revision 1.32  2003-04-27 07:29:50  peter
+    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+      a new procdef declaration
+    * aktprocsym removed
+    * lexlevel removed, use symtable.symtablelevel instead
+    * implicit init/final code uses the normal genentry/genexit
+    * funcret state checking updated for new funcret handling
+
+  Revision 1.31  2003/04/26 00:30:52  peter
     * reset aktfilepos when setting new module for compile
 
   Revision 1.30  2003/03/27 17:44:13  peter

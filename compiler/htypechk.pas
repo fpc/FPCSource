@@ -574,7 +574,8 @@ implementation
     { local routines can't be assigned to procvars }
     procedure test_local_to_procvar(from_def:tprocvardef;to_def:tdef);
       begin
-         if (from_def.symtablelevel>1) and (to_def.deftype=procvardef) then
+         if (from_def.parast.symtablelevel>normal_function_level) and
+            (to_def.deftype=procvardef) then
            CGMessage(type_e_cannot_local_proc_to_procvar);
       end;
 
@@ -630,8 +631,8 @@ implementation
                           (hsym.varstate=vs_set_but_first_not_passed) then
                         begin
                           if (assigned(hsym.owner) and
-                             assigned(aktprocsym) and
-                             (hsym.owner = aktprocdef.localst)) then
+                              assigned(aktprocdef) and
+                              (hsym.owner=aktprocdef.localst)) then
                            begin
                              if (vo_is_funcret in hsym.varoptions) then
                                CGMessage(sym_w_function_result_not_set)
@@ -997,7 +998,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.60  2003-04-25 20:59:33  peter
+  Revision 1.61  2003-04-27 07:29:50  peter
+    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+      a new procdef declaration
+    * aktprocsym removed
+    * lexlevel removed, use symtable.symtablelevel instead
+    * implicit init/final code uses the normal genentry/genexit
+    * funcret state checking updated for new funcret handling
+
+  Revision 1.60  2003/04/25 20:59:33  peter
     * removed funcretn,funcretsym, function result is now in varsym
       and aliases for result and function name are added using absolutesym
     * vs_hidden parameter for funcret passed in parameter

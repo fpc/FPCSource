@@ -735,13 +735,13 @@ Begin
   if (not is_void(aktprocdef.rettype.def)) then
    begin
      if (m_tp7 in aktmodeswitches) and
-        paramanager.ret_in_reg(aktprocdef.rettype.def,aktprocdef.proccalloption) then
+        (not paramanager.ret_in_param(aktprocdef.rettype.def,aktprocdef.proccalloption)) then
        begin
          Message(asmr_e_cannot_use_RESULT_here);
          exit;
        end;
      opr.ref.offset:=procinfo.return_offset;
-     opr.ref.base:= procinfo.framepointer;
+     opr.ref.base:=procinfo.framepointer;
      opr.ref.options:=ref_parafixup;
      { always assume that the result is valid. }
      tvarsym(aktprocdef.funcretsym).varstate:=vs_assigned;
@@ -758,7 +758,7 @@ end;
 Function TOperand.SetupSelf:boolean;
 Begin
   SetupSelf:=false;
-  if assigned(procinfo._class) then
+  if assigned(aktprocdef._class) then
    Begin
      opr.typ:=OPR_REFERENCE;
      opr.ref.offset:=procinfo.selfpointer_offset;
@@ -774,7 +774,7 @@ end;
 Function TOperand.SetupOldEBP:boolean;
 Begin
   SetupOldEBP:=false;
-  if lexlevel>normal_function_level then
+  if aktprocdef.parast.symtablelevel>normal_function_level then
    Begin
      opr.typ:=OPR_REFERENCE;
      opr.ref.offset:=procinfo.framepointer_offset;
@@ -825,11 +825,7 @@ Begin
             begin
               { if we only want the offset we don't have to care
                 the base will be zeroed after ! }
-              if (lexlevel=tvarsym(sym).owner.symtablelevel) or
-              { this below is wrong because there are two parast
-                for global functions one of interface the second of
-                implementation
-              if (tvarsym(sym).owner=procinfo.def.parast) or }
+              if (tvarsym(sym).owner=aktprocdef.parast) or
                 GetOffset then
                 begin
                   opr.ref.base:=procinfo.framepointer;
@@ -838,16 +834,14 @@ Begin
                 begin
                   if (aktprocdef.localst.datasize=0) and
                      assigned(procinfo.parent) and
-                     (lexlevel=tvarsym(sym).owner.symtablelevel+1) and
-                     { same problem as above !!
-                     (procinfo.parent^.sym.definition.parast=tvarsym(sym).owner) and }
-                     (lexlevel>normal_function_level) then
+                     (tvarsym(sym).owner=aktprocdef.parast) and
+                     (aktprocdef.parast.symtablelevel>normal_function_level) then
                     opr.ref.base:=procinfo.parent.framepointer
                   else
                     message1(asmr_e_local_para_unreachable,s);
                 end;
               opr.ref.offset:=tvarsym(sym).address;
-              if (lexlevel=tvarsym(sym).owner.symtablelevel) then
+              if (aktprocdef.parast.symtablelevel=tvarsym(sym).owner.symtablelevel) then
                 begin
                   opr.ref.offsetfixup:=aktprocdef.parast.address_fixup;
                   opr.ref.options:=ref_parafixup;
@@ -870,23 +864,21 @@ Begin
                 begin
                   { if we only want the offset we don't have to care
                     the base will be zeroed after ! }
-                  if (lexlevel=tvarsym(sym).owner.symtablelevel) or
-                  {if (tvarsym(sym).owner=procinfo.def.localst) or}
-                    GetOffset then
+                  if (tvarsym(sym).owner=aktprocdef.localst) or
+                     GetOffset then
                     opr.ref.base:=procinfo.framepointer
                   else
                     begin
                       if (aktprocdef.localst.datasize=0) and
                          assigned(procinfo.parent) and
-                         (lexlevel=tvarsym(sym).owner.symtablelevel+1) and
-                         {(procinfo.parent^.sym.definition.localst=tvarsym(sym).owner) and}
-                         (lexlevel>normal_function_level) then
+                         (tvarsym(sym).owner=procinfo.parent.procdef.localst) and
+                         (aktprocdef.parast.symtablelevel>normal_function_level) then
                         opr.ref.base:=procinfo.parent.framepointer
                       else
                         message1(asmr_e_local_para_unreachable,s);
                     end;
                   opr.ref.offset:=-(tvarsym(sym).address);
-                  if (lexlevel=tvarsym(sym).owner.symtablelevel) then
+                  if (aktprocdef.localst.symtablelevel=tvarsym(sym).owner.symtablelevel) then
                     begin
                       opr.ref.offsetfixup:=aktprocdef.localst.address_fixup;
                       opr.ref.options:=ref_localfixup;
@@ -1306,7 +1298,7 @@ Begin
   base:=Copy(s,1,i-1);
   delete(s,1,i);
   if base='SELF' then
-   st:=procinfo._class.symtable
+   st:=aktprocdef._class.symtable
   else
    begin
      asmsearchsym(base,sym,srsymtable);
@@ -1582,7 +1574,15 @@ end;
 end.
 {
   $Log$
-  Revision 1.56  2003-04-25 20:59:34  peter
+  Revision 1.57  2003-04-27 07:29:51  peter
+    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+      a new procdef declaration
+    * aktprocsym removed
+    * lexlevel removed, use symtable.symtablelevel instead
+    * implicit init/final code uses the normal genentry/genexit
+    * funcret state checking updated for new funcret handling
+
+  Revision 1.56  2003/04/25 20:59:34  peter
     * removed funcretn,funcretsym, function result is now in varsym
       and aliases for result and function name are added using absolutesym
     * vs_hidden parameter for funcret passed in parameter

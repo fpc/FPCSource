@@ -96,13 +96,13 @@ implementation
     cutils,
     verbose,systems,globtype,globals,
     symconst,script,
-    fmodule,aasmbase,aasmtai,aasmcpu,cpubase,symsym,
+    fmodule,aasmbase,aasmtai,aasmcpu,cpubase,symsym,symdef,
     import,export,link,i_nwm;
 
   type
     timportlibnetware=class(timportlib)
       procedure preparelib(const s:string);override;
-      procedure importprocedure(const func,module:string;index:longint;const name:string);override;
+      procedure importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);override;
       procedure importvariable(vs:tvarsym;const name,module:string);override;
       procedure generatelib;override;
     end;
@@ -136,14 +136,14 @@ begin
 end;
 
 
-procedure timportlibnetware.importprocedure(const func,module : string;index : longint;const name : string);
+procedure timportlibnetware.importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);
 begin
   { insert sharedlibrary }
   current_module.linkothersharedlibs.add(SplitName(module),link_allways);
   { do nothing with the procedure, only set the mangledname }
   if name<>'' then
    begin
-     aktprocdef.setmangledname(name);
+     aprocdef.setmangledname(name);
    end
   else
     message(parser_e_empty_import_name);
@@ -548,7 +548,15 @@ initialization
 end.
 {
   $Log$
-  Revision 1.7  2003-04-26 09:16:08  peter
+  Revision 1.8  2003-04-27 07:29:52  peter
+    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+      a new procdef declaration
+    * aktprocsym removed
+    * lexlevel removed, use symtable.symtablelevel instead
+    * implicit init/final code uses the normal genentry/genexit
+    * funcret state checking updated for new funcret handling
+
+  Revision 1.7  2003/04/26 09:16:08  peter
     * .o files belonging to the unit are first searched in the same dir
       as the .ppu
 

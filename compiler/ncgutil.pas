@@ -69,8 +69,6 @@ interface
                            var nostackframe:boolean;
                            inlined : boolean);
    procedure genexitcode(list : TAAsmoutput;parasize:longint;nostackframe:boolean;inlined:boolean);
-   procedure genimplicitunitinit(list : TAAsmoutput);
-   procedure genimplicitunitfinal(list : TAAsmoutput);
 
    {#
       Allocate the buffers for exception management and setjmp environment.
@@ -952,7 +950,7 @@ implementation
            (tvarsym(p).varspez=vs_value) and
            (paramanager.push_addr_param(tvarsym(p).vartype.def,procinfo.procdef.proccalloption)) then
          begin
-           reference_reset_base(href1,procinfo.framepointer,tvarsym(p).address+procinfo.para_offset);
+           reference_reset_base(href1,procinfo.framepointer,tvarsym(p).address+tvarsym(p).owner.address_fixup);
            if is_open_array(tvarsym(p).vartype.def) or
               is_array_of_const(tvarsym(p).vartype.def) then
              cg.g_copyvaluepara_openarray(list,href1,tarraydef(tvarsym(p).vartype.def).elesize)
@@ -1050,12 +1048,12 @@ implementation
                   reference_reset_base(href,procinfo.framepointer,
                       -tvarsym(p).localvarsym.address+tvarsym(p).localvarsym.owner.address_fixup)
                  else
-                  reference_reset_base(href,procinfo.framepointer,tvarsym(p).address+procinfo.para_offset);
+                  reference_reset_base(href,procinfo.framepointer,tvarsym(p).address+tvarsym(p).owner.address_fixup);
                  cg.g_incrrefcount(list,tvarsym(p).vartype.def,href);
                end;
              vs_out :
                begin
-                 reference_reset_base(href,procinfo.framepointer,tvarsym(p).address+procinfo.para_offset);
+                 reference_reset_base(href,procinfo.framepointer,tvarsym(p).address+tvarsym(p).owner.address_fixup);
                {$ifdef newra}
                  tmpreg:=rg.getaddressregister(list);
                {$else}
@@ -1091,7 +1089,7 @@ implementation
                reference_reset_base(href,procinfo.framepointer,
                    -tvarsym(p).localvarsym.address+tvarsym(p).localvarsym.owner.address_fixup)
               else
-               reference_reset_base(href,procinfo.framepointer,tvarsym(p).address+procinfo.para_offset);
+               reference_reset_base(href,procinfo.framepointer,tvarsym(p).address+tvarsym(p).owner.address_fixup);
               cg.g_decrrefcount(list,tvarsym(p).vartype.def,href);
             end;
          end;
@@ -1357,7 +1355,7 @@ implementation
         if not is_void(aktprocdef.rettype.def) then
           begin
              { for now the pointer to the result can't be a register }
-             if not(paramanager.ret_in_reg(aktprocdef.rettype.def,aktprocdef.proccalloption)) then
+             if paramanager.ret_in_param(aktprocdef.rettype.def,aktprocdef.proccalloption) then
                begin
 {$ifdef powerpc}
                   { no stack space is allocated in this case -> can't save the result reg on the stack }
@@ -1401,9 +1399,10 @@ implementation
         case aktprocdef.proctypeoption of
            potype_unitinit:
              begin
-                { using current_module.globalsymtable is hopefully      }
-                { more robust than symtablestack and symtablestack.next }
-                tsymtable(current_module.globalsymtable).foreach_static({$ifndef TP}@{$endif}initialize_data,list);
+                { this is also used for initialization of variables in a
+                  program which does not have a globalsymtable }
+                if assigned(current_module.globalsymtable) then
+                  tsymtable(current_module.globalsymtable).foreach_static({$ifndef TP}@{$endif}initialize_data,list);
                 tsymtable(current_module.localsymtable).foreach_static({$ifndef TP}@{$endif}initialize_data,list);
              end;
            { units have seperate code for initilization and finalization }
@@ -1430,7 +1429,7 @@ implementation
                  { move register parameters which aren't regable into memory                                          }
                  { we do this after init_paras because it saves some code in init_paras if parameters are in register }
                  { instead in memory                                                                                  }
-                 hp:=tparaitem(procinfo.procdef.para.first);
+                 hp:=tparaitem(aktprocdef.para.first);
                  while assigned(hp) do
                    begin
                      if Tvarsym(hp.parasym).reg.enum>lastreg then
@@ -1557,17 +1556,17 @@ implementation
 
            if (cs_profile in aktmoduleswitches) or
               (aktprocdef.owner.symtabletype=globalsymtable) or
-              (assigned(procinfo._class) and (procinfo._class.owner.symtabletype=globalsymtable)) then
+              (assigned(aktprocdef._class) and
+               (aktprocdef._class.owner.symtabletype=globalsymtable)) then
             make_global:=true;
-
-           if make_global or ((procinfo.flags and pi_is_global) <> 0) then
-            aktprocsym.is_global := True;
 
 {$ifdef GDB}
            if (cs_debuginfo in aktmoduleswitches) then
             begin
+              if make_global or ((procinfo.flags and pi_is_global) <> 0) then
+                tprocsym(aktprocdef.procsym).is_global:=true;
               aktprocdef.concatstabto(stackalloclist);
-              aktprocsym.isstabwritten:=true;
+              tprocsym(aktprocdef.procsym).isstabwritten:=true;
             end;
 {$endif GDB}
 
@@ -1602,7 +1601,7 @@ implementation
               if (aktprocdef.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
                 parasize:=0
               else
-                parasize:=aktprocdef.parast.datasize+procinfo.para_offset-4;
+                parasize:=aktprocdef.parast.datasize+aktprocdef.parast.address_fixup-4;
               if stackframe<>0 then
                 cg.g_stackpointer_alloc(stackalloclist,stackframe);
             end
@@ -1613,7 +1612,7 @@ implementation
               if (aktprocdef.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
                 parasize:=0
               else
-                parasize:=aktprocdef.parast.datasize+procinfo.para_offset-target_info.first_parm_offset;
+                parasize:=aktprocdef.parast.datasize+aktprocdef.parast.address_fixup-target_info.first_parm_offset;
 
               if (po_interrupt in aktprocdef.procoptions) then
                 cg.g_interrupt_stackframe_entry(stackalloclist);
@@ -1666,7 +1665,7 @@ implementation
 
         { call the destructor help procedure }
         if (aktprocdef.proctypeoption=potype_destructor) and
-           assigned(procinfo._class) then
+           assigned(aktprocdef._class) then
          cg.g_call_destructor_helper(list);
 
         { finalize temporary data }
@@ -1676,9 +1675,10 @@ implementation
         case aktprocdef.proctypeoption of
            potype_unitfinalize:
              begin
-                { using current_module.globalsymtable is hopefully      }
-                { more robust than symtablestack and symtablestack.next }
-                tsymtable(current_module.globalsymtable).foreach_static({$ifndef TP}@{$endif}finalize_data,list);
+                { this is also used for initialization of variables in a
+                  program which does not have a globalsymtable }
+                if assigned(current_module.globalsymtable) then
+                  tsymtable(current_module.globalsymtable).foreach_static({$ifndef TP}@{$endif}finalize_data,list);
                 tsymtable(current_module.localsymtable).foreach_static({$ifndef TP}@{$endif}finalize_data,list);
              end;
            { units/progs have separate code for initialization and finalization }
@@ -1714,24 +1714,24 @@ implementation
 
              if (aktprocdef.proctypeoption=potype_constructor) then
                begin
-                  if assigned(procinfo._class) then
+                  if assigned(aktprocdef._class) then
                     begin
-                       pd:=procinfo._class.searchdestructor;
+                       pd:=aktprocdef._class.searchdestructor;
                        if assigned(pd) then
                          begin
                             objectlibrary.getlabel(nodestroycall);
                             reference_reset_base(href,procinfo.framepointer,procinfo.selfpointer_offset);
                             cg.a_cmp_const_ref_label(list,OS_ADDR,OC_EQ,0,href,nodestroycall);
                             r:=cg.g_load_self(list);
-                            if is_class(procinfo._class) then
+                            if is_class(aktprocdef._class) then
                              begin
                                cg.a_param_const(list,OS_INT,1,paramanager.getintparaloc(2));
                                cg.a_param_reg(list,OS_ADDR,r,paramanager.getintparaloc(1));
                              end
-                            else if is_object(procinfo._class) then
+                            else if is_object(aktprocdef._class) then
                              begin
                                cg.a_param_reg(list,OS_ADDR,r,paramanager.getintparaloc(2));
-                               reference_reset_symbol(href,objectlibrary.newasmsymboldata(procinfo._class.vmt_mangledname),0);
+                               reference_reset_symbol(href,objectlibrary.newasmsymboldata(aktprocdef._class.vmt_mangledname),0);
                                cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(1));
                              end
                             else
@@ -1740,7 +1740,7 @@ implementation
                              begin
                                reference_reset_base(href,r,0);
                                cg.a_load_ref_reg(list,OS_ADDR,href,r);
-                               reference_reset_base(href,r,procinfo._class.vmtmethodoffset(pd.extnumber));
+                               reference_reset_base(href,r,aktprocdef._class.vmtmethodoffset(pd.extnumber));
                                cg.a_call_ref(list,href);
                              end
                             else
@@ -1905,9 +1905,9 @@ implementation
 {$ifdef GDB}
         if (cs_debuginfo in aktmoduleswitches) and not inlined  then
           begin
-            if assigned(procinfo._class) then
+            if assigned(aktprocdef._class) then
               if (not assigned(procinfo.parent) or
-                 not assigned(procinfo.parent._class)) then
+                  not assigned(procinfo.parent.procdef._class)) then
                 begin
                   if (po_classmethod in aktprocdef.procoptions) or
                      ((po_virtualmethod in aktprocdef.procoptions) and
@@ -1920,30 +1920,31 @@ implementation
                     end
                   else
                     begin
-                      if not(is_class(procinfo._class)) then
+                      if not(is_class(aktprocdef._class)) then
                         st:='v'
                       else
                         st:='p';
                       list.concat(Tai_stabs.Create(strpnew(
-                       '"$t:'+st+procinfo._class.numberstring+'",'+
+                       '"$t:'+st+aktprocdef._class.numberstring+'",'+
                        tostr(N_tsym)+',0,0,'+tostr(procinfo.selfpointer_offset))));
                     end;
                 end
               else
                 begin
-                  if not is_class(procinfo._class) then
+                  if not is_class(aktprocdef._class) then
                     st:='*'
                   else
                     st:='';
 {$warning GDB self}
                   {list.concat(Tai_stabs.Create(strpnew(
-                   '"$t:r'+st+procinfo._class.numberstring+'",'+
+                   '"$t:r'+st+aktprocdef._class.numberstring+'",'+
                    tostr(N_RSYM)+',0,0,'+tostr(stab_regindex[SELF_POINTER_REG]))));}
                 end;
 
             { define calling EBP as pseudo local var PM }
             { this enables test if the function is a local one !! }
-            if  assigned(procinfo.parent) and (lexlevel>normal_function_level) then
+            if  assigned(procinfo.parent) and
+                (aktprocdef.parast.symtablelevel>normal_function_level) then
               list.concat(Tai_stabs.Create(strpnew(
                '"parent_ebp:'+tstoreddef(voidpointertype.def).numberstring+'",'+
                tostr(N_LSYM)+',0,0,'+tostr(procinfo.framepointer_offset))));
@@ -1952,11 +1953,11 @@ implementation
               begin
                 if paramanager.ret_in_param(aktprocdef.rettype.def,aktprocdef.proccalloption) then
                   list.concat(Tai_stabs.Create(strpnew(
-                   '"'+aktprocsym.name+':X*'+tstoreddef(aktprocdef.rettype.def).numberstring+'",'+
+                   '"'+aktprocdef.procsym.name+':X*'+tstoreddef(aktprocdef.rettype.def).numberstring+'",'+
                    tostr(N_tsym)+',0,0,'+tostr(procinfo.return_offset))))
                 else
                   list.concat(Tai_stabs.Create(strpnew(
-                   '"'+aktprocsym.name+':X'+tstoreddef(aktprocdef.rettype.def).numberstring+'",'+
+                   '"'+aktprocdef.procsym.name+':X'+tstoreddef(aktprocdef.rettype.def).numberstring+'",'+
                    tostr(N_tsym)+',0,0,'+tostr(procinfo.return_offset))));
                 if (m_result in aktmodeswitches) then
                   if paramanager.ret_in_param(aktprocdef.rettype.def,aktprocdef.proccalloption) then
@@ -2000,64 +2001,18 @@ implementation
          cleanup_regvars(list);
       end;
 
-
-    procedure genimplicitunitinit(list : TAAsmoutput);
-      var
-         oldprocinfo : tprocinfo;
-      begin
-         oldprocinfo:=procinfo;
-         procinfo:=voidprocpi;
-{$ifdef GDB}
-         if (cs_debuginfo in aktmoduleswitches) and
-            target_info.use_function_relative_addresses then
-           list.concat(Tai_stab_function_name.Create(strpnew('INIT$$'+current_module.modulename^)));
-{$endif GDB}
-         list.concat(Tai_symbol.Createname_global('INIT$$'+current_module.modulename^,0));
-         list.concat(Tai_symbol.Createname_global(target_info.cprefix+current_module.modulename^+'_init',0));
-{$ifndef i386}
-         { on the 386, g_return_from_proc is a simple return, so we don't need a real stack frame }
-         cg.g_stackframe_entry(list,0);
-{$endif i386}
-         { using current_module.globalsymtable is hopefully      }
-         { more robust than symtablestack and symtablestack.next }
-         if assigned(current_module.globalsymtable) then
-           tsymtable(current_module.globalsymtable).foreach_static({$ifdef FPCPROCVAR}@{$endif}finalize_data,list);
-         tsymtable(current_module.localsymtable).foreach_static({$ifdef FPCPROCVAR}@{$endif}finalize_data,list);
-         cg.g_return_from_proc(list,0);
-         procinfo:=oldprocinfo;
-      end;
-
-
-    procedure genimplicitunitfinal(list : TAAsmoutput);
-      var
-         oldprocinfo : tprocinfo;
-      begin
-         oldprocinfo:=procinfo;
-         procinfo:=voidprocpi;
-{$ifdef GDB}
-         if (cs_debuginfo in aktmoduleswitches) and
-            target_info.use_function_relative_addresses then
-           list.concat(Tai_stab_function_name.Create(strpnew('FINALIZE$$'+current_module.modulename^)));
-{$endif GDB}
-         list.concat(Tai_symbol.Createname_global('FINALIZE$$'+current_module.modulename^,0));
-         list.concat(Tai_symbol.Createname_global(target_info.cprefix+current_module.modulename^+'_finalize',0));
-{$ifndef i386}
-         { on the 386, g_return_from_proc is a simple return, so we don't need a real stack frame }
-         cg.g_stackframe_entry(list,0);
-{$endif i386}
-         { using current_module.globalsymtable is hopefully      }
-         { more robust than symtablestack and symtablestack.next }
-         if assigned(current_module.globalsymtable) then
-           tsymtable(current_module.globalsymtable).foreach_static({$ifdef FPCPROCVAR}@{$endif}finalize_data,list);
-         tsymtable(current_module.localsymtable).foreach_static({$ifdef FPCPROCVAR}@{$endif}finalize_data,list);
-         cg.g_return_from_proc(list,0);
-         procinfo:=oldprocinfo;
-      end;
-
 end.
 {
   $Log$
-  Revision 1.90  2003-04-26 17:21:08  florian
+  Revision 1.91  2003-04-27 07:29:50  peter
+    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+      a new procdef declaration
+    * aktprocsym removed
+    * lexlevel removed, use symtable.symtablelevel instead
+    * implicit init/final code uses the normal genentry/genexit
+    * funcret state checking updated for new funcret handling
+
+  Revision 1.90  2003/04/26 17:21:08  florian
     * fixed passing of fpu values by fpu register
 
   Revision 1.89  2003/04/25 20:59:33  peter

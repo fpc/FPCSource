@@ -151,7 +151,7 @@ interface
                                    ((s[length(s)]<>'0') or (hs[1]<>'x')) then
                                    begin
                                       if assigned(aktprocdef.localst) and
-                                         (lexlevel >= normal_function_level) then
+                                         (aktprocdef.localst.symtablelevel>=normal_function_level) then
                                         sym:=tsym(aktprocdef.localst.search(upper(hs)))
                                       else
                                         sym:=nil;
@@ -241,7 +241,7 @@ interface
                                              end
                                            else if upper(hs)='__SELF' then
                                              begin
-                                                if assigned(procinfo._class) then
+                                                if assigned(aktprocdef._class) then
                                                   hs:=tostr(procinfo.selfpointer_offset)+
                                                       '('+gas_reg2str[framereg.enum]+')'
                                                 else
@@ -258,7 +258,7 @@ interface
                                              begin
                                                 { complicate to check there }
                                                 { we do it: }
-                                                if lexlevel>normal_function_level then
+                                                if aktprocdef.parast.symtablelevel>normal_function_level then
                                                   hs:=tostr(procinfo.framepointer_offset)+
                                                     '('+gas_reg2str[framereg.enum]+')'
                                                 else
@@ -308,7 +308,15 @@ initialization
 end.
 {
   $Log$
-  Revision 1.9  2003-04-25 20:59:35  peter
+  Revision 1.10  2003-04-27 07:29:52  peter
+    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+      a new procdef declaration
+    * aktprocsym removed
+    * lexlevel removed, use symtable.symtablelevel instead
+    * implicit init/final code uses the normal genentry/genexit
+    * funcret state checking updated for new funcret handling
+
+  Revision 1.9  2003/04/25 20:59:35  peter
     * removed funcretn,funcretsym, function result is now in varsym
       and aliases for result and function name are added using absolutesym
     * vs_hidden parameter for funcret passed in parameter

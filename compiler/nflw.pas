@@ -735,12 +735,12 @@ implementation
                 is_constintnode(tvecnode(hp).right)) do
            hp:=tunarynode(hp).left;
          { we need a simple loadn, but the load must be in a global symtable or
-           in the same lexlevel }
+           in the same level as the para of the current proc }
          if (
              (hp.nodetype=loadn) and
              (
-              (tloadnode(hp).symtable.symtablelevel<=1) or
-              (tloadnode(hp).symtable.symtablelevel=lexlevel)
+              (tloadnode(hp).symtable.symtablelevel=normal_function_level) or
+              (tloadnode(hp).symtable.symtablelevel=aktprocdef.parast.symtablelevel)
              ) and
              not(
                  (tloadnode(hp).symtableentry.typ=varsym) and
@@ -879,8 +879,6 @@ implementation
 
 
     function texitnode.det_resulttype:tnode;
-      var
-         pt : tnode;
       begin
         result:=nil;
         { Check the 2 types }
@@ -897,8 +895,13 @@ implementation
                      cloadnode.create(aktprocdef.funcretsym,aktprocdef.funcretsym.owner),
                      left);
                  onlyassign:=true;
+               end
+              else
+               begin
+                 { mark funcretsym as assigned }
+                 inc(tvarsym(aktprocdef.funcretsym).refs);
+                 tvarsym(aktprocdef.funcretsym).varstate:=vs_assigned;
                end;
-              tvarsym(aktprocdef.funcretsym).varstate:=vs_assigned;
             end;
          end;
         if assigned(left) then
@@ -1495,7 +1498,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.69  2003-04-26 00:28:41  peter
+  Revision 1.70  2003-04-27 07:29:50  peter
+    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+      a new procdef declaration
+    * aktprocsym removed
+    * lexlevel removed, use symtable.symtablelevel instead
+    * implicit init/final code uses the normal genentry/genexit
+    * funcret state checking updated for new funcret handling
+
+  Revision 1.69  2003/04/26 00:28:41  peter
     * removed load_funcret
 
   Revision 1.68  2003/04/25 20:59:33  peter

@@ -58,8 +58,7 @@ type
       constructor Create;virtual;
       destructor Destroy;override;
       procedure preparelib(const s:string);virtual;
-      procedure importproceduredef(aprocdef : tprocdef; const module:string;index:longint;const name:string);virtual;
-      procedure importprocedure(const func,module:string;index:longint;const name:string);virtual;
+      procedure importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);virtual;
       procedure importvariable(vs:tvarsym;const name,module:string);virtual;
       procedure generatelib;virtual;
       procedure generatesmartlib;virtual;
@@ -181,13 +180,7 @@ begin
 end;
 
 
-procedure timportlib.importproceduredef(aprocdef : tprocdef; const module:string;index:longint;const name:string);
-begin
-  importprocedure(aprocdef.mangledname, module, index, name);
-end;
-
-
-procedure timportlib.importprocedure(const func,module:string;index:longint;const name:string);
+procedure timportlib.importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);
 begin
   NotSupported;
 end;
@@ -245,7 +238,15 @@ end;
 end.
 {
   $Log$
-  Revision 1.21  2002-11-15 01:58:48  peter
+  Revision 1.22  2003-04-27 07:29:50  peter
+    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+      a new procdef declaration
+    * aktprocsym removed
+    * lexlevel removed, use symtable.symtablelevel instead
+    * implicit init/final code uses the normal genentry/genexit
+    * funcret state checking updated for new funcret handling
+
+  Revision 1.21  2002/11/15 01:58:48  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing

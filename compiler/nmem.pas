@@ -414,12 +414,11 @@ implementation
 
 
                  { create procvardef }
-                 resulttype.setdef(tprocvardef.create);
+                 resulttype.setdef(tprocvardef.create(hp3.parast.symtablelevel));
                  tprocvardef(resulttype.def).proctypeoption:=hp3.proctypeoption;
                  tprocvardef(resulttype.def).proccalloption:=hp3.proccalloption;
                  tprocvardef(resulttype.def).procoptions:=hp3.procoptions;
                  tprocvardef(resulttype.def).rettype:=hp3.rettype;
-                 tprocvardef(resulttype.def).symtablelevel:=hp3.symtablelevel;
 
                  { method ? then set the methodpointer flag }
                  if (hp3.owner.symtabletype=objectsymtable) then
@@ -1060,7 +1059,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.49  2003-04-23 10:10:54  peter
+  Revision 1.50  2003-04-27 07:29:50  peter
+    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+      a new procdef declaration
+    * aktprocsym removed
+    * lexlevel removed, use symtable.symtablelevel instead
+    * implicit init/final code uses the normal genentry/genexit
+    * funcret state checking updated for new funcret handling
+
+  Revision 1.49  2003/04/23 10:10:54  peter
     * procvar is not compared in addrn
 
   Revision 1.48  2003/04/22 23:50:23  peter

@@ -680,7 +680,7 @@ implementation
                      { remove exception symtable }
                      if assigned(exceptsymtable) then
                        begin
-                         dellexlevel;
+                         symtablestack:=symtablestack.next;
                          if last.nodetype <> onn then
                            exceptsymtable.free;
                        end;
@@ -1018,7 +1018,6 @@ implementation
         procinfo.framepointer.number:=NR_STACK_POINTER_REG;
         { set the right value for parameters }
         dec(aktprocdef.parast.address_fixup,pointer_size);
-        dec(procinfo.para_offset,pointer_size);
         { replace all references to parameters in the instructions,
           the parameters can be identified by the parafixup option
           that is set. For normal user coded [ebp+4] this field is not
@@ -1075,14 +1074,13 @@ implementation
       begin
          { Rename the funcret so that recursive calls are possible }
          if not is_void(aktprocdef.rettype.def) then
-           symtablestack.rename(aktprocdef.funcretsym.name,'$result');
+           symtablestack.rename(aktprocdef.resultname,'$hiddenresult');
 
          { force the asm statement }
          if token<>_ASM then
            consume(_ASM);
          procinfo.Flags := procinfo.Flags Or pi_is_assembler;
          p:=_asm_statement;
-
 
          { set the framepointer to esp for assembler functions when the
            following conditions are met:
@@ -1120,7 +1118,7 @@ implementation
           register.
         }
         if assigned(aktprocdef.funcretsym) and
-           paramanager.ret_in_reg(aktprocdef.rettype.def,aktprocdef.proccalloption) then
+           (not paramanager.ret_in_param(aktprocdef.rettype.def,aktprocdef.proccalloption)) then
           tvarsym(aktprocdef.funcretsym).varstate:=vs_assigned;
 
         { because the END is already read we need to get the
@@ -1133,7 +1131,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.92  2003-04-26 11:30:59  florian
+  Revision 1.93  2003-04-27 07:29:50  peter
+    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+      a new procdef declaration
+    * aktprocsym removed
+    * lexlevel removed, use symtable.symtablelevel instead
+    * implicit init/final code uses the normal genentry/genexit
+    * funcret state checking updated for new funcret handling
+
+  Revision 1.92  2003/04/26 11:30:59  florian
     * fixed the powerpc to work with the new function result handling
 
   Revision 1.91  2003/04/25 20:59:34  peter

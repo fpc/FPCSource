@@ -421,9 +421,8 @@ interface
           procoptions     : tprocoptions;
           maxparacount,
           minparacount    : byte;
-          symtablelevel   : byte;
           fpu_used        : byte;    { how many stack fpu must be empty }
-          constructor create;
+          constructor create(level:byte);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
           procedure  ppuwrite(ppufile:tcompilerppufile);override;
@@ -445,7 +444,7 @@ interface
        end;
 
        tprocvardef = class(tabstractprocdef)
-          constructor create;
+          constructor create(level:byte);
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function  getsymtable(t:tgetsymtable):tsymtable;override;
@@ -519,7 +518,7 @@ interface
           { small set which contains the modified registers }
           usedintregisters:Tsupregset;
           usedotherregisters:Tregisterset;
-          constructor create;
+          constructor create(level:byte);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -3042,10 +3041,10 @@ implementation
                        TABSTRACTPROCDEF
 ***************************************************************************}
 
-    constructor tabstractprocdef.create;
+    constructor tabstractprocdef.create(level:byte);
       begin
          inherited create;
-         parast:=tparasymtable.create;
+         parast:=tparasymtable.create(level);
          parast.defowner:=self;
          para:=TLinkedList.Create;
          selfpara:=nil;
@@ -3055,7 +3054,6 @@ implementation
          proccalloption:=pocall_none;
          procoptions:=[];
          rettype:=voidtype;
-         symtablelevel:=0;
          fpu_used:=0;
          savesize:=POINTER_SIZE;
       end;
@@ -3189,6 +3187,7 @@ implementation
       var
          hp : TParaItem;
          count,i : word;
+         paraloclen : byte;
       begin
          inherited ppuloaddef(ppufile);
          parast:=nil;
@@ -3212,6 +3211,9 @@ implementation
             hp.defaultvalue:=tsym(ppufile.getderef);
             hp.parasym:=tsym(ppufile.getderef);
             { later, we'll gerate this on the fly (FK) }
+            paraloclen:=ppufile.getbyte;
+            if paraloclen<>sizeof(tparalocation) then
+              internalerror(200304261);
             ppufile.getdata(hp.paraloc,sizeof(tparalocation));
             { Don't count hidden parameters }
             if (hp.paratyp<>vs_hidden) then
@@ -3251,6 +3253,9 @@ implementation
             ppufile.puttype(hp.paratype);
             ppufile.putderef(hp.defaultvalue);
             ppufile.putderef(hp.parasym);
+            { write the length of tparalocation so ppudump can
+              parse the .ppu without knowing the tparalocation size }
+            ppufile.putbyte(sizeof(tparalocation));
             ppufile.putdata(hp.paraloc,sizeof(tparalocation));
             hp:=TParaItem(hp.next);
           end;
@@ -3400,9 +3405,9 @@ implementation
                                   TPROCDEF
 ***************************************************************************}
 
-    constructor tprocdef.create;
+    constructor tprocdef.create(level:byte);
       begin
-         inherited create;
+         inherited create(level);
          deftype:=procdef;
          has_mangledname:=false;
          _mangledname:=nil;
@@ -3466,14 +3471,14 @@ implementation
             funcretsym:=nil;
           end;
          { load para symtable }
-         parast:=tparasymtable.create;
+         parast:=tparasymtable.create(unknown_level);
          tparasymtable(parast).ppuload(ppufile);
          parast.defowner:=self;
          { load local symtable }
          if (proccalloption=pocall_inline) or
             ((current_module.flags and uf_local_browser)<>0) then
           begin
-            localst:=tlocalsymtable.create;
+            localst:=tlocalsymtable.create(unknown_level);
             tlocalsymtable(localst).ppuload(ppufile);
             localst.defowner:=self;
           end
@@ -3600,7 +3605,7 @@ implementation
             ppufile.do_crc:=false;
             if not assigned(localst) then
              begin
-               localst:=tlocalsymtable.create;
+               localst:=tlocalsymtable.create(unknown_level);
                localst.defowner:=self;
              end;
             tlocalsymtable(localst).ppuwrite(ppufile);
@@ -3611,7 +3616,7 @@ implementation
 
     procedure tprocdef.insert_localst;
      begin
-         localst:=tlocalsymtable.create;
+         localst:=tlocalsymtable.create(parast.symtablelevel);
          localst.defowner:=self;
          { this is used by insert
            to check same names in parast and localst }
@@ -3923,7 +3928,7 @@ implementation
       { local type defs and vars should not be written
         inside the main proc stab }
       if assigned(localst) and
-         (lexlevel>main_program_level) then
+         (localst.symtablelevel>main_program_level) then
         tstoredsymtable(localst).concatstabto(asmlist);
       is_def_stab_written := written;
     end;
@@ -4085,9 +4090,9 @@ implementation
                                  TPROCVARDEF
 ***************************************************************************}
 
-    constructor tprocvardef.create;
+    constructor tprocvardef.create(level:byte);
       begin
-         inherited create;
+         inherited create(level);
          deftype:=procvardef;
       end;
 
@@ -4097,7 +4102,7 @@ implementation
          inherited ppuload(ppufile);
          deftype:=procvardef;
          { load para symtable }
-         parast:=tparasymtable.create;
+         parast:=tparasymtable.create(unknown_level);
          tparasymtable(parast).ppuload(ppufile);
          parast.defowner:=self;
       end;
@@ -5732,7 +5737,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.136  2003-04-25 20:59:35  peter
+  Revision 1.137  2003-04-27 07:29:51  peter
+    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+      a new procdef declaration
+    * aktprocsym removed
+    * lexlevel removed, use symtable.symtablelevel instead
+    * implicit init/final code uses the normal genentry/genexit
+    * funcret state checking updated for new funcret handling
+
+  Revision 1.136  2003/04/25 20:59:35  peter
     * removed funcretn,funcretsym, function result is now in varsym
       and aliases for result and function name are added using absolutesym
     * vs_hidden parameter for funcret passed in parameter
