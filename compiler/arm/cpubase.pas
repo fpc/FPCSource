@@ -266,7 +266,7 @@ uses
 *****************************************************************************}
 
       { Types of operand }
-      toptype=(top_none,top_reg,top_ref,top_const,top_symbol,top_regset,top_shifter);
+      toptype=(top_none,top_reg,top_ref,top_const,top_symbol,top_regset,top_shifterop);
 
       tupdatereg = (UR_None,UR_Update);
 
@@ -276,8 +276,7 @@ uses
       pshifterop = ^tshifterop;
 
       tshifterop = record
-        imm : dword;
-        rm : tregister;
+        shiftertype : tshiftertype;
         rs : tregister;
         shiftimm : byte;
       end;
@@ -290,7 +289,7 @@ uses
          top_const  : (val:aword);
          top_symbol : (sym:tasmsymbol;symofs:longint);
          top_regset : (regset:tsupregset);
-         top_shifter : (shifterop : pshifterop);
+         top_shifterop : (shifterop : pshifterop);
       end;
 
 {*****************************************************************************
@@ -591,6 +590,8 @@ uses
     function flags_to_cond(const f: TResFlags) : TAsmCond;
     function supreg_name(r:Tsuperregister):string;
 
+    procedure shifterop_reset(var so : tshifterop);
+
 implementation
 
     procedure convert_register_to_enum(var r:Tregister);
@@ -630,12 +631,19 @@ implementation
       begin
       end;
 
+    procedure shifterop_reset(var so : tshifterop);
+      begin
+        FillChar(so,sizeof(so),0);
+      end;
 
 
 end.
 {
   $Log$
-  Revision 1.5  2003-08-21 03:14:00  florian
+  Revision 1.6  2003-08-24 12:27:26  florian
+    * continued to work on the arm port
+
+  Revision 1.5  2003/08/21 03:14:00  florian
     * arm compiler can be compiled; far from being working
 
   Revision 1.4  2003/08/20 15:50:13  florian

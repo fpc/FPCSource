@@ -39,6 +39,7 @@ uses
 
     type
       taicpu = class(taicpu_abstract)
+         procedure loadshifterop(opidx:longint;const so:tshifterop);
          constructor op_none(op : tasmop);
 
          constructor op_reg(op : tasmop;_op1 : tregister);
@@ -57,6 +58,7 @@ uses
          constructor op_reg_reg_ref(op : tasmop;_op1,_op2 : tregister; const _op3: treference);
          constructor op_const_reg_reg(op : tasmop;_op1 : longint;_op2, _op3 : tregister);
          constructor op_const_reg_const(op : tasmop;_op1 : longint;_op2 : tregister;_op3 : longint);
+         constructor op_reg_reg_shifterop(op : tasmop;_op1,_op2 : tregister;_op3 : tshifterop);
 
          constructor op_reg_reg_reg_reg(op : tasmop;_op1,_op2,_op3,_op4 : tregister);
 
@@ -94,7 +96,23 @@ uses
 
 implementation
 
-uses cutils,rgobj;
+  uses
+    cutils,rgobj;
+
+
+    procedure taicpu.loadshifterop(opidx:longint;const so:tshifterop);
+      begin
+        if opidx>=ops then
+         ops:=opidx+1;
+        with oper[opidx] do
+          begin
+            if typ<>top_shifterop then
+              new(shifterop);
+            shifterop^:=so;
+            typ:=top_shifterop;
+          end;
+      end;
+
 
 {*****************************************************************************
                                  taicpu Constructors
@@ -256,6 +274,20 @@ uses cutils,rgobj;
          loadconst(0,aword(_op1));
          loadreg(1,_op2);
          loadconst(2,aword(_op3));
+      end;
+
+
+     constructor taicpu.op_reg_reg_shifterop(op : tasmop;_op1,_op2 : tregister;_op3 : tshifterop);
+      begin
+         inherited create(op);
+         if (_op1.enum = R_INTREGISTER) and (_op1.number = NR_NO) then
+           internalerror(200308233);
+         if (_op2.enum = R_INTREGISTER) and (_op2.number = NR_NO) then
+           internalerror(200308233);
+         ops:=3;
+         loadreg(0,_op1);
+         loadreg(1,_op2);
+         loadshifterop(2,_op3);
       end;
 
 
@@ -719,7 +751,10 @@ uses cutils,rgobj;
 end.
 {
   $Log$
-  Revision 1.2  2003-08-20 15:50:12  florian
+  Revision 1.3  2003-08-24 12:27:26  florian
+    * continued to work on the arm port
+
+  Revision 1.2  2003/08/20 15:50:12  florian
     * more arm stuff
 
   Revision 1.1  2003/08/16 13:23:01  florian

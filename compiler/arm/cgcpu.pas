@@ -252,6 +252,29 @@ unit cgcpu;
 
      procedure tcgarm.a_op_const_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; reg: TRegister);
        begin
+{
+            shifterop_reset(so);
+            { determine operator }
+            if nodetype=shln then
+              so.shiftertype:=SO_LSL
+            else
+              so.shiftertype:=SO_LSR;
+            { shifting by a constant directly coded: }
+            if (right.nodetype=ordconstn) then
+              begin
+                so.shiftimm:=tordconstnode(right).value and 31;
+                a_op_reg_reg_shifterop(exprasmlist,op,OS_32,hregister1,resultreg,so)
+              end
+            else
+              begin
+                { load shift count in a register if necessary }
+                location_force_reg(exprasmlist,right.location,def_cgsize(right.resulttype.def),true);
+                hregister2 := right.location.register;
+                so.rs:=hregister2;
+                a_op_reg_reg_reg(exprasmlist,op,OS_32,hregister2,hregister1,resultreg);
+                rg.UnGetRegisterInt(exprasmlist,hregister2);
+              end;
+}
        end;
 
 
@@ -507,7 +530,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2003-08-21 03:14:00  florian
+  Revision 1.4  2003-08-24 12:27:26  florian
+    * continued to work on the arm port
+
+  Revision 1.3  2003/08/21 03:14:00  florian
     * arm compiler can be compiled; far from being working
 
   Revision 1.2  2003/08/20 15:50:12  florian

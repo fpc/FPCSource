@@ -135,7 +135,7 @@ unit agarmgas;
               internalerror(200303121);
             getopstr_jmp:=std_reg2str[o.reg.enum];
           end;
-        top_shifter:
+        top_shifterop:
           begin
           end;
         { no top_ref jumping for powerpc }
@@ -179,7 +179,7 @@ unit agarmgas;
               internalerror(200303125);
             getopstr:=std_reg2str[o.reg.enum];
           end;
-        top_shifter:
+        top_shifterop:
           begin
           end;
         top_const:
@@ -273,7 +273,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2003-08-20 15:50:12  florian
+  Revision 1.3  2003-08-24 12:27:26  florian
+    * continued to work on the arm port
+
+  Revision 1.2  2003/08/20 15:50:12  florian
     * more arm stuff
 
   Revision 1.1  2003/08/16 13:23:01  florian
