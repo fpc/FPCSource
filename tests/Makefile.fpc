@@ -97,11 +97,26 @@ else
 EXERETVAL=No EXCFILE variable defined
 endif
 
-ifeq ($(EXERETVAL),0)
+ifdef REEFILE
+ifeq ($(wildcard $(REEFILE)*),$(REEFILE))
+EXPECTEDRETVAL:=$(strip $(shell cat $(REEFILE)))
+else
+EXPECTEDRETVAL=0
+endif
+endif
+
+ifeq ($(EXERETVAL),$(EXPECTEDRETVAL))
+ifeq ($(EXPECTEDRETVAL),0)
 testexecsuccess:
         @echo "Test for exec $(FILE) success (runs without error)"
         @echo "Test for $(FILE) success (runs without error)" >> $(LOG)
 else
+testexecsuccess:
+        @echo "Test for exec $(FILE) success (gives correct error $(EXERETVAL))"
+        @echo "Test for $(FILE) success (gives correct error $(EXERETVAL))" >> $(LOG)
+endif
+else
+ifeq ($(EXPECTEDRETVAL),0)
 testexecsuccess:
         @echo "Test for exec $(FILE) fails exec error $(EXERETVAL)"
         @echo "Test for exec $(FILE) fails exec error $(EXERETVAL)" >> $(LOG)
@@ -112,6 +127,19 @@ ifdef LONGLOG
         @echo "" >> $(LONGLOG)
         cat $(FILE).elg >> $(LONGLOG)
         @echo $(FILE) >> ex_fail
+endif
+else
+testexecsuccess:
+        @echo "Test for exec $(FILE) fails exec error $(EXERETVAL) ($(EXPECTEDRETVAL) expected)"
+        @echo "Test for exec $(FILE) fails exec error $(EXERETVAL) ($(EXPECTEDRETVAL) expected)" >> $(LOG)
+        @echo "Running $(FILE) fails with error $(EXERETVAL) ($(EXPECTEDRETVAL) expected)" >> faillist
+ifdef LONGLOG
+        @echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" >> $(LONGLOG)
+        @echo "Test for exec $(FILE) fails exec error $(EXERETVAL) ($(EXPECTEDRETVAL) expected)" >> $(LONGLOG)
+        @echo "" >> $(LONGLOG)
+        cat $(FILE).elg >> $(LONGLOG)
+        @echo $(FILE) >> ex_fail
+endif
 endif
 endif
 
@@ -128,7 +156,7 @@ else
 endif
 endif
         cp -f retcode $(FILE).exc
-        $(MAKE) testexecsuccess 'FILE=$(FILE)' 'EXCFILE=$(FILE).exc'
+        $(MAKE) testexecsuccess 'FILE=$(FILE)' 'EXCFILE=$(FILE).exc' 'REEFILE=$(FILE).ree'
 else
 testexec:
 ifeq ($(wildcard $(FILE)$(PPUEXT)),$(FILE)$(PPUEXT))
@@ -140,7 +168,6 @@ ifeq ($(wildcard $(FILE).dll),$(FILE).dll)
         @echo "DLL" > $(FILE).elg
 else
         @echo "No exefile $(FILE)$(EXEEXT)"
-        @echo $(FILE) >> faillist
 ifdef LONGLOG
         @echo "No exefile $(FILE)$(EXEEXT) was generated" >> $(LONGLOG)
 endif
@@ -328,4 +355,3 @@ info :
         @echo created behave like the should
         @echo run \'make tesiexec\' to test executables
         @echo that require interactive mode
-
