@@ -3171,10 +3171,13 @@ Const local_symtable_index : longint = $8001;
          objname:=stringdup(readstring);
          childof:=pobjectdef(readdefref);
          readsmallset(objectoptions);
+         has_rtti:=boolean(readbyte);
+
          oldread_member:=read_member;
          read_member:=true;
          symtable:=new(psymtable,loadas(objectsymtable));
          read_member:=oldread_member;
+
          symtable^.defowner:=@self;
          symtable^.name := stringdup(objname^);
 
@@ -3185,7 +3188,6 @@ Const local_symtable_index : longint = $8001;
             is_class and
             (objname^='TOBJECT') then
            class_tobject:=@self;
-         has_rtti:=true;
        end;
 
 
@@ -3210,6 +3212,7 @@ Const local_symtable_index : longint = $8001;
          writestring(objname^);
          writedefref(childof);
          writesmallset(objectoptions);
+         writebyte(byte(has_rtti));
          current_ppu^.writeentry(ibobjectdef);
 
          oldread_member:=read_member;
@@ -3633,7 +3636,10 @@ Const local_symtable_index : longint = $8001;
                      internalerror(1509992);
                    { access to implicit class property as field }
                    proctypesinfo:=(0 shl 0) or (0 shl 2) or (0 shl 4);
-                   rttilist^.concat(new(pai_const_symbol,initname(pvarsym(sym)^.vartype.def^.get_rtti_label)));
+                   if not pvarsym(sym)^.vartype.def^.has_rtti then
+                     rttilist^.concat(new(pai_const,init_32bit(0)))
+                   else
+                     rttilist^.concat(new(pai_const_symbol,initname(pvarsym(sym)^.vartype.def^.get_rtti_label)));
                    rttilist^.concat(new(pai_const,init_32bit(pvarsym(sym)^.address)));
                    rttilist^.concat(new(pai_const,init_32bit(pvarsym(sym)^.address)));
                    { per default stored }
@@ -3654,7 +3660,10 @@ Const local_symtable_index : longint = $8001;
                      proctypesinfo:=$40
                    else
                      proctypesinfo:=0;
-                   rttilist^.concat(new(pai_const_symbol,initname(ppropertysym(sym)^.proptype.def^.get_rtti_label)));
+                   if not ppropertysym(sym)^.proptype.def^.has_rtti then
+                     rttilist^.concat(new(pai_const,init_32bit(0)))
+                   else
+                     rttilist^.concat(new(pai_const_symbol,initname(ppropertysym(sym)^.proptype.def^.get_rtti_label)));
                    writeproc(ppropertysym(sym)^.readaccess,0);
                    writeproc(ppropertysym(sym)^.writeaccess,2);
                    { isn't it stored ? }
@@ -3843,7 +3852,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.181  1999-12-18 14:55:21  florian
+  Revision 1.182  1999-12-19 17:00:27  peter
+    * has_rtti should be saved in the ppu for objects
+
+  Revision 1.181  1999/12/18 14:55:21  florian
     * very basic widestring support
 
   Revision 1.180  1999/12/06 18:21:03  peter
