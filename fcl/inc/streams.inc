@@ -298,18 +298,19 @@ end;
 {*                             TFileStream                                  *}
 {****************************************************************************}
 
-constructor TFileStream.Create(const FileName: string; Mode: Word);
+constructor TFileStream.Create(const AFileName: string; Mode: Word);
 
 begin
+  FFileName:=AFileName;
   If Mode=fmcreate then
-    FHandle:=FileCreate(FileName)
+    FHandle:=FileCreate(AFileName)
   else
-    FHAndle:=FileOpen(FileName,Mode);
+    FHAndle:=FileOpen(AFileName,Mode);
   If FHandle<0 then
     If Mode=fmcreate then
-      raise EFCreateError.createfmt(SFCreateError,[FileName])
+      raise EFCreateError.createfmt(SFCreateError,[AFileName])
     else
-      raise EFOpenError.Createfmt(SFOpenError,[Filename]);
+      raise EFOpenError.Createfmt(SFOpenError,[AFilename]);
 end;
 
 
@@ -620,7 +621,10 @@ end;
 
 {
   $Log$
-  Revision 1.16  1999-10-03 19:38:06  peter
+  Revision 1.17  1999-11-30 15:28:38  michael
+  + Added FileNAme property for filestreams
+
+  Revision 1.16  1999/10/03 19:38:06  peter
     * fixed readansistring
     * fixed constants
 

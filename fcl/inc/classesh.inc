@@ -497,12 +497,15 @@ type
 { TFileStream class }
 
   TFileStream = class(THandleStream)
+  Private
+    FFileName : String;
   protected
     procedure SetSize(NewSize: Longint); override;
   public
-    constructor Create(const FileName: string; Mode: Word);
+    constructor Create(const AFileName: string; Mode: Word);
     destructor Destroy; override;
     function Seek(Offset: Longint; Origin: Word): Longint; override;
+    property FileName : String Read FFilename;
   end;
 
 { TCustomMemoryStream abstract class }
@@ -1078,7 +1081,10 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.17  1999-10-20 20:24:21  florian
+  Revision 1.18  1999-11-30 15:28:38  michael
+  + Added FileNAme property for filestreams
+
+  Revision 1.17  1999/10/20 20:24:21  florian
     + sc* constants added as suggested by Shane Miller
 
   Revision 1.16  1999/09/13 08:35:16  fcl
