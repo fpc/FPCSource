@@ -34,6 +34,13 @@ begin
         Writeln('GDB version is ',pchar(@v5_version));
       version_number:=ord(version[0])-ord('0');
     end
+  else if (version[0]='2') and (version[1]='0') and 
+          (version[2] in ['0'..'9']) and (version[3] in ['0'..'9']) then
+    begin
+      { CVS version from 2000 to 2099,
+        assume version 5.01 PM } 
+      version_number:=501;
+    end
   else
     begin
       if not only_ver then
@@ -48,7 +55,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2001-04-08 11:44:01  peter
+  Revision 1.3  2001-09-11 10:22:09  pierre
+   * Hack to allow to recognize CVS version as 5.01
+
+  Revision 1.2  2001/04/08 11:44:01  peter
     * new file
 
 }
