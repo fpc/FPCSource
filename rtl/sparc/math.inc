@@ -138,7 +138,7 @@
                        Longint data type routines
  ****************************************************************************}
 
-   function power(bas,expo : longint) : longint;
+   function power(bas,expo : Int64) : Int64;
      begin
         if bas=0 then
           begin
@@ -284,7 +284,10 @@ end{ ['R0','R3','F0','F1','F2','F3']};
 
 {
   $Log$
-  Revision 1.1  2002-12-24 21:30:20  mazen
+  Revision 1.2  2003-01-20 22:21:36  mazen
+  * many stuff related to RTL fixed
+
+  Revision 1.1  2002/12/24 21:30:20  mazen
   - some writeln(s) removed in compiler
   + many files added to RTL
   * some errors fixed in RTL

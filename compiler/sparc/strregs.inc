@@ -40,3 +40,5 @@ $Id:
 '%asr8','%asr9','%asr10','%asr11','%asr12','%asr13','%asr14','%asr15',
 '%asr16','%asr17','%asr18','%asr19','%asr20','%asr21','%asr22','%asr23',
 '%asr24','%asr25','%asr26','%asr27','%asr28','%asr29','%asr30','%asr31'
+{The following registers are just used with the new register allocator}
+,'%INTREG','%FLTREG','%MMXREG','%KNIREG'

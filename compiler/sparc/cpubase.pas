@@ -18,11 +18,11 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ****************************************************************************}
-UNIT cpuBase;
+unit cpuBase;
 {$INCLUDE fpcdefs.inc}
-INTERFACE
-USES globals,cutils,cclasses,aasmbase,cpuinfo,cginfo;
-CONST
+interface
+uses globals,cutils,cclasses,aasmbase,cpuinfo,cginfo;
+const
   {Size of the instruction table converted by nasmconv.pas}
   maxinfolen=8;
   {Defines the default address size for a processor}
@@ -32,9 +32,8 @@ CONST
   {the maximum float size for a processor}
   OS_FLOAT=OS_F64;
   {the size of a vector register for a processor}
-  OS_VECTOR=OS_M64;{$WARNING "OS_VECTOR" was set to "OS_M64" but not verified!}
-CONST
-{Operand types}
+  OS_VECTOR=OS_M64;
+  {Operand types}
   OT_NONE      = $00000000;
   OT_BITS8     = $00000001;  { size, and other attributes, of the operand  }
   OT_BITS16    = $00000002;
@@ -184,7 +183,7 @@ CONST
 CONST
   CondAsmOps=3;
   CondAsmOp:ARRAY[0..CondAsmOps-1] of TAsmOp=(A_FCMPd, A_JMPL, A_FCMPs);
-  CondAsmOpStr:ARRAY[0..CondAsmOps-1] of string[4]=('FCMPd','JMPL','FCMPs');
+  CondAsmOpStr:ARRAY[0..CondAsmOps-1] of string[7]=('FCMPd','JMPL','FCMPs');
 {*****************************************************************************}
 {                                 Registers                                   }
 {*****************************************************************************}
@@ -208,7 +207,7 @@ CONST
   lastreg  = high(R_ASR31);
   
 type
-  reg2strtable=ARRAY[firstreg..lastreg] OF STRING[6];
+  reg2strtable=ARRAY[firstreg..lastreg] OF STRING[7];
 
 const
   std_reg2str:reg2strtable=({$INCLUDE strregs.inc});
@@ -362,7 +361,7 @@ used, because contains a lot of unnessary fields.}
 
 const
   general_registers = [R_G0..R_I7];
-  { legEND:                                                                }
+  { legend:                                                                }
   { xxxregs = set of all possibly used registers of that type in the code  }
   {           generator                                                    }
   { usableregsxxx = set of all 32bit components of registers that can be   }
@@ -371,16 +370,16 @@ const
   {           passing on ABI's that define this)                           }
   { c_countusableregsxxx = amount of registers in the usableregsxxx set    }
   IntRegs=[R_G0..R_I7];
-  usableregsint=general_registers;
-  c_countusableregsint = 4;
+  usableregsint=[R_O0..R_I7];
+  c_countusableregsint = 24;
   fpuregs=[R_F0..R_F31];
-  usableregsfpu=[];
-  c_countusableregsfpu=0;
+  usableregsfpu=[R_F0..R_F31];
+  c_countusableregsfpu=32;
   mmregs=[];
   usableregsmm=[];
-  c_countusableregsmm=8;
+  c_countusableregsmm=0;
   
-  firstsaveintreg = R_I0;
+  firstsaveintreg = R_O0;
   lastsaveintreg = R_I7;
   firstsavefpureg = R_F0;
   lastsavefpureg = R_F31;
@@ -393,42 +392,29 @@ const
 
   lvaluelocations = [LOC_REFERENCE,LOC_CFPUREGISTER,
     LOC_CREGISTER,LOC_MMXREGISTER,LOC_CMMXREGISTER];
-{
-  registers_saved_on_cdecl = [R_ESI,R_EDI,R_EBX];}
-
 {*****************************************************************************
                                GDB Information
 *****************************************************************************}
-
-      {# Register indexes for stabs information, when some
-         parameters or variables are stored in registers.
-
-         Taken from rs6000.h (DBX_REGISTER_NUMBER)
-         from GCC 3.x source code. PowerPC has 1:1 mapping
-         according to the order of the registers defined
-         in GCC
-
-      }
-
+  {# Register indexes for stabs information, when some parameters or variables
+  are stored in registers.
+  Taken from rs6000.h (DBX_REGISTER_NUMBER) from GCC 3.x source code.}
   stab_regindex:ARRAY[firstreg..lastreg]OF ShortInt=({$INCLUDE stabregi.inc});
 {*************************** generic register names **************************}
 	stack_pointer_reg		=	R_O6;
   frame_pointer_reg		=	R_I6;
-
   {the return_result_reg, is used inside the called function to store its return
   value when that is a scalar value otherwise a pointer to the address of the
   result is placed inside it}
 	return_result_reg		=	R_I0;
-
   {the function_result_reg contains the function result after a call to a scalar
   function othewise it contains a pointer to the returned result}
 	function_result_reg	=	R_O0;
   self_pointer_reg  =R_G5;
-{There is no accumulator in the SPARC architecture. There are just families of
-registers. All registers belonging to the same family are identical except in
-the "global registers" family where GO is different from the others : G0 gives
-always 0 when it is red and thows away any value written to it.Nevertheless,
-scalar routine results are returned onto R_O0.}
+  {There is no accumulator in the SPARC architecture. There are just families
+  of registers. All registers belonging to the same family are identical except
+  in the "global registers" family where GO is different from the others :
+  G0 gives always 0 when it is red and thows away any value written to it.
+  Nevertheless, scalar routine results are returned onto R_O0.}
   accumulator     = R_O0;
   accumulatorhigh = R_O1;
   fpu_result_reg  =R_F0;
@@ -451,9 +437,8 @@ PARM_BOUNDARY / BITS_PER_UNIT in the GCC source.}
   std_param_align=4;
 {# Registers which are defined as scratch and no need to save across routine
 calls or in assembler blocks.}
-  ScratchRegsCount=3;
-  scratch_regs:ARRAY[1..ScratchRegsCount]OF ToldRegister=(R_O4,R_O5,R_I7);
-  {$WARNING FIXME : Scratch registers list has to be verified}
+  ScratchRegsCount=8;
+  scratch_regs:ARRAY[1..ScratchRegsCount]OF ToldRegister=(R_L0,R_L1,R_L2,R_L3,R_L4,R_L5,R_L6,R_L7);
 { low and high of the available maximum width integer general purpose }
 { registers                                                           }
   LoGPReg = R_G0;
@@ -536,10 +521,80 @@ function flags_to_cond(const f:TResFlags):TAsmCond;
   END;
 
 procedure convert_register_to_enum(var r:Tregister);
-
+const
+  NR_NO=$0000;
+  NR_G0=$0001;
+  NR_G1=$0002;
+  NR_G2=$0003;
+  NR_G3=$0004;
+  NR_G4=$0005;
+  NR_G5=$0006;
+  NR_G6=$0007;
+  NR_G7=$0008;
+  NR_O0=$0100;
+  NR_O1=$0200;
+  NR_O2=$0300;
+  NR_O3=$0400;
+  NR_O4=$0500;
+  NR_O5=$0600;
+  NR_O6=$0700;
+  NR_O7=$0800;
+  NR_L0=$0900;
+  NR_L1=$0A00;
+  NR_L2=$0B00;
+  NR_L3=$0C00;
+  NR_L4=$0D00;
+  NR_L5=$0E00;
+  NR_L6=$0F00;
+  NR_L7=$1000;
+  NR_I0=$1100;
+  NR_I1=$1200;
+  NR_I2=$1300;
+  NR_I3=$1400;
+  NR_I4=$1500;
+  NR_I5=$1600;
+  NR_I6=$1700;
+  NR_I7=$1800;
 begin
-    {$warning Convert_register_to_enum implementation is missing!}
-    internalerror(200301082);
+  if r.enum=R_INTREGISTER
+  then
+    case r.number of
+      NR_NO: r.enum:= R_NO;
+      NR_G0: r.enum:= R_G0;
+      NR_G1: r.enum:= R_G1;
+      NR_G2: r.enum:= R_G2;
+      NR_G3: r.enum:= R_G3;
+      NR_G4: r.enum:= R_G4;
+      NR_G5: r.enum:= R_G5;
+      NR_G6: r.enum:= R_G6;
+      NR_G7: r.enum:= R_G7;
+      NR_O0: r.enum:= R_O0;
+      NR_O1: r.enum:= R_O1;
+      NR_O2: r.enum:= R_O2;
+      NR_O3: r.enum:= R_O3;
+      NR_O4: r.enum:= R_O4;
+      NR_O5: r.enum:= R_O5;
+      NR_O6: r.enum:= R_O6;
+      NR_O7: r.enum:= R_O7;
+      NR_L0: r.enum:= R_L0;
+      NR_L1: r.enum:= R_L1;
+      NR_L2: r.enum:= R_L2;
+      NR_L3: r.enum:= R_L3;
+      NR_L4: r.enum:= R_L4;
+      NR_L5: r.enum:= R_L5;
+      NR_L6: r.enum:= R_L6;
+      NR_L7: r.enum:= R_L7;
+      NR_I0: r.enum:= R_I0;
+      NR_I1: r.enum:= R_I1;
+      NR_I2: r.enum:= R_I2;
+      NR_I3: r.enum:= R_I3;
+      NR_I4: r.enum:= R_I4;
+      NR_I5: r.enum:= R_I5;
+      NR_I6: r.enum:= R_I6;
+      NR_I7: r.enum:= R_I7;
+      else
+        internalerror(200301082);
+    end;
 end;
 
 END.
@@ -548,7 +603,10 @@ END.
 
 {
   $Log$
-  Revision 1.20  2003-01-09 20:41:00  daniel
+  Revision 1.21  2003-01-20 22:21:36  mazen
+  * many stuff related to RTL fixed
+
+  Revision 1.20  2003/01/09 20:41:00  daniel
     * Converted some code in cgx86.pas to new register numbering
 
   Revision 1.19  2003/01/09 15:49:56  daniel

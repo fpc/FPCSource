@@ -34,7 +34,7 @@ specific processor ABI. It is overriden for each CPU target.
   Size    : is the size of the operand in the register
   r       : is the register source of the operand
   LocPara : is the location where the parameter will be stored}
-    procedure a_param_reg(list:TAasmOutput;size:tcgsize;r:tregister;const LocPara:TParaLocation);override;
+    procedure a_param_reg(list:TAasmOutput;sz:tcgsize;r:tregister;const LocPara:TParaLocation);override;
     {passes a parameter which is a constant to a function}
     procedure a_param_const(list:TAasmOutput;size:tcgsize;a:aword;CONST LocPara:TParaLocation);override;
     procedure a_param_ref(list:TAasmOutput;sz:tcgsize;CONST r:TReference;CONST LocPara:TParaLocation);override;
@@ -93,7 +93,7 @@ specific processor ABI. It is overriden for each CPU target.
     procedure floatloadops(t:tcgsize;var op:tasmop;var s:topsize);
     procedure floatstoreops(t:tcgsize;var op:tasmop;var s:topsize);
   END;
-  TCg64fSPARC=class(tcg64f32)
+  TCg64Sparc=class(tcg64f32)
     procedure a_op64_ref_reg(list:TAasmOutput;op:TOpCG;CONST ref:TReference;reg:TRegister64);override;
     procedure a_op64_reg_reg(list:TAasmOutput;op:TOpCG;regsrc,regdst:TRegister64);override;
     procedure a_op64_const_reg(list:TAasmOutput;op:TOpCG;value:qWord;regdst:TRegister64);override;
@@ -110,22 +110,30 @@ USES
   globtype,globals,verbose,systems,cutils,
   symdef,symsym,defutil,paramgr,
   rgobj,tgobj,rgcpu,cpupi;
-    { we implement the following routines because otherwise we can't }
-    { instantiate the class since it's abstract                      }
-procedure TCgSparc.a_param_reg(list:TAasmOutput;size:tcgsize;r:tregister;const LocPara:TParaLocation);
-
-var r2:Tregister;
-
+procedure TCgSparc.a_param_reg(list:TAasmOutput;sz:tcgsize;r:tregister;const LocPara:TParaLocation);
+  var
+    r2:Tregister;
   begin
     r2.enum:=R_G0;
-    if(Size<>OS_32)and(Size<>OS_S32)
-    then
-      InternalError(2002032212);
     with list,LocPara do
       case Loc of
         LOC_REGISTER:
-          if r.enum<>Register.enum then
-            Concat(taicpu.op_Reg_Reg_Reg(A_OR,r,r2,Register));
+          case Sz of
+            OS_8,OS_S8:
+              Concat(taicpu.op_Reg_Const_Reg(A_AND,r,$FF,Register));
+            OS_16,OS_S16:
+              begin
+                Concat(taicpu.op_Reg_Reg_Reg(A_AND,r,r2,Register));
+                {This will put 00...00111 in the hiest 22 bits of the reg}
+                Concat(taicpu.op_Reg_Const_Reg(A_SETHI,Register,$7,Register));
+              end;
+            OS_32,OS_S32:
+              if r.enum<>Register.enum
+              then
+                Concat(taicpu.op_Reg_Reg_Reg(A_OR,r,r2,Register));
+            else
+              InternalError(2002032212);
+          end;
         else
           InternalError(2002101002);
       end;
@@ -1004,7 +1012,7 @@ procedure TCgSparc.a_loadaddr_ref_reg(list:TAasmOutput;CONST ref:TReference;r:tr
 //         list.concat(taicpu.op_ref_reg(A_LEA,S_SW,ref,r));
        end;
 { ************* 64bit operations ************ }
-    procedure TCg64fSPARC.get_64bit_ops(op:TOpCG;var op1,op2:TAsmOp);
+    procedure TCg64Sparc.get_64bit_ops(op:TOpCG;var op1,op2:TAsmOp);
       begin
         case op of
           OP_ADD :
@@ -1038,7 +1046,7 @@ procedure TCgSparc.a_loadaddr_ref_reg(list:TAasmOutput;CONST ref:TReference;r:tr
       end;
 
 
-    procedure TCg64fSPARC.a_op64_ref_reg(list:TAasmOutput;op:TOpCG;CONST ref:TReference;reg:TRegister64);
+    procedure TCg64Sparc.a_op64_ref_reg(list:TAasmOutput;op:TOpCG;CONST ref:TReference;reg:TRegister64);
       var
         op1,op2:TAsmOp;
         tempref:TReference;
@@ -1051,7 +1059,7 @@ procedure TCgSparc.a_loadaddr_ref_reg(list:TAasmOutput;CONST ref:TReference;r:tr
       end;
 
 
-    procedure TCg64fSPARC.a_op64_reg_reg(list:TAasmOutput;op:TOpCG;regsrc,regdst:TRegister64);
+    procedure TCg64Sparc.a_op64_reg_reg(list:TAasmOutput;op:TOpCG;regsrc,regdst:TRegister64);
       var
         op1,op2:TAsmOp;
       begin
@@ -1061,7 +1069,7 @@ procedure TCgSparc.a_loadaddr_ref_reg(list:TAasmOutput;CONST ref:TReference;r:tr
       end;
 
 
-    procedure TCg64fSPARC.a_op64_const_reg(list:TAasmOutput;op:TOpCG;value:qWord;regdst:TRegister64);
+    procedure TCg64Sparc.a_op64_const_reg(list:TAasmOutput;op:TOpCG;value:qWord;regdst:TRegister64);
       var
         op1,op2:TAsmOp;
       begin
@@ -1085,7 +1093,7 @@ procedure TCgSparc.a_loadaddr_ref_reg(list:TAasmOutput;CONST ref:TReference;r:tr
       end;
 
 
-procedure TCg64fSPARC.a_op64_const_ref(list:TAasmOutput;op:TOpCG;value:qWord;const ref:TReference);
+procedure TCg64Sparc.a_op64_const_ref(list:TAasmOutput;op:TOpCG;value:qWord;const ref:TReference);
   var
     op1,op2:TAsmOp;
     tempref:TReference;
@@ -1405,11 +1413,15 @@ procedure TCgSparc.floatstore(list:TAasmOutput;t:tcgsize;CONST ref:TReference);
 {    dec(trgcpu(rg).fpuvaroffset);}
   END;
 BEGIN
-  cg:=TCgSparc.create;
+  cg:=TCgSparc.Create;
+  cg64:=TCg64Sparc.Create;
 END.
 {
   $Log$
-  Revision 1.34  2003-01-08 18:43:58  daniel
+  Revision 1.35  2003-01-20 22:21:36  mazen
+  * many stuff related to RTL fixed
+
+  Revision 1.34  2003/01/08 18:43:58  daniel
    * Tregister changed into a record
 
   Revision 1.33  2003/01/07 22:03:40  mazen

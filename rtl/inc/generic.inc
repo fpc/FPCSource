@@ -965,7 +965,10 @@ end;
 
 {
   $Log$
-  Revision 1.48  2003-01-09 20:14:20  florian
+  Revision 1.49  2003-01-20 22:21:36  mazen
+  * many stuff related to RTL fixed
+
+  Revision 1.48  2003/01/09 20:14:20  florian
     * fixed helper declarations
 
   Revision 1.47  2003/01/07 22:04:12  mazen

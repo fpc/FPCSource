@@ -51,9 +51,14 @@ implementation according to the Assembler Refernce Manual.(MN)}
 ,R_ASR8,R_ASR9,R_ASR10,R_ASR11,R_ASR12,R_ASR13,R_ASR14,R_ASR15
 ,R_ASR16,R_ASR17,R_ASR18,R_ASR19,R_ASR20,R_ASR21,R_ASR22,R_ASR23
 ,R_ASR24,R_ASR25,R_ASR26,R_ASR27,R_ASR28,R_ASR29,R_ASR30,R_ASR31
+{The following registers are just used with the new register allocator}
+,R_INTREGISTER,R_FLOATREGISTER,R_MMXREGISTER,R_KNIREGISTER
 {
   $Log$
-  Revision 1.2  2002-10-02 22:20:28  mazen
+  Revision 1.3  2003-01-20 22:21:36  mazen
+  * many stuff related to RTL fixed
+
+  Revision 1.2  2002/10/02 22:20:28  mazen
   + out registers allocator for the first 6 scalar parameters which must be passed into %o0..%o5
 
 }

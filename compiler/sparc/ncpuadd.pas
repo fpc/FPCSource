@@ -29,6 +29,8 @@ type
     procedure pass_2;override;
   private
     procedure second_addboolean;
+    procedure second_add64bit;
+    procedure second_addfloat;
     function GetResFlags(unsigned:Boolean):TResFlags;
     procedure left_must_be_reg(OpSize:TOpSize;NoSwap:Boolean);
     procedure emit_generic_code(op:TAsmOp;OpSize:TOpSize;unsigned,extra_not,mboverflow:Boolean);
@@ -402,6 +404,468 @@ procedure TSparcAddNode.emit_op_right_left(op:TAsmOp);
           InternalError(200203232);
       end;
   end;
+procedure TSparcAddNode.second_add64bit;
+  var
+    op         : TOpCG;
+    op1,op2    : TAsmOp;
+    hl4        : tasmlabel;
+    cmpop,
+    unsigned   : boolean;
+    r          : Tregister;
+  procedure emit_cmp64_hi;
+    var
+      oldleft, oldright: tlocation;
+    begin
+      // put the high part of the location in the low part
+      location_copy(oldleft,left.location);
+      location_copy(oldright,right.location);
+      if left.location.loc = LOC_CONSTANT
+      then
+        left.location.valueqword := left.location.valueqword shr 32
+      else
+        left.location.registerlow := left.location.registerhigh;
+      if right.location.loc = LOC_CONSTANT
+      then
+        right.location.valueqword := right.location.valueqword shr 32
+      else
+        right.location.registerlow := right.location.registerhigh;
+      // and call the normal emit_compare
+      //emit_compare(unsigned);
+      location_copy(left.location,oldleft);
+      location_copy(right.location,oldright);
+    end;
+    procedure emit_cmp64_lo;
+      begin
+//        emit_compare(true);
+      end;
+    procedure firstjmp64bitcmp;
+      var
+        oldnodetype: tnodetype;
+      begin
+        load_all_regvars(exprasmlist);
+        { the jump the sequence is a little bit hairy }
+        case nodetype of
+          ltn,gtn:
+            begin
+              cg.a_jmp_flags(exprasmlist,getresflags(false),truelabel);
+              { cheat a little bit for the negative test }
+              toggleflag(nf_swaped);
+              cg.a_jmp_flags(exprasmlist,getresflags(false),falselabel);
+              toggleflag(nf_swaped);
+            end;
+          lten,gten:
+            begin
+              oldnodetype:=nodetype;
+                if nodetype=lten then
+                     nodetype:=ltn
+                   else
+                     nodetype:=gtn;
+                   cg.a_jmp_flags(exprasmlist,getresflags(false),truelabel);
+                   { cheat for the negative test }
+                   if nodetype=ltn then
+                     nodetype:=gtn
+                   else
+                     nodetype:=ltn;
+                   cg.a_jmp_flags(exprasmlist,getresflags(false),falselabel);
+                   nodetype:=oldnodetype;
+                end;
+              equaln:
+                begin
+                  nodetype := unequaln;
+                  cg.a_jmp_flags(exprasmlist,getresflags(true),falselabel);
+                  nodetype := equaln;
+                end;
+              unequaln:
+                begin
+                  cg.a_jmp_flags(exprasmlist,getresflags(true),truelabel);
+                end;
+           end;
+        end;
+
+
+      procedure secondjmp64bitcmp;
+
+        begin
+           { the jump the sequence is a little bit hairy }
+           case nodetype of
+              ltn,gtn,lten,gten:
+                begin
+                   { the comparison of the low dword always has }
+                   { to be always unsigned!                     }
+                   cg.a_jmp_flags(exprasmlist,getresflags(false),truelabel);
+                   cg.a_jmp_always(exprasmlist,falselabel);
+                end;
+              equaln:
+                begin
+                   nodetype := unequaln;
+                   cg.a_jmp_flags(exprasmlist,getresflags(true),falselabel);
+                   cg.a_jmp_always(exprasmlist,truelabel);
+                   nodetype := equaln;
+                end;
+              unequaln:
+                begin
+                   cg.a_jmp_flags(exprasmlist,getresflags(true),truelabel);
+                   cg.a_jmp_always(exprasmlist,falselabel);
+                end;
+           end;
+        end;
+
+
+    var
+      tempreg64: tregister64;
+
+      begin
+        firstcomplex(self);
+
+        pass_left_and_right;
+
+        cmpop:=false;
+        unsigned:=((left.resulttype.def.deftype=orddef) and
+                   (torddef(left.resulttype.def).typ=u64bit)) or
+                  ((right.resulttype.def.deftype=orddef) and
+                   (torddef(right.resulttype.def).typ=u64bit));
+        case nodetype of
+          addn :
+            begin
+              op:=OP_ADD;
+            end;
+          subn :
+            begin
+              op:=OP_SUB;
+            end;
+          ltn,lten,
+          gtn,gten,
+          equaln,unequaln:
+            begin
+              op:=OP_NONE;
+              cmpop:=true;
+            end;
+          xorn:
+            op:=OP_XOR;
+          orn:
+            op:=OP_OR;
+          andn:
+            op:=OP_AND;
+          muln:
+            begin
+              { should be handled in pass_1 (JM) }
+              internalerror(200109051);
+            end;
+          else
+            internalerror(2002072705);
+        end;
+
+        if not cmpop then
+          location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
+
+        //load_left_right(cmpop,(cs_check_overflow in aktlocalswitches) and (nodetype in [addn,subn]));
+
+        if not(cs_check_overflow in aktlocalswitches) or
+           not(nodetype in [addn,subn]) then
+          begin
+            case nodetype of
+              ltn,lten,
+              gtn,gten:
+                begin
+                  emit_cmp64_hi;
+                  firstjmp64bitcmp;
+                  emit_cmp64_lo;
+                  secondjmp64bitcmp;
+                end;
+              equaln,unequaln:
+                begin
+                  // instead of doing a complicated compare, do
+                  // (left.hi xor right.hi) or (left.lo xor right.lo)
+                  // (somewhate optimized so that no superfluous 'mr's are
+                  //  generated)
+                  if (left.location.loc = LOC_CONSTANT) then
+                    swapleftright;
+                  if (right.location.loc = LOC_CONSTANT) then
+                    begin
+                      if left.location.loc = LOC_REGISTER then
+                        begin
+                          tempreg64.reglo := left.location.registerlow;
+                          tempreg64.reghi := left.location.registerhigh;
+                        end
+                      else
+                        begin
+                          if (right.location.valueqword <> 0)
+                          then
+                            tempreg64.reglo := cg.get_scratch_reg_int(exprasmlist)
+                          else
+                            tempreg64.reglo := left.location.registerlow;
+                          if ((right.location.valueqword shr 32) <> 0) then
+                            tempreg64.reghi := cg.get_scratch_reg_int(exprasmlist)
+                          else
+                            tempreg64.reghi := left.location.registerhigh;
+                        end;
+
+                      if (right.location.valueqword <> 0) then
+                        { negative values can be handled using SUB, }
+                        { positive values < 65535 using XOR.        }
+                        if (longint(right.location.valueqword) >= -32767) and
+                           (longint(right.location.valueqword) < 0) then
+                          cg.a_op_const_reg_reg(exprasmlist,OP_SUB,OS_INT,
+                            right.location.valueqword,
+                            left.location.registerlow,tempreg64.reglo)
+                        else
+                          cg.a_op_const_reg_reg(exprasmlist,OP_XOR,OS_INT,
+                            right.location.valueqword,
+                            left.location.registerlow,tempreg64.reglo);
+
+                      if ((right.location.valueqword shr 32) <> 0) then
+                        if (longint(right.location.valueqword shr 32) >= -32767) and
+                           (longint(right.location.valueqword shr 32) < 0) then
+                          cg.a_op_const_reg_reg(exprasmlist,OP_SUB,OS_INT,
+                            right.location.valueqword shr 32,
+                            left.location.registerhigh,tempreg64.reghi)
+                        else
+                          cg.a_op_const_reg_reg(exprasmlist,OP_XOR,OS_INT,
+                            right.location.valueqword shr 32,
+                            left.location.registerhigh,tempreg64.reghi);
+                    end
+                  else
+                    begin
+                       tempreg64.reglo := cg.get_scratch_reg_int(exprasmlist);
+                       tempreg64.reghi := cg.get_scratch_reg_int(exprasmlist);
+                       cg64.a_op64_reg_reg_reg(exprasmlist,OP_XOR,
+                         left.location.register64,right.location.register64,
+                         tempreg64);
+                    end;
+
+                  r.enum:=R_G0;
+                  cg.a_reg_alloc(exprasmlist,r);
+                  exprasmlist.concat(taicpu.op_reg_reg_reg(A_OR,r,
+                    tempreg64.reglo,tempreg64.reghi));
+                  cg.a_reg_dealloc(exprasmlist,r);
+                  if (tempreg64.reglo.enum <> left.location.registerlow.enum) then
+                    cg.free_scratch_reg(exprasmlist,tempreg64.reglo);
+                  if (tempreg64.reghi.enum <> left.location.registerhigh.enum) then
+                    cg.free_scratch_reg(exprasmlist,tempreg64.reghi);
+
+                  location_reset(location,LOC_FLAGS,OS_NO);
+                  location.resflags := getresflags(true);
+                end;
+              xorn,orn,andn,addn:
+                begin
+                  if (location.registerlow.enum = R_NO) then
+                    begin
+                      location.registerlow := rg.getregisterint(exprasmlist);
+                      location.registerhigh := rg.getregisterint(exprasmlist);
+                    end;
+
+                  if (left.location.loc = LOC_CONSTANT) then
+                    swapleftright;
+                  if (right.location.loc = LOC_CONSTANT) then
+                    cg64.a_op64_const_reg_reg(exprasmlist,op,right.location.valueqword,
+                      left.location.register64,location.register64)
+                  else
+                    cg64.a_op64_reg_reg_reg(exprasmlist,op,right.location.register64,
+                      left.location.register64,location.register64);
+                end;
+              subn:
+                begin
+                  if (nf_swaped in flags) then
+                    swapleftright;
+
+                  if left.location.loc <> LOC_CONSTANT then
+                    begin
+                      if (location.registerlow.enum = R_NO) then
+                        begin
+                         location.registerlow := rg.getregisterint(exprasmlist);
+                         location.registerhigh := rg.getregisterint(exprasmlist);
+                      end;
+                      if right.location.loc <> LOC_CONSTANT then
+                        // reg64 - reg64
+                        cg64.a_op64_reg_reg_reg(exprasmlist,OP_SUB,
+                          right.location.register64,left.location.register64,
+                          location.register64)
+                      else
+                        // reg64 - const64
+                        cg64.a_op64_const_reg_reg(exprasmlist,OP_SUB,
+                          right.location.valueqword,left.location.register64,
+                          location.register64)
+                    end
+                  else if ((left.location.valueqword shr 32) = 0) then
+                    begin
+                      if (location.registerlow.enum = R_NO) then
+                        begin
+                         location.registerlow := rg.getregisterint(exprasmlist);
+                         location.registerhigh := rg.getregisterint(exprasmlist);
+                      end;
+                      if (int64(left.location.valueqword) >= low(smallint)) and
+                         (int64(left.location.valueqword) <= high(smallint))
+                      then
+                        begin
+                          // consts16 - reg64
+                          exprasmlist.concat(taicpu.op_reg_const_Reg(A_SUBcc,location.registerlow,left.location.value,right.location.registerlow));
+                        end
+                      else
+                        begin
+                          // const32 - reg64
+                          cg.a_load_const_reg(exprasmlist,OS_32,
+                            left.location.valueqword,location.registerlow);
+                          exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBcc,
+                            location.registerlow,location.registerlow,
+                            right.location.registerlow));
+                        end;
+                      exprasmlist.concat(taicpu.op_reg_reg(A_SUBcc,
+                        location.registerhigh,right.location.registerhigh));
+                    end
+                  else if (left.location.valueqword = 0) then
+                    begin
+                      // (const32 shl 32) - reg64
+                      if (location.registerlow.enum = R_NO) then
+                        begin
+                         location.registerlow := rg.getregisterint(exprasmlist);
+                         location.registerhigh := rg.getregisterint(exprasmlist);
+                      end;
+                      exprasmlist.concat(taicpu.op_reg_Const_reg(A_SUBcc,location.registerlow,0,right.location.registerlow));
+                      cg.a_load_const_reg(exprasmlist,OS_INT,
+                        left.location.valueqword shr 32,location.registerhigh);
+                      exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBcc,
+                        location.registerhigh,right.location.registerhigh,
+                        location.registerhigh));
+                    end
+                  else
+                    begin
+                      // const64 - reg64
+                      location_force_reg(exprasmlist,left.location,
+                        def_cgsize(left.resulttype.def),true);
+                      if (left.location.loc = LOC_REGISTER) then
+                        location.register64 := left.location.register64
+                      else if (location.registerlow.enum = R_NO) then
+                        begin
+                         location.registerlow := rg.getregisterint(exprasmlist);
+                         location.registerhigh := rg.getregisterint(exprasmlist);
+                        end;
+                      cg64.a_op64_reg_reg_reg(exprasmlist,OP_SUB,
+                        right.location.register64,left.location.register64,
+                        location.register64);
+                     end;
+                end;
+              else
+                internalerror(2002072803);
+            end;
+          end
+        else
+          begin
+            case nodetype of
+              addn:
+                begin
+                  op1 := A_ADDcc;
+                  op2 := A_ADDcc;
+                end;
+              subn:
+                begin
+                  op1 := A_SUBcc;
+                  op2 := A_SUBcc;
+                end;
+              else
+                internalerror(2002072806);
+            end;
+            exprasmlist.concat(taicpu.op_reg_reg_reg(op1,location.registerlow,
+              left.location.registerlow,right.location.registerlow));
+            exprasmlist.concat(taicpu.op_reg_reg_reg(op2,location.registerhigh,
+              right.location.registerhigh,left.location.registerhigh));
+            cg.g_overflowcheck(exprasmlist,self);
+          end;
+
+        { set result location }
+        { (emit_compare sets it to LOC_FLAGS for compares, so set the }
+        {  real location only now) (JM)                               }
+        if cmpop and
+           not(nodetype in [equaln,unequaln]) then
+          location_reset(location,LOC_JUMP,OS_NO);
+
+//        clear_left_right(cmpop);
+
+      end;
+procedure TSparcAddNode.second_addfloat;
+  var
+    reg   : tregister;
+    op    : TAsmOp;
+    cmpop : boolean;
+    r     : Tregister;
+
+      procedure location_force_fpureg(var l: tlocation);
+        begin
+          if not(l.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
+            begin
+              reg := rg.getregisterfpu(exprasmlist);
+              cg.a_loadfpu_loc_reg(exprasmlist,l,reg);
+              location_freetemp(exprasmlist,l);
+              location_release(exprasmlist,l);
+              location_reset(l,LOC_FPUREGISTER,l.size);
+              l.register := reg;
+            end;
+        end;
+
+  begin
+        pass_left_and_right;
+
+        cmpop:=false;
+        case nodetype of
+          addn :
+            op:=A_FADDs;
+          muln :
+            op:=A_FMULs;
+          subn :
+            op:=A_FSUBs;
+          slashn :
+            op:=A_FDIVs;
+          ltn,lten,gtn,gten,
+          equaln,unequaln :
+            begin
+              op:=A_FCMPs;
+              cmpop:=true;
+            end;
+          else
+            CGMessage(type_e_mismatch);
+        end;
+
+        // get the operands in the correct order, there are no special cases
+        // here, everything is register-based
+        if nf_swaped in flags then
+          swapleftright;
+
+        // put both operands in a register
+        location_force_fpureg(right.location);
+        location_force_fpureg(left.location);
+
+        // initialize de result
+        if not cmpop then
+          begin
+            location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+            if left.location.loc = LOC_FPUREGISTER then
+              location.register := left.location.register
+            else if right.location.loc = LOC_FPUREGISTER then
+              location.register := right.location.register
+            else
+              location.register := rg.getregisterfpu(exprasmlist);
+          end
+        else
+         begin
+           location_reset(location,LOC_FLAGS,OS_NO);
+           location.resflags := getresflags(true);
+         end;
+
+        // emit the actual operation
+        if not cmpop then
+          begin
+            exprasmlist.concat(taicpu.op_reg_reg_reg(op,
+              location.register,left.location.register,
+              right.location.register))
+          end
+        else
+          begin
+            r.enum:=R_PSR;
+            exprasmlist.concat(taicpu.op_reg_reg_reg(op,
+              r,left.location.register,right.location.register))
+          end;
+
+//        clear_left_right(cmpop);
+  end;
 procedure TSparcAddNode.set_result_location(cmpOp,unsigned:Boolean);
   begin
     IF cmpOp
@@ -444,7 +908,7 @@ procedures }
           second_addboolean
         else if is_64bitint(left.resulttype.def)
         then{64bit operations}
-            InternalError(20020726);//second_add64bit;
+          second_add64bit;
       stringdef:
         InternalError(20020726);//second_addstring;
       setdef:
@@ -457,7 +921,10 @@ procedures }
       arraydef :
         InternalError(2002110600);
       floatdef :
-        InternalError(20020726);//second_addfloat;
+        begin
+          second_addfloat;
+          exit;
+        end;
     end;
 {defaults}
     extra_not:=false;
@@ -573,7 +1040,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.6  2003-01-08 18:43:58  daniel
+    Revision 1.7  2003-01-20 22:21:36  mazen
+    * many stuff related to RTL fixed
+
+    Revision 1.6  2003/01/08 18:43:58  daniel
      * Tregister changed into a record
 
     Revision 1.5  2003/01/07 22:03:40  mazen

@@ -107,323 +107,291 @@ implementation
 {*****************************************************************************
                              SecondTypeConv
 *****************************************************************************}
-
-    procedure TSparctypeconvnode.second_int_to_int;
-      var
-        newsize : tcgsize;
-        size, leftsize : cardinal;
+procedure TSparctypeconvnode.second_int_to_int;
+  var
+    newsize:tcgsize;
+    size,leftsize:cardinal;
+  begin
+    newsize:=def_cgsize(resulttype.def);
+    { insert range check if not explicit conversion }
+    if not(nf_explizit in flags)
+    then
+      cg.g_rangecheck(exprasmlist,left,resulttype.def);
+    { is the result size smaller ? }
+    size := resulttype.def.size;
+    leftsize := left.resulttype.def.size;
+    if(size < leftsize)or
+      (((newsize in [OS_64,OS_S64])or
+      (left.location.loc <> LOC_REGISTER))and(size > leftsize))
+    then
       begin
-        newsize:=def_cgsize(resulttype.def);
-
-        { insert range check if not explicit conversion }
-        if not(nf_explizit in flags) then
-          cg.g_rangecheck(exprasmlist,left,resulttype.def);
-
-        { is the result size smaller ? }
-        size := resulttype.def.size;
-        leftsize := left.resulttype.def.size;
-        if (size < leftsize) or
-           (((newsize in [OS_64,OS_S64]) or
-             (left.location.loc <> LOC_REGISTER)) and
-            (size > leftsize)) then
-          begin
-            { reuse the left location by default }
-            location_copy(location,left.location);
-            location_force_reg(exprasmlist,location,newsize,false);
-          end
-        else
-          begin
-            { no special loading is required, reuse current location }
-            location_copy(location,left.location);
-            location.size:=newsize;
-          end;
+        { reuse the left location by default }
+        location_copy(location,left.location);
+        location_force_reg(exprasmlist,location,newsize,false);
+      end
+    else
+      begin
+        { no special loading is required, reuse current location }
+        location_copy(location,left.location);
+        location.size:=newsize;
       end;
-
-
-    procedure TSparctypeconvnode.second_int_to_real;
-
-      type
-        tdummyarray = packed array[0..7] of byte;
-
+  end;
+procedure TSparctypeconvnode.second_int_to_real;
+  type
+    tdummyarray = packed array[0..7] of byte;
 {$ifdef VER1_0}
-      var
-        dummy1, dummy2: int64;
+  var
+    dummy1, dummy2: int64;
 {$else VER1_0}
-      const
-         dummy1: int64 = $4330000080000000;
-         dummy2: int64 = $4330000000000000;
+  const
+    dummy1: int64 = $4330000080000000;
+    dummy2: int64 = $4330000000000000;
 {$endif VER1_0}
-
-      var
-        tempconst: trealconstnode;
-        ref: treference;
-        valuereg, tempreg, leftreg, tmpfpureg: tregister;
-        signed, valuereg_is_scratch: boolean;
-      begin
+  var
+    tempconst: trealconstnode;
+    ref: treference;
+    valuereg, tempreg, leftreg, tmpfpureg: tregister;
+    signed, valuereg_is_scratch: boolean;
+  begin
 {$ifdef VER1_0}
-        { the "and" is because 1.0.x will sign-extend the $80000000 to }
-        { $ffffffff80000000 when converting it to int64 (JM)           }
-        dummy1 := int64($80000000) and (int64($43300000) shl 32);
-        dummy2 := int64($43300000) shl 32;
+    { the "and" is because 1.0.x will sign-extend the $80000000 to }
+    { $ffffffff80000000 when converting it to int64 (JM)           }
+    dummy1 := int64($80000000) and (int64($43300000) shl 32);
+    dummy2 := int64($43300000) shl 32;
 {$endif VER1_0}
-
-        valuereg_is_scratch := false;
-        location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
-
-        { the code here comes from the PowerPC Compiler Writer's Guide }
-
-        { * longint to double                               }
-        { addis R0,R0,0x4330  # R0 = 0x43300000             }
-        { stw R0,disp(R1)     # store upper half            }
-        { xoris R3,R3,0x8000  # flip sign bit               }
-        { stw R3,disp+4(R1)   # store lower half            }
-        { lfd FR1,disp(R1)    # float load double of value  }
-        { fsub FR1,FR1,FR2    # subtract 0x4330000080000000 }
-
-        { * cardinal to double                              }
-        { addis R0,R0,0x4330  # R0 = 0x43300000             }
-        { stw R0,disp(R1)     # store upper half            }
-        { stw R3,disp+4(R1)   # store lower half            }
-        { lfd FR1,disp(R1)    # float load double of value  }
-        { fsub FR1,FR1,FR2    # subtract 0x4330000000000000 }
-        tg.Gettemp(exprasmlist,8,tt_normal,ref);
-
-        signed := is_signed(left.resulttype.def);
-
-        { we need a certain constant for the conversion, so create it here }
-        if signed then
-          tempconst :=
-            crealconstnode.create(double(dummy1),
-            pbestrealtype^)
-        else
-          tempconst :=
-            crealconstnode.create(double(dummy2),
-            pbestrealtype^);
-
-        resulttypepass(tempconst);
-        firstpass(tempconst);
-        secondpass(tempconst);
-        if (tempconst.location.loc <> LOC_CREFERENCE) or
-           { has to be handled by a helper }
-           is_64bitint(left.resulttype.def) then
-          internalerror(200110011);
-
-        case left.location.loc of
-          LOC_REGISTER:
+    valuereg_is_scratch := false;
+    location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+    { the code here comes from the PowerPC Compiler Writer's Guide }
+    { * longint to double                               }
+    { addis R0,R0,0x4330  # R0 = 0x43300000             }
+    { stw R0,disp(R1)     # store upper half            }
+    { xoris R3,R3,0x8000  # flip sign bit               }
+    { stw R3,disp+4(R1)   # store lower half            }
+    { lfd FR1,disp(R1)    # float load double of value  }
+    { fsub FR1,FR1,FR2    # subtract 0x4330000080000000 }
+    { * cardinal to double                              }
+    { addis R0,R0,0x4330  # R0 = 0x43300000             }
+    { stw R0,disp(R1)     # store upper half            }
+    { stw R3,disp+4(R1)   # store lower half            }
+    { lfd FR1,disp(R1)    # float load double of value  }
+    { fsub FR1,FR1,FR2    # subtract 0x4330000000000000 }
+    tg.Gettemp(exprasmlist,8,tt_normal,ref);
+    signed := is_signed(left.resulttype.def);
+    { we need a certain constant for the conversion, so create it here }
+    if signed
+    then
+      tempconst:=crealconstnode.create(double(dummy1),pbestrealtype^)
+    else
+      tempconst:=crealconstnode.create(double(dummy2),pbestrealtype^);
+    resulttypepass(tempconst);
+    firstpass(tempconst);
+    secondpass(tempconst);
+    if (tempconst.location.loc <> LOC_CREFERENCE)or
+    { has to be handled by a helper }
+       is_64bitint(left.resulttype.def)
+    then
+      internalerror(200110011);
+    case left.location.loc of
+      LOC_REGISTER:
+        begin
+          leftreg := left.location.register;
+          valuereg := leftreg;
+        end;
+      LOC_CREGISTER:
+        begin
+          leftreg := left.location.register;
+          if signed
+          then
             begin
-              leftreg := left.location.register;
-              valuereg := leftreg;
-            end;
-          LOC_CREGISTER:
-            begin
-              leftreg := left.location.register;
-              if signed then
-                begin
-                  valuereg := cg.get_scratch_reg_int(exprasmlist);
-                  valuereg_is_scratch := true;
-                end
-              else
-                valuereg := leftreg;
-            end;
-          LOC_REFERENCE,LOC_CREFERENCE:
-            begin
-              leftreg := cg.get_scratch_reg_int(exprasmlist);
-              valuereg := leftreg;
+              valuereg := cg.get_scratch_reg_int(exprasmlist);
               valuereg_is_scratch := true;
-              cg.a_load_ref_reg(exprasmlist,def_cgsize(left.resulttype.def),
-                left.location.reference,leftreg);
             end
           else
-            internalerror(200110012);
-         end;
-         tempreg := cg.get_scratch_reg_int(exprasmlist);
-         {$WARNING FIXME what really should be done?}
-         exprasmlist.concat(taicpu.op_reg_const_reg(A_OR,tempreg,$4330,tempreg));
-         cg.a_load_reg_ref(exprasmlist,OS_32,tempreg,ref);
-         cg.free_scratch_reg(exprasmlist,tempreg);
-         if signed then
-         {$WARNING FIXME what really should be done?}
-           exprasmlist.concat(taicpu.op_reg_const_reg(A_XOR,leftreg,$8000,valuereg));
-         inc(ref.offset,4);
-         cg.a_load_reg_ref(exprasmlist,OS_32,valuereg,ref);
-         dec(ref.offset,4);
-         if (valuereg_is_scratch) then
-           cg.free_scratch_reg(exprasmlist,valuereg);
-
-         if (left.location.loc = LOC_REGISTER) or
-            ((left.location.loc = LOC_CREGISTER) and
-             not signed) then
-           rg.ungetregister(exprasmlist,leftreg)
-         else
-           cg.free_scratch_reg(exprasmlist,valuereg);
-
-         tmpfpureg := rg.getregisterfpu(exprasmlist);
-         cg.a_loadfpu_ref_reg(exprasmlist,OS_F64,tempconst.location.reference,
-           tmpfpureg);
-         tempconst.free;
-
-         location.register := rg.getregisterfpu(exprasmlist);
-         {$WARNING FIXME what really should be done?}
-         exprasmlist.concat(taicpu.op_reg_ref(A_LD,location.register,ref));
-
-         tg.ungetiftemp(exprasmlist,ref);
-
-         exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUB,location.register,
-           location.register,tmpfpureg));
-         rg.ungetregisterfpu(exprasmlist,tmpfpureg);
-
-         { work around bug in some PowerPC processors }
-         if (tfloatdef(resulttype.def).typ = s32real) then
-         {$WARNING FIXME what really should be done?}
-           exprasmlist.concat(taicpu.op_reg_reg(A_ADD,location.register,location.register));
-       end;
-
-
-     procedure TSparctypeconvnode.second_real_to_real;
-       begin
-          inherited second_real_to_real;
-          { work around bug in some powerpc processors where doubles aren't }
-          { properly converted to singles                                   }
-          if (tfloatdef(left.resulttype.def).typ = s64real) and
-             (tfloatdef(resulttype.def).typ = s32real) then
-         {$WARNING FIXME what really should be done?}
-            exprasmlist.concat(taicpu.op_reg_reg(A_ADD,location.register,location.register));
-       end;
-
-
-
-
-    procedure TSparctypeconvnode.second_int_to_bool;
-      var
-        hreg1,
-        hreg2    : tregister;
-        resflags : tresflags;
-        opsize   : tcgsize;
+            valuereg := leftreg;
+        end;
+      LOC_REFERENCE,LOC_CREFERENCE:
+        begin
+          leftreg := cg.get_scratch_reg_int(exprasmlist);
+          valuereg := leftreg;
+          valuereg_is_scratch := true;
+          cg.a_load_ref_reg(exprasmlist,def_cgsize(left.resulttype.def),
+          left.location.reference,leftreg);
+        end
+      else
+        internalerror(200110012);
+    end;
+      tempreg := cg.get_scratch_reg_int(exprasmlist);
+      {$WARNING FIXME what really should be done?}
+      exprasmlist.concat(taicpu.op_reg_const_reg(A_OR,tempreg,$4330,tempreg));
+      cg.a_load_reg_ref(exprasmlist,OS_32,tempreg,ref);
+      cg.free_scratch_reg(exprasmlist,tempreg);
+      if signed
+      then
+        {$WARNING FIXME what really should be done?}
+        exprasmlist.concat(taicpu.op_reg_const_reg(A_XOR,leftreg,$8000,valuereg));
+      inc(ref.offset,4);
+      cg.a_load_reg_ref(exprasmlist,OS_32,valuereg,ref);
+      dec(ref.offset,4);
+      if (valuereg_is_scratch)
+      then
+        cg.free_scratch_reg(exprasmlist,valuereg);
+      if(left.location.loc = LOC_REGISTER) or
+        ((left.location.loc = LOC_CREGISTER) and not signed)
+      then
+        rg.ungetregister(exprasmlist,leftreg)
+      else
+        cg.free_scratch_reg(exprasmlist,valuereg);
+      tmpfpureg := rg.getregisterfpu(exprasmlist);
+      cg.a_loadfpu_ref_reg(exprasmlist,OS_F64,tempconst.location.reference,tmpfpureg);
+      tempconst.free;
+      location.register := rg.getregisterfpu(exprasmlist);
+      {$WARNING FIXME what really should be done?}
+      exprasmlist.concat(taicpu.op_reg_ref(A_LD,location.register,ref));
+      tg.ungetiftemp(exprasmlist,ref);
+      exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUB,location.register,location.register,tmpfpureg));
+      rg.ungetregisterfpu(exprasmlist,tmpfpureg);
+      { work around bug in some PowerPC processors }
+      if (tfloatdef(resulttype.def).typ = s32real)
+      then
+        {$WARNING FIXME what really should be done?}
+        exprasmlist.concat(taicpu.op_reg_reg(A_ADD,location.register,location.register));
+  end;
+procedure TSparctypeconvnode.second_real_to_real;
+  begin
+    inherited second_real_to_real;
+    { work around bug in some powerpc processors where doubles aren't }
+    { properly converted to singles                                   }
+    if(tfloatdef(left.resulttype.def).typ = s64real)and
+      (tfloatdef(resulttype.def).typ = s32real)
+    then
+      {$WARNING FIXME what really should be done?}
+      exprasmlist.concat(taicpu.op_reg_reg(A_ADD,location.register,location.register));
+  end;
+procedure TSparctypeconvnode.second_int_to_bool;
+  var
+    hreg1,hreg2:tregister;
+    resflags : tresflags;
+    opsize   : tcgsize;
+  begin
+    { byte(boolean) or word(wordbool) or longint(longbool) must }
+    { be accepted for var parameters                            }
+    if(nf_explizit in flags)and
+      (left.resulttype.def.size=resulttype.def.size)and
+      (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER])
+    then
       begin
-         { byte(boolean) or word(wordbool) or longint(longbool) must }
-         { be accepted for var parameters                            }
-         if (nf_explizit in flags) and
-            (left.resulttype.def.size=resulttype.def.size) and
-            (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
-           begin
-              location_copy(location,left.location);
-              exit;
-           end;
-         location_reset(location,LOC_REGISTER,def_cgsize(left.resulttype.def));
-         opsize := def_cgsize(left.resulttype.def);
-         case left.location.loc of
-            LOC_CREFERENCE,LOC_REFERENCE,LOC_REGISTER,LOC_CREGISTER :
-              begin
-                if left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then
-                  begin
-                    reference_release(exprasmlist,left.location.reference);
-                    hreg2:=rg.getregisterint(exprasmlist);
-                    cg.a_load_ref_reg(exprasmlist,opsize,
-                      left.location.reference,hreg2);
-                  end
-                else
-                  hreg2 := left.location.register;
-                hreg1 := rg.getregisterint(exprasmlist);
-                exprasmlist.concat(taicpu.op_reg_const_reg(A_SUB,hreg1,1,
-                  hreg2));
-                exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUB,hreg1,hreg1,hreg2));
-                rg.ungetregister(exprasmlist,hreg2);
-              end;
-            LOC_FLAGS :
-              begin
-                hreg1:=rg.getregisterint(exprasmlist);
-                resflags:=left.location.resflags;
-                cg.g_flags2reg(exprasmlist,location.size,resflags,hreg1);
-              end;
-            else
-              internalerror(10062);
-         end;
-         location.register := hreg1;
+        location_copy(location,left.location);
+        exit;
       end;
-
-
-    procedure TSparctypeconvnode.second_call_helper(c : tconverttype);
-
-      const
-         secondconvert : array[tconverttype] of pointer = (
-           @second_nothing, {equal}
-           @second_nothing, {not_possible}
-           @second_nothing, {second_string_to_string, handled in resulttype pass }
-           @second_char_to_string,
-           @second_nothing, {char_to_charray}
-           @second_nothing, { pchar_to_string, handled in resulttype pass }
-           @second_nothing, {cchar_to_pchar}
-           @second_cstring_to_pchar,
-           @second_ansistring_to_pchar,
-           @second_string_to_chararray,
-           @second_nothing, { chararray_to_string, handled in resulttype pass }
-           @second_array_to_pointer,
-           @second_pointer_to_array,
-           @second_int_to_int,
-           @second_int_to_bool,
-           @second_bool_to_int, { bool_to_bool }
-           @second_bool_to_int,
-           @second_real_to_real,
-           @second_int_to_real,
-           @second_proc_to_procvar,
-           @second_nothing, { arrayconstructor_to_set }
-           @second_nothing, { second_load_smallset, handled in first pass }
-           @second_cord_to_pointer,
-           @second_nothing, { interface 2 string }
-           @second_nothing, { interface 2 guid   }
-           @second_class_to_intf,
-           @second_char_to_char,
-           @second_nothing,  { normal_2_smallset }
-           @second_nothing,   { dynarray_2_openarray }
-           @second_nothing,
-           {$ifdef fpc}@{$endif}second_nothing,  { variant_2_dynarray }
-           {$ifdef fpc}@{$endif}second_nothing   { dynarray_2_variant}
-         );
-      type
-         tprocedureofobject = procedure of object;
-
+    location_reset(location,LOC_REGISTER,def_cgsize(left.resulttype.def));
+    opsize := def_cgsize(left.resulttype.def);
+    case left.location.loc of
+      LOC_CREFERENCE,LOC_REFERENCE,LOC_REGISTER,LOC_CREGISTER:
+        begin
+          if left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]
+          then
+            begin
+              reference_release(exprasmlist,left.location.reference);
+              hreg2:=rg.getregisterint(exprasmlist);
+              cg.a_load_ref_reg(exprasmlist,opsize,left.location.reference,hreg2);
+            end
+          else
+            hreg2 := left.location.register;
+            hreg1 := rg.getregisterint(exprasmlist);
+            exprasmlist.concat(taicpu.op_reg_const_reg(A_SUB,hreg1,1,hreg2));
+            exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUB,hreg1,hreg1,hreg2));
+            rg.ungetregister(exprasmlist,hreg2);
+        end;
+      LOC_FLAGS :
+        begin
+          hreg1:=rg.getregisterint(exprasmlist);
+          resflags:=left.location.resflags;
+          cg.g_flags2reg(exprasmlist,location.size,resflags,hreg1);
+        end;
+      else
+        internalerror(10062);
+    end;
+    location.register := hreg1;
+  end;
+procedure TSparctypeconvnode.second_call_helper(c : tconverttype);
+  const
+    secondconvert : array[tconverttype] of pointer = (
+      @second_nothing, {equal}
+      @second_nothing, {not_possible}
+      @second_nothing, {second_string_to_string, handled in resulttype pass }
+      @second_char_to_string,
+      @second_nothing, {char_to_charray}
+      @second_nothing, { pchar_to_string, handled in resulttype pass }
+      @second_nothing, {cchar_to_pchar}
+      @second_cstring_to_pchar,
+      @second_ansistring_to_pchar,
+      @second_string_to_chararray,
+      @second_nothing, { chararray_to_string, handled in resulttype pass }
+      @second_array_to_pointer,
+      @second_pointer_to_array,
+      @second_int_to_int,
+      @second_int_to_bool,
+      @second_bool_to_int, { bool_to_bool }
+      @second_bool_to_int,
+      @second_real_to_real,
+      @second_int_to_real,
+      @second_proc_to_procvar,
+      @second_nothing, { arrayconstructor_to_set }
+      @second_nothing, { second_load_smallset, handled in first pass }
+      @second_cord_to_pointer,
+      @second_nothing, { interface 2 string }
+      @second_nothing, { interface 2 guid   }
+      @second_class_to_intf,
+      @second_char_to_char,
+      @second_nothing,  { normal_2_smallset }
+      @second_nothing,   { dynarray_2_openarray }
+      @second_nothing,
+      {$ifdef fpc}@{$endif}second_nothing,  { variant_2_dynarray }
+      {$ifdef fpc}@{$endif}second_nothing   { dynarray_2_variant}
+    );
+    type
+      tprocedureofobject = procedure of object;
       var
-         r : packed record
-                proc : pointer;
-                obj : pointer;
-             end;
-
+        r:packed record
+            proc : pointer;
+            obj : pointer;
+          end;
       begin
-         { this is a little bit dirty but it works }
-         { and should be quite portable too        }
-         r.proc:=secondconvert[c];
-         r.obj:=self;
-         tprocedureofobject(r){$ifdef FPC}();{$endif FPC}
+        { this is a little bit dirty but it works }
+        { and should be quite portable too        }
+        r.proc:=secondconvert[c];
+        r.obj:=self;
+        tprocedureofobject(r){$ifdef FPC}();{$endif FPC}
       end;
-
-
-    procedure TSparctypeconvnode.pass_2;
+procedure TSparctypeconvnode.pass_2;
 {$ifdef TESTOBJEXT2}
-      var
-         r : preference;
-         nillabel : plabel;
+  var
+    r : preference;
+    nillabel : plabel;
 {$endif TESTOBJEXT2}
+  begin
+    { this isn't good coding, I think tc_bool_2_int, shouldn't be }
+    { type conversion (FK)                                 }
+    if not(convtype in [tc_bool_2_int,tc_bool_2_bool])
+    then
       begin
-         { this isn't good coding, I think tc_bool_2_int, shouldn't be }
-         { type conversion (FK)                                 }
-
-         if not(convtype in [tc_bool_2_int,tc_bool_2_bool]) then
-           begin
-              secondpass(left);
-              location_copy(location,left.location);
-              if codegenerror then
-               exit;
-           end;
-         second_call_helper(convtype);
+        secondpass(left);
+        location_copy(location,left.location);
+        if codegenerror
+        then
+          exit;
       end;
-
-
+      second_call_helper(convtype);
+  end;
 begin
    ctypeconvnode:=TSparctypeconvnode;
 end.
 {
   $Log$
-  Revision 1.9  2002-12-05 14:28:03  florian
+  Revision 1.10  2003-01-20 22:21:36  mazen
+  * many stuff related to RTL fixed
+
+  Revision 1.9  2002/12/05 14:28:03  florian
     * some variant <-> dyn. array stuff
 
   Revision 1.8  2002/11/25 17:43:28  peter
