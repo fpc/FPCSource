@@ -157,7 +157,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1999-01-28 19:56:12  peter
+  Revision 1.1  1999-02-02 16:38:05  peter
+    * renamed for better tp7 usage
+
+  Revision 1.1  1999/01/28 19:56:12  peter
     * moved to include compiler/gdb independent of each other
 
   Revision 1.1  1999/01/22 10:24:17  peter
