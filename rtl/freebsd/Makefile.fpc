@@ -10,7 +10,8 @@ units=$(SYSTEMUNIT) objpas strings \
       sysutils typinfo math \
       cpu mmx getopts heaptrc lineinfo \
       errors sockets gpm ipc terminfo \
-      video mouse keyboard console serial
+      video mouse keyboard console serial \ 
+      callspec
 
 rst=math
 
@@ -37,8 +38,7 @@ libunits=$(SYSTEMUNIT) objpas strings \
       dos crt objects printer \
       sysutils typinfo math \
       cpu mmx getopts heaptrc \
-      errors sockets ipc
-
+      errors sockets ipc 
 
 [presettings]
 RTL=..
@@ -184,3 +184,6 @@ errors$(PPUEXT) : $(UNIXINC)/errors.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 ipc$(PPUEXT) : $(UNIXINC)/ipc.pp unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 terminfo$(PPUEXT) : terminfo.pp unix$(PPUEXT)
+
+callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
+
