@@ -632,7 +632,8 @@ implementation
             begin
               inserttypeconv(left,aktprocsym.definition.rettype);
               if ret_in_param(aktprocsym.definition.rettype.def) or
-                 (procinfo^.no_fast_exit) then
+                 (procinfo^.no_fast_exit) or
+                 ((procinfo^.flags and pi_uses_exceptions)<>0) then
                begin
                  pt:=cfuncretnode.create(aktprocsym.definition.funcretsym);
                  left:=cassignmentnode.create(pt,left);
@@ -1166,7 +1167,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2001-08-26 13:36:40  florian
+  Revision 1.23  2001-08-30 20:56:38  peter
+    * exit() with exceptions fix
+
+  Revision 1.22  2001/08/26 13:36:40  florian
     * some cg reorganisation
     * some PPC updates
 
