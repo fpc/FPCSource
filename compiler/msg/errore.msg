@@ -1899,7 +1899,7 @@ unit_u_registering_new_unit=10057_U_Registering new unit $1
 unit_u_reresolving_unit=10058_U_Re-resolving unit $1
 % When you use the \var{-vu} flag, the compiler warns that it
 % has to recalculate the internal data of the unit
-unit_u_skipping_reresolving_unit=10059_E_Skipping re-resolving unit $1, still loading used units
+unit_u_skipping_reresolving_unit=10059_U_Skipping re-resolving unit $1, still loading used units
 % When you use the \var{-vu} flag, the compiler warns that it
 % skips to recalculate the internal data of the unit because there
 % is no data to recalculate

@@ -634,7 +634,7 @@ const msgtxt : array[0..000148,1..240] of char=(
   '10056_U_Finished loading unit $1'#000+
   '10057_U_Registering new unit $1'#000+
   '10058_U_Re-resolving unit $1'#000+
-  '10059_E_Skipping re-resolving unit $1, still loading used units'#000+
+  '10059_U_Skipping re-resolving unit $1, still loading used units'#000+
   '11000_$1 [options] <inputfile> [options]'#000+
   '11001_W_Only one sou','rce file supported'#000+
   '11002_W_DEF file can be created only for OS/2'#000+
