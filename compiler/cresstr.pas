@@ -197,9 +197,9 @@ end;
 
 function  TResourceStrings.Register(const name : string;p : pchar;len : longint) : longint;
 begin
-  inc(ResStrCount);
   List.Concat(new(PResourceStringItem,Init(lower(current_module^.modulename^+'.'+Name),p,len)));
   Register:=ResStrCount;
+  inc(ResStrCount);
 end;
 
 
@@ -284,7 +284,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.17  2000-06-01 19:09:57  peter
+  Revision 1.18  2000-06-04 08:48:54  jonas
+    * resource string numbering
+
+  Revision 1.17  2000/06/01 19:09:57  peter
     * made resourcestrings OOP so it's easier to handle it per module
 
   Revision 1.16  2000/01/07 01:14:23  peter
