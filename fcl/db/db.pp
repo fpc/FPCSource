@@ -1019,6 +1019,7 @@ type
     FVisualControl : Boolean;
     FDataSource : TDataSource;
     Function  CalcFirstRecord(Index : Integer) : Integer;
+    Procedure CalcRange;
     Procedure CheckActiveAndEditing;
     Function  GetDataset : TDataset;
     procedure SetActive(AActive: Boolean);
@@ -1458,7 +1459,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2003-02-20 19:30:28  michael
+  Revision 1.8  2003-05-08 21:52:41  michael
+  + Patch from Jesus Reyes
+
+  Revision 1.7  2003/02/20 19:30:28  michael
   + Fixes from Jesus Reyes
 
   Revision 1.6  2002/09/07 15:15:23  peter

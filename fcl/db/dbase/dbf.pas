@@ -647,10 +647,13 @@ begin
 end;
 
 procedure TPagedFile.Release;
+var
+    i: integer;
 begin
   dec(_cntuse);
   if _cntuse<=0 then begin
-    _PagedFiles.Delete(_PagedFiles.IndexOf(self));
+    i:=_PagedFiles.IndexOf(self);
+    if i>=0 then _PagedFiles.Delete(i);
     Free;
   end;
 end;
@@ -1107,11 +1110,11 @@ begin
       end;
     ftFloat:
       begin
-        Double(Dst^) := DBFStrToFloat(s);
+        Extended(Dst^) := DBFStrToFloat(s);
       end;
     ftCurrency:
       begin
-        Double(Dst^) := DBFStrToFloat(s);
+        Extended(Dst^) := DBFStrToFloat(s);
       end;
     ftDate:
       begin

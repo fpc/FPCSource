@@ -53,6 +53,7 @@ Procedure TDataLink.CheckBrowseMode;
 begin
 end;
 
+
 Function TDataLink.CalcFirstRecord(Index : Integer) : Integer;
 
 { recalculates index of first record in buffer,
@@ -76,6 +77,27 @@ begin
 {$IfDef dsDebug}
   WriteLn('CalcFirstRecord: FFirstRecord=',FFirstRecord,' Scrolled=',Result);
 {$Endif}
+end;
+
+
+Procedure TDataLink.CalcRange;
+var
+    aMax, aMin: integer;
+begin
+    aMin:= DataSet.FActiveRecord - FBufferCount + 1;
+    If aMin < 0 Then aMin:= 0;
+    aMax:= Dataset.FBufferCount - FBufferCount;
+    If aMax < 0 then aMax:= 0;
+        
+    If aMax>DataSet.FActiveRecord Then aMax:=DataSet.FActiveRecord;
+        
+    If FFirstRecord < aMin Then FFirstRecord:= aMin;
+    If FFirstrecord > aMax Then FFirstRecord:= aMax;
+        
+    If (FfirstRecord<>0) And
+       (DataSet.FActiveRecord - FFirstRecord < FBufferCount -1) Then
+        Dec(FFirstRecord, 1);
+
 end;
 
 
@@ -217,8 +239,10 @@ begin
   If FBufferCount<>Value then
     begin
       FBufferCount:=Value;
-      If Active Then 
-        DataSet.SetBufferCount(Value); //Dataset.SetBufListSize(Value);
+      if Active then begin
+        DataSet.RecalcBufListSize;
+	CalcRange;
+      end;
     end;
 end;
 
