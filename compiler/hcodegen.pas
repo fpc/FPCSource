@@ -252,8 +252,6 @@ implementation
          { assembler symbols }
          asmsymbollist:=new(pasmsymbollist,init);
          asmsymbollist^.usehash;
-         { resourcestrings }
-         ResetResourceStrings;
       end;
 
 
@@ -291,9 +289,8 @@ implementation
 {$ifdef MEMDEBUG}
          d.done;
 {$endif}
-         { resource strings }
-         { if assigned(resourcestringlist) then
-          dispose(resourcestringlist,done); }
+         { resourcestrings }
+         ResetResourceStrings;
       end;
 
 
@@ -312,7 +309,10 @@ end.
 
 {
   $Log$
-  Revision 1.41  1999-08-24 13:14:03  peter
+  Revision 1.42  1999-08-26 20:24:40  michael
+  + Hopefuly last fixes for resourcestrings
+
+  Revision 1.41  1999/08/24 13:14:03  peter
     * MEMDEBUG to see the sizes of asmlist,asmsymbols,symtables
 
   Revision 1.40  1999/08/24 12:01:32  michael

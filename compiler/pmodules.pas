@@ -1114,6 +1114,7 @@ unit pmodules;
            begin
            insertresourcestrings;
            current_module^.flags:=current_module^.flags or uf_has_resources;
+           WriteResourceFile(Current_module^.ModuleName^);
            end;
 
          { avoid self recursive destructor call !! PM }
@@ -1346,6 +1347,12 @@ unit pmodules;
          current_module^.globalsymtable:=current_module^.localsymtable;
          current_module^.localsymtable:=nil;
 
+         If ResourceStringList<>Nil then
+           begin
+           insertresourcestrings;
+           WriteResourceFile(Current_module^.ModuleName^);
+           end;
+
          codegen_doneprocedure;
 
          { consume the last point }
@@ -1369,8 +1376,8 @@ unit pmodules;
          if islibrary then
            exportlib^.generatelib;
 
+
          { insert heap }
-         insertresourcestrings;
          insertResourceTablesTable;
          insertinitfinaltable;
          insertheap;
@@ -1417,7 +1424,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.144  1999-08-24 22:38:53  michael
+  Revision 1.145  1999-08-26 20:24:44  michael
+  + Hopefuly last fixes for resourcestrings
+
+  Revision 1.144  1999/08/24 22:38:53  michael
   * more resourcestring changes
 
   Revision 1.143  1999/08/24 12:01:34  michael

@@ -117,7 +117,8 @@ Procedure AppendToAsmResList (P : PResourceString);
 Var
  l1 : pasmlabel;
  s : pchar;
-
+ l : longint;
+  
 begin
  With P^ Do
    begin
@@ -142,16 +143,16 @@ begin
    resourcestringlist^.concat(new(pai_const,init_32bit(hash)));
    { Append the name as a ansistring. }
    getdatalabel(l1);
-   Len:=Length(Name);
+   L:=Length(Name);
    resourcestringlist^.concat(new(pai_const_symbol,init(l1)));
-   consts^.concat(new(pai_const,init_32bit(len)));
-   consts^.concat(new(pai_const,init_32bit(len)));
+   consts^.concat(new(pai_const,init_32bit(l)));
+   consts^.concat(new(pai_const,init_32bit(l)));
    consts^.concat(new(pai_const,init_32bit(-1)));
    consts^.concat(new(pai_label,init(l1)));
-   getmem(s,len+1);
-   move(Name[1],s^,len);
-   s[len]:=#0;
-   consts^.concat(new(pai_string,init_length_pchar(s,len)));
+   getmem(s,l+1);
+   move(Name[1],s^,l);
+   s[l]:=#0;
+   consts^.concat(new(pai_string,init_length_pchar(s,l)));
    consts^.concat(new(pai_const,init_8bit(0)));
    end;
 end;
@@ -217,7 +218,7 @@ Var F : Text;
    end;
 
 begin
-  If resstrCount=0 then
+  If (ResourceListRoot=Nil) then
     exit;
   FileName:=ForceExtension(lower(FileName),'.rst');
   message1 (general_i_writingresourcefile,filename);
@@ -299,12 +300,16 @@ begin
     R:=T;
     end;
   ResStrCount:=0;
+  ResourceListCurrent:=Nil;
 end;
 
 end.
 {
   $Log$
-  Revision 1.12  1999-08-25 16:41:07  peter
+  Revision 1.13  1999-08-26 20:24:39  michael
+  + Hopefuly last fixes for resourcestrings
+
+  Revision 1.12  1999/08/25 16:41:07  peter
     * resources are working again
 
   Revision 1.11  1999/08/23 11:48:23  michael

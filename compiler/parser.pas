@@ -445,10 +445,6 @@ unit parser;
               { Write Browser Collections }
               CreateBrowserCol;
 {$endif}
-              { Write resource stringtable file }
-
-              If not (Main_Module^.is_unit) then
-                WriteResourceFile(Current_module^.ModuleName^);
               end;
 
           (* Obsolete code aktprocsym
@@ -475,7 +471,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.81  1999-08-04 13:02:48  jonas
+  Revision 1.82  1999-08-26 20:24:41  michael
+  + Hopefuly last fixes for resourcestrings
+
+  Revision 1.81  1999/08/04 13:02:48  jonas
     * all tokens now start with an underscore
     * PowerPC compiles!!
 
