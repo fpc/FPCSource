@@ -15,7 +15,7 @@ units=$(SYSTEMUNIT) objpas macpas strings \
       dateutils strutils convutils \
       charset ucomplex variants \
       rtlconst math varutils freebidi utf8bidi \
-      mouse video mouse keyboard cmem sockets \
+      mouse video keyboard cmem sockets \
       aio nwsnut nwserv nwnit nwprot netware
 rsts=math varutils variants typinfo classes dateutils sysconst convutils rtlconst systhrds
 
