@@ -605,18 +605,20 @@ do_jmp:
          { we modify EAX }
          usedinproc:=usedinproc or ($80 shr byte(R_EAX));
 
-         oldaktcontinuelabel:=aktcontinuelabel;
-         oldaktbreaklabel:=aktbreaklabel;
          oldaktexitlabel:=aktexitlabel;
          oldaktexit2label:=aktexit2label;
          getlabel(exitexceptlabel);
-         getlabel(breakexceptlabel);
-         getlabel(continueexceptlabel);
-         aktcontinuelabel:=continueexceptlabel;
-         aktbreaklabel:=breakexceptlabel;
          aktexitlabel:=exitexceptlabel;
          aktexit2label:=exitexceptlabel;
-
+	 if assigned(aktbreaklabel) then
+	  begin
+            oldaktcontinuelabel:=aktcontinuelabel;
+            oldaktbreaklabel:=aktbreaklabel;
+            getlabel(breakexceptlabel);
+            getlabel(continueexceptlabel);
+            aktcontinuelabel:=continueexceptlabel;
+            aktbreaklabel:=breakexceptlabel;
+          end;
          getlabel(exceptlabel);
          getlabel(doexceptlabel);
          getlabel(endexceptlabel);
@@ -681,16 +683,12 @@ do_jmp:
          emit_reg(A_POP,S_L,R_EAX);
          emitjmp(C_None,oldaktexitlabel);
 
-         if assigned(oldaktbreaklabel) then
+         if assigned(aktbreaklabel) then
           begin
             emitlab(breakexceptlabel);
             emitcall('FPC_POPADDRSTACK');
             emit_reg(A_POP,S_L,R_EAX);
             emitjmp(C_None,oldaktbreaklabel);
-          end;
-
-         if assigned(oldaktcontinuelabel) then
-          begin
             emitlab(continueexceptlabel);
             emitcall('FPC_POPADDRSTACK');
             emit_reg(A_POP,S_L,R_EAX);
@@ -699,11 +697,14 @@ do_jmp:
 
          emitlab(endexceptlabel);
 
+         endexceptlabel:=oldendexceptlabel;
          aktexitlabel:=oldaktexitlabel;
          aktexit2label:=oldaktexit2label;
-         aktcontinuelabel:=oldaktcontinuelabel;
-         aktbreaklabel:=oldaktbreaklabel;
-         endexceptlabel:=oldendexceptlabel;
+	 if assigned(aktbreaklabel) then
+	  begin
+            aktcontinuelabel:=oldaktcontinuelabel;
+            aktbreaklabel:=oldaktbreaklabel;
+	  end;  
       end;
 
     procedure secondon(var p : ptree);
@@ -781,18 +782,21 @@ do_jmp:
          usedinproc:=usedinproc or ($80 shr byte(R_EAX));
          getlabel(finallylabel);
          getlabel(endfinallylabel);
-         oldaktcontinuelabel:=aktcontinuelabel;
-         oldaktbreaklabel:=aktbreaklabel;
          oldaktexitlabel:=aktexitlabel;
          oldaktexit2label:=aktexit2label;
          getlabel(reraiselabel);
          getlabel(exitfinallylabel);
-         getlabel(breakfinallylabel);
-         getlabel(continuefinallylabel);
-         aktcontinuelabel:=continuefinallylabel;
-         aktbreaklabel:=breakfinallylabel;
          aktexitlabel:=exitfinallylabel;
          aktexit2label:=exitfinallylabel;
+	 if assigned(aktbreaklabel) then
+ 	  begin
+            oldaktcontinuelabel:=aktcontinuelabel;
+            oldaktbreaklabel:=aktbreaklabel;
+            getlabel(breakfinallylabel);
+            getlabel(continuefinallylabel);
+            aktcontinuelabel:=continuefinallylabel;
+            aktbreaklabel:=breakfinallylabel;
+	  end;  
 
          push_int(1); { Type of stack-frame must be pushed}
          emitcall('FPC_PUSHEXCEPTADDR');
@@ -829,7 +833,7 @@ do_jmp:
          emitjmp(C_Z,reraiselabel);
          emit_reg(A_DEC,S_L,R_EAX);
          emitjmp(C_Z,oldaktexitlabel);
-         if assigned(oldaktbreaklabel) then
+         if assigned(aktbreaklabel) then
           begin
             emit_reg(A_DEC,S_L,R_EAX);
             emitjmp(C_Z,oldaktbreaklabel);
@@ -844,7 +848,7 @@ do_jmp:
          emit_reg(A_POP,S_L,R_EAX);
          emit_const(A_PUSH,S_L,2);
          emitjmp(C_NONE,finallylabel);
-         if assigned(oldaktbreaklabel) then
+         if assigned(aktbreaklabel) then
           begin
             emitlab(breakfinallylabel);
             emit_reg(A_POP,S_L,R_EAX);
@@ -860,8 +864,11 @@ do_jmp:
 
          aktexitlabel:=oldaktexitlabel;
          aktexit2label:=oldaktexit2label;
-         aktcontinuelabel:=oldaktcontinuelabel;
-         aktbreaklabel:=oldaktbreaklabel;
+	 if assigned(aktbreaklabel) then
+	  begin
+            aktcontinuelabel:=oldaktcontinuelabel;
+            aktbreaklabel:=oldaktbreaklabel;
+	  end;  
       end;
 
 
@@ -878,7 +885,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.64  1999-12-22 01:01:46  peter
+  Revision 1.65  1999-12-22 23:30:06  peter
+    * nested try blocks work again
+
+  Revision 1.64  1999/12/22 01:01:46  peter
     - removed freelabel()
     * added undefined label detection in internal assembler, this prevents
       a lot of ld crashes and wrong .o files
