@@ -747,8 +747,12 @@ procedure Toption.Interpret_file(const filename : string);
   begin
     i:=0;
     while (i<length(fn)) and (fn[i+1] in [',',' ',#9]) do
-     inc(i);
+      inc(i);
     Delete(fn,1,i);
+    i:=length(fn);
+    while (i>0) and (fn[i] in [',',' ',#9]) do
+      dec(i);
+    fn:=copy(fn,1,i);
   end;
 
   function GetName(var fn:string):string;
@@ -1179,7 +1183,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  1999-08-16 15:35:26  pierre
+  Revision 1.15  1999-08-25 22:51:00  pierre
+   * remove trailing space in cfg files
+
+  Revision 1.14  1999/08/16 15:35:26  pierre
     * fix for DLL relocation problems
     * external bss vars had wrong stabs for pecoff
     + -WB11000000 to specify default image base, allows to
