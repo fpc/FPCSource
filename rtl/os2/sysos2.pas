@@ -726,6 +726,9 @@ begin
     {Initialize the heap.}
     initheap;
 
+    { ... and exceptions }
+    InitExceptions;
+
     { to test stack depth }
     loweststack:=maxlongint;
 
@@ -734,6 +737,12 @@ begin
     OpenStdIO(StdOut,fmOutput,StdOutputHandle);
     OpenStdIO(StdErr,fmOutput,StdErrorHandle);
 
-    { kein Ein- Ausgabefehler }
+    { no I/O-Error }
     inoutres:=0;
 end.
+{
+  $Log$
+  Revision 1.15  1999-05-17 21:52:44  florian
+    * most of the Object Pascal stuff moved to the system unit
+
+}

@@ -59,7 +59,7 @@ Unit SysPalm;
 
     var
        ExitCode : DWord;
-       { this variables are passed to PilotMain }
+       { this variables are passed to PilotMain by the PalmOS }
        cmd : Word;
        cmdPBP : Ptr;
        launchFlags : Word;
@@ -67,7 +67,7 @@ Unit SysPalm;
   implementation
 
     { mimic the C start code }
-    function _PilotMain(_cmd : Word;_cmdPBP : Ptr;_launchFlags : Word) : DWord;cdecl;public;
+    function PilotMain(_cmd : Word;_cmdPBP : Ptr;_launchFlags : Word) : DWord;cdecl;public;
 
       begin
          cmd:=_cmd;
@@ -76,7 +76,7 @@ Unit SysPalm;
          asm
             bsr PASCALMAIN
          end;
-         _PilotMain:=ExitCode;
+         PilotMain:=ExitCode;
       end;
 
 {*****************************************************************************
@@ -92,7 +92,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  1999-01-18 10:05:56  pierre
+  Revision 1.5  1999-05-17 21:52:46  florian
+    * most of the Object Pascal stuff moved to the system unit
+
+  Revision 1.4  1999/01/18 10:05:56  pierre
    + system_exit procedure added
 
   Revision 1.3  1998/08/31 12:18:37  peter

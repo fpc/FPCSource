@@ -997,6 +997,7 @@ begin
 {   stacklimit := setupstack;  }
 { Setup heap }
   InitHeap;
+  InitExceptions;
 { Setup stdin, stdout and stderr }
   StdInputHandle:=longint(GetStdHandle(STD_INPUT_HANDLE));
   StdOutputHandle:=longint(GetStdHandle(STD_OUTPUT_HANDLE));
@@ -1015,7 +1016,10 @@ end.
 
 {
   $Log$
-  Revision 1.38  1999-04-28 11:42:53  peter
+  Revision 1.39  1999-05-17 21:52:47  florian
+    * most of the Object Pascal stuff moved to the system unit
+
+  Revision 1.38  1999/04/28 11:42:53  peter
     + FileNameCaseSensetive boolean
 
   Revision 1.37  1999/04/08 12:23:11  peter

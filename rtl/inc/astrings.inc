@@ -150,16 +150,16 @@ begin
 end;
 
 
-function AnsiStr_Concat (S1,S2 : Pointer) : pointer;[Public, alias: 'FPC_ANSISTR_CONCAT'];
+Procedure AnsiStr_Concat (S1,S2 : Pointer;var S3 : Pointer);[Public, alias: 'FPC_ANSISTR_CONCAT'];
 {
   Concatenates 2 AnsiStrings : S1+S2.
   Result Goes to S3;
 }
 Var
   Size,Location : Longint;
-  S3 : pointer;
+
 begin
-  S3:=nil;
+  DisposeAnsiString(S3);
   if (S1=Nil) then
     AnsiStr_Assign(S3,S2)
   else
@@ -173,7 +173,6 @@ begin
        Move (S1^,S3^,Location);
        Move (S2^,(S3+location)^,Size+1);
     end;
-  AnsiStr_Concat:=S3;
 end;
 
 
@@ -771,7 +770,10 @@ end;
 
 {
   $Log$
-  Revision 1.23  1999-05-06 09:05:11  peter
+  Revision 1.24  1999-05-17 21:52:35  florian
+    * most of the Object Pascal stuff moved to the system unit
+
+  Revision 1.23  1999/05/06 09:05:11  peter
     * generic write_float str_float
 
   Revision 1.22  1999/04/22 10:51:17  peter

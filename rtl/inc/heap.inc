@@ -37,8 +37,6 @@ const
   maxblock = max_size div 8;
 
 type
-  ppointer = ^pointer;
-
   pfreerecord = ^tfreerecord;
   tfreerecord = record
     next : pfreerecord;
@@ -1091,7 +1089,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  1999-04-19 11:53:13  pierre
+  Revision 1.10  1999-05-17 21:52:36  florian
+    * most of the Object Pascal stuff moved to the system unit
+
+  Revision 1.9  1999/04/19 11:53:13  pierre
    * error 204 if trying to free too much memory of heap top !
 
   Revision 1.8  1999/04/19 11:11:39  pierre

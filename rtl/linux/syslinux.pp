@@ -723,6 +723,7 @@ Begin
   InstallSignals;
 { Setup heap }
   InitHeap;
+  InitExceptions;
 { Setup stdin, stdout and stderr }
   OpenStdIO(Input,fmInput,StdInputHandle);
   OpenStdIO(Output,fmOutput,StdOutputHandle);
@@ -734,7 +735,10 @@ End.
 
 {
   $Log$
-  Revision 1.23  1999-04-08 12:23:04  peter
+  Revision 1.24  1999-05-17 21:52:42  florian
+    * most of the Object Pascal stuff moved to the system unit
+
+  Revision 1.23  1999/04/08 12:23:04  peter
     * removed os.inc
 
   Revision 1.22  1999/01/18 10:05:53  pierre

@@ -25,6 +25,7 @@
 ****************************************************************************}
 
 {$I-,Q-,H-,R-,V-}
+{$mode objfpc}
 
 { needed for insert,delete,readln }
 {$P+}
@@ -458,9 +459,17 @@ const
 
 {$i setjumph.inc}
 
+{*****************************************************************************
+                       Object Pascal support
+*****************************************************************************}
+{$i objpash.inc}
+
 {
   $Log$
-  Revision 1.56  1999-05-06 09:05:14  peter
+  Revision 1.57  1999-05-17 21:52:40  florian
+    * most of the Object Pascal stuff moved to the system unit
+
+  Revision 1.56  1999/05/06 09:05:14  peter
     * generic write_float str_float
 
   Revision 1.55  1999/04/17 13:10:26  peter

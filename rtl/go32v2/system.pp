@@ -1225,15 +1225,14 @@ Begin
 { to test stack depth }
   loweststack:=maxlongint;
 { Setup heap }
-  InitHeap;
-
+  InitHeap;  
 {$ifdef MT}
   { before this, you can't use thread vars !!!! }
   { threadvarblocksize is calculate before the initialization }
   { of the system unit                                        }
   getmem(mainprogramthreadblock,threadvarblocksize);
 {$endif MT}
-
+  InitExceptions;
 { Setup stdin, stdout and stderr }
   OpenStdIO(Input,fmInput,StdInputHandle);
   OpenStdIO(Output,fmOutput,StdOutputHandle);
@@ -1251,7 +1250,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.11  1999-05-04 23:28:40  pierre
+  Revision 1.12  1999-05-17 21:52:33  florian
+    * most of the Object Pascal stuff moved to the system unit
+
+  Revision 1.11  1999/05/04 23:28:40  pierre
     SYSTEM_DEBUG_STARTUP used to output args and env at start
 
   Revision 1.10  1999/04/28 11:42:45  peter

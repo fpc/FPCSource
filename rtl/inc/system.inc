@@ -539,10 +539,18 @@ end;
 
 {$i setjump.inc}
 
+{*****************************************************************************
+                        Object Pascal support
+*****************************************************************************}
+
+{$i objpas.inc}
 
 {
   $Log$
-  Revision 1.57  1999-04-17 13:10:25  peter
+  Revision 1.58  1999-05-17 21:52:39  florian
+    * most of the Object Pascal stuff moved to the system unit
+
+  Revision 1.57  1999/04/17 13:10:25  peter
     * addr() internal
 
   Revision 1.56  1999/04/15 12:20:01  peter

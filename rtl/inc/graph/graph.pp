@@ -10,7 +10,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-Unit Graph2;
+Unit Graph;
 {-------------------------------------------------------}
 { Differences with TP Graph unit:                       }
 { -  default putimage and getimage only support a max.  }
