@@ -82,6 +82,7 @@ end;
 {$ifndef FPC_USE_LIBC}
   {$i syscallh.inc}       // do_syscall declarations themselves
   {$i sysnr.inc}          // syscall numbers.
+  {$i bsyscall.inc}  			// cpu specific syscalls
   {$i bunxsysc.inc}       // syscalls in system unit.
   {$i settimeo.inc}
 {$endif}
@@ -92,7 +93,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2005-02-14 17:13:31  peter
+  Revision 1.4  2005-03-03 20:58:38  florian
+    + routines in baseunix can be overriden by processor specifics in bsyscall.inc
+
+  Revision 1.3  2005/02/14 17:13:31  peter
     * truncate log
 
   Revision 1.2  2005/02/13 21:47:56  peter
