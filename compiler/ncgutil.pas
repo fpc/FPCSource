@@ -63,8 +63,9 @@ interface
                               para_offset:longint;alignment : longint;
                               const locpara : tparalocation);
 
-    procedure genentrycode(list : TAAsmoutput;stackframe:longint;inlined : boolean);
-    procedure genexitcode(list : TAAsmoutput;inlined:boolean);
+    procedure genentrycode(list:TAAsmoutput;inlined:boolean);
+    procedure gen_stackalloc_code(list:Taasmoutput;stackframe:cardinal);
+    procedure genexitcode(list:Taasmoutput;inlined:boolean);
 
     procedure geninlineentrycode(list : TAAsmoutput;stackframe:longint);
     procedure geninlineexitcode(list : TAAsmoutput;inlined:boolean);
@@ -382,7 +383,7 @@ implementation
               hreg64.reglo:=hregister;
               hreg64.reghi:=hregisterhi;
               { load value in new register }
-              cg64.a_load64_loc_reg(list,l,hreg64);
+              cg64.a_load64_loc_reg(list,l,hreg64{$ifdef newra},false{$endif});
               location_reset(l,LOC_REGISTER,dst_size);
               l.registerlow:=hregister;
               l.registerhigh:=hregisterhi;
@@ -430,6 +431,9 @@ implementation
                  hregister:=rg.getregisterint(list,dst_size);
              end;
            hregister.number:=(hregister.number and not $ff) or cgsize2subreg(dst_size);
+        {$ifdef newra}
+           rg.add_constraints(hregister.number);
+        {$endif}
            { load value in new register }
            case l.loc of
              LOC_FLAGS :
@@ -596,6 +600,22 @@ implementation
      end;
 {$endif cpu64bit}
 
+{$ifdef newra}
+    procedure location_force_reg(list: TAAsmoutput;var l:tlocation;dst_size:TCGSize;maybeconst:boolean);
+
+    var oldloc:Tlocation;
+
+      begin
+        oldloc:=l;
+        location_force(list, l, dst_size, maybeconst);
+        { release previous location before demanding a new register }
+        if (oldloc.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+         begin
+           location_freetemp(list,oldloc);
+           location_release(list,oldloc);
+         end;
+      end;
+{$else}
     procedure location_force_reg(list: TAAsmoutput;var l:tlocation;dst_size:TCGSize;maybeconst:boolean);
       begin
         { release previous location before demanding a new register }
@@ -606,7 +626,7 @@ implementation
          end;
         location_force(list, l, dst_size, maybeconst)
       end;
-
+{$endif}
 
     procedure location_force_fpureg(list: TAAsmoutput;var l: tlocation;maybeconst:boolean);
       var
@@ -1286,7 +1306,7 @@ implementation
                     r2.enum:=R_INTREGISTER;
                     r2.number:=NR_FUNCTION_RETURN64_HIGH_REG;
                     cg.a_reg_alloc(list,r2);
-                    cg64.a_load64_loc_reg(list,resloc,joinreg64(r,r2));
+                    cg64.a_load64_ref_reg(list,resloc,joinreg64(r,r2){$ifdef newra},false{$endif});
                   end
                  else
 {$endif cpu64bit}
@@ -1323,7 +1343,11 @@ implementation
                        r2.enum:=R_INTREGISTER;
                        r2.number:=NR_FUNCTION_RETURN64_HIGH_REG;
                        cg.a_reg_alloc(list,r2);
+<<<<<<< ncgutil.pas
+                       cg64.a_load64_ref_reg(list,href,joinreg64(r,r2){$ifdef newra},false{$endif});
+=======
                        cg64.a_load64_loc_reg(list,resloc,joinreg64(r,r2));
+>>>>>>> 1.117
                      end
                     else
 {$endif cpu64bit}
@@ -1339,17 +1363,13 @@ implementation
       end;
 
 
-    procedure genentrycode(list : TAAsmoutput;stackframe:longint;inlined : boolean);
+
+    procedure genentrycode(list:TAAsmoutput;inlined:boolean);
       var
-        hs : string;
         href : treference;
-        stackalloclist : taasmoutput;
         hp : tparaitem;
         rsp : tregister;
       begin
-        if not inlined then
-           stackalloclist:=taasmoutput.Create;
-
         { the actual stack allocation code, symbol entry point and
           gdb stabs information is generated AFTER the rest of this
           code, since temp. allocation might occur before - carl
@@ -1515,81 +1535,81 @@ implementation
         if inlined then
           load_regvars(list,nil);
 
-        {************************* Stack allocation **************************}
-        { and symbol entry point as well as debug information                 }
-        { will be inserted in front of the rest of this list.                 }
-        { Insert alignment and assembler names }
-        if not inlined then
-         begin
-           { Align, gprof uses 16 byte granularity }
-           if (cs_profile in aktmoduleswitches) then
-            stackalloclist.concat(Tai_align.Create(16))
-           else
-            stackalloclist.concat(Tai_align.Create(aktalignment.procalign));
-
-{$ifdef GDB}
-           if (cs_debuginfo in aktmoduleswitches) then
-            begin
-              if (po_public in current_procdef.procoptions) then
-                tprocsym(current_procdef.procsym).is_global:=true;
-              current_procdef.concatstabto(stackalloclist);
-              tprocsym(current_procdef.procsym).isstabwritten:=true;
-            end;
-{$endif GDB}
-
-           repeat
-             hs:=current_procdef.aliasnames.getfirst;
-             if hs='' then
-              break;
-{$ifdef GDB}
-             if (cs_debuginfo in aktmoduleswitches) and
-                target_info.use_function_relative_addresses then
-              stackalloclist.concat(Tai_stab_function_name.Create(strpnew(hs)));
-{$endif GDB}
-             if (cs_profile in aktmoduleswitches) or
-                (po_public in current_procdef.procoptions) then
-              stackalloclist.concat(Tai_symbol.Createname_global(hs,0))
-             else
-              stackalloclist.concat(Tai_symbol.Createname(hs,0));
-           until false;
-
-          stackframe:=stackframe+tg.gettempsize;
-{$ifndef m68k}
-          { give a warning if the limit of local variables is reached }
-          if stackframe > maxlocalsize then
-            Message(cg_w_localsize_too_big);
-{$endif}
-{$ifndef powerpc}
-           { at least for the ppc this applies always, so this code isn't usable (FK) }
-           { omit stack frame ? }
-           if (current_procinfo.framepointer.number=NR_STACK_POINTER_REG) then
-            begin
-              CGMessage(cg_d_stackframe_omited);
-              if stackframe<>0 then
-                cg.g_stackpointer_alloc(stackalloclist,stackframe);
-            end
-           else
-{$endif powerpc}
-            begin
-              if (po_interrupt in current_procdef.procoptions) then
-                cg.g_interrupt_stackframe_entry(stackalloclist);
-
-              cg.g_stackframe_entry(stackalloclist,stackframe);
-
-              { never call stack checking before the standard system unit
-                has not been initialized
-              }
-              if (cs_check_stack in aktlocalswitches) and (current_procdef.proctypeoption<>potype_proginit) then
-                cg.g_stackcheck(stackalloclist,stackframe);
-            end;
-            list.insertlist(stackalloclist);
-            stackalloclist.free;
-         end;
-        {************************* End Stack allocation **************************}
       end;
 
+    procedure gen_stackalloc_code(list:Taasmoutput;stackframe:cardinal);
 
-   procedure genexitcode(list : TAAsmoutput;inlined:boolean);
+    var hs:string;
+
+    begin
+      {************************* Stack allocation **************************}
+      { and symbol entry point as well as debug information                 }
+      { will be inserted in front of the rest of this list.                 }
+      { Insert alignment and assembler names }
+      { Align, gprof uses 16 byte granularity }
+      if (cs_profile in aktmoduleswitches) then
+        list.concat(Tai_align.create(16))
+      else
+        list.concat(Tai_align.create(aktalignment.procalign));
+
+{$ifdef GDB}
+      if (cs_debuginfo in aktmoduleswitches) then
+        begin
+          if (po_public in current_procdef.procoptions) then
+            Tprocsym(current_procdef.procsym).is_global:=true;
+          current_procdef.concatstabto(list);
+          Tprocsym(current_procdef.procsym).isstabwritten:=true;
+        end;
+{$endif GDB}
+
+      repeat
+        hs:=current_procdef.aliasnames.getfirst;
+        if hs='' then
+          break;
+{$ifdef GDB}
+        if (cs_debuginfo in aktmoduleswitches) and
+           target_info.use_function_relative_addresses then
+        list.concat(Tai_stab_function_name.create(strpnew(hs)));
+{$endif GDB}
+        if (cs_profile in aktmoduleswitches) or
+           (po_public in current_procdef.procoptions) then
+          list.concat(Tai_symbol.createname_global(hs,0))
+        else
+          list.concat(Tai_symbol.createname(hs,0));
+      until false;
+
+      stackframe:=stackframe+tg.gettempsize;
+{$ifndef m68k}
+          { give a warning if the limit of local variables is reached }
+      if stackframe>maxlocalsize then
+        message(cg_w_localsize_too_big);
+{$endif}
+{$ifndef powerpc}
+      { at least for the ppc this applies always, so this code isn't usable (FK) }
+      { omit stack frame ? }
+      if (current_procinfo.framepointer.number=NR_STACK_POINTER_REG) then
+        begin
+          CGmessage(cg_d_stackframe_omited);
+          if stackframe<>0 then
+            cg.g_stackpointer_alloc(list,stackframe);
+        end
+      else
+{$endif powerpc}
+        begin
+          if (po_interrupt in current_procdef.procoptions) then
+            cg.g_interrupt_stackframe_entry(list);
+
+          cg.g_stackframe_entry(list,stackframe);
+
+          {Never call stack checking before the standard system unit
+           has been initialized.}
+           if (cs_check_stack in aktlocalswitches) and (current_procdef.proctypeoption<>potype_proginit) then
+             cg.g_stackcheck(list,stackframe);
+        end;
+    end;
+
+    procedure genexitcode(list : TAAsmoutput;inlined:boolean);
+
       var
 {$ifdef GDB}
         stabsendlabel : tasmlabel;
@@ -1601,10 +1621,14 @@ implementation
         srsym : tsym;
         usesacc,
         usesacchi,
-        usesfpu : boolean;
-        rsp,r  : Tregister;
-        retsize : longint;
+        usesself,usesfpu : boolean;
+        pd : tprocdef;
+        rsp,tmpreg,r  : Tregister;
+        retsize:cardinal;
+        nostackframe:boolean;
       begin
+{        nostackframe:=current_procinfo.framepointer.number=NR_STACK_POINTER_REG;}
+
         if aktexitlabel.is_used then
           cg.a_label(list,aktexitlabel);
 
@@ -1709,11 +1733,10 @@ implementation
            if (current_procinfo.framepointer.number=NR_STACK_POINTER_REG) then
             begin
               if (tg.gettempsize<>0) then
-                cg.a_op_const_reg(list,OP_ADD,OS_ADDR,tg.gettempsize,current_procinfo.framepointer);
+                cg.a_op_const_reg(list,OP_ADD,OS_32,tg.gettempsize,current_procinfo.framepointer);
             end
            else
             cg.g_restore_frame_pointer(list);
-             if not (po_assembler in current_procdef.procoptions) then
          end;
 {$endif}
 
@@ -1848,7 +1871,11 @@ implementation
                   begin
                     r:=rg.getregisterint(list,OS_INT);
                     r2:=rg.getregisterint(list,OS_INT);
+<<<<<<< ncgutil.pas
+                    cg64.a_load64_ref_reg(list,href,joinreg64(r,r2){$ifdef newra},false{$endif});
+=======
                     cg64.a_load64_loc_reg(list,resloc,joinreg64(r,r2));
+>>>>>>> 1.117
                   end
                  else
 {$endif cpu64bit}
@@ -1877,7 +1904,11 @@ implementation
                      begin
                        r:=rg.getregisterint(list,OS_INT);
                        r2:=rg.getregisterint(list,OS_INT);
+<<<<<<< ncgutil.pas
+                       cg64.a_load64_ref_reg(list,href,joinreg64(r,r2){$ifdef newra},false{$endif});
+=======
                        cg64.a_load64_loc_reg(list,resloc,joinreg64(r,r2));
+>>>>>>> 1.117
                      end
                     else
 {$endif cpu64bit}
@@ -1952,7 +1983,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.117  2003-06-02 21:42:05  jonas
+  Revision 1.118  2003-06-03 13:01:59  daniel
+    * Register allocator finished
+
+  Revision 1.117  2003/06/02 21:42:05  jonas
     * function results can now also be regvars
     - removed tprocinfo.return_offset, never use it again since it's invalid
       if the result is a regvar

@@ -178,6 +178,8 @@ interface
        { Buffer type used for alignment }
        tfillbuffer = array[0..63] of char;
 
+       Tspill_temp_list=array[0..255] of Treference;
+
        { abstract assembler item }
        tai = class(TLinkedListItem)
 {$ifndef NOOPT}
@@ -402,6 +404,11 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
        end;
 
+      Taasmoutput=class;
+
+      Trggetproc=procedure(list:Taasmoutput;position:Tai;subreg:Tsubregister;var result:Tregister) of object;
+      Trgungetproc=procedure(list:Taasmoutput;position:Tai;const r:Tregister) of object;
+
        { Class template for assembler instructions
        }
        taicpu_abstract = class(tailineinfo)
@@ -436,6 +443,13 @@ interface
           procedure loadreg(opidx:longint;r:tregister);
           procedure loadoper(opidx:longint;o:toper);
           function is_nop:boolean;virtual;abstract;
+          function is_move:boolean;virtual;abstract;
+          function spill_registers(list:Taasmoutput;
+                                   rgget:Trggetproc;
+                                   rgunget:Trgungetproc;
+                                   r:Tsupregset;
+                                   var unusedregsint:Tsupregset;
+                                   const spilltemplist:Tspill_temp_list):boolean;virtual;abstract;
        end;
 
        { alignment for operator }
@@ -1635,13 +1649,13 @@ uses
 
 
     procedure taicpu_abstract.derefimpl;
-      var
-        i : integer;
-      begin
-        for i:=1 to ops do
-          ppuderefoper(oper[i-1]);
-      end;
 
+    var i:byte;
+
+    begin
+      for i:=1 to ops do
+        ppuderefoper(oper[i-1]);
+    end;
 
 {****************************************************************************
                               tai_align_abstract
@@ -1816,7 +1830,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.28  2003-05-12 18:13:57  peter
+  Revision 1.29  2003-06-03 13:01:59  daniel
+    * Register allocator finished
+
+  Revision 1.28  2003/05/12 18:13:57  peter
     * create rtti label using newasmsymboldata and update binding
       only when calling tai_symbol.create
     * tai_symbol.create_global added

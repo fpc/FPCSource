@@ -194,6 +194,14 @@ interface
          function  Pass1(offset:longint):longint;virtual;
          procedure Pass2(sec:TAsmObjectdata);virtual;
          procedure SetOperandOrder(order:TOperandOrder);
+         function is_nop:boolean;override;
+         function is_move:boolean;override;
+         function spill_registers(list:Taasmoutput;
+                                  rgget:Trggetproc;
+                                  rgunget:Trgungetproc;
+                                  r:Tsupregset;
+                                  var unusedregsint:Tsupregset;
+                                  const spilltemplist:Tspill_temp_list):boolean;override;
       protected
          procedure ppuloadoper(ppufile:tcompilerppufile;var o:toper);override;
          procedure ppuwriteoper(ppufile:tcompilerppufile;const o:toper);override;
@@ -212,9 +220,7 @@ interface
          function  NeedAddrPrefix(opidx:byte):boolean;
          procedure Swapoperands;
     {$endif NOAG386BIN}
-         function is_nop:boolean;override;
       end;
-
 
     procedure InitAsm;
     procedure DoneAsm;
@@ -1968,12 +1974,373 @@ implementation
 
     begin
       {We do not check the number of operands; we assume that nobody constructs
-       a mov or xchg instruction with less than 2 operands.}
+       a mov or xchg instruction with less than 2 operands. (DM)}
       is_nop:=(opcode=A_NOP) or
               (opcode=A_MOV) and (oper[0].typ=top_reg) and (oper[1].typ=top_reg) and (oper[0].reg.number=oper[1].reg.number) or
               (opcode=A_XCHG) and (oper[0].typ=top_reg) and (oper[1].typ=top_reg) and (oper[0].reg.number=oper[1].reg.number);
     end;
 
+    function Taicpu.is_move:boolean;
+
+    begin
+      {We do not check the number of operands; we assume that nobody constructs
+       a mov, movzx or movsx instruction with less than 2 operands. Note that
+       a move between a reference and a register is not a move that is of
+       interrest to the register allocation, therefore we only return true
+       for a move between two registers. (DM)}
+      is_move:=((opcode=A_MOV) or (opcode=A_MOVZX) or (opcode=A_MOVSX)) and
+        ((oper[0].typ=top_reg) and (oper[1].typ=top_reg));
+    end;
+
+    function Taicpu.spill_registers(list:Taasmoutput;
+                                    rgget:Trggetproc;
+                                    rgunget:Trgungetproc;
+                                    r:Tsupregset;
+                                    var unusedregsint:Tsupregset;
+                                    const spilltemplist:Tspill_temp_list):boolean;
+
+    {Spill the registers in r in this instruction. Returns true if any help
+     registers are used. This procedure has become one big hack party, because
+     of the huge amount of situations you can have. The irregularity of the i386
+     instruction set doesn't help either. (DM)}
+
+
+      function get_insert_pos(p:Tai;huntfor1,huntfor2,huntfor3:Tsuperregister):Tai;
+
+      var back:Tsupregset;
+
+      begin
+        back:=unusedregsint;
+        get_insert_pos:=p;
+        while (p<>nil) and (p.typ=ait_regalloc) do
+          begin
+            {Rewind the register allocation.}
+            if Tai_regalloc(p).allocation then
+              include(unusedregsint,Tai_regalloc(p).reg.number shr 8)
+            else
+              begin
+                exclude(unusedregsint,Tai_regalloc(p).reg.number shr 8);
+                if Tai_regalloc(p).reg.number shr 8=huntfor1 then
+                  begin
+                    get_insert_pos:=Tai(p.previous);
+                    back:=unusedregsint;
+                  end;
+                if Tai_regalloc(p).reg.number shr 8=huntfor2 then
+                  begin
+                    get_insert_pos:=Tai(p.previous);
+                    back:=unusedregsint;
+                  end;
+                if Tai_regalloc(p).reg.number shr 8=huntfor3 then
+                  begin
+                    get_insert_pos:=Tai(p.previous);
+                    back:=unusedregsint;
+                  end;
+              end;
+            p:=Tai(p.previous);
+          end;
+        unusedregsint:=back;
+      end;
+
+      procedure forward_allocation(p:Tai);
+
+      begin
+        {Forward the register allocation again.}
+        while (p<>self) do
+          begin
+            if p.typ<>ait_regalloc then
+              internalerror(200305311);
+            if Tai_regalloc(p).allocation then
+              exclude(unusedregsint,Tai_regalloc(p).reg.number shr 8)
+            else
+              include(unusedregsint,Tai_regalloc(p).reg.number shr 8);
+            p:=Tai(p.next);
+          end;
+      end;
+
+    var i:byte;
+        supreg:Tsuperregister;
+        subreg:Tsubregister;
+        helpreg:Tregister;
+        helpins:Taicpu;
+        op:Tasmop;
+        hopsize:Topsize;
+        pos:Tai;
+
+    begin
+      {Situation examples are in intel notation, so operand order:
+       mov    eax       ,    ebx
+              ^^^            ^^^
+              oper[1]        oper[0]
+      (DM)}
+      spill_registers:=false;
+      case ops of
+        1:
+          begin
+            if oper[0].typ=top_reg then
+              begin
+                supreg:=oper[0].reg.number shr 8;
+                if supreg in r then
+                  begin
+                    {Situation example:
+                     push r20d              ; r20d must be spilled into [ebp-12]
+
+                    Change into:
+                     push [ebp-12]          ; Replace register by reference }
+{                    hopsize:=reg2opsize(oper[0].reg);}
+                    oper[0].typ:=top_ref;
+                    new(oper[0].ref);
+                    oper[0].ref^:=spilltemplist[supreg];
+{                    oper[0].ref^.size:=hopsize;}
+                  end;
+              end;
+            if oper[0].typ=top_ref then
+              begin
+                supreg:=oper[0].ref^.base.number shr 8;
+                if supreg in r then
+                  begin
+                    {Situation example:
+                     push [r21d+4*r22d]        ; r21d must be spilled into [ebp-12]
+
+                     Change into:
+
+                     mov r23d,[ebp-12]         ; Use a help register
+                     push [r23d+4*r22d]       ; Replace register by helpregister }
+                    subreg:=oper[0].ref^.base.number and $ff;
+                    if oper[0].ref^.index.number=NR_NO then
+                      pos:=Tai(previous)
+                    else
+                      pos:=get_insert_pos(Tai(previous),oper[0].ref^.index.number shr 8,0,0);
+                    rgget(list,pos,subreg,helpreg);
+                    spill_registers:=true;
+                    helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[0].ref^.base),spilltemplist[supreg],helpreg);
+                    if pos=nil then
+                      list.insertafter(helpins,list.first)
+                    else
+                      list.insertafter(helpins,pos.next);
+                    rgunget(list,helpins,helpreg);
+                    forward_allocation(Tai(helpins.next));
+                    oper[0].ref^.base:=helpreg;
+                  end;
+                supreg:=oper[0].ref^.index.number shr 8;
+                if supreg in r then
+                  begin
+                    {Situation example:
+                     push [r21d+4*r22d]        ; r22d must be spilled into [ebp-12]
+
+                     Change into:
+
+                     mov r23d,[ebp-12]         ; Use a help register
+                     push [r21d+4*r23d]        ; Replace register by helpregister }
+                    subreg:=oper[0].ref^.index.number and $ff;
+                    if oper[0].ref^.base.number=NR_NO then
+                      pos:=Tai(previous)
+                    else
+                      pos:=get_insert_pos(Tai(previous),oper[0].ref^.base.number shr 8,0,0);
+                    rgget(list,pos,subreg,helpreg);
+                    spill_registers:=true;
+                    helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[0].ref^.index),spilltemplist[supreg],helpreg);
+                    if pos=nil then
+                      list.insertafter(helpins,list.first)
+                    else
+                      list.insertafter(helpins,pos.next);
+                    rgunget(list,helpins,helpreg);
+                    forward_allocation(Tai(helpins.next));
+                    oper[0].ref^.index:=helpreg;
+                  end;
+                end;
+          end;
+        2:
+          begin
+            if oper[0].typ=top_reg then
+              begin
+                supreg:=oper[0].reg.number shr 8;
+                subreg:=oper[0].reg.number and $ff;
+                if supreg in r then
+                  if oper[1].typ=top_ref then
+                    begin
+                      {Situation example:
+                       add [r20d],r21d      ; r21d must be spilled into [ebp-12]
+
+                       Change into:
+
+                       mov r22d,[ebp-12]    ; Use a help register
+                       add [r20d],r22d      ; Replace register by helpregister }
+                      pos:=get_insert_pos(Tai(previous),oper[0].reg.number shr 8,
+                                          oper[1].ref^.base.number shr 8,oper[1].ref^.index.number shr 8);
+                      rgget(list,pos,subreg,helpreg);
+                      spill_registers:=true;
+                      helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[0].reg),spilltemplist[supreg],helpreg);
+                      if pos=nil then
+                        list.insertafter(helpins,list.first)
+                      else
+                        list.insertafter(helpins,pos.next);
+                      oper[0].reg:=helpreg;
+                      rgunget(list,helpins,helpreg);
+                      forward_allocation(Tai(helpins.next));
+                    end
+                  else
+                    begin
+                      {Situation example:
+                       add r20d,r21d        ; r21d must be spilled into [ebp-12]
+
+                       Change into:
+
+                       add r20d,[ebp-12]    ; Replace register by reference }
+                      oper[0].typ:=top_ref;
+                      new(oper[0].ref);
+                      oper[0].ref^:=spilltemplist[supreg];
+                    end;
+              end;
+            if oper[1].typ=top_reg then
+              begin
+                supreg:=oper[1].reg.number shr 8;
+                subreg:=oper[1].reg.number and $ff;
+                if supreg in r then
+                  begin
+                    if oper[0].typ=top_ref then
+                      begin
+                        {Situation example:
+                         add r20d,[r21d]      ; r20d must be spilled into [ebp-12]
+  
+                         Change into:
+  
+                         mov r22d,[r21d]      ; Use a help register
+                         add [ebp-12],r22d    ; Replace register by helpregister }
+                        pos:=get_insert_pos(Tai(previous),oper[0].ref^.base.number shr 8,
+                                            oper[0].ref^.index.number shr 8,0);
+                        rgget(list,pos,subreg,helpreg);
+                        spill_registers:=true;
+                        op:=A_MOV;
+                        hopsize:=opsize;  {Save old value...}
+                        if (opcode=A_MOVZX) or (opcode=A_MOVSX) or (opcode=A_LEA) then
+                          begin
+                            {Because 'movzx memory,register' does not exist...}
+                            op:=opcode;
+                            opcode:=A_MOV;
+                            opsize:=reg2opsize(oper[1].reg);
+                          end;
+                        helpins:=Taicpu.op_ref_reg(op,hopsize,oper[0].ref^,helpreg);
+                        if pos=nil then
+                          list.insertafter(helpins,list.first)
+                        else
+                          list.insertafter(helpins,pos.next);
+                        dispose(oper[0].ref);
+                        oper[0].typ:=top_reg;
+                        oper[0].reg:=helpreg;
+                        oper[1].typ:=top_ref;
+                        new(oper[1].ref);
+                        oper[1].ref^:=spilltemplist[supreg];
+                        rgunget(list,helpins,helpreg);
+                        forward_allocation(Tai(helpins.next));
+                      end
+                    else
+                      begin
+                        {Situation example:
+                         add r20d,r21d        ; r20d must be spilled into [ebp-12]
+  
+                         Change into:
+  
+                         add [ebp-12],r21d    ; Replace register by reference }
+                        oper[1].typ:=top_ref;
+                        new(oper[1].ref);
+                        oper[1].ref^:=spilltemplist[supreg];
+                      end;
+                    {The i386 instruction set never gets boring... IMUL does
+                     not support a memory location as destination. Check if
+                     the opcode is IMUL and fix it. (DM)}
+                    if opcode=A_IMUL then
+                      begin
+                        {Yikes! We just changed the destination register into
+                         a memory location above here.
+
+                         Situation example:
+
+                         imul [ebp-12],r21d   ; We need a help register
+
+                         Change into:
+
+                         mov r22d,[ebp-12]    ; Use a help instruction (only for IMUL)
+                         imul r22d,r21d       ; Replace reference by helpregister
+                         mov [ebp-12],r22d    ; Use another help instruction}
+                        rgget(list,Tai(previous),subreg,helpreg);
+                        {First help instruction.}
+                        helpins:=Taicpu.op_ref_reg(A_MOV,opsize,oper[1].ref^,helpreg);
+                        if previous=nil then
+                          list.insert(helpins)
+                        else
+                          list.insertafter(helpins,previous);
+                        {Second help instruction.}
+                        helpins:=Taicpu.op_reg_ref(A_MOV,opsize,helpreg,oper[1].ref^);
+                        dispose(oper[1].ref);
+                        oper[1].typ:=top_reg;
+                        oper[1].reg:=helpreg;
+                        list.insertafter(helpins,self);
+                      end;
+                  end;
+              end;
+            for i:=0 to 1 do
+              if oper[i].typ=top_ref then
+                begin
+                  supreg:=oper[i].ref^.base.number shr 8;
+                  if supreg in r then
+                    begin
+                      {Situation example:
+                       add r20d,[r21d+4*r22d]    ; r21d must be spilled into [ebp-12]
+
+                       Change into:
+
+                       mov r23d,[ebp-12]         ; Use a help register
+                       add r20d,[r23d+4*r22d]    ; Replace register by helpregister }
+                      subreg:=oper[i].ref^.base.number and $ff;
+                      if i=1 then
+                        pos:=get_insert_pos(Tai(previous),oper[i].ref^.index.number shr 8,oper[0].reg.number shr 8,0)
+                      else
+                        pos:=get_insert_pos(Tai(previous),oper[i].ref^.index.number shr 8,0,0);
+                      rgget(list,pos,subreg,helpreg);
+                      spill_registers:=true;
+                      helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[i].ref^.base),spilltemplist[supreg],helpreg);
+                      if pos=nil then
+                        list.insertafter(helpins,list.first)
+                      else
+                        list.insertafter(helpins,pos.next);
+                      oper[i].ref^.base:=helpreg;
+                      rgunget(list,helpins,helpreg);
+                      forward_allocation(Tai(helpins.next));
+                  end;
+                  supreg:=oper[i].ref^.index.number shr 8;
+                  if supreg in r then
+                    begin
+                      {Situation example:
+                       add r20d,[r21d+4*r22d]    ; r22d must be spilled into [ebp-12]
+
+                       Change into:
+
+                       mov r23d,[ebp-12]         ; Use a help register
+                       add r20d,[r21d+4*r23d]    ; Replace register by helpregister }
+                      subreg:=oper[i].ref^.index.number and $ff;
+                      if i=1 then
+                        pos:=get_insert_pos(Tai(previous),oper[i].ref^.base.number shr 8,oper[0].reg.number shr 8,0)
+                      else
+                        pos:=get_insert_pos(Tai(previous),oper[i].ref^.base.number shr 8,0,0);
+                      rgget(list,pos,subreg,helpreg);
+                      spill_registers:=true;
+                      helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[i].ref^.index),spilltemplist[supreg],helpreg);
+                      if pos=nil then
+                        list.insertafter(helpins,list.first)
+                      else
+                        list.insertafter(helpins,pos.next);
+                      oper[i].ref^.index:=helpreg;
+                      rgunget(list,helpins,helpreg);
+                      forward_allocation(Tai(helpins.next));
+                    end;
+                end;
+          end;
+        3:
+          begin
+            {$warning todo!!}
+          end;
+      end;
+    end;
 
 {*****************************************************************************
                               Instruction table
@@ -2024,7 +2391,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2003-05-30 23:57:08  peter
+  Revision 1.5  2003-06-03 13:01:59  daniel
+    * Register allocator finished
+
+  Revision 1.4  2003/05/30 23:57:08  peter
     * more sparc cleanup
     * accumulator removed, splitted in function_return_reg (called) and
       function_result_reg (caller)

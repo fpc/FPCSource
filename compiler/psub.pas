@@ -554,6 +554,8 @@ implementation
         oldexitlabel : tasmlabel;
         oldaktmaxfpuregisters : longint;
         oldfilepos : tfileposinfo;
+        stackalloccode : Taasmoutput;
+
       begin
         { the initialization procedure can be empty, then we
           don't need to generate anything. When it was an empty
@@ -584,7 +586,9 @@ implementation
         rg.usedinproc:=[];
         rg.usedintinproc:=[];
         rg.usedbyproc:=[];
+      {$ifndef newra}
         rg.usedintbyproc:=[];
+      {$endif}
 
         { set the start offset to the start of the temp area in the stack }
         tg.setfirsttemp(current_procinfo.firsttemp_offset);
@@ -594,7 +598,7 @@ implementation
         { first generate entry code with the correct position and switches }
         aktfilepos:=current_procinfo.entrypos;
         aktlocalswitches:=current_procinfo.entryswitches;
-        genentrycode(current_procinfo.aktentrycode,0,false);
+        genentrycode(current_procinfo.aktentrycode,false);
 
         { now generate exit code with the correct position and switches }
         aktfilepos:=current_procinfo.exitpos;
@@ -602,8 +606,8 @@ implementation
         genexitcode(current_procinfo.aktexitcode,false);
 
         { now all the registers used are known }
-        current_procdef.usedintregisters:=rg.usedintinproc;
-        current_procdef.usedotherregisters:=rg.usedinproc;
+{        current_procdef.usedintregisters:=rg.usedintinproc;
+        current_procdef.usedotherregisters:=rg.usedinproc;}
         current_procinfo.aktproccode.insertlist(current_procinfo.aktentrycode);
         current_procinfo.aktproccode.concatlist(current_procinfo.aktexitcode);
 {$ifdef newra}
@@ -617,13 +621,7 @@ implementation
               rg.prepare_colouring;
               rg.colour_registers;
               rg.epilogue_colouring;
-              {Are there spilled registers? We cannot do that yet.}
-              if rg.spillednodes<>'' then
-                internalerror(200304221);
-              {if not try_fast_spill(rg) then
-                slow_spill(rg);
-              }
-            until rg.spillednodes='';
+            until (rg.spillednodes='') or not rg.spill_registers(current_procinfo.aktproccode,rg.spillednodes);
             current_procinfo.aktproccode.translate_registers(rg.colour);
             current_procinfo.aktproccode.convert_registers;
 {$else newra}
@@ -637,6 +635,21 @@ implementation
 {$endif newra}
           end;
 
+        stackalloccode:=Taasmoutput.create;
+        gen_stackalloc_code(stackalloccode,0);
+        stackalloccode.convert_registers;
+        current_procinfo.aktproccode.insertlist(stackalloccode);
+        stackalloccode.destroy;
+
+        { now all the registers used are known }
+        { Remove all imaginary registers from the used list.}
+{$ifdef newra}
+        current_procdef.usedintregisters:=rg.usedintinproc*ALL_INTREGISTERS-rg.savedbyproc;
+{$else}
+        current_procdef.usedintregisters:=rg.usedintinproc;
+{$endif}
+        current_procdef.usedotherregisters:=rg.usedinproc;
+
         { save local data (casetable) also in the same file }
         if assigned(current_procinfo.aktlocaldata) and
            (not current_procinfo.aktlocaldata.empty) then
@@ -648,8 +661,8 @@ implementation
 
         { add the procedure to the codesegment }
         if (cs_create_smart in aktmoduleswitches) then
-         codeSegment.concat(Tai_cut.Create);
-        codeSegment.concatlist(current_procinfo.aktproccode);
+         codesegment.concat(Tai_cut.Create);
+        codesegment.concatlist(current_procinfo.aktproccode);
 
         { all registers can be used again }
         rg.resetusableregisters;
@@ -751,6 +764,7 @@ implementation
     procedure tcgprocinfo.parse_body;
       var
          oldprocdef : tprocdef;
+         stackalloccode : Taasmoutput;
          oldprocinfo : tprocinfo;
       begin
          oldprocdef:=current_procdef;
@@ -784,6 +798,12 @@ implementation
 
          { constant symbols are inserted in this symboltable }
          constsymtable:=symtablestack;
+
+         { reset the temporary memory }
+         rg.cleartempgen;
+         rg.usedintinproc:=[];
+         rg.usedinproc:=[];
+         rg.usedbyproc:=[];
 
          { save entry info }
          entrypos:=aktfilepos;
@@ -1213,7 +1233,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.121  2003-05-31 20:23:39  jonas
+  Revision 1.122  2003-06-03 13:01:59  daniel
+    * Register allocator finished
+
+  Revision 1.121  2003/05/31 20:23:39  jonas
     * added pi_do_call if a procedure has a value shortstring parameter
       (it's copied to the local stackframe with a helper)
 

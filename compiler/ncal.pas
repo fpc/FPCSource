@@ -2300,8 +2300,10 @@ type
 
               { procedure does a call }
               if not (block_type in [bt_const,bt_type]) then
+            {$ifndef newra}
                 include(current_procinfo.flags,pi_do_call);
               rg.incrementintregisterpushed(all_intregisters);
+            {$endif}
               rg.incrementotherregisterpushed(all_registers);
            end
          else
@@ -2336,7 +2338,9 @@ type
                 end;
 
              { It doesn't hurt to calculate it already though :) (JM) }
+          {$ifndef newra}
              rg.incrementintregisterpushed(tprocdef(procdefinition).usedintregisters);
+          {$endif}
              rg.incrementotherregisterpushed(tprocdef(procdefinition).usedotherregisters);
            end;
 
@@ -2569,7 +2573,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.162  2003-05-26 21:17:17  peter
+  Revision 1.163  2003-06-03 13:01:59  daniel
+    * Register allocator finished
+
+  Revision 1.162  2003/05/26 21:17:17  peter
     * procinlinenode removed
     * aktexit2label removed, fast exit removed
     + tcallnode.inlined_pass_2 added

@@ -66,8 +66,8 @@ unit tgobj;
        private
           { contains all free temps using nextfree links }
           tempfreelist  : ptemprecord;
-          function AllocTemp(list: taasmoutput; size : longint; temptype : ttemptype) : longint;
-          procedure FreeTemp(list: taasmoutput; pos:longint;temptypes:ttemptypeset);
+          function alloctemp(list: taasmoutput; size : longint; temptype : ttemptype) : longint;
+          procedure freetemp(list: taasmoutput; pos:longint;temptypes:ttemptypeset);
        public
           { contains all temps }
           templist      : ptemprecord;
@@ -88,11 +88,11 @@ unit tgobj;
           procedure setfirsttemp(l : longint);
           function gettempsize : longint;
 
-          procedure GetTemp(list: taasmoutput; size : longint;temptype:ttemptype;var ref : treference);
-          procedure UnGetTemp(list: taasmoutput; const ref : treference);
+          procedure gettemp(list: taasmoutput; size : longint;temptype:ttemptype;var ref : treference);
+          procedure ungettemp(list: taasmoutput; const ref : treference);
 
-          function SizeOfTemp(list: taasmoutput; const ref: treference): longint;
-          function ChangeTempType(list: taasmoutput; const ref:treference;temptype:ttemptype):boolean;
+          function sizeoftemp(list: taasmoutput; const ref: treference): longint;
+          function changetemptype(list: taasmoutput; const ref:treference;temptype:ttemptype):boolean;
 
           {# Returns TRUE if the reference ref is allocated in temporary volatile memory space,
              otherwise returns FALSE.
@@ -244,7 +244,7 @@ unit tgobj;
          if freetype=tt_none then
           internalerror(200208201);
          { Align needed size on 4 bytes }
-         size:=Align(size,4);
+         size:=align(size,4);
          { First check the tmpfreelist, but not when
            we don't want to reuse an already allocated block }
          if assigned(tempfreelist) and
@@ -438,7 +438,7 @@ unit tgobj;
       end;
 
 
-    procedure ttgobj.GetTemp(list: taasmoutput; size : longint;temptype:ttemptype;var ref : treference);
+    procedure ttgobj.gettemp(list: taasmoutput; size : longint;temptype:ttemptype;var ref : treference);
 
     begin
       reference_reset_base(ref,current_procinfo.framepointer,alloctemp(list,size,temptype));
@@ -471,7 +471,7 @@ unit tgobj;
       end;
 
 
-    function ttgobj.SizeOfTemp(list: taasmoutput; const ref: treference): longint;
+    function ttgobj.sizeoftemp(list: taasmoutput; const ref: treference): longint;
       var
          hp : ptemprecord;
       begin
@@ -481,13 +481,13 @@ unit tgobj;
            begin
              if (hp^.pos=ref.offset) then
                begin
-                 SizeOfTemp := hp^.size;
+                 sizeoftemp := hp^.size;
                  exit;
                end;
              hp := hp^.next;
            end;
 {$ifdef EXTDEBUG}
-         Comment(V_Debug,'tgobj: (SizeOfTemp) temp at pos '+tostr(ref.offset)+' not found !');
+         comment(v_debug,'tgobj: (SizeOfTemp) temp at pos '+tostr(ref.offset)+' not found !');
          list.concat(tai_tempalloc.allocinfo(ref.offset,0,'temp not found'));
 {$endif}
       end;
@@ -554,7 +554,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.34  2003-05-17 13:30:08  jonas
+  Revision 1.35  2003-06-03 13:01:59  daniel
+    * Register allocator finished
+
+  Revision 1.34  2003/05/17 13:30:08  jonas
     * changed tt_persistant to tt_persistent :)
     * tempcreatenode now doesn't accept a boolean anymore for persistent
       temps, but a ttemptype, so you can also create ansistring temps etc

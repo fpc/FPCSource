@@ -793,7 +793,8 @@ implementation
         { generate a dummy function }
         objectlibrary.getlabel(aktexitlabel);
         include(current_procinfo.flags,pi_do_call);
-        genentrycode(list,0,false);
+        gen_stackalloc_code(list,0);
+        genentrycode(list,false);
         genexitcode(list,false);
         list.convert_registers;
         release_main_proc(pd);
@@ -867,7 +868,7 @@ implementation
          { handle the global switches }
          setupglobalswitches;
 
-         Message1(unit_u_loading_interface_units,current_module.modulename^);
+         message1(unit_u_loading_interface_units,current_module.modulename^);
 
          { update status }
          status.currentmodule:=current_module.realmodulename^;
@@ -1474,7 +1475,10 @@ So, all parameters are passerd into registers in sparc architecture.}
 end.
 {
   $Log$
-  Revision 1.109  2003-05-26 21:17:17  peter
+  Revision 1.110  2003-06-03 13:01:59  daniel
+    * Register allocator finished
+
+  Revision 1.109  2003/05/26 21:17:17  peter
     * procinlinenode removed
     * aktexit2label removed, fast exit removed
     + tcallnode.inlined_pass_2 added

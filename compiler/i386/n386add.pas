@@ -350,7 +350,13 @@ interface
 
       var
         cmpop      : boolean;
+      {$ifdef newra}
+        r          : Tregister;
+        i          : Tsuperregister;
+      {$else}
         pushed     : Tpushedsavedint;
+      {$endif}
+        regstopush : Tsupregset;
       begin
         { string operations are not commutative }
         if nf_swaped in flags then
@@ -362,16 +368,37 @@ interface
                    ltn,lten,gtn,gten,equaln,unequaln :
                      begin
                        cmpop := true;
+                     {$ifndef newra}
                        rg.saveusedintregisters(exprasmlist,pushed,all_intregisters);
+                     {$endif newra}
                        secondpass(left);
                        location_release(exprasmlist,left.location);
                        cg.a_paramaddr_ref(exprasmlist,left.location.reference,paramanager.getintparaloc(2));
                        secondpass(right);
                        location_release(exprasmlist,right.location);
                        cg.a_paramaddr_ref(exprasmlist,right.location.reference,paramanager.getintparaloc(1));
-                       rg.saveintregvars(exprasmlist,all_intregisters);
+                      {$ifdef newra}
+                        r.enum:=R_INTREGISTER;
+                        for i:=first_supreg to last_supreg do
+                          if i<>RS_FRAME_POINTER_REG then
+                            begin
+                              r.number:=i shl 8 or R_SUBWHOLE;
+                              rg.getexplicitregisterint(exprasmlist,r.number);
+                            end;
+                      {$else}
+                        rg.saveintregvars(exprasmlist,regstopush);
+                      {$endif}
                        cg.a_call_name(exprasmlist,'FPC_SHORTSTR_COMPARE');
-                       rg.restoreusedintregisters(exprasmlist,pushed);
+                      {$ifdef newra}
+                        for i:=first_supreg to last_supreg do
+                          if i<>RS_FRAME_POINTER_REG then
+                            begin
+                              r.number:=i shl 8 or R_SUBWHOLE;
+                              rg.ungetregisterint(exprasmlist,r);
+                            end;
+                      {$else}
+                        rg.restoreusedintregisters(exprasmlist,pushed);
+                      {$endif}
                        location_freetemp(exprasmlist,left.location);
                        location_freetemp(exprasmlist,right.location);
                      end;
@@ -820,7 +847,7 @@ interface
         pushedfpu,
         mboverflow,
         cmpop,
-        unsigned   : boolean;
+        unsigned,delete:boolean;
         r:Tregister;
 
       procedure firstjmp64bitcmp;
@@ -944,14 +971,22 @@ interface
               { we can reuse a CREGISTER for comparison }
               if not((left.location.loc=LOC_CREGISTER) and cmpop) then
                begin
+               {$ifdef newra}
+                 delete:=left.location.loc<>LOC_CREGISTER;
+               {$else}
                  if (left.location.loc<>LOC_CREGISTER) then
                   begin
                     location_freetemp(exprasmlist,left.location);
                     location_release(exprasmlist,left.location);
                   end;
+               {$endif}
                  hregister:=rg.getregisterint(exprasmlist,OS_INT);
                  hregister2:=rg.getregisterint(exprasmlist,OS_INT);
+               {$ifdef newra}
+                 cg64.a_load64_loc_reg(exprasmlist,left.location,joinreg64(hregister,hregister2),delete);
+               {$else}
                  cg64.a_load64_loc_reg(exprasmlist,left.location,joinreg64(hregister,hregister2));
+               {$endif}
                  location_reset(left.location,LOC_REGISTER,OS_64);
                  left.location.registerlow:=hregister;
                  left.location.registerhigh:=hregister2;
@@ -1607,7 +1642,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.69  2003-05-30 23:49:18  jonas
+  Revision 1.70  2003-06-03 13:01:59  daniel
+    * Register allocator finished
+
+  Revision 1.69  2003/05/30 23:49:18  jonas
     * a_load_loc_reg now has an extra size parameter for the destination
       register (properly fixes what I worked around in revision 1.106 of
       ncgutil.pas)

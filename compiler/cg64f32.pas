@@ -50,10 +50,10 @@ unit cg64f32;
         procedure a_reg_dealloc(list : taasmoutput;r : tregister64);override;
         procedure a_load64_const_ref(list : taasmoutput;value : qword;const ref : treference);override;
         procedure a_load64_reg_ref(list : taasmoutput;reg : tregister64;const ref : treference);override;
-        procedure a_load64_ref_reg(list : taasmoutput;const ref : treference;reg : tregister64);override;
-        procedure a_load64_reg_reg(list : taasmoutput;regsrc,regdst : tregister64);override;
+        procedure a_load64_ref_reg(list : taasmoutput;const ref : treference;reg : tregister64{$ifdef newra};delete:boolean{$endif});override;
+        procedure a_load64_reg_reg(list : taasmoutput;regsrc,regdst : tregister64{$ifdef newra};delete:boolean{$endif});override;
         procedure a_load64_const_reg(list : taasmoutput;value: qword;reg : tregister64);override;
-        procedure a_load64_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister64);override;
+        procedure a_load64_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister64{$ifdef newra};delete: boolean{$endif});override;
         procedure a_load64_loc_ref(list : taasmoutput;const l : tlocation;const ref : treference);override;
         procedure a_load64_const_loc(list : taasmoutput;value : qword;const l : tlocation);override;
         procedure a_load64_reg_loc(list : taasmoutput;reg : tregister64;const l : tlocation);override;
@@ -97,7 +97,7 @@ unit cg64f32;
        globtype,globals,systems,
        cgbase,
        verbose,
-       symbase,symconst,symdef,defutil,rgobj;
+       symbase,symconst,symdef,defutil,rgobj,tgobj;
 
 
     function joinreg64(reglo,reghi : tregister) : tregister64;
@@ -150,7 +150,7 @@ unit cg64f32;
       end;
 
 
-    procedure tcg64f32.a_load64_ref_reg(list : taasmoutput;const ref : treference;reg : tregister64);
+    procedure tcg64f32.a_load64_ref_reg(list : taasmoutput;const ref : treference;reg : tregister64{$ifdef newra};delete:boolean{$endif});
       var
         tmpreg: tregister;
         tmpref: treference;
@@ -164,10 +164,6 @@ unit cg64f32;
           end;
         got_scratch:=false;
         tmpref := ref;
-        if tmpref.base.enum<>R_INTREGISTER then
-          internalerror(200302035);
-        if reg.reglo.enum<>R_INTREGISTER then
-          internalerror(200302035);
         if (tmpref.base.number=reg.reglo.number) then
          begin
          {$ifdef newra}
@@ -196,6 +192,13 @@ unit cg64f32;
           end;
         cg.a_load_ref_reg(list,OS_32,tmpref,reg.reglo);
         inc(tmpref.offset,4);
+{$ifdef newra}
+        if delete then
+          begin
+            tg.ungetiftemp(list,tmpref);
+            reference_release(list,tmpref);
+          end;
+{$endif}
         cg.a_load_ref_reg(list,OS_32,tmpref,reg.reghi);
 {$ifdef newra}
         if got_scratch then
@@ -207,10 +210,18 @@ unit cg64f32;
       end;
 
 
-    procedure tcg64f32.a_load64_reg_reg(list : taasmoutput;regsrc,regdst : tregister64);
+    procedure tcg64f32.a_load64_reg_reg(list : taasmoutput;regsrc,regdst : tregister64{$ifdef newra};delete:boolean{$endif});
 
       begin
+      {$ifdef newra}
+        if delete then
+          rg.ungetregisterint(list,regsrc.reglo);
+      {$endif}
         cg.a_load_reg_reg(list,OS_32,OS_32,regsrc.reglo,regdst.reglo);
+      {$ifdef newra}
+        if delete then
+          rg.ungetregisterint(list,regsrc.reghi);
+      {$endif}
         cg.a_load_reg_reg(list,OS_32,OS_32,regsrc.reghi,regdst.reghi);
       end;
 
@@ -221,14 +232,14 @@ unit cg64f32;
         cg.a_load_const_reg(list,OS_32,hi(value),reg.reghi);
       end;
 
-    procedure tcg64f32.a_load64_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister64);
+    procedure tcg64f32.a_load64_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister64{$ifdef newra};delete :boolean{$endif});
 
       begin
         case l.loc of
           LOC_REFERENCE, LOC_CREFERENCE:
-            a_load64_ref_reg(list,l.reference,reg);
+            a_load64_ref_reg(list,l.reference,reg{$ifdef newra},delete{$endif});
           LOC_REGISTER,LOC_CREGISTER:
-            a_load64_reg_reg(list,l.register64,reg);
+            a_load64_reg_reg(list,l.register64,reg{$ifdef newra},delete{$endif});
           LOC_CONSTANT :
             a_load64_const_reg(list,l.valueqword,reg);
           else
@@ -271,7 +282,7 @@ unit cg64f32;
           LOC_REFERENCE, LOC_CREFERENCE:
             a_load64_reg_ref(list,reg,l.reference);
           LOC_REGISTER,LOC_CREGISTER:
-            a_load64_reg_reg(list,reg,l.register64);
+            a_load64_reg_reg(list,reg,l.register64{$ifdef newra},false{$endif});
           else
             internalerror(200112293);
         end;
@@ -419,7 +430,7 @@ unit cg64f32;
         tempreg.reghi := cg.get_scratch_reg_int(list,OS_INT);
         tempreg.reglo := cg.get_scratch_reg_int(list,OS_INT);
       {$endif}
-        a_load64_ref_reg(list,ref,tempreg);
+        a_load64_ref_reg(list,ref,tempreg{$ifdef newra},false{$endif});
         a_op64_reg_reg(list,op,tempreg,reg);
       {$ifdef newra}
         rg.ungetregisterint(list,tempreg.reglo);
@@ -442,7 +453,7 @@ unit cg64f32;
         tempreg.reghi := cg.get_scratch_reg_int(list,OS_INT);
         tempreg.reglo := cg.get_scratch_reg_int(list,OS_INT);
       {$endif}
-        a_load64_ref_reg(list,ref,tempreg);
+        a_load64_ref_reg(list,ref,tempreg{$ifdef newra},false{$endif});
         a_op64_reg_reg(list,op,reg,tempreg);
         a_load64_reg_ref(list,tempreg,ref);
       {$ifdef newra}
@@ -466,7 +477,7 @@ unit cg64f32;
         tempreg.reghi := cg.get_scratch_reg_int(list,OS_INT);
         tempreg.reglo := cg.get_scratch_reg_int(list,OS_INT);
       {$endif}
-        a_load64_ref_reg(list,ref,tempreg);
+        a_load64_ref_reg(list,ref,tempreg{$ifdef newra},false{$endif});
         a_op64_const_reg(list,op,value,tempreg);
         a_load64_reg_ref(list,tempreg,ref);
       {$ifdef newra}
@@ -898,7 +909,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  2003-06-01 21:38:06  peter
+  Revision 1.46  2003-06-03 13:01:59  daniel
+    * Register allocator finished
+
+  Revision 1.45  2003/06/01 21:38:06  peter
     * getregisterfpu size parameter added
     * op_const_reg size parameter added
     * sparc updates

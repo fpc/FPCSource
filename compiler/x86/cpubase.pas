@@ -170,7 +170,11 @@ uses
 
       {Number of first and last superregister.}
       first_supreg    = $01;
+{$ifdef x86_64}
       last_supreg     = $10;
+{$else}
+      last_supreg     = $08;
+{$endif}
       {Number of first and last imaginary register.}
       first_imreg     = $12;
       last_imreg      = $ff;
@@ -712,7 +716,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2003-05-30 23:57:08  peter
+  Revision 1.6  2003-06-03 13:01:59  daniel
+    * Register allocator finished
+
+  Revision 1.5  2003/05/30 23:57:08  peter
     * more sparc cleanup
     * accumulator removed, splitted in function_return_reg (called) and
       function_result_reg (caller)

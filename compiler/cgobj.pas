@@ -437,10 +437,10 @@ unit cgobj;
         procedure a_reg_dealloc(list : taasmoutput;r : tregister64);virtual;abstract;
         procedure a_load64_const_ref(list : taasmoutput;value : qword;const ref : treference);virtual;abstract;
         procedure a_load64_reg_ref(list : taasmoutput;reg : tregister64;const ref : treference);virtual;abstract;
-        procedure a_load64_ref_reg(list : taasmoutput;const ref : treference;reg : tregister64);virtual;abstract;
-        procedure a_load64_reg_reg(list : taasmoutput;regsrc,regdst : tregister64);virtual;abstract;
+        procedure a_load64_ref_reg(list : taasmoutput;const ref : treference;reg : tregister64{$ifdef newra};delete : boolean{$endif});virtual;abstract;
+        procedure a_load64_reg_reg(list : taasmoutput;regsrc,regdst : tregister64{$ifdef newra};delete : boolean{$endif});virtual;abstract;
         procedure a_load64_const_reg(list : taasmoutput;value : qword;reg : tregister64);virtual;abstract;
-        procedure a_load64_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister64);virtual;abstract;
+        procedure a_load64_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister64{$ifdef newra};delete : boolean{$endif});virtual;abstract;
         procedure a_load64_loc_ref(list : taasmoutput;const l : tlocation;const ref : treference);virtual;abstract;
         procedure a_load64_const_loc(list : taasmoutput;value : qword;const l : tlocation);virtual;abstract;
         procedure a_load64_reg_loc(list : taasmoutput;reg : tregister64;const l : tlocation);virtual;abstract;
@@ -1172,10 +1172,10 @@ unit cgobj;
         else
           begin
 {$ifdef newra}
-            tmpreg := rg.getregisterint(list);
-            a_load_reg_reg(list,size,src2,tmpreg);
+            tmpreg := rg.getregisterint(list,size);
+            a_load_reg_reg(list,size,size,src2,tmpreg);
             a_op_reg_reg(list,op,size,src1,tmpreg);
-            a_load_reg_reg,tmpreg,dst);
+            a_load_reg_reg(list,size,size,tmpreg,dst);
             rg.ungetregisterint(list,tmpreg);
 {$else newra}
             internalerror(200305011);
@@ -1691,14 +1691,14 @@ unit cgobj;
     procedure tcg64.a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : qword;
        regsrc,regdst : tregister64);
       begin
-        a_load64_reg_reg(list,regsrc,regdst);
+        a_load64_reg_reg(list,regsrc,regdst{$ifdef newra},false{$endif});
         a_op64_const_reg(list,op,value,regdst);
       end;
 
 
     procedure tcg64.a_op64_reg_reg_reg(list: taasmoutput;op:TOpCG;regsrc1,regsrc2,regdst : tregister64);
       begin
-        a_load64_reg_reg(list,regsrc2,regdst);
+        a_load64_reg_reg(list,regsrc2,regdst{$ifdef newra},false{$endif});
         a_op64_reg_reg(list,op,regsrc1,regdst);
       end;
 
@@ -1712,7 +1712,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.105  2003-06-01 21:38:06  peter
+  Revision 1.106  2003-06-03 13:01:59  daniel
+    * Register allocator finished
+
+  Revision 1.105  2003/06/01 21:38:06  peter
     * getregisterfpu size parameter added
     * op_const_reg size parameter added
     * sparc updates

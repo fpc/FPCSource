@@ -455,7 +455,10 @@ implementation
          poslabel,
          neglabel : tasmlabel;
          hreg : tregister;
+         i:Tsuperregister;
+      {$ifndef newra}
          pushed : tpushedsavedint;
+      {$endif}
        begin
          if is_open_array(left.resulttype.def) or
             is_array_of_const(left.resulttype.def) then
@@ -506,12 +509,33 @@ implementation
          else
           if is_dynamic_array(left.resulttype.def) then
             begin
+            {$ifndef newra}
                rg.saveusedintregisters(exprasmlist,pushed,all_intregisters);
+            {$endif}
                cg.a_param_loc(exprasmlist,right.location,paramanager.getintparaloc(2));
                cg.a_param_loc(exprasmlist,left.location,paramanager.getintparaloc(1));
+            {$ifdef newra}
+               hreg.enum:=R_INTREGISTER;
+               for i:=first_supreg to last_supreg do
+                 if i<>RS_FRAME_POINTER_REG then
+                   begin
+                     hreg.number:=i shl 8 or R_SUBWHOLE;
+                     rg.getexplicitregisterint(exprasmlist,hreg.number);
+                   end;
+            {$else}
                rg.saveintregvars(exprasmlist,all_intregisters);
+            {$endif}
                cg.a_call_name(exprasmlist,'FPC_DYNARRAY_RANGECHECK');
+            {$ifdef newra}
+               for i:=first_supreg to last_supreg do
+                 if i<>RS_FRAME_POINTER_REG then
+                   begin
+                     hreg.number:=i shl 8 or R_SUBWHOLE;
+                     rg.ungetregisterint(exprasmlist,hreg);
+                   end;
+            {$else}
                rg.restoreusedintregisters(exprasmlist,pushed);
+            {$endif}
             end
          else
            cg.g_rangecheck(exprasmlist,right,left.resulttype.def);
@@ -524,7 +548,12 @@ implementation
          extraoffset : longint;
          t : tnode;
          href : treference;
+      {$ifdef newra}
+         hreg:Tregister;
+         i:Tsuperregister;
+      {$else}
          pushed : tpushedsavedint;
+      {$endif}
          isjump  : boolean;
          otl,ofl : tasmlabel;
          newsize : tcgsize;
@@ -546,11 +575,32 @@ implementation
                 begin
                    if left.location.loc<>LOC_REFERENCE then
                      internalerror(200304236);
+                {$ifndef newra}
                    rg.saveusedintregisters(exprasmlist,pushed,all_intregisters);
+                {$endif}
                    cg.a_paramaddr_ref(exprasmlist,left.location.reference,paramanager.getintparaloc(1));
+                {$ifdef newra}
+                   hreg.enum:=R_INTREGISTER;
+                   for i:=first_supreg to last_supreg do
+                     if i<>RS_FRAME_POINTER_REG then
+                       begin
+                         hreg.number:=i shl 8 or R_SUBWHOLE;
+                         rg.getexplicitregisterint(exprasmlist,hreg.number);
+                       end;
+                {$else}
                    rg.saveintregvars(exprasmlist,all_intregisters);
+                {$endif}
                    cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_UNIQUE');
+                {$ifdef newra}
+                   for i:=first_supreg to last_supreg do
+                     if i<>RS_FRAME_POINTER_REG then
+                       begin
+                         hreg.number:=i shl 8 or R_SUBWHOLE;
+                         rg.ungetregisterint(exprasmlist,hreg);
+                       end;
+                {$else}
                    rg.restoreusedintregisters(exprasmlist,pushed);
+                {$endif}
                 end;
 
               case left.location.loc of
@@ -572,11 +622,32 @@ implementation
                 we can use the ansistring routine here }
               if (cs_check_range in aktlocalswitches) then
                 begin
+                {$ifndef newra}
                    rg.saveusedintregisters(exprasmlist,pushed,all_intregisters);
+                {$endif}
                    cg.a_param_reg(exprasmlist,OS_ADDR,location.reference.base,paramanager.getintparaloc(1));
+                {$ifdef newra}
+                   hreg.enum:=R_INTREGISTER;
+                   for i:=first_supreg to last_supreg do
+                     if i<>RS_FRAME_POINTER_REG then
+                       begin
+                         hreg.number:=i shl 8 or R_SUBWHOLE;
+                         rg.getexplicitregisterint(exprasmlist,hreg.number);
+                       end;
+                {$else}
                    rg.saveintregvars(exprasmlist,all_intregisters);
-                   cg.a_call_name(exprasmlist,'FPC_'+Upper(tstringdef(left.resulttype.def).stringtypname)+'_CHECKZERO');
+                {$endif}
+                   cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_CHECKZERO');
+                {$ifdef newra}
+                   for i:=first_supreg to last_supreg do
+                     if i<>RS_FRAME_POINTER_REG then
+                       begin
+                         hreg.number:=i shl 8 or R_SUBWHOLE;
+                         rg.ungetregisterint(exprasmlist,hreg);
+                       end;
+                {$else}
                    rg.restoreusedintregisters(exprasmlist,pushed);
+                {$endif}
                 end;
 
               { in ansistrings/widestrings S[1] is p<w>char(S)[0] !! }
@@ -649,14 +720,35 @@ implementation
                          st_widestring,
                          st_ansistring:
                            begin
+                            {$ifndef newra}
                               rg.saveusedintregisters(exprasmlist,pushed,all_intregisters);
+                            {$endif}
                               cg.a_param_const(exprasmlist,OS_INT,tordconstnode(right).value,paramanager.getintparaloc(2));
                               href:=location.reference;
                               dec(href.offset,7);
                               cg.a_param_ref(exprasmlist,OS_INT,href,paramanager.getintparaloc(1));
+                            {$ifdef newra}
+                              hreg.enum:=R_INTREGISTER;
+                              for i:=first_supreg to last_supreg do
+                               if i<>RS_FRAME_POINTER_REG then
+                                  begin
+                                    hreg.number:=i shl 8 or R_SUBWHOLE;
+                                    rg.getexplicitregisterint(exprasmlist,hreg.number);
+                                  end;
+                            {$else}
                               rg.saveintregvars(exprasmlist,all_intregisters);
+                            {$endif}
                               cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_RANGECHECK');
+                            {$ifdef newra}
+                              for i:=first_supreg to last_supreg do
+                               if i<>RS_FRAME_POINTER_REG then
+                                  begin
+                                    hreg.number:=i shl 8 or R_SUBWHOLE;
+                                    rg.ungetregisterint(exprasmlist,hreg);
+                                  end;
+                            {$else}
                               rg.restoreusedintregisters(exprasmlist,pushed);
+                            {$endif}
                            end;
 
                          st_shortstring:
@@ -783,14 +875,35 @@ implementation
                          st_widestring,
                          st_ansistring:
                            begin
+                            {$ifndef newra}
                               rg.saveusedintregisters(exprasmlist,pushed,all_intregisters);
+                            {$endif}
                               cg.a_param_reg(exprasmlist,OS_INT,right.location.register,paramanager.getintparaloc(2));
                               href:=location.reference;
                               dec(href.offset,7);
                               cg.a_param_ref(exprasmlist,OS_INT,href,paramanager.getintparaloc(1));
+                            {$ifdef newra}
+                              hreg.enum:=R_INTREGISTER;
+                              for i:=first_supreg to last_supreg do
+                               if i<>RS_FRAME_POINTER_REG then
+                                  begin
+                                    hreg.number:=i shl 8 or R_SUBWHOLE;
+                                    rg.getexplicitregisterint(exprasmlist,hreg.number);
+                                  end;
+                            {$else}
                               rg.saveintregvars(exprasmlist,all_intregisters);
+                            {$endif}
                               cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_RANGECHECK');
+                            {$ifdef newra}
+                              for i:=first_supreg to last_supreg do
+                               if i<>RS_FRAME_POINTER_REG then
+                                  begin
+                                    hreg.number:=i shl 8 or R_SUBWHOLE;
+                                    rg.ungetregisterint(exprasmlist,hreg);
+                                  end;
+                            {$else}
                               rg.restoreusedintregisters(exprasmlist,pushed);
+                            {$endif}
                            end;
                          st_shortstring:
                            begin
@@ -824,7 +937,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.57  2003-06-02 22:35:45  florian
+  Revision 1.58  2003-06-03 13:01:59  daniel
+    * Register allocator finished
+
+  Revision 1.57  2003/06/02 22:35:45  florian
     * better handling of CREGISTER in subscript nodes
 
   Revision 1.56  2003/06/01 21:38:06  peter

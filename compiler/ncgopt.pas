@@ -196,14 +196,16 @@ begin
   location_copy(location,left.location);
 end;
 
-
 begin
   caddsstringcharoptnode := tcgaddsstringcharoptnode;
 end.
 
 {
   $Log$
-  Revision 1.4  2003-06-01 21:38:06  peter
+  Revision 1.5  2003-06-03 13:01:59  daniel
+    * Register allocator finished
+
+  Revision 1.4  2003/06/01 21:38:06  peter
     * getregisterfpu size parameter added
     * op_const_reg size parameter added
     * sparc updates

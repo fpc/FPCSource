@@ -147,7 +147,10 @@
 
       {# Stack pointer register }
       NR_STACK_POINTER_REG = NR_ESP;
+      RS_STACK_POINTER_REG = RS_ESP;
       {# Frame pointer register }
+      frame_pointer_reg = R_EBP;
+      RS_FRAME_POINTER_REG = RS_EBP;
       NR_FRAME_POINTER_REG = NR_EBP;
       {# Register for addressing absolute data in a position independant way,
          such as in PIC code. The exact meaning is ABI specific. For
@@ -202,7 +205,10 @@
 
 {
   $Log$
-  Revision 1.5  2003-05-31 15:05:28  peter
+  Revision 1.6  2003-06-03 13:01:59  daniel
+    * Register allocator finished
+
+  Revision 1.5  2003/05/31 15:05:28  peter
     * FUNCTION_RESULT64_LOW/HIGH_REG added for int64 results
 
   Revision 1.4  2003/05/30 23:57:08  peter

@@ -39,8 +39,10 @@ unit rgcpu;
           fpuvaroffset : byte;
 
           { to keep the same allocation order as with the old routines }
+{$ifdef newra}
+          procedure add_constraints(reg:Tnewregister);override;
+{$else}
           function getregisterint(list:Taasmoutput;size:Tcgsize):Tregister;override;
-{$ifndef newra}
           function getaddressregister(list:Taasmoutput):Tregister;override;
           procedure ungetregisterint(list:Taasmoutput;r:Tregister); override;
           function getexplicitregisterint(list:Taasmoutput;r:Tnewregister):Tregister;override;
@@ -59,30 +61,37 @@ unit rgcpu;
           function makeregsize(reg: tregister; size: tcgsize): tregister; override;
 
           { pushes and restores registers }
+{$ifndef newra}
           procedure pushusedintregisters(list:Taasmoutput;
                                          var pushed:Tpushedsavedint;
                                          const s:Tsupregset);
+{$endif}
 {$ifdef SUPPORT_MMX}
           procedure pushusedotherregisters(list:Taasmoutput;
                                            var pushed:Tpushedsavedother;
                                            const s:Tregisterset);
 {$endif SUPPORT_MMX}
-
+{$ifndef newra}
           procedure popusedintregisters(list:Taasmoutput;
                                         const pushed:Tpushedsavedint);
+{$endif}
 {$ifdef SUPPORT_MMX}
           procedure popusedotherregisters(list:Taasmoutput;
                                           const pushed:Tpushedsavedother);
 {$endif SUPPORT_MMX}
 
+{$ifndef newra}
           procedure saveusedintregisters(list:Taasmoutput;
                                          var saved:Tpushedsavedint;
                                          const s:Tsupregset);override;
+{$endif}
           procedure saveusedotherregisters(list:Taasmoutput;
                                            var saved:Tpushedsavedother;
                                            const s:Tregisterset);override;
+{$ifndef newra}
           procedure restoreusedintregisters(list:Taasmoutput;
                                             const saved:Tpushedsavedint);override;
+{$endif}
           procedure restoreusedotherregisters(list:Taasmoutput;
                                               const saved:Tpushedsavedother);override;
 
@@ -168,16 +177,15 @@ unit rgcpu;
 {************************************************************************}
 
 {$ifdef newra}
-    function Trgcpu.getregisterint(list:Taasmoutput;size:Tcgsize):Tregister;
+    procedure Trgcpu.add_constraints(reg:Tnewregister);
 
     begin
-      getregisterint:=inherited getregisterint(list,size);
-      if size in [OS_8,OS_S8] then
+      if reg and $ff in [R_SUBL,R_SUBH] then
         begin
           {These registers have no 8-bit subregister, so add interferences.}
-          add_edge(getregisterint.number shr 8,RS_ESI);
-          add_edge(getregisterint.number shr 8,RS_EDI);
-          add_edge(getregisterint.number shr 8,RS_EBP);
+          add_edge(reg shr 8,RS_ESI);
+          add_edge(reg shr 8,RS_EDI);
+          add_edge(reg shr 8,RS_EBP);
         end;
     end;
 {$endif}
@@ -350,7 +358,7 @@ unit rgcpu;
            ungetregisterint(list,ref.index);
       end;
 
-
+{$ifndef newra}
     procedure trgcpu.pushusedintregisters(list:Taasmoutput;
                                          var pushed:Tpushedsavedint;
                                          const s:Tsupregset);
@@ -383,6 +391,7 @@ unit rgcpu;
       testregisters;
 {$endif TEMPREGDEBUG}
     end;
+{$endif}
 
 {$ifdef SUPPORT_MMX}
     procedure trgcpu.pushusedotherregisters(list:Taasmoutput;
@@ -422,6 +431,7 @@ unit rgcpu;
     end;
 {$endif SUPPORT_MMX}
 
+{$ifndef newra}
     procedure trgcpu.popusedintregisters(list:Taasmoutput;
                                          const pushed:Tpushedsavedint);
 
@@ -448,6 +458,7 @@ unit rgcpu;
       testregisters;
 {$endif TEMPREGDEBUG}
     end;
+{$endif}
 
 {$ifdef SUPPORT_MMX}
     procedure trgcpu.popusedotherregisters(list:Taasmoutput;
@@ -482,6 +493,7 @@ unit rgcpu;
     end;
 {$endif SUPPORT_MMX}
 
+{$ifndef newra}
     procedure trgcpu.saveusedintregisters(list:Taasmoutput;
                                           var saved:Tpushedsavedint;
                                           const s:Tsupregset);
@@ -493,6 +505,7 @@ unit rgcpu;
       else
         inherited saveusedintregisters(list,saved,s);
     end;
+{$endif}
 
 
     procedure trgcpu.saveusedotherregisters(list:Taasmoutput;var saved:Tpushedsavedother;
@@ -508,7 +521,7 @@ unit rgcpu;
         inherited saveusedotherregisters(list,saved,s);
     end;
 
-
+{$ifndef newra}
     procedure trgcpu.restoreusedintregisters(list:Taasmoutput;
                                              const saved:tpushedsavedint);
 
@@ -519,6 +532,7 @@ unit rgcpu;
       else
         inherited restoreusedintregisters(list,saved);
     end;
+{$endif}
 
     procedure trgcpu.restoreusedotherregisters(list:Taasmoutput;
                                                const saved:tpushedsavedother);
@@ -581,7 +595,10 @@ end.
 
 {
   $Log$
-  Revision 1.23  2003-06-01 21:38:06  peter
+  Revision 1.24  2003-06-03 13:01:59  daniel
+    * Register allocator finished
+
+  Revision 1.23  2003/06/01 21:38:06  peter
     * getregisterfpu size parameter added
     * op_const_reg size parameter added
     * sparc updates

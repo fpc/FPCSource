@@ -150,6 +150,7 @@ implementation
       r : Tregister;
       siz : tcgsize;
     begin
+{$ifndef newra}
       { max. optimizations     }
       { only if no asm is used }
       { and no try statement   }
@@ -298,6 +299,7 @@ implementation
                   end;
               end;
         end;
+{$endif}
      end;
 
 
@@ -606,7 +608,10 @@ end.
 
 {
   $Log$
-  Revision 1.53  2003-05-31 20:33:57  jonas
+  Revision 1.54  2003-06-03 13:01:59  daniel
+    * Register allocator finished
+
+  Revision 1.53  2003/05/31 20:33:57  jonas
     * temp fix/hack for nested procedures (disable regvars in all procedures
       that have nested procedures)
     * leave register parameters in their own register (instead of storing

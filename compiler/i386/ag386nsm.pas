@@ -384,7 +384,7 @@ interface
       found,
       do_line,
       quoted   : boolean;
-      regstr:string[5];
+      regstr:string[6];
     begin
       if not assigned(p) then
        exit;
@@ -926,7 +926,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.34  2003-05-26 19:37:57  peter
+  Revision 1.35  2003-06-03 13:01:59  daniel
+    * Register allocator finished
+
+  Revision 1.34  2003/05/26 19:37:57  peter
     * don't generate align in .bss
 
   Revision 1.33  2003/04/22 10:09:35  daniel

@@ -331,8 +331,9 @@ implementation
               else
                 emit_reg_reg(asmop,S_L,hregister,tcallparanode(left).left.location.register);
             {$ifdef newra}
-              if scratch_reg then
+{              if scratch_reg then}
                 rg.ungetregisterint(exprasmlist,hregister);
+              location_release(exprasmlist,Tcallparanode(left).left.location);
             {$else}
               if scratch_reg then
                 cg.free_scratch_reg(exprasmlist,hregister);
@@ -346,7 +347,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.62  2003-06-01 21:38:06  peter
+  Revision 1.63  2003-06-03 13:01:59  daniel
+    * Register allocator finished
+
+  Revision 1.62  2003/06/01 21:38:06  peter
     * getregisterfpu size parameter added
     * op_const_reg size parameter added
     * sparc updates

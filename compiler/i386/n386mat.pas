@@ -164,7 +164,7 @@ implementation
           else
             begin
               hreg1:=rg.getregisterint(exprasmlist,right.location.size);
-              cg.a_load_loc_reg(exprasmlist,right.location,hreg1);
+              cg.a_load_loc_reg(exprasmlist,OS_32,right.location,hreg1);
               rg.ungetregisterint(exprasmlist,hreg1);
               emit_reg(op,S_L,hreg1);
             end;
@@ -430,13 +430,7 @@ implementation
 
     begin
       secondpass(left);
-    {$ifndef newra}
-      maybe_save(exprasmlist,right.registers32,left.location,pushedregs);
-    {$endif}
       secondpass(right);
-    {$ifndef newra}
-      maybe_restore(exprasmlist,left.location,pushedregs);
-    {$endif newra}
 
       { determine operator }
       if nodetype=shln then
@@ -452,10 +446,6 @@ implementation
           location_force_reg(exprasmlist,left.location,OS_64,false);
           hregisterhigh:=left.location.registerhigh;
           hregisterlow:=left.location.registerlow;
-          if hregisterhigh.enum<>R_INTREGISTER then
-            internalerror(200302056);
-          if hregisterlow.enum<>R_INTREGISTER then
-            internalerror(200302056);
 
           { shifting by a constant directly coded: }
           if (right.nodetype=ordconstn) then
@@ -504,7 +494,7 @@ implementation
             begin
               { load right operators in a register }
               hregister2:=rg.getexplicitregisterint(exprasmlist,NR_ECX);
-              cg.a_load_loc_reg(exprasmlist,right.location,hregister2);
+              cg.a_load_loc_reg(exprasmlist,OS_32,right.location,hregister2);
               if right.location.loc<>LOC_CREGISTER then
                 location_release(exprasmlist,right.location);
 
@@ -576,7 +566,7 @@ implementation
               if right.location.loc<>LOC_CREGISTER then
                 location_release(exprasmlist,right.location);
               hregister2:=rg.getexplicitregisterint(exprasmlist,NR_ECX);
-              cg.a_load_loc_reg(exprasmlist,right.location,hregister2);
+              cg.a_load_loc_reg(exprasmlist,OS_32,right.location,hregister2);
 
               { right operand is in ECX }
               emit_reg_reg(op,S_L,r2,location.register);
@@ -1183,7 +1173,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.55  2003-05-31 15:04:31  peter
+  Revision 1.56  2003-06-03 13:01:59  daniel
+    * Register allocator finished
+
+  Revision 1.55  2003/05/31 15:04:31  peter
     * load_loc_reg update
 
   Revision 1.54  2003/05/22 21:32:29  peter

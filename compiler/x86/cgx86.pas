@@ -1800,21 +1800,33 @@ unit cgx86;
     var r,rsp:Tregister;
 
     begin
-        r.enum:=R_INTREGISTER;
-        r.number:=NR_EBP;
-        rsp.enum:=R_INTREGISTER;
-        rsp.number:=NR_ESP;
-        list.concat(Taicpu.Op_reg(A_PUSH,S_L,r));
-        list.concat(Taicpu.Op_reg_reg(A_MOV,S_L,rsp,r));
-        if localsize>0 then
-          g_stackpointer_alloc(list,localsize);
+      r.enum:=R_INTREGISTER;
+      r.number:=NR_EBP;
+    {$ifdef newra}
+      list.concat(tai_regalloc.alloc(r));
+      include(rg.savedbyproc,RS_EBP);
+    {$endif}
+      rsp.enum:=R_INTREGISTER;
+      rsp.number:=NR_ESP;
+      list.concat(Taicpu.op_reg(A_PUSH,S_L,r));
+      list.concat(Taicpu.op_reg_reg(A_MOV,S_L,rsp,r));
+      if localsize>0 then
+        g_stackpointer_alloc(list,localsize);
     end;
 
 
     procedure tcgx86.g_restore_frame_pointer(list : taasmoutput);
-      begin
-        list.concat(Taicpu.Op_none(A_LEAVE,S_NO));
-      end;
+
+    var r:Tregister;
+
+    begin
+    {$ifdef newra}
+      r.enum:=R_INTREGISTER;
+      r.number:=NR_EBP;
+      list.concat(tai_regalloc.dealloc(r));
+    {$endif}
+      list.concat(Taicpu.op_none(A_LEAVE,S_NO));
+    end;
 
 
     procedure tcgx86.g_return_from_proc(list : taasmoutput;parasize : aword);
@@ -1847,14 +1859,19 @@ unit cgx86;
     var r:Tregister;
 
     begin
-        r.enum:=R_INTREGISTER;
-        r.number:=NR_EBX;
-        if (RS_EBX in usedinproc) then
-          list.concat(Taicpu.Op_reg(A_PUSH,S_L,r));
-        r.number:=NR_ESI;
-        list.concat(Taicpu.Op_reg(A_PUSH,S_L,r));
-        r.number:=NR_EDI;
-        list.concat(Taicpu.Op_reg(A_PUSH,S_L,r));
+      r.enum:=R_INTREGISTER;
+      r.number:=NR_EBX;
+      if (RS_EBX in usedinproc) then
+        list.concat(Taicpu.op_reg(A_PUSH,S_L,r));
+      r.number:=NR_ESI;
+      list.concat(Taicpu.op_reg(A_PUSH,S_L,r));
+      r.number:=NR_EDI;
+      list.concat(Taicpu.op_reg(A_PUSH,S_L,r));
+    {$ifdef newra}
+      include(rg.savedbyproc,RS_EBX);
+      include(rg.savedbyproc,RS_ESI);
+      include(rg.savedbyproc,RS_EDI);
+    {$endif}
     end;
 
 
@@ -1936,7 +1953,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.49  2003-06-01 21:38:07  peter
+  Revision 1.50  2003-06-03 13:01:59  daniel
+    * Register allocator finished
+
+  Revision 1.49  2003/06/01 21:38:07  peter
     * getregisterfpu size parameter added
     * op_const_reg size parameter added
     * sparc updates

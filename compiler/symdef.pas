@@ -764,7 +764,8 @@ implementation
 {$endif GDB}
        fmodule,
        { other }
-       gendef
+       gendef,
+       rgobj
        ;
 
 
@@ -3420,7 +3421,7 @@ implementation
           end;
          lastref:=defref;
        { first, we assume that all registers are used }
-         usedintregisters:=ALL_INTREGISTERS;
+         usedintregisters:=ALL_INTREGISTERS-[RS_FRAME_POINTER_REG];
          usedotherregisters:=ALL_REGISTERS;
          forwarddef:=true;
          interfacedef:=false;
@@ -3555,7 +3556,7 @@ implementation
          { set all registers to used for simplified compilation PM }
          if simplify_ppu then
            begin
-             usedintregisters:=ALL_INTREGISTERS;
+             usedintregisters:=ALL_INTREGISTERS-[RS_FRAME_POINTER_REG];
              usedotherregisters:=ALL_REGISTERS;
            end;
 
@@ -5740,7 +5741,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.147  2003-06-02 22:55:28  florian
+  Revision 1.148  2003-06-03 13:01:59  daniel
+    * Register allocator finished
+
+  Revision 1.147  2003/06/02 22:55:28  florian
     * classes and interfaces can be stored in integer registers
 
   Revision 1.146  2003/05/26 21:17:18  peter

@@ -68,7 +68,9 @@ implementation
         i : longint;
         href : treference;
         newsize : tcgsize;
+      {$ifndef newra}
         pushed : tpushedsavedint;
+      {$endif}
         dorelocatelab,
         norelocatelab : tasmlabel;
       begin
@@ -143,19 +145,30 @@ implementation
                        cg.a_loadaddr_ref_reg(exprasmlist,href,hregister);
                        cg.a_jmp_always(exprasmlist,norelocatelab);
                        cg.a_label(exprasmlist,dorelocatelab);
-                       if hregister.enum<>R_INTREGISTER then
-                         internalerror(200301171);
                        { don't save the allocated register else the result will be destroyed later }
+                    {$ifndef newra}
                        rg.saveusedintregisters(exprasmlist,pushed,[RS_FUNCTION_RESULT_REG]-[hregister.number shr 8]);
+                    {$endif}
                        reference_reset_symbol(href,objectlibrary.newasmsymboldata(tvarsym(symtableentry).mangledname),0);
                        cg.a_param_ref(exprasmlist,OS_ADDR,href,paramanager.getintparaloc(1));
+                    {$ifdef newra}
+                       rg.ungetregisterint(exprasmlist,hregister);
+                       r:=rg.getexplicitregisterint(exprasmlist,NR_EAX);
+                    {$endif}
                        { the called procedure isn't allowed to change }
                        { any register except EAX                    }
                        cg.a_call_reg(exprasmlist,hregister);
+                    {$ifdef newra}
+                       rg.ungetregisterint(exprasmlist,r);
+                       hregister:=rg.getregisterint(exprasmlist,OS_ADDR);
+                    {$else}
                        r.enum:=R_INTREGISTER;
                        r.number:=NR_FUNCTION_RESULT_REG;
+                    {$endif}
                        cg.a_load_reg_reg(exprasmlist,OS_INT,OS_ADDR,r,hregister);
+                    {$ifndef newra}
                        rg.restoreusedintregisters(exprasmlist,pushed);
+                    {$endif}
                        cg.a_label(exprasmlist,norelocatelab);
                        location.reference.base:=hregister;
                     end
@@ -539,7 +552,7 @@ implementation
                         cgsize:=def_cgsize(left.resulttype.def);
                         if cgsize in [OS_64,OS_S64] then
                          cg64.a_load64_ref_reg(exprasmlist,
-                             right.location.reference,left.location.register64)
+                             right.location.reference,left.location.register64{$ifdef newra},false{$endif})
                         else
                          cg.a_load_ref_reg(exprasmlist,cgsize,
                              right.location.reference,left.location.register);
@@ -922,7 +935,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.64  2003-05-30 23:57:08  peter
+  Revision 1.65  2003-06-03 13:01:59  daniel
+    * Register allocator finished
+
+  Revision 1.64  2003/05/30 23:57:08  peter
     * more sparc cleanup
     * accumulator removed, splitted in function_return_reg (called) and
       function_result_reg (caller)

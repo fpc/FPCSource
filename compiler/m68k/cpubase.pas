@@ -366,10 +366,6 @@ uses
 
       lvaluelocations = [LOC_REFERENCE,LOC_CFPUREGISTER,LOC_CREGISTER];
 
-      {# Constant defining possibly all registers which might require saving }
-      ALL_REGISTERS = [R_D1..R_FPCR];
-      ALL_INTREGISTERS = [1..255];
-
       general_registers = [R_D0..R_D7];
       general_superregisters = [RS_D0..RS_D7];
 
@@ -709,7 +705,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  2003-04-23 13:40:33  peter
+  Revision 1.21  2003-06-03 13:01:59  daniel
+    * Register allocator finished
+
+  Revision 1.20  2003/04/23 13:40:33  peter
     * fix m68k compile
 
   Revision 1.19  2003/04/23 12:35:35  florian

@@ -287,6 +287,15 @@ implementation
 {$ifndef i386}
               cleanup_regvars(current_procinfo.aktexitcode);
 {$endif i386}
+{$ifdef newra}
+              if current_procinfo.framepointer.number=NR_EBP then
+                begin
+                  {Make sure the register allocator won't allocate registers
+                   into ebp.}
+                  include(rg.usedintinproc,RS_EBP);
+                  exclude(rg.unusedregsint,RS_EBP);
+                end;
+{$endif}
 
               do_secondpass(p);
 
@@ -300,7 +309,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.53  2003-05-26 21:17:17  peter
+  Revision 1.54  2003-06-03 13:01:59  daniel
+    * Register allocator finished
+
+  Revision 1.53  2003/05/26 21:17:17  peter
     * procinlinenode removed
     * aktexit2label removed, fast exit removed
     + tcallnode.inlined_pass_2 added
