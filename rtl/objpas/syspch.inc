@@ -36,13 +36,8 @@ type
 {  StrPas converts a PChar to a pascal string  }
 
 function StrPas(Str: PChar): string;
-var
-  l: Integer;
 begin
-  l := StrLen(Str);
-  SetLength(result, l);
-  if l > 0 then
-    Move(Str^, result[1], l);
+  Result:=Str;
 end ;
 
 {  StrAlloc allocates a buffer of Size + 4
@@ -122,7 +117,10 @@ end ;
 
 {
   $Log$
-  Revision 1.4  2001-07-30 10:21:09  sg
+  Revision 1.5  2002-08-01 16:53:14  jonas
+    * fix for StrPas() by Sergey Korshunoff <seyko@comail.ru> (merged)
+
+  Revision 1.4  2001/07/30 10:21:09  sg
   * Two moves with a string as target are now only exectuted if the number of
     bytes to move is greater than 0. This prevents RTE201's when compiled
     with range checks enabled.
