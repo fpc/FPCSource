@@ -1262,12 +1262,22 @@ Type
       Status : LongInt;
       Result : LongInt;
     end;
+    
+    TWMEraseBkgnd = packed record
+      Msg: Cardinal;
+      DC: HDC;
+      Unused: Longint;
+      Result: Longint;
+    end;
 
 {$endif read_interface}
 
 {
   $Log$
-  Revision 1.8  2003-11-09 13:49:28  michael
+  Revision 1.9  2003-11-28 17:21:40  peter
+    * TWMEraseBkgnd added
+
+  Revision 1.8  2003/11/09 13:49:28  michael
   + TMessage result member is a longint, not a cardinal (from Micha Nelissen, verified in D6).
 
   Revision 1.7  2003/10/08 16:24:47  florian
