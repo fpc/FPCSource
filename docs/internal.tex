@@ -54,7 +54,7 @@ building.
 This document describes the compiler as it is/functions at the time of
 writing. Since the compiler is under continuous development, some of the
 things described here may be outdated. In case of doubt, consult the
-\file{README} files, distributed with the compiler.
+\file{README} files distributed with the compiler.
 The \file{README} files are, in case of conflict with this manual,
  authoritative.
 
@@ -69,9 +69,9 @@ spelling mistakes.
 % Getting more information.
 \section{Getting more information.}
 
-The ultimative source for informations about compiler internals is
-the compiler source though it isn't very well documented. If you
-need more infomrations you should join the developers mailing
+The ultimate source for information about compiler internals is
+the compiler source, though it isn't very well documented. If you
+need more infomration you should join the developers mailing
 list or you can contact the developers.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -89,18 +89,18 @@ list or you can contact the developers.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{The symbol tables}
 
-The symbol table is used to store informations about all
+The symbol table is used to store information about all
 symbols, declarations and definitions in a program.
 In an abstract view, a symbol table is a data base with a string field
-as index. \fpc implements the symbol table mainly as a binary tree,
+as index. \fpc implements the symbol table mainly as a binary tree, but
 for big symbol tables some hash technics are used. The implementation
 can be found in symtable.pas, object tsymtable.
 
 The symbol table module can't be associated with a stage of the compiler,
-each stage does accesses to the symbol table. 
+each stage accesses it. 
 The scanner uses a symbol table to handle preprocessor symbols, the
 parser inserts declaration and the code generator uses the collected
-informations about symbols and types to generate the code.
+information about symbols and types to generate the code.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Definitions
@@ -111,10 +111,10 @@ They are used to describe types, for example the type of a variable
 symbol is given by a definition and the result type
 of a expression is given as a definition. 
 They have nothing to do with the definition of a procedure.
-Definitions are implemented as a object (in file \file{symtable.pas},
-\var{tdef} and it's descendents). There are a lot of different
-definitions: for example to describe
-ordinal types, arrays, pointers, procedures
+Definitions are implemented as an object (in file \file{symtable.pas},
+\var{tdef} and its descendents). There are a lot of different
+definitions, for example to describe
+ordinal types, arrays, pointers, procedures, ...
 
 To make it more clear let's have a look at the fields of tdef:
 
@@ -177,26 +177,25 @@ The register allocation is very hairy, so it gets
 an own chapter in this manual. Please be careful when changing things
 regarding the register allocation and test such changes intensive.
 
-Future versions will may be implement another kind of register allocation 
+Future versions will may implement another kind of register allocation 
 to make this part of the compiler more robust, see
 \ref{se:future_plans}. But the current
 system is less or more working and changing it would be a lot of
 work, so we have to live with it.
 
 The current register allocation mechanism was implemented 5 years
-ago and I didn't think, that the compiler would become
-so popular, so not much time was spent in the design
-of the register allocation.
+ago and I didn't think that the compiler would become
+so popular, so not much time was spent in the design of it.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Basics
 \section{Basics}
 
-The register allocation is done in the first and second pass of
+The register allocation is done in the first and the second pass of
 the compiler.
 The first pass of a node has to calculate how much registers
-are necessary to generate code for the node, it has
-also to take care of child nodes i.e. how much registers
+are necessary to generate code for the node, but it also has
+to take care of child nodes i.e. how much registers
 they need.
 
 The register allocation is done via \var{getregister\*}
@@ -296,8 +295,8 @@ procedure secondderef(var p : ptree);
              // the contents of the registers isn't destroyed
              del_reference(p^.left^.location.reference);
 
-             // now should be at least one register free, so we
-             // can allocate one for the base of the result
+             // now there should be at least one register free, so
+             // we can allocate one for the base of the result
              hr:=getregister32;
 
              // generate dereferencing instruction
@@ -316,18 +315,18 @@ procedure secondderef(var p : ptree);
 % Binary nodes
 \section{Binary nodes}
 
-The whole thing becomes a little bit more hairy, if you have to
+The whole thing becomes a little bit more hairy if you have to
 generate code for a binary+ node (a node with two or more
 childs). If a node calls second pass for a child node,
 it has to ensure that enough registers are free
-to evalute the child node (\var{usableregs>=childnode\^.registers32}).
-If this condition isn't true, the current node has
+to evaluate the child node (\var{usableregs>=childnode\^.registers32}).
+If this condition isn't met, the current node has
 to store and restore all registers which the node owns to
 release registers. This should be done using the
 procedures \var{maybe\_push} and \var{restore}. If still
 \var{usableregs<childnode\^.registers32}, the child nodes have to solve
 the problem. The point is: if \var{usableregs<childnode\^.registers32},
-the current node have to release all registers which it owns
+the current node has to release all registers which it owns
 before the second pass is called. An example for generating
 code of a binary node is \var{cg386add.secondadd}.
 
@@ -335,10 +334,10 @@ code of a binary node is \var{cg386add.secondadd}.
 % FPU registers
 \section{FPU registers}
 
-The number of required FPU registers must be also calculated with
-one difference: you needn't to save registers, if too few registers
-are free, just an error message is generated, the user
-have to take care of too few FPU registers, this is a consequence
+The number of required FPU registers also has to be calculated, but
+there's one difference: you don't have to save registers. If not
+enough FPU registers are free, an error message is generated, as the user
+has to take care of this situation since this is a consequence
 of the stack structure of the FPU.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -433,7 +432,7 @@ The target processor must be set always and it can be:
 % Leave Out specific Parts
 \section{Leave Out specific Parts}
 
-Leaving of parts of the compiler is useful, if you want to create
+Leaving out parts of the compiler can be useful if you want to create
 a compiler which should also run on systems with less memory
 requirements (for example a real mode version compiled with Turbo Pascal).
 
@@ -446,7 +445,7 @@ requirements (for example a real mode version compiled with Turbo Pascal).
 The following defines apply only to the i386 version of the compiler.
 
 \begin{description}
- \item[\var{NoAg386Int}] No Intel styled assembler (for the MASM/TASM) writer
+ \item[\var{NoAg386Int}] No Intel styled assembler (for MASM/TASM) writer
  \item[\var{NoAg386Nsm}] No NASM assembler writer
  \item[\var{NoAg386Att}] No AT\&T assembler (for the GNU AS) writer
  \item[\var{NoRA386Int}] No Intel assembler parser
