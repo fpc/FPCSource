@@ -683,7 +683,7 @@ implementation
          { calculate the parameter info for the procdef }
          if not procdefinition.has_paraloc_info then
            begin
-             paramanager.create_paraloc_info(procdefinition);
+             paramanager.create_paraloc_info(procdefinition,callerside);
              procdefinition.has_paraloc_info:=true;
            end;
 
@@ -1206,7 +1206,7 @@ implementation
          { calculate the parameter info for the procdef }
          if not procdefinition.has_paraloc_info then
            begin
-             paramanager.create_paraloc_info(procdefinition);
+             paramanager.create_paraloc_info(procdefinition,callerside);
              procdefinition.has_paraloc_info:=true;
            end;
 
@@ -1561,7 +1561,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.96  2003-07-02 22:18:04  peter
+  Revision 1.97  2003-07-05 20:21:26  jonas
+     * create_paraloc_info() is now called separately for the caller and
+       callee info
+     * fixed ppc cycle
+
+  Revision 1.96  2003/07/02 22:18:04  peter
     * paraloc splitted in callerparaloc,calleeparaloc
     * sparc calling convention updates
 
