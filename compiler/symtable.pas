@@ -1819,8 +1819,6 @@ implementation
 
 
     procedure tsymtable.insert(sym:psym);
-      label
-         doinsert;
       var
          hp : psymtable;
          hsym : psym;
@@ -2927,7 +2925,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.97  2000-06-09 21:34:40  peter
+  Revision 1.98  2000-06-14 16:51:18  peter
+    * removed unused label i left in when testing
+
+  Revision 1.97  2000/06/09 21:34:40  peter
     * checking for dup id with para of methods fixed for delphi mode
 
   Revision 1.96  2000/06/05 20:41:17  pierre
