@@ -45,13 +45,13 @@ _start:
 	stw 	5,U_SYSTEM_ENVP@l(11);
 
 	bl	PASCALMAIN
+	
+	b	_haltproc
 
         .globl  _haltproc
         .type   _haltproc,@function
 _haltproc:
         li      0,1	      /* exit call */
-	lis	3,U_SYSTEM_EXITCODE@h
-	stw	3,U_SYSTEM_EXITCODE@l(3)
         sc
         b	_haltproc
 
@@ -67,8 +67,11 @@ ___fpc_brk_addr:
         .long   0
 /*
   $Log$
-  Revision 1.11  2004-01-04 17:23:57  florian
-    + haeder added
+  Revision 1.12  2004-05-26 20:48:17  florian
+    * _haltproc fixed
+
+  Revision 1.11  2004/01/04 17:23:57  florian
+    + header added
 
   Revision 1.10  2003/05/12 22:36:45  florian
     + added setup of argv, argc and envp
