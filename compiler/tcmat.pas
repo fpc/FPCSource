@@ -344,7 +344,7 @@ implementation
                 minusdef:=nil;
               while assigned(minusdef) do
                 begin
-                   if (pparaitem(minusdef^.para^.first)^.paratype.def=p^.left^.resulttype) and
+                   if is_equal(pparaitem(minusdef^.para^.first)^.paratype.def,p^.left^.resulttype) and
                       (pparaitem(minusdef^.para^.first)^.next=nil) then
                      begin
                         t:=gencallnode(overloaded_operators[_minus],nil);
@@ -452,7 +452,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  2000-02-17 14:53:43  florian
+  Revision 1.30  2000-06-02 21:13:56  pierre
+   * use is_equal instead of direct def equality in unary minus overload
+
+  Revision 1.29  2000/02/17 14:53:43  florian
     * some updates for the newcg
 
   Revision 1.28  2000/02/09 13:23:08  peter
