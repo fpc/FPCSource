@@ -195,6 +195,7 @@ Procedure Insert(source:Char;Var s:shortstring;index:StrLenInt);
 Function  Pos(const substr:shortstring;const s:shortstring):StrLenInt;
 Function  Pos(C:Char;const s:shortstring):StrLenInt;
 Procedure SetLength(var s:shortstring;len:StrLenInt);
+Procedure SetString (Var S : Shortstring; Buf : PChar; Len : Longint);
 Function  Length(s:string):byte;
 
 { Char functions to overcome overloading problem with ansistrings }
@@ -434,7 +435,10 @@ const
 
 {
   $Log$
-  Revision 1.50  1999-02-01 00:05:16  florian
+  Revision 1.51  1999-03-03 15:23:58  michael
+  + Added setstring for Delphi compatibility
+
+  Revision 1.50  1999/02/01 00:05:16  florian
     + functions lo/hi for DWord type implemented
 
   Revision 1.49  1999/01/29 09:23:10  pierre

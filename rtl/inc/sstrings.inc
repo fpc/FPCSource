@@ -968,10 +968,19 @@ begin
 end;
 {$endif SUPPORT_FIXED}
 
+Procedure SetString (Var S : Shortstring; Buf : PChar; Len : Longint);
+
+begin
+  Move (Buf[0],S[1],Len);
+  S[0]:=chr(len);
+end;
 
 {
   $Log$
-  Revision 1.19  1999-01-25 20:24:28  peter
+  Revision 1.20  1999-03-03 15:23:57  michael
+  + Added setstring for Delphi compatibility
+
+  Revision 1.19  1999/01/25 20:24:28  peter
     * fixed insert to support again the max string length
 
   Revision 1.18  1999/01/11 19:26:55  jonas
