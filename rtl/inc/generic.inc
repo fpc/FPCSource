@@ -369,8 +369,6 @@ type
     size,msize : longint;
     parent : pointer;
   end;
-var
-  objectsize : longint;
 begin
    if (_self=nil) then
      exit;
@@ -379,10 +377,9 @@ begin
      RunError(210);
    if (_vmt = nil) then
      exit;
-   objectsize:=pvmt(_vmt)^.size;
    { reset vmt to nil for protection }
    ppointer(_self+vmt_pos)^:=nil;
-   freemem(_self,objectsize);
+   freemem(_self);
 end;
 {$endif FPC_SYSTEM_HAS_FPC_HELP_DESTRUCTOR}
 
@@ -447,7 +444,7 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_FPC_CHECK_OBJECT}
-procedure fpc_check_object(obj : pointer);[public,alias:'FPC_CHECK_OBJECT'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_check_object(_vmt : pointer);saveregisters;[public,alias:'FPC_CHECK_OBJECT'];  {$ifdef hascompilerproc} compilerproc; {$endif}
 type
   pvmt = ^tvmt;
   tvmt = packed record
@@ -455,10 +452,10 @@ type
     parent : pointer;
   end;
 begin
-(*   if (vmt=nil) or
-      (pvmt(vmt)^.size=0) or
-      (pvmt(vmt)^.size+pvmt(vmt)^.msize<>0) then
-        RunError(210);*)
+  if (_vmt=nil) or
+     (pvmt(_vmt)^.size=0) or
+     (pvmt(_vmt)^.size+pvmt(_vmt)^.msize<>0) then
+    RunError(210);
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_CHECK_OBJECT}
@@ -468,7 +465,7 @@ end;
 { checks for a correct vmt pointer }
 { deeper check to see if the current object is }
 { really related to the true }
-procedure fpc_check_object_ext(vmt, expvmt : pointer);[public,alias:'FPC_CHECK_OBJECT_EXT']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_check_object_ext(vmt, expvmt : pointer);saveregisters;[public,alias:'FPC_CHECK_OBJECT_EXT']; {$ifdef hascompilerproc} compilerproc; {$endif}
 type
   pvmt = ^tvmt;
   tvmt = packed record
@@ -962,7 +959,12 @@ end;
 
 {
   $Log$
-  Revision 1.53  2003-04-02 14:05:45  peter
+  Revision 1.54  2003-04-23 13:10:09  peter
+    * remvoe objectsize loading from help_destructor
+    * implement fpc_check_object
+    * saveregistrers for check_object
+
+  Revision 1.53  2003/04/02 14:05:45  peter
     * undo previous commit
 
   Revision 1.51  2003/03/26 00:17:34  peter
