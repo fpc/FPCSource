@@ -2695,6 +2695,23 @@ TYPE
 
 {$ENDIF HASINTF}
 
+
+const
+  DROPEFFECT_NONE   = 0; 
+  DROPEFFECT_COPY   = 1; 
+  DROPEFFECT_MOVE   = 2; 
+  DROPEFFECT_LINK   = 4; 
+  DROPEFFECT_SCROLL = dword($80000000);
+
+
+type    
+  BORDERWIDTHS = TRect;
+  LPBORDERWIDTHS = PRect;
+  LPCBORDERWIDTHS = PRect;
+  
+  TBorderWidths = TRect;
+  PBorderWidths = PRect;
+
 implementation
 {$undef read_interface}
 {$define read_implementation}
@@ -2703,7 +2720,10 @@ end.
 
 {
   $Log$
-  Revision 1.14  2005-02-14 17:13:32  peter
+  Revision 1.15  2005-02-26 20:20:56  florian
+    + some new consts and types
+
+  Revision 1.14  2005/02/14 17:13:32  peter
     * truncate log
 
   Revision 1.13  2005/02/03 18:41:12  florian
