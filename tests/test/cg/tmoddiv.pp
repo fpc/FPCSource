@@ -294,8 +294,8 @@ begin
   int64res := 10101010;
   int64cnt := -13;
   int64res := int64res mod int64cnt;
-  Write('Value should be -10...');
-  test(longint(int64res), -10);
+  Write('Value should be 10...');
+  test(longint(int64res), 10);
 
   WriteLn('(left) : LOC_REFERENCE; (right) : LOC_REGISTER');
   { RIGHT : LOC_REGISTER       }
@@ -309,8 +309,8 @@ begin
   { LEFT : LOC_REFERENCE       }
   int64res := -1111111;
   int64res := int64res mod getint64cnt;
-  Write('Value should be 1...');
-  test(longint(int64res), 1);
+  Write('Value should be -1...');
+  test(longint(int64res), -1);
 
   { RIGHT : LOC_REFERENCE }
   { LEFT : LOC_REGISTER   }
