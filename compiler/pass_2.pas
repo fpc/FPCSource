@@ -93,16 +93,16 @@ implementation
              'ordconst',    {ordconstn}
              'typeconv',    {typeconvn}
              'calln',       {calln}
-             'noth-callpar',     {callparan}
+             'noth-callpar',{callparan}
              'realconst',   {realconstn}
              'unaryminus',  {unaryminusn}
              'asm',         {asmn}
              'vecn',        {vecn}
-             'pointerconst', {pointerconstn}
+             'pointerconst',{pointerconstn}
              'stringconst', {stringconstn}
              'funcret',     {funcretn}
              'selfn',       {selfn}
-             'not',  {notn}
+             'not',         {notn}
              'inline',      {inlinen}
              'niln',        {niln}
              'error',       {errorn}
@@ -113,14 +113,11 @@ implementation
              'setconst',    {setconstn}
              'blockn',      {blockn}
              'statement',   {statementn}
-             'nothing-loopn',     {loopn}
-             'ifn',  {ifn}
+             'ifn',         {ifn}
              'breakn',      {breakn}
              'continuen',   {continuen}
-(*             '_while_REPEAT', {repeatn}
-             '_WHILE_repeat', {whilen}*)
-	     'while_repeat', {whilerepeatn}
-             'for',  {forn}
+             'while_repeat', {whilerepeatn}
+             'for',         {forn}
              'exitn',       {exitn}
              'with',        {withn}
              'case',        {casen}
@@ -138,8 +135,9 @@ implementation
              'procinline',  {procinlinen}
              'arrayconstruc', {arrayconstructn}
              'noth-arrcnstr',     {arrayconstructrangen}
-             'tempn',
+             'tempcreaten',
              'temprefn',
+             'tempdeleten',
              'addoptn',
              'nothing-nothg',     {nothingn}
              'loadvmt',      {loadvmtn}
@@ -328,7 +326,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  2002-07-30 20:50:44  florian
+  Revision 1.34  2002-08-15 19:10:35  peter
+    * first things tai,tnode storing in ppu
+
+  Revision 1.33  2002/07/30 20:50:44  florian
     * the code generator knows now if parameters are in registers
 
   Revision 1.32  2002/07/19 11:41:36  daniel

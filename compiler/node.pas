@@ -31,102 +31,99 @@ interface
        globtype,globals,
        cpubase,
        aasmbase,
-       symtype;
+       symtype,symppu;
 
     type
        pconstset = ^tconstset;
-    {$ifdef oldset}
+{$ifdef oldset}
        tconstset = array[0..31] of byte;
        pconst32bitset = ^tconst32bitset;
        tconst32bitset = array[0..7] of longint;
-    {$else}
+{$else}
        tconstset = set of 0..255;
-    {$endif}
+{$endif}
 
        tnodetype = (
-          addn,     {Represents the + operator.}
-          muln,     {Represents the * operator.}
-          subn,     {Represents the - operator.}
-          divn,     {Represents the div operator.}
-          symdifn,       {Represents the >< operator.}
-          modn,     {Represents the mod operator.}
-          assignn,       {Represents an assignment.}
-          loadn,           {Represents the use of a variabele.}
-          rangen,         {Represents a range (i.e. 0..9).}
-          ltn,       {Represents the < operator.}
-          lten,     {Represents the <= operator.}
-          gtn,       {Represents the > operator.}
-          gten,     {Represents the >= operator.}
-          equaln,         {Represents the = operator.}
-          unequaln,     {Represents the <> operator.}
-          inn,       {Represents the in operator.}
-          orn,       {Represents the or operator.}
-          xorn,     {Represents the xor operator.}
-          shrn,     {Represents the shr operator.}
-          shln,     {Represents the shl operator.}
-          slashn,         {Represents the / operator.}
-          andn,     {Represents the and operator.}
-          subscriptn,      {??? Field in a record/object?}
-          derefn,         {Dereferences a pointer.}
-          addrn,           {Represents the @ operator.}
-          doubleaddrn,     {Represents the @@ operator.}
-          ordconstn,       {Represents an ordinal value.}
-          typeconvn,       {Represents type-conversion/typecast.}
-          calln,           {Represents a call node.}
-          callparan,       {Represents a parameter.}
-          realconstn,      {Represents a real value.}
-          unaryminusn,     {Represents a sign change (i.e. -2).}
-          asmn,     {Represents an assembler node }
-          vecn,     {Represents array indexing.}
-          pointerconstn,
-          stringconstn,    {Represents a string constant.}
-          funcretn,     {Represents the function result var.}
-          selfn,           {Represents the self parameter.}
-          notn,     {Represents the not operator.}
-          inlinen,       {Internal procedures (i.e. writeln).}
-          niln,     {Represents the nil pointer.}
-          errorn,         {This part of the tree could not be
-                            parsed because of a compiler error.}
-          typen,           {A type name. Used for i.e. typeof(obj).}
-          hnewn,           {The new operation, constructor call.}
-          hdisposen,       {The dispose operation with destructor call.}
-          setelementn,     {A set element(s) (i.e. [a,b] and also [a..b]).}
-          setconstn,       {A set constant (i.e. [1,2]).}
-          blockn,         {A block of statements.}
-          statementn,      {One statement in a block of nodes.}
-          loopn,           { used in genloopnode, must be converted }
-          ifn,       {An if statement.}
-          breakn,         {A break statement.}
-          continuen,       {A continue statement.}
-(*          repeatn,       {A repeat until block.}
-          whilen,         {A while do statement.}*)
-      whilerepeatn,     {A while or repeat statement.}
-          forn,             {A for loop.}
-          exitn,            {An exit statement.}
-          withn,            {A with statement.}
-          casen,            {A case statement.}
-          labeln,           {A label.}
-          goton,            {A goto statement.}
-          tryexceptn,       {A try except block.}
-          raisen,           {A raise statement.}
-          tryfinallyn,      {A try finally statement.}
-          onn,              {For an on statement in exception code.}
-          isn,              {Represents the is operator.}
-          asn,              {Represents the as typecast.}
-          caretn,           {Represents the ^ operator.}
-          failn,            {Represents the fail statement.}
+          addn,             {Represents the + operator}
+          muln,             {Represents the * operator}
+          subn,             {Represents the - operator}
+          divn,             {Represents the div operator}
+          symdifn,          {Represents the >< operator}
+          modn,             {Represents the mod operator}
+          assignn,          {Represents an assignment}
+          loadn,            {Represents the use of a variabele}
+          rangen,           {Represents a range (i.e. 0..9)}
+          ltn,              {Represents the < operator}
+          lten,             {Represents the <= operator}
+          gtn,              {Represents the > operator}
+          gten,             {Represents the >= operator}
+          equaln,           {Represents the = operator}
+          unequaln,         {Represents the <> operator}
+          inn,              {Represents the in operator}
+          orn,              {Represents the or operator}
+          xorn,             {Represents the xor operator}
+          shrn,             {Represents the shr operator}
+          shln,             {Represents the shl operator}
+          slashn,           {Represents the / operator}
+          andn,             {Represents the and operator}
+          subscriptn,       {Field in a record/object}
+          derefn,           {Dereferences a pointer}
+          addrn,            {Represents the @ operator}
+          doubleaddrn,      {Represents the @@ operator}
+          ordconstn,        {Represents an ordinal value}
+          typeconvn,        {Represents type-conversion/typecast}
+          calln,            {Represents a call node}
+          callparan,        {Represents a parameter}
+          realconstn,       {Represents a real value}
+          unaryminusn,      {Represents a sign change (i.e. -2)}
+          asmn,             {Represents an assembler node }
+          vecn,             {Represents array indexing}
+          pointerconstn,    {Represents a pointer constant}
+          stringconstn,     {Represents a string constant}
+          funcretn,         {Represents the function result var}
+          selfn,            {Represents the self parameter}
+          notn,             {Represents the not operator}
+          inlinen,          {Internal procedures (i.e. writeln)}
+          niln,             {Represents the nil pointer}
+          errorn,           {This part of the tree could not be
+                             parsed because of a compiler error}
+          typen,            {A type name. Used for i.e. typeof(obj)}
+          hnewn,            {The new operation, constructor call}
+          hdisposen,        {The dispose operation with destructor call}
+          setelementn,      {A set element(s) (i.e. [a,b] and also [a..b])}
+          setconstn,        {A set constant (i.e. [1,2])}
+          blockn,           {A block of statements}
+          statementn,       {One statement in a block of nodes}
+          ifn,              {An if statement}
+          breakn,           {A break statement}
+          continuen,        {A continue statement}
+          whilerepeatn,     {A while or repeat statement}
+          forn,             {A for loop}
+          exitn,            {An exit statement}
+          withn,            {A with statement}
+          casen,            {A case statement}
+          labeln,           {A label}
+          goton,            {A goto statement}
+          tryexceptn,       {A try except block}
+          raisen,           {A raise statement}
+          tryfinallyn,      {A try finally statement}
+          onn,              {For an on statement in exception code}
+          isn,              {Represents the is operator}
+          asn,              {Represents the as typecast}
+          caretn,           {Represents the ^ operator}
+          failn,            {Represents the fail statement}
           starstarn,        {Represents the ** operator exponentiation }
           procinlinen,      {Procedures that can be inlined }
           arrayconstructorn, {Construction node for [...] parsing}
           arrayconstructorrangen, {Range element to allow sets in array construction tree}
-          tempn,            { for temps in the result/firstpass }
+          tempcreaten,      { for temps in the result/firstpass }
           temprefn,         { references to temps }
-          { added for optimizations where we cannot suppress }
-          addoptn,
-          nothingn,
-          loadvmtn,
-          guidconstn,
-          rttin         {Rtti information so they can be accessed in result/firstpass.}
+          tempdeleten,      { for temps in the result/firstpass }
+          addoptn,          { added for optimizations where we cannot suppress }
+          nothingn,         {NOP, Do nothing}
+          loadvmtn,         {Load the address of the VMT of a class/object}
+          guidconstn,       {A GUID COM Interface constant }
+          rttin             {Rtti information so they can be accessed in result/firstpass}
        );
 
       const
@@ -162,7 +159,7 @@ interface
           'calln',
           'callparan',
           'realconstn',
-          'umminusn',
+          'unaryminusn',
           'asmn',
           'vecn',
           'pointerconstn',
@@ -180,13 +177,10 @@ interface
           'setconstn',
           'blockn',
           'statementn',
-          'loopn',
           'ifn',
           'breakn',
           'continuen',
-(*          'repeatn',
-          'whilen',*)
-      'whilerepeatn',
+          'whilerepeatn',
           'forn',
           'exitn',
           'withn',
@@ -205,8 +199,9 @@ interface
           'procinlinen',
           'arrayconstructn',
           'arrayconstructrangen',
-          'tempn',
+          'tempcreaten',
           'temprefn',
+          'tempdeleten',
           'addoptn',
           'nothingn',
           'loadvmtn',
@@ -231,8 +226,8 @@ interface
          { flags used by loop nodes }
          nf_backward,   { set if it is a for ... downto ... do loop }
          nf_varstate,   { do we need to parse childs to set var state }
-     nf_testatbegin,{ Do a test at the begin of the loop?}
-     nf_checknegate,{ Negate the loop test?}
+         nf_testatbegin,{ Do a test at the begin of the loop?}
+         nf_checknegate,{ Negate the loop test?}
 
          { taddrnode }
          nf_procvarload,
@@ -315,15 +310,13 @@ interface
           maxfirstpasscount,
           firstpasscount : longint;
 {$endif extdebug}
-{$ifdef TEMPS_NOT_PUSH}
-          temp_offset: longint;
-{$endif TEMPS_NOT_PUSH}
-{          list : taasmoutput; }
           constructor create(tt : tnodetype);
           { this constructor is only for creating copies of class }
           { the fields are copied by getcopy                      }
           constructor createforcopy;
+          constructor load(tt : tnodetype;ppufile:tcompilerppufile);
           destructor destroy;override;
+          procedure write(ppufile:tcompilerppufile);virtual;
 
           { toggles the flag }
           procedure toggleflag(f : tnodeflags);
@@ -367,19 +360,20 @@ interface
           procedure set_tree_filepos(const filepos : tfileposinfo);
        end;
 
+       tnodeclass = class of tnode;
+
+       tnodeclassarray = array[tnodetype] of tnodeclass;
+
        { this node is the anchestor for all nodes with at least   }
        { one child, you have to use it if you want to use         }
        { true- and falselabel                                     }
-       tparentnode = class(tnode)
-       end;
-
-       tnodeclass = class of tnode;
-
        punarynode = ^tunarynode;
-       tunarynode = class(tparentnode)
+       tunarynode = class(tnode)
           left : tnode;
           constructor create(tt : tnodetype;l : tnode);
+          constructor load(tt:tnodetype;ppufile:tcompilerppufile);
           destructor destroy;override;
+          procedure write(ppufile:tcompilerppufile);override;
           procedure concattolist(l : tlinkedlist);override;
           function ischild(p : tnode) : boolean;override;
           function docompare(p : tnode) : boolean;override;
@@ -395,7 +389,9 @@ interface
        tbinarynode = class(tunarynode)
           right : tnode;
           constructor create(tt : tnodetype;l,r : tnode);
+          constructor load(tt:tnodetype;ppufile:tcompilerppufile);
           destructor destroy;override;
+          procedure write(ppufile:tcompilerppufile);override;
           procedure concattolist(l : tlinkedlist);override;
           function ischild(p : tnode) : boolean;override;
           function docompare(p : tnode) : boolean;override;
@@ -408,18 +404,10 @@ interface
 {$endif extdebug}
        end;
 
-       pbinopnode = ^tbinopnode;
        tbinopnode = class(tbinarynode)
           constructor create(tt : tnodetype;l,r : tnode);virtual;
           function docompare(p : tnode) : boolean;override;
        end;
-
-{$ifdef EXTDEBUG}
-     var
-       writenodeindention : string;
-
-     procedure writenode(t:tnode);
-{$endif EXTDEBUG}
 
 {$ifdef tempregdebug}
     type
@@ -428,10 +416,59 @@ interface
       curptree: pptree;
 {$endif tempregdebug}
 
+    var
+      nodeclass : tnodeclassarray;
+{$ifdef EXTDEBUG}
+      writenodeindention : string;
+{$endif EXTDEBUG}
+
+
+    function ppuloadnode(ppufile:tcompilerppufile):tnode;
+{$ifdef EXTDEBUG}
+    procedure writenode(t:tnode);
+{$endif EXTDEBUG}
+
+
 implementation
 
     uses
-       cutils;
+       cutils,verbose;
+
+{****************************************************************************
+                                 Helpers
+ ****************************************************************************}
+
+    function ppuloadnode(ppufile:tcompilerppufile):tnode;
+      var
+        b : byte;
+        t : tnodetype;
+      begin
+        { marker }
+        b:=ppufile.getbyte;
+        if b<>255 then
+          internalerror(200208151);
+        { load nodetype }
+        t:=tnodetype(ppufile.getbyte);
+        if t>high(tnodetype) then
+          internalerror(200208152);
+        if not assigned(nodeclass[t]) then
+          internalerror(200208153);
+        { generate node of the correct class }
+        ppuloadnode:=nodeclass[t].load(t,ppufile);
+      end;
+
+
+{$ifdef EXTDEBUG}
+     procedure writenode(t:tnode);
+       begin
+         if assigned(t) then
+          t.dowrite
+         else
+          write(writenodeindention,'nil');
+         if writenodeindention='' then
+          writeln;
+       end;
+{$endif EXTDEBUG}
 
 {****************************************************************************
                                  TNODE
@@ -465,6 +502,44 @@ implementation
 
       begin
       end;
+
+    constructor tnode.load(tt : tnodetype;ppufile:tcompilerppufile);
+
+      begin
+        { tnode fields }
+        blocktype:=tblock_type(ppufile.getbyte);
+        ppufile.getposinfo(fileinfo);
+        ppufile.getsmallset(localswitches);
+        ppufile.gettype(resulttype);
+        ppufile.getsmallset(flags);
+        { updated by firstpass }
+        location.loc:=LOC_INVALID;
+        registers32:=0;
+        registersfpu:=0;
+{$ifdef SUPPORT_MMX}
+        registersmmx:=0;
+{$endif SUPPORT_MMX}
+{$ifdef EXTDEBUG}
+        maxfirstpasscount:=0;
+        firstpasscount:=0;
+{$endif EXTDEBUG}
+      end;
+
+
+    procedure tnode.write(ppufile:tcompilerppufile);
+      begin
+        { marker, read by ppuloadnode }
+        ppufile.putbyte($ff);
+        { type, read by ppuloadnode }
+        ppufile.putbyte(byte(nodetype));
+        { tnode fields }
+        ppufile.putbyte(byte(block_type));
+        ppufile.putposinfo(aktfilepos);
+        ppufile.putsmallset(localswitches);
+        ppufile.puttype(resulttype);
+        ppufile.putsmallset(flags);
+      end;
+
 
     procedure tnode.toggleflag(f : tnodeflags);
 
@@ -524,7 +599,7 @@ implementation
 
 {$ifdef state_tracking}
     function Tnode.track_state_pass(exec_known:boolean):boolean;
-    
+
     begin
     track_state_pass:=false;
     end;
@@ -596,11 +671,27 @@ implementation
          left:=l;
       end;
 
+
+    constructor tunarynode.load(tt : tnodetype;ppufile:tcompilerppufile);
+      begin
+        inherited load(tt,ppufile);
+        left:=ppuloadnode(ppufile);
+      end;
+
+
     destructor tunarynode.destroy;
       begin
         left.free;
         inherited destroy;
       end;
+
+
+    procedure tunarynode.write(ppufile:tcompilerppufile);
+      begin
+        inherited write(ppufile);
+        left.write(ppufile);
+      end;
+
 
     function tunarynode.docompare(p : tnode) : boolean;
 
@@ -677,11 +768,27 @@ implementation
          right:=r
       end;
 
+
+    constructor tbinarynode.load(tt : tnodetype;ppufile:tcompilerppufile);
+      begin
+        inherited load(tt,ppufile);
+        right:=ppuloadnode(ppufile);
+      end;
+
+
     destructor tbinarynode.destroy;
       begin
         right.free;
         inherited destroy;
       end;
+
+
+    procedure tbinarynode.write(ppufile:tcompilerppufile);
+      begin
+        inherited write(ppufile);
+        right.write(ppufile);
+      end;
+
 
     procedure tbinarynode.concattolist(l : tlinkedlist);
 
@@ -800,27 +907,13 @@ implementation
       end;
 
 
-{****************************************************************************
-                                 WRITENODE
- ****************************************************************************}
-
-{$ifdef EXTDEBUG}
-     procedure writenode(t:tnode);
-     begin
-       if assigned(t) then
-        t.dowrite
-       else
-        write(writenodeindention,'nil');
-       if writenodeindention='' then
-        writeln;
-     end;
-{$endif EXTDEBUG}
-
-
 end.
 {
   $Log$
-  Revision 1.34  2002-08-09 19:15:41  carl
+  Revision 1.35  2002-08-15 19:10:35  peter
+    * first things tai,tnode storing in ppu
+
+  Revision 1.34  2002/08/09 19:15:41  carl
      - removed newcg define
 
   Revision 1.33  2002/07/23 12:34:30  daniel

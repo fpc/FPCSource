@@ -54,7 +54,7 @@ implementation
 {$endif GDB}
       comphook,
       scanner,scandir,
-      pbase,ptype,pmodules,cresstr,cpuinfo;
+      pbase,ptype,psystem,pmodules,cresstr,cpuinfo;
 
 
     procedure initparser;
@@ -94,6 +94,9 @@ implementation
          pattern:='';
          orgpattern:='';
          current_scanner:=nil;
+
+         { register all nodes }
+         registernodes;
 
          { memory sizes }
          if heapsize=0 then
@@ -589,7 +592,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  2002-08-12 16:46:04  peter
+  Revision 1.41  2002-08-15 19:10:35  peter
+    * first things tai,tnode storing in ppu
+
+  Revision 1.40  2002/08/12 16:46:04  peter
     * tscannerfile is now destroyed in tmodule.reset and current_scanner
       is updated accordingly. This removes all the loading and saving of
       the old scanner and the invalid flag marking

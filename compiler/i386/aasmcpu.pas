@@ -33,6 +33,7 @@ interface
     uses
       cclasses,globals,verbose,
       cpuinfo,cpubase,
+      symppu,
       aasmbase,aasmtai;
 
     const
@@ -180,6 +181,10 @@ interface
          function  Pass1(offset:longint):longint;virtual;
          procedure Pass2(sec:TAsmObjectdata);virtual;
          procedure SetOperandOrder(order:TOperandOrder);
+      protected
+         procedure ppuloadoper(ppufile:tcompilerppufile;var o:toper);override;
+         procedure ppuwriteoper(ppufile:tcompilerppufile;const o:toper);override;
+         procedure ppuderefoper(var o:toper);override;
       private
          { next fields are filled in pass1, so pass2 is faster }
          insentry  : PInsEntry;
@@ -678,6 +683,79 @@ implementation
            Swapoperands;
            FOperandOrder:=order;
          end;
+      end;
+
+
+    procedure taicpu.ppuloadoper(ppufile:tcompilerppufile;var o:toper);
+      begin
+        o.typ:=toptype(ppufile.getbyte);
+        o.ot:=ppufile.getlongint;
+        case o.typ of
+          top_reg :
+            o.reg:=tregister(ppufile.getbyte);
+          top_ref :
+            begin
+              new(o.ref);
+              o.ref^.segment:=tregister(ppufile.getbyte);
+              o.ref^.base:=tregister(ppufile.getbyte);
+              o.ref^.index:=tregister(ppufile.getbyte);
+              o.ref^.scalefactor:=ppufile.getbyte;
+              o.ref^.offset:=ppufile.getlongint;
+              o.ref^.symbol:=ppufile.getasmsymbol;
+              o.ref^.offsetfixup:=ppufile.getlongint;
+              o.ref^.options:=trefoptions(ppufile.getbyte);
+            end;
+          top_const :
+            o.val:=aword(ppufile.getlongint);
+          top_symbol :
+            begin
+              o.sym:=ppufile.getasmsymbol;
+              o.symofs:=ppufile.getlongint;
+            end;
+        end;
+      end;
+
+
+    procedure taicpu.ppuwriteoper(ppufile:tcompilerppufile;const o:toper);
+      begin
+        ppufile.putbyte(byte(o.typ));
+        ppufile.putlongint(o.ot);
+        case o.typ of
+          top_reg :
+            ppufile.putbyte(byte(o.reg));
+          top_ref :
+            begin
+              ppufile.putbyte(byte(o.ref^.segment));
+              ppufile.putbyte(byte(o.ref^.base));
+              ppufile.putbyte(byte(o.ref^.index));
+              ppufile.putbyte(o.ref^.scalefactor);
+              ppufile.putlongint(o.ref^.offset);
+              ppufile.putasmsymbol(o.ref^.symbol);
+              ppufile.putlongint(o.ref^.offsetfixup);
+              ppufile.putbyte(byte(o.ref^.options));
+            end;
+          top_const :
+            ppufile.putlongint(longint(o.val));
+          top_symbol :
+            begin
+              ppufile.putasmsymbol(o.sym);
+              ppufile.putlongint(longint(o.symofs));
+            end;
+        end;
+      end;
+
+
+    procedure taicpu.ppuderefoper(var o:toper);
+      begin
+        case o.typ of
+          top_ref :
+            begin
+              if assigned(o.ref^.symbol) then
+               objectlibrary.derefasmsymbol(o.ref^.symbol);
+            end;
+          top_symbol :
+            objectlibrary.derefasmsymbol(o.sym);
+        end;
       end;
 
 
@@ -1796,7 +1874,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2002-08-13 18:01:52  carl
+  Revision 1.4  2002-08-15 19:10:36  peter
+    * first things tai,tnode storing in ppu
+
+  Revision 1.3  2002/08/13 18:01:52  carl
     * rename swatoperands to swapoperands
     + m68k first compilable version (still needs a lot of testing):
         assembler generator, system information , inline

@@ -70,7 +70,7 @@ interface
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
 {$ifdef state_tracking}
-	  function track_state_pass(exec_known:boolean):boolean;override;
+          function track_state_pass(exec_known:boolean):boolean;override;
 {$endif state_tracking}
        end;
        tblocknodeclass = class of tblocknode;
@@ -444,12 +444,12 @@ implementation
       begin
         track_state_pass:=false;
         hp:=Tstatementnode(left);
-	while assigned(hp) do
-	    begin
-		if hp.right.track_state_pass(exec_known) then
-		    track_state_pass:=true;
-		hp:=Tstatementnode(hp.left);
-	    end;
+        while assigned(hp) do
+            begin
+                if hp.right.track_state_pass(exec_known) then
+                    track_state_pass:=true;
+                hp:=Tstatementnode(hp.left);
+            end;
       end;
 {$endif state_tracking}
 
@@ -509,7 +509,7 @@ implementation
 
     constructor ttempcreatenode.create(const _restype: ttype; _size: longint; _persistent: boolean);
       begin
-        inherited create(tempn);
+        inherited create(tempcreaten);
         size := _size;
         new(tempinfo);
         fillchar(tempinfo^,sizeof(tempinfo^),0);
@@ -633,7 +633,7 @@ implementation
 
     constructor ttempdeletenode.create_normal_temp(const temp: ttempcreatenode);
       begin
-        inherited create(temprefn);
+        inherited create(tempdeleten);
         tempinfo := temp.tempinfo;
         release_to_normal := true;
       end;
@@ -694,7 +694,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2002-07-20 11:57:53  florian
+  Revision 1.31  2002-08-15 19:10:35  peter
+    * first things tai,tnode storing in ppu
+
+  Revision 1.30  2002/07/20 11:57:53  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added

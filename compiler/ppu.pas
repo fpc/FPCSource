@@ -77,8 +77,6 @@ const
   ibendsymtablebrowser   = 14;
   ibbeginsymtablebrowser = 15;
   ibusedmacros           = 16;
-  {implementation/objectdata}
-  ibasmsymbols    = 100;
   {syms}
   ibtypesym       = 20;
   ibprocsym       = 21;
@@ -113,6 +111,39 @@ const
   ibansistringdef  = 55;
   ibwidestringdef  = 56;
   ibvariantdef     = 57;
+  {implementation/objectdata}
+  ibasmsymbols     = 80;
+  {tais}
+  ibtaidirect       = 100;
+  ibtaistring       = 101;
+  ibtailabel        = 102;
+  ibtaicomment      = 103;
+  ibtaiinstruction  = 104;
+  ibtaidatablock    = 105;
+  ibtaisymbol       = 106;
+  ibtaisymbol_end   = 107;
+  ibtaiconst_32bit  = 108;
+  ibtaiconst_16bit  = 109;
+  ibtaiconst_8bit   = 110;
+  ibtaiconst_symbol = 111;
+  ibtaireal_80bit   = 112;
+  ibtaireal_64bit   = 113;
+  ibtaireal_32bit   = 114;
+  ibtaicomp_64bit   = 115;
+  ibtaialign        = 116;
+  ibtaisection      = 117;
+  ibtaiconst_rva    = 118;
+  ibtaistabn        = 119;
+  ibtaistabs        = 120;
+  ibtaiforce_line   = 121;
+  ibtaifunction_name = 122;
+  ibtaicut          = 123;
+  ibtairegalloc     = 124;
+  ibtaitempalloc    = 125;
+  ibtaimarker       = 126;
+  {tnodes}
+  ibnode            = 150;
+
 { unit flags }
   uf_init          = $1;
   uf_finalize      = $2;
@@ -983,7 +1014,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.24  2002-08-15 15:09:42  carl
+  Revision 1.25  2002-08-15 19:10:35  peter
+    * first things tai,tnode storing in ppu
+
+  Revision 1.24  2002/08/15 15:09:42  carl
     + fpu emulation helpers (ppu checking also)
 
   Revision 1.23  2002/08/13 21:40:56  florian
