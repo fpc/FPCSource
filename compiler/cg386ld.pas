@@ -431,6 +431,14 @@ implementation
                end;
          end;
 {$endif dummy}
+         if not(p^.left^.location.loc in [LOC_REFERENCE,LOC_CFPUREGISTER,
+           LOC_CREGISTER,LOC_MMXREGISTER,LOC_CMMXREGISTER]) then
+           begin
+              CGMessage(cg_e_illegal_expression);
+              exit;
+           end;
+
+
          loc:=p^.left^.location.loc;
          { lets try to optimize this (PM)            }
          { define a dest_loc that is the location      }
@@ -989,7 +997,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.88  1999-09-27 23:44:47  peter
+  Revision 1.89  1999-10-12 22:35:48  florian
+    * compiler didn't complain about l1+l2:=l1+l2; it gave only an assembler
+      error, fixed
+
+  Revision 1.88  1999/09/27 23:44:47  peter
     * procinfo is now a pointer
     * support for result setting in sub procedure
 
