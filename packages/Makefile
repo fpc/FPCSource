@@ -339,7 +339,7 @@ PKGGTK=gtk
 PKGNET=inet uncgi
 PKGDB=mysql ibase postgres
 PKGGFX=opengl forms svgalib ggi
-PKGMISC=utmp gdbint paszlib
+PKGMISC=utmp syslog gdbint paszlib
 endif
 ifeq ($(OS_TARGET),go32v2)
 PKGBASE=paszlib

@@ -16,7 +16,7 @@ pkgs_linux=base{zlib,ncurses,x11} \
            net{inet,uncgi} \
            db{mysql,ibase,postgres} \
            gfx{opengl,forms,svgalib,ggi} \
-           misc{utmp,gdbint,paszlib}
+           misc{utmp,syslog,gdbint,paszlib}
 pkgs_win32=base{paszlib} \
            gtk{gtk} \
            net{uncgi} \
