@@ -59,6 +59,8 @@ unit syncobjs;
     destructor THandleObject.destroy;
 
       begin
+         CloseHandle(FHandle);
+         inherited Destroy;
       end;
 
     constructor TEvent.Create(EventAttributes : PSecurityAttributes;
@@ -91,10 +93,12 @@ end.
 
 {
   $Log$
-  Revision 1.2  1998-09-30 13:41:06  florian
+  Revision 1.3  1998-10-01 21:56:37  florian
+    + THandleObject completed
+
+  Revision 1.2  1998/09/30 13:41:06  florian
     * fixes to make it compilable
 
   Revision 1.1  1998/09/29 11:15:24  florian
     + initial revision
-
 }
