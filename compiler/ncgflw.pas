@@ -97,6 +97,9 @@ implementation
       tgobj,rgobj,paramgr,
       regvars,cgobj,cgcpu,cg64f32;
 
+    const
+      EXCEPT_BUF_SIZE = 12;
+
 {*****************************************************************************
                          Second_While_RepeatN
 *****************************************************************************}
@@ -662,11 +665,14 @@ do_jmp:
                 end
               else
                 begin
+                   { get current address }
                    objectlibrary.getaddrlabel(a);
                    cg.a_label(exprasmlist,a);
                    reference_reset_symbol(href2,a,0);
-                   cg.a_paramaddr_ref(exprasmlist,href2,paramanager.getintparaloc(2));
-                   cg.a_param_reg(exprasmlist,OS_ADDR,FRAME_POINTER_REG,paramanager.getintparaloc(3));
+                   { push current frame }
+                   cg.a_param_reg(exprasmlist,OS_ADDR,FRAME_POINTER_REG,paramanager.getintparaloc(2));
+                   { push current address }
+                   cg.a_paramaddr_ref(exprasmlist,href2,paramanager.getintparaloc(1));
                 end;
               { push object }
               secondpass(left);
@@ -694,8 +700,8 @@ do_jmp:
     procedure try_new_exception(list : taasmoutput;var jmpbuf,envbuf, href : treference;
       a : aword; exceptlabel : tasmlabel);
      begin
+       tg.GetTemp(list,EXCEPT_BUF_SIZE,tt_persistant,envbuf);
        tg.GetTemp(list,JMP_BUF_SIZE,tt_persistant,jmpbuf);
-       tg.GetTemp(list,12,tt_persistant,envbuf);
        tg.GetTemp(list,sizeof(aword),tt_persistant,href);
        new_exception(list, jmpbuf,envbuf, href, a, exceptlabel);
      end;
@@ -705,6 +711,7 @@ do_jmp:
      a : aword ; endexceptlabel : tasmlabel; onlyfree : boolean);
      begin
          free_exception(list, jmpbuf, envbuf, href, a, endexceptlabel, onlyfree);
+         tg.ungettemp(list,href);
          tg.Ungettemp(list,jmpbuf);
          tg.ungettemp(list,envbuf);
      end;
@@ -835,7 +842,7 @@ do_jmp:
               objectlibrary.getlabel(doobjectdestroy);
               objectlibrary.getlabel(doobjectdestroyandreraise);
 
-              try_new_exception(exprasmlist,tempbuf,tempaddr,href,1,exceptlabel);
+              try_new_exception(exprasmlist,tempbuf,tempaddr,href,1,doobjectdestroyandreraise);
 
               { here we don't have to reset flowcontrol           }
               { the default and on flowcontrols are handled equal }
@@ -1143,7 +1150,7 @@ do_jmp:
 
          { the value should now be in the exception handler }
          cg.g_exception_reason_load(exprasmlist,href);
-         cg.a_cmp_reg_reg_label(exprasmlist,OS_S32,OC_NE,accumulator,accumulator,finallylabel);
+         cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,accumulator,endfinallylabel);
          cg.a_op_const_reg(exprasmlist,OP_SUB,1,accumulator);
          cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,accumulator,reraiselabel);
          if fc_exit in tryflowcontrol then
@@ -1224,7 +1231,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2002-08-23 16:14:48  peter
+  Revision 1.39  2002-08-24 18:41:52  peter
+    * fixed wrong label in jump of except block (was also in n386flw wrong)
+    * fixed wrong pushing of raise parameters
+    * fixed wrong compare in finally
+
+  Revision 1.38  2002/08/23 16:14:48  peter
     * tempgen cleanup
     * tt_noreuse temp type added that will be used in genentrycode
 
