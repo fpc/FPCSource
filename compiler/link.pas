@@ -35,10 +35,10 @@ uses cobjects,files;
 Type
     TLinkerInfo=record
       ExeCmd,
-      DllCmd        : array[1..3] of string[80];
+      DllCmd        : array[1..3] of string[100];
       ResName       : string[12];
       ExtraOptions  : string;
-      DynamicLinker : string[80];
+      DynamicLinker : string[100];
     end;
 
     PLinker=^TLinker;
@@ -521,7 +521,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.88  2000-05-17 18:30:35  peter
+  Revision 1.89  2000-06-28 03:34:06  hajny
+    * little corrections for EMX resources
+
+  Revision 1.88  2000/05/17 18:30:35  peter
     * removed wrong warning for library finding
 
   Revision 1.87  2000/05/03 16:11:57  peter

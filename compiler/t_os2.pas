@@ -444,21 +444,25 @@ var
   success : boolean;
   i       : longint;
   PMStr,
-  StripStr : string[40];
-  RsrcStr: string;
+  StripStr: string[40];
+  RsrcStr : string;
 begin
   if not(cs_link_extern in aktglobalswitches) then
    Message1(exec_i_linking,current_module^.exefilename^);
 
 { Create some replacements }
-  StripStr:='';
-  PMStr:='';
   if (cs_link_strip in aktglobalswitches) then
-   StripStr:='-s';
+   StripStr := '-s'
+  else
+   StripStr := '';
   if usewindowapi then
-   PMStr:='-p';
+   PMStr := '-p'
+  else
+   PMStr := '';
   if not (Current_Module^.ResourceFiles.Empty) then
-   RsrcStr := '-r ' + Current_Module^.ResourceFiles.Get;
+   RsrcStr := '-r ' + Current_Module^.ResourceFiles.Get
+  else
+   RsrcStr := '';
 (* Only one resource file supported, discard everything else
    (should be already empty anyway, however. *)
   Current_Module^.ResourceFiles.Clear;
@@ -503,7 +507,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  2000-06-25 19:08:28  hajny
+  Revision 1.13  2000-06-28 03:34:06  hajny
+    * little corrections for EMX resources
+
+  Revision 1.12  2000/06/25 19:08:28  hajny
     + $R support for OS/2 (EMX) added
 
   Revision 1.11  2000/04/01 10:45:14  hajny
