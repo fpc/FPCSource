@@ -149,7 +149,7 @@ Begin
                             (Taicpu(hp1).condition in [C_O,C_NO]))))
                     Then
                       Begin
-                        Reset_reference(tmpref);
+                        reference_reset(tmpref);
                         Case Taicpu(p).oper[0].val Of
                           3: Begin
                              {imul 3, reg1, reg2 to
@@ -160,9 +160,9 @@ Begin
                                TmpRef.Index := Taicpu(p).oper[1].reg;
                                TmpRef.ScaleFactor := 2;
                                If (Taicpu(p).oper[2].typ = Top_None) Then
-                                 hp1 := Taicpu.op_ref_reg(A_LEA, S_L, newReference(TmpRef), Taicpu(p).oper[1].reg)
+                                 hp1 := Taicpu.op_ref_reg(A_LEA, S_L, TmpRef, Taicpu(p).oper[1].reg)
                                Else
-                                 hp1 := Taicpu.op_ref_reg(A_LEA, S_L, newReference(TmpRef), Taicpu(p).oper[2].reg);
+                                 hp1 := Taicpu.op_ref_reg(A_LEA, S_L, TmpRef, Taicpu(p).oper[2].reg);
                                InsertLLItem(AsmL,p.previous, p.next, hp1);
                                p.free;
                                p := hp1;
@@ -176,9 +176,9 @@ Begin
                               TmpRef.Index := Taicpu(p).oper[1].reg;
                               TmpRef.ScaleFactor := 4;
                               If (Taicpu(p).oper[2].typ = Top_None) Then
-                                hp1 := Taicpu.op_ref_reg(A_LEA, S_L, newReference(TmpRef), Taicpu(p).oper[1].reg)
+                                hp1 := Taicpu.op_ref_reg(A_LEA, S_L, TmpRef, Taicpu(p).oper[1].reg)
                               Else
-                                hp1 := Taicpu.op_ref_reg(A_LEA, S_L, newReference(TmpRef), Taicpu(p).oper[2].reg);
+                                hp1 := Taicpu.op_ref_reg(A_LEA, S_L, TmpRef, Taicpu(p).oper[2].reg);
                               InsertLLItem(AsmL,p.previous, p.next, hp1);
                               p.free;
                               p := hp1;
@@ -199,7 +199,7 @@ Begin
                                         Begin
                                           TmpRef.base := Taicpu(p).oper[2].reg;
                                           TmpRef.ScaleFactor := 4;
-                                          hp1 :=  Taicpu.op_ref_reg(A_LEA, S_L, newReference(TmpRef), Taicpu(p).oper[1].reg);
+                                          hp1 :=  Taicpu.op_ref_reg(A_LEA, S_L, TmpRef, Taicpu(p).oper[1].reg);
                                         End
                                       Else
                                         Begin
@@ -207,20 +207,20 @@ Begin
                                             Taicpu(p).oper[1].reg,Taicpu(p).oper[1].reg);
                                         End;
                                     InsertLLItem(AsmL,p, p.next, hp1);
-                                    Reset_reference(tmpref);
+                                    reference_reset(tmpref);
                                     TmpRef.Index := Taicpu(p).oper[1].reg;
                                     TmpRef.ScaleFactor := 2;
                                     If (Taicpu(p).oper[2].typ = Top_Reg)
                                       Then
                                         Begin
                                           TmpRef.base := R_NO;
-                                          hp1 :=  Taicpu.op_ref_reg(A_LEA, S_L, newReference(TmpRef),
+                                          hp1 :=  Taicpu.op_ref_reg(A_LEA, S_L, TmpRef,
                                             Taicpu(p).oper[2].reg);
                                         End
                                       Else
                                         Begin
                                           TmpRef.base := Taicpu(p).oper[1].reg;
-                                          hp1 := Taicpu.op_ref_reg(A_LEA, S_L, newReference(TmpRef), Taicpu(p).oper[1].reg);
+                                          hp1 := Taicpu.op_ref_reg(A_LEA, S_L, TmpRef, Taicpu(p).oper[1].reg);
                                         End;
                                     InsertLLItem(AsmL,p.previous, p.next, hp1);
                                     p.free;
@@ -236,9 +236,9 @@ Begin
                                TmpRef.Index := Taicpu(p).oper[1].reg;
                                TmpRef.ScaleFactor := 8;
                                If (Taicpu(p).oper[2].typ = Top_None) Then
-                                 hp1 := Taicpu.op_ref_reg(A_LEA, S_L, newReference(TmpRef), Taicpu(p).oper[1].reg)
+                                 hp1 := Taicpu.op_ref_reg(A_LEA, S_L, TmpRef, Taicpu(p).oper[1].reg)
                                Else
-                                 hp1 := Taicpu.op_ref_reg(A_LEA, S_L, newReference(TmpRef), Taicpu(p).oper[2].reg);
+                                 hp1 := Taicpu.op_ref_reg(A_LEA, S_L, TmpRef, Taicpu(p).oper[2].reg);
                                InsertLLItem(AsmL,p.previous, p.next, hp1);
                                p.free;
                                p := hp1;
@@ -264,9 +264,9 @@ Begin
                                    TmpRef.ScaleFactor := 4;
                                    If (Taicpu(p).oper[2].typ = Top_Reg)
                                      Then
-                                       hp1 :=  Taicpu.op_ref_reg(A_LEA, S_L, newReference(TmpRef), Taicpu(p).oper[2].reg)
+                                       hp1 :=  Taicpu.op_ref_reg(A_LEA, S_L, TmpRef, Taicpu(p).oper[2].reg)
                                      Else
-                                       hp1 :=  Taicpu.op_ref_reg(A_LEA, S_L, newReference(TmpRef), Taicpu(p).oper[1].reg);
+                                       hp1 :=  Taicpu.op_ref_reg(A_LEA, S_L, TmpRef, Taicpu(p).oper[1].reg);
                                    InsertLLItem(AsmL,p.previous, p.next, hp1);
                                    p.free;
                                    p := Tai(hp1.next);
@@ -287,28 +287,28 @@ Begin
                                        Begin
                                          TmpRef.base := Taicpu(p).oper[2].reg;
                                          TmpRef.ScaleFactor := 8;
-                                         hp1 :=  Taicpu.op_ref_reg(A_LEA, S_L, newReference(TmpRef), Taicpu(p).oper[2].reg);
+                                         hp1 :=  Taicpu.op_ref_reg(A_LEA, S_L, TmpRef, Taicpu(p).oper[2].reg);
                                        End
                                      Else
                                        Begin
                                          TmpRef.base := R_NO;
                                          TmpRef.ScaleFactor := 4;
-                                         hp1 :=  Taicpu.op_ref_reg(A_LEA, S_L, newReference(TmpRef), Taicpu(p).oper[1].reg);
+                                         hp1 :=  Taicpu.op_ref_reg(A_LEA, S_L, TmpRef, Taicpu(p).oper[1].reg);
                                        End;
                                      InsertLLItem(AsmL,p, p.next, hp1);
-                                     Reset_reference(tmpref);
+                                     reference_reset(tmpref);
                                      TmpRef.Index := Taicpu(p).oper[1].reg;
                                      If (Taicpu(p).oper[2].typ = Top_Reg) Then
                                        Begin
                                          TmpRef.base := R_NO;
                                          TmpRef.ScaleFactor := 4;
-                                         hp1 :=  Taicpu.op_ref_reg(A_LEA, S_L, newReference(TmpRef), Taicpu(p).oper[2].reg);
+                                         hp1 :=  Taicpu.op_ref_reg(A_LEA, S_L, TmpRef, Taicpu(p).oper[2].reg);
                                        End
                                      Else
                                        Begin
                                          TmpRef.base := Taicpu(p).oper[1].reg;
                                          TmpRef.ScaleFactor := 2;
-                                         hp1 :=  Taicpu.op_ref_reg(A_LEA, S_L, newReference(TmpRef), Taicpu(p).oper[1].reg);
+                                         hp1 :=  Taicpu.op_ref_reg(A_LEA, S_L, TmpRef, Taicpu(p).oper[1].reg);
                                        End;
                                      InsertLLItem(AsmL,p.previous, p.next, hp1);
                                      p.free;
@@ -674,7 +674,7 @@ Begin
                      (Taicpu(hp1).opcode = A_AND) And
                      (Taicpu(hp1).oper[0].typ = top_const) And
                      (Taicpu(hp1).oper[1].typ = top_reg) And
-                     (Taicpu(hp1).oper[1].reg = Taicpu(hp1).oper[1].reg)
+                     (Taicpu(p).oper[1].reg = Taicpu(hp1).oper[1].reg)
                     Then
 {change "and const1, reg; and const2, reg" to "and (const1 and const2), reg"}
                       Begin
@@ -1061,7 +1061,7 @@ Begin
                                           asml.Remove(hp2);
                                           hp2.free;
                                           Taicpu(hp1).opcode := A_CMP;
-                                          Taicpu(hp1).loadref(1,newreference(Taicpu(hp1).oper[0].ref^));
+                                          Taicpu(hp1).loadref(1,Taicpu(hp1).oper[0].ref^);
                                           Taicpu(hp1).loadreg(0,Taicpu(p).oper[0].reg);
                                         End;
                                     End;
@@ -1118,9 +1118,9 @@ Begin
                                mov reg1, reg2
                          }
                                         Begin
-                                          Taicpu(hp1).LoadRef(0,newreference(Taicpu(p).oper[0].ref^));
+                                          Taicpu(hp1).LoadRef(0,Taicpu(p).oper[0].ref^);
                                           Taicpu(hp1).LoadReg(1,Taicpu(hp2).oper[1].reg);
-                                          Taicpu(hp2).LoadRef(1,newreference(Taicpu(hp2).oper[0].ref^));
+                                          Taicpu(hp2).LoadRef(1,Taicpu(hp2).oper[0].ref^);
                                           Taicpu(hp2).LoadReg(0,Taicpu(p).oper[1].reg);
                                           allocRegBetween(asmL,Taicpu(p).oper[1].reg,p,hp2);
                                           if (Taicpu(p).oper[0].ref^.base in (rg.usableregsint+[R_EDI])) then
@@ -1176,7 +1176,7 @@ Begin
                                   hp2 := TaiRegalloc.Alloc(Taicpu(hp1).oper[1].reg);
                                   insertllitem(asml,p.previous,p,hp2);
                                   Taicpu(hp1).LoadReg(0,Taicpu(hp1).oper[1].reg);
-                                  Taicpu(hp1).LoadRef(1,newreference(Taicpu(p).oper[1].ref^));
+                                  Taicpu(hp1).LoadRef(1,Taicpu(p).oper[1].ref^);
                                   Taicpu(p).LoadReg(1,Taicpu(hp1).oper[0].reg);
                                 End
                       End;
@@ -1363,10 +1363,10 @@ Begin
                              Taicpu(hp2).ops:=2;
                              Taicpu(hp2).opcode := A_MOV;
                              Taicpu(hp2).Loadoper(1,Taicpu(hp1).oper[0]);
-                             reset_reference(tmpref);
+                             reference_reset(tmpref);
                              tmpRef.base := stack_pointer;
                              tmpRef.offset := l;
-                             Taicpu(hp2).loadRef(0,newReference(tmpRef));
+                             Taicpu(hp2).loadRef(0,tmpRef);
                              hp4 := hp1;
                              getNextInstruction(hp1,hp1);
                              asml.remove(hp4);
@@ -1400,9 +1400,9 @@ Begin
                           Taicpu(p).ops:=2;
                           Taicpu(p).opcode := A_MOV;
                           Taicpu(p).Loadoper(1,Taicpu(p).oper[0]);
-                          Reset_reference(tmpref);
+                          reference_reset(tmpref);
                           TmpRef.base := R_ESP;
-                          Taicpu(p).LoadRef(0,newReference(TmpRef));
+                          Taicpu(p).LoadRef(0,TmpRef);
                           asml.Remove(hp1);
                           hp1.free;
                         End;
@@ -1436,7 +1436,7 @@ Begin
                         TmpBool1 := True; {should we check the next instruction?}
                         TmpBool2 := False; {have we found an add/sub which could be
                                             integrated in the lea?}
-                        Reset_reference(tmpref);
+                        reference_reset(tmpref);
                         TmpRef.index := Taicpu(p).oper[1].reg;
                         TmpRef.scalefactor := 1 shl Taicpu(p).oper[0].val;
                         While TmpBool1 And
@@ -1454,9 +1454,9 @@ Begin
                                   TmpBool1 := True;
                                   TmpBool2 := True;
                                   If Taicpu(hp1).opcode = A_ADD Then
-                                    Inc(TmpRef.offset, Taicpu(hp1).oper[0].val)
+                                    Inc(TmpRef.offset, longint(Taicpu(hp1).oper[0].val))
                                   Else
-                                    Dec(TmpRef.offset, Taicpu(hp1).oper[0].val);
+                                    Dec(TmpRef.offset, longint(Taicpu(hp1).oper[0].val));
                                   asml.Remove(hp1);
                                   hp1.free;
                                 End
@@ -1485,7 +1485,7 @@ Begin
                                     hp1 := Taicpu.Op_reg_reg(A_ADD,Taicpu(p).opsize,
                                                Taicpu(p).oper[1].reg, Taicpu(p).oper[1].reg)
                                   End
-                                Else hp1 := Taicpu.op_ref_reg(A_LEA, S_L, newReference(TmpRef),
+                                Else hp1 := Taicpu.op_ref_reg(A_LEA, S_L, TmpRef,
                                                 Taicpu(p).oper[1].reg);
                               InsertLLItem(AsmL,p.previous, p.next, hp1);
                               p.free;
@@ -1513,10 +1513,10 @@ Begin
                     {changes "shl $2, %reg" to "lea (,%reg,4), %reg"
                              "shl $3, %reg" to "lea (,%reg,8), %reg}
                                  Begin
-                                   Reset_reference(tmpref);
+                                   reference_reset(tmpref);
                                    TmpRef.index := Taicpu(p).oper[1].reg;
                                    TmpRef.scalefactor := 1 shl Taicpu(p).oper[0].val;
-                                   hp1 := Taicpu.Op_ref_reg(A_LEA,S_L,newReference(TmpRef), Taicpu(p).oper[1].reg);
+                                   hp1 := Taicpu.Op_ref_reg(A_LEA,S_L,TmpRef, Taicpu(p).oper[1].reg);
                                    InsertLLItem(AsmL,p.previous, p.next, hp1);
                                    p.free;
                                    p := hp1;
@@ -1849,9 +1849,9 @@ Begin
                      Begin
                        case Taicpu(hp1).opcode of
                          A_INC,A_DEC:
-                           Taicpu(hp1).LoadRef(0,newreference(Taicpu(p).oper[0].ref^))
+                           Taicpu(hp1).LoadRef(0,Taicpu(p).oper[0].ref^)
                          else
-                           Taicpu(hp1).LoadRef(1,newreference(Taicpu(p).oper[0].ref^));
+                           Taicpu(hp1).LoadRef(1,Taicpu(p).oper[0].ref^);
                        end;
                        asml.Remove(p);
                        asml.Remove(hp2);
@@ -2025,7 +2025,11 @@ End.
 
 {
   $Log$
-  Revision 1.18  2002-03-31 20:26:40  jonas
+  Revision 1.19  2002-04-02 13:01:58  jonas
+    * fixed nasty bug in "and" peepholeoptimization that caused wrong
+      optimizations after Peter's big location patch
+
+  Revision 1.18  2002/03/31 20:26:40  jonas
     + a_loadfpu_* and a_loadmm_* methods in tcg
     * register allocation is now handled by a class and is mostly processor
       independent (+rgobj.pas and i386/rgcpu.pas)
