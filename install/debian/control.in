@@ -30,7 +30,7 @@ Description: Free Pascal Utils
    - ppufiles    Show needed files for units
    - ppudump     Dump the information stored in a .ppu (unit) file
    - fpcmake     Create Makefile from Makefile.fpc
-   - h2pas       Convert .h files to pascal units
+   - h2pas       Convert .h files to Pascal units
    - ppdep       Create a dependency file which can be used with Makefiles
    - ptop        Source beautifier
    - data2inc    Convert binary/text data to include files
@@ -54,6 +54,7 @@ Description: Free Pascal Runtime Library
 Package: fp-units-base
 Architecture: i386
 Depends: fp-units-rtl (= %{packageversion})
+Suggests: ncurses5-dev, xlibs-dev, zlib1g-dev
 Description: Free Pascal base units
  Free Pascal units for common libraries, some of these units are also
  required by the Free Component Library :
@@ -63,7 +64,7 @@ Description: Free Pascal base units
 
 Package: fp-units-fcl
 Architecture: i386
-Depends: fp-units-rtl (= %{packageversion}), fp-units-base (= %{packageversion})
+Depends: fp-units-rtl (= %{packageversion}), fp-units-base (= %{packageversion}), fp-units-db (= %{packageversion})
 Replaces: fp-fcl
 Description: Free Pascal Free Component Library
  Free Component Library for the Free Pascal Compiler.
@@ -72,12 +73,14 @@ Package: fp-units-gtk
 Architecture: i386
 Depends: fp-units-rtl (= %{packageversion})
 Replaces: fp-gtk
+Suggests: libgtk1.2-dev
 Description: Free Pascal units for GTK 1.2.x
  Free Pascal units and examples to create programs with GTK 1.2.x
 
 Package: fp-units-db
 Architecture: i386
 Depends: fp-units-rtl (= %{packageversion})
+Suggests: libmysqlclient10-dev, postgresql-dev
 Description: Free Pascal units for some database libraries
  Free Pascal units with bindings for:
   - Mysql
@@ -88,6 +91,7 @@ Description: Free Pascal units for some database libraries
 Package: fp-units-gfx
 Architecture: i386
 Depends: fp-units-rtl (= %{packageversion}), fp-units-base (= %{packageversion})
+Suggests: libggi2-dev, svgalibg1-dev, 
 Description: Free Pascal units for some graphics libraries
  Free Pascal units with bindings for:
   - Forms 0.88
@@ -109,4 +113,4 @@ Depends: fp-units-rtl (= %{packageversion})
 Description: Free Pascal miscellaneous units
  Free Pascal miscellaneous units for:
   - Utmp
-  - PasZLib (pascal only zlib implementation)
+  - PasZLib (Pascal only zlib implementation)
