@@ -4,7 +4,7 @@
     Copyright (c) 1993,97 by Michael Van Canneyt,
     member of the Free Pascal development team.
 
-    Getopt implementation for Free Pascal, modeled after GNU getopt.
+    Getopt implementation for Free Pascal, modeled after GNU getopt
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -15,41 +15,145 @@
 
  **********************************************************************}
 unit getopts;
-
-{ --------------------------------------------------------------------
-  *NOTE*
-  The routines are a more or less straightforward conversion
-
-  of the GNU C implementation of getopt. One day they should be
-
-  replaced by some 'real pascal code'.
-  -------------------------------------------------------------------- }
-
 Interface
 
-Const No_Argument       = 0;
-      Required_Argument = 1;
-      Optional_Argument = 2;
-      EndOfOptions      = #255;
+Const
+  No_Argument       = 0;
+  Required_Argument = 1;
+  Optional_Argument = 2;
+  EndOfOptions      = #255;
 
-Type TOption = Record
-       Name    : String;
-       Has_arg : Integer;
-       Flag    : PChar;
-       Value   : Char;
-     end;
-     POption  = ^TOption;
-     Orderings = (require_order,permute,return_in_order);
+Type
+  POption  = ^TOption;
+  TOption = Record
+    Name    : String;
+    Has_arg : Integer;
+    Flag    : PChar;
+    Value   : Char;
+  end;
 
-Var OptArg : String;
-    OptInd : Longint;
-    OptErr : Boolean;
-    OptOpt : Char;
+  Orderings = (require_order,permute,return_in_order);
+
+Var
+  OptArg : String;
+  OptInd : Longint;
+  OptErr : Boolean;
+  OptOpt : Char;
 
 Function GetOpt (ShortOpts : String) : char;
-Function GetLongOpts (ShortOpts : String;LongOpts : POption;var Longind : Integer) : char;
+Function GetLongOpts (ShortOpts : String;LongOpts : POption;var Longind : Longint) : char;
+
 
 Implementation
+
+{$ifdef TP}
+uses
+  strings;
+{$endif}
+
+
+{***************************************************************************
+                               Create an ArgV
+***************************************************************************}
+
+{$ifdef TP}
+
+function GetCommandLine:pchar;
+begin
+  GetCommandLine:=ptr(prefixseg,$81);
+end;
+
+
+function GetCommandFile:pchar;
+var
+  p : pchar;
+begin
+  p:=ptr(memw[prefixseg:$2c],0);
+  repeat
+    while p^<>#0 do
+     inc(longint(p));
+  { next char also #0 ? }
+    inc(longint(p));
+    if p^=#0 then
+     begin
+       inc(longint(p),3);
+       GetCommandFile:=p;
+       exit;
+     end;
+  until false;
+end;
+
+
+type
+  ppchar = ^pchar;
+  apchar = array[0..127] of pchar;
+var
+  argc  : longint;
+  argv  : apchar;
+
+procedure setup_arguments;
+var
+  arglen,
+  count   : longint;
+  argstart,
+  cmdline : pchar;
+  quote   : set of char;
+  argsbuf : array[0..127] of pchar;
+begin
+{ create argv[0] which is the started filename }
+  argstart:=GetCommandFile;
+  arglen:=strlen(argstart)+1;
+  getmem(argsbuf[0],arglen);
+  move(argstart^,argsbuf[0]^,arglen);
+{ create commandline }
+  cmdline:=GetCommandLine;
+  count:=1;
+  repeat
+  { skip leading spaces }
+    while cmdline^ in [' ',#9,#13] do
+     inc(longint(cmdline));
+    case cmdline^ of
+      #0 : break;
+     '"' : begin
+             quote:=['"'];
+             inc(longint(cmdline));
+           end;
+    '''' : begin
+             quote:=[''''];
+             inc(longint(cmdline));
+           end;
+    else
+     quote:=[' ',#9,#13];
+    end;
+  { scan until the end of the argument }
+    argstart:=cmdline;
+    while (cmdline^<>#0) and not(cmdline^ in quote) do
+     inc(longint(cmdline));
+  { reserve some memory }
+    arglen:=cmdline-argstart;
+    getmem(argsbuf[count],arglen+1);
+    move(argstart^,argsbuf[count]^,arglen);
+    argsbuf[count][arglen]:=#0;
+  { skip quote }
+    if cmdline^ in quote then
+     inc(longint(cmdline));
+    inc(count);
+  until false;
+{ create argc }
+  argc:=count-1;
+{ create an nil entry }
+  argsbuf[count]:=nil;
+  inc(count);
+{ create the argv }
+{  getmem(argv,count shl 2); }
+  move(argsbuf,argv,count shl 2);
+end;
+
+{$endif TP}
+
+{***************************************************************************
+                               Real Getopts
+***************************************************************************}
 
 Var
   NextChar,
@@ -107,19 +211,18 @@ begin
   Last_nonopt:=1;
   OptOpt:='?';
   Nextchar:=0;
-  if opts[1]='-' then
-   begin
-     ordering:=return_in_order;
-     delete(opts,1,1);
-   end
-  else
-   if opts[1]='+' then
-    begin
-      ordering:=require_order;
-      delete(opts,1,1);
-    end
+  case opts[1] of
+   '-' : begin
+           ordering:=return_in_order;
+           delete(opts,1,1);
+         end;
+   '+' : begin
+           ordering:=require_order;
+           delete(opts,1,1);
+         end;
   else
    ordering:=permute;
+  end;
 end;
 
 
@@ -129,18 +232,23 @@ Function Internal_getopt (Var Optstring : string;LongOpts : POption;
 type
   pinteger=^integer;
 var
-  temp,endopt,option_index : byte;
-  indfound: integer;
-  currentarg,optname : string;
-  p,pfound : POption;
-  exact,ambig : boolean;
-  c : char;
+  temp,endopt,
+  option_index : byte;
+  indfound     : integer;
+  currentarg,
+  optname      : string;
+  p,pfound     : POption;
+  exact,ambig  : boolean;
+  c            : char;
 begin
   optarg:='';
   if optind=0 then
-    getopt_init(optstring);
+   getopt_init(optstring);
 { Check if We need the next argument. }
-  if optind<nrargs then currentarg:=strpas(argv[optind]) else currentarg:='';
+  if (optind<nrargs) then
+   currentarg:=strpas(argv[optind])
+  else
+   currentarg:='';
   if (nextchar=0) then
    begin
      if ordering=permute then
@@ -153,7 +261,7 @@ begin
           first_nonopt:=optind;
         while (optind<nrargs) and ((argv[optind][0]<>'-') or
               (length(strpas(argv[optind]))=1)) do
-          inc(optind);
+         inc(optind);
         last_nonopt:=optind;
       end;
    { Check for '--' argument }
@@ -243,13 +351,13 @@ begin
               else
                ambig:=true;
            end;
-          inc (longint(p),sizeof(toption));
-          inc (option_index);
+          inc(longint(p),sizeof(toption));
+          inc(option_index);
         end;
        if ambig and not exact then
         begin
           if opterr then
-           writeln (paramstr(0),': option "',optname,'" is ambiguous');
+           writeln(argv[0],': option "',optname,'" is ambiguous');
           nextchar:=0;
           inc(optind);
           Internal_getopt:='?';
@@ -265,9 +373,9 @@ begin
               begin
                 if opterr then
                  if currentarg[2]='-' then
-                  writeln (paramstr(0),': option "--',pfound^.name,'" doesn''t allow an argument')
+                  writeln(argv[0],': option "--',pfound^.name,'" doesn''t allow an argument')
                  else
-                  writeln (paramstr(0),': option "',currentarg[1],pfound^.name,'" doesn''t allow an argument');
+                  writeln(argv[0],': option "',currentarg[1],pfound^.name,'" doesn''t allow an argument');
                 nextchar:=0;
                 internal_getopt:='?';
                 exit;
@@ -285,7 +393,7 @@ begin
                 else
                  begin { no req argument}
                    if opterr then
-                    writeln (paramstr(0),': option ',pfound^.name,' requires an argument');
+                    writeln(argv[0],': option ',pfound^.name,' requires an argument');
                    nextchar:=0;
                    if optstring[1]=':' then
                     Internal_getopt:=':'
@@ -294,28 +402,28 @@ begin
                    exit;
                  end;
               end;
-          end; { argument in next parameter end;}
-         nextchar:=0;
-         if longind<>nil then
-          pinteger(longind)^:=indfound+1;
-            if pfound^.flag<>nil then
-            begin
-              pfound^.flag^:=pfound^.value;
-              internal_getopt:=#0;
-              exit;
-            end;
-           internal_getopt:=pfound^.value;
-           exit;
-         end; { pfound<>nil }
+           end; { argument in next parameter end;}
+          nextchar:=0;
+          if longind<>nil then
+           pinteger(longind)^:=indfound+1;
+          if pfound^.flag<>nil then
+           begin
+             pfound^.flag^:=pfound^.value;
+             internal_getopt:=#0;
+             exit;
+           end;
+          internal_getopt:=pfound^.value;
+          exit;
+        end; { pfound<>nil }
       { We didn't find it as an option }
         if (not long_only) or
            ((currentarg[2]='-') or (pos(CurrentArg[nextchar],optstring)=0)) then
          begin
            if opterr then
             if currentarg[2]='-' then
-             writeln (paramstr(0),' unrecognized option "--',optname,'"')
+             writeln(argv[0],' unrecognized option "--',optname,'"')
             else
-             writeln (paramstr(0),' unrecognized option "',currentarg[1],optname,'"');
+             writeln(argv[0],' unrecognized option "',currentarg[1],optname,'"');
            nextchar:=0;
            inc(optind);
            Internal_getopt:='?';
@@ -334,8 +442,8 @@ begin
   if (temp=0) or (c=':') then
    begin
      if opterr then
-      writeln (paramstr(0),': illegal option -- ',c);
-     optopt:=currentarg[nextchar-1];
+      writeln(argv[0],': illegal option -- ',c);
+     optopt:=c;
      internal_getopt:='?';
      exit;
    end;
@@ -351,18 +459,18 @@ begin
       if nextchar>0 then
        begin
          optarg:=copy (currentarg,nextchar,length(currentarg)-nextchar+1);
-         inc(optind)
+         inc(optind);
        end
       else
        if (optind=nrargs) then
         begin
           if opterr then
-           writeln (paramstr(0),': option requires an argument -- ',optstring[temp]);
+           writeln (argv[0],': option requires an argument -- ',optstring[temp]);
           optopt:=optstring[temp];
           if optstring[1]=':' then
            Internal_getopt:=':'
           else
-           Internal_Getopt:='?'
+           Internal_Getopt:='?';
         end
        else
         begin
@@ -376,26 +484,33 @@ end; { End of internal getopt...}
 
 Function GetOpt(ShortOpts : String) : char;
 begin
-  getopt:=internal_getopt (shortopts,nil,nil,false);
+  getopt:=internal_getopt(shortopts,nil,nil,false);
 end;
 
 
-Function GetLongOpts (ShortOpts : String;LongOpts : POption;var Longind : Integer) : char;
+Function GetLongOpts(ShortOpts : String;LongOpts : POption;var Longind : Longint) : char;
 begin
-  getlongopts:=internal_getopt ( shortopts,longopts,@longind,true);
+  getlongopts:=internal_getopt(shortopts,longopts,@longind,true);
 end;
 
 
 begin
+{ create argv if running under TP }
+{$ifdef TP}
+  setup_arguments;
+{$endif}
 { Needed to detect startup }
   Opterr:=true;
   Optind:=0;
-  nrargs:=paramcount+1;
+  nrargs:=argc;
 end.
-
 {
   $Log$
-  Revision 1.2  1998-05-21 19:30:57  peter
+  Revision 1.3  1998-06-18 10:49:04  peter
+    * some fixes with indexes
+    * bp7 compatible
+
+  Revision 1.2  1998/05/21 19:30:57  peter
     * objects compiles for linux
     + assign(pchar), assign(char), rename(pchar), rename(char)
     * fixed read_text_as_array
