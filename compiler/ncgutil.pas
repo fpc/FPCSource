@@ -971,7 +971,7 @@ implementation
            (
             (po_assembler in current_procinfo.procdef.procoptions) and
             (not(assigned(current_procinfo.procdef.funcretsym)) or
-             (tvarsym(current_procinfo.procdef.funcretsym).refcount=0))
+             (tvarsym(current_procinfo.procdef.funcretsym).refs=0))
            ) then
           exit;
 
@@ -1815,41 +1815,46 @@ implementation
               begin
                 with tvarsym(sym) do
                   begin
-                    if (paraitem.paraloc[calleeside].loc=LOC_REGISTER) then
+                    if not(po_assembler in current_procinfo.procdef.procoptions) then
                       begin
-                        (*
-                        if paraitem.paraloc[calleeside].register=NR_NO then
+                        if (paraitem.paraloc[calleeside].loc=LOC_REGISTER) then
                           begin
-                            paraitem.paraloc[calleeside].loc:=LOC_REGISTER;
-                            paraitem.paraloc[calleeside].size:=paraitem.paraloc[calleeside].size;
-{$ifndef cpu64bit}
-                            if paraitem.paraloc[calleeside].size in [OS_64,OS_S64] then
+                            (*
+                            if paraitem.paraloc[calleeside].register=NR_NO then
                               begin
-                                paraitem.paraloc[calleeside].registerlow:=rg.getregisterint(list,OS_32);
-                                paraitem.paraloc[calleeside].registerhigh:=rg.getregisterint(list,OS_32);
+                                paraitem.paraloc[calleeside].loc:=LOC_REGISTER;
+                                paraitem.paraloc[calleeside].size:=paraitem.paraloc[calleeside].size;
+{$ifndef cpu64bit}
+                                if paraitem.paraloc[calleeside].size in [OS_64,OS_S64] then
+                                  begin
+                                    paraitem.paraloc[calleeside].registerlow:=rg.getregisterint(list,OS_32);
+                                    paraitem.paraloc[calleeside].registerhigh:=rg.getregisterint(list,OS_32);
+                                  end
+                                else
+{$endif cpu64bit}
+                                  paraitem.paraloc[calleeside].register:=rg.getregisterint(list,localloc.size);
+                              end;
+                             *)
+                            (*
+{$warning TODO Allocate register paras}
+                            localloc.loc:=LOC_REGISTER;
+                           localloc.size:=paraitem.paraloc[calleeside].size;
+{$ifndef cpu64bit}
+                            if localloc.size in [OS_64,OS_S64] then
+                              begin
+                                localloc.registerlow:=rg.getregisterint(list,OS_32);
+                                localloc.registerhigh:=rg.getregisterint(list,OS_32);
                               end
                             else
 {$endif cpu64bit}
-                              paraitem.paraloc[calleeside].register:=rg.getregisterint(list,localloc.size);
-                          end;
-                         *)
-                        (*
-{$warning TODO Allocate register paras}
-                        localloc.loc:=LOC_REGISTER;
-                        localloc.size:=paraitem.paraloc[calleeside].size;
-{$ifndef cpu64bit}
-                        if localloc.size in [OS_64,OS_S64] then
-                          begin
-                            localloc.registerlow:=rg.getregisterint(list,OS_32);
-                            localloc.registerhigh:=rg.getregisterint(list,OS_32);
+                              localloc.register:=rg.getregisterint(list,localloc.size);
+                              *)
+                            localloc.loc:=LOC_REFERENCE;
+                            localloc.size:=paraitem.paraloc[calleeside].size;
+                            tg.GetLocal(list,tcgsize2size[localloc.size],localloc.reference);
                           end
                         else
-{$endif cpu64bit}
-                          localloc.register:=rg.getregisterint(list,localloc.size);
-                          *)
-                        localloc.loc:=LOC_REFERENCE;
-                        localloc.size:=paraitem.paraloc[calleeside].size;
-                        tg.GetLocal(list,tcgsize2size[localloc.size],localloc.reference);
+                          localloc:=paraitem.paraloc[calleeside];
                       end
                     else
                       localloc:=paraitem.paraloc[calleeside];
@@ -1919,15 +1924,18 @@ implementation
                         tg.UngetLocal(list,localloc.reference);
                       LOC_REGISTER :
                         begin
-{$ifndef cpu64bit}
-                          if localloc.size in [OS_64,OS_S64] then
+                          if localloc.register<>paraitem.paraloc[calleeside].register then
                             begin
-                              rg.ungetregister(list,localloc.registerlow);
-                              rg.ungetregister(list,localloc.registerhigh);
-                            end
-                          else
+{$ifndef cpu64bit}
+                              if localloc.size in [OS_64,OS_S64] then
+                                begin
+                                  rg.ungetregister(list,localloc.registerlow);
+                                  rg.ungetregister(list,localloc.registerhigh);
+                                end
+                              else
 {$endif cpu64bit}
-                            rg.ungetregister(list,localloc.register);
+                                rg.ungetregister(list,localloc.register);
+                            end;
                         end;
                     end;
                   end;
@@ -1940,7 +1948,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.155  2003-10-07 15:17:07  peter
+  Revision 1.156  2003-10-07 18:18:16  peter
+    * fix register calling for assembler procedures
+    * fix result loading for assembler procedures
+
+  Revision 1.155  2003/10/07 15:17:07  peter
     * inline supported again, LOC_REFERENCEs are used to pass the
       parameters
     * inlineparasymtable,inlinelocalsymtable removed

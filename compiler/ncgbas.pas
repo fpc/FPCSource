@@ -68,7 +68,7 @@ interface
 
     uses
       globtype,systems,
-      cutils,verbose,globals,
+      cutils,verbose,
       aasmbase,aasmtai,aasmcpu,symsym,
       defutil,
       nflw,pass_2,
@@ -149,10 +149,18 @@ interface
                   end;
                 LOC_REGISTER :
                   begin
-                    op.typ:=top_reg;
-                    op.reg:=sym.localloc.register;
+                    { Subscribed access }
                     if sofs<>0 then
-                      internalerror(200309231);
+                      begin
+                        op.typ:=top_ref;
+                        new(op.ref);
+                        reference_reset_base(op.ref^,sym.localloc.register,sofs);
+                      end
+                    else
+                      begin
+                        op.typ:=top_reg;
+                        op.reg:=sym.localloc.register;
+                      end;
                   end;
               end;
             end;
@@ -364,7 +372,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  2003-10-01 20:34:48  peter
+  Revision 1.42  2003-10-07 18:18:16  peter
+    * fix register calling for assembler procedures
+    * fix result loading for assembler procedures
+
+  Revision 1.41  2003/10/01 20:34:48  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose
