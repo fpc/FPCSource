@@ -121,7 +121,7 @@ function log2(x : float) : float;
 function logn(n,x : float) : float;
 
 { returns natural logarithm of x+1 }
-function lnxpi(x : float) : float;
+function lnxp1(x : float) : float;
 
 { exponential functions }
 
@@ -188,7 +188,7 @@ end;
 Procedure InvalidArgument;
 
 begin
-  DoMathError(SInvalidArgument);
+  Raise EInvalidArgument.Create(SInvalidArgument);
 end;
 
 function degtorad(deg : float) : float;
@@ -409,10 +409,12 @@ function logn(n,x : float) : float;
      logn:=ln(x)/ln(n);
   end;
 
-function lnxpi(x : float) : float;
+function lnxp1(x : float) : float;
 
   begin
-     lnxpi:=ln(1+x);
+     if x<-1 then
+       InvalidArgument;
+     lnxp1:=ln(1+x);
   end;
 
 function power(base,exponent : float) : float;
@@ -462,7 +464,7 @@ function floor(x : float) : longint;
 procedure frexp(x : float;var mantissa,exponent : float);
 
   begin
-     { !!!!!!! }
+
   end;
 
 function ldexp(x : float;p : longint) : float;
@@ -683,7 +685,10 @@ end;
 end.
 {
     $Log$
-    Revision 1.20  2000-07-05 13:19:59  michael
+    Revision 1.21  2000-07-06 12:13:59  michael
+    + SOme changes in error reporting
+
+    Revision 1.20  2000/07/05 13:19:59  michael
     + Corrected arsinh function
 
     Revision 1.19  2000/07/04 20:53:22  michael
