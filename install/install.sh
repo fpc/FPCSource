@@ -7,8 +7,8 @@
 # Everything can be set when the script is run.
 #
 
-# Release Version %version% will be replaced by makepack
-VERSION=%version%
+# Release Version 1.9.8 will be replaced by makepack
+VERSION=1.9.8
 
 # some useful functions
 # ask displays 1st parameter, and ask new value for variable, whose name is
@@ -208,6 +208,7 @@ SHORTARCH=$ARCHNAME
 
 FULLARCH=$ARCHNAME-$OSNAME
 DOCDIR=$PREFIX/share/doc/fpc-$VERSION
+DEMODIR=$DOCDIR/examples
 
 # Install all binary releases
 for f in *binary*.tar
@@ -216,7 +217,7 @@ do
   cross=`echo $f | sed 's+binary\..*\.tar$++'`
 
   # cross install? 
-  if [ cross != '' ]; then
+  if [ "$cross" != "" ]; then
     if [ "`which fpc 2>/dev/null`" = '' ]; then
       echo "No native FPC found."
       echo "For a proper installation of a cross FPC the installation of a native FPC is required."
@@ -256,7 +257,7 @@ fi
 echo
 
 # Install /etc/fpc.cfg, this is done using the samplecfg script
-if [ cross = '' ]; then
+if [ "$cross" = "" ]; then
   $LIBDIR/samplecfg $LIBDIR
 else
   echo "No fpc.cfg created because a cross installation has been done."
