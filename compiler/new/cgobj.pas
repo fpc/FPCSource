@@ -110,7 +110,7 @@ unit cgobj;
               if  necessary the compiler will call a method
               to zero or sign extend the register
             * The a_load_XX_XX with OP_64 needn't to be
-	      implemented for 32 bit
+              implemented for 32 bit
               processors, the code generator takes care of that
             * the addr size is for work with the natural pointer
               size
@@ -130,11 +130,11 @@ unit cgobj;
 
           {  comparison operations }
           procedure a_cmp_reg_const_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
-	    l : pasmlabel);virtual;
+            l : pasmlabel);virtual;
           procedure a_cmp_reg_reg_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : pasmlabel);
           procedure a_cmp_reg_ref_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;reg : tregister;l : pasmlabel);
           procedure a_cmp_ref_const_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
-	    l : pasmlabel);
+            l : pasmlabel);
 
           procedure a_loadaddress_ref_reg(list : paasmoutput;const ref : treference;r : tregister);virtual;
           procedure g_stackframe_entry(list : paasmoutput;localsize : longint);virtual;
@@ -167,7 +167,7 @@ unit cgobj;
           { copies len bytes from the source to destination, if }
           { loadref is true, it assumes that it first must load }
           { the source address from the memory location where   }
-          { source points to					}
+          { source points to                                    }
           procedure g_concatcopy(list : paasmoutput;const source,dest : treference;len : aword;loadref : boolean);virtual;
 
           { uses the addr of ref as param, was emitpushreferenceaddr }
@@ -231,10 +231,11 @@ unit cgobj;
          if unusedscratchregisters=[] then
            internalerror(68996);
 
-         for i:=1 to max_scratch_regs do
-           if scratch_regs[i] in unusedscratchregisters then
+         for i:=scratch_reg_array_pointer to (scratch_reg_array_pointer +
+                  max_scratch_regs) do
+           if scratch_regs[(i mod max_scratch_regs)+1] in unusedscratchregisters then
              begin
-                r:=scratch_regs[i];
+                r:=scratch_regs[(i mod max_scratch_regs)+1];
                 break;
              end;
          exclude(unusedscratchregisters,r);
@@ -327,7 +328,6 @@ unit cgobj;
          hr:=get_scratch_reg(list);
          a_load_const_reg(list,size,a,hr);
          a_load_reg_ref(list,size,hr,ref);
-         a_reg_dealloc(list,hr);
          free_scratch_reg(list,hr);
       end;
 
@@ -1080,7 +1080,10 @@ unit cgobj;
 end.
 {
   $Log$
-  Revision 1.23  1999-08-25 12:00:11  jonas
+  Revision 1.24  1999-08-26 14:51:54  jonas
+    * changed get_scratch_reg so it actually uses the\n    scratch_reg_array_pointer
+
+  Revision 1.23  1999/08/25 12:00:11  jonas
     * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
 
   Revision 1.22  1999/08/18 17:05:55  florian
