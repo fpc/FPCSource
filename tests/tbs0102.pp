@@ -1,5 +1,6 @@
+{$OPT= -Tamiga}
 
-unit bug0102;
+unit tbs0102;
   interface
 
   implementation
