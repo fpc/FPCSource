@@ -34,21 +34,21 @@ interface
         function first_abs_real: tnode; override;
         function first_sqr_real: tnode; override;
         function first_sqrt_real: tnode; override;
+        { atn,sin,cos,lgn isn't supported by the linux fpe
         function first_arctan_real: tnode; override;
-        { lgn isn't supported by the linux fpe
         function first_ln_real: tnode; override;
-        }
         function first_cos_real: tnode; override;
         function first_sin_real: tnode; override;
+        }
         procedure second_abs_real; override;
         procedure second_sqr_real; override;
         procedure second_sqrt_real; override;
+        { atn,sin,cos,lgn isn't supported by the linux fpe
         procedure second_arctan_real; override;
-        { lgn isn't supported by the linux fpe
         procedure second_ln_real; override;
-        }
         procedure second_cos_real; override;
         procedure second_sin_real; override;
+        }
       private
         procedure load_fpu_location;
       end;
@@ -111,6 +111,7 @@ implementation
       end;
 
 
+    { atn,sin,cos,lgn isn't supported by the linux fpe
     function tarminlinenode.first_arctan_real: tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
@@ -120,7 +121,6 @@ implementation
       end;
 
 
-    { lgn isn't supported by the linux fpe
     function tarminlinenode.first_ln_real: tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
@@ -128,7 +128,6 @@ implementation
         registersfpu:=max(left.registersfpu,1);
         result:=nil;
       end;
-    }
 
     function tarminlinenode.first_cos_real: tnode;
       begin
@@ -146,6 +145,7 @@ implementation
         registersfpu:=max(left.registersfpu,1);
         result:=nil;
       end;
+    }
 
 
     procedure tarminlinenode.second_abs_real;
@@ -169,6 +169,7 @@ implementation
       end;
 
 
+    { atn, sin, cos, lgn isn't supported by the linux fpe
     procedure tarminlinenode.second_arctan_real;
       begin
         load_fpu_location;
@@ -176,13 +177,11 @@ implementation
       end;
 
 
-    { lgn isn't supported by the linux fpe
     procedure tarminlinenode.second_ln_real;
       begin
         load_fpu_location;
         exprasmlist.concat(setoppostfix(taicpu.op_reg_reg(A_LGN,location.register,location.register),get_fpu_postfix(resulttype.def)));
       end;
-    }
 
     procedure tarminlinenode.second_cos_real;
       begin
@@ -196,14 +195,17 @@ implementation
         load_fpu_location;
         exprasmlist.concat(setoppostfix(taicpu.op_reg_reg(A_SIN,location.register,location.register),get_fpu_postfix(resulttype.def)));
       end;
-
+    }
 
 begin
   cinlinenode:=tarminlinenode;
 end.
 {
   $Log$
-  Revision 1.8  2004-11-01 17:41:28  florian
+  Revision 1.9  2005-01-06 12:11:03  florian
+    * arctan, sin and cos are done in software on the arm
+
+  Revision 1.8  2004/11/01 17:41:28  florian
     * fixed arm compilation with cgutils
     * ...
 
