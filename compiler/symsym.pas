@@ -1808,13 +1808,7 @@ implementation
        threadvaroffset : string;
        regidx : tregisterindex;
      begin
-       { There is no space allocated for not referenced locals }
-       if refs=0 then
-         begin
-           stabstring:=nil;
-           exit;
-         end;
-
+       stabstring:=nil;
        st:=tstoreddef(vartype.def).numberstring;
        if (vo_is_thread_var in varoptions) then
          threadvaroffset:='+'+tostr(pointer_size)
@@ -1861,6 +1855,13 @@ implementation
          inlineparasymtable,
          inlinelocalsymtable :
            begin
+             { There is no space allocated for not referenced locals }
+             if (owner.symtabletype in [localsymtable,inlinelocalsymtable]) and
+                (refs=0) then
+               begin
+                 exit;
+               end;
+
              if (vo_is_C_var in varoptions) then
                begin
                  stabstring := strpnew('"'+name+':S'+st+'",'+
@@ -2675,7 +2676,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.119  2003-09-23 17:56:06  peter
+  Revision 1.120  2003-09-25 16:18:54  peter
+    * fixed stabs for globals,static
+
+  Revision 1.119  2003/09/23 17:56:06  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure
