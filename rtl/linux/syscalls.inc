@@ -86,8 +86,6 @@ end;
 {$endif m68k}
 {$ifdef powerpc}
 {$define fpc_syscall_ok}
-var
-  tmp: pointer;
 asm
 { load the registers... }
   lwz  r5, 12(r4)
@@ -95,18 +93,17 @@ asm
   lwz  r7, 20(r4)
   mr   r0, r3
   lwz  r3, 4(r4)
-  stw  r4, tmp
+  stw  r4, regs
   lwz  r4, 8(r4)
 { Go ! }
   sc
-  bnslr
 { Put back the registers... }
-  lwz    r0, tmp
-  stw    r3, 4(r0)
-  stw    r4, 8(r0)
-  stw    r5, 12(r0)
-  stw    r6, 16(r0)
-  stw    r7, 20(r0)
+  lwz    r8, regs
+  stw    r3, 4(r8)
+  stw    r4, 8(r8)
+  stw    r5, 12(r8)
+  stw    r6, 16(r8)
+  stw    r7, 20(r8)
 end;
 {$endif powerpc}
 {$ifndef fpc_syscall_ok}
@@ -583,7 +580,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  2002-09-02 20:42:22  florian
+  Revision 1.11  2002-09-03 21:37:54  florian
+    * hopefully final fix for ppc syscall
+
+  Revision 1.10  2002/09/02 20:42:22  florian
     * another ppc syscall fix
 
   Revision 1.9  2002/09/02 20:03:20  florian
