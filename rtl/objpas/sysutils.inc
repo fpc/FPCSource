@@ -255,7 +255,8 @@ begin
     end;
   If Len>Size then
     Len:=Size;
-  Move(S[1],Buffer^,Len);
+  if Len > 0 then
+    Move(S[1],Buffer^,Len);
   Result:=Len;
 end;
 
@@ -289,7 +290,12 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-08-20 15:46:46  peter
+  Revision 1.3  2000-11-23 11:04:26  sg
+  * Protected some Move()'s by 'if' clauses so that the Move won't be
+    executed when the length would be 0. Otherwise, the corresponding
+    routines might get an RTE when compiled with $R+.
+
+  Revision 1.2  2000/08/20 15:46:46  peter
     * sysutils.pp moved to target and merged with disk.inc, filutil.inc
 
 }

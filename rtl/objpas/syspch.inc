@@ -38,8 +38,9 @@ type
 function StrPas(Str: PChar): string;
 begin
   SetLength(result, StrLen(Str));
-  Move(Str^, result[1], Length(result));
-end ;
+  if Length(Result) > 0 then
+    Move(Str^, result[1], Length(result));
+end;
 
 {  StrAlloc allocates a buffer of Size + 4
    the size of the allocated buffer is stored at result - 4
@@ -118,7 +119,12 @@ end ;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:51  michael
+  Revision 1.3  2000-11-23 11:04:26  sg
+  * Protected some Move()'s by 'if' clauses so that the Move won't be
+    executed when the length would be 0. Otherwise, the corresponding
+    routines might get an RTE when compiled with $R+.
+
+  Revision 1.2  2000/07/13 11:33:51  michael
   + removed logs
  
 }

@@ -929,13 +929,15 @@ Var S,F : String;
 
 begin
   Setlength(F,fmtlen);
-  Move(fmt,F[1],fmtlen);
+  if fmtlen > 0 then
+    Move(fmt,F[1],fmtlen);
   S:=Format (F,Args);
   If Length(S)>Buflen then
     Result:=Length(S)
   else
     Result:=Buflen;
-  Move(S[1],Buffer,Result);
+  if Result > 0 then
+    Move(S[1],Buffer,Result);
 end;
 
 Procedure FmtStr(Var Res: String; Const Fmt : String; Const args: Array of const);
@@ -1267,7 +1269,12 @@ const
 
 {
   $Log$
-  Revision 1.6  2000-11-13 14:41:20  marco
+  Revision 1.7  2000-11-23 11:04:26  sg
+  * Protected some Move()'s by 'if' clauses so that the Move won't be
+    executed when the length would be 0. Otherwise, the corresponding
+    routines might get an RTE when compiled with $R+.
+
+  Revision 1.6  2000/11/13 14:41:20  marco
    * Unix renamefest for defines
 
   Revision 1.5  2000/09/30 15:51:41  michael
