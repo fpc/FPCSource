@@ -217,6 +217,241 @@ implementation
       end;
 
 
+    function new_dispose_statement(is_new:boolean) : tnode;
+      var
+        p,p2     : tnode;
+        again    : boolean; { dummy for do_proc_call }
+        destructorname : stringid;
+        sym      : tsym;
+        classh   : tobjectdef;
+        destructorpos,
+        storepos : tfileposinfo;
+      begin
+        consume(_LKLAMMER);
+        p:=comp_expr(true);
+        { calc return type }
+        { cleartempgen; }
+        set_varstate(p,(not is_new));
+        { constructor,destructor specified }
+        if try_to_consume(_COMMA) then
+          begin
+            { extended syntax of new and dispose }
+            { function styled new is handled in factor }
+            { destructors have no parameters }
+            destructorname:=pattern;
+            destructorpos:=akttokenpos;
+            consume(_ID);
+
+            if (p.resulttype.def.deftype<>pointerdef) then
+              begin
+                 Message1(type_e_pointer_type_expected,p.resulttype.def.typename);
+                 p.free;
+                 p:=factor(false);
+                 p.free;
+                 consume(_RKLAMMER);
+                 new_dispose_statement:=cerrornode.create;
+                 exit;
+              end;
+            { first parameter must be an object or class }
+            if tpointerdef(p.resulttype.def).pointertype.def.deftype<>objectdef then
+              begin
+                 Message(parser_e_pointer_to_class_expected);
+                 p.free;
+                 new_dispose_statement:=factor(false);
+                 consume_all_until(_RKLAMMER);
+                 consume(_RKLAMMER);
+                 exit;
+              end;
+            { check, if the first parameter is a pointer to a _class_ }
+            classh:=tobjectdef(tpointerdef(p.resulttype.def).pointertype.def);
+            if is_class(classh) then
+              begin
+                 Message(parser_e_no_new_or_dispose_for_classes);
+                 new_dispose_statement:=factor(false);
+                 consume_all_until(_RKLAMMER);
+                 consume(_RKLAMMER);
+                 exit;
+              end;
+            { search cons-/destructor, also in parent classes }
+            storepos:=akttokenpos;
+            akttokenpos:=destructorpos;
+            sym:=search_class_member(classh,destructorname);
+            akttokenpos:=storepos;
+
+            { the second parameter of new/dispose must be a call }
+            { to a cons-/destructor                              }
+            if (not assigned(sym)) or (sym.typ<>procsym) then
+              begin
+                 if is_new then
+                  Message(parser_e_expr_have_to_be_constructor_call)
+                 else
+                  Message(parser_e_expr_have_to_be_destructor_call);
+                 p.free;
+                 new_dispose_statement:=cerrornode.create;
+              end
+            else
+              begin
+                if is_new then
+                 p2:=chnewnode.create
+                else
+                 p2:=chdisposenode.create(p);
+                do_resulttypepass(p2);
+                p2.resulttype:=tpointerdef(p.resulttype.def).pointertype;
+                if is_new then
+                  do_member_read(false,sym,p2,again)
+                else
+                  begin
+                    if (m_tp in aktmodeswitches) then
+                      do_member_read(false,sym,p2,again)
+                    else
+                      begin
+                        p2:=ccallnode.create(nil,tprocsym(sym),sym.owner,p2);
+                        { support dispose(p,done()); }
+                        if try_to_consume(_LKLAMMER) then
+                          begin
+                            if not try_to_consume(_RKLAMMER) then
+                              begin
+                                Message(parser_e_no_paras_for_destructor);
+                                consume_all_until(_RKLAMMER);
+                                consume(_RKLAMMER);
+                              end;
+                          end;
+                      end;
+                  end;
+
+                { we need the real called method }
+                { cleartempgen;}
+                do_resulttypepass(p2);
+                if not codegenerror then
+                 begin
+                   if is_new then
+                    begin
+                      if (tcallnode(p2).procdefinition.proctypeoption<>potype_constructor) then
+                        Message(parser_e_expr_have_to_be_constructor_call);
+                      p2:=cnewnode.create(p2);
+                      do_resulttypepass(p2);
+                      p2.resulttype:=p.resulttype;
+                      p2:=cassignmentnode.create(p,p2);
+                    end
+                   else
+                    begin
+                      if (tcallnode(p2).procdefinition.proctypeoption<>potype_destructor) then
+                        Message(parser_e_expr_have_to_be_destructor_call);
+                    end;
+                 end;
+                new_dispose_statement:=p2;
+              end;
+          end
+        else
+          begin
+             if (p.resulttype.def.deftype<>pointerdef) then
+               Begin
+                  Message1(type_e_pointer_type_expected,p.resulttype.def.typename);
+                  new_dispose_statement:=cerrornode.create;
+               end
+             else
+               begin
+                  if (tpointerdef(p.resulttype.def).pointertype.def.deftype=objectdef) and
+                     (oo_has_vmt in tobjectdef(tpointerdef(p.resulttype.def).pointertype.def).objectoptions) then
+                    Message(parser_w_use_extended_syntax_for_objects);
+                  if (tpointerdef(p.resulttype.def).pointertype.def.deftype=orddef) and
+                     (torddef(tpointerdef(p.resulttype.def).pointertype.def).typ=uvoid) then
+                    begin
+                      if (m_tp in aktmodeswitches) or
+                         (m_delphi in aktmodeswitches) then
+                       Message(parser_w_no_new_dispose_on_void_pointers)
+                      else
+                       Message(parser_e_no_new_dispose_on_void_pointers);
+                    end;
+
+                  if is_new then
+                    new_dispose_statement:=csimplenewdisposenode.create(simplenewn,p)
+                  else
+                    new_dispose_statement:=csimplenewdisposenode.create(simpledisposen,p);
+               end;
+          end;
+        consume(_RKLAMMER);
+      end;
+
+
+    function new_function : tnode;
+      var
+        p1,p2  : tnode;
+        classh : tobjectdef;
+        sym    : tsym;
+        again  : boolean; { dummy for do_proc_call }
+      begin
+        consume(_LKLAMMER);
+        p1:=factor(false);
+        if p1.nodetype<>typen then
+         begin
+           Message(type_e_type_id_expected);
+           p1.destroy;
+           p1:=cerrornode.create;
+           do_resulttypepass(p1);
+         end;
+
+        if (p1.resulttype.def.deftype<>pointerdef) then
+          Message1(type_e_pointer_type_expected,p1.resulttype.def.typename)
+        else
+         if token=_RKLAMMER then
+          begin
+            if (tpointerdef(p1.resulttype.def).pointertype.def.deftype=objectdef) and
+               (oo_has_vmt in tobjectdef(tpointerdef(p1.resulttype.def).pointertype.def).objectoptions)  then
+             Message(parser_w_use_extended_syntax_for_objects);
+            p2:=cnewnode.create(nil);
+            do_resulttypepass(p2);
+            p2.resulttype:=p1.resulttype;
+            p1.destroy;
+            p1:=p2;
+            consume(_RKLAMMER);
+          end
+        else
+          begin
+            p2:=chnewnode.create;
+            do_resulttypepass(p2);
+            p2.resulttype:=tpointerdef(p1.resulttype.def).pointertype;
+            consume(_COMMA);
+            afterassignment:=false;
+            { determines the current object defintion }
+            classh:=tobjectdef(p2.resulttype.def);
+            if classh.deftype<>objectdef then
+             Message(parser_e_pointer_to_class_expected)
+            else
+             begin
+               { check for an abstract class }
+               if (oo_has_abstract in classh.objectoptions) then
+                Message(sym_e_no_instance_of_abstract_object);
+               { search the constructor also in the symbol tables of
+                 the parents }
+               sym:=nil;
+               while assigned(classh) do
+                begin
+                  sym:=tsym(classh.symtable.search(pattern));
+                  if assigned(sym) then
+                   break;
+                  classh:=classh.childof;
+                end;
+               consume(_ID);
+               do_member_read(false,sym,p2,again);
+               { we need to know which procedure is called }
+               do_resulttypepass(p2);
+               if (p2.nodetype<>calln) or
+                  (assigned(tcallnode(p2).procdefinition) and
+                   (tcallnode(p2).procdefinition.proctypeoption<>potype_constructor)) then
+                Message(parser_e_expr_have_to_be_constructor_call);
+             end;
+            p2:=cnewnode.create(p2);
+            do_resulttypepass(p2);
+            p2.resulttype:=p1.resulttype;
+            p1.destroy;
+            p1:=p2;
+            consume(_RKLAMMER);
+          end;
+        new_function:=p1;
+      end;
+
+
      function statement_syssym(l : longint) : tnode;
       var
         p1,p2,paras  : tnode;
@@ -224,6 +459,20 @@ implementation
       begin
         prev_in_args:=in_args;
         case l of
+
+          in_new_x :
+            begin
+              if afterassignment or in_args then
+               statement_syssym:=new_function
+              else
+               statement_syssym:=new_dispose_statement(true);
+            end;
+
+          in_dispose_x :
+            begin
+              statement_syssym:=new_dispose_statement(false);
+            end;
+
           in_ord_x :
             begin
               consume(_LKLAMMER);
@@ -1052,7 +1301,9 @@ implementation
                   end;
 
                 syssym :
-                  p1:=statement_syssym(tsyssym(srsym).number);
+                  begin
+                    p1:=statement_syssym(tsyssym(srsym).number);
+                  end;
 
                 typesym :
                   begin
@@ -1687,90 +1938,14 @@ implementation
         again:=false;
         if token=_ID then
          begin
-           if idtoken=_NEW then
-             begin
-               consume(_NEW);
-               consume(_LKLAMMER);
-               p1:=factor(false);
-               if p1.nodetype<>typen then
-                begin
-                  Message(type_e_type_id_expected);
-                  p1.destroy;
-                  p1:=cerrornode.create;
-                  do_resulttypepass(p1);
-                end;
+           factor_read_id(p1,again);
+           if again then
+            begin
+              check_tokenpos;
 
-               if (p1.resulttype.def.deftype<>pointerdef) then
-                 Message1(type_e_pointer_type_expected,p1.resulttype.def.typename)
-               else
-                if token=_RKLAMMER then
-                 begin
-                   if (tpointerdef(p1.resulttype.def).pointertype.def.deftype=objectdef) and
-                      (oo_has_vmt in tobjectdef(tpointerdef(p1.resulttype.def).pointertype.def).objectoptions)  then
-                    Message(parser_w_use_extended_syntax_for_objects);
-                   p2:=cnewnode.create(nil);
-                   do_resulttypepass(p2);
-                   p2.resulttype:=p1.resulttype;
-                   p1.destroy;
-                   p1:=p2;
-                   consume(_RKLAMMER);
-                 end
-               else
-                 begin
-                   p2:=chnewnode.create;
-                   do_resulttypepass(p2);
-                   p2.resulttype:=tpointerdef(p1.resulttype.def).pointertype;
-                   consume(_COMMA);
-                   afterassignment:=false;
-                   { determines the current object defintion }
-                   classh:=tobjectdef(p2.resulttype.def);
-                   if classh.deftype<>objectdef then
-                    Message(parser_e_pointer_to_class_expected)
-                   else
-                    begin
-                      { check for an abstract class }
-                      if (oo_has_abstract in classh.objectoptions) then
-                       Message(sym_e_no_instance_of_abstract_object);
-                      { search the constructor also in the symbol tables of
-                        the parents }
-                      sym:=nil;
-                      while assigned(classh) do
-                       begin
-                         sym:=tsym(classh.symtable.search(pattern));
-                         if assigned(sym) then
-                          break;
-                         classh:=classh.childof;
-                       end;
-                      consume(_ID);
-                      do_member_read(false,sym,p2,again);
-                      { we need to know which procedure is called }
-                      do_resulttypepass(p2);
-                      if (p2.nodetype<>calln) or
-                         (assigned(tcallnode(p2).procdefinition) and
-                          (tcallnode(p2).procdefinition.proctypeoption<>potype_constructor)) then
-                       Message(parser_e_expr_have_to_be_constructor_call);
-                    end;
-                   p2:=cnewnode.create(p2);
-                   do_resulttypepass(p2);
-                   p2.resulttype:=p1.resulttype;
-                   p1.destroy;
-                   p1:=p2;
-                   consume(_RKLAMMER);
-                 end;
-               postfixoperators(p1,again);
-             end
-           else
-             begin
-                factor_read_id(p1,again);
-
-                if again then
-                  begin
-                     check_tokenpos;
-
-                     { handle post fix operators }
-                     postfixoperators(p1,again);
-                  end;
-             end;
+              { handle post fix operators }
+              postfixoperators(p1,again);
+            end;
          end
         else
          case token of
@@ -2333,7 +2508,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  2001-10-21 13:10:51  peter
+  Revision 1.47  2001-10-24 11:51:39  marco
+   * Make new/dispose system functions instead of keywords
+
+  Revision 1.46  2001/10/21 13:10:51  peter
     * better support for indexed properties
 
   Revision 1.45  2001/10/21 12:33:07  peter

@@ -873,171 +873,6 @@ implementation
       end;
 
 
-    function new_dispose_statement : tnode;
-      var
-        p,p2     : tnode;
-        again    : boolean; { dummy for do_proc_call }
-        destructorname : stringid;
-        sym      : tsym;
-        classh   : tobjectdef;
-        destructorpos,
-        storepos : tfileposinfo;
-        is_new   : boolean;
-      begin
-        if try_to_consume(_NEW) then
-          is_new:=true
-        else
-          begin
-            consume(_DISPOSE);
-            is_new:=false;
-          end;
-        consume(_LKLAMMER);
-        p:=comp_expr(true);
-        { calc return type }
-        cleartempgen;
-        set_varstate(p,(not is_new));
-        { constructor,destructor specified }
-        if try_to_consume(_COMMA) then
-          begin
-            { extended syntax of new and dispose }
-            { function styled new is handled in factor }
-            { destructors have no parameters }
-            destructorname:=pattern;
-            destructorpos:=akttokenpos;
-            consume(_ID);
-
-            if (p.resulttype.def.deftype<>pointerdef) then
-              begin
-                 Message1(type_e_pointer_type_expected,p.resulttype.def.typename);
-                 p.free;
-                 p:=factor(false);
-                 p.free;
-                 consume(_RKLAMMER);
-                 new_dispose_statement:=cerrornode.create;
-                 exit;
-              end;
-            { first parameter must be an object or class }
-            if tpointerdef(p.resulttype.def).pointertype.def.deftype<>objectdef then
-              begin
-                 Message(parser_e_pointer_to_class_expected);
-                 p.free;
-                 new_dispose_statement:=factor(false);
-                 consume_all_until(_RKLAMMER);
-                 consume(_RKLAMMER);
-                 exit;
-              end;
-            { check, if the first parameter is a pointer to a _class_ }
-            classh:=tobjectdef(tpointerdef(p.resulttype.def).pointertype.def);
-            if is_class(classh) then
-              begin
-                 Message(parser_e_no_new_or_dispose_for_classes);
-                 new_dispose_statement:=factor(false);
-                 consume_all_until(_RKLAMMER);
-                 consume(_RKLAMMER);
-                 exit;
-              end;
-            { search cons-/destructor, also in parent classes }
-            storepos:=akttokenpos;
-            akttokenpos:=destructorpos;
-            sym:=search_class_member(classh,destructorname);
-            akttokenpos:=storepos;
-
-            { the second parameter of new/dispose must be a call }
-            { to a cons-/destructor                              }
-            if (not assigned(sym)) or (sym.typ<>procsym) then
-              begin
-                 if is_new then
-                  Message(parser_e_expr_have_to_be_constructor_call)
-                 else
-                  Message(parser_e_expr_have_to_be_destructor_call);
-                 p.free;
-                 new_dispose_statement:=cerrornode.create;
-              end
-            else
-              begin
-                if is_new then
-                 p2:=chnewnode.create
-                else
-                 p2:=chdisposenode.create(p);
-                do_resulttypepass(p2);
-                p2.resulttype:=tpointerdef(p.resulttype.def).pointertype;
-                if is_new then
-                  do_member_read(false,sym,p2,again)
-                else
-                  begin
-                    if (m_tp in aktmodeswitches) then
-                      do_member_read(false,sym,p2,again)
-                    else
-                      begin
-                        p2:=ccallnode.create(nil,tprocsym(sym),sym.owner,p2);
-                        { support dispose(p,done()); }
-                        if try_to_consume(_LKLAMMER) then
-                          begin
-                            if not try_to_consume(_RKLAMMER) then
-                              begin
-                                Message(parser_e_no_paras_for_destructor);
-                                consume_all_until(_RKLAMMER);
-                                consume(_RKLAMMER);
-                              end;
-                          end;
-                      end;
-                  end;
-
-                { we need the real called method }
-                cleartempgen;
-                do_resulttypepass(p2);
-                if not codegenerror then
-                 begin
-                   if is_new then
-                    begin
-                      if (tcallnode(p2).procdefinition.proctypeoption<>potype_constructor) then
-                        Message(parser_e_expr_have_to_be_constructor_call);
-                      p2:=cnewnode.create(p2);
-                      do_resulttypepass(p2);
-                      p2.resulttype:=p.resulttype;
-                      p2:=cassignmentnode.create(p,p2);
-                    end
-                   else
-                    begin
-                      if (tcallnode(p2).procdefinition.proctypeoption<>potype_destructor) then
-                        Message(parser_e_expr_have_to_be_destructor_call);
-                    end;
-                 end;
-                new_dispose_statement:=p2;
-              end;
-          end
-        else
-          begin
-             if (p.resulttype.def.deftype<>pointerdef) then
-               Begin
-                  Message1(type_e_pointer_type_expected,p.resulttype.def.typename);
-                  new_dispose_statement:=cerrornode.create;
-               end
-             else
-               begin
-                  if (tpointerdef(p.resulttype.def).pointertype.def.deftype=objectdef) and
-                     (oo_has_vmt in tobjectdef(tpointerdef(p.resulttype.def).pointertype.def).objectoptions) then
-                    Message(parser_w_use_extended_syntax_for_objects);
-                  if (tpointerdef(p.resulttype.def).pointertype.def.deftype=orddef) and
-                     (torddef(tpointerdef(p.resulttype.def).pointertype.def).typ=uvoid) then
-                    begin
-                      if (m_tp in aktmodeswitches) or
-                         (m_delphi in aktmodeswitches) then
-                       Message(parser_w_no_new_dispose_on_void_pointers)
-                      else
-                       Message(parser_e_no_new_dispose_on_void_pointers);
-                    end;
-
-                  if is_new then
-                    new_dispose_statement:=csimplenewdisposenode.create(simplenewn,p)
-                  else
-                    new_dispose_statement:=csimplenewdisposenode.create(simpledisposen,p);
-               end;
-          end;
-        consume(_RKLAMMER);
-      end;
-
-
     function statement : tnode;
       var
          p       : tnode;
@@ -1114,36 +949,34 @@ implementation
              Message(scan_f_end_of_file);
          else
            begin
-              if (idtoken=_NEW) or (idtoken=_DISPOSE) then
-                code:=new_dispose_statement
-              else
-                begin
-                   p:=expr;
+             p:=expr;
 
-                   if p.nodetype=labeln then
-                    begin
-                      { the pointer to the following instruction }
-                      { isn't a very clean way                   }
-                      tlabelnode(p).left:=statement{$ifdef FPCPROCVAR}(){$endif};
-                      { be sure to have left also resulttypepass }
-                      resulttypepass(tlabelnode(p).left);
-                    end;
+             if p.nodetype=labeln then
+              begin
+                { the pointer to the following instruction }
+                { isn't a very clean way                   }
+                tlabelnode(p).left:=statement{$ifdef FPCPROCVAR}(){$endif};
+                { be sure to have left also resulttypepass }
+                resulttypepass(tlabelnode(p).left);
+              end;
 
-                   { blockn support because a read/write is changed into a blocknode }
-                   { with a separate statement for each read/write operation (JM)    }
-                   { the same is true for val() if the third parameter is not 32 bit }
-                   if not(p.nodetype in [calln,assignn,breakn,inlinen,continuen,labeln,blockn]) then
-                     Message(cg_e_illegal_expression);
-                   { specify that we don't use the value returned by the call }
-                   { Question : can this be also improtant
-                     for inlinen ??
-                     it is used for :
-                      - dispose of temp stack space
-                      - dispose on FPU stack }
-                   if p.nodetype=calln then
-                     exclude(p.flags,nf_return_value_used);
-                   code:=p;
-                end;
+             { blockn support because a read/write is changed into a blocknode }
+             { with a separate statement for each read/write operation (JM)    }
+             { the same is true for val() if the third parameter is not 32 bit }
+             if not(p.nodetype in [calln,assignn,breakn,inlinen,continuen,labeln,blockn,
+                                   simplenewn,simpledisposen]) then
+               Message(cg_e_illegal_expression);
+
+             { specify that we don't use the value returned by the call }
+             { Question : can this be also improtant
+               for inlinen ??
+               it is used for :
+                - dispose of temp stack space
+                - dispose on FPU stack }
+             if p.nodetype=calln then
+               exclude(p.flags,nf_return_value_used);
+
+             code:=p;
            end;
          end;
          if assigned(code) then
@@ -1282,7 +1115,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  2001-10-17 22:41:04  florian
+  Revision 1.40  2001-10-24 11:51:39  marco
+   * Make new/dispose system functions instead of keywords
+
+  Revision 1.39  2001/10/17 22:41:04  florian
     * several widechar fixes, case works now
 
   Revision 1.38  2001/10/16 15:10:35  jonas

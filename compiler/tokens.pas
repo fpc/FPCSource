@@ -106,7 +106,6 @@ type
     _FAR,
     _FOR,
     _MOD,
-    _NEW,
     _NIL,
     _NOT,
     _OUT,
@@ -167,7 +166,6 @@ type
     _ASMNAME,
     _CPPDECL,
     _DEFAULT,
-    _DISPOSE,
     _DYNAMIC,
     _EXPORTS,
     _FINALLY,
@@ -331,7 +329,6 @@ const
       (str:'FAR'           ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'FOR'           ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'MOD'           ;special:false;keyword:m_all;op:_OP_MOD),
-      (str:'NEW'           ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'NIL'           ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'NOT'           ;special:false;keyword:m_all;op:_OP_NOT),
       (str:'OUT'           ;special:false;keyword:m_none;op:NOTOKEN),
@@ -392,7 +389,6 @@ const
       (str:'ASMNAME'       ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'CPPDECL'       ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'DEFAULT'       ;special:false;keyword:m_none;op:NOTOKEN),
-      (str:'DISPOSE'       ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'DYNAMIC'       ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'EXPORTS'       ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'FINALLY'       ;special:false;keyword:m_class;op:NOTOKEN),
@@ -501,7 +497,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  2001-10-23 21:49:43  peter
+  Revision 1.15  2001-10-24 11:51:39  marco
+   * Make new/dispose system functions instead of keywords
+
+  Revision 1.14  2001/10/23 21:49:43  peter
     * $calling directive and -Cc commandline patch added
       from Pavel Ozerski
 

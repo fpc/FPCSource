@@ -76,6 +76,8 @@ begin
   p.insert(tsyssym.create('SetLength',in_setlength_x));
   p.insert(tsyssym.create('Finalize',in_finalize_x));
   p.insert(tsyssym.create('Length',in_length_x));
+  p.insert(tsyssym.create('New',in_new_x));
+  p.insert(tsyssym.create('Dispose',in_dispose_x));
 end;
 
 
@@ -275,7 +277,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.19  2001-08-30 20:13:53  peter
+  Revision 1.20  2001-10-24 11:51:39  marco
+   * Make new/dispose system functions instead of keywords
+
+  Revision 1.19  2001/08/30 20:13:53  peter
     * rtti/init table updates
     * rttisym for reusable global rtti/init info
     * support published for interfaces

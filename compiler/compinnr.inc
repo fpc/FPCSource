@@ -55,6 +55,8 @@ const
    in_typeinfo_x        = 43;
    in_setlength_x       = 44;
    in_finalize_x        = 45;
+   in_new_x             = 46;
+   in_dispose_x         = 47;
 
 { Internal constant functions }
    in_const_trunc      = 100;
@@ -102,7 +104,10 @@ const
 
 {
   $Log$
-  Revision 1.3  2001-07-09 21:15:40  peter
+  Revision 1.4  2001-10-24 11:51:39  marco
+   * Make new/dispose system functions instead of keywords
+
+  Revision 1.3  2001/07/09 21:15:40  peter
     * Length made internal
     * Add array support for Length
 
