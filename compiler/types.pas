@@ -792,33 +792,15 @@ implementation
               if (def^.deftype=orddef) and
                  (porddef(def)^.typ=u32bit) then
                 begin
-                   if lv<=hv then
-                     begin
-                        if (l<lv) or (l>hv) then
-                          begin
-                             if (cs_check_range in aktlocalswitches) then
-                               Message(parser_e_range_check_error)
-                             else
-                               Message(parser_w_range_check_error);
-                          end;
-                        error := true;
-                     end
-                   else
-                     { this happens with the wrap around problem  }
-                     { if lv is positive and hv is over $7ffffff  }
-                     { so it seems negative                       }
-                     { fix with typecasts (JM) }
-                     begin
-                        if (l < cardinal(lv)) or
-                           (l > cardinal(hv)) then
-                          begin
-                             if (cs_check_range in aktlocalswitches) then
-                               Message(parser_e_range_check_error)
-                             else
-                               Message(parser_w_range_check_error);
-                          end;
-                        error := true;
-                     end;
+                  if (l < cardinal(lv)) or
+                     (l > cardinal(hv)) then
+                    begin
+                      if (cs_check_range in aktlocalswitches) then
+                        Message(parser_e_range_check_error)
+                      else
+                        Message(parser_w_range_check_error);
+                      error := true;
+                    end;
                 end
               else if (l<lv) or (l>hv) then
                 begin
@@ -1740,7 +1722,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  2000-12-11 19:13:54  jonas
+  Revision 1.27  2000-12-20 15:59:40  jonas
+    - removed obsolete special case for range checking of cardinal constants
+      at compile time
+
+  Revision 1.26  2000/12/11 19:13:54  jonas
     * fixed range checking of cardinal constants
     * fixed range checking of "qword constants" (they don't really exist,
       but values > high(int64) were set to zero if assigned to qword)
