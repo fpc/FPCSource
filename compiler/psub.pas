@@ -489,6 +489,7 @@ begin
   aktprocsym^.definition:=pd;
   aktprocsym^.definition^.fileinfo:=procstartfilepos;
   aktprocsym^.definition^.setmangledname(hs);
+  aktprocsym^.definition^.procsym:=aktprocsym;
 
   { update also the current filepos for aktprocsym }
   aktprocsym^.fileinfo:=procstartfilepos;
@@ -2024,7 +2025,10 @@ end.
 
 {
   $Log$
-  Revision 1.12  1999-08-05 16:53:06  peter
+  Revision 1.13  1999-08-10 12:37:44  pierre
+   + procsym field of tprocdef set
+
+  Revision 1.12  1999/08/05 16:53:06  peter
     * V_Fatal=1, all other V_ are also increased
     * Check for local procedure when assigning procvar
     * fixed comment parsing because directives
