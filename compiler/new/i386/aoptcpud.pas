@@ -233,7 +233,8 @@ Begin
               Inc(Cnt)
             End
         End
-    End
+    End;
+  RegReadByInstr := TmpResult
 End;
 
 Function TAOptDFACpu.TCh2Reg(Ch: TChange): TRegister;
@@ -256,7 +257,10 @@ End.
 
 {
   $Log$
-  Revision 1.2  1999-08-18 14:32:26  jonas
+  Revision 1.3  1999-09-08 15:01:31  jonas
+    * some small changes so the noew optimizer is again compilable
+
+  Revision 1.2  1999/08/18 14:32:26  jonas
     + compilable!
     + dataflow analyzer finished
     + start of CSE units

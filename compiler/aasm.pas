@@ -72,6 +72,16 @@ unit aasm;
        tcpuflags = (cf_64bitaddr);
        tcpuflagset = set of tcpuflags;
 
+{$ifdef newcg}
+    const
+      SkipInstr = [ait_comment, ait_align, ait_symbol
+{$ifdef GDB}
+                   ,ait_stabs, ait_stabn, ait_stab_function_name
+{$endif GDB}
+                   ,ait_regalloc, ait_tempalloc
+  ];
+{$endif newcg}
+
 
   { asm symbol functions }
     type
@@ -975,7 +985,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.60  1999-08-06 15:30:17  florian
+  Revision 1.61  1999-09-08 15:01:29  jonas
+    * some small changes so the noew optimizer is again compilable
+
+  Revision 1.60  1999/08/06 15:30:17  florian
     + cpu flags added, mainly for the new cg
 
   Revision 1.59  1999/08/05 15:51:01  michael

@@ -25,7 +25,7 @@ unit aoptbase;
 
 Interface
 
-uses aasm, cpubase, cpuasm;
+uses aasm, cpuasm,cpubase;
 
 { the number of Pai objects processed by an optimizer object since the last }
 { time a register was modified                                              }
@@ -37,6 +37,8 @@ Type
   TAoptBase = Object
     { processor independent methods }
 
+    constructor init;
+    destructor done;
     { returns true if register Reg is used by instruction p1 }
     Function RegInInstruction(Reg: TRegister; p1: Pai): Boolean;
     { returns true if register Reg occurs in operand op }
@@ -70,19 +72,27 @@ Type
     Function IsLoadMemReg(p: pai): Boolean; Virtual;
     { returns whether P is a load constant instruction (load a constant }
     { into a register)                                                  }
-    Function IsLoadConstReg(p: pai): Boolean;
+    Function IsLoadConstReg(p: pai): Boolean; Virtual;
     { returns whether P is a store instruction (store contents from a }
     { register to a memory location or to a (register) variable)      }
     Function IsStoreRegMem(p: pai): Boolean; Virtual;
 
-    { create a PInstr Object that loads the contents of reg1 into reg2 }
-    Function a_load_reg_reg(reg1, reg2: TRegister): PInstr; Virtual;
+    { create a paicpu Object that loads the contents of reg1 into reg2 }
+    Function a_load_reg_reg(reg1, reg2: TRegister): paicpu; Virtual;
 
 end;
 
 Implementation
 
 uses globals, aoptcpub, cpuinfo;
+
+constructor taoptbase.init;
+begin
+end;
+
+destructor taoptbase.done;
+begin
+end;
 
 Function TAOptBase.RegInInstruction(Reg: TRegister; p1: Pai): Boolean;
 Var Count: AWord;
@@ -240,7 +250,7 @@ Begin
   Abstract
 End;
 
-Function TAoptBase.a_load_reg_reg(reg1, reg2: TRegister): PInstr;
+Function TAoptBase.a_load_reg_reg(reg1, reg2: TRegister): paicpu;
 Begin
   Abstract
 End;
@@ -249,7 +259,10 @@ End.
 
 {
   $Log$
-  Revision 1.2  1999-08-23 14:41:12  jonas
+  Revision 1.3  1999-09-08 15:01:31  jonas
+    * some small changes so the noew optimizer is again compilable
+
+  Revision 1.2  1999/08/23 14:41:12  jonas
     + checksequence (processor independent)\n  + processor independent part of docse
 
   Revision 1.1  1999/08/18 14:32:21  jonas
