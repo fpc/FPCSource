@@ -1,5 +1,3 @@
-{$PACKRECORDS C}
-
   {
     $Id$
     This file is part of the Free Pascal run time library.
@@ -34,284 +32,288 @@
     }
 
   const
-     SYS_syscall = 0;
-     SYS_exit = 1;
-     SYS_fork = 2;
-     SYS_read = 3;
-     SYS_write = 4;
-     SYS_open = 5;
-     SYS_close = 6;
-     SYS_wait4 = 7;
+     sys_nr_syscall = 0;
+     sys_nr_exit = 1;
+     sys_nr_fork = 2;
+     sys_nr_read = 3;
+     sys_nr_write = 4;
+     sys_nr_open = 5;
+     sys_nr_close = 6;
+     sys_nr_wait4 = 7;
   { 8 is old creat  }
-     SYS_link = 9;
-     SYS_unlink = 10;
+     sys_nr_link = 9;
+     sys_nr_unlink = 10;
   { 11 is obsolete execv  }
-     SYS_chdir = 12;
-     SYS_fchdir = 13;
-     SYS_mknod = 14;
-     SYS_chmod = 15;
-     SYS_chown = 16;
+     sys_nr_chdir = 12;
+     sys_nr_fchdir = 13;
+     sys_nr_mknod = 14;
+     sys_nr_chmod = 15;
+     sys_nr_chown = 16;
   { 17 is obsolete sbreak  }
 {$if COMPAT_GETFSSTAT}
   { 18 is old getfsstat  }
 {$else}
 
   const
-     SYS_getfsstat = 18;
+     sys_nr_getfsstat = 18;
 {$endif}
   { 19 is old lseek  }
 
   const
-     SYS_getpid = 20;
+     sys_nr_getpid = 20;
   { 21 is obsolete mount  }
   { 22 is obsolete umount  }
-     SYS_setuid = 23;
-     SYS_getuid = 24;
-     SYS_geteuid = 25;
-     SYS_ptrace = 26;
-     SYS_recvmsg = 27;
-     SYS_sendmsg = 28;
-     SYS_recvfrom = 29;
-     SYS_accept = 30;
-     SYS_getpeername = 31;
-     SYS_getsockname = 32;
-     SYS_access = 33;
-     SYS_chflags = 34;
-     SYS_fchflags = 35;
-     SYS_sync = 36;
-     SYS_kill = 37;
+     sys_nr_setuid = 23;
+     sys_nr_getuid = 24;
+     sys_nr_geteuid = 25;
+     sys_nr_ptrace = 26;
+     sys_nr_recvmsg = 27;
+     sys_nr_sendmsg = 28;
+     sys_nr_recvfrom = 29;
+     sys_nr_accept = 30;
+     sys_nr_getpeername = 31;
+     sys_nr_getsockname = 32;
+     sys_nr_access = 33;
+     sys_nr_chflags = 34;
+     sys_nr_fchflags = 35;
+     sys_nr_sync = 36;
+     sys_nr_kill = 37;
   { 38 is old stat  }
-     SYS_getppid = 39;
+     sys_nr_getppid = 39;
   { 40 is old lstat  }
-     SYS_dup = 41;
-     SYS_pipe = 42;
-     SYS_getegid = 43;
-     SYS_profil = 44;
-     SYS_ktrace = 45;
-     SYS_sigaction = 46;
-     SYS_getgid = 47;
-     SYS_sigprocmask = 48;
-     SYS_getlogin = 49;
-     SYS_setlogin = 50;
-     SYS_acct = 51;
-     SYS_sigpending = 52;
-     SYS_sigaltstack = 53;
-     SYS_ioctl = 54;
-     SYS_reboot = 55;
-     SYS_revoke = 56;
-     SYS_symlink = 57;
-     SYS_readlink = 58;
-     SYS_execve = 59;
-     SYS_umask = 60;
-     SYS_chroot = 61;
+     sys_nr_dup = 41;
+     sys_nr_pipe = 42;
+     sys_nr_getegid = 43;
+     sys_nr_profil = 44;
+     sys_nr_ktrace = 45;
+     sys_nr_sigaction = 46;
+     sys_nr_getgid = 47;
+     sys_nr_sigprocmask = 48;
+     sys_nr_getlogin = 49;
+     sys_nr_setlogin = 50;
+     sys_nr_acct = 51;
+     sys_nr_sigpending = 52;
+     sys_nr_sigaltstack = 53;
+     sys_nr_ioctl = 54;
+     sys_nr_reboot = 55;
+     sys_nr_revoke = 56;
+     sys_nr_symlink = 57;
+     sys_nr_readlink = 58;
+     sys_nr_execve = 59;
+     sys_nr_umask = 60;
+     sys_nr_chroot = 61;
   { 62 is old fstat  }
   { 63 is unused  }
   { 64 is old getpagesize  }
-     SYS_msync = 65;
-     SYS_vfork = 66;
+     sys_nr_msync = 65;
+     sys_nr_vfork = 66;
   { 67 is obsolete vread  }
   { 68 is obsolete vwrite  }
-     SYS_sbrk = 69;
-     SYS_sstk = 70;
+     sys_nr_sbrk = 69;
+     sys_nr_sstk = 70;
   { 71 is old mmap  }
   { 72 is obsolete vadvise  }
-     SYS_munmap = 73;
-     SYS_mprotect = 74;
-     SYS_madvise = 75;
+     sys_nr_munmap = 73;
+     sys_nr_mprotect = 74;
+     sys_nr_madvise = 75;
   { 76 is obsolete vhangup  }
   { 77 is obsolete vlimit  }
-     SYS_mincore = 78;
-     SYS_getgroups = 79;
-     SYS_setgroups = 80;
-     SYS_getpgrp = 81;
-     SYS_setpgid = 82;
-     SYS_setitimer = 83;
+     sys_nr_mincore = 78;
+     sys_nr_getgroups = 79;
+     sys_nr_setgroups = 80;
+     sys_nr_getpgrp = 81;
+     sys_nr_setpgid = 82;
+     sys_nr_setitimer = 83;
   { 84 is old wait  }
-     SYS_swapon = 85;
-     SYS_getitimer = 86;
+     sys_nr_swapon = 85;
+     sys_nr_getitimer = 86;
   { 87 is old gethostname  }
   { 88 is old sethostname  }
-     SYS_getdtablesize = 89;
-     SYS_dup2 = 90;
-     SYS_fcntl = 92;
-     SYS_select = 93;
+     sys_nr_getdtablesize = 89;
+     sys_nr_dup2 = 90;
+     sys_nr_fcntl = 92;
+     sys_nr_select = 93;
   { 94 is obsolete setdopt  }
-     SYS_fsync = 95;
-     SYS_setpriority = 96;
-     SYS_socket = 97;
-     SYS_connect = 98;
+     sys_nr_fsync = 95;
+     sys_nr_setpriority = 96;
+     sys_nr_socket = 97;
+     sys_nr_connect = 98;
   { 99 is old accept  }
-     SYS_getpriority = 100;
+     sys_nr_getpriority = 100;
   { 101 is old send  }
   { 102 is old recv  }
-     SYS_sigreturn = 103;
-     SYS_bind = 104;
-     SYS_setsockopt = 105;
-     SYS_listen = 106;
+     sys_nr_sigreturn = 103;
+     sys_nr_bind = 104;
+     sys_nr_setsockopt = 105;
+     sys_nr_listen = 106;
   { 107 is obsolete vtimes  }
   { 108 is old sigvec  }
   { 109 is old sigblock  }
   { 110 is old sigsetmask  }
-     SYS_sigsuspend = 111;
+     sys_nr_sigsuspend = 111;
   { 112 is old sigstack  }
   { 113 is old recvmsg  }
   { 114 is old sendmsg  }
   { 115 is obsolete vtrace  }
-     SYS_gettimeofday = 116;
-     SYS_getrusage = 117;
-     SYS_getsockopt = 118;
+     sys_nr_gettimeofday = 116;
+     sys_nr_getrusage = 117;
+     sys_nr_getsockopt = 118;
   { 119 is obsolete resuba  }
-     SYS_readv = 120;
-     SYS_writev = 121;
-     SYS_settimeofday = 122;
-     SYS_fchown = 123;
-     SYS_fchmod = 124;
+     sys_nr_readv = 120;
+     sys_nr_writev = 121;
+     sys_nr_settimeofday = 122;
+     sys_nr_fchown = 123;
+     sys_nr_fchmod = 124;
   { 125 is old recvfrom  }
   { 126 is old setreuid  }
   { 127 is old setregid  }
-     SYS_rename = 128;
+     sys_nr_rename = 128;
   { 129 is old truncate  }
   { 130 is old ftruncate  }
-     SYS_flock = 131;
-     SYS_mkfifo = 132;
-     SYS_sendto = 133;
-     SYS_shutdown = 134;
-     SYS_socketpair = 135;
-     SYS_mkdir = 136;
-     SYS_rmdir = 137;
-     SYS_utimes = 138;
+     sys_nr_flock = 131;
+     sys_nr_mkfifo = 132;
+     sys_nr_sendto = 133;
+     sys_nr_shutdown = 134;
+     sys_nr_socketpair = 135;
+     sys_nr_mkdir = 136;
+     sys_nr_rmdir = 137;
+     sys_nr_utimes = 138;
   { 139 is unused  }
-     SYS_adjtime = 140;
+     sys_nr_adjtime = 140;
   { 141 is old getpeername  }
   { 142 is old gethostid  }
   { 143 is old sethostid  }
   { 144 is old getrlimit  }
   { 145 is old setrlimit  }
   { 146 is old killpg  }
-     SYS_setsid = 147;
+     sys_nr_setsid = 147;
   { 148 is obsolete setquota  }
   { 149 is obsolete quota  }
   { 150 is old getsockname  }
   { 151 is reserved  }
-     SYS_setprivexec = 152;
+     sys_nr_setprivexec = 152;
   { 153 is reserved  }
   { 154 is reserved  }
-     SYS_nfssvc = 155;
+     sys_nr_nfssvc = 155;
   { 156 is old getdirentries  }
-     SYS_statfs = 157;
-     SYS_fstatfs = 158;
-     SYS_unmount = 159;
+     sys_nr_statfs = 157;
+     sys_nr_fstatfs = 158;
+     sys_nr_unmount = 159;
   { 160 is obsolete async_daemon  }
-     SYS_getfh = 161;
+     sys_nr_getfh = 161;
   { 162 is old getdomainname  }
   { 163 is old setdomainname  }
   { 164 is obsolete pcfs_mount  }
-     SYS_quotactl = 165;
+     sys_nr_quotactl = 165;
   { 166 is obsolete exportfs	 }
-     SYS_mount = 167;
+     sys_nr_mount = 167;
   { 168 is obsolete ustat  }
   { 169 is unused  }
-     SYS_table = 170;
+     sys_nr_table = 170;
   { 171 is old wait_3  }
   { 172 is obsolete rpause  }
   { 173 is unused  }
   { 174 is obsolete getdents  }
-     SYS_gc_control = 175;
-     SYS_add_profil = 176;
+     sys_nr_gc_control = 175;
+     sys_nr_add_profil = 176;
   { 177 is unused  }
   { 178 is unused  }
   { 179 is unused  }
-     SYS_kdebug_trace = 180;
-     SYS_setgid = 181;
-     SYS_setegid = 182;
-     SYS_seteuid = 183;
-     SYS_lfs_bmapv = 184;
-     SYS_lfs_markv = 185;
-     SYS_lfs_segclean = 186;
-     SYS_lfs_segwait = 187;
-     SYS_stat = 188;
-     SYS_fstat = 189;
-     SYS_lstat = 190;
-     SYS_pathconf = 191;
-     SYS_fpathconf = 192;
+     sys_nr_kdebug_trace = 180;
+     sys_nr_setgid = 181;
+     sys_nr_setegid = 182;
+     sys_nr_seteuid = 183;
+     sys_nr_lfs_bmapv = 184;
+     sys_nr_lfs_markv = 185;
+     sys_nr_lfs_segclean = 186;
+     sys_nr_lfs_segwait = 187;
+     sys_nr_stat = 188;
+     sys_nr_fstat = 189;
+     sys_nr_lstat = 190;
+     sys_nr_pathconf = 191;
+     sys_nr_fpathconf = 192;
 {$if COMPAT_GETFSSTAT}
 
   const
-     SYS_getfsstat = 193;
+     sys_nr_getfsstat = 193;
 {$endif}
 
   const
-     SYS_getrlimit = 194;
-     SYS_setrlimit = 195;
-     SYS_getdirentries = 196;
-     SYS_mmap = 197;
-     SYS___syscall = 198;
-     SYS_lseek = 199;
-     SYS_truncate = 200;
-     SYS_ftruncate = 201;
-     SYS___sysctl = 202;
-     SYS_mlock = 203;
-     SYS_munlock = 204;
-     SYS_undelete = 205;
-     SYS_ATsocket = 206;
-     SYS_ATgetmsg = 207;
-     SYS_ATputmsg = 208;
-     SYS_ATPsndreq = 209;
-     SYS_ATPsndrsp = 210;
-     SYS_ATPgetreq = 211;
-     SYS_ATPgetrsp = 212;
+     sys_nr_getrlimit = 194;
+     sys_nr_setrlimit = 195;
+     sys_nr_getdirentries = 196;
+     sys_nr_mmap = 197;
+     sys_nr___syscall = 198;
+     sys_nr_lseek = 199;
+     sys_nr_truncate = 200;
+     sys_nr_ftruncate = 201;
+     sys_nr___sysctl = 202;
+     sys_nr_mlock = 203;
+     sys_nr_munlock = 204;
+     sys_nr_undelete = 205;
+     sys_nr_ATsocket = 206;
+     sys_nr_ATgetmsg = 207;
+     sys_nr_ATputmsg = 208;
+     sys_nr_ATPsndreq = 209;
+     sys_nr_ATPsndrsp = 210;
+     sys_nr_ATPgetreq = 211;
+     sys_nr_ATPgetrsp = 212;
   { 213-215 are reserved for AppleTalk  }
-     SYS_mkcomplex = 216;
-     SYS_statv = 217;
-     SYS_lstatv = 218;
-     SYS_fstatv = 219;
-     SYS_getattrlist = 220;
-     SYS_setattrlist = 221;
-     SYS_getdirentriesattr = 222;
-     SYS_exchangedata = 223;
-     SYS_checkuseraccess = 224;
-     SYS_searchfs = 225;
+     sys_nr_mkcomplex = 216;
+     sys_nr_statv = 217;
+     sys_nr_lstatv = 218;
+     sys_nr_fstatv = 219;
+     sys_nr_getattrlist = 220;
+     sys_nr_setattrlist = 221;
+     sys_nr_getdirentriesattr = 222;
+     sys_nr_exchangedata = 223;
+     sys_nr_checkuseraccess = 224;
+     sys_nr_searchfs = 225;
   { 226 - 230 are reserved for HFS expansion  }
   { 231 - 249 are reserved   }
-     SYS_minherit = 250;
-     SYS_semsys = 251;
-     SYS_msgsys = 252;
-     SYS_shmsys = 253;
-     SYS_semctl = 254;
-     SYS_semget = 255;
-     SYS_semop = 256;
-     SYS_semconfig = 257;
-     SYS_msgctl = 258;
-     SYS_msgget = 259;
-     SYS_msgsnd = 260;
-     SYS_msgrcv = 261;
-     SYS_shmat = 262;
-     SYS_shmctl = 263;
-     SYS_shmdt = 264;
-     SYS_shmget = 265;
-     SYS_shm_open = 266;
-     SYS_shm_unlink = 267;
-     SYS_sem_open = 268;
-     SYS_sem_close = 269;
-     SYS_sem_unlink = 270;
-     SYS_sem_wait = 271;
-     SYS_sem_trywait = 272;
-     SYS_sem_post = 273;
-     SYS_sem_getvalue = 274;
-     SYS_sem_init = 275;
-     SYS_sem_destroy = 276;
+     sys_nr_minherit = 250;
+     sys_nr_semsys = 251;
+     sys_nr_msgsys = 252;
+     sys_nr_shmsys = 253;
+     sys_nr_semctl = 254;
+     sys_nr_semget = 255;
+     sys_nr_semop = 256;
+     sys_nr_semconfig = 257;
+     sys_nr_msgctl = 258;
+     sys_nr_msgget = 259;
+     sys_nr_msgsnd = 260;
+     sys_nr_msgrcv = 261;
+     sys_nr_shmat = 262;
+     sys_nr_shmctl = 263;
+     sys_nr_shmdt = 264;
+     sys_nr_shmget = 265;
+     sys_nr_shm_open = 266;
+     sys_nr_shm_unlink = 267;
+     sys_nr_sem_open = 268;
+     sys_nr_sem_close = 269;
+     sys_nr_sem_unlink = 270;
+     sys_nr_sem_wait = 271;
+     sys_nr_sem_trywait = 272;
+     sys_nr_sem_post = 273;
+     sys_nr_sem_getvalue = 274;
+     sys_nr_sem_init = 275;
+     sys_nr_sem_destroy = 276;
   { 277 - 295 are reserved   }
-     SYS_load_shared_file = 296;
-     SYS_reset_shared_file = 297;
+     sys_nr_load_shared_file = 296;
+     sys_nr_reset_shared_file = 297;
   { 298 - 323 are reserved   }
-     SYS_mlockall = 324;
-     SYS_munlockall = 325;
+v     sys_nr_mlockall = 324;
+     sys_nr_munlockall = 325;
   { 326 is reserved  }
-     SYS_issetugid = 327;
+     sys_nr_issetugid = 327;
 
 {
   $Log$
-  Revision 1.1  2002-09-06 17:12:55  jonas
+  Revision 1.2  2002-09-06 18:35:59  jonas
+    * implemented most syscalls, except readdir because the getdents
+      syscall is declared obsolete in Darwin...
+
+  Revision 1.1  2002/09/06 17:12:55  jonas
     + initial implementation, h2pas of /usr/include/sys/syscall.h on a
       Mac OS X 10.1.5 machine
 
