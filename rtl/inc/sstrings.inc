@@ -40,7 +40,7 @@ begin
   if index>length(s) then
    count:=0
   else
-   if index+count>length(s) then
+   if count>length(s)-index then
     count:=length(s)-index;
   Copy[0]:=chr(Count);
   Move(s[Index+1],Copy[1],Count);
@@ -56,7 +56,7 @@ begin
    end;
   if (Index<=Length(s)) and (Count>0) then
    begin
-     if Count+Index>length(s) then
+     if Count>length(s)-Index then
       Count:=length(s)-Index+1;
      s[0]:=Chr(length(s)-Count);
      if Index<=Length(s) then
@@ -553,7 +553,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  2000-11-17 17:01:23  jonas
+  Revision 1.7  2000-11-23 11:41:56  jonas
+    * fix for web bug 1265 by Peter (merged)
+
+  Revision 1.6  2000/11/17 17:01:23  jonas
     * fixed bug for val when processing -2147483648 and low(int64) (merged)
 
   Revision 1.5  2000/11/06 20:34:24  peter
