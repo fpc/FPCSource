@@ -473,7 +473,7 @@
       begin
          tdef.load;
          deftype:=stringdef;
-         string_typ:=st_ansistring;
+         string_typ:=st_widestring;
          len:=readlong;
          savesize:=sizeof(pointer);
       end;
@@ -2956,7 +2956,13 @@
 
 {
   $Log$
-  Revision 1.40  1998-09-09 15:34:00  peter
+  Revision 1.41  1998-09-15 17:39:30  jonas
+    + bugfix from bugfix branch
+
+  Revision 1.40.2.1  1998/09/15 17:35:32  jonas
+    * chenged string_typ in tstringdef.wideload from ansistring to widestring
+
+  Revision 1.40  1998/09/09 15:34:00  peter
     * removed warnings
 
   Revision 1.39  1998/09/08 10:23:44  pierre
