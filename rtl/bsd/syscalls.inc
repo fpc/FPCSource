@@ -76,7 +76,7 @@ end;
 }
 
 {$PACKRECORDS C}
-
+{
 TYPE timeval=RECORD
 	      tv_sec,
 	      tv_used : int64;
@@ -86,7 +86,7 @@ TYPE timeval=RECORD
 	      tz_dsttime   : LONGINT;
               END;
 
-
+}
 function checkreturnvalue(retval:LONGINT;value:LONGINT):LONGINT;
 
 begin
@@ -109,9 +109,9 @@ VAR tv : timeval;
     retval : longint;
 begin
   asm
-   lea   tv,%ebx
+   lea   tz,%ebx
    pushl %ebx
-   lea   tz,%ecx
+   lea   tv,%ecx
    pushl %ecx
    mov   $116,%eax
    int   $0x80
@@ -119,7 +119,7 @@ begin
    mov   %eax,retval
   end;
   
- sys_time:=checkreturnvalue(retval,tv.tv_sec);
+ sys_time:=checkreturnvalue(retval,tv.sec);
 end;
 
 {*****************************************************************************
@@ -133,12 +133,12 @@ var retval: LONGINT;
 
 Begin
  asm 
-   pushl mode
+   pushw mode
    pushl flags
    pushl f
    movl  $5,%eax
    int   $0x80
-   add   $12,%esp
+   add   $10,%esp
    mov   %eax,retval
   end;
  sys_open:=checkreturnvalue(retval,retval);
@@ -327,7 +327,7 @@ begin
     addl  $4,%eax
     mov   %eax,retval
   end;   
- Sys_ChDir:=checkreturnvalue(retval,retval);
+ Sys_RmDir:=checkreturnvalue(retval,retval);
 end;
 
 { we need this for getcwd, NOT touched for BSD version }
@@ -393,7 +393,7 @@ end;
         --- Process:Process & program handling - related calls ---
 *****************************************************************************}
 
-Procedure Sys_Exit(ExitCode:Integer);
+Procedure Sys_Exit(ExitCode:longint);
 
 var retval : longint;
 
@@ -405,12 +405,15 @@ begin
     addl  $4,%eax
     mov   %eax,retval
   end;   
- Sys_Exit:=checkreturnvalue(retval,retval);
+ checkreturnvalue(retval,retval); {is nonsense :-)}
 end;
 
 {
   $Log$
-  Revision 1.3  2000-02-02 18:07:27  marco
+  Revision 1.4  2000-02-03 17:04:47  marco
+   * additions fixes due to port linux
+
+  Revision 1.3  2000/02/02 18:07:27  marco
    * Ported except for readdir which is 200 lines C code in FBSD linux
   	emulator
 
