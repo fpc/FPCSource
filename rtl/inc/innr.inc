@@ -83,6 +83,7 @@ const
    in_ln_extended      = 126;
    in_sin_extended     = 127;
    in_const_swap_qword = 128;
+   in_prefetch_var      = 129;
 
 { MMX functions }
 { these contants are used by the mmx unit }
@@ -101,7 +102,10 @@ const
 
 {
   $Log$
-  Revision 1.5  2002-11-18 18:33:51  peter
+  Revision 1.6  2004-02-02 20:39:27  florian
+    + added prefetch(const mem)
+
+  Revision 1.5  2002/11/18 18:33:51  peter
     * Swap(QWord) constant support
 
   Revision 1.4  2002/09/07 15:07:45  peter

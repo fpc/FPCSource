@@ -383,6 +383,7 @@ function  CompareDWord(const buf1,buf2;len:longint):longint;
 procedure MoveChar0(const buf1;var buf2;len:longint);
 function  IndexChar0(const buf;len:longint;b:char):longint;
 function  CompareChar0(const buf1,buf2;len:longint):longint;
+procedure prefetch(const mem);
 
 
 {****************************************************************************
@@ -721,7 +722,10 @@ const
 
 {
   $Log$
-  Revision 1.83  2004-01-26 11:48:24  florian
+  Revision 1.84  2004-02-02 20:39:27  florian
+    + added prefetch(const mem)
+
+  Revision 1.83  2004/01/26 11:48:24  florian
     * compilation on arm fixed
 
   Revision 1.82  2004/01/20 23:13:53  hajny

@@ -55,7 +55,7 @@ var
 begin
   if count <= 0 then exit;
   v := 0;
-  { aligned? }  
+  { aligned? }
   if (PtrUInt(@x) mod sizeof(PtrUInt))<>0 then
     begin
       for i:=0 to count-1 do
@@ -1062,6 +1062,8 @@ procedure inclocked(var l:longint);
 {_$error Sptr must be defined for each processor }
 {$endif ndef FPC_SYSTEM_HAS_SPTR}
 
+procedure prefetch(const mem);[internproc:in_prefetch_var];
+
 {****************************************************************************
                                  Str()
 ****************************************************************************}
@@ -1137,7 +1139,10 @@ end;
 
 {
   $Log$
-  Revision 1.68  2004-01-31 16:14:24  florian
+  Revision 1.69  2004-02-02 20:39:27  florian
+    + added prefetch(const mem)
+
+  Revision 1.68  2004/01/31 16:14:24  florian
     * alignment handling of generic fillbyte/word fixed
 
   Revision 1.66  2004/01/21 01:25:02  florian
