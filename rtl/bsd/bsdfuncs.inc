@@ -21,6 +21,15 @@
 {$i bsdsysch.inc}	// external interface to syscalls in system unit.
 {$i posixunx.inc}	// generic calls. (like getenv)
 
+Const 			// OS specific parameters for general sigset behaviour
+   SIG_MAXSIG      = 128;	// highest signal version
+   wordsinsigset   = 4;		// words in sigset_t
+   ln2bitsinword   = 5;         { 32bit : ln(32)/ln(2)=5 } 
+
+   ln2bitmask	   = 2 shl ln2bitsinword - 1;
+
+{$I gensigset.inc}     // general sigset funcs implementation. 
+
 Function sys_Kill(Pid:pid_t;Sig:cint):cint;
 {
   Send signal 'sig' to a process, or a group of processes.
@@ -36,69 +45,6 @@ begin
 // if kill<0 THEN
 //  Kill:=0;
 end;
-
-Const 
-   SIG_MAXSIG      = 128;
-   wordsinsigset   = 4;
-   ln2bitsinword   = 5;    { 32bit : ln(32)/ln(2)=5 } 
-
-   ln2bitmask	   = 2 shl ln2bitsinword -1;
-   
-function sys_sigaddset(var _set : sigset_t;signo:cint): cint;
-
-Begin
-   if (signo<=0) or (signo > SIG_MAXSIG) Then
-     Begin
-       seterrno(sys_EINVAL);
-       exit(-1);
-     End;
-   _set[(signo-1) shr ln2bitsinword]:=_set[(signo-1) shr ln2bitsinword] OR (1 shl ((signo-1) and ln2bitmask));
-   sys_sigaddset:=0;
-End;   
-
-function sys_sigdelset(var _set : sigset_t;signo:cint): cint;
-
-Begin
-   if (signo<=0) or (signo > SIG_MAXSIG) Then
-     Begin
-       seterrno(sys_EINVAL);
-       exit(-1);
-     End;
-   _set[(signo-1) shr ln2bitsinword]:=_set[(signo-1) shr ln2bitsinword] AND NOT (1 shl ((signo-1) and ln2bitmask));
-   sys_sigdelset:=0;
-End;
-
-function sys_sigemptyset(var _set : sigset_t):cint;
-
-var i :longint;
-
-Begin
-  for i:=0 to wordsinsigset-1 DO _set[i]:=0;
-  sys_sigemptyset:=0;
-End;
-
-function sys_sigfillset(var _set : sigset_t):cint;
-
-var i :longint;
-
-Begin
-  for i:=0 to wordsinsignset DO _set[i]:=NOT 0;
-  sys_sigfillset:=0;
-End;
-
-function sys_sigismember(const _set : sigset_t;signo:cint): cint;
-
-Begin
-   if (signo<=0) or (signo > SIG_MAXSIG) Then
-     Begin
-       seterrno(sys_EINVAL);
-       exit(-1);
-     End;
-    if ((_set[(signo-1) shr ln2bitsinword]) and (1 shl ((signo-1) and ln2bitmask)))>0 Then
-     sys_sigismember:=1
-    else 
-     sys_sigismember:=0;
-End;      
 
 function sys_SigProcMask(how:cint;var _set : sigset_t; var _oset : sigset_t):cint;
 {
@@ -515,7 +461,10 @@ end;
 
 {
  $Log$
- Revision 1.9  2002-11-13 18:15:08  marco
+ Revision 1.10  2002-11-14 12:34:20  marco
+  * took out the generic sethandling.
+
+ Revision 1.9  2002/11/13 18:15:08  marco
   * sigset functions more flexible, small changes to sys_time
 
  Revision 1.8  2002/10/27 17:21:29  marco
