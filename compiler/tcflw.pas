@@ -321,6 +321,7 @@ implementation
          if assigned(p^.left) then
            begin
               firstpass(p^.left);
+              procinfo.funcret_is_valid:=true;
               if codegenerror then
                exit;
               { Check the 2 types }
@@ -491,7 +492,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  1999-08-23 23:41:45  pierre
+  Revision 1.18  1999-09-16 10:44:30  pierre
+   * firstexit must now set procinfo.funcret_is_valid
+
+  Revision 1.17  1999/08/23 23:41:45  pierre
    * for reg allocation corrected
 
   Revision 1.16  1999/08/05 16:53:20  peter
@@ -560,4 +564,3 @@ end.
     * splitted pass_1
 
 }
-
