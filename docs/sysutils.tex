@@ -1524,7 +1524,8 @@ to contain \var{Source}.
 \seefl{StrPLCopy}{StrPLCopySys}, \seef{StrPCopy}
 \end{functionl}
 
- 
+For an example, see \seef{StrPCopy}.
+
 \begin{functionl}{StrPLCopy}{StrPLCopySys}
 \Declaration
 Function StrPLCopy(Dest: PChar; Source: string; MaxLen: cardinal): PChar;
@@ -1541,6 +1542,9 @@ to contain L characters of \var{Source}.
 \seefl{StrPCopy}{StrPCopySys}.
 \end{functionl}
 
+
+For an example, see \seef{StrPLCopy}.
+
  
 \begin{functionl}{StrPas}{StrPasSys}
 \Declaration
@@ -1554,174 +1558,382 @@ None.
 \seef{StrPas}.
 \end{functionl}
 
+For an example, see \seef{StrPas}.
+
 \section{String handling functions}
 
 \begin{function}{AdjustLineBreaks}
 \Declaration
 Function AdjustLineBreaks(const S: string): string;
 \Description
+\var{AdjustLineBreaks} will change all \var{\#13} characters with
+\var{\#13\#10} on \windowsnt and \dos. On \linux, all \var{\#13\#10}
+character pairs are converted to \var{#10} and single \var{\#13}
+characters also.
 \Errors
+None.
 \SeeAlso
+\seef{AnsiCompareStr}, \seef{AnsiCompareText}
 \end{function}
 
+\latex{\inputlisting{sysutex/ex48.pp}}
+\html{\input{sysutex/ex48.tex}}
  
 \begin{function}{AnsiCompareStr}
 \Declaration
 Function AnsiCompareStr(const S1, S2: string): integer;
 \Description
+\var{AnsiCompareStr} compares two strings and returns the following
+result:
+\begin{description}
+\item[<0]  if \var{S1<S2}.
+\item[0]  if \var{S1=S2}.
+\item[>0] if \var{S1>S2}.
+\end{description}
+the comparision takes into account Ansi characters, i.e. it takes
+care of strange accented characters. Contrary to \seef{CompareAnsiText}, 
+the comparision is case sensitive.
 \Errors
+None.
 \SeeAlso
+\seef{AdjustLineBreaks}, \seef{AnsiCompareText}
 \end{function}
 
+\latex{\inputlisting{sysutex/ex49.pp}}
+\html{\input{sysutex/ex49.tex}}
  
 \begin{function}{AnsiCompareText}
 \Declaration
 Function AnsiCompareText(const S1, S2: string): integer;
 \Description
+\Description
+\var{AnsiCompareText} compares two strings and returns the following
+result:
+\begin{description}
+\item[<0]  if \var{S1<S2}.
+\item[0]  if \var{S1=S2}.
+\item[>0] if \var{S1>S2}.
+\end{description}
+the comparision takes into account Ansi characters, i.e. it takes
+care of strange accented characters. Contrary to \seef{CompareAnsiStr}, 
+the comparision is case insensitive.
 \Errors
+None.
 \SeeAlso
+\seef{AdjustLineBreaks}, \seef{AnsiCompareText}
 \end{function}
 
- 
+\latex{\inputlisting{sysutex/ex50.pp}}
+\html{\input{sysutex/ex50.tex}}
+
 \begin{function}{AnsiExtractQuotedStr}
 \Declaration
 Function AnsiExtractQuotedStr(var Src: PChar; Quote: Char): string;
 \Description
+\var{AnsiExtractQuotedStr} Returns \var{Src} as a string,, with \var{Quute} 
+characters removed from the beginning and end of the string, and double 
+\var{Quote} characters replaced by a single \var{Quote} characters. 
+As such, it revereses the action of \seef{AnsiQuotedStr}.
 \Errors
+None.
 \SeeAlso
+\seef{AnsiQuotedStr}
 \end{function}
 
+\latex{\inputlisting{sysutex/ex51.pp}}
+\html{\input{sysutex/ex51.tex}}
  
 \begin{function}{AnsiLastChar}
 \Declaration
 Function AnsiLastChar(const S: string): PChar;
 \Description
+This function returns a pointer to the last character of \var{S}.
+Since multibyte characters are not yet supported, this is the same
+as \var{@S[Length(S)])}.
 \Errors
+None.
 \SeeAlso
+\seef{AnsiStrLastChar}
 \end{function}
 
+\latex{\inputlisting{sysutex/ex52.pp}}
+\html{\input{sysutex/ex52.tex}}
  
 \begin{function}{AnsiLowerCase}
 \Declaration
 Function AnsiLowerCase(const s: string): string;
 \Description
+\var{AnsiLowerCase} converts the string \var{S} to lowercase characters 
+and returns the resulting string. 
+It takes into account the operating system language
+settings when doing this, so spcial characters are converted correctly as
+well.
+
+{\em Remark} On linux, no language setting is taken in account yet.
 \Errors
+None.
 \SeeAlso
+\seef{AnsiUpperCase}, \seef{AnsiStrLower}, \seef{AnsiStrUpper}
 \end{function}
 
+\latex{\inputlisting{sysutex/ex53.pp}}
+\html{\input{sysutex/ex53.tex}}
  
 \begin{function}{AnsiQuotedStr}
 \Declaration
 Function AnsiQuotedStr(const S: string; Quote: char): string;
 \Description
+\var{AnsiQuotedString} quotes the string \var{S} and returns the result.
+This means that it puts the \var{Quote} character at both the beginning and
+end of the string and replaces any occurrence of \var{Quote} in \var{S} 
+with 2 \var{Quote} characters. The action of \var{AnsiQuotedString} can be
+reversed by \seef{AnsiExtractQuotedStr}.
 \Errors
+None.
 \SeeAlso
+\seef{AnsiExtractQuotedStr}
 \end{function}
 
+For an example, see \seef{AnsiExtractQuotedStr}
  
 \begin{function}{AnsiStrComp}
 \Declaration
 Function AnsiStrComp(S1, S2: PChar): integer;
 \Description
+\var{AnsiStrComp} compares 2 \var{PChar} strings, and returns the following
+result:
+\begin{description}
+\item[<0]  if \var{S1<S2}.
+\item[0]  if \var{S1=S2}.
+\item[>0]  if \var{S1>S2}.
+\end{description}
+The comparision of the two strings is case-sensitive.
+The function does not yet take internationalization settings into account.
 \Errors
+None.
 \SeeAlso
+\seef{AnsiCompareText}, \seef{AnsiCompareStr}
 \end{function}
 
+\latex{\inputlisting{sysutex/ex54.pp}}
+\html{\input{sysutex/ex54.tex}}
  
 \begin{function}{AnsiStrIComp}
 \Declaration
 Function AnsiStrIComp(S1, S2: PChar): integer;
 \Description
+\var{AnsiStrIComp} compares 2 \var{PChar} strings, and returns the following
+result:
+\begin{description}
+\item[<0]  if \var{S1<S2}.
+\item[0]  if \var{S1=S2}.
+\item[>0]  if \var{S1>S2}.
+\end{description}
+The comparision of the two strings is case-insensitive.
+The function does not yet take internationalization settings into account.
 \Errors
+None.
 \SeeAlso
+\seef{AnsiCompareText}, \seef{AnsiCompareStr}
 \end{function}
 
- 
+\latex{\inputlisting{sysutex/ex55.pp}}
+\html{\input{sysutex/ex55.tex}}
+
+\begin{function}{AnsiStrLastChar}
+\Declaration
+function AnsiStrLastChar(Str: PChar): PChar;
+\Declaration
+\var{AnsiStrLastChar} returns a pointer to the last character of \var{Str}.
+Since multibyte characters are not yet supported, this is the same
+as \var{StrEnd(Str)-1}.
+\Errors
+None.
+\SeeAlso
+\seef{AnsiLastChar}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex58.pp}}
+\html{\input{sysutex/ex58.tex}}
+
 \begin{function}{AnsiStrLComp}
 \Declaration
 Function AnsiStrLComp(S1, S2: PChar; MaxLen: cardinal): integer;
 \Description
+\var{AnsiStrLComp} compares the first \var{Maxlen} characters of
+2 \var{PChar} strings, \var{S1} and \var{S2}, and returns the following
+result:
+\begin{description}
+\item[<0]  if \var{S1<S2}.
+\item[0]  if \var{S1=S2}.
+\item[>0]  if \var{S1>S2}.
+\end{description}
+The comparision of the two strings is case-sensitive.
+The function does not yet take internationalization settings into account.
 \Errors
+None.
 \SeeAlso
+\seef{AnsiCompareText}, \seef{AnsiCompareStr}
 \end{function}
 
- 
+\latex{\inputlisting{sysutex/ex56.pp}}
+\html{\input{sysutex/ex56.tex}}
+
 \begin{function}{AnsiStrLIComp}
 \Declaration
 Function AnsiStrLIComp(S1, S2: PChar; MaxLen: cardinal): integer;
 \Description
+\var{AnsiStrLIComp} compares the first \var{Maxlen} characters of
+2 \var{PChar} strings, \var{S1} and \var{S2}, and returns the following
+result:
+\begin{description}
+\item[<0]  if \var{S1<S2}.
+\item[0]  if \var{S1=S2}.
+\item[>0]  if \var{S1>S2}.
+\end{description}
+The comparision of the two strings is case-insensitive.
+The function does not yet take internationalization settings into account.
 \Errors
+None.
 \SeeAlso
+\seef{AnsiCompareText}, \seef{AnsiCompareStr}
 \end{function}
-
  
-\begin{function}{AnsiStrLast}
-\Declaration
-Function AnsiStrLast(Str: PChar): PChar;
-\Description
-\Errors
-\SeeAlso
-\end{function}
+\latex{\inputlisting{sysutex/ex57.pp}}
+\html{\input{sysutex/ex57.tex}}
 
- 
-\begin{function}{CharAnsiStrLower}
+
+
+\begin{function}{AnsiStrLower}
 \Declaration
 Function AnsiStrLower(Str: PChar): PChar;
 \Description
+\var{AnsiStrLower} converts the PChar \var{Str} to lowercase characters 
+and returns the resulting pchar. Note that \var{Str} itself is modified,
+not a copy, as in the case of \seef{AnsiLowerCase}.
+It takes into account the operating system language
+settings when doing this, so spcial characters are converted correctly as
+well.
+
+{\em Remark} On linux, no language setting is taken in account yet.
+\Errors
+None.
+\SeeAlso
+\seef{AnsiStrUpper}, \seef{AnsiLowercase}
+\end{function}
 \Errors
 \SeeAlso
 \end{function}
 
+\latex{\inputlisting{sysutex/ex59.pp}}
+\html{\input{sysutex/ex59.tex}}
  
 \begin{function}{AnsiStrUpper}
 \Declaration
 Function AnsiStrUpper(Str: PChar): PChar;
 \Description
+\var{AnsiStrUpper} converts the \var{PChar} \var{Str} to uppercase characters 
+and returns the resulting string. Note that \var{Str} itself is modified,
+not a copy, as in the case of \seef{AnsiUpperCase}.
+It takes into account the operating system language
+settings when doing this, so spcial characters are converted correctly as
+well.
+
+{\em Remark} On linux, no language setting is taken in account yet.
 \Errors
+None.
 \SeeAlso
+\seef{AnsiUpperCase}, \seef{AnsiStrLower}, \seef{AnsiLowerCase}
 \end{function}
 
+\latex{\inputlisting{sysutex/ex60.pp}}
+\html{\input{sysutex/ex60.tex}}
  
 \begin{function}{AnsiUpperCase}
 \Declaration
 Function AnsiUpperCase(const s: string): string;
 \Description
+\var{AnsiUpperCase} converts the string \var{S} to uppercase characters 
+and returns the resulting string. 
+It takes into account the operating system language
+settings when doing this, so spcial characters are converted correctly as
+well.
+
+{\em Remark} On linux, no language setting is taken in account yet.
 \Errors
+None.
 \SeeAlso
+\seef{AnsiStrUpper}, \seef{AnsiStrLower}, \seef{AnsiLowerCase}
 \end{function}
 
+\latex{\inputlisting{sysutex/ex61.pp}}
+\html{\input{sysutex/ex61.tex}}
  
 \begin{procedure}{AppendStr}
 \Declaration
-Procedure AppendStr(var Dest: PString; const S: string);
+Procedure AppendStr(var Dest: String; const S: string);
 \Description
+\var{AppendStr} appends \var{S} to Dest. 
+
+This function is provided for Delphi
+compatibility only, since it is completely equivalent to \var{Dest:=Dest+S}.
 \Errors
+None.
 \SeeAlso
+\seep{AssignStr},\seef{NewStr}, \seep{DisposeStr}
 \end{procedure}
 
+\latex{\inputlisting{sysutex/ex62.pp}}
+\html{\input{sysutex/ex62.tex}}
  
 \begin{procedure}{AssignStr}
 \Declaration
 Procedure AssignStr(var P: PString; const S: string);
 \Description
+\var{AssignStr} allocates \var{S} to P. The old value of \var{P} is
+disposed of.
+
+This function is provided for Delphi compatibility only. \var{AnsiStrings}
+are managed on the heap and should be preferred to the mechanism of
+dynamically allocated strings.
 \Errors
+None.
 \SeeAlso
+\seef{NewStr}, \seep{AppendStr}, \seep{DisposeStr}
 \end{procedure}
 
+\latex{\inputlisting{sysutex/ex63.pp}}
+\html{\input{sysutex/ex63.tex}}
  
 \begin{function}{BCDToInt}
 \Declaration
 Function BCDToInt(Value: integer): integer;
 \Description
+\var{BCDToInt} converts a \var{BCD} coded integer to a normal integer.
 \Errors
+None.
 \SeeAlso
+\seef{StrToInt}, \seef{IntToStr}
 \end{function}
+
+\latex{\inputlisting{sysutex/ex64.pp}}
+\html{\input{sysutex/ex64.tex}}
 
  
 \begin{function}{CompareMem}
 \Declaration
 Function CompareMem(P1, P2: Pointer; Length: cardinal): integer;
 \Description
+\var{CompareMem} compares, byte by byte,  2 memory areas pointed 
+to by \var{P1} and \var{P2}, for a length of \var{L} bytes. 
+
+It returns the following values:
+\begin{description}
+\item[<0] if at some position the byte at \var{P1} is less than the byte at the
+same postion at \var{P2}.
+\item[0] if all \var{L} bytes are the same.
+\item[3]
+\end{description}
 \Errors
 \SeeAlso
 \end{function}
@@ -1731,8 +1943,21 @@ Function CompareMem(P1, P2: Pointer; Length: cardinal): integer;
 \Declaration
 Function CompareStr(const S1, S2: string): Integer;
 \Description
+\var{CompareStr} compares two strings, \var{S1} and \var{S2}, 
+and returns the following
+result:
+\begin{description}
+\item[<0]  if \var{S1<S2}.
+\item[0]  if \var{S1=S2}.
+\item[>0]  if \var{S1>S2}.
+\end{description}
+The comparision of the two strings is case-sensitive.
+The function does not take internationalization settings into account, it
+simply compares ASCII values.
 \Errors
+None.
 \SeeAlso
+\seef{AnsiCompareText}, \seef{AnsiCompareStr}, \seef{CompareText}
 \end{function}
 
  
@@ -1740,8 +1965,21 @@ Function CompareStr(const S1, S2: string): Integer;
 \Declaration
 Function CompareText(const S1, S2: string): integer;
 \Description
+\var{CompareText} compares two strings, \var{S1} and \var{S2}, 
+and returns the following
+result:
+\begin{description}
+\item[<0]  if \var{S1<S2}.
+\item[0]  if \var{S1=S2}.
+\item[>0]  if \var{S1>S2}.
+\end{description}
+The comparision of the two strings is case-insensitive.
+The function does not take internationalization settings into account, it
+simply compares ASCII values.
 \Errors
+None.
 \SeeAlso
+\seef{AnsiCompareText}, \seef{AnsiCompareStr}, \seef{CompareStr}
 \end{function}
 
  
@@ -1749,8 +1987,16 @@ Function CompareText(const S1, S2: string): integer;
 \Declaration
 Procedure DisposeStr(S: PString);
 \Description
+\var{DisposeStr} removes the dynamically allocated string \var{S} from the
+heap, and releases the occupied memory.
+
+This function is provided for Delphi compatibility only. \var{AnsiStrings}
+are managed on the heap and should be preferred to the mechanism of
+dynamically allocated strings.
 \Errors
+None.
 \SeeAlso
+\seef{NewStr}, \seep{AppendStr}, \seep{AssignStr}
 \end{procedurel}
 
  
