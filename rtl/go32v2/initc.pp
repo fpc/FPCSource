@@ -32,10 +32,10 @@ implementation
      simple_proc = procedure;
   var
      first_ctor : longint;external name 'djgpp_first_ctor';
-     ctor       : array [0..maxlongint div sizeof(simple_proc)] of simple_proc;external name 'djgpp_first_ctor';
+     ctor       : array [0..maxlongint div sizeof(simple_proc)-1] of simple_proc;external name 'djgpp_first_ctor';
      last_ctor  : longint;external name 'djgpp_last_ctor';
      first_dtor : longint;external name 'djgpp_first_dtor';
-     dtor       : array [0..maxlongint div sizeof(simple_proc)] of simple_proc;external name 'djgpp_first_dtor';
+     dtor       : array [0..maxlongint div sizeof(simple_proc)-1] of simple_proc;external name 'djgpp_first_dtor';
      last_dtor  : longint;external name 'djgpp_last_dtor';
      bss_count : longint;external name '___bss_count';
   const
@@ -95,7 +95,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2002-09-07 16:01:18  peter
+  Revision 1.5  2004-11-02 16:23:04  peter
+    * fixed data too large
+
+  Revision 1.4  2002/09/07 16:01:18  peter
     * old logs removed and tabs fixed
 
   Revision 1.3  2002/04/26 13:19:56  peter
