@@ -1232,7 +1232,8 @@
 
     procedure tclassrefdef.write;
       begin
-         inherited write;
+         { be careful, tclassdefref inherits from tpointerdef }
+         tdef.write;
          writedefref(definition);
          current_ppu^.writeentry(ibclassrefdef);
       end;
@@ -2963,7 +2964,10 @@
 
 {
   $Log$
-  Revision 1.42  1998-09-17 13:41:20  pierre
+  Revision 1.43  1998-09-18 17:12:40  florian
+    * problem with writing of class references fixed
+
+  Revision 1.42  1998/09/17 13:41:20  pierre
   sizeof(TPOINT) problem
 
   Revision 1.40.2.2  1998/09/17 08:42:33  pierre
