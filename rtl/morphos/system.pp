@@ -56,6 +56,17 @@ const
 *****************************************************************************}
 
 type
+  PClockData = ^TClockData;
+  TClockData = packed Record
+    sec  : Word;
+    min  : Word;
+    hour : Word;
+    mday : Word;
+    month: Word;
+    year : Word;
+    wday : Word;
+  end;
+
   TDateStamp = packed record
     ds_Days   : LongInt;      { Number of days since Jan. 1, 1978 }
     ds_Minute : LongInt;      { Number of minutes past midnight }
@@ -185,15 +196,104 @@ type
     pr_CES           : DWord;     { Error stream - IF NULL, use pr_COS       }
   end;
 
+  PLibrary = ^TLibrary;
+  TLibrary = packed record
+    lib_Node    : tNode;
+    lib_Flags,
+    lib_pad     : Byte;
+    lib_NegSize,           {  number of bytes before library  }
+    lib_PosSize,           {  number of bytes after library  }
+    lib_Version,           {  major  }
+    lib_Revision: Word;    {  minor  }
+    lib_IdString: PChar;   {  ASCII identification  }
+    lib_Sum     : LongInt; {  the checksum itself  }
+    lib_OpenCnt : Word;    {  number of current opens  }
+  end; { * Warning: size is not a longword multiple ! * }
+
+  PDevice = ^TDevice;
+  tDevice =  record
+    dd_Library: TLibrary;
+  end;
+
+  PUnit = ^tUnit;
+  TUnit = record
+    unit_MsgPort: TMsgPort;  { queue for unprocessed messages }
+                             { instance of msgport is recommended }
+    unit_flags,
+    unit_pad    : Byte;
+    unit_OpenCnt: Word;      { number of active opens }
+  end;
+
+  PIORequest = ^TIORequest;
+  TIORequest = packed record
+    io_Message: TMessage;
+    io_Device : PDevice;      { device node pointer  }
+    io_Unit   : PUnit;        { unit (driver private)}
+    io_Command: Word;         { device command }
+    io_Flags  : Byte;
+    io_Error  : Shortint;     { error or warning num }
+  end;
+
+  PInfoData = ^TInfoData;
+  TInfoData = packed record
+    id_NumSoftErrors: LongInt;      { number of soft errors on disk }
+    id_UnitNumber   : LongInt;      { Which unit disk is (was) mounted on }
+    id_DiskState    : LongInt;      { See defines below }
+    id_NumBlocks    : LongInt;      { Number of blocks on disk }
+    id_NumBlocksUsed: LongInt;      { Number of block in use }
+    id_BytesPerBlock: LongInt;
+    id_DiskType     : LongInt;      { Disk Type code }
+    id_VolumeNode   : LongInt;      { BCPL pointer to volume node }
+    id_InUse        : LongInt;      { Flag, zero if not in use }
+  end;
+
+  PChain = ^TChain;
+  TChain = packed record
+    an_Child : PChain;
+    an_Parent: PChain;
+    an_Lock  : LongInt;
+    an_info  : TFileInfoBlock;
+    an_Flags : ShortInt;
+    an_string: Array[0..0] of char;
+  end;
+
+  PAnchorPath = ^TAnchorPath;
+  TAnchorPath = packed record
+    ap_Base     : PChain;     { pointer to first anchor  }
+    ap_First    : PChain;     { pointer to last anchor   }
+    ap_BreakBits: LongInt;    { Bits we want to break on }
+    ap_FondBreak: LongInt;    { Bits we broke on. Also returns ERROR_BREAK }
+    ap_Flags    : ShortInt;   { New use for extra word.  }
+    ap_reserved : Byte;
+    ap_StrLen   : Word;
+    ap_Info     : TFileInfoBlock;
+    ap_Buf      : array[0..0] of Char; { Buffer for path name, allocated by user }
+  end;
+
+  PDOSList = ^TDOSList;
+  TDOSList = packed record
+    dol_Next: LongInt;  { bptr to next device on list }
+    dol_Type: LongInt;  { see DLT below }
+    dol_Task: Pointer;  { ptr to handler task }
+    dol_Lock: LongInt;
+    dol_Misc: array[0..23] of ShortInt;
+    dol_Name: LongInt;  { bptr to bcpl name }
+  end;
+
+
 var
-  MOS_ExecBase: Pointer; external name '_ExecBase';
-  MOS_DOSBase : Pointer;
+  MOS_ExecBase   : Pointer; external name '_ExecBase';
+  MOS_DOSBase    : Pointer;
+  MOS_UtilityBase: Pointer;
 
   MOS_heapPool: Pointer; { pointer for the OS pool for growing the heap }
   MOS_origDir : LongInt; { original directory on startup }
   MOS_ambMsg  : PMessage; 
   MOS_ConName : PChar ='CON:10/30/620/100/FPC Console Output/AUTO/CLOSE/WAIT';
   
+  MOS_argc: LongInt;
+  MOS_argv: PPChar;
+
 
 {*****************************************************************************
                            MorphOS functions
@@ -218,11 +318,30 @@ function exec_FindTask(tname: PChar location 'a1'): PTask; SysCall MOS_ExecBase 
 function exec_GetMsg(port: PMsgPort location 'a0'): PMessage; SysCall MOS_ExecBase 372;
 function exec_WaitPort(port: PMsgPort location 'a0'): PMessage; SysCall MOS_ExecBase 384;
 
+function exec_AllocMem(byteSize: LongInt location 'd0';
+                       requirements: LongInt location 'd1'): Pointer; SysCall MOS_ExecBase 198;
+procedure exec_FreeMem(memoryBlock: Pointer location 'a1';
+                       byteSize: LongInt location 'd0'); SysCall MOS_ExecBase 210;
+function exec_AllocSignal(signalNum: LongInt location 'd0'): ShortInt; SysCall MOS_ExecBase 330;
+procedure exec_FreeSignal(signalNum: LongInt location 'd0'); SysCall MOS_ExecBase 336;
+
+procedure exec_AddPort(port: PMsgPort location 'a1'); SysCall MOS_ExecBase 354;
+procedure exec_RemPort(port: PMsgPort location 'a1'); SysCall MOS_ExecBase 360;
+
+function exec_DoIO(ioRequest: PIORequest location 'a1'): ShortInt; SysCall MOS_ExecBase 456;
+function exec_OpenDevice(const devName: PChar location 'a0';
+                         unite: LongInt location 'd0';
+                         ioRequest: PIORequest location 'a1';
+                         flags: LongInt location 'd1'): ShortInt; SysCall MOS_ExecBase 444;
+procedure exec_CloseDevice(ioRequest: PIORequest location 'a1'); SysCall MOS_ExecBase 450;
+
+
 { dos.library functions }
 
 function dos_Output: LongInt; SysCall MOS_DOSBase 60;
 function dos_Input: LongInt; SysCall MOS_DOSBase 54;
 function dos_IoErr: LongInt; SysCall MOS_DOSBase 132;
+function dos_GetArgStr: PChar; SysCall MOS_DOSBase 534;
 
 function dos_Open(fname: PChar location 'd1';
                   accessMode: LongInt location 'd2'): LongInt; SysCall MOS_DOSBase 30;
@@ -257,8 +376,42 @@ procedure dos_Unlock(lock: LongInt location 'd1'); SysCall MOS_DOSBase 90;
 function dos_CurrentDir(lock: LongInt location 'd1'): LongInt; SysCall MOS_DOSBase 126;
 function dos_Examine(lock: LongInt location 'd1';
                      FileInfoBlock: Pointer location 'd2'): Boolean; SysCall MOS_DOSBase 102;
+function dos_NameFromLock(lock: LongInt location 'd1';
+                          buffer: PChar location 'd2';
+                          len: LongInt location 'd3'): Boolean; SysCall MOS_DOSBase 402;
+function dos_Info(lock: LongInt location 'd1';
+                  parameterBlock: PInfoData location 'd2'): Boolean; SysCall MOS_DOSBase 114;
+
 function dos_CreateDir(dname: PChar location 'd1'): LongInt; SysCall MOS_DOSBase 120;
 function dos_DateStamp(var ds: TDateStamp location 'd1'): LongInt; SysCall MOS_DOSBase 192;
+
+function dos_SystemTagList(command: PChar location 'd1';
+                           tags: Pointer location 'd2'): LongInt; SysCall MOS_DOSBase 606;
+function dos_GetVar(vname: PChar location 'd1';
+                    buffer: PChar location 'd2';
+                    size: LongInt location 'd3';
+                    flags: LongInt location 'd4'): LongInt; SysCall MOS_DOSBase 906;
+function dos_MatchFirst(pat: PChar location 'd1';
+                        anchor: PAnchorPath location 'd2'): LongInt; SysCall MOS_DOSBase 822;
+function dos_MatchNext(anchor: PAnchorPath location 'd1'): LongInt; SysCall MOS_DOSBase 828;
+procedure dos_MatchEnd(anchor: PAnchorPath location 'd1') SysCall MOS_DOSBase 834;
+
+function dos_LockDosList(flags: LongInt location 'd1'): PDOSList; SysCall MOS_DOSBase 654;
+procedure dos_UnLockDosList(flags: LongInt location 'd2'); SysCall MOS_DOSBase 660;
+function dos_NextDosEntry(dlist: PDOSList location 'd1';
+                          flags: LongInt location 'd2'): PDOSList; SysCall MOS_DOSBase 690;
+
+function dos_SetProtection(name: PChar location 'd1';
+                           mask: LongInt location 'd2'): Boolean; SysCall MOS_DOSBase 186;
+function dos_SetFileDate(name: PChar location 'd1';
+                         date: PDateStamp location 'd2'): Boolean; SysCall MOS_DOSBase 396;
+
+
+{ utility.library functions }
+
+function util_Date2Amiga(date: PClockData location 'a0'): LongInt; SysCall MOS_UtilityBase 126;
+procedure util_Amiga2Date(amigatime: LongInt location 'd0';
+                         resultat: PClockData location 'a0'); SysCall MOS_UtilityBase 120;
 
 
 implementation
@@ -465,6 +618,7 @@ begin
   { Closing opened files }
   CloseList(MOS_fileList);
 
+  if MOS_UtilityBase<>nil then exec_CloseLibrary(MOS_UtilityBase);
   if MOS_DOSBase<>nil then exec_CloseLibrary(MOS_DOSBase);
   if MOS_heapPool<>nil then exec_DeletePool(MOS_heapPool);
   haltproc(ExitCode);
@@ -528,6 +682,71 @@ begin
   end;
 end;
 
+{ Generates correct argument array on startup } 
+procedure GenerateArgs;
+var
+  argvlen : longint;
+
+  procedure allocarg(idx,len:longint);
+    var
+      i,oldargvlen : longint;
+    begin
+      if idx>=argvlen then
+        begin
+          oldargvlen:=argvlen;
+          argvlen:=(idx+8) and (not 7);
+          sysreallocmem(MOS_argv,argvlen*sizeof(pointer));
+          for i:=oldargvlen to argvlen-1 do
+            MOS_argv[i]:=nil;
+        end;
+      { use realloc to reuse already existing memory }
+      sysreallocmem(MOS_argv[idx],len+1);
+    end;
+
+var
+  count: word;
+  start: word;
+  localindex: word;
+  p : pchar;
+  temp : string;
+
+begin
+  p:=dos_GetArgStr;
+  argvlen:=0;
+
+  { Set argv[0] }
+  temp:=paramstr(0);
+  allocarg(0,length(temp));
+  move(temp[1],MOS_argv[0]^,length(temp));
+  MOS_argv[0][length(temp)]:=#0;
+
+  { check if we're started from Ambient }
+  if MOS_ambMsg<>nil then 
+    begin
+      MOS_argc:=0;
+      exit;
+    end;
+
+  { Handle the other args }
+  count:=0;
+  { first index is one }
+  localindex:=1;
+  while (p[count]<>#0) do
+    begin
+      while (p[count]=' ') or (p[count]=#9) or (p[count]=LineEnding) do inc(count);
+      start:=count;
+      while (p[count]<>#0) and (p[count]<>' ') and (p[count]<>#9) and (p[count]<>LineEnding) do inc(count);
+      if (count-start>0) then
+        begin
+          allocarg(localindex,count-start);
+          move(p[start],MOS_argv[localindex]^,count-start);
+          MOS_argv[localindex][count-start]:=#0;
+          inc(localindex);
+        end;
+    end;
+  MOS_argc:=localindex;
+end;
+
 
 {*****************************************************************************
                              ParamStr/Randomize
@@ -536,17 +755,19 @@ end;
 { number of args }
 function paramcount : longint;
 begin
-  {paramcount := argc - 1;}
-  paramcount:=0;
+  if MOS_ambMsg<>nil then
+    paramcount:=0
+  else
+    paramcount:=MOS_argc-1;
 end;
 
 { argument number l }
 function paramstr(l : longint) : string;
 begin
-  {if (l>=0) and (l+1<=argc) then
-   paramstr:=strpas(argv[l])
-  else}
-   paramstr:='';
+  if (l>=0) and (l+1<=MOS_argc) then
+    paramstr:=strpas(MOS_argv[l])
+  else
+    paramstr:='';
 end;
 
 { set randseed to a new pseudo random value }
@@ -966,6 +1187,8 @@ begin
 
  MOS_DOSBase:=exec_OpenLibrary('dos.library',50);
  if MOS_DOSBase=nil then Halt(1);
+ MOS_UtilityBase:=exec_OpenLibrary('utility.library',50);
+ if MOS_UtilityBase=nil then Halt(1);
 
  { Creating the memory pool for growing heap }
  MOS_heapPool:=exec_CreatePool(MEMF_FAST,growheapsize2,growheapsize1);
@@ -1022,13 +1245,14 @@ Begin
 { Setup heap }
   InitHeap;
 //  SysInitExceptions;
-{ Arguments }
-//  SetupCmdLine;
-//  SysInitExecPath;
 { Setup stdin, stdout and stderr }
   SysInitStdIO;
 { Reset IO Error }
   InOutRes:=0;
+{ Arguments }
+//  SetupCmdLine;
+//  SysInitExecPath;
+  GenerateArgs;
 (* This should be changed to a real value during *)
 (* thread driver initialization if appropriate.  *)
   ThreadID := 1;
@@ -1039,7 +1263,10 @@ End.
 
 {
   $Log$
-  Revision 1.7  2004-05-12 15:34:16  karoly
+  Revision 1.8  2004-05-12 20:26:04  karoly
+    + added syscalls and structures necessary for DOS unit
+
+  Revision 1.7  2004/05/12 15:34:16  karoly
     * fixed startup code from endless wait when not started from Ambient
 
   Revision 1.6  2004/05/09 14:42:59  karoly
