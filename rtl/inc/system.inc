@@ -133,11 +133,12 @@ Procedure incr_ansi_ref (P : pointer);[Alias : 'INCR_ANSI_REF'];
 
 
 {****************************************************************************
-                                                 Run-Time Type Information (RTTI)
+                         Run-Time Type Information (RTTI)
 ****************************************************************************}
 
-
+{$ifndef VER0_99_5}
 {$i rtti.inc}
+{$endif  VER0_99_5}
 
 {****************************************************************************
                                Math Routines
@@ -497,7 +498,10 @@ End;
 
 {
   $Log$
-  Revision 1.20  1998-07-13 21:19:12  florian
+  Revision 1.21  1998-07-15 12:09:35  carl
+    * would not compile under FPC v0.99.5
+
+  Revision 1.20  1998/07/13 21:19:12  florian
     * some problems with ansi string support fixed
 
   Revision 1.19  1998/07/08 11:56:55  carl
