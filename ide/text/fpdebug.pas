@@ -38,7 +38,7 @@ type
     procedure DoUserScreen;virtual;
   end;
 
-  BreakpointType = (bt_function,bt_file_line,bt_invalid);
+  BreakpointType = (bt_function,bt_file_line,bt_watch,bt_awatch,bt_rwatch,bt_invalid);
   BreakpointState = (bs_enabled,bs_disabled,bs_deleted);
 
   PBreakpointCollection=^TBreakpointCollection;
@@ -51,10 +51,13 @@ type
      Name : PString;  { either function name or file name }
      Line : Longint; { only used for bt_file_line type }
      Conditions : PString; { conditions relative to that breakpoint }
+     IgnoreCount : Longint; { how many counts should be ignored }
+     Commands : pchar; { commands that should be executed on breakpoint }
      GDBIndex : longint;
      GDBState : BreakpointState;
      constructor Init_function(Const AFunc : String);
      constructor Init_file_line(Const AFile : String; ALine : longint);
+     constructor Init_type(atyp : BreakpointType;Const AFunc : String);
      procedure  Insert;
      procedure  Remove;
      procedure  Enable;
@@ -79,7 +82,7 @@ implementation
 
 uses
   Dos,Mouse,Video,
-  App,
+  App,Strings,
   FPViews,FPVars,FPUtils,FPIntf,
   FPCompile,FPIde;
 
@@ -225,6 +228,19 @@ begin
   state:=bs_enabled;
   GDBState:=bs_deleted;
   Name:=NewStr(AFunc);
+  IgnoreCount:=0;
+  Commands:=nil;
+  Conditions:=nil;
+end;
+
+constructor TBreakpoint.Init_type(atyp : BreakpointType;Const AFunc : String);
+begin
+  typ:=atyp;
+  state:=bs_enabled;
+  GDBState:=bs_deleted;
+  Name:=NewStr(AFunc);
+  IgnoreCount:=0;
+  Commands:=nil;
   Conditions:=nil;
 end;
 
@@ -235,6 +251,8 @@ begin
   GDBState:=bs_deleted;
   Name:=NewStr(AFile);
   Line:=ALine;
+  IgnoreCount:=0;
+  Commands:=nil;
   Conditions:=nil;
 end;
 
@@ -248,13 +266,23 @@ begin
       if (typ=bt_file_line) then
         Debugger^.Command('break '+name^+':'+IntToStr(Line))
       else if typ=bt_function then
-        Debugger^.Command('break '+name^);
+        Debugger^.Command('break '+name^)
+      else if typ=bt_watch then
+        Debugger^.Command('watch '+name^)
+      else if typ=bt_awatch then
+        Debugger^.Command('awatch '+name^)
+      else if typ=bt_rwatch then
+        Debugger^.Command('rwatch '+name^);
       if Debugger^.last_breakpoint_number<>0 then
         begin
           GDBIndex:=Debugger^.last_breakpoint_number;
           GDBState:=bs_enabled;
-          if assigned(conditions) then
-            Debugger^.Command('cond '+IntToStr(GDBIndex)+' '+Conditions^);
+          Debugger^.Command('cond '+IntToStr(GDBIndex)+' '+GetStr(Conditions));
+          Debugger^.Command('ignore '+IntToStr(GDBIndex)+' '+IntToStr(IgnoreCount));
+          If Assigned(Commands) then
+            begin
+              {Commands are not handled yet }
+            end;
         end
       else
       { Here there was a problem !! }
@@ -300,6 +328,8 @@ begin
     DisposeStr(Name);
   if assigned(Conditions) then
     DisposeStr(Conditions);
+  if assigned(Commands) then
+    StrDispose(Commands);
   inherited Done;
 end;
 
@@ -387,7 +417,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  1999-02-05 12:11:53  pierre
+  Revision 1.7  1999-02-05 13:08:41  pierre
+   + new breakpoint types added
+
+  Revision 1.6  1999/02/05 12:11:53  pierre
     + SourceDir that stores directories for sources that the
       compiler should not know about
       Automatically asked for addition when a new file that

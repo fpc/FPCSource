@@ -85,7 +85,7 @@ const
 
 const
      BreakpointTypeStr : Array[BreakpointType] of String[9]
-       = ( 'function','file-line','invalid' );
+       = ( 'function','file-line','watch','awatch','rwatch','invalid' );
      BreakpointStateStr : Array[BreakpointState] of String[8]
        = ( 'enabled','disabled','invalid' );
 
@@ -374,7 +374,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  1999-02-05 12:11:55  pierre
+  Revision 1.10  1999-02-05 13:08:42  pierre
+   + new breakpoint types added
+
+  Revision 1.9  1999/02/05 12:11:55  pierre
     + SourceDir that stores directories for sources that the
       compiler should not know about
       Automatically asked for addition when a new file that
