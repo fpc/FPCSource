@@ -13,6 +13,9 @@
 
  **********************************************************************}
 unit GdbInt;
+
+{$smartlink off}
+
 interface
 
 { this is not needed (PM) $output_format as}
@@ -2154,7 +2157,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2000-04-14 05:37:33  pierre
+  Revision 1.7  2000-07-11 08:12:18  pierre
+   * avoid smartlinking
+
+  Revision 1.6  2000/04/14 05:37:33  pierre
    * call DoSelectSourceLine even if fn is empty
 
   Revision 1.5  2000/03/07 10:39:59  pierre
