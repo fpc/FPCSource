@@ -17,6 +17,7 @@
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{interface\ part} \lit*{interface}
+\[ \synt{uses\ clause} \]
 \<[b]
   \[  \synt{constant\ declaration\ part} \\
       \synt{type\ declaration\ part}\\
