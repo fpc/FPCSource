@@ -224,7 +224,7 @@ begin
         begin
            for ColCounter := 1 to ScreenWidth do
              begin
-               LineBuf^[BufCounter].UniCodeChar := WordRec(VideoBuf^[BufCounter]).One;
+               LineBuf^[BufCounter].UniCodeChar := Widechar(WordRec(VideoBuf^[BufCounter]).One);
                LineBuf^[BufCounter].Attributes := WordRec(VideoBuf^[BufCounter]).Two;
 
                Inc(BufCounter);
@@ -297,7 +297,7 @@ begin
                     if LineCounter>y2 then
                       y2:=LineCounter;
                  end;
-               LineBuf^[BufCounter].UniCodeChar := WordRec(VideoBuf^[BufCounter]).One;
+               LineBuf^[BufCounter].UniCodeChar := Widechar(WordRec(VideoBuf^[BufCounter]).One);
                { If (WordRec(VideoBuf^[BufCounter]).Two and $80)<>0 then
                  LineBuf^[BufCounter].Attributes := $100+WordRec(VideoBuf^[BufCounter]).Two
                else }
@@ -358,7 +358,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.3  2001-06-13 18:32:55  peter
+  Revision 1.4  2001-07-30 15:01:12  marco
+   * Fixed wchar=word to widechar conversion
+
+  Revision 1.3  2001/06/13 18:32:55  peter
     * fixed crash within donevideo (merged)
 
   Revision 1.2  2001/04/10 21:28:36  peter
