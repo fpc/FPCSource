@@ -1479,7 +1479,6 @@ implementation
 {$endif i386}
 {$ifdef m68k}
         initoptprocessor:=MC68020;
-        include(initmoduleswitches,cs_fp_emulation);
         initpackenum:=4;
         {$IFDEF testvarsets}
          initsetalloc:=0;
@@ -1516,7 +1515,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.74  2002-11-30 11:08:46  carl
+  Revision 1.75  2002-11-30 23:13:48  carl
+    - cs_fp_emulation is no longer automatic for m68k target
+
+  Revision 1.74  2002/11/30 11:08:46  carl
     * fix bug n last commit (this bug was only detected gby 1.0.x, fixed)
 
   Revision 1.73  2002/11/30 00:34:20  pierre
