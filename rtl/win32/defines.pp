@@ -5645,7 +5645,7 @@ unit defines;
   function GET_WM_MDIACTIVATE_FACTIVATE(h,a,b : longint) : longint;
     { return type might be wrong }
     begin
-       GET_WM_MDIACTIVATE_FACTIVATE:=b = (LONG(h));
+       GET_WM_MDIACTIVATE_FACTIVATE:=longint(b = LONG(h));
     end;
 
   { was #define dname(params) def_expr }
@@ -5718,7 +5718,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.7  1998-11-12 11:41:05  peter
+  Revision 1.8  1999-01-28 18:24:29  pierre
+   * conversion from boolean to longint must be explicit
+
+  Revision 1.7  1998/11/12 11:41:05  peter
     + pascal type aliases
 
   Revision 1.6  1998/10/27 11:17:12  peter
