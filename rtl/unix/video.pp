@@ -1,5 +1,6 @@
 {
     $Id$
+
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Florian Klaempfl
     member of the Free Pascal development team
@@ -46,6 +47,7 @@ const
 {$endif I386}
 
 const
+
   can_delete_term : boolean = false;
   ACSIn : string = '';
   ACSOut : string = '';
@@ -554,7 +556,7 @@ begin
   restoreRawSettings(preInitVideoTio);
 end;
 
-procedure InitVideo;
+procedure SysInitVideo;
 const
   fontstr : string[3]=#27'(K';
 var
@@ -671,7 +673,7 @@ begin
    ErrorCode:=errVioInit; { not a TTY }
 end;
 
-procedure DoneVideo;
+procedure SysDoneVideo;
 begin
   if VideoBufSize=0 then
    exit;
@@ -705,7 +707,7 @@ begin
 end;
 
 
-procedure ClearScreen;
+procedure SysClearScreen;
 begin
   FillWord(VideoBuf^,VideoBufSize shr 1,$0720);
   if Console then
@@ -718,14 +720,12 @@ begin
 end;
 
 
-procedure UpdateScreen(Force: Boolean);
+procedure SysUpdateScreen(Force: Boolean);
 var
   DoUpdate : boolean;
   i : longint;
   p1,p2 : plongint;
 begin
-  if LockUpdateScreen<>0 then
-   exit;
   if not force then
    begin
 {$ifdef i386}
@@ -772,14 +772,14 @@ begin
 end;
 
 
-function GetCapabilities: Word;
+function SysGetCapabilities: Word;
 begin
 { about cpColor... we should check the terminfo database... }
-  GetCapabilities:=cpUnderLine + cpBlink + cpColor;
+  SysGetCapabilities:=cpUnderLine + cpBlink + cpColor;
 end;
 
 
-procedure SetCursorPos(NewCursorX, NewCursorY: Word);
+procedure SysSetCursorPos(NewCursorX, NewCursorY: Word);
 var
   Pos : array [1..2] of Byte;
 begin
@@ -800,13 +800,13 @@ begin
 end;
 
 
-function GetCursorType: Word;
+function SysGetCursorType: Word;
 begin
-  GetCursorType:=LastCursorType;
+  SysGetCursorType:=LastCursorType;
 end;
 
 
-procedure SetCursorType(NewType: Word);
+procedure SysSetCursorType(NewType: Word);
 begin
   LastCursorType:=NewType;
   case NewType of
@@ -839,7 +839,22 @@ procedure RegisterVideoModes;
 begin
 end;
 
+Const
+  SysVideoDriver : TVideoDriver = (
+    InitDriver : @SysInitVideo;
+    DoneDriver : @SysDoneVideo;
+    UpdateScreen : @SysUpdateScreen;
+    ClearScreen : @SysClearScreen;
+    SetVideoMode : Nil;
+    HasVideoMode : Nil;
+    SetCursorPos : @SysSetCursorPos;
+    GetCursorType : @SysGetCursorType;
+    SetCursorType : @SysSetCursorType;
+    GetCapabilities : @SysGetCapabilities
+  );
+
 initialization
+  SetVideoDriver(SysVideoDriver);
   RegisterVideoModes;
 
 finalization
@@ -847,7 +862,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.7  2001-08-30 20:55:08  peter
+  Revision 1.8  2001-09-21 19:50:19  michael
+  + Merged driver support from fixbranch
+
+  Revision 1.7  2001/08/30 20:55:08  peter
     * v10 merges
 
   Revision 1.6  2001/08/01 21:42:05  peter
@@ -858,6 +876,27 @@ end.
 
   Revision 1.4  2001/07/30 21:38:55  peter
     * m68k updates merged
+
+  Revision 1.2.2.8  2001/09/21 18:42:09  michael
+  + Implemented support for custom video drivers.
+
+  Revision 1.2.2.7  2001/08/28 12:23:15  pierre
+   * set skipped to true if changing line and force is false to avoid problems if terminal reports less columns as available
+
+  Revision 1.2.2.6  2001/08/01 10:50:59  pierre
+   * avoid warning for m68k cpu
+
+  Revision 1.2.2.5  2001/07/30 23:34:51  pierre
+   * make tchattr record endian dependant
+
+  Revision 1.2.2.4  2001/07/29 20:25:18  pierre
+   * fix wrong deref in generic compare code
+
+  Revision 1.2.2.3  2001/07/13 14:49:08  pierre
+   + implement videobuf comparaison for non i386 cpus
+
+  Revision 1.2.2.2  2001/01/30 22:23:44  peter
+    * unix back to linux
 
   Revision 1.3  2001/07/13 22:05:09  peter
     * cygwin updates

@@ -32,13 +32,10 @@ var
   ConsoleCursorInfo : TConsoleCursorInfo;
   MaxVideoBufSize : DWord;
 
-const
-  VideoInitialized : boolean = false;
 
-procedure InitVideo;
+procedure SysInitVideo;
+
 begin
-  if VideoInitialized then
-    DoneVideo;
   ScreenColor:=true;
   GetConsoleScreenBufferInfo(TextRec(Output).Handle, ConsoleInfo);
   GetConsoleCursorInfo(TextRec(Output).Handle, ConsoleCursorInfo);
@@ -78,30 +75,26 @@ begin
 
   GetMem(VideoBuf,MaxVideoBufSize);
   GetMem(OldVideoBuf,MaxVideoBufSize);
-  VideoInitialized:=true;
 end;
 
 
-procedure DoneVideo;
+procedure SysDoneVideo;
 begin
   SetCursorType(crUnderLine);
-  if VideoInitialized then
-    begin
-      FreeMem(VideoBuf,MaxVideoBufSize);
-      FreeMem(OldVideoBuf,MaxVideoBufSize);
-    end;
+  FreeMem(VideoBuf,MaxVideoBufSize);
+  FreeMem(OldVideoBuf,MaxVideoBufSize);
   VideoBufSize:=0;
   VideoInitialized:=false;
 end;
 
 
-function GetCapabilities: Word;
+function SysGetCapabilities: Word;
 begin
-  GetCapabilities:=cpColor or cpChangeCursor;
+  SysGetCapabilities:=cpColor or cpChangeCursor;
 end;
 
 
-procedure SetCursorPos(NewCursorX, NewCursorY: Word);
+procedure SysSetCursorPos(NewCursorX, NewCursorY: Word);
 var
   pos : COORD;
 begin
@@ -113,24 +106,24 @@ begin
 end;
 
 
-function GetCursorType: Word;
+function SysGetCursorType: Word;
 begin
    GetConsoleCursorInfo(TextRec(Output).Handle,ConsoleCursorInfo);
    if not ConsoleCursorInfo.bvisible then
-     GetCursorType:=crHidden
+     SysGetCursorType:=crHidden
    else
      case ConsoleCursorInfo.dwSize of
         1..30:
-          GetCursorType:=crUnderline;
+          SysGetCursorType:=crUnderline;
         31..70:
-          GetCursorType:=crHalfBlock;
+          SysGetCursorType:=crHalfBlock;
         71..100:
-          GetCursorType:=crBlock;
+          SysGetCursorType:=crBlock;
      end;
 end;
 
 
-procedure SetCursorType(NewType: Word);
+procedure SysSetCursorType(NewType: Word);
 begin
    GetConsoleCursorInfo(TextRec(Output).Handle,ConsoleCursorInfo);
    if newType=crHidden then
@@ -159,7 +152,7 @@ begin
 end;
 
 
-procedure ClearScreen;
+procedure SysClearScreen;
 begin
   FillWord(VideoBuf^,VideoBufSize div 2,$0720);
   UpdateScreen(true);
@@ -171,7 +164,7 @@ function WriteConsoleOutput(hConsoleOutput:HANDLE; lpBuffer:pointer; dwBufferSiz
    var lpWriteRegion:SMALL_RECT):WINBOOL; external 'kernel32' name 'WriteConsoleOutputA';
 {$ENDIF}
 
-procedure UpdateScreen(Force: Boolean);
+procedure SysUpdateScreen(Force: Boolean);
 type TmpRec = Array[0..(1024*32) - 1] of TCharInfo;
 
 type WordRec = record
@@ -242,8 +235,6 @@ var
    x1,y1,x2,y2 : longint;
 
 begin
-  if LockUpdateScreen<>0 then
-   exit;
   if force then
    smallforce:=true
   else
@@ -357,8 +348,23 @@ begin
   RegisterVideoMode(80, 25, True, @DefaultVideoModeSelector, $00000003);
 end;
 
+Const
+  SysVideoDriver : TVideoDriver = (
+    InitDriver : @SysInitVideo;
+    DoneDriver : @SysDoneVideo;
+    UpdateScreen : @SysUpdateScreen;
+    ClearScreen : @SysClearScreen;
+    SetVideoMode : Nil;
+    HasVideoMode : Nil;
+    SetCursorPos : @SysSetCursorPos;
+    GetCursorType : @SysGetCursorType;
+    SetCursorType : @SysSetCursorType;
+    GetCapabilities : @SysGetCapabilities
+
+  );
 
 initialization
+  SetVideoDriver(SysVideoDriver);
   RegisterVideoModes;
 
 finalization
@@ -366,7 +372,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.5  2001-08-01 18:01:20  peter
+  Revision 1.6  2001-09-21 19:50:19  michael
+  + Merged driver support from fixbranch
+
+  Revision 1.5  2001/08/01 18:01:20  peter
     * WChar fix to compile also with 1.0.x
 
   Revision 1.4  2001/07/30 15:01:12  marco
@@ -377,6 +386,21 @@ end.
 
   Revision 1.2  2001/04/10 21:28:36  peter
     * removed warnigns
+
+  Revision 1.1.2.5  2001/09/21 18:42:09  michael
+  + Implemented support for custom video drivers.
+
+  Revision 1.1.2.4  2001/06/12 22:34:20  pierre
+   * avoid crash at exit of IDE
+
+  Revision 1.1.2.3  2001/04/10 20:33:04  peter
+    * remove some warnings
+
+  Revision 1.1.2.2  2001/04/02 13:29:41  pierre
+   * avoid crash if DoneVideo called twice
+
+  Revision 1.1.2.1  2001/01/30 21:52:03  peter
+    * moved api utils to rtl
 
   Revision 1.1  2001/01/13 11:03:59  peter
     * API 2 RTL commit

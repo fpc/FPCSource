@@ -29,7 +29,6 @@ uses
 
 
 const
-    InitVideoCalled: boolean = false;
     LastCursorType: word = crUnderline;
     EmptyCell: cardinal = $0720;
     OrigScreen: PVideoBuf = nil;
@@ -141,41 +140,39 @@ begin
 end;
 
 
-procedure InitVideo;
+procedure SysInitVideo;
 
 var MI: TVioModeInfo;
 
 begin
-    if InitVideoCalled then
-        FreeMem (OldVideoBuf, VideoBufSize);
-    OldVideoBuf := nil;
-    InitVideoCalled := true;
-    VideoBufSize := 0;
-    MI.cb := SizeOf (MI);
-    VioGetMode (MI, 0);
-    with MI do
-        begin
-            ScreenWidth := Col;
-            ScreenHeight := Row;
-            ScreenColor := Color >= Colors_16;
-        end;
-    VioGetCurPos (CursorY, CursorX, 0);
-    LowAscii := true;
-    SetCursorType (LastCursorType);
-{Get the address of the videobuffer.}
-    if VioGetBuf (VideoBuf, PWord (@VideoBufSize)^, 0) = 0 then
-        begin
-            VideoBuf := SelToFlat (TFarPtr (VideoBuf));
-            SetHighBitBlink (true);
-            GetMem (OldVideoBuf, VideoBufSize);
-            Move (VideoBuf^, OldVideoBuf^, VideoBufSize);
-        end
-    else
-        ErrorHandler (errVioInit, nil);
+  FreeMem (OldVideoBuf, VideoBufSize);
+  OldVideoBuf := nil;
+  VideoBufSize := 0;
+  MI.cb := SizeOf (MI);
+  VioGetMode (MI, 0);
+  with MI do
+      begin
+          ScreenWidth := Col;
+          ScreenHeight := Row;
+          ScreenColor := Color >= Colors_16;
+      end;
+  VioGetCurPos (CursorY, CursorX, 0);
+  LowAscii := true;
+  SetCursorType (LastCursorType);
+{ Get the address of the videobuffer.}
+  if VioGetBuf (VideoBuf, PWord (@VideoBufSize)^, 0) = 0 then
+      begin
+          VideoBuf := SelToFlat (TFarPtr (VideoBuf));
+          SetHighBitBlink (true);
+          GetMem (OldVideoBuf, VideoBufSize);
+          Move (VideoBuf^, OldVideoBuf^, VideoBufSize);
+      end
+  else
+      ErrorHandler (errVioInit, nil);
 end;
 
 
-procedure SetCursorPos (NewCursorX, NewCursorY: word);
+procedure SysSetCursorPos (NewCursorX, NewCursorY: word);
 
 begin
     if VioSetCurPos (NewCursorY, NewCursorX, 0) = 0 then
@@ -191,7 +188,7 @@ begin
 end;
 
 
-function GetCursorType: word;
+function SysGetCursorType: word;
 
 var CD: TVioCursorInfo;
 
@@ -201,24 +198,24 @@ begin
         begin
             CursorLines := Succ (cEnd) - yStart;
             if Attr = word (-1) then
-                GetCursorType := crHidden
+                SysGetCursorType := crHidden
             else
 {Because the cursor's start and end lines are returned, we'll have
  to guess heuristically what cursor type we have.}
                 if CursorLines = 0 then
 {Probably this does not occur, but you'll never know.}
-                    GetCursorType := crHidden
+                    SysGetCursorType := crHidden
                 else if CursorLines <= Succ (CellHeight div 4) then
-                    GetCursorType := crUnderline
+                    SysGetCursorType := crUnderline
                 else if CursorLines <= Succ (CellHeight div 2) then
-                    GetCursorType := crHalfBlock
+                    SysGetCursorType := crHalfBlock
                 else
-                    GetCursorType := crBlock;
+                    SysGetCursorType := crBlock;
         end;
 end;
 
 
-procedure SetCursorType (NewType: word);
+procedure SysSetCursorType (NewType: word);
 
 var CD: TVioCursorInfo;
 
@@ -254,14 +251,12 @@ begin
 end;
 
 
-procedure DoneVideo;
+procedure SysDoneVideo;
 
 var PScr: pointer;
     ScrSize: cardinal;
 
 begin
-    if InitVideoCalled then
-        begin
             LastCursorType := GetCursorType;
             ClearScreen;
 {Restore original settings}
@@ -275,7 +270,6 @@ begin
             FreeMem (OldVideoBuf, VideoBufSize);
             OldVideoBuf := nil;
             VideoBufSize := 0;
-            InitVideoCalled := false;
             if (OrigScreenSize <> 0) and (OrigScreen <> nil) then
                 begin
                     ScrSize := 0;
@@ -287,14 +281,13 @@ begin
                             VioShowBuf (0, ScrSize, 0);
                         end;
                 end;
-        end;
 end;
 
 
-function GetCapabilities: word;
+function SysGetCapabilities: word;
 
 begin
-    GetCapabilities := $3F;
+  SysGetCapabilities := $3F;
 end;
 
 
@@ -352,7 +345,7 @@ begin
 end;
 
 
-procedure ClearScreen;
+procedure SysClearScreen;
 
 begin
     VioScrollDn (0, 0, word (-1), word (-1), word (-1), PWord (@EmptyCell)^, 0);
@@ -362,7 +355,7 @@ end;
 
 {$ASMMODE INTEL}
 
-procedure UpdateScreen (Force: boolean);
+procedure SysUpdateScreen (Force: boolean);
 
 var SOfs, CLen: cardinal;
 
@@ -421,7 +414,22 @@ begin
         end;
 end;
 
+Const
+  SysVideoDriver : TVideoDriver = (
+    InitDriver : @SysInitVideo;
+    DoneDriver : @SysDoneVideo;
+    UpdateScreen : @SysUpdateScreen;
+    ClearScreen : @SysClearScreen;
+    SetVideoMode : Nil;
+    HasVideoMode : Nil;
+    SetCursorPos : @SysSetCursorPos;
+    GetCursorType : @SysGetCursorType;
+    SetCursorType : @SysSetCursorType;
+    GetCapabilities : @SysGetCapabilities
+  );
+
 initialization
+  SetVideoDriver(SysVideoDriver);
   RegisterVideoModes;
   TargetEntry;
 
@@ -431,8 +439,17 @@ end.
 
 {
   $Log$
-  Revision 1.4  2001-02-04 01:55:05  hajny
+  Revision 1.5  2001-09-21 19:50:19  michael
+  + Merged driver support from fixbranch
+
+  Revision 1.4  2001/02/04 01:55:05  hajny
     * one more correction (not crucial)
+
+  Revision 1.2.2.3  2001/09/21 18:42:08  michael
+  + Implemented support for custom video drivers.
+
+  Revision 1.2.2.2  2001/02/04 02:02:28  hajny
+    * corrections from the main branch merged
 
   Revision 1.3  2001/02/01 21:35:36  hajny
     * correction of a previously introduced bug

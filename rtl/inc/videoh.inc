@@ -26,6 +26,19 @@ type
   TVideoBuf = array[0..32759] of TVideoCell;
   PVideoBuf = ^TVideoBuf;
 
+  TVideoDriver = Record
+    InitDriver      : Procedure;
+    DoneDriver      : Procedure;
+    UpdateScreen    : Procedure(Force : Boolean);
+    ClearScreen     : Procedure;
+    SetVideoMode    : Procedure (Const Mode : TVideoMode; Params : Longint);
+    HasVideoMode    : Function (Const Mode : TVideoMode; Params : Longint) : Boolean; 
+    SetCursorPos    : procedure (NewCursorX, NewCursorY: Word);
+    GetCursorType   : function : Word;
+    SetCursorType   : procedure (NewType: Word);
+    GetCapabilities : Function : Word; 
+  end;
+
 const
   { Foreground and background color constants }
   Black         = 0;
@@ -80,14 +93,23 @@ var
   ScreenColor  : Boolean;
   CursorX,
   CursorY      : Word;
-  LockUpdateScreen : Word;
   VideoBuf     : PVideoBuf;
   VideoBufSize : Longint;
   CursorLines  : Byte;
+
 const
   LowAscii     : Boolean = true;
   NoExtendedFrame : Boolean = false;
   FVMaxWidth = 132;
+
+Procedure LockScreenUpdate;
+{ Increments the screen update lock count with one.}
+Procedure UnlockScreenUpdate;
+{ Decrements the screen update lock count with one.}
+Procedure SetVideoDriver (Const Driver : TVideoDriver);
+{ Sets the videodriver to be used }
+Procedure GetVideoDriver (Var Driver : TVideoDriver);
+{ Retrieves the current videodriver }
 
 procedure InitVideo;
 { Initializes the video subsystem }
@@ -152,7 +174,15 @@ const
 
 {
   $Log$
-  Revision 1.2  2001-06-06 17:20:22  jonas
+  Revision 1.3  2001-09-21 19:50:18  michael
+  + Merged driver support from fixbranch
+
+  Revision 1.2  2001/06/06 17:20:22  jonas
+
+  Revision 1.1.2.3  2001/09/21 18:42:08  michael
+  + Implemented support for custom video drivers.
+
+  Revision 1.1.2.2  2001/06/06 14:27:14  jonas
     * fixed wrong typed constant procvars in preparation of my fix which will
       disallow them in FPC mode (plus some other unmerged changes since
       LAST_MERGE)

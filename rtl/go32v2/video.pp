@@ -4,7 +4,7 @@
     Copyright (c) 1999-2000 by Florian Klaempfl
     member of the Free Pascal development team
 
-    Video unit for linux
+    Video unit for DOS
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -58,9 +58,11 @@ var r: trealregs;
     L: longint;
     LSel,LSeg: word;
     B: array[0..63] of byte;
-type TWord = word; PWord = ^TWord;
-var Size: word;
-    OK: boolean;
+type
+  TWord = word;
+  PWord = ^TWord;
+var
+  OK: boolean;
 begin
   L:=global_dos_alloc(64);
   LSeg:=(L shr 16);
@@ -80,7 +82,7 @@ begin
   BIOSGetScreenMode:=OK;
 end;
 
-procedure InitVideo;
+procedure SysInitVideo;
 var
   regs : trealregs;
 begin
@@ -122,7 +124,6 @@ begin
   VideoBufSize:=ScreenWidth*ScreenHeight*2;
   GetMem(VideoBuf,VideoBufSize);
   GetMem(OldVideoBuf,VideoBufSize);
-  InitVideoCalled:=true;
   SetHighBitBlink;
   SetCursorType(LastCursorType);
   { ClearScreen; removed here
@@ -130,31 +131,27 @@ begin
 end;
 
 
-procedure DoneVideo;
+procedure SysDoneVideo;
 begin
-  If InitVideoCalled then
-    Begin
-      LastCursorType:=GetCursorType;
-      ClearScreen;
-      SetCursorType(crUnderLine);
-      SetCursorPos(0,0);
-      FreeMem(VideoBuf,VideoBufSize);
-      VideoBuf:=nil;
-      FreeMem(OldVideoBuf,VideoBufSize);
-      OldVideoBuf:=nil;
-      InitVideoCalled:=false;
-      VideoBufSize:=0;
-    End;
+  LastCursorType:=GetCursorType;
+  ClearScreen;
+  SetCursorType(crUnderLine);
+  SetCursorPos(0,0);
+  FreeMem(VideoBuf,VideoBufSize);
+  VideoBuf:=nil;
+  FreeMem(OldVideoBuf,VideoBufSize);
+  OldVideoBuf:=nil;
+  VideoBufSize:=0;
 end;
 
 
-function GetCapabilities: Word;
+function SysGetCapabilities: Word;
 begin
-  GetCapabilities := $3F;
+  SysGetCapabilities := $3F;
 end;
 
 
-procedure SetCursorPos(NewCursorX, NewCursorY: Word);
+procedure SysSetCursorPos(NewCursorX, NewCursorY: Word);
 var
   regs : trealregs;
 begin
@@ -170,28 +167,28 @@ end;
 { I don't know the maximum value for the scan line
   probably 7 or 15 depending on resolution !!
   }
-function GetCursorType: Word;
+function SysGetCursorType: Word;
 var
   regs : trealregs;
 begin
   regs.ah:=$03;
   regs.bh:=0;
   realintr($10,regs);
-  GetCursorType:=crHidden;
+  SysGetCursorType:=crHidden;
   if (regs.ch and $60)=0 then
    begin
-     GetCursorType:=crBlock;
+     SysGetCursorType:=crBlock;
      if (regs.ch and $1f)<>0 then
       begin
-        GetCursorType:=crHalfBlock;
+        SysGetCursorType:=crHalfBlock;
         if regs.cl+1=(regs.ch and $1F) then
-         GetCursorType:=crUnderline;
+         SysGetCursorType:=crUnderline;
       end;
    end;
 end;
 
 
-procedure SetCursorType(NewType: Word);
+procedure SysSetCursorType(NewType: Word);
 var
   regs : trealregs;
 const
@@ -254,14 +251,14 @@ begin
   DoCustomMouse(false);
 end;
 
-procedure ClearScreen;
+procedure SysClearScreen;
 begin
   FillWord(VideoBuf^,VideoBufSize shr 1,$0720);
   UpdateScreen(true);
 end;
 
 
-procedure UpdateScreen(Force: Boolean);
+procedure SysUpdateScreen(Force: Boolean);
 begin
   if LockUpdateScreen<>0 then
    exit;
@@ -294,8 +291,22 @@ begin
   RegisterVideoMode(80, 50, True, @VideoModeSelector8x8, 0);
 end;
 
+Const
+  SysVideoDriver : TVideoDriver = (
+    InitDriver : @SysInitVideo;
+    DoneDriver : @SysDoneVideo;
+    UpdateScreen : @SysUpdateScreen;
+    ClearScreen : @SysClearScreen;
+    SetVideoMode : Nil;
+    HasVideoMode : Nil;
+    SetCursorPos : @SysSetCursorPos;
+    GetCursorType : @SysGetCursorType;
+    SetCursorType : @SysSetCursorType;
+    GetCapabilities : @SysGetCapabilities
+  );
 
 initialization
+  SetVideoDriver(SysVideoDriver);
   RegisterVideoModes;
 
 finalization
@@ -303,8 +314,24 @@ finalization
 end.
 {
   $Log$
-  Revision 1.2  2001-05-09 19:53:28  peter
+  Revision 1.3  2001-09-21 19:50:18  michael
+  + Merged driver support from fixbranch
+
+
+  Revision 1.2  2001/05/09 19:53:28  peter
     * removed asm for copy, use dosmemput (merged)
+
+  Revision 1.1.2.4  2001/09/21 18:42:08  michael
+  + Implemented support for custom video drivers.
+
+  Revision 1.1.2.3  2001/05/06 21:54:23  carl
+  * bugfix of Windows NT double exception crash
+
+  Revision 1.1.2.2  2001/04/16 10:56:13  peter
+    * fixes for stricter compiler
+
+  Revision 1.1.2.1  2001/01/30 21:52:01  peter
+    * moved api utils to rtl
 
   Revision 1.1  2001/01/13 11:03:58  peter
     * API 2 RTL commit
