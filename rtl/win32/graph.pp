@@ -137,7 +137,7 @@ function GetPaletteEntry(r,g,b : word) : word;
   begin
      dist:=$7fffffff;
      index:=0;
-     for i:=0 to maxcolors-1 do
+     for i:=0 to maxcolors do
        begin
           currentdist:=abs(r-pal[i].red)+abs(g-pal[i].green)+
             abs(b-pal[i].blue);
@@ -261,7 +261,7 @@ procedure DrawBitmapCharHorizWin32GUI(x,y : longint;charsize : word;const s : st
   var
      cnt1,cnt2,cnt3,cnt4,j,k,c,xpos,i : longint;
      fontbitmap    : TBitmapChar;
-     bitmap,oldbitmap : HBITMAP;
+     charbitmap,oldcharbitmap : HBITMAP;
      chardc : HDC;
      color : longint;
      brushwin,oldbrushwin,brushbitmap,oldbrushbitmap : HBRUSH;
@@ -296,8 +296,8 @@ procedure DrawBitmapCharHorizWin32GUI(x,y : longint;charsize : word;const s : st
           xpos:=x+(i*8)*Charsize;
           if bitmapfontcache[byte(s[i+1])]=0 then
             begin
-               bitmap:=CreateCompatibleBitmap(windc,8,8);
-               oldbitmap:=SelectObject(chardc,bitmap);
+               charbitmap:=CreateCompatibleBitmap(windc,8,8);
+               oldcharbitmap:=SelectObject(chardc,charbitmap);
                Fontbitmap:=TBitmapChar(DefaultFontData[s[i+1]]);
 
                for j:=0 to 7 do
@@ -306,10 +306,10 @@ procedure DrawBitmapCharHorizWin32GUI(x,y : longint;charsize : word;const s : st
                       SetPixel(chardc,k,j,$ffffff)
                     else
                       SetPixel(chardc,k,j,0);
-               bitmapfontcache[byte(s[i+1])]:=bitmap;
-               SelectObject(chardc,oldbitmap);
+               bitmapfontcache[byte(s[i+1])]:=charbitmap;
+               SelectObject(chardc,oldcharbitmap);
             end;
-          oldbitmap:=SelectObject(chardc,bitmapfontcache[byte(s[i+1])]);
+          oldcharbitmap:=SelectObject(chardc,bitmapfontcache[byte(s[i+1])]);
           if CharSize=1 then
             begin
                if currentcolor=white then
@@ -348,6 +348,7 @@ procedure DrawBitmapCharHorizWin32GUI(x,y : longint;charsize : word;const s : st
                     StretchBlt(bitmapdc,xpos,y,8*charsize,8*charsize,chardc,0,0,8,8,$00EA02E9);
                  end;
             end;
+          SelectObject(chardc,oldcharbitmap);
        end;
     if currentcolor<>white then
       begin
@@ -360,6 +361,8 @@ procedure DrawBitmapCharHorizWin32GUI(x,y : longint;charsize : word;const s : st
     { release clip regions }
     SelectClipRgn(bitmapdc,0);
     SelectClipRgn(windc,0);
+    DeleteObject(bitmaprgn);
+    DeleteObject(winrgn);
     DeleteDC(chardc);
     LeaveCriticalSection(graphdrawing);
   end;
@@ -408,6 +411,7 @@ procedure HLine16Win32GUI(x,x2,y: integer);
              XorPut:
                Begin
                   EnterCriticalSection(graphdrawing);
+                  col:=CurrentColor;
                   for i:=x to x2 do
                     begin
                        c2:=Windows.GetPixel(bitmapdc,i,y);
@@ -420,6 +424,7 @@ procedure HLine16Win32GUI(x,x2,y: integer);
              OrPut:
                Begin
                   EnterCriticalSection(graphdrawing);
+                  col:=CurrentColor;
                   for i:=x to x2 do
                     begin
                        c2:=Windows.GetPixel(bitmapdc,i,y);
@@ -434,9 +439,9 @@ procedure HLine16Win32GUI(x,x2,y: integer);
                   If CurrentWriteMode<>NotPut Then
                     col:=CurrentColor
                   Else col:=Not(CurrentColor);
-                  EnterCriticalSection(graphdrawing);
                   c:=RGB(pal[col].red,pal[col].green,pal[col].blue);
                   pen:=CreatePen(PS_SOLID,1,c);
+                  EnterCriticalSection(graphdrawing);
                   oldpen:=SelectObject(bitmapdc,pen);
                   Windows.MoveToEx(bitmapdc,x,y,nil);
                   Windows.LineTo(bitmapdc,x2+1,y);
@@ -1469,7 +1474,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-03-25 19:10:11  florian
+  Revision 1.6  2000-03-27 12:57:30  florian
+    * some "resource leaks" fixed
+
+  Revision 1.5  2000/03/25 19:10:11  florian
     * colored bitmap font drawing fixed: the color brush
       was selected for the recovery bitmap
 
