@@ -94,7 +94,7 @@ endif
 
 # CPU
 ifndef CPU
-CPU=$(shell $(PP) -TP)
+CPU=$(shell $(PP) -iTP)
 endif
 
 # Options
@@ -990,7 +990,10 @@ endif
 
 #
 # $Log$
-# Revision 1.20  1999-05-03 22:29:04  peter
+# Revision 1.21  1999-05-03 22:38:10  peter
+#   * typo with -TP which should be -iTP
+#
+# Revision 1.20  1999/05/03 22:29:04  peter
 #   * os_source,os_target depends now on the compiler
 #   * cpu depends on the compiler
 #   * datestr y2k proof
