@@ -28,7 +28,7 @@ interface
       node,ncnv,ncgcnv,defcmp;
 
     type
-       TSparcTypeConvNode = class(TCgTypeConvNode)
+       tsparctypeconvnode = class(TCgTypeConvNode)
          protected
          { procedure second_int_to_int;override; }
          { procedure second_string_to_string;override; }
@@ -58,7 +58,7 @@ implementation
       verbose,globals,systems,
       symconst,symdef,aasmbase,aasmtai,
       defutil,
-      cgbase,pass_1,pass_2,
+      cgbase,cgutils,pass_1,pass_2,
       ncon,ncal,
       ncgutil,
       cpubase,aasmcpu,
@@ -69,7 +69,7 @@ implementation
                              FirstTypeConv
 *****************************************************************************}
 
-    function TSparctypeconvnode.first_int_to_real: tnode;
+    function tsparctypeconvnode.first_int_to_real: tnode;
       var
         fname: string[19];
       begin
@@ -106,30 +106,82 @@ implementation
                              SecondTypeConv
 *****************************************************************************}
 
-    procedure TSparctypeconvnode.second_int_to_real;
+    procedure tsparctypeconvnode.second_int_to_real;
+
+      procedure loadsigned;
+        begin
+          location_force_mem(exprasmlist,left.location);
+          location.register:=cg.getfpuregister(exprasmlist,location.size);
+          { Load memory in fpu register }
+          cg.a_loadfpu_ref_reg(exprasmlist,OS_F32,left.location.reference,location.register);
+          tg.ungetiftemp(exprasmlist,left.location.reference);
+          { Convert value in fpu register from integer to float }
+          case tfloatdef(resulttype.def).typ of
+            s32real:
+               exprasmlist.concat(taicpu.op_reg_reg(A_FiTOs,location.register,location.register));
+            s64real:
+              exprasmlist.concat(taicpu.op_reg_reg(A_FiTOd,location.register,location.register));
+            s128real:
+              exprasmlist.concat(taicpu.op_reg_reg(A_FiTOq,location.register,location.register));
+            else
+              internalerror(200408011);
+          end;
+        end;
+
+      var
+        href : treference;
+        hregister : tregister;
+        l1,l2 : tasmlabel;
+
       begin
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
-        location_force_mem(exprasmlist,left.location);
-        location.register:=cg.getfpuregister(exprasmlist,location.size);
-        { Load memory in fpu register }
-        cg.a_loadfpu_ref_reg(exprasmlist,OS_F32,left.location.reference,location.register);
-        tg.ungetiftemp(exprasmlist,left.location.reference);
+        if is_signed(left.resulttype.def) then
+          loadsigned
+        else
+          begin
+            objectlibrary.getdatalabel(l1);
+            objectlibrary.getlabel(l2);
+            reference_reset_symbol(href,l1,0);
+            hregister:=cg.getintregister(exprasmlist,OS_32);
+            cg.a_load_loc_reg(exprasmlist,OS_32,left.location,hregister);
 
-        { Convert value in fpu register from integer to float }
-        case tfloatdef(resulttype.def).typ of
-          s32real:
-             exprasmlist.concat(taicpu.op_reg_reg(A_FiTOs,location.register,location.register));
-          s64real:
-            exprasmlist.concat(taicpu.op_reg_reg(A_FiTOd,location.register,location.register));
-          s128real:
-            exprasmlist.concat(taicpu.op_reg_reg(A_FiTOq,location.register,location.register));
-          else
-            internalerror(200408011);
-        end;
-      end;
+            loadsigned;
+
+            exprasmList.concat(Taicpu.op_reg_reg(A_CMP,hregister,NR_G0));
+            cg.a_jmp_flags(exprasmlist,F_GE,l2);
+
+            case tfloatdef(resulttype.def).typ of
+               { converting dword to s64real first and cut off at the end avoids precision loss }
+               s32real,
+               s64real:
+                 begin
+                   hregister:=cg.getfpuregister(exprasmlist,OS_F64);
+                   consts.concat(tai_align.create(const_align(8)));
+                   consts.concat(Tai_label.Create(l1));
+                   { I got this constant from a test program (FK) }
+                   consts.concat(Tai_const.Create_32bit($41f00000));
+                   consts.concat(Tai_const.Create_32bit(0));
+
+                   cg.a_loadfpu_ref_reg(exprasmlist,OS_F64,href,hregister);
+                   exprasmList.concat(taicpu.op_reg_reg_reg(A_FADDD,location.register,hregister,location.register));
+                   cg.a_label(exprasmlist,l2);
+
+                   { cut off if we should convert to single }
+                   if tfloatdef(resulttype.def).typ=s32real then
+                     begin
+                       hregister:=location.register;
+                       location.register:=cg.getfpuregister(exprasmlist,location.size);
+                       exprasmlist.concat(taicpu.op_reg_reg(A_FDTOS,hregister,location.register));
+                     end;
+                 end;
+               else
+                 internalerror(200410031);
+            end;
+          end;
+       end;
 
 
-    procedure TSparctypeconvnode.second_real_to_real;
+    procedure tsparctypeconvnode.second_real_to_real;
       const
         conv_op : array[tfloattype,tfloattype] of tasmop = (
           {    from:   s32     s64     s80     c64     cur    f128 }
@@ -154,7 +206,7 @@ implementation
       end;
 
 
-    procedure TSparctypeconvnode.second_int_to_bool;
+    procedure tsparctypeconvnode.second_int_to_bool;
       var
         hreg1,hreg2 : tregister;
         resflags : tresflags;
@@ -236,11 +288,14 @@ implementation
 
 
 begin
-   ctypeconvnode:=TSparctypeconvnode;
+   ctypeconvnode:=tsparctypeconvnode;
 end.
 {
   $Log$
-  Revision 1.32  2004-09-25 14:23:55  peter
+  Revision 1.33  2004-10-03 19:21:56  florian
+    * fixed dword->single/double on sparc
+
+  Revision 1.32  2004/09/25 14:23:55  peter
     * ungetregister is now only used for cpuregisters, renamed to
       ungetcpuregister
     * renamed (get|unget)explicitregister(s) to ..cpuregister
