@@ -5,7 +5,8 @@
 dirs_linux=unzip uncgi fpasync \
            x11 opengl gtk syslog \
            forms svgalib ggi libpng libgd \
-           utmp cmem bfd zlib gdbm ncurses tcl cdrom
+           utmp cmem bfd zlib gdbm ncurses tcl cdrom \
+           imlib gnome1
 dirs_netbsd=unzip uncgi fpasync \
             x11 opengl gtk syslog \
             forms svgalib ggi libpng libgd \

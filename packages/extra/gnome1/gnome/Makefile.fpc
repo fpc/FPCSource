@@ -1,0 +1,32 @@
+#
+#   Makefile.fpc for Free Pascal GConf 1.0.x Bindings
+#
+
+[package]
+name=gnome1
+version=1.0.6
+
+[require]
+libc=y
+packages=gtk imlib
+
+[target]
+units=libart libgnome libgnomeui
+
+[compiler]
+sourcedir=libart_lgpl libgnome libgnomeui
+targetdir=.
+
+[libs]
+libname=libfpgnome1.so
+libversion=1.0
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
+
+
+[rules]
+libgnome$(PPUEXT): $(wildcard libgnome/*.pp libgnome/*.inc)

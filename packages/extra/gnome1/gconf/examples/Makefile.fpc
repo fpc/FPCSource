@@ -6,7 +6,7 @@
 programs=gconfcallback1 gconfcallback2 gconfexample
 
 [require]
-packages=gtk gconf
+packages=gtk gnome1/gconf
 
 [clean]
 units=gconfcallback1 gconfcallback2 gconfexample

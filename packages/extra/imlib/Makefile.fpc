@@ -1,0 +1,25 @@
+#
+#   Makefile.fpc for Free Pascal ImLib 1.x Packages
+#
+
+[package]
+name=imlib
+version=1.0.6
+
+[target]
+units=gdk_imlib Imlib
+
+[require]
+libc=y
+packages=gtk
+
+[compiler]
+sourcedir=Imlib gdk_imlib
+targetdir=.
+
+[install]
+fpcpackage=y
+fpcsubdir=packages
+
+[default]
+fpcdir=../../..
