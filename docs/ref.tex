@@ -1356,8 +1356,10 @@ begin
   P2 := P2+4;
 end.
 \end{verbatim}
-Here, the value that is added or substracted is {\em not} multiplied by the
-size of the type the pointer points to.
+Here, the value that is added or substracted {\em is } multiplied by the
+size of the type the pointer points to. In the previous
+example \var{P1} will be decremented by 16 bytes, and 
+\var{P2} will be incremented by 16.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Procedural types
@@ -4910,12 +4912,12 @@ Functions concerning memory issues.
 \procrefl{MoveChar0}{MoveCharNull}{Move data till first zero character}
 \procref{New}{Dynamically allocate memory for variable}
 \funcref{Ofs}{Return offset of variable}
-\funcref{Ptr}{Combine segmant and offset to pointer}
+\funcref{Ptr}{Combine segment and offset to pointer}
 \procref{Release}{Release memory above mark point}
 \funcref{Seg}{Return segment}
 \procref{SetMemoryManager}{Set a memory manager}
 \funcref{Sptr}{Return current stack pointer}
-\funcref{SSeg}{Return ESS register value}
+\funcref{SSeg}{Return stack segment register value}
 \end{funclist}
 
 \subsection{Mathematical routines}
@@ -4984,7 +4986,9 @@ Functions that do not belong in one of the other categories.
 \begin{funclist}
 \procref{Break}{Abort current loop}
 \procref{Continue}{Next cycle in current loop}
+\procref{Exclude}{Exclude an element from a set}
 \procref{Exit}{Exit current function or procedure}
+\procref{Include}{Include an element into a set}
 \procref{LongJmp}{Jump to execution point}
 \funcref{Ord}{Return ordinal value of enumerated type}
 \funcref{Pred}{Return previous value of ordinal type}
@@ -5378,7 +5382,7 @@ None.
 
 \begin{function}{Copy}
 \Declaration
-Function Copy (Const S : String;Index : Integer;Count : Byte) : String;
+Function Copy (Const S : String;Index : Integer;Count : Integer) : String;
 
 \Description
 \var{Copy} returns a string which is a copy if the \var{Count} characters
@@ -5428,7 +5432,7 @@ None.
 
 \begin{procedure}{Dec}
 \Declaration
-Procedure Dec (Var X : Any ordinal type[; Decrement : Longint]);
+Procedure Dec (Var X : Any ordinal type[; Decrement : Any ordinal type]);
 
 \Description
 \var{Dec} decreases the value of \var{X} with \var{Decrement}.
@@ -5870,7 +5874,7 @@ None.
 
 \begin{procedure}{Inc}
 \Declaration
-Procedure Inc (Var X : Any ordinal type[; Increment : Longint]);
+Procedure Inc (Var X : Any ordinal type[; Increment : Any ordinal type]);
 
 \Description
 \var{Inc} increases the value of \var{X} with \var{Increment}.
@@ -5977,7 +5981,7 @@ If \var{W} is not found then -1 is returned.
 
 \begin{procedure}{Insert}
 \Declaration
-Procedure Insert (Const Source : String;var S : String;Index : Longint);
+Procedure Insert (Const Source : String;var S : String;Index : Integer);
 
 \Description
 \var{Insert} inserts string \var{Source} in string \var{S}, at position
@@ -6079,14 +6083,15 @@ All I/O functions.
 
 \begin{function}{Length}
 \Declaration
-Function Length (S : String) : Byte;
+Function Length (S : String) : Integer;
 
 \Description
 \var{Length} returns the length of the string \var{S}, which is limited
 to 255 for shortstrings. If the strings \var{S} is empty, 0 is returned.
+
 {\em Note:} The length of the string \var{S} is stored in \var{S[0]} for
-shortstrings only. Ansistrings have their length stored elsewhere,
-the \var{Length} fuction should always be used on ansistrings.
+shortstrings only. The \var{Length} fuction should always be used on 
+ansistrings and widestrings.
 
 \Errors
 None.
@@ -6411,7 +6416,7 @@ None.
 
 \begin{function}{Pos}
 \Declaration
-Function Pos (Const Substr : String;Const S : String) : Byte;
+Function Pos (Const Substr : String;Const S : String) : Integer;
 \Description
 \var{Pos} returns the index of \var{Substr} in \var{S}, if \var{S} contains
 \var{Substr}. In case \var{Substr} isn't found, \var{0} is returned.
@@ -6976,9 +6981,9 @@ None.
 
 \begin{function}{StringOfChar}
 \Declaration
-Function StringOfChar(c : char;l : longint) : AnsiString;
+Function StringOfChar(c : char;l : Integer) : String;
 \Description
-\var{StringOfChar} creates a new Ansistring of length \var{l} and fills
+\var{StringOfChar} creates a new String of length \var{l} and fills
 it with the character \var{c}.
 
 It is equivalent to  the following calls:
