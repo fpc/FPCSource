@@ -319,20 +319,15 @@ interface
 
 
     procedure tcgtypeconvnode.second_proc_to_procvar;
-
       begin
-        { method pointer ? }
-        if tabstractprocdef(left.resulttype.def).is_methodpointer and
-           not(tabstractprocdef(left.resulttype.def).is_addressonly) then
+        if tabstractprocdef(resulttype.def).is_addressonly then
           begin
-             location_copy(location,left.location);
+            location_reset(location,LOC_REGISTER,OS_ADDR);
+            location.register:=cg.getaddressregister(exprasmlist);
+            cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,location.register);
           end
         else
-          begin
-             location_reset(location,LOC_REGISTER,OS_ADDR);
-             location.register:=cg.getaddressregister(exprasmlist);
-             cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,location.register);
-          end;
+          location_copy(location,left.location);
       end;
 
 
@@ -534,7 +529,13 @@ end.
 
 {
   $Log$
-  Revision 1.65  2004-11-29 21:02:08  peter
+  Revision 1.66  2004-12-05 12:28:11  peter
+    * procvar handling for tp procvar mode fixed
+    * proc to procvar moved from addrnode to typeconvnode
+    * inlininginfo is now allocated only for inline routines that
+      can be inlined, introduced a new flag po_has_inlining_info
+
+  Revision 1.65  2004/11/29 21:02:08  peter
     * location_force_reg in second_nothing can reuse LOC_CREGISTER
 
   Revision 1.64  2004/11/29 17:32:56  peter

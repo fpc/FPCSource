@@ -207,26 +207,9 @@ implementation
       begin
          secondpass(left);
 
-         { when loading procvar we do nothing with this node, so load the
-           location of left }
-         if nf_procvarload in flags then
-          begin
-            location_copy(location,left.location);
-            exit;
-          end;
-
          location_reset(location,LOC_REGISTER,OS_ADDR);
          location.register:=cg.getaddressregister(exprasmlist);
-         { @ on a procvar means returning an address to the procedure that
-           is stored in it }
-         if (m_tp_procvar in aktmodeswitches) and
-            (left.nodetype=loadn) and
-            (tloadnode(left).resulttype.def.deftype=procvardef) and
-            assigned(tloadnode(left).symtableentry) and
-            (tloadnode(left).symtableentry.typ in [globalvarsym,localvarsym,paravarsym]) then
-           cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.reference,location.register)
-         else
-           cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,location.register);
+         cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,location.register);
       end;
 
 
@@ -878,7 +861,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.102  2004-11-08 22:09:59  peter
+  Revision 1.103  2004-12-05 12:28:11  peter
+    * procvar handling for tp procvar mode fixed
+    * proc to procvar moved from addrnode to typeconvnode
+    * inlininginfo is now allocated only for inline routines that
+      can be inlined, introduced a new flag po_has_inlining_info
+
+  Revision 1.102  2004/11/08 22:09:59  peter
     * tvarsym splitted
 
   Revision 1.101  2004/11/01 23:30:11  peter

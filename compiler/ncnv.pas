@@ -40,6 +40,7 @@ interface
           constructor create(node : tnode;const t : ttype);virtual;
           constructor create_explicit(node : tnode;const t : ttype);
           constructor create_internal(node : tnode;const t : ttype);
+          constructor create_proc_to_procvar(node : tnode);
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
@@ -75,6 +76,7 @@ interface
           function resulttype_call_helper(c : tconverttype) : tnode;
           function resulttype_variant_to_enum : tnode;
           function resulttype_enum_to_variant : tnode;
+          function resulttype_proc_to_procvar : tnode;
        protected
           function first_int_to_int : tnode;virtual;
           function first_cstring_to_pchar : tnode;virtual;
@@ -198,9 +200,9 @@ interface
 implementation
 
    uses
-      globtype,systems,
+      cclasses,globtype,systems,
       cutils,verbose,globals,widestr,
-      symconst,symdef,symsym,symtable,
+      symconst,symdef,symsym,symbase,symtable,
       ncon,ncal,nset,nadd,ninl,nmem,nmat,nutils,
       cgbase,procinfo,
       htypechk,pass_1,cpuinfo;
@@ -500,7 +502,7 @@ implementation
 
       begin
          inherited create(typeconvn,node);
-         convtype:=tc_not_possible;
+         convtype:=tc_none;
          totype:=t;
          if t.def=nil then
           internalerror(200103281);
@@ -523,6 +525,14 @@ implementation
          { handle like explicit conversions }
          include(flags,nf_explicit);
          include(flags,nf_internal);
+      end;
+
+
+    constructor ttypeconvnode.create_proc_to_procvar(node : tnode);
+
+      begin
+         self.create(node,voidtype);
+         convtype:=tc_proc_2_procvar;
       end;
 
 
@@ -948,6 +958,7 @@ implementation
          { evaluate again, reset resulttype so the convert_typ
            will be calculated again and cstring_to_pchar will
            be used for futher conversion }
+         convtype:=tc_none;
          result:=det_resulttype;
       end;
 
@@ -1027,7 +1038,7 @@ implementation
       begin
         result := ccallnode.createinternres(
           'fpc_variant_to_dynarray',
-          ccallparanode.create(caddrnode.create(crttinode.create(tstoreddef(resulttype.def),initrtti)),
+          ccallparanode.create(caddrnode.create_internal(crttinode.create(tstoreddef(resulttype.def),initrtti)),
             ccallparanode.create(left,nil)
           ),resulttype);
         resulttypepass(result);
@@ -1040,7 +1051,7 @@ implementation
       begin
         result := ccallnode.createinternres(
           'fpc_dynarray_to_variant',
-          ccallparanode.create(caddrnode.create(crttinode.create(tstoreddef(resulttype.def),initrtti)),
+          ccallparanode.create(caddrnode.create_internal(crttinode.create(tstoreddef(resulttype.def),initrtti)),
             ccallparanode.create(ctypeconvnode.create_explicit(left,voidpointertype),nil)
           ),resulttype);
         resulttypepass(result);
@@ -1070,10 +1081,61 @@ implementation
       end;
 
 
+    procedure copyparasym(p:TNamedIndexItem;arg:pointer);
+      var
+        newparast : tsymtable absolute arg;
+        vs : tparavarsym;
+      begin
+        if tsym(p).typ<>paravarsym then
+          exit;
+        with tparavarsym(p) do
+          begin
+            vs:=tparavarsym.create(realname,paranr,varspez,vartype);
+            vs.varoptions:=varoptions;
+            vs.defaultconstsym:=defaultconstsym;
+            newparast.insert(vs);
+          end;
+      end;
+
+
+    function ttypeconvnode.resulttype_proc_to_procvar : tnode;
+      var
+        pd : tabstractprocdef;
+      begin
+        result:=nil;
+        pd:=tabstractprocdef(left.resulttype.def);
+
+        { create procvardef }
+        resulttype.setdef(tprocvardef.create(pd.parast.symtablelevel));
+        tprocvardef(resulttype.def).proctypeoption:=pd.proctypeoption;
+        tprocvardef(resulttype.def).proccalloption:=pd.proccalloption;
+        tprocvardef(resulttype.def).procoptions:=pd.procoptions;
+        tprocvardef(resulttype.def).rettype:=pd.rettype;
+
+        { method ? then set the methodpointer flag }
+        if (pd.owner.symtabletype=objectsymtable) then
+          include(tprocvardef(resulttype.def).procoptions,po_methodpointer);
+
+        { only need the address of the method? this is needed
+          for @tobject.create. In this case there will be a loadn without
+          a methodpointer. }
+        if (left.nodetype=loadn) and
+           not assigned(tloadnode(left).left) then
+          include(tprocvardef(resulttype.def).procoptions,po_addressonly);
+
+        { Add parameters use only references, we don't need to keep the
+          parast. We use the parast from the original function to calculate
+          our parameter data and reset it afterwards }
+        pd.parast.foreach_static(@copyparasym,tprocvardef(resulttype.def).parast);
+        tprocvardef(resulttype.def).calcparas;
+      end;
+
+
     function ttypeconvnode.resulttype_call_helper(c : tconverttype) : tnode;
 {$ifdef fpc}
       const
          resulttypeconvert : array[tconverttype] of pointer = (
+          {none} nil,
           {equal} nil,
           {not_possible} nil,
           { string_2_string } @ttypeconvnode.resulttype_string_to_string,
@@ -1094,7 +1156,7 @@ implementation
           { real_2_real } @ttypeconvnode.resulttype_real_to_real,
           { int_2_real } @ttypeconvnode.resulttype_int_to_real,
           { real_2_currency } @ttypeconvnode.resulttype_real_to_currency,
-          { proc_2_procvar } nil,
+          { proc_2_procvar } @ttypeconvnode.resulttype_proc_to_procvar,
           { arrayconstructor_2_set } @ttypeconvnode.resulttype_arrayconstructor_to_set,
           { load_smallset } nil,
           { cord_2_pointer } @ttypeconvnode.resulttype_cord_to_pointer,
@@ -1103,12 +1165,12 @@ implementation
           { class_2_intf } nil,
           { char_2_char } @ttypeconvnode.resulttype_char_to_char,
           { normal_2_smallset} nil,
-          { dynarray_2_openarray} @resulttype_dynarray_to_openarray,
-          { pwchar_2_string} @resulttype_pwchar_to_string,
-          { variant_2_dynarray} @resulttype_variant_to_dynarray,
-          { dynarray_2_variant} @resulttype_dynarray_to_variant,
-          { variant_2_enum} @resulttype_variant_to_enum,
-          { enum_2_variant} @resulttype_enum_to_variant
+          { dynarray_2_openarray} @ttypeconvnode.resulttype_dynarray_to_openarray,
+          { pwchar_2_string} @ttypeconvnode.resulttype_pwchar_to_string,
+          { variant_2_dynarray} @ttypeconvnode.resulttype_variant_to_dynarray,
+          { dynarray_2_variant} @ttypeconvnode.resulttype_dynarray_to_variant,
+          { variant_2_enum} @ttypeconvnode.resulttype_variant_to_enum,
+          { enum_2_variant} @ttypeconvnode.resulttype_enum_to_variant
          );
       type
          tprocedureofobject = function : tnode of object;
@@ -1183,7 +1245,8 @@ implementation
         { tp procvar support. Skip typecasts to record or set. Those
           convert on the procvar value. This is used to access the
           fields of a methodpointer }
-        if not(resulttype.def.deftype in [recorddef,setdef]) then
+        if not(nf_load_procvar in flags) and
+           not(resulttype.def.deftype in [recorddef,setdef]) then
           maybe_call_procvar(left,true);
 
         { convert array constructors to sets, because there is no conversion
@@ -1195,242 +1258,229 @@ implementation
             resulttypepass(left);
           end;
 
-        cdoptions:=[cdo_check_operator,cdo_allow_variant];
-        if nf_explicit in flags then
-          include(cdoptions,cdo_explicit);
-        if nf_internal in flags then
-          include(cdoptions,cdo_internal);
-        eq:=compare_defs_ext(left.resulttype.def,resulttype.def,left.nodetype,convtype,aprocdef,cdoptions);
-        case eq of
-          te_exact,
-          te_equal :
-            begin
-              { because is_equal only checks the basetype for sets we need to
-                check here if we are loading a smallset into a normalset }
-              if (resulttype.def.deftype=setdef) and
-                 (left.resulttype.def.deftype=setdef) and
-                 ((tsetdef(resulttype.def).settype = smallset) xor
-                  (tsetdef(left.resulttype.def).settype = smallset)) then
+        if convtype=tc_none then
+          begin
+            cdoptions:=[cdo_check_operator,cdo_allow_variant];
+            if nf_explicit in flags then
+              include(cdoptions,cdo_explicit);
+            if nf_internal in flags then
+              include(cdoptions,cdo_internal);
+            eq:=compare_defs_ext(left.resulttype.def,resulttype.def,left.nodetype,convtype,aprocdef,cdoptions);
+            case eq of
+              te_exact,
+              te_equal :
                 begin
-                  { constant sets can be converted by changing the type only }
-                  if (left.nodetype=setconstn) then
-                   begin
-                     left.resulttype:=resulttype;
-                     result:=left;
-                     left:=nil;
-                     exit;
-                   end;
+                  { because is_equal only checks the basetype for sets we need to
+                    check here if we are loading a smallset into a normalset }
+                  if (resulttype.def.deftype=setdef) and
+                     (left.resulttype.def.deftype=setdef) and
+                     ((tsetdef(resulttype.def).settype = smallset) xor
+                      (tsetdef(left.resulttype.def).settype = smallset)) then
+                    begin
+                      { constant sets can be converted by changing the type only }
+                      if (left.nodetype=setconstn) then
+                       begin
+                         left.resulttype:=resulttype;
+                         result:=left;
+                         left:=nil;
+                         exit;
+                       end;
 
-                  if (tsetdef(resulttype.def).settype <> smallset) then
-                   convtype:=tc_load_smallset
+                      if (tsetdef(resulttype.def).settype <> smallset) then
+                       convtype:=tc_load_smallset
+                      else
+                       convtype := tc_normal_2_smallset;
+                      exit;
+                    end
                   else
-                   convtype := tc_normal_2_smallset;
+                   begin
+                     { Only leave when there is no conversion to do.
+                       We can still need to call a conversion routine,
+                       like the routine to convert a stringconstnode }
+                     if convtype in [tc_equal,tc_not_possible] then
+                      begin
+                        left.resulttype:=resulttype;
+                        result:=left;
+                        left:=nil;
+                        exit;
+                      end;
+                   end;
+                end;
+
+              te_convert_l1,
+              te_convert_l2,
+              te_convert_l3 :
+                begin
+                  { nothing to do }
+                end;
+
+              te_convert_operator :
+                begin
+                  include(current_procinfo.flags,pi_do_call);
+                  inc(aprocdef.procsym.refs);
+                  hp:=ccallnode.create(ccallparanode.create(left,nil),Tprocsym(aprocdef.procsym),nil,nil,[]);
+                  { tell explicitly which def we must use !! (PM) }
+                  tcallnode(hp).procdefinition:=aprocdef;
+                  left:=nil;
+                  result:=hp;
                   exit;
-                end
-              else
-               begin
-                 { Only leave when there is no conversion to do.
-                   We can still need to call a conversion routine,
-                   like the routine to convert a stringconstnode }
-                 if convtype in [tc_equal,tc_not_possible] then
-                  begin
-                    left.resulttype:=resulttype;
-                    result:=left;
-                    left:=nil;
-                    exit;
-                  end;
-               end;
-            end;
+                end;
 
-          te_convert_l1,
-          te_convert_l2,
-          te_convert_l3 :
-            begin
-              { nothing to do }
-            end;
-
-          te_convert_operator :
-            begin
-              include(current_procinfo.flags,pi_do_call);
-              inc(aprocdef.procsym.refs);
-              hp:=ccallnode.create(ccallparanode.create(left,nil),Tprocsym(aprocdef.procsym),nil,nil,[]);
-              { tell explicitly which def we must use !! (PM) }
-              tcallnode(hp).procdefinition:=aprocdef;
-              left:=nil;
-              result:=hp;
-              exit;
-            end;
-
-          te_incompatible :
-            begin
-              { Procedures have a resulttype.def of voiddef and functions of their
-                own resulttype.def. They will therefore always be incompatible with
-                a procvar. Because isconvertable cannot check for procedures we
-                use an extra check for them.}
-              if (m_tp_procvar in aktmodeswitches) and
-                 (resulttype.def.deftype=procvardef) then
-               begin
-                 if is_procsym_load(left) then
-                  begin
-                    if (left.nodetype<>addrn) then
-                     begin
-                       convtype:=tc_proc_2_procvar;
-                       { Now check if the procedure we are going to assign to
-                         the procvar, is compatible with the procvar's type }
-                       if not(nf_explicit in flags) and
-                          (proc_to_procvar_equal(tprocsym(tloadnode(left).symtableentry).first_procdef,
-                                                 tprocvardef(resulttype.def),true)=te_incompatible) then
-                         IncompatibleTypes(tprocsym(tloadnode(left).symtableentry).first_procdef,resulttype.def);
-                       exit;
-                     end;
-                  end
-                 else
-                  if (left.nodetype=calln) and
-                     (tcallnode(left).para_count=0) then
+              te_incompatible :
+                begin
+                  { Procedures have a resulttype.def of voiddef and functions of their
+                    own resulttype.def. They will therefore always be incompatible with
+                    a procvar. Because isconvertable cannot check for procedures we
+                    use an extra check for them.}
+                  if (m_tp_procvar in aktmodeswitches) and
+                     (resulttype.def.deftype=procvardef) then
                    begin
-                     if assigned(tcallnode(left).right) then
-                      begin
-                        { this is already a procvar, if it is really equal
-                          is checked below }
-                        convtype:=tc_equal;
-                        hp:=tcallnode(left).right.getcopy;
-                        currprocdef:=tprocdef(hp.resulttype.def);
-                      end
-                     else
-                      begin
-                        convtype:=tc_proc_2_procvar;
-                        currprocdef:=Tprocsym(Tcallnode(left).symtableprocentry).search_procdef_byprocvardef(Tprocvardef(resulttype.def));
-                        hp:=cloadnode.create_procvar(tprocsym(tcallnode(left).symtableprocentry),
-                            currprocdef,tcallnode(left).symtableproc);
-                        if (tcallnode(left).symtableprocentry.owner.symtabletype=objectsymtable) then
-                         begin
-                           if assigned(tcallnode(left).methodpointer) then
-                             begin
-                               { Under certain circumstances the methodpointer is a loadvmtaddrn
-                                 which isn't possible if it is used as a method pointer, so
-                                 fix this.
-                                 If you change this, ensure that tests/tbs/tw2669.pp still works }
-                               if tcallnode(left).methodpointer.nodetype=loadvmtaddrn then
-                                 tloadnode(hp).set_mp(tloadvmtaddrnode(tcallnode(left).methodpointer).left.getcopy)
-                               else
-                                 tloadnode(hp).set_mp(tcallnode(left).methodpointer.getcopy);
-                             end
-                           else
-                             tloadnode(hp).set_mp(load_self_node);
-                         end;
-                        resulttypepass(hp);
-                      end;
-                     left.free;
-                     left:=hp;
-                     { Now check if the procedure we are going to assign to
-                       the procvar, is compatible with the procvar's type }
-                     if not(nf_explicit in flags) and
-                        (proc_to_procvar_equal(currprocdef,
-                                               tprocvardef(resulttype.def),true)=te_incompatible) then
-                       IncompatibleTypes(left.resulttype.def,resulttype.def);
-                     exit;
-                   end;
-               end;
-
-              { Handle explicit type conversions }
-              if nf_explicit in flags then
-               begin
-                 { do common tc_equal cast }
-                 convtype:=tc_equal;
-
-                 { ordinal constants can be resized to 1,2,4,8 bytes }
-                 if (left.nodetype=ordconstn) then
-                   begin
-                     { Insert typeconv for ordinal to the correct size first on left, after
-                       that the other conversion can be done }
-                     htype.reset;
-                     case longint(resulttype.def.size) of
-                       1 :
-                         htype:=s8inttype;
-                       2 :
-                         htype:=s16inttype;
-                       4 :
-                         htype:=s32inttype;
-                       8 :
-                         htype:=s64inttype;
-                     end;
-                     { we need explicit, because it can also be an enum }
-                     if assigned(htype.def) then
-                       inserttypeconv_internal(left,htype)
-                     else
-                       CGMessage2(type_e_illegal_type_conversion,left.resulttype.def.gettypename,resulttype.def.gettypename);
-                   end;
-
-                 { check if the result could be in a register }
-                 if (not(tstoreddef(resulttype.def).is_intregable) and
-                     not(tstoreddef(resulttype.def).is_fpuregable)) or
-                    ((left.resulttype.def.deftype = floatdef) and
-                     (resulttype.def.deftype <> floatdef))  then
-                   make_not_regable(left);
-
-                 { class to class or object to object, with checkobject support }
-                 if (resulttype.def.deftype=objectdef) and
-                    (left.resulttype.def.deftype=objectdef) then
-                   begin
-                     if (cs_check_object in aktlocalswitches) then
-                      begin
-                        if is_class_or_interface(resulttype.def) then
-                         begin
-                           { we can translate the typeconvnode to 'as' when
-                             typecasting to a class or interface }
-                           hp:=casnode.create(left,cloadvmtaddrnode.create(ctypenode.create(resulttype)));
-                           left:=nil;
-                           result:=hp;
-                           exit;
-                         end;
-                      end
-                     else
-                      begin
-                        { check if the types are related }
-                        if not(nf_internal in flags) and
-                           (not(tobjectdef(left.resulttype.def).is_related(tobjectdef(resulttype.def)))) and
-                           (not(tobjectdef(resulttype.def).is_related(tobjectdef(left.resulttype.def)))) then
+                      if (left.nodetype=calln) and
+                         (tcallnode(left).para_count=0) then
+                       begin
+                         if assigned(tcallnode(left).right) then
                           begin
-                            { Give an error when typecasting class to interface, this is compatible
-                              with delphi }
-                            if is_interface(resulttype.def) and
-                               not is_interface(left.resulttype.def) then
-                              CGMessage2(type_e_classes_not_related,
-                                FullTypeName(left.resulttype.def,resulttype.def),
-                                FullTypeName(resulttype.def,left.resulttype.def))
-                            else
-                              CGMessage2(type_w_classes_not_related,
-                                FullTypeName(left.resulttype.def,resulttype.def),
-                                FullTypeName(resulttype.def,left.resulttype.def))
+                            { this is already a procvar, if it is really equal
+                              is checked below }
+                            convtype:=tc_equal;
+                            hp:=tcallnode(left).right.getcopy;
+                            currprocdef:=tprocdef(hp.resulttype.def);
+                          end
+                         else
+                          begin
+                            convtype:=tc_proc_2_procvar;
+                            currprocdef:=Tprocsym(Tcallnode(left).symtableprocentry).search_procdef_byprocvardef(Tprocvardef(resulttype.def));
+                            hp:=cloadnode.create_procvar(tprocsym(tcallnode(left).symtableprocentry),
+                                currprocdef,tcallnode(left).symtableproc);
+                            if (tcallnode(left).symtableprocentry.owner.symtabletype=objectsymtable) then
+                             begin
+                               if assigned(tcallnode(left).methodpointer) then
+                                 begin
+                                   { Under certain circumstances the methodpointer is a loadvmtaddrn
+                                     which isn't possible if it is used as a method pointer, so
+                                     fix this.
+                                     If you change this, ensure that tests/tbs/tw2669.pp still works }
+                                   if tcallnode(left).methodpointer.nodetype=loadvmtaddrn then
+                                     tloadnode(hp).set_mp(tloadvmtaddrnode(tcallnode(left).methodpointer).left.getcopy)
+                                   else
+                                     tloadnode(hp).set_mp(tcallnode(left).methodpointer.getcopy);
+                                 end
+                               else
+                                 tloadnode(hp).set_mp(load_self_node);
+                             end;
+                            resulttypepass(hp);
                           end;
-                      end;
-                   end
-
-                  else
-                   begin
-                     { only if the same size or formal def }
-                     if not(
-                            (left.resulttype.def.deftype=formaldef) or
-                            (
-                             not(is_open_array(left.resulttype.def)) and
-                             (left.resulttype.def.size=resulttype.def.size)
-                            ) or
-                            (
-                             is_void(left.resulttype.def)  and
-                             (left.nodetype=derefn)
-                            )
-                           ) then
-                       CGMessage2(type_e_illegal_type_conversion,left.resulttype.def.gettypename,resulttype.def.gettypename);
+                         left.free;
+                         left:=hp;
+                         { Now check if the procedure we are going to assign to
+                           the procvar, is compatible with the procvar's type }
+                         if not(nf_explicit in flags) and
+                            (proc_to_procvar_equal(currprocdef,
+                                                   tprocvardef(resulttype.def),true)=te_incompatible) then
+                           IncompatibleTypes(left.resulttype.def,resulttype.def);
+                         exit;
+                       end;
                    end;
-               end
+
+                  { Handle explicit type conversions }
+                  if nf_explicit in flags then
+                   begin
+                     { do common tc_equal cast }
+                     convtype:=tc_equal;
+
+                     { ordinal constants can be resized to 1,2,4,8 bytes }
+                     if (left.nodetype=ordconstn) then
+                       begin
+                         { Insert typeconv for ordinal to the correct size first on left, after
+                           that the other conversion can be done }
+                         htype.reset;
+                         case longint(resulttype.def.size) of
+                           1 :
+                             htype:=s8inttype;
+                           2 :
+                             htype:=s16inttype;
+                           4 :
+                             htype:=s32inttype;
+                           8 :
+                             htype:=s64inttype;
+                         end;
+                         { we need explicit, because it can also be an enum }
+                         if assigned(htype.def) then
+                           inserttypeconv_internal(left,htype)
+                         else
+                           CGMessage2(type_e_illegal_type_conversion,left.resulttype.def.gettypename,resulttype.def.gettypename);
+                       end;
+
+                     { check if the result could be in a register }
+                     if (not(tstoreddef(resulttype.def).is_intregable) and
+                         not(tstoreddef(resulttype.def).is_fpuregable)) or
+                        ((left.resulttype.def.deftype = floatdef) and
+                         (resulttype.def.deftype <> floatdef))  then
+                       make_not_regable(left);
+
+                     { class to class or object to object, with checkobject support }
+                     if (resulttype.def.deftype=objectdef) and
+                        (left.resulttype.def.deftype=objectdef) then
+                       begin
+                         if (cs_check_object in aktlocalswitches) then
+                          begin
+                            if is_class_or_interface(resulttype.def) then
+                             begin
+                               { we can translate the typeconvnode to 'as' when
+                                 typecasting to a class or interface }
+                               hp:=casnode.create(left,cloadvmtaddrnode.create(ctypenode.create(resulttype)));
+                               left:=nil;
+                               result:=hp;
+                               exit;
+                             end;
+                          end
+                         else
+                          begin
+                            { check if the types are related }
+                            if not(nf_internal in flags) and
+                               (not(tobjectdef(left.resulttype.def).is_related(tobjectdef(resulttype.def)))) and
+                               (not(tobjectdef(resulttype.def).is_related(tobjectdef(left.resulttype.def)))) then
+                              begin
+                                { Give an error when typecasting class to interface, this is compatible
+                                  with delphi }
+                                if is_interface(resulttype.def) and
+                                   not is_interface(left.resulttype.def) then
+                                  CGMessage2(type_e_classes_not_related,
+                                    FullTypeName(left.resulttype.def,resulttype.def),
+                                    FullTypeName(resulttype.def,left.resulttype.def))
+                                else
+                                  CGMessage2(type_w_classes_not_related,
+                                    FullTypeName(left.resulttype.def,resulttype.def),
+                                    FullTypeName(resulttype.def,left.resulttype.def))
+                              end;
+                          end;
+                       end
+
+                      else
+                       begin
+                         { only if the same size or formal def }
+                         if not(
+                                (left.resulttype.def.deftype=formaldef) or
+                                (
+                                 not(is_open_array(left.resulttype.def)) and
+                                 (left.resulttype.def.size=resulttype.def.size)
+                                ) or
+                                (
+                                 is_void(left.resulttype.def)  and
+                                 (left.nodetype=derefn)
+                                )
+                               ) then
+                           CGMessage2(type_e_illegal_type_conversion,left.resulttype.def.gettypename,resulttype.def.gettypename);
+                       end;
+                   end
+                  else
+                   IncompatibleTypes(left.resulttype.def,resulttype.def);
+                end;
+
               else
-               IncompatibleTypes(left.resulttype.def,resulttype.def);
+                internalerror(200211231);
             end;
-
-          else
-            internalerror(200211231);
-        end;
-
+          end;
         { Give hint or warning for unportable code, exceptions are
            - typecasts from constants
            - void }
@@ -1753,19 +1803,19 @@ implementation
     function ttypeconvnode.first_proc_to_procvar : tnode;
       begin
          first_proc_to_procvar:=nil;
-         if assigned(tunarynode(left).left) then
-          begin
-            if (left.expectloc<>LOC_CREFERENCE) then
-              CGMessage(parser_e_illegal_expression);
-            registersint:=left.registersint;
-            expectloc:=left.expectloc
-          end
-         else
+         if tabstractprocdef(resulttype.def).is_addressonly then
           begin
             registersint:=left.registersint;
             if registersint<1 then
               registersint:=1;
             expectloc:=LOC_REGISTER;
+          end
+         else
+          begin
+            if not(left.expectloc in [LOC_CREFERENCE,LOC_REFERENCE]) then
+              CGMessage(parser_e_illegal_expression);
+            registersint:=left.registersint;
+            expectloc:=left.expectloc
           end
       end;
 
@@ -1920,6 +1970,7 @@ implementation
 
       const
          firstconvert : array[tconverttype] of pointer = (
+           nil, { none }
            @ttypeconvnode._first_nothing, {equal}
            @ttypeconvnode._first_nothing, {not_possible}
            nil, { removed in resulttype_string_to_string }
@@ -2151,44 +2202,44 @@ implementation
 
 
     procedure ttypeconvnode.second_call_helper(c : tconverttype);
-{$ifdef fpc}
       const
          secondconvert : array[tconverttype] of pointer = (
-           @_second_nothing, {equal}
-           @_second_nothing, {not_possible}
-           @_second_nothing, {second_string_to_string, handled in resulttype pass }
-           @_second_char_to_string,
-           @_second_nothing, {char_to_charray}
-           @_second_nothing, { pchar_to_string, handled in resulttype pass }
-           @_second_nothing, {cchar_to_pchar}
-           @_second_cstring_to_pchar,
-           @_second_ansistring_to_pchar,
-           @_second_string_to_chararray,
-           @_second_nothing, { chararray_to_string, handled in resulttype pass }
-           @_second_array_to_pointer,
-           @_second_pointer_to_array,
-           @_second_int_to_int,
-           @_second_int_to_bool,
-           @_second_bool_to_bool,
-           @_second_bool_to_int,
-           @_second_real_to_real,
-           @_second_int_to_real,
-           @_second_nothing, { real_to_currency, handled in resulttype pass }
-           @_second_proc_to_procvar,
-           @_second_nothing, { arrayconstructor_to_set }
-           @_second_nothing, { second_load_smallset, handled in first pass }
-           @_second_cord_to_pointer,
-           @_second_nothing, { interface 2 string }
-           @_second_nothing, { interface 2 guid   }
-           @_second_class_to_intf,
-           @_second_char_to_char,
-           @_second_nothing,  { normal_2_smallset }
-           @_second_nothing,  { dynarray_2_openarray }
-           @_second_nothing,  { pwchar_2_string }
-           @_second_nothing,  { variant_2_dynarray }
-           @_second_nothing,  { dynarray_2_variant}
-           @_second_nothing,  { variant_2_enum }
-           @_second_nothing   { enum_2_variant }
+           @ttypeconvnode._second_nothing, {none}
+           @ttypeconvnode._second_nothing, {equal}
+           @ttypeconvnode._second_nothing, {not_possible}
+           @ttypeconvnode._second_nothing, {second_string_to_string, handled in resulttype pass }
+           @ttypeconvnode._second_char_to_string,
+           @ttypeconvnode._second_nothing, {char_to_charray}
+           @ttypeconvnode._second_nothing, { pchar_to_string, handled in resulttype pass }
+           @ttypeconvnode._second_nothing, {cchar_to_pchar}
+           @ttypeconvnode._second_cstring_to_pchar,
+           @ttypeconvnode._second_ansistring_to_pchar,
+           @ttypeconvnode._second_string_to_chararray,
+           @ttypeconvnode._second_nothing, { chararray_to_string, handled in resulttype pass }
+           @ttypeconvnode._second_array_to_pointer,
+           @ttypeconvnode._second_pointer_to_array,
+           @ttypeconvnode._second_int_to_int,
+           @ttypeconvnode._second_int_to_bool,
+           @ttypeconvnode._second_bool_to_bool,
+           @ttypeconvnode._second_bool_to_int,
+           @ttypeconvnode._second_real_to_real,
+           @ttypeconvnode._second_int_to_real,
+           @ttypeconvnode._second_nothing, { real_to_currency, handled in resulttype pass }
+           @ttypeconvnode._second_proc_to_procvar,
+           @ttypeconvnode._second_nothing, { arrayconstructor_to_set }
+           @ttypeconvnode._second_nothing, { second_load_smallset, handled in first pass }
+           @ttypeconvnode._second_cord_to_pointer,
+           @ttypeconvnode._second_nothing, { interface 2 string }
+           @ttypeconvnode._second_nothing, { interface 2 guid   }
+           @ttypeconvnode._second_class_to_intf,
+           @ttypeconvnode._second_char_to_char,
+           @ttypeconvnode._second_nothing,  { normal_2_smallset }
+           @ttypeconvnode._second_nothing,  { dynarray_2_openarray }
+           @ttypeconvnode._second_nothing,  { pwchar_2_string }
+           @ttypeconvnode._second_nothing,  { variant_2_dynarray }
+           @ttypeconvnode._second_nothing,  { dynarray_2_variant}
+           @ttypeconvnode._second_nothing,  { variant_2_enum }
+           @ttypeconvnode._second_nothing   { enum_2_variant }
          );
       type
          tprocedureofobject = procedure of object;
@@ -2206,46 +2257,7 @@ implementation
          r.obj:=self;
          tprocedureofobject(r)();
       end;
-{$else fpc}
-     begin
-        case c of
-          tc_equal,
-          tc_not_possible,
-          tc_string_2_string : second_nothing;
-          tc_char_2_string : second_char_to_string;
-          tc_char_2_chararray : second_nothing;
-          tc_pchar_2_string : second_nothing;
-          tc_cchar_2_pchar : second_nothing;
-          tc_cstring_2_pchar : second_cstring_to_pchar;
-          tc_ansistring_2_pchar : second_ansistring_to_pchar;
-          tc_string_2_chararray : second_string_to_chararray;
-          tc_chararray_2_string : second_nothing;
-          tc_array_2_pointer : second_array_to_pointer;
-          tc_pointer_2_array : second_pointer_to_array;
-          tc_int_2_int : second_int_to_int;
-          tc_int_2_bool : second_int_to_bool;
-          tc_bool_2_bool : second_bool_to_bool;
-          tc_bool_2_int : second_bool_to_int;
-          tc_real_2_real : second_real_to_real;
-          tc_int_2_real : second_int_to_real;
-          tc_real_2_currency : second_nothing;
-          tc_proc_2_procvar : second_proc_to_procvar;
-          tc_arrayconstructor_2_set : second_nothing;
-          tc_load_smallset : second_nothing;
-          tc_cord_2_pointer : second_cord_to_pointer;
-          tc_intf_2_string : second_nothing;
-          tc_intf_2_guid : second_nothing;
-          tc_class_2_intf : second_class_to_intf;
-          tc_char_2_char : second_char_to_char;
-          tc_normal_2_smallset : second_nothing;
-          tc_dynarray_2_openarray : second_nothing;
-          tc_pwchar_2_string : second_nothing;
-          tc_variant_2_dynarray : second_nothing;
-          tc_dynarray_2_variant : second_nothing;
-          else internalerror(2002101101);
-        end;
-     end;
-{$endif fpc}
+
 
 {*****************************************************************************
                                 TISNODE
@@ -2486,7 +2498,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.165  2004-12-05 12:15:11  florian
+  Revision 1.166  2004-12-05 12:28:11  peter
+    * procvar handling for tp procvar mode fixed
+    * proc to procvar moved from addrnode to typeconvnode
+    * inlininginfo is now allocated only for inline routines that
+      can be inlined, introduced a new flag po_has_inlining_info
+
+  Revision 1.165  2004/12/05 12:15:11  florian
     * fixed compiler side of variant <-> dyn. array conversion
 
   Revision 1.164  2004/11/26 22:34:28  peter

@@ -327,7 +327,7 @@ implementation
             { create call to fpc_initialize }
             if tpointerdef(p1.resulttype.def).pointertype.def.needs_inittable then
              begin
-               para := ccallparanode.create(caddrnode.create(crttinode.create
+               para := ccallparanode.create(caddrnode.create_internal(crttinode.create
                           (tstoreddef(tpointerdef(p1.resulttype.def).pointertype.def),initrtti)),
                        ccallparanode.create(ctemprefnode.create
                           (temp),nil));
@@ -495,11 +495,11 @@ implementation
             ppn.left:=nil;
 
             { create call to fpc_dynarr_setlength }
-            npara:=ccallparanode.create(caddrnode.create
+            npara:=ccallparanode.create(caddrnode.create_internal
                       (ctemprefnode.create(temp)),
                    ccallparanode.create(cordconstnode.create
                       (counter,s32inttype,true),
-                   ccallparanode.create(caddrnode.create
+                   ccallparanode.create(caddrnode.create_internal
                       (crttinode.create(tstoreddef(destppn.resulttype.def),initrtti)),
                    ccallparanode.create(ctypeconvnode.create_internal(destppn,voidpointertype),nil))));
             addstatement(newstatement,ccallnode.createintern('fpc_dynarray_setlength',npara));
@@ -593,9 +593,9 @@ implementation
                      (destppn.left.resulttype.def.size,s32inttype,true),
                   ccallparanode.create(ctypeconvnode.create
                      (ppn.left,s32inttype),
-                  ccallparanode.create(caddrnode.create
+                  ccallparanode.create(caddrnode.create_internal
                      (crttinode.create(tstoreddef(destppn.left.resulttype.def),initrtti)),
-                  ccallparanode.create(caddrnode.create
+                  ccallparanode.create(caddrnode.create_internal
                      (destppn.left),nil))));
            newblock:=ccallnode.createintern('fpc_finalize_array',npara);
            destppn.left:=nil;
@@ -724,7 +724,7 @@ implementation
             { create call to fpc_dynarray_copy }
             npara:=ccallparanode.create(highppn,
                    ccallparanode.create(lowppn,
-                   ccallparanode.create(caddrnode.create
+                   ccallparanode.create(caddrnode.create_internal
                       (crttinode.create(tstoreddef(ppn.left.resulttype.def),initrtti)),
                    ccallparanode.create
                       (ctypeconvnode.create_internal(ppn.left,voidpointertype),
@@ -754,7 +754,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  2004-11-21 17:54:59  peter
+  Revision 1.38  2004-12-05 12:28:11  peter
+    * procvar handling for tp procvar mode fixed
+    * proc to procvar moved from addrnode to typeconvnode
+    * inlininginfo is now allocated only for inline routines that
+      can be inlined, introduced a new flag po_has_inlining_info
+
+  Revision 1.37  2004/11/21 17:54:59  peter
     * ttempcreatenode.create_reg merged into .create with parameter
       whether a register is allowed
     * funcret_paraloc renamed to funcretloc

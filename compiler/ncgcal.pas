@@ -402,16 +402,7 @@ implementation
                   if (parasym.varspez=vs_const) and
                      (left.location.loc=LOC_CONSTANT) then
                     location_force_mem(exprasmlist,left.location);
-
-                  { allow (typecasted) @var }
-                  hp:=left;
-                  while (hp.nodetype=typeconvn) do
-                    hp:=ttypeconvnode(hp).left;
-                  if (hp.nodetype=addrn) and
-                     (not(nf_procvarload in hp.flags)) then
-                    cg.a_param_loc(exprasmlist,left.location,tempcgpara)
-                  else
-                    push_addr_para;
+                  push_addr_para;
                end
              { Normal parameter }
              else
@@ -1262,7 +1253,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.189  2004-12-02 19:26:15  peter
+  Revision 1.190  2004-12-05 12:28:11  peter
+    * procvar handling for tp procvar mode fixed
+    * proc to procvar moved from addrnode to typeconvnode
+    * inlininginfo is now allocated only for inline routines that
+      can be inlined, introduced a new flag po_has_inlining_info
+
+  Revision 1.189  2004/12/02 19:26:15  peter
     * disable pass2inline
 
   Revision 1.188  2004/11/21 18:13:31  peter

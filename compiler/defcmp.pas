@@ -41,7 +41,7 @@ interface
        tcompare_defs_option = (cdo_internal,cdo_explicit,cdo_check_operator,cdo_allow_variant);
        tcompare_defs_options = set of tcompare_defs_option;
 
-       tconverttype = (
+       tconverttype = (tc_none,
           tc_equal,
           tc_not_possible,
           tc_string_2_string,
@@ -165,6 +165,9 @@ implementation
          hd3 : tobjectdef;
          hpd : tprocdef;
       begin
+         eq:=te_incompatible;
+         doconv:=tc_not_possible;
+
          { safety check }
          if not(assigned(def_from) and assigned(def_to)) then
           begin
@@ -175,14 +178,13 @@ implementation
          { same def? then we've an exact match }
          if def_from=def_to then
           begin
+            doconv:=tc_equal;
             compare_defs_ext:=te_exact;
             exit;
           end;
 
          { we walk the wanted (def_to) types and check then the def_from
            types if there is a conversion possible }
-         eq:=te_incompatible;
-         doconv:=tc_not_possible;
          case def_to.deftype of
            orddef :
              begin
@@ -786,13 +788,10 @@ implementation
                    end;
                  procvardef :
                    begin
-                     { procedure variable can be assigned to an void pointer }
-                     { Not anymore. Use the @ operator now.}
-                     if not(m_tp_procvar in aktmodeswitches) and
-                       { method pointers can't be assigned to void pointers
-                       not(tprocvardef(def_from).is_methodpointer) and }
-                        (tpointerdef(def_to).pointertype.def.deftype=orddef) and
-                        (torddef(tpointerdef(def_to).pointertype.def).typ=uvoid) then
+                     { procedure variable can be assigned to an void pointer,
+                       this not allowed for methodpointers }
+                     if is_void(tpointerdef(def_to).pointertype.def) and
+                        tprocvardef(def_from).is_addressonly then
                       begin
                         doconv:=tc_equal;
                         eq:=te_convert_l1;
@@ -879,8 +878,8 @@ implementation
                       { for example delphi allows the assignement from pointers }
                       { to procedure variables                                  }
                       if (m_pointer_2_procedure in aktmodeswitches) and
-                         (tpointerdef(def_from).pointertype.def.deftype=orddef) and
-                         (torddef(tpointerdef(def_from).pointertype.def).typ=uvoid) then
+                         is_void(tpointerdef(def_from).pointertype.def) and
+                         tprocvardef(def_to).is_addressonly then
                        begin
                          doconv:=tc_equal;
                          eq:=te_convert_l1;
@@ -1312,7 +1311,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.61  2004-11-29 17:32:56  peter
+  Revision 1.62  2004-12-05 12:28:10  peter
+    * procvar handling for tp procvar mode fixed
+    * proc to procvar moved from addrnode to typeconvnode
+    * inlininginfo is now allocated only for inline routines that
+      can be inlined, introduced a new flag po_has_inlining_info
+
+  Revision 1.61  2004/11/29 17:32:56  peter
     * prevent some IEs with delphi methodpointers
 
   Revision 1.60  2004/11/26 22:33:54  peter

@@ -494,10 +494,9 @@ interface
        end;
 
        tinlininginfo = record
-         { node tree }
-          code : tnode;
+          { node tree }
+          code  : tnode;
           flags : tprocinfoflags;
-          inlinenode : boolean;
        end;
        pinlininginfo = ^tinlininginfo;
 
@@ -3605,8 +3604,7 @@ implementation
          import_dll:=nil;
          import_name:=nil;
          import_nr:=0;
-         new(inlininginfo);
-         fillchar(inlininginfo^,sizeof(tinlininginfo),0);
+         inlininginfo:=nil;
 {$ifdef GDB}
          isstabwritten := false;
 {$endif GDB}
@@ -3639,22 +3637,24 @@ implementation
          import_name:=nil;
          import_nr:=0;
          { inline stuff }
-         if proccalloption=pocall_inline then
+         if (po_has_inlininginfo in procoptions) then
            begin
              ppufile.getderef(funcretsymderef);
              new(inlininginfo);
              ppufile.getsmallset(inlininginfo^.flags);
-             inlininginfo^.inlinenode:=boolean(ppufile.getbyte);
            end
          else
-           funcretsym:=nil;
+           begin
+             inlininginfo:=nil;
+             funcretsym:=nil;
+           end;
          { load para symtable }
          parast:=tparasymtable.create(level);
          tparasymtable(parast).ppuload(ppufile);
          parast.defowner:=self;
          { load local symtable }
-         if ((proccalloption=pocall_inline) or
-             ((current_module.flags and uf_local_browser)<>0)) then
+         if (po_has_inlininginfo in procoptions) or
+            ((current_module.flags and uf_local_browser)<>0) then
           begin
             localst:=tlocalsymtable.create(level);
             tlocalsymtable(localst).ppuload(ppufile);
@@ -3663,10 +3663,8 @@ implementation
          else
           localst:=nil;
          { inline stuff }
-         if proccalloption=pocall_inline then
-           inlininginfo^.code:=ppuloadnodetree(ppufile)
-         else
-           inlininginfo := nil;
+         if (po_has_inlininginfo in procoptions) then
+           inlininginfo^.code:=ppuloadnodetree(ppufile);
          { default values for no persistent data }
          if (cs_link_deffile in aktglobalswitches) and
             (tf_need_export in target_info.flags) and
@@ -3704,7 +3702,7 @@ implementation
             memproclocalst.start;
 {$endif MEMDEBUG}
           end;
-         if (proccalloption=pocall_inline) and assigned(inlininginfo) then
+         if assigned(inlininginfo) then
           begin
 {$ifdef MEMDEBUG}
             memprocnodetree.start;
@@ -3713,11 +3711,10 @@ implementation
 {$ifdef MEMDEBUG}
             memprocnodetree.start;
 {$endif MEMDEBUG}
+            dispose(inlininginfo);
           end;
          stringdispose(import_dll);
          stringdispose(import_name);
-         if assigned(inlininginfo) then
-           dispose(inlininginfo);
          if (po_msgstr in procoptions) then
            strdispose(messageinf.str);
          if assigned(_mangledname) then
@@ -3768,13 +3765,11 @@ implementation
          { inline stuff }
          oldintfcrc:=ppufile.do_crc;
          ppufile.do_crc:=false;
-         if proccalloption=pocall_inline then
+         if (po_has_inlininginfo in procoptions) then
            begin
              ppufile.putderef(funcretsymderef);
              ppufile.putsmallset(inlininginfo^.flags);
-             ppufile.putbyte(byte(inlininginfo^.inlinenode));
            end;
-
          ppufile.do_crc:=oldintfcrc;
 
          { write this entry }
@@ -3785,7 +3780,7 @@ implementation
 
          { save localsymtable for inline procedures or when local
            browser info is requested, this has no influence on the crc }
-         if (proccalloption=pocall_inline) or
+         if (po_has_inlininginfo in procoptions) or
             ((current_module.flags and uf_local_browser)<>0) then
           begin
             { we must write a localsymtable }
@@ -3800,9 +3795,8 @@ implementation
          { node tree for inlining }
          oldintfcrc:=ppufile.do_crc;
          ppufile.do_crc:=false;
-         if proccalloption=pocall_inline then
+         if (po_has_inlininginfo in procoptions) then
            ppuwritenodetree(ppufile,inlininginfo^.code);
-
          ppufile.do_crc:=oldintfcrc;
 
          aktparasymtable:=oldparasymtable;
@@ -4155,7 +4149,7 @@ implementation
 
          { Locals }
          if assigned(localst) and
-            ((proccalloption=pocall_inline) or
+            ((po_has_inlininginfo in procoptions) or
              ((current_module.flags and uf_local_browser)<>0)) then
            begin
              tlocalsymtable(localst).buildderef;
@@ -4163,7 +4157,7 @@ implementation
            end;
 
          { inline tree }
-         if (proccalloption=pocall_inline) then
+         if (po_has_inlininginfo in procoptions) then
            begin
              funcretsymderef.build(funcretsym);
              inlininginfo^.code.buildderefimpl;
@@ -4221,7 +4215,7 @@ implementation
           end;
 
         { Inline }
-        if (proccalloption=pocall_inline) then
+        if (po_has_inlininginfo in procoptions) then
           begin
             inlininginfo^.code.derefimpl;
             { funcretsym, this is always located in the localst }
@@ -6129,7 +6123,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.281  2004-12-03 15:57:39  peter
+  Revision 1.282  2004-12-05 12:28:11  peter
+    * procvar handling for tp procvar mode fixed
+    * proc to procvar moved from addrnode to typeconvnode
+    * inlininginfo is now allocated only for inline routines that
+      can be inlined, introduced a new flag po_has_inlining_info
+
+  Revision 1.281  2004/12/03 15:57:39  peter
     * int64 can also be put in a register
 
   Revision 1.280  2004/11/30 18:13:39  jonas

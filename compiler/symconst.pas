@@ -248,7 +248,8 @@ type
     po_has_mangledname,
     po_has_public_name,
     po_forward,
-    po_global
+    po_global,
+    po_has_inlininginfo
   );
   tprocoptions=set of tprocoption;
 
@@ -428,7 +429,13 @@ initialization
 end.
 {
   $Log$
-  Revision 1.95  2004-11-19 08:17:02  michael
+  Revision 1.96  2004-12-05 12:28:11  peter
+    * procvar handling for tp procvar mode fixed
+    * proc to procvar moved from addrnode to typeconvnode
+    * inlininginfo is now allocated only for inline routines that
+      can be inlined, introduced a new flag po_has_inlining_info
+
+  Revision 1.95  2004/11/19 08:17:02  michael
   * Split po_public into po_public and po_global (Peter)
 
   Revision 1.94  2004/11/17 22:21:35  peter

@@ -489,7 +489,7 @@ implementation
                 end
                else
                 begin
-                  hp:=caddrnode.create(p);
+                  hp:=caddrnode.create_internal(p);
                   refp:=cderefnode.create(ctemprefnode.create(loadp));
                 end;
                addstatement(newstatement,loadp);
@@ -1147,7 +1147,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.146  2004-11-30 18:13:39  jonas
+  Revision 1.147  2004-12-05 12:28:11  peter
+    * procvar handling for tp procvar mode fixed
+    * proc to procvar moved from addrnode to typeconvnode
+    * inlininginfo is now allocated only for inline routines that
+      can be inlined, introduced a new flag po_has_inlining_info
+
+  Revision 1.146  2004/11/30 18:13:39  jonas
     * patch from Peter to fix inlining of case statements
 
   Revision 1.145  2004/11/21 17:54:59  peter

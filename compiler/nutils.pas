@@ -417,11 +417,11 @@ implementation
           begin
             result:=ccallnode.createintern('fpc_initialize',
                   ccallparanode.create(
-                      caddrnode.create(
+                      caddrnode.create_internal(
                           crttinode.create(
                               tstoreddef(p.resulttype.def),initrtti)),
                   ccallparanode.create(
-                      caddrnode.create(p),
+                      caddrnode.create_internal(p),
                   nil)));
           end;
       end;
@@ -433,11 +433,11 @@ implementation
           resulttypepass(p);
         result:=ccallnode.createintern('fpc_finalize',
               ccallparanode.create(
-                  caddrnode.create(
+                  caddrnode.create_internal(
                       crttinode.create(
                           tstoreddef(p.resulttype.def),initrtti)),
               ccallparanode.create(
-                  caddrnode.create(p),
+                  caddrnode.create_internal(p),
               nil)));
       end;
 
@@ -466,9 +466,9 @@ implementation
                 end;
               loadn:
                 begin
-		  { threadvars need a helper call }
+                  { threadvars need a helper call }
                   if (tloadnode(p).symtableentry.typ=globalvarsym) and
-		     (vo_is_thread_var in tglobalvarsym(tloadnode(p).symtableentry).varoptions) then
+                     (vo_is_thread_var in tglobalvarsym(tloadnode(p).symtableentry).varoptions) then
                     inc(result,5)
                   else
                     inc(result);
@@ -530,7 +530,13 @@ end.
 
 {
   $Log$
-  Revision 1.23  2004-12-02 19:26:15  peter
+  Revision 1.24  2004-12-05 12:28:11  peter
+    * procvar handling for tp procvar mode fixed
+    * proc to procvar moved from addrnode to typeconvnode
+    * inlininginfo is now allocated only for inline routines that
+      can be inlined, introduced a new flag po_has_inlining_info
+
+  Revision 1.23  2004/12/02 19:26:15  peter
     * disable pass2inline
 
   Revision 1.22  2004/11/28 19:29:45  jonas

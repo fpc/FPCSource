@@ -24,8 +24,6 @@ unit ncal;
 
 {$i fpcdefs.inc}
 
-{ define NODEINLINE}
-
 interface
 
     uses
@@ -2053,7 +2051,7 @@ type
                     tempnode := ctempcreatenode.create(voidpointertype,voidpointertype.def.size,tt_persistent,tparavarsym(para.parasym).varregable<>vr_none);
                     addstatement(createstatement,tempnode);
                     addstatement(createstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
-                      caddrnode.create(para.left)));
+                      caddrnode.create_internal(para.left)));
                     para.left := ctypeconvnode.create_internal(cderefnode.create(ctemprefnode.create(tempnode)),para.left.resulttype);
                     addstatement(deletestatement,ctempdeletenode.create(tempnode));
                   end;
@@ -2081,7 +2079,8 @@ type
         body : tnode;
         i: longint;
       begin
-        if not assigned(tprocdef(procdefinition).inlininginfo^.code) then
+        if not(assigned(tprocdef(procdefinition).inlininginfo) and
+               assigned(tprocdef(procdefinition).inlininginfo^.code)) then
           internalerror(200412021);
         { inherit flags }
         current_procinfo.flags := current_procinfo.flags + ((procdefinition as tprocdef).inlininginfo^.flags*inherited_inlining_flags);
@@ -2121,15 +2120,13 @@ type
       begin
          result:=nil;
 
-{$ifdef NODEINLINE}
+         { Can we inline the procedure? }
          if (procdefinition.proccalloption=pocall_inline) and
-            { can we inline this procedure at the node level? }
-            (tprocdef(procdefinition).inlininginfo^.inlinenode) then
+            (po_has_inlininginfo in procdefinition.procoptions) then
            begin
              result:=pass1_inline;
              exit;
            end;
-{$endif NODEINLINE}
 
          { calculate the parameter info for the procdef }
          if not procdefinition.has_paraloc_info then
@@ -2435,7 +2432,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.267  2004-12-03 16:07:04  peter
+  Revision 1.268  2004-12-05 12:28:11  peter
+    * procvar handling for tp procvar mode fixed
+    * proc to procvar moved from addrnode to typeconvnode
+    * inlininginfo is now allocated only for inline routines that
+      can be inlined, introduced a new flag po_has_inlining_info
+
+  Revision 1.267  2004/12/03 16:07:04  peter
     * fix crashes with nodeinlining
 
   Revision 1.266  2004/12/02 19:26:14  peter

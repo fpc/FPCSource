@@ -205,7 +205,6 @@ interface
          nf_isproperty,
 
          { taddrnode }
-         nf_procvarload,
          nf_typedaddr,
 
          { tderefnode }
@@ -235,6 +234,7 @@ interface
          { ttypeconvnode }
          nf_explicit,
          nf_internal,  { no warnings/hints generated }
+         nf_load_procvar,
 
          { tinlinenode }
          nf_inlineconst,
@@ -1139,7 +1139,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.91  2004-12-02 19:26:15  peter
+  Revision 1.92  2004-12-05 12:28:11  peter
+    * procvar handling for tp procvar mode fixed
+    * proc to procvar moved from addrnode to typeconvnode
+    * inlininginfo is now allocated only for inline routines that
+      can be inlined, introduced a new flag po_has_inlining_info
+
+  Revision 1.91  2004/12/02 19:26:15  peter
     * disable pass2inline
 
   Revision 1.90  2004/11/02 12:55:16  peter

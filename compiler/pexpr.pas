@@ -321,7 +321,7 @@ implementation
              htype.setdef(tpointerdef.create(p1.resulttype));
              temp:=ctempcreatenode.create(htype,sizeof(aint),tt_persistent,false);
              addstatement(newstatement,temp);
-             addstatement(newstatement,cassignmentnode.create(ctemprefnode.create(temp),caddrnode.create(p1)));
+             addstatement(newstatement,cassignmentnode.create(ctemprefnode.create(temp),caddrnode.create_internal(p1)));
              addstatement(newstatement,cassignmentnode.create(
                  cderefnode.create(ctemprefnode.create(temp)),
                  caddnode.create(ntyp,
@@ -2505,7 +2505,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.174  2004-11-21 17:54:59  peter
+  Revision 1.175  2004-12-05 12:28:11  peter
+    * procvar handling for tp procvar mode fixed
+    * proc to procvar moved from addrnode to typeconvnode
+    * inlininginfo is now allocated only for inline routines that
+      can be inlined, introduced a new flag po_has_inlining_info
+
+  Revision 1.174  2004/11/21 17:54:59  peter
     * ttempcreatenode.create_reg merged into .create with parameter
       whether a register is allowed
     * funcret_paraloc renamed to funcretloc

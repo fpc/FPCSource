@@ -91,7 +91,7 @@ implementation
       paramgr,
       pass_2,tgobj,
       nbas,ncon,nflw,
-      ncgutil,regvars,cpuinfo,
+      ncgutil,regvars,
       cgutils;
 
 
@@ -806,7 +806,7 @@ implementation
                      end
                    else
                      begin
-                        max_dist:=4*aword(labels);
+                        max_dist:=4*labelcnt;
                         if jumptable_no_range then
                           max_linear_list:=4
                         else
@@ -870,7 +870,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.71  2004-11-30 18:13:39  jonas
+  Revision 1.72  2004-12-05 12:28:11  peter
+    * procvar handling for tp procvar mode fixed
+    * proc to procvar moved from addrnode to typeconvnode
+    * inlininginfo is now allocated only for inline routines that
+      can be inlined, introduced a new flag po_has_inlining_info
+
+  Revision 1.71  2004/11/30 18:13:39  jonas
     * patch from Peter to fix inlining of case statements
 
   Revision 1.70  2004/10/31 21:45:03  peter

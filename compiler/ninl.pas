@@ -424,7 +424,7 @@ implementation
                 { assign the address of the file to the temp }
                 addstatement(newstatement,
                   cassignmentnode.create(ctemprefnode.create(filetemp),
-                    caddrnode.create(filepara.left)));
+                    caddrnode.create_internal(filepara.left)));
                 resulttypepass(newstatement.left);
                 { create a new fileparameter as follows: file_type(temp^)    }
                 { (so that we pass the value and not the address of the temp }
@@ -2160,7 +2160,7 @@ implementation
                        tempnode := ctempcreatenode.create(voidpointertype,voidpointertype.def.size,tt_persistent,true);
                        addstatement(newstatement,tempnode);
                        addstatement(newstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
-                         caddrnode.create(tcallparanode(left).left.getcopy)));
+                         caddrnode.create_internal(tcallparanode(left).left.getcopy)));
                        hp := cderefnode.create(ctemprefnode.create(tempnode));
                        inserttypeconv_internal(hp,tcallparanode(left).left.resulttype);
                      end
@@ -2463,7 +2463,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.155  2004-11-26 22:33:00  peter
+  Revision 1.156  2004-12-05 12:28:11  peter
+    * procvar handling for tp procvar mode fixed
+    * proc to procvar moved from addrnode to typeconvnode
+    * inlininginfo is now allocated only for inline routines that
+      can be inlined, introduced a new flag po_has_inlining_info
+
+  Revision 1.155  2004/11/26 22:33:00  peter
     * fixed read temp for result
 
   Revision 1.154  2004/11/21 21:27:31  peter

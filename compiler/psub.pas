@@ -928,11 +928,9 @@ implementation
          if assigned(code) then
           begin
             { the inline procedure has already got a copy of the tree
-              stored in current_procinfo.procdef.code }
+              stored in procdef.inlininginfo }
             code.free;
             code:=nil;
-            if (procdef.proccalloption<>pocall_inline) then
-              procdef.inlininginfo^.code:=nil;
           end;
        end;
 
@@ -943,8 +941,7 @@ implementation
         currpara : tparavarsym;
       begin
         result := false;
-        if not assigned(procdef.inlininginfo^.code) or
-           (po_assembler in procdef.procoptions) then
+        if (po_assembler in procdef.procoptions) then
           exit;
         for i:=0 to procdef.paras.count-1 do
           begin
@@ -1039,19 +1036,19 @@ implementation
                end;
            end;
 
-         { store a copy of the original tree for inline, for
-           normal procedures only store a reference to the
-           current tree }
          if (procdef.proccalloption=pocall_inline) then
            begin
-             procdef.inlininginfo^.code:=code.getcopy;
-             procdef.inlininginfo^.flags:=current_procinfo.flags;
-             procdef.inlininginfo^.inlinenode:=checknodeinlining(procdef);
-             if procdef.inlininginfo^.code.nodetype=blockn then
-               include(procdef.inlininginfo^.code.flags,nf_block_with_exit);
-           end
-         else
-           procdef.inlininginfo^.code:=code;
+             { Can we inline this procedure? }
+             if checknodeinlining(procdef) then
+               begin
+                 new(procdef.inlininginfo);
+                 include(procdef.procoptions,po_has_inlininginfo);
+                 procdef.inlininginfo^.code:=code.getcopy;
+                 procdef.inlininginfo^.flags:=current_procinfo.flags;
+                 if procdef.inlininginfo^.code.nodetype=blockn then
+                   include(procdef.inlininginfo^.code.flags,nf_block_with_exit);
+               end;
+           end;
 
          { Print the node to tree.log }
          if paraprintnodetree=1 then
@@ -1430,7 +1427,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.221  2004-12-02 19:26:15  peter
+  Revision 1.222  2004-12-05 12:28:11  peter
+    * procvar handling for tp procvar mode fixed
+    * proc to procvar moved from addrnode to typeconvnode
+    * inlininginfo is now allocated only for inline routines that
+      can be inlined, introduced a new flag po_has_inlining_info
+
+  Revision 1.221  2004/12/02 19:26:15  peter
     * disable pass2inline
 
   Revision 1.220  2004/11/29 18:50:15  peter

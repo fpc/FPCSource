@@ -56,6 +56,7 @@ interface
           getprocvardef : tprocvardef;
           getprocvardefderef : tderef;
           constructor create(l : tnode);virtual;
+          constructor create_internal(l : tnode); virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure mark_write;override;
@@ -127,7 +128,7 @@ implementation
 
     uses
       globtype,systems,
-      cutils,cclasses,verbose,globals,
+      cutils,verbose,globals,
       symconst,symbase,defutil,defcmp,
       nbas,nutils,
       htypechk,pass_1,ncal,nld,ncon,ncnv,cgbase,procinfo
@@ -255,6 +256,13 @@ implementation
       end;
 
 
+    constructor taddrnode.create_internal(l : tnode);
+      begin
+        self.create(l);
+        include(flags,nf_internal);
+      end;
+
+
     constructor taddrnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
       begin
         inherited ppuload(t,ppufile);
@@ -301,29 +309,11 @@ implementation
       end;
 
 
-    procedure copyparasym(p:TNamedIndexItem;arg:pointer);
-      var
-        newparast : tsymtable absolute arg;
-        vs : tparavarsym;
-      begin
-        if tsym(p).typ<>paravarsym then
-          exit;
-        with tparavarsym(p) do
-          begin
-            vs:=tparavarsym.create(realname,paranr,varspez,vartype);
-            vs.varoptions:=varoptions;
-//            vs.paraloc[callerside]:=paraloc[callerside].getcopy;
-//            vs.paraloc[callerside]:=paraloc[callerside].getcopy;
-            vs.defaultconstsym:=defaultconstsym;
-            newparast.insert(vs);
-          end;
-      end;
-
-
     function taddrnode.det_resulttype:tnode;
       var
          hp  : tnode;
-         hp3 : tabstractprocdef;
+         hsym : tfieldvarsym;
+         isprocvar : boolean;
       begin
         result:=nil;
         resulttypepass(left);
@@ -340,137 +330,94 @@ implementation
            exit;
          end;
 
-        { tp @procvar support (type of @procvar is a void pointer)
-          Note: we need to leave the addrn in the tree,
-          else we can't see the difference between @procvar and procvar.
-          we set the procvarload flag so a secondpass does nothing for
-          this node (PFV) }
-        if (m_tp_procvar in aktmodeswitches) then
-         begin
-           case left.nodetype of
-             calln :
-               begin
-                 { a load of a procvar can't have parameters }
-                 if assigned(tcallnode(left).left) then
-                   CGMessage(parser_e_illegal_expression);
-                 { is it a procvar? }
-                 hp:=tcallnode(left).right;
-                 if assigned(hp) then
-                   begin
-                     { remove calln node }
-                     tcallnode(left).right:=nil;
-                     left.free;
-                     left:=hp;
-                     include(flags,nf_procvarload);
-                   end;
-               end;
-             loadn,
-             subscriptn,
-             typeconvn,
-             vecn,
-             derefn :
-               begin
-                 if left.resulttype.def.deftype=procvardef then
-                   include(flags,nf_procvarload);
-               end;
-           end;
-           if nf_procvarload in flags then
-            begin
-              resulttype:=voidpointertype;
-              exit;
-            end;
-         end;
-
-        { proc 2 procvar ? }
-        if left.nodetype=calln then
-         { if it were a valid construct, the addr node would already have }
-         { been removed in the parser. This happens for (in FPC mode)     }
-         { procvar1 := @procvar2(parameters);                             }
-         CGMessage(parser_e_illegal_expression)
-        else
-         if (left.nodetype=loadn) and (tloadnode(left).symtableentry.typ=procsym) then
+        { Handle @proc special, also @procvar in tp-mode needs
+          special handling }
+        if (left.resulttype.def.deftype=procdef) or
+           ((left.resulttype.def.deftype=procvardef) and
+            (m_tp_procvar in aktmodeswitches)) then
           begin
-            { result is a procedure variable }
-            { No, to be TP compatible, you must return a voidpointer to
-              the procedure that is stored in the procvar.}
-            if not(m_tp_procvar in aktmodeswitches) then
+            isprocvar:=(left.resulttype.def.deftype=procvardef);
+
+            if not isprocvar then
               begin
-                 if assigned(getprocvardef) and
-                    (tprocsym(tloadnode(left).symtableentry).procdef_count>1) then
+                left:=ctypeconvnode.create_proc_to_procvar(left);
+                resulttypepass(left);
+              end;
+
+            { In tp procvar mode the result is always a voidpointer. Insert
+              a typeconversion to voidpointer. For methodpointers we need
+              to load the proc field }
+            if (m_tp_procvar in aktmodeswitches) then
+              begin
+                if tabstractprocdef(left.resulttype.def).is_addressonly then
                   begin
-                    hp3:=tprocsym(tloadnode(left).symtableentry).search_procdef_byprocvardef(getprocvardef);
-                    if not assigned(hp3)  then
-                     begin
-                       IncompatibleTypes(tprocsym(tloadnode(left).symtableentry).first_procdef,getprocvardef);
-                       exit;
-                     end;
+                    result:=ctypeconvnode.create_internal(left,voidpointertype);
+                    include(result.flags,nf_load_procvar);
+                    left:=nil;
                   end
-                 else
-                  hp3:=tabstractprocdef(tprocsym(tloadnode(left).symtableentry).first_procdef);
-
-                 { create procvardef }
-                 resulttype.setdef(tprocvardef.create(hp3.parast.symtablelevel));
-                 tprocvardef(resulttype.def).proctypeoption:=hp3.proctypeoption;
-                 tprocvardef(resulttype.def).proccalloption:=hp3.proccalloption;
-                 tprocvardef(resulttype.def).procoptions:=hp3.procoptions;
-                 tprocvardef(resulttype.def).rettype:=hp3.rettype;
-
-                 { method ? then set the methodpointer flag }
-                 if (hp3.owner.symtabletype=objectsymtable) then
-                   include(tprocvardef(resulttype.def).procoptions,po_methodpointer);
-
-                 { only need the address of the method? this is needed
-                   for @tobject.create }
-                 if assigned(tloadnode(left).left) then
-                   include(flags,nf_procvarload)
-                 else
-                   include(tprocvardef(resulttype.def).procoptions,po_addressonly);
-
-                 { Add parameters use only references, we don't need to keep the
-                   parast. We use the parast from the original function to calculate
-                   our parameter data and reset it afterwards }
-                 hp3.parast.foreach_static(@copyparasym,tprocvardef(resulttype.def).parast);
-                 tprocvardef(resulttype.def).calcparas;
+                else
+                  begin
+                    { For procvars we need to return the proc field of the
+                      methodpointer }
+                    if isprocvar then
+                      begin
+                        { find proc field in methodpointer record }
+                        hsym:=tfieldvarsym(trecorddef(methodpointertype.def).symtable.search('proc'));
+                        if not assigned(hsym) then
+                          internalerror(200412041);
+                        { Load tmehodpointer(left).proc }
+                        result:=csubscriptnode.create(
+                                     hsym,
+                                     ctypeconvnode.create_internal(left,methodpointertype));
+                        left:=nil;
+                      end
+                    else
+                      CGMessage(type_e_variable_id_expected);
+                  end;
               end
             else
               begin
-                if assigned(tloadnode(left).left) then
-                  CGMessage(parser_e_illegal_expression);
-                resulttype:=voidpointertype;
+                { Return the typeconvn only }
+                result:=left;
+                left:=nil;
               end;
           end
         else
           begin
             { what are we getting the address from an absolute sym? }
             hp:=left;
-            while assigned(hp) and (hp.nodetype in [vecn,derefn,subscriptn]) do
-             hp:=tunarynode(hp).left;
+            while assigned(hp) and (hp.nodetype in [typeconvn,vecn,derefn,subscriptn]) do
+              hp:=tunarynode(hp).left;
+            if not assigned(hp) then
+              internalerror(200412042);
 {$ifdef i386}
-            if assigned(hp) and
-               (hp.nodetype=loadn) and
+            if (hp.nodetype=loadn) and
                ((tloadnode(hp).symtableentry.typ=absolutevarsym) and
-                tabsolutevarsym(tloadnode(hp).symtableentry).absseg) then
-             begin
-               if not(nf_typedaddr in flags) then
-                 resulttype:=voidfarpointertype
-               else
-                 resulttype.setdef(tpointerdef.createfar(left.resulttype));
-             end
+               tabsolutevarsym(tloadnode(hp).symtableentry).absseg) then
+              begin
+                if not(nf_typedaddr in flags) then
+                  resulttype:=voidfarpointertype
+                else
+                  resulttype.setdef(tpointerdef.createfar(left.resulttype));
+              end
             else
 {$endif i386}
-             begin
-               if not(nf_typedaddr in flags) then
-                 resulttype:=voidpointertype
-               else
-                 resulttype.setdef(tpointerdef.create(left.resulttype));
-             end;
+              if (nf_internal in flags) or
+                 valid_for_addr(left) then
+                begin
+                  if not(nf_typedaddr in flags) then
+                    resulttype:=voidpointertype
+                  else
+                    resulttype.setdef(tpointerdef.create(left.resulttype));
+                end
+            else
+              CGMessage(type_e_variable_id_expected);
           end;
 
          { this is like the function addr }
          inc(parsing_para_level);
          set_varstate(left,vs_used,false);
          dec(parsing_para_level);
-
       end;
 
 
@@ -480,19 +427,6 @@ implementation
          firstpass(left);
          if codegenerror then
           exit;
-
-         if nf_procvarload in flags then
-          begin
-            registersint:=left.registersint;
-            registersfpu:=left.registersfpu;
-{$ifdef SUPPORT_MMX}
-            registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
-            if registersint<1 then
-             registersint:=1;
-            expectloc:=left.expectloc;
-            exit;
-          end;
 
          { we should allow loc_mem for @string }
          if not(left.expectloc in [LOC_CREFERENCE,LOC_REFERENCE]) then
@@ -997,7 +931,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.91  2004-11-29 17:32:56  peter
+  Revision 1.92  2004-12-05 12:28:11  peter
+    * procvar handling for tp procvar mode fixed
+    * proc to procvar moved from addrnode to typeconvnode
+    * inlininginfo is now allocated only for inline routines that
+      can be inlined, introduced a new flag po_has_inlining_info
+
+  Revision 1.91  2004/11/29 17:32:56  peter
     * prevent some IEs with delphi methodpointers
 
   Revision 1.90  2004/11/26 22:33:24  peter

@@ -128,8 +128,8 @@ interface
     procedure make_not_regable(p : tnode);
     procedure calcregisters(p : tbinarynode;r32,fpu,mmx : word);
 
-    { subroutine handling }
-    function  is_procsym_load(p:tnode):boolean;
+    { procvar handling }
+    function  is_procvar_load(p:tnode):boolean;
     procedure test_local_to_procvar(from_def:tprocvardef;to_def:tdef);
 
     { sets varsym varstate field correctly }
@@ -143,6 +143,7 @@ interface
     function  valid_for_formal_const(p : tnode) : boolean;
     function  valid_for_var(p:tnode):boolean;
     function  valid_for_assignment(p:tnode):boolean;
+    function  valid_for_addr(p : tnode) : boolean;
 
 
 implementation
@@ -152,12 +153,12 @@ implementation
        cutils,verbose,globals,
        symtable,
        defutil,defcmp,
-       nbas,ncnv,nld,nmem,ncal,nmat,nutils,
+       nbas,ncnv,nld,nmem,ncal,nmat,ninl,nutils,
        cgbase,procinfo
        ;
 
     type
-      TValidAssign=(Valid_Property,Valid_Void,Valid_Const);
+      TValidAssign=(Valid_Property,Valid_Void,Valid_Const,Valid_Addr);
       TValidAssigns=set of TValidAssign;
 
 
@@ -703,22 +704,16 @@ implementation
                           Subroutine Handling
 ****************************************************************************}
 
-    function is_procsym_load(p:tnode):boolean;
+    function is_procvar_load(p:tnode):boolean;
       begin
-         { ignore vecn,subscriptn }
-         repeat
-           case p.nodetype of
-             vecn :
-               p:=tvecnode(p).left;
-             subscriptn :
-               p:=tsubscriptnode(p).left;
-             else
-               break;
-           end;
-         until false;
-         is_procsym_load:=((p.nodetype=loadn) and (tloadnode(p).symtableentry.typ=procsym)) or
-                          ((p.nodetype=addrn) and (taddrnode(p).left.nodetype=loadn)
-                          and (tloadnode(taddrnode(p).left).symtableentry.typ=procsym)) ;
+        result:=false;
+        { remove voidpointer typecast for tp procvars }
+        if (m_tp_procvar in aktmodeswitches) and
+           (p.nodetype=typeconvn) and
+           is_voidpointer(p.resulttype.def) then
+          p:=tunarynode(p).left;
+        result:=(p.nodetype=typeconvn) and
+                (ttypeconvnode(p).convtype=tc_proc_2_procvar);
       end;
 
 
@@ -832,8 +827,13 @@ implementation
         gotderef : boolean;
         fromdef,
         todef    : tdef;
+        errmsg   : longint;
       begin
-        valid_for_assign:=false;
+        if valid_const in opts then
+          errmsg:=type_e_variable_id_expected
+        else
+          errmsg:=type_e_argument_cant_be_assigned;
+        result:=false;
         gotsubscript:=false;
         gotvec:=false;
         gotderef:=false;
@@ -844,7 +844,7 @@ implementation
         if not(valid_void in opts) and
            is_void(hp.resulttype.def) then
          begin
-           CGMessagePos(hp.fileinfo,type_e_argument_cant_be_assigned);
+           CGMessagePos(hp.fileinfo,errmsg);
            exit;
          end;
         while assigned(hp) do
@@ -853,7 +853,7 @@ implementation
            if (nf_isproperty in hp.flags) then
             begin
               if (valid_property in opts) then
-               valid_for_assign:=true
+               result:=true
               else
                begin
                  { check return type }
@@ -867,18 +867,26 @@ implementation
                      gotclass:=true;
                  end;
                  { 1. if it returns a pointer and we've found a deref,
-                   2. if it returns a class or record and a subscription or with is found }
+                   2. if it returns a class or record and a subscription or with is found
+                   3. if the address is needed of a field (subscriptn) }
                  if (gotpointer and gotderef) or
-                    (gotclass and (gotsubscript or gotwith)) then
-                   valid_for_assign:=true
+                    (
+                     gotclass and
+                     (gotsubscript or gotwith)
+                    ) or
+                    (
+                     (Valid_Addr in opts) and
+                     (hp.nodetype=subscriptn)
+                    ) then
+                   result:=true
                  else
-                   CGMessagePos(hp.fileinfo,type_e_argument_cant_be_assigned);
+                   CGMessagePos(hp.fileinfo,errmsg);
                end;
               exit;
             end;
            if (Valid_Const in opts) and is_constnode(hp) then
              begin
-               valid_for_assign:=true;
+               result:=true;
                exit;
              end;
            case hp.nodetype of
@@ -924,7 +932,7 @@ implementation
                  if not(gotsubscript or gotvec or gotderef) and
                     not(ttypeconvnode(hp).assign_allowed) then
                    begin
-                     CGMessagePos(hp.fileinfo,type_e_argument_cant_be_assigned);
+                     CGMessagePos(hp.fileinfo,errmsg);
                      exit;
                    end;
                  case hp.resulttype.def.deftype of
@@ -955,7 +963,7 @@ implementation
                    of reference. }
                  if not(gotsubscript or gotderef or gotvec) then
                    begin
-                     CGMessagePos(hp.fileinfo,type_e_argument_cant_be_assigned);
+                     CGMessagePos(hp.fileinfo,errmsg);
                      exit;
                    end;
                  hp:=tunarynode(hp).left;
@@ -981,16 +989,15 @@ implementation
                  if ((hp.resulttype.def.deftype=pointerdef) or
                      (is_integer(hp.resulttype.def) and gotpointer)) and
                     gotderef then
-                  valid_for_assign:=true
+                  result:=true
                  else
                   CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
                  exit;
                end;
              addrn :
                begin
-                 if gotderef or
-                    (nf_procvarload in hp.flags) then
-                  valid_for_assign:=true
+                 if gotderef then
+                  result:=true
                  else
                   CGMessagePos(hp.fileinfo,type_e_no_assign_to_addr);
                  exit;
@@ -1022,9 +1029,18 @@ implementation
                    2. if it returns a class or record and a subscription or with is found }
                  if (gotpointer and gotderef) or
                     (gotclass and (gotsubscript or gotwith)) then
-                  valid_for_assign:=true
+                  result:=true
                  else
-                  CGMessagePos(hp.fileinfo,type_e_argument_cant_be_assigned);
+                  CGMessagePos(hp.fileinfo,errmsg);
+                 exit;
+               end;
+             inlinen :
+               begin
+                 if (valid_const in opts) and
+                    (tinlinenode(hp).inlinenumber in [in_typeof_x]) then
+                   result:=true
+                 else
+                   CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
                  exit;
                end;
              loadn :
@@ -1044,7 +1060,7 @@ implementation
                         begin
                           { allow p^:= constructions with p is const parameter }
                           if gotderef or (Valid_Const in opts) then
-                           valid_for_assign:=true
+                           result:=true
                           else
                            CGMessagePos(tloadnode(hp).fileinfo,type_e_no_assign_to_const);
                           exit;
@@ -1059,16 +1075,32 @@ implementation
                         end
                        else
                         begin
-                          valid_for_assign:=true;
+                          result:=true;
                           exit;
                         end;
                      end;
                    typedconstsym :
                      begin
                        if ttypedconstsym(tloadnode(hp).symtableentry).is_writable then
-                        valid_for_assign:=true
+                        result:=true
                        else
                         CGMessagePos(hp.fileinfo,type_e_no_assign_to_const);
+                       exit;
+                     end;
+                   procsym :
+                     begin
+                       if (Valid_Const in opts) then
+                         result:=true
+                       else
+                         CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                       exit;
+                     end;
+                   labelsym :
+                     begin
+                       if (Valid_Addr in opts) then
+                         result:=true
+                       else
+                         CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
                        exit;
                      end;
                    else
@@ -1102,7 +1134,7 @@ implementation
 
     function  valid_for_formal_const(p : tnode) : boolean;
       begin
-        valid_for_formal_const:=is_procsym_load(p) or (p.resulttype.def.deftype=formaldef) or
+        valid_for_formal_const:=(p.resulttype.def.deftype=formaldef) or
           valid_for_assign(p,[valid_void,valid_const,valid_property]);
       end;
 
@@ -1110,6 +1142,12 @@ implementation
     function  valid_for_assignment(p:tnode):boolean;
       begin
         valid_for_assignment:=valid_for_assign(p,[valid_property]);
+      end;
+
+
+    function  valid_for_addr(p : tnode) : boolean;
+      begin
+        result:=valid_for_assign(p,[valid_const,valid_addr,valid_void]);
       end;
 
 
@@ -1933,7 +1971,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.105  2004-11-29 21:40:54  peter
+  Revision 1.106  2004-12-05 12:28:10  peter
+    * procvar handling for tp procvar mode fixed
+    * proc to procvar moved from addrnode to typeconvnode
+    * inlininginfo is now allocated only for inline routines that
+      can be inlined, introduced a new flag po_has_inlining_info
+
+  Revision 1.105  2004/11/29 21:40:54  peter
     * fixed wrong calculation for checking default parameters
 
   Revision 1.104  2004/11/15 23:35:31  peter

@@ -105,8 +105,10 @@ interface
 
     procedure gen_alloc_symtable(list:TAAsmoutput;st:tsymtable);
     procedure gen_free_symtable(list:TAAsmoutput;st:tsymtable);
+{$ifdef PASS2INLINE}
     procedure gen_alloc_inline_parast(list:TAAsmoutput;pd:tprocdef);
     procedure gen_alloc_inline_funcret(list:TAAsmoutput;pd:tprocdef);
+{$endif PASS2INLINE}
 
     { rtti and init/final }
     procedure generate_rtti(p:Ttypesym);
@@ -2075,6 +2077,7 @@ implementation
       end;
 
 
+{$ifdef PASS2INLINE}
     procedure gen_alloc_inline_parast(list:TAAsmoutput;pd:tprocdef);
       var
         sym : tsym;
@@ -2166,12 +2169,12 @@ implementation
                 end;
               LOC_REGISTER:
                 begin
-{$ifndef cpu64bit}
+  {$ifndef cpu64bit}
                   if callerparaloc.size in [OS_64,OS_S64] then
                     begin
                     end
                   else
-{$endif cpu64bit}
+  {$endif cpu64bit}
                     begin
                       pd.funcretloc[calleeside].register:=cg.getintregister(list,pd.funcretloc[calleeside].size);
                       pd.funcretloc[callerside].register:=pd.funcretloc[calleeside].register;
@@ -2204,6 +2207,7 @@ implementation
               end;
           end;
       end;
+{$endif PASS2INLINE}
 
 
     { persistent rtti generation }
@@ -2282,7 +2286,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.246  2004-12-03 16:06:31  peter
+  Revision 1.247  2004-12-05 12:28:11  peter
+    * procvar handling for tp procvar mode fixed
+    * proc to procvar moved from addrnode to typeconvnode
+    * inlininginfo is now allocated only for inline routines that
+      can be inlined, introduced a new flag po_has_inlining_info
+
+  Revision 1.246  2004/12/03 16:06:31  peter
     * fix for int64 parameters passed in a single LOC_REFERENCE of 8 bytes
 
   Revision 1.245  2004/11/21 18:13:31  peter

@@ -42,7 +42,7 @@ implementation
        symconst,symbase,symdef,symtable,
        aasmbase,aasmtai,aasmcpu,defutil,defcmp,
        { pass 1 }
-       node,
+       node,htypechk,
        nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,
        { parser specific stuff }
        pbase,pexpr,
@@ -61,7 +61,7 @@ implementation
          Psetbytes = ^setbytes;
       var
          len,base  : longint;
-         p,hp,hpstart : tnode;
+         p,hp      : tnode;
          i,j,l,
          varalign  : longint;
          offset,
@@ -369,32 +369,17 @@ implementation
                       Message(parser_e_illegal_expression);
                 end
               else
-                if p.nodetype=addrn then
+                if (p.nodetype=addrn) or
+                   is_procvar_load(p) then
                   begin
-                    { support @@procvar in tp mode }
-                    if (m_tp_procvar in aktmodeswitches) and
-                       (taddrnode(p).left.nodetype=addrn) then
-                      p:=taddrnode(p).left;
                     { insert typeconv }
                     inserttypeconv(p,t);
-                    { if a typeconv node was inserted then check if it was an tc_equal. If
-                      true then we remove the node. If not tc_equal then we leave the typeconvn
-                      and the nodetype=loadn will always be false and generate the error (PFV) }
-                    if (p.nodetype=typeconvn) then
-                     begin
-                       if (ttypeconvnode(p).convtype=tc_equal) then
-                        hpstart:=taddrnode(ttypeconvnode(p).left).left
-                       else
-                        hpstart:=p;
-                     end
-                    else
-                     hpstart:=taddrnode(p).left;
-                    hp:=hpstart;
-                    while assigned(hp) and (hp.nodetype in [subscriptn,vecn]) do
+                    hp:=p;
+                    while assigned(hp) and (hp.nodetype in [addrn,typeconvn,subscriptn,vecn]) do
                       hp:=tunarynode(hp).left;
                     if (hp.nodetype=loadn) then
                       begin
-                        hp:=hpstart;
+                        hp:=p;
                         offset:=0;
                         while assigned(hp) and (hp.nodetype<>loadn) do
                           begin
@@ -423,7 +408,14 @@ implementation
                                      Message(parser_e_illegal_expression);
                                  end;
                                subscriptn :
-                                 inc(offset,tsubscriptnode(hp).vs.fieldoffset)
+                                 inc(offset,tsubscriptnode(hp).vs.fieldoffset);
+                               typeconvn :
+                                 begin
+                                   if not(ttypeconvnode(hp).convtype in [tc_equal,tc_proc_2_procvar]) then
+                                     Message(parser_e_illegal_expression);
+                                 end;
+                               addrn :
+                                 ;
                                else
                                  Message(parser_e_illegal_expression);
                              end;
@@ -1089,7 +1081,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.96  2004-11-09 17:26:47  peter
+  Revision 1.97  2004-12-05 12:28:11  peter
+    * procvar handling for tp procvar mode fixed
+    * proc to procvar moved from addrnode to typeconvnode
+    * inlininginfo is now allocated only for inline routines that
+      can be inlined, introduced a new flag po_has_inlining_info
+
+  Revision 1.96  2004/11/09 17:26:47  peter
     * fixed wrong typecasts
 
   Revision 1.95  2004/11/08 22:09:59  peter

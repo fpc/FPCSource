@@ -244,9 +244,9 @@ implementation
     procedure timportlibwin32.generatesmartlib;
       var
          hp1 : timportlist;
+         mangledstring : string;
 {$ifdef GDB}
          importname : string;
-         mangledstring : string;
          suffix : integer;
 {$endif GDB}
          hp2 : twin32imported_item;
@@ -395,9 +395,9 @@ implementation
          hp1 : timportlist;
          hp2 : twin32imported_item;
          l1,l2,l3,l4 : tasmlabel;
+         mangledstring : string;
 {$ifdef GDB}
          importname : string;
-         mangledstring : string;
          suffix : integer;
 {$endif GDB}
          href : treference;
@@ -1623,7 +1623,13 @@ initialization
 end.
 {
   $Log$
-  Revision 1.45  2004-11-18 10:06:19  michael
+  Revision 1.46  2004-12-05 12:28:11  peter
+    * procvar handling for tp procvar mode fixed
+    * proc to procvar moved from addrnode to typeconvnode
+    * inlininginfo is now allocated only for inline routines that
+      can be inlined, introduced a new flag po_has_inlining_info
+
+  Revision 1.45  2004/11/18 10:06:19  michael
   + Fix for win32 cycle
 
   Revision 1.44  2004/11/17 22:22:12  peter

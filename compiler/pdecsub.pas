@@ -1821,12 +1821,12 @@ const
             { External Procedures }
             if (po_external in pd.procoptions) then
               begin
-	        { import by number? }
+                { import by number? }
                 if pd.import_nr<>0 then
-		  begin
-		    { Nothing to do }
-		  end
-		else
+                  begin
+                    { Nothing to do }
+                  end
+                else
                 { external name specified }
                   if assigned(pd.import_name) then
                     begin
@@ -1838,12 +1838,12 @@ const
                              (target_info.system in [system_i386_win32,system_i386_wdosx,
                                                      system_i386_emx,system_i386_os2])
                             ) then
-			begin    
+                        begin
                           if not(pd.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
                             pd.setmangledname(pd.import_name^)
                           else
                             pd.setmangledname(target_info.Cprefix+pd.import_name^);
-			end;    
+                        end;
                     end
                 else
                   begin
@@ -2358,7 +2358,13 @@ const
 end.
 {
   $Log$
-  Revision 1.216  2004-12-05 00:32:56  olle
+  Revision 1.217  2004-12-05 12:28:11  peter
+    * procvar handling for tp procvar mode fixed
+    * proc to procvar moved from addrnode to typeconvnode
+    * inlininginfo is now allocated only for inline routines that
+      can be inlined, introduced a new flag po_has_inlining_info
+
+  Revision 1.216  2004/12/05 00:32:56  olle
     + bugfix for $Z+ for mode macpas
 
   Revision 1.215  2004/11/29 21:50:08  peter

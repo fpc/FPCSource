@@ -595,7 +595,7 @@ implementation
         if is_dynamic_array(left.resulttype.def) and
            (right.nodetype=niln) then
          begin
-           hp:=ccallparanode.create(caddrnode.create
+           hp:=ccallparanode.create(caddrnode.create_internal
                    (crttinode.create(tstoreddef(left.resulttype.def),initrtti)),
                ccallparanode.create(ctypeconvnode.create_internal(left,voidpointertype),nil));
            result := ccallnode.createintern('fpc_dynarray_clear',hp);
@@ -1172,7 +1172,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.139  2004-11-08 22:09:59  peter
+  Revision 1.140  2004-12-05 12:28:11  peter
+    * procvar handling for tp procvar mode fixed
+    * proc to procvar moved from addrnode to typeconvnode
+    * inlininginfo is now allocated only for inline routines that
+      can be inlined, introduced a new flag po_has_inlining_info
+
+  Revision 1.139  2004/11/08 22:09:59  peter
     * tvarsym splitted
 
   Revision 1.138  2004/11/02 12:55:16  peter
