@@ -271,6 +271,12 @@ Var
   I : longint;
   Temp : String;
 begin
+  { check if the file specified exists }
+  If FileExists(Name) Then
+   begin
+     Result:=Name;
+     exit;
+   end;
   Result:='';
   temp:=Dirlist;
   repeat
@@ -285,12 +291,12 @@ begin
         Result:=Temp;
         Temp:='';
       end;
-    If result[length(result)]<>'\' then
+    If (result<>'') and (result[length(result)]<>'\') then
       Result:=Result+'\';
     Result:=Result+name;
     If not FileExists(Result) Then
      Result:='';
-  until (length(temp)=0) or (length(result)<>0);
+  until (Temp='') or (Result<>'');
 end;
 
 
@@ -674,7 +680,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.7  2001-04-16 10:57:05  peter
+  Revision 1.8  2001-05-20 12:08:36  peter
+    * fixed filesearch
+
+  Revision 1.7  2001/04/16 10:57:05  peter
     * stricter compiler fixes
 
   Revision 1.6  2001/02/20 22:14:19  peter
