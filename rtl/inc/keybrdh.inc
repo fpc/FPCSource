@@ -177,7 +177,7 @@ function GetKeyEventShiftState(KeyEvent: TKeyEvent): Byte;
 function IsFunctionKey(KeyEvent: TKeyEvent): Boolean;
 { Returns true if the given key was a function key or not }
 
-Procedure SetKeyboardDriver (Const Driver : TKeyboardDriver);
+Function SetKeyboardDriver (Const Driver : TKeyboardDriver) : Boolean;
 { Sets the keyboard driver to use }
 
 Procedure GetKeyboardDriver (Var Driver : TKeyboardDriver);
@@ -193,7 +193,10 @@ Function KeyEventToString(KeyEvent : TKeyEvent) : String;
 
 {
   $Log$
-  Revision 1.2  2001-09-21 21:33:36  michael
+  Revision 1.3  2001-10-03 20:08:36  michael
+  * SetKeyBoardDriver now returns true if driver set - merged
+
+  Revision 1.2  2001/09/21 21:33:36  michael
   + Merged driver support from fixbranch
 
   Revision 1.1.2.2  2001/09/21 21:20:43  michael
