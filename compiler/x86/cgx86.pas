@@ -1632,13 +1632,17 @@ unit cgx86;
       var
         href : treference;
         r : integer;
+        hreg : tregister;
       begin
         { Copy registers from temp }
         href:=current_procinfo.save_regs_ref;
         for r:=low(saved_standard_registers) to high(saved_standard_registers) do
           if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
             begin
-              a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,newreg(R_INTREGISTER,saved_standard_registers[r],R_SUBWHOLE));
+              hreg:=newreg(R_INTREGISTER,saved_standard_registers[r],R_SUBWHOLE);
+              { Allocate register so the optimizer does remove the load }
+              a_reg_alloc(list,hreg);
+              a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,hreg);
               inc(href.offset,sizeof(aint));
             end;
         tg.UnGetTemp(list,current_procinfo.save_regs_ref);
@@ -1675,7 +1679,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.128  2004-10-05 20:41:02  peter
+  Revision 1.129  2004-10-06 19:27:35  jonas
+    * regvar fixes from Peter
+
+  Revision 1.128  2004/10/05 20:41:02  peter
     * more spilling rewrites
 
   Revision 1.127  2004/10/04 20:46:22  peter

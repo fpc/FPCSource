@@ -267,6 +267,10 @@ implementation
                    { reference in nested procedures, variable needs to be in memory }
                    make_not_regable(self);
                  end;
+               { static variables referenced in procedures, variable needs to be in memory }
+               if (symtable.symtabletype=staticsymtable) and
+                  (symtable.symtablelevel<>current_procinfo.procdef.parast.symtablelevel) then
+                 make_not_regable(self);
                { fix self type which is declared as voidpointer in the
                  definition }
                if vo_is_self in tvarsym(symtableentry).varoptions then
@@ -1141,7 +1145,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.129  2004-09-26 17:45:30  peter
+  Revision 1.130  2004-10-06 19:26:50  jonas
+    * regvar fixes from Peter
+
+  Revision 1.129  2004/09/26 17:45:30  peter
     * simple regvar support, not yet finished
 
   Revision 1.128  2004/06/20 08:55:29  florian

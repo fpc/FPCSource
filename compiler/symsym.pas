@@ -1375,17 +1375,12 @@ implementation
 
 
     procedure tvarsym.ppuwrite(ppufile:tcompilerppufile);
-      var
-        hvo : tvaroptions;
       begin
          inherited writesym(ppufile);
          ppufile.putbyte(byte(varspez));
          ppufile.putlongint(fieldoffset);
          ppufile.puttype(vartype);
-         { symbols which are load are never candidates for a register,
-           turn off the regable }
-         hvo:=varoptions-[vo_regable,vo_fpuregable];
-         ppufile.putsmallset(hvo);
+         ppufile.putsmallset(varoptions);
          if [vo_is_C_var,vo_is_dll_var]*varoptions<>[] then
            ppufile.putstring(_mangledname^);
          ppufile.writeentry(ibvarsym);
@@ -2216,7 +2211,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.178  2004-10-01 15:22:22  peter
+  Revision 1.179  2004-10-06 19:26:50  jonas
+    * regvar fixes from Peter
+
+  Revision 1.178  2004/10/01 15:22:22  peter
     * don't add stabs for register variables
 
   Revision 1.177  2004/09/26 17:45:30  peter
