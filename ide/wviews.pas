@@ -1809,7 +1809,8 @@ const
 var
   Mouse : TPoint;
   OldItem, NewItem : Sw_Integer;
-  ColWidth,Count : Sw_Word;
+  ColWidth : sw_integer;
+  Count : Sw_Word;
   GoSelectItem: sw_integer;
   MouseWhere: TPoint;
 begin
@@ -2495,7 +2496,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.5  2002-09-07 15:40:50  peter
+  Revision 1.6  2002-09-09 07:06:53  pierre
+   * avoid a int64 warning
+
+  Revision 1.5  2002/09/07 15:40:50  peter
     * old logs removed and tabs fixed
 
   Revision 1.4  2002/08/13 07:12:08  pierre
