@@ -74,6 +74,11 @@ var
 
   BankShift : word;       { address to shift by when switching banks. }
 
+  { linear mode specific stuff }
+  InLinear  : boolean;    { true if in linear mode }
+  LinearPageOfs : longint; { offset used to set active page }
+  FrameBufferLinearAddress : longint;
+
   ScanLines: word;        { maximum number of scan lines for mode }
 
 function hexstr(val : longint;cnt : byte) : string;
@@ -416,8 +421,10 @@ end;
      end;
      Y := Y + YOffset; { adjust pixel for correct virtual page }
      offs := longint(y) * BytesPerLine + x;
-     SetWriteBank(integer(offs shr 16));
-     mem[WinWriteSeg : word(offs)] := byte(color);
+       begin
+         SetWriteBank(integer(offs shr 16));
+         mem[WinWriteSeg : word(offs)] := byte(color);
+       end;
   end;
 
   procedure DirectPutPixVESA256(x, y : integer); {$ifndef fpc}far;{$endif fpc}
@@ -427,31 +434,31 @@ end;
   begin
      y := y + YOffset;
      offs := longint(y) * BytesPerLine + x;
-     SetWriteBank(integer(offs shr 16));
      Case CurrentWriteMode of
        XorPut:
          Begin
            SetReadBank(integer(offs shr 16));
-           mem[WinWriteSeg : word(offs)] := mem[WinReadSeg : word(offs)] xor byte(CurrentColor);
+           col := mem[WinReadSeg : word(offs)] xor byte(CurrentColor);
          End;
        AndPut:
          Begin
            SetReadBank(integer(offs shr 16));
-           mem[WinWriteSeg : word(offs)] := mem[WinReadSeg : word(offs)] And byte(CurrentColor);
+           col := mem[WinReadSeg : word(offs)] And byte(CurrentColor);
          End;
        OrPut:
          Begin
            SetReadBank(integer(offs shr 16));
-           mem[WinWriteSeg : word(offs)] := mem[WinReadSeg : word(offs)] or byte(currentcolor);
+           col := mem[WinReadSeg : word(offs)] or byte(currentcolor);
          End
        else
          Begin
            If CurrentWriteMode <> NotPut then
              col := Byte(CurrentColor)
            else col := Not(Byte(CurrentColor));
-           mem[WinWriteSeg : word(offs)] := Col;
          End
      End;
+     SetWriteBank(integer(offs shr 16));
+     mem[WinWriteSeg : word(offs)] := Col;
   end;
 
   function GetPixVESA256(x, y : integer): word; {$ifndef fpc}far;{$endif fpc}
@@ -898,6 +905,103 @@ end;
    end;
 
  {************************************************************************}
+ {*                    256 colors VESA mode routines  Linear mode        *}
+ {************************************************************************}
+{$ifdef FPC}
+  procedure DirectPutPixVESA256Linear(x, y : integer); {$ifndef fpc}far;{$endif fpc}
+  var
+     offs : longint;
+     col : byte;
+  begin
+     offs := longint(y) * BytesPerLine + x;
+     Case CurrentWriteMode of
+       XorPut:
+         Begin
+           seg_move(WinReadSeg,offs+LinearPageOfs,get_ds,longint(@col),1);
+           col := col xor byte(CurrentColor);
+         End;
+       AndPut:
+         Begin
+           seg_move(WinReadSeg,offs+LinearPageOfs,get_ds,longint(@col),1);
+           col := col and byte(CurrentColor);
+         End;
+       OrPut:
+         Begin
+           seg_move(WinReadSeg,offs+LinearPageOfs,get_ds,longint(@col),1);
+           col := col or byte(CurrentColor);
+         End
+       else
+         Begin
+           If CurrentWriteMode <> NotPut then
+             col := Byte(CurrentColor)
+           else col := Not(Byte(CurrentColor));
+         End
+     End;
+     seg_move(get_ds,longint(@col),WinWriteSeg,offs+LinearPageOfs,1);
+  end;
+
+  procedure PutPixVESA256Linear(x, y : integer; color : word); {$ifndef fpc}far;{$endif fpc}
+  var
+     offs : longint;
+  begin
+     X:= X + StartXViewPort;
+     Y:= Y + StartYViewPort;
+     { convert to absolute coordinates and then verify clipping...}
+     if ClipPixels then
+     Begin
+       if (X < StartXViewPort) or (X > (StartXViewPort + ViewWidth)) then
+         exit;
+       if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
+         exit;
+     end;
+     offs := longint(y) * BytesPerLine + x;
+     seg_move(get_ds,longint(@color),WinWriteSeg,offs+LinearPageOfs,1);
+  end;
+
+  function GetPixVESA256Linear(x, y : integer): word; {$ifndef fpc}far;{$endif fpc}
+  var
+     offs : longint;
+     col : byte;
+  begin
+     X:= X + StartXViewPort;
+     Y:= Y + StartYViewPort;
+     offs := longint(y) * BytesPerLine + x;
+     seg_move(WinReadSeg,offs+LinearPageOfs,get_ds,longint(@col),1);
+     GetPixVESA256Linear:=col;
+  end;
+
+function SetVESADisplayStart(PageNum : word;x,y : integer):Boolean;
+var
+  dregs : registers;
+begin
+  if PageNum>VesaModeInfo.NumberOfPages then
+    PageNum:=0;
+{$ifdef DEBUG}
+  if PageNum>0 then
+    writeln(stderr,'Setting Display Page ',PageNum);
+{$endif DEBUG}
+  dregs.RealEBX:=0{ $80 for Wait for retrace };
+  dregs.RealECX:=x;
+  dregs.RealEDX:=y+PageNum*maxy;
+  dregs.RealSP:=0;
+  dregs.RealSS:=0;
+  dregs.RealEAX:=$4F07; RealIntr($10,dregs);
+  { idem as above !!! }
+  if (dregs.RealEAX and $1FF) <> $4F then
+    begin
+{$ifdef DEBUG}
+       writeln(stderr,'Set Display start error');
+{$endif DEBUG}
+       SetVESADisplayStart:=false;
+    end
+  else
+    SetVESADisplayStart:=true;
+end;
+
+{$endif FPC}
+
+
+ {************************************************************************}
  {*                    15/16bit pixels VESA mode routines                *}
  {************************************************************************}
 
@@ -1030,6 +1134,74 @@ end;
          End
      End;
   end;
+
+{$ifdef FPC}
+ {************************************************************************}
+ {*                    15/16bit pixels VESA mode routines  Linear mode   *}
+ {************************************************************************}
+
+  procedure PutPixVESA32kor64kLinear(x, y : integer; color : word); {$ifndef fpc}far;{$endif fpc}
+  var
+     offs : longint;
+  begin
+     X:= X + StartXViewPort;
+     Y:= Y + StartYViewPort;
+     { convert to absolute coordinates and then verify clipping...}
+     if ClipPixels then
+     Begin
+       if (X < StartXViewPort) or (X > (StartXViewPort + ViewWidth)) then
+         exit;
+       if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
+         exit;
+     end;
+     offs := longint(y) * BytesPerLine + 2*x;
+     seg_move(get_ds,longint(@color),WinWriteSeg,offs+LinearPageOfs,2);
+  end;
+  function GetPixVESA32kor64kLinear(x, y : integer): word; {$ifndef fpc}far;{$endif fpc}
+  var
+     offs : longint;
+     color : word;
+  begin
+     X:= X + StartXViewPort;
+     Y:= Y + StartYViewPort;
+     offs := longint(y) * BytesPerLine + 2*x;
+     seg_move(WinReadSeg,offs+LinearPageOfs,get_ds,longint(@color),2);
+     GetPixVESA32kor64kLinear:=color;
+  end;
+
+  procedure DirectPutPixVESA32kor64kLinear(x, y : integer); {$ifndef fpc}far;{$endif fpc}
+  var
+     offs : longint;
+     col : word;
+  begin
+     offs := longint(y) * BytesPerLine + 2*x;
+     Case CurrentWriteMode of
+       XorPut:
+         Begin
+           seg_move(WinReadSeg,offs+LinearPageOfs,get_ds,longint(@col),2);
+           col := col xor currentcolor;
+         End;
+       AndPut:
+         Begin
+           seg_move(WinReadSeg,offs+LinearPageOfs,get_ds,longint(@col),2);
+           col := col and currentcolor;
+         End;
+       OrPut:
+         Begin
+           seg_move(WinReadSeg,offs+LinearPageOfs,get_ds,longint(@col),2);
+           col := col or currentcolor;
+         End
+       else
+         Begin
+           If CurrentWriteMode <> NotPut Then
+             col := CurrentColor
+           Else col := Not(CurrentColor);
+         End
+     End;
+     seg_move(get_ds,longint(@col),WinWriteSeg,offs+LinearPageOfs,2);
+  end;
+
+{$endif FPC}
 
  {************************************************************************}
  {*                     4-bit pixels VESA mode routines                  *}
@@ -1411,13 +1583,75 @@ end;
 {$ENDIF}
 
 
-  procedure SetupLinear(var ModeInfo: TVESAModeInfo);
+  function SetupLinear(var ModeInfo: TVESAModeInfo;mode : word) : boolean;
    begin
+{$ifndef FPC}
      { !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! }
+     SetUpLinear:=false;
+{$else FPC}
+     case mode of
+       m320x200x32k,
+       m320x200x64k,
+       m640x480x32k,
+       m640x480x64k,
+       m800x600x32k,
+       m800x600x64k,
+       m1024x768x32k,
+       m1024x768x64k,
+       m1280x1024x32k,
+       m1280x1024x64k :
+         begin
+           DirectPutPixel:=@DirectPutPixVESA256Linear;
+           PutPixel:=@PutPixVESA256Linear;
+           GetPixel:=@GetPixVESA256Linear;
+           { linear mode for lines not yet implemented PM }
+           HLine:=@HLineDefault;
+           VLine:=@VLineDefault;
+         end;
+       m640x400x256,
+       m640x480x256,
+       m800x600x256,
+       m1024x768x256,
+       m1280x1024x256:
+         begin
+           DirectPutPixel:=@DirectPutPixVESA32kor64kLinear;
+           PutPixel:=@PutPixVESA32kor64kLinear;
+           GetPixel:=@GetPixVESA32kor64kLinear;
+           { linear mode for lines not yet implemented PM }
+           HLine:=@HLineDefault;
+           VLine:=@VLineDefault;
+         end;
+     else
+       begin
+         SetUpLinear:=false;
+         exit;
+       end;
+     end;
+     FrameBufferLinearAddress:=Get_linear_addr(VESAModeInfo.PhysAddress and $FFFF0000,
+       VESAInfo.TotalMem shl 16);
+     if int31error<>0 then
+       writeln(stderr,'Unable to get linear address for ',hexstr(VESAModeInfo.PhysAddress,8));
+     set_segment_base_address(WinWriteSeg,FrameBufferLinearAddress);
+     set_segment_limit(WinWriteSeg,(VESAInfo.TotalMem shl 16)-1);
+     set_segment_base_address(WinReadSeg,FrameBufferLinearAddress);
+     set_segment_limit(WinReadSeg,(VESAInfo.TotalMem shl 16)-1);
+     InLinear:=true;
+     SetUpLinear:=true;
+     { WinSize:=(VGAInfo.TotalMem shl 16);
+     WinLoMask:=(VGAInfo.TotalMem shl 16)-1;
+     WinShift:=15;
+     Temp:=VGAInfo.TotalMem;
+     while Temp>0 do
+       begin
+         inc(WinShift);
+         Temp:=Temp shr 1;
+       end; }
+{$endif FPC}
    end;
 
   procedure SetupWindows(var ModeInfo: TVESAModeInfo);
    begin
+     InLinear:=false;
      { now we check the windowing scheme ...}
      if (ModeInfo.WinAAttr and WinSupported) <> 0 then
        { is this window supported ... }
@@ -1572,9 +1806,12 @@ end;
 
      { VBE 2.0 and higher supports >= non VGA linear buffer types...}
      { this is backward compatible.                                 }
-     if ((VESAModeInfo.Attr and ModeNoWindowed) <> 0) and
+     if {((VESAModeInfo.Attr and ModeNoWindowed) <> 0) and }
           ((VESAModeInfo.Attr and ModeLinearBuffer) <> 0) then
-        SetupLinear(VESAModeInfo)
+        begin
+          if not SetupLinear(VESAModeInfo,mode) then
+            SetUpWindows(VESAModeInfo);
+        end
      else
      { if linear and windowed is supported, then use windowed }
      { method.                                                }
@@ -2058,7 +2295,10 @@ end;
 
 {
 $Log$
-Revision 1.6  1999-12-09 02:06:00  carl
+Revision 1.7  1999-12-10 12:52:54  pierre
+ * some LinearFrameBuffer code, not finished
+
+Revision 1.6  1999/12/09 02:06:00  carl
   + page flipping for all VESA modes.
    (important note: The VESAModeInfo structure returns the MAXIMUM
     number of image pages, and not the actual available number of
