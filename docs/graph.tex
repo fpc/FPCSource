@@ -21,8 +21,11 @@
 % Documentation for the 'Graph' unit of Free Pascal.
 % Michael Van Canneyt, July 1997
 \chapter{The GRAPH unit.}
+\FPCexampledir{graphex}
 This document describes the \var{GRAPH} unit for Free Pascal, for all
-platforms. The unit was first written for \dos by Florian kl\"ampfl. 
+platforms. The unit was first written for \dos by Florian kl\"ampfl, but was
+later completely rewritten by Carl-Eric Codere to be completely portable.
+
 This chapter is divided in 4 sections. 
 \begin{itemize}
 \item The first section gives an introduction to the graph unit.
@@ -36,11 +39,90 @@ interface part of the \file{GRAPH} unit.
 \label{se:Introduction}
 \subsection{Requirements}
 The unit Graph exports functions and procedures for graphical output.
-It requires at least a VESA compatible VGA-Card or a VGA-Card with software-driver
+It requires at least a VGA-compatible Card or a VGA-Card with software-driver
 (min. \textbf{512Kb} video memory).
-Before the graph unit can be used, be sure your graphics adapter supports
-the VESA-Standard. Otherwise in the most cases you can try to use a VESA-TSR
-to make your adapter VESA compatible (e.g. UNIVBE).
+\subsection{A word about mode selection}
+The graph unit was implemented for compatibility with the old \tp graph
+unit. For this reason, the mode constants as they were defined in the
+\tp graph unit are retained. 
+
+However, since
+\begin{enumerate}
+\item Video cards have evolved very much
+\item Free Pascal runs on multiple platforms
+\end{enumerate}
+it was decided to implement new mode and graphic driver constants, 
+which are more independent of the specific platform the program runs on.
+
+In this section we give a short explanation of the new mode system. the
+following drivers were defined:
+\begin{verbatim}
+D1bit = 11;
+D2bit = 12;
+D4bit = 13;
+D6bit = 14;  { 64 colors Half-brite mode - Amiga }
+D8bit = 15;
+D12bit = 16; { 4096 color modes HAM mode - Amiga }
+D15bit = 17;
+D16bit = 18;
+D24bit = 19; { not yet supported }
+D32bit = 20; { not yet supported }
+D64bit = 21; { not yet supported }
+
+lowNewDriver = 11;
+highNewDriver = 21;
+\end{verbatim}
+Each of these drivers specifies a desired color-depth. 
+
+The following modes have been defined:
+\begin{verbatim}
+detectMode = 30000;
+m320x200 = 30001;  
+m320x256 = 30002; { amiga resolution (PAL) }
+m320x400 = 30003; { amiga/atari resolution }
+m512x384 = 30004; { mac resolution }
+m640x200 = 30005; { vga resolution }
+m640x256 = 30006; { amiga resolution (PAL) }
+m640x350 = 30007; { vga resolution }
+m640x400 = 30008;
+m640x480 = 30009;
+m800x600 = 30010;
+m832x624 = 30011; { mac resolution }
+m1024x768 = 30012;
+m1280x1024 = 30013;
+m1600x1200 = 30014;
+m2048x1536 = 30015;
+
+lowNewMode = 30001;
+highNewMode = 30015;
+\end{verbatim}
+These modes start at 30000 because Borland specified that the mode number
+should be ascending with increasing X resolution, and the new constants 
+shouldn't interfere with the old ones.
+
+The above constants can be used to set a certain color depth and resultion,
+as demonstrated in the following example:
+
+\FPCexample{inigraph1}
+
+If other modes than the ones above are supported by the graphics card,
+you will not be able to select them with this mechanism.
+
+For this reason, there is also a 'dynamic' mode number, which is assigned at
+run-time. This number increases with increasing X resolution. It can be
+queried with the \var{getmoderange} call. This call will return the range
+of modes which are valid for a certain graphics driver. The numbers are
+guaranteed to be consecutive, and can be used to search for a certain 
+resolution, as in the following example:
+
+\FPCexample{inigraph2}
+
+
+Thus, the \var{getmoderange} function can be used to detect all available 
+modes and drivers, as in the following example:
+
+\FPCexample{modrange}
+
 \section{Constants, Types and Variables}
 \subsection{Types}
 \begin{verbatim}
@@ -69,7 +151,9 @@ ViewPortType = Record
   Clip : Boolean
 end;
 \end{verbatim}
+
 \section{Functions and procedures}
+
 \begin{procedure}{Arc}
 \Declaration
 Procedure Arc (X,Y : Integer; start,stop, radius : Word);
@@ -85,6 +169,7 @@ None.
 \seep{Circle},\seep{Ellipse} 
 \seep{GetArcCoords},\seep{PieSlice}, \seep{Sector}
 \end{procedure}
+
 \begin{procedure}{Bar}
 \Declaration
 Procedure Bar (X1,Y1,X2,Y2 : Integer);
@@ -98,6 +183,7 @@ None.
 \seep{Bar3D}, 
 \seep{Rectangle}
 \end{procedure}
+
 \begin{procedure}{Bar3D}
 \Declaration
 Procedure Bar3D (X1,Y1,X2,Y2 : Integer; depth : Word; Top : Boolean);
@@ -113,6 +199,7 @@ None.
 \SeeAlso
 \seep{Bar}, \seep{Rectangle}
 \end{procedure}
+
 \begin{procedure}{Circle}
 \Declaration
 Procedure Circle (X,Y : Integer; Radius : Word);
@@ -126,6 +213,7 @@ None.
 \seep{Ellipse},\seep{Arc}
 \seep{GetArcCoords},\seep{PieSlice}, \seep{Sector}
 \end{procedure}
+
 \begin{procedure}{ClearDevice}
 \Declaration
 Procedure ClearDevice ;
@@ -138,12 +226,13 @@ None.
 \SeeAlso
 \seep{ClearViewPort}, \seep{SetBkColor}
 \end{procedure}
+
 \begin{procedure}{ClearViewPort}
 \Declaration
 Procedure ClearViewPort ;
 
 \Description
-Clears the current view-port. The current background color is used as filling
+Clears the current viewport. The current background color is used as filling
 color. The pointer is set at
 \var{(0,0)}
 \Errors
@@ -151,6 +240,7 @@ None.
 \SeeAlso
 \seep{ClearDevice},\seep{SetViewPort}, \seep{SetBkColor}
 \end{procedure}
+
 \begin{procedure}{CloseGraph}
 \Declaration
 Procedure CloseGraph ;
@@ -164,6 +254,7 @@ None.
 \SeeAlso
 \seep{InitGraph}
 \end{procedure}
+
 \begin{procedure}{DetectGraph}
 \Declaration
 Procedure DetectGraph (Var Driver, Modus : Integer);
@@ -178,6 +269,7 @@ None.
 \SeeAlso
 \seep{InitGraph}
 \end{procedure}
+
 \begin{procedure}{DrawPoly}
 \Declaration
 Procedure DrawPoly (NumberOfPoints : Word; Var PolyPoints;
@@ -192,6 +284,7 @@ None.
 \SeeAlso
 \seep{Bar}, seep{Bar3D}, \seep{Rectangle}
 \end{procedure}
+
 \begin{procedure}{Ellipse}
 \Declaration
 Procedure Ellipse (X,Y : Integer; Start,Stop,XRadius,YRadius : Word);
@@ -207,6 +300,7 @@ None.
 \SeeAlso
 \seep{Arc} \seep{Circle}, \seep{FillEllipse}
 \end{procedure}
+
 \begin{procedure}{FillEllipse}
 \Declaration
 Procedure FillEllipse (X,Y : Integer; Xradius,YRadius: Word);
@@ -221,6 +315,7 @@ None.
 \seep{Arc} \seep{Circle},
 \seep{GetArcCoords},\seep{PieSlice}, \seep{Sector}
 \end{procedure}
+
 \begin{procedure}{FillPoly}
 \Declaration
 Procedure FillPoly (NumberOfPoints : Word; Var PolyPoints);
@@ -236,6 +331,7 @@ None.
 \SeeAlso
 \seep{Bar}, seep{Bar3D}, \seep{Rectangle}
 \end{procedure}
+
 \begin{procedure}{FloodFill}
 \Declaration
 Procedure FloodFill (X,Y : Integer; BorderColor : Word);
@@ -249,6 +345,7 @@ None
 \SeeAlso
 \seep{SetColor}, \seep{SetBkColor}
 \end{procedure}
+
 \begin{procedure}{GetArcCoords}
 \Declaration
 Procedure GetArcCoords (Var ArcCoords : ArcCoordsType);
@@ -261,6 +358,7 @@ None.
 \SeeAlso
 \seep{Arc}, \seep{Ellipse}
 \end{procedure}
+
 \begin{procedure}{GetAspectRatio}
 \Declaration
 Procedure GetAspectRatio (Var Xasp,Yasp : Word);
@@ -273,6 +371,7 @@ None.
 \SeeAlso
 \seep{InitGraph},\seep{SetAspectRatio}
 \end{procedure}
+
 \begin{function}{GetBkColor}
 \Declaration
 Function GetBkColor  : Word;
@@ -285,6 +384,7 @@ None.
 \SeeAlso
 \seef{GetColor},\seep{SetBkColor}
 \end{function}
+
 \begin{function}{GetColor}
 \Declaration
 Function GetColor  : Word;
@@ -297,6 +397,7 @@ None.
 \SeeAlso
 \seef{GetColor},\seep{SetBkColor}
 \end{function}
+
 \begin{procedure}{GetDefaultPalette}
 \Declaration
 Procedure GetDefaultPalette (Var Palette : PaletteType);
@@ -309,6 +410,7 @@ None.
 \SeeAlso
 \seef{GetColor}, \seef{GetBkColor}
 \end{procedure}
+
 \begin{function}{GetDriverName}
 \Declaration
 Function GetDriverName  : String;
@@ -321,6 +423,7 @@ None.
 \SeeAlso
 \seef{GetModeName}, \seep{InitGraph}
 \end{function}
+
 \begin{procedure}{GetFillPattern}
 \Declaration
 Procedure GetFillPattern (Var FillPattern : FillPatternType);
@@ -332,6 +435,7 @@ None
 \SeeAlso
 \seep{SetFillPattern}
 \end{procedure}
+
 \begin{procedure}{GetFillSettings}
 \Declaration
 Procedure GetFillSettings (Var FillInfo : FillSettingsType);
@@ -344,6 +448,7 @@ None.
 \SeeAlso
 \seep{SetFillPattern}
 \end{procedure}
+
 \begin{function}{GetGraphMode}
 \Declaration
 Function GetGraphMode  : Integer;
@@ -355,6 +460,7 @@ None.
 \SeeAlso
 \seep{InitGraph}
 \end{function}
+
 \begin{procedure}{GetImage}
 \Declaration
 Procedure GetImage (X1,Y1,X2,Y2 : Integer, Var Bitmap;
@@ -368,6 +474,7 @@ Bitmap must have enough room to contain the image.
 \seef{ImageSize},
 \seep{PutImage}
 \end{procedure}
+
 \begin{procedure}{GetLineSettings}
 \Declaration
 Procedure GetLineSettings (Var LineInfo : LineSettingsType);
@@ -380,19 +487,22 @@ None.
 \SeeAlso
 \seep{SetLineStyle}
 \end{procedure}
+
 \begin{function}{GetMaxColor}
 \Declaration
 Function GetMaxColor  : Word;
 
 \Description
-\var{GetMaxColor} returns the maximum
-color-number which can be set with \var{SetColor}
+\var{GetMaxColor} returns the maximum color-number which can be 
+set with \var{SetColor}. Contrary to \tp, this color isn't always 
+guaranteed to be white (for instance in 256+ color modes).
 \Errors
 None.
 \SeeAlso
 \seep{SetColor},
 \seef{GetPaletteSize}
 \end{function}
+
 \begin{function}{GetMaxMode}
 \Declaration
 Function GetMaxMode  : Word;
@@ -405,6 +515,7 @@ None.
 \SeeAlso
 \seep{InitGraph}
 \end{function}
+
 \begin{function}{GetMaxX}
 \Declaration
 Function GetMaxX  : Word;
@@ -417,6 +528,7 @@ None.
 \SeeAlso
 \seef{GetMaxY}
 \end{function}
+
 \begin{function}{GetMaxY}
 \Declaration
 Function GetMaxY  : Word;
@@ -429,6 +541,7 @@ None.
 \SeeAlso
 \seef{GetMaxY}
 \end{function}
+
 \begin{function}{GetModeName}
 \Declaration
 Function GetModeName (Var modus : Integer) : String;
@@ -442,18 +555,20 @@ None.
 \SeeAlso
 \seef{GetDriverName}, \seep{InitGraph}
 \end{function}
+
 \begin{procedure}{GetModeRange}
 \Declaration
 Procedure GetModeRange (Driver : Integer; \\ LoModus, HiModus: Integer);
-
 \Description
 \var{GetModeRange} returns the Lowest and Highest modus of the currently
-installed driver.
+installed driver. If no modes are supported for this driver, HiModus
+will be -1.
 \Errors
 None.
 \SeeAlso
 \seep{InitGraph}
 \end{procedure}
+
 \begin{procedure}{GetPalette}
 \Declaration
 Procedure GetPalette (Var Palette : PaletteType);
@@ -465,6 +580,7 @@ None.
 \SeeAlso
 \seef{GetPaletteSize}, \seep{SetPalette}
 \end{procedure}
+
 \begin{function}{GetPaletteSize}
 \Declaration
 Function GetPaletteSize  : Word;
@@ -478,6 +594,7 @@ None.
 \seep{GetPalette},
 \seep{SetPalette}
 \end{function}
+
 \begin{function}{GetPixel}
 \Declaration
 Function GetPixel (X,Y : Integer) : Word;
@@ -490,6 +607,7 @@ None.
 \SeeAlso
 
 \end{function}
+
 \begin{procedure}{GetTextSettings}
 \Declaration
 Procedure GetTextSettings (Var TextInfo : TextSettingsType);
@@ -503,18 +621,20 @@ None.
 \SeeAlso
 \seep{SetTextStyle}, \seep{SetTextJustify}
 \end{procedure}
+
 \begin{procedure}{GetViewSettings}
 \Declaration
 Procedure GetViewSettings (Var ViewPort : ViewPortType);
 
 \Description
-\var{GetViewSettings} returns the current view-port and clipping settings in
+\var{GetViewSettings} returns the current viewport and clipping settings in
 \var{ViewPort}.
 \Errors
 None.
 \SeeAlso
 \seep{SetViewPort}
 \end{procedure}
+
 \begin{function}{GetX}
 \Declaration
 Function GetX  : Integer;
@@ -527,6 +647,7 @@ None.
 \SeeAlso
 \seef{GetY}
 \end{function}
+
 \begin{function}{GetY}
 \Declaration
 Function GetY  : Integer;
@@ -539,12 +660,13 @@ None.
 \SeeAlso
 \seef{GetX}
 \end{function}
+
 \begin{procedure}{GraphDefaults}
 \Declaration
 Procedure GraphDefaults ;
 
 \Description
-\var{GraphDefaults} resets all settings for view-port, palette,
+\var{GraphDefaults} resets all settings for viewport, palette,
 foreground and background pattern, line-style and pattern, filling style,
 filling color and pattern, font, text-placement and
 text size.
@@ -554,6 +676,7 @@ None.
 \seep{SetViewPort}, \seep{SetFillStyle}, \seep{SetColor},
 \seep{SetBkColor}, \seep{SetLineStyle}
 \end{procedure}
+
 \begin{function}{GraphErrorMsg}
 \Declaration
 Function GraphErrorMsg (ErrorCode : Integer) : String;
@@ -567,6 +690,7 @@ None.
 \SeeAlso
 \seef{GraphResult}
 \end{function}
+
 \begin{function}{GraphResult}
 \Declaration
 Function GraphResult  : Integer;
@@ -575,9 +699,10 @@ Function GraphResult  : Integer;
 \var{GraphResult} returns an error-code for
 the last graphical operation. If the returned value is zero, all went well.
 A value different from zero means an error has occurred.
-Except for all operations which draw something on the screen, 
+besides all operations which draw something on the screen, 
 the following procedures also can produce a \var{GraphResult} different from
 zero:
+
 \begin{itemize}
 \item \seef{InstallUserFont}
 \item \seep{SetLineStyle}
@@ -593,6 +718,7 @@ None.
 \SeeAlso
 \seef{GraphErrorMsg}
 \end{function}
+
 \begin{function}{ImageSize}
 \Declaration
 Function ImageSize (X1,Y1,X2,Y2 : Integer) : Word;
@@ -606,6 +732,7 @@ None.
 \SeeAlso
 \seep{GetImage}
 \end{function}
+
 \begin{procedure}{InitGraph}
 \Declaration
 Procedure InitGraph (var GraphDriver,GraphModus : integer;\\
@@ -631,6 +758,7 @@ Introduction, (page \pageref{se:Introduction}),
 \seep{DetectGraph}, \seep{CloseGraph}, \seef{GraphResult}
 \end{procedure}
 Example:
+
 \begin{verbatim}
 var 
    gd,gm : integer; 
@@ -646,6 +774,7 @@ begin
    CloseGraph; { restores the old graphics mode } 
 end.
 \end{verbatim}
+
 \begin{function}{InstallUserDriver}
 \Declaration
 Function InstallUserDriver (DriverPath : String; \\AutoDetectPtr: Pointer) : Integer;
@@ -659,6 +788,7 @@ None.
 \SeeAlso
 \seep{InitGraph}, \seef{InstallUserFont}
 \end{function}
+
 \begin{function}{InstallUserFont}
 \Declaration
 Function InstallUserFont (FontPath : String) : Integer;
@@ -671,6 +801,7 @@ None.
 \SeeAlso
 \seep{InitGraph}, \seef{InstallUserDriver}
 \end{function}
+
 \begin{procedure}{Line}
 \Declaration
 Procedure Line (X1,Y1,X2,Y2 : Integer);
@@ -684,6 +815,7 @@ None.
 \SeeAlso
 \seep{LineRel},\seep{LineTo}
 \end{procedure}
+
 \begin{procedure}{LineRel}
 \Declaration
 Procedure LineRel (DX,DY : Integer);
@@ -698,6 +830,7 @@ None.
 \SeeAlso
 \seep{Line}, \seep{LineTo}
 \end{procedure}
+
 \begin{procedure}{LineTo}
 \Declaration
 Procedure LineTo (DX,DY : Integer);
@@ -712,6 +845,7 @@ None.
 \SeeAlso
 \seep{LineRel},\seep{Line}
 \end{procedure}
+
 \begin{procedure}{MoveRel}
 \Declaration
 Procedure MoveRel (DX,DY : Integer;
@@ -725,6 +859,7 @@ None.
 \SeeAlso
 \seep{MoveTo}
 \end{procedure}
+
 \begin{procedure}{MoveTo}
 \Declaration
 Procedure MoveTo (X,Y : Integer;
@@ -737,6 +872,7 @@ None.
 \SeeAlso
 \seep{MoveRel}
 \end{procedure}
+
 \begin{procedure}{OutText}
 \Declaration
 Procedure OutText (Const TextString : String);
@@ -750,6 +886,7 @@ None.
 \SeeAlso
 \seep{OutTextXY}
 \end{procedure}
+
 \begin{procedure}{OutTextXY}
 \Declaration
 Procedure OutTextXY (X,Y : Integer; Const TextString : String);
@@ -763,6 +900,7 @@ None.
 \SeeAlso
 \seep{OutText}
 \end{procedure}
+
 \begin{procedure}{PieSlice}
 \Declaration
 Procedure PieSlice (X,Y : Integer; \\ Start,Stop,Radius : Word);
@@ -776,6 +914,7 @@ None.
 \SeeAlso
 \seep{Arc}, \seep{Circle}, \seep{Sector}
 \end{procedure}
+
 \begin{procedure}{PutImage}
 \Declaration
 Procedure PutImage (X1,Y1 : Integer; Var Bitmap; How : word) ;
@@ -784,6 +923,7 @@ Procedure PutImage (X1,Y1 : Integer; Var Bitmap; How : word) ;
 \var{PutImage}
 Places the bitmap in \var{Bitmap} on the screen at \var{(X1,Y1)}. \var{How}
 determines how the bitmap will be placed on the screen. Possible values are :
+
 \begin{itemize}
 \item CopyPut
 \item XORPut
@@ -796,6 +936,7 @@ None
 \SeeAlso
 \seef{ImageSize},\seep{GetImage}
 \end{procedure}
+
 \begin{procedure}{PutPixel}
 \Declaration
 Procedure PutPixel (X,Y : Integer; Color : Word);
@@ -808,6 +949,7 @@ None.
 \SeeAlso
 \seef{GetPixel}
 \end{procedure}
+
 \begin{procedure}{Rectangle}
 \Declaration
 Procedure Rectangle (X1,Y1,X2,Y2 : Integer);
@@ -821,6 +963,7 @@ None.
 \SeeAlso
 \seep{Bar}, \seep{Bar3D}
 \end{procedure}
+
 \begin{function}{RegisterBGIDriver}
 \Declaration
 Function RegisterBGIDriver (Driver : Pointer) : Integer;
@@ -833,6 +976,7 @@ None.
 \seef{InstallUserDriver},
 \seef{RegisterBGIFont}
 \end{function}
+
 \begin{function}{RegisterBGIFont}
 \Declaration
 Function RegisterBGIFont (Font : Pointer) : Integer;
@@ -845,6 +989,7 @@ None.
 \seef{InstallUserFont},
 \seef{RegisterBGIDriver}
 \end{function}
+
 \begin{procedure}{RestoreCRTMode}
 \Declaration
 Procedure RestoreCRTMode ;
@@ -852,11 +997,15 @@ Procedure RestoreCRTMode ;
 \Description
 Restores the screen modus which was active before
 the graphical modus was started.
+
+To get back to the graph mode you were last in, you can use
+\var{SetGraphMode(GetGraphMode)}
 \Errors
 None.
 \SeeAlso
 \seep{InitGraph}
 \end{procedure}
+
 \begin{procedure}{Sector}
 \Declaration
 Procedure Sector (X,Y : Integer; \\ Start,Stop,XRadius,YRadius : Word);
@@ -870,6 +1019,7 @@ None.
 \SeeAlso
 \seep{Arc}, \seep{Circle}, \seep{PieSlice}
 \end{procedure}
+
 \begin{procedure}{SetActivePage}
 \Declaration
 Procedure SetActivePage (Page : Word);
@@ -882,6 +1032,7 @@ None.
 \SeeAlso
 
 \end{procedure}
+
 \begin{procedure}{SetAllPallette}
 \Declaration
 Procedure SetAllPallette (Var Palette);
@@ -895,6 +1046,7 @@ None.
 \SeeAlso
 \seep{GetPalette}
 \end{procedure}
+
 \begin{procedure}{SetAspectRatio}
 \Declaration
 Procedure SetAspectRatio (Xasp,Yasp : Word);
@@ -907,6 +1059,7 @@ None
 \SeeAlso
 \seep{InitGraph}, \seep{GetAspectRatio}
 \end{procedure}
+
 \begin{procedure}{SetBkColor}
 \Declaration
 Procedure SetBkColor (Color : Word);
@@ -919,6 +1072,7 @@ None.
 \SeeAlso
 \seef{GetBkColor}, \seep{SetColor}
 \end{procedure}
+
 \begin{procedure}{SetColor}
 \Declaration
 Procedure SetColor (Color : Word);
@@ -931,6 +1085,7 @@ None.
 \SeeAlso
 \seef{GetColor}, \seep{SetBkColor}
 \end{procedure}
+
 \begin{procedure}{SetFillPattern}
 \Declaration
 Procedure SetFillPattern (FillPattern : FillPatternType,\\ Color : Word);
@@ -945,6 +1100,7 @@ None
 \SeeAlso
 \seep{GetFillPattern}, \seep{SetFillStyle}
 \end{procedure}
+
 \begin{procedure}{SetFillStyle}
 \Declaration
 Procedure SetFillStyle (Pattern,Color : word);
@@ -953,6 +1109,7 @@ Procedure SetFillStyle (Pattern,Color : word);
 \var{SetFillStyle} sets the filling pattern and color to one of the
 predefined filling patterns. \var{Pattern} can be one of the following predefined
 constants :
+
 \begin{itemize}
 \item \var{EmptyFill  } Uses backgroundcolor.
 \item \var{SolidFill  } Uses filling color
@@ -974,30 +1131,32 @@ None.
 \SeeAlso
 \seep{SetFillPattern}
 \end{procedure}
+
 \begin{procedure}{SetGraphBufSize}
 \Declaration
 Procedure SetGraphBufSize (BufSize : Word);
 
 \Description
-\var{SetGraphBufSize} 
-sets the graphical buffer size. The default size is 4Kb
+\var{SetGraphBufSize} is a dummy function which does not do 
+anything; it is no longer needed.
 \Errors
 None.
 \SeeAlso
 
 \end{procedure}
+
 \begin{procedure}{SetGraphMode}
 \Declaration
 Procedure SetGraphMode (Mode : Integer);
 
 \Description
-\var{SetGraphMode} sets the
-graphical mode and clears the screen.
+\var{SetGraphMode} sets the graphical mode and clears the screen.
 \Errors
 None.
 \SeeAlso
 \seep{InitGraph}
 \end{procedure}
+
 \begin{procedure}{SetLineStyle}
 \Declaration
 Procedure SetLineStyle (LineStyle,Pattern,Width :
@@ -1007,6 +1166,7 @@ Word);
 \var{SetLineStyle}
 sets the drawing style for lines. You can specify a \var{LineStyle} which is
 one of the following pre-defined constants:
+
 \begin{itemize}
 \item \var{Solidln=0;} draws a solid line.
 \item \var{Dottedln=1;} Draws a dotted line.
@@ -1018,6 +1178,7 @@ If \var{UserBitln} is specified then \var{Pattern} contains the bit pattern.
 In all another cases, \var{Pattern} is ignored. The parameter \var{Width} 
 indicates how thick the line should be. You can specify one of the following
 pre-defined constants:
+
 \begin{itemize}
 \item \var{NormWidth=1}
 \item \var{ThickWidth=3}
@@ -1028,6 +1189,7 @@ None.
 \SeeAlso
 \seep{GetLineSettings}
 \end{procedure}
+
 \begin{procedure}{SetPalette}
 \Declaration
 Procedure SetPalette (ColorNr : Word; NewColor : ShortInt);
@@ -1040,6 +1202,7 @@ None.
 \SeeAlso
 \seep{SetAllPallette},\seep{SetRGBPalette}
 \end{procedure}
+
 \begin{procedure}{SetRGBPalette}
 \Declaration
 Procedure SetRGBPalette (ColorNr,Red,Green,Blue : Integer);
@@ -1053,6 +1216,7 @@ None.
 \seep{SetAllPallette},
 \seep{SetPalette}
 \end{procedure}
+
 \begin{procedure}{SetTextJustify}
 \Declaration
 Procedure SetTextJustify (Horizontal,Vertical : Word);
@@ -1061,6 +1225,7 @@ Procedure SetTextJustify (Horizontal,Vertical : Word);
 \var{SetTextJustify} controls the placement of new text, relative to the 
 (graphical) cursor position. \var{Horizontal} controls horizontal placement, and can be
 one of the following pre-defined constants:
+
 \begin{itemize}
 \item \var{LeftText=0;} Text is set left of the pointer.
 \item \var{CenterText=1;} Text is set centered horizontally on the pointer.
@@ -1069,6 +1234,7 @@ one of the following pre-defined constants:
 \var{Vertical} controls the vertical placement of the text, relative to the
 (graphical) cursor position. Its value can be one of the following
 pre-defined constants :
+
 \begin{itemize}
 \item \var{BottomText=0;} Text is placed under the pointer.
 \item \var{CenterText=1;} Text is placed centered vertically on the pointer.
@@ -1080,6 +1246,7 @@ None.
 \SeeAlso
 \seep{OutText}, \seep{OutTextXY}
 \end{procedure}
+
 \begin{procedure}{SetTextStyle}
 \Declaration
 Procedure SetTextStyle (Font,Direction,Magnitude : Word);
@@ -1087,6 +1254,7 @@ Procedure SetTextStyle (Font,Direction,Magnitude : Word);
 \Description
 \var{SetTextStyle} controls the style of text to be put on the screen.
 pre-defined constants for \var{Font} are:
+
 \begin{itemize}
 \item \var{DefaultFont=0;}
 \item \var{TriplexFont=2;}
@@ -1095,6 +1263,7 @@ pre-defined constants for \var{Font} are:
 \item \var{GothicFont=4;}
 \end{itemize}
 Pre-defined constants for \var{Direction} are :
+
 \begin{itemize}
 \item \var{HorizDir=0;}
 \item \var{VertDir=1;}
@@ -1104,6 +1273,7 @@ None.
 \SeeAlso
 \seep{GetTextSettings} 
 \end{procedure}
+
 \begin{procedure}{SetUserCharSize}
 \Declaration
 Procedure SetUserCharSize (Xasp1,Xasp2,Yasp1,Yasp2 : Word);
@@ -1116,21 +1286,23 @@ None.
 \SeeAlso
 \seep{SetTextStyle}
 \end{procedure}
+
 \begin{procedure}{SetViewPort}
 \Declaration
 Procedure SetViewPort (X1,Y1,X2,Y2 : Integer; Clip : Boolean);
 
 \Description
-Sets the current graphical view-port (window) to the rectangle defined by
+Sets the current graphical viewport (window) to the rectangle defined by
 the top-left corner \var{(X1,Y1)} and the bottom-right corner \var{(X2,Y2)}.
-If \var{Clip} is true, anything drawn outside the view-port (window) will be
+If \var{Clip} is true, anything drawn outside the viewport (window) will be
 clipped (i.e. not drawn). Coordinates specified after this call are relative
-to the top-left corner of the view-port.
+to the top-left corner of the viewport.
 \Errors
 None.
 \SeeAlso
 \seep{GetViewSettings}
 \end{procedure}
+
 \begin{procedure}{SetVisualPage}
 \Declaration
 Procedure SetVisualPage (Page : Word);
@@ -1142,6 +1314,7 @@ None
 \SeeAlso
 \seep{SetActivePage}
 \end{procedure}
+
 \begin{procedure}{SetWriteMode}
 \Declaration
 Procedure SetWriteMode (Mode : Integer);
@@ -1150,6 +1323,7 @@ Procedure SetWriteMode (Mode : Integer);
 \var{SetWriteMode} controls the drawing of lines on the screen. It controls
 the binary operation used when drawing lines on the screen. \var{Mode} can
 be one of the following pre-defined constants:
+
 \begin{itemize}
 \item CopyPut=0;
 \item XORPut=1;
@@ -1159,6 +1333,7 @@ None.
 \SeeAlso
 
 \end{procedure}
+
 \begin{function}{TextHeight}
 \Declaration
 Function TextHeight (S : String) : Word;
@@ -1172,6 +1347,7 @@ None.
 \SeeAlso
 \seef{TextWidth}
 \end{function}
+
 \begin{function}{TextWidth}
 \Declaration
 Function TextWidth (S : String) : Word;
@@ -1179,7 +1355,6 @@ Function TextWidth (S : String) : Word;
 \Description
 \var{TextHeight} returns the width (in pixels) of the string \var{S} in
 the current font and text-size.
-
 \Errors
 None.
 \SeeAlso
