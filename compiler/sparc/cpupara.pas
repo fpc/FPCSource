@@ -25,9 +25,11 @@ unit cpupara;
 interface
 
     uses
-      cpubase,cgbase,
-      aasmtai,globtype,
-      symconst,symtype,symdef,paramgr;
+      globtype,
+      cclasses,
+      aasmtai,
+      cpubase,cpuinfo,
+      symconst,symbase,symtype,symdef,paramgr,cgbase;
 
     type
       TSparcParaManager=class(TParaManager)
@@ -41,10 +43,14 @@ interface
         function  getintparaloc(calloption : tproccalloption; nr : longint) : tparalocation;override;
         procedure allocparaloc(list: taasmoutput; const loc: tparalocation);override;
         procedure freeparaloc(list: taasmoutput; const loc: tparalocation);override;
-        function  create_paraloc_info(p:TAbstractProcDef; side: tcallercallee):longint;override;
+        function  create_paraloc_info(p : TAbstractProcDef; side: tcallercallee):longint;override;
+        function create_varargs_paraloc_info(p : TAbstractProcDef; varargspara:tvarargspara):longint;override;
         procedure splitparaloc64(const locpara:tparalocation;var loclopara,lochipara:tparalocation);override;
+         private
+           procedure init_values(var curintreg :tsuperregister; var cur_stack_offset: aWord);
+           function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; firstpara: tparaitem;
+               var curintreg: tsuperregister; var cur_stack_offset: aword):longint;
       end;
-
 
 implementation
 
@@ -52,41 +58,7 @@ implementation
       verbose,
       defutil,cgobj;
 
-    function tsparcparamanager.copy_value_on_stack(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
-      begin
-        result:=false;
-      end;
-
-
-    { true if a parameter is too large to copy and only the address is pushed }
-    function tsparcparamanager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
-      begin
-        result:=false;
-        { var,out always require address }
-        if varspez in [vs_var,vs_out] then
-          begin
-            result:=true;
-            exit;
-          end;
-        case def.deftype of
-          recorddef,
-          arraydef,
-          variantdef,
-          formaldef :
-            push_addr_param:=true;
-          objectdef :
-            result:=is_object(def);
-          stringdef :
-            result:=(tstringdef(def).string_typ in [st_shortstring,st_longstring]);
-          procvardef :
-            result:=(po_methodpointer in tprocvardef(def).procoptions);
-          setdef :
-            result:=(tsetdef(def).settype<>smallset);
-        end;
-      end;
-
-
-    function tsparcparamanager.get_volatile_registers_int(calloption : tproccalloption):TCpuRegisterSet;
+    function TSparcParaManager.get_volatile_registers_int(calloption : tproccalloption):TCpuRegisterSet;
       begin
         result:=[RS_G1];
       end;
@@ -125,38 +97,178 @@ implementation
       end;
 
 
-    procedure tsparcparamanager.allocparaloc(list: taasmoutput; const loc: tparalocation);
+    function getparaloc(p : tdef) : tcgloc;
+
       begin
-        if (loc.loc=LOC_REFERENCE) and
-           (loc.low_in_reg) then
-          cg.GetExplicitRegister(list,loc.lowreg);
-        inherited allocparaloc(list,loc);
+         { Later, the LOC_REFERENCE is in most cases changed into LOC_REGISTER
+           if push_addr_param for the def is true
+         }
+         case p.deftype of
+            orddef:
+              getparaloc:=LOC_REGISTER;
+            floatdef:
+              getparaloc:=LOC_FPUREGISTER;
+            enumdef:
+              getparaloc:=LOC_REGISTER;
+            pointerdef:
+              getparaloc:=LOC_REGISTER;
+            formaldef:
+              getparaloc:=LOC_REGISTER;
+            classrefdef:
+              getparaloc:=LOC_REGISTER;
+            recorddef:
+              getparaloc:=LOC_REFERENCE;
+            objectdef:
+              if is_object(p) then
+                getparaloc:=LOC_REFERENCE
+              else
+                getparaloc:=LOC_REGISTER;
+            stringdef:
+              if is_shortstring(p) or is_longstring(p) then
+                getparaloc:=LOC_REFERENCE
+              else
+                getparaloc:=LOC_REGISTER;
+            procvardef:
+              if (po_methodpointer in tprocvardef(p).procoptions) then
+                getparaloc:=LOC_REFERENCE
+              else
+                getparaloc:=LOC_REGISTER;
+            filedef:
+              getparaloc:=LOC_REGISTER;
+            arraydef:
+              getparaloc:=LOC_REFERENCE;
+            setdef:
+              if is_smallset(p) then
+                getparaloc:=LOC_REGISTER
+              else
+                getparaloc:=LOC_REFERENCE;
+            variantdef:
+              getparaloc:=LOC_REFERENCE;
+            { avoid problems with errornous definitions }
+            errordef:
+              getparaloc:=LOC_REGISTER;
+            else
+              internalerror(2002071001);
+         end;
+      end;
+    function tsparcparamanager.copy_value_on_stack(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
+      begin
+        result:=false;
       end;
 
 
-    procedure tsparcparamanager.freeparaloc(list: taasmoutput; const loc: tparalocation);
+    { true if a parameter is too large to copy and only the address is pushed }
+    function tsparcparamanager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
       begin
-        if (loc.loc=LOC_REFERENCE) and
-           (loc.low_in_reg) then
-          cg.UnGetRegister(list,loc.lowreg);
-        inherited freeparaloc(list,loc);
+        result:=false;
+        { var,out always require address }
+        if varspez in [vs_var,vs_out] then
+          begin
+            result:=true;
+            exit;
+          end;
+        case def.deftype of
+          recorddef,
+          arraydef,
+          variantdef,
+          formaldef :
+            push_addr_param:=true;
+          objectdef :
+            result:=is_object(def);
+          stringdef :
+            result:=(tstringdef(def).string_typ in [st_shortstring,st_longstring]);
+          procvardef :
+            result:=(po_methodpointer in tprocvardef(def).procoptions);
+          setdef :
+            result:=(tsetdef(def).settype<>smallset);
+        end;
+      end;
+
+
+    procedure TSparcParaManager.init_values(var curintreg: tsuperregister; var cur_stack_offset: aWord);
+      begin
+        CurIntReg:=RS_O0;
+        cur_stack_offset:=92;
       end;
 
 
     function TSparcParaManager.create_paraloc_info(p:TAbstractProcDef; side: tcallercallee):longint;
       var
+        paraloc : tparalocation;
+        stack_offset : aWord;
         nextintreg : tsuperregister;
-        stack_offset : longint;
         hp : tparaitem;
         is_64bit : boolean;
-        paraloc : tparalocation;
       begin
-        nextintreg:=RS_O0;
+        init_values(NextIntReg,stack_offset);
         { Nested procedures have the parent framepoint in o0 }
         if p.parast.symtablelevel>normal_function_level then
           inc(NextIntReg);
-        stack_offset:=92;
-        hp:=TParaItem(p.para.First);
+        result := create_paraloc_info_intern(p,side,TParaItem(p.para.First),NextIntReg,stack_offset);
+
+        { Function return }
+        fillchar(paraloc,sizeof(tparalocation),0);
+        paraloc.size:=def_cgsize(p.rettype.def);
+        paraloc.Alignment:= std_param_align;
+        { Return in FPU register? }
+        if p.rettype.def.deftype=floatdef then
+          begin
+            paraloc.loc:=LOC_FPUREGISTER;
+            paraloc.register:=NR_FPU_RESULT_REG;
+          end
+        else
+         { Return in register? }
+         if not ret_in_param(p.rettype.def,p.proccalloption) then
+          begin
+            paraloc.loc:=LOC_REGISTER;
+{$ifndef cpu64bit}
+            if paraloc.size in [OS_64,OS_S64] then
+             begin
+               paraloc.lochigh:=LOC_REGISTER;
+               if side=callerside then
+                 paraloc.register64.reglo:=NR_FUNCTION_RESULT64_LOW_REG
+               else
+                 paraloc.register64.reglo:=NR_FUNCTION_RETURN64_LOW_REG;
+               if side=callerside then
+                 paraloc.register64.reghi:=NR_FUNCTION_RESULT64_HIGH_REG
+               else
+                 paraloc.register64.reghi:=NR_FUNCTION_RETURN64_HIGH_REG;
+             end
+            else
+{$endif cpu64bit}
+             begin
+               if side=callerside then
+                 paraloc.register:=NR_FUNCTION_RESULT_REG
+               else
+                 paraloc.register:=NR_FUNCTION_RETURN_REG;
+             end;
+          end
+        else
+          begin
+            paraloc.loc:=LOC_REFERENCE;
+          end;
+        p.funcret_paraloc[side]:=paraloc;
+        { Size on stack is not used }
+        result:=0;
+      end;
+
+
+
+    function TSparcParaManager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; firstpara: tparaitem;
+               var curintreg: tsuperregister; var cur_stack_offset: aword):longint;
+      var
+         stack_offset: aword;
+         nextintreg : tsuperregister;
+         paradef : tdef;
+         paraloc : tparalocation;
+         hp : tparaitem;
+         loc : tcgloc;
+         is_64bit: boolean;
+      begin
+         result:=0;
+         nextintreg := curintreg;
+         stack_offset := cur_stack_offset;
+         hp:=firstpara;
         while assigned(hp) do
           begin
             fillchar(paraloc,sizeof(paraloc),0);
@@ -222,53 +334,27 @@ implementation
               end;
             hp:=TParaItem(hp.Next);
           end;
-
-        { Function return }
-        fillchar(paraloc,sizeof(tparalocation),0);
-        paraloc.size:=def_cgsize(p.rettype.def);
-        paraloc.Alignment:= std_param_align;
-        { Return in FPU register? }
-        if p.rettype.def.deftype=floatdef then
-          begin
-            paraloc.loc:=LOC_FPUREGISTER;
-            paraloc.register:=NR_FPU_RESULT_REG;
-          end
-        else
-         { Return in register? }
-         if not ret_in_param(p.rettype.def,p.proccalloption) then
-          begin
-            paraloc.loc:=LOC_REGISTER;
-{$ifndef cpu64bit}
-            if paraloc.size in [OS_64,OS_S64] then
-             begin
-               paraloc.lochigh:=LOC_REGISTER;
-               if side=callerside then
-                 paraloc.register64.reglo:=NR_FUNCTION_RESULT64_LOW_REG
-               else
-                 paraloc.register64.reglo:=NR_FUNCTION_RETURN64_LOW_REG;
-               if side=callerside then
-                 paraloc.register64.reghi:=NR_FUNCTION_RESULT64_HIGH_REG
-               else
-                 paraloc.register64.reghi:=NR_FUNCTION_RETURN64_HIGH_REG;
-             end
-            else
-{$endif cpu64bit}
-             begin
-               if side=callerside then
-                 paraloc.register:=NR_FUNCTION_RESULT_REG
-               else
-                 paraloc.register:=NR_FUNCTION_RETURN_REG;
-             end;
-          end
-        else
-          begin
-            paraloc.loc:=LOC_REFERENCE;
-          end;
-        p.funcret_paraloc[side]:=paraloc;
-        { Size on stack is not used }
-        result:=0;
       end;
 
+
+
+
+    procedure tsparcparamanager.allocparaloc(list: taasmoutput; const loc: tparalocation);
+      begin
+        if (loc.loc=LOC_REFERENCE) and
+           (loc.low_in_reg) then
+          cg.GetExplicitRegister(list,loc.lowreg);
+        inherited allocparaloc(list,loc);
+      end;
+
+
+    procedure tsparcparamanager.freeparaloc(list: taasmoutput; const loc: tparalocation);
+      begin
+        if (loc.loc=LOC_REFERENCE) and
+           (loc.low_in_reg) then
+          cg.UnGetRegister(list,loc.lowreg);
+        inherited freeparaloc(list,loc);
+      end;
 
     procedure tsparcparamanager.splitparaloc64(const locpara:tparalocation;var loclopara,lochipara:tparalocation);
       begin
@@ -291,13 +377,56 @@ implementation
         else
           inherited splitparaloc64(locpara,loclopara,lochipara);
       end;
+    function TSparcParaManager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargspara):longint;
+      var
+        cur_stack_offset: aword;
+        parasize, l: longint;
+        curintreg, firstfloatreg, curfloatreg, curmmreg: tsuperregister;
+        hp: tparaitem;
+        paraloc: tparalocation;
+      begin
+        init_values(curintreg,cur_stack_offset);
+        firstfloatreg:=curfloatreg;
+
+        result := create_paraloc_info_intern(p,callerside,tparaitem(p.para.first),curintreg,cur_stack_offset);
+        if (p.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
+          { just continue loading the parameters in the registers }
+          result := create_paraloc_info_intern(p,callerside,tparaitem(varargspara.first),curintreg,cur_stack_offset)
+        else
+          begin
+            hp := tparaitem(varargspara.first);
+            parasize := cur_stack_offset;
+            while assigned(hp) do
+              begin
+                paraloc.size:=def_cgsize(hp.paratype.def);
+                paraloc.lochigh:=LOC_INVALID;
+                paraloc.loc:=LOC_REFERENCE;
+                paraloc.alignment:=4;
+                paraloc.reference.index:=NR_STACK_POINTER_REG;
+                l:=push_size(hp.paratyp,hp.paratype.def,p.proccalloption);
+                paraloc.reference.offset:=parasize;
+                parasize:=parasize+l;
+                hp.paraloc[callerside]:=paraloc;
+                hp:=tparaitem(hp.next);
+              end;
+            result := parasize;
+          end;
+        if curfloatreg<>firstfloatreg then
+          include(varargspara.varargsinfo,va_uses_float_reg);
+      end;
 
 begin
    ParaManager:=TSparcParaManager.create;
 end.
 {
   $Log$
-  Revision 1.37  2004-03-09 13:05:49  mazen
+  Revision 1.38  2004-03-15 14:39:56  mazen
+  * make sparc para manager quite similar to ppc one to help
+    copying evolutions.
+  + Add support to var args in registers. need to be verfied as it
+    was just copying ppc's one
+
+  Revision 1.37  2004/03/09 13:05:49  mazen
   + give location for 64bit to fix IE 200402061
 
   Revision 1.36  2004/02/25 14:25:47  mazen
