@@ -486,7 +486,7 @@ implementation
                       else
                         cg.a_reg_alloc(exprasmlist,r);
                       if RS_FUNCTION_RESULTHIGH_REG in rg.unusedregsint then
-                        location.registerhigh:=rg.getexplicitregisterint(exprasmlist,NR_FUNCTION_RETURNHIGH_REG)
+                        location.registerhigh:=rg.getexplicitregisterint(exprasmlist,NR_FUNCTION_RESULTHIGH_REG)
                       else
                         cg.a_reg_alloc(exprasmlist,hregister);
                       { do this after both low,high are allocated, else it is possible that
@@ -1233,7 +1233,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.78  2003-05-30 23:57:08  peter
+  Revision 1.79  2003-05-31 00:59:44  peter
+    * typo in FUNCTION_RESULT_REG
+
+  Revision 1.78  2003/05/30 23:57:08  peter
     * more sparc cleanup
     * accumulator removed, splitted in function_return_reg (called) and
       function_result_reg (caller)
