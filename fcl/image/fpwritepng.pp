@@ -265,7 +265,7 @@ var c : integer;
             begin
             c := color[p];
             a := c.Alpha;
-            if a = alphaTransparant then
+            if a = alphaTransparent then
               begin
               none := true;
               FTransparentColor := c;
@@ -288,7 +288,7 @@ var c : integer;
           begin
           c := colors[x,y];
           a := c.Alpha;
-          if a = alphaTransparant then
+          if a = alphaTransparent then
             begin
             none := true;
             FTransparentColor := c;
@@ -548,7 +548,7 @@ procedure TFPWriterPNG.WritetRNS;
       repeat
         dec (r);
       until (r < 0) or (color[r].alpha <> alphaOpaque);
-      if r >= 0 then // there is at least 1 transparant color
+      if r >= 0 then // there is at least 1 transparent color
         begin
         // from this color we go to the first palette entry
         SetChunkLength (r+1);
@@ -629,4 +629,6 @@ begin
   WriteIEND;
 end;
 
+initialization
+  ImageHandlers.RegisterImageWriter ('Portable Network Graphics', 'png', TFPWriterPNG);
 end.
