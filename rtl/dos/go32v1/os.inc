@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{$define dos}
+{$define go32v1}
 {$undef go32v2}
 {$undef os2}
 {$undef linux}
@@ -19,27 +19,9 @@
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:41  root
-  Initial revision
+  Revision 1.2  1998-05-22 00:39:31  peter
+    * go32v1, go32v2 recompiles with the new objects
+    * remake3 works again with go32v2
+    - removed some "optimizes" from daniel which were wrong
 
-  Revision 1.3  1998/01/26 11:57:08  michael
-  + Added log at the end
-
-
-  
-  Working file: rtl/dos/go32v1/os.inc
-  description:
-  ----------------------------
-  revision 1.2
-  date: 1997/12/01 12:24:05;  author: michael;  state: Exp;  lines: +13 -0
-  + added copyright reference in header.
-  ----------------------------
-  revision 1.1
-  date: 1997/11/27 08:33:53;  author: michael;  state: Exp;
-  Initial revision
-  ----------------------------
-  revision 1.1.1.1
-  date: 1997/11/27 08:33:53;  author: michael;  state: Exp;  lines: +0 -0
-  FPC RTL CVS start
-  =============================================================================
 }

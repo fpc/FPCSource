@@ -1,9 +1,11 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993,97 by Florian  klaempf  & Gernot Tenchio
+    Copyright (c) 1993-98 by Florian Klaempf & Gernot Tenchio
     members of the Free Pascal development team.
 
+    Graph unit for BP7 compatible RTL
+    
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -824,44 +826,9 @@ end.
 
 {
   $Log$
-  Revision 1.2  1998-03-26 10:41:15  florian
-    * some warnings fixed
+  Revision 1.3  1998-05-22 00:39:23  peter
+    * go32v1, go32v2 recompiles with the new objects
+    * remake3 works again with go32v2
+    - removed some "optimizes" from daniel which were wrong
 
-  Revision 1.1.1.1  1998/03/25 11:18:41  root
-  * Restored version
-
-  Revision 1.7  1998/03/03 22:48:41  florian
-    + graph.drawpoly procedure
-    + putimage with xorput uses mmx if available
-
-  Revision 1.6  1998/03/02 00:17:26  carl
-    +GraphErrorMsg function implemented
-
-  Revision 1.5  1998/02/25 17:08:07  jonas
-    * change interface definition of SetGraphMode to match the implementation
-
-  Revision 1.4  1998/01/26 11:56:33  michael
-  + Added log at the end
-
-
-  
-  Working file: rtl/dos/graph.pp
-  description:
-  ----------------------------
-  revision 1.3
-  date: 1997/12/03 15:24:19;  author: florian;  state: Exp;  lines: +38 -11
-  Graph.SetGraphMode for DOS added
-  ----------------------------
-  revision 1.2
-  date: 1997/12/01 12:15:46;  author: michael;  state: Exp;  lines: +15 -73
-  + added copyright reference in header.
-  ----------------------------
-  revision 1.1
-  date: 1997/11/27 08:33:50;  author: michael;  state: Exp;
-  Initial revision
-  ----------------------------
-  revision 1.1.1.1
-  date: 1997/11/27 08:33:50;  author: michael;  state: Exp;  lines: +0 -0
-  FPC RTL CVS start
-  =============================================================================
 }

@@ -200,8 +200,8 @@ crt$(PPUEXT) : ../crt.pp $(INC)/textrec.inc go32$(PPUEXT) $(SYSTEMPPU)
 	$(PP) $(OPT) crt $(REDIR)
 	$(DEL) crt.pp
 
-objects$(PPUEXT) : ../objects.pp $(SYSTEMPPU)
-	$(COPY) ../objects.pp .
+objects$(PPUEXT) : $(INC)/objects.pp $(INC)/platform.inc objinc.inc $(SYSTEMPPU)
+	$(COPY) $(INC)/objects.pp .
 	$(PP) $(OPT) objects.pp $(REDIR)
 	$(DEL) objects.pp
 
@@ -229,8 +229,8 @@ mouse$(PPUEXT) : ../mouse.pp $(SYSTEMPPU)
 	$(PP) $(OPT) mouse.pp $(REDIR)
 	$(DEL) mouse.pp
 
-getopts$(PPUEXT) : $(PROCINC)/getopts.pp $(SYSTEMPPU)
-	$(COPY) $(PROCINC)/getopts.pp .
+getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMPPU)
+	$(COPY) $(INC)/getopts.pp .
 	$(PP) $(OPT) getopts.pp $(REDIR)
 	$(DEL) getopts.pp
 
@@ -264,7 +264,12 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.8  1998-05-06 11:53:40  peter
+# Revision 1.9  1998-05-22 00:39:36  peter
+#   * go32v1, go32v2 recompiles with the new objects
+#   * remake3 works again with go32v2
+#   - removed some "optimizes" from daniel which were wrong
+#
+# Revision 1.8	1998/05/06 11:53:40  peter
 #   * update
 #
 #

@@ -12,30 +12,45 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-
-{ system unit for go32v1 }
-{$define DOS}
 unit system;
+interface
+
+{ no stack check in system }
+{$S-}
 
 {$I os.inc}
 
-  interface
+{ include system-independent routine headers }
 
-    { die betriebssystemunabhangigen Deklarationen einfuegen: }
+{$I systemh.inc}
 
-    {$I systemh.inc}
+{ include heap support headers }
 
-    {$I heaph.inc}
+{$I heaph.inc}
 
 const
-  UnusedHandle=$ffff;
-  StdInputHandle=0;
-  StdOutputHandle=1;
-  StdErrorHandle=2;
+{ Default filehandles }
+  UnusedHandle    = $ffff;
+  StdInputHandle  = 0;
+  StdOutputHandle = 1;
+  StdErrorHandle  = 2;
+
+{ Default memory segments (Tp7 compatibility) }
+  seg0040 = $0040;
+  segA000 = $A000;
+  segB000 = $B000;
+  segB800 = $B800;
+
+var
+{ C-compatible arguments and environment }
+  argc  : longint;
+  argv  : ppchar;
+  envp  : ppchar;
 
 type
-{$PACKRECORDS 1}
-       t_stub_info   = record
+{ Dos Extender info }
+  p_stub_info   = ^t_stub_info;
+  t_stub_info = packed record
        magic         : array[0..15] of char;
        size          : longint;
        minstack      : longint;
@@ -50,49 +65,47 @@ type
        basename      : array[0..7] of char;
        argv0         : array [0..15] of char;
        dpmi_server   : array [0..15] of char;
-       end;
-       p_stub_info   = ^t_stub_info;
+  end;
 
-       t_go32_info_block = record
-       size_of_this_structure_in_bytes : longint; {offset 0}
-       linear_address_of_primary_screen : longint; {offset 4}
+  t_go32_info_block = packed record
+       size_of_this_structure_in_bytes    : longint; {offset 0}
+       linear_address_of_primary_screen   : longint; {offset 4}
        linear_address_of_secondary_screen : longint; {offset 8}
-       linear_address_of_transfer_buffer : longint; {offset 12}
-       size_of_transfer_buffer : longint; {offset 16}
-       pid : longint; {offset 20}
-       master_interrupt_controller_base : byte; {offset 24}
-       slave_interrupt_controller_base : byte; {offset 25}
-       selector_for_linear_memory : word; {offset 26}
+       linear_address_of_transfer_buffer  : longint; {offset 12}
+       size_of_transfer_buffer            : longint; {offset 16}
+       pid                                : longint; {offset 20}
+       master_interrupt_controller_base   : byte; {offset 24}
+       slave_interrupt_controller_base    : byte; {offset 25}
+       selector_for_linear_memory         : word; {offset 26}
        linear_address_of_stub_info_structure : longint; {offset 28}
-       linear_address_of_original_psp : longint; {offset 32}
-       run_mode : word; {offset 36}
-       run_mode_info : word; {offset 38}
-       end;
-{$PACKRECORDS NORMAL}
+       linear_address_of_original_psp     : longint; {offset 32}
+       run_mode                           : word; {offset 36}
+       run_mode_info                      : word; {offset 38}
+  end;
 
 var
   stub_info       : p_stub_info;
   go32_info_block : t_go32_info_block;
-  environ         : ppchar;
 
-  implementation
+{ Needed for CRT unit }
+function do_read(h,addr,len : longint) : longint;
 
-    { include system independent routines }
 
-    {$I system.inc}
+implementation
 
-{$S-}
-    procedure st1(stack_size : longint);[public,alias: 'STACKCHECK'];
+{ include system independent routines }
 
-      begin
-         { called when trying to get local stack }
-         { if the compiler directive $S is set   }
-         { this function must preserve esi !!!!  }
-         { because esi is set by the calling     }
-         { proc for methods                      }
-         { it must preserve all registers !!     }
+{$I system.inc}
 
-         asm
+procedure int_stackcheck(stack_size:longint);[public,alias: 'STACKCHECK'];
+begin
+{ called when trying to get local stack
+  if the compiler directive $S is set
+  this function must preserve esi !!!!
+  because esi is set by the calling
+  proc for methods
+  it must preserve all registers !!     }
+  asm
             pushl %eax
             pushl %ebx
             movl stack_size,%ebx
@@ -116,88 +129,62 @@ var
             { can be usefull for error recovery !! }
             popl %ebx
             popl %eax
-         end['EAX','EBX'];
-         RunError(202);
-         { this needs a local variable }
-         { so the function called itself !! }
-         { Writeln('low in stack ');
-         RunError(202);             }
-      end;
+  end['EAX','EBX'];
+  RunError(202);
+end;
 
-    procedure halt(errnum : byte);
 
-      begin
-         do_exit;
-         flush(stderr);
-         asm
-            movl $0x4c00,%eax
-            movb 8(%ebp),%al
-            int $0x21
-         end;
-      end;
+{$I386_ATT}
 
-    function paramcount : longint;
+procedure halt(errnum : byte);
+begin
+  do_exit;
+  flush(stderr);
+  asm
+        movl    $0x4c00,%eax
+        movb    errnum,%al
+        int     $0x21
+  end;
+end;
 
-      begin
-         asm
-            movl _argc,%eax
-            decl %eax
-            leave
-            ret
-         end ['EAX'];
-      end;
 
-    function paramstr(l : longint) : string;
+function paramcount : longint;
+begin
+  paramcount := argc - 1;
+end;
 
-      function args : pointer;
 
-        begin
-           asm
-              movl _args,%eax
-              leave
-              ret
-           end ['EAX'];
-        end;
+function paramstr(l : longint) : string;
+begin
+  if (l>=0) and (l+1<=argc) then
+   paramstr:=strpas(argv[l])
+  else
+   paramstr:='';
+end;
 
-      var
-         p : ^pchar;
 
-      begin
-         if (l>=0) and (l<=paramcount) then
-           begin
-              p:=args;
-              paramstr:=strpas(p[l]);
-           end
-         else paramstr:='';
-      end;
+procedure randomize;assembler;
+asm
+        movb    $0x2c,%ah
+        int     $0x21
+        shll    $16,%ecx
+        movw    %dx,%cx
+        movl    %ecx,randseed
+end;
 
-    procedure randomize;
 
-      var
-         hl : longint;
-      begin
-         asm
-            movb $0x2c,%ah
-            int $0x21
-            movw %cx,-4(%ebp)
-            movw %dx,-2(%ebp)
-         end;
-         randseed:=hl;
-      end;
+{*****************************************************************************
+                              Heap Management
+*****************************************************************************}
 
-{ use standard heap management }
-{ sbrk function of go32v1 }
-  function Sbrk(size : longint) : longint;
+function Sbrk(size : longint) : longint;assembler;
+asm
+        movl    size,%ebx
+        movl    $0x4a01,%eax
+        int     $0x21
+end;
 
-    begin
-       asm
-         movl size,%ebx
-         movl $0x4a01,%eax
-         int  $0x21
-         movl %eax,__RESULT
-       end;
-    end;
-
+{ include standard heap management }
 {$I heap.inc}
 
 
@@ -215,15 +202,13 @@ begin
 end;
 
 
-procedure do_close(h : longint);
-begin
-   asm
-      movl 8(%ebp),%ebx
-      movb $0x3e,%ah
-      pushl %ebp
-      intl $0x21
-      popl %ebp
-   end;
+procedure do_close(h : longint);assembler;
+asm
+        movl    h,%ebx
+        movb    $0x3e,%ah
+        pushl   %ebp
+        intl    $0x21
+        popl    %ebp
 end;
 
 
@@ -231,14 +216,14 @@ procedure do_erase(p : pchar);
 begin
   AllowSlash(p);
   asm
-     movl 8(%ebp),%edx
-     movb $0x41,%ah
-     pushl %ebp
-     int $0x21
-     popl %ebp
-     jnc .LERASE1
-     movw %ax,U_SYSTEM_INOUTRES;
-  .LERASE1:
+        movl    p,%edx
+        movb    $0x41,%ah
+        pushl   %ebp
+        int     $0x21
+        popl    %ebp
+        jnc     .LERASE1
+        movw    %ax,inoutres
+.LERASE1:
   end;
 end;
 
@@ -248,159 +233,135 @@ begin
   AllowSlash(p1);
   AllowSlash(p2);
   asm
-     movl 8(%ebp),%edx
-     movl 12(%ebp),%edi
-     movb $0x56,%ah
-     pushl %ebp
-     int $0x21
-     popl %ebp
-     jnc .LRENAME1
-     movw %ax,U_SYSTEM_INOUTRES;
-  .LRENAME1:
+        movl    p1,%edx
+        movl    p2,%edi
+        movb    $0x56,%ah
+        pushl   %ebp
+        int     $0x21
+        popl    %ebp
+        jnc     .LRENAME1
+        movw    %ax,inoutres
+.LRENAME1:
   end;
 end;
 
 
-function do_write(h,addr,len : longint) : longint;
-begin
-  asm
-     movl 16(%ebp),%ecx
-     movl 12(%ebp),%edx
-     movl 8(%ebp),%ebx
-     movb $0x40,%ah
-     int $0x21
-     jnc .LDOSWRITE1
-     movw %ax,U_SYSTEM_INOUTRES;
-  .LDOSWRITE1:
-     movl %eax,-4(%ebp)
-  end;
+function do_write(h,addr,len : longint) : longint;assembler;
+asm
+        movl    len,%ecx
+        movl    addr,%edx
+        movl    h,%ebx
+        movb    $0x40,%ah
+        int     $0x21
+        jnc     .LDOSWRITE1
+        movw    %ax,inoutres
+        xorl    %eax,%eax
+.LDOSWRITE1:
 end;
 
 
-function do_read(h,addr,len : longint) : longint;
-begin
-  asm
-     movl 16(%ebp),%ecx
-     movl 12(%ebp),%edx
-     movl 8(%ebp),%ebx
-     movb $0x3f,%ah
-     int $0x21
-     jnc .LDOSREAD1
-     movw %ax,U_SYSTEM_INOUTRES;
-     xorl %eax,%eax
-  .LDOSREAD1:
-     leave
-     ret $12
-  end;
+function do_read(h,addr,len : longint) : longint;assembler;
+asm
+        movl    len,%ecx
+        movl    addr,%edx
+        movl    h,%ebx
+        movb    $0x3f,%ah
+        int     $0x21
+        jnc     .LDOSREAD1
+        movw    %ax,inoutres
+        xorl    %eax,%eax
+.LDOSREAD1:
 end;
 
 
-function do_filepos(handle : longint) : longint;
-begin
-  asm
-     movb $0x42,%ah
-     movb $0x1,%al
-     movl 8(%ebp),%ebx
-     xorl %ecx,%ecx
-     xorl %edx,%edx
-     pushl %ebp
-     int $0x21
-     popl %ebp
-     jnc .LDOSFILEPOS1
-     movw %ax,U_SYSTEM_INOUTRES;
-     xorl %eax,%eax
-     jmp .LDOSFILEPOS2
-  .LDOSFILEPOS1:
-     shll $16,%edx
-     movzwl %ax,%eax
-     orl %edx,%eax
-  .LDOSFILEPOS2:
-     leave
-     ret $4
-  end;
+function do_filepos(handle : longint) : longint;assembler;
+asm
+        movl    $0x4201,%eax
+        movl    handle,%ebx
+        xorl    %ecx,%ecx
+        xorl    %edx,%edx
+        pushl   %ebp
+        int     $0x21
+        popl    %ebp
+        jnc     .LDOSFILEPOS1
+        movw    %ax,inoutres
+        xorl    %eax,%eax
+        jmp     .LDOSFILEPOS2
+.LDOSFILEPOS1:
+        shll    $16,%edx
+        movzwl  %ax,%eax
+        orl     %edx,%eax
+.LDOSFILEPOS2:
 end;
 
 
-procedure do_seek(handle,pos : longint);
-begin
-  asm
-     movl $0x4200,%eax
-     movl 8(%ebp),%ebx
-     movl 12(%ebp),%edx
-     movl %edx,%ecx
-     shrl $16,%ecx
-     pushl %ebp
-     int $0x21
-     popl %ebp
-     jnc .LDOSSEEK1
-     movw %ax,U_SYSTEM_INOUTRES;
-  .LDOSSEEK1:
-     leave
-     ret $8
-  end;
+procedure do_seek(handle,pos : longint);assembler;
+asm
+        movl    $0x4200,%eax
+        movl    handle,%ebx
+        movl    pos,%edx
+        movl    %edx,%ecx
+        shrl    $16,%ecx
+        pushl   %ebp
+        int     $0x21
+        popl    %ebp
+        jnc     .LDOSSEEK1
+        movw    %ax,inoutres
+.LDOSSEEK1:
 end;
 
 
-function do_seekend(handle : longint) : longint;
-begin
-  asm
-     movl $0x4202,%eax
-     movl 8(%ebp),%ebx
-     xorl %ecx,%ecx
-     xorl %edx,%edx
-     pushl %ebp
-     int $0x21
-     popl %ebp
-     jnc .Lset_at_end1
-     movw %ax,U_SYSTEM_INOUTRES;
-     xorl %eax,%eax
-     jmp .Lset_at_end2
-  .Lset_at_end1:
-     shll $16,%edx
-     movzwl %ax,%eax
-     orl %edx,%eax
-  .Lset_at_end2:
-     leave
-     ret $4
-  end;
+function do_seekend(handle : longint) : longint;assembler;
+asm
+        movl    $0x4202,%eax
+        movl    handle,%ebx
+        xorl    %ecx,%ecx
+        xorl    %edx,%edx
+        pushl   %ebp
+        int     $0x21
+        popl    %ebp
+        jnc     .Lset_at_end1
+        movw    %ax,inoutres
+        xorl    %eax,%eax
+        jmp     .Lset_at_end2
+.Lset_at_end1:
+        shll    $16,%edx
+        movzwl  %ax,%eax
+        orl     %edx,%eax
+.Lset_at_end2:
 end;
 
 
 function do_filesize(handle : longint) : longint;
 var
-   aktfilepos : longint;
+  aktfilepos : longint;
 begin
-   aktfilepos:=do_filepos(handle);
-   do_filesize:=do_seekend(handle);
-   do_seek(handle,aktfilepos);
+  aktfilepos:=do_filepos(handle);
+  do_filesize:=do_seekend(handle);
+  do_seek(handle,aktfilepos);
 end;
 
 
-procedure do_truncate(handle,pos : longint);
-begin
-   asm
-      movl $0x4200,%eax
-      movl 8(%ebp),%ebx
-      movl 12(%ebp),%edx
-      movl %edx,%ecx
-      shrl $16,%ecx
-      pushl %ebp
-      int $0x21
-      popl %ebp
-      jc .LTruncate1
-      movl 8(%ebp),%ebx
-      movl 12(%ebp),%edx
-      movl %ebp,%edx
-      xorl %ecx,%ecx
-      movb $0x40,%ah
-      int $0x21
-      jnc .LTruncate2
-   .LTruncate1:
-      movw %ax,U_SYSTEM_INOUTRES;
-   .LTruncate2:
-      leave
-      ret $8
-   end;
+procedure do_truncate(handle,pos : longint);assembler;
+asm
+        movl    $0x4200,%eax
+        movl    handle,%ebx
+        movl    pos,%edx
+        movl    %edx,%ecx
+        shrl    $16,%ecx
+        pushl   %ebp
+        int     $0x21
+        popl    %ebp
+        jc      .LTruncate1
+        movl    handle,%ebx
+        movl    %ebp,%edx
+        xorl    %ecx,%ecx
+        movb    $0x40,%ah
+        int     $0x21
+        jnc     .LTruncate2
+.LTruncate1:
+        movw    %ax,inoutres
+.LTruncate2:
 end;
 
 
@@ -413,7 +374,7 @@ procedure do_open(var f;p:pchar;flags:longint);
   when (flags and $1000) there is no check for close (needed for textfiles)
 }
 var
-   oflags : longint;
+  oflags : longint;
 begin
   AllowSlash(p);
 { close first if opened }
@@ -465,18 +426,18 @@ begin
      end;
      exit;
    end;
-   asm
-      movl $0xff02,%ax
-      movl -4(%ebp),%ecx
-      movl 12(%ebp),%ebx
-      int $0x21
-      jnc .LOPEN1
-      movw %ax,U_SYSTEM_INOUTRES;
-      movw $0xffff,%ax
-   .LOPEN1:
-      movl 8(%ebp),%edx
-      movw %ax,(%edx)
-   end;
+  asm
+        movl    $0xff02,%eax
+        movl    oflags,%ecx
+        movl    flags,%ebx
+        int     $0x21
+        jnc     .LOPEN1
+        movw    %ax,inoutres
+        movw    $0xffff,%ax
+.LOPEN1:
+        movl    f,%edx
+        movw    %ax,(%edx)
+  end;
   if (flags and $10)<>0 then
    do_seekend(filerec(f).handle);
 end;
@@ -513,12 +474,12 @@ begin
   buffer[length(s)]:=#0;
   AllowSlash(pchar(@buffer));
   asm
-    leal buffer,%edx
-    movb 8(%ebp),%ah
-    int  $0x21
-    jnc  .LDOS_DIRS1
-    movw %ax,U_SYSTEM_INOUTRES;
-  .LDOS_DIRS1:
+        leal    buffer,%edx
+        movb    func,%ah
+        int     $0x21
+        jnc     .LDOS_DIRS1
+        movw    %ax,inoutres
+.LDOS_DIRS1:
   end;
 end;
 
@@ -540,9 +501,7 @@ begin
   DosDir($3b,s);
 end;
 
-{ thanks to Michael Van Canneyt <michael@tfdec1.fys.kuleuven.ac.be>, }
-{ who writes this code                                               }
-{ her is a problem if the getdir is called with a pathstr var in dos.pp }
+
 procedure getdir(drivenr : byte;var dir : string);
 var
   temp : array[0..255] of char;
@@ -550,18 +509,16 @@ var
   i    : byte;
 begin
   sof:=pchar(@dir[4]);
-  { dir[1..3] will contain '[drivenr]:\', but is not }
-  { supplied by DOS, so we let dos string start at   }
-  { dir[4]                                           }
-  { Get dir from drivenr : 0=default, 1=A etc... }
+{ dir[1..3] will contain '[drivenr]:\', but is not supplied by DOS,
+  so we let dos string start at dir[4]
+  Get dir from drivenr : 0=default, 1=A etc }
   asm
-    movb drivenr,%dl
-    movl sof,%esi
-    mov  $0x47,%ah
-    int  $0x21
+        movb    drivenr,%dl
+        movl    sof,%esi
+        mov     $0x47,%ah
+        int     $0x21
   end;
-{ Now Dir should be filled with directory in ASCIIZ, }
-{ starting from dir[4]                               }
+{ Now Dir should be filled with directory in ASCIIZ starting from dir[4] }
   dir[0]:=#3;
   dir[2]:=':';
   dir[3]:='\';
@@ -575,7 +532,7 @@ begin
      dir[0]:=chr(i);
      inc(i);
    end;
-{ upcase the string (FPKPascal function) }
+{ upcase the string }
   dir:=upcase(dir);
   if drivenr<>0 then   { Drive was supplied. We know it }
    dir[1]:=chr(65+drivenr-1)
@@ -584,10 +541,10 @@ begin
    { We need to get the current drive from DOS function 19H  }
    { because the drive was the default, which can be unknown }
      asm
-       movb $0x19,%ah
-       int $0x21
-       addb $65,%al
-       movb %al,i
+        movb    $0x19,%ah
+        int     $0x21
+        addb    $65,%al
+        movb    %al,i
      end;
      dir[1]:=chr(i);
    end;
@@ -623,60 +580,11 @@ Begin
 { Reset IO Error }
   InOutRes:=0;
 End.
-
 {
   $Log$
-  Revision 1.2  1998-03-26 12:21:02  peter
-    * makefile works again
-    * environ is now defined in system.pp (like go32v2)
+  Revision 1.3  1998-05-22 00:39:33  peter
+    * go32v1, go32v2 recompiles with the new objects
+    * remake3 works again with go32v2
+    - removed some "optimizes" from daniel which were wrong
 
-  Revision 1.1.1.1  1998/03/25 11:18:41  root
-  * Restored version
-
-  Revision 1.9  1998/02/14 01:41:35  peter
-    * fixed unusedhandle bug which was -1
-
-  Revision 1.8  1998/01/26 11:57:03  michael
-  + Added log at the end
-
-
-
-  Working file: rtl/dos/go32v1/system.pp
-  description:
-  ----------------------------
-  revision 1.7
-  date: 1998/01/25 21:53:22;  author: peter;  state: Exp;  lines: +12 -8
-    + Universal Handles support for StdIn/StdOut/StdErr
-    * Updated layout of sysamiga.pas
-  ----------------------------
-  revision 1.6
-  date: 1998/01/16 23:10:50;  author: florian;  state: Exp;  lines: +2 -2
-    + some tobject stuff
-  ----------------------------
-  revision 1.5
-  date: 1998/01/11 02:47:31;  author: michael;  state: Exp;  lines: +384 -507
-  * Changed files to use the new filestructure in /inc directory.
-    (By Peter Vreman)
-  ----------------------------
-  revision 1.4
-  date: 1998/01/07 00:05:04;  author: michael;  state: Exp;  lines: +189 -184
-  + Final adjustments  for a uniform file handling interface.
-     (From Peter Vreman)
-  ----------------------------
-  revision 1.3
-  date: 1998/01/05 16:51:04;  author: michael;  state: Exp;  lines: +18 -46
-  + Moved init of heap to heap.inc: INITheap() (From Peter Vreman)
-  ----------------------------
-  revision 1.2
-  date: 1997/12/01 12:24:06;  author: michael;  state: Exp;  lines: +12 -3
-  + added copyright reference in header.
-  ----------------------------
-  revision 1.1
-  date: 1997/11/27 08:33:53;  author: michael;  state: Exp;
-  Initial revision
-  ----------------------------
-  revision 1.1.1.1
-  date: 1997/11/27 08:33:53;  author: michael;  state: Exp;  lines: +0 -0
-  FPC RTL CVS start
-  =============================================================================
 }

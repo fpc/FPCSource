@@ -3,6 +3,8 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 1993,97 by the Free Pascal development team.
 
+    Dos unit for BP7 compatible RTL
+    
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -68,9 +70,7 @@ Type
 {$i filerec.inc}
 {$i textrec.inc}
 
-{$PACKRECORDS 1}
-
-  DateTime = record
+  DateTime = packed record
     Year,
     Month,
     Day,
@@ -79,8 +79,9 @@ Type
     Sec   : word;
   End;
 
-{$IFDEF GO32V2}
-  searchrec = record
+{$ifdef GO32V2}
+
+  searchrec = packed record
      fill : array[1..21] of byte;
      attr : byte;
      time : longint;
@@ -92,7 +93,8 @@ Type
   Registers = Go32.Registers;
 
 {$ELSE}
-  searchrec = record
+
+  searchrec = packed record
      fill     : array[1..21] of byte;
      attr     : byte;
      time     : longint;
@@ -101,15 +103,13 @@ Type
      name     : string[15]; { the same size as declared by (DJ GNU C) }
   end;
 
-  registers = record
+  registers = packed record
     case i : integer of
      0 : (ax,f1,bx,f2,cx,f3,dx,f4,bp,f5,si,f51,di,f6,ds,f7,es,f8,flags,fs,gs : word);
      1 : (al,ah,f9,f10,bl,bh,f11,f12,cl,ch,f13,f14,dl,dh : byte);
      2 : (eax,  ebx,  ecx,  edx,  ebp,  esi,  edi : longint);
     end;
 {$endif GO32V1}
-
-{$PACKRECORDS 2}
 
 Var
   DosError : integer;
@@ -249,95 +249,99 @@ var
       end;
 {$endif GO32V2}
 
-    procedure msdos(var regs : registers);
-      begin
-         intr($21,regs);
-      end;
+procedure msdos(var regs : registers);
+begin
+  intr($21,regs);
+end;
+
 
 {******************************************************************************
                         --- Info / Date / Time ---
 ******************************************************************************}
 
-    function dosversion : word;
-      begin
-         dosregs.ax:=$3000;
-         msdos(dosregs);
-         dosversion:=dosregs.ax;
-      end;
+function dosversion : word;
+begin
+  dosregs.ax:=$3000;
+  msdos(dosregs);
+  dosversion:=dosregs.ax;
+end;
 
-    procedure getdate(var year,month,mday,wday : word);
-      begin
-         dosregs.ax:=$2a00;
-         msdos(dosregs);
-         wday:=dosregs.al;
-         year:=dosregs.cx;
-         month:=dosregs.dh;
-         mday:=dosregs.dl;
-      end;
 
-    procedure setdate(year,month,day : word);
-      begin
-         dosregs.cx:=year;
-         dosregs.dh:=month;
-         dosregs.dl:=day;
-         dosregs.ah:=$2b;
-         msdos(dosregs);
-         LoadDosError;
-      end;
+procedure getdate(var year,month,mday,wday : word);
+begin
+  dosregs.ax:=$2a00;
+  msdos(dosregs);
+  wday:=dosregs.al;
+  year:=dosregs.cx;
+  month:=dosregs.dh;
+  mday:=dosregs.dl;
+end;
 
-    procedure gettime(var hour,minute,second,sec100 : word);
-      begin
-         dosregs.ah:=$2c;
-         msdos(dosregs);
-         hour:=dosregs.ch;
-         minute:=dosregs.cl;
-         second:=dosregs.dh;
-         sec100:=dosregs.dl;
-      end;
 
-    procedure settime(hour,minute,second,sec100 : word);
-      begin
-         dosregs.ch:=hour;
-         dosregs.cl:=minute;
-         dosregs.dh:=second;
-         dosregs.dl:=sec100;
-         dosregs.ah:=$2d;
-         msdos(dosregs);
-         LoadDosError;
-      end;
+procedure setdate(year,month,day : word);
+begin
+   dosregs.cx:=year;
+   dosregs.dh:=month;
+   dosregs.dl:=day;
+   dosregs.ah:=$2b;
+   msdos(dosregs);
+   LoadDosError;
+end;
 
-   Procedure packtime(var t : datetime;var p : longint);
-       Begin
-         p:=(t.sec shr 1)+(t.min shl 5)+(t.hour shl 11)+(t.day shl 16)+(t.month shl 21)+((t.year-1980) shl 25);
-       End;
 
-   Procedure unpacktime(p : longint;var t : datetime);
-       Begin
-         t.sec:=(p and 31) shl 1;
-         t.min:=(p shr 5) and 63;
-         t.hour:=(p shr 11) and 31;
-         t.day:=(p shr 16) and 31;
-         t.month:=(p shr 21) and 15;
-         t.year:=(p shr 25)+1980;
-       End;
+procedure gettime(var hour,minute,second,sec100 : word);
+begin
+  dosregs.ah:=$2c;
+  msdos(dosregs);
+  hour:=dosregs.ch;
+  minute:=dosregs.cl;
+  second:=dosregs.dh;
+  sec100:=dosregs.dl;
+end;
+
+
+procedure settime(hour,minute,second,sec100 : word);
+begin
+  dosregs.ch:=hour;
+  dosregs.cl:=minute;
+  dosregs.dh:=second;
+  dosregs.dl:=sec100;
+  dosregs.ah:=$2d;
+  msdos(dosregs);
+  LoadDosError;
+end;
+
+
+Procedure packtime(var t : datetime;var p : longint);
+Begin
+  p:=(t.sec shr 1)+(t.min shl 5)+(t.hour shl 11)+(t.day shl 16)+(t.month shl 21)+((t.year-1980) shl 25);
+End;
+
+
+Procedure unpacktime(p : longint;var t : datetime);
+Begin
+  with t do
+   begin
+     sec:=(p and 31) shl 1;
+     min:=(p shr 5) and 63;
+     hour:=(p shr 11) and 31;
+     day:=(p shr 16) and 31;
+     month:=(p shr 21) and 15;
+     year:=(p shr 25)+1980;
+   end;
+End;
+
 
 {******************************************************************************
                                --- Exec ---
 ******************************************************************************}
 
-    var
-       lastdosexitcode : word;
+var
+  lastdosexitcode : word;
 
 {$ifdef GO32V2}
 
-    { this code is just the most basic part of dosexec.c from
-    the djgpp code }
-
-    procedure exec(const path : pathstr;const comline : comstr);
-
-      procedure do_system(p,c : string);
-
-      {
+{
         Table 0931
         Format of EXEC parameter block for AL=00h,01h,04h:
         Offset  Size    Description
@@ -350,222 +354,224 @@ var
          0Eh    DWORD   (AL=01h) will hold subprogram's initial SS:SP on return
          12h    DWORD   (AL=01h) will hold entry point (CS:IP) on return
         INT 21 4B--
-      }
+}
 
-      type
-         realptr = record
-            ofs,seg : word;
-         end;
+procedure exec(const path : pathstr;const comline : comstr);
+type
+  realptr = packed record
+    ofs,seg : word;
+  end;
+  texecblock = packed record
+    envseg    : word;
+    comtail   : realptr;
+    firstFCB  : realptr;
+    secondFCB : realptr;
+    iniStack  : realptr;
+    iniCSIP   : realptr;
+  end;
+var
+  current_dos_buffer_pos,
+  arg_ofs,
+  i,la_env,
+  la_p,la_c,la_e,
+  fcb1_la,fcb2_la : longint;
+  execblock       : texecblock;
+  c,p             : string;
 
-         texecblock = record
-            envseg : word;
-            comtail : realptr;
-            firstFCB : realptr;
-            secondFCB : realptr;
-            iniStack : realptr;
-            iniCSIP : realptr;
-         end;
+  function paste_to_dos(src : string) : boolean;
+  var
+    c : array[0..255] of char;
+  begin
+     paste_to_dos:=false;
+     if current_dos_buffer_pos+length(src)+1>transfer_buffer+tb_size then
+      RunError(217);
+     move(src[1],c[0],length(src));
+     c[length(src)]:=#0;
+     seg_move(get_ds,longint(@c),dosmemselector,current_dos_buffer_pos,length(src)+1);
+     current_dos_buffer_pos:=current_dos_buffer_pos+length(src)+1;
+     paste_to_dos:=true;
+  end;
 
-      var current_dos_buffer_pos : longint;
-      function paste_to_dos(src : string) : boolean;
-        var c : array[0..255] of char;
-        begin
-           paste_to_dos:=false;
-           if current_dos_buffer_pos+length(src)+1>transfer_buffer+tb_size then
-            RunError(217);
-           move(src[1],c[0],length(src));
-           c[length(src)]:=#0;
-           seg_move(get_ds,longint(@c),dosmemselector,current_dos_buffer_pos,length(src)+1);
-           current_dos_buffer_pos:=current_dos_buffer_pos+length(src)+1;
-           paste_to_dos:=true;
-        end;
-      var
-         i,la_env,la_p,la_c,la_e,fcb1_la,fcb2_la : longint;
-         arg_ofs : longint;
-              execblock : texecblock;
-
-      begin
-         la_env:=transfer_buffer;
-         while (la_env mod 16)<>0 do inc(la_env);
-         current_dos_buffer_pos:=la_env;
-         for i:=1 to envcount do
-           begin
-              paste_to_dos(envstr(i));
-           end;
-         paste_to_dos(''); { adds a double zero at the end }
-         { allow slash as backslash }
-         for i:=1 to length(p) do
-           if p[i]='/' then p[i]:='\';
-         la_p:=current_dos_buffer_pos;
-         paste_to_dos(p);
-         la_c:=current_dos_buffer_pos;
-         paste_to_dos(c);
-              la_e:=current_dos_buffer_pos;
-         fcb1_la:=la_e;
-         la_e:=la_e+16;
-         fcb2_la:=la_e;
-         la_e:=la_e+16;
-         { allocate FCB see dosexec code }
-         dosregs.ax:=$2901;
-         arg_ofs:=1;
-         while (c[arg_ofs]=' ') or (c[arg_ofs]=#9) do inc(arg_ofs);
-         dosregs.ds:=(la_c+arg_ofs) div 16;
-         dosregs.si:=(la_c+arg_ofs) mod 16;
-         dosregs.es:=fcb1_la div 16;
-         dosregs.di:=fcb1_la mod 16;
-         msdos(dosregs);
-         repeat
-            inc(arg_ofs);
-         until (c[arg_ofs]=' ') or
-               (c[arg_ofs]=#9) or
-               (c[arg_ofs]=#13);
-         if c[arg_ofs]<>#13 then
-           begin
-              inc(arg_ofs);
-              while (c[arg_ofs]=' ') or (c[arg_ofs]=#9) do inc(arg_ofs);
-           end;
-         { allocate second FCB see dosexec code }
-         dosregs.ax:=$2901;
-         dosregs.ds:=(la_c+arg_ofs) div 16;
-         dosregs.si:=(la_c+arg_ofs) mod 16;
-         dosregs.es:=fcb2_la div 16;
-         dosregs.di:=fcb2_la mod 16;
-         msdos(dosregs);
-           with execblock do
-          begin
-             envseg:=la_env div 16;
-             comtail.seg:=la_c div 16;
-             comtail.ofs:=la_c mod 16;
-             firstFCB.seg:=fcb1_la div 16;
-             firstFCB.ofs:=fcb1_la mod 16;
-             secondFCB.seg:=fcb2_la div 16;
-             secondFCB.ofs:=fcb2_la mod 16;
-          end;
-        seg_move(get_ds,longint(@execblock),dosmemselector,la_e,sizeof(texecblock));
-         dosregs.edx:=la_p mod 16;
-         dosregs.ds:=la_p div 16;
-         dosregs.ebx:=la_e mod 16;
-         dosregs.es:=la_e div 16;
-         dosregs.ax:=$4b00;
-         msdos(dosregs);
-         LoadDosError;
-         if DosError=0 then
-          begin
-            dosregs.ax:=$4d00;
-            msdos(dosregs);
-            LastDosExitCode:=DosRegs.al
-          end
-         else
-          LastDosExitCode:=0;
-        end;
-
-      { var
-         p,c : array[0..255] of char; }
-        var  c : string;
-      begin
-         doserror:=0;
-         { move(path[1],p,length(path));
-         p[length(path)]:=#0; }
-         move(comline[0],c[1],length(comline)+1);
-         c[length(comline)+2]:=#13;
-         c[0]:=char(length(comline)+2);
-         do_system(path,c);
-      end;
+begin
+{ create command line }
+  move(comline[0],c[1],length(comline)+1);
+  c[length(comline)+2]:=#13;
+  c[0]:=char(length(comline)+2);
+{ create path }
+  p:=path;
+  for i:=1 to length(p) do
+   if p[i]='/' then
+    p[i]:='\';
+{ create buffer }
+  la_env:=transfer_buffer;
+  while (la_env and 15)<>0 do
+   inc(la_env);
+  current_dos_buffer_pos:=la_env;
+{ copy environment }
+  for i:=1 to envcount do
+   paste_to_dos(envstr(i));
+  paste_to_dos(''); { adds a double zero at the end }
+{ allow slash as backslash }
+  la_p:=current_dos_buffer_pos;
+  paste_to_dos(p);
+  la_c:=current_dos_buffer_pos;
+  paste_to_dos(c);
+  la_e:=current_dos_buffer_pos;
+  fcb1_la:=la_e;
+  la_e:=la_e+16;
+  fcb2_la:=la_e;
+  la_e:=la_e+16;
+{ allocate FCB see dosexec code }
+  arg_ofs:=1;
+  while (c[arg_ofs] in [' ',#9]) do
+   inc(arg_ofs);
+  dosregs.ax:=$2901;
+  dosregs.ds:=(la_c+arg_ofs) shr 4;
+  dosregs.esi:=(la_c+arg_ofs) and 15;
+  dosregs.es:=fcb1_la shr 4;
+  dosregs.edi:=fcb1_la and 15;
+  msdos(dosregs);
+{ allocate second FCB see dosexec code }
+  repeat
+    inc(arg_ofs);
+  until (c[arg_ofs] in [' ',#9,#13]);
+  if c[arg_ofs]<>#13 then
+   begin
+     repeat
+       inc(arg_ofs);
+     until not (c[arg_ofs] in [' ',#9]);
+   end;
+  dosregs.ax:=$2901;
+  dosregs.ds:=(la_c+arg_ofs) shr 4;
+  dosregs.si:=(la_c+arg_ofs) and 15;
+  dosregs.es:=fcb2_la shr 4;
+  dosregs.di:=fcb2_la and 15;
+  msdos(dosregs);
+  with execblock do
+   begin
+     envseg:=la_env shr 4;
+     comtail.seg:=la_c shr 4;
+     comtail.ofs:=la_c and 15;
+     firstFCB.seg:=fcb1_la shr 4;
+     firstFCB.ofs:=fcb1_la and 15;
+     secondFCB.seg:=fcb2_la shr 4;
+     secondFCB.ofs:=fcb2_la and 15;
+   end;
+  seg_move(get_ds,longint(@execblock),dosmemselector,la_e,sizeof(texecblock));
+  dosregs.edx:=la_p and 15;
+  dosregs.ds:=la_p shr 4;
+  dosregs.ebx:=la_e and 15;
+  dosregs.es:=la_e shr 4;
+  dosregs.ax:=$4b00;
+  msdos(dosregs);
+  LoadDosError;
+  if DosError=0 then
+   begin
+     dosregs.ax:=$4d00;
+     msdos(dosregs);
+     LastDosExitCode:=DosRegs.al
+   end
+  else
+   LastDosExitCode:=0;
+end;
 
 {$else GO32V2}
 
-    procedure exec(const path : pathstr;const comline : comstr);
+procedure exec(const path : pathstr;const comline : comstr);
+var
+  i : longint;
+  b : array[0..255] of char;
+begin
+  doserror:=0;
+  for i:=1to length(path) do
+   if path[i]='/' then
+    b[i-1]:='\'
+   else
+    b[i-1]:=path[i];
+  b[i]:=' ';
+  inc(i);
+  move(comline[1],b[i],length(comline));
+  inc(i,length(comline));
+  b[i]:=#0;
+  asm
+        leal    b,%ebx
+        movw    $0xff07,%ax
+        int     $0x21
+        movw    %ax,_LASTDOSEXITCODE
+  end;
+end;
 
-      procedure do_system(p : pchar);
-        begin
-           asm
-              movl 12(%ebp),%ebx
-              movw $0xff07,%ax
-              int $0x21
-              movw %ax,_LASTDOSEXITCODE
-           end;
-        end;
+{$endif}
 
-      var
-         i : longint;
-         execute : string;
-         b : array[0..255] of char;
 
-      begin
-         doserror:=0;
-         execute:=path+' '+comline;
-         { allow slash as backslash for the program name only }
-         for i:=1 to length(path) do
-           if execute[i]='/' then execute[i]:='\';
-         move(execute[1],b,length(execute));
-         b[length(execute)]:=#0;
-         do_system(b);
-      end;
+function dosexitcode : word;
+begin
+  dosexitcode:=lastdosexitcode;
+end;
 
-{$endif GO32V2}
 
-    function dosexitcode : word;
-      begin
-         dosexitcode:=lastdosexitcode;
-      end;
+procedure getcbreak(var breakvalue : boolean);
+begin
+  dosregs.ax:=$3300;
+  msdos(dosregs);
+  breakvalue:=dosregs.dl<>0;
+end;
 
-    procedure getcbreak(var breakvalue : boolean);
-      begin
-         dosregs.ax:=$3300;
-         msdos(dosregs);
-         breakvalue:=dosregs.dl<>0;
-      end;
 
-    procedure setcbreak(breakvalue : boolean);
-      begin
-         dosregs.ax:=$3301;
-         dosregs.dl:=ord(breakvalue);
-         msdos(dosregs);
-      end;
+procedure setcbreak(breakvalue : boolean);
+begin
+  dosregs.ax:=$3301;
+  dosregs.dl:=ord(breakvalue);
+  msdos(dosregs);
+end;
 
-    procedure getverify(var verify : boolean);
-      begin
-         dosregs.ah:=$54;
-         msdos(dosregs);
-         verify:=dosregs.al<>0;
-      end;
 
-    procedure setverify(verify : boolean);
-      begin
-         dosregs.ah:=$2e;
-         dosregs.al:=ord(verify);
-         msdos(dosregs);
-      end;
+procedure getverify(var verify : boolean);
+begin
+  dosregs.ah:=$54;
+  msdos(dosregs);
+  verify:=dosregs.al<>0;
+end;
+
+
+procedure setverify(verify : boolean);
+begin
+  dosregs.ah:=$2e;
+  dosregs.al:=ord(verify);
+  msdos(dosregs);
+end;
+
 
 {******************************************************************************
                                --- Disk ---
 ******************************************************************************}
 
-    function diskfree(drive : byte) : longint;
-      begin
-         dosregs.dl:=drive;
-         dosregs.ah:=$36;
-         msdos(dosregs);
-         if dosregs.ax<>$FFFF then
-          diskfree:=dosregs.ax*dosregs.bx*dosregs.cx
-         else
-          diskfree:=-1;
-      end;
+function diskfree(drive : byte) : longint;
+begin
+  dosregs.dl:=drive;
+  dosregs.ah:=$36;
+  msdos(dosregs);
+  if dosregs.ax<>$FFFF then
+   diskfree:=dosregs.ax*dosregs.bx*dosregs.cx
+  else
+   diskfree:=-1;
+end;
 
-    function disksize(drive : byte) : longint;
 
-      begin
-         dosregs.dl:=drive;
-         dosregs.ah:=$36;
-         msdos(dosregs);
-         if dosregs.ax<>$FFFF then
-          disksize:=dosregs.ax*dosregs.cx*dosregs.dx
-         else
-          disksize:=-1;
-      end;
+function disksize(drive : byte) : longint;
+begin
+  dosregs.dl:=drive;
+  dosregs.ah:=$36;
+  msdos(dosregs);
+  if dosregs.ax<>$FFFF then
+   disksize:=dosregs.ax*dosregs.cx*dosregs.dx
+  else
+   disksize:=-1;
+end;
+
 
 {******************************************************************************
-                       --- Findfirst FindNext ---
+                         --- Findfirst FindNext ---
 ******************************************************************************}
 
     procedure searchrec2dossearchrec(var f : searchrec);
@@ -814,10 +820,13 @@ var
         {Now remove also all references to '\..\' + of course previous dirs..}
           repeat
             i:=pos('\..\',pa);
-            if i<>0 then j:=i-1;
-            while (j>1) and (pa[j]<>'\') do
-             dec (j);
-            delete (pa,j,i-j+3);
+            if i<>0 then
+             begin
+               j:=i-1;
+               while (j>1) and (pa[j]<>'\') do
+                dec (j);
+               delete (pa,j,i-j+3);
+             end;
           until i=0;
         {Remove End . and \}
           if (length(pa)>0) and (pa[length(pa)]='.') then
@@ -866,8 +875,6 @@ var
            end;
       end;
 
-{$ifdef GO32V2}
-
     procedure getftime(var f;var time : longint);
       begin
          dosregs.bx:=textrec(f).handle;
@@ -887,109 +894,100 @@ var
          doserror:=dosregs.al;
       end;
 
-    procedure getfattr(var f;var attr : word);
-      begin
-         copytodos(filerec(f).name,strlen(filerec(f).name)+1);
-         dosregs.ax:=$4300;
-         dosregs.edx:=transfer_buffer and 15;
-         dosregs.ds:=transfer_buffer shr 4;
-         msdos(dosregs);
-         LoadDosError;
-         Attr:=dosregs.cx;
-      end;
 
-    procedure setfattr(var f;attr : word);
-      begin
-         copytodos(filerec(f).name,strlen(filerec(f).name)+1);
-         dosregs.ax:=$4301;
-         dosregs.edx:=transfer_buffer mod 16;
-         dosregs.ds:=transfer_buffer div 16;
-         dosregs.cx:=attr;
-         msdos(dosregs);
-         LoadDosError;
-      end;
+procedure getfattr(var f;var attr : word);
+{$ifndef GO32V2}
+var
+  n : array[0..255] of char;
+{$endif}
+begin
+{$ifdef GO32V2}
+  copytodos(filerec(f).name,strlen(filerec(f).name)+1);
+  dosregs.edx:=transfer_buffer and 15;
+  dosregs.ds:=transfer_buffer shr 4;
+{$else}
+  strpcopy(n,filerec(f).name);
+  dosregs.edx:=longint(@n);
+{$endif}
+  dosregs.ax:=$4300;
+  msdos(dosregs);
+  LoadDosError;
+  Attr:=dosregs.cx;
+end;
 
-{$else GO32V2}
 
-    procedure getfattr(var f;var attr : word);
-      var
-         n : array[0..255] of char;
-         r : registers;
-      begin
-         strpcopy(n,filerec(f).name);
-         dosregs.ax:=$4300;
-         dosregs.edx:=longint(@n);
-         msdos(dosregs);
-         LoadDosError;
-         attr:=dosregs.cx;
-      end;
-
-    procedure setfattr(var f;attr : word);
-      var
-         n : array[0..255] of char;
-         r : registers;
-      begin
-         strpcopy(n,filerec(f).name);
-         dosregs.ax:=$4301;
-         dosregs.edx:=longint(@n);
-         dosregs.cx:=attr;
-         msdos(dosregs);
-         LoadDosError;
-      end;
-
-{$endif GO32V2}
+procedure setfattr(var f;attr : word);
+{$ifndef GO32V2}
+var
+  n : array[0..255] of char;
+{$endif}
+begin
+{$ifdef GO32V2}
+  copytodos(filerec(f).name,strlen(filerec(f).name)+1);
+  dosregs.edx:=transfer_buffer mod 16;
+  dosregs.ds:=transfer_buffer div 16;
+{$else}
+  strpcopy(n,filerec(f).name);
+  dosregs.edx:=longint(@n);
+{$endif}
+  dosregs.ax:=$4301;
+  dosregs.cx:=attr;
+  msdos(dosregs);
+  LoadDosError;
+end;
 
 
 {******************************************************************************
                              --- Environment ---
 ******************************************************************************}
 
-    function envcount : longint;
-    var
-      hp : ppchar;
-    begin
-      hp:=envp;
-      envcount:=0;
-      while assigned(hp^) do
-       begin
-         inc(envcount);
-         hp:=hp+4;
-       end;
-    end;
+function envcount : longint;
+var
+  hp : ppchar;
+begin
+  hp:=envp;
+  envcount:=0;
+  while assigned(hp^) do
+   begin
+     inc(envcount);
+     hp:=hp+4;
+   end;
+end;
 
 
-    function envstr(index : integer) : string;
-    begin
-      if (index<=0) or (index>envcount) then
-       begin
-         envstr:='';
-         exit;
-       end;
-      envstr:=strpas(ppchar(envp+4*(index-1))^);
-    end;
+function envstr(index : integer) : string;
+begin
+  if (index<=0) or (index>envcount) then
+   begin
+     envstr:='';
+     exit;
+   end;
+  envstr:=strpas(ppchar(envp+4*(index-1))^);
+end;
 
 
-    Function  GetEnv(envvar: string): string;
-    var
-      hp      : ppchar;
-      hs    : string;
-      eqpos : longint;
-    begin
-      envvar:=upcase(envvar);
-      hp:=envp;
-      getenv:='';
-      while assigned(hp^) do
-       begin
-         hs:=strpas(hp^);
-         eqpos:=pos('=',hs);
-         if copy(hs,1,eqpos-1)=envvar then
-          begin
-            getenv:=copy(hs,eqpos+1,255);
-            exit;
-          end;
-         hp:=hp+4;
-       end;
-    end;
+Function  GetEnv(envvar: string): string;
+var
+  hp      : ppchar;
+  hs    : string;
+  eqpos : longint;
+begin
+  envvar:=upcase(envvar);
+  hp:=envp;
+  getenv:='';
+  while assigned(hp^) do
+   begin
+     hs:=strpas(hp^);
+     eqpos:=pos('=',hs);
+     if copy(hs,1,eqpos-1)=envvar then
+      begin
+        getenv:=copy(hs,eqpos+1,255);
+        exit;
+      end;
+     hp:=hp+4;
+   end;
+end;
+
 
 {******************************************************************************
                              --- Not Supported ---
@@ -1011,7 +1009,12 @@ End;
 end.
 {
   $Log$
-  Revision 1.3  1998-05-21 19:30:47  peter
+  Revision 1.4  1998-05-22 00:39:22  peter
+    * go32v1, go32v2 recompiles with the new objects
+    * remake3 works again with go32v2
+    - removed some "optimizes" from daniel which were wrong
+
+  Revision 1.3  1998/05/21 19:30:47  peter
     * objects compiles for linux
     + assign(pchar), assign(char), rename(pchar), rename(char)
     * fixed read_text_as_array

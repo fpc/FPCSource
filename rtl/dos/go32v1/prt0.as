@@ -3,6 +3,8 @@
 #    This file is part of the Free Pascal run time library.
 #    Copyright (c) 1993,97 by the Free Pascal development team.
 #
+#    Go32V1 Startup code
+#
 #    See the file COPYING.FPC, included in this distribution,
 #    for details about the copyright.
 #
@@ -11,14 +13,13 @@
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # **********************************************************************
-#///*
-#//**   Called as start(argc, argv, envp)
-#//*/
-#///*   gs:edx points to prog_info structure.  All other registers are OBSOLETE
-#//**   but included for backwards compatibility
-#//*/
-
-        .text
+#
+#  Called as start(argc, argv, envp)
+#
+#  gs:edx points to prog_info structure.  All other registers are OBSOLETE
+#  but included for backwards compatibility
+#
+.text
         .globl  _start
 _start:
         .globl  start
@@ -36,7 +37,7 @@ start:
         movw    %ds,%ax
         cmpw    %cx,%ax
         je      Lcopy_none
-#   /* set the right size */
+# set the right size
         movl  $40,U_SYSTEM_GO32_INFO_BLOCK
 
         movl    %gs:(%edx), %ecx
@@ -84,9 +85,9 @@ Lcopy_done:
 
         movw    U_SYSTEM_GO32_INFO_BLOCK+36,%ax
         movw    %ax,_run_mode
-#/* I need a value for the stack bottom,            */
-#/* but I don't know how to get it from go32        */
-#/* I suppose the stack is 4Ko long, is this true ? */
+# I need a value for the stack bottom,
+# but I don't know how to get it from go32
+# I suppose the stack is 4Ko long, is this true ?
         movl    %esp,%eax
         subl    $0x4000,%eax
         movl    %eax,__stkbottom
@@ -94,7 +95,7 @@ Lcopy_done:
         movw    U_SYSTEM_GO32_INFO_BLOCK+26,%ax
         movw    %ax,_core_selector
         movl    U_SYSTEM_GO32_INFO_BLOCK+28,%eax
-        movl  %eax,U_SYSTEM_STUB_INFO
+        movl    %eax,U_SYSTEM_STUB_INFO
         xorl    %esi,%esi
         xorl    %edi,%edi
         xorl    %ebp,%ebp
@@ -105,14 +106,15 @@ Lcopy_done:
         movl    %esp,%ebx
         movl    8(%ebx),%eax
         movl    %eax,_environ
-        movl    %eax,U_SYSTEM_ENVIRON
+        movl    %eax,U_SYSTEM_ENVP
         movl    4(%ebx),%eax
         movl    %eax,_args
+        movl    %eax,U_SYSTEM_ARGV
         movl    (%ebx),%eax
         movl    %eax,_argc
+        movl    %eax,U_SYSTEM_ARGC
 
         call    PASCALMAIN
-
 
 exit_again:
         movl    $0x4c00,%eax
@@ -121,22 +123,30 @@ exit_again:
 
         ret
 
-        .data
+.data
         .globl _argc
 _argc:
         .long   0
+
         .globl  _args
 _args:
         .long   0
-        .globl  _run_mode
-_run_mode:
-        .word   0
-        .globl  _core_selector
-_core_selector:
-        .word   0
+
         .globl  _environ
 _environ:
         .long   0
+
+        .globl  __stkbottom
+__stkbottom:
+        .long   0
+
+        .globl  _run_mode
+_run_mode:
+        .word   0
+
+        .globl  _core_selector
+_core_selector:
+        .word   0
 
         .globl  ___pid
 ___pid:
@@ -155,30 +165,21 @@ _ScreenSecondary:
         .long   0
 
         .globl  __hard_master
-        .globl  __hard_slave
-        .globl  __core_select
 __hard_master:
         .byte   0
+
+        .globl  __hard_slave
 __hard_slave:
         .byte   0
+
+        .globl  __core_select
 __core_select:
         .short  0
-        .globl  __stkbottom
-__stkbottom:
-        .long   0
-#  .globl U_SYSTEM_GO32_INFO_BLOCK
-# U_SYSTEM_GO32_INFO_BLOCK:
-#  .long  __go32_end - U_SYSTEM_GO32_INFO_BLOCK #//* size */
-#  .long  0 #//* offs 4 linear_address_of_primary_screen; */
-#  .long  0 #//* offs 8 linear_address_of_secondary_screen; */
-#  .long  0 #//* offs 12 linear_address_of_transfer_buffer; */
-#  .long  0 #//* offs 16 size_of_transfer_buffer;  >= 4k */
-#  .long  0 #//* offs 20 pid; */
-#  .byte  0 #//* offs 24 u_char master_interrupt_controller_base; */
-#  .byte  0 #//* offs 25 u_char slave_interrupt_controller_base; */
-#  .word  0 #//* offs 26 u_short selector_for_linear_memory; */
-#  .long  0 #//* offs 28 u_long linear_address_of_stub_info_structure; */
-#  .long  0 #//* offs 32 u_long linear_address_of_original_psp; */
-#  .word  0 #//* offs 36 u_short run_mode; */
-#  .word  0 #//* offs 38 u_short run_mode_info; */
-#__go32_end:
+#
+# $Log$
+# Revision 1.3  1998-05-22 00:39:32  peter
+#   * go32v1, go32v2 recompiles with the new objects
+#   * remake3 works again with go32v2
+#   - removed some "optimizes" from daniel which were wrong
+#
+#

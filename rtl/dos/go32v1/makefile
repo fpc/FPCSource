@@ -86,13 +86,13 @@ PPI=../ppi
 include $(CFG)/makefile.cfg
 
 # Get the system independent include file names.
-# This will set the following variables : 
+# This will set the following variables :
 # SYSINCNAMES
 include $(INC)/makefile.inc
 SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
 
 # Get the processor dependent include file names.
-# This will set the following variables : 
+# This will set the following variables :
 # CPUINCNAMES
 include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
@@ -198,15 +198,15 @@ dos$(PPUEXT) : ../dos.pp $(INC)/filerec.inc $(INC)/textrec.inc \
 	       go32$(PPUEXT) strings$(PPUEXT) $(SYSTEMPPU)
 	$(COPY) ../dos.pp .
 	$(PP) $(OPT) dos $(REDIR)
-	$(DEL) dos.pp 
+	$(DEL) dos.pp
 
 crt$(PPUEXT) : ../crt.pp $(INC)/textrec.inc go32$(PPUEXT) $(SYSTEMPPU)
 	$(COPY) ../crt.pp .
 	$(PP) $(OPT) crt $(REDIR)
 	$(DEL) crt.pp
 
-objects$(PPUEXT) : ../objects.pp $(SYSTEMPPU)
-	$(COPY) ../objects.pp .
+objects$(PPUEXT) : $(INC)/objects.pp objinc.inc $(SYSTEMPPU)
+	$(COPY) $(INC)/objects.pp .
 	$(PP) $(OPT) objects.pp $(REDIR)
 	$(DEL) objects.pp
 
@@ -234,15 +234,15 @@ mouse$(PPUEXT) : ../mouse.pp $(SYSTEMPPU)
 	$(PP) $(OPT) mouse.pp $(REDIR)
 	$(DEL) mouse.pp
 
-getopts$(PPUEXT) : $(PROCINC)/getopts.pp $(SYSTEMPPU)
-	$(COPY) $(PROCINC)/getopts.pp .
+getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMPPU)
+	$(COPY) $(INC)/getopts.pp .
 	$(PP) $(OPT) getopts.pp $(REDIR)
 	$(DEL) getopts.pp
 
-graph$(PPUEXT) : ../graph.pp go32$(PPUEXT) $(SYSTEMPPU) mmx$(PPUEXT) \
-	$(PPIDEPS)
+PPIFILES:=$(wildcard $(PPI)/*.ppi)
+graph$(PPUEXT) : ../graph.pp go32$(PPUEXT) $(SYSTEMPPU) mmx$(PPUEXT) $(PPIFILES)
 	$(COPY) ../graph.pp .
-	$(PP) $(OPT) -Up$(PPI) graph $(REDIR)
+	$(PP) $(OPT) -I$(PPI) graph $(REDIR)
 	$(DEL) graph.pp
 
 
