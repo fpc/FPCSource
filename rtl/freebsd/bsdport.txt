@@ -1,0 +1,227 @@
+$Id$
+
+Comments, mistakes and suggestions to Marco@freepascal.org
+
+1 FreeBSD status and notes. (kept on CVS because I work on several places)
+-----------------------------------------------------------------------------
+
+Please read these before running a FreeBSD snapshot.
+
+- Supported are FreeBSD 3.x (3.2, 3.4 and 4.0-release (quickly) tested. I never
+   tested on 3.0).  NON-ELF (2.x) versions are not supported.
+
+- This is alpha software. I didn't have data-loss using it, but you
+	use this on your own responsability. Use a scratch, or well backup'ed
+	system.
+
+- The FreeBSD/FPC port is now in its second stage. Some more stuff then what
+    is required to recompile is now implemented (Clone, Sockets, Signals).
+    Plans to create an (Alpha) release distribution are being made.
+    (linking to external libs worked in the 16 april version already, even
+    though the bsdport.txt of that date said it didn't)
+    
+-  IMPORTANT:
+     !!! An explicite warning: Not all procedures and structures in Linux are
+   checked, so even if they are not commented out, they can be not implemented!!!
+   This specially applies to linux specific stuff. In case of doubt, use a
+   scratch system, view the source, or mail the maintainer.
+
+- The pre alpha version's READDIR problem is fixed with a "hack", which
+    means that searchpath (-Fx) and FindFirst/FindNext are more or less 
+    working.
+  I don't know how  good that hack is,I hope to replace it later this week 
+     by a port of freebsd's libc opendir/readdir/closedir/telldir/seekdir code,
+     just to make sure.( Libc does some complex scanning and sorting for
+     duplicate names, but I don't know if that is something archaic or not.
+     Probably related to hardlinks, so don't use findfirst in /dev for now)
+
+These packages have more or less been tested with ncurses:
+- RTL, (NOT the Crt unit. Use ncrt for now!)
+- compiler can rebuild (see below)
+- packages/inet,
+- packages/zlib
+- packages/x11
+- fcl/
+- ncurses/panel.
+- (reported by somebody else) XForms.
+- fpgui's "hello world" demo (the other ones needed a FPC 1.1 compiler, I
+        only tested 1.0.1 with FreeBSD)
+
+2 Syscalls.
+-----------
+
+The bulk of the linux syscalls are implemented.
+
+Some that aren't implemented:
+
+NI           = not implemented yet
+req          = required for compiler
+noreq?       = not required, but not checked.
+Ever? (y/n)
+
+syscall   status  Ever?  comment
+------------------------------------------------------------------------
+Readdir   I req         implemented from scratch, working. (this
+                        call doesn't exist on FreeBSD and FindFirst is
+                        based on it)
+
+ioperm   NI noreq  n    IO via port access impossible under FreeBSD
+                           (so: no ports unit, port[] support)
+                        (got some reports that port access is possible under
+                        FreeBSD. Probably the same way it slipped into Linux;
+                        dos emulation)
+
+ipc      NI       ?     The IPC is System V thingy, and only supported
+                          under FreeBSD with certain kernel parameters.
+
+Clone()  I  noreq       Not implemented as syscall, based on linuxthread
+                         assembler routine. Untested. Somebody has a good
+                         test program? Or that tests the FCL threading
+                         routines based on it?
+
+sysinfo  NI noreq       Not supported under BSD, not even by emulator
+uname    NI noreq       "        "       "    "   "   "    "   "
+                        (procedures based on this call are also commented
+                         (get* procs))
+
+signal   I   noreq      A *lot* of emulation code.
+alarm    NI  noreq?     Could be possible to port. (crt.delay?)
+pause    NI  noreq?     Also possible I think. Uses process information
+                        in linux-emu, that is why I didn't port directly.
+
+3 How to build a FreeBSD compiler/RTL ?
+-----------------------------------------------------------------------------
+
+(You'll probably need CVS sources dated after April 16th for basic support, or
+after the major updates on 10 september for signals and sockets.)
+
+To rebuild the compiler, you need a starting compiler.
+- Start compiler on other OS? (tested is Linux) -> check 3a
+- Already a 1.0.x startcompiler on FreeBSD (e.g. from a snapshot) -> 3b is much
+    easier.
+
+3a How to build a FreeBSD system starting on Linux or using the Linux emu of
+   FreeBSD? (Bootstrapping)
+
+The FreeBSD port is experimental atm, though valid native binaries can be
+obtained.
+
+The procedure here is verbose, and for the most akward case.
+If you have linux support on on your FreeBSD machine, or operate on NFS or Samba
+share (so that copying and using the sources in two systems is easier)
+some steps can be omitted or simplified. Just play with it.
+
+STEP A: create the RTL assembler files.
+
+1. Copy all linux files to a new directory. (here called BSDBUILD), and
+2. Copy all bsd files over them.
+2b. Run fpcmake if you can. This will eliminate problems with Makefile being
+    out of sync or containing dos lfns.
+3. Execute  make OPT='-Tlinux -dBSD -a -s -OG3p3' (with any i386 FPC
+    compiler) in directory BSDBUILD. This failed with some go32v2 versions
+    (which wanted to assemble anyway), but worked with several win32 and
+    linux' snapshots. On go32v2 you can try to add -Aas.
+
+You now have .ppu's and .s  's for the RTL hopefully. Don't forget
+    i386/prt0.as (which is in fact a .s file)!
+
+STEP B: Create the compiler assembler (.s) sources;
+
+4. Compile with
+   ./bsdcompile -Fu/full_path_to_BSDBUILD -a -s
+
+(steps 5 and 6 are only needed for the very first FreeBSD snapshot, which
+is no longer available)
+
+STEP C: Building the binary
+
+7. Copy all necessary files
+    (- all *.s *.ppu files, both from compiler and BSDBUILD dir,
+     - compiler/link.res and
+     - compiler/ppas.sh
+     - Cut and paste of the DO_S script at the end of this document to file
+     - rtl/bsd/i386/*.as files.
+     )
+     to a directory on the BSD machine.
+8a. Change to the directory on the BSD machine, and run the script DO_S to
+    assemble all .s files to .o files.
+8b. Assemble the stub with as prt0.as -o prt0.o
+9. Adapt link.res so that all paths are right.
+    (remove all paths in front of all .o files, remove the -l lines and their
+      parentheses)
+10a. Edit ppas.sh, and keep only #!/bin/sh and the line starting with ld.
+  b  Remove any -l=ld-linux.so.1 (or similar) option from the ld line.
+  c  run ppas.sh to build the compiler
+
+11. Have fun :-) The compiler is called "pp"
+
+12. If you have a heavy machine (pentium 100 and 32MB+) execute 3b to make
+    sure everything is up to date.
+
+------------
+
+3b How to update FPC compiler on FreeBSD from fresh CVS sources with a snapshot
+installed.
+
+(To create a compiler for the 1.0 branch, you need a 1.0.x compiler, and to
+create a 1.1 (development branch) compiler you need a 1.1.x snapshot.
+You can check the version of your snapshot with ppc386 -i)
+
+(assuming ppc386 in the PATH, and a rtl/ and compiler/ directory obtained
+ from snapshot zips, with non mangled makefiles)
+
+1a  Rename the rtl/linux to something else. (here: rtl/linuxorg)
+1b  create a new rtl/linux dir
+1c  copy rtl/linuxorg/* to rtl/linux
+1d  copy rtl/bsd/* to rtl/linux  RECURSIVELY
+1e  (optionally) Run fpcmake if you have it installed. This is a good
+    habit!
+2   switch to compiler/
+3   gmake cycle OPT='-OG3p3 -dBSD' will generate a new compiler.
+
+Be patient! FreeBSD has slower disk-io than Linux :-)
+
+Rest is like Linux, except that I strongly advise to create the fpc
+directory always in /usr/local/lib/ instead of /usr/lib.
+This habit is still fashionable on FreeBSD.
+
+The same with other packages. Like Linux :-)
+
+4 Linking to external libraries
+-----------------------------------------------------------------------------
+
+Same as on Linux, except use the
+
+
+------------------
+The DO_S script. (C) El Znorro
+------------------
+#!/bin/sh
+
+for i in *.s; do
+ flup=`basename $i .s`
+ as $i -o $flup.o
+ echo $i
+ echo $flup
+ done
+
+{
+$Log$
+Revision 1.2  2000-09-18 13:42:35  marco
+ * FreeBSD support into 1.1
+
+Revision 1.3  2000/09/11 14:38:09  marco
+ * 14 april version killed, and replaced by newer fixes branch version
+
+Revision 1.1.2.1  2000/09/10 16:12:14  marco
+Initial signals, sockets and clone
+
+Revision 1.1  2000/07/13 06:30:32  michael
++ Initial import
+
+Revision 1.3  2000/04/16 16:11:33  marco
+ * Severe updates for now *working* status
+
+Revision 1.2  2000/04/10 15:46:51  marco
+ * worked all day. probably a lot changed
+}
