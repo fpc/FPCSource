@@ -48,6 +48,7 @@ var
   ppufile     : tppufile;
   space       : string;
   read_member : boolean;
+  unitindex   : longint;
   verbose     : longint;
 
 {****************************************************************************
@@ -344,7 +345,7 @@ begin
 end;
 
 
-procedure read_abstract_proc_def;
+{ Read abstract procdef and return if inline procdef }
 type
   tproccalloption=(pocall_none,
     pocall_clearstack,    { Use IBM flat calling convention. (Used by GCC.) }
@@ -390,6 +391,7 @@ type
     po_varargs            { printf like arguments }
   );
   tprocoptions=set of tprocoption;
+function read_abstract_proc_def:tproccalloptions;
 type
   tproccallopt=record
     mask : tproccalloption;
@@ -477,6 +479,7 @@ begin
      writeln;
    end;
   ppufile.getsmallset(proccalloptions);
+  read_abstract_proc_def:=proccalloptions;
   if proccalloptions<>[] then
    begin
      write(space,'      CallOptions : ');
@@ -862,6 +865,7 @@ var
   oldread_member : boolean;
   totaldefs,l,j,
   defcnt : longint;
+  calloption : tproccalloptions;
 begin
   defcnt:=0;
   with ppufile do
@@ -934,12 +938,13 @@ begin
              readtype;
              writeln(space,'            Range : ',getlongint,' to ',getlongint);
              writeln(space,'   Is Constructor : ',(getbyte<>0));
+             writeln(space,'       Is Dynamic : ',(getbyte<>0));
            end;
 
          ibprocdef :
            begin
              readcommondef('Procedure definition');
-             read_abstract_proc_def;
+             calloption:=read_abstract_proc_def;
              writeln(space,'    Used Register : ',getbyte);
              writeln(space,'     Mangled name : ',getstring);
              writeln(space,'           Number : ',getlongint);
@@ -949,13 +954,22 @@ begin
              readdefref;
              write  (space,'         File Pos : ');
              readposinfo;
+             if (pocall_inline in calloption) then
+              begin
+                write  (space,'       FuncretSym : ');
+                readdefref;
+              end;
              space:='    '+space;
              { parast }
              readdefinitions(false);
              readsymbols;
              { localst }
-             {readdefinitions(false);
-             readsymbols;}
+             if (pocall_inline in calloption) or
+                ((ppufile.header.flags and uf_local_browser) <> 0) then
+              begin
+                readdefinitions(false);
+                readsymbols;
+              end;
              delete(space,1,4);
            end;
 
@@ -1276,50 +1290,49 @@ begin
      repeat
        b:=readentry;
        case b of
-        ibbeginsymtablebrowser :
-                         { here we must read object and record symtables !! }
-                    begin
-                      indent:=indent+'  ';
-                      Writeln(indent,'Record/Object symtable');
-                      readbrowser;
-                      Indent:=Copy(Indent,1,Length(Indent)-2);
-                    end;
-            ibsymref : begin
-                         readsymref;
-                         readref;
-                       end;
-            ibdefref : begin
-                         readdefref;
-                         readref;
-                         if (ppufile.header.flags and uf_local_browser)<>0 then
-                           begin
-                             { parast and localst }
-                             indent:=indent+'  ';
-                             Writeln(indent,'Parasymtable for function');
-                             readdefinitions(false);
-                             readsymbols;
-                             b:=ppufile.readentry;
-                             if b=ibbeginsymtablebrowser then
-                               readbrowser;
-                             Writeln(indent,'Localsymtable for function');
-                             readdefinitions(false);
-                             readsymbols;
-                             b:=ppufile.readentry;
-                             if b=ibbeginsymtablebrowser then
-                               readbrowser;
-                             Indent:=Copy(Indent,1,Length(Indent)-2);
-                           end;
-                       end;
-             iberror : begin
-                         Writeln('Error in PPU');
-                         exit;
-                       end;
-        ibendsymtablebrowser : break;
-       else
-        begin
-        WriteLn('!! Skipping unsupported PPU Entry in Browser: ',b);
-        Halt;
-        end;
+         ibbeginsymtablebrowser :
+           begin
+             { here we must read object and record symtables !! }
+             indent:=indent+'  ';
+             Writeln(indent,'Record/Object symtable');
+             readbrowser;
+             Indent:=Copy(Indent,1,Length(Indent)-2);
+           end;
+         ibsymref :
+           begin
+             readsymref;
+             readref;
+           end;
+         ibdefref :
+           begin
+             readdefref;
+             readref;
+             if ((ppufile.header.flags and uf_local_browser)<>0) and
+                (UnitIndex=0) then
+              begin
+                { parast and localst }
+                indent:=indent+'  ';
+                b:=ppufile.readentry;
+                if b=ibbeginsymtablebrowser then
+                 readbrowser;
+                b:=ppufile.readentry;
+                if b=ibbeginsymtablebrowser then
+                 readbrowser;
+                Indent:=Copy(Indent,1,Length(Indent)-2);
+              end;
+           end;
+         iberror :
+           begin
+             Writeln('Error in PPU');
+             exit;
+           end;
+         ibendsymtablebrowser :
+           break;
+         else
+           begin
+             WriteLn('!! Skipping unsupported PPU Entry in Browser: ',b);
+             Halt;
+           end;
        end;
      until false;
    end;
@@ -1332,7 +1345,7 @@ end;
 
 procedure dofile (filename : string);
 var
-  b,unitindex : byte;
+  b : byte;
 begin
 { reset }
   space:='';
@@ -1468,13 +1481,10 @@ begin
         Writeln;
         Writeln('Static browser section');
         Writeln('---------------');
+        UnitIndex:=0;
         b:=ppufile.readentry;
         if b=ibbeginsymtablebrowser then
-          begin
-             Writeln('Unit ',UnitIndex);
-             readbrowser;
-             Inc(UnitIndex);
-          end
+          readbrowser
         else
           Writeln('Wrong end browser entry ',b,' should be ',ibendbrowser);
       end;
@@ -1550,7 +1560,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2001-06-29 19:42:18  peter
+  Revision 1.6  2001-08-19 09:39:29  peter
+    * local browser support fixed
+
+  Revision 1.5  2001/06/29 19:42:18  peter
     * new flags added
 
   Revision 1.4  2001/06/04 11:53:15  peter

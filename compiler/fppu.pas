@@ -303,8 +303,8 @@ uses
          if not onlysource then
           begin
             fnd:=PPUSearchPath('.');
-            if (not fnd) and (current_module.outputpath^<>'') then
-             fnd:=PPUSearchPath(current_module.outputpath^);
+            if (not fnd) and (outputpath^<>'') then
+             fnd:=PPUSearchPath(outputpath^);
            end;
          if (not fnd) and (fn<>'') then
           begin
@@ -330,7 +330,7 @@ uses
          if (not fnd) then
           fnd:=SourceSearchPath('.');
          if (not fnd) then
-          fnd:=SearchPathList(current_module.LocalUnitSearchPath);
+          fnd:=SearchPathList(LocalUnitSearchPath);
          if (not fnd) then
           fnd:=SearchPathList(UnitSearchPath);
 
@@ -341,7 +341,7 @@ uses
             filename:=copy(filename,1,8);
             fnd:=SearchPath('.');
             if (not fnd) then
-             fnd:=SearchPathList(current_module.LocalUnitSearchPath);
+             fnd:=SearchPathList(LocalUnitSearchPath);
             if not fnd then
              fnd:=SearchPathList(UnitSearchPath);
           end;
@@ -686,22 +686,22 @@ uses
           end;
 
         { load browser }
-        if (current_module.flags and uf_has_browser)<>0 then
+        if (flags and uf_has_browser)<>0 then
           begin
-            tstoredsymtable(globalsymtable).load_browser(ppufile);
+            tstoredsymtable(globalsymtable).load_references(ppufile,true);
             unitindex:=1;
             while assigned(map^[unitindex]) do
              begin
                { each unit wrote one browser entry }
-               tstoredsymtable(globalsymtable).load_browser(ppufile);
+               tstoredsymtable(globalsymtable).load_references(ppufile,false);
                inc(unitindex);
              end;
             b:=ppufile.readentry;
             if b<>ibendbrowser then
              Message1(unit_f_ppu_invalid_entry,tostr(b));
           end;
-        if ((current_module.flags and uf_local_browser)<>0) then
-          tstaticsymtable(current_module.localsymtable).load_browser(ppufile);
+        if ((flags and uf_local_browser)<>0) then
+          tstaticsymtable(localsymtable).load_references(ppufile,true);
       end;
 
 
@@ -772,18 +772,18 @@ uses
          { write all browser section }
          if (flags and uf_has_browser)<>0 then
           begin
-            tstoredsymtable(globalsymtable).write_browser(ppufile);
+            tstoredsymtable(globalsymtable).write_references(ppufile,true);
             pu:=tused_unit(used_units.first);
             while assigned(pu) do
              begin
-               tstoredsymtable(pu.u.globalsymtable).write_browser(ppufile);
+               tstoredsymtable(pu.u.globalsymtable).write_references(ppufile,false);
                pu:=tused_unit(pu.next);
              end;
             ppufile.writeentry(ibendbrowser);
           end;
          if ((flags and uf_local_browser)<>0) and
             assigned(localsymtable) then
-           tstaticsymtable(localsymtable).write_browser(ppufile);
+           tstaticsymtable(localsymtable).write_references(ppufile,true);
 
          { the last entry ibend is written automaticly }
 
@@ -1180,7 +1180,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.9  2001-06-18 20:36:23  peter
+  Revision 1.10  2001-08-19 09:39:27  peter
+    * local browser support fixed
+
+  Revision 1.9  2001/06/18 20:36:23  peter
     * -Ur switch (merged)
     * masm fixes (merged)
     * quoted filenames for go32v2 and win32

@@ -70,8 +70,8 @@ interface
           { load/write }
           procedure load(ppufile:tcompilerppufile);virtual;
           procedure write(ppufile:tcompilerppufile);virtual;
-          procedure load_browser(ppufile:tcompilerppufile);virtual;
-          procedure write_browser(ppufile:tcompilerppufile);virtual;
+          procedure load_references(ppufile:tcompilerppufile;locals:boolean);virtual;
+          procedure write_references(ppufile:tcompilerppufile;locals:boolean);virtual;
           procedure deref;virtual;
           procedure derefimpl;virtual;
           procedure insert(sym : tsymentry);override;
@@ -97,8 +97,8 @@ interface
        public
           procedure load(ppufile:tcompilerppufile);override;
           procedure write(ppufile:tcompilerppufile);override;
-          procedure load_browser(ppufile:tcompilerppufile);override;
-          procedure write_browser(ppufile:tcompilerppufile);override;
+          procedure load_references(ppufile:tcompilerppufile;locals:boolean);override;
+          procedure write_references(ppufile:tcompilerppufile;locals:boolean);override;
        end;
 
        trecordsymtable = class(tabstractrecordsymtable)
@@ -117,8 +117,8 @@ interface
        public
           procedure load(ppufile:tcompilerppufile);override;
           procedure write(ppufile:tcompilerppufile);override;
-          procedure load_browser(ppufile:tcompilerppufile);override;
-          procedure write_browser(ppufile:tcompilerppufile);override;
+          procedure load_references(ppufile:tcompilerppufile;locals:boolean);override;
+          procedure write_references(ppufile:tcompilerppufile;locals:boolean);override;
        end;
 
        tlocalsymtable = class(tabstractlocalsymtable)
@@ -168,8 +168,8 @@ interface
           constructor create(const n : string);
           procedure load(ppufile:tcompilerppufile);override;
           procedure write(ppufile:tcompilerppufile);override;
-          procedure load_browser(ppufile:tcompilerppufile);override;
-          procedure write_browser(ppufile:tcompilerppufile);override;
+          procedure load_references(ppufile:tcompilerppufile;locals:boolean);override;
+          procedure write_references(ppufile:tcompilerppufile;locals:boolean);override;
           procedure insert(sym : tsymentry);override;
        end;
 
@@ -435,7 +435,7 @@ implementation
       end;
 
 
-    procedure tstoredsymtable.load_browser(ppufile:tcompilerppufile);
+    procedure tstoredsymtable.load_references(ppufile:tcompilerppufile;locals:boolean);
       var
         b     : byte;
         sym   : tstoredsym;
@@ -452,7 +452,7 @@ implementation
                  sym:=tstoredsym(ppufile.getderef);
                  resolvesym(tsym(sym));
                  if assigned(sym) then
-                   sym.load_references(ppufile);
+                   sym.load_references(ppufile,locals);
                end;
              ibdefref :
                begin
@@ -462,7 +462,7 @@ implementation
                    begin
                      if prdef.deftype<>procdef then
                        Message(unit_f_ppu_read_error);
-                     tprocdef(prdef).load_references(ppufile);
+                     tprocdef(prdef).load_references(ppufile,locals);
                    end;
                end;
              ibendsymtablebrowser :
@@ -474,16 +474,16 @@ implementation
       end;
 
 
-    procedure tstoredsymtable.write_browser(ppufile:tcompilerppufile);
+    procedure tstoredsymtable.write_references(ppufile:tcompilerppufile;locals:boolean);
       var
         pd : tstoredsym;
       begin
          ppufile.writeentry(ibbeginsymtablebrowser);
-       { foreach is used to write all symbols }
+         { write all symbols }
          pd:=tstoredsym(symindex.first);
          while assigned(pd) do
            begin
-              pd.write_references(ppufile);
+              pd.write_references(ppufile,locals);
               pd:=tstoredsym(pd.indexnext);
            end;
          ppufile.writeentry(ibendsymtablebrowser);
@@ -985,6 +985,15 @@ implementation
 {$endif}
 
 
+    { returns true, if p contains data which needs init/final code }
+    function tstoredsymtable.needs_init_final : boolean;
+      begin
+         b_needs_init_final:=false;
+         foreach({$ifdef FPCPROCVAR}@{$endif}_needs_init_final);
+         needs_init_final:=b_needs_init_final;
+      end;
+
+
 {****************************************************************************
                           TAbstractRecordSymtable
 ****************************************************************************}
@@ -1022,27 +1031,27 @@ implementation
       end;
 
 
-    procedure tabstractrecordsymtable.load_browser(ppufile:tcompilerppufile);
+    procedure tabstractrecordsymtable.load_references(ppufile:tcompilerppufile;locals:boolean);
       var
         storesymtable : tsymtable;
       begin
         storesymtable:=aktrecordsymtable;
         aktrecordsymtable:=self;
 
-        inherited load_browser(ppufile);
+        inherited load_references(ppufile,locals);
 
         aktrecordsymtable:=storesymtable;
       end;
 
 
-    procedure tabstractrecordsymtable.write_browser(ppufile:tcompilerppufile);
+    procedure tabstractrecordsymtable.write_references(ppufile:tcompilerppufile;locals:boolean);
       var
         storesymtable : tsymtable;
       begin
         storesymtable:=aktrecordsymtable;
         aktrecordsymtable:=self;
 
-        inherited write_browser(ppufile);
+        inherited write_references(ppufile,locals);
 
         aktrecordsymtable:=storesymtable;
       end;
@@ -1057,16 +1066,6 @@ implementation
             tstoreddef(tvarsym(p).vartype.def).needs_inittable then
            b_needs_init_final:=true;
       end;
-
-
-    { returns true, if p contains data which needs init/final code }
-    function tstoredsymtable.needs_init_final : boolean;
-      begin
-         b_needs_init_final:=false;
-         foreach({$ifdef FPCPROCVAR}@{$endif}_needs_init_final);
-         needs_init_final:=b_needs_init_final;
-      end;
-
 
 
 {****************************************************************************
@@ -1199,27 +1198,27 @@ implementation
       end;
 
 
-    procedure tabstractlocalsymtable.load_browser(ppufile:tcompilerppufile);
+    procedure tabstractlocalsymtable.load_references(ppufile:tcompilerppufile;locals:boolean);
       var
         storesymtable : tsymtable;
       begin
         storesymtable:=aktlocalsymtable;
         aktlocalsymtable:=self;
 
-        inherited load_browser(ppufile);
+        inherited load_references(ppufile,locals);
 
         aktlocalsymtable:=storesymtable;
       end;
 
 
-    procedure tabstractlocalsymtable.write_browser(ppufile:tcompilerppufile);
+    procedure tabstractlocalsymtable.write_references(ppufile:tcompilerppufile;locals:boolean);
       var
         storesymtable : tsymtable;
       begin
         storesymtable:=aktlocalsymtable;
         aktlocalsymtable:=self;
 
-        inherited load_browser(ppufile);
+        inherited write_references(ppufile,locals);
 
         aktlocalsymtable:=storesymtable;
       end;
@@ -1472,19 +1471,19 @@ implementation
       end;
 
 
-    procedure tstaticsymtable.load_browser(ppufile:tcompilerppufile);
+    procedure tstaticsymtable.load_references(ppufile:tcompilerppufile;locals:boolean);
       begin
         aktstaticsymtable:=self;
 
-        inherited load_browser(ppufile);
+        inherited load_references(ppufile,locals);
       end;
 
 
-    procedure tstaticsymtable.write_browser(ppufile:tcompilerppufile);
+    procedure tstaticsymtable.write_references(ppufile:tcompilerppufile;locals:boolean);
       begin
         aktstaticsymtable:=self;
 
-        inherited write_browser(ppufile);
+        inherited write_references(ppufile,locals);
       end;
 
 
@@ -2072,7 +2071,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  2001-08-06 21:40:49  peter
+  Revision 1.41  2001-08-19 09:39:29  peter
+    * local browser support fixed
+
+  Revision 1.40  2001/08/06 21:40:49  peter
     * funcret moved from tprocinfo to tprocdef
 
   Revision 1.39  2001/07/29 22:12:58  peter

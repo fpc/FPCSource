@@ -70,7 +70,6 @@ interface
           function  size:longint;override;
           function  alignment:longint;override;
           function  is_publishable : boolean;override;
-          function  is_in_current : boolean;
           { debug }
 {$ifdef GDB}
           function  stabstring : pchar;virtual;
@@ -540,8 +539,8 @@ interface
           function  haspara:boolean;
           function  mangledname : string;
           procedure setmangledname(const s : string);
-          procedure load_references(ppufile:tcompilerppufile);
-          function  write_references(ppufile:tcompilerppufile) : boolean;
+          procedure load_references(ppufile:tcompilerppufile;locals:boolean);
+          function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;
           function  fullprocname:string;
           function fullprocnamewithret:string;
           function  cplusplusmangledname : string;
@@ -701,6 +700,7 @@ interface
        pbestrealtype : ^ttype = @s64floattype;
 {$endif}
 
+
 {$ifdef GDB}
     { GDB Helpers }
     function typeglobalnumber(const s : string) : string;
@@ -741,6 +741,7 @@ implementation
        { other }
        gendef
        ;
+
 
 {****************************************************************************
                                   Helpers
@@ -854,33 +855,6 @@ implementation
          nextglobal:=nil;
       end;
 
-
-    function tstoreddef.is_in_current : boolean;
-      var
-        p : tsymtable;
-      begin
-         p:=owner;
-         is_in_current:=false;
-         while assigned(p) do
-           begin
-              if (p=tsymtable(current_module.globalsymtable)) or (p=tsymtable(current_module.localsymtable))
-                 or (p.symtabletype in [globalsymtable,staticsymtable]) then
-                begin
-                   is_in_current:=true;
-                   exit;
-                end
-              else if p.symtabletype in [localsymtable,parasymtable,objectsymtable] then
-                begin
-                  if assigned(p.defowner) then
-                    p:=tobjectdef(p.defowner).owner
-                  else
-                    exit;
-                end
-              else
-                exit;
-           end;
-
-      end;
 
     procedure tstoreddef.writedef(ppufile:tcompilerppufile);
       begin
@@ -3515,9 +3489,10 @@ implementation
           end;
          tparasymtable(parast).write(ppufile);
 
-         { save localsymtable for inline procedures, this has no influence
-           on the crc }
-         if (pocall_inline in proccalloptions) then
+         { save localsymtable for inline procedures or when local
+           browser info is requested, this has no influence on the crc }
+         if (pocall_inline in proccalloptions) or
+            ((current_module.flags and uf_local_browser)<>0) then
           begin
             oldintfcrc:=ppufile.do_crc;
             ppufile.do_crc:=false;
@@ -3568,9 +3543,7 @@ implementation
         end;
       end;
 
-Const local_symtable_index : longint = $8001;
-
-    procedure tprocdef.load_references(ppufile:tcompilerppufile);
+    procedure tprocdef.load_references(ppufile:tcompilerppufile;locals:boolean);
       var
         pos : tfileposinfo;
         oldsymtablestack,
@@ -3589,43 +3562,28 @@ Const local_symtable_index : longint = $8001;
          end;
         if move_last then
           lastwritten:=lastref;
-        if ((current_module.flags and uf_local_browser)<>0)
-           and is_in_current then
+        if ((current_module.flags and uf_local_browser)<>0) and
+           locals then
           begin
-             oldsymtablestack:=symtablestack;
-             st:=aktlocalsymtable;
-             parast:=tparasymtable.create;
-             tparasymtable(parast).load(ppufile);
-             parast.defowner:=self;
-             aktlocalsymtable:=parast;
-             tparasymtable(parast).deref;
-             parast.next:=owner;
-             tparasymtable(parast).load_browser(ppufile);
-             aktlocalsymtable:=st;
-             localst:=tlocalsymtable.create;
-             tlocalsymtable(localst).load(ppufile);
-             localst.defowner:=self;
-             aktlocalsymtable:=localst;
-             symtablestack:=parast;
-             tlocalsymtable(localst).deref;
-             localst.next:=parast;
-             tlocalsymtable(localst).load_browser(ppufile);
-             aktlocalsymtable:=st;
-             symtablestack:=oldsymtablestack;
+             tparasymtable(parast).load_references(ppufile,locals);
+             tlocalsymtable(localst).load_references(ppufile,locals);
           end;
       end;
 
 
-    function tprocdef.write_references(ppufile:tcompilerppufile) : boolean;
+    Const
+      local_symtable_index : longint = $8001;
+
+    function tprocdef.write_references(ppufile:tcompilerppufile;locals:boolean):boolean;
       var
         ref : tref;
-        st : tsymtable;
         pdo : tobjectdef;
         move_last : boolean;
       begin
         move_last:=lastwritten=lastref;
-        if move_last and (((current_module.flags and uf_local_browser)=0)
-           or not is_in_current) then
+        if move_last and
+           (((current_module.flags and uf_local_browser)=0) or
+            not locals) then
           exit;
       { write address of this symbol }
         ppufile.putderef(self);
@@ -3651,8 +3609,8 @@ Const local_symtable_index : longint = $8001;
          end;
         ppufile.writeentry(ibdefref);
         write_references:=true;
-        if ((current_module.flags and uf_local_browser)<>0)
-           and is_in_current then
+        if ((current_module.flags and uf_local_browser)<>0) and
+           locals then
           begin
              pdo:=_class;
              if (owner.symtabletype<>localsymtable) then
@@ -3665,27 +3623,12 @@ Const local_symtable_index : longint = $8001;
                       end;
                     pdo:=pdo.childof;
                  end;
-
-             { we need TESTLOCALBROWSER para and local symtables
-               PPU files are then easier to read PM }
-             if not assigned(parast) then
-               parast:=tparasymtable.create;
-             parast.defowner:=self;
-             st:=aktlocalsymtable;
-             aktlocalsymtable:=parast;
-             tstoredsymtable(parast).write(ppufile);
              parast.unitid:=local_symtable_index;
              inc(local_symtable_index);
-             tstoredsymtable(parast).write_browser(ppufile);
-             if not assigned(localst) then
-               localst:=tlocalsymtable.create;
-             localst.defowner:=self;
-             aktlocalsymtable:=localst;
-             tstoredsymtable(localst).write(ppufile);
              localst.unitid:=local_symtable_index;
              inc(local_symtable_index);
-             tstoredsymtable(localst).write_browser(ppufile);
-             aktlocalsymtable:=st;
+             tstoredsymtable(parast).write_references(ppufile,locals);
+             tstoredsymtable(localst).write_references(ppufile,locals);
              { decrement for }
              local_symtable_index:=local_symtable_index-2;
              pdo:=_class;
@@ -5546,8 +5489,8 @@ Const local_symtable_index : longint = $8001;
 end.
 {
   $Log$
-  Revision 1.42  2001-08-12 22:09:40  peter
-    * write also dynamicarray flag to ppu
+  Revision 1.43  2001-08-19 09:39:27  peter
+    * local browser support fixed
 
   Revision 1.41  2001/08/12 20:04:33  peter
     * fpu_used=0 when simplify_ppu is used

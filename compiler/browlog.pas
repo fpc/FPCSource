@@ -375,7 +375,7 @@ implementation
                        symb:=tstoredsym(symt.search(upper(ss)));
                      if not assigned(symb) then
                        begin
-                          symt:=tprocsym(sym).definition.parast;
+                          symt:=tprocsym(sym).definition.localst;
                           sym:=tstoredsym(symt.search(ss));
                           if symb=nil then
                             symb:=tstoredsym(symt.search(upper(ss)));
@@ -461,11 +461,6 @@ implementation
                                  writesymtable(prdef.localst);
                             end;
                         end;
-                       if assigned(tprocdef(prdef).defref) then
-                        begin
-                          browserlog.AddLog('***'+tprocdef(prdef).name+'***');
-                          browserlog.AddLogRefs(tprocdef(prdef).defref);
-                        end;
                        prdef:=tprocdef(prdef).nextoverloaded;
                      end;
                   end;
@@ -519,7 +514,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2001-04-18 22:01:53  peter
+  Revision 1.9  2001-08-19 09:39:27  peter
+    * local browser support fixed
+
+  Revision 1.8  2001/04/18 22:01:53  peter
     * registration of targets and assemblers
 
   Revision 1.7  2001/04/13 01:22:06  peter

@@ -64,8 +64,8 @@ interface
           function  stabstring : pchar;virtual;
           procedure concatstabto(asmlist : taasmoutput);virtual;
 {$endif GDB}
-          procedure load_references(ppufile:tcompilerppufile);virtual;
-          function  write_references(ppufile:tcompilerppufile) : boolean;virtual;
+          procedure load_references(ppufile:tcompilerppufile;locals:boolean);virtual;
+          function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;virtual;
        end;
 
        tlabelsym = class(tstoredsym)
@@ -115,8 +115,8 @@ interface
           procedure order_overloaded;
           procedure write(ppufile:tcompilerppufile);override;
           procedure deref;override;
-          procedure load_references(ppufile:tcompilerppufile);override;
-          function  write_references(ppufile:tcompilerppufile) : boolean;override;
+          procedure load_references(ppufile:tcompilerppufile;locals:boolean);override;
+          function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;override;
 {$ifdef GDB}
           function stabstring : pchar;override;
           procedure concatstabto(asmlist : taasmoutput);override;
@@ -133,8 +133,8 @@ interface
           procedure write(ppufile:tcompilerppufile);override;
           procedure deref;override;
           function  gettypedef:tdef;override;
-          procedure load_references(ppufile:tcompilerppufile);override;
-          function  write_references(ppufile:tcompilerppufile) : boolean;override;
+          procedure load_references(ppufile:tcompilerppufile;locals:boolean);override;
+          function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;override;
 {$ifdef GDB}
           function stabstring : pchar;override;
           procedure concatstabto(asmlist : taasmoutput);override;
@@ -394,7 +394,7 @@ implementation
       end;
 
 
-    procedure tstoredsym.load_references(ppufile:tcompilerppufile);
+    procedure tstoredsym.load_references(ppufile:tcompilerppufile;locals:boolean);
       var
         pos : tfileposinfo;
         move_last : boolean;
@@ -418,7 +418,7 @@ implementation
       interface parsing of other units PM
       moduleindex must be checked !! }
 
-    function tstoredsym.write_references(ppufile:tcompilerppufile) : boolean;
+    function tstoredsym.write_references(ppufile:tcompilerppufile;locals:boolean):boolean;
       var
         ref   : tref;
         symref_written,move_last : boolean;
@@ -783,12 +783,12 @@ implementation
       end;
 
 
-    procedure tprocsym.load_references(ppufile:tcompilerppufile);
+    procedure tprocsym.load_references(ppufile:tcompilerppufile;locals:boolean);
       (*var
         prdef,prdef2 : tprocdef;
         b : byte; *)
       begin
-         inherited load_references(ppufile);
+         inherited load_references(ppufile,locals);
          (*prdef:=definition;
            done in tsymtable.load_browser (PM)
          { take care about operators !!  }
@@ -807,18 +807,18 @@ implementation
              end; *)
       end;
 
-    function tprocsym.write_references(ppufile:tcompilerppufile) : boolean;
+    function tprocsym.write_references(ppufile:tcompilerppufile;locals:boolean) : boolean;
       var
         prdef : tprocdef;
       begin
          write_references:=false;
-         if not inherited write_references(ppufile) then
+         if not inherited write_references(ppufile,locals) then
            exit;
          write_references:=true;
          prdef:=definition;
          while assigned(prdef) and (prdef.owner=definition.owner) do
           begin
-            prdef.write_references(ppufile);
+            prdef.write_references(ppufile,locals);
             prdef:=prdef.nextoverloaded;
           end;
       end;
@@ -1428,7 +1428,7 @@ implementation
                    varstate:=vs_declared;
                    varalign:=size_2_align(l);
                    varalign:=used_align(varalign,aktalignment.localalignmin,aktalignment.localalignmax);
-                   address:=align(owner.datasize,varalign)+l;
+                   address:=align(owner.datasize+l,varalign);
                    owner.datasize:=address;
                  end;
                staticsymtable :
@@ -2142,33 +2142,34 @@ implementation
       end;
 
 
-    procedure ttypesym.load_references(ppufile:tcompilerppufile);
+    procedure ttypesym.load_references(ppufile:tcompilerppufile;locals:boolean);
       begin
-         inherited load_references(ppufile);
+         inherited load_references(ppufile,locals);
          if (restype.def.deftype=recorddef) then
-           tstoredsymtable(trecorddef(restype.def).symtable).load_browser(ppufile);
+           tstoredsymtable(trecorddef(restype.def).symtable).load_references(ppufile,locals);
          if (restype.def.deftype=objectdef) then
-           tstoredsymtable(tobjectdef(restype.def).symtable).load_browser(ppufile);
+           tstoredsymtable(tobjectdef(restype.def).symtable).load_references(ppufile,locals);
       end;
 
 
-    function ttypesym.write_references(ppufile:tcompilerppufile) : boolean;
+    function ttypesym.write_references(ppufile:tcompilerppufile;locals:boolean):boolean;
       begin
-        if not inherited write_references(ppufile) then
+        if not inherited write_references(ppufile,locals) then
+         begin
          { write address of this symbol if record or object
            even if no real refs are there
            because we need it for the symtable }
-         if (restype.def.deftype=recorddef) or
-            (restype.def.deftype=objectdef) then
-          begin
-            ppufile.putderef(self);
-            ppufile.writeentry(ibsymref);
-          end;
-         write_references:=true;
-         if (restype.def.deftype=recorddef) then
-           tstoredsymtable(trecorddef(restype.def).symtable).write_browser(ppufile);
-         if (restype.def.deftype=objectdef) then
-           tstoredsymtable(tobjectdef(restype.def).symtable).write_browser(ppufile);
+           if (restype.def.deftype in [recorddef,objectdef]) then
+            begin
+              ppufile.putderef(self);
+              ppufile.writeentry(ibsymref);
+            end;
+         end;
+        write_references:=true;
+        if (restype.def.deftype=recorddef) then
+           tstoredsymtable(trecorddef(restype.def).symtable).write_references(ppufile,locals);
+        if (restype.def.deftype=objectdef) then
+           tstoredsymtable(tobjectdef(restype.def).symtable).write_references(ppufile,locals);
       end;
 
 
@@ -2239,8 +2240,8 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  2001-08-12 22:11:52  peter
-    * errordef.typesym is not updated anymore
+  Revision 1.18  2001-08-19 09:39:28  peter
+    * local browser support fixed
 
   Revision 1.16  2001/08/12 20:00:26  peter
     * don't write fpuregable for varoptions
