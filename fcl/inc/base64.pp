@@ -287,7 +287,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  1999-08-13 16:31:41  michael
+  Revision 1.4  1999-08-13 22:14:40  peter
+    * removed email separator at the bottom ;)
+
+  Revision 1.3  1999/08/13 16:31:41  michael
   + Patch to support sizeless streams by Sebastian Guenter
 
   Revision 1.2  1999/08/09 16:12:28  michael
@@ -297,5 +300,3 @@ end.
   * Base64 en/de cdeing streams added
 
 }
-
---------------596BB20743AE6B618A5C912C--)
