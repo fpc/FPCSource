@@ -19,9 +19,9 @@
         .globl _start
         .align 4
 _start:
-        stwu 1,-16(1)
         mflr 0
-        stw 0,20(1)
+        stw  0,4(1)
+        stwu 1,-16(1)
 
         /* Get ExecBase */
         lwz 3,4(0)
@@ -82,15 +82,15 @@ _start:
         lis 4,returnValue@ha
         lwz 3,returnValue@l(4)
 
-        lwz 4,0(1)
-        lwz 0,4(4)
+        addi 1,1,16
+        lwz  0,4(1)
         mtlr 0
-        mr 1,4
         blr
 
 _initproc:
-        stwu 1,-128(1)
         mflr 0
+        stw  0,4(1)     
+        stwu 1,-128(1)
         stw 13,52(1)
         stw 14,56(1)
         stw 15,60(1)
@@ -110,7 +110,6 @@ _initproc:
         stw 29,116(1)
         stw 30,120(1)
         stw 31,124(1)
-        stw 0,132(1)
 
         /* Save Stackpointer */
         lis 4,OriginalStkPtr@ha
@@ -128,29 +127,28 @@ _haltproc:
         lis 4,returnValue@ha
         stw 3,returnValue@l(4)
 
-        lwz 4,0(1)
-        lwz 0,4(4)
+        lwz 13,52(1)
+        lwz 14,56(1)
+        lwz 15,60(1)
+        lwz 16,64(1)
+        lwz 17,68(1)
+        lwz 18,72(1)
+        lwz 19,76(1)
+        lwz 20,80(1)
+        lwz 21,84(1)
+        lwz 22,88(1)
+        lwz 23,92(1)
+        lwz 24,96(1)
+        lwz 25,100(1)
+        lwz 26,104(1)
+        lwz 27,108(1)
+        lwz 28,112(1)
+        lwz 29,116(1)
+        lwz 30,120(1)
+        lwz 31,124(1)
+        addi 1,1,128
+        lwz 0,4(1)
         mtlr 0
-        lwz 13,-76(4)
-        lwz 14,-72(4)
-        lwz 15,-68(4)
-        lwz 16,-64(4)
-        lwz 17,-60(4)
-        lwz 18,-56(4)
-        lwz 19,-52(4)
-        lwz 20,-48(4)
-        lwz 21,-44(4)
-        lwz 22,-40(4)
-        lwz 23,-36(4)
-        lwz 24,-32(4)
-        lwz 25,-28(4)
-        lwz 26,-24(4)
-        lwz 27,-20(4)
-        lwz 28,-16(4)
-        lwz 29,-12(4)
-        lwz 30,-8(4)
-        lwz 31,-4(4)
-        mr 1,4
         blr
 
         .globl _ExecBase
@@ -198,7 +196,10 @@ __abox__:
 
 /*
   $Log$
-  Revision 1.10  2004-06-06 12:51:06  karoly
+  Revision 1.11  2004-06-06 22:02:22  karoly
+    * hopefully fixed stack problems causing hits
+
+  Revision 1.10  2004/06/06 12:51:06  karoly
     * changelog fixed
 
   Revision 1.9  2004/06/06 12:47:57  karoly
