@@ -529,7 +529,7 @@ begin
     move(sstr[0],result[0],len+1);
 end;
 
-procedure fpc_shortstr_copy(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_COPY'];
+procedure fpc_shortstr_copy(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_COPY']; {$ifdef HAS_COMPILER_PROC} compilerproc; {$endif}
 var
   slen : byte;
 type
@@ -563,7 +563,7 @@ end;
 { note: this routine is *DIFFERENT* from the routine in i386.inc and as such you }
 { cannot use it with the i386 compiler, unless you remove the                    }
 { ti386addnode.first_string method (JM)                                          }
-function fpc_shortstr_concat(const s1,s2:shortstring): shortstring;[public,alias:'FPC_SHORTSTR_CONCAT'];
+function fpc_shortstr_concat(const s1,s2:shortstring): shortstring;[public,alias:'FPC_SHORTSTR_CONCAT']; {$ifdef hascompilerproc} compilerproc; {$endif}
 var
   s1l, s2l : byte;
 begin
@@ -919,7 +919,10 @@ end;
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_LONGWORD}
 {
   $Log$
-  Revision 1.34  2002-09-07 21:08:42  carl
+  Revision 1.35  2002-09-10 21:29:44  jonas
+    * added some missing compilerproc directives
+
+  Revision 1.34  2002/09/07 21:08:42  carl
     * cardinal -> longword
     - remove generic boundcheck (does not exist in v1.1)
 
