@@ -6,7 +6,7 @@
 loaders=prt0 cprt0 gprt0 cprt21 gprt21
 units=$(SYSTEMUNIT) objpas strings \
       linux ports initc \
-      dos crt objects printer graph \
+      dos crt objects printer graph ggigraph \
       sysutils typinfo math \
       cpu mmx getopts heaptrc lineinfo \
       errors sockets gpm ipc
@@ -144,14 +144,14 @@ printer$(PPUEXT) : printer.pp $(INC)/textrec.inc linux$(PPUEXT) $(SYSTEMPPU)
 #
 include $(GRAPHDIR)/makefile.inc
 GRAPHINCDEPS=$(addprefix $(GRAPHDIR)/,$(GRAPHINCNAMES))
-ifeq ($(USELIBGGI),YES)
-GRAPHINCDEPS+=ggigraph.inc
-override COMPILER+=-dUSEGGI -S2
-else
-GRAPHINCDEPS+=vgagraph.inc
-endif
-graph$(PPUEXT) : $(GRAPHDIR)/graph.pp $(SYSTEMPPU) $(GRAPHINCDEPS) graph.inc
-        $(COMPILER) -I$(GRAPHDIR) $(GRAPHDIR)/graph.pp $(REDIR)
+
+graph$(PPUEXT) : graph.pp linux$(PPUEXT) $(SYSTEMPPU) \
+                 $(GRAPHINCDEPS) vgagraph16.inc
+        $(COMPILER) -I$(GRAPHDIR) graph.pp $(REDIR)
+
+ggigraph$(PPUEXT) : ggigraph.pp linux$(PPUEXT) $(SYSTEMPPU) \
+                 $(GRAPHINCDEPS)
+        $(COMPILER) -I$(GRAPHDIR) ggigraph.pp $(REDIR)
 
 #
 # Delphi Compatible Units

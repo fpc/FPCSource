@@ -13,7 +13,68 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+unit Graph;
+interface
 
+uses
+  windows;
+
+{$i graphh.inc}
+
+  var
+    { this procedure allows to hook keyboard messages }
+    charmessagehandler : function(Window: hwnd; AMessage, WParam,
+                                  LParam: Longint): Longint;
+    { this procedure allows to hook mouse messages }
+    mousemessagehandler : function(Window: hwnd; AMessage, WParam,
+                                   LParam: Longint): Longint;
+   mainwindow : HWnd;
+
+  const
+    { predefined window style }
+    { we shouldn't set CS_DBLCLKS here }
+    { because most dos applications    }
+    { handle double clicks on it's own }
+    graphwindowstyle : DWord = cs_hRedraw or cs_vRedraw;
+
+    windowtitle : pchar = 'Graph window application';
+
+CONST
+
+  m640x200x16       = VGALo;
+  m640x400x16       = VGAMed;
+  m640x480x16       = VGAHi;
+
+  { VESA Specific video modes. }
+  m320x200x32k      = $10D;
+  m320x200x64k      = $10E;
+
+  m640x400x256      = $100;
+
+  m640x480x256      = $101;
+  m640x480x32k      = $110;
+  m640x480x64k      = $111;
+
+  m800x600x16       = $102;
+  m800x600x256      = $103;
+  m800x600x32k      = $113;
+  m800x600x64k      = $114;
+
+  m1024x768x16      = $104;
+  m1024x768x256     = $105;
+  m1024x768x32k     = $116;
+  m1024x768x64k     = $117;
+
+  m1280x1024x16     = $106;
+  m1280x1024x256    = $107;
+  m1280x1024x32k    = $119;
+  m1280x1024x64k    = $11A;
+
+
+implementation
+
+uses
+  strings;
 
 {
    Remarks:
@@ -28,8 +89,12 @@
       must be used when doing xor/or/and operations
 }
 
+
 const
    InternalDriverName = 'WIN32GUI';
+
+{$i graph.inc}
+
 
 { used to create a file containing all calls to WM_PAINT
   WARNING this probably creates HUGE files PM }
@@ -47,7 +112,7 @@ var
    bitmapdc : hdc;
    oldbitmap : hgdiobj;
    pal : ^rgbrec;
-   SavePtr : pointer; { we don't use that pointer }
+//   SavePtr : pointer; { we don't use that pointer }
    MessageThreadHandle : Handle;
    MessageThreadID : DWord;
    windc : hdc;
@@ -729,9 +794,17 @@ function queryadapterinfo : pmodeinfo;
        end;
   end;
 
+begin
+  InitializeGraph;
+end.
 {
   $Log$
-  Revision 1.8  2000-03-17 22:53:20  florian
+  Revision 1.1  2000-03-19 11:20:14  peter
+    * graph unit include is now independent and the dependent part
+      is now in graph.pp
+    * ggigraph unit for linux added
+
+  Revision 1.8  2000/03/17 22:53:20  florian
     * window class is registered only once => multible init/closegraphs are possible
     * calling cleardevice when creating the window
 

@@ -135,9 +135,9 @@ objects$(PPUEXT) : $(INC)/objects.pp objinc.inc $(SYSTEMPPU)
 include $(GRAPHDIR)/makefile.inc
 GRAPHINCDEPS=$(addprefix $(GRAPHDIR)/,$(GRAPHINCNAMES))
 
-graph$(PPUEXT) : $(GRAPHDIR)/graph.pp $(SYSTEMPPU) \
-                 $(GRAPHINCDEPS) graph.inc graphh.inc
-        $(COMPILER) -I$(GRAPHDIR) $(GRAPHDIR)/graph.pp $(REDIR)
+graph$(PPUEXT) : graph.pp strings$(PPUEXT) windows$(PPUEXT) $(SYSTEMPPU) \
+                 $(GRAPHINCDEPS)
+        $(COMPILER) -I$(GRAPHDIR) graph.pp $(REDIR)
 
 
 #

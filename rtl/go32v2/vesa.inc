@@ -1,5 +1,4 @@
 {
-
     $Id$
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Carl Eric Codere
@@ -1834,8 +1833,6 @@ Const
   DsLimit : dword = 0;
 
   function NewHeapError(size : longint) : integer;
-  var
-    res : integer;
     begin
       set_segment_limit(get_ds,DsLimit);
       NewHeapError:=OldHeapError(size);
@@ -2599,7 +2596,12 @@ Const
 
 (*
 $Log$
-Revision 1.21  2000-03-12 22:32:22  pierre
+Revision 1.22  2000-03-19 11:20:13  peter
+  * graph unit include is now independent and the dependent part
+    is now in graph.pp
+  * ggigraph unit for linux added
+
+Revision 1.21  2000/03/12 22:32:22  pierre
   + UseLFB and UseNoSelector vars to force LinearFrameBuffer use
     with or without specific selector.
 

@@ -134,9 +134,9 @@ printer$(PPUEXT) : printer.pp $(SYSTEMPPU)
 include $(GRAPHDIR)/makefile.inc
 GRAPHINCDEPS=$(addprefix $(GRAPHDIR)/,$(GRAPHINCNAMES))
 
-graph$(PPUEXT) : $(GRAPHDIR)/graph.pp go32$(PPUEXT) ports$(PPUEXT) $(SYSTEMPPU) \
-                 $(GRAPHINCDEPS) graph.inc graphh.inc vesa.inc vesah.inc dpmi.inc
-        $(COMPILER) -I$(GRAPHDIR) $(GRAPHDIR)/graph.pp $(REDIR)
+graph$(PPUEXT) : graph.pp go32$(PPUEXT) ports$(PPUEXT) $(SYSTEMPPU) \
+                 $(GRAPHINCDEPS) vesa.inc vesah.inc dpmi.inc
+        $(COMPILER) -I$(GRAPHDIR) graph.pp $(REDIR)
 
 #
 # Delphi Compatible Units

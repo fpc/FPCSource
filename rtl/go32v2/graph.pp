@@ -1,17 +1,75 @@
 {
-     $Id$
-}
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1999-2000 by Florian Klaempfl
 
-{$ifdef DPMI}
+    This file implements the go32v2 support for the graph unit
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+unit Graph;
+interface
+
+{$i graphh.inc}
 {$i vesah.inc}
-{$endif DPMI}
 
-{$ifndef fpc}
-  {$i dpmi.inc}
-{$else fpc}
-  {$asmmode intel}
-{$endif fpc}
+CONST
+  m640x200x16       = VGALo;
+  m640x400x16       = VGAMed;
+  m640x480x16       = VGAHi;
 
+  { VESA Specific video modes. }
+  m320x200x32k      = $10D;
+  m320x200x64k      = $10E;
+
+  m640x400x256      = $100;
+
+  m640x480x256      = $101;
+  m640x480x32k      = $110;
+  m640x480x64k      = $111;
+
+  m800x600x16       = $102;
+  m800x600x256      = $103;
+  m800x600x32k      = $113;
+  m800x600x64k      = $114;
+
+  m1024x768x16      = $104;
+  m1024x768x256     = $105;
+  m1024x768x32k     = $116;
+  m1024x768x64k     = $117;
+
+  m1280x1024x16     = $106;
+  m1280x1024x256    = $107;
+  m1280x1024x32k    = $119;
+  m1280x1024x64k    = $11A;
+
+const
+  UseLFB : boolean = false;
+  UseNoSelector : boolean = false;
+  LFBPointer : pointer = nil;
+
+
+implementation
+
+uses
+  go32,ports;
+
+const
+   InternalDriverName = 'DOSGX';
+
+{$i graph.inc}
+
+
+Type
+  TDPMIRegisters = go32.registers;
+
+{$asmmode intel}
 
 { How to access real mode memory }
 { using 32-bit DPMI memory       }
@@ -19,7 +77,6 @@
 {  2. Set segment limit          }
 {  3. Set base linear address    }
 const
-   InternalDriverName = 'DOSGX';
 {$ifdef fpc}
    VideoOfs : DWord = 0;   { Segment to draw to }
 {$else fpc}
@@ -2519,97 +2576,14 @@ const CrtAddress: word = 0;
        end;
    end;
 
+begin
+  InitializeGraph;
+end.
 {
-$Log$
-Revision 1.13  2000-02-09 16:59:28  peter
-  * truncated log
-
-Revision 1.12  2000/01/02 19:00:30  jonas
-  * another small fix to getpixel320 and putpixel320 (when clip = off)
-
-Revision 1.11  1999/12/29 16:43:44  jonas
-  * fixed put- and getpixel320 for fpc
-
-Revision 1.10  1999/12/26 10:36:00  jonas
-  * finished patternlineVESA256 and enabled it
-  * folded (direct)put/getpixVESA32k and 64k into one procedure since
-    they were exactly the same code
-
-Revision 1.9  1999/12/25 22:26:10  jonas
-  * vlinevesa256 wasn't used yet for 640x480x256
-
-Revision 1.8  1999/12/25 08:25:20  jonas
-  * screen dimensions for g640x480x32k were set to 640x400, changed
-
-Revision 1.7  1999/12/12 13:34:19  jonas
-  * putimage now performs the lipping itself and uses directputpixel
-    (note: this REQUIRES or/and/notput support in directputpixel,
-    this is not yet the case in the assembler versions!)
-  * YOffset addition moved in hlinevesa256 and vlinevesa256
-    because it uses still putpixel afterwards
-
-Revision 1.6  1999/12/11 23:41:39  jonas
-  * changed definition of getscanlineproc to "getscanline(x1,x2,y:
-    integer; var data);" so it can be used by getimage too
-  * changed getimage so it uses getscanline
-  * changed floodfill, getscanline16 and definitions in Linux
-    include files so they use this new format
-  + getscanlineVESA256 for 256 color VESA modes (banked)
-
-Revision 1.5  1999/12/10 12:49:24  pierre
- * avoid overflow on ProtW in PutPixel16
-
-Revision 1.4  1999/11/29 07:32:53  jonas
-  * fixed setvgargbpalette (it's 6bit lsb, not msb values, so no shifts!)
-
-Revision 1.3  1999/11/27 21:48:00  jonas
-  * fixed VlineVESA256 and re-enabled it in graph.inc
-  * added procedure detectgraph to interface of graph unit
-
-Revision 1.2  1999/11/11 14:05:21  florian
-  + support font loaded from BIOS
-
-Revision 1.1  1999/11/08 11:15:21  peter
-  * move graph.inc to the target dir
-
-Revision 1.26  1999/11/05 12:18:23  jonas
-  * fixed pascal version of (direct)putpixelx
-
-Revision 1.25  1999/11/03 20:23:01  florian
-  + first release of win32 gui support
-
-Revision 1.24  1999/10/24 15:51:22  carl
-  * Bugfix of mode m800x600x64k - wrong vide mode would be used.
-  + TP compilable.
-
-Revision 1.23  1999/10/24 03:34:37  carl
-  - Removed some old french comments.
-  * Bugfix of problems with register access in noasmmoded
-  + GetPixVESA16
-
-Revision 1.22  1999/10/08 14:28:18  jonas
-  * fixed set/getvgargbpalette for VGA 16 color modes
-
-Revision 1.21  1999/09/27 23:34:40  peter
-  * new graph unit is default for go32v2
-  * removed warnings/notes
-
-Revision 1.20  1999/09/26 13:31:06  jonas
-  * changed name of modeinfo variable to vesamodeinfo and fixed
-    associated errors (fillchar(modeinfo,sizeof(tmodeinfo),#0) instead
-    of sizeof(TVesamodeinfo) etc)
-  * changed several sizeof(type) to sizeof(varname) to avoid similar
-    errors in the future
-
-Revision 1.19  1999/09/24 22:52:38  jonas
-  * optimized patternline a bit (always use hline when possible)
-  * isgraphmode stuff cleanup
-  * vesainfo.modelist now gets disposed in cleanmode instead of in
-    closegraph (required moving of some declarations from vesa.inc to
-    new vesah.inc)
-  * queryadapter gets no longer called from initgraph (is called from
-    initialization of graph unit)
-  * bugfix for notput in 32k and 64k vesa modes
-  * a div replaced by / in fillpoly
+  $Log$
+  Revision 1.8  2000-03-19 11:20:12  peter
+    * graph unit include is now independent and the dependent part
+      is now in graph.pp
+    * ggigraph unit for linux added
 
 }
