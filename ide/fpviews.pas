@@ -2397,6 +2397,7 @@ begin
   Editor^.GrowMode:=gfGrowHiX+gfGrowHiY;
   Insert(Editor);
 
+  Editor^.SetFlags(Editor^.GetFlags or efUseTabCharacters);
   Hide;
 
   Clipboard:=Editor;
@@ -4171,7 +4172,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.3  2001-08-05 12:23:01  peter
+  Revision 1.4  2001-08-09 23:17:50  pierre
+   * keep tabs in Clipboard
+
+  Revision 1.3  2001/08/05 12:23:01  peter
     * Automatically support for fvision or old fv
 
   Revision 1.2  2001/08/05 02:01:48  peter
