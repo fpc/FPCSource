@@ -612,8 +612,7 @@ uses
         temp,hs       : string;
         temp_dir      : string;
         main_dir      : string;
-        incfile_found,
-        main_found,
+        found,
         is_main       : boolean;
         orgfiletime,
         source_time   : longint;
@@ -642,8 +641,7 @@ uses
             begin
               { check the date of the source files }
               Source_Time:=GetNamedFileTime(path^+hs);
-              incfile_found:=false;
-              main_found:=false;
+              found:=false;
               if Source_Time<>-1 then
                 hs:=path^+hs
               else
@@ -656,47 +654,39 @@ uses
               if (Source_Time=-1) then
                 begin
                   if is_main then
-                    main_found:=unitsearchpath.FindFile(hs,temp_dir)
+                    found:=unitsearchpath.FindFile(hs,temp_dir)
                   else
-                    incfile_found:=includesearchpath.FindFile(hs,temp_dir);
-                  if incfile_found or main_found then
+                    found:=includesearchpath.FindFile(hs,temp_dir);
+                  if found then
                    begin
                      Source_Time:=GetNamedFileTime(temp_dir);
                      if Source_Time<>-1 then
                       hs:=temp_dir;
                    end;
                 end;
-              if Source_Time=-1 then
-               begin
-                 sources_avail:=false;
-                 temp:=' not found';
-               end
-              else
-               begin
-                 if main_found then
-                   main_dir:=temp_dir;
-                 { time newer? But only allow if the file is not searched
-                   in the include path (PFV), else you've problems with
-                   units which use the same includefile names }
-                 if incfile_found then
-                  temp:=' found'
-                 else
-                  begin
-                    temp:=' time '+filetimestring(source_time);
-                    if (orgfiletime<>-1) and
-                       (source_time<>orgfiletime) then
-                     begin
-                       if ((flags and uf_release)=0) then
+              if Source_Time<>-1 then
+                begin
+                  if is_main then
+                    main_dir:=temp_dir;
+                  temp:=' time '+filetimestring(source_time);
+                  if (orgfiletime<>-1) and
+                     (source_time<>orgfiletime) then
+                    begin
+                      if ((flags and uf_release)=0) then
                         begin
                           do_compile:=true;
                           recompile_reason:=rr_sourcenewer;
                         end
-                       else
+                      else
                         Message2(unit_h_source_modified,hs,ppufilename^);
-                       temp:=temp+' *';
-                     end;
-                  end;
-               end;
+                      temp:=temp+' *';
+                    end;
+                end
+              else
+                begin
+                  sources_avail:=false;
+                  temp:=' not found';
+                end;
               hp:=tinputfile.create(hs);
               { the indexing is wrong here PM }
               sourcefiles.register_file(hp);
@@ -1511,7 +1501,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.46  2003-11-03 12:32:48  marco
+  Revision 1.47  2003-11-28 17:23:16  peter
+    * serach also in include path for used files
+
+  Revision 1.46  2003/11/03 12:32:48  marco
    * cycle detection patch from peter
 
   Revision 1.45  2003/10/29 21:55:10  peter
