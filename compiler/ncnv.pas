@@ -644,7 +644,6 @@ implementation
                   begin
                     if not proc_to_procvar_equal(aprocdef,tprocvardef(resulttype.def)) then
                      CGMessage2(type_e_incompatible_types,aprocdef.typename,resulttype.def.typename);
-                    result:=first_call_helper(convtype);
                   end
                  else
                   CGMessage2(type_e_incompatible_types,left.resulttype.def.typename,resulttype.def.typename);
@@ -664,7 +663,6 @@ implementation
                  is_boolean(left.resulttype.def) then
                begin
                   convtype:=tc_bool_2_int;
-                  result:=first_call_helper(convtype);
                   exit;
                end;
               { ansistring to pchar }
@@ -672,7 +670,6 @@ implementation
                  is_ansistring(left.resulttype.def) then
                begin
                  convtype:=tc_ansistring_2_pchar;
-                 result:=first_call_helper(convtype);
                  exit;
                end;
               { do common tc_equal cast }
@@ -1275,7 +1272,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2001-04-13 01:22:08  peter
+  Revision 1.25  2001-04-13 22:20:58  peter
+    * remove wrongly placed first_call_helper
+
+  Revision 1.24  2001/04/13 01:22:08  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed
