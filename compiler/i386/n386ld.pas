@@ -570,7 +570,7 @@ implementation
             LOC_REFERENCE,
             LOC_MEM : begin
                          { extra handling for ordinal constants }
-                         if (right.nodetype=ordconstn) or
+                         if (right.nodetype in [ordconstn,pointerconstn,niln]) or
                             (loc=LOC_CREGISTER) then
                            begin
                               case left.resulttype.def.size of
@@ -586,7 +586,7 @@ implementation
                                   emit_ref_reg(A_MOV,opsize,
                                     newreference(right.location.reference),
                                     left.location.register);
-                                  if is_64bitint(right.resulttype.def) then
+                                  if left.resulttype.def.size=8 then
                                     begin
                                        r:=newreference(right.location.reference);
                                        inc(r^.offset,4);
@@ -599,7 +599,7 @@ implementation
                                 end
                               else
                                 begin
-                                  if is_64bitint(right.resulttype.def) then
+                                  if left.resulttype.def.size=8 then
                                     begin
                                        emit_const_ref(A_MOV,opsize,
                                          longint(lo(tordconstnode(right).value)),
@@ -1086,8 +1086,8 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2001-08-01 21:47:48  peter
-    * fixed passing of array of record or shortstring to open array
+  Revision 1.17  2001-08-05 13:19:51  peter
+    * partly fix for proc of obj=nil
 
   Revision 1.15  2001/07/28 15:13:17  peter
     * fixed opsize for assignment with LOC_JUMP

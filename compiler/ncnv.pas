@@ -931,6 +931,15 @@ implementation
             left:=hp;
           end;
 
+        { remove typeconv after niln }
+        if (left.nodetype=niln) then
+          begin
+            left.resulttype:=resulttype;
+            result:=left;
+            left:=nil;
+            exit;
+          end;
+
         { ordinal contants can be directly converted }
         if (left.nodetype=ordconstn) and is_ordinal(resulttype.def)  then
           begin
@@ -1428,7 +1437,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2001-07-30 20:59:27  peter
+  Revision 1.31  2001-08-05 13:19:51  peter
+    * partly fix for proc of obj=nil
+
+  Revision 1.30  2001/07/30 20:59:27  peter
     * m68k updates from v10 merged
 
   Revision 1.29  2001/07/08 21:00:15  peter
