@@ -49,6 +49,7 @@ const ClipboardWindow  : PClipboardWindow = nil;
       IsEXECompiled    : boolean = false;
       LinkAfter        : boolean = true;
       MainHasDebugInfo : boolean = false;
+      UseMouse         : boolean = true;
       MainFile         : string{$ifdef GABOR}[80]{$endif} = '';
       PrevMainFile     : string{$ifdef GABOR}[80]{$endif} = '';
       EXEFile          : string{$ifdef GABOR}[80]{$endif} = '';
@@ -64,7 +65,7 @@ const ClipboardWindow  : PClipboardWindow = nil;
       ShowStatusOnError: boolean = true;
       StartupDir       : string{$ifdef GABOR}[80]{$endif} = '.'+DirSep;
       IDEDir           : string{$ifdef GABOR}[80]{$endif} = '.'+DirSep;
-      INIPath          : string{$ifdef GABOR}[80]{$endif} = ININame;
+      INIFileName      : string{$ifdef GABOR}[50]{$endif} = ININame;
       SwitchesPath     : string{$ifdef GABOR}[80]{$endif} = SwitchesName;
       CtrlMouseAction  : integer = acTopicSearch;
       AltMouseAction   : integer = acBrowseSymbol;
@@ -98,7 +99,11 @@ implementation
 END.
 {
   $Log$
-  Revision 1.29  2000-03-08 16:50:27  pierre
+  Revision 1.30  2000-03-13 20:35:36  pierre
+    * IniPath replaced by IniFileName
+    + UseMouse variable
+
+  Revision 1.29  2000/03/08 16:50:27  pierre
    + MainHasDebugInfo boolean var
 
   Revision 1.28  2000/03/02 22:34:38  pierre
