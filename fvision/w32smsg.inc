@@ -34,7 +34,10 @@ procedure SystemEventHandler(var ir:INPUT_RECORD);
      e : TSystemEvent;
 
   begin
-     if (ir.EventType in [FOCUS_EVENT,WINDOW_BUFFER_SIZE_EVENT]) then
+  { WINDOW_BUFFER_SIZE_EVENT is triggered by buffer size changes
+    but we are interested in console size changes, thus its handled below
+    in PollSystemEvent }
+     if (ir.EventType in [FOCUS_EVENT{,WINDOW_BUFFER_SIZE_EVENT}]) then
        begin
           EnterCriticalSection(ChangeSystemEvents);
           if (ir.EventType=FOCUS_EVENT) then
@@ -55,10 +58,15 @@ procedure SystemEventHandler(var ir:INPUT_RECORD);
        end;
   end;
 
+
+var
+  Xsize, YSize : longint;
+
 procedure InitSystemMsg;
 
 var
    mode : dword;
+   ConsoleScreenBufferInfo : Console_screen_buffer_info;
 
 begin
   if SystemEventActive then
@@ -67,7 +75,10 @@ begin
   GetConsoleMode(TextRec(Input).Handle,@mode);
   mode:=mode or ENABLE_WINDOW_INPUT;
   SetConsoleMode(TextRec(Input).Handle,mode);
-
+  GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE),
+    @ConsoleScreenBufferInfo);
+  XSize:=ConsoleScreenBufferInfo.srWindow.right-ConsoleScreenBufferInfo.srWindow.left+1;
+  YSize:=ConsoleScreenBufferInfo.srWindow.bottom-ConsoleScreenBufferInfo.srWindow.top+1;
   PendingSystemHead:=@PendingSystemEvent;
   PendingSystemTail:=@PendingSystemEvent;
   PendingSystemEvents:=0;
@@ -125,6 +136,9 @@ end;
 
 
 function PollSystemEvent(var SystemEvent: TSystemEvent):boolean;
+var
+   ConsoleScreenBufferInfo : Console_screen_buffer_info;
+   NewXSize, NewYSize : longint;
 begin
   EnterCriticalSection(ChangeSystemEvents);
   if PendingSystemEvents>0 then
@@ -133,13 +147,33 @@ begin
      PollSystemEvent:=true;
    end
   else
-   PollSystemEvent:=false;
+   begin
+     GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE),
+       @ConsoleScreenBufferInfo);
+     NewXSize:=ConsoleScreenBufferInfo.srWindow.right-ConsoleScreenBufferInfo.srWindow.left+1;
+     NewYSize:=ConsoleScreenBufferInfo.srWindow.bottom-ConsoleScreenBufferInfo.srWindow.top+1;
+     if (XSize<>NewXSize) or (YSize<>NewYSize) then
+       begin
+         SystemEvent.typ:=SysResize;
+         SystemEvent.x:=NewXSize;
+         SystemEvent.y:=NewYSize;
+         PutSystemEvent(SystemEvent);
+         XSize:=NewXSize;
+         YSize:=NewYSize;
+         PollSystemEvent:=true;
+       end
+     else
+       PollSystemEvent:=false;
+   end;
   LeaveCriticalSection(ChangeSystemEvents);
 end;
 
 {
   $Log$
-  Revision 1.1  2002-05-21 11:59:57  pierre
+  Revision 1.2  2002-06-06 20:32:34  pierre
+   * check console window size changes
+
+  Revision 1.1  2002/05/21 11:59:57  pierre
    + system messages unit added
 
 }
