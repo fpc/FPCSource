@@ -39,6 +39,7 @@ Type
   {$define SUPPORT_EXTENDED}
   {$define SUPPORT_COMP}
   {$define SUPPORT_SINGLE}
+  {$define SUPPORT_FIXED}
 {$endif}
 
 { some type aliases }
@@ -389,7 +390,10 @@ Procedure halt;
 
 {
   $Log$
-  Revision 1.16  1998-07-02 12:13:18  carl
+  Revision 1.17  1998-07-10 11:02:39  peter
+    * support_fixed, becuase fixed is not 100% yet for the m68k
+
+  Revision 1.16  1998/07/02 12:13:18  carl
     * No SINGLE type for m68k or other non-intel processors!
 
   Revision 1.15  1998/07/01 14:43:46  carl

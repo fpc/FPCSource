@@ -537,6 +537,7 @@ End;
 {$endif SUPPORT_COMP}
 
 
+{$ifdef SUPPORT_FIXED}
 Procedure Write_Fixed(fixkomma,Len : Longint;var t : TextRec;r : fixed);[Public,Alias: 'WRITE_TEXT_FIXED'];
 var
   s : String;
@@ -545,6 +546,7 @@ Begin
   Str_real(Len,fixkomma,r,rt_f32bit,s);
   Write_Str(Len,t,s);
 End;
+{$endif SUPPORT_FIXED}
 
 
 Procedure Write_Boolean(Len : Longint;var t : TextRec;b : Boolean);[Public,Alias: 'WRITE_TEXT_BOOLEAN'];
@@ -1133,7 +1135,10 @@ end;
 
 {
   $Log$
-  Revision 1.15  1998-07-06 15:56:43  michael
+  Revision 1.16  1998-07-10 11:02:40  peter
+    * support_fixed, becuase fixed is not 100% yet for the m68k
+
+  Revision 1.15  1998/07/06 15:56:43  michael
   Added length checking for string reading
 
   Revision 1.14  1998/07/02 12:14:56  carl

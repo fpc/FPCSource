@@ -250,10 +250,12 @@ end;
 {$endif SUPPORT_COMP}
 
 
+{$ifdef SUPPORT_FIXED}
 procedure int_str_fixed(d : fixed;len,fr : longint;var s : string);[public, alias : 'STR_FIXED'];
 begin
    str_real(len,fr,d,rt_f32bit,s);
 end;
+{$endif SUPPORT_FIXED}
 
 
 procedure int_str_longint(v : longint;len : longint;var s : string);[public, alias : 'STR_LONGINT'];
@@ -715,7 +717,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  1998-07-02 12:14:19  carl
+  Revision 1.8  1998-07-10 11:02:38  peter
+    * support_fixed, becuase fixed is not 100% yet for the m68k
+
+  Revision 1.7  1998/07/02 12:14:19  carl
     * No SINGLE type for non-intel processors!!
 
   Revision 1.6  1998/06/25 09:44:19  daniel

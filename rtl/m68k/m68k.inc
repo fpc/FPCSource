@@ -56,7 +56,7 @@
  end;
 
 
-   Procedure FillChar(var x; count: longint; value: byte);[alias: 'L_FILL_OBJECT'];
+   Procedure FillChar(var x; count: longint; value: byte);
    begin
      asm
       move.l 8(a6), a0      { destination                   }
@@ -696,6 +696,7 @@
       end;
 
 
+{$IFNDEF NEW_READWRITE}
     procedure f1;[public,alias: 'FLUSH_STDOUT'];
 
       begin
@@ -709,6 +710,7 @@
             movem.l (sp)+,d0-a7
          end;
       end;
+{$ENDIF NEW_READWRITE}
 
 Function Sptr : Longint;
 begin
@@ -746,7 +748,10 @@ XDEF RE_BOUNDS_CHECK
 
 {
   $Log$
-  Revision 1.7  1998-07-02 12:20:58  carl
+  Revision 1.8  1998-07-10 11:02:41  peter
+    * support_fixed, becuase fixed is not 100% yet for the m68k
+
+  Revision 1.7  1998/07/02 12:20:58  carl
     + Io-Error and overflow print erroraddr in hex now
 
   Revision 1.6  1998/07/01 14:25:57  carl
