@@ -39,11 +39,18 @@ unit ag386bin;
 
       pi386binasmlist=^ti386binasmlist;
       ti386binasmlist=object
-        constructor init(t:togtype);
+        SmartAsm : boolean;
+        constructor init(t:togtype;smart:boolean);
         destructor  done;
         procedure WriteBin;
       private
-        currpass : byte;
+        { the aasmoutput lists that need to be processed }
+        lists        : byte;
+        list         : array[1..maxoutputlists] of paasmoutput;
+        { current processing }
+        currlistidx  : byte;
+        currlist     : paasmoutput;
+        currpass     : byte;
 {$ifdef GDB}
         n_line       : byte;     { different types of source lines }
         linecount,
@@ -62,7 +69,8 @@ unit ag386bin;
         function  TreePass0(hp:pai):pai;
         function  TreePass1(hp:pai):pai;
         function  TreePass2(hp:pai):pai;
-        procedure writetree(p:paasmoutput);
+        procedure writetree;
+        procedure writetreesmart;
       end;
 
   implementation
@@ -401,12 +409,25 @@ unit ag386bin;
              ait_instruction :
                objectalloc^.sectionalloc(pai386(hp)^.Pass1(objectalloc^.sectionsize));
              ait_cut :
-               begin
-                 objectalloc^.resetsections;
-                 objectalloc^.setsection(lastsec);
-               end;
+               if SmartAsm then
+                begin
+                  objectalloc^.resetsections;
+                  objectalloc^.setsection(lastsec);
+                end;
            end;
            hp:=pai(hp^.next);
+
+         { maybe end of list }
+           if not assigned(hp) then
+            begin
+              if currlistidx<lists then
+               begin
+                 inc(currlistidx);
+                 currlist:=list[currlistidx];
+                 hp:=pai(currlist^.first);
+               end;
+            end;
+
          end;
         TreePass0:=hp;
       end;
@@ -545,7 +566,8 @@ unit ag386bin;
              ait_direct :
                Message(asmw_f_direct_not_supported);
              ait_cut :
-               break;
+               if SmartAsm then
+                break;
            end;
            hp:=pai(hp^.next);
          end;
@@ -676,7 +698,8 @@ unit ag386bin;
                stabslastfileinfo.line:=0;
 {$endif}
              ait_cut :
-               break;
+               if SmartAsm then
+                break;
            end;
            hp:=pai(hp^.next);
          end;
@@ -684,15 +707,79 @@ unit ag386bin;
       end;
 
 
-    procedure ti386binasmlist.writetree(p:paasmoutput);
+    procedure ti386binasmlist.writetree;
+      var
+        hp : pai;
+      begin
+        objectalloc^.setsection(sec_code);
+        objectoutput^.defaultsection(sec_code);
+
+        { Pass 1 }
+        currpass:=1;
+{$ifdef GDB}
+        StartFileLineInfo;
+{$endif GDB}
+        { start with list 1 }
+        currlistidx:=1;
+        currlist:=list[currlistidx];
+        hp:=pai(currlist^.first);
+        while assigned(hp) do
+         begin
+           hp:=TreePass1(hp);
+         { maybe end of list }
+           if not assigned(hp) then
+            begin
+              if currlistidx<lists then
+               begin
+                 inc(currlistidx);
+                 currlist:=list[currlistidx];
+                 hp:=pai(currlist^.first);
+               end
+              else
+               break;
+            end;
+          end;
+        { set section sizes }
+        objectoutput^.setsectionsizes(objectalloc^.secsize);
+
+      { Pass 2 }
+        currpass:=2;
+{$ifdef GDB}
+        StartFileLineInfo;
+{$endif GDB}
+        { start with list 1 }
+        currlistidx:=1;
+        currlist:=list[currlistidx];
+        hp:=pai(currlist^.first);
+        while assigned(hp) do
+         begin
+           hp:=TreePass2(hp);
+         { maybe end of list }
+           if not assigned(hp) then
+            begin
+              if currlistidx<lists then
+               begin
+                 inc(currlistidx);
+                 currlist:=list[currlistidx];
+                 hp:=pai(currlist^.first);
+               end
+              else
+               break;
+            end;
+          end;
+      end;
+
+
+    procedure ti386binasmlist.writetreesmart;
       var
         hp,hp1 : pai;
       begin
-        if not assigned(p) then
-         exit;
         objectalloc^.setsection(sec_code);
         objectoutput^.defaultsection(sec_code);
-        hp:=pai(p^.first);
+        { start with list 1 }
+        currlistidx:=1;
+        currlist:=list[currlistidx];
+        hp:=pai(currlist^.first);
         while assigned(hp) do
          begin
          { Pass 1 }
@@ -709,46 +796,50 @@ unit ag386bin;
 {$ifdef GDB}
            StartFileLineInfo;
 {$endif GDB}
-           hp1:=TreePass2(hp);
+           hp:=TreePass2(hp);
 
-         { if assigned then we have a ait_cut }
-           hp:=hp1;
-           if assigned(hp) then
+         { maybe end of list }
+           if not assigned(hp) then
             begin
-              if hp^.typ<>ait_cut then
-               internalerror(3334443);
-              { write the current objectfile }
-              objectoutput^.donewriting;
-              { start the writing again }
-              objectoutput^.initwriting;
-              { we will start a new objectfile so reset everything }
-              ResetAsmsymbolList;
-              objectalloc^.resetsections;
-              { avoid empty files }
-              while assigned(hp^.next) and
-                    (pai(hp^.next)^.typ in [ait_marker,ait_comment,ait_section,ait_cut]) do
+              if currlistidx<lists then
                begin
-                 if pai(hp^.next)^.typ=ait_section then
-                   begin
-                     objectalloc^.setsection(pai_section(hp^.next)^.sec);
-                     objectoutput^.defaultsection(pai_section(hp^.next)^.sec);
-                   end;
-                 hp:=pai(hp^.next);
-               end;
+                 inc(currlistidx);
+                 currlist:=list[currlistidx];
+                 hp:=pai(currlist^.first);
+               end
+              else
+               break;
+            end;
+
+           { write the current objectfile }
+           objectoutput^.donewriting;
+           { start the writing again }
+           objectoutput^.initwriting;
+           { we will start a new objectfile so reset everything }
+           ResetAsmsymbolList;
+           objectalloc^.resetsections;
+           { avoid empty files }
+           while assigned(hp^.next) and
+                 (pai(hp^.next)^.typ in [ait_marker,ait_comment,ait_section,ait_cut]) do
+            begin
+              if pai(hp^.next)^.typ=ait_section then
+                begin
+                  objectalloc^.setsection(pai_section(hp^.next)^.sec);
+                  objectoutput^.defaultsection(pai_section(hp^.next)^.sec);
+                end;
               hp:=pai(hp^.next);
             end;
+           hp:=pai(hp^.next);
          end;
       end;
 
 
     procedure ti386binasmlist.writebin;
-      var
-        mylist : paasmoutput;
 
         procedure addlist(p:paasmoutput);
         begin
-          mylist^.concat(new(pai_section,init(sec_code)));
-          mylist^.concatlist(p);
+          inc(lists);
+          list[lists]:=p;
         end;
 
       begin
@@ -765,8 +856,6 @@ unit ag386bin;
         objectoutput^.initwriting;
         objectoutput^.defaultsection(sec_code);
 
-        new(mylist,init);
-
         if cs_debuginfo in aktmoduleswitches then
           addlist(debuglist);
         addlist(codesegment);
@@ -781,27 +870,29 @@ unit ag386bin;
         if assigned(resourcesection) then
           addlist(resourcesection);
 
-        WriteTree(mylist);
-
-        dispose(mylist,done);
+        if SmartAsm then
+          writetreesmart
+        else
+          writetree;
 
         objectoutput^.donewriting;
       end;
 
 
-    constructor ti386binasmlist.init(t:togtype);
+    constructor ti386binasmlist.init(t:togtype;smart:boolean);
       begin
         case t of
           og_none :
             Message(asmw_f_no_binary_writer_selected);
           og_dbg :
-            objectoutput:=new(pdbgoutput,init);
+            objectoutput:=new(pdbgoutput,init(smart));
           og_coff :
-            objectoutput:=new(pdjgppcoffoutput,init);
+            objectoutput:=new(pdjgppcoffoutput,init(smart));
           og_pecoff :
-            objectoutput:=new(pwin32coffoutput,init);
+            objectoutput:=new(pwin32coffoutput,init(smart));
         end;
         objectalloc:=new(pobjectalloc,init);
+        SmartAsm:=smart;
         currpass:=0;
       end;
 
@@ -815,7 +906,10 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.17  1999-06-10 23:52:34  pierre
+  Revision 1.18  1999-07-03 00:26:02  peter
+    * ag386bin doesn't destroy the aasmoutput lists anymore
+
+  Revision 1.17  1999/06/10 23:52:34  pierre
    * merged from fixes branch
 
   Revision 1.16.2.1  1999/06/10 23:33:35  pierre

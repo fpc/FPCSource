@@ -271,6 +271,10 @@ type
          function getlasttaifilepos : pfileposinfo;
        end;
 
+    const
+    { maximum of aasmoutput lists there will be }
+      maxoutputlists = 10;
+
     var
     { temporary lists }
       exprasmlist,
@@ -279,7 +283,7 @@ type
       debuglist,consts,
       importssection,exportssection,
       resourcesection,rttilist         : paasmoutput;
-  { asm symbol list }
+    { asm symbol list }
       asmsymbollist : pasmsymbollist;
 
     const
@@ -896,7 +900,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.51  1999-06-02 22:43:57  pierre
+  Revision 1.52  1999-07-03 00:26:01  peter
+    * ag386bin doesn't destroy the aasmoutput lists anymore
+
+  Revision 1.51  1999/06/02 22:43:57  pierre
    * previous wrong log corrected
 
   Revision 1.50  1999/06/02 22:25:24  pierre
