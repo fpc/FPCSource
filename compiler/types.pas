@@ -29,6 +29,7 @@ interface
     uses
        cclasses,
        cpuinfo,
+       globals,
        node,
        symconst,symbase,symtype,symdef,symsym;
 
@@ -37,131 +38,141 @@ interface
                    mmxu32bit,mmxs32bit,mmxfixed16,mmxsingle);
 
     const
-       { true if we must never copy this parameter }
+       {# true if we must never copy this parameter }
        never_copy_const_param : boolean = false;
 
 {*****************************************************************************
                           Basic type functions
  *****************************************************************************}
 
-    { returns true, if def defines an ordinal type }
+    {# Returns true, if def defines an ordinal type }
     function is_ordinal(def : tdef) : boolean;
 
-    { returns the min. value of the type }
+    {# Returns the min. value of the type }
     function get_min_value(def : tdef) : TConstExprInt;
 
-    { returns basetype of the specified range }
+    {# Returns basetype of the specified range }
     function range_to_basetype(low,high:TConstExprInt):tbasetype;
 
-    { returns true, if def defines an ordinal type }
+    {# Returns true, if def defines an ordinal type }
     function is_integer(def : tdef) : boolean;
 
-    { true if p is a boolean }
+    {# Returns true if p is a boolean }
     function is_boolean(def : tdef) : boolean;
 
-    { true if p is a char }
+    {# Returns true if p is a char }
     function is_char(def : tdef) : boolean;
 
-    { true if p is a widechar }
+    {# Returns true if p is a widechar }
     function is_widechar(def : tdef) : boolean;
 
-    { true if p is a void}
+    {# Returns true if p is a void}
     function is_void(def : tdef) : boolean;
 
-    { true if p is a smallset def }
+    {# Returns true if p is a smallset def }
     function is_smallset(p : tdef) : boolean;
 
-    { returns true, if def defines a signed data type (only for ordinal types) }
+    {# Returns true, if def defines a signed data type (only for ordinal types) }
     function is_signed(def : tdef) : boolean;
 
-    { returns whether def_from's range is comprised in def_to's if both are }
-    { orddefs, false otherwise                                              }
+    {# Returns true whether def_from's range is comprised in def_to's if both are 
+      orddefs, false otherwise                                              }
     function is_in_limit(def_from,def_to : tdef) : boolean;
 
 {*****************************************************************************
                               Array helper functions
  *****************************************************************************}
 
-    { true, if p points to a zero based (non special like open or
-      dynamic array def, mainly this is used to see if the array
-      is convertable to a pointer }
+    {# Returns true, if p points to a zero based (non special like open or
+      dynamic array def).
+      
+      This is mainly used to see if the array
+      is convertable to a pointer 
+    }
     function is_zero_based_array(p : tdef) : boolean;
 
-    { true if p points to an open array def }
+    {# Returns true if p points to an open array def }
     function is_open_array(p : tdef) : boolean;
 
-    { true if p points to a dynamic array def }
+    {# Returns true if p points to a dynamic array def }
     function is_dynamic_array(p : tdef) : boolean;
 
-    { true, if p points to an array of const def }
+    {# Returns true, if p points to an array of const def }
     function is_array_constructor(p : tdef) : boolean;
 
-    { true, if p points to a variant array }
+    {# Returns true, if p points to a variant array }
     function is_variant_array(p : tdef) : boolean;
 
-    { true, if p points to an array of const }
+    {# Returns true, if p points to an array of const }
     function is_array_of_const(p : tdef) : boolean;
 
-    { true, if p points any kind of special array }
+    {# Returns true, if p points any kind of special array 
+    
+       That is if the array is an open array, a variant
+       array, an array constants constructor, or an 
+       array of const.
+    }
     function is_special_array(p : tdef) : boolean;
 
-    { true if p is a char array def }
+    {# Returns true if p is a char array def }
     function is_chararray(p : tdef) : boolean;
 
-    { true if p is a wide char array def }
+    {# Returns true if p is a wide char array def }
     function is_widechararray(p : tdef) : boolean;
 
 {*****************************************************************************
                           String helper functions
  *****************************************************************************}
 
-    { true if p points to an open string def }
+    {# Returns true if p points to an open string def }
     function is_open_string(p : tdef) : boolean;
 
-    { true if p is an ansi string def }
+    {# Returns true if p is an ansi string def }
     function is_ansistring(p : tdef) : boolean;
 
-    { true if p is a long string def }
+    {# Returns true if p is a long string def }
     function is_longstring(p : tdef) : boolean;
 
-    { true if p is a wide string def }
+    {# returns true if p is a wide string def }
     function is_widestring(p : tdef) : boolean;
 
-    { true if p is a short string def }
+    {# Returns true if p is a short string def }
     function is_shortstring(p : tdef) : boolean;
 
-    { true if p is a pchar def }
+    {# Returns true if p is a pchar def }
     function is_pchar(p : tdef) : boolean;
 
-    { true if p is a pwidechar def }
+    {# Returns true if p is a pwidechar def }
     function is_pwidechar(p : tdef) : boolean;
 
-    { true if p is a voidpointer def }
+    {# Returns true if p is a voidpointer def }
     function is_voidpointer(p : tdef) : boolean;
 
-    { returns true, if def uses FPU }
+    {# Returns true, if definition is float }
     function is_fpu(def : tdef) : boolean;
 
-    { true if the return value is in EAX }
+    {# Returns true if the return value can be put in accumulator }
     function ret_in_acc(def : tdef) : boolean;
 
-    { true if uses a parameter as return value }
+    {# Returns true if uses a parameter as return value (???) }
     function ret_in_param(def : tdef) : boolean;
 
-    { true, if def is a 64 bit int type }
+    {# Returns true, if def is a 64 bit integer type }
     function is_64bitint(def : tdef) : boolean;
 
     function push_high_param(def : tdef) : boolean;
 
-    { true if a parameter is too large to copy and only the address is pushed }
+    {# Returns true if a parameter is too large to copy and only the address is pushed 
+    }
     function push_addr_param(def : tdef) : boolean;
 
-    { true, if def1 and def2 are semantical the same }
+    {# Returns true, if def1 and def2 are semantically the same }
     function is_equal(def1,def2 : tdef) : boolean;
 
-    { checks for type compatibility (subgroups of type)  }
-    { used for case statements... probably missing stuff }
-    { to use on other types                              }
+    {# Checks for type compatibility (subgroups of type)  
+       used for case statements... probably missing stuff 
+       to use on other types                              
+    }
     function is_subequal(def1, def2: tdef): boolean;
 
      type
@@ -208,16 +219,17 @@ interface
              fromtreetype : tnodetype;
              explicit : boolean) : byte;
 
-    { same as is_equal, but with error message if failed }
+    { Same as is_equal, but with error message if failed }
     function CheckTypes(def1,def2 : tdef) : boolean;
 
     function equal_constsym(sym1,sym2:tconstsym):boolean;
 
-    { true, if two parameter lists are equal        }
-    { if acp is cp_none, all have to match exactly  }
-    { if acp is cp_value_equal_const call by value  }
-    { and call by const parameter are assumed as    }
-    { equal                                         }
+    {# true, if two parameter lists are equal        
+      if acp is cp_none, all have to match exactly  
+      if acp is cp_value_equal_const call by value  
+      and call by const parameter are assumed as    
+      equal                                         
+    }
     { if acp is cp_all the var const or nothing are considered equal }
     type
       compare_type = ( cp_none, cp_value_equal_const, cp_all);
@@ -225,38 +237,41 @@ interface
     function equal_paras(paralist1,paralist2 : tlinkedlist; acp : compare_type) : boolean;
 
 
-    { true if a type can be allowed for another one
+    { True if a type can be allowed for another one
       in a func var }
     function convertable_paras(paralist1,paralist2 : tlinkedlist; acp : compare_type) : boolean;
 
-    { true if a function can be assigned to a procvar }
+    { True if a function can be assigned to a procvar }
     { changed first argument type to pabstractprocdef so that it can also be }
     { used to test compatibility between two pprocvardefs (JM)               }
     function proc_to_procvar_equal(def1:tabstractprocdef;def2:tprocvardef;exact:boolean) : boolean;
 
     function get_proc_2_procvar_def(p:tprocsym;d:tprocvardef):tprocdef;
 
-    { if l isn't in the range of def a range check error (if not explicit) is generated and
-      the value is placed within the range }
+    {# If @var(l) isn't in the range of def a range check error (if not explicit) is generated and
+      the value is placed within the range 
+    }
     procedure testrange(def : tdef;var l : tconstexprint;explicit:boolean);
 
-    { returns the range of def }
+    {# Returns the range of def, where @var(l) is the low-range and @var(h) is
+      the high-range.
+    }
     procedure getrange(def : tdef;var l : TConstExprInt;var h : TConstExprInt);
 
     { some type helper routines for MMX support }
     function is_mmx_able_array(p : tdef) : boolean;
 
-    { returns the mmx type }
+    {# returns the mmx type }
     function mmx_type(p : tdef) : tmmxtype;
 
-    { returns true, if sym needs an entry in the proplist of a class rtti }
+    {# returns true, if sym needs an entry in the proplist of a class rtti }
     function needs_prop_entry(sym : tsym) : boolean;
 
 
 implementation
 
     uses
-       globtype,globals,systems,tokens,verbose,
+       globtype,systems,tokens,verbose,
        symtable;
 
 
@@ -1955,7 +1970,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.66  2002-04-02 17:11:32  peter
+  Revision 1.67  2002-04-07 13:40:29  carl
+  + update documentation
+
+  Revision 1.66  2002/04/02 17:11:32  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

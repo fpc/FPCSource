@@ -20,7 +20,12 @@
 
  ****************************************************************************
 }
-{#@abstract(Temporary reference allocator unit)}
+{#@abstract(Temporary reference allocator unit)
+  Temporary reference allocator unit. This unit contains
+  all which is related to allocating temporary memory
+  space on the stack, as required, by the code generator.
+}
+  
 unit tgobj;
 
 {$i defines.inc}
@@ -672,7 +677,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.4  2002-04-07 09:17:17  carl
+  Revision 1.5  2002-04-07 13:38:48  carl
+  + update documentation
+
+  Revision 1.4  2002/04/07 09:17:17  carl
   + documentation
   - clean-up
 
