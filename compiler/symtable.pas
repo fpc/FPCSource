@@ -209,6 +209,7 @@ interface
     function  search_class_member(pd : tobjectdef;const s : string):tsym;
 
 {*** Object Helpers ***}
+    procedure search_class_overloads(aprocsym : tprocsym);
     function search_default_property(pd : tobjectdef) : tpropertysym;
 
 {*** symtable stack ***}
@@ -1778,7 +1779,7 @@ implementation
               srsym:=tsym(srsymtable.speedsearch(s,speedvalue));
               if assigned(srsym) and
                  (not assigned(current_procinfo) or
-                  tstoredsym(srsym).is_visible_for_proc(current_procinfo.procdef)) then
+                  tstoredsym(srsym).is_visible_for_object(current_procinfo.procdef._class)) then
                begin
                  searchsym:=true;
                  exit;
@@ -1809,7 +1810,7 @@ implementation
                   srsym:=tsym(srsymtable.speedsearch(s,speedvalue));
                   if assigned(srsym) and
                      (not assigned(current_procinfo) or
-                      tstoredsym(srsym).is_visible_for_proc(current_procinfo.procdef)) then
+                      tstoredsym(srsym).is_visible_for_object(current_procinfo.procdef._class)) then
                     begin
                       result:=true;
                       exit;
@@ -1865,25 +1866,19 @@ implementation
             (classh.owner.unitid=0) then
            topclassh:=classh
          else
-           topclassh:=nil;
+           begin
+             if assigned(current_procinfo) then
+               topclassh:=current_procinfo.procdef._class
+             else
+               topclassh:=nil;
+           end;
          sym:=nil;
          while assigned(classh) do
           begin
             sym:=tsym(classh.symtable.speedsearch(s,speedvalue));
-            if assigned(sym) then
-             begin
-               if assigned(topclassh) then
-                begin
-                  if tstoredsym(sym).is_visible_for_object(topclassh) then
-                   break;
-                end
-               else
-                begin
-                  if (not assigned(current_procinfo) or
-                      tstoredsym(sym).is_visible_for_proc(current_procinfo.procdef)) then
-                   break;
-                end;
-             end;
+            if assigned(sym) and
+               tstoredsym(sym).is_visible_for_object(topclassh) then
+              break;
             classh:=classh.childof;
           end;
          searchsym_in_class:=sym;
@@ -2086,24 +2081,65 @@ implementation
                               Object Helpers
 ****************************************************************************}
 
-   var
-      _defaultprop : tpropertysym;
+    procedure search_class_overloads(aprocsym : tprocsym);
+    { searches n in symtable of pd and all anchestors }
+      var
+        speedvalue : cardinal;
+        srsym      : tprocsym;
+        s          : string;
+        objdef     : tobjectdef;
+      begin
+        if aprocsym.overloadchecked then
+         exit;
+        aprocsym.overloadchecked:=true;
+        if (aprocsym.owner.symtabletype<>objectsymtable) then
+         internalerror(200111021);
+        objdef:=tobjectdef(aprocsym.owner.defowner);
+        { we start in the parent }
+        if not assigned(objdef.childof) then
+         exit;
+        objdef:=objdef.childof;
+        s:=aprocsym.name;
+        speedvalue:=getspeedvalue(s);
+        while assigned(objdef) do
+         begin
+           srsym:=tprocsym(objdef.symtable.speedsearch(s,speedvalue));
+           if assigned(srsym) then
+            begin
+              if (srsym.typ<>procsym) then
+               internalerror(200111022);
+              if srsym.is_visible_for_object(tobjectdef(aprocsym.owner.defowner)) then
+               begin
+                 srsym.add_para_match_to(Aprocsym);
+                 { we can stop if the overloads were already added
+                  for the found symbol }
+                 if srsym.overloadchecked then
+                  break;
+               end;
+            end;
+           { next parent }
+           objdef:=objdef.childof;
+         end;
+      end;
+
 
    procedure tstoredsymtable.testfordefaultproperty(p : TNamedIndexItem;arg:pointer);
      begin
         if (tsym(p).typ=propertysym) and
            (ppo_defaultproperty in tpropertysym(p).propoptions) then
-          _defaultprop:=tpropertysym(p);
+          ppointer(arg)^:=p;
      end;
 
 
    function search_default_property(pd : tobjectdef) : tpropertysym;
    { returns the default property of a class, searches also anchestors }
+     var
+       _defaultprop : tpropertysym;
      begin
         _defaultprop:=nil;
         while assigned(pd) do
           begin
-             pd.symtable.foreach({$ifdef FPCPROCVAR}@{$endif}tstoredsymtable(pd.symtable).testfordefaultproperty,nil);
+             pd.symtable.foreach({$ifdef FPCPROCVAR}@{$endif}tstoredsymtable(pd.symtable).testfordefaultproperty,@_defaultprop);
              if assigned(_defaultprop) then
                break;
              pd:=pd.childof;
@@ -2256,7 +2292,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.114  2003-10-07 15:17:07  peter
+  Revision 1.115  2003-10-13 14:05:12  peter
+    * removed is_visible_for_proc
+    * search also for class overloads when finding interface
+      implementations
+
+  Revision 1.114  2003/10/07 15:17:07  peter
     * inline supported again, LOC_REFERENCEs are used to pass the
       parameters
     * inlineparasymtable,inlinelocalsymtable removed

@@ -1036,60 +1036,72 @@ implementation
 
     function tclassheader.gintfgetcprocdef(proc: tprocdef;const name: string): tprocdef;
       var
-        sym: tprocsym;
+        sym: tsym;
         implprocdef : Tprocdef;
         i: cardinal;
       begin
         gintfgetcprocdef:=nil;
-        sym:=tprocsym(search_class_member(_class,name));
-        if assigned(sym) and (sym.typ=procsym) then
-          for i:=1 to sym.procdef_count do
-            begin
-              implprocdef:=sym.procdef[i];
-              if (compare_paras(proc.para,implprocdef.para,cp_none,false,false)>=te_equal) and
-                 (proc.proccalloption=implprocdef.proccalloption) then
-                begin
-                  gintfgetcprocdef:=implprocdef;
-                  exit;
-                end;
-            end;
+
+        sym:=tsym(search_class_member(_class,name));
+        if assigned(sym) and
+           (sym.typ=procsym) then
+          begin
+            { when the definition has overload directive set, we search for
+              overloaded definitions in the class, this only needs to be done once
+              for class entries as the tree keeps always the same }
+            if (not tprocsym(sym).overloadchecked) and
+               (po_overload in tprocsym(sym).first_procdef.procoptions) and
+               (tprocsym(sym).owner.symtabletype=objectsymtable) then
+             search_class_overloads(tprocsym(sym));
+
+            for i:=1 to tprocsym(sym).procdef_count do
+              begin
+                implprocdef:=tprocsym(sym).procdef[i];
+                if (compare_paras(proc.para,implprocdef.para,cp_none,false,false)>=te_equal) and
+                   (proc.proccalloption=implprocdef.proccalloption) then
+                  begin
+                    gintfgetcprocdef:=implprocdef;
+                    exit;
+                  end;
+              end;
+          end;
       end;
 
 
     procedure tclassheader.gintfdoonintf(intf: tobjectdef; intfindex: longint);
       var
-        i: longint;
-        proc: tprocdef;
+        def: tdef;
         procname: string; { for error }
         mappedname: string;
         nextexist: pointer;
         implprocdef: tprocdef;
       begin
-        for i:=1 to intf.symtable.defindex.count do
+        def:=tdef(intf.symtable.defindex.first);
+        while assigned(def) do
           begin
-            proc:=tprocdef(intf.symtable.defindex.search(i));
-            if proc.deftype=procdef then
+            if def.deftype=procdef then
               begin
                 procname:='';
                 implprocdef:=nil;
                 nextexist:=nil;
                 repeat
-                  mappedname:=_class.implementedinterfaces.getmappings(intfindex,proc.procsym.name,nextexist);
+                  mappedname:=_class.implementedinterfaces.getmappings(intfindex,tprocdef(def).procsym.name,nextexist);
                   if procname='' then
-                    procname:=proc.procsym.name;
+                    procname:=tprocdef(def).procsym.name;
                     //mappedname; { for error messages }
                   if mappedname<>'' then
-                    implprocdef:=gintfgetcprocdef(proc,mappedname);
+                    implprocdef:=gintfgetcprocdef(tprocdef(def),mappedname);
                 until assigned(implprocdef) or not assigned(nextexist);
                 if not assigned(implprocdef) then
-                  implprocdef:=gintfgetcprocdef(proc,proc.procsym.name);
+                  implprocdef:=gintfgetcprocdef(tprocdef(def),tprocdef(def).procsym.name);
                 if procname='' then
-                  procname:=proc.procsym.name;
+                  procname:=tprocdef(def).procsym.name;
                 if assigned(implprocdef) then
                   _class.implementedinterfaces.addimplproc(intfindex,implprocdef)
                 else
-                  Message1(sym_e_no_matching_implementation_found,proc.fullprocname(false));
+                  Message1(sym_e_no_matching_implementation_found,tprocdef(def).fullprocname(false));
               end;
+            def:=tdef(def.indexnext);
           end;
       end;
 
@@ -1356,7 +1368,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.52  2003-10-10 17:48:13  peter
+  Revision 1.53  2003-10-13 14:05:12  peter
+    * removed is_visible_for_proc
+    * search also for class overloads when finding interface
+      implementations
+
+  Revision 1.52  2003/10/10 17:48:13  peter
     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
     * tregisteralloctor renamed to trgobj
     * removed rgobj from a lot of units

@@ -285,48 +285,6 @@ type
       end;
 
 
-    procedure search_class_overloads(aprocsym : tprocsym);
-    { searches n in symtable of pd and all anchestors }
-      var
-        speedvalue : cardinal;
-        srsym      : tprocsym;
-        s          : string;
-        objdef     : tobjectdef;
-      begin
-        if aprocsym.overloadchecked then
-         exit;
-        aprocsym.overloadchecked:=true;
-        if (aprocsym.owner.symtabletype<>objectsymtable) then
-         internalerror(200111021);
-        objdef:=tobjectdef(aprocsym.owner.defowner);
-        { we start in the parent }
-        if not assigned(objdef.childof) then
-         exit;
-        objdef:=objdef.childof;
-        s:=aprocsym.name;
-        speedvalue:=getspeedvalue(s);
-        while assigned(objdef) do
-         begin
-           srsym:=tprocsym(objdef.symtable.speedsearch(s,speedvalue));
-           if assigned(srsym) then
-            begin
-              if (srsym.typ<>procsym) then
-               internalerror(200111022);
-              if srsym.is_visible_for_proc(current_procinfo.procdef) then
-               begin
-                 srsym.add_para_match_to(Aprocsym);
-                 { we can stop if the overloads were already added
-                  for the found symbol }
-                 if srsym.overloadchecked then
-                  break;
-               end;
-            end;
-           { next parent }
-           objdef:=objdef.childof;
-         end;
-      end;
-
-
       function is_better_candidate(currpd,bestpd:pcandidate):integer;
         var
           res : integer;
@@ -2612,7 +2570,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.195  2003-10-09 21:31:37  daniel
+  Revision 1.196  2003-10-13 14:05:12  peter
+    * removed is_visible_for_proc
+    * search also for class overloads when finding interface
+      implementations
+
+  Revision 1.195  2003/10/09 21:31:37  daniel
     * Register allocator splitted, ans abstract now
 
   Revision 1.194  2003/10/09 15:00:13  florian

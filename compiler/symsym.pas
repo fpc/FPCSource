@@ -70,7 +70,6 @@ interface
 {$endif GDB}
           procedure load_references(ppufile:tcompilerppufile;locals:boolean);virtual;
           function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;virtual;
-          function  is_visible_for_proc(currprocdef:tprocdef):boolean;
           function  is_visible_for_object(currobjdef:tobjectdef):boolean;
           function  mangledname : string;
           procedure generate_mangledname;virtual;abstract;
@@ -568,39 +567,6 @@ implementation
           end;
     end;
 {$endif GDB}
-
-
-    function tstoredsym.is_visible_for_proc(currprocdef:tprocdef):boolean;
-      begin
-        is_visible_for_proc:=false;
-
-        { private symbols are allowed when we are in the same
-          module as they are defined }
-        if (sp_private in symoptions) and
-           assigned(owner.defowner) and
-           (owner.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
-           (owner.defowner.owner.unitid<>0) then
-          exit;
-
-        { protected symbols are vissible in the module that defines them and
-          also visible to related objects }
-        if (sp_protected in symoptions) and
-           (
-            (
-             assigned(owner.defowner) and
-             (owner.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
-             (owner.defowner.owner.unitid<>0)
-            ) and
-            not(
-                assigned(currprocdef) and
-                assigned(currprocdef._class) and
-                currprocdef._class.is_related(tobjectdef(owner.defowner))
-               )
-           ) then
-          exit;
-
-        is_visible_for_proc:=true;
-      end;
 
 
     function tstoredsym.is_visible_for_object(currobjdef:tobjectdef):boolean;
@@ -2676,7 +2642,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.125  2003-10-08 19:19:45  peter
+  Revision 1.126  2003-10-13 14:05:12  peter
+    * removed is_visible_for_proc
+    * search also for class overloads when finding interface
+      implementations
+
+  Revision 1.125  2003/10/08 19:19:45  peter
     * set_varstate cleanup
 
   Revision 1.124  2003/10/07 21:14:33  peter

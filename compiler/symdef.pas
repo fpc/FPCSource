@@ -555,7 +555,6 @@ interface
           function  cplusplusmangledname : string;
           function  is_methodpointer:boolean;override;
           function  is_addressonly:boolean;override;
-//          function  is_visible_for_proc(currprocdef:tprocdef):boolean;
           function  is_visible_for_object(currobjdef:tobjectdef):boolean;
           { debug }
 {$ifdef GDB}
@@ -3731,39 +3730,6 @@ implementation
       end;
 
 
-(*
-    function tprocdef.is_visible_for_proc(currprocdef:tprocdef):boolean;
-      begin
-        is_visible_for_proc:=false;
-
-        { private symbols are allowed when we are in the same
-          module as they are defined }
-        if (sp_private in symoptions) and
-           assigned(owner.defowner) and
-           (owner.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
-           (owner.defowner.owner.unitid<>0) then
-          exit;
-
-        { protected symbols are vissible in the module that defines them and
-          also visible to related objects }
-        if (sp_protected in symoptions) and
-           (
-            (
-             (owner.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
-             (owner.defowner.owner.unitid<>0)
-            ) and
-            not(
-                assigned(currprocdef) and
-                assigned(currprocdef._class) and
-                currprocdef._class.is_related(tobjectdef(owner.defowner))
-               )
-           ) then
-          exit;
-
-        is_visible_for_proc:=true;
-      end;
-*)
-
     function tprocdef.is_visible_for_object(currobjdef:tobjectdef):boolean;
       begin
         is_visible_for_object:=false;
@@ -5924,7 +5890,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.177  2003-10-11 16:06:42  florian
+  Revision 1.178  2003-10-13 14:05:12  peter
+    * removed is_visible_for_proc
+    * search also for class overloads when finding interface
+      implementations
+
+  Revision 1.177  2003/10/11 16:06:42  florian
     * fixed some MMX<->SSE
     * started to fix ppc, needs an overhaul
     + stabs info improve for spilling, not sure if it works correctly/completly
