@@ -156,6 +156,9 @@
        i : integer;
        mode : PModeInfo;
      begin
+       {$ifdef logging}
+       LogLn('GetModeRange : Enter ('+strf(GraphDriver)+')');
+       {$endif}
        LoMode:=-1;
        HiMode:=-1;
        mode := nil;
@@ -165,6 +168,9 @@
        mode := SearchMode(GraphDriver, 0);
        { driver not supported...}
        if not assigned(mode) then exit;
+       {$ifdef logging}
+       LogLn('GetModeRange : Mode 0 found');
+       {$endif}
        { now it exists... find highest available mode... }
        LoMode := 0;
        mode:=nil;
@@ -172,6 +178,9 @@
        repeat
          inc(i);
          { start search at 0..     }
+         {$ifdef logging}
+         LogLn('GetModeRange : Searching Mode '+strf(i));
+         {$endif}
          mode:=SearchMode(GraphDriver,i);
        until not assigned(mode);
        HiMode := i-1;
@@ -332,7 +341,10 @@
 
 {
 $Log$
-Revision 1.13  1999-11-28 16:13:55  jonas
+Revision 1.14  1999-12-04 21:20:04  michael
++ Additional logging
+
+Revision 1.13  1999/11/28 16:13:55  jonas
   * corrected misplacement of call to initvars in initgraph
   + some extra debugging commands (for -dlogging) in the mode functions
 
