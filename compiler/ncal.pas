@@ -677,6 +677,23 @@ implementation
          oldcallprocsym:=aktcallprocsym;
          aktcallprocsym:=nil;
 
+         { determine length of parameter list }
+         pt:=tcallparanode(left);
+         paralength:=0;
+         while assigned(pt) do
+          begin
+            inc(paralength);
+            pt:=tcallparanode(pt.right);
+          end;
+
+         { determine the type of the parameters }
+         if assigned(left) then
+          begin
+            tcallparanode(left).get_paratype;
+            if codegenerror then
+             goto errorexit;
+          end;
+
          { procedure variable ? }
          if assigned(right) then
            begin
@@ -685,34 +702,31 @@ implementation
               if codegenerror then
                exit;
 
-              { check the parameters }
-              pdc:=tparaitem(tprocvardef(right.resulttype.def).Para.first);
+              procdefinition:=tabstractprocdef(right.resulttype.def);
+
+              { check the amount of parameters }
+              pdc:=tparaitem(procdefinition.Para.first);
               pt:=tcallparanode(left);
+              lastpara:=paralength;
               while assigned(pdc) and assigned(pt) do
                 begin
-                   pt:=tcallparanode(pt.right);
-                   pdc:=tparaitem(pdc.next);
+                  { only goto next para if we're out of the varargs }
+                  if not(po_varargs in procdefinition.procoptions) or
+                     (lastpara<=procdefinition.maxparacount) then
+                    pdc:=tparaitem(pdc.next);
+                  pt:=tcallparanode(pt.right);
+                  dec(lastpara);
                 end;
               if assigned(pt) or assigned(pdc) then
                 begin
                    if assigned(pt) then
                      aktfilepos:=pt.fileinfo;
-                   CGMessage(parser_e_illegal_parameter_list);
+                   CGMessage(parser_e_wrong_parameter_size);
                 end;
-
-              procdefinition:=tabstractprocdef(right.resulttype.def);
            end
          else
          { not a procedure variable }
            begin
-              { determine the type of the parameters }
-              if assigned(left) then
-                begin
-                   tcallparanode(left).get_paratype;
-                   if codegenerror then
-                     goto errorexit;
-                end;
-
               aktcallprocsym:=tprocsym(symtableprocentry);
               { do we know the procedure to call ? }
               if not(assigned(procdefinition)) then
@@ -742,15 +756,6 @@ implementation
                      nextprocsym:=srsym;
                   end;
 {$endif TEST_PROCSYMS}
-                   { determine length of parameter list }
-                   pt:=tcallparanode(left);
-                   paralength:=0;
-                   while assigned(pt) do
-                     begin
-                        inc(paralength);
-                        pt:=tcallparanode(pt.right);
-                     end;
-
                    { link all procedures which have the same # of parameters }
                    pd:=aktcallprocsym.definition;
                    while assigned(pd) do
@@ -907,12 +912,11 @@ implementation
                         hp:=procs;
                         while assigned(hp) do
                           begin
-                             { only goto next para if we're out of the
-                               varargs }
-                             if (not(po_varargs in hp^.data.procoptions) and
-                                 (lastpara<=hp^.data.minparacount)) then
-                               hp^.nextpara:=tparaitem(hp^.nextPara.next);
-                             hp:=hp^.next;
+                            { only goto next para if we're out of the varargs }
+                            if not(po_varargs in hp^.data.procoptions) or
+                               (lastpara<=hp^.data.maxparacount) then
+                              hp^.nextpara:=tparaitem(hp^.nextPara.next);
+                            hp:=hp^.next;
                           end;
                         { load next parameter or quit loop if no procs left }
                         if assigned(procs) then
@@ -1325,7 +1329,7 @@ implementation
           begin
             pt:=tcallparanode(left);
             i:=paralength;
-            while (i>procdefinition.minparacount) do
+            while (i>procdefinition.maxparacount) do
              begin
                include(tcallparanode(pt).flags,nf_varargs_para);
                pt:=tcallparanode(pt.right);
@@ -1651,7 +1655,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2001-06-04 11:48:02  peter
+  Revision 1.35  2001-06-04 18:08:19  peter
+    * procvar support for varargs
+
+  Revision 1.34  2001/06/04 11:48:02  peter
     * better const to var checking
 
   Revision 1.33  2001/05/20 12:09:31  peter
