@@ -35,6 +35,8 @@ procedure InitDesktopFile;
 function  LoadDesktop: boolean;
 function  SaveDesktop: boolean;
 procedure DoneDesktopFile;
+function  WriteSymbolsFile(const filename : string): boolean;
+function  ReadSymbolsFile(const filename : string): boolean;
 
 implementation
 
@@ -42,6 +44,7 @@ uses Dos,
      Objects,Drivers,Video,
      Views,App,HistList,BrowCol,
      WResource,WViews,WEditor,
+     WUtils,
 {$ifndef NODEBUG}
      fpdebug,
 {$endif ndef NODEBUG}
@@ -70,12 +73,15 @@ begin
   if OK then
     LoadHistory(S^);
   Dispose(S, Done);
+  if OK=false then
+    ErrorBox('Error loading history',nil);
   PopStatus;
   ReadHistory:=OK;
 end;
 
 function WriteHistory(F: PResourceFile): boolean;
 var S: PMemoryStream;
+    OK: boolean;
 begin
   PushStatus('Storing history...');
 
@@ -83,10 +89,12 @@ begin
   StoreHistory(S^);
   S^.Seek(0);
   F^.CreateResource(resHistory,rcBinary,0);
-  F^.AddResourceEntryFromStream(resHistory,langDefault,0,S^,S^.GetSize);
+  OK:=F^.AddResourceEntryFromStream(resHistory,langDefault,0,S^,S^.GetSize);
   Dispose(S, Done);
+  if OK=false then
+    ErrorBox('Error storing history',nil);
   PopStatus;
-  WriteHistory:=true;
+  WriteHistory:=OK;
 end;
 
 (*function ReadClipboard(F: PResourceFile): boolean;
@@ -134,6 +142,8 @@ begin
       else if assigned(OWC) then
         WatchesCollection:=OWC;
     end;
+  if OK=false then
+    ErrorBox('Error loading watches',nil);
   ReadWatches:=OK;
   Dispose(S, Done);
   PopStatus;
@@ -145,6 +155,7 @@ end;
 function WriteWatches(F: PResourceFile): boolean;
 var
   S : PMemoryStream;
+  OK : boolean;
 begin
 {$ifndef NODEBUG}
   if not assigned(WatchesCollection) then
@@ -158,9 +169,12 @@ begin
       S^.Put(WatchesCollection);
       S^.Seek(0);
       F^.CreateResource(resWatches,rcBinary,0);
-      WriteWatches:=F^.AddResourceEntryFromStream(resWatches,langDefault,0,S^,S^.GetSize);
+      OK:=F^.AddResourceEntryFromStream(resWatches,langDefault,0,S^,S^.GetSize);
       Dispose(S, Done);
+      if OK=false then
+        ErrorBox('Error storing watches',nil);
       PopStatus;
+      WriteWatches:=OK;
     end;
 {$endif NODEBUG}
 end;
@@ -188,6 +202,8 @@ begin
       else if assigned(OBC) then
         BreakpointsCollection:=OBC;
     end;
+  if OK=false then
+    ErrorBox('Error loading breakpoints',nil);
   ReadBreakpoints:=OK;
   Dispose(S, Done);
   PopStatus;
@@ -199,6 +215,7 @@ end;
 function WriteBreakpoints(F: PResourceFile): boolean;
 var
   S : PMemoryStream;
+  OK : boolean;
 begin
 {$ifndef NODEBUG}
   if not assigned(BreakpointsCollection) then
@@ -212,8 +229,11 @@ begin
       BreakpointsCollection^.Store(S^);
       S^.Seek(0);
       F^.CreateResource(resBreakpoints,rcBinary,0);
-      WriteBreakPoints:=F^.AddResourceEntryFromStream(resBreakpoints,langDefault,0,S^,S^.GetSize);
+      OK:=F^.AddResourceEntryFromStream(resBreakpoints,langDefault,0,S^,S^.GetSize);
       Dispose(S, Done);
+      if OK=false then
+        ErrorBox('Error storing breakpoints',nil);
+      WriteBreakPoints:=OK;
       PopStatus;
     end;
 {$endif NODEBUG}
@@ -313,56 +333,80 @@ begin
     end;
     Dispose(S, Done);
   end;
+  if OK=false then
+    ErrorBox('Error storing desktop',nil);
   PopStatus;
   WriteOpenWindows:=OK;
 end;
 
 function WriteFlags(F: PResourceFile): boolean;
+var
+    OK: boolean;
 begin
   F^.CreateResource(resDesktopFlags,rcBinary,0);
-  WriteFlags:=F^.AddResourceEntry(resDesktopFlags,langDefault,0,DesktopFileFlags,
+  OK:=F^.AddResourceEntry(resDesktopFlags,langDefault,0,DesktopFileFlags,
     SizeOf(DesktopFileFlags));
+  if OK=false then
+    ErrorBox('Error writing flags',nil);
+  WriteFlags:=OK;
 end;
 
 function ReadFlags(F: PResourceFile): boolean;
 var
   size : sw_word;
+    OK: boolean;
 begin
-  ReadFlags:=F^.ReadResourceEntry(resDesktopFlags,langDefault,DesktopFileFlags,
+  OK:=F^.ReadResourceEntry(resDesktopFlags,langDefault,DesktopFileFlags,
     size);
+  if OK=false then
+    ErrorBox('Error loading flags',nil);
+  ReadFlags:=OK;
 end;
 
 function WriteVideoMode(F: PResourceFile): boolean;
+var
+    OK: boolean;
 begin
   F^.CreateResource(resVideo,rcBinary,0);
-  WriteVideoMode:=F^.AddResourceEntry(resVideo,langDefault,0,ScreenMode,
+  OK:=F^.AddResourceEntry(resVideo,langDefault,0,ScreenMode,
     SizeOf(TVideoMode));
+  if OK=false then
+    ErrorBox('Error storing video mode',nil);
+  WriteVideoMode:=OK;
 end;
 
 function ReadVideoMode(F: PResourceFile;var NewScreenMode : TVideoMode): boolean;
 var
   size : sw_word;
-  test : boolean;
+  OK,test : boolean;
 begin
   size:=SizeOf(TVideoMode);
   test:=F^.ReadResourceEntry(resVideo,langDefault,NewScreenMode,
     size);
   if not test then
     NewScreenMode:=ScreenMode;
-  ReadVideoMode:= test and (size = SizeOf(TVideoMode));
+  OK:=test and (size = SizeOf(TVideoMode));
+  if OK=false then
+    ErrorBox('Error loading video mode',nil);
+  ReadVideoMode:=OK;
 end;
 
 function ReadSymbols(F: PResourceFile): boolean;
 var S: PMemoryStream;
     OK: boolean;
 begin
+  { if no symbols stored ... no problems }
+  if not Assigned(F^.FindResource(resSymbols)) then
+    exit;
   PushStatus('Reading symbol information...');
   New(S, Init(32*1024,4096));
   OK:=F^.ReadResourceEntryToStream(resSymbols,langDefault,S^);
   S^.Seek(0);
   if OK then
-    LoadBrowserCol(S);
+    OK:=LoadBrowserCol(S);
   Dispose(S, Done);
+  if OK=false then
+    ErrorBox('Error loading symbol information',nil);
   PopStatus;
   ReadSymbols:=OK;
 end;
@@ -378,11 +422,18 @@ begin
     PushStatus('Storing symbol information...');
 
     New(S, Init(200*1024,4096));
-    StoreBrowserCol(S);
-    S^.Seek(0);
-    F^.CreateResource(resSymbols,rcBinary,0);
-    OK:=F^.AddResourceEntryFromStream(resSymbols,langDefault,0,S^,S^.GetSize);
+    OK:=Assigned(S);
+    if OK then
+      OK:=StoreBrowserCol(S);
+    if OK then
+      begin
+        S^.Seek(0);
+        F^.CreateResource(resSymbols,rcBinary,0);
+        OK:=F^.AddResourceEntryFromStream(resSymbols,langDefault,0,S^,S^.GetSize);
+      end;
     Dispose(S, Done);
+    if OK=false then
+      ErrorBox('Error storing symbol information',nil);
     PopStatus;
   end;
   WriteSymbols:=OK;
@@ -394,30 +445,27 @@ var OK,VOK: boolean;
     VM : TVideoMode;
 begin
   PushStatus('Reading desktop file...');
-  New(F, LoadFile(DesktopPath));
+  New(F, LoadFile(GetShortName(DesktopPath)));
 
-  OK:=Assigned(F);
+  OK:=false;
 
-  if OK then
+  if Assigned(F) then
   begin
     OK:=ReadFlags(F);
-    if OK then
-      begin
-        VOK:=ReadVideoMode(F,VM);
-        if VOK and ((VM.Col<>ScreenMode.Col) or
-           (VM.Row<>ScreenMode.Row) or (VM.Color<>ScreenMode.Color)) then
-          Application^.SetScreenVideoMode(VM);
-      end;
-    if {OK and} ((DesktopFileFlags and dfHistoryLists)<>0) then
+    VOK:=ReadVideoMode(F,VM);
+    if VOK and ((VM.Col<>ScreenMode.Col) or
+       (VM.Row<>ScreenMode.Row) or (VM.Color<>ScreenMode.Color)) then
+      Application^.SetScreenVideoMode(VM);
+    if ((DesktopFileFlags and dfHistoryLists)<>0) then
       OK:=OK and ReadHistory(F);
-    if {OK and} ((DesktopFileFlags and dfWatches)<>0) then
+    if ((DesktopFileFlags and dfWatches)<>0) then
       OK:=OK and ReadWatches(F);
-    if {OK and} ((DesktopFileFlags and dfBreakpoints)<>0) then
+    if ((DesktopFileFlags and dfBreakpoints)<>0) then
       OK:=OK and ReadBreakpoints(F);
-    if {OK and} ((DesktopFileFlags and dfOpenWindows)<>0) then
+    if ((DesktopFileFlags and dfOpenWindows)<>0) then
       OK:=OK and ReadOpenWindows(F);
     { no errors if no browser info available PM }
-    if {OK and} ((DesktopFileFlags and dfSymbolInformation)<>0) then
+    if ((DesktopFileFlags and dfSymbolInformation)<>0) then
       OK:=OK and ReadSymbols(F);
     Dispose(F, Done);
   end;
@@ -430,51 +478,87 @@ function SaveDesktop: boolean;
 var OK: boolean;
     F: PResourceFile;
     TempPath: string;
-    ff: file;
 begin
   TempPath:=DirOf(DesktopPath)+DesktopTempName;
   PushStatus('Writing desktop file...');
-  New(F, CreateFile(TempPath));
+  New(F, CreateFile(GetShortName(TempPath)));
 
   if Assigned(Clipboard) then
     if (DesktopFileFlags and dfClipboardContent)<>0 then
       Clipboard^.Flags:=Clipboard^.Flags or efStoreContent
     else
       Clipboard^.Flags:=Clipboard^.Flags and not efStoreContent;
+  OK:=false;
 
-  OK:=Assigned(F);
-  {if OK then}
-    OK:=OK and WriteFlags(F);
-  {if OK then}
-    OK:=OK and WriteVideoMode(F);
-  if {OK and} ((DesktopFileFlags and dfHistoryLists)<>0) then
-    OK:=OK and WriteHistory(F);
-  if {OK and} ((DesktopFileFlags and dfWatches)<>0) then
-    OK:=OK and WriteWatches(F);
-  if {OK and} ((DesktopFileFlags and dfBreakpoints)<>0) then
-    OK:=OK and WriteBreakpoints(F);
-  if {OK and} ((DesktopFileFlags and dfOpenWindows)<>0) then
-    OK:=OK and WriteOpenWindows(F);
-  { no errors if no browser info available PM }
-  if {OK and} ((DesktopFileFlags and dfSymbolInformation)<>0) then
-    OK:=OK and (WriteSymbols(F) or not Assigned(Modules));
-  Dispose(F, Done);
+  if Assigned(F) then
+    begin
+      OK:=WriteFlags(F);
+      OK:=OK and WriteVideoMode(F);
+      if ((DesktopFileFlags and dfHistoryLists)<>0) then
+        OK:=OK and WriteHistory(F);
+      if ((DesktopFileFlags and dfWatches)<>0) then
+        OK:=OK and WriteWatches(F);
+      if ((DesktopFileFlags and dfBreakpoints)<>0) then
+        OK:=OK and WriteBreakpoints(F);
+      if ((DesktopFileFlags and dfOpenWindows)<>0) then
+        OK:=OK and WriteOpenWindows(F);
+      { no errors if no browser info available PM }
+      if ((DesktopFileFlags and dfSymbolInformation)<>0) then
+        OK:=OK and (WriteSymbols(F) or not Assigned(Modules));
+      Dispose(F, Done);
+    end;
   if OK then
-  begin
-    if ExistsFile(DesktopPath) then
-      OK:=EraseFile(DesktopPath);
-    OK:=OK and RenameFile(TempPath,DesktopPath);
-    if OK=false then
-      ErrorBox('Failed to replace desktop file.',nil);
-  end;
+    begin
+      if ExistsFile(DesktopPath) then
+        OK:=EraseFile(DesktopPath);
+      OK:=OK and RenameFile(TempPath,DesktopPath);
+      if OK=false then
+        ErrorBox('Failed to replace desktop file.',nil);
+    end;
   PopStatus;
   SaveDesktop:=OK;
+end;
+
+function  WriteSymbolsFile(const filename : string): boolean;
+var OK: boolean;
+    F: PResourceFile;
+begin
+  WriteSymbolsFile:=false;
+  If not assigned(Modules) then
+    exit;
+  New(F, CreateFile(GetShortName(FileName)));
+  OK:=Assigned(F);
+  if OK and ((DesktopFileFlags and dfSymbolInformation)<>0) then
+    OK:=OK and WriteSymbols(F);
+  if assigned(F) then
+    Dispose(F,Done);
+  WriteSymbolsFile:=OK;
+end;
+
+function  ReadSymbolsFile(const FileName : string): boolean;
+var OK: boolean;
+    F: PResourceFile;
+begin
+  ReadSymbolsFile:=false;
+  { Don't read again !! }
+  If assigned(Modules) then
+    exit;
+  New(F, LoadFile(GetShortName(FileName)));
+  OK:=Assigned(F);
+  if OK and ((DesktopFileFlags and dfSymbolInformation)<>0) then
+      OK:=OK and ReadSymbols(F);
+  if assigned(F) then
+    Dispose(F,Done);
+  ReadSymbolsFile:=OK;
 end;
 
 END.
 {
   $Log$
-  Revision 1.18  2000-01-03 11:38:33  michael
+  Revision 1.19  2000-01-25 00:26:36  pierre
+   + Browser info saving
+
+  Revision 1.18  2000/01/03 11:38:33  michael
   Changes from Gabor
 
   Revision 1.17  1999/12/20 00:30:56  pierre

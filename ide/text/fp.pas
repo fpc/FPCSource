@@ -62,6 +62,11 @@ begin
                 Delete(Param,1,1); { eat separator }
               INIPath:=copy(Param,2,255);
             end;
+{$ifdef go32v2}
+          'N' :
+             if UpCase(Param)='NOLFN' then
+               LFNSupport:=false;
+{$endif go32v2}
           'R' : { enter the directory last exited from (BP comp.) }
             begin
               Param:=copy(Param,2,255);
@@ -130,16 +135,17 @@ var CanExit : boolean;
 BEGIN
   {$ifdef DEV}HeapLimit:=4096;{$endif}
   writeln('þ Free Pascal IDE  Version '+VersionStr);
+
+  ProcessParams(true);
+
   StartupDir:=CompleteDir(FExpand('.'));
   IDEDir:=CompleteDir(DirOf(system.Paramstr(0)));
 
   RegisterIDEObjects;
   StreamError:=@MyStreamError;
 
-  ProcessParams(true);
-
 {$ifdef win32}
-  DosExecute(GetEnv('COMSPEC'),'/C echo Win32 mouse test');
+  DosExecute(GetEnv('COMSPEC'),'/C echo This dummy call gets the mouse to become visible');
 {$endif win32}
 {$ifdef VESA}
   InitVESAScreenModes;
@@ -207,7 +213,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.36  2000-01-10 15:53:37  pierre
+  Revision 1.37  2000-01-25 00:26:35  pierre
+   + Browser info saving
+
+  Revision 1.36  2000/01/10 15:53:37  pierre
   * WViews objects were not registered
 
   Revision 1.35  2000/01/03 11:38:33  michael

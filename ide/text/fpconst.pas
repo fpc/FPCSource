@@ -33,6 +33,7 @@ const
      ININame              = 'fp.ini';
      SwitchesName         = 'fp.cfg';
      DesktopName          = 'fp.dsk';
+     BrowserName          = 'fp.brw';
 
      ToolCaptureName      = '__tool__.out'; { all '$' signs replaces with '_'s }
      FilterCaptureName    = '_filter_.out';
@@ -374,7 +375,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.32  2000-01-08 18:26:20  florian
+  Revision 1.33  2000-01-25 00:26:36  pierre
+   + Browser info saving
+
+  Revision 1.32  2000/01/08 18:26:20  florian
     + added a register window, doesn't work yet
 
   Revision 1.31  2000/01/03 11:38:33  michael

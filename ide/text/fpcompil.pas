@@ -94,7 +94,7 @@ uses
   App,Commands,tokens,
   CompHook, Compiler, systems, browcol,
   WUtils,WEditor,
-  FPRedir,
+  FPRedir,FPDesk,
   FPIde,FPConst,FPVars,FPUtils,FPIntf,FPSwitch;
 
 {$ifndef NOOBJREG}
@@ -548,6 +548,8 @@ begin
   WriteSwitches(SwitchesPath);
   { leaving open browsers leads to crashes !! (PM) }
   CloseAllBrowsers;
+  if ((DesktopFileFlags and dfSymbolInformation)<>0) then
+    WriteSymbolsFile(BrowserName);
 {  MainFile:=FixFileName(FExpand(FileName));}
   If GetEXEPath<>'' then
     EXEFile:=FixFileName(GetEXEPath+NameOf(MainFile)+ExeExt)
@@ -684,6 +686,10 @@ begin
       end;
   { ^^^ we need this trick to reactivate the desktop }
   EditorModified:=false;
+  { Try to read Browser info in again if compilation failure !! }
+  if Not Assigned(Modules) and
+     ((DesktopFileFlags and dfSymbolInformation)<>0) then
+    ReadSymbolsFile(BrowserName);
 end;
 
 function NeedRecompile: boolean;
@@ -736,7 +742,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.48  2000-01-14 15:38:28  pierre
+  Revision 1.49  2000-01-25 00:26:35  pierre
+   + Browser info saving
+
+  Revision 1.48  2000/01/14 15:38:28  pierre
     + support for long filenames with spaces for compilation
     * avoid too long linker error output
 
