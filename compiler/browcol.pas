@@ -26,7 +26,7 @@
 unit browcol;
 interface
 uses
-  objects,symtable;
+  objects,symconst,symtable;
 
 const
   SymbolTypLen : integer = 6;
@@ -1062,11 +1062,11 @@ procedure CreateBrowserCol;
     begin
       case definition^.deftype of
         recorddef :
-          if precdef(definition)^.symtable<>Table then
-            ProcessSymTable(Symbol,Symbol^.Items,precdef(definition)^.symtable);
+          if precorddef(definition)^.symtable<>Table then
+            ProcessSymTable(Symbol,Symbol^.Items,precorddef(definition)^.symtable);
         objectdef :
-          if pobjectdef(definition)^.publicsyms<>Table then
-            ProcessSymTable(Symbol,Symbol^.Items,pobjectdef(definition)^.publicsyms);
+          if pobjectdef(definition)^.symtable<>Table then
+            ProcessSymTable(Symbol,Symbol^.Items,pobjectdef(definition)^.symtable);
         { leads to infinite loops !!
         pointerdef :
           with ppointerdef(definition)^ do
@@ -1174,14 +1174,14 @@ procedure CreateBrowserCol;
                       if ObjDef<>nil then
                         Symbol^.AncestorID:=longint(ObjDef);{TypeNames^.Add(S);}
                       Symbol^.Flags:=(Symbol^.Flags or sfObject);
-                      if (options and oo_is_class)<>0 then
+                      if is_class then
                         Symbol^.Flags:=(Symbol^.Flags or sfClass);
-                      ProcessSymTable(Symbol,Symbol^.Items,pobjectdef(definition)^.publicsyms);
+                      ProcessSymTable(Symbol,Symbol^.Items,pobjectdef(definition)^.symtable);
                     end;
                   recorddef :
                     begin
                       Symbol^.Flags:=(Symbol^.Flags or sfRecord);
-                      ProcessSymTable(Symbol,Symbol^.Items,precdef(definition)^.symtable);
+                      ProcessSymTable(Symbol,Symbol^.Items,precorddef(definition)^.symtable);
                     end;
                   filedef :
                     SetDType(Symbol,GetFileDefStr(pfiledef(definition)));
@@ -1583,7 +1583,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  1999-08-03 22:02:29  peter
+  Revision 1.21  1999-08-09 14:09:04  peter
+    * updated for symtable updates
+
+  Revision 1.20  1999/08/03 22:02:29  peter
     * moved bitmask constants to sets
     * some other type/const renamings
 
