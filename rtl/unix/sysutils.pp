@@ -820,10 +820,13 @@ End;
 
 
 Procedure GetLocalTime(var SystemTime: TSystemTime);
+
+var
+  usecs : Word;
 begin
-  GetTime(SystemTime.Hour, SystemTime.Minute, SystemTime.Second);
+  GetTime(SystemTime.Hour, SystemTime.Minute, SystemTime.Second, SystemTime.MilliSecond, usecs);
   GetDate(SystemTime.Year, SystemTime.Month, SystemTime.Day);
-  SystemTime.MilliSecond := 0;
+//  SystemTime.MilliSecond := 0;
 end ;
 
 
@@ -1088,7 +1091,10 @@ end.
 {
 
   $Log$
-  Revision 1.53  2004-11-06 17:24:07  marco
+  Revision 1.54  2004-11-14 15:10:44  marco
+   * resolution of now increased to ms
+
+  Revision 1.53  2004/11/06 17:24:07  marco
    * getenv had ansistring as param due to {$H+} now shortstring.
 
   Revision 1.52  2004/11/02 13:59:42  marco
