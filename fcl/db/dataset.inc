@@ -1539,15 +1539,15 @@ begin
     begin
     { throw an exception if not found.
       Normally the descendant should do this if DoCheck is true. }
-    If GetRecord(Fbuffers[FRecordCount-1],gmcurrent,True)<>grOk Then
+    If GetRecord(Fbuffers[FRecordCount],gmcurrent,True)<>grOk Then
       DatabaseError(SNoSuchRecord,Self);
     end
   else
     { Can we find a record in the neighbourhood ?
       Use Shortcut evaluation for this, or we'll have some funny results. }
-    If (GetRecord(Fbuffers[FRecordCount-1],gmcurrent,True)<>grOk) and
-       (GetRecord(Fbuffers[FRecordCount-1],gmprior,True)<>grOk) and
-       (GetRecord(Fbuffers[FRecordCount-1],gmprior,True)<>grOk) then
+    If (GetRecord(Fbuffers[FRecordCount],gmcurrent,True)<>grOk) and
+       (GetRecord(Fbuffers[FRecordCount],gmprior,True)<>grOk) and
+       (GetRecord(Fbuffers[FRecordCount],gmprior,True)<>grOk) then
        begin
        // nothing found, invalidate buffer and bail out.
        ClearBuffers;
@@ -1571,7 +1571,7 @@ begin
       Inc(Count);
     FActiveRecord:=Count;
     // fill rest of buffers, adjust ActiveBuffer.
-    SetCurrentRecord(FRecordCount-1);
+    SetCurrentRecord(FRecordCount);
     GetNextRecords;
     Inc(FActiveRecord,GetPriorRecords);
   finally
@@ -1719,7 +1719,10 @@ end;
 
 {
   $Log$
-  Revision 1.13  2004-05-02 21:23:18  peter
+  Revision 1.14  2004-07-16 19:37:40  michael
+  + Fix in resync for empty table
+
+  Revision 1.13  2004/05/02 21:23:18  peter
     * use ptrint
 
   Revision 1.12  2004/03/25 20:43:39  michael
