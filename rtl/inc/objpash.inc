@@ -137,6 +137,7 @@
 
        Const
           ExceptProc : TExceptProc = Nil;
+	  RaiseProc : TExceptProc = Nil;
 
        Function RaiseList : PExceptObject;
 
@@ -211,7 +212,11 @@
        end;
 {
   $Log$
-  Revision 1.3  2000-07-14 10:33:10  michael
+  Revision 1.4  2000-09-30 07:38:07  sg
+  * Added 'RaiseProc': A user-definable callback procedure which gets
+    called whenever an exception is being raised
+
+  Revision 1.3  2000/07/14 10:33:10  michael
   + Conditionals fixed
 
   Revision 1.2  2000/07/13 11:33:45  michael

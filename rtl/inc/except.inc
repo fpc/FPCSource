@@ -120,6 +120,8 @@ begin
   PushExceptObj(Obj,AnAddr,AFrame);
   If ExceptAddrStack=Nil then
     DoUnhandledException;
+  if (RaiseProc <> nil) and (ExceptObjectStack <> nil) then
+    RaiseProc(Obj, AnAddr, AFrame);
   longjmp(ExceptAddrStack^.Buf^,FPC_Exception);
 end;
 
@@ -244,7 +246,11 @@ begin
 end;
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:42  michael
+  Revision 1.3  2000-09-30 07:38:07  sg
+  * Added 'RaiseProc': A user-definable callback procedure which gets
+    called whenever an exception is being raised
+
+  Revision 1.2  2000/07/13 11:33:42  michael
   + removed logs
  
 }
