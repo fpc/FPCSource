@@ -685,6 +685,7 @@ function _fcntl (fildes:longint; cmd:longint):longint;               cdecl;exter
 function open  (path:Pchar; oflag:longint;
                 args:array of const):longint;                       cdecl;external 'clib' name 'open';
 function open  (path:Pchar; oflag:longint):longint;                 cdecl;external 'clib' name 'open';
+function fpopen(path:Pchar; oflag:longint):longint;                 cdecl;external 'clib' name 'open';
 function sopen (path:Pchar; oflag, shflag:longint;
                 args:array of const):longint;                       cdecl;external 'clib' name 'sopen';
 function sopen (path:Pchar; oflag,shflag:longint):longint;          cdecl;external 'clib' name 'sopen';
@@ -3521,7 +3522,9 @@ function chsize(fildes:longint; size:dword):longint;cdecl;external 'clib' name '
 function _close(fildes:longint):longint;cdecl;external 'clib' name 'close';
 function Fpclose(fildes:longint):longint;cdecl;external 'clib' name 'close';
 function dup(fildes:longint):longint;cdecl;external 'clib' name 'dup';
+function fpdup(fildes:longint):longint;cdecl;external 'clib' name 'dup';
 function dup2(fildes1:longint; fildes2:longint):longint;cdecl;external 'clib' name 'dup2';
+function fpdup2(fildes1:longint; fildes2:longint):longint;cdecl;external 'clib' name 'dup2';
 function _eof(fildes:longint):longint;cdecl;external 'clib' name 'eof';
 function Fpeof(fildes:longint):longint;cdecl;external 'clib' name 'eof';
 function getcwd(path:Pchar; len:Tsize_t):Pchar;cdecl;external 'clib' name 'getcwd';
@@ -4889,7 +4892,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2004-09-26 19:25:49  armin
+  Revision 1.4  2004-11-06 19:57:06  armin
+  * added some fp* functions
+
+  Revision 1.3  2004/09/26 19:25:49  armin
   * exiting threads at nlm unload
 
   Revision 1.2  2003/03/25 18:09:25  armin
