@@ -1701,7 +1701,7 @@
     destructor tconstsym.done;
       begin
         case consttyp of
-          conststring :
+          conststring,constresourcestring :
             freemem(pchar(value),len+1);
           constreal :
             dispose(pbestreal(value));
@@ -2137,7 +2137,10 @@
 
 {
   $Log$
-  Revision 1.141  2000-04-03 14:50:05  pierre
+  Revision 1.142  2000-04-19 08:24:41  pierre
+   * remove a memory leak with resourcestrings
+
+  Revision 1.141  2000/04/03 14:50:05  pierre
    * avoid cyclic overloaded list for operators
 
   Revision 1.140  2000/03/01 00:03:10  pierre
