@@ -338,6 +338,12 @@ end;
                              Miscellaneous
 *****************************************************************************}
 
+procedure int_rangeerror;[public,alias:'FPC_RANGEERROR'];
+begin
+  HandleErrorFrame(201,get_frame);
+end;
+
+
 procedure int_overflow;[public,alias:'FPC_OVERFLOW'];
 begin
   HandleErrorFrame(215,get_frame);
@@ -639,7 +645,13 @@ end;
 
 {
   $Log$
-  Revision 1.9  2000-11-11 16:12:01  peter
+  Revision 1.10  2000-11-13 14:47:46  jonas
+    * support for range checking when converting from 64bit to something
+      smaller (32bit, 16bit, 8bit)
+    * fixed range checking between longint/cardinal and for array indexing
+      with cardinal (values > $7fffffff were considered negative)
+
+  Revision 1.9  2000/11/11 16:12:01  peter
     * ptr returns farpointer
 
   Revision 1.8  2000/11/06 21:35:59  peter

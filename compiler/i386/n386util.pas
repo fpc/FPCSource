@@ -56,7 +56,7 @@ implementation
        globtype,globals,systems,verbose,
        cutils,cobjects,
        aasm,cpubase,cpuasm,
-       symconst,symdef,symsym,symtable,
+       symconst,symbase,symdef,symsym,symtable,
 {$ifdef GDB}
        gdb,
 {$endif GDB}
@@ -917,11 +917,104 @@ implementation
     { produces range check code, while one of the operands is a 64 bit
       integer }
     procedure emitrangecheck64(p : tnode;todef : pdef);
+      var
+        neglabel,
+        poslabel,
+        endlabel: pasmlabel;
+        href   : preference;
+        hreg   : tregister;
+        hdef   :  porddef;
+        fromdef : pdef;
+        oldregisterdef: boolean;
+        from_signed,to_signed: boolean;
 
       begin
+         fromdef:=p.resulttype;
+         if is_64bitint(todef) then
+           CGMessage(cg_w_64bit_range_check_not_supported)
+         else
+           begin
+             oldregisterdef := registerdef;
+             registerdef := false;
 
-         CGMessage(cg_w_64bit_range_check_not_supported);
-         {internalerror(28699);}
+             from_signed := is_signed(fromdef);
+             to_signed := is_signed(todef);
+             { get the high dword in a register }
+             if p.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
+               hreg := p.location.registerhigh
+             else
+               begin
+                 hreg := getexplicitregister32(R_EDI);
+                 href := newreference(p.location.reference);
+                 inc(href^.offset,4);
+                 emit_ref_reg(A_MOV,S_L,href,hreg);
+               end;
+             getlabel(poslabel);
+
+             { check high dword, must be 0 (for positive numbers) }
+             emit_reg_reg(A_TEST,S_L,hreg,hreg);
+             emitjmp(C_E,poslabel);
+
+             { It can also be $ffffffff, but only for negative numbers }
+             if from_signed and to_signed then
+               begin
+                 getlabel(neglabel);
+                 emit_const_reg(A_CMP,S_L,$ffffffff,hreg);
+                 emitjmp(C_E,neglabel);
+               end;
+             if hreg = R_EDI then
+               ungetregister32(hreg);
+             { For all other values we have a range check error }
+             emitcall('FPC_RANGEERROR');
+
+             { if the high dword = 0, the low dword can be considered a }
+             { simple cardinal                                          }
+             emitlab(poslabel);
+             new(hdef,init(u32bit,0,$ffffffff));
+             { the real p.resulttype is already saved in fromdef }
+             p.resulttype := hdef;
+             emitrangecheck(p,todef);
+             dispose(hdef,done);
+             { restore original resulttype }
+             p.resulttype := todef;
+
+             if from_signed and to_signed then
+               begin
+                 getlabel(endlabel);
+                 emitjmp(C_NO,endlabel);
+                 { if the high dword = $ffffffff, then the low dword (when }
+                 { considered as a longint) must be < 0 (JM)               }
+                 emitlab(neglabel);
+                 if p.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
+                   hreg := p.location.registerlow
+                 else
+                   begin
+                     hreg := getexplicitregister32(R_EDI);
+                     emit_ref_reg(A_MOV,S_L,
+                       newreference(p.location.reference),hreg);
+                   end;
+                 { get a new neglabel (JM) }
+                 getlabel(neglabel);
+                 emit_reg_reg(A_TEST,S_L,hreg,hreg);
+                 if hreg = R_EDI then
+                   ungetregister32(hreg);
+                 emitjmp(C_L,neglabel);
+
+                 emitcall('FPC_RANGEERROR');
+
+                 { if we get here, the 64bit value lies between }
+                 { longint($80000000) and -1 (JM)               }
+                 emitlab(neglabel);
+                 new(hdef,init(s32bit,$80000000,-1));
+                 p.resulttype := hdef;
+                 emitrangecheck(p,todef);
+                 dispose(hdef,done);
+                 emitlab(endlabel);
+                 { restore p's resulttype }
+                 p.resulttype := fromdef;
+               end;
+             registerdef := oldregisterdef;
+           end;
       end;
 
      { produces if necessary rangecheckcode }
@@ -979,7 +1072,10 @@ implementation
             begin
               porddef(todef)^.genrangecheck;
               rstr:=porddef(todef)^.getrangecheckstring;
-              doublebound:=(porddef(todef)^.typ=u32bit) and (lto>hto);
+              doublebound:=
+                ((porddef(todef)^.typ=u32bit) and (lto>hto)) or
+                (is_signed(todef) and (porddef(fromdef)^.typ=u32bit)) or
+                (is_signed(fromdef) and (porddef(todef)^.typ=u32bit));
             end;
           enumdef :
             begin
@@ -1042,10 +1138,23 @@ implementation
             begin
               emitjmp(C_None,poslabel);
               emitlab(neglabel);
-              getexplicitregister32(R_EDI);
-              exprasmlist^.concat(new(paicpu,op_sym_ofs_reg(A_MOV,S_L,newasmsymbol(rstr),8,R_EDI)));
-              emitcall('FPC_BOUNDCHECK');
-              ungetregister32(R_EDI);
+              { if a cardinal is > $7fffffff, this is an illegal longint }
+              { value (and vice versa)! (JM)                             }
+              if ((todef^.deftype = orddef) and
+                  ((is_signed(todef) and (porddef(fromdef)^.typ=u32bit)) or
+                   (is_signed(fromdef) and (porddef(todef)^.typ=u32bit)))) or
+                 { similar for array indexes (JM) }
+                 ((todef^.deftype = arraydef) and
+                  (((lto < 0) and (porddef(fromdef)^.typ=u32bit)) or
+                   ((lto >= 0) and is_signed(fromdef)))) then
+                emitcall('FPC_RANGEERROR')
+              else
+                begin
+                  getexplicitregister32(R_EDI);
+                  exprasmlist^.concat(new(paicpu,op_sym_ofs_reg(A_MOV,S_L,newasmsymbol(rstr),8,R_EDI)));
+                  emitcall('FPC_BOUNDCHECK');
+                  ungetregister32(R_EDI);
+                end;
               emitlab(poslabel);
             end;
            if popecx then
@@ -1363,7 +1472,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2000-11-04 14:25:25  florian
+  Revision 1.4  2000-11-13 14:47:46  jonas
+    * support for range checking when converting from 64bit to something
+      smaller (32bit, 16bit, 8bit)
+    * fixed range checking between longint/cardinal and for array indexing
+      with cardinal (values > $7fffffff were considered negative)
+
+  Revision 1.3  2000/11/04 14:25:25  florian
     + merged Attila's changes for interfaces, not tested yet
 
   Revision 1.2  2000/10/31 22:02:57  peter
