@@ -194,18 +194,16 @@ Procedure CatchUnhandledException (Obj : TObject; Addr: Pointer);
 Var
   Message : String;
 begin
-{$ifndef USE_WINDOWS}
-  Writeln ('An unhandled exception occurred at ',HexStr(Longint(Addr),8),' : ');
+  Writeln(stdout,'An unhandled exception occurred at ',HexStr(Longint(Addr),8),' :');
   if Obj is exception then
    begin
      Message:=Exception(Obj).Message;
-     Writeln (Message);
+     Writeln(stdout,Message);
    end
   else
-   Writeln ('Exception object ',Obj.ClassName,' is not of class Exception.');
+   Writeln(stdout,'Exception object ',Obj.ClassName,' is not of class Exception.');
+  Writeln(stdout,'');
   Halt(217);
-{$else}
-{$endif}
 end;
 
 
@@ -261,7 +259,7 @@ begin
 end;
 
 
-Procedure AssertErrorHandler (Const Msg,FN : String;LineNo,TheAddr : Longint);
+Procedure AssertErrorHandler (Const Msg,FN : ShortString;LineNo,TheAddr : Longint);
 Var
   S : String;
 begin
@@ -325,20 +323,20 @@ var
 begin
    if (P = nil) then
      begin
-     If NewSize>0 then 
+     If NewSize>0 then
        P := AllocMem(newSize)
      end
-   else 
+   else
      begin
-     If NewSize>0 then 
+     If NewSize>0 then
        NewP := AllocMem(newSize)
-     else 
+     else
        NewP:=Nil;
      if NewSize > currentSize then
        NewSize := currentSize;
-     If NewSize>0 then 
+     If NewSize>0 then
         Move(P^, newP^, NewSize);
-     If CurrentSize>0 then   
+     If CurrentSize>0 then
        FreeMem(P, currentSize);
      P := newP;
      end;
@@ -356,7 +354,10 @@ Finalization
 end.
 {
     $Log$
-    Revision 1.32  1999-09-15 20:26:30  florian
+    Revision 1.33  1999-10-26 12:29:07  peter
+      * assert handler must use shortstring
+
+    Revision 1.32  1999/09/15 20:26:30  florian
       * patch from Sebastian Guenther applied: TMethod implementation
 
     Revision 1.31  1999/08/28 14:53:27  florian
