@@ -78,6 +78,8 @@ const
   { function to fill this info up }
   fill_extra_info : FillExtraInfoType = nil;
   error_in_heap : boolean = false;
+  inside_trace_getmem : boolean = false;
+
 type
   pheap_mem_info = ^theap_mem_info;
   { warning the size of theap_mem_info
@@ -93,7 +95,7 @@ type
     sig      : longint;
 {$ifdef EXTRA}
     release_sig : longint;
-    next_valid : pheap_mem_info;
+    prev_valid : pheap_mem_info;
 {$endif EXTRA}
     calls    : array [1..tracesize] of longint;
     extra_info : record
@@ -299,7 +301,7 @@ begin
 end;
 
 
-function is_in_getmem_list (p : pointer) : boolean;
+function is_in_getmem_list (p : pheap_mem_info) : boolean;
 var
   i  : longint;
   pp : pheap_mem_info;
@@ -363,27 +365,32 @@ begin
   pheap_mem_info(p)^.previous:=heap_mem_root;
   pheap_mem_info(p)^.next:=nil;
 {$ifdef EXTRA}
-  pheap_mem_info(p)^.next_valid:=nil;
-  if assigned(heap_valid_last) then
-    heap_valid_last^.next_valid:=pheap_mem_info(p);
+  pheap_mem_info(p)^.prev_valid:=heap_valid_last;
   heap_valid_last:=pheap_mem_info(p);
   if not assigned(heap_valid_first) then
     heap_valid_first:=pheap_mem_info(p);
 {$endif EXTRA}
   heap_mem_root:=p;
+  { must be changed before fill_extra_info is called
+    because checkpointer can be called from within
+    fill_extra_info PM }
+  inc(getmem_cnt);
   if assigned(fill_extra_info) then
-    fill_extra_info(@pheap_mem_info(p)^.extra_info);
+    begin
+      inside_trace_getmem:=true;
+      fill_extra_info(@pheap_mem_info(p)^.extra_info);
+      inside_trace_getmem:=false;
+    end;
 { update the pointer }
   if usecrc then
     pheap_mem_info(p)^.sig:=calculate_sig(pheap_mem_info(p));
   inc(p,sizeof(theap_mem_info)+extra_info_size);
-  inc(getmem_cnt);
   TraceGetmem:=p;
 end;
 
 
 {*****************************************************************************
-                               TraceFreeMem
+                                TraceFreeMem
 *****************************************************************************}
 
 function TraceFreeMemSize(var p:pointer;size:longint):longint;
@@ -401,9 +408,9 @@ begin
     ppsize:=ppsize+sizeof(longint);
   dec(p,sizeof(theap_mem_info)+extra_info_size);
   pp:=pheap_mem_info(p);
-  if not quicktrace and not(is_in_getmem_list(p)) then
+  if not quicktrace and not(is_in_getmem_list(pp)) then
     RunError(204);
-  if pp^.sig=$AAAAAAAA then
+  if (pp^.sig=$AAAAAAAA) and not usecrc then
     begin
        error_in_heap:=true;
        dump_already_free(pp,ptext^);
@@ -465,25 +472,25 @@ begin
       fillchar(p^,size,#240); { $F0 will lead to GFP if used as pointer ! }
       { We want to check if the memory was changed after release !! }
        pp^.release_sig:=calculate_release_sig(pp);
-       if pp=heap_valid_first then
+       if pp=heap_valid_last then
          begin
-            heap_valid_first:=pp^.next_valid;
-            if pp=heap_valid_last then
-              heap_valid_last:=nil;
+            heap_valid_last:=pp^.prev_valid;
+            if pp=heap_valid_first then
+              heap_valid_first:=nil;
             exit;
          end;
-       pp2:=heap_valid_first;
+       pp2:=heap_valid_last;
        while assigned(pp2) do
          begin
-            if pp2^.next_valid=pp then
+            if pp2^.prev_valid=pp then
               begin
-                 pp2^.next_valid:=pp^.next_valid;
-                 if pp=heap_valid_last then
-                   heap_valid_last:=pp2;
+                 pp2^.prev_valid:=pp^.prev_valid;
+                 if pp=heap_valid_first then
+                   heap_valid_first:=pp2;
                  exit;
               end
             else
-              pp2:=pp2^.next_valid;
+              pp2:=pp2^.prev_valid;
          end;
        exit;
 {$endif EXTRA}
@@ -500,7 +507,7 @@ function TraceMemSize(p:pointer):Longint;
 var
   l : longint;
 begin
-  l:=SysMemSize(p-sizeof(theap_mem_info)+extra_info_size);
+  l:=SysMemSize(p-(sizeof(theap_mem_info)+extra_info_size));
   dec(l,sizeof(theap_mem_info)+extra_info_size);
   if add_tail then
    dec(l,sizeof(longint));
@@ -513,7 +520,7 @@ var
   size : longint;
   pp : pheap_mem_info;
 begin
-  pp:=pheap_mem_info(pointer(p)-sizeof(theap_mem_info)+extra_info_size);
+  pp:=pheap_mem_info(pointer(p)-(sizeof(theap_mem_info)+extra_info_size));
   size:=TraceMemSize(p);
   { this can never happend normaly }
   if pp^.size>size then
@@ -538,8 +545,11 @@ var
    edata : cardinal; external name 'edata';
 {$endif go32v2}
 
+{$S-}
+
 var
    heap_at_init : pointer;
+   StartUpHeapEnd : pointer;
 
 procedure CheckPointer(p : pointer);[public, alias : 'FPC_CHECKPOINTER'];
 var
@@ -580,26 +590,44 @@ begin
 {$endif go32v2}
 
   { I don't know where the stack is in other OS !! }
+{$ifdef win32}
+  if (cardinal(p)>=$40000) and (p<=HeapOrg) then
+    goto _exit;
+  { inside stack ? }
+  if (cardinal(startupheapend)<Win32StackTop) and (cardinal(p)>cardinal(startupheapend)) and
+     (cardinal(p)<Win32StackTop) then
+    goto _exit;
+{$endif win32}
 
   if p>=heapptr then
     runerror(216);
   { first try valid list faster }
 
 {$ifdef EXTRA}
-  pp:=heap_valid_first;
+  pp:=heap_valid_last;
   while pp<>nil do
    begin
      { inside this valid block ! }
-     if (cardinal(p)>=cardinal(pp)+sizeof(theap_mem_info)+extra_info_size) and
+     { we can be changing the extrainfo !! }
+     if (cardinal(p)>=cardinal(pp)+sizeof(theap_mem_info){+extra_info_size}) and
         (cardinal(p)<=cardinal(pp)+sizeof(theap_mem_info)+extra_info_size+pp^.size) then
        begin
           { check allocated block }
           if ((pp^.sig=$DEADBEEF) and not usecrc) or
-             ((pp^.sig=calculate_sig(pp)) and usecrc) then
-            goto _exit;
+             ((pp^.sig=calculate_sig(pp)) and usecrc) or
+          { special case of the fill_extra_info call }
+             ((pp=heap_valid_last) and usecrc and (pp^.sig=$DEADBEEF)
+              and inside_trace_getmem) then
+            goto _exit
+          else
+            begin
+              writeln(ptext^,'corrupted heap_mem_info');
+              dump_error(pp,ptext^);
+              halt(1);
+            end;
        end
      else
-       pp:=pp^.next_valid;
+       pp:=pp^.prev_valid;
      inc(i);
      if i>getmem_cnt-freemem_cnt then
       begin
@@ -851,6 +879,7 @@ begin
 end;
 
 Procedure SetHeapTraceOutput(const name : string);
+var i : longint;
 begin
    if ptext<>@stderr then
      begin
@@ -864,6 +893,9 @@ begin
      Rewrite(ownfile);
 {$I+}
    ptext:=@ownfile;
+   for i:=0 to Paramcount do
+     write(ptext^,paramstr(i),' ');
+   writeln(ptext^);
 end;
 
 procedure SetExtraInfo( size : longint;func : fillextrainfotype);
@@ -892,12 +924,16 @@ Initialization
   Rewrite(error_file);
 {$endif EXTRA}
   Heap_at_init:=HeapPtr;
+  StartupHeapEnd:=HeapEnd;
 finalization
   TraceExit;
 end.
 {
   $Log$
-  Revision 1.27  1999-11-06 14:35:38  peter
+  Revision 1.28  1999-11-09 22:32:23  pierre
+   * several extra_size_info fixes
+
+  Revision 1.27  1999/11/06 14:35:38  peter
     * truncated log
 
   Revision 1.26  1999/11/01 13:56:50  peter
