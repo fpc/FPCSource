@@ -996,6 +996,7 @@ begin
        if (hp=heapptr) then
         begin
           inc(foundsize,heapend-heapptr);
+          wasbeforeheapend:=true;
           break;
         end;
        if (hp^.size and usedmask)<>0 then
@@ -1254,7 +1255,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2001-12-03 21:39:20  peter
+  Revision 1.10  2001-12-31 11:41:06  jonas
+    * fix for web bug 1727 from Peter
+
+  Revision 1.9  2001/12/03 21:39:20  peter
     * freemem(var) -> freemem(value)
 
   Revision 1.8  2001/10/25 21:22:34  peter
