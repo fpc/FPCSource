@@ -59,7 +59,7 @@ specific processor ABI. It is overriden for each CPU target.
     PROCEDURE a_load_const_ref(list:TAasmOutput;size:tcgsize;a:aword;CONST ref:TReference);OVERRIDE;
     PROCEDURE a_load_reg_ref(list:TAasmOutput;size:tcgsize;reg:tregister;CONST ref:TReference);OVERRIDE;
     PROCEDURE a_load_ref_reg(list:TAasmOutput;size:tcgsize;CONST ref:TReference;reg:tregister);OVERRIDE;
-    PROCEDURE a_load_reg_reg(list:TAasmOutput;fromsize,tosize:tcgsize;reg1,reg2:tregister);OVERRIDE;
+    PROCEDURE a_load_reg_reg(list:TAasmOutput;fromsize,size:tcgsize;reg1,reg2:tregister);OVERRIDE;
     PROCEDURE a_loadaddr_ref_reg(list:TAasmOutput;CONST ref:TReference;r:tregister);OVERRIDE;
         { fpu move instructions }
     PROCEDURE a_loadfpu_reg_reg(list:TAasmOutput;reg1, reg2:tregister);OVERRIDE;
@@ -206,7 +206,7 @@ PROCEDURE tcgSPARC.a_load_ref_reg(list:TAasmOutput;size:tcgsize;CONST ref:TRefer
       end;
 
 
-    PROCEDURE tcgSPARC.a_load_reg_reg(list:TAasmOutput;fromsize,tosize:tcgsize;reg1,reg2:tregister);
+    PROCEDURE tcgSPARC.a_load_reg_reg(list:TAasmOutput;fromsize,size:tcgsize;reg1,reg2:tregister);
 
       var
         op:tasmop;
