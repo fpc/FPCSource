@@ -144,7 +144,7 @@ type
         function  SearchTopicOwner(SourceFileID: word; Context: THelpCtx): PHelpFile;
       end;
 
-      THelpFileOpenProc = function(const FileName,Param: string): PHelpFile;
+      THelpFileOpenProc = function(const FileName,Param: string;Index : longint): PHelpFile;
 
       PHelpFileType = ^THelpFileType;
       THelpFileType = record
@@ -649,7 +649,7 @@ begin
   for I:=0 to GetHelpFileTypeCount-1 do
   begin
     GetHelpFileType(I,HT);
-    H:=HT.OpenProc(FileName,Param);
+    H:=HT.OpenProc(FileName,Param,LastID+1);
     if Assigned(H) then
       Break;
   end;
@@ -665,7 +665,7 @@ begin
     begin
       HelpFiles^.Insert(H);
       Inc(LastID);
-      H^.ID:=LastID;
+      { H^.ID:=LastID; now already set by OpenProc PM }
     end;
   AddHelpFile:=H<>nil;
 end;
@@ -853,7 +853,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:25  peter
+  Revision 1.2  2001-09-18 11:33:53  pierre
+   * fix Previous Help Topic
+
+  Revision 1.1  2001/08/04 11:30:25  peter
     * ide works now with both compiler versions
 
   Revision 1.1.2.6  2001/03/20 00:20:44  pierre

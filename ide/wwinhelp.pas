@@ -1664,9 +1664,9 @@ begin
   inherited Done;
 end;
 
-function CreateProc(const FileName,Param: string): PHelpFile; {$ifndef FPC}far;{$endif}
+function CreateProc(const FileName,Param: string;Index : longint): PHelpFile; {$ifndef FPC}far;{$endif}
 begin
-  CreateProc:=New(PWinHelpFile, Init(FileName,0));
+  CreateProc:=New(PWinHelpFile, Init(FileName,Index));
 end;
 
 procedure RegisterHelpType;
@@ -1677,7 +1677,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:26  peter
+  Revision 1.2  2001-09-18 11:33:54  pierre
+   * fix Previous Help Topic
+
+  Revision 1.1  2001/08/04 11:30:26  peter
     * ide works now with both compiler versions
 
   Revision 1.1.2.2  2000/11/27 12:06:52  pierre

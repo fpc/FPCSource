@@ -544,9 +544,9 @@ begin
   inherited Done;
 end;
 
-function CreateProc(const FileName,Param: string): PHelpFile; {$ifndef FPC}far;{$endif}
+function CreateProc(const FileName,Param: string;Index : longint): PHelpFile; {$ifndef FPC}far;{$endif}
 begin
-  CreateProc:=New(POAHelpFile, Init(FileName,0));
+  CreateProc:=New(POAHelpFile, Init(FileName,Index));
 end;
 
 procedure RegisterHelpType;

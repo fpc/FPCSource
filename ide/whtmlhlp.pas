@@ -882,21 +882,21 @@ begin
   LoadIndex:=OK;
 end;
 
-function CreateProcHTML(const FileName,Param: string): PHelpFile; {$ifndef FPC}far;{$endif}
+function CreateProcHTML(const FileName,Param: string;Index : longint): PHelpFile; {$ifndef FPC}far;{$endif}
 var H: PHelpFile;
 begin
   H:=nil;
   if CompareText(copy(ExtOf(FileName),1,length(extHTML)),extHTML)=0 then
-    H:=New(PHTMLHelpFile, Init(FileName,0,Param));
+    H:=New(PHTMLHelpFile, Init(FileName,Index,Param));
   CreateProcHTML:=H;
 end;
 
-function CreateProcHTMLIndex(const FileName,Param: string): PHelpFile; {$ifndef FPC}far;{$endif}
+function CreateProcHTMLIndex(const FileName,Param: string;Index : longint): PHelpFile; {$ifndef FPC}far;{$endif}
 var H: PHelpFile;
 begin
   H:=nil;
   if CompareText(ExtOf(FileName),extHTMLIndex)=0 then
-    H:=New(PHTMLIndexHelpFile, Init(FileName,0));
+    H:=New(PHTMLIndexHelpFile, Init(FileName,Index));
   CreateProcHTMLIndex:=H;
 end;
 
@@ -910,7 +910,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:25  peter
+  Revision 1.2  2001-09-18 11:33:53  pierre
+   * fix Previous Help Topic
+
+  Revision 1.1  2001/08/04 11:30:25  peter
     * ide works now with both compiler versions
 
   Revision 1.1.2.6  2001/06/07 16:41:14  jonas
