@@ -1883,14 +1883,22 @@ implementation
                    begin
                      if anon_inherited then
                       begin
-                        { we didn't find a member in the parents call the
-                          DefaultHandler }
-                        sym:=searchsym_in_class(classh,'DEFAULTHANDLER');
-                        if not assigned(sym) or
-                           (sym.typ<>procsym) then
-                          internalerror(200303171);
-                        p1:=nil;
-                        do_proc_call(sym,sym.owner,false,again,p1);
+                        { For message methods we need to call DefaultHandler }
+                        if (po_msgint in pd.procoptions) or
+                           (po_msgstr in pd.procoptions) then
+                          begin
+                            sym:=searchsym_in_class(classh,'DEFAULTHANDLER');
+                            if not assigned(sym) or
+                               (sym.typ<>procsym) then
+                              internalerror(200303171);
+                            p1:=nil;
+                            do_proc_call(sym,sym.owner,false,again,p1);
+                          end
+                        else
+                          begin
+                            { we need to ignore the inherited; }
+                            p1:=cnothingnode.create;
+                          end;
                       end
                      else
                       begin
@@ -2399,7 +2407,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.120  2003-05-15 18:58:53  peter
+  Revision 1.121  2003-05-22 17:43:21  peter
+    * search defaulthandler only for message methods
+
+  Revision 1.120  2003/05/15 18:58:53  peter
     * removed selfpointer_offset, vmtpointer_offset
     * tvarsym.adjusted_address
     * address in localsymtable is now in the real direction
