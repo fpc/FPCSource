@@ -990,6 +990,9 @@ implementation
       end;
 
 
+{$ifdef fpc}
+{$maxfpuregisters 0}
+{$endif fpc}
 
     function tinlinenode.det_resulttype:tnode;
 
@@ -1898,11 +1901,6 @@ implementation
       end;
 
 
-{$ifdef fpc}
-{$maxfpuregisters 0}
-{$endif fpc}
-
-
     function tinlinenode.pass_1 : tnode;
       var
          srsym   : tsym;
@@ -2267,7 +2265,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.76  2002-05-18 13:34:10  peter
+  Revision 1.77  2002-06-06 18:53:53  jonas
+    * fixed fpu stack overflow in compiler when compiled with -Or
+
+  Revision 1.76  2002/05/18 13:34:10  peter
     * readded missing revisions
 
   Revision 1.75  2002/05/16 19:46:38  carl
