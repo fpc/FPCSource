@@ -1551,6 +1551,10 @@ unit pdecl;
          hs:='';
          old_block_type:=block_type;
          block_type:=bt_type;
+       { Force an expected ID error message }
+         if not (token in [ID,_CASE,_END]) then
+          consume(ID);
+       { read vars }
          while (token=ID) and
            (pattern<>'PUBLIC') and
            (pattern<>'PRIVATE') and
@@ -1773,7 +1777,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.19  1998-05-23 01:21:19  peter
+  Revision 1.20  1998-05-28 14:35:54  peter
+    * nicer error message when no id is used after var
+
+  Revision 1.19  1998/05/23 01:21:19  peter
     + aktasmmode, aktoptprocessor, aktoutputformat
     + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
     + $LIBNAME to set the library name where the unit will be put in
