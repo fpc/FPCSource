@@ -72,6 +72,7 @@ type
    LPTSTR  = ^char;
    LPCTSTR = ^char;
 {$endif UNICODE}
+   LPWSTR  = ^wchar;
    PVOID   = pointer;
    LPVOID  = pointer;
    LPCVOID = pointer;
@@ -80,6 +81,8 @@ type
    HLocal  = THandle;
    PStr    = pchar;
    LPStr   = pchar;
+   PLPSTR  = ^LPSTR;
+   PLPWSTR = ^LPWSTR;
 
   PSecurityAttributes = ^TSecurityAttributes;
   TSecurityAttributes = record
@@ -116,7 +119,11 @@ type
 
 {
   $Log$
-  Revision 1.3  2000-12-19 11:59:12  michael
+  Revision 1.4  2001-05-02 10:18:04  marco
+   * Added plpwstr, plpstr. Moved lpwstr to the system unit (though the win32
+  part). Delphi has it that way.
+
+  Revision 1.3  2000/12/19 11:59:12  michael
   * Fixes from Peter
 
   Revision 1.2  2000/07/13 11:33:58  michael
