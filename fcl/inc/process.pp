@@ -170,7 +170,7 @@ begin
     end;
 end;
 
-Procedure TProcess.SetWindowRect (Value : Trect);
+Procedure TProcess.SetWindowRect (Value : classes.Trect);
 begin
   With Value do
     begin
@@ -185,7 +185,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2000-02-15 22:03:38  sg
+  Revision 1.7  2000-03-28 06:44:01  michael
+  + TRect should refer to the classes one
+
+  Revision 1.6  2000/02/15 22:03:38  sg
   * Inserted wrong copyright notice ;)  Fixed.
 
   Revision 1.5  2000/02/15 21:57:51  sg
