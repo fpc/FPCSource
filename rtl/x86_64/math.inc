@@ -144,10 +144,9 @@
             fwait
             fldt d
             fistpq res
-            movl res,%eax
-            movl res+4,%edx
+            movq res,%rax
             fldcw oldcw
-      end ['EAX','ECX','EDX'];
+      end ['RAX','RCX'];
 
 
     {$define FPC_SYSTEM_HAS_ROUND}
@@ -170,10 +169,9 @@
             fwait
             fldt d
             fistpq res
-            movl res,%eax
-            movl res+4,%edx
+            movq res,%rax
             fldcw oldcw
-      end ['EAX','EDX'];
+      end ['RAX'];
 
 
     {$define FPC_SYSTEM_HAS_POWER}
@@ -198,7 +196,10 @@
 
 {
   $Log$
-  Revision 1.3  2004-02-06 15:58:21  florian
+  Revision 1.4  2004-04-24 18:31:25  florian
+    * trunc and round for x86-64 fixed
+
+  Revision 1.3  2004/02/06 15:58:21  florian
     * fixed x86-64 assembler problems
 
   Revision 1.2  2004/02/05 01:16:12  florian
