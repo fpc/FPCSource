@@ -1017,8 +1017,8 @@ Parameters:
 \begin{description}
 \item [bytes:\ ] size of requested real mode memory.
 \end{description}
-Return values: The high word of the returned value contains the selector to
-the allocated \dos memory block, the low word the corresponding real mode
+Return values: The low word of the returned value contains the selector to
+the allocated \dos memory block, the high word the corresponding real mode
 segment value. The offset value is always zero.
 This function allocates memory from \dos memory pool, i.e. memory below the 1
 MB boundary that is controlled by \dos. Such memory blocks are typically used
