@@ -275,6 +275,7 @@
       YAspect := modeinfo^.YAspect;
       MaxX := modeinfo^.MaxX;
       MaxY := modeinfo^.MaxY;
+      HardwarePages := modeInfo^.HardwarePages;
       MaxColor := modeinfo^.MaxColor;
       PaletteSize := modeinfo^.PaletteSize;
       { is this a direct color mode? }
