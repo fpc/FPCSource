@@ -495,25 +495,32 @@ Regs.AH := $65;
 Regs.AL := InfoId;
 Regs.BX := CodePage;
 Regs.DX := CountryId;
-Regs.ES := transfer_buffer shr 16;
-Regs.DI := transfer_buffer and 65535;
+Regs.ES := transfer_buffer div 16;
+Regs.DI := transfer_buffer and 15;
 Regs.CX := SizeOf(TCountryInfo);
 RealIntr($21, Regs);
-DosMemGet(transfer_buffer shr 16, transfer_buffer and 65535, CountryInfo, Regs.CX );
+DosMemGet(transfer_buffer div 16, transfer_buffer and 15, CountryInfo, Regs.CX );
 end ;
 
 procedure InitAnsi;
 var CountryInfo: TCountryInfo;
 begin
 GetExtendedCountryInfo(2, $FFFF, $FFFF, CountryInfo);
-DosMemGet(CountryInfo.UpperCaseTable shr 16, 2 + CountryInfo.UpperCaseTable and 65535, UpperCaseTable[128], 128);
+{ this needs to be checked !!
+  this is correct only if UpperCaseTable is
+  and Offset:Segment word record (PM) }
+DosMemGet(CountryInfo.UpperCaseTable shl 16, 2 + (CountryInfo.UpperCaseTable and $FFFF), UpperCaseTable[128], 128);
 end ;
 
 {$ENDIF}
 
 {
   $Log$
-  Revision 1.2  1998-09-16 08:28:42  michael
+  Revision 1.3  1998-09-16 14:34:37  pierre
+    * go32v2 did not compile
+    * wrong code in systr.inc corrected
+
+  Revision 1.2  1998/09/16 08:28:42  michael
   Update from gertjan Schouten, plus small fix for linux
 
   Revision 1.1  1998/04/10 15:17:46  michael

@@ -24,7 +24,10 @@ interface
        linux,
     {$else}
        dos,
-    {$endif}
+    {$ifdef go32v2}
+       go32,
+    {$endif go32v2}
+    {$endif linux}
        objpas; { should become platform independent }
 
 
@@ -132,7 +135,11 @@ end.
 
 {
     $Log$
-    Revision 1.6  1998-09-16 08:28:44  michael
+    Revision 1.7  1998-09-16 14:34:38  pierre
+      * go32v2 did not compile
+      * wrong code in systr.inc corrected
+
+    Revision 1.6  1998/09/16 08:28:44  michael
     Update from gertjan Schouten, plus small fix for linux
 
     Revision 1.5  1998/09/04 08:49:07  peter
