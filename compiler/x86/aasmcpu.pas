@@ -133,12 +133,10 @@ interface
       MaxInsChanges = 3; { Max things a instruction can change }
 
     type
-      { What an instruction can change. Needed for optimizer and spilling code }
+      { What an instruction can change. Needed for optimizer and spilling code.
+      
+        Note: The order of this enumeration is should not be changed! }
       TInsChange = (Ch_None,
-        Ch_All,
-        Ch_Rop1, Ch_Wop1, Ch_RWop1,Ch_Mop1,
-        Ch_Rop2, Ch_Wop2, Ch_RWop2,Ch_Mop2,
-        Ch_Rop3, Ch_WOp3, Ch_RWOp3,Ch_Mop3,
         {Read from a register}
         Ch_REAX, Ch_RECX, Ch_REDX, Ch_REBX, Ch_RESP, Ch_REBP, Ch_RESI, Ch_REDI,
         {write from a register}
@@ -151,7 +149,11 @@ interface
         Ch_MEAX, Ch_MECX, Ch_MEDX, Ch_MEBX, Ch_MESP, Ch_MEBP, Ch_MESI, Ch_MEDI,
         Ch_CDirFlag {clear direction flag}, Ch_SDirFlag {set dir flag},
         Ch_RFlags, Ch_WFlags, Ch_RWFlags, Ch_FPU,
+        Ch_Rop1, Ch_Wop1, Ch_RWop1,Ch_Mop1,
+        Ch_Rop2, Ch_Wop2, Ch_RWop2,Ch_Mop2,
+        Ch_Rop3, Ch_WOp3, Ch_RWOp3,Ch_Mop3,
         Ch_WMemEDI,
+        Ch_All,
         { x86_64 registers }
         Ch_RRAX, Ch_RRCX, Ch_RRDX, Ch_RRBX, Ch_RRSP, Ch_RRBP, Ch_RRSI, Ch_RRDI,
         Ch_WRAX, Ch_WRCX, Ch_WRDX, Ch_WRBX, Ch_WRSP, Ch_WRBP, Ch_WRSI, Ch_WRDI,
@@ -2108,7 +2110,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.60  2004-10-04 20:55:04  peter
+  Revision 1.61  2004-10-04 21:11:24  peter
+    * reverted a minor move in the order of tinschange. The order
+      is required by the optimizer. Added also a remark
+
+  Revision 1.60  2004/10/04 20:55:04  peter
     * fix x86_64 compile
 
   Revision 1.59  2004/10/04 20:46:22  peter
