@@ -129,9 +129,9 @@ implementation
          else
            begin
               if p^.p^.messageinf.i<at^.p^.messageinf.i then
-                insertstr(p,at^.l)
+                insertint(p,at^.l)
               else if p^.p^.messageinf.i>at^.p^.messageinf.i then
-                insertstr(p,at^.r)
+                insertint(p,at^.r)
               else
                 Message1(parser_e_duplicate_message_label,tostr(p^.p^.messageinf.i));
            end;
@@ -558,11 +558,18 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  1999-07-08 10:40:37  peter
+  Revision 1.13  1999-07-11 20:10:23  peter
+    * merged
+
+  Revision 1.12  1999/07/08 10:40:37  peter
     * merged
 
   Revision 1.11  1999/06/15 13:27:06  pierre
    * bug0260 fixed
+
+  Revision 1.10.2.2  1999/07/11 20:07:38  peter
+    * message crash fixed
+    * no error if self is used with non-string message
 
   Revision 1.10.2.1  1999/07/08 10:38:32  peter
     * fixed insertint
