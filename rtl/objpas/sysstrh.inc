@@ -30,12 +30,15 @@ type
    
    { For FloatToText } 
    TFloatFormat = (ffGeneral, ffExponent, ffFixed, ffNumber, ffCurrency);
+   TReplaceFlags = set of (rfReplaceAll, rfIgnoreCase);
    
 const
   { For floattodatetime }
   MinDateTime: TDateTime = -657434.0;      { 01/01/0100 12:00:00.000 AM }
   MaxDateTime: TDateTime =  2958465.99999; { 12/31/9999 11:59:59.999 PM }
        
+
+
 function NewStr(const S: string): PString;
 procedure DisposeStr(S: PString);
 procedure AssignStr(var P: PString; const S: string);
@@ -93,8 +96,8 @@ Function CurrToStr(Value: Currency): string;
 function StrToCurr(const S: string): Currency;
 function StrToBool(const S: string): Boolean;
 function BoolToStr(B: Boolean): string;
-
 function LastDelimiter(const Delimiters, S: string): Integer;
+function StringReplace(const S, OldPattern, NewPattern: string;  Flags: TReplaceFlags): string;
 
 {==============================================================================}
 {   extra functions                                                            }
@@ -106,14 +109,14 @@ function BCDToInt(Value: integer): integer;
 
 {
   $Log$
-  Revision 1.8  2001-09-20 14:39:43  michael
+  Revision 1.9  2001-09-20 14:42:34  michael
   + Implemented missing StringReplace function
-
-  Revision 1.7  2001/09/20 14:38:41  michael
-   Implemented missing StringReplace function
 
   Revision 1.6  2000/12/09 10:39:50  florian
     * fixed merging problem
+
+  Revision 1.1.2.3  2001/09/20 14:35:34  michael
+   Implemented missing StringReplace function
 
   Revision 1.1.2.2  2000/12/07 21:48:58  michael
   + Added LastDelimiter function
