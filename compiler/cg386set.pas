@@ -426,29 +426,9 @@ implementation
                      LOC_REGISTER,
                      LOC_CREGISTER:
                        begin
-                          hr:=regtoreg32(p^.left^.location.register);
-{$ifdef CORRECT_SET_IN_FPC}
-                          if m_tp in aktmodeswitches then
-                            begin
-                               if is_signed(p^.left^.resulttype) then
-                                 AM:=A_MOVSX
-                               else
-                                 AM:=A_MOVZX;
-                               if p^.left^.location.register in [R_AX,R_DI] then
-                                 emit_reg_reg(AM,S_WL,
-                                   p^.left^.location.register,hr)
-                               else if p^.left^.location.register in [R_AL,R_DH] then
-                               emit_reg_reg(AM,S_BL,
-                                 p^.left^.location.register,hr);
-                            end
-                          else
-{$endif CORRECT_SET_IN_FPC}
-                            begin
-                               emit_const_reg(A_AND,S_L,
-                                 255,hr);
-                            end;
-                          emit_const_reg(A_CMP,S_L,
-                            31,hr);
+                          hr:=p^.left^.location.register;
+                          emit_to_reg32(hr);
+                          emit_const_reg(A_CMP,S_L,31,hr);
                           emitjmp(C_NA,l);
                         { reset carry flag }
                           emit_none(A_CLC,S_NO);
@@ -457,8 +437,7 @@ implementation
                         { We have to load the value into a register because
                           btl does not accept values only refs or regs (PFV) }
                           hr2:=getregister32;
-                          emit_const_reg(A_MOV,S_L,
-                            p^.right^.location.reference.offset,hr2);
+                          emit_const_reg(A_MOV,S_L,p^.right^.location.reference.offset,hr2);
                           emit_reg_reg(A_BT,S_L,hr,hr2);
                           ungetregister32(hr2);
                        end;
@@ -495,8 +474,8 @@ implementation
                        emit_reg_reg(A_BT,S_L,hr,hr2);
                        ungetregister32(hr2);
                     end;
-                    emitlab(l2);
                   end;
+                  emitlab(l2);
                 end { of p^.right^.location.reference.is_immediate }
                { do search in a normal set which could have >32 elementsm
                  but also used if the left side contains higher values > 32 }
@@ -919,7 +898,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  1999-11-06 14:34:18  peter
+  Revision 1.44  1999-12-01 22:45:54  peter
+    * fixed wrong assembler with in-node
+
+  Revision 1.43  1999/11/06 14:34:18  peter
     * truncated log to 20 revs
 
   Revision 1.42  1999/09/27 23:44:48  peter

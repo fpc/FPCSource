@@ -2869,6 +2869,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               exprasmlist:=oldlist;
            end;
 
+{$ifdef GDB}
+      if (not inlined) and (cs_debuginfo in aktmoduleswitches) then
+        exprasmlist^.insert(new(pai_force_line,init));
+{$endif GDB}
+
       { a constructor needs a help procedure }
       if (aktprocsym^.definition^.proctypeoption=potype_constructor) then
         begin
@@ -3072,9 +3077,6 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          hs:=proc_names.get;
 
 {$ifdef GDB}
-         if (cs_debuginfo in aktmoduleswitches) then
-           exprasmlist^.insert(new(pai_force_line,init));
-
          if (cs_debuginfo in aktmoduleswitches) and target_os.use_function_relative_addresses then
            stab_function_name := new(pai_stab_function_name,init(strpnew(hs)));
 {$EndIf GDB}
@@ -3447,7 +3449,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.62  1999-11-30 10:40:43  peter
+  Revision 1.63  1999-12-01 22:45:54  peter
+    * fixed wrong assembler with in-node
+
+  Revision 1.62  1999/11/30 10:40:43  peter
     + ttype, tsymlist
 
   Revision 1.61  1999/11/20 01:22:18  pierre
