@@ -215,6 +215,9 @@ endif
 ifeq ($(OS_TARGET),netbsd)
 override TARGET_DIRS+=inet gdbint libasync mysql ibase postgres oracle
 endif
+ifeq ($(OS_TARGET),openbsd)
+override TARGET_DIRS+=inet gdbint libasync mysql ibase postgres oracle
+endif
 override INSTALL_FPCPACKAGE=y
 override INSTALL_FPCSUBDIR=packages/base
 ifdef REQUIRE_UNITSDIR
@@ -1059,6 +1062,15 @@ TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_ORACLE=1
 endif
 ifeq ($(OS_TARGET),netbsd)
+TARGET_DIRS_INET=1
+TARGET_DIRS_GDBINT=1
+TARGET_DIRS_LIBASYNC=1
+TARGET_DIRS_MYSQL=1
+TARGET_DIRS_IBASE=1
+TARGET_DIRS_POSTGRES=1
+TARGET_DIRS_ORACLE=1
+endif
+ifeq ($(OS_TARGET),openbsd)
 TARGET_DIRS_INET=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_LIBASYNC=1

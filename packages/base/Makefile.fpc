@@ -11,6 +11,8 @@ dirs_win32=inet gdbint \
 dirs_go32v2=gdbint
 dirs_netbsd=inet gdbint libasync \
             mysql ibase postgres oracle
+dirs_openbsd=inet gdbint libasync \
+            mysql ibase postgres oracle
 dirs_freebsd=inet gdbint libasync \
              mysql ibase postgres oracle
 
