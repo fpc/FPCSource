@@ -489,7 +489,7 @@ implementation
         releaseright:=true;
 
         { optimize temp to temp copies }
-        if (left.nodetype = temprefn) and
+(*        if (left.nodetype = temprefn) and
            { we may store certain temps in registers in the future, then this }
            { optimization will have to be adapted                             }
            (left.location.loc = LOC_REFERENCE) and
@@ -504,7 +504,7 @@ implementation
             tcgtemprefnode(left).changelocation(right.location.reference);
           end
         { shortstring assignments are handled separately }
-        else if is_shortstring(left.resulttype.def) then
+        else *) if is_shortstring(left.resulttype.def) then
           begin
             {
               we can get here only in the following situations
@@ -959,7 +959,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.120  2004-07-03 10:26:35  peter
+  Revision 1.121  2004-07-15 20:47:53  jonas
+    - disabled temp-to-temp copy optimization, because it can cause errors
+      now that the local variables are temps as well (it can cause local
+      variables to be "freed" in the middle of a procedure)
+
+  Revision 1.120  2004/07/03 10:26:35  peter
     * always pass right before left when type needs refcnt
 
   Revision 1.119  2004/06/29 20:57:03  peter
