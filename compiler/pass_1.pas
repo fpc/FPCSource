@@ -4781,7 +4781,7 @@ unit pass_1;
          { else block }
          if assigned(p^.t1) then
            begin
-              firstpass(p^.right);
+              firstpass(p^.t1);
               p^.registers32:=max(p^.registers32,p^.t1^.registers32);
               p^.registersfpu:=max(p^.registersfpu,p^.t1^.registersfpu);
 {$ifdef SUPPORT_MMX}
@@ -5173,7 +5173,10 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.48  1998-07-30 13:30:35  florian
+  Revision 1.49  1998-07-30 16:07:08  florian
+    * try ... expect <statement> end; works now
+
+  Revision 1.48  1998/07/30 13:30:35  florian
     * final implemenation of exception support, maybe it needs
       some fixes :)
 

@@ -530,11 +530,10 @@ unit pstatmnt;
               consume(_EXCEPT);
               old_in_except_block:=in_except_block;
               in_except_block:=true;
-
+              p_specific:=nil;
               if token=_ON then
                 { catch specific exceptions }
                 begin
-                   p_specific:=nil;
                    repeat
                      consume(_ON);
                      if token=ID then
@@ -1242,7 +1241,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.29  1998-07-30 13:30:37  florian
+  Revision 1.30  1998-07-30 16:07:10  florian
+    * try ... expect <statement> end; works now
+
+  Revision 1.29  1998/07/30 13:30:37  florian
     * final implemenation of exception support, maybe it needs
       some fixes :)
 
