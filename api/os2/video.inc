@@ -425,7 +425,7 @@ begin
                         mov ecx, VideoBufSize
                         shr ecx
                         shr ecx
-                        repnz
+                        repe
                         cmpsd
                         mov SOfs, ecx
                         or ecx, ecx
@@ -449,7 +449,10 @@ end;
 {
 
   $Log$
-  Revision 1.8  2000-10-10 20:28:18  hajny
+  Revision 1.9  2000-10-11 05:28:29  hajny
+    * really a faster version now ;-)
+
+  Revision 1.8  2000/10/10 20:28:18  hajny
     * screen updates speeded up
 
   Revision 1.7  2000/10/08 18:40:58  hajny
