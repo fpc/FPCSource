@@ -11,10 +11,14 @@ rem *** variable, which must end with \ if present). However, be sure which
 rem *** version of AS.EXE, etc. gets called if several such files exist.
 rem *** One of the following parameters may be specified: rtl, compiler,
 rem *** both, cycle and snapshot ("snapshot" being the default), optionally
-rem *** followed by a second parameter "debug" (causing debugging symbols
-rem *** not to be stripped from the created compiler), or "release" (code
-rem *** optimization, debug info stripped out). Parameters _must_ be in
-rem *** lowercase to be recognized correctly, unless running under 4os2).
+rem *** followed by parameters "debug" (causing debugging symbols not to be
+rem *** stripped from the created compiler), "release" (code optimization,
+rem *** debug info stripped out), and "verbose" (compiler messages are
+rem *** shown; the same can be accomplished with setting environment
+rem *** variable DOVERBOSE to 1). Parameters "debug" and "release" are
+rem *** mutually exclusive (the later is used if both are present).
+rem *** Parameters _must_ be in lowercase to be recognized correctly,
+rem *** unless running under 4os2 or compatible.
 rem *** Meaning of parameters:
 rem ***  rtl .......... RTL only, _no_ snapshot created
 rem ***  compiler ..... compiler only, _no_ snapshot created
@@ -34,11 +38,18 @@ rem *** LD.EXE, etc.).
 rem *** Environment variable OTHEROPTS may be used to specify additional
 rem *** switches (e.g. setting level of verbosity, etc.).
 rem *** Environment variable FPCERRLOG can specify a file for error logging
-rem *** (full path needed).
+rem *** (full path needed). Please, note, that the previous contents of
+rem *** file will be overwritten each time the batch file is run.
+rem *** Environment variable VERBOSEOPT may be used to specify level of
+rem *** verbosity used with "verbose" parameter (-va by default, i.e. show
+rem *** everything). Another way would be specifying this in OTHEROPTS
+rem *** variable (see above) and not using "verbose" at all.
 
-echo *"Makefile" for OS/2:
+if .%FPCERRLOG% == . set FPCERRLOG=CON
 
-echo *Setting up environment ...
+echo *"Makefile" for OS/2: > %FPCERRLOG%
+
+echo *Setting up environment ... >> %FPCERRLOG%
 
 rem Check whether FPCDIR exists
 if %FPCDIR%. == . goto ErrorDir
@@ -90,6 +101,9 @@ set RELEASEOPT2=-Xs
 rem "Debug" options (add debug symbols, do all code generation checks)
 set DEBUGOPT1=-g
 set DEBUGOPT2=-Crtoi
+rem "Verbose" options
+if .%VERBOSEOPT% == . set VERBOSEOPT=-va
+set DOVERBOSE=
 rem Place for debug or release options, empty by default
 set CURRENTOPT1=
 set CURRENTOPT2=
@@ -121,7 +135,7 @@ set COMPILER=PPOS2.EXE
 
 :PrgFound
 
-echo *Searching for tools ...
+echo *Searching for tools ... >> %FPCERRLOG%
 
 set REALTOOLS=%FPCTOOLS%
 if %FPCTOOLS%. == . goto SetupTools
@@ -133,7 +147,7 @@ if exist %FPCDIR%\BIN\OS2\%COMPILER%.EXE goto Tools1
 goto NoTools1
 :Tools1
 if exist %FPCDIR%\BIN\OS2\AS.EXE goto Tools1OK
-echo *Warning: %COMPILER% found, but AS.EXE isn't in the same directory!
+echo *Warning: %COMPILER% found, but AS.EXE isn't in the same directory! >> %FPCERRLOG%
 goto NoTools1
 :Tools1OK
 set REALTOOLS=%FPCDIR%\BIN\OS2\
@@ -144,96 +158,102 @@ if exist %FPCDIR%\BIN\%COMPILER%.EXE goto Tools2
 goto NoTools2
 :Tools2
 if exist %FPCDIR%\BIN\AS.EXE goto Tools2OK
-echo *Warning: %COMPILER% found, but AS.EXE isn't in the same directory!
+echo *Warning: %COMPILER% found, but AS.EXE isn't in the same directory! >> %FPCERRLOG%
 goto NoTools2
 :Tools2OK
 set REALTOOLS=%FPCDIR%\BIN\
 goto ToolsOK
 :NoTools2
-echo *Warning: Cannot locate your %COMPILER% and AS.EXE, make sure they're on PATH!
+echo *Warning: Cannot locate your %COMPILER% and AS.EXE, make sure they're on PATH! >> %FPCERRLOG%
 
 :ToolsOK
 
-echo *Checking parameters
+echo *Checking parameters >> %FPCERRLOG%
 set PARAMS=%1
 if .%PARAMS% == . set PARAMS=snapshot
-if %2. == debug set CURRENTOPT1=%DEBUGOPT1%
-if %2. == debug set CURRENTOPT2=%DEBUGOPT2%
-if %2. == release set CURRENTOPT1=%RELEASEOPT1%
-if %2. == release set CURRENTOPT2=%RELEASEOPT2%
+:ParLoop
+shift
+if %1. == . goto NoPars
 if %@EVAL[0] == 0 goto Shl1
-goto Cmd1
+if %1 == debug set CURRENTOPT1=%DEBUGOPT1%
+if %1 == debug set CURRENTOPT2=%DEBUGOPT2%
+if %1 == release set CURRENTOPT1=%RELEASEOPT1%
+if %1 == release set CURRENTOPT2=%RELEASEOPT2%
+if %1 == verbose set DOVERBOSE=1
+goto ParLoop
 :Shl1
 set PARAMS=%@LOWER[%PARAMS%]
-if .%@LOWER[%2] == .debug set CURRENTOPT1=%DEBUGOPT1%
-if .%@LOWER[%2] == .debug set CURRENTOPT2=%DEBUGOPT2%
-if .%@LOWER[%2] == .release set CURRENTOPT1=%RELEASEOPT1%
-if .%@LOWER[%2] == .release set CURRENTOPT2=%RELEASEOPT2%
-:Cmd1
+if %@LOWER[%1] == debug set CURRENTOPT1=%DEBUGOPT1%
+if %@LOWER[%1] == debug set CURRENTOPT2=%DEBUGOPT2%
+if %@LOWER[%1] == release set CURRENTOPT1=%RELEASEOPT1%
+if %@LOWER[%1] == release set CURRENTOPT2=%RELEASEOPT2%
+if %@LOWER[%1] == verbose set DOVERBOSE=1
+goto ParLoop
+:NoPars
 if %PARAMS% == clean goto CleanRTL
 if %PARAMS% == both goto CleanRTL
 if %PARAMS% == snapshot goto CleanRTL
 if %PARAMS% == rtl goto CleanRTL
 if %PARAMS% == cycle goto CleanRTL
 if %PARAMS% == compiler goto CleanCompiler
-echo *Error: Unknown parameter - %PARAMS%
+echo *Error: Unknown parameter - %PARAMS% >> %FPCERRLOG%
 goto End
 
 :CleanRTL
 if %@eval[0] == 0 goto JPCleanRTL
-echo *Cleaning up the RTL (error messages are OK here) ...
-del %OS2OPTF%
-del %OS2RTL%\*.ppo
-del %OS2RTL%\*.oo2
-del %OS2RTL%\ppas.bat
-del %OS2RTL%\ppas.cmd
-del %OS2RTL%\link.res
+echo *Cleaning up the RTL (error messages are OK here) ... >> %FPCERRLOG%
+del %OS2OPTF% >> %FPCERRLOG%
+del %OS2RTL%\*.ppo >> %FPCERRLOG%
+del %OS2RTL%\*.oo2 >> %FPCERRLOG%
+del %OS2RTL%\ppas.bat >> %FPCERRLOG%
+del %OS2RTL%\ppas.cmd >> %FPCERRLOG%
+del %OS2RTL%\link.res >> %FPCERRLOG%
 goto ContCleanRTL
 :JPCleanRTL
-echo *Cleaning up the RTL ...
-del %OS2OPTF% >& nul
-del %OS2RTL%\*.ppo >& nul
-del %OS2RTL%\*.oo2 >& nul
-del %OS2RTL%\ppas.bat >& nul
-del %OS2RTL%\ppas.cmd >& nul
-del %OS2RTL%\link.res >& nul
+echo *Cleaning up the RTL ... >> %FPCERRLOG%
+del %OS2OPTF% >& nul >> %FPCERRLOG%
+del %OS2RTL%\*.ppo >& nul >> %FPCERRLOG%
+del %OS2RTL%\*.oo2 >& nul >> %FPCERRLOG%
+del %OS2RTL%\ppas.bat >& nul >> %FPCERRLOG%
+del %OS2RTL%\ppas.cmd >& nul >> %FPCERRLOG%
+del %OS2RTL%\link.res >& nul >> %FPCERRLOG%
 :ContCleanRTL
 if %PARAMS% == rtl goto Branches
 :CleanCompiler
 if %@eval[0] == 0 goto JPCleanComp
-echo *Cleaning up the compiler (error messages are OK here) ...
-del %OS2OPTF%
-del %COMPSPATH%\*.ppo
-del %COMPSPATH%\*.oo2
-del %COMPSPATH%\pp
-del %COMPSPATH%\pp.exe
-del %COMPSPATH%\ppos2.exe
-del %COMPSPATH%\ppas.bat
-del %COMPSPATH%\ppas.cmd
-del %COMPSPATH%\link.res
+echo *Cleaning up the compiler (error messages are OK here) ... >> %FPCERRLOG%
+del %OS2OPTF% >> %FPCERRLOG%
+del %COMPSPATH%\*.ppo >> %FPCERRLOG%
+del %COMPSPATH%\*.oo2 >> %FPCERRLOG%
+del %COMPSPATH%\pp >> %FPCERRLOG%
+del %COMPSPATH%\pp.exe >> %FPCERRLOG%
+del %COMPSPATH%\ppos2.exe >> %FPCERRLOG%
+del %COMPSPATH%\ppas.bat >> %FPCERRLOG%
+del %COMPSPATH%\ppas.cmd >> %FPCERRLOG%
+del %COMPSPATH%\link.res >> %FPCERRLOG%
 goto ContCleanComp
 :JPCleanComp
-echo *Cleaning up the compiler ...
-del %OS2OPTF% >& nul
-del %COMPSPATH%\*.ppo >& nul
-del %COMPSPATH%\*.oo2 >& nul
-del %COMPSPATH%\pp >& nul
-del %COMPSPATH%\pp.exe >& nul
-del %COMPSPATH%\ppos2.exe >& nul
-del %COMPSPATH%\ppas.bat >& nul
-del %COMPSPATH%\ppas.cmd >& nul
-del %COMPSPATH%\link.res >& nul
+echo *Cleaning up the compiler ... >> %FPCERRLOG%
+del %OS2OPTF% >& nul >> %FPCERRLOG%
+del %COMPSPATH%\*.ppo >& nul >> %FPCERRLOG%
+del %COMPSPATH%\*.oo2 >& nul >> %FPCERRLOG%
+del %COMPSPATH%\pp >& nul >> %FPCERRLOG%
+del %COMPSPATH%\pp.exe >& nul >> %FPCERRLOG%
+del %COMPSPATH%\ppos2.exe >& nul >> %FPCERRLOG%
+del %COMPSPATH%\ppas.bat >& nul >> %FPCERRLOG%
+del %COMPSPATH%\ppas.cmd >& nul >> %FPCERRLOG%
+del %COMPSPATH%\link.res >& nul >> %FPCERRLOG%
 :ContCleanComp
 if %PARAMS% == compiler goto Branches
 if %PARAMS% == both goto Branches
 :CleanSnapshot
 if %@eval[0] == 0 goto JPCleanSnap
-echo *Deleting the old snapshot (error messages are OK here) ...
-del %FPCSRC%\snap-os2.zip
+echo *Deleting the old snapshot (error messages are OK here) ... >> %FPCERRLOG%
+del %FPCSRC%\snap-os2.zip >> %FPCERRLOG%
 goto ContCleanSnap
 :JPCleanSnap
-echo *Deleting the old snapshot ...
-del %FPCSRC%\snap-os2.zip >& nul
+echo *Deleting the old snapshot ... >> %FPCERRLOG%
+del %FPCSRC%\snap-os2.zip >& nul >> %FPCERRLOG%
 :ContCleanSnap
 if %PARAMS% == clean goto End
 
@@ -243,11 +263,11 @@ if %PARAMS% == snapshot goto RTL1
 if %PARAMS% == compiler goto Compiler
 if %PARAMS% == rtl goto RTL1
 if %PARAMS% == cycle goto RTL1
-echo *Error: Unknown parameter - %PARAMS%
+echo *Error: Unknown parameter - %PARAMS% >> %FPCERRLOG%
 goto End
 
 :RTL1
-echo *Creating file with all the needed options and paths for RTL ...
+echo *Creating file with all the needed options and paths for RTL ... >> %FPCERRLOG%
 echo %SKIPCFG% > %OS2OPTF%
 echo %OS2OPT1% >> %OS2OPTF%
 echo %OS2OPT2% >> %OS2OPTF%
@@ -261,62 +281,68 @@ echo -FD%REALTOOLS% >> %OS2OPTF%
 if not .%CURRENTOPT1% == . echo %CURRENTOPT1% >> %OS2OPTF%
 if not .%CURRENTOPT2% == . echo %CURRENTOPT2% >> %OS2OPTF%
 if not .%FPCERRLOG% == . echo -Fe%FPCERRLOG% >> %OS2OPTF%
-echo *Assembling the helpers ...
+if .%DOVERBOSE% == .1 echo %VERBOSEOPT% >> %OS2OPTF%
+if not .%DOVERBOSE% == .1 goto CompStart1
+echo *Start of options used for compilation >> %FPCERRLOG%
+type %OS2OPTF% >> %FPCERRLOG%
+echo *End of options used for compilation >> %FPCERRLOG%
+:CompStart1
+echo *Assembling the helpers ... >> %FPCERRLOG%
 %REALTOOLS%\as -o %OS2RTL%\prt0.oo2 %OS2RTL%\prt0.as
 %REALTOOLS%\as -o %OS2RTL%\prt1.oo2 %OS2RTL%\prt1.as
 %REALTOOLS%\as -o %OS2RTL%\code2.oo2 %OS2RTL%\code2.as
 %REALTOOLS%\as -o %OS2RTL%\code3.oo2 %OS2RTL%\code3.as
-echo *Compiling the system unit ...
+echo *Compiling the system unit ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% -Us %OTHEROPTS% %OS2RTL%\SYSOS2.PAS
-echo *Compiling unit Objects ...
+echo *Compiling unit Objects ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLC%\OBJECTS.PP
-echo *Compiling unit Strings ...
+echo *Compiling unit Strings ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLC%\STRINGS.PP
-echo *Compiling unit HeapTrace ...
+echo *Compiling unit HeapTrace ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLC%\HEAPTRC.PP
-echo *Compiling unit CPU ...
+echo *Compiling unit CPU ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLP%\CPU.PP
-echo *Compiling unit MMX ...
+echo *Compiling unit MMX ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLP%\MMX.PP
-echo *Compiling unit TypInfo ...
+echo *Compiling unit TypInfo ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLO%\TYPINFO.PP
-echo *Compiling unit DosCalls ...
+echo *Compiling unit DosCalls ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\DOSCALLS.PAS
-echo *Compiling unit DOS ...
+echo *Compiling unit DOS ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\DOS.PAS
-echo *Compiling unit CRT ...
+echo *Compiling unit CRT ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\CRT.PAS
-echo *Compiling unit Printer ...
+echo *Compiling unit Printer ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\PRINTER.PAS
-echo *Compiling unit SysUtils ...
+echo *Compiling unit SysUtils ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLO%\SYSUTILS.PP
-echo *Compiling unit Math ...
+echo *Compiling unit Math ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLO%\MATH.PP
-echo *Compiling unit UComplex ...
+echo *Compiling unit UComplex ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLC%\UCOMPLEX.PP
-echo *Compiling unit GetOpts ...
+echo *Compiling unit GetOpts ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLC%\GETOPTS.PP
-echo *Compiling unit KbdCalls ...
+echo *Compiling unit KbdCalls ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\KBDCALLS.PAS
-echo *Compiling unit MouCalls ...
+echo *Compiling unit MouCalls ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\MOUCALLS.PAS
-echo *Compiling unit VioCalls ...
+echo *Compiling unit VioCalls ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\VIOCALLS.PAS
-echo *Compiling unit MonCalls ...
+echo *Compiling unit MonCalls ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\MONCALLS.PAS
-echo *Compiling unit Ports ...
+echo *Compiling unit Ports ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\PORTS.PAS
-echo *Compiling PM units ...
+echo *Compiling PM units ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\PMWIN.PAS
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\PMBITMAP.PAS
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\PMGPI.PAS
-echo *Compiling MMOS2 units ...
+echo *Compiling MMOS2 units ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\DIVE.PAS
 
 if %PARAMS% == rtl goto End
 
 :Compiler
-echo *Creating file with all the needed options and paths for the compiler ...
+echo *Creating file with all the needed options and paths for the compiler ... >> %FPCERRLOG%
 echo %SKIPCFG% > %OS2OPTF%
 echo %OS2OPT1% >> %OS2OPTF%
 echo %OS2OPT2% >> %OS2OPTF%
@@ -333,27 +359,34 @@ echo %OS2EXET% >> %OS2OPTF%
 if not .%CURRENTOPT1% == . echo %CURRENTOPT1% >> %OS2OPTF%
 if not .%CURRENTOPT2% == . echo %CURRENTOPT2% >> %OS2OPTF%
 if not .%FPCERRLOG% == . echo -Fe%FPCERRLOG% >> %OS2OPTF%
-echo *Compiling the compiler ...
+if .%DOVERBOSE% == .1 echo %VERBOSEOPT% >> %OS2OPTF%
+if not .%DOVERBOSE% == .1 goto CompStart2
+echo *Start of options used for compilation >> %FPCERRLOG%
+type %OS2OPTF% >> %FPCERRLOG%
+echo *End of options used for compilation >> %FPCERRLOG%
+:CompStart2
+echo *Compiling the compiler ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %COMPSPATH%\PP.PAS
 :Comp2
-ren %COMPSPATH%\pp.exe ppos2.exe
+ren %COMPSPATH%\pp.exe ppos2.exe >> %FPCERRLOG%
 if exist %COMPSPATH%\ppos2.exe goto OKCompiler
+if not exist %COMPSPATH%\pp goto C2Cont
 if exist %COMPSPATH%\ppas.bat goto PPasBat
 if exist %COMPSPATH%\ppas.cmd goto PPasCmd
-echo *Error: The compiler wasn't compiled!!
+:C2Cont
+echo *Error: The compiler wasn't compiled!! >> %FPCERRLOG%
 goto End
 
 :PPasBat
-echo *Automatic binding failed, trying again ...
+echo *Automatic binding failed, trying again ... >> %FPCERRLOG%
 call %COMPSPATH%\ppas.bat
-del %COMPSPATH%\ppas.bat
+del %COMPSPATH%\ppas.bat >> %FPCERRLOG%
 goto Comp2
-goto PPas
 
 :PPasCmd
-echo *Automatic binding failed, trying again ...
+echo *Automatic binding failed, trying again ... >> %FPCERRLOG%
 call %COMPSPATH%\ppas.cmd
-del %COMPSPATH%\ppas.cmd
+del %COMPSPATH%\ppas.cmd >> %FPCERRLOG%
 goto Comp2
 
 :OKCompiler
@@ -367,30 +400,33 @@ goto CheckEnv
 
 rem Another loop?
 if %CYCLE% == 2 goto CheckEnv
-echo *Backing up previous compiler version ...
-copy %REALTOOLS%ppos2.exe %REALTOOLS%ppos2.%CYCLE%
-echo *Copying the newly created compiler to %REALTOOLS% ...
-copy %COMPSPATH%\ppos2.exe %REALTOOLS%.
+echo *Backing up previous compiler version ... >> %FPCERRLOG%
+copy %REALTOOLS%ppos2.exe %REALTOOLS%ppos2.%CYCLE% >> %FPCERRLOG%
+echo *Copying the newly created compiler to %REALTOOLS% ... >> %FPCERRLOG%
+copy %COMPSPATH%\ppos2.exe %REALTOOLS%. >> %FPCERRLOG%
 if %CYCLE% == 1 goto Cycle2
 set COMPILER=PPOS2.EXE
 set CYCLE=1
-goto Cmd1
+goto NoPars
 
 :Cycle2
 set CYCLE=2
-goto Cmd1
+goto NoPars
 
 :CheckEnv
 
 if %@EVAL[0] == 0 goto Pack
-echo *Warning: Packing in this environment might fail.
-echo *You should press Ctrl-Break now if the current drive is different from that
-echo *of %FPCDIR%; otherwise press any key to continue.
+echo *Warning: Packing in this environment might fail. >> %FPCERRLOG%
+echo *You should press Ctrl-Break now if the current drive is different from that >> %FPCERRLOG%
+echo *of %FPCDIR%; otherwise press any key to continue. >> %FPCERRLOG%
+if not %FPCERRLOG% == CON echo *Warning: Packing in this environment might fail.
+if not %FPCERRLOG% == CON echo *You should press Ctrl-Break now if the current drive is different from that
+if not %FPCERRLOG% == CON echo *of %FPCDIR%; otherwise press any key to continue.
 pause>nul
 cd %FPCSRC%
 
 :Pack
-echo *Packing the snapshot ...
+echo *Packing the snapshot ... >> %FPCERRLOG%
 if %@EVAL[0] == 0 goto SHL2
 goto Cmd2
 :Shl2
@@ -399,22 +435,26 @@ cdd %FPCSRC%
 :Cmd2
 
 rem ZIP.EXE must be on the PATH
-zip -9 -r snap-os2.zip compiler\ppos2.exe rtl\os2\*.ppo rtl\os2\*.oo2 rtl\os2\*.ao2
+zip -9 -r snap-os2.zip compiler\ppos2.exe rtl\os2\*.ppo rtl\os2\*.oo2 rtl\os2\*.ao2 >> %FPCERRLOG%
 if exist snap-os2.zip goto ZipOK
-echo *Error: The ZIP file hasn't been created!!
+echo *Error: The ZIP file hasn't been created!! >> %FPCERRLOG%
 :ZipOK
 if %@EVAL[0] == 0 popd
 
-echo *Done.
+echo *Done. >> %FPCERRLOG%
 
 goto End
+
 :ErrorDir
-echo *Error: Environment variable FPCDIR must point to your base FPC directory!!!
+echo *Error: Environment variable FPCDIR must point to your base FPC directory!!! >> %FPCERRLOG%
 goto End
 
 
   $Log$
-  Revision 1.7  2000-01-26 22:34:36  hajny
+  Revision 1.8  2000-01-29 16:24:01  hajny
+    * logging enhanced, verbose support, error for non-4dos fixed
+
+  Revision 1.7  2000/01/26 22:34:36  hajny
     * support for error logging added
 
   Revision 1.6  2000/01/16 18:44:21  hajny
