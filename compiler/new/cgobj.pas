@@ -129,12 +129,14 @@ unit cgobj;
           procedure a_load_reg_reg(list : paasmoutput;size : tcgsize;reg1,reg2 : tregister);virtual;
 
           {  comparison operations }
-          procedure a_cmp_reg_const_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
+          procedure a_cmp_const_reg_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
             l : pasmlabel);virtual;
-          procedure a_cmp_reg_reg_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : pasmlabel);
-          procedure a_cmp_reg_ref_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;reg : tregister;l : pasmlabel);
-          procedure a_cmp_ref_const_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
-            l : pasmlabel);
+          procedure a_cmp_reg_reg_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : pasmlabel); virtual;
+          procedure a_cmp_reg_ref_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;reg : tregister; const ref: treference; l : pasmlabel); virtual;
+          procedure a_cmp_const_ref_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;const ref : treference;
+            l : pasmlabel); virtual;
+          procedure a_cmp_const_loc_label(list: paasmoutput; size: tcgsiwe;cmp_op: topcmp; const loc: tlocation;
+            l : pasmlabel); virtual;
 
           procedure a_jmp_cond(list : paasmoutput;cond : TOpCmp;l: pasmlabel);
 
@@ -1029,7 +1031,7 @@ unit cgobj;
               a_call_name(list,'FPC_POPADDRSTACK',0);
               a_reg_alloc(list,accumulator);
               g_pop_exception_value_reg(list,accumulator);
-              a_cmp_reg_const_label(list,OS_32,OC_EQ,0,accumulator,noreraiselabel);
+              a_cmp_const_reg_label(list,OS_32,OC_EQ,0,accumulator,noreraiselabel);
               a_reg_dealloc(list,accumulator);
 
            {$IFDEF NEWST}
@@ -1273,7 +1275,7 @@ unit cgobj;
          abstract;
       end;
 
-    procedure tcg.a_cmp_reg_const_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
+    procedure tcg.a_cmp_const_reg_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
       l : pasmlabel);
 
       begin
@@ -1286,17 +1288,58 @@ unit cgobj;
          abstract;
       end;
 
-    procedure tcg.a_cmp_reg_ref_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;reg : tregister;l : pasmlabel);
-
+    procedure tcg.a_cmp_ref_reg_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp; const ref: treference; reg : tregister; l : pasmlabel);
+      var
+        tmpreg: tregister;
       begin
-         abstract;
+        tmpreg := get_scratch_reg(list);
+        a_load_ref_reg(list,size,ref,tmpreg);
+        a_cmp_reg_reg_label(list,size,cmp_op,a,tmpreg,l);
+        free_scratch_reg(tmpreg);
       end;
 
-    procedure tcg.a_cmp_ref_const_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
+    procedure tcg.a_cmp_const_ref_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;const ref : treference;
      l : pasmlabel);
 
+      var
+        tmpreg: tregister;
+
       begin
-         abstract;
+        tmpreg := get_scratch_reg(list);
+        a_load_ref_reg(list,size,ref,tmpreg);
+        a_cmp_const_reg_label(list,size,cmp_op,a,tmpreg,l);
+        free_scratch_reg(tmpreg);
+      end;
+
+    procedure tcg.a_cmp_const_loc_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;const loc : tlocation;
+      l : pasmlabel);
+
+      begin
+        case loc.loc of
+          LOC_REGISTER,LOC_CREGISTER:
+          !!!!!! 64bit locations -> two registers!!
+            a_cmp_const_reg_label(list,size,cmp_op,a,loc.register,l);
+          LOC_REFERENCE,LOC_MEM:
+            a_cmp_const_ref_label(list,size,cmp_op,a,loc.reference,l);
+        end;
+      end;
+
+    procedure tcg.a_cmp_ref_loc_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;const ref: treference;const loc : tlocation;
+      l : pasmlabel);
+      var
+        tmpreg: tregister;
+      begin
+        case loc.loc of
+          LOC_REGISTER,LOC_CREGISTER:
+            a_cmp_ref_reg_label(list,size,cmp_op,ref,loc.register,l);
+          LOC_REFERENCE,LOC_MEM:
+            begin
+              tmpreg := get_scratch_reg(list);
+              a_load_ref_reg(size,location.reference,tmpreg);
+              a_cmp_ref_reg(list,size,cmp_op,ref,tmpreg,l);
+              free_scratch_reg(list,tmpreg);
+            end;
+        end;
       end;
 
     procedure tcg.a_jmp_cond(list : paasmoutput;cond : TOpCmp;l: pasmlabel);
@@ -1326,7 +1369,13 @@ unit cgobj;
 end.
 {
   $Log$
-  Revision 1.2  2001-08-26 13:37:04  florian
+  Revision 1.3  2001-09-05 20:21:03  jonas
+    * new cgflow based on n386flw with all nodes until forn "translated"
+    + a_cmp_loc_*_label methods for tcg
+    + base implementatino for a_cmp_ref_*_label methods
+    * small bugfixes to powerpc cg
+
+  Revision 1.2  2001/08/26 13:37:04  florian
     * some cg reorganisation
     * some PPC updates
 

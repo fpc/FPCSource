@@ -54,7 +54,7 @@ unit cgcpu;
           procedure a_load_reg_reg(list : paasmoutput;size : tcgsize;reg1,reg2 : tregister);virtual;
 
           {  comparison operations }
-          procedure a_cmp_reg_const_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
+          procedure a_cmp_const_reg_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
             l : pasmlabel);virtual;
           procedure a_cmp_reg_reg_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : pasmlabel);
           procedure a_jmp_cond(list : paasmoutput;cond : TOpCmp;l: pasmlabel);
@@ -70,7 +70,7 @@ unit cgcpu;
 
           procedure a_loadaddress_ref_reg(list : paasmoutput;const ref2 : treference;r : tregister);virtual;
 
-          procedure g_concatcopy(list : paasmoutput;const source,dest : treference;len : aword;loadref : boolean);virtual;
+          procedure g_concatcopy(list : paasmoutput;const source,dest : treference;len : aword; delsource,loadref : boolean);virtual;
 
 
           private
@@ -235,7 +235,8 @@ const
             Begin
               list^.concat(new(paicpu,op_reg_const(A_LI,reg,a and $ffff)));
               If (a shr 16) <> 0 Then
-                list^.concat(new(paicpu,op_reg_const(A_ORIS,reg,a shr 16)))
+                list^.concat(new(paicpu,op_reg_const(A_ADDIS,reg,
+                  (a shr 16)+ord(smallint(a and $ffff) < 0))))
             End
           Else
             list^.concat(new(paicpu,op_reg_const(A_LIS,reg,a shr 16)));
@@ -310,7 +311,7 @@ const
 
 {*************** compare instructructions ****************}
 
-      procedure tcgppc.a_cmp_reg_const_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
+      procedure tcgppc.a_cmp_const_reg_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
         l : pasmlabel);
 
       var p: paicpu;
@@ -329,8 +330,8 @@ const
                 list^.concat(new(paicpu,op_const_reg_reg(A_CMP,0,reg,scratch_register)));
                 free_scratch_reg(list,scratch_register);
              end
-           else
-             if (a <= $ffff) then
+          else
+            if (a <= $ffff) then
               list^.concat(new(paicpu,op_const_reg_const(A_CMPLI,0,reg,a)))
             else
               begin
@@ -594,7 +595,7 @@ const
 
 { ************* concatcopy ************ }
 
-    procedure tcgppc.g_concatcopy(list : paasmoutput;const source,dest : treference;len : aword;loadref : boolean);
+    procedure tcgppc.g_concatcopy(list : paasmoutput;const source,dest : treference;len : aword; delsource,loadref : boolean);
 
     var
       p: paicpu;
@@ -615,6 +616,8 @@ const
         if loadref then
           a_load_ref_reg(list,OS_32,source,src.base)
         else a_loadaddress_ref_reg(list,source,src.base);
+        if delsource then
+          del_reference(list,source);
         { load the address of dest into dst.base }
         dst.base := get_scratch_reg(list);
         a_loadaddress_ref_reg(list,dest,dst.base);
@@ -702,7 +705,7 @@ const
         if (a and $ffff) <> 0 Then
           list^.concat(new(paicpu,op_reg_reg_const(OpLo,reg1,reg2,a and $ffff)));
         If (a shr 16) <> 0 Then
-          list^.concat(new(paicpu,op_reg_reg_const(OpHi,reg1,reg2,a shr 16)))
+          list^.concat(new(paicpu,op_reg_reg_const(OpHi,reg1,reg1,a shr 16)))
       end;
 
     procedure tcgppc.a_load_store(list:paasmoutput;op: tasmop;reg:tregister;
@@ -745,7 +748,13 @@ const
 end.
 {
   $Log$
-  Revision 1.1  2001-08-26 13:31:04  florian
+  Revision 1.2  2001-09-05 20:21:03  jonas
+    * new cgflow based on n386flw with all nodes until forn "translated"
+    + a_cmp_loc_*_label methods for tcg
+    + base implementatino for a_cmp_ref_*_label methods
+    * small bugfixes to powerpc cg
+
+  Revision 1.1  2001/08/26 13:31:04  florian
     * some cg reorganisation
     * some PPC updates
 
