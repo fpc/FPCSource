@@ -988,6 +988,7 @@ function DuplicateIcon(_para1:HINST; _para2:HICON):HICON; external 'shell32' nam
 function DdeAbandonTransaction(_para1:DWORD; _para2:HCONV; _para3:DWORD):BOOL;external 'user32' name 'DdeAbandonTransaction';
 function DdeAccessData(_para1:HDDEDATA; _para2:PDWORD):PBYTE;external 'user32' name 'DdeAccessData';
 function DdeAddData(_para1:HDDEDATA; _para2:PBYTE; _para3:DWORD; _para4:DWORD):HDDEDATA;external 'user32' name 'DdeAddData';
+function DdeCallback(_para1, _para2:UINT; _para3:HCONV; _para4, _para5:HSZ;_para6: HDDEDATA; _para7, _para8:PDWORD):HDDEDATA;external 'user32' name 'DdeCallback';
 function DdeClientTransaction(_para1:PBYTE; _para2:DWORD; _para3:HCONV; _para4:HSZ; _para5:UINT;
            _para6:UINT; _para7:DWORD; _para8:PDWORD):HDDEDATA;external 'user32' name 'DdeClientTransaction';
 function DdeCmpStringHandles(_para1:HSZ; _para2:HSZ):longint; external 'user32' name 'DdeCmpStringHandles';
@@ -2178,7 +2179,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  2000-06-15 19:56:12  pierre
+  Revision 1.11  2000-06-29 06:46:37  michael
+  + Added ddecallack
+
+  Revision 1.10  2000/06/15 19:56:12  pierre
    * fix for bug 969: missing DDE functions
 
   Revision 1.9  2000/06/15 11:26:58  pierre
