@@ -19,7 +19,7 @@ declared as a conffile since version 1.0.2.
 Free Vision (fp-fv) had to be removed due to licensing issues; it will return
 into the distribution as soon as these issues are resolved.
 
-And, yes - this is a i386/amd64/powerpc only package currently.
+And, yes - this is a i386/amd64/powerpc/sparc only package currently.
 
 
 Web site and download information:

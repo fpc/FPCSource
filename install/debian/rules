@@ -26,6 +26,9 @@ endif
 ifeq ($(CPU_TARGET),arm)
 PPSUF=arm
 endif
+ifeq ($(CPU_TARGET),sparc)
+PPSUF=sparc
+endif
 
 ifneq ($(CPU_SOURCE),$(CPU_TARGET))
 PPPRE=ppcross
