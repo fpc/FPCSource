@@ -14,7 +14,7 @@
 
  **********************************************************************}
 
-Procedure Finalize (Data,TypeInfo: Pointer);forward;
+Procedure int_finalize (Data,TypeInfo: Pointer);forward;
 
 {****************************************************************************
                   Internal Routines called from the Compiler
@@ -492,7 +492,7 @@ Procedure Finalize (Data,TypeInfo: Pointer);forward;
            while vmt<>nil do
              begin
                 if Assigned(Pointer((Pointer(vmt)+vmtInitTable)^)) then
-                  Finalize(Pointer(Self),Pointer((Pointer(vmt)+vmtInitTable)^));
+                  int_finalize(Pointer(Self),Pointer((Pointer(vmt)+vmtInitTable)^));
                 vmt:=vmt.ClassParent;
              end;
         end;
@@ -661,7 +661,10 @@ Procedure Finalize (Data,TypeInfo: Pointer);forward;
 
 {
   $Log$
-  Revision 1.10  2000-11-07 23:42:21  florian
+  Revision 1.11  2000-11-09 17:50:12  florian
+    * Finalize to int_finalize renamed
+
+  Revision 1.10  2000/11/07 23:42:21  florian
     + AfterConstruction and BeforeDestruction implemented
     + TInterfacedObject implemented
 
