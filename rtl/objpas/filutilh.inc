@@ -29,6 +29,7 @@ Type
     end;
 
 Const 
+  { File attributes }
   faReadOnly  = $00000001; 
   faHidden    = $00000002;
   faSysFile   = $00000004;
@@ -36,12 +37,17 @@ Const
   faDirectory = $00000010;
   faArchive   = $00000020;
   faAnyFile   = $0000003f;
-
+  
+  { File open modes }
   fmOpenRead       = $0000;
   fmOpenWrite      = $0001;
   fmOpenReadWrite  = $0002;
-      
   
+  { File seek origins }    
+  fsFromBeginning = 0;
+  fsFromCurrent   = 1;
+  fsFromEnd       = 2;
+    
 Function FileOpen (Const FileName : string; Mode : Integer) : Longint;
 Function FileCreate (Const FileName : String) : Longint;
 Function FileRead (Handle : Longint; Var Buffer; Count : longint) : Longint;
@@ -65,7 +71,10 @@ Function FileSearch (Const Name, DirList : String) : String;
 
 {
   $Log$
-  Revision 1.4  1999-02-09 12:38:43  michael
+  Revision 1.5  1999-05-15 07:25:22  michael
+  + Defined seek constants
+
+  Revision 1.4  1999/02/09 12:38:43  michael
   * Fixed INt() proble. Defined THandle, included Filemode constants
 
   Revision 1.3  1999/02/02 21:21:37  michael
