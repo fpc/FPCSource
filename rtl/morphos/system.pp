@@ -211,12 +211,12 @@ type
   end; { * Warning: size is not a longword multiple ! * }
 
   PDevice = ^TDevice;
-  tDevice =  record
+  tDevice =  packed record
     dd_Library: TLibrary;
   end;
 
   PUnit = ^tUnit;
-  TUnit = record
+  TUnit = packed record
     unit_MsgPort: TMsgPort;  { queue for unprocessed messages }
                              { instance of msgport is recommended }
     unit_flags,
@@ -286,13 +286,15 @@ var
   MOS_DOSBase    : Pointer;
   MOS_UtilityBase: Pointer;
 
-  MOS_heapPool: Pointer; { pointer for the OS pool for growing the heap }
-  MOS_origDir : LongInt; { original directory on startup }
-  MOS_ambMsg  : PMessage; 
-  MOS_ConName : PChar ='CON:10/30/620/100/FPC Console Output/AUTO/CLOSE/WAIT';
+  MOS_heapPool : Pointer; { pointer for the OS pool for growing the heap }
+  MOS_origDir  : LongInt; { original directory on startup }
+  MOS_ambMsg   : PMessage; 
+  MOS_ConName  : PChar ='CON:10/30/620/100/FPC Console Output/AUTO/CLOSE/WAIT';
+  MOS_ConHandle: LongInt;
   
   argc: LongInt;
   argv: PPChar;
+  envp: PPChar;
 
 
 {*****************************************************************************
@@ -1194,8 +1196,17 @@ begin
  MOS_heapPool:=exec_CreatePool(MEMF_FAST,growheapsize2,growheapsize1);
  if MOS_heapPool=nil then Halt(1);
 
- StdInputHandle:=dos_Input;
- StdOutputHandle:=dos_Output;
+ if MOS_ambMsg=nil then begin
+   StdInputHandle:=dos_Input;
+   StdOutputHandle:=dos_Output;
+ end else begin
+    MOS_ConHandle:=dos_Open(MOS_ConName,1005);
+    if MOS_ConHandle<>0 then begin
+      StdInputHandle:=MOS_ConHandle;
+      StdOutputHandle:=MOS_ConHandle;
+    end else
+      Halt(1);
+ end;
 end;
 
 
@@ -1239,12 +1250,13 @@ Begin
   MOS_ambMsg:=nil;
   MOS_origDir:=0;
   MOS_fileList:=nil;
+  envp:=nil;
   SysInitMorphOS;
 { Set up signals handlers }
 //  InstallSignals;
 { Setup heap }
   InitHeap;
-//  SysInitExceptions;
+  SysInitExceptions;
 { Setup stdin, stdout and stderr }
   SysInitStdIO;
 { Reset IO Error }
@@ -1263,7 +1275,10 @@ End.
 
 {
   $Log$
-  Revision 1.9  2004-05-12 23:18:54  karoly
+  Revision 1.10  2004-06-05 19:49:19  karoly
+    + added console I/O support when running from Ambient
+
+  Revision 1.9  2004/05/12 23:18:54  karoly
     * fixed do_read and dos_Read from being nonsense
 
   Revision 1.8  2004/05/12 20:26:04  karoly
