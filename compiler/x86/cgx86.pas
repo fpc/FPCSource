@@ -99,10 +99,6 @@ unit cgx86;
 
         procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword; delsource,loadref : boolean);override;
 
-        procedure g_new_exception(list : taasmoutput;var jmpbuf,envbuf,href : treference;
-               a : aword; exceptlabel : tasmlabel);override;
-        procedure g_free_exception(list : taasmoutput;var jmpbuf, envbuf, href : treference;
-               a : aword ; endexceptlabel : tasmlabel; onlyfree : boolean);override;
         procedure g_exception_reason_save(list : taasmoutput; const href : treference);override;
         procedure g_exception_reason_save_const(list : taasmoutput; const href : treference; a: aword);override;
         procedure g_exception_reason_load(list : taasmoutput; const href : treference);override;
@@ -1223,51 +1219,6 @@ unit cgx86;
           tg.ungetiftemp(list,source);
       end;
 
-    procedure tcgx86.g_new_exception(list : taasmoutput;var jmpbuf,envbuf,href : treference;
-              a : aword; exceptlabel : tasmlabel);
-      var
-       tmpreg : tregister;
-       tempbuf : treference;
-      begin        
-         { allocate exception frame buffer }
-         cg.a_op_const_reg(list,OP_SUB,36,STACK_POINTER_REG);
-         tmpreg:=rg.getaddressregister(list);
-         cg.a_load_reg_reg(list,OS_ADDR,STACK_POINTER_REG,tmpreg);
-         reference_reset_base(tempbuf,tmpreg,0);
-         
-         jmpbuf:=tempbuf;
-         envbuf:=tempbuf;
-         inc(envbuf.offset,12);
-         a_paramaddr_ref(list,jmpbuf,paramanager.getintparaloc(3));
-         a_paramaddr_ref(list,envbuf,paramanager.getintparaloc(2));
-         a_param_const(list,OS_S32,a,paramanager.getintparaloc(1));
-         a_call_name(list,'FPC_PUSHEXCEPTADDR');
-
-         a_reg_alloc(list,accumulator);
-         a_param_reg(list,OS_ADDR,accumulator,paramanager.getintparaloc(1));
-         a_reg_dealloc(list,accumulator);
-         a_call_name(list,'FPC_SETJMP');
-         list.concat(tai_regalloc.Alloc(accumulator));
-         list.concat(Taicpu.op_reg(A_PUSH,S_L,accumulator));
-         list.concat(tai_regalloc.DeAlloc(accumulator));
-         a_cmp_const_reg_label(list,OS_ADDR,OC_NE,0,accumulator,exceptlabel);
-         reference_release(list,tempbuf);
-      end;
-
-
-    procedure tcgx86.g_free_exception(list : taasmoutput;var jmpbuf, envbuf, href : treference;
-     a : aword ; endexceptlabel : tasmlabel; onlyfree : boolean);
-     begin
-         cg.a_call_name(list,'FPC_POPADDRSTACK');
-         
-         if not onlyfree then
-          begin
-            a_reg_alloc(list,accumulator);
-            g_exception_reason_load(list,href);
-            a_reg_dealloc(list,accumulator);
-            cg.a_cmp_const_reg_label(list,OS_S32,OC_EQ,0,accumulator,endexceptlabel);
-          end;
-     end;
 
 
     procedure tcgx86.g_exception_reason_save(list : taasmoutput; const href : treference);
@@ -1700,7 +1651,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.5  2002-08-04 19:52:04  carl
+  Revision 1.6  2002-08-09 19:18:27  carl
+    * fix generic exception handling
+
+  Revision 1.5  2002/08/04 19:52:04  carl
     + updated exception routines
 
   Revision 1.4  2002/07/27 19:53:51  jonas
