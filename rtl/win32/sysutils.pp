@@ -34,6 +34,7 @@ uses
   windows;
 
 {$DEFINE HAS_SLEEP}
+{$DEFINE HAS_OSERROR}
 
 { Include platform independent interface part }
 {$i sysutilh.inc}
@@ -732,6 +733,12 @@ begin
   Windows.Sleep(MilliSeconds)
 end;
 
+Function GetLastOSError : Integer;
+
+begin
+  Result:=GetLastError;
+end;
+
 {****************************************************************************
                               Initialization code
 ****************************************************************************}
@@ -793,7 +800,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.31  2004-01-20 23:12:49  hajny
+  Revision 1.32  2004-02-08 11:00:18  michael
+  + Implemented winsysut unit
+
+  Revision 1.31  2004/01/20 23:12:49  hajny
     * ExecuteProcess fixes, ProcessID and ThreadID added
 
   Revision 1.30  2004/01/16 20:53:33  michael
