@@ -26,13 +26,6 @@ unit ogbase;
 
 interface
     uses
-{$ifdef Delphi}
-       sysutils,
-       dmisc,
-{$else Delphi}
-       strings,
-       dos,
-{$endif Delphi}
        { common }
        cclasses,
        { targets }
@@ -40,7 +33,7 @@ interface
        { outputwriters }
        owbase,owar,
        { assembler }
-       cpubase,aasmbase,aasmtai;
+       aasmbase,aasmtai;
 
     type
        tobjectoutput = class
@@ -580,7 +573,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2004-06-20 08:55:29  florian
+  Revision 1.16  2004-10-14 17:37:46  mazen
+  * Dos and cpubase units in uses clause are not needed
+
+  Revision 1.15  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.14  2004/06/16 20:07:09  florian
