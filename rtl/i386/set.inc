@@ -23,10 +23,9 @@ function fpc_set_load_small(l: fpc_small_set): fpc_normal_set;assembler;[public,
 asm
         movl    __RESULT,%edi
         movl    l,%eax
-        movl    $7,%ecx
-        movl    %eax,4(%edi)
-        addl    $4,%edi
+        stosl
         xorl    %eax,%eax
+        movl    $7,%ecx
         rep
         stosl
 end ['EAX','ECX','EDI'];
@@ -596,7 +595,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2001-09-04 11:38:55  jonas
+  Revision 1.8  2002-03-29 20:15:44  peter
+    * fixed load_smallset
+
+  Revision 1.7  2001/09/04 11:38:55  jonas
     + searchsystype() and searchsystype() functions in symtable
     * changed ninl and nadd to use these functions
     * i386 set comparison functions now return their results in al instead
