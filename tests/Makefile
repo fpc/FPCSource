@@ -975,6 +975,16 @@ ifeq ($(CPU_TARGET),m68k)
 REQUIRE_PACKAGES_RTL=1
 endif
 endif
+ifeq ($(OS_TARGET),netbsd)
+ifeq ($(CPU_TARGET),powerpc)
+REQUIRE_PACKAGES_RTL=1
+endif
+endif
+ifeq ($(OS_TARGET),netbsd)
+ifeq ($(CPU_TARGET),sparc)
+REQUIRE_PACKAGES_RTL=1
+endif
+endif
 ifeq ($(OS_TARGET),amiga)
 ifeq ($(CPU_TARGET),m68k)
 REQUIRE_PACKAGES_RTL=1
@@ -1399,7 +1409,7 @@ makefiles: fpc_makefiles
 ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
-TESTSUBDIRS=cg cg/cdecl units/system units/dos units/crt units/objects units/strings
+TESTSUBDIRS=cg cg/cdecl units/system units/dos units/crt units/objects units/strings units/sysutils
 TESTDIRS:=test $(addprefix test/,$(TESTSUBDIRS))
 ifeq ($(OS_TARGET),linux)
 INUNIX=1
