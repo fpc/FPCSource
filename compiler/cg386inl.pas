@@ -872,33 +872,33 @@ implementation
          case p^.inlinenumber of
             in_assert_x_y:
               begin
+                 { the node should be removed in the firstpass }
+                 if not (cs_do_assertion in aktlocalswitches) then
+                  internalerror(7123458);
                  otlabel:=truelabel;
                  oflabel:=falselabel;
                  getlabel(truelabel);
                  getlabel(falselabel);
                  secondpass(p^.left^.left);
-                 if cs_do_assertion in aktlocalswitches then
-                   begin
-                      maketojumpbool(p^.left^.left);
-                      emitlab(falselabel);
-                      { erroraddr }
-                      emit_reg(A_PUSH,S_L,R_EBP);
-                      { lineno }
-                      emit_const(A_PUSH,S_L,aktfilepos.line);
-                      { filename string }
-                      hp:=genstringconstnode(current_module^.sourcefiles^.get_file_name(aktfilepos.fileindex));
-                      secondpass(hp);
-                      if codegenerror then
-                       exit;
-                      emitpushreferenceaddr(hp^.location.reference);
-                      disposetree(hp);
-                      { push msg }
-                      secondpass(p^.left^.right^.left);
-                      emitpushreferenceaddr(p^.left^.right^.left^.location.reference);
-                      { call }
-                      emitcall('FPC_ASSERT');
-                      emitlab(truelabel);
-                   end;
+                 maketojumpbool(p^.left^.left);
+                 emitlab(falselabel);
+                 { erroraddr }
+                 emit_reg(A_PUSH,S_L,R_EBP);
+                 { lineno }
+                 emit_const(A_PUSH,S_L,aktfilepos.line);
+                 { filename string }
+                 hp:=genstringconstnode(current_module^.sourcefiles^.get_file_name(aktfilepos.fileindex));
+                 secondpass(hp);
+                 if codegenerror then
+                  exit;
+                 emitpushreferenceaddr(hp^.location.reference);
+                 disposetree(hp);
+                 { push msg }
+                 secondpass(p^.left^.right^.left);
+                 emitpushreferenceaddr(p^.left^.right^.left^.location.reference);
+                 { call }
+                 emitcall('FPC_ASSERT');
+                 emitlab(truelabel);
                  freelabel(truelabel);
                  freelabel(falselabel);
                  truelabel:=otlabel;
@@ -1426,7 +1426,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.75  1999-10-26 12:30:40  peter
+  Revision 1.76  1999-10-29 15:28:51  peter
+    * fixed assert, the tree is now disposed in firstpass if assertions
+      are off.
+
+  Revision 1.75  1999/10/26 12:30:40  peter
     * const parameter is now checked
     * better and generic check if a node can be used for assigning
     * export fixes

@@ -1243,6 +1243,15 @@ implementation
                    end
                  else
                    CGMessage(type_e_mismatch);
+                 { We've checked the whole statement for correctness, now we
+                   can remove it if assertions are off }
+                 if not(cs_do_assertion in aktlocalswitches) then
+                  begin
+                    disposetree(p^.left);
+                    putnode(p);
+                    { we need a valid node, so insert a nothingn }
+                    p:=genzeronode(nothingn);
+                  end;
                end;
 
               else
@@ -1260,7 +1269,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.56  1999-10-26 12:30:46  peter
+  Revision 1.57  1999-10-29 15:28:51  peter
+    * fixed assert, the tree is now disposed in firstpass if assertions
+      are off.
+
+  Revision 1.56  1999/10/26 12:30:46  peter
     * const parameter is now checked
     * better and generic check if a node can be used for assigning
     * export fixes
