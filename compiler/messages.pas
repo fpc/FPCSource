@@ -212,32 +212,35 @@ var
 begin
   s:=Get(nr);
 { $1 -> s1 }
-  repeat
-    i:=pos('$1',s);
-    if i>0 then
-     begin
-       Delete(s,i,2);
-       Insert(s1,s,i);
-     end;
-  until i=0;
+  if s1<>'$1' then
+   repeat
+     i:=pos('$1',s);
+     if i>0 then
+      begin
+        Delete(s,i,2);
+        Insert(s1,s,i);
+      end;
+   until i=0;
 { $2 -> s2 }
-  repeat
-    i:=pos('$2',s);
-    if i>0 then
-     begin
-       Delete(s,i,2);
-       Insert(s2,s,i);
-     end;
-  until i=0;
+  if s1<>'$2' then
+   repeat
+     i:=pos('$2',s);
+     if i>0 then
+      begin
+        Delete(s,i,2);
+        Insert(s2,s,i);
+      end;
+   until i=0;
 { $3 -> s3 }
-  repeat
-    i:=pos('$3',s);
-    if i>0 then
-     begin
-       Delete(s,i,2);
-       Insert(s3,s,i);
-     end;
-  until i=0;
+  if s1<>'S3' then
+   repeat
+     i:=pos('$3',s);
+     if i>0 then
+      begin
+        Delete(s,i,2);
+        Insert(s3,s,i);
+      end;
+   until i=0;
   Get3:=s;
 end;
 
@@ -257,7 +260,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  1998-12-11 00:03:20  peter
+  Revision 1.7  1999-05-01 12:27:51  peter
+    * fixed endless loop with replace $1 with $1
+
+  Revision 1.6  1998/12/11 00:03:20  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.5  1998/09/16 16:41:42  peter
