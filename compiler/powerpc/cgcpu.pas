@@ -1,5 +1,5 @@
 {
-    $id: cgcpu.pas,v 1.43 2002/08/17 09:23:49 florian Exp $
+    $Id$
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements the code generator for the PowerPC
@@ -270,7 +270,7 @@ const
         list.concat(taicpu.op_reg_ref(A_STW,R_TOC,href));
         tmpreg := get_scratch_reg_int(list);
         a_load_ref_reg(list,OS_ADDR,ref,tmpreg);
-        list.concat(taicpu.op_reg_reg(A_MTSPR,R_CTR,tmpreg));
+        list.concat(taicpu.op_reg(A_MTCTR,tmpreg));
         free_scratch_reg(list,tmpreg);
         a_reg_dealloc(list,R_0);
         list.concat(taicpu.op_none(A_BCCTRL));
@@ -1688,7 +1688,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.49  2002-09-01 12:09:27  peter
+  Revision 1.50  2002-09-01 21:04:49  florian
+    * several powerpc related stuff fixed
+
+  Revision 1.49  2002/09/01 12:09:27  peter
     + a_call_reg, a_call_loc added
     * removed exprasmlist references
 

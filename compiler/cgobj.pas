@@ -576,12 +576,12 @@ unit cgobj;
               a_load_reg_reg(list,size,r,locpara.register);
             LOC_REFERENCE:
               begin
+                 if locpara.sp_fixup<>0 then
+                   a_op_const_reg(list,OP_ADD,locpara.sp_fixup,stack_pointer_reg);
                  reference_reset(ref);
                  ref.base:=locpara.reference.index;
                  ref.offset:=locpara.reference.offset;
                  a_load_reg_ref(list,size,r,ref);
-                 {!!!! FIX ME!, take sp_fixup into account }
-                 internalerror(2002071005);
               end
             else
               internalerror(2002071004);
@@ -1585,7 +1585,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.55  2002-09-01 17:05:43  florian
+  Revision 1.56  2002-09-01 21:04:47  florian
+    * several powerpc related stuff fixed
+
+  Revision 1.55  2002/09/01 17:05:43  florian
     + added abstract tcg.g_removevaluepara_openarray
 
   Revision 1.54  2002/09/01 12:09:27  peter

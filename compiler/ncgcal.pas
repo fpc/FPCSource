@@ -89,6 +89,8 @@ implementation
               push_value_para(hightree,inlined,false,para_offset,4,defcoll.paraloc);
             end;
         end;
+
+
       var
          otlabel,oflabel : tasmlabel;
          { temporary variables: }
@@ -156,7 +158,9 @@ implementation
               else
                 begin
                    if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
-                     CGMessage(type_e_mismatch)
+                     begin
+                        CGMessage(type_e_mismatch)
+                     end
                    else
                      begin
                        if inlined then
@@ -1476,7 +1480,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2002-09-01 18:43:27  peter
+  Revision 1.19  2002-09-01 21:04:48  florian
+    * several powerpc related stuff fixed
+
+  Revision 1.18  2002/09/01 18:43:27  peter
     * include accumulator in regs_to_push list
 
   Revision 1.17  2002/09/01 12:13:00  peter

@@ -273,15 +273,14 @@ unit paramgr;
          hp:=tparaitem(p.para.first);
          while assigned(hp) do
            begin
-{$ifdef SUPPORT_MMX}
               if (hp.paraloc.loc in [LOC_REGISTER,LOC_FPUREGISTER,
                  LOC_MMREGISTER]) and
-{$else}
-              if (hp.paraloc.loc in [LOC_REGISTER,LOC_FPUREGISTER]) and
-{$endif}
-              { if the parameter isn't regable, we've to work with the local copy }
-                ((vo_regable in tvarsym(hp.parasym).varoptions) or
-                 (vo_fpuregable in tvarsym(hp.parasym).varoptions)) then
+                 (
+                  (vo_regable in tvarsym(hp.parasym).varoptions) or
+                  (vo_fpuregable in tvarsym(hp.parasym).varoptions) or
+                   paramanager.push_addr_param(hp.paratype.def,p.proccalloption in [pocall_cdecl,pocall_cppdecl]) or
+                   (hp.paratyp in [vs_var,vs_out])
+                 ) then
                 begin
                    case hp.paraloc.loc of
                      LOC_REGISTER:
@@ -306,7 +305,10 @@ end.
 
 {
    $Log$
-   Revision 1.15  2002-08-25 19:25:19  peter
+   Revision 1.16  2002-09-01 21:04:48  florian
+     * several powerpc related stuff fixed
+
+   Revision 1.15  2002/08/25 19:25:19  peter
      * sym.insert_in_data removed
      * symtable.insertvardata/insertconstdata added
      * removed insert_in_data call from symtable.insert, it needs to be

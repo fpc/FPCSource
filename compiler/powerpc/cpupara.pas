@@ -137,6 +137,7 @@ unit cpupara;
          while assigned(hp) do
            begin
               loc:=getparaloc(hp.paratype.def);
+              hp.paraloc.sp_fixup:=0;
               case loc of
                  LOC_REGISTER:
                    begin
@@ -197,8 +198,10 @@ unit cpupara;
                              end
                            else
                               begin
-                                 {!!!!!!!}
-                                 internalerror(2002071005);
+                                 hp.paraloc.loc:=LOC_REFERENCE;
+                                 hp.paraloc.reference.index:=stack_pointer_reg;
+                                 hp.paraloc.reference.offset:=stack_offset;
+                                 inc(stack_offset,4);
                              end;
                         end
                       else
@@ -228,7 +231,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2002-08-31 12:43:31  florian
+  Revision 1.10  2002-09-01 21:04:49  florian
+    * several powerpc related stuff fixed
+
+  Revision 1.9  2002/08/31 12:43:31  florian
     * ppc compilation fixed
 
   Revision 1.8  2002/08/18 10:42:38  florian

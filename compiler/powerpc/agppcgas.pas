@@ -138,7 +138,8 @@ unit agppcgas;
          'insrwi.', 'rotlwi', 'rotlwi.', 'rotlw', 'rotlw.', 'slwi', 'slwi.',
          'srwi', 'srwi.', 'clrlwi', 'clrlwi.', 'clrrwi', 'clrrwi.', 'clrslwi',
          'clrslwi.', 'blr', 'bctr', 'blrl', 'bctrl', 'crset', 'crclr', 'crmove',
-         'crnot', 'mt', 'mf','nop', 'li', 'lis', 'la', 'mr','mr.','not', 'mtcr', 'mtlr', 'mflr');
+         'crnot', 'mt', 'mf','nop', 'li', 'lis', 'la', 'mr','mr.','not', 'mtcr', 'mtlr', 'mflr',
+         'mtctr', 'mfctr');
 
      symaddr2str: array[trefsymaddr] of string[3] = ('','@ha','@l');
 
@@ -367,7 +368,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2002-08-31 19:27:48  jonas
+  Revision 1.17  2002-09-01 21:04:48  florian
+    * several powerpc related stuff fixed
+
+  Revision 1.16  2002/08/31 19:27:48  jonas
     + support top_none for branches
 
   Revision 1.15  2002/08/20 21:40:44  florian
