@@ -1,5 +1,5 @@
 { %version=1.1 }
-{ %rte=0 }
+{ %result=0 }
 
 uses
   SysUtils;
