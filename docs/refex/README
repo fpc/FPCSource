@@ -105,3 +105,10 @@ ex99.pp contains an example of the CompareByte function.
 ex100.pp contains an example of the CompareChar function.
 ex101.pp contains an example of the CompareDWord function.
 ex102.pp contains an example of the CompareWord function.
+ex103.pp contains an example of the FillByte function
+ex104.pp contains an example of the FillDWord function
+ex105.pp contains an example of the IndexByte function.
+ex106.pp contains an example of the IndexWord function.
+ex107.pp contains an example of the IndexDWord function.
+ex108.pp contains an example of the IndexChar function.
+ex109.pp contains an example of the MoveChar0 function.
