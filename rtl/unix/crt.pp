@@ -1525,7 +1525,44 @@ end;
 ******************************************************************************}
 
 var
-  OldIO : TermIos;
+  OldIO : Unix.TermIos;
+  inputRaw, outputRaw: boolean;
+
+procedure saveRawSettings(const tio: Unix.termios);
+Begin
+  with tio do
+   begin
+     inputRaw :=
+       ((c_iflag and (IGNBRK or BRKINT or PARMRK or ISTRIP or
+                                INLCR or IGNCR or ICRNL or IXON)) = 0) and
+       ((c_lflag and (ECHO or ECHONL or ICANON or ISIG or IEXTEN)) = 0);  
+     outPutRaw :=
+       ((c_oflag and OPOST) = 0) and
+       ((c_cflag and (CSIZE or PARENB)) = 0) and
+       ((c_cflag and CS8) <> 0);
+   end;
+end;   
+
+procedure restoreRawSettings(tio: Unix.termios);
+begin
+  with tio do
+    begin
+      if inputRaw then
+        begin
+          c_iflag := c_iflag and (not (IGNBRK or BRKINT or PARMRK or ISTRIP or
+            INLCR or IGNCR or ICRNL or IXON));
+          c_lflag := c_lflag and
+            (not (ECHO or ECHONL or ICANON or ISIG or IEXTEN));
+       end;
+     if outPutRaw then
+       begin
+         c_oflag := c_oflag and not(OPOST);
+         c_cflag := c_cflag and not(CSIZE or PARENB) or CS8;
+       end;
+   end;
+end;
+
+
 Procedure SetRawMode(b:boolean);
 Var
   Tio : Termios;
@@ -1533,11 +1570,15 @@ Begin
   if b then
    begin
      TCGetAttr(1,Tio);
+     SaveRawSettings(Tio);
      OldIO:=Tio;
      CFMakeRaw(Tio);
    end
   else
-   Tio:=OldIO;
+   begin
+     RestoreRawSettings(OldIO);
+     Tio:=OldIO;
+   end;
   TCSetAttr(1,TCSANOW,Tio);
 End;
 
@@ -1652,7 +1693,10 @@ Finalization
 End.
 {
   $Log$
-  Revision 1.4  2001-01-21 20:21:40  marco
+  Revision 1.5  2001-03-21 16:07:03  jonas
+    * fixed problems when using together with graph (web bugs 1225 and 1441)
+
+  Revision 1.4  2001/01/21 20:21:40  marco
    * Rename fest II. Rtl OK
 
   Revision 1.3  2000/09/18 13:38:13  marco
