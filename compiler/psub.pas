@@ -756,6 +756,16 @@ implementation
                              DECLARATION PARSING
 ****************************************************************************}
 
+    { search in symtablestack for not complete classes }
+    procedure check_forward_class(p : tnamedindexitem);
+      begin
+        if (tsym(p).typ=typesym) and
+           (ttypesym(p).restype.def.deftype=objectdef) and
+           (oo_is_forward in tobjectdef(ttypesym(p).restype.def).objectoptions) then
+          MessagePos1(tsym(p).fileinfo,sym_e_forward_type_not_resolved,tsym(p).realname);
+      end;
+
+
     procedure read_declarations(islibrary : boolean);
 
         procedure Not_supported_for_inline(t : ttoken);
@@ -823,16 +833,6 @@ implementation
       end;
 
 
-    { search in symtablestack for not complete classes }
-    procedure check_forward_class(p : tnamedindexitem);
-      begin
-        if (tsym(p).typ=typesym) and
-           (ttypesym(p).restype.def.deftype=objectdef) and
-           (oo_is_forward in tobjectdef(ttypesym(p).restype.def).objectoptions) then
-          MessagePos1(tsym(p).fileinfo,sym_e_forward_type_not_resolved,tsym(p).realname);
-      end;
-
-
     procedure read_interface_declarations;
       begin
          {Since the body is now parsed at lexlevel 1, and the declarations
@@ -868,7 +868,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  2002-01-19 15:20:09  peter
+  Revision 1.44  2002-01-19 15:37:24  peter
+    * commited the wrong file :(
+
+  Revision 1.43  2002/01/19 15:20:09  peter
     * also check at the end of the implementation for incomplete classes
 
   Revision 1.42  2002/01/19 15:12:34  peter
