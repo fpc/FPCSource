@@ -2099,7 +2099,6 @@ implementation
                 result := ctypeconvnode.create_explicit(left,resulttype);
               left := nil;
               firstpass(result);
-              printnode(output,result);
             end;
 
           in_sizeof_x:
@@ -2443,7 +2442,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.147  2004-11-01 17:41:28  florian
+  Revision 1.148  2004-11-01 18:26:52  florian
+    - removed unnecessary printnode
+
+  Revision 1.147  2004/11/01 17:41:28  florian
     * fixed arm compilation with cgutils
     * ...
 
