@@ -1552,40 +1552,40 @@ implementation
           exit;
 
         case nodetype of
-          addn : procname := 'fpc_float32_add';
-          muln : procname := 'fpc_float32_mul';
-          subn : procname := 'fpc_float32_sub';
-          slashn : procname := 'fpc_float32_div';
-          ltn : procname := 'fpc_float32_lt';
-          lten: procname := 'fpc_float32_le';
+          addn : procname := 'fpc_single_add';
+          muln : procname := 'fpc_single_mul';
+          subn : procname := 'fpc_single_sub';
+          slashn : procname := 'fpc_single_div';
+          ltn : procname := 'fpc_single_lt';
+          lten: procname := 'fpc_single_le';
           gtn:
             begin
-             procname := 'fpc_float32_le';
+             procname := 'fpc_single_le';
              notnode := true;
             end;
           gten:
             begin
-              procname := 'fpc_float32_lt';
+              procname := 'fpc_single_lt';
               notnode := true;
             end;
-          equaln: procname := 'fpc_float32_eq';
+          equaln: procname := 'fpc_single_eq';
           unequaln :
             begin
-              procname := 'fpc_float32_eq';
+              procname := 'fpc_single_eq';
               notnode := true;
             end;
           else
             CGMessage(type_e_mismatch);
         end;
-        { otherwise, create the parameters for the helper }
-        right := ccallparanode.create(right,ccallparanode.create(left,nil));
-        left := nil;
+        { convert the arguments (explicitely) to fpc_normal_set's }
+        result := ccallnode.createintern(procname,ccallparanode.create(right,
+           ccallparanode.create(left,nil)));
+        left:=nil;
+        right:=nil;
+        
         { do we need to reverse the result }
         if notnode then
-           result := cnotnode.create(ccallnode.createintern(procname,right))
-        else
-           result := ccallnode.createintern(procname,right);
-        right := nil;
+           result := cnotnode.create(result);
         firstpass(result);
       end;
 {$endif cpufpemu}
@@ -1931,7 +1931,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.80  2003-02-12 22:10:07  carl
+  Revision 1.81  2003-02-15 22:20:14  carl
+   * bugfix for generic calls to FPU emulation code
+
+  Revision 1.80  2003/02/12 22:10:07  carl
     * load_frame_pointer is now generic
     * change fpu emulation routine names
 
