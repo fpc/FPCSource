@@ -23,11 +23,9 @@
 
 Const
   DirSeparators : set of char = ['/','\'];  
-{$ifdef Unix}
-  OSDirSeparator = '/';
-{$else}
-  OsDirSeparator = '\';
-{$endif}
+  OSDirSeparator = system.pathdelim;
+  PathSeparator = system.pathdelim;
+   
 
 function ChangeFileExt(const FileName, Extension: string): string;
 function ExtractFilePath(const FileName: string): string;
@@ -44,7 +42,10 @@ Function GetDirs (Var DirName : String; Var Dirs : Array of pchar) : Longint;
 
 {
   $Log$
-  Revision 1.3  2000-11-13 14:41:20  marco
+  Revision 1.4  2001-11-07 13:57:26  michael
+  + Added PathSeparator and OSDirSeparator
+
+  Revision 1.3  2000/11/13 14:41:20  marco
    * Unix renamefest for defines
 
   Revision 1.2  2000/07/13 11:33:51  michael
