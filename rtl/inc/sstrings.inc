@@ -230,16 +230,20 @@ begin
 end;
 
 
+{$ifdef SUPPORT_EXTENDED}
 procedure int_str_extended(d : extended;len,fr : longint;var s : string);[public, alias : 'STR_EXTENDED'];
 begin
    str_real(len,fr,d,rt_s80real,s);
 end;
+{$endif SUPPORT_EXTENDED}
 
 
+{$ifdef SUPPORT_COMP}
 procedure int_str_comp(d : comp;len,fr : longint;var s : string);[public, alias : 'STR_COMP'];
 begin
    str_real(len,fr,d,rt_s64bit,s);
 end;
+{$endif SUPPORT_COMP}
 
 
 procedure int_str_fixed(d : fixed;len,fr : longint;var s : string);[public, alias : 'STR_FIXED'];
@@ -600,6 +604,7 @@ begin
 end;
 
 
+{$ifdef SUPPORT_EXTENDED}
 procedure val(const s : string;var d : extended;var code : word);
 var
   e : double;
@@ -626,8 +631,10 @@ begin
   val(s,e,code);
   d:=e;
 end;
+{$endif SUPPORT_EXTENDED}
 
 
+{$ifdef SUPPORT_COMP}
 procedure val(const s : string;var d : comp;var code : word);
 var
   e : double;
@@ -654,7 +661,7 @@ begin
   val(s,e,code);
   d:=comp(e);
 end;
-
+{$endif SUPPORT_COMP}
 
 procedure val(const s : string;var v : cardinal;var code : word);
 var
@@ -703,7 +710,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  1998-05-31 14:14:52  peter
+  Revision 1.5  1998-06-04 23:45:59  peter
+    * comp,extended are only i386 added support_comp,support_extended
+
+  Revision 1.4  1998/05/31 14:14:52  peter
     * removed warnings using comp()
 
   Revision 1.3  1998/05/12 10:42:45  peter

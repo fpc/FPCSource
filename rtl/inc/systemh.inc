@@ -33,14 +33,12 @@ Type
   byte     = 0..255;
   Word     = 0..65535;
 
-  { 
-  Boolean = ByteBool;
-  removed because too incompatible with older versions PM }
-
 { at least declare Turbo Pascal real types }
-{$IFDEF i386}
+{$ifdef i386}
   Double = real;
-{$ENDIF}
+  {$define SUPPORT_EXTENDED}
+  {$define SUPPORT_COMP}
+{$endif}
 
 { some type aliases }
   dword    = cardinal;
@@ -57,7 +55,6 @@ const
 { max. values for longint and int}
   maxLongint = $7fffffff;
   maxint = 32767;
-
 
 { Compatibility With  TP }
 {$ifdef i386}
@@ -226,12 +223,16 @@ Procedure Val(const s:string;Var d:Real);
 Procedure Val(const s:string;Var d:single;Var code:Word);
 Procedure Val(const s:string;Var d:single;Var code:Integer);
 Procedure Val(const s:string;Var d:single);
+{$ifdef SUPPORT_EXTENDED}
 Procedure Val(const s:string;Var d:Extended;Var code:Word);
 Procedure Val(const s:string;Var d:Extended;Var code:Integer);
 Procedure Val(const s:string;Var d:Extended);
+{$endif SUPPORT_EXTENDED}
+{$ifdef SUPPORT_COMP}
 Procedure Val(const s:string;Var d:comp;Var code:Word);
 Procedure Val(const s:string;Var d:comp;Var code:Integer);
 Procedure Val(const s:string;Var d:comp);
+{$endif SUPPORT_COMP}
 Procedure Val(const s:string;Var v:cardinal;Var code:Word);
 Procedure Val(const s:string;Var v:cardinal;Var code:Integer);
 Procedure Val(const s:string;Var v:cardinal);
@@ -335,7 +336,10 @@ Procedure AddExitProc(Proc:TProcedure);
 
 {
   $Log$
-  Revision 1.9  1998-06-04 08:26:03  pierre
+  Revision 1.10  1998-06-04 23:46:02  peter
+    * comp,extended are only i386 added support_comp,support_extended
+
+  Revision 1.9  1998/06/04 08:26:03  pierre
     * boolean internal definition again (needed to compile
       older RTL's)
 

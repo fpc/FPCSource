@@ -14,8 +14,6 @@
 
 {****************************************************************************
                                 Local types
-
-
 ****************************************************************************}
 
 {
@@ -92,16 +90,14 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: In_Rewrite_TypedFile];
 ****************************************************************************}
 
 function Hi(b : byte): byte;
-
- begin
+begin
    Hi := b shr 4
- end;
+end;
 
 function Lo(b : byte): byte;
-
- begin
+begin
    Lo := b and $0f
- end;
+end;
 
 Procedure Inc(var i : Cardinal;a: Longint);
 Begin
@@ -234,22 +230,13 @@ End;
 Function Ptr(sel,off : Longint) : pointer;
 Begin
   sel:=0;
-{$IFDEF DoMapping}
-  {$IFDEF DoS}
-    ptr:=pointer($e0000000+sel shl 4+off);
-  {$ELSE}
-    ptr:=pointer(sel shl 4+off);
-  {$ENDIF}
-{$ELSE}
-   ptr:=pointer(off);
-{$ENDIF}
+  ptr:=pointer(off);
 End;
 
 Function Addr (Var X) : Pointer;
 Begin
   Addr:=@(X);
 End;
-
 
 Function CSeg : Word;
 Begin
@@ -284,13 +271,10 @@ Begin
 End;
 
 
-
 procedure fillchar(var x;count : longint;value : char);
-
-  begin
-     fillchar(x,count,byte(value));
-  end;
-
+begin
+  fillchar(x,count,byte(value));
+end;
 
 
 {*****************************************************************************
@@ -308,13 +292,13 @@ Begin
   Halt(0);
 End;
 
-
+{ Seems not to be used (PFV)
 Procedure Initexception;[Public,Alias: 'INITEXCEPTION'];
 Begin
   Writeln('Exception occurred during program initialization.');
   halt(216);
 End;
-
+}
 
 Procedure dump_stack(bp : Longint);
 
@@ -361,14 +345,8 @@ Begin
      Writeln('Run time error  ',Errorcode,' at 0x',hexstr(Longint(Erroraddr),8));
      dump_stack(ErrorBase);
    End;
-{ this is wrong at least for dos !!!
-  in dos input output and stderr must be left open !! }
-{$ifndef DOS}
-{$ifndef GO32V2}
-  Close(Output);
-  Close(StdErr);
-{$endif GO32V2}
-{$endif DOS}
+  Flush(stderr);
+
 End;
 
 
@@ -410,7 +388,10 @@ End;
 
 {
   $Log$
-  Revision 1.6  1998-05-20 11:23:09  cvs
+  Revision 1.7  1998-06-04 23:46:01  peter
+    * comp,extended are only i386 added support_comp,support_extended
+
+  Revision 1.6  1998/05/20 11:23:09  cvs
   * test commit. Shouldn't be allowed.
 
   Revision 1.5  1998/05/12 10:42:45  peter

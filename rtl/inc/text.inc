@@ -467,6 +467,7 @@ Begin
 End;
 
 
+{$ifdef SUPPORT_EXTENDED}
 Procedure w(fixkomma,Len : Longint;var t : TextRec;r : extended);[Public,Alias: 'WRITE_TEXT_EXTENDED'];
 var
   s : String;
@@ -474,8 +475,10 @@ Begin
   Str_real(Len,fixkomma,r,rt_s80real,s);
   w(Len,t,s);
 End;
+{$endif SUPPORT_EXTENDED}
 
 
+{$ifdef SUPPORT_COMP}
 Procedure w(fixkomma,Len : Longint;var t : TextRec;r : comp);[Public,Alias: 'WRITE_TEXT_COMP'];
 var
   s : String;
@@ -483,7 +486,7 @@ Begin
   Str_real(Len,fixkomma,r,rt_s64bit,s);
   w(Len,t,s);
 End;
-
+{$endif SUPPORT_COMP}
 
 Procedure w(fixkomma,Len : Longint;var t : TextRec;r : fixed);[Public,Alias: 'WRITE_TEXT_FIXED'];
 var
@@ -877,6 +880,7 @@ Begin
 End;
 
 
+{$ifdef SUPPORT_EXTENDED}
 Procedure r(var f : TextRec;var d : extended);[Public,Alias: 'READ_TEXT_EXTENDED'];
 var
   hs   : String;
@@ -912,8 +916,10 @@ Begin
   If code<>0 Then
    RunError(106);
 End;
+{$endif SUPPORT_EXTENDED}
 
 
+{$ifdef SUPPORT_COMP}
 Procedure r(var f : TextRec;var d : comp);[Public,Alias: 'READ_TEXT_COMP'];
 var
   hs   : String;
@@ -949,9 +955,14 @@ Begin
   If code<>0 Then
    RunError(106);
 End;
+{$endif SUPPORT_COMP}
+
 {
   $Log$
-  Revision 1.9  1998-06-02 16:47:56  pierre
+  Revision 1.10  1998-06-04 23:46:03  peter
+    * comp,extended are only i386 added support_comp,support_extended
+
+  Revision 1.9  1998/06/02 16:47:56  pierre
     * bug for boolean values greater than one fixed
 
   Revision 1.8  1998/05/31 14:14:54  peter
