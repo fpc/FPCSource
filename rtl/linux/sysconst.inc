@@ -97,10 +97,17 @@ Const
   MAP_ANONYMOUS =$20;
 
   {Constansts Termios/Ioctl (used in Do_IsDevice) }
+  {$ifdef PowerPC}
+  IOCtl_TCGETS=$403c7413;
+  {$else}
   IOCtl_TCGETS=$5401; // TCGETS is also in termios.inc, but the sysunix needs only this
+  {$endif}
 {
   $Log$
-  Revision 1.8  2003-11-19 10:56:15  marco
+  Revision 1.9  2004-02-21 15:14:56  marco
+   * ppc ioctl nr fixed
+
+  Revision 1.8  2003/11/19 10:56:15  marco
    * some constants moved from System
 
   Revision 1.7  2003/11/17 11:28:08  marco

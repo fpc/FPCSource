@@ -449,7 +449,11 @@ CONST
   MAP_ANONYMOUS =$20;
 
   {Constansts Termios/Ioctl (used in Do_IsDevice) }
+  {$ifdef PowerPc}
+  IOCtl_TCGETS=$403c7413;
+  {$else}
   IOCtl_TCGETS=$5401; // TCGETS is also in termios.inc, but the sysunix needs only this
+  {$endif}
 
 
 Function sbrk(size : longint) : pointer;
@@ -479,7 +483,10 @@ end;
 
 {
  $Log$
- Revision 1.16  2004-02-06 15:58:21  florian
+ Revision 1.17  2004-02-21 15:14:55  marco
+  * ppc ioctl nr fixed
+
+ Revision 1.16  2004/02/06 15:58:21  florian
    * fixed x86-64 assembler problems
 
  Revision 1.15  2004/02/05 01:16:12  florian

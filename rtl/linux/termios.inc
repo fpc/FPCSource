@@ -7,7 +7,69 @@ Const
   NCCS = 32;
   NCC = 8;
 
-{$Ifndef BSD}
+{$ifdef powerpc}
+TCGETS            = $403c7413;
+TCSETS            = $803c7414;
+TCSETSW           = $803c7415;
+TCSETSF           = $803c7416;
+TCGETA            = $40147417;
+TCSETA            = $80147418;
+TCSETAW           = $80147419;
+TCSETAF           = $8014741c;
+TCSBRK            = $2000741d;
+TCXONC            = $2000741e;
+TCFLSH            = $2000741f;
+TIOCEXCL          = $540c;
+TIOCNXCL          = $540d;
+TIOCSCTTY         = $540e;
+TIOCGPGRP         = $40047477;
+TIOCSPGRP         = $80047476;
+TIOCOUTQ          = $40047473;
+TIOCSTI           = $5412;
+TIOCGWINSZ        = $40087468;
+TIOCSWINSZ        = $80087467;
+TIOCMGET          = $5415;
+TIOCMBIS          = $5416;
+TIOCMBIC          = $5417;
+TIOCMSET          = $5418;
+TIOCGSOFTCAR      = $5419;
+TIOCSSOFTCAR      = $541a;
+FIONREAD          = $4004667f;
+TIOCINQ           = $4004667f;
+TIOCLINUX         = $541c;
+TIOCCONS          = $541d;
+TIOCGSERIAL       = $541e;
+TIOCSSERIAL       = $541f;
+TIOCPKT           = $5420;
+FIONBIO           = $8004667e;
+TIOCNOTTY         = $5422;
+TIOCSETD          = $5423;
+TIOCGETD          = $5424;
+TCSBRKP           = $5425;
+TIOCTTYGSTRUCT    = $5426;
+FIONCLEX          = $20006602;
+FIOCLEX           = $20006601;
+FIOASYNC          = $8004667d;
+TIOCSERCONFIG     = $5453;
+TIOCSERGWILD      = $5454;
+TIOCSERSWILD      = $5455;
+TIOCGLCKTRMIOS    = $5456;
+TIOCSLCKTRMIOS    = $5457;
+TIOCSERGSTRUCT    = $5458;
+TIOCSERGETLSR     = $5459;
+TIOCSERGETMULTI   = $545a;
+TIOCSERSETMULTI   = $545b;
+TIOCMIWAIT        = $545c;
+TIOCGICOUNT       = $545d;
+TIOCPKT_DATA      = $0;
+TIOCPKT_FLUSHREAD = $1;
+TIOCPKT_FLUSHWRITE= $2;
+TIOCPKT_STOP      = $4;
+TIOCPKT_START     = $8;
+TIOCPKT_NOSTOP    = $10;
+TIOCPKT_DOSTOP    = $20;
+
+{$else}
   { For Terminal handling }
   TCGETS          = $5401;
   TCSETS          = $5402;
@@ -70,7 +132,6 @@ Const
   TIOCPKT_START      = 8;
   TIOCPKT_NOSTOP     = 16;
   TIOCPKT_DOSTOP     = 32;
-{$else}
 
 {$endif}
 Type
