@@ -124,11 +124,11 @@ procedure SetMemoryMutexManager(var MutexMgr: TMemoryMutexManager);
 begin
   { Release old mutexmanager, the default manager does nothing so
     calling this without initializing is safe }
-  MutexMgr.MutexDone;
+  MemoryMutexManager.MutexDone;
   { Copy new mutexmanager }
   MemoryMutexManager:=MutexMgr;
   { Init new mutexmanager }
-  MutexMgr.MutexInit;
+  MemoryMutexManager.MutexInit;
 end;
 
 
@@ -1265,7 +1265,11 @@ end;
 
 {
   $Log$
-  Revision 1.18  2002-10-30 20:39:13  peter
+  Revision 1.19  2002-11-01 17:38:04  peter
+    * fix setmemorymutexmanager to call mutexdone on the already
+      installed manager instead of the passed manager
+
+  Revision 1.18  2002/10/30 20:39:13  peter
     * MemoryManager record has a field NeedLock if the wrapper functions
       need to provide locking for multithreaded programs
 
