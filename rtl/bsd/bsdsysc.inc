@@ -395,8 +395,8 @@ function sys_waitpid(pid : pid_t; var stat_loc : cint; options: cint): pid_t; [p
   be a longint.
 }
 
-begin
- sys_WaitPID:=do_syscall(syscall_nr_WaitPID,PID,longint(Stat_loc),options,0);
+begin // actually a wait4() call with 4th arg 0.
+ sys_WaitPID:=do_syscall(syscall_nr_WaitPID,PID,longint(@Stat_loc),options,0);
 end;
 
 function sys_access(const pathname : pchar; amode : cint): cint; [public, alias : 'FPC_SYSC_ACCESS'];
@@ -525,13 +525,70 @@ begin
   sys_readlink:=do_syscall(syscall_nr_readlink, longint(name),longint(linkname),maxlen);
 end;
 
+Function sys_NanoSleep(const req : timespec;var rem : timespec) : longint; [public, alias : 'FPC_SYSC_NANOSLEEP'];
+begin
+  sys_NanoSleep:=Do_SysCall(syscall_nr_nanosleep,longint(@req),longint(@rem));
+end;
 
+function sys_getcwd(pt:pchar; _size:size_t):pchar;[public, alias :'FPC_SYSC_GETCWD'];
+
+const intpathmax = 1024-4;	// didn't use POSIX data in libc
+				// implementation.
+var ept,bpt : pchar;
+    c	    : char;
+    ret	    : cint;
+
+begin
+   if pt=NIL Then
+    begin 
+      // POSIX: undefined. (exit(nil) ?)
+      // BSD  : allocate mem for path.
+      getmem(pt,intpathmax); 
+      if pt=nil Then 
+        exit(nil);
+      ept:=pt+intpathmax;
+    end 
+   else
+    Begin
+      if (_size=0) Then
+        Begin
+          seterrno(sys_EINVAL);
+	  exit(nil);
+        End; 
+      if (_size=1) Then
+        Begin
+          seterrno(sys_ERANGE);
+	  exit(nil);
+        End; 
+      ept:=pt+_size;
+    end; 
+
+    ret := do_syscall(syscall_nr___getcwd,longint(pt),longint( ept - pt));
+    If (ret = 0) Then 
+	If (pt[0] <> '/') Then
+	   Begin
+	     bpt := pt;
+	     ept := pt + strlen(pt) - 1;
+	     While (bpt < ept) Do
+	       Begin
+  		 c := bpt^;
+ 		 bpt^:=ept^;
+		 inc(bpt);
+		 ept^:=c;
+		 dec(ept);		
+               End;
+           End;
+ sys_getcwd:=pt;
+end;
 
 {$endif}
 
 {
  $Log$
- Revision 1.5  2002-10-18 12:19:58  marco
+ Revision 1.6  2002-10-26 18:27:51  marco
+  * First series POSIX calls commits. Including getcwd.
+
+ Revision 1.5  2002/10/18 12:19:58  marco
   * Fixes to get the generic *BSD RTL compiling again + fixes for thread
     support. Still problems left in fexpand. (inoutres?) Therefore fixed
     sysposix not yet commited

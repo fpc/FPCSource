@@ -34,6 +34,12 @@ begin
  GetErrno:=Errno;
 end;
 
+procedure seterrno(err:longint); [public, alias: 'FPC_SYS_SETERRNO'];
+
+begin
+ Errno:=err;
+end;
+
 { OS independant parts}
 
 {$I system.inc}
@@ -91,7 +97,10 @@ End.
 
 {
   $Log$
-  Revision 1.4  2002-10-18 12:19:58  marco
+  Revision 1.5  2002-10-26 18:27:51  marco
+   * First series POSIX calls commits. Including getcwd.
+
+  Revision 1.4  2002/10/18 12:19:58  marco
    * Fixes to get the generic *BSD RTL compiling again + fixes for thread
      support. Still problems left in fexpand. (inoutres?) Therefore fixed
      sysposix not yet commited

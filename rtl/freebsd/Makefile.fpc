@@ -16,7 +16,7 @@ units=$(SYSTEMUNIT) objpas strings \
       sysutils typinfo math varutils \
       cpu mmx charset ucomplex getopts heaptrc lineinfo \
       errors sockets gpm ipc terminfo \
-      video mouse keyboard console serial variants types systhrds
+      video mouse keyboard console serial variants types systhrds sysctl posix
 rsts=math varutils typinfo
 
 [require]
@@ -210,3 +210,7 @@ ipc$(PPUEXT) : $(UNIXINC)/ipc.pp unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 terminfo$(PPUEXT) : terminfo.pp unix$(PPUEXT)
 
 callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
+
+sysctl$(PPUEXT) : $(BSDINC)/sysctl.pp $(SYSTEMUNIT)$(PPUEXT)
+
+posix$(PPUEXT) : $(POSIXINC)/posix.pp sysctl$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)

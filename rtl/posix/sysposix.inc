@@ -434,19 +434,26 @@ Begin
    InOutRes:=3;
 End;
 
-
+{$define usegetcwd}
 
 procedure getdir(drivenr : byte;var dir : shortstring);
 var
+{$ifndef usegetcwd}
   cwdinfo      : stat;
   rootinfo     : stat;
   thedir,dummy : string[255];
   dirstream    : pdir;
   d            : pdirent;
   name         : string[255];
-  tmp          : string[255];
   thisdir      : stat;
+{$endif}
+  tmp          : string[255];
+
 begin
+{$ifdef usegetcwd}
+ sys_getcwd(@tmp[1],255);
+ dir:=tmp;		
+{$else}
   dir:='';
   thedir:='';
   dummy:='';
@@ -522,6 +529,7 @@ begin
         exit;
       end;
   until false;
+ {$endif}
 end;
 
 
@@ -649,7 +657,10 @@ End.
 *)
 {
  $Log$
- Revision 1.4  2002-09-07 16:01:26  peter
+ Revision 1.5  2002-10-26 18:27:52  marco
+  * First series POSIX calls commits. Including getcwd.
+
+ Revision 1.4  2002/09/07 16:01:26  peter
    * old logs removed and tabs fixed
 
  Revision 1.3  2002/08/20 12:50:22  marco

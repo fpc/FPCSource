@@ -99,8 +99,8 @@ function sys_waitpid(pid : pid_t; var stat_loc : cint; options: cint): pid_t; ex
 function sys_access(const pathname : pchar; amode : cint): cint;external name 'FPC_SYSC_ACCESS';
 function sys_Dup(oldd:cint):cint;  external name 'FPC_SYSC_DUP';
 function sys_Dup2(oldd:cint;newd:cint):cint; external name 'FPC_SYSC_DUP2';
-function geterrno:longint; external name  'FPC_SYS_GETERRNO';
-procedure seterrno (i:longint); external name  'FPC_SYS_SETERRNO';
+function geterrno:cint; external name  'FPC_SYS_GETERRNO';
+procedure seterrno (i:cint); external name  'FPC_SYS_SETERRNO';
 
 {$endif}
 
@@ -110,7 +110,10 @@ procedure seterrno (i:longint); external name  'FPC_SYS_SETERRNO';
 
 {
  $Log$
- Revision 1.5  2002-09-07 16:01:17  peter
+ Revision 1.6  2002-10-26 18:27:51  marco
+  * First series POSIX calls commits. Including getcwd.
+
+ Revision 1.5  2002/09/07 16:01:17  peter
    * old logs removed and tabs fixed
 
  Revision 1.4  2002/08/21 07:03:16  marco

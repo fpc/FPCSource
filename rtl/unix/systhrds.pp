@@ -156,6 +156,8 @@ CONST
   MAP_PRIVATE   =2;
   MAP_ANONYMOUS =$1000;
 
+  // include some non posix internal types.
+  {$i bsdtypes.inc}
   // *BSD POSIX. Include headers to syscalls.
   {$I bsdsysch.inc}
 
@@ -380,7 +382,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2002-10-18 18:05:06  marco
+  Revision 1.4  2002-10-26 18:27:52  marco
+   * First series POSIX calls commits. Including getcwd.
+
+  Revision 1.3  2002/10/18 18:05:06  marco
    * $I pthread.inc instead of pthreads.inc
 
   Revision 1.2  2002/10/18 12:19:59  marco

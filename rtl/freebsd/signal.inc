@@ -77,7 +77,7 @@ const
  * those in mcontext_t.
  }
 
-type sigset_t = array[0..15] of byte;
+type sigset_t = array[0..3] of Longint;
 
     PSigContextRec = ^SigContextRec;
     SigContextRec = record
@@ -152,7 +152,10 @@ type sigset_t = array[0..15] of byte;
 
 {
   $Log$
-  Revision 1.5  2002-10-18 12:19:59  marco
+  Revision 1.6  2002-10-26 18:27:52  marco
+   * First series POSIX calls commits. Including getcwd.
+
+  Revision 1.5  2002/10/18 12:19:59  marco
    * Fixes to get the generic *BSD RTL compiling again + fixes for thread
      support. Still problems left in fexpand. (inoutres?) Therefore fixed
      sysposix not yet commited

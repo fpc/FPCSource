@@ -51,27 +51,38 @@ end;
 
 function wifexited(status : cint): cint;
 begin
- wifexited:=cint((status AND %1111111) =0);
+ wifexited:=cint((status AND &177) =0);
 end;
 
 function wexitstatus(status : cint): cint;
 begin
- wexitstatus:=(status and %1111111) shl 8;
+ wexitstatus:=(status and &177) shl 8;
 end;
 
 function wstopsig(status : cint): cint;
 begin
- wstopsig:=(status and %1111111) shl 8;
+ wstopsig:=(status and &177) shl 8;
 end;
+
+const wstopped=&177;
 
 function wifsignaled(status : cint): cint;
 begin
- wifsignaled:=cint(((status and %1111111)<>%1111111) and ((status and %1111111)<>0));
+ wifsignaled:=cint(((status and &177)<>wstopped) and ((status and &177)<>0));
+end;
+
+function wtermsig(status : cint):cint;
+
+begin
+ wtermsig:=cint(status and &177);
 end;
 
 {
   $Log$
-  Revision 1.2  2002-09-07 16:01:17  peter
+  Revision 1.3  2002-10-26 18:27:51  marco
+   * First series POSIX calls commits. Including getcwd.
+
+  Revision 1.2  2002/09/07 16:01:17  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/08/19 12:29:11  marco

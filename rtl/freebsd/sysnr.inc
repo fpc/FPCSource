@@ -36,7 +36,6 @@ const
  syscall_nr_getpid                      = 20;
  syscall_nr_mount                       = 21;
  syscall_nr_unmount                     = 22;
- syscall_nr_setuid                      = 23;
  syscall_nr_getuid                      = 24;
  syscall_nr_geteuid                     = 25;
  syscall_nr_ptrace                      = 26;
@@ -76,9 +75,7 @@ const
  syscall_nr_mprotect                    = 74;
  syscall_nr_madvise                     = 75;
  syscall_nr_mincore                     = 78;
- syscall_nr_getgroups                   = 79;
  syscall_nr_setgroups                   = 80;
- syscall_nr_getpgrp                     = 81;
  syscall_nr_setpgid                     = 82;
  syscall_nr_swapon                      = 85;
 
@@ -107,7 +104,7 @@ const
  syscall_nr_rmdir                       =137;
  syscall_nr_utimes                      =138;
  syscall_nr_adjtime                     =140;
- syscall_nr_setsid                      =147;
+
  syscall_nr_quotactl                    =148;
  syscall_nr_nfssvc                      =155;
  syscall_nr_statfs                      =157;
@@ -124,7 +121,6 @@ const
  syscall_nr_pread                       =173;
  syscall_nr_pwrite                      =174;
  syscall_nr_ntp_adjtime                 =176;
- syscall_nr_setgid                      =181;
  syscall_nr_setegid                     =182;
  syscall_nr_seteuid                     =183;
  syscall_nr_stat                        =188;
@@ -202,7 +198,6 @@ syscall_nr_getdirentries                =196;
  syscall_nr_thr_wakeup                  =323;
  syscall_nr_mlockall                    =324;
  syscall_nr_munlockall                  =325;
- syscall_nr___getcwd                    =326;
  syscall_nr_sched_setparam              =327;
  syscall_nr_sched_getparam              =328;
  syscall_nr_sched_setscheduler          =329;
@@ -240,10 +235,15 @@ syscall_nr_getdirentries                =196;
 }
 
 {More or less checked BSD syscalls}
+ syscall_nr___getcwd                    =326;
  syscall_nr_getitimer                   = 86;
  syscall_nr_setitimer                   = 83;
  syscall_nr___syscall                   =198;
-
+ syscall_nr_setsid                      =147;
+ syscall_nr_getpgrp                     = 81;
+ syscall_nr_setuid                      = 23;
+ syscall_nr_setgid                      =181;
+ syscall_nr_getgroups                   = 79;
  syscall_nr_sysarch                     = 165;
  syscall_nr_accept                      =  30;
  syscall_nr_access                      =  33;
@@ -318,7 +318,10 @@ syscall_nr_getdirentries                =196;
 
 {
   $Log$
-  Revision 1.7  2002-09-07 16:01:18  peter
+  Revision 1.8  2002-10-26 18:27:52  marco
+   * First series POSIX calls commits. Including getcwd.
+
+  Revision 1.7  2002/09/07 16:01:18  peter
     * old logs removed and tabs fixed
 
   Revision 1.6  2002/08/19 12:32:34  marco
