@@ -428,7 +428,8 @@ implementation
                while assigned(classh) do
                 begin
                   sym:=tsym(classh.symtable.search(pattern));
-                  if assigned(sym) then
+                  if assigned(sym) and
+                     tstoredsym(sym).is_visible_for_proc(aktprocdef) then
                    break;
                   classh:=classh.childof;
                 end;
@@ -1318,7 +1319,8 @@ implementation
                                  { search also in inherited methods }
                                  repeat
                                    srsym:=tvarsym(tobjectdef(htype.def).symtable.search(pattern));
-                                   if assigned(srsym) then
+                                   if assigned(srsym) and
+                                      tstoredsym(srsym).is_visible_for_proc(aktprocdef) then
                                     break;
                                    htype.def:=tobjectdef(htype.def).childof;
                                  until not assigned(htype.def);
@@ -1759,7 +1761,8 @@ implementation
                              while assigned(classh) do
                               begin
                                 hsym:=tsym(classh.symtable.search(pattern));
-                                if assigned(hsym) then
+                                if assigned(hsym) and
+                                   tstoredsym(hsym).is_visible_for_proc(aktprocdef) then
                                  break;
                                 classh:=classh.childof;
                               end;
@@ -1787,7 +1790,8 @@ implementation
                               while assigned(classh) do
                                 begin
                                    hsym:=tsym(classh.symtable.search(pattern));
-                                   if assigned(hsym) then
+                                   if assigned(hsym) and
+                                      tstoredsym(hsym).is_visible_for_proc(aktprocdef) then
                                      break;
                                    classh:=classh.childof;
                                 end;
@@ -1973,7 +1977,8 @@ implementation
                   while assigned(classh) do
                    begin
                      sym:=tsym(tobjectdef(classh).symtable.search(hs));
-                     if assigned(sym) then
+                     if assigned(sym) and
+                        tstoredsym(sym).is_visible_for_proc(aktprocdef) then
                       begin
                         if sym.typ=procsym then
                          begin
@@ -2483,7 +2488,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.55  2002-01-24 18:25:49  peter
+  Revision 1.56  2002-01-29 21:25:22  peter
+    * more checks for private and protected
+
+  Revision 1.55  2002/01/24 18:25:49  peter
    * implicit result variable generation for assembler routines
    * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
 
