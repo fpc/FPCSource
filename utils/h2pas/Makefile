@@ -34,6 +34,8 @@ PASEXT=.pas
 EXEOBJECTS=h2pas
 UNITOBJECTS=
 
+EXTRAUNITS=options lexlib scan yacclib converu
+
 
 #####################################################################
 # Common targets
@@ -45,7 +47,7 @@ UNITOBJECTS=
         
 all: testfpcmake fpc_all
 
-clean: testfpcmake fpc_cleanall
+clean: testfpcmake fpc_clean
 
 install: testfpcmake fpc_install
 
@@ -147,7 +149,14 @@ endif
 
 #
 # $Log$
-# Revision 1.1  1999-05-12 16:11:39  peter
+# Revision 1.2  1999-06-18 11:03:14  peter
+#   * merged
+#
+# Revision 1.1.2.1  1999/06/18 10:55:37  peter
+#   * version fixes
+#   * EXTRAUNITS to set extra units that are build and needs to be cleaned
+#
+# Revision 1.1  1999/05/12 16:11:39  peter
 #   * moved
 #
 # Revision 1.12  1999/04/01 22:52:01  peter

@@ -869,16 +869,19 @@ endif
 #####################################################################
 
 fpc_clean:
-	-$(DEL) $(UNITOFILES) $(UNITAFILES) $(UNITFILES) $(PPAS) link.res log
-ifeq ($(SMARTLINK),YES)
-	-$(DELTREE) *$(SMARTEXT)
-endif
+ifdef UNITOBJECTS
+	-$(DEL) $(UNITOFILES) $(UNITAFILES) $(UNITFILES)
+endif	
 ifdef EXEOBJECTS
 	-$(DEL) $(EXEFILES) $(EXEOFILES)
 endif
 ifdef LOADEROBJECTS
 	-$(DEL) $(LOADEROFILES)
 endif
+ifdef EXTRAUNITS
+	-$(DEL) $(addsuffix $(OEXT),$(EXTRAUNITS)) $(addsuffix $(STATICLIBEXT),$(EXTRAUNITS)) $(addsuffix $(PPUEXT),$(EXTRAUNITS)) 
+endif	
+	-$(DEL) $(PPAS) link.res log
 
 fpc_libsclean: clean
 	-$(DEL) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
@@ -1021,7 +1024,10 @@ endif
 
 #
 # $Log$
-# Revision 1.34  1999-06-18 10:11:18  peter
+# Revision 1.35  1999-06-18 11:03:08  peter
+#   * merged
+#
+# Revision 1.34  1999/06/18 10:11:18  peter
 #   * merged
 #
 # Revision 1.33  1999/06/13 22:43:23  peter
@@ -1029,6 +1035,10 @@ endif
 #
 # Revision 1.32  1999/06/11 13:31:14  hajny
 #   * fixes for OS/2
+#
+# Revision 1.31.2.3  1999/06/18 10:55:31  peter
+#   * version fixes
+#   * EXTRAUNITS to set extra units that are build and needs to be cleaned
 #
 # Revision 1.31.2.2  1999/06/18 10:07:27  peter
 #   * rtl/linux and units/linux also for linux installs
