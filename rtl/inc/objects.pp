@@ -1639,6 +1639,7 @@ END;
 {---------------------------------------------------------------------------}
 FUNCTION TMemoryStream.ChangeListSize (ALimit: Sw_Word): Boolean;
 VAR I, W: Word; Li: LongInt; P: PPointerArray;
+    OldVal : Boolean;
 BEGIN
    If (ALimit <> BlkCount) Then Begin                 { Change is needed }
      ChangeListSize := False;                         { Preset failure }
@@ -1648,7 +1649,14 @@ BEGIN
        If (MaxAvail > Li) Then Begin
          GetMem(P, Li);                               { Allocate memory }
          FillChar(P^, Li, #0);                        { Clear the memory }
-       End Else Exit;                                 { Insufficient memory }
+       End Else Begin
+         OldVal:=ReturnNilIfGrowHeapFails;
+         ReturnNilIfGrowHeapFails:=true;
+         GetMem(P,Li);
+         ReturnNilIfGrowHeapFails:=OldVal;
+         If P = Nil Then Exit;
+         FillChar(P^, Li, #0);                        { Clear the memory }
+       End;                           { Insufficient memory }
        If (BlkCount <> 0) AND (BlkList <> Nil) Then   { Current list valid }
          If (BlkCount <= ALimit) Then Move(BlkList^,
            P^, BlkCount * SizeOf(Pointer)) Else       { Move whole old list }
@@ -1660,10 +1668,16 @@ BEGIN
      If (P <> Nil) AND (ALimit > BlkCount) Then Begin { Expand stream size }
        For W := BlkCount To ALimit-1 Do Begin
          If (MaxAvail < BlkSize) Then Begin           { Check enough memory }
-           For I := BlkCount To W-1 Do
-             FreeMem(P^[I], BlkSize);                 { Free mem allocated }
-           FreeMem(P, Li);                            { Release memory }
-           Exit;                                      { Now exit }
+           OldVal:=ReturnNilIfGrowHeapFails;
+           ReturnNilIfGrowHeapFails:=true;
+           GetMem(P^[W],BlkSize);
+           ReturnNilIfGrowHeapFails:=OldVal;
+           If P = Nil Then Begin
+             For I := BlkCount To W-1 Do
+               FreeMem(P^[I], BlkSize);                 { Free mem allocated }
+             FreeMem(P, Li);                            { Release memory }
+             Exit;
+           End                      { Now exit }
          End Else GetMem(P^[W], BlkSize);             { Allocate memory }
        End;
      End;
@@ -2786,7 +2800,12 @@ END;
 END.
 {
   $Log$
-  Revision 1.36  2000-03-06 20:15:32  daniel
+  Revision 1.37  2000-04-07 21:10:35  pierre
+    + ReturnNilIfGrowHeapFails used in objects unit
+      to handle TMemoryStream out of memory properly
+      as MaxAvail is not a good test anymore.
+
+  Revision 1.36  2000/03/06 20:15:32  daniel
     + Added is_object method to Tobject. It is similar to the is operator.
 
   Revision 1.35  2000/02/09 16:59:30  peter

@@ -826,7 +826,10 @@ begin
      NewPos:=Sbrk(size);
      if NewPos=-1 then
       begin
-        GrowHeap:=0;
+        if ReturnNilIfGrowHeapFails then
+          GrowHeap:=1
+        else
+          GrowHeap:=0;
         Exit;
       end;
    end;
@@ -881,7 +884,12 @@ end;
 
 {
   $Log$
-  Revision 1.36  2000-03-13 21:22:28  peter
+  Revision 1.37  2000-04-07 21:10:35  pierre
+    + ReturnNilIfGrowHeapFails used in objects unit
+      to handle TMemoryStream out of memory properly
+      as MaxAvail is not a good test anymore.
+
+  Revision 1.36  2000/03/13 21:22:28  peter
     * concat free blocks in main freelist
 
   Revision 1.35  2000/03/10 12:41:21  pierre

@@ -36,6 +36,7 @@ function  IsMemoryManagerSet: Boolean;
 const
   growheapsize1 : longint=256*1024;  { < 256k will grow with 256k }
   growheapsize2 : longint=1024*1024; { > 256k will grow with 1m }
+  ReturnNilIfGrowHeapFails : boolean = false;
 var
   heaporg,heapptr,heapend,heaperror,freelist : pointer;
 
@@ -77,7 +78,12 @@ Procedure release(var p : pointer);
 
 {
   $Log$
-  Revision 1.17  2000-02-09 16:59:30  peter
+  Revision 1.18  2000-04-07 21:10:35  pierre
+    + ReturnNilIfGrowHeapFails used in objects unit
+      to handle TMemoryStream out of memory properly
+      as MaxAvail is not a good test anymore.
+
+  Revision 1.17  2000/02/09 16:59:30  peter
     * truncated log
 
   Revision 1.16  2000/01/31 23:41:30  peter
