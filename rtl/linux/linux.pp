@@ -544,6 +544,8 @@ Function  fdSeek (fd,pos,seektype :longint): longint;
 Function  fdFlush (fd : Longint) : Boolean;
 Function  Link(OldPath,NewPath:pathstr):boolean;
 Function  SymLink(OldPath,NewPath:pathstr):boolean;
+Function  ReadLink(name,linkname:pchar;maxlen:longint):longint;
+Function  ReadLink(name:pathstr):pathstr;
 Function  UnLink(Path:pathstr):boolean;
 Function  UnLink(Path:pchar):Boolean;
 Function  FReName (OldName,NewName : Pchar) : Boolean;
@@ -1775,6 +1777,35 @@ begin
   linuxerror:=errno;
 end;
 
+
+Function ReadLink(name,linkname:pchar;maxlen:longint):longint;
+{
+  Read a link (where it points to)
+}
+begin
+  Readlink:=Sys_readlink(Name,LinkName,maxlen);
+  linuxerror:=errno;
+end;
+
+
+Function ReadLink(Name:pathstr):pathstr;
+{
+  Read a link (where it points to)
+}
+var
+  LinkName : pathstr;
+  i : longint;
+begin
+  Name:=Name+#0;
+  i:=ReadLink(@Name[1],@LinkName[1],high(linkname));
+  if i>0 then
+   begin
+     linkname[0]:=chr(i);
+     ReadLink:=LinkName;
+   end
+  else
+   ReadLink:='';
+end;
 
 
 Function UnLink(Path:pathstr):boolean;
@@ -3817,7 +3848,10 @@ End.
 
 {
   $Log$
-  Revision 1.59  2000-01-07 16:41:40  daniel
+  Revision 1.60  2000-02-08 12:05:58  peter
+    + readlink
+
+  Revision 1.59  2000/01/07 16:41:40  daniel
     * copyright 2000
 
   Revision 1.58  2000/01/07 16:32:26  daniel
