@@ -510,6 +510,8 @@ begin
   R.Grow(-1,-1); R.A.Y:=R.B.Y-1;
   New(KeyST, Init(R, '', Blue*16+White+longint($80+Blue*16+White)*256,true));
   Insert(KeyST);
+  { Reset Status infos see bug 1585 }
+  Fillchar(Status,SizeOf(Status),#0);
 end;
 
 
@@ -1231,7 +1233,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2001-08-05 02:01:47  peter
+  Revision 1.3  2001-09-12 09:25:01  pierre
+   * fix bug 1585
+
+  Revision 1.2  2001/08/05 02:01:47  peter
     * FVISION define to compile with fvision units
 
   Revision 1.1  2001/08/04 11:30:22  peter
