@@ -12,11 +12,19 @@ const
   libc='c';
 {$endif}
 
-procedure printf(fm: pchar; args: array of const); cdecl; external libc;
+procedure sprintf(a, fm: pchar; args: array of const); cdecl; external libc;
 
 procedure print(args: array of const);
+var
+  a : array[0..255] of char;
 begin
-  printf('a number %i'#13#10,args);
+  sprintf(a,'a number %i',args);
+  writeln(a);
+  if a<>'a number 3333' then
+   begin
+     writeln('Error!');
+     halt(1);
+   end;
 end;
 
 begin
