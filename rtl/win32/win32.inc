@@ -47,6 +47,9 @@ const
    FILE_CURRENT = 1;
    FILE_END = 2;
 
+   VER_PLATFORM_WIN32s = 0;
+   VER_PLATFORM_WIN32_WINDOWS = 1;
+   VER_PLATFORM_WIN32_NT = 2;
 type
    {UINT  = longint;
    BOOL  = longint; obsolete }
@@ -106,7 +109,10 @@ type
 
 {
   $Log$
-  Revision 1.9  2000-01-07 16:41:53  daniel
+  Revision 1.10  2000-01-25 13:15:35  florian
+    * new constants to compile dos unit again
+
+  Revision 1.9  2000/01/07 16:41:53  daniel
     * copyright 2000
 
   Revision 1.8  1999/01/29 09:24:48  pierre
