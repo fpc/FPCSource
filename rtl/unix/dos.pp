@@ -15,10 +15,10 @@
 Unit Dos;
 Interface
 
-{$i dosh.inc}
+Const 
+  FileNameLen = 255;
 
 Type
-
   SearchRec =
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
     packed
@@ -40,6 +40,9 @@ Type
     SearchSpec : String[FileNameLen]; {search pattern}
     NamePos    : Word;        {end of path, start of name position}
   End;
+
+{$DEFINE HAS_FILENAMELEN}
+{$i dosh.inc}
 
 {Extra Utils}
 function weekday(y,m,d : longint) : longint;
@@ -889,7 +892,10 @@ End.
 
 {
   $Log$
-  Revision 1.41  2004-12-05 20:33:32  hajny
+  Revision 1.42  2004-12-05 21:04:56  hajny
+    * compilation fix for dosh.inc changes
+
+  Revision 1.41  2004/12/05 20:33:32  hajny
     * compilation fix for dosh.inc changes
 
   Revision 1.40  2004/12/05 16:44:43  hajny

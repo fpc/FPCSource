@@ -19,7 +19,8 @@ Uses
   macostp;
   
 
-{$i dosh.inc}
+Const 
+  FileNameLen = 255;
 
 Type
     SearchRec = packed record
@@ -37,6 +38,9 @@ Type
         searchAttr: Byte;  {attribute we are searching for}
         exactMatch: Boolean;
       end;
+
+{$DEFINE HAS_FILENAMELEN}
+{$I dosh.inc}
 
 Implementation
 

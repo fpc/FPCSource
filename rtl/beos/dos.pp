@@ -20,7 +20,8 @@ Interface
 
 {$goto on}
 
-{$i dosh.inc}
+Const 
+  FileNameLen = 255;
 
 Type
   SearchRec = packed Record
@@ -37,6 +38,9 @@ Type
     SearchSpec : String[FileNameLen]; {search pattern}
     SearchDir  : String[FileNameLen]; { path we are searching in }
   End;
+
+{$DEFINE HAS_FILENAMELEN}
+{$I dosh.inc}
 
 Procedure AddDisk(const path:string);
 
@@ -817,7 +821,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.11  2004-12-05 20:35:03  hajny
+  Revision 1.12  2004-12-05 21:04:56  hajny
+    * compilation fix for dosh.inc changes
+
+  Revision 1.11  2004/12/05 20:35:03  hajny
     * compilation fix for dosh.inc changes
 
   Revision 1.10  2004/12/05 16:44:43  hajny
