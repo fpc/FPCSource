@@ -39,6 +39,13 @@ unit rgcpu;
           procedure add_constraints(reg:Tregister);override;
        end;
 
+       tpushedsavedloc = record
+         case byte of
+           0: (pushed: boolean);
+           1: (ofs: longint);
+       end;
+
+       tpushedsavedfpu = array[tsuperregister] of tpushedsavedloc;
 
        trgx86fpu = class
           { The "usableregsxxx" contain all registers of type "xxx" that }
@@ -54,7 +61,7 @@ unit rgcpu;
           { Contains the registers which are really used by the proc itself.
             It doesn't take care of registers used by called procedures
           }
-          used_in_proc_other : totherregisterset;
+          used_in_proc : tcpuregisterset;
 
           {reg_pushes_other : regvarother_longintarray;
           is_reg_var_other : regvarother_booleanarray;
@@ -71,11 +78,11 @@ unit rgcpu;
           procedure ungetregisterfpu(list: taasmoutput; r : tregister);
 
           { pushes and restores registers }
-          procedure saveusedotherregisters(list:Taasmoutput;
-                                           var saved:Tpushedsavedother;
-                                           const s:Totherregisterset);
-          procedure restoreusedotherregisters(list:Taasmoutput;
-                                              const saved:Tpushedsavedother);
+          procedure saveusedfpuregisters(list:Taasmoutput;
+                                         var saved:Tpushedsavedfpu;
+                                         const s:Tcpuregisterset);
+          procedure restoreusedfpuregisters(list:Taasmoutput;
+                                            const saved:Tpushedsavedfpu);
 
           { corrects the fpu stack register by ofs }
           function correct_fpuregister(r : tregister;ofs : byte) : tregister;
@@ -87,6 +94,11 @@ implementation
     uses
        systems,
        verbose;
+
+    const
+       { This value is used in tsaved. If the array value is equal
+         to this, then this means that this register is not used.}
+       reg_not_saved = $7fffffff;
 
 {************************************************************************
                                  trgcpu
@@ -116,7 +128,7 @@ implementation
       var i:Tsuperregister;
 
       begin
-        used_in_proc_other:=[];
+        used_in_proc:=[];
         t_times := 0;
         countusableregsfpu:=c_countusableregsfpu;
         unusedregsfpu:=usableregsfpu;
@@ -150,15 +162,14 @@ implementation
       end;
 
 
-    procedure trgx86fpu.saveusedotherregisters(list: taasmoutput;
-        var saved : tpushedsavedother; const s: totherregisterset);
-
+    procedure trgx86fpu.saveusedfpuregisters(list: taasmoutput;
+                                             var saved : tpushedsavedfpu;
+                                             const s: tcpuregisterset);
       var
          r : tregister;
          hr : treference;
-
       begin
-        used_in_proc_other:=used_in_proc_other + s;
+        used_in_proc:=used_in_proc+s;
 
 {$warning TODO firstsavefpureg}
 (*
@@ -188,8 +199,8 @@ implementation
       end;
 
 
-    procedure trgx86fpu.restoreusedotherregisters(list : taasmoutput;
-        const saved : tpushedsavedother);
+    procedure trgx86fpu.restoreusedfpuregisters(list : taasmoutput;
+                                                const saved : tpushedsavedfpu);
 
       var
          r,r2 : tregister;
@@ -242,7 +253,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  2003-10-10 17:48:14  peter
+  Revision 1.39  2003-10-17 14:38:32  peter
+    * 64k registers supported
+    * fixed some memory leaks
+
+  Revision 1.38  2003/10/10 17:48:14  peter
     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
     * tregisteralloctor renamed to trgobj
     * removed rgobj from a lot of units

@@ -868,7 +868,9 @@ implementation
          { cmps and subs/decs                             }
          min_label:=case_get_min(nodes);
 
+{$ifdef OLDREGVARS}
          load_all_regvars(exprasmlist);
+{$endif OLDREGVARS}
          { now generate the jumps }
          if opsize in [OS_64,OS_S64] then
            genlinearcmplist(nodes)
@@ -972,7 +974,9 @@ implementation
               secondpass(hp.left);
               { don't come back to case line }
               aktfilepos:=exprasmList.getlasttaifilepos^;
+{$ifdef OLDREGVARS}
               load_all_regvars(exprasmlist);
+{$endif OLDREGVARS}
               cg.a_jmp_always(exprasmlist,endlabel);
               hp:=tstatementnode(hp.right);
            end;
@@ -981,7 +985,9 @@ implementation
          if assigned(elseblock) then
            begin
               secondpass(elseblock);
+{$ifdef OLDREGVARS}
               load_all_regvars(exprasmlist);
+{$endif OLDREGVARS}
            end;
          cg.a_label(exprasmlist,endlabel);
 
@@ -1003,7 +1009,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.51  2003-10-10 17:48:13  peter
+  Revision 1.52  2003-10-17 14:38:32  peter
+    * 64k registers supported
+    * fixed some memory leaks
+
+  Revision 1.51  2003/10/10 17:48:13  peter
     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
     * tregisteralloctor renamed to trgobj
     * removed rgobj from a lot of units

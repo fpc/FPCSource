@@ -71,10 +71,10 @@ unit paramgr;
             @param(nr Parameter number of routine, starting from 1)
           }
           function get_para_align(calloption : tproccalloption):byte;virtual;
-          function get_volatile_registers_int(calloption : tproccalloption):tsuperregisterset;virtual;
-          function get_volatile_registers_fpu(calloption : tproccalloption):tsuperregisterset;virtual;
-          function get_volatile_registers_flags(calloption : tproccalloption):tsuperregisterset;virtual;
-          function get_volatile_registers_mm(calloption : tproccalloption):tsuperregisterset;virtual;
+          function get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;virtual;
+          function get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;virtual;
+          function get_volatile_registers_flags(calloption : tproccalloption):tcpuregisterset;virtual;
+          function get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;virtual;
           function getintparaloc(calloption : tproccalloption; nr : longint) : tparalocation;virtual;abstract;
 
           {# allocate a parameter location created with create_paraloc_info
@@ -262,25 +262,25 @@ implementation
       end;
 
 
-    function tparamanager.get_volatile_registers_int(calloption : tproccalloption):tsuperregisterset;
+    function tparamanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
       begin
         result:=[];
       end;
 
 
-    function tparamanager.get_volatile_registers_fpu(calloption : tproccalloption):tsuperregisterset;
+    function tparamanager.get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;
       begin
         result:=[];
       end;
 
 
-    function tparamanager.get_volatile_registers_flags(calloption : tproccalloption):tsuperregisterset;
+    function tparamanager.get_volatile_registers_flags(calloption : tproccalloption):tcpuregisterset;
       begin
         result:=[];
       end;
 
 
-    function tparamanager.get_volatile_registers_mm(calloption : tproccalloption):tsuperregisterset;
+    function tparamanager.get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;
       begin
         result:=[];
       end;
@@ -437,7 +437,11 @@ end.
 
 {
    $Log$
-   Revision 1.63  2003-10-11 16:06:42  florian
+   Revision 1.64  2003-10-17 14:38:32  peter
+     * 64k registers supported
+     * fixed some memory leaks
+
+   Revision 1.63  2003/10/11 16:06:42  florian
      * fixed some MMX<->SSE
      * started to fix ppc, needs an overhaul
      + stabs info improve for spilling, not sure if it works correctly/completly

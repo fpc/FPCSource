@@ -49,7 +49,9 @@
 {*****************************************************************************
                                  Constants
 *****************************************************************************}
+      c_countusableregsint = 4;
 
+{
       firstsaveintreg = RS_EAX;
       lastsaveintreg  = RS_EDX;
       firstsavefpureg = RS_INVALID;
@@ -59,13 +61,6 @@
 
       general_superregisters = [RS_EAX,RS_EBX,RS_ECX,RS_EDX];
 
-      usableregsint = [first_int_imreg..last_int_imreg];
-      c_countusableregsint = 4;
-
-      maxaddrregs = 1;
-      usableregsaddr = [RS_ESI];
-      c_countusableregsaddr = 1;
-
       maxvarregs = 4;
       varregs : array[1..maxvarregs] of tsuperregister =
          (RS_EBX,RS_EDX,RS_ECX,RS_EAX);
@@ -73,7 +68,7 @@
       maxfpuvarregs = 8;
 
       maxmmvarregs = 8;
-
+}
 
 {*****************************************************************************
                                GDB Information
@@ -170,7 +165,11 @@
 
 {
   $Log$
-  Revision 1.9  2003-09-03 15:55:01  peter
+  Revision 1.10  2003-10-17 14:38:32  peter
+    * 64k registers supported
+    * fixed some memory leaks
+
+  Revision 1.9  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.8  2003/09/03 11:18:37  florian

@@ -164,6 +164,7 @@ interface
       membrowser,
       memrealnames,
       memmanglednames,
+      memprocpara,
       memprocparast,
       memproclocalst,
       memprocnodetree : tmemdebug;
@@ -839,6 +840,8 @@ initialization
   memrealnames.stop;
   memmanglednames:=TMemDebug.create('Manglednames');
   memmanglednames.stop;
+  memprocpara:=TMemDebug.create('ProcPara');
+  memprocpara.stop;
   memprocparast:=TMemDebug.create('ProcParaSt');
   memprocparast.stop;
   memproclocalst:=TMemDebug.create('ProcLocalSt');
@@ -850,6 +853,7 @@ finalization
   membrowser.free;
   memrealnames.free;
   memmanglednames.free;
+  memprocpara.free;
   memprocparast.free;
   memproclocalst.free;
   memprocnodetree.free;
@@ -858,7 +862,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.28  2003-10-07 16:06:30  peter
+  Revision 1.29  2003-10-17 14:38:32  peter
+    * 64k registers supported
+    * fixed some memory leaks
+
+  Revision 1.28  2003/10/07 16:06:30  peter
     * tsymlist.def renamed to tsymlist.procdef
     * tsymlist.procdef is now only used to store the procdef
 

@@ -47,11 +47,11 @@ unit cgx86;
         function  getfpuregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
         function  getmmregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
         procedure getexplicitregister(list:Taasmoutput;r:Tregister);override;
-        function  getabtintregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
         procedure ungetregister(list:Taasmoutput;r:Tregister);override;
         procedure ungetreference(list:Taasmoutput;const r:Treference);override;
-        procedure allocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tsuperregisterset);override;
-        procedure deallocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tsuperregisterset);override;
+        procedure allocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);override;
+        procedure deallocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);override;
+        function  uses_registers(rt:Tregistertype):boolean;override;
         procedure add_move_instruction(instr:Taicpu);override;
         procedure dec_fpu_stack;
         procedure inc_fpu_stack;
@@ -158,6 +158,9 @@ unit cgx86;
   implementation
 
     uses
+{$ifdef MEMDEBUG}
+       cclasses,
+{$endif MEMDEBUG}
        globtype,globals,verbose,systems,cutils,
        symdef,paramgr,tgobj,procinfo;
 
@@ -177,19 +180,29 @@ unit cgx86;
     procedure Tcgx86.init_register_allocators;
       begin
         if cs_create_pic in aktmoduleswitches then
-          rgint:=trgcpu.create(5,R_INTREGISTER,R_SUBWHOLE,#0#1#2#4#5,first_int_imreg,[RS_EBP,RS_EBX])
+          rgint:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_ESI,RS_EDI],first_int_imreg,[RS_EBP,RS_EBX])
         else
-          rgint:=trgcpu.create(6,R_INTREGISTER,R_SUBWHOLE,#0#1#2#3#4#5,first_int_imreg,[RS_EBP]);
-        rgmm:=trgcpu.create(8,R_MMREGISTER,R_SUBNONE,#0#1#2#3#4#5#6#7,first_sse_imreg,[]);
+          rgint:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_EBX,RS_ESI,RS_EDI],first_int_imreg,[RS_EBP]);
+        rgmm:=trgcpu.create(R_MMREGISTER,R_SUBNONE,[RS_MM0,RS_MM1,RS_MM2,RS_MM3,RS_MM4,RS_MM5,RS_MM6,RS_MM7],first_sse_imreg,[]);
         rgfpu:=Trgx86fpu.create;
       end;
 
 
     procedure Tcgx86.done_register_allocators;
+{$ifdef MEMDEBUG}
+      var
+        d : tmemdebug;
+{$endif}
       begin
+{$ifdef MEMDEBUG}
+         d:=tmemdebug.create(current_procinfo.procdef.procsym.name+'-rgobj');
+{$endif}
         rgint.free;
         rgmm.free;
         rgfpu.free;
+{$ifdef MEMDEBUG}
+         d.free;
+{$endif}
       end;
 
 
@@ -230,12 +243,6 @@ unit cgx86;
       end;
 
 
-    function tcgx86.getabtintregister(list:Taasmoutput;size:Tcgsize):Tregister;
-      begin
-        result:=rgint.getabtregister(list,cgsize2subreg(size));
-      end;
-
-
     procedure tcgx86.ungetregister(list:Taasmoutput;r:Tregister);
       begin
         case getregtype(r) of
@@ -260,7 +267,7 @@ unit cgx86;
       end;
 
 
-    procedure Tcgx86.allocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tsuperregisterset);
+    procedure Tcgx86.allocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);
       begin
         case rt of
           R_INTREGISTER :
@@ -273,7 +280,7 @@ unit cgx86;
       end;
 
 
-    procedure Tcgx86.deallocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tsuperregisterset);
+    procedure Tcgx86.deallocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);
       begin
         case rt of
           R_INTREGISTER :
@@ -282,6 +289,19 @@ unit cgx86;
             rgmm.deallocexplicitregisters(list,r);
           else
             internalerror(200310093);
+        end;
+      end;
+
+
+    function  Tcgx86.uses_registers(rt:Tregistertype):boolean;
+      begin
+        case rt of
+          R_INTREGISTER :
+            result:=rgint.uses_registers;
+          R_SSEREGISTER :
+            result:=rgmm.uses_registers;
+          else
+            internalerror(200310094);
         end;
       end;
 
@@ -309,10 +329,10 @@ unit cgx86;
     begin
       { Int }
       rgint.do_register_allocation(list,headertai);
-      list.translate_registers(R_INTREGISTER,rgint.colour);
+      rgint.translate_registers(list);
       { SSE }
       rgmm.do_register_allocation(list,headertai);
-      list.translate_registers(R_MMREGISTER,rgmm.colour);
+      rgmm.translate_registers(list);
     end;
 
 
@@ -601,8 +621,8 @@ unit cgx86;
               begin
                 tmpreg:=getaddressregister(list);
                 a_loadaddr_ref_reg(list,r,tmpreg);
-                list.concat(taicpu.op_reg(A_PUSH,S_L,tmpreg));
                 ungetregister(list,tmpreg);
+                list.concat(taicpu.op_reg(A_PUSH,S_L,tmpreg));
               end;
           end
         else
@@ -1495,7 +1515,7 @@ unit cgx86;
                 list.concat(Tai_section.Create(sec_code));
                 list.concat(Taicpu.Op_sym_ofs_reg(A_MOV,S_L,pl,0,NR_EDX));
                 a_call_name(list,target_info.Cprefix+'mcount');
-                include(rgint.used_in_proc,RS_EDX);
+                supregset_include(rgint.used_in_proc,RS_EDX);
              end;
 
            system_i386_go32v2,system_i386_watcom:
@@ -1615,28 +1635,28 @@ unit cgx86;
       begin
         { Get temp }
         size:=0;
-        if (RS_EBX in rgint.used_in_proc) then
+        if supregset_in(rgint.used_in_proc,RS_EBX) then
           inc(size,POINTER_SIZE);
-        if (RS_ESI in rgint.used_in_proc) then
+        if supregset_in(rgint.used_in_proc,RS_ESI) then
           inc(size,POINTER_SIZE);
-        if (RS_EDI in rgint.used_in_proc) then
+        if supregset_in(rgint.used_in_proc,RS_EDI) then
           inc(size,POINTER_SIZE);
         if size>0 then
           begin
             tg.GetTemp(list,size,tt_noreuse,current_procinfo.save_regs_ref);
             { Copy registers to temp }
             href:=current_procinfo.save_regs_ref;
-            if (RS_EBX in rgint.used_in_proc) then
+            if supregset_in(rgint.used_in_proc,RS_EBX) then
               begin
                 a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_EBX,href);
                 inc(href.offset,POINTER_SIZE);
               end;
-            if (RS_ESI in rgint.used_in_proc) then
+            if supregset_in(rgint.used_in_proc,RS_ESI) then
               begin
                 a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_ESI,href);
                 inc(href.offset,POINTER_SIZE);
               end;
-            if (RS_EDI in rgint.used_in_proc) then
+            if supregset_in(rgint.used_in_proc,RS_EDI) then
               begin
                 a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_EDI,href);
                 inc(href.offset,POINTER_SIZE);
@@ -1654,17 +1674,17 @@ unit cgx86;
       begin
         { Copy registers from temp }
         href:=current_procinfo.save_regs_ref;
-        if (RS_EBX in rgint.used_in_proc) then
+        if supregset_in(rgint.used_in_proc,RS_EBX) then
           begin
             a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EBX);
             inc(href.offset,POINTER_SIZE);
           end;
-        if (RS_ESI in rgint.used_in_proc) then
+        if supregset_in(rgint.used_in_proc,RS_ESI) then
           begin
             a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_ESI);
             inc(href.offset,POINTER_SIZE);
           end;
-        if (RS_EDI in rgint.used_in_proc) then
+        if supregset_in(rgint.used_in_proc,RS_EDI) then
           begin
             a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EDI);
             inc(href.offset,POINTER_SIZE);
@@ -1733,7 +1753,11 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.79  2003-10-14 00:30:48  florian
+  Revision 1.80  2003-10-17 14:38:32  peter
+    * 64k registers supported
+    * fixed some memory leaks
+
+  Revision 1.79  2003/10/14 00:30:48  florian
     + some code for PIC support added
 
   Revision 1.78  2003/10/13 01:23:13  florian

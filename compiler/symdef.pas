@@ -517,8 +517,6 @@ interface
           { it's a tree, but this not easy to handle }
           { used for inlined procs                   }
           code : tnode;
-          { info about register variables (JM) }
-          regvarinfo: pointer;
           { name of the result variable to insert in the localsymtable }
           resultname : stringid;
           { true, if the procedure is only declared }
@@ -530,10 +528,6 @@ interface
           hasforward : boolean;
           { check the problems of manglednames }
           has_mangledname : boolean;
-          { small set which contains the modified registers }
-          usedintregisters,
-          usedmmxregisters,
-          usedfpuregisters : Tsuperregisterset;
           constructor create(level:byte);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
@@ -3116,7 +3110,15 @@ implementation
     destructor tabstractprocdef.destroy;
       begin
          if assigned(para) then
-          para.free;
+           begin
+{$ifdef MEMDEBUG}
+             memprocpara.start;
+{$endif MEMDEBUG}
+             para.free;
+{$ifdef MEMDEBUG}
+             memprocpara.stop;
+          end;
+{$endif MEMDEBUG}
          if assigned(parast) then
           begin
 {$ifdef MEMDEBUG}
@@ -3454,18 +3456,11 @@ implementation
             inc(refcount);
           end;
          lastref:=defref;
-       { first, we assume that all registers are used }
-         usedintregisters:=paramanager.get_volatile_registers_int(pocall_default);
-{$ifdef SUPPORT_MMX}
-         usedmmxregisters:=paramanager.get_volatile_registers_fpu(pocall_default);
-{$endif SUPPORT_MMX}
-         usedfpuregisters:=paramanager.get_volatile_registers_fpu(pocall_default);
          forwarddef:=true;
          interfacedef:=false;
          hasforward:=false;
          _class := nil;
          code:=nil;
-         regvarinfo := nil;
          overloadnumber:=0;
 {$ifdef GDB}
          isstabwritten := false;
@@ -3478,9 +3473,6 @@ implementation
          inherited ppuload(ppufile);
          deftype:=procdef;
 
-         ppufile.getnormalset(usedintregisters);
-         ppufile.getnormalset(usedfpuregisters);
-{$warning need to add usedmmxregisters}
          has_mangledname:=boolean(ppufile.getbyte);
          if has_mangledname then
           _mangledname:=stringdup(ppufile.getstring)
@@ -3527,7 +3519,6 @@ implementation
          forwarddef:=false;
          interfacedef:=false;
          hasforward:=false;
-         regvarinfo := nil;
          lastref:=nil;
          lastwritten:=nil;
          defref:=nil;
@@ -3566,8 +3557,6 @@ implementation
             memprocnodetree.start;
 {$endif MEMDEBUG}
           end;
-         if assigned(regvarinfo) then
-           dispose(pregvarinfo(regvarinfo));
          if (po_msgstr in procoptions) then
            strdispose(messageinf.str);
          if assigned(_mangledname) then
@@ -3602,17 +3591,6 @@ implementation
          inherited ppuwrite(ppufile);
          oldintfcrc:=ppufile.do_interface_crc;
          ppufile.do_interface_crc:=false;
-         { set all registers to used for simplified compilation PM }
-         if simplify_ppu then
-           begin
-             usedintregisters:=paramanager.get_volatile_registers_int(pocall_default);
-             usedfpuregisters:=paramanager.get_volatile_registers_fpu(pocall_default);
-             usedmmxregisters:=paramanager.get_volatile_registers_mm(pocall_default);
-           end;
-
-         ppufile.putnormalset(usedintregisters);
-         ppufile.putnormalset(usedfpuregisters);
-{$warning need to add usedmmxregisters}
          ppufile.do_interface_crc:=oldintfcrc;
          ppufile.putbyte(byte(has_mangledname));
          if has_mangledname then
@@ -5890,7 +5868,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.178  2003-10-13 14:05:12  peter
+  Revision 1.179  2003-10-17 14:38:32  peter
+    * 64k registers supported
+    * fixed some memory leaks
+
+  Revision 1.178  2003/10/13 14:05:12  peter
     * removed is_visible_for_proc
     * search also for class overloads when finding interface
       implementations

@@ -53,8 +53,8 @@ interface
           currenttai : tai;
           getposition : boolean;
           { Used registers in assembler block }
-          used_regs_int : tsuperregisterset;
-          used_regs_fpu : totherregisterset;
+          used_regs_int,
+          used_regs_fpu : tcpuregisterset;
           constructor create(p : taasmoutput);virtual;
           constructor create_get_position;
           destructor destroy;override;
@@ -833,7 +833,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.64  2003-10-10 17:48:13  peter
+  Revision 1.65  2003-10-17 14:38:32  peter
+    * 64k registers supported
+    * fixed some memory leaks
+
+  Revision 1.64  2003/10/10 17:48:13  peter
     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
     * tregisteralloctor renamed to trgobj
     * removed rgobj from a lot of units

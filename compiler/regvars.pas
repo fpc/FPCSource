@@ -32,6 +32,7 @@ interface
        symsym,
        cpubase, cgbase, tgobj;
 
+{$ifdef OLDREGVARS}
     procedure assign_regvars(p: tnode);
     procedure load_regvars(asml: TAAsmoutput; p: tnode);
     procedure cleanup_regvars(asml: TAAsmoutput);
@@ -41,6 +42,7 @@ interface
     procedure load_all_regvars(asml: TAAsmoutput);
    procedure free_regvars(list: taasmoutput);
    procedure translate_regvars(list: taasmoutput; const table:Ttranstable);
+{$endif OLDREGVARS}
 
 {$ifdef i386}
 (*
@@ -60,7 +62,7 @@ implementation
       symconst,symbase,symtype,symdef,paramgr,defutil,
       cpuinfo,cgobj,procinfo;
 
-
+{$ifdef OLDREGVARS}
     procedure searchregvars(p : tnamedindexitem;arg:pointer);
       var
          i,j,k : longint;
@@ -631,12 +633,18 @@ implementation
                   tostr(regvars[i].refs),regvars[i].name);
               end;
       end;
+{$endif OLDREGVARS}
+
 
 end.
 
 {
   $Log$
-  Revision 1.70  2003-10-10 17:48:14  peter
+  Revision 1.71  2003-10-17 14:38:32  peter
+    * 64k registers supported
+    * fixed some memory leaks
+
+  Revision 1.70  2003/10/10 17:48:14  peter
     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
     * tregisteralloctor renamed to trgobj
     * removed rgobj from a lot of units

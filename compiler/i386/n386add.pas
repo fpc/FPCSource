@@ -344,9 +344,8 @@ interface
                 case nodetype of
                    ltn,lten,gtn,gten,equaln,unequaln :
                      begin
-{$warning forced stdcall calling}
-                       paraloc1:=paramanager.getintparaloc(pocall_stdcall,1);
-                       paraloc2:=paramanager.getintparaloc(pocall_stdcall,2);
+                       paraloc1:=paramanager.getintparaloc(pocall_default,1);
+                       paraloc2:=paramanager.getintparaloc(pocall_default,2);
                        { process parameters }
                        secondpass(left);
                        location_release(exprasmlist,left.location);
@@ -814,7 +813,9 @@ interface
            oldnodetype : tnodetype;
 
         begin
+{$ifdef OLDREGVARS}
            load_all_regvars(exprasmlist);
+{$endif OLDREGVARS}
            { the jump the sequence is a little bit hairy }
            case nodetype of
               ltn,gtn:
@@ -1494,7 +1495,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.85  2003-10-13 09:38:22  florian
+  Revision 1.86  2003-10-17 14:38:32  peter
+    * 64k registers supported
+    * fixed some memory leaks
+
+  Revision 1.85  2003/10/13 09:38:22  florian
     * fixed forgotten commit
 
   Revision 1.84  2003/10/13 01:58:03  florian

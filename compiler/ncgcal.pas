@@ -570,8 +570,9 @@ implementation
 
     procedure tcgcallnode.normal_pass_2;
       var
-         regs_to_push_other : totherregisterset;
-         regs_to_alloc,regs_to_free:Tsuperregisterset;
+         regs_to_push_fpu,
+         regs_to_alloc,
+         regs_to_free : Tcpuregisterset;
          oldpushedparasize : longint;
          { adress returned from an I/O-error }
          { help reference pointer }
@@ -665,7 +666,7 @@ implementation
            end;
 
         regs_to_alloc:=paramanager.get_volatile_registers_int(procdefinition.proccalloption);
-        regs_to_push_other:=paramanager.get_volatile_registers_fpu(procdefinition.proccalloption);
+        regs_to_push_fpu:=paramanager.get_volatile_registers_fpu(procdefinition.proccalloption);
 
         { Include Function result registers }
         if (not is_void(resulttype.def)) then
@@ -737,7 +738,7 @@ implementation
 
                    { release self }
                    cg.ungetregister(exprasmlist,vmtreg);
-                   pvreg:=cg.getabtintregister(exprasmlist,OS_ADDR);
+                   pvreg:=cg.getintregister(exprasmlist,OS_ADDR);
                    reference_reset_base(href,vmtreg,
                       tprocdef(procdefinition)._class.vmtmethodoffset(tprocdef(procdefinition).extnumber));
                    cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,pvreg);
@@ -747,11 +748,11 @@ implementation
                    if assigned(left) then
                      pushparas;
 
-                   { Release register containing procvar }
-                   cg.ungetregister(exprasmlist,pvreg);
-
                    { free the resources allocated for the parameters }
                    freeparas;
+
+                   { Release register containing procvar }
+                   cg.ungetregister(exprasmlist,pvreg);
 
                    cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,regs_to_alloc);
                    cg.allocexplicitregisters(exprasmlist,R_SSEREGISTER,paramanager.get_volatile_registers_mm(procdefinition.proccalloption));
@@ -785,7 +786,7 @@ implementation
               secondpass(right);
 
               location_release(exprasmlist,right.location);
-              pvreg:=cg.getabtintregister(exprasmlist,OS_ADDR);
+              pvreg:=cg.getintregister(exprasmlist,OS_ADDR);
               { Only load OS_ADDR from the reference }
               if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
                 cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,right.location.reference,pvreg)
@@ -798,11 +799,11 @@ implementation
               if assigned(left) then
                 pushparas;
 
-              { Release register containing procvar }
-              cg.ungetregister(exprasmlist,pvreg);
-
               { free the resources allocated for the parameters }
               freeparas;
+
+              { Release register containing procvar }
+              cg.ungetregister(exprasmlist,pvreg);
 
               cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,regs_to_alloc);
               cg.allocexplicitregisters(exprasmlist,R_MMREGISTER,paramanager.get_volatile_registers_mm(procdefinition.proccalloption));
@@ -1104,7 +1105,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.131  2003-10-17 01:22:08  florian
+  Revision 1.132  2003-10-17 14:38:32  peter
+    * 64k registers supported
+    * fixed some memory leaks
+
+  Revision 1.131  2003/10/17 01:22:08  florian
     * compilation of the powerpc compiler fixed
 
   Revision 1.130  2003/10/11 16:06:42  florian

@@ -475,7 +475,7 @@ implementation
                    symtab:=withsymtable;
                    while assigned(obj) do
                     begin
-                      symtab.next:=twithsymtable.create(obj,obj.symtable.symsearch,refp);
+                      symtab.next:=twithsymtable.create(obj,obj.symtable.symsearch,refp.getcopy);
                       symtab:=symtab.next;
                       obj:=obj.childof;
                       inc(levelcount);
@@ -519,6 +519,7 @@ implementation
           end
          else
           begin
+            p.free;
             Message(parser_e_false_with_expr);
             { try to recover from error }
             if try_to_consume(_COMMA) then
@@ -815,7 +816,7 @@ implementation
          { END is read, got a list of changed registers? }
          if try_to_consume(_LECKKLAMMER) then
            begin
-             asmstat.used_regs_fpu:=[first_fpu_supreg..last_fpu_supreg];
+             asmstat.used_regs_fpu:=[0..first_fpu_imreg-1];
              if token<>_RECKKLAMMER then
               begin
                 repeat
@@ -1129,7 +1130,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.115  2003-10-10 17:48:13  peter
+  Revision 1.116  2003-10-17 14:38:32  peter
+    * 64k registers supported
+    * fixed some memory leaks
+
+  Revision 1.115  2003/10/10 17:48:13  peter
     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
     * tregisteralloctor renamed to trgobj
     * removed rgobj from a lot of units

@@ -122,18 +122,6 @@ unit procinfo;
           }
           {procedure after_pass1;virtual;}
        end;
-
-       pregvarinfo = ^tregvarinfo;
-       tregvarinfo = record
-          regvars : array[1..maxvarregs] of tvarsym;
-          regvars_para : array[1..maxvarregs] of boolean;
-          regvars_refs : array[1..maxvarregs] of longint;
-
-          fpuregvars : array[1..maxfpuvarregs] of tvarsym;
-          fpuregvars_para : array[1..maxfpuvarregs] of boolean;
-          fpuregvars_refs : array[1..maxfpuvarregs] of longint;
-       end;
-
        tcprocinfo = class of tprocinfo;
 
     var
@@ -217,7 +205,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2003-10-14 00:30:48  florian
+  Revision 1.7  2003-10-17 14:38:32  peter
+    * 64k registers supported
+    * fixed some memory leaks
+
+  Revision 1.6  2003/10/14 00:30:48  florian
     + some code for PIC support added
 
   Revision 1.5  2003/10/10 17:48:13  peter

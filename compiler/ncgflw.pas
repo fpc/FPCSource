@@ -121,7 +121,9 @@ implementation
          oldclabel:=aktcontinuelabel;
          oldblabel:=aktbreaklabel;
 
+{$ifdef OLDREGVARS}
          load_all_regvars(exprasmlist);
+{$endif OLDREGVARS}
          { handling code at the end as it is much more efficient, and makes
            while equal to repeat loop, only the end true/false is swapped (PFV) }
          if lnf_testatbegin in loopflags then
@@ -138,7 +140,9 @@ implementation
          if assigned(right) then
            secondpass(right);
 
+{$ifdef OLDREGVARS}
          load_all_regvars(exprasmlist);
+{$endif OLDREGVARS}
 
          cg.a_label(exprasmlist,lcont);
          otlabel:=truelabel;
@@ -413,7 +417,9 @@ implementation
            else
              hcond:=OC_A;
 
+{$ifdef OLDREGVARS}
          load_all_regvars(exprasmlist);
+{$endif OLDREGVARS}
 
          if temptovalue then
            begin
@@ -463,7 +469,9 @@ implementation
          if assigned(t1) then
            begin
              secondpass(t1);
+{$ifdef OLDREGVARS}
              load_all_regvars(exprasmlist);
+{$endif OLDREGVARS}
            end;
 
          {If the loopvar doesn't mind on exit, we do the loopvar inc/dec
@@ -502,7 +510,9 @@ implementation
                 hcond:=OC_LT
               else
                 hcond:=OC_B;
+{$ifdef OLDREGVARS}
          load_all_regvars(exprasmlist);
+{$endif OLDREGVARS}
 
          cmp_const:=aword(Tordconstnode(right).value);
          if do_loopvar_at_end then
@@ -720,7 +730,9 @@ implementation
          include(flowcontrol,fc_break);
          if aktbreaklabel<>nil then
            begin
+{$ifdef OLDREGVARS}
              load_all_regvars(exprasmlist);
+{$endif OLDREGVARS}
              cg.a_jmp_always(exprasmlist,aktbreaklabel)
            end
          else
@@ -739,7 +751,9 @@ implementation
          include(flowcontrol,fc_continue);
          if aktcontinuelabel<>nil then
            begin
+{$ifdef OLDREGVARS}
              load_all_regvars(exprasmlist);
+{$endif OLDREGVARS}
              cg.a_jmp_always(exprasmlist,aktcontinuelabel)
            end
          else
@@ -756,7 +770,9 @@ implementation
        begin
          location_reset(location,LOC_VOID,OS_NO);
 
+{$ifdef OLDREGVARS}
          load_all_regvars(exprasmlist);
+{$endif OLDREGVARS}
          cg.a_jmp_always(exprasmlist,labsym.lab)
        end;
 
@@ -769,7 +785,9 @@ implementation
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
+{$ifdef OLDREGVARS}
          load_all_regvars(exprasmlist);
+{$endif OLDREGVARS}
          cg.a_label(exprasmlist,labelnr);
          secondpass(left);
       end;
@@ -1461,7 +1479,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.84  2003-10-10 17:48:13  peter
+  Revision 1.85  2003-10-17 14:38:32  peter
+    * 64k registers supported
+    * fixed some memory leaks
+
+  Revision 1.84  2003/10/10 17:48:13  peter
     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
     * tregisteralloctor renamed to trgobj
     * removed rgobj from a lot of units

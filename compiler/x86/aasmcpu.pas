@@ -204,7 +204,7 @@ interface
          function spill_registers(list:Taasmoutput;
                                   rgget:Trggetproc;
                                   rgunget:Trgungetproc;
-                                  r:Tsuperregisterset;
+                                  const r:Tsuperregisterset;
                                   var unusedregsint:Tsuperregisterset;
                                   const spilltemplist:Tspill_temp_list):boolean;override;
       protected
@@ -358,9 +358,6 @@ implementation
       );
 {$endif x86_64}
 
-      subreg2type:array[tsubregister] of longint = (
-        OT_NONE,OT_REG8,OT_REG8,OT_REG16,OT_REG32,OT_REG64,OT_NONE
-      );
 
 {****************************************************************************
                               TAI_ALIGN
@@ -1895,7 +1892,7 @@ implementation
     function Taicpu.spill_registers(list:Taasmoutput;
                                     rgget:Trggetproc;
                                     rgunget:Trgungetproc;
-                                    r:Tsuperregisterset;
+                                    const r:Tsuperregisterset;
                                     var unusedregsint:Tsuperregisterset;
                                     const spilltemplist:Tspill_temp_list):boolean;
 
@@ -1928,7 +1925,7 @@ implementation
                (getregtype(oper[0].reg)=R_INTREGISTER) then
               begin
                 supreg:=getsupreg(oper[0].reg);
-                if supreg in r then
+                if supregset_in(r,supreg) then
                   begin
                     {Situation example:
                      push r20d              ; r20d must be spilled into [ebp-12]
@@ -1945,7 +1942,7 @@ implementation
             if oper[0].typ=top_ref then
               begin
                 supreg:=getsupreg(oper[0].ref^.base);
-                if supreg in r then
+                if supregset_in(r,supreg) then
                   begin
                     {Situation example:
                      push [r21d+4*r22d]        ; r21d must be spilled into [ebp-12]
@@ -1971,7 +1968,7 @@ implementation
                     oper[0].ref^.base:=helpreg;
                   end;
                 supreg:=getsupreg(oper[0].ref^.index);
-                if supreg in r then
+                if supregset_in(r,supreg) then
                   begin
                     {Situation example:
                      push [r21d+4*r22d]        ; r22d must be spilled into [ebp-12]
@@ -2007,7 +2004,7 @@ implementation
               if oper[i].typ=top_ref then
                 begin
                   supreg:=getsupreg(oper[i].ref^.base);
-                  if supreg in r then
+                  if supregset_in(r,supreg) then
                     begin
                       {Situation example:
                        add r20d,[r21d+4*r22d]    ; r21d must be spilled into [ebp-12]
@@ -2034,7 +2031,7 @@ implementation
                       forward_allocation(Tai(helpins.next),unusedregsint);
                   end;
                   supreg:=getsupreg(oper[i].ref^.index);
-                  if supreg in r then
+                  if supregset_in(r,supreg) then
                     begin
                       {Situation example:
                        add r20d,[r21d+4*r22d]    ; r22d must be spilled into [ebp-12]
@@ -2066,7 +2063,7 @@ implementation
               begin
                 supreg:=getsupreg(oper[0].reg);
                 subreg:=getsubreg(oper[0].reg);
-                if supreg in r then
+                if supregset_in(r,supreg) then
                   if oper[1].typ=top_ref then
                     begin
                       {Situation example:
@@ -2108,7 +2105,7 @@ implementation
               begin
                 supreg:=getsupreg(oper[1].reg);
                 subreg:=getsubreg(oper[1].reg);
-                if supreg in r then
+                if supregset_in(r,supreg) then
                   begin
                     if oper[0].typ=top_ref then
                       begin
@@ -2318,7 +2315,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  2003-10-09 21:31:37  daniel
+  Revision 1.32  2003-10-17 14:38:32  peter
+    * 64k registers supported
+    * fixed some memory leaks
+
+  Revision 1.31  2003/10/09 21:31:37  daniel
     * Register allocator splitted, ans abstract now
 
   Revision 1.30  2003/10/01 20:34:50  peter

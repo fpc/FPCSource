@@ -128,7 +128,7 @@ interface
         R_SUBF64   { = 6; 64 bits float that allocates 2 FPU registers }
       );
 
-      TSuperRegister = type byte;
+      TSuperRegister = type word;
 
       {
         The new register coding:
@@ -143,11 +143,9 @@ interface
 {$ifdef FPC_BIG_ENDIAN}
          regtype : Tregistertype;
          subreg  : Tsubregister;
-         unused  : byte;
          supreg  : Tsuperregister;
 {$else FPC_BIG_ENDIAN}
          supreg  : Tsuperregister;
-         unused  : byte;
          subreg  : Tsubregister;
          regtype : Tregistertype;
 {$endif FPC_BIG_ENDIAN}
@@ -163,7 +161,8 @@ interface
 {$endif cpu64bit}
 
       { Set type definition for registers }
-      tsuperregisterset = set of tsuperregister;
+      tcpuregisterset = set of byte;
+      tsuperregisterset = array[byte] of set of byte;
 
       { Temp types }
       ttemptype = (tt_none,
@@ -192,7 +191,11 @@ interface
        R_SSEREGISTER = R_MMREGISTER;
 
        { Invalid register number }
-       RS_INVALID    = $ff;
+       RS_INVALID    = high(tsuperregister);
+
+       { Maximum number of cpu registers per register type,
+         this must fit in tcpuregisterset }
+       maxcpuregister = 31;
 
        tcgsize2size : Array[tcgsize] of integer =
          { integer values }
@@ -238,6 +241,11 @@ interface
     var
        mms_movescalar : pmmshuffle;
 
+    procedure supregset_reset(var regs:tsuperregisterset;setall:boolean);
+    procedure supregset_include(var regs:tsuperregisterset;s:tsuperregister);
+    procedure supregset_exclude(var regs:tsuperregisterset;s:tsuperregister);
+    function supregset_in(const regs:tsuperregisterset;s:tsuperregister):boolean;
+
     function newreg(rt:tregistertype;sr:tsuperregister;sb:tsubregister):tregister;{$ifdef USEINLINE}inline;{$endif}
     function getsubreg(r:tregister):tsubregister;{$ifdef USEINLINE}inline;{$endif}
     function getsupreg(r:tregister):tsuperregister;{$ifdef USEINLINE}inline;{$endif}
@@ -269,10 +277,39 @@ implementation
     uses
       verbose;
 
+    procedure supregset_reset(var regs:tsuperregisterset;setall:boolean);
+      var
+        b : byte;
+      begin
+        if setall then
+          b:=$ff
+        else
+          b:=0;
+        fillchar(regs,sizeof(regs),b);
+      end;
+
+
+    procedure supregset_include(var regs:tsuperregisterset;s:tsuperregister);
+      begin
+        include(regs[s shr 8],(s and $ff))
+      end;
+
+
+    procedure supregset_exclude(var regs:tsuperregisterset;s:tsuperregister);
+      begin
+        exclude(regs[s shr 8],(s and $ff))
+      end;
+
+
+    function supregset_in(const regs:tsuperregisterset;s:tsuperregister):boolean;
+      begin
+        result:=(s and $ff) in regs[s shr 8];
+      end;
+
+
     function newreg(rt:tregistertype;sr:tsuperregister;sb:tsubregister):tregister;{$ifdef USEINLINE}inline;{$endif}
       begin
         tregisterrec(result).regtype:=rt;
-        tregisterrec(result).unused:=0;
         tregisterrec(result).supreg:=sr;
         tregisterrec(result).subreg:=sb;
       end;
@@ -430,7 +467,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.70  2003-10-13 01:10:01  florian
+  Revision 1.71  2003-10-17 14:38:32  peter
+    * 64k registers supported
+    * fixed some memory leaks
+
+  Revision 1.70  2003/10/13 01:10:01  florian
     * some ideas for mm support implemented
 
   Revision 1.69  2003/10/11 16:06:42  florian

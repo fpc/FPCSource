@@ -101,15 +101,8 @@ uses
       RS_EBP        = RS_RBP;
       RS_ESP        = RS_RSP;
 
-      { Integer Super register first and last }
-      first_int_supreg    = $00;
-{$ifdef x86_64}
-      last_int_supreg     = $0f;
-{$else}
-      last_int_supreg     = $07;
-{$endif}
+      { Number of first imaginary register }
       first_int_imreg     = $10;
-      last_int_imreg      = $fe;
 
       { Float Super registers }
       RS_ST0        = $00;
@@ -121,11 +114,8 @@ uses
       RS_ST6        = $06;
       RS_ST7        = $07;
 
-      { Float Super register first and last }
-      first_fpu_supreg    = $00;
-      last_fpu_supreg     = $07;
+      { Number of first imaginary register }
       first_fpu_imreg     = $08;
-      last_fpu_imreg      = $fe;
 
       { MM Super registers }
       RS_MM0        = $00;
@@ -145,16 +135,12 @@ uses
       RS_MM14       = $0e;
       RS_MM15       = $0f;
 
-      { Float Super register first and last }
-      first_sse_supreg    = $00;
+      { Number of first imaginary register }
 {$ifdef x86_64}
-      last_sse_supreg     = $0f;
       first_sse_imreg     = $10;
 {$else x86_64}
-      last_sse_supreg     = $07;
       first_sse_imreg     = $08;
 {$endif x86_64}
-      last_sse_imreg      = $fe;
 
       { The subregister that specifies the entire register }
 {$ifdef x86_64}
@@ -568,7 +554,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  2003-10-11 16:06:42  florian
+  Revision 1.26  2003-10-17 14:38:32  peter
+    * 64k registers supported
+    * fixed some memory leaks
+
+  Revision 1.25  2003/10/11 16:06:42  florian
     * fixed some MMX<->SSE
     * started to fix ppc, needs an overhaul
     + stabs info improve for spilling, not sure if it works correctly/completly

@@ -331,6 +331,7 @@ interface
           function  get_label:tasmsymbol;
        end;
 
+(*
        { register variables }
        pregvarinfo = ^tregvarinfo;
        tregvarinfo = record
@@ -342,7 +343,7 @@ interface
           fpuregvars_para : array[1..maxfpuvarregs] of boolean;
           fpuregvars_refs : array[1..maxfpuvarregs] of longint;
        end;
-
+*)
 
     var
        generrorsym : tsym;
@@ -2642,7 +2643,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.126  2003-10-13 14:05:12  peter
+  Revision 1.127  2003-10-17 14:38:32  peter
+    * 64k registers supported
+    * fixed some memory leaks
+
+  Revision 1.126  2003/10/13 14:05:12  peter
     * removed is_visible_for_proc
     * search also for class overloads when finding interface
       implementations

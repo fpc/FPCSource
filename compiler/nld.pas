@@ -718,8 +718,10 @@ implementation
         else
           begin
            { get the size before the type conversion - check for all nodes }
-           if assigned(right.resulttype.def) and (right.nodetype in [loadn,vecn,calln]) then
-              original_size := right.resulttype.def.size;
+           if assigned(right.resulttype.def) and
+              (right.resulttype.def.deftype in [enumdef,orddef,floatdef]) and
+              (right.nodetype in [loadn,vecn,calln]) then
+             original_size := right.resulttype.def.size;
            inserttypeconv(right,left.resulttype);
           end;
 
@@ -1245,7 +1247,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.112  2003-10-10 17:48:13  peter
+  Revision 1.113  2003-10-17 14:38:32  peter
+    * 64k registers supported
+    * fixed some memory leaks
+
+  Revision 1.112  2003/10/10 17:48:13  peter
     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
     * tregisteralloctor renamed to trgobj
     * removed rgobj from a lot of units

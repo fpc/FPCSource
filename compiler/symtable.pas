@@ -1684,6 +1684,7 @@ implementation
 
     destructor twithsymtable.destroy;
       begin
+        tobject(withrefnode).free;
         symsearch:=nil;
         inherited destroy;
       end;
@@ -2292,7 +2293,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.115  2003-10-13 14:05:12  peter
+  Revision 1.116  2003-10-17 14:38:32  peter
+    * 64k registers supported
+    * fixed some memory leaks
+
+  Revision 1.115  2003/10/13 14:05:12  peter
     * removed is_visible_for_proc
     * search also for class overloads when finding interface
       implementations

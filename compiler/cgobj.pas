@@ -77,7 +77,6 @@ unit cgobj;
           function getfpuregister(list:Taasmoutput;size:Tcgsize):Tregister;virtual;abstract;
           function getmmregister(list:Taasmoutput;size:Tcgsize):Tregister;virtual;abstract;
           function getflagregister(list:Taasmoutput;size:Tcgsize):Tregister;virtual;abstract;
-          function getabtintregister(list:Taasmoutput;size:Tcgsize):Tregister;virtual;abstract;
           {Does the generic cg need SIMD registers, like getmmxregister? Or should
            the cpu specific child cg object have such a method?}
           procedure ungetregister(list:Taasmoutput;r:Tregister);virtual;abstract;
@@ -85,12 +84,13 @@ unit cgobj;
 
           procedure add_move_instruction(instr:Taicpu);virtual;abstract;
 
+          function  uses_registers(rt:Tregistertype):boolean;virtual;abstract;
           {# Get a specific register.}
           procedure getexplicitregister(list:Taasmoutput;r:Tregister);virtual;abstract;
           {# Get multiple registers specified.}
-          procedure allocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tsuperregisterset);virtual;abstract;
+          procedure allocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);virtual;abstract;
           {# Free multiple registers specified.}
-          procedure deallocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tsuperregisterset);virtual;abstract;
+          procedure deallocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);virtual;abstract;
 
           procedure do_register_allocation(list:Taasmoutput;headertai:tai);virtual;abstract;
 
@@ -613,8 +613,8 @@ implementation
       begin
          hr:=getintregister(list,size);
          a_load_const_reg(list,size,a,hr);
-         a_param_reg(list,size,hr,locpara);
          ungetregister(list,hr);
+         a_param_reg(list,size,hr,locpara);
       end;
 
     procedure tcg.a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const locpara : tparalocation);
@@ -623,8 +623,8 @@ implementation
       begin
          hr:=getintregister(list,size);
          a_load_ref_reg(list,size,size,r,hr);
-         a_param_reg(list,size,hr,locpara);
          ungetregister(list,hr);
+         a_param_reg(list,size,hr,locpara);
       end;
 
 
@@ -651,8 +651,8 @@ implementation
       begin
          hr:=getaddressregister(list);
          a_loadaddr_ref_reg(list,r,hr);
-         a_param_reg(list,OS_ADDR,hr,locpara);
          ungetregister(list,hr);
+         a_param_reg(list,OS_ADDR,hr,locpara);
       end;
 
 
@@ -1774,7 +1774,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.130  2003-10-13 01:23:13  florian
+  Revision 1.131  2003-10-17 14:38:32  peter
+    * 64k registers supported
+    * fixed some memory leaks
+
+  Revision 1.130  2003/10/13 01:23:13  florian
     * some ideas for mm support implemented
 
   Revision 1.129  2003/10/11 16:06:42  florian

@@ -45,9 +45,9 @@ unit cpupara;
           function ret_in_param(def : tdef;calloption : tproccalloption) : boolean;override;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
           function get_para_align(calloption : tproccalloption):byte;override;
-          function get_volatile_registers_int(calloption : tproccalloption):tsuperregisterset;override;
-          function get_volatile_registers_fpu(calloption : tproccalloption):tsuperregisterset;override;
-          function get_volatile_registers_mm(calloption : tproccalloption):tsuperregisterset;override;
+          function get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;override;
+          function get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;override;
+          function get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;override;
           function getintparaloc(calloption : tproccalloption; nr : longint) : tparalocation;override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tlinkedlist):longint;override;
@@ -157,7 +157,7 @@ unit cpupara;
       end;
 
 
-    function ti386paramanager.get_volatile_registers_int(calloption : tproccalloption):tsuperregisterset;
+    function ti386paramanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
       begin
         case calloption of
           pocall_internproc :
@@ -186,15 +186,15 @@ unit cpupara;
       end;
 
 
-    function ti386paramanager.get_volatile_registers_fpu(calloption : tproccalloption):tsuperregisterset;
+    function ti386paramanager.get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;
       begin
-        result:=[first_fpu_supreg..last_fpu_supreg];
+        result:=[0..first_fpu_imreg-1];
       end;
 
 
-    function ti386paramanager.get_volatile_registers_mm(calloption : tproccalloption):tsuperregisterset;
+    function ti386paramanager.get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;
       begin
-        result:=[first_sse_supreg..last_sse_supreg];
+        result:=[0..first_sse_imreg-1];
       end;
 
 
@@ -446,7 +446,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2003-10-11 16:06:42  florian
+  Revision 1.41  2003-10-17 14:38:32  peter
+    * 64k registers supported
+    * fixed some memory leaks
+
+  Revision 1.40  2003/10/11 16:06:42  florian
     * fixed some MMX<->SSE
     * started to fix ppc, needs an overhaul
     + stabs info improve for spilling, not sure if it works correctly/completly

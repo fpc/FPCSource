@@ -64,7 +64,7 @@ implementation
 
     procedure tcgloadnode.pass_2;
       var
-        r,hregister : tregister;
+        hregister : tregister;
         supreg:Tsuperregister;
         symtabletype : tsymtabletype;
         href : treference;
@@ -153,16 +153,13 @@ implementation
                        paramanager.allocparaloc(exprasmlist,paraloc1);
                        cg.a_param_ref(exprasmlist,OS_ADDR,href,paraloc1);
                        paramanager.freeparaloc(exprasmlist,paraloc1);
-                       r:=cg.getabtintregister(exprasmlist,OS_ADDR);
-                       cg.ungetregister(exprasmlist,r);
-                       cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,hregister,r);
                        cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-                       cg.a_call_reg(exprasmlist,r);
+                       cg.a_call_reg(exprasmlist,hregister);
                        cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
                        cg.getexplicitregister(exprasmlist,NR_FUNCTION_RESULT_REG);
                        cg.ungetregister(exprasmlist,NR_FUNCTION_RESULT_REG);
                        hregister:=cg.getaddressregister(exprasmlist);
-                       cg.a_load_reg_reg(exprasmlist,OS_INT,OS_ADDR,r,hregister);
+                       cg.a_load_reg_reg(exprasmlist,OS_INT,OS_ADDR,NR_FUNCTION_RESULT_REG,hregister);
                        cg.a_jmp_always(exprasmlist,endrelocatelab);
                        cg.a_label(exprasmlist,norelocatelab);
                        { no relocation needed, load the address of the variable only, the
@@ -891,7 +888,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.95  2003-10-14 00:30:48  florian
+  Revision 1.96  2003-10-17 14:38:32  peter
+    * 64k registers supported
+    * fixed some memory leaks
+
+  Revision 1.95  2003/10/14 00:30:48  florian
     + some code for PIC support added
 
   Revision 1.94  2003/10/11 16:06:42  florian

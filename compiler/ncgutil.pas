@@ -192,8 +192,10 @@ implementation
          aktfilepos:=p.fileinfo;
          if is_boolean(p.resulttype.def) then
            begin
+{$ifdef OLDREGVARS}
               if loadregvars = lr_load_regvars then
                 load_all_regvars(list);
+{$endif OLDREGVARS}
               if is_constboolnode(p) then
                 begin
                    if tordconstnode(p).value<>0 then
@@ -207,8 +209,10 @@ implementation
                    case p.location.loc of
                      LOC_CREGISTER,LOC_REGISTER,LOC_CREFERENCE,LOC_REFERENCE :
                        begin
+{$ifdef OLDREGVARS}
                          if (p.location.loc = LOC_CREGISTER) then
                            load_regvar_reg(list,p.location.register);
+{$endif OLDREGVARS}
                          cg.a_cmp_const_loc_label(list,opsize,OC_NE,
                            0,p.location,truelabel);
                          { !!! should happen right after cmp (JM) }
@@ -290,6 +294,8 @@ implementation
         cg.a_call_name(list,'FPC_PUSHEXCEPTADDR');
         cg.deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
 
+{$warning stdcall forced for SETJMP}
+        paraloc1:=paramanager.getintparaloc(pocall_stdcall,1);
         paramanager.allocparaloc(list,paraloc1);
         cg.a_param_reg(list,OS_ADDR,NR_FUNCTION_RESULT_REG,paraloc1);
         paramanager.freeparaloc(list,paraloc1);
@@ -1196,13 +1202,17 @@ implementation
         { initialize ansi/widesstring para's }
         current_procinfo.procdef.parast.foreach_static({$ifndef TP}@{$endif}init_paras,list);
 
+{$ifdef OLDREGVARS}
         load_regvars(list,nil);
+{$endif OLDREGVARS}
       end;
 
 
     procedure gen_finalize_code(list:TAAsmoutput;inlined:boolean);
       begin
+{$ifdef OLDREGVARS}
         cleanup_regvars(list);
+{$endif OLDREGVARS}
 
         { finalize temporary data }
         finalizetempvariables(list);
@@ -1286,7 +1296,9 @@ implementation
          list.concat(Tai_force_line.Create);
 {$endif GDB}
 
+{$ifdef OLDREGVARS}
         load_regvars(list,nil);
+{$endif OLDREGVARS}
       end;
 
 
@@ -1948,7 +1960,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.158  2003-10-10 17:48:13  peter
+  Revision 1.159  2003-10-17 14:38:32  peter
+    * 64k registers supported
+    * fixed some memory leaks
+
+  Revision 1.158  2003/10/10 17:48:13  peter
     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
     * tregisteralloctor renamed to trgobj
     * removed rgobj from a lot of units

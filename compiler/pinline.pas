@@ -60,7 +60,7 @@ implementation
        scanner,
        pbase,pexpr,
        { codegen }
-       cgbase,procinfo
+       cgbase
        ;
 
 
@@ -144,7 +144,12 @@ implementation
               end
             else
               begin
-                p2:=cderefnode.create(p.getcopy);
+                { For new(var,constructor) we need to take a copy because
+                  p is also used in the assignmentn below }
+                if is_new then
+                  p2:=cderefnode.create(p.getcopy)
+                else
+                  p2:=cderefnode.create(p);
                 do_resulttypepass(p2);
                 if is_new then
                   callflag:=nf_new_call
@@ -688,7 +693,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  2003-10-08 19:19:45  peter
+  Revision 1.22  2003-10-17 14:38:32  peter
+    * 64k registers supported
+    * fixed some memory leaks
+
+  Revision 1.21  2003/10/08 19:19:45  peter
     * set_varstate cleanup
 
   Revision 1.20  2003/10/02 21:15:31  peter

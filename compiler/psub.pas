@@ -496,7 +496,7 @@ implementation
             if (not is_void(current_procinfo.procdef.rettype.def)) and
                (current_procinfo.procdef.rettype.def.needs_inittable) and
                (not is_class(current_procinfo.procdef.rettype.def)) then
-              finalize_data_node(load_result_node);
+              addstatement(newstatement,finalize_data_node(load_result_node));
           end;
       end;
 
@@ -523,7 +523,6 @@ implementation
         aktfilepos:=exitpos;
         exitcode:=generate_exit_block;
         finalizecode:=generate_finalize_block;
-        exceptcode:=generate_except_block;
         exitlabelcode:=generate_exitlabel_block;
 
         { Generate body of the procedure by combining entry+body+exit }
@@ -540,6 +539,11 @@ implementation
            { but it's useless in init/final code of units }
            not(current_procinfo.procdef.proctypeoption in [potype_unitfinalize,potype_unitinit]) then
           begin
+            { Generate special exception block only needed when
+              implicit finaly is used }
+            aktfilepos:=exitpos;
+            exceptcode:=generate_except_block;
+            { Initialize before try...finally...end frame }
             addstatement(newstatement,initializecode);
             aktfilepos:=entrypos;
             addstatement(newstatement,ctryfinallynode.create_implicit(
@@ -575,6 +579,8 @@ implementation
      destructor tcgprocinfo.destroy;
        begin
          nestedprocs.free;
+         if assigned(code) then
+           code.free;
          inherited destroy;
        end;
 
@@ -589,11 +595,6 @@ implementation
         usesacc,
         usesfpu,
         usesacchi      : boolean;
-{$ifdef ra_debug}
-        i,
-{$endif ra_debug}
-        spillingcounter : integer;
-        fastspill:boolean;
       begin
         { the initialization procedure can be empty, then we
           don't need to generate anything. When it was an empty
@@ -643,22 +644,6 @@ implementation
         aktfilepos:=entrypos;
         gen_load_para_value(aktproccode);
 
-{$warning FIXME!!}
-        { FIXME!! If a procedure contains assembler blocks (or is pure assembler), }
-        { then rg.used_in_proc_int already contains info because of that. However, }
-        { adding that info happened before initialisation of rg.used_in_proc_int,  }
-        { so this info cannot be valid! Currently only changing this for entire    }
-        { assembler procedures... For non-i386, the changed registers are even     }
-        { always all volatile registers (JM)                                       }
-{$ifdef i386}
-        if (po_assembler in current_procinfo.procdef.procoptions) then
-          begin
-            {$warning Fixme}
-{            Tcgx86(cg).rgint.used_in_proc:=paramanager.get_volatile_registers_int(pocall_oldfpccall);
-            Tcgx86(cg).rgother.used_in_proc:=paramanager.get_volatile_registers_int(pocall_oldfpccall);}
-          end;
-{$endif i386}
-
         { generate code for the body }
         generatecode(code);
 
@@ -692,6 +677,7 @@ implementation
         gen_exit_code(templist);
         aktproccode.concatlist(templist);
 
+{$ifdef OLDREGVARS}
         { note: this must be done only after as much code as possible has  }
         {   been generated. The result is that when you ungetregister() a  }
         {   regvar, it will actually free the regvar (and alse free the    }
@@ -702,6 +688,7 @@ implementation
         {   gen_entry_code (that one has to be able to allocate the        }
         {   regvars again) (JM)                                            }
         free_regvars(aktproccode);
+{$endif OLDREGVARS}
 
         { add code that will load the return value, this is not done
           for assembler routines when they didn't reference the result
@@ -873,6 +860,7 @@ implementation
             { the inline procedure has already got a copy of the tree
               stored in current_procinfo.procdef.code }
             code.free;
+            code:=nil;
             if (procdef.proccalloption<>pocall_inline) then
               procdef.code:=nil;
           end;
@@ -1277,7 +1265,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.162  2003-10-10 17:48:13  peter
+  Revision 1.163  2003-10-17 14:38:32  peter
+    * 64k registers supported
+    * fixed some memory leaks
+
+  Revision 1.162  2003/10/10 17:48:13  peter
     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
     * tregisteralloctor renamed to trgobj
     * removed rgobj from a lot of units
