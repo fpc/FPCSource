@@ -424,7 +424,7 @@ begin
   Add('Exit If "{Status}" != 0');
 
   {Add resources}
-  if apptype <> app_tool then {If SIOW}
+  if apptype = app_cui then {If SIOW}
     begin
       Add('Rez -append "{RIncludes}"SIOW.r -o '+ ScriptFixFileName(FileName));
       Add('Exit If "{Status}" != 0');
@@ -503,7 +503,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.29  2004-06-20 08:55:30  florian
+  Revision 1.30  2004-08-20 10:23:35  olle
+    * minor fix for macos
+
+  Revision 1.29  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.28  2004/04/06 22:44:16  olle
