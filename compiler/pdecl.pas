@@ -1028,10 +1028,23 @@ unit pdecl;
              recorddef :
                precorddef(pd)^.symtable^.foreach({$ifndef TP}@{$endif}resolve_type_forward);
              objectdef :
-               { Don't check objectdefs in objects/records, because these can't
-                 exist (anonymous objects aren't allowed) }
-               if not(psym(p)^.owner^.symtabletype in [objectsymtable,recordsymtable]) then
-                pobjectdef(pd)^.symtable^.foreach({$ifndef TP}@{$endif}resolve_type_forward);
+               begin
+                 if not(m_fpc in aktmodeswitches) and
+                    (oo_is_forward in pobjectdef(pd)^.objectoptions) then
+                  begin
+                    { only give an error as the implementation may follow in an
+                      other type block which is allowed by FPC modes }
+                    MessagePos1(psym(p)^.fileinfo,sym_e_forward_type_not_resolved,p^.name);
+                  end
+                 else
+                  begin
+                    { Check all fields of the object declaration, but don't
+                      check objectdefs in objects/records, because these
+                      can't exist (anonymous objects aren't allowed) }
+                    if not(psym(p)^.owner^.symtabletype in [objectsymtable,recordsymtable]) then
+                     pobjectdef(pd)^.symtable^.foreach({$ifndef TP}@{$endif}resolve_type_forward);
+                  end;
+               end;
           end;
         until not again;
       end;
@@ -1286,7 +1299,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.10  2000-08-17 09:17:19  pierre
+  Revision 1.11  2000-08-20 15:01:17  peter
+    * don't allow forward class in separate type blocks for delphi (merged)
+
+  Revision 1.10  2000/08/17 09:17:19  pierre
    * fix go32v2 cycle problem
 
   Revision 1.9  2000/08/16 18:33:53  peter
