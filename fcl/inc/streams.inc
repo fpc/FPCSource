@@ -170,15 +170,15 @@
        try
          { application specific resource ? }
          if ReadByte<>$ff then
-           raise EInvalidImage;
+           raise EInvalidImage.Create;
          if ReadWord<>$000a then
-           raise EInvalidImage;
+           raise EInvalidImage.Create;
          { read name }
          while ReadByte<>0 do
            ;
          { check the access specifier }
          if ReadWord<>$1030 then
-           raise EInvalidImage;
+           raise EInvalidImage.Create;
          { ignore the size }
          ReadDWord;
        except
@@ -608,7 +608,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  1998-06-11 21:15:28  michael
+  Revision 1.7  1998-08-24 12:38:24  michael
+  small fixes
+
+  Revision 1.6  1998/06/11 21:15:28  michael
   + Implemented (Custom)Memory and StringStream
 
   Revision 1.5  1998/06/11 13:46:33  michael

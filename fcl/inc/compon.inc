@@ -148,9 +148,9 @@ begin
   Ancestor:=TComponent(Filer.Ancestor);
   If Assigned(Ancestor) then Temp:=Ancestor.FDesignInfo;
   Filer.Defineproperty('left',readleft,writeleft,
-                       longrec(FDesignInfo).Lo<>Longrec(temp).Lo);
+                       (longrec(FDesignInfo).Lo<>Longrec(temp).Lo));
   Filer.Defineproperty('top',readtop,writetop,
-                       longrec(FDesignInfo).Hi<>Longrec(temp).Hi);
+                       (longrec(FDesignInfo).Hi<>Longrec(temp).Hi));
                       
 end;
 
@@ -375,7 +375,7 @@ Var acomponent: TComponent;
 begin
   While assigned(FComponents) do 
     begin
-    aComponent:=FComponents.Last;
+    aComponent:=TComponent(FComponents.Last);
     Remove(aComponent);
     Acomponent.Destroy;
     end;
@@ -478,7 +478,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  1998-08-23 21:11:03  michael
+  Revision 1.4  1998-08-24 12:37:44  michael
+  small fixes
+
+  Revision 1.3  1998/08/23 21:11:03  michael
   + Fixed some small errors
 
   Revision 1.2  1998/08/22 10:41:35  michael
