@@ -4,20 +4,16 @@ Program Example7;
 
 Uses mouse;
 
-Var
-  Event : TMouseEvent;
-
 begin
   InitMouse;
   Writeln('Click right mouse button to quit.');
   SetMouseXY(40,12);
   Repeat 
+    Writeln(GetMouseX,',',GetMouseY);
     If (GetMouseX>70) then
       SetMouseXY(10,GetMouseY);
     If (GetMouseY>20) then
       SetMouseXY(GetMouseX,5);
-    GetMouseEvent(Event);
-  Until (Event.Buttons=MouseRightButton) and
-        (Event.Action=MouseActionDown);
+  Until (GetMouseButtons=MouseRightButton);
   DoneMouse;
 end.
