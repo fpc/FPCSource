@@ -111,6 +111,7 @@ Function Yesterday: TDateTime;
 Function Tomorrow: TDateTime;
 Function IsToday(const AValue: TDateTime): Boolean;
 Function IsSameDay(const AValue, ABasis: TDateTime): Boolean;
+Function PreviousDayOfWeek (DayOfWeek : Word) : Word;
 
 { ---------------------------------------------------------------------
     Extraction functions.
@@ -400,6 +401,14 @@ Function UnixToDateTime(const AValue: Int64): TDateTime;
 
 implementation
 
+Resourcestring
+  SErrInvalidTimeStamp = 'Invalid date/timestamp : "%s"';
+  SErrInvalidDateWeek = '%d %d %d is not a valid dateweek';
+  SErrInvalidDayOfYear = 'Year %d does not have a day number %d';
+  SErrInvalidDateMonthWeek = 'Year %d, month %d, Week %d and day %d is not a valid date.';
+  SErrInvalidDayOfWeekInMonth = 'Year %d Month %d NDow %d DOW %d is not a valid date';
+  SErrInvalidDayOfWeek = '%d is not a valid day of the week';
+
 { ---------------------------------------------------------------------
     Auxiliary routines
   ---------------------------------------------------------------------}
@@ -605,6 +614,19 @@ begin
   Result:=(D>=0) and (D<1);
 end;
 
+const
+  DOWMap: array [1..7] of Word = (7, 1, 2, 3, 4, 5, 6);
+
+Function PreviousDayOfWeek (DayOfWeek : Word) : Word;
+
+begin
+  If Not (DayOfWeek in [1..7]) then
+    Raise EConvertError.CreateFmt(SErrInvalidDayOfWeek,[DayOfWeek]);
+  Result:=DOWMap[DayOfWeek];
+end;
+
+
+
 { ---------------------------------------------------------------------
     Extraction functions.
   ---------------------------------------------------------------------}
@@ -796,7 +818,7 @@ end;
 
 Function EndOfAWeek(const AYear, AWeekOfYear: Word; const ADayOfWeek: Word): TDateTime;
 begin
-  NotYetImplemented('EndOfAWeek');
+  Result := EndOfTheDay(EncodeDateWeek(AYear, AWeekOfYear, ADayOfWeek));
 end;
 
 
@@ -1020,9 +1042,11 @@ end;
     Part of week functions.
   ---------------------------------------------------------------------}
 
+
 Function DayOfTheWeek(const AValue: TDateTime): Word;
+
 begin
-  Result:=(DayOfWeek(AValue)-1) mod 7;
+  Result:=DowMAP[DayOfWeek(AValue)];
 end;
 
 
@@ -1489,7 +1513,7 @@ end;
 Function EncodeDateWeek(const AYear, AWeekOfYear: Word; const ADayOfWeek: Word): TDateTime;
 begin
   If Not TryEncodeDateWeek(AYear,AWeekOfYear,Result,ADayOfWeek) then
-    Raise Exception.CreateFmt('%d %d %d is not a valid dateweek',[AYear,AWeekOfYear,ADayOfWeek]);
+    InvalidDateWeekError(AYear,AWeekOfYear,ADayOfWeek);
 end;
 
 
@@ -1536,19 +1560,27 @@ end;
 
 Function EncodeDateDay(const AYear, ADayOfYear: Word): TDateTime;
 begin
-  NotYetImplemented('EncodeDateDay');
+  If Not TryEncodeDateDay(AYear,ADayOfYear,Result) then
+    InvalidDateDayError(AYear,ADayOfYear);
 end;
 
 
 Procedure DecodeDateDay(const AValue: TDateTime; var AYear, ADayOfYear: Word);
+
+Var
+  M,D : Word;
+
 begin
-  NotYetImplemented('DecodeDateDay');
+  DecodeDate(AValue,AYear,M,D);
+  ADayOfyear:=Trunc(AValue-EncodeDate(AYear,1,1))+1;
 end;
 
 
 Function TryEncodeDateDay(const AYear, ADayOfYear: Word; var AValue: TDateTime): Boolean;
 begin
-  NotYetImplemented('TryEncodeDateDay');
+  Result:=(ADayOfYear<>0) and (ADayOfYear<=DaysPerYear [IsleapYear(AYear)]);
+  If Result then
+    AValue:=EncodeDate(AYear,1,1)+ADayOfYear-1;
 end;
 
 
@@ -1559,13 +1591,43 @@ end;
 
 Function EncodeDateMonthWeek(const AYear, AMonth, AWeekOfMonth, ADayOfWeek: Word): TDateTime;
 begin
-  NotYetImplemented('EncodeDateMonthWeek');
+  If Not TryEncodeDateMonthWeek(Ayear,AMonth,AWeekOfMonth,ADayOfWeek,Result) then
+    InvalidDateMonthWeekError(AYear,AMonth,AWeekOfMonth,ADayOfWeek);
 end;
 
-
 Procedure DecodeDateMonthWeek(const AValue: TDateTime; var AYear, AMonth, AWeekOfMonth, ADayOfWeek: Word);
+
+Var
+  D,SDOM,EDOM : Word;
+  SOM,EOM : TdateTime;
+  DOM : Integer;
 begin
-  NotYetImplemented('DecodeDateMonthWeek');
+  DecodeDate(AValue,AYear,AMonth,D);
+  ADayOfWeek:=DayOfTheWeek(AValue);
+  SOM:=EncodeDate(Ayear,Amonth,1);
+  SDOM:=DayOfTheWeek(SOM);
+  DOM:=D-1+SDOM;
+  If SDOM>4 then
+    Dec(DOM,7);
+  // Too early in the month. First full week is next week, day is after thursday.
+  If DOM<=0 Then
+    DecodeDateMonthWeek(SOM-1,AYear,AMonth,AWeekOfMonth,D)
+  else
+    begin
+    AWeekOfMonth:=(DOM div 7)+Ord((DOM mod 7)<>0);
+    EDOM:=DayOfTheWeek(EndOfAMonth(Ayear,AMonth));
+    // In last days of last long week, so in next month...
+    If (EDOM<4) and ((DaysInAMonth(AYear,Amonth)-D)<EDOM) then
+      begin
+      AWeekOfMonth:=1;
+      Inc(AMonth);
+      If (AMonth=13) then
+        begin
+        AMonth:=1;
+        Inc(AYear);
+        end;
+      end;
+    end;
 end;
 
 
@@ -1579,70 +1641,100 @@ end;
     Replace given element with supplied value.
   ---------------------------------------------------------------------}
 
+Const
+  LFAI = RecodeLeaveFieldAsIS; // Less typing, readable code
+{
+  Note: We have little choice but to implement it like Borland did:
+  If AValue contains some 'wrong' value, it will throw an error.
+  To simulate this we'd have to check in each function whether
+  both arguments are correct. To avoid it, all is routed through
+  the 'central' RecodeDateTime function as in Borland's implementation.
+}
 
 Function RecodeYear(const AValue: TDateTime; const AYear: Word): TDateTime;
+
 begin
-  NotYetImplemented('RecodeYear');
+  RecodeDateTime(AValue,AYear,LFAI,LFAI,LFAI,LFAI,LFAI,LFAI);
 end;
 
 
 Function RecodeMonth(const AValue: TDateTime; const AMonth: Word): TDateTime;
 begin
-  NotYetImplemented('RecodeMonth');
+  RecodeDateTime(AValue,LFAI,AMonth,LFAI,LFAI,LFAI,LFAI,LFAI);
 end;
 
 
 Function RecodeDay(const AValue: TDateTime; const ADay: Word): TDateTime;
 begin
-  NotYetImplemented('RecodeDay');
+  RecodeDateTime(AValue,LFAI,LFAI,ADay,LFAI,LFAI,LFAI,LFAI);
 end;
 
 
 Function RecodeHour(const AValue: TDateTime; const AHour: Word): TDateTime;
 begin
-  NotYetImplemented('RecodeHour');
+  RecodeDateTime(AValue,LFAI,LFAI,LFAI,AHour,LFAI,LFAI,LFAI);
 end;
 
 
 Function RecodeMinute(const AValue: TDateTime; const AMinute: Word): TDateTime;
 begin
-  NotYetImplemented('RecodeMinute');
+  RecodeDateTime(AValue,LFAI,LFAI,LFAI,LFAI,AMinute,LFAI,LFAI);
 end;
 
 
 Function RecodeSecond(const AValue: TDateTime; const ASecond: Word): TDateTime;
 begin
-  NotYetImplemented('RecodeSecond');
+  RecodeDateTime(AValue,LFAI,LFAI,LFAI,LFAI,LFAI,ASecond,LFAI);
 end;
 
 
 Function RecodeMilliSecond(const AValue: TDateTime; const AMilliSecond: Word): TDateTime;
 begin
-  NotYetImplemented('RecodeMilliSecond');
+  RecodeDateTime(AValue,LFAI,LFAI,LFAI,LFAI,LFAI,LFAI,AMilliSecond);
 end;
 
 
 Function RecodeDate(const AValue: TDateTime; const AYear, AMonth, ADay: Word): TDateTime;
 begin
-  NotYetImplemented('RecodeDate');
+  RecodeDateTime(AValue,AYear,AMonth,ADay,LFAI,LFAI,LFAI,LFAI);
 end;
 
 
 Function RecodeTime(const AValue: TDateTime; const AHour, AMinute, ASecond, AMilliSecond: Word): TDateTime;
 begin
-  NotYetImplemented('RecodeTime');
+  RecodeDateTime(AValue,LFAI,LFAI,LFAI,AHour,AMinute,ASecond,AMilliSecond);
 end;
 
 
 Function RecodeDateTime(const AValue: TDateTime; const AYear, AMonth, ADay, AHour, AMinute, ASecond, AMilliSecond: Word): TDateTime;
 begin
-  NotYetImplemented('RecodeDateTime');
+  If Not TryRecodeDateTime(AValue,AYear,AMonth,ADay,AHour,AMinute,ASecond,AMilliSecond,Result) then
+    InvalidDateTimeError(AYear,AMonth,ADay,AHour,AMinute,ASecond,AMilliSecond,AValue);
 end;
 
 
 Function TryRecodeDateTime(const AValue: TDateTime; const AYear, AMonth, ADay, AHour, AMinute, ASecond, AMilliSecond: Word; var AResult: TDateTime): Boolean;
+
+  Procedure FV (Var FV : Word; Arg : Word);
+
+  begin
+    If (Arg<>LFAI) then
+      FV:=Arg;
+  end;
+
+Var
+  Y,M,D,H,N,S,MS : Word;
+
 begin
-  NotYetImplemented('TryRecodeDateTime');
+ DecodeDateTime(AValue,Y,M,D,H,N,S,MS);
+  FV(Y,AYear);
+  FV(M,AMonth);
+  FV(D,ADay);
+  FV(H,AHour);
+  FV(N,AMinute);
+  FV(S,ASecond);
+  FV(S,AMillisecond);
+  Result:=TryEncodeDateTime(Y,M,D,H,N,S,MS,AResult);
 end;
 
 { ---------------------------------------------------------------------
@@ -1652,45 +1744,61 @@ end;
 
 Function CompareDateTime(const A, B: TDateTime): TValueRelationship;
 begin
-  NotYetImplemented('CompareDateTime');
+  If SameDateTime(A,B) then
+    Result:=EqualsValue
+  else If A>B then
+    Result:=GreaterThanValue
+  else
+    Result:=LessThanValue
 end;
 
 
 Function CompareDate(const A, B: TDateTime): TValueRelationship;
 begin
-  NotYetImplemented('CompareDate');
+  If SameDate(A,B) then
+    Result:=EQualsValue
+  else if A<B then
+    Result:=LessThanValue
+  else
+    Result:=GreaterThanValue;
 end;
 
 
 Function CompareTime(const A, B: TDateTime): TValueRelationship;
+
 begin
-  NotYetImplemented('NotYetImplemented');
+  If SameTime(A,B) then
+    Result:=EQualsValue
+  else If Frac(A)<Frac(B) then
+    Result:=LessThanValue
+  else
+    Result:=GreaterThanValue;
 end;
 
 
 Function SameDateTime(const A, B: TDateTime): Boolean;
 begin
-  NotYetImplemented('SameDateTime');
+  Result:=Abs(A-B)<OneMilliSecond;
 end;
 
 
 Function SameDate(const A, B: TDateTime): Boolean;
 begin
-  NotYetImplemented('SameDate');
+  Result:=Trunc(A)=Trunc(B);
 end;
 
 
 Function SameTime(const A, B: TDateTime): Boolean;
 
 begin
-  NotYetImplemented('SameTime');
+  Result:=Frac(Abs(A-B))<OneMilliSecond;
 end;
 
 
 Function NthDayOfWeek(const AValue: TDateTime): Word;
 
 begin
-  NotYetImplemented('NthDayOfWeek');
+  Result:=(DayOfTheMonth(AValue)-1) div 7 + 1;
 end;
 
 
@@ -1703,14 +1811,22 @@ end;
 
 Function EncodeDayOfWeekInMonth(const AYear, AMonth, ANthDayOfWeek,  ADayOfWeek: Word): TDateTime;
 begin
-  NotYetImplemented('EncodeDayOfWeekInMonth');
+  If Not TryEncodeDayOfWeekInMonth(AYear,AMonth,ANthDayOfWeek,ADayOfWeek,Result) then
+    InvalidDayOfWeekInMonthError(AYear,AMonth,ANthDayOfWeek,ADayOfWeek);
 end;
 
 
 Function TryEncodeDayOfWeekInMonth(const AYear, AMonth, ANthDayOfWeek,  ADayOfWeek: Word; var AValue: TDateTime): Boolean;
 
+Var
+  SOM,D : Word;
+
 begin
-  NotYetImplemented('TryEncodeDayOfWeekInMonth');
+  SOM:=DayOfTheWeek(EncodeDate(Ayear,AMonth,1));
+  D:=1+ADayOfWeek-SOM+7*(ANthDayOfWeek-1);
+  If SOM>ADayOfWeek then
+    D:=D+7; // Clearer would have been Inc(ANthDayOfweek) but it's a const
+  Result:=TryEncodeDate(Ayear,AMonth,D,AValue);
 end;
 
 { ---------------------------------------------------------------------
@@ -1720,39 +1836,63 @@ end;
 
 
 Procedure InvalidDateTimeError(const AYear, AMonth, ADay, AHour, AMinute, ASecond, AMilliSecond: Word; const ABaseDate: TDateTime);
+
+  Function DoField(Arg,Def : Word; Unknown: String) : String;
+
+  begin
+    If (Arg<>LFAI) then
+      Result:=Format('%.*d',[Length(Unknown),Arg])
+    else if (ABaseDate=0) then
+      Result:=Unknown
+    else
+      Result:=Format('%.*d',[Length(Unknown),Arg]);
+  end;
+
+Var
+  Y,M,D,H,N,S,MS : Word;
+  Msg : String;
+
 begin
-  NotYetImplemented('InvalidDateTimeError');
+  DecodeDateTime(ABasedate,Y,M,D,H,N,S,MS);
+  Msg:=DoField(AYear,Y,'????');
+  Msg:=Msg+DateSeparator+DoField(AMonth,M,'??');
+  Msg:=Msg+DateSeparator+DoField(ADay,D,'??');
+  Msg:=Msg+' '+DoField(AHour,H,'??');
+  Msg:=Msg+TimeSeparator+DoField(AMinute,N,'??');
+  Msg:=Msg+TimeSeparator+Dofield(ASecond,S,'??');
+  Msg:=Msg+DecimalSeparator+DoField(AMilliSecond,MS,'???');
+  Raise EConvertError.CreateFmt(SErrInvalidTimeStamp,[Msg]);
 end;
 
 
 Procedure InvalidDateTimeError(const AYear, AMonth, ADay, AHour, AMinute, ASecond, AMilliSecond: Word); // const ABaseDate: TDateTime = 0
 begin
-  NotYetImplemented('InvalidDateTimeError');
+  InvalidDateTimeError(AYear,AMonth,ADay,AHour,AMinute,ASecond,AMilliSecond,0);
 end;
 
 
 Procedure InvalidDateWeekError(const AYear, AWeekOfYear, ADayOfWeek: Word);
 begin
-  NotYetImplemented('InvalidDateWeekError');
+  Raise EConvertError.CreateFmt(SErrInvalidDateWeek,[AYear,AWeekOfYear,ADayOfWeek]);
 end;
 
 
 Procedure InvalidDateDayError(const AYear, ADayOfYear: Word);
 begin
-  NotYetImplemented('InvalidDateDayError');
+  Raise EConvertError.CreateFmt(SErrInvalidDayOfYear,[AYear,ADayOfYear]);
 end;
 
 
 Procedure InvalidDateMonthWeekError(const AYear, AMonth, AWeekOfMonth, ADayOfWeek: Word);
 begin
-  NotYetImplemented('InvalidDateMonthWeekError');
+  Raise EConvertError.CreateFmt(SErrInvalidDateMonthWeek,[Ayear,AMonth,AWeekOfMonth,ADayOfWeek]);
 end;
 
 
 Procedure InvalidDayOfWeekInMonthError(const AYear, AMonth, ANthDayOfWeek,  ADayOfWeek: Word);
 
 begin
-  NotYetImplemented('InvalidDayOfWeekInMonthError');
+  Raise EConvertError.CreateFmt(SErrInvalidDayOfWeekInMonth,[AYear,AMonth,ANthDayOfWeek,ADayOfWeek]);
 end;
 
 
@@ -1818,7 +1958,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2003-01-19 00:01:55  michael
-  + initial checkin.
+  Revision 1.2  2003-01-19 14:37:06  michael
+  + Much more functions implemented
 
 }
