@@ -203,7 +203,8 @@ var
    maxinfolen,
    code : byte;
    insns : longint;
-   attsuffile,propfile,opfile,attfile,intfile,
+   attsuffile,propfile,opfile,
+   nopfile,attfile,intfile,
    infile,insfile : text;
    { instruction fields }
    last,
@@ -224,6 +225,9 @@ begin
    { create inc files }
    openinc(insfile,'i386tab.inc');
    openinc(opfile,'i386op.inc');
+   assign(nopfile,'i386nop.inc');
+   rewrite(nopfile);
+   writeln(nopfile,'{ don''t edit, this file is generated from i386ins.dat }');
    openinc(attfile,'i386att.inc');
    openinc(attsuffile,'i386atts.inc');
    openinc(intfile,'i386int.inc');
@@ -418,12 +422,17 @@ begin
    closeinc(attfile);
    closeinc(attsuffile);
    closeinc(opfile);
+   writeln(nopfile,insns,';');
+   close(nopfile);
    closeinc(propfile);
    writeln(insns,' nodes procesed (maxinfolen=',maxinfolen,')');
 end.
 {
   $Log$
-  Revision 1.9  2000-04-04 13:44:03  pierre
+  Revision 1.10  2000-05-09 06:39:17  pierre
+   + generate also i386nop.inc containing the number of opcodes
+
+  Revision 1.9  2000/04/04 13:44:03  pierre
    + R suffix for integer FPU operations
 
   Revision 1.8  2000/02/09 13:23:11  peter
