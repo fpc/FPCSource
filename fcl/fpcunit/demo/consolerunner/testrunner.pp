@@ -16,9 +16,9 @@
 
  **********************************************************************}
 program testrunner;
-
 uses
-  custapp, classes, SysUtils, fpcunit, suiteconfig, testreport, testregistry;
+  custapp, classes, SysUtils, fpcunit, suiteconfig, testreport, 
+  testregistry;
 
 Const
   ShortOpts = 'alh';

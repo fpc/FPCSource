@@ -61,7 +61,9 @@ type
     procedure FailEqualsTClass;
     procedure FailEqualsTObject;
     procedure FailAssertNull;
+    procedure FailAssertNullInterface;
     procedure FailAssertNotNull;
+    procedure FailAssertNotNullInterface;
     procedure RaiseMyException;
     procedure InterceptFailure(AMethod: TRunMethod; const ExpectedMessage: string);
   published
@@ -74,7 +76,9 @@ type
     procedure TestEqualsTClass;
     procedure TestEqualsTObject;
     procedure TestNull;
+    procedure TestNullInterface;
     procedure TestNotNull;
+    procedure TestNotNullInterface;
     procedure TestFailEqualsInt;
     procedure TestFailEqualsInt64;
     procedure TestFailEqualsCurrency;
@@ -84,7 +88,9 @@ type
     procedure TestFailEqualsTClass;
     procedure TestFailEqualsTObject;
     procedure TestFailNull;
+    procedure TestFailNullInterface;
     procedure TestFailNotNull;
+    procedure TestFailNotNullInterface;
     procedure TestAssertException;
     procedure TestComparisonMsg;
   end;
@@ -113,6 +119,20 @@ type
     procedure TestWithFailure;
   end;
 
+  TExampleStepTest = class(TTestCase)
+  private
+    FWhenException: TTestStep;
+    procedure SetWhenException(const Value: TTestStep);
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  public
+    constructor Create; override;
+    property WhenException: TTestStep read FWhenException write SetWhenException;
+  published
+    procedure TestException;
+  end;
+
   TListenerTest = class(TTestCase)
   private
     FMockListener: TMockListener;
@@ -124,9 +144,25 @@ type
     procedure TestStartAndEndTest;
     procedure TestAddError;
     procedure TestAddFailure;
+    procedure TestSetUpTearDown;
+    procedure TestSetUpException;
+    procedure TestTearDownException;
+  end;
+
+  IMyIntf = interface
+    procedure SayGoodbye;
+  end;
+
+  TMyIntfObj = class(TInterfacedObject, IMyIntf)
+    procedure SayGoodbye;
   end;
 
 implementation
+
+procedure TMyIntfObj.SayGoodbye;
+begin
+  writeln('Ciao');
+end;
 
 procedure TTestCaseTest.SetUp;
 begin
@@ -157,8 +193,6 @@ procedure TTestSuiteTest.TearDown;
 begin
   FSuite.Free;
 end;
-
-
 
 procedure TTestSuiteTest.CheckCountTestCases;
 begin
@@ -259,6 +293,14 @@ begin
   AssertNull(nil);
 end;
 
+procedure TAssertTest.TestNullInterface;
+var
+  myintf: IMyIntf;
+begin
+  myintf := nil;
+  AssertNull(myintf);
+end;
+
 procedure TAssertTest.TestNotNull;
 var
   obj: TTestCase;
@@ -266,6 +308,14 @@ begin
   obj := TTestCase.Create;
   AssertNotNull(obj);
   obj.Free;
+end;
+
+procedure TAssertTest.TestNotNullInterface;
+var
+  myintf: IMyIntf;
+begin
+  myintf := TMyIntfObj.Create;
+  AssertNotNull(myintf);
 end;
 
 procedure TAssertTest.InterceptFailure(AMethod: TRunMethod; const ExpectedMessage: string);
@@ -373,12 +423,32 @@ begin
   end;
 end;
 
+procedure TAssertTest.FailAssertNullInterface;
+var
+  myintf: IMyIntf;
+begin
+  myintf := TMyIntfObj.Create;
+  try
+    AssertNull(myIntf);
+  finally
+    myintf := nil;
+  end;
+end;
+
 procedure TAssertTest.FailAssertNotNull;
 var
   obj: TObject;
 begin
   obj := nil;
   AssertNotNull(obj);
+end;
+
+procedure TAssertTest.FailAssertNotNullInterface;
+var
+  myintf: IMyIntf;
+begin
+  myintf := nil;
+  AssertNotNull(myintf);
 end;
 
 procedure TAssertTest.TestFailEqualsInt;
@@ -431,9 +501,19 @@ begin
   InterceptFailure(@FailAssertNull, '');
 end;
 
+procedure TAssertTest.TestFailNullInterface;
+begin
+  InterceptFailure(@FailAssertNullInterface, '');
+end;
+
 procedure TAssertTest.TestFailNotNull;
 begin
   InterceptFailure(@FailAssertNotNull, '');
+end;
+
+procedure TAssertTest.TestFailNotNullInterface;
+begin
+  InterceptFailure(@FailAssertNotNullInterface, '');
 end;
 
 procedure TAssertTest.RaiseMyException;
@@ -487,7 +567,6 @@ procedure TMockListener.EndTest(ATest: TTest);
 begin
   FList.Add('Ended: ' + ATest.TestName)
 end;
-
 
 procedure TMockListener.AddExpectedLine(ALine: string);
 begin
@@ -572,6 +651,85 @@ begin
   finally
     t.Free;
   end;
+end;
+
+procedure TListenerTest.TestSetUpException;
+var
+  t: TExampleStepTest;
+begin
+  t := TExampleStepTest.CreateWith('TestException', 'TExampleStepTest');
+  try
+    t.WhenException := stSetUp;
+    t.Run(FResult);
+    FMockListener.AddExpectedLine('TestException: [SETUP] Error Raised');
+    FMockListener.Verify(FMockListener.FErrorList);
+  finally
+    t.Free;
+  end;
+end;
+
+procedure TListenerTest.TestTearDownException;
+var
+  t: TExampleStepTest;
+begin
+  t := TExampleStepTest.CreateWith('TestException', 'TExampleStepTest');
+  try
+    t.WhenException := stTearDown;
+    t.Run(FResult);
+    FMockListener.AddExpectedLine('TestException: [TEARDOWN] Error Raised');
+    FMockListener.Verify(FMockListener.FErrorList);
+  finally
+    t.Free;
+  end;
+end;
+
+procedure TListenerTest.TestSetUpTearDown;
+var
+  t: TExampleStepTest;
+begin
+  t := TExampleStepTest.CreateWith('TestException', 'TExampleStepTest');
+  try
+    t.WhenException := stNothing;
+    t.Run(FResult);
+    FMockListener.Verify(FMockListener.FErrorList);
+    FMockListener.Verify(FMockListener.FFailureList);
+  finally
+    t.Free;
+  end;
+end;
+
+{ TExampleStepTest }
+
+constructor TExampleStepTest.Create;
+begin
+  inherited;
+  FWhenException := stNothing;
+end;
+
+procedure TExampleStepTest.SetUp;
+begin
+  AssertTrue(stSetUp = LastStep);
+  if FWhenException = stSetUp then
+    raise exception.Create('Error Raised');
+  inherited;
+end;
+
+procedure TExampleStepTest.SetWhenException(const Value: TTestStep);
+begin
+  FWhenException := Value;
+end;
+
+procedure TExampleStepTest.TearDown;
+begin
+  AssertTrue(stTearDown = LastStep);
+  if FWhenException = stTearDown then
+    raise exception.Create('Error Raised');
+  inherited;
+end;
+
+procedure TExampleStepTest.TestException;
+begin
+  AssertTrue(True);
 end;
 
 end.

@@ -18,7 +18,6 @@
 unit fpcunit;
 
 interface
-
 {$define SHOWLINEINFO}
 
 uses
@@ -34,6 +33,9 @@ type
     constructor Create(const msg :string); overload;
   end;
 
+  TTestStep = (stSetUp, stRunTest, stTearDown, stNothing);
+
+
   TRunMethod = procedure of object;
 
   TTestResult = class;
@@ -41,6 +43,7 @@ type
   {$M+}
   TTest = class(TObject)
   protected
+    FLastStep: TTestStep;
     function GetTestName: string; virtual;
     function GetTestSuiteName: string; virtual;
     procedure SetTestSuiteName(const aName: string); virtual; abstract;
@@ -50,6 +53,7 @@ type
   published
     property TestName: string read GetTestName;
     property TestSuiteName: string read GetTestSuiteName write SetTestSuiteName;
+    property LastStep: TTestStep read FLastStep;
   end;
   {$M-}
 
@@ -86,10 +90,14 @@ type
     class procedure AssertNotSame(Expected, Actual: Pointer); overload;
     class procedure AssertNotNull(const AMessage: string; AObject: TObject); overload;
     class procedure AssertNotNull(AObject: TObject); overload;
+    class procedure AssertNotNull(const AMessage: string; AInterface: IInterface); overload;
+    class procedure AssertNotNull(AInterface: IInterface); overload;
     class procedure AssertNotNull(const AMessage: string; APointer: Pointer); overload;
     class procedure AssertNotNull(APointer: Pointer); overload;
     class procedure AssertNull(const AMessage: string; AObject: TObject); overload;
     class procedure AssertNull(AObject: TObject); overload;
+    class procedure AssertNull(const AMessage: string; AInterface: IInterface); overload;
+    class procedure AssertNull(AInterface: IInterface); overload;
     class procedure AssertNull(const AMessage: string; APointer: Pointer); overload;
     class procedure AssertNull(APointer: Pointer); overload;
     class procedure AssertNotNull(const AMessage, AString: string); overload;
@@ -107,12 +115,14 @@ type
     FRaisedExceptionClass: TClass;
     FRaisedExceptionMessage: string;
     FSourceUnitName: string;
+    FTestLastStep: TTestStep;
     function GetAsString: string;
     function GetExceptionMessage: string;
     function GetIsFailure: boolean;
     function GetExceptionClassName: string;
+    procedure SetTestLastStep(const Value: TTestStep);
   public
-    constructor CreateFailure(ATest: TTest; E: Exception);
+    constructor CreateFailure(ATest: TTest; E: Exception; LastStep: TTestStep);
     property ExceptionClass: TClass read FRaisedExceptionClass;
   published
     property AsString: string read GetAsString;
@@ -122,6 +132,7 @@ type
     property SourceUnitName: string read FSourceUnitName write FSourceUnitName;
     property LineNumber: longint read FLineNumber write FLineNumber;
     property MethodName: string read FMethodName write FMethodName;
+    property TestLastStep: TTestStep read FTestLastStep write SetTestLastStep;
   end;
 
   ITestListener = interface
@@ -145,14 +156,14 @@ type
     function GetTestSuiteName: string; override;
     procedure SetTestSuiteName(const aName: string); override;
     procedure SetTestName(const Value: string); virtual;
+    procedure RunBare; virtual;
   public
     constructor Create; virtual;
-    constructor CreateWith(const AName: string; const ATestSuiteName: string); virtual;
+    constructor CreateWith(const ATestName: string; const ATestSuiteName: string); virtual;
     constructor CreateWithName(const AName: string); virtual;
     function CountTestCases: integer; override;
     function CreateResultAndRun: TTestResult; virtual;
     procedure Run(AResult: TTestResult); override;
-    procedure RunBare; virtual;
     function AsString: string;
     property TestSuiteName: string read GetTestSuiteName write SetTestSuiteName;
   published
@@ -269,13 +280,14 @@ begin
   inherited Create(msg);
 end;
 
-constructor TTestFailure.CreateFailure(ATest: TTest; E: Exception);
+constructor TTestFailure.CreateFailure(ATest: TTest; E: Exception; LastStep: TTestStep);
 begin
   inherited Create;
   FTestName := ATest.GetTestName;
   FTestSuiteName := ATest.GetTestSuiteName;
   FRaisedExceptionClass := E.ClassType;
   FRaisedExceptionMessage := E.Message;
+  FTestLastStep := LastStep;
 end;
 
 function TTestFailure.GetAsString: string;
@@ -297,11 +309,20 @@ end;
 function TTestFailure.GetExceptionMessage: string;
 begin
   Result := FRaisedExceptionMessage;
+  if TestLastStep = stSetUp then
+    Result := '[SETUP] ' + Result
+  else if TestLastStep = stTearDown then
+    Result := '[TEARDOWN] ' + Result;
 end;
 
 function TTestFailure.GetIsFailure: boolean;
 begin
   Result := FRaisedExceptionClass.InheritsFrom(EAssertionFailedError);
+end;
+
+procedure TTestFailure.SetTestLastStep(const Value: TTestStep);
+begin
+  FTestLastStep := Value;
 end;
 
 { TTest}
@@ -497,6 +518,16 @@ begin
   AssertNotNull('', AObject);
 end;
 
+class procedure TAssert.AssertNotNull(const AMessage: string; AInterface: IInterface);
+begin
+  AssertTrue(AMessage, (AInterface <> nil));
+end;
+
+class procedure TAssert.AssertNotNull(AInterface: IInterface);
+begin
+  AssertNotNull('', AInterface);
+end;
+
 class procedure TAssert.AssertNotNull(const AMessage: string; APointer: Pointer);
 begin
   AssertTrue(AMessage, (APointer <> nil));
@@ -515,6 +546,16 @@ end;
 class procedure TAssert.AssertNull(AObject: TObject);
 begin
   AssertNull('', AObject);
+end;
+
+class procedure TAssert.AssertNull(const AMessage: string; AInterface: IInterface);
+begin
+  AssertTrue(AMessage, (AInterface = nil));
+end;
+
+class procedure TAssert.AssertNull(AInterface: IInterface);
+begin
+  AssertNull('', AInterface);
 end;
 
 class procedure TAssert.AssertNull(const AMessage: string; APointer: Pointer);
@@ -566,10 +607,10 @@ begin
   FName := AName;
 end;
 
-constructor TTestCase.CreateWith(const AName: string; const ATestSuiteName: string);
+constructor TTestCase.CreateWith(const ATestName: string; const ATestSuiteName: string);
 begin
   Create;
-  FName := AName;
+  FName := ATestName;
   FTestSuiteName := ATestSuiteName;
 end;
 
@@ -623,12 +664,16 @@ end;
 
 procedure TTestCase.RunBare;
 begin
+  FLastStep := stSetUp;
   SetUp;
   try
+    FLastStep := stRunTest;
     RunTest;
+    FLastStep := stTearDown;
   finally
     TearDown;
   end;
+  FLastStep := stNothing;
 end;
 
 procedure TTestCase.RunTest;
@@ -846,7 +891,7 @@ var
   f: TTestFailure;
 begin
   //lock mutex
-  f := TTestFailure.CreateFailure(ATest, E);
+  f := TTestFailure.CreateFailure(ATest, E, ATest.LastStep);
   FFailures.Add(f);
   for i := 0 to FListeners.Count - 1 do
     ITestListener(FListeners[i]).AddFailure(ATest, f);
@@ -860,7 +905,7 @@ var
   f: TTestFailure;
 begin
   //lock mutex
-  f := TTestFailure.CreateFailure(ATest, E);
+  f := TTestFailure.CreateFailure(ATest, E, ATest.LastStep);
   f.SourceUnitName := AUnitName;
   f.MethodName := AMethodName;
   f.LineNumber := ALineNumber;
@@ -897,7 +942,8 @@ begin
   try
     ATestCase.RunBare;
   except
-    on E: EAssertionFailedError do AddFailure(ATestCase, E);
+    on E: EAssertionFailedError do
+      AddFailure(ATestCase, E);
     on E: Exception do
       begin
       {$ifdef SHOWLINEINFO}
