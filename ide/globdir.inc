@@ -151,3 +151,7 @@
 {$ifdef NOWINCLIP}
   {$undef WINCLIPSUPPORTED}
 {$endif}
+
+{$ifdef CROSSGDB}
+  {$define SUPPORT_REMOTE}
+{$endif CROSSGDB}
