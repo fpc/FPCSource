@@ -36,12 +36,15 @@ interface
     type
        tmemdebug = class
        private
+          totalmem,
           startmem : integer;
           infostr  : string[40];
        public
           constructor Create(const s:string);
           destructor  Destroy;override;
           procedure show;
+          procedure start;
+          procedure stop;
        end;
 
 {********************************************
@@ -293,6 +296,13 @@ implementation
     constructor tmemdebug.create(const s:string);
       begin
         infostr:=s;
+        totalmem:=0;
+        Start;
+      end;
+
+
+    procedure tmemdebug.start;
+      begin
 {$ifdef Delphi}
         startmem:=0;
 {$else}
@@ -301,25 +311,31 @@ implementation
       end;
 
 
+    procedure tmemdebug.stop;
+      begin
+        if startmem<>0 then
+         begin
+           inc(TotalMem,memavail-startmem);
+           startmem:=0;
+         end;
+      end;
+
+
     destructor tmemdebug.destroy;
       begin
+        Stop;
         show;
       end;
 
 
     procedure tmemdebug.show;
-{$ifndef Delphi}
-      var
-        l : integer;
-{$endif}
       begin
 {$ifndef Delphi}
         write('memory [',infostr,'] ');
-        l:=memavail;
-        if l>startmem then
-         writeln(l-startmem,' released')
+        if TotalMem>0 then
+         writeln(DStr(TotalMem shr 10),' Kb released')
         else
-         writeln(startmem-l,' allocated');
+         writeln(DStr((-TotalMem) shr 10),' Kb allocated');
 {$endif Delphi}
       end;
 
@@ -1735,7 +1751,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.17  2002-08-11 13:24:11  peter
+  Revision 1.18  2002-09-05 19:29:42  peter
+    * memdebug enhancements
+
+  Revision 1.17  2002/08/11 13:24:11  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

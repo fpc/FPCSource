@@ -67,6 +67,7 @@ interface
     function tostr(i : longint) : string;
     function int64tostr(i : int64) : string;
     function tostr_with_plus(i : longint) : string;
+    function DStr(l:longint):string;
     procedure valint(S : string;var V : longint;var code : integer);
     {# Returns true if the string s is a number }
     function is_number(const s : string) : boolean;
@@ -372,6 +373,23 @@ uses
          str(i,hs);
          tostru:=hs;
        end;
+
+
+    function DStr(l:longint):string;
+      var
+        TmpStr : string[32];
+        i : longint;
+      begin
+        Str(l,TmpStr);
+        i:=Length(TmpStr);
+        while (i>3) do
+         begin
+           dec(i,3);
+           if TmpStr[i]<>'-' then
+            insert('.',TmpStr,i+1);
+         end;
+        DStr:=TmpStr;
+      end;
 
 
     function trimbspace(const s:string):string;
@@ -803,7 +821,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.21  2002-07-26 11:16:35  jonas
+  Revision 1.22  2002-09-05 19:29:42  peter
+    * memdebug enhancements
+
+  Revision 1.21  2002/07/26 11:16:35  jonas
     * fixed (actual and potential) range errors
 
   Revision 1.20  2002/07/07 11:13:34  carl

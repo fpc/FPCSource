@@ -520,7 +520,7 @@ implementation
 {$endif}
       begin
 {$ifdef MEMDEBUG}
-         d:=tmemdebug.create('asmlist');
+         d:=tmemdebug.create(current_module.modulename^+' - asmlists');
 {$endif}
          exprasmlist.free;
          codesegment.free;
@@ -655,7 +655,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2002-08-18 20:06:23  peter
+  Revision 1.27  2002-09-05 19:29:42  peter
+    * memdebug enhancements
+
+  Revision 1.26  2002/08/18 20:06:23  peter
     * inlining is now also allowed in interface
     * renamed write/load to ppuwrite/ppuload
     * tnode storing in ppu

@@ -821,10 +821,6 @@ implementation
          fillchar(localrttilab,sizeof(localrttilab),0);
       end;
 
-{$ifdef MEMDEBUG}
-   var
-       manglenamesize : longint;
-{$endif}
 
     constructor tstoreddef.ppuloaddef(ppufile:tcompilerppufile);
       begin
@@ -3441,17 +3437,49 @@ implementation
            end;
          aliasnames.free;
          if assigned(parast) then
-           parast.free;
+          begin
+{$ifdef MEMDEBUG}
+            memprocparast.start;
+{$endif MEMDEBUG}
+            parast.free;
+{$ifdef MEMDEBUG}
+            memprocparast.stop;
+{$endif MEMDEBUG}
+          end;
          if assigned(localst) and (localst.symtabletype<>staticsymtable) then
-           localst.free;
+          begin
+{$ifdef MEMDEBUG}
+            memproclocalst.start;
+{$endif MEMDEBUG}
+            localst.free;
+{$ifdef MEMDEBUG}
+            memproclocalst.start;
+{$endif MEMDEBUG}
+          end;
          if (proccalloption=pocall_inline) and assigned(code) then
-           tnode(code).free;
+          begin
+{$ifdef MEMDEBUG}
+            memprocnodetree.start;
+{$endif MEMDEBUG}
+            tnode(code).free;
+{$ifdef MEMDEBUG}
+            memprocnodetree.start;
+{$endif MEMDEBUG}
+          end;
          if assigned(regvarinfo) then
            dispose(pregvarinfo(regvarinfo));
          if (po_msgstr in procoptions) then
            strdispose(messageinf.str);
          if assigned(_mangledname) then
-           stringdispose(_mangledname);
+          begin
+{$ifdef MEMDEBUG}
+            memmanglednames.start;
+{$endif MEMDEBUG}
+            stringdispose(_mangledname);
+{$ifdef MEMDEBUG}
+            memmanglednames.stop;
+{$endif MEMDEBUG}
+          end;
          inherited destroy;
       end;
 
@@ -5509,7 +5537,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.91  2002-08-25 19:25:20  peter
+  Revision 1.92  2002-09-05 19:29:42  peter
+    * memdebug enhancements
+
+  Revision 1.91  2002/08/25 19:25:20  peter
     * sym.insert_in_data removed
     * symtable.insertvardata/insertconstdata added
     * removed insert_in_data call from symtable.insert, it needs to be

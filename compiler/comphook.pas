@@ -143,10 +143,11 @@ implementation
 
   uses
 {$ifdef delphi}
-   dmisc
+   dmisc,
 {$else}
-   dos
+   dos,
 {$endif}
+   cutils
    ;
 
 {****************************************************************************
@@ -217,10 +218,10 @@ begin
 {$endif Delphi}
      if (status.currentline>0) and (status.currentline mod 100=0) then
 {$ifdef FPC}
-       WriteLn(status.currentline,' ',memavail shr 10,'/',system.heapsize shr 10,' Kb Free');
+       WriteLn(status.currentline,' ',DStr(memavail shr 10),'/',DStr(system.heapsize shr 10),' Kb Free');
 {$else}
   {$ifndef Delphi}
-       WriteLn(status.currentline,' ',memavail shr 10,' Kb Free');
+       WriteLn(status.currentline,' ',DStr(memavail shr 10),' Kb Free');
   {$endif Delphi}
 {$endif}
    end
@@ -355,7 +356,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.19  2002-05-18 13:34:06  peter
+  Revision 1.20  2002-09-05 19:29:42  peter
+    * memdebug enhancements
+
+  Revision 1.19  2002/05/18 13:34:06  peter
     * readded missing revisions
 
   Revision 1.18  2002/05/16 19:46:35  carl

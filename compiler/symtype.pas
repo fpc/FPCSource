@@ -27,6 +27,9 @@ interface
     uses
       { common }
       cutils,
+{$ifdef MEMDEBUG}
+      cclasses,
+{$endif MEMDEBUG}
       { global }
       globtype,globals,
       { symtable }
@@ -140,6 +143,16 @@ interface
     procedure resolvesym(var sym:pointer);
     procedure resolvedef(var def:pointer);
 
+{$ifdef MEMDEBUG}
+    var
+      membrowser,
+      memrealnames,
+      memmanglednames,
+      memprocparast,
+      memproclocalst,
+      memprocnodetree : tmemdebug;
+{$endif MEMDEBUG}
+
 
 implementation
 
@@ -212,7 +225,13 @@ implementation
 
     destructor tsym.destroy;
       begin
+{$ifdef MEMDEBUG}
+        memrealnames.start;
+{$endif MEMDEBUG}
         stringdispose(_realname);
+{$ifdef MEMDEBUG}
+        memrealnames.stop;
+{$endif MEMDEBUG}
         inherited destroy;
       end;
 
@@ -525,10 +544,37 @@ implementation
          sym:=nil;
       end;
 
+{$ifdef MEMDEBUG}
+initialization
+  membrowser:=TMemDebug.create('BrowserRefs');
+  membrowser.stop;
+  memrealnames:=TMemDebug.create('Realnames');
+  memrealnames.stop;
+  memmanglednames:=TMemDebug.create('Manglednames');
+  memmanglednames.stop;
+  memprocparast:=TMemDebug.create('ProcParaSt');
+  memprocparast.stop;
+  memproclocalst:=TMemDebug.create('ProcLocalSt');
+  memproclocalst.stop;
+  memprocnodetree:=TMemDebug.create('ProcNodeTree');
+  memprocnodetree.stop;
+
+finalization
+  membrowser.free;
+  memrealnames.free;
+  memmanglednames.free;
+  memprocparast.free;
+  memproclocalst.free;
+  memprocnodetree.free;
+{$endif MEMDEBUG}
+
 end.
 {
   $Log$
-  Revision 1.21  2002-08-18 20:06:28  peter
+  Revision 1.22  2002-09-05 19:29:46  peter
+    * memdebug enhancements
+
+  Revision 1.21  2002/08/18 20:06:28  peter
     * inlining is now also allowed in interface
     * renamed write/load to ppuwrite/ppuload
     * tnode storing in ppu

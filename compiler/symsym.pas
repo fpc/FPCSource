@@ -527,11 +527,25 @@ implementation
     destructor tstoredsym.destroy;
       begin
         if assigned(_mangledname) then
-         stringdispose(_mangledname);
+         begin
+{$ifdef MEMDEBUG}
+           memmanglednames.start;
+{$endif MEMDEBUG}
+           stringdispose(_mangledname);
+{$ifdef MEMDEBUG}
+           memmanglednames.stop;
+{$endif MEMDEBUG}
+         end;
         if assigned(defref) then
          begin
+{$ifdef MEMDEBUG}
+           membrowser.start;
+{$endif MEMDEBUG}
            defref.freechain;
            defref.free;
+{$ifdef MEMDEBUG}
+           membrowser.stop;
+{$endif MEMDEBUG}
          end;
         inherited destroy;
       end;
@@ -2482,7 +2496,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.60  2002-09-05 14:51:42  peter
+  Revision 1.61  2002-09-05 19:29:45  peter
+    * memdebug enhancements
+
+  Revision 1.60  2002/09/05 14:51:42  peter
     * internalerror instead of crash in getprocdef
 
   Revision 1.59  2002/09/03 16:26:27  daniel

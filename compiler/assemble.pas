@@ -602,13 +602,13 @@ Implementation
 {$endif}
       begin
 {$ifdef MEMDEBUG}
-         d := tmemdebug.create('agbin');
+        d := tmemdebug.create(name+' - agbin');
 {$endif}
         objectdata.free;
         objectoutput.free;
         objectalloc.free;
 {$ifdef MEMDEBUG}
-         d.free;
+        d.free;
 {$endif}
       end;
 
@@ -1608,7 +1608,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.43  2002-08-20 16:55:38  peter
+  Revision 1.44  2002-09-05 19:29:42  peter
+    * memdebug enhancements
+
+  Revision 1.43  2002/08/20 16:55:38  peter
     * don't write (stabs)line info when inlining a procedure
 
   Revision 1.42  2002/08/12 15:08:39  carl

@@ -1048,7 +1048,7 @@ implementation
               else if (varalign>1) and (dataalignment<2) then
                dataalignment:=2;
             end;
-           dataalignment:=max(dataalignment,aktalignment.maxCrecordalign);
+           dataalignment:=min(dataalignment,aktalignment.maxCrecordalign);
          end
         else
          varalign:=vardef.alignment;
@@ -2299,7 +2299,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.69  2002-08-25 19:25:21  peter
+  Revision 1.70  2002-09-05 19:29:45  peter
+    * memdebug enhancements
+
+  Revision 1.69  2002/08/25 19:25:21  peter
     * sym.insert_in_data removed
     * symtable.insertvardata/insertconstdata added
     * removed insert_in_data call from symtable.insert, it needs to be

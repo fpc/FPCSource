@@ -455,7 +455,6 @@ uses
         stringdispose(exefilename);
         stringdispose(outputpath);
         stringdispose(path);
-        stringdispose(modulename);
         stringdispose(realmodulename);
         stringdispose(mainsource);
         stringdispose(asmprefix);
@@ -464,7 +463,7 @@ uses
         localincludesearchpath.free;
         locallibrarysearchpath.free;
 {$ifdef MEMDEBUG}
-        d:=tmemdebug.create('symtable');
+        d:=tmemdebug.create(modulename^+' - symtable');
 {$endif}
         if assigned(globalsymtable) then
           globalsymtable.free;
@@ -474,12 +473,13 @@ uses
         d.free;
 {$endif}
 {$ifdef MEMDEBUG}
-        d:=tmemdebug.create('librarydata');
+        d:=tmemdebug.create(modulename^+' - librarydata');
 {$endif}
         librarydata.free;
 {$ifdef MEMDEBUG}
         d.free;
 {$endif}
+        stringdispose(modulename);
         inherited Destroy;
       end;
 
@@ -603,7 +603,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.27  2002-08-16 15:31:08  peter
+  Revision 1.28  2002-09-05 19:29:42  peter
+    * memdebug enhancements
+
+  Revision 1.27  2002/08/16 15:31:08  peter
     * fixed possible crashes with current_scanner
 
   Revision 1.26  2002/08/12 16:46:04  peter
