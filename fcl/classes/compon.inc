@@ -377,6 +377,7 @@ Destructor TComponent.Destroy;
 Var Runner : Longint;
 
 begin
+  Destroying;
   If Assigned(FFreeNotifies) then
     begin
     For Runner:=0 To FFreeNotifies.Count-1 do
@@ -384,10 +385,16 @@ begin
     FFreeNotifies.Free;
     FFreeNotifies:=Nil;
     end;
-  Destroying;
   DestroyComponents;
   If FOwner<>Nil Then FOwner.RemoveComponent(Self);
   inherited destroy;
+end;
+
+
+Procedure TComponent.BeforeDestruction;
+begin
+  if not(csDestroying in ComponentState) then
+    Destroying;
 end;
 
 
@@ -533,7 +540,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2003-10-06 20:33:58  peter
+  Revision 1.2  2004-08-07 16:32:52  florian
+    * tcomponent.destroying is now called in tcomponent.beforedestruction
+
+  Revision 1.1  2003/10/06 20:33:58  peter
     * classes moved to rtl for 1.1
     * classes .inc and classes.pp files moved to fcl/classes for
       backwards 1.0.x compatiblity to have it in the fcl

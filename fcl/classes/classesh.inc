@@ -1173,6 +1173,7 @@ type
     procedure WriteState(Writer: TWriter); virtual;
     constructor Create(AOwner: TComponent); virtual;
     destructor Destroy; override;
+    procedure BeforeDestruction; override;
     procedure DestroyComponents;
     procedure Destroying;
     function ExecuteAction(Action: TBasicAction): Boolean; dynamic;
@@ -1345,7 +1346,7 @@ type
     Procedure ReadState(Reader: TReader); override;
   public
     constructor Create(AOwner: TComponent); override;
-    Constructor CreateNew(AOwner: TComponent); 
+    Constructor CreateNew(AOwner: TComponent);
     Constructor CreateNew(AOwner: TComponent; CreateMode: Integer); virtual;
     destructor Destroy; override;
     Procedure AfterConstruction; override;
@@ -1357,9 +1358,9 @@ type
     property OnDestroy: TNotifyEvent read FOnDestroy write FOnDestroy;
     property OldCreateOrder: Boolean read FOldOrder write FOldOrder;
   end;
-  
-var 
-  // IDE hooks for TDatamodule support. 
+
+var
+  // IDE hooks for TDatamodule support.
   AddDataModule              : procedure (DataModule: TDataModule) of object;
   RemoveDataModule           : procedure (DataModule: TDataModule) of object;
   ApplicationHandleException : procedure (Sender: TObject) of object;
@@ -1368,7 +1369,7 @@ var
 { ---------------------------------------------------------------------
     General streaming and registration routines
   ---------------------------------------------------------------------}
-  
+
 
 var
   RegisterComponentsProc: procedure(const Page: string;
@@ -1469,7 +1470,10 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.2  2003-10-07 19:41:11  marco
+  Revision 1.3  2004-08-07 16:32:52  florian
+    * tcomponent.destroying is now called in tcomponent.beforedestruction
+
+  Revision 1.2  2003/10/07 19:41:11  marco
    * 1.0.x compability fix
 
   Revision 1.1  2003/10/06 20:33:58  peter
