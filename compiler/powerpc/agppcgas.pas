@@ -140,7 +140,7 @@ unit agppcgas;
          'clrslwi.', 'blr', 'bctr', 'blrl', 'bctrl', 'crset', 'crclr', 'crmove',
          'crnot', 'mt', 'mf','nop', 'li', 'lis', 'la', 'mr','mr.','not', 'mtcr', 'mtlr', 'mflr');
 
-     symaddr2str: array[trefsymaddr] of string[2] = ('','@ha','@l');
+     symaddr2str: array[trefsymaddr] of string[3] = ('','@ha','@l');
 
     function getreferencestring(var ref : treference) : string;
     var
@@ -218,6 +218,8 @@ unit agppcgas;
               hs:=hs+tostr(o.symofs);
             getopstr_jmp:=hs;
           end;
+        top_none:
+          getopstr_jmp:='';
         else
 {$ifndef testing}
           internalerror(2002070603);
@@ -365,7 +367,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2002-08-20 21:40:44  florian
+  Revision 1.16  2002-08-31 19:27:48  jonas
+    + support top_none for branches
+
+  Revision 1.15  2002/08/20 21:40:44  florian
     + target macos for ppc added
     + frame work for mpw assembler output
 
