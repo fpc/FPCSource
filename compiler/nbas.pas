@@ -45,6 +45,7 @@ interface
           p_asm : paasmoutput;
           constructor create(p : paasmoutput);virtual;
           destructor destroy;override;
+          function getcopy : tnode;override;
           function pass_1 : tnode;override;
        end;
 
@@ -319,6 +320,20 @@ implementation
         inherited destroy;
       end;
 
+    function tasmnode.getcopy: tnode;
+      var
+        n: tasmnode;
+      begin
+        n := tasmnode(inherited getcopy);
+        if assigned(p_asm) then
+          begin
+            new(n.p_asm,init);
+            n.p_asm^.concatlistcopy(p_asm);
+          end
+        else n.p_asm := nil;
+        getcopy := n;
+      end;
+
     function tasmnode.pass_1 : tnode;
       begin
          pass_1:=nil;
@@ -334,7 +349,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-10-14 21:52:54  peter
+  Revision 1.3  2000-10-27 14:57:16  jonas
+    + implementation for tasmnode.getcopy
+
+  Revision 1.2  2000/10/14 21:52:54  peter
     * fixed memory leaks
 
   Revision 1.1  2000/10/14 10:14:50  peter
