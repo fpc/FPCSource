@@ -1,0 +1,9 @@
+#!/bin/sh
+if [ -e ex${1}.pp ]; then
+  mv ex${1}.pp ex${1}.pp.orig
+fi
+sed -e s/Example/Example$1/ -e s/\\\*\\\*\\\*/$2/ <template.pp >ex${1}.pp
+echo "ex${1}.pp contains an example of the $2 function." >>README
+mcedit ex${1}.pp
+ppc386 ex${1}.pp && ex${1}
+rm ex${1}.o

@@ -1,0 +1,5 @@
+These are the example programs that appear in the FPC documentation.
+ 
+Units guide, chapter on CRT unit :
+
+optex.pp contains an example of the GetOpt function.

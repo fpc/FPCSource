@@ -1,0 +1,3 @@
+Begin
+ sizeof(x);
+end.

@@ -1,0 +1,2343 @@
+%
+%   $Id$
+%   This file is part of the FPC documentation.
+%   Copyright (C) 1997, by Michael Van Canneyt
+%
+%   The FPC documentation is free text; you can redistribute it and/or
+%   modify it under the terms of the GNU Library General Public License as
+%   published by the Free Software Foundation; either version 2 of the
+%   License, or (at your option) any later version.
+%
+%   The FPC Documentation is distributed in the hope that it will be useful,
+%   but WITHOUT ANY WARRANTY; without even the implied warranty of
+%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+%   Library General Public License for more details.
+%
+%   You should have received a copy of the GNU Library General Public
+%   License along with the FPC documentation; see the file COPYING.LIB.  If not,
+%   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+%   Boston, MA 02111-1307, USA. 
+%
+\documentclass{report}
+\usepackage{a4}
+\usepackage{html}
+\makeindex
+\latex{\usepackage{multicol}}
+\latex{\usepackage{fpkman}}
+\html{\input{fpk-html.tex}}
+% define the version number here, and not in the fpk.sty !!! 
+\newcommand{\fpkversion}{0.9.5}
+\newcommand{\remark}[1]{\par$\rightarrow$\textbf{#1}\par}
+% define many-used references.
+%\newcommand{\progref}{\htmladdnormallink{Programmer's guide}{../prog/prog.html}\ }
+%\newcommand{\refref}{\htmladdnormallink{Reference guide}{../ref/ref.html}\ }
+%\newcommand{\seecrt}{\htmladdnormallink{CRT}{../crt/crt.html}}
+%\newcommand{\seelinux}{\htmladdnormallink{Linux}{../linux/linux.html}}
+%\newcommand{\seestrings}{\htmladdnormallink{strings}{../strings/strings.html}}
+%\newcommand{\seedos}{\htmladdnormallink{DOS}{../dos/dos.html}}
+%\newcommand{\seegetopts}{\htmladdnormallink{getopts}{../getopts/getopts.html}}
+%\newcommand{\seeobjects}{\htmladdnormallink{objects}{../objects/objects.html}}
+%\newcommand{\seegraph}{\htmladdnormallink{graph}{../graph/graph.html}}
+%\newcommand{\seeprinter}{\htmladdnormallink{printer}{../printer/printer.html}}
+%\newcommand{\seego}{\htmladdnormallink{GO32}{../go32/go32.html}}
+%
+\newcommand{\olabel}[1]{\label{option:#1}}
+% We should change this to something better. See \seef etc.
+\newcommand{\seeo}[1]{See \ref{option:#1}}
+\begin{document}
+\title{Free Pascal :\\ User's manual}
+\docdescription{User's manual for \fpk, version \fpkversion}
+\docversion{1.0}
+\date{July 1997}
+\author{Micha\"el Van Canneyt\\Florian Kl\"ampfl}
+\maketitle
+\tableofcontents
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Introduction
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Introduction}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% About this document
+\section{About this document}
+This is the user's manual for \fpk . It describes the installation and use of
+the \fpk compiler on the different supported platforms. 
+It does not attempt to give an exhaustive list of all supported commands,
+nor a definition of the Pascal language. Look at the
+\refref for these things. 
+For a description of the
+possibilities and the inner workings of the compiler, see the
+\progref. In the appendices of this document you will find lists of 
+reserved words and compiler error messages (with descriptions).
+
+This document describes the compiler as it is/functions at the time of 
+writing. Since the compiler is under continuous development, some of the
+things described here may be outdated. In case of doubt, consult the
+\file{README} files, distributed with the compiler. 
+The \file{README} files are, in case of conflict with this manual,
+ authoritative.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% About the compiler
+\section{About the compiler}
+\fpk is a 32-bit compiler for the i386 processor\footnote{Work is being done
+on a port to ALPHA Architecture}. Currently, it supports 2 operating systems:
+\begin{itemize}
+\item \dos
+\item \linux
+\end{itemize}
+and work is in progress to port it to other platforms (notably, \ostwo and
+\windowsnt).
+
+\fpk is designed to be, as much as possible, source compatible with 
+Turbo Pascal 7.0 and Delphi II (although this goal is not yet attained), 
+but it also enhances these languages with elements like function overloading.
+And, unlike these ancestors, it supports multiple platforms.
+
+It also differs from them in the sense that you cannot use compiled units
+from one system for the other.
+
+Also, at the time of writing, there is no Integrated Development Environment
+(IDE) available for \fpk. This gap will, hopefully, be filled in the future.
+
+\fpk consists of three parts :
+\begin{enumerate}
+\item The compiler program itself.
+\item The Run-Time Library (RTL).
+\item Utility programs and units.
+\end{enumerate}
+
+Of these you only need the first two, in order to be able to use the compiler.
+In this document, we describe the use of the compiler. The RTL is described in the
+\refref.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Getting more information.
+\section{Getting more information.}
+If the documentation doesn't give an answer to your questions, 
+you can obtain more information on the Internet, on the following addresses:
+\begin{itemize}
+\item \htmladdnormallink{http://tfdec1.fys.kuleuven.ac.be/\~ michael/fpk.html}
+{http://tfdec1.fys.kuleuven.ac.be/~michael/fpk.html} contains information 
+on the \linux port of the compiler. It contains also useful mail addresses and
+links to other places.
+\item \htmladdnormallink{http://www.brain.uni-freiburg.de/\~klaus/fpk-pas}
+{http://www.brain.uni-freiburg.de/~klaus/fpk-pas} is the main \fpk information site. 
+It also contains the instructions for inscribing to the \textit{mailing-list}, 
+another useful source of information.
+\end{itemize}
+Both places can be used to download the \fpk distribution, although you can 
+probably find them on other places also.
+
+Finally, if you think something should be added to this manual 
+(entirely possible), please do not hesitate and contact me at 
+\htmladdnormallink{michael@tfdec1.fys.kuleuven.ac.be}{mailto:michael@tfdec1.fys.kuleuven.ac.be}
+.
+
+Let's get on with something useful.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Installation
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Installing the compiler}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Before Installation : Requirements
+\section{Before Installation : Requirements}
+
+%
+%
+
+% System requirements
+\subsection{System requirements}
+The compiler needs at least the following hardware:
+\begin{enumerate}
+\item An I386 or higher processor. A coprocessor is not required, although it
+will slow down your program's performance if you do floating point calculations.
+\item 4 Mb of free memory. Under \dos, if you use DPMI memory management,
+such as under Windows, you will need at least 8 Mb.
+\item At least 500 Kb. free disk space.
+\end{enumerate}
+
+%
+%
+
+% Software requirements
+\subsection{Software requirements}
+
+\subsubsection{Under DOS}
+The \dos distribution contains all the files you need to run the compiler
+and compile pascal programs.
+
+\subsubsection{Under Linux}
+Under \linux you need to have the following programs installed :
+\begin{enumerate}
+\item \gnu \file{as}, the \gnu assembler.
+\item \gnu \file{ld}, the \gnu linker.
+\item Optionally (but highly recommended) : \gnu \file{make}. For easy
+recompiling of the compiler and Run-Time Library, this is needed.
+\end{enumerate}
+Other than that, \fpk should run on almost any \linux system.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Installing the compiler.
+\section{Installing the compiler.}
+The installation of \fpk is easy, but is platform-dependent.
+We discuss the process for each platform separately.
+
+
+%
+%
+
+% Installing under DOS
+\subsection{Installing under DOS}
+\subsubsection{Mandatory installation steps.}
+First, you must get the latest distribution files of \fpk. They come as zip
+files, which you must unzip first. The distribution zip file contains an
+installation program \file{INSTALL.EXE}. You must run this program to install
+the compiler. It allows you to select:
+\begin{itemize}
+\item What components you wish to install. (e.g do you want the sources or
+not, do you want Free Vision etc.)
+\item Where you want to install (the default location is \verb|C:\PP|).
+\end{itemize}
+The installation program generates a batch file which sets some environment
+variables : \verb|SET_PP.BAT|. This file is located in the directory where
+you installed \fpk. The installation program doesn't modify the 
+\file{AUTOEXEC.BAT}, since many people (including the authors of \fpk) 
+don't like this.
+
+You can choose to insert a call to this batch file in your \file{AUTOEXEC.BAT}
+file, like this :
+\begin{verbatim}
+  CALL C:\PP\SET_PP.BAT
+\end{verbatim}
+(This is assuming that you installed \fpk in the default location.)
+In order to run \fpk from any directory on your system, you must extend 
+your path variable to contain the \verb|C:\PP\BIN| directory.
+You can choose to do this in your \file{AUTOEXEC.BAT} file, but you can also
+insert a statement in the \verb|SET_PP.BAT| file. Whatever the location you
+choose, It should look something like this : 
+\begin{verbatim}
+  SET PATH=%PATH%;C:\PP\BIN
+\end{verbatim}
+(Again, assuming that you installed in the default location).
+ 
+If you want to use the graphic drivers you must modify the
+environment variable \var{GO32}. Instructions for doing this can be found
+in the documentation of the Graph unit, at the InitGraph procedure.
+
+\subsubsection{Optional Installation: The coprocessor emulation}
+For people who have an older CPU type, without math coprocessor (i387)
+it is necessary to install a coprocessor emulation, since \fpk uses the
+coprocessor to do all floating point operations.
+
+The installation of the coprocessor emulation is handled by the 
+installation program (\file{INSTALL.EXE}). However,
+the installation program has currently a bug: If you select the
+coprocessor emulation the program ignores this and you must do
+this by hand. You should change the \var{GO32} environment variable in
+the \verb|SET_PP.BAT| file, as follows:
+\begin{verbatim}
+SET GO32=emu C:\PP\DRIVERS\EMU387 
+\end{verbatim}
+
+
+%
+%
+
+% Installing under Linux
+\subsection{Installing under Linux}
+\subsubsection{Mandatory installation steps.}
+The \linux distribution of \fpk comes in two flavors:
+\begin{itemize}
+\item an \file{aout} version, and
+\item an \file{ELF} version.
+\end{itemize}
+If you don't know which of these flavors you must use, contact you system
+administrator, and he will tell you. When that doesn't get you further, try
+the \file{ELF} distribution. \file{aout} systems are outdated, and may not be
+supported any more in the future.
+
+Both flavors are shipped in \file{tar} archive files.
+This means that you should untar them, in some directory where you have
+write permission, using the following command:
+\begin{verbatim}
+tar -xvf fpk.tar
+\end{verbatim}
+We supposed here that you downloaded the file \file{fpk.tar} somewhere
+from the Internet.
+
+When the files are untarred, you will be left with more archive files, and
+two install programs: an installation shell script, and a X-windows
+installation program. Both have the same functionality.
+To install \fpk, all that you need to do now is give the following command:
+\begin{verbatim}
+./install.sh
+\end{verbatim}
+Or, if you have the XForms libraries, you can start the X-Windows based
+program.
+\begin{verbatim}
+./fpkinstall
+\end{verbatim}
+And then you must answer some questions. They're very simple, they're
+concerned with 2 things :
+\begin{enumerate}
+\item Places where you can install different things.
+\item Deciding if you want to install certain components (such as sources
+and demo programs).
+\end{enumerate}
+If you run the installation program/script  as \var{root}, you can just accept all installation
+defaults. If you don't run as \var{root}, you must take care to supply the
+installation program with directory names where you have write permission,
+as it will attempt to create the directories you specify.
+In principle, you can install it wherever you want, though.
+
+Whatever the installation program you used, 
+at the end of installation, the installation program will generate a
+configuration file for the \fpk compiler which reflects the settings
+that you chose. It will install this file in the \file{/etc} directory, (if
+you are not installing as \var{root}, this will fail, and in the
+directory where you installed the libraries.
+
+If you want the \fpk compiler to use this configuration file, it must be
+present in \file{/etc}, or you can set the environment variable
+\var{PPC\_CONFIG\_PATH}. Under \file{csh}, you can do this by adding  a 
+\begin{verbatim}
+setenv PPC_CONFIG_PATH /usr/lib/ppc/0.9.1
+\end{verbatim}
+line to your \file{.login} file in your home directory. 
+(see also the next section) 
+
+\subsubsection{Optional configuration steps}
+You may wish to set some environment variables. The \linux version of \fpk
+recognizes the following variables :
+\begin{itemize}
+\item \verb|PPC_EXEC_PATH| contains the directory where '\file{as}' and
+'\file{ld}' are. (default \file{/usr/bin})
+\item \verb|PPC_GCCLIB_PATH| contains the directory where \file{libgcc.a} is (no default)
+\item \verb|PPC_CONFIG_PATH| specifies an alternate path to find
+\file{ppc386.cfg} (default \file{/etc})
+\item \verb|PPC_ERROR_FILE|  specifies the path and name of the error-definition file. 
+                  (default \file{/usr/lib/ppc/errorE.msg})
+\end{itemize}
+
+These locations are, however, set in the sample configuration file which is 
+built at the end of the installation process, except for the
+\verb|PPC_CONFIG_PATH| variable, which you must set if you didn't install
+things in the default places.
+\subsubsection{finally}
+Also distributed in \fpk is a README file. It contains the latest
+instructions for installing \fpk, and should always be read first.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Testing the compiler
+\section{Testing the compiler}
+After the installation is completed and the environment variables are
+set as described above, your first program can be compiled. 
+
+Included in the \fpk distribution are some demonstration programs, 
+showing what the compiler can do. 
+You can test if the compiler functions correctly by trying to compile 
+these programs.
+
+The compiler is called
+\begin{itemize}
+\item \file{PPC386.EXE} under \dos, and 
+\item \file{ppc386} under \linux
+\end{itemize}
+To compile a program (e.g \verb|demo\hello.pp|) simply type :
+\begin{verbatim}
+  ppc386 -a hello
+\end{verbatim}
+at the command prompt. The option -a is needed currently to call 
+the external assembler. 
+This needed option will disappear when the the internal assembler works stable.
+but at the moment it is a mandatory option.
+
+If you got no error messages, the compiler has generated an executable 
+called \file{hello}  (no extension) under \linux, and a file \file{hello.exe}
+under \dos. 
+
+To execute the program, simply type :
+\begin{verbatim}
+  hello
+\end{verbatim}
+If all went well, you should see the following friendly greeting:
+\begin{verbatim}
+Hello world
+\end{verbatim}
+In the \dos case, this friendly greeting may be preceded by some ugly
+message from the \file{GO32} extender program. This unfriendly behavior can 
+be switched off by setting the \file{GO32} environment variable.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Usage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Compiler usage}
+Here we describe the essentials to compile a program and a unit. 
+We also describe how to make a stand-alone executable of the 
+compiled program under \dos. For more advanced uses of the compiler, 
+see the section on configuring the compiler, and the 
+\progref.
+
+The examples in this section suppose that you have a \file{ppc386.cfg} which
+is set up correctly, and which contains at least the path setting for the
+RTL units. In principle this file is generated by the installation program.
+You may have to check that it is in the correct place (see section
+\ref{se:config_file} for more information on this).
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Compiling a program
+\section{Compiling a program}
+Compiling a program is very simple. Assuming that you have a program source
+in the file \file{prog.pp}, you can compile this with the following command:
+\begin{verbatim}
+  ppc386 [options] prog.pp
+\end{verbatim}
+The square brackets [] indicate that what is between them is optional. 
+
+If your program file has the \file{.pp} or \file{.pas} extension, 
+you can omit this on the command line, e.g. in the previous example you 
+could have typed:
+\begin{verbatim}
+  ppc386 [options] prog
+\end{verbatim}
+
+If all went well, the compiler will produce an executable, or, for version 1
+of the \dos extender, a file which can be converted to an executable.
+
+Under \linux and version 2 of the \dos extender, the file you obtained is 
+the executable. You can execute it straight away, you don't need to do 
+anything else. Under \dos,
+additional processing is required. See the section on creating an
+executable.
+
+You will notice that there are also other files in your directory, with
+extensions \file{.o} and \file{.s}. These contain, respectively, 
+the assembler sources and the object files for your program. You can
+safely delete the assembler file, you don't need it any 
+more\footnote{One day this will be done automatically.}. If you compiled a
+program, you can delete the object file (\file{.o}), but not if you compiled
+a unit. Then the object file contains the code of the unit, and will be
+linked in any program that uses the unit you compiled, so you shpuldn't
+remove it.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Compiling a unit
+\section{Compiling a unit}
+
+Compiling a unit is not essentially different from compiling a program.
+The difference is mainly that the linker isn't called in this case.
+
+To compile a unit in the file \file{foo.pp}, just type :
+\begin{verbatim}
+  ppc386  foo
+\end{verbatim}
+Recall the remark about file extensions in the previous section.
+
+When all went well, you will be left with 2 (two) unit files:
+\begin{enumerate}
+\item \file{foo.ppu} This is the file describing the unit you just
+compiled.
+\item \file{foo.o} This file contains the actual code of the unit.
+This file will eventually end up in the executables.
+\end{enumerate}
+Both files are needed if you plan to use the unit for some programs. 
+So don't delete them. If you want to distribute the unit, you must
+provide both the \file{.ppu} and \file{.o} file. One is useless without the
+other.
+
+The file containing the assembler (extension \file{.s}) can safely be
+deleted. You don't need it anymore.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Creating an executable for GO32V1, PMODE/DJ targets
+\section{Creating an executable for GO32V1, PMODE/DJ targets}
+
+This section applies only to \dos users. \linux users can skip this
+section (unless they're cross-compiling)
+
+
+%
+%
+
+% GO32V1
+\subsection{GO32V1}
+When compiling under \dos, GO32V2 is the default target. However, if you use
+go32V1 (using the \var{-TDOS} switch), the 
+compilation process leaves you with a file which you cannot execute right away.
+There are 2 things you can do when compiling has finished.
+
+The first thing is to use the \dos extender from D.J. Delorie to execute
+your program :
+\begin{verbatim}
+  go32 prog
+\end{verbatim}
+This is fine for testing, but if you want to use a program regularly, it
+would be easier if you could just type the program name, i.e.
+\begin{verbatim}
+  prog
+\end{verbatim}
+This can be accomplished by making a \dos executable of your compiled program.
+ 
+There two ways to create a \dos executable (under \dos only): 
+\begin{enumerate}
+\item if the \file{GO32.EXE} is already
+installed on the computers where the program should run, you must
+only copy a program called \file{STUB.EXE} at the begin of
+the AOUT file. This is accomplished with the \file{AOUT2EXE.EXE} program. 
+which comes with the compiler:
+\begin{verbatim}
+AOUT2EXE PROG
+\end{verbatim}
+and you get a \dos executable which loads the \file{GO32.EXE} automatically. 
+the \file{GO32.EXE} executable must be in current directory or be 
+in a directory in the \var{PATH} variable.
+\item
+The second way to create a \dos executable is to put 
+\file{GO32.EXE} at the beginning of the \file{AOUT} file. To do this, at the
+command prompt, type :
+\begin{verbatim}
+COPY /B GO32.EXE+PROG PROG.EXE
+\end{verbatim}
+(assuming \fpk created a file called \file{PROG}, of course.)
+This becomes then a stand-alone executable for \dos, which doesn't need the
+\file{GO32.EXE} on the machine where it should run.
+\end{enumerate}
+
+%
+%
+
+% PMODE/DJ
+\subsection{PMODE/DJ}
+You can also use the PMODE/DJ extender to run your \fpk applications.
+To make an executable which works with the PMODE extender, you can simply
+create an GO32V2 executable (the default), and then convert it to a PMODE
+executable with the following two extra commands:
+\begin{enumerate}
+\item First, strip the GO32V2 header of the executable:
+\begin{verbatim}
+EXE2COFF PROG.EXE
+\end{verbatim}
+(we suppose that \file{PROG.EXE} is the program generated by the compilation
+process.
+\item Secondly, add the PMODE stub:
+\begin{verbatim}
+COPY /B PMODSTUB.EXE+PROG PROG.EXE
+\end{verbatim}
+If the \file{PMODSTUB.EXE} file isn't in your local directory, you need to
+supply the whole path to it.
+\end{enumerate}
+
+That's it. No additional steps are needed to create a PMODE extender
+executable.
+
+Be aware, though, that the PMODE extender doesn't support virtual memory, so
+if you're short on memory, you may run unto trouble. Also, officially there
+is not support for the PMODE/DJ extender. It just happens that the compiler
+and some of the programs it generates, run under this extender too.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Reducing the size of your program
+\section{Reducing the size of your program}
+
+When you created your program, it is possible to reduce its size. This
+is possible, because the compiler leaves a lot of information in the
+program which, strictly speaking, isn't required for the execution of
+it. The surplus of information can be removed with a small program
+called \file{strip}. It comes with the \var{GO32} development
+environment under \dos, and is standard on \linux machines where you can
+do development. The usage is simple. Just type
+\begin{verbatim}
+strip prog
+\end{verbatim}
+On the command line, and the \file{strip} program will remove all unnecessary
+information from your program. This can lead to size reductions of up to
+30 \%.
+
+You can use the \var{-Xs} switch to let the compiler do this stripping
+automatically. Under \linux, you can set the \var{-k-s} option, which does
+the same.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Problems
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Compiling problems}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% General problems
+\section{General problems}
+\begin{itemize}
+\item \textbf{IO-error -2 at ...} : Under \linux you can get this message at
+compiler startup. It means typically that the compiler doesn't find the
+error definitions file. You can correct this mistake with the \var{-Fr}
+option under \linux. (\seeo{Fr})
+\item \textbf {Error : File not found : xxx} This typically happens when
+your unit path isn't set correctly. Remember that the compiler looks for
+units only in the current directory, and in the directory where the compiler
+itself is. If you want it to look somewhere else too, you must explicitly
+tell it to do so using the \var{-Up} option (\seeo{Up}).
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Problems you may encounter under DOS
+\section{Problems you may encounter under DOS}
+\begin{itemize}
+\item \textbf{No space in environment}.\\
+An error message like this can occur, if you call 
+\verb|SET_PP.BAT| in the \file{AUTOEXEC.BAT}.\\
+To solve this problem, you must extend your environment memory.
+To do this, search a line in the \file{CONFIG.SYS} like
+\begin{verbatim}
+SHELL=C:\DOS\COMMAND.COM
+\end{verbatim}
+and change it to the following: 
+\begin{verbatim}
+SHELL=C:\DOS\COMMAND.COM /E:1024
+\end{verbatim}
+You may just need to specify a higher value, if this parameter is already set.
+\item \textbf{ Coprocessor missing}\\ 
+If the compiler writes
+a message that there is no coprocessor, install
+the coprocessor emulation.
+\item \textbf{Not enough DPMI memory}\\ 
+If you want to use the compiler with \var{DPMI} you must have at least
+7-8 MB free \var{DPMI} memory.
+\end{itemize}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Configuration.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Compiler configuration}
+The output of the compiler can be controlled in many ways. This can be done
+essentially in two distinct ways:
+\begin{itemize}
+\item Using command-line options.
+\item Using the configuration file: \file{ppc386.cfg}.
+\end{itemize}
+The compiler first reads the configuration file. Only then the command line
+options are checked. This creates the possibility to set some basic options
+in the configuration file, and at the same time you can still set some
+specific options when compiling some unit or program. First we list the
+command line options, and then we explain how to specify the command
+line options in the configuration file. When reading this, keep in mind
+that the options are case sensitive. While this is customary for \linux, it
+isn't under \dos.
+  
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Using the command-line options
+\section{Using the command-line options}
+
+The available options are listed by category:
+
+%
+%
+
+% General options
+\subsection{General options}
+\begin{description}
+\item[-h] if you specify this option, the compiler outputs a list of all options, 
+and exits after that.
+\olabel{h}
+\item[-i] This option tells the compiler to print the copyright information.
+\olabel{i}
+\item[-l] This option tells the compiler to print the \fpk logo on standard
+output. It also gives you the \fpk version number.
+\olabel{l}
+\item[-Lx] Set the language the compiler uses for its messages. 
+\olabel{L}
+\var{x} can be one of the following:
+\begin{itemize}
+\item \textbf{D} : Use German.
+\item \textbf{E} : Use English.
+\end{itemize}
+\end{description}
+
+%
+%
+
+% Options for getting feedback
+\subsection{Options for getting feedback}
+\begin{description}
+\item[-qxx] This option tells the compiler to print on stdout some
+information on what it is doing. xx can be one of the following:
+\olabel{q}
+\begin{itemize}
+\item \textbf{x is empty} : Be quiet. Don't output anything
+\item \textbf{-} : Give some information.
+\item \textbf{--} : Give a lot of information.
+\end{itemize}
+This is an obsolete option, and is kept only for backwards
+compatibility. It may disappear in the future.\\
+\item[-vxxx] Be verbose. \var{xxx} is a combination of the following :
+\olabel{v}
+\begin{itemize}
+\item \var{e} : Tells the compiler to show only errors. This option is on by default.
+\item \var{i} : Tells the compiler to show some general information.
+\item \var{w} : Tells the compiler to issue warnings.
+\item \var{n} : Tells the compiler to issue notes.
+\item \var{l} : Tells the compiler to show the line numbers as it processes a
+file. Numbers are shown per 100.
+\item \var{u} : Tells the compiler to print the names of the files it opens.
+\item \var{t} : Tells the compiler to print the names of the files it tries
+to open. 
+\item \var{p} : Tells the compiler to print the names of procedures and
+functions as it is processing them.
+\item \var{c} : Tells the compiler to warn you when it processes a
+conditional.
+\item \var{m} : Tells the compiler to write which macros are defined.
+\item \var{d} : Tells the compiler to write other debugging info.
+\end{itemize}
+\item[-w] When this option is specified, the compiler issues warning. To
+turn off warnings, specify \var{-w-}\\
+This option is obsolete. and is kept only for backwards compatibility. It
+may disappear in the future.
+\olabel{w}
+\end{description}
+
+%
+%
+
+% Options concerning files and directories
+\subsection{Options concerning files and directories}
+\begin{description}
+\item [-exxx] (\linux only) \file{xxx} specifies the directory where the 
+compiler can find the executables \file{as} (the assembler) and \file{ld} (the
+compiler).
+\olabel{e}
+\item [-Fexxx] This option tells the compiler to write errors, etc. to 
+the file in \file{xxx}.
+\olabel{Fe} 
+\item [-Fgxxx] (\linux only) \file{xxx} specifies the path where the compiler
+can find the \gnu C library.
+\olabel{Fg}
+\item [-Frxxx] (\linux only) \file{xxx} specifies the path where the
+compiler can find the error-definitions file.
+\olabel{Fr}
+\item [-Upxxx] \olabel{Up} Tells the compiler to add \file{xxx} to the path where to find
+units. \\
+By default, the compiler only searches for units in the current directory 
+and the directory where the compiler itself resides. This option tells the
+compiler also to look in the directory \file{xxx}.
+\end{description}
+
+% Options controlling the kind of output.
+\subsection{Options controlling the kind of output.}
+for more information on these options, see also \progref
+\begin{description}
+\item [-a] \olabel{a} Tells the compiler to generate an assembler source file, and to
+call an external assembler (\file{as}) to assemble this file. The file will
+not be deleted.
+\item [-Axxx] \olabel{A}specifies what kind of assembler should be generated . Here
+\var{xxx} is one of the following :
+\begin{itemize}
+\item \textbf{att} : AT\&T assembler.
+\item \textbf{o} : A unix .o (object) file.
+\item \textbf{obj} : A OMF file for using the NASM assembler.
+\item \textbf{nasm} : a coff file using the NASM assembler.
+\item \textbf{wasm} : An assembler file for the Microsoft/Borland/Watcom assembler.
+\end{itemize}
+\item [-Chxxx] \olabel {Ch} Reserves \var{xxx} bytes heap.
+\item [-Ci] \olabel{Ci} Generate Input/output checking code.
+\item [-Co] \olabel{Co} Generate Integer overflow checking code.
+\item [-Cr] \olabel{Cr} Generate Range checking code.
+\item [-Csxxx] \olabel{Cs} Set stack size to \var{xxx}. (\ostwo only).
+\item [-dxxx] \olabel{d} Define the symbol name \var{xxx}. This can be used
+to conditionally compile parts of your code.
+\item [-g] \olabel{g} Generate debugging information for debugging with
+\file{gdb}.
+\item[-On] \olabel{O} optimize the compiler's output; \var{n} can have one
+of the following values :
+\begin{description}
+\item[a] simple optimizations
+\item[g] optimize for size
+\item[G] optimize for time
+\item[x] optimize maximum
+\item[2] optimize for Pentium II (tm)
+\item[3] optimize for i386
+\item[4] optimize for i486
+\item[5] optimize for Pentium (tm)
+\item[6] optimizations for PentiumPro (tm)
+\end{description}
+The exact effect of these effects can be found in the appendices of the 
+\progref.
+\item [-s] \olabel{s} Tells the compiler not to call the assembler and linker.
+You must specify also \var{-a} if you specify this.
+\item[-Txxx] \olabel{T}Specifies the target operating system. \var{xxx} can be one of
+the following:
+\begin{itemize}
+\item \textbf{DOS} : \dos and the DJ DELORIE extender.
+\item \textbf{OS2} : OS/2 (2.x) (this is still under development).
+\item \textbf{LINUX} : \linux.
+\item \textbf{WIN32} : Windows 32 bit (this is still under development).
+\item \textbf{GO32V2} : \dos and version 2 of the DJ DELORIE extender.
+\end{itemize}
+\item [-Xx] \olabel{X} executable options. This tells the compiler what
+kind of \linux executable should be generated. the parameter \var{x}
+can be one of the following:
+\begin{itemize}
+\item \textbf{e} : (\linux only) Create an \file{ELF} executable (default).
+\item \textbf{c} : (\linux only) Link with the C library. You should only use this when
+you start to port \fpk to another operating system.
+\item \textbf{s} : (\dos only) Strip the symbols from the executable.
+\end{itemize}
+\end{description}
+
+%
+%
+
+% Options concerning the sources (language options)
+\subsection{Options concerning the sources (language options)}
+for more information on these options, see also \progref
+\begin{description}
+\item [-Rxxx] \olabel{R} Specifies what assembler you use in your \var{asm} assembler code
+blocks. Here \var{xxx} is one of the following:
+\begin{description}
+\item [att\ ] \var{asm} blocks contain AT\&T assembler.
+\item [intel] \var{asm} blocks contain Intel assembler.
+\item [direct] \var{asm} blocks should be copied as-is in the assembler
+file.   
+\end{description}
+\item [-S2] \olabel{Stwo} Switch on Delphi 2 extensions.
+\item [-Sann] \olabel{Sa} How severe should the compiler check your code ?
+\var{nn} can be one of the following:
+\begin{itemize}
+\item \var{0} : Only ANSI Pascal expressions allowed.
+\item \var{1} : Do not necessarily assign function results to variables.
+\item \var{2} : Address operator \var{@} returns a typed pointer.
+\item \var{4} : Assignment results are typed. (This allows constructs like
+\var{a:=b:=0}. See also ...
+\item \var{9} : Allows expressions with no side effect. \remark{Florian ???}
+\end{itemize}
+\item [-Sc] \olabel{Sc} Support C-style operators, i.e. \var{*=, +=, /= and
+-=}.
+\item [-Sg] \olabel{Sg} Support the \var{label} and \var{goto} commands.
+\item [-Si] \olabel{Si} Support \var{C++} style INLINE.
+\item [-Sm] \olabel{Sm} Support C-style macros.
+\item [-So] \olabel{So} Try to be Borland TP compatible (no function
+overloading etc.).
+\item [-Ss] \olabel{Ss} The name of constructors must be \var{init}, and the
+name of destructors should be \var{done}.
+\item [-St] \olabel{St} Allow the \var{static} keyword in objects.
+\item [-Un] \olabel{Un} Do not check the unit name. (Normally, the unit name
+is the same as the filename. This option allows both to be different.)
+\item [-Us] \olabel{Us} Compile a system unit. This option causes the
+compiler to define only some very basic types.
+\end{description}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Using the configuration file
+\section{Using the configuration file}
+\label{se:config_file}
+Using the configuration file \file{ppc386.cfg} is an alternative to command
+line options. When a configuration file is found, it is read, and the lines
+in it are treated like you typed them on the command line. They are treated
+before the options that you type on the command line.
+
+The compiler looks for the \file{ppc386.cfg} file in the following places :
+\begin{enumerate}
+\item The current directory.
+\item Under \dos, the directory where the compiler is. Under \linux, 
+       the compiler looks in the \file{/etc} directory, or, if specified,
+the directory in the \var{PPC\_CONFIG\_PATH} environment variable.
+\end{enumerate}
+When the compiler has finished reading the configuration file, it continues
+to treat the command line options.
+
+One of the command-line options allows you to specify a second configuration
+file: Specifying \file{@foo} on the command line will open file \file{foo},
+and read further options from there. When the compiler has finished reading
+this file, it continues to process the command line.
+
+An important feature in the configuration file is that you can specify
+sections. They behave much like conditional defines. 
+Suppose the following configuration file (named \file{myconf})
+\begin{verbatim}
+-a
+#section first
+-Up/some_path
+#section second
+-Up/other_path.
+\end{verbatim}
+When you invoke the compiler as follows:
+\begin{verbatim}
+  ppc386 -dfirst @myconf foo.pp
+\end{verbatim}
+then the compiler will read the part of the configuration file coming before
+the line containing \var{\#section second}. As a result the unit search path will be set
+to \file{/some\_path}.
+If, on the other hand, you invoke the compiler as 
+\begin{verbatim}
+  ppc386 -dsecond @myconf foo.pp
+\end{verbatim}
+Then the configuration file will be read as if the part between
+\var{\#section first} and \var{\#section second} didn't exist, resulting
+in a unit search path of \file{/other\_path}.
+If you put a \var{\#section common} on a line, everything that follows this
+keyword will be read, whatever the defined constants.
+
+In short, the \var{\#define} keywords act as conditionals.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Porting.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Porting Turbo Pascal Code}
+
+\fpk was designed to resemble Turbo Pascal as closely as possible. There
+are, of course, restrictions. Some of these are due to the fact that \fpk is
+a 32-bit compiler. Other restrictions result from the fact that \fpk works
+on more than one operating system.
+
+In general we can say that if you keep your program code close to ANSI
+Pascal, you will have no problems porting from Turbo Pascal, or even Delphi, to
+\fpk. To a large extent, the constructs defined by Turbo Pascal are
+supported.
+
+In the following sections we will list the Turbo Pascal constructs which are
+not supported in \fpk, and we will list in what ways \fpk extends the Turbo
+Pascal language.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Things that will not work
+\section{Things that will not work}
+Here we give a list of things which are defined/allowed in Turbo Pascal, but
+which are not supported by \fpk. Where possible, we indicate the reason. 
+\begin{enumerate}
+\item Parameter lists of previously defined functions and procedures must
+match exactly. The reason for this is the function overloading mechanism of
+\fpk. (however, \seeo{So})
+\item \var {(* ... *)} as comment delimiters are not allowed in versions
+older than 0.9.1. This can easily be remedied with a grown-up editor. 
+\item The \var{MEM, MEMW, MEML} and \var{PORT} variables for memory and port
+access are not available. This is due to the operating system. Under
+\dos, the extender unit (\file {GO32.PPU} provides functions to remedy this.
+\item \var{PROTECTED, PUBLIC, TRY, THROW, EXCEPTION} are reserved words.
+This means you cannot create procedures or variables with the same name.
+While they are not reserved words in Turbo Pascal, they are in Delphi.
+\item The reserved words \var{FAR, NEAR} are ignored. This is
+because \fpk is a 32 bit compiler, so they're obsolete.
+\item \var{INTERRUPT} only will work on a DOS machine.
+\item Boolean expressions are only evaluated until their result is completely
+determined. The rest of the expression will be ignored.
+\item At the moment of writing, the assembler syntax used in \fpk is \var{AT\&T}
+assembler syntax. This is mainly because \fpk uses \gnu \var{as}.
+\item Turbo Vision is not available.
+\item The 'overlay' unit is not available. It also isn't necessary, since
+\fpk is a 32 bit compiler, so program size shouldn't be a point.
+\item There are more reserved words. (see appendix \ref{ch:reserved} for a
+list of all reserved words.)
+\item The command-line parameters of the compiler are different.
+\item The compiler switches behave different.
+\item Units are not binary compatible.
+\end{enumerate}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Things which are extra
+\section{Things which are extra}
+Here we give a list of things which are possible in \fpk, but which
+didn't exist in Turbo Pascal or Delphi.
+\begin{enumerate}
+\item There are more reserved words. (see appendix \ref{ch:reserved} for a
+list of all reserved words.)
+\item Functions can also return complex types, such as records and arrays.
+\item You can handle function results in the function itself, as a variable. 
+Example
+\begin{verbatim}
+function a : longint;
+
+begin
+   a:=12;
+   while a>4 do
+     begin
+        {...}
+     end;
+end;
+\end{verbatim}
+The example above would work with TP, but the compiler would assume
+that the \var{a>4} is a recursive call. To do a recursive call in
+this you must append \var{()} behind the function name: 
+\begin{verbatim}
+function a : longint;
+
+begin
+   a:=12;
+   { this is the recursive call }
+   if a()>4 then
+     begin
+        {...}
+     end;
+end;
+\end{verbatim}
+\item There is partial support of Delphi constructs. (see the \progref for
+more information on this).
+\item The \var{exit} call accepts a return value for functions.
+\begin{verbatim}
+function a : longint;
+
+begin
+   a:=12;
+   if a>4 then
+     begin
+        exit(a*67); {function result upon exit is a*67 }
+     end;
+end;
+\end{verbatim}
+\item \fpk supports function overloading. That is, you can define many
+functions with the same name, but with different arguments. For example:
+\begin{verbatim}
+procedure DoSomething (a : longint);
+begin
+{...}
+end;
+
+procedure DoSomething (a : real);
+begin
+{...}
+end;
+\end{verbatim} 
+You can then call procedure \var{DoSomething} with an argument of type
+\var{Longint} or \var{Real}.\\
+This feature has the consequence that a previously declared function must
+always be defined with the header completely the same:
+\begin{verbatim}
+procedure x (v : longint); forward;
+
+{...} 
+
+procedure x;{ This will overload the previously declared x}
+begin
+{...}
+end;
+\end{verbatim}
+This construction will generate a compiler error, because the compiler
+didn't find a definition of \var{procedure x (v : longint);}. Instead you
+should define your procedure x as:
+\begin{verbatim}
+procedure x (v : longint);
+{ This correctly defines the previously declared x}
+begin
+{...}
+end;
+\end{verbatim}
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Turbo Pascal compatibility mode
+\section{Turbo Pascal compatibility mode}
+When you compile a program with the \var{-So} switch, the compiler will
+attempt to mimic the Turbo Pascal compiler in the following ways:
+\begin{itemize}
+\item Assigning a procedural variable doesn't require a @ operator. One of
+the differences between Turbo Pascal and \fpk is that the latter requires
+you to specify an address operator when assigning a value to a procedural
+variable. In Turbo Pascal compatibility mode, this is not required.
+\item Procedure overloading is disabled.
+\item Forward defined procedures don't need the full parameter list when
+they are defined. Due to the procedure overloading feature of \fpk, you must
+always specify the parameter list of a function when you define it, even
+when it was declared earlier with \var{Forward}. In Turbo Pascal
+compatibility mode, there is no function overloading, hence you can omit the
+parameter list:
+\begin{verbatim}
+Procedure a (L : Longint); Forward;
+
+...
+
+Procedure a ; { No need to repeat the (L : Longint) }
+
+begin
+ ...
+end;
+
+\end{verbatim}
+\item recursive function calls are handled dfferently. Consider the
+following example :
+\begin{verbatim}
+Function expr : Longint;
+
+begin
+  ...
+  Expr:=L:
+  Writeln (Expr); 
+  ...
+end;
+\end{verbatim}
+In Turbo Pascal compatibility mode, the function will be called recursively 
+when the \var{writeln} statement is processed. In \fpk, the function result
+will be printed. In order to call the function recusively under \fpk, you
+need to implement it as follows :
+\begin{verbatim}
+Function expr : Longint;
+
+begin
+  ...
+  Expr:=L:
+  Writeln (Expr()); 
+  ...
+end;
+\end{verbatim}
+\item Any text after the final \var{End.} statement is ignored. Normally,
+this text is processed too.
+\item You cannot assign procedural variables to void pointers.
+\item The @ operator is typed when applied on procedures.
+\item You cannot nest comments. 
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Utilities.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Utilities and units that come with Free Pascal}
+Besides the compiler and the Run-Time Library, \fpk comes with some utility
+programs and units. Here we list these programs and units. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Supplied programs
+\section{Supplied programs}
+
+\begin{itemize}
+\item \file{dumppu} is a program which shows the contents of a \fpk unit. It
+comes in source form, and must be compiled before you can use it. Once
+compiled, you can just issue the following command
+\begin{verbatim}
+  dumppu foo.ppu
+\end{verbatim}
+to display the contents of the \file{foo.ppu} unit.
+\item Also distributed with Free Pascal comes a series of demonstration programs.
+These programs have no other purpose than demonstrating the capabilities of
+\fpk. They are located in the \file{demo} directory of the sources.
+\item All example programs of the documentation are available. Check out the
+directories that end on \file{ex} in the documentation sources. There you
+wll find all example sources.
+\end{itemize}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Supplied units
+\section{Supplied units}
+Here we list the units that come with the \fpk distribution. Since there is
+a difference in the supplied units per operating system, we list them
+separately per system.
+
+%
+%
+
+% Under DOS
+\subsection{Under DOS}
+\begin{itemize}
+\item \seestrings\ This unit provides basic
+string handling routines for the \var{pchar} type, comparable to similar
+routines in standard \var{C} libraries.
+\item \seeobjects\  This unit provides basic
+routines for handling objects.
+\item \seedos\ This unit provides basic routines for
+accessing the operating system \dos. It provides almost the same
+functionality as the Turbo Pascal unit. 
+\item \seeprinter\  This unit provides all you
+need for rudimentary access to the printer.
+\item \seegetopts\ This unit gives you the
+\gnu \var{getopts} command-line arguments  handling mechanism. 
+It also supports long options.
+\item \seecrt\ This unit provides basic screen
+handling routines. It provides the same functionality  as the Turbo Pascal \var{CRT}
+unit.
+\item \seegraph\ This unit provides basic graphics
+handling, with routines to draw lines on the screen, display texts etc. It
+provides the same functions as the Turbo Pascal unit.
+\item \seego\ This unit provides access to possibilities of the \var{GO32}
+\dos extender.
+\end{itemize}
+\remark{Florian, I don't know the full list - let me know what is available}
+
+%
+%
+
+% Under Linux
+\subsection{Under Linux}
+\begin{itemize}
+\item \seestrings\ This unit provides basic
+string handling routines for the \var{PChar} type, comparable to similar
+routines in standard \var{C} libraries.
+\item \seeobjects\ This unit provides basic
+routines for handling objects.
+\item \seecrt\ This unit provides basic screen
+handling routines. It provides the same functionality Turbo Pascal \var{CRT}
+unit. It works on any terminal which supports the \var{vt100} escape
+sequences.
+\item \seedos\ This unit provides an emulation of the
+same unit under \dos. It is intended primarily for easy porting of Pascal
+programs from \dos to \linux. For good performance, however, it is
+recommended to use the \var{linux} unit.
+\item \seelinux This unit provides access to the
+\linux operating system. It provides most file and I/O handling routines
+that you may need. It implements most of the standard \var{C} library constructs
+that you will find on a Unix system. If you do a lot of disk/file
+operations, the use of this unit is recommended over the one you use under
+Dos.
+\item \seeprinter\ This unit provides an
+interface to the standard Unix printing mechanism.
+\item \seegetopts This unit gives you the
+\gnu \var{getopts} command-line arguments  handling mechanism. 
+It also supports long options.
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Debugging
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Debugging your Programs}
+
+\fpk supports debug information for the \gnu debugger \var{gdb}. 
+This chapter describes shortly how to use this feature. It doesn't attempt
+to describe completely the \gnu debugger, however.
+For more information on the workings of the \gnu debugger, see the \var{gdb}
+users' guide.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Compiling your program with debugger support
+\section{Compiling your program with debugger support}
+First of all, you must be sure that the compiler is compiled with debugging
+support. Unfortunately, there is no way to check this at run time, except by
+trying to compile a program with debugging support.
+
+To compile a program with debugging support, just specify the \var{-g}
+option on the command-line, as follows:
+\begin{verbatim}
+ppc386 -g hello.pp
+\end{verbatim}
+This will generate debugging information in the executable from your
+program. You will notice that the size of the executable increases
+substantially because of this\footnote{A good reason not to include debug
+information in an executable you plan to distribute.}. 
+
+Note that the above will only generate debug information {\var for the code
+that has been generated} when compiling \file{hello.pp}. This means that if
+you used some units (the system unit, for instance) which were not compiled
+with debugging support, no debugging support will be available for the code
+in these units. 
+
+There are 2 solutions for this problem. 
+\begin{enumerate}
+\item Recompile all units manually with the \var{-g} option. 
+\item Specify the 'build' option (\var{-B}) when compiling with debugging
+support. This will recompile all units, and insert debugging information in
+each of the units.
+\end{enumerate}
+The second option may have undesirable side effects. It may be that some
+units aren't found, or compile incorrectly due to missing conditionals,
+etc..
+
+If all went well, the executable now contains the necessary information with 
+which you can debug it using \gnu \var{gdb}.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Using \var{gdb
+\section{Using \var{gdb} to debug your program}
+
+To use gdb to debug your program, you can start the debugger, and give it as
+an option the name of your program:
+\begin{verbatim}
+gdb hello
+\end{verbatim}
+This starts the debugger, and the debugger immediately loads your program
+into memory, but it does not run the program yet. Instead, you are presented
+with the following (more or less) message, followed by the \var{gdb} prompt
+\var{'(gdb)'}:
+\begin{verbatim}
+GDB is free software and you are welcome to distribute copies of it
+ under certain conditions; type "show copying" to see the conditions.
+There is absolutely no warranty for GDB; type "show warranty" for details.
+GDB 4.15.1 (i486-slackware-linux),
+Copyright 1995 Free Software Foundation, Inc...
+(gdb)
+\end{verbatim}
+To start the program you can use the \var{run} command. You can optionally 
+specify command-line parameters, which will then be fed to your program, for
+example:
+\begin{verbatim}
+(gdb) run -option -anotheroption needed_argument
+\end{verbatim}
+If your program runs without problems, \var{gdb} will inform you of this,
+and return the exit code of your program. If the exit code was zero, then
+the message \var{'Program exited normally'}.
+
+If something went wrong (a segmentation fault or so), \var{gdb} will stop
+the execution of your program, and inform you of this with an appropriate
+message. You can then use the other \var{gdb} commands to see what happened.  
+Alternatively, you can instruct \var{gdb} to stop at a certain point in your
+program, with the \var{break} command.
+
+Here is a short list of \var{gdb} commands, which you are likely to need when
+debugging your program:
+\begin{description}
+\item [quit\ ] Exits the debugger.
+\item [kill\ ] Stops a running program.
+\item [help\ ] Gives help on all \var{gdb} commands.
+\item [file\ ] Loads a new program into the debugger.
+\item [directory\ ] Add a new directory to the search path for source
+files.\\
+{\em Remark:} My copy of gdb needs '.' to be added explicitly to the search
+path, otherwise it doesn't find the sources.
+\item [list\ ] Lists the program sources per 10 lines. As an option you can
+specify a line number or function name.
+\item [break\ ] Sets a breakpoint at a specified line or function
+\item [awatch\ ] Sets a watch-point for an expression. A watch-point stops
+execution of your program whenever the value of an expression is either 
+read or written. 
+\end{description}
+
+for more information, see the \var{gdb} users' guide, or use the \var{'help'}
+function in \var{gdb}.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% CGI.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{CGI programming in Free Pascal}
+In these days of heavy WWW traffic on the Internet, CGI scripts have become
+an important topic in computer programming. While CGI programming can be
+done with almost any tool you wish, most languages aren't designed for it.
+Perl may be a notable exception, but perl is an interpreted language, the
+executable is quite big, and hence puts a big load on the server machine.
+
+Because of its simple, almost intuitive, string handling and its easy syntax, 
+Pascal is very well suited for CGI programming. Pascal allows you to quickly
+produce some results, while giving you all the tools you need for more
+complex programming. The basic RTL routines in principle are enough to get
+the job done, but you can create, with relatively little effort, some units
+which can be used as a base for more complex CGI programming.
+
+That's why, in this chapter, we will discuss the basics of CGI in \fpk.
+In the subsequent, we will assume that the server for which the programs are 
+created, are based upon the NCSA \var{httpd} WWW server, as the examples
+will be based upon the NCSA method of CGI programming\footnote{... and it's 
+the only WWW-server I have to my disposition at the moment.}.
+
+The two example programs in this chapter have been tested on the command line 
+and worked, under the condition that no spaces were present in the name and 
+value pairs provided to them.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Getting your data
+\section{Getting your data}
+Your CGI program must react on data the user has filled in on the form which
+your web-server gave him. The Web server takes the response on the form, and
+feeds it to the CGI script.
+
+There are essentially two ways of feeding the data to the CGI script. We will
+discuss both.
+
+%
+%
+
+% Data coming through standard input.
+\subsection{Data coming through standard input.}
+The first method of getting your data is through standard input. This method
+is invoked when the form uses a form submission method of \var{POST}.
+The web browser sets three environment variables \var{REQUEST\_METHOD},
+\var{CONTENT\_TYPE} and \var{CONTENT\_LENGTH}. It feeds then the results of
+the different fields through standard input to the CGI script.
+All the Pascal program has to do is :
+\begin{itemize}
+\item Check the value of the \var{REQUEST\_METHOD} environment variable. The
+\var{getenv} function will retrieve this value this for you.
+\item Check the value of the \var{CONTENT\_TYPE} environment variable.
+\item Read \var{CONTENT\_LENGTH} characters from standard input. \var{read
+(c)} with \var{c} of type \var{char} will take care of that.
+\end{itemize}
+if you know that the request method will always be \var{POST}, and the
+\var{CONTENT\_TYPE} will be correct, then you can skip the first two steps.
+The third step can be done easier: read characters until you reach the
+end-of-file marker of standard input.
+
+The following example shows how this can be achieved:
+\begin{verbatim}
+program cgi_post;
+
+uses dos; 
+
+const max_data = 1000;
+
+type datarec = record
+  name,value : string;
+  end;
+
+var data : array[1..max_data] of datarec;
+    i,nrdata : longint;
+    c  : char;
+    literal,aname : boolean;
+
+begin
+writeln ('Content-type: text/html');
+writeln;
+if getenv('REQUEST_METHOD')<>'POST' then
+   begin
+   writeln ('This script should be referenced with a METHOD of POST');
+   write ('If you don''t understand this, see this ');
+   write ('< A HREF="http://www.ncsa.uiuc.edu/SDG/Softare/Mosaic');
+   writeln ('/Docs/fill-out-forms/overview.html">forms overview</A>.');
+   halt(1);
+   end;
+if getenv('CONTENT_TYPE')<>'application/x-www-form-urlencoded' then
+   begin
+   writeln ('This script can only be used to decode form results');
+   halt(1)
+   end;
+nrdata:=1;
+aname:=true;
+while not eof(input) do
+  begin
+  literal:=false;
+  read(c);
+  if c='\' then
+     begin 
+     literal:=true;
+     read(c);
+     end;
+  if literal or ((c<>'=') and (c<>'&')) then
+     with data[nrdata] do
+        if aname then name:=name+c else value:=value+c
+  else
+     begin
+     if c='&' then 
+         begin
+         inc (nrdata);
+         aname:=true;
+         end 
+      else 
+         aname:=false;
+      end
+  end;
+writeln ('<H1>Form Results :</H1>');
+writeln ('You submitted the following name/value pairs :');
+writeln ('<UL>');
+for i:=1 to nrdata do writeln ('<LI> ',data[i].name,' = ',data[i].value);
+writeln ('</UL>');
+end.
+\end{verbatim}
+While this program isn't shorter than the C program provided as an example
+at NCSA, it doesn't need any other units. everythig is done using standard
+Pascal procedures\footnote{actually, this program will give faulty results,
+since spaces in the input are converted to plus signs by the web browser. 
+The program doesn't check for this, but that is easy to change. 
+The main concern here is to give the working principle.}.
+
+Note that this program has a limitation: the length of names and values is
+limited to 255 characters. This is due to the fact that strings in Pascal
+have a maximal length of 255. It is of course easy to redefine the
+\var{datarec} record in such a way that longer values are allowed.
+In case you have to read the contents of a \var{TEXTAREA} form element,
+this may be needed.
+
+
+% Data passed through an environment variable
+\subsection{Data passed through an environment variable}
+If your form uses the \var{GET} method of passing it's data, the CGI script
+needs to read the \var{QUERY\_STRING} environment variable to get it's data. 
+Since this variable can, and probably will, be more than 255 characters long, 
+you will not be able to use normal string methods, present in pascal. \fpk
+implements the \var{pchar} type, which is a pointer to a null-terminated
+array of characters.
+And, fortunately, \fpk has a
+\seestrings\  unit, which eases the use of the
+\var{pchar} type.
+
+
+The following example illustrates what to do in case of a method of \var{GET}
+\begin{verbatim}
+program cgi_get;
+
+uses strings,linux; 
+
+const max_data = 1000;
+
+type datarec = record
+  name,value : string;
+  end;
+
+var data : array[1..max_data] of datarec;
+    i,nrdata : longint;
+    p  : PChar;
+    literal,aname : boolean;
+
+begin
+Writeln ('Content-type: text/html');
+Writeln;
+if StrComp(GetEnv('REQUEST_METHOD'),'POST')<>0 then
+   begin
+   Writeln ('This script should be referenced with a METHOD of GET');
+   write ('If you don''t understand this, see this ');
+   write ('< A HREF="http://www.ncsa.uiuc.edu/SDG/Softare/Mosaic');
+   Writeln ('/Docs/fill-out-forms/overview.html">forms overview</A>.');
+   halt(1);
+   end;
+p:=GetEnv('QUERY_STRING');
+nrdata:=1;
+aname:=true;
+while p^<>#0  do
+  begin
+  literal:=false;
+  if p^='\' then
+     begin 
+     literal:=true;
+     inc(longint(p));
+     end;
+  if ((p^<>'=') and (p^<>'&')) or literal then
+     with data[nrdata] do
+        if aname then name:=name+p^ else value:=value+p^
+  else
+     begin
+     if p^='&' then 
+         begin
+         inc (nrdata);
+         aname:=true;
+         end 
+      else 
+         aname:=false;
+      end;
+  inc(longint(p));
+  end;
+Writeln ('<H1>Form Results :</H1>');
+Writeln ('You submitted the following name/value pairs :');
+Writeln ('<UL>');
+for i:=1 to nrdata do writeln ('<LI> ',data[i].name,' = ',data[i].value);
+Writeln ('</UL>');
+end.
+\end{verbatim}
+Although it may not be written in the most elegant way, this program does
+the same thing as the previous one. It also suffers from the same drawback,
+namely the limited length of the \var{value} field of the \var{datarec}.
+
+This drawback can be remedied by redefining \var{datarec} as follows:
+\begin{verbatim}
+type datarec = record;
+      name,value : pchar;
+     end;
+\end{verbatim}
+and assigning at run time enough space to keep the contents of the value
+field. This can be done with a
+\begin{verbatim}
+ getmem (data[nrdata].value,needed_number_of_bytes);
+\end{verbatim}
+call. After that you can do a 
+\begin{verbatim}
+strlcopy (data[nrdata].value,p,needed_number_of_bytes);
+\end{verbatim}
+to copy the data into place.
+
+You may have noticed the following unorthodox call : 
+\begin{verbatim}
+inc(longint(p));
+\end{verbatim}
+\fpk doesn't give you pointer arithmetic as in C. However, \var{longints} and
+\var{pointers} have the same length (namely 4 bytes). Doing a type-cast to a
+\var{longint} allows you to do arithmetic on the \var{pointer}.
+
+Note however, that this is a non-portable call. This may work on the I386
+processor, but not on a ALPHA processor (where a pointer is 8 bytes long). 
+This will be remedied in future releases of \fpk.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Producing output
+\section{Producing output}
+The previous section concentrated mostly on getting input from the web
+server. To send the reply to the server, you don't need to do anything
+special.You just print your data on standard output, and the Web-server will
+intercept this, and send your output to the WWW-client waiting for it.
+
+You can print anything you want, the only thing you must take care of is
+that you supply a \var{Contents-type} line, followed by an empty line, as
+follows:
+\begin{verbatim}
+Writeln ('Content-type: text/html');
+Writeln;
+{ ...start output of the form... }
+
+\end{verbatim}
+
+And that's all there is to it !
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% I'm under Windows, what now ?
+\section{I'm under Windows, what now ?}
+Under Windows the system of writing CGI scripts is totally different. If you
+use \fpk under Windows then you also should be able to do CGI programming,
+but the above instructions will not work. 
+
+If some kind soul is willing to write a section on CGI programming under
+Windows, I'd be willing to include it here.
+\appendix
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% APPENDIX A.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Alphabetical listing of command-line options}
+The following is alphabetical listing of all command-line options, as
+generated by the compiler:
+\begin{verbatim}
+PPC386 [options] <inputfile> [options]
+  + switch option on, - off
+  with * marked options have no effect
+  with ! marked options are only partial implemented
+  -a     the compiler doesn't delete the generated assembler file
+  -B     build
+  -C     code generation options
+           * -Ca 
+           * -Ce 
+                 
+             -Chxxxx  xxxx bytes heap 
+                 (must be less than 67107840 und greater than 1023
+             -Ci IO-checking
+             -Co check overflow of integer operations
+             -Cr range checking
+             -Csxxxx stack size (only OS/2)
+             
+  -dxxx  defines the symbol xxx
+  -D     controlls the generation of DEF file (only OS/2)
+             -Ddxxxx xxxx is the description
+             -Do generate DEF file
+             -Dw PM application
+  -exxxx xxxx path to executables (only LINUX)
+  -g     generate debugger informations
+  -F     set file names and pathes
+             -Fexxxx redirect error output to xxxx
+             -Fgxxxx xxxxx search path for the GNU C lib (LINUX only)
+             -Frxxxx xxxxx search path for the error message file (only LINUX)
+  -L     set language
+             -LD german
+             -LE english
+  -l     write logo
+  -i     information
+  -Ixxx  adds xxx to include path
+  -n     don't read the default config file
+  -oxxx  change the name of the executable produced to xxx
+  -q-    write information when compiling  (obsolete, see -v)
+  -S     syntax options
+             -S2 switch some Delphi 2 extension on
+             -Sa semantic check of expressions
+                 a higher level includes the lower
+                 -Sa0 only ANSI pascal expressions are allowed
+                 -Sa1 functions results havn't to be assigned to variables
+                 -Sa2 @-operator returns typed pointer
+                 -Sa4 assigment results are typed (allows a:=b:=0)
+                 -Sa9 allows expressions with no side effect
+             -Sc supports operators like C (*=,+=,/= and -=)
+             -Sg allows LABEL and GOTO
+             -Si support C++ stlyed INLINE
+             -Sm support macros like C (global)
+             -So tries to be TP/BP 7.0 compatible
+             -Ss the name of constructors must be init
+                 the name of destructors must be done
+             -St allows static keyword in objects
+  -s     don't call assembler and linker (only with -a)
+  -T     target operating system
+             -TDOS DOS extender by DJ Delorie
+             -TOS2 OS/2 2.x
+             -TLINUX Linux
+          !  -TWin32 Windows 32 Bit
+             -TGO32V2 version 2 of DJ Delorie DOS extender
+  -uxxx  undefines the symbol xxx
+  -U     unit options
+             -Un don't check the unit name
+             -Us compile a system unit
+             -Upxxxx adds xxxx to the unit path
+  -vxxx  Be verbose. xxx is a combination of the following letters :
+          e : Show errors (default)       i : Show general info
+          w : Show warnings               l : Show linenumbers
+          u : Show used files             t : Show tried files
+          p : Show compiled procedures    c : Show conditionals
+          d : Show debug info             m : Show defined macros
+  -w-    turns warnings off (Obsolete, see -v) 
+  -X     executable options
+             -Xc link with the c library
+             -Xe create ELF executable
+
+Processor specific options:
+  -A     output format
+             -Aatt  AT&T assembler
+             -Ao    coff file using GNU AS
+             -Aobj  OMF file using NASM
+             -Anasm coff file using NASM
+             -Amasm assembler for the Microsoft/Borland/Watcom assembler
+  -R     assembler reading style
+             -Ratt  read AT&T style assembler
+             -Rintel read Intel style assembler
+             -Rdirect copy assembler text directly to assembler file
+  -O     optimizations
+             -Oa simple optimizations
+             -Og optimize for size
+             -OG optimize for time
+             -Ox optimize maximum
+             -O2 optimize for Pentium II (tm)
+             -O3 optimize for i386
+             -O4 optimize for i486
+             -O5 optimize for Pentium (tm)
+             -O6 optimizations for PentiumPro (tm)
+  -h,-?  shows this help
+\end{verbatim}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% APPENDIX B.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Alphabetical list of reserved words}
+\label{ch:reserved}
+\latex{\begin{multicols}{3}}% \texttt
+\begin{verbatim}
+absolute
+abstract
+and
+array
+as
+asm
+assembler
+begin
+break
+case
+class
+const
+constructor
+continue
+destructor
+dispose
+div
+do
+downto
+else
+end
+except
+exit
+export
+exports
+external
+fail
+false
+far
+file
+finally
+for
+forward
+function
+goto
+if
+implementation
+in
+inherited
+initialization
+inline
+interface
+interrupt
+is
+label
+library
+mod
+name
+near
+new
+nil
+not
+object
+of
+on
+operator
+or
+otherwise
+packed
+private
+procedure
+program
+property
+protected
+public
+raise
+record
+repeat
+self
+set
+shl
+shr
+string
+then
+to
+true
+try
+type
+unit
+until
+uses
+var
+virtual
+while
+with
+xor
+\end{verbatim}
+\latex{\end{multicols}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% APPENDIX C.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Compiler error messages}
+\begin{description}
+\item [unexpected end of file]
+this typically happens in on of the following cases :
+\begin{itemize}
+\item The source file ends befor then final \var{end.} statement. This
+happens mostly when the \var{begin} and \var{end} statements aren't
+balanced;
+\item An include file ends in the middle of a statement.
+\item A comment wasn't closed.
+\end{itemize}
+\item [duplicate identifier:]
+The identifier was already declared in the current scope.
+\item [syntax error:]
+An error against the Turbo Pascal language was encountered. This happens
+typically when an illegal character is found in the sources file.
+\item [out of memory]
+The compiler doesn't have enough memory to compile your program. There are
+several remedies for this:
+\begin{itemize}
+\item If you're using the build option of the compiler, try compiling the
+different units manually.
+\item If you're compiling a huge program, split it up in units, and compile
+these separately.
+\item If the previous two don't work, recompile the compiler with a bigger
+heap (you can use the \var{-Ch} option for this, \seeo{Ch})
+\end{itemize} 
+\item [unknown identifier]
+The identifier encountered hasn't been declared, or is used outside the
+scope where it's defined.
+\item [illegal character]
+An illegal character was encountered in the input file. 
+\item [source too long]
+The compiler cannot cope with source files longer than (???)
+\item [INLINE not supported (use option -Si for C++ styled inlining)]
+You tried to compile a program with C++ style inlining, and forgot to
+specify the \var{-Si} option (\seeo{Si}). The compiler doesn't support C++
+styled inlining by default. 
+\item [NEAR ignored]
+This is a warning. \var{NEAR} is a construct for 8 or 16 bit programs. Since
+the compile generates 32 bit programs, it ignores this directive.
+\item [FAR ignored]
+This is a warning. \var{FAR} is a construct for 8 or 16 bit programs. Since
+the compile generates 32 bit programs, it ignores this directive.
+\item [INTERRUPT ignored]
+Interrupt procedures aren't possible on operating systems, other than DOS, 
+it isn't allowed to take over an interrupt at the user level. (versions
+older than 0.9.2 didn't have \var{INTERRUPT} support.
+\item [private methods can't be VIRTUAL]
+You declared a method in the private part of a object (class) as
+\var{virtual}. This is not allowed. Private methods cannot be overridden
+anyway.
+\item [constructor can't be private or protected]
+Constructors must be in the 'public' part of an object (class) declaration. 
+\item [destructor can't be private or protected]
+Destructors must be in the 'public' part of an object (class) declaration. 
+\item [identifier not found]
+\item [local class definitions are not allowed]
+Classes must be defined globally.
+\item [anonym class definitions are not allowed]
+\item [type identifier expected]
+The identifier is not a type, or you forgot to supply a type identifier.
+\item [identifier already as type identifier declared]
+You are trying to redefine a type.
+\item [type identifier not defined]
+The compiler encountered an unknown type.
+\item [type mismatch]
+This can happen in many cases:
+\begin{itemize}
+\item The variable you're assigning to is of a different type than the
+expression in the assignment.
+\item You are calling a function or procedure with parameters that are 
+incompatible with the parameters in the function or procedure definition.
+\end{itemize}
+\item [statement expected]
+
+\item [illegal integer constant]
+
+\item [illegal expression]
+\item [expression too complicated - FPU stack overflow]
+Your expression is too long for the compiler. You should try dividing the
+construct over multiple assignments.
+\item [CONTINUE not possible]
+You're trying to use \var{continue} outside a loop construction.
+\item [BREAK not possible]
+You're trying to use \var{break} outside a loop construction.
+\item [exception handling needed to compile this (command line -Se)]
+Older (less than 0.6.6) versions of \fpk only. Your statement needs exception handling. 
+Exception handling isn't supported by default in the compiler. 
+Use the \var{-Se} option to turn on exception handling.% (\seeo{Se})
+\item [illegal qualifier]
+One of the following is appending :
+\begin{itemize}
+\item You're trying to access a field of a variable that is not a record.
+\item You're indexing a variable that is not an array.
+\item You're dereferencing a variable that is not a pointer. 
+\end{itemize}
+\item [illegal count variable] The type of a \var{for} loop must be ordinal.
+
+\item [ordinal type expected]
+The expression must be of ordinal type (i.e. maximum a Longint)
+\item [high range limit < low range limit]
+You are declaring a subrange, and the lower limit is higher than the high
+limit of the range.
+\item [illegal unit identifier]
+The name of the unit doesn't match the file name.
+\item [unknown format of unit file]
+The unit the compiler is trying to read is corrupted, or generated with a
+newer version of the compiler.
+\item [error when reading unit]
+The unit the compiler is trying to read is corrupted, or generated with a
+newer version of the compiler.
+\item [circular unit use]
+Two units are using each other in the interface part. This is only allowed
+in the implementation part.
+\item [too many units]
+\fpk has a limit of 1024 units in a program. You can change this behavior
+by changing the \var{maxunits} constant in the \file{files.pas} file of the
+compiler, and recompiling the compiler. 
+\item [illegal char constant]
+\item [overloaded identifier isn't a function identifier]
+\item [overloaded functions have the same parameter list]
+You're declaring overloaded functions, but with the same parameter list.
+Overloaded function must have at least 1 different parameter in their
+declaration.
+\item [illegal parameter list]
+You are calling a function with parameters that are of a different type than
+the declared parameters of the function.
+\item [can't determine which overloaded function to call]
+You're calling overloaded functions with a parameter that doesn't correspond
+to any of the declared function parameter lists. e.g. when you have declared
+a function with parameters \var{word} and \var{longint}, and then you call
+it with a parameter which is of type \var{integer}.
+\item [exception handling not used, however needed by function]
+This message is no longer used.
+\item [forward declaration not solved:]
+This can happen in two cases:
+\begin{itemize}
+\item This happens when you declare a function (in the \var{interface} part, or
+with a \var{forward} directive, but do not implement it.
+\item You reference a type which isn't declared in the current \var{type}
+block.
+\end{itemize}
+\item [input file not found]
+\fpk cannot find the program or unit source file, or the included file isn't
+found.
+\item [function header doesn't match the forward declaration]
+You declared the function in the \var{interface} part, or with the
+\var{forward} directive, but define it with a different parameter list. 
+\item [unknown field identifier]
+The field doesn't exist in the record definition.
+\item [parameter list size exceeds 65535 bytes]
+The I386 processor limits the parameter list to 65535 bytes (the \var{RET}
+instruction causes this)
+\item [function nesting > 31]
+You can nest function definitions only 31 times. 
+\item [illegal compiler switch]
+You included a compiler switch (i.e. \var{\{\$... \}}) which the compiler
+doesn't know.
+\item [can't open include file]
+You want to include (i.e \var{\{\$i file\}}) which the compiler doesn't
+find. Check if the filename is correct.
+\item [record or class type expected]
+The variable or expression isn't of the type \var{record} or \var{class}.
+\item [not found:]
+An unknown symbol was encountered.
+\item [only values can be jumped over in enumeration types]
+\fpk allows enumeration constructions as in C. Given the following
+declaration two declarations:
+\begin{verbatim}
+type a = (A_A,A_B,A_E=:6,A_UAS:=200);
+type a = (A_A,A_B,A_E=:6,A_UAS:=4);
+\end{verbatim}
+The second declaration would produce an error. \var{A\_UAS} needs to have a
+value higher than \var{A\_E}, i.e. at least 7.
+\item [pointer type expected]
+The variable or expression isn't of the type \var{pointer}.
+\item [unit is compiled for another operating system]
+The unit was compiled with a different target than the target for which
+you're compiling now. (see the option \var{-T} \seeo{T}).
+\item [typed constants of classes are not allowed]
+You cannot declare a constant of type class or object.
+\item [duplicate case label]
+You are specifying the same label 2 times in a \var{case} statement.
+\item [range check error while Eva luting constants]
+The constants are out of their allowed range.
+\item [illegal type conversion]
+When doing a type-cast, you must take care that the sizes of the variable and
+the destination type are the same. 
+\item [class type expected]
+The variable of expression isn't of the type \var{class}.
+\item [functions variables of overloaded functions are not allowed]
+You are trying to assign an overloaded function to a procedural variable.
+This isn't allowed.
+\item [can't open assembler output file]
+The assembler output file cannot be opened. This can have many causes, but
+'disk full' is a reasonable guess.
+\item [string length must be a value from 1 to 255]
+The length of a string in Pascal is limited to 255 characters. You are
+trying to declare a string with length greater than 255.
+\item [class identifier expected]
+The variable isn't of type \var{class}.
+\item [method identifier expected]
+This identifier is not a method.
+\item [function header doesn't match any method of this class]
+You are defining a function as a class method, but no such function was
+declared in the class.
+\item [use extended syntax of DISPOSE and NEW to generate instances of classes]
+If you have a pointer \var{a} to a class type, then the statement
+\var{new(a)} will not initialize the class (i.e. the constructor isn't
+called), although space will be allocated. you should issue the
+\var{new(a,init)} statement. This will allocate space, and call the
+constructor of the class.
+\item [file types must be var parameters]
+You cannot specify files as value parameters, i.e. they must always be
+declared \var{var} parameters.
+\item [string constant exceeds line end]
+You forgot probably to include the closing ' in a string. 
+\item [illegal version of the unit:]
+This unit was compiled with an earlier version of \fpk.
+\item [illegal floating point constant]
+\item [destructors can't have parameters]
+You are declaring a destructor with a parameter list. Destructor methods
+cannot have parameters.
+\item [FAIL can be used in constructors only]
+You are using the \var{FAIl} instruction outside a constructor method.
+\item [records fields can be aligned to 1,2 or 4 bytes only]
+You are specifying the \var{\{\$PACKRECORDS n\} } with an illegal value for
+\var{n}. Only 1,2 or 4 are valid in this case.
+\item [too many \$ENDIFs or \$ELSEs]
+Your \var{\{\$IFDEF ..\}} and {\{\$ENDIF\}} statements aren't balanced.
+\item [\$ENDIF expected]
+Your \var{\{\$IFDEF ..\}} and {\{\$ENDIF\}} statements aren't balanced.
+\item [illegal call by reference parameters]
+\item [can't generate DEF file]
+\ostwo only. The DEF file cannot be generated.
+\item [all overloaded methods must be virtual if one is virtual:]
+If you declare overloaded methods in a class, then they should either all be
+virtual, or none. You cannot mix them.
+\item [overloaded methods which are virtual must have the same return type:]
+If you declare virtual overloaded methods in a class definition, they must
+have the same return type.
+\item [all overloaded virtual methods must support exceptions if one support exceptions:]
+If you declare overloaded virtual methods in a class, then they should either 
+all support exceptions, or none. You cannot mix them.
+\item [EXPORT declared functions can't be called]
+You are trying to call a procedure you declared as \var{export}. Due to the
+different calling scheme of \fpk and C, you cannot call such a function from
+within your Pascal program. 
+\item [EXPORT declared functions can't be nested]
+You cannot declare a function or procedure within a function or procedure
+that was declared as an export procedure.
+\item [methods can't be EXPORTed]
+You cannot declare a procedure that is a method for an object as
+\var{export}ed. That is, you methods cannot be called from a C program.
+\item [SELF is allowed in methods only]
+You are trying to use the \var{self} parameter outside an object's method.
+Only methods get passed the \var{self} parameters.
+\item [call by var parameters have to match exactly]
+When calling a function declared with \var{var} parameters, the variables in
+the function call must be of exactly the same type. There is no automatic
+type conversion. 
+\item [type identifiers are not allowed in this context]
+\item [class identifier expected]
+The variable isn't of type \var{class}.
+\item [class isn't a super class of the current class]
+When calling inherited methods, you are trying to call a method of a strange
+class. You can only call an inherited method of a parent class.
+\item [methods can be only in other methods called direct with type identifier of the class]
+A construction like \var{sometype.somemethod} is only allowed in a method.
+\item [illegal INHERITED: class has no super class]
+You specified an \var{INHERITED} keyword in a method of a class which has no
+parent class, i.e. which isn't derived from another class.
+\item [illegal type: pointer to class expected]
+You specified an illegal type.
+\item [possible illegal call of constructor or destructor (doesn't match to this context)]
+\item [class should have one destructor only]
+You can declare only one destructor for a class.
+\item [expression must be constructor call]
+When using the extended syntax of \var{new}, you must specify the constructor
+method of the class you are trying to create. The procedure you specified
+is not a constructor.
+\item [identifier idents no member]
+When using the extended syntax of \var{new}, you must specify the constructor
+method of the class you are trying to create. The procedure you specified
+does not exist.
+\item [expression must be destructor call]
+When using the extended syntax of \var{dispose}, you must specify the
+destructor method of the class you are trying to dispose of. 
+The procedure you specified is not a destructor.
+
+\item [assembler: illegal constant]
+\item [illegal type declaration of set elements]
+\item [illegal expression in set constructor]
+\item [type conflict between set elements]
+You are specifying elements of a different type for a set.
+\item [illegal use of ':']
+\item [expression type must be class or record type]
+The expression isn't of type class or record.
+\item [the operator / isn't defined for integer, the result will be real, use DIV instead]
+When using the '/' operator in \fpk the result will be of type real, when
+used with integers.
+\item [can't write PPU file]
+There is a problem when writing to the unit file.
+\item [illegal order of record elements]
+When declaring a constant record, you specified the fields in the wrong
+order.
+\item [the name of constructors must be INIT]
+You are declaring a constructor with a name which isn't \var{init}, and the
+\var{-Ss} switch is in effect. See the \var{-Ss} switch (\seeo{Ss}). 
+\item [the name of constructors must be DONE]
+You are declaring a constructor with a name which isn't \var{done}, and the
+\var{-Ss} switch is in effect. See the \var{-Ss} switch (\seeo{Ss}). 
+\item [set element type mismatch]
+The type of the element doesn't equal the set type.
+\item [illegal label declaration]
+\item [label not found]
+A \var{goto label} was encountered, but the label isn't declared. 
+\item [GOTO and LABEL are not supported (use command line switch -Sg)]
+You must compile a program which has \var{label}s and \var{goto} statements 
+with the  \var{-Sg} switch. By default, \var{label} and \var{goto} aren't
+supported.
+\item [set expected]
+The variable or expression isn't of type \var{set}.
+\item [identifier isn't a label]
+The identifier specified after the \var{goto} isn't of type label.
+\item [label already defined]
+You're attempting to define a label two times. (i.e. you put the same label
+on two different places.)
+\item [label isn't defined:]
+A label was declared, but not defined.
+\item [constructors and destructors must be methods]
+You're declaring a procedure as destructor or constructor, when the
+procedure isn't a class method.
+\item [error when assembling]
+An error occurred when assembling. This can have many causes.
+\item [identifier not used:]
+This is a warning. The identifier was declared (locally or globally) but
+wasn't used (locally or globally).
+\item [functions with void return value can't return any value]
+In \fpk, you can specify a return value for a function when using 
+the \var{exit} statement. This error occurs when you try to do this with a
+procedure. Procedures  cannot return a value.
+\item [Hmmm..., this code can't be much efficient]
+You construction seems dubious to the compiler.
+\item [unreachable code]
+You specified a loop which will never be executed. Example:
+\begin{verbatim}
+while false do
+  begin
+  {.. code ...}
+  end;
+\end{verbatim}
+\item [This overloaded function can't be local (must be exported)]
+You are defining a overloaded function in the implementation part of a unit,
+but there is no corresponding declaration in the interface part of the unit.
+\item [It's not possible to overload this operator]
+You are trying to overload an operator which cannot be overloaded.
+\item [Abstract methods can't be called direct]
+\fpk understands the \var{abstract} keyword.
+\item [the mix of CLASSES and OBJECTS are not allowed]
+You cannot use \var{object} and \var{class} intertwined.
+\item [macro buffer overflow while reading or expanding a macro]
+Your macro or it's result  was too long for the compiler.
+\item [keyword redefined as macro has no effect]
+You cannot redefine keywords with macros.
+\item [extension of macros exceeds a deep of 16,\\ perhaps there is a recursive macro definition (crashes the compiler)]
+When expanding a macro macros have been nested to a level of 16.
+\item [ENDIF without IF(N)DEF]
+Your code contains more \var{\{\$ENDIF\}} than \var{\{\$IF(N)DEF\}}
+statements.
+\item [user defined:]
+A user defined warning occurred. see also the \progref
+\item [linker: Duplicate symbol:]
+Two global symbols in the code have the same name.
+\item [linker: Error while reading object file]
+The linker couldn't read the object file (the assembled file).
+\item [linker: object file not found]
+The linker didn't find the object file (the assembled file).
+\item [linker: illegal magic number in file:]
+The linker cannot determine the type of a file it wants to link in. The type
+of a link file is specified using a magic number, which is some pre-defined
+constant, unique for each system.
+\item [The extended syntax of new or dispose isn't allowed for a class]
+You cannot generate an instance of a class with the extended syntax of 
+\var{new}. The constructor must be used for that. For the same reason, you
+cannot call \var{Dispose} to de-allocate an instance of a class, the
+destructor must be used for that.
+\item [To generate an instance of a class or an object with an abstract method isn't allowed]
+You are trying to generate an instance of a class which has an abstract
+method that wasn't overridden.
+\item [Only virtual methods can be abstract]
+You are declaring a method as abstract, when it isn't declared to be
+virtual.
+\item [Abstract methods shouldn't have any definition (with function body)]
+Abstract methods can only be declared, you cannot implement them. They
+should be overridden by a descendant class.
+\item [can't call the assembler]
+An error occurred when calling the assembler.
+\item [can't call o2obj]
+An error occurred when calling the \var{o} to \var{obj} conversion program.
+\item [asm syntax error]
+There is an error in the assembly language.
+\item [register name expected]
+There is an error in the assembly language. The assembler expected a
+register and got something else.
+\item [asm size mismatch]
+There is an error in the assembly language. The sizes of operands and
+registers don't match.
+\item [no instr match,]
+There is an error in the assembly language. An unknown instruction was
+encountered.
+\item [can't compile unit:]
+When trying to do a build, the compiler cannot compile one of the units.
+\item [Re-raise isn't possible there]
+You are trying to raise an exception where it isn't allowed. You can only
+raise exceptions in an \var{except} block.
+\end{description}
+
+\chapter{Run time errors}
+The \fpk Run-tim library generates the following errors at run-time
+\footnote{The \linux port will generate only a subset of these.}:
+
+\begin{description}
+\item [1  Invalid function number]
+You tried to call a \dos function which doesn't exist.
+\item [2  File not found]
+You can get this error when you tried to do an operation on a file which
+doesn't exist.
+\item [3  Path not found]
+You can get this error when you tried to do an operation on a file which
+doesn't exist, or when you try to change to, or remove a directory that doesn't exist,
+or try to make a subdirectory  of a subdirectory that doesn't exist.
+\item [4  Too many open files]
+When attempting to open a file for reading or writing, you can get this
+error when your program has too many open files.
+\item [5  File access denied]
+You don't have access to the specified file.
+\item [6  Invalid file handle]
+If this happens, the file variable you are using is trashed; it
+indicates that your memory is corrupted.
+\item [12  Invalid file access code]
+This will happen if you do a reset or rewrite of a file when \var{FileMode}
+is invalid. 
+\item [15  Invalid drive number]
+The number given to the Getdir function specifies a non-existent disk.
+\item [16  Cannot remove current directory]
+You get this if you try to remove the current diirectory.
+\item [17  Cannot rename across drives]
+You cannot rename a file such that it would end up on another disk or
+partition.
+\item [100  Disk read error]
+\dos only. An error occurred when reading from disk. Typically when you try
+to read past the end of a file.
+\item [101  Disk write error]
+\dos only. Reported when the disk is full, and you're trying to write to it.
+\item [102  File not assigned]
+This is reported by Reset, Rewrite, Append, Rename and Erase, if you call
+them with an unassigne function as a parameter.
+\item [103  File not open]
+Reported by the following functions : Close , Read, Write, Seek,
+EOf, FilePos, FileSize, Flush, BlockRead, and BlockWrite if the file isn't
+open.
+\item [104  File not open for input]
+Reported by Read, BlockRead, Eof, Eoln, SeekEof or SeekEoln if the file
+isn't opened with Reset.
+\item [105  File not open for output]
+Reported by write if a text file isn't opened with Rewrite.
+\item [106  Invalid numeric format]
+Reported when a non-numerice value is read from a text file, when a numeric
+value was expected.
+\item [150  Disk is write-protected]
+(Critical error, \dos only.) 
+\item [151  Bad drive request struct length]
+(Critical error, \dos only.) 
+\item [152  Drive not ready]
+(Critical error, \dos only.) 
+\item [154  CRC error in data]
+(Critical error, \dos only.) 
+\item [156  Disk seek error]
+(Critical error, \dos only.) 
+\item [157  Unknown media type]
+(Critical error, \dos only.) 
+\item [158  Sector Not Found]
+(Critical error, \dos only.) 
+\item [159  Printer out of paper]
+(Critical error, \dos only.) 
+\item [160  Device write fault]
+(Critical error, \dos only.) 
+\item [161  Device read fault]
+(Critical error, \dos only.) 
+\item [162  Hardware failure]
+(Critical error, \dos only.) 
+\item [200  Division by zero]
+You are dividing a number by zero.
+\item [201  Range check error]
+If you compiled your program with range checking on, then you can get this
+error in the following cases:
+\begin{enumerate}
+\item An array was accessed with an index outside its declared range.
+\item You're trying to assign a value to a variable outside its range (for
+instance a enumerated type).
+\end{enumerate} 
+\item [202  Stack overflow error]
+The stack has grown beyond itss maximum size. This error can easily occur if
+you have recursive functions. 
+\item [203  Heap overflow error]
+The heap has grown beyond its boundaries, ad you are rying to get more
+memory. Please note that \fpk provides a growing heap, i.e. the heap will
+try to allocate more memory if needed. However, if the heap has reached the
+maximum size allowed by the operating system or hardware, then you will get
+this error.
+\item [204  Invalid pointer operation]
+This you will get if you call dispose or Freemem with an invalid pointer
+(notably, \var{Nil})
+\item [205  Floating point overflow]
+You are trying to use or produce too large real numbers. 
+\item [206  Floating point underflow]
+You are trying to use or produce too small real numbers. 
+\item [207  Invalid floating point operation]
+Can occur if you try to calculate the square root or logarithm of a negative
+number.
+\item [210  Object not initialized]
+When compiled with range checking on, a program will report this error if
+you call a virtal method without having initialized the VMT.
+\item [211  Call to abstract method]
+Your program tried to execute an abstract virtual method. Abstract methods
+should be overridden, and the overriding method should be called.
+\item [212  Stream registration error]
+This occurs when an invalid type is registered in the objects unit.
+\item [213  Collection index out of range]
+You are trying to access a collection item with an invalid index.
+(objects unit) 
+\item [214  Collection overflow error]
+The collection has reached its maximal size, and you are trying to add
+another element. (objects unit)
+\item [216  General Protection fault]
+You are trying to access memory outside your appointed memory.
+\end{description}
+\end{document}

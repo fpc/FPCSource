@@ -1,0 +1,2291 @@
+%
+%   $Id$
+%   This file is part of the FPC documentation.
+%   Copyright (C) 1997, by Michael Van Canneyt
+%
+%   The FPC documentation is free text; you can redistribute it and/or
+%   modify it under the terms of the GNU Library General Public License as
+%   published by the Free Software Foundation; either version 2 of the
+%   License, or (at your option) any later version.
+%
+%   The FPC Documentation is distributed in the hope that it will be useful,
+%   but WITHOUT ANY WARRANTY; without even the implied warranty of
+%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+%   Library General Public License for more details.
+%
+%   You should have received a copy of the GNU Library General Public
+%   License along with the FPC documentation; see the file COPYING.LIB.  If not,
+%   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+%   Boston, MA 02111-1307, USA. 
+%
+\documentclass{report}
+\usepackage{a4}
+\usepackage{html}
+\latex{\usepackage{multicol}}
+\latex{\usepackage{fpkman}}
+\html{\input{fpk-html.tex}}
+% define the version number here, and not in the fpk.sty !!! 
+\newcommand{\fpkversion}{0.9.7}
+\newcommand{\remark}[1]{\par$\rightarrow$\textbf{#1}\par}
+\newcommand{\olabel}[1]{\label{option:#1}}
+% We should change this to something better. See \seef etc.
+\begin{document}
+\title{Free Pascal \\ Programmer's manual}
+\docdescription{Programmer's manual for \fpk, version \fpkversion}
+\docversion{1.0}
+\date{July 1997}
+\author{Micha\"el Van Canneyt}
+\maketitle
+\tableofcontents
+\newpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Introduction
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{About this document}
+This is the programmer's manual for \fpk.
+
+It describes some of the peculiarities of the \fpk compiler, and provides a
+glimp of how the compiler generates its code, and how you can change the
+generated code. It will not, however, provide you with a detailed account of
+the inner workings of the compiler, nor will it tell you how to use the
+compiler (described in the \userref). It also will not describe the inner
+workings of the Run-Time Library (RTL). The best way to learn about the way
+the RTL is implemented is from the sources themselves. 
+
+The things described here are useful if you want to do things which need
+greater flexibility than the standard Pascal language constructs. 
+(described in the \refref)
+
+Since the compiler is continuously under development, this document may get
+out of date. Wherever possible, the information in this manual will be
+updated. If you find something which isn't correct, or you think something
+ is missing, feel free to contact me\footnote{at
+\var{michael@tfdec1.fys.kuleuven.ac.be}}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Compiler switches
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Compiler directives}
+\label{ch:CompSwitch}
+\fpk supports compiler directives in your source file. They are not the same
+as Turbo Pascal directives, although some are supported for compatibility.
+There is a distinction between local and global directives; local directives
+take effect from the moment they are encountered, global directives have an
+effect on all of the compiled code.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Local switches
+\section{Local directives}
+\label{se:LocalSwitch}
+Local directives have no command-line counterpart. They influence the
+compiler's behaviour from the moment they're encountered until the moment
+another switch annihilates their behaviour, or the end of the unit or
+program is reached. 
+
+\subsection{\var{\$F} : Far or near functions}
+This directive is recognized for compatibility with Turbo Pascal. Under the
+32-bit programming model, the concept of near and far calls have no meaning,
+hence the directive is ignored. A warning is printed to the screen, telling
+you so.
+
+As an example, : the following piece of code :
+\begin{verbatim}
+{$F+}
+
+Procedure TestProc;
+
+begin
+ Writeln ('Hello From TestProc');
+end;
+
+begin
+ testProc
+end.
+\end{verbatim}
+Generates the following compiler output:
+\begin{verbatim}
+malpertuus: >pp -vw testf
+Compiler: ppc386
+Units are searched in: /home/michael;/usr/bin/;/usr/lib/ppc/0.9.1/linuxunits
+Target OS: Linux
+Compiling testf.pp
+testf.pp(1) Warning: illegal compiler switch
+7739 kB free
+Calling assembler...
+Assembled...
+Calling linker...
+12 lines compiled,
+ 1.00000000000000E+0000
+\end{verbatim}
+You can see that the verbosity level was set to display warnings.
+
+If you declare a function as \var{Far} (this has the same effect as setting it
+between \var{\{\$F+\}...\{\$F-\}} directives), the compiler also generates a
+warning :
+\begin{verbatim}
+testf.pp(3) Warning: FAR ignored
+\end{verbatim}
+
+The same story is true for procedures declared as \var{Near}. The warning
+displayed in that case is:
+\begin{verbatim}
+testf.pp(3) Warning: NEAR ignored
+\end{verbatim}
+
+\subsection{\var{\$I} : Input/Output checking}
+The \var{\{\$I-\}} directive tells the compiler not to generate input/output
+checking code in your program. If you compile using the \var{-Ci} compiler
+switch, the \fpk compiler inserts input/output
+checking code after every input/output call in your program. If an error
+occurred during input or output, then a run-time error will be generated.
+Use this switch if you wish to avoid this behavior. 
+If you still want to check if something went wrong, you can use the
+\var{IOResult} function to see if everything went without problems.
+
+Conversely, \var{\{\$I+\}} will turn error-checking back on, until another
+directive is encountered which turns it off again.
+
+The most common use for this switch is to check if the opening of a file
+went without problems, as in the following piece of code:
+\begin{verbatim}
+...
+assign (f,'file.txt');
+{$I-}
+rewrite (f);
+{$I+}
+if IOResult<>0 then
+  begin
+  Writeln ('Error opening file : "file.txt"');
+  exit
+  end;
+...
+\end{verbatim}
+
+\subsection{\var{\$I} : Include file }
+The \var{\{\$I filename\}} directive tells the compiler to read further
+statements from the file \var{filename}. The statements read there will be
+inserted as if they occurred in the current file.
+
+The compiler will append the \file{.pp} extension to the file if you don't
+specify an extension yourself. Do not put the filename between quotes, as
+they will be regarded as part of the file's name.
+
+You can nest included files, but not infinitely deep. The number of files is
+restricted to the number of file descriptors available to the \fpk compiler.
+
+Contrary to Turbo Pascal, include files can cross blocks. I.e. you can start
+a block in one file (with a \var{Begin} keyword) and end it in another (with
+a \var{End} keyword). The smallest entity in an include file must be a token,
+i.e. an identifier, keyword or operator.
+
+\subsection{\var{\$L} : Link object file}
+The \var{\{\$L filename\}} directive tells the compiler that the file \file{filename}
+should be linked to your program. You can only use this directive in a
+program. If you do use it in a unit, the compiler will not complain, but
+simply ignores the directive.
+
+The compiler will {\em not} look for the file in the unit path. 
+The name will be passed to the linker {\em exactly} as you've typed it.
+
+Since the files name is passed directly to the linker, this means that on
+\linux systems, the name is case sensitive, and must be typed exactly as it
+appears on your system.
+
+{\em Remark :} Take care that the object file you're linking is in a 
+format the linker understands. Which format this is, depends on the platform
+you're on. Typing \var{ld} on th command line gives a list of formats
+\var{ld} knows about. 
+
+You can pass other files and options to the linker using the \var{-k}
+command-line option. You can specify more than one of these options, and
+they
+will be passed to the linker, in the order that you specified them on the
+command line, just before the names of the object files that must be linked.
+
+% Assembler type
+\subsection{\var{\$I386\_XXX} : Specify assembler format}
+This switch informs the compiler what kind of assembler it can expect in an
+\var{asm} block. The \var{XXX} should be replaced by one of the following:
+\begin{description}
+\item [att\ ] Indicates that \var{asm} blocks contain AT\&T syntax assembler.
+\item [intel\ ] Indicates that \var{asm} blocks contain Intel syntax
+assembler.
+\item [direct\ ] Tells the compiler that asm blocks should be copied
+directly to the assembler file.
+\end{description}
+These switches are local, and retain their value to the end of the unit that
+is compiled, unless they are replaced by another directive of the same type.
+The command-line switch that corresponds to this switch is \var{-R}. 
+
+
+\subsection{\var{\$MMX} : MMX support}
+As of version 0.9.8, \fpk supports optimization for the \textbf{MMX} Intel 
+processor (see also \ref{ch:MMXSupport}). This optimizes certain code parts for the \textbf{MMX} Intel
+processor, thus greatly improving speed. The speed is noticed mostly when
+moving large amounts of data. Things that change are
+\begin{itemize}
+\item Data with a size that is a multiple of 8 bytes is moved using the 
+\var{movq} assembler instruction, which moves 8 bytes at a time
+\end{itemize}
+
+When \textbf{MMX} support is on, you aren't allowed to do floating point
+arithmetic. You are allowed to move floating point data, but no arithmetic
+can be done. If you wish to do floating point math anyway, you must first
+switch of \textbf{MMX} support and clear the FPU using the \var{emms} 
+function of the \file{cpu} unit.
+
+The following example will make this more clear:
+\begin{verbatim}
+Program MMXDemo;
+
+uses cpu;
+
+var
+   d1 : double;
+   a : array[0..10000] of double;
+   i : longint;
+
+begin
+   d1:=1.0;
+{$mmx+}
+   { floating point data is used, but we do _no_ arithmetic }
+   for i:=0 to 10000 do
+     a[i]:=d2;  { this is done with 64 bit moves }
+{$mmx-}
+   emms;   { clear fpu }
+   { now we can do floating point arithmetic }
+   ....
+end. 
+\end{verbatim}
+See, however, the chapter on MMX (\ref{ch:MMXSupport}) for more information
+on this topic.
+
+\subsection{\var{\$OUTPUT\_FORMAT} : Specify the output format}
+\var{\{\$OUTPUT\_FORMAT format\}} has the same functionality as the \var{-A}
+command-line option : It tells the compiler what kind of object file must be
+generated. You can specify this switch \textbf{only} befor the \var{Program}
+or \var{Unit} clause in your source file. The different kinds of formats are
+shown in \seet{Formats}.
+
+\begin{FPKltable}{ll}{Formats generated by the compiler}{Formats} \hline
+Switch value & Generated format \\ \hline
+att  & AT\&T assembler file. \\
+o    & Unix object file.\\
+obj  & OMF file.\\
+wasm & assembler for the Watcom assembler. \\ \hline
+\end{FPKltable}
+
+\subsection{\var{\$V} : Var-string checking}
+
+When in the \var{+} state, the compiler checks that strings passed as
+parameters are of the same, identical, string type as the declared
+parameters of the procedure.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Global switches
+\section{Global directives}
+\label{se:GlobalSwitch}
+Global directives affect the whole of the compilation process. That is why
+they also have a command - line counterpart. The command-line counterpart is
+given for each of the directives.
+
+\subsection{\var{\$A} : Align Data}
+
+This switch is recognized for Turbo Pascal Compatibility, but is not
+yet implemented. The alignment of data will be different in any case, since
+\fpk is a 32-bit compiler.
+
+\subsection{\var{\$B} : Complete boolean evaluation}
+
+This switch is understood by the \fpk compiler, but is ignored. The compiler
+always uses shortcut evaluation, i.e. the evaluation of a boolean expression
+is stopped once the result of the total exression is known with certainty.
+
+So, in the following example, the function \var{Bofu}, which has a boolean
+result, will never get called.
+\begin{verbatim}
+If False and Bofu then
+  ...
+\end{verbatim}
+
+\subsection{\var{\$D} : Debugging symbols}
+
+When this switch is on, the compiler inserts GNU debugging information in
+the executable. The effect of this switch is the same as the command-line
+switch \var{-g}. By default, insertion of debugging information is off.
+
+\subsection{\var{\$E} : Emulation of coprocessor}
+This directive controls the emulation of the coprocessor. On the i386
+processor, it is supported for
+compatibility with Turbo Pascal. The compiler itself doesn't do the emulation
+of the coprocessor. Under \dos, the \dos extender does this, and under
+\linux, the kernel takes care of the coprocessor support.
+
+If you use the Motorola 680x0 version, then the switch is recognized, as
+there is no extender to emulate the coprocessor, so the compiler must do
+that by itself.
+
+There is no command-line counterpart for this directive.
+
+\subsection{\var{\$G} : Generate 80286 code}
+
+This option is recognised for Turbo Pascal cmpatibility, but is ignored,
+because the compiler needs at least a 386 or higher class processor.
+
+
+\subsection{\var{\$L} : Local symbol information}
+
+This switch (not to be confused with the \var{\{\$L file\}} file linking
+directive) is recognised for Turbo Pascal compatibility, but is ignored.
+generation of symbol information is controlled by the \var{\$D} switch. 
+
+\subsection{\var{\$N} : Numeric processing }
+
+This switch is recognised for Turbo Pascal compatibility, but is otherwise
+ignored, since the compiler always uses the coprocessor for floating point
+mathematics.
+
+\subsection{\var{\$O} : Overlay code generation }
+
+This switch is recognised for Turbo Pascal compatibility, but is otherwise
+ignored, since the compiler requires a 386 or higher computer, with at 
+least 4 Mb. of ram.
+
+\subsection{\var{\$Q} : Overflow checking}
+The \var{\{\$Q+\}} directive turns on integer overflow checking. 
+This means that the compiler inserts code to check for overflow when doing 
+computations with an integer. 
+When an overflow occurs, the run-time library will print a message 
+\var{Overflow at xxx}, and exit the program with exit code 1.
+
+Using the \var{\{\$Q-\}} switch switches off the overflow checking code
+generation.
+
+The generation of overflow checking code can also be controlled 
+using the \var{-Co} command line compiler option (see \userref).
+
+\subsection{\var{\$R} : Range checking}
+By default, the computer doesn't generate code to check the ranges of array
+indices, enumeration types, subrange types, etc. Specifying the
+\var{\{\$R+\}} switch tells the computer to generate code to check these
+indices. If, at run-time, an index or enumeration type is specified that is
+out of the declared range of the compiler, then a run-time error is
+generated, and the program exits with exit code 1.
+
+The \var{\{\$R-\}} switch tells the compiler not to generate range checking
+code. This may result in faulty program behaviour, but no run-time errors
+will be generated.
+
+{\em Remark: } this has not been implemented completely yet.
+
+\subsection{\var{\$S} : Stack checking}
+The \var{\{\$S+\}} directive tells the compiler to generate stack checking
+code. This generates code to check if a stack overflow occurred, i.e. to see
+whether the stack has grown beyond its maximally allowed size. If the stack
+grows beyond the maximum size, then a run-time error is generated, and the
+program will exit with exit code 1.
+
+Specifying \var{\{\$S-\}} will turn generation of stack-checking code off.
+
+There is no command-line switch which is equivalent to this directive.
+
+{\em Remark: } In principle, the stack is almost unlimited, 
+i.e. limited to the total free amount of memory on the computer.
+
+
+\subsection{\var{\$X} : Extended syntax}
+Extended syntax allows you to drop the result of a function. This means that
+you can use a function call as if it were a procedure. Standard this feature
+is on. You can switch it off using the \var{\{\$X-\}} directive.
+
+The following, for instance, will not compile :
+\begin{verbatim}
+function Func (var Arg : sometype) : longint;
+begin
+...          { declaration of Func }
+end;
+
+...
+
+{$X-}
+Func (A);
+\end{verbatim}
+The reason this construct is supported is that
+you may wish to call a function for certain side-effects it has, but you
+don't need the function result. In this case you don't need to assign the
+function result, saving you an extra variable.
+
+The command-line compiler switch \var{-Sa1} has the same effect as the
+\var{\{\$X+\}} directive.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Using conditionals and macros
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Using conditionals, Messages and macros}
+\label{ch:CondMessageMacro}
+The \fpk compiler supports conditionals as in normal Turbo Pascal. It does,
+however, more than that. It allows you to make macros which can be used in
+your code, and it allows you to define messages or errors which will be
+displayed when compiling.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Conditionals
+\section{Conditionals}
+\label{se:Conditionals}
+The rules for using conditional symbols are the same as under Turbo Pascal.
+Defining a symbol goes as follows:
+\begin{verbatim}
+{$Define Symbol }
+\end{verbatim}
+From this point on in your code, the compiler know the symbol \var{Symbol}
+Symbols are, like the Pascal language, case insensitive.
+
+You can also define a symbol on the command line. the \var{-dSymbol} option
+defines the symbol \var{Symbol}. You can specify as many symbols on the
+command line as you want.
+
+Undefining an existing symbol is done in a similar way:
+\begin{verbatim}
+{$Undefine Symbol }
+\end{verbatim}
+If the symbol didn't exist yet, this doesn't do anything. If the symbol
+existed previously, the symbol will be erased, and will not be recognized
+any more in the code following the \verb|{$Undefine ...}| statement.
+
+You can also undefine symbols from the command line with the \var{-u}
+command-line switch..
+
+To compile code conditionally, depending on whether a symbol is defined or
+not, you can enclose the code in a \verb|{$ifdef Symbol}| .. \verb|{$endif}|
+pair. For instance the following code will never be compiled :
+\begin{verbatim}
+{$Undefine MySymbol}
+{$ifdef Mysymbol}
+  DoSomething;
+  ...
+{$endif}
+\end{verbatim}
+
+Similarly, you can enclose your code in a \verb|{$Ifndef Symbol}| .. \verb|{$endif}|
+pair. Then the code between the pair will only be compiled when the used
+symbol doesn't exist. For example, in the following example, the call to the
+\var{DoSomething} will always be compiled:
+\begin{verbatim}
+{$Undefine MySymbol}
+{$ifndef Mysymbol}
+  DoSomething;
+  ...
+{$endif}
+\end{verbatim}
+
+You can combine the two alternatives in one structure, namely as follows
+\begin{verbatim}
+{$ifdef Mysymbol}
+  DoSomething;
+{$else}
+  DoSomethingElse
+{$endif}
+\end{verbatim}
+In this example, if \var{MySymbol} exists, then the call to \var{DoSomething}
+will be compiled. If it doesn't exist, the call to \var{DoSomethingElse} is
+compiled.
+
+The \fpk compiler defines some symbols before starting to compile your
+program or unit. You can use these symbols to differentiate between
+different versions of the compiler, and between different compilers.
+In \seet{Symbols}, a list of pre-defined symbols is given. In that table,
+you should change \var{v} with the version number of the compiler
+you're using, \var{r} with the release number and \var{p}
+with the patch-number of the compiler. 'OS' needs to be changed by the type
+of operating system. Currently this can be one of \var{DOS}, \var{GO32V2},
+\var{LINUX}, \var{OS2} or \var{WIN32}. This symbol is undefined if you
+specify a target that is different from the platform you're compiling on.
+the \var{-TSomeOS} option on the command line will define the \var{SomeOS} symbol,
+and will undefined the existing platform symbol\footnote{In versions prior to
+0.9.4, this didn't happen, thus making Cross-compiling impossible.}.
+
+\begin{FPKltable}{c}{Symbols defined by the compiler.}{Symbols} \hline
+Free \\
+VER\var{v} \\
+VER\var{v}\_\var{r} \\
+VER\var{v}\_\var{r}\_\var{p} \\
+OS \\ \hline
+\end{FPKltable}
+
+As an example : Version 0.9.1 of the compiler, running on a Linux system,
+defines the following symbols before reading the command line arguments:
+\var{FPK}, \var{VER0}, \var{VER0\_9}, \var{VER0\_9\_1} and \var{LINUX}.
+Specifying \var{-TOS2} on the command-line will undefine the \var{LINUX}
+symbol, and will define the \var{OS2} symbol. 
+
+{\em Remark: } Symbols, even when they're defined in the interface part of 
+a unit, are not available outside that unit.
+
+\fpk supports the \var{\{\$IFOPT \}} directive for Turbo Pascal
+compatibility, but doesn't act on it. It always rejects the condition, so
+code between \var{\{\$IFOPT \}} and \var{\{\$Endif\}} is never compiled.
+
+Except for the Turbo Pascal constructs, from version 0.9.8 and higher,
+the \fpk compiler also supports a stronger conditional compile mechanism: 
+The \var{\{\$If \}} construct. 
+
+The prototype of this construct is as follows :
+\begin{verbatim}
+{$If expr}
+  CompileTheseLines;
+{$else}
+  BetterCompileTheseLines;
+{$endif}
+\end{verbatim}
+In this directive \var{expr} is a Pascal expression which is evaluated using
+strings, unless both parts of a comparision can be evaluated as numbers, 
+in which case they are evaluated using numbers\footnote{Otherwise
+\var{\{\$If 8>54} would evaluate to \var{True}}.
+If the complemete expression evaluates to \var{'0'}, then it is considered 
+false and rejected. Otherwise it is considered true and accepted. This may
+have unsexpected consequences :
+\begin{verbatim}
+{$If 0}
+\end{verbatim}
+Will evaluate to \var{False} and be rejected, while
+\begin{verbatim}
+{$If 00}
+\end{verbatim}
+Will evaluate to \var{True}.
+
+You can use any Pascal operator to construct your expression : \var{=, <>,
+>, <, >=, <=, AND, NOT, OR} and you can use round brackets to change the
+precedence of the operators.
+
+The following example shows you many of the possibilities:
+\begin{verbatim}
+{$ifdef fpk}
+
+var
+   y : longint;
+{$else fpk}
+
+var
+   z : longint;
+{$endif fpk}
+
+var
+   x : longint;
+
+begin
+
+{$if (fpk_version=0) and (fpk_release>6) and (fpk_patch>4)}
+{$info At least this is version 0.9.5}
+{$else}
+{$fatalerror Problem with version check}
+{$endif}
+
+{$define x:=1234}
+{$if x=1234}
+{$info x=1234}
+{$else}
+{$fatalerror x should be 1234}
+{$endif}
+
+{$if 12asdf and 12asdf}
+{$info $if 12asdf and 12asdf is ok}
+{$else}
+{$fatalerror $if 12asdf and 12asdf rejected}
+{$endif}
+
+{$if 0 or 1}
+{$info $if 0 or 1 is ok}
+{$else}
+{$fatalerror $if 0 or 1 rejected}
+{$endif}
+
+{$if 0}
+{$fatalerror $if 0 accepted}
+{$else}
+{$info $if 0 is ok}
+{$endif}
+
+{$if 12=12}
+{$info $if 12=12 is ok}
+{$else}
+{$fatalerror $if 12=12 rejected}
+{$endif}
+
+{$if 12<>312}
+{$info $if 12<>312 is ok}
+{$else}
+{$fatalerror $if 12<>312 rejected}
+{$endif}
+
+
+{$if 12<=312}
+{$info $if 12<=312 is ok}
+{$else}
+{$fatalerror $if 12<=312 rejected}
+{$endif}
+
+{$if 121234>=312}
+{$info $if 121234>=312 is ok}
+{$else}
+{$fatalerror $if 121234>=312 rejected}
+{$endif}
+
+{$if 12<312}
+{$info $if 12<312 is ok}
+{$else}
+{$fatalerror $if 12<312 rejected}
+{$endif}
+
+{$if 122134>312}
+{$info $if 122134>312 is ok}
+{$else}
+{$fatalerror $if 122134>312 rejected}
+{$endif}
+{$if a12=a12}
+{$info $if a12=a12 is ok}
+{$else}
+{$fatalerror $if a12=a12 rejected}
+{$endif}
+
+{$if a12<>z312}
+{$info $if a12<>z312 is OK}
+{$else}
+{$fatalerror $if a12<>z312 rejected}
+{$endif}
+
+
+{$if a12<=z312}
+{$info $if a12<=z312 is ok}
+{$else}
+{$fatalerror $if a12<=z312 rejected}
+{$endif}
+
+{$if z121234>=a312}
+{$info $if z121234>=a312 is OK}
+{$else}
+{$fatalerror $if z121234>=a312 rejected}
+{$endif}
+
+{$if a12<z312}
+{$info $if a12<z312 is ok}
+{$else}
+{$fatalerror $if a12<z312 rejected}
+{$endif}
+
+{$if z122134>a312}
+{$info $if z122134>a312 is OK}
+{$else}
+{$fatalerror $if z122134>a312 rejected}
+{$endif}
+
+{$if not z122134>a312}
+{$fatalerror $if not z122134>a312 accepted}
+{$else}
+{$info $if not z122134>a312 is OK}
+{$endif}
+
+{$if not(0)}
+{$info $if not(0) is OK}
+{$else}
+{$fatalerror $if not(0) rejected}
+{$endif}
+
+{$info *************************************************}
+{$info * Now have to follow at least 2 error messages: *}
+{$info *************************************************}
+
+{$if not(0}
+{$endif}
+
+{$if not(<}
+{$endif}
+
+end.
+\end{verbatim}
+As you can see from the example, this construct isn't useful when used  
+with normal symbols, but it is if you use macros, which are explained in 
+\sees{Macros}, they can be very useful. When trying this example, you must
+switch on macro support, with the \var{-Sm} command-line switch.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Macros
+\section{Messages}
+\label{se:Messages}
+\fpk lets you define normal, warning and error messages in your code. 
+Messages can be used to display useful information, such as copyright
+notices, a list of symbols that your code reacts on etc.
+
+Warnings can be used if you think some part of your code is still buggy, or
+if you think that a certain combination of symbols isn't useful. In general
+anything which may cause problems when compiling.
+
+Error messages can be useful if you need a certain symbol to be defined
+to warn that a certain variable isn't defined or so, or when the compiler
+version isn't suitable for your code.
+
+The compiler treats these messages as if they were generated by the
+compiler. This means that if you haven't turned on warning messages, the
+warning will not e displayed. Errors are always displayed, and the compiler
+stops as if an error had occurred.
+
+For messages, the syntax is as follows  :
+\begin{verbatim}
+{$Message Message text }
+\end{verbatim}
+Or 
+\begin{verbatim}
+{$Info Message text }
+\end{verbatim}
+For notes:
+\begin{verbatim}
+{$Note Message text }
+\end{verbatim}
+For warnings:
+\begin{verbatim}
+{$Warning Warning Message text }
+\end{verbatim}
+For errors :
+\begin{verbatim}
+{$Error  Error Message text }
+\end{verbatim}
+Lastly, for fatal errors :
+\begin{verbatim}
+{$FatalError  Error Message text }
+\end{verbatim}
+or
+\begin{verbatim}
+{$Stop  Error Message text }
+\end{verbatim}
+The difference between \var{\$Error} and \var{\$FatalError} or \var{\$Stop}
+messages is that when the compiler encounters an error, it still continues
+to compile. With a fatal error, the compiler stops.
+
+{\em Remark :} You cannot use the '\var{\}}' character in your message, since
+this will be treated as the closing brace of the message. 
+
+As an example, the following piece of code will generate an error when 
+the symbol \var{RequiredVar} isn't defined:
+\begin{verbatim}
+{$ifndef RequiredVar}
+{$Error Requiredvar isn't defined !}
+{$endif}
+\end{verbatim} 
+But the compiler will continue to compile. It will not, however, generate a
+unit file or a program (since an error occurred).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Macros
+\section{Macros}
+\label{se:Macros}
+Macros are very much like symbols in their syntax, the difference is that
+macros have a value whereas a symbol simply is defined or is not defined.
+If you want macro support, you need to specify the \var{-Sm} command-line
+switch, otherwise your macro will be regarded as a symbol.
+
+Defining a macro in your program is done in the same way as defining a symbol; 
+in a \var{\{\$define \}} preprocessor statement\footnote{In compiler
+versions older than 0.9.8, the assignment operator for a macros wasn't
+\var{:=}, but \var{=}}:
+\begin{verbatim}
+{$define ident:=expr}
+\end{verbatim}
+If the compiler encounters \var{ident} in the rest of the source file, it
+will be replaced immediately by \var{expr}. This replacement works
+recursive, meaning that when the compiler expanded one of your macros, it
+will look at the resulting expression again to see if another replacement
+can be made. You need to be careful with this, because an infinite loop can 
+occur in this manner.
+
+Here are two examples which illustrate the use of macros:
+\begin{verbatim}
+{$define sum:=a:=a+b;}
+...
+sum          { will be expanded to 'a:=a+b;' 
+               remark the absence of the semicolon}
+...
+{$define b:=100}
+sum          { Will be expanded recursively to a:=a+100; }                   
+...
+\end{verbatim}
+The previous example could go wrong :
+\begin{verbatim}
+{$define sum:=a:=a+b;}
+...
+sum          { will be expanded to 'a:=a+b;' 
+               remark the absence of the semicolon}
+...
+{$define b=sum} { DON'T do this !!!}
+sum          { Will be infinitely recursively expanded... }                   
+...
+\end{verbatim}
+On my system, the last example results in a heap error, causing the compiler
+to exit with a run-time error 203.
+
+{\em Remark: } Macros defined in the interface part of a unit are not 
+available outside that unit ! They can just be used as a notational
+convenience, or in conditional compiles.
+
+By default, from version 0.9.8 of the compiler on, the compiler predefines three
+macros, containing the version number, the release number and the patch
+number. They are listed in \seet{DefMacros}.
+\begin{FPKltable}{ll}{Predefined macros}{DefMacros} \hline
+Symbol & Contains \\ \hline
+\var{FPK\_VERSION} & The version number of the compiler. \\
+\var{FPK\_RELEASE} & The release number of the compiler. \\
+\var{FPK\_PATCH} & The patch number of the compiler. \\
+\hline
+\end{FPKltable}
+
+{\em Remark: } Don't forget that macros support isn't on by default. You
+need to compile with the \var{-Sm} command-line switch.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Using assembly language
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Using assembly language}
+\label{ch:AsmLang}
+\fpk supports inserting of assembler instructions in your code. The
+mechanism for this is the same as under Turbo Pascal. There are, however
+some substantial differences, as will be explained in the following.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% AT&T syntax
+\section{AT\&T Syntax}
+\label{se:AttSyntax}
+\fpk uses the \gnu \var{as} assembler to generate its object files. Since
+the \gnu assembler uses AT\&T assembly syntax, the code you write should
+use the same syntax. The differences between AT\&T and Intel syntax as used
+in Turbo Pascal are summarized in the following:
+\begin{itemize}
+\item The opcode names include the size of the operand. In general, one can
+say that the AT\&T opcode name is the Intel opcode name, suffixed with a
+'\var{l}', '\var{w}' or '\var{b}' for, respectively, longint (32 bit), 
+word (16 bit) and byte (8 bit) memory or register references. As an example,
+the Intel construct \mbox{'\var{mov al bl}} is equivalent to the AT\&T style '\var{movb
+\%bl,\%al}' instruction.
+\item AT\&T immediate operands are designated with '\$', while Intel syntax
+doesn't use a prefix for immediate operands. Thus the Intel construct
+'\var{mov ax, 2}' becomes '\var{movb \$2, \%al}' in AT\&T syntax.
+\item AT\&T register names are preceded by a '\var{\%}' sign. 
+They are undelimited in Intel syntax. 
+\item AT\&T indicates absolute jump/call operands with '\var{*}', Intel
+syntax doesn't delimit these addresses.
+\item The order of the source and destination operands are switched. AT\&T
+syntax uses '\var{Source, Dest}', while Intel syntax features '\var{Dest,
+Source}'. Thus the Intel construct '\var{add eax, 4}' transforms to
+'\var{addl \$4, \%eax}' in the AT\&T dialect.
+\item Immediate long jumps are prefixed with the '\var{l}' prefix. Thus the
+Intel '\var{call/jmp section:offset'} is transformed to '\var{lcall/ljmp
+\$section,\$offset}'. Similarly the far return is '\var{lret}', instead of the
+Intel '\var{ret far}'.
+\item Memory references are specified differently in AT\&T and Intel
+assembly. The Intel indirect memory reference
+\begin{quote}
+\var{Section:[Base + Index*Scale + Offs]}
+\end{quote}
+is written in AT\&T syntax as :
+\begin{quote}
+\var{Section:Offs(Base,Index,Scale)}
+\end{quote}
+Where \var{Base} and \var{Index} are optional 32-bit base and index
+registers, and \var{Scale} is used to multiply \var{Index}. It can take the
+values 1,2,4 and 8. The \var{Section} is used to specify an optional section
+register for the memory operand.
+\end{itemize}
+
+More information about the AT\&T syntax can be found in the \var{as} manual,
+although the following differences with normal AT\&T assembly must be taken
+into account :
+\begin{itemize}
+\item  Only the following directives are presently supported:
+ \begin{description}
+\item[.byte]
+\item[.word]
+\item[.long]
+\item[.ascii]
+\item[.asciz]
+\item[.globl]
+\end{description}
+\item  The following directives are recognized but are not
+   supported:
+\begin{description}
+\item[.align]
+\item[.lcomm]
+\end{description} 
+Eventually they will be supported.
+\item Directives are case sensitive, other identifiers are not case sensitive.
+\item  Contrary to GAS local labels/symbols {\em must} start with \var{.L}
+\item  The nor operator \var{'!'} is not supported.
+\item  String expressions in operands are not supported.
+\item  Constant expressions which represent memory references are not 
+allowed even though constant immediate value expressions are supported. \\
+examples:
+\begin{verbatim}
+const myid = 10;
+...
+movl $myid,%eax       -- allowed
+movl myid(%esi),%eax  -- not allowed.
+\end{verbatim}
+\item When the \var{.globl} directive is found, the symbol following
+    it is made public and is immediately emitted.
+    Therefore label names with this name will be ignored.
+\item  Only Single and Double FPU opcodes are supported.
+\end{itemize} 
+
+The AT\&T inline assembler supports the following macros :
+\begin{description}
+\item [\_\_RESULT] represents the function result return value.
+\item [\_\_SELF]   represents the object method pointer in methods.
+\item [\_\_OLDEBP] represents the old base pointer in recusrive routines.
+\end{description}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Intel syntax
+\section{Intel syntax}
+\label{se:Intel}
+
+As of version 0.9.7, \fpk supports Intel syntax in it's \var{asm} blocks.
+The Intel syntax in your \var{asm} block is converted to AT\&T syntax by the
+compiler, after which it is inserted in the compiled source. 
+The supported assembler constructions are a subset of the normal assembly
+syntax. In what follows we specify what constructs are not supported in
+\fpk, but which exist in Turbo Pascal:
+
+\begin{itemize}
+\item  The \var{TBYTE} qualifier is not supported.
+\item  The \var{\&} identifier override is not supported.
+\item  The \var{HIGH} operator is not supported.
+\item  The \var{LOW} operator is not supported.
+\item  The \var{OFFSET} and \var{SEG} operators are not supported.
+     use \var{LEA} and the various \var{Lxx} instructions instead.
+\item  Expressions with constant strings are not allowed.
+\item  Access to record fields via parenthesis is not allowed
+\item  Typecasts with normal pascal types are not allowed, only
+    recognized assembler typecasts are allowed.\\ Example:
+\begin{verbatim}
+mov al, byte ptr MyWord       -- allowed,
+mov al, byte(MyWord)          -- allowed,
+mov al, shortint(MyWord)      -- not allowed.
+\end{verbatim}
+\item  Pascal type typecasts on constants are not allowed. \\
+Example: 
+\begin{verbatim}
+const s= 10; const t = 32767;
+\end{verbatim}
+in Turbo Pascal:
+\begin{verbatim}
+mov al, byte(s)            -- useless typecast.
+mov al, byte(t)            -- syntax error!
+\end{verbatim}
+In this parser, either of those  cases will give out a syntax error.
+\item  Constant references expressions with constants only are not
+   allowed (in all cases they do not work in protected mode,
+    under linux i386). \\ Examples:
+\begin{verbatim}
+mov al,byte ptr ['c']      -- not allowed.
+mov  al,byte ptr [100h]    -- not allowed.
+\end{verbatim}
+ (This is due to the limitation of Turbo Assembler).
+\item  Brackets within brackets are not allowed
+\item  Expressions with segment overrides fully in brackets are
+presently not supported, but they can easily be implemented
+in BuildReference if requested. \\ Example:
+\begin{verbatim}
+mov al,[ds:bx]     -- not allowed
+\end{verbatim}
+use instead:
+\begin{verbatim}
+mov al,ds:[bx]
+\end{verbatim}
+\item  Possible allowed indexing are as follows:
+\begin{itemize}
+\item    \var{Sreg:[REG+REG*SCALING+/-disp]}
+\item    \var{SReg:[REG+/-disp]}
+\item    \var{SReg:[REG]}
+\item    \var{SReg:[REG+REG+/-disp]}
+\item    \var{SReg:[REG+REG*SCALING]}
+\end{itemize}
+Where \var{Sreg} is optional and specifies the segment override.
+{\em Notes:} 
+\begin{enumerate}
+\item The order of terms is important contrary to Turbo Pascal.
+\item The Scaling value must be a value, and not an identifier
+to a symbol.\\  Examples:
+\begin{verbatim}
+const myscale = 1;
+...
+mov al,byte ptr [esi+ebx*myscale] -- not allowed.
+\end{verbatim}
+use:
+\begin{verbatim}
+mov al, byte ptr [esi+ebx*1]
+\end{verbatim}
+\end{enumerate}
+\item  Possible variable identifier syntax is as follows:
+ (Id = Variable or typed constant identifier.)
+\begin{enumerate}
+\item \var{ID}
+\item \var{[ID]}
+\item \var{[ID+expr]}
+\item \var{ID[expr]}
+\end{enumerate}
+ Possible fields are as follow:
+\begin{enumerate}
+\item  \var{ID.subfield.subfield ...}
+\item  \var{[ref].ID.subfield.subfield ...}
+\item  \var{[ref].typename.subfield ...}
+\end{enumerate}
+\item  Local Labels: Contrary to Turbo Pascal, local labels, must
+at least contain one character after the local symbol indicator.\\
+Example:
+\begin{verbatim}
+@:               -- not allowed
+\end{verbatim}
+  use instead, for example:
+\begin{verbatim}
+@1:             -- allowed
+\end{verbatim}
+\item  Contrary to Turbo Pascal local references cannot be used as references,
+   only as displacements. \\   example:
+\begin{verbatim}
+lds si,@mylabel   -- not allowed
+\end{verbatim}
+\item  Contrary to Turbo Pascal, \var{SEGCS}, \var{SEGDS}, \var{SEGES} and
+\var{SEGSS} segment overrides are presently not supported.
+   (This is a planned addition though).
+\item  Contrary to Turbo Pascal where memory sizes specifiers can
+   be practically anywhere, the \fpk Intel inline assembler requires
+   memory size specifiers to be outside the brackets. \\
+      example:
+\begin{verbatim}
+mov al,[byte ptr myvar]    -- not allowed.
+\end{verbatim}
+ use:
+\begin{verbatim}
+mov al,byte ptr [myvar]    -- allowed.
+\end{verbatim}
+\item  Base and Index registers must be 32-bit registers.
+     (limitation of the GNU Assembler).
+\item  \var{XLAT} is equivalent to \var{XLATB}.
+\item  Only Single and Double FPU opcodes are supported.
+\item  Floating point opcodes are currently not supported
+   (except those which involve only floating point registers).
+\end{itemize}
+
+The Intel inline assembler supports the following macros :
+\begin{description}
+\item [@Result] represents the function result return value.
+\item [Self] represents the object method pointer in methods.
+\end{description}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Calling mechanism
+\section{Calling mechanism}
+\label{se:Calling}
+Procedures and Functions are called with their parameters on the stack.
+Contrary to Turbo Pascal, {\em all} parameters are pushed on the stack, and
+they are pushed {\em right} to {\em left}, instead of left to right for
+Turbo Pascal. This is especially important if you have some assembly
+subroutines in Turbo Pascal which you would like to translate to \fpk.
+
+Function results are returned in the first register, if they fit in the
+register. For more information on this, see \sees{Stack}
+
+The registers are {\em not} saved when calling a function or procedure. If
+you want to call a procedure or function from assembly language, you must
+save any registers you wish to preserve.
+
+The first thing a procedure does is saving the base pointer, and setting the
+base (\var{\%ebp}) pointer equal to the stack pointer (\var{\%esp}). 
+References to the pushed parameters and local variables are constructed 
+using the base pointer.
+
+In practice this amounts to the following assembly code as the procedure or
+function header :
+\begin{verbatim}
+   pushl   %ebp
+   movl    %esp,%ebp
+\end{verbatim}  
+
+When the procedure or function exits, it clears the stack by means of the
+\var{RET xx} call, where \var{xx} is the total size of the pushed parameters
+on the stack. Thus, in case parameters with a total size of \var{xx} have
+been passed to a function, the generated exit sequence looks as follows:
+\begin{verbatim}
+  leave
+  ret  $xx
+\end{verbatim}
+
+When you want your code to be called by a C library or used in a C
+program, you will run into trouble because of this calling mechanism. In C,
+the calling procedure is expected to clear the stack, not the called
+procedure. To avoid this problem, \fpk supports the \var{export} modifier.
+Procedures that are defined using the export modifier, use a C-compatible
+calling mechanism. This means that they can be called from a C program or
+library, or that you can use them as a callback function.
+
+This also means that you cannot call this procedure or function from your
+own program, since your program uses the Pascal calling convention.
+However, in the exported function, you can of course call other Pascal
+routines.
+
+Technically, the C calling mechanism is implemented by generating the
+following exit sequence at the end of your function or procedure:
+\begin{verbatim}
+  leave         {Copies EBP to ESP, pops EBP from the stack.}
+  ret
+\end{verbatim}
+Comparing this exit sequence with the previous one makes it clear why you
+cannot call this procedure from within Pascal: The arguments still are on
+the stack when the procedure exits.
+
+As of version 0.9.8, the \fpk compiler supports also the \var{cdecl} and
+\var{stdcall} modifiers, as found in Delphi. The \var{cdecl} modifier does
+the same as the \var{export} modifier, and \var{stdcall} does nothing, since
+\fpk pushes the paramaters from right to left by default.
+
+All this is summarized in \seet{Calling}. The first column lists the
+modifier you specify for a procedure declaration. The second one lists the
+order the paramaters are pushed on the stack. The third column specifies who
+is responsible for cleaning the stack: the caller or the called function.
+Finally, the last column specifies if registers are used to pass parameters
+to the function.
+
+\begin{FPKltable}{llll}{Calling mechanisms in \fpk}{Calling}\hline
+Modifier & Pushing order & Stack cleaned by & Parameters in registers \\
+\hline
+(none)  & Right-to-left & Function & No \\
+cdecl   & Right-to-left & Caller   & No \\
+export  & Right-to-left & Caller   & No \\
+stdcall & Right-to-left & Function & No \\ \hline
+\end{FPKltable}
+
+More about this can be found in \seec{Linking} on linking.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Telling the compiler what registers have changed
+\section{Telling the compiler what registers have changed}
+\label{se:RegChanges}
+When the compiler uses variables, it sometimes stores them, or the result of
+some calculations, in the processor registers. If you insert assembler code
+in your program that modifies the processor registers, then this may
+interfere with the compiler's idea about the registers. To avoid this
+problem, \fpk allows you to tell the compiler which registers have changed.
+The compiler will then avoid using these registers. Telling the compiler
+which registers have changed, is done by specifying a set of register names
+behind an assembly block, as follows:
+\begin{verbatim}
+asm
+  ...
+end ['R1',...,'Rn'];
+\end{verbatim}
+Here \var{R1} to \var{Rn} are the names of the (extended) registers you 
+modify in your assembly code. They can be one of \var{'EAX', 'EBX', 'ECX',
+'EDX', 'EDI', 'ESI'} for the Intel processor.
+
+As an example : 
+\begin{verbatim}
+   asm
+   movl BP,%eax
+   movl 4(%eax),%eax
+   movl %eax,__RESULT
+   end ['EAX'];
+\end{verbatim} 
+This example tells the compiler that the \var{EAX} register was modified.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Linking issues
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Linking issues}
+\label{ch:Linking}
+When you only use Pascal code, and Pascal units, then you will not see much
+of the part that the linker plays in creating your executable.
+The linker is only called when you compile a program. When compiling units,
+the linker isn't invoked.
+
+However, there are times that you want to C libraries, or to external 
+object files that are generated using a C compiler (or even another pascal
+compiler). The \fpk compiler can generate calls to a C function, 
+and can generate functions that can be called from C (exported functions). 
+However, these exported functions cannot be called from
+inside Pascal anymore. More on these calling conventions can be found in
+\sees{Calling}.
+
+In general, there are 2 things you must do to use a function that resides in
+an external library or object file:
+\begin{enumerate}
+\item You must make a pascal declaration of the function or procedure you
+want to use.
+\item You must tell the compiler where the function resides, i.e. in what
+object file or what library, so the compiler can link the necessary code in.
+\end{enumerate}
+The following sections attempt to explain how to do this.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Declaring an external function or procedure
+\section{Declaring an external function or procedure}
+\label{se:ExternalDeclaration}
+
+The first step in using external code blocks is declaring the function you
+want to use. \fpk supports Delphi syntax, i.e. you must use the
+\var{external} directive.
+
+There exist four variants of the external direcive :
+\begin{enumerate}
+\item A simple external declaration:
+\begin{verbatim}
+Procedure ProcName (Args : TPRocArgs); external;
+\end{verbatim}
+The \var{external} directive tells the compiler that the function resides in
+an external block of code. You can use this together with the \var{\{\$L \}}
+or \var{\{\$LinkLib \}} directives to link to a function or procedure in a
+library or external object file.
+
+\item You can give the \var{external} directive a library name as an
+argument:
+\begin{verbatim}
+Procedure ProcName (Args : TPRocArgs); external 'Name';
+\end{verbatim}
+This tells the compiler that the procedure resides in a library with name
+\var{'Name'}. This method is equivalent to the following:
+\begin{verbatim}
+Procedure ProcName (Args : TPRocArgs);external;
+{$LinkLib 'Name'}
+\end{verbatim}
+\item The \var{external} can also be used with two arguments:
+\begin{verbatim}
+Procedure ProcName (Args : TPRocArgs); external 'Name' 
+                                       name 'OtherProcName';
+\end{verbatim}
+This has the same meaning as the previous declaration, only the compiler
+will use the name \var{'OtherProcName'} when linking to the library. This
+can be used to give different names to procedures and functions in an
+external library.
+
+This method is equivalent to the following code:
+\begin{verbatim}
+Procedure OtherProcName (Args : TProcArgs); external;
+{$LinkLib 'Name'}
+
+Procedure ProcName (Args : TPRocArgs);
+
+begin
+  OtherProcName (Args);
+end;
+\end{verbatim}
+\item Lastly, onder \windows and \ostwo, there is a fourth possibility
+to specify an external function: In \file{.DLL} files, functionas also have
+a unique number (their index). It is possible to refer to these fuctions
+using their index:
+\begin{verbatim}
+Procedure ProcName (Args : TPRocArgs); external 'Name' Index SomeIndex;
+\end{verbatim} 
+This tells the compiler that the procedure \var{ProcName} resides in a
+dynamic link library, with index {SomeIndex}.
+
+\em{Remark:} Note that this is ONLY available under \windows and \ostwo.
+\end{enumerate}
+
+In earlier versions of the \fpk compiler, the following construct was
+also possible :
+\begin{verbatim}
+Procedure ProcName (Args : TPRocArgs); [ C ];
+\end{verbatim} 
+This method is equivalent to the following statement:
+\begin{verbatim}
+Procedure ProcName (Args : TPRocArgs); cdecl; external;
+\end{verbatim} 
+However, the \var{[ C ]} directive is deprecated, and may no longer be
+supported in future versions of \fpk, therefore you should use the
+\var{external} directive, with the \var{cdecl} directive, if needed.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Linking an object file in your program
+\section{Explicitly linking an object file in your program}
+\label{se:LinkIn}
+Having declared the external function that resides in an object file, 
+you can use it as if it was defined in your own program or unit. 
+To produce an executable, you must still link the object file in. 
+This can be done with the \var{\{\$L 'file.o'\}} directive.
+
+This will cause the linker to link in the object file \file{file.o}. On
+\linux systems, this filename is case sensitive. Under \dos, case isn't
+important. Note that \var{file.o} must be in the current directory if you
+don't specify a path. The linker will not search for \file{file.o} if it
+isn't found.
+
+You cannot specify libraries in this way, it is for object files only. 
+
+Here we present an example. Consider that you have some assembly routine that
+calculates the nth Fibonacci number :
+\begin{verbatim}
+.text
+	.align 4
+.globl Fibonacci
+	.type Fibonacci,@function
+Fibonacci:
+	pushl %ebp
+	movl %esp,%ebp
+	movl 8(%ebp),%edx
+	xorl %ecx,%ecx
+	xorl %eax,%eax
+	movl $1,%ebx
+	incl %edx	
+loop:
+	decl %edx
+	je endloop
+	movl %ecx,%eax
+	addl %ebx,%eax
+	movl %ebx,%ecx
+	movl %eax,%ebx
+	jmp loop
+endloop:
+	movl %ebp,%esp
+        popl %ebp
+	ret
+\end{verbatim}
+Then you can call this function with the following Pascal Program:
+\begin{verbatim}
+Program FibonacciDemo;
+
+var i : longint;
+
+Function Fibonacci (L : longint):longint;cdecl;external;
+
+{$L fib.o}
+
+begin
+  For I:=1 to 40 do 
+    writeln ('Fib(',i,') : ',Fibonacci (i));
+end.
+\end{verbatim}
+With just two commands, this can be made into a program :
+\begin{verbatim}
+as -o fib.o fib.s
+pp fibo.pp
+\end{verbatim}
+This example supposes that you have your assembler routine in \file{fib.s},
+and your Pascal program in \file{fibo.pp}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Linking your program to a library
+\section{Linking your program to a library}
+\label{se:LinkOut}
+To link your program to a library, the procedure depends on how you declared
+the external procedure. If you used thediffers a little from the
+procedure when you link in an object file. although the declaration step 
+remains the same (see \ref{se:ExternalDeclaration} on how to do that).
+
+In case you used the follwing syntax to declare your procedure:
+\begin{verbatim}
+Procedure ProcName (Args : TPRocArgs); external 'Name';
+\end{verbatim}
+You don't need to take additional steps to link your file in, the compiler
+will do all that is needed for you.
+
+In case you used
+\begin{verbatim}
+Procedure ProcName (Args : TPRocArgs); external;
+\end{verbatim}
+Or the older method
+\begin{verbatim}
+Procedure ProcName (Args : TPRocArgs); [ C ];
+\end{verbatim}
+You still need to explicity link to the library. This can be done in 2 ways:
+\begin{enumerate}
+\item You can tell the compiler in the source file what library to link to
+using the \var{\{\$LinkLib 'Name'} directive:
+\begin{verbatim}
+{$LinkLib 'gpm'}
+\end{verbatim}
+This will link to the \file{gpm} library. On \linux systems, you needn't
+specify the extension or 'lib' prefix of the library. The compiler takes
+care of that. On \dos or \windows systems, you need to specify the full
+name.
+\item You can also tell the compiler on the command-line to link in a
+library: The \var{-k} option can be used for that. For example
+\begin{verbatim}
+ppc386 -k'-lgpm' myprog.pp
+\end{verbatim}
+Is equivalent to the above method, and tells the linker to link to the
+\file{gpm} library. 
+\end{enumerate}
+
+As an example; consider the following program :
+\begin{verbatim}
+program printlength;
+
+{ Declaration for the standard C function strlen }
+Function strlen (P : pchar) : longint; cdecl;external;
+
+begin
+  Writeln (strlen('Programming is easy !'));
+end.
+\end{verbatim}
+This program can be compiled with :
+\begin{verbatim}
+pp -k'-lc' prlen.pp
+\end{verbatim}
+Supposing, of course, that the program source resides in \file{prlen.pp}.
+
+You cannot use procedures or functions that have a variable number of
+arguments in C. Pascal doesn't support this feature of C. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Making a shared library
+\section{Making a shared library}
+\label{se:SharedLib}
+If you want to make your procedures and functions available to C
+programmers, you can do this very easily. All you need to do is declare the
+functions and procedures that you want to make available as \var{Export}, as
+follows:
+\begin{verbatim}
+Procedure ExportedProcedure ; export; 
+\end{verbatim}
+This tells the compiler that it shouldn't clear the stack upon exiting the
+procedure (see \sees{Calling}), thus enabling a C program to call your
+function. It also means that your Pascal program can't call this function,
+since it will be using the C calling mechanism.
+
+{\em Remark :} You can only declare a function as exported in the
+\var{Implementation} section of a unit. This function may {\em not} appear
+in the interface part of a unit. This is logical, since a Pascal routine
+cannot call an exported function, anyway.
+
+However, the generated object file will not contain the name of the function
+as you declared it. The \fpk compiler ''mangles'' the name you give your
+function. It makes the name all-uppercase, and adds the types of all
+parameters to it. For \fpk units, this doesn't matter, since the \file{.ppu}
+unit file contains all information to map your function declaration onto the
+mangled name in the object file. For a C programmer, who has no access to
+the \var{.ppu} file, this is not very convenient. That is why \fpk
+has the \var{Alias} modifier. The \var{Alias} modifier allows you to specify
+another name (a nickname) for your function or procedure.
+
+The prototype for an aliased function or procedure is as follows : 
+\begin{verbatim}
+Procedure AliasedProc; [ Alias : 'AliasName'];
+\end{verbatim}
+The procedure \var{AliasedProc} will also be known as \var{AliasName}. Take
+care, the name you specify is case sensitive (as C is). 
+
+Of course, you want to combine these two features of \fpk, to export a
+function under a reasonable name; If you want to do that, you must first
+specify that the function is to be exported, and then only declare an alias:
+\begin{verbatim}
+Procedure ExportToCProc; Export; [Alias : 'procname'];
+\end{verbatim}
+After that, any C program will be able to use your procedure or function.
+
+{\em Remark: }
+If you use in your unit functions that are in other units, or
+system functions, then the C program will need to link in the object files
+from the units too.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Objects
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Objects}
+\label{ch:Objects}
+In this short chapter we give some technical things about objects. For
+instructions on how to use and declare objects, see \refref.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Constructor and Destructor calls.
+\section{Constructor and Destructor calls}
+\label{se:ConsDest}
+When using objects that need virtual methods, the compiler uses two help
+procedures that are in the run-time library. They are called
+\var{Help\_Destructor} and \var{Help\_Constructor}, and they are written in
+assebly language. They are used to allocate the necessary memory if needed,
+and to insert the Virtual Method Table (VMT) pointer in the newly allocated
+object.
+
+When the compiler encounters a call to an object's constructor, 
+it sets up the stack frame for the call, and inserts a call to the
+\var{Help\_Constructor}
+procedure before issuing the call to the real constuctor. 
+The helper procedure allocates the needed memory (if needed) and inserts the
+VMT pointer in the object. After that, the real constructor is called.
+
+A call to \var{Help\_Destructor} is inserted in every destructor declaration, 
+just before the destructor's exit sequence.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% memory storage of Objects
+\section{Memory storage of objects}
+\label{se:ObjMemory}
+Objects are stored in memory just as ordinary records with an extra field :
+a pointer to the Virtual Method Table (VMT). This field is stored first, and
+all fields in the object are stored in the order they are declared.
+This field is initialized by the call to the object's \var{Constructor} method.
+
+If the object you defined has no virtual methods, then a \var{nil} is stored
+in the VMT pointer. This ensures that the size of objects is equal, whether
+they have virtual methods ore not.
+
+The memory allocated looks as in \seet{ObjMem}.
+\begin{FPKltable}{ll}{Object memory layout}{ObjMem} \hline
+Offset & What \\ \hline
++0 & Pointer to VMT. \\
++4 & Data. All fields in the order the've been declared. \\ 
+... & \\
+\hline
+\end{FPKltable}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The virtual method table.
+\section{The Virtual Method Table}
+\label{se:VMT}
+The Virtual Method Table (VMT) for each object type consists of 2 check 
+fields  (containing the size of the data), a pointer to the object's anchestor's 
+VMT (\var{Nil} if there is no anchestor), and then the pointers to all virtual 
+methods. The VMT layout is illustrated in \seet{VMTMem}.
+
+The VMT is constructed by the compiler. Every instance of an object receives
+a pointer to its VMT.
+
+\begin{FPKltable}{ll}{Virtual Method Table memory layout}{VMTMem} \hline
+Offset & What \\ \hline
++0 & Size of object type data \\
++4 & Minus the size of object type data. Enables determining of valid VMT
+pointers. \\
++8 & Pointer to ancestor VMT, \var{Nil} if no ancestor available.\\
++12 & Pointers to the virtual methods. \\
+... & \\
+\hline
+\end{FPKltable}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Generated code
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Generated code}
+\label{ch:GenCode}
+The \fpk compiler relies on the assembler to make object files. It generates
+just the assembly language file. In the following two sections, we discuss
+what is generated when you compile a unit or a program.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  Units
+\section{Units}
+\label{se:Units}
+When you compile a unit, the \fpk compiler generates 2 files : 
+\begin{enumerate}
+\item A unit description file (with extension \file{.ppu}).
+\item An assembly language file (with extension \file{.s}). 
+\end{enumerate}
+The assembly language file contains the actual source code for the
+statements in your unit, and the necessary memory allocations for any 
+variables you use in your unit. This file is converted by the assembler to
+an object file (with extension \file{.o}) which can then be linked to other
+units and your program, to form an executable.
+
+By default (compiler version 0.9.4 and up), the assembly file is removed
+after it has been compiled. Only in the case of the \var{-s} command-line
+option, the assembly file must be left on disk, so the assembler can be
+called later. 
+
+The unit file contains all the information the compiler needs to use the
+unit:
+\begin{enumerate}
+\item Other used units, both in interface and implementation.
+\item Types and variables from the interface section of the unit.
+\item Function declarations from the interface section of the unit.
+\item Some debugging information, when compiled with debugging.
+\item A date and time stamp.
+\end{enumerate}
+Macros, symbols and compiler directives are {\em not} saved to the unit
+description file. Aliases for functions are also not written to this file,
+which is logical, since they cannot appear in the interface section of a
+unit.
+
+The detailed contents and structure of this file are described in the first 
+appendix. You can examine a unit description file using the \file{dumpppu}
+program, which shows the contents of the file.
+
+If you want to distribute a unit without source code, you must provide both
+the unit description file and the object file. 
+
+You can also provide a C header file to go with the object file. In that
+case, your unit can be used by someone who wishes to write his programs in
+C. However, you must make this header file yourself since the \fpk compiler
+doesn't make one for you.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Programs
+\section{Programs}
+\label{se:Programs}
+
+When you compile a program, the compiler produces again 2 files :
+\begin{enumerate}
+\item An assembly language file containing the statements of your program,
+and memory allocations for all used variables.
+\item A linker response file. This file contains a list of object files the
+linker must link together. 
+\end{enumerate}
+The link response file is, by default, removed from the disk. Only when you
+specify the \var{-s} command-line option or when linking fails, then the ile
+is left on the disk. It is named \file{link.res}.
+
+The assembly language file is converted to an object file by the assembler,
+and then linked together with the rest of the units and a program header, to
+form your final program. 
+
+The program header file is a small assembly program which provides the entry
+point for the program. This is where the execution of your program starts,
+so it depends on the operating system, because operating systems pass
+parameters to executables in wildly different ways. 
+
+It's name is \file{prt0.o}, and the
+source file resides in \file{prt0.s} or some variant of this name. It
+usually resided where the system unit source for your system resides.
+It's main function is to save the environment and command-line arguments, 
+set up the stack. Then it calls the main program.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% MMX Support
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{MMX support}
+\label{ch:MMXSupport}
+
+\section{What is it about ?}
+\label{se:WhatisMMXabout}
+\fpk supports the new MMX (Multi-Media extensions)
+instructions of Intel processors. The idea of MMX is to
+process multiple data with one instruction, for example the processor
+can add simultaneously 4 words. To implement this efficiently, the
+Pascal language needs to be extended. So Free Pascal allows
+to add for example two \var{array[0..3] of word},
+if MMX support is switched on. The operation is done
+by the \var{MMX} unit and allows people without assembler knowledge to take
+advantage of the MMX extensions.
+
+Here is an example:
+\begin{verbatim}
+uses
+   MMX;   { include some predefined data types }
+
+const
+   { tmmxword = array[0..3] of word;, declared by unit MMX }
+   w1 : tmmxword = (111,123,432,4356);
+   w2 : tmmxword = (4213,63456,756,4);
+
+var
+   w3 : tmmxword;
+   l : longint;
+
+begin
+   if is_mmx_cpu then  { is_mmx_cpu is exported from unit mmx }
+     begin
+{$mmx+}   { turn mmx on }
+        w3:=w1+w2;
+{$mmx-}
+     end
+   else
+     begin
+        for i:=0 to 3 do
+          w3[i]:=w1[i]+w2[i];
+     end;
+end.
+\end{verbatim}
+
+\section{Saturation support}
+\label{se:SaturationSupport}
+
+One important point of MMX is the support of saturated operations.
+If a operation would cause an overflow, the value stays at the
+highest or lowest possible value for the data type:
+If you use byte values you get normally 250+12=6. This is very
+annoying when doing color manipulations or changing audio samples,
+when you have to do a word add and check if the value is greater than
+255. The solution is saturation: 250+12 gives 255.
+Saturated operations are supported by the \var{MMX} unit. If you
+want to use them, you have simple turn the switch saturation on:
+\var{\$saturation+}
+
+Here is an example:
+\begin{verbatim}
+\end{verbatim}
+
+\section{Restrictions of MMX support}
+\label{se:MMXrestrictions}
+
+In the beginning of 1997 the MMX instructions were introduced in the
+Pentium processors, so multitasking systems wouldn't save the
+newly introduced MMX registers. To work around that problem, Intel
+mapped the MMX registers to the FPU register. 
+
+The consequence is that
+you can't mix MMX and floating point operations. After using
+MMX operations and before using floating point operations, you
+have to call the routine \var{EMMS} of the \var{MMX} unit. 
+This routine restores the FPU registers.
+
+\em{Careful:} The compiler doesn't warn, if you mix floating point and 
+MMX operations, so be careful.
+
+The MMX instructions are optimized for multi media (what else?).
+So it isn't possible to perform each operation, some opertions
+give a type mismatch, see section \ref {se:SupportedMMX} for the supported
+MMX operations
+
+An important restriction is that MMX operations aren't range or overflow 
+checked, even when you turn range and overflow checking on. This is due to
+the nature of MMX operations. 
+
+The \var{MMX} unit must be always used when doing MMX operations
+because the exit code of this unit clears the MMX unit. If it wouldn't do
+that, other program will crash. A consequence of this is that you can't use 
+MMX operations in the exit code of your units or programs, since they would
+interfere  with the exit code of the \var{MMX} unit. The compiler can't
+check this, so you are responsible for this ! 
+
+\section{Supported MMX operations}
+\label{se:SupportedMMX}
+
+
+
+\section{Optimizing MMX support}
+\label{se:OptimizingMMX}
+Here are some helpful hints to get optimal performance:
+\begin{itemize}
+\item The \var{EMMS} call takes a lot of time, so try to seperate floating 
+point and MMX operations.
+\item Use MMX only in low level routines because the compiler
+  saves all used MMX registers when calling a subroutine.
+\item The NOT-operator isn't supported natively by MMX, so the
+  compiler has to generate a workaround and this operation
+  is inefficient.
+\item Simple assignements of floating point numbers don't access
+  floating point registers, so you need no call to the \var{EMMS}
+  procedure. Only when doing arithmetic, you need to call the \var{EMMS}
+procedure.
+\end{itemize}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Memory issues
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Memory issues}
+\label{ch:Memory}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The 32-bit model
+\section{The 32-bit model.}
+\label{se:ThirtytwoBit}
+The \fpk Pascal compiler issues 32-bit code. This has several consequences:
+\begin{itemize}
+\item You need a i386 or higher processor to run the generated code. The
+compiler functions on a 286 when you compile it using Turbo Pascal, 
+but the generated programs cannot be assembled or executed.
+\item You don't need to bother with segment selectors. Memory can be
+addressed using a single 32-bit pointer. 
+The amount of memory is limited only by the available amount of (virtual) 
+memory on your machine.
+\item The structures you define are unlimited in size. Arrays can be as long
+as you want. You can request memory blocks from any size.
+\end{itemize}
+
+The fact that 32-bit code is used, means that some of the older Turbo Pascal
+constructs and functions are obsolete. The following is a list of functions
+which shouldn't be used anymore:
+\begin{description}
+\item [Seg()] : Returned the segment of a memory address. Since segments have
+no more meaning, zero is returned in the \fpk run-time library implementation of
+\var{Seg}.
+\item [Ofs()] : Returned the offset of a memory address. Since segments have
+no more meaning, the complete address is returned in the \fpk implementation
+of this function. This has as a consequence that the return type is 
+\var{Longint} instead of \var{Word}.
+\item [Cseg(), Dseg()] : Returned, respectively, the code and data segments 
+of your program.  This returns zero in the \fpk implementation of the 
+system unit, since both code and data are in the same memory space.
+\item [Ptr] accepted a segment and offset from an address, and would return
+a pointer to this address. This has been changed in the run-time library.
+Standard it returns now simply the offset. If you want to retain the old
+functionality, you can recompile the run-time library with the
+\var{DoMapping} symbol defined. This will restore the Turbo Pascal
+behaviour.
+\item [memw and mem] these arrays gave access to the \dos memory. \fpk
+supports them, but they are mapped onto 32-bit flat memory space. 
+\end{description}
+
+You shouldn't use these functions, since they are very non-portable, they're
+specific to \dos and the ix86 processor. The \fpk compiler is designed to be
+portable to other platforms, so you should keep your code as portable as
+possible, and not system specific. That is, unless you're writing some driver 
+units, of course.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The stack
+\section{The stack}
+\label{se:Stack}
+The stack is used to pass parameters to procedures or functions, 
+to store local variables, and, in some cases, to return function 
+results.
+
+When a function or procedure is called, then the following is done by the
+compiler :
+\begin{enumerate}
+\item If there are any parameters to be passed to the procedure, they are
+pushed from right to left on the stack.
+\item If a function is called that returns a variable of type \var{String},
+\var{Set}, \var{Record}, \var{Object} or \var{Array}, then an address to
+store the function result in, is pushed on the stack.
+\item If the called procedure or function is an object method, then the
+pointer to \var{self} is pushed on the stack.
+\item If the procedure or function is nested in another function or
+procedure, then the frame pointer of the parent procedure is pushed on the
+stack.
+\item The return address is pushed on the stack (by the \var{Call}
+instruction).
+\end{enumerate}
+
+The resulting stack frame upon entering looks as in \seet{StackFrame}.
+\begin{FPKltable}{llc}{Stack frame when calling a procedure}{StackFrame}
+\hline
+Offset & What is stored & Optional ? \\ \hline
++x & parameters & Yes \\
++12 & function result & Yes \\
++8 & self & Yes \\
++4 & Frame pointer of parent procedure & Yes \\
++0 & Return address & No\\ \hline
+\end{FPKltable}
+
+The stack is cleared with the \var{ret} I386 instruction, meaning that the
+size of all pushed parameters is limited to 64K.
+
+The stack size is unlimited for all supported platforms. On the \var{GO32V2}
+platform, the minimum guaranteed stack is 128Kb, but this can be set with
+the \var{-Ctxxx} compiler switch. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The Heap
+\section{The heap}
+\label{se:Heap}
+The heap is used to store all dynamic variables, and to store class
+instances. The interface to the heap is the same as in Turbo Pascal,
+although the effects are maybe not the same. On top of that, the \fpk
+run-time library has some extra possibilities, not available in Turbo
+Pascal. These extra possibilities are explained in the next subsections.
+
+% The heap grows
+\subsection{The heap grows}
+\fpk supports the \var{HeapEerror} procedural variable. If this variable is
+non-nil, then it is called in case you try to allocate memory, and the heap
+is full. By default, \var{HeapError} points to the \var{GrowHeap} function, 
+which tries to increase the heap.
+
+The growheap function issues a system call to try to increase the size of the
+memory available to your program. It first tries to increase memory in a 1 Mb.
+chunk. If this fails, it tries to increase the heap by the amount you
+requested from the heap. 
+
+If the call to \var{GrowHeap} has failed, then a run-time error is generated, 
+or nil is returned, depending on the \var{GrowHeap} result.
+
+If the call to \var{GrowHeap} was successful, then the needed memory will be
+allocated.
+  
+% Using Blocks
+\subsection{Using Blocks}
+If you need to allocate a lot of small block for a small period, then you
+may want to recompile the run-time library with the \var{USEBLOCKS} symbol 
+defined. If it is recompiled, then the heap management is done in a
+different way.
+
+The run-time library keeps a linked list of allocated blocks with size
+up to 256 bytes\footnote{The size can be set using the \var{max\_size}
+constant in the \file{heap.inc} source file.}. By default, it keeps 32 of 
+these lists\footnote{The actual size is \var{max\_size div 8}.}.
+
+When a piece of memory in a block is deallocated, the heap manager doesn't 
+really deallocate the occupied memory. The block is simply put in the linked
+list corresponding to its size. 
+
+When you then again request a block of memory, the manager checks in the
+list if there is a non-allocated block which fits the size you need (rounded
+to 8 bytes). If so, the block is used to allocate the memory you requested. 
+
+This method of allocating works faster if the heap is very fragmented, and
+you allocate a lot of small memory chunks.
+
+Since it is invisible to the program, this provides an easy way of improving
+the performance of the heap manager.
+
+% The splitheap
+\subsection{Using the split heap}
+{\em Remark : The split heap is still somewhat buggy. Use at your own risk
+for the moment.}
+
+The split heap can be used to quickly release a lot of blocks you alloated
+previously.
+
+Suppose that in a part of your program, you allocate a lot of memory chunks
+on the heap. Suppose that you know that you'll release all this memory when
+this particular part of you program is finished.
+
+In Turbo Pascal, you could foresee this, and mark the position of the heap
+(using the \var{Mark} function) when entering this particular part of your 
+program, and release the occupied memory in one call with the \var{Release}
+call.
+
+For most purposes, this works very good. But sometimes, you may need to
+allocate something on the heap that you {\em don't} want deallocated when you
+release the allocated memory. That is where the split heap comes in. 
+
+When you split the heap, the heap manager keeps 2 heaps: the base heap (the
+normal heap), and the temporary heap. After the call to split the heap,
+memory is allocated from the temporary heap. When you're finished using all
+this memory, you unsplit the heap. This clears all the memory on the split
+heap with one call. After that, memory will be allocated from the base heap
+again. 
+
+So far, nothing special, nothing that can't be done with calls to \var{mark}
+and \var{release}. Suppose now that you have split the heap, and that you've
+come to a point where you need to allocate memory that is to stay allocated
+after you unsplit the heap again. At this point, mark and release are of no
+use. But when using the split heap, you can tell the heap manager to 
+--temporarily-- use the base heap again to allocate memory. 
+When you've allocated the needed memory, you can tell the heap manager that
+it should start using the temporary heap again.
+When you're finished using the temporary heap, you release it, and the
+memory you allocated on the base heap will still be allocated.
+ 
+To use the split-heap, you must recompile the run-time library with the \var{TempHeap}
+symbol defined. 
+This means that the following functions are available :
+\begin{verbatim}
+  procedure Split_Heap;
+  procedure Switch_To_Base_Heap;
+  procedure Switch_To_Temp_Heap;
+  procedure Switch_Heap;
+  procedure ReleaseTempHeap;
+  procedure GetempMem(var p : pointer;size : longint);
+\end{verbatim}
+\var{split\_heap} is used to split the heap. It cannot be called two times
+in a row, without a call to \var{releasetempheap}. \var{Releasetempheap}
+completely releases the memory used by the temporary heap.
+Switching temporarily back to the base heap can be done using the
+\var{switch\_to\_base\_heap} call, and returning to the temporary heap is done
+using the \var{switch\_to\_temp\_heap} call. Switching from one to the other
+without knowing on which one your are right now, can be done using the
+\var{switch\_heap} call, which will split the heap first if needed.
+
+A call to \var{GetTempMem} will allocate a memory block on the temporary
+heap, whatever the current heap is. The current heap after this call will be
+the temporary heap.
+
+Typically, what will appear in your code is the following sequence :
+\begin{verbatim}
+Split_Heap
+...
+{ Memory allocation }
+...
+{ !! non-volatile memory needed !!}
+Switch_To_Base_Heap;
+getmem (P,size);
+Switch_To_Temp_Heap;
+...
+{Memory allocation}
+...
+ReleaseTempHeap;
+{All allocated memory is now freed, except for the memory pointed to by 'P' }
+...
+\end{verbatim}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Appendices
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\appendix
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Appendix A
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Anatomy of a unit file}
+\label{ch:AppA}
+A unit file consists of basically five parts:
+\begin{enumerate}
+\item A unit header. 
+\item A file references part. This contains the references to used units 
+and sources with name, checksum and time stamps.
+\item A definition part. Contains all type and procedure definitions.
+\item A Symbol part. Contains all symbol names and references to their
+definitions.
+\item A list of units that are in the implementation part.
+\end{enumerate}
+
+The header consists of a sequence of 20 bytes, together they give some
+information about the unit file, the compiler version that was used to
+generate the unit file, etc. The complete layout can be found in
+\seet{UnitHeader}. The header is generated by the compiler, and changes only
+when the compiler changes. The current and up-to-date header definition can 
+be found in the \file{files.pas} source file of the compiler. Look in this
+file for the \var{unitheader} constant declaration.
+\begin{FPKltable}{ll}{Unit header structure.}{UnitHeader} \hline
+Byte & What is stored \\ \hline
+0..3 & The letters 'PPU' in upper case. This acts as a check. \\
+4..6 & The unit format as a 3 letter sequence : e.g. '0','1,'2' for format
+12. \\
+7,8 & The compiler version and release numbers as bytes. \\
+9 & The target OS number. \\
+10 & Unit flags.\\
+11..14 & Checksum (as a longint). \\
+15,16 & unused (equal to 255). \\
+17..20 & Marks start of unit file. \\ \hline
+\end{FPKltable}
+After the header, in the second part, first the list of all source files for
+the unit is written. Each name is written as a direct copy of the string in
+memory, i.e. a length bytes, and then all characters of the string. This
+list includes any file that was included in the unit source with the 
+\var{\{\$i file\}} directive. The list is terminated with a \var{\$ff} byte
+marker.
+After this, the list of units in the \var{uses} clause is written,
+together with their checksums. The file is written as a string, the checksum
+as a longint (i.e. four bytes). Again this list is terminated with a
+\var{\$ff} byte marker.
+
+After that, in the third part, the definitions of all types, variables,
+constants, procedures and functions are written to the unit file.
+
+They are written in the following manner: First a byte is written, which
+determines the kind of definition that follows. then follows, as a series of
+bytes, a type-dependent description of the definition. The exact byte order
+for each type can be found in \seet{DefDef}
+
+\begin{FPKltable}{lccl}{Description of definition fields}{DefDef} \\hline
+Type & Start byte & Size & Stored fields \\ \hline\hline
+Pointer & 3 & 4 & Reference to the type pointer points to. \\ \hline
+Base type & 2 & 9 & 
+\begin{tabular}[t]{l}
+1 byte to indicate base type. \\
+4-byte start range \\
+4-byte end range \\
+\end{tabular}\\ \hline
+Array type &5 & 16 & 
+\begin{tabular}[t]{l}
+4-byte reference to element type. \\ 
+4-byte reference to range type.\\
+4-byte start range (longint) \\
+4-byte end range (longint)\\
+\end{tabular} \\ \hline
+Procedure & 6 & ? &
+\begin{tabular}[t]{l} 
+4-byte reference to the return type definition. \\
+2 byte Word containing modifiers. \\
+2 byte Word containing number of parameters. \\
+5 bytes per parameter.\\
+1 byte : used registers. \\
+String containing the mangled name. \\
+8 bytes.
+\end{tabular} 
+\\ \hline
+Procedural type & 21 & ? &
+\begin{tabular}[t]{l} 
+4-byte reference to the return type definition. \\
+2 byte Word containing modifiers. \\
+2 byte Word containing number of parameters. \\
+5 bytes per parameter.  \\
+\end{tabular} 
+\\ \hline
+String & 9 & 1 & 1 byte containing the length of the string. \\
+Record & 15 & variable & 
+\begin{tabular}[t]{l}
+Longint indicating record length \\
+list of fields, to be read as unit in itself. \\
+\var{\$ff} end marker.
+\end{tabular} \\ \hline
+Class & 18 & variable & 
+\begin{tabular}[t]{l}
+Longint indicating data length \\
+String with mangled name of class.\\
+4 byte reference to ancestor class.\\
+list of fields, to be read as unit in itself. \\
+\var{\$ff} end marker.
+\end{tabular} \\ \hline
+file & 16 & 1(+4) & 
+\begin{tabular}[t]{l}
+1 byte for type of file. \\
+4-byte reference to type of typed file. 
+\end{tabular}\\ \hline
+Enumeration & 19 & 4 & Biggest element. \\ \hline
+set & 20 & 5 & 
+\begin{tabular}[t]{l}
+4-byte reference to set element type. \\
+1 byte flag. 
+\end{tabular} \\ \hline \hline 
+\end{FPKltable}
+This list of definitions is again terminated with a \var{\$ff} byte marker. 
+
+After that, a list of symbols is given, together with a reference to a
+definition. This represents the names of the declarations, and the
+definition they refer to.
+
+A reference consists of 2 words : the first word indicates the unit number
+(as it appears in the uses clause), and the second word is the number of the
+definition in that unit. A \var{nil} reference is stored as \var{\$ffffffff}. 
+
+After this follows again a \var{\$ff} byte terminated list of filenames: The
+names of the units in the \var{uses} clause of the implementation section.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Appendix B
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{List of compiler source files}
+\label{ch:AppB}
+What follows is a list of all compiler files, with a short description 
+of what they contain. If you're looking for something in the compiler, this
+list may give you a hint on where to find it.
+
+The first list is a list of processor dependent files.
+\begin{description}
+\item [aasm.pas] This unit defines some abstract assembler objects and
+routines. It is used by the processor-specific assembly routines.
+\item [alpha.pas, i386.pas, m68k.pas]
+These units describe a processor, its registers, flags etc. 
+The basis for every generated instruction. Currently the DEC alpha, Intel
+386 or higher and Motorola 68000 processors are supported.
+\item [tgen68k.pas, tgeni386.pas]
+These units export help functions for the code generator, which are
+processor specific, they form a buffer between the code generator and the
+machine-specific stuff. 
+\item [cg68k.pas, cgi386.pas, cgi3862.pas] These units contain the code
+generators for the different processor types. For the I386 there are 2
+files.
+\item [cga68k.pas cgai386.pas]
+These units contain frequently-used helper functions for the 
+processor-specific code generators.
+\item [aopt386.pas]
+These units contain the code optimizers for the different processor-types.
+\item [asmalpha.pas]
+This unit defines some DEC alpha assembly constructs.
+\item [attasmi3.pas, gasasm6.pas, intasmi3.pas]
+These units define processor-specific assembly output classes.
+\item [opts386.pas, opts68k.pas]
+These units process command-line options that are processor specific.
+\item [radi386.pas rai386.pas ratti386.pas]
+These units process inline assembly in different styles (AT\&T style, Intel
+style, and direct style) for the Intel 386 processor.
+\item [rasm386.pas]
+This unit provides some helper routines for the assembly readers.
+\end{description}
+
+The second list is a list with processor-independent files.
+\begin{description}
+\item [catch.pas]
+This is a \linux specific call. It intercepts a segmentation fault, and lets
+the compiler exit gracefully.
+\item [cobjects.pas]
+This unit provides some basic objects for the compiler: buffered files,
+linked lists, string containers, etc.
+\item [compiler.pas]
+This unit contains the actual compile function. 
+\item [errors.pas]
+This unit takes care of error-handling: displaying of error messages,
+reading of error-definitions etc.
+\item [files.pas]
+This unit contains file management routines, such as finding of files etc.
+It is highly OS dependent.
+\item [gdb.pas]
+This unit implements the debugging information generation for the \gnu
+\var{GDB} debugger.
+\item [globals.pas]
+This unit defines some help routines that are used throughout the entire 
+compiler, and it does some initializations.
+\item [hcodegen.pas]
+This unit contains processor-independent helper routines for the code
+generator.
+\item [options.pas]
+This unit processes the processor-independent command-line options.
+\item [scanner.pas]
+This unit contains the scanner routines. Here the input file is read and
+split in tokens.
+\item [parser.pas, pass\_1.pas]
+These units contain the actual Pascal parser.
+\item [pp.pas]
+This is the main program. It does some initializations and sets the ball
+rolling.
+\item [symtable.pas]
+This unit contains the code that keeps the symbol tables for the parser. It
+also contains the code to read a unit file.
+\item [systems.pas]
+This unit defines the different operating systems: names, specifications of
+file systems, places where to look for things etc.
+\item [sysutils.pas]
+This unit keeps routines for exception handling.
+\item [tree.pas]
+The main structure for the code generator is a tree of operators and operands,
+and this unit defines the tree structure.
+\item [types.pas]
+This unit contains some helper routines for handling of different Pascal
+types.
+\item [verbose.pas]
+This unit provides the verbosity support. All messages from the compiler are
+put on screen with this unit.
+\end{description}
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Appendix C
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Compiler limits}
+\label{ch:AppC}
+Although many of the restrictions imposed by the MS-DOS system are removed
+by use of an extender, or use of another operating system, there still are
+some limitations to the compiler:
+\begin{enumerate}
+\item String constants are limited to 128 characters. All other characters
+are simply dropped from the definition.
+\item The length of generated unit files is limited to 65K for the
+real-mode compiler, and to 1Mb for the 32-bit compiler. This limit can be
+changed by changing the \var{bytearray1} type in \file{cobjects.pas}
+\item Procedure or Function definitions can be nested to a level of 32.
+\item Maximally 255 units can be used in a program when using the real-mode
+compiler. When using the 32-bit compiler, the limit is set to 1024. You can
+change this by redefining the \var{maxunits} constant in the
+\file{files.pas} compiler source file.
+\item Procedures or functions accept parameters with a total size up to 
+\var{\$ffff} bytes. This limit is due to the \var{RET} instruction of the I386
+processor. If the calls were made using the C convention this limit would
+disappear.
+\end{enumerate}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Appendix D
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Optimizing techniques used in the compiler.}
+Here follows a listing of the opimizing techniques used in the compiler:
+\begin{enumerate}
+\item When optimizing for a specific Processor (\var{-O3, -O4, -O5 -O6}, 
+the following is done:
+\begin{itemize}
+\item In \var{case} statements, a check is done whether a jump table
+or a sequence of conditional jumps should be used for optimal performance.
+\item Determines a number of strategies when doing peephole optimization:
+\var{movzbl (\%ebp), \%eax} on PentiumPro and PII systems will be changed
+into \var{xorl \%eax,\%eax; movb (\%ebp),\%al } for lesser systems.
+\end{itemize}
+\item When optimizing for speed (\var{-OG}) or size (\var{-Og}), a choice is
+made between using shorter instructions (for size) such as \var{enter \$4},
+or longer instructions \var{subl \$4,\%esp} for speed. When smaller size is
+requested, things aren't aligned on 4-byte boundaries.  When speed is
+requested, things are aligned on 4-byte boundaries as much as possible.
+\item Simple optimization (\var{-Oa}) makes sure the peephole optimizer is
+used.
+\item Maximum optimization (\var{-Ox}) avoid creation of stack frames if
+they aren't required, and unnecessary loading of registers is avoided as
+much as possible. (buggy at the moment (version 0.99.0).
+\item For the future, a reloading optimizer is planned. 
+\end{enumerate}
+\end{document}

@@ -1,0 +1,342 @@
+%
+%   $Id$
+%   This file is part of the FPC documentation.
+%   Copyright (C) 1997, by Michael Van Canneyt
+%
+%   The FPC documentation is free text; you can redistribute it and/or
+%   modify it under the terms of the GNU Library General Public License as
+%   published by the Free Software Foundation; either version 2 of the
+%   License, or (at your option) any later version.
+%
+%   The FPC Documentation is distributed in the hope that it will be useful,
+%   but WITHOUT ANY WARRANTY; without even the implied warranty of
+%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+%   Library General Public License for more details.
+%
+%   You should have received a copy of the GNU Library General Public
+%   License along with the FPC documentation; see the file COPYING.LIB.  If not,
+%   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+%   Boston, MA 02111-1307, USA. 
+%
+\chapter{The CRT unit.}
+This chapter describes the \var{CRT} unit for Free Pascal, both under \dos
+and \linux. The unit was first written for \dos by Florian kl\"ampfl. 
+
+The unit was ported to \linux by Mark May\footnote{Current
+e-mail address \textsf{mmay@dnaco.net}}, and enhanced by Micha\"el Van Canneyt
+It works on the \linux console, and in xterm and rxvt windows under
+X-Windows. The functionality for both is the same, except that under \linux
+the use of an early implementation (versions 0.9.1 an earlier of the
+compiler) the crt unit automatically cleared the screen at program startup.
+
+This chapter is divided in two sections. 
+\begin{itemize}
+\item The first section lists the pre-defined constants, types and variables. 
+\item The second section describes the functions which appear in the
+interface part of the CRT unit.
+\end{itemize}
+
+\section{Types, Variables, Constants}
+Color definitions :
+\begin{verbatim}
+  Black = 0;
+  Blue = 1;
+  Green = 2;
+  Cyan = 3;
+  Red = 4;
+  Magenta = 5;
+  Brown = 6;
+  LightGray = 7;
+  DarkGray = 8;
+  LightBlue = 9;
+  LightGreen = 10;
+  LightCyan = 11;
+  LightRed = 12;
+  LightMagenta = 13;
+  Yellow = 14;
+  White = 15;
+  Blink = 128;
+\end{verbatim}
+Miscellaneous constants
+\begin{verbatim}
+  TextAttr: Byte = $07;
+  TextChar: Char = ' ';
+  CheckBreak: Boolean = True;
+  CheckEOF: Boolean = False;
+  CheckSnow: Boolean = False;
+  DirectVideo: Boolean = False;
+  LastMode: Word = 3;
+  WindMin: Word = $0;
+  WindMax: Word = $184f;
+  ScreenWidth = 80;
+  ScreenHeight = 25;
+\end{verbatim}
+Some variables for compatibility with Turbo Pascal. However, they're not
+used by \fpk.
+\begin{verbatim}
+var
+  checkbreak : boolean;
+  checkeof : boolean;
+  checksnow : boolean;
+\end{verbatim}
+The following constants define screen modes on a \dos system:
+\begin{verbatim}
+Const
+  bw40 = 0;
+  co40 = 1;
+  bw80 = 2;
+  co80 = 3;
+  mono = 7;
+\end{verbatim}
+The \var{TextAttr} variable controls the attributes with which characters
+are written to screen.
+\begin{verbatim}
+var TextAttr : byte;
+\end{verbatim}
+The \var{DirectVideo} variable controls the writing to the screen. If it is
+\var{True}, the the cursor is set via direct port access. If \var{False},
+then the BIOS is used. This is defined under \dos only.
+\begin{verbatim}
+var DirectVideo : Boolean;
+\end{verbatim}
+The \var{Lastmode} variable tells you which mode was last selected for the
+screen. It is defined on \dos only.
+\begin{verbatim}
+var lastmode : Word;
+\end{verbatim}
+
+\section{Procedures and Functions}
+\procedure{AssignCrt}{(Var F: Text)}
+{
+Assigns a file F to the console. Everything written to the file F goes to
+the console instead. If the console contains a window, everything is written
+to the window instead.
+}
+{None.}{\seep{Window}}
+
+\input{crtex/ex1.tex}
+
+\procedure{Delay}{(DTime: Word)}
+{Delay waits a specified number of milliseconds. The number of specified
+seconds is a approximation, and may be off a lot, if system load is high.}
+{None}{\seep{Sound}, \seep{NoSound}}
+
+\input{crtex/ex15.tex}
+
+\procedure {TextColor}{(CL: Byte)}
+{
+TextColor sets the foreground color to \var{CL}. \var{CL} can be one of the
+predefined color constants.
+}
+{None.}{ \seep{TextBackground}, \seep{HighVideo}, \seep{LowVideo},
+\seep{NormVideo}}
+
+\input{crtex/ex12.tex}
+
+\procedure {TextBackground}{(CL: Byte)}
+{
+TextBackground sets the background color to \var{CL}. \var{CL} can be one of the
+predefined color constants.
+}
+{None.}{ \seep{TextColor}, \seep{HighVideo}, \seep{LowVideo},
+\seep{NormVideo}}
+
+\input{crtex/ex13.tex}
+
+\procedure {HighVideo}{}
+{ HighVideo switches the output to highlighted text. (It sets the high
+intensity bit of the video attribute)
+}
+{None.}{ \seep{TextColor}, \seep{TextBackground}, \seep{LowVideo},
+\seep{NormVideo}}
+
+\input{crtex/ex14.tex}
+
+\Procedure {LowVideo}
+{ LowVideo switches the output to non-highlighted text. (It clears the high
+intensity bit of the video attribute)
+}
+{None.}{ \seep{TextColor}, \seep{TextBackground}, \seep{HighVideo},
+\seep{NormVideo}}
+
+For an example, see \seep{HighVideo}
+
+\Procedure {NormVideo}
+{ NormVideo switches the output to the defaults, read at startup. (The
+defaults are read from the cursor position at startup)
+}
+{None.}{ \seep{TextColor}, \seep{TextBackground}, \seep{LowVideo},
+\seep{HighVideo}}
+
+For an example, see \seep{HighVideo}
+
+\Procedure{BigCursor}{Makes the cursor a big rectangle. 
+
+Not implemented on \linux.}
+{None.}{\seep{CursorOn}, \seep{CursorOff}}
+
+\Procedure{CursorOn}{Switches the cursor on. 
+
+Not implemented on \linux.}
+{None.}{\seep{BigCursor}, \seep{CursorOff}}
+
+\Procedure{CursorOff}{Switches the cursor off (i.e. the cursor is no
+longer visible). 
+
+Not implemented on \linux.}
+{None.}{\seep{CursorOn}, \seep{BigCursor}}
+
+\procedure {GotoXY}{(X: Byte; Y: Byte)}
+{ Positions the cursor at \var{(X,Y)}, \var{X} in horizontal, \var{Y} in
+vertical direction relative to the origin of the current window. The origin
+is located at \var{(1,1)}, the upper-left corner of the window.
+}
+{None.}{ \seef{WhereX}, \seef{WhereY}, \seep{Window} }
+
+\input{crtex/ex6.tex}
+
+\Function  {WhereX}{Byte}
+{
+WhereX returns the current X-coordinate of the cursor, relative to the
+current window. The origin is \var{(1,1)}, in the upper-left corner of the
+window.
+}
+{None.}{ \seep{GotoXY}, \seef{WhereY}, \seep{Window} }
+
+
+\input{crtex/ex7.tex}
+
+\Function  {WhereY}{Byte}
+{
+WhereY returns the current Y-coordinate of the cursor, relative to the
+current window. The origin is \var{(1,1)}, in the upper-left corner of the
+window.
+}
+{None.}{ \seep{GotoXY}, \seef{WhereX}, \seep{Window} }
+
+\input{crtex/ex7.tex}
+
+\procedure {Window}{(X1, Y1, X2, Y2: Byte)}
+{ Window creates a window on the screen, to which output will be sent.
+\var{(X1,Y1)} are the coordinates of the upper left corner of the window,
+\var{(X2,Y2)} are the coordinates of the bottom right corner of the window.
+These coordinates are relative to the entire screen, with the top left
+corner equal to \var{(1,1)}
+
+Further coordinate operations, except for the next Window call,
+are relative to the window's top left corner.
+}
+{None.}{\seep{GotoXY}, \seef{WhereX}, \seef{WhereY}, \seep{ClrScr}}
+
+\input{crtex/ex5.tex}
+
+
+\procedure {ClrScr}{}
+{ ClrScr clears the current window (using the current colors), 
+and sets the cursor in the top left
+corner of the current window.}
+{None.}{ \seep{Window} }
+
+\input{crtex/ex8.tex}
+
+
+%\procedure {ScrollWindow}{(X1,Y1,X2,Y2 : Byte; Count : Longint)}
+%{ ScrollWindow scrolls the contents of the window defined by the upper-left
+%\var{(X1,Y1)} and lower-right \var{(X2,Y2)} corners \var{count} lines up if
+%\var{count} is positive, it scrolls down if \var{count} is negative.
+%The new lines are made blank using the current textcolors.
+%}
+%{None.}{\seep{Window}, \seep{ClrScr}}
+
+%\function {SaveScreenRegion}{(X1,Y1,X2,Y2, var P : pointer)}{Boolean}
+%{SaveScreenRegion writes the the contents of the window defined by the upper-left
+%\var{(X1,Y1)} and lower-right \var{(X2,Y2)} corners to the location pointed
+%to by \var{P}. If \var{P} is \var{nil} then enough memory is allocated to
+%contain the contents of the window.
+%
+%The contents are written as follows : line per line, column per column,
+%first the character on screen is written (1 byte), followed by the text 
+%attribute (1 byte). The size required is therefore 
+%\var{(Y2-Y1+1)*(X2-X1+1)*2} bytes.
+%
+%The function returns \var{False} if it couldn't allocate the required
+%memory, \var{True} if the memory was allocated.}{None.}
+%{\seep{RestoreScreenRegion}, \seep{Window} }
+
+%\procedure {RestoreScreenRegion}{(X1,Y1,X2,Y2, var P : pointer)}
+%{SaveScreenRegion writes the the contents of the memory location pointed to
+%by \var{P}, to the window defined by the upper-left \var{(X1,Y1)} and 
+%lower-right \var{(X2,Y2)} corners. 
+%
+%The contents of \var{P} should be arranged as if they are when written by 
+%a call to the SaveScreenRegion () function.
+%
+%The memory pointed to by \var{P} is NOT freed.}{None}
+%{\seef{SaveScreenRegion}, \seep{Window} }
+
+
+\Procedure {ClrEol}
+{ ClrEol clears the current line, starting from the cursor position, to the
+end of the window. The cursor doesn't move}
+{None.}{\seep{DelLine}, \seep{InsLine}, \seep{ClrScr}}
+
+\input{crtex/ex9.tex}
+
+
+\Procedure {DelLine}
+{ DelLine removes the current line. Lines following the current line are 
+scrolled 1 line up, and an empty line is inserted at the bottom of the
+current window. The cursor doesn't move.}
+{None.}{\seep{ClrEol}, \seep{InsLine}, \seep{ClrScr}}
+
+\input{crtex/ex11.tex}
+
+
+\procedure {InsLine}{}
+{ InsLine inserts an empty line at the current cursor position. 
+Lines following the current line are scrolled 1 line down, 
+causing the last line to disappear from the window. 
+The cursor doesn't move.}
+{None.}{\seep{ClrEol}, \seep{DelLine}, \seep{ClrScr}}
+
+\input{crtex/ex10.tex}
+
+
+\Function {KeyPressed}{Boolean}
+{ The Keypressed function scans the keyboard buffer and sees if a key has
+been pressed. If this is the case, \var{True} is returned. If not,
+\var{False} is returned. The \var{Shift, Alt, Ctrl} are not reported.
+The key is not removed from the buffer, and can hence still be read after
+the KeyPressed function has been called.
+}
+{None.}{\seef{ReadKey}}
+
+\input{crtex/ex2.tex}
+
+
+\Function  {ReadKey}{Char}
+{
+The ReadKey function reads 1 key from the keyboard buffer, and returns this.
+If an extended or function key has been pressed, then the zero ASCII code is 
+returned. You can then read the scan code of the key with a second ReadKey
+call.
+
+\textbf{Remark.} Key mappings under Linux can cause the wrong key to be
+reported by ReadKey, so caution is needed when using ReadKey.  
+}
+{None.}{\seef{KeyPressed}}
+
+\input{crtex/ex3.tex}
+
+
+\procedure{Sound}{(hz : word)}
+{ Sounds the speaker at a frequency of \var{hz}.
+
+This is not supported in \linux}{None.}{\seep{NoSound}}
+\Procedure{NoSound}{
+Stops the speaker sound.
+
+This is not supported in \linux}{None.}{\seep{Sound}}
+
+\input{crtex/ex16.tex}
+

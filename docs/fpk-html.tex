@@ -1,0 +1,119 @@
+%
+%   $Id$
+%   This file is part of the FPC documentation.
+%   Copyright (C) 1997, by Michael Van Canneyt
+%
+%   The FPC documentation is free text; you can redistribute it and/or
+%   modify it under the terms of the GNU Library General Public License as
+%   published by the Free Software Foundation; either version 2 of the
+%   License, or (at your option) any later version.
+%
+%   The FPC Documentation is distributed in the hope that it will be useful,
+%   but WITHOUT ANY WARRANTY; without even the implied warranty of
+%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+%   Library General Public License for more details.
+%
+%   You should have received a copy of the GNU Library General Public
+%   License along with the FPC documentation; see the file COPYING.LIB.  If not,
+%   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+%   Boston, MA 02111-1307, USA. 
+%
+% Dummy
+\newenvironment{FPKList}{\begin{description}}{\end{description}}
+\newcommand{\functionl}[7]{
+\subsection{#1}
+\label{fu:#2}
+\index{#1}
+\subsubsection*{Declaration:}
+\texttt {Function #1  #3  : #4;}
+\subsubsection*{Description:}
+#5
+\subsubsection*{Errors:}
+#6
+\subsubsection*{See also:}
+#7
+}
+\newcommand{\procedurel}[6]{
+\subsection{#1}
+\label{pro:#2}
+\index{#1}
+\subsubsection*{Declaration:}
+\texttt {Procedure #1  #3 ;}
+\subsubsection*{Description:}
+#4
+\subsubsection*{Errors:}
+#5
+\subsubsection*{See also:}
+#6
+}
+\newcommand{\seefl}[2]{
+\htmlref{#1}{fu:#2}
+}
+\newcommand{\seepl}[2]{
+\htmlref{#1}{pro:#2}
+}
+%
+% Now the ones without label.
+%
+\newcommand{\seef}[1]{\seefl{#1}{#1}}
+\newcommand{\seep}[1]{\seepl{#1}{#1}}
+%
+\newcommand{\seet}[1]{
+\htmlref{#1}{sec:types}
+}
+\newcommand{\seem}[2] {\texttt{#1} (#2) }
+\newcommand{\var}[1]{\texttt {#1}}
+\newcommand{\file}[1]{\textsf {#1}}
+%
+% procedures without args
+%
+\newcommand{\Procedurel}[5]{\procedurel{#1}{#2}{}{#3}{#4}{#5}}
+\newcommand{\Functionl}[6]{\functionl{#1}{#2}{}{#3}{#4}{#5}{#6}}
+%
+% Procedures without labels.
+%
+\newcommand{\procedure}[5]{\procedurel{#1}{#1}{#2}{#3}{#4}{#5}}
+\newcommand{\function}[6]{\functionl{#1}{#1}{#2}{#3}{#4}{#5}{#6}}
+\newcommand{\Procedure}[4]{\procedure{#1}{}{#2}{#3}{#4}}
+\newcommand{\Function}[5]{\function{#1}{}{#2}{#3}{#4}{#5}}
+\newcommand{\linux}{\textsc{LinuX} }
+\newcommand{\dos}  {\textsc{dos} }
+\newcommand{\msdos}{\textsc{ms-dos} }
+\newcommand{\ostwo}{\textsc{os/2} }
+\newcommand{\windowsnt}{\textsc{WindowsNT} }
+\newcommand{\docdescription}[1]{}
+\newcommand{\docversion}[1]{}
+\newcommand{\unitdescription}[1]{}
+\newcommand{\unitversion}[1]{}
+\newcommand{\fpk}{Free Pascal }
+\newcommand{\gnu}{gnu }
+%
+% Useful references.
+%
+\newcommand{\progref}{\htmladdnormallink{Programmer's guide}{../prog/prog.html}\ }
+\newcommand{\refref}{\htmladdnormallink{Reference guide}{../ref/ref.html}\ }
+\newcommand{\userref}{\htmladdnormallink{Users' guide}{../user/user.html}\ }
+\newcommand{\seecrt}{\htmladdnormallink{CRT}{../crt/crt.html}}
+\newcommand{\seelinux}{\htmladdnormallink{Linux}{../linux/linux.html}}
+\newcommand{\seestrings}{\htmladdnormallink{strings}{../strings/strings.html}}
+\newcommand{\seedos}{\htmladdnormallink{DOS}{../dos/dos.html}}
+\newcommand{\seegetopts}{\htmladdnormallink{getopts}{../getopts/getopts.html}}
+\newcommand{\seeobjects}{\htmladdnormallink{objects}{../objects/objects.html}}
+\newcommand{\seegraph}{\htmladdnormallink{graph}{../graph/graph.html}}
+\newcommand{\seeprinter}{\htmladdnormallink{printer}{../printer/printer.html}}
+\newcommand{\seego}{\htmladdnormallink{GO32}{../go32/go32.html}}
+%
+% Nice environments
+%
+% For Code examples (complete programs only)
+\newenvironment{CodEx}{}{}
+% For Tables.
+\newenvironment{FPKtable}[2]{\begin{table}\caption{#2}\begin{center}\begin{tabular}{#1}}{\end{tabular}\end{center}\end{table}}
+% The same, but with label in third argument (tab:#3)
+\newenvironment{FPKltable}[3]{\begin{table}\caption{#2}\label{tab:#3}\begin{center}\begin{tabular}{#1}}{\end{tabular}\end{center}\end{table}}
+%
+% Commands to reference these things.
+%
+\newcommand{\seet}[1]{table (\ref{tab:#1}) }
+\newcommand{\seec}[1]{chapter (\ref{ch:#1}) }
+\newcommand{\sees}[1]{section (\ref{se:#1}) }

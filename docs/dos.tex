@@ -1,0 +1,558 @@
+%
+%   $Id$
+%   This file is part of the FPC documentation.
+%   Copyright (C) 1997, by Michael Van Canneyt
+%
+%   The FPC documentation is free text; you can redistribute it and/or
+%   modify it under the terms of the GNU Library General Public License as
+%   published by the Free Software Foundation; either version 2 of the
+%   License, or (at your option) any later version.
+%
+%   The FPC Documentation is distributed in the hope that it will be useful,
+%   but WITHOUT ANY WARRANTY; without even the implied warranty of
+%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+%   Library General Public License for more details.
+%
+%   You should have received a copy of the GNU Library General Public
+%   License along with the FPC documentation; see the file COPYING.LIB.  If not,
+%   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+%   Boston, MA 02111-1307, USA. 
+%
+\chapter{The DOS unit.}
+This chapter describes the \var{DOS} unit for Free pascal, both under \dos
+and \linux. The unit was first written for \dos by Florian kl\"ampfl. 
+
+The unit was ported to \linux by Mark May\footnote{Current
+e-mail address \textsf{mmay@dnaco.net}}, and enhanced by Micha\"el Van
+Canneyt.
+Under \linux, some of the functionality is lost, as it is either impossible 
+or meaningless to implement it. Other than that, 
+the functionality for both operating systems is the same.
+
+This chapter is divided in two sections. 
+\begin{itemize}
+\item The first section lists the pre-defined constants, types and variables. 
+\item The second section describes the functions which appear in the
+interface part of the DOS unit.
+\end{itemize}
+
+\section{Types, Variables, Constants}
+\subsection {Constants}
+The DOS unit implements the following constants:
+\begin{verbatim}
+  {Bitmasks for CPU Flags}
+  fcarry =     $0001;
+  fparity =    $0004;
+  fauxiliary = $0010;
+  fzero =      $0040;
+  fsign =      $0080;
+  foverflow  = $0800;
+
+  {Bitmasks for file attribute}
+  readonly =   $01;
+  hidden =     $02;
+  sysfile =    $04;
+  volumeid =   $08;
+  directory =  $10;
+  archive =    $20;
+  anyfile =    $3F;
+  fmclosed =   $D7B0;
+  fminput =    $D7B1;
+  fmoutput =   $D7B2;
+  fminout =    $D7B3;
+\end{verbatim}
+\subsection{Types}
+The following string types are defined for easy handling of
+filenames :
+\begin{verbatim}
+  ComStr  = String[127]; { For command-lines } 
+  PathStr = String[79];  { For full path for file names }
+  DirStr  = String[67];  { For Directory and (DOS) drive string }
+  NameStr = String[8];   { For Name of file }
+  ExtStr  = String[4];   { For Extension of file }
+\end{verbatim}
+Under \linux, these strings all have length 255.
+\begin{verbatim}
+{$PACKRECORDS 1}
+  SearchRec = Record
+    Fill : array[1..21] of byte;  
+    { Fill replaced with declarations below, for Linux}
+    Attr : Byte; {attribute of found file}
+    Time : LongInt; {last modify date of found file}
+    Size : LongInt; {file size of found file}
+    Reserved : Word; {future use}
+    Name : String[255]; {name of found file}
+    SearchSpec: String[255]; {search pattern}
+    NamePos: Word; {end of path, start of name position}
+    End;
+\end{verbatim}
+Under \linux, the \var{Fill} array is replaced with the following:
+\begin{verbatim}
+    SearchNum: LongInt; {to track which search this is}
+    SearchPos: LongInt; {directory position}
+    DirPtr: LongInt; {directory pointer for reading directory}
+    SearchType: Byte;  {0=normal, 1=open will close}
+    SearchAttr: Byte; {attribute we are searching for}
+    Fill: Array[1..07] of Byte; {future use}
+\end{verbatim}
+This is because the searching meachanism on Unix systems is substantially
+different from \dos's, and the calls have to be mimicked.
+\begin{verbatim}
+{$PACKRECORDS 2}
+  FileRec = Record
+    Handle : word;
+    Mode : word;
+    RecSize : word;
+    _private : array[1..26] of byte;
+    UserData: array[1..16] of byte;
+    Name: array[0..255] of char;
+    End;
+\end{verbatim}
+\var{FileRec} is used for internal representation of typed and untyped files.
+Text files are handled by the following types :
+\begin{verbatim}
+  TextBuf = array[0..127] of char;
+
+  TextRec = record
+    handle : word;
+    mode : word;
+    bufSize : word;
+    _private : word;
+    bufpos : word;
+    bufend : word;
+    bufptr : ^textbuf;
+    openfunc : pointer;
+    inoutfunc : pointer;
+    flushfunc : pointer;
+    closefunc : pointer;
+    userdata : array[1..16] of byte;
+    name : array[0..127] of char;
+    buffer : textbuf;
+    End;
+\end{verbatim}
+The size of the \var{name} field is 255 under \linux.
+\begin{verbatim}
+    Registers = record
+      case i : integer of
+        0 : (ax,f1,bx,f2,cx,f3,dx,f4,bp,f5,si,
+             f51,di,f6,ds,f7,es,f8,flags,fs,gs : word);
+        1 : (al,ah,f9,f10,bl,bh,f11,f12,
+             cl,ch,f13,f14,dl,dh : byte);
+        2 : (eax,  ebx,  ecx,  edx,  ebp,  esi,  edi : longint);
+        End;
+\end{verbatim}
+The  \var{registers} type is used in the var{\var{MSDos} call.
+\begin{verbatim}
+  DateTime = record
+    Year: Word;
+    Month: Word;
+    Day: Word;
+    Hour: Word;
+    Min: Word;
+    Sec: word;
+    End;
+\end{verbatim}
+The \var{DateTime} type is used in \seep{PackTime} and \seep{UnPackTime} for
+setting/reading file times with \seep{GetFTime} and \seep{SetFTime}.
+
+\subsection{Variables}
+\begin{verbatim}
+    DosError : integer;
+\end{verbatim}
+The \var{DosError} variable is used by the procedures in the \dos unit to 
+report errors. It can have the following values :
+\begin{center}
+\begin{tabular}{cl}
+2 & File not found. \\
+3 & path not found. \\
+5 & Access denied. \\
+6 & Invalid handle. \\
+8 & Not enough memory. \\
+10 & Invalid environment. \\
+11 & Invalid format. \\
+18 & No more files.
+\end{tabular}
+\end{center}
+Other values are possible, but are not documented.
+%\begin{verbatim}
+%    drivestr : array [0..26] of pchar;
+%\end{verbatim}
+%This variable is defined in the \linux version of the \dos unit. It is used
+%in the \seef{DiskFree} and \seef{DiskSize} calls.
+
+\section{Functions and Procedures}
+
+\procedure{AddDisk}{(Const S : String)}
+{\var{AddDisk} adds a filenme \var{S} to the internal list of filenames.
+ This list is used to determine which disks to use in the \seef{DiskFree}
+and \seef{DiskSize} calls. The names are added sequentially. The dos
+initialization code presets the first three disks to:
+\begin{itemize}
+\item \var{'.'} for the current drive, 
+\item \var{'/fd0/.'} for the first floppy-drive.
+\item \var{'/fd1/.'} for the second floppy-drive.
+\item \var{'/'} for the first hard disk.
+\end{itemize}
+The first call to \var{AddDisk} will therefore add a name for the second
+harddisk, The second call for the third drive, and so on until 23 drives
+have been added (corresponding to \var{'D:'} to \var{'Z:'})
+}{None}{\seef{DiskFree}, \seef{DiskSize} }
+
+\function{DiskFree}{(Drive: byte)}{longint}{
+\var{DiskFree} returns the number of free bytes on a disk. The parameter
+\var{Drive} indicates which disk should be checked. This parameter is 1 for
+floppy \var{a:}, 2 for floppy \var{b:}, etc. A value of 0 returns the free
+space on the current drive. 
+
+Typically, the free space is the size of a disk block, multiplied by the
+number of free blocks on the disk.
+
+\textbf{For \linux only:}\\
+The \var{diskfree} and \var{disksize} functions need a file on the specified drive, since this
+is required for the \var{statfs} system call.
+  These filenames are set in the initialization of the dos unit, and have 
+been preset to :
+\begin{itemize}
+\item \var{'.'} for the current drive, 
+\item \var{'/fd0/.'} for the first floppy-drive.
+\item \var{'/fd1/.'} for the second floppy-drive.
+\item \var{'/'} for the first hard disk.
+\end{itemize}
+There is room for 1-26 drives. You can add a drive with the
+\seep{AddDisk} procedure.
+
+These settings can be coded in \var{dos.pp}, in the initialization part.
+}{-1 when a failure occurs, or an invalid \var{drivenr} is given.}  
+{\seef{DiskSize}}
+
+\input{dosex/ex6.tex}
+
+\function{DiskSize}{(Drive: byte)}{longint}{
+\var{DiskSize} returns the total size (in bytes) of a disk. The parameter
+\var{Drive} indicates which disk should be checked. This parameter is 1 for
+floppy \var{a:}, 2 for floppy \var{b:}, etc. A value of 0 returns the size
+of the current drive. 
+
+\textbf{For \linux only:}\\
+The \var{diskfree} and \var{disksize} functions need a file on the specified drive, since this
+is required for the \var{statfs} system call.
+  These filenames are set in the initialization of the dos unit, and have 
+been preset to :
+\begin{itemize}
+\item \var{'.'} for the current drive, 
+\item \var{'/fd0/.'} for the first floppy-drive.
+\item \var{'/fd1/.'} for the second floppy-drive.
+\item \var{'/'} for the first hard disk.
+\end{itemize}
+There is room for 1-26 drives. You can add a drive with the
+\seep{AddDisk} procedure.
+
+These settings can be coded in \var{dos.pp}, in the initialization part.
+}{-1 when a failure occurs, or an invalid drive number is given.}  
+{\seef{DiskFree}}
+
+For an example, see \seef{DiskFree}.
+
+\Function{DosExitCode}{Word}{
+\var{DosExitCode} contains (in the low byte) the exit-code of a program 
+executed with the \var{Exec} call.}{None.}{\seep{Exec}}
+
+\input{dosex/ex5.tex}
+
+\Function{DosVersion}{Word}
+{\var{DosVersion} returns the \dos version number. On \linux systems, it
+returns the Linux version (The first 2 numbers, e.g Linux version 2.1.76 will
+give you DosVersion 2.1)}{None.}{}
+
+\input{dosex/ex1.tex}
+
+\Function{EnvCount}{longint}{
+\var{EnvCount} returns the number of environment variables.}
+{None.}{\seef{EnvStr}, \seef{GetEnv}}
+\function{EnvStr}{(Index: integer)}{string}{
+\var{EnvStr} returns the \var{Index}-th \var{Name=Value} pair from the list
+of environment variables. 
+
+The index of the first pair is zero.}
+{The length is limited to 255 characters. This may cause problems under
+\linux. The \linux unit solves this problem.}{\seef{EnvCount}, \seef{GetEnv}}
+
+\input{dosex/ex13.tex}
+
+\procedure{Exec}{(const Path: pathstr; const ComLine: comstr)}{
+\var{Exec} executes the program in \var{Path}, with the options given by
+\var{ComLine}.
+After the program has terminated, the procedure returns. The Exit value of
+the program can be consulted with the \var{DosExitCode} function.
+}{Errors are reported in \var{DosError}.}{\seef{DosExitCode}}
+
+For an example, see \seef{DosExitCode}
+
+\functionl{FExpand}{Dos:FExpand}{(const path: pathstr)}{pathstr}{
+\var{FExpand} takes its argument and expands it to a complete filename, i.e.
+a filename starting from the root directory of the current drive, prepended
+with the drive-letter (under \dos).
+
+The resulting name is converted to uppercase on \dos systems. Under \linux,
+the name is left as it is. (filenames are case sensitive under Unix)
+}{\seep{FSplit}}
+
+\input{dosex/ex5.tex}
+
+\procedure{FindClose}{(Var F: SearchRec)}{
+\textbf{\linux only}
+Under \linux, the \var{findfirst/findnext} calls have to be mimicked. 
+An internal table of file descriptors is kept. 
+When using different \var{searchrecs} at the same time, 
+the system may run out of file descriptors for directories.
+
+The \linux implementation of the \dos unit therefore keeps a table of open
+directories, and when the table is full, closes one of the directories, and
+reopens another. This system is adequate but slow if you use a lot of
+\var{searchrecs}.
+
+So, to speed up the findfirst/findnext system, the \var{FindClose} call was
+implemented. When you don't need a \var{searchrec} any more, you can tell
+this to the \dos unit by issuing a \var{FindClose} call. The directory
+which is kept open for this \var{searchrec} is then closed, and the table slot
+freed.
+
+It is recommended to use the \linux call \var{Glob} when looking for files.
+}{None.}{\seef{Glob}.}
+
+\procedure{FindFirst}{(const Path: pathstr; Attr: word; var F: SearchRec)}{
+\var{FindFirst} searches the file specified in \var{Path}, checks the
+atrributes specified in \var{Attr}. It returns a \var{SearchRec} record for
+further searching in \var{F}.
+
+\var{Path} can contain the wildcard characters \var{?} (matches any single
+character) and \var{*} (matches 0 ore more arbitrary characters). In this
+case \var{FindFirst} will return the first file which matches the specified
+criteria.
+
+If \var{DosError} is different from zero, no file(s) matching the criteria 
+was(were) found.}{Errors are reported in DosError.}{\seep{FindNext},
+\seep{FindClose}}
+
+\input{dosex/ex7.tex}
+
+\procedure{FindNext}{(var f: searchRec)}{
+\var{FindNext} takes as an argument a \var{SearchRec} from a previous
+\var{FindNext} call, or a \var{FindFirst} call, and tries to find another
+file which matches the criteria, specified in the \var{FindFirst} call.
+
+If \var{DosError} is different from zero, no more files matching the
+criteria were found.}{\var{DosError} is used to report errors.}
+{\seep{FindFirst}, \seep{FindClose}}
+
+For an example, see \seep{FindFirst}.
+
+\functionl{FSearch}{Dos:FSearch}{(Path: pathstr; DirList: string)}{pathstr}
+{\var{FSearch} searches the file \var{Path} in all directories listed in
+\var{DirList}. The full name of the found file is returned.
+
+\var{DirList} must be a list of directories, separated by semi-colons (or
+colons under \linux).
+
+When no file is found, an empty string is returned.
+}{None.}{\seefl{FExpand}{Dos:FExpand}}
+
+\input{dosex/ex10.tex}
+
+
+ 
+\procedure{FSplit}{(path: pathstr; \\ var dir: dirstr; var name: namestr;
+  var ext: extstr)}{
+\var{FSplit} splits a full file name into 3 parts : A \var{Path}, a
+\var{Name} and an extension  (in \var{ext}.) 
+
+Under \linux, the extension is taken to be all letters after the last dot
+(.).
+}{None.}{\seefl{FSearch}{Dos:FSearch}}
+
+\input{dosex/ex12.tex}
+
+\procedure{GetCBreak}{(var breakvalue: boolean)}{
+\var{GetCBreak} gets the status of CTRL-Break checking under \dos.
+When \var{BreakValue} is \var{false}, then \dos only checks for the 
+CTRL-Break key-press when I/O is performed. When it is set to \var{True},
+then a check is done at every system call.}{Under Linux, this exists but is 
+not implemented, i.e. the call does nothing.}{\seep{SetCBreak}}
+
+\procedurel{GetDate}{Dos:GetDate}{(var year, month, mday, wday: word)}{
+\var{GetDate} returns the system's date. \var{Year} is a number in the range
+1980..2099.\var{mday} is the day of the month,
+\var{wday} is the day of the week, starting with Sunday as day 0.}
+{None.}{\seepl{GetTime}{Dos:GetTime},\seep{SetDate}}
+
+\input{dosex/ex2.tex}
+
+\functionl{GetEnv}{Dos:GetEnv}{(EnvVar: String)}{String}{
+\var{Getenv} returns the value of the environment variable \var{EnvVar}.
+Under \linux, case is important when looking for \var{EnvVar}.
+
+When there is no environment variable \var{EnvVar} defined, an empty
+string is returned.}{None.}{\seef{EnvCount}, \seef{EnvStr}}
+
+\input{dosex/ex14.tex}
+
+\procedure{GetFAttr}{(var F; var Attr: word)}{
+\var{GetFAttr} returns the file attributes of the file-variable \var{f}.
+ \var{F} can be a untyped or typed file, or of type \var{Text}. \var{f} must
+have been assigned, but not opened. The attributes can be examined with the
+following constants :
+\begin{itemize}
+\item \var{ReadOnly  = 01h}
+\item \var{Hidden    = 02h}
+\item \var{SysFile   = 04h}
+\item \var{VolumeId  = 08h}
+\item \var{Directory = 10h}
+\item \var{Archive   = 20h}
+\item \var{AnyFile   = 3fh}
+\end{itemize}
+Under \linux, supported attributes are:
+\begin{itemize}
+\item \var{Directory}
+\item \var{ReadOnly} if the current process doesn't have access to the file.
+\item \var{Hidden} for files whose name starts with a dot \var{('.')}.
+\end{itemize}
+}{Errors are reported in \var{DosError}}{\seep{SetFAttr}}
+
+\input{dosex/ex8.tex}
+
+\procedure{GetFTime}{(var F; var Time: longint)}{
+\var{GetFTime} returns the modification time of a file.
+This time is encoded and must be decoded with \var{UnPackTime}. 
+\var{F} must be a file type, which has been assigned, but not
+opened.}{Errors are reported in \var{DosError}}
+{\seep{SetFTime}, \seep{PackTime},\seep{UnPackTime}}
+
+\input{dosex/ex9.tex}
+
+\procedure{GetIntVec}{(IntNo: byte; var Vector: pointer)}{
+\var{GetIntVec} returns the address of interrupt vector
+\var{IntNo}.}{None. Under \linux, this call exists bout isn't implemented,
+i.e. it does nothing.}{\seep{SetIntVec}}
+
+\procedurel{GetTime}{Dos:GetTime}{(var hour, minute, second, sec100: word)}{
+\var{GetTime} returns the system's time. \var{Hour} is a on a 24-hour time
+scale. \var{sec100} is in hundredth of a
+second.}{None.}{\seepl{GetDate}{Dos:GetDate},
+\seep{SetTime}}
+
+\input{dosex/ex3.tex}
+
+\procedure{GetVerify}{(var verify: boolean)}{
+\var{GetVerify} returns the status of the verify flag under \dos. When
+\var{Verify} is \var{True}, then \dos checks data which are written to disk,
+by reading them after writing. If \var{Verify} is \var{False}, then data
+written to disk are not verified.}{Under \linux,  Verify is always
+\var{True}.}{\seep{SetVerify}}
+
+\procedure{Intr}{(IntNo: byte; var Regs: registers)}{
+\var{Intr} executes a software interrupt number \var{IntNo} (must be between
+0 and 255), with processor registers set to \var{Regs}. After the interrupt call
+returned, the processor registers are saved in \var{Regs}.}
+{Under \linux this call does nothing, because interrupts are managed by the
+kernel. The only allowed interrupt is 80h, the kernel entry interrupt.}
+{\seep{MSDos}, see the \linux unit.}
+
+\procedure{Keep}{(ExitCode: word)}{
+\var{Keep} terminates the program, but stays in memory. This is used for TSR
+(Terminate Stay Resident) programs which catch some interrupt.
+\var{ExitCode} is the same parameter as the \var{Halt} function takes.}
+{Under \linux, this call does nothing.}{\seem{Halt}{}}
+
+
+\procedure{MSDos}{(var regs: registers)}{
+\var{MSDos} executes an MS-\dos call (int 21h). This is the same as doing a
+\var{Intr} call with an interrupt number of 21h.}{None.}{\seep{Intr}}
+
+\procedure{PackTime}{(var T: datetime; var P: longint)}{
+\var{UnPackTime} converts the date and time specified in \var{T}
+to a packed-time format which can be fed to \var{SetFTime}.}
+{None.}
+{\seep{SetFTime}, \seep{FindFirst}, \seep{FindNext}, \seep{UnPackTime}}
+
+\input{dosex/ex4.tex}
+
+\procedure{SetCBreak}{(breakvalue: boolean)}{
+\var{SetCBreak} sets the status of CTRL-Break checking under \dos.
+When \var{BreakValue} is \var{false}, then \dos only checks for the 
+CTRL-Break key-press when I/O is performed. When it is set to \var{True},
+then a check is done at every system call.}{Under Linux, this call exists
+but is not implemented, i.e. it does nothing.}{\seep{GetCBreak}}
+
+\procedure{SetDate}{(year,month,day: word)}{
+\var{SetDate} sets the system's internal date. \var{Year} is a number
+between 1980 and 2099.}
+{On a \linux  machine, this is not implemented (allthough a procedure
+exists, it just doesn't do anything. The setting of the date is a
+root-only privilege, and is hence not implemented.}{\seep{GetDate},
+\seep{SetTime}}
+
+\procedure{SetFAttr}{(var F; Attr: word)}{
+\var{SetFAttr} sets the file attributes of the file-variable \var{F}.
+ \var{F} can be a untyped or typed file, or of type \var{Text}. \var{F} must
+have been assigned, but not opened. The attributes can be a sum of the
+following constants:
+\begin{itemize}
+\item \var{ReadOnly  = 01h}
+\item \var{Hidden    = 02h}
+\item \var{SysFile   = 04h}
+\item \var{VolumeId  = 08h}
+\item \var{Directory = 10h}
+\item \var{Archive   = 20h}
+\item \var{AnyFile   = 3fh}
+\end{itemize}
+}{Errors are reported in \var{DosError}.
+
+Under \linux the call exists, but is not implemented, i.e. it does nothing.}
+{\seep{GetFAttr}}
+
+\procedure{SetFTime}{(var F; Time: longint)}{
+\var{GetFTime} returns the modification time of a file,
+this time is encoded and must be encoded with \var{PackTime}. 
+\var{F} must be a file type, which has been assigned, but not
+opened.}{Errors are reported in \var{DosError}}
+{\seep{GetFTime}, \seep{PackTime},\seep{UnPackTime}}
+
+
+\procedure{SetIntVec}{(IntNo: byte; Vector: pointer)}{
+\var{SetIntVec} sets interrupt vector \var{IntNo} to \var{Vector}.
+\var{Vector} should point to an interrupt procedure.}{Under \linux, this
+call exists but is not implemented, the kernel manages all interrupts.}
+{\seep{GetIntVec}}
+
+\procedure{SetTime}{(hour,minute,second,sec100: word)}{
+\var{SetTime} sets the system's internal clock. The \var{Hour} parameter is
+on a 24-hour time scale.}{this call exists, but is not implemented on \linux, 
+as setting the time is a root-only privilege.}
+{\seep{GetTime}, \seep{SetDate}}
+
+
+\procedure{SetVerify}{(verify: boolean)}{
+\var{SetVerify} sets the status of the verify flag under \dos. When
+\var{Verify} is \var{True}, then \dos checks data which are written to disk,
+by reading them after writing. If \var{Verify} is \var{False}, then data
+written to disk are not verified.}{Under \linux,  Verify is always
+\var{True}.}{\seep{SetVerify}}
+
+\Procedure{SwapVectors}{
+\var{SwapVectors} swaps the contents of the internal table of interrupt 
+vectors with the current contents of the interrupt vectors.
+
+This is called typically in before and after an \var{Exec} call.
+}{Under \linux this call does nothing, as the interrupt vectors are 
+managed by the kernel.}{\seep{Exec}, \seep{SetIntVec}}
+
+
+\procedure{UnPackTime}{(p: longint; var T: datetime)}{
+\var{UnPackTime} converts the file-modification time in \var{p}
+to a \var{DateTime} record. The file-modification time can be 
+returned by \var{GetFTime}, \var{FindFirst} or \var{FindNext} calls.}
+{None.}
+{\seep{GetFTime}, \seep{FindFirst}, \seep{FindNext}, \seep{PackTime}}
+
+For an example, see \seep{PackTime}.
+

@@ -1,0 +1,20 @@
+These are the example programs that appear in the FPC documentation.
+ 
+Units guide, chapter on Strings unit :
+
+ex1.pp contains an example of the StrLen function.
+ex2.pp contains an example of the StrPCopy function.
+ex3.pp contains an example of the StrPas function.
+ex4.pp contains an example of the StrCopy function.
+ex5.pp contains an example of the StrLCopy function.
+ex6.pp contains an example of the StrECopy function.
+ex7.pp contains an example of the StrEnd function.
+ex8.pp contains an example of the StrLComp function.
+ex9.pp contains an example of the StrIComp function.
+ex10.pp contains an example of the StrMove function.
+ex11.pp contains an example of the StrCat function.
+ex12.pp contains an example of the StrLCat function.
+ex13.pp contains an example of the StrScan and StrRScan functions.
+ex14.pp contains an example of the StrLower and StrUpper functions.
+ex15.pp contains an example of the StrPos function.
+ex16.pp contains an example of the StrNew function.

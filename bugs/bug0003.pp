@@ -1,0 +1,18 @@
+unit bug0002;
+
+  interface
+
+  implementation
+
+
+    procedure dump_stack(bp : longint);
+
+      function get_next_frame(bp : longint) : longint;
+
+        begin
+        end;
+
+      begin
+      end;
+
+end.
