@@ -1744,7 +1744,7 @@ Var
     UsedRegs: TRegSet;
     p, hp : Pai;
     TmpRef: TReference;
-    TmpReg: TRegister;
+    TmpReg, regCounter: TRegister;
 Begin
   p := BlockStart;
   UsedRegs := [];
@@ -2029,6 +2029,15 @@ Begin
                                   Inc(NrOfMods, NrOfInstrSinceLastMod[TmpReg]);
                                   PPaiProp(Pai(StartMod)^.OptInfo)^.Regs[TmpReg].NrOfMods := NrOfMods;
                                   NrOfInstrSinceLastMod[TmpReg] := 0;
+                                  { Destroy the contents of the registers  }
+                                  { that depended on the previous value of }
+                                  { this register                          }
+                                  for regCounter := R_EAX to R_EDI Do
+                                    if regCounter <> tmpReg then
+                                      With curProp^.Regs[regCounter] Do
+                                        if (typ in [con_ref,con_noRemoveRef]) and
+                                           sequenceDependsOnReg(curProp^.Regs[regCounter],regCounter,tmpReg) Then
+                                          typ := con_invalid;
                                 End;
                             End
                           Else
@@ -2320,7 +2329,13 @@ End.
 
 {
   $Log$
-  Revision 1.4  2000-07-21 15:19:54  jonas
+  Revision 1.5  2000-08-19 09:08:59  jonas
+    * fixed bug where the contents of a register would not be destroyed
+      if another register on which these contents depend is modified
+      (not really merged, but same idea as fix in fixes branch,
+      LAST_MERGE tag is updated)
+
+  Revision 1.4  2000/07/21 15:19:54  jonas
     * daopt386: changes to getnextinstruction/getlastinstruction so they
       ignore labels who have is_addr set
     + daopt386/csopt386: remove loads of registers which are overwritten
