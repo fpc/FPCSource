@@ -46,25 +46,26 @@ uses
 	globtype,
 	cpuinfo,cginfo,cgbase,
 	defbase;
-
-    function tSparcparamanager.getintparaloc(nr : longint) : tparalocation;
-
-      begin
-         fillchar(result,sizeof(tparalocation),0);
-         if nr<1 then
-           internalerror(2002070801)
-         else if nr<=8 then
-           begin
-              result.loc:=LOC_REGISTER;
-              result.register:=tregister(longint(R_O0)+nr);
-           end
-         else
-           begin
-              result.loc:=LOC_REFERENCE;
-              result.reference.index:=stack_pointer_reg;
-              result.reference.offset:=(nr-8)*4;
-           end;
-      end;
+function TSparcParaManager.getintparaloc(nr:longint):TParaLocation;
+	begin
+		FillChar(result,SizeOf(TParaLocation),0);
+		with Result do
+			if nr<1
+			then
+				InternalError(2002070801)
+			else if nr<=8
+			then
+				begin
+					loc:=LOC_REGISTER;
+					register:=tregister(longint(R_O0)+nr);
+				end
+			else
+				begin
+					loc:=LOC_REFERENCE;
+					reference.index:=stack_pointer_reg;
+					reference.offset:=(nr-8)*4;
+				end;
+	end;
 
     function getparaloc(p : tdef) : tloc;
 
@@ -295,7 +296,10 @@ BEGIN
 end.
 {
   $Log$
-  Revision 1.2  2002-10-04 21:57:42  mazen
+  Revision 1.3  2002-10-07 20:33:05  mazen
+  word alignement modified in g_stack_frame
+
+  Revision 1.2  2002/10/04 21:57:42  mazen
   * register allocation for parameters now done in cpupara, but InternalError(200109223) in cgcpu.pas:1053 is still not fixed du to location_force problem in ncgutils.pas:419
 
   Revision 1.1  2002/08/21 13:30:07  mazen

@@ -838,9 +838,7 @@ stack frame.}
 {Althogh the SPARC architecture require only word alignment, software
 convention and the operating system require every stack frame to be double word
 aligned}
-		if(LocalSize and $00000003)<>0
-		then
-			LocalSize:=(LocalSize and $FFFFFFFC)+4;
+		LocalSize:=(LocalSize+3)and $FFFFFFFC;
 {Execute the SAVE instruction to get a new register window and get a new stack
 frame. In the "SAVE %i6,size,%i6" the first %i6 is related to the state before
 execution of the SAVE instrucion so it is the caller %i6, when the %i6 after
@@ -1135,7 +1133,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.10  2002-10-04 21:57:42  mazen
+  Revision 1.11  2002-10-07 20:33:04  mazen
+  word alignement modified in g_stack_frame
+
+  Revision 1.10  2002/10/04 21:57:42  mazen
   * register allocation for parameters now done in cpupara, but InternalError(200109223) in cgcpu.pas:1053 is still not fixed du to location_force problem in ncgutils.pas:419
 
   Revision 1.9  2002/10/02 22:20:28  mazen
