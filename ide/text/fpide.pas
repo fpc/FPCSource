@@ -157,7 +157,9 @@ end;
 
 function IDEUseTabsPattern(Editor: PFileEditor): boolean; {$ifndef FPC}far;{$endif}
 begin
-  IDEUseTabsPattern:=(Editor^.FileName='') or MatchesFileList(NameAndExtOf(Editor^.FileName),TabsPattern);
+  { the commented code lead all new files
+    to become with TAB use enabled which is wrong in my opinion PM }
+  IDEUseTabsPattern:={(Editor^.FileName='') or }MatchesFileList(NameAndExtOf(Editor^.FileName),TabsPattern);
 end;
 
 constructor TIDEApp.Init;
@@ -867,7 +869,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.48  2000-01-03 11:38:33  michael
+  Revision 1.49  2000-01-05 00:31:50  pierre
+   * avoid new files to use TABS
+
+  Revision 1.48  2000/01/03 11:38:33  michael
   Changes from Gabor
 
   Revision 1.47  1999/12/20 14:23:17  pierre
