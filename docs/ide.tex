@@ -85,7 +85,7 @@ command line switch to the IDE.
 
 \subsection{The IDE screen}
 
-After start up, the screen of the IDE looks like 
+After start up, the screen of the IDE can look like 
 \begin{htmlonly}
 this:
 \htmladdimg{../pics/idestart.gif}
@@ -120,6 +120,12 @@ at the right edge of the menu, a clock is displayed.
 The IDE can be left by selecting \menu{File|Exit} in the menu
 \footnote{\menu{File|Exit} means select the item 'Exit' in the menu 'File'.}
 or by pressing \key{Alt-X}.
+
+\begin{remark}
+If a file \file{fp.ans} is found in the current directory,
+then it is loaded and used to paint the background.
+This file should contain ANSI drawing commands to draw on a screen.
+\end{remark}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Navigating in the IDE
@@ -238,7 +244,7 @@ A common IDE window is displayed in \seefig{idewin}.
 The window is surrounded by a so-called \emph{frame}, the white double
 line around the window. 
 
-At the top of the window 3 things are displayed:
+At the top of the window 4 things are displayed:
 \begin{itemize}
 \item 
 At the upper left corner of the window, a \emph{close icon} is shown. 
@@ -247,6 +253,9 @@ When clicked, the window will be closed. It can be also closed by
 All open windows can be closed by selecting the menu item 
 \menu{Window|Close all}.
 \item In the middle, the title of the window is displayed.
+\item Almost at the upper right corner, a number is visible.
+This number identifies the editor window, and pressing \key{Alt-Number}
+will jump to this window. Only the first 9 windows will get such a number.
 \item At the upper right corner, a small green arrow is visible.
 Clicking this arrow zooms the window so it covers the whole desktop. 
 Clicking this arrow on a zoomed window will restore old size of the 
@@ -327,13 +336,13 @@ window in the list of windows, while \var{Window|Previous} will select
 the previous window.
 \item If the window has a number in the upper right corner, it can be
 activated by pressing \key{Alt-<number>}.
-\item Pressing \key{Alt-0} will pop up a dialog with a lis  with all 
+\item Pressing \key{Alt-0} will pop up a dialog with all 
 available windows which allows a quick activation of windows which 
 don't have a number.
 \end{itemize}
 
 The windows can be ordered and placed on the IDE desktop by zooming and
-resizing them with the mouse or keyboard. This is a tyime-consuming task, 
+resizing them with the mouse or keyboard. This is a time-consuming task, 
 and particularly difficult with the keyboard. Instead, the menu items
 \menu{Window|Tile} and \menu{Window|Cascade} can be used:
 \begin{description}
@@ -428,7 +437,7 @@ current window's contents are then saved to this new filename, and the
 filename is stored for further save actions.
 \item[Change dir] Presents a dialog in which a directory can be selected.
 The current working directory is then changed to the selected directory.
-\item[Dos shell] executes a command shell. After the shell exited, the
+\item[Dos shell] Executes a command shell. After the shell exited, the
 IDE resumes.
 \item[Exit] (\key{ALT-X}) Exits the IDE. If any unsaved files are 
 in the editor, the IDE will ask if these files should be saved.
@@ -445,7 +454,7 @@ The \menu{Edit} menu contains entries for accessing the clipboard, and
 undoing or redoing editing actions. Most of these functions have shortcut
 keys associated with them.
 \begin{description}
-\item[Undo] (\key{ALT-BkSP})
+\item[Undo] (\key{ALT-BKSP})
 Undo the last editing action. The editing actions are stored in a buffer,
 selecting this mechanism will move backwards through this buffer, i.e.
 multiple undo levels are possible. The selection is not preserved, though.
@@ -467,7 +476,7 @@ Any previous clipboard contents is lost after this action.
 After this action, the clipboard contents can be pasted elsewhere in the text.
 \item[Paste] (\key{Shift-INS}) Insert the current clipboard contents in
 the text at the cursor position. The clipboard contents remains as it was.
-\item[Clear] (\key{Ctrl-DEL}) clears (i.e. deletes) the current
+\item[Clear] (\key{Ctrl-DEL}) Clears (i.e. deletes) the current
 selection.
 \item[Show clipboard] Opens a window in which the current clipboard contents
 is shown.
@@ -492,15 +501,15 @@ position.
 The \menu{Search} menu provides acces to the search and replace dialogs, as well as
 access to the symbol browser of the IDE. 
 \begin{description}
-\item[Find] (\key{Ctrl-Q F}) presents the search dialog. A search text 
+\item[Find] (\key{Ctrl-Q F}) Presents the search dialog. A search text 
 can be entered, and when the dialog is closed, the entered text is searched
 in the active window. If the text is found, it will be selected. 
-\item[Replace] (\key{Ctrl-Q A} presents the search and replace dialog.
+\item[Replace] (\key{Ctrl-Q A}) Presents the search and replace dialog.
 After the dialog is closed, the search text will be replaced by the replace
 text in the active window.
-\item[Search again] (\key{CTRL-L}) repeats the last search or search and replace action,
+\item[Search again] (\key{CTRL-L}) Repeats the last search or search and replace action,
  using  the same parameters.
-\item[Go to line number] (\key{Alt-G}) prompts for a line number, and
+\item[Go to line number] (\key{Alt-G}) Prompts for a line number, and
 then jumps to this line number.
 \end{description}
 When the program and units are compiled with browse information, then
@@ -526,7 +535,7 @@ the symbol is selected, a browse window for that symbol is opened.
 The \menu{Run} menu contains all entries related to running a program,
 \begin{description}
 \item[Run] (\key{Ctrl-F9})
-If the sources were modified, compile the program. If the compile is
+If the sources were modified, compiles the program. If the compile is
 successful, the program is executed. If the primary file  was set, then 
 that is used to determine which program to execute. See \sees{menucompile}
 for more information on how to set the primary file.
@@ -539,12 +548,12 @@ procedure, the process will stop at the entry point of the called procedure.
 \item[Goto cursor] (\key{F4})
 Runs the program till the execution point matches the line where the cursor
 is.
-\item[until return]
+\item[Until return]
 Runs the current procedure till it exits.
-\item[parameters]
+\item[Parameters]
 This menu item allows to enter parameters that will be passed on to the
 program when it is being executed.
-\item[program reset] (\key{Ctrl-F2}) if the program is being run or 
+\item[Program reset] (\key{Ctrl-F2}) if the program is being run or 
 debugged, the debug session is aborted, and the running program is killed.
 \end{description}
 %
@@ -573,7 +582,7 @@ file need not be loaded in the IDE for this to have effect.
 Clears the primary file. After this command, any run or compile action will
 act on the active window.
 \item[Information] Displays some information about the current program.
-\item[Compiler messages] (\key{F12}) displays the compiler messages
+\item[Compiler messages] (\key{F12}) Displays the compiler messages
 window. This window will display the messages generated by the compiler
 during the last compile.
 \end{description}
@@ -586,8 +595,8 @@ The \menu{Debug} menu contains menu entries to aid in debugging a program, such 
 setting breakpoints and watches. 
 \begin{description}
 \item[Output]
-\item[User screen] (\key{Alt-F5}) switches to the screen as it was last
-left by the running program.
+\item[User screen] (\key{Alt-F5})
+Switches to the screen as it was last left by the running program.
 \item[Breakpoint] (\key{Ctrl-F8})
 Sets a breakpoint at the current line. When debugging, program execution
 will stop at this breakpoint.
@@ -619,8 +628,8 @@ user, they are appended to this menu as well.
 \item[Messages] (\key{F11}) Show the messages window. 
 This window contains the output from one of the tools. For more information,
 see \sees{toolsmessages}.
-\item[Goto next] (\key{Alt-F8}) goto next message.
-\item[Goto previous] (\key{Alt-F7}) goto previous message
+\item[Goto next] (\key{Alt-F8}) Goto next message.
+\item[Goto previous] (\key{Alt-F7}) Goto previous message
 \item[Grep] (\key{SHIFT-F2}) Prompts for a regular expression and options
 to be given to grep, and then executes \file{grep} with the given expression and
 options. For this to work, the \file{grep} program must be installed on your
@@ -699,7 +708,7 @@ Saves the current options in an alternate file. A file selection dialog box
 will be presented in which the alternate settings file can be entered.
 \end{description}
 Please note that options are not saved automatically, they should be saved
-explicitly with the \menu{Options|Save} command.
+explicitly with the \menu{Options|\-Save} command.
 %
 % The window menu
 %
@@ -725,8 +734,10 @@ Activates the next window in the window list.
 Activates the previous window in the window list.
 \item[Hide] (\key{Ctrl-F6})
 Hides the active window. 
-\item[Close] (\key{ALT-F3}) closes the active window.
-\item[List] (\key{Alt-0}) shows the list of opened windows. From there a
+\item[Close] (\key{ALT-F3})
+Closes the active window.
+\item[List] (\key{Alt-0})
+Shows the list of opened windows. From there a
 window can be activated, closed, shown and hidden.
 \item[Refresh display]
 Redraws the screen.
@@ -771,7 +782,9 @@ will be inserted before text that is present after the cursor.
 In overwrite mode, any text that is typed will replace existing text. 
 
 When in insert mode, the cursor is a flat blinking line. If the IDE is in
-overwrite, the cursor is a cube with the height of one line.
+overwrite, the cursor is a cube with the height of one line. Switching between
+insert mode or overwrite mode happens with the \key{Insert} key or with the
+\key{Ctrl-V} key.
 %
 % blocks
 %
@@ -783,11 +796,11 @@ text.
 
 Text can be selected in 3 ways:
 \begin{enumerate}
-\item using the mouse, dragging the mouse over existing text selects it.
-\item using the keyboard, press \key{Ctrl-K B} to mark the beginning of
+\item Using the mouse, dragging the mouse over existing text selects it.
+\item Using the keyboard, press \key{Ctrl-K B} to mark the beginning of
 the selected text, and \key{Ctrl-K K} to mark the end of the selected
 text.
-\item using the keyboard, hold the \key{Shift} key depressed while
+\item Using the keyboard, hold the \key{Shift} key depressed while
 navigating with the cursor keys.
 \end{enumerate}
 
@@ -804,11 +817,14 @@ used henceforth...
 
 Several commands can be executed on a block:
 \begin{itemize}
-\item Move the block to a new location (\key{Ctrl-K V}).
-\item Copy the block to another location (\key{Ctrl-K C}).
+\item Move the block to the cursor location (\key{Ctrl-K V}).
+\item Copy the block to the cursor location (\key{Ctrl-K C}).
 \item Delete the block (\key{Ctrl-K Y}).
 \item Write the block to a file (\key{Ctrl-K W}).
 \item Read the contents of a file into a block (\key{Ctrl-K R}).
+If there is already a block, this block is not replaced by this command.
+The file is inserted at the current cursor position, and then the
+inserted text is selected.
 \item Indent a block (\key{Ctrl-K I}).
 \item Undent a block (\key{Ctrl-K U}).
 \item Print the block contents (\key{Ctrl-K P}).
@@ -845,21 +861,21 @@ text accordingly.
 
 
 The syntax highlighting can be customized in the colors preferences dialog,
-using menu \menu{Options|Environment|Colors}. In the colors dialog, the
+using the menu option \menu{Options|\-Environment|\-Colors}. In the colors dialog, the
 group "Syntax" must be selected. The item list will then display the 
 various syntactical elements that can be colored:
 \begin{description}
-\item[Whitespace] the empty text between words. Remark that for whitespace,
+\item[Whitespace] The empty text between words. Remark that for whitespace,
 only the background color will be used.
 \item[Comments] All styles of comments in Free Pascal.
 \item[Reserved words] All reserved words of Free Pascal. \refref.
-\item[Strings] constant string expressions.
+\item[Strings] Constant string expressions.
 \item[Numbers] Numbers in decimal notation.
 \item[Hex numbers] Numbers in hexadecimal notation.
-\item[Assembler] any assembler blocks.
-\item[Symbols] recognized symbols (variables, types)
-\item[Directives] compiler directives.
-\item[Tabs] can be given a different color than other whitespace.
+\item[Assembler] Any assembler blocks.
+\item[Symbols] Recognized symbols (variables, types)
+\item[Directives] Compiler directives.
+\item[Tabs] Can be given a different color than other whitespace.
 \end{description}
 The editor uses some default settings, but experimentation is the best way
 to find a fitting color scheme. A good color scheme helps detecting errors
@@ -878,7 +894,7 @@ There is no code completion yet for filling in function arguments, choosing
 object methods as in e.g. \delphi.
 
 Code completion can be customized in the Code completion dialog, reachable 
-through the \menu{Options|Preferences|Codecompletion} menu.
+through the menu option \menu{Options|\-Preferences|\-Codecompletion}.
 The list of keywords that can be completed can be maintained here. 
 
 \begin{htmlonly}
@@ -909,8 +925,8 @@ added to the list.
 \item[Cancel] Discards all changes and closes the dialog.
 \end{description}
 All keywords are saved and are available the next time the IDE is started.
-Duplicates are not allowed. If an attempt is made to add a duplicate entry 
-to the list, an error will follow.
+Duplicate names are not allowed. If an attempt is made to add a duplicate
+name to the list, an error will follow.
 
 % Code templates
 \subsection{Code Templates}
@@ -928,8 +944,8 @@ If Then
 A code template can be inserted by typing its name, and pressing \key{Ctrl-J}
 when the cursor is positioned right after the template name.
 
-Code templates can be defined in the code templates dialog, reachable via
-the menu \menu{Options|Preferences|Codetemplates}. 
+Code templates can be added and edited in the code templates dialog, reachable via
+the menu option \menu{Options|\-Preferences|\-Codetemplates}. 
 
 \begin{htmlonly}
 The code templates dialog.
@@ -962,7 +978,7 @@ template.
 \end{description}
 All templates are saved and are available the next time the IDE is started.
 \begin{remark}
-Duplicates are not allowed. If an attempt is made to add a duplicate entry 
+Duplicates are not allowed. If an attempt is made to add a duplicate name
 to the list, an error will follow.
 \end{remark}
 
@@ -976,19 +992,35 @@ To search for text, one  of the following can be done:
 \item Select \menu{Search|Find} in the menu.
 \item Press \key{Ctrl-Q F}.
 \end{enumerate}
-After that, a dialog will pop up in which you can enter the following
-options:
+\begin{htmlonly}
+After that, the following dialog will pop up:
+\htmladdimg{../pics/ide/codetemp.png}
+In this dialog, the following options can be entered:
+\end{htmlonly}
+\begin{latexonly}
+After that, the dialog shown in \seefig{search} will pop up,
+and the following options can be entered
+\begin{figure}[ht]
+\caption{The search dialog.}\label{fig:search}
+\ifpdf
+\epsfig{file=pics/ide/search.png,width=\textwidth}
+\else
+\epsfig{file=pics/ide/search.eps,width=\textwidth}
+\fi
+\end{figure}
+\end{latexonly}
+
 \begin{description}
-\item[Text to find] the text to be searched for. If a block was active when
+\item[Text to find] The text to be searched for. If a block was active when
 the dialog was started, this is proposed.
-\item[Case sensitive] when checked, the search is case sensitive.
-\item[Whole words only] when checked, the search text must appear in the
+\item[Case sensitive] When checked, the search is case sensitive.
+\item[Whole words only] When checked, the search text must appear in the
 text as a complete word.
-\item[Direction] the direction in which the search must be conducted,
+\item[Direction] The direction in which the search must be conducted,
 starting from the specified origin.
-\item[Scope] should the search be on the whole file, or just the selected
+\item[Scope] Should the search be on the whole file, or just the selected
 text.
-\item[Origin] should the search start from the cursor position or the start
+\item[Origin] Should the search start from the cursor position or the start
 of the scope.
 \end{description}
 After the dialog is closed, the search is performed using the given options.
@@ -1005,16 +1037,33 @@ This can be done in a similar manner to searching for a text:
 \item Select \menu{Search|Replace} from the menu.
 \item Press \key{Ctrl-Q A}.
 \end{enumerate}
-A dialog, similar to the search dialog will pop up.
+A dialog, similar to the search dialog will pop up:
+\begin{htmlonly}
+A dialog, similar to the search dialog will pop up:
+\htmladdimg{../pics/ide/codetemp.png}
+In this dialog, the following options can be entered:
+\end{htmlonly}
+\begin{latexonly}
+A dialog, similar to the search dialog will pop up, as shown in \seefig{replace}.
+\begin{figure}[ht]
+\caption{The replace dialog.}\label{fig:replace}
+\ifpdf
+\epsfig{file=pics/ide/replace.png,width=\textwidth}
+\else
+\epsfig{file=pics/ide/replace.eps,width=\textwidth}
+\fi
+\end{figure}
+\end{latexonly}
+
 In this dialog, in addition to the things that can be filled in in the
 search dialog, the following things can be entered:
 \begin{description}
-\item [New text] text by which found text will be replaced.
-\item [Prompt on replace] before a replacement is made, the IDE will ask for
+\item [New text] Text by which found text will be replaced.
+\item [Prompt on replace] Before a replacement is made, the IDE will ask for
 confirmation.
 \end{description}
-If the dialog is closed with the 'OK' button, only the next occurrence the
-the search text will be replaced. 
+If the dialog is closed with the 'OK' button, only the next occurrence of
+the the search text will be replaced. 
 If the dialog is closed with the 'Change All' button, all occurrences of 
 the search text will be replaced.
 
@@ -1029,7 +1078,7 @@ To enable the symbol browser, the program or unit must be compiled with
 browser information. This can be done by setting the browser information
 option in the compiler options dialog.
 
-The IDE allows to browse several types of symbol:
+The IDE allows to browse several types of symbols:
 \begin{description}
 \item[procedures] Allows to quickly jump to a procedure definition or
 implementation.
@@ -1081,7 +1130,8 @@ Once the program started, it will continue to run, until
 \begin{enumerate}
 \item the program quits normally,
 \item an error happens,
-\item A breakpoint is encountered.
+\item a breakpoint is encountered or
+\item the program is reset by the user.
 \end{enumerate}
 The last alternative is only possible if the program is compiled
 with debug information.
@@ -1200,7 +1250,7 @@ memory location may be entered, and the program will stop as soon as
 the memory indicated by the expression is read.
 \end{description}
 \item[name] Name of the function or file where to stop.
-\item[line] Line number in the file where too stop. Only for breakpoints of
+\item[line] Line number in the file where to stop. Only for breakpoints of
 type file-line.
 \item[Conditions] Here an expression can be entered which must evaluate 
 \var{True} for the program to stop at the breakpoint. The expressions that
@@ -1211,7 +1261,7 @@ before the program stops;
 \begin{remark}
 \begin{enumerate}
 \item Because the IDE uses GDB to do its debugging, it is necessary to enter all
-expressions in {\em uppercase}. 
+expressions in {\em uppercase} on \freebsd. 
 \item Expressions that reference memory locations should be no longer than 16 
 bytes on linux or go32v2 on an Intel processor, since the Intel processor's 
 debug registers are used to monitor these locations.
@@ -1225,7 +1275,7 @@ patch is applied.
 %
 \subsection{Using watches}
 When debugging information is compiled in the program, watches can be used.
-Watches are expressions which can be avaluated by the IDE and shown in a
+Watches are expressions which can be evaluated by the IDE and shown in a
 separate window. When program execution stops (e.g. at a breakpoint) all
 watches will be evaluated and their current values will be shown.
 
@@ -1251,7 +1301,7 @@ In the dialog, the expression can be entered, any possible previous value
 and current value are shown.
 \begin{remark}
 Because the IDE uses GDB to do it's debugging, it is necessary to enter all
-expressions in {\em uppercase}. 
+expressions in {\em uppercase} in \freebsd. 
 \end{remark}
 A list of watches and their present value is available in the watches
 window, which can be opened with the \menu{Debug|Watches} menu.
@@ -1315,7 +1365,8 @@ In it, GDB commands can be typed as they would be typed in GDB.
 The response of GDB will be shown in the window.
 
 Some more information on using GDB can be found in \sees{usinggdb}, but
-the final reference is of course the GDB manual itself.
+the final reference is of course the GDB manual itself
+\footnote{Available from the free Software Foundation website.}.
 
 \begin{htmlonly}
 The GDB window looks as follows:
@@ -1348,7 +1399,7 @@ this menu as well.
 \subsection{The messages window}
 \label{se:toolsmessages}
 The output of the external utilies is redirected by the IDE and it
-will be displayed in the message window. The message window is
+will be displayed in the messages window. The messages window is
 displayed automatically, if an external tool was run. The
 messages window can be also displayed manually by the selecting the
 menu item \menu{Tools|Messages} or by pressing the key \key{F11}.
@@ -1403,7 +1454,7 @@ occurrences in the text.
 \file{Grep} supports regular expressions. A regular expression is a 
 string with sepcial characters which describe a whole class of 
 expressions. The command line in \dos or \linux have limited 
-support for regular expressions: enteringa \var{ls *.pas} 
+support for regular expressions: entering \var{ls *.pas} 
 (or \var{dir *.pas}) to get a list of all pascal files in a
 directory. \file{*.pas} is something similiar to regular expression. 
 It uses a wildcard to describe a whole class of strings: these which 
@@ -1581,7 +1632,7 @@ directory separator. e.g.
 \begin{verbatim}
   $DIR('d:\data\myfile.pas')
 \end{verbatim}
-would return \file{d:\data\}.
+would return \verb|d:\data\|.
 \item[\$DRIVE()]
 Replaced by the drive letter of the filename argument. e.g.
 \begin{verbatim}
@@ -1627,7 +1678,7 @@ Prompt displays a dialog bow that allows editing of all arguments that
 come after it. Arguments that appear before the \var{\$PROMPT} keyword
 are not presented for editing.
 
-If a (optional) filename argument is present, \var{\$PROMPT) will load
+If a (optional) filename argument is present, \var{\$PROMPT()} will load
 a dialog description from the filename argument, e.g.
 \begin{verbatim}
 $PROMPT('cvsco.tdf')
@@ -2023,7 +2074,10 @@ Undo & \key{Alt-Backspace} & \\
 \end{FPCltable}
 %
 %  $Log$
-%  Revision 1.1.2.8  2000-11-20 18:53:52  michael
+%  Revision 1.1.2.9  2000-11-21 14:16:06  michael
+%  + Pages 1-23 corrected after remarks from Luk Vandelaer
+%
+%  Revision 1.1.2.8  2000/11/20 18:53:52  michael
 %  + Documenting tools
 %
 %  Revision 1.1.2.7  2000/11/19 23:08:32  michael
