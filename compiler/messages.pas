@@ -150,17 +150,14 @@ const
 var
   f       : text;
   error,multiline : boolean;
-  code    : integer;
-  numpart,numidx,
-  line,i,j,num : longint;
+  line,i,j : longint;
   ptxt    : pchar;
-  number,
   s,s1    : string;
   buf     : pointer;
 
   procedure err(const msgstr:string);
   begin
-    writeln('error in line ',line,': ',msgstr);
+    writeln('*** PPC, file ',fn,', error in line ',line,': ',msgstr);
     error:=true;
   end;
 
@@ -174,7 +171,7 @@ begin
   {$I+}
   if ioresult<>0 then
    begin
-     WriteLn('*** message file '+fn+' not found ***');
+     WriteLn('*** PPC, can not open message file ',fn);
      exit;
    end;
   settextbuf(f,buf^,bufsize);
@@ -211,17 +208,6 @@ begin
                end;
               if j-i-1<>5 then
                err('number length is not 5');
-              number:=Copy(s,i+1,j-i-1);
-              { update the max index }
-              val(number,num,code);
-              numpart:=num div 1000;
-              numidx:=num mod 1000;
-              { check range }
-              if numpart > msgparts then
-               err('number is to large')
-              else
-               if numidx >= msgidxmax[numpart] then
-                err('index is to large');
               if s[j+1]='[' then
                begin
                  inc(msgsize,j-i);
@@ -348,10 +334,14 @@ begin
      val(number,num,code);
      numpart:=num div 1000;
      numidx:=num mod 1000;
-     { skip _ }
-     inc(hp1);
-     { put the address in the idx, the numbers are already checked }
-     msgidx[numpart]^[numidx]:=hp1;
+     { check range }
+     if (numpart <= msgparts) and (numidx < msgidxmax[numpart]) then
+      begin
+        { skip _ }
+        inc(hp1);
+        { put the address in the idx, the numbers are already checked }
+        msgidx[numpart]^[numidx]:=hp1;
+      end;
      { next string }
      hp:=pchar(@hp[strlen(hp)+1]);
    end;
@@ -448,7 +438,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2000-11-29 00:30:31  florian
+  Revision 1.6  2001-03-10 13:19:10  peter
+    * don't check messagefile for numbers, this allows the usage of
+      1.1 msgfiles with a 1.0.x compiler
+
+  Revision 1.5  2000/11/29 00:30:31  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

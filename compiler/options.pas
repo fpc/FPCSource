@@ -123,8 +123,7 @@ begin
 { Load new message file }
   if (msgfilename<>'')  then
     begin
-       if fileexists(msgfilename) then
-         LoadMsgFile(msgfilename);
+       LoadMsgFile(msgfilename);
        msgfilename:='';
     end;
 end;
@@ -172,7 +171,6 @@ procedure Toption.WriteLogo;
 var
   p : pchar;
 begin
-  MaybeLoadMessageFile;
   p:=MessagePchar(option_logo);
   while assigned(p) do
    Comment(V_Normal,GetMsgLine(p));
@@ -211,6 +209,7 @@ var
   s     : string;
   p     : pchar;
 begin
+  MaybeLoadMessageFile;
   WriteLogo;
   Lines:=4;
   Message1(option_usage,system.paramstr(0));
@@ -1451,6 +1450,9 @@ begin
       end;
   end;
 
+{ Reload the messages file if necessary }
+  MaybeLoadMessageFile;
+
 { write logo if set }
   if option.DoWriteLogo then
    option.WriteLogo;
@@ -1557,8 +1559,6 @@ begin
   if (target_info.target in [target_i386_GO32V1,target_i386_GO32V2]) then
    def_symbol('DPMI'); { MSDOS is not defined in BP when target is DPMI }
 
-  MaybeLoadMessageFile;
-
   option.free;
   Option:=nil;
 end;
@@ -1572,7 +1572,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.34  2001-03-05 21:50:29  peter
+  Revision 1.35  2001-03-10 13:19:10  peter
+    * don't check messagefile for numbers, this allows the usage of
+      1.1 msgfiles with a 1.0.x compiler
+
+  Revision 1.34  2001/03/05 21:50:29  peter
     * press enter moved to errore.msg
 
   Revision 1.33  2001/03/03 12:41:22  jonas
