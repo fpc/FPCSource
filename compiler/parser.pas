@@ -377,6 +377,9 @@ unit parser;
          aktlocalswitches:=initlocalswitches;
          aktmoduleswitches:=initmoduleswitches;
          aktmodeswitches:=initmodeswitches;
+         {$IFDEF Testvarsets}
+         aktsetalloc:=initsetalloc;
+         {$ENDIF}
          aktpackrecords:=initpackrecords;
          aktpackenum:=initpackenum;
          aktoutputformat:=initoutputformat;
@@ -591,7 +594,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.99  2000-02-09 13:22:55  peter
+  Revision 1.100  2000-02-14 20:58:44  marco
+   * Basic structures for new sethandling implemented.
+
+  Revision 1.99  2000/02/09 13:22:55  peter
     * log truncated
 
   Revision 1.98  2000/01/23 21:29:17  florian

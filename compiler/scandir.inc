@@ -42,6 +42,9 @@ type
      _DIR_NOTE,_DIR_NOTES,
      _DIR_OBJECTPATH,_DIR_OPENSTRINGS,_DIR_OUTPUT_FORMAT,_DIR_OVERFLOWCHECKS,
      _DIR_PACKENUM,_DIR_PACKRECORDS,
+     {$IFDEF Testvarsets}
+      _DIR_PACKSET,
+     {$ENDIF}
      _DIR_R,_DIR_RANGECHECKS,_DIR_REFERENCEINFO,
      _DIR_SATURATION,_DIR_SMARTLINK,_DIR_STACKFRAMES,_DIR_STATIC,_DIR_STOP,
      _DIR_TYPEDADDRESS,_DIR_TYPEINFO,
@@ -110,6 +113,9 @@ const
      'OVERFLOWCHECKS',
      'PACKENUM',
      'PACKRECORDS',
+     {$IFDEF testvarsets}
+     'PACKSET',
+     {$ENDIF}
      'R',
      'RANGECHECKS',
      'REFERENCEINFO',
@@ -953,6 +959,32 @@ const
          end;
       end;
 
+{$ifdef testvarsets}
+    procedure dir_setalloc(t:tdirectivetoken);
+      var
+        hs : string;
+      begin
+        current_scanner^.skipspace;
+        if not(c in ['1','2','4']) then
+         begin
+           hs:=current_scanner^.readid;
+           if (hs='FIXED') or ((hs='DEFAULT') OR (hs='NORMAL')) then
+           aktsetalloc:=0               {Fixed mode, sets are 4 or 32 bytes}
+          else
+           Message(scan_w_only_packset);
+          end
+        else
+         begin
+           case current_scanner^.readval of
+            1 : aktpackenum:=1;
+            2 : aktpackenum:=2;
+            4 : aktpackenum:=4;
+           else
+            Message(scan_w_only_packset);
+           end;
+         end;
+      end;
+{$ENDIF}
     procedure dir_apptype(t:tdirectivetoken);
 
       var
@@ -1152,6 +1184,9 @@ const
          {_DIR_OVERFLOWCHECKS} dir_delphiswitch,
          {_DIR_PACKENUM} dir_packenum,
          {_DIR_PACKRECORDS} dir_packrecords,
+         {$IFDEF TestVarsets}
+         {_DIR_PACKSET} dir_packset,
+         {$ENDIF}
          {_DIR_R} dir_resource,
          {_DIR_RANGECHECKS} dir_delphiswitch,
          {_DIR_REFERENCEINFO} dir_delphiswitch,
@@ -1252,7 +1287,10 @@ const
 
 {
   $Log$
-  Revision 1.74  2000-02-09 13:23:03  peter
+  Revision 1.75  2000-02-14 20:58:43  marco
+   * Basic structures for new sethandling implemented.
+
+  Revision 1.74  2000/02/09 13:23:03  peter
     * log truncated
 
   Revision 1.73  2000/01/14 14:28:40  pierre

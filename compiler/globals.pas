@@ -150,6 +150,9 @@ unit globals;
        initmoduleswitches : tmoduleswitches;
        initlocalswitches  : tlocalswitches;
        initmodeswitches   : tmodeswitches;
+       {$IFDEF testvarsets}
+        Initsetalloc,                            {0=fixed, 1 =var}
+       {$ENDIF}
        initpackenum       : longint;
        initpackrecords    : tpackrecords;
        initoutputformat   : tasm;
@@ -161,6 +164,9 @@ unit globals;
        aktmoduleswitches : tmoduleswitches;
        aktlocalswitches  : tlocalswitches;
        aktmodeswitches   : tmodeswitches;
+       {$IFDEF testvarsets}
+        aktsetalloc,
+       {$ENDIF}
        aktpackenum       : longint;
        aktmaxfpuregisters: longint;
        aktpackrecords    : tpackrecords;
@@ -1474,6 +1480,9 @@ implementation
         initoptprocessor:=Class386;
         initspecificoptprocessor:=Class386;
         initpackenum:=4;
+        {$IFDEF testvarsets}
+        initsetalloc:=0;
+        {$ENDIF}
         initpackrecords:=packrecord_2;
         initoutputformat:=target_asm.id;
         initasmmode:=asmmode_i386_att;
@@ -1482,6 +1491,9 @@ implementation
         initoptprocessor:=MC68000;
         include(initmoduleswitches,cs_fp_emulation);
         initpackenum:=4;
+        {$IFDEF testvarsets}
+         initsetalloc:=0;
+        {$ENDIF}
         initpackrecords:=packrecord_2;
         initoutputformat:=as_m68k_as;
         initasmmode:=asmmode_m68k_mot;
@@ -1513,7 +1525,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.52  2000-02-10 11:45:48  peter
+  Revision 1.53  2000-02-14 20:58:44  marco
+   * Basic structures for new sethandling implemented.
+
+  Revision 1.52  2000/02/10 11:45:48  peter
     * addpath fixed with list of paths when inserting at the beginning
     * if exepath=currentdir then it's not inserted in path list
     * searchpaths in ppc386.cfg are now added at the beginning of the

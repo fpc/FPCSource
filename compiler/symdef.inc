@@ -1627,9 +1627,17 @@
          { small sets only working for i386 PM }
          if high<32 then
            begin
-              settype:=smallset;
-              savesize:=Sizeof(longint);
-           end
+            settype:=smallset;
+           {$ifdef testvarsets}
+            if aktsetalloc=0 THEN      { $PACKSET Fixed?}
+           {$endif}
+            savesize:=Sizeof(longint)
+           {$ifdef testvarsets}
+           else                       {No, use $PACKSET VALUE for rounding}
+            savesize:=aktsetalloc*((high+aktsetalloc*8-1) DIV (aktsetalloc*8))
+           {$endif}
+              ;
+          end
          else
 {$endif usesmallset}
          if high<256 then
@@ -3924,7 +3932,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.195  2000-02-11 13:53:49  pierre
+  Revision 1.196  2000-02-14 20:58:43  marco
+   * Basic structures for new sethandling implemented.
+
+  Revision 1.195  2000/02/11 13:53:49  pierre
    * avoid stack overflow in tref.done (bug 846)
 
   Revision 1.194  2000/02/09 13:23:04  peter
