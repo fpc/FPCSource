@@ -288,9 +288,9 @@ var row,left,right,bot:longint;
 
 begin
     row:=whereY;
-    left:=lo(windmin)+1;
-    right:=lo(windmax)+1;
-    bot:=hi(windmax);
+    left:=lo(windmin);
+    right:=lo(windmax);
+    bot:=hi(windmax)+1;
     fil:=$20 or (textattr shl 8);
     scroll_dn(row,left,bot-1,right,1,fil);
 end;
@@ -613,7 +613,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  2005-03-30 22:40:25  hajny
+  Revision 1.11  2005-03-30 22:42:49  hajny
+    * fix for InsLine
+
+  Revision 1.10  2005/03/30 22:40:25  hajny
     * fix for 3792
 
   Revision 1.9  2005/03/30 22:11:55  hajny
