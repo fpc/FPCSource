@@ -592,8 +592,13 @@ Var
 begin
   hs:='';
   for i:=1 to length(s) do
-    if (S[i]='$') and (s[i+1] in ['0'..'9']) then
-      hs:=hs+'arg'
+    if (S[i]='$') then
+     begin
+       if (s[i+1] in ['0'..'9']) then
+        hs:=hs+'arg'
+       else
+        hs:=hs+'\$';
+     end
     else
       hs:=hs+s[i];
   EscapeString:=hs;
@@ -769,7 +774,9 @@ begin
                   Renumberfile(Infile,OutFile);
                 end;
         M_Tex : begin
-                  WriteTexFile(InFile,OutFile+'.tex');
+                  if pos('.tex',outfile)=0 then
+                   Outfile:=OutFile+'.tex';
+                  WriteTexFile(InFile,Outfile);
                 end;
       M_Intel : begin
                   Loadmsgfile(InFile);
@@ -790,7 +797,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2000-07-09 17:01:26  peter
+  Revision 1.12  2000-07-09 17:39:05  peter
+    * escape $ with \$
+
+  Revision 1.11  2000/07/09 17:01:26  peter
     * replace only $ with arg if next char is a number
 
   Revision 1.10  2000/07/09 16:30:59  peter
