@@ -1279,6 +1279,7 @@ uses
         l,v : longint;
         oldaktpackrecords : tpackrecords;
         hs : string;
+        defpos,storepos : tfileposinfo;
 
         procedure expr_type;
         var
@@ -1448,6 +1449,7 @@ uses
                  aufdef:=new(penumdef,init);
                  repeat
                    s:=pattern;
+                   defpos:=tokenpos;
                    consume(_ID);
                    if token=_ASSIGNMENT then
                      begin
@@ -1461,7 +1463,10 @@ uses
                      end
                    else
                      inc(l);
+                   storepos:=tokenpos;
+                   tokenpos:=defpos;
                    constsymtable^.insert(new(penumsym,init(s,aufdef,l)));
+                   tokenpos:=storepos;
                    if token=_COMMA then
                      consume(_COMMA)
                    else
@@ -1603,7 +1608,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.8  1999-11-09 23:43:09  pierre
+  Revision 1.9  1999-11-11 00:56:54  pierre
+   * Enum element reference location corrected
+
+  Revision 1.8  1999/11/09 23:43:09  pierre
    * better browser info
 
   Revision 1.7  1999/11/08 14:02:16  florian
