@@ -1171,6 +1171,7 @@ begin
   GlobalFixupList.Free;
   GlobalFixupList := nil;
   GlobalLists.Free;
+  ComponentPages.Free;
   {!!!: GlobalNameSpace.Free;
   GlobalNameSpace := nil;}
 end;
@@ -1190,7 +1191,10 @@ end;
 
 {
   $Log$
-  Revision 1.11  2002-12-02 12:04:07  sg
+  Revision 1.12  2003-04-19 14:29:25  michael
+  + Fix from Mattias Gaertner, closes memory leak
+
+  Revision 1.11  2002/12/02 12:04:07  sg
   * Fixed handling of zero-length strings (classes.inc: When converting
     empty strings from text forms to binary forms; reader.inc: When reading
     an empty string from a binary serialization)

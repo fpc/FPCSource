@@ -113,7 +113,17 @@ type
   public
     Name: String;
     Classes: TList;
+    destructor Destroy; override;
   end;
+
+{ TComponentPage }
+
+destructor TComponentPage.Destroy;
+begin
+  Classes.Free;
+  inherited Destroy;
+end;
+  
 var
   ComponentPages: TCollection;
 
@@ -187,7 +197,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2002-09-07 15:15:24  peter
+  Revision 1.5  2003-04-19 14:29:25  michael
+  + Fix from Mattias Gaertner, closes memory leak
+
+  Revision 1.4  2002/09/07 15:15:24  peter
     * old logs removed and tabs fixed
 
 }
