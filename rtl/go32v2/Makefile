@@ -185,7 +185,7 @@ SYSTEMUNIT=system
 # Targets
 
 override LOADEROBJECTS+=prt0 exceptn fpu
-override UNITOBJECTS+=$(SYSTEMUNIT) objpas strings go32 initc dpmiexcp profile dxeload emu387 dos crt objects printer graph sysutils math typinfo cpu mmx getopts heaptrc msmouse ports
+override UNITOBJECTS+=$(SYSTEMUNIT) objpas strings go32 dpmiexcp initc profile dxeload emu387 dos crt objects printer graph sysutils math typinfo cpu mmx getopts heaptrc msmouse ports
 
 # Clean
 

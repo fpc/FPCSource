@@ -5,7 +5,7 @@
 [targets]
 loaders=prt0 exceptn fpu
 units=$(SYSTEMUNIT) objpas strings \
-      go32 initc dpmiexcp profile dxeload emu387 \
+      go32  dpmiexcp initc profile dxeload emu387 \
       dos crt objects printer graph \
       sysutils math typinfo \
       cpu mmx getopts heaptrc \
