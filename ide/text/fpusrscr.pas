@@ -499,8 +499,10 @@ end;
 
 destructor TWin32Screen.Done;
 begin
-  if IDEActive then
-    SwitchTo;
+  { copy the Dos buffer content into the original ScreenBuffer
+    which remains the startup std_output_handle PM }
+  BufferCopy(DosScreenBufferHandle,IDEScreenBufferHandle);
+  SetConsoleActiveScreenBuffer(IDEScreenBufferHandle);
   SetStdHandle(Std_Output_Handle,IDEScreenBufferHandle);
   CloseHandle(DosScreenBufferHandle);
   inherited Done;
@@ -667,7 +669,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  1999-12-01 16:17:18  pierre
+  Revision 1.9  2000-02-04 23:17:25  pierre
+   * Keep the entry ScreenBuffer at exit
+
+  Revision 1.8  1999/12/01 16:17:18  pierre
    * Restore std_output_handle correctly at exit for GDB
 
   Revision 1.7  1999/11/10 17:12:00  pierre
@@ -722,4 +727,3 @@ end.
     Original implementation
 
 }
-
