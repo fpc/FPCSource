@@ -697,7 +697,7 @@ end;
 
 procedure WriteSwitches(const fn:string);
 var
-  OldSwitchesMode : TSwitchMode;
+  OldSwitchesMode, SWM: TSwitchMode;
 begin
 { create the switches }
   assign(CfgFile,fn);
@@ -708,8 +708,9 @@ begin
    exit;
   writeln(CfgFile,'# '+msg_automaticallycreateddontedit);
   OldSwitchesMode:=SwitchesMode;
-  for SwitchesMode:=low(TSwitchMode) to high(TSwitchMode) do
+  for SWM:=low(TSwitchMode) to high(TSwitchMode) do
    begin
+     SwitchesMode := SWM;
      Writeln(CfgFile,'#IFDEF '+SwitchesModeStr[SwitchesMode]);
      TargetSwitches^.WriteItemsCfg;
      VerboseSwitches^.WriteItemsCfg;
@@ -1273,7 +1274,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  2004-09-04 23:33:39  armin
+  Revision 1.17  2004-09-14 20:46:13  hajny
+    * compilation fix - for loop counter issues
+
+  Revision 1.16  2004/09/04 23:33:39  armin
   * makefiles regenerated
   * ide: added target netwlibc
 
