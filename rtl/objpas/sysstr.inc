@@ -519,8 +519,15 @@ end ;
 
 function IntToStr(Value: integer): string;
 begin
-System.Str(Value, result);
+ System.Str(Value, result);
 end ;
+
+
+function IntToStr(Value: int64): string;
+begin
+ System.Str(Value, result);
+end ;
+
 
 {   IntToHex returns a string representing the hexadecimal value of Value   }
 
@@ -530,11 +537,24 @@ const
 function IntToHex(Value: integer; Digits: integer): string;
 var i: integer;
 begin
-SetLength(result, digits);
-for i := 0 to digits - 1 do begin
+ SetLength(result, digits);
+ for i := 0 to digits - 1 do
+  begin
    result[digits - i] := HexDigits[value and 15];
    value := value shr 4;
-   end ;
+  end ;
+end ;
+
+
+function IntToHex(Value: int64; Digits: integer): string;
+var i: integer;
+begin
+ SetLength(result, digits);
+ for i := 0 to digits - 1 do
+  begin
+   result[digits - i] := HexDigits[value and 15];
+   value := value shr 4;
+  end ;
 end ;
 
 {   StrToInt converts the string S to an integer value,
@@ -549,6 +569,17 @@ begin
   if Error <> 0 then raise EConvertError.createfmt(SInValidInteger,[S]);
 end ;
 
+
+function StrToInt64(const S: string): int64;
+
+var Error: word;
+
+begin
+  Val(S, result, Error);
+  if Error <> 0 then raise EConvertError.createfmt(SInValidInteger,[S]);
+end ;
+
+
 {   StrToIntDef converts the string S to an integer value,
     Default is returned in case S does not represent a valid integer value  }
 
@@ -558,6 +589,17 @@ begin
 Val(S, result, Error);
 if Error <> 0 then result := Default;
 end ;
+
+{   StrToIntDef converts the string S to an integer value,
+    Default is returned in case S does not represent a valid integer value  }
+
+function StrToInt64Def(const S: string; Default: int64): int64;
+var Error: word;
+begin
+Val(S, result, Error);
+if Error <> 0 then result := Default;
+end ;
+
 
 {   LoadStr returns the string resource Ident.   }
 
@@ -1175,7 +1217,50 @@ const
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:51  michael
-  + removed logs
- 
+  Revision 1.1.2.1  2000-08-09 19:31:03  peter
+    * int64 updates from Marco
+
+  Revision 1.1  2000/07/13 06:31:01  michael
+  + Initial import
+
+  Revision 1.35  2000/07/04 17:12:46  peter
+    * fixed hex printing for $10 with %x
+
+  Revision 1.34  2000/05/08 17:03:02  sg
+  * Changed CompareMem to CompareMemRange and added new (Delphi compatible)
+    CompareMem. (CompareMem needs a Boolean as result type, not Integer)
+
+  Revision 1.33  2000/05/08 13:26:42  peter
+    * vtchar support for %s
+    * define debug -> define fmtdebug
+
+  Revision 1.32  2000/04/03 06:40:37  michael
+  * TRim(right|Left) more Delphi compatible
+
+  Revision 1.31  2000/02/09 16:59:33  peter
+    * truncated log
+
+  Revision 1.30  2000/02/01 12:53:23  peter
+    * fixed rangecheck error in format()
+
+  Revision 1.29  1999/11/06 14:41:31  peter
+    * truncated log
+
+  Revision 1.28  1999/10/12 19:16:27  florian
+    * bug 645 fixed: format('%x',...) should writes unsigned hexadecimals, also
+      prec fixed: max. value in delphi is 15 (and not 32)
+
+  Revision 1.27  1999/10/03 19:42:40  peter
+    * fixed comparetext
+
+  Revision 1.26  1999/09/04 20:48:34  florian
+    * format('%g',[0.0]) returned long format string, fixed
+
+  Revision 1.25  1999/08/25 13:13:58  michael
+  fixed Formaterror, added missing raise
+
+  Revision 1.24  1999/08/16 22:38:53  peter
+    * fixed newstr/disposestr
+
 }
+

@@ -27,11 +27,11 @@
 
 type
    PString = ^String;
-   
-   { For FloatToText } 
+
+   { For FloatToText }
    TFloatFormat = (ffGeneral, ffExponent, ffFixed, ffNumber, ffCurrency);
 
-   
+
 function NewStr(const S: string): PString;
 procedure DisposeStr(S: PString);
 procedure AssignStr(var P: PString; const S: string);
@@ -65,13 +65,13 @@ function AnsiExtractQuotedStr(Const Src: PChar; Quote: Char): string;
 function AdjustLineBreaks(const S: string): string;
 function IsValidIdent(const Ident: string): boolean;
 function IntToStr(Value: integer): string;
-// function IntToStr(Value: Int64): string;
+function IntToStr(Value: Int64): string;
 function IntToHex(Value: integer; Digits: integer): string;
-// function IntToHex(Value: Int64; Digits: integer): string;
+function IntToHex(Value: Int64; Digits: integer): string;
 function StrToInt(const s: string): integer;
-// function StrToInt64(const s: string): int64;
+function StrToInt64(const s: string): int64;
 function StrToIntDef(const S: string; Default: integer): integer;
-// function StrToInt64Def(const S: string; Default: int64): int64;
+function StrToInt64Def(const S: string; Default: int64): int64;
 function LoadStr(Ident: integer): string;
 // function FmtLoadStr(Ident: integer; const Args: array of const): string;
 Function Format (Const Fmt : String; const Args : Array of const) : String;
@@ -94,7 +94,18 @@ function BCDToInt(Value: integer): integer;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:51  michael
-  + removed logs
- 
+  Revision 1.1.2.1  2000-08-09 19:31:03  peter
+    * int64 updates from Marco
+
+  Revision 1.1  2000/07/13 06:31:01  michael
+  + Initial import
+
+  Revision 1.10  2000/05/08 17:03:02  sg
+  * Changed CompareMem to CompareMemRange and added new (Delphi compatible)
+    CompareMem. (CompareMem needs a Boolean as result type, not Integer)
+
+  Revision 1.9  2000/02/09 16:59:33  peter
+    * truncated log
+
 }
+
