@@ -139,7 +139,7 @@ unit agarmgas;
           end;
         { no top_ref jumping for powerpc }
         top_const :
-          getopstr_jmp:=tostr(o.val);
+          getopstr_jmp:='#'+tostr(o.val);
         top_symbol :
           begin
             hs:=o.sym.name;
@@ -193,7 +193,7 @@ unit agarmgas;
             else internalerror(200308282);
           end;
         top_const:
-          getopstr:=tostr(longint(o.val));
+          getopstr:='#'+tostr(longint(o.val));
         top_ref:
           getopstr:=getreferencestring(o.ref^);
         top_symbol:
@@ -292,7 +292,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2003-08-28 00:05:29  florian
+  Revision 1.5  2003-08-28 13:26:10  florian
+    * another couple of arm fixes
+
+  Revision 1.4  2003/08/28 00:05:29  florian
     * today's arm patches
 
   Revision 1.3  2003/08/24 12:27:26  florian

@@ -244,29 +244,7 @@ unit cgcpu;
 
      procedure tcgarm.a_op_const_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; reg: TRegister);
        begin
-{
-            shifterop_reset(so);
-            { determine operator }
-            if nodetype=shln then
-              so.shiftertype:=SO_LSL
-            else
-              so.shiftertype:=SO_LSR;
-            { shifting by a constant directly coded: }
-            if (right.nodetype=ordconstn) then
-              begin
-                so.shiftimm:=tordconstnode(right).value and 31;
-                a_op_reg_reg_shifterop(exprasmlist,op,OS_32,hregister1,resultreg,so)
-              end
-            else
-              begin
-                { load shift count in a register if necessary }
-                location_force_reg(exprasmlist,right.location,def_cgsize(right.resulttype.def),true);
-                hregister2 := right.location.register;
-                so.rs:=hregister2;
-                a_op_reg_reg_reg(exprasmlist,op,OS_32,hregister2,hregister1,resultreg);
-                rg.UnGetRegisterInt(exprasmlist,hregister2);
-              end;
-}
+          a_op_const_reg_reg(list,op,size,a,reg,reg);
        end;
 
 
@@ -276,18 +254,66 @@ unit cgcpu;
        end;
 
 
+     const
+       op_reg_reg_opcg2asmop: array[TOpCG] of tasmop =
+         (A_NONE,A_ADD,A_AND,A_NONE,A_NONE,A_MUL,A_MUL,A_NONE,A_NONE,A_ORR,
+          A_NONE,A_NONE,A_NONE,A_SUB,A_EOR);
+
+
      procedure tcgarm.a_op_const_reg_reg(list: taasmoutput; op: TOpCg;
        size: tcgsize; a: aword; src, dst: tregister);
+       var
+         shift : byte;
+         tmpreg : tregister;
+         so : tshifterop;
        begin
+          if is_shifter_const(a,shift) and (op<>OP_MUL) then
+            case op of
+              OP_NEG,OP_NOT,
+              OP_DIV,OP_IDIV:
+                internalerror(200308281);
+              OP_SHL:
+                begin
+                  if a>32 then
+                    internalerror(200308291);
+                  shifterop_reset(so);
+                  so.shiftertype:=SO_LSL;
+                  so.shiftimm:=a;
+                  list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src,so));
+                end;
+              OP_SHR:
+                begin
+                  if a>32 then
+                    internalerror(200308292);
+                  shifterop_reset(so);
+                  so.shiftertype:=SO_LSR;
+                  so.shiftimm:=a;
+                  list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src,so));
+                end;
+              OP_SAR:
+                begin
+                  if a>32 then
+                    internalerror(200308291);
+                  shifterop_reset(so);
+                  so.shiftertype:=SO_LSL;
+                  so.shiftimm:=a;
+                  list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src,so));
+                end;
+              else
+                list.concat(taicpu.op_reg_reg_const(op_reg_reg_opcg2asmop[op],dst,src,a));
+            end
+          else
+            begin
+               tmpreg := rg.getregisterint(list,size);
+               a_load_const_reg(list,size,a,tmpreg);
+               a_op_reg_reg_reg(list,op,size,tmpreg,src,dst);
+               rg.ungetregisterint(list,tmpreg);
+            end;
        end;
 
 
      procedure tcgarm.a_op_reg_reg_reg(list: taasmoutput; op: TOpCg;
        size: tcgsize; src1, src2, dst: tregister);
-       const
-         op_reg_reg_opcg2asmop: array[TOpCG] of tasmop =
-           (A_NONE,A_ADD,A_AND,A_NONE,A_NONE,A_MUL,A_MUL,A_NONE,A_NONE,A_ORR,
-            A_NONE,A_NONE,A_NONE,A_SUB,A_EOR);
        var
          so : tshifterop;
        begin
@@ -591,7 +617,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2003-08-28 00:05:29  florian
+  Revision 1.7  2003-08-28 13:26:10  florian
+    * another couple of arm fixes
+
+  Revision 1.6  2003/08/28 00:05:29  florian
     * today's arm patches
 
   Revision 1.5  2003/08/25 23:20:38  florian
