@@ -752,7 +752,9 @@ implementation
               { optimize for size ? }
               if cs_littlesize in aktglobalswitches  then
                 begin
-                   if (labels<=2) or (dist>3*labels) then
+                   if (labels<=2) or
+                      ((max_label-min_label)<0) or
+                      ((max_label-min_label)>3*labels) then
                   { a linear list is always smaller than a jump tree }
                      genlinearlist(p^.nodes)
                    else
@@ -818,7 +820,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  1999-04-08 20:59:37  florian
+  Revision 1.26  1999-04-09 08:36:36  peter
+    * fix also for -Og
+
+  Revision 1.25  1999/04/08 20:59:37  florian
     * fixed problem with default properties which are a class
     * case bug (from the mailing list with -O2) fixed, the
       distance of the case labels can be greater than the positive
