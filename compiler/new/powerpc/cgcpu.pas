@@ -57,6 +57,7 @@ unit cgcpu;
           procedure a_cmp_reg_const_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
             l : pasmlabel);virtual;
           procedure a_cmp_reg_reg_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : pasmlabel);
+          procedure a_jmp_cond(list : paasmoutput;cond : TOpCmp;l: pasmlabel);
 
 
           procedure g_stackframe_entry_sysv(list : paasmoutput;localsize : longint);
@@ -103,8 +104,8 @@ const
                       A_DIVWU,A_DIVW, A_MULLW,A_MULLW,A_NONE,A_NONE,
                       A_ORIS,A_NONE, A_NONE,A_NONE,A_SUBIS,A_XORIS);
 
-  TOpCmp2AsmCond: Array[topcmp] of TAsmCondFlags = (CF_EQ,CF_GT,CF_LT,CF_GE,
-                       CF_LE,CF_NE,CF_LE,CF_NG,CF_GE,CF_NL);
+  TOpCmp2AsmCond: Array[topcmp] of TAsmCondFlags = (CF_NONE,CF_EQ,CF_GT,
+                       CF_LT,CF_GE,CF_LE,CF_NE,CF_LE,CF_NG,CF_GE,CF_NL);
 
   LoadInstr: Array[OS_8..OS_32,boolean, boolean] of TAsmOp =
                          { indexed? updating?}
@@ -357,9 +358,9 @@ const
       end;
 
      procedure tcgppc.a_jmp_cond(list : paasmoutput;cond : TOpCmp;l: pasmlabel);
-     
+
         begin
-          a_jmp(list,A_BC,TOpCmp2AsmCond[cmp_op],l);
+          a_jmp(list,A_BC,TOpCmp2AsmCond[cond],l);
         end;
 
 { *********** entry/exit code and address loading ************ }
@@ -377,44 +378,44 @@ const
  { procedure, but currently this isn't checked, so save them always         }
         { following is the entry code as described in "Altivec Programming }
         { Interface Manual", bar the saving of AltiVec registers           }
-        a_reg_alloc(list,R_SP);
+        a_reg_alloc(list,stack_pointer);
         a_reg_alloc(list,R_0);
         { allocate registers containing reg parameters }
         for regcounter := R_3 to R_10 do
           a_reg_alloc(list,regcounter);
         { save return address... }
-        list^.concat(new(paicpu,op_reg(A_MFLR,R_0)));
+        list^.concat(new(paicpu,op_reg_reg(A_MFSPR,R_0,R_LR)));
         { ... in caller's frame }
-        list^.concat(new(paicpu,op_reg_ref(A_STW,R_0,new_reference(R_SP,4))));
+        list^.concat(new(paicpu,op_reg_ref(A_STW,R_0,new_reference(STACK_POINTER,4))));
         a_reg_dealloc(list,R_0);
         a_reg_alloc(list,R_11);
         { save end of fpr save area }
-        list^.concat(new(paicpu,op_reg_reg_const(A_ORI,R_11,R_SP,0)));
+        list^.concat(new(paicpu,op_reg_reg_const(A_ORI,R_11,STACK_POINTER,0)));
         a_reg_alloc(list,R_12);
         { 0 or 8 based on SP alignment }
         list^.concat(new(paicpu,op_reg_reg_const_const_const(A_RLWINM,
-          R_12,R_SP,0,28,28)));
+          R_12,STACK_POINTER,0,28,28)));
         { add in stack length }
         list^.concat(new(paicpu,op_reg_reg_const(A_SUBFIC,R_12,R_12,
           -localsize)));
         { establish new alignment }
-        list^.concat(new(paicpu,op_reg_reg_reg(A_STWUX,R_SP,R_SP,R_12)));
+        list^.concat(new(paicpu,op_reg_reg_reg(A_STWUX,STACK_POINTER,STACK_POINTER,R_12)));
         a_reg_dealloc(list,R_12);
         { save floating-point registers }
         { !!! has to be optimized: only save registers that are used }
-        list^.concat(new(op_sym_ofs(A_BL,newasmsymbol('_savefpr_14'),0)));
+        list^.concat(new(paicpu,op_sym_ofs(A_BL,newasmsymbol('_savefpr_14'),0)));
         { compute end of gpr save area }
         list^.concat(new(paicpu,op_reg_reg_const(A_ADDI,R_11,R_11,-144)));
         { save gprs and fetch GOT pointer }
         { !!! has to be optimized: only save registers that are used }
-        list^.concat(new(op_sym_ofs(A_BL,newasmsymbol('_savegpr_14_go'),0)));
+        list^.concat(new(paicpu,op_sym_ofs(A_BL,newasmsymbol('_savegpr_14_go'),0)));
         a_reg_alloc(list,R_31);
         { place GOT ptr in r31 }
-        list^.concat(new(paicpu,op_reg(A_MFLR,R_31));
+        list^.concat(new(paicpu,op_reg_reg(A_MFSPR,R_31,R_LR)));
         { save the CR if necessary ( !!! always done currently ) }
         { still need to find out where this has to be done for SystemV
         a_reg_alloc(list,R_0);
-        list^.concat(new(paicpu,op_reg(A_MFCR,R_0);
+        list^.concat(new(paicpu,op_reg_reg(A_MFSPR,R_0,R_CR);
         list^.concat(new(paicpu,op_reg_ref(A_STW,scratch_register,
           new_reference(stack_pointer,LA_CR))));
         a_reg_dealloc(list,R_0); }
@@ -436,39 +437,39 @@ const
  { procedure, but currently this isn't checked, so save them always         }
         { following is the entry code as described in "Altivec Programming }
         { Interface Manual", bar the saving of AltiVec registers           }
-        a_reg_alloc(list,R_SP);
+        a_reg_alloc(list,STACK_POINTER);
         a_reg_alloc(list,R_0);
         { allocate registers containing reg parameters }
         for regcounter := R_3 to R_10 do
           a_reg_alloc(list,regcounter);
         { save return address... }
-        list^.concat(new(paicpu,op_reg(A_MFLR,R_0)));
+        list^.concat(new(paicpu,op_reg_reg(A_MFSPR,R_0,R_LR)));
         { ... in caller's frame }
-        list^.concat(new(paicpu,op_reg_ref(A_STW,R_0,new_reference(R_SP,8))));
+        list^.concat(new(paicpu,op_reg_ref(A_STW,R_0,new_reference(STACK_POINTER,8))));
         a_reg_dealloc(list,R_0);
         { save floating-point registers }
         { !!! has to be optimized: only save registers that are used }
-        list^.concat(new(op_sym_ofs(A_BL,'_savef14',0)));
+        list^.concat(new(paicpu,op_sym_ofs(A_BL,newasmsymbol('_savef14'),0)));
         { save gprs in gpr save area }
         { !!! has to be optimized: only save registers that are used }
-        list^.concat(new(op_reg_ref(A_STMW,R_13,new_reference(R_SP,-220))));
+        list^.concat(new(paicpu,op_reg_ref(A_STMW,R_13,new_reference(STACK_POINTER,-220))));
         { save the CR if necessary ( !!! always done currently ) }
         a_reg_alloc(list,R_0);
-        list^.concat(new(paicpu,op_reg(A_MFCR,R_0);
-        list^.concat(new(paicpu,op_reg_ref(A_STW,scratch_register,
+        list^.concat(new(paicpu,op_reg_reg(A_MFSPR,R_0,R_CR)));
+        list^.concat(new(paicpu,op_reg_ref(A_STW,R_0,
           new_reference(stack_pointer,LA_CR))));
         a_reg_dealloc(list,R_0);
         { save pointer to incoming arguments }
-        list^.concat(new(paicpu,op_reg_reg_const(A_ORI,R_31,R_SP,0)));
+        list^.concat(new(paicpu,op_reg_reg_const(A_ORI,R_31,STACK_POINTER,0)));
         a_reg_alloc(list,R_12);
         { 0 or 8 based on SP alignment }
         list^.concat(new(paicpu,op_reg_reg_const_const_const(A_RLWINM,
-          R_12,R_SP,0,28,28)));
+          R_12,STACK_POINTER,0,28,28)));
         { add in stack length }
         list^.concat(new(paicpu,op_reg_reg_const(A_SUBFIC,R_12,R_12,
           -localsize)));
         { establish new alignment }
-        list^.concat(new(paicpu,op_reg_reg_reg(A_STWUX,R_SP,R_SP,R_12)));
+        list^.concat(new(paicpu,op_reg_reg_reg(A_STWUX,STACK_POINTER,STACK_POINTER,R_12)));
         a_reg_dealloc(list,R_12);
         { now comes the AltiVec context save, not yet implemented !!! }
        end;
@@ -500,7 +501,7 @@ const
        list^.concat(new(paicpu,op_sym_ofs(A_BL,newasmsymbol('_restfpr_14_x'),0)));
      end;
 
-     procedure tcgppc.g_return_from_proc_sysv(list : paasmoutput;parasize : aword);
+     procedure tcgppc.g_return_from_proc_mac(list : paasmoutput;parasize : aword);
 
      var regcounter: TRegister;
 
@@ -511,11 +512,11 @@ const
        { AltiVec context restore, not yet implemented !!! }
 
        { restore SP }
-       list^.concat(new(paicpu,op_reg_reg_const(A_ORI,R_SP,R_31,0)));
+       list^.concat(new(paicpu,op_reg_reg_const(A_ORI,STACK_POINTER,R_31,0)));
        { restore gprs }
-       list^.concat(new(paicpu,op_reg_ref(A_LMW,R_13,new_reference(R_SP,-220))));
+       list^.concat(new(paicpu,op_reg_ref(A_LMW,R_13,new_reference(STACK_POINTER,-220))));
        { restore return address ... }
-       list^.concat(new(paicpu,op_reg_ref(A_LWZ,R_0,new_reference(R_SP,8))));
+       list^.concat(new(paicpu,op_reg_ref(A_LWZ,R_0,new_reference(STACK_POINTER,8))));
        { ... and return from _restf14 }
        list^.concat(new(paicpu,op_sym_ofs(A_B,newasmsymbol('_restf14'),0)));
      end;
@@ -543,11 +544,11 @@ const
              else
                list^.concat(new(paicpu,op_reg_ref(A_LIS,tmpreg,
                   newreference(tmpref))));
-             ref.base := tmpreg
+             ref.base := tmpreg;
              ref.symaddr := refs_l;
              { can be folded with one of the next instructions by the }
              { optimizer probably                                     }
-             list^.concat(new(paicpu,op_reg_ref(A_ADDI,tmpreg,tmpreg
+             list^.concat(new(paicpu,op_reg_reg_ref(A_ADDI,tmpreg,tmpreg,
                 newreference(tmpref))));
            end;
          if ref.offset <> 0 Then
@@ -698,8 +699,8 @@ const
             else
               list^.concat(new(paicpu,op_reg_ref(A_LIS,tmpreg,
                  newreference(tmpref))));
-            ref.base := tmpreg
-            ref^.symaddr := refs_l;
+            ref.base := tmpreg;
+            ref.symaddr := refs_l;
           end;
         list^.concat(new(paicpu,op_reg_ref(op,reg,newreference(ref))));
         if assigned(ref.symbol) then
@@ -718,7 +719,10 @@ const
 end.
 {
   $Log$
-  Revision 1.9  1999-11-05 07:05:56  jonas
+  Revision 1.10  1999-12-24 22:48:10  jonas
+    * compiles again
+
+  Revision 1.9  1999/11/05 07:05:56  jonas
     + a_jmp_cond()
 
   Revision 1.8  1999/10/24 09:22:18  jonas

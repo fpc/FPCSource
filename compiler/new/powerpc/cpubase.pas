@@ -29,6 +29,12 @@ interface
 uses
   strings,cobjects,aasm,cpuinfo;
 
+{$ifndef NOOPT}
+Type
+{What an instruction can change}
+  TInsChange = (Ch_None);
+{$endif}
+
 const
 { Size of the instruction table converted by nasmconv.pas }
   instabentries = 1103;
@@ -272,7 +278,7 @@ type
 
   { since we have only 16 offsets, we need to be able to specify the high }
   { and low 16 bits of the address of a symbol                            }
-  trefsymaddr = (refs_full,refs_ha,_refs_l);
+  trefsymaddr = (refs_full,refs_ha,refs_l);
 
   { immediate/reference record }
   preference = ^treference;
@@ -559,7 +565,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  1999-11-09 22:57:09  peter
+  Revision 1.11  1999-12-24 22:48:10  jonas
+    * compiles again
+
+  Revision 1.10  1999/11/09 22:57:09  peter
     * compiles again both i386,alpha both with optimizer
 
   Revision 1.9  1999/10/20 12:21:34  jonas
