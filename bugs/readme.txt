@@ -65,6 +65,7 @@ Fixed bugs:
                 sign extension
                  (already fixed ) but also for SET_IN_BYTE
   bug0047.pp    compiling with -So crashes the compiler              OK 0.99.1 (CEC)
+  bug0049.pp    shows an error while defining subrange types         OK 0.99.7 (PFV)
   bug0053.pp    shows a problem with open arrays                     OK 0.99.1 (FK)
                 (crashes a win95-DOS box :) )
   bug0054.pp    wordbool and longbool types are missed               OK 0.99.6 (PFV)
@@ -164,6 +165,8 @@ Fixed bugs:
   bug0147.pp   function b; is not allowed in implementation          OK 0.99.7 (PFV)
   bug0149.pp   (a, b) compile bug0149b twice and you'll get a crash  OK 0.99.7 (PFV)
   bug0151.pp   crash when using undeclared variable in withstatement OK 0.99.7 (PFV)
+  bug0154.pp   Subrange types give type mismatch when assigning to   OK 0.99.7 (PFV)
+               base type
 
 Unproducable bugs:
 ------------------
@@ -183,7 +186,6 @@ bug0142.pp   sizeof(object) is not tp7 compatible when no constructor is used
 
 Unfixed bugs:
 -------------
-bug0049.pp   shows an error while defining subrange types
 bug0050.pp   can't set a function result in a nested procedure of a function
 bug0051.pp   shows a problem with putpixel
 bug0052.pp   collects missing graph unit routines
@@ -204,6 +206,5 @@ bug0152.pp   End value of loop variable must be calculated before loop
              variable is initialized.
 bug0153.pp   indexing a local/para var should produce an error like tp7 because
              it's doomed to crash
-bug0154.pp   Subrange types give type mismatch when assigning to base type
 bug0155.pp   Missing string return for asm functions
 
