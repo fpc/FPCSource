@@ -1760,7 +1760,7 @@ FUNCTION TCollection.FirstThat (Test: Pointer): Pointer;
 VAR I: LongInt;
 BEGIN
    For I := 1 To Count Do Begin                       { Up from first item }
-     IF Boolean(Longint(CallPointerLocal(Test,PreviousFramePointer,Items^[I-1]))) THEN
+     IF Boolean(Byte(Longint(CallPointerLocal(Test,PreviousFramePointer,Items^[I-1])))) THEN
        Begin          { Test each item }
        FirstThat := Items^[I-1];                      { Return item }
        Exit;                                          { Now exit }
@@ -2744,7 +2744,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.26  1999-02-21 23:13:01  florian
+  Revision 1.27  1999-02-22 15:04:45  peter
+    * fixed typecasting in firstthat
+
+  Revision 1.26  1999/02/21 23:13:01  florian
     * tpcompatible flags for tstream introduced, thanks to Matthias Koeppe
 
   Revision 1.25  1999/01/22 10:21:55  peter
