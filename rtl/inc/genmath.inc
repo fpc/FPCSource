@@ -956,8 +956,11 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
          else
           power:=exp(ln(bas)*expo);
      end;
+{$endif}
 
-   function power(bas,expo : longint) : longint;
+
+{$ifndef FPC_SYSTEM_HAS_POWER_INT64}
+   function power(bas,expo : int64) : int64;
      begin
         if bas=0 then
           begin
@@ -982,6 +985,7 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
          end;
      end;
 {$endif}
+
 
 {$ifdef SUPPORT_DOUBLE}
 {****************************************************************************
@@ -1020,7 +1024,10 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
 
 {
   $Log$
-  Revision 1.9  2002-10-12 20:28:49  carl
+  Revision 1.10  2003-01-15 00:45:17  peter
+    * use generic int64 power
+
+  Revision 1.9  2002/10/12 20:28:49  carl
     * round returns int64
 
   Revision 1.8  2002/10/07 15:15:02  florian

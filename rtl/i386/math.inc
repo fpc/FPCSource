@@ -190,39 +190,12 @@
           power:=exp(ln(bas)*expo);
      end;
 
-
-{****************************************************************************
-                       Longint data type routines
- ****************************************************************************}
-
-   function power(bas,expo : int64) : int64;
-     begin
-        if bas=0 then
-          begin
-            if expo<>0 then
-              power:=0
-            else
-              HandleError(207);
-          end
-        else if expo=0 then
-         power:=1
-        else
-         begin
-           if bas<0 then
-            begin
-              if odd(expo) then
-               power:=-round(exp(ln(-bas)*expo))
-              else
-               power:=round(exp(ln(-bas)*expo));
-            end
-           else
-            power:=round(exp(ln(bas)*expo));
-         end;
-     end;
-
 {
   $Log$
-  Revision 1.11  2003-01-15 00:40:18  peter
+  Revision 1.12  2003-01-15 00:45:17  peter
+    * use generic int64 power
+
+  Revision 1.11  2003/01/15 00:40:18  peter
     * power returns int64
 
   Revision 1.10  2003/01/03 20:34:02  peter
