@@ -47,14 +47,24 @@ uses
 
 initialization
   CommonInit;
-
+  {$ifndef ver1_0}
+  systhrds.InitCriticalSection(SynchronizeCritSect);
+  ExecuteEvent := RtlEventCreate;
+  SynchronizeMethod := nil;
+  {$endif}
 finalization
   CommonCleanup;
-
+  {$ifndef ver1_0}
+    systhrds.DoneCriticalSection(SynchronizeCritSect);
+  RtlEventDestroy(ExecuteEvent);
+  {$endif}
 end.
 {
   $Log$
-  Revision 1.5  2004-01-22 17:11:23  peter
+  Revision 1.6  2004-12-23 09:42:42  marco
+   * first tthread.synchronize support (merged neli's patches)
+
+  Revision 1.5  2004/01/22 17:11:23  peter
     * classes uses types to import TPoint and TRect
 
   Revision 1.4  2004/01/13 18:04:25  florian

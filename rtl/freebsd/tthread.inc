@@ -346,6 +346,31 @@ end;
   change them completely.
 }
 
+
+var
+  { event that happens when gui thread is done executing the method}
+  ExecuteEvent: PRtlEvent;
+  { guard for synchronization variables }
+  SynchronizeCritSect: TRtlCriticalSection;
+  { method to execute }
+  SynchronizeMethod: TThreadMethod;
+  { caught exception in gui thread, to be raised in calling thread }
+  SynchronizeException: Exception;
+
+procedure CheckSynchronize;
+  { assumes being called from GUI thread }
+begin
+  if SynchronizeMethod = nil then
+    exit;
+
+  try
+    SynchronizeMethod;
+  except
+    SynchronizeException := Exception(AcquireExceptionObject);
+  end;
+  RtlEventSetEvent(ExecuteEvent);
+end;
+
 function SemaphoreInit: Pointer;
 begin
   SemaphoreInit := GetMem(SizeOf(TFilDes));
@@ -594,8 +619,24 @@ begin
 end;
 
 procedure TThread.Synchronize(Method: TThreadMethod);
+var
+  LocalSyncException: Exception;
 begin
-{$TODO someone with more clue of the GUI stuff will have to do this}
+  if SynchronizeMethodProc = nil then
+    { raise some error? }
+    exit;
+
+  EnterCriticalSection(SynchronizeCritSect);
+  SynchronizeMethod := Method;
+  SynchronizeException := nil;
+  SynchronizeMethodProc;
+  // wait infinitely
+  RtlEventWaitFor(ExecuteEvent);
+  SynchronizeMethod := nil;
+  LocalSyncException := SynchronizeException;
+  LeaveCriticalSection(SynchronizeCritSect);
+  if LocalSyncException <> nil then
+    raise LocalSyncException;
 end;
 
 procedure TThread.SetPriority(Value: TThreadPriority);
@@ -606,7 +647,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2004-03-06 01:27:40  marco
+  Revision 1.10  2004-12-23 09:42:42  marco
+   * first tthread.synchronize support (merged neli's patches)
+
+  Revision 1.9  2004/03/06 01:27:40  marco
    * Somebody forgot to adapt bsd again
 
   Revision 1.8  2004/01/03 12:18:29  marco
