@@ -514,7 +514,6 @@ end;
 
 procedure findfirst(const path : pathstr;attr : word;var f : searchRec);
 begin
-writeln('a');
 { no error }
   doserror:=0;
   F.Name:=Path;
@@ -523,13 +522,11 @@ writeln('a');
   StringToPchar(f.name);
 { FindFirstFile is a Win32 Call }
   F.FindHandle:=FindFirstFile (pchar(@f.Name),F.W32FindData);
-writeln('l1');
   If longint(F.FindHandle)=Invalid_Handle_value then
    begin
      DosError:=Last2DosError(GetLastError);
      exit;
    end;
-writeln('l1');
 { Find file with correct attribute }
   FindMatch(f);
 end;
@@ -879,7 +876,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.9  1998-10-16 08:55:26  peter
+  Revision 1.10  1998-10-16 14:20:06  peter
+    * removed writelns
+
+  Revision 1.9  1998/10/16 08:55:26  peter
     * findfirst is now more delphi alike
 
   Revision 1.8  1998/08/16 09:12:11  michael
