@@ -629,18 +629,6 @@ const
               end;
             current_module._exports.insertbefore(hp,hp2);
           end;
-{        if hp2=texported_item(current_module._exports.first) then
-          current_module._exports.concat(hp)
-        else if assigned(hp2) then
-          begin
-             hp.next:=hp2;
-             hp.previous:=hp2.previous;
-             if assigned(hp2.previous) then
-               hp2.previous.next:=hp;
-             hp2.previous:=hp;
-          end
-        else
-          current_module._exports.concat(hp);}
       end;
 
 
@@ -768,21 +756,6 @@ const
                 temtexport.concat(hp)
               else
                 temtexport.insertbefore(hp,hp2);
-{              if hp2=texported_item(temtexport.first) then
-                 temtexport.insert(hp)
-              else
-                begin
-                   if assigned(hp2) then
-                     begin
-                        hp.next:=hp2;
-                        hp.previous:=hp2.previous;
-                        hp2.previous:=hp;
-                        if assigned(hp.previous) then
-                          hp.previous.next:=hp;
-                      end
-                    else
-                      temtexport.concat(hp);
-                end;}
               hp:=texported_item(current_module._exports.first);;
            end;
 
@@ -1630,8 +1603,8 @@ initialization
 end.
 {
   $Log$
-  Revision 1.26  2004-01-09 13:36:26  daniel
-    * Export table generation fixed according to instructions from Pierre
+  Revision 1.27  2004-01-09 13:37:17  daniel
+    * Commented out code removed
 
   Revision 1.25  2003/12/09 19:54:59  marco
    * base-file instead of base_file
