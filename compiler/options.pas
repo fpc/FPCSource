@@ -227,7 +227,7 @@ var
 begin
   WriteLogo;
   Lines:=4;
-  Message1(option_usage,system.paramstr(0));
+  Message1(option_usage,FixFileName(system.paramstr(0)));
   lastident:=0;
   p:=MessagePChar(option_help_pages);
   while assigned(p) do
@@ -1654,7 +1654,7 @@ begin
 {$ENDIF USE_SYSUTILS}
 {$ifdef Unix}
   if configpath='' then
-   configpath:='/etc/';
+   configpath:=CleanPath(FixPath(exepath+'../etc/',false));
 {$endif}
   {
     Order to read configuration file :
@@ -1682,6 +1682,10 @@ begin
       if CfgFileExists(exepath+fn) then
        foundfn:=exepath+fn
      else
+{$else}
+      if CfgFileExists('/etc/'+fn) then
+       foundfn:='/etc'+fn
+     else     
 {$endif}
       check_configfile:=false;
    end;
@@ -2091,7 +2095,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.154  2004-11-22 19:34:58  peter
+  Revision 1.155  2004-12-15 16:06:47  marco
+   * introduction "cleanpath" (=fexpand), fixfilename(paramstr(0)) + search $PREFIX/etc/fpc.cfg
+
+  Revision 1.154  2004/11/22 19:34:58  peter
     * GetHeapStatus added, removed MaxAvail,MemAvail,HeapSize
 
   Revision 1.153  2004/11/17 22:21:35  peter

@@ -306,6 +306,7 @@ interface
     function  FindFilePchar(const f : string;path : pchar;var foundfile:string):boolean;
     function  FindExe(const bin:string;var foundfile:string):boolean;
     function  GetShortName(const n:string):string;
+    function  cleanpath(const s:string):String;
 
     function Shell(const command:string): longint;
     function  GetEnvPChar(const envname:string):pchar;
@@ -1377,6 +1378,15 @@ implementation
       end;
 
 
+function  CleanPath(const s:string):String;
+{ Wrapper that encapsulate fexpand/expandfilename}
+begin
+{$IFDEF USE_SYSUTILS}
+ cleanpath:=ExpandFileName(s);
+{$else}
+ cleanpath:=fexpand(s);
+{$endif}
+end;
  {****************************************************************************
                                OS Dependent things
  ****************************************************************************}
@@ -2135,7 +2145,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.153  2004-11-05 13:14:30  florian
+  Revision 1.154  2004-12-15 16:06:47  marco
+   * introduction "cleanpath" (=fexpand), fixfilename(paramstr(0)) + search $PREFIX/etc/fpc.cfg
+
+  Revision 1.153  2004/11/05 13:14:30  florian
     * fixed arm compilation
 
   Revision 1.152  2004/10/31 21:45:02  peter
