@@ -926,7 +926,7 @@ implementation
 
     begin
         pd:=defs;
-        while assigned(defs) do
+        while assigned(pd) do
             begin
                 s.addprocdef(pd^.def);
                 pd:=pd^.next;
@@ -2150,8 +2150,6 @@ implementation
          pd : pbestreal;
          ps : pnormalset;
          pc : pchar;
-         l1,l2 : longint;
-
       begin
          inherited loadsym(ppufile);
          typ:=constsym;
@@ -2681,7 +2679,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.55  2002-08-20 16:54:40  peter
+  Revision 1.56  2002-08-25 09:06:21  peter
+    * fixed loop in concat_procdefs
+
+  Revision 1.55  2002/08/20 16:54:40  peter
     * write address of varsym always
 
   Revision 1.54  2002/08/20 10:31:26  daniel
