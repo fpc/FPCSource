@@ -95,13 +95,15 @@ implementation
             hregister1.number:=NR_R1;
             hregister2.enum:=R_INTREGISTER;
             hregister2.number:=NR_R11;
-            exprasmlist.concat(taicpu.op_reg_reg_const(A_ADDI,hregister2,hregister1,current_procinfo.procdef.parast.address_fixup));
+            if assigned(current_procinfo.procdef.localst) then
+              exprasmlist.concat(taicpu.op_reg_reg_const(A_ADDI,hregister2,hregister1,current_procinfo.procdef.localst.address_fixup));
          end
        else if (current_procdef.parast.symtablelevel>(tprocdef(procdefinition).parast.symtablelevel)) then
          begin
             hregister1:=rg.getregisterint(exprasmlist,OS_ADDR);
             reference_reset_base(href,current_procinfo.framepointer,current_procinfo.framepointer_offset);
             cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister1);
+            { !!!!!!!!!! not true anymore!!!!!!! (JM)       }
             { the previous frame pointer is always saved at }
             { previous_framepointer-sizeof(pointer)         }
             reference_reset_base(href,hregister1,-POINTER_SIZE);
@@ -126,7 +128,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2003-05-16 20:00:39  jonas
+  Revision 1.12  2003-05-16 23:15:51  jonas
+    * workaround for nested procedures until Peter fixes it properly :)
+
+  Revision 1.11  2003/05/16 20:00:39  jonas
     * powerpc nested procedure fixes, should work completely now if all
       local variables of the parent procedure are declared before the
       nested procedures are declared

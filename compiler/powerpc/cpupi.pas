@@ -67,9 +67,11 @@ unit cpupi;
       begin
          { this value is necessary for nested procedures }
          procdef.parast.address_fixup:=0;
-         if assigned(procdef.localst) then
-           procdef.localst.address_fixup:=procdef.parast.address_fixup+procdef.parast.datasize;
          inherited after_header;
+
+         if assigned(procdef.localst) then
+           procdef.localst.address_fixup:=0;
+         procdef.parast.address_fixup:= -procdef.parast.datasize;
      end;
 
     procedure tppcprocinfo.after_pass1;
@@ -108,6 +110,7 @@ unit cpupi;
              //!!!! tg.setfirsttemp(firsttemp_offset);
              tg.firsttemp:=firsttemp_offset;
              tg.lasttemp:=firsttemp_offset;
+             inherited after_pass1;
            end;
       end;
 
@@ -116,7 +119,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2003-05-16 20:00:39  jonas
+  Revision 1.17  2003-05-16 23:15:51  jonas
+    * workaround for nested procedures until Peter fixes it properly :)
+
+  Revision 1.16  2003/05/16 20:00:39  jonas
     * powerpc nested procedure fixes, should work completely now if all
       local variables of the parent procedure are declared before the
       nested procedures are declared
