@@ -454,7 +454,7 @@ begin
     LowerCaseTable[i] := chr(i + 32);
   for i := 91 to 191 do
     LowerCaseTable[i] := chr(i);
-  Move (CPISO88591LCT,UpperCaseTable[192],SizeOf(CPISO88591UCT));
+  Move (CPISO88591LCT,LowerCaseTable[192],SizeOf(CPISO88591UCT));
 end;
 
 
@@ -493,7 +493,10 @@ end.
 {
 
   $Log$
-  Revision 1.22  2003-09-27 12:51:33  peter
+  Revision 1.23  2003-10-07 08:28:49  marco
+   * fix from Vincent to casetables
+
+  Revision 1.22  2003/09/27 12:51:33  peter
     * fpISxxx macros renamed to C compliant fpS_ISxxx
 
   Revision 1.21  2003/09/17 19:07:44  marco
