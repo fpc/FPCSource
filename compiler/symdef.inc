@@ -1293,17 +1293,27 @@
                                    TSETDEF
 ***************************************************************************}
 
+{ For i386 smallsets work,
+  for m68k there are problems
+  can be test by compiling with -dusesmallset PM }
+{$ifdef i386}
+{$define usesmallset}
+{$endif i386}
+
     constructor tsetdef.init(s : pdef;high : longint);
       begin
          inherited init;
          deftype:=setdef;
          setof:=s;
+{$ifdef usesmallset}
+         { small sets only working for i386 PM }
          if high<32 then
            begin
               settype:=smallset;
               savesize:=Sizeof(longint);
            end
          else
+{$endif usesmallset}
          if high<256 then
            begin
               settype:=normset;
@@ -3080,7 +3090,13 @@
 
 {
   $Log$
-  Revision 1.56  1998-10-09 11:47:56  pierre
+  Revision 1.57  1998-10-14 15:54:20  pierre
+    * smallsets are not entirely implemented for
+      m68k added a ifdef usesmallset
+      that is allways defined for i386
+      (enables testing for m68k)
+
+  Revision 1.56  1998/10/09 11:47:56  pierre
     * still more memory leaks fixes !!
 
   Revision 1.55  1998/10/06 17:16:55  pierre
