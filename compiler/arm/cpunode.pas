@@ -35,17 +35,19 @@ unit cpunode;
          the processor specific nodes must be included
          after the generic one (FK)
        }
-       narmadd
+       narmadd,
 //!!!       narminl,
-       { this not really a node }
-//!!!       narmmat,
-//!!!       narmcnv
+       narmmat,
+       narmcnv
        ;
 
 end.
 {
   $Log$
-  Revision 1.2  2003-08-21 03:14:00  florian
+  Revision 1.3  2003-08-21 23:24:08  florian
+    * continued to work on the arm skeleton
+
+  Revision 1.2  2003/08/21 03:14:00  florian
     * arm compiler can be compiled; far from being working
 
   Revision 1.1  2003/07/21 16:35:30  florian
