@@ -247,7 +247,10 @@ unit cgobj;
 
           procedure a_jmp_always(list : taasmoutput;l: tasmlabel); virtual; abstract;
           procedure a_jmp_flags(list : taasmoutput;const f : TResFlags;l: tasmlabel); virtual; abstract;
-
+ 
+          {# Depending on the value to check in the flags, either sets the register reg to one (if the flag is set) 
+             or zero (if the flag is cleared). The size parameter indicates the destination size register. 
+          }
           procedure g_flags2reg(list: taasmoutput; size: TCgSize; const f: tresflags; reg: TRegister); virtual; abstract;
           procedure g_flags2ref(list: taasmoutput; size: TCgSize; const f: tresflags; const ref:TReference); virtual;
 
@@ -1622,7 +1625,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.64  2002-11-16 17:06:28  peter
+  Revision 1.65  2002-11-17 16:27:31  carl
+    * document flags2reg
+
+  Revision 1.64  2002/11/16 17:06:28  peter
     * return error 210 for failed self test
 
   Revision 1.63  2002/11/15 01:58:46  peter
