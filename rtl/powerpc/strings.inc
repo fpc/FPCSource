@@ -18,6 +18,7 @@
 
 { Note: the implementation of these routines is for BIG ENDIAN only!! (JM) }
 
+{$ifndef FPC_UNIT_HAS_STRCOPY}
 {$define FPC_UNIT_HAS_STRCOPY}
 function strcopy(dest,source : pchar) : pchar;assembler;
 { in: dest in r3, source in r4 }
@@ -92,8 +93,10 @@ asm
 .LStrCopyDone:
         {  r3 still contains dest here  }
 end;
+{$endif FPC_UNIT_HAS_STRCOPY}
 
 
+{$ifndef FPC_UNIT_HAS_STRECOPY}
 {$define FPC_UNIT_HAS_STRECOPY}
 function strecopy(dest,source : pchar) : pchar;assembler;
 { in: dest in r3, source in r4        }
@@ -168,8 +171,10 @@ asm
 .LStrECopyDone:
         {  r3 contains new dest here  }
 end;
+{$endif FPC_UNIT_HAS_STRECOPY}
 
 
+{$ifndef FPC_UNIT_HAS_STRLCOPY}
 {$define FPC_UNIT_HAS_STRLCOPY}
 function strlcopy(dest,source : pchar;maxlen : longint) : pchar;assembler;
 { in: dest in r3, source in r4, maxlen in r5 }
@@ -192,12 +197,17 @@ asm
         stb     r0,1(r10)
 .LStrlCopyDone:
 end;
+{$endif FPC_UNIT_HAS_STRLCOPY}
 
 
+{$ifndef FPC_UNIT_HAS_STRLEN}
 {$define FPC_UNIT_HAS_STRLEN}
 function strlen(p : pchar) : longint;assembler;
 {$i strlen.inc}
+{$endif FPC_UNIT_HAS_STRLEN}
 
+
+{$ifndef FPC_UNIT_HAS_STREND}
 {$define FPC_UNIT_HAS_STREND}
 function strend(p : pchar) : pchar;assembler;
 { in: p in r3                  }
@@ -216,8 +226,10 @@ asm
         bne     .LStrEndLoop
 .LStrEndDone:
 end;
+{$endif FPC_UNIT_HAS_STREND}
 
 
+{$ifndef FPC_UNIT_HAS_STRCOMP}
 {$define FPC_UNIT_HAS_STRCOMP}
 function strcomp(str1,str2 : pchar) : longint;assembler;
 { in: str1 in r3, str2 in r4                                                }
@@ -243,8 +255,10 @@ asm
         bne     cr1,.LStrCompLoop
 .LStrCompDone:
 end;
+{$endif FPC_UNIT_HAS_STRCOMP}
 
 
+{$ifndef FPC_UNIT_HAS_STRLCOMP}
 {$define FPC_UNIT_HAS_STRLCOMP}
 function strlcomp(str1,str2 : pchar;l : longint) : longint;assembler;
 { (same as strcomp, but maximally compare until l'th character)             }
@@ -277,8 +291,10 @@ asm
         bdnzf  cr1*4+eq,.LStrlCompLoop
 .LStrlCompDone:
 end;
+{$endif FPC_UNIT_HAS_STRLCOMP}
 
 
+{$ifndef FPC_UNIT_HAS_STRICOMP}
 {$define FPC_UNIT_HAS_STRICOMP}
 function stricomp(str1,str2 : pchar) : longint;assembler;
 { in: str1 in r3, str2 in r4                                 }
@@ -341,8 +357,10 @@ asm
         bne     cr1,.LStriCompLoop
 .LStriCompDone:
 end;
+{$endif FPC_UNIT_HAS_STRICOMP}
 
 
+{$ifndef FPC_UNIT_HAS_STRLICOMP}
 {$define FPC_UNIT_HAS_STRLICOMP}
 function strlicomp(str1,str2 : pchar;l : longint) : longint;assembler;
 { (same as stricomp, but maximally compare until l'th character) }
@@ -400,8 +418,10 @@ asm
         bdnzf    cr1*4+eq,.LStrliCompLoop
 .LStrliCompDone:
 end;
+{$endif FPC_UNIT_HAS_STRLICOMP}
 
 
+{$ifndef FPC_UNIT_HAS_STRSCAN}
 {$define FPC_UNIT_HAS_STRSCAN}
 function strscan(p : pchar;c : char) : pchar;assembler;
 asm
@@ -419,8 +439,10 @@ asm
         li      r3, 0
 .LStrScanDone:
 end;
+{$endif FPC_UNIT_HAS_STRSCAN}
 
 
+{$ifndef FPC_UNIT_HAS_STRRSCAN}
 {$define FPC_UNIT_HAS_STRRSCAN}
 function strrscan(p : pchar;c : char) : pchar;assembler;
 asm
@@ -443,8 +465,10 @@ asm
         bne     .LStrrScanLoop
 .LStrrScanDone:
 end;
+{$endif FPC_UNIT_HAS_STRRSCAN}
 
 
+{$ifndef FPC_UNIT_HAS_STRUPPER}
 {$define FPC_UNIT_HAS_STRUPPER}
 function strupper(p : pchar) : pchar;assembler;
 asm
@@ -464,8 +488,10 @@ asm
         bne     cr1,.LStrUpperLoop
 .LStrUpperNil:
 end;
+{$endif FPC_UNIT_HAS_STRUPPER}
 
 
+{$ifndef FPC_UNIT_HAS_STRLOWER}
 {$define FPC_UNIT_HAS_STRLOWER}
 function strlower(p : pchar) : pchar;assembler;
 asm
@@ -485,11 +511,15 @@ asm
         bne     cr1,.LStrLowerLoop
 .LStrLowerNil:
 end;
+{$endif FPC_UNIT_HAS_STRLOWER}
 
 
 {
   $Log$
-  Revision 1.23  2003-12-28 22:33:35  florian
+  Revision 1.24  2004-05-01 17:02:37  jonas
+    * use some more string routines from libc if FPC_USE_LIBC is used
+
+  Revision 1.23  2003/12/28 22:33:35  florian
     * strscan fix from Jonas
 
   Revision 1.22  2003/11/29 16:27:19  jonas

@@ -862,6 +862,52 @@ asm
 end;
 {$endif FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
 
+(*
+{$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
+{$define FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
+
+function fpc_shortstr_concat(const s1, s2: shortstring): shortstring; compilerproc; [public, alias: 'FPC_SHORTSTR_CONCAT'];
+{ expects that (r3) contains a pointer to the result r4 to s1, r5 to s2 }
+assembler;
+asm
+      { load length s1 }
+      lbz     r6, 0(r4)
+      { load length s2 }
+      lbz     r10, 0(r5)
+      { length 0 for s1? }
+      cmplwi  cr7,r6,0
+      { length 255 for s1? }
+      subfic. r7,r6,255
+      { length 0 for s2? }
+      cmplwi  cr1,r10,0
+      { calculate min(length(s2),255-length(s1)) }
+      subc    r8,r7,r10    { r8 := r7 - r10                                }
+      cror    4*6+2,4*1+2,4*7+2
+      subfe   r7,r7,r7     { if r7 >= r10 then r7' := 0 else r7' := -1     }
+      mtctr   r6
+      and     r7,r8,r7     { if r7 >= r10 then r7' := 0 else r7' := r7-r10 }
+      add     r7,r7,r10    { if r7 >= r10 then r7' := r10 else r7' := r7   }
+
+      mr      r9,r3
+
+      { calculate length of final string }
+      add     r8,r7,r6
+      stb     r8,0(r3)
+      beq     cr7, .Lcopys1loopDone
+    .Lcopys1loop:
+      lbzu    r0,1(r4)
+      stbu    r0,1(r9)
+      bdnz    .Lcopys1loop
+    .Lcopys1loopDone:
+      mtctr   r7
+      beq     cr6, .LconcatDone
+    .Lcopys2loop:
+      lbzu    r0,1(r5)
+      stbu    r0,1(r9)
+      bdnz    .Lcopys2loop
+end;
+{$endif FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
+*)
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_APPEND_SHORTSTR}
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_APPEND_SHORTSTR}
@@ -876,15 +922,15 @@ asm
       { load length s2 }
       lbz     r10, 0(r5)
       { length 0? }
-      cmplwi  r10,0
       cmplw   cr1,r6,r4
+      cmplwi  r10,0
 
       { calculate min(length(s2),high(result)-length(result)) }
       sub     r9,r4,r6
       subc    r8,r9,r10    { r8 := r9 - r10                                }
+      cror    4*7+2,4*0+2,4*1+2
       subfe   r9,r9,r9     { if r9 >= r10 then r9' := 0 else r9' := -1     }
       and     r9,r8,r9     { if r9 >= r10 then r9' := 0 else r9' := r9-r10 }
-      cror    4*7+2,4*0+2,4*1+2
       add     r9,r9,r10    { if r9 >= r10 then r9' := r10 else r9' := r9   }
 
       { calculate new length }
@@ -1091,7 +1137,10 @@ end;
 
 {
   $Log$
-  Revision 1.66  2004-04-29 20:00:47  peter
+  Revision 1.67  2004-05-01 17:02:37  jonas
+    * use some more string routines from libc if FPC_USE_LIBC is used
+
+  Revision 1.66  2004/04/29 20:00:47  peter
     * inclocked_longint ifdef fixed
 
   Revision 1.65  2004/01/11 11:10:07  jonas

@@ -16,10 +16,13 @@
 
  **********************************************************************}
 
+{$ifndef FPC_UNIT_HAS_STRPAS}
 {$define FPC_UNIT_HAS_STRPAS}
 function strpas(p : pchar) : string; assembler;
 {$i strpas.inc}
+{$endif FPC_UNIT_HAS_STRPAS}
 
+{$ifndef FPC_UNIT_HAS_STRPCOPY}
 {$define FPC_UNIT_HAS_STRPCOPY}
 function strpcopy(d : pchar;const s : string) : pchar;assembler;
 asm
@@ -40,10 +43,14 @@ asm
 .LStrPCopyEmpty:
         stb     r0,1(r10)
 end;
+{$endif FPC_UNIT_HAS_STRPCOPY}
 
 {
   $Log$
-  Revision 1.11  2003-11-29 16:27:19  jonas
+  Revision 1.12  2004-05-01 17:02:37  jonas
+    * use some more string routines from libc if FPC_USE_LIBC is used
+
+  Revision 1.11  2003/11/29 16:27:19  jonas
     * fixed several ppc assembler reader related problems
     * local vars in assembler procedures now start at offset 4
     * fixed second_int_to_bool (apparently an integer can be in  LOC_JUMP??)
