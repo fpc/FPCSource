@@ -53,11 +53,11 @@ const
 Var
   ResourceListRoot : PResourceString;
   ResourceListCurrent : PResourceString;
-  
+
 { ---------------------------------------------------------------------
-   Calculate hash value, based on the string 
+   Calculate hash value, based on the string
   ---------------------------------------------------------------------}
-  
+
 function calc_resstring_hashvalue(P : Pchar; Len : longint) : longint;
 
   Var hash,g,I : longint;
@@ -85,12 +85,8 @@ function calc_resstring_hashvalue(P : Pchar; Len : longint) : longint;
 { ---------------------------------------------------------------------
     Append 1 resourcestring to the linked list of resource strings.
   ---------------------------------------------------------------------}
-  
-Function AppendToResourceList(const name : string;p : pchar;len,hash : longint) : longint;
 
-Var R : PResourceString;
-    Index : longint;
-    
+Function AppendToResourceList(const name : string;p : pchar;len,hash : longint) : longint;
 begin
   If ResourceListCurrent<>Nil then
     begin
@@ -108,7 +104,7 @@ begin
   ResourceListCurrent^.Hash:=hash;
   GetMem(ResourceListCurrent^.Value,Len);
   Move(P^,ResourceListCurrent^.Value^,Len);
-  AppendToResourceList:=ResStrCount;  
+  AppendToResourceList:=ResStrCount;
   inc(Resstrcount);
 end;
 
@@ -118,7 +114,7 @@ end;
 
 Procedure AppendToAsmResList (P : PResourceString);
 
-Var 
+Var
  l1 : pasmlabel;
  s : pchar;
 
@@ -141,7 +137,7 @@ begin
         consts^.concat(new(pai_string,init_length_pchar(s,len)));
         consts^.concat(new(pai_const,init_8bit(0)));
      end;
-   { append Current value (nil) and hash...}  
+   { append Current value (nil) and hash...}
    resourcestringlist^.concat(new(pai_const,init_32bit(0)));
    resourcestringlist^.concat(new(pai_const,init_32bit(hash)));
    { Append the name as a ansistring. }
@@ -301,14 +297,17 @@ begin
     T:=R^.Next;
     Dispose(R);
     R:=T;
-    end;    
+    end;
   ResStrCount:=0;
 end;
 
 end.
 {
   $Log$
-  Revision 1.11  1999-08-23 11:48:23  michael
+  Revision 1.12  1999-08-25 16:41:07  peter
+    * resources are working again
+
+  Revision 1.11  1999/08/23 11:48:23  michael
   * resourcestrings ams list needs unitname prepended
 
   Revision 1.10  1999/08/23 11:45:41  michael

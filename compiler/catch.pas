@@ -23,8 +23,10 @@
 }
 Unit catch;
 
-{ go32v2 stack check goes nuts if ss is not the data selector (PM) }
-{$S-}
+{$ifdef go32v2}
+  { go32v2 stack check goes nuts if ss is not the data selector (PM) }
+  {$S-}
+{$endif}
 
 interface
 uses
@@ -98,7 +100,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  1999-08-10 12:27:15  pierre
+  Revision 1.9  1999-08-25 16:41:04  peter
+    * resources are working again
+
+  Revision 1.8  1999/08/10 12:27:15  pierre
    * not stack check inside catch !!
 
   Revision 1.7  1999/07/05 12:13:22  florian

@@ -168,12 +168,12 @@ begin
 { ---------------------------------------------------------------------
     Delphi-Style memory management
   ---------------------------------------------------------------------}
-  
+
   Type PLongint = ^Longint;
 
 
     Procedure Getmem(Var p:pointer;Size:Longint);
-    
+
     begin
       Inc(Size,SizeOf(Longint));
       SysGetmem(P,Size);
@@ -185,7 +185,7 @@ begin
     begin
       FreeMem(P);
     end;
-    
+
     Procedure Freemem(Var p:pointer;Size:Longint);
 
     begin
@@ -197,7 +197,7 @@ begin
     begin
       If P<>Nil then
         begin
-        Dec(P,SizeOf(Longint));      
+        Dec(P,SizeOf(Longint));
         SysFreemem(P,Plongint(P)^);
         end;
     end;
@@ -206,7 +206,7 @@ begin
 Var OldMM,NEWMM : TmemoryManager;
 
     Procedure InitMemoryManager;
-    
+
     begin
       GetMemoryManager(OldMM);
       NewMM.FreeMem:=@DummyFreeMem;
@@ -218,7 +218,7 @@ Var OldMM,NEWMM : TmemoryManager;
     begin
       SetMemoryManager(OldMM);
     end;
-    
+
 {$IFDEF HasResourceStrings}
 
 { ---------------------------------------------------------------------
@@ -239,14 +239,14 @@ Type
      Resrec : Array[Word] of TResourceStringRecord;
    end;
    PResourceStringTable = ^TResourceStringTable;
-   
+
    TResourceTableList = Packed Record
      Count : longint;
      Tables : Array[Word] of PResourceStringTable;
      end;
 
-                     
-    
+
+
 Var
   ResourceStringTable : TResourceTablelist; External Name 'FPC_RESOURCESTRINGTABLES';
 
@@ -274,9 +274,8 @@ begin
 end;
 
 Function GetResourceString(Const TheTable: TResourceStringTable;Index : longint) : AnsiString;[Public,Alias : 'FPC_GETRESOURCESTRING'];
-
 begin
-  If (Index>0) and (Index<TheTAble.Count) then
+  If (Index>=0) and (Index<TheTAble.Count) then
      Result:=TheTable.ResRec[Index].CurrentValue
   else
      Result:='';
@@ -300,8 +299,8 @@ Var I,J : longint;
 begin
   With ResourceStringTable do
     For I:=0 to Count-1 do
-      With Tables[I]^ do 
-         For J:=0 to Count-1 do 
+      With Tables[I]^ do
+         For J:=0 to Count-1 do
            With ResRec[J] do
              CurrentValue:=SetFunction(Name,DefaultValue,HashValue);
 end;
@@ -314,8 +313,8 @@ Var I,J : longint;
 begin
   With ResourceStringTable do
   For I:=0 to Count-1 do
-    With Tables[I]^ do 
-        For J:=0 to Count-1 do 
+    With Tables[I]^ do
+        For J:=0 to Count-1 do
           With ResRec[J] do
             CurrentValue:=DefaultValue;
 end;
@@ -333,7 +332,10 @@ end.
 
 {
   $Log$
-  Revision 1.36  1999-08-24 22:42:56  michael
+  Revision 1.37  1999-08-25 16:41:08  peter
+    * resources are working again
+
+  Revision 1.36  1999/08/24 22:42:56  michael
   * changed resourcestrings to new mechanism
 
   Revision 1.35  1999/08/24 12:02:29  michael

@@ -36,7 +36,7 @@ implementation
 
     uses
       globtype,systems,
-      cobjects,verbose,globals,
+      cobjects,verbose,globals,files,
       symconst,symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
       cpubase,cpuasm,
@@ -55,7 +55,7 @@ implementation
          s : pasmsymbol;
          popeax : boolean;
          pushed : tpushed;
-         hr,resref : treference;
+         hr : treference;
 
       begin
          simple_loadn:=true;
@@ -81,10 +81,7 @@ implementation
                          pushusedregisters(pushed,$ff);
                          emit_const(A_PUSH,S_L,
                            pconstsym(p^.symtableentry)^.resstrindex);
-                         { Now we must push the address of the 
-                           resourcestringtable of the unit the resourcestring is in,
-                           it has label modulename^+'_RESOURCESTRINGLIST' 
-                           MVC }
+                         emit_sym(A_PUSH,S_L,newasmsymbol(current_module^.modulename^+'_RESOURCESTRINGLIST'));
                          emitcall('FPC_GETRESOURCESTRING');
 
                          hregister:=getexplicitregister32(R_EAX);
@@ -968,7 +965,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.78  1999-08-25 11:59:43  jonas
+  Revision 1.79  1999-08-25 16:41:05  peter
+    * resources are working again
+
+  Revision 1.78  1999/08/25 11:59:43  jonas
     * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
 
   Revision 1.77  1999/08/24 22:38:51  michael
