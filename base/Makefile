@@ -1324,16 +1324,8 @@ doc_install:
 # Packaging targets
 #######################################
 
-idezips: clean ide_allzip ide_gdbzip ide_fullzip ide_fullgdbzip
+idezips: ide_fullzip ide_fullgdbzip optcompinstall optcompzip
 
-ide_allzip:
-	$(MAKE) ide_clean
-	$(MAKE) ide_all
-	$(MAKE) -C ide/text zipinstall ZIPNAME=ide-fake-$(PACKAGESUFFIX)
-ide_gdbzip:
-	$(MAKE) ide_clean
-	$(MAKE) ide_gdb
-	$(MAKE) -C ide/text zipinstall ZIPNAME=ide-gdb-$(PACKAGESUFFIX)
 ide_compzip:
 	$(MAKE) compiler_clean
 	$(MAKE) ide_clean
@@ -1343,6 +1335,13 @@ ide_fullgdbzip:
 	$(MAKE) ide_clean
 	$(MAKE) ide_fullgdb
 	$(MAKE) -C ide/text zipinstall ZIPNAME=ide-full-$(PACKAGESUFFIX)
+
+optcompinstall:
+	$(MAKE) compiler_cycle OPT=-dNEWOPTIMIZATIONS
+	$(MAKE) compiler_install
+
+optcompzip:
+	$(MAKE) fpc_zipinstall PACKAGENAME=optcomp ZIPTARGET=optcompinstall
 
 
 ##########################################################################
@@ -1372,7 +1371,7 @@ installersrc:
 # Packaging
 ##########################################################################
 
-.PHONY: all clean build installbase zipinstall zipinstallbase zipinstallfcl \
+.PHONY: all clean distclean build installbase zipinstall zipinstallbase zipinstallfcl \
 	zipinstallpackages
 
 export RELEASE DESTZIPDIR
@@ -1388,7 +1387,7 @@ distclean: clean
 build: build-stamp
 build-stamp:
 # create new compiler
-ifeq $($(OS_TARGET),win32)
+ifeq ($(OS_TARGET),win32)
 	-$(MAKE) compiler_cycle
 else
 	$(MAKE) compiler_cycle
@@ -1419,7 +1418,7 @@ installbase: build-stamp
 	$(MKDIR) $(BASEINSTALLDIR)
 	$(MKDIR) $(DOCINSTALLDIR)
 	$(MKDIR) $(BININSTALLDIR)
-#ifndef SNAPSHOT
+ifndef SNAPSHOT
 # readme & whatsnew and docs
 	$(COPY) $(CVSINSTALL)/doc/*.txt $(CVSINSTALL)/doc/copying* $(CVSINSTALL)/doc/faq.* $(DOCINSTALLDIR)
 # bingo32 (cwsdpmi,wmemu387.dxe)
