@@ -520,7 +520,10 @@ do_jmp:
 
        begin
          emitjmp(C_None,p^.labelnr);
-         if aktexceptblock<>ptree(p^.labsym^.code)^.exceptionblock then
+         { the assigned avoids only crashes if the label isn't defined }
+         if assigned(p^.labsym) and
+           assigned(p^.labsym^.code) and
+            (aktexceptblock<>ptree(p^.labsym^.code)^.exceptionblock) then
            CGMessage(cg_e_goto_inout_of_exception_block);
        end;
 
@@ -806,7 +809,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.61  1999-12-14 09:58:41  florian
+  Revision 1.62  1999-12-17 11:20:06  florian
+    * made the goto checking for excpetions more fool proof against errors
+
+  Revision 1.61  1999/12/14 09:58:41  florian
     + compiler checks now if a goto leaves an exception block
 
   Revision 1.60  1999/12/01 12:36:23  peter
