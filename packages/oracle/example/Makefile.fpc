@@ -1,20 +1,16 @@
 #
-#  Makefile.fpc for oracle units
+#  Makefile.fpc for oracle units example
 #
 
-[package]
-name=oracle
-version=1.0.5
-
 [target]
-units=oraoci
-exampledirs=example
+units=oraclew
+examples=test01
 
 [require]
-libc=y
+packages=oracle fcl
 
 [default]
-fpcdir=../..
+fpcdir=../../..
 
 # in libdir variable must be path to libraries
 # libclntsh.*,libnlsrtl3.*

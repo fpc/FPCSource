@@ -440,7 +440,12 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-12-02 15:14:14  michael
+  Revision 1.1  2001-04-08 12:23:49  peter
+    * moved oraclew and test01 to example subdir to remove the dependency
+      on the fcl. This dependency is now only required when building the
+      examples
+
+  Revision 1.1  2000/12/02 15:14:14  michael
   + Initial implementation of Pavel Stingl
 
   Revision 1.1.1.1  2000/10/11 07:48:28  stingp1

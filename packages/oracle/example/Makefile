@@ -91,7 +91,7 @@ else
 override FPCDIR=wrong
 endif
 ifeq ($(FPCDIR),wrong)
-override FPCDIR=../..
+override FPCDIR=../../..
 ifeq ($(wildcard $(FPCDIR)/rtl),)
 ifeq ($(wildcard $(FPCDIR)/units),)
 override FPCDIR=wrong
@@ -117,10 +117,8 @@ endif
 endif
 UNITSDIR=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 PACKAGESDIR=$(wildcard $(FPCDIR) $(FPCDIR)/packages)
-override PACKAGE_NAME=oracle
-override PACKAGE_VERSION=1.0.5
-override TARGET_UNITS+=oraoci
-override TARGET_EXAMPLEDIRS+=example
+override TARGET_UNITS+=oraclew
+override TARGET_EXAMPLES+=test01
 ifndef ECHO
 ECHO:=$(strip $(wildcard $(addsuffix /gecho$(EXEEXT),$(SEARCHPATH))))
 ifeq ($(ECHO),)
@@ -428,18 +426,38 @@ export GCCLIBDIR OTHERLIB
 endif
 ifeq ($(OS_TARGET),linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_ORACLE=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_INET=1
+REQUIRE_PACKAGES_FCL=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_IBASE=1
 endif
 ifeq ($(OS_TARGET),go32v2)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_ORACLE=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL=1
 endif
 ifeq ($(OS_TARGET),win32)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_ORACLE=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_IBASE=1
 endif
 ifeq ($(OS_TARGET),os2)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_ORACLE=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL=1
 endif
 ifeq ($(OS_TARGET),freebsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_ORACLE=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL=1
 endif
 ifdef REQUIRE_PACKAGES_RTL
 PACKAGEDIR_RTL:=$(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /rtl/Makefile.fpc,$(PACKAGESDIR)))))
@@ -468,7 +486,169 @@ ifdef UNITDIR_RTL
 override COMPILER_UNITDIR+=$(UNITDIR_RTL)
 endif
 endif
-.PHONY: package_rtl
+ifdef REQUIRE_PACKAGES_ORACLE
+PACKAGEDIR_ORACLE:=$(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /oracle/Makefile.fpc,$(PACKAGESDIR)))))
+ifneq ($(PACKAGEDIR_ORACLE),)
+PACKAGEDIR_ORACLE:=$(firstword $(PACKAGEDIR_ORACLE))
+ifeq ($(wildcard $(PACKAGEDIR_ORACLE)/$(FPCMADE)),)
+override COMPILEPACKAGES+=package_oracle
+package_oracle:
+	$(MAKE) -C $(PACKAGEDIR_ORACLE) all
+endif
+ifneq ($(wildcard $(PACKAGEDIR_ORACLE)/$(OS_TARGET)),)
+UNITDIR_ORACLE=$(PACKAGEDIR_ORACLE)/$(OS_TARGET)
+else
+UNITDIR_ORACLE=$(PACKAGEDIR_ORACLE)
+endif
+else
+PACKAGEDIR_ORACLE=
+UNITDIR_ORACLE:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /oracle/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_ORACLE),)
+UNITDIR_ORACLE:=$(firstword $(UNITDIR_ORACLE))
+else
+UNITDIR_ORACLE=
+endif
+endif
+ifdef UNITDIR_ORACLE
+override COMPILER_UNITDIR+=$(UNITDIR_ORACLE)
+endif
+endif
+ifdef REQUIRE_PACKAGES_PASZLIB
+PACKAGEDIR_PASZLIB:=$(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /paszlib/Makefile.fpc,$(PACKAGESDIR)))))
+ifneq ($(PACKAGEDIR_PASZLIB),)
+PACKAGEDIR_PASZLIB:=$(firstword $(PACKAGEDIR_PASZLIB))
+ifeq ($(wildcard $(PACKAGEDIR_PASZLIB)/$(FPCMADE)),)
+override COMPILEPACKAGES+=package_paszlib
+package_paszlib:
+	$(MAKE) -C $(PACKAGEDIR_PASZLIB) all
+endif
+ifneq ($(wildcard $(PACKAGEDIR_PASZLIB)/$(OS_TARGET)),)
+UNITDIR_PASZLIB=$(PACKAGEDIR_PASZLIB)/$(OS_TARGET)
+else
+UNITDIR_PASZLIB=$(PACKAGEDIR_PASZLIB)
+endif
+else
+PACKAGEDIR_PASZLIB=
+UNITDIR_PASZLIB:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /paszlib/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_PASZLIB),)
+UNITDIR_PASZLIB:=$(firstword $(UNITDIR_PASZLIB))
+else
+UNITDIR_PASZLIB=
+endif
+endif
+ifdef UNITDIR_PASZLIB
+override COMPILER_UNITDIR+=$(UNITDIR_PASZLIB)
+endif
+endif
+ifdef REQUIRE_PACKAGES_INET
+PACKAGEDIR_INET:=$(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /inet/Makefile.fpc,$(PACKAGESDIR)))))
+ifneq ($(PACKAGEDIR_INET),)
+PACKAGEDIR_INET:=$(firstword $(PACKAGEDIR_INET))
+ifeq ($(wildcard $(PACKAGEDIR_INET)/$(FPCMADE)),)
+override COMPILEPACKAGES+=package_inet
+package_inet:
+	$(MAKE) -C $(PACKAGEDIR_INET) all
+endif
+ifneq ($(wildcard $(PACKAGEDIR_INET)/$(OS_TARGET)),)
+UNITDIR_INET=$(PACKAGEDIR_INET)/$(OS_TARGET)
+else
+UNITDIR_INET=$(PACKAGEDIR_INET)
+endif
+else
+PACKAGEDIR_INET=
+UNITDIR_INET:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /inet/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_INET),)
+UNITDIR_INET:=$(firstword $(UNITDIR_INET))
+else
+UNITDIR_INET=
+endif
+endif
+ifdef UNITDIR_INET
+override COMPILER_UNITDIR+=$(UNITDIR_INET)
+endif
+endif
+ifdef REQUIRE_PACKAGES_FCL
+PACKAGEDIR_FCL:=$(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fcl/Makefile.fpc,$(PACKAGESDIR)))))
+ifneq ($(PACKAGEDIR_FCL),)
+PACKAGEDIR_FCL:=$(firstword $(PACKAGEDIR_FCL))
+ifeq ($(wildcard $(PACKAGEDIR_FCL)/$(FPCMADE)),)
+override COMPILEPACKAGES+=package_fcl
+package_fcl:
+	$(MAKE) -C $(PACKAGEDIR_FCL) all
+endif
+ifneq ($(wildcard $(PACKAGEDIR_FCL)/$(OS_TARGET)),)
+UNITDIR_FCL=$(PACKAGEDIR_FCL)/$(OS_TARGET)
+else
+UNITDIR_FCL=$(PACKAGEDIR_FCL)
+endif
+else
+PACKAGEDIR_FCL=
+UNITDIR_FCL:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /fcl/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_FCL),)
+UNITDIR_FCL:=$(firstword $(UNITDIR_FCL))
+else
+UNITDIR_FCL=
+endif
+endif
+ifdef UNITDIR_FCL
+override COMPILER_UNITDIR+=$(UNITDIR_FCL)
+endif
+endif
+ifdef REQUIRE_PACKAGES_MYSQL
+PACKAGEDIR_MYSQL:=$(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /mysql/Makefile.fpc,$(PACKAGESDIR)))))
+ifneq ($(PACKAGEDIR_MYSQL),)
+PACKAGEDIR_MYSQL:=$(firstword $(PACKAGEDIR_MYSQL))
+ifeq ($(wildcard $(PACKAGEDIR_MYSQL)/$(FPCMADE)),)
+override COMPILEPACKAGES+=package_mysql
+package_mysql:
+	$(MAKE) -C $(PACKAGEDIR_MYSQL) all
+endif
+ifneq ($(wildcard $(PACKAGEDIR_MYSQL)/$(OS_TARGET)),)
+UNITDIR_MYSQL=$(PACKAGEDIR_MYSQL)/$(OS_TARGET)
+else
+UNITDIR_MYSQL=$(PACKAGEDIR_MYSQL)
+endif
+else
+PACKAGEDIR_MYSQL=
+UNITDIR_MYSQL:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /mysql/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_MYSQL),)
+UNITDIR_MYSQL:=$(firstword $(UNITDIR_MYSQL))
+else
+UNITDIR_MYSQL=
+endif
+endif
+ifdef UNITDIR_MYSQL
+override COMPILER_UNITDIR+=$(UNITDIR_MYSQL)
+endif
+endif
+ifdef REQUIRE_PACKAGES_IBASE
+PACKAGEDIR_IBASE:=$(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /ibase/Makefile.fpc,$(PACKAGESDIR)))))
+ifneq ($(PACKAGEDIR_IBASE),)
+PACKAGEDIR_IBASE:=$(firstword $(PACKAGEDIR_IBASE))
+ifeq ($(wildcard $(PACKAGEDIR_IBASE)/$(FPCMADE)),)
+override COMPILEPACKAGES+=package_ibase
+package_ibase:
+	$(MAKE) -C $(PACKAGEDIR_IBASE) all
+endif
+ifneq ($(wildcard $(PACKAGEDIR_IBASE)/$(OS_TARGET)),)
+UNITDIR_IBASE=$(PACKAGEDIR_IBASE)/$(OS_TARGET)
+else
+UNITDIR_IBASE=$(PACKAGEDIR_IBASE)
+endif
+else
+PACKAGEDIR_IBASE=
+UNITDIR_IBASE:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /ibase/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_IBASE),)
+UNITDIR_IBASE:=$(firstword $(UNITDIR_IBASE))
+else
+UNITDIR_IBASE=
+endif
+endif
+ifdef UNITDIR_IBASE
+override COMPILER_UNITDIR+=$(UNITDIR_IBASE)
+endif
+endif
+.PHONY: package_rtl package_oracle package_paszlib package_inet package_fcl package_mysql package_ibase
 override FPCOPTDEF=$(CPU_TARGET)
 ifneq ($(OS_TARGET),$(OS_SOURCE))
 override FPCOPT+=-T$(OS_TARGET)
@@ -674,75 +854,6 @@ endif
 	$(COPYTREE) $(addsuffix /*,$(TARGET_EXAMPLEDIRS)) $(INSTALL_EXAMPLEDIR)
 endif
 fpc_distinstall: fpc_install fpc_exampleinstall
-.PHONY: fpc_zipinstall fpc_zipsourceinstall fpc_zipexampleinstall
-ifndef PACKDIR
-ifndef inUnix
-PACKDIR=$(BASEDIR)/../pack_tmp/$(PACKAGE_NAME)
-else
-PACKDIR=/tmp/fpc-pack/$(PACKAGE_NAME)
-endif
-endif
-ifndef ZIPNAME
-ifdef DIST_ZIPNAME
-ZIPNAME=$(DIST_ZIPNAME)
-else
-ZIPNAME=$(ZIPPREFIX)$(PACKAGE_NAME)$(ZIPSUFFIX)
-endif
-endif
-ifndef ZIPTARGET
-ifdef DIST_ZIPTARGET
-ZIPTARGET=DIST_ZIPTARGET
-else
-ZIPTARGET=install
-endif
-endif
-ifndef USEZIP
-ifdef inUnix
-USETAR=1
-endif
-endif
-ifdef inOS2
-USEZIPWRAPPER=1
-endif
-ZIPWRAPPER=$(DIST_DESTDIR)/fpczip$(BATCHEXT)
-ZIPCMD_CDPACK:=cd $(subst /,$(PATHSEP),$(PACKDIR))
-ZIPCMD_CDBASE:=cd $(subst /,$(PATHSEP),$(BASEDIR))
-ifdef USETAR
-ZIPDESTFILE:=$(DIST_DESTDIR)/$(ZIPNAME)$(TAREXT)
-ZIPCMD_ZIP:=$(TARPROG) cf$(TAROPT) $(ZIPDESTFILE) *
-else
-ZIPDESTFILE:=$(DIST_DESTDIR)/$(ZIPNAME)$(ZIPEXT)
-ZIPCMD_ZIP:=$(subst /,$(PATHSEP),$(ZIPPROG)) -Dr $(ZIPOPT) $(ZIPDESTFILE) *
-endif
-fpc_zipinstall:
-	$(MAKE) $(ZIPTARGET) INSTALL_PREFIX=$(PACKDIR) ZIPINSTALL=1
-	$(DEL) $(ZIPDESTFILE)
-ifdef USEZIPWRAPPER
-ifneq ($(ECHO),echo)
-	$(ECHO) "$(ZIPCMD_CDPACK)" > $(ZIPWRAPPER)
-	$(ECHO) "$(ZIPCMD_ZIP)" >> $(ZIPWRAPPER)
-	$(ECHO) "$(ZIPCMD_CDBASE)" >> $(ZIPWRAPPER)
-else
-	$(ECHO) $(ZIPCMD_CDPACK) > $(ZIPWRAPPER)
-	$(ECHO) $(ZIPCMD_ZIP) >> $(ZIPWRAPPER)
-	$(ECHO) $(ZIPCMD_CDBASE) >> $(ZIPWRAPPER)
-endif
-ifdef inUnix
-	/bin/sh $(ZIPWRAPPER)
-else
-	$(ZIPWRAPPER)
-endif
-	$(DEL) $(ZIPWRAPPER)
-else
-	$(ZIPCMD_CDPACK) ; $(ZIPCMD_ZIP) ; $(ZIPCMD_CDBASE)
-endif
-	$(DELTREE) $(PACKDIR)
-fpc_zipsourceinstall:
-	$(MAKE) fpc_zipinstall ZIPTARGET=sourceinstall ZIPSUFFIX=src
-fpc_zipexampleinstall:
-	$(MAKE) fpc_zipinstall ZIPTARGET=exampleinstall ZIPSUFFIX=exm
-fpc_zipdistinstall:
-	$(MAKE) fpc_zipinstall ZIPTARGET=distinstall
 .PHONY: fpc_clean fpc_cleanall fpc_distclean
 ifdef EXEFILES
 override CLEANEXEFILES:=$(addprefix $(TARGETDIRPREFIX),$(CLEANEXEFILES))
@@ -861,46 +972,6 @@ fpc_info:
 	@$(ECHO)  DIST_DESTDIR......... $(DIST_DESTDIR)
 	@$(ECHO)  DIST_ZIPNAME......... $(DIST_ZIPNAME)
 	@$(ECHO)
-TARGET_EXAMPLEDIRS_EXAMPLE=1
-ifdef TARGET_EXAMPLEDIRS_EXAMPLE
-example_all:
-	$(MAKE) -C example all
-example_debug:
-	$(MAKE) -C example debug
-example_examples:
-	$(MAKE) -C example examples
-example_smart:
-	$(MAKE) -C example smart
-example_shared:
-	$(MAKE) -C example shared
-example_install:
-	$(MAKE) -C example install
-example_sourceinstall:
-	$(MAKE) -C example sourceinstall
-example_exampleinstall:
-	$(MAKE) -C example exampleinstall
-example_distinstall:
-	$(MAKE) -C example distinstall
-example_zipinstall:
-	$(MAKE) -C example zipinstall
-example_zipsourceinstall:
-	$(MAKE) -C example zipsourceinstall
-example_zipexampleinstall:
-	$(MAKE) -C example zipexampleinstall
-example_zipdistinstall:
-	$(MAKE) -C example zipdistinstall
-example_clean:
-	$(MAKE) -C example clean
-example_distclean:
-	$(MAKE) -C example distclean
-example_cleanall:
-	$(MAKE) -C example cleanall
-example_info:
-	$(MAKE) -C example info
-example:
-	$(MAKE) -C example all
-.PHONY: example_all example_debug example_examples example_smart example_shared example_install example_sourceinstall example_exampleinstall example_distinstall example_zipinstall example_zipsourceinstall example_zipexampleinstall example_zipdistinstall example_clean example_distclean example_cleanall example_info example
-endif
 all: fpc_all
 debug: fpc_debug
 examples: fpc_examples
@@ -910,11 +981,11 @@ install: fpc_install
 sourceinstall: fpc_sourceinstall
 exampleinstall: fpc_exampleinstall
 distinstall: fpc_distinstall
-zipinstall: fpc_zipinstall
-zipsourceinstall: fpc_zipsourceinstall
-zipexampleinstall: fpc_zipexampleinstall
-zipdistinstall: fpc_zipdistinstall
-clean: fpc_clean $(addsuffix _clean,$(TARGET_EXAMPLEDIRS))
+zipinstall:
+zipsourceinstall:
+zipexampleinstall:
+zipdistinstall:
+clean: fpc_clean
 distclean: fpc_distclean
 cleanall: fpc_cleanall
 info: fpc_info
