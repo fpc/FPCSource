@@ -64,7 +64,7 @@ REPLACE=mv -f
 CP=cp -f
 else
 EXEEXT=.exe
-REPLACE=move /y
+REPLACE=mv -f
 CP=cp -f
 endif
 
@@ -250,7 +250,7 @@ optmsg.inc: optione.msg
 	msg2inc optione.msg optmsg.inc optiontxt
 
 msg: msgtxt.inc optmsg.inc
-	
+
 # Make only the compiler
 ifdef inlinux
 $(EXENAME) : $(PPEXENAME)
@@ -412,16 +412,19 @@ rtlclean :
 # Test of log at the end
 # does CVS add # at start of each line ??
 # $Log$
-# Revision 1.11  1998-05-06 14:03:27  michael
+# Revision 1.12  1998-05-31 14:09:45  peter
+#   * use mv -f instead of move /y whch is not dos6.2 compatible
+#
+# Revision 1.11  1998/05/06 14:03:27  michael
 # + Make install doesn't stop if makecfg not found
 #
 # Revision 1.10  1998/04/23 13:21:46  michael
 # Updated version number
 #
-# Revision 1.9  1998/04/15 14:16:48  michael
+# Revision 1.9	1998/04/15 14:16:48  michael
 # + Removed CR characters
 #
-# Revision 1.8  1998/04/06 12:28:23  pierre
+# Revision 1.8	1998/04/06 12:28:23  pierre
 #   Test of makefile log !
 #
 # End of log
