@@ -1049,11 +1049,6 @@ implementation
       begin
         if s='numberstring' then
           get_var_value:=numberstring
-        else if s='sym_line' then
-          if assigned(typesym) then
-             get_var_value:=tostr(Ttypesym(typesym).fileinfo.line)
-          else
-             get_var_value:='0'
         else if s='sym_name' then
           if assigned(typesym) then
              get_var_value:=Ttypesym(typesym).name
@@ -1119,7 +1114,9 @@ implementation
         { Here we maybe generate a type, so we have to use numberstring }
         st:=stabstr_evaluate('"${sym_name}:$1$2=',[stabchar,numberstring]);
         reallocmem(st,strlen(ss)+512);
-        su:=stabstr_evaluate('",${N_LSYM},0,${sym_line},0',[]);
+        { line info is set to 0 for all defs, because the def can be in an other
+          unit and then the linenumber is invalid in the current sourcefile }
+        su:=stabstr_evaluate('",${N_LSYM},0,0,0',[]);
         strcopy(strecopy(strend(st),ss),su);
         reallocmem(st,strlen(st)+1);
         allstabstring:=st;
@@ -2451,7 +2448,7 @@ implementation
                     else
                       st := ' ';
                     asmlist.concat(Tai_stabs.create(stabstr_evaluate(
-                            '"$1:t${numberstring}=*$2=xs$3:",${N_LSYM},0,${sym_line},0',
+                            '"$1:t${numberstring}=*$2=xs$3:",${N_LSYM},0,0,0',
                             [st,nb,pointertype.def.typesym.name])));
                   end;
                 stab_state:=stab_state_written;
@@ -5189,7 +5186,6 @@ implementation
         stabchar : string[2];
         ss,st : pchar;
         sname : string;
-        sym_line_no : longint;
       begin
         ss := stabstring;
         getmem(st,strlen(ss)+512);
@@ -5197,20 +5193,14 @@ implementation
         if deftype in tagtypes then
           stabchar := 'Tt';
         if assigned(typesym) then
-          begin
-             sname := typesym.name;
-             sym_line_no:=typesym.fileinfo.line;
-          end
+          sname := typesym.name
         else
-          begin
-             sname := ' ';
-             sym_line_no:=0;
-          end;
+          sname := ' ';
         if writing_class_record_stab then
           strpcopy(st,'"'+sname+':'+stabchar+classnumberstring+'=')
         else
           strpcopy(st,'"'+sname+':'+stabchar+numberstring+'=');
-        strpcopy(strecopy(strend(st),ss),'",'+tostr(N_LSYM)+',0,'+tostr(sym_line_no)+',0');
+        strpcopy(strecopy(strend(st),ss),'",'+tostr(N_LSYM)+',0,0,0');
         allstabstring := strnew(st);
         freemem(st,strlen(ss)+512);
         strdispose(ss);
@@ -6070,7 +6060,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.229  2004-03-10 22:52:57  peter
+  Revision 1.230  2004-03-14 20:06:40  peter
+    * don't write line numbers in stabs for defs
+
+  Revision 1.229  2004/03/10 22:52:57  peter
     * more stabs fixes
     * special mode -gv for valgrind compatible stabs
 
