@@ -212,14 +212,14 @@ const
 ***************************}
 
 Type
-	TFSearchOptions = (NoCurrentDirectory,
+	TFSearchOption  = (NoCurrentDirectory,
 		           CurrentDirectoryFirst,
 	                   CurrentDirectoryLast);
 
 Function  FExpand  (Const Path: PathStr):PathStr;
 Function  FSearch  (const path:pathstr;dirlist:string):pathstr;
 
-Function  FSearch  (const path:AnsiString;dirlist:Ansistring;AddCurrentPath:TFSearchOptions):AnsiString;
+Function  FSearch  (const path:AnsiString;dirlist:Ansistring;CurrentDirStrategy:TFSearchOption):AnsiString;
 Function  FSearch  (const path:AnsiString;dirlist:AnsiString):AnsiString;
 Function  Glob     (Const path:pathstr):pglob;
 Procedure Globfree (var p:pglob);
@@ -431,7 +431,7 @@ Function Execle(Todo:string;Ep:ppchar):cint;
 var
   p : ppchar;
 begin
-  p:=StringToPPChar(ToDo);
+  p:=StringToPPChar(ToDo,0);
   if (p=nil) or (p^=nil) then
    Begin
      fpsetErrno(ESysEnoEnt);
@@ -453,7 +453,7 @@ function Execle(Todo:AnsiString;Ep:ppchar):cint;
 var
   p : ppchar;
 begin
-  p:=StringToPPChar(ToDo);
+  p:=StringToPPChar(ToDo,0);
   if (p=nil) or (p^=nil) then
    Begin
      fpsetErrno(ESysEnoEnt);
@@ -487,7 +487,7 @@ Function Execlp(Todo:string;Ep:ppchar):cint;
 var
   p : ppchar;
 begin
-  p:=StringToPPchar(todo);
+  p:=StringToPPchar(todo,0);
   if (p=nil) or (p^=nil) then
    Begin
      fpsetErrno(ESysEnoEnt);
@@ -503,38 +503,13 @@ Function Execlp(Todo: Ansistring;Ep:ppchar):cint;
 var
   p : ppchar;
 begin
-  p:=StringToPPchar(todo);
+  p:=StringToPPchar(todo,0);
   if (p=nil) or (p^=nil) then
    Begin
      fpsetErrno(ESysEnoEnt);
      Exit(-1);
    end;
   execlp:=ExecVP(StrPas(p^),p,EP);
-end;
-
-function ArrayStringToPPchar(const S:Array of AnsiString;reserveentries:Longint):ppchar; // const ?
-// Extra allocate reserveentries pchar's at the beginning (default param=0 after 1.0.x ?)
-// Note: for internal use by skilled programmers only
-// if "s" goes out of scope in the parent procedure, the pointer is dangling.
-
-var p   : ppchar;
-    Res,
-    i   : LongInt;
-begin
-  if High(s)<Low(s) Then Exit(NIL);
-  Getmem(p,sizeof(pchar)*(high(s)-low(s)+ReserveEntries+2));  // one more for NIL, one more
-					      // for cmd
-  if p=nil then
-    begin
-      {$ifdef xunix}
-      fpseterrno(ESysEnomem);
-      {$endif}
-      exit(NIL);
-    end;
-  for i:=low(s) to high(s) do
-     p[i+Reserveentries]:=pchar(s[i]);
-  p[high(s)+1+Reserveentries]:=nil; 
-  ArrayStringToPPchar:=p;
 end;
 
 function intFpExecVEMaybeP (Const PathName:AnsiString;Args,MyEnv:ppchar;SearchPath:Boolean):cint;
@@ -621,6 +596,8 @@ begin
     End;
   p^:=pchar(PathName);
   IntFPExecL:=intFpExecVEMaybeP(PathName,p,MyEnv,SearchPath);
+  // If we come here, no attempts were executed successfully.
+  Freemem(p);
 end;
 
 function FpExecLE (Const PathName:AnsiString;const S:Array Of AnsiString;MyEnv:ppchar):cint;
@@ -679,22 +656,32 @@ Function Shell(const Command:String):cint;
 - The Old CreateShellArg gives back pointers to a local var
 }
 var
+{$ifndef FPC_USE_FPEXEC}
   p      : ppchar;
+{$endif}
   pid    : cint;
 begin
+ {$ifndef FPC_USE_FPEXEC}
   p:=CreateShellArgv(command);
+{$endif}
   pid:=fpfork;
   if pid=0 then // We are in the Child
    begin
      {This is the child.}
-     fpExecve(p^,p,envp);
+     {$ifndef FPC_USE_FPEXEC}
+       fpExecve(p^,p,envp);
+     {$else}
+      fpexecl('/bin/sh',['-c',Command]);	
+     {$endif}
      fpExit(127);  // was Exit(127)
    end
   else if (pid<>-1) then // Successfull started
    Shell:=WaitProcess(pid)
   else // no success
    Shell:=-1; // indicate an error
+  {$ifndef FPC_USE_FPEXEC}
   FreeShellArgV(p);
+  {$endif}
 end;
 
 Function Shell(const Command:AnsiString):cint;
@@ -1513,7 +1500,7 @@ Begin
    End;
 End;
 
-Function FSearch(const path:AnsiString;dirlist:Ansistring;AddCurrentPath:TFSearchOptions):AnsiString;
+Function FSearch(const path:AnsiString;dirlist:Ansistring;CurrentDirStrategy:TFSearchOption):AnsiString;
 {
   Searches for a file 'path' in the list of direcories in 'dirlist'.
   returns an empty string if not found. Wildcards are NOT allowed.
@@ -1531,9 +1518,9 @@ Var
   p      : pchar;
 Begin
 
- if AddCurrentPath=CurrentDirectoryFirst Then
+ if CurrentDirStrategy=CurrentDirectoryFirst Then
      Dirlist:='.:'+dirlist;		{Make sure current dir is first to be searched.}
- if AddCurrentPath=CurrentDirectoryLast Then
+ if CurrentDirStrategy=CurrentDirectoryLast Then
      Dirlist:=dirlist+':.';		{Make sure current dir is last to be searched.}
 
 {Replace ':' and ';' with #0}
@@ -1673,7 +1660,17 @@ End.
 
 {
   $Log$
-  Revision 1.62  2004-02-12 16:20:58  marco
+  Revision 1.63  2004-02-13 10:50:22  marco
+   * Hopefully last large changes to fpexec and friends.
+  	- naming conventions changes from Michael.
+  	- shell functions get alternative under ifdef.
+  	- arraystring function moves to unixutil
+  	- unixutil now regards quotes in stringtoppchar.
+  	- sysutils/unix get executeprocess(ansi,array of ansi), and
+  		both executeprocess functions are fixed
+   	- Sysutils/win32 get executeprocess(ansi,array of ansi)
+
+  Revision 1.62  2004/02/12 16:20:58  marco
    * currentpath stuff fixed for fsearch
 
   Revision 1.61  2004/02/12 15:31:06  marco

@@ -727,6 +727,19 @@ begin
     end;
 end;
 
+function ExecuteProcess(Const Path: AnsiString; Const ComLine: Array of AnsiString):integer;
+
+Var 
+  CommandLine : AnsiString;
+  i : Integer;
+
+Begin
+  Commandline:='';
+  For i:=0 to high(ComLine) Do
+   Commandline:=CommandLine+' '+Comline[i];
+  ExecuteProcess:=ExecuteProcess(Path,CommandLine);
+End;
+
 Procedure Sleep(Milliseconds : Cardinal);
 
 begin
@@ -800,7 +813,17 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.32  2004-02-08 11:00:18  michael
+  Revision 1.33  2004-02-13 10:50:23  marco
+   * Hopefully last large changes to fpexec and friends.
+  	- naming conventions changes from Michael.
+  	- shell functions get alternative under ifdef.
+  	- arraystring function moves to unixutil
+  	- unixutil now regards quotes in stringtoppchar.
+  	- sysutils/unix get executeprocess(ansi,array of ansi), and
+  		both executeprocess functions are fixed
+   	- Sysutils/win32 get executeprocess(ansi,array of ansi)
+
+  Revision 1.32  2004/02/08 11:00:18  michael
   + Implemented winsysut unit
 
   Revision 1.31  2004/01/20 23:12:49  hajny

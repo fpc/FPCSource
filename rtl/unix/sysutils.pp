@@ -486,19 +486,29 @@ begin
   Result:=StrPas(BaseUnix.FPGetenv(PChar(EnvVar)));
 end;
 
+{$define FPC_USE_FPEXEC}  // leave the old code under IFDEF for a while.
 function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integer;
 var
   pid    : longint;
   err    : longint;
-  e : EOSError;
+  e      : EOSError;
   CommandLine: AnsiString;
+  cmdline2 : ppchar;
 
 Begin
   { always surround the name of the application by quotes
     so that long filenames will always be accepted. But don't
     do it if there are already double quotes!
   }
-  {$ifndef FPC_HAS_FPEXEC}
+  {$ifdef FPC_USE_FPEXEC}	// Only place we still parse
+   cmdline2:=nil;		
+   if Comline<>'' Then
+     begin
+       CommandLine:=ComLine;
+       cmdline2:=StringtoPPChar(CommandLine,1);
+       cmdline2^:=pchar(Path);
+     end;	
+  {$else}
   if Pos ('"', Path) = 0 then
     CommandLine := '"' + Path + '"'
   else
@@ -510,8 +520,8 @@ Begin
   if pid=0 then
    begin
    {The child does the actual exec, and then exits}
-    {$ifdef FPC_HAS_FPEXEC}
-      fpexecl(Path,[Comline]);
+    {$ifdef FPC_USE_FPEXEC}
+      fpexecv(pchar(Path),Cmdline2);	
     {$else}
       Execl(CommandLine);
     {$endif}
@@ -538,6 +548,48 @@ Begin
       raise e;
     end;
 End;
+
+function ExecuteProcess(Const Path: AnsiString; Const ComLine: Array Of AnsiString):integer;
+
+var
+  pid    : longint;
+  err    : longint;
+  e : EOSError;
+
+Begin
+  { always surround the name of the application by quotes
+    so that long filenames will always be accepted. But don't
+    do it if there are already double quotes!
+  }
+  pid:=fpFork;
+  if pid=0 then
+   begin
+     {The child does the actual exec, and then exits}
+      fpexecl(Path,Comline);
+     { If the execve fails, we return an exitvalue of 127, to let it be known}
+     fpExit(127);
+   end
+  else
+   if pid=-1 then         {Fork failed}
+    begin
+      e:=EOSError.CreateFmt(SExecuteProcessFailed,[Path,-1]);
+      e.ErrorCode:=-1;
+      raise e;
+    end;
+    
+  { We're in the parent, let's wait. }
+  result:=WaitProcess(pid); // WaitPid and result-convert
+
+  if (result>=0) and (result<>127) then
+    result:=0
+  else
+    begin
+      e:=EOSError.CreateFmt(SExecuteProcessFailed,[Path,result]);
+      e.ErrorCode:=result;
+      raise e;
+    end;
+End;
+
 
 procedure Sleep(milliseconds: Cardinal);
 
@@ -577,7 +629,17 @@ end.
 {
 
   $Log$
-  Revision 1.35  2004-02-12 15:31:06  marco
+  Revision 1.36  2004-02-13 10:50:23  marco
+   * Hopefully last large changes to fpexec and friends.
+  	- naming conventions changes from Michael.
+  	- shell functions get alternative under ifdef.
+  	- arraystring function moves to unixutil
+  	- unixutil now regards quotes in stringtoppchar.
+  	- sysutils/unix get executeprocess(ansi,array of ansi), and
+  		both executeprocess functions are fixed
+   	- Sysutils/win32 get executeprocess(ansi,array of ansi)
+
+  Revision 1.35  2004/02/12 15:31:06  marco
    * First version of fpexec change. Still under ifdef or silently overloaded
 
   Revision 1.34  2004/02/09 17:11:17  marco
