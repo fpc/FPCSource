@@ -395,10 +395,17 @@ implementation
          set_varstate(left,vs_used,true);
          if codegenerror then
            exit;
+	   
          if not is_boolean(left.resulttype.def) then
+           CGMessage1(type_e_boolean_expr_expected,left.resulttype.def.typename);
+	 	   
+         { optimize constant expressions }
+         if (left.nodetype=ordconstn) and
+            (tordconstnode(left).value=0) then
            begin
-             CGMessage1(type_e_boolean_expr_expected,left.resulttype.def.typename);
-             exit;
+	     if assigned(right) then
+               CGMessagePos(right.fileinfo,cg_w_unreachable_code);
+             result:=cnothingnode.create;
            end;
       end;
 
@@ -561,13 +568,37 @@ implementation
 
          if not is_boolean(left.resulttype.def) then
            Message1(type_e_boolean_expr_expected,left.resulttype.def.typename);
+	   
+         { optimize constant expressions }
+         if left.nodetype=ordconstn then
+           begin
+              if tordconstnode(left).value=1 then
+                begin
+                   if assigned(right) then
+                     result:=right
+                   else
+                     result:=cnothingnode.create;
+                   right:=nil;
+		   if assigned(t1) then
+                     CGMessagePos(t1.fileinfo,cg_w_unreachable_code);
+                end
+              else
+                begin
+                   if assigned(t1) then
+                     result:=t1
+                   else
+                     result:=cnothingnode.create;
+                   t1:=nil;
+		   if assigned(right) then
+                     CGMessagePos(right.fileinfo,cg_w_unreachable_code);
+                end;
+           end;
       end;
 
 
     function tifnode.pass_1 : tnode;
       var
          old_t_times : longint;
-         hp : tnode;
       begin
          result:=nil;
          expectloc:=LOC_VOID;
@@ -620,31 +651,6 @@ implementation
          if codegenerror then
            exit;
 
-         if left.nodetype=ordconstn then
-           begin
-              { optimize }
-              if tordconstnode(left).value=1 then
-                begin
-                   hp:=right;
-                   right:=nil;
-                   { we cannot set p to nil !!! }
-                   if assigned(hp) then
-                     result:=hp
-                   else
-                     result:=cnothingnode.create;
-                end
-              else
-                begin
-                   hp:=t1;
-                   t1:=nil;
-                   { we cannot set p to nil !!! }
-                   if assigned(hp) then
-                     result:=hp
-                   else
-                     result:=cnothingnode.create;
-                end;
-           end;
-
          cg.t_times:=old_t_times;
       end;
 
@@ -682,8 +688,6 @@ implementation
     end;
 
     function tfornode.det_resulttype:tnode;
-      var
-        hp : tnode;
       begin
          result:=nil;
          resulttype:=voidtype;
@@ -1425,7 +1429,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.104  2005-01-03 17:55:57  florian
+  Revision 1.105  2005-01-16 10:50:32  peter
+    * give warning for unreachable code in while/if statements
+
+  Revision 1.104  2005/01/03 17:55:57  florian
     + first batch of patches to support tdef.getcopy fully
 
   Revision 1.103  2004/12/26 16:22:01  peter
