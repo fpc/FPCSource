@@ -53,3 +53,6 @@ testaoc.pp        test Array of construct.
 testansi.pp       test ansistrings
 testrtti.pp       test RTTI generation and typinfo unit.
 testexc.pp        test exceptions.
+testi642.pp       test int64/qword
+testpvar.pp       test procedure variables
+testgoto.pp       test goto (very simple)
