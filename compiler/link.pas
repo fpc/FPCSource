@@ -146,7 +146,13 @@ var
 begin
   if LastLDBin='' then
    begin
-     LastLDBin:=FindExe(target_link.linkbin,ldfound);
+     if utilsdirectory<>'' then
+       begin
+          LastLDBin:=Search(target_link.linkbin+source_os.exeext,
+            utilsdirectory,ldfound)+target_link.linkbin+source_os.exeext;
+       end
+     else
+       LastLDBin:=FindExe(target_link.linkbin,ldfound);
      if (not ldfound) and not(cs_link_extern in aktglobalswitches) then
       begin
         Message1(exec_w_linker_not_found,LastLDBin);
@@ -419,7 +425,13 @@ begin
      {When an EMX program runs in DOS, the heap and stack share the
       same memory pool. The heap grows upwards, the stack grows downwards.}
      Replace(s,'$DOSHEAPKB',tostr((stacksize+maxheapsize+1023) shr 10));
-     bindbin:=FindExe(target_link.bindbin,bindfound);
+     if utilsdirectory<>'' then
+       begin
+          bindbin:=Search(target_link.bindbin+source_os.exeext,
+            utilsdirectory,bindfound)+target_link.bindbin+source_os.exeext;
+       end
+     else
+       bindbin:=FindExe(target_link.bindbin,bindfound);
      if (not bindfound) and not (cs_link_extern in aktglobalswitches) then
       begin
         Message1(exec_w_binder_not_found,bindbin);
@@ -455,7 +467,13 @@ var
 begin
   smartpath:=current_module^.path^+FixPath(FixFileName(current_module^.modulename^)+target_info.smartext);
 { find ar binary }
-  arbin:=FindExe(target_ar.arbin,arfound);
+  if utilsdirectory<>'' then
+    begin
+       arbin:=Search(target_ar.arbin+source_os.exeext,
+         utilsdirectory,arfound)+target_ar.arbin+source_os.exeext;
+    end
+  else
+    arbin:=FindExe(target_ar.arbin,arfound);
   if (not arfound) and not(cs_link_extern in aktglobalswitches) then
    begin
      Message(exec_w_ar_not_found);
@@ -499,7 +517,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.33  1998-10-14 13:38:22  peter
+  Revision 1.34  1998-10-16 13:37:18  florian
+    + switch -FD added to specify the path for utilities
+
+  Revision 1.33  1998/10/14 13:38:22  peter
     * fixed path with staticlib/objects in ppufiles
 
   Revision 1.32  1998/10/14 11:03:55  daniel

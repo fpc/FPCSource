@@ -215,8 +215,7 @@
 
        { flush to be sure }
          current_ppu^.flush;
-       { create and write header }
-         current_ppu^.header.size:=current_ppu^.size;
+       { create and write header }         current_ppu^.header.size:=current_ppu^.size;
          current_ppu^.header.checksum:=current_ppu^.crc;
          current_ppu^.header.compiler:=wordversion;
          current_ppu^.header.cpu:=word(target_cpu);
@@ -446,7 +445,10 @@
 
 {
   $Log$
-  Revision 1.22  1998-10-14 13:38:24  peter
+  Revision 1.23  1998-10-16 13:37:24  florian
+    + switch -FD added to specify the path for utilities
+
+  Revision 1.22  1998/10/14 13:38:24  peter
     * fixed path with staticlib/objects in ppufiles
 
   Revision 1.21  1998/10/14 10:45:10  pierre

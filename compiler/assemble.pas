@@ -140,7 +140,14 @@ begin
   if lastas<>ord(target_asm.id) then
    begin
      lastas:=ord(target_asm.id);
-     LastASBin:=FindExe(target_asm.asmbin,asfound);
+     { is an assembler passed ? }
+     if utilsdirectory<>'' then
+         begin
+            LastASBin:=Search(target_asm.asmbin+source_os.exeext,
+              utilsdirectory,asfound)+target_asm.asmbin+source_os.exeext;
+         end
+       else
+         LastASBin:=FindExe(target_asm.asmbin,asfound);
      if (not asfound) and not(cs_asm_extern in aktglobalswitches) then
       begin
         Message1(exec_w_assembler_not_found,LastASBin);
@@ -521,7 +528,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.29  1998-10-15 16:19:42  peter
+  Revision 1.30  1998-10-16 13:37:14  florian
+    + switch -FD added to specify the path for utilities
+
+  Revision 1.29  1998/10/15 16:19:42  peter
     * fixed asmsynchronize
 
   Revision 1.28  1998/10/14 15:56:43  pierre
