@@ -465,7 +465,7 @@ implementation
          be accepted for var parameters }
          if (p^.explizit) and
             (p^.left^.resulttype^.size=p^.resulttype^.size) and
-            (p^.left^.location.loc in [LOC_REGISTER,LOC_MEM,LOC_CREGISTER]) then
+            (p^.left^.location.loc in [LOC_REFERENCE,LOC_MEM,LOC_CREGISTER]) then
            exit;
 {$endif ndef OLDBOOL}
          p^.location.loc:=LOC_REGISTER;
@@ -487,7 +487,7 @@ implementation
          be accepted for var parameters }
          if (p^.explizit) and
             (p^.left^.resulttype^.size=p^.resulttype^.size) and
-            (p^.left^.location.loc in [LOC_REGISTER,LOC_MEM,LOC_CREGISTER]) then
+            (p^.left^.location.loc in [LOC_REFERENCE,LOC_MEM,LOC_CREGISTER]) then
            exit;
 {$endif ndef OLDBOOL}
          p^.location.loc:=LOC_REGISTER;
@@ -975,7 +975,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  1999-01-27 14:15:25  pierre
+  Revision 1.18  1999-01-27 14:56:57  pierre
+  * typo error corrected solves bug0190 and bug0204
+
+  Revision 1.17  1999/01/27 14:15:25  pierre
    * bug0209 corrected (introduce while solving other bool to int related bugs)
 
   Revision 1.16  1999/01/27 13:02:21  pierre

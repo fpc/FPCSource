@@ -1104,7 +1104,7 @@ implementation
          be accepted for var parameters }
          if (pto^.explizit) and
             (pfrom^.resulttype^.size=pto^.resulttype^.size) and
-            (pfrom^.location.loc in [LOC_REGISTER,LOC_MEM,LOC_CREGISTER]) then
+            (pfrom^.location.loc in [LOC_REFERENCE,LOC_MEM,LOC_CREGISTER]) then
            begin
               set_location(pto^.location,pfrom^.location);
               exit;
@@ -1221,7 +1221,7 @@ implementation
          be accepted for var parameters }
          if (pto^.explizit) and
             (pfrom^.resulttype^.size=pto^.resulttype^.size) and
-            (pfrom^.location.loc in [LOC_REGISTER,LOC_MEM,LOC_CREGISTER]) then
+            (pfrom^.location.loc in [LOC_REFERENCE,LOC_MEM,LOC_CREGISTER]) then
            begin
               set_location(pto^.location,pfrom^.location);
               exit;
@@ -1592,7 +1592,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  1999-01-27 13:03:27  pierre
+  Revision 1.49  1999-01-27 14:56:56  pierre
+  * typo error corrected solves bug0190 and bug0204
+
+  Revision 1.48  1999/01/27 13:03:27  pierre
    boolean to int conversion problems bug0205 bug0208
 
   Revision 1.47  1999/01/27 12:59:32  pierre
