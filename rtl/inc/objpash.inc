@@ -20,29 +20,29 @@
 
     const
        vmtInstanceSize         = 0;
-       vmtParent               = 8;
+       vmtParent               = sizeof(longint)*2;
        { These were negative value's, but are now positive, else classes
          couldn't be used with shared linking which copies only all data from
          the .global directive and not the data before the directive (PFV) }
-       vmtClassName            = 12;
-       vmtDynamicTable         = 16;
-       vmtMethodTable          = 20;
-       vmtFieldTable           = 24;
-       vmtTypeInfo             = 28;
-       vmtInitTable            = 32;
-       vmtAutoTable            = 36;
-       vmtIntfTable            = 40;
-       vmtMsgStrPtr            = 44;
+       vmtClassName            = vmtParent+sizeof(pointer);
+       vmtDynamicTable         = vmtParent+sizeof(pointer)*2;
+       vmtMethodTable          = vmtParent+sizeof(pointer)*3;
+       vmtFieldTable           = vmtParent+sizeof(pointer)*4;
+       vmtTypeInfo             = vmtParent+sizeof(pointer)*5;
+       vmtInitTable            = vmtParent+sizeof(pointer)*6;
+       vmtAutoTable            = vmtParent+sizeof(pointer)*7;
+       vmtIntfTable            = vmtParent+sizeof(pointer)*8;
+       vmtMsgStrPtr            = vmtParent+sizeof(pointer)*9;
        { methods }
-       vmtMethodStart          = 48;
+       vmtMethodStart          = vmtParent+sizeof(pointer)*10;
        vmtDestroy              = vmtMethodStart;
-       vmtNewInstance          = vmtMethodStart+4;
-       vmtFreeInstance         = vmtMethodStart+8;
-       vmtSafeCallException    = vmtMethodStart+12;
-       vmtDefaultHandler       = vmtMethodStart+16;
-       vmtAfterConstruction    = vmtMethodStart+20;
-       vmtBeforeDestruction    = vmtMethodStart+24;
-       vmtDefaultHandlerStr    = vmtMethodStart+28;
+       vmtNewInstance          = vmtMethodStart+sizeof(pointer);
+       vmtFreeInstance         = vmtMethodStart+sizeof(pointer)*2;
+       vmtSafeCallException    = vmtMethodStart+sizeof(pointer)*3;
+       vmtDefaultHandler       = vmtMethodStart+sizeof(pointer)*4;
+       vmtAfterConstruction    = vmtMethodStart+sizeof(pointer)*5;
+       vmtBeforeDestruction    = vmtMethodStart+sizeof(pointer)*6;
+       vmtDefaultHandlerStr    = vmtMethodStart+sizeof(pointer)*7;
 
     type
        TextFile = Text;
@@ -102,9 +102,9 @@
 
        TObject = class
        public
-          { please don't change the order of virtual methods, because      }
-          { their vmt offsets are used by some assembler code which uses   }
-          { hard coded addresses      (FK)                                 }
+          { please don't change the order of virtual methods, because
+            their vmt offsets are used by some assembler code which uses
+            hard coded addresses      (FK)                                 }
           constructor Create;
           { the virtual procedures must be in THAT order }
           destructor Destroy;virtual;
@@ -299,7 +299,10 @@
 
 {
   $Log$
-  Revision 1.21  2003-12-06 00:02:34  florian
+  Revision 1.22  2004-04-25 16:32:31  florian
+    * fixed vmt issues on 64 bit systems
+
+  Revision 1.21  2003/12/06 00:02:34  florian
     * widechars in tvarrec fixed for big endian machines as well
 
   Revision 1.20  2003/12/05 23:54:04  jonas
