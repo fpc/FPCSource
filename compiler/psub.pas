@@ -608,8 +608,6 @@ implementation
          { add implicit pushes for interrupt routines }
          if (po_interrupt in aktprocdef.procoptions) then
            procinfo.allocate_interrupt_stackframe;
-           begin
-           end;
 {$endif i386}
 
          { pointer to the return value ? }
@@ -626,6 +624,8 @@ implementation
            for assembler procedures }
          if (not parse_only) and (not aktprocdef.forwarddef) then
            aktprocdef.parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}checkvaluepara,nil);
+
+         procinfo.after_header;
 
          { restore file pos }
          aktfilepos:=oldfilepos;
@@ -788,7 +788,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.71  2002-09-07 15:25:07  peter
+  Revision 1.72  2002-09-10 20:31:48  florian
+    * call to procinfo.after_header added
+
+  Revision 1.71  2002/09/07 15:25:07  peter
     * old logs removed and tabs fixed
 
   Revision 1.70  2002/09/03 16:26:27  daniel
