@@ -1,4 +1,5 @@
 { %OPT=-vw -Sew }
+{ %FAIL }
 { The above options transform warnings into errors }
 { so that the warning about unsupported Dlphi
   mode becomes an error }
