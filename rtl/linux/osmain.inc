@@ -496,33 +496,10 @@ end;
                          SystemUnit Initialization
 *****************************************************************************}
 
+// signal handler is arch dependant due to processorexception to language
+// exception translation
 
-procedure SignalToRunerror(Signo: longint; SigContext: SigContextRec);cdecl;
-//procedure SignalToRunerror(signo: cint); cdecl;
-var
-  res : word;
-begin
-    res:=0;
-    if signo = SIGFPE then
-     begin
-        res := 200;
-     end
-    else
-    if (signo = SIGILL) or (signo = SIGBUS) or (signo = SIGSEGV) then
-      begin
-        res := 216;
-      end;
-  { give runtime error at the position where the signal was raised }
-  if res<>0 then
-   begin
-     {$ifdef cpui386}
-       HandleErrorAddrFrame(res,pointer(SigContext.eip),pointer(SigContext.ebp));
-     {$else}
-       HandleErrorAddrFrame(res);
-     {$endif}
-   end;
-end;
-
+{$i sighnd.inc}  
 
 var
   act: SigActionRec;
@@ -621,7 +598,10 @@ End.
 *)
 {
  $Log$
- Revision 1.7  2003-10-31 20:36:01  marco
+ Revision 1.8  2003-11-01 01:58:11  marco
+  * more small fixes.
+
+ Revision 1.7  2003/10/31 20:36:01  marco
   * i386 specific fixes that hopefully fix texception4.
  	Only the "generic" signal handler was ported to the unix rtl.
 

@@ -16,30 +16,9 @@
 
  **********************************************************************}
 
-const
-  fpucw : word = $1332;
-  FPU_Invalid = 1;
-  FPU_Denormal = 2;
-  FPU_DivisionByZero = 4;
-  FPU_Overflow = 8;
-  FPU_Underflow = $10;
-  FPU_StackUnderflow = $20;
-  FPU_StackOverflow = $40;
-  FPU_All = $7f;
 
-Procedure ResetFPU;
-begin
-{$ifndef CORRECTFLDCW}
-  {$asmmode direct}
-{$endif}
-  asm
-    fninit
-    fldcw   fpucw
-  end;
-{$ifndef CORRECTFLDCW}
-  {$asmmode att}
-{$endif}
-end;
+const
+  FPU_All = $7f;
 
 function GetFPUState(const SigContext : SigContextRec) : longint;
 begin
@@ -66,7 +45,6 @@ begin
       how to tell if it is or not PM }
           res:=200;
           fpustate:=GetFPUState(SigContext);
-
           if (FpuState and FPU_All) <> 0 then
             begin
               { first check the more precise options }
@@ -85,7 +63,7 @@ begin
               else
                 res:=207;  {'Coprocessor Error'}
             end;
-      ResetFPU;
+            sysResetFPU;
         end;
     SIGILL,
     SIGBUS,
@@ -94,12 +72,15 @@ begin
   end;
 { give runtime error at the position where the signal was raised }
   if res<>0 then
-    HandleErrorAddrFrame(res,SigContext.eip,SigContext.ebp);
+    HandleErrorAddrFrame(res,pointer(SigContext.eip),pointer(SigContext.ebp));
 end;
 
 {
   $Log$
-  Revision 1.1  2003-11-01 01:27:20  marco
+  Revision 1.2  2003-11-01 01:58:11  marco
+   * more small fixes.
+
+  Revision 1.1  2003/11/01 01:27:20  marco
    * initial version from 1.0.x branch
 
 
