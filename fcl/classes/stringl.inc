@@ -555,8 +555,8 @@ end;
 
 Procedure TStrings.LoadFromStream(Stream: TStream);
 {
-   Borlands method is no goed, since a pipe for
-   Instance doesn't have a size.
+   Borlands method is no good, since a pipe for
+   instance doesn't have a size.
    So we must do it the hard way.
 }
 Const
@@ -591,10 +591,12 @@ Var
   Obj : TObject;
   Str : String;
 begin
+  BeginUpdate;
   Obj:=Objects[CurIndex];
   Str:=Strings[CurIndex];
   Delete(Curindex);
   InsertObject(NewIndex,Str,Obj);
+  EndUpdate;
 end;
 
 
@@ -924,10 +926,13 @@ Procedure TStringList.Clear;
 Var I : longint;
 
 begin
+  if FCount = 0 then Exit;
+  Changing;
   For I:=0 to FCount-1 do
     Flist^[I].FString:='';
   FCount:=0;
   SetCapacity(0);
+  Changed;
 end;
 
 
@@ -937,12 +942,14 @@ Procedure TStringList.Delete(Index: Integer);
 begin
   If (Index<0) or (Index>=FCount) then
     Error(SlistINdexError,Index);
+  Changing;
   Flist^[Index].FString:='';
   Dec(FCount);
   If Index<FCount then
     System.Move(Flist^[Index+1],
                 Flist^[Index],
                 (Fcount-Index)*SizeOf(TStringItem));
+  Changed;
 end;
 
 
@@ -1044,7 +1051,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2003-10-06 20:33:58  peter
+  Revision 1.2  2004-04-18 19:38:56  michael
+  + Patch from Colin Western
+
+  Revision 1.1  2003/10/06 20:33:58  peter
     * classes moved to rtl for 1.1
     * classes .inc and classes.pp files moved to fcl/classes for
       backwards 1.0.x compatiblity to have it in the fcl
