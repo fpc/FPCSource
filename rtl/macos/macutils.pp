@@ -4,6 +4,7 @@
     Copyright (c) 2004 by Olle Raab
 
     Some utilities specific for Mac OS
+    Modified portions from Peter N. Lewis (PNL Libraries). Thanks !
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -59,6 +60,13 @@ function PathArgToFullPath(s: string; var fullpath: AnsiString): Integer;
 function GetVolumeName(vRefNum: Integer; var volName: String): OSErr;
 
 function GetWorkingDirectoryVRefNum: Integer;
+
+{Find an application with the given creator, in any of the mounted volumes.} 
+function FindApplication (creator: OSType; var fs: FSSpec): OSErr;
+
+{Launch the application given by applicationFileSpec. If toFront is true
+ it will be brought to the foreground when launched.}
+function LaunchFSSpec (tofront: Boolean; const applicationFileSpec: FSSpec): OSErr;
 
 implementation
 

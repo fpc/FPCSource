@@ -3,7 +3,8 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 2004 by Olle Raab
 
-    Some utilities specific for Mac OS
+    Some utilities specific for Mac OS.
+    Modified portions from Peter N. Lewis (PNL Libraries). Thanks !
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -457,3 +458,123 @@ function GetWorkingDirectoryVRefNum: Integer;
 begin
   GetWorkingDirectoryVRefNum:= workingDirectorySpec.vRefNum;
 end;
+
+  function GetVolInfo (var name: Str63; var vrn: integer; index: integer; var CrDate: longint): OSErr;
+    var
+      pb: ParamBlockRec;
+      oe: OSErr;
+  begin
+    if (name <> '') and (name[length(name)] <> ':') then begin
+      name := concat(name, ':');
+    end;
+    pb.ioNamePtr := @name;
+    pb.ioVRefNum := vrn;
+    pb.ioVolIndex := index;
+    oe := PBGetVInfoSync(@pb);
+    if oe = noErr then begin
+      vrn := pb.ioVRefNum;
+      CrDate := pb.ioVCrDate;
+    end;
+    GetVolInfo := oe;
+  end;
+
+  {Checks that fs really is an application with the specified creator}
+  function ConfirmApplicationExists (creator: OSType; var fs: FSSpec): OSErr;
+  
+    var
+      err: OSErr;
+      info: FInfo;
+  begin
+    err := HGetFInfo(fs.vRefNum, fs.parID, fs.name, info);
+    if err = noErr then begin
+      if (info.fdType <> FourCharCodeToLongword('APPL')) or (info.fdCreator <> creator) then begin
+        err := fnfErr;
+      end;
+    end;
+    ConfirmApplicationExists := err;
+  end;
+
+  {Find an application with the given creator, in any of the mounted volumes.} 
+  function FindApplication (creator: OSType; var fs: FSSpec): OSErr;
+    var
+      i: integer;
+      pbdt: DTPBRec;
+      crdate: longint;
+      oe: OSErr;
+      found: Boolean;
+  begin
+    found := false;
+    if (macosSystemVersion >= $0700) then begin
+      i := 1;
+      repeat
+        fs.vRefNum := 0;
+        
+        {Get info for volume i}
+        oe := GetVolInfo(fs.name, fs.vRefNum, i, crdate);
+        i := i + 1;
+        if oe = noErr then begin
+          with pbdt do begin
+            fs.name := '';
+            ioNamePtr := @fs.name;
+            ioVRefNum := fs.vRefNum;
+            
+            {Get the desktop database for this volume}
+            oe := PBDTGetPath(@pbdt);
+            if oe = noErr then begin
+              ioFileCreator := creator;
+
+              {Look first for the "default" (newest) application file}
+              ioIndex := 0;
+              oe := PBDTGetAPPLSync(@pbdt);
+              if oe = noErr then begin
+                fs.parID := pbdt.ioAPPLParID;
+                found := ConfirmApplicationExists(creator,fs)=noErr;
+              end;
+              
+              {If not ok, look for older ones.}
+              if not found then begin
+                ioIndex := 1;              
+                repeat
+                  oe := PBDTGetAPPLSync(@pbdt);
+                  if oe = noErr then begin
+                    fs.parID := pbdt.ioAPPLParID;
+                    found := ConfirmApplicationExists(creator,fs)=noErr;
+                  end;
+                  ioIndex := ioIndex + 1;
+                until found or (oe <> noErr);
+              end;
+              
+            end;
+          end;
+          oe := noErr;
+        end;
+      until found or (oe <> noErr);
+    end;
+    if found then begin
+      oe := noErr;
+    end else begin
+      oe := fnfErr;
+      fs.vRefNum := 0;
+      fs.parID := 2;
+      fs.name := '';
+    end;
+    FindApplication := oe;
+  end;
+
+function LaunchFSSpec (tofront: Boolean; const applicationFileSpec: FSSpec): OSErr;
+var
+  launchThis: LaunchParamBlockRec;
+begin
+  launchThis.launchAppSpec := @applicationFileSpec;
+  launchThis.launchAppParameters := nil;
+  launchThis.launchBlockID := extendedBlock;
+  launchThis.launchEPBLength := extendedBlockLen;
+  launchThis.launchFileFlags := 0;
+  launchThis.launchControlFlags := launchContinue or launchNoFileFlags;
+  if not tofront then begin
+    launchThis.launchControlFlags := launchThis.launchControlFlags or launchDontSwitch;
+  end;
+  
+  LaunchFSSpec:= LaunchApplication(@launchThis);
+end;
+

@@ -58,9 +58,6 @@ Implementation
  volumes. At lest accessing the possible disk drives with
  driver number 1 and 2 should be easy.}
 
-{TODO Perhaps implement Exec with Apple Events, calling ToolServer.}
-
-
 {TODO Perhaps use LongDateTime for time functions. But the function
  calls must then be weak linked.}
 
@@ -173,14 +170,158 @@ End;
                                --- Exec ---
 ******************************************************************************}
 
+{ Create a DoScript AppleEvent that targets the given application with text as the direct object. }
+function CreateDoScriptEvent (applCreator: OSType; scriptText: PChar; var theEvent: AppleEvent): OSErr;
+
+  var
+   err: OSErr;
+   targetAddress: AEDesc;
+   s: signedByte;
+
+begin
+  err := AECreateDesc(FourCharCodeToLongword(typeApplSignature), @applCreator, sizeof(applCreator), targetAddress);
+  if err = noErr then
+    begin
+      err := AECreateAppleEvent(FourCharCodeToLongword('misc'), FourCharCodeToLongword('dosc'),
+          targetAddress, kAutoGenerateReturnID, kAnyTransactionID, theEvent);
+
+      if err = noErr then
+          { Add script text as the direct object parameter. }
+          err := AEPutParamPtr(theEvent, FourCharCodeToLongword('----'),
+                    FourCharCodeToLongword('TEXT'), scriptText, Length(scriptText));
+
+      if err <> noErr then
+        AEDisposeDesc(theEvent);
+      AEDisposeDesc(targetAddress);
+    end;
+
+  CreateDoScriptEvent := err;
+end;
+
+Procedure Fpc_WriteBuffer(var f:Text;const b;len:longint);[external name 'FPC_WRITEBUFFER'];
+{declared in text.inc}
+
+procedure WriteAEDescTypeCharToFile(desc: AEDesc; var f: Text);
+  
+begin
+  if desc.descriptorType = FourCharCodeToLongword(typeChar) then
+    begin
+      HLock(desc.dataHandle);
+      Fpc_WriteBuffer(f, PChar(desc.dataHandle^)^, GetHandleSize(desc.dataHandle));
+      Flush(f);
+      HUnLock(desc.dataHandle);
+    end;
+end;
+  
+function ExecuteToolserverScript(scriptText: PChar; var statusCode: Longint): OSErr;
+
+  var
+    err: OSErr;
+    err2: OSErr;  {Non serious error}
+    theEvent: AppleEvent;
+    reply: AppleEvent;
+    result: AEDesc;
+    applFileSpec: FSSpec;
+    p: SignedByte;
+   
+  const
+    applCreator = 'MPSX'; {Toolserver}
+    
+begin
+  statusCode:= 3; //3 according to MPW.
+  err:= CreateDoScriptEvent (FourCharCodeToLongword(applCreator), scriptText, theEvent);
+  if err = noErr then
+    begin
+      err := AESend(theEvent, reply, kAEWaitReply, kAENormalPriority, kAEDefaultTimeOut, nil, nil);
+
+      if err = connectionInvalid then  { Toolserver not available }
+        begin
+          err := FindApplication(FourCharCodeToLongword(applCreator), applFileSpec);
+          if err = noErr then
+            err := LaunchFSSpec(false, applFileSpec);
+          if err = noErr then
+            err := AESend(theEvent, reply, kAEWaitReply, kAENormalPriority, kAEDefaultTimeOut, nil, nil);
+        end;
+
+      if err = noErr then
+        begin    
+          err:= AEGetParamDesc(reply, FourCharCodeToLongword('stat'),
+                    FourCharCodeToLongword(typeLongInteger), result);
+          
+          if err = noErr then
+            if result.descriptorType = FourCharCodeToLongword(typeLongInteger) then
+              statusCode:= LongintPtr(result.dataHandle^)^;
+          
+          {If there is no output below, we get a non zero error code}
+          
+          err2:= AEGetParamDesc(reply, FourCharCodeToLongword('----'),
+                    FourCharCodeToLongword(typeChar), result);        
+          if err2 = noErr then
+             WriteAEDescTypeCharToFile(result, stdout);
+          
+          err2:= AEGetParamDesc(reply, FourCharCodeToLongword('diag'),
+                    FourCharCodeToLongword(typeChar), result);
+          if err2 = noErr then
+            WriteAEDescTypeCharToFile(result, stderr);
+          
+          AEDisposeDesc(reply);
+        
+          {$IFDEF TARGET_API_MAC_CARBON }
+          {$ERROR FIXME AEDesc data is not allowed to be directly accessed}
+          {$ENDIF}
+        end;
+        
+      AEDisposeDesc(theEvent);
+    end;
+
+  ExecuteToolserverScript:= err;
+end;
+
+{$ifdef HASTHREADVAR}
+threadvar
+{$else HASTHREADVAR}
+var
+{$endif HASTHREADVAR}
+  laststatuscode : longint;
+
 Procedure Exec (Const Path: PathStr; Const ComLine: ComStr);
+var
+  s: AnsiString;
+  err: OSErr;
+  wdpath: AnsiString;
+  
 Begin
-  DosError:=8; //TODO A better error sometime
+  {Make ToolServers working directory in sync with our working directory}
+  PathArgToFullPath(':', wdpath);
+  wdpath:= 'Directory ' + wdpath;
+  err:= ExecuteToolserverScript(PChar(wdpath), laststatuscode);
+    {TODO Only change path when actually needed. But this requires some 
+     change counter to be incremented each time wd is changed. }
+
+  s:= path + ' ' + comline;
+  
+  err:= ExecuteToolserverScript(PChar(s), laststatuscode);
+  if err = afpItemNotFound then
+    DosError := 900
+  else
+    DosError := MacOSErr2RTEerr(err);
+  //TODO Better dos error codes
 End;
 
 Function DosExitCode: Word;
+var
+  clippedstatus: Word;
 Begin
-  DosExitCode := 3; //Indicate failure TODO a better error sometime.
+  if laststatuscode <> 0 then
+    begin
+      {MPW status might be 24 bits}
+      clippedstatus := laststatuscode and $ffff;
+      if clippedstatus = 0 then
+        clippedstatus:= 1;
+      DosExitCode:= clippedstatus;
+    end
+  else
+    DosExitCode := 0;  
 End;
 
 {******************************************************************************
@@ -198,8 +339,8 @@ var
   myErr: OSErr;
 
 begin
-	myHPB.ioNamePtr := NIL;
-	myHPB.ioVolIndex := 0;
+  myHPB.ioNamePtr := NIL;
+  myHPB.ioVolIndex := 0;
   case drive of
     0: myHPB.ioVRefNum := GetWorkingDirectoryVRefNum;
     1: myHPB.ioVRefNum := 1;
@@ -231,8 +372,8 @@ var
   myErr: OSErr;
 
 Begin
-	myHPB.ioNamePtr := NIL;
-	myHPB.ioVolIndex := 0;
+  myHPB.ioNamePtr := NIL;
+  myHPB.ioVolIndex := 0;
   case drive of
     0: myHPB.ioVRefNum := GetWorkingDirectoryVRefNum;
     1: myHPB.ioVRefNum := 1;
