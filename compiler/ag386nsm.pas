@@ -621,10 +621,17 @@ ait_labeled_instruction :
                              if pai386(hp)^.op3t<>top_none then
                               begin
                                 if pai386(hp)^.op2t<>top_none then
+{$ifndef USE_OP3}
                                  s:=getopstr(pai386(hp)^.op2t,pointer(longint(twowords(pai386(hp)^.op2).word1)),0,
                                              pai386(hp)^.opsize,pai386(hp)^.opcode,true)+','+s;
-                                          s:=getopstr(pai386(hp)^.op3t,pointer(longint(twowords(pai386(hp)^.op2).word2)),0,
-                                           pai386(hp)^.opsize,pai386(hp)^.opcode,false)+','+s;
+                                s:=getopstr(pai386(hp)^.op3t,pointer(longint(twowords(pai386(hp)^.op2).word2)),0,
+                                            pai386(hp)^.opsize,pai386(hp)^.opcode,false)+','+s;
+{$else USE_OP3}
+                                 s:=getopstr(pai386(hp)^.op2t,pai386(hp)^.op2,0,
+                                             pai386(hp)^.opsize,pai386(hp)^.opcode,true)+','+s;
+                                s:=getopstr(pai386(hp)^.op3t,pai386(hp)^.op3,0,
+                                            pai386(hp)^.opsize,pai386(hp)^.opcode,false)+','+s;
+{$endif USE_OP3}
                               end
                              else
                               if pai386(hp)^.op2t<>top_none then
@@ -733,7 +740,13 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.25  1999-03-29 16:05:44  peter
+  Revision 1.26  1999-04-16 10:00:56  pierre
+    + ifdef USE_OP3 code :
+      added all missing op_... constructors for tai386 needed
+      for SHRD,SHLD and IMUL code in assembler readers
+      (check in tests/tbs0123.pp)
+
+  Revision 1.25  1999/03/29 16:05:44  peter
     * optimizer working for ag386bin
 
   Revision 1.24  1999/03/10 13:25:44  pierre

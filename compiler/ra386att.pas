@@ -1456,6 +1456,26 @@ var
                 exit;
               end;
           end;
+      A_IMUL:
+       { these instruction are fully parsed individually on pass three }
+       { so we just do a summary checking here.                        }
+       Begin
+         if numops = 3 then
+           Begin
+             if (operands[1].operandtype = OPR_CONSTANT) and
+                (operands[1].val <= 127) and (operands[1].val >=-128) then
+               Begin
+                 operands[1].opinfo := ao_imm8s;
+                 operands[1].size := S_B;
+               end
+             else
+               Begin
+                 { should depend on size of other operands !! }
+                 operands[1].opinfo := ao_imm32;
+                 operands[1].size := S_L;
+               End
+           end;
+       end;
         A_INT:
           Begin
             if numops = 1 then
@@ -2041,6 +2061,203 @@ var
      3: Begin
              { only imul, shld and shrd  }
              { middle must be a register }
+             if ((instruc = A_SHLD) or (instruc = A_SHRD)) and (instr.operands[2].operandtype =
+                OPR_REGISTER) then
+              Begin
+               case instr.operands[2].size of
+                S_W:
+                 if instr.operands[1].operandtype = OPR_CONSTANT then
+                  Begin
+                   if instr.operands[1].val <= $ff then
+                    Begin
+                     if instr.operands[3].size in [S_NO,S_W] then
+                      Begin
+                       case instr.operands[3].operandtype of
+                        OPR_REFERENCE:
+{$ifdef USE_OP3}
+                         p^.concat(new(pai386,
+                          op_const_reg_ref(instruc, S_W,
+                          instr.operands[1].val, instr.operands[2].reg,
+                          newreference(instr.operands[3].ref))));
+{$else USE_OP3}
+                         Message(assem_e_unsupported_opcode_and_operand)
+                         { MISSING !!!! } ;
+{$endif USE_OP3}
+                        OPR_REGISTER:
+                         p^.concat(new(pai386,
+                          op_const_reg_reg(instruc, S_W,
+                          instr.operands[1].val, instr.operands[2].reg,
+                          instr.operands[3].reg)));
+                        else
+                         Message(assem_e_invalid_opcode_and_operand);
+                        end;
+                       end
+                      else
+                       Message(assem_e_invalid_opcode_and_operand);
+                    end;
+                  end
+                 else if instr.operands[1].operandtype = OPR_REGISTER then
+{$ifndef USE_OP3}
+                   Message(assem_e_unsupported_opcode_and_operand)
+{$else USE_OP3}
+                  begin
+                   case instr.operands[3].operandtype of
+                    OPR_REFERENCE:
+                     p^.concat(new(pai386,
+                      op_reg_reg_ref(instruc, S_W,
+                      instr.operands[1].reg, instr.operands[2].reg,
+                      newreference(instr.operands[3].ref))));
+                    OPR_REGISTER:
+                     p^.concat(new(pai386,
+                      op_reg_reg_reg(instruc, S_W,
+                      instr.operands[1].reg, instr.operands[2].reg,
+                      instr.operands[3].reg)));
+                    else
+                     Message(assem_e_invalid_opcode_and_operand);
+                    end;
+                  end
+{$endif USE_OP3}
+                 else
+                  Message(assem_e_invalid_opcode_and_operand);
+                S_L:
+                 if instr.operands[1].operandtype = OPR_CONSTANT then
+                  Begin
+                   if instr.operands[1].val <= $ff then
+                    Begin
+                     if instr.operands[3].size in [S_NO,S_L] then
+                      Begin
+                       case instr.operands[3].operandtype of
+                        OPR_REFERENCE:
+{$ifdef USE_OP3}
+                         p^.concat(new(pai386,
+                          op_const_reg_ref(instruc, S_L,
+                          instr.operands[1].val, instr.operands[2].reg,
+                          newreference(instr.operands[3].ref))));
+{$else USE_OP3}
+                         Message(assem_e_unsupported_opcode_and_operand)
+                         { MISSING !!!! } ;
+{$endif USE_OP3}
+                        OPR_REGISTER:
+                         p^.concat(new(pai386,
+                           op_const_reg_reg(instruc, S_L,
+                           instr.operands[1].val, instr.operands[2].reg,
+                           instr.operands[3].reg)));
+                       else
+                        Message(assem_e_invalid_opcode_and_operand);
+                      end;
+                    end
+                   else
+                    Message(assem_e_invalid_opcode_and_operand);
+                  end;
+                 end
+                 else if instr.operands[1].operandtype = OPR_REGISTER then
+{$ifndef USE_OP3}
+                   Message(assem_e_unsupported_opcode_and_operand)
+{$else USE_OP3}
+                  begin
+                   case instr.operands[3].operandtype of
+                    OPR_REFERENCE:
+                     p^.concat(new(pai386,
+                      op_reg_reg_ref(instruc, S_L,
+                      instr.operands[1].reg, instr.operands[2].reg,
+                      newreference(instr.operands[3].ref))));
+                    OPR_REGISTER:
+                     p^.concat(new(pai386,
+                      op_reg_reg_reg(instruc, S_L,
+                      instr.operands[1].reg, instr.operands[2].reg,
+                      instr.operands[3].reg)));
+                    else
+                     Message(assem_e_invalid_opcode_and_operand);
+                    end;
+                  end
+{$endif USE_OP3}
+                else
+                    Message(assem_e_invalid_opcode_and_operand);
+                { else of case instr.operands[2].size of }
+                else
+                  Message(assem_e_invalid_opcode_and_operand);
+               end; { end case }
+              end
+             else
+              if (instruc = A_IMUL) and
+                (instr.operands[3].operandtype = OPR_REGISTER) then
+               Begin
+                case instr.operands[3].size of
+                 S_W:  if instr.operands[1].operandtype = OPR_CONSTANT then
+                        Begin
+                          if instr.operands[1].val <= $ffff then
+                            Begin
+                              if instr.operands[2].size in [S_NO,S_W] then
+                              Begin
+                                 case instr.operands[2].operandtype of
+                                  OPR_REFERENCE:
+{$ifdef USE_OP3}
+                                   p^.concat(new(pai386,
+                                     op_const_ref_reg(instruc, S_W,
+                                       instr.operands[1].val, newreference(instr.operands[2].ref),
+                                       instr.operands[3].reg)));
+{$else USE_OP3}
+                                   Message(assem_e_unsupported_opcode_and_operand)
+                                   { MISSING !!!! } ;
+{$endif USE_OP3}
+                                  OPR_REGISTER:  p^.concat(new(pai386,
+                                     op_const_reg_reg(instruc, S_W,
+                                     instr.operands[1].val, instr.operands[2].reg,
+                                     instr.operands[3].reg)));
+                                 else
+                                  Message(assem_e_invalid_opcode_and_operand);
+                                 end; { end case }
+                              end
+                              else
+                                Message(assem_e_invalid_opcode_and_operand);
+                            end;
+                        end
+                      else
+                        Message(assem_e_invalid_opcode_and_operand);
+                S_L:  if instr.operands[1].operandtype = OPR_CONSTANT then
+                        Begin
+                          if instr.operands[1].val <= $7fffffff then
+                            Begin
+                              if instr.operands[2].size in [S_NO,S_L] then
+                              Begin
+                                 case instr.operands[2].operandtype of
+                                  OPR_REFERENCE:
+{$ifdef USE_OP3}
+                                   p^.concat(new(pai386,
+                                     op_const_ref_reg(instruc, S_L,
+                                       instr.operands[1].val, newreference(instr.operands[2].ref),
+                                       instr.operands[3].reg)));
+{$else USE_OP3}
+                                   Message(assem_e_unsupported_opcode_and_operand)
+                                   { MISSING !!!! } ;
+{$endif USE_OP3}
+                                  OPR_REGISTER:  p^.concat(new(pai386,
+                                     op_const_reg_reg(instruc, S_L,
+                                     instr.operands[1].val, instr.operands[2].reg,
+                                     instr.operands[3].reg)));
+                                 else
+                                   Message(assem_e_invalid_opcode_and_operand);
+                                 end; { end case }
+                              end
+                              else
+                               Message(assem_e_invalid_opcode_and_operand);
+                            end;
+                        end
+                      else
+                       Message(assem_e_invalid_opcode_and_operand);
+                else
+                  Message(assem_e_invalid_middle_sized_operand);
+                end; { end case }
+               end { endif }
+             else
+               Message(assem_e_invalid_three_operand_opcode);
+        end;
+(*   Old code not yet removed because I did not check exactly that there
+     was no difference between ra386int and ra386att code
+     The code above is just a copy of the code from ra386int ! (PM)
+     3: Begin
+             { only imul, shld and shrd  }
+             { middle must be a register }
            if (instruc = A_SHLD) Or (instruc = A_SHRD) and
               (instr.operands[2].operandtype = OPR_REGISTER) then
              Begin
@@ -2052,7 +2269,9 @@ var
                               if instr.operands[3].size in [S_W] then
                               Begin
                                  case instr.operands[3].operandtype of
-                                  OPR_REFERENCE: { MISSING !!!! } ;
+                                  OPR_REFERENCE:
+                                   Message(assem_e_unsupported_opcode_and_operand)
+                                   { MISSING !!!! } ;
                                   OPR_REGISTER:  p^.concat(new(pai386,
                                      op_const_reg_reg(instruc, S_W,
                                      instr.operands[1].val, instr.operands[2].reg,
@@ -2074,7 +2293,9 @@ var
                               if instr.operands[3].size in [S_L] then
                               Begin
                                  case instr.operands[3].operandtype of
-                                  OPR_REFERENCE: { MISSING !!!! } ;
+                                  OPR_REFERENCE:
+                                   Message(assem_e_unsupported_opcode_and_operand)
+                                   { MISSING !!!! } ;
                                   OPR_REGISTER:  p^.concat(new(pai386,
                                      op_const_reg_reg(instruc, S_L,
                                      instr.operands[1].val, instr.operands[2].reg,
@@ -2105,7 +2326,9 @@ var
                               if instr.operands[2].size in [S_W] then
                               Begin
                                  case instr.operands[2].operandtype of
-                                  OPR_REFERENCE: { MISSING !!!! } ;
+                                  OPR_REFERENCE:
+                                   Message(assem_e_unsupported_opcode_and_operand)
+                                   { MISSING !!!! } ;
                                   OPR_REGISTER:  p^.concat(new(pai386,
                                      op_const_reg_reg(instruc, S_W,
                                      instr.operands[1].val, instr.operands[2].reg,
@@ -2127,7 +2350,9 @@ var
                               if instr.operands[2].size in [S_L] then
                               Begin
                                  case instr.operands[2].operandtype of
-                                  OPR_REFERENCE: { MISSING !!!! } ;
+                                  OPR_REFERENCE:
+                                   Message(assem_e_unsupported_opcode_and_operand)
+                                   { MISSING !!!! } ;
                                   OPR_REGISTER:  p^.concat(new(pai386,
                                      op_const_reg_reg(instruc, S_L,
                                      instr.operands[1].val, instr.operands[2].reg,
@@ -2148,7 +2373,7 @@ var
              end { endif }
            else
              Message(assem_e_invalid_three_operand_opcode);
-        end;
+        end; *)
   end; { end case }
  end;
  end;
@@ -3692,7 +3917,13 @@ end.
 
 {
   $Log$
-  Revision 1.33  1999-02-25 21:02:47  peter
+  Revision 1.34  1999-04-16 10:00:58  pierre
+    + ifdef USE_OP3 code :
+      added all missing op_... constructors for tai386 needed
+      for SHRD,SHLD and IMUL code in assembler readers
+      (check in tests/tbs0123.pp)
+
+  Revision 1.33  1999/02/25 21:02:47  peter
     * ag386bin updates
     + coff writer
 

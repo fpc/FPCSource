@@ -402,6 +402,9 @@ unit i386;
           opxt:word;
           op1,op2 : pointer;
           op1ofs : longint;
+{$ifdef USE_OP3}
+          op3 : pointer;
+{$endif USE_OP3}
           constructor op_none(op : tasmop;_size : topsize);
 
           constructor op_reg(op : tasmop;_size : topsize;_op1 : tregister);
@@ -428,6 +431,12 @@ unit i386;
           constructor op_ref_loc(op : tasmop;_size : topsize;_op1 : preference;_op2 : tlcation);}
 
           constructor op_const_reg_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister;_op3 : tregister);
+
+{$ifdef USE_OP3}
+          constructor op_const_reg_ref(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister;_op3 : preference);
+          constructor op_const_ref_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : preference;_op3 : tregister);
+          constructor op_reg_reg_ref(op : tasmop;_size : topsize;_op1 : tregister;_op2 : tregister;_op3 : preference);
+{$endif USE_OP3}
 
           { this is for CALL etc.                            }
           { symbol is replaced by the address of symbol      }
@@ -1512,10 +1521,12 @@ unit i386;
 
       end;
 
+{$ifndef USE_OP3}
     type
        twowords=record
           word1,word2:word;
        end;
+{$endif ndef USE_OP3}
 
     constructor tai386.op_reg_reg_reg(op : tasmop;_size : topsize;_op1,_op2,_op3 : tregister);
 
@@ -1526,8 +1537,13 @@ unit i386;
          opxt:=Top_reg shl 8+Top_reg shl 4+Top_reg;
          opsize:=_size;
          op1:=pointer(_op1);
+{$ifndef USE_OP3}
          twowords(op2).word1:=word(_op2);
          twowords(op2).word2:=word(_op3);
+{$else USE_OP3}
+         op2:=pointer(_op2);
+         op3:=pointer(_op3);
+{$endif USE_OP3}
       end;
 
     constructor tai386.op_reg_ref(op : tasmop;_size : topsize;_op1 : tregister;_op2 : preference);
@@ -1621,9 +1637,56 @@ unit i386;
          opxt:=Top_const+Top_reg shl 4+Top_reg shl 8;
          opsize:=_size;
          op1:=pointer(_op1);
+{$ifndef USE_OP3}
          twowords(op2).word1:=word(_op2);
          twowords(op2).word2:=word(_op3);
+{$else USE_OP3}
+         op2:=pointer(_op2);
+         op3:=pointer(_op3);
+{$endif USE_OP3}
       end;
+
+{$ifdef USE_OP3}
+    constructor tai386.op_const_reg_ref(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister;_op3 : preference);
+
+      begin
+         inherited init;
+         typ:=ait_instruction;
+         opcode:=op;
+         opxt:=Top_const+Top_reg shl 4+Top_ref shl 8;
+         opsize:=_size;
+         op1:=pointer(_op1);
+         op2:=pointer(_op2);
+         op3:=pointer(_op3);
+      end;
+
+    constructor tai386.op_const_ref_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : preference;_op3 : tregister);
+
+      begin
+         inherited init;
+         typ:=ait_instruction;
+         opcode:=op;
+         opxt:=Top_const+Top_ref shl 4+Top_reg shl 8;
+         opsize:=_size;
+         op1:=pointer(_op1);
+         op2:=pointer(_op2);
+         op3:=pointer(_op3);
+      end;
+
+    constructor tai386.op_reg_reg_ref(op : tasmop;_size : topsize;_op1 : tregister;_op2 : tregister;_op3 : preference);
+
+      begin
+         inherited init;
+         typ:=ait_instruction;
+         opcode:=op;
+         opxt:=Top_reg+Top_reg shl 4+Top_ref shl 8;
+         opsize:=_size;
+         op1:=pointer(_op1);
+         op2:=pointer(_op2);
+         op3:=pointer(_op3);
+      end;
+{$endif USE_OP3}
+
 
     constructor tai386.op_const_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister);
 
@@ -1978,7 +2041,13 @@ Begin
 end.
 {
   $Log$
-  Revision 1.39  1999-04-12 19:20:45  florian
+  Revision 1.40  1999-04-16 10:00:57  pierre
+    + ifdef USE_OP3 code :
+      added all missing op_... constructors for tai386 needed
+      for SHRD,SHLD and IMUL code in assembler readers
+      (check in tests/tbs0123.pp)
+
+  Revision 1.39  1999/04/12 19:20:45  florian
     * iret is in intel mode now written as iretd
 
   Revision 1.38  1999/03/26 00:05:31  peter
