@@ -18,7 +18,7 @@
 
 program testdns;
 
-uses netdb;
+uses netdb,Sockets;
 
 Procedure DumpHostEntry(Const H : THostEntry);
 
@@ -84,7 +84,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2005-02-14 17:13:19  peter
+  Revision 1.5  2005-03-18 12:06:18  marco
+   * some fixes
+
+  Revision 1.4  2005/02/14 17:13:19  peter
     * truncate log
 
 }
