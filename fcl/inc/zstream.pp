@@ -3,6 +3,7 @@ unit zstream;
 interface
 
 uses Sysutils, Classes,zlib;
+{$H+}
 
 type
   // Error reporting.
@@ -29,12 +30,12 @@ type
   TCompressionStream = class(TCustomZlibStream)
   private
     function GetCompressionRate: extended;
-  public
-    constructor Create(CompressionLevel: TCompressionLevel; Dest: TStream);
-    destructor Destroy; override;
     function CompressionCheck(code: Integer): Integer;
     procedure CompressBuf(const InBuf: Pointer; InBytes: Integer;
                           var OutBuf: Pointer; var OutBytes: Integer);
+  public
+    constructor Create(CompressionLevel: TCompressionLevel; Dest: TStream);
+    destructor Destroy; override;
     function Read(var Buffer; Count: Longint): Longint; override;
     function Write(const Buffer; Count: Longint): Longint; override;
     function Seek(Offset: Longint; Origin: Word): Longint; override;
@@ -43,18 +44,33 @@ type
   end;
 
   TDecompressionStream = class(TCustomZlibStream)
-  public
-    constructor Create(Source: TStream);
-    destructor Destroy; override;
+  private 
     function DecompressionCheck(code: Integer): Integer;
     procedure DecompressBuf(const InBuf: Pointer; InBytes: Integer;
     OutEstimate: Integer; var OutBuf: Pointer; var OutBytes: Integer);
+  public
+    constructor Create(Source: TStream);
+    destructor Destroy; override;
     function Read(var Buffer; Count: Longint): Longint; override;
     function Write(const Buffer; Count: Longint): Longint; override;
     function Seek(Offset: Longint; Origin: Word): Longint; override;
     property OnProgress;
   end;
 
+  TGZOpenMode = (gzOpenRead,gzOpenWrite);
+  
+  TGZFileStream = Class(TStream)
+    Private
+    FOpenMode : TGZOpenmode;
+    FFIle : gzfile;
+    Public
+    Constructor Create(FileName: String;FileMode: TGZOpenMode);
+    Destructor Destroy;override;
+    Function Read(Var Buffer; Count : longint): longint;override;
+    function Write(const Buffer; Count: Longint): Longint; override;
+    function Seek(Offset: Longint; Origin: Word): Longint; override;
+    end;
+    
 
 implementation
 
@@ -62,7 +78,12 @@ Const
   ErrorStrings : array [0..6] of string = 
     ('Unknown error %d','Z_ERRNO','Z_STREAM_ERROR',
      'Z_DATA_ERROR','Z_MEM_ERROR','Z_BUF_ERROR','Z_VERSION_ERROR');
-
+  SCouldntOpenFile = 'Couldn''t open file : %s';
+  SReadOnlyStream = 'Decompression streams are read-only';
+  SWriteOnlyStream = 'Compression streams are write-only';
+  SSeekError = 'Compression stream seek error';  
+  SInvalidSeek = 'Invalid Compression seek operation';
+  
 Type PLongint = ^Longint;
 
 Function DGetmem (Size : Longint) : pointer;
@@ -284,7 +305,7 @@ begin
   if (Offset = 0) and (Origin = soFromCurrent) then
     Result := FZRec.total_in
   else
-    raise ECompressionError.Create('Invalid stream operation');
+    raise ECompressionError.Create(SInvalidSeek);
 end;
 
 function TCompressionStream.GetCompressionRate: extended;
@@ -379,10 +400,48 @@ begin
     end;
   end
   else
-    raise EDecompressionError.Create('Invalid stream operation');
+    raise EDecompressionError.Create(SInvalidSeek);
   Result := FZRec.total_out;
 end;
 
+// TGZFileStream
 
+Constructor TGZFileStream.Create(FileName: String;FileMode: TGZOpenMode);
+
+Const OpenStrings : array[TGZOpenMode] of pchar = ('rb','wb');
+
+begin
+   FOpenMode:=FileMode;
+   FFile:=gzopen (Pchar(FileName),Openstrings[FileMode]);
+   If FFile=Nil then
+     Raise ezlibError.CreateFmt (SCouldntOpenFIle,[FileName]);
+end;
+
+Destructor TGZFileStream.Destroy;
+begin
+  gzclose(FFile);
+  Inherited Destroy;
+end;
+
+Function TGZFileStream.Read(Var Buffer; Count : longint): longint;
+begin
+  If FOpenMode=gzOpenWrite then
+    Raise ezliberror.create(SWriteOnlyStream);
+  Result:=gzRead(FFile,@Buffer,Count);
+end;
+
+function TGZFileStream.Write(const Buffer; Count: Longint): Longint;
+begin
+  If FOpenMode=gzOpenRead then
+    Raise EzlibError.Create(SReadonlyStream);
+  Result:=gzWrite(FFile,@Buffer,Count);
+end;
+
+function TGZFileStream.Seek(Offset: Longint; Origin: Word): Longint;
+begin
+  Result:=gzseek(FFile,Offset,Origin);
+  If Result=-1 then
+    Raise eZlibError.Create(SSeekError);
+end;
 
 end.
