@@ -131,16 +131,16 @@ interface
          procedure donewriting;virtual;
          procedure createsection(sec:tsection);virtual;
          procedure defaultsection(sec:tsection);
-         function  sectionsize(s:tsection):longint;virtual;
+         function  sectionsize(s:tsection):longint;
          procedure setsectionsizes(var s:tsecsize);virtual;
-         procedure alloc(len:longint);virtual;
-         procedure allocalign(len:longint);virtual;
-         procedure writebytes(var data;len:longint);virtual;
+         procedure alloc(len:longint);
+         procedure allocalign(len:longint);
+         procedure writebytes(var data;len:longint);
          procedure writereloc(data,len:longint;p:pasmsymbol;relative:relative_type);virtual;
          procedure writesymbol(p:pasmsymbol);virtual;
          procedure writestabs(section:tsection;offset:longint;p:pchar;nidx,nother,line:longint;reloc:boolean);virtual;
          procedure writesymstabs(section:tsection;offset:longint;p:pchar;ps:pasmsymbol;
-           nidx,nother,line:longint;reloc:boolean);virtual;
+                                 nidx,nother,line:longint;reloc:boolean);virtual;
        end;
 
     var
@@ -429,7 +429,10 @@ interface
 
     function tobjectoutput.sectionsize(s:tsection):longint;
       begin
-        sectionsize:=0;
+        if assigned(sects[s]) then
+         sectionsize:=sects[s]^.datasize
+        else
+         sectionsize:=0;
       end;
 
 
@@ -499,7 +502,11 @@ interface
 end.
 {
   $Log$
-  Revision 1.1  2000-11-12 22:20:37  peter
+  Revision 1.2  2000-11-13 21:56:07  peter
+    * removed some virtual from methods
+    * sectionsize method implemented (fixes lineinfo stabs)
+
+  Revision 1.1  2000/11/12 22:20:37  peter
     * create generic toutputsection for binary writers
 
 }
