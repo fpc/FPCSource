@@ -29,7 +29,7 @@ $Revision$
 $Modtime: 96-08-01 10:23 $
 
 $History: LEXTABLE.PAS $
- *
+ * 
  * *****************  Version 2  *****************
  * User: Berend       Date: 96-10-10   Time: 21:16
  * Updated in $/Lex and Yacc/tply
@@ -371,13 +371,17 @@ procedure addTrans(cc : CClass; FOLLOW : IntSetPtr);
   end(*addCharTrans*);
 
 (* comparison and swap procedures for sorting transitions: *)
-function transLessNextState(i, j : Integer) : Boolean;{$ifndef fpc}far;{$endif}
+{$ifndef fpc}{$F+}{$endif}
+function transLessNextState(i, j : Integer) : Boolean;
+{$ifndef fpc}{$F-}{$endif}
   (* compare transitions based on next states (used in mergeCharTrans) *)
   begin
     transLessNextState := trans_table^[i].next_state<
                           trans_table^[j].next_state
   end(*transLessNextState*);
-function transLess(i, j : Integer) : Boolean;{$ifndef fpc}far;{$endif}
+{$ifndef fpc}{$F+}{$endif}
+function transLess(i, j : Integer) : Boolean;
+{$ifndef fpc}{$F-}{$endif}
   (* lexical order on transitions *)
   var c : Char; xi, xj : Boolean;
   begin
@@ -393,7 +397,9 @@ function transLess(i, j : Integer) : Boolean;{$ifndef fpc}far;{$endif}
       end;
     transLess := false
   end(*transLess*);
-procedure transSwap(i, j : Integer);{$ifndef fpc}far;{$endif}
+{$ifndef fpc}{$F+}{$endif}
+procedure transSwap(i, j : Integer);
+{$ifndef fpc}{$F-}{$endif}
   (* swap transitions i and j *)
   var x : TransTableEntry;
   begin

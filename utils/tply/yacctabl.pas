@@ -31,7 +31,7 @@ $Revision$
 $Modtime: 96-07-31 21:15 $
 
 $History: YACCTABL.PAS $
- *
+ * 
  * *****************  Version 2  *****************
  * User: Berend       Date: 96-10-10   Time: 21:16
  * Updated in $/Lex and Yacc/tply
@@ -465,7 +465,9 @@ procedure add_lit ( sym : Integer );
     sym_prec^[sym] := 0;
   end(*add_lit*);
 
-function lookup(k : Integer) : String;{$ifndef fpc}far;{$endif}
+{$ifndef fpc}{$F+}{$endif}
+function lookup(k : Integer) : String;
+{$ifndef fpc}{$F-}{$endif}
   (* print name of symbol no. k *)
   begin
     with sym_table^[k] do
@@ -475,7 +477,9 @@ function lookup(k : Integer) : String;{$ifndef fpc}far;{$endif}
         lookup := pname^
   end(*lookup*);
 
-procedure entry(k : Integer; symbol : String);{$ifndef fpc}far;{$endif}
+{$ifndef fpc}{$F+}{$endif}
+procedure entry(k : Integer; symbol : String);
+{$ifndef fpc}{$F-}{$endif}
   (* enter symbol into table *)
   begin
     sym_table^[k].pname := newStr(symbol);
@@ -483,7 +487,8 @@ procedure entry(k : Integer; symbol : String);{$ifndef fpc}far;{$endif}
 
 function get_key ( symbol : String ) : Integer;
   begin
-    get_key := key(symbol, max_keys,{$ifdef fpc}@{$endif}lookup, {$ifdef fpc}@{$endif}entry);
+    get_key := key(symbol, max_keys, {$ifdef fpc}@{$endif}lookup,
+		   {$ifdef fpc}@{$endif}entry);
   end(*get_key*);
 
 procedure def_key ( k : Integer; sym : Integer );
@@ -543,7 +548,9 @@ procedure add_rule ( r : RuleRecPtr );
     rule_table^[n_rules] := r;
   end(*add_rule*);
 
-function rule_less ( i, j : Integer ) : Boolean;{$ifndef fpc}far;{$endif}
+{$ifndef fpc}{$F+}{$endif}
+function rule_less ( i, j : Integer ) : Boolean;
+{$ifndef fpc}{$F-}{$endif}
   begin
     if rule_table^[rule_no^[i]]^.lhs_sym =
        rule_table^[rule_no^[j]]^.lhs_sym then
@@ -553,7 +560,9 @@ function rule_less ( i, j : Integer ) : Boolean;{$ifndef fpc}far;{$endif}
                    rule_table^[rule_no^[j]]^.lhs_sym
   end(*rule_less*);
 
-procedure rule_swap ( i, j : Integer );{$ifndef fpc}far;{$endif}
+{$ifndef fpc}{$F+}{$endif}
+procedure rule_swap ( i, j : Integer );
+{$ifndef fpc}{$F-}{$endif}
   var x : Integer;
   begin
     x := rule_no^[i]; rule_no^[i] := rule_no^[j]; rule_no^[j] := x;
@@ -563,7 +572,8 @@ procedure sort_rules;
   var i : Integer;
   begin
     for i := 1 to n_rules do rule_no^[i] := i;
-    quicksort ( 1, n_rules, {$ifdef fpc}@{$endif}rule_less, {$ifdef fpc}@{$endif}rule_swap );
+    quicksort ( 1, n_rules, {$ifdef fpc}@{$endif}rule_less,
+	       {$ifdef fpc}@{$endif}rule_swap );
   end(*sort_rules*);
 
 procedure rule_offsets;
@@ -603,13 +613,17 @@ procedure add_type ( k : Integer );
 
 (* Routines to sort type identifiers alphabetically: *)
 
-function type_less ( i, j : Integer ) : Boolean;{$ifndef fpc}far;{$endif}
+{$ifndef fpc}{$F+}{$endif}
+function type_less ( i, j : Integer ) : Boolean;
+{$ifndef fpc}{$F-}{$endif}
   begin
     type_less := sym_table^[type_table^[i]].pname^<
                  sym_table^[type_table^[j]].pname^
   end(*type_less*);
 
-procedure type_swap ( i, j : Integer );{$ifndef fpc}far;{$endif}
+{$ifndef fpc}{$F+}{$endif}
+procedure type_swap ( i, j : Integer );
+{$ifndef fpc}{$F-}{$endif}
   var x : Integer;
   begin
     x := type_table^[i];
@@ -621,7 +635,8 @@ procedure sort_types;
   var i, j, count : Integer;
   begin
     (* sort: *)
-    quicksort(1, n_types, {$ifdef fpc}@{$endif}type_less, {$ifdef fpc}@{$endif}type_swap);
+    quicksort(1, n_types, {$ifdef fpc}@{$endif}type_less,
+	      {$ifdef fpc}@{$endif}type_swap);
     (* eliminate dups: *)
     i := 1; j := 1; count := 0;
     while i<=n_types do
@@ -876,7 +891,9 @@ var sort_items : ItemSet;
 
 (* comparison and swap routines for sort_item_set: *)
 
-function items_less ( i, j : Integer ) : Boolean;{$ifndef fpc}far;{$endif}
+{$ifndef fpc}{$F+}{$endif}
+function items_less ( i, j : Integer ) : Boolean;
+{$ifndef fpc}{$F-}{$endif}
   begin
     with sort_items do
       if item[i].pos_no=item[j].pos_no then
@@ -885,7 +902,9 @@ function items_less ( i, j : Integer ) : Boolean;{$ifndef fpc}far;{$endif}
         items_less := item[i].pos_no>item[j].pos_no
   end(*items_less*);
 
-procedure items_swap ( i, j : Integer );{$ifndef fpc}far;{$endif}
+{$ifndef fpc}{$F+}{$endif}
+procedure items_swap ( i, j : Integer );
+{$ifndef fpc}{$F-}{$endif}
   var x : ItemRec;
   begin
     with sort_items do
@@ -897,7 +916,8 @@ procedure items_swap ( i, j : Integer );{$ifndef fpc}far;{$endif}
 procedure sort_item_set ( var item_set : ItemSet );
   begin
     sort_items := item_set;
-    quicksort(1, sort_items.n_items, {$ifdef fpc}@{$endif}items_less, {$ifdef fpc}@{$endif}items_swap);
+    quicksort(1, sort_items.n_items, {$ifdef fpc}@{$endif}items_less,
+	      {$ifdef fpc}@{$endif}items_swap);
     item_set := sort_items;
   end(*sort_item_set*);
 

@@ -26,7 +26,7 @@ $Revision$
 $Modtime: 96-08-01 6:29 $
 
 $History: LEXOPT.PAS $
- *
+ * 
  * *****************  Version 2  *****************
  * User: Berend       Date: 96-10-10   Time: 21:16
  * Updated in $/Lex and Yacc/tply
@@ -50,9 +50,11 @@ uses LexBase, LexTable;
 
 (* Partition table used in DFA optimization: *)
 
+(* obsolete
+
 const
 
-max_parts = max_states;  (* number of partitions of equivalent states; at
+max_parts = max_states;*)  (* number of partitions of equivalent states; at
                             worst, each state may be in a partition by
                             itself *)
 
@@ -152,8 +154,8 @@ procedure optimizeDFATable;
     part_table^[0] := newIntSet;
     for i := 0 to n_states-1 do
       begin
-        include(part_table^[0]^, i);
-        state_part^[i] := 0;
+	include(part_table^[0]^, i);
+	state_part^[i] := 0;
       end;
 
     (* Now, repeatedly pass over the created partitions, breaking up

@@ -27,7 +27,7 @@ $Revision$
 $Modtime: 96-08-01 8:52 $
 
 $History: LEXMSGS.PAS $
- *
+ * 
  * *****************  Version 2  *****************
  * User: Berend       Date: 96-10-10   Time: 21:16
  * Updated in $/Lex and Yacc/tply
@@ -56,7 +56,7 @@ const
 
 (* sign-on and usage message: *)
 
-sign_on = 'TP Lex Version 4.1 [May 1998], Copyright (c) 1990-98 Albert Graef';
+sign_on = 'TP Lex Version 4.1a [April 2000], Copyright (c) 1990-2000 Albert Graef';
 {$ifdef linux}
 usage   = 'Usage: plex [options] lex-file[.l] [output-file[.pas]]';
 {$else}
@@ -72,27 +72,27 @@ illegal_no_args                 = 'illegal number of parameters';
 (* syntax errors: *)
 
 unmatched_lbrace                = '101: unmatched %{';
-syntax_error                    = '102: syntax error';
+syntax_error 			= '102: syntax error';
 unexpected_eof                  = '103: unexpected end of file';
 
 (* semantic errors: *)
 
-symbol_already_defined          = '201: symbol already defined';
+symbol_already_defined 		= '201: symbol already defined';
 undefined_symbol                = '202: undefined symbol';
 invalid_charnum                 = '203: invalid character number';
-empty_grammar                   = '204: empty grammar?';
+empty_grammar 			= '204: empty grammar?';
 
 (* fatal errors: *)
 
-cannot_open_file                = 'FATAL: cannot open file ';
+cannot_open_file 		= 'FATAL: cannot open file ';
 write_error                     = 'FATAL: write error';
-mem_overflow                    = 'FATAL: memory overflow';
-intset_overflow                 = 'FATAL: integer set overflow';
-sym_table_overflow              = 'FATAL: symbol table overflow';
-pos_table_overflow              = 'FATAL: position table overflow';
-state_table_overflow            = 'FATAL: state table overflow';
-trans_table_overflow            = 'FATAL: transition table overflow';
-macro_stack_overflow            = 'FATAL: macro stack overflow';
+mem_overflow 			= 'FATAL: memory overflow';
+intset_overflow 		= 'FATAL: integer set overflow';
+sym_table_overflow 		= 'FATAL: symbol table overflow';
+pos_table_overflow 		= 'FATAL: position table overflow';
+state_table_overflow 		= 'FATAL: state table overflow';
+trans_table_overflow 		= 'FATAL: transition table overflow';
+macro_stack_overflow 		= 'FATAL: macro stack overflow';
 
 implementation
 
@@ -152,7 +152,7 @@ procedure fatal(msg : String);
 
 {$ifndef fpc}
 {$IFNDEF Win32}
-function heapErrorHandler ( size : Word ): Integer; {$ifndef fpc}far;{$endif}
+function heapErrorHandler ( size : Word ): Integer; far;
   begin
     if size>0 then
       fatal(mem_overflow) (* never returns *)

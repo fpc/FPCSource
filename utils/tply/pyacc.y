@@ -66,7 +66,7 @@ Last changes:
     updates)
 
 $History: YACC.PAS $
- *
+ * 
  * *****************  Version 2  *****************
  * User: Berend       Date: 96-10-10   Time: 21:16
  * Updated in $/Lex and Yacc/tply
@@ -161,20 +161,20 @@ uses
 /* Lexical part of the Yacc language: */
 
 %token
-  ID            /* identifiers: {letter}{letter_or_digit}* */
-  C_ID          /* identifier which forms left side of rule, i.e. is
-                   followed by a colon */
+  ID		/* identifiers: {letter}{letter_or_digit}* */
+  C_ID		/* identifier which forms left side of rule, i.e. is
+		   followed by a colon */
   LITERAL       /* single character literal */
   LITID         /* multiple character literal */
-  NUMBER        /* nonnegative integers: {digit}+ */
+  NUMBER	/* nonnegative integers: {digit}+ */
   PTOKEN PLEFT PRIGHT PNONASSOC PTYPE PSTART PPREC
-                /* reserved words: PTOKEN=%token, etc. */
-  PP            /* source sections separator %% */
-  LCURL         /* curly braces: %{ and %} */
+  		/* reserved words: PTOKEN=%token, etc. */
+  PP		/* source sections separator %% */
+  LCURL		/* curly braces: %{ and %} */
   RCURL
   ',' ':' ';' '|' '{' '}' '<' '>' '='
-                /* literals */
-  ILLEGAL       /* illegal input character */
+		/* literals */
+  ILLEGAL	/* illegal input character */
 
 %start grammar
 
@@ -183,234 +183,234 @@ uses
 /* Lexical entities, those that may give rise to syntax errors are augmented
    with error productions, and important symbols call yyerrok. */
 
-id              : ID
-c_id            : C_ID
+id		: ID
+c_id		: C_ID
 literal         : LITERAL
 litid           : LITID
-number          : NUMBER
-ptoken          : PTOKEN        { yyerrok; }
-pleft           : PLEFT         { yyerrok; }
-pright          : PRIGHT        { yyerrok; }
-pnonassoc       : PNONASSOC     { yyerrok; }
-ptype           : PTYPE         { yyerrok; }
-pstart          : PSTART        { yyerrok; }
-pprec           : PPREC
-pp              : PP            { yyerrok; }
-lcurl           : LCURL
-rcurl           : RCURL
-                | error         { error(rcurl_expected); }
-comma           : ','
-colon           : ':'           { yyerrok; }
-semicolon       : ';'           { yyerrok; }
-bar             : '|'           { yyerrok; }
-lbrace          : '{'
-rbrace          : '}'
-                | error         { error(rbrace_expected); }
-langle          : '<'
-rangle          : '>'
-                | error         { error(rangle_expected); }
-eq              : '='
+number		: NUMBER
+ptoken		: PTOKEN        { yyerrok; }
+pleft		: PLEFT	        { yyerrok; }
+pright		: PRIGHT        { yyerrok; }
+pnonassoc	: PNONASSOC	{ yyerrok; }
+ptype		: PTYPE	        { yyerrok; }
+pstart		: PSTART        { yyerrok; }
+pprec		: PPREC
+pp		: PP	        { yyerrok; }
+lcurl		: LCURL
+rcurl		: RCURL
+		| error	        { error(rcurl_expected); }
+comma		: ','
+colon		: ':'	        { yyerrok; }
+semicolon	: ';'	        { yyerrok; }
+bar		: '|'	        { yyerrok; }
+lbrace		: '{'
+rbrace		: '}'
+		| error	        { error(rbrace_expected); }
+langle		: '<'
+rangle		: '>'
+		| error         { error(rangle_expected); }
+eq		: '='
 
 /* Syntax and semantic routines: */
 
-grammar         : defs pp
-                                { sort_types;
+grammar		: defs pp
+		  		{ sort_types;
                                   definitions;
                                   next_section; }
-                  rules
-                                { next_section;
+		  rules
+		  		{ next_section;
                                   generate_parser;
                                   next_section; }
-                  aux_procs
-                ;
+		  aux_procs
+		;
 
-aux_procs       : /* empty: aux_procs is optional */
+aux_procs	: /* empty: aux_procs is optional */
 
-                | pp { copy_rest_of_file; }
+		| pp { copy_rest_of_file; }
 
-                ;
+		;
 
 
-defs            : /* empty */
-                | defs def      { yyerrok; }
-                | defs error    { error(error_in_def); }
-                ;
+defs		: /* empty */
+		| defs def	{ yyerrok; }
+		| defs error	{ error(error_in_def); }
+		;
 
-def             : pstart id
-                                { startnt := ntsym($2); }
-                | pstart error
-                                { error(ident_expected); }
-                | lcurl { copy_code; } rcurl
+def		: pstart id
+			 	{ startnt := ntsym($2); }
+		| pstart error
+				{ error(ident_expected); }
+		| lcurl { copy_code; } rcurl
 
-                | ptoken
-                                { act_prec := 0; }
-                  tag token_list
+		| ptoken
+				{ act_prec := 0; }
+		  tag token_list
 
-                | pleft
-                                { act_prec := new_prec_level(left); }
-                  tag token_list
+		| pleft
+				{ act_prec := new_prec_level(left); }
+		  tag token_list
 
-                | pright
-                                { act_prec := new_prec_level(right); }
-                  tag token_list
+		| pright
+				{ act_prec := new_prec_level(right); }
+		  tag token_list
 
-                | pnonassoc
-                                { act_prec := new_prec_level(nonassoc); }
-                  tag token_list
+		| pnonassoc
+				{ act_prec := new_prec_level(nonassoc); }
+		  tag token_list
 
-                | ptype tag nonterm_list
+		| ptype tag nonterm_list
 
                 | ptype tag
 
-                ;
+		;
 
-tag             : /* empty: type tag is optional */
-                                { act_type := 0; }
-                | langle id rangle
-                                { act_type := $2; add_type($2); }
-                ;
+tag		: /* empty: type tag is optional */
+				{ act_type := 0; }
+		| langle id rangle
+				{ act_type := $2; add_type($2); }
+		;
 
-token_list      : token_num
+token_list	: token_num
 
-                | token_list token_num
-                                { yyerrok; }
-                | token_list comma token_num
-                                { yyerrok; }
-                | error
-                                { error(ident_expected); }
-                | token_list error
-                                { error(error_in_def); }
-                | token_list comma error
-                                { error(ident_expected); }
-                ;
+		| token_list token_num
+				{ yyerrok; }
+		| token_list comma token_num
+				{ yyerrok; }
+		| error
+				{ error(ident_expected); }
+		| token_list error
+				{ error(error_in_def); }
+		| token_list comma error
+				{ error(ident_expected); }
+		;
 
-token_num       : literal
-                                { if act_type<>0 then
+token_num	: literal
+				{ if act_type<>0 then
                                     sym_type^[$1] := act_type;
                                   if act_prec<>0 then
                                     sym_prec^[$1] := act_prec; }
-                | litid
-                                { litsym($1, 0);
+               	| litid
+				{ litsym($1, 0);
                                   if act_type<>0 then
                                     sym_type^[litsym($1, 0)] := act_type;
                                   if act_prec<>0 then
                                     sym_prec^[litsym($1, 0)] := act_prec; }
-                | id
-                                { litsym($1, 0);
+               	| id
+				{ litsym($1, 0);
                                   if act_type<>0 then
                                     sym_type^[litsym($1, 0)] := act_type;
                                   if act_prec<>0 then
                                     sym_prec^[litsym($1, 0)] := act_prec; }
-                | litid number
-                                { litsym($1, 0);
+               	| litid number
+				{ litsym($1, 0);
                                   if act_type<>0 then
                                     sym_type^[litsym($1, $2)] := act_type;
                                   if act_prec<>0 then
                                     sym_prec^[litsym($1, 0)]  := act_prec; }
-                | id number
-                                { litsym($1, 0);
+               	| id number
+				{ litsym($1, 0);
                                   if act_type<>0 then
                                     sym_type^[litsym($1, $2)] := act_type;
                                   if act_prec<>0 then
                                     sym_prec^[litsym($1, 0)]  := act_prec; }
-                ;
+		;
 
-nonterm_list    : nonterm
-                | nonterm_list nonterm
-                                { yyerrok; }
-                | nonterm_list comma nonterm
-                                { yyerrok; }
-                | error
-                                { error(ident_expected); }
-                | nonterm_list error
-                                { error(error_in_def); }
-                | nonterm_list comma error
-                                { error(ident_expected); }
-                ;
+nonterm_list	: nonterm
+		| nonterm_list nonterm
+				{ yyerrok; }
+		| nonterm_list comma nonterm
+				{ yyerrok; }
+		| error
+				{ error(ident_expected); }
+		| nonterm_list error
+				{ error(error_in_def); }
+		| nonterm_list comma error
+				{ error(ident_expected); }
+		;
 
-nonterm         : id
-                                { if act_type<>0 then
+nonterm		: id
+				{ if act_type<>0 then
                                     sym_type^[ntsym($1)] := act_type; }
-                ;
+		;
 
 
-rules           :               { next_section; }
-                  rule1
+rules		: 		{ next_section; }
+		  rule1
 
-                | lcurl { copy_code; } rcurl
-                                { next_section; }
-                  rule1
-                                        /* rules section may be prefixed
-                                           with `local' Turbo Pascal
-                                           declarations */
-                | rules rule
-                                { yyerrok; }
-                | error
-                                { error(error_in_rule); }
-                | rules error
-                                { error(error_in_rule); }
-                ;
+		| lcurl { copy_code; } rcurl
+				{ next_section; }
+		  rule1
+					/* rules section may be prefixed
+					   with `local' Turbo Pascal
+					   declarations */
+		| rules rule
+				{ yyerrok; }
+		| error
+				{ error(error_in_rule); }
+		| rules error
+				{ error(error_in_rule); }
+		;
 
-rule1           : c_id
-                                { start_rule(ntsym($1)); }
-                  colon
-                                { start_body; }
-                  body prec
-                                { end_body; }
-                ;
+rule1		: c_id
+				{ start_rule(ntsym($1)); }
+		  colon
+		  		{ start_body; }
+		  body prec
+				{ end_body; }
+		;
 
-rule            : rule1
+rule		: rule1
 
-                | bar
-                                { start_body; }
-                  body prec
-                                { end_body; }
-                ;
+		| bar
+				{ start_body; }
+		  body prec
+				{ end_body; }
+		;
 
-body            : /* empty */
+body		: /* empty */
 
-                | body literal
-                                { add_symbol($2); yyerrok; }
-                | body litid
-                                { add_symbol(sym($2)); yyerrok; }
-                | body id
-                                { add_symbol(sym($2)); yyerrok; }
+		| body literal
+				{ add_symbol($2); yyerrok; }
+		| body litid
+				{ add_symbol(sym($2)); yyerrok; }
+		| body id
+				{ add_symbol(sym($2)); yyerrok; }
                 | body action
-                                { add_action; yyerrok; }
-                | body error
-                                { error(error_in_rule); }
-                ;
+				{ add_action; yyerrok; }
+		| body error
+				{ error(error_in_rule); }
+		;
 
-action          : lbrace { copy_action; } rbrace
+action		: lbrace { copy_action; } rbrace
 
-                | eq { copy_single_action; }
-                                /* old language feature; code must be
-                                   single statement ending with `;' */
-                ;
+		| eq { copy_single_action; }
+                		/* old language feature; code must be
+				   single statement ending with `;' */
+		;
 
-prec            : /* empty */
+prec		: /* empty */
 
-                | pprec literal
-                                { add_rule_prec($2); }
-                  opt_action
+		| pprec literal
+				{ add_rule_prec($2); }
+		  opt_action
 
-                | pprec litid
-                                { add_rule_prec(litsym($2, 0)); }
-                  opt_action
+		| pprec litid
+				{ add_rule_prec(litsym($2, 0)); }
+		  opt_action
 
-                | pprec id
-                                { add_rule_prec(litsym($2, 0)); }
-                  opt_action
+		| pprec id
+				{ add_rule_prec(litsym($2, 0)); }
+		  opt_action
 
-                | prec semicolon
+		| prec semicolon
 
-                ;
+		;
 
-opt_action      : /* empty */
+opt_action	: /* empty */
 
-                | action
-                                { add_action; }
-                ;
+		| action
+				{ add_action; }
+		;
 
 
 %%
@@ -481,10 +481,10 @@ function yylex : integer;
             ('0'<=line[cno]) and (line[cno]<='9') or
             (line[cno]='_') or
             (line[cno]='.') ) do
-        begin
-          idstr := idstr+line[cno];
-          inc(cno)
-        end;
+	begin
+	  idstr := idstr+line[cno];
+	  inc(cno)
+	end;
       yylval := get_key(idstr);
       scan;
       if not end_of_input and (line[cno]=':') then
@@ -702,9 +702,9 @@ function yylex : integer;
     else
       case line[cno] of
         'A'..'Z', 'a'..'z', '_' : yylex := scan_ident;
-        '''', '"' : yylex := scan_literal;
-        '0'..'9' : yylex := scan_num;
-        '%', '\' : yylex := scan_keyword;
+	'''', '"' : yylex := scan_literal;
+	'0'..'9' : yylex := scan_num;
+	'%', '\' : yylex := scan_keyword;
         '=' :
           if (cno<length(line)) and (line[succ(cno)]='{') then
             begin
@@ -713,7 +713,7 @@ function yylex : integer;
             end
           else
             yylex := scan_char;
-        else yylex := scan_char;
+	else yylex := scan_char;
       end;
     if lno=lno0 then
       tokleng := cno-cno0
@@ -844,9 +844,11 @@ begin
 
   if warnings>0 then writeln(warnings, ' warnings.');
 
+{$ifndef fpc}
 {$IFNDEF Win32}
   writeln( n_bytes, '/', max_bytes, ' bytes of memory used.');
 {$ENDIF}
+{$endif}
 
   (* terminate: *)
 

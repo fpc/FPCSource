@@ -26,7 +26,7 @@ $Revision$
 $Modtime: 96-07-31 14:09 $
 
 $History: YACCLOOK.PAS $
- *
+ * 
  * *****************  Version 2  *****************
  * User: Berend       Date: 96-10-10   Time: 21:16
  * Updated in $/Lex and Yacc/tply
@@ -156,7 +156,7 @@ uses YaccBase, YaccTabl;
       modified during the previous pass. *)
 
 (* Data structures used in lookahead computation: *)
-
+ 
 type
 
 SymSetArray = array [1..max_set_items] of IntSet;
@@ -267,12 +267,16 @@ procedure spontaneous_lookaheads;
       end;
   end(*spontaneous_lookaheads*);
 
-function redns_less ( i, j : Integer ) : Boolean;{$ifndef fpc}far;{$endif}
-begin
+{$ifndef fpc}{$F+}{$endif}
+function redns_less ( i, j : Integer ) : Boolean;
+{$ifndef fpc}{$F-}{$endif}
+  begin
     redns_less := redn_table^[i].rule_no<redn_table^[j].rule_no
-end(*redns_less*);
+  end(*redns_less*);
 
-procedure redns_swap ( i, j : Integer );{$ifndef fpc}far;{$endif}
+{$ifndef fpc}{$F+}{$endif}
+procedure redns_swap ( i, j : Integer );
+{$ifndef fpc}{$F-}{$endif}
   var x : RednRec;
   begin
     x := redn_table^[i];
@@ -284,7 +288,8 @@ procedure sort_redns;
   (* sort reduction entries in act_state w.r.t. rule numbers *)
   begin
     with state_table^[act_state] do
-      quicksort(redns_lo, redns_hi, {$ifdef fpc}@{$endif}redns_less, {$ifdef fpc}@{$endif}redns_swap);
+      quicksort(redns_lo, redns_hi, {$ifdef fpc}@{$endif}redns_less,
+		{$ifdef fpc}@{$endif}redns_swap);
   end(*sort_redns*);
 
 procedure initialize;
