@@ -172,6 +172,7 @@
            i:=Count;
          i:=Source.Read(buffer,i);
          i:=Write(buffer,i);
+         if i=0 then break;
          dec(count,i);
          CopyFrom:=CopyFrom+i;
          end;
@@ -551,8 +552,8 @@ procedure TCustomMemoryStream.SaveToFile(const FileName: string);
 Var S : TFileStream;
 
 begin
+  S:=TFileStream.Create (FileName,fmCreate);
   Try
-    S:=TFileStream.Create (FileName,fmCreate);
     SaveToStream(S);
   finally
     S.free;
@@ -802,7 +803,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2005-01-09 13:15:37  michael
+  Revision 1.4  2005-01-18 22:31:44  michael
+  + Patch from Mattias Gaertner to fix CopyFrom
+
+  Revision 1.3  2005/01/09 13:15:37  michael
   + Added TOwnerStream
 
   Revision 1.2  2003/10/30 16:30:53  peter
