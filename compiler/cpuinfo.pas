@@ -30,6 +30,8 @@ Type
 {$else FPC}
    AWord = Longint;
 {$endif FPC}
+   TConstExprInt = longint;
+   TConstExprUInt = dword;
 
 Const
    { Size of native extended type }
@@ -40,7 +42,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:39  michael
+  Revision 1.3  2000-08-12 06:45:08  florian
+    + type TConstExprInt added
+
+  Revision 1.2  2000/07/13 11:32:39  michael
   + removed logs
 
 }
