@@ -315,7 +315,8 @@ Fixed bugs:
   bug0259.pp   problem with optimizer for real math (use -O1)       OK 0.99.12 (PM)
   bug0260.pp   problem with VMT generation if non virtual 
                method has a virtual overload                        OK 0.99.12 (PM)
-
+  bug0261.pp   problems for assignment overloading                  OK 0.99.12a (PM)
+  bug0269.pp   wrong linenumber for repeat until when type mismatch OK 0.99.12b (PM)
 
 Unproducable bugs:
 ------------------
@@ -350,7 +351,6 @@ bug0244.pp   nested procedures can't have same name as global ones (same as bug0
 bug0245.pp   assigning pointers to address of consts is allowed (refused by BP !)
 bug0246.pp   const para can be changed without error
 bug0252.pp   typecasting not possible within typed const
-bug0261.pp   problems for assignment overloading
 bug0262.pp   problems with virtual and overloaded methods
 bug0263.pp   export directive is not necessary in delphi anymore
 bug0264.pp   methodpointer bugs
@@ -358,6 +358,7 @@ bug0265.pp   nested proc with for-counter in other lex level
 bug0266.pp   write cuts 256 char
 bug0267.pp   parameters after methodpointer are wrong
 bug0268.pp   crash with exceptions
-bug0269.pp   wrong linenumber for repeat until when type mismatch
 bug0270.pp   unexpected eof in tp mode with (* and directives
 bug0271.pp   abstract methods can't be assigned to methodpointers
+bug0272.pp   No error issued if wrong parameter in function inside a second function
+
