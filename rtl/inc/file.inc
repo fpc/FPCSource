@@ -69,7 +69,8 @@ Begin
    InOutRes:=2
   else
    Begin
-     Do_Open(f,PChar(@FileRec(f).Name),$1000+filemode);
+     { Reopen with filemode 2, to be Tp compatible (PFV) }
+     Do_Open(f,PChar(@FileRec(f).Name),$1002);
      FileRec(f).RecSize:=l;
    End;
 End;
@@ -408,7 +409,10 @@ End;
 
 {
   $Log$
-  Revision 1.17  2000-01-16 22:25:38  peter
+  Revision 1.18  2000-01-17 20:02:30  peter
+    * open with mode 2 in rewrite
+
+  Revision 1.17  2000/01/16 22:25:38  peter
     * check handle for file closing
 
   Revision 1.16  2000/01/07 16:41:33  daniel
