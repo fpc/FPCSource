@@ -187,14 +187,17 @@ implementation
                                      end;
                                 end;
                            end;
-                         { in case call by reference, then calculate: }
+                         { in case call by reference, then calculate. Open array
+                           is always an reference! }
                          if (pvarsym(p^.symtableentry)^.varspez=vs_var) or
+                            is_open_array(pvarsym(p^.symtableentry)^.definition) or
                             ((pvarsym(p^.symtableentry)^.varspez=vs_const) and
                              push_addr_param(pvarsym(p^.symtableentry)^.definition)) then
                            begin
                               simple_loadn:=false;
                               if hregister=R_NO then
                                 hregister:=getregister32;
+{$ifdef OLDHIGH}
                               if is_open_array(pvarsym(p^.symtableentry)^.definition) or
                                  is_open_string(pvarsym(p^.symtableentry)^.definition) then
                                 begin
@@ -211,6 +214,7 @@ implementation
                                           p^.location.reference.base,R_EDI)));
                                      end;
                                 end;
+{$endif}
                               if p^.location.loc=LOC_CREGISTER then
                                 begin
                                    exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,S_L,
@@ -730,7 +734,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  1999-01-20 10:20:18  peter
+  Revision 1.42  1999-01-21 22:10:40  peter
+    * fixed array of const
+    * generic platform independent high() support
+
+  Revision 1.41  1999/01/20 10:20:18  peter
     * don't make localvar copies for assembler procedures
 
   Revision 1.40  1998/12/30 13:41:07  peter

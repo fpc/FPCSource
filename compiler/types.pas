@@ -91,6 +91,8 @@ unit types;
     { true, if def is a 64 bit int type }
     function is_64bitint(def : pdef) : boolean;
 
+    function push_high_param(def : pdef) : boolean;
+
     { true if a parameter is too large to copy and only the address is pushed }
     function push_addr_param(def : pdef) : boolean;
 
@@ -375,6 +377,13 @@ unit types;
            ((def^.deftype=objectdef) and ((pobjectdef(def)^.options and oo_is_class)=0)) or
            ((def^.deftype=setdef) and (psetdef(def)^.settype<>smallset));
       end;
+
+
+    function push_high_param(def : pdef) : boolean;
+      begin
+         push_high_param:=is_open_array(def) or is_open_string(def);
+      end;
+
 
     { true if a parameter is too large to copy and only the address is pushed }
     function push_addr_param(def : pdef) : boolean;
@@ -1047,7 +1056,11 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.45  1999-01-20 12:34:22  peter
+  Revision 1.46  1999-01-21 22:10:54  peter
+    * fixed array of const
+    * generic platform independent high() support
+
+  Revision 1.45  1999/01/20 12:34:22  peter
     * fixed typed file read/write
 
   Revision 1.44  1999/01/15 11:33:03  pierre

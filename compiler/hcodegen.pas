@@ -132,6 +132,10 @@ unit hcodegen;
        { true, if an error while code generation occurs }
        codegenerror : boolean;
 
+       { save the size of pushed parameter, needed for aligning }
+       pushedparasize : longint;
+
+{$ifdef OLDHIGH}
        { this is for open arrays and strings        }
        { but be careful, this data is in the        }
        { generated code destroyed quick, and also   }
@@ -141,6 +145,7 @@ unit hcodegen;
        { provided by this variables                 }
        highframepointer : tregister;
        highoffset : longint;
+{$endif}
 
     { message calls with codegenerror support }
     procedure cgmessage(const t : tmsgconst);
@@ -355,7 +360,11 @@ end.
 
 {
   $Log$
-  Revision 1.24  1998-12-29 18:48:18  jonas
+  Revision 1.25  1999-01-21 22:10:45  peter
+    * fixed array of const
+    * generic platform independent high() support
+
+  Revision 1.24  1998/12/29 18:48:18  jonas
     + optimize pascal code surrounding assembler blocks
 
   Revision 1.23  1998/11/27 14:50:38  peter

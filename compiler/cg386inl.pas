@@ -621,6 +621,7 @@ implementation
                    exprasmlist^.concat(new(pai386,op_const_reg(A_SHR,S_W,8,p^.location.register)));
                  p^.location.register:=reg16toreg8(p^.location.register);
               end;
+{$ifdef OLDHIGH}
             in_high_x :
               begin
                  if is_open_array(p^.left^.resulttype) or
@@ -634,9 +635,11 @@ implementation
                         r,p^.location.register)));
                    end
               end;
+{$endif OLDHIGH}
             in_sizeof_x,
             in_typeof_x :
               begin
+{$ifdef OLDHIGH}
                { sizeof(openarray) handling }
                  if (p^.inlinenumber=in_sizeof_x) and
                     (is_open_array(p^.left^.resulttype) or
@@ -657,6 +660,7 @@ implementation
                         parraydef(p^.left^.resulttype)^.elesize,p^.location.register)));
                   end
                  else
+{$endif OLDHIGH}
                   begin
                     { for both cases load vmt }
                     if p^.left^.treetype=typen then
@@ -1004,7 +1008,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  1999-01-06 12:23:29  florian
+  Revision 1.24  1999-01-21 22:10:39  peter
+    * fixed array of const
+    * generic platform independent high() support
+
+  Revision 1.23  1999/01/06 12:23:29  florian
     * str(...) for ansi/long and widestrings fixed
 
   Revision 1.22  1998/12/11 23:36:07  florian

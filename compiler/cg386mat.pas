@@ -188,7 +188,7 @@ implementation
          hregister1,hregister2,hregister3,
          hregisterhigh,hregisterlow : tregister;
          pushed,popecx : boolean;
-         op,op2 : tasmop;
+         op : tasmop;
          hr : preference;
 
       begin
@@ -755,7 +755,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  1999-01-19 10:51:32  pierre
+  Revision 1.17  1999-01-21 22:10:41  peter
+    * fixed array of const
+    * generic platform independent high() support
+
+  Revision 1.16  1999/01/19 10:51:32  pierre
    * fix to bug0183 in secondnot
 
   Revision 1.15  1998/12/11 16:50:22  florian

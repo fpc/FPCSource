@@ -287,10 +287,24 @@ implementation
                end;
              in_sizeof_x:
                begin
-                  if p^.registers32<1 then
+{$ifndef OLDHIGH}
+                 if push_high_param(p^.left^.resulttype) then
+                  begin
+                    getsymonlyin(p^.left^.symtable,'high'+pvarsym(p^.left^.symtableentry)^.name);
+                    hp:=gennode(addn,genloadnode(pvarsym(srsym),p^.left^.symtable),
+                                     genordinalconstnode(1,s32bitdef));
+                    if (p^.left^.resulttype^.deftype=arraydef) and
+                       (parraydef(p^.left^.resulttype)^.elesize<>1) then
+                      hp:=gennode(muln,hp,genordinalconstnode(parraydef(p^.left^.resulttype)^.elesize,s32bitdef));
+                    disposetree(p);
+                    p:=hp;
+                    firstpass(p);
+                  end;
+{$endif OLDHIGH}
+                 if p^.registers32<1 then
                     p^.registers32:=1;
-                  p^.resulttype:=s32bitdef;
-                  p^.location.loc:=LOC_REGISTER;
+                 p^.resulttype:=s32bitdef;
+                 p^.location.loc:=LOC_REGISTER;
                end;
              in_typeof_x:
                begin
@@ -530,7 +544,11 @@ implementation
                                                   if assigned(hp^.right) then
                                                    CGMessage(type_e_cant_read_write_type);
                                                 end;
-                                    stringdef : ;
+                                    stringdef : begin
+                                                  { generate the high() value for the string }
+                                                  if not dowrite then
+                                                    gen_high_tree(hp,true);
+                                                end;
                                    pointerdef : begin
                                                   if not is_equal(ppointerdef(hp^.left^.resulttype)^.definition,cchardef) then
                                                     CGMessage(type_e_cant_read_write_type);
@@ -670,6 +688,9 @@ implementation
                      (hp^.right=nil) or
                      (hp^.left^.location.loc<>LOC_REFERENCE) then
                     CGMessage(cg_e_illegal_expression);
+                  { generate the high() value for the string }
+                  gen_high_tree(hp,true);
+
                   { !!!! check length of string }
 
                   while assigned(hp^.right) do
@@ -806,9 +827,17 @@ implementation
                                begin
                                  if is_open_array(p^.left^.resulttype) then
                                   begin
+{$ifndef OLDHIGH}
+                                    getsymonlyin(p^.left^.symtable,'high'+pvarsym(p^.left^.symtableentry)^.name);
+                                    hp:=genloadnode(pvarsym(srsym),p^.left^.symtable);
+                                    disposetree(p);
+                                    p:=hp;
+                                    firstpass(p);
+{$else OLDHIGH}
                                     p^.resulttype:=s32bitdef;
                                     p^.registers32:=max(1,p^.registers32);
                                     p^.location.loc:=LOC_REGISTER;
+{$endif OLDHIGH}
                                   end
                                  else
                                   begin
@@ -832,9 +861,17 @@ implementation
                                begin
                                  if is_open_string(p^.left^.resulttype) then
                                   begin
+{$ifndef OLDHIGH}
+                                    getsymonlyin(p^.left^.symtable,'high'+pvarsym(p^.left^.symtableentry)^.name);
+                                    hp:=genloadnode(pvarsym(srsym),p^.left^.symtable);
+                                    disposetree(p);
+                                    p:=hp;
+                                    firstpass(p);
+{$else OLDHIGH}
                                     p^.resulttype:=s32bitdef;
                                     p^.registers32:=max(1,p^.registers32);
                                     p^.location.loc:=LOC_REGISTER;
+{$endif OLDHIGH}
                                   end
                                  else
                                   begin
@@ -893,7 +930,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  1998-12-30 22:13:13  peter
+  Revision 1.14  1999-01-21 22:10:50  peter
+    * fixed array of const
+    * generic platform independent high() support
+
+  Revision 1.13  1998/12/30 22:13:13  peter
     * check the amount of paras for Str()
 
   Revision 1.12  1998/12/15 10:23:31  peter

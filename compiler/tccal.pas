@@ -27,6 +27,10 @@ interface
       symtable,tree;
 
 
+{$ifndef OLDHIGH}
+    procedure gen_high_tree(p:ptree;openstring:boolean);
+{$endif}
+
     procedure firstcallparan(var p : ptree;defcoll : pdefcoll);
     procedure firstcalln(var p : ptree);
     procedure firstprocinline(var p : ptree);
@@ -50,6 +54,69 @@ implementation
 {*****************************************************************************
                              FirstCallParaN
 *****************************************************************************}
+
+{$ifndef OLDHIGH}
+    procedure gen_high_tree(p:ptree;openstring:boolean);
+      var
+        len : longint;
+        st  : psymtable;
+      begin
+        if assigned(p^.hightree) then
+         exit;
+        len:=-1;
+        case p^.left^.resulttype^.deftype of
+          arraydef :
+            begin
+              if is_open_array(p^.left^.resulttype) then
+               begin
+                 st:=p^.left^.symtable;
+                 getsymonlyin(st,'high'+pvarsym(p^.left^.symtableentry)^.name);
+                 p^.hightree:=genloadnode(pvarsym(srsym),st);
+               end
+              else
+               len:=parraydef(p^.left^.resulttype)^.highrange-
+                    parraydef(p^.left^.resulttype)^.lowrange;
+            end;
+          stringdef :
+            begin
+              if openstring then
+               begin
+                 if is_open_string(p^.left^.resulttype) then
+                  begin
+                    st:=p^.left^.symtable;
+                    getsymonlyin(st,'high'+pvarsym(p^.left^.symtableentry)^.name);
+                    p^.hightree:=genloadnode(pvarsym(srsym),st);
+                  end
+                 else
+                  len:=pstringdef(p^.left^.resulttype)^.len;
+               end
+              else
+             { passing a string to an array of char }
+               begin
+                 if (p^.left^.treetype=stringconstn) then
+                   begin
+                     len:=str_length(p^.left);
+                     if len>0 then
+                      dec(len);
+                   end
+                 else
+                   begin
+                     p^.hightree:=gennode(subn,geninlinenode(in_length_string,false,getcopy(p^.left)),
+                                               genordinalconstnode(1,s32bitdef));
+                     firstpass(p^.hightree);
+                     p^.hightree:=gentypeconvnode(p^.hightree,s32bitdef);
+                   end;
+               end;
+           end;
+        else
+          len:=0;
+        end;
+        if len>=0 then
+          p^.hightree:=genordinalconstnode(len,s32bitdef);
+        firstpass(p^.hightree);
+      end;
+{$endif OLDHIGH}
+
 
     procedure firstcallparan(var p : ptree;defcoll : pdefcoll);
       var
@@ -91,28 +158,24 @@ implementation
          else
            begin
               if count_ref then
-                 begin
-                    store_valid:=must_be_valid;
-                    if (defcoll^.paratyp=vs_var) then
-                      test_protected(p^.left);
-                    if (defcoll^.paratyp<>vs_var) then
-                      must_be_valid:=true
-                    else
-                      must_be_valid:=false;
-                    { here we must add something for the implicit type }
-                    { conversion from array of char to pchar }
-{                    if isconvertable(p^.left^.resulttype,defcoll^.data,convtyp,
-                      p^.left^.treetype,false) then
-                      if convtyp=tc_array_to_pointer then
-                        must_be_valid:=false; }
-                    { only process typeconvn, else it will break other trees }
-                    old_array_constructor:=allow_array_constructor;
-                    allow_array_constructor:=true;
-                    if (p^.left^.treetype=typeconvn) then
-                      firstpass(p^.left);
-                    allow_array_constructor:=old_array_constructor;
-                    must_be_valid:=store_valid;
-                 end;
+               begin
+                 store_valid:=must_be_valid;
+                 if (defcoll^.paratyp=vs_var) then
+                   test_protected(p^.left);
+                 must_be_valid:=(defcoll^.paratyp<>vs_var);
+                 { only process typeconvn, else it will break other trees }
+                 old_array_constructor:=allow_array_constructor;
+                 allow_array_constructor:=true;
+                 if (p^.left^.treetype=typeconvn) then
+                   firstpass(p^.left);
+                 allow_array_constructor:=old_array_constructor;
+                 must_be_valid:=store_valid;
+               end;
+              { generate the high() value tree }
+              if push_high_param(defcoll^.data) then
+{$ifndef OLDHIGH}
+                gen_high_tree(p,is_open_string(defcoll^.data));
+{$endif}
               if not(is_shortstring(p^.left^.resulttype) and
                      is_shortstring(defcoll^.data)) and
                      (defcoll^.data^.deftype<>formaldef) then
@@ -162,10 +225,8 @@ implementation
                       firstpass(p^.left);
                       allow_array_constructor:=old_array_constructor;
                     end;
-                   { don't generate an type conversion for open arrays and
-                     openstring, else we loss the ranges }
-                   if is_open_array(defcoll^.data) or
-                      is_open_string(defcoll^.data) then
+                   { process open parameters }
+                   if push_high_param(defcoll^.data) then
                     begin
                       { insert type conv but hold the ranges of the array }
                       oldtype:=p^.left^.resulttype;
@@ -197,6 +258,7 @@ implementation
                  not(is_open_string(defcoll^.data)) and
                  not(is_equal(p^.left^.resulttype,defcoll^.data)) then
                  CGMessage(type_e_strict_var_string_violation);
+
               { Variablen for call by reference may not be copied }
               { into a register }
               { is this usefull here ? }
@@ -999,7 +1061,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  1999-01-21 16:41:06  pierre
+  Revision 1.21  1999-01-21 22:10:49  peter
+    * fixed array of const
+    * generic platform independent high() support
+
+  Revision 1.20  1999/01/21 16:41:06  pierre
    * fix for constructor inside with statements
 
   Revision 1.19  1999/01/19 14:20:16  peter

@@ -29,6 +29,8 @@ interface
     uses
       tree;
 
+    procedure loadshortstring(p:ptree);
+
     procedure secondtypeconv(var p : ptree);
     procedure secondas(var p : ptree);
     procedure secondis(var p : ptree);
@@ -39,8 +41,90 @@ implementation
    uses
       cobjects,verbose,globals,systems,
       symtable,aasm,types,
-      hcodegen,temp_gen,pass_2,
+      hcodegen,temp_gen,pass_2,pass_1,
       i386,cgai386,tgeni386;
+
+
+
+    procedure push_shortstring_length(p:ptree);
+      var
+        r : preference;
+        hightree : ptree;
+
+      begin
+        if is_open_string(p^.resulttype) then
+         begin
+           getsymonlyin(p^.symtable,'high'+pvarsym(p^.symtableentry)^.name);
+           hightree:=genloadnode(pvarsym(srsym),p^.symtable);
+           firstpass(hightree);
+           secondpass(hightree);
+           push_value_para(hightree,false,0);
+           disposetree(hightree);
+{           r:=new_reference(highframepointer,highoffset+4);
+           exprasmlist^.concat(new(pai386,op_ref_reg(A_MOVZX,S_BL,r,R_EDI)));
+           exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EDI))); }
+         end
+        else
+         begin
+           push_int(pstringdef(p^.resulttype)^.len);
+         end;
+      end;
+
+
+    procedure loadshortstring(p:ptree);
+    {
+      Load a string, handles stringdef and orddef (char) types
+    }
+      begin
+         case p^.right^.resulttype^.deftype of
+            stringdef:
+              begin
+                 if (p^.right^.treetype=stringconstn) and
+                   (str_length(p^.right)=0) then
+                   exprasmlist^.concat(new(pai386,op_const_ref(
+                      A_MOV,S_B,0,newreference(p^.left^.location.reference))))
+                 else
+                   begin
+                     emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+                     emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
+                     push_shortstring_length(p^.left);
+                     emitcall('FPC_SHORTSTR_COPY',true);
+                     maybe_loadesi;
+                   end;
+              end;
+            orddef:
+              begin
+                 if p^.right^.treetype=ordconstn then
+                   exprasmlist^.concat(new(pai386,op_const_ref(
+                      A_MOV,S_W,p^.right^.value*256+1,newreference(p^.left^.location.reference))))
+                 else
+                   begin
+                      { not so elegant (goes better with extra register }
+                      if (p^.right^.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+                        begin
+                           exprasmlist^.concat(new(pai386,op_reg_reg(
+                              A_MOV,S_L,makereg32(p^.right^.location.register),R_EDI)));
+                           ungetregister(p^.right^.location.register);
+                        end
+                      else
+                        begin
+                           exprasmlist^.concat(new(pai386,op_ref_reg(
+                              A_MOV,S_L,newreference(p^.right^.location.reference),R_EDI)));
+                           del_reference(p^.right^.location.reference);
+                        end;
+                      exprasmlist^.concat(new(pai386,op_const_reg(A_SHL,S_L,8,R_EDI)));
+                      exprasmlist^.concat(new(pai386,op_const_reg(A_OR,S_L,1,R_EDI)));
+                      exprasmlist^.concat(new(pai386,op_reg_ref(
+                         A_MOV,S_W,R_DI,newreference(p^.left^.location.reference))));
+                   end;
+              end;
+         else
+           CGMessage(type_e_mismatch);
+         end;
+      end;
+
+
+
 
 {*****************************************************************************
                              SecondTypeConv
@@ -1478,7 +1562,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  1999-01-19 10:18:59  florian
+  Revision 1.45  1999-01-21 22:10:36  peter
+    * fixed array of const
+    * generic platform independent high() support
+
+  Revision 1.44  1999/01/19 10:18:59  florian
     * bug with mul. of dwords fixed, reported by Alexander Stohr
     * some changes to compile with TP
     + small enhancements for the new code generator

@@ -235,7 +235,7 @@ unit tree;
 {$endif extdebug}
           case treetype : ttreetyp of
              addn : (use_strconcat : boolean;string_typ : tstringtype);
-             callparan : (is_colon_para : boolean;exact_match_found : boolean);
+             callparan : (is_colon_para : boolean;exact_match_found : boolean;hightree:ptree);
              assignn : (assigntyp : tassigntyp;concat_string : boolean);
              loadn : (symtableentry : psym;symtable : psymtable;
                       is_absolute,is_first,is_methodpointer : boolean);
@@ -1663,7 +1663,11 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.61  1999-01-21 16:41:09  pierre
+  Revision 1.62  1999-01-21 22:10:52  peter
+    * fixed array of const
+    * generic platform independent high() support
+
+  Revision 1.61  1999/01/21 16:41:09  pierre
    * fix for constructor inside with statements
 
   Revision 1.60  1998/12/15 11:52:19  peter

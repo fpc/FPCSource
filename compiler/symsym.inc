@@ -971,27 +971,34 @@
               case varspez of
                 vs_var :
                   begin
+{$ifdef OLDHIGH}
                     { open arrays push also the high valye }
                     if is_open_array(definition) or
                        is_open_string(definition) then
                       getpushsize:=target_os.size_of_pointer+target_os.size_of_longint
                     else
+{$endif}
                       getpushsize:=target_os.size_of_pointer;
                   end;
                 vs_value,
                 vs_const :
                   begin
                     case definition^.deftype of
+{$ifndef OLDHIGH}
+                      arraydef,
+{$endif OLDHIGH}
                       setdef,
                       stringdef,
                       recorddef,
                       objectdef :
                         getpushsize:=target_os.size_of_pointer;
+{$ifdef OLDHIGH}
                       arraydef :
                         if is_open_array(definition) then
                           getpushsize:=target_os.size_of_pointer+target_os.size_of_longint
                         else
                           getpushsize:=target_os.size_of_pointer;
+{$endif OLDHIGH}
                       else
                         getpushsize:=definition^.size;
                     end;
@@ -1757,7 +1764,11 @@
 
 {
   $Log$
-  Revision 1.69  1999-01-20 10:20:20  peter
+  Revision 1.70  1999-01-21 22:10:48  peter
+    * fixed array of const
+    * generic platform independent high() support
+
+  Revision 1.69  1999/01/20 10:20:20  peter
     * don't make localvar copies for assembler procedures
 
   Revision 1.68  1999/01/12 14:25:36  peter
