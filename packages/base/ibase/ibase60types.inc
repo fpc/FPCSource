@@ -307,7 +307,7 @@ type
      isc_svc_handle = pointer;
      isc_tr_handle = pointer;
      isc_win_handle = pointer;
-     isc_callback = procedure ;gdsdecl;
+     isc_callback = procedure ;extdecl;
      isc_resv_handle = ISC_LONG;
      tisc_att_handle = isc_att_handle;
      tisc_blob_handle = isc_blob_handle;
