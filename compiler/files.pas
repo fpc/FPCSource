@@ -38,7 +38,11 @@ unit files;
        extbufsize = 65535;
 {$else}
        maxunits = 128;
+       {$ifndef msdos}
        extbufsize = 2000;
+       {$else}
+       extbufsize=512;
+       {$endif dpmi}
 {$endif}
 
     type
@@ -947,7 +951,12 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.22  1998-06-14 18:25:41  peter
+  Revision 1.23  1998-06-15 14:44:36  daniel
+
+
+  * BP updates.
+
+  Revision 1.22  1998/06/14 18:25:41  peter
     * small fix with crc in newppu
 
   Revision 1.21  1998/06/13 00:10:05  peter
