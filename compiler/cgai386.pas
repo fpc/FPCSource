@@ -256,7 +256,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
           internalerror(7453984);
       end;
 
-{$ifdef jmpfix}
+{$ifdef nojmpfix}
     procedure emitjmp(c : tasmcond;var l : pasmlabel);
       var
         ai : Pai386;
@@ -271,7 +271,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
             exprasmlist^.concat(ai);
           end;
       end;
-{$else jmpfix}
+{$else nojmpfix}
     procedure emitjmp(c : tasmcond;var l : pasmlabel);
       var
         ai : Pai386;
@@ -286,7 +286,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
         ai^.is_jmp:=true;
         exprasmlist^.concat(ai);
       end; 
-{$endif jmpfix}
+{$endif nojmpfix}
 
     procedure emit_flag2reg(flag:tresflags;hregister:tregister);
       var
@@ -3112,7 +3112,13 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.10  1999-07-04 21:59:30  jonas
+  Revision 1.11  1999-07-05 11:56:56  jonas
+    * merged
+
+  Revision 1.5.2.4  1999/07/04 23:55:52  jonas
+    * changed {$ifdef jmpfix} to {$ifndef nojmpfix}
+
+  Revision 1.10  1999/07/04 21:59:30  jonas
     * merged
 
   Revision 1.5.2.3  1999/07/04 21:50:17  jonas
