@@ -30,9 +30,8 @@ uses
   options;
 
 type
-  poption386=^toption386;
-  toption386=object(toption)
-    procedure interpret_proc_specific_options(const opt:string);virtual;
+  toption386=class(toption)
+    procedure interpret_proc_specific_options(const opt:string);override;
   end;
 
 implementation
@@ -112,10 +111,20 @@ begin
   end;
 end;
 
+
+initialization
+  coption:=toption386;
 end.
 {
   $Log$
-  Revision 1.1  2000-11-30 22:42:50  florian
+  Revision 1.2  2000-12-23 19:46:49  peter
+    * object to class conversion
+    * more verbosity for -vt and -vd
+    * -i options can be put after eachother so the Makefiles only need
+      to call fpc once for all info (will be twice as the first one will
+      be to check the version if fpc supports multiple info)
+
+  Revision 1.1  2000/11/30 22:42:50  florian
   * renamed
 
   Revision 1.1  2000/11/30 22:21:56  florian

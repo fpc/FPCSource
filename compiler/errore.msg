@@ -1767,6 +1767,12 @@ option_asm_forced=11022_W_"$1" assembler use forced
 % The assembler output selected can not generate
 % object files with the correct format. Therefore, the
 % default assembler for this target is used instead.
+option_using_file=11026_T_Reading options from file $1
+% Options are also read from this file
+option_using_env=11027_T_Reading options from environment $1
+% Options are also read from this environment string
+option_handling_option=11028_D_Handling option "$1"
+% Debug info that an option is found and will be handled
 %\end{description}
 # EndOfTeX
 

@@ -30,22 +30,22 @@ uses
   globtype,globals,verbose;
 
 type
-  POption=^TOption;
-  TOption=object
+  TOption=class
     FirstPass,
     NoPressEnter,
     DoWriteLogo : boolean;
     FileLevel : longint;
+    QuickInfo : string;
     ParaIncludePath,
     ParaUnitPath,
     ParaObjectPath,
     ParaLibraryPath : TSearchPathList;
-    Constructor Init;
-    Destructor Done;
+    Constructor Create;
+    Destructor Destroy;override;
     procedure WriteLogo;
     procedure WriteInfo;
     procedure WriteHelpPages;
-    procedure QuickInfo(const s:string);
+    procedure WriteQuickInfo;
     procedure IllegalPara(const opt:string);
     function  Unsetbool(const opts:string; pos: Longint):boolean;
     procedure interpret_proc_specific_options(const opt:string);virtual;
@@ -55,6 +55,9 @@ type
     procedure Read_Parameters;
     procedure parsecmd(cmd:string);
   end;
+
+var
+  coption : class of toption;
 
 procedure read_arguments(cmd:string);
 
@@ -72,14 +75,13 @@ uses
 {$ifdef BrowserLog}
   ,browlog
 {$endif BrowserLog}
-  ,cpuswtch
   ;
 
 const
   page_size = 24;
 
 var
-  option     : poption;
+  option     : toption;
   read_configfile,        { read config file, set when a cfgfile is found }
   disable_configfile,
   target_is_set : boolean;  { do not allow contradictory target settings }
@@ -143,6 +145,7 @@ begin
   check_symbol:=false;
 end;
 
+
 procedure MaybeLoadMessageFile;
 begin
 { Load new message file }
@@ -162,7 +165,7 @@ procedure StopOptions;
 begin
   if assigned(Option) then
    begin
-     dispose(Option,Done);
+     Option.free;
      Option:=nil;
    end;
   DoneVerbose;
@@ -307,16 +310,6 @@ begin
 end;
 
 
-procedure Toption.QuickInfo(const s:string);
-begin
-  if source_os.newline=#13#10 then
-    Write(s+#10)
-  else
-    Writeln(s);
-  StopOptions;
-end;
-
-
 procedure Toption.IllegalPara(const opt:string);
 begin
   Message1(option_illegal_para,opt);
@@ -357,6 +350,7 @@ begin
      not((opt[1]='-') and (opt[2] in ['i','d','v','T','u','n','X'])) then
    exit;
 
+  Message1(option_handling_option,opt);
   case opt[1] of
  '-' : begin
          more:=Copy(opt,3,255);
@@ -618,34 +612,10 @@ begin
                       NoPressEnter:=true;
                       WriteHelpPages;
                     end;
-              'i' : if more='' then
+              'i' : if More='' then
                      WriteInfo
                     else
-                     begin
-                        { Specific info, which can be used in Makefiles }
-                        case More[1] of
-                          'S' : begin
-                                  case More[2] of
-                                   'O' : QuickInfo(source_os.shortname);
-{$ifdef Delphi !!!!!!!!!}
-                                   'P' : QuickInfo('unknown');
-{$else}
-                                   'P' : QuickInfo(source_cpu_string);
-{$endif}
-                                  end;
-                                end;
-                          'T' : begin
-                                  case More[2] of
-                                   'O' : QuickInfo(target_os.shortname);
-                                   'P' : QuickInfo(target_cpu_string);
-                                  end;
-                                end;
-                          'V' : QuickInfo(version_string);
-                          'D' : QuickInfo(date_string);
-                        else
-                          IllegalPara(Opt);
-                        end;
-                     end;
+                     QuickInfo:=QuickInfo+More;
               'I' : if ispara then
                      ParaIncludePath.AddPath(More,false)
                     else
@@ -735,17 +705,19 @@ begin
                       if not target_is_set then
                        begin
                          {Remove non core targetname extra defines}
-                         CASE target_info.target OF
-                          target_i386_freebsd: begin
-                                                 undef_symbol('LINUX');
-                                                 undef_symbol('BSD');
-                                                 undef_symbol('UNIX');
-                                               end;
-                          target_i386_linux:   undef_symbol('UNIX');
-                          end;
-
-                           { remove old target define }
-
+                         case target_info.target of
+                          target_i386_freebsd :
+                            begin
+                              undef_symbol('LINUX');
+                              undef_symbol('BSD');
+                              undef_symbol('UNIX');
+                            end;
+                          target_i386_linux :
+                            begin
+                              undef_symbol('UNIX');
+                            end;
+                         end;
+                         { remove old target define }
                          undef_symbol(target_info.short_name);
                        { load new target }
                          if not(set_string_target(More)) then
@@ -915,10 +887,8 @@ begin
   If FileLevel>MaxLevel then
    Message(option_too_many_cfg_files);
 { open file }
+  Message1(option_using_file,filename);
   assign(f,filename);
-{$ifdef extdebug}
-  Comment(V_Info,'trying to open file: '+filename);
-{$endif extdebug}
   {$I-}
   reset(f);
   {$I+}
@@ -1043,6 +1013,7 @@ var
   quote  : set of char;
   hs     : string;
 begin
+  Message1(option_using_env,envname);
   env:=GetEnvPChar(envname);
   pc:=env;
   if assigned(pc) then
@@ -1166,12 +1137,80 @@ begin
 end;
 
 
-constructor TOption.Init;
+procedure toption.writequickinfo;
+var
+  s : string;
+  i : longint;
+
+  procedure addinfo(const hs:string);
+  begin
+    if s<>'' then
+     s:=s+' '+hs
+    else
+     s:=hs;
+  end;
+
+begin
+  s:='';
+  i:=0;
+  while (i<length(quickinfo)) do
+   begin
+     inc(i);
+     case quickinfo[i] of
+      'S' :
+        begin
+          inc(i);
+          case quickinfo[i] of
+           'O' :
+             addinfo(source_os.shortname);
+{$ifdef Delphi}
+           'P' :
+             addinfo('i386');
+{$else Delphi}
+           'P' :
+             addinfo(source_cpu_string);
+{$endif Delphi}
+           else
+             IllegalPara('-iS'+QuickInfo);
+          end;
+        end;
+      'T' :
+        begin
+          inc(i);
+          case quickinfo[i] of
+           'O' :
+             addinfo(target_os.shortname);
+           'P' :
+             AddInfo(target_cpu_string);
+           else
+             IllegalPara('-iT'+QuickInfo);
+          end;
+        end;
+      'V' :
+        AddInfo(version_string);
+      'D' :
+        AddInfo(date_string);
+      '_' :
+        ;
+      else
+        IllegalPara('-i'+QuickInfo);
+    end;
+  end;
+  if s<>'' then
+   begin
+     writeln(s);
+     stopoptions;
+   end;
+end;
+
+
+constructor TOption.create;
 begin
   DoWriteLogo:=false;
   NoPressEnter:=false;
   FirstPass:=false;
   FileLevel:=0;
+  Quickinfo:='';
   ParaIncludePath.Init;
   ParaObjectPath.Init;
   ParaUnitPath.Init;
@@ -1179,7 +1218,7 @@ begin
 end;
 
 
-destructor TOption.Done;
+destructor TOption.destroy;
 begin
   ParaIncludePath.Done;
   ParaObjectPath.Done;
@@ -1196,23 +1235,14 @@ procedure read_arguments(cmd:string);
 var
   configpath : pathstr;
 begin
-{$ifdef i386}
-  option:=new(poption386,Init);
-{$endif}
-{$ifdef m68k}
-  option:=new(poption68k,Init);
-{$endif}
-{$ifdef alpha}
-  option:=new(poption,Init);
-{$endif}
-{$ifdef powerpc}
-  option:=new(poption,Init);
-{$endif}
+  option:=coption.create;
+
 { Load messages }
   if (cmd='') and (paramcount=0) then
-   Option^.WriteHelpPages;
+   option.WriteHelpPages;
 
   disable_configfile:=false;
+
 { default defines }
   def_symbol(target_info.short_name);
   def_symbol('FPC');
@@ -1223,18 +1253,15 @@ begin
   def_symbol('WITHNEWCG');
 {$endif}
 
-
-
 { Temporary defines, until things settle down }
+{$ifdef SUPPORT_FIXED}
+  def_symbol('HASFIXED');
+{$endif SUPPORT_FIXED}
   def_symbol('HASWIDECHAR');
   def_symbol('HASOUT');
   def_symbol('HASINTF');
   def_symbol('INTERNSETLENGTH');
   def_symbol('INT64FUNCRESOK');
-
-{$ifdef SUPPORT_FIXED}
-  def_symbol('HASFIXED');
-{$endif SUPPORT_FIXED}
   def_symbol('PACKENUMFIXED');
 
 { some stuff for TP compatibility }
@@ -1266,6 +1293,7 @@ begin
 {$else Delphi}
   msgfilename:=dos.getenv('PPC_ERROR_FILE');
 {$endif Delphi}
+
 { default configfile }
   if (cmd<>'') and (cmd[1]='[') then
    begin
@@ -1277,8 +1305,11 @@ begin
 {$ifdef i386}
      ppccfg:='ppc386.cfg';
 {$endif i386}
+{$ifdef ia64}
+     ppccfg:='ppcia64.cfg';
+{$endif ia64}
 {$ifdef m68k}
-     ppccfg:='ppc.cfg';
+     ppccfg:='ppc68k.cfg';
 {$endif}
 {$ifdef alpha}
      ppccfg:='ppcalpha.cfg';
@@ -1333,48 +1364,46 @@ begin
 
   if read_configfile then
    begin
-   { read the parameters quick, only -v -T }
-     option^.firstpass:=true;
+   { read the parameters quick, only -i -v -T }
+     option.firstpass:=true;
      if cmd<>'' then
-       option^.parsecmd(cmd)
+       option.parsecmd(cmd)
      else
-       option^.read_parameters;
-     option^.firstpass:=false;
+       option.read_parameters;
+     option.firstpass:=false;
+   { Write only quickinfo }
+     if option.quickinfo<>'' then
+      option.writequickinfo;
+   { Read the configfile }
      if read_configfile then
-      begin
-{$ifdef DEBUG}
-        Comment(V_Debug,'read config file: '+ppccfg);
-{$endif DEBUG}
-        option^.interpret_file(ppccfg);
-      end;
+      option.interpret_file(ppccfg);
    end;
   if cmd<>'' then
-    option^.parsecmd(cmd)
+    option.parsecmd(cmd)
   else
-    option^.read_parameters;
+    option.read_parameters;
 
 { Stop if errors in options }
   if ErrorCount>0 then
    StopOptions;
 
-
- if target_info.target=target_i386_freebsd then
-  begin
-   def_symbol('LINUX'); { Hack: Linux define is also needed for freebsd (MvdV) }
-   def_symbol('BSD');
-   def_symbol('FREEBSD');
-   def_symbol('UNIX');
-  end;
-
- if target_info.target=target_i386_linux then
-  begin
-   def_symbol('LINUX');
-   def_symbol('UNIX');
-  end;
+  { Non-core target defines }
+  case target_info.target of
+    target_i386_freebsd :
+      begin
+        def_symbol('LINUX'); { Hack: Linux define is also needed for freebsd (MvdV) }
+        def_symbol('BSD');
+        def_symbol('UNIX');
+      end;
+    target_i386_linux :
+      begin
+        def_symbol('UNIX');
+      end;
+   end;
 
 { write logo if set }
-  if option^.DoWriteLogo then
-   option^.WriteLogo;
+  if option.DoWriteLogo then
+   option.WriteLogo;
 
 { Check file to compile }
   if param_file='' then
@@ -1396,10 +1425,10 @@ begin
    end;
 
 { Add paths specified with parameters to the searchpaths }
-  UnitSearchPath.AddList(Option^.ParaUnitPath,true);
-  ObjectSearchPath.AddList(Option^.ParaObjectPath,true);
-  IncludeSearchPath.AddList(Option^.ParaIncludePath,true);
-  LibrarySearchPath.AddList(Option^.ParaLibraryPath,true);
+  UnitSearchPath.AddList(option.ParaUnitPath,true);
+  ObjectSearchPath.AddList(option.ParaObjectPath,true);
+  IncludeSearchPath.AddList(option.ParaIncludePath,true);
+  LibrarySearchPath.AddList(option.ParaLibraryPath,true);
 
 { add unit environment and exepath to the unit search path }
   if inputdir<>'' then
@@ -1496,15 +1525,27 @@ begin
 
   MaybeLoadMessageFile;
 
-  dispose(option,Done);
+  option.free;
   Option:=nil;
 end;
 
 
+initialization
+  coption:=toption;
+finalization
+  if assigned(option) then
+   option.free;
 end.
 {
   $Log$
-  Revision 1.21  2000-12-16 15:56:19  jonas
+  Revision 1.22  2000-12-23 19:46:49  peter
+    * object to class conversion
+    * more verbosity for -vt and -vd
+    * -i options can be put after eachother so the Makefiles only need
+      to call fpc once for all info (will be twice as the first one will
+      be to check the version if fpc supports multiple info)
+
+  Revision 1.21  2000/12/16 15:56:19  jonas
     - removed all ifdef cardinalmulfix code
 
   Revision 1.20  2000/12/15 13:26:01  jonas
