@@ -99,9 +99,17 @@ CONST
 
     SYS_NMLN = 32;              {BSD utsname struct limit}
 
+    SIG_MAXSIG      = 128;	// highest signal version
+    wordsinsigset   = 4;		// words in sigset_t
+
+
 {
   $Log$
-  Revision 1.4  2004-01-04 01:11:28  marco
+  Revision 1.5  2004-01-04 20:08:45  jonas
+    * moved SIG_MAXSIG and wordsinsigset constants from bunxtype.inc to
+      ptypes.inc (already there for Darwin)
+
+  Revision 1.4  2004/01/04 01:11:28  marco
    * a new qod port of the freebsd rtl. To be refined in the coming days.
 
   Revision 1.3  2003/01/17 22:13:47  marco

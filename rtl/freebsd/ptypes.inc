@@ -98,9 +98,17 @@ CONST
 
     SYS_NMLN = 32;              {BSD utsname struct limit}
 
+    SIG_MAXSIG      = 128;	// highest signal version
+    wordsinsigset   = 4;		// words in sigset_t
+
+
 {
   $Log$
-  Revision 1.8  2003-12-30 12:32:30  marco
+  Revision 1.9  2004-01-04 20:08:45  jonas
+    * moved SIG_MAXSIG and wordsinsigset constants from bunxtype.inc to
+      ptypes.inc (already there for Darwin)
+
+  Revision 1.8  2003/12/30 12:32:30  marco
   *** empty log message ***
 
   Revision 1.7  2003/09/27 13:45:58  peter

@@ -61,3 +61,6 @@ CONST
     PATH_MAX = 1024;    {255}   { Maximum number of bytes in pathname }
 
     SYS_NMLN = 256;             {BSD utsname struct limit}
+
+    SIG_MAXSIG      = 128;	// highest signal version
+    wordsinsigset   = 4;		// words in sigset_t
