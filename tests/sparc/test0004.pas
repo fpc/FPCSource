@@ -1,8 +1,8 @@
 {$UNITPATH ../../rtl/linux}
 {$INCLUDEPATH ../../rtl/unix;../../rtl/inc;../../rtl/unix;../../rtl/sparc}
 PROGRAM SparcTest;
-VAR
-  x:Cardinal; 
+CONST
+  s:STRING='Hello World!';
 BEGIN
-  x:=0;
+  WriteLn(s);
 END.

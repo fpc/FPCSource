@@ -1,8 +1,20 @@
 {$UNITPATH ../../rtl/linux}
 {$INCLUDEPATH ../../rtl/unix;../../rtl/inc;../../rtl/unix;../../rtl/sparc}
 PROGRAM SparcTest;
-CONST
-  s:STRING='Hello World!';
+VAR
+  x,y:Cardinal; 
+  z:0..255;
+FUNCTION CopyMe(x:Cardinal):Cardinal;
+  BEGIN
+    CopyMe:=x;
+  END;
+FUNCTION Add(a,b:Cardinal):Cardinal;
+  BEGIN
+    Add:=a+b;
+  END;
 BEGIN
-  WriteLn(s);
+  y:=0;
+  z:=0;
+  x:=1+y;
+  x:=Add(x,y);
 END.
