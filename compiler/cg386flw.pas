@@ -282,7 +282,7 @@ implementation
 
          { align loop target }
          if not(cs_littlesize in aktglobalswitches) then
-           exprasmlist^.concat(new(pai_align,init_op(16,$90)));
+           exprasmlist^.concat(new(pai_align,init(4)));
 
          emitlab(l3);
 
@@ -670,7 +670,7 @@ do_jmp:
              maybe_loadesi;
              secondpass(p^.right);
            end;
-        
+
 
          emit_ref(A_PUSH,S_L,
            newreference(ref));
@@ -808,7 +808,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.49  1999-09-15 20:35:37  florian
+  Revision 1.50  1999-09-20 16:35:43  peter
+    * restored old alignment, saves 40k on ppc386
+
+  Revision 1.49  1999/09/15 20:35:37  florian
     * small fix to operator overloading when in MMX mode
     + the compiler uses now fldz and fld1 if possible
     + some fixes to floating point registers
