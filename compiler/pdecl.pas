@@ -1056,7 +1056,11 @@ unit pdecl;
                        ) then
                        Message(parser_e_property_cant_have_a_default_value);
                      pt:=comp_expr(true);
-                     arrayconstructor_to_set(pt);
+                     if p^.proptype^.deftype=setdef then
+                       begin
+                          do_firstpass(pt);
+                          arrayconstructor_to_set(pt);
+                       end;
                      pt:=gentypeconvnode(pt,p^.proptype);
                      do_firstpass(pt);
                      if not(is_constnode(pt)) then
@@ -2235,7 +2239,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.121  1999-05-21 13:55:04  peter
+  Revision 1.122  1999-05-21 20:08:22  florian
+    * hopefully the default property bug fixed
+
+  Revision 1.121  1999/05/21 13:55:04  peter
     * NEWLAB for label as symbol
 
   Revision 1.120  1999/05/20 22:19:52  pierre
