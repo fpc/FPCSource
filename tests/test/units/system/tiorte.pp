@@ -334,7 +334,6 @@ begin
   ChDir('Y:\test.dir');
   test(IOResult,15);
 {$endif}
-(*
   { make a stub directory for testing purposes }
   Mkdir(TMP_DIRECTORY);
   test(IOResult,0);
@@ -353,7 +352,6 @@ begin
   { now really remove the directory }
   RmDir(TMP_DIRECTORY);
   test(IOResult,0);
-*)
   { remove non-existant directory }
   write('Testing remove directory of non-existent file...');
   RmDir('testdir.exe');
@@ -386,7 +384,10 @@ end.
 
 {
  $Log$
- Revision 1.1  2001-05-09 21:12:36  carl
+ Revision 1.2  2001-08-18 00:45:24  carl
+ + more testing
+
+ Revision 1.1  2001/05/09 21:12:36  carl
  + moved from /test/ and renamed
  + added directory service testing
  + added filesize/filepos testing.
