@@ -211,12 +211,14 @@ unit paramgr;
            enumdef :
              begin
                result.loc := LOC_REGISTER;
+{$ifndef cpu64bit}
                if result.size in [OS_64,OS_S64] then
                 begin
                   result.register64.reghi:=accumulatorhigh;
                   result.register64.reglo:=accumulator;
                 end
                else
+{$endif cpu64bit}
                result.register:=accumulator;
              end;
            floatdef :
@@ -331,7 +333,10 @@ end.
 
 {
    $Log$
-   Revision 1.19  2002-09-30 07:00:47  florian
+   Revision 1.20  2002-09-30 07:07:25  florian
+     * fixes to common code to get the alpha compiler compiled applied
+
+   Revision 1.19  2002/09/30 07:00:47  florian
      * fixes to common code to get the alpha compiler compiled applied
 
    Revision 1.18  2002/09/09 09:10:51  florian
