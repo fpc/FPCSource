@@ -6,8 +6,8 @@
 fpcdir=..
 targetdir=.
 
-[defaults]
-defaultoptions=-Sg
+[require]
+options=-Sg
 
 [tools]
 tooldiff=1

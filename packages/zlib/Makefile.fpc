@@ -1,22 +1,12 @@
 #
-#   Makefile.fpc for GL Units
+#   Makefile.fpc for ZLib (LibC version)
 #
 
 [targets]
-units= zlib
-programs=
+units=zlib
 
 [dirs]
 fpcdir=../..
 
-[defaults]
-defaultunits=1
-defaultoptions=-Sm
-
-
-[rules]
-.PHONY: test examples
-
-test: fpc_exes
-
-examples: fpc_exes
+[require]
+options=-Sm

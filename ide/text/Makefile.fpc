@@ -11,14 +11,12 @@ unitdir=$(COMPUNITDIR) $(GDBUNITDIR)
 objdir=$(GDBOBJDIR)
 libdir=$(GDBLIBDIR)
 
-[packages]
+[require]
+options=-Sg
 packages=api fv gdbint
 
 [libs]
 libgcc=1
-
-[defaults]
-defaultoptions=-Sg
 
 
 [presettings]

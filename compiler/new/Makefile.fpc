@@ -8,8 +8,8 @@ unitdir=$(CPU_TARGET) . $(OLDDIR)
 incdir=$(OLDDIR)
 targetdir=.
 
-[defaults]
-defaultoptions=-Sg
+[require]
+options=-Sg
 
 [tools]
 tooldiff=1

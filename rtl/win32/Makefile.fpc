@@ -11,7 +11,7 @@ units=$(SYSTEMUNIT) objpas strings \
       sysutils typinfo math \
       cpu mmx getopts heaptrc wincrt winmouse
 
-[packages]
+[require]
 rtl=0
 
 [defaults]

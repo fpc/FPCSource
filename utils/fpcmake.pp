@@ -145,6 +145,7 @@ type
     DirUnitTarget,
     DirSources,
     DirInc         : string;
+    RequireRTL      : boolean;
     RequireOptions  : string;
     RequirePackages,
     RequireComponents : TTargetsString;
@@ -311,7 +312,8 @@ begin
      DefaultRule:=ReadString(ini_defaults,'defaultrule','all');
      DefaultTarget:=ReadString(ini_defaults,'defaulttarget','');
      DefaultCPU:=ReadString(ini_defaults,'defaultcpu','');
-   { packages }
+   { require }
+     RequireRTL:=ReadBool(ini_require,'rtl',true);
      RequireOptions:=ReadString(ini_require,'options','');
      ReadTargetsString(requireComponents,ini_require,'components','');
      ReadTargetsString(requirePackages,ini_require,'packages','');
@@ -694,13 +696,15 @@ begin
      AddSection(true,'fpcdetect');
 
    { fpc dir }
-     Add('ifndef FPCDIR');
      if userini.dirfpc<>'' then
-      Add('FPCDIR='+userini.dirfpc)
-     else
-      AddSection(true,'fpcdirdetect');
-     Add('endif');
-     Add('export FPCDIR');
+      begin
+        Add('# Default FPCDIR');
+        Add('ifndef FPCDIR');
+        Add('FPCDIR='+userini.dirfpc);
+        Add('endif');
+        Add('');
+      end;
+     AddSection(true,'fpcdirdetect');
 
    { write the default & user settings }
      AddSection(true,'defaultsettings');
@@ -790,10 +794,13 @@ begin
 
    { Packages }
      AddHead('Packages');
-     Add('override PACKAGES=rtl');
+     if userini.RequireRTL then
+      begin
+        Add('override PACKAGES=rtl');
+        Add('PACKAGEDIR_RTL=$(FPCDIR)/rtl/$(OS_TARGET)');
+      end;
      AddTargets('PACKAGES',userini.Requirepackages,false);
      AddTargets('COMPONENTS',userini.Requirecomponents,false);
-     Add('PACKAGEDIR_RTL=$(FPCDIR)/rtl/$(OS_TARGET)');
      AddTargetsUnitDir('$(PACKAGEDIR)',userini.Requirepackages);
      AddTargetsUnitDir('$(COMPONENTDIR)',userini.Requirecomponents);
 
@@ -901,7 +908,8 @@ begin
    { Package requirements, must be before the other rules so it's done first }
      AddSection(true,'packagerequirerules');
      Phony:='';
-     AddPackageDep('rtl');
+     if userini.RequireRTL then
+      AddPackageDep('rtl');
      Add('');
      if not TargetStringEmpty(userini.RequirePackages) then
       begin
@@ -1049,7 +1057,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2000-01-03 19:42:41  peter
+  Revision 1.17  2000-01-04 00:00:23  peter
+    * Makefile updates again
+
+  Revision 1.16  2000/01/03 19:42:41  peter
     * regenerated
 
   Revision 1.15  1999/12/23 19:32:28  peter

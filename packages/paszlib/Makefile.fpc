@@ -6,8 +6,8 @@
 units=adler crc crcasm gzio infblock infcodes inffast inftrees infutil strutils trees zcompres zdeflate zinflate zlib zuncompr zutil
 examples=example minigzip
 
+[require]
+options=-Sm
+
 [dirs]
 fpcdir=../..
-
-[defaults]
-defaultoptions=-Sm

@@ -8,7 +8,7 @@ defaulttarget=linux
 [targets]
 units=gl glut
 
-[packages]
+[require]
 packages=x11
 
 [dirs]

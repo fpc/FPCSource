@@ -9,8 +9,8 @@ programs=ppufiles ppudump ppumove ppdep ptop rstconv data2inc fpcmake delp
 [clean]
 units=ppu ptopu
 
-[packages]
-fcl=1
+[require]
+packages=fcl
 
 [tools]
 tooldata2inc=1

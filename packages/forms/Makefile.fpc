@@ -6,7 +6,7 @@
 units=forms
 programs=fd2pascal
 
-[packages]
+[require]
 packages=x11
 
 [dirs]

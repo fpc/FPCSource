@@ -17,8 +17,8 @@ files=yylex.cod yyparse.cod
 fpcdir=../..
 extrainstalldir=$(CODPATH)
 
-[defaults]
-defaultoptions=-Sg
+[require]
+options=-Sg
 
 
 [presettings]

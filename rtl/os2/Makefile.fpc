@@ -10,7 +10,7 @@ units=$(SYSTEMUNIT) objpas strings \
       sysutils math typinfo \
       cpu mmx getopts heaptrc
 
-[packages]
+[require]
 rtl=0
 
 [defaults]

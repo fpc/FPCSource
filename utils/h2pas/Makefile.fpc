@@ -11,8 +11,8 @@ units=options lexlib scan yacclib converu
 [dirs]
 fpcdir=../..
 
-[defaults]
-defaultoptions=-Sg
+[require]
+options=-Sg
 
 
 [rules]

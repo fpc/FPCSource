@@ -11,7 +11,7 @@ units=$(SYSTEMUNIT) objpas strings \
       cpu mmx getopts heaptrc \
       msmouse ports
 
-[packages]
+[require]
 rtl=0
 
 [defaults]

@@ -13,9 +13,6 @@ targetdir=.
 [libs]
 libname=fpgtk
 
-[defaults]
-defaultunits=1
-
 
 [rules]
 clean: fpc_clean

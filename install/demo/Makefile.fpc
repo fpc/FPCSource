@@ -9,9 +9,8 @@ programs_win32=winhello menu mandel dlltest testdll
 programs_linux=mandel samegame quad maze gravwars
 programs_go32v2=mandel samegame quad maze gravwars voxel
 
+[require]
 # Not always necessary, but saves a lot of trouble
-
-[packages]
 packages=api
 
 [defaults]
