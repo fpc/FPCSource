@@ -112,7 +112,7 @@ function GetDiskFreeSpace(lpRootPathName:LPCSTR; lpSectorsPerCluster:LPDWORD; lp
 function CreateDirectory(lpPathName:LPCSTR; lpSecurityAttributes:LPSECURITY_ATTRIBUTES):WINBOOL; external 'kernel32' name 'CreateDirectoryA';
 function CreateDirectoryEx(lpTemplateDirectory:LPCSTR; lpNewDirectory:LPCSTR; lpSecurityAttributes:LPSECURITY_ATTRIBUTES):WINBOOL; external 'kernel32' name 'CreateDirectoryExA';
 function RemoveDirectory(lpPathName:LPCSTR):WINBOOL; external 'kernel32' name 'RemoveDirectoryA';
-function GetFullPathName(lpFileName:LPCSTR; nBufferLength:DWORD; lpBuffer:LPSTR; lpFilePart:LPSTR):DWORD; external 'kernel32' name 'GetFullPathNameA';
+function GetFullPathName(lpFileName:LPCSTR; nBufferLength:DWORD; lpBuffer:LPSTR; var lpFilePart:LPSTR):DWORD; external 'kernel32' name 'GetFullPathNameA';
 function DefineDosDevice(dwFlags:DWORD; lpDeviceName:LPCSTR; lpTargetPath:LPCSTR):WINBOOL; external 'kernel32' name 'DefineDosDeviceA';
 function QueryDosDevice(lpDeviceName:LPCSTR; lpTargetPath:LPSTR; ucchMax:DWORD):DWORD; external 'kernel32' name 'QueryDosDeviceA';
 function CreateFile(lpFileName:LPCSTR; dwDesiredAccess:DWORD; dwShareMode:DWORD; lpSecurityAttributes:LPSECURITY_ATTRIBUTES; dwCreationDisposition:DWORD;dwFlagsAndAttributes:DWORD; hTemplateFile:HANDLE):HANDLE; external 'kernel32' name 'CreateFileA';
@@ -487,7 +487,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  2000-06-15 11:26:57  pierre
+  Revision 1.11  2000-06-16 13:35:07  pierre
+   * GetFullPathName was wrong
+
+  Revision 1.10  2000/06/15 11:26:57  pierre
     * avoid lines longer than 255 chars
     + add smartlink on by default, if not version 0.99.14
     * some functions not present in win95 DLL's are now only inserted if

@@ -431,9 +431,10 @@ function GetFileInformationByHandle(hFile: THandle; var lpFileInformation: TByHa
 function GetFileVersionInfoSize(lptstrFilename: PChar; var lpdwHandle: DWORD): DWORD;external 'version' name 'GetFileVersionInfoSizeA';
 function GetFileVersionInfoSizeA(lptstrFilename: LPCSTR; var lpdwHandle: DWORD): DWORD; external 'version' name 'GetFileVersionInfoSizeA';
 function GetFileVersionInfoSizeW(lptstrFilename: LPWSTR; var lpdwHandle: DWORD): DWORD; external 'version' name 'GetFileVersionInfoSizeW';
-function GetFullPathName(lpFileName: PChar; nBufferLength: DWORD; lpBuffer: PChar; var lpFilePart: PChar): DWORD;external 'kernel32' name 'GetFullPathNameA';
-function GetFullPathNameA(lpFileName: LPCSTR; nBufferLength: DWORD; lpBuffer: LPCSTR; var lpFilePart: LPCSTR): DWORD; external 'kernel32' name 'GetFullPathNameA';
-function GetFullPathNameW(lpFileName: LPWSTR; nBufferLength: DWORD; lpBuffer: LPWSTR; var lpFilePart: LPWSTR): DWORD; external 'kernel32' name 'GetFullPathNameW';
+// removed because old definition was wrong !
+// function GetFullPathName(lpFileName: PChar; nBufferLength: DWORD; lpBuffer: PChar; var lpFilePart: PChar): DWORD;external 'kernel32' name 'GetFullPathNameA';
+// function GetFullPathNameA(lpFileName: LPCSTR; nBufferLength: DWORD; lpBuffer: LPCSTR; var lpFilePart: LPCSTR): DWORD; external 'kernel32' name 'GetFullPathNameA';
+// function GetFullPathNameW(lpFileName: LPWSTR; nBufferLength: DWORD; lpBuffer: LPWSTR; var lpFilePart: LPWSTR): DWORD; external 'kernel32' name 'GetFullPathNameW';
 function GetGlyphOutline(DC: HDC; p2, p3: UINT; const p4: TGlyphMetrics; p5: DWORD; p6: Pointer; const p7: TMat2): DWORD;external 'gdi32' name 'GetGlyphOutlineA';
 function GetGlyphOutlineA(DC: HDC; p2, p3: UINT; const p4: TGlyphMetrics; p5: DWORD; p6: Pointer; const p7: TMat2): DWORD; external 'gdi32' name 'GetGlyphOutlineA';
 function GetGlyphOutlineW(DC: HDC; p2, p3: UINT; const p4: TGlyphMetrics; p5: DWORD; p6: Pointer; const p7: TMat2): DWORD; external 'gdi32' name 'GetGlyphOutlineW';
@@ -883,7 +884,10 @@ function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpB
 
 {
   $Log$
-  Revision 1.11  2000-06-15 11:26:58  pierre
+  Revision 1.12  2000-06-16 13:35:07  pierre
+   * GetFullPathName was wrong
+
+  Revision 1.11  2000/06/15 11:26:58  pierre
     * avoid lines longer than 255 chars
     + add smartlink on by default, if not version 0.99.14
     * some functions not present in win95 DLL's are now only inserted if
