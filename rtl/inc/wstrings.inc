@@ -207,7 +207,7 @@ begin
    S1:=''
   else
    begin
-     Size:=PAnsiRec(S2-FirstOff)^.Len;
+     Size:=PWideRec(S2-FirstOff)^.Len;
      If Size>high(S1) then
       Size:=high(S1);
      Wide2AnsiMoveProc(PWideChar(S2),PChar(@S1[1]),Size);
@@ -300,9 +300,6 @@ Procedure WideStr_Concat (S1,S2 : Pointer;var S3 : Pointer);[Public, alias: 'FPC
 Var
   Size,Location : Longint;
 begin
-{ create new result }
-  if S3<>nil then
-    WideStr_Decr_Ref(S3);
 { only assign if s1 or s2 is empty }
   if (S1=Nil) then
     WideStr_Assign(S3,S2)
@@ -311,6 +308,9 @@ begin
       WideStr_Assign(S3,S1)
   else
     begin
+      { create new result }
+       if S3<>nil then
+         WideStr_Decr_Ref(S3);
        Size:=PWideRec(S2-WideFirstOff)^.Len;
        Location:=Length(WideString(S1));
        SetLength (WideString(S3),Size+Location);
@@ -657,7 +657,7 @@ begin
 end;}
 
 
-Function ValWideFloat(Const S : WideString; Var Code : ValSInt): ValReal; [public, alias:'FPC_VAL_REAL_ANSISTR'];
+Function ValWideFloat(Const S : WideString; Var Code : ValSInt): ValReal; [public, alias:'FPC_VAL_REAL_WIDESTR'];
 Var
   SS : String;
 begin
@@ -666,7 +666,7 @@ begin
 end;
 
 
-Function ValWideUnsignedInt (Const S : WideString; Var Code : ValSInt): ValUInt; [public, alias:'FPC_VAL_UINT_ANSISTR'];
+Function ValWideUnsignedInt (Const S : WideString; Var Code : ValSInt): ValUInt; [public, alias:'FPC_VAL_UINT_WIDESTR'];
 Var
   SS : ShortString;
 begin
@@ -675,7 +675,7 @@ begin
 end;
 
 
-Function ValWideSignedInt (DestSize: longint; Const S : WideString; Var Code : ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_ANSISTR'];
+Function ValWideSignedInt (DestSize: longint; Const S : WideString; Var Code : ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_WIDESTR'];
 Var
   SS : ShortString;
 begin
@@ -689,7 +689,7 @@ begin
     end;
 end;
 
-Function ValWideUnsignedint64 (Const S : WideString; Var Code : ValSInt): qword; [public, alias:'FPC_VAL_QWORD_ANSISTR'];
+Function ValWideUnsignedint64 (Const S : WideString; Var Code : ValSInt): qword; [public, alias:'FPC_VAL_QWORD_WIDESTR'];
 Var
   SS : ShortString;
 begin
@@ -704,7 +704,7 @@ begin
 end;
 
 
-Function ValWideSignedInt64 (Const S : WideString; Var Code : ValSInt): Int64; [public, alias:'FPC_VAL_INT64_ANSISTR'];
+Function ValWideSignedInt64 (Const S : WideString; Var Code : ValSInt): Int64; [public, alias:'FPC_VAL_INT64_WIDESTR'];
 Var
   SS : ShortString;
 begin
@@ -750,7 +750,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2001-07-09 21:15:41  peter
+  Revision 1.10  2001-07-16 12:33:08  jonas
+    * fixed wrong public alieases for val(widestring,...)
+
+  Revision 1.9  2001/07/09 21:15:41  peter
     * Length made internal
     * Add array support for Length
 
