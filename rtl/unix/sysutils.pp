@@ -23,6 +23,7 @@ interface
 
 {$DEFINE HAS_SLEEP}
 {$DEFINE HAS_OSERROR}
+{$DEFINE HAS_OSCONFIG}
 {$DEFINE HASUNIX}
 
 uses
@@ -631,6 +632,54 @@ begin
   Result:=fpgetErrNo;
 end;
 
+{ ---------------------------------------------------------------------
+    Application config files
+  ---------------------------------------------------------------------}
+  
+
+Function GetHomeDir : String;
+
+begin
+  Result:=GetEnvironmentVariable('HOME');
+  If (Result<>'') then
+  Result:=IncludeTrailingPathDelimiter(Result);
+end;
+
+Function GetAppConfigDir(Global : Boolean) : String;
+
+begin
+  If Global then
+    Result:=SysConfigDir
+  else  
+    Result:=GetHomeDir+ApplicationName;
+end;
+
+Function GetAppConfigFile(Global : Boolean; SubDir : Boolean) : String;
+
+begin
+  if Global then
+    begin
+    Result:=IncludeTrailingPathDelimiter(SysConfigDir);
+    if SubDir then
+      Result:=IncludeTrailingPathDelimiter(Result+ApplicationName);
+    Result:=Result+ApplicationName+ConfigExtension;
+    end 
+  else
+    begin
+    if SubDir then
+      begin
+      Result:=IncludeTrailingPathDelimiter(GetAppConfigDir(False));
+      Result:=Result+ApplicationName+ConfigExtension;
+      end
+    else  
+      begin
+      Result:=GetHomeDir;
+      Result:=Result+'.'+ApplicationName;
+      end;
+    end;
+end;
+
+
 {****************************************************************************
                               Initialization code
 ****************************************************************************}
@@ -638,13 +687,17 @@ end;
 Initialization
   InitExceptions;       { Initialize exceptions. OS independent }
   InitInternational;    { Initialize internationalization settings }
+  SysConfigDir:='/etc'; { Initialize system config dir }
 Finalization
   DoneExceptions;
 end.
 {
 
   $Log$
-  Revision 1.43  2004-07-03 21:50:31  daniel
+  Revision 1.44  2004-08-05 07:32:51  michael
+  Added getappconfig calls
+
+  Revision 1.43  2004/07/03 21:50:31  daniel
     * Modified bootstrap code so separate prt0.as/prt0_10.as files are no
       longer necessary
 
