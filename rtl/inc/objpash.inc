@@ -50,7 +50,7 @@
        E_NOINTERFACE = hresult($80004002);
        E_UNEXPECTED  = hresult($8000FFFF);
        E_NOTIMPL     = hresult($80004001);
-  
+
      type
        TextFile = Text;
 
@@ -105,6 +105,10 @@
        tinterfacetable = packed record
          EntryCount: Word;
          Entries: array[0..0] of tinterfaceentry;
+       end;
+
+       TMethod = record
+         Code, Data : Pointer;
        end;
 
        TObject = class
@@ -308,7 +312,10 @@
 
 {
   $Log$
-  Revision 1.26  2005-01-31 19:41:39  peter
+  Revision 1.27  2005-02-01 19:32:14  florian
+    + tmethod
+
+  Revision 1.26  2005/01/31 19:41:39  peter
     * interface additions
 
   Revision 1.25  2005/01/26 17:07:10  peter
