@@ -58,7 +58,7 @@ USES FVConsts, Objects, Drivers, Views, App;      { Standard GFV units }
 type
   PTable = ^TTable;
   TTable = object(TView)
-    procedure DrawBackground; virtual;
+    procedure Draw; virtual;
     procedure HandleEvent(var Event:TEvent); virtual;
   private
     procedure DrawCurPos(enable : boolean);
@@ -139,19 +139,18 @@ procedure RegisterASCIITab;
 {                          TTable OBJECT METHODS                            }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 
-procedure TTable.DrawBackground;
+procedure TTable.Draw;
 var
   NormColor : byte;
   B : TDrawBuffer;
   x,y : sw_integer;
 begin
   NormColor:=GetColor(1);
-  For y:=0 to size.Y-1 do
+  For y:=0 to size.Y-1 do begin
     For x:=0 to size.X-1 do
-      begin
-        B[x]:=(NormColor shl 8) or ((y*Size.X+x) and $ff);
-        WriteLine(0,Y,Size.X,1,B);
-      end;
+      B[x]:=(NormColor shl 8) or ((y*Size.X+x) and $ff);
+    WriteLine(0,Y,Size.X,1,B);
+  end;
   DrawCurPos(true);
 end;
 
@@ -170,7 +169,7 @@ end;
 
 procedure TTable.HandleEvent(var Event:TEvent);
 var
-  xpos,ypos : sw_integer;
+  CurrentPos : TPoint;
   Handled : boolean;
 
   procedure SetTo(xpos, ypos : sw_integer);
@@ -185,15 +184,15 @@ var
     DrawCurPos(true);
     ClearEvent(Event);
   end;
+  
 begin
   case Event.What of
     evMouseDown :
       begin
         If MouseInView(Event.Where) then
           begin
-            xpos:=Event.Where.X-Origin.X;
-            ypos:=Event.Where.Y-Origin.Y;
-            SetTo(xpos, ypos);
+            MakeLocal(Event.Where, CurrentPos);
+            SetTo(CurrentPos.X, CurrentPos.Y);
             exit;
           end;
       end;
@@ -241,7 +240,8 @@ begin
     stDec:=' '+stDec;
   stHex:=hexstr(AsciiChar,2);
   s:='Char "'+chr(AsciiChar)+'" Decimal: '+
-     StDec+' Hex: $'+StHex;
+     StDec+' Hex: $'+StHex+
+     '  '; // //{!ss:fill gap. FormatStr function using be better}
   WriteStr(0,0,S,1);
 end;
 
@@ -323,7 +323,10 @@ end;
 END.
 {
  $Log$
- Revision 1.8  2005-02-14 17:13:18  peter
+ Revision 1.9  2005-02-15 21:44:40  peter
+   * patch for Sergey to fix drawing and mouse
+
+ Revision 1.8  2005/02/14 17:13:18  peter
    * truncate log
 
 }
