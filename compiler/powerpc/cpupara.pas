@@ -216,6 +216,8 @@ unit cpupara;
                            hp.paraloc.loc:=LOC_REGISTER;
 		           if is_64bit then
                              begin
+			       if odd((nextintreg.number-NR_R3) shr 8) and (target_info.abi=abi_powerpc_sysv) Then
+                                inc(nextintreg.number,NR_R1-NR_R0);
                                hp.paraloc.registerhigh:=nextintreg;
                                inc(nextintreg.number,NR_R1-NR_R0);
                                if target_info.abi=abi_powerpc_aix then
@@ -335,7 +337,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2003-05-30 22:54:19  marco
+  Revision 1.34  2003-05-30 23:45:49  marco
+   * register skipping (aligning) for int64 parameters, sys V abi only.
+
+  Revision 1.33  2003/05/30 22:54:19  marco
    * getfuncretparaloc now uses r3 for highdword and r4 for lo. Doesn't work tho
 
   Revision 1.32  2003/05/30 22:35:03  marco
