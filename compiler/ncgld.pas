@@ -137,7 +137,7 @@ implementation
                        { the called procedure isn't allowed to change }
                        { any register except EAX                    }
                        cg.a_call_name(exprasmlist,'FPC_RELOCATE_THREADVAR');
-                       cg.a_load_reg_reg(exprasmlist,OS_INT,accumulator,location.reference.base);
+                       cg.a_load_reg_reg(exprasmlist,OS_INT,OS_ADDR,accumulator,location.reference.base);
                        rg.restoreusedregisters(exprasmlist,pushed);
                     end
                   { normal variable }
@@ -946,7 +946,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2002-09-07 15:25:03  peter
+  Revision 1.30  2002-09-17 18:54:02  jonas
+    * a_load_reg_reg() now has two size parameters: source and dest. This
+      allows some optimizations on architectures that don't encode the
+      register size in the register name.
+
+  Revision 1.29  2002/09/07 15:25:03  peter
     * old logs removed and tabs fixed
 
   Revision 1.28  2002/09/01 19:26:32  peter

@@ -69,7 +69,7 @@ unit cgx86;
         procedure a_load_const_ref(list : taasmoutput; size: tcgsize; a : aword;const ref : treference);override;
         procedure a_load_reg_ref(list : taasmoutput; size: tcgsize; reg : tregister;const ref : treference);override;
         procedure a_load_ref_reg(list : taasmoutput;size : tcgsize;const ref : treference;reg : tregister);override;
-        procedure a_load_reg_reg(list : taasmoutput;size : tcgsize;reg1,reg2 : tregister);override;
+        procedure a_load_reg_reg(list : taasmoutput;fromsize,tosize : tcgsize;reg1,reg2 : tregister);override;
         procedure a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);override;
 
         { fpu move instructions }
@@ -474,14 +474,14 @@ unit cgx86;
       end;
 
 
-    procedure tcgx86.a_load_reg_reg(list : taasmoutput;size : tcgsize;reg1,reg2 : tregister);
+    procedure tcgx86.a_load_reg_reg(list : taasmoutput;fromsize,tosize : tcgsize;reg1,reg2 : tregister);
 
       var
         op: tasmop;
         s: topsize;
 
       begin
-        sizes2load(size,reg2opsize[reg2],op,s);
+        sizes2load(fromsize,reg2opsize[reg2],op,s);
         if (rg.makeregsize(reg1,OS_INT) = rg.makeregsize(reg2,OS_INT)) then
          begin
            { "mov reg1, reg1" doesn't make sense }
@@ -490,7 +490,7 @@ unit cgx86;
            { optimize movzx with "and ffff,<reg>" operation }
            if (op = A_MOVZX) then
             begin
-              case size of
+              case fromsize of
                 OS_8:
                   begin
                     list.concat(taicpu.op_const_reg(A_AND,reg2opsize[reg2],255,reg2));
@@ -794,7 +794,7 @@ unit cgx86;
                       else regloadsize := OS_32;
                     end;
                     tmpreg := get_scratch_reg_int(list);
-                    a_load_reg_reg(list,regloadsize,src,tmpreg);
+                    a_load_reg_reg(list,regloadsize,regloadsize,src,tmpreg);
                   end;
                 if not(src in [R_ECX,R_CX,R_CL]) then
                   begin
@@ -809,7 +809,7 @@ unit cgx86;
                         list.concat(taicpu.op_reg(A_PUSH,S_L,R_ECX));
                         popecx := true;
                       end;
-                    a_load_reg_reg(list,OS_32,rg.makeregsize(src,OS_32),R_ECX);
+                    a_load_reg_reg(list,OS_32,OS_32,rg.makeregsize(src,OS_32),R_ECX);
                   end
                 else
                   src := R_CL;
@@ -822,7 +822,7 @@ unit cgx86;
                     list.concat(taicpu.op_reg_reg(TOpCG2AsmOp[op],S_L,
                       R_CL,tmpreg));
                     { move result back to the destination }
-                    a_load_reg_reg(list,OS_32,tmpreg,R_ECX);
+                    a_load_reg_reg(list,OS_32,OS_32,tmpreg,R_ECX);
                     free_scratch_reg(list,tmpreg);
                   end;
                 if popecx then
@@ -925,7 +925,7 @@ unit cgx86;
             end;
           OP_ADD, OP_SUB:
             if (a = 0) then
-              a_load_reg_reg(list,size,src,dst)
+              a_load_reg_reg(list,size,size,src,dst)
             else
               begin
                 reference_reset(tmpref);
@@ -1054,7 +1054,7 @@ unit cgx86;
           ai.SetCondition(flags_to_cond(f));
           list.concat(ai);
           if (reg <> hreg) then
-            a_load_reg_reg(list,OS_8,hreg,reg);
+            a_load_reg_reg(list,OS_8,OS_8,hreg,reg);
        end;
 
 
@@ -1155,7 +1155,7 @@ unit cgx86;
                      { was earlier XCHG, of course nonsense }
                      begin
                        rg.getexplicitregisterint(list,R_EDI);
-                       a_load_reg_reg(list,OS_32,reg32,R_EDI);
+                       a_load_reg_reg(list,OS_32,OS_32,reg32,R_EDI);
                      end;
                    a_load_ref_reg(list,OS_8,srcref,reg8);
                    If delsource and (len=1) then
@@ -1163,7 +1163,7 @@ unit cgx86;
                    a_load_reg_ref(list,OS_8,reg8,dstref);
                    if swap then
                      begin
-                       a_load_reg_reg(list,OS_32,R_EDI,reg32);
+                       a_load_reg_reg(list,OS_32,OS_32,R_EDI,reg32);
                        rg.ungetregisterint(list,R_EDI);
                      end
                    else
@@ -1681,7 +1681,12 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.16  2002-09-16 19:08:47  peter
+  Revision 1.17  2002-09-17 18:54:06  jonas
+    * a_load_reg_reg() now has two size parameters: source and dest. This
+      allows some optimizations on architectures that don't encode the
+      register size in the register name.
+
+  Revision 1.16  2002/09/16 19:08:47  peter
     * support references without registers and symbol in paramref_addr. It
       pushes only the offset
 

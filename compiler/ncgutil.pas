@@ -286,7 +286,7 @@ implementation
               if l.loc=LOC_REGISTER then
                begin
                  hregister:=rg.makeregsize(l.registerlow,OS_INT);
-                 cg.a_load_reg_reg(list,l.size,l.registerlow,hregister);
+                 cg.a_load_reg_reg(list,l.size,OS_32,l.registerlow,hregister);
                end
               else
                hregister:=rg.getregisterint(list);
@@ -1302,7 +1302,7 @@ implementation
                        LOC_CREGISTER,
                        LOC_REGISTER:
 //                         if not(hp.paraloc.size in [OS_S64,OS_64]) then
-                           cg.a_load_reg_reg(list,hp.paraloc.size,hp.paraloc.register,tvarsym(hp.parasym).reg);
+                           cg.a_load_reg_reg(list,hp.paraloc.size,OS_32,hp.paraloc.register,tvarsym(hp.parasym).reg);
 //                         else
 //                           cg64.a_load64_reg_reg(list,hp.paraloc.register64,tvarsym(hp.parasym).reg);
                        LOC_CFPUREGISTER,
@@ -1633,7 +1633,7 @@ implementation
                 if is_object(procinfo._class) then
                   begin
                     cg.a_reg_alloc(list,accumulator);
-                    cg.a_load_reg_reg(list,OS_ADDR,self_pointer_reg,accumulator);
+                    cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,self_pointer_reg,accumulator);
                     usesacc:=true;
                   end;
 {$ifdef i386}
@@ -1831,7 +1831,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  2002-09-10 21:48:30  florian
+  Revision 1.50  2002-09-17 18:54:03  jonas
+    * a_load_reg_reg() now has two size parameters: source and dest. This
+      allows some optimizations on architectures that don't encode the
+      register size in the register name.
+
+  Revision 1.49  2002/09/10 21:48:30  florian
     * improved handling of procedures with register calling conventions
 
   Revision 1.48  2002/09/07 15:25:03  peter

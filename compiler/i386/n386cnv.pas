@@ -118,7 +118,7 @@ implementation
                    begin
                      hregister:=cg.get_scratch_reg_int(exprasmlist);
                      freereg:=true;
-                     cg.a_load_reg_reg(exprasmlist,left.location.size,left.location.register,hregister);
+                     cg.a_load_reg_reg(exprasmlist,left.location.size,OS_32,left.location.register,hregister);
                    end;
                end;
              end;
@@ -256,7 +256,7 @@ implementation
                 if left.location.size in [OS_64,OS_S64] then
                  begin
                    hregister:=cg.get_scratch_reg_int(exprasmlist);
-                   cg.a_load_reg_reg(exprasmlist,OS_32,left.location.registerlow,hregister);
+                   cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,left.location.registerlow,hregister);
                    cg.a_op_reg_reg(exprasmlist,OP_OR,OS_32,left.location.registerhigh,hregister);
                    cg.free_scratch_reg(exprasmlist,hregister);
                  end
@@ -376,7 +376,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.48  2002-08-14 19:19:14  carl
+  Revision 1.49  2002-09-17 18:54:03  jonas
+    * a_load_reg_reg() now has two size parameters: source and dest. This
+      allows some optimizations on architectures that don't encode the
+      register size in the register name.
+
+  Revision 1.48  2002/08/14 19:19:14  carl
     * first_int_to_real moved to i386 (other one is generic)
 
   Revision 1.47  2002/08/11 14:32:30  peter

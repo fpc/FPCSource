@@ -147,7 +147,7 @@ implementation
                   begin
                     location_release(exprasmlist,left.location);
                     location.reference.base := rg.getaddressregister(exprasmlist);
-                    cg.a_load_reg_reg(exprasmlist,OS_ADDR,left.location.register,
+                    cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.register,
                       location.reference.base);
                   end
                 else
@@ -239,7 +239,7 @@ implementation
                   begin
                     location_release(exprasmlist,left.location);
                     location.reference.base := rg.getaddressregister(exprasmlist);
-                    cg.a_load_reg_reg(exprasmlist,OS_ADDR,left.location.register,
+                    cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.register,
                       location.reference.base);
                   end
                 else
@@ -284,7 +284,7 @@ implementation
                       begin
                         location_release(exprasmlist,left.location);
                         location.reference.base:=rg.getaddressregister(exprasmlist);
-                        cg.a_load_reg_reg(exprasmlist,OS_ADDR,
+                        cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,
                           left.location.register,location.reference.base);
                       end
                     else
@@ -864,7 +864,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2002-09-07 15:25:03  peter
+  Revision 1.28  2002-09-17 18:54:02  jonas
+    * a_load_reg_reg() now has two size parameters: source and dest. This
+      allows some optimizations on architectures that don't encode the
+      register size in the register name.
+
+  Revision 1.27  2002/09/07 15:25:03  peter
     * old logs removed and tabs fixed
 
   Revision 1.26  2002/09/01 18:46:01  peter

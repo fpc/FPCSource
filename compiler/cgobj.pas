@@ -185,7 +185,7 @@ unit cgobj;
           procedure a_load_const_ref(list : taasmoutput;size : tcgsize;a : aword;const ref : treference);virtual;
           procedure a_load_const_loc(list : taasmoutput;a : aword;const loc : tlocation);
           procedure a_load_reg_ref(list : taasmoutput;size : tcgsize;register : tregister;const ref : treference);virtual; abstract;
-          procedure a_load_reg_reg(list : taasmoutput;size : tcgsize;reg1,reg2 : tregister);virtual; abstract;
+          procedure a_load_reg_reg(list : taasmoutput;fromsize, tosize : tcgsize;reg1,reg2 : tregister);virtual; abstract;
           procedure a_load_reg_loc(list : taasmoutput;size : tcgsize;reg : tregister;const loc: tlocation);
           procedure a_load_ref_reg(list : taasmoutput;size : tcgsize;const ref : treference;register : tregister);virtual; abstract;
           procedure a_load_ref_ref(list : taasmoutput;size : tcgsize;const sref : treference;const dref : treference);virtual;
@@ -573,7 +573,7 @@ unit cgobj;
       begin
          case locpara.loc of
             LOC_REGISTER,LOC_CREGISTER:
-              a_load_reg_reg(list,size,r,locpara.register);
+              a_load_reg_reg(list,size,locpara.size,r,locpara.register);
             LOC_REFERENCE:
               begin
                  if locpara.sp_fixup<>0 then
@@ -732,7 +732,7 @@ unit cgobj;
           LOC_REFERENCE,LOC_CREFERENCE:
             a_load_reg_ref(list,size,reg,loc.reference);
           LOC_REGISTER,LOC_CREGISTER:
-            a_load_reg_reg(list,size,reg,loc.register);
+            a_load_reg_reg(list,size,loc.size,reg,loc.register);
           else
             internalerror(200203271);
         end;
@@ -746,7 +746,7 @@ unit cgobj;
           LOC_REFERENCE,LOC_CREFERENCE:
             a_load_ref_reg(list,loc.size,loc.reference,reg);
           LOC_REGISTER,LOC_CREGISTER:
-            a_load_reg_reg(list,loc.size,loc.register,reg);
+            a_load_reg_reg(list,loc.size,loc.size,loc.register,reg);
           LOC_CONSTANT:
             a_load_const_reg(list,loc.size,loc.value,reg);
           else
@@ -975,14 +975,14 @@ unit cgobj;
     procedure tcg.a_op_const_reg_reg(list: taasmoutput; op: TOpCg;
         size: tcgsize; a: aword; src, dst: tregister);
       begin
-        a_load_reg_reg(list,size,src,dst);
+        a_load_reg_reg(list,size,size,src,dst);
         a_op_const_reg(list,op,a,dst);
       end;
 
     procedure tcg.a_op_reg_reg_reg(list: taasmoutput; op: TOpCg;
         size: tcgsize; src1, src2, dst: tregister);
       begin
-        a_load_reg_reg(list,size,src2,dst);
+        a_load_reg_reg(list,size,size,src2,dst);
         a_op_reg_reg(list,op,size,src1,dst);
       end;
 
@@ -1413,7 +1413,7 @@ unit cgobj;
             reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset);
             a_param_ref(list, OS_ADDR,href,paramanager.getintparaloc(1));
             a_call_name(list,'FPC_NEW_CLASS');
-            a_load_reg_reg(list,OS_ADDR,accumulator,SELF_POINTER_REG);
+            a_load_reg_reg(list,OS_ADDR,OS_ADDR,accumulator,SELF_POINTER_REG);
             { save the self pointer result }
             a_load_reg_ref(list,OS_ADDR,SELF_POINTER_REG,href);
             a_cmp_const_reg_label(list,OS_ADDR,OC_EQ,0,accumulator,faillabel);
@@ -1436,7 +1436,7 @@ unit cgobj;
             a_param_reg(list, OS_ADDR,hregister,paramanager.getintparaloc(1));
             free_scratch_reg(list, hregister);
             a_call_name(list,'FPC_HELP_CONSTRUCTOR');
-            a_load_reg_reg(list,OS_ADDR,accumulator,SELF_POINTER_REG);
+            a_load_reg_reg(list,OS_ADDR,OS_ADDR,accumulator,SELF_POINTER_REG);
             a_cmp_const_reg_label(list,OS_ADDR,OC_EQ,0,accumulator,faillabel);
           end
         else
@@ -1595,7 +1595,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.58  2002-09-09 19:29:29  peter
+  Revision 1.59  2002-09-17 18:54:02  jonas
+    * a_load_reg_reg() now has two size parameters: source and dest. This
+      allows some optimizations on architectures that don't encode the
+      register size in the register name.
+
+  Revision 1.58  2002/09/09 19:29:29  peter
     * fixed dynarr_decr_ref call
 
   Revision 1.57  2002/09/07 15:25:01  peter

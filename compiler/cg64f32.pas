@@ -164,7 +164,7 @@ unit cg64f32;
          begin
            tmpreg := cg.get_scratch_reg_int(list);
            got_scratch:=true;
-           cg.a_load_reg_reg(list,OS_ADDR,tmpref.base,tmpreg);
+           cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,tmpref.base,tmpreg);
            tmpref.base:=tmpreg;
          end
         else
@@ -175,7 +175,7 @@ unit cg64f32;
           begin
             tmpreg:=cg.get_scratch_reg_int(list);
             got_scratch:=true;
-            cg.a_load_reg_reg(list,OS_ADDR,tmpref.index,tmpreg);
+            cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,tmpref.index,tmpreg);
             tmpref.index:=tmpreg;
           end;
         cg.a_load_ref_reg(list,OS_32,tmpref,reg.reglo);
@@ -189,8 +189,8 @@ unit cg64f32;
     procedure tcg64f32.a_load64_reg_reg(list : taasmoutput;regsrc,regdst : tregister64);
 
       begin
-        cg.a_load_reg_reg(list,OS_32,regsrc.reglo,regdst.reglo);
-        cg.a_load_reg_reg(list,OS_32,regsrc.reghi,regdst.reghi);
+        cg.a_load_reg_reg(list,OS_32,OS_32,regsrc.reglo,regdst.reglo);
+        cg.a_load_reg_reg(list,OS_32,OS_32,regsrc.reghi,regdst.reghi);
       end;
 
     procedure tcg64f32.a_load64_const_reg(list : taasmoutput;value : qword;reg : tregister64);
@@ -321,7 +321,7 @@ unit cg64f32;
           LOC_CREFERENCE :
             a_load64low_ref_reg(list,l.reference,reg);
           LOC_REGISTER :
-            cg.a_load_reg_reg(list,OS_32,l.registerlow,reg);
+            cg.a_load_reg_reg(list,OS_32,OS_32,l.registerlow,reg);
           LOC_CONSTANT :
             cg.a_load_const_reg(list,OS_32,lo(l.valueqword),reg);
           else
@@ -336,7 +336,7 @@ unit cg64f32;
           LOC_CREFERENCE :
             a_load64high_ref_reg(list,l.reference,reg);
           LOC_REGISTER :
-            cg.a_load_reg_reg(list,OS_32,l.registerhigh,reg);
+            cg.a_load_reg_reg(list,OS_32,OS_32,l.registerhigh,reg);
           LOC_CONSTANT :
             cg.a_load_const_reg(list,OS_32,hi(l.valueqword),reg);
           else
@@ -738,7 +738,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2002-09-10 21:24:38  jonas
+  Revision 1.30  2002-09-17 18:54:01  jonas
+    * a_load_reg_reg() now has two size parameters: source and dest. This
+      allows some optimizations on architectures that don't encode the
+      register size in the register name.
+
+  Revision 1.29  2002/09/10 21:24:38  jonas
     * fixed a_param64_ref
 
   Revision 1.28  2002/09/07 15:25:00  peter

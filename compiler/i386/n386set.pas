@@ -225,7 +225,7 @@ implementation
                if ranges then
                  begin
                    pleftreg:=rg.makeregsize(left.location.register,OS_INT);
-                   cg.a_load_reg_reg(exprasmlist,left.location.size,left.location.register,pleftreg);
+                   cg.a_load_reg_reg(exprasmlist,left.location.size,OS_INT,left.location.register,pleftreg);
                    if opsize <> S_L then
                      emit_const_reg(A_AND,S_L,255,pleftreg);
                    opsize := S_L;
@@ -387,7 +387,7 @@ implementation
                      LOC_CREGISTER:
                        begin
                           hr:=rg.makeregsize(left.location.register,OS_INT);
-                          cg.a_load_reg_reg(exprasmlist,left.location.size,left.location.register,hr);
+                          cg.a_load_reg_reg(exprasmlist,left.location.size,OS_INT,left.location.register,hr);
                        end;
                   else
                     begin
@@ -456,7 +456,7 @@ implementation
                      LOC_CREGISTER:
                        begin
                           hr:=rg.makeregsize(left.location.register,OS_INT);
-                          cg.a_load_reg_reg(exprasmlist,left.location.size,left.location.register,hr);
+                          cg.a_load_reg_reg(exprasmlist,left.location.size,OS_INT,left.location.register,hr);
                           emit_const_reg(A_CMP,S_L,31,hr);
                           emitjmp(C_NA,l);
                         { reset carry flag }
@@ -594,7 +594,7 @@ implementation
         objectlibrary.getlabel(table);
         { make it a 32bit register }
         indexreg:=rg.makeregsize(hregister,OS_INT);
-        cg.a_load_reg_reg(exprasmlist,opsize,hregister,indexreg);
+        cg.a_load_reg_reg(exprasmlist,opsize,OS_INT,hregister,indexreg);
         { create reference }
         reference_reset_symbol(href,table,0);
         href.offset:=(-longint(min_))*4;
@@ -706,7 +706,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  2002-09-16 18:08:26  peter
+  Revision 1.43  2002-09-17 18:54:05  jonas
+    * a_load_reg_reg() now has two size parameters: source and dest. This
+      allows some optimizations on architectures that don't encode the
+      register size in the register name.
+
+  Revision 1.42  2002/09/16 18:08:26  peter
     * fix last optimization in genlinearlist, detected by bug tw1066
     * use generic casenode.pass2 routine and override genlinearlist
     * add jumptable support to generic casenode, by default there is

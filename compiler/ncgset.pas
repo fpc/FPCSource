@@ -295,7 +295,7 @@ implementation
                if ranges then
                  begin
                    pleftreg:=rg.makeregsize(left.location.register,OS_INT);
-                   cg.a_load_reg_reg(exprasmlist,left.location.size,left.location.register,pleftreg);
+                   cg.a_load_reg_reg(exprasmlist,left.location.size,OS_INT,left.location.register,pleftreg);
                    if opsize <> OS_INT then
                      cg.a_op_const_reg(exprasmlist,OP_AND,255,pleftreg);
                    opsize := OS_INT;
@@ -417,7 +417,7 @@ implementation
                     LOC_CREGISTER:
                       begin
                          { load set value into register }
-                         cg.a_load_reg_reg(exprasmlist,OS_32,
+                         cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,
                             right.location.register,hr);
                       end;
                     LOC_REFERENCE,
@@ -444,9 +444,9 @@ implementation
                      LOC_CREGISTER:
                        begin
                           hr3:=rg.makeregsize(left.location.register,OS_INT);
-                          cg.a_load_reg_reg(exprasmlist,left.location.size,left.location.register,hr3);
+                          cg.a_load_reg_reg(exprasmlist,left.location.size,OS_INT,left.location.register,hr3);
                           hr:=cg.get_scratch_reg_int(exprasmlist);
-                          cg.a_load_reg_reg(exprasmlist,OS_INT,hr3,hr);
+                          cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,hr3,hr);
                        end;
                   else
                     begin
@@ -514,7 +514,7 @@ implementation
                      LOC_CREGISTER:
                        begin
                           hr:=rg.makeregsize(left.location.register,OS_INT);
-                          cg.a_load_reg_reg(exprasmlist,left.location.size,left.location.register,hr);
+                          cg.a_load_reg_reg(exprasmlist,left.location.size,OS_INT,left.location.register,hr);
                           cg.a_cmp_const_reg_label(exprasmlist,OS_INT,OC_BE,31,hr,l);
                         { reset of result register is done in routine entry }
                           cg.a_jmp_always(exprasmlist,l2);
@@ -573,7 +573,7 @@ implementation
                   cg.a_param_ref(exprasmlist,OS_ADDR,right.location.reference,paramanager.getintparaloc(1));
                   cg.a_call_name(exprasmlist,'FPC_SET_IN_BYTE');
                   { result of value is always one full register }
-                  cg.a_load_reg_reg(exprasmlist,OS_INT,ACCUMULATOR,location.register);
+                  cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,ACCUMULATOR,location.register);
                   { release the allocated register  }
                   if not (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
                     rg.ungetregisterint(exprasmlist,pleftreg);
@@ -622,7 +622,7 @@ implementation
               to move the result before subtract to a help
               register.
             }
-            cg.a_load_reg_reg(exprasmlist, opsize, hregister, scratch_reg);
+            cg.a_load_reg_reg(exprasmlist, opsize, opsize, hregister, scratch_reg);
             cg.a_op_const_reg(exprasmlist, OP_SUB, value, hregister);
           end;
 
@@ -993,7 +993,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2002-09-16 18:08:26  peter
+  Revision 1.20  2002-09-17 18:54:03  jonas
+    * a_load_reg_reg() now has two size parameters: source and dest. This
+      allows some optimizations on architectures that don't encode the
+      register size in the register name.
+
+  Revision 1.19  2002/09/16 18:08:26  peter
     * fix last optimization in genlinearlist, detected by bug tw1066
     * use generic casenode.pass2 routine and override genlinearlist
     * add jumptable support to generic casenode, by default there is

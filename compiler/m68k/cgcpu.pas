@@ -39,7 +39,7 @@ unit cgcpu;
           procedure a_call_reg(list : taasmoutput;reg : tregister);override;
           procedure a_load_const_reg(list : taasmoutput;size : tcgsize;a : aword;register : tregister);override;
           procedure a_load_reg_ref(list : taasmoutput;size : tcgsize;register : tregister;const ref : treference);override;
-          procedure a_load_reg_reg(list : taasmoutput;size : tcgsize;reg1,reg2 : tregister);override;
+          procedure a_load_reg_reg(list : taasmoutput;fromsize,tosize : tcgsize;reg1,reg2 : tregister);override;
           procedure a_load_ref_reg(list : taasmoutput;size : tcgsize;const ref : treference;register : tregister);override;
           procedure a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);override;
           procedure a_loadfpu_reg_reg(list: taasmoutput; reg1, reg2: tregister); override;
@@ -260,12 +260,12 @@ Implementation
          list.concat(taicpu.op_reg_ref(A_MOVE,TCGSize2OpSize[size],register,href));
       end;
 
-    procedure tcg68k.a_load_reg_reg(list : taasmoutput;size : tcgsize;reg1,reg2 : tregister);
+    procedure tcg68k.a_load_reg_reg(list : taasmoutput;fromsize,tosize : tcgsize;reg1,reg2 : tregister);
       begin
          { move to destination register }
          list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg1,reg2));
          { zero/sign extend register to 32-bit }
-         sign_extend(list, size, reg2);
+         sign_extend(list, fromsize, reg2);
       end;
 
     procedure tcg68k.a_load_ref_reg(list : taasmoutput;size : tcgsize;const ref : treference;register : tregister);
@@ -1244,7 +1244,12 @@ end.
 
 {
   $Log$
-  Revision 1.8  2002-09-08 15:12:45  carl
+  Revision 1.9  2002-09-17 18:54:05  jonas
+    * a_load_reg_reg() now has two size parameters: source and dest. This
+      allows some optimizations on architectures that don't encode the
+      register size in the register name.
+
+  Revision 1.8  2002/09/08 15:12:45  carl
     + a_call_reg
 
   Revision 1.7  2002/09/07 20:53:28  carl

@@ -32,7 +32,7 @@ interface
     type
        tppctypeconvnode = class(tcgtypeconvnode)
          protected
-          procedure second_int_to_int;override;
+         { procedure second_int_to_int;override; }
          { procedure second_string_to_string;override; }
          { procedure second_cstring_to_pchar;override; }
          { procedure second_string_to_chararray;override; }
@@ -108,38 +108,6 @@ implementation
 {*****************************************************************************
                              SecondTypeConv
 *****************************************************************************}
-
-    procedure tppctypeconvnode.second_int_to_int;
-      var
-        newsize : tcgsize;
-        size, leftsize : cardinal;
-      begin
-        newsize:=def_cgsize(resulttype.def);
-
-        { insert range check if not explicit conversion }
-        if not(nf_explizit in flags) then
-          cg.g_rangecheck(exprasmlist,left,resulttype.def);
-
-        { is the result size smaller ? }
-        size := resulttype.def.size;
-        leftsize := left.resulttype.def.size;
-        if (size < leftsize) or
-           (((newsize in [OS_64,OS_S64]) or
-             (left.location.loc <> LOC_REGISTER)) and
-            (size > leftsize)) then
-          begin
-            { reuse the left location by default }
-            location_copy(location,left.location);
-            location_force_reg(exprasmlist,location,newsize,false);
-          end
-        else
-          begin
-            { no special loading is required, reuse current location }
-            location_copy(location,left.location);
-            location.size:=newsize;
-          end;
-      end;
-
 
     procedure tppctypeconvnode.second_int_to_real;
 
@@ -422,7 +390,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2002-08-23 16:14:50  peter
+  Revision 1.25  2002-09-17 18:54:06  jonas
+    * a_load_reg_reg() now has two size parameters: source and dest. This
+      allows some optimizations on architectures that don't encode the
+      register size in the register name.
+
+  Revision 1.24  2002/08/23 16:14:50  peter
     * tempgen cleanup
     * tt_noreuse temp type added that will be used in genentrycode
 

@@ -722,7 +722,7 @@ implementation
                                             LOC_CREGISTER,
                                             LOC_REGISTER:
                                               begin
-                                                 cg.a_load_reg_reg(exprasmlist,OS_ADDR,methodpointer.location.register,R_ESI);
+                                                 cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,methodpointer.location.register,R_ESI);
                                                  rg.ungetregisterint(exprasmlist,methodpointer.location.register);
                                               end;
                                             else
@@ -1145,7 +1145,7 @@ implementation
               cg.free_scratch_reg(exprasmlist,tmpreg);
               exprasmList.concat(tai_regalloc.Alloc(accumulator));
               cg.a_label(exprasmlist,constructorfailed);
-              cg.a_load_reg_reg(exprasmlist,OS_ADDR,self_pointer_reg,accumulator);
+              cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,self_pointer_reg,accumulator);
            end;
 
          { handle function results }
@@ -1211,7 +1211,7 @@ implementation
                             location.register:=rg.getexplicitregisterint(exprasmlist,accumulator);
                             hregister:=rg.makeregsize(accumulator,cgsize);
                             location.register:=rg.makeregsize(location.register,cgsize);
-                            cg.a_load_reg_reg(exprasmlist,cgsize,hregister,location.register);
+                            cg.a_load_reg_reg(exprasmlist,cgsize,cgsize,hregister,location.register);
                           end;
                        end;
                     end;
@@ -1225,7 +1225,7 @@ implementation
                     begin
                       location_reset(location,LOC_REGISTER,OS_INT);
                       location.register:=rg.getexplicitregisterint(exprasmlist,accumulator);
-                      cg.a_load_reg_reg(exprasmlist,OS_INT,accumulator,location.register);
+                      cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,accumulator,location.register);
                     end;
                 end;
              end;
@@ -1311,7 +1311,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.71  2002-09-16 19:07:37  peter
+  Revision 1.72  2002-09-17 18:54:03  jonas
+    * a_load_reg_reg() now has two size parameters: source and dest. This
+      allows some optimizations on architectures that don't encode the
+      register size in the register name.
+
+  Revision 1.71  2002/09/16 19:07:37  peter
     * push 0 instead of VMT when calling a constructor from a member
 
   Revision 1.70  2002/09/07 15:25:10  peter

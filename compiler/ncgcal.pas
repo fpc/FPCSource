@@ -227,12 +227,17 @@ implementation
                    if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
                     begin
                       { allow passing nil to a procvardef (methodpointer) }
-                      if (left.nodetype=typeconvn) and
+(*                      if (left.nodetype=typeconvn) and
                          (left.resulttype.def.deftype=procvardef) and
                          (ttypeconvnode(left).left.nodetype=niln) then
+*)
+                      if (left.location.size <> OS_NO) then
                        begin
                          tg.GetTemp(exprasmlist,tcgsize2size[left.location.size],tt_normal,href);
-                         cg.a_load_loc_ref(exprasmlist,left.location,href);
+                         if not (left.location.size in [OS_64,OS_S64]) then
+                           cg.a_load_loc_ref(exprasmlist,left.location,href)
+                         else
+                           cg64.a_load64_loc_ref(exprasmlist,left.location,href);
                          location_reset(left.location,LOC_REFERENCE,left.location.size);
                          left.location.reference:=href;
                        end
@@ -746,7 +751,7 @@ implementation
                                             LOC_CREGISTER,
                                             LOC_REGISTER:
                                               begin
-                                                 cg.a_load_reg_reg(exprasmlist,OS_ADDR,methodpointer.location.register,R_ESI);
+                                                 cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,methodpointer.location.register,R_ESI);
                                                  rg.ungetregisterint(exprasmlist,methodpointer.location.register);
                                               end;
                                             else
@@ -1131,7 +1136,7 @@ implementation
               cg.free_scratch_reg(exprasmlist,tmpreg);
               exprasmList.concat(tai_regalloc.Alloc(accumulator));
               cg.a_label(exprasmlist,constructorfailed);
-              cg.a_load_reg_reg(exprasmlist,OS_ADDR,self_pointer_reg,accumulator);
+              cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,self_pointer_reg,accumulator);
            end;
 
          { handle function results }
@@ -1197,7 +1202,7 @@ implementation
                               location.register:=rg.getexplicitregisterint(exprasmlist,resultloc.register);
                               hregister:=rg.makeregsize(resultloc.register,cgsize);
                               location.register:=rg.makeregsize(location.register,cgsize);
-                              cg.a_load_reg_reg(exprasmlist,cgsize,hregister,location.register);
+                              cg.a_load_reg_reg(exprasmlist,cgsize,cgsize,hregister,location.register);
                            end;
                       end;
                     LOC_FPUREGISTER:
@@ -1483,7 +1488,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2002-09-07 15:25:02  peter
+  Revision 1.23  2002-09-17 18:54:02  jonas
+    * a_load_reg_reg() now has two size parameters: source and dest. This
+      allows some optimizations on architectures that don't encode the
+      register size in the register name.
+
+  Revision 1.22  2002/09/07 15:25:02  peter
     * old logs removed and tabs fixed
 
   Revision 1.21  2002/09/07 11:50:02  jonas

@@ -475,7 +475,7 @@ implementation
                  LOC_CREGISTER,
                  LOC_REGISTER:
                    begin
-                     cg.a_load_reg_reg(exprasmlist,OS_INT,
+                     cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,
                        tcallparanode(tcallparanode(left).right).left.location.register,hregister);
                    end;
                  LOC_REFERENCE:
@@ -604,7 +604,12 @@ end.
 
 {
   $Log$
-  Revision 1.13  2002-08-13 18:01:52  carl
+  Revision 1.14  2002-09-17 18:54:02  jonas
+    * a_load_reg_reg() now has two size parameters: source and dest. This
+      allows some optimizations on architectures that don't encode the
+      register size in the register name.
+
+  Revision 1.13  2002/08/13 18:01:52  carl
     * rename swatoperands to swapoperands
     + m68k first compilable version (still needs a lot of testing):
         assembler generator, system information , inline

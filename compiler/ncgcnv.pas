@@ -213,7 +213,7 @@ interface
                 begin
                   location_release(exprasmlist,left.location);
                   location.reference.base:=rg.getaddressregister(exprasmlist);
-                  cg.a_load_reg_reg(exprasmlist,OS_ADDR,
+                  cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,
                           left.location.register,location.reference.base);
                 end
               else
@@ -221,8 +221,8 @@ interface
             end;
           LOC_CREGISTER :
             begin
-              location.reference.base:=rg.getregisterint(exprasmlist);
-              cg.a_load_reg_reg(exprasmlist,OS_ADDR,left.location.register,
+              location.reference.base:=rg.getaddressregister(exprasmlist);
+              cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.register,
                 location.reference.base);
             end;
           LOC_REFERENCE,
@@ -361,7 +361,7 @@ interface
                    begin
                      location_release(exprasmlist,left.location);
                      location.register:=rg.getaddressregister(exprasmlist);
-                     cg.a_load_reg_reg(exprasmlist,OS_ADDR,
+                     cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,
                               left.location.register,location.register);
                    end
                  else
@@ -396,14 +396,14 @@ interface
             LOC_REFERENCE:
               begin
                  location_release(exprasmlist,left.location);
-                 location.register:=rg.getregisterint(exprasmlist);
+                 location.register:=rg.getaddressregister(exprasmlist);
                  cg.a_load_ref_reg(exprasmlist,OS_ADDR,left.location.reference,location.register);
                  location_freetemp(exprasmlist,left.location);
               end;
             LOC_CREGISTER:
               begin
-                 location.register:=rg.getregisterint(exprasmlist);
-                 cg.a_load_reg_reg(exprasmlist,OS_ADDR,left.location.register,location.register);
+                 location.register:=rg.getaddressregister(exprasmlist);
+                 cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.register,location.register);
               end;
             LOC_REGISTER:
               location.register:=left.location.register;
@@ -503,7 +503,12 @@ end.
 
 {
   $Log$
-  Revision 1.31  2002-09-16 13:08:44  jonas
+  Revision 1.32  2002-09-17 18:54:02  jonas
+    * a_load_reg_reg() now has two size parameters: source and dest. This
+      allows some optimizations on architectures that don't encode the
+      register size in the register name.
+
+  Revision 1.31  2002/09/16 13:08:44  jonas
     * big endian fix for second_int_to_int
 
   Revision 1.30  2002/09/07 15:25:02  peter

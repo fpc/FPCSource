@@ -59,7 +59,7 @@ specific processor ABI. It is overriden for each CPU target.
     PROCEDURE a_load_const_ref(list:TAasmOutput;size:tcgsize;a:aword;CONST ref:TReference);OVERRIDE;
     PROCEDURE a_load_reg_ref(list:TAasmOutput;size:tcgsize;reg:tregister;CONST ref:TReference);OVERRIDE;
     PROCEDURE a_load_ref_reg(list:TAasmOutput;size:tcgsize;CONST ref:TReference;reg:tregister);OVERRIDE;
-    PROCEDURE a_load_reg_reg(list:TAasmOutput;size:tcgsize;reg1,reg2:tregister);OVERRIDE;
+    PROCEDURE a_load_reg_reg(list:TAasmOutput;fromsize,tosize:tcgsize;reg1,reg2:tregister);OVERRIDE;
     PROCEDURE a_loadaddr_ref_reg(list:TAasmOutput;CONST ref:TReference;r:tregister);OVERRIDE;
         { fpu move instructions }
     PROCEDURE a_loadfpu_reg_reg(list:TAasmOutput;reg1, reg2:tregister);OVERRIDE;
@@ -206,7 +206,7 @@ PROCEDURE tcgSPARC.a_load_ref_reg(list:TAasmOutput;size:tcgsize;CONST ref:TRefer
       end;
 
 
-    PROCEDURE tcgSPARC.a_load_reg_reg(list:TAasmOutput;size:tcgsize;reg1,reg2:tregister);
+    PROCEDURE tcgSPARC.a_load_reg_reg(list:TAasmOutput;fromsize,tosize:tcgsize;reg1,reg2:tregister);
 
       var
         op:tasmop;
@@ -505,7 +505,7 @@ PROCEDURE tcgSPARC.a_op_const_reg(list:TAasmOutput;Op:TOpCG;a:AWord;reg:TRegiste
                       else regloadsize := OS_32;
                     end;
                     tmpreg := get_scratch_reg(list);
-                    a_load_reg_reg(list,reg.regloadsize,src,tmpreg);
+                    a_load_reg_reg(list,regloadsize,OS_32,src,tmpreg);
                   end;
                 if not(src in [R_ECX,R_CX,R_CL]) then
                   begin
@@ -520,7 +520,7 @@ PROCEDURE tcgSPARC.a_op_const_reg(list:TAasmOutput;Op:TOpCG;a:AWord;reg:TRegiste
                         list.concat(taicpu.op_reg(A_SAVE,S_L,R_ECX));
                         popecx := true;
                       end;
-                    a_load_reg_reg(list,OS_8,(src),R_CL);
+                    a_load_reg_reg(list,OS_8,OS_8,(src),R_CL);
                   end
                 else
                   src := R_CL;
@@ -533,7 +533,7 @@ PROCEDURE tcgSPARC.a_op_const_reg(list:TAasmOutput;Op:TOpCG;a:AWord;reg:TRegiste
                     list.concat(taicpu.op_reg_reg(TOpCG2AsmOp[op],S_L,
                       R_CL,tmpreg));
                     { move result back to the destination }
-                    a_load_reg_reg(list,OS_32,tmpreg,R_ECX);
+                    a_load_reg_reg(list,OS_32,OS_32,tmpreg,R_ECX);
                     free_scratch_reg(list,tmpreg);
                   end;
                 if popecx then
@@ -637,7 +637,7 @@ PROCEDURE tcgSPARC.a_op_const_reg(list:TAasmOutput;Op:TOpCG;a:AWord;reg:TRegiste
             end;
           OP_ADD, OP_SUB:
             if (a = 0) then
-              a_load_reg_reg(list,size,src,dst)
+              a_load_reg_reg(list,size,size,src,dst)
             else
               begin
                 reference_reset(tmpref);
@@ -765,7 +765,7 @@ PROCEDURE tcgSPARC.g_flags2reg(list:TAasmOutput;Size:TCgSize;CONST f:tresflags;r
     list.concat(ai);
     IF hreg<>reg
     THEN
-      a_load_reg_reg(list,OS_8,hreg,reg);
+      a_load_reg_reg(list,OS_8,OS_8,hreg,reg);
   END;
 
 { *********** entry/exit code and address loading ************ }

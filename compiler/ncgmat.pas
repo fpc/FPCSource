@@ -182,7 +182,7 @@ implementation
                  LOC_CREGISTER:
                    begin
                       location.register:=rg.getregisterint(exprasmlist);
-                      cg.a_load_reg_reg(exprasmlist,OS_INT,left.location.register,
+                      cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,left.location.register,
                         location.register);
                       cg.a_op_reg_reg(exprasmlist,OP_NEG,OS_INT,location.register,
                          location.register);
@@ -454,7 +454,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2002-08-23 16:14:48  peter
+  Revision 1.4  2002-09-17 18:54:02  jonas
+    * a_load_reg_reg() now has two size parameters: source and dest. This
+      allows some optimizations on architectures that don't encode the
+      register size in the register name.
+
+  Revision 1.3  2002/08/23 16:14:48  peter
     * tempgen cleanup
     * tt_noreuse temp type added that will be used in genentrycode
 

@@ -59,7 +59,7 @@ unit cgcpu;
         procedure a_load_const_reg(list : taasmoutput; size: tcgsize; a : aword;reg : tregister);override;
         procedure a_load_reg_ref(list : taasmoutput; size: tcgsize; reg : tregister;const ref : treference);override;
         procedure a_load_ref_reg(list : taasmoutput;size : tcgsize;const Ref : treference;reg : tregister);override;
-        procedure a_load_reg_reg(list : taasmoutput;size : tcgsize;reg1,reg2 : tregister);override;
+        procedure a_load_reg_reg(list : taasmoutput;fromsize, tosize : tcgsize;reg1,reg2 : tregister);override;
 
         { fpu move instructions }
         procedure a_loadfpu_reg_reg(list: taasmoutput; reg1, reg2: tregister); override;
@@ -391,13 +391,16 @@ const
        end;
 
 
-     procedure tcgppc.a_load_reg_reg(list : taasmoutput;size : tcgsize;reg1,reg2 : tregister);
+     procedure tcgppc.a_load_reg_reg(list : taasmoutput;fromsize, tosize : tcgsize;reg1,reg2 : tregister);
 
        begin
          if (reg1 <> reg2) or
-            not(size in [OS_32,OS_S32]) then
+            (tcgsize2size[tosize] < tcgsize2size[fromsize]) or
+            ((tcgsize2size[tosize] = tcgsize2size[fromsize]) and
+             (tosize <> fromsize) and
+             not(fromsize in [OS_32,OS_S32])) then
            begin
-             case size of
+             case fromsize of
                OS_8:
                  list.concat(taicpu.op_reg_reg_const_const_const(A_RLWINM,
                    reg2,reg1,0,31-8+1,31));
@@ -583,7 +586,7 @@ const
                internalerror(200208103)
              else if (a = 1) then
                begin
-                 a_load_reg_reg(list,OS_INT,src,dst);
+                 a_load_reg_reg(list,OS_INT,OS_INT,src,dst);
                  exit
                end
             else if ispowerof2(a,l1) then
@@ -609,7 +612,7 @@ const
                end
              else if (a = 1) then
                begin
-                 a_load_reg_reg(list,OS_INT,src,dst);
+                 a_load_reg_reg(list,OS_INT,OS_INT,src,dst);
                  exit
                end
              else if ispowerof2(a,l1) then
@@ -1708,7 +1711,7 @@ const
                 end
               else
                 begin
-                  cg.a_load_reg_reg(list,OS_INT,regsrc.reglo,regdst.reglo);
+                  cg.a_load_reg_reg(list,OS_INT,OS_INT,regsrc.reglo,regdst.reglo);
                   cg.a_op_const_reg_reg(list,op,OS_32,value shr 32,regsrc.reghi,
                     regdst.reghi);
                 end;
@@ -1725,7 +1728,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.57  2002-09-10 21:22:25  jonas
+  Revision 1.58  2002-09-17 18:54:06  jonas
+    * a_load_reg_reg() now has two size parameters: source and dest. This
+      allows some optimizations on architectures that don't encode the
+      register size in the register name.
+
+  Revision 1.57  2002/09/10 21:22:25  jonas
     + added some internal errors
     * fixed bug in sysv exit code
 

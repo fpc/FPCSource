@@ -372,8 +372,19 @@ uses
                 { overlay a 64 Bit register type }
                 3 : (reg64 : tregister64);
                 4 : (register64 : tregister64);
-              );
+            );
       end;
+
+      treglocation = packed record
+        case longint of
+          1 : (register,registerhigh : tregister);
+          { overlay a registerlow }
+          2 : (registerlow : tregister);
+          { overlay a 64 Bit register type }
+          3 : (reg64 : tregister64);
+          4 : (register64 : tregister64);
+       end;
+
 
       tlocation = packed record
          size : TCGSize;
@@ -710,7 +721,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  2002-09-07 17:54:59  florian
+  Revision 1.34  2002-09-17 18:54:06  jonas
+    * a_load_reg_reg() now has two size parameters: source and dest. This
+      allows some optimizations on architectures that don't encode the
+      register size in the register name.
+
+  Revision 1.33  2002/09/07 17:54:59  florian
     * first part of PowerPC fixes
 
   Revision 1.32  2002/09/07 15:25:14  peter
