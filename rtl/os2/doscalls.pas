@@ -196,8 +196,10 @@ const   deThread=0;         {Terminate thread only.}
 procedure DosExit(Action,Result:longint); cdecl;
 
 type    PThreadInfoBlock=^TThreadInfoBlock;
+        PPThreadInfoBlock=^PThreadInfoBlock;
         PSysThreadIB=^TSysThreadIB;
         PProcessInfoBlock=^TProcessInfoBlock;
+        PPProcessInfoBlock=^PProcessInfoBlock;
 
         TThreadInfoBlock=record
             Exh_Chain,              {Head of exeption handler chain.}
@@ -212,7 +214,7 @@ type    PThreadInfoBlock=^TThreadInfoBlock;
         TSysThreadIB=record
             TID,                    {Thread ID.}
             Priority,               {Low byte of low word: thread priority.
-                                     High byte of high word: thread class
+                                     High byte of low word: thread class
                                         1 = Idle
                                         2 = Regular
                                         3 = Time critical
@@ -245,10 +247,15 @@ type    PThreadInfoBlock=^TThreadInfoBlock;
 {OS/2 keeps information about the current process and the current thread
  is the datastructures Tprocessinfoblock and Tthreadinfoblock. All data
  can both be read and be changed. Use DosGetInfoBlocks to get their
- address. The service cannot fail, so it is defined as procedure.}
+ address. The service cannot fail, so it is defined as procedure.
+ The second version of the call might be useful if you only want address
+ of one of those datastructures, since you can supply nil for the other
+ parameter then.}
 
 procedure DosGetInfoBlocks(var ATIB:PThreadInfoBlock;
                            var APIB:PProcessInfoBlock); cdecl;
+procedure DosGetInfoBlocks(PATIB:PPThreadInfoBlock;
+                           PAPIB:PPProcessInfoBlock); cdecl;
 
 {Wait a number of microseconds. Cannot fail, so it is defined as procedure.}
 procedure DosSleep(MSec:longint); cdecl;
@@ -2544,6 +2551,9 @@ external 'DOSCALLS' index 233;
 procedure DosGetInfoBlocks(var ATIB:PThreadInfoBlock;
                            var APIB:PProcessInfoBlock); cdecl;
 
+procedure DosGetInfoBlocks(PATIB:PPThreadInfoBlock;
+                           PAPIB:PPProcessInfoBlock); cdecl;
+
 external 'DOSCALLS' index 312;
 
 procedure DosSleep (MSec:longint); cdecl;
@@ -3943,7 +3953,10 @@ external 'DOSCALLS' index 582;
 end.
 {
   $Log$
-  Revision 1.11  2000-01-09 20:51:03  hajny
+  Revision 1.12  2000-04-01 10:46:07  hajny
+    * DosGetInfoBloBlocks updated
+
+  Revision 1.11  2000/01/09 20:51:03  hajny
     * FPK changed to FPC
 
   Revision 1.10  2000/01/07 16:41:46  daniel
