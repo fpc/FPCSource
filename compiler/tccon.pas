@@ -87,7 +87,7 @@ implementation
         if cs_ansistrings in aktlocalswitches then
           p^.resulttype:=cansistringdef
         else
-          p^.resulttype:=cstringdef;
+          p^.resulttype:=cshortstringdef;
         p^.location.loc:=LOC_MEM;
       end;
 
@@ -116,7 +116,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  1998-09-23 20:42:24  peter
+  Revision 1.2  1998-11-05 12:03:04  peter
+    * released useansistring
+    * removed -Sv, its now available in fpc modes
+
+  Revision 1.1  1998/09/23 20:42:24  peter
     * splitted pass_1
 
 }

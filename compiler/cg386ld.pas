@@ -339,7 +339,6 @@ implementation
 {$endif test_dest_loc}
          if p^.left^.resulttype^.deftype=stringdef then
            begin
-{$ifdef UseAnsiString}
               if is_ansistring(p^.left^.resulttype) then
                 begin
                   { the source and destinations are released
@@ -349,16 +348,12 @@ implementation
                   loadansistring(p);
                 end
               else
-{$endif UseAnsiString}
               if is_shortstring(p^.left^.resulttype) and
                 not (p^.concat_string) then
                 begin
-{$ifdef UseAnsiString}
                   if is_ansistring(p^.right^.resulttype) then
                     loadansi2short(p^.right,p^.left)
                   else
-{$endif UseAnsiString}
-
                     begin
                        { we do not need destination anymore }
                        del_reference(p^.left^.location.reference);
@@ -733,7 +728,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  1998-10-14 08:47:14  pierre
+  Revision 1.25  1998-11-05 12:02:35  peter
+    * released useansistring
+    * removed -Sv, its now available in fpc modes
+
+  Revision 1.24  1998/10/14 08:47:14  pierre
     * bugs in secondfuncret for result in subprocedures removed
 
   Revision 1.23  1998/10/06 17:16:44  pierre

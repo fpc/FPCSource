@@ -249,10 +249,10 @@ end;
 begin
   oldexit:=exitproc;
   exitproc:=@myexit;
-{$ifndef TP}
-{$ifndef UseAnsiString}
-  heapblocks:=true;
-{$endif not UseAnsiString}
+{$ifdef fpc}
+  {$ifndef autoobjpas}
+    heapblocks:=true;
+  {$endif}
 {$endif}
 {$ifdef UseOverlay}
   InitOverlay;
@@ -263,7 +263,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  1998-10-14 11:28:24  florian
+  Revision 1.35  1998-11-05 12:02:53  peter
+    * released useansistring
+    * removed -Sv, its now available in fpc modes
+
+  Revision 1.34  1998/10/14 11:28:24  florian
     * emitpushreferenceaddress gets now the asmlist as parameter
     * m68k version compiles with -duseansistrings
 

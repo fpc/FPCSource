@@ -414,8 +414,8 @@
        tstringdef = object(tdef)
           string_typ : tstringtype;
           len : longint;
-          constructor init(l : byte);
-          constructor load;
+          constructor shortinit(l : byte);
+          constructor shortload;
           constructor longinit(l : longint);
           constructor longload;
           constructor ansiinit(l : longint);
@@ -483,7 +483,11 @@
 
 {
   $Log$
-  Revision 1.6  1998-10-22 17:11:23  pierre
+  Revision 1.7  1998-11-05 12:02:59  peter
+    * released useansistring
+    * removed -Sv, its now available in fpc modes
+
+  Revision 1.6  1998/10/22 17:11:23  pierre
     + terminated the include exclude implementation for i386
     * enums inside records fixed
 

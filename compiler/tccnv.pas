@@ -428,7 +428,7 @@ implementation
 
     procedure first_cchar_charpointer(var p : ptree);
       begin
-         p^.left:=gentypeconvnode(p^.left,cstringdef);
+         p^.left:=gentypeconvnode(p^.left,cshortstringdef);
          { convert constant char to constant string }
          firstpass(p^.left);
          { evalute tree }
@@ -913,7 +913,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  1998-10-23 11:58:27  florian
+  Revision 1.8  1998-11-05 12:03:03  peter
+    * released useansistring
+    * removed -Sv, its now available in fpc modes
+
+  Revision 1.7  1998/10/23 11:58:27  florian
     * better code generation for s:=s+[b] if b is in the range of
       a small set and s is also a small set
 

@@ -357,7 +357,7 @@ unit pexpr;
                   break;
                end;
               consume(RKLAMMER);
-              pd:=cstringdef;
+              pd:=cshortstringdef;
               statement_syssym:=p2;
             end;
 
@@ -1896,18 +1896,18 @@ unit pexpr;
             Message(cg_e_illegal_expression);
         end
       else
-{$ifdef UseAnsiString}
         get_stringconst:=strpas(p^.value_str);
-{$else UseAnsiString}
-        get_stringconst:=p^.value_str^;
-{$endif UseAnsiString}
       disposetree(p);
     end;
 
 end.
 {
   $Log$
-  Revision 1.72  1998-11-04 10:11:41  peter
+  Revision 1.73  1998-11-05 12:02:52  peter
+    * released useansistring
+    * removed -Sv, its now available in fpc modes
+
+  Revision 1.72  1998/11/04 10:11:41  peter
     * ansistring fixes
 
   Revision 1.71  1998/10/22 23:57:29  peter

@@ -446,13 +446,10 @@ implementation
 
     procedure second_string_string(p,hp : ptree;convtyp : tconverttype);
 
-{$ifdef UseAnsiString}
       var
          pushed : tpushed;
-{$endif UseAnsiString}
 
       begin
-{$ifdef UseAnsiString}
          { does anybody know a better solution than this big case statement ? }
          { ok, a proc table would do the job                                  }
          case pstringdef(p)^.string_typ of
@@ -563,39 +560,6 @@ implementation
                    end;
               end;
          end;
-{$ifdef dummy}
-         if is_ansistring(p^.resulttype) and not is_ansistring(p^.left^.resulttype) then
-           begin
-              { call shortstring to ansistring conversion }
-              { result is in register }
-              del_reference(p^.left^.location.reference);
-              {!!!!
-              copyshortstringtoansistring(p^.location,p^.left^.location.reference,pstringdef(p^.resulttype)^.len);
-              }
-              ungetiftemp(p^.left^.location.reference);
-           end
-         else if not is_ansistring(p^.resulttype) and is_ansistring(p^.left^.resulttype) then
-           begin
-              { call ansistring to shortstring conversion }
-              { result is in mem }
-              stringdispose(p^.location.reference.symbol);
-              gettempofsizereference(p^.resulttype^.size,p^.location.reference);
-              if p^.left^.location.loc in [LOC_MEM,LOC_REFERENCE] then
-                del_reference(p^.left^.location.reference);
-              copyansistringtoshortstring(p^.location.reference,p^.left^.location.reference,pstringdef(p^.resulttype)^.len);
-              ungetiftemp(p^.left^.location.reference);
-           end
-         else
-{$endif dummy}
-{$else UseAnsiString}
-           begin
-              stringdispose(p^.location.reference.symbol);
-              gettempofsizereference(p^.resulttype^.size,p^.location.reference);
-              del_reference(p^.left^.location.reference);
-              copystring(p^.location.reference,p^.left^.location.reference,pstringdef(p^.resulttype)^.len);
-              ungetiftemp(p^.left^.location.reference);
-           end;
-{$endif UseAnsiString}
       end;
 
     procedure second_cstring_charpointer(p,hp : ptree;convtyp : tconverttype);
@@ -1398,7 +1362,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  1998-10-15 12:41:17  pierre
+  Revision 1.11  1998-11-05 12:02:36  peter
+    * released useansistring
+    * removed -Sv, its now available in fpc modes
+
+  Revision 1.10  1998/10/15 12:41:17  pierre
     * last memory leaks found when compiler
       a native atari compiler fixed
 

@@ -167,7 +167,7 @@
               st^.registerdef(@self);
            end;
       end;
-      
+
 
     procedure tdef.write;
       begin
@@ -416,7 +416,7 @@
                                TSTRINGDEF
 ****************************************************************************}
 
-    constructor tstringdef.init(l : byte);
+    constructor tstringdef.shortinit(l : byte);
       begin
          tdef.init;
          string_typ:=st_shortstring;
@@ -426,7 +426,7 @@
       end;
 
 
-    constructor tstringdef.load;
+    constructor tstringdef.shortload;
       begin
          tdef.load;
          string_typ:=st_shortstring;
@@ -3200,7 +3200,11 @@
 
 {
   $Log$
-  Revision 1.66  1998-10-26 22:58:22  florian
+  Revision 1.67  1998-11-05 12:02:56  peter
+    * released useansistring
+    * removed -Sv, its now available in fpc modes
+
+  Revision 1.66  1998/10/26 22:58:22  florian
     * new introduded problem with classes fix, the parent class wasn't set
       correct, if the class was defined forward before
 

@@ -391,14 +391,9 @@ implementation
        end;
 
     procedure second_string_string(p,hp : ptree;convtyp : tconverttype);
-
-{$ifdef UseAnsiString}
       var
          pushed : tpushed;
-{$endif UseAnsiString}
-
       begin
-{$ifdef UseAnsiString}
          { does anybody know a better solution than this big case statement ? }
          { ok, a proc table would do the job                                  }
          case pstringdef(p^.resulttype)^.string_typ of
@@ -508,43 +503,10 @@ implementation
                    end;
               end;
          end;
-{$ifdef dummy}
-         if is_ansistring(p^.resulttype) and not is_ansistring(p^.left^.resulttype) then
-           begin
-              { call shortstring to ansistring conversion }
-              { result is in register }
-              del_reference(p^.left^.location.reference);
-              {!!!!
-              copyshortstringtoansistring(p^.location,p^.left^.location.reference,pstringdef(p^.resulttype)^.len);
-              }
-              ungetiftemp(p^.left^.location.reference);
-           end
-         else if not is_ansistring(p^.resulttype) and is_ansistring(p^.left^.resulttype) then
-           begin
-              { call ansistring to shortstring conversion }
-              { result is in mem }
-              stringdispose(p^.location.reference.symbol);
-              gettempofsizereference(p^.resulttype^.size,p^.location.reference);
-              if p^.left^.location.loc in [LOC_MEM,LOC_REFERENCE] then
-                del_reference(p^.left^.location.reference);
-              copyansistringtoshortstring(p^.location.reference,p^.left^.location.reference,pstringdef(p^.resulttype)^.len);
-              ungetiftemp(p^.left^.location.reference);
-           end
-         else
-{$endif dummy}
-{$else UseAnsiString}
-           begin
-              stringdispose(p^.location.reference.symbol);
-              gettempofsizereference(p^.resulttype^.size,p^.location.reference);
-              del_reference(p^.left^.location.reference);
-              copystring(p^.location.reference,p^.left^.location.reference,pstringdef(p^.resulttype)^.len);
-              ungetiftemp(p^.left^.location.reference);
-           end;
-{$endif UseAnsiString}
       end;
 
-    procedure second_cstring_charpointer(p,hp : ptree;convtyp : tconverttype);
 
+    procedure second_cstring_charpointer(p,hp : ptree;convtyp : tconverttype);
       begin
          clear_location(p^.location);
          p^.location.loc:=LOC_REGISTER;
@@ -554,14 +516,14 @@ implementation
              p^.location.register)));
       end;
 
-    procedure second_string_chararray(p,hp : ptree;convtyp : tconverttype);
 
+    procedure second_string_chararray(p,hp : ptree;convtyp : tconverttype);
       begin
          inc(p^.location.reference.offset);
       end;
 
-    procedure second_array_to_pointer(p,hp : ptree;convtyp : tconverttype);
 
+    procedure second_array_to_pointer(p,hp : ptree;convtyp : tconverttype);
       begin
          del_reference(p^.left^.location.reference);
          clear_location(p^.location);
@@ -571,8 +533,8 @@ implementation
            p^.location.register)));
       end;
 
-    procedure second_pointer_to_array(p,hp : ptree;convtyp : tconverttype);
 
+    procedure second_pointer_to_array(p,hp : ptree;convtyp : tconverttype);
       begin
          clear_location(p^.location);
          p^.location.loc:=LOC_REFERENCE;
@@ -597,13 +559,12 @@ implementation
            end;
       end;
 
+
     { generates the code for the type conversion from an array of char }
     { to a string                                                        }
     procedure second_chararray_to_string(p,hp : ptree;convtyp : tconverttype);
-
       var
          l : longint;
-
       begin
          { this is a type conversion which copies the data, so we can't }
          { return a reference                                             }
@@ -634,8 +595,8 @@ implementation
          dec(p^.location.reference.offset);
       end;
 
-    procedure second_char_to_string(p,hp : ptree;convtyp : tconverttype);
 
+    procedure second_char_to_string(p,hp : ptree;convtyp : tconverttype);
       begin
          clear_location(p^.location);
          p^.location.loc:=LOC_MEM;
@@ -650,12 +611,11 @@ implementation
          p^.right:=nil;
       end;
 
-    procedure second_int_real(p,hp : ptree;convtyp : tconverttype);
 
+    procedure second_int_real(p,hp : ptree;convtyp : tconverttype);
       var
          r : preference;
          hregister : tregister;
-
       begin
          { for u32bit a solution is to push $0 and to load a comp }
          { does this first, it destroys maybe EDI }
@@ -705,13 +665,11 @@ implementation
          p^.location.loc:=LOC_FPU;
       end;
 
-    procedure second_real_fix(p,hp : ptree;convtyp : tconverttype);
 
+    procedure second_real_fix(p,hp : ptree;convtyp : tconverttype);
       var
-         {hs : string;}
          rreg : tregister;
          ref : treference;
-
       begin
          { real must be on fpu stack }
          if (p^.left^.location.loc<>LOC_FPU) then
@@ -745,8 +703,8 @@ implementation
          p^.location.register:=rreg;
       end;
 
-    procedure second_float_float(p,hp : ptree;convtyp : tconverttype);
 
+    procedure second_float_float(p,hp : ptree;convtyp : tconverttype);
       begin
          case p^.left^.location.loc of
             LOC_FPU : ;
@@ -763,13 +721,13 @@ implementation
          p^.location.loc:=LOC_FPU;
       end;
 
-    procedure second_fix_real(p,hp : ptree;convtyp : tconverttype);
 
-    var popeax,popebx,popecx,popedx : boolean;
+    procedure second_fix_real(p,hp : ptree;convtyp : tconverttype);
+      var
+        popeax,popebx,popecx,popedx : boolean;
         startreg : tregister;
         hl : plabel;
         r : treference;
-
       begin
          if (p^.left^.location.loc=LOC_REGISTER) or
             (p^.left^.location.loc=LOC_CREGISTER) then
@@ -841,12 +799,10 @@ implementation
          p^.location.loc:=LOC_FPU;
       end;
 
+
     procedure second_int_fix(p,hp : ptree;convtyp : tconverttype);
-
       var
-         {hs : string;}
          hregister : tregister;
-
       begin
          if (p^.left^.location.loc=LOC_REGISTER) then
            hregister:=p^.left^.location.register
@@ -878,26 +834,25 @@ implementation
       end;
 
 
-     procedure second_proc_to_procvar(p,hp : ptree;convtyp : tconverttype);
-
-       begin
-          clear_location(p^.location);
-          p^.location.loc:=LOC_REGISTER;
-          del_reference(hp^.location.reference);
-          p^.location.register:=getregister32;
-          exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,
+    procedure second_proc_to_procvar(p,hp : ptree;convtyp : tconverttype);
+      begin
+        clear_location(p^.location);
+        p^.location.loc:=LOC_REGISTER;
+        del_reference(hp^.location.reference);
+        p^.location.register:=getregister32;
+        exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,
            newreference(hp^.location.reference),p^.location.register)));
-     end;
+      end;
 
-     procedure second_bool_to_int(p,hp : ptree;convtyp : tconverttype);
 
+    procedure second_bool_to_int(p,hp : ptree;convtyp : tconverttype);
       var
          oldtruelabel,oldfalselabel,hlabel : plabel;
          hregister : tregister;
          newsize,
          opsize : topsize;
          op     : tasmop;
-     begin
+      begin
          oldtruelabel:=truelabel;
          oldfalselabel:=falselabel;
          getlabel(truelabel);
@@ -1001,13 +956,13 @@ implementation
          freelabel(falselabel);
          truelabel:=oldtruelabel;
          falselabel:=oldfalselabel;
-     end;
+      end;
 
 
-     procedure second_int_to_bool(p,hp : ptree;convtyp : tconverttype);
-     var
+    procedure second_int_to_bool(p,hp : ptree;convtyp : tconverttype);
+      var
         hregister : tregister;
-     begin
+      begin
          clear_location(p^.location);
          p^.location.loc:=LOC_REGISTER;
          del_reference(hp^.location.reference);
@@ -1041,7 +996,7 @@ implementation
          else
           internalerror(10064);
          end;
-     end;
+      end;
 
 
     procedure second_load_smallset(p,hp : ptree;convtyp : tconverttype);
@@ -1062,12 +1017,11 @@ implementation
         p^.location.reference:=href;
       end;
 
-    procedure second_ansistring_to_pchar(p,hp : ptree;convtyp : tconverttype);
 
+    procedure second_ansistring_to_pchar(p,hp : ptree;convtyp : tconverttype);
       var
          l1,l2 : plabel;
          hr : preference;
-
       begin
          clear_location(p^.location);
          p^.location.loc:=LOC_REGISTER;
@@ -1160,9 +1114,11 @@ implementation
          end;
       end;
 
+
     procedure second_nothing(p,hp : ptree;convtyp : tconverttype);
       begin
       end;
+
 
 {****************************************************************************
                              SecondTypeConv
@@ -1330,7 +1286,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  1998-10-27 11:12:45  peter
+  Revision 1.31  1998-11-05 12:02:30  peter
+    * released useansistring
+    * removed -Sv, its now available in fpc modes
+
+  Revision 1.30  1998/10/27 11:12:45  peter
     * fixed char_to_string which did not set the .loc
 
   Revision 1.29  1998/10/26 15:18:41  peter

@@ -89,10 +89,8 @@ begin
   p^.insert(new(ptypesym,init('s80real',s80floatdef)));
   p^.insert(new(ptypesym,init('cs32fixed',s32fixeddef)));
   p^.insert(new(ptypesym,init('byte',u8bitdef)));
-  p^.insert(new(ptypesym,init('string',cstringdef)));
-{$ifdef useansistring}
-  p^.insert(new(ptypesym,init('shortstring',cstringdef)));
-{$endif}
+  p^.insert(new(ptypesym,init('string',cshortstringdef)));
+  p^.insert(new(ptypesym,init('shortstring',cshortstringdef)));
   p^.insert(new(ptypesym,init('longstring',clongstringdef)));
   p^.insert(new(ptypesym,init('ansistring',cansistringdef)));
   p^.insert(new(ptypesym,init('widestring',cwidestringdef)));
@@ -122,10 +120,8 @@ begin
 {$endif}
   p^.insert(new(ptypesym,init('SINGLE',new(pfloatdef,init(s32real)))));
   p^.insert(new(ptypesym,init('POINTER',new(ppointerdef,init(voiddef)))));
-  p^.insert(new(ptypesym,init('STRING',cstringdef)));
-{$ifdef useansistring}
-  p^.insert(new(ptypesym,init('SHORTSTRING',cstringdef)));
-{$endif}
+  p^.insert(new(ptypesym,init('STRING',cshortstringdef)));
+  p^.insert(new(ptypesym,init('SHORTSTRING',cshortstringdef)));
   p^.insert(new(ptypesym,init('LONGSTRING',clongstringdef)));
   p^.insert(new(ptypesym,init('ANSISTRING',cansistringdef)));
   p^.insert(new(ptypesym,init('WIDESTRING',cwidestringdef)));
@@ -175,7 +171,7 @@ procedure readconstdefs;
 begin
   s32bitdef:=porddef(globaldef('longint'));
   u32bitdef:=porddef(globaldef('ulong'));
-  cstringdef:=pstringdef(globaldef('string'));
+  cshortstringdef:=pstringdef(globaldef('shortstring'));
   clongstringdef:=pstringdef(globaldef('longstring'));
   cansistringdef:=pstringdef(globaldef('ansistring'));
   cwidestringdef:=pstringdef(globaldef('widestring'));
@@ -214,7 +210,7 @@ begin
   s32bitdef:=new(porddef,init(s32bit,$80000000,$7fffffff));
   booldef:=new(porddef,init(bool8bit,0,1));
   cchardef:=new(porddef,init(uchar,0,255));
-  cstringdef:=new(pstringdef,init(255));
+  cshortstringdef:=new(pstringdef,shortinit(255));
   { should we give a length to the default long and ansi string definition ?? }
   clongstringdef:=new(pstringdef,longinit(-1));
   cansistringdef:=new(pstringdef,ansiinit(-1));
@@ -241,7 +237,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  1998-11-04 10:11:44  peter
+  Revision 1.9  1998-11-05 12:02:54  peter
+    * released useansistring
+    * removed -Sv, its now available in fpc modes
+
+  Revision 1.8  1998/11/04 10:11:44  peter
     * ansistring fixes
 
   Revision 1.7  1998/10/05 12:32:48  peter

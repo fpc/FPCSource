@@ -358,11 +358,9 @@ implementation
                end;
              in_length_string:
                begin
-{$ifdef UseAnsiString}
                   if is_ansistring(p^.left^.resulttype) then
                     p^.resulttype:=s32bitdef
                   else
-{$endif UseAnsiString}
                     p^.resulttype:=u8bitdef;
                   { wer don't need string conversations here }
                   if (p^.left^.treetype=typeconvn) and
@@ -376,11 +374,7 @@ implementation
                   { evaluates length of constant strings direct }
                   if (p^.left^.treetype=stringconstn) then
                     begin
-{$ifdef UseAnsiString}
                        hp:=genordinalconstnode(p^.left^.length,s32bitdef);
-{$else UseAnsiString}
-                       hp:=genordinalconstnode(length(p^.left^.value_str^),s32bitdef);
-{$endif UseAnsiString}
                        disposetree(p);
                        firstpass(hp);
                        p:=hp;
@@ -561,7 +555,7 @@ implementation
                                                         (parraydef(hp^.left^.resulttype)^.lowrange<>0) and
                                                         (parraydef(hp^.left^.resulttype)^.definition^.deftype=orddef) and
                                                         (porddef(parraydef(hp^.left^.resulttype)^.definition)^.typ=uchar) then
-                                                       hp^.left:=gentypeconvnode(hp^.left,cstringdef)
+                                                       hp^.left:=gentypeconvnode(hp^.left,cshortstringdef)
                                                      else
                                                        CGMessage(type_e_cant_read_write_type);
                                                    end;
@@ -838,7 +832,7 @@ implementation
                       if is_boolean(p^.left^.resulttype) then
                         begin
                            { must always be a string }
-                           p^.left^.right^.left:=gentypeconvnode(p^.left^.right^.left,cstringdef);
+                           p^.left^.right^.left:=gentypeconvnode(p^.left^.right^.left,cshortstringdef);
                            firstpass(p^.left^.right^.left);
                         end
                       else
@@ -860,7 +854,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  1998-10-20 11:16:47  pierre
+  Revision 1.6  1998-11-05 12:03:05  peter
+    * released useansistring
+    * removed -Sv, its now available in fpc modes
+
+  Revision 1.5  1998/10/20 11:16:47  pierre
    + length(c) where C is a char is allways 1
 
   Revision 1.4  1998/10/06 20:49:11  peter

@@ -215,11 +215,7 @@ unit tree;
              funcretn : (funcretprocinfo : pointer;retdef : pdef);
              subscriptn : (vs : pvarsym);
              vecn : (memindex,memseg:boolean;callunique : boolean);
-{$ifdef UseAnsiString}
              stringconstn : (value_str : pchar;length : longint; lab_str : plabel;stringtype : tstringtype);
-{$else UseAnsiString}
-             stringconstn : (value_str : pstring; lab_str:plabel;stringtype : tstringtype);
-{$endif UseAnsiString}
              typeconvn : (convtyp : tconverttype;explizit : boolean);
              typen : (typenodetype : pdef);
              inlinen : (inlinenumber : longint;inlineconst:boolean);
@@ -251,12 +247,10 @@ unit tree;
 
     { allow pchar or string for defining a pchar node }
     function genstringconstnode(const s : string) : ptree;
-{$ifdef UseAnsiString}
     { length is required for ansistrings }
     function genpcharconstnode(s : pchar;length : longint) : ptree;
     { helper routine for conststring node }
     function getpcharcopy(p : ptree) : pchar;
-{$endif UseAnsiString}
 
     function genzeronode(t : ttreetyp) : ptree;
     function geninlinenode(number : longint;is_const:boolean;l : ptree) : ptree;
@@ -338,11 +332,7 @@ unit tree;
           asmn : if assigned(p^.p_asm) then
                   dispose(p^.p_asm,done);
   stringconstn : begin
-{$ifndef UseAnsiString}
-                   stringdispose(p^.value_str);
-{$else UseAnsiString}
                    ansistringdispose(p^.value_str,p^.length);
-{$endif UseAnsiString}
                  end;
      setconstn : begin
                    if assigned(p^.value_set) then
@@ -411,12 +401,8 @@ unit tree;
        { now check treetype }
          case p^.treetype of
   stringconstn : begin
-{$ifdef UseAnsiString}
                    hp^.value_str:=getpcharcopy(p);
                    hp^.length:=p^.length;
-{$else UseAnsiString}
-                   hp^.value_str:=stringdup(p^.value_str^);
-{$endif UseAnsiString}
                  end;
      setconstn : begin
                    new(hp^.value_set);
@@ -455,7 +441,7 @@ unit tree;
       var
          symt : psymtable;
          i : longint;
-         
+
       begin
          if not(assigned(p)) then
            exit;
@@ -770,9 +756,7 @@ unit tree;
 
       var
          p : ptree;
-{$ifdef UseAnsiString}
          l : longint;
-{$endif UseAnsiString}
       begin
          p:=getnode;
          p^.disposetyp:=dt_nothing;
@@ -784,43 +768,43 @@ unit tree;
 {$ifdef SUPPORT_MMX}
          p^.registersmmx:=0;
 {$endif SUPPORT_MMX}
-         p^.resulttype:=cstringdef;
-{$ifdef UseAnsiString}
          l:=length(s);
          p^.length:=l;
          { stringdup write even past a #0 }
          getmem(p^.value_str,l+1);
          move(s[1],p^.value_str^,l);
          p^.value_str[l]:=#0;
-{$else UseAnsiString}
-         p^.value_str:=stringdup(s);
-{$endif UseAnsiString}
          p^.lab_str:=nil;
-         p^.stringtype:=st_shortstring;
+         if cs_ansistrings in aktlocalswitches then
+          begin
+            p^.stringtype:=st_ansistring;
+            p^.resulttype:=cansistringdef;
+          end
+         else
+          begin
+            p^.stringtype:=st_shortstring;
+            p^.resulttype:=cshortstringdef;
+          end;
+
          genstringconstnode:=p;
       end;
 
-{$ifdef UseAnsiString}
     function getpcharcopy(p : ptree) : pchar;
-
       var
          pc : pchar;
-
       begin
          pc:=nil;
          getmem(pc,p^.length+1);
-         { Peter can you change that ? }
          if pc=nil then
            Message(general_f_no_memory_left);
          move(p^.value_str^,pc^,p^.length+1);
          getpcharcopy:=pc;
       end;
 
-    function genpcharconstnode(s : pchar;length : longint) : ptree;
 
+    function genpcharconstnode(s : pchar;length : longint) : ptree;
       var
          p : ptree;
-
       begin
          p:=getnode;
          p^.disposetyp:=dt_nothing;
@@ -832,13 +816,13 @@ unit tree;
 {$ifdef SUPPORT_MMX}
          p^.registersmmx:=0;
 {$endif SUPPORT_MMX}
-         p^.resulttype:=cstringdef;
+         p^.resulttype:=cshortstringdef;
          p^.length:=length;
          p^.value_str:=s;
          p^.lab_str:=nil;
          genpcharconstnode:=p;
       end;
-{$endif UseAnsiString}
+
 
     function gensinglenode(t : ttreetyp;l : ptree) : ptree;
 
@@ -1440,28 +1424,6 @@ unit tree;
                      error_found:=true;
                   end;
                end;
-             (*realconstn : (valued : bestreal;labnumber : longint;realtyp : tait);
-             fixconstn : (valuef: longint);
-             funcretn : (funcretprocinfo : pointer;retdef : pdef);
-             subscriptn : (vs : pvarsym);
-             vecn : (memindex,memseg:boolean);
-             { stringconstn : (length : longint; value_str : pstring;labstrnumber : longint); }
-             { string const can be longer then 255 with ansistring !! }
-{$ifdef UseAnsiString}
-             stringconstn : (value_str : pchar;length : longint; labstrnumber : longint);
-{$else UseAnsiString}
-             stringconstn : (value_str : pstring; labstrnumber : longint);
-{$endif UseAnsiString}
-             typeconvn : (convtyp : tconverttype;explizit : boolean);
-             inlinen : (inlinenumber : longint);
-             procinlinen : (inlineprocdef : pprocdef);
-             setconstrn : (constset : pconstset);
-             loopn : (t1,t2 : ptree;backward : boolean);
-             asmn : (p_asm : paasmoutput);
-             casen : (nodes : pcaserecord;elseblock : ptree);
-             labeln,goton : (labelnr : plabel);
-             withn : (withsymtable : psymtable;tablecount : longint);
-           end; *)
            end;
          if not error_found then
            comment(v_warning,'did not find difference in trees');
@@ -1632,18 +1594,18 @@ unit tree;
     function str_length(p : ptree) : longint;
 
       begin
-{$ifdef UseAnsiString}
          str_length:=p^.length;
-{$else UseAnsiString}
-         str_length:=length(p^.value_str^);
-{$endif UseAnsiString}
       end;
 
 
 end.
 {
   $Log$
-  Revision 1.48  1998-10-21 15:12:59  pierre
+  Revision 1.49  1998-11-05 12:03:07  peter
+    * released useansistring
+    * removed -Sv, its now available in fpc modes
+
+  Revision 1.48  1998/10/21 15:12:59  pierre
     * bug fix for IOCHECK inside a procedure with iocheck modifier
     * removed the GPF for unexistant overloading
       (firstcall was called with procedinition=nil !)

@@ -498,7 +498,7 @@ implementation
              ,false,0
              );
            disposetree(hp);
-             
+
            if codegenerror then
              exit;
 
@@ -687,10 +687,8 @@ implementation
                  secondpass(p^.left);
                  set_location(p^.location,p^.left^.location);
                  { length in ansi strings is at offset -8 }
-{$ifdef UseAnsiString}
                  if is_ansistring(p^.left^.resulttype) then
                    dec(p^.location.reference.offset,8);
-{$endif UseAnsiString}
               end;
             in_pred_x,
             in_succ_x:
@@ -964,7 +962,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  1998-10-22 17:11:13  pierre
+  Revision 1.17  1998-11-05 12:02:33  peter
+    * released useansistring
+    * removed -Sv, its now available in fpc modes
+
+  Revision 1.16  1998/10/22 17:11:13  pierre
     + terminated the include exclude implementation for i386
     * enums inside records fixed
 

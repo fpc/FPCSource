@@ -117,9 +117,7 @@ unit pdecl;
          old_block_type : tblock_type;
          ps : pconstset;
          pd : pbestreal;
-{$ifdef USEANSISTRING}
          sp : pstring;
-{$endif USEANSISTRING}
       begin
          consume(_CONST);
          old_block_type:=block_type;
@@ -152,27 +150,27 @@ unit pdecl;
                            else internalerror(111);
                         end;
                       stringconstn:
-                        {value_str is disposed with p so I need a copy !}
-{$ifdef USEANSISTRING}  begin
+                        begin
+                           { value_str is disposed with p so I need a copy }
                            getmem(sp,p^.length+1);
                            move(p^.value_str^,sp^[1],p^.length);
                            sp^[0]:=chr(p^.length);
                            symtablestack^.insert(new(pconstsym,init(name,conststring,longint(sp),nil)));
                         end;
-{$else USEANSISTRING}
-                        symtablestack^.insert(new(pconstsym,init(name,conststring,longint(stringdup(p^.value_str^)),nil)));
-{$endif USEANSISTRING}
-                      realconstn : begin
-                                      new(pd);
-                                      pd^:=p^.value_real;
-                                      symtablestack^.insert(new(pconstsym,init(name,constreal,longint(pd),nil)));
-                                   end;
-                       setconstn : begin
-                                      new(ps);
-                                      ps^:=p^.value_set^;
-                                      symtablestack^.insert(new(pconstsym,init(name,constset,longint(ps),p^.resulttype)));
-                                   end;
-                      else Message(cg_e_illegal_expression);
+                      realconstn :
+                        begin
+                           new(pd);
+                           pd^:=p^.value_real;
+                           symtablestack^.insert(new(pconstsym,init(name,constreal,longint(pd),nil)));
+                        end;
+                      setconstn :
+                        begin
+                          new(ps);
+                          ps^:=p^.value_set^;
+                          symtablestack^.insert(new(pconstsym,init(name,constset,longint(ps),p^.resulttype)));
+                        end;
+                      else
+                        Message(cg_e_illegal_expression);
                    end;
                    tokenpos:=storetokenpos;
                    consume(SEMICOLON);
@@ -392,7 +390,7 @@ unit pdecl;
              if not symdone and (token=ID) then
               begin
                 { Check for C Variable declarations }
-                if (cs_support_c_var in aktmoduleswitches) and
+                if (m_cvar_support in aktmodeswitches) and
                    not(is_record or is_object) and
                    (idtoken in [_EXPORT,_EXTERNAL,_PUBLIC,_CVAR]) then
                  begin
@@ -558,9 +556,9 @@ unit pdecl;
               if p^.value>255 then
                 d:=new(pstringdef,longinit(p^.value))
               else if p^.value<>255 then
-                d:=new(pstringdef,init(p^.value))
+                d:=new(pstringdef,shortinit(p^.value))
 {$ifndef GDB}
-                 else d:=new(pstringdef,init(255));
+                 else d:=new(pstringdef,shortinit(255));
 {$else GDB}
                  else d:=globaldef('STRING');
 {$endif GDB}
@@ -574,7 +572,7 @@ unit pdecl;
                  d:=new(pstringdef,ansiinit(0))
                else
 {$ifndef GDB}
-                 d:=new(pstringdef,init(255));
+                 d:=new(pstringdef,shortinit(255));
 {$else GDB}
                  d:=globaldef('STRING');
 {$endif GDB}
@@ -1128,7 +1126,7 @@ unit pdecl;
                    { all classes must have a vmt !!  at offset zero }
                    if (aktclass^.options and oo_hasvmt)=0 then
                      aktclass^.insertvmt;
-                   
+
                    object_dec:=aktclass;
                    exit;
                 end;
@@ -2088,7 +2086,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.78  1998-10-27 13:45:33  pierre
+  Revision 1.79  1998-11-05 12:02:51  peter
+    * released useansistring
+    * removed -Sv, its now available in fpc modes
+
+  Revision 1.78  1998/10/27 13:45:33  pierre
     * classes get a vmt allways
     * better error info (tried to remove
       several error strings introduced by the tpexcept handling)

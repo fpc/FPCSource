@@ -54,9 +54,7 @@ unit ptconst;
 {$ifdef m68k}
          j : longint;
 {$endif m68k}
-{$ifdef useansistring}
          len       : longint;
-{$endif}
          p,hp      : ptree;
          i,l,offset,
          strlength : longint;
@@ -313,7 +311,6 @@ unit ptconst;
                    begin
                       if p^.treetype=stringconstn then
                         begin
-{$ifdef UseAnsiString}
                            if p^.length>=def^.size then
                              strlength:=def^.size-1
                            else
@@ -324,18 +321,6 @@ unit ptconst;
                            move(p^.value_str^,ca^,strlength);
                            ca[strlength]:=#0;
                            generate_pascii(datasegment,ca,strlength);
-{$else UseAnsiString}
-                           if length(p^.value_str^)>=def^.size then
-                             begin
-                               strlength:=def^.size-1;
-                               generate_ascii(datasegment,char(strlength)+copy(p^.value_str^,1,strlength));
-                             end
-                           else
-                             begin
-                               strlength:=length(p^.value_str^);
-                               generate_ascii(datasegment,char(strlength)+p^.value_str^);
-                             end;
-{$endif UseAnsiString}
                         end
                       else if is_constcharnode(p) then
                         begin
@@ -351,12 +336,8 @@ unit ptconst;
                            { we have to subtract one                           }
                            fillchar(ca[0],def^.size-strlength-1,' ');
                            ca[def^.size-strlength-1]:=#0;
-{$ifdef UseAnsiString}
                            { this can also handle longer strings }
                            generate_pascii(datasegment,ca,def^.size-strlength-1);
-{$else UseAnsiString}
-                           datasegment^.concat(new(pai_string,init_pchar(ca)));
-{$endif UseAnsiString}
                         end;
                     end;
 {$ifdef UseLongString}
@@ -385,7 +366,6 @@ unit ptconst;
                      datasegment^.concat(new(pai_const,init_8bit(0)));
                    end;
 {$endif UseLongString}
-{$ifdef UseAnsiString}
                  st_ansistring:
                    begin
                       { an empty ansi string is nil! }
@@ -426,7 +406,6 @@ unit ptconst;
                            consts^.concat(new(pai_const,init_8bit(0)));
                         end;
                     end;
-{$endif UseAnsiString}
               end;
               disposetree(p);
            end;
@@ -449,16 +428,12 @@ unit ptconst;
                    do_firstpass(p);
                    if p^.treetype=stringconstn then
                     begin
-{$ifdef useansistring}
                       if p^.length>255 then
                        len:=255
                       else
                        len:=p^.length;
                       s[0]:=chr(len);
                       move(p^.value_str^,s[1],len);
-{$else}
-                     s:=p^.value_str^
-{$endif}
                     end
                    else
                      if is_constcharnode(p) then
@@ -649,7 +624,11 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.23  1998-11-04 10:11:45  peter
+  Revision 1.24  1998-11-05 12:02:55  peter
+    * released useansistring
+    * removed -Sv, its now available in fpc modes
+
+  Revision 1.23  1998/11/04 10:11:45  peter
     * ansistring fixes
 
   Revision 1.22  1998/10/20 08:06:56  pierre

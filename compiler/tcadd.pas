@@ -82,12 +82,8 @@ implementation
          i : longint;
          b : boolean;
          convdone : boolean;
-{$ifndef UseAnsiString}
-         s1,s2:^string;
-{$else UseAnsiString}
          s1,s2 : pchar;
          l1,l2 : longint;
-{$endif UseAnsiString}
 
          { this totally forgets to set the pi_do_call flag !! }
       label
@@ -262,66 +258,41 @@ implementation
 
        { concating strings ? }
          concatstrings:=false;
-{$ifdef UseAnsiString}
          s1:=nil;
          s2:=nil;
-{$else UseAnsiString}
-         new(s1);
-         new(s2);
-{$endif UseAnsiString}
          if (lt=ordconstn) and (rt=ordconstn) and
             is_char(ld) and is_char(rd) then
            begin
-{$ifdef UseAnsiString}
               s1:=strpnew(char(byte(p^.left^.value)));
               s2:=strpnew(char(byte(p^.right^.value)));
               l1:=1;
               l2:=1;
-{$else UseAnsiString}
-              s1^:=char(byte(p^.left^.value));
-              s2^:=char(byte(p^.right^.value));
-{$endif UseAnsiString}
               concatstrings:=true;
            end
          else
            if (lt=stringconstn) and (rt=ordconstn) and is_char(rd) then
            begin
-{$ifdef UseAnsiString}
               s1:=getpcharcopy(p^.left);
               l1:=p^.left^.length;
               s2:=strpnew(char(byte(p^.right^.value)));
               l2:=1;
-{$else UseAnsiString}
-              s1^:=p^.left^.value_str^;
-              s2^:=char(byte(p^.right^.value));
-{$endif UseAnsiString}
               concatstrings:=true;
            end
          else
            if (lt=ordconstn) and (rt=stringconstn) and is_char(ld) then
            begin
-{$ifdef UseAnsiString}
               s1:=strpnew(char(byte(p^.left^.value)));
               l1:=1;
               s2:=getpcharcopy(p^.right);
               l2:=p^.right^.length;
-{$else UseAnsiString}
-              s1^:=char(byte(p^.left^.value));
-              s2^:=p^.right^.value_str^;
-{$endif UseAnsiString}
               concatstrings:=true;
            end
          else if (lt=stringconstn) and (rt=stringconstn) then
            begin
-{$ifdef UseAnsiString}
               s1:=getpcharcopy(p^.left);
               l1:=p^.left^.length;
               s2:=getpcharcopy(p^.right);
               l2:=p^.right^.length;
-{$else UseAnsiString}
-              s1^:=p^.left^.value_str^;
-              s2^:=p^.right^.value_str^;
-{$endif UseAnsiString}
               concatstrings:=true;
            end;
 
@@ -329,47 +300,28 @@ implementation
          if concatstrings then
            begin
               case p^.treetype of
-{$ifndef UseAnsiString}
-                 addn : t:=genstringconstnode(s1^+s2^);
-                 ltn : t:=genordinalconstnode(byte(s1^<s2^),booldef);
-                 lten : t:=genordinalconstnode(byte(s1^<=s2^),booldef);
-                 gtn : t:=genordinalconstnode(byte(s1^>s2^),booldef);
-                 gten : t:=genordinalconstnode(byte(s1^>=s2^),booldef);
-                 equaln : t:=genordinalconstnode(byte(s1^=s2^),booldef);
-                 unequaln : t:=genordinalconstnode(byte(s1^<>s2^),booldef);
-{$else UseAnsiString}
-                 addn : t:=genpcharconstnode(
-                             concatansistrings(s1,s2,l1,l2),l1+l2);
-                 ltn : t:=genordinalconstnode(
-                           byte(compareansistrings(s1,s2,l1,l2)<0),booldef);
-                 lten : t:=genordinalconstnode(
-                            byte(compareansistrings(s1,s2,l1,l2)<=0),booldef);
-                 gtn : t:=genordinalconstnode(
-                            byte(compareansistrings(s1,s2,l1,l2)>0),booldef);
-                 gten : t:=genordinalconstnode(
-                             byte(compareansistrings(s1,s2,l1,l2)>=0),booldef);
-                 equaln : t:=genordinalconstnode(
-                               byte(compareansistrings(s1,s2,l1,l2)=0),booldef);
-                 unequaln : t:=genordinalconstnode(
-                                 byte(compareansistrings(s1,s2,l1,l2)<>0),booldef);
-{$endif UseAnsiString}
+                 addn :
+                   t:=genpcharconstnode(concatansistrings(s1,s2,l1,l2),l1+l2);
+                 ltn :
+                   t:=genordinalconstnode(byte(compareansistrings(s1,s2,l1,l2)<0),booldef);
+                 lten :
+                   t:=genordinalconstnode(byte(compareansistrings(s1,s2,l1,l2)<=0),booldef);
+                 gtn :
+                   t:=genordinalconstnode(byte(compareansistrings(s1,s2,l1,l2)>0),booldef);
+                 gten :
+                   t:=genordinalconstnode(byte(compareansistrings(s1,s2,l1,l2)>=0),booldef);
+                 equaln :
+                   t:=genordinalconstnode(byte(compareansistrings(s1,s2,l1,l2)=0),booldef);
+                 unequaln :
+                   t:=genordinalconstnode(byte(compareansistrings(s1,s2,l1,l2)<>0),booldef);
               end;
-{$ifdef UseAnsiString}
               ansistringdispose(s1,l1);
               ansistringdispose(s2,l2);
-{$else UseAnsiString}
-              dispose(s1);
-              dispose(s2);
-{$endif UseAnsiString}
               disposetree(p);
               firstpass(t);
               p:=t;
               exit;
            end;
-{$ifndef UseAnsiString}
-         dispose(s1);
-         dispose(s2);
-{$endif UseAnsiString}
 
        { if both are orddefs then check sub types }
          if (ld^.deftype=orddef) and (rd^.deftype=orddef) then
@@ -424,9 +376,9 @@ implementation
                begin
                  if p^.treetype=addn then
                    begin
-                      p^.left:=gentypeconvnode(p^.left,cstringdef);
+                      p^.left:=gentypeconvnode(p^.left,cshortstringdef);
                       firstpass(p^.left);
-                      p^.right:=gentypeconvnode(p^.right,cstringdef);
+                      p^.right:=gentypeconvnode(p^.right,cshortstringdef);
                       firstpass(p^.right);
                       { here we call STRCOPY }
                       procinfo.flags:=procinfo.flags or pi_do_call;
@@ -502,10 +454,10 @@ implementation
               else
                 begin
                    if not(is_shortstring(rd)) then
-                     p^.right:=gentypeconvnode(p^.right,cstringdef);
+                     p^.right:=gentypeconvnode(p^.right,cshortstringdef);
                    if not(is_shortstring(ld)) then
-                     p^.left:=gentypeconvnode(p^.left,cstringdef);
-                   p^.resulttype:=cstringdef;
+                     p^.left:=gentypeconvnode(p^.left,cshortstringdef);
+                   p^.resulttype:=cshortstringdef;
                    { this is only for add, the comparisaion is handled later }
                    p^.location.loc:=LOC_MEM;
                 end;
@@ -950,7 +902,7 @@ implementation
                     (p^.right^.resulttype^.deftype=stringdef) then
                    begin
                       if not assigned(p^.resulttype) then
-                        p^.resulttype:=cstringdef
+                        p^.resulttype:=cshortstringdef
                       { the rest is done before }
                    end
                  else
@@ -966,7 +918,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  1998-11-04 10:11:46  peter
+  Revision 1.11  1998-11-05 12:03:02  peter
+    * released useansistring
+    * removed -Sv, its now available in fpc modes
+
+  Revision 1.10  1998/11/04 10:11:46  peter
     * ansistring fixes
 
   Revision 1.9  1998/10/25 23:32:04  peter

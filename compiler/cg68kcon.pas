@@ -137,9 +137,7 @@ implementation
     procedure secondstringconst(var p : ptree);
       var
          hp1 : pai;
-{$ifdef UseAnsiString}
          l1,
-{$endif}
          lastlabel   : plabel;
          pc          : pchar;
          same_string : boolean;
@@ -163,22 +161,12 @@ implementation
                         { currently, this is no problem, because   }
                         { typed consts have no leading length or   }
                         { they have no trailing zero               }
-{$ifdef UseAnsiString}
                         if (hp1^.typ=ait_string) and (lastlabel<>nil) and
                           (pai_string(hp1)^.len=p^.length+2) then
-{$else UseAnsiString}
-                        if (hp1^.typ=ait_string) and (lastlabel<>nil) and
-                          (pai_string(hp1)^.len=length(p^.value_str^)+2) then
-{$endif UseAnsiString}
                           begin
                              same_string:=true;
-{$ifndef UseAnsiString}
-                             for i:=0 to length(p^.value_str^) do
-                               if pai_string(hp1)^.str[i]<>p^.value_str^[i] then
-{$else}
                              for i:=0 to p^.length do
                                if pai_string(hp1)^.str[i]<>p^.value_str[i] then
-{$endif}
                                  begin
                                     same_string:=false;
                                     break;
@@ -202,13 +190,6 @@ implementation
                    if (cs_smartlink in aktmoduleswitches) then
                     consts^.concat(new(pai_cut,init));
                    consts^.concat(new(pai_label,init(lastlabel)));
-{$ifndef UseAnsiString}
-                   getmem(pc,length(p^.value_str^)+3);
-                   move(p^.value_str^,pc^,length(p^.value_str^)+1);
-                   pc[length(p^.value_str^)+1]:=#0;
-                   { we still will have a problem if there is a #0 inside the pchar }
-                   consts^.concat(new(pai_string,init_length_pchar(pc,length(p^.value_str^)+2)));
-{$else UseAnsiString}
                    { generate an ansi string ? }
                    case p^.stringtype of
                       st_ansistring:
@@ -226,6 +207,7 @@ implementation
                                 consts^.concat(new(pai_label,init(l1)));
                                 getmem(pc,p^.length+1);
                                 move(p^.value_str^,pc^,p^.length+1);
+                                pc[p^.length]:=#0;
                                 { to overcome this problem we set the length explicitly }
                                 { with the ending null char }
                                 consts^.concat(new(pai_string,init_length_pchar(pc,p^.length+1)));
@@ -233,15 +215,21 @@ implementation
                         end;
                       st_shortstring:
                         begin
-                           getmem(pc,p^.length+3);
-                           move(p^.value_str^,pc[1],p^.length+1);
-                           pc[0]:=chr(p^.length);
-                           { to overcome this problem we set the length explicitly }
-                           { with the ending null char }
-                           consts^.concat(new(pai_string,init_length_pchar(pc,p^.length+2)));
+                           { empty strings }
+                           if p^.length=0 then
+                            consts^.concat(new(pai_const,init_16bit(0)))
+                           else
+                            begin
+                              { also length and terminating zero }
+                              getmem(pc,p^.length+2);
+                              move(p^.value_str^,pc[1],p^.length+1);
+                              pc[0]:=chr(p^.length);
+                              { to overcome this problem we set the length explicitly }
+                              { with the ending null char }
+                              consts^.concat(new(pai_string,init_length_pchar(pc,p^.length+1)));
+                            end;
                         end;
                    end;
-{$endif UseAnsiString}
                 end;
            end;
          clear_reference(p^.location.reference);
@@ -317,7 +305,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  1998-09-07 18:45:56  peter
+  Revision 1.3  1998-11-05 12:02:37  peter
+    * released useansistring
+    * removed -Sv, its now available in fpc modes
+
+  Revision 1.2  1998/09/07 18:45:56  peter
     * update smartlinking, uses getdatalabel
     * renamed ptree.value vars to value_str,value_real,value_set
 

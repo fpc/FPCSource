@@ -449,7 +449,7 @@ implementation
            dummycoll.paratyp:=vs_const;
            disposetree(hp);
            p^.left:=nil;
-           
+
            { second arg }
            hp:=node;
            node:=node^.right;
@@ -660,10 +660,8 @@ implementation
                  secondpass(p^.left);
                  set_location(p^.location,p^.left^.location);
                  { length in ansi strings is at offset -8 }
-{$ifdef UseAnsiString}
                  if is_ansistring(p^.left^.resulttype) then
                    dec(p^.location.reference.offset,8);
-{$endif UseAnsiString}
               end;
             in_pred_x,
             in_succ_x:
@@ -900,7 +898,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  1998-10-22 17:11:14  pierre
+  Revision 1.14  1998-11-05 12:02:38  peter
+    * released useansistring
+    * removed -Sv, its now available in fpc modes
+
+  Revision 1.13  1998/10/22 17:11:14  pierre
     + terminated the include exclude implementation for i386
     * enums inside records fixed
 
