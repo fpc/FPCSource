@@ -376,6 +376,51 @@ const
     'wait', 'wbinvd', 'wrmsr', 'xadd', 'xbts', 'xchg', 'xlat', 'xlatb',
     'xor','cmov','j','set'
   );
+
+  att_nosuffix:array[tasmop] of boolean=(
+    { 0 }
+    false,false,false,false,false,false,false,false,false,false,
+    false,false,false,false,false,false,false,false,false,false,
+    false,false,false,false,false,false,false,false,false,false,
+    false,false,false,false,false,false,false,false,false,false,
+    false,false,false,false,false,false,false,false,false,false,
+    false,false,false,false,false,false,false,false,false,false,
+    false,false,false,false,false,false,false,false,false,false,
+    false,false,false,false,false,false,false,false,false,false,
+    false,false,false,false,false,false,false,false,false,false,
+    false,false,false,false,false,false,false,false,false,false,
+    { 100 }
+    false,false,false,false,false,false,false,false,false,false,
+    false,false,false,false,false,false,false,false,false,false,
+    false,false,false,false,false,false,false,false,false,false,
+    false,false,false,false,false,false,false,false,false,false,
+    false,false,false,false,false,false,false,false,false,false,
+    false,false,false,false,false,false,false,false,false,false,
+    false,false,false,false,false,false,false,false,false,false,
+    false,false,false,false,false,false,false,false,false,false,
+    false,false,false,false,false,false,false,false,false,false,
+    false,false,false,false,false,false,false,false,false,false,
+    { 200 }
+    false,true,true,true,true,true,false,false,false,false,
+    false,false,false,false,false,false,false,false,false,false,
+    true,true,true,true,true,true,true,true,true,true,
+    true,true,true,true,true,true,true,true,true,true,
+    true,true,true,true,true,true,true,true,true,true,
+    true,true,true,true,true,true,true,true,true,true,
+    true,true,true,true,true,true,true,true,false,false,
+    false,false,false,false,false,false,false,false,true,true,
+    true,true,true,true,true,true,true,true,true,true,
+    true,true,true,true,true,true,true,true,true,true,
+    { 300 }
+    false,false,true,true,false,true,true,true,false,false,
+    false,false,false,false,false,false,false,false,false,false,
+    false,false,false,false,false,false,false,false,false,false,
+    false,false,false,false,false,false,false,false,false,false,
+    false,false,false,false,false,false,false,false,false,false,
+    false,false,false,false,false,false,false,false,false,false,
+    false
+  );
+
 {$endif ATTOP}
 
 
@@ -957,7 +1002,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  1999-05-27 19:44:34  peter
+  Revision 1.6  1999-06-06 15:53:15  peter
+    * suffix adding can be turned of for some tasmops in att_nosuffix array
+
+  Revision 1.5  1999/05/27 19:44:34  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly
