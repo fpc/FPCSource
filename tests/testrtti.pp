@@ -1,5 +1,7 @@
 Program testrtti;
 
+Uses Typinfo;
+
 {$M+}
 
 Uses
@@ -17,9 +19,8 @@ Const TypeNames : Array [TTYpeKind] of string[15] =
 Const OrdinalTypes = [tkInteger,tkChar,tkENumeration,tkbool];
 
 Type
-      TMyEnum = (meFirst,meSecond,meThird);
-
-Type TMyTestObject = Class
+   TMyEnum = (meFirst,meSecond,meThird);
+   TMyTestObject = Class(TObject)
        Private
        FBoolean  : Boolean;
        FByte     : Byte;
