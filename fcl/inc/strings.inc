@@ -243,9 +243,11 @@ begin
     if L<>0 then 
       System.Move(Pointer(S)^,P^,L);
     P:=P+L;
-    p[0]:=#10;
 {$ifndef linux}
-    p[1]:=#13;
+    p[0]:=#13;
+    p[1]:=#10;
+{$else}
+    p[0]:=#10;
 {$endif}
     P:=P+NewLineSize;
     end;
@@ -898,7 +900,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  1999-02-02 12:54:06  florian
+  Revision 1.11  1999-02-02 23:49:23  florian
+    * new lines for non linux system fixed (tstrings class)
+
+  Revision 1.10  1999/02/02 12:54:06  florian
     * tstrings.gettextstr fixed, setlength got a wrong length (0 instead L)
 
   Revision 1.9  1999/01/28 23:55:43  florian
