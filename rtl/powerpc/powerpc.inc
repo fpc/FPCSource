@@ -721,7 +721,7 @@ LShortStrConcatDone:
 end ['R3','R4','R8','R9','R10','CTR'];
 *)
 
-
+(*
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
 function fpc_shortstr_compare(const dstr,sstr:shortstring): longint; [public,alias:'FPC_SHORTSTR_COMPARE']; compilerproc;
 assembler;
@@ -779,6 +779,7 @@ LShortStrCompareLen:
       mr.     r3,r3
 LShortStrCompareDone:
 end ['R0','R3','R4','R5','R6','R7','R8','R9','R10','CR0','CR1','CTR'];
+*)
 
 {$define FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 function fpc_pchar_to_shortstr(p:pchar):shortstring;[public,alias:'FPC_PCHAR_TO_SHORTSTR']; compilerproc;
@@ -896,7 +897,10 @@ end ['R3','R10'];
 
 {
   $Log$
-  Revision 1.43  2003-05-12 19:39:33  jonas
+  Revision 1.44  2003-05-13 20:39:26  florian
+    * uncommented shortstring compare, buggy
+
+  Revision 1.43  2003/05/12 19:39:33  jonas
     * fixed final fillchar error (tfillchr passes now)
 
   Revision 1.42  2003/05/12 19:00:50  jonas
