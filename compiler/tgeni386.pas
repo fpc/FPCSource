@@ -276,6 +276,8 @@ implementation
     function getregister32 : tregister;
 
       begin
+         if usablereg32=0 then
+           internalerror(10);
          dec(usablereg32);
          if R_EAX in unused then
            begin
@@ -368,7 +370,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  1998-12-11 23:36:09  florian
+  Revision 1.18  1999-01-18 16:02:20  pierre
+   * better error info with -Co
+
+  Revision 1.17  1998/12/11 23:36:09  florian
     + again more stuff for int64/qword:
          - comparision operators
          - code generation for: str, read(ln), write(ln)
