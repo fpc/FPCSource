@@ -112,8 +112,9 @@ implementation
             helplist.concat(taicpu.op_reg_ref_reg(A_OR,hreg,tmpref,hreg));
 
             reference_reset_base(tmpref,hreg,0);
+            tmpref.index:=spilltemp.base;
 
-            helpins:=spilling_create_load(spilltemp,tempreg);
+            helpins:=spilling_create_load(tmpref,tempreg);
             helplist.concat(helpins);
             list.insertlistafter(pos,helplist)
           end
@@ -147,8 +148,9 @@ implementation
             helplist.concat(taicpu.op_reg_ref_reg(A_OR,hreg,tmpref,hreg));
 
             reference_reset_base(tmpref,hreg,0);
+            tmpref.index:=spilltemp.base;
 
-            helpins:=spilling_create_store(tempreg,spilltemp);
+            helpins:=spilling_create_store(tempreg,tmpref);
             helplist.concat(helpins);
             if getregtype(tempreg)=R_INTREGISTER then
               ungetregisterinline(helplist,hreg);
@@ -162,7 +164,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  2004-10-05 20:41:02  peter
+  Revision 1.30  2004-10-05 21:29:29  florian
+    * fixed generation of refs wiht large offsets, code still broken though
+
+  Revision 1.29  2004/10/05 20:41:02  peter
     * more spilling rewrites
 
   Revision 1.28  2004/10/04 20:46:22  peter
