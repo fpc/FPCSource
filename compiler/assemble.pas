@@ -157,6 +157,7 @@ var
   asfound : boolean;
   UtilExe  : string;
 begin
+  asfound:=false;
   UtilExe:=AddExtension(target_asm.asmbin,source_os.exeext);
   if lastas<>ord(target_asm.id) then
    begin
@@ -601,7 +602,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  2001-02-05 20:46:59  peter
+  Revision 1.12  2001-02-09 23:06:17  peter
+    * fixed uninited var
+
+  Revision 1.11  2001/02/05 20:46:59  peter
     * support linux unit for ver1_0 compilers
 
   Revision 1.10  2001/01/21 20:32:45  marco
