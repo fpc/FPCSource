@@ -223,9 +223,19 @@ implementation
                     begin
                       left:=cselfnode.create(tobjectdef(symtableentry.owner.defowner));
                     end;
-                   { method pointer ? }
+
+                   { process methodpointer }
                    if assigned(left) then
-                     resulttypepass(left);
+                    begin
+                      { if only typenode then remove }
+                      if left.nodetype=typen then
+                       begin
+                         left.free;
+                         left:=nil;
+                       end
+                      else
+                       resulttypepass(left);
+                    end;
                 end;
            else
              internalerror(200104141);
@@ -757,7 +767,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2001-06-04 11:48:01  peter
+  Revision 1.19  2001-06-04 18:07:47  peter
+    * remove unused typenode for procvar load. Don't know what happened why
+      this code was not there already with revision 1.17.
+
+  Revision 1.18  2001/06/04 11:48:01  peter
     * better const to var checking
 
   Revision 1.17  2001/05/19 21:19:57  peter
