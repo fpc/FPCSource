@@ -103,7 +103,7 @@ unit base;
      ATOM = word;
   { Changed from BOOL to WINBOOL to avoid Objective-C conflict  }
 
-     WINBOOL = longint;
+     WINBOOL = longbool;
   {  Not convertable by H2PAS
   typedef unsigned char BOOLEAN;
   typedef unsigned char BYTE;
@@ -1213,7 +1213,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  1998-09-04 17:17:32  pierre
+  Revision 1.7  1998-09-08 14:30:03  pierre
+    * WINBOOL changed from longint to longbool
+
+  Revision 1.6  1998/09/04 17:17:32  pierre
     + all unknown function ifdef with
       conditionnal unknown_functions
       testwin works now, but windowcreate still fails !!
