@@ -82,6 +82,7 @@ begin
     Result.FDisplayLabel:=FDisplayName;
     Result.FFieldNo:=Self.FieldNo;
     Result.SetFieldType(DataType);
+    Result.FReadOnly:= (faReadOnly in Attributes);
 {$ifdef dsdebug}
     Writeln ('TFieldDef.CReateField : Trying to set dataset');
 {$endif dsdebug}
@@ -1222,6 +1223,7 @@ constructor TAutoIncField.Create(AOwner: TComponent);
 begin
   Inherited Create(AOWner);
   SetDataType(ftAutoInc);
+  FReadOnly:=True;
 end;
 
 Procedure TAutoIncField.SetAsLongint(AValue : Longint);
@@ -1528,14 +1530,8 @@ begin
   SetDataType(ftDateTime);
 end;
 
+
 { TDateField }
-
-function TDateField.GetDataSize: Word;
-
-begin
-  Result:=SizeOf(TDateTime);
-end;
-
 
 constructor TDateField.Create(AOwner: TComponent);
 
@@ -1545,15 +1541,7 @@ begin
 end;
 
 
-
 { TTimeField }
-
-function TTimeField.GetDataSize: Word;
-
-begin
-  Result:=SizeOf(TDateTime);
-end;
-
 
 constructor TTimeField.Create(AOwner: TComponent);
 
@@ -2204,7 +2192,13 @@ end;
 
 {
   $Log$
-  Revision 1.23  2005-02-14 17:13:12  peter
+  Revision 1.24  2005-02-16 09:31:58  michael
+  - Remove TTimeField and TDateField GetDataSize functions since both are exactly
+    equal to their ancestor: TDateTimeField.GetDataSize
+  - TAutoInc fields are set to ReadyOnly on create
+  - In TFieldDef.CreateField the presence of faReadyOnly in Attributes is respected
+
+  Revision 1.23  2005/02/14 17:13:12  peter
     * truncate log
 
   Revision 1.22  2005/02/07 11:22:23  joost

@@ -541,8 +541,6 @@ type
 { TDateField }
 
   TDateField = class(TDateTimeField)
-  protected
-    function GetDataSize: Word; override;
   public
     constructor Create(AOwner: TComponent); override;
   end;
@@ -550,8 +548,6 @@ type
 { TTimeField }
 
   TTimeField = class(TDateTimeField)
-  protected
-    function GetDataSize: Word; override;
   public
     constructor Create(AOwner: TComponent); override;
   end;
@@ -1846,7 +1842,13 @@ end.
 
 {
   $Log$
-  Revision 1.37  2005-02-14 17:13:12  peter
+  Revision 1.38  2005-02-16 09:31:58  michael
+  - Remove TTimeField and TDateField GetDataSize functions since both are exactly
+    equal to their ancestor: TDateTimeField.GetDataSize
+  - TAutoInc fields are set to ReadyOnly on create
+  - In TFieldDef.CreateField the presence of faReadyOnly in Attributes is respected
+
+  Revision 1.37  2005/02/14 17:13:12  peter
     * truncate log
 
   Revision 1.36  2005/02/07 11:21:50  joost
