@@ -278,9 +278,9 @@ begin
   IsStaticLinked:=(inppu^.header.flags and uf_static_linked)<>0;
 { read until the object files are found }
   if IsStaticLinked then
-   untilb:=iblinkstaticlibs
+   untilb:=iblinkunitstaticlibs
   else
-   untilb:=iblinkunitfiles;
+   untilb:=iblinkunitofiles;
   repeat
     b:=inppu^.readentry;
     if b in [ibendinterface,ibend] then
@@ -302,11 +302,11 @@ begin
 { we have now reached the section for the files which need to be added,
   now add them to the list }
   case b of
-       iblinkunitfiles : begin
+       iblinkunitofiles : begin
                         while not inppu^.endofentry do
                          AddToLinkFiles(inppu^.getstring);
                       end;
-   iblinkstaticlibs : begin
+   iblinkunitstaticlibs : begin
                         AddToLinkFiles(ExtractLib(inppu^.getstring));
                         if not inppu^.endofentry then
                          begin
@@ -321,9 +321,9 @@ begin
 { just add a new entry with the new lib }
   outppu^.putstring(outputfile);
   if MakeStatic then
-   outppu^.writeentry(iblinkstaticlibs)
+   outppu^.writeentry(iblinkunitstaticlibs)
   else
-   outppu^.writeentry(iblinksharedlibs);
+   outppu^.writeentry(iblinkunitsharedlibs);
 { read all entries until the end and write them also to the new ppu }
   repeat
     b:=inppu^.readentry;
@@ -559,7 +559,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  1999-06-08 22:16:07  peter
+  Revision 1.3  1999-07-06 11:32:54  peter
+    * updated for new ppu.pas
+
+  Revision 1.2  1999/06/08 22:16:07  peter
     * version 0.99.12
 
   Revision 1.1  1999/05/12 16:11:39  peter
