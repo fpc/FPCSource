@@ -123,10 +123,6 @@ type
 { Forward class declarations }
 
   TStream = class;
-  TAbstractFiler = Class;
-  TAbstractWriter = Class;
-  TAbstractReader = Class;
-
   TFiler = class;
   TReader = class;
   TWriter = class;
@@ -476,6 +472,8 @@ type
     procedure WriteComponentRes(const ResName: string; Instance: TComponent);
     procedure WriteDescendent(Instance, Ancestor: TComponent);
     procedure WriteDescendentRes(const ResName: string; Instance, Ancestor: TComponent);
+    procedure WriteResourceHeader(const ResName: string; {!!!:out} var FixupInfo: Integer);
+    procedure FixupResourceHeader(FixupInfo: Integer);
     procedure ReadResHeader;
     function ReadByte : Byte;
     function ReadWord : Word;
@@ -609,289 +607,114 @@ type
     function Clone(out stm: IStream): HResult; stdcall;
   end;
 }
+
 { TFiler }
 
   TValueType = (vaNull, vaList, vaInt8, vaInt16, vaInt32, vaExtended,
     vaString, vaIdent, vaFalse, vaTrue, vaBinary, vaSet, vaLString,
-    vaNil, vaCollection);
+    vaNil, vaCollection, vaSingle, vaCurrency, vaDate, vaWString, vaInt64);
 
-  TFilerFlag = (ffInherited, ffChildPos);
+  TFilerFlag = (ffInherited, ffChildPos, ffInline);
   TFilerFlags = set of TFilerFlag;
 
-(*
   TReaderProc = procedure(Reader: TReader) of object;
   TWriterProc = procedure(Writer: TWriter) of object;
   TStreamProc = procedure(Stream: TStream) of object;
-*)
 
-  TReaderProc = procedure(Reader: TAbstractReader) of object;
-  TWriterProc = procedure(Writer: TAbstractWriter) of object;
-  TStreamProc = procedure(Stream: TStream) of object;
-
-  TAbstractFiler = class(TObject)
+  TFiler = class(TObject)
   private
     FRoot: TComponent;
+    FLookupRoot: TComponent;
     FAncestor: TPersistent;
-     FIgnoreChildren: Boolean;
-     FPrefix : String;
-   public
+    FIgnoreChildren: Boolean;
+  protected
+    procedure SetRoot(ARoot: TComponent); virtual;
+  public
     procedure DefineProperty(const Name: string;
       ReadData: TReaderProc; WriteData: TWriterProc;
       HasData: Boolean); virtual; abstract;
     procedure DefineBinaryProperty(const Name: string;
       ReadData, WriteData: TStreamProc;
       HasData: Boolean); virtual; abstract;
-    property Root: TComponent read FRoot write FRoot;
+    property Root: TComponent read FRoot write SetRoot;
+    property LookupRoot: TComponent read FLookupRoot;
     property Ancestor: TPersistent read FAncestor write FAncestor;
     property IgnoreChildren: Boolean read FIgnoreChildren write FIgnoreChildren;
   end;
 
+
+{ TComponent class reference type }
+
+  TComponentClass = class of TComponent;
+
+
 { TReader }
 
-  TFindMethodEvent = procedure(Reader: TReader; const MethodName: string;
-    var Address: Pointer; var Error: Boolean) of object;
-  TSetNameEvent = procedure(Reader: TReader; Component: TComponent;
-    var Name: string) of object;
-  TReferenceNameEvent = procedure(Reader: TReader; var Name: string) of object;
-  TAncestorNotFoundEvent = procedure(Reader: TReader; const ComponentName: string;
-    ComponentClass: TPersistentClass; var Component: TComponent) of object;
-  TReadComponentsProc = procedure(Component: TComponent) of object;
-  TReaderError = procedure(Reader: TReader; const Message: string; var Handled: Boolean) of object;
-
-
-  TAbstractReader = class(TAbstractFiler);
-(*  private
-  protected
-    function Error(const Message: string): Boolean; virtual;
-    function FindMethod(ARoot: TComponent; const AMethodName: string): Pointer; virtual;
-    procedure SetName(Component: TComponent; var Name: string); virtual;
-    procedure ReferenceName(var Name: string); virtual;
-    function FindAncestorComponent(const Name: string;
-                                   ComponentClass: TPersistentClass): TComponent; virtual;
+  TAbstractObjectReader = class
   public
-    destructor Destroy; override;
-    procedure BeginReferences;
-    procedure DefineProperty(const Name: string;
-      rd : TReaderProc; wd : TWriterProc;
-      HasData: Boolean); override;
-    procedure DefineBinaryProperty(const Name: string;
-      rd, wd: TStreamProc;
-      HasData: Boolean); override;
-    function EndOfList: Boolean;
-    procedure EndReferences;
-    procedure FixupReferences;
-    procedure FlushBuffer; override;
-    function NextValue: TValueType;
-    procedure ReadPrefix(var Flags: TFilerFlags; var AChildPos: Integer);
-    procedure ReadCollection(Collection: TCollection);
-    function ReadComponent(Component: TComponent): TComponent;
-    procedure ReadComponents(AOwner, AParent: TComponent;
-      Proc: TReadComponentsProc);
-    function ReadRootComponent(ARoot: TComponent): TComponent;
-    { Abstract methods }
-    procedure ReadSignature;
-    function ReadBoolean: Boolean; abstract;
-    function ReadChar: Char; abstract;
-    function ReadFloat: Extended;
-    function ReadIdent: string;
-    function ReadInteger: Longint;
-    procedure ReadListBegin;
-    procedure ReadListEnd;
-    function ReadStr: string;
-    function ReadString: string;
-    function ReadValue: TValueType;
-    procedure CopyValue(Writer: TWriter);
-    {!!!}
-    property Owner: TComponent read FOwner write FOwner;
-    property Parent: TComponent read FParent write FParent;
-    property Position: Longint read GetPosition write SetPosition;
-    property OnError: TReaderError read FOnError write FOnError;
-    property OnFindMethod: TFindMethodEvent read FOnFindMethod write FOnFindMethod;
-    property OnSetName: TSetNameEvent read FOnSetName write FOnSetName;
-    property OnReferenceName: TReferenceNameEvent read FOnReferenceName write FOnReferenceName;
-    property OnAncestorNotFound: TAncestorNotFoundEvent read FOnAncestorNotFound write FOnAncestorNotFound;
-  end;
-*)
+    function NextValue: TValueType; virtual; abstract;
+    function ReadValue: TValueType; virtual; abstract;
+    procedure BeginRootComponent; virtual; abstract;
+    procedure BeginComponent(var Flags: TFilerFlags; var AChildPos: Integer;
+      var CompClassName, CompName: String); virtual; abstract;
+    function BeginProperty: String; virtual; abstract;
 
-{ TAbstractWriter }
-
-  TAbstractWriter = class(TAbstractFiler)
-  private
-    FRootAncestor: TComponent;
-    FPropPath: string;
-    FAncestorList: TList;
-    FAncestorPos: Integer;
-    FChildPos: Integer;
-    procedure AddAncestor(Component: TComponent);
-    procedure WriteData(Instance: TComponent); // linker optimization
-    procedure WriteProperty(Instance: TPersistent; PropInfo: Pointer);
-    procedure WriteProperties(Instance: TPersistent);
-    Procedure DoOrdinalProp(Instance : TPersistent;Propinfo :PPropInfo);
-    Procedure DoStringProp(Instance : TPersistent;Propinfo :PPropInfo);
-    Procedure DoFloatProp(Instance : TPersistent;Propinfo :PPropInfo);
-    Procedure DoCollectionProp(Name: ShortString; Value : TCollection);
-    Procedure DoClassProp(Instance : TPersistent;Propinfo :PPropInfo);
-    Procedure DoMethodProp(Instance : TPersistent;Propinfo :PPropInfo);
-  protected
-    procedure WritePrefix(Flags: TFilerFlags; AChildPos: Integer);Virtual;Abstract;
-    Procedure StartObject(Const AClassName,AName : String);Virtual;abstract;
-    Procedure EndObject;Virtual;Abstract;
-    Procedure StartCollection(Const Name : String);Virtual;abstract;
-    Procedure EndCollection;Virtual;Abstract;
-    Procedure StartCollectionItem;Virtual;abstract;
-    Procedure EndCollectionItem;Virtual;Abstract;
-  public
-    destructor Destroy; override;
-    procedure DefineProperty(const Name: string;
-      rd : TReaderProc; wd : TWriterProc;
-      HasData: Boolean); override;
-    procedure DefineBinaryProperty(const Name: string;
-      rd, wd: TStreamProc;
-      HasData: Boolean); override;
-    procedure WriteDescendent(ARoot: TComponent; AAncestor: TComponent);
-    procedure WriteRootComponent(ARoot: TComponent);
-    procedure WriteComponent(Component: TComponent);virtual;
-    { Abstract }
-    Procedure WriteIntegerProperty(Const Name : Shortstring;Value : Longint);virtual;abstract;
-    Procedure WriteSetProperty (Const Name : ShortString;Value : longint; BaseType : TTypeInfo);virtual;abstract;
-    Procedure WriteEnumerationProperty (Const Name : ShortString;Value : Longint; Const EnumName : ShortSTring);virtual;abstract;
-    Procedure WriteStringProperty(Const Name : ShortString; Const Value : String);virtual;abstract;
-    Procedure WriteFloatProperty(Const Name : ShortString; Value : Extended);virtual;abstract;
-    Procedure WriteCollectionProperty(Const Name : ShortString;Value : TCollection);virtual;abstract;
-    Procedure WriteClassProperty(Instance : TPersistent;Propinfo :PPropInfo);virtual;abstract;
-    Procedure WriteComponentProperty(Const Name : ShortString;Value : TComponent);virtual;abstract;
-    Procedure WriteNilProperty(Const Name : Shortstring);virtual; abstract;
-    Procedure WriteMethodProperty(Const Name,AMethodName : ShortString);virtual;abstract;
-    Procedure WriteBinaryProperty(Const Name; Value : TStream);Virtual;Abstract;
-(*
-    { Abstract compatibility methods}
-    Procedure WriteValue(Value : TValueType);virtual;abstract;
-    procedure Write(const Buf; Count: Longint);virtual;abstract;
-    procedure WriteBoolean(Value: Boolean);virtual;abstract;
-    procedure WriteCollection(Value: TCollection);virtual;abstract;
-    procedure WriteComponent(Component: TComponent);virtual;abstract;
-    procedure WriteChar(Value: Char);virtual;abstract;
-    procedure WriteFloat(Value: Extended);virtual;abstract;
-    procedure WriteIdent(const Ident: string);virtual;abstract;
-    procedure WriteInteger(Value: Longint);virtual;abstract;
-    procedure WriteListBegin;virtual;abstract;
-    procedure WriteListEnd;virtual;abstract;
-    procedure WriteSignature;virtual;abstract;
-    procedure WriteStr(const Value: string);virtual;abstract;
-    procedure WriteString(const Value: string);virtual;abstract;
-*)
-    property RootAncestor: TComponent read FRootAncestor write FRootAncestor;
+    { All ReadXXX methods are called _after_ the value type has been read! }
+    procedure ReadBinary(const DestData: TMemoryStream); virtual; abstract;
+    function ReadFloat: Extended; virtual; abstract;
+    function ReadSingle: Single; virtual; abstract;
+    {!!!: function ReadCurrency: Currency; virtual; abstract;}
+    function ReadDate: TDateTime; virtual; abstract;
+    function ReadIdent(ValueType: TValueType): String; virtual; abstract;
+    function ReadInt8: ShortInt; virtual; abstract;
+    function ReadInt16: SmallInt; virtual; abstract;
+    function ReadInt32: LongInt; virtual; abstract;
+    function ReadInt64: Int64; virtual; abstract;
+    function ReadSet(EnumType: Pointer): Integer; virtual; abstract;
+    function ReadStr: String; virtual; abstract;
+    function ReadString(StringType: TValueType): String; virtual; abstract;
+    procedure SkipComponent(SkipComponentInfos: Boolean); virtual; abstract;
+    procedure SkipValue; virtual; abstract;
   end;
 
-  TWriter = class(TAbstractWriter)
-  Private
-    FStream : TStream;
-    function GetPosition: Longint;
-    procedure SetPosition(Value: Longint);
-    procedure WritePropName(const PropName: string);
-  protected
-    procedure WriteBinary(wd : TStreamProc);
-  public
-    Constructor Create(S : TStream);
-    destructor Destroy; override;
-    { Compatibility }
-    procedure WriteBuffer;
-    Procedure FlushBuffer;
-    { Abstract }
-    Procedure WriteIntegerProperty(Const Name : Shortstring;Value : Longint);override;
-    Procedure WriteSetProperty (Const Name : ShortString;Value : longint; BaseType : TTypeInfo);override;
-    Procedure WriteEnumerationProperty (Const Name : ShortString;Value : Longint; Const EnumName : ShortSTring);override;
-    Procedure WriteStringProperty(Const Name : ShortString; Const Value : String);override;
-    Procedure WriteFloatProperty(Const Name : ShortString; Value : Extended);override;
-    Procedure WriteCollectionProperty(Const Name : ShortString;Value : TCollection);override;
-    Procedure WriteClassProperty(Instance : TPersistent;Propinfo :PPropInfo);override;
-    Procedure WriteComponentProperty(Const Name : ShortSTring; Value : TComponent);override;
-    Procedure WriteNilProperty(Const Name : Shortstring);override;
-    Procedure WriteMethodProperty(Const Name,AMethodName : ShortString);override;
-    { Abstract compatibility methods}
-    procedure WritePrefix(Flags: TFilerFlags; AChildPos: Integer); virtual;
-    Procedure WriteValue(Value : TValueType);virtual;
-    procedure Write(const Buf; Count: Longint);virtual;
-    procedure WriteBoolean(Value: Boolean);virtual;
-    procedure WriteCollection(Value: TCollection);virtual;
-    procedure WriteChar(Value: Char);virtual;
-    procedure WriteFloat(Value: Extended);virtual;
-    procedure WriteIdent(const Ident: string);virtual;
-    procedure WriteInteger(Value: Longint);virtual;
-    procedure WriteListBegin;virtual;
-    procedure WriteListEnd;virtual;
-    procedure WriteSignature;virtual;
-    procedure WriteStr(const Value: string);virtual;
-    procedure WriteString(const Value: string);virtual;
-    procedure DefineProperty(const Name: string;
-      rd : TReaderProc; wd : TWriterProc;
-      HasData: Boolean); override;
-    procedure DefineBinaryProperty(const Name: string;
-      rd, wd: TStreamProc;
-      HasData: Boolean); override;
-    property Position: Longint read GetPosition write SetPosition;
-  end;
-
-  TTextWriter = class(TAbstractWriter)
-  Private
-    FStream : TStream;
-    Procedure Write(Const Msg : String);
-    Procedure WriteLn(Const Msg : String);
-    Procedure WriteFmt(Fmt : String; Args :  Array of const);
-    procedure WritePropName(const PropName: string);
-  protected
-   Procedure StartCollection(Const AName : String);
-   Procedure StartCollectionItem;
-   Procedure EndCollectionItem;
-   Procedure EndCollection;
-  public
-    Constructor Create(S : TStream);
-    destructor Destroy; override;
-    { Abstract }
-    Procedure StartObject(Const AClassName,AName : String);override;
-    Procedure EndObject;Virtual;override;
-    Procedure WriteIntegerProperty(Const Name : Shortstring;Value : Longint);override;
-    Procedure WriteSetProperty (Const Name : ShortString;Value : longint; BaseType : TTypeInfo);override;
-    Procedure WriteEnumerationProperty (Const Name : ShortString;Value : Longint; Const EnumName : ShortSTring);override;
-    Procedure WriteStringProperty(Const Name : ShortString; Const Value : String);override;
-    Procedure WriteFloatProperty(Const Name : ShortString; Value : Extended);override;
-    Procedure WriteCollectionProperty(Const Name : ShortString;Value : TCollection);override;
-    Procedure WriteClassProperty(Instance : TPersistent;Propinfo :PPropInfo);override;
-    Procedure WriteComponentProperty(Const Name : ShortSTring; Value : TComponent);override;
-    Procedure WriteNilProperty(Const Name : Shortstring);override;
-    Procedure WriteMethodProperty(Const Name,AMethodName : ShortString);override;
-  end;
-
-  TFiler = Class(TAbstractFiler);
-  TReader = Class(TWriter);
-
-(*
-  TFiler = class(TObject)
+  TBinaryObjectReader = class(TAbstractObjectReader)
   private
     FStream: TStream;
     FBuffer: Pointer;
     FBufSize: Integer;
     FBufPos: Integer;
     FBufEnd: Integer;
-    FRoot: TComponent;
-    FAncestor: TPersistent;
-    FIgnoreChildren: Boolean;
+    procedure Read(var Buf; Count: LongInt);
+    procedure SkipProperty;
+    procedure SkipSetBody;
   public
     constructor Create(Stream: TStream; BufSize: Integer);
     destructor Destroy; override;
-    procedure DefineProperty(const Name: string;
-      ReadData: TReaderProc; WriteData: TWriterProc;
-      HasData: Boolean); virtual; abstract;
-    procedure DefineBinaryProperty(const Name: string;
-      ReadData, WriteData: TStreamProc;
-      HasData: Boolean); virtual; abstract;
-    procedure FlushBuffer; virtual; abstract;
-    property Root: TComponent read FRoot write FRoot;
-    property Ancestor: TPersistent read FAncestor write FAncestor;
-    property IgnoreChildren: Boolean read FIgnoreChildren write FIgnoreChildren;
+
+    function NextValue: TValueType; override;
+    function ReadValue: TValueType; override;
+    procedure BeginRootComponent; override;
+    procedure BeginComponent(var Flags: TFilerFlags; var AChildPos: Integer;
+      var CompClassName, CompName: String); override;
+    function BeginProperty: String; override;
+
+    procedure ReadBinary(const DestData: TMemoryStream); override;
+    function ReadFloat: Extended; override;
+    function ReadSingle: Single; override;
+    {!!!: function ReadCurrency: Currency; override;}
+    function ReadDate: TDateTime; override;
+    function ReadIdent(ValueType: TValueType): String; override;
+    function ReadInt8: ShortInt; override;
+    function ReadInt16: SmallInt; override;
+    function ReadInt32: LongInt; override;
+    function ReadInt64: Int64; override;
+    function ReadSet(EnumType: Pointer): Integer; override;
+    function ReadStr: String; override;
+    function ReadString(StringType: TValueType): String; override;
+    procedure SkipComponent(SkipComponentInfos: Boolean); override;
+    procedure SkipValue; override;
   end;
 
-{ TReader }
 
   TFindMethodEvent = procedure(Reader: TReader; const MethodName: string;
     var Address: Pointer; var Error: Boolean) of object;
@@ -902,9 +725,14 @@ type
     ComponentClass: TPersistentClass; var Component: TComponent) of object;
   TReadComponentsProc = procedure(Component: TComponent) of object;
   TReaderError = procedure(Reader: TReader; const Message: string; var Handled: Boolean) of object;
+  TFindComponentClassEvent = procedure(Reader: TReader; const ClassName: string;
+    var ComponentClass: TComponentClass) of object;
+  TCreateComponentEvent = procedure(Reader: TReader;
+    ComponentClass: TComponentClass; var Component: TComponent) of object;
 
   TReader = class(TFiler)
   private
+    FDriver: TAbstractObjectReader;
     FOwner: TComponent;
     FParent: TComponent;
     FFixups: TList;
@@ -914,46 +742,37 @@ type
     FOnReferenceName: TReferenceNameEvent;
     FOnAncestorNotFound: TAncestorNotFoundEvent;
     FOnError: TReaderError;
-    FCanHandleExcepts: Boolean;
+    FOnFindComponentClass: TFindComponentClassEvent;
+    FOnCreateComponent: TCreateComponentEvent;
     FPropName: string;
-    procedure CheckValue(Value: TValueType);
+    FCanHandleExcepts: Boolean;
     procedure DoFixupReferences;
     procedure FreeFixups;
-    function GetPosition: Longint;
-    procedure PropertyError;
-    procedure ReadBuffer;
-    procedure ReadData(Instance: TComponent);
-    procedure ReadDataInner(Instance: TComponent);
-    procedure ReadProperty(AInstance: TPersistent);
-    procedure ReadPropValue(Instance: TPersistent; PropInfo: Pointer);
-    function ReadSet(SetType: Pointer): Integer;
-    procedure SetPosition(Value: Longint);
-    procedure SkipSetBody;
-    procedure SkipValue;
-    procedure SkipProperty;
-    procedure SkipComponent(SkipHeader: Boolean);
+    function FindComponentClass(const AClassName: string): TComponentClass;
   protected
     function Error(const Message: string): Boolean; virtual;
     function FindMethod(ARoot: TComponent; const AMethodName: string): Pointer; virtual;
-    procedure SetName(Component: TComponent; var Name: string); virtual;
-    procedure ReferenceName(var Name: string); virtual;
-    function FindAncestorComponent(const Name: string;
-      ComponentClass: TPersistentClass): TComponent; virtual;
+    procedure ReadProperty(AInstance: TPersistent);
+    procedure ReadPropValue(Instance: TPersistent; PropInfo: Pointer);
+    procedure PropertyError;
+    procedure ReadData(Instance: TComponent);
+    property PropName: string read FPropName;
+    property CanHandleExceptions: Boolean read FCanHandleExcepts;
   public
+    constructor Create(Stream: TStream; BufSize: Integer);
     destructor Destroy; override;
     procedure BeginReferences;
+    procedure CheckValue(Value: TValueType);
     procedure DefineProperty(const Name: string;
-      rd : TReaderProc; wd : TWriterProc;
+      AReadData: TReaderProc; WriteData: TWriterProc;
       HasData: Boolean); override;
     procedure DefineBinaryProperty(const Name: string;
-      rd, wd: TStreamProc;
+      AReadData, WriteData: TStreamProc;
       HasData: Boolean); override;
     function EndOfList: Boolean;
     procedure EndReferences;
     procedure FixupReferences;
-    procedure FlushBuffer; override;
     function NextValue: TValueType;
-    procedure Read(var Buf; Count: Longint);
     function ReadBoolean: Boolean;
     function ReadChar: Char;
     procedure ReadCollection(Collection: TCollection);
@@ -961,76 +780,155 @@ type
     procedure ReadComponents(AOwner, AParent: TComponent;
       Proc: TReadComponentsProc);
     function ReadFloat: Extended;
+    function ReadSingle: Single;
+    {!!!: function ReadCurrency: Currency;}
+    function ReadDate: TDateTime;
     function ReadIdent: string;
     function ReadInteger: Longint;
+    function ReadInt64: Int64;
     procedure ReadListBegin;
     procedure ReadListEnd;
-    procedure ReadPrefix(var Flags: TFilerFlags; var AChildPos: Integer);
     function ReadRootComponent(ARoot: TComponent): TComponent;
-    procedure ReadSignature;
-    function ReadStr: string;
     function ReadString: string;
+    {!!!: function ReadWideString: WideString;}
     function ReadValue: TValueType;
-    procedure CopyValue(Writer: TWriter); {!!!}
+    procedure CopyValue(Writer: TWriter);
     property Owner: TComponent read FOwner write FOwner;
     property Parent: TComponent read FParent write FParent;
-    property Position: Longint read GetPosition write SetPosition;
     property OnError: TReaderError read FOnError write FOnError;
     property OnFindMethod: TFindMethodEvent read FOnFindMethod write FOnFindMethod;
     property OnSetName: TSetNameEvent read FOnSetName write FOnSetName;
     property OnReferenceName: TReferenceNameEvent read FOnReferenceName write FOnReferenceName;
     property OnAncestorNotFound: TAncestorNotFoundEvent read FOnAncestorNotFound write FOnAncestorNotFound;
+    property OnCreateComponent: TCreateComponentEvent read FOnCreateComponent write FOnCreateComponent;
+    property OnFindComponentClass: TFindComponentClassEvent read FOnFindComponentClass write FOnFindComponentClass;
   end;
+
 
 { TWriter }
 
+  TAbstractObjectWriter = class
+  public
+    { Begin/End markers. Those ones who don't have an end indicator, use
+      "EndList", after the occurrence named in the comment. Note that this
+      only counts for "EndList" calls on the same level; each BeginXXX call
+      increases the current level. }
+    procedure BeginCollection; virtual; abstract;  { Ends with the next "EndList" }
+    procedure BeginComponent(Component: TComponent; Flags: TFilerFlags;
+      ChildPos: Integer); virtual; abstract;  { Ends after the second "EndList" }
+    procedure BeginList; virtual; abstract;
+    procedure EndList; virtual; abstract;
+    procedure BeginProperty(const PropName: String); virtual; abstract;
+    procedure EndProperty; virtual; abstract;
+
+    procedure WriteBinary(const Buffer; Count: Longint); virtual; abstract;
+    procedure WriteBoolean(Value: Boolean); virtual; abstract;
+    // procedure WriteChar(Value: Char);
+    procedure WriteFloat(const Value: Extended); virtual; abstract;
+    procedure WriteSingle(const Value: Single); virtual; abstract;
+    {!!!: procedure WriteCurrency(const Value: Currency); virtual; abstract;}
+    procedure WriteDate(const Value: TDateTime); virtual; abstract;
+    procedure WriteIdent(const Ident: string); virtual; abstract;
+    procedure WriteInteger(Value: Int64); virtual; abstract;
+    procedure WriteMethodName(const Name: String); virtual; abstract;
+    procedure WriteSet(Value: LongInt; SetType: Pointer); virtual; abstract;
+    procedure WriteString(const Value: String); virtual; abstract;
+  end;
+
+  TBinaryObjectWriter = class(TAbstractObjectWriter)
+  private
+    FStream: TStream;
+    FBuffer: Pointer;
+    FBufSize: Integer;
+    FBufPos: Integer;
+    FBufEnd: Integer;
+    FSignatureWritten: Boolean;
+    procedure FlushBuffer;
+    procedure Write(const Buffer; Count: Longint);
+    procedure WriteValue(Value: TValueType);
+    procedure WriteStr(const Value: String);
+  public
+    constructor Create(Stream: TStream; BufSize: Integer);
+    destructor Destroy; override;
+
+    procedure BeginCollection; override;
+    procedure BeginComponent(Component: TComponent; Flags: TFilerFlags;
+      ChildPos: Integer); override;
+    procedure BeginList; override;
+    procedure EndList; override;
+    procedure BeginProperty(const PropName: String); override;
+    procedure EndProperty; override;
+
+    procedure WriteBinary(const Buffer; Count: LongInt); override;
+    procedure WriteBoolean(Value: Boolean); override;
+    procedure WriteFloat(const Value: Extended); override;
+    procedure WriteSingle(const Value: Single); override;
+    {!!!: procedure WriteCurrency(const Value: Currency);  override;}
+    procedure WriteDate(const Value: TDateTime); override;
+    procedure WriteIdent(const Ident: string); override;
+    procedure WriteInteger(Value: Int64); override;
+    procedure WriteMethodName(const Name: String); override;
+    procedure WriteSet(Value: LongInt; SetType: Pointer); override;
+    procedure WriteString(const Value: String); override;
+  end;
+
+  TTextObjectWriter = class(TAbstractObjectWriter)
+  end;
+
+
+  TFindAncestorEvent = procedure (Writer: TWriter; Component: TComponent;
+    const Name: string; var Ancestor, RootAncestor: TComponent) of object;
+
   TWriter = class(TFiler)
   private
+    FDriver: TAbstractObjectWriter;
+    FDestroyDriver: Boolean;
     FRootAncestor: TComponent;
-    FPropPath: string;
+    FPropPath: String;
     FAncestorList: TList;
     FAncestorPos: Integer;
     FChildPos: Integer;
-    procedure AddAncestor(Component: TComponent);
-    function GetPosition: Longint;
-    procedure SetPosition(Value: Longint);
-    procedure WriteBuffer;
-    procedure WriteData(Instance: TComponent);
+    FOnFindAncestor: TFindAncestorEvent;
+    procedure AddToAncestorList(Component: TComponent);
+    procedure WriteComponentData(Instance: TComponent);
+  protected
+    procedure SetRoot(ARoot: TComponent); override;
+    procedure WriteBinary(AWriteData: TStreamProc);
     procedure WriteProperty(Instance: TPersistent; PropInfo: Pointer);
     procedure WriteProperties(Instance: TPersistent);
-    procedure WritePropName(const PropName: string);
-  protected
-    procedure WriteBinary(wd : TStreamProc);
-    procedure WritePrefix(Flags: TFilerFlags; AChildPos: Integer);
-    procedure WriteValue(Value: TValueType);
   public
+    constructor Create(ADriver: TAbstractObjectWriter);
+    constructor Create(Stream: TStream; BufSize: Integer);
     destructor Destroy; override;
     procedure DefineProperty(const Name: string;
-      rd : TReaderProc; wd : TWriterProc;
+      ReadData: TReaderProc; AWriteData: TWriterProc;
       HasData: Boolean); override;
     procedure DefineBinaryProperty(const Name: string;
-      rd, wd: TStreamProc;
+      ReadData, AWriteData: TStreamProc;
       HasData: Boolean); override;
-    procedure FlushBuffer; override;
-    procedure Write(const Buf; Count: Longint);
     procedure WriteBoolean(Value: Boolean);
     procedure WriteCollection(Value: TCollection);
     procedure WriteComponent(Component: TComponent);
     procedure WriteChar(Value: Char);
     procedure WriteDescendent(ARoot: TComponent; AAncestor: TComponent);
-    procedure WriteFloat(Value: Extended);
+    procedure WriteFloat(const Value: Extended);
+    procedure WriteSingle(const Value: Single);
+    {!!!: procedure WriteCurrency(const Value: Currency);}
+    procedure WriteDate(const Value: TDateTime);
     procedure WriteIdent(const Ident: string);
-    procedure WriteInteger(Value: Longint);
+    procedure WriteInteger(Value: Longint); overload;
+    procedure WriteInteger(Value: Int64); overload;
     procedure WriteListBegin;
     procedure WriteListEnd;
     procedure WriteRootComponent(ARoot: TComponent);
-    procedure WriteSignature;
-    procedure WriteStr(const Value: string);
     procedure WriteString(const Value: string);
-    property Position: Longint read GetPosition write SetPosition;
+    {!!!: procedure WriteWideString(const Value: WideString);}
     property RootAncestor: TComponent read FRootAncestor write FRootAncestor;
+    property OnFindAncestor: TFindAncestorEvent read FOnFindAncestor write FOnFindAncestor;
+
+    property Driver: TAbstractObjectWriter read FDriver;
   end;
-*)
+
 
 { TParser }
 
@@ -1125,7 +1023,8 @@ type
 
   TOperation = (opInsert, opRemove);
   TComponentState = set of (csLoading, csReading, csWriting, csDestroying,
-    csDesigning, csAncestor, csUpdating, csFixups);
+    csDesigning, csAncestor, csUpdating, csFixups, csFreeNotification,
+    csInline, csDesignInstance);
   TComponentStyle = set of (csInheritable, csCheckPropAvail);
   TGetChildProc = procedure (Child: TComponent) of object;
 
@@ -1179,7 +1078,7 @@ type
     procedure Loaded; virtual;
     procedure Notification(AComponent: TComponent;
       Operation: TOperation); virtual;
-    procedure ReadState(Reader: TAbstractReader); virtual;
+    procedure ReadState(Reader: TReader); virtual;
     procedure SetAncestor(Value: Boolean);
     procedure SetDesigning(Value: Boolean);
     procedure SetName(const NewName: TComponentName); virtual;
@@ -1205,7 +1104,7 @@ type
     //!!!!   Flags: Word; var Params; VarResult, ExcepInfo, ArgErr: Pointer): Integer; stdcall;
   public
     //!! Moved temporary
-    procedure WriteState(Writer: TAbstractWriter); virtual;
+    procedure WriteState(Writer: TWriter); virtual;
     constructor Create(AOwner: TComponent); virtual;
     destructor Destroy; override;
     procedure DestroyComponents;
@@ -1228,14 +1127,11 @@ type
     property DesignInfo: Longint read FDesignInfo write FDesignInfo;
     property Owner: TComponent read FOwner;
     property VCLComObject: Pointer read FVCLComObject write FVCLComObject;
-//!!  published
-    property Name: TComponentName read FName write SetName ; // stored False;
-    property Tag: Longint read FTag write FTag ; // default 0;
+  published
+    property Name: TComponentName read FName write SetName stored False;
+    property Tag: Longint read FTag write FTag default 0;
   end;
 
-{ TComponent class reference type }
-
-  TComponentClass = class of TComponent;
 
 { Component registration handlers }
 
@@ -1276,6 +1172,9 @@ procedure RegisterNoIcon(ComponentClasses: array of TComponentClass);
 procedure RegisterNonActiveX(ComponentClasses: array of TComponentClass;
   AxRegType: TActiveXRegType);
 
+{!!!: var
+  GlobalNameSpace: TMultiReadExclusiveWriteSynchronizer;}
+
 
 { Object filing routines }
 
@@ -1293,8 +1192,8 @@ var
   MainThreadID: THandle;
   FindGlobalComponent: TFindGlobalComponent;
 
-procedure RegisterIntegerConsts(IntegerType: Pointer; IdentToInt: TIdentToInt;
-  IntToIdent: TIntToIdent);
+procedure RegisterIntegerConsts(IntegerType: Pointer; IdentToIntFn: TIdentToInt;
+  IntToIdentFn: TIntToIdent);
 function IdentToInt(const Ident: string; var Int: Longint; const Map: array of TIdentMapEntry): Boolean;
 function IntToIdent(Int: Longint; var Ident: string; const Map: array of TIdentMapEntry): Boolean;
 
@@ -1313,6 +1212,7 @@ procedure RedirectFixupReferences(Root: TComponent; const OldRootName,
   NewRootName: string);
 procedure RemoveFixupReferences(Root: TComponent; const RootName: string);
 procedure RemoveFixups(Instance: TPersistent);
+function FindNestedComponent(Root: TComponent; const NamePath: string): TComponent;
 
 procedure BeginGlobalLoading;
 procedure NotifyGlobalLoading;
@@ -1334,7 +1234,11 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.21  2000-01-07 01:24:33  peter
+  Revision 1.22  2000-06-29 16:29:23  sg
+  * Implemented streaming. Note: The writer driver interface is stable, but
+    the reader interface is not final yet!
+
+  Revision 1.21  2000/01/07 01:24:33  peter
     * updated copyright to 2000
 
   Revision 1.20  2000/01/06 01:20:32  peter

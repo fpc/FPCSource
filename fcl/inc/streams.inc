@@ -85,111 +85,142 @@
   function TStream.ReadComponent(Instance: TComponent): TComponent;
 
     var
-       Reader : TReader;
+      Reader: TReader;
 
     begin
-(*
-       Reader.Create(Self,1024);
-       if assigned(Instance) then
-         ReadComponent:=Reader.ReadRootComponent(Instance)
-       else
-         begin
-            {!!!!!}
-         end;
-       Reader.Destroy;
-*)
+
+      Reader := TReader.Create(Self, 4096);
+      try
+        Result := Reader.ReadRootComponent(Instance);
+      finally
+        Reader.Free;
+      end;
+
     end;
 
   function TStream.ReadComponentRes(Instance: TComponent): TComponent;
 
     begin
-       {!!!!!}
-       ReadComponentRes:=nil;
+
+      ReadResHeader;
+      Result := ReadComponent(Instance);
+
     end;
 
   procedure TStream.WriteComponent(Instance: TComponent);
 
-    var
-       Writer : TWriter;
-
     begin
-(*
-       Try
-         Writer.Create(Self,1024);
-         Writer.WriteRootComponent(Instance);
-       Finally
-         Writer.Destroy;
-       end;
-*)
+
+      WriteDescendent(Instance, nil);
+
     end;
 
   procedure TStream.WriteComponentRes(const ResName: string; Instance: TComponent);
 
+    begin
+
+      WriteDescendentRes(ResName, Instance, nil);
+
+    end;
+
+  procedure TStream.WriteDescendent(Instance, Ancestor: TComponent);
+
     var
-       startpos,s : longint;
+       Driver : TAbstractObjectWriter;
+       Writer : TWriter;
 
     begin
-{$ifdef Win16Res}
+
+       Driver := TBinaryObjectWriter.Create(Self, 4096);
+       Try
+         Writer := TWriter.Create(Driver);
+	 Try
+           Writer.WriteDescendent(Instance, Ancestor);
+	 Finally
+	   Writer.Destroy;
+	 end;
+       Finally
+	 Driver.Free;
+       end;
+
+    end;
+
+  procedure TStream.WriteDescendentRes(const ResName: string; Instance, Ancestor: TComponent);
+
+    var
+      FixupInfo: Integer;
+
+    begin
+
+      { Write a resource header }
+      WriteResourceHeader(ResName, FixupInfo);
+      { Write the instance itself }
+      WriteDescendent(Instance, Ancestor);
+      { Insert the correct resource size into the resource header }
+      FixupResourceHeader(FixupInfo);
+
+    end;
+
+  procedure TStream.WriteResourceHeader(const ResName: string; {!!!: out} var FixupInfo: Integer);
+
+    begin
        { Numeric resource type }
        WriteByte($ff);
        { Application defined data }
        WriteWord($0a);
        { write the name as asciiz }
-//       WriteBuffer(ResName[1],length(ResName));
+       WriteBuffer(ResName[1],length(ResName));
        WriteByte(0);
        { Movable, Pure and Discardable }
        WriteWord($1030);
-       { size isn't known yet }
+       { Placeholder for the resource size }
        WriteDWord(0);
-       startpos:=GetPosition;
-       WriteComponent(Instance);
-       { calculate size }
-       s:=GetPosition-startpos;
-       { back patch size }
-       SetPosition(startpos-4);
-       WriteDWord(s);
-{$endif Win16Res}
+       { Return current stream position so that the resource size can be
+         inserted later }
+       FixupInfo := Position;
     end;
 
-  procedure TStream.WriteDescendent(Instance, Ancestor: TComponent);
+  procedure TStream.FixupResourceHeader(FixupInfo: Integer);
+
+    var
+       ResSize : Integer;
 
     begin
-       {!!!!!}
-    end;
 
-  procedure TStream.WriteDescendentRes(const ResName: string; Instance, Ancestor: TComponent);
+      ResSize := Position - FixupInfo;
 
-    begin
-       {!!!!!}
+      { Insert the correct resource size into the placeholder written by
+        WriteResourceHeader }
+      Position := FixupInfo - 4;
+      WriteDWord(ResSize);
+      { Seek back to the end of the resource }
+      Position := FixupInfo + ResSize;
+
     end;
 
   procedure TStream.ReadResHeader;
 
     begin
-{$ifdef Win16Res}
        try
          { application specific resource ? }
          if ReadByte<>$ff then
-           raise EInvalidImage.Create('');
+           raise EInvalidImage.Create(SInvalidImage);
          if ReadWord<>$000a then
-           raise EInvalidImage.Create('');
+           raise EInvalidImage.Create(SInvalidImage);
          { read name }
          while ReadByte<>0 do
            ;
          { check the access specifier }
          if ReadWord<>$1030 then
-           raise EInvalidImage.Create('');
+           raise EInvalidImage.Create(SInvalidImage);
          { ignore the size }
          ReadDWord;
        except
-{/////
          on EInvalidImage do
            raise;
          else
            raise EInvalidImage.create(SInvalidImage);
-}
        end;
-{$endif Win16Res}
     end;
 
   function TStream.ReadByte : Byte;
@@ -625,7 +656,11 @@ end;
 
 {
   $Log$
-  Revision 1.20  2000-01-07 01:24:33  peter
+  Revision 1.21  2000-06-29 16:29:23  sg
+  * Implemented streaming. Note: The writer driver interface is stable, but
+    the reader interface is not final yet!
+
+  Revision 1.20  2000/01/07 01:24:33  peter
     * updated copyright to 2000
 
   Revision 1.19  2000/01/06 01:20:33  peter

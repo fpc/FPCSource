@@ -112,8 +112,18 @@ end;
 
 Procedure TComponent.SetReference(Enable: Boolean);
 
+var
+  Field: ^TComponent;
 begin
-  // For delphi compatibility only.
+  if Assigned(Owner) then
+  begin
+    Field := Owner.FieldAddress(Name);
+    if Assigned(Field) then
+      if Enable then
+        Field^ := Self
+      else
+        Field^ := nil;
+  end;
 end;
 
 
@@ -219,10 +229,10 @@ begin
 end;
 
 
-Procedure TComponent.ReadState(Reader: TAbstractReader);
+Procedure TComponent.ReadState(Reader: TReader);
 
 begin
-//!!  Reader.ReadData(Self);
+  Reader.ReadData(Self);
 end;
 
 
@@ -333,10 +343,10 @@ begin
 end;
 
 
-Procedure TComponent.WriteState(Writer: TAbstractWriter);
+Procedure TComponent.WriteState(Writer: TWriter);
 
 begin
-  Writer.WriteData(self);
+  Writer.WriteComponentData(Self);
 end;
 
 
@@ -478,7 +488,11 @@ end;
 
 {
   $Log$
-  Revision 1.11  2000-01-07 01:24:33  peter
+  Revision 1.12  2000-06-29 16:29:23  sg
+  * Implemented streaming. Note: The writer driver interface is stable, but
+    the reader interface is not final yet!
+
+  Revision 1.11  2000/01/07 01:24:33  peter
     * updated copyright to 2000
 
   Revision 1.10  2000/01/06 01:20:32  peter

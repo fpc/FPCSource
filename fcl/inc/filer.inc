@@ -15,21 +15,18 @@
   *                         TFiler                                    *
   *********************************************************************}
 
+procedure TFiler.SetRoot(ARoot: TComponent);
+begin
+  FRoot := ARoot;
+end;
+
+
 {
   $Log$
-  Revision 1.5  2000-01-07 01:24:33  peter
+  Revision 1.6  2000-06-29 16:29:23  sg
+  * Implemented streaming. Note: The writer driver interface is stable, but
+    the reader interface is not final yet!
+
+  Revision 1.5  2000/01/07 01:24:33  peter
     * updated copyright to 2000
-
-  Revision 1.4  2000/01/06 01:20:33  peter
-    * moved out of packages/ back to topdir
-
-  Revision 1.2  2000/01/04 18:07:16  michael
-  + Streaming implemented
-
-  Revision 1.2  1998/08/24 12:38:23  michael
-  small fixes
-
-  Revision 1.1  1998/05/04 14:30:11  michael
-  * Split file according to Class; implemented dummys for all methods, so unit compiles.
-
 }

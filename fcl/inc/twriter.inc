@@ -12,7 +12,7 @@
 
  **********************************************************************}
 
-Procedure TTextWriter.WriteLn(Const Msg : String);
+(*Procedure TTextWriter.WriteLn(Const Msg : String);
 
 Const CRLF = #10;
 
@@ -211,11 +211,15 @@ Procedure TTextWriter.WriteMethodProperty(Const Name,AMethodName : ShortString);
 
 begin
   WriteFmt ('%s = %s',[Name,AMethodName]);
-end;
+end;*)
 
 {
   $Log$
-  Revision 1.3  2000-02-15 21:57:51  sg
+  Revision 1.4  2000-06-29 16:29:23  sg
+  * Implemented streaming. Note: The writer driver interface is stable, but
+    the reader interface is not final yet!
+
+  Revision 1.3  2000/02/15 21:57:51  sg
   * Added copyright notice and CVS log tags where necessary
 
 }

@@ -41,18 +41,18 @@ const
   SInvalidPropertyPath = 'Invalid property path';
   SUnknownProperty = 'Unknown property';
   SReadOnlyProperty = 'Read-only property';
-  SPropertyException = 'Error when reading %s.%s: %s';
-  SAncestorNotFound = 'Ancestor of ''%s'' not found.';
+  SPropertyException = 'Error while reading %s%s%s: %s';
+  SAncestorNotFound = 'Ancestor of ''%s'' not found';
   SInvalidBitmap = 'Invalid Bitmap';
   SInvalidIcon = 'Invalid Icon';
-  SInvalidMetafile = 'Invalid MetaFile';
-  SInvalidPixelFormat = 'Invalid PixelFormat';
+  SInvalidMetafile = 'Invalid Metafile';
+  SInvalidPixelFormat = 'Invalid Pixelformat';
   SBitmapEmpty = 'Bitmap is empty';
   SScanLine = 'Line index out of bounds';
-  SChangeIconSize = 'Can not change Icon size';
+  SChangeIconSize = 'Can not change icon size';
   SOleGraphic = 'Invalid operation for TOleGraphic';
   SUnknownExtension = 'Unknown extension (.%s)';
-  SUnknownClipboardFormat = 'Unknown Clipboard format';
+  SUnknownClipboardFormat = 'Unknown clipboard format';
   SOutOfResources = 'Out of system resources';
   SNoCanvasHandle = 'Canvas handle does not allow drawing';
   SInvalidImageSize = 'Invalid image size';
@@ -60,9 +60,9 @@ const
   SDimsDoNotMatch = 'Image size mismatch';
   SInvalidImageList = 'Invalid ImageList';
   SReplaceImage = 'Image can not be replaced';
-  SImageIndexError = 'Invalid ImageList-Index';
-  SImageReadFail = 'The ImageList data could not be read from Stream';
-  SImageWriteFail = 'The ImageList data could not be written to Stream';
+  SImageIndexError = 'Invalid ImageList index';
+  SImageReadFail = 'The ImageList data could not be read from stream';
+  SImageWriteFail = 'The ImageList data could not be written to stream';
   SWindowDCError = 'Error when??';
   SClientNotSet = 'Client of TDrag was not initialized';
   SWindowClass = 'Error when initializing Window Class';
@@ -272,7 +272,11 @@ const
 
 {
   $Log$
-  Revision 1.8  2000-02-15 21:57:51  sg
+  Revision 1.9  2000-06-29 16:29:23  sg
+  * Implemented streaming. Note: The writer driver interface is stable, but
+    the reader interface is not final yet!
+
+  Revision 1.8  2000/02/15 21:57:51  sg
   * Added copyright notice and CVS log tags where necessary
 
 }

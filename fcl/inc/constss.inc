@@ -41,7 +41,7 @@ const
   SInvalidPropertyPath = 'Path de propiedad no valido';
   SUnknownProperty = 'Propiedad desconocidad';
   SReadOnlyProperty = 'Propiedad de solo lectura';
-  SPropertyException = 'Error leyendo %s.%s: %s';
+  SPropertyException = 'Error leyendo %s%s: %s';
 {N}  SAncestorNotFound = 'Ancestor of ''%s'' not found.';
   SInvalidBitmap = 'Bitmap no valido';
   SInvalidIcon = 'Icono no valido';
@@ -272,7 +272,11 @@ const
 
 {
   $Log$
-  Revision 1.6  2000-02-15 21:57:51  sg
+  Revision 1.7  2000-06-29 16:29:23  sg
+  * Implemented streaming. Note: The writer driver interface is stable, but
+    the reader interface is not final yet!
+
+  Revision 1.6  2000/02/15 21:57:51  sg
   * Added copyright notice and CVS log tags where necessary
 
 }

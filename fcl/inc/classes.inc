@@ -39,16 +39,6 @@
 { TBits implementation }
 {$i bits.inc}
 
-{ TReader implementation }
-{ $i reader.inc}
-
-{ TWriter implementations }
-{$i writer.inc}
-{$i twriter.inc}
-
-{ TFiler implementation }
-{$i filer.inc}
-
 { All streams implementations: }
 { Tstreams THandleStream TFileStream TResourcseStreams TStringStream }
 { TCustomMemoryStream TMemoryStream }
@@ -138,44 +128,200 @@ end;
 
 { Object filing routines }
 
-procedure RegisterIntegerConsts(IntegerType: Pointer; IdentToInt: TIdentToInt;
-  IntToIdent: TIntToIdent);
+var
+  IntConstList: TThreadList;
 
+
+// !!!: INSERTION START, only slightly modified until now
+
+type
+  TIntConst = class
+    IntegerType: PTypeInfo;
+    IdentToIntFn: TIdentToInt;
+    IntToIdentFn: TIntToIdent;
+    constructor Create(AIntegerType: PTypeInfo; AIdentToInt: TIdentToInt;
+      AIntToIdent: TIntToIdent);
+  end;
+
+constructor TIntConst.Create(AIntegerType: PTypeInfo; AIdentToInt: TIdentToInt;
+  AIntToIdent: TIntToIdent);
 begin
+  IntegerType := AIntegerType;
+  IdentToIntFn := AIdentToInt;
+  IntToIdentFn := AIntToIdent;
 end;
 
+procedure RegisterIntegerConsts(IntegerType: Pointer; IdentToIntFn: TIdentToInt;
+  IntToIdentFn: TIntToIdent);
+begin
+  IntConstList.Add(TIntConst.Create(IntegerType, IdentToIntFn, IntToIdentFn));
+end;
+
+function FindIntToIdent(AIntegerType: Pointer): TIntToIdent;
+var
+  I: Integer;
+begin
+  Result := nil;
+  with IntConstList.LockList do
+  try
+    for I := 0 to Count - 1 do
+      with TIntConst(Items[I]) do
+        if AIntegerType = IntegerType then
+        begin
+          Result := IntToIdentFn;
+          Exit;
+        end;
+  finally
+    IntConstList.UnlockList;
+  end;
+end;
+
+function FindIdentToInt(AIntegerType: Pointer): TIdentToInt;
+var
+  I: Integer;
+begin
+  Result := nil;
+  with IntConstList.LockList do
+  try
+    for I := 0 to Count - 1 do
+      with TIntConst(Items[I]) do
+        if AIntegerType = IntegerType then
+        begin
+          Result := IdentToIntFn;
+          Exit;
+        end;
+  finally
+    IntConstList.UnlockList;
+  end;
+end;
 
 function IdentToInt(const Ident: string; var Int: Longint; const Map: array of TIdentMapEntry): Boolean;
-
+var
+  I: Integer;
 begin
-  IdentToInt:=false;
+  for I := Low(Map) to High(Map) do
+    if UpperCase(Map[I].Name) = UpperCase(Ident) then
+    begin
+      Result := True;
+      Int := Map[I].Value;
+      Exit;
+    end;
+  Result := False;
 end;
-
 
 function IntToIdent(Int: Longint; var Ident: string; const Map: array of TIdentMapEntry): Boolean;
-
+var
+  I: Integer;
 begin
-  IntToIdent:=false;
+  for I := Low(Map) to High(Map) do
+    if Map[I].Value = Int then
+    begin
+      Result := True;
+      Ident := Map[I].Name;
+      Exit;
+    end;
+  Result := False;
 end;
+
+// !!!: INSERTION END
+
+
+// !!!: INSERTION START
+
+{ TPropFixup }
+
+type
+  TPropFixup = class
+    FInstance: TPersistent;
+    FInstanceRoot: TComponent;
+    FPropInfo: PPropInfo;
+    FRootName: string;
+    FName: string;
+    constructor Create(Instance: TPersistent; InstanceRoot: TComponent;
+      PropInfo: PPropInfo; const RootName, Name: string);
+    function MakeGlobalReference: Boolean;
+  end;
+
+var
+  GlobalFixupList: TThreadList;
+
+constructor TPropFixup.Create(Instance: TPersistent; InstanceRoot: TComponent;
+  PropInfo: PPropInfo; const RootName, Name: string);
+begin
+  FInstance := Instance;
+  FInstanceRoot := InstanceRoot;
+  FPropInfo := PropInfo;
+  FRootName := RootName;
+  FName := Name;
+end;
+
+function TPropFixup.MakeGlobalReference: Boolean;
+var
+  S: PChar;
+  P: PChar;
+begin
+  Result := False;
+  S := PChar(Pointer(FName));
+  P := S;
+  while not (P^ in ['.', #0]) do Inc(P);
+  if P^ = #0 then Exit;
+  SetString(FRootName, S, P - S);
+  Delete(FName, 1, P - S + 1);
+  Result := True;
+end;
+
+// !!!: INSERTION END
 
 
 function InitInheritedComponent(Instance: TComponent; RootAncestor: TClass): Boolean;
 
+  function DoInitClass(ClassType: TClass): Boolean;
+  begin
+    Result := False;
+    if (ClassType <> TComponent) and (ClassType <> RootAncestor) then
+    begin
+      { Init the parent class first }
+      Result := DoInitClass(ClassType.ClassParent);
+
+      { !!!: Too Win32-specific in VCL:
+      Result := InternalReadComponentRes(ClassType.ClassName, FindResourceHInstance(
+        FindClassHInstance(ClassType)), Instance) or Result;}
+      Result := False;
+    end;
+  end;
+
 begin
-  InitInheritedComponent:=false;
+  {!!!: GlobalNameSpace.BeginWrite;
+  try}
+    if (Instance.ComponentState * [csLoading, csInline]) = [] then
+    begin
+      BeginGlobalLoading;
+      try
+        Result := DoInitClass(Instance.ClassType);
+        NotifyGlobalLoading;
+      finally
+        EndGlobalLoading;
+      end;
+    end else
+      Result := DoInitClass(Instance.ClassType);
+  {finally
+    GlobalNameSpace.EndWrite;
+  end;}
 end;
 
 
 function InitComponentRes(const ResName: string; Instance: TComponent): Boolean;
 
 begin
-  InitComponentRes:=false;
+  { !!!: Too Win32-specific in VCL }
+  InitComponentRes:=False;
 end;
 
 
 function ReadComponentRes(const ResName: string; Instance: TComponent): TComponent;
 
 begin
+  { !!!: Too Win32-specific in VCL }
   ReadComponentRes:=nil;
 end;
 
@@ -183,80 +329,332 @@ end;
 function ReadComponentResEx(HInstance: THandle; const ResName: string): TComponent;
 
 begin
+  { !!!: Too Win32-specific in VCL }
   ReadComponentResEx:=nil;
 end;
 
 
 function ReadComponentResFile(const FileName: string; Instance: TComponent): TComponent;
-
+var
+  FileStream: TStream;
 begin
-  ReadComponentResFile:=nil;
+  FileStream := TFileStream.Create(FileName, fmOpenRead {!!!:or fmShareDenyWrite});
+  try
+    Result := FileStream.ReadComponentRes(Instance);
+  finally
+    FileStream.Free;
+  end;
 end;
 
 
 procedure WriteComponentResFile(const FileName: string; Instance: TComponent);
-
+var
+  FileStream: TStream;
 begin
+  FileStream := TFileStream.Create(FileName, fmCreate);
+  try
+    FileStream.WriteComponentRes(Instance.ClassName, Instance);
+  finally
+    FileStream.Free;
+  end;
 end;
 
 
-
+// !!!: INSERTION START
 procedure GlobalFixupReferences;
+var
+  FinishedList: TList;
+  NotFinishedList: TList;
+  GlobalList: TList;
+  I: Integer;
+  Root: TComponent;
+  Instance: TPersistent;
+  Reference: Pointer;
+
+  procedure AddFinished(Instance: TPersistent);
+  begin
+    if (FinishedList.IndexOf(Instance) < 0) and
+      (NotFinishedList.IndexOf(Instance) >= 0) then
+      FinishedList.Add(Instance);
+  end;
+
+  procedure AddNotFinished(Instance: TPersistent);
+  var
+    Index: Integer;
+  begin
+    Index := FinishedList.IndexOf(Instance);
+    if Index <> -1 then FinishedList.Delete(Index);
+    if NotFinishedList.IndexOf(Instance) < 0 then
+      NotFinishedList.Add(Instance);
+  end;
 
 begin
+  if Assigned(FindGlobalComponent) then
+  begin
+    // Fixup resolution requires a stable component / name space
+    // Block construction and destruction of forms / datamodules during fixups
+    {!!!: GlobalNameSpace.BeginWrite;
+    try}
+      GlobalList := GlobalFixupList.LockList;
+      try
+        if GlobalList.Count > 0 then
+        begin
+          FinishedList := TList.Create;
+          try
+            NotFinishedList := TList.Create;
+            try
+              I := 0;
+              while I < GlobalList.Count do
+                with TPropFixup(GlobalList[I]) do
+                begin
+                  Root := FindGlobalComponent(FRootName);
+                  if (Root <> nil) or (GetOrdProp(FInstance, FPropInfo) <> 0) then
+                  begin
+                    if Root <> nil then
+                    begin
+                      Reference := FindNestedComponent(Root, FName);
+                      SetOrdProp(FInstance, FPropInfo, Longint(Reference));
+                    end;
+                    AddFinished(FInstance);
+                    GlobalList.Delete(I);
+                    Free;
+                  end else
+                  begin
+                    AddNotFinished(FInstance);
+                    Inc(I);
+                  end;
+                end;
+            finally
+              NotFinishedList.Free;
+            end;
+            for I := 0 to FinishedList.Count - 1 do
+            begin
+              Instance := TPersistent(FinishedList[I]);
+              if Instance is TComponent then
+                Exclude(TComponent(Instance).FComponentState, csFixups);
+            end;
+          finally
+            FinishedList.Free;
+          end;
+        end;
+      finally
+        GlobalFixupList.UnlockList;
+      end;
+    {finally
+      GlobalNameSpace.EndWrite;
+    end;}
+  end;
+end;
+
+// !!!: INSERTION END
+
+
+// !!!: Rename this function
+function NameInStrings(Strings: TStrings; const Name: String): Boolean;
+var
+  n: String;
+  I: Integer;
+begin
+  n := UpperCase(Name);
+  for i := 0 to Strings.Count - 1 do
+    if UpperCase(Strings[i]) = n then
+    begin
+      Result := True;
+      exit;
+    end;
+  Result := False;
 end;
 
 
 procedure GetFixupReferenceNames(Root: TComponent; Names: TStrings);
-
+var
+  i: Integer;
+  CurFixup: TPropFixup;
 begin
+  with GlobalFixupList.LockList do
+    try
+      for i := 0 to Count - 1 do
+      begin
+        CurFixup := TPropFixup(Items[i]);
+        if ((not Assigned(Root)) or (CurFixup.FInstanceRoot = Root)) and
+          not NameInStrings(Names, CurFixup.FRootName) then
+          Names.Add(CurFixup.FRootName);
+      end;
+    finally
+      GlobalFixupList.UnlockList;
+    end;
 end;
 
 
 procedure GetFixupInstanceNames(Root: TComponent;
   const ReferenceRootName: string; Names: TStrings);
-
+var
+  i: Integer;
+  CurFixup: TPropFixup;
 begin
+  with GlobalFixupList.LockList do
+    try
+      for i := 0 to Count - 1 do
+      begin
+        CurFixup := TPropFixup(Items[i]);
+        if (CurFixup.FInstanceRoot = Root) and
+          (UpperCase(ReferenceRootName) = UpperCase(CurFixup.FRootName)) and
+          not NameInStrings(Names, CurFixup.FName) then
+          Names.Add(CurFixup.FName);
+      end;
+    finally
+      GlobalFixupList.UnlockList;
+    end;
 end;
 
 
 procedure RedirectFixupReferences(Root: TComponent; const OldRootName,
   NewRootName: string);
-
+var
+  i: Integer;
+  CurFixup: TPropFixup;
 begin
+  with GlobalFixupList.LockList do
+    try
+      for i := 0 to Count - 1 do
+      begin
+        CurFixup := TPropFixup(Items[i]);
+        if ((not Assigned(Root)) or (CurFixup.FInstanceRoot = Root)) and
+          (UpperCase(OldRootName) = UpperCase(CurFixup.FRootName)) then
+          CurFixup.FRootName := NewRootName;
+      end;
+      GlobalFixupReferences;
+    finally
+      GlobalFixupList.Unlocklist;
+    end;
 end;
 
 
 procedure RemoveFixupReferences(Root: TComponent; const RootName: string);
-
+var
+  i: Integer;
+  CurFixup: TPropFixup;
 begin
+  if Assigned(GlobalFixupList) then
+    with GlobalFixupList.LockList do
+      try
+        for i := Count - 1 downto 0 do
+        begin
+          CurFixup := TPropFixup(Items[i]);
+          if ((not Assigned(Root)) or (CurFixup.FInstanceRoot = Root)) and
+            ((Length(RootName) = 0) or
+	    (UpperCase(RootName) = UpperCase(CurFixup.FRootName))) then
+          begin
+            Delete(i);
+            CurFixup.Free;
+          end;
+        end;
+      finally
+        GlobalFixupList.UnlockList;
+      end;
 end;
 
 
 procedure RemoveFixups(Instance: TPersistent);
-
+var
+  i: Integer;
+  CurFixup: TPropFixup;
 begin
+  if Assigned(GlobalFixupList) then
+    with GlobalFixupList.LockList do
+      try
+        for i := Count - 1 downto 0 do
+        begin
+          CurFixup := TPropFixup(Items[i]);
+          if (CurFixup.FInstance = Instance) then
+          begin
+            Delete(i);
+            CurFixup.Free;
+          end;
+        end;
+      finally
+        GlobalFixupList.UnlockList;
+      end;
 end;
 
+
+function FindNestedComponent(Root: TComponent; const NamePath: string): TComponent;
+var
+  Current, Found: TComponent;
+  s, p: PChar;
+  Name: String;
+begin
+  Result := nil;
+  if Length(NamePath) > 0 then
+  begin
+    Current := Root;
+    p := PChar(NamePath);
+    while p[0] <> #0 do
+    begin
+      s := p;
+      while not (p^ in ['.', '-', #0]) do
+        Inc(p);
+      SetString(Name, s, p - s);
+      Found := Current.FindComponent(Name);
+      if (not Assigned(Found)) and (UpperCase(Name) = 'OWNER') then
+        Found := Current;
+      if not Assigned(Found) then exit;
+
+      // Remove the dereference operator from the name
+      if p[0] = '.' then
+        Inc(P);
+      if p[0] = '-' then
+        Inc(P);
+      if p[0] = '>' then
+        Inc(P);
+
+      Current := Found;
+    end;
+  end;
+  Result := Current;
+end;
+
+{!!!: threadvar block copied from VCL}
+{threadvar  -  doesn't work for all platforms yet!}
+var
+  GlobalLoaded: TList;
+  GlobalLists: TList;
 
 
 procedure BeginGlobalLoading;
 
 begin
+  if not Assigned(GlobalLists) then
+    GlobalLists := TList.Create;
+  GlobalLists.Add(GlobalLoaded);
+  GlobalLoaded := TList.Create;
 end;
 
 
 procedure NotifyGlobalLoading;
-
+var
+  List: TList;
+  i: Integer;
 begin
+  List := GlobalLoaded;
+  { Notify all global components that they have been loaded completely }
+  for i := 0 to List.Count - 1 do
+    TComponent(List[i]).Loaded;
 end;
 
 
 procedure EndGlobalLoading;
-
 begin
+  { Free the memory occupied by BeginGlobalLoading }
+  GlobalLoaded.Free;
+  GlobalLoaded := TList(GlobalLists.Last);
+  GlobalLists.Delete(GlobalLists.Count - 1);
+  if GlobalLists.Count = 0 then
+  begin
+    GlobalLists.Free;
+    GlobalLists := nil;
+  end;
 end;
-
 
 
 function CollectionsEqual(C1, C2: TCollection): Boolean;
@@ -750,12 +1148,57 @@ begin
   end;
 end;
 
+procedure CommonInit;
+begin
+  IntConstList := TThreadList.Create;
+  GlobalFixupList := TThreadList.Create;
+  ClassList := TThreadList.Create;
+  ClassAliasList := TStringList.Create;
+end;
 
+procedure CommonCleanup;
+var
+  i: Integer;
+begin
+  // !!!: GlobalNameSpace.BeginWrite;
+  with IntConstList.LockList do
+    try
+      for i := 0 to Count - 1 do
+        TIntConst(Items[I]).Free;
+    finally
+      IntConstList.UnlockList;
+    end;
+    IntConstList.Free;
+  ClassList.Free;
+  ClassAliasList.Free;
+  RemoveFixupReferences(nil, '');
+  GlobalFixupList.Free;
+  GlobalFixupList := nil;
+  GlobalLists.Free;
+  {!!!: GlobalNameSpace.Free;
+  GlobalNameSpace := nil;}
+end;
+
+
+
+{ TFiler implementation }
+{$i filer.inc}
+
+{ TReader implementation }
+{$i reader.inc}
+
+{ TWriter implementations }
+{$i writer.inc}
+{$i twriter.inc}
 
 
 {
   $Log$
-  Revision 1.16  2000-01-07 01:24:33  peter
+  Revision 1.17  2000-06-29 16:29:23  sg
+  * Implemented streaming. Note: The writer driver interface is stable, but
+    the reader interface is not final yet!
+
+  Revision 1.16  2000/01/07 01:24:33  peter
     * updated copyright to 2000
 
   Revision 1.15  2000/01/06 01:20:32  peter
@@ -775,11 +1218,4 @@ end;
 
   Revision 1.11  1999/09/11 21:59:31  fcl
   * Moved class and registration functions to cregist.inc  (sg)
-
-  Revision 1.10  1999/04/13 08:52:29  michael
-  + Moved strings.inc to stringl.inc, to avoid conflict with strings unit
-
-  Revision 1.9  1999/04/08 10:18:50  peter
-    * makefile updates
-
 }
