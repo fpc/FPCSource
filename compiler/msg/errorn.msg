@@ -55,7 +55,7 @@
 #   Programma, hebt u nog een laatste wens voordat de trekker wordt
 #       overgehaald?
 # - In het Nederlands schrijft men woorden vaker aan elkaar dan in het
-#   Engels: "compiler switch" (2 woorden ) wordt "compileroptie" (1 woord).
+#   Engels: "compiler switch" (2 woorden) wordt "compileroptie" (1 woord).
 #   Let ook op voorvoegingen: "Interface and implementation names" wordt:
 #    "Interface- en implementatienamen" (streepje!)
 # - Pas op met het vernederlandsen van Engelse woorden. Bijvoorbeeld
@@ -170,7 +170,7 @@ scan_w_comment_level=02005_W_Commentaar van niveau $1 gevonden
 scan_n_far_directive_ignored=02006_N_$F directive (FAR) genegeerd
 % The \var{FAR} directive is a 16-bit construction which is recorgnised
 % but ignored by the compiler, since it produces 32 bit code.
-scan_n_stack_check_global_under_linux=02007_N_Stapeloverloop test is globaal onder linux
+scan_n_stack_check_global_under_linux=02007_N_Stapeloverloopcontrole is globaal onder linux
 % Stack checking with the \var{-Cs} switch is ignored under \linux, since
 % \linux does this for you. Only displayed when \var{-vn} is used.
 scan_n_ignored_switch=02008_N_Genegeerde compileroptie $1
@@ -362,7 +362,7 @@ parser_e_no_overload_for_all_procs=03006_E_Not all declarations of $1 are declar
 % all declarations need to have \var{OVERLOAD} specified.
 parser_e_no_dll_file_specified=03007_E_Geen DLL bestand opgegeven
 % No longer in use.
-parser_e_export_name_double=03008_E_Dubbel geexporteerde functie naam $1
+parser_e_export_name_double=03008_E_Dubbel geexporteerde functienaam $1
 % Exported function names inside a specific DLL must all be different
 parser_e_export_ordinal_double=03009_E_Dubbel geexporteerde functie index $1
 % Exported function names inside a specific DLL must all be different
@@ -546,7 +546,7 @@ parser_e_no_procedure_to_access_property=03059_E_Er is geen lid om de eigenschap
 % You specified no \var{read} directive for a property.
 parser_w_stored_not_implemented=03060_W_Stored prorperty directive is not yet implemented
 % The \var{stored} directive is not yet implemented
-parser_e_ill_property_access_sym=03061_E_Ongeldig symbool voor eigenschap toegang
+parser_e_ill_property_access_sym=03061_E_Ongeldig symbool voor eigenschaptoegang
 % There is an error in the \var{read} or \var{write} directives for an array
 % property. When you declare an array property, you can only access it with
 % procedures and functions. The following code woud cause such an error.
@@ -570,7 +570,7 @@ parser_w_overloaded_are_not_both_virtual=03064_W_Alle overroepen methoden moeten
 parser_w_overloaded_are_not_both_non_virtual=03065_W_Overroepen methode van een niet virtuele methode moet niet-virtueel zijn: $1
 % If you declare overloaded methods in a class, then they should either all be
 % virtual, or none. You shouldn't mix them.
-parser_e_overloaded_methodes_not_same_ret=03066_E_Virtuele overladen methodes moeten dezelfde resultaat-type hebben: $1
+parser_e_overloaded_methodes_not_same_ret=03066_E_Virtuele overroepen methodes moeten dezelfde resultaat-type hebben: $1
 % If you declare virtual overloaded methods in a class definition, they must
 % have the same return type.
 parser_e_dont_nest_export=03067_E_Als EXPORT gedeclareerde procedures kunnen niet genest worden
@@ -626,10 +626,10 @@ parser_e_constructors_always_objects=03081_E_Constructors en destructors moeten 
 parser_e_operator_not_overloaded=03082_E_Operator is niet hergedefineerd
 % You're trying to use an overloaded operator when it isn't overloaded for
 % this type.
-parser_e_no_such_assignment=03083_E_Het is niet toegestaan de assignatie operator te overladen voor gelijke types
+parser_e_no_such_assignment=03083_E_Het is niet toegestaan de toewijzingsoperator te overroepen voor gelijke typen
 % You can not overload assignment for types
 % that the compiler considers as equal.
-parser_e_overload_impossible=03084_E_Onmogelijk overladen van operator
+parser_e_overload_impossible=03084_E_Het overroepen van deze operator is onmogelijk
 % The combination of operator, arguments and return type are
 % incompatible.
 parser_e_no_reraise_possible=03085_E_Re-raise is hier niet mogelijk
@@ -658,7 +658,7 @@ parser_e_comparative_operator_return_boolean=03090_E_Vergelijkingsoperator moet 
 parser_e_only_virtual_methods_abstract=03091_E_Enkel virtuele methoden kunnen abstract zijn
 % You are declaring a method as abstract, when it isn't declared to be
 % virtual.
-parser_f_unsupported_feature=03092_F_Gebruik van niet ondersteunde optie !
+parser_f_unsupported_feature=03092_F_Gebruik van niet ondersteunde functionaliteit!
 % You're trying to force the compiler into doing something it cannot do yet.
 parser_e_mix_of_classes_and_objects=03093_E_CLASSES and OBJECTS kunnen niet gemengd worden.
 % You cannot derive \var{objects} and \var{classes} intertwined . That is,
@@ -757,10 +757,10 @@ parser_e_forward_declaration_must_be_resolved=03115_E_Declaratie van klasse $1 m
 parser_e_no_local_operator=03116_E_Lokale operatoren worden niet ondersteund
 % You cannot overload locally, i.e. inside procedures or function
 % definitions.
-parser_e_proc_dir_not_allowed_in_interface=03117_E_Procedure directive $1 niet toegestaan in interface sectie
+parser_e_proc_dir_not_allowed_in_interface=03117_E_Procedure directive $1 niet toegestaan in interfacesectie
 % This procedure directive is not allowed in the \var{interface} section of
 % a unit. You can only use it in the \var{implementation} section.
-parser_e_proc_dir_not_allowed_in_implementation=03118_E_Procedure directive $1 niet toegestaan in implementation sectie
+parser_e_proc_dir_not_allowed_in_implementation=03118_E_Procedure directive $1 niet toegestaan in implementatiesectie
 % This procedure directive is not defined in the \var{implementation} section of
 % a unit. You can only use it in the \var{interface} section.
 parser_e_proc_dir_not_allowed_in_procvar=03119_E_Procedure directive $1 niet toegestaan in procvar declaratie
@@ -781,7 +781,7 @@ parser_w_inlining_disabled=03124_W_Inlining uitgeschakeld
 parser_i_writing_browser_log=03125_I_Schrijven van browser logfile $1
 % When information messages are on, the compiler warns you when it
 % writes the browser log (generated with the \var{\{\$Y+ \}} switch).
-parser_h_maybe_deref_caret_missing=03126_H_misschien is het een pointer, ^ wordt dan gemist
+parser_h_maybe_deref_caret_missing=03126_H_misschien is het een pointer, ^ ontbreekt dan
 % The compiler thinks that a pointer may need a dereference.
 parser_f_assembler_reader_not_supported=03127_F_Geselecteerde assemblerlezer wordt niet ondersteund
 % The selected assembler reader (with \var{\{\$ASMMODE xxx\}} is not
@@ -844,12 +844,12 @@ parser_e_duplicate_message_label=03145_E_Dubbel message label: %1
 parser_e_self_in_non_message_handler=03146_E_Self kan alleen een explicite parameter zijn bij string message handlers
 % The self parameter can be passed only explicit if it is a method which
 % is declared as message method handler
-parser_e_threadvars_only_sg=03147_E_Thread variabelen kunnen alleen globaal of statisch zijn
+parser_e_threadvars_only_sg=03147_E_Threadvariabelen kunnen alleen globaal of statisch zijn
 % Threadvars must be static or global, you can't declare a thread
 % local to a procedure. Local variables are always local to a thread,
 % because every thread has it's own stack and local variables
 % are stored on the stack
-parser_f_direct_assembler_not_allowed=03148_F_Directe assembler wordt niet ondersteund door interne assembler.
+parser_f_direct_assembler_not_allowed=03148_F_Directe assemblercode wordt niet ondersteund door de interne assembler.
 % You can't use direct assembler when using a binary writer, choose an
 % other outputformat or use an other assembler reader
 parser_w_no_objpas_use_mode=03149_W_Laad de OBJPAS unit niet manueel, gebruik {$mode objfpc} of {$mode delphi}.
@@ -860,7 +860,7 @@ parser_w_no_objpas_use_mode=03149_W_Laad de OBJPAS unit niet manueel, gebruik {$
 parser_e_no_object_override=03150_E_OVERRIDE kan niet gebruikt worden in objecten
 % Override isn't support for objects, use VIRTUAL instead to override
 % a method of an anchestor object
-parser_e_cant_use_inittable_here=03151_E_Data typen die initializatie/finalizatie vereisen zijn niet toegestaan in variabele records.
+parser_e_cant_use_inittable_here=03151_E_Datatypen die initializatie/finalizatie vereisen zijn niet toegestaan in variabele records.
 % Some data type (e.g. \var{ansistring}) needs initialization/finalization
 % code which is implicitly generated by the compiler. Such data types
 % can't be used in the variant part of a record.
@@ -875,7 +875,7 @@ parser_e_cant_use_inittable_here=03151_E_Data typen die initializatie/finalizati
 parser_e_resourcestring_only_sg=03152_E_Resourcestrings kunnen alleen statisch of globaal zijn.
 % Resourcestring can not be declared local, only global or using the static
 % directive.
-parser_e_exit_with_argument_not__possible=03153_E_Exit met argument is hier niet toegestaan
+parser_e_exit_with_argument_not__possible=03153_E_Exit met parameter is hier niet toegestaan
 % an exit statement with an argument for the return value can't be used here, this
 % can happen e.g. in \var{try..except} or \var{try..finally} blocks
 parser_e_stored_property_must_be_boolean=03154_E_De stored directive verwacht een boolean argument.
@@ -889,7 +889,7 @@ parser_e_only_publishable_classes_can__be_published=03156_E_Alleen klassen gecom
 % In the published section of a class can be only class as fields used which
 % are compiled in $M+ or which are derived from such a class. Normally
 % such a class should be derived from TPersitent
-parser_e_proc_directive_expected=03157_E_Procedure directive verwacht.
+parser_e_proc_directive_expected=03157_E_Proceduredirective verwacht.
 % When declaring a procedure in a const block you used a ; after the
 % procedure declaration after which a procedure directive must follow.
 % Correct declarations are:
@@ -898,10 +898,10 @@ parser_e_proc_directive_expected=03157_E_Procedure directive verwacht.
 %   p : procedure;stdcall=nil;
 %   p : procedure stdcall=nil;
 % \end{verbatim}
-parser_e_invalid_property_index_value=03158_E_De waarde voor een property index moet een ordinale waarde zijn.
+parser_e_invalid_property_index_value=03158_E_De waarde voor een eigenschapindex moet een ordinale waarde zijn.
 % The value you use to index a property must be of an ordinal type, for
 % example an integer or enumerated type.
-parser_e_procname_to_short_for_export=03159_E_Procedure naam te kort om te exporteren.
+parser_e_procname_to_short_for_export=03159_E_Procedurenaam te kort om te exporteren.
 % The length of the procedure/function name must be at least 2 characters
 % long. This is because of a bug in dlltool which doesn't parse the .def
 % file correct with a name of length 1.
@@ -988,7 +988,7 @@ type_h_use_div_for_int=04015_H_Gebruik DIV voor gehele getallen om geheel result
 type_e_strict_var_string_violation=04016_E_String typen stemmen niet overeen wegens de $V+ modus
 % When compiling in \var{\{\$V+\}} mode, the string you pass as a parameter
 % should be of the exact same type as the declared parameter of the procedure.
-type_e_succ_and_pred_enums_with_assign_not_possible=04017_E_SUCC of PRED op enumeratie types met toekenningen zijn niet mogelijk
+type_e_succ_and_pred_enums_with_assign_not_possible=04017_E_SUCC of PRED op enumeratietypen met toekenningen zijn niet mogelijk
 % When you declared an enumeration type which has assignments in it, as in C,
 % like in the following:
 % \begin{verbatim}
@@ -1003,7 +1003,7 @@ type_e_no_readln_writeln_for_typed_file=04019_E_Kan geen readln of writeln op ge
 % \var{readln} and \var{writeln} are only allowed for text files.
 type_e_no_read_write_for_untyped_file=04020_E_Kan geen read of write doen op ongetypeerde bestanden.
 % \var{read} and \var{write} are only allowed for text or typed files.
-type_e_typeconflict_in_set=04021_E_Type conflict tussen set elementen.
+type_e_typeconflict_in_set=04021_E_Typeconflict tussen setelementen.
 % There is at least one set element which is of the wrong type, i.e. not of
 % the set type.
 type_w_maybe_wrong_hi_lo=04022_W_lo/hi(longint/dword) geeft hoog/laag (ipv byte) woord terug.
@@ -1012,7 +1012,7 @@ type_w_maybe_wrong_hi_lo=04022_W_lo/hi(longint/dword) geeft hoog/laag (ipv byte)
 % a 16 bit \var{lo/hi} which returns always bits 0..7 for \var{lo} and the
 % bits 8..15 for \var{hi}. If you want the TP behavior you have
 % to type case the argument to \var{word/integer}
-type_e_integer_or_real_expr_expected=04023_E_Integer of vlottende komma uitdrukking verwacht
+type_e_integer_or_real_expr_expected=04023_E_Integer of vlottende-komma uitdrukking verwacht
 % The first argument to \var{str} must a real or integer type.
 type_e_wrong_type_in_array_constructor=04024_E_Verkeerd type in array constructor
 % You are trying to use a type in an array constructor which is not
@@ -1365,7 +1365,7 @@ asmr_d_start_reading=07000_D_Begonnen met verwerken van $1 assembler
 % This informs you that an assembler block is being parsed
 asmr_d_finish_reading=07001_D_Gedaan met verwerken van $1 assembler
 % This informs you that an assembler block has finished.
-asmr_e_none_label_contain_at=07002_E_Patroon dat geen label is bevat "@"
+asmr_e_none_label_contain_at=07002_E_Symbool dat geen label is bevat "@"
 % A identifier which isn't a label can't contain a @.
 asmr_w_override_op_not_supported=07003_W_De "override" operator wordt niet ondersteund
 % The Override operator is not supported
@@ -1376,7 +1376,7 @@ asmr_e_building_record_offset=07004_E_Fout bij berekenen offset in record
 asmr_e_offset_without_identifier=07005_E_OFFSET gebruikt zonder symbool
 % You can only use OFFSET with an identifier. Other syntaxes aren't
 % supported
-asmr_e_type_without_identifier=07006_E_TYPE gebruikt zonder identifier
+asmr_e_type_without_identifier=07006_E_TYPE gebruikt zonder symbool
 % You can only use TYPE with an identifier. Other syntaxes aren't
 % supported
 asmr_e_no_local_or_para_allowed=07007_E_Kan hier geen lokale variabele of parameter gebruiken
@@ -1421,16 +1421,16 @@ asmr_e_invalid_string_as_opcode_operand=07022_E_Ongeldige tekenreeks als instruc
 asmr_w_CODE_and_DATA_not_supported=07023_W_@CODE en @DATA worden niet ondersteund
 % @CODE and @DATA are unsupported and are ignored.
 asmr_e_null_label_ref_not_allowed=07024_E_Null label verwijzingen zijn niet toegelaten
-asmr_e_expr_zero_divide=07025_E_Deling door nul in assembler evaluator
+asmr_e_expr_zero_divide=07025_E_Deling door nul
 asmr_e_expr_illegal=07026_E_Ongeldige uitdrukking
 asmr_e_escape_seq_ignored=07027_E_Expliciete reeks genegeerd: $1
 asmr_e_invalid_symbol_ref=07028_E_Ongeldige symboolverwijzing
 asmr_w_fwait_emu_prob=07029_W_Fwait kan emulatieproblemen met emu387 veroorzaken
 asmr_w_fadd_to_faddp=07030_W_FADD zonder operand vertaald naar FADDP
-asmr_w_enter_not_supported_by_linux=07031_W_ENTER instructie wordt niet ondersteund door de Linux kernel
+asmr_w_enter_not_supported_by_linux=07031_W_De ENTER instructie wordt niet ondersteund door de Linux kernel
 % ENTER instruction can generate a stack page fault that is not
 % caught correctly by the i386 Linux page handler.
-asmr_w_calling_overload_func=07032_W_Een overroepen functie wordt aangeroepen vanuit de assembler code
+asmr_w_calling_overload_func=07032_W_Een overroepen functie wordt aangeroepen vanuit assemblercode
 asmr_e_unsupported_symbol_type=07033_E_Niet ondersteund symbool type voor operandus
 asmr_e_constant_out_of_bounds=07034_E_Constante waarde valt buiten bereik
 asmr_e_error_converting_decimal=07035_E_Fout bij omzetten van decimaal getal $1
@@ -1493,7 +1493,7 @@ asmr_e_cannot_access_object_field_directly=07082_E_Kan velden van objecten/klass
 #
 # Assembler/binary writers
 #
-asmw_f_too_many_asm_files=08000_F_Te veel assembler bestanden
+asmw_f_too_many_asm_files=08000_F_Te veel assemblerbestanden
 asmw_f_assembler_output_not_supported=08001_F_De geselecteerde assembler modus wordt hier niet ondersteund
 asmw_f_comp_not_supported=08002_F_Het COMP type wordt hier niet ondersteund
 asmw_f_direct_not_supported=08003_F_Directe assembler modus wordt niet ondersteund door de binaire assemblerschrijver
@@ -1504,7 +1504,7 @@ asmw_e_invalid_opcode_and_operands=08007_E_Asm: $1 Ongeldige combinatie van inst
 asmw_e_16bit_not_supported=08008_E_Asm: 16 Bit geheugenlocaties worden niet ondersteund
 asmw_e_invalid_effective_address=08009_E_Asm: Ongeldig direct adres
 asmw_e_immediate_or_reference_expected=08010_E_Asm: Constante of geheugenadres verwacht
-asmw_e_value_exceeds_bounds=08011_E_Asm: $1 value exceeds bounds $2
+asmw_e_value_exceeds_bounds=08011_E_Asm: $1 waarde overschrijdt grenzen van $2
 asmw_e_short_jmp_out_of_range=08012_E_Asm: Korte spronginstructie gaat te ver $1
 
 #
@@ -1544,7 +1544,7 @@ exec_w_libfile_not_found=09012_E_Bibliotheek $1 niet gevonden, linken kan foutlo
 exec_w_error_while_linking=09013_W_Fout tijdens linken
 exec_w_cant_call_linker=09014_W_Kan linker niet oproepen, overschakeling naar extern linken
 exec_i_linking=09015_I_Linken van $1
-exec_w_util_not_found=09016_W_Tool $1 niet gevonden, schakel over op exter linken.
+exec_w_util_not_found=09016_W_Tool $1 niet gevonden, schakel over op extern linken.
 exec_t_using_util=09017_T_Gebruik tool $1
 exec_e_exe_not_supported=09018_E_Creatie van executable bestanden niet ondersteund.
 exec_e_dll_not_supported=09019_E_Dynamische bibliotheken niet ondersteund
@@ -1559,8 +1559,8 @@ execinfo_f_cant_open_executable=09024_F_Kan applicatie niet openen $1
 execinfo_x_codesize=09025_X_Grootte van de code: $1 bytes
 execinfo_x_initdatasize=09026_X_Grootte van geinitialiseerde data: $1 bytes
 execinfo_x_uninitdatasize=09027_X_Grootte van niet-geinitialiseerde data: $1 bytes
-execinfo_x_stackreserve=09028_X_Gereserveerde Stack ruimte: $1 bytes
-execinfo_x_stackcommit=09029_X_Toegewezen Stack ruimte: $1 bytes
+execinfo_x_stackreserve=09028_X_Gereserveerde stackruimte: $1 bytes
+execinfo_x_stackcommit=09029_X_Toegewezen stackruimte: $1 bytes
 # Unit loading
 #
 # BeginOfTeX
@@ -1720,7 +1720,7 @@ option_too_many_endif=11014_Te veel ENDIFs
 option_too_less_endif=11015_Open voorwaardelijke aan eind van bestand
 % the \var{\#IF(N)DEF} statements in the options file are not balanced with
 % the \var{\#ENDIF} statements.
-option_no_debug_support=11016_Debug informatie generatie is niet ondersteund door deze applicatie
+option_no_debug_support=11016_Debug informatie generatie wordt niet ondersteund door deze applicatie
 % It is possible to have a compiler executable that doesn't support
 % the generation of debugging info. If you use such an executable with the
 % \var{-g} switch, this warning will be displayed.
@@ -1737,7 +1737,7 @@ option_obsolete_switch_use_new=11019_W_U gebruikt een in onbruik geraakte schake
 % must now use the second switch instead.
 % It is recommended that you change the switch to overcome problems in the
 % future, when the switch meaning may change.
-option_switch_bin_to_src_assembler=11020_N_De assembler wordt veranderd in de standaard assembler schrijver
+option_switch_bin_to_src_assembler=11020_N_De assembler wordt veranderd in de standaard assemblerschrijver
 % this notifies you that the assembler has been changed because you used the
 % -a switch which can't be used with a binary assembler writer.
 option_incompatible_asm=11021_W_Geselecteerde assembler "$1" is niet verenigbaar met "$2"
@@ -1753,7 +1753,7 @@ option_asm_forced=11022_W_Gebruik van "$1" assembler opgelegd
 #
 option_logo=11023_[
 Free Pascal Compiler versie $FPCVER [$FPCDATE] voor $FPCTARGET
-Copyright (c) 1998-2000 door Florian Klaempfl en anderen
+Copyright (c) 1998-2003 door Florian Klaempfl en anderen
 ]
 
 #
@@ -1777,20 +1777,20 @@ Nederlandse vertaling beschikbaar.
 #
 option_help_pages=11025_[
 **0*_+ schakelt optie aan, - af
-**1a_De compiler verwijdert gegenereerd assembler bestand niet
-**2al_Toon broncode lijnen in assembler bestand
-**2ar_Toon register allocatie/release informatie in assembler bestand
-**2at_Toon tijdelijke allocatie/release informatie in assembler bestand
+**1a_De compiler verwijdert gegenereerd assemblerbestand niet
+**2al_Toon broncode in assemblerbestand
+**2ar_Toon register allocatie/release informatie in assemblerbestand
+**2at_Toon tijdelijke allocatie/release informatie in assemblerbestand
 **1b_genereer browser info
 **2bl_genereer info voor lokale symbolen info
 **1B_Bouw alle modules
-**1C_Code generatie opties
+**1C_Codegeneratie opties
 3*2CD_Creeer dynamische bibliotheek
 **2Ch<n>_<n> bytes heap (tussen 1023 en 67107840)
 **2Ci_IO-checking
 **2Cn_Laat linken achterwege
-**2Co_Controleer overflow van integer operaties
-**2Cr_Bereik controle
+**2Co_Controleer overflow van integeroperaties
+**2Cr_Bereikcontrole (range check)
 **2Cs<n>_Stel stack grootte in op <n>
 **2Ct_Stack controle
 3*2CS_Cre‰er dynamische bibliotheek
@@ -1805,25 +1805,25 @@ option_help_pages=11025_[
 **2Fe<x>_Zend foutboodschappen naar bestand <x>
 *L2Fg<x>_Zelfde als -Fl
 **2Fi<x>_Voegt <x> toe aan invoegpad
-**2Fl<x>_Voegt <x> toe aan bibliotheek pad
+**2Fl<x>_Voegt <x> toe aan bibliotheek-pad
 *L2FL<x>_Gebruik <x> als dynamische linker
-**2Fo<x>_Voeg <x> toe aan object pad
-**2Fr<x>_Gebruik foutboodschappen in bestand <x>
+**2Fo<x>_Voeg <x> toe aan object-pad
+**2Fr<x>_Lees foutmeldingen uit bestand <x>
 **2Fu<x>_Voeg <x> toe aan unit pad
 **2FU<x>_Schrijf units in folder <x>, (primeert op -FE)
-*g1g_genereer debug informatie
+*g1g_genereer debuginformatie
 *g2gg_gebruik gsym
 *g2gd_gebruik dbx
 *g2gh_laad heaptrc unit automatisch
-*g2gl_Gebruik lijn informatie unit voor meer informatie in backtraces
-*g2gc_genereer meer controlers voor wijzers
+*g2gl_Gebruik regelinformatie unit voor meer informatie in backtraces
+*g2gc_genereer controles voor pointers
 **1i_informatie
-**2iD_Toon compiler datum
-**2iV_Toon compiler versie
-**2iSO_Toon compiler OS
-**2iSP_Toon compiler processor
-**2iTO_Toon doel OS
-**2iTP_Toon doel processor
+**2iD_Toon compilerdatum
+**2iV_Toon compilerversie
+**2iSO_Toon compiler-OS
+**2iSP_Toon compilerprocessor
+**2iTO_Toon doel-OS
+**2iTP_Toon doelprocessor
 **1I<x>_Voeg <x> toe aan invoegpad
 **1k<x>_Geef <x> door aan de linker
 **1l_Druk logo af
@@ -1839,13 +1839,16 @@ option_help_pages=11025_[
 **2Se<x>_Compiler stopt na <x> fouten (standaard 1)
 **2Sg_Laat LABEL en GOTO toe
 **2Sh_Gebruik ansistrings
-**2Si_Ondersteun C++ stijl INLINE
+**2Si_Ondersteun INLINE
 **2Sm_Ondersteun macros zoals in C (globaal)
 **2So_Probeer TP/BP 7.0 compatibel te zijn
-**2Sp_Probeer to be gpc compatibel te zijn
+**2Sp_Probeer GNU Pascal compatibel te zijn
 **2Ss_Constructor naam moet init zijn (destructor moet done zijn)
 **2St_Sta static sleutelwoord toe in objecten
 **1s_Roep assembler en linker niet op (slechts met -a)
+**1sh_Genereer een script om op het hostplatform te linken
+**1sr_Voer geen registertoewijzing uit (optimalizaties worden uitgeschakeld)
+**1st_Genereer een script om op het doelplatform te linken
 **1u<x>_Verwijdert symbooldefinitie <x>
 **1U_unit opties
 **2Un_Unit naam niet nagaan
@@ -1878,22 +1881,22 @@ option_help_pages=11025_[
 3*2Atasm_obj bestand met Tasm (Borland)
 3*2Acoff_coff (Go32v2) met interne assembler
 3*2Apecoff_pecoff (Win32) met interne assembler
-3*1R<x>_assembler lezer stijl:
-3*2Ratt_Lees AT&T stijl assembler
-3*2Rintel_Lees Intel stijl assembler
-3*2Rdirect_Kopieer assembler dadelijk naar assembler bestand
+3*1R<x>_Geef de grammatica voor de assemblerlezer op:
+3*2Ratt_Lees assembler in AT&T stijl
+3*2Rintel_Lees assembler in Intel stijl
+3*2Rdirect_Kopieer assemblercode rechtstreeks naar assemblerbestand
 3*1O<x>_optimalizaties
 3*2Og_Genereer kleinere code
 3*2OG_Genereerd snellere code (standaard)
-3*2Or_Houd zekere variabelen in registers (Nog steeds BUGGY!!!)
+3*2Or_Houdt zekere variabelen in registers (Nog steeds BUGGY!!!)
 3*2Ou_Probeer onzekere optimalizaties (zie documentatie)
 3*2O1_Niveau 1 optimalizaties (snelle optimizaties)
 3*2O2_Niveau 2 optimalizaties (-O1 + tragere optimizaties)
 3*2O3_Niveau 3 optimalizaties (Zelfde als -O2u)
-3*2Op_Doel processor
-3*3Op1_Stel doel processor in op 386/486
-3*3Op2_Stel doel processor in op Pentium/PentiumMMX (tm)
-3*3Op3_Stel doel processor in op PPro/PII/c6x86/K6 (tm)
+3*2Op_Doelprocessor
+3*3Op1_Stel doelprocessor in op 386/486
+3*3Op2_Stel doelprocessor in op Pentium/PentiumMMX (tm)
+3*3Op3_Stel doelprocessor in op PPro/PII/c6x86/K6 (tm)
 6*1T<x>_Doel besturingssysteem:
 3*2TGO32V2_version 2 of DJ Delorie DOS extender
 3*2TLINUX_Linux
