@@ -924,6 +924,7 @@ begin
      AddSelectItem('~N~etBSD','netbsd',idNone);
      AddSelectItem('~O~S/2','os2',idNone);
      AddSelectItem('~W~IN32','win32',idNone);
+     AddSelectItem('N~e~tWare','netware',idNone);
 {$endif I386}
 {$ifdef M68K}
      AddSelectItem('~A~miga','amiga',idNone);
@@ -1230,7 +1231,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2002-02-20 15:06:52  pierre
+  Revision 1.6  2002-03-16 14:53:23  armin
+  + add netware target
+
+  Revision 1.5  2002/02/20 15:06:52  pierre
    avoid to insert options in .cfg file if the option has no command line
 
   Revision 1.4  2001/11/24 02:06:43  carl
