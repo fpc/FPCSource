@@ -122,14 +122,15 @@ implementation
     procedure TSparcParaManager.create_paraloc_info(p:TAbstractProcDef; side: tcallercallee);
       var
         nextintreg : tsuperregister;
-        nextfloatreg : toldregister;
         stack_offset : longint;
         hp : tparaitem;
         is_64bit : boolean;
         paraloc : tparalocation;
       begin
         nextintreg:=RS_O0;
-        nextfloatreg:=R_F0;
+        { Nested procedures have the parent framepoint in o0 }
+        if p.parast.symtablelevel>normal_function_level then
+          inc(NextIntReg);
         stack_offset:=92;
         hp:=TParaItem(p.para.First);
         while assigned(hp) do
@@ -275,7 +276,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2003-07-05 20:11:41  jonas
+  Revision 1.24  2003-07-06 17:58:22  peter
+    * framepointer fixes for sparc
+    * parent framepointer code more generic
+
+  Revision 1.23  2003/07/05 20:11:41  jonas
     * create_paraloc_info() is now called separately for the caller and
       callee info
     * fixed ppc cycle

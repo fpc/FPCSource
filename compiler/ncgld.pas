@@ -213,22 +213,7 @@ implementation
                                   if (current_procinfo.procdef.parast.symtablelevel>symtable.symtablelevel) then
                                     begin
                                        hregister:=rg.getaddressregister(exprasmlist);
-                                       { make a reference }
-                                       reference_reset_base(href,current_procinfo.framepointer,current_procinfo.framepointer_offset);
-                                       cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,hregister);
-                                       { walk parents }
-                                       i:=current_procinfo.procdef.parast.symtablelevel-1;
-                                       while (i>symtable.symtablelevel) do
-                                         begin
-                                            { make a reference }
-{$ifdef powerpc}
-                                            reference_reset_base(href,hregister,current_procinfo.framepointer_offset);
-{$else powerpc}
-                                            reference_reset_base(href,hregister,target_info.first_parm_offset);
-{$endif powerpc}
-                                            cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,hregister);
-                                            dec(i);
-                                         end;
+                                       cg.g_load_parent_framepointer(exprasmlist,symtable,hregister);
                                        location.reference.base:=hregister;
                                     end;
                                 end;
@@ -954,7 +939,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.73  2003-07-06 15:25:54  jonas
+  Revision 1.74  2003-07-06 17:58:22  peter
+    * framepointer fixes for sparc
+    * parent framepointer code more generic
+
+  Revision 1.73  2003/07/06 15:25:54  jonas
     * newra fix for threadvars
 
   Revision 1.72  2003/06/15 15:13:12  jonas

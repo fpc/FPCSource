@@ -181,6 +181,9 @@
       fpu_result_reg = R_ST;
       mmresultreg = R_MM0;
 
+      { Offset where the parent framepointer is pushed }
+      PARENT_FRAMEPOINTER_OFFSET = 8;
+
 {*****************************************************************************
                        GCC /ABI linking information
 *****************************************************************************}
@@ -205,7 +208,11 @@
 
 {
   $Log$
-  Revision 1.6  2003-06-03 13:01:59  daniel
+  Revision 1.7  2003-07-06 17:58:22  peter
+    * framepointer fixes for sparc
+    * parent framepointer code more generic
+
+  Revision 1.6  2003/06/03 13:01:59  daniel
     * Register allocator finished
 
   Revision 1.5  2003/05/31 15:05:28  peter

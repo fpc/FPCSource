@@ -74,6 +74,7 @@ interface
         procedure a_jmp_flags(list:TAasmOutput;const f:TResFlags;l:tasmlabel);override;
         procedure g_flags2reg(list:TAasmOutput;Size:TCgSize;const f:tresflags;reg:TRegister);override;
         procedure g_overflowCheck(List:TAasmOutput;const Loc:TLocation;def:TDef);override;
+        procedure g_save_parent_framepointer_param(list:taasmoutput);override;
         procedure g_stackframe_entry(list:TAasmOutput;localsize:LongInt);override;
         procedure g_restore_all_registers(list:TAasmOutput;accused,acchiused:boolean);override;
         procedure g_restore_frame_pointer(list:TAasmOutput);override;
@@ -637,10 +638,10 @@ implementation
                         end;
                     end
                   else
-                    list.concat(taicpu.op_reg_const_reg(A_ADD,ref.base,ref.offset,r));
+                    list.concat(taicpu.op_reg_const_reg(A_ADD,ref.base,aword(ref.offset),r));
                 end
               else
-                list.concat(taicpu.op_reg_const_reg(A_ADD,zeroreg,ref.offset,r));
+                list.concat(taicpu.op_reg_const_reg(A_ADD,zeroreg,aword(ref.offset),r));
             end
         else
         { Both base and index }
@@ -867,6 +868,19 @@ implementation
       end;
 
   { *********** entry/exit code and address loading ************ }
+
+    procedure tcgsparc.g_save_parent_framepointer_param(list:taasmoutput);
+      var
+        hreg : tregister;
+        href : treference;
+      begin
+        reference_reset_base(href,current_procinfo.framepointer,PARENT_FRAMEPOINTER_OFFSET);
+        { Parent framepointer is always pushed in o0 }
+        hreg.enum:=R_INTREGISTER;
+        hreg.number:=NR_O0;
+        a_load_reg_ref(list,OS_ADDR,OS_ADDR,hreg,href);
+      end;
+
 
     procedure TCgSparc.g_stackframe_entry(list:TAasmOutput;LocalSize:LongInt);
       var
@@ -1241,7 +1255,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.62  2003-07-03 21:09:53  peter
+  Revision 1.63  2003-07-06 17:58:22  peter
+    * framepointer fixes for sparc
+    * parent framepointer code more generic
+
+  Revision 1.62  2003/07/03 21:09:53  peter
     * delay slot NOPs and comments added
     * a_loadaddr_ref_reg fixed and optimized to reuse passed register
       if it is not used by the ref

@@ -1,8 +1,8 @@
-{******************************************************************************
+{
     $Id$
     Copyright (c) 1998-2002 by Florian Klaempfl
 
-    Generate SPARC assembler for in call nodes
+    Generate sparc assembler for in call nodes
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,51 +18,37 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
- ****************************************************************************}
+ ****************************************************************************
+}
 unit ncpucall;
-{$INCLUDE fpcdefs.inc}
+
+{$i fpcdefs.inc}
+
 interface
-uses
-  symdef,node,ncal,ncgcal;
-type
-  TSparcCallNode=class(TCgCallNode)
-    function pass_1:TNode;override;
-{Under SPARC, the frame pointer is automatically set by the SAVE instruction
-which is part of the stardrad calling mechanism. This function will do nothing.
-the frame pointer register is the stack pointer register of the caller, and is
-set when generating function prologue in cgcpu.tcgSPARC.g_stackframe_entry}
-    procedure push_framepointer;override;
-  end;
+
+    uses
+      ncgcal;
+
+    type
+       tsparccallnode = class(tcgcallnode)
+       end;
+
+
 implementation
-uses
-  systems,
-  cutils,verbose,
-  paramgr,
-  cgbase,
-  nmem,nld,ncnv,
-  cgobj,tgobj,rgobj,rgcpu,cgcpu,cpupi;
-function TSparcCallNode.pass_1:TNode;
-  begin
-    result:=inherited pass_1;
-    if assigned(result)
-    then
-      exit;
-    if ProcDefinition is TProcDef
-    then
-      with TProcDef(procdefinition).parast do
-        if datasize>TSparcProcInfo(current_procinfo).maxpushedparasize
-        then
-          TSparcProcInfo(current_procinfo).maxpushedparasize:=datasize;
-  end;
-procedure TSparcCallNode.push_framepointer;
-  begin
-  end;
+
+    uses
+      ncal;
+
 begin
-   ccallnode:=TSparcCallNode;
+  ccallnode:=TSparcCallNode;
 end.
 {
   $Log$
-  Revision 1.12  2003-06-13 21:19:32  peter
+  Revision 1.13  2003-07-06 17:58:22  peter
+    * framepointer fixes for sparc
+    * parent framepointer code more generic
+
+  Revision 1.12  2003/06/13 21:19:32  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.11  2003/04/28 09:49:58  mazen

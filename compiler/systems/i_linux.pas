@@ -403,8 +403,8 @@ unit i_linux;
                 localalignmin   : 0;
                 localalignmax   : 4;
                 paraalign       : 4;
-                recordalignmin  : 0;
-                recordalignmax  : 2;
+                recordalignmin  : 4;
+                recordalignmax  : 4;
                 maxCrecordalign : 4
               );
             first_parm_offset : (16+1)*4;
@@ -447,14 +447,18 @@ initialization
 {$endif CPUSPARC}
 {$ifdef CPUPOWERPC}
   {$ifdef linux}
-    set_source_info(system_powerpc_linux_info); 
+    set_source_info(system_powerpc_linux_info);
   {$endif linux}
 {$endif CPUPOWERPC}
 
 end.
 {
   $Log$
-  Revision 1.8  2003-05-31 18:14:06  jonas
+  Revision 1.9  2003-07-06 17:58:22  peter
+    * framepointer fixes for sparc
+    * parent framepointer code more generic
+
+  Revision 1.8  2003/05/31 18:14:06  jonas
     * add default system for ppc
 
   Revision 1.7  2003/05/19 12:15:28  florian

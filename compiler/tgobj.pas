@@ -157,9 +157,6 @@ unit tgobj;
 {$else powerpc}
        direction:=-1;
 {$endif powerpc}
-{$IFDEF SPARC}
-        Direction:=1;
-{$ENDIF SPARC}
      end;
 
 
@@ -554,7 +551,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.35  2003-06-03 13:01:59  daniel
+  Revision 1.36  2003-07-06 17:58:22  peter
+    * framepointer fixes for sparc
+    * parent framepointer code more generic
+
+  Revision 1.35  2003/06/03 13:01:59  daniel
     * Register allocator finished
 
   Revision 1.34  2003/05/17 13:30:08  jonas

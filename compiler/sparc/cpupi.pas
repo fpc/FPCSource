@@ -1,4 +1,4 @@
-{*****************************************************************************
+{
     $Id$
     Copyright (c) 2002 by Florian Klaempfl
 
@@ -18,11 +18,11 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
- ****************************************************************************}
-{ This unit contains the CPU specific part of tprocinfo. }
+ ****************************************************************************
+}
 unit cpupi;
 
-{$I fpcdefs.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -33,75 +33,64 @@ interface
 
   type
     TSparcProcInfo=class(tcgprocinfo)
-      { overall size of allocated stack space, currently this is used for the
-        PowerPC only }
-      LocalSize:aword;
-      {max of space need for parameters, currently used by the PowerPC port only}
-      maxpushedparasize:aword;
+    private
+      maxpushedparasize : longint;
+    public
       constructor create(aparent:tprocinfo);override;
-      { According the the SPARC ABI the standard stack frame must include :
-        *  16 word save for the in and local registers in case of overflow/underflow.
-           this save area always must exist at the %o6+0,
-        *  software conventions requires space for the aggregate return value pointer, even if the word is not used,
-        *  althogh the first six words of arguments reside in registers, the standard
-           stack frame reserves space for them. Arguments beond the sixth reside on the
-           stack as in the Intel architecture,
-        * other areas depend on the compiler and the code being compiled. The
-          standard calling sequence does not define a maximum stack frame size, nor does
-          it restrict how a language system uses the "unspecified" areas of the standard
-          stack frame.}
-      procedure after_header;override;
-      procedure after_pass1;override;
+      procedure allocate_push_parasize(size:longint);override;
+      function calc_stackframe_size:longint;override;
     end;
 
 implementation
-uses
-        tgobj,paramgr,symsym,systems;
 
-constructor TSparcprocinfo.create(aparent:tprocinfo);
-        begin
-                inherited create(aparent);
-                maxpushedparasize:=0;
-                LocalSize:=(16+1)*4;
-        {First 16 words are in the frame are used to save registers in case of a
-    register overflow/underflow.The 17th word is used to save the address of
-    the variable which will receive the return value of the called function}
-//    Return_Offset:=16*4;
-        end;
+    uses
+      globtype,systems,
+      tgobj,paramgr,symconst,symsym;
 
-    procedure TSparcprocinfo.after_header;
+    constructor tsparcprocinfo.create(aparent:tprocinfo);
       begin
-        { this value is necessary for nested procedures }
-        if assigned(procdef.localst) then
-          procdef.localst.address_fixup:=align(procdef.parast.address_fixup+procdef.parast.datasize,16);
+        inherited create(aparent);
+        maxpushedparasize:=0;
       end;
 
-procedure TSparcProcInfo.after_pass1;
-        begin
-    with ProcDef do
+
+    procedure tsparcprocinfo.allocate_push_parasize(size:longint);
       begin
-            {Reserve the stack for copying parameters passed into registers. By
-        default we reserve space for the 6 input registers if the function had
-        less parameters. Otherwise, we allocate data sizeof parameters}
-        if parast.datasize>6*4
-        then
-          localst.address_fixup:=parast.address_fixup+parast.datasize
-        else
-          procdef.localst.address_fixup:=parast.address_fixup+6*4;
-                    firsttemp_offset:=localst.address_fixup+localst.datasize;
-        with tg do
-          begin
-                        SetFirstTemp(firsttemp_offset);
-                        //LastTemp:=firsttemp_offset;
-          end;
+        if size>maxpushedparasize then
+          maxpushedparasize:=size;
       end;
-        end;
+
+
+    function TSparcProcInfo.calc_stackframe_size:longint;
+      var
+        savearea : longint;
+      begin
+        { ABI requires at least space to save 6 arguments }
+        savearea:=procdef.parast.address_fixup+max(maxpushedparasize,6*4);
+        {
+          Stackframe layout:
+          %fp
+            <locals>
+            <temp>
+            <arguments for calling>
+            <return pointer for calling>
+            <register window save area for calling>
+          %sp
+        }
+        result:=procdef.localst.datasize+tg.gettempsize+savearea;
+      end;
+
+
 begin
   cprocinfo:=TSparcProcInfo;
 end.
 {
   $Log$
-  Revision 1.17  2003-06-13 21:19:32  peter
+  Revision 1.18  2003-07-06 17:58:22  peter
+    * framepointer fixes for sparc
+    * parent framepointer code more generic
+
+  Revision 1.17  2003/06/13 21:19:32  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.16  2003/05/30 23:57:08  peter

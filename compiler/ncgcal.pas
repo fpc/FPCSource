@@ -90,9 +90,6 @@ implementation
 {$else cpu64bit}
       cg64f32,
 {$endif cpu64bit}
-{$ifdef powerpc}
-      cpupi,
-{$endif powerpc}
       ncgutil,cgobj,tgobj,regvars,rgobj,rgcpu;
 
 
@@ -370,12 +367,11 @@ implementation
       var
         href : treference;
         hregister : tregister;
-        i : integer;
       begin
         { this routine is itself not nested }
         if current_procinfo.procdef.parast.symtablelevel=(tprocdef(procdefinition).parast.symtablelevel) then
           begin
-            reference_reset_base(href,current_procinfo.framepointer,current_procinfo.framepointer_offset);
+            reference_reset_base(href,current_procinfo.framepointer,current_procinfo.parent_framepointer_offset);
             cg.a_param_ref(exprasmlist,OS_ADDR,href,paramanager.getintparaloc(exprasmlist,1));
           end
         { one nesting level }
@@ -384,18 +380,10 @@ implementation
             cg.a_param_reg(exprasmlist,OS_ADDR,current_procinfo.framepointer,paramanager.getintparaloc(exprasmlist,1));
           end
         { very complex nesting level ... }
-        else if (current_procinfo.procdef.parast.symtablelevel>(tprocdef(procdefinition).parast.symtablelevel)) then
+       else if (current_procinfo.procdef.parast.symtablelevel>(tprocdef(procdefinition).parast.symtablelevel)) then
           begin
             hregister:=rg.getaddressregister(exprasmlist);
-            reference_reset_base(href,current_procinfo.framepointer,current_procinfo.framepointer_offset);
-            cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,hregister);
-            i:=current_procinfo.procdef.parast.symtablelevel;
-            while (i>tprocdef(procdefinition).parast.symtablelevel) do
-              begin
-                reference_reset_base(href,hregister,current_procinfo.framepointer_offset);
-                cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,hregister);
-                dec(i);
-              end;
+            cg.g_load_parent_framepointer(exprasmlist,tprocdef(procdefinition).parast,hregister);
             cg.a_param_reg(exprasmlist,OS_ADDR,hregister,paramanager.getintparaloc(exprasmlist,1));
             rg.ungetaddressregister(exprasmlist,hregister);
           end;
@@ -1050,11 +1038,8 @@ implementation
          if pop_size>0 then
            pop_parasize(pop_size);
 
-{$ifdef powerpc}
-         { this calculation must be done in pass_1 anyway, so don't worry }
-         if tppcprocinfo(current_procinfo).maxpushedparasize<pushedparasize then
-           tppcprocinfo(current_procinfo).maxpushedparasize:=pushedparasize;
-{$endif powerpc}
+         { Reserve space for storing parameters that will be pushed }
+         current_procinfo.allocate_push_parasize(pushedparasize);
 
          { Restore }
          pushedparasize:=oldpushedparasize;
@@ -1252,9 +1237,6 @@ implementation
 {$endif extdebug}
            end;
 
-         { Calculate offsets }
-         current_procinfo.after_header;
-
          exprasmList.concat(Tai_Marker.Create(InlineStart));
 {$ifdef extdebug}
          exprasmList.concat(tai_comment.Create(strpnew('Start of inlined proc')));
@@ -1398,11 +1380,8 @@ implementation
          { process the inline code }
          secondpass(inlinecode);
 
-{$ifdef powerpc}
-         { this calculation must be done in pass_1 anyway, so don't worry }
-         if tppcprocinfo(current_procinfo).maxpushedparasize<pushedparasize then
-           tppcprocinfo(current_procinfo).maxpushedparasize:=pushedparasize;
-{$endif powerpc}
+         { Reserve space for storing parameters that will be pushed }
+         current_procinfo.allocate_push_parasize(pushedparasize);
 
          { Restore }
          pushedparasize:=oldpushedparasize;
@@ -1541,7 +1520,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.98  2003-07-06 15:31:20  daniel
+  Revision 1.99  2003-07-06 17:58:22  peter
+    * framepointer fixes for sparc
+    * parent framepointer code more generic
+
+  Revision 1.98  2003/07/06 15:31:20  daniel
     * Fixed register allocator. *Lots* of fixes.
 
   Revision 1.97  2003/07/05 20:21:26  jonas

@@ -785,9 +785,10 @@ type
       usableregsaddr = [];
       c_countusableregsaddr = 0;
 
-      firstsaveintreg = RS_G0; { L0..L7 are already saved, I0..O7 are parameter }
-      lastsaveintreg = RS_G7;
-      firstsavefpureg = R_F0;
+{$warning firstsaveintreg shall be RS_NO}
+      firstsaveintreg = RS_L0; { Temporary, having RS_NO is broken }
+      lastsaveintreg = RS_L0; { L0..L7 are already saved, I0..O7 are parameter }
+      firstsavefpureg = R_F2; { F0..F1 is used for return value }
       lastsavefpureg = R_F31;
       firstsavemmreg = R_NO;
       lastsavemmreg = R_NO;
@@ -933,6 +934,8 @@ type
       FPU_RESULT_REG = R_F0;
       mmresultreg = R_NO;
 
+      PARENT_FRAMEPOINTER_OFFSET = 68; { o0 }
+
 {*****************************************************************************
                        GCC /ABI linking information
 *****************************************************************************}
@@ -1051,7 +1054,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  2003-07-02 22:18:04  peter
+  Revision 1.45  2003-07-06 17:58:22  peter
+    * framepointer fixes for sparc
+    * parent framepointer code more generic
+
+  Revision 1.44  2003/07/02 22:18:04  peter
     * paraloc splitted in callerparaloc,calleeparaloc
     * sparc calling convention updates
 

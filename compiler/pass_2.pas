@@ -302,7 +302,7 @@ implementation
 //              cleanup_regvars(current_procinfo.aktexitcode);
 {$endif i386}
 
-              current_procinfo.allocate_framepointer;
+              current_procinfo.allocate_framepointer_reg;
 
               do_secondpass(p);
 
@@ -316,7 +316,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.60  2003-07-06 15:31:20  daniel
+  Revision 1.61  2003-07-06 17:58:22  peter
+    * framepointer fixes for sparc
+    * parent framepointer code more generic
+
+  Revision 1.60  2003/07/06 15:31:20  daniel
     * Fixed register allocator. *Lots* of fixes.
 
   Revision 1.59  2003/07/06 10:18:47  jonas

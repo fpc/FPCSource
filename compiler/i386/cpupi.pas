@@ -34,7 +34,7 @@ unit cpupi;
     type
        ti386procinfo = class(tcgprocinfo)
           procedure allocate_interrupt_parameter;override;
-          procedure allocate_framepointer;override;
+          procedure allocate_framepointer_reg;override;
        end;
 
 
@@ -52,7 +52,7 @@ unit cpupi;
       end;
 
 
-    procedure ti386procinfo.allocate_framepointer;
+    procedure ti386procinfo.allocate_framepointer_reg;
       begin
         if framepointer.number=NR_EBP then
           begin
@@ -69,7 +69,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2003-06-13 21:19:31  peter
+  Revision 1.9  2003-07-06 17:58:22  peter
+    * framepointer fixes for sparc
+    * parent framepointer code more generic
+
+  Revision 1.8  2003/06/13 21:19:31  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.7  2003/06/12 18:12:49  jonas

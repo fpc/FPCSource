@@ -77,7 +77,7 @@ unit cgbase;
              On the PowerPC, this is used to store the offset where the
              frame pointer from the outer procedure is stored.
           }
-          framepointer_offset : longint;
+          parent_framepointer_offset : longint;
           {# firsttemp position }
           firsttemp_offset : longint;
 
@@ -114,22 +114,20 @@ unit cgbase;
           constructor create(aparent:tprocinfo);virtual;
           destructor destroy;override;
 
-          procedure allocate_interrupt_parameter;virtual;
+          procedure allocate_parent_framepointer_parameter;virtual;
 
-          procedure allocate_implicit_parameter;virtual;
+          procedure allocate_interrupt_parameter;virtual;
 
           { Allocate framepointer so it can not be used by the
             register allocator }
-          procedure allocate_framepointer;virtual;
+          procedure allocate_framepointer_reg;virtual;
+
+          procedure allocate_push_parasize(size:longint);virtual;
+
+          function calc_stackframe_size:longint;virtual;
 
           { Does the necessary stuff before a procedure body is compiled }
           procedure handle_body_start;virtual;
-
-          { This is called by parser, after the header of a subroutine is parsed.
-            If the local symtable offset depends on the para symtable size, the
-            necessary stuff must be done here.
-          }
-          procedure after_header;virtual;
 
           { This procedure is called after the pass 1 of the subroutine body is done.
             Here the address fix ups to generate code for the body must be done.
@@ -319,7 +317,7 @@ implementation
       begin
         parent:=aparent;
         procdef:=nil;
-        framepointer_offset:=0;
+        parent_framepointer_offset:=0;
         firsttemp_offset:=0;
         flags:=[];
         framepointer.enum:=R_INTREGISTER;
@@ -340,13 +338,31 @@ implementation
       end;
 
 
+    procedure tprocinfo.allocate_parent_framepointer_parameter;
+      begin
+        parent_framepointer_offset:=procdef.parast.address_fixup;
+        inc(procdef.parast.address_fixup,POINTER_SIZE);
+      end;
+
+
     procedure tprocinfo.allocate_interrupt_parameter;
       begin
       end;
 
 
-    procedure tprocinfo.allocate_framepointer;
+    procedure tprocinfo.allocate_framepointer_reg;
       begin
+      end;
+
+
+    procedure tprocinfo.allocate_push_parasize(size:longint);
+      begin
+      end;
+
+
+    function tprocinfo.calc_stackframe_size:longint;
+      begin
+        result:=procdef.localst.datasize+tg.gettempsize;
       end;
 
 
@@ -392,22 +408,6 @@ implementation
                   end;
                 end;
            end;
-      end;
-
-
-    procedure tprocinfo.allocate_implicit_parameter;
-      begin
-         { Insert implicit parameters, will be removed in the future }
-         if (procdef.parast.symtablelevel>normal_function_level) then
-           begin
-              framepointer_offset:=procdef.parast.address_fixup;
-              inc(procdef.parast.address_fixup,POINTER_SIZE);
-           end;
-      end;
-
-
-    procedure tprocinfo.after_header;
-      begin
       end;
 
 
@@ -571,7 +571,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.56  2003-06-13 21:19:30  peter
+  Revision 1.57  2003-07-06 17:58:22  peter
+    * framepointer fixes for sparc
+    * parent framepointer code more generic
+
+  Revision 1.56  2003/06/13 21:19:30  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.55  2003/06/12 16:43:07  peter

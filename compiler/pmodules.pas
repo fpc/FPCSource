@@ -768,7 +768,7 @@ implementation
             internalerror(200304253);
         end;
         include(current_procinfo.flags,pi_do_call);
-        gen_stackalloc_code(list,0);
+        gen_stackalloc_code(list);
         gen_entry_code(list,false);
         gen_initialize_code(list,false);
         gen_finalize_code(list,false);
@@ -1312,12 +1312,6 @@ implementation
             pd:=create_main_proc('main',potype_proginit,st);
             pd.aliasnames.insert('PASCALMAIN');
           end;
-{$IFDEF SPARC}
-         current_procinfo.After_Header;
-{main function is declared as
-  PROCEDURE main(ArgC:Integer;ArgV,EnvP:ARRAY OF PChar):Integer;CDECL;
-So, all parameters are passerd into registers in sparc architecture.}
-{$ENDIF SPARC}
          tcgprocinfo(current_procinfo).parse_body;
          tcgprocinfo(current_procinfo).generate_code;
          tcgprocinfo(current_procinfo).resetprocdef;
@@ -1452,7 +1446,11 @@ So, all parameters are passerd into registers in sparc architecture.}
 end.
 {
   $Log$
-  Revision 1.114  2003-06-13 21:19:31  peter
+  Revision 1.115  2003-07-06 17:58:22  peter
+    * framepointer fixes for sparc
+    * parent framepointer code more generic
+
+  Revision 1.114  2003/06/13 21:19:31  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.113  2003/06/09 12:23:30  peter

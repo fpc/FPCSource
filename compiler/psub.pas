@@ -654,7 +654,7 @@ implementation
           end;
 
         stackalloccode:=Taasmoutput.create;
-        gen_stackalloc_code(stackalloccode,0);
+        gen_stackalloc_code(stackalloccode);
         stackalloccode.convert_registers;
         aktproccode.insertlist(stackalloccode);
         stackalloccode.destroy;
@@ -1076,14 +1076,12 @@ implementation
                pd.parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}check_init_paras,nil);
 
              { Update parameter information }
-             current_procinfo.allocate_implicit_parameter;
+             if (current_procinfo.procdef.parast.symtablelevel>normal_function_level) then
+               current_procinfo.allocate_parent_framepointer_parameter;
 
              { add implicit pushes for interrupt routines }
              if (po_interrupt in pd.procoptions) then
                current_procinfo.allocate_interrupt_parameter;
-
-             { Calculate offsets }
-             current_procinfo.after_header;
 
              { set _FAIL as keyword if constructor }
              if (pd.proctypeoption=potype_constructor) then
@@ -1254,7 +1252,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.131  2003-07-06 15:31:21  daniel
+  Revision 1.132  2003-07-06 17:58:22  peter
+    * framepointer fixes for sparc
+    * parent framepointer code more generic
+
+  Revision 1.131  2003/07/06 15:31:21  daniel
     * Fixed register allocator. *Lots* of fixes.
 
   Revision 1.130  2003/07/05 20:15:24  jonas

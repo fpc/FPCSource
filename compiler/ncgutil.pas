@@ -68,7 +68,7 @@ interface
     procedure gen_finalize_code(list : TAAsmoutput;inlined:boolean);
 
     procedure gen_entry_code(list:TAAsmoutput;inlined:boolean);
-    procedure gen_stackalloc_code(list:Taasmoutput;stackframe:longint);
+    procedure gen_stackalloc_code(list:Taasmoutput);
     procedure gen_exit_code(list:Taasmoutput;inlined:boolean);
 
 (*
@@ -1567,32 +1567,34 @@ implementation
           code, since temp. allocation might occur before - carl
         }
 
-        if assigned(current_procinfo.procdef.parast) then
+        if assigned(current_procinfo.procdef.parast) and
+           not (po_assembler in current_procinfo.procdef.procoptions) then
           begin
-             if not (po_assembler in current_procinfo.procdef.procoptions) then
-               begin
-                 { move register parameters which aren't regable into memory                               }
-                 { we do this before init_paras because that one calls routines which may overwrite these  }
-                 { registers and it also expects the values to be in memory                                }
-                 hp:=tparaitem(current_procinfo.procdef.para.first);
-                 while assigned(hp) do
-                   begin
-                     if Tvarsym(hp.parasym).reg.enum>R_INTREGISTER then
-                       internalerror(200301081);
-                     if (tvarsym(hp.parasym).reg.enum<>R_NO) then
-                       begin
-                         cg.a_load_param_reg(list,hp.calleeparaloc,tvarsym(hp.parasym).reg);
-                       end
-                     else if (hp.calleeparaloc.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER,
-                                                 LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMREGISTER]) and
-                             (tvarsym(hp.parasym).reg.enum=R_NO) then
-                       begin
-                         reference_reset_base(href,current_procinfo.framepointer,tvarsym(hp.parasym).adjusted_address);
-                         cg.a_load_param_ref(list,hp.calleeparaloc,href);
-                       end;
-                     hp:=tparaitem(hp.next);
-                   end;
-               end;
+            { save framepointer in memory }
+            if current_procinfo.procdef.parast.symtablelevel>normal_function_level then
+              cg.g_save_parent_framepointer_param(list);
+
+            { move register parameters which aren't regable into memory                               }
+            { we do this before init_paras because that one calls routines which may overwrite these  }
+            { registers and it also expects the values to be in memory                                }
+            hp:=tparaitem(current_procinfo.procdef.para.first);
+            while assigned(hp) do
+              begin
+                if Tvarsym(hp.parasym).reg.enum>R_INTREGISTER then
+                  internalerror(200301081);
+                if (tvarsym(hp.parasym).reg.enum<>R_NO) then
+                  begin
+                    cg.a_load_param_reg(list,hp.calleeparaloc,tvarsym(hp.parasym).reg);
+                  end
+                else if (hp.calleeparaloc.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER,
+                                            LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMREGISTER]) and
+                        (tvarsym(hp.parasym).reg.enum=R_NO) then
+                  begin
+                    reference_reset_base(href,current_procinfo.framepointer,tvarsym(hp.parasym).adjusted_address);
+                    cg.a_load_param_ref(list,hp.calleeparaloc,href);
+                  end;
+                hp:=tparaitem(hp.next);
+              end;
           end;
 
         { for the save all registers we can simply use a pusha,popa which
@@ -1618,76 +1620,73 @@ implementation
       end;
 
 
-    procedure gen_stackalloc_code(list:Taasmoutput;stackframe:longint);
-
-    var hs:string;
-
-    begin
-      {************************* Stack allocation **************************}
-      { and symbol entry point as well as debug information                 }
-      { will be inserted in front of the rest of this list.                 }
-      { Insert alignment and assembler names }
-      { Align, gprof uses 16 byte granularity }
-      if (cs_profile in aktmoduleswitches) then
-        list.concat(Tai_align.create(16))
-      else
-        list.concat(Tai_align.create(aktalignment.procalign));
-
-{$ifdef GDB}
-      if (cs_debuginfo in aktmoduleswitches) then
-        begin
-          if (po_public in current_procinfo.procdef.procoptions) then
-            Tprocsym(current_procinfo.procdef.procsym).is_global:=true;
-          current_procinfo.procdef.concatstabto(list);
-          Tprocsym(current_procinfo.procdef.procsym).isstabwritten:=true;
-        end;
-{$endif GDB}
-
-      repeat
-        hs:=current_procinfo.procdef.aliasnames.getfirst;
-        if hs='' then
-          break;
-{$ifdef GDB}
-        if (cs_debuginfo in aktmoduleswitches) and
-           target_info.use_function_relative_addresses then
-        list.concat(Tai_stab_function_name.create(strpnew(hs)));
-{$endif GDB}
-        if (cs_profile in aktmoduleswitches) or
-           (po_public in current_procinfo.procdef.procoptions) then
-          list.concat(Tai_symbol.createname_global(hs,0))
+    procedure gen_stackalloc_code(list:Taasmoutput);
+      var
+        hs : string;
+        stackframe : longint;
+      begin
+        {************************* Stack allocation **************************}
+        { and symbol entry point as well as debug information                 }
+        { will be inserted in front of the rest of this list.                 }
+        { Insert alignment and assembler names }
+        { Align, gprof uses 16 byte granularity }
+        if (cs_profile in aktmoduleswitches) then
+          list.concat(Tai_align.create(16))
         else
-          list.concat(Tai_symbol.createname(hs,0));
-      until false;
+          list.concat(Tai_align.create(aktalignment.procalign));
 
-      stackframe:=stackframe+tg.gettempsize;
-{$ifndef m68k}
-          { give a warning if the limit of local variables is reached }
-      if stackframe>maxlocalsize then
-        message(cg_w_localsize_too_big);
-{$endif}
+{$ifdef GDB}
+        if (cs_debuginfo in aktmoduleswitches) then
+          begin
+            if (po_public in current_procinfo.procdef.procoptions) then
+              Tprocsym(current_procinfo.procdef.procsym).is_global:=true;
+            current_procinfo.procdef.concatstabto(list);
+            Tprocsym(current_procinfo.procdef.procsym).isstabwritten:=true;
+          end;
+{$endif GDB}
+
+        repeat
+          hs:=current_procinfo.procdef.aliasnames.getfirst;
+          if hs='' then
+            break;
+{$ifdef GDB}
+          if (cs_debuginfo in aktmoduleswitches) and
+             target_info.use_function_relative_addresses then
+          list.concat(Tai_stab_function_name.create(strpnew(hs)));
+{$endif GDB}
+          if (cs_profile in aktmoduleswitches) or
+             (po_public in current_procinfo.procdef.procoptions) then
+            list.concat(Tai_symbol.createname_global(hs,0))
+          else
+            list.concat(Tai_symbol.createname(hs,0));
+        until false;
+
+        { Calculate size of stackframe }
+        stackframe:=current_procinfo.calc_stackframe_size;
+
 {$ifndef powerpc}
-      { at least for the ppc this applies always, so this code isn't usable (FK) }
-      { omit stack frame ? }
-      if (current_procinfo.framepointer.number=NR_STACK_POINTER_REG) then
-        begin
-          CGmessage(cg_d_stackframe_omited);
-          if stackframe<>0 then
-            cg.g_stackpointer_alloc(list,stackframe);
-        end
-      else
+        { at least for the ppc this applies always, so this code isn't usable (FK) }
+        { omit stack frame ? }
+        if (current_procinfo.framepointer.number=NR_STACK_POINTER_REG) then
+          begin
+            CGmessage(cg_d_stackframe_omited);
+            if stackframe<>0 then
+              cg.g_stackpointer_alloc(list,stackframe);
+          end
+        else
 {$endif powerpc}
-        begin
-          if (po_interrupt in current_procinfo.procdef.procoptions) then
-            cg.g_interrupt_stackframe_entry(list);
+          begin
+            if (po_interrupt in current_procinfo.procdef.procoptions) then
+              cg.g_interrupt_stackframe_entry(list);
 
-          cg.g_stackframe_entry(list,stackframe);
+            cg.g_stackframe_entry(list,stackframe);
 
-          {Never call stack checking before the standard system unit
-           has been initialized.}
-           if (cs_check_stack in aktlocalswitches) and (current_procinfo.procdef.proctypeoption<>potype_proginit) then
-             cg.g_stackcheck(list,stackframe);
-        end;
-    end;
+            {Never call stack checking before the standard system unit
+             has been initialized.}
+             if (cs_check_stack in aktlocalswitches) and (current_procinfo.procdef.proctypeoption<>potype_proginit) then
+               cg.g_stackcheck(list,stackframe);
+          end;
+      end;
 
 
     procedure gen_exit_code(list : TAAsmoutput;inlined:boolean);
@@ -1789,7 +1788,7 @@ implementation
                 (current_procinfo.procdef.parast.symtablelevel>normal_function_level) then
               list.concat(Tai_stabs.Create(strpnew(
                '"parent_ebp:'+tstoreddef(voidpointertype.def).numberstring+'",'+
-               tostr(N_LSYM)+',0,0,'+tostr(current_procinfo.framepointer_offset))));
+               tostr(N_LSYM)+',0,0,'+tostr(current_procinfo.parent_framepointer_offset))));
 
             if (not is_void(current_procinfo.procdef.rettype.def)) then
               begin
@@ -1988,7 +1987,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.129  2003-07-06 15:31:20  daniel
+  Revision 1.130  2003-07-06 17:58:22  peter
+    * framepointer fixes for sparc
+    * parent framepointer code more generic
+
+  Revision 1.129  2003/07/06 15:31:20  daniel
     * Fixed register allocator. *Lots* of fixes.
 
   Revision 1.128  2003/07/02 22:18:04  peter
