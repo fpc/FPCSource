@@ -30,10 +30,9 @@ interface
     uses aasm,assemble;
 
     type
-      pi386nasmasmlist=^ti386nasmasmlist;
-      ti386nasmasmlist = object(tasmlist)
-        procedure WriteTree(p:taasmoutput);virtual;
-        procedure WriteAsmList;virtual;
+      T386NasmAssembler = class(texternalassembler)
+        procedure WriteTree(p:taasmoutput);override;
+        procedure WriteAsmList;override;
         procedure WriteExternals;
       end;
 
@@ -305,7 +304,7 @@ interface
 
 
 {****************************************************************************
-                               Ti386nasmasmlist
+                               T386NasmAssembler
  ****************************************************************************}
 
     var
@@ -335,7 +334,7 @@ interface
     end;
 
 
-    procedure ti386nasmasmlist.WriteTree(p:taasmoutput);
+    procedure T386NasmAssembler.WriteTree(p:taasmoutput);
     const
       allocstr : array[boolean] of string[10]=(' released',' allocated');
       nolinetai =[ait_label,
@@ -715,22 +714,22 @@ interface
 
 
     var
-      currentasmlist : PAsmList;
+      currentasmlist : TExternalAssembler;
 
     procedure writeexternal(p:pnamedindexobject);
       begin
         if pasmsymbol(p)^.defbind=AB_EXTERNAL then
-         currentasmlist^.AsmWriteln('EXTERN'#9+p^.name);
+         currentasmlist.AsmWriteln('EXTERN'#9+p^.name);
       end;
 
-    procedure ti386nasmasmlist.WriteExternals;
+    procedure T386NasmAssembler.WriteExternals;
       begin
-        currentasmlist:=@self;
+        currentasmlist:=self;
         AsmSymbolList^.foreach({$ifdef fpcprocvar}@{$endif}writeexternal);
       end;
 
 
-    procedure ti386nasmasmlist.WriteAsmList;
+    procedure T386NasmAssembler.WriteAsmList;
     begin
 {$ifdef EXTDEBUG}
       if assigned(current_module.mainsource) then
@@ -774,7 +773,10 @@ interface
 end.
 {
   $Log$
-  Revision 1.5  2001-02-20 21:36:39  peter
+  Revision 1.6  2001-03-05 21:39:11  peter
+    * changed to class with common TAssembler also for internal assembler
+
+  Revision 1.5  2001/02/20 21:36:39  peter
     * tasm/masm fixes merged
 
   Revision 1.4  2001/01/13 20:24:24  peter

@@ -29,10 +29,9 @@ interface
     uses aasm,assemble;
 
     type
-      pi386intasmlist=^ti386intasmlist;
-      ti386intasmlist = object(tasmlist)
-        procedure WriteTree(p:TAAsmoutput);virtual;
-        procedure WriteAsmList;virtual;
+      T386IntelAssembler = class(TExternalAssembler)
+        procedure WriteTree(p:TAAsmoutput);override;
+        procedure WriteAsmList;override;
         procedure WriteExternals;
       end;
 
@@ -291,7 +290,7 @@ interface
 
 
 {****************************************************************************
-                               TI386INTASMLIST
+                               T386IntelAssembler
  ****************************************************************************}
 
     var
@@ -323,7 +322,7 @@ interface
        PadTabs:=s+#9;
     end;
 
-    procedure ti386intasmlist.WriteTree(p:TAAsmoutput);
+    procedure T386IntelAssembler.WriteTree(p:TAAsmoutput);
     const
       allocstr : array[boolean] of string[10]=(' released',' allocated');
     var
@@ -675,28 +674,28 @@ ait_stab_function_name : ;
     end;
 
     var
-      currentasmlist : PAsmList;
+      currentasmlist : TExternalAssembler;
 
     procedure writeexternal(p:pnamedindexobject);
       begin
         if pasmsymbol(p)^.defbind=AB_EXTERNAL then
           begin
             if (aktoutputformat = as_i386_masm) then
-              currentasmlist^.AsmWriteln(#9'EXTRN'#9+p^.name
+              currentasmlist.AsmWriteln(#9'EXTRN'#9+p^.name
                 +': NEAR')
             else
-              currentasmlist^.AsmWriteln(#9'EXTRN'#9+p^.name);
+              currentasmlist.AsmWriteln(#9'EXTRN'#9+p^.name);
           end;
       end;
 
-    procedure ti386intasmlist.WriteExternals;
+    procedure T386IntelAssembler.WriteExternals;
       begin
-        currentasmlist:=@self;
+        currentasmlist:=self;
         AsmSymbolList^.foreach({$ifdef fpcprocvar}@{$endif}writeexternal);
       end;
 
 
-    procedure ti386intasmlist.WriteAsmList;
+    procedure T386IntelAssembler.WriteAsmList;
     begin
 {$ifdef EXTDEBUG}
       if assigned(current_module.mainsource) then
@@ -740,7 +739,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.6  2001-02-20 21:36:39  peter
+  Revision 1.7  2001-03-05 21:39:11  peter
+    * changed to class with common TAssembler also for internal assembler
+
+  Revision 1.6  2001/02/20 21:36:39  peter
     * tasm/masm fixes merged
 
   Revision 1.5  2001/01/13 20:24:24  peter

@@ -38,11 +38,10 @@ interface
     type
       togtype=(og_none,og_dbg,og_coff,og_pecoff,og_elf);
 
-      pi386binasmlist=^ti386binasmlist;
-      ti386binasmlist=object
-        SmartAsm : boolean;
-        constructor init(t:togtype;smart:boolean);
-        destructor  done;
+      TInternalAssembler=class(TAssembler)
+      public
+        constructor create(t:togtype;smart:boolean);
+        destructor  destroy;override;
         procedure WriteBin;
       private
         { the aasmoutput lists that need to be processed }
@@ -73,7 +72,7 @@ interface
         procedure writetreesmart;
       end;
 
-  implementation
+implementation
 
     uses
 {$ifdef delphi}
@@ -93,7 +92,7 @@ interface
 
 {$ifdef GDB}
 
-    procedure ti386binasmlist.convertstabs(p:pchar);
+    procedure TInternalAssembler.convertstabs(p:pchar);
       var
         ofs,
         nidx,nother,ii,i,line,j : longint;
@@ -236,7 +235,7 @@ interface
       end;
 
 
-    procedure ti386binasmlist.emitlineinfostabs(nidx,line : longint);
+    procedure TInternalAssembler.emitlineinfostabs(nidx,line : longint);
       var
          sec : tsection;
       begin
@@ -264,14 +263,14 @@ interface
       end;
 
 
-    procedure ti386binasmlist.emitstabs(s:string);
+    procedure TInternalAssembler.emitstabs(s:string);
       begin
         s:=s+#0;
         ConvertStabs(@s[1]);
       end;
 
 
-    procedure ti386binasmlist.WriteFileLineInfo(var fileinfo : tfileposinfo);
+    procedure TInternalAssembler.WriteFileLineInfo(var fileinfo : tfileposinfo);
       var
         curr_n : byte;
         hp : pasmsymbol;
@@ -313,7 +312,7 @@ interface
       end;
 
 
-    procedure ti386binasmlist.StartFileLineInfo;
+    procedure TInternalAssembler.StartFileLineInfo;
       var
         fileinfo : tfileposinfo;
       begin
@@ -328,7 +327,7 @@ interface
       end;
 
 
-    procedure ti386binasmlist.EndFileLineInfo;
+    procedure TInternalAssembler.EndFileLineInfo;
       var
         hp : pasmsymbol;
         store_sec : tsection;
@@ -352,7 +351,7 @@ interface
 {$endif GDB}
 
 
-    function ti386binasmlist.MaybeNextList(var hp:Tai):boolean;
+    function TInternalAssembler.MaybeNextList(var hp:Tai):boolean;
       begin
         { maybe end of list }
         while not assigned(hp) do
@@ -373,7 +372,7 @@ interface
       end;
 
 
-    function ti386binasmlist.TreePass0(hp:Tai):Tai;
+    function TInternalAssembler.TreePass0(hp:Tai):Tai;
       var
         l : longint;
       begin
@@ -452,7 +451,7 @@ interface
       end;
 
 
-    function ti386binasmlist.TreePass1(hp:Tai):Tai;
+    function TInternalAssembler.TreePass1(hp:Tai):Tai;
       var
         i,l : longint;
       begin
@@ -623,7 +622,7 @@ interface
       end;
 
 
-    function ti386binasmlist.TreePass2(hp:Tai):Tai;
+    function TInternalAssembler.TreePass2(hp:Tai):Tai;
       var
         l  : longint;
 {$ifdef I386}
@@ -744,7 +743,7 @@ interface
       end;
 
 
-    procedure ti386binasmlist.writetree;
+    procedure TInternalAssembler.writetree;
       var
         hp : Tai;
       label
@@ -753,7 +752,8 @@ interface
         objectalloc.resetsections;
         objectalloc.setsection(sec_code);
 
-        objectdata:=objectoutput.initwriting(cut_normal);
+        objectoutput.initwriting(ObjFile);
+        objectdata:=objectoutput.data;
         objectdata.defaultsection(sec_code);
       { reset the asmsymbol list }
         CreateUsedAsmsymbolList;
@@ -838,7 +838,7 @@ interface
       end;
 
 
-    procedure ti386binasmlist.writetreesmart;
+    procedure TInternalAssembler.writetreesmart;
       var
         hp : Tai;
         startsec : tsection;
@@ -847,7 +847,9 @@ interface
         objectalloc.resetsections;
         objectalloc.setsection(sec_code);
 
-        objectdata:=objectoutput.initwriting(cut_normal);
+        NextSmartName(cut_normal);
+        objectoutput.initwriting(ObjFile);
+        objectdata:=objectoutput.data;
         objectdata.defaultsection(sec_code);
         startsec:=sec_code;
 
@@ -940,7 +942,9 @@ interface
               hp:=Tai(hp.next);
             end;
 
-           objectdata:=objectoutput.initwriting(place);
+           NextSmartName(place);
+           objectoutput.initwriting(ObjFile);
+           objectdata:=objectoutput.data;
 
            hp:=Tai(hp.next);
 
@@ -954,7 +958,7 @@ interface
       end;
 
 
-    procedure ti386binasmlist.writebin;
+    procedure TInternalAssembler.writebin;
 
         procedure addlist(p:TAAsmoutput);
         begin
@@ -987,17 +991,18 @@ interface
       end;
 
 
-    constructor ti386binasmlist.init(t:togtype;smart:boolean);
+    constructor TInternalAssembler.create(t:togtype;smart:boolean);
       begin
+        inherited create(smart);
         case t of
           og_none :
             Message(asmw_f_no_binary_writer_selected);
           og_coff :
-            objectoutput:=tcoffoutput.createdjgpp(smart);
+            objectoutput:=tcoffobjectoutput.createdjgpp(smart);
           og_pecoff :
-            objectoutput:=tcoffoutput.createwin32(smart);
+            objectoutput:=tcoffobjectoutput.createwin32(smart);
           og_elf :
-            objectoutput:=telf32output.create(smart);
+            objectoutput:=telf32objectoutput.create(smart);
           else
             internalerror(43243432);
         end;
@@ -1007,7 +1012,7 @@ interface
       end;
 
 
-   destructor ti386binasmlist.done;
+   destructor TInternalAssembler.destroy;
 {$ifdef MEMDEBUG}
       var
         d : tmemdebug;
@@ -1026,7 +1031,10 @@ interface
 end.
 {
   $Log$
-  Revision 1.4  2000-12-25 00:07:31  peter
+  Revision 1.5  2001-03-05 21:39:11  peter
+    * changed to class with common TAssembler also for internal assembler
+
+  Revision 1.4  2000/12/25 00:07:31  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

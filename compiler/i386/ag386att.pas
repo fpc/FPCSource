@@ -32,10 +32,9 @@ interface
       aasm,assemble;
 
     type
-      pi386attasmlist=^ti386attasmlist;
-      ti386attasmlist=object(tasmlist)
-        procedure WriteTree(p:TAAsmoutput);virtual;
-        procedure WriteAsmList;virtual;
+      T386ATTAssembler=class(texternalassembler)
+        procedure WriteTree(p:TAAsmoutput);override;
+        procedure WriteAsmList;override;
 {$ifdef GDB}
         procedure WriteFileLineInfo(var fileinfo : tfileposinfo);
         procedure WriteFileEndInfo;
@@ -291,7 +290,7 @@ interface
 
 
 {$ifdef GDB}
-      procedure ti386attasmlist.WriteFileLineInfo(var fileinfo : tfileposinfo);
+      procedure T386ATTAssembler.WriteFileLineInfo(var fileinfo : tfileposinfo);
         var
           curr_n : byte;
         begin
@@ -339,7 +338,7 @@ interface
           stabslastfileinfo:=fileinfo;
         end;
 
-      procedure ti386attasmlist.WriteFileEndInfo;
+      procedure T386ATTAssembler.WriteFileEndInfo;
 
         begin
           if not ((cs_debuginfo in aktmoduleswitches) or
@@ -354,7 +353,7 @@ interface
 {$endif GDB}
 
 
-    procedure ti386attasmlist.WriteTree(p:TAAsmoutput);
+    procedure T386ATTAssembler.WriteTree(p:TAAsmoutput);
     const
       allocstr : array[boolean] of string[10]=(' released',' allocated');
       nolinetai =[ait_label,
@@ -816,7 +815,7 @@ interface
     end;
 
 
-    procedure ti386attasmlist.WriteAsmList;
+    procedure T386ATTAssembler.WriteAsmList;
     var
       p:dirstr;
       n:namestr;
@@ -893,7 +892,10 @@ interface
 end.
 {
   $Log$
-  Revision 1.3  2001-01-13 20:24:24  peter
+  Revision 1.4  2001-03-05 21:39:11  peter
+    * changed to class with common TAssembler also for internal assembler
+
+  Revision 1.3  2001/01/13 20:24:24  peter
     * fixed operand order that got mixed up for external writers after
       my previous assembler block valid instruction check
 
