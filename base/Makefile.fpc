@@ -6,42 +6,124 @@
 dirs=compiler rtl utils fcl api fv packages ide
 
 [defaults]
-defaultrule=info
+defaultrule=help
 
-[dirs]
-fpcdir=$(BASEDIR)
+[tools]
+toolzip=1
+toolupx=1
+tooldate=1
 
 [sections]
 none=1
 dirs=1
 tools=1
 exts=1
+clean=1
 zipinstall=1
 
-[postsettings]
-export RELEASE=1
+
+[presettings]
+OLDFPCDIR:=$(FPCDIR)
+
+checkfpcdir:
+ifdef OLDFPCDIR
+ifneq ($(OLDFPCDIR),)
+FPCDIRSET=fpcdirset
+fpcdirset:
+        @echo ---------------------------------------------------------
+        @echo
+        @echo   You must unset FPCDIR to use this the packaging rules.
+        @echo
+        @echo ---------------------------------------------------------
+        @cantcontinuewithfpcdir
+endif
+endif
+
+# Check if install/ subdir is available
+ifneq ($(wildcard install),)
+CVSINSTALL=install
+else
+CVSINSTALL=.
+endif
+
+# All target
+ifdef SNAPSHOT
+ALLTARGET=all
+else
+ifndef ALLTARGET
+ifeq ($(OS_TARGET),win32)
+ALLTARGET=smart
+else
+ifeq ($(OS_TARGET),go32v2)
+ALLTARGET=smart
+else
+ALLTARGET=all
+endif
+endif
+endif
+endif
+
+# Prefix for units
+ifeq ($(OS_TARGET),linux)
+PKGPRE=units
+else
+PKGPRE=u
+endif
+
+# Test dir if none specified
+ifndef PREFIXINSTALLDIR
+ifdef inlinux
+PREFIXINSTALLDIR=/tmp/pptest
+else
+PREFIXINSTALLDIR=/pptest
+endif
+endif
+
+# Always compile for release
+override RELEASE=1
+export RELEASE
+
+# Temporary path to pack a file
+BASEPACKDIR=$(BASEDIR)/basepack
+
+# Use new ppc386
+PPNEW=$(BASEDIR)/compiler/ppc386$(EXEEXT)
+
+# Don't use ppufiles for win32 becuase of commandline length problems
+ifneq ($(OS_TARGET),win32)
+PPUFILESNEW=$(BASEDIR)/utils/ppufiles$(EXEEXT)
+endif
+
+# Build/install options
+BUILDOPTS=FPC=$(PPNEW) RELEASE=1
+INSTALLOPTS=FPC=$(PPNEW) ZIPDESTDIR=$(BASEDIR)
+ifdef PPUFILESNEW
+override INSTALLOPT+=PPUFILES=$(PPUFILESNEW)
+endif
 
 
 [rules]
+# These values can change
+unexport FPC_VERSION OS_SOURCE
+
 #####################################################################
 # Main targets
 #####################################################################
 
-.PHONY: compiler_cycle \
-        idezips ide_allzip ide_gdbzip ide_fullzip ide_fullgdbzip \
-        fclzip gtkzip fvzip compilerzip utilszip
-
-info:
+.PHONY: help checkfpcdir
+	
+help:
+	@echo
+	@echo Directory targets:
+	@echo
+	@echo $(DIROBJECTS)
         @echo
-        @echo Please use one of the following targets:
+        @echo Packing targets are:
         @echo
-        @echo $(DIROBJECTS)
+        @echo go32v2zip,win32zip,linuxzip,sourcezip
         @echo
-        @echo All targets can follow after a _ with:
-        @echo all,clean,install,staticinstall,sharedinstall
-        @echo
-        @echo example: make api_staticinstall
         @exit
+
 
 #####################################################################
 # Dependencies
@@ -51,6 +133,8 @@ info:
 # Compiler
 #######################################
 
+.PHONY: compiler_cycle
+
 compiler_cycle:
         $(MAKE) -C compiler cycle
 
@@ -58,13 +142,12 @@ compiler_cycle:
 # IDE
 #######################################
 
-ide_gdb:
-        $(MAKE) -C ide gdb
+.PHONY: ide_comp ide_full
 
-ide_full:
+ide_comp:
         $(MAKE) -C ide full
 
-ide_fullgdb:
+ide_full:
         $(MAKE) -C ide fullgdb
 
 
@@ -73,13 +156,13 @@ ide_fullgdb:
 #######################################
 
 demo_install:
-        $(MAKE) -C demo installexamples
+        $(MAKE) -C $(CVSINSTALL)/demo installexamples
 
 man_install:
-        $(MAKE) -C man installman
+        $(MAKE) -C $(CVSINSTALL)/man installman
 
 doc_install:
-        $(MAKE) -C doc installdoc
+        $(MAKE) -C $(CVSINSTALL)/doc installdoc
 
 
 #######################################
@@ -110,29 +193,253 @@ ide_fullgdbzip:
         $(MAKE) ide_fullgdb
         $(MAKE) -C ide/text zipinstall ZIPNAME=ide-full-$(PACKAGESUFFIX)
 
-fvzip: rtl_clean
-        $(MAKE) api_clean
-        $(MAKE) fv_clean
-        $(MAKE) fv_all
-        $(MAKE) zipinstall ZIPTARGET='api_install fv_install' ZIPNAME=fv-$(PACKAGESUFFIX)
 
-gtkzip: rtl_clean
-        $(MAKE) -C packages gtk_clean
-        $(MAKE) -C packages gtk_all
-        $(MAKE) -C packages gtk_zipinstall ZIPNAME=gtk-$(PACKAGESUFFIX)
+##########################################################################
+# Install
+##########################################################################
 
-compilerzip: compiler_clean rtl_clean
-        $(MAKE) rtl_all
-        $(MAKE) compiler_all
+.PHONY: installer
+
+INSTALLERBUILDDIR=fpinst
+
+installer:
+        $(COPYTREE) $(CVSINSTALL)/fpinst $(INSTALLERBUILDDIR)
+        $(MAKE) -C $(INSTALLERBUILDDIR) all RELEASE=1
+        $(MOVE) $(INSTALLERBUILDDIR)/install.exe .
+ifdef UPXPROG
+        -$(UPXPROG) install.exe
+endif
+        $(DELTREE) $(INSTALLERBUILDDIR)
+
+installersrc:
+        $(COPYTREE) fpinst $(INSTALLERBUILDDIR)
+        $(MAKE) -C $(INSTALLERBUILDDIR) zipsourceinstall
+        $(DELTREE) $(INSTALLERBUILDDIR)
+
+
+##########################################################################
+# Packaging
+##########################################################################
+
+.PHONY: all clean build installbase zipinstall zipinstallbase zipinstallfcl \
+        zipinstallpackages
+
+export RELEASE DESTZIPDIR
+
+all: build
+
+clean: $(addsuffix _distclean,$(DIROBJECTS))
+	$(DEL) build-stamp
+
+distclean: clean
+
+
+build: build-stamp
+build-stamp:
+# create new compiler
+        $(MAKE) compiler_cycle
+# clean
         $(MAKE) rtl_clean
-        $(MAKE) rtl_all FPC=$(BASEDIR)/compiler/ppc386
-        $(MAKE) zipinstall ZIPTARGET='compiler_install rtl_install' ZIPNAME=compiler-$(PACKAGESUFFIX)
+        $(MAKE) api_clean
+        $(MAKE) fcl_clean
+        $(MAKE) packages_clean
+        $(MAKE) utils_clean
+# build everything
+        $(MAKE) rtl_$(ALLTARGET) $(BUILDOPTS)
+        $(MAKE) api_$(ALLTARGET) $(BUILDOPTS)
+        $(MAKE) fcl_$(ALLTARGET) $(BUILDOPTS)
+        $(MAKE) packages_$(ALLTARGET) $(BUILDOPTS)
+        $(MAKE) utils_all $(BUILDOPTS)
 
-fclzip: rtl_clean fcl_clean
-        $(MAKE) fcl_all
-        $(MAKE) fcl_zipinstall ZIPNAME=fcl-$(PACKAGESUFFIX)
+        $(ECHO) Build > build-stamp
 
-utilszip: utils_clean rtl_clean fcl_clean
-        $(MAKE) utils_all
-        $(MAKE) utils_zipinstall ZIPNAME=utils-$(PACKAGESUFFIX)
+installbase: build-stamp
+# create dirs
+        $(MKDIR) $(BASEINSTALLDIR)
+        $(MKDIR) $(DOCINSTALLDIR)
+        $(MKDIR) $(BININSTALLDIR)
+# readme & whatsnew and docs
+        $(COPY) $(CVSINSTALL)/doc/*.txt $(CVSINSTALL)/doc/copying* $(CVSINSTALL)/doc/faq.* $(DOCINSTALLDIR)
+# bingo32 (cwsdpmi,wmemu387.dxe)
+ifeq ($(OS_TARGET),go32v2)
+        $(COPY) $(CVSINSTALL)/bingo32/* $(BININSTALLDIR)
+endif
+# binw32 (cygwin1.dll)
+ifeq ($(OS_TARGET),win32)
+        $(COPY) $(CVSINSTALL)/binw32/* $(BININSTALLDIR)
+endif# manpages for linux
+ifeq ($(OS_TARGET),linux)
+        $(MAKE) -C $(CVSINSTALL)/man installman
+endif
+# install generated things
+        $(MAKE) compiler_install $(INSTALLOPTS)
+        $(MAKE) rtl_install $(INSTALLOPTS)
 
+install: build-stamp
+        $(MAKE) installbase $(INSTALLOPTS)
+        $(MAKE) utils_install $(INSTALLOPTS)
+        $(MAKE) api_install $(INSTALLOPTS)
+        $(MAKE) fcl_install $(INSTALLOPTS)
+        $(MAKE) packages_install $(INSTALLOPTS)
+
+zipinstall: $(FPCDIRSET) build-stamp
+        $(MAKE) fpc_zipinstall ZIPTARGET=installbase PACKAGENAME=base $(INSTALLOPTS)
+        $(MAKE) utils_zipinstall $(INSTALLOPTS)
+        $(MAKE) api_zipinstall $(INSTALLOPTS) PACKAGEPREFIX=$(PKGPRE)
+        $(MAKE) fcl_zipinstall $(INSTALLOPTS) PACKAGEPREFIX=$(PKGPRE)
+        $(MAKE) packages_zipinstall $(INSTALLOPTS) PACKAGEPREFIX=$(PKGPRE)
+
+
+##########################################################################
+# Docs
+##########################################################################
+
+.PHONY: docspdf docs docsrcinstall docsrc
+
+docspdf:
+        $(MAKE) -C docs pdfinstall
+
+docs:
+        $(MAKE) fpc_zipinstall ZIPTARGET=docspdf ZIPNAME=docs
+
+docsrcinstall:
+        $(MAKE) -C docs clean
+        $(MKDIR) $(SOURCEINSTALLDIR)
+        $(COPYTREE) docs $(SOURCEINSTALLDIR)
+
+docsrc:
+        $(MAKE) fpc_zipinstall ZIPTARGET=docsrcinstall ZIPNAME=docsrc
+
+
+##########################################################################
+# Demos
+##########################################################################
+
+.PHONY: demo demoinstall
+
+demoinstall:
+        $(COPYTREE) $(CVSINSTALL)/demo $(PREFIXINSTALLDIR)
+
+demo:
+        $(MAKE) fpc_zipinstall ZIPTARGET=demoinstall ZIPNAME=demo
+
+
+
+##########################################################################
+# Source targets
+##########################################################################
+
+sourcebase:
+# base Makefiles needed for sources
+        $(MKDIR) $(SOURCEINSTALLDIR)
+        $(MKDIR) $(SOURCEINSTALLDIR)/rtl
+        $(MKDIR) $(SOURCEINSTALLDIR)/packages
+        $(COPY) Makefile*  $(SOURCEINSTALLDIR)
+        $(COPY) rtl/Makefile* $(SOURCEINSTALLDIR)/rtl
+        $(COPY) packages/Makefile* $(SOURCEINSTALLDIR)/packages
+
+zipsource:
+        $(MAKE) fpc_zipinstall ZIPTARGET=sourcebase ZIPNAME=basesrc
+        $(MAKE) compiler_zipsourceinstall
+        $(MAKE) rtl_zipsourceinstall
+        $(MAKE) api_zipsourceinstall
+        $(MAKE) fcl_zipsourceinstall
+        $(MAKE) packages_zipsourceinstall
+        $(MAKE) utils_zipsourceinstall
+#        $(MAKE) installersrc
+#        $(MAKE) docsrc
+
+
+##########################################################################
+# OS targets
+##########################################################################
+
+.PHONY: go32v2 win32 linux go32v2zip win32zip linuxzip
+
+go32v2:
+        $(MAKE) install OS_TARGET=go32v2
+
+win32:
+        $(MAKE) install OS_TARGET=win32
+
+linux:
+        $(MAKE) install OS_TARGET=linux
+
+go32v2zip:
+        $(MAKE) zipinstall OS_TARGET=go32v2
+
+win32zip:
+        $(MAKE) zipinstall OS_TARGET=win32
+
+linuxzip:
+        $(MAKE) zipinstall OS_TARGET=linux
+
+
+##########################################################################
+# Debian / RPM
+##########################################################################
+
+.PHONY: debcopy deb rpmcopy rpm
+
+DEBSRCDIR:=/usr/src/fpc-$(FPC_VERSION)
+debcopy: distclean
+        rm -rf $(DEBSRCDIR)
+        install -d $(DEBSRCDIR)
+        $(COPYTREE) compiler $(DEBSRCDIR)
+        $(COPYTREE) rtl $(DEBSRCDIR)
+        $(COPYTREE) fcl $(DEBSRCDIR)
+        $(COPYTREE) api $(DEBSRCDIR)
+        $(COPYTREE) packages $(DEBSRCDIR)
+        $(COPYTREE) utils $(DEBSRCDIR)
+        $(COPYTREE) logs $(DEBSRCDIR)
+        $(COPYTREE) docs $(DEBSRCDIR)
+        $(COPYTREE) base/Makefile* $(DEBSRCDIR)
+        $(COPYTREE) $(CVSINSTALL)/debian $(DEBSRCDIR)
+        $(COPYTREE) $(CVSINSTALL)/man $(DEBSRCDIR)
+        $(COPYTREE) $(CVSINSTALL)/doc $(DEBSRCDIR)
+        $(COPYTREE) $(CVSINSTALL)/demo $(DEBSRCDIR)
+        find $(DEBSRCDIR) -name 'CVS*' | xargs -n1 rm -rf
+        chmod 755 $(DEBSRCDIR)/debian/rules
+
+deb: debcopy
+        cd $(DEBSRCDIR) ; debian/rules binary
+
+
+REDHATDIR=/usr/src/redhat
+RPMSOURCESDIR:=$(REDHATDIR)/SOURCES
+RPMSPECDIR:=$(REDHATDIR)/SPECS
+RPMSRCDIR:=$(RPMSOURCESDIR)/fpc
+DOCSRCDIR:=$(RPMSOURCESDIR)/fpcdoc
+rpmcopy: distclean
+	install -d $(REDHATDIR)
+	install -d $(RPMSPECDIR)
+	install -d $(RPMSOURCESDIR)
+# fpc.rpm
+        rm -rf $(RPMSRCDIR)
+        cp $(CVSINSTALL)/fpc-$(FPC_VERSION).spec $(RPMSPECDIR)
+        install -d $(RPMSRCDIR)
+        $(COPYTREE) compiler $(RPMSRCDIR)
+        $(COPYTREE) rtl $(RPMSRCDIR)
+        $(COPYTREE) fcl $(RPMSRCDIR)
+        $(COPYTREE) api $(RPMSRCDIR)
+        $(COPYTREE) packages $(RPMSRCDIR)
+        $(COPYTREE) utils $(RPMSRCDIR)
+        $(COPYTREE) logs $(RPMSRCDIR)
+        $(COPYTREE) base/Makefile* $(RPMSRCDIR)
+        $(COPYTREE) $(CVSINSTALL)/man $(RPMSRCDIR)
+        $(COPYTREE) $(CVSINSTALL)/doc $(RPMSRCDIR)
+        $(COPYTREE) $(CVSINSTALL)/demo $(RPMSRCDIR)
+        find $(RPMSRCDIR) -name 'CVS*' | xargs -n1 rm -rf
+        cd $(RPMSRCDIR) ; tar cvz * > $(RPMSOURCESDIR)/fpc-$(FPC_VERSION)-src.tar.gz
+# fpc-docs.rpm
+        rm -rf $(DOCSRCDIR)
+        cp $(CVSINSTALL)/fpc-docs-$(FPC_VERSION).spec $(RPMSPECDIR)
+        install -d $(DOCSRCDIR)
+        $(COPYTREE) docs $(DOCSRCDIR)
+        find $(DOCSRCDIR) -name 'CVS*' | xargs -n1 rm -rf
+        cd $(DOCSRCDIR) ; tar cvz * > $(RPMSOURCESDIR)/fpc-docs-$(FPC_VERSION)-src.tar.gz
+
+rpm: rpmcopy
+        cd $(RPMSPECDIR) ; rpm -ba fpc-$(FPC_VERSION).spec
+        cd $(RPMSPECDIR) ; rpm -ba fpc-docs-$(FPC_VERSION).spec
+	
