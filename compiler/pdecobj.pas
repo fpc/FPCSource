@@ -37,8 +37,8 @@ implementation
     uses
       cutils,cclasses,
       globals,verbose,systems,tokens,
-      symconst,symbase,symsym,symtable,defutil,defcmp,
-      node,nld,nmem,ncon,ncnv,ncal,pass_1,
+      symconst,symbase,symsym,
+      node,nld,nmem,ncon,ncnv,ncal,
       scanner,
       pbase,pexpr,pdecsub,pdecvar,ptype
 {$ifdef delphi}
@@ -107,6 +107,10 @@ implementation
                  message(parser_e_property_need_paras);
                consume(_SEMICOLON);
              end;
+           { hint directives, these can be separated by semicolons here,
+             that needs to be handled here with a loop (PFV) }
+           while try_consume_hintdirective(p.symoptions) do
+             Consume(_SEMICOLON);
         end;
 
 
@@ -473,6 +477,7 @@ implementation
 
       var
         pd : tprocdef;
+        dummysymoptions : tsymoptions;
       begin
          old_object_option:=current_object_option;
 
@@ -606,6 +611,13 @@ implementation
                        chkcpp(pd);
                      end;
 
+                    { Support hint directives }
+                    dummysymoptions:=[];
+                    while try_consume_hintdirective(dummysymoptions) do
+                      Consume(_SEMICOLON);
+                    if assigned(pd) then
+                      pd.symoptions:=pd.symoptions+dummysymoptions;
+
                     parse_only:=oldparse_only;
                   end;
                 _CONSTRUCTOR :
@@ -634,6 +646,14 @@ implementation
                     if (po_virtualmethod in pd.procoptions) then
                       include(aktclass.objectoptions,oo_has_virtual);
                     chkcpp(pd);
+
+                    { Support hint directives }
+                    dummysymoptions:=[];
+                    while try_consume_hintdirective(dummysymoptions) do
+                      Consume(_SEMICOLON);
+                    if assigned(pd) then
+                      pd.symoptions:=pd.symoptions+dummysymoptions;
+
                     parse_only:=oldparse_only;
                   end;
                 _DESTRUCTOR :
@@ -667,6 +687,13 @@ implementation
                       include(aktclass.objectoptions,oo_has_virtual);
 
                     chkcpp(pd);
+
+                    { Support hint directives }
+                    dummysymoptions:=[];
+                    while try_consume_hintdirective(dummysymoptions) do
+                      Consume(_SEMICOLON);
+                    if assigned(pd) then
+                      pd.symoptions:=pd.symoptions+dummysymoptions;
 
                     parse_only:=oldparse_only;
                   end;
@@ -706,7 +733,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.78  2004-06-20 08:55:30  florian
+  Revision 1.79  2004-08-22 11:23:45  peter
+    * support hint directives in object declarations
+
+  Revision 1.78  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.77  2004/06/16 20:07:09  florian
