@@ -466,7 +466,7 @@ implementation
 
         { the nil as symtable signs firstcalln that this is
           an overloaded operator }
-        t:=ccallnode.create(ppn,Tprocsym(operpd.procsym),nil,nil);
+        t:=ccallnode.create(ppn,Tprocsym(operpd.procsym),nil,nil,[]);
 
         { we already know the procdef to use, so it can
           skip the overload choosing in callnode.det_resulttype }
@@ -612,7 +612,7 @@ implementation
 
         { the nil as symtable signs firstcalln that this is
           an overloaded operator }
-        ht:=ccallnode.create(ppn,Tprocsym(operpd.procsym),nil,nil);
+        ht:=ccallnode.create(ppn,Tprocsym(operpd.procsym),nil,nil,[]);
 
         { we already know the procdef to use, so it can
           skip the overload choosing in callnode.det_resulttype }
@@ -1922,7 +1922,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.87  2004-05-23 15:03:40  peter
+  Revision 1.88  2004-05-23 18:28:40  peter
+    * methodpointer is loaded into a temp when it was a calln
+
+  Revision 1.87  2004/05/23 15:03:40  peter
     * some typeconvs don't allow assignment or passing to var para
 
   Revision 1.86  2004/05/16 13:29:46  peter

@@ -339,6 +339,7 @@ interface
          end;
       end;
 
+
 {*****************************************************************************
                           TTEMPCREATENODE
 *****************************************************************************}
@@ -476,7 +477,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.61  2004-05-23 15:06:20  peter
+  Revision 1.62  2004-05-23 18:28:41  peter
+    * methodpointer is loaded into a temp when it was a calln
+
+  Revision 1.61  2004/05/23 15:06:20  peter
     * implicit_finally flag must be set in pass1
     * add check whether the implicit frame is generated when expected
 

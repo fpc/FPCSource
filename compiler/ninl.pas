@@ -1741,7 +1741,7 @@ implementation
                   srsym:=searchsymonlyin(systemunit,'SETTEXTBUF');
                   hp:=ccallparanode.create(cordconstnode.create(
                      tcallparanode(left).left.resulttype.def.size,s32inttype,true),left);
-                  hp:=ccallnode.create(hp,tprocsym(srsym),systemunit,nil);
+                  hp:=ccallnode.create(hp,tprocsym(srsym),systemunit,nil,[]);
                   left:=nil;
                   result:=hp;
                 end;
@@ -2374,7 +2374,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.133  2004-03-18 16:19:03  peter
+  Revision 1.134  2004-05-23 18:28:41  peter
+    * methodpointer is loaded into a temp when it was a calln
+
+  Revision 1.133  2004/03/18 16:19:03  peter
     * fixed operator overload allowing for pointer-string
     * replaced some type_e_mismatch with more informational messages
 

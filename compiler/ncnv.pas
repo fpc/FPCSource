@@ -1226,8 +1226,7 @@ implementation
             begin
               include(current_procinfo.flags,pi_do_call);
               inc(aprocdef.procsym.refs);
-              hp:=ccallnode.create(ccallparanode.create(left,nil),
-                                   Tprocsym(aprocdef.procsym),nil,nil);
+              hp:=ccallnode.create(ccallparanode.create(left,nil),Tprocsym(aprocdef.procsym),nil,nil,[]);
               { tell explicitly which def we must use !! (PM) }
               tcallnode(hp).procdefinition:=aprocdef;
               left:=nil;
@@ -2447,7 +2446,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.146  2004-05-23 15:03:40  peter
+  Revision 1.147  2004-05-23 18:28:41  peter
+    * methodpointer is loaded into a temp when it was a calln
+
+  Revision 1.146  2004/05/23 15:03:40  peter
     * some typeconvs don't allow assignment or passing to var para
 
   Revision 1.145  2004/05/23 14:14:18  florian

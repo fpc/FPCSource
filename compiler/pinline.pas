@@ -75,7 +75,7 @@ implementation
         destructorname : stringid;
         sym      : tsym;
         classh   : tobjectdef;
-        callflag : tnodeflag;
+        callflag : tcallnodeflag;
         destructorpos,
         storepos : tfileposinfo;
       begin
@@ -153,9 +153,9 @@ implementation
                   p2:=cderefnode.create(p);
                 do_resulttypepass(p2);
                 if is_new then
-                  callflag:=nf_new_call
+                  callflag:=cnf_new_call
                 else
-                  callflag:=nf_dispose_call;
+                  callflag:=cnf_dispose_call;
                 if is_new then
                   do_member_read(classh,false,sym,p2,again,[callflag])
                 else
@@ -164,11 +164,7 @@ implementation
                       do_member_read(classh,false,sym,p2,again,[callflag])
                     else
                       begin
-                        p2:=ccallnode.create(nil,tprocsym(sym),sym.owner,p2);
-                        if is_new then
-                          include(p2.flags,nf_new_call)
-                        else
-                          include(p2.flags,nf_dispose_call);
+                        p2:=ccallnode.create(nil,tprocsym(sym),sym.owner,p2,[callflag]);
                         { support dispose(p,done()); }
                         if try_to_consume(_LKLAMMER) then
                           begin
@@ -185,7 +181,22 @@ implementation
                 { we need the real called method }
                 do_resulttypepass(p2);
 
-                if p2.nodetype<>calln then
+                if (p2.nodetype=calln) then
+                  begin
+                    if is_new then
+                     begin
+                       if (tcallnode(p2).procdefinition.proctypeoption<>potype_constructor) then
+                         Message(parser_e_expr_have_to_be_constructor_call);
+                       p2.resulttype:=p.resulttype;
+                       p2:=cassignmentnode.create(p,p2);
+                     end
+                    else
+                     begin
+                       if (tcallnode(p2).procdefinition.proctypeoption<>potype_destructor) then
+                         Message(parser_e_expr_have_to_be_destructor_call);
+                     end;
+                  end
+                else
                   begin
                     if is_new then
                       CGMessage(parser_e_expr_have_to_be_constructor_call)
@@ -193,22 +204,7 @@ implementation
                       CGMessage(parser_e_expr_have_to_be_destructor_call);
                   end;
 
-                if not codegenerror then
-                 begin
-                   if is_new then
-                    begin
-                      if (tcallnode(p2).procdefinition.proctypeoption<>potype_constructor) then
-                        Message(parser_e_expr_have_to_be_constructor_call);
-                      p2.resulttype:=p.resulttype;
-                      p2:=cassignmentnode.create(p,p2);
-                    end
-                   else
-                    begin
-                      if (tcallnode(p2).procdefinition.proctypeoption<>potype_destructor) then
-                        Message(parser_e_expr_have_to_be_destructor_call);
-                    end;
-                 end;
-                new_dispose_statement:=p2;
+                result:=p2;
               end;
           end
         else
@@ -373,7 +369,7 @@ implementation
             afterassignment:=false;
             sym:=searchsym_in_class(classh,pattern);
             consume(_ID);
-            do_member_read(classh,false,sym,p1,again,[nf_new_call]);
+            do_member_read(classh,false,sym,p1,again,[cnf_new_call]);
             { we need to know which procedure is called }
             do_resulttypepass(p1);
             if not(
@@ -531,8 +527,6 @@ implementation
       var
         newblock,
         paras   : tnode;
-        npara,
-        destppn,
         ppn     : tcallparanode;
       begin
         { for easy exiting if something goes wrong }
@@ -633,7 +627,9 @@ implementation
         paradef : tdef;
         counter : integer;
         newstatement : tstatementnode;
+{$ifdef ansistring_bits}
         mode    : byte;
+{$endif ansistring_bits}
       begin
         { for easy exiting if something goes wrong }
         result := cerrornode.create;
@@ -763,7 +759,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  2004-04-29 19:56:37  daniel
+  Revision 1.31  2004-05-23 18:28:41  peter
+    * methodpointer is loaded into a temp when it was a calln
+
+  Revision 1.30  2004/04/29 19:56:37  daniel
     * Prepare compiler infrastructure for multiple ansistring types
 
   Revision 1.29  2004/02/04 18:45:29  jonas

@@ -977,7 +977,7 @@ implementation
                 - dispose of temp stack space
                 - dispose on FPU stack }
              if (p.nodetype=calln) then
-               exclude(p.flags,nf_return_value_used);
+               exclude(tcallnode(p).callnodeflags,cnf_return_value_used);
 
              code:=p;
            end;
@@ -1105,7 +1105,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.133  2004-05-23 11:39:38  peter
+  Revision 1.134  2004-05-23 18:28:41  peter
+    * methodpointer is loaded into a temp when it was a calln
+
+  Revision 1.133  2004/05/23 11:39:38  peter
     * give error when goto jumps to label outside current proc scope
 
   Revision 1.132  2004/03/04 17:22:10  peter

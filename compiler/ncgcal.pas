@@ -287,7 +287,7 @@ implementation
          begin
            { copy the value on the stack or use normal parameter push?
              Check for varargs first because that has no paraitem }
-           if not(nf_varargs_para in flags) and
+           if not(cpf_varargs_para in callparaflags) and
               paramanager.copy_value_on_stack(paraitem.paratyp,left.resulttype.def,
                   aktcallnode.procdefinition.proccalloption) then
             begin
@@ -361,7 +361,7 @@ implementation
          if not(assigned(paraitem)) or
             not(assigned(paraitem.paratype.def)) or
             not(assigned(paraitem.parasym) or
-                (nf_varargs_para in flags)) then
+                (cpf_varargs_para in callparaflags)) then
            internalerror(200304242);
 
          { Skip nothingn nodes which are used after disabling
@@ -377,7 +377,7 @@ implementation
              allocate_tempparaloc;
 
              { handle varargs first, because paraitem.parasym is not valid }
-             if (nf_varargs_para in flags) then
+             if (cpf_varargs_para in callparaflags) then
                begin
                  if paramanager.push_addr_param(vs_value,left.resulttype.def,
                         aktcallnode.procdefinition.proccalloption) then
@@ -537,7 +537,7 @@ implementation
           end
         else
         { we have only to handle the result if it is used }
-         if (nf_return_value_used in flags) then
+         if (cnf_return_value_used in callnodeflags) then
           begin
             if (resulttype.def.deftype=floatdef) then
               begin
@@ -1044,7 +1044,7 @@ implementation
          release_para_temps;
 
          { if return value is not used }
-         if (not(nf_return_value_used in flags)) and (not is_void(resulttype.def)) then
+         if (not(cnf_return_value_used in callnodeflags)) and (not is_void(resulttype.def)) then
            begin
               if location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then
                 begin
@@ -1209,7 +1209,7 @@ implementation
 
          { if return value is not used }
          if (not is_void(resulttype.def)) and
-            (not(nf_return_value_used in flags)) then
+            (not(cnf_return_value_used in callnodeflags)) then
            begin
               if location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then
                 begin
@@ -1259,10 +1259,16 @@ implementation
 
     procedure tcgcallnode.pass_2;
       begin
+        if assigned(methodpointerinit) then
+          secondpass(methodpointerinit);
+
         if assigned(inlinecode) then
           inlined_pass_2
         else
           normal_pass_2;
+
+        if assigned(methodpointerdone) then
+          secondpass(methodpointerdone);
       end;
 
 
@@ -1272,7 +1278,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.166  2004-05-22 23:34:27  peter
+  Revision 1.167  2004-05-23 18:28:41  peter
+    * methodpointer is loaded into a temp when it was a calln
+
+  Revision 1.166  2004/05/22 23:34:27  peter
   tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
 
   Revision 1.165  2004/04/28 15:19:03  florian

@@ -302,7 +302,7 @@ implementation
                                 ctypeconvnode.create_explicit(
                                     load_self_pointer_node,
                                     voidpointertype),
-                                ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_vmt_pointer_node)),
+                                ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_vmt_pointer_node,[])),
                             nil));
                       end
                     else
@@ -361,7 +361,7 @@ implementation
                         caddnode.create(unequaln,
                             load_vmt_pointer_node,
                             cnilnode.create),
-                        ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node),
+                        ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[]),
                         nil));
                   end
                 else
@@ -399,7 +399,7 @@ implementation
                             caddnode.create(unequaln,
                                 load_vmt_pointer_node,
                                 cnilnode.create)),
-                        ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node),
+                        ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[]),
                         nil));
                   end
                 else
@@ -426,7 +426,7 @@ implementation
                                         load_vmt_pointer_node,
                                         voidpointertype),
                                     cpointerconstnode.create(1,voidpointertype))),
-                            ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node),
+                            ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[]),
                             nil));
                       end
                     else
@@ -466,6 +466,7 @@ implementation
       var
         pd : tprocdef;
         newstatement : tstatementnode;
+        dummycall    : tcallnode;
       begin
         generate_except_block:=internalstatements(newstatement);
 
@@ -482,7 +483,7 @@ implementation
                     caddnode.create(unequaln,
                         load_vmt_pointer_node,
                         cnilnode.create),
-                    ccallnode.create(nil,tprocsym(pd.procsym),pd.procsym.owner,load_self_node),
+                    ccallnode.create(nil,tprocsym(pd.procsym),pd.procsym.owner,load_self_node,[]),
                     nil));
               end;
           end
@@ -1379,7 +1380,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.191  2004-05-23 15:06:21  peter
+  Revision 1.192  2004-05-23 18:28:41  peter
+    * methodpointer is loaded into a temp when it was a calln
+
+  Revision 1.191  2004/05/23 15:06:21  peter
     * implicit_finally flag must be set in pass1
     * add check whether the implicit frame is generated when expected
 

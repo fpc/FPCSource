@@ -354,7 +354,7 @@ implementation
                                 load_vmt_pointer_node,
                                 voidpointertype),
                             cpointerconstnode.create(1,voidpointertype))),
-                    ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node),
+                    ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[]),
                     nil));
               end
             else
@@ -438,7 +438,10 @@ end.
 
 {
   $Log$
-  Revision 1.11  2004-05-23 15:04:49  peter
+  Revision 1.12  2004-05-23 18:28:41  peter
+    * methodpointer is loaded into a temp when it was a calln
+
+  Revision 1.11  2004/05/23 15:04:49  peter
     * generate better code for ansistring initialization
 
   Revision 1.10  2004/02/20 21:55:59  peter

@@ -204,17 +204,6 @@ interface
          nf_write,       { Node is written to            }
          nf_isproperty,
 
-         { flags used by tcallnode }
-         nf_return_value_used,
-         nf_inherited,
-         nf_anon_inherited,
-         nf_new_call,
-         nf_dispose_call,
-         nf_member_call, { called with implicit methodpointer tree }
-
-         { flags used by tcallparanode }
-         nf_varargs_para,  { belongs this para to varargs }
-
          { taddrnode }
          nf_procvarload,
          nf_typedaddr,
@@ -1093,7 +1082,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.83  2004-05-23 15:06:21  peter
+  Revision 1.84  2004-05-23 18:28:41  peter
+    * methodpointer is loaded into a temp when it was a calln
+
+  Revision 1.83  2004/05/23 15:06:21  peter
     * implicit_finally flag must be set in pass1
     * add check whether the implicit frame is generated when expected
 

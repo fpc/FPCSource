@@ -27,7 +27,7 @@ unit nbas;
 interface
 
     uses
-       cpubase,cgbase,
+       cpuinfo,cpubase,cgbase,
        aasmbase,aasmtai,aasmcpu,
        node,tgobj,
        symtype;
@@ -393,7 +393,7 @@ implementation
                       not(cs_extsyntax in aktmoduleswitches) and
                       (hp.left.nodetype=calln) and
                       not(is_void(hp.left.resulttype.def)) and
-                      not(nf_return_value_used in tcallnode(hp.left).flags) and
+                      not(cnf_return_value_used in tcallnode(hp.left).callnodeflags) and
                       not((tcallnode(hp.left).procdefinition.proctypeoption=potype_constructor) and
                           assigned(tprocdef(tcallnode(hp.left).procdefinition)._class) and
                           is_object(tprocdef(tcallnode(hp.left).procdefinition)._class)) then
@@ -667,6 +667,11 @@ implementation
       begin
         create(_restype,_size,_temptype);
         tempinfo^.may_be_in_reg:=
+          { temp must fit a single register }
+          (_size<=sizeof(aint)) and
+          { size of register operations must be known }
+          (def_cgsize(_restype.def)<>OS_NO) and
+          { no init/final needed }
           not (_restype.def.needs_inittable) and
           ((_restype.def.deftype <> pointerdef) or
            (not tpointerdef(_restype.def).pointertype.def.needs_inittable));
@@ -1012,7 +1017,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.82  2004-05-23 15:06:20  peter
+  Revision 1.83  2004-05-23 18:28:41  peter
+    * methodpointer is loaded into a temp when it was a calln
+
+  Revision 1.82  2004/05/23 15:06:20  peter
     * implicit_finally flag must be set in pass1
     * add check whether the implicit frame is generated when expected
 

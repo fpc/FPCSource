@@ -37,10 +37,16 @@ interface
        symbase,symtype,symsym,symdef,symtable;
 
     type
-       tcallnodeflags = (
-         cnf_restypeset
+       tcallnodeflag = (
+         cnf_restypeset,
+         cnf_return_value_used,
+         cnf_inherited,
+         cnf_anon_inherited,
+         cnf_new_call,
+         cnf_dispose_call,
+         cnf_member_call        { called with implicit methodpointer tree }
        );
-       tcallnodeflagset = set of tcallnodeflags;
+       tcallnodeflags = set of tcallnodeflag;
 
        tcallnode = class(tbinarynode)
        private
@@ -68,6 +74,8 @@ interface
           procdefinition : tabstractprocdef;
           procdefinitionderef : tderef;
           { tree that contains the pointer to the object for this method }
+          methodpointerinit,
+          methodpointerdone,
           methodpointer  : tnode;
           { inline function body }
           inlinecode : tnode;
@@ -82,12 +90,11 @@ interface
           { you can't have a function with an "array of char" resulttype }
           { the RTL) (JM)                                                }
           restype: ttype;
-          callnodeflags : tcallnodeflagset;
+          callnodeflags : tcallnodeflags;
 
           { only the processor specific nodes need to override this }
           { constructor                                             }
-          constructor create(l:tnode; v : tprocsym;st : tsymtable; mp : tnode);virtual;
-          constructor create_def(l:tnode;def:tprocdef;mp:tnode);virtual;
+          constructor create(l:tnode; v : tprocsym;st : tsymtable; mp: tnode; callflags:tcallnodeflags);virtual;
           constructor create_procvar(l,r:tnode);
           constructor createintern(const name: string; params: tnode);
           constructor createinternres(const name: string; params: tnode; const res: ttype);
@@ -120,14 +127,15 @@ interface
        end;
        tcallnodeclass = class of tcallnode;
 
-       tcallparaflags = (
-          { flags used by tcallparanode }
-          cpf_is_colon_para
+       tcallparaflag = (
+          cpf_is_colon_para,
+          cpf_varargs_para   { belongs this para to varargs }
        );
+       tcallparaflags = set of tcallparaflag;
 
        tcallparanode = class(tbinarynode)
        public
-          callparaflags : set of tcallparaflags;
+          callparaflags : tcallparaflags;
           paraitem : tparaitem;
           used_by_callnode : boolean;
           { only the processor specific nodes need to override this }
@@ -149,7 +157,6 @@ interface
        tcallparanodeclass = class of tcallparanode;
 
     function reverseparameters(p: tcallparanode): tcallparanode;
-
 
     var
       ccallnode : tcallnodeclass;
@@ -388,7 +395,7 @@ type
 
              { Handle varargs and hidden paras directly, no typeconvs or }
              { typechecking needed                                       }
-             if (nf_varargs_para in flags) then
+             if (cpf_varargs_para in callparaflags) then
                begin
                  { convert pascal to C types }
                  case left.resulttype.def.deftype of
@@ -608,31 +615,16 @@ type
                                  TCALLNODE
  ****************************************************************************}
 
-    constructor tcallnode.create(l:tnode;v : tprocsym;st : tsymtable; mp : tnode);
+    constructor tcallnode.create(l:tnode;v : tprocsym;st : tsymtable; mp: tnode; callflags:tcallnodeflags);
       begin
          inherited create(calln,l,nil);
          symtableprocentry:=v;
          symtableproc:=st;
-         include(flags,nf_return_value_used);
+         callnodeflags:=callflags+[cnf_return_value_used];
          methodpointer:=mp;
+         methodpointerinit:=nil;
+         methodpointerdone:=nil;
          procdefinition:=nil;
-         callnodeflags:=[];
-         _funcretnode:=nil;
-         inlinecode:=nil;
-         paralength:=-1;
-         varargsparas:=nil;
-      end;
-
-
-    constructor tcallnode.create_def(l:tnode;def:tprocdef;mp:tnode);
-      begin
-         inherited create(calln,l,nil);
-         symtableprocentry:=nil;
-         symtableproc:=nil;
-         include(flags,nf_return_value_used);
-         methodpointer:=mp;
-         procdefinition:=def;
-         callnodeflags:=[];
          _funcretnode:=nil;
          inlinecode:=nil;
          paralength:=-1;
@@ -645,10 +637,11 @@ type
          inherited create(calln,l,r);
          symtableprocentry:=nil;
          symtableproc:=nil;
-         include(flags,nf_return_value_used);
          methodpointer:=nil;
+         methodpointerinit:=nil;
+         methodpointerdone:=nil;
          procdefinition:=nil;
-         callnodeflags:=[];
+         callnodeflags:=[cnf_return_value_used];
          _funcretnode:=nil;
          inlinecode:=nil;
          paralength:=-1;
@@ -680,7 +673,7 @@ type
 {$endif EXTDEBUG}
              internalerror(200107271);
            end;
-         self.create(params,tprocsym(srsym),symowner,nil);
+         self.create(params,tprocsym(srsym),symowner,nil,[]);
        end;
 
 
@@ -743,6 +736,8 @@ type
     destructor tcallnode.destroy;
       begin
          methodpointer.free;
+         methodpointerinit.free;
+         methodpointerdone.free;
          _funcretnode.free;
          inlinecode.free;
          if assigned(varargsparas) then
@@ -762,6 +757,8 @@ type
         ppufile.getderef(procdefinitionderef);
         ppufile.getsmallset(callnodeflags);
         methodpointer:=ppuloadnode(ppufile);
+        methodpointerinit:=ppuloadnode(ppufile);
+        methodpointerdone:=ppuloadnode(ppufile);
         _funcretnode:=ppuloadnode(ppufile);
         inlinecode:=ppuloadnode(ppufile);
       end;
@@ -774,6 +771,8 @@ type
         ppufile.putderef(procdefinitionderef);
         ppufile.putsmallset(callnodeflags);
         ppuwritenode(ppufile,methodpointer);
+        ppuwritenode(ppufile,methodpointerinit);
+        ppuwritenode(ppufile,methodpointerdone);
         ppuwritenode(ppufile,_funcretnode);
         ppuwritenode(ppufile,inlinecode);
       end;
@@ -811,7 +810,7 @@ type
         { Connect paraitems }
         pt:=tcallparanode(left);
         while assigned(pt) and
-              (nf_varargs_para in pt.flags) do
+              (cpf_varargs_para in pt.callparaflags) do
           pt:=tcallparanode(pt.right);
         currpara:=tparaitem(procdefinition.Para.last);
         while assigned(currpara) do
@@ -842,6 +841,14 @@ type
          n.methodpointer:=methodpointer.getcopy
         else
          n.methodpointer:=nil;
+        if assigned(methodpointerinit) then
+         n.methodpointerinit:=methodpointerinit.getcopy
+        else
+         n.methodpointerinit:=nil;
+        if assigned(methodpointerdone) then
+         n.methodpointerdone:=methodpointerdone.getcopy
+        else
+         n.methodpointerdone:=nil;
         if assigned(_funcretnode) then
          n._funcretnode:=_funcretnode.getcopy
         else
@@ -896,7 +903,7 @@ type
                 left:=ccallparanode.create(hp.left,left);
                 { set callparanode resulttype and flags }
                 left.resulttype:=hp.left.resulttype;
-                include(left.flags,nf_varargs_para);
+                include(tcallparanode(left).callparaflags,cpf_varargs_para);
                 hp.left:=nil;
                 hp:=tarrayconstructornode(hp.right);
               end;
@@ -1033,7 +1040,7 @@ type
         selftree:=nil;
 
         { inherited }
-        if (nf_inherited in flags) then
+        if (cnf_inherited in callnodeflags) then
           selftree:=load_self_node
         else
           { constructors }
@@ -1041,7 +1048,7 @@ type
             begin
               { push 0 as self when allocation is needed }
               if (methodpointer.resulttype.def.deftype=classrefdef) or
-                 (nf_new_call in flags) then
+                 (cnf_new_call in callnodeflags) then
                 selftree:=cpointerconstnode.create(0,voidpointertype)
               else
                 begin
@@ -1090,12 +1097,12 @@ type
           internalerror(200305051);
 
         { inherited call, no create/destroy }
-        if (nf_inherited in flags) then
+        if (cnf_inherited in callnodeflags) then
           vmttree:=cpointerconstnode.create(0,voidpointertype)
         else
           { do not create/destroy when called from member function
             without specifying self explicit }
-          if (nf_member_call in flags) then
+          if (cnf_member_call in callnodeflags) then
             begin
               if (methodpointer.resulttype.def.deftype=classrefdef) and
                 (procdefinition.proctypeoption=potype_constructor) then
@@ -1105,11 +1112,11 @@ type
             end
         else
           { constructor with extended syntax called from new }
-          if (nf_new_call in flags) then
+          if (cnf_new_call in callnodeflags) then
             vmttree:=cloadvmtaddrnode.create(ctypenode.create(methodpointer.resulttype))
         else
           { destructor with extended syntax called from dispose }
-          if (nf_dispose_call in flags) then
+          if (cnf_dispose_call in callnodeflags) then
             vmttree:=cloadvmtaddrnode.create(methodpointer.getcopy)
         else
          if (methodpointer.resulttype.def.deftype=classrefdef) then
@@ -1174,7 +1181,7 @@ type
         i:=paralength;
         while (i>procdefinition.maxparacount) do
           begin
-            include(pt.flags,nf_varargs_para);
+            include(pt.callparaflags,cpf_varargs_para);
             oldppt:=@pt.right;
             pt:=tcallparanode(pt.right);
             dec(i);
@@ -1182,7 +1189,7 @@ type
 
         { skip varargs that are inserted by array of const }
         while assigned(pt) and
-              (nf_varargs_para in pt.flags) do
+              (cpf_varargs_para in pt.callparaflags) do
           pt:=tcallparanode(pt.right);
 
         { process normal parameters and insert hidden parameters }
@@ -1271,7 +1278,7 @@ type
         pt:=tcallparanode(left);
         while assigned(pt) do
           begin
-            if nf_varargs_para in pt.flags then
+            if cpf_varargs_para in pt.callparaflags then
               begin
                 if not assigned(varargsparas) then
                   varargsparas:=tvarargspara.create;
@@ -1300,6 +1307,9 @@ type
         i : longint;
         method_must_be_valid,
         is_const : boolean;
+        hp : tnode;
+        mptemp : ttempcreatenode;
+        newstatement : tstatementnode;
       label
         errorexit;
       begin
@@ -1325,6 +1335,40 @@ type
             if codegenerror then
              goto errorexit;
           end;
+
+         if assigned(methodpointer) then
+           begin
+             resulttypepass(methodpointer);
+             hp:=methodpointer;
+             while assigned(hp) and
+                   (hp.nodetype=typeconvn) do
+               hp:=tunarynode(hp).left;
+             if assigned(hp) and
+                (
+                 { call result must always be loaded in temp to prevent
+                   double creation }
+                 (hp.nodetype=calln)
+                 { Also optimize also complex loads }
+{$warning Complex loads can also be optimized}
+//                 not(hp.nodetype in [typen,loadvmtaddrn,loadn])
+                )  then
+               begin
+                 { methodpointer loading }
+                 methodpointerinit:=internalstatements(newstatement);
+                 mptemp:=ctempcreatenode.create_reg(methodpointer.resulttype,methodpointer.resulttype.def.size,tt_persistent);
+                 addstatement(newstatement,mptemp);
+                 addstatement(newstatement,cassignmentnode.create(
+                     ctemprefnode.create(mptemp),
+                     methodpointer));
+                 resulttypepass(methodpointerinit);
+                 { new methodpointer is only a temp reference }
+                 methodpointer:=ctemprefnode.create(mptemp);
+                 resulttypepass(methodpointer);
+                 { methodpointer cleanup }
+                 methodpointerdone:=ctempdeletenode.create(mptemp);
+                 resulttypepass(methodpointerdone);
+               end;
+           end;
 
          { procedure variable ? }
          if assigned(right) then
@@ -1404,7 +1448,7 @@ type
                         do this ugly hack in Delphi mode as it looks more
                         like a bug. It's also not documented }
                       if (m_delphi in aktmodeswitches) and
-                         (nf_anon_inherited in flags) and
+                         (cnf_anon_inherited in callnodeflags) and
                          (symtableprocentry.owner.symtabletype=objectsymtable) and
                          (po_overload in symtableprocentry.first_procdef.procoptions) and
                          (symtableprocentry.procdef_count>=2) then
@@ -1416,7 +1460,7 @@ type
                             when there is only one proc definition, else the
                             loadnode will give a strange error }
                           if not(assigned(left)) and
-                             not(nf_inherited in flags) and
+                             not(cnf_inherited in callnodeflags) and
                              (m_tp_procvar in aktmodeswitches) and
                              (symtableprocentry.procdef_count=1) then
                             begin
@@ -1576,12 +1620,15 @@ type
 
          if assigned(methodpointer) then
           begin
-            resulttypepass(methodpointer);
+            { when methodpointer is a callnode we must load it first into a
+              temp to prevent the processing callnode twice }
+            if (methodpointer.nodetype=calln) then
+              internalerror(200405121);
 
             { direct call to inherited abstract method, then we
               can already give a error in the compiler instead
               of a runtime error }
-            if (nf_inherited in flags) and
+            if (cnf_inherited in callnodeflags) and
                (po_abstractmethod in procdefinition.procoptions) then
               CGMessage(cg_e_cant_call_abstract_method);
 
@@ -1589,7 +1636,7 @@ type
             { called in a con- or destructor then a warning }
             { will be made                                  }
             { con- and destructors need a pointer to the vmt }
-            if (nf_inherited in flags) and
+            if (cnf_inherited in callnodeflags) and
                (procdefinition.proctypeoption in [potype_constructor,potype_destructor]) and
                is_object(methodpointer.resulttype.def) and
                not(current_procinfo.procdef.proctypeoption in [potype_constructor,potype_destructor]) then
@@ -1597,9 +1644,10 @@ type
 
             if methodpointer.nodetype<>typen then
              begin
-               hpt:=methodpointer;
-               while assigned(hpt) and (hpt.nodetype in [subscriptn,vecn]) do
-                hpt:=tunarynode(hpt).left;
+                { Remove all postfix operators }
+                hpt:=methodpointer;
+                while assigned(hpt) and (hpt.nodetype in [subscriptn,vecn]) do
+                  hpt:=tunarynode(hpt).left;
 
                if (procdefinition.proctypeoption=potype_constructor) and
                   assigned(symtableproc) and
@@ -1634,8 +1682,8 @@ type
               methods. Ignore inherited and member calls, because the
               class is then already created }
             if (procdefinition.proctypeoption=potype_constructor) and
-               not(nf_inherited in flags) and
-               not(nf_member_call in flags) then
+               not(cnf_inherited in callnodeflags) and
+               not(cnf_member_call in callnodeflags) then
               verifyabstractcalls;
           end
          else
@@ -1788,6 +1836,12 @@ type
          { order parameters }
          order_parameters;
 
+         if assigned(methodpointerinit) then
+           firstpass(methodpointerinit);
+
+         if assigned(methodpointerdone) then
+           firstpass(methodpointerdone);
+
          { function result node }
          if assigned(_funcretnode) then
            firstpass(_funcretnode);
@@ -1868,7 +1922,7 @@ type
                end
              else
              { we have only to handle the result if it is used }
-              if (nf_return_value_used in flags) then
+              if (cnf_return_value_used in callnodeflags) then
                begin
                  case resulttype.def.deftype of
                    enumdef,
@@ -2056,7 +2110,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.234  2004-05-23 15:06:20  peter
+  Revision 1.235  2004-05-23 18:28:41  peter
+    * methodpointer is loaded into a temp when it was a calln
+
+  Revision 1.234  2004/05/23 15:06:20  peter
     * implicit_finally flag must be set in pass1
     * add check whether the implicit frame is generated when expected
 
