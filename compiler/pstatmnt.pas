@@ -1129,6 +1129,9 @@ implementation
               { but with another name, so that recursive calls are possible }
               symtablestack.insert(aktprocdef.funcretsym);
               symtablestack.rename(aktprocdef.funcretsym.name,'$result');
+              { update the symtablesize back to 0 if there were no locals }
+              if not haslocals then
+               symtablestack.datasize:=0;
               { set the used flag for the return }
               if ret_in_acc(aktprocdef.rettype.def) then
                 begin
@@ -1185,7 +1188,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  2002-01-24 18:25:49  peter
+  Revision 1.46  2002-01-29 21:32:03  peter
+    * allow accessing locals in other lexlevel when the current assembler
+      routine doesn't have locals.
+
+  Revision 1.45  2002/01/24 18:25:49  peter
    * implicit result variable generation for assembler routines
    * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
 

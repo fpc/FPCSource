@@ -844,7 +844,7 @@ Begin
                 end
               else
                 begin
-                  if (procinfo^.framepointer=stack_pointer) and
+                  if (aktprocdef.localst.datasize=0) and
                      assigned(procinfo^.parent) and
                      (lexlevel=tvarsym(sym).owner.symtablelevel+1) and
                      { same problem as above !!
@@ -884,7 +884,7 @@ Begin
                     opr.ref.base:=procinfo^.framepointer
                   else
                     begin
-                      if (procinfo^.framepointer=stack_pointer) and
+                      if (aktprocdef.localst.datasize=0) and
                          assigned(procinfo^.parent) and
                          (lexlevel=tvarsym(sym).owner.symtablelevel+1) and
                          {(procinfo^.parent^.sym.definition.localst=tvarsym(sym).owner) and}
@@ -1585,7 +1585,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.26  2002-01-24 18:25:50  peter
+  Revision 1.27  2002-01-29 21:32:03  peter
+    * allow accessing locals in other lexlevel when the current assembler
+      routine doesn't have locals.
+
+  Revision 1.26  2002/01/24 18:25:50  peter
    * implicit result variable generation for assembler routines
    * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
 
