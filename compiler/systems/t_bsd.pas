@@ -53,8 +53,6 @@ implementation
       procedure importvariable(vs:tvarsym;const name,module:string);override;
       procedure generatelib;override;
       procedure generatesmartlib;override;
-     private
-      procedure darwinimportproc(aprocdef:tprocdef;const func,module : string;index : longint;const name : string);
     end;
 
     timportlibbsd=class(timportlib)
@@ -96,59 +94,27 @@ implementation
       end;
 
 
-    procedure timportlibdarwin.darwinimportproc(aprocdef:tprocdef;const func,module : string;index : longint;const name : string);
-      var
-         hp1 : timportlist;
-         hp2 : tdarwinimported_item;
-      begin
-         { force the current mangledname }
-         if assigned(aprocdef) then
-           aprocdef.has_mangledname:=true;
-         { search for the module }
-         hp1:=timportlist(current_module.imports.first);
-         { generate a new item ? }
-         if not(assigned(hp1)) then
-           begin
-              { we don't need an import section per library }
-              hp1:=timportlist.create('imports');
-              current_module.imports.concat(hp1);
-           end;
-         { search for reuse of old import item }
-         hp2:=tdarwinimported_item(hp1.imported_items.first);
-         while assigned(hp2) do
-          begin
-            if hp2.func^=func then
-             break;
-            { there's already another declaration refering to this imported symbol }
-            { -> make this declaration refer to that entry as well                 }
-            if (hp2.name^ = name) then
-              begin
-                if not assigned(aprocdef) then
-                  internalerror(2004010306);
-                if assigned(aprocdef) then
-                  aprocdef.setmangledname(hp2.func^);
-                break;
-              end;
-            hp2:=tdarwinimported_item(hp2.next);
-          end;
-         if not assigned(hp2) then
-          begin
-            hp2:=tdarwinimported_item.create(func,name,index);
-            hp2.procdef:=aprocdef;
-            hp1.imported_items.concat(hp2);
-          end;
-      end;
-
-
     procedure timportlibdarwin.importprocedure(aprocdef:tprocdef;const module : string;index : longint;const name : string);
       begin
-        darwinimportproc(aprocdef,aprocdef.mangledname,module,index,name);
+        { insert sharedlibrary }
+        current_module.linkothersharedlibs.add(SplitName(module),link_allways);
+        { force the mangledname }
+        if assigned(aprocdef) then
+          begin
+            if (aprocdef.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
+              aprocdef.setmangledname(target_info.Cprefix+name)
+            else
+              aprocdef.setmangledname(name);
+          end;
       end;
 
 
     procedure timportlibdarwin.importvariable(vs:tvarsym;const name,module:string);
       begin
-        { this is handled in the nppcld.pas tppcloadnode }
+        { insert sharedlibrary }
+        current_module.linkothersharedlibs.add(SplitName(module),link_allways);
+        { the rest is handled in the nppcld.pas tppcloadnode }
+        vs.set_mangledname(name);
       end;
 
 
@@ -159,91 +125,7 @@ implementation
 
 
     procedure timportlibdarwin.generatelib;
-      var
-         hp1 : timportlist;
-         hp2 : tdarwinimported_item;
-         l1  : tasmsymbol;
-         symname: string;
-         mangledstring : string;
-{$ifdef GDB}
-         importname : string;
-         suffix : integer;
-{$endif GDB}
-         href : treference;
       begin
-         hp1:=timportlist(current_module.imports.first);
-         while assigned(hp1) do
-           begin
-              hp2:=tdarwinimported_item(hp1.imported_items.first);
-              while assigned(hp2) do
-                begin
-                   if not assigned(hp2.name) then
-                     internalerror(2004010302);
-                   symname := hp2.name^;
-                   if assigned(tdarwinimported_item(hp2).procdef) and
-                      (tdarwinimported_item(hp2).procdef.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
-                     symname := target_info.Cprefix+symname;
-                   if not hp2.is_var then
-                    begin
-{$IfDef GDB}
-                      if (cs_debuginfo in aktmoduleswitches) then
-                        importssection.concat(tai_stab_function_name.create(nil));
-{$EndIf GDB}
-                      if not assigned(hp2.procdef) then
-                        internalerror(2004010306);
-                      mangledstring := hp2.func^;
-{$ifdef powerpc}
-{		      if (po_public in hp2.procdef.procoptions) or
-  			(hp2.procdef.hasforward and
- 			 (po_public in hp2.procdef.forwarddef.procoptions)) then
-}
-                        begin
-                          importsSection.concat(Tai_section.Create(sec_code));
-                          importsSection.concat(Tai_symbol.createname_global(mangledstring,AT_FUNCTION,0));
-                          mangledstring := '_$'+mangledstring;
-                          importsSection.concat(taicpu.op_sym(A_B,objectlibrary.newasmsymbol(mangledstring,AB_EXTERNAL,AT_FUNCTION)));
-                        end;
-{$else powerpc}
-                      internalerror(2004010501);
-{$endif powerpc}
-
-                      importsSection.concat(Tai_section.Create(sec_data));
-                      importsSection.concat(Tai_direct.create(strpnew('.section __TEXT,__symbol_stub1,symbol_stubs,pure_instructions,16')));
-                      importsSection.concat(Tai_align.Create(4));
-                      importsSection.concat(Tai_symbol.Createname(mangledstring,AT_FUNCTION,0));
-                      importsSection.concat(Tai_direct.create(strpnew((#9+'.indirect_symbol ')+symname)));
-                      l1 := objectlibrary.newasmsymbol(mangledstring+'$lazy_ptr',AB_EXTERNAL,AT_FUNCTION);
-                      reference_reset_symbol(href,l1,0);
-{$IfDef GDB}
-                      if (cs_debuginfo in aktmoduleswitches) and assigned(hp2.procdef) then
-                       begin
-                         mangledstring:=hp2.procdef.mangledname;
-                         hp2.procdef.setmangledname(mangledstring);
-                         hp2.procdef.concatstabto(importssection);
-                         hp2.procdef.setmangledname(mangledstring);
-                       end;
-{$EndIf GDB}
-{$ifdef powerpc}
-                      href.refaddr := addr_hi;
-                      importsSection.concat(taicpu.op_reg_ref(A_LIS,NR_R11,href));
-                      href.refaddr := addr_lo;
-                      href.base := NR_R11;
-                      importsSection.concat(taicpu.op_reg_ref(A_LWZU,NR_R12,href));
-                      importsSection.concat(taicpu.op_reg(A_MTCTR,NR_R12));
-                      importsSection.concat(taicpu.op_none(A_BCTR));
-{$else powerpc}
-                      internalerror(2004010502);
-{$endif powerpc}
-                      importsSection.concat(Tai_section.Create(sec_data));
-                      importsSection.concat(Tai_direct.create(strpnew('.lazy_symbol_pointer')));
-                      importsSection.concat(Tai_symbol.Create(l1,0));
-                      importsSection.concat(Tai_direct.create(strpnew((#9+'.indirect_symbol ')+symname)));
-                      importsSection.concat(tai_const_symbol.createname(strpnew('dyld_stub_binding_helper'),AT_FUNCTION,0));
-                    end;
-                   hp2:=tdarwinimported_item(hp2.next);
-                end;
-              hp1:=timportlist(hp1.next);
-           end;
       end;
 
 
@@ -736,7 +618,15 @@ initialization
 end.
 {
   $Log$
-  Revision 1.14  2004-04-04 10:53:21  marco
+  Revision 1.15  2004-05-31 18:08:41  jonas
+    * changed calling of external procedures to be the same as under gcc
+      (don't worry about all the generated stubs, they're optimized away
+       by the linker)
+      -> side effect: no need anymore to use special declarations for
+         external C functions under Darwin compared to other platforms
+         (it's still necessary for variables though)
+
+  Revision 1.14  2004/04/04 10:53:21  marco
    * small c_r fix, also link plain libc (like for x11)
 
   Revision 1.13  2004/03/29 21:19:33  florian

@@ -133,6 +133,8 @@ unit cgcpu;
 
         function save_regs(list : taasmoutput):longint;
         procedure restore_regs(list : taasmoutput);
+        
+        function get_darwin_call_stub(const s: string): tasmsymbol;
      end;
 
      tcg64fppc = class(tcg64f32)
@@ -311,6 +313,52 @@ const
       end;
 
 
+    function tcgppc.get_darwin_call_stub(const s: string): tasmsymbol;
+      var
+        stubname: string;
+        href: treference;
+        l1: tasmsymbol;
+      begin
+        { function declared in the current unit? }
+        result := objectlibrary.getasmsymbol(s);
+        if not(assigned(result)) then
+          begin
+            stubname := 'L'+s+'$stub';
+            result := objectlibrary.getasmsymbol(stubname);
+          end;
+        if assigned(result) then
+          exit;
+
+        if not(assigned(importssection)) then
+          importssection:=TAAsmoutput.create;
+
+        importsSection.concat(Tai_section.Create(sec_data));
+        importsSection.concat(Tai_direct.create(strpnew('.section __TEXT,__symbol_stub1,symbol_stubs,pure_instructions,16')));
+        importsSection.concat(Tai_align.Create(4));
+        result := objectlibrary.newasmsymbol(stubname,AB_EXTERNAL,AT_FUNCTION);
+        importsSection.concat(Tai_symbol.Create(result,0));
+        importsSection.concat(Tai_direct.create(strpnew((#9+'.indirect_symbol ')+s)));
+        l1 := objectlibrary.newasmsymbol('L'+s+'$lazy_ptr',AB_EXTERNAL,AT_FUNCTION);
+        reference_reset_symbol(href,l1,0);
+{$ifdef powerpc}
+        href.refaddr := addr_hi;
+        importsSection.concat(taicpu.op_reg_ref(A_LIS,NR_R11,href));
+        href.refaddr := addr_lo;
+        href.base := NR_R11;
+        importsSection.concat(taicpu.op_reg_ref(A_LWZU,NR_R12,href));
+        importsSection.concat(taicpu.op_reg(A_MTCTR,NR_R12));
+        importsSection.concat(taicpu.op_none(A_BCTR));
+{$else powerpc}
+        internalerror(2004010502);
+{$endif powerpc}
+        importsSection.concat(Tai_section.Create(sec_data));
+        importsSection.concat(Tai_direct.create(strpnew('.lazy_symbol_pointer')));
+        importsSection.concat(Tai_symbol.Create(l1,0));
+        importsSection.concat(Tai_direct.create(strpnew((#9+'.indirect_symbol ')+s)));
+        importsSection.concat(tai_const_symbol.createname(strpnew('dyld_stub_binding_helper'),AT_FUNCTION,0));
+      end;
+
+
     { calling a procedure by name }
     procedure tcgppc.a_call_name(list : taasmoutput;const s : string);
       var
@@ -319,9 +367,16 @@ const
          { MacOS: The linker on MacOS (PPCLink) inserts a call to glue code,
            if it is a cross-TOC call. If so, it also replaces the NOP
            with some restore code.}
-         list.concat(taicpu.op_sym(A_BL,objectlibrary.newasmsymbol(s,AB_EXTERNAL,AT_FUNCTION)));
-         if target_info.system=system_powerpc_macos then
-           list.concat(taicpu.op_none(A_NOP));
+         if (target_info.system <> system_powerpc_darwin) then
+           begin
+             list.concat(taicpu.op_sym(A_BL,objectlibrary.newasmsymbol(s,AB_EXTERNAL,AT_FUNCTION)));
+             if target_info.system=system_powerpc_macos then
+               list.concat(taicpu.op_none(A_NOP));
+           end
+         else
+           begin
+             list.concat(taicpu.op_sym(A_BL,get_darwin_call_stub(s)));
+           end;
          if not(pi_do_call in current_procinfo.flags) then
            internalerror(2003060703);
       end;
@@ -2356,7 +2411,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.169  2004-04-04 17:50:36  olle
+  Revision 1.170  2004-05-31 18:08:41  jonas
+    * changed calling of external procedures to be the same as under gcc
+      (don't worry about all the generated stubs, they're optimized away
+       by the linker)
+      -> side effect: no need anymore to use special declarations for
+         external C functions under Darwin compared to other platforms
+         (it's still necessary for variables though)
+
+  Revision 1.169  2004/04/04 17:50:36  olle
     * macos: fixed large offsets in references
 
   Revision 1.168  2004/03/06 21:37:45  florian
