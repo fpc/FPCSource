@@ -236,7 +236,7 @@ implementation
                 else if (pt.nodetype=loadn) then
                  begin
                    { we should check the result type of srsym }
-                   if not (tloadnode(pt).symtableentry.typ in [varsym,typedconstsym,funcretsym]) then
+                   if not (tloadnode(pt).symtableentry.typ in [varsym,typedconstsym]) then
                      Message(parser_e_absolute_only_to_var_or_const);
                    abssym:=tabsolutesym.create(vs.realname,tt);
                    abssym.fileinfo:=vs.fileinfo;
@@ -254,16 +254,6 @@ implementation
                           tvarsym(tloadnode(pt).symtableentry).varoptions:=
                           tvarsym(tloadnode(pt).symtableentry).varoptions-[vo_regable,vo_fpuregable]
                      end;
-                 end
-                { funcret }
-                else if (pt.nodetype=funcretn) then
-                 begin
-                   abssym:=tabsolutesym.create(vs.realname,tt);
-                   abssym.fileinfo:=vs.fileinfo;
-                   abssym.abstyp:=tovar;
-                   abssym.ref:=tstoredsym(tfuncretnode(pt).funcretsym);
-                   symtablestack.replace(vs,abssym);
-                   vs.free;
                  end
                 { address }
                 else if is_constintnode(pt) and
@@ -612,7 +602,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  2003-03-17 18:56:02  peter
+  Revision 1.46  2003-04-25 20:59:33  peter
+    * removed funcretn,funcretsym, function result is now in varsym
+      and aliases for result and function name are added using absolutesym
+    * vs_hidden parameter for funcret passed in parameter
+    * vs_hidden fixes
+    * writenode changed to printnode and released from extdebug
+    * -vp option added to generate a tree.log with the nodetree
+    * nicer printnode for statements, callnode
+
+  Revision 1.45  2003/03/17 18:56:02  peter
     * fix crash with duplicate id
 
   Revision 1.44  2003/01/02 11:14:02  michael

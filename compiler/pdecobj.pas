@@ -212,12 +212,12 @@ implementation
            pd : tprocdef;
            pt : tnode;
            propname : stringid;
-           dummyst : tparasymtable;
-           vs : tvarsym;
            sc : tsinglelist;
            oldregisterdef : boolean;
-           temppara : tparaitem;
-           propertyprocdef : tprocvardef;
+           readvs,
+           hvs      : tvarsym;
+           readprocdef,
+           writeprocdef : tprocvardef;
         begin
            { check for a class }
            aktprocsym:=nil;
@@ -226,313 +226,328 @@ implementation
               ((m_delphi in aktmodeswitches) and (is_object(aktclass)))) then
              Message(parser_e_syntax_error);
            consume(_PROPERTY);
+
+           { Generate temp procvardefs to search for matching read/write
+             procedures. the readprocdef will store all definitions }
            oldregisterdef:=registerdef;
            registerdef:=false;
-           propertyprocdef:=tprocvardef.create;
+           readprocdef:=tprocvardef.create;
+           writeprocdef:=tprocvardef.create;
            registerdef:=oldregisterdef;
-           if token=_ID then
+
+           if token<>_ID then
              begin
-                p:=tpropertysym.create(orgpattern);
-                propname:=pattern;
                 consume(_ID);
-                { property parameters ? }
-                if token=_LECKKLAMMER then
-                  begin
-                     if (sp_published in current_object_option) then
-                       Message(parser_e_cant_publish_that_property);
-
-                     { create a list of the parameters }
-                     dummyst:=tparasymtable.create;
-                     dummyst.next:=symtablestack;
-                     symtablestack:=dummyst;
-                     sc:=tsinglelist.create;
-                     consume(_LECKKLAMMER);
-                     inc(testcurobject);
-                     repeat
-                       if token=_VAR then
-                         begin
-                            consume(_VAR);
-                            varspez:=vs_var;
-                         end
-                       else if token=_CONST then
-                         begin
-                            consume(_CONST);
-                            varspez:=vs_const;
-                         end
-                       else if (idtoken=_OUT) and (m_out in aktmodeswitches) then
-                         begin
-                            consume(_OUT);
-                            varspez:=vs_out;
-                         end
-                       else
-                         varspez:=vs_value;
-                       sc.reset;
-                       repeat
-                         vs:=tvarsym.create(orgpattern,generrortype);
-                         dummyst.insert(vs);
-                         sc.insert(vs);
-                         consume(_ID);
-                       until not try_to_consume(_COMMA);
-                       if token=_COLON then
-                         begin
-                            consume(_COLON);
-                            if token=_ARRAY then
-                              begin
-                                 consume(_ARRAY);
-                                 consume(_OF);
-                                 { define range and type of range }
-                                 tt.setdef(tarraydef.create(0,-1,s32bittype));
-                                 { define field type }
-                                 single_type(arraytype,s,false);
-                                 tarraydef(tt.def).setelementtype(arraytype);
-                              end
-                            else
-                              single_type(tt,s,false);
-                         end
-                       else
-                         tt:=cformaltype;
-                       vs:=tvarsym(sc.first);
-                       while assigned(vs) do
-                        begin
-                          propertyprocdef.concatpara(nil,tt,nil,varspez,nil);
-                          vs:=tvarsym(vs.listnext);
-                        end;
-                     until not try_to_consume(_SEMICOLON);
-                     dec(testcurobject);
-                     consume(_RECKKLAMMER);
-
-                     { remove dummy symtable }
-                     symtablestack:=symtablestack.next;
-                     dummyst.free;
-                     sc.free;
-
-                     { the parser need to know if a property has parameters, the
-                       index parameter doesn't count (PFV) }
-                     if propertyprocdef.minparacount>0 then
-                       include(p.propoptions,ppo_hasparameters);
-                  end;
-                { overriden property ?                                 }
-                { force property interface, if there is a property parameter }
-                if (token=_COLON) or (propertyprocdef.minparacount>0) then
-                  begin
-                     consume(_COLON);
-                     single_type(p.proptype,hs,false);
-                     if (idtoken=_INDEX) then
-                       begin
-                          consume(_INDEX);
-                          pt:=comp_expr(true);
-                          if is_constnode(pt) and
-                             is_ordinal(pt.resulttype.def) and
-                             (not is_64bitint(pt.resulttype.def)) then
-                            p.index:=tordconstnode(pt).value
-                          else
-                            begin
-                              Message(parser_e_invalid_property_index_value);
-                              p.index:=0;
-                            end;
-                          p.indextype.setdef(pt.resulttype.def);
-                          include(p.propoptions,ppo_indexed);
-                          { concat a longint to the para template }
-                          propertyprocdef.concatpara(nil,p.indextype,nil,vs_value,nil);
-                          pt.free;
-                       end;
-                  end
-                else
-                  begin
-                     { do an property override }
-                     overriden:=search_class_member(aktclass,propname);
-                     if assigned(overriden) and (overriden.typ=propertysym) then
-                       begin
-                         p.dooverride(tpropertysym(overriden));
-                       end
-                     else
-                       begin
-                         p.proptype:=generrortype;
-                         message(parser_e_no_property_found_to_override);
-                       end;
-                  end;
-                if (sp_published in current_object_option) and
-                   not(p.proptype.def.is_publishable) then
+                consume(_SEMICOLON);
+                exit;
+             end;
+           { Generate propertysym and insert in symtablestack }
+           p:=tpropertysym.create(orgpattern);
+           symtablestack.insert(p);
+           propname:=pattern;
+           consume(_ID);
+           { Set the symtablestack to the parast of readprop so
+             temp defs will be destroyed after declaration }
+           readprocdef.parast.next:=symtablestack;
+           symtablestack:=readprocdef.parast;
+           { property parameters ? }
+           if token=_LECKKLAMMER then
+             begin
+                if (sp_published in current_object_option) then
                   Message(parser_e_cant_publish_that_property);
 
-                if try_to_consume(_READ) then
-                 begin
-                   p.readaccess.clear;
-                   if parse_symlist(p.readaccess) then
+                { create a list of the parameters }
+                sc:=tsinglelist.create;
+                consume(_LECKKLAMMER);
+                inc(testcurobject);
+                repeat
+                  if token=_VAR then
                     begin
-                      sym:=p.readaccess.firstsym^.sym;
-                      case sym.typ of
-                        procsym :
-                          begin
-                            pd:=Tprocsym(sym).search_procdef_bypara(propertyprocdef.para,true,false);
-                            if not(assigned(pd)) or
-                               not(equal_defs(pd.rettype.def,p.proptype.def)) then
-                              Message(parser_e_ill_property_access_sym);
-                            p.readaccess.setdef(pd);
-                          end;
-                        varsym :
-                          begin
-                            if compare_defs(p.readaccess.def,p.proptype.def,nothingn)>=te_equal then
-                             begin
-                               { property parameters are allowed if this is
-                                 an indexed property, because the index is then
-                                 the parameter.
-                                 Note: In the help of Kylix it is written
-                                 that it isn't allowed, but the compiler accepts it (PFV) }
-                               if (ppo_hasparameters in p.propoptions) then
-                                Message(parser_e_ill_property_access_sym);
-                             end
-                            else
-                             CGMessage2(type_e_incompatible_types,p.readaccess.def.typename,p.proptype.def.typename);
-                          end;
-                        else
-                          Message(parser_e_ill_property_access_sym);
-                      end;
-                    end;
-                 end;
-                if try_to_consume(_WRITE) then
-                 begin
-                   p.writeaccess.clear;
-                   if parse_symlist(p.writeaccess) then
+                       consume(_VAR);
+                       varspez:=vs_var;
+                    end
+                  else if token=_CONST then
                     begin
-                      sym:=p.writeaccess.firstsym^.sym;
-                      case sym.typ of
-                        procsym :
-                          begin
-                            { insert data entry to check access method }
-                            temppara:=propertyprocdef.concatpara(nil,p.proptype,nil,vs_value,nil);
-                            pd:=Tprocsym(sym).search_procdef_bypara(propertyprocdef.para,true,false);
-                            { ... and remove it }
-                            propertyprocdef.removepara(temppara);
-                            if not(assigned(pd)) then
-                              Message(parser_e_ill_property_access_sym);
-                            p.writeaccess.setdef(pd);
-                          end;
-                        varsym :
-                          begin
-                            if compare_defs(p.writeaccess.def,p.proptype.def,nothingn)>=te_equal then
-                             begin
-                               { property parameters are allowed if this is
-                                 an indexed property, because the index is then
-                                 the parameter.
-                                 Note: In the help of Kylix it is written
-                                 that it isn't allowed, but the compiler accepts it (PFV) }
-                               if (ppo_hasparameters in p.propoptions) then
-                                Message(parser_e_ill_property_access_sym);
-                             end
-                            else
-                             CGMessage2(type_e_incompatible_types,p.readaccess.def.typename,p.proptype.def.typename);
-                          end;
-                        else
-                          Message(parser_e_ill_property_access_sym);
-                      end;
-                    end;
-                 end;
-                include(p.propoptions,ppo_stored);
-                if try_to_consume(_STORED) then
-                 begin
-                   p.storedaccess.clear;
-                   case token of
-                     _ID:
-                       begin
-                         { in the case that idtoken=_DEFAULT }
-                         { we have to do nothing except      }
-                         { setting ppo_stored, it's the same }
-                         { as stored true                    }
-                         if idtoken<>_DEFAULT then
-                          begin
-                            if parse_symlist(p.storedaccess) then
-                             begin
-                               sym:=p.storedaccess.firstsym^.sym;
-                               case sym.typ of
-                                 procsym :
-                                   begin
-                                      pp:=Tprocsym(sym).search_procdef_nopara_boolret;
-                                      if assigned(pp) then
-                                        p.storedaccess.setdef(pp)
-                                      else
-                                        message(parser_e_ill_property_storage_sym);
-                                   end;
-                                 varsym :
-                                   begin
-                                     if (ppo_hasparameters in p.propoptions) or
-                                        not(is_boolean(p.storedaccess.def)) then
-                                      Message(parser_e_stored_property_must_be_boolean);
-                                   end;
-                                 else
-                                   Message(parser_e_ill_property_access_sym);
-                               end;
-                             end;
-                          end;
-                       end;
-                     _FALSE:
-                       begin
-                         consume(_FALSE);
-                         exclude(p.propoptions,ppo_stored);
-                       end;
-                     _TRUE:
-                       consume(_TRUE);
+                       consume(_CONST);
+                       varspez:=vs_const;
+                    end
+                  else if (idtoken=_OUT) and (m_out in aktmodeswitches) then
+                    begin
+                       consume(_OUT);
+                       varspez:=vs_out;
+                    end
+                  else
+                    varspez:=vs_value;
+                  sc.reset;
+                  repeat
+                    readvs:=tvarsym.create(orgpattern,generrortype);
+                    readprocdef.parast.insert(readvs);
+                    sc.insert(readvs);
+                    consume(_ID);
+                  until not try_to_consume(_COMMA);
+                  if token=_COLON then
+                    begin
+                       consume(_COLON);
+                       if token=_ARRAY then
+                         begin
+                            consume(_ARRAY);
+                            consume(_OF);
+                            { define range and type of range }
+                            tt.setdef(tarraydef.create(0,-1,s32bittype));
+                            { define field type }
+                            single_type(arraytype,s,false);
+                            tarraydef(tt.def).setelementtype(arraytype);
+                         end
+                       else
+                         single_type(tt,s,false);
+                    end
+                  else
+                    tt:=cformaltype;
+                  readvs:=tvarsym(sc.first);
+                  while assigned(readvs) do
+                   begin
+                     readprocdef.concatpara(nil,tt,readvs,varspez,nil);
+                     { also update the writeprocdef }
+                     hvs:=tvarsym.create(readvs.realname,generrortype);
+                     writeprocdef.parast.insert(hvs);
+                     writeprocdef.concatpara(nil,tt,hvs,varspez,nil);
+                     readvs:=tvarsym(readvs.listnext);
                    end;
-                 end;
-                if try_to_consume(_DEFAULT) then
-                  begin
-                     if not(is_ordinal(p.proptype.def) or
-                            is_64bitint(p.proptype.def) or
-                            ((p.proptype.def.deftype=setdef) and
-                             (tsetdef(p.proptype.def).settype=smallset))) or
-                            ((p.proptype.def.deftype=arraydef) and
-                             (ppo_indexed in p.propoptions)) or
-                        (ppo_hasparameters in p.propoptions) then
-                       Message(parser_e_property_cant_have_a_default_value);
-                     { Get the result of the default, the firstpass is
-                       needed to support values like -1 }
-                     pt:=comp_expr(true);
-                     if (p.proptype.def.deftype=setdef) and
-                        (pt.nodetype=arrayconstructorn) then
-                       begin
-                         arrayconstructor_to_set(pt);
-                         do_resulttypepass(pt);
-                       end;
-                     inserttypeconv(pt,p.proptype);
-                     if not(is_constnode(pt)) then
-                       Message(parser_e_property_default_value_must_const);
+                until not try_to_consume(_SEMICOLON);
+                sc.free;
+                dec(testcurobject);
+                consume(_RECKKLAMMER);
 
-                     if pt.nodetype=setconstn then
-                       p.default:=plongint(tsetconstnode(pt).value_set)^
-                     else
-                       p.default:=tordconstnode(pt).value;
-                     pt.free;
-                  end
-                else if try_to_consume(_NODEFAULT) then
+                { the parser need to know if a property has parameters, the
+                  index parameter doesn't count (PFV) }
+                if readprocdef.minparacount>0 then
+                  include(p.propoptions,ppo_hasparameters);
+             end;
+           { overriden property ?                                 }
+           { force property interface, if there is a property parameter }
+           if (token=_COLON) or (readprocdef.minparacount>0) then
+             begin
+                consume(_COLON);
+                single_type(p.proptype,hs,false);
+                if (idtoken=_INDEX) then
                   begin
-                     p.default:=0;
-                  end;
-                symtablestack.insert(p);
-                { default property ? }
-                consume(_SEMICOLON);
-                if try_to_consume(_DEFAULT) then
-                  begin
-                     { overriding a default propertyp is allowed
-                     p2:=search_default_property(aktclass);
-                     if assigned(p2) then
-                       message1(parser_e_only_one_default_property,
-                         tobjectdef(p2.owner.defowner)^.objrealname^)
+                     consume(_INDEX);
+                     pt:=comp_expr(true);
+                     if is_constnode(pt) and
+                        is_ordinal(pt.resulttype.def) and
+                        (not is_64bitint(pt.resulttype.def)) then
+                       p.index:=tordconstnode(pt).value
                      else
-                     }
                        begin
-                          include(p.propoptions,ppo_defaultproperty);
-                          if propertyprocdef.maxparacount=0 then
-                            message(parser_e_property_need_paras);
+                         Message(parser_e_invalid_property_index_value);
+                         p.index:=0;
                        end;
-                     consume(_SEMICOLON);
+                     p.indextype.setdef(pt.resulttype.def);
+                     include(p.propoptions,ppo_indexed);
+                     { concat a longint to the para templates }
+                     hvs:=tvarsym.create('$index',p.indextype);
+                     readprocdef.parast.insert(hvs);
+                     readprocdef.concatpara(nil,p.indextype,hvs,vs_value,nil);
+                     hvs:=tvarsym.create('$index',p.indextype);
+                     writeprocdef.parast.insert(hvs);
+                     writeprocdef.concatpara(nil,p.indextype,hvs,vs_value,nil);
+                     pt.free;
                   end;
              end
            else
              begin
-                consume(_ID);
-                consume(_SEMICOLON);
+                { do an property override }
+                overriden:=search_class_member(aktclass,propname);
+                if assigned(overriden) and (overriden.typ=propertysym) then
+                  begin
+                    p.dooverride(tpropertysym(overriden));
+                  end
+                else
+                  begin
+                    p.proptype:=generrortype;
+                    message(parser_e_no_property_found_to_override);
+                  end;
              end;
-           propertyprocdef.free;
+           if (sp_published in current_object_option) and
+              not(p.proptype.def.is_publishable) then
+             Message(parser_e_cant_publish_that_property);
+
+           if try_to_consume(_READ) then
+            begin
+              p.readaccess.clear;
+              if parse_symlist(p.readaccess) then
+               begin
+                 sym:=p.readaccess.firstsym^.sym;
+                 case sym.typ of
+                   procsym :
+                     begin
+                       { read is function returning the type of the property }
+                       readprocdef.rettype:=p.proptype;
+                       { Insert hidden parameters }
+                       insert_hidden_para(readprocdef);
+                       insert_funcret_para(readprocdef);
+                       { search procdefs matching readprocdef }
+                       pd:=Tprocsym(sym).search_procdef_bypara(readprocdef.para,p.proptype.def,true,false);
+                       if not(assigned(pd)) then
+                         Message(parser_e_ill_property_access_sym);
+                       p.readaccess.setdef(pd);
+                     end;
+                   varsym :
+                     begin
+                       if compare_defs(p.readaccess.def,p.proptype.def,nothingn)>=te_equal then
+                        begin
+                          { property parameters are allowed if this is
+                            an indexed property, because the index is then
+                            the parameter.
+                            Note: In the help of Kylix it is written
+                            that it isn't allowed, but the compiler accepts it (PFV) }
+                          if (ppo_hasparameters in p.propoptions) then
+                           Message(parser_e_ill_property_access_sym);
+                        end
+                       else
+                        CGMessage2(type_e_incompatible_types,p.readaccess.def.typename,p.proptype.def.typename);
+                     end;
+                   else
+                     Message(parser_e_ill_property_access_sym);
+                 end;
+               end;
+            end;
+           if try_to_consume(_WRITE) then
+            begin
+              p.writeaccess.clear;
+              if parse_symlist(p.writeaccess) then
+               begin
+                 sym:=p.writeaccess.firstsym^.sym;
+                 case sym.typ of
+                   procsym :
+                     begin
+                       { write is a procedure with an extra value parameter
+                         of the of the property }
+                       writeprocdef.rettype:=voidtype;
+                       hvs:=tvarsym.create('$value',p.proptype);
+                       writeprocdef.parast.insert(hvs);
+                       writeprocdef.concatpara(nil,p.proptype,hvs,vs_value,nil);
+                       { Insert hidden parameters }
+                       insert_hidden_para(writeprocdef);
+                       insert_funcret_para(writeprocdef);
+                       { search procdefs matching writeprocdef }
+                       pd:=Tprocsym(sym).search_procdef_bypara(writeprocdef.para,writeprocdef.rettype.def,true,false);
+                       if not(assigned(pd)) then
+                         Message(parser_e_ill_property_access_sym);
+                       p.writeaccess.setdef(pd);
+                     end;
+                   varsym :
+                     begin
+                       if compare_defs(p.writeaccess.def,p.proptype.def,nothingn)>=te_equal then
+                        begin
+                          { property parameters are allowed if this is
+                            an indexed property, because the index is then
+                            the parameter.
+                            Note: In the help of Kylix it is written
+                            that it isn't allowed, but the compiler accepts it (PFV) }
+                          if (ppo_hasparameters in p.propoptions) then
+                           Message(parser_e_ill_property_access_sym);
+                        end
+                       else
+                        CGMessage2(type_e_incompatible_types,p.readaccess.def.typename,p.proptype.def.typename);
+                     end;
+                   else
+                     Message(parser_e_ill_property_access_sym);
+                 end;
+               end;
+            end;
+           include(p.propoptions,ppo_stored);
+           if try_to_consume(_STORED) then
+            begin
+              p.storedaccess.clear;
+              case token of
+                _ID:
+                  begin
+                    { in the case that idtoken=_DEFAULT }
+                    { we have to do nothing except      }
+                    { setting ppo_stored, it's the same }
+                    { as stored true                    }
+                    if idtoken<>_DEFAULT then
+                     begin
+                       if parse_symlist(p.storedaccess) then
+                        begin
+                          sym:=p.storedaccess.firstsym^.sym;
+                          case sym.typ of
+                            procsym :
+                              begin
+                                 pp:=Tprocsym(sym).search_procdef_nopara_boolret;
+                                 if assigned(pp) then
+                                   p.storedaccess.setdef(pp)
+                                 else
+                                   message(parser_e_ill_property_storage_sym);
+                              end;
+                            varsym :
+                              begin
+                                if (ppo_hasparameters in p.propoptions) or
+                                   not(is_boolean(p.storedaccess.def)) then
+                                 Message(parser_e_stored_property_must_be_boolean);
+                              end;
+                            else
+                              Message(parser_e_ill_property_access_sym);
+                          end;
+                        end;
+                     end;
+                  end;
+                _FALSE:
+                  begin
+                    consume(_FALSE);
+                    exclude(p.propoptions,ppo_stored);
+                  end;
+                _TRUE:
+                  consume(_TRUE);
+              end;
+            end;
+           if try_to_consume(_DEFAULT) then
+             begin
+                if not(is_ordinal(p.proptype.def) or
+                       is_64bitint(p.proptype.def) or
+                       ((p.proptype.def.deftype=setdef) and
+                        (tsetdef(p.proptype.def).settype=smallset))) or
+                       ((p.proptype.def.deftype=arraydef) and
+                        (ppo_indexed in p.propoptions)) or
+                   (ppo_hasparameters in p.propoptions) then
+                  Message(parser_e_property_cant_have_a_default_value);
+                { Get the result of the default, the firstpass is
+                  needed to support values like -1 }
+                pt:=comp_expr(true);
+                if (p.proptype.def.deftype=setdef) and
+                   (pt.nodetype=arrayconstructorn) then
+                  begin
+                    arrayconstructor_to_set(pt);
+                    do_resulttypepass(pt);
+                  end;
+                inserttypeconv(pt,p.proptype);
+                if not(is_constnode(pt)) then
+                  Message(parser_e_property_default_value_must_const);
+
+                if pt.nodetype=setconstn then
+                  p.default:=plongint(tsetconstnode(pt).value_set)^
+                else
+                  p.default:=tordconstnode(pt).value;
+                pt.free;
+             end
+           else if try_to_consume(_NODEFAULT) then
+             begin
+                p.default:=0;
+             end;
+           consume(_SEMICOLON);
+           { default property ? }
+           if try_to_consume(_DEFAULT) then
+             begin
+               include(p.propoptions,ppo_defaultproperty);
+               if readprocdef.maxparacount=0 then
+                 message(parser_e_property_need_paras);
+               consume(_SEMICOLON);
+             end;
+           { remove temporary procvardefs }
+           symtablestack:=symtablestack.next;
+           readprocdef.free;
+           writeprocdef.free;
         end;
 
 
@@ -1139,7 +1154,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.59  2003-04-10 17:57:52  peter
+  Revision 1.60  2003-04-25 20:59:33  peter
+    * removed funcretn,funcretsym, function result is now in varsym
+      and aliases for result and function name are added using absolutesym
+    * vs_hidden parameter for funcret passed in parameter
+    * vs_hidden fixes
+    * writenode changed to printnode and released from extdebug
+    * -vp option added to generate a tree.log with the nodetree
+    * nicer printnode for statements, callnode
+
+  Revision 1.59  2003/04/10 17:57:52  peter
     * vs_hidden released
 
   Revision 1.58  2003/01/09 21:52:37  peter

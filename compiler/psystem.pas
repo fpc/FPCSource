@@ -379,7 +379,6 @@ implementation
         nodeclass[vecn]:=cvecnode;
         nodeclass[pointerconstn]:=cpointerconstnode;
         nodeclass[stringconstn]:=cstringconstnode;
-        nodeclass[funcretn]:=cfuncretnode;
         nodeclass[selfn]:=cselfnode;
         nodeclass[notn]:=cnotnode;
         nodeclass[inlinen]:=cinlinenode;
@@ -482,7 +481,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  2003-04-23 21:10:54  peter
+  Revision 1.47  2003-04-25 20:59:34  peter
+    * removed funcretn,funcretsym, function result is now in varsym
+      and aliases for result and function name are added using absolutesym
+    * vs_hidden parameter for funcret passed in parameter
+    * vs_hidden fixes
+    * writenode changed to printnode and released from extdebug
+    * -vp option added to generate a tree.log with the nodetree
+    * nicer printnode for statements, callnode
+
+  Revision 1.46  2003/04/23 21:10:54  peter
     * fix compile for ppc,sparc,m68k
 
   Revision 1.45  2003/04/23 20:16:04  peter

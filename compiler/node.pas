@@ -81,7 +81,6 @@ interface
           vecn,             {Represents array indexing}
           pointerconstn,    {Represents a pointer constant}
           stringconstn,     {Represents a string constant}
-          funcretn,         {Represents the function result var}
           selfn,            {Represents the self parameter}
           notn,             {Represents the not operator}
           inlinen,          {Internal procedures (i.e. writeln)}
@@ -166,7 +165,6 @@ interface
           'vecn',
           'pointerconstn',
           'stringconstn',
-          'funcretn',
           'selfn',
           'notn',
           'inlinen',
@@ -261,7 +259,10 @@ interface
          nf_explicit,
 
          { tinlinenode }
-         nf_inlineconst
+         nf_inlineconst,
+
+         { tblocknode }
+         nf_releasetemps
        );
 
        tnodeflagset = set of tnodeflags;
@@ -344,14 +345,12 @@ interface
           function getcopy : tnode;virtual;
 
           procedure insertintolist(l : tnodelist);virtual;
-{$ifdef EXTDEBUG}
           { writes a node for debugging purpose, shouldn't be called }
-          { direct, because there is no test for nil, use writenode  }
-          { to write a complete tree                                 }
-          procedure dowrite;
-          procedure dowritenodetype;virtual;
-          procedure _dowrite;virtual;
-{$endif EXTDEBUG}
+          { direct, because there is no test for nil, use printnode  }
+          { to write a complete tree }
+          procedure printnodeinfo(var t:text);
+          procedure printnodedata(var t:text);virtual;
+          procedure printnodetree(var t:text);virtual;
           procedure concattolist(l : tlinkedlist);virtual;
           function ischild(p : tnode) : boolean;virtual;
           procedure set_file_line(from : tnode);
@@ -379,9 +378,7 @@ interface
           function getcopy : tnode;override;
           procedure insertintolist(l : tnodelist);override;
           procedure left_max;
-{$ifdef extdebug}
-          procedure _dowrite;override;
-{$endif extdebug}
+          procedure printnodedata(var t:text);override;
        end;
 
        pbinarynode = ^tbinarynode;
@@ -399,9 +396,8 @@ interface
           function getcopy : tnode;override;
           procedure insertintolist(l : tnodelist);override;
           procedure left_right_max;
-{$ifdef extdebug}
-          procedure _dowrite;override;
-{$endif extdebug}
+          procedure printnodedata(var t:text);override;
+          procedure printnodelist(var t:text);
        end;
 
        tbinopnode = class(tbinarynode)
@@ -419,17 +415,20 @@ interface
     var
       { array with all class types for tnodes }
       nodeclass : tnodeclassarray;
-{$ifdef EXTDEBUG}
-      { indention used when writing the tree to the screen }
-      writenodeindention : string;
-{$endif EXTDEBUG}
-
 
     function ppuloadnode(ppufile:tcompilerppufile):tnode;
     procedure ppuwritenode(ppufile:tcompilerppufile;n:tnode);
-{$ifdef EXTDEBUG}
-    procedure writenode(t:tnode);
-{$endif EXTDEBUG}
+
+    const
+      printnodespacing = '   ';
+    var
+      { indention used when writing the tree to the screen }
+      printnodeindention : string;
+
+    procedure printnodeindent;
+    procedure printnodeunindent;
+    procedure printnode(var t:text;n:tnode);
+
 
 
 implementation
@@ -487,17 +486,26 @@ implementation
       end;
 
 
-{$ifdef EXTDEBUG}
-     procedure writenode(t:tnode);
-       begin
-         if assigned(t) then
-          t.dowrite
-         else
-          write(writenodeindention,'nil');
-         if writenodeindention='' then
-           writeln;
-       end;
-{$endif EXTDEBUG}
+    procedure printnodeindent;
+      begin
+        printnodeindention:=printnodeindention+printnodespacing;
+      end;
+
+
+    procedure printnodeunindent;
+      begin
+        delete(printnodeindention,1,length(printnodespacing));
+      end;
+
+
+    procedure printnode(var t:text;n:tnode);
+      begin
+        if assigned(n) then
+         n.printnodetree(t)
+        else
+         writeln(t,printnodeindention,'nil');
+      end;
+
 
 {****************************************************************************
                                  TNODE
@@ -577,7 +585,6 @@ implementation
 
 
     procedure tnode.toggleflag(f : tnodeflags);
-
       begin
          if f in flags then
            exclude(flags,f)
@@ -585,8 +592,8 @@ implementation
            include(flags,f);
       end;
 
-    destructor tnode.destroy;
 
+    destructor tnode.destroy;
       begin
 {$ifdef EXTDEBUG}
          if firstpasscount>maxfirstpasscount then
@@ -596,12 +603,11 @@ implementation
 
 
     procedure tnode.concattolist(l : tlinkedlist);
-
       begin
       end;
 
-    function tnode.ischild(p : tnode) : boolean;
 
+    function tnode.ischild(p : tnode) : boolean;
       begin
          ischild:=false;
       end;
@@ -615,57 +621,37 @@ implementation
       end;
 
 
-{$ifdef EXTDEBUG}
-    procedure tnode._dowrite;
-      const
-         loc2str : array[TCGLoc] of string[18] = (
-           'LOC_INVALID',
-           'LOC_VOID',
-           'LOC_CONSTANT',
-           'LOC_JUMP',
-           'LOC_FLAGS',
-           'LOC_CREFERENCE',
-           'LOC_REFERENCE',
-           'LOC_REGISTER',
-           'LOC_CREGISTER',
-           'LOC_FPUREGISTER',
-           'LOC_CFPUREGISTER',
-           'LOC_MMXREGISTER',
-           'LOC_CMMXREGISTER',
-           'LOC_SSEREGISTER',
-           'LOC_CSSEREGISTER',
-           'LOC_MMREGISTER',
-           'LOC_CMMREGISTER');
-
+    procedure tnode.printnodeinfo(var t:text);
       begin
-        dowritenodetype;
+        write(t,nodetype2str[nodetype]);
         if assigned(resulttype.def) then
-          write(',resulttype = "',resulttype.def.gettypename,'"')
+          write(t,' ,resulttype = "',resulttype.def.gettypename,'"')
         else
-          write(',resulttype = <nil>');
-        write(',location.loc = ',loc2str[location.loc]);
-        write(',registersint = ',registers32);
-        write(',registersfpu = ',registersfpu);
+          write(t,' ,resulttype = <nil>');
+        writeln(t,', pos = (',fileinfo.line,',',fileinfo.column,')',
+                  ', loc = ',tcgloc2str[location.loc],
+                  ', inttgobj:  = ',registers32,
+                  ', fpuregs = ',registersfpu);
       end;
 
-    procedure tnode.dowritenodetype;
+
+    procedure tnode.printnodedata(var t:text);
       begin
-          write(nodetype2str[nodetype]);
       end;
 
-    procedure tnode.dowrite;
+
+    procedure tnode.printnodetree(var t:text);
       begin
-         write(writenodeindention,'(');
-         writenodeindention:=writenodeindention+'    ';
-         _dowrite;
-         writeln;
-         delete(writenodeindention,1,4);
-         write(writenodeindention,')');
+         write(t,printnodeindention,'(');
+         printnodeinfo(t);
+         printnodeindent;
+         printnodedata(t);
+         printnodeunindent;
+         writeln(t,printnodeindention,')');
       end;
-{$endif EXTDEBUG}
+
 
     function tnode.isequal(p : tnode) : boolean;
-
       begin
          isequal:=
            (not assigned(self) and not assigned(p)) or
@@ -680,24 +666,21 @@ implementation
 
 {$ifdef state_tracking}
     function Tnode.track_state_pass(exec_known:boolean):boolean;
-
-    begin
-    track_state_pass:=false;
-    end;
+      begin
+        track_state_pass:=false;
+      end;
 {$endif state_tracking}
 
-    function tnode.docompare(p : tnode) : boolean;
 
+    function tnode.docompare(p : tnode) : boolean;
       begin
          docompare:=true;
       end;
 
 
     function tnode.getcopy : tnode;
-
       var
          p : tnode;
-
       begin
          { this is quite tricky because we need a node of the current }
          { node type and not one of tnode!                            }
@@ -722,34 +705,30 @@ implementation
          getcopy:=p;
       end;
 
-{    procedure tnode.mark_write;
-      begin
-      end;}
 
     procedure tnode.insertintolist(l : tnodelist);
-
       begin
       end;
 
-    procedure tnode.set_file_line(from : tnode);
 
+    procedure tnode.set_file_line(from : tnode);
       begin
          if assigned(from) then
            fileinfo:=from.fileinfo;
       end;
 
-    procedure tnode.set_tree_filepos(const filepos : tfileposinfo);
 
+    procedure tnode.set_tree_filepos(const filepos : tfileposinfo);
       begin
          fileinfo:=filepos;
       end;
+
 
 {****************************************************************************
                                  TUNARYNODE
  ****************************************************************************}
 
     constructor tunarynode.create(t:tnodetype;l : tnode);
-
       begin
          inherited create(t);
          left:=l;
@@ -786,18 +765,16 @@ implementation
 
 
     function tunarynode.docompare(p : tnode) : boolean;
-
       begin
          docompare:=(inherited docompare(p) and
            ((left=nil) or left.isequal(tunarynode(p).left))
          );
       end;
 
-    function tunarynode.getcopy : tnode;
 
+    function tunarynode.getcopy : tnode;
       var
          p : tunarynode;
-
       begin
          p:=tunarynode(inherited getcopy);
          if assigned(left) then
@@ -807,23 +784,20 @@ implementation
          getcopy:=p;
       end;
 
+
     procedure tunarynode.insertintolist(l : tnodelist);
-
       begin
       end;
 
-{$ifdef extdebug}
-    procedure tunarynode._dowrite;
 
+    procedure tunarynode.printnodedata(var t:text);
       begin
-         inherited _dowrite;
-         writeln(',');
-         writenode(left);
+         inherited printnodedata(t);
+         printnode(t,left);
       end;
-{$endif}
+
 
     procedure tunarynode.left_max;
-
       begin
          registers32:=left.registers32;
          registersfpu:=left.registersfpu;
@@ -832,26 +806,26 @@ implementation
 {$endif SUPPORT_MMX}
       end;
 
-    procedure tunarynode.concattolist(l : tlinkedlist);
 
+    procedure tunarynode.concattolist(l : tlinkedlist);
       begin
          left.parent:=self;
          left.concattolist(l);
          inherited concattolist(l);
       end;
 
-    function tunarynode.ischild(p : tnode) : boolean;
 
+    function tunarynode.ischild(p : tnode) : boolean;
       begin
          ischild:=p=left;
       end;
+
 
 {****************************************************************************
                             TBINARYNODE
  ****************************************************************************}
 
     constructor tbinarynode.create(t:tnodetype;l,r : tnode);
-
       begin
          inherited create(t,l);
          right:=r
@@ -888,7 +862,6 @@ implementation
 
 
     procedure tbinarynode.concattolist(l : tlinkedlist);
-
       begin
          { we could change that depending on the number of }
          { required registers                              }
@@ -899,25 +872,24 @@ implementation
          inherited concattolist(l);
       end;
 
-    function tbinarynode.ischild(p : tnode) : boolean;
 
+    function tbinarynode.ischild(p : tnode) : boolean;
       begin
          ischild:=(p=right);
       end;
 
-    function tbinarynode.docompare(p : tnode) : boolean;
 
+    function tbinarynode.docompare(p : tnode) : boolean;
       begin
          docompare:=(inherited docompare(p) and
              ((right=nil) or right.isequal(tbinarynode(p).right))
          );
       end;
 
-    function tbinarynode.getcopy : tnode;
 
+    function tbinarynode.getcopy : tnode;
       var
          p : tbinarynode;
-
       begin
          p:=tbinarynode(inherited getcopy);
          if assigned(right) then
@@ -927,16 +899,15 @@ implementation
          getcopy:=p;
       end;
 
-    procedure tbinarynode.insertintolist(l : tnodelist);
 
+    procedure tbinarynode.insertintolist(l : tnodelist);
       begin
       end;
 
-    procedure tbinarynode.swapleftright;
 
+    procedure tbinarynode.swapleftright;
       var
          swapp : tnode;
-
       begin
          swapp:=right;
          right:=left;
@@ -946,6 +917,7 @@ implementation
          else
            include(flags,nf_swaped);
       end;
+
 
     procedure tbinarynode.left_right_max;
       begin
@@ -970,28 +942,43 @@ implementation
          end;
       end;
 
-{$ifdef extdebug}
-    procedure tbinarynode._dowrite;
 
+    procedure tbinarynode.printnodedata(var t:text);
       begin
-         inherited _dowrite;
-         writeln(',');
-         writenode(right);
+         inherited printnodedata(t);
+         printnode(t,right);
       end;
-{$endif}
+
+
+    procedure tbinarynode.printnodelist(var t:text);
+      var
+        hp : tbinarynode;
+      begin
+        hp:=self;
+        while assigned(hp) do
+         begin
+           write(t,printnodeindention,'(');
+           printnodeindent;
+           hp.printnodeinfo(t);
+           printnode(t,hp.left);
+           printnodeunindent;
+           writeln(t,printnodeindention,')');
+           hp:=tbinarynode(hp.right);
+         end;
+      end;
+
 
 {****************************************************************************
                             TBINOPYNODE
  ****************************************************************************}
 
     constructor tbinopnode.create(t:tnodetype;l,r : tnode);
-
       begin
          inherited create(t,l,r);
       end;
 
-    function tbinopnode.docompare(p : tnode) : boolean;
 
+    function tbinopnode.docompare(p : tnode) : boolean;
       begin
          docompare:=(inherited docompare(p)) or
            { if that's in the flags, is p then always a tbinopnode (?) (JM) }
@@ -1003,7 +990,20 @@ implementation
 end.
 {
   $Log$
-  Revision 1.56  2003-04-24 22:29:58  florian
+  Revision 1.58  2003-04-25 20:59:33  peter
+    * removed funcretn,funcretsym, function result is now in varsym
+      and aliases for result and function name are added using absolutesym
+    * vs_hidden parameter for funcret passed in parameter
+    * vs_hidden fixes
+    * writenode changed to printnode and released from extdebug
+    * -vp option added to generate a tree.log with the nodetree
+    * nicer printnode for statements, callnode
+
+  Revision 1.57  2002/04/25 20:15:39  florian
+    * block nodes within expressions shouldn't release the used registers,
+      fixed using a flag till the new rg is ready
+
+  Revision 1.56  2003/04/24 22:29:58  florian
     * fixed a lot of PowerPC related stuff
 
   Revision 1.55  2003/04/23 10:12:14  peter

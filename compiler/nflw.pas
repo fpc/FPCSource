@@ -60,9 +60,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure derefimpl;override;
           procedure insertintolist(l : tnodelist);override;
-{$ifdef extdebug}
-          procedure _dowrite;override;
-{$endif extdebug}
+          procedure printnodetree(var t:text);override;
           function docompare(p: tnode): boolean; override;
        end;
 
@@ -318,16 +316,19 @@ implementation
 
       begin
       end;
-{$ifdef extdebug}
-    procedure tloopnode._dowrite;
+
+
+    procedure tloopnode.printnodetree(var t:text);
       begin
-        inherited _dowrite;
-        writenodeindention:=writenodeindention+'    ';
-        writenode(t1);
-        writenode(t2);
-        delete(writenodeindention,1,4);
+        printnodeinfo(t);
+        printnodeindent;
+        printnode(t,left);
+        printnode(t,right);
+        printnode(t,t1);
+        printnode(t,t2);
+        printnodeunindent;
       end;
-{$endif extdebug}
+
 
     function tloopnode.docompare(p: tnode): boolean;
       begin
@@ -735,8 +736,7 @@ implementation
            hp:=tunarynode(hp).left;
          { we need a simple loadn, but the load must be in a global symtable or
            in the same lexlevel }
-         if (hp.nodetype=funcretn) or
-            (
+         if (
              (hp.nodetype=loadn) and
              (
               (tloadnode(hp).symtable.symtablelevel<=1) or
@@ -893,11 +893,11 @@ implementation
                  (procinfo.no_fast_exit) or
                  ((procinfo.flags and pi_uses_exceptions)<>0) then
                begin
-                 pt:=cfuncretnode.create(aktprocdef.funcretsym);
+                 pt:=load_funcret(aktprocdef);
                  left:=cassignmentnode.create(pt,left);
                  onlyassign:=true;
                end;
-              tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
+              tvarsym(aktprocdef.funcretsym).varstate:=vs_assigned;
             end;
          end;
         if assigned(left) then
@@ -1494,7 +1494,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.67  2003-04-25 08:25:26  daniel
+  Revision 1.68  2003-04-25 20:59:33  peter
+    * removed funcretn,funcretsym, function result is now in varsym
+      and aliases for result and function name are added using absolutesym
+    * vs_hidden parameter for funcret passed in parameter
+    * vs_hidden fixes
+    * writenode changed to printnode and released from extdebug
+    * -vp option added to generate a tree.log with the nodetree
+    * nicer printnode for statements, callnode
+
+  Revision 1.67  2003/04/25 08:25:26  daniel
     * Ifdefs around a lot of calls to cleartempgen
     * Fixed registers that are allocated but not freed in several nodes
     * Tweak to register allocator to cause less spills

@@ -126,12 +126,40 @@ interface
           OS_M8,OS_M16,OS_M32,OS_M64,OS_M128,OS_M8,OS_M16,OS_M32,
           OS_M64,OS_M128);
 
+       tcgloc2str : array[TCGLoc] of string[11] = (
+            'LOC_INVALID',
+            'LOC_VOID',
+            'LOC_CONST',
+            'LOC_JUMP',
+            'LOC_FLAGS',
+            'LOC_CREF',
+            'LOC_REF',
+            'LOC_REG',
+            'LOC_CREG',
+            'LOC_FPUREG',
+            'LOC_CFPUREG',
+            'LOC_MMXREG',
+            'LOC_CMMXREG',
+            'LOC_SSEREG',
+            'LOC_CSSEREG',
+            'LOC_MMREG',
+            'LOC_CMMREG');
+
 implementation
 
 end.
 {
   $Log$
-  Revision 1.20  2003-04-23 12:35:34  florian
+  Revision 1.21  2003-04-25 20:59:33  peter
+    * removed funcretn,funcretsym, function result is now in varsym
+      and aliases for result and function name are added using absolutesym
+    * vs_hidden parameter for funcret passed in parameter
+    * vs_hidden fixes
+    * writenode changed to printnode and released from extdebug
+    * -vp option added to generate a tree.log with the nodetree
+    * nicer printnode for statements, callnode
+
+  Revision 1.20  2003/04/23 12:35:34  florian
     * fixed several issues with powerpc
     + applied a patch from Jonas for nested function calls (PowerPC only)
     * ...

@@ -39,10 +39,6 @@ interface
           procedure pass_2;override;
        end;
 
-       tcgfuncretnode = class(tfuncretnode)
-          procedure pass_2;override;
-       end;
-
        tcgarrayconstructornode = class(tarrayconstructornode)
           procedure pass_2;override;
        end;
@@ -707,57 +703,6 @@ implementation
 
 
 {*****************************************************************************
-                             SecondFuncRet
-*****************************************************************************}
-
-    procedure tcgfuncretnode.pass_2;
-      var
-         hreg : tregister;
-         href : treference;
-         pp : tprocinfo;
-         hr_valid : boolean;
-         i : integer;
-      begin
-         location_reset(location,LOC_REFERENCE,def_cgsize(resulttype.def));
-         hr_valid:=false;
-         if (not inlining_procedure) and
-            (lexlevel<>funcretsym.owner.symtablelevel) then
-           begin
-              hreg:=rg.getaddressregister(exprasmlist);
-              hr_valid:=true;
-              reference_reset_base(href,procinfo.framepointer,procinfo.framepointer_offset);
-              cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hreg);
-
-              { walk up the stack frame }
-              pp:=procinfo.parent;
-              i:=lexlevel-1;
-              while i>funcretsym.owner.symtablelevel do
-               begin
-                 reference_reset_base(href,hreg,pp.framepointer_offset);
-                 cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hreg);
-                 pp:=pp.parent;
-                 dec(i);
-               end;
-              location.reference.base:=hreg;
-              location.reference.offset:=pp.return_offset;
-           end
-         else
-           begin
-             location.reference.base:=procinfo.framepointer;
-             location.reference.offset:=procinfo.return_offset;
-           end;
-         if paramanager.ret_in_param(funcretsym.returntype.def,
-                                     tprocdef(funcretsym.owner.defowner).proccalloption) then
-           begin
-              { the parameter is actual a pointer to the value }
-              if not hr_valid then
-                hreg:=rg.getaddressregister(exprasmlist);
-              cg.a_load_ref_reg(exprasmlist,OS_ADDR,location.reference,hreg);
-              location.reference.base:=hreg;
-              location.reference.offset:=0;
-           end;
-      end;
-{*****************************************************************************
                            SecondArrayConstruct
 *****************************************************************************}
 
@@ -1004,12 +949,20 @@ implementation
 begin
    cloadnode:=tcgloadnode;
    cassignmentnode:=tcgassignmentnode;
-   cfuncretnode:=tcgfuncretnode;
    carrayconstructornode:=tcgarrayconstructornode;
 end.
 {
   $Log$
-  Revision 1.51  2003-04-23 20:16:04  peter
+  Revision 1.52  2003-04-25 20:59:33  peter
+    * removed funcretn,funcretsym, function result is now in varsym
+      and aliases for result and function name are added using absolutesym
+    * vs_hidden parameter for funcret passed in parameter
+    * vs_hidden fixes
+    * writenode changed to printnode and released from extdebug
+    * -vp option added to generate a tree.log with the nodetree
+    * nicer printnode for statements, callnode
+
+  Revision 1.51  2003/04/23 20:16:04  peter
     + added currency support based on int64
     + is_64bit for use in cg units instead of is_64bitint
     * removed cgmessage from n386add, replace with internalerrors

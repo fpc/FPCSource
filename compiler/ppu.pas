@@ -41,7 +41,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion=34;
+  CurrentPPUVersion=35;
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -89,9 +89,8 @@ const
   ibvarsym_C      = 28;
   ibunitsym       = 29;  { needed for browser }
   iblabelsym      = 30;
-  ibfuncretsym    = 31;
-  ibsyssym        = 32;
-  ibrttisym       = 33;
+  ibsyssym        = 31;
+  ibrttisym       = 32;
   {definitions}
   iborddef         = 40;
   ibpointerdef     = 41;
@@ -985,7 +984,16 @@ end;
 end.
 {
   $Log$
-  Revision 1.33  2003-04-24 13:03:01  florian
+  Revision 1.34  2003-04-25 20:59:34  peter
+    * removed funcretn,funcretsym, function result is now in varsym
+      and aliases for result and function name are added using absolutesym
+    * vs_hidden parameter for funcret passed in parameter
+    * vs_hidden fixes
+    * writenode changed to printnode and released from extdebug
+    * -vp option added to generate a tree.log with the nodetree
+    * nicer printnode for statements, callnode
+
+  Revision 1.33  2003/04/24 13:03:01  florian
     * comp is now written with its bit pattern to the ppu instead as an extended
 
   Revision 1.32  2003/04/23 14:42:07  daniel

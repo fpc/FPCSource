@@ -80,7 +80,7 @@ interface
             { consider it set function set if the offset was loaded }
            if assigned(aktprocdef.funcretsym) and
               (pos(retstr,upper(s))>0) then
-             tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
+             tvarsym(aktprocdef.funcretsym).varstate:=vs_assigned;
            s:='';
          end;
 
@@ -89,7 +89,7 @@ interface
        s:='';
        if assigned(aktprocdef.funcretsym) and
           is_fpu(aktprocdef.rettype.def) then
-         tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
+         tvarsym(aktprocdef.funcretsym).varstate:=vs_assigned;
        framereg:=procinfo.framepointer;
        convert_register_to_enum(framereg);
        if (not is_void(aktprocdef.rettype.def)) then
@@ -145,7 +145,7 @@ interface
                                     paramanager.ret_in_acc(aktprocdef.rettype.def,aktprocdef.proccalloption) and
                                     ((pos('AX',upper(hs))>0) or
                                     (pos('AL',upper(hs))>0)) then
-                                   tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
+                                   tvarsym(aktprocdef.funcretsym).varstate:=vs_assigned;
                                  if (s[length(s)]<>'%') and
                                    (s[length(s)]<>'$') and
                                    ((s[length(s)]<>'0') or (hs[1]<>'x')) then
@@ -273,7 +273,7 @@ interface
                    end;
  '{',';',#10,#13 : begin
                       if pos(retstr,s) > 0 then
-                        tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
+                        tvarsym(aktprocdef.funcretsym).varstate:=vs_assigned;
                      writeasmline;
                      c:=current_scanner.asmgetchar;
                    end;
@@ -308,7 +308,16 @@ initialization
 end.
 {
   $Log$
-  Revision 1.8  2003-04-25 12:04:31  florian
+  Revision 1.9  2003-04-25 20:59:35  peter
+    * removed funcretn,funcretsym, function result is now in varsym
+      and aliases for result and function name are added using absolutesym
+    * vs_hidden parameter for funcret passed in parameter
+    * vs_hidden fixes
+    * writenode changed to printnode and released from extdebug
+    * -vp option added to generate a tree.log with the nodetree
+    * nicer printnode for statements, callnode
+
+  Revision 1.8  2003/04/25 12:04:31  florian
     * merged agx64att and ag386att to x86/agx86att
 
   Revision 1.7  2003/04/21 20:05:10  peter

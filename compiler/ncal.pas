@@ -74,7 +74,11 @@ interface
           symtableproc   : tsymtable;
           { the definition of the procedure to call }
           procdefinition : tabstractprocdef;
+          { tree that contains the pointer to the object for this method }
           methodpointer  : tnode;
+          { function return node, this is used to pass the data for a
+            ret_in_param return value }
+          funcretnode    : tnode;
 
           { separately specified resulttype for some compilerprocs (e.g. }
           { you can't have a function with an "array of char" resulttype }
@@ -82,9 +86,6 @@ interface
           restype: ttype;
           restypeset: boolean;
 
-          { function return reference node, this is used to pass an already
-            allocated reference for a ret_in_param return value }
-          funcretrefnode : tnode;
           { only the processor specific nodes need to override this }
           { constructor                                             }
           constructor create(l:tnode; v : tprocsym;st : tsymtable; mp : tnode);virtual;
@@ -112,6 +113,7 @@ interface
        {$endif state_tracking}
           function  docompare(p: tnode): boolean; override;
           procedure set_procvar(procvar:tnode);
+          procedure printnodedata(var t:text);override;
        private
 {$ifdef callparatemp}
           function extract_functioncall_paras: tblocknode;
@@ -131,6 +133,7 @@ interface
        tcallparanode = class(tbinarynode)
           callparaflags : set of tcallparaflags;
           paraitem : tparaitem;
+          used_by_callnode : boolean;
           { only the processor specific nodes need to override this }
           { constructor                                             }
           constructor create(expr,next : tnode);virtual;
@@ -147,6 +150,7 @@ interface
           procedure secondcallparan(push_from_left_to_right:boolean;calloption:tproccalloption;
                 para_alignment,para_offset : longint);virtual;abstract;
           function docompare(p: tnode): boolean; override;
+          procedure printnodetree(var t:text);override;
        end;
        tcallparanodeclass = class of tcallparanode;
 
@@ -537,6 +541,10 @@ type
     destructor tcallparanode.destroy;
 
       begin
+         { When the node is used by callnode then
+           we don't destroy left, the callnode takes care of it }
+         if used_by_callnode then
+          left:=nil;
          inherited destroy;
       end;
 
@@ -777,8 +785,8 @@ type
              if do_count then
               begin
                 { not completly proper, but avoids some warnings }
-                if (paraitem.paratyp in [vs_var,vs_out]) then
-                 set_funcret_is_valid(left);
+                {if (paraitem.paratyp in [vs_var,vs_out]) then
+                 set_funcret_is_valid(left); }
                 set_varstate(left,not(paraitem.paratyp in [vs_var,vs_out]));
               end;
              { must only be done after typeconv PM }
@@ -855,6 +863,12 @@ type
       end;
 
 
+    procedure tcallparanode.printnodetree(var t:text);
+      begin
+        printnodelist(t);
+      end;
+
+
 {****************************************************************************
                                  TCALLNODE
  ****************************************************************************}
@@ -868,8 +882,8 @@ type
          include(flags,nf_return_value_used);
          methodpointer:=mp;
          procdefinition:=nil;
-         restypeset := false;
-         funcretrefnode:=nil;
+         restypeset:=false;
+         funcretnode:=nil;
          paralength:=-1;
       end;
 
@@ -918,7 +932,7 @@ type
     constructor tcallnode.createinternreturn(const name: string; params: tnode; returnnode : tnode);
       begin
         self.createintern(name,params);
-        funcretrefnode:=returnnode;
+        funcretnode:=returnnode;
         if not paramanager.ret_in_param(symtableprocentry.first_procdef.rettype.def,symtableprocentry.first_procdef.proccalloption) then
           internalerror(200204247);
       end;
@@ -927,7 +941,7 @@ type
     destructor tcallnode.destroy;
       begin
          methodpointer.free;
-         funcretrefnode.free;
+         funcretnode.free;
          inherited destroy;
       end;
 
@@ -943,7 +957,7 @@ type
         procdefinition:=tprocdef(ppufile.getderef);
         restypeset:=boolean(ppufile.getbyte);
         methodpointer:=ppuloadnode(ppufile);
-        funcretrefnode:=ppuloadnode(ppufile);
+        funcretnode:=ppuloadnode(ppufile);
       end;
 
 
@@ -954,7 +968,7 @@ type
         ppufile.putderef(procdefinition);
         ppufile.putbyte(byte(restypeset));
         ppuwritenode(ppufile,methodpointer);
-        ppuwritenode(ppufile,funcretrefnode);
+        ppuwritenode(ppufile,funcretnode);
       end;
 
 
@@ -966,8 +980,8 @@ type
         resolvedef(pointer(procdefinition));
         if assigned(methodpointer) then
           methodpointer.derefimpl;
-        if assigned(funcretrefnode) then
-          funcretrefnode.derefimpl;
+        if assigned(funcretnode) then
+          funcretnode.derefimpl;
       end;
 
 
@@ -991,10 +1005,10 @@ type
          n.methodpointer:=methodpointer.getcopy
         else
          n.methodpointer:=nil;
-        if assigned(funcretrefnode) then
-         n.funcretrefnode:=funcretrefnode.getcopy
+        if assigned(funcretnode) then
+         n.funcretnode:=funcretnode.getcopy
         else
-         n.funcretrefnode:=nil;
+         n.funcretnode:=nil;
         result:=n;
       end;
 
@@ -1254,7 +1268,7 @@ type
          begin
            if all or
               (not hp^.invalid) then
-             MessagePos1(hp^.data.fileinfo,sym_h_param_list,hp^.data.fullprocname);
+             MessagePos1(hp^.data.fileinfo,sym_h_param_list,hp^.data.fullprocname(false));
            hp:=hp^.next;
          end;
       end;
@@ -1285,7 +1299,7 @@ type
         hp:=procs;
         while assigned(hp) do
          begin
-           Comment(lvl,'  '+hp^.data.fullprocname);
+           Comment(lvl,'  '+hp^.data.fullprocname(false));
            if (hp^.invalid) then
             Comment(lvl,'   invalid')
            else
@@ -1566,7 +1580,10 @@ type
         pt       : tcallparanode;
         oldppt   : ^tcallparanode;
         currpara : tparaitem;
+        used_by_callnode : boolean;
         hiddentree : tnode;
+        newstatement : tstatementnode;
+        temp         : ttempcreatenode;
       begin
         pt:=tcallparanode(left);
         oldppt:=@left;
@@ -1588,23 +1605,45 @@ type
         currpara:=tparaitem(procdefinition.Para.last);
         while assigned(currpara) do
          begin
-           if not assigned(pt) then
-             internalerror(200304082);
            if (currpara.paratyp=vs_hidden) then
             begin
+              { generate hidden tree }
+              used_by_callnode:=false;
               hiddentree:=nil;
-              if assigned(currpara.previous) and
-                 paramanager.push_high_param(tparaitem(currpara.previous).paratype.def,procdefinition.proccalloption) then
-//              if vo_is_high_value in tvarsym(currpara.parasym).varoptions then
+              if (vo_is_funcret in tvarsym(currpara.parasym).varoptions) then
                begin
-                 { we need the information of the next parameter }
-                 hiddentree:=gen_high_tree(pt.left,is_open_string(tparaitem(currpara.previous).paratype.def));
-               end;
-              { add a callparanode for the hidden parameter and
-                let the previous node point to this new node }
+                 { Generate funcretnode if not specified }
+                 if assigned(funcretnode) then
+                  begin
+                    hiddentree:=funcretnode;
+                    funcretnode:=nil;
+                  end
+                 else
+                  begin
+                    hiddentree:=internalstatements(newstatement,false);
+                    { need to use resulttype instead of procdefinition.rettype,
+                      because they can be different }
+                    temp:=ctempcreatenode.create(resulttype,resulttype.def.size,true);
+                    addstatement(newstatement,temp);
+                    addstatement(newstatement,ctempdeletenode.create_normal_temp(temp));
+                    addstatement(newstatement,ctemprefnode.create(temp));
+                  end;
+               end
+              else
+               if vo_is_high_value in tvarsym(currpara.parasym).varoptions then
+                begin
+                  if not assigned(pt) then
+                    internalerror(200304082);
+                  { we need the information of the next parameter }
+                  hiddentree:=gen_high_tree(pt.left,is_open_string(tparaitem(currpara.previous).paratype.def));
+                end;
+              { add the hidden parameter }
               if not assigned(hiddentree) then
                 internalerror(200304073);
+              { Already insert para and let the previous node point to
+                this new node }
               pt:=ccallparanode.create(hiddentree,oldppt^);
+              pt.used_by_callnode:=used_by_callnode;
               oldppt^:=pt;
             end;
            { Bind paraitem to this node }
@@ -1892,6 +1931,13 @@ type
           begin
             resulttypepass(methodpointer);
 
+            { direct call to inherited abstract method, then we
+              can already give a error in the compiler instead
+              of a runtime error }
+            if (methodpointer.nodetype=typen) and
+               (po_abstractmethod in procdefinition.procoptions) then
+              CGMessage(cg_e_cant_call_abstract_method);
+
             { if an inherited con- or destructor should be  }
             { called in a con- or destructor then a warning }
             { will be made                                  }
@@ -1946,14 +1992,6 @@ type
          if assigned(left) then
            tcallparanode(left).insert_typeconv(true);
 
-         { direct call to inherited abstract method, then we
-           can already give a error in the compiler instead
-           of a runtime error }
-         if assigned(methodpointer) and
-            (methodpointer.nodetype=typen) and
-            (po_abstractmethod in procdefinition.procoptions) then
-           CGMessage(cg_e_cant_call_abstract_method);
-
       errorexit:
          aktcallprocdef:=oldcallprocdef;
       end;
@@ -1989,7 +2027,7 @@ type
                 if (not foundcall) then
                   begin
                     foundcall := true;
-                    newblock := internalstatements(newstatement);
+                    newblock := internalstatements(newstatement,false);
                   end;
                 temp := ctempcreatenode.create(curpara.left.resulttype,curpara.left.resulttype.def.size,true);
                 addstatement(newstatement,temp);
@@ -2038,9 +2076,9 @@ type
          if assigned(left) then
            tcallparanode(left).det_registers;
 
-         { return node }
-         if assigned(funcretrefnode) then
-           firstpass(funcretrefnode);
+         { function result node }
+         if assigned(funcretnode) then
+           firstpass(funcretnode);
 
          if assigned(procdefinition) and
             (procdefinition.proccalloption=pocall_inline) then
@@ -2104,17 +2142,17 @@ type
          { get a register for the return value }
          if (not is_void(resulttype.def)) then
            begin
+              if paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption) then
+               begin
+                 expectloc:=LOC_REFERENCE;
+               end
+             else
              { for win32 records returned in EDX:EAX, we
                move them to memory after ... }
              if (resulttype.def.deftype=recorddef) then
               begin
                 expectloc:=LOC_CREFERENCE;
               end
-             else
-              if paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption) then
-               begin
-                 expectloc:=LOC_CREFERENCE;
-               end
              else
              { ansi/widestrings must be registered, so we can dispose them }
               if is_ansistring(resulttype.def) or
@@ -2251,7 +2289,7 @@ type
              tcallnode(newcall).left := paras;
              tcallnode(newcall).right := oldright;
 
-             newblock := internalstatements(statement);
+             newblock := internalstatements(statement,false);
              addstatement(statement,callparatemps);
              { add the copy of the call node after the callparatemps block    }
              { and return that. The last statement of a bocknode determines   }
@@ -2313,6 +2351,20 @@ type
             (equal_defs(restype.def,tcallnode(p).restype.def))) or
            (not restypeset and not tcallnode(p).restypeset));
       end;
+
+
+    procedure tcallnode.printnodedata(var t:text);
+      begin
+        if assigned(procdefinition) and
+           (procdefinition.deftype=procdef) then
+          writeln(t,printnodeindention,'proc = ',tprocdef(procdefinition).fullprocname(true))
+        else
+          writeln(t,printnodeindention,'proc = ',symtableprocentry.name);
+        printnode(t,methodpointer);
+        printnode(t,right);
+        printnode(t,left);
+      end;
+
 
 {****************************************************************************
                             TPROCINLINENODE
@@ -2483,7 +2535,20 @@ begin
 end.
 {
   $Log$
-  Revision 1.142  2003-04-23 20:16:04  peter
+  Revision 1.144  2003-04-25 20:59:33  peter
+    * removed funcretn,funcretsym, function result is now in varsym
+      and aliases for result and function name are added using absolutesym
+    * vs_hidden parameter for funcret passed in parameter
+    * vs_hidden fixes
+    * writenode changed to printnode and released from extdebug
+    * -vp option added to generate a tree.log with the nodetree
+    * nicer printnode for statements, callnode
+
+  Revision 1.143  2002/04/25 20:15:39  florian
+    * block nodes within expressions shouldn't release the used registers,
+      fixed using a flag till the new rg is ready
+
+  Revision 1.142  2003/04/23 20:16:04  peter
     + added currency support based on int64
     + is_64bit for use in cg units instead of is_64bitint
     * removed cgmessage from n386add, replace with internalerrors

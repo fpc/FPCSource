@@ -744,10 +744,10 @@ Begin
      opr.ref.base:= procinfo.framepointer;
      opr.ref.options:=ref_parafixup;
      { always assume that the result is valid. }
-     tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
+     tvarsym(aktprocdef.funcretsym).varstate:=vs_assigned;
      { increase reference count, this is also used to check
        if the result variable is actually used or not }
-     inc(tfuncretsym(aktprocdef.funcretsym).refcount);
+     inc(tvarsym(aktprocdef.funcretsym).refcount);
      SetupResult:=true;
    end
   else
@@ -1582,7 +1582,16 @@ end;
 end.
 {
   $Log$
-  Revision 1.55  2003-04-06 21:11:23  olle
+  Revision 1.56  2003-04-25 20:59:34  peter
+    * removed funcretn,funcretsym, function result is now in varsym
+      and aliases for result and function name are added using absolutesym
+    * vs_hidden parameter for funcret passed in parameter
+    * vs_hidden fixes
+    * writenode changed to printnode and released from extdebug
+    * -vp option added to generate a tree.log with the nodetree
+    * nicer printnode for statements, callnode
+
+  Revision 1.55  2003/04/06 21:11:23  olle
     * changed newasmsymbol to newasmsymboldata for data symbols
 
   Revision 1.54  2003/03/28 19:16:57  peter

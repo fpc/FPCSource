@@ -108,9 +108,6 @@ interface
     { takes care of type casts etc.                 }
     procedure set_unique(p : tnode);
 
-    { sets funcret_is_valid to true, if p contains a funcref node }
-    procedure set_funcret_is_valid(p : tnode);
-
     function  valid_for_formal_var(p : tnode) : boolean;
     function  valid_for_formal_const(p : tnode) : boolean;
     function  valid_for_var(p:tnode):boolean;
@@ -636,10 +633,13 @@ implementation
                              assigned(aktprocsym) and
                              (hsym.owner = aktprocdef.localst)) then
                            begin
-                             if tloadnode(p).symtable.symtabletype=localsymtable then
-                              CGMessage1(sym_n_uninitialized_local_variable,hsym.realname)
+                             if (vo_is_funcret in hsym.varoptions) then
+                               CGMessage(sym_w_function_result_not_set)
                              else
-                              CGMessage1(sym_n_uninitialized_variable,hsym.realname);
+                              if tloadnode(p).symtable.symtabletype=localsymtable then
+                               CGMessage1(sym_n_uninitialized_local_variable,hsym.realname)
+                             else
+                               CGMessage1(sym_n_uninitialized_variable,hsym.realname);
                            end;
                         end;
                      end;
@@ -670,23 +670,6 @@ implementation
                           hsym.varstate:=vs_set_but_first_not_passed;
                       end;
                   end;
-                 break;
-               end;
-             funcretn:
-               begin
-                 { no claim if setting higher return value_str }
-                 if must_be_valid and
-                    (lexlevel=tfuncretnode(p).funcretsym.owner.symtablelevel) and
-                    ((tfuncretnode(p).funcretsym.funcretstate=vs_declared) or
-                    ((nf_first_use in p.flags) and
-                     (tfuncretnode(p).funcretsym.funcretstate=vs_declared_and_first_found))) then
-                   begin
-                     CGMessage(sym_w_function_result_not_set);
-                     { avoid multiple warnings }
-                     tfuncretnode(p).funcretsym.funcretstate:=vs_assigned;
-                   end;
-                 if (nf_first_use in p.flags) and not must_be_valid then
-                   tfuncretnode(p).funcretsym.funcretstate:=vs_assigned;
                  break;
                end;
              else
@@ -726,30 +709,6 @@ implementation
              typeconvn,
              subscriptn,
              derefn:
-               p:=tunarynode(p).left;
-             else
-               break;
-           end;
-         end;
-      end;
-
-
-    procedure set_funcret_is_valid(p:tnode);
-      begin
-        while assigned(p) do
-         begin
-           case p.nodetype of
-             funcretn:
-               begin
-                 if (nf_first_use in p.flags) or
-                    (tfuncretnode(p).funcretsym.funcretstate=vs_declared_and_first_found) then
-                   tfuncretnode(p).funcretsym.funcretstate:=vs_assigned;
-                 break;
-               end;
-             vecn,
-             {derefn,}
-             typeconvn,
-             subscriptn:
                p:=tunarynode(p).left;
              else
                break;
@@ -899,8 +858,7 @@ implementation
                   CGMessagePos(hp.fileinfo,type_e_no_assign_to_addr);
                  exit;
                end;
-             selfn,
-             funcretn :
+             selfn :
                begin
                  valid_for_assign:=true;
                  exit;
@@ -968,11 +926,6 @@ implementation
                           valid_for_assign:=true;
                           exit;
                         end;
-                     end;
-                   funcretsym :
-                     begin
-                       valid_for_assign:=true;
-                       exit;
                      end;
                    typedconstsym :
                      begin
@@ -1044,7 +997,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.59  2003-04-22 23:50:22  peter
+  Revision 1.60  2003-04-25 20:59:33  peter
+    * removed funcretn,funcretsym, function result is now in varsym
+      and aliases for result and function name are added using absolutesym
+    * vs_hidden parameter for funcret passed in parameter
+    * vs_hidden fixes
+    * writenode changed to printnode and released from extdebug
+    * -vp option added to generate a tree.log with the nodetree
+    * nicer printnode for statements, callnode
+
+  Revision 1.59  2003/04/22 23:50:22  peter
     * firstpass uses expectloc
     * checks if there are differences between the expectloc and
       location.loc from secondpass in EXTDEBUG

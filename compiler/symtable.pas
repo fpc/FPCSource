@@ -201,7 +201,6 @@ interface
     var
        constsymtable  : tsymtable;      { symtable were the constants can be inserted }
        systemunit     : tglobalsymtable; { pointer to the system unit }
-       read_member    : boolean;        { reading members of an symtable }
 
        lexlevel       : byte;          { level of code }
                                        { 1 for main procedure }
@@ -282,6 +281,8 @@ implementation
       verbose,globals,
       { target }
       systems,
+      { symtable }
+      symutil,
       { module }
       fmodule,
 {$ifdef GDB}
@@ -379,7 +380,6 @@ implementation
                 ibprocsym : sym:=tprocsym.ppuload(ppufile);
                ibconstsym : sym:=tconstsym.ppuload(ppufile);
                  ibvarsym : sym:=tvarsym.ppuload(ppufile);
-             ibfuncretsym : sym:=tfuncretsym.ppuload(ppufile);
             ibabsolutesym : sym:=tabsolutesym.ppuload(ppufile);
                 ibenumsym : sym:=tenumsym.ppuload(ppufile);
           ibtypedconstsym : sym:=ttypedconstsym.ppuload(ppufile);
@@ -561,7 +561,8 @@ implementation
               the user. (Under delphi it can still be accessed using result),
               but don't allow hiding of RESULT }
             if (m_duplicate_names in aktmodeswitches) and
-               (hsym.typ=funcretsym) and
+               (hsym.typ=varsym) and
+               (vo_is_funcret in tvarsym(hsym).varoptions) and
                not((m_result in aktmodeswitches) and
                    (hsym.name='RESULT')) then
              hsym.owner.rename(hsym.name,'hidden'+hsym.name)
@@ -727,11 +728,11 @@ implementation
            if (tvarsym(p).refs=0) then
              begin
                 if (tsym(p).owner.symtabletype=parasymtable) or (vo_is_local_copy in tvarsym(p).varoptions) then
-                  begin
-                    MessagePos1(tsym(p).fileinfo,sym_h_para_identifier_not_used,tsym(p).realname);
-                  end
+                  MessagePos1(tsym(p).fileinfo,sym_h_para_identifier_not_used,tsym(p).realname)
                 else if (tsym(p).owner.symtabletype=objectsymtable) then
                   MessagePos2(tsym(p).fileinfo,sym_n_private_identifier_not_used,tsym(p).owner.realname^,tsym(p).realname)
+                else if p.name='result' then
+                  MessagePos(tsym(p).fileinfo,sym_w_function_result_not_set)
                 else
                   MessagePos1(tsym(p).fileinfo,sym_n_local_identifier_not_used,tsym(p).realname);
              end
@@ -764,7 +765,7 @@ implementation
            if (tstoredsym(p).refs=0) and (tsym(p).owner.symtabletype=objectsymtable) then
              MessagePos2(tsym(p).fileinfo,sym_n_private_method_not_used,tsym(p).owner.realname^,tsym(p).realname)
            { units references are problematic }
-           else if (tstoredsym(p).refs=0) and not(tsym(p).typ in [funcretsym,enumsym,unitsym]) then
+           else if (tstoredsym(p).refs=0) and not(tsym(p).typ in [enumsym,unitsym]) then
              if (tsym(p).typ<>procsym) or not (tprocsym(p).is_global) or
              { all program functions are declared global
                but unused should still be signaled PM }
@@ -1255,10 +1256,11 @@ implementation
                   { a parameter and the function can have the same
                     name in TP and Delphi, but RESULT not }
                   if (m_duplicate_names in aktmodeswitches) and
-                     (sym.typ=funcretsym) and
+                     (sym.typ in [absolutesym,varsym]) and
+                     (vo_is_funcret in tvarsym(sym).varoptions) and
                      not((m_result in aktmodeswitches) and
                          (sym.name='RESULT')) then
-                   sym.name:='hidden'+sym.name
+                   sym.owner.rename(sym.name,'hidden'+sym.name)
                   else
                    begin
                      DuplicateSym(hsym);
@@ -1270,7 +1272,7 @@ implementation
             { check for duplicate id in local symtable of methods }
             if assigned(next.next) and
                { funcretsym is allowed !! }
-               (sym.typ <> funcretsym) and
+               (not is_funcret_sym(sym)) and
                (next.next.symtabletype=objectsymtable) then
              begin
                hsym:=search_class_member(tobjectdef(next.next.defowner),sym.name);
@@ -1299,7 +1301,7 @@ implementation
       var
         l,varalign : longint;
       begin
-        if not(sym.typ in [varsym,funcretsym]) then
+        if not(sym.typ in [varsym]) then
           internalerror(200208255);
         case sym.typ of
           varsym :
@@ -1319,36 +1321,6 @@ implementation
                   tvarsym(sym).address:=align(datasize+l,varalign);
                   datasize:=tvarsym(sym).address;
                 end;
-            end;
-          funcretsym :
-            begin
-              { if retoffset is already set then reuse it, this is needed
-                when inserting the result variable }
-              if procinfo.return_offset<>0 then
-               tfuncretsym(sym).address:=procinfo.return_offset
-              else
-               begin
-                 { allocate space in local if ret in register }
-                 if paramanager.ret_in_reg(tfuncretsym(sym).returntype.def,
-                                           tprocdef(sym.owner.defowner).proccalloption) then
-                  begin
-                    l:=tfuncretsym(sym).returntype.def.size;
-                    varalign:=size_2_align(l);
-                    varalign:=used_align(varalign,aktalignment.localalignmin,dataalignment);
-                    if (tg.direction = 1) then
-                      begin
-                        { on the powerpc, the local variables are accessed with a positiv offset }
-                        tfuncretsym(sym).address:=align(datasize,varalign);
-                        datasize:=tfuncretsym(sym).address+l;
-                      end
-                    else
-                      begin
-                        tfuncretsym(sym).address:=align(datasize+l,varalign);
-                        datasize:=tfuncretsym(sym).address;
-                      end;
-                    procinfo.return_offset:=tg.direction*tfuncretsym(sym).address;
-                  end;
-               end;
             end;
         end;
       end;
@@ -1422,7 +1394,7 @@ implementation
               not(assigned(procinfo.parent._class)))
             ) and
             { funcretsym is allowed !! }
-            (sym.typ<>funcretsym) then
+            (not is_funcret_sym(sym)) then
            begin
               hsym:=search_class_member(procinfo._class,sym.name);
               { private ids can be reused }
@@ -2428,9 +2400,8 @@ implementation
      var
        token : ttoken;
      begin
-      { Reset symbolstack }
+        { Reset symbolstack }
         registerdef:=false;
-        read_member:=false;
         symtablestack:=nil;
         systemunit:=nil;
 {$ifdef GDB}
@@ -2439,20 +2410,23 @@ implementation
         globaltypecount:=1;
         pglobaltypecount:=@globaltypecount;
 {$endif GDB}
-     { create error syms and def }
+        { defs for internal use }
+        voidprocdef:=tprocdef.create;
+        { create error syms and def }
         generrorsym:=terrorsym.create;
         generrortype.setdef(terrordef.create);
 {$ifdef UNITALIASES}
-     { unit aliases }
+        { unit aliases }
         unitaliases:=tdictionary.create;
 {$endif}
-       for token:=first_overloaded to last_overloaded do
+        for token:=first_overloaded to last_overloaded do
          overloaded_operators[token]:=nil;
      end;
 
 
    procedure DoneSymtable;
       begin
+        voidprocdef.free;
         generrorsym.free;
         generrortype.def.free;
 {$ifdef UNITALIASES}
@@ -2463,7 +2437,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.93  2003-04-16 07:53:11  jonas
+  Revision 1.94  2003-04-25 20:59:35  peter
+    * removed funcretn,funcretsym, function result is now in varsym
+      and aliases for result and function name are added using absolutesym
+    * vs_hidden parameter for funcret passed in parameter
+    * vs_hidden fixes
+    * writenode changed to printnode and released from extdebug
+    * -vp option added to generate a tree.log with the nodetree
+    * nicer printnode for statements, callnode
+
+  Revision 1.93  2003/04/16 07:53:11  jonas
     * calculation of parameter and resultlocation offsets now depends on
       tg.direction instead of if(n)def powerpc
 

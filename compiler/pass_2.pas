@@ -107,7 +107,6 @@ implementation
              'vecn',        {vecn}
              'pointerconst',{pointerconstn}
              'stringconst', {stringconstn}
-             'funcret',     {funcretn}
              'selfn',       {selfn}
              'not',         {notn}
              'inline',      {inlinen}
@@ -215,7 +214,7 @@ implementation
             for i:=1 to max_scratch_regs do
               if not(scratch_regs[i] in cg.unusedscratchregisters) then
                 begin
-                   writenode(p);
+                   printnode(stdout,p);
                    internalerror(2003042201);
                 end;
 {$endif EXTDEBUG}
@@ -352,7 +351,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  2003-04-23 10:12:14  peter
+  Revision 1.47  2003-04-25 20:59:33  peter
+    * removed funcretn,funcretsym, function result is now in varsym
+      and aliases for result and function name are added using absolutesym
+    * vs_hidden parameter for funcret passed in parameter
+    * vs_hidden fixes
+    * writenode changed to printnode and released from extdebug
+    * -vp option added to generate a tree.log with the nodetree
+    * nicer printnode for statements, callnode
+
+  Revision 1.46  2003/04/23 10:12:14  peter
     * allow multi pass2 changed to global boolean instead of node flag
 
   Revision 1.45  2003/04/22 23:50:23  peter

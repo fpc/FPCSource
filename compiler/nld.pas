@@ -49,9 +49,7 @@ interface
           function  det_resulttype:tnode;override;
           procedure mark_write;override;
           function  docompare(p: tnode): boolean; override;
-       {$ifdef extdebug}
-          procedure _dowrite;override;
-       {$endif}
+          procedure printnodedata(var t:text);override;
        end;
        tloadnodeclass = class of tloadnode;
 
@@ -72,20 +70,6 @@ interface
           function docompare(p: tnode): boolean; override;
        end;
        tassignmentnodeclass = class of tassignmentnode;
-
-       tfuncretnode = class(tnode)
-          funcretsym : tfuncretsym;
-          constructor create(v:tsym);virtual;
-          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure derefimpl;override;
-          function getcopy : tnode;override;
-          function pass_1 : tnode;override;
-          function det_resulttype:tnode;override;
-          procedure mark_write;override;
-          function docompare(p: tnode): boolean; override;
-       end;
-       tfuncretnodeclass = class of tfuncretnode;
 
        tarrayconstructorrangenode = class(tbinarynode)
           constructor create(l,r : tnode);virtual;
@@ -136,7 +120,6 @@ interface
     var
        cloadnode : tloadnodeclass;
        cassignmentnode : tassignmentnodeclass;
-       cfuncretnode : tfuncretnodeclass;
        carrayconstructorrangenode : tarrayconstructorrangenodeclass;
        carrayconstructornode : tarrayconstructornodeclass;
        ctypenode : ttypenodeclass;
@@ -145,6 +128,7 @@ interface
 
     procedure load_procvar_from_calln(var p1:tnode);
     function load_high_value(vs:tvarsym):tnode;
+    function load_funcret(pd:tprocdef):tnode;
 
 
 implementation
@@ -209,6 +193,21 @@ implementation
              internalerror(200212171);
          end;
         srsym:=searchsymonlyin(srsymtable,'high'+vs.name);
+        if assigned(srsym) then
+          result:=cloadnode.create(srsym,srsymtable)
+        else
+          CGMessage(cg_e_illegal_expression);
+      end;
+
+
+    function load_funcret(pd:tprocdef):tnode;
+      var
+        srsym : tsym;
+        srsymtable : tsymtable;
+      begin
+        result:=nil;
+        srsymtable:=pd.localst;
+        srsym:=searchsymonlyin(srsymtable,'result');
         if assigned(srsym) then
           result:=cloadnode.create(srsym,srsymtable)
         else
@@ -294,7 +293,6 @@ implementation
     function tloadnode.det_resulttype:tnode;
       var
         p1 : tnode;
-        p  : tprocinfo;
       begin
          result:=nil;
          { optimize simple with loadings }
@@ -325,35 +323,6 @@ implementation
               exit;
            end;
          case symtableentry.typ of
-            funcretsym :
-              begin
-                { find the main funcret for the function }
-                p:=procinfo;
-                while assigned(p) do
-                 begin
-                   if assigned(p.procdef.funcretsym) and
-                      ((tfuncretsym(symtableentry)=p.procdef.resultfuncretsym) or
-                       (tfuncretsym(symtableentry)=p.procdef.funcretsym)) then
-                     begin
-                       symtableentry:=p.procdef.funcretsym;
-                       break;
-                     end;
-                    p:=p.parent;
-                  end;
-                { generate funcretnode }
-                p1:=cfuncretnode.create(symtableentry);
-                resulttypepass(p1);
-                { if it's refered as absolute then we need to have the
-                  type of the absolute instead of the function return,
-                  the function return is then also assigned }
-                if nf_absolute in flags then
-                 begin
-                   tfuncretsym(symtableentry).funcretstate:=vs_assigned;
-                   p1.resulttype:=resulttype;
-                 end;
-                left:=nil;
-                result:=p1;
-              end;
             constsym:
               begin
                  if tconstsym(symtableentry).consttyp=constresourcestring then
@@ -414,8 +383,6 @@ implementation
          case symtableentry.typ of
             absolutesym :
               ;
-            funcretsym :
-              internalerror(200104142);
             constsym:
               begin
                  if tconstsym(symtableentry).consttyp=constresourcestring then
@@ -501,15 +468,12 @@ implementation
           (symtable = tloadnode(p).symtable);
       end;
 
-{$ifdef extdebug}
-    procedure Tloadnode._dowrite;
 
-    begin
-        inherited _dowrite;
-        writeln(',');
-        system.write(writenodeindention,'symbol = ',symtableentry.name);
-    end;
-{$endif}
+    procedure Tloadnode.printnodedata(var t:text);
+      begin
+        inherited printnodedata(t);
+        writeln(t,printnodeindention,'symbol = ',symtableentry.name);
+      end;
 
 
 {*****************************************************************************
@@ -607,7 +571,7 @@ implementation
         resulttypepass(right);
         set_varstate(left,false);
         set_varstate(right,true);
-        set_funcret_is_valid(left);
+{        set_funcret_is_valid(left); }
         if codegenerror then
           exit;
 
@@ -789,78 +753,6 @@ implementation
             aktstate.delete_fact(left);
     end;
 {$endif}
-
-{*****************************************************************************
-                                 TFUNCRETNODE
-*****************************************************************************}
-
-    constructor tfuncretnode.create(v:tsym);
-
-      begin
-         inherited create(funcretn);
-         funcretsym:=tfuncretsym(v);
-      end;
-
-
-    constructor tfuncretnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
-      begin
-        inherited ppuload(t,ppufile);
-        funcretsym:=tfuncretsym(ppufile.getderef);
-      end;
-
-
-    procedure tfuncretnode.ppuwrite(ppufile:tcompilerppufile);
-      begin
-        inherited ppuwrite(ppufile);
-        ppufile.putderef(funcretsym);
-      end;
-
-
-    procedure tfuncretnode.derefimpl;
-      begin
-        inherited derefimpl;
-        resolvesym(pointer(funcretsym));
-      end;
-
-
-    function tfuncretnode.getcopy : tnode;
-      var
-         n : tfuncretnode;
-      begin
-         n:=tfuncretnode(inherited getcopy);
-         n.funcretsym:=funcretsym;
-         getcopy:=n;
-      end;
-
-
-    function tfuncretnode.det_resulttype:tnode;
-      begin
-        result:=nil;
-        resulttype:=funcretsym.returntype;
-      end;
-
-    procedure Tfuncretnode.mark_write;
-
-    begin
-      include(flags,nf_write);
-    end;
-
-    function tfuncretnode.pass_1 : tnode;
-      begin
-         result:=nil;
-         expectloc:=LOC_REFERENCE;
-         if paramanager.ret_in_param(resulttype.def,tprocdef(funcretsym.owner.defowner).proccalloption) or
-            (lexlevel<>funcretsym.owner.symtablelevel) then
-           registers32:=1;
-      end;
-
-
-    function tfuncretnode.docompare(p: tnode): boolean;
-      begin
-        docompare :=
-          inherited docompare(p) and
-          (funcretsym = tfuncretnode(p).funcretsym);
-      end;
 
 
 {*****************************************************************************
@@ -1252,7 +1144,6 @@ implementation
 begin
    cloadnode:=tloadnode;
    cassignmentnode:=tassignmentnode;
-   cfuncretnode:=tfuncretnode;
    carrayconstructorrangenode:=tarrayconstructorrangenode;
    carrayconstructornode:=tarrayconstructornode;
    ctypenode:=ttypenode;
@@ -1260,7 +1151,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.86  2003-04-23 20:16:04  peter
+  Revision 1.87  2003-04-25 20:59:33  peter
+    * removed funcretn,funcretsym, function result is now in varsym
+      and aliases for result and function name are added using absolutesym
+    * vs_hidden parameter for funcret passed in parameter
+    * vs_hidden fixes
+    * writenode changed to printnode and released from extdebug
+    * -vp option added to generate a tree.log with the nodetree
+    * nicer printnode for statements, callnode
+
+  Revision 1.86  2003/04/23 20:16:04  peter
     + added currency support based on int64
     + is_64bit for use in cg units instead of is_64bitint
     * removed cgmessage from n386add, replace with internalerrors

@@ -250,7 +250,8 @@ type
     vo_is_local_copy,
     vo_is_const,  { variable is declared as const (parameter) and can't be written to }
     vo_is_exported,
-    vo_is_high_value
+    vo_is_high_value,
+    vo_is_funcret
   );
   tvaroptions=set of tvaroption;
 
@@ -274,8 +275,7 @@ type
   { possible types for symtable entries }
   tsymtyp = (abstractsym,varsym,typesym,procsym,unitsym,
              constsym,enumsym,typedconstsym,errorsym,syssym,
-             labelsym,absolutesym,propertysym,funcretsym,
-             macrosym,rttisym);
+             labelsym,absolutesym,propertysym,macrosym,rttisym);
 
   { State of the variable, if it's declared, assigned or used }
   tvarstate=(vs_none,
@@ -333,8 +333,7 @@ const
      SymTypeName : array[tsymtyp] of string[12] = (
        'abstractsym','variable','type','proc','unit',
        'const','enum','typed const','errorsym','system sym',
-       'label','absolute','property','funcret',
-       'macrosym','rttisym'
+       'label','absolute','property','macrosym','rttisym'
      );
 
      DefTypeName : array[tdeftype] of string[12] = (
@@ -354,7 +353,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  2003-04-23 20:16:04  peter
+  Revision 1.49  2003-04-25 20:59:35  peter
+    * removed funcretn,funcretsym, function result is now in varsym
+      and aliases for result and function name are added using absolutesym
+    * vs_hidden parameter for funcret passed in parameter
+    * vs_hidden fixes
+    * writenode changed to printnode and released from extdebug
+    * -vp option added to generate a tree.log with the nodetree
+    * nicer printnode for statements, callnode
+
+  Revision 1.48  2003/04/23 20:16:04  peter
     + added currency support based on int64
     + is_64bit for use in cg units instead of is_64bitint
     * removed cgmessage from n386add, replace with internalerrors

@@ -1014,63 +1014,6 @@ implementation
     function factor(getaddr : boolean) : tnode;
 
          {---------------------------------------------
-                         Is_func_ret
-         ---------------------------------------------}
-
-        function is_func_ret(var p1:tnode;var sym : tsym;var srsymtable:tsymtable) : boolean;
-        var
-           p : tprocinfo;
-           storesymtablestack : tsymtable;
-        begin
-          is_func_ret:=false;
-          if not assigned(procinfo) or
-             ((sym.typ<>funcretsym) and ((procinfo.flags and pi_operator)=0)) then
-            exit;
-          p:=procinfo;
-          while assigned(p) do
-            begin
-               { is this an access to a function result? Accessing _RESULT is
-                 always allowed and funcretn is generated }
-               if assigned(p.procdef.funcretsym) and
-                  ((sym=tsym(p.procdef.resultfuncretsym)) or
-                   ((sym=tsym(p.procdef.funcretsym)) or
-                    ((sym=tsym(otsym)) and ((p.flags and pi_operator)<>0))) and
-                   (not is_void(p.procdef.rettype.def)) and
-                   (token<>_LKLAMMER) and
-                   (not (not(m_fpc in aktmodeswitches) and (afterassignment or in_args)))
-                  ) then
-                 begin
-                    if ((sym=tsym(otsym)) and
-                       ((p.flags and pi_operator)<>0)) then
-                      inc(otsym.refs);
-                    p1:=cfuncretnode.create(p.procdef.funcretsym);
-                    is_func_ret:=true;
-                    if tfuncretsym(p.procdef.funcretsym).funcretstate=vs_declared then
-                      begin
-                        tfuncretsym(p.procdef.funcretsym).funcretstate:=vs_declared_and_first_found;
-                        include(p1.flags,nf_first_use);
-                      end;
-                    exit;
-                 end;
-               p:=p.parent;
-            end;
-          { we must use the function call, update the
-            sym to be the procsym }
-          if (sym.typ=funcretsym) then
-            begin
-               storesymtablestack:=symtablestack;
-               symtablestack:=sym.owner.next;
-               searchsym(sym.name,sym,srsymtable);
-               check_hints(sym);
-               if not assigned(sym) then
-                sym:=generrorsym;
-               if (sym.typ<>procsym) then
-                Message(cg_e_illegal_expression);
-               symtablestack:=storesymtablestack;
-            end;
-        end;
-
-         {---------------------------------------------
                          Factor_read_id
          ---------------------------------------------}
 
@@ -1081,13 +1024,33 @@ implementation
            srsym : tsym;
            possible_error : boolean;
            srsymtable : tsymtable;
+           storesymtablestack : tsymtable;
            htype : ttype;
            static_name : string;
          begin
            { allow post fix operators }
            again:=true;
            consume_sym(srsym,srsymtable);
-           if not is_func_ret(p1,srsym,srsymtable) then
+
+           { Access to funcret or need to call the function? }
+           if (srsym.typ in [absolutesym,varsym]) and
+              (vo_is_funcret in tvarsym(srsym).varoptions) and
+              (
+               (token=_LKLAMMER) or
+               (not(m_fpc in aktmodeswitches) and
+                (afterassignment or in_args))
+              ) then
+            begin
+              storesymtablestack:=symtablestack;
+              symtablestack:=srsym.owner.next;
+              searchsym(srsym.name,srsym,srsymtable);
+              if not assigned(srsym) then
+               srsym:=generrorsym;
+              if (srsym.typ<>procsym) then
+               Message(cg_e_illegal_expression);
+              symtablestack:=storesymtablestack;
+            end;
+
             begin
               { check semantics of private }
               if (srsym.typ in [propertysym,procsym,varsym]) and
@@ -2347,7 +2310,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.109  2003-04-23 10:13:55  peter
+  Revision 1.110  2003-04-25 20:59:33  peter
+    * removed funcretn,funcretsym, function result is now in varsym
+      and aliases for result and function name are added using absolutesym
+    * vs_hidden parameter for funcret passed in parameter
+    * vs_hidden fixes
+    * writenode changed to printnode and released from extdebug
+    * -vp option added to generate a tree.log with the nodetree
+    * nicer printnode for statements, callnode
+
+  Revision 1.109  2003/04/23 10:13:55  peter
     * firstaddr will check procvardef
 
   Revision 1.108  2003/04/22 23:50:23  peter

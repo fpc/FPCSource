@@ -547,7 +547,7 @@ implementation
            { check, if a method should be overridden }
            if (pd._class=_class) and
               (po_overridingmethod in pd.procoptions) then
-             MessagePos1(pd.fileinfo,parser_e_nothing_to_be_overridden,pd.fullprocname);
+             MessagePos1(pd.fileinfo,parser_e_nothing_to_be_overridden,pd.fullprocname(false));
         end;
 
       { creates a new entry in the procsym list }
@@ -634,7 +634,7 @@ implementation
                                            if is_visible then
                                              procdefcoll^.hidden:=true;
                                            if _class=pd._class then
-                                             MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname);
+                                             MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false));
                                          end;
                                       end
                                      { if both are virtual we check the header }
@@ -653,7 +653,7 @@ implementation
                                               if is_visible then
                                                 procdefcoll^.hidden:=true;
                                               if _class=pd._class then
-                                                MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname);
+                                                MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false));
                                             end;
                                          end
                                         { check if the method to override is visible }
@@ -676,7 +676,7 @@ implementation
                                                ((procdefcoll^.data.procoptions-
                                                    [po_abstractmethod,po_overridingmethod,po_assembler,po_overload])<>
                                                 (pd.procoptions-[po_abstractmethod,po_overridingmethod,po_assembler,po_overload])) then
-                                              MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,pd.fullprocname);
+                                              MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,pd.fullprocname(false));
 
                                            { error, if the return types aren't equal }
                                            if not(equal_defs(procdefcoll^.data.rettype.def,pd.rettype.def)) and
@@ -686,8 +686,8 @@ implementation
                                                is_class(pd.rettype.def) and
                                                (tobjectdef(pd.rettype.def).is_related(
                                                    tobjectdef(procdefcoll^.data.rettype.def)))) then
-                                             Message2(parser_e_overridden_methods_not_same_ret,pd.fullprocnamewithret,
-                                                      procdefcoll^.data.fullprocnamewithret);
+                                             Message2(parser_e_overridden_methods_not_same_ret,pd.fullprocname(false),
+                                                      procdefcoll^.data.fullprocname(false));
 
                                            { now set the number }
                                            pd.extnumber:=procdefcoll^.data.extnumber;
@@ -707,7 +707,7 @@ implementation
                                               if is_visible then
                                                 procdefcoll^.hidden:=true;
                                               if _class=pd._class then
-                                                MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname);
+                                                MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false));
                                             end;
                                          end;
                                       end
@@ -1072,7 +1072,7 @@ implementation
                 if assigned(implprocdef) then
                   _class.implementedinterfaces.addimplproc(intfindex,implprocdef)
                 else
-                  Message1(sym_e_no_matching_implementation_found,proc.fullprocnamewithret);
+                  Message1(sym_e_no_matching_implementation_found,proc.fullprocname(false));
               end;
           end;
       end;
@@ -1333,7 +1333,16 @@ initialization
 end.
 {
   $Log$
-  Revision 1.41  2003-04-23 10:11:22  peter
+  Revision 1.42  2003-04-25 20:59:33  peter
+    * removed funcretn,funcretsym, function result is now in varsym
+      and aliases for result and function name are added using absolutesym
+    * vs_hidden parameter for funcret passed in parameter
+    * vs_hidden fixes
+    * writenode changed to printnode and released from extdebug
+    * -vp option added to generate a tree.log with the nodetree
+    * nicer printnode for statements, callnode
+
+  Revision 1.41  2003/04/23 10:11:22  peter
     * range check error for GUID fixed
 
   Revision 1.40  2003/01/13 14:54:34  daniel

@@ -172,10 +172,8 @@ unit cgbase;
           }
           procedure after_pass1;virtual;
 
-(*        done by symtablestack.insertvardata() (JM)
           { sets the offset for a temp used by the result }
           procedure set_result_offset;virtual;
-*)
        end;
 
        pregvarinfo = ^tregvarinfo;
@@ -437,14 +435,6 @@ implementation
            begin
               if paramanager.ret_in_reg(procdef.rettype.def,procdef.proccalloption) then
                 begin
-(* already done in symtable.pas:tlocalsymtable.insertvardata() (JM)
-                   { the space has been set in the local symtable }
-                   procinfo.return_offset:=tg.direction*tfuncretsym(procdef.funcretsym).address;
-*)
-                   if ((procinfo.flags and pi_operator)<>0) and
-                      assigned(otsym) then
-                     otsym.address:=tfuncretsym(procdef.funcretsym).address;
-
                    rg.usedinproc := rg.usedinproc +
                       getfuncretusedregisters(procdef.rettype.def,procdef.proccalloption);
                 end;
@@ -452,13 +442,16 @@ implementation
       end;
 
 
-(* already done in symtable.pas:tlocalsymtable.insertvardata() (JM)
     procedure tprocinfo.set_result_offset;
       begin
-         if paramanager.ret_in_reg(procdef.rettype.def,procdef.proccalloption) then
-           procinfo.return_offset:=tg.direction*tfuncretsym(procdef.funcretsym).address;
+        if assigned(procdef.funcretsym) then
+         begin
+           procinfo.return_offset:=tvarsym(procdef.funcretsym).address+
+                                  tvarsym(procdef.funcretsym).owner.address_fixup;
+           if tvarsym(procdef.funcretsym).owner.symtabletype=localsymtable then
+            procinfo.return_offset:=tg.direction*procinfo.return_offset;
+         end;
       end;
-*)
 
 
     procedure tprocinfo.after_header;
@@ -681,7 +674,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  2003-04-23 12:35:34  florian
+  Revision 1.42  2003-04-25 20:59:33  peter
+    * removed funcretn,funcretsym, function result is now in varsym
+      and aliases for result and function name are added using absolutesym
+    * vs_hidden parameter for funcret passed in parameter
+    * vs_hidden fixes
+    * writenode changed to printnode and released from extdebug
+    * -vp option added to generate a tree.log with the nodetree
+    * nicer printnode for statements, callnode
+
+  Revision 1.41  2003/04/23 12:35:34  florian
     * fixed several issues with powerpc
     + applied a patch from Jonas for nested function calls (PowerPC only)
     * ...

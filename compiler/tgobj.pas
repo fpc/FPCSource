@@ -173,7 +173,7 @@ unit tgobj;
 {$ifdef EXTDEBUG}
            if not(templist^.temptype in FreeTempTypes) then
             begin
-              Comment(V_Warning,'temp at pos '+tostr(templist^.pos)+
+              Comment(V_Warning,'tgobj: (ResetTempgen) temp at pos '+tostr(templist^.pos)+
                       ' with size '+tostr(templist^.size)+' and type '+TempTypeStr[templist^.temptype]+
                       ' from pos '+tostr(templist^.posinfo.line)+':'+tostr(templist^.posinfo.column)+
                       ' not freed at the end of the procedure');
@@ -235,7 +235,7 @@ unit tgobj;
          if size=0 then
           begin
 {$ifdef EXTDEBUG}
-            Comment(V_Warning,'Temp of size 0 requested, allocating 4 bytes');
+            Comment(V_Warning,'tgobj: (AllocTemp) temp of size 0 requested, allocating 4 bytes');
 {$endif}
             size:=4;
           end;
@@ -257,7 +257,7 @@ unit tgobj;
              begin
 {$ifdef EXTDEBUG}
                if not(hp^.temptype in FreeTempTypes) then
-                 Comment(V_Warning,'Temp in freelist is not set to tt_free');
+                 Comment(V_Warning,'tgobj: (AllocTemp) temp at pos '+tostr(hp^.pos)+ ' in freelist is not set to tt_free !');
 {$endif}
                if (hp^.temptype=freetype) and
                   (hp^.size>=size) then
@@ -344,7 +344,7 @@ unit tgobj;
           end;
 {$ifdef EXTDEBUG}
          tl^.posinfo:=aktfilepos;
-         list.concat(tai_tempalloc.allocinfo(tl^.pos,tl^.size,'Temp type '+TempTypeStr[templist^.temptype]));
+         list.concat(tai_tempalloc.allocinfo(tl^.pos,tl^.size,'allocated with type '+TempTypeStr[templist^.temptype]));
 {$else}
          list.concat(tai_tempalloc.alloc(tl^.pos,tl^.size));
 {$endif}
@@ -367,7 +367,7 @@ unit tgobj;
                if hp^.temptype in FreeTempTypes then
                 begin
 {$ifdef EXTDEBUG}
-                  Comment(V_Warning,'temp managment : (FreeTemp) temp at pos '+tostr(pos)+ ' is already free !');
+                  Comment(V_Warning,'tgobj: (FreeTemp) temp at pos '+tostr(pos)+ ' is already free !');
                   list.concat(tai_tempalloc.allocinfo(hp^.pos,hp^.size,'temp is already freed'));
 {$endif}
                   exit;
@@ -376,7 +376,7 @@ unit tgobj;
                if not(hp^.temptype in temptypes) then
                 begin
 {$ifdef EXTDEBUG}
-                  Comment(V_Debug,'temp managment : (Freetemp) temp at pos '+tostr(pos)+ ' has different type ('+TempTypeStr[hp^.temptype]+'), not releasing');
+                  Comment(V_Debug,'tgobj: (Freetemp) temp at pos '+tostr(pos)+ ' has different type ('+TempTypeStr[hp^.temptype]+'), not releasing');
                   list.concat(tai_tempalloc.allocinfo(hp^.pos,hp^.size,'temp has wrong type ('+TempTypeStr[hp^.temptype]+') not releasing'));
 {$endif}
                   exit;
@@ -477,7 +477,7 @@ unit tgobj;
              hp := hp^.next;
            end;
 {$ifdef EXTDEBUG}
-         Comment(V_Debug,'temp managment : SizeOfTemp temp at pos '+tostr(ref.offset)+' not found !');
+         Comment(V_Debug,'tgobj: (SizeOfTemp) temp at pos '+tostr(ref.offset)+' not found !');
          list.concat(tai_tempalloc.allocinfo(ref.offset,0,'temp not found'));
 {$endif}
       end;
@@ -497,9 +497,9 @@ unit tgobj;
                 begin
 {$ifdef EXTDEBUG}
                   if hp^.temptype=temptype then
-                    Comment(V_Warning,'temp managment : ChangeTempType temp'+
+                    Comment(V_Warning,'tgobj: (ChangeTempType) temp'+
                        ' at pos '+tostr(ref.offset)+ ' is already of the correct type !');
-                  list.concat(tai_tempalloc.allocinfo(hp^.pos,hp^.size,'type changed to '+TempTypeStr[templist^.temptype]));
+                  list.concat(tai_tempalloc.allocinfo(hp^.pos,hp^.size,'type changed to '+TempTypeStr[temptype]));
 {$endif}
                   ChangeTempType:=true;
                   hp^.temptype:=temptype;
@@ -507,7 +507,7 @@ unit tgobj;
                else
                 begin
 {$ifdef EXTDEBUG}
-                   Comment(V_Warning,'temp managment : ChangeTempType temp'+
+                   Comment(V_Warning,'tgobj: (ChangeTempType) temp'+
                       ' at pos '+tostr(ref.offset)+ ' is already freed !');
                   list.concat(tai_tempalloc.allocinfo(hp^.pos,hp^.size,'temp is already freed'));
 {$endif}
@@ -517,7 +517,7 @@ unit tgobj;
             hp:=hp^.next;
           end;
 {$ifdef EXTDEBUG}
-         Comment(V_Warning,'temp managment : ChangeTempType temp'+
+         Comment(V_Warning,'tgobj: (ChangeTempType) temp'+
             ' at pos '+tostr(ref.offset)+ ' not found !');
          list.concat(tai_tempalloc.allocinfo(ref.offset,0,'temp not found'));
 {$endif}
@@ -544,7 +544,16 @@ finalization
 end.
 {
   $Log$
-  Revision 1.29  2003-04-23 08:40:39  jonas
+  Revision 1.30  2003-04-25 20:59:35  peter
+    * removed funcretn,funcretsym, function result is now in varsym
+      and aliases for result and function name are added using absolutesym
+    * vs_hidden parameter for funcret passed in parameter
+    * vs_hidden fixes
+    * writenode changed to printnode and released from extdebug
+    * -vp option added to generate a tree.log with the nodetree
+    * nicer printnode for statements, callnode
+
+  Revision 1.29  2003/04/23 08:40:39  jonas
     * fixed istemp() when tg.direction = 1
 
   Revision 1.28  2003/04/22 09:46:17  peter

@@ -1160,9 +1160,6 @@ implementation
       begin
         if not is_void(aktprocdef.rettype.def) then
          begin
-           if (tfuncretsym(aktprocdef.funcretsym).funcretstate<>vs_assigned) and
-              (not inlined) then
-            CGMessage(sym_w_function_result_not_set);
            reference_reset_base(href,procinfo.framepointer,procinfo.return_offset);
            cgsize:=def_cgsize(aktprocdef.rettype.def);
            { Here, we return the function result. In most architectures, the value is
@@ -1783,7 +1780,7 @@ implementation
         usesself:=false;
         if not(po_assembler in aktprocdef.procoptions) or
            (assigned(aktprocdef.funcretsym) and
-            (tfuncretsym(aktprocdef.funcretsym).refcount>1)) then
+            (tvarsym(aktprocdef.funcretsym).refcount>1)) then
           begin
             if (aktprocdef.proctypeoption=potype_constructor) then
               begin
@@ -2055,7 +2052,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.88  2003-04-23 12:35:34  florian
+  Revision 1.89  2003-04-25 20:59:33  peter
+    * removed funcretn,funcretsym, function result is now in varsym
+      and aliases for result and function name are added using absolutesym
+    * vs_hidden parameter for funcret passed in parameter
+    * vs_hidden fixes
+    * writenode changed to printnode and released from extdebug
+    * -vp option added to generate a tree.log with the nodetree
+    * nicer printnode for statements, callnode
+
+  Revision 1.88  2003/04/23 12:35:34  florian
     * fixed several issues with powerpc
     + applied a patch from Jonas for nested function calls (PowerPC only)
     * ...

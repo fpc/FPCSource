@@ -45,9 +45,7 @@ interface
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
           function docompare(p: tnode) : boolean; override;
-       {$ifdef extdebug}
-          procedure _dowrite;override;
-       {$endif}
+          procedure printnodedata(var t:text);override;
        end;
        trealconstnodeclass = class of trealconstnode;
 
@@ -67,9 +65,7 @@ interface
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
           function docompare(p: tnode) : boolean; override;
-       {$ifdef extdebug}
-          procedure _dowrite;override;
-       {$endif}
+          procedure printnodedata(var t:text);override;
        end;
        tordconstnodeclass = class of tordconstnode;
 
@@ -421,15 +417,13 @@ implementation
           (value_real = trealconstnode(p).value_real);
       end;
 
-{$ifdef extdebug}
-    procedure Trealconstnode._dowrite;
 
-    begin
-        inherited _dowrite;
-        writeln(',');
-        system.write(writenodeindention,'value = ',value_real);
-    end;
-{$endif}
+    procedure Trealconstnode.printnodedata(var t:text);
+      begin
+        inherited printnodedata(t);
+        writeln(t,printnodeindention,'value = ',value_real);
+      end;
+
 
 {*****************************************************************************
                               TORDCONSTNODE
@@ -506,15 +500,13 @@ implementation
           (value = tordconstnode(p).value);
       end;
 
-{$ifdef extdebug}
-    procedure Tordconstnode._dowrite;
 
-    begin
-        inherited _dowrite;
-        writeln(',');
-        system.write(writenodeindention,'value = ',value);
-    end;
-{$endif}
+    procedure Tordconstnode.printnodedata(var t:text);
+      begin
+        inherited printnodedata(t);
+        writeln(t,printnodeindention,'value = ',value);
+      end;
+
 
 {*****************************************************************************
                             TPOINTERCONSTNODE
@@ -946,7 +938,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.48  2003-04-24 22:29:57  florian
+  Revision 1.49  2003-04-25 20:59:33  peter
+    * removed funcretn,funcretsym, function result is now in varsym
+      and aliases for result and function name are added using absolutesym
+    * vs_hidden parameter for funcret passed in parameter
+    * vs_hidden fixes
+    * writenode changed to printnode and released from extdebug
+    * -vp option added to generate a tree.log with the nodetree
+    * nicer printnode for statements, callnode
+
+  Revision 1.48  2003/04/24 22:29:57  florian
     * fixed a lot of PowerPC related stuff
 
   Revision 1.47  2003/04/23 20:16:04  peter

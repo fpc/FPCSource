@@ -66,14 +66,12 @@ interface
           constructor create(l,r : tnode);virtual;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
-{$ifdef extdebug}
-          procedure _dowrite;override;
-{$endif extdebug}
+          procedure printnodetree(var t:text);override;
        end;
        tstatementnodeclass = class of tstatementnode;
 
        tblocknode = class(tunarynode)
-          constructor create(l : tnode);virtual;
+          constructor create(l : tnode;releasetemp : boolean);virtual;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
 {$ifdef state_tracking}
@@ -114,6 +112,7 @@ interface
           function pass_1 : tnode; override;
           function det_resulttype: tnode; override;
           function docompare(p: tnode): boolean; override;
+          procedure printnodedata(var t:text);override;
         end;
        ttempcreatenodeclass = class of ttempcreatenode;
 
@@ -161,7 +160,7 @@ interface
 
        { Create a blocknode and statement node for multiple statements
          generated internally by the parser }
-       function  internalstatements(var laststatement:tstatementnode):tblocknode;
+       function  internalstatements(var laststatement:tstatementnode;releasetemp : boolean):tblocknode;
        procedure addstatement(var laststatement:tstatementnode;n:tnode);
 
 
@@ -170,7 +169,7 @@ implementation
     uses
       cutils,
       verbose,globals,globtype,systems,
-      symconst,symdef,symsym,defutil,defcmp,
+      symconst,symdef,symsym,symutil,defutil,defcmp,
       pass_1,
       nld,ncal,nflw,rgobj,cginfo,cgbase
       ;
@@ -180,11 +179,11 @@ implementation
                                      Helpers
 *****************************************************************************}
 
-    function internalstatements(var laststatement:tstatementnode):tblocknode;
+    function internalstatements(var laststatement:tstatementnode;releasetemp : boolean):tblocknode;
       begin
         { create dummy initial statement }
         laststatement := cstatementnode.create(cnothingnode.create,nil);
-        internalstatements := cblocknode.create(laststatement);
+        internalstatements := cblocknode.create(laststatement,releasetemp);
       end;
 
 
@@ -275,7 +274,7 @@ implementation
             not((left.nodetype=calln) and
                 { don't complain when funcretrefnode is set, because then the
                   value is already used. And also not for constructors }
-                (assigned(tcallnode(left).funcretrefnode) or
+                (assigned(tcallnode(left).funcretnode) or
                  (tcallnode(left).procdefinition.proctypeoption=potype_constructor))) and
             not(is_void(left.resulttype.def)) then
            CGMessage(cg_e_illegal_expression);
@@ -314,32 +313,22 @@ implementation
            exit;
       end;
 
-{$ifdef extdebug}
-    procedure tstatementnode._dowrite;
 
+    procedure tstatementnode.printnodetree(var t:text);
       begin
-         { can't use inherited dowrite, because that will use the
-           binary which we don't want for statements }
-         dowritenodetype;
-         writeln(',');
-         { write the statement }
-         writenodeindention:=writenodeindention+'    ';
-         writenode(left);
-         writeln(')');
-         delete(writenodeindention,1,4);
-         { go on with the next statement }
-         writenode(right);
+        printnodelist(t);
       end;
-{$endif}
 
 {*****************************************************************************
                              TBLOCKNODE
 *****************************************************************************}
 
-    constructor tblocknode.create(l : tnode);
+    constructor tblocknode.create(l : tnode;releasetemp : boolean);
 
       begin
          inherited create(blockn,l);
+         if releasetemp then
+           include(flags,nf_releasetemps);
       end;
 
     function tblocknode.det_resulttype:tnode;
@@ -359,9 +348,9 @@ implementation
                    if (not (cs_extsyntax in aktmoduleswitches)) and
                       assigned(hp.left.resulttype.def) and
                       not((hp.left.nodetype=calln) and
-                          { don't complain when funcretrefnode is set, because then the
+                          { don't complain when funcretnode is set, because then the
                             value is already used. And also not for constructors }
-                          (assigned(tcallnode(hp.left).funcretrefnode) or
+                          (assigned(tcallnode(hp.left).funcretnode) or
                            (tcallnode(hp.left).procdefinition.proctypeoption=potype_constructor))) and
                       not(is_void(hp.left.resulttype.def)) then
                      CGMessagePos(hp.left.fileinfo,cg_e_illegal_expression);
@@ -402,7 +391,8 @@ implementation
                       (tstatementnode(hp.right).left.nodetype=exitn) and
                       (hp.left.nodetype=assignn) and
                       { !!!! this tbinarynode should be tassignmentnode }
-                      (tbinarynode(hp.left).left.nodetype=funcretn) then
+                      (tbinarynode(hp.left).left.nodetype=loadn) and
+                      (is_funcret_sym(tloadnode(tbinarynode(hp.left).left).symtableentry)) then
                       begin
                          if assigned(texitnode(tstatementnode(hp.right).left).left) then
                            CGMessage(cg_n_inefficient_code)
@@ -600,6 +590,7 @@ implementation
       begin
         n := ttempcreatenode(inherited getcopy);
         n.size := size;
+        n.persistent := persistent;
 
         new(n.tempinfo);
         fillchar(n.tempinfo^,sizeof(n.tempinfo^),0);
@@ -639,6 +630,14 @@ implementation
           (ttempcreatenode(p).size = size) and
           equal_defs(ttempcreatenode(p).tempinfo^.restype.def,tempinfo^.restype.def);
       end;
+
+
+    procedure ttempcreatenode.printnodedata(var t:text);
+      begin
+        inherited printnodedata(t);
+        writeln(t,printnodeindention,'size = ',size);
+      end;
+
 
 {*****************************************************************************
                              TEMPREFNODE
@@ -726,16 +725,18 @@ implementation
         inherited create(tempdeleten);
         tempinfo := temp.tempinfo;
         release_to_normal := false;
-        if not temp.persistent then
-          internalerror(200204211);
       end;
+
 
     constructor ttempdeletenode.create_normal_temp(const temp: ttempcreatenode);
       begin
         inherited create(tempdeleten);
         tempinfo := temp.tempinfo;
         release_to_normal := true;
+        if not temp.persistent then
+          internalerror(200204211);
       end;
+
 
     function ttempdeletenode.getcopy: tnode;
       var
@@ -802,7 +803,20 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  2003-04-23 08:41:34  jonas
+  Revision 1.47  2003-04-25 20:59:33  peter
+    * removed funcretn,funcretsym, function result is now in varsym
+      and aliases for result and function name are added using absolutesym
+    * vs_hidden parameter for funcret passed in parameter
+    * vs_hidden fixes
+    * writenode changed to printnode and released from extdebug
+    * -vp option added to generate a tree.log with the nodetree
+    * nicer printnode for statements, callnode
+
+  Revision 1.46  2002/04/25 20:15:39  florian
+    * block nodes within expressions shouldn't release the used registers,
+      fixed using a flag till the new rg is ready
+
+  Revision 1.45  2003/04/23 08:41:34  jonas
     * fixed ttemprefnode.compare and .getcopy to take offset field into
       account
 
@@ -864,7 +878,7 @@ end.
 
   Revision 1.33  2002/08/17 22:09:44  florian
     * result type handling in tcgcal.pass_2 overhauled
-    * better tnode.dowrite
+    * better tnode.printnodetree
     * some ppc stuff fixed
 
   Revision 1.32  2002/08/17 09:23:34  florian

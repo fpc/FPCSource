@@ -413,6 +413,7 @@ interface
        tabstractprocdef = class(tstoreddef)
           { saves a definition to the return type }
           rettype         : ttype;
+          parast          : tsymtable;
           para            : tlinkedlist;
           selfpara        : tparaitem;
           proctypeoption  : tproctypeoption;
@@ -427,10 +428,12 @@ interface
           destructor destroy;override;
           procedure  ppuwrite(ppufile:tcompilerppufile);override;
           procedure deref;override;
+          procedure releasemem;
           function  concatpara(afterpara:tparaitem;const tt:ttype;sym : tsym;vsp : tvarspez;defval:tsym):tparaitem;
+          function  insertpara(const tt:ttype;sym : tsym;vsp : tvarspez;defval:tsym):tparaitem;
           procedure removepara(currpara:tparaitem);
           function  para_size(alignsize:longint) : longint;
-          function  typename_paras : string;
+          function  typename_paras(showhidden:boolean): string;
           procedure test_if_fpu_result;
           function  is_methodpointer:boolean;virtual;
           function  is_addressonly:boolean;virtual;
@@ -445,6 +448,7 @@ interface
           constructor create;
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          function  getsymtable(t:tgetsymtable):tsymtable;override;
           function  size : longint;override;
           function  gettypename:string;override;
           function  is_publishable : boolean;override;
@@ -488,12 +492,8 @@ interface
           { alias names }
           aliasnames : tstringlist;
           { symtables }
-          parast,
           localst : tsymtable;
           funcretsym : tsym;
-          { next is only used to check if RESULT is accessed,
-            not stored in a tnode }
-          resultfuncretsym : tsym;
           { browser info }
           lastref,
           defref,
@@ -505,6 +505,8 @@ interface
           code : tnode;
           { info about register variables (JM) }
           regvarinfo: pointer;
+          { name of the result variable to insert in the localsymtable }
+          resultname : stringid;
           { true, if the procedure is only declared }
           { (forward procedure) }
           forwarddef,
@@ -524,7 +526,6 @@ interface
           procedure deref;override;
           procedure derefimpl;override;
           function  getsymtable(t:tgetsymtable):tsymtable;override;
-          function  haspara:boolean;
           function gettypename : string;override;
           function  mangledname : string;
           procedure setmangledname(const s : string);
@@ -535,8 +536,7 @@ interface
             when we are sure that a local symbol table will be required.
           }
           procedure insert_localst;
-          function  fullprocname:string;
-          function  fullprocnamewithret:string;
+          function  fullprocname(showhidden:boolean):string;
           function  cplusplusmangledname : string;
           function  is_methodpointer:boolean;override;
           function  is_addressonly:boolean;override;
@@ -757,11 +757,9 @@ implementation
        { global }
        verbose,
        { target }
-       aasmcpu,
-       systems,
+       systems,aasmcpu,paramgr,
        { symtable }
-       symsym,symtable,paramgr,
-       symutil,defutil,
+       symsym,symtable,symutil,defutil,
        { module }
 {$ifdef GDB}
        gdb,
@@ -2894,17 +2892,12 @@ implementation
 
 
     constructor trecorddef.ppuload(ppufile:tcompilerppufile);
-      var
-         oldread_member : boolean;
       begin
          inherited ppuloaddef(ppufile);
          deftype:=recorddef;
          savesize:=ppufile.getlongint;
-         oldread_member:=read_member;
-         read_member:=true;
          symtable:=trecordsymtable.create;
          trecordsymtable(symtable).ppuload(ppufile);
-         read_member:=oldread_member;
          symtable.defowner:=self;
          isunion:=false;
       end;
@@ -2945,16 +2938,11 @@ implementation
 
 
     procedure trecorddef.ppuwrite(ppufile:tcompilerppufile);
-      var
-         oldread_member : boolean;
       begin
-         oldread_member:=read_member;
-         read_member:=true;
          inherited ppuwritedef(ppufile);
          ppufile.putlongint(savesize);
          ppufile.writeentry(ibrecorddef);
          trecordsymtable(symtable).ppuwrite(ppufile);
-         read_member:=oldread_member;
       end;
 
 
@@ -3057,6 +3045,8 @@ implementation
     constructor tabstractprocdef.create;
       begin
          inherited create;
+         parast:=tparasymtable.create;
+         parast.defowner:=self;
          para:=TLinkedList.Create;
          selfpara:=nil;
          minparacount:=0;
@@ -3073,8 +3063,28 @@ implementation
 
     destructor tabstractprocdef.destroy;
       begin
-         Para.Free;
+         if assigned(para) then
+          para.free;
+         if assigned(parast) then
+          begin
+{$ifdef MEMDEBUG}
+            memprocparast.start;
+{$endif MEMDEBUG}
+            parast.free;
+{$ifdef MEMDEBUG}
+            memprocparast.stop;
+{$endif MEMDEBUG}
+          end;
          inherited destroy;
+      end;
+
+
+    procedure tabstractprocdef.releasemem;
+      begin
+        para.free;
+        para:=nil;
+        parast.free;
+        parast:=nil;
       end;
 
 
@@ -3100,6 +3110,28 @@ implementation
            inc(maxparacount);
          end;
         concatpara:=hp;
+      end;
+
+
+    function tabstractprocdef.insertpara(const tt:ttype;sym : tsym;vsp : tvarspez;defval:tsym):tparaitem;
+      var
+        hp : TParaItem;
+      begin
+        hp:=TParaItem.Create;
+        hp.paratyp:=vsp;
+        hp.parasym:=sym;
+        hp.paratype:=tt;
+        hp.defaultvalue:=defval;
+        { Parameters are stored from left to right }
+        Para.insert(hp);
+        { Don't count hidden parameters }
+        if (vsp<>vs_hidden) then
+         begin
+           if not assigned(defval) then
+            inc(minparacount);
+           inc(maxparacount);
+         end;
+        insertpara:=hp;
       end;
 
 
@@ -3132,9 +3164,16 @@ implementation
     procedure tabstractprocdef.deref;
       var
          hp : TParaItem;
+         oldlocalsymtable : tsymtable;
       begin
          inherited deref;
          rettype.resolve;
+         { parast }
+         oldlocalsymtable:=aktlocalsymtable;
+         aktlocalsymtable:=parast;
+         tparasymtable(parast).deref;
+         aktlocalsymtable:=oldlocalsymtable;
+         { paraitems }
          hp:=TParaItem(Para.first);
          while assigned(hp) do
           begin
@@ -3152,6 +3191,7 @@ implementation
          count,i : word;
       begin
          inherited ppuloaddef(ppufile);
+         parast:=nil;
          Para:=TLinkedList.Create;
          selfpara:=nil;
          minparacount:=0;
@@ -3241,30 +3281,41 @@ implementation
       end;
 
 
-    function tabstractprocdef.typename_paras : string;
+    function tabstractprocdef.typename_paras(showhidden:boolean) : string;
       var
         hs,s : string;
         hp : TParaItem;
         hpc : tconstsym;
+        first : boolean;
       begin
         hp:=TParaItem(Para.first);
-        s:='(';
+        s:='';
+        first:=true;
         while assigned(hp) do
          begin
-           case hp.paratyp of
-             vs_var :
-               s:=s+'var';
-             vs_const :
-               s:=s+'const';
-             vs_out :
-               s:=s+'out';
-           end;
-           if hp.paratyp<>vs_hidden then
-             begin
+           if (hp.paratyp<>vs_hidden) or
+              (showhidden) then
+            begin
+               if first then
+                begin
+                  s:=s+'(';
+                  first:=false;
+                end
+               else
+                s:=s+',';
+               case hp.paratyp of
+                 vs_var :
+                   s:=s+'var';
+                 vs_const :
+                   s:=s+'const';
+                 vs_out :
+                   s:=s+'out';
+                 vs_hidden :
+                   s:=s+'hidden';
+               end;
                if assigned(hp.paratype.def.typesym) then
                  begin
-                   if hp.paratyp in [vs_var,vs_const,vs_out] then
-                     s := s + ' ';
+                   s:=s+' ';
                    hs:=hp.paratype.def.typesym.realname;
                    if hs[1]<>'$' then
                      s:=s+hp.paratype.def.typesym.realname
@@ -3303,18 +3354,14 @@ implementation
                   if hs<>'' then
                    s:=s+'="'+hs+'"';
                 end;
-               if assigned(hp.next) then
-                s:=s+',';
              end;
            hp:=TParaItem(hp.next);
          end;
-        s:=s+')';
+        if not first then
+         s:=s+')';
         if (po_varargs in procoptions) then
          s:=s+';VarArgs';
-        if s='()' then
-         typename_paras:=''
-        else
-         typename_paras:=s;
+        typename_paras:=s;
       end;
 
 
@@ -3362,10 +3409,8 @@ implementation
          fileinfo:=aktfilepos;
          extnumber:=$ffff;
          aliasnames:=tstringlist.create;
-         parast:=tparasymtable.create;
          funcretsym:=nil;
          localst := nil;
-         parast.defowner:=self;
          defref:=nil;
          lastwritten:=nil;
          refcount:=0;
@@ -3420,10 +3465,11 @@ implementation
             code := nil;
             funcretsym:=nil;
           end;
-         { load para and local symtables }
+         { load para symtable }
          parast:=tparasymtable.create;
          tparasymtable(parast).ppuload(ppufile);
          parast.defowner:=self;
+         { load local symtable }
          if (proccalloption=pocall_inline) or
             ((current_module.flags and uf_local_browser)<>0) then
           begin
@@ -3462,16 +3508,6 @@ implementation
              defref.free;
            end;
          aliasnames.free;
-         if assigned(parast) then
-          begin
-{$ifdef MEMDEBUG}
-            memprocparast.start;
-{$endif MEMDEBUG}
-            parast.free;
-{$ifdef MEMDEBUG}
-            memprocparast.stop;
-{$endif MEMDEBUG}
-          end;
          if assigned(localst) and (localst.symtabletype<>staticsymtable) then
           begin
 {$ifdef MEMDEBUG}
@@ -3553,11 +3589,6 @@ implementation
          ppufile.writeentry(ibprocdef);
 
          { Save the para symtable, this is taken from the interface }
-         if not assigned(parast) then
-          begin
-            parast:=tparasymtable.create;
-            parast.defowner:=self;
-          end;
          tparasymtable(parast).ppuwrite(ppufile);
 
          { save localsymtable for inline procedures or when local
@@ -3589,7 +3620,7 @@ implementation
 
 
 
-    function tprocdef.fullprocname:string;
+    function tprocdef.fullprocname(showhidden:boolean):string;
       var
         s : string;
       begin
@@ -3600,20 +3631,11 @@ implementation
             s:=s+'class ';
            s:=s+_class.objrealname^+'.';
          end;
-        s:=s+procsym.realname+typename_paras;
-        fullprocname:=s;
-      end;
-
-
-    function tprocdef.fullprocnamewithret:string;
-      var
-        s : string;
-      begin
-        s:=fullprocname;
+        s:=s+procsym.realname+typename_paras(showhidden);
         if assigned(rettype.def) and
           not(is_void(rettype.def)) then
-               s:=s+' : '+rettype.def.gettypename;
-        fullprocnamewithret:=s;
+               s:=s+':'+rettype.def.gettypename;
+        fullprocname:=s;
       end;
 
 
@@ -3704,6 +3726,7 @@ implementation
             getsymtable:=nil;
         end;
       end;
+
 
     procedure tprocdef.load_references(ppufile:tcompilerppufile;locals:boolean);
       var
@@ -3801,13 +3824,6 @@ implementation
                  end;
           end;
       end;
-
-
-    function tprocdef.haspara:boolean;
-      begin
-        haspara:=assigned(parast.symindex.first);
-      end;
-
 
 {$ifdef GDB}
 
@@ -3915,16 +3931,9 @@ implementation
 
 
     procedure tprocdef.deref;
-      var
-        oldlocalsymtable : tsymtable;
       begin
          inherited deref;
          resolvedef(pointer(_class));
-         { parast }
-         oldlocalsymtable:=aktlocalsymtable;
-         aktlocalsymtable:=parast;
-         tparasymtable(parast).deref;
-         aktlocalsymtable:=oldlocalsymtable;
          { procsym that originaly defined this definition, should be in the
            same symtable }
          resolvesym(pointer(procsym));
@@ -3962,7 +3971,7 @@ implementation
 
     function tprocdef.gettypename : string;
       begin
-         gettypename := FullProcName+';'+ProcCallOptionStr[proccalloption];
+         gettypename := FullProcName(false)+';'+ProcCallOptionStr[proccalloption];
       end;
 
 
@@ -4087,6 +4096,10 @@ implementation
       begin
          inherited ppuload(ppufile);
          deftype:=procvardef;
+         { load para symtable }
+         parast:=tparasymtable.create;
+         tparasymtable(parast).ppuload(ppufile);
+         parast.defowner:=self;
       end;
 
 
@@ -4101,7 +4114,23 @@ implementation
          else
            fpu_used:=0;
          inherited ppuwrite(ppufile);
+
+         { Write this entry }
          ppufile.writeentry(ibprocvardef);
+
+         { Save the para symtable, this is taken from the interface }
+         tparasymtable(parast).ppuwrite(ppufile);
+      end;
+
+
+    function tprocvardef.getsymtable(t:tgetsymtable):tsymtable;
+      begin
+        case t of
+          gs_para :
+            getsymtable:=parast;
+          else
+            getsymtable:=nil;
+        end;
       end;
 
 
@@ -4250,9 +4279,9 @@ implementation
              s := s+'procedure variable type of';
          if assigned(rettype.def) and
             (rettype.def<>voidtype.def) then
-           s:=s+' function'+typename_paras+':'+rettype.def.gettypename
+           s:=s+' function'+typename_paras(false)+':'+rettype.def.gettypename
          else
-           s:=s+' procedure'+typename_paras;
+           s:=s+' procedure'+typename_paras(false);
          if po_methodpointer in procoptions then
            s := s+' of object';
          gettypename := s+';'+ProcCallOptionStr[proccalloption]+'>';
@@ -4302,7 +4331,6 @@ implementation
 
     constructor tobjectdef.ppuload(ppufile:tcompilerppufile);
       var
-         oldread_member : boolean;
          i,implintfcount: longint;
       begin
          inherited ppuloaddef(ppufile);
@@ -4339,11 +4367,8 @@ implementation
          else
            implementedinterfaces:=nil;
 
-         oldread_member:=read_member;
-         read_member:=true;
          symtable:=tobjectsymtable.create(objrealname^);
          tobjectsymtable(symtable).ppuload(ppufile);
-         read_member:=oldread_member;
 
          symtable.defowner:=self;
 
@@ -4382,7 +4407,6 @@ implementation
 
     procedure tobjectdef.ppuwrite(ppufile:tcompilerppufile);
       var
-         oldread_member : boolean;
          implintfcount : longint;
          i : longint;
       begin
@@ -4413,10 +4437,7 @@ implementation
 
          ppufile.writeentry(ibobjectdef);
 
-         oldread_member:=read_member;
-         read_member:=true;
          tobjectsymtable(symtable).ppuwrite(ppufile);
-         read_member:=oldread_member;
       end;
 
 
@@ -5708,12 +5729,19 @@ implementation
           (tobjectdef(def).objecttype in [odt_class,odt_interfacecom,odt_interfacecorba]);
       end;
 
-begin
-   voidprocdef:=tprocdef.create;
 end.
 {
   $Log$
-  Revision 1.135  2003-04-23 20:16:04  peter
+  Revision 1.136  2003-04-25 20:59:35  peter
+    * removed funcretn,funcretsym, function result is now in varsym
+      and aliases for result and function name are added using absolutesym
+    * vs_hidden parameter for funcret passed in parameter
+    * vs_hidden fixes
+    * writenode changed to printnode and released from extdebug
+    * -vp option added to generate a tree.log with the nodetree
+    * nicer printnode for statements, callnode
+
+  Revision 1.135  2003/04/23 20:16:04  peter
     + added currency support based on int64
     + is_64bit for use in cg units instead of is_64bitint
     * removed cgmessage from n386add, replace with internalerrors

@@ -54,7 +54,7 @@ implementation
 {$endif GDB}
       comphook,
       scanner,scandir,
-      pbase,ptype,psystem,pmodules,cresstr,cpuinfo;
+      pbase,ptype,psystem,pmodules,psub,cresstr,cpuinfo;
 
 
     procedure initparser;
@@ -113,6 +113,10 @@ implementation
 
          { list of generated .o files, so the linker can remove them }
          SmartLinkOFiles:=TStringList.Create;
+
+         { codegen }
+         if paraprintnodetree<>0 then
+           printnode_reset;
       end;
 
 
@@ -621,7 +625,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  2002-12-29 14:57:50  peter
+  Revision 1.49  2003-04-25 20:59:33  peter
+    * removed funcretn,funcretsym, function result is now in varsym
+      and aliases for result and function name are added using absolutesym
+    * vs_hidden parameter for funcret passed in parameter
+    * vs_hidden fixes
+    * writenode changed to printnode and released from extdebug
+    * -vp option added to generate a tree.log with the nodetree
+    * nicer printnode for statements, callnode
+
+  Revision 1.48  2002/12/29 14:57:50  peter
     * unit loading changed to first register units and load them
       afterwards. This is needed to support uses xxx in yyy correctly
     * unit dependency check fixed

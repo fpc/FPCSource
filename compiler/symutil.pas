@@ -27,24 +27,29 @@ unit symutil;
 interface
 
     uses
-       cclasses,
-       cpuinfo,
-       globals,
-       node,
-       symconst,symbase,symtype,symdef,symsym;
+       symbase,symtype,symsym;
 
-
-    function equal_constsym(sym1,sym2:tconstsym):boolean;
+    function is_funcret_sym(p:tsymentry):boolean;
 
     { returns true, if sym needs an entry in the proplist of a class rtti }
     function needs_prop_entry(sym : tsym) : boolean;
+
+    function equal_constsym(sym1,sym2:tconstsym):boolean;
 
 
 implementation
 
     uses
-       globtype,tokens,systems,verbose,
-       symtable;
+       globtype,
+       cpuinfo,
+       symconst;
+
+
+    function is_funcret_sym(p:tsymentry):boolean;
+      begin
+        is_funcret_sym:=(p.typ in [absolutesym,varsym]) and
+                        (vo_is_funcret in tvarsym(p).varoptions);
+      end;
 
 
     function needs_prop_entry(sym : tsym) : boolean;
@@ -100,7 +105,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2002-11-25 17:43:26  peter
+  Revision 1.2  2003-04-25 20:59:35  peter
+    * removed funcretn,funcretsym, function result is now in varsym
+      and aliases for result and function name are added using absolutesym
+    * vs_hidden parameter for funcret passed in parameter
+    * vs_hidden fixes
+    * writenode changed to printnode and released from extdebug
+    * -vp option added to generate a tree.log with the nodetree
+    * nicer printnode for statements, callnode
+
+  Revision 1.1  2002/11/25 17:43:26  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

@@ -41,6 +41,9 @@ interface
 
     function  is_proc_directive(tok:ttoken):boolean;
 
+    procedure insert_funcret_para(pd:tabstractprocdef);
+    procedure insert_funcret_local(pd:tprocdef);
+
     procedure insert_hidden_para(pd:tabstractprocdef);
     procedure check_self_para(aktprocdef:tabstractprocdef);
     procedure parameter_dec(aktprocdef:tabstractprocdef);
@@ -86,6 +89,85 @@ implementation
        { codegen }
        cpuinfo,cgbase
        ;
+
+
+    procedure insert_funcret_para(pd:tabstractprocdef);
+      var
+        storepos : tfileposinfo;
+        vs       : tvarsym;
+      begin
+        if not is_void(pd.rettype.def) and
+           not paramanager.ret_in_reg(pd.rettype.def,pd.proccalloption) then
+         begin
+           storepos:=akttokenpos;
+           if pd.deftype=procdef then
+            akttokenpos:=tprocdef(pd).fileinfo;
+
+           { Generate result variable accessing function result }
+           vs:=tvarsym.create('$result',pd.rettype);
+           include(vs.varoptions,vo_is_funcret);
+           { Store the this symbol as fucnretsym for procedures }
+           if pd.deftype=procdef then
+            tprocdef(pd).funcretsym:=vs;
+
+           { Handle like a var parameter }
+           vs.varspez:=vs_var;
+           pd.parast.insert(vs);
+           { Also insert a hidden parameter as first }
+           pd.insertpara(vs.vartype,vs,vs_hidden,nil);
+
+           akttokenpos:=storepos;
+         end;
+      end;
+
+
+    procedure insert_funcret_local(pd:tprocdef);
+      var
+        storepos : tfileposinfo;
+        vs       : tvarsym;
+      begin
+        if not is_void(pd.rettype.def) then
+         begin
+           { if the current is a function aktprocsym is non nil }
+           { and there is a local symtable set }
+           storepos:=akttokenpos;
+           akttokenpos:=pd.fileinfo;
+
+           { We always need a localsymtable }
+           if not assigned(pd.localst) then
+            pd.insert_localst;
+
+           { We need to insert a varsym for the result in the localst
+             when it is returning in a register }
+           if paramanager.ret_in_reg(pd.rettype.def,pd.proccalloption) then
+            begin
+              vs:=tvarsym.create('$result',pd.rettype);
+              include(vs.varoptions,vo_is_funcret);
+              pd.localst.insert(vs);
+              pd.localst.insertvardata(vs);
+              pd.funcretsym:=vs;
+            end;
+
+           { insert the name of the procedure as alias for the function result,
+             we can't use realname because that will not work for compilerprocs
+             as the name is lowercase and unreachable from the code }
+           if pd.resultname='' then
+            pd.resultname:=aktprocdef.procsym.name;
+           vs:=tabsolutesym.create_ref(pd.resultname,pd.rettype,tstoredsym(pd.funcretsym));
+           include(vs.varoptions,vo_is_funcret);
+           pd.localst.insert(vs);
+
+           { insert result also if support is on }
+           if (m_result in aktmodeswitches) then
+            begin
+              vs:=tabsolutesym.create_ref('RESULT',pd.rettype,tstoredsym(pd.funcretsym));
+              include(vs.varoptions,vo_is_funcret);
+              pd.localst.insert(vs);
+            end;
+
+           akttokenpos:=storepos;
+         end;
+      end;
 
 
     procedure insert_hidden_para(pd:tabstractprocdef);
@@ -219,7 +301,6 @@ implementation
         tdefaultvalue : tconstsym;
         defaultrequired : boolean;
         old_object_option : tsymoptions;
-        dummyst : tparasymtable;
         currparast : tparasymtable;
       begin
         consume(_LKLAMMER);
@@ -230,16 +311,7 @@ implementation
           exit;
         { parsing a proc or procvar ? }
         is_procvar:=(aktprocdef.deftype=procvardef);
-        { create dummy symtable for procvars }
-        if is_procvar then
-         begin
-           dummyst:=tparasymtable.create;
-           currparast:=dummyst;
-         end
-        else
-         begin
-           currparast:=tparasymtable(tprocdef(aktprocdef).parast);
-         end;
+        currparast:=tparasymtable(aktprocdef.parast);
         { reset }
         sc:=tsinglelist.create;
         defaultrequired:=false;
@@ -368,10 +440,8 @@ implementation
                 if (varspez in [vs_var,vs_const,vs_out]) and
                    paramanager.push_addr_param(tt.def,aktprocdef.proccalloption) then
                   include(vs.varoptions,vo_regable);
-                hpara:=aktprocdef.concatpara(nil,tt,vs,varspez,tdefaultvalue);
-              end
-             else
-              hpara:=aktprocdef.concatpara(nil,tt,nil,varspez,tdefaultvalue);
+              end;
+             hpara:=aktprocdef.concatpara(nil,tt,vs,varspez,tdefaultvalue);
              { save position of self parameter }
              if vs.name='SELF' then
               aktprocdef.selfpara:=hpara;
@@ -379,8 +449,6 @@ implementation
            end;
         until not try_to_consume(_SEMICOLON);
         { remove parasymtable from stack }
-        if is_procvar then
-          dummyst.free;
         sc.free;
         { check for a self parameter, only for normal procedures. For
           procvars we need to wait until the 'of object' is parsed }
@@ -701,7 +769,7 @@ implementation
 
     procedure parse_proc_dec;
       var
-        hs : string;
+        hs            : string;
         isclassmethod : boolean;
       begin
         inc(lexlevel);
@@ -717,111 +785,121 @@ implementation
         else
          isclassmethod:=false;
         case token of
-           _FUNCTION : begin
-                         consume(_FUNCTION);
-                         parse_proc_head(potype_none);
-                         if token<>_COLON then
-                          begin
-                             if assigned(aktprocsym) and
-                                not(is_interface(aktprocdef._class)) and
-                                not(aktprocdef.forwarddef) or
-                               (m_repeat_forward in aktmodeswitches) then
-                             begin
-                               consume(_COLON);
-                               consume_all_until(_SEMICOLON);
-                             end;
-                          end
-                         else
-                          begin
-                            consume(_COLON);
-                            inc(testcurobject);
-                            single_type(aktprocdef.rettype,hs,false);
-                            aktprocdef.test_if_fpu_result;
-                            if (aktprocdef.rettype.def.deftype=stringdef) and
-                               (tstringdef(aktprocdef.rettype.def).string_typ<>st_shortstring) then
-                              procinfo.no_fast_exit:=true;
-                            dec(testcurobject);
-                          end;
-                       end;
-          _PROCEDURE : begin
-                         consume(_PROCEDURE);
-                         parse_proc_head(potype_none);
-                         if assigned(aktprocsym) then
-                           aktprocdef.rettype:=voidtype;
-                       end;
-        _CONSTRUCTOR : begin
-                         consume(_CONSTRUCTOR);
-                         parse_proc_head(potype_constructor);
-                         if assigned(procinfo._class) and
-                            is_class(procinfo._class) then
-                          begin
-                            { CLASS constructors return the created instance }
-                            aktprocdef.rettype.setdef(procinfo._class);
-                          end
-                         else
-                          begin
-                            { OBJECT constructors return a boolean }
-                            aktprocdef.rettype:=booltype;
-                          end;
-                       end;
-         _DESTRUCTOR : begin
-                         consume(_DESTRUCTOR);
-                         parse_proc_head(potype_destructor);
-                         aktprocdef.rettype:=voidtype;
-                       end;
-           _OPERATOR : begin
-                         if lexlevel>normal_function_level then
-                           Message(parser_e_no_local_operator);
-                         consume(_OPERATOR);
-                         if (token in [first_overloaded..last_overloaded]) then
-                          begin
-                            procinfo.flags:=procinfo.flags or pi_operator;
-                            optoken:=token;
-                          end
-                         else
-                          begin
-                            Message(parser_e_overload_operator_failed);
-                            { Use the dummy NOTOKEN that is also declared
-                              for the overloaded_operator[] }
-                            optoken:=NOTOKEN;
-                          end;
-                         consume(Token);
-                         parse_proc_head(potype_operator);
-                         if token<>_ID then
-                           begin
-                              otsym:=nil;
-                              if not(m_result in aktmodeswitches) then
-                                consume(_ID);
-                           end
-                         else
-                           begin
-                             otsym:=tvarsym.create(pattern,voidtype);
-                             consume(_ID);
-                           end;
-                         if not try_to_consume(_COLON) then
-                           begin
-                             consume(_COLON);
-                             aktprocdef.rettype:=generrortype;
-                             consume_all_until(_SEMICOLON);
-                           end
-                         else
-                          begin
-                            single_type(aktprocdef.rettype,hs,false);
-                            aktprocdef.test_if_fpu_result;
-                            if (optoken in [_EQUAL,_GT,_LT,_GTE,_LTE]) and
-                               ((aktprocdef.rettype.def.deftype<>orddef) or
-                                (torddef(aktprocdef.rettype.def).typ<>bool8bit)) then
-                               Message(parser_e_comparative_operator_return_boolean);
-                            if assigned(otsym) then
-                              otsym.vartype.def:=aktprocdef.rettype.def;
-                            if (optoken=_ASSIGNMENT) and
-                               equal_defs(aktprocdef.rettype.def,
-                                  tvarsym(aktprocdef.parast.symindex.first).vartype.def) then
-                              message(parser_e_no_such_assignment)
-                            else if not isoperatoracceptable(aktprocdef,optoken) then
-                              Message(parser_e_overload_impossible);
-                          end;
-                       end;
+          _FUNCTION :
+            begin
+              consume(_FUNCTION);
+              parse_proc_head(potype_none);
+              if token<>_COLON then
+               begin
+                  if (
+                      assigned(aktprocsym) and
+                      not(is_interface(aktprocdef._class)) and
+                      not(aktprocdef.forwarddef)
+                     ) or
+                     (m_repeat_forward in aktmodeswitches) then
+                  begin
+                    consume(_COLON);
+                    consume_all_until(_SEMICOLON);
+                  end;
+               end
+              else
+               begin
+                 consume(_COLON);
+                 inc(testcurobject);
+                 single_type(aktprocdef.rettype,hs,false);
+                 aktprocdef.test_if_fpu_result;
+                 if (aktprocdef.rettype.def.deftype=stringdef) and
+                    (tstringdef(aktprocdef.rettype.def).string_typ<>st_shortstring) then
+                   procinfo.no_fast_exit:=true;
+                 dec(testcurobject);
+               end;
+
+              { Insert function result parameter }
+              insert_funcret_para(aktprocdef);
+            end;
+          _PROCEDURE :
+            begin
+              consume(_PROCEDURE);
+              parse_proc_head(potype_none);
+              if assigned(aktprocsym) then
+                aktprocdef.rettype:=voidtype;
+            end;
+          _CONSTRUCTOR :
+            begin
+              consume(_CONSTRUCTOR);
+              parse_proc_head(potype_constructor);
+              if assigned(procinfo._class) and
+                 is_class(procinfo._class) then
+               begin
+                 { CLASS constructors return the created instance }
+                 aktprocdef.rettype.setdef(procinfo._class);
+               end
+              else
+               begin
+                 { OBJECT constructors return a boolean }
+                 aktprocdef.rettype:=booltype;
+               end;
+            end;
+          _DESTRUCTOR :
+            begin
+              consume(_DESTRUCTOR);
+              parse_proc_head(potype_destructor);
+              aktprocdef.rettype:=voidtype;
+            end;
+          _OPERATOR :
+            begin
+              if lexlevel>normal_function_level then
+                Message(parser_e_no_local_operator);
+              consume(_OPERATOR);
+              if (token in [first_overloaded..last_overloaded]) then
+               begin
+                 procinfo.flags:=procinfo.flags or pi_operator;
+                 optoken:=token;
+               end
+              else
+               begin
+                 Message(parser_e_overload_operator_failed);
+                 { Use the dummy NOTOKEN that is also declared
+                   for the overloaded_operator[] }
+                 optoken:=NOTOKEN;
+               end;
+              consume(token);
+              parse_proc_head(potype_operator);
+              if token<>_ID then
+                begin
+                   if not(m_result in aktmodeswitches) then
+                     consume(_ID);
+                end
+              else
+                begin
+                  aktprocdef.resultname:=orgpattern;
+                  consume(_ID);
+                end;
+              if not try_to_consume(_COLON) then
+                begin
+                  consume(_COLON);
+                  aktprocdef.rettype:=generrortype;
+                  consume_all_until(_SEMICOLON);
+                end
+              else
+               begin
+                 single_type(aktprocdef.rettype,hs,false);
+                 aktprocdef.test_if_fpu_result;
+                 if (optoken in [_EQUAL,_GT,_LT,_GTE,_LTE]) and
+                    ((aktprocdef.rettype.def.deftype<>orddef) or
+                     (torddef(aktprocdef.rettype.def).typ<>bool8bit)) then
+                    Message(parser_e_comparative_operator_return_boolean);
+                 if (optoken=_ASSIGNMENT) and
+                    equal_defs(aktprocdef.rettype.def,
+                       tvarsym(aktprocdef.parast.symindex.first).vartype.def) then
+                   message(parser_e_no_such_assignment)
+                 else if not isoperatoracceptable(aktprocdef,optoken) then
+                   Message(parser_e_overload_impossible);
+               end;
+
+              { Insert function result parameter }
+              insert_funcret_para(aktprocdef);
+            end;
         end;
         if isclassmethod and
            assigned(aktprocsym) then
@@ -1703,7 +1781,6 @@ const
         if (def.deftype=procdef) then
           tprocdef(def).parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}checkvaluepara,nil);
 
-
         { add mangledname to external list }
         if (def.deftype=procdef) and
            (po_external in def.procoptions) and
@@ -1786,9 +1863,6 @@ const
             break;
          end;
         handle_calling_convention(aktprocsym,aktprocdef);
-        { calculate addresses in parasymtable }
-        if aktprocdef.deftype=procdef then
-          calc_parasymtable_addresses(aktprocdef);
       end;
 
 
@@ -1904,7 +1978,7 @@ const
                        (not equal_defs(hd.rettype.def,aprocdef.rettype.def))) then
                      begin
                        MessagePos1(aprocdef.fileinfo,parser_e_header_dont_match_forward,
-                                   aprocdef.fullprocname);
+                                   aprocdef.fullprocname(false));
                        aprocsym.write_parameter_lists(aprocdef);
                        break;
                      end;
@@ -1913,7 +1987,7 @@ const
                    if hd.forwarddef and aprocdef.forwarddef then
                     begin
                       MessagePos1(aprocdef.fileinfo,parser_e_function_already_declared_public_forward,
-                                  aprocdef.fullprocname);
+                                  aprocdef.fullprocname(false));
                     end;
 
                    { internconst or internproc only need to be defined once }
@@ -1968,14 +2042,14 @@ const
                    if ((po_comp * hd.procoptions)<>(po_comp * aprocdef.procoptions)) then
                      begin
                        MessagePos1(aprocdef.fileinfo,parser_e_header_dont_match_forward,
-                                   aprocdef.fullprocname);
+                                   aprocdef.fullprocname(false));
                        aprocsym.write_parameter_lists(aprocdef);
                        { This error is non-fatal, we can recover }
                      end;
 
                    { Check manglednames }
                    if (m_repeat_forward in aktmodeswitches) or
-                      aprocdef.haspara then
+                      (aprocdef.minparacount>0) then
                     begin
                       { If mangled names are equal then they have the same amount of arguments }
                       { We can check the names of the arguments }
@@ -2036,7 +2110,9 @@ const
                       { encountered, it must already use the new mangled name (JM)  }
                     end;
 
-                   { return the forwarddef }
+                   { the procdef will be released by the symtable, we release
+                     at least the parast }
+                   aprocdef.releasemem;
                    aprocdef:=hd;
                  end
                else
@@ -2094,34 +2170,6 @@ const
            inc(aprocsym.overloadcount);
          end;
 
-        { insert otsym only in the right symtable }
-        if ((procinfo.flags and pi_operator)<>0) and
-           assigned(otsym) then
-         begin
-           if not parse_only then
-            begin
-              if paramanager.ret_in_param(aprocdef.rettype.def,aprocdef.proccalloption) then
-               begin
-                 aprocdef.parast.insert(otsym);
-                 { this allows to read the funcretoffset }
-                 otsym.address:=-4;
-                 otsym.varspez:=vs_var;
-               end
-              else
-               begin
-                 if not assigned(aprocdef.localst) then
-                  aprocdef.insert_localst;
-                 aprocdef.localst.insert(otsym);
-                 aprocdef.localst.insertvardata(otsym);
-               end;
-            end
-           else
-            begin
-              { this is not required anymore }
-              otsym.free;
-              otsym:=nil;
-            end;
-         end;
         paramanager.create_param_loc_info(aprocdef);
         proc_add_definition:=forwardfound;
       end;
@@ -2129,7 +2177,16 @@ const
 end.
 {
   $Log$
-  Revision 1.115  2003-04-24 13:03:01  florian
+  Revision 1.116  2003-04-25 20:59:33  peter
+    * removed funcretn,funcretsym, function result is now in varsym
+      and aliases for result and function name are added using absolutesym
+    * vs_hidden parameter for funcret passed in parameter
+    * vs_hidden fixes
+    * writenode changed to printnode and released from extdebug
+    * -vp option added to generate a tree.log with the nodetree
+    * nicer printnode for statements, callnode
+
+  Revision 1.115  2003/04/24 13:03:01  florian
     * comp is now written with its bit pattern to the ppu instead as an extended
 
   Revision 1.114  2003/04/23 13:12:26  peter

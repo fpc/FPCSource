@@ -400,8 +400,8 @@ var
                  begin
 {$ifdef EXTDEBUG}
                    if assigned(tai_tempalloc(hp).problem) then
-                     AsmWriteLn(target_asm.comment+tai_tempalloc(hp).problem^+' ('+tostr(tai_tempalloc(hp).temppos)+','+
-                       tostr(tai_tempalloc(hp).tempsize)+')')
+                     AsmWriteLn(target_asm.comment+'Temp '+tostr(tai_tempalloc(hp).temppos)+','+
+                       tostr(tai_tempalloc(hp).tempsize)+' '+tai_tempalloc(hp).problem^)
                    else
 {$endif EXTDEBUG}
                      AsmWriteLn(target_asm.comment+'Temp '+tostr(tai_tempalloc(hp).temppos)+','+
@@ -813,7 +813,16 @@ var
 end.
 {
   $Log$
-  Revision 1.22  2003-04-24 22:29:57  florian
+  Revision 1.23  2003-04-25 20:59:33  peter
+    * removed funcretn,funcretsym, function result is now in varsym
+      and aliases for result and function name are added using absolutesym
+    * vs_hidden parameter for funcret passed in parameter
+    * vs_hidden fixes
+    * writenode changed to printnode and released from extdebug
+    * -vp option added to generate a tree.log with the nodetree
+    * nicer printnode for statements, callnode
+
+  Revision 1.22  2003/04/24 22:29:57  florian
     * fixed a lot of PowerPC related stuff
 
   Revision 1.21  2003/04/22 14:33:38  peter

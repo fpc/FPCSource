@@ -1092,14 +1092,6 @@ begin
               end;
            end;
 
-         ibfuncretsym :
-           begin
-             readcommonsym('Func return value ');
-             write  (space,' Return Type: ');
-             readtype;
-             writeln(space,'     Address: ',getlongint);
-           end;
-
          iberror :
            begin
              Writeln('!! Error in PPU');
@@ -1938,7 +1930,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2003-04-10 17:57:53  peter
+  Revision 1.39  2003-04-25 20:59:35  peter
+    * removed funcretn,funcretsym, function result is now in varsym
+      and aliases for result and function name are added using absolutesym
+    * vs_hidden parameter for funcret passed in parameter
+    * vs_hidden fixes
+    * writenode changed to printnode and released from extdebug
+    * -vp option added to generate a tree.log with the nodetree
+    * nicer printnode for statements, callnode
+
+  Revision 1.38  2003/04/10 17:57:53  peter
     * vs_hidden released
 
   Revision 1.37  2003/03/24 19:57:54  hajny

@@ -26,6 +26,8 @@ unit psub;
 
 interface
 
+    procedure printnode_reset;
+
     procedure compile_proc_body(make_global,parent_has_class:boolean);
 
     { reads the declaration blocks }
@@ -102,39 +104,7 @@ implementation
 
 
     function block(islibrary : boolean) : tnode;
-      var
-         storepos : tfileposinfo;
       begin
-         if not is_void(aktprocdef.rettype.def) then
-           begin
-              { if the current is a function aktprocsym is non nil }
-              { and there is a local symtable set }
-              storepos:=akttokenpos;
-              akttokenpos:=aktprocsym.fileinfo;
-              aktprocdef.funcretsym:=tfuncretsym.create(aktprocsym.name,aktprocdef.rettype);
-              { insert in local symtable }
-{$ifdef powerpc}
-              { this requires us to setup a stack frame, which gives problem in the linux syscall helpers (JM) }
-              if not(po_assembler in aktprocdef.procoptions) then
-{$endif powerpc}
-//                 not(paramanager.ret_in_reg(aktprocdef.rettype.def,aktprocdef.proccalloption)) then
-                begin
-                  symtablestack.insert(aktprocdef.funcretsym);
-                  symtablestack.insertvardata(aktprocdef.funcretsym);
-                end;
-              akttokenpos:=storepos;
-
-(*            already done by
-              symtablestack.insertvardata(aktprocdef.funcretsym); above (JM)
-              procinfo.set_result_offset;
-*)
-              { insert result also if support is on }
-              if (m_result in aktmodeswitches) then
-               begin
-                 aktprocdef.resultfuncretsym:=tfuncretsym.create('RESULT',aktprocdef.rettype);
-                 symtablestack.insert(aktprocdef.resultfuncretsym);
-               end;
-           end;
          { parse const,types and vars }
          read_declarations(islibrary);
 
@@ -210,6 +180,43 @@ implementation
 {****************************************************************************
                        PROCEDURE/FUNCTION COMPILING
 ****************************************************************************}
+
+    procedure printnode_reset;
+      begin
+        assign(printnodefile,treelogfilename);
+        {$I-}
+         rewrite(printnodefile);
+        {$I+}
+        if ioresult<>0 then
+         begin
+           Comment(V_Error,'Error creating '+treelogfilename);
+           exit;
+         end;
+        close(printnodefile);
+      end;
+
+
+    procedure printnode_procdef(pd:tprocdef);
+      begin
+        assign(printnodefile,treelogfilename);
+        {$I-}
+         append(printnodefile);
+         if ioresult<>0 then
+          rewrite(printnodefile);
+        {$I+}
+        if ioresult<>0 then
+         begin
+           Comment(V_Error,'Error creating '+treelogfilename);
+           exit;
+         end;
+        writeln(printnodefile);
+        writeln(printnodefile,'*******************************************************************************');
+        writeln(printnodefile,aktprocdef.fullprocname(false));
+        writeln(printnodefile,'*******************************************************************************');
+        printnode(printnodefile,pd.code);
+        close(printnodefile);
+      end;
+
 
     procedure compile_proc_body(make_global,parent_has_class:boolean);
       {
@@ -345,8 +352,11 @@ implementation
             { the procedure is now defined }
             aktprocdef.forwarddef:=false;
 
-             { only generate the code if no type errors are found, else
-               finish at least the type checking pass }
+            if paraprintnodetree=1 then
+              printnode_procdef(aktprocdef);
+
+            { only generate the code if no type errors are found, else
+              finish at least the type checking pass }
 {$ifndef NOPASS2}
             if (status.errorcount=0) then
               begin
@@ -562,6 +572,8 @@ implementation
         oldprocinfo      : tprocinfo;
         oldconstsymtable : tsymtable;
         oldfilepos       : tfileposinfo;
+        oldselftokenmode,
+        oldfailtokenmode : tmodeswitch;
         pdflags          : word;
       begin
       { save old state }
@@ -651,7 +663,7 @@ implementation
              if assigned(procinfo._class) and
                 (not assigned(oldprocinfo._class)) then
               begin
-                Message1(parser_e_header_dont_match_any_member,aktprocdef.fullprocname);
+                Message1(parser_e_header_dont_match_any_member,aktprocdef.fullprocname(false));
                 aktprocsym.write_parameter_lists(aktprocdef);
               end
              else
@@ -665,7 +677,7 @@ implementation
                    aktprocsym.first_procdef.interfacedef and
                    not(aktprocsym.procdef_count>2) then
                  begin
-                   Message1(parser_e_header_dont_match_forward,aktprocdef.fullprocname);
+                   Message1(parser_e_header_dont_match_forward,aktprocdef.fullprocname(false));
                    aktprocsym.write_parameter_lists(aktprocdef);
                  end
                 else
@@ -679,77 +691,69 @@ implementation
               end;
            end;
 
+         { restore file pos }
+         aktfilepos:=oldfilepos;
+
          { update procinfo, because the aktprocdef can be
            changed by check_identical_proc (PFV) }
          procinfo.procdef:=aktprocdef;
 
-
-{$ifdef i386}
-         { add implicit pushes for interrupt routines }
-         if (po_interrupt in aktprocdef.procoptions) then
-           procinfo.allocate_interrupt_stackframe;
-{$endif i386}
-
-         { pointer to the return value ? }
-         if paramanager.ret_in_param(aktprocdef.rettype.def,aktprocdef.proccalloption)
-{$ifdef m68k}
-            and not (aktprocdef.proccalloption in [pocall_cdecl])
-{$endif m68k}
-            then
-          begin
-            procinfo.return_offset:=procinfo.para_offset;
-            inc(procinfo.para_offset,pointer_size);
-          end;
-         { allows to access the parameters of main functions in nested functions }
-         aktprocdef.parast.address_fixup:=procinfo.para_offset;
-
-         { when it is a value para and it needs a local copy then rename
-           the parameter and insert a copy in the localst. This is not done
-           for assembler procedures }
-         if (not parse_only) and (not aktprocdef.forwarddef) then
-           aktprocdef.parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}checkvaluepara,nil);
-
-         procinfo.after_header;
-
-         { restore file pos }
-         aktfilepos:=oldfilepos;
-
          { compile procedure when a body is needed }
          if (pdflags and pd_body)<>0 then
-           begin
-             Message1(parser_d_procedure_start,aktprocdef.fullprocname);
+          begin
+            Message1(parser_d_procedure_start,aktprocdef.fullprocname(false));
 
-             if assigned(aktprocsym.owner) then
-               aktprocdef.aliasnames.insert(aktprocdef.mangledname);
+            if assigned(aktprocsym.owner) then
+              aktprocdef.aliasnames.insert(aktprocdef.mangledname);
+
+            { Insert result variables in the localst }
+            insert_funcret_local(aktprocdef);
+
+            { when it is a value para and it needs a local copy then rename
+              the parameter and insert a copy in the localst. This is not done
+              for assembler procedures }
+            aktprocdef.parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}checkvaluepara,nil);
+
+            { calculate addresses in parasymtable }
+            aktprocdef.parast.address_fixup:=procinfo.para_offset;
+            calc_parasymtable_addresses(aktprocdef);
+
+{$ifdef i386}
+            { add implicit pushes for interrupt routines }
+            if (po_interrupt in aktprocdef.procoptions) then
+              procinfo.allocate_interrupt_stackframe;
+{$endif i386}
+
+            procinfo.set_result_offset;
+            procinfo.after_header;
+
             { set _FAIL as keyword if constructor }
             if (aktprocdef.proctypeoption=potype_constructor) then
-              tokeninfo^[_FAIL].keyword:=m_all;
+             begin
+               oldfailtokenmode:=tokeninfo^[_FAIL].keyword;
+               tokeninfo^[_FAIL].keyword:=m_all;
+             end;
+            { set _SELF as keyword if methods }
             if assigned(aktprocdef._class) then
-              tokeninfo^[_SELF].keyword:=m_all;
+             begin
+               oldselftokenmode:=tokeninfo^[_SELF].keyword;
+               tokeninfo^[_SELF].keyword:=m_all;
+             end;
 
-             compile_proc_body(((pdflags and pd_global)<>0),assigned(oldprocinfo._class));
+            compile_proc_body(((pdflags and pd_global)<>0),assigned(oldprocinfo._class));
 
-            { reset _FAIL as normal }
+            { reset _FAIL as _SELF normal }
             if (aktprocdef.proctypeoption=potype_constructor) then
-              tokeninfo^[_FAIL].keyword:=m_none;
+              tokeninfo^[_FAIL].keyword:=oldfailtokenmode;
             if assigned(aktprocdef._class) and (lexlevel=main_program_level) then
-              tokeninfo^[_SELF].keyword:=m_none;
+              tokeninfo^[_SELF].keyword:=oldselftokenmode;
              consume(_SEMICOLON);
-           end;
+          end;
+
          { close }
          codegen_doneprocedure;
          { Restore old state }
          constsymtable:=oldconstsymtable;
-{$ifdef notused}
-         { restore the interface order to maintain CRC values PM }
-         if assigned(prevdef) and assigned(aktprocdef.nextoverloaded) then
-           begin
-             stdef:=aktprocdef;
-             aktprocdef:=stdef.nextoverloaded;
-             stdef.nextoverloaded:=prevdef.nextoverloaded;
-             prevdef.nextoverloaded:=stdef;
-           end;
-{$endif notused}
          { release procsym when it was not stored in the symtable }
          if not assigned(aktprocsym.owner) then
           begin
@@ -759,7 +763,6 @@ implementation
          aktprocsym:=oldprocsym;
          aktprocdef:=oldprocdef;
          procinfo:=oldprocinfo;
-         otsym:=nil;
       end;
 
 
@@ -884,7 +887,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.103  2003-04-24 13:03:01  florian
+  Revision 1.104  2003-04-25 20:59:34  peter
+    * removed funcretn,funcretsym, function result is now in varsym
+      and aliases for result and function name are added using absolutesym
+    * vs_hidden parameter for funcret passed in parameter
+    * vs_hidden fixes
+    * writenode changed to printnode and released from extdebug
+    * -vp option added to generate a tree.log with the nodetree
+    * nicer printnode for statements, callnode
+
+  Revision 1.103  2003/04/24 13:03:01  florian
     * comp is now written with its bit pattern to the ppu instead as an extended
 
   Revision 1.102  2003/04/23 12:35:34  florian

@@ -198,6 +198,12 @@ var
                 { Special cases }
                  'A' : status.verbosity:=V_All;
                  '0' : status.verbosity:=V_Default;
+                 'P' : begin
+                         if inverse then
+                          paraprintnodetree:=0
+                         else
+                          paraprintnodetree:=1;
+                       end;
                  'R' : begin
                           if inverse then
                             begin
@@ -699,7 +705,16 @@ finalization
 end.
 {
   $Log$
-  Revision 1.25  2003-04-22 14:33:38  peter
+  Revision 1.26  2003-04-25 20:59:35  peter
+    * removed funcretn,funcretsym, function result is now in varsym
+      and aliases for result and function name are added using absolutesym
+    * vs_hidden parameter for funcret passed in parameter
+    * vs_hidden fixes
+    * writenode changed to printnode and released from extdebug
+    * -vp option added to generate a tree.log with the nodetree
+    * nicer printnode for statements, callnode
+
+  Revision 1.25  2003/04/22 14:33:38  peter
     * removed some notes/hints
 
   Revision 1.24  2003/01/09 21:52:38  peter

@@ -184,8 +184,7 @@ interface
 implementation
 
     uses
-       globtype,tokens,systems,verbose,
-       symtable;
+       globtype,tokens,systems,verbose;
 
     { returns true, if def uses FPU }
     function is_fpu(def : tdef) : boolean;
@@ -758,7 +757,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2003-04-23 20:16:04  peter
+  Revision 1.5  2003-04-25 20:59:33  peter
+    * removed funcretn,funcretsym, function result is now in varsym
+      and aliases for result and function name are added using absolutesym
+    * vs_hidden parameter for funcret passed in parameter
+    * vs_hidden fixes
+    * writenode changed to printnode and released from extdebug
+    * -vp option added to generate a tree.log with the nodetree
+    * nicer printnode for statements, callnode
+
+  Revision 1.4  2003/04/23 20:16:04  peter
     + added currency support based on int64
     + is_64bit for use in cg units instead of is_64bitint
     * removed cgmessage from n386add, replace with internalerrors

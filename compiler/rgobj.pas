@@ -1516,7 +1516,7 @@ unit rgobj;
         n:Tsuperregister;
 
     begin
-      {We the element with the least interferences out of the 
+      {We the element with the least interferences out of the
        simplifyworklist.}
       min:=$ff;
       p:=1;
@@ -1533,7 +1533,7 @@ unit rgobj;
         end;
       n:=Tsuperregister(simplifyworklist[p]);
       delete(simplifyworklist,p,1);
-          
+
       {Push it on the selectstack.}
       selectstack:=selectstack+char(n);
       adj:=igraph.adjlist[n];
@@ -1761,7 +1761,7 @@ unit rgobj;
                   worklist_moves.remove(m);
                 Tmoveins(m).moveset:=ms_frozen_moves;
                 frozen_moves.insert(m);
-  
+
                 if not(move_related(v)) and (degree[v]<cpu_registers) then
                   begin
                     delete(freezeworklist,pos(char(v),freezeworklist),1);
@@ -2016,7 +2016,16 @@ end.
 
 {
   $Log$
-  Revision 1.40  2003-04-25 08:25:26  daniel
+  Revision 1.41  2003-04-25 20:59:35  peter
+    * removed funcretn,funcretsym, function result is now in varsym
+      and aliases for result and function name are added using absolutesym
+    * vs_hidden parameter for funcret passed in parameter
+    * vs_hidden fixes
+    * writenode changed to printnode and released from extdebug
+    * -vp option added to generate a tree.log with the nodetree
+    * nicer printnode for statements, callnode
+
+  Revision 1.40  2003/04/25 08:25:26  daniel
     * Ifdefs around a lot of calls to cleartempgen
     * Fixed registers that are allocated but not freed in several nodes
     * Tweak to register allocator to cause less spills

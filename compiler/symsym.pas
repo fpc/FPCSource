@@ -138,10 +138,11 @@ interface
           function search_procdef_nopara_boolret:Tprocdef;
           function search_procdef_bytype(pt:Tproctypeoption):Tprocdef;
           function search_procdef_bypara(params:Tlinkedlist;
+                                         retdef:tdef;
                                          allowconvert,
                                          allowdefault:boolean):Tprocdef;
           function search_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
-          function search_procdef_by1paradef(firstpara:Tdef):Tprocdef;
+          function search_procdef_unary_operator(firstpara:Tdef):Tprocdef;
           function search_procdef_assignment_operator(fromdef,todef:tdef):Tprocdef;
           function search_procdef_binary_operator(def1,def2:tdef):Tprocdef;
           function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;override;
@@ -226,26 +227,13 @@ interface
 {$endif GDB}
        end;
 
-       tfuncretsym = class(tstoredsym)
-          returntype    : ttype;
-          address       : longint;
-          funcretstate  : tvarstate;
-          constructor create(const n : string;const tt : ttype);
-          constructor ppuload(ppufile:tcompilerppufile);
-          destructor  destroy;override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure deref;override;
-{$ifdef GDB}
-          procedure concatstabto(asmlist : taasmoutput);override;
-{$endif GDB}
-       end;
-
        tabsolutesym = class(tvarsym)
           abstyp  : absolutetyp;
           absseg  : boolean;
           ref     : tstoredsym;
           asmname : pstring;
           constructor create(const n : string;const tt : ttype);
+          constructor create_ref(const n : string;const tt : ttype;sym:tstoredsym);
           constructor ppuload(ppufile:tcompilerppufile);
           procedure deref;override;
           function  mangledname : string;
@@ -360,16 +348,12 @@ interface
 
        generrorsym : tsym;
 
-       otsym : tvarsym;
-
     const
        current_object_option : tsymoptions = [sp_public];
 
     { rtti and init/final }
     procedure generate_rtti(p:tsym);
     procedure generate_inittable(p:tsym);
-
-
 
 implementation
 
@@ -384,7 +368,7 @@ implementation
        { target }
        systems,
        { symtable }
-       symtable,defutil,defcmp,
+       defutil,defcmp,symtable,
 {$ifdef GDB}
        gdb,
 {$endif GDB}
@@ -854,7 +838,7 @@ implementation
          while assigned(p) do
            begin
               if p^.def<>skipdef then
-                MessagePos1(p^.def.fileinfo,sym_h_param_list,p^.def.fullprocname);
+                MessagePos1(p^.def.fileinfo,sym_h_param_list,p^.def.fullprocname(false));
               p:=p^.next;
            end;
       end;
@@ -870,7 +854,7 @@ implementation
               if (p^.def.procsym=self) and
                  (p^.def.forwarddef) then
                 begin
-                   MessagePos1(p^.def.fileinfo,sym_e_forward_not_resolved,p^.def.fullprocname);
+                   MessagePos1(p^.def.fileinfo,sym_e_forward_not_resolved,p^.def.fullprocname(false));
                    { Turn futher error messages off }
                    p^.def.forwarddef:=false;
                 end;
@@ -918,7 +902,7 @@ implementation
     function Tprocsym.getprocdef(nr:cardinal):Tprocdef;
       var
         i : cardinal;
-        pd : Pprocdeflist;
+        pd : pprocdeflist;
       begin
         pd:=pdlistfirst;
         for i:=2 to nr do
@@ -933,12 +917,12 @@ implementation
 
     procedure Tprocsym.add_para_match_to(Aprocsym:Tprocsym);
       var
-        pd:Pprocdeflist;
+        pd:pprocdeflist;
       begin
         pd:=pdlistfirst;
         while assigned(pd) do
           begin
-            if Aprocsym.search_procdef_bypara(pd^.def.para,false,true)=nil then
+            if Aprocsym.search_procdef_bypara(pd^.def.para,nil,false,true)=nil then
               Aprocsym.addprocdef(pd^.def);
             pd:=pd^.next;
           end;
@@ -947,7 +931,7 @@ implementation
 
     procedure Tprocsym.concat_procdefs_to(s:Tprocsym);
       var
-        pd : Pprocdeflist;
+        pd : pprocdeflist;
       begin
         pd:=pdlistfirst;
         while assigned(pd) do
@@ -978,7 +962,7 @@ implementation
 
     procedure Tprocsym.foreach_procdef_static(proc2call:Tprocdefcallback;arg:pointer);
       var
-        p : Pprocdeflist;
+        p : pprocdeflist;
       begin
         p:=pdlistfirst;
         while assigned(p) do
@@ -991,7 +975,7 @@ implementation
 
     function Tprocsym.search_procdef_nopara_boolret:Tprocdef;
       var
-        p : Pprocdeflist;
+        p : pprocdeflist;
       begin
         search_procdef_nopara_boolret:=nil;
         p:=pdlistfirst;
@@ -1009,7 +993,7 @@ implementation
 
     function Tprocsym.search_procdef_bytype(pt:Tproctypeoption):Tprocdef;
       var
-        p : Pprocdeflist;
+        p : pprocdeflist;
       begin
         search_procdef_bytype:=nil;
         p:=pdlistfirst;
@@ -1026,30 +1010,39 @@ implementation
 
 
     function Tprocsym.search_procdef_bypara(params:Tlinkedlist;
+                                            retdef:tdef;
                                             allowconvert,
                                             allowdefault:boolean):Tprocdef;
       var
-        pd : Pprocdeflist;
+        pd : pprocdeflist;
         eq : tequaltype;
       begin
         search_procdef_bypara:=nil;
         pd:=pdlistfirst;
         while assigned(pd) do
          begin
-           eq:=compare_paras(pd^.def.para,params,cp_value_equal_const,allowdefault);
+           if assigned(retdef) then
+             eq:=compare_defs(retdef,pd^.def.rettype.def,nothingn)
+           else
+             eq:=te_equal;
            if (eq>=te_equal) or
               (allowconvert and (eq>te_incompatible)) then
-             begin
-               search_procdef_bypara:=pd^.def;
-               break;
-             end;
+            begin
+              eq:=compare_paras(pd^.def.para,params,cp_value_equal_const,allowdefault);
+              if (eq>=te_equal) or
+                 (allowconvert and (eq>te_incompatible)) then
+                begin
+                  search_procdef_bypara:=pd^.def;
+                  break;
+                end;
+            end;
            pd:=pd^.next;
          end;
       end;
 
     function Tprocsym.search_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
       var
-        pd : Pprocdeflist;
+        pd : pprocdeflist;
         eq,besteq : tequaltype;
         bestpd : tprocdef;
       begin
@@ -1081,20 +1074,28 @@ implementation
       end;
 
 
-    function Tprocsym.search_procdef_by1paradef(firstpara:Tdef):Tprocdef;
+    function Tprocsym.search_procdef_unary_operator(firstpara:Tdef):Tprocdef;
       var
-        pd:Pprocdeflist;
+        pd : pprocdeflist;
+        currpara : tparaitem;
       begin
-        search_procdef_by1paradef:=nil;
+        search_procdef_unary_operator:=nil;
         pd:=pdlistfirst;
         while assigned(pd) do
           begin
-            if equal_defs(Tparaitem(pd^.def.para.first).paratype.def,firstpara) and
-               (Tparaitem(pd^.def.para.first).next=nil) then
-              begin
-                search_procdef_by1paradef:=pd^.def;
-                break;
-              end;
+            currpara:=tparaitem(pd^.def.para.first);
+            { ignore vs_hidden parameters }
+            while assigned(currpara) and (currpara.paratyp=vs_hidden) do
+             currpara:=tparaitem(currpara.next);
+            if assigned(currpara) then
+             begin
+               if (currpara.next=nil) and
+                  equal_defs(currpara.paratype.def,firstpara) then
+                 begin
+                   search_procdef_unary_operator:=pd^.def;
+                   break;
+                 end;
+             end;
             pd:=pd^.next;
           end;
       end;
@@ -1108,6 +1109,7 @@ implementation
         eq,
         besteq : tequaltype;
         hpd : tprocdef;
+        currpara : tparaitem;
       begin
         search_procdef_assignment_operator:=nil;
         bestpd:=nil;
@@ -1117,19 +1119,26 @@ implementation
           begin
             if equal_defs(todef,pd^.def.rettype.def) then
              begin
-               eq:=compare_defs_ext(fromdef,Tparaitem(pd^.def.para.first).paratype.def,
-                                    nothingn,false,false,convtyp,hpd);
-               if eq=te_exact then
+               currpara:=Tparaitem(pd^.def.para.first);
+               { ignore vs_hidden parameters }
+               while assigned(currpara) and (currpara.paratyp=vs_hidden) do
+                currpara:=tparaitem(currpara.next);
+               if assigned(currpara) then
                 begin
-                  search_procdef_assignment_operator:=pd^.def;
-                  exit;
+                  eq:=compare_defs_ext(fromdef,currpara.paratype.def,
+                                       nothingn,false,false,convtyp,hpd);
+                  if eq=te_exact then
+                   begin
+                     search_procdef_assignment_operator:=pd^.def;
+                     exit;
+                   end;
+                  if eq>besteq then
+                   begin
+                     bestpd:=pd^.def;
+                     besteq:=eq;
+                   end;
                 end;
-               if eq>besteq then
-                begin
-                  bestpd:=pd^.def;
-                  besteq:=eq;
-                end;
-              end;
+             end;
             pd:=pd^.next;
           end;
         search_procdef_assignment_operator:=bestpd;
@@ -1145,6 +1154,8 @@ implementation
         eqlev,
         bestlev : byte;
         hpd : tprocdef;
+        nextpara,
+        currpara : tparaitem;
       begin
         search_procdef_binary_operator:=nil;
         bestpd:=nil;
@@ -1152,26 +1163,50 @@ implementation
         pd:=pdlistfirst;
         while assigned(pd) do
           begin
-            { Compare def1 with the first para }
-            eq1:=compare_defs_ext(def1,Tparaitem(pd^.def.para.first).paratype.def,
-                                 nothingn,false,false,convtyp,hpd);
-            if eq1<>te_incompatible then
+            currpara:=Tparaitem(pd^.def.para.first);
+            { ignore vs_hidden parameters }
+            while assigned(currpara) and (currpara.paratyp=vs_hidden) do
+             currpara:=tparaitem(currpara.next);
+            if assigned(currpara) then
              begin
-               { Compare def2 with the last para }
-               eq2:=compare_defs_ext(def2,Tparaitem(pd^.def.para.last).paratype.def,
+               { Compare def1 with the first para }
+               eq1:=compare_defs_ext(def1,currpara.paratype.def,
                                     nothingn,false,false,convtyp,hpd);
-               if eq2<>te_incompatible then
+               if eq1<>te_incompatible then
                 begin
-                  eqlev:=byte(eq1)+byte(eq2);
-                  if eqlev=(byte(te_exact)+byte(te_exact)) then
+                  { Ignore vs_hidden parameters }
+                  repeat
+                    currpara:=tparaitem(currpara.next);
+                  until (not assigned(currpara)) or (currpara.paratyp<>vs_hidden);
+                  if assigned(currpara) then
                    begin
-                     search_procdef_binary_operator:=pd^.def;
-                     exit;
-                   end;
-                  if eqlev>bestlev then
-                   begin
-                     bestpd:=pd^.def;
-                     bestlev:=eqlev;
+                     { Ignore vs_hidden parameters }
+                     nextpara:=currpara;
+                     repeat
+                       nextpara:=tparaitem(nextpara.next);
+                     until (not assigned(nextpara)) or (nextpara.paratyp<>vs_hidden);
+                     { There should be no other parameters left }
+                     if not assigned(nextpara) then
+                      begin
+                        { Compare def2 with the last para }
+                        eq2:=compare_defs_ext(def2,currpara.paratype.def,
+                                             nothingn,false,false,convtyp,hpd);
+                        if (eq2<>te_incompatible)  then
+                         begin
+                           { check level }
+                           eqlev:=byte(eq1)+byte(eq2);
+                           if eqlev=(byte(te_exact)+byte(te_exact)) then
+                            begin
+                              search_procdef_binary_operator:=pd^.def;
+                              exit;
+                            end;
+                           if eqlev>bestlev then
+                            begin
+                              bestpd:=pd^.def;
+                              bestlev:=eqlev;
+                            end;
+                         end;
+                      end;
                    end;
                 end;
              end;
@@ -1413,55 +1448,6 @@ implementation
       end;
 {$endif GDB}
 
-{****************************************************************************
-                                  TFUNCRETSYM
-****************************************************************************}
-
-    constructor tfuncretsym.create(const n : string;const tt:ttype);
-
-      begin
-         inherited create(n);
-         typ:=funcretsym;
-         returntype:=tt;
-         funcretstate:=vs_declared;
-         { address valid for ret in param only }
-         { otherwise set by insert             }
-         address:=procinfo.return_offset;
-      end;
-
-    constructor tfuncretsym.ppuload(ppufile:tcompilerppufile);
-      begin
-         inherited loadsym(ppufile);
-         ppufile.gettype(returntype);
-         address:=ppufile.getlongint;
-         typ:=funcretsym;
-      end;
-
-    destructor tfuncretsym.destroy;
-      begin
-        inherited destroy;
-      end;
-
-    procedure tfuncretsym.ppuwrite(ppufile:tcompilerppufile);
-      begin
-         inherited writesym(ppufile);
-         ppufile.puttype(returntype);
-         ppufile.putlongint(address);
-         ppufile.writeentry(ibfuncretsym);
-         funcretstate:=vs_used;
-      end;
-
-    procedure tfuncretsym.deref;
-      begin
-         returntype.resolve;
-      end;
-
-{$ifdef GDB}
-    procedure tfuncretsym.concatstabto(asmlist : taasmoutput);
-      begin
-        { Nothing to do here, it is done in genexitcode  }
-      end;
-{$endif GDB}
 
 {****************************************************************************
                                   TABSOLUTESYM
@@ -1471,6 +1457,14 @@ implementation
       begin
         inherited create(n,tt);
         typ:=absolutesym;
+      end;
+
+
+    constructor tabsolutesym.create_ref(const n : string;const tt : ttype;sym:tstoredsym);
+      begin
+        inherited create(n,tt);
+        typ:=absolutesym;
+        ref:=sym;
       end;
 
 
@@ -2563,7 +2557,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.96  2003-04-23 13:13:58  peter
+  Revision 1.97  2003-04-25 20:59:35  peter
+    * removed funcretn,funcretsym, function result is now in varsym
+      and aliases for result and function name are added using absolutesym
+    * vs_hidden parameter for funcret passed in parameter
+    * vs_hidden fixes
+    * writenode changed to printnode and released from extdebug
+    * -vp option added to generate a tree.log with the nodetree
+    * nicer printnode for statements, callnode
+
+  Revision 1.96  2003/04/23 13:13:58  peter
     * fix operator overload search parameter order
 
   Revision 1.95  2003/04/10 17:57:53  peter

@@ -1,5 +1,5 @@
 {
-    Id: ncgcal.pas,v 1.10 2002/08/17 09:23:35 florian Exp $
+    $Id$
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate i386 assembler for in call nodes
@@ -43,7 +43,7 @@ interface
        private
           function  push_self_and_vmt(needvmtreg:boolean):tregister;
        protected
-          funcretref : treference;
+//          funcretref : treference;
           refcountedtemp : treference;
           procedure handle_return_value(inlined:boolean);
           {# This routine is used to push the current frame pointer
@@ -90,17 +90,28 @@ implementation
 {$endif i386}
       cg64f32,ncgutil,cgobj,tgobj,regvars,rgobj,rgcpu,cgcpu;
 
+
+    var
+      { Current callnode, this is needed for having a link
+        between the callparanodes and the callnode they belong to }
+      aktcallnode : tcallnode;
+
 {*****************************************************************************
                              TCGCALLPARANODE
 *****************************************************************************}
 
     procedure tcgcallparanode.secondcallparan(push_from_left_to_right:boolean;calloption:tproccalloption;para_alignment,para_offset : longint);
       var
-         otlabel,oflabel : tasmlabel;
-         tempdeftype : tdeftype;
-         tmpreg : tregister;
-         href   : treference;
+         otlabel,
+         oflabel : tasmlabel;
+         tmpreg  : tregister;
+         href    : treference;
+         varspez : tvarspez;
       begin
+         if not(assigned(paraitem.paratype.def) or
+                assigned(paraitem.parasym)) then
+           internalerror(200304242);
+
          { set default para_alignment to target_info.stackalignment }
          if para_alignment=0 then
            para_alignment:=aktalignment.paraalign;
@@ -121,6 +132,11 @@ implementation
          objectlibrary.getlabel(truelabel);
          objectlibrary.getlabel(falselabel);
          secondpass(left);
+         { retrieve the type of parameter, for hidden parameters
+           the value is stored in the parasym }
+         varspez:=paraitem.paratyp;
+         if varspez=vs_hidden then
+           varspez:=tvarsym(paraitem.parasym).varspez;
          { handle varargs first, because defcoll is not valid }
          if (nf_varargs_para in flags) then
            begin
@@ -143,7 +159,7 @@ implementation
                  (paraitem.paratype.def.deftype=formaldef) then
            begin
               { allow passing of a constant to a const formaldef }
-              if (paraitem.paratyp=vs_const) and
+              if (varspez=vs_const) and
                  (left.location.loc=LOC_CONSTANT) then
                 location_force_mem(exprasmlist,left.location);
 
@@ -188,7 +204,7 @@ implementation
                 end;
            end
          { handle call by reference parameter }
-         else if (paraitem.paratyp in [vs_var,vs_out]) then
+         else if (varspez in [vs_var,vs_out]) then
            begin
               if (left.location.loc<>LOC_REFERENCE) then
                begin
@@ -198,7 +214,7 @@ implementation
                         (left.nodetype=selfn)) then
                   internalerror(200106041);
                end;
-              if (paraitem.paratyp=vs_out) and
+              if (varspez=vs_out) and
                  assigned(paraitem.paratype.def) and
                  not is_class(paraitem.paratype.def) and
                  paraitem.paratype.def.needs_inittable then
@@ -226,7 +242,6 @@ implementation
            end
          else
            begin
-              tempdeftype:=resulttype.def.deftype;
               { open array must always push the address, this is needed to
                 also push addr of small open arrays and with cdecl functions (PFV) }
               if (
@@ -286,6 +301,14 @@ implementation
            end;
          truelabel:=otlabel;
          falselabel:=oflabel;
+
+         { update return location in callnode when this is the function
+           result }
+         if (vo_is_funcret in tvarsym(paraitem.parasym).varoptions) then
+          begin
+            location_copy(aktcallnode.location,left.location);
+          end;
+
          { push from right to left }
          if not push_from_left_to_right and assigned(right) then
           begin
@@ -685,9 +708,9 @@ implementation
         { needed also when result_no_used !! }
         if paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption) then
          begin
-           location_reset(location,LOC_CREFERENCE,def_cgsize(resulttype.def));
-           location.reference.symbol:=nil;
-           location.reference:=funcretref;
+           { Location should be setup by the funcret para }
+           if location.loc<>LOC_REFERENCE then
+            internalerror(200304241);
          end
         else
         { ansi/widestrings must be registered, so we can dispose them }
@@ -835,15 +858,13 @@ implementation
          unusedstate: pointer;
          pushed : tpushedsaved;
          pushedint : tpushedsavedint;
-         hregister : tregister;
          oldpushedparasize : longint;
          { adress returned from an I/O-error }
          iolabel : tasmlabel;
          { help reference pointer }
          href : treference;
          hp : tnode;
-         pp : tbinarynode;
-         params : tnode;
+         pp : tcallparanode;
          virtual_vmt_call,
          inlined : boolean;
          inlinecode : tprocinlinenode;
@@ -855,6 +876,7 @@ implementation
          pararef : treference;
          accreg,
          vmtreg : tregister;
+         oldaktcallnode : tcallnode;
       begin
          iolabel:=nil;
          inlinecode:=nil;
@@ -882,11 +904,6 @@ implementation
          if not assigned(procdefinition) then
           exit;
 
-         if assigned(left) then
-           params:=left
-         else
-           params := nil;
-
          if (procdefinition.proccalloption=pocall_inline) then
            begin
               inlined:=true;
@@ -895,7 +912,7 @@ implementation
               { set it to the same lexical level as the local symtable, becuase
                 the para's are stored there }
               tprocdef(procdefinition).parast.symtablelevel:=aktprocdef.localst.symtablelevel;
-              if assigned(params) then
+              if assigned(left) then
                begin
                  inlinecode.para_size:=tprocdef(procdefinition).para_size(para_alignment);
                  tg.GetTemp(exprasmlist,inlinecode.para_size,tt_persistant,pararef);
@@ -970,7 +987,9 @@ implementation
            pop_size:=align_parasize(oldpushedparasize,para_alignment);
 
          { Push parameters }
-         if assigned(params) then
+         oldaktcallnode:=aktcallnode;
+         aktcallnode:=self;
+         if assigned(left) then
            begin
               { be found elsewhere }
               if inlined then
@@ -980,14 +999,15 @@ implementation
                 para_offset:=0;
               if not(inlined) and
                  assigned(right) then
-                tcallparanode(params).secondcallparan(
+                tcallparanode(left).secondcallparan(
                   (po_leftright in procdefinition.procoptions),procdefinition.proccalloption,
                   para_alignment,para_offset)
               else
-                tcallparanode(params).secondcallparan(
+                tcallparanode(left).secondcallparan(
                   (po_leftright in procdefinition.procoptions),procdefinition.proccalloption,
                   para_alignment,para_offset);
            end;
+         aktcallnode:=oldaktcallnode;
 
          { Allocate return value for inlined routines }
          if inlined and
@@ -995,58 +1015,6 @@ implementation
            begin
              tg.GetTemp(exprasmlist,Align(resulttype.def.size,aktalignment.paraalign),tt_persistant,returnref);
              inlinecode.retoffset:=returnref.offset;
-           end;
-
-         { Allocate return value when returned in argument }
-         if paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption) then
-           begin
-             if assigned(funcretrefnode) then
-              begin
-                secondpass(funcretrefnode);
-                if codegenerror then
-                 exit;
-                if (funcretrefnode.location.loc<>LOC_REFERENCE) then
-                 internalerror(200204246);
-                funcretref:=funcretrefnode.location.reference;
-              end
-             else
-              begin
-                if inlined then
-                 begin
-                   tg.GetTemp(exprasmlist,resulttype.def.size,tt_persistant,funcretref);
-{$ifdef extdebug}
-                   Comment(V_debug,'function return value is at offset '
-                                   +tostr(funcretref.offset));
-                   exprasmlist.concat(tai_comment.create(
-                                       strpnew('function return value is at offset '
-                                               +tostr(funcretref.offset))));
-{$endif extdebug}
-                 end
-                else
-                 tg.GetTemp(exprasmlist,resulttype.def.size,tt_normal,funcretref);
-              end;
-
-             { This must not be counted for C code,
-               complex return address is removed from stack
-               by function itself !   }
-             if inlined then
-               begin
-                {$ifdef newra}
-                  hregister:=rg.getaddressregister(exprasmlist);
-                {$else}
-                  hregister:=cg.get_scratch_reg_address(exprasmlist);
-                {$endif}
-                  cg.a_loadaddr_ref_reg(exprasmlist,funcretref,hregister);
-                  reference_reset_base(href,procinfo.framepointer,inlinecode.retoffset);
-                  cg.a_load_reg_ref(exprasmlist,OS_ADDR,hregister,href);
-                {$ifdef newra}
-                  rg.ungetregisterint(exprasmlist,hregister);
-                {$else}
-                  cg.free_scratch_reg(exprasmlist,hregister);
-                {$endif}
-               end
-             else
-               cg.a_paramaddr_ref(exprasmlist,funcretref,paramanager.getfuncretparaloc(procdefinition));
            end;
 
          { procedure variable or normal function call ? }
@@ -1217,12 +1185,14 @@ implementation
          rg.restoreusedintregisters(exprasmlist,pushedint);
 
          { Release temps from parameters }
-         pp:=tbinarynode(params);
+         pp:=tcallparanode(left);
          while assigned(pp) do
            begin
               if assigned(pp.left) then
                 begin
-                  location_freetemp(exprasmlist,pp.left.location);
+                  { don't release the funcret temp }
+                  if not(vo_is_funcret in tvarsym(pp.paraitem.parasym).varoptions) then
+                    location_freetemp(exprasmlist,pp.left.location);
                   { process also all nodes of an array of const }
                   if pp.left.nodetype=arrayconstructorn then
                     begin
@@ -1237,7 +1207,7 @@ implementation
                        end;
                     end;
                 end;
-              pp:=tbinarynode(pp.right);
+              pp:=tcallparanode(pp.right);
            end;
 
          if inlined then
@@ -1249,7 +1219,7 @@ implementation
 
              { from now on the result can be freed normally }
              if paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption) then
-               tg.ChangeTempType(exprasmlist,funcretref,tt_normal);
+               tg.ChangeTempType(exprasmlist,funcretnode.location.reference,tt_normal);
            end;
 
          { if return value is not used }
@@ -1467,7 +1437,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.52  2003-04-25 08:25:26  daniel
+  Revision 1.53  2003-04-25 20:59:33  peter
+    * removed funcretn,funcretsym, function result is now in varsym
+      and aliases for result and function name are added using absolutesym
+    * vs_hidden parameter for funcret passed in parameter
+    * vs_hidden fixes
+    * writenode changed to printnode and released from extdebug
+    * -vp option added to generate a tree.log with the nodetree
+    * nicer printnode for statements, callnode
+
+  Revision 1.52  2003/04/25 08:25:26  daniel
     * Ifdefs around a lot of calls to cleartempgen
     * Fixed registers that are allocated but not freed in several nodes
     * Tweak to register allocator to cause less spills

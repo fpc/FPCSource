@@ -390,6 +390,7 @@ interface
           constructor allocinfo(pos,size:longint;const st:string);
 {$endif EXTDEBUG}
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
+          destructor destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
        end;
 
@@ -418,9 +419,9 @@ interface
           oper      : array[0..max_operands-1] of toper;
           { Actual opcode of instruction }
           opcode    : tasmop;
-{$ifdef i386}
+{$ifdef x86}
           segprefix : tregister;
-{$endif i386}
+{$endif x86}
           { true if instruction is a jmp }
           is_jmp    : boolean; { is this instruction a jump? (needed for optimizer) }
           Constructor Create(op : tasmop);
@@ -1361,6 +1362,15 @@ uses
       end;
 
 
+    destructor tai_tempalloc.destroy;
+      begin
+{$ifdef EXTDEBUG}
+        stringdispose(problem);
+{$endif EXTDEBUG}
+        inherited destroy;
+      end;
+
+
     constructor tai_tempalloc.dealloc(pos,size:longint);
       begin
         inherited Create;
@@ -1816,7 +1826,19 @@ uses
 end.
 {
   $Log$
-  Revision 1.25  2003-04-25 08:25:26  daniel
+  Revision 1.27  2003-04-25 20:59:33  peter
+    * removed funcretn,funcretsym, function result is now in varsym
+      and aliases for result and function name are added using absolutesym
+    * vs_hidden parameter for funcret passed in parameter
+    * vs_hidden fixes
+    * writenode changed to printnode and released from extdebug
+    * -vp option added to generate a tree.log with the nodetree
+    * nicer printnode for statements, callnode
+
+  Revision 1.26  2002/04/25 16:12:09  florian
+    * fixed more problems with cpubase and x86-64
+
+  Revision 1.25  2003/04/25 08:25:26  daniel
     * Ifdefs around a lot of calls to cleartempgen
     * Fixed registers that are allocated but not freed in several nodes
     * Tweak to register allocator to cause less spills

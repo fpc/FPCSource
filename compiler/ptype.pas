@@ -59,6 +59,8 @@ implementation
        { global }
        globals,tokens,verbose,
        systems,
+       { target }
+       paramgr,
        { symtable }
        symconst,symbase,symdef,symsym,symtable,
        defutil,defcmp,
@@ -451,7 +453,9 @@ implementation
         end;
 
       var
-        p : tnode;
+        p  : tnode;
+        vs : tvarsym;
+        pd : tabstractprocdef;
         enumdupmsg : boolean;
       begin
          tt.reset;
@@ -607,17 +611,21 @@ implementation
             _FUNCTION:
               begin
                 consume(_FUNCTION);
-                tt.def:=tprocvardef.create;
+                pd:=tprocvardef.create;
                 if token=_LKLAMMER then
-                 parameter_dec(tprocvardef(tt.def));
+                 parameter_dec(pd);
                 consume(_COLON);
-                single_type(tprocvardef(tt.def).rettype,hs,false);
+                single_type(pd.rettype,hs,false);
                 if token=_OF then
                   begin
                     consume(_OF);
                     consume(_OBJECT);
-                    include(tprocvardef(tt.def).procoptions,po_methodpointer);
+                    include(pd.procoptions,po_methodpointer);
                   end;
+                { Add implicit hidden parameters and function result }
+                insert_hidden_para(pd);
+                insert_funcret_para(pd);
+                tt.def:=pd;
               end;
             else
               expr_type;
@@ -629,7 +637,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  2003-01-05 15:54:15  florian
+  Revision 1.51  2003-04-25 20:59:34  peter
+    * removed funcretn,funcretsym, function result is now in varsym
+      and aliases for result and function name are added using absolutesym
+    * vs_hidden parameter for funcret passed in parameter
+    * vs_hidden fixes
+    * writenode changed to printnode and released from extdebug
+    * -vp option added to generate a tree.log with the nodetree
+    * nicer printnode for statements, callnode
+
+  Revision 1.50  2003/01/05 15:54:15  florian
     + added proper support of type = type <type>; for simple types
 
   Revision 1.49  2003/01/03 23:50:41  peter

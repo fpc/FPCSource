@@ -118,7 +118,7 @@ implementation
               consume_emptystats;
            end;
          consume(_END);
-         statements_til_end:=cblocknode.create(first);
+         statements_til_end:=cblocknode.create(first,true);
       end;
 
 
@@ -332,7 +332,7 @@ implementation
          consume(_UNTIL);
          dec(statement_level);
 
-         first:=cblocknode.create(first);
+         first:=cblocknode.create(first,true);
          p_e:=comp_expr(true);
          repeat_statement:=genloopnode(whilerepeatn,p_e,first,nil,true);
       end;
@@ -555,7 +555,7 @@ implementation
                 break;
               consume_emptystats;
            end;
-         p_try_block:=cblocknode.create(first);
+         p_try_block:=cblocknode.create(first,true);
 
          if try_to_consume(_FINALLY) then
            begin
@@ -990,7 +990,7 @@ implementation
 
          dec(statement_level);
 
-         last:=cblocknode.create(first);
+         last:=cblocknode.create(first,true);
          last.set_tree_filepos(filepos);
          statement_block:=last;
       end;
@@ -1099,7 +1099,7 @@ implementation
             (aktprocdef.localst.datasize=aktprocdef.rettype.def.size) and
             (aktprocdef.owner.symtabletype<>objectsymtable) and
             (not assigned(aktprocdef.funcretsym) or
-             (tfuncretsym(aktprocdef.funcretsym).refcount<=1)) and
+             (tvarsym(aktprocdef.funcretsym).refcount<=1)) and
             not(paramanager.ret_in_param(aktprocdef.rettype.def,aktprocdef.proccalloption)) and
             (target_cpu in [cpu_i386,cpu_m68k,cpu_vm])
 {$ifdef CHECKFORPUSH}
@@ -1113,7 +1113,7 @@ implementation
         }
         if assigned(aktprocdef.funcretsym) and
            paramanager.ret_in_reg(aktprocdef.rettype.def,aktprocdef.proccalloption) then
-          tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
+          tvarsym(aktprocdef.funcretsym).varstate:=vs_assigned;
 
         { because the END is already read we need to get the
           last_endtoken_filepos here (PFV) }
@@ -1125,7 +1125,20 @@ implementation
 end.
 {
   $Log$
-  Revision 1.89  2003-04-25 08:25:26  daniel
+  Revision 1.91  2003-04-25 20:59:34  peter
+    * removed funcretn,funcretsym, function result is now in varsym
+      and aliases for result and function name are added using absolutesym
+    * vs_hidden parameter for funcret passed in parameter
+    * vs_hidden fixes
+    * writenode changed to printnode and released from extdebug
+    * -vp option added to generate a tree.log with the nodetree
+    * nicer printnode for statements, callnode
+
+  Revision 1.90  2002/04/25 20:15:40  florian
+    * block nodes within expressions shouldn't release the used registers,
+      fixed using a flag till the new rg is ready
+
+  Revision 1.89  2003/04/25 08:25:26  daniel
     * Ifdefs around a lot of calls to cleartempgen
     * Fixed registers that are allocated but not freed in several nodes
     * Tweak to register allocator to cause less spills
