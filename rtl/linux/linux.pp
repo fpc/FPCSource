@@ -3347,6 +3347,9 @@ end;
 
 
 {$IFDEF I386}
+
+{$asmmode direct}
+
 Procedure WritePort (Port : Longint; Value : Byte);
 {
   Writes 'Value' to port 'Port'
@@ -3540,7 +3543,10 @@ End.
 
 {
   $Log$
-  Revision 1.34  1999-03-29 16:03:10  peter
+  Revision 1.35  1999-04-22 14:48:55  peter
+    * fixed direct asm
+
+  Revision 1.34  1999/03/29 16:03:10  peter
     + clone()
 
   Revision 1.33  1999/03/11 12:02:03  peter
