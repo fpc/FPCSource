@@ -60,6 +60,11 @@ ALLTARGET=smart
 else
 ALLTARGET=all
 endif
+ifeq ($(OS_TARGET),freebsd)
+ALLTARGET=smart
+else
+ALLTARGET=all
+endif
 endif
 endif
 endif
@@ -74,6 +79,11 @@ endif
 
 # Prefix for units
 ifeq ($(OS_TARGET),linux)
+PKGPRE=units
+else
+PKGPRE=u
+endif
+ifeq ($(OS_TARGET),freebsd)
 PKGPRE=units
 else
 PKGPRE=u
@@ -112,7 +122,7 @@ endif
 BUILDOPTS=FPC=$(PPNEW) RELEASE=1
 INSTALLOPTS=FPC=$(PPNEW) ZIPDESTDIR=$(BASEDIR)
 ifdef PPUFILESNEW
-override INSTALLOPT+=PPUFILES=$(PPUFILESNEW)
+override INSTALLOPTS+=PPUFILES=$(PPUFILESNEW)
 endif
 
 # Compile also IDE (check for ide and fv dir)
@@ -148,7 +158,7 @@ help:
         @echo
         @echo Packing targets are:
         @echo
-        @echo go32v2zip,win32zip,linuxzip,sourcezip
+        @echo go32v2zip,win32zip,linuxzip,freebsdzip,sourcezip
         @echo
         @exit
 
@@ -317,6 +327,10 @@ endif
 ifeq ($(OS_TARGET),linux)
         $(MAKE) -C $(CVSINSTALL)/man installman
 endif
+ifeq ($(OS_TARGET),freebsd)
+        $(MAKE) -C $(CVSINSTALL)/man installman
+endif
+
 endif
 # install generated things
         $(MAKE) compiler_install $(INSTALLOPTS)
@@ -400,7 +414,7 @@ sourcebase:
         $(COPY) rtl/Makefile* $(SOURCEINSTALLDIR)/rtl
         $(COPY) packages/Makefile* $(SOURCEINSTALLDIR)/packages
 
-sourcezip:
+sourcezip: distclean
         $(MAKE) fpc_zipinstall ZIPTARGET=sourcebase ZIPNAME=basesrc
         $(MAKE) compiler_zipsourceinstall
         $(MAKE) rtl_zipsourceinstall
@@ -417,7 +431,7 @@ sourcezip:
 # OS targets
 ##########################################################################
 
-.PHONY: go32v2 win32 linux go32v2zip win32zip linuxzip
+.PHONY: go32v2 win32 linux freebsd go32v2zip win32zip linuxzip freebsdzip
 
 go32v2: checkfpcdir
         $(MAKE) install OS_TARGET=go32v2
@@ -428,6 +442,9 @@ win32: checkfpcdir
 linux: checkfpcdir
         $(MAKE) install OS_TARGET=linux
 
+freebsd: checkfpcdir
+        $(MAKE) install OS_TARGET=freebsd
+
 go32v2zip: checkfpcdir
         $(MAKE) zipinstall OS_TARGET=go32v2
 
@@ -437,6 +454,9 @@ win32zip: checkfpcdir
 linuxzip: checkfpcdir
         $(MAKE) zipinstall OS_TARGET=linux
 
+
+freebsdzip : checkfpcdir
+        $(MAKE) zipinstall OS_TARGET=freebsd
 
 ##########################################################################
 # Debian / RPM
@@ -505,4 +525,3 @@ rpmcopy: distclean
 rpm: checkfpcdir rpmcopy
         cd $(RPMSPECDIR) ; rpm -ba fpc-$(FPC_VERSION).spec
         cd $(RPMSPECDIR) ; rpm -ba fpc-docs-$(FPC_VERSION).spec
-
