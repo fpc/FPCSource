@@ -520,7 +520,10 @@ ait_labeled_instruction :
                            end;
                           s:='';
                         end;
-                       AsmWriteLn(#9#9+prefix+int_op2str[pai386(hp)^._operator]+suffix+s);
+		       if pai386(hp)^._operator=A_FWAIT then
+		        AsmWriteln(#9#9'DB'#9'09bh')
+		       else	
+                        AsmWriteLn(#9#9+prefix+int_op2str[pai386(hp)^._operator]+suffix+s);
                      end;
 {$ifdef GDB}
              ait_stabn,
@@ -565,7 +568,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.6  1998-08-10 15:49:39  peter
+  Revision 1.7  1998-08-11 14:01:43  peter
+    * fixed fwait bug using direct opcode
+
+  Revision 1.6  1998/08/10 15:49:39  peter
     * small fixes for 0.99.5
 
   Revision 1.5  1998/08/08 10:19:18  florian
