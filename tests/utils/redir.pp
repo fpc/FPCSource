@@ -43,6 +43,9 @@ Interface
 {$ifdef BSD}
 {$define implemented}
 {$endif}
+{$ifdef macos}
+{$define shell_implemented}
+{$endif}
 
 { be sure msdos is not set for FPC compiler }
 {$ifdef FPC}
@@ -57,7 +60,7 @@ Var
 
 {------------------------------------------------------------------------------}
 procedure InitRedir;
-function ExecuteRedir (Const ProgName, ComLine, RedirStdIn, RedirStdOut, RedirStdErr : String) : boolean;
+function ExecuteRedir (Const ProgName, ComLine : String; RedirStdIn, RedirStdOut, RedirStdErr: String): boolean;
 procedure DosExecute(ProgName, ComLine : String);
 
 function  ChangeRedirOut(Const Redir : String; AppendToFile : Boolean) : Boolean;
@@ -104,9 +107,15 @@ Const
   listsep = [';',':'];
   exeext = '';
 {$else UNIX}
+{$ifdef MACOS}
+  DirSep=':';
+  listsep = [','];
+  exeext = '';
+{$else MACOS}
   DirSep='\';
   listsep = [';'];
   exeext = '.exe';
+{$endif MACOS}
 {$endif UNIX}
 
 
@@ -685,7 +694,7 @@ end;
 
 {............................................................................}
 
-function ExecuteRedir (Const ProgName, ComLine, RedirStdIn, RedirStdOut, RedirStdErr : String) : boolean;
+function ExecuteRedir (Const ProgName, ComLine : String; RedirStdIn, RedirStdOut, RedirStdErr: String): boolean;
 Begin
   RedirErrorOut:=0; RedirErrorIn:=0; RedirErrorError:=0;
   ExecuteResult:=0;
@@ -787,8 +796,11 @@ begin
       LocateExeFile:=true;
       Exit;
     end;
-
+{$ifdef macos}
+  S:=GetEnv('Commands');
+{$else}
   S:=GetEnv('PATH');
+{$endif}
   While Length(S)>0 do
     begin
       i:=1;
@@ -808,24 +820,39 @@ begin
    end;
 end;
 
-function ExecuteRedir (Const ProgName, ComLine, RedirStdIn, RedirStdOut, RedirStdErr: String): boolean;
+function ExecuteRedir (Const ProgName, ComLine : String; RedirStdIn, RedirStdOut, RedirStdErr: String): boolean;
 var
  CmdLine2: string;
+
 begin
+ {$ifdef macos}
+ if Lowercase(RedirStdIn) = 'stdin' then RedirStdIn := 'Dev:StdIn';
+ if Lowercase(RedirStdOut) = 'stdout' then RedirStdOut := 'Dev:Output';
+ if Lowercase(RedirStdOut) = 'stderr' then RedirStdOut := 'Dev:Error';
+ if Lowercase(RedirStdErr) = 'stdout' then RedirStdErr := 'Dev:Output';
+ if Lowercase(RedirStdErr) = 'stderr' then RedirStdErr := 'Dev:Error';
+ {$endif macos}
+
  CmdLine2 := ComLine;
  if RedirStdIn <> '' then CmdLine2 := CmdLine2 + ' < ' + RedirStdIn;
  if RedirStdOut <> '' then CmdLine2 := CmdLine2 + ' > ' + RedirStdOut;
  if RedirStdErr <> '' then
  begin
-  if RedirStdErr = RedirStdOut
-          then CmdLine2 := CmdLine2 + ' 2>&1'
-                              else CmdLine2 := CmdLine2 + ' 2> ' + RedirStdErr;
+  {$ifndef macos}
+  if RedirStdErr = RedirStdOut then
+    CmdLine2 := CmdLine2 + ' 2>&1'
+  else
+    CmdLine2 := CmdLine2 + ' 2> ' + RedirStdErr;
+  {$else macos}
+  CmdLine2 := CmdLine2 + ' ' + #179 + ' ' + RedirStdErr; {#179 is "greater or equal" char}
+  {$endif macos}
  end;
  DosExecute (ProgName, CmdLine2);
- ExecuteRedir := true;
+ ExecuteRedir:=(IOStatus=0) and (ExecuteResult=0);
 end;
+
 {$ELSE SHELL_IMPLEMENTED}
-function ExecuteRedir (Const ProgName, ComLine, RedirStdIn, RedirStdOut, RedirStdErr : String) : boolean;
+function ExecuteRedir (Const ProgName, ComLine : String; RedirStdIn, RedirStdOut, RedirStdErr: String): boolean;
 begin
   ExecuteRedir:=false;
 end;
@@ -909,7 +936,6 @@ begin
 end;
 {$endif not implemented}
 
-
 {............................................................................}
 
   procedure DosExecute(ProgName, ComLine : String);
@@ -951,8 +977,12 @@ end;
       Dos.Exec (Getenv('COMSPEC'),'/C '+FixPath(progname)+' '+Comline)
     else
       begin
-        if LocateExeFile(progname) then
+        if LocateExeFile(progname) then 
+          {$ifndef macos}
           Dos.Exec(ProgName,Comline)
+          {$else}
+          Dos.Exec(''''+ProgName+'''',Comline) {Quotes needed !}
+          {$endif}
         else
           DosError:=2;
       end;
@@ -987,7 +1017,10 @@ finalization
 End.
 {
   $Log$
-  Revision 1.19  2004-05-25 15:52:48  peter
+  Revision 1.20  2005-01-26 22:05:06  olle
+    + added support for macos
+
+  Revision 1.19  2004/05/25 15:52:48  peter
     * executeresult changed to longint instead of word
 
   Revision 1.18  2004/05/16 20:13:04  peter

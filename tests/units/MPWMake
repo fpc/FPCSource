@@ -1,0 +1,40 @@
+FPC = ppcppc
+
+rtl-stamp Ä
+	Set Exit 0
+	NewFolder powerpc-macos
+	Set Exit 1
+	Set TEMP_FPC `Files -f "{FPC}"`
+	Set TEMP_OUTDIR "`Directory`powerpc-macos:"
+  Directory :::rtl:macos
+	Make all -f MPWMake -d FPC={TEMP_FPC} -d REDIR=-FE'"'{TEMP_OUTDIR}'"' -d OPT={OPT} > Makeout ; Makeout
+	Directory :::tests:units
+	Echo Compiled > :rtl-stamp
+
+rtl Ä rtl-stamp
+
+:powerpc-macos:erroru.ppu Ä :erroru.pp
+	Set Exit 0
+	NewFolder powerpc-macos
+	Set Exit 1
+	"{FPC}" -FE:powerpc-macos: :erroru.pp
+
+:powerpc-macos:ptest.ppu Ä ::test:cg:ptest.pp
+	Set Exit 0
+	NewFolder powerpc-macos
+	Set Exit 1
+	"{FPC}" -FE:powerpc-macos: ::test:cg:ptest.pp
+
+extra Ä :powerpc-macos:erroru.ppu :powerpc-macos:ptest.ppu
+
+all Ä rtl extra
+
+
+
+cleanrtlfcl Ä
+	Set Exit 0 # To handle the case, when there is no match
+	Delete -y powerpc-macos
+	Delete -y -i rtl-stamp fcl-stamp
+	Set Exit 1 #Revert error handling
+
+clean Ä cleanrtlfcl

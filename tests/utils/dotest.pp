@@ -18,6 +18,9 @@
 program dotest;
 uses
   dos,
+{$ifdef macos}
+  macutils,
+{$endif}
   teststr,
   testu,
   redir;
@@ -38,7 +41,11 @@ const
 {$ifdef UNIX}
   ExeExt='';
 {$else UNIX}
+{$ifdef MACOS}
+  ExeExt='';
+{$else MACOS}
   ExeExt='exe';
+{$endif MACOS}
 {$endif UNIX}
 
 var
@@ -183,7 +190,7 @@ var
   i : longint;
 begin
   i:=Length(s);
-  while (i>0) and not(s[i] in ['/','\']) do
+  while (i>0) and not(s[i] in ['/','\'{$IFDEF MACOS},':'{$ENDIF}]) do
    dec(i);
   SplitPath:=Copy(s,1,i);
 end;
@@ -225,7 +232,7 @@ var
 begin
   if s='' then
     exit;
-  if s[length(s)] in ['\','/'] then
+  if s[length(s)] in ['\','/'{$IFDEF MACOS},':'{$ENDIF}] then
     hs:=Copy(s,1,length(s)-1)
   else
     hs:=s;
@@ -432,13 +439,21 @@ end;
 
 function OutputFileName(Const s,ext:String):String;
 begin
+{$ifndef macos}
   OutputFileName:=OutputDir+'/'+ForceExtension(s,ext);
+{$else macos}
+  OutputFileName:=ConcatMacPath(OutputDir,ForceExtension(s,ext));
+{$endif macos}
 end;
 
 
 function TestOutputFileName(Const s,ext:String):String;
 begin
+{$ifndef macos}
   TestOutputFileName:=TestOutputDir+'/'+ForceExtension(SplitFileName(s),ext);
+{$else macos}
+  TestOutputFileName:=ConcatMacPath(TestOutputDir,ForceExtension(SplitFileName(s),ext));
+{$endif macos}
 end;
 
 
@@ -476,6 +491,9 @@ begin
   RunCompiler:=false;
   args:='-n -Fu'+RTLUnitsDir;
   args:=args+' -FE'+TestOutputDir;
+{$ifdef macos}
+  args:=args+' -WT ';  {tests should be compiled as MPWTool}
+{$endif macos}
   if ExtraCompilerOpts<>'' then
    args:=args+ExtraCompilerOpts;
 {$ifdef unix}
@@ -488,7 +506,14 @@ begin
   args:=args+' '+ppfile;
   Verbose(V_Debug,'Executing '+compilerbin+' '+args);
   { also get the output from as and ld that writes to stderr sometimes }
+{$ifndef macos}
   execres:=ExecuteRedir(CompilerBin,args,'',CompilerLogFile,'stdout');
+{$else macos}
+  {Due to that Toolserver is not reentrant, we have to asm and link via script.}
+  execres:=ExecuteRedir(CompilerBin,'-s '+args,'',CompilerLogFile,'stdout');
+  if execres then
+    execres:=ExecuteRedir(TestOutputDir + ':ppas','','',CompilerLogFile,'stdout');
+{$endif macos}
   Verbose(V_Debug,'Exitcode '+ToStr(ExecuteResult));
 
   { Error during execution? }
@@ -523,7 +548,7 @@ begin
      exit;
    end;
 
-  { Shoud the compile fail ? }
+  { Should the compile fail ? }
   if Config.ShouldFail then
    begin
      if ExecuteResult<>0 then
@@ -782,7 +807,7 @@ var
     writeln('  -T            remove temporary files (executable,ppu,o)');
     writeln('  -P<path>      path to the tests tree on the remote machine');
     writeln('  -U<remotepara>');
-    writeln('                pass additional parameter to remove program. Multiple -U can be used');
+    writeln('                pass additional parameter to remote program. Multiple -U can be used');
     writeln('  -V            be verbose');
     writeln('  -W            use putty compatible file names when testing (plink and pscp)');
     writeln('  -Y<opts>      extra options passed to the compiler. Several -Y<opt> can be given.');
@@ -897,10 +922,18 @@ begin
     begin
       Res:=GetCompilerCPU;
       Res:=GetCompilerTarget;
+{$ifndef MACOS}
       RTLUnitsDir:='units/'+{$ifdef LIMIT83FS}CompilerTarget{$else}CompilerFullTarget{$endif};
+{$else MACOS}
+      RTLUnitsDir:=':units:'+CompilerFullTarget;
+{$endif MACOS}
       if not PathExists(RTLUnitsDir) then
         Verbose(V_Abort,'Unit path "'+RTLUnitsDir+'" does not exists');
+{$ifndef MACOS}
       OutputDir:='output/'+{$ifdef LIMIT83FS}CompilerTarget{$else}CompilerFullTarget{$endif};
+{$else MACOS}
+      OutputDir:=':output:'+CompilerFullTarget;
+{$endif MACOS}
       if not PathExists(OutputDir) then
         Verbose(V_Abort,'Output path "'+OutputDir+'" does not exists');
       { Global log files }
@@ -909,11 +942,15 @@ begin
       FailLogFile:=OutputFileName('faillist','');
       { Make subdir in output if needed }
       PPDir:=SplitPath(PPFile);
-      if PPDir[length(PPDir)] in ['/','\'] then
+      if PPDir[length(PPDir)] in ['/','\'{$ifdef MACOS},':'{$endif MACOS}] then
         Delete(PPDir,length(PPDir),1);
       if PPDir<>'' then
         begin
+{$ifndef MACOS}
           TestOutputDir:=OutputDir+'/'+PPDir;
+{$else MACOS}
+          TestOutputDir:=OutputDir+PPDir;
+{$endif MACOS}
           mkdirtree(TestOutputDir);
         end
       else
@@ -1129,7 +1166,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2005-01-06 16:32:04  florian
+  Revision 1.45  2005-01-26 22:05:06  olle
+    + added support for macos
+
+  Revision 1.44  2005/01/06 16:32:04  florian
     + skipemu added
 
   Revision 1.43  2005/01/01 18:59:52  florian

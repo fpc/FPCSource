@@ -1,0 +1,165 @@
+# Make file for MPW make.
+# To run it, use:
+#   Make <target> -f MPWMake > Makeout ; Makeout
+# where <target> should be replaced with actual make target.
+
+#Possible options:
+
+DOTEST = :utils:DoTest
+
+FPC = ppcppc
+#OPT
+
+TEST_FPC = ::compiler:ppcppc
+TEST_OS_TARGET = macos
+TEST_CPU_TARGET = powerpc
+TEST_FULL_TARGET = {TEST_CPU_TARGET}-{TEST_OS_TARGET}
+#TEST_OPT
+# Target dir where the ppu and binaries are created:
+TEST_OUTPUTDIR = :output:{TEST_FULL_TARGET}
+
+TESTSUBDIRS = : :cg: :cg:cdecl: :units:system: :units:dos: :units:crt: :units:objects: :units:strings: :units:sysutils: :units:math:
+
+DIRS = :webtbs: :webtbf: :tbs: :tbf: :test: :test:cg: :test:cg:cdecl: :test:units:system: :test:units:dos: :test:units:crt: :test:units:objects: :test:units:strings: :test:units:sysutils: :test:units:math:
+
+################################
+# Utilities
+#
+:utils:dotest Ä :utils:dotest.pp
+	"{FPC}" -WT "{OPT}" -FE:utils: :utils:dotest.pp
+
+:utils:digest Ä :utils:digest.pp
+	"{FPC}" -WT "{OPT}" -FE:utils: :utils:digest.pp
+
+:utils:fail Ä :utils:fail.pp
+	"{FPC}" -WT "{OPT}" -FE:utils: :utils:fail.pp
+
+:utils:testfail Ä :utils:testfail.pp
+	"{FPC}" -WT "{OPT}" -FE:utils: :utils:testfail.pp
+
+utils Ä :utils:dotest :utils:digest :utils:fail :utils:testfail
+
+################################
+# Units
+#
+
+units Ä
+	Set TEMP_FPC `Files -f "{TEST_FPC}"`
+  Directory :units:
+	Make all -f MPWMake -d FPC={TEMP_FPC} -d OPT={TEST_OPT} > Makeout ; Makeout
+	Directory ::
+
+################################
+# Copy test environment dependent files ctest.o to test/cg etc
+#
+
+copyfiles Ä {TEST_OUTPUTDIR}
+	Duplicate -y :test:cg:obj:{TEST_OS_TARGET}:{TEST_CPU_TARGET}:ctest.o :test:cg
+	Set Exit 0
+	NewFolder {TEST_OUTPUTDIR}:test
+	NewFolder {TEST_OUTPUTDIR}:test:units
+	NewFolder {TEST_OUTPUTDIR}:test:units:system
+	Set Exit 1
+	Duplicate -y :test:units:system:testÅ.txt {TEST_OUTPUTDIR}:test:units:system
+
+################################
+# Preparation for tests
+#
+
+testprep Ä testprep-stamp.{TEST_FULL_TARGET}
+
+testprep-stamp.{TEST_FULL_TARGET} Ä {TEST_OUTPUTDIR} utils units copyfiles
+	Echo `Date` > testprep-stamp.{TEST_FULL_TARGET}
+
+{TEST_OUTPUTDIR} Ä
+	Set Exit 0
+	NewFolder {TEST_OUTPUTDIR}
+	Set Exit 1
+
+################################
+# Dotest options
+#
+
+################################
+# Run tests
+#
+# Because MPW Make lacks some features, it has to be done as below:
+#
+
+allexectest allexectbs allexectbf allexecwebtbs allexecwebtbf Ä testprep
+	(Evaluate "{Targ}" =~ /allexec(Å)¨1/) > Dev:Null
+	#Assembles, links and run tests of FreePascal
+	Set testdir ":{¨1}"
+	#Iterate through tests
+	If {testdir} == :test
+		Set subdirlist "{TESTSUBDIRS}"
+	Else
+		Set subdirlist :
+	End
+	Set Exit 0 # To handle the case, in the for stmt, when there is no match
+	#
+	For subdir In {subdirlist}
+		For sourceWithExt In {testdir}{subdir}tÅ.pp  #only test files, which begins with a 't'
+			Set Exit 1 #Revert error handling
+			#
+			(Evaluate "{sourceWithExt}" =~ /(([Â.])*)¨1Å/) > Dev:Null
+			Set apppath {¨1}
+			(Evaluate "{apppath}" =~ /Å:([Â:]*)¨1/) > Dev:Null
+			Set appname {¨1}
+			#
+			If NOT "`Exists :output:powerpc-macos{apppath}.elg`"
+				# Compile and perform the test 
+				Echo Testing: "{apppath}"
+				:utils:DoTest {DOTESTOPT} -E -X -C{TEST_FPC} "{apppath}.pp"
+			End
+			Set Exit 0 # To handle the case, in the for stmt, when there is no match
+		End
+	End
+	Set Exit 1 #Revert error handling
+
+allexectests Ä allexectest allexectbs allexectbf allexecwebtbs allexecwebtbf
+
+################################
+# Clean
+#
+
+clean_test Ä
+	Set Exit 0 # To handle the case, when there is no match
+	#
+	Delete -y -i {TEST_OUTPUTDIR}
+	#
+	Delete -y -i testÅ.txt Å.tmp core
+	#Delete -y  #TODO shared library extension 
+	Delete -y -i ppas gmon.out testprep-stamp.*
+	Delete -y -i Å_ppas
+	#
+	Set Exit 1 #Revert error handling
+
+clean Ä clean_test
+  Directory :units
+	Make clean -f MPWMake > Makeout; Makeout
+  Directory ::
+
+distclean Ä clean
+  Directory :utils
+	Make clean -f MPWMake > Makeout; Makeout
+  Directory ::
+
+cleanall Ä clean
+	Set Exit 0 # To handle the case, when there is no match
+	Delete -y :utils:dotest :utils:digest :utils:fail :utils:testfail
+	Set Exit 1 #Revert error handling
+#  Directory :utils
+#	Make cleanall -f MPWMake > Makeout; Makeout
+#  Directory ::
+
+################################
+# Main rules
+#
+
+digest Ä utils
+	:utils:digest {TEST_OUTPUTDIR}:log
+
+all Ä allexectests
+
+full Ä clean allexectests digest
