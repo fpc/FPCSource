@@ -65,7 +65,7 @@
        postdcall        = $4000000;  { procedure uses stdcall call }
        pomsgstr         = $8000000;  { method for string message handling }
        pomsgint         = $10000000; { method for int message handling }
-
+       posavestdregs    = $20000000; { save std regs cdecl and stdcall need that ! }
        { relevant options for assigning a proc or a procvar to a procvar }
        po_compatibility_options = $7FFFFFFF-
          (pomethodpointer+povirtualmethod+pooverridingmethod);
@@ -97,7 +97,11 @@
 
 {
   $Log$
-  Revision 1.3  1999-03-05 01:14:23  pierre
+  Revision 1.4  1999-04-16 10:28:26  pierre
+    + added posavestdregs used for cdecl AND stdcall functions
+      (saves ESI EDI and EBX for i386)
+
+  Revision 1.3  1999/03/05 01:14:23  pierre
     * bug0198 : call conventions for methods
       not yet implemented is the control of same calling convention
       for virtual and child's virtual
