@@ -272,21 +272,26 @@ begin
          begin
            if status.use_gccoutput then
              hs:=gccfilename(status.currentsource)+':'+tostr(status.currentline)+': '+hs+' '+
-                 tostr(status.currentcolumn)+': '
+                 tostr(status.currentcolumn)+': '+s
            else
              hs:=status.currentsource+'('+tostr(status.currentline)+
-                 ','+tostr(status.currentcolumn)+') '+hs+' ';
+                 ','+tostr(status.currentcolumn)+') '+hs+' '+s;
          end
         else
          begin
            if status.use_gccoutput then
-             hs:=gccfilename(status.currentsource)+': '+hs+' '+tostr(status.currentline)+': '
+             hs:=gccfilename(status.currentsource)+': '+hs+' '+tostr(status.currentline)+': '+s
            else
-             hs:=status.currentsource+'('+tostr(status.currentline)+') '+hs+' ';
+             hs:=status.currentsource+'('+tostr(status.currentline)+') '+hs+' '+s;
          end;
+      end
+     else
+      begin
+        if hs<>'' then
+         hs:=hs+' '+s
+        else
+         hs:=s;
       end;
-   { add the message to the text }
-     hs:=hs+s;
 {$ifdef FPC}
      if status.use_stderr then
       begin
@@ -361,7 +366,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2000-09-24 21:33:46  peter
+  Revision 1.8  2000-09-30 16:07:20  peter
+    * prefix fix (merged)
+
+  Revision 1.7  2000/09/24 21:33:46  peter
     * message updates merges
 
   Revision 1.6  2000/09/24 15:06:13  peter
