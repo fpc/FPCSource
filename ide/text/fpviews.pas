@@ -1294,7 +1294,7 @@ var OldState: word;
 begin
   OldState:=State;
   inherited SetState(AState,Enable);
-  if ((State xor OldState) and sfActive)<>0 then
+  if ((AState and sfActive)<>0) and ((OldState and sfActive)=0) then
     UpdateCommands;
 end;
 
@@ -2505,7 +2505,6 @@ begin
   New(ScreenView, Init(R, HSB, VSB, AScreen));
   ScreenView^.GrowMode:=gfGrowHiX+gfGrowHiY;
   Insert(ScreenView);
-
   UserScreenWindow:=@Self;
 end;
 
@@ -3217,7 +3216,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.61  2000-03-01 22:32:48  pierre
+  Revision 1.62  2000-03-07 21:50:38  pierre
+   * UpdateCommands changed again, still not correct :(
+
+  Revision 1.61  2000/03/01 22:32:48  pierre
    * hopfully the bug on wrong Menu config fixed
 
   Revision 1.60  2000/02/07 23:40:38  pierre
