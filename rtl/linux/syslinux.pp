@@ -642,10 +642,16 @@ const
 Procedure ResetFPU;
 begin
 {$ifdef I386}
+{$ifndef CORRECTFLDCW}
+  {$asmmode direct}
+{$endif}
   asm
     fninit
     fldcw   fpucw
   end;
+{$ifndef CORRECTFLDCW}
+  {$asmmode att}
+{$endif}
 {$endif I386}
 end;
 
@@ -808,7 +814,10 @@ End.
 
 {
   $Log$
-  Revision 1.42  2000-03-31 23:26:32  pierre
+  Revision 1.43  2000-04-07 14:56:36  peter
+    * switch to direct asm if not correctfldcw defined
+
+  Revision 1.42  2000/03/31 23:26:32  pierre
    * FPU needs reset for all SIGFPE even from integer division by zero
 
   Revision 1.41  2000/03/31 23:21:19  pierre
