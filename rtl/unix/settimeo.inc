@@ -22,7 +22,7 @@
 {$ifdef usestime}
 
 {$ifdef FPC_USE_LIBC}
-function stime (t:ptime_t):cint; external name 'stime';
+function stime (t:ptime_t):cint; cdecl; external name 'stime';
 {$else}
 function stime (t:ptime_t):cint; 
 begin
@@ -39,7 +39,7 @@ end;
 {$else}
 
 {$ifdef FPC_USE_LIBC}
-function settimeofday(tp:ptimeval;tzp:ptimezone):cint; external clib name 'settimeofday';
+function settimeofday(tp:ptimeval;tzp:ptimezone):cint; cdecl; external clib name 'settimeofday';
 {$else}
 function settimeofday(tp:ptimeval;tzp:ptimezone):cint;
 
@@ -51,7 +51,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2004-10-30 21:18:23  marco
+  Revision 1.5  2004-10-31 18:49:02  marco
+   * cdecl for FPC_USE_LIBC
+
+  Revision 1.4  2004/10/30 21:18:23  marco
    * more commits from unix interface cleanup
 
   Revision 1.3  2004/10/27 04:22:29  marco
