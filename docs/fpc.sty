@@ -138,8 +138,8 @@
 \newcommand{\seegraph}{\htmladdnormallink{graph}{../graph/graph.html}\xspace}
 \newcommand{\seeprinter}{\htmladdnormallink{printer}{../printer/printer.html}\xspace}
 \newcommand{\seego}{\htmladdnormallink{GO32}{../go32/go32.html}\xspace}
-\newcommand{\seec}[1]{chapter \ref{ch:#1}\xspace}
-\newcommand{\sees}[1]{section \ref{se:#1}\xspace}
+\newcommand{\seec}[1]{chapter \ref{ch:#1}, page \pageref{ch:#1}\xspace}
+\newcommand{\sees}[1]{section \ref{se:#1}, page \pageref{se:#1}\xspace}
 %
 % Nice environments
 %
@@ -171,5 +171,16 @@
 %
 % Some versions 
 %
-\newcommand{\fpcversion}{0.99.8}
+\newcommand{\fpcversion}{0.99.12}
+%
+% PDF support
+%
+\newif\ifpdf
+\ifx\pdfoutput\undefined
+   \pdffalse
+\else
+   \pdfoutput=1
+   \pdftrue
+\fi
+%
 % end of fpc.sty

@@ -302,24 +302,24 @@ None.
 \SeeAlso
 
 \end{function}
+
 \latex{\inputlisting{dosex/ex1.pp}}
 \html{\input{dosex/ex1.tex}}
+
 \begin{function}{EnvCount}
 \Declaration
 Function EnvCount  : longint;
-
 \Description
-
 \var{EnvCount} returns the number of environment variables.
 \Errors
 None.
 \SeeAlso
-\seef{EnvStr}, \seef{GetEnv}
+\seef{EnvStr}, \seef{Dos:GetEnv}
 \end{function}
+
 \begin{function}{EnvStr}
 \Declaration
 Function EnvStr (Index: integer) : string;
-
 \Description
 
 \var{EnvStr} returns the \var{Index}-th \var{Name=Value} pair from the list
@@ -329,7 +329,7 @@ The index of the first pair is zero.
 The length is limited to 255 characters. This may cause problems under
 \linux. The \linux unit solves this problem.
 \SeeAlso
-\seef{EnvCount}, \seef{GetEnv}
+\seef{EnvCount}, \seef{Dos:GetEnv}
 \end{function}
 \latex{\inputlisting{dosex/ex13.pp}}
 \html{\input{dosex/ex13.tex}}
@@ -489,10 +489,10 @@ not implemented, i.e. the call does nothing.
 \SeeAlso
 \seep{SetCBreak}
 \end{procedure}
+
 \begin{procedurel}{GetDate}{Dos:GetDate}
 \Declaration
 Procedure GetDate (var year, month, mday, wday: word);
-
 \Description
 
 \var{GetDate} returns the system's date. \var{Year} is a number in the range
@@ -705,9 +705,10 @@ On a \linux  machine, this is not implemented (allthough a procedure
 exists, it just doesn't do anything. The setting of the date is a
 root-only privilege, and is hence not implemented.
 \SeeAlso
-\seep{GetDate},
+\seep{Dos:GetDate},
 \seep{SetTime}
 \end{procedure}
+
 \begin{procedure}{SetFAttr}
 \Declaration
 Procedure SetFAttr (var F; Attr: word);
@@ -775,7 +776,7 @@ on a 24-hour time scale.
 this call exists, but is not implemented on \linux, 
 as setting the time is a root-only privilege.
 \SeeAlso
-\seep{GetTime}, \seep{SetDate}
+\seep{Dos:GetTime}, \seep{SetDate}
 \end{procedure}
 \begin{procedure}{SetVerify}
 \Declaration

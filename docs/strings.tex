@@ -25,24 +25,20 @@ Since the unit only provides some procedures and functions, there is
 only one section, which gives the declarations of these functions, together
 with an explanation. 
 \section{Functions and procedures.}
-\begin{procedure}{StrAlloc}
+\begin{function}{StrAlloc}
 \Declaration
-Procedure StrAlloc (Len : Longint);
-
+Function StrAlloc (Len : Longint);PChar
 \Description
-PChar
-\Errors
-
 \var{StrAlloc} reserves memory on the heap for a string with length \var{Len},
 terminating \var{\#0} included, and returns a pointer to it.
-
+\Errors
+If there is not enough memory, a run-time error occurs.
 \SeeAlso
-StrPCopy.
-\end{procedure}
+\seef{StrNew}, \seef{StrPCopy}.
+\end{function}
 \begin{function}{StrCat}
 \Declaration
 Function StrCat (Dest,Source : PChar) : PChar;
-
 \Description
 
 Attaches \var{Source} to \var{Dest} and returns \var{Dest}.

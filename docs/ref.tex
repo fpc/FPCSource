@@ -39,6 +39,19 @@
 \usepackage{fancyheadings}
 \pagestyle{fancy}
 \renewcommand{\chaptermark}[1]{\markboth{#1}{}}
+\latex{%
+\ifpdf
+\usepackage[pdftex,bookmarks=true]{hyperref}
+\pdfcompresslevel=9
+\pdfpagewidth=210mm
+\pdfpageheight=297mm
+\pdfinfo{/Author(Michael Van Canneyt)
+/Title(Standard units Reference Guide)
+/Subject(Free Pascal Reference guide)
+/Keywords(Free Pascal, Language, System Unit)
+}
+\fi
+}
 \makeindex
 %
 % start of document.

@@ -6,6 +6,8 @@ it uses special style files (fpc*.sty) which are also in the directory.
 do a 'make dvi' to produce the dvi format of the docs.
 a 'make html' will produce the html version (using latex2html).
 a 'make ps' will produce PostScript documents.
+a 'make pdf' will produce PDF (Portable Document Format) documents.
+a 'make txt' will produce plain text documents.
 
 If you want to produce dos docs, you can do a 'make htm' this will convert
 the .html files to .htm files (including all references), suitable for a 8:3
@@ -20,6 +22,7 @@ Why LaTeX ?
 - because I like a printed copy of the manuals, HTML just isn't good enough 
   for this.
 - I know LaTeX very well :) (mind you : html also !)
+- It converts to many other formats.
 - many other reasons.
 
 In order to translate the things to HTML, I use latex2html, since it is the

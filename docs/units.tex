@@ -34,6 +34,19 @@
 \usepackage{fancyheadings}
 \pagestyle{fancy}
 \renewcommand{\chaptermark}[1]{\markboth{#1}{}}
+\latex{%
+\ifpdf
+\usepackage[pdftex,bookmarks=true]{hyperref}
+\pdfcompresslevel=9
+\pdfpagewidth=210mm
+\pdfpageheight=297mm
+\pdfinfo{/Author(Michael Van Canneyt)
+/Title(Standard units Reference Guide)
+/Subject(Free Pascal Standard units reference guide)
+/Keywords(Free Pascal, Units,RTL)
+}
+\fi
+}
 \makeindex
 %
 % start of document.
@@ -108,6 +121,8 @@ lookup.
 \input{sockets.tex}
 % the strings unit
 \input{strings.tex}
-
+% the sysutils unit
+\input{sysutils.tex}
+% end of units. Index.
 \printindex
 \end{document}

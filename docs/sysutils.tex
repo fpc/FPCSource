@@ -55,7 +55,7 @@ type
    end ;
 \end{verbatim}
 The following type is used in the \seef{FindFirst},\seef{FindNext} 
-and \seep{FindClose} functions. The \var{win32} version differs from 
+and \seepl{FindClose}{FindCloseSys} functions. The \var{win32} version differs from 
 the other versions. If code is to be portable, that part  shouldn't 
 be used.
 \begin{verbatim}
@@ -89,6 +89,14 @@ Const
   fmOpenRead       = $0000;
   fmOpenWrite      = $0001;
   fmOpenReadWrite  = $0002;
+\end{verbatim}
+The following constants can be used in the \seef{FileSeek} call.
+\begin{verbatim}
+Const
+  fsFromBeginning = 0;
+  fsFromCurrent   = 1;
+  fsFromEnd       = 2;
+
 \end{verbatim}
 The following variables are used in the case translation routines.
 \begin{verbatim}
@@ -704,7 +712,7 @@ None.
 \Declaration
 Function AddDisk (Const PAth : String) : Longint;
 \Description
-On Linux  both the \seef{Diskfree} and \seef{Disksize} functions need a 
+On Linux  both the \seef{DiskFree} and \seef{DiskSize} functions need a 
 file on the specified drive, since is required for the statfs system call.
 
 These filenames are set in drivestr[0..26], and the first 4 have been 
@@ -723,7 +731,7 @@ add more than 21 drives, the count is wrapped to 4.
 \Errors
 None. 
 \SeeAlso
-\seef{DiskFree}, \seef{DiskSize}
+\seefl{DiskFree}{DiskFreeSys}, \seefl{DiskSize}{DiskSizeSys}
 \end{functionl}
 
 \begin{function}{CreateDir}
@@ -745,7 +753,7 @@ In case of an error, the function returns \var{False}.
 \latex{\inputlisting{sysutex/ex26.pp}}
 \html{\input{sysutex/ex26.tex}}
  
-\begin{function}{DiskFree}
+\begin{functionl}{DiskFree}{DiskFreeSys}
 \Declaration
 Function DiskFree(Drive : Byte) : Longint;
 \Description
@@ -767,13 +775,13 @@ For more information, see \seef{AddDisk}
 \Errors
 On error, \var{-1} is returned.
 \SeeAlso
-\seef{DiskSize}, \seef{AddDisk}
-\end{function}
+\seefl{DiskSize}{DiskSizeSys}, \seef{AddDisk}
+\end{functionl}
 
 \latex{\inputlisting{sysutex/ex27.pp}}
 \html{\input{sysutex/ex27.tex}}
  
-\begin{function}{DiskSize}
+\begin{functionl}{DiskSize}{DiskSizeSys}
 \Declaration
 Function DiskSize(Drive : Byte) : Longint;
 \Description
@@ -795,10 +803,10 @@ For more information, see \seef{AddDisk}
 \Errors
 On error, \var{-1} is returned.
 \SeeAlso
-\seef{DiskFree}, \seef{AddDisk}
-\end{function}
+\seefl{DiskFree}{DiskFreeSys}, \seef{AddDisk}
+\end{functionl}
 
-For an example, see \seef{DiskFree}.
+For an example, see \seefl{DiskFree}{DiskFreeSys}.
  
 \begin{function}{GetCurrentDir}
 \Declaration
@@ -876,7 +884,7 @@ otherwise.
 \Errors
 On error, \var{False} is returned.
 \SeeAlso
-\seef{CreateFile}, \seef{FileExists}
+\seef{FileCreate}, \seef{FileExists}
 \end{function}
 
 \latex{\inputlisting{sysutex/ex31.pp}}
@@ -1062,7 +1070,8 @@ None.
 \seef{FileTruncate}, \seef{FileSeek}
 \end{procedure}
 
- 
+For an example, see \seef{FileCreate}
+
 \begin{function}{FileCreate}
 \Declaration
 Function FileCreate(Const FileName : String) : Longint;
@@ -1077,11 +1086,13 @@ overwritten.
 If an error occurs (e.g. disk full or non-existent path), the function
 returns \var{-1}.
 \SeeAlso
-\seef{FileClose}, \seef{FileWrite}, \seef{FileOpen}, \seef{FileRead},
+\seep{FileClose}, \seef{FileWrite}, \seef{FileOpen}, \seef{FileRead},
 \seef{FileTruncate}, \seef{FileSeek}
 \end{function}
 
- 
+\latex{\inputlisting{sysutex/ex37.pp}}
+\html{\input{sysutex/ex37.tex}}
+
 \begin{function}{FileExists}
 \Declaration
 Function FileExists(Const FileName : String) : Boolean;
@@ -1093,6 +1104,10 @@ None.
 \SeeAlso
 \seef{FileAge}, \seef{FileGetAttr}, \seef{FileSetAttr}
 \end{function}
+
+
+\latex{\inputlisting{sysutex/ex38.pp}}
+\html{\input{sysutex/ex38.tex}}
 
  
 \begin{function}{FileGetAttr}
@@ -1118,370 +1133,428 @@ In case of error, -1 is returned.
 \seef{FileSetAttr}, \seef{FileAge}, \seef{FileGetDate}.
 \end{function}
 
+\latex{\inputlisting{sysutex/ex40.pp}}
+\html{\input{sysutex/ex40.tex}}
+
 \begin{function}{FileGetDate}
 \Declaration
 Function FileGetDate(Handle : Longint) : Longint;
 \Description
+\var{FileGetdate} returns the filetime of the opened file with filehandle
+\var{Handle}. It is the same as \seef{FileAge}, with this difference that
+\var{FileAge} only needs the file name, while \var{FilegetDate} needs an
+open file handle.
 \Errors
+On error, -1 is returned.
 \SeeAlso
+\seef{FileAge}
 \end{function}
 
+\latex{\inputlisting{sysutex/ex39.pp}}
+\html{\input{sysutex/ex39.tex}}
  
 \begin{function}{FileOpen}
 \Declaration
 Function FileOpen(Const FileName : string; Mode : Integer) : Longint;
 \Description
+\var{FileOpen} opens a file with name \var{FileName} with mode \var{Mode}.
+\var{Mode} can be one of the following constants:
+\begin{description}
+\item[fmOpenRead] The file is opened for reading.
+\item[fmOpenWrite] The file is opened for writing.
+\item[fmOpenReadWrite] The file is opened for reading and writing.
+\end{description}
+If the file has been successfully opened, it can be read  from or written to
+(depending on the \var{Mode} parameter) with the \seef{FileRead} and
+\var{FileWrite} functions.
+
+Remark that you cannot open a file if it doesn't exist yet, i.e. it will not
+be created for you. If you want tp create a new file, or overwrite an old
+one, use the \seef{FileCreate} function.
 \Errors
+On Error, -1 is returned.
 \SeeAlso
-\seef{FileClose}, \seef{FileWrite}, \seef{FileCreate}, \seef{FileRead},
+\seep{FileClose}, \seef{FileWrite}, \seef{FileCreate}, \seef{FileRead},
 \seef{FileTruncate}, \seef{FileSeek}
 \end{function}
 
+For an example, see \seef{FileRead}
  
 \begin{function}{FileRead}
 \Declaration
 Function FileRead(Handle : Longint; Var Buffer; Count : longint) : Longint;
 \Description
+\var{FileRead} reads \var{Count} bytes from file-handle \var{Handle} and
+stores them into \var{Buffer}. Buffer must be at least \var{Count} bytes
+long. No checking on this is performed, so be careful not to overwrite any
+memory.  \var{Handle} must be the result of a \seef{FileOpen} call.
 \Errors
+On error, -1 is returned.
 \SeeAlso
-\seef{FileClose}, \seef{FileWrite}, \seef{FileCreate}, \seef{FileOpen},
+\seep{FileClose}, \seef{FileWrite}, \seef{FileCreate}, \seef{FileOpen},
 \seef{FileTruncate}, \seef{FileSeek}
 \end{function}
 
- 
+For an example, see \seef{FileOpen}
+
 \begin{function}{FileSearch}
 \Declaration
 Function FileSearch(Const Name, DirList : String) : String;
 \Description
+\var{FileSearch} looks for the file \var{Name} in \var{DirList}, where
+dirlist is a list of directories, separated by semicolons or colons.
+It returns the full filename of the first match found.
 \Errors
+On error, an empty string is returned.
 \SeeAlso
+\seef{ExpandFileName}, \seef{FindFirst}
 \end{function}
 
- 
+\latex{\inputlisting{sysutex/ex41.pp}}
+\html{\input{sysutex/ex41.tex}}
+
 \begin{function}{FileSeek}
 \Declaration
 Function FileSeek(Handle,Offset,Origin : Longint) : Longint;
 \Description
+\var{FileSeek} sets the file pointer on position \var{Offset}, starting from 
+\var{Origin}. Origin can be one of the following values: 
+\begin{description}
+\item[fsFromBeginning]  \var{Offset} is relative to the first byte of the file. This
+position is zero-based. i.e. the first byte is at offset 0.
+\item[fsFromCurrent]  \var{Offset} is relative to the current position.
+\item[fsFromEnd] \var{Offset} is relative to the end of the file. This means
+that \var{Offset} can only be zero or negative in this case.
+\end{description}
+If successfull, the function returns the new file position, relative to the
+beginning of the file.
+
+{\em Remark:} The abovementioned constants do not exist in Delphi.
 \Errors
+On error, -1 is returned.
 \SeeAlso
-\seef{FileClose}, \seef{FileWrite}, \seef{FileCreate}, \seef{FileOpen}
+\seep{FileClose}, \seef{FileWrite}, \seef{FileCreate}, \seef{FileOpen}
 \seef{FileRead}, \seef{FileTruncate}
 \end{function}
 
+\latex{\inputlisting{sysutex/ex42.pp}}
+\html{\input{sysutex/ex42.tex}}
+
+For an example, see \seef{FileCreate}
  
-\begin{function}{FileSetAttr}
+\begin{functionl}{FileSetAttr (Not on Linux)}{FileSetAttr}
 \Declaration
 Function FileSetAttr(Const Filename : String; Attr: longint) : Longint;
 \Description
+\var{FileSetAttr} sets the attributes of \var{FileName} to \var{Attr}.
+If the function was successful, 0 is returned, -1 otherwise.
+
+\var{Attr} can be set to an OR-ed combination of the pre-defined 
+\var{faXXX} constants.
 \Errors
+On error, -1 is returned (always on linux). 
 \SeeAlso
-\end{function}
+\seef{FileGetAttr}, \seef{FileGetDate}, \seef{FileSetDate}.
+\end{functionl}
 
  
-\begin{function}{FileSetDate}
+\begin{functionl}{FileSetDate (Not on Linux)}{FileSetDate}
 \Declaration
 Function FileSetDate(Handle,Age : Longint) : Longint;
 \Description
+\var{FileSetDate} sets the file date of the file with handle \var{Handle} 
+to \var{Age}, where \var{Age} is a DOS date-and-time stamp value.
+
+The function returns zero of successfull.
 \Errors
+On Linux, -1 is always returned, since this is impossible to implement.
+On Windows and DOS, a negative error code is returned.
 \SeeAlso
-\end{function}
+\end{functionl}
 
  
 \begin{function}{FileTruncate}
 \Declaration
 Function FileTruncate(Handle,Size: Longint) : boolean;
 \Description
+\var{FileTruncate} truncates the file with handle \var{Handle} to
+\var{Size} bytes. The file must have been opened for writing prior
+to this call. The function returns \var{True} is successful, \var{False}
+otherwise.
 \Errors
+On error, the function returns \var{False}.
 \SeeAlso
-\seef{FileClose}, \seef{FileWrite}, \seef{FileCreate}, \seef{FileOpen}
+\seep{FileClose}, \seef{FileWrite}, \seef{FileCreate}, \seef{FileOpen}
 \seef{FileRead}, \seef{FileSeek}
 \end{function}
 
+For an example, see \seef{FileCreate}.
  
 \begin{function}{FileWrite}
 \Declaration
 Function FileWrite(Handle : Longint; Var Buffer; Count : Longint) : Longint;
 \Description
+\var{FileWrite} writes \var{Count} bytes from \var{Buffer} to the file with
+handle \var{Handle}. Prior to this call, the file must have been opened 
+for writing. \var{Buffer} must be at least \var{Count} bytes large, or 
+a memory access error may occur.
+
+The function returns the number of bytes written, or -1 in case of an
+error.
 \Errors
+In case of error, -1 is returned.
 \SeeAlso
-\seef{FileClose}, \seef{FileCreate}, \seef{FileOpen}
+\seep{FileClose}, \seef{FileCreate}, \seef{FileOpen}
 \seef{FileRead}, \seef{FileTruncate}, \seef{FileSeek}
 \end{function}
 
- 
-\begin{procedure}{FindClose}
+For an example, see \seef{FileCreate}. 
+
+\begin{procedurel}{FindClose}{FindCloseSys}
 \Declaration
 Procedure FindClose(Var F : TSearchrec);
 \Description
+\var{FindClose} ends a series of \seef{FindFirst}/\seef{FindNext} calls,
+and frees any memory used by these calls. It is {\em absolutely} necessary
+to do this call, or huge memory losses may occur.
 \Errors
+None.
 \SeeAlso
-\end{procedure}
+\seef{FindFirst}, \seef{FindNext}.
+\end{procedurel}
 
+For an example, see \seef{FindFirst}.
  
 \begin{function}{FindFirst}
 \Declaration
 Function FindFirst(Const Path : String; Attr : Longint; Var Rslt : TSearchRec) : Longint;
 \Description
+\var{FindFirst} looks for files that match the name (possibly with
+wildcards) in \var{Path} and attributes \var{Attr}. It then fills up the
+\var{Rslt} record with data gathered about the file. It returns 0 if a file
+matching the specified criteria is found, a nonzero value (-1 on linux) 
+otherwise.
+
+The \var{Rslt} record can be fed to subsequent calls to \var{FindNext}, in
+order to find other files matching the specifications.
+
+{\em remark:} A \var{FindFirst} call must {\em always} be followed by a
+\seepl{FindClose}{FindCloseSys} call with the same \var{Rslt} record. Failure to do so will
+result in memory loss.
 \Errors
+On error the function returns -1 on linux, a nonzero error code on Windows.
 \SeeAlso
+\seep{FindClose}{FindCloseSys}, \seef{FindNext}.
 \end{function}
 
- 
+\latex{\inputlisting{sysutex/ex43.pp}}
+\html{\input{sysutex/ex43.tex}}
+
 \begin{function}{FindNext}
 \Declaration
 Function FindNext(Var Rslt : TSearchRec) : Longint;
 \Description
+\var{FindNext} finds a next occurrence of a search sequence initiated by
+\var{FindFirst}. If another record matching the criteria in Rslt is found, 0
+is returned, a nonzero constant is returned otherwise.
+
+{\em remark:} The last \var{FindNext} call must {\em always} be followed by a
+\var{FindClose} call with the same \var{Rslt} record. Failure to do so will
+result in memory loss.
 \Errors
+On error (no more file is found), a nonzero constant is returned.
 \SeeAlso
+\seef{FindFirst}, \seep{FindClose}
 \end{function}
 
+For an example, see \seef{FindFirst}
  
 \begin{function}{GetDirs}
 \Declaration
 Function GetDirs(Var DirName : String; Var Dirs : Array of pchar) : Longint; 
 \Description
+\var{GetDirs} splits DirName in a null-byte separated list of directory names,
+\var{Dirs} is an array of \var{PChars}, pointing to these directory names.
+The function returns the number of directories found, or -1 if none were found.
+DirName must contain only OSDirSeparator as Directory separator chars.
 \Errors
+None.
 \SeeAlso
+\seef{ExtractRelativePath}
 \end{function}
 
+\latex{\inputlisting{sysutex/ex45.pp}}
+\html{\input{sysutex/ex45.tex}}
  
 \begin{function}{RenameFile}
 \Declaration
 Function RenameFile(Const OldName, NewName : String) : Boolean;
 \Description
+\var{RenameFile} renames a file from \var{OldName} to \var{NewName}. The
+function returns \var{True} if successful, \var{False} otherwise.
+
+{\em Remark:} you cannot rename across disks or partitions. 
 \Errors
+On Error, \var{False} is returned.
 \SeeAlso
+\seef{DeleteFile}
 \end{function}
 
- 
+\latex{\inputlisting{sysutex/ex44.pp}}
+\html{\input{sysutex/ex44.tex}}
+
 \begin{function}{SetDirSeparators}
 \Declaration
 Function SetDirSeparators(Const FileName : String) : String;
 \Description
+\var{SetDirSeparators} returns \var{FileName} with all possible
+DirSeparators replaced by \var{OSDirSeparator}.
 \Errors
+None.
 \SeeAlso
+\seef{ExpandFileName}, \seef{ExtractFilePath}, \seef{ExtractFileDir}
 \end{function}
 
- 
+\latex{\inputlisting{sysutex/ex47.pp}}
+\html{\input{sysutex/ex47.tex}}
 
 \section{PChar functions}
 
-\begin{function}{StrAlloc}
+\subsection{Introduction}
+
+Most PChar functions are the same as their counterparts in the \file{STRINGS}
+unit. The following functions are the same :
+
+\begin{enumerate}
+\item \seef{StrCat} : Concatenates two \var{PChar} strings.
+\item \seef{StrComp} : Compares two \var{PChar} strings.
+\item \seef{StrCopy} : Copies a \var{PChar} string.
+\item \seef{StrECopy} : Copies a \var{PChar} string and returns a pointer to
+the terminating null byte.
+\item \seef{StrEnd} : Returns a pointer to the terminating null byte.
+\item \seef{StrIComp} : Case insensitive compare of 2 \var{PChar} strings.
+\item \seef{StrLCat} : Appends at most L characters from one \var{PChar} to
+another \var{PChar}.
+\item \seef{StrLComp} : Case sensitive compare of at most L characters of 2
+ \var{PChar} strings.
+\item \seef{StrLCopy} : Copies at most L characters from one \var{PChar} to
+another.
+\item \seef{StrLen} : Returns the length (exclusive terminating null byte)
+of a \var{PChar} string.
+\item \seef{StrLIComp} : Case insensitive compare of at most L characters of 2
+ \var{PChar} strings.  
+\item \seef{StrLower} : Converts a \var{PChar} to all lowercase letters.
+\item \seef{StrMove} : Moves one \var{PChar} to another.
+\item \seef{StrNew} : Makes a copy of a \var{PChar} on the heap, and returns
+a pointer to this copy.
+\item \seef{StrPos} : Returns the position of one \var{PChar} string in
+another?
+\item \seef{StrRScan} : returns a pointer to the last occurrence of on 
+ \var{PChar} string in another one.
+\item \seef{StrScan} : returns a pointer to the first occurrence of on 
+ \var{PChar} string in another one.
+\item \seef{StrUpper} : Converts a \var{PChar} to all uppercase letters.
+\end{enumerate}
+The subsequent functions are different from their counterparts in
+\file{STRINGS}, although the same examples can be used.
+
+
+\begin{functionl}{StrAlloc}{StrAllocSys}
 \Declaration
 Function StrAlloc(Size: cardinal): PChar;
 \Description
-\Errors
-\SeeAlso
-\end{function}
+\var{StrAlloc} reserves memory on the heap for a string with length \var{Len},
+terminating \var{\#0} included, and returns a pointer to it.
 
+Additionally, \var{StrAlloc} allocates 4 extra bytes to store the size of
+the allocated memory. Therefore this function is NOT compatible with the 
+\seef{StrAlloc} function of the \var{Strings} unit.
+\Errors
+None.
+\SeeAlso
+\seef{StrBufSize}, \seepl{StrDispose}{StrDisposeSys}, \seef{StrAlloc}
+\end{functionl}
+
+For an example, see \seef{StrBufSize}.
  
 \begin{function}{StrBufSize}
 \Declaration
 Function StrBufSize(var Str: PChar): cardinal;
 \Description
+\var{StrBufSize} returns the memory allocated for \var{Str}. This function
+ONLY gives the correct result if \var{Str} was allocated using
+\seefl{StrAlloc}{StrAllocSys}.
 \Errors
+If no more memory is available, a runtime error occurs.
 \SeeAlso
+\seefl{StrAlloc}{StrAllocSys}.\seepl{StrDispose}{StrDisposeSys}.
 \end{function}
 
+\latex{\inputlisting{sysutex/ex46.pp}}
+\html{\input{sysutex/ex46.tex}}
+
  
-\begin{procedure}{StrDispose}
+\begin{procedurel}{StrDispose}{StrDisposeSys}
 \Declaration
 Procedure StrDispose(var Str: PChar);
 \Description
+\var{StrDispose} frees any memory allocated for \var{Str}. This function
+will only function correctly if \var{Str} has been allocated using
+\seefl{StrAlloc}{StrAllocSys} from the \file{SYSUTILS} unit.
 \Errors
+If an invalid pointer is passed, or a pointer not allocated with
+\var{StrAlloc}, an error may occur.
 \SeeAlso
-\end{procedure}
+\seef{StrBufSize}, \seefl{StrAlloc}{StrAllocSys}, \seep{StrDispose}
+\end{procedurel}
 
+For an example, see \seef{StrBufSize}.
  
-\begin{function}{StrPCopy}
+\begin{functionl}{StrPCopy}{StrPCopySys}
 \Declaration
 Function StrPCopy(Dest: PChar; Source: string): PChar;
 \Description
+\var{StrPCopy} Converts the Ansistring in \var{Source} to a Null-terminated 
+string, and copies it to \var{Dest}. \var{Dest} needs enough room to contain
+the string \var{Source}, i.e. \var{Length(Source)+1} bytes.
 \Errors
+No checking is performed to see whether \var{Dest} points to enough memory
+to contain \var{Source}.
 \SeeAlso
-\end{function}
+\seefl{StrPLCopy}{StrPLCopySys}, \seef{StrPCopy}
+\end{functionl}
 
  
-\begin{function}{StrPLCopy}
+\begin{functionl}{StrPLCopy}{StrPLCopySys}
 \Declaration
 Function StrPLCopy(Dest: PChar; Source: string; MaxLen: cardinal): PChar;
 \Description
+\var{StrPLCopy} Converts maximally \var{MaxLen} characters of the 
+Ansistring in \var{Source} to a Null-terminated  string, and copies 
+it to \var{Dest}. \var{Dest} needs enough room to contain
+the  characters.
+\Errors
+No checking is performed to see whether \var{Dest} points to enough memory
+to contain L characters of \var{Source}.
 \Errors
 \SeeAlso
-\end{function}
+\seefl{StrPCopy}{StrPCopySys}.
+\end{functionl}
 
  
-\begin{function}{StrPas}
+\begin{functionl}{StrPas}{StrPasSys}
 \Declaration
 Function StrPas(Str: PChar): string;
 \Description
+Converts a null terminated string in \var{Str} to an Ansitring, and returns
+this string. This string is NOT truncated at 255 characters as is the 
 \Errors
+None.
 \SeeAlso
-\end{function}
+\seef{StrPas}.
+\end{functionl}
 
- 
-\begin{function}{StrCat}
-\Declaration
-Function StrCat(dest,source : pchar) : pchar;
-\Description
-\Errors
-\SeeAlso
-\end{function}
-
- 
-\begin{function}{StrComp}
-\Declaration
-Function StrComp(str1,str2 : pchar) : longint;
-\Description
-\Errors
-\SeeAlso
-\end{function}
-
- 
-\begin{function}{StrCopy}
-\Declaration
-Function StrCopy(dest,source : pchar) : pchar;
-\Description
-\Errors
-\SeeAlso
-\end{function}
-
- 
-\begin{function}{StrECopy}
-\Declaration
-Function StrECopy(dest,source : pchar) : pchar;
-\Description
-\Errors
-\SeeAlso
-\end{function}
-
- 
-\begin{function}{StrEnd}
-\Declaration
-Function StrEnd(p : pchar) : pchar;
-\Description
-\Errors
-\SeeAlso
-\end{function}
-
- 
-\begin{function}{StrIComp}
-\Declaration
-Function StrIComp(str1,str2 : pchar) : longint;
-\Description
-\Errors
-\SeeAlso
-\end{function}
-
- 
-\begin{function}{StrLCat}
-\Declaration
-Function StrLCat(dest,source : pchar;l : longint) : pchar;
-\Description
-\Errors
-\SeeAlso
-\end{function}
-
- 
-\begin{function}{StrLComp}
-\Declaration
-Function StrLComp(str1,str2 : pchar;l : longint) : longint;
-\Description
-\Errors
-\SeeAlso
-\end{function}
-
- 
-\begin{function}{StrLCopy}
-\Declaration
-Function StrLCopy(dest,source : pchar;maxlen : longint) : pchar;
-\Description
-\Errors
-\SeeAlso
-\end{function}
-
- 
-\begin{function}{StrLen}
-\Declaration
-Function StrLen(p : pchar) : longint;
-\Description
-\Errors
-\SeeAlso
-\end{function}
-
- 
-\begin{function}{StrLIComp}
-\Declaration
-Function StrLIComp(str1,str2 : pchar;l : longint) : longint;
-\Description
-\Errors
-\SeeAlso
-\end{function}
-
- 
-\begin{function}{StrLower}
-\Declaration
-Function strlower(p : pchar) : pchar;
-\Description
-\Errors
-\SeeAlso
-\end{function}
-
- 
-\begin{function}{StrMove}
-\Declaration
-Function StrMove(dest,source : pchar;l : longint) : pchar;
-\Description
-\Errors
-\SeeAlso
-\end{function}
-
- 
-\begin{function}{StrNew}
-\Declaration
-Function StrNew(p : pchar) : pchar;
-\Description
-\Errors
-\SeeAlso
-\end{function}
-
- 
-\begin{function}{StrPos}
-\Declaration
-Function StrPos(str1,str2 : pchar) : pchar;
-\Description
-\Errors
-\SeeAlso
-\end{function}
-
- 
-\begin{function}{StrRScan}
-\Declaration
-Function StrRScan(p : pchar;c : char) : pchar;
-\Description
-\Errors
-\SeeAlso
-\end{function}
-
- 
-\begin{function}{StrScan}
-\Declaration
-Function StrScan(p : pchar;c : char) : pchar;
-\Description
-\Errors
-\SeeAlso
-\end{function}
-
- 
-\begin{function}{StrUpper}
-\Declaration
-Function StrUpper(p : pchar) : pchar;
-\Description
-\Errors
-\SeeAlso
-\end{function}
-
-\section{String functions}
+\section{String handling functions}
 
 \begin{function}{AdjustLineBreaks}
 \Declaration
@@ -1672,13 +1745,13 @@ Function CompareText(const S1, S2: string): integer;
 \end{function}
 
  
-\begin{procedure}{DisposeStr}
+\begin{procedurel}{DisposeStr}{DisposeStrSys}
 \Declaration
 Procedure DisposeStr(S: PString);
 \Description
 \Errors
 \SeeAlso
-\end{procedure}
+\end{procedurel}
 
  
 \begin{function}{FloatToStr}
@@ -1780,13 +1853,13 @@ Function LowerCase(const s: string): string;
 \end{function}
 
  
-\begin{function}{NewStr}
+\begin{functionl}{NewStr}{NewStrSys}
 \Declaration
 Function NewStr(const S: string): PString;
 \Description
 \Errors
 \SeeAlso
-\end{function}
+\end{functionl}
 
  
 \begin{function}{QuotedStr}

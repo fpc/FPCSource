@@ -161,5 +161,16 @@
 \newcommand{\win}{\textsc{Win32}\xspace}
 \newcommand{\freebsd}{\textsc{FreeBSD}\xspace}
 %
-\newcommand{\fpcversion}{0.99.8}
+\newcommand{\fpcversion}{0.99.12}
+%
+% PDF support
+%
+\newif\ifpdf
+\ifx\pdfoutput\undefined
+   \pdffalse
+\else
+   \pdfoutput=1
+   \pdftrue
+\fi
+%
 % end of fpcman.sty

@@ -548,24 +548,31 @@ The system file table is full.
 \SeeAlso
 \seef{SocketPair}, \seem{socket}{2}
 \end{function}
+
 for an example, see \seef{Accept}.
+
 \begin{function}{SocketPair}
 \Declaration
 Function SocketPair (Domain,SocketType,Protocol:Longint;var Pair:TSockArray) : Longint;
-
 \Description
 \var{SocketPair} creates 2 sockets in domain \var{Domain}, from type
 \var{SocketType} and using protocol \var{Protocol}.
 The pair is returned in \var{Pair}, and they are indistinguishable.
 The function returns -1 upon error and 0 upon success.
-
 \Errors
 Errors are reported in \var{SocketError}, and are the same as in \seef{Socket}
 \SeeAlso
-Str2UnixSockAddr{(const addr:string;var t:TUnixSockAddr;var len:longint)}
+\seep{Str2UnixSockAddr}
 \end{function}
-{\var{Str2UnixSockAddr} transforms a Unix socket address in a string to a
-\var{TUnixSockAddr} sturcture which can be passed to the \seef{Bind} call.
-}
-{None.}
-{\seef{Socket}, \seef{Bind}}
+
+\begin{procedure}{Str2UnixSockAddr}
+\Declaration
+Procedure Str2UnixSockAddr(const addr:string;var t:TUnixSockAddr;var len:longint)
+\Description
+\var{Str2UnixSockAddr} transforms a Unix socket address in a string to a
+\var{TUnixSockAddr} structure which can be passed to the \seef{Bind} call.
+\Errors
+None.
+\SeeAlso
+\seef{Socket}, \seef{Bind}
+\end{procedure}
