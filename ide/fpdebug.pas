@@ -17,6 +17,9 @@ unit FPDebug;
 interface
 
 uses
+{$ifdef win32}
+  Windows,
+{$endif win32}
   Objects,Dialogs,Drivers,Views,
   GDBCon,GDBInt,Menus,
   WViews,
@@ -1227,6 +1230,10 @@ end;
 
 
 procedure TDebugController.DoDebuggerScreen;
+{$ifdef win32}
+  var
+   IdeMode : DWord;
+{$endif win32}
 begin
   if NoSwitch then
     begin
@@ -1239,6 +1246,13 @@ begin
       PopStatus;
     end;
 {$ifdef win32}
+   if NoSwitch then
+     begin
+       { Ctrl-C as normal char }
+       GetConsoleMode(GetStdHandle(Std_Input_Handle), @IdeMode);
+       IdeMode:=(IdeMode or ENABLE_MOUSE_INPUT or ENABLE_WINDOW_INPUT) and not ENABLE_PROCESSED_INPUT;
+       SetConsoleMode(GetStdHandle(Std_Input_Handle), IdeMode);
+     end;
    ChangeDebuggeeWindowTitleTo(Stopped_State);
 {$endif win32}
 end;
@@ -1246,6 +1260,10 @@ end;
 
 procedure TDebugController.DoUserScreen;
 
+{$ifdef win32}
+  var
+   IdeMode : DWord;
+{$endif win32}
 begin
   Inc(RunCount);
   if NoSwitch then
@@ -1262,6 +1280,13 @@ begin
       IDEApp.ShowUserScreen;
     end;
 {$ifdef win32}
+   if NoSwitch then
+     begin
+       { Ctrl-C as interrupt }
+       GetConsoleMode(GetStdHandle(Std_Input_Handle), @IdeMode);
+       IdeMode:=(IdeMode or ENABLE_MOUSE_INPUT or ENABLE_PROCESSED_INPUT or ENABLE_WINDOW_INPUT);
+       SetConsoleMode(GetStdHandle(Std_Input_Handle), IdeMode);
+     end;
    ChangeDebuggeeWindowTitleTo(Running_State);
 {$endif win32}
 end;
@@ -4088,7 +4113,10 @@ end.
 
 {
   $Log$
-  Revision 1.19  2002-06-06 08:16:18  pierre
+  Revision 1.20  2002-06-06 14:11:25  pierre
+   * handle win32 Ctrl-C change for graphic version
+
+  Revision 1.19  2002/06/06 08:16:18  pierre
    * avoid crashes if quitting while debuggee is running
 
   Revision 1.18  2002/04/25 13:33:31  pierre
