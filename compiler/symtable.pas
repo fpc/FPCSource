@@ -1536,7 +1536,10 @@ implementation
          if (symtabletype=parasymtable) and
            assigned(procinfo._class) and
          { but not in nested procedures !}
-            (not(assigned(procinfo.parent^._class))) and 
+            (not(assigned(procinfo.parent)) or
+             (assigned(procinfo.parent) and
+              not(assigned(procinfo.parent^._class)))
+            ) and
           { funcretsym is allowed !! }
            (sym^.typ <> funcretsym) then
            begin
@@ -2407,7 +2410,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  1999-09-12 08:48:09  florian
+  Revision 1.48  1999-09-12 21:35:38  florian
+    * fixed a crash under Linux. Why doesn't have the damned Windows DPMI nil pointer
+      protection???
+
+  Revision 1.47  1999/09/12 08:48:09  florian
     * bugs 593 and 607 fixed
     * some other potential bugs with array constructors fixed
     * for classes compiled in $M+ and it's childs, the default access method
