@@ -545,7 +545,11 @@ implementation
                  end
                 else
                  begin
-                   if not(p^.treetype in [addn,subn,symdifn,muln,equaln,unequaln]) then
+                   if not(p^.treetype in [addn,subn,symdifn,muln,equaln,unequaln
+{$IfNDef NoSetInclusion}
+                                          ,lten,gten
+{$EndIf NoSetInclusion}
+                   ]) then
                     CGMessage(type_e_set_operation_unknown);
                  { right def must be a also be set }
                    if (rd^.deftype<>setdef) or not(is_equal(rd,ld)) then
@@ -634,6 +638,30 @@ implementation
                                    end;
                                  t:=genordinalconstnode(ord(b),booldef);
                                end;
+{$IfNDef NoSetInclusion}
+                       lten : Begin
+                                b := true;
+                                For i := 0 to 31 Do
+                                  If (p^.right^.value_set^[i] And p^.left^.value_set^[i]) <>
+                                      p^.left^.value_set^[i] Then
+                                    Begin
+                                      b := false;
+                                      Break
+                                    End;
+                                t := genordinalconstnode(ord(b),booldef);
+                              End;
+                       gten : Begin
+                                b := true;
+                                For i := 0 to 31 Do
+                                  If (p^.left^.value_set^[i] And p^.right^.value_set^[i]) <>
+                                      p^.right^.value_set^[i] Then
+                                    Begin
+                                      b := false;
+                                      Break
+                                    End;
+                                t := genordinalconstnode(ord(b),booldef);
+                              End;
+{$EndIf NoSetInclusion}
                      end;
                      dispose(resultset);
                      disposetree(p);
@@ -973,7 +1001,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  1998-12-30 13:35:35  peter
+  Revision 1.20  1999-01-20 17:39:26  jonas
+    + fixed bug0163 (set1 <= set2 support)
+
+  Revision 1.19  1998/12/30 13:35:35  peter
     * fix for boolean=true compares
 
   Revision 1.18  1998/12/15 17:12:35  peter

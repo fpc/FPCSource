@@ -377,14 +377,36 @@ implementation
         { handle operations }
         case p^.treetype of
           equaln,
-        unequaln : begin
+        unequaln
+{$IfNDef NoSetInclusion}
+        ,lten, gten
+{$EndIf NoSetInclusion}
+                  : begin
                      cmpop:=true;
                      del_reference(p^.left^.location.reference);
                      del_reference(p^.right^.location.reference);
                      pushusedregisters(pushedregs,$ff);
-                     emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
-                     emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
-                     emitcall('FPC_SET_COMP_SETS',true);
+{$IfNDef NoSetInclusion}
+                     If (p^.treetype in [equaln, unequaln, lten]) Then
+                       Begin
+{$EndIf NoSetInclusion}
+                         emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
+                         emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+{$IfNDef NoSetInclusion}
+                       End
+                     Else  {gten = lten, if the arguments are reversed}
+                       Begin
+                         emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+                         emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
+                       End;
+                     Case p^.treetype of
+                       equaln, unequaln:
+{$EndIf NoSetInclusion}
+                         emitcall('FPC_SET_COMP_SETS',true);
+{$IfNDef NoSetInclusion}
+                       lten, gten: emitcall('FPC_SET_CONTAINS_SETS',true)
+                     End;
+{$EndIf NoSetInclusion}
                      maybe_loadesi;
                      popusedregisters(pushedregs);
                      ungetiftemp(p^.left^.location.reference);
@@ -1737,7 +1759,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  1999-01-19 10:18:58  florian
+  Revision 1.40  1999-01-20 17:39:22  jonas
+    + fixed bug0163 (set1 <= set2 support)
+
+  Revision 1.39  1999/01/19 10:18:58  florian
     * bug with mul. of dwords fixed, reported by Alexander Stohr
     * some changes to compile with TP
     + small enhancements for the new code generator
