@@ -38,7 +38,7 @@ interface
        tcompare_paras_option = (cpo_allowdefaults,cpo_ignorehidden,cpo_allowconvert,cpo_comparedefaultvalue);
        tcompare_paras_options = set of tcompare_paras_option;
 
-       tcompare_defs_option = (cdo_explicit,cdo_check_operator,cdo_allow_variant);
+       tcompare_defs_option = (cdo_internal,cdo_explicit,cdo_check_operator,cdo_allow_variant);
        tcompare_defs_options = set of tcompare_defs_option;
 
        tconverttype = (
@@ -692,9 +692,16 @@ implementation
                           end;
                       end;
                      { delphi compatible, allow explicit typecasts from
-                       ordinals to pointer. It is also used for inc(pointer,ordinal) }
+                       ordinals to pointer.
+                       It is also used by the compiler internally for inc(pointer,ordinal) }
                      if (eq=te_incompatible) and
-                        (cdo_explicit in cdoptions) then
+                        (
+                         (
+                          (m_delphi in aktmodeswitches) and
+                          (cdo_explicit in cdoptions)
+                         ) or
+                         (cdo_internal in cdoptions)
+                        ) then
                       begin
                         doconv:=tc_int_2_int;
                         eq:=te_convert_l1;
@@ -1304,7 +1311,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.59  2004-11-15 23:35:31  peter
+  Revision 1.60  2004-11-26 22:33:54  peter
+    * don't allow pointer(ordinal) typecast in fpc mode, only allow it
+      for delphi and for internal use
+
+  Revision 1.59  2004/11/15 23:35:31  peter
     * tparaitem removed, use tparavarsym instead
     * parameter order is now calculated from paranr value in tparavarsym
 
