@@ -118,11 +118,10 @@ type
 \end{verbatim}
 The \var{TIPC\_Perm} structure is used in all IPC systems to specify the
 permissions.
-
 \begin{verbatim}
 Type  
-  PShmid_DS = ^TShmid_ds; 
-  TShmid_ds = record
+  PSHMid_DS = ^TSHMid_ds; 
+  TSHMid_ds = record
     shm_perm  : TIPC_Perm;
     shm_segsz : longint;
     shm_atime : longint;
@@ -135,8 +134,10 @@ Type
     shm_pages  : Pointer;
     attaches   : pointer;
   end;
-
-
+\end{verbatim}
+The \var{TSHMid\_ds} strucure is used in the \seef{shmctl} call to set or
+retrieve settings concerning shared memory.
+\begin{verbatim}
 type
   PSHMinfo = ^TSHMinfo;
   TSHMinfo = record
@@ -146,7 +147,10 @@ type
     shmseg : longint;
     shmall : longint;
   end;
-
+\end{verbatim}
+The \var{TSHMinfo} record is used by the shared memory system, and should
+not be accessed by the programer directly.
+\begin{verbatim}
 type
   PMSG = ^TMSG;
   TMSG = record
@@ -156,7 +160,10 @@ type
     msg_stime : Longint;
     msg_ts    : Integer;
   end;
-
+\end{verbatim}
+The \var{TMSG} record is used in the handling of message queues. There
+should be few cases where the programmer needs to access this data.
+\begin{verbatim}
 type
 
   PMSQid_ds = ^TMSQid_ds;
@@ -175,13 +182,22 @@ type
     msg_lspid  : word;
     msg_lrpid  : word;
   end;
-
+\end{verbatim}
+The \var{TMSQid\_ds} record is returned by the \seef{msgctl} call, and
+contains all data about a message queue.
+\begin{verbatim}
   PMSGbuf = ^TMSGbuf;
   TMSGbuf = record
     mtype : longint;
     mtext : array[0..0] of char;
   end;
-
+\end{verbatim}
+The \var{TMSGbuf} record is a record containing the data of a record. you
+should never use this record directly, instead you should make your own
+record that follows the structure of the \var{TMSGbuf} record, but that has
+a size that is big enough to accomodate your messages.
+\begin{verbatim}
+Type
   PMSGinfo = ^TMSGinfo;
   TMSGinfo = record
     msgpool : Longint;
@@ -193,8 +209,11 @@ type
     msgtql  : Longint;
     msgseg  : Word;
   end;
-
-type
+\end{verbatim}
+The  \var{TMSGinfo} record is used internally by the message queue system,
+and should not be used by the programmer directly.
+\begin{verbatim}
+Type
   PSEMid_ds = ^PSEMid_ds;
   TSEMid_ds = record
     sem_perm : tipc_perm;
@@ -206,15 +225,22 @@ type
     undo             : pointer;
     sem_nsems : word;
   end;
-
+\end{verbatim}
+The \var{TSEMid\_ds} structure is returned by the \seef{semctl} call, and
+contains all data concerning a semahore.
+\begin{verbatim}
+Type
   PSEMbuf = ^TSEMbuf;
   TSEMbuf = record
     sem_num : word;
     sem_op  : integer;
     sem_flg : integer;
   end;
-
-
+\end{verbatim}
+The \var{TSEMbuf} record us use in the \seef{semop} call, and is used to
+specify which operations you want to do.
+\begin{verbatim}
+Type
   PSEMinfo = ^TSEMinfo;
   TSEMinfo = record
     semmap : longint;
@@ -228,7 +254,11 @@ type
     semvmx : longint;
     semaem : longint;
   end;
-
+\end{verbatim}
+The \var{TSEMinfo} record is used internally by the semaphore system, and
+should not be used diirectly.
+\begin{verbatim}
+Type
   PSEMun = ^TSEMun;
   TSEMun = record
    case longint of
@@ -239,23 +269,47 @@ type
       4 : ( padpad : pointer );
    end;
 \end{verbatim}
-
+The \var{TSEMun} variant record (actually a C union) is used in the
+\seef{semctl} call.
+ 
 \section{Functions and procedures}
 
 \begin{function}{ftok}
 \Declaration
 Function ftok (Path : String; ID : char) : TKey;
 \Description
+\var{ftok} returns a key that can be used in a \seef{semget},\seef{shmget}
+or \seef{msgget} call to access a new or existing IPC resource.
+
+\var{Path} is the name of a file in the file system, \var{ID} is a
+character of your choice. The ftok call does the same as it's C couterpart,
+so a pascal program and a C program will access the same resource if
+they use the same \var{Path} and \var{ID}
 \Errors
+\var{ftok} returns -1 if the file in \var{Path} doesn't exist.
 \SeeAlso
+\seef{semget},\seef{shmget},\seef{msgget}
 \end{function}
 
 \begin{function}{msgget}
 \Declaration
 Function msgget(key: TKey; msgflg:longint):longint;	
 \Description
+\var{msgget} returns the ID of the message queue described by \var{key}.
+Depending on the flags in \var{msgflg}, a new queue is created.
+
+\var{msgflg} can have one or more of the following values (combined by ORs):
+\begin{description}
+\item[IPC\_CREAT] The queue is created if it doesn't already exist.
+\item[IPC\_EXCL] If used in combination with \var{IPC\_CREAT}, causes the
+call to fail if the queue already exists. It cannot be used by itself.
+\end{description}
+Optionally, the flags can be \var{OR}ed with a permission mode, which is the
+same mode that can be used in the file system.
 \Errors
+On error, -1 is returned, and \var{IPCError} is set.
 \SeeAlso
+\seef{ftok},\seef{msgsnd}, \seef{msgrcv}, \seef{msgctl}, \seem{semget}{2}
 \end{function}
 
 \begin{function}{msgsnd}
