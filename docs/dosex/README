@@ -1,0 +1,18 @@
+These are the example programs that appear in the FPC documentation.
+ 
+Units guide, DOS unit :
+
+ex1.pp contains an example of the DosVersion function.
+ex2.pp contains an example of the GetDate function.
+ex3.pp contains an example of the GetTime function.
+ex4.pp contains an example of the PackTime and UnPackTime functions.
+ex5.pp contains an example of the Exec and DosExitCode function.
+ex6.pp contains an example of the DiskSize and DiskFree function.
+ex7.pp contains an example of the FindFirst and FindNext function.
+ex8.pp contains an example of the GetFAttr function.
+ex9.pp contains an example of the GetFTime function.
+ex10.pp contains an example of the FSearch function.
+ex11.pp contains an example of the FExpand function.
+ex12.pp contains an example of the FSplit function.
+ex13.pp contains an example of the EnvCount and EnvStr function.
+ex14.pp contains an example of the GetEnv function.

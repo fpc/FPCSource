@@ -1,0 +1,2326 @@
+%
+%   $Id$
+%   This file is part of the FPC documentation.
+%   Copyright (C) 1997, by Michael Van Canneyt
+%
+%   The FPC documentation is free text; you can redistribute it and/or
+%   modify it under the terms of the GNU Library General Public License as
+%   published by the Free Software Foundation; either version 2 of the
+%   License, or (at your option) any later version.
+%
+%   The FPC Documentation is distributed in the hope that it will be useful,
+%   but WITHOUT ANY WARRANTY; without even the implied warranty of
+%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+%   Library General Public License for more details.
+%
+%   You should have received a copy of the GNU Library General Public
+%   License along with the FPC documentation; see the file COPYING.LIB.  If not,
+%   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+%   Boston, MA 02111-1307, USA. 
+%
+\documentclass{report}
+%
+% Preamble
+%
+\usepackage{a4}
+\usepackage{makeidx}
+\usepackage{html}
+\latex{\usepackage{fpk}}
+\html{\input{fpk-html.tex}}
+\makeindex
+%
+% start of document.
+%
+\begin{document}
+\title{Free Pascal :\\ Reference guide.}
+\docdescription{Reference guide for Free Pascal.}
+\docversion{1.3}
+\date{September 1997}
+\author{Micha\"el Van Canneyt
+% \\ Florian Kl\"ampfl
+}
+\maketitle
+\tableofcontents
+\newpage
+\listoftables
+\newpage
+\section*{About this guide}
+This document describes all constants, types, variables, functions and
+procedures as they are declared in the system unit.
+
+Furthermore, it describes all pascal constructs supported by \fpk, and lists
+all supported data types. It does not, however, give a detailed explanation
+of the pascal language. The aim is to list which Pascal constructs are
+supported, and to show where the \fpk implementation differs from the
+Turbo Pascal implementation.
+
+Throughout this document, we will refer to functions, types and variables
+with \var{typewriter} font. Functions and procedures gave their own
+subsections, and for each function or procedure we have the following 
+topics:
+\begin{description}
+\item [Declaration] The exact declaration of the function.
+\item [Description] What does the procedure exactly do ?
+\item [Errors] What errors can occur.
+\item [See Also] Cross references to other related functions/commands.
+\end{description}
+The cross-references come in two flavours:
+\begin{itemize}
+\item References to other functions in this manual. In the printed copy, a
+number will appear after this reference. It refers to the page where this
+function is explained. In the on-line help pages, this is a hyperlink, on
+which you can click to jump to the declaration.
+\item References to Unix manual pages. (For linux related things only) they
+are printed in \var{typewriter} font, and the number after it is the Unix
+manual section.
+\end{itemize}
+%
+% The Pascal language
+%
+\chapter{Supported Pascal language constructs}
+In this chapter we describe the pascal constructs supported by \fpk, as well
+as the supported data types.
+
+This is not intended as an introduction to the Pascal language, although all
+language constructs will be covered. The main goal is to explain what is
+supported by \fpk, and where the Free implementation differs from the Turbo
+Pascal one.
+\section{Data types}
+\fpk supports the same data types as Turbo Pascal, with some extensions from
+Delphi.
+\subsection{Integer types}
+The integer types predefined in \fpk are listed in \seet{integers}.
+
+\begin{FPKltable}{lcr}{Predefined integer types}{integers}
+Type & Range & Size in bytes \\ \hline
+Byte & 0 .. 255 & 1 \\
+Shortint & -127 .. 127 & 1\\
+Integer & -32768 .. 32767 & 2 \\
+Word & 0 .. 65535 & 2 \\
+Longint & -2147483648 .. 2147483648 & 4\\
+Cardinal\footnote{The cardinal type support is buggy until version 0.9.3} & 0..4294967296 & 4 \\ \hline
+\end{FPKltable}
+
+\fpk does automatic type conversion in expressions where different kinds of
+integer types are used.
+
+\fpk supports hexadecimal format the same way as Turbo Pascal does. To
+specify a constant value in hexadecimal format, prepend it with a dollar
+sign (\var{\$}). Thus, the hexadecimal \var{\$FF} equals 255 decimal.
+
+In addition to the support for hexadecimal notation, \fpk also supports
+binary notation. You can specify a binary number by preceding it with a
+percent sign (\var{\%}). Thus, \var{255} can be specified in binary notation
+as \var{\%11111111}.
+
+\subsection{Real types}
+\fpk uses the math coprocessor (or an emulation) for al its floating-point 
+calculations. The native type for the coprocessor is \var{Double}. Other
+than that, all Turbo Pascal real types are supported. They're listed in
+\seet{Reals}.
+ \begin{FPKltable}{lccr}{Supported Real types}{Reals}
+Type & Range & Significant digits & Size\footnote{In Turbo Pascal.} \\ \hline
+Real & 2.9E-39 .. 1.7E38 & 11-12 & 6 \\
+Single & 1.5E-45 .. 3.4E38 & 7-8 & 4 \\
+Double & 5.0E-324 .. 1.7E308 & 15-16 & 8 \\
+Extended & 1.9E-4951 .. 1.1E4932 & 19-20 & 10\\
+%Comp\footnote{\var{Comp} only holds integer values.} & -2E64+1 .. 2E63-1 & 19-20 & 8  \\
+\end{FPKltable}
+
+Until version 0.9.1 of the compiler, all the real types are mapped to type
+\var{Double}, meaning that they all have size 8. From version 0.9.3, the
+\var{Extended} and \var{single} types are defined with the same suze as in
+Turbo Pascal. The \seef{SizeOf} function is your friend here.
+
+\subsection{Character types}
+\subsubsection{Char}
+\fpk supports the type \var{Char}. A \var{Char} is exactly 1 byte in
+size, and contains one character. 
+
+You can specify a character constant by enclosing the character in single 
+quotes, as follows : 'a' or 'A' are both character constants. 
+
+You can also specify a character by their ASCII
+value, by preceding the ASCII value with the number symbol (\#). For example
+specifying \var{\#65} would be the same as \var{'A'}.
+
+Also, the caret character (\verb+^+) can be used in combination with a letter to
+specify a character with ASCII value less than 27. Thus \verb+^G+ equals
+\var{\#7} (G is the seventh letter in the alphabet.)
+
+If you want to represent the single quote character, type it two times
+successively, thus \var{''''} represents the single quote character.
+
+\subsubsection{Strings}
+
+\fpk supports the \var{String} type as it is defined in Turbo Pascal.
+To declare a variable as a string, use the following declaration:
+\begin{verbatim}
+Var
+   S : String[Size];
+\end{verbatim}
+This will declare \var{S} as a variable of type \var{String}, with maximum
+length \var{Size}. \var{Size} can be any value from \var{1} to \var{255}.
+
+\fpk reserves \var{Size+1} bytes for the string \var{S}, and in the zeroeth
+element of the string (\var{S[0]}) it will store the length of the variable.
+
+If you don't specify the size of the string, \var{255} is taken as a
+default.
+
+To specify a constant string, you enclose the string in single-quotes, just
+as a \var{Char} type, only now you can have more than one character.
+Given that \var{S} is of type \var{String}, the following are valid assignments: 
+\begin{verbatim}
+S:='This is a string.';
+S:='One'+', Two'+', Three';
+S:='This isn''t difficult !';
+S:='This is a weird character : '#145' !';
+\end{verbatim}
+As you can see, the single quote character is represented by 2 single-quote
+characters next to each other. Strange characters can be specified by their
+ASCII value.
+
+The example shows also that you can add two strings. The resulting string is
+just the concatenation of the first with the second string, without spaces in
+between them. Strings can not be substracted, however.
+
+\subsubsection{PChar}
+
+\fpk supports the Delphi implementation of the \var{PChar} type. \var{PChar}
+is defined as a pointer to a \var{Char} type, but allows additional
+operations. 
+
+The \var{PChar} type can be understood best as the Pascal equivalent of a
+C-style null-terminated string, i.e. a variable of type \var{PChar} is a pointer
+that points to an array of type \var{Char}, which is ended by a
+null-character (\var{\#0}).
+
+\fpk supports initializing of \var{PChar} typed constants, or a direct
+assignment. For example, the following pieces of code are equivalent:
+
+\begin{CodEx}
+\begin{verbatim}
+program one;
+
+var p : pchar;
+
+begin
+  P:='This is a null-terminated string.';
+  writeln (P);
+end.
+\end{verbatim}
+\end{CodEx}
+Results in the same as
+\begin{CodEx}
+\begin{verbatim}
+program two;
+
+const P : PChar = 'This is a null-terminated string.'
+
+begin
+  Writeln (P);
+end.
+\end{verbatim}
+\end{CodEx}
+These examples also show that it is possible to write {\em the contents} of
+the string to a file of type \var{Text}.
+
+The \seestrings\_ unit contains procedures and functions that manipulate the
+\var{PChar} type as you can do it in C.
+
+Since it is equivalent to a pointer to a type \var{Char} variable, it  is
+also possible to do the following:
+\begin{CodEx}
+\begin{verbatim}
+Program three;
+
+Var S : String[30];
+    P : Pchar;
+
+begin
+  S:='This is a null-terminated string.'#0;
+  P:=@S[1];
+  writeln (P);
+end.
+\end{verbatim}
+\end{CodEx}
+This will have the same result as the previous two examples.
+
+You cannot add null-terminated strings as you can do with normal Pascal
+strings. If you want to concatenate two \var{PChar} strings, you will need
+to use the \seestrings unit.
+
+However, it is possible to do some pointer arithmetic. You can use the
+operators \var{+} and \var{-} to do operations on \var{PChar} pointers.
+In \seet{PCharMath}, \var{P} and \var{Q} are of type \var{PChar}, and
+\var{I} is of type \var{Longint}.
+\begin{FPKltable}{lr}{\var{PChar} pointer arithmetic}{PCharMath}
+Operation & Result \\ \hline
+\var{P + I} & Adds \var{I} to the address pointed to by \var{P}. \\
+\var{I + P} & Adds \var{I} to the address pointed to by \var{P}. \\
+\var{P - I} & Substracts \var{I} from the address pointed to by \var{P}. \\
+\var{P - Q} & Returns, as an integer, the distance between 2 addresses \\
+ & (or the number of characters between \var{P} and \var{Q}) \\
+\hline
+\end{FPKltable}
+
+\subsection{Booleans}
+\fpk supports the \var{Boolean} type, with its two pre-defined possible
+values \var{True} and \var{False}. These are the only two values that can be
+assigned to a \var{Boolean} type. Of course, any expression that resolves
+to a \var{boolean} value, can also be assigned to a boolean type.
+
+Assuming \var{B} to be of type \var{Boolean}, the following are valid
+assignments:
+\begin{verbatim}
+ B:=True;
+ B:=False;
+ B:=1<>2;  { Results in B:=True }
+\end{verbatim}
+Boolean expressions are also used in conditions.
+
+{\em Remark:} In \fpk, boolean expressions are always evaluated in such a
+way that when the result is known, the rest of the expression will no longer
+be evaluated (Called short-cut evaluation). In the following example, the function \var{Func} will never
+be called, which may have strange side-effects.
+\begin{verbatim}
+ ...
+ B:=False;
+ A := B and Func;
+\end{verbatim} 
+Here \var{Func} is a function which returns a \var{Boolean} type.
+
+\subsection{Arrays}
+\fpk supports arrays as in Turbo Pascal, except that packed arrays are not
+supported. 
+
+Multi-dimensional arrays are also supported.
+
+\subsection{Pointers}
+\fpk supports the use of pointers. A variable of the type \var{Pointer}
+contains an address in memory, where the data of another variable may be 
+stored.
+
+Pointers can be typed, which means that they point to a particular kind of
+data. The type of this data is known at compile time.
+
+Consider the following example:
+\begin{CodEx}
+\begin{verbatim}
+Program pointers;
+
+type 
+  Buffer = String[255];
+  BufPtr = ^Buffer;
+
+Var B  : Buffer;
+    BP : BufPtr;
+    PP : Pointer;
+
+etc..
+\end{verbatim}
+\end{CodEx}
+In this example, \var{BP} {\em is a pointer to} a \var{Buffer} type; while \var{B}
+{\em is} a variable of type \var{Buffer}. \var{B} takes 256 bytes memory,
+and \var{BP} only takes 4 bytes of memory (enough to keep an adress in
+memory).
+
+{\em Remark:} \fpk treats pointers much the same way as C does. This means
+that you can treat a pointer to some type as being an array of this type.  
+The pointer then points to the zeroeth element of this array. Thus the
+following pointer declaration 
+\begin{verbatim}
+Var p : ^Longint;
+\end{verbatim}
+Can be considered equivalent to the following array declaration:
+\begin{verbatim}
+Var p : array[0..Infinity] of Longint;
+\end{verbatim}
+The reference \verb+P^+ is then the same as \var{p[0]}. The following program
+illustrates this maybe more clear:
+\begin{CodEx}
+\begin{verbatim}
+program PointerArray;
+
+var i : longint;
+    p : ^longint;
+    pp : array[0..100] of longint;  
+
+begin
+  for i:=0 to 100 do pp[i]:=i; { Fill array }
+  p:=@pp[0];                   { Let p point to pp }
+  for i:=0 to 100 do if p[i]<>pp[i] then writeln ('Ohoh, problem !')
+end.
+\end{verbatim}
+\end{CodEx}
+\fpk doesn't support pointer arithmetic as C does, however.
+
+\subsection{Procedural types}
+\fpk has support for procedural types, although it differs from the Turbo
+Pascal implementation of them.
+
+The type declaration remains the same. The two following examples are valid
+type declarations:
+\begin{verbatim}
+Type TOneArg = Procedure (Var X : integer);
+     TNoArg = Function : Real;
+
+var proc : TOneArg;
+    func : TNoArg;
+\end{verbatim}
+Given these declarations, the following assignments are valid:
+\begin{verbatim}
+Procedure printit (Var X : Integer);
+
+begin
+  writeln (x);
+end;
+...
+
+P:=@printit;
+Func:=@Pi;
+\end{verbatim}
+From this example, the difference with Turbo Pascal is clear: In Turbo
+Pascal it isn't necessary to use the address operator (\var{@}) 
+when assigning a procedural type variable, whereas in \fpk it is required.
+
+\subsection{Records}
+
+\fpk supports records. The prototype type definition of a record is:
+\begin{verbatim}
+Type
+  RecType = Record
+    Element1 : type1;
+    Element2,Element3 : type2;
+    ...
+    Elementn ; Typen;
+  end;
+\end{verbatim}
+Variant records are also supported:
+\begin{verbatim}
+Type
+  RecType = Record
+    Element1 : type1;
+    Case [PivotElmt:] Type Identifier of
+      Value1 : (VarElt1, Varelt2 : Vartype1);
+      Value2 : (VarElt3, Varelt4 : Vartype2);
+  end;
+\end{verbatim}
+The variant part must be last in the record. The optional \var{PivotElmt}
+can be used to see which variant is active at a certain time.
+
+{\em Remark:} If you want to read a typed file with records, produced by
+a Turbo Pascal program, then chances are that you will not succeed in
+reading that file correctly. 
+
+The reason for this is that by default, elements of a record are aligned at
+2-byte boundaries, for performance reasons. This default behaviour can be
+changed with the \var{\{\$PackRecords n\}} switch. Possible values for
+\var{n} are 1, 2 and 4. This switch tells the compiler to align elements of
+a record on 1,2 or 4 byte boundaries. Take a look at the following program:
+\begin{CodEx}
+\begin{verbatim}
+Program PackRecordsDemo;
+
+type {$PackRecords 2}
+     Trec1 = Record
+       A : byte;
+       B : Word;
+       
+     end;
+     
+     {$PACKRECORDS 1}
+     Trec2 = Record
+       A : Byte;
+       B : Word;
+       end;
+
+begin
+  Writeln ('Size Trec1 : ',SizeOf(Trec1));
+  Writeln ('Size Trec2 : ',SizeOf(Trec2));
+end.
+\end{verbatim}
+\end{CodEx}
+The output of this program will be :
+\begin{verbatim}
+Size Trec1 : 4
+Size Trec2 : 3
+\end{verbatim}
+And this is as expected. In \var{Trec1}, each of the elements \var{A} and
+\var{B} takes 2 bytes of memory, and in  \var{Trec1}, \var{A} takes only 1
+byte of memory.
+
+As from version 0.9.3 (a developers' version), \fpk supports also the
+'packed record', this is a record where all the elements are byte-aligned.
+
+Thus the two following declarations are equivalent:
+\begin{verbatim}
+     {$PACKRECORDS 1}
+     Trec2 = Record
+       A : Byte;
+       B : Word;
+       end;
+     {$PACKRECORDS 2}
+\end{verbatim}
+and
+\begin{verbatim}
+     Trec2 = Packed Record
+       A : Byte;
+       B : Word;
+       end;
+\end{verbatim}
+Note the \var{\{\$PACKRECORDS 2\}} after the first declaration !
+
+\subsection{Set types}
+
+\fpk supports the set types as in Turbo Pascal. The prototype of a set
+declaration is: 
+\begin{verbatim}
+SetType = Set of TargetType;
+\end{verbatim}
+
+Each of the elements of \var{SetType} must be of type \var{TargetType}.
+\var{TargetType} can be any ordinal type with a range between \var{0} and
+\var{255}. A set can contain maximally \var{255} elements.
+
+The following is a valid set declaration:
+\begin{verbatim}
+Type Days = (Mon, Tue, Wed, Thu, Fri, Sqt, Sun);
+
+Var WeekDays : Set of days;
+\end{verbatim}
+Given this set declaration, the follwing assignment is legal:
+\begin{verbatim}
+WeekDays := [ Mon, Tue, Wed, Thu, Fri];
+\end{verbatim}
+The operators for manipulations of sets are listed in \seet{SetOps}.
+\begin{FPKltable}{lr}{Set Manipulation operators}{SetOps}
+Operation & Operator \\ \hline
+Union & + \\
+Difference & - \\
+Intersection & * \\ \hline
+\end{FPKltable}
+
+You can compare two sets with the \var{<>} and \var{=} operators, but not
+(yet) with the \var{<} and \var{>} operators. 
+
+From compiler version 0.9.5, the compiler stores small sets (less than 32
+elements) in a longint, if the type range allows it. This allows for faster
+processing and decreases program size.
+
+\subsection{Enumeration types}
+
+Enumeration types are supported in \fpk. On top of the Turbo Pascal
+implementation, \fpk allows the following C-style extension of the
+enumeration type.
+\begin{verbatim}
+Type
+  EnumType = (one, two, three, forty := 40);
+\end{verbatim}
+As a result, the ordinal number of \var{forty} is \var{40}, and not \var{4},
+as it would be when the \var{'= 40'} wasn't present.
+
+When specifying such an enumeration type, it is important to keep in mind
+that you should keep initialized set elements in ascending order. The
+following will produce a compiler error:
+\begin{verbatim}
+Type
+  EnumType = (one, two, three, forty := 40, thirty:=30);
+\end{verbatim}
+It is necessary to keep \var{forty} and \var{Thirty} in the correct order.
+
+{\em Remark :} You cannot use the \var{Pred} and \var{Succ} functions on
+this kind of enumeration types. If you try to do that, you'll get a compiler
+error.
+
+\section{Constants}
+
+Just as in Turbo Pascal, \fpk supports both normal and typed constants.
+\subsection{Ordinary constants}
+Ordinary constants declarations are no different from the TP implementation. 
+You can only declare constants of the following types: \var{Ordinal types},
+\var{Real types}, \var{Char}, and \var{String}. 
+The following are all valid constant declarations:
+\begin{verbatim}
+Const
+  e = 2.7182818;  { Real type constant. }
+  a = 2;          { Integer type constant. }
+  c = '4';        { Character type constant. }
+  s = 'This is a constant string'; {String type constant.}
+\end{verbatim}
+Assigning a value to a constant is not permitted. Thus, given the previous
+declaration, the following will result in a compiler error:
+\begin{verbatim}
+  s:='some other string';
+\end{verbatim}
+
+\subsection{Typed constants}
+Typed constants serve to provide a program with initialized variables.
+Contrary to ordinary constants, they may be assigned to at run-time.
+The difference with normal variables is that their value is initialised
+when the program starts, whereas normal variables must be initialised
+explicitly.
+
+The prototype of a typed constant declaration is:
+\begin{verbatim}
+Const
+  SomeConst : SomeType = SomeValue;
+\end{verbatim}
+After that, the constant \var{SomeConst} will be of type \var{SomeType}, and
+have initial value \var{SomeValue}.
+
+Given the declaration:
+\begin{verbatim}
+Const
+  S : String = 'This is a typed constant string';
+\end{verbatim}
+The following is a valid assignment:
+\begin{verbatim}
+ S:='Result : '+Func;
+\end{verbatim}
+Where \var{Func} is a function that returns a \var{String}.
+
+Typed constants also allow you to initialize arrays and records. For arrays,
+the initial elements must be specified, surrounded by round brackets, and
+separated by commas. The number of elements must be exactly the same as
+number of elements in the declaration of the type. 
+
+As an example:
+\begin{verbatim}
+Const 
+  tt : array [1..3] of string[20] = ('ikke','gij', 'hij');
+  ti : array [1..3] of longint = (1,2,3);
+\end{verbatim}
+
+For constant records, you should specify each element of the record, in the
+form \var{Field : Value}, separated by commas, and surrounded by round
+brackets.
+
+As an example:
+\begin{verbatim}
+Type 
+  Point = record
+    X,Y : Real
+    end;
+
+Const
+  Origin : Point = (X:0.0 , Y:0.0); 
+\end{verbatim}
+The order of the fields in a constant record needs to be the same as in the type declaration,
+otherwise you'll get a compile-time error.
+
+\section{Objects}
+\fpk supports object oriented programming. In fact, part of the compiler is
+written using objects. Here we present some technical questions regarding
+object oriented programming in \fpk.
+
+\fpk supports 2 programming models for object-oriented programming.
+You can choose to program object oriented using the Turbo Pascal approach,
+or you can prefer the Delphi approach.
+
+\subsection{The Turbo Pascal approach}
+In the Turbo Pascal approach, Objects should be treated as a special kind of
+record. The record contains all the fields that are declared in the objects
+definition, and pointers to the methods that are associated to the objects'
+type.
+
+An object is declared just as you would declare a record; except that you
+can now declare procedures and fuctions as of they were part of the record.
+
+Objects can ''inherit'' fields and methods from ''parent'' objects. This means
+that you can use these fields and methods as if the were included in the
+objects you declared as a ''child'' object. 
+
+Furthermore, you can declare fields, procedures and functions as \var{public}
+or \var{private}. By default, fields and methods are \var{public}, and are
+exported outside the current unit. Fields or methods that are declared
+\var{private} are only accessible in the current unit.
+
+The prototype declaration of an object is as follows :
+\begin{verbatim}
+TObj = Object [(ParentObjectType)]
+  [Constructor ConstructorName;]
+  [Destructor DestructorName;]
+  Field1 : Type1;
+  ...
+  Fieldn : Typen;
+  Method1;
+  Method2;
+  [private
+  PrField1 : PrType1;
+  ...
+  PrFieldn : PrTypen;
+  PrMethod1;
+  ...
+  PrMethodn;]
+  [public
+  PuField1 : PuType1;
+  ..
+  Pufield1 : PuTypen;
+  PuMethod1;
+  ...
+  PuMethodn;]
+  end;
+\end{verbatim}
+You can repeat as many \var{private} and \var{public} blocks as you want.
+\var{Method}s are normal function or procedure declarations. 
+
+As can be seen in the prototype object declaration, \fpk supports
+constructors and destructors. You are responsible for calling the 
+destructor and constructor explicitly when using objects.
+
+\fpk supports also the extended syntax of the \var{New} and \var{Dispose}
+procedures. In case you want to allocate a dynamic varible of an object
+type, you can specify the constructor's name in the call to \var{New}.
+The \var{New} is implemented as a function which returns a pointer to the
+instantiated object. Given the following declarations :
+\begin{verbatim}
+Type
+  TObj = object;
+   Constructor init;
+   ...
+   end;
+  Pobj = ^TObj;
+
+Var PP : Pobj;
+\end{verbatim}  
+Then the following 3 calls are equivalent :
+\begin{verbatim}
+ pp:=new (Pobj,Init);
+\end{verbatim}
+and
+\begin{verbatim}
+  new(pp,init);
+\end{verbatim}
+and also
+\begin{verbatim}
+  new (pp);
+  pp^.init;
+\end{verbatim}
+In the last case, the compiler will issue a warning that you should use the
+extended syntax of \var{new} and \var{dispose} to generate instances of an
+object. You can ignore this warning, but it's better programming practice to
+use the extended syntax to create instances of an object.
+
+Similarly, the \var{Dispose} procedure accepts the name of a destructor. The
+destructor will then be called, before removing the object from the heap.
+
+In view of the compiler warning remark, the now following Delphi approach may 
+be considered a more natural way of object-oriented programming.
+
+\subsection{The Delphi approach}
+In the Delphi approach to Object Oriented Programming, everything revolves
+around  the concept of 'Classes'. 
+A class can be seen as a pointer to an object, or a pointer to a record. 
+
+The prototype declaration of a class is as follows :
+\begin{verbatim}
+TObj = Class [(ParentClassType)]
+  [Constructor ConstructorName;]
+  [Destructor DestructorName;]
+  Field1 : Type1;
+  ...
+  Fieldn : Typen;
+  Method1;
+  Method2;
+  [private
+  PrField1 : PrType1;
+  ...
+  PrFieldn : PrTypen;
+  PrMethod1;
+  ...
+  PrMethodn;]
+  [public
+  PuField1 : PuType1;
+  ..
+  Pufield1 : PuTypen;
+  PuMethod1;
+  ...
+  PuMethodn;]
+  end;
+\end{verbatim}
+You can repeat as many \var{private} and \var{public} blocks as you want.
+\var{Method}s are normal function or procedure declarations. 
+
+As you can see, the declaration of a class is almost identical to the
+declaration of an object. The real difference between objects and classes
+is in the way they are created;
+
+Classes must be created using their constructor. Remember that A class is a
+pointer to an object, so when you declare a variable of some class, the
+compiler just allocates a pointer, not the entire object. The constructor of
+a class returns a pointer to an initialized instance of the object.
+
+So, to initialize an instance of some class, you do the following :
+\begin{verbatim}
+  ClassVar:=ClassType.ConstructorName;
+\end{verbatim}
+
+{\em Remark :} \fpk doesn't support the concept of properties yet.
+
+\section{Statements controlling program flow.}
+
+\subsection{Assignments}
+In addition to the standard Pascal assignment operator (\var{:=}), \fpk
+supports some c-style constructions. All available constructs are listed in
+\seet{assignments}.
+\begin{FPKltable}{lr}{Allowed C constructs in \fpk}{assignments}
+Assignment & Result \\ \hline
+a += b & Adds \var{b} to \var{a}, and stores the result in \var{a}.\\
+a -= b & Substracts \var{b} from \var{a}, and stores the result in
+\var{a}. \\
+a *= b & Multiplies \var{a} with \var{b}, and stores the result in
+\var{a}. \\
+a /= b & Divides \var{a} through \var{b}, and stores the result in
+\var{a}. \\ \hline
+\end{FPKltable}
+For these connstructs to work, you should specify the \var{-Sc} 
+command-line switch. 
+
+{\em Remark:} These constructions are just for typing convenience, they
+don't generate different code.
+
+\fpk also supports typed assignments. This means that an assignment
+statement has a definite type, and hence can be assigned to another
+variable. The type of the assignment \var{a:=b} is the type of \var{a}
+(or, in this case, of \var{b}), and this can be assigned to another
+variable : \var{c:=a:=b;}.
+To summarize: the construct
+\begin{verbatim}
+ a:=b:=c;
+\end{verbatim}
+results in both \var{a} and \var{b} being assign the value of \var{c}, which
+may be an expression.
+
+For this construct to be allowed, it is necessary to specify the \var{-Sa4}
+switch on the command line.
+
+\subsection{The \var{Case} statement}
+\fpk supports the \var{case} statement. Its prototype is
+\begin{verbatim}
+Case Pivot of
+  Label1 : Statement1;
+  Label2 : Statement2;
+  ...
+  Labeln : Statementn;
+[Else
+  AlternativeStatement]
+end;
+\end{verbatim}
+\var{label1} until \var{Labeln} must be known at compile-time, and can be of
+the following types : enumeration types, Ordinal types (except boolean), and
+chars. \var{Pivot} must also be one of these types.
+
+The statements \var{Statement1} etc., can be compound statements (i.e. a
+\var{begin..End} block).
+
+{\em Remark:} Contrary to Turbo Pascal, duplicate case labels are not
+allowed in \fpk, so the following code will generate an error when
+compiling:
+
+\begin{verbatim}
+Var i : integer;
+...
+
+Case i of
+ 3 : DoSomething;
+ 1..5 : DoSomethingElse;
+end;
+\end{verbatim}
+The compiler will generate a \var{Duplicate case label} error when compiling
+this, because the 3 also appears (implicitly) in the range \var{1..5}
+
+{\em Remark:} In versions earlier than 0.9.7, there was an incompatibility here 
+with Turbo Pascal. Where in Turbo Pascal you could do the following:
+\begin{verbatim}
+case Pivot of
+  ...
+Else
+  begin
+  Statement1
+  Statement2
+  end;
+\end{verbatim}
+You needed to do the following in \fpk :
+\begin{verbatim}
+case Pivot of
+  ...
+Else
+  begin
+  Statement1
+  Statement2
+  end;
+end;
+\end{verbatim}
+So there's an extra \var{end} keyword at the end. But from version 0.9.7
+this has been fixed.
+\subsection{The \var{For..to/downto..do} statement}
+\fpk supports the \var{For} loop construction. The prototypes are:
+\begin{verbatim}
+For Counter:=Lowerbound to Upperbound Do Statement;
+
+or 
+
+For Counter:=Upperbound downto Lowerbound Do Statement;
+\end{verbatim}
+\var{Statement} can be a compound statement. In the first case, if
+\var{Lowerbound} is larger than \var{Upperbound} then \var{Statement} will
+never be executed.
+\subsection{The \var{Goto} statement}
+\fpk supports the \var{goto} jump statement. Its prototype is
+\begin{verbatim}
+
+var
+  jumpto : label
+...
+Jumpto : 
+  Statement;
+...
+Goto jumpto;
+...
+\end{verbatim}
+The jump label must be defined in the same block as the \var{Goto}
+statement.
+To be able to use the \var{Goto} statement, you need to specify the \var{-Sg}
+compiler switch.
+\subsection{The \var{If..then..else} statement}
+The \var{If .. then .. else..} prototype is:
+\begin{verbatim}
+If Expression1 Then Statement1;
+
+or 
+
+If Expression2 then 
+   Statement2
+else
+   Statement3;
+\end{verbatim}
+Be aware of the fact that the boolean expressions \var{Expression1} and
+\var{Expression2} will be short-cut evaluated. (Meaning that the evaluation
+will be stopped at the point where the outcome is known with certainty)
+
+Also, after \var{Statement2}, no semicolon (\var{;}) is alllowed.
+
+All statements can be compound statements.
+\subsection{The \var{Repeat..until} statement}
+The prototype of the \var{Repeat..until} statement is
+\begin{verbatim}
+Repeat
+  Statement1;
+  Statement2;
+Until Expression;
+\end{verbatim}
+This will execute \var{Statement1} etc. until \var{Expression} evaluates to
+\var{True}. Since \var{Expression} is evaluated {\em after} the execution of the
+statements, they are executed at least once.
+
+Be aware of the fact that the boolean expressions \var{Expression1} and
+\var{Expression2} will be short-cut evaluated. (Meaning that the evaluation
+will be stopped at the point where the outcome is known with certainty)
+
+\subsection{The \var{While..do} statement}
+The prototype of the \var{While..do} statement is
+\begin{verbatim}
+While Expression Do
+  Statement;
+\end{verbatim}
+This will execute \var{Statement} as long as \var{Expression} evaluates to
+\var{True}. Since \var{Expression} is evaluated {\em before} the execution
+of \var{Statement}, it is possible that \var{Statement} isn't executed at
+all.
+
+\var{Statement} can be a compound statement.
+
+Be aware of the fact that the boolean expressions \var{Expression1} and
+\var{Expression2} will be short-cut evaluated. (Meaning that the evaluation
+will be stopped at the point where the outcome is known with certainty)
+
+\subsection{The \var{With} statement}
+The with statement serves to access the elements of a record, without
+having to specify the name of the record. Given the declaration:
+\begin{verbatim}
+Type Passenger = Record
+       Name : String[30];
+       Flight : String[10];
+       end;
+
+Var TheCustomer : Passenger;
+\end{verbatim}
+The following statements are completely equivalent:
+\begin{verbatim}
+TheCustomer.Name:='Michael';
+TheCustomer.Flight:='PS901';
+\end{verbatim}
+and
+\begin{verbatim}
+With TheCustomer do
+  begin
+  Name:='Michael';
+  Flight:='PS901';
+  end;
+\end{verbatim}
+ 
+\subsection{Compound statements}
+Compound statements are a group of statements, separated by semicolons, 
+that are surrounded by the keywords \var{Begin} and \var{End}. The
+Last statement doesn't need to be followed by a semicolon, although it is
+allowed.
+
+\section{Using functions and procedures}
+\fpk supports the use of functions and procedures, but with some extras:
+Function overloading is supported, as well as \var{Const} parameters and
+open arrays.
+
+{\em remark:} In the subsequent paragraph the word \var{procedure} and
+\var{function} will be used interchangeably. The statements made are
+valid for both.
+
+\subsection{Function overloading}
+Function overloading simply means that you can define the same function more
+than once, but each time with a different set of arguments.
+
+When the compiler encounters a unction call, it will look at the function
+parameters to decide which od the defined function
+This can be useful if you want to define the same function for different
+types. For example, if the RTL, the  \var{Dec} procedure is
+is defined as:
+\begin{verbatim}
+...
+Dec(Var I : longint;decrement : longint);
+Dec(Var I : longint);
+Dec(Var I : Byte;decrement : longint);
+Dec(Var I : Byte);
+...
+\end{verbatim}
+When the compiler encounters a call to the dec function, it wil first search
+which function it should use. It therefore checks the parameters in your
+function call, and looks if there is a function definition which maches the
+specified parameter list. If the compiler finds such a function, a call is
+inserted to that function. If no such function is found, a compiler error is
+generated.
+
+\subsection{\var{Const} parameters}
+In addition to \var{var} parameters and normal parameters (call by value,
+call by reference), \fpk also supports \var{Const} parameters. You can
+specify a \var{Const} parameter as follows:
+\begin{verbatim}
+Function Name (Const S: Type_Of_S) : ResultType
+\end{verbatim}
+A constant argument is passed by refenence 
+(i.e. the function or procedure receives a pointer to the passed , 
+but you are not allowed to assign to it, this will result in a compiler error.
+
+The main use for this is reducing the stack size, hence improving
+performance.
+
+\subsection{Open array parameters}
+\fpk supports the passing of open arrays, i.e. You can declare a procedure
+with an array of unspecified length as a parameter, as in Delphi.
+
+The prototype declaration for open array parameters is:
+\begin{verbatim}
+Function Func ( ... [Var|Const] Ident : Array of Type ...) : ReturnType;
+
+ProcedureFunction Func (... [Var|Const] Ident : Array of Type ...);
+\end{verbatim}
+The \var{[Var|Const]} means that open parameters can be passed by reference
+or as a constant parameter.
+
+In a function or procedure, you can pass open arrays only to functions which 
+are also declared with open arrays as parameters, {\em not} to functions or 
+procedures which accept arrays of fixed length.
+
+\section{Using assembler in your code}
+\fpk supports the use of assembler in your code, but not inline
+assembler. assembly functions (i.e. functions declared with the
+\var{Assembler} keyword) are supported as of version 0.9.7.
+
+{\em Remark :}
+\fpk issues AT\&T assembly language, as understood by most
+unix assemblers (most notably : GNU \var{as}). 
+Intel assembler syntax is available as of version 0.9.8 but the Intel
+support isn't complete in the sense that it is converted to AT\&T syntax,
+and some constructions aren't supported by the conversion mechanism (see
+\progref for more information about this).
+Therefore all examples of assembly language will be given in AT\&T syntax,
+as it is the 'native' assembly from \fpk.
+
+The following is an example of assembler inclusion in your code.
+\begin{verbatim}
+ ...
+ Statements;
+ ...
+ Asm
+   Movl 0,%eax
+   ...
+ end;
+ ...
+ Statements;
+\end{verbatim}
+The assembler instructions between the \var{Asm} and \var{end} keywords will
+be inserted in the assembler generated by the compiler.
+
+You can still use comditionals in your assembler, the compiler will
+recognise it, and treat it as any other conditionals.
+
+Contrary to Turbo Pascal, it isn't possible (yet) to reference variables by 
+their names in the assembler parts of your code.
+
+\section{Modifiers}
+\fpk doesn't support all Turbo Pascal modifiers, but
+does support a number of additional modifiers. They are used mainly for assembler and
+reference to C object files. 
+
+\subsection{Public}
+The \var{Public} keyword is used to declare a function globally in a unit.
+This is useful if you don't want a function to be accessible from the unit
+file, but you do want the function to be accessible from the object file.
+
+as an example:
+\begin{CodEx}
+\begin{verbatim}
+Unit someunit;
+
+interface
+
+Function First : Real;
+
+Implementation
+
+Function First : Real;
+begin
+  First:=0;
+end;
+
+Function Second : Real; [Public];
+
+begin
+  Second:=1;
+end;
+
+end.
+\end{verbatim} 
+\end{CodEx}
+If another program or unit uses this unit, it will not be able to use the
+function \var{Second}, since it isn't declared in the interface part.
+However, it will be possible to access the function \var{Second} at the
+assembly-language level, by using it's mangled name (\progref).
+
+\subsection{C}
+The \var{C} modifier can be used to declare a function that resides in a
+object file generated by a C compiler. It allows you to use the function in
+your code, and at linking time, you must link the object file containing the
+\var{C} implementation of the function or procedure.
+
+As an example:
+\begin{CodEx}
+\begin{verbatim}
+program CmodDemo;
+
+Const P : Pchar = 'This is fun !';
+
+Function strlen (P : Pchar) : Longint; [ C ];
+
+begin
+  Writeln ('Length of (',p,') : ',strlen(p))
+end.
+\end{verbatim}
+\end{CodEx}
+When compiling this, and linking to the C-library, you will be able to call
+the \var{strlen} function throughout your program.
+
+{\em Remark} The parameters in our declaration of the \var{C} function should 
+match exactly the ones in the declaration in \var{C}. S
+ince \var{C} is case sensitive, this means also that the name of the
+function must be exactly the same.
+
+\subsection{Export}
+Sometimes you must provide a callback function for a C library, or you want
+your routines to be callable from a C program. Since \fpk and C use
+different calling schemes for functions and procedures\footnote{More
+techically: In C the calling procedure must clear the stack. In \fpk, the
+subroutine clears the stack.}, the compiler must be told to generate code
+that can be called from a C routine. This is where the \var{Export} modifier
+comes in. Contrary to the other modifiers, it must be specified separately,
+as follows:
+\begin{verbatim}
+function DoSquare (X : longint) : longint; export;
+
+begin
+...
+end;
+\end{verbatim} 
+The square brackets around the modifier are not allowed in this case.
+
+{\em Remark:} You cannot call an exported function from within \fpk programs.
+If you try to do so, the compiler will complain when compiling your source
+code.
+
+If you do want to call an exported procedure from pascal, you must use a
+dummy function:
+\begin{verbatim}
+Procedure RealDoSomething;
+begin
+...
+end;
+
+Procedure DoSomething; export;
+
+begin
+  RealDoSomething;
+end; 
+\end{verbatim}
+In this example, from your \fpk code, you can call the \var{RealDoSomething}
+procedure. If someone wants to link to your code from a C program, he can
+call the \var{DoSomething} procedure. Both calls will have the same effect.
+
+{\em Remark:}
+as of version 0.9.8, \fpk supports the Delphi \var{cdecl} modifier. 
+This modifier works in the same way as the \var{export} modifier.
+
+More information about these modifiers can be found in the \progref, in the
+section on the calling mechanism and the chapter on linking.
+
+\subsection{StdCall}
+As of version 0.9.8, \fpk supports the Delphi \var{stdcall} modifier.
+This modifier does actually nothing, since the \fpk compiler by default 
+pushes parameters from right to left on the stack, which is what the 
+modifier does under Delphi (which pushes parameters on the stack from left to 
+right).
+
+More information about this modifier can be found in the \progref, in the
+section on the calling mechanism and the chapter on linking.
+
+\subsection{Alias}
+The \var{Alias} modifier allows you to specify a different name for a
+procedure or function. This is mostly useful for referring to this procedure
+from assembly language constructs. As an example, consider the following
+program:
+
+\begin{CodEx}
+\begin{verbatim}
+Program Aliases;
+
+Procedure Printit; [Alias : 'DOIT'];
+
+begin
+  Writeln ('In Printit (alias : "DOIT")');
+end;
+
+begin
+  asm
+  call DOIT
+  end;
+end.
+\end{verbatim}
+\end{CodEx}
+{\rm Remark:} the specified alias is inserted straight into the assembly
+code, thus it is case sensitive.
+
+The \var{Alias} modifier, combined with the \var{Public} modifier, make a
+powerful tool for making externally accessible object files.
+
+\subsection{[RegisterList]}
+This modifier list is used to indicate the registers that are modified by an
+assembler block in your code. The compiler stores certain results in the
+registers. If you modify theregisters in an assembly block, the compiler
+should, sometimes, be told about it.
+The prototype syntax of the \var{Registerlist} modifier is:
+\begin{verbatim}
+asm
+  statements
+end; ['register1','register2',...,'registern'];
+\end{verbatim}
+Where \var{'register'} is one of \var{'EAX',EBX',ECX','EDX'} etc.
+
+
+\subsection{Unsupported Turbo Pascal modifiers}
+The modifiers that exist in Turbo pascal, but aren't supported by \fpk, are
+listed in \seet{Modifs}.
+\begin{FPKltable}{lr}{Unsupported modifiers}{Modifs}
+Modifier & Why not supported ? \\ \hline
+Near & \fpk is a 32-bit compiler.\\
+Far & \fpk is a 32-bit compiler. \\
+External & Replaced by \var{C} modifier. \\ \hline
+\end{FPKltable}
+
+%
+% System unit reference guide.
+%
+
+\chapter{Reference : The system unit}
+The system unit contains the standard supported functions of \fpk. It is the
+same for all platforms. Basically it is the same as the system unit provided
+with Borland or Turbo Pascal. 
+
+Functions are listed in alphabetical order.
+Arguments to functions or procedures that are optional are put between
+square brackets.
+
+The pre-defined constants and variables are listed in the first section. The
+second section contains the supported functions and procedures.
+\section{Types, Constants and Variables}
+\subsection{Types}
+The following integer types are defined in the System unit:
+\begin{verbatim}
+shortint = -128..127;
+longint  = $80000000..$7fffffff;
+integer  = -32768..32767;
+byte     = 0..255;
+word     = 0..65535;
+\end{verbatim}
+
+The following Real types are declared: 
+\begin{verbatim}
+double = real;
+{$ifdef VER0_6}
+  extended = real;
+  single = real;
+{$endif VER0_6}
+\end{verbatim}
+
+And the following pointer types:
+\begin{verbatim}
+  pchar = ^char;
+  ppchar = ^pchar;
+\end{verbatim}
+
+\subsection{Constants}
+The following constants for file-handling are defined in the system unit:
+\begin{verbatim}
+Const
+  fmclosed = $D7B0;
+  fminput  = $D7B1;
+  fmoutput = $D7B2;
+  fminout  = $D7B3;
+  fmappend = $D7B4;
+
+  filemode : byte = 2;
+\end{verbatim}
+Further, the following general-purpose constants are also defined:
+\begin{verbatim} 
+const
+  test8086 : byte = 2; { always i386 or newer }
+  test8087 : byte = 3; { Always 387 or higher. emulated if needed. }
+  erroraddr : pointer = nil;
+  errorcode : word = 0;
+ { max level in dumping on error }
+  max_frame_dump : word = 20;
+\end{verbatim}
+
+\subsection{Variables}
+The following variables are defined and initialized in the system unit:
+\begin{verbatim}
+var
+  output,input,stderr : text;
+  exitproc : pointer;
+  exitcode : word;
+  stackbottom : longint;
+  loweststack : longint;
+\end{verbatim}
+The variables \var{ExitProc}, \var{exitcode} are used in the \fpk exit
+scheme. It works similarly to the on in Turbo Pascal:
+
+When a program halts (be it through the call of the \var{Halt} function or
+\var{Exit} or through a run-time error), the exit mechanism checks the value
+of \var{ExitProc}. If this one is non-\var{Nil}, it is set to \var{Nil}, and
+the procedure is called. If the exit procedure exits, the value of ExitProc
+is checked again. If it is non-\var{Nil} then the above steps are repeated.
+
+So if you want to install your exit procedure, you should save the old value
+of \var{ExitProc} (may be non-\var{Nil}, since other units could have set it before 
+you did). In your exit procedure you then restore the value of
+\var{ExitProc}, such that if it was non-\var{Nil} the exit-procedure can be
+called.
+
+The \var{ErrorAddr} and \var{ExitCode} can be used to check for
+error-conditions. If \var{ErrorAddr} is non-\var{Nil}, a run-time error has
+occurred. If so, \var{ExitCode} contains the error code. If \var{ErrorAddr} is
+\var{Nil}, then {ExitCode} contains the argument to \var{Halt} or 0 if the
+program terminated normally.
+
+\var{ExitCode} is always passed to the operating system as the exit-code of
+your process.
+
+\section{Functions and Procedures}
+\function{Abs}{(X : Every numerical type)}{Every numerical type}
+{\var{Abs} returns the absolute value of a variable. The result of the
+function has the same type as its argument, which can be any numerical
+type.}
+{None.}
+{\seef{Round}}
+
+\input{refex/ex1.tex}
+
+\function{Addr}{(X : Any type)}{Pointer}
+{\var{Addr} returns a pointer to its argument, which can be any type, or a
+function or procedure name. The returned pointer isn't typed.
+The same result can be obtained by the \var{@} operator, which can return a
+typed pointer (\progref). }
+{None}
+{\seef{SizeOf}}
+
+\input{refex/ex2.tex}
+
+\procedure{Append}{(Var F : Text)}
+{\var{Append} opens an existing file in append mode. Any data written to
+\var{F} will be appended to the file. If the file didn't exist, it will be
+created, contrary to the Turbo Pascal implementation of \var{Append}, where
+a file needed to exist in order to be opened by
+append.
+
+Only text files can be opened in append mode.
+}
+{If the file can't be created, a run-time error will be generated.}
+{\seep{Rewrite},\seep{Append}, \seep{Reset}}
+
+\input{refex/ex3.tex}
+
+\function{Arctan}{(X : Real)}{Real}
+{\var{Arctan} returns the Arctangent of \var{X}, which can be any real type.
+The resulting angle is in radial units.}{None}{\seef{Sin}, \seef{Cos}}
+
+\input{refex/ex4.tex}
+
+\procedure{Assign}{(Var F; Name : String)}
+{\var{Assign} assigns a name to \var{F}, which can be any file type.
+This call doesn't open the file, it just assigns a name to a file variable,
+and marks the file as closed.}
+{None.}
+{\seep{Reset}, \seep{Rewrite}, \seep{Append}}
+
+\input{refex/ex5.tex}
+
+\procedure{Blockread}{(Var F : File; Var Buffer; Var Count : Longint [; var
+Result : Longint])}
+{\var{Blockread} reads \var{count} or less records from file \var{F}. The
+result is placed in \var{Buffer}, which must contain enough room for
+\var{Count} records. The function cannot read partial records. 
+
+If \var{Result} is specified, it contains the number of records actually
+read. If \var{Result} isn't specified, and less than \var{Count} records were
+read, a run-time error is generated. This behavior can be controlled by the
+\var{\{\$i\}} switch. }
+{If \var{Result} isn't specified, then a run-time error is generated if less
+than \var{count} records were read.}
+{\seep{Blockwrite},\seep{Reset}, \seep{Assign}}
+
+\input{refex/ex6.tex}
+
+\procedure{Blockwrite}{(Var F : File; Var Buffer; Var Count : Longint)}
+{\var{Blockread} writes \var{count} records from \var{buffer} to the file
+ \var{F}. 
+If the records couldn't be written to disk, a run-time error is generated.
+This behavior can be controlled by the \var{\{\$i\}} switch. 
+}
+{A run-time error is generated if, for some reason, the records couldn't be
+written to disk.}
+{\seep{Blockread},\seep{Reset}, \seep{Assign}}
+
+For the example, see \seep{Blockread}.
+
+\procedure{Chdir}{(const S : string)}
+{\var{Chdir} changes the working directory of the process to \var{S}.}
+{If the directory \var{S} doesn't exist, a run-time error is generated.}
+{\seep{Mkdir}, \seep{Rmdir}}
+
+\input{refex/ex7.tex}
+
+\function{Chr}{(X : byte)}{Char}
+{\var{Chr} returns the character which has ASCII value \var{X}.}
+{None.}
+{\seef{Ord},\seep{Str}}
+
+\input{refex/ex8.tex}
+
+\procedure{Close}{(Var F : Anyfiletype)}
+{\var{Close} flushes the buffer of the file \var{F} and closes \var{F}.
+After a call to \var{Close}, data can no longer be read from or written to
+\var{F}.
+
+To reopen a file closed with \var{Close}, it isn't necessary to assign the
+file again. A call to \seep{Reset} or \seep{Rewrite} is sufficient.}
+{None.}{\seep{Assign}, \seep{Reset}, \seep{Rewrite}}
+
+\input{refex/ex9.tex}
+
+\function{Concat}{(S1,S2 [,S3, ... ,Sn])}{String}
+{\var{Concat} concatenates the strings \var{S1},\var{S2} etc. to one long
+string. The resulting string is truncated at a length of 255 bytes.
+
+The same operation can be performed with the \var{+} operation.}
+{None.}
+{\seef{Copy}, \seep{Delete}, \seep{Insert}, \seef{Pos}, \seef{Length}}
+
+\input{refex/ex10.tex}
+
+\function{Copy}{(Const S : String;Index : Integer;Count : Byte)}{String}
+{\var{Copy} returns a string which is a copy if the \var{Count} characters
+in \var{S}, starting at position \var{Index}. If \var{Count} is larger than
+the length of the string \var{S}, the result is truncated. 
+
+If \var{Index} is larger than the length of the string \var{S}, then an
+empty string is returned.}
+{None.}
+{\seep{Delete}, \seep{Insert}, \seef{Pos}}
+
+\input{refex/ex11.tex}
+
+\function{Cos}{(X : real)}{Real}
+{\var{Cos} returns the cosine of \var{X}, where X is an angle, in radians.}
+{None.}
+{\seef{Arctan}, \seef{Sin}}
+
+\input{refex/ex12.tex}
+
+\Function{CSeg}{Word}
+{\var{CSeg} returns the Code segment register. In \fpk, it returns always a
+zero, since \fpk is a 32 bit compiler.}
+{None.}
+{\seef{DSeg}, \seef{Seg}, \seef{Ofs}, \seef{Ptr}}
+
+\input{refex/ex13.tex}
+
+\procedure{Dec}{(Var X : Any ordinal type[; Decrement : Longint])}
+{\var{Dec} decreases the value of \var{X} with \var{Decrement}.
+If \var{Decrement} isn't specified, then 1 is taken as a default.}
+{A range check can occur, or an underflow error, if you try to decrease \var{X}
+below its minimum value.}
+{\seep{Inc}}
+
+\input{refex/ex14.tex}
+
+\procedure{Delete}{(var S : string;Index : Integer;Count : Integer)}
+{\var{Delete} removes \var{Count} characters from string \var{S}, starting
+at position \var{Index}. All remaining characters are shifted \var{Count} 
+positions to the left, and the length of the string is adjusted.
+}
+{None.}
+{\seef{Copy},\seef{Pos},\seep{Insert}}
+
+\input{refex/ex15.tex}
+
+\procedure{Dispose}{(P : pointer)}
+{\var{Dispose} releases the memory allocated with a call to \seep{New}.
+The pointer \var{P} must be typed. The released memory is returned to the
+heap.}
+{An error will occur if the pointer doesn't point to a location in the
+heap.}
+{\seep{New}, \seep{Getmem}, \seep{Freemem}}
+
+\input{refex/ex16.tex}
+
+\Function{DSeg}{Word}
+{\var{DSeg} returns the data segment register. In \fpk, it returns always a
+zero, since \fpk is a 32 bit compiler.}
+{None.}
+{\seef{CSeg}, \seef{Seg}, \seef{Ofs}, \seef{Ptr}}
+
+\input{refex/ex17.tex}
+
+\function{Eof}{[(F : Any file type)]}{Boolean}
+{\var{Eof} returns \var{True} if the file-pointer has reached the end of the
+file, or if the file is empty. In all other cases \var{Eof} returns
+\var{False}.
+
+If no file \var{F} is specified, standard input is assumed.}
+{None.}
+{\seef{Eoln}, \seep{Assign}, \seep{Reset}, \seep{Rewrite}}
+
+\input{refex/ex18.tex}
+
+\function{Eoln}{[(F : Text)]}{Boolean}
+{\var{Eof} returns \var{True} if the file pointer has reached the end of a
+line, which is demarcated by a line-feed character (ASCII value 10), or if
+the end of the file is reached.
+In all other cases \var{Eof} returns \var{False}.
+
+If no file \var{F} is specified, standard input is assumed.
+It can only be used on files of type \var{Text}.}
+{None.}
+{\seef{Eof}, \seep{Assign}, \seep{Reset}, \seep{Rewrite}}
+
+\input{refex/ex19.tex}
+
+\procedure{Erase}{(Var F : Any file type)}
+{\var{Erase} removes an unopened file from disk. The file should be
+assigned with \var{Assign}, but not opened with \var{Reset} or \var{Rewrite}}
+{A run-time error will be generated if the specified file doesn't exist.}
+{\seep{Assign}}
+
+\input{refex/ex20.tex}
+
+\procedure{Exit}{([Var X : return type )]}
+{\var{Exit} exits the current subroutine, and returns control to the calling
+routine. If invoked in the main program routine, exit stops the program.
+
+The optional argument \var{X} allows to specify a return value, in the case
+\var{Exit} is invoked in a function. The function result will then be
+equal to \var{X}.}
+{None.}
+{\seep{Halt}}
+
+\input{refex/ex21.tex}
+
+\function{Exp}{(Var X : real)}{Real}
+{\var{Exp} returns the exponent of \var{X}, i.e. the number \var{e} to the
+power \var{X}.}
+{None.}{\seef{Ln}}
+
+\input{refex/ex22.tex}
+
+\function{Filepos}{(Var F : Any file type)}{Longint}
+{\var{Filepos} returns the current record position of the file-pointer in file
+\var{F}. It cannot be invoked with a file of type \var{Text}.}
+{None.}
+{\seef{Filesize}}
+
+\input{refex/ex23.tex}
+
+\function{Filesize}{(Var F : Any file type)}{Longint}
+{\var{Filepos} returns the total number of records in file \var{F}. 
+It cannot be invoked with a file of type \var{Text}. (under \linux, this
+also means that it cannot be invoked on pipes.)
+
+If \var{F} is empty, 0 is returned.
+}
+{None.}
+{\seef{Filepos}}
+
+\input{refex/ex24.tex}
+
+\procedure{Fillchar}{(Var X;Count : Longint;Value : char or byte);}
+{\var{Fillchar} fills the memory starting at \var{X} with \var{Count} bytes
+or characters with value equal to \var{Value}.
+}
+{No checking on the size of \var{X} is done.}
+{\seep{Fillword}, \seep{Move}}
+
+\input{refex/ex25.tex}
+
+\procedure{Fillword}{(Var X;Count : Longint;Value : Word);}
+{\var{Fillword} fills the memory starting at \var{X} with \var{Count} words
+with value equal to \var{Value}.
+}
+{No checking on the size of \var{X} is done.}
+{\seep{Fillword}, \seep{Move}}
+
+\input{refex/ex76.tex}
+
+\procedure{Flush}{(Var F : Text)}
+{\var{Flush} empties the internal buffer of file \var{F} and writes the
+contents to disk. The file is \textit{not} closed as a result of this call.}
+{If the disk is full, a run-time error will be generated.}
+{\seep{Close}}
+
+\input{refex/ex26.tex}
+
+\function{Frac}{(X : real)}{Real}
+{\var{Frac} returns the non-integer part of \var{X}.}
+{None.}
+{\seef{Round}, \seef{Int}}
+
+\input{refex/ex27.tex}
+
+\procedure{Freemem}{(Var P : pointer; Count : longint)}
+{\var{Freemem} releases the memory occupied by the pointer \var{P}, of size
+\var{Count}, and returns it to the heap. \var{P} should point to the memory
+allocated to a dynamical variable.}
+{An error will occur when \var{P} doesn't point to the heap.}
+{\seep{Getmem}, \seep{New}, \seep{Dispose}}
+
+\input{refex/ex28.tex}
+
+\procedure{Getdir}{(drivenr : byte;var dir : string)}
+{\var{Getdir} returns in \var{dir} the current directory on the drive
+\var{drivenr}, where {drivenr} is 1 for the first floppy drive, 3 for the
+first hard disk etc. A value of 0 returns the directory on the current disk.
+
+On \linux, \var{drivenr} is ignored, as there is only one directory tree.}
+{An error is returned under \dos, if the drive requested isn't ready.}
+{\seep{Chdir}}
+
+\input{refex/ex29.tex}
+
+\procedure{Getmem}{(var p : pointer;size : longint)}
+{\var{Getmem} reserves \var{Size} bytes memory on the heap, and returns a
+pointer to this memory in \var{p}. If no more memory is available, nil is
+returned.}
+{None.}
+{\seep{Freemem}, \seep{Dispose}, \seep{New}}
+
+For an example, see \seep{Freemem}.
+
+\procedure{Halt}{[(Errnum : byte]}
+{\var{Halt} stops program execution and returns control to the calling
+program. The optional argument \var{Errnum} specifies an exit value. If
+omitted, zero is returned.}
+{None.}
+{\seep{Exit}}
+
+\input{refex/ex30.tex}
+
+\function{Hi}{(X : Ordinal type)}{Word or byte}
+{\var{Hi} returns the high byte or word from \var{X}, depending on the size
+of X. If the size of X is 4, then the high word is returned. If the size is
+2 then the high byte is retuned. 
+\var{hi} cannot be invoked on types of size 1, such as byte or char.}
+{None}
+{\seef{Lo}}
+
+\input{refex/ex31.tex}
+
+\procedure{Inc}{(Var X : Any ordinal type[; Increment : Longint])}
+{\var{Inc} increases the value of \var{X} with \var{Increment}.
+If \var{Increment} isn't specified, then 1 is taken as a default.}
+{A range check can occur, or an overflow error, if you try to increase \var{X}
+over its maximum value.}
+{\seep{Dec}}
+
+\input{refex/ex32.tex}
+
+\procedure{Insert}{(Var Source : String;var S : String;Index : integer)}
+{\var{Insert} inserts string \var{S} in string \var{Source}, at position
+\var{Index}, shifting all characters after \var{Index} to the right. The
+resulting string is truncated at 255 characters, if needed.}
+{None.}
+{\seep{Delete}, \seef{Copy}, \seef{Pos}}
+
+\input{refex/ex33.tex}
+
+\function{Int}{(X : real)}{Real}
+{\var{Int} returns the integer part of any real \var{X}, as a real.}
+{None.}
+{\seef{Frac}, \seef{Round}}
+
+\input{refex/ex34.tex}
+
+\Function{IOresult}{Word}
+{IOresult contains the result of any input/output call, when the
+\var{\{\$i-\}} compiler directive is active, and IO checking is disabled. When the
+flag is read, it is reset to zero.
+
+If \var{IOresult} is zero, the operation completed successfully. If
+non-zero, an error occurred. The following errors can occur:
+
+\dos errors :
+
+\begin{description}
+\item [2\ ] File not found.
+\item [3\ ] Path not found.
+\item [4\ ] Too many open files.
+\item [5\ ] Access denied.
+\item [6\ ] Invalid file handle.
+\item [12\ ] Invalid file-access mode.
+\item [15\ ] Invalid disk number.
+\item [16\ ] Cannot remove current directory.
+\item [17\ ] Cannot rename across volumes.
+\end{description}
+
+I/O errors :
+
+\begin{description}
+\item [100\ ] Error when reading from disk.
+\item [101\ ] Error when writing to disk.
+\item [102\ ] File not assigned.
+\item [103\ ] File not open.
+\item [104\ ] File not opened for input.
+\item [105\ ] File not opened for output.
+\item [106\ ] Invalid number.
+\end{description}
+
+Fatal errors :
+
+\begin{description}
+\item [150\ ] Disk is write protected.
+\item [151\ ] Unknown device.
+\item [152\ ] Drive not ready.
+\item [153\ ] Unknown command.
+\item [154\ ] CRC check failed.
+\item [155\ ] Invalid drive specified..
+\item [156\ ] Seek error on disk.
+\item [157\ ] Invalid media type.
+\item [158\ ] Sector not found.
+\item [159\ ] Printer out of paper.
+\item [160\ ] Error when writing to device.
+\item [161\ ] Error when reading from device.
+\item [162\ ] Hardware failure.
+\end{description}
+}
+{None.}
+{All I/O functions.}
+
+\input{refex/ex35.tex}
+
+\function{Length}{(S : String)}{Byte}
+{\var{Length} returns the length of the string \var{S},
+which is limited to 255. If the strings \var{S} is empty, 0 is returned.
+
+{\em Note:} The length of the string \var{S} is stored in \var{S[0]}.
+}
+{None.}
+{\seef{Pos}}
+
+\input{refex/ex36.tex}
+
+\function{Ln}{(X : real)}{Real}
+{
+\var{Ln} returns the natural logarithm of the real parameter \var{X}.
+\var{X} must be positive.
+}
+{An run-time error will occur when \var{X} is negative.}
+{\seef{Exp}}
+
+\input{refex/ex37.tex}
+
+\function{Lo}{(O : Word or Longint)}{Byte or Word}
+{\var{Lo} returns the low byte of its argument if this is of type
+\var{Integer} or
+\var{Word}. It returns the low word of its argument if this is of type 
+\var{Longint} or \var{Cardinal}.}
+{None.}
+{\seef{Ord}, \seef{Chr}}
+
+\input{refex/ex38.tex}
+
+\function{Lowercase}{(C : Char or String)}{Char or String}
+{\var{Lowercase} returns the lowercase version of its argument \var{C}.
+If its argument is a string, then the complete string is converted to
+lowercase. The type of the returned value is the same as the type of the
+argument.}
+{None.}
+{\seef{Upcase}}
+
+\input{refex/ex73.tex}
+
+\procedure{Mark}{(Var P : Pointer)}
+{\var{Mark} copies the current heap-pointer to \var{P}.}
+{None.}
+{\seep{Getmem}, \seep{Freemem}, \seep{New}, \seep{Dispose}, \seef{Maxavail}}
+
+\input{refex/ex39.tex}
+
+\Function{Maxavail}{Longint}
+{\var{Maxavail} returns the size, in bytes, of the biggest free memory block in
+the heap.
+
+{\em Remark:} The heap grows dynamically if more memory is needed than is
+available.}
+{None.}
+{\seep{Release}, \seef{Memavail},\seep{Freemem}, \seep{Getmem}}
+
+\input{refex/ex40.tex}
+
+\Function{Memavail}{Longint}
+{\var{Memavail} returns the size, in bytes, of the free heap memory.
+
+{\em Remark:} The heap grows dynamically if more memory is needed than is
+available.}
+{None.}
+{\seef{Maxavail},\seep{Freemem}, \seep{Getmem}}
+
+\input{refex/ex41.tex}
+
+\procedure{Mkdir}{(const S : string)}
+{\var{Chdir} creates a new  directory \var{S}.}
+{If a parent-directory of directory \var{S} doesn't exist, a run-time error is generated.}
+{\seep{Chdir}, \seep{Rmdir}}
+
+For an example, see \seep{Rmdir}.
+
+\procedure{Move}{(var Source,Dest;Count : longint)}
+{\var{Move} moves \var{Count} bytes from \var{Source} to \var{Dest}.}
+{If either \var{Dest} or \var{Source} is outside the accessible memory for
+the process, then a run-time error will be generated. With older versions of
+the compiler, a segmentation-fault will occur. }
+{\seep{Fillword}, \seep{Fillchar}}
+
+\input{refex/ex42.tex}
+
+
+\procedure{New}{(Var P : Pointer[, Constructor])}
+{\var{New} allocates a new instance of the type pointed to by \var{P}, and
+puts the address in \var{P}. 
+
+If P is an object, then it is possible to
+specify the name of the constructor with which the instance will be created.}
+{If not enough memory is available, \var{Nil} will be returned.}
+{\seep{Dispose}, \seep{Freemem}, \seep{Getmem}, \seef{Memavail},
+\seef{Maxavail}}
+
+For an example, see \seep{Dispose}.
+
+\function{Odd}{(X : longint)}{Boolean}
+{\var{Odd} returns \var{True} if \var{X} is odd, or \var{False} otherwise.}
+{None.}
+{\seef{Abs}, \seef{Ord}}
+
+
+\input{refex/ex43.tex}
+
+\function{Ofs}{Var X}{Longint}
+{\var{Ofs} returns the offset of the address of a variable. 
+
+This function is only supported for compatibility. In \fpk, it 
+returns always the complete address of the variable, since \fpk is a 32 bit 
+compiler.
+}
+{None.}
+{\seef{DSeg}, \seef{CSeg}, \seef{Seg}, \seef{Ptr}}
+
+
+\input{refex/ex44.tex}
+
+
+\function{Ord}{(X : Ordinal type)}{Byte}
+{\var{Ord} returns the Ordinal value of a ordinal-type variable \var{X}.}
+{None.}
+{\seef{Chr}}
+
+
+\input{refex/ex45.tex}
+
+\Function{Paramcount}{Longint}
+{\var{Paramcount} returns the number of command-line arguments. If no
+arguments were given to the running program, \var{0} is returned.
+}
+{None.}
+{\seef{Paramstr}}
+
+
+\input{refex/ex46.tex}
+
+\function{Paramstr}{(L : Longint)}{String}
+{\var{Paramstr} returns the \var{L}-th command-line argument. \var{L} must
+be between \var{0} and \var{Paramcount}, these values included.
+The zeroth argument is the name with which the program was started.
+}
+{Under Linux, command-line arguments may be longer than 255 characters. In
+that case, the string is truncated. If you want to access the complete
+string, you must use the \var{argv} pointer to access the real values of the
+command-line parameters.}
+{\seef{Paramcount}}
+
+For an example, see \seef{Paramcount}.
+
+\Function{Pi}{Real}
+{\var{Pi} returns the value of Pi (3.1415926535897932385).}
+{None.}
+{\seef{Cos}, \seef{Sin}}
+
+
+\input{refex/ex47.tex}
+
+\function{Pos}{(Const Substr : String;Const S : String)}{Byte}
+{\var{Pos} returns the index of \var{Substr} in \var{S}, if \var{S} contains
+\var{Substr}. In case \var{Substr} isn't found, \var{0} is returned.
+
+The search is case-sensitive.
+}
+{None}
+{\seef{Length}, \seef{Copy}, \seep{Delete}, \seep{Insert}}
+
+
+\input{refex/ex48.tex}
+
+\function{Ptr}{(Sel,Off : Longint)}{Pointer}
+{\var{Ptr} returns a pointer, pointing to the address specified by
+segment{Sel} and offset \var{Off}.
+
+{\em Remark 1:} In the 32-bit flat-memory model supported by \fpk, this
+function is obsolete.}
+
+{\em Remark 2:} The returned address is simply the offset. If you recompile
+the RTL with \var{-dDoMapping} defined, then the compiler returns the
+following : \verb|ptr:=pointer($e0000000+sel shl 4+off)| under \dos, or
+\verb|ptr:=pointer(sel shl 4+off)| on other OSes.
+{None.}
+{\seef{Addr}}
+\input{refex/ex59.tex}
+
+\function{Random}{[(L : longint)]}{Longint or Real}
+{\var{Random} returns a random number larger or equal to \var{0} and
+strictly less than \var{L}.
+
+If the argument \var{L} is omitted, a real number between 0 and 1 is returned.
+(0 included, 1 excluded)}
+{None.}
+{\seep{Randomize}}
+
+
+\input{refex/ex49.tex}
+
+\Procedure{Randomize}
+{\var{Randomize} initializes the random number generator of \fpk, by giving
+a value to \var{Randseed}, calculated with the system clock.
+}
+{None.}
+{\seef{Random}}
+
+For an example, see \seef{Random}.
+
+\procedure{Read}{([Var F : Any file type], V1 [, V2, ... , Vn])}
+{\var{Read} reads one or more values from a file \var{F}, and stores the
+result in \var{V1}, \var{V2}, etc.; If no file \var{F} is specified, then
+standard input is read.
+
+If \var{F} is of type \var{Text}, then the variables \var{V1, V2} etc. must be
+of type \var{Char}, \var{Integer}, \var{Real} or \var{String}.
+
+If \var{F} is a typed file, then each of the variables must be of the type
+specified in the declaration of \var{F}. Untyped files are not allowed as an
+argument.}
+{If no data is available, a run-time error is generated. This behavior can
+
+be controlled with the \var{\{\$i\}} compiler switch.}
+{\seep{Readln}, \seep{Blockread}, \seep{Write}, \seep{Blockwrite}}
+
+
+\input{refex/ex50.tex}
+
+\procedure{Readln}{[Var F : Text], V1 [, V2, ... , Vn])}
+{\var{Read} reads one or more values from a file \var{F}, and stores the
+result in \var{V1}, \var{V2}, etc. After that it goes to the next line in
+the file (defined by the \var{LineFeed (\#10)} character). 
+If no file \var{F} is specified, then standard input is read.
+
+The variables \var{V1, V2} etc. must be of type \var{Char}, \var{Integer}, 
+\var{Real}, \var{String} or \var{PChar}.
+}
+{If no data is available, a run-time error is generated. This behavior can
+be controlled with the \var{\{\$i\}} compiler switch.}
+{\seep{Read}, \seep{Blockread}, \seep{Write}, \seep{Blockwrite}}
+
+For an example, see \seep{Read}.
+
+\procedure{Release}{(Var P : pointer)}
+{\var{Release} sets the top of the Heap to the location pointed to by
+\var{P}. All memory at a location higher than \var{P} is marked empty.}
+{A run-time error will be generated if \var{P} points to memory outside the
+heap.}
+{\seep{Mark}, \seef{Memavail}, \seef{Maxavail}, \seep{Getmem}, \seep{Freemem}
+\seep{New}, \seep{Dispose}}
+
+For an example, see \seep{Mark}.
+
+\procedure{Rename}{(Var F : Any Filetype; Const S : String)}
+{\var{Rename} changes the name of the assigned file \var{F} to \var{S}.
+\var{F}
+must be assigned, but not opened.}
+{A run-time error will be generated if \var{F} isn't assigned, 
+or doesn't exist.}
+{\seep{Erase}}
+
+\input{refex/ex77.tex}
+
+\procedure{Reset}{(Var F : Any File Type[; L : longint])}
+{\var{Reset} opens a file \var{F} for reading. \var{F} can be any file type.
+If \var{F} is an untyped or typed file, then it is opened for reading and 
+writing. If \var{F} is an untyped file, the record size can be specified in 
+the optional parameter \var{L}. Default a value of 128 is used.}
+{If the file cannot be opened for reading, then a run-time error is
+generated. This behavior can be changed by the \var{\{\$i\} } compiler switch.}
+{\seep{Rewrite}, \seep{Assign}, \seep{Close}}
+
+
+\input{refex/ex51.tex}
+
+\procedure{Rewrite}{(Var F : Any File Type[; L : longint])}
+{\var{Rewrite} opens a file \var{F} for writing. \var{F} can be any file type.
+If \var{F} is an untyped or typed file, then it is opened for reading and 
+writing. If \var{F} is an untyped file, the record size can be specified in 
+the optional parameter \var{L}. Default a value of 128 is used.
+
+if \var{Rewrite} finds a file with the same name as \var{F}, this file is
+truncated to length \var{0}. If it doesn't find such a file, a new file is 
+created.
+}
+{If the file cannot be opened for writing, then a run-time error is
+generated. This behavior can be changed by the \var{\{\$i\} } compiler switch.}
+{\seep{Reset}, \seep{Assign}, \seep{Close}}
+
+
+\input{refex/ex52.tex}
+
+\procedure{Rmdir}{(const S : string)}
+{\var{Rmdir} removes the  directory \var{S}.}
+{If \var{S} doesn't exist, or isn't empty, a run-time error is generated.
+}
+{\seep{Chdir}, \seep{Rmdir}}
+
+\input{refex/ex53.tex}
+
+\function{Round}{(X : real)}{Longint}
+{\var{Round} rounds \var{X} to the closest integer, which may be bigger or
+smaller than \var{X}.}
+{None.}
+{\seef{Frac}, \seef{Int}, \seef{Trunc}}
+
+\input{refex/ex54.tex}
+
+\procedure{Runerror}{(ErrorCode : Word)}
+{\var{Runerror} stops the execution of the program, and generates a
+run-time error \var{ErrorCode}.}
+{None.}
+{\seep{Exit}, \seep{Halt}}
+
+\input{refex/ex55.tex}
+
+\procedure{Seek}{(Var F; Count : Longint)}
+{\var{Seek} sets the file-pointer for file \var{F} to record Nr. \var{Count}.
+The first record in a file has \var{Count=0}. F can be any file type, except
+\var{Text}. If \var{F} is an untyped file, with no specified record size, 128
+is assumed.}
+{A run-time error is generated if \var{Count} points to a position outside
+the file, or the file isn't opened.}
+{\seef{Eof}, \seef{SeekEof}, \seef{SeekEoln}}
+
+\input{refex/ex56.tex}
+
+\function{SeekEof}{[(Var F : text)]}{Boolean}
+{\var{SeekEof} returns \var{True} is the file-pointer is at the end of the
+file. It ignores all whitespace.
+
+Calling this function has the effect that the file-position is advanced
+until the first non-whitespace character or the end-of-file marker is
+reached.
+If the end-of-file marker is reached, \var{True} is returned. Otherwise,
+False is returned.
+
+If the parameter \var{F} is omitted, standard \var{Input} is assumed.
+}
+{A run-time error is generated if the file \var{F} isn't opened.}
+{\seef{Eof}, \seef{SeekEoln}, \seep{Seek}}
+
+\input{refex/ex57.tex}
+
+\function{SeekEoln}{[(Var F : text)]}{Boolean}
+{\var{SeekEoln} returns \var{True} is the file-pointer is at the end of the
+current line. It ignores all whitespace.
+
+Calling this function has the effect that the file-position is advanced
+until the first non-whitespace character or the end-of-line marker is
+reached.
+If the end-of-line marker is reached, \var{True} is returned. Otherwise,
+False is returned.
+
+The end-of-line marker is defined as \var{\#10}, the LineFeed character.
+
+If the parameter \var{F} is omitted, standard \var{Input} is assumed.}
+{A run-time error is generated if the file \var{F} isn't opened.}
+{\seef{Eof}, \seef{SeekEof}, \seep{Seek}}
+
+\input{refex/ex58.tex}
+
+\function{Seg}{Var X}{Longint}
+{\var{Seg} returns the segment of the address of a variable. 
+
+This function is only supported for compatibility. In \fpk, it 
+returns always 0, since \fpk is a 32 bit compiler, segments have no meaning.
+}
+{None.}
+{\seef{DSeg}, \seef{CSeg}, \seef{Ofs}, \seef{Ptr}}
+
+\input{refex/ex60.tex}
+
+
+\procedure{SetTextBuf}{(Var f : Text; Var Buf[; Size : Word])}
+{\var{SetTextBuf} assigns an I/O buffer to a text file. The new buffer is
+located at \var{Buf} and is \var{Size} bytes long. If \var{Size} is omitted,
+then \var{SizeOf(Buf)} is assumed.
+
+The standard buffer of any text file is 128 bytes long. For heavy I/0
+operations this may prove too slow. The \var{SetTextBuf} procedure allows
+you to set a bigger buffer for your application, thus reducing the number of
+system calls, and thus reducing the load on the system resources.
+
+The maximum size of the newly assigned buffer is 65355 bytes.
+
+{\em Remark 1:} Never assign a new buffer to an opened file. You can assign a
+new buffer immediately after a call to \seep{Rewrite}, \seep{Reset} or
+\var{Append}, but not after you read from/wrote to the file. This may cause
+loss of data. If you still want to assign a new buffer after read/write
+operations have been performed, flush the file first. This will ensure that
+the current buffer is emptied.
+
+{\em Remark 2:} Take care that the buffer you assign is always valid. If you
+assign a local variable as a buffer, then after your program exits the local
+program block, the buffer will no longer be valid, and stack problems may
+occur.
+}
+{No checking on \var{Size} is done.}
+{\seep{Assign}, \seep{Reset}, \seep{Rewrite}, \seep{Append}}
+
+\input{refex/ex61.tex}
+
+\function{Sin}{(X : real)}{Real}
+{\var{Sin} returns the sine of its argument \var{X}, where \var{X} is an
+angle in radians.}
+{None.}
+{\seef{Cos}, \seef{Pi}, \seef{Exp}}
+
+\input{refex/ex62.tex}
+
+\function{SizeOf}{(X : Any Type)}{Longint}
+{\var{SizeOf} Returns the size, in bytes, of any variable or type-identifier.
+
+ {\em Remark:} this isn't really a RTL function. Its result is calculated at
+compile-time, and hard-coded in your executable.}
+{None.}
+{\seef{Addr}}
+
+\input{refex/ex63.tex}
+
+\Function{Sptr}{Pointer}
+{\var{Sptr} returns the current stack pointer.
+}{None.}{}
+
+\input{refex/ex64.tex}
+
+\function{Sqr}{(X : Real)}{Real}
+{\var{Sqr} returns the square of its argument \var{X}.}
+{None.}
+{\seef{Sqrt}, \seef{Ln}, \seef{Exp}}
+
+\input{refex/ex65.tex}
+
+\function{Sqrt}{(X : Real)}{Real}
+{\var{Sqrt} returns the square root of its argument \var{X}, which must be
+positive.}
+{If \var{X} is negative, then a run-time error is generated.}
+{\seef{Sqr}, \seef{Ln}, \seef{Exp}}
+
+\input{refex/ex66.tex}
+
+\Function{SSeg}{Longint}
+{ \var{SSeg} returns the Stack Segment. This function is only 
+ supported for compatibolity reasons, as \var{Sptr} returns the
+correct contents of the stackpointer.}
+{None.}{\seef{Sptr}}
+
+\input{refex/ex67.tex}
+
+
+\procedure{Str}{(Var X[:NumPlaces[:Decimals]]; Var S : String)}
+{\var{Str} returns a string which represents the value of X. X can be any
+numerical type.
+
+The optional \var{NumPLaces} and \var{Decimals} specifiers control the
+formatting of the string.}
+{None.}
+{\seep{Val}}
+
+\input{refex/ex68.tex}
+
+\function{Swap}{(X)}{Type of X}
+{\var{Swap} swaps the high and low order bytes of \var{X} if \var{X} is of
+type \var{Word} or \var{Integer}, or swaps the high and low order words of
+\var{X} if \var{X} is of type \var{Longint} or \var{Cardinal}.
+
+The return type is the type of \var{X}}
+{None.}{\seef{Lo}, \seef{Hi}}
+
+\input{refex/ex69.tex}
+
+\function{Trunc}{(X : real)}{Longint}
+{\var{Trunc} returns the integer part of \var{X}, 
+which is always smaller than (or equal to)  \var{X}.}
+{None.}
+{\seef{Frac}, \seef{Int}, \seef{Trunc}}
+
+\input{refex/ex70.tex}
+
+\procedure{Truncate}{(Var F : file)}
+{\var{Truncate} truncates the (opened) file \var{F} at the current file
+position.
+}{Errors are reported by IOresult.}{\seep{Append}, \seef{Filepos},
+\seep{Seek}}
+
+\input{refex/ex71.tex}
+
+\function{Upcase}{(C : Char or string)}{Char or String}
+{\var{Upcase} returns the uppercase version of its argument \var{C}.
+If its argument is a string, then the complete string is converted to 
+uppercase. The type of the returned value is the same as the type of the
+argument.}
+{None.}
+{\seef{Lowercase}}
+
+\input{refex/ex72.tex}
+
+\procedure{Val}{(const S : string;var V;var Code : word)}
+{\var{Val} converts the value represented in the string \var{S} to a numerical
+value, and stores this value in the variable \var{V}, which 
+can be of type \var{Longint}, \var{real} and \var{Byte}.
+
+If the conversion isn't succesfull, then the parameter \var{Code} contains
+the index of the character in \var{S} which prevented the conversion.
+
+The string \var{S} isn't allow to contain spaces.}
+{If the conversion doesn't succeed, the value of \var{Code} indicates the
+position where the conversion went wrong.}
+{\seep{Str}}
+
+\input{refex/ex74.tex}
+
+\procedure{Write}{([Var F : Any filetype;] V1 [; V2; ... , Vn)]}
+{\var{Write} writes the contents of the variables \var{V1}, \var{V2} etc. to
+the file \var{F}. \var{F} can be a typed file, or a \var{Text} file.
+
+If \var{F} is a typed file, then the variables \var{V1}, \var{V2} etc. must
+be of the same type as the type in the declaration of \var{F}. Untyped files
+are not allowed.
+
+If the parameter \var{F} is omitted, standard output is assumed. 
+
+If \var{F} is of type \var{Text}, then the necessary conversions are done
+such that the output of the variables is in human-readable format.
+This conversion is done for all numerical types. Strings are printed exactly
+as they are in memory, as well as \var{PChar} types. 
+The format of the numerical conversions can be influenced through
+the following modifiers:
+
+\var{ OutputVariable : NumChars [: Decimals ]  }
+
+This will print the value of \var{OutputVariable} with a minimum of
+\var{NumChars} characters, from which \var{Decimals} are reserved for the
+decimals. If the number cannot be represented with \var{NumChars} characters,
+\var{NumChars} will be increased, until the representation fits. If the
+representation requires less than \var{NumChars} characters then the output
+is filled up with spaces, to the left of the generated string, thus
+resulting in a right-aligned representation.
+
+If no formatting is specified, then the number is written using its natural
+length, with a space in front of it if it's positive, and a minus sign if
+it's negative.
+
+Real numbers are, by default, written in scientific notation.
+}
+{If an error occurs, a run-time error is generated. This behavior can be
+controlled with the \var{\{\$i\}} switch. }
+{\seep{Writeln}, \seep{Read}, \seep{Readln}, \seep{Blockwrite} }
+
+\procedure{Writeln}{[([Var F : Text;] [V1 [; V2; ... , Vn)]]}
+{\var{Writeln} does the same as \seep{Write} for text files, and emits a
+Carriage Return - LineFeed character pair after that.
+
+If the parameter \var{F} is omitted, standard output is assumed. 
+
+If no variables are specified, a Carriage Return - LineFeed character pair
+is emitted, resulting in a new line in the file \var{F}.
+
+{\em Remark:} Under \linux, the Carriage Return character is omitted, as
+customary in Unix environments.
+}
+{If an error occurs, a run-time error is generated. This behavior can be
+controlled with the \var{\{\$i\}} switch. }
+{\seep{Write}, \seep{Read}, \seep{Readln}, \seep{Blockwrite}}
+
+\input{refex/ex75.tex}
+
+%
+% The index.
+% 
+\printindex
+\end{document}

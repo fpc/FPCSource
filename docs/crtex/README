@@ -1,0 +1,21 @@
+These are the example programs that appear in the FPC documentation.
+These examples were written by Peter Vreman (pfv@worldonline.nl)
+ 
+Units guide, chapter on CRT unit :
+
+ex1.pp contains an example of the AssignCrt function.
+ex2.pp contains an example of the KeyPressed function.
+ex3.pp contains an example of the ReadKey function.
+ex4.pp contains an example of the TextMode function.
+ex5.pp contains an example of the Window function.
+ex6.pp contains an example of the GotoXY function.
+ex7.pp contains an example of the WhereX and WhereY functions.
+ex8.pp contains an example of the ClrScr function.
+ex9.pp contains an example of the ClrEol function.
+ex10.pp contains an example of the InsLine function.
+ex11.pp contains an example of the DelLine function.
+ex12.pp contains an example of the TextColor function.
+ex13.pp contains an example of the TextBackground function.
+ex14.pp contains an example of the LowVideo, HighVideo, NormVideo functions.
+ex15.pp contains an example of the Delay function.
+ex16.pp contains an example of the Sound function.

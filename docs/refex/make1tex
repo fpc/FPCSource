@@ -1,0 +1,10 @@
+#!/bin/csh
+set texfile="all.tex"
+echo '\documentclass{article}' >$texfile
+echo '\usepackage{fpk}' >>$texfile
+echo '\usepackage{a4}' >>$texfile
+echo '\\begin{document}' >>$texfile
+foreach f ( $* )
+  echo "\input{$f}" >>$texfile
+end
+echo "\end{document}" >>$texfile

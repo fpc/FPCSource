@@ -1,0 +1,10 @@
+*** /root/cvs/docs/linuxex/README	Sun Jan 11 23:24:10 1998
+--- README	Fri Jan 16 17:46:39 1998
+***************
+*** 54,56 ****
+--- 54,58 ----
+  ex51.pp contains an example of the StringToPPChar function.
+  ex52.pp contains an example of the GetFS function.
+  ex53.pp contains an example of the S_ISLNK and related functions.
++ ex54.pp contains an example of the IOCtl function.
++ ex55.pp contains an example of the TCGetAttr,TCSetAttr,CFMakeRaw functions.
