@@ -288,11 +288,14 @@ implementation
 
 
 begin
-   ctypeconvnode:=tppctypeconvnode;
+   ctypeconvnode:=tm68ktypeconvnode;
 end.
 {
   $Log$
-  Revision 1.1  2002-08-14 19:16:34  carl
+  Revision 1.2  2002-08-14 19:31:26  carl
+    * fix small compilation problem
+
+  Revision 1.1  2002/08/14 19:16:34  carl
     + m68k type conversion nodes
     + started some mathematical nodes
     * out of bound references should now be handled correctly
