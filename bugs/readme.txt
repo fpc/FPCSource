@@ -250,6 +250,8 @@ Fixed bugs:
                (problem created while solving bug205 ! PM)          OK 0.99.11 (PM)
   bug0210.pp   fillchar should accept boolean value also !!         OK 0.99.11 (PM)
   bug0211.pp   a and not a is true !!! (if a:=boolean(5))           OK 0.99.11 (PM)
+  bug0213.pp   name mangling problem with nested procedures in overloaded
+               procedure                                            OK 0.99.11 (PM)
   bug0214.pp   bug for static methods                               OK 0.99.11 (PM)
 
 Unproducable bugs:
@@ -286,6 +288,4 @@ bug0201.pp   problem with record var-parameters and assembler
 bug0202.pp   flag results not supported with case
 bug0206.pp   sets with variable ranges doesn't work
 bug0212.pp   problem with properties
-bug0213.pp   name mangling problem with nested procedures in overloaded
-             procedure
 bug0215.pp   more bugs with static methods
