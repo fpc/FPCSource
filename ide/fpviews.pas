@@ -1135,40 +1135,39 @@ begin
 end;
 
 function TSourceEditor.GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer): string;
-var S: string[20];
 begin
   case SpecClass of
     ssCommentPrefix :
       case Index of
-        0 : S:='{';
-        1 : S:='(*';
-        2 : S:='//';
+        0 : GetSpecSymbol:='{';
+        1 : GetSpecSymbol:='(*';
+        2 : GetSpecSymbol:='//';
       end;
     ssCommentSingleLinePrefix :
       case Index of
-        0 : S:='//';
+        0 : GetSpecSymbol:='//';
       end;
     ssCommentSuffix :
       case Index of
-        0 : S:='}';
-        1 : S:='*)';
+        0 : GetSpecSymbol:='}';
+        1 : GetSpecSymbol:='*)';
       end;
     ssStringPrefix :
-      S:='''';
+      GetSpecSymbol:='''';
     ssStringSuffix :
-      S:='''';
+      GetSpecSymbol:='''';
+    { must ne uppercased to avoid calling UpCaseStr in MatchesAnyAsmSymbol PM }
     ssAsmPrefix :
-      S:='asm';
+      GetSpecSymbol:='ASM';
     ssAsmSuffix :
-      S:='end';
+      GetSpecSymbol:='END';
     ssDirectivePrefix :
-      S:='{$';
+      GetSpecSymbol:='{$';
     ssDirectiveSuffix :
-      S:='}';
+      GetSpecSymbol:='}';
     else
-      S:='';
+      GetSpecSymbol:='';
   end;
-  GetSpecSymbol:=S;
 end;
 
 function TSourceEditor.IsReservedWord(const S: string): boolean;
@@ -4257,38 +4256,36 @@ begin
 end;
 
 function TFPCodeMemo.GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer): string;
-var S: string[20];
 begin
   case SpecClass of
     ssCommentPrefix :
       case Index of
-        0 : S:='{';
-        1 : S:='(*';
-        2 : S:='//';
+        0 : GetSpecSymbol:='{';
+        1 : GetSpecSymbol:='(*';
+        2 : GetSpecSymbol:='//';
       end;
     ssCommentSingleLinePrefix :
       case Index of
-        0 : S:='//';
+        0 : GetSpecSymbol:='//';
       end;
     ssCommentSuffix :
       case Index of
-        0 : S:='}';
-        1 : S:='*)';
+        0 : GetSpecSymbol:='}';
+        1 : GetSpecSymbol:='*)';
       end;
     ssStringPrefix :
-      S:='''';
+      GetSpecSymbol:='''';
     ssStringSuffix :
-      S:='''';
+      GetSpecSymbol:='''';
     ssAsmPrefix :
-      S:='asm';
+      GetSpecSymbol:='ASM';
     ssAsmSuffix :
-      S:='end';
+      GetSpecSymbol:='END';
     ssDirectivePrefix :
-      S:='{$';
+      GetSpecSymbol:='{$';
     ssDirectiveSuffix :
-      S:='}';
+      GetSpecSymbol:='}';
   end;
-  GetSpecSymbol:=S;
 end;
 
 function TFPCodeMemo.IsReservedWord(const S: string): boolean;
@@ -4357,7 +4354,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.29  2002-09-07 15:40:46  peter
+  Revision 1.30  2002-09-11 10:05:10  pierre
+   * try to speed up syntax highlighting
+
+  Revision 1.29  2002/09/07 15:40:46  peter
     * old logs removed and tabs fixed
 
   Revision 1.28  2002/09/05 10:57:08  pierre

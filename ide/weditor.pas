@@ -2088,33 +2088,29 @@ var
   var MatchedSymbol: boolean;
       MatchingSymbol: string;
   type TPartialType = (pmNone,pmLeft,pmRight,pmAny);
-  function MatchesAnySpecSymbol(What: string; SClass: TSpecSymbolClass; PartialMatch: TPartialType;
-           CaseInsensitive: boolean): boolean;
+
+  function MatchesAnySpecSymbol(SClass: TSpecSymbolClass; PartialMatch: TPartialType): boolean;
   var S: string;
       I: Sw_integer;
       Match,Found: boolean;
   begin
     Found:=false;
-    if CaseInsensitive then
-      What:=UpcaseStr(What);
-    if What<>'' then
+    if SymbolConcat<>'' then
     for I:=1 to Editor^.GetSpecSymbolCount(SClass) do
     begin
       SymbolIndex:=I;
       S:=Editor^.GetSpecSymbol(SClass,I-1);
-      if (length(What)<length(S)) or
-         ((PartialMatch=pmNone) and (length(S)<>length(What)))
+      if (length(SymbolConcat)<length(S)) or
+         ((PartialMatch=pmNone) and (length(S)<>length(SymbolConcat)))
           then
         Match:=false
       else
         begin
-          if CaseInsensitive then
-            S:=UpcaseStr(S);
           case PartialMatch of
-            pmNone : Match:=What=S;
+            pmNone : Match:=SymbolConcat=S;
             pmRight:
-              Match:=copy(What,length(What)-length(S)+1,length(S))=S;
-          else Match:=MatchSymbol(What,S);
+              Match:=copy(SymbolConcat,length(SymbolConcat)-length(S)+1,length(S))=S;
+          else Match:=MatchSymbol(SymbolConcat,S);
           end;
         end;
       if Match then
@@ -2126,58 +2122,95 @@ var
     MatchesAnySpecSymbol:=Found;
   end;
 
+  function MatchesAsmSpecSymbol(Const OrigWhat: string; SClass: TSpecSymbolClass): boolean;
+  var What, S: string;
+      I: Sw_integer;
+      Match,Found: boolean;
+  begin
+    Found:=false;
+    What:=UpcaseStr(OrigWhat);
+    if What<>'' then
+    for I:=1 to Editor^.GetSpecSymbolCount(SClass) do
+    begin
+      SymbolIndex:=I;
+      S:=Editor^.GetSpecSymbol(SClass,I-1);
+      if (length(S)<>length(What)) then
+        Match:=false
+      else
+        begin
+          {if CaseInsensitive then
+            S:=UpcaseStr(S); asm symbols need to be uppercased PM }
+          {case PartialMatch of
+            pmNone : }
+          Match:=What=S;
+          {  pmRight:
+              Match:=copy(What,length(What)-length(S)+1,length(S))=S;
+          else Match:=MatchSymbol(What,S);
+          end;  }
+        end;
+      if Match then
+      begin
+        MatchingSymbol:=S;
+        Found:=true;
+        Break;
+      end;
+    end;
+    // MatchedSymbol:=MatchedSymbol or Found;
+    MatchesAsmSpecSymbol:=Found;
+  end;
+
   function IsCommentPrefix: boolean;
   begin
-    IsCommentPrefix:=MatchesAnySpecSymbol(SymbolConcat,ssCommentPrefix,pmLeft,false);
+    IsCommentPrefix:=MatchesAnySpecSymbol(ssCommentPrefix,pmLeft);
   end;
 
   function IsSingleLineCommentPrefix: boolean;
   begin
-    IsSingleLineCommentPrefix:=MatchesAnySpecSymbol(SymbolConcat,ssCommentSingleLinePrefix,pmLeft,false);
+    IsSingleLineCommentPrefix:=MatchesAnySpecSymbol(ssCommentSingleLinePrefix,pmLeft);
   end;
 
   function IsCommentSuffix: boolean;
   begin
-    IsCommentSuffix:=(MatchesAnySpecSymbol(SymbolConcat,ssCommentSuffix,pmRight,false))
+    IsCommentSuffix:=(MatchesAnySpecSymbol(ssCommentSuffix,pmRight))
       and (CurrentCommentType=SymbolIndex);
   end;
 
   function IsStringPrefix: boolean;
   begin
-    IsStringPrefix:=MatchesAnySpecSymbol(SymbolConcat,ssStringPrefix,pmLeft,false);
+    IsStringPrefix:=MatchesAnySpecSymbol(ssStringPrefix,pmLeft);
   end;
 
   function IsStringSuffix: boolean;
   begin
-    IsStringSuffix:=MatchesAnySpecSymbol(SymbolConcat,ssStringSuffix,pmRight,false);
+    IsStringSuffix:=MatchesAnySpecSymbol(ssStringSuffix,pmRight);
   end;
 
   function IsDirectivePrefix: boolean;
   begin
-    IsDirectivePrefix:=MatchesAnySpecSymbol(SymbolConcat,ssDirectivePrefix,pmLeft,false);
+    IsDirectivePrefix:=MatchesAnySpecSymbol(ssDirectivePrefix,pmLeft);
   end;
 
   function IsDirectiveSuffix: boolean;
   begin
-    IsDirectiveSuffix:=MatchesAnySpecSymbol(SymbolConcat,ssDirectiveSuffix,pmRight,false);
+    IsDirectiveSuffix:=MatchesAnySpecSymbol(ssDirectiveSuffix,pmRight);
   end;
 
   function IsAsmPrefix(const WordS: string): boolean;
-  var
-    StoredMatchedSymbol : boolean;
+  { var
+     StoredMatchedSymbol : boolean;}
   begin
-    StoredMatchedSymbol:=MatchedSymbol;
-    IsAsmPrefix:=MatchesAnySpecSymbol(WordS,ssAsmPrefix,pmNone,true);
-    MatchedSymbol:=StoredMatchedSymbol;
+    {StoredMatchedSymbol:=MatchedSymbol;}
+    IsAsmPrefix:=MatchesAsmSpecSymbol(WordS,ssAsmPrefix);
+    {MatchedSymbol:=StoredMatchedSymbol;}
   end;
 
   function IsAsmSuffix(const WordS: string): boolean;
-  var
-    StoredMatchedSymbol : boolean;
+  {var
+    StoredMatchedSymbol : boolean;}
   begin
-    StoredMatchedSymbol:=MatchedSymbol;
-    IsAsmSuffix:=MatchesAnySpecSymbol(WordS,ssAsmSuffix,pmNone,true);
-    MatchedSymbol:=StoredMatchedSymbol;
+    {StoredMatchedSymbol:=MatchedSymbol;}
+    IsAsmSuffix:=MatchesAsmSpecSymbol(WordS,ssAsmSuffix);
+    {MatchedSymbol:=StoredMatchedSymbol;}
   end;
 
   function GetCharClass(C: char): TCharClass;
@@ -2218,7 +2251,7 @@ var
     C:=0;
     WordS:=copy(LineText,StartX,EndX-StartX+1);
     if (InAsm=true) and (InComment=false) and (InString=false) and
-        (InDirective=false) and IsAsmSuffix(WordS) then InAsm:=false;
+        (InDirective=false) and (SClass=ccAlpha) and IsAsmSuffix(WordS) then InAsm:=false;
     if InDirective then C:=coDirectiveColor else
     if InComment then C:=coCommentColor else
     if InString then C:=coStringColor else
@@ -2255,7 +2288,7 @@ var
     if EndX+1>=StartX then
       FillChar(Format[StartX],EndX+1-StartX,C);
     if (InString=false) and (InAsm=false) and (InComment=false) and
-       (InDirective=false) and IsAsmPrefix(WordS) then
+       (InDirective=false) and (SClass=ccAlpha) and IsAsmPrefix(WordS) then
       InAsm:=true;
   end;
 
@@ -7126,7 +7159,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.32  2002-09-11 08:39:44  pierre
+  Revision 1.33  2002-09-11 10:05:10  pierre
+   * try to speed up syntax highlighting
+
+  Revision 1.32  2002/09/11 08:39:44  pierre
    * avoid lots of useless calls by reordering conditions in DoUpdateAttrs
 
   Revision 1.31  2002/09/10 12:19:14  pierre
