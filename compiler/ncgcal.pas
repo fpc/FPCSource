@@ -493,7 +493,6 @@ implementation
         retloc    : tlocation;
         hregister : tregister;
         tempnode  : tnode;
-        resultparaloc : pcgparalocation;
       begin
         cgsize:=procdefinition.funcretloc[callerside].size;
 
@@ -557,8 +556,8 @@ implementation
 {$ifdef x86}
                        tcgx86(cg).inc_fpu_stack;
 {$else x86}
-                       if getsupreg(resultparaloc^.register)<first_fpu_imreg then
-                         cg.ungetcpuregister(exprasmlist,resultparaloc^.register);
+                       if getsupreg(procdefinition.funcretloc[callerside].register)<first_fpu_imreg then
+                         cg.ungetcpuregister(exprasmlist,procdefinition.funcretloc[callerside].register);
                        hregister:=cg.getfpuregister(exprasmlist,location.size);
                        cg.a_loadfpu_reg_reg(exprasmlist,location.size,location.register,hregister);
                        location.register:=hregister;
@@ -1248,7 +1247,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.187  2004-11-21 17:54:59  peter
+  Revision 1.188  2004-11-21 18:13:31  peter
+    * fixed funcretloc for sparc
+
+  Revision 1.187  2004/11/21 17:54:59  peter
     * ttempcreatenode.create_reg merged into .create with parameter
       whether a register is allowed
     * funcret_paraloc renamed to funcretloc

@@ -1769,7 +1769,8 @@ implementation
         cg.g_proc_exit(list,parasize,(po_nostackframe in current_procinfo.procdef.procoptions));
 
         { release return registers, needed for optimizer }
-        location_free(list,current_procinfo.procdef.funcretloc[calleeside]);
+        if not is_void(current_procinfo.procdef.rettype.def) then
+          location_free(list,current_procinfo.procdef.funcretloc[calleeside]);
 
         { end of frame marker for call frame info }
         dwarfcfi.end_frame(list);
@@ -2259,7 +2260,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.244  2004-11-21 17:54:59  peter
+  Revision 1.245  2004-11-21 18:13:31  peter
+    * fixed funcretloc for sparc
+
+  Revision 1.244  2004/11/21 17:54:59  peter
     * ttempcreatenode.create_reg merged into .create with parameter
       whether a register is allowed
     * funcret_paraloc renamed to funcretloc

@@ -176,6 +176,7 @@ implementation
 {$ifndef cpu64bit}
             if retcgsize in [OS_64,OS_S64] then
              begin
+               p.funcretloc[side].loc:=LOC_REGISTER;
                { high }
                if (side=callerside)  or (p.proccalloption=pocall_inline)then
                  p.funcretloc[side].register64.reghi:=NR_FUNCTION_RESULT64_HIGH_REG
@@ -316,7 +317,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.49  2004-11-21 17:54:59  peter
+  Revision 1.50  2004-11-21 18:13:31  peter
+    * fixed funcretloc for sparc
+
+  Revision 1.49  2004/11/21 17:54:59  peter
     * ttempcreatenode.create_reg merged into .create with parameter
       whether a register is allowed
     * funcret_paraloc renamed to funcretloc
