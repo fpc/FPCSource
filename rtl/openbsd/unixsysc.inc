@@ -1,0 +1,336 @@
+{
+   $Id$
+   This file is part of the Free Pascal run time library.
+   Copyright (c) 2000 by Marco van de Voort
+     member of the Free Pascal development team.
+
+   See the file COPYING.FPC, included in this distribution,
+   for details about the copyright.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY;without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+**********************************************************************}
+
+{
+function clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint;
+{NOT IMPLEMENTED YET UNDER BSD}
+begin // perhaps it is better to implement the hack from solaris then this msg
+ HALT;
+END;
+
+  if (pointer(func)=nil) or (sp=nil) then
+   begin
+     Lfpseterrno(EsysEInval);
+     exit(-1);
+   end;
+  asm
+        { Insert the argument onto the new stack. }
+        movl    sp,%ecx
+        subl    $8,%ecx
+        movl    args,%eax
+        movl    %eax,4(%ecx)
+
+        { Save the function pointer as the zeroth argument.
+          It will be popped off in the child in the ebx frobbing below. }
+        movl    func,%eax
+        movl    %eax,0(%ecx)
+
+        { Do the system call }
+        pushl   %ebx
+        pushl   %ebx
+      //  movl    flags,%ebx
+        movl    $251,%eax
+        int     $0x80
+        popl    %ebx
+        popl    %ebx
+        test    %eax,%eax
+        jnz     .Lclone_end
+
+        { We're in the new thread }
+        subl    %ebp,%ebp       { terminate the stack frame }
+        call    *%ebx
+        { exit process }
+        movl    %eax,%ebx
+        movl    $1,%eax
+        int     $0x80
+
+.Lclone_end:
+        movl    %eax,__RESULT
+  end;
+end;
+}
+
+{$ifndef FPC_USE_LIBC}
+Function  fsync (fd : cint) : cint;
+
+begin
+  fsync:=do_syscall(syscall_nr_fsync,fd);
+end;
+
+Function  Flock (fd,mode : longint) : cint;
+
+begin
+ Flock:=do_syscall(syscall_nr_flock,fd,mode);
+end;
+
+Function fStatFS(Fd:Longint;Var Info:tstatfs):cint;
+{
+  Get all information on a fileSystem, and return it in Info.
+  Fd is the file descriptor of a file/directory on the fileSystem
+  you wish to investigate.
+}
+
+begin
+ fStatFS:=do_syscall(syscall_nr_fstatfs,fd,longint(@info));
+end;
+
+Function StatFS(path:pchar;Var Info:tstatfs):cint;
+{
+  Get all information on a fileSystem, and return it in Info.
+  Fd is the file descriptor of a file/directory on the fileSystem
+  you wish to investigate.
+}
+
+begin
+ StatFS:=do_syscall(syscall_nr_statfs,longint(path),longint(@info));
+end;
+
+// needs oldfpccall;
+Function intAssignPipe(var pipe_in,pipe_out:longint;var errn:cint):cint; {$ifndef ver1_0} oldfpccall;{$endif} 
+{
+  Sets up a pair of file variables, which act as a pipe. The first one can
+  be read from, the second one can be written to.
+  If the operation was unsuccesful, linuxerror is set.
+}
+
+begin
+{$ifdef i386}
+ asm
+   mov $42,%eax
+   int $0x80
+   jb .Lerror
+   mov pipe_in,%ebx
+   mov %eax,(%ebx)
+   mov pipe_out,%ebx
+   mov $0,%eax
+   mov %edx,(%ebx)
+   mov %eax,%ebx
+   jmp .Lexit
+.Lerror:
+   mov %eax,%ebx
+   mov $-1,%eax
+.Lexit:
+   mov Errn,%edx
+   mov %ebx,(%edx)
+ end;
+{$endif}
+end;
+
+
+Function PClose(Var F:text) :cint;
+var
+  pl  : ^longint;
+  res : longint;
+
+begin
+  do_syscall(syscall_nr_close,Textrec(F).Handle);
+{ closed our side, Now wait for the other - this appears to be needed ?? }
+  pl:=@(textrec(f).userdata[2]);
+  fpwaitpid(pl^,@res,0);
+  pclose:=res shr 8;
+end;
+
+Function PClose(Var F:file) : cint;
+var
+  pl : ^cint;
+  res : cint;
+
+begin
+  do_syscall(syscall_nr_close,filerec(F).Handle);
+{ closed our side, Now wait for the other - this appears to be needed ?? }
+  pl:=@(filerec(f).userdata[2]);
+  fpwaitpid(pl^,@res,0);
+  pclose:=res shr 8;
+end;
+
+function MUnMap (P : Pointer; Size : size_t) : cint;
+
+begin
+  MUnMap:=do_syscall(syscall_nr_munmap,longint(P),Size);
+end;
+{$else}
+
+Function PClose(Var F:file) : cint;
+var
+  pl : ^cint;
+  res : cint;
+
+begin
+  fpclose(filerec(F).Handle);
+{ closed our side, Now wait for the other - this appears to be needed ?? }
+  pl:=@(filerec(f).userdata[2]);
+  fpwaitpid(pl^,@res,0);
+  pclose:=res shr 8;
+end;
+
+Function PClose(Var F:text) :cint;
+var
+  pl  : ^longint;
+  res : longint;
+
+begin
+  fpclose(Textrec(F).Handle);
+{ closed our side, Now wait for the other - this appears to be needed ?? }
+  pl:=@(textrec(f).userdata[2]);
+  fpwaitpid(pl^,@res,0);
+  pclose:=res shr 8;
+end;
+
+{$endif}
+// can't have oldfpccall here, linux doesn't need it.
+Function AssignPipe(var pipe_in,pipe_out:cint):cint; [public, alias : 'FPC_SYSC_ASSIGNPIPE'];
+{
+  Sets up a pair of file variables, which act as a pipe. The first one can
+  be read from, the second one can be written to.
+  If the operation was unsuccesful, linuxerror is set.
+}
+var
+  ret  : longint;
+  errn : cint;
+  {$ifdef FPC_USE_LIBC}
+   fdis : array[0..1] of cint;
+  {$endif}
+begin
+{$ifndef FPC_USE_LIBC}
+ ret:=intAssignPipe(pipe_in,pipe_out,errn);
+ if ret=-1 Then
+  fpseterrno(errn);
+{$ELSE}
+ fdis[0]:=pipe_in;
+ fdis[1]:=pipe_out;
+ ret:=pipe(fdis);
+ pipe_in:=fdis[0];
+ pipe_out:=fdis[1];
+{$ENDIF}
+ AssignPipe:=ret;
+end;
+
+
+{
+function  intClone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint; {$ifndef ver1_0} oldfpccall; {$endif}
+ 
+
+var lerrno : Longint;
+    errset : Boolean;
+    Res    : Longint;	
+begin
+  errset:=false;
+  Res:=0;
+asm
+        pushl   %esi
+        movl    12(%ebp), %esi  // get stack addr
+        subl    $4, %esi
+        movl    20(%ebp), %eax  // get __arg
+        movl    %eax, (%esi)
+        subl    $4, %esi
+        movl    8(%ebp), %eax   // get __fn
+        movl    %eax, (%esi)
+        pushl   16(%ebp)
+        pushl   %esi
+        mov     syscall_nr_rfork, %eax
+        int     $0x80                  // call actualsyscall
+        jb      .L2
+        test    %edx, %edx
+        jz      .L1
+        movl    %esi,%esp
+        popl    %eax
+        call    %eax
+        addl    $8, %esp
+        call    halt            // Does not return
+.L2:
+        mov     %eax,LErrNo
+        mov     $true,Errset
+	mov	$-1,%eax
+//        jmp     .L1
+.L1:
+        addl    $8, %esp
+        popl    %esi
+	mov	%eax,Res
+end;
+  If ErrSet Then
+   fpSetErrno(LErrno);
+  intClone:=Res; 
+end;
+
+
+
+function  Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint; 
+
+begin
+  Clone:=
+	intclone(tclonefunc(func),sp,flags,args);
+end;
+}
+
+
+{
+  $Log$
+  Revision 1.2  2004-01-22 13:55:02  marco
+   * first port that shows some life based on FPC_USE_LIBC
+
+  Revision 1.6  2004/01/04 15:55:47  marco
+   * additions
+
+  Revision 1.5  2004/01/04 01:11:28  marco
+   * a new qod port of the freebsd rtl. To be refined in the coming days.
+
+  Revision 1.18  2004/01/01 17:07:21  marco
+   * few small freebsd fixes backported from debugging linux
+
+  Revision 1.17  2003/12/30 12:32:30  marco
+  *** empty log message ***
+
+  Revision 1.16  2003/11/19 17:11:40  marco
+   * termio unit
+
+  Revision 1.15  2003/11/19 10:12:02  marco
+   * more cleanups
+
+  Revision 1.14  2003/11/17 10:05:51  marco
+   * threads for FreeBSD. Not working tho
+
+  Revision 1.13  2003/11/14 16:21:59  marco
+   * linuxerror elimination
+
+  Revision 1.12  2003/11/09 12:00:16  marco
+   * pipe fix
+
+  Revision 1.11  2003/09/20 12:38:29  marco
+   * FCL now compiles for FreeBSD with new 1.1. Now Linux.
+
+  Revision 1.10  2003/09/15 20:08:49  marco
+   * small fixes. FreeBSD now cycles
+
+  Revision 1.9  2003/09/15 07:09:58  marco
+   * small fixes, round 1
+
+  Revision 1.8  2003/09/14 20:15:01  marco
+   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
+
+  Revision 1.7  2003/01/05 19:02:29  marco
+   * Should now work with baseunx. (gmake all works)
+
+  Revision 1.6  2002/10/18 12:19:59  marco
+   * Fixes to get the generic *BSD RTL compiling again + fixes for thread
+     support. Still problems left in fexpand. (inoutres?) Therefore fixed
+     sysposix not yet commited
+
+  Revision 1.5  2002/09/07 16:01:18  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.4  2002/05/06 09:35:09  marco
+   * Some stuff from 1.0.x ported
+
+}
