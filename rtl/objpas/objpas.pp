@@ -182,6 +182,8 @@ interface
 
   implementation
 
+    Procedure HandleError (Errno : longint);external name 'FPC_HANDLEERROR';
+
 {****************************************************************************
                   Internal Routines called from the Compiler
 ****************************************************************************}
@@ -200,7 +202,7 @@ interface
     procedure int_do_as(aclass : tclass;aobject : tobject);[public,alias: 'FPC_DO_AS'];
       begin
          if assigned(aobject) and not(aobject.inheritsfrom(aclass)) then
-           runerror(219);
+           handleerror(219);
       end;
 
 
@@ -399,7 +401,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  1998-10-05 12:32:53  peter
+  Revision 1.18  1998-10-12 12:42:58  florian
+    * as operator runtime error can be now caught by an errorproc
+
+  Revision 1.17  1998/10/05 12:32:53  peter
     + assert() support
 
   Revision 1.16  1998/10/03 15:07:16  florian
