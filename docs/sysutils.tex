@@ -396,6 +396,13 @@ to control the date and time formatting:
 Many functions return or require a \var{TDateTime} type, which contains
 a date and time in encoded form. The date and time are converted to a double
 as follows:
+\begin{itemize}
+\item The date part is stored in the integer part of the double as the
+number of days passed since January 1, 1900.
+\item The time part is stored in the fractional part of the double, as 
+the number of milliseconds passed since midnight (00:00), divided by the
+total number of milliseconds in a day.
+\end{itemize}
 \end{type}
 
 \begin{function}{Date}
