@@ -30,6 +30,8 @@ uses
 {$i sysutilh.inc}
 
 
+Var Win32Platform : Longint;
+
 implementation
 
 { Include platform independent implementation part }
@@ -636,6 +638,7 @@ Initialization
   GetVersionEx(versioninfo);
   kernel32dll:=0;
   GetDiskFreeSpaceEx:=nil;
+  Win32Platform:=versionInfo.dwPlatformId;
   if ((versioninfo.dwPlatformId=VER_PLATFORM_WIN32_WINDOWS) and
     (versioninfo.dwBuildNUmber>=1000)) or
     (versioninfo.dwPlatformId=VER_PLATFORM_WIN32_NT) then
@@ -652,7 +655,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.12  2002-01-25 16:23:04  peter
+  Revision 1.13  2002-03-24 19:26:49  marco
+   * Added win32platform
+
+  Revision 1.12  2002/01/25 16:23:04  peter
     * merged filesearch() fix
 
   Revision 1.11  2001/12/11 23:10:18  carl
