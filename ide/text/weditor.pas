@@ -19,6 +19,7 @@ interface
 
 {$ifndef FPC}
   {$define TPUNIXLF}
+  {.$define ASMSCAN}
 {$endif}
 
 uses
@@ -418,6 +419,18 @@ begin
   RTrim:=S;
 end;
 
+function upper(const s : string) : string;
+var
+  i  : Sw_word;
+begin
+  for i:=1 to length(s) do
+   if s[i] in ['a'..'z'] then
+    upper[i]:=char(byte(s[i])-32)
+   else
+    upper[i]:=s[i];
+  upper[0]:=s[0];
+end;
+
 function DirAndNameOf(Path: string): string;
 var D: DirStr; N: NameStr; E: ExtStr;
 begin
@@ -430,7 +443,8 @@ begin
   PointOfs:=longint(P.Y)*MaxLineLength+P.X;
 end;
 
-{$ifndef FPC}
+{$ifdef ASMSCAN}
+
 function Scan_F(var Block; Size: Word; Str: String): Word; near; assembler;
 asm
         PUSH    DS
@@ -701,14 +715,123 @@ end;
 
 {$else}
 
-function PosB(SubS, InS: string; CaseSensitive: boolean): byte;
+Const
+{$ifndef FPC}
+  MaxBufLength   = $7f00;
+  NotFoundValue  = -1;
+{$else}
+  MaxBufLength   = $7fffff00;
+  NotFoundValue  = -1;
+{$endif}
+
+Type
+  Btable = Array[0..255] of Byte;
+Procedure BMFMakeTable(const s:string; Var t : Btable);
+Var
+  x : sw_integer;
 begin
-  PosB:=0;
+  FillChar(t,sizeof(t),length(s));
+  For x := length(s) downto 1 do
+   if (t[ord(s[x])] = length(s)) then
+    t[ord(s[x])] := length(s) - x;
 end;
 
-function PosF(SubS, InS: string; CaseSensitive: boolean): byte;
+
+function BMFScan(var Block; Size: Sw_Word;const Str: String;const bt:BTable): Sw_Integer;
+Var
+  buffer : Array[0..MaxBufLength-1] of Byte Absolute block;
+  s2     : String;
+  len,
+  numb   : Sw_Word;
+  found  : Boolean;
 begin
-  PosF:=0;
+  len:=length(str);
+  if len>size then
+   begin
+     BMFScan := NotFoundValue;
+     exit;
+   end;
+  s2[0]:=chr(len);       { sets the length to that of the search String }
+  found:=False;
+  numb:=pred(len);
+  While (not found) and (numb<(size-len)) do
+   begin
+     { partial match }
+     if buffer[numb] = ord(str[len]) then
+      begin
+        { less partial! }
+        if buffer[numb-pred(len)] = ord(str[1]) then
+         begin
+           move(buffer[numb-pred(len)],s2[1],len);
+           if (str=s2) then
+            begin
+              found:=true;
+              break;
+            end;
+         end;
+        inc(numb);
+     end
+    else
+     inc(numb,Bt[buffer[numb]]);
+  end;
+  if not found then
+    BMFScan := NotFoundValue
+  else
+    BMFScan := numb - pred(len);
+end;
+
+
+function BMFIScan(var Block; Size: Sw_Word;const Str: String;const bt:BTable): Sw_Integer;
+Var
+  buffer : Array[0..MaxBufLength-1] of Char Absolute block;
+  len,
+  numb,
+  x      : Sw_Word;
+  found  : Boolean;
+  p      : pchar;
+  c      : char;
+begin
+  len:=length(str);
+  if len>size then
+   begin
+     BMFIScan := NotFoundValue;
+     exit;
+   end;
+  found:=False;
+  numb:=pred(len);
+  While (not found) and (numb<(size-len)) do
+   begin
+     { partial match }
+     c:=buffer[numb];
+     if c in ['a'..'z'] then
+      c:=chr(ord(c)-32);
+     if (c=str[len]) then
+      begin
+        { less partial! }
+        p:=@buffer[numb-pred(len)];
+        x:=1;
+        while (x<=len) do
+         begin
+           if not(((p^ in ['a'..'z']) and (chr(ord(p^)-32)=str[x])) or
+                  (p^=str[x])) then
+            break;
+           inc(p);
+           inc(x);
+         end;
+        if (x>len) then
+         begin
+           found:=true;
+           break;
+         end;
+        inc(numb);
+     end
+    else
+     inc(numb,Bt[ord(c)]);
+  end;
+  if not found then
+    BMFIScan := NotFoundValue
+  else
+    BMFIScan := numb - pred(len);
 end;
 
 {$endif}
@@ -1814,26 +1937,56 @@ var S: string;
     AreaStart,AreaEnd: TPoint;
     CanReplace,Confirm: boolean;
     Re: word;
-function ContainsText(var SubS: string; var S: string; Start: word): integer;
-var P: integer;
-begin
-  if Start<=0 then P:=0 else
-  if SForward then
+{$ifndef ASMSCAN}
+    IFindStr : string;
+    BT : BTable;
+{$endif}
+
+  function ContainsText(const SubS:string;var S: string; Start: Sw_word): Sw_integer;
+  var
+    P: Sw_Integer;
+{$ifndef ASMSCAN}
+    Hs : string;
+{$endif}
+  begin
+    if Start<=0 then
+     P:=0
+    else
      begin
-       P:=PosF(SubS,copy(S,Start,255),(FindFlags and ffCaseSensitive)<>0);
-       if P>0 then Inc(P,Start-1);
-     end else
-     begin
-       P:=PosF(SubS,copy(S,1,Start),(FindFlags and ffCaseSensitive)<>0);
+{$ifdef ASMSCAN}
+       if SForward then
+        begin
+          P:=PosF(SubS,copy(S,Start,255),(FindFlags and ffCaseSensitive)<>0);
+        end
+       else
+        begin
+          P:=PosB(SubS,copy(S,1,Start),(FindFlags and ffCaseSensitive)<>0);
+        end;
+{$else}
+       if SForward then
+        begin
+          if FindFlags and ffCaseSensitive<>0 then
+           P:=BMFScan(S[Start],length(s)+1-Start,FindStr,Bt)+1
+          else
+           P:=BMFIScan(S[Start],length(s)+1-Start,IFindStr,Bt)+1;
+        end
+       else
+        begin
+        end;
+{$endif}
+       if P>0 then
+        Inc(P,Start-1);
      end;
-  ContainsText:=P;
-end;
-function InArea(X,Y: integer): boolean;
-begin
-  InArea:=((AreaStart.Y=Y) and (AreaStart.X<=X)) or
-          ((AreaStart.Y<Y) and (Y<AreaEnd.Y)) or
-          ((AreaEnd.Y=Y) and (X<AreaEnd.X));
-end;
+    ContainsText:=P;
+  end;
+
+  function InArea(X,Y: integer): boolean;
+  begin
+    InArea:=((AreaStart.Y=Y) and (AreaStart.X<=X)) or
+            ((AreaStart.Y<Y) and (Y<AreaEnd.Y)) or
+            ((AreaEnd.Y=Y) and (X<AreaEnd.X));
+  end;
+
 begin
   Inc(SearchRunCount);
 
@@ -1855,9 +2008,20 @@ begin
        if SForward then begin X:=AreaStart.X-1; Y:=AreaStart.Y; end
                    else begin X:=AreaEnd.X+1; Y:=AreaEnd.Y; end;
 
+{$ifndef ASMSCAN}
+  if FindFlags and ffCaseSensitive<>0 then
+   BMFMakeTable(FindStr,bt)
+  else
+   begin
+     IFindStr:=Upper(FindStr);
+     BMFMakeTable(IFindStr,bt);
+   end;
+{$endif}
+
   X:=X+DX;
   CanExit:=false;
-  if DoReplace and (Confirm=false) and (Owner<>nil) then Owner^.Lock;
+  if DoReplace and (Confirm=false) and (Owner<>nil) then
+    Owner^.Lock;
   if InArea(X,Y) then
   repeat
     S:=GetLineText(Y);
@@ -2659,10 +2823,10 @@ begin
       StdEditorDialog := MessageBox('Error creating file %s.',
         @Info, mfInsertInApp+ mfError + mfOkButton);
     edSaveModify:
-      StdEditorDialog := MessageBox('%s has been modified. Save?',
+      StdEditorDialog := MessageBox(#3'%s'#13#13#3'has been modified. Save?',
         @Info, mfInsertInApp+ mfInformation + mfYesNoCancel);
     edSaveUntitled:
-      StdEditorDialog := MessageBox('Save untitled file?',
+      StdEditorDialog := MessageBox(#3'Save untitled file?',
         nil, mfInsertInApp+ mfInformation + mfYesNoCancel);
     edSaveAs:
       StdEditorDialog :=
@@ -2698,7 +2862,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  1998-12-28 15:47:55  peter
+  Revision 1.3  1998-12-30 10:16:20  peter
+    * forward search for FPC
+
+  Revision 1.2  1998/12/28 15:47:55  peter
     + Added user screen support, display & window
     + Implemented Editor,Mouse Options dialog
     + Added location of .INI and .CFG file
