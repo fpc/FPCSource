@@ -420,8 +420,8 @@ In the subsequent, all menu entries and their actions are described.
 %
 \subsection{The File menu}
 \label{se:menufile}
-The \menu{File} menu contains all menu items that allow to load and save file, as
-well as to exit the IDE.
+The \menu{File} menu contains all menu items that allow to load and save
+files, as well as to exit the IDE.
 \begin{description}
 \item[New] Opens a new, empty editor window. 
 \item[New from template] Prompts for a template to be used, asks to fill in
@@ -487,7 +487,7 @@ clipboard, the following two entries are also present:
 \begin{description}
 \item[Copy to Windows] this will copy the selection to the Windows
 clipboard. 
-\item[Paster from windows] this will insert the content of the windows
+\item[Paste from Windows] this will insert the content of the windows
 clipboard (if it contains text) in the edit window at the current cursor
 position.
 \end{description}
@@ -1556,9 +1556,9 @@ string with special characters which describe a whole class of
 expressions. The command line in \dos or \linux have limited 
 support for regular expressions: entering \var{ls *.pas} 
 (or \var{dir *.pas}) to get a list of all Pascal files in a
-directory. \file{*.pas} is something similar to regular expression. 
-It uses a wildcard to describe a whole class of strings: these which 
-end with "\file{.pas}". 
+directory. \file{*.pas} is something similar to a regular expression. 
+It uses a wildcard to describe a whole class of strings: those which 
+end on "\file{.pas}". 
 Regular expressions offer much more: for example \var{[A-Z][0-9]+} 
 describes all strings which begin with a upper case letter followed by
 one or more digits.
@@ -1756,7 +1756,7 @@ Replaced by the extension of the filename argument.
 The extension includes the dot.
 e.g.
 \begin{verbatim}
-  $DIR('d:\data\myfile.pas')
+  $EXT('d:\data\myfile.pas')
 \end{verbatim}
 would return \file{.pas}.
 \item[\$LINE]
@@ -1774,7 +1774,7 @@ would return \file{myfile}.
 Replaced by the name and extension part of the filename argument.
 e.g.
 \begin{verbatim}
-  $DIR('d:\data\myfile.pas')
+  $NAMEEXT('d:\data\myfile.pas')
 \end{verbatim}
 would return \file{myfile.pas}.
 \item[\$NOSWAP]
@@ -1820,7 +1820,7 @@ directory and have an extension \file{.tdf}.
 In this section, the file format for the dialog description file is explained.
 The format of this file resembles a windows \file{.INI} file, where each section
 in the file describes an element (or control) in the dialog.
-A \var{OK} and \var{Cancel} button will be added to the bottom of the dialog,
+An \var{OK} and an \var{Cancel} button will be added to the bottom of the dialog,
 so these should not be specified in the dialog definition.
 
 A special section is the \var{Main} section. It describes how the result of
@@ -1914,8 +1914,8 @@ Text="~T~ext to find"
 \end{verbatim}
 The \var{T} will be highlighted.
 \item[Link] here the name of a control in the dialog may be specified.
-If specified, pressing this letter in combination with the \key{Alt}
-key will put the focus on the control specified here.
+If specified, pressing the label's highlighted letter in combination 
+with the \key{Alt} key will put the focus on the control specified here.
 \end{description}
 A label does not contribute to the text of the command-line, it is for
 informational and navigational purposes only. The following is an
@@ -2429,7 +2429,7 @@ allows.
 \subsection{Debug options}
 \label{se:debugoptions}
 In the debug options dialog some options for inclusion of debug information
-in the binary can be set; it i also possible to add additional compiler
+in the binary can be set; it is also possible to add additional compiler
 options in this dialog.
 \begin{htmlonly}
 The debug options dialog looks as follows:
@@ -3130,7 +3130,10 @@ Undo & \key{Alt-Backspace} & \\
 \end{FPCltable}
 %
 %  $Log$
-%  Revision 1.3  2001-07-19 15:07:56  michael
+%  Revision 1.4  2001-11-05 19:08:47  michael
+%  + Some small corrections before 1.0.6
+%
+%  Revision 1.3  2001/07/19 15:07:56  michael
 %  + Merged from fixbranch
 %
 %  Revision 1.1.2.21  2001/06/29 19:44:47  peter
