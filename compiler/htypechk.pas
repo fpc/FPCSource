@@ -683,8 +683,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  1999-04-21 16:31:40  pierre
-  ra386att.pas
+  Revision 1.22  1999-04-21 22:00:01  pierre
+    + valid_for_formal_var and valid_for_formal_const added
+
+  Revision 1.21  1999/04/21 16:31:40  pierre
+  ra386att.pas : problem with commit -m !
 
   Revision 1.20  1999/04/15 08:56:27  peter
     * fixed bool-bool conversion
