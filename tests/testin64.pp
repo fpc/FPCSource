@@ -24,6 +24,28 @@ function f2 : int64;
   end;
 
 begin
+   q:=q-q;
+   q:=q-(q*q);
+   q:=(q*q)-(q*q);
+   { first test the comparisation }
+   if q<>q then
+     begin
+        writeln('Error :(');
+     end;
+
+   if q>q then
+     begin
+        writeln('Error :(');
+     end;
+
+   if i>f2 then
+     begin
+        writeln('Error :(');
+     end;
+   if l1>l2 then
+     begin
+        writeln('Error :(');
+     end;
    p1(q,i);
    q:=f1;
    i:=f2;
@@ -45,7 +67,9 @@ begin
    i:=-(i or i);
 
    { multiplication }
+   // q:=3;
    q:=q*q;
+
    i:=i*i;
 
    q:=q*(q*q);
@@ -53,25 +77,6 @@ begin
 
    q:=(q*q)*(q*q);
    q:=((q*q)*(q*q))*((q*q)*(q*q));
-
-   if q<>q then
-     begin
-        writeln('Error :(');
-     end;
-
-   if q>q then
-     begin
-        writeln('Error :(');
-     end;
-
-   if i>f2 then
-     begin
-        writeln('Error :(');
-     end;
-   if l1>l2 then
-     begin
-        writeln('Error :(');
-     end;
 
    write(q);
    write(i);
