@@ -108,7 +108,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2000-01-06 01:20:34  peter
+  Revision 1.1  2000-01-06 16:03:25  peter
+    * moved gtkshedit to gtk dir
+
+  Revision 1.9  2000/01/06 01:20:34  peter
     * moved out of packages/ back to topdir
 
   Revision 1.1  2000/01/03 19:33:09  peter

@@ -1,5 +1,5 @@
 #
-#   Makefile.fpc for shedit
+#   Makefile.fpc for GTK shedit
 #
 
 [targets]
@@ -14,6 +14,5 @@ packages_win32=gtk
 packages_linux=gtk
 
 [dirs]
-fpcdir=../..
-targetdir=.
+fpcdir=../../..
 
