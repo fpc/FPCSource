@@ -5,16 +5,16 @@ uses
 
 const
   fname = 'Makefile';
-
+ ThisDir = '.'+DirectorySeparator;
 var
   fn : string;
 begin
-  fn:=FileSearch(fname,';');
+  fn:=FileSearch(fname,PathSeparator);
   writeln('found: ',fn);
   if fn<>fname then
    halt(1);
-  fn:=FileSearch('./'+fname,';');
+  fn:=FileSearch(ThisDir+fname,PathSeparator);
   writeln('found: ',fn);
-  if fn<>'./'+fname then
+  if fn<>'.'+fname then
    halt(1);
 end.
