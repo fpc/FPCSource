@@ -63,6 +63,20 @@ type
             A_UNPKBL,A_UNPKBW,A_WH64,A_WMB,A_XOR,A_ZAP,
             A_ZAPNOT);
 
+Const
+  firstop = low(tasmop);
+  lastop  = high(tasmop);
+
+type
+  TAsmCond = 
+   (
+    C_None,C_A,C_AE,C_B,C_BE,C_C,C_E,C_G,C_GE,C_L,C_LE,C_NA,C_NAE,
+    C_NB,C_NBE,C_NC,C_NE,C_NG,C_NGE,C_NL,C_NLE,C_NO,C_NP,C_NS,C_NZ,C_O,C_P,
+    C_PE,C_PO,C_S,C_Z
+   );
+
+
+Type
 
  { ALL registers }
  TRegister = (R_NO,  { R_NO is Mandatory, signifies no register }
@@ -75,10 +89,47 @@ type
               R_F20,R_F21,R_F22,R_F23,R_F24,R_F25,R_F26,R_F27,R_F28,R_F29,
               R_F30,R_F31);
 
+  TRegisterset = Set of TRegister;
+  
+{ Constants describing the registers }
+
+Const  
+  Firstreg = R_0;
+  LastReg = R_F31;
+  
+  stack_pointer = R_30;
+  frame_pointer = R_15;
+  self_pointer  = R_16;
+  accumulator   = R_0;
+
+  { sizes }
+  pointersize   = 8;
+  extended_size = 16;
+  
+  intregs = [R_0..R_31];
+  fpuregs = [R_F0..R_F31];
+  mmregs = [];
+ 
+  availabletempregsint = [R_0..R_14,R_16..R_25,R_28];     
+  availabletempregsfpu = [R_F0..R_F30];
+  availabletempregsmm  = [];
+
+  c_countusableregsint = 26;
+  c_countusableregsfpu = 31;
+  c_countusableregsmm  = 0;
+
+  registers_saved_on_cdecl = [R_9..R_14,R_F2..R_F9];
+  maxvarregs = 6;
+
+  varregs : Array [1..maxvarregs] of Tregister = 
+            (R_9,R_10,R_11,R_12,R_13,R_14);
+  
+Type 
  TReference = record
    offset : aword;
    symbol : pasmsymbol;
    base : tregister;
+   is_immediate : boolean;
    { the boundary to which the reference is surely aligned }
    alignment : byte;
    end;
@@ -90,7 +141,28 @@ type
  tlocation = record
    case loc : tloc of
      LOC_REFERENCE,LOC_MEM : (reference : treference);
+     LOC_REGISTER : (register : tregister);
    end;
+
+{*****************************************************************************
+                                Operands
+*****************************************************************************}
+
+
+       { Types of operand }
+        toptype=(top_none,top_reg,top_ref,top_const,top_symbol);
+
+        toper=record
+          ot  : longint;
+          case typ : toptype of
+           top_none   : ();
+           top_reg    : (reg:tregister);
+           top_ref    : (ref:preference);
+           top_const  : (val:longint);
+           top_symbol : (sym:pasmsymbol;symofs:longint);
+        end;
+
+
 
 Const
   { offsets for the integer and floating point registers }
@@ -106,15 +178,11 @@ Const
   OQ_FLOATING_UNDERFLOW_ENABLE   = $20;  { /U }
   OQ_INTEGER_OVERFLOW_ENABLE     = $40;  { /V }
 
-  stack_pointer = R_30;
-  frame_pointer = R_15;
-  self_pointer  = R_16;
-
 { resets all values of ref to defaults }
 procedure reset_reference(var ref : treference);
-    
 { set mostly used values of a new reference }
 function new_reference(base : tregister;offset : longint) : preference;
+procedure disposereference(var r : preference);
 
 
 implementation
@@ -136,11 +204,20 @@ begin
   new_reference:=r;
 end;
 
+procedure disposereference(var r : preference);
+
+begin
+  dispose(r);
+  r:=Nil;
+end;
 
 end.
 {
   $Log$
-  Revision 1.2  1999-08-02 17:16:44  michael
+  Revision 1.3  1999-08-03 00:35:54  michael
+  + Added varregs
+
+  Revision 1.2  1999/08/02 17:16:44  michael
   + Changes for alpha
 
   Revision 1.1  1999/08/01 23:18:36  michael
