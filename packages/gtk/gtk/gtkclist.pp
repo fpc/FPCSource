@@ -280,9 +280,7 @@ procedure gtk_clist_set_column_visibility(clist:PGtkCList; column:gint; visible:
 procedure gtk_clist_set_column_resizeable(clist:PGtkCList; column:gint; resizeable:gboolean);cdecl;external gtkdll name 'gtk_clist_set_column_resizeable';
 procedure gtk_clist_set_column_auto_resize(clist:PGtkCList; column:gint; auto_resize:gboolean);cdecl;external gtkdll name 'gtk_clist_set_column_auto_resize';
 function  gtk_clist_columns_autosize(clist:PGtkCList):gint;cdecl;external gtkdll name 'gtk_clist_columns_autosize';
-{$ifndef gtkwin}
 function  gtk_clist_optimal_column_width(clist:PGtkCList; column:gint):gint;cdecl;external gtkdll name 'gtk_clist_optimal_column_width';
-{$endif}
 procedure gtk_clist_set_column_width(clist:PGtkCList; column:gint; width:gint);cdecl;external gtkdll name 'gtk_clist_set_column_width';
 procedure gtk_clist_set_column_min_width(clist:PGtkCList; column:gint; min_width:gint);cdecl;external gtkdll name 'gtk_clist_set_column_min_width';
 procedure gtk_clist_set_column_max_width(clist:PGtkCList; column:gint; max_width:gint);cdecl;external gtkdll name 'gtk_clist_set_column_max_width';
@@ -433,7 +431,10 @@ end;
 
 {
   $Log$
-  Revision 1.1.2.1  2000-09-09 18:42:52  peter
+  Revision 1.1.2.2  2001-02-02 07:42:25  michael
+  + optmimal_column_width also for win32
+
+  Revision 1.1.2.1  2000/09/09 18:42:52  peter
     * gtk win32 fixes
 
   Revision 1.1  2000/07/13 06:34:03  michael
@@ -497,4 +498,3 @@ end;
     * gtk.pp,gdk.pp for an all in one unit
 
 }
-
