@@ -185,8 +185,11 @@ begin
 
 { Create some replacements }
   StripStr:='';
-  if (cs_link_strip in aktglobalswitches) then
-   StripStr:='-s';
+  { FIXME!!! - Need to add proper stripping support with }
+  { separate strip command, to avoid stripping __abox__ symbol, }
+  { which is required to be present in current MorphOS executables! } 
+{  if (cs_link_strip in aktglobalswitches) then
+   StripStr:='-s';}
 
 { Write used files and libraries }
   WriteResponseFile(false);
@@ -221,7 +224,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2004-04-08 17:11:02  karoly
+  Revision 1.3  2004-04-09 01:32:46  karoly
+   * disable stripping in mos linking scripts.
+
+  Revision 1.2  2004/04/08 17:11:02  karoly
    * added external linker support based on 1.0 amiga support
 
   Revision 1.1  2004/02/13 05:46:58  karoly
