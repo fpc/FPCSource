@@ -222,7 +222,7 @@ Function  TCFlush(fd,qsel:longint):boolean;
 Function  TCDrain(fd:longint):boolean;
 Function  TCFlow(fd,act:longint):boolean;
 Function  IsATTY(Handle:Longint):Boolean;
-Function  IsATTY(f:text):Boolean;
+Function  IsATTY(var f:text):Boolean;
 function  TTYname(Handle:Longint):string;
 function  TTYname(var F:Text):string;
 
@@ -1424,7 +1424,7 @@ begin
 end;
 
 
-Function IsATTY(f: text):Boolean;
+Function IsATTY(var f: text):Boolean;
 {
   Idem as previous, only now for text variables.
 }
@@ -1714,7 +1714,10 @@ End.
 
 {
   $Log$
-  Revision 1.39  2003-09-27 12:51:33  peter
+  Revision 1.40  2003-09-29 14:36:06  peter
+    * fixed for stricter compiler
+
+  Revision 1.39  2003/09/27 12:51:33  peter
     * fpISxxx macros renamed to C compliant fpS_ISxxx
 
   Revision 1.38  2003/09/20 12:38:29  marco

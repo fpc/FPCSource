@@ -383,7 +383,7 @@ Function  TCFlush(fd,qsel:longint):boolean;
 Function  TCDrain(fd:longint):boolean;
 Function  TCFlow(fd,act:longint):boolean;
 Function  IsATTY(Handle:Longint):Boolean;
-Function  IsATTY(f:text):Boolean;
+Function  IsATTY(var f:text):Boolean;
 function  TTYname(Handle:Longint):string;
 function  TTYname(var F:Text):string;
 
@@ -2244,7 +2244,7 @@ end;
 
 
 
-Function IsATTY(f: text):Boolean;
+Function IsATTY(var f: text):Boolean;
 {
   Idem as previous, only now for text variables.
 }
@@ -3131,7 +3131,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.7  2003-09-27 13:49:41  peter
+  Revision 1.8  2003-09-29 14:36:06  peter
+    * fixed for stricter compiler
+
+  Revision 1.7  2003/09/27 13:49:41  peter
     * fpnanosleep exported
 
   Revision 1.6  2003/09/16 16:06:02  peter
