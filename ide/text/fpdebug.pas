@@ -420,7 +420,7 @@ constructor TDebugController.Init(const exefn:string);
   var f: string;
 begin
   inherited Init;
-  f := exefn;
+  f := GetShortName(exefn);
   NoSwitch:=False;
   LoadFile(f);
   SetArgs(GetRunParameters);
@@ -2723,7 +2723,10 @@ end.
 
 {
   $Log$
-  Revision 1.42  2000-01-10 17:49:40  pierre
+  Revision 1.43  2000-01-20 00:31:53  pierre
+   * uses ShortName of exe to start GDB
+
+  Revision 1.42  2000/01/10 17:49:40  pierre
    * Get RegisterView to Update correctly
    * Write in white changed regs (keeping a copy of previous values)
 
