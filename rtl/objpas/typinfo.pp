@@ -60,7 +60,7 @@ unit typinfo;
       ptVirtual = 2;
       ptConst = 3;
 
-      tkString        = tkSString;
+      tkString = tkSString;
 
    type
       TTypeKinds = set of TTypeKind;
@@ -212,7 +212,14 @@ Procedure SetSetProp(Instance: TObject; const PropInfo: PPropInfo; const Value: 
 Function  GetStrProp(Instance: TObject; PropInfo : PPropInfo) : Ansistring;
 Function  GetStrProp(Instance: TObject; const PropName: string): string;
 Procedure SetStrProp(Instance: TObject; const PropName: string; const Value: AnsiString);
-Procedure SetStrProp(Instance: TObject; PropInfo : PPropInfo;  const Value : Ansistring);
+Procedure SetStrProp(Instance: TObject; PropInfo : PPropInfo; const Value : Ansistring);
+
+{$ifdef HASWIDESTRING}
+Function GetWideStrProp(Instance: TObject; PropInfo: PPropInfo): WideString;
+Function GetWideStrProp(Instance: TObject; const PropName: string): WideString;
+Procedure SetWideStrProp(Instance: TObject; const PropName: string; const Value: WideString);
+Procedure SetWideStrProp(Instance: TObject; PropInfo: PPropInfo; const Value: WideString);
+{$endif HASWIDESTRING}
 
 Function  GetFloatProp(Instance: TObject; PropInfo : PPropInfo) : Extended;
 Function  GetFloatProp(Instance: TObject; const PropName: string): Extended;
@@ -843,6 +850,10 @@ var
 begin
   Result:='';
   case Propinfo^.PropType^.Kind of
+{$ifdef HASWIDESTRING}
+    tkWString:
+      Result:=GetWideStrProp(Instance,PropInfo);
+{$endif HASWIDESTRING}
     tkSString:
       begin
         case (PropInfo^.PropProcs) and 3 of
@@ -897,6 +908,10 @@ var
   AMethod : TMethod;
 begin
   case Propinfo^.PropType^.Kind of
+{$ifdef HASWIDESTRING}
+    tkWString:
+      SetWideStrProp(Instance,PropInfo,Value);
+{$endif HASWIDESTRING}
     tkSString:
       begin
         case (PropInfo^.PropProcs shr 2) and 3 of
@@ -953,6 +968,90 @@ begin
 end;
 
 
+{$ifdef HASWIDESTRING}
+Function GetWideStrProp(Instance: TObject; const PropName: string): WideString;
+begin
+  Result:=GetWideStrProp(Instance, FindPropInfo(Instance, PropName));
+end;
+
+
+procedure SetWideStrProp(Instance: TObject; const PropName: string; const Value: WideString);
+begin
+  SetStrProp(Instance,FindPropInfo(Instance,PropName),Value);
+end;
+
+
+Function GetWideStrProp(Instance: TObject; PropInfo: PPropInfo): WideString;
+type
+  TGetWideStrProcIndex=function(index:longint):WideString of object;
+  TGetWideStrProc=function():WideString of object;
+var
+  AMethod : TMethod;
+begin
+  Result:='';
+  case Propinfo^.PropType^.Kind of
+    tkSString,tkAString:
+      Result:=GetStrProp(Instance,PropInfo);
+    tkWString:
+      begin
+        case (PropInfo^.PropProcs) and 3 of
+          ptField:
+            Result := PWideString(Pointer(Instance)+PtrUInt(PropInfo^.GetProc))^;
+          ptstatic,
+          ptvirtual :
+            begin
+              if (PropInfo^.PropProcs and 3)=ptStatic then
+                AMethod.Code:=PropInfo^.GetProc
+              else
+                AMethod.Code:=PPointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.GetProc))^;
+              AMethod.Data:=Instance;
+              if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
+                Result:=TGetWideStrProcIndex(AMethod)(PropInfo^.Index)
+              else
+                Result:=TGetWideStrProc(AMethod)();
+            end;
+        end;      
+      end;
+  end;
+end;
+
+
+Procedure SetWideStrProp(Instance: TObject; PropInfo: PPropInfo; const Value: WideString);
+type
+  TSetWideStrProcIndex=procedure(index:longint;s:WideString) of object;
+  TSetWideStrProc=procedure(s:WideString) of object;
+var
+  AMethod : TMethod;
+begin
+  case Propinfo^.PropType^.Kind of
+    tkSString,tkAString:
+       SetStrProp(Instance,PropInfo,Value);
+    tkWString:
+      begin
+        case (PropInfo^.PropProcs shr 2) and 3 of
+          ptField:
+            PWideString(Pointer(Instance)+PtrUInt(PropInfo^.SetProc))^:=Value;
+          ptstatic,
+          ptvirtual :
+            begin
+              if ((PropInfo^.PropProcs shr 2) and 3)=ptStatic then
+                AMethod.Code:=PropInfo^.SetProc
+              else
+                AMethod.Code:=PPointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.SetProc))^;
+              AMethod.Data:=Instance;
+              if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
+                TSetWideStrProcIndex(AMethod)(PropInfo^.Index,Value)
+              else
+                TSetWideStrProc(AMethod)(Value);
+            end;
+        end;
+      end;
+  end;
+end;
+
+{$endif HASWIDESTRING}
+
+
 { ---------------------------------------------------------------------
   Float properties
   ---------------------------------------------------------------------}
@@ -965,6 +1064,10 @@ type
   TGetDoubleProcIndex = function(Index: integer): Double of object;
   TGetSingleProc = function:Single of object;
   TGetSingleProcIndex = function(Index: integer):Single of object;
+{$ifdef HASCURRENCY}  
+  TGetCurrencyProc = function : Currency of object;
+  TGetCurrencyProcIndex = function(Index: integer) : Currency of object;
+{$endif HASCURRENCY}
 var
   AMethod : TMethod;
 begin
@@ -978,10 +1081,12 @@ begin
          Result:=PDouble(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
        ftExtended:
          Result:=PExtended(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
-{$ifndef cpum68k}
        ftcomp:
          Result:=PComp(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
-{$endif cpum68k}
+{$ifdef HASCURRENCY}         
+       ftcurr:
+         Result:=PCurrency(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
+{$endif HASCURRENCY}
        end;
     ptStatic,
     ptVirtual:
@@ -1021,6 +1126,10 @@ type
   TSetDoubleProcIndex = procedure(Index: integer; const AValue: Double) of object;
   TSetSingleProc = procedure(const AValue: Single) of object;
   TSetSingleProcIndex = procedure(Index: integer; const AValue: Single) of object;
+{$ifdef HASCURRENCY}  
+  TSetCurrencyProc = procedure(const AValue: Currency) of object;
+  TSetCurrencyProcIndex = procedure(Index: integer; const AValue: Currency) of object;
+{$endif HASCURRENCY}
 Var
   AMethod : TMethod;
 begin
@@ -1033,6 +1142,8 @@ begin
           PDouble(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Value;
         ftExtended:
           PExtended(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Value;
+        ftComp:
+          PComp(Pointer(Instance)+PtrUInt(PropInfo^.SetProc))^:=Value;
        end;
     ptStatic,
     ptVirtual:
@@ -1322,7 +1433,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.23  2004-02-22 16:48:39  florian
+  Revision 1.24  2004-05-23 19:00:40  florian
+    + added widestring routines
+
+  Revision 1.23  2004/02/22 16:48:39  florian
     * several 64 bit issues fixed
 
   Revision 1.22  2004/02/21 22:53:49  florian
