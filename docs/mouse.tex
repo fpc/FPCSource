@@ -120,7 +120,7 @@ This function should be called after the mouse driver was initialized.
 \Errors
 None.
 \SeeAlso
-\seep{InitMouse}
+\seep{InitMouse},\seep{DoneMouse},
 \end{function}
 
 \FPCexample{ex1}
@@ -184,8 +184,12 @@ For an example, see the section on writing a custom mouse driver,
 \Declaration
 Procedure GetMouseEvent(var MouseEvent:TMouseEvent);
 \Description
-\var{GetMouseEvent} returns the last mouse event (a movement, button press or
+\var{GetMouseEvent} returns the next mouse event (a movement, button press or
 button release), and waits for one if none is available in the queue.
+
+Some mouse drivers can implement a mouse event queue which can hold multiple
+events till they are fetched.; Others don't, and in that case, a one-event
+queue is implemented for use with \seef{PollMouseEvent}.
 \Errors
 None.
 \SeeAlso
@@ -227,7 +231,9 @@ Procedure HideMouse;
 \var{HideMouse} hides the mouse cursor. This may or may not be implemented
 on all systems, and depends on the driver.
 \Errors
+None.
 \SeeAlso
+\seep{ShowMouse}
 \end{procedure}
 
 \FPCexample{ex5}
@@ -255,7 +261,7 @@ For an example, see most other functions.
 \Declaration
 Function PollMouseEvent(var MouseEvent: TMouseEvent):boolean; 
 \Description
-\var{PoolMouseEvent} checks whether a mouse event is available, and 
+\var{PollMouseEvent} checks whether a mouse event is available, and 
 returns it in \var{MouseEvent} if one is found. The function result is
 \var{True} in that case. If no mouse event is pending, the function result
 is \var{False}, and the contents of \var{MouseEvent} is undefined.
