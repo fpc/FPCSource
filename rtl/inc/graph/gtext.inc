@@ -368,7 +368,6 @@
          cnt3,cnt4     : smallint;
          charsize      : word;
          WriteMode     : word;
-         CurX, CurY    : smallint;
          curX2, curY2, xpos2, ypos2, x2, y2: graph_float;
          oldvalues     : linesettingstype;
          chr           : char;
@@ -591,7 +590,6 @@
          Prefix: array[0..Prefix_Size-1] of char; {* File Prefix Holder         *}
          Length, Current: longint;
          FontData: Pchar;
-         Base: longint;
          hp  : pchar;
          i   : longint;
       begin
@@ -685,22 +683,14 @@
               move(hp[i+1],fonts[font].PHeader,sizeof(TFHeader));
               (* Read in the Header file  *)
               BlockRead(F,fonts[font].Header,Sizeof(THeader));
-              Base := FilePos(F);     {* Remember the address of table*}
-
               BlockRead(F,Fonts[font].Offsets[Fonts[font].Header.First_Char],Fonts[font].Header.Nr_chars*sizeof(smallint));
-
               {*        Load the character width table into memory.                     *}
-
-              base := filePos( f );
               BlockRead(F,Fonts[font].Widths[Fonts[font].Header.First_Char],Fonts[font].Header.Nr_chars*sizeof(byte));
-
               {*        Determine the length of the stroke database.                    *}
-
               current := FilePos( f );          {* Current file location        *}
               Seek( f, FileSize(F));            {* Go to the end of the file    *}
               length := FilePos( f );           {* Get the file length          *}
               Seek( f, current);        {* Restore old file location    *}
-
               {*        Load the stroke database.                                       *}
               { also allocate space for Null character   }
               Getmem(FontData, Length+1);          {* Create space for font data        *}
@@ -737,7 +727,10 @@
 
 {
 $Log$
-Revision 1.14  2000-01-07 16:41:38  daniel
+Revision 1.15  2000-02-27 14:41:25  peter
+  * removed warnings/notes
+
+Revision 1.14  2000/01/07 16:41:38  daniel
   * copyright 2000
 
 Revision 1.13  2000/01/07 16:32:26  daniel

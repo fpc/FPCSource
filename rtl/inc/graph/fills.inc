@@ -46,7 +46,7 @@ type
 var
   nActive, nNextEdge : Longint;
   p0, p1 : pointtype;
-  endy, i, j, gap, x0, x1, y, nEdges : Longint;
+  i, j, gap, x0, x1, y, nEdges : Longint;
   ET : pedgearray;
   GET, AET : ppedgearray;
   t : pedge;
@@ -68,7 +68,7 @@ begin
   ptable := @polypoints;
 
  { check for getmem success }
-  
+
   nEdges := 0;
   for i := 0 to (numpoints-1) do begin
     p0 := ptable[i];
@@ -368,7 +368,6 @@ var
    Cont : Boolean;
    BackupColor : Word;
    x1, x2, prevy: smallint;
-   Index : smallint;
   Begin
     FillChar(DrawnList,sizeof(DrawnList),0);
     { init prevy }
@@ -387,8 +386,6 @@ var
       end;
     If (x<0) Or (y<0) Or
        (x>ViewWidth) Or (y>ViewHeight) then Exit;
-    { Some internal variables }
-    Index := 0;
     { Index of points to check  }
     Buffer.WordIndex:=0;
     PushPoint (x,y);
@@ -482,7 +479,10 @@ var
 
 {
 $Log$
-Revision 1.17  2000-02-12 13:39:19  jonas
+Revision 1.18  2000-02-27 14:41:25  peter
+  * removed warnings/notes
+
+Revision 1.17  2000/02/12 13:39:19  jonas
   + new, faster fillpoly from Thomas Schatzl
   * some logging commands in vesa.inc disabled
 

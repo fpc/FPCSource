@@ -87,7 +87,7 @@ end ;
 function MSecsToTimeStamp(MSecs: comp): TTimeStamp;
 begin
   result.Date := trunc(msecs / msecsperday);
-  msecs:= msecs - comp(result.date) * comp(msecsperday);
+  msecs:= comp(msecs-result.date*msecsperday);
   result.Time := Trunc(MSecs);
 end ;
 
@@ -680,7 +680,10 @@ end;
 
 {
   $Log$
-  Revision 1.20  2000-02-09 16:59:32  peter
+  Revision 1.21  2000-02-27 14:41:25  peter
+    * removed warnings/notes
+
+  Revision 1.20  2000/02/09 16:59:32  peter
     * truncated log
 
   Revision 1.19  1999/11/29 16:59:27  pierre

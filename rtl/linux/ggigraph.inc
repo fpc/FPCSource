@@ -20,9 +20,6 @@
 const
   InternalDriverName = 'LinuxGGI';
 
-var
-  SavePtr: Pointer;
-
 { ---------------------------------------------------------------------
    GGI bindings  [(c) 1999 Sebastian Guenther]
   ---------------------------------------------------------------------}
@@ -433,43 +430,43 @@ begin
     end;
   end;
 end;
-
-
 {
-$Log$
-Revision 1.8  2000-01-07 16:41:40  daniel
-  * copyright 2000
+  $Log$
+  Revision 1.9  2000-02-27 14:41:25  peter
+    * removed warnings/notes
 
-Revision 1.7  1999/12/20 11:22:38  peter
-  * modes moved to interface
-  * integer -> smallint
+  Revision 1.8  2000/01/07 16:41:40  daniel
+    * copyright 2000
 
-Revision 1.6  1999/12/11 23:41:39  jonas
-  * changed definition of getscanlineproc to "getscanline(x1,x2,y:
-    smallint; var data);" so it can be used by getimage too
-  * changed getimage so it uses getscanline
-  * changed floodfill, getscanline16 and definitions in Linux
-    include files so they use this new format
-  + getscanlineVESA256 for 256 color VESA modes (banked)
+  Revision 1.7  1999/12/20 11:22:38  peter
+    * modes moved to interface
+    * integer -> smallint
 
-Revision 1.5  1999/11/12 02:13:01  carl
-  * Bugfix if getimage / putimage, format was not standard with FPC
-    graph.
+  Revision 1.6  1999/12/11 23:41:39  jonas
+    * changed definition of getscanlineproc to "getscanline(x1,x2,y:
+      smallint; var data);" so it can be used by getimage too
+    * changed getimage so it uses getscanline
+    * changed floodfill, getscanline16 and definitions in Linux
+      include files so they use this new format
+    + getscanlineVESA256 for 256 color VESA modes (banked)
 
-Revision 1.4  1999/11/10 10:54:24  sg
-* Fixed a LOT of bugs:
-* - Default mode should be determined by GGI now
-* - Colors are working (only the 16 standard VGA colors, though)
+  Revision 1.5  1999/11/12 02:13:01  carl
+    * Bugfix if getimage / putimage, format was not standard with FPC
+      graph.
 
-Revision 1.3  1999/11/08 20:04:55  sg
-* GGI programs must link to libc, or ggiOpen will fail!
-* Changed max length of ModeNames string from 18 to 20 chars
+  Revision 1.4  1999/11/10 10:54:24  sg
+  * Fixed a LOT of bugs:
+  * - Default mode should be determined by GGI now
+  * - Colors are working (only the 16 standard VGA colors, though)
 
-Revision 1.2  1999/11/08 00:08:43  michael
-* Fist working version of svgalib new graph unit
-* Initial implementation of ggi new graph unit
+  Revision 1.3  1999/11/08 20:04:55  sg
+  * GGI programs must link to libc, or ggiOpen will fail!
+  * Changed max length of ModeNames string from 18 to 20 chars
 
-Revision 1.1  1999/11/07 16:57:26  michael
-+ Start of common graph implementation
+  Revision 1.2  1999/11/08 00:08:43  michael
+  * Fist working version of svgalib new graph unit
+  * Initial implementation of ggi new graph unit
 
+  Revision 1.1  1999/11/07 16:57:26  michael
+  + Start of common graph implementation
 }

@@ -17,8 +17,6 @@
   const
    InternalDriverName = 'LinuxVGA';
 
-  var SavePtr : Pointer;
-
 { ---------------------------------------------------------------------
    SVGA bindings.
 
@@ -161,12 +159,10 @@ var
   ---------------------------------------------------------------------}
 
 procedure libvga_savevideostate;
-
 begin
 end;
 
 procedure libvga_restorevideostate;
-
 begin
   vga_setmode(0);
 end;
@@ -449,26 +445,29 @@ end;
    end;
 
 {
-$Log$
-Revision 1.8  2000-02-06 11:26:45  sg
-* Fixed SetRGBPalette and GetRGBPalette (hopefully; not tested)
+  $Log$
+  Revision 1.9  2000-02-27 14:41:25  peter
+    * removed warnings/notes
 
-Revision 1.7  2000/02/06 01:48:55  sg
-* Fixed the default palette. libsvga works with a RGB range from 0-63, not
-  0-255!
-* PutPixel fixed (pixels didn't get drawn before)
+  Revision 1.8  2000/02/06 11:26:45  sg
+  * Fixed SetRGBPalette and GetRGBPalette (hopefully; not tested)
 
-Revision 1.6  2000/02/03 20:39:58  michael
-+ Version using only vgalib
+  Revision 1.7  2000/02/06 01:48:55  sg
+  * Fixed the default palette. libsvga works with a RGB range from 0-63, not
+    0-255!
+  * PutPixel fixed (pixels didn't get drawn before)
 
-Revision 1.5  2000/01/07 16:41:42  daniel
+  Revision 1.6  2000/02/03 20:39:58  michael
+  + Version using only vgalib
+
+  Revision 1.5  2000/01/07 16:41:42  daniel
   * copyright 2000
 
-Revision 1.4  1999/12/20 11:22:38  peter
+  Revision 1.4  1999/12/20 11:22:38  peter
   * modes moved to interface
   * integer -> smallint
 
-Revision 1.3  1999/12/11 23:41:39  jonas
+  Revision 1.3  1999/12/11 23:41:39  jonas
   * changed definition of getscanlineproc to "getscanline(x1,x2,y:
     integer; var data);" so it can be used by getimage too
   * changed getimage so it uses getscanline
@@ -476,11 +475,10 @@ Revision 1.3  1999/12/11 23:41:39  jonas
     include files so they use this new format
   + getscanlineVESA256 for 256 color VESA modes (banked)
 
-Revision 1.2  1999/11/08 00:08:43  michael
-* Fist working version of svgalib new graph unit
-* Initial implementation of ggi new graph unit
+  Revision 1.2  1999/11/08 00:08:43  michael
+  * Fist working version of svgalib new graph unit
+  * Initial implementation of ggi new graph unit
 
-Revision 1.1  1999/11/07 16:57:26  michael
-+ Start of common graph implementation
-
+  Revision 1.1  1999/11/07 16:57:26  michael
+  + Start of common graph implementation
 }

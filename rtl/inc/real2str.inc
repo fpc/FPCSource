@@ -89,7 +89,7 @@ var
   procedure getIntPart(d: extended);
   var
     intPartStack: TIntPartStack;
-    count, stackPtr, endStackPtr, digits: longint;
+    stackPtr, endStackPtr, digits: longint;
     overflow: boolean;
   begin
     { position in the stack (gets increased before first write) }
@@ -376,7 +376,10 @@ end;
 
 {
   $Log$
-  Revision 1.24  2000-02-26 18:53:11  jonas
+  Revision 1.25  2000-02-27 14:41:25  peter
+    * removed warnings/notes
+
+  Revision 1.24  2000/02/26 18:53:11  jonas
     * fix for lost precision because sometimes the correction value was
       larger than the number to be corrected
     * incompatibility with TP's output fixed

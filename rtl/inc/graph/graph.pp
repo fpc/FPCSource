@@ -2099,55 +2099,28 @@ end;
   Begin
     { All default hooks procedures }
 
-{$ifdef fpc}
     { required...}
-    DirectPutPixel := @DirectPutPixelDefault;
-    PutPixel := @PutPixelDefault;
-    GetPixel := @GetPixelDefault;
-    SetRGBPalette := @SetRGBPaletteDefault;
-    GetRGBPalette := @GetRGBPaletteDefault;
-
+    DirectPutPixel := {$ifdef fpc}@{$endif}DirectPutPixelDefault;
+    PutPixel := {$ifdef fpc}@{$endif}PutPixelDefault;
+    GetPixel := {$ifdef fpc}@{$endif}GetPixelDefault;
+    SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteDefault;
+    GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteDefault;
 
     { optional...}
-    SetActivePage := @SetActivePageDefault;
-    SetVisualPage := @SetVisualPageDefault;
-    ClearViewPort := @ClearViewportDefault;
-    PutImage := @DefaultPutImage;
-    GetImage := @DefaultGetImage;
-    ImageSize := @DefaultImageSize;
-{$else fpc}
-    { required...}
-    DirectPutPixel := DirectPutPixelDefault;
-    PutPixel := PutPixelDefault;
-    GetPixel := GetPixelDefault;
-    SetRGBPalette := SetRGBPaletteDefault;
-    GetRGBPalette := GetRGBPaletteDefault;
-
-    { optional...}
-    SetActivePage := SetActivePageDefault;
-    SetVisualPage := SetVisualPageDefault;
-    ClearViewPort := ClearViewportDefault;
-    PutImage := DefaultPutImage;
-    GetImage := DefaultGetImage;
-    ImageSize := DefaultImageSize;
-{$endif fpc}
+    SetActivePage := {$ifdef fpc}@{$endif}SetActivePageDefault;
+    SetVisualPage := {$ifdef fpc}@{$endif}SetVisualPageDefault;
+    ClearViewPort := {$ifdef fpc}@{$endif}ClearViewportDefault;
+    PutImage := {$ifdef fpc}@{$endif}DefaultPutImage;
+    GetImage := {$ifdef fpc}@{$endif}DefaultGetImage;
+    ImageSize := {$ifdef fpc}@{$endif}DefaultImageSize;
     GraphFreeMemPtr := nil;
     GraphGetMemPtr := nil;
-{$ifdef fpc}
-    GetScanLine := @GetScanLineDefault;
-    Line := @LineDefault;
-    InternalEllipse := @InternalEllipseDefault;
-    PatternLine := @PatternLineDefault;
-    HLine := @HLineDefault;
-    VLine := @VLineDefault;
-{$else fpc}
-    GetScanLine := GetScanLineDefault;
-    Line := LineDefault;
-    InternalEllipse := InternalEllipseDefault;
-    PatternLine := PatternLineDefault;
-    HLine := HLineDefault;
-    VLine := VLineDefault;
-{$endif fpc}
+    GetScanLine := {$ifdef fpc}@{$endif}GetScanLineDefault;
+    Line := {$ifdef fpc}@{$endif}LineDefault;
+    InternalEllipse := {$ifdef fpc}@{$endif}InternalEllipseDefault;
+    PatternLine := {$ifdef fpc}@{$endif}PatternLineDefault;
+    HLine := {$ifdef fpc}@{$endif}HLineDefault;
+    VLine := {$ifdef fpc}@{$endif}VLineDefault;
   end;
 
   Procedure InitVars;
@@ -2176,6 +2149,7 @@ end;
     PaletteSize := 0;
     DirectColor := FALSE;
     HardwarePages := 0;
+    if hardwarepages=0 then; { remove note }
     DefaultHooks;
   end;
 
@@ -2212,22 +2186,14 @@ end;
 {     OldWriteMode := CurrentWriteMode;
      if (LineInfo.Thickness = NormWidth) then
        CurrentWriteMode := NormalPut;}
-{$ifdef fpc}
-     InternalEllipse(X,Y,Radius,Radius,StAngle,Endangle,@DummyPatternLine);
-{$else fpc}
-     InternalEllipse(X,Y,Radius,Radius,StAngle,Endangle,DummyPatternLine);
-{$endif fpc}
+     InternalEllipse(X,Y,Radius,Radius,StAngle,Endangle,{$ifdef fpc}@{$endif}DummyPatternLine);
 {     CurrentWriteMode := OldWriteMode;}
    end;
 
 
  procedure Ellipse(X,Y : smallint; stAngle, EndAngle: word; XRadius,YRadius: word);
   Begin
-{$ifdef fpc}
-     InternalEllipse(X,Y,XRadius,YRadius,StAngle,Endangle,@DummyPatternLine);
-{$else fpc}
-     InternalEllipse(X,Y,XRadius,YRadius,StAngle,Endangle,DummyPatternLine);
-{$endif fpc}
+    InternalEllipse(X,Y,XRadius,YRadius,StAngle,Endangle,{$ifdef fpc}@{$endif}DummyPatternLine);
   end;
 
 
@@ -2278,11 +2244,7 @@ end;
              OldWriteMode := CurrentWriteMode;
              CurrentWriteMode := CopyPut;
        end;
-{$ifdef fpc}
-     InternalEllipse(X,Y,Radius,Radius,0,360,@DummyPatternLine);
-{$else fpc}
-     InternalEllipse(X,Y,Radius,Radius,0,360,DummyPatternLine);
-{$endif fpc}
+     InternalEllipse(X,Y,Radius,Radius,0,360,{$ifdef fpc}@{$endif}DummyPatternLine);
      if LineInfo.Thickness = Normwidth then
          CurrentWriteMode := OldWriteMode;
      { restore arc information }
@@ -2455,14 +2417,8 @@ end;
  end;
 
  procedure Sector(x, y: smallint; StAngle,EndAngle, XRadius, YRadius: Word);
-(*  var angle : graph_float;
-      writemode : word; *)
   begin
-{$ifdef fpc}
-     internalellipse(x,y,XRadius, YRadius, StAngle, EndAngle, @SectorPL);
-{$else fpc}
-     internalellipse(x,y,XRadius, YRadius, StAngle, EndAngle, SectorPL);
-{$endif fpc}
+     internalellipse(x,y,XRadius, YRadius, StAngle, EndAngle, {$ifdef fpc}@{$endif}SectorPL);
      Line(ArcCall.XStart, ArcCall.YStart, x,y);
      Line(x,y,ArcCall.Xend,ArcCall.YEnd);
   end;
@@ -3010,7 +2966,6 @@ begin
  ModeList := nil;
  SaveVideoState := nil;
  RestoreVideoState := nil;
- SavePtr := Nil;
 {$ifdef oldfont}
 {$ifdef go32v2}
  LoadFont8x8;
@@ -3045,14 +3000,12 @@ begin
  charmessagehandler:=nil;
 {$endif win32}
 end.
-
-
-SetGraphBufSize
-
-
 {
   $Log$
-  Revision 1.56  2000-02-06 01:47:15  sg
+  Revision 1.57  2000-02-27 14:41:25  peter
+    * removed warnings/notes
+
+  Revision 1.56  2000/02/06 01:47:15  sg
   * For Linux, "/" is added to the bgipath instead of "\" if this character
     isn't already there.
 

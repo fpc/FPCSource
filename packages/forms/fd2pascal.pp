@@ -2,7 +2,7 @@ Program fd2pascal;
 
 { ---------------------------------------------------------------------------
     Program to convert forms fdesign file to pascal code
-    Copyright (C) 1997	Michael Van Canneyt
+    Copyright (C) 1997  Michael Van Canneyt
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@ Uses linux;
 
 Const RevString = '$Revision$';
   NrOptions = 4;
-  Options   : Array[0..NrOptions] Of String[20] = 
+  Options   : Array[0..NrOptions] Of String[20] =
               ('v','callback','main','altformat','compensate');
 
 Type
@@ -34,7 +34,7 @@ Type
              CPlcol,CPlabel,CPShortcut,CPresize,CPgravity,CPname,CPCallback,
              CPargument,
              CPinvalid);
-  { Properties of an object for which defaults must be set }           
+  { Properties of an object for which defaults must be set }
   AdjProps=(APClass,APBoxtype,ApColors,APAlignment,APSize,APLcol,APstyle,APgravity);
   { List of all object classes }
   ObjClasses=(FL_INVALID,FL_BUTTON, FL_LIGHTBUTTON,FL_ROUNDBUTTON, FL_ROUND3DBUTTON,
@@ -47,7 +47,7 @@ Type
   PreProps=(PPmagic,PPNrforms,PPUnitofMeasure,PPinvalid);
   { Properties of a form }
   FormProps=(FPName,FPWidth,FPHeight,FPnumObjs,FPinvalid);
-   
+
 Const
   { Names of all object properties }
   ContPropNames : Array[ContProps] of string[20] =
@@ -55,17 +55,17 @@ Const
              'lcol','label','shortcut','resize','gravity','name','callback',
              'argument',
              'invalid');
-  { Names of all object properties which must be checked.}           
+  { Names of all object properties which must be checked.}
   AdjPropsNames : Array[AdjProps] of string[20] =
           ('class','boxtype','colors','alignment','size','lcol','style','gravity');
-  { Names of all preamble properties }        
-  PrePropNames : Array[PreProps] of string[20] = 
+  { Names of all preamble properties }
+  PrePropNames : Array[PreProps] of string[20] =
             ('Magic','Number of forms','Unit of measure','Invalid');
-  { Names of all form properties }          
+  { Names of all form properties }
   FormPropNames : Array[FormProps] of string[20] =
             ('Name','Width','Height','Number of Objects','Invalid');
-  { Names of all object classes }          
-  FObjClassNames : Array[ObjClasses] of string[20]=          
+  { Names of all object classes }
+  FObjClassNames : Array[ObjClasses] of string[20]=
              ('FL_INVALID','BUTTON', 'LIGHTBUTTON','ROUNDBUTTON', 'ROUND3DBUTTON',
               'CHECKBUTTON', 'BITMAPBUTTON', 'PIXMAPBUTTON','BITMAP', 'PIXMAP',
               'BOX', 'TEXT', 'MENU', 'CHART', 'CHOICE', 'COUNTER', 'SLIDER', 'VALSLIDER', 'INPUT',
@@ -76,7 +76,7 @@ Const
  { Default properties. If empty a property is ignored.
    To force setting of a property, put 'FL_FORCE' as a string.
    Mind : Case sensitive }
-     
+
   DefProps : array[ObjClasses,AdjProps] of string[25] =
              (('FL_INVALID','','','','','','FL_NORMAL_STYLE','FL_FORCE'),
               ('BUTTON','FL_UP_BOX','FL_COL1 FL_COL1','FL_ALIGN_CENTER','','FL_LCOL','FL_NORMAL_STYLE','FL_FORCE'),
@@ -110,7 +110,7 @@ Const
               ('GLCANVAS','','','','','','FL_NORMAL_STYLE','FL_FORCE'),
               ('IMAGECANVAS','','','','','','FL_NORMAL_STYLE','FL_FORCE'),
               ('FOLDER','','','','','','FL_NORMAL_STYLE','FL_FORCE'));
-     
+
 Type
   { object data type }
   PControl = ^TControl;
@@ -118,14 +118,14 @@ Type
     Props : array[ContProps] of string;
     NextControl : PControl;
     end;
-    
+
   { Form data type}
   PFormRec = ^TFormRec;
   TFormRec = Record
     Name : String;
     Width,Height : String[5];
     Controls : PControl;
-    NextForm : PFormRec;    
+    NextForm : PFormRec;
     end;
   { Callback data type }
   PCBrec = ^TCBrec;
@@ -133,17 +133,15 @@ Type
     name : string;
     next : PCBrec;
     end;
-  { Property emitting procedures }  
+  { Property emitting procedures }
   EmitProp = Procedure (Data : PControl;ObjClass : ObjClasses);
-  
+
 Var
   OptionsSet : Array[1..NrOptions] Of Boolean;
   FileName : String;
   Infile,outfile : Text;
-  Magic : String[20];
   LineNr : Longint;
   NrForms,NrControls : Longint;
-  UnitOfMeasure : string;
   FormRoot : PFormRec;
   cbroot : pcbrec;
   { Default properties emitters }
@@ -152,7 +150,7 @@ Var
   ClassEmitters : Array[ObjClasses] of EmitProp;
 
 { ------------------------------------------------------------------------
-  Utilities Code 
+  Utilities Code
   ------------------------------------------------------------------------ }
 
 
@@ -165,7 +163,7 @@ begin
   IntToStr:=Temp;
 end;
 
-     
+
 Procedure EmitError (Const s : String);
 
 begin
@@ -181,7 +179,7 @@ end;
 
 
 { ------------------------------------------------------------------------
-  Option handling Code 
+  Option handling Code
   ------------------------------------------------------------------------ }
 
 
@@ -189,7 +187,7 @@ Procedure DoOptions;
 
 Var i,j,k : byte;
     os : string;
-    
+
 Procedure ShowVersion;
 
 begin
@@ -226,12 +224,12 @@ begin
       begin
       os:=copy(paramstr(i),2,length(paramstr(i))-1);
       k:=NrOptions+1;
-      for j:=0 to NrOptions do 
+      for j:=0 to NrOptions do
         if os=options[j] then k:=j;
       if k=NrOptions+1 then
         EmitError('Option not recognised : '+paramstr(i))
       else
-        if k=0 then ShowVersion else OptionsSet[k]:=True; 
+        if k=0 then ShowVersion else OptionsSet[k]:=True;
       end
     end; {for}
   if FileName='' then
@@ -242,7 +240,7 @@ begin
 end;
 
 { ------------------------------------------------------------------------
-  Code for reading the input file. 
+  Code for reading the input file.
   ------------------------------------------------------------------------ }
 
 
@@ -251,7 +249,7 @@ begin
   if pos('.fd',FileName)=0 then
     FileName:=FileName+'.fd';
   assign(infile,Filename);
-{$i-} 
+{$i-}
   reset (infile);
 {$i+}
   if ioresult<>0 then
@@ -259,7 +257,7 @@ begin
     EmitError('Can''t open : '+filename);
     halt(1);
     end;
-  LineNr:=0; 
+  LineNr:=0;
 end;
 
 Procedure CloseFile;
@@ -273,7 +271,7 @@ Procedure GetLine(Var S : String);
 begin
   inc(LineNr);
   Readln(infile,s);
-{$ifdef debug}  
+{$ifdef debug}
   writeln ('Reading line : ',linenr)
 {$endif}
 end;
@@ -281,17 +279,17 @@ end;
 Procedure ProcessPreAmbleLine (Const s: String);
 
 var key,value : string;
-    ppos : Longint; 
+    ppos : Longint;
     i,k : PreProps;
     code : Word;
-    
+
 begin
   if s='' then exit;
   ppos:=pos(':',s);
   if ppos=0 then
     exit;
   Key:=Copy(s,1,ppos-1);
-  Value:=Copy(s,ppos+2,length(s)-ppos-1); 
+  Value:=Copy(s,ppos+2,length(s)-ppos-1);
   k:=PPinvalid;
   for i:=PPmagic to PPinvalid do
     if key=PrePropNames[i] then k:=i;
@@ -299,17 +297,17 @@ begin
     EmitLineError('Unknown keyword : '+Key)
   else
     Case K of
-      PPMagic : Magic:=key;
+      PPMagic,
+      PPunitofmeasure: ;
       PPnrforms: begin
                val(value,NrForms,code);
                if code<>0 then EmitLineError('Invalid number of forms');
                end;
-      PPunitofmeasure: UnitOfMeasure:=Value;
-    end;           
+    end;
 end;
 
 { ------------------------------------------------------------------------
-  Code for reading preamble. 
+  Code for reading preamble.
   ------------------------------------------------------------------------ }
 
 
@@ -330,7 +328,7 @@ begin
 end;
 
 { ------------------------------------------------------------------------
-  Code for reading 1 object. 
+  Code for reading 1 object.
   ------------------------------------------------------------------------ }
 
 
@@ -338,15 +336,15 @@ Procedure ProcessControlLine (PC : PControl; const S : String);
 
 Var Key,Value : String;
     i,k : ContProps;
-    ppos,code : word;
-    
+    ppos : word;
+
 begin
   if s='' then exit;
   ppos:=pos(':',s);
   if ppos=0 then
     exit;
   Key:=Copy(s,1,ppos-1);
-  Value:=Copy(s,ppos+2,length(s)-ppos-1); 
+  Value:=Copy(s,ppos+2,length(s)-ppos-1);
   K:=CPInvalid;
   For i:=CPclass to CPInvalid do
     if ContPropNames[i]=Key then k:=i;
@@ -376,7 +374,7 @@ begin
 end;
 
 { ------------------------------------------------------------------------
-  Code for reading 1 form. 
+  Code for reading 1 form.
   ------------------------------------------------------------------------ }
 
 Procedure ProcessFormLine (PF : PFormRec; const S : String);
@@ -384,14 +382,14 @@ Procedure ProcessFormLine (PF : PFormRec; const S : String);
 Var Key,Value : String;
     i,k : FormProps;
     ppos,code : word;
-    
+
 begin
   if s='' then exit;
   ppos:=pos(':',s);
   if ppos=0 then
     exit;
   Key:=Copy(s,1,ppos-1);
-  Value:=Copy(s,ppos+2,length(s)-ppos-1); 
+  Value:=Copy(s,ppos+2,length(s)-ppos-1);
   K:=FPInvalid;
   For i:=FPName to FPInvalid do
     if FormPropNames[i]=Key then k:=i;
@@ -416,7 +414,7 @@ Procedure ProcessForm (PF : PFormRec);
 Var line : String;
     CurrentControl : PControl;
     I : Integer;
-    
+
 begin
 {$ifdef debug}
   writeln('Starting form');
@@ -455,16 +453,16 @@ begin
 end;
 
 { ------------------------------------------------------------------------
-  Code for reading the forms. 
+  Code for reading the forms.
   ------------------------------------------------------------------------ }
 
 
 Procedure DoForms;
 
-Var Line : String;
+Var
     i : Longint;
     CurrentForm: PformRec;
-    
+
 begin
   FormRoot:=Nil;
   if NrForms=0 then exit;
@@ -473,7 +471,7 @@ begin
   for i:=1 to nrforms do
      begin
      ProcessForm (CurrentForm);
-     If i=nrforms then 
+     If i=nrforms then
        Currentform^.NextForm:=nil
      else
        New(CurrentForm^.NextForm);
@@ -482,7 +480,7 @@ begin
 end;
 
 { ------------------------------------------------------------------------
-  Code for reading the postamble. 
+  Code for reading the postamble.
   ------------------------------------------------------------------------ }
 
 
@@ -492,7 +490,7 @@ begin
 end;
 
 { ------------------------------------------------------------------------
-  Code for writing the output file. 
+  Code for writing the output file.
   ------------------------------------------------------------------------ }
 
 Procedure OpenOutFile;
@@ -512,7 +510,7 @@ begin
 {$i-}
   rewrite(outfile);
 {$i+}
-  if ioresult<>0 then 
+  if ioresult<>0 then
     begin
     EmitError('Couldn''t open output file : '+filename);
     halt(1)
@@ -526,7 +524,7 @@ begin
 end;
 
 { ------------------------------------------------------------------------
-  Code to emit Header/variable/type declarations 
+  Code to emit Header/variable/type declarations
   ------------------------------------------------------------------------ }
 
 
@@ -540,7 +538,7 @@ begin
   writeln (OutFile,'    vdata : Pointer;');
   writeln (OutFile,'    ldata : Longint;');
   cp:=fp^.controls;
-  {Skip first control, is formbackground } 
+  {Skip first control, is formbackground }
   if cp<>nil then cp:=cp^.nextcontrol;
   while cp<>nil do
     begin
@@ -566,7 +564,7 @@ var cp : PControl;
 begin
   writeln (OutFile,'  ',fp^.name,' : PFL_FORM;');
   cp:=fp^.controls;
-  {Skip first control, is formbackground } 
+  {Skip first control, is formbackground }
   if cp<>nil then cp:=cp^.nextcontrol;
   while cp<>nil do
     begin
@@ -586,7 +584,6 @@ end;
 Procedure EmitHeader;
 
 var fp : PFormRec;
-    cp : PControl;
 
 begin
   if OptionsSet[2] then
@@ -618,12 +615,12 @@ begin
       EmitVar(fp); { Emit Variable declaration}
     fp:=fp^.nextform;
     end;
-  if not optionsset[2] then  
+  if not optionsset[2] then
     begin
     { No program, we must emit interface stuff }
     if not (optionsset[3]) then
       begin
-      { Emit normal interface declarations 
+      { Emit normal interface declarations
         -> functions }
       fp:=formroot;
       while fp<>nil do
@@ -635,7 +632,7 @@ begin
       end
     else
       begin
-      { Emit alternate interface declaration 
+      { Emit alternate interface declaration
         -> 1 function to create all forms.}
       writeln (OutFile,'Procedure Create_The_Forms;');
       end;
@@ -681,13 +678,10 @@ begin
     fp:=fp^.nextform;
     end;
   writeln (outFile,'End;');
-  writeln (OutFile); 
+  writeln (OutFile);
 end;
 
 Procedure EmitAlternateMain;
-
-var fp : PFormRec;
-
 begin
   { Alternate format, we just call creatallforms to create all forms}
   writeln (OutFile,'Create_The_Forms;');
@@ -709,16 +703,13 @@ begin
     writeln (OutFile,'  ',fp^.name,' :=Create_Form_',fp^.name,';');
     fp:=fp^.nextform;
     end;
-  { Show the first form }  
+  { Show the first form }
   writeln (OutFile,'  fl_show_form(',formroot^.name,'^.',Formroot^.name,
                    ',FL_PLACE_CENTER,FL_FULLBORDER,''',
                    FormRoot^.name,''');');
 end;
 
 Procedure EmitFooter;
-
-var fp : PFormRec;
-
 begin
   if OptionsSet[3] then {Alternate format.}
      EmitCreateForms;
@@ -778,7 +769,7 @@ end;
 
 Procedure EmitColors (cp : PControl;ObjClass : ObjClasses);
 
-var temp : string; 
+var temp : string;
 
 begin
   if cp^.props[cpcolors]<>defprops[objclass,APcolors] then
@@ -856,13 +847,12 @@ end;
 Procedure EmitObject(cp : PControl);
 
 var temp : string;
-    Corners : array[1..4] of string[5];
-    I : Longint;  
+    I : Longint;
     j,k : ObjClasses;
 
 begin
 with cp^ do
-  begin  
+  begin
   temp:=lowercase(props[CPclass]);
   delete(temp,1,3);
   if temp='begin_group' then
@@ -904,7 +894,7 @@ with cp^ do
   k:=FL_INVALID;
   for j:=FL_BUTTON to FL_FOLDER do
     if temp=DefProps[j,apclass] then k:=j;
-  if k<>FL_INVALID then 
+  if k<>FL_INVALID then
      begin
      { Emit defaults }
      EmitProperties (cp,k);
@@ -912,12 +902,12 @@ with cp^ do
      if Assigned(ClassEmitters[k]) then
        ClassEmitters[k] (cp,k);
      end;
-  { Assign to needed object. }  
+  { Assign to needed object. }
   if Optionsset[3] then
     Writeln (OutFile,'  ',props[cpname],':=obj;')
-  else   
+  else
     Writeln (OutFile,'  fdui^.',props[cpname],':=obj;');
-  end; 
+  end;
 end;
 
 { ------------------------------------------------------------------------
@@ -963,7 +953,7 @@ with fp^ do
                                       EmitString (cp^.props[CPname]),');');
   cp:=cp^.nextcontrol;
   { Emit all objects }
-  while cp<>nil do 
+  while cp<>nil do
     begin
     EmitObject(cp);
     cp:=cp^.nextcontrol;
@@ -983,18 +973,15 @@ with fp^ do
     end;
   writeln (OutFile,'end;');
   writeln (OutFile);
-  end;  
+  end;
 end;
 
 Procedure EmitForms;
 
 var
-
-fp : PformRec;
-cp : PControl;
-
+  fp : PformRec;
 begin
-  { Start emitting forms } 
+  { Start emitting forms }
   fp:=Formroot;
   while fp<>nil do
     begin
@@ -1012,7 +999,7 @@ Procedure CollectCallbacks;
 Var CurrentCb,CBwalk : PCBrec;
     fp : PformRec;
     cp : PControl;
-    
+
 begin
   CbRoot:=nil;
   CurrentCB:=cbroot;
@@ -1049,7 +1036,7 @@ begin
       cp:=cp^.nextcontrol;
       end;
     fp:=fp^.nextform;
-    end;        
+    end;
 end;
 
 Procedure EmitCallback (Const s : string);
@@ -1061,7 +1048,7 @@ begin
   writeln (OutFile,'  { Place your code here }');
   writeln (OutFile,'end;');
   writeln (OutFile);
-end; 
+end;
 
 Procedure EmitCallBacks;
 
@@ -1076,13 +1063,13 @@ begin
       begin
       EmitCallBack(cb^.Name);
       cb:=cb^.next;
-      end; 
+      end;
     end;
 end;
 
 
 { ------------------------------------------------------------------------
-  EmitterTable initialization Code 
+  EmitterTable initialization Code
   ------------------------------------------------------------------------ }
 
 Procedure EmitDummy (cp : PControl;ObjClass : ObjClasses);
@@ -1103,12 +1090,12 @@ begin
   EmitProcs[APsize]:=@EmitSize;
   EmitProcs[APStyle]:=@EmitStyle;
   EmitProcs[APgravity]:=@EmitGravity;
-  for i:=FL_INVALID to FL_FOLDER do 
+  for i:=FL_INVALID to FL_FOLDER do
     ClassEmitters[i]:=EmitProp(Nil);
 end;
 
 { ------------------------------------------------------------------------
-  Main program Code 
+  Main program Code
   ------------------------------------------------------------------------ }
 
 

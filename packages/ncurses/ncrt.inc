@@ -742,7 +742,6 @@ End;
 function  Keypressed : boolean;
 var
    l : longint;
-   fd : fdSet;
 Begin
    Keypressed := FALSE;
    nodelay(ActiveWn,bool(TRUE));
