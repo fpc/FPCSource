@@ -16,11 +16,6 @@
 
 {$mode objfpc}
 
-{ Require threading }
-{$ifndef ver1_0}
-  {$threading on}
-{$endif ver1_0}
-
 { determine the type of the resource/form file }
 {$define Win16Res}
 
@@ -48,20 +43,24 @@ uses
 initialization
   CommonInit;
   {$ifndef ver1_0}
-  systhrds.InitCriticalSection(SynchronizeCritSect);
+  InitCriticalSection(SynchronizeCritSect);
   ExecuteEvent := RtlEventCreate;
   SynchronizeMethod := nil;
   {$endif}
 finalization
   CommonCleanup;
   {$ifndef ver1_0}
-    systhrds.DoneCriticalSection(SynchronizeCritSect);
+    DoneCriticalSection(SynchronizeCritSect);
   RtlEventDestroy(ExecuteEvent);
   {$endif}
 end.
 {
   $Log$
-  Revision 1.6  2004-12-23 09:42:42  marco
+  Revision 1.7  2005-02-06 13:06:20  peter
+    * moved file and dir functions to sysfile/sysdir
+    * win32 thread in systemunit
+
+  Revision 1.6  2004/12/23 09:42:42  marco
    * first tthread.synchronize support (merged neli's patches)
 
   Revision 1.5  2004/01/22 17:11:23  peter

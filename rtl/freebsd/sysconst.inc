@@ -90,10 +90,6 @@ const
   fs_proc     = $9fa0;
   fs_xia      = $012FD16D;
 
-  { Constansts for MMAP }
-  MAP_PRIVATE   =2;
-  MAP_ANONYMOUS =$1000;
-
   {Constansts Termios/Ioctl (used in Do_IsDevice) }
   IOCtl_TCGETS= $40000000+$2C7400+ 19; // TCGETS is also in termios.inc, but the sysunix needs only this
 
@@ -117,7 +113,11 @@ type
 
 {
   $Log$
-  Revision 1.10  2004-11-14 12:21:08  marco
+  Revision 1.11  2005-02-06 13:06:20  peter
+    * moved file and dir functions to sysfile/sysdir
+    * win32 thread in systemunit
+
+  Revision 1.10  2004/11/14 12:21:08  marco
    * moved some calls from unix to baseunix. Darwin untested.
 
   Revision 1.9  2003/11/19 10:12:02  marco

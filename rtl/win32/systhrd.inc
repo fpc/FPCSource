@@ -4,7 +4,7 @@
     Copyright (c) 2002 by Peter Vreman,
     member of the Free Pascal development team.
 
-    Win32 threading support implementation
+    Linux (pthreads) threading support implementation
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -14,40 +14,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{$mode objfpc}
-unit systhrds;
-interface
 
-{$S-}
-
-  type
-    { the fields of this record are os dependent  }
-    { and they shouldn't be used in a program     }
-    { only the type TCriticalSection is important }
-    PRTLCriticalSection = ^TRTLCriticalSection;
-    TRTLCriticalSection = packed record
-      DebugInfo : pointer;
-      LockCount : longint;
-      RecursionCount : longint;
-      OwningThread : DWord;
-      LockSemaphore : DWord;
-      Reserved : DWord;
-    end;
-
-{ Include generic thread interface }
-{$i threadh.inc}
-
-
-implementation
-
-function  SysGetCurrentThreadId : dword;forward;
-
-{*****************************************************************************
-                             Generic overloaded
-*****************************************************************************}
-
-{ Include generic overloaded routines }
-{$i thread.inc}
 
 {*****************************************************************************
                            Local WINApi imports
@@ -79,13 +46,11 @@ procedure Sleep(dwMilliseconds: DWord); stdcall;external 'kernel32' name 'Sleep'
 function  WinSuspendThread (threadHandle : dword) : dword; stdcall;external 'kernel32' name 'SuspendThread';
 function  WinResumeThread  (threadHandle : dword) : dword; stdcall;external 'kernel32' name 'ResumeThread';
 function  TerminateThread  (threadHandle : dword; var exitCode : dword) : boolean; stdcall;external 'kernel32' name 'TerminateThread';
-function  GetLastError : dword; stdcall;external 'kernel32' name 'GetLastError';
 function  WaitForSingleObject (hHandle,Milliseconds: dword): dword; stdcall;external 'kernel32' name 'WaitForSingleObject';
 function  WinThreadSetPriority (threadHandle : dword; Prio: longint): boolean; stdcall;external 'kernel32' name 'SetThreadPriority';
-function  WinThreadGetPriority (threadHandle : dword): Integer; stdcall;external 'kernel32' name 'GetThreadPriority';
+function  WinThreadGetPriority (threadHandle : dword): LongInt; stdcall;external 'kernel32' name 'GetThreadPriority';
 function  WinGetCurrentThreadId : dword; stdcall;external 'kernel32' name 'GetCurrentThread';
 function  CreateEvent(lpEventAttributes:pointer;bManualReset:longbool;bInitialState:longbool;lpName:pchar):CARDINAL; stdcall; external 'kernel32' name 'CreateEventA';
-function  CloseHandle(hObject:CARDINAL):LONGBOOL; stdcall; external 'kernel32' name 'CloseHandle';
 function  ResetEvent(hEvent:CARDINAL):LONGBOOL; stdcall; external 'kernel32' name 'ResetEvent';
 function  SetEvent(hEvent:CARDINAL):LONGBOOL; stdcall; external 'kernel32' name 'SetEvent';
 function PulseEvent(hEvent:THANDLE):CARDINAL {WINBOOL}; stdcall; external 'kernel32' name 'PulseEvent';
@@ -142,9 +107,6 @@ CONST
         GlobalFree(TlsGetValue(tlskey));
       end;
 
-{ Include OS independent Threadvar initialization }
-{$i threadvr.inc}
-
 {$endif HASTHREADVAR}
 
 
@@ -169,7 +131,7 @@ CONST
       end;
 
 
-    function ThreadMain(param : pointer) : integer; stdcall;
+    function ThreadMain(param : pointer) : Longint; stdcall;
       var
         ti : tthreadinfo;
       begin
@@ -274,14 +236,14 @@ CONST
     end;
 
 
-    function  SysThreadGetPriority (threadHandle : dword): Integer;
+    function  SysThreadGetPriority (threadHandle : dword): longint;
     begin
       SysThreadGetPriority:=WinThreadGetPriority(threadHandle);
     end;
 
     function  SysGetCurrentThreadId : dword;
     begin
-      SysGetCurrentThreadId:=WinGetCurrentThreadId;
+      SysGetCurrentThreadId:=Win32GetCurrentThreadId;
     end;
 
 {*****************************************************************************
@@ -435,14 +397,14 @@ begin
   PulseEvent(THANDLE(AEvent));
 end;
 
-CONST INFINITE=-1;
-
 procedure intRTLEventStartWait(AEvent: PRTLEvent);
 begin
   // nothing to do, win32 events stay signalled after being set
 end;
 
 procedure intRTLEventWaitFor(AEvent: PRTLEvent);
+CONST
+  INFINITE=-1;
 begin
   WaitForSingleObject(THANDLE(AEvent), INFINITE);
 end;
@@ -452,8 +414,7 @@ end;
 Var
   WinThreadManager : TThreadManager;
 
-Procedure SetWinThreadManager;
-
+Procedure InitSystemThreads;
 begin
   With WinThreadManager do
     begin
@@ -492,64 +453,15 @@ begin
     end;
   SetThreadManager(WinThreadManager);
   InitHeapMutexes;
+  ThreadID := GetCurrentThreadID;
 end;
 
-initialization
-  SetWinThreadManager;
-end.
 
 {
   $Log$
-  Revision 1.15  2005-01-30 21:48:14  marco
-   * stdcall added to few calls
-
-  Revision 1.14  2004/12/28 14:20:03  marco
-   * tthread patch from neli
-
-  Revision 1.13  2004/12/26 13:46:45  peter
-    * tthread uses systhrds
-
-  Revision 1.12  2004/12/22 21:29:24  marco
-   * rtlevent kraam. Checked (compile): Linux, FreeBSD, Darwin, Windows
-        Check work: ask Neli.
-
-  Revision 1.11  2004/05/23 15:30:13  marco
-   * first try
-
-  Revision 1.10  2004/01/21 14:15:42  florian
-    * fixed win32 compilation
-
-  Revision 1.9  2003/11/29 17:34:53  michael
-  + Removed dummy variable from SetCthreadManager
-
-  Revision 1.8  2003/11/27 10:28:41  michael
-  + Patch from peter to fix make cycle
-
-  Revision 1.7  2003/11/26 20:10:59  michael
-  + New threadmanager implementation
-
-  Revision 1.6  2003/10/01 21:00:09  peter
-    * GetCurrentThreadHandle renamed to GetCurrentThreadId
-
-  Revision 1.5  2003/09/17 15:06:36  peter
-    * stdcall patch
-
-  Revision 1.4  2003/03/27 17:14:27  armin
-  * more platform independent thread routines, needs to be implemented for unix
-
-  Revision 1.3  2003/03/24 16:12:01  jonas
-    * BeginThread() now returns the thread handle instead of the threadid
-      (needed because you have to free the handle after your thread is
-       finished, and the threadid is already returned via a var-parameter)
-
-  Revision 1.2  2002/10/31 13:45:44  carl
-    * threadvar.inc -> threadvr.inc
-
-  Revision 1.1  2002/10/16 06:27:30  michael
-  + Renamed thread unit to systhrds
-
-  Revision 1.1  2002/10/14 19:39:18  peter
-    * threads unit added for thread support
+  Revision 1.1  2005-02-06 13:06:20  peter
+    * moved file and dir functions to sysfile/sysdir
+    * win32 thread in systemunit
 
 }
 

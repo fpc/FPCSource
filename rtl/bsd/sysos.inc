@@ -87,11 +87,26 @@ end;
 {$I ossysc.inc}
 {$I osmain.inc}
 
+const
+     { Default creation mode for directories and files }
+
+     { read/write permission for everyone }
+     MODE_OPEN = S_IWUSR OR S_IRUSR OR
+                 S_IWGRP OR S_IRGRP OR
+                 S_IWOTH OR S_IROTH;
+     { read/write search permission for everyone }
+     MODE_MKDIR = MODE_OPEN OR
+                 S_IXUSR OR S_IXGRP OR S_IXOTH;
+
 
 
 {
    $Log$
-   Revision 1.1  2005-02-06 12:16:52  peter
+   Revision 1.2  2005-02-06 13:06:20  peter
+     * moved file and dir functions to sysfile/sysdir
+     * win32 thread in systemunit
+
+   Revision 1.1  2005/02/06 12:16:52  peter
      * bsd thread updates
 
 }

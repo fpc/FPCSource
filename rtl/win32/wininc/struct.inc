@@ -1206,19 +1206,13 @@
      TCRITICALSECTIONDEBUG = CRITICAL_SECTION_DEBUG;
      PCRITICALSECTIONDEBUG = ^CRITICAL_SECTION_DEBUG;
 
-     CRITICAL_SECTION = record
-          DebugInfo : PCRITICAL_SECTION_DEBUG;
-          LockCount : LONG;
-          RecursionCount : LONG;
-          OwningThread : HANDLE;
-          LockSemaphore : HANDLE;
-          Reserved : DWORD;
-       end;
-     LPCRITICAL_SECTION = ^CRITICAL_SECTION;
-     PCRITICAL_SECTION = ^CRITICAL_SECTION;
-     _CRITICAL_SECTION = CRITICAL_SECTION;
-     TCRITICALSECTION = CRITICAL_SECTION;
-     PCRITICALSECTION = ^CRITICAL_SECTION;
+     CRITICAL_SECTION = TRTLCriticalSection;
+     _CRITICAL_SECTION = TRTLCriticalSection;
+     TCRITICAL_SECTION = TRTLCriticalSection;
+     PCRITICAL_SECTION = PRTLCriticalSection;
+     LPCRITICAL_SECTION = PRTLCriticalSection;
+     TCRITICALSECTION = TRTLCriticalSection;
+     PCRITICALSECTION = PRTLCriticalSection;
 
   { SECURITY_CONTEXT_TRACKING_MODE ContextTrackingMode;  }
 
@@ -7197,7 +7191,11 @@ type
 
 {
   $Log$
-  Revision 1.33  2005-02-03 18:41:12  florian
+  Revision 1.34  2005-02-06 13:06:20  peter
+    * moved file and dir functions to sysfile/sysdir
+    * win32 thread in systemunit
+
+  Revision 1.33  2005/02/03 18:41:12  florian
     * more clx compilation fixed
 
   Revision 1.32  2005/01/19 14:24:46  marco

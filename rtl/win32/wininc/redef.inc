@@ -17,9 +17,6 @@
 {$ifdef read_interface}
 
 type
-  TRTLCriticalSection = CRITICAL_SECTION;
-  PRTLCriticalSection = PCRITICAL_SECTION;
-
   PIID = PGUID;
   TIID = TGUID;
   THANDLE = HANDLE;
@@ -1061,7 +1058,11 @@ end;
 
 {
   $Log$
-  Revision 1.29  2005-01-15 11:44:48  marco
+  Revision 1.30  2005-02-06 13:06:20  peter
+    * moved file and dir functions to sysfile/sysdir
+    * win32 thread in systemunit
+
+  Revision 1.29  2005/01/15 11:44:48  marco
    * scrollwindow(ex) added at Neli's request
 
   Revision 1.28  2004/12/18 20:00:59  michael

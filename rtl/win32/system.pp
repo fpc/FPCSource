@@ -28,16 +28,11 @@ interface
   {$define Set_i386_Exception_handler}
 {$endif cpui386}
 
+{ Ctrl-Z means EOF }
+{$DEFINE EOF_CTRLZ}
+
 { include system-independent routine headers }
 {$I systemh.inc}
-
-{Platform specific information}
-type
-{$ifdef CPU64}
-  THandle = QWord;
-{$else CPU64}
-  THandle = DWord;
-{$endif CPU64}
 
 const
  LineEnding = #13#10;
@@ -54,9 +49,6 @@ type
      next : PEXCEPTION_FRAME;
      handler : pointer;
    end;
-
-{ include heap support headers }
-{$I heaph.inc}
 
 const
 { Default filehandles }
@@ -127,577 +119,9 @@ implementation
 { include system independent routines }
 {$I system.inc}
 
-{ some declarations for Win32 API calls }
-{$I win32.inc}
-
-
-CONST
-  { These constants are used for conversion of error codes }
-  { from win32 i/o errors to tp i/o errors                 }
-  { errors 1 to 18 are the same as in Turbo Pascal         }
-  { DO NOT MODIFY UNLESS YOU KNOW EXACTLY WHAT YOU ARE DOING! }
-
-{  The media is write protected.                   }
-    ERROR_WRITE_PROTECT       =      19;
-{  The system cannot find the device specified.    }
-    ERROR_BAD_UNIT            =      20;
-{  The device is not ready.                        }
-    ERROR_NOT_READY           =      21;
-{  The device does not recognize the command.      }
-    ERROR_BAD_COMMAND         =      22;
-{  Data error (cyclic redundancy check)            }
-    ERROR_CRC                 =      23;
-{  The program issued a command but the            }
-{  command length is incorrect.                    }
-    ERROR_BAD_LENGTH           =     24;
-{  The drive cannot locate a specific              }
-{  area or track on the disk.                      }
-    ERROR_SEEK                 =     25;
-{  The specified disk or diskette cannot be accessed. }
-    ERROR_NOT_DOS_DISK         =     26;
-{  The drive cannot find the sector requested.     }
-    ERROR_SECTOR_NOT_FOUND      =    27;
-{  The printer is out of paper.                    }
-    ERROR_OUT_OF_PAPER          =    28;
-{  The system cannot write to the specified device. }
-    ERROR_WRITE_FAULT           =    29;
-{  The system cannot read from the specified device. }
-    ERROR_READ_FAULT            =    30;
-{  A device attached to the system is not functioning.}
-    ERROR_GEN_FAILURE           =    31;
-{  The process cannot access the file because         }
-{  it is being used by another process.               }
-    ERROR_SHARING_VIOLATION      =   32;
-{   A pipe has been closed on the other end }
-{   Removing that error allows eof to works as on other OSes }
-    ERROR_BROKEN_PIPE = 109;
-    ERROR_DIR_NOT_EMPTY = 145;
-    ERROR_ALREADY_EXISTS = 183;
-
-{$IFDEF SUPPORT_THREADVAR}
-threadvar
-{$ELSE SUPPORT_THREADVAR}
-var
-{$ENDIF SUPPORT_THREADVAR}
-    errno : longint;
-
-{$ASMMODE ATT}
-
-
-   { misc. functions }
-   function GetLastError : DWORD;
-     stdcall;external 'kernel32' name 'GetLastError';
-
-   { time and date functions }
-   function GetTickCount : longint;
-     stdcall;external 'kernel32' name 'GetTickCount';
-
-   { process functions }
-   procedure ExitProcess(uExitCode : UINT);
-     stdcall;external 'kernel32' name 'ExitProcess';
-
-
-   Procedure Errno2InOutRes;
-   Begin
-     { DO NOT MODIFY UNLESS YOU KNOW EXACTLY WHAT YOU ARE DOING }
-     case Errno of
-       ERROR_WRITE_PROTECT..ERROR_GEN_FAILURE :
-         begin
-           { This is the offset to the Win32 to add to directly map  }
-           { to the DOS/TP compatible error codes when in this range }
-           InOutRes := word(errno)+131;
-         end;
-       ERROR_DIR_NOT_EMPTY,
-       ERROR_ALREADY_EXISTS,
-       ERROR_SHARING_VIOLATION :
-         begin
-           InOutRes :=5;
-         end;
-       else
-         begin
-           { other error codes can directly be mapped }
-           InOutRes := Word(errno);
-         end;
-     end;
-     errno:=0;
-   end;
-
-
-function paramcount : longint;
-begin
-  paramcount := argc - 1;
-end;
-
-   { module functions }
-   function GetModuleFileName(l1:longint;p:pointer;l2:longint):longint;
-     stdcall;external 'kernel32' name 'GetModuleFileNameA';
-   function GetModuleHandle(p : pointer) : longint;
-     stdcall;external 'kernel32' name 'GetModuleHandleA';
-   function GetCommandFile:pchar;forward;
-
-function paramstr(l : longint) : string;
-begin
-  if (l>=0) and (l<argc) then
-    paramstr:=strpas(argv[l])
-  else
-    paramstr:='';
-end;
-
-
-procedure randomize;
-begin
-  randseed:=GetTickCount;
-end;
-
-
 {*****************************************************************************
-                              Heap Management
+                              Parameter Handling
 *****************************************************************************}
-   { memory functions }
-   function GetProcessHeap : DWord;
-     stdcall;external 'kernel32' name 'GetProcessHeap';
-   function HeapAlloc(hHeap : DWord; dwFlags : DWord; dwBytes : DWord) : Longint;
-     stdcall;external 'kernel32' name 'HeapAlloc';
-   function HeapFree(hHeap : dword; dwFlags : dword; lpMem: pointer) : boolean;
-     stdcall;external 'kernel32' name 'HeapFree';
-{$IFDEF SYSTEMDEBUG}
-   function WinAPIHeapSize(hHeap : DWord; dwFlags : DWord; ptr : Pointer) : DWord;
-     stdcall;external 'kernel32' name 'HeapSize';
-{$ENDIF}
-
-
-{*****************************************************************************
-      OS Memory allocation / deallocation
- ****************************************************************************}
-
-function SysOSAlloc(size: ptrint): pointer;
-var
-  l : longword;
-begin
-  l := HeapAlloc(GetProcessHeap, 0, size);
-{$ifdef DUMPGROW}
-  Writeln('new heap part at $',hexstr(l,8), ' size = ',WinAPIHeapSize(GetProcessHeap()));
-{$endif}
-  SysOSAlloc := pointer(l);
-end;
-
-{$define HAS_SYSOSFREE}
-
-procedure SysOSFree(p: pointer; size: ptrint);
-begin
-  HeapFree(GetProcessHeap, 0, p);
-end;
-
-
-{ include standard heap management }
-{$I heap.inc}
-
-
-{*****************************************************************************
-                          Low Level File Routines
-*****************************************************************************}
-
-   function WriteFile(fh:thandle;buf:pointer;len:longint;var loaded:longint;
-     overlap:pointer):longint;
-     stdcall;external 'kernel32' name 'WriteFile';
-   function ReadFile(fh:thandle;buf:pointer;len:longint;var loaded:longint;
-     overlap:pointer):longint;
-     stdcall;external 'kernel32' name 'ReadFile';
-   function CloseHandle(h : thandle) : longint;
-     stdcall;external 'kernel32' name 'CloseHandle';
-   function DeleteFile(p : pchar) : longint;
-     stdcall;external 'kernel32' name 'DeleteFileA';
-   function MoveFile(old,_new : pchar) : longint;
-     stdcall;external 'kernel32' name 'MoveFileA';
-   function SetFilePointer(l1,l2 : thandle;l3 : pointer;l4 : longint) : longint;
-     stdcall;external 'kernel32' name 'SetFilePointer';
-   function GetFileSize(h:thandle;p:pointer) : longint;
-     stdcall;external 'kernel32' name 'GetFileSize';
-   function CreateFile(lpFileName:pchar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
-                       lpSecurityAttributes:PSECURITYATTRIBUTES; dwCreationDisposition:DWORD;
-                       dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):longint;
-     stdcall;external 'kernel32' name 'CreateFileA';
-   function SetEndOfFile(h : thandle) : longbool;
-     stdcall;external 'kernel32' name 'SetEndOfFile';
-   function GetFileType(Handle:thandle):DWord;
-     stdcall;external 'kernel32' name 'GetFileType';
-   function GetFileAttributes(p : pchar) : dword;
-     stdcall;external 'kernel32' name 'GetFileAttributesA';
-
-procedure AllowSlash(p:pchar);
-var
-   i : longint;
-begin
-{ allow slash as backslash }
-   for i:=0 to strlen(p) do
-     if p[i]='/' then p[i]:='\';
-end;
-
-function do_isdevice(handle:thandle):boolean;
-begin
-  do_isdevice:=(getfiletype(handle)=2);
-end;
-
-
-procedure do_close(h : thandle);
-begin
-  if do_isdevice(h) then
-   exit;
-  CloseHandle(h);
-end;
-
-
-procedure do_erase(p : pchar);
-begin
-   AllowSlash(p);
-   if DeleteFile(p)=0 then
-    Begin
-      errno:=GetLastError;
-      if errno=5 then
-       begin
-         if (GetFileAttributes(p)=FILE_ATTRIBUTE_DIRECTORY) then
-          errno:=2;
-       end;
-      Errno2InoutRes;
-    end;
-end;
-
-
-procedure do_rename(p1,p2 : pchar);
-begin
-  AllowSlash(p1);
-  AllowSlash(p2);
-  if MoveFile(p1,p2)=0 then
-   Begin
-      errno:=GetLastError;
-      Errno2InoutRes;
-   end;
-end;
-
-
-function do_write(h:thandle;addr:pointer;len : longint) : longint;
-var
-   size:longint;
-begin
-   if writefile(h,addr,len,size,nil)=0 then
-    Begin
-      errno:=GetLastError;
-      Errno2InoutRes;
-    end;
-   do_write:=size;
-end;
-
-
-function do_read(h:thandle;addr:pointer;len : longint) : longint;
-var
-  _result:longint;
-begin
-  if readfile(h,addr,len,_result,nil)=0 then
-    Begin
-      errno:=GetLastError;
-      if errno=ERROR_BROKEN_PIPE then
-        errno:=0
-      else
-        Errno2InoutRes;
-    end;
-  do_read:=_result;
-end;
-
-
-function do_filepos(handle : thandle) : longint;
-var
-  l:longint;
-begin
-  l:=SetFilePointer(handle,0,nil,FILE_CURRENT);
-  if l=-1 then
-   begin
-    l:=0;
-    errno:=GetLastError;
-    Errno2InoutRes;
-   end;
-  do_filepos:=l;
-end;
-
-
-procedure do_seek(handle:thandle;pos : longint);
-begin
-  if SetFilePointer(handle,pos,nil,FILE_BEGIN)=-1 then
-   Begin
-    errno:=GetLastError;
-    Errno2InoutRes;
-   end;
-end;
-
-
-function do_seekend(handle:thandle):longint;
-begin
-  do_seekend:=SetFilePointer(handle,0,nil,FILE_END);
-  if do_seekend=-1 then
-    begin
-      errno:=GetLastError;
-      Errno2InoutRes;
-    end;
-end;
-
-
-function do_filesize(handle : thandle) : longint;
-var
-  aktfilepos : longint;
-begin
-  aktfilepos:=do_filepos(handle);
-  do_filesize:=do_seekend(handle);
-  do_seek(handle,aktfilepos);
-end;
-
-
-procedure do_truncate (handle:thandle;pos:longint);
-begin
-   do_seek(handle,pos);
-   if not(SetEndOfFile(handle)) then
-    begin
-      errno:=GetLastError;
-      Errno2InoutRes;
-    end;
-end;
-
-
-procedure do_open(var f;p:pchar;flags:longint);
-{
-  filerec and textrec have both handle and mode as the first items so
-  they could use the same routine for opening/creating.
-  when (flags and $100)   the file will be append
-  when (flags and $1000)  the file will be truncate/rewritten
-  when (flags and $10000) there is no check for close (needed for textfiles)
-}
-Const
-  file_Share_Read  = $00000001;
-  file_Share_Write = $00000002;
-Var
-  shflags,
-  oflags,cd : longint;
-  security : TSecurityAttributes;
-begin
-  AllowSlash(p);
-{ close first if opened }
-  if ((flags and $10000)=0) then
-   begin
-     case filerec(f).mode of
-       fminput,fmoutput,fminout : Do_Close(filerec(f).handle);
-       fmclosed : ;
-     else
-      begin
-        {not assigned}
-        inoutres:=102;
-        exit;
-      end;
-     end;
-   end;
-{ reset file handle }
-  filerec(f).handle:=UnusedHandle;
-{ convert filesharing }
-  shflags:=0;
-  if ((filemode and fmshareExclusive) = fmshareExclusive) then
-    { no sharing }
-  else
-    if (filemode = fmShareCompat) or ((filemode and fmshareDenyWrite) = fmshareDenyWrite) then
-      shflags := file_Share_Read
-  else
-    if ((filemode and fmshareDenyRead) = fmshareDenyRead) then
-      shflags := file_Share_Write
-  else
-    if ((filemode and fmshareDenyNone) = fmshareDenyNone) then
-      shflags := file_Share_Read + file_Share_Write;
-{ convert filemode to filerec modes }
-  case (flags and 3) of
-   0 : begin
-         filerec(f).mode:=fminput;
-         oflags:=longint(GENERIC_READ);
-       end;
-   1 : begin
-         filerec(f).mode:=fmoutput;
-         oflags:=longint(GENERIC_WRITE);
-       end;
-   2 : begin
-         filerec(f).mode:=fminout;
-         oflags:=longint(GENERIC_WRITE or GENERIC_READ);
-       end;
-  end;
-{ create it ? }
-  if (flags and $1000)<>0 then
-   cd:=CREATE_ALWAYS
-{ or Append/Open ? }
-  else
-    cd:=OPEN_EXISTING;
-{ empty name is special }
-  if p[0]=#0 then
-   begin
-     case FileRec(f).mode of
-       fminput :
-         FileRec(f).Handle:=StdInputHandle;
-       fminout, { this is set by rewrite }
-       fmoutput :
-         FileRec(f).Handle:=StdOutputHandle;
-       fmappend :
-         begin
-           FileRec(f).Handle:=StdOutputHandle;
-           FileRec(f).mode:=fmoutput; {fool fmappend}
-         end;
-     end;
-     exit;
-   end;
-  security.nLength := Sizeof(TSecurityAttributes);
-  security.bInheritHandle:=true;
-  security.lpSecurityDescriptor:=nil;
-  filerec(f).handle:=CreateFile(p,oflags,shflags,@security,cd,FILE_ATTRIBUTE_NORMAL,0);
-{ append mode }
-  if ((flags and $100)<>0) and
-     (filerec(f).handle<>0) and
-     (filerec(f).handle<>UnusedHandle) then
-   begin
-     do_seekend(filerec(f).handle);
-     filerec(f).mode:=fmoutput; {fool fmappend}
-   end;
-{ get errors }
-  { handle -1 is returned sometimes !! (PM) }
-  if (filerec(f).handle=0) or (filerec(f).handle=UnusedHandle) then
-    begin
-      errno:=GetLastError;
-      Errno2InoutRes;
-    end;
-end;
-
-
-
-
-{*****************************************************************************
-                           UnTyped File Handling
-*****************************************************************************}
-
-{$i file.inc}
-
-{*****************************************************************************
-                           Typed File Handling
-*****************************************************************************}
-
-{$i typefile.inc}
-
-{*****************************************************************************
-                           Text File Handling
-*****************************************************************************}
-
-{$DEFINE EOF_CTRLZ}
-
-{$i text.inc}
-
-{*****************************************************************************
-                           Directory Handling
-*****************************************************************************}
-
-   function CreateDirectory(name : pointer;sec : pointer) : longbool;
-     stdcall;external 'kernel32' name 'CreateDirectoryA';
-   function RemoveDirectory(name:pointer):longbool;
-     stdcall;external 'kernel32' name 'RemoveDirectoryA';
-   function SetCurrentDirectory(name : pointer) : longbool;
-     stdcall;external 'kernel32' name 'SetCurrentDirectoryA';
-   function GetCurrentDirectory(bufsize : longint;name : pchar) : longbool;
-     stdcall;external 'kernel32' name 'GetCurrentDirectoryA';
-
-type
- TDirFnType=function(name:pointer):longbool;stdcall;
-
-procedure dirfn(afunc : TDirFnType;const s:string);
-var
-  buffer : array[0..255] of char;
-begin
-  move(s[1],buffer,length(s));
-  buffer[length(s)]:=#0;
-  AllowSlash(pchar(@buffer));
-  if not aFunc(@buffer) then
-    begin
-      errno:=GetLastError;
-      Errno2InoutRes;
-    end;
-end;
-
-function CreateDirectoryTrunc(name:pointer):longbool;stdcall;
-begin
-  CreateDirectoryTrunc:=CreateDirectory(name,nil);
-end;
-
-procedure mkdir(const s:string);[IOCHECK];
-begin
-  If (s='') or (InOutRes <> 0) then
-   exit;
-  dirfn(TDirFnType(@CreateDirectoryTrunc),s);
-end;
-
-procedure rmdir(const s:string);[IOCHECK];
-begin
-  if (s ='.') then
-    InOutRes := 16;
-  If (s='') or (InOutRes <> 0) then
-   exit;
-  dirfn(TDirFnType(@RemoveDirectory),s);
-end;
-
-procedure chdir(const s:string);[IOCHECK];
-begin
-  If (s='') or (InOutRes <> 0) then
-   exit;
-  dirfn(TDirFnType(@SetCurrentDirectory),s);
-  if Inoutres=2 then
-   Inoutres:=3;
-end;
-
-procedure GetDir (DriveNr: byte; var Dir: ShortString);
-const
-  Drive:array[0..3]of char=(#0,':',#0,#0);
-var
-  defaultdrive:boolean;
-  DirBuf,SaveBuf:array[0..259] of Char;
-begin
-  defaultdrive:=drivenr=0;
-  if not defaultdrive then
-   begin
-    byte(Drive[0]):=Drivenr+64;
-    GetCurrentDirectory(SizeOf(SaveBuf),SaveBuf);
-    if not SetCurrentDirectory(@Drive) then
-     begin
-      errno := word (GetLastError);
-      Errno2InoutRes;
-      Dir := char (DriveNr + 64) + ':\';
-      SetCurrentDirectory(@SaveBuf);
-      Exit;
-     end;
-   end;
-  GetCurrentDirectory(SizeOf(DirBuf),DirBuf);
-  if not defaultdrive then
-   SetCurrentDirectory(@SaveBuf);
-  dir:=strpas(DirBuf);
-  if not FileNameCaseSensitive then
-   dir:=upcase(dir);
-end;
-
-{*****************************************************************************
-                         SystemUnit Initialization
-*****************************************************************************}
-
-   { Startup }
-   procedure GetStartupInfo(p : pointer);
-     stdcall;external 'kernel32' name 'GetStartupInfoA';
-   function GetStdHandle(nStdHandle:DWORD):THANDLE;
-     stdcall;external 'kernel32' name 'GetStdHandle';
-
-   { command line/enviroment functions }
-   function GetCommandLine : pchar;
-     stdcall;external 'kernel32' name 'GetCommandLineA';
-
-  function GetCurrentProcessId:DWORD;
-    stdcall; external 'kernel32' name 'GetCurrentProcessId';
- 
-  function GetCurrentThreadId:DWORD;
-    stdcall; external 'kernel32' name 'GetCurrentThreadId';
-
 
 var
   ModuleName : array[0..255] of char;
@@ -892,6 +316,26 @@ begin
   allocarg(argc,0);
   { free unused memory }
   sysreallocmem(argv,(argc+1)*sizeof(pointer));
+end;
+
+
+function paramcount : longint;
+begin
+  paramcount := argc - 1;
+end;
+
+function paramstr(l : longint) : string;
+begin
+  if (l>=0) and (l<argc) then
+    paramstr:=strpas(argv[l])
+  else
+    paramstr:='';
+end;
+
+
+procedure randomize;
+begin
+  randseed:=GetTickCount;
 end;
 
 
@@ -1608,7 +1052,8 @@ begin
   { Reset IO Error }
   InOutRes:=0;
   ProcessID := GetCurrentProcessID;
-  ThreadID := GetCurrentThreadID;
+  { threading }
+  InitSystemThreads;
   { Reset internal error variable }
   errno:=0;
 {$ifdef HASVARIANT}
@@ -1621,7 +1066,11 @@ end.
 
 {
   $Log$
-  Revision 1.66  2005-02-01 20:22:50  florian
+  Revision 1.67  2005-02-06 13:06:20  peter
+    * moved file and dir functions to sysfile/sysdir
+    * win32 thread in systemunit
+
+  Revision 1.66  2005/02/01 20:22:50  florian
     * improved widestring infrastructure manager
 
   Revision 1.65  2004/12/12 11:53:47  florian

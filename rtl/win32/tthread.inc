@@ -20,7 +20,7 @@ var
 }
   ExecuteEvent: PRtlEvent;
   { guard for synchronization variables }
-  SynchronizeCritSect: systhrds.TRtlCriticalSection;
+  SynchronizeCritSect: TRtlCriticalSection;
   { method to execute }
   SynchronizeMethod: TThreadMethod;
   { caught exception in gui thread, to be raised in calling thread }
@@ -201,7 +201,7 @@ begin
     { raise some error? }
     exit;
 
-  systhrds.EnterCriticalSection(SynchronizeCritSect);
+  EnterCriticalSection(SynchronizeCritSect);
   SynchronizeMethod := Method;
   SynchronizeException := nil;
   SynchronizeMethodProc;
@@ -209,7 +209,7 @@ begin
   RtlEventWaitFor(ExecuteEvent);
   SynchronizeMethod := nil;
   LocalSyncException := SynchronizeException;
-  systhrds.LeaveCriticalSection(SynchronizeCritSect);
+  LeaveCriticalSection(SynchronizeCritSect);
   if LocalSyncException <> nil then
     raise LocalSyncException;
 end;
@@ -265,7 +265,11 @@ begin
 end;
 {
   $Log$
-  Revision 1.4  2004-12-26 13:46:45  peter
+  Revision 1.5  2005-02-06 13:06:20  peter
+    * moved file and dir functions to sysfile/sysdir
+    * win32 thread in systemunit
+
+  Revision 1.4  2004/12/26 13:46:45  peter
     * tthread uses systhrds
 
   Revision 1.3  2004/12/23 09:42:42  marco

@@ -850,7 +850,7 @@ var p   : ppchar;
 begin
   if High(s)<Low(s) Then Exit(NIL);
   Getmem(p,sizeof(pchar)*(high(s)-low(s)+ReserveEntries+2));  // one more for NIL, one more
-					      // for cmd
+                                              // for cmd
   if p=nil then
     begin
       {$ifdef xunix}
@@ -886,23 +886,23 @@ begin
   buf:=s;
   nr:=1;
   InQuote:=false;
-  while (buf^<>#0) do			// count nr of args
+  while (buf^<>#0) do                   // count nr of args
    begin
-     while (buf^ in [' ',#9,#10]) do	// Kill separators.
+     while (buf^ in [' ',#9,#10]) do    // Kill separators.
       inc(buf);
      inc(nr);
-     if buf^='"' Then			// quotes argument?
+     if buf^='"' Then                   // quotes argument?
       begin
-	inc(buf);
-	while not (buf^ in [#0,'"']) do	// then end of argument is end of string or next quote
-	 inc(buf);
-        if buf^='"' then		// skip closing quote.
-	  inc(buf);
+        inc(buf);
+        while not (buf^ in [#0,'"']) do // then end of argument is end of string or next quote
+         inc(buf);
+        if buf^='"' then                // skip closing quote.
+          inc(buf);
       end
      else
-       begin				// else std
-	 while not (buf^ in [' ',#0,#9,#10]) do
-	   inc(buf);
+       begin                            // else std
+         while not (buf^ in [' ',#0,#9,#10]) do
+           inc(buf);
        end;
    end;
   getmem(p,(ReserveEntries+nr)*sizeof(pchar));
@@ -914,36 +914,36 @@ begin
      {$endif}
      exit;
    end;
-  for i:=1 to ReserveEntries do inc(p);	// skip empty slots
+  for i:=1 to ReserveEntries do inc(p); // skip empty slots
   buf:=s;
   while (buf^<>#0) do
    begin
-     while (buf^ in [' ',#9,#10]) do	// Kill separators.
+     while (buf^ in [' ',#9,#10]) do    // Kill separators.
       begin
        buf^:=#0;
        inc(buf);
       end;
-     if buf^='"' Then			// quotes argument?
+     if buf^='"' Then                   // quotes argument?
       begin
-	inc(buf);
+        inc(buf);
         p^:=buf;
-	inc(p);
-	p^:=nil;
-	while not (buf^ in [#0,'"']) do	// then end of argument is end of string or next quote
-	 inc(buf);
-        if buf^='"' then		// skip closing quote.
-	  begin
-	    buf^:=#0;
-  	    inc(buf);
+        inc(p);
+        p^:=nil;
+        while not (buf^ in [#0,'"']) do // then end of argument is end of string or next quote
+         inc(buf);
+        if buf^='"' then                // skip closing quote.
+          begin
+            buf^:=#0;
+            inc(buf);
           end;
       end
      else
        begin
-	p^:=buf;
-	inc(p);
-	p^:=nil;
-	 while not (buf^ in [' ',#0,#9,#10]) do
-	   inc(buf);
+        p^:=buf;
+        inc(p);
+        p^:=nil;
+         while not (buf^ in [' ',#0,#9,#10]) do
+           inc(buf);
        end;
    end;
 end;
@@ -1034,28 +1034,37 @@ end;
 
 
 {*****************************************************************************
-                       Text File Handling
+                            File Handling
 *****************************************************************************}
 
-{$I text.inc}
+{ OS dependent low level file functions }
+{$i sysfile.inc}
 
-{*****************************************************************************
-                 UnTyped File Handling
-*****************************************************************************}
+{ Text file }
+{$i text.inc}
 
+{ Untyped file }
 {$i file.inc}
 
-{*****************************************************************************
-                 Typed File Handling
-*****************************************************************************}
-
+{ Typed file }
 {$i typefile.inc}
 
+
+{*****************************************************************************
+                            Directory Handling
+*****************************************************************************}
+
+{ OS dependent dir functions }
+{$i sysdir.inc}
 
 
 {
   $Log$
-  Revision 1.72  2005-02-06 11:20:52  peter
+  Revision 1.73  2005-02-06 13:06:20  peter
+    * moved file and dir functions to sysfile/sysdir
+    * win32 thread in systemunit
+
+  Revision 1.72  2005/02/06 11:20:52  peter
     * threading in system unit
     * removed systhrds unit
 
