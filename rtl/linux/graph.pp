@@ -315,7 +315,7 @@ begin
   nrColors:=vga_getcolors;
   if (nrColors=16) or (nrcolors=256) then
     InitColors;
-  SetRawMode(True);
+  
 end;
 
 Function ClipCoords (Var X,Y : Integer) : Boolean;
@@ -497,7 +497,6 @@ end;
         _graphresult := grnoinitgraph;
         exit
       end;
-    SetRawMode(False);
     RestoreVideoState;
     isgraphmode := false;
  end;
@@ -542,10 +541,11 @@ end;
            PaletteSize := MaxColor;
            HardwarePages := 0;
            // necessary hooks ...
-           if (MaxColor = 16) and (LongInt(MaxX) * LongInt(MaxY) < 65536*4*2) then
+           if (MaxColor = 16) and
+	     (LongInt(ModeInfo.Width) * LongInt(ModeInfo.Height) < 65536*4*2) then
            begin
              // Use optimized graphics routines for 4 bit EGA/VGA modes
-             ScrWidth := MaxX div 8;
+             ScrWidth := ModeInfo.Width div 8;
              DirectPutPixel := @DirectPutPixel16;
              PutPixel := @PutPixel16;
              GetPixel := @GetPixel16;
@@ -586,10 +586,19 @@ end;
 
 begin
   InitializeGraph;
+  SetRawMode(True);
 end.
 {
   $Log$
-  Revision 1.14  2000-04-13 16:01:22  sg
+  Revision 1.15  2000-04-16 21:19:19  sg
+  * The terminal will now be set to raw mode directly on initialization,
+    as the svgalib switches the terminal immediately after startup, and
+    not after a switch to graphics mode!
+  * Fixed a problem which occured after Florian's last patch: MaxX and MaxY
+    are smaller by 1 now, which lead to a wrong scanline width calculation
+    for the optimized routines for 16 colour modes.
+
+  Revision 1.14  2000/04/13 16:01:22  sg
   * The new terminal started by svgalib after a switch to graphics mode is
     now set to raw mode, so that some functions of the CRT unit such as
     ReadKey can work correctly now.
