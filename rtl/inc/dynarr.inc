@@ -65,7 +65,7 @@ procedure dynarray_clear(var p : pdynarray;ti : pdynarraytypeinfo);
      finalizearray(p,ti^.eletype,p^.high+1,ti^.elesize);
 
      { release the data }
-     freemem(p,sizeof(tdynarray)+p^.high+1*ti^.elesize);
+     freemem(p,sizeof(tdynarray)+(p^.high+1)*ti^.elesize);
      p:=nil;
   end;
 
@@ -136,11 +136,11 @@ procedure dynarray_setlength(var p : pointer;pti : pdynarraytypeinfo;
             begin
                { make an unique copy }
                getmem(newp,size);
-               move(p^,(newp+sizeof(tdynarray))^,ti^.elesize*dims[0]);
+               move(p^,(pointer(newp)+sizeof(tdynarray))^,ti^.elesize*dims[0]);
 
                { increment ref. count of members }
                for i:=0 to dims[0]-1 do
-                 addref(newp+sizeof(tdynarray)+ti^.elesize*i,ti^.eletype);
+                 addref(pointer(newp)+sizeof(tdynarray)+ti^.elesize*i,ti^.eletype);
 
                { a declock(ref. count) isn't enough here }
                { it could be that the in MT enviroments  }
@@ -164,14 +164,14 @@ procedure dynarray_setlength(var p : pointer;pti : pdynarraytypeinfo;
                     { shrink the array? }
                     if dims[0]<realp^.high+1 then
                       begin
-                          finalizearray(realp+sizeof(realp)+ti^.elesize*dims[0],
+                          finalizearray(pointer(realp)+sizeof(tdynarray)+ti^.elesize*dims[0],
                             ti^.eletype,realp^.high-dims[0]+1,ti^.elesize);
                          reallocmem(realp,size);
                       end
                     else if dims[0]>realp^.high+1 then
                       begin
                          reallocmem(realp,size);
-                         fillchar((realp+sizeof(realp)+ti^.elesize*(realp^.high+1))^,
+                         fillchar((pointer(realp)+sizeof(tdynarray)+ti^.elesize*(realp^.high+1))^,
                            (dims[0]-realp^.high-1)*ti^.elesize,0);
                       end;
                  end;
@@ -183,11 +183,11 @@ procedure dynarray_setlength(var p : pointer;pti : pdynarraytypeinfo;
           if dimcount>1 then
             begin
                for i:=0 to dims[0]-1 do
-                 dynarray_setlength(pointer(plongint(newp+sizeof(tdynarray))[i*ti^.elesize]),
+                 dynarray_setlength(pointer(plongint(pointer(newp)+sizeof(tdynarray))[i*ti^.elesize]),
                    ti^.eletype,dimcount-1,@dims[1]);
             end;
        end;
-     p:=newp+sizeof(tdynarray);
+     p:=pointer(newp)+sizeof(tdynarray);
      newp^.refcount:=1;
      newp^.high:=dims[0]-1;
   end;
@@ -202,7 +202,10 @@ function dynarray_copy(var p : pointer;ti : pdynarraytypeinfo;
 
 {
   $Log$
-  Revision 1.4  2000-11-12 23:23:34  florian
+  Revision 1.5  2000-12-01 23:30:00  florian
+    * fixed some bugs in setlength
+
+  Revision 1.4  2000/11/12 23:23:34  florian
     * interfaces basically running
 
   Revision 1.3  2000/11/07 23:42:21  florian
