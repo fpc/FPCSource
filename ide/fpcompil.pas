@@ -289,8 +289,10 @@ begin
     V_Hint        then ClassS:=msg_class_Hint
 {$ifdef VERBOSETXT}
     else if TClass =
+{$ifdef COMPILER_1_0}
     V_Macro       then ClassS:=msg_class_macro   else if TClass =
     V_Procedure   then ClassS:=msg_class_procedure else if TClass =
+{$endif}
     V_Conditional then ClassS:=msg_class_conditional else if TClass =
     V_Info        then ClassS:=msg_class_info    else if TClass =
     V_Status      then ClassS:=msg_class_status  else if TClass =
@@ -306,7 +308,11 @@ begin
   if ClassS<>'' then
    ClassS:=RExpand(ClassS,0)+': ';
   if assigned(Module) and
+{$ifdef COMPILER_1_0}
      (TClass<=V_ShowFile)
+{$else}
+     ((TClass and V_LineInfo)=V_LineInfo)
+{$endif}
      {and (status.currentsource<>'') and (status.currentline>0)} then
     begin
       if Row>0 then
@@ -391,8 +397,12 @@ end;
 
 procedure TCompilerMessageWindow.AddMessage(AClass: longint;const Msg, Module: string; Line, Column: longint);
 begin
+{$ifdef COMPILER_1_0}
   if AClass>=V_Info then
+{$else}
+  if (AClass and V_LineInfo)=V_LineInfo then
     Line:=0;
+{$endif}
   MsgLB^.AddItem(New(PCompilerMessage,Init(AClass, Msg, MsgLB^.AddModuleName(Module), Line, Column)));
   if (@Self=CompilerMessageWindow) and ((AClass = V_fatal) or (AClass = V_Error)) then
     begin
@@ -1322,7 +1332,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.18  2002-12-02 13:58:29  pierre
+  Revision 1.19  2003-01-11 15:52:54  peter
+    * adapted for new 1.1 compiler verbosity
+
+  Revision 1.18  2002/12/02 13:58:29  pierre
    * avoid longjmp messages if quitting after compilation error
 
   Revision 1.17  2002/11/20 17:35:00  pierre
