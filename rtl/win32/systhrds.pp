@@ -49,7 +49,6 @@ function  SysGetCurrentThreadId : dword;forward;
 { Include generic overloaded routines }
 {$i thread.inc}
 
-
 {*****************************************************************************
                            Local WINApi imports
 *****************************************************************************}
@@ -85,6 +84,19 @@ function  WaitForSingleObject (hHandle,Milliseconds: dword): dword; stdcall;exte
 function  WinThreadSetPriority (threadHandle : dword; Prio: longint): boolean; stdcall;external 'kernel32' name 'SetThreadPriority';
 function  WinThreadGetPriority (threadHandle : dword): Integer; stdcall;external 'kernel32' name 'GetThreadPriority';
 function  WinGetCurrentThreadId : dword; stdcall;external 'kernel32' name 'GetCurrentThread';
+function  CreateEvent(lpEventAttributes:pointer;bManualReset:longbool;bInitialState:longbool;lpName:pchar):CARDINAL; external 'kernel32' name 'CreateEventA';
+function  CloseHandle(hObject:CARDINAL):LONGBOOL; external 'kernel32' name 'CloseHandle';
+function  ResetEvent(hEvent:CARDINAL):LONGBOOL; external 'kernel32' name 'ResetEvent';
+function  SetEvent(hEvent:CARDINAL):LONGBOOL; external 'kernel32' name 'SetEvent';
+
+CONST
+   WAIT_OBJECT_0 = 0;
+   WAIT_ABANDONED_0 = $80;
+   WAIT_TIMEOUT = $102;
+   WAIT_IO_COMPLETION = $c0;
+   WAIT_ABANDONED = $80;
+   WAIT_FAILED = $ffffffff;
+
 
 {*****************************************************************************
                              Threadvar support
@@ -350,6 +362,63 @@ end;
       begin
         SetMemoryMutexManager(Win32MemoryMutexManager);
       end;
+
+Const
+        wrSignaled = 0;
+        wrTimeout  = 1;
+        wrAbandoned= 2;
+        wrError    = 3;
+
+type Tbasiceventstate=record
+			fhandle    : THandle;
+	                flasterror : longint;
+      		       end;
+     plocaleventrec= ^tbasiceventstate;
+
+function intBasicEventCreate(EventAttributes : Pointer;
+AManualReset,InitialState : Boolean;const Name : ansistring):pEventState;
+
+begin
+  new(plocaleventrec(result));
+  plocaleventrec(result)^.FHandle := CreateEvent(EventAttributes, AManualReset, InitialState,PChar(Name));
+end;
+
+procedure intbasiceventdestroy(state:peventstate);
+
+begin
+  closehandle(plocaleventrec(state)^.fhandle);
+  dispose(plocaleventrec(state));
+end;
+
+procedure intbasiceventResetEvent(state:peventstate);
+
+begin
+  ResetEvent(plocaleventrec(state)^.FHandle)
+end;
+
+procedure intbasiceventSetEvent(state:peventstate);
+
+begin
+  SetEvent(plocaleventrec(state)^.FHandle);
+end;
+
+function intbasiceventWaitFor(Timeout : Cardinal;state:peventstate) : longint;
+
+begin
+  case WaitForSingleObject(plocaleventrec(state)^.fHandle, Timeout) of
+    WAIT_ABANDONED: Result := wrAbandoned;
+    WAIT_OBJECT_0: Result := wrSignaled;
+    WAIT_TIMEOUT: Result := wrTimeout;
+    WAIT_FAILED:
+        begin
+        Result := wrError;
+        plocaleventrec(state)^.FLastError := GetLastError;
+       end;
+  else
+    Result := wrError;
+  end;
+end;
+
 Var
   WinThreadManager : TThreadManager; 
 
@@ -380,6 +449,11 @@ begin
     AllocateThreadVars     :=@SysAllocateThreadVars;
     ReleaseThreadVars      :=@SysReleaseThreadVars;
 {$endif HASTHREADVAR}
+    BasicEventCreate       :=@intBasicEventCreate;
+    BasicEventDestroy      :=@intBasicEventDestroy;
+    BasicEventResetEvent   :=@intBasicEventResetEvent;
+    BasicEventSetEvent     :=@intBasicEventSetEvent;
+    BasiceventWaitFor      :=@intBasiceventWaitFor;
     end;
   SetThreadManager(WinThreadManager);
   InitHeapMutexes;
@@ -391,7 +465,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  2004-01-21 14:15:42  florian
+  Revision 1.11  2004-05-23 15:30:13  marco
+   * first try
+
+  Revision 1.10  2004/01/21 14:15:42  florian
     * fixed win32 compilation
 
   Revision 1.9  2003/11/29 17:34:53  michael
