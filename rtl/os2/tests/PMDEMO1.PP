@@ -2,12 +2,14 @@
 
     $Id$
 
-                   Copyright (c) 1999-2000 by Florian Kl„mpfl
+                   Copyright (c) 1999-2000 by Florian Klaempfl
 
  ****************************************************************************}
 
 { Sample program for FPC under OS/2 }
 { Classic Hello world in PM version }
+
+{ $R pmdemo1.res}   (* Not supported under OS/2 yet. *)
 
 program pmdemo1;
 
@@ -26,7 +28,7 @@ program pmdemo1;
                             FCF_TASKLIST+FCF_MENU;
 
   function clientwndproc(window : cardinal;msg : longint;mp1,mp2 : pointer) :
-    pointer;export;
+    pointer; cdecl; export;
   
     const
        text = 'Hello world by OS/2 and FPC';
@@ -50,7 +52,7 @@ program pmdemo1;
                           109 : WinPostMsg(0,WM_QUIT,nil,nil);
                           201 : WinMessageBox(cardinal(1),cardinal(1),
                              'HelloPM from FPC',
-                             'šber',0,MB_ICONEXCLAMATION+MB_MOVEABLE);
+                             'About',0,MB_ICONEXCLAMATION+MB_MOVEABLE);
                        end;
        else
           clientwndproc:=WinDefWindowProc(window,msg,mp1,mp2);
@@ -71,7 +73,10 @@ program pmdemo1;
  end.
 {
   $Log$
-  Revision 1.4  2000-01-07 16:41:50  daniel
+  Revision 1.5  2000-06-18 18:37:17  hajny
+   * cdecl added
+
+  Revision 1.4  2000/01/07 16:41:50  daniel
     * copyright 2000
 
   Revision 1.3  2000/01/07 16:32:34  daniel
