@@ -39,6 +39,9 @@
    New consts and new records.
    04 Feb 2003.
 
+   Changed integer > smallint.
+   09 Feb 2003.
+   
    nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 
 }
@@ -72,8 +75,8 @@ Type
         FrontPen,
         BackPen         : Byte;         { the pen numbers for the rendering }
         DrawMode        : Byte;         { the mode for rendering the text }
-        LeftEdge        : Integer;        { relative start location for the text }
-        TopEdge         : Integer;        { relative start location for the text }
+        LeftEdge        : smallint;        { relative start location for the text }
+        TopEdge         : smallint;        { relative start location for the text }
         ITextFont       : pTextAttr;  { if NULL, you accept the default }
         IText           : STRPTR;       { pointer to null-terminated text }
         NextText        : pIntuiText;   { continuation to TxWrite another text }
@@ -97,7 +100,7 @@ Type
     pBorder = ^tBorder;
     tBorder = record
         LeftEdge,
-        TopEdge         : Integer;        { initial offsets from the origin }
+        TopEdge         : smallint;        { initial offsets from the origin }
         FrontPen,
         BackPen         : Byte;         { pens numbers for rendering }
         DrawMode        : Byte;         { mode for rendering }
@@ -116,9 +119,9 @@ Type
     tMenuItem = record
         NextItem        : pMenuItem;    { pointer to next in chained list }
         LeftEdge,
-        TopEdge         : Integer;        { position of the select box }
+        TopEdge         : smallint;        { position of the select box }
         Width,
-        Height          : Integer;        { dimensions of the select box }
+        Height          : smallint;        { dimensions of the select box }
         Flags           : Word;        { see the defines below }
 
         MutualExclude   : Longint;      { set bits mean this item excludes that }
@@ -177,9 +180,9 @@ Type
     tMenu = record
         NextMenu        : pMenu;        { same level }
         LeftEdge,
-        TopEdge         : Integer;        { position of the select box }
+        TopEdge         : smallint;        { position of the select box }
         Width,
-        Height          : Integer;        { dimensions of the select box }
+        Height          : smallint;        { dimensions of the select box }
         Flags           : Word;        { see flag definitions below }
         MenuName        : STRPTR;       { text for this Menu Header }
         FirstItem       : pMenuItem;  { pointer to first in chain }
@@ -189,7 +192,7 @@ Type
         JazzX,
         JazzY,
         BeatX,
-        BeatY           : Integer;
+        BeatY           : smallint;
     end;
 
 CONST
@@ -213,9 +216,9 @@ Type
         NextGadget      : pGadget;      { next gadget in the list }
 
         LeftEdge,
-        TopEdge         : Integer;        { "hit box" of gadget }
+        TopEdge         : smallint;        { "hit box" of gadget }
         Width,
-        Height          : Integer;        { "hit box" of gadget }
+        Height          : smallint;        { "hit box" of gadget }
 
         Flags           : Word;        { see below for list of defines }
 
@@ -266,7 +269,7 @@ Type
     { The first fields match struct Gadget exactly }
     NextGadget     : pExtGadget;  { Matches struct Gadget }
     LeftEdge, TopEdge,            { Matches struct Gadget }
-    Width, Height  : Integer;     { Matches struct Gadget }
+    Width, Height  : smallint;     { Matches struct Gadget }
     Flags,                        { Matches struct Gadget }
     Activation,                   { Matches struct Gadget }
     GadgetType     : WORD;        { Matches struct Gadget }
@@ -283,7 +286,7 @@ Type
     BoundsLeftEdge,             { Bounding extent for gadget, valid   }
     BoundsTopEdge,              { only if GMORE_BOUNDS is set.  The   }
     BoundsWidth,                { GFLG_RELxxx flags affect these      }
-    BoundsHeight   : Integer;      { coordinates as well.        }
+    BoundsHeight   : smallint;      { coordinates as well.        }
  end;
 
 
@@ -610,17 +613,17 @@ Type
     { you initialize these variables, and then Intuition maintains them }
         Buffer          : STRPTR;       { the buffer containing the start and final string }
         UndoBuffer      : STRPTR;       { optional buffer for undoing current entry }
-        BufferPos       : Integer;        { character position in Buffer }
-        MaxChars        : Integer;        { max number of chars in Buffer (including NULL) }
-        DispPos         : Integer;        { Buffer position of first displayed character }
+        BufferPos       : smallint;        { character position in Buffer }
+        MaxChars        : smallint;        { max number of chars in Buffer (including NULL) }
+        DispPos         : smallint;        { Buffer position of first displayed character }
 
     { Intuition initializes and maintains these variables for you }
 
-        UndoPos         : Integer;        { character position in the undo buffer }
-        NumChars        : Integer;        { number of characters currently in Buffer }
-        DispCount       : Integer;        { number of whole characters visible in Container }
+        UndoPos         : smallint;        { character position in the undo buffer }
+        NumChars        : smallint;        { number of characters currently in Buffer }
+        DispCount       : smallint;        { number of whole characters visible in Container }
         CLeft,
-        CTop            : Integer;        { topleft offset of the container }
+        CTop            : smallint;        { topleft offset of the container }
 
     { you can initialize this variable before the gadget is submitted to
      * Intuition, and then examine it later to discover what Longint
@@ -651,11 +654,11 @@ Type
     { the ClipRect and BitMap and used for rendering the requester }
         OlderRequest    : pRequester;
         LeftEdge,
-        TopEdge         : Integer;        { dimensions of the entire box }
+        TopEdge         : smallint;        { dimensions of the entire box }
         Width,
-        Height          : Integer;        { dimensions of the entire box }
+        Height          : smallint;        { dimensions of the entire box }
         RelLeft,
-        RelTop          : Integer;        { for Pointer relativity offsets }
+        RelTop          : smallint;        { for Pointer relativity offsets }
 
         ReqGadget       : pGadget;    { pointer to a list of Gadgets }
         ReqBorder       : pBorder;    { the box's border }
@@ -724,11 +727,11 @@ Const
 Type
     pImage = ^tImage;
     tImage = record
-        LeftEdge        : Integer;        { starting offset relative to some origin }
-        TopEdge         : Integer;        { starting offsets relative to some origin }
-        Width           : Integer;        { pixel size (though data is word-aligned) }
+        LeftEdge        : smallint;        { starting offset relative to some origin }
+        TopEdge         : smallint;        { starting offsets relative to some origin }
+        Width           : smallint;        { pixel size (though data is word-aligned) }
         Height,
-        Depth           : Integer;        { pixel sizes }
+        Depth           : smallint;        { pixel sizes }
         ImageData       : Pointer;      { pointer to the actual word-aligned bits }
 
     { the PlanePick and PlaneOnOff variables work much the same way as the
@@ -957,7 +960,7 @@ Type
      }
 
         MouseX,
-        MouseY          : Integer;
+        MouseY          : smallint;
 
     { the time values are copies of the current system clock time.  Micros
      * are in units of microseconds, Seconds in seconds.
@@ -1077,7 +1080,7 @@ Type
     Left,
     Top,
     Width,
-    Height : Integer;
+    Height : smallint;
    END;
 
 
@@ -1092,17 +1095,17 @@ Type
         NextWindow      : pWindow;      { for the linked list in a screen }
 
         LeftEdge,
-        TopEdge         : Integer;        { screen dimensions of window }
+        TopEdge         : smallint;        { screen dimensions of window }
         Width,
-        Height          : Integer;        { screen dimensions of window }
+        Height          : smallint;        { screen dimensions of window }
 
         MouseY,
-        MouseX          : Integer;        { relative to upper-left of window }
+        MouseX          : smallint;        { relative to upper-left of window }
 
         MinWidth,
-        MinHeight       : Integer;        { minimum sizes }
+        MinHeight       : smallint;        { minimum sizes }
         MaxWidth,
-        MaxHeight       : Integer;        { maximum sizes }
+        MaxHeight       : smallint;        { maximum sizes }
 
         Flags           : ULONG;      { see below for defines }
 
@@ -1114,7 +1117,7 @@ Type
 
         DMRequest       : pRequester; { double-click Requester }
 
-        ReqCount        : Integer;        { count of reqs blocking Window }
+        ReqCount        : smallint;        { count of reqs blocking Window }
 
         WScreen         : Pointer;      { this Window's Screen }
         RPort           : pRastPort;  { this Window's very own RastPort }
@@ -1185,15 +1188,15 @@ Type
      * notwithstanding
      }
 
-        GZZMouseX       : Integer;
-        GZZMouseY       : Integer;
+        GZZMouseX       : smallint;
+        GZZMouseY       : smallint;
 
     { these variables contain the width and height of the inner-Window of
      * GIMMEZEROZERO Windows
      }
 
-        GZZWidth        : Integer;
-        GZZHeight       : Integer;
+        GZZWidth        : smallint;
+        GZZHeight       : smallint;
 
         ExtData         : Pointer;
 
@@ -1288,9 +1291,9 @@ Type
     pNewWindow = ^tNewWindow;
     tNewWindow = record
         LeftEdge,
-        TopEdge         : Integer;        { screen dimensions of window }
+        TopEdge         : smallint;        { screen dimensions of window }
         Width,
-        Height          : Integer;        { screen dimensions of window }
+        Height          : smallint;        { screen dimensions of window }
 
         DetailPen,
         BlockPen        : Byte;         { for bar/border/gadget rendering }
@@ -1345,9 +1348,9 @@ Type
      }
 
         MinWidth,
-        MinHeight       : Integer;        { minimums }
+        MinHeight       : smallint;        { minimums }
         MaxWidth,
-        MaxHeight       : Integer;        { maximums }
+        MaxHeight       : smallint;        { maximums }
 
     { the type variable describes the Screen in which you want this Window to
      * open.  The type value can either be CUSTOMSCREEN or one of the
@@ -1368,8 +1371,8 @@ Type
  }
    pExtNewWindow = ^tExtNewWindow;
    tExtNewWindow = record
-    LeftEdge, TopEdge : Integer;
-    Width, Height : Integer;
+    LeftEdge, TopEdge : smallint;
+    Width, Height : smallint;
 
     DetailPen, BlockPen : Byte;
     IDCMPFlags    : ULONG;
@@ -1382,7 +1385,7 @@ Type
     WScreen       : Pointer;
     WBitMap       : pBitMap;
 
-    MinWidth, MinHeight : Integer;
+    MinWidth, MinHeight : smallint;
     MaxWidth, MaxHeight : Word;
 
     { the type variable describes the Screen in which you want this Window to
@@ -1647,7 +1650,7 @@ Type
 
   pColorSpec = ^tColorSpec;
   tColorSpec = record
-    ColorIndex  : Integer;     { -1 terminates an array of ColorSpec  }
+    ColorIndex  : smallint;     { -1 terminates an array of ColorSpec  }
     Red         : Word;     { only the _bottom_ 4 bits recognized }
     Green       : Word;     { only the _bottom_ 4 bits recognized }
     Blue        : Word;     { only the _bottom_ 4 bits recognized }
@@ -1855,12 +1858,12 @@ Type
         FirstWindow     : pWindow;      { linked list Screen's Windows }
 
         LeftEdge,
-        TopEdge         : Integer;        { parameters of the screen }
+        TopEdge         : smallint;        { parameters of the screen }
         Width,
-        Height          : Integer;        { parameters of the screen }
+        Height          : smallint;        { parameters of the screen }
 
         MouseY,
-        MouseX          : Integer;        { position relative to upper-left }
+        MouseX          : smallint;        { position relative to upper-left }
 
         Flags           : Word;        { see definitions below }
 
@@ -2198,7 +2201,7 @@ Type
         TopEdge,
         Width,
         Height,
-        Depth           : Integer;        { screen dimensions }
+        Depth           : smallint;        { screen dimensions }
 
         DetailPen,
         BlockPen        : Byte;         { for bar/border/gadget rendering }
@@ -2228,7 +2231,7 @@ type
 
  pExtNewScreen = ^tExtNewScreen;
  tExtNewScreen = record
-  LeftEdge, TopEdge, Width, Height, Depth : Integer;
+  LeftEdge, TopEdge, Width, Height, Depth : smallint;
   DetailPen, BlockPen : Byte;
   ViewModes : Word;
   ens_Type : Word;     { Type in C-Includes }
@@ -2266,8 +2269,8 @@ Type
     psn_Node    : tNode;       { ln_Name is screen name }
     psn_Screen  : pScreen;
     psn_Flags   : Word;      { below                }
-    psn_Size    : Integer;      { includes name buffer }
-    psn_VisitorCount  : Integer; { how many visitor windows }
+    psn_Size    : smallint;      { includes name buffer }
+    psn_VisitorCount  : smallint; { how many visitor windows }
     psn_SigTask : pTask;    { who to signal when visitors gone }
     psn_SigBit  : Byte;     { which signal }
    END;
@@ -2432,7 +2435,7 @@ Type
         ViewXOffset     : Shortint;         { Offset for top lefthand corner  }
         ViewYOffset     : Shortint;         { X and Y dimensions           }
         ViewInitX,
-        ViewInitY       : Integer;        { View initial offset values      }
+        ViewInitY       : smallint;        { View initial offset values      }
 
         EnableCLI       : Boolean;      { CLI availability switch }
 
@@ -2450,7 +2453,7 @@ Type
         PrintImage      : Word;        { positive or negative         }
         PrintAspect     : Word;        { horizontal or vertical      }
         PrintShade      : Word;        { b&w, half-tone, or color    }
-        PrintThreshold  : Integer;        { darkness ctrl for b/w dumps      }
+        PrintThreshold  : smallint;        { darkness ctrl for b/w dumps      }
 
     { print paper descriptors }
         PaperSize       : Word;        { paper size               }
@@ -2674,7 +2677,7 @@ Type
 
         Flags           : ULONG;      { see definitions below }
         MouseY,
-        MouseX          : Integer;        { mouse position relative to View }
+        MouseX          : smallint;        { mouse position relative to View }
 
         Seconds         : ULONG;      { timestamp of most current input event }
         Micros          : ULONG;      { timestamp of most current input event }
@@ -3242,8 +3245,8 @@ type
     MethodID  : ULONG;
     gpht_GInfo : pGadgetInfo;
     gpht_Mouse : record
-             x : Integer;
-             y : Integer;
+             x : smallint;
+             y : smallint;
                  end;
   END;
 
@@ -3294,8 +3297,8 @@ Type
     gpi_IEvent : pInputEvent;
     gpi_Termination : Pointer;
     gpi_Mouse : record
-            x : Integer;
-            y : Integer;
+            x : smallint;
+            y : smallint;
                 end;
     {* (V39) Pointer to TabletData structure, if this event originated
      * from a tablet which sends IESUBCLASS_NEWTABLET events, or NULL if
@@ -3914,8 +3917,8 @@ Type
     { modified for each input event    }
     IEvent     : pInputEvent;    { actual event: do not change  }
     Code       : Word;            { character code, IF one byte  }
-    BufferPos  : Integer;            { cursor position              }
-    NumChars   : Integer;
+    BufferPos  : smallint;            { cursor position              }
+    NumChars   : smallint;
     Actions    : ULONG;          { what Intuition will do       }
     LongInt_   : Longint;          { temp storage for longint     }
 
@@ -4099,7 +4102,7 @@ PROCEDURE FreeRemember(VAR rememberKey : pRemember; reallyForget : LONGINT);
 PROCEDURE FreeScreenBuffer(sc : pScreen; sb : pScreenBuffer);
 PROCEDURE FreeScreenDrawInfo(screen : pScreen; drawInfo : pDrawInfo);
 PROCEDURE FreeSysRequest(window : pWindow);
-PROCEDURE GadgetMouse(gadget : pGadget; gInfo : pGadgetInfo; mousePoint : pInteger);
+PROCEDURE GadgetMouse(gadget : pGadget; gInfo : pGadgetInfo; mousePoint : psmallint);
 FUNCTION GetAttr(attrID : ULONG; obj : POINTER; storagePtr : pULONG) : ULONG;
 PROCEDURE GetDefaultPubScreen(nameBuffer : pCHAR);
 FUNCTION GetDefPrefs(preferences : pPreferences; size : LONGINT) : pPreferences;
@@ -4191,10 +4194,10 @@ function BASEOBJECT (o: p_Object): Pointer;
 function _OBJ(o: p_Object): p_Object;
 function __OBJECT (o: Pointer): p_Object;
 function OCLASS (o: Pointer): pIClass;
-function SHIFTITEM (n: integer): word;
-function SHIFTMENU (n: integer): word;
-function SHIFTSUB (n: integer): word;
-function FULLMENUNUM (menu, item, sub: integer): word;
+function SHIFTITEM (n: smallint): word;
+function SHIFTMENU (n: smallint): word;
+function SHIFTSUB (n: smallint): word;
+function FULLMENUNUM (menu, item, sub: smallint): word;
 function IM_BGPEN (im: pImage): byte;
 function IM_BOX (im: pImage): pIBox;
 function IM_FGPEN (im: pImage): byte;
@@ -4254,22 +4257,22 @@ begin
     OCLASS := obj^.o_Class;
 end;
 
-function SHIFTITEM (n: integer): word;
+function SHIFTITEM (n: smallint): word;
 begin
     SHIFTITEM := (n and $3f) shl 5
 end;
 
-function SHIFTMENU (n: integer): word;
+function SHIFTMENU (n: smallint): word;
 begin
     SHIFTMENU := n and $1f
 end;
 
-function SHIFTSUB (n: integer): word;
+function SHIFTSUB (n: smallint): word;
 begin
     SHIFTSUB := (n and $1f) shl 11
 end;
 
-function FULLMENUNUM (menu, item, sub: integer): word;
+function FULLMENUNUM (menu, item, sub: smallint): word;
 begin
     FULLMENUNUM := ((sub and $1f) shl 11) or
                     ((item and $3f) shl 5) or
@@ -4830,7 +4833,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE GadgetMouse(gadget : pGadget; gInfo : pGadgetInfo; mousePoint : pInteger);
+PROCEDURE GadgetMouse(gadget : pGadget; gInfo : pGadgetInfo; mousePoint : psmallint);
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -6000,7 +6003,10 @@ END. (* UNIT INTUITION *)
 
 {
   $Log$
-  Revision 1.4  2003-02-07 20:45:08  nils
+  Revision 1.5  2003-02-10 17:59:46  nils
+  *  fixes for delphi mode
+
+  Revision 1.4  2003/02/07 20:45:08  nils
   * update for amigaos 3.9
 
   Revision 1.3  2003/01/13 20:34:19  nils

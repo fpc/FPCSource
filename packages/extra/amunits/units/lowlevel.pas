@@ -24,6 +24,11 @@
     Added the defines use_amiga_smartlink and
     use_auto_openlib.
     13 Jan 2003.
+    
+    Update for AmigaOS 3.9.
+    Changed startcode for unit.
+    09 Feb 2003.
+    
     nils.sjoholm@mailbox.swipnet.se
 }
 
@@ -262,9 +267,9 @@ Const
 
 VAR LowLevelBase : pLibrary;
 
-FUNCTION AddKBInt(intRoutine : POINTER; intData : POINTER) : POINTER;
-FUNCTION AddTimerInt(intRoutine : POINTER; intData : POINTER) : POINTER;
-FUNCTION AddVBlankInt(intRoutine : POINTER; intData : POINTER) : POINTER;
+FUNCTION AddKBInt(const intRoutine : POINTER;const intData : POINTER) : POINTER;
+FUNCTION AddTimerInt(const intRoutine : POINTER;const intData : POINTER) : POINTER;
+FUNCTION AddVBlankInt(const intRoutine : POINTER;const intData : POINTER) : POINTER;
 FUNCTION ElapsedTime(context : pEClockVal) : ULONG;
 FUNCTION GetKey : ULONG;
 FUNCTION GetLanguageSelection : BYTE;
@@ -273,17 +278,30 @@ FUNCTION ReadJoyPort(port : ULONG) : ULONG;
 PROCEDURE RemKBInt(intHandle : POINTER);
 PROCEDURE RemTimerInt(intHandle : POINTER);
 PROCEDURE RemVBlankInt(intHandle : POINTER);
-FUNCTION SetJoyPortAttrsA(portNumber : ULONG; tagList : pTagItem) : BOOLEAN;
+FUNCTION SetJoyPortAttrsA(portNumber : ULONG;const tagList : pTagItem) : BOOLEAN;
 PROCEDURE StartTimerInt(intHandle : POINTER; timeInterval : ULONG; continuous : LONGINT);
 PROCEDURE StopTimerInt(intHandle : POINTER);
-FUNCTION SystemControlA(tagList : pTagItem) : ULONG;
+FUNCTION SystemControlA(const tagList : pTagItem) : ULONG;
 
+
+{Here we read how to compile this unit}
+{You can remove this include and use a define instead}
+{$I useautoopenlib.inc}
+{$ifdef use_init_openlib}
+procedure InitLOWLEVELLibrary;
+{$endif use_init_openlib}
+
+{This is a variable that knows how the unit is compiled}
+var
+    LOWLEVELIsCompiledHow : longint;
 
 IMPLEMENTATION
 
+{$ifndef dont_use_openlib}
 uses msgbox;
+{$endif dont_use_openlib}
 
-FUNCTION AddKBInt(intRoutine : POINTER; intData : POINTER) : POINTER;
+FUNCTION AddKBInt(const intRoutine : POINTER;const intData : POINTER) : POINTER;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -296,7 +314,7 @@ BEGIN
   END;
 END;
 
-FUNCTION AddTimerInt(intRoutine : POINTER; intData : POINTER) : POINTER;
+FUNCTION AddTimerInt(const intRoutine : POINTER;const  intData : POINTER) : POINTER;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -309,7 +327,7 @@ BEGIN
   END;
 END;
 
-FUNCTION AddVBlankInt(intRoutine : POINTER; intData : POINTER) : POINTER;
+FUNCTION AddVBlankInt(const intRoutine : POINTER;const intData : POINTER) : POINTER;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -413,7 +431,7 @@ BEGIN
   END;
 END;
 
-FUNCTION SetJoyPortAttrsA(portNumber : ULONG; tagList : pTagItem) : BOOLEAN;
+FUNCTION SetJoyPortAttrsA(portNumber : ULONG;const tagList : pTagItem) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -453,7 +471,7 @@ BEGIN
   END;
 END;
 
-FUNCTION SystemControlA(tagList : pTagItem) : ULONG;
+FUNCTION SystemControlA(const tagList : pTagItem) : ULONG;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -465,52 +483,96 @@ BEGIN
   END;
 END;
 
-{$I useautoopenlib.inc}
-{$ifdef use_auto_openlib}
-   {$Info Compiling autoopening of lowlevel.library}
+const
+    { Change VERSION and LIBVERSION to proper values }
+
+    VERSION : string[2] = '0';
+    LIBVERSION : longword = 0;
+
+{$ifdef use_init_openlib}
+  {$Info Compiling initopening of lowlevel.library}
+  {$Info don't forget to use InitLOWLEVELLibrary in the beginning of your program}
 
 var
-    lowlevel_exit : pointer;
+    lowlevel_exit : Pointer;
 
-procedure CloseLowLevelLibrary;
+procedure CloselowlevelLibrary;
 begin
-    ExitProc := LowLevel_exit;
+    ExitProc := lowlevel_exit;
     if LowLevelBase <> nil then begin
-       CloseLibrary(LowLevelBase);
-       LowLevelBase := nil;
+        CloseLibrary(LowLevelBase);
+        LowLevelBase := nil;
     end;
 end;
 
-const
-    VERSION : string[2] = '37';
+procedure InitLOWLEVELLibrary;
+begin
+    LowLevelBase := nil;
+    LowLevelBase := OpenLibrary(LOWLEVELNAME,LIBVERSION);
+    if LowLevelBase <> nil then begin
+        lowlevel_exit := ExitProc;
+        ExitProc := @CloselowlevelLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open lowlevel.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+end;
+
+begin
+    LOWLEVELIsCompiledHow := 2;
+{$endif use_init_openlib}
+
+{$ifdef use_auto_openlib}
+  {$Info Compiling autoopening of lowlevel.library}
+
+var
+    lowlevel_exit : Pointer;
+
+procedure CloselowlevelLibrary;
+begin
+    ExitProc := lowlevel_exit;
+    if LowLevelBase <> nil then begin
+        CloseLibrary(LowLevelBase);
+        LowLevelBase := nil;
+    end;
+end;
 
 begin
     LowLevelBase := nil;
-    LowLevelBase := OpenLibrary(LOWLEVELNAME,37);
+    LowLevelBase := OpenLibrary(LOWLEVELNAME,LIBVERSION);
     if LowLevelBase <> nil then begin
-       LowLevel_exit := ExitProc;
-       ExitProc := @CloseLowLevelLibrary;
+        lowlevel_exit := ExitProc;
+        ExitProc := @CloselowlevelLibrary;
+        LOWLEVELIsCompiledHow := 1;
     end else begin
         MessageBox('FPC Pascal Error',
-                   'Can''t open LowLevel.library version ' +
-                   VERSION +
-                   chr(10) + 
-                   'Deallocating resources and closing down',
-                   'Oops');
-       halt(20);
+        'Can''t open lowlevel.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
     end;
 
-{$else}
-   {$Warning No autoopening of lowlevel.library compiled}
-   {$Info Make sure you open lowlevel.library yourself}
 {$endif use_auto_openlib}
+
+{$ifdef dont_use_openlib}
+begin
+    LOWLEVELIsCompiledHow := 3;
+   {$Warning No autoopening of lowlevel.library compiled}
+   {$Warning Make sure you open lowlevel.library yourself}
+{$endif dont_use_openlib}
 
 END. (* UNIT LOWLEVEL *)
 
 
 {
   $Log$
-  Revision 1.3  2003-01-13 20:36:00  nils
+  Revision 1.4  2003-02-10 17:59:46  nils
+  *  fixes for delphi mode
+
+  Revision 1.3  2003/01/13 20:36:00  nils
   * added the defines use_amiga_smartlink
   * and use_auto_openlib
 

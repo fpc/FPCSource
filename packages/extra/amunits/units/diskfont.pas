@@ -29,6 +29,9 @@
     Changed startup for library.
     01 Feb 2003.
 
+    Changed cardinal > longword.
+    09 Feb 2003.
+    
     nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
@@ -259,7 +262,7 @@ const
     { Change VERSION and LIBVERSION to proper values }
 
     VERSION : string[2] = '0';
-    LIBVERSION : Cardinal = 0;
+    LIBVERSION : longword = 0;
 
 {$ifdef use_init_openlib}
   {$Info Compiling initopening of diskfont.library}
@@ -341,7 +344,10 @@ END. (* UNIT DISKFONT *)
 
 {
   $Log$
-  Revision 1.4  2003-02-07 20:48:36  nils
+  Revision 1.5  2003-02-10 17:59:46  nils
+  *  fixes for delphi mode
+
+  Revision 1.4  2003/02/07 20:48:36  nils
   * update for amigaos 3.9
 
   * changed startcode for library

@@ -42,6 +42,10 @@
     Changed start code for library.
     25 Jan 2003.
 
+    Changed integer > smallint.
+            cardinal > longword.
+    09 Feb 2003.
+    
     nils.sjoholm@mailbox.swipnet.se
 }
 
@@ -86,10 +90,10 @@ Type
            rf_File        : STRPTR;        { Filename pointer             }
            rf_Dir         : STRPTR;        { Directory name pointer       }
            rf_Reserved1   : Array[0..9] Of Byte;
-           rf_LeftEdge    : Integer;
-           rf_TopEdge     : Integer;          { Preferred window pos }
-           rf_Width       : Integer;
-           rf_Height      : Integer;          { Preferred window size  }
+           rf_LeftEdge    : smallint;
+           rf_TopEdge     : smallint;          { Preferred window pos }
+           rf_Width       : smallint;
+           rf_Height      : smallint;          { Preferred window size  }
            rf_Reserved2   : Array[0..1] Of Byte;
            rf_NumArgs     : LongInt;       { A-la WB Args, FOR multiselects }
            rf_ArgList     : pWBArgList;
@@ -213,10 +217,10 @@ Type
        fo_DrawMode         : Byte;                 { Returned drawing mode            }
        fo_Reserved1        : Byte;
        fo_UserData         : Pointer;              { You can store your own data here }
-       fo_LeftEdge         : Integer;                 { Coordinates Of requester on Exit }
-       fo_TopEdge          : Integer;
-       fo_Width            : Integer;
-       fo_Height           : Integer;
+       fo_LeftEdge         : smallint;                 { Coordinates Of requester on Exit }
+       fo_TopEdge          : smallint;
+       fo_Width            : smallint;
+       fo_Height           : smallint;
        fo_TAttr            : tTTextAttr;           { Returned TTextAttr               }
     end;
 
@@ -322,16 +326,16 @@ Type
     sm_BitMapWidth      : ULONG;    { Used TO create your own BitMap   }
     sm_BitMapHeight     : ULONG;
 
-    sm_LeftEdge         : Integer;     { Coordinates OF requester on Exit }
-    sm_TopEdge          : Integer;
-    sm_Width            : Integer;
-    sm_Height           : Integer;
+    sm_LeftEdge         : smallint;     { Coordinates OF requester on Exit }
+    sm_TopEdge          : smallint;
+    sm_Width            : smallint;
+    sm_Height           : smallint;
 
     sm_InfoOpened       : Boolean;  { Info window opened on exit?      }
-    sm_InfoLeftEdge     : Integer;     { Last coordinates OF Info window  }
-    sm_InfoTopEdge      : Integer;
-    sm_InfoWidth        : Integer;
-    sm_InfoHeight       : Integer;
+    sm_InfoLeftEdge     : smallint;     { Last coordinates OF Info window  }
+    sm_InfoTopEdge      : smallint;
+    sm_InfoWidth        : smallint;
+    sm_InfoHeight       : smallint;
 
     sm_UserData         : Pointer;     { You can store your own data here }
  END;
@@ -679,7 +683,7 @@ const
     { Change VERSION and LIBVERSION to proper values }
 
     VERSION : string[2] = '0';
-    LIBVERSION : Cardinal = 0;
+    LIBVERSION : longword = 0;
 
 {$ifdef use_init_openlib}
   {$Info Compiling initopening of asl.library}
@@ -761,7 +765,10 @@ END. (* UNIT ASL *)
 
 {
   $Log$
-  Revision 1.4  2003-02-07 20:48:36  nils
+  Revision 1.5  2003-02-10 17:59:46  nils
+  *  fixes for delphi mode
+
+  Revision 1.4  2003/02/07 20:48:36  nils
   * update for amigaos 3.9
 
   * changed startcode for library

@@ -13,7 +13,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-
+{
+    History:
+    
+    Changed integer > smallint.
+    09 Feb 2003.
+}
+    
 unit conunit;
 
 INTERFACE
@@ -48,20 +54,20 @@ type
         cu_MP   : tMsgPort;
         { ---- read only variables }
         cu_Window       : Pointer;      { (WindowPtr) intuition window bound to this unit }
-        cu_XCP          : Integer;        { character position }
-        cu_YCP          : Integer;
-        cu_XMax         : Integer;        { max character position }
-        cu_YMax         : Integer;
-        cu_XRSize       : Integer;        { character raster size }
-        cu_YRSize       : Integer;
-        cu_XROrigin     : Integer;        { raster origin }
-        cu_YROrigin     : Integer;
-        cu_XRExtant     : Integer;        { raster maxima }
-        cu_YRExtant     : Integer;
-        cu_XMinShrink   : Integer;        { smallest area intact from resize process }
-        cu_YMinShrink   : Integer;
-        cu_XCCP         : Integer;        { cursor position }
-        cu_YCCP         : Integer;
+        cu_XCP          : smallint;        { character position }
+        cu_YCP          : smallint;
+        cu_XMax         : smallint;        { max character position }
+        cu_YMax         : smallint;
+        cu_XRSize       : smallint;        { character raster size }
+        cu_YRSize       : smallint;
+        cu_XROrigin     : smallint;        { raster origin }
+        cu_YROrigin     : smallint;
+        cu_XRExtant     : smallint;        { raster maxima }
+        cu_YRExtant     : smallint;
+        cu_XMinShrink   : smallint;        { smallest area intact from resize process }
+        cu_YMinShrink   : smallint;
+        cu_XCCP         : smallint;        { cursor position }
+        cu_YCCP         : smallint;
 
    { ---- read/write variables (writes must must be protected) }
    { ---- storage for AskKeyMap and SetKeyMap }

@@ -25,6 +25,9 @@
     Changed start code for unit.
     01 Feb 2003.
     
+    Changed cardinal > longword.
+    09 Feb 2003.
+    
     nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
@@ -351,7 +354,7 @@ const
     { Change VERSION and LIBVERSION to proper values }
 
     VERSION : string[2] = '0';
-    LIBVERSION : Cardinal = 0;
+    LIBVERSION : longword = 0;
 
 {$ifdef use_init_openlib}
   {$Info Compiling initopening of expansion.library}

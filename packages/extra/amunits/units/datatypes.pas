@@ -39,6 +39,10 @@
     Changed startcode for library.
     28 Jan 2003.
 
+    Changed integer > smallint,
+            cardinal > longword.
+    09 Feb 2003.
+    	    
     nils.sjoholm@mailbox.swipnet.se
 }
 
@@ -73,7 +77,7 @@ Type
     dth_GroupID,                                      { Group that the DataType is in }
     dth_ID   : ULONG;                                 { ID for DataType (same as IFF FORM type) }
     dth_MaskLen,                                      { Length of comparision mask }
-    dth_Pad   : Integer;                              { Unused at present (must be 0) }
+    dth_Pad   : smallint;                              { Unused at present (must be 0) }
     dth_Flags,                                        { Flags }
     dth_Priority  : WORD;                             { Priority }
  end;
@@ -830,7 +834,7 @@ Type
     bmh_Width,                         { Width in pixels }
     bmh_Height   : Word;               { Height in pixels }
     bmh_Left,                          { Left position }
-    bmh_Top      : Integer;            { Top position }
+    bmh_Top      : smallint;            { Top position }
     bmh_Depth,                         { Number of planes }
     bmh_Masking,                       { Masking type }
     bmh_Compression,                   { Compression type }
@@ -839,7 +843,7 @@ Type
     bmh_XAspect,
     bmh_YAspect     : Byte;
     bmh_PageWidth,
-    bmh_PageHeight  : Integer;
+    bmh_PageHeight  : smallint;
  end;
 
 {***************************************************************************}
@@ -1564,7 +1568,7 @@ const
     { Change VERSION and LIBVERSION to proper values }
 
     VERSION : string[2] = '0';
-    LIBVERSION : Cardinal = 0;
+    LIBVERSION : longword = 0;
 
 {$ifdef use_init_openlib}
   {$Info Compiling initopening of datatypes.library}
@@ -1647,7 +1651,10 @@ END. (* UNIT DATATYPES *)
 
 {
   $Log$
-  Revision 1.4  2003-02-07 20:48:36  nils
+  Revision 1.5  2003-02-10 17:59:46  nils
+  *  fixes for delphi mode
+
+  Revision 1.4  2003/02/07 20:48:36  nils
   * update for amigaos 3.9
 
   * changed startcode for library

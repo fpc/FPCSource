@@ -21,6 +21,9 @@
     Added reaction and workbench.
     31 Jan 2003.
     
+    Changed integer > smallint.
+    09 Feb 2003.
+    
     nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
     
 }
@@ -99,7 +102,7 @@ Type
  tIControlPrefs = record
     ic_Reserved     : Array[0..3] Of Longint;       { System reserved              }
     ic_TimeOut      : WORD;                         { Verify timeout               }
-    ic_MetaDrag     : Integer;                      { Meta drag mouse event        }
+    ic_MetaDrag     : smallint;                      { Meta drag mouse event        }
     ic_Flags        : ULONG;                        { IControl flags (see below)   }
     ic_WBtoFront,                                   { CKey: WB to front            }
     ic_FrontToBack,                                 { CKey: front screen to back   }
@@ -139,7 +142,7 @@ Type
     ip_DoubleClick,
     ip_KeyRptDelay,
     ip_KeyRptSpeed : tTimeVal;
-    ip_MouseAccel  : Integer;
+    ip_MouseAccel  : smallint;
  end;
 
  {      File format for locale preferences }
@@ -328,7 +331,7 @@ Type
     pg_Aspect,
     pg_Shade,
     pg_Image        : Word;
-    pg_Threshold    : Integer;
+    pg_Threshold    : smallint;
     pg_ColorCorrect,
     pg_Dimensions,
     pg_Dithering    : Byte;
@@ -816,7 +819,10 @@ END.
 
 {
   $Log$
-  Revision 1.3  2003-02-07 20:45:08  nils
+  Revision 1.4  2003-02-10 17:59:46  nils
+  *  fixes for delphi mode
+
+  Revision 1.3  2003/02/07 20:45:08  nils
   * update for amigaos 3.9
 
   Revision 1.2  2002/11/19 18:48:39  nils

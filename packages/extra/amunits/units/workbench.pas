@@ -52,6 +52,10 @@
     Varargs functions are in systemvartags.
     02 Feb 2003.
 
+    Changed integer > smallint,
+            cardinal > longword.
+    09 Feb 2003.
+    	    
     nils.sjoholm@mailbox.swipnet.se
 }
 
@@ -180,7 +184,7 @@ Const
 Type
     pFreeList = ^tFreeList;
     tFreeList = record
-        fl_NumFree      : Integer;
+        fl_NumFree      : smallint;
         fl_MemList      : tList;
     end;
 
@@ -236,8 +240,8 @@ Type
     am_ArgList       : pWBArgList;       {    the arguements themselves }
     am_Version       : Word;              {    will be AM_VERSION }
     am_Class         : Word;              {    message class }
-    am_MouseX        : Integer;              {    mouse x position of event }
-    am_MouseY        : Integer;              {    mouse y position of event }
+    am_MouseX        : smallint;              {    mouse x position of event }
+    am_MouseY        : smallint;              {    mouse y position of event }
     am_Seconds       : ULONG;            {    current system clock time }
     am_Micros        : ULONG;            {    current system clock time }
     am_Reserved      : Array[0..7] of ULONG;       {    avoid recompilation }
@@ -859,7 +863,7 @@ FUNCTION RemoveAppMenuItem(appMenuItem : pAppMenuItem) : BOOLEAN;
 FUNCTION RemoveAppWindow(appWindow : pAppWindow) : BOOLEAN;
 PROCEDURE WBInfo(lock : BPTR; name : pCHAR; screen : pScreen);
 
-FUNCTION AddAppWindowDropZoneA(aw : pAppWindow; id : CARDINAL; userdata : CARDINAL;const tags : pTagItem) : pAppWindowDropZone;
+FUNCTION AddAppWindowDropZoneA(aw : pAppWindow; id : longword; userdata : longword;const tags : pTagItem) : pAppWindowDropZone;
 FUNCTION ChangeWorkbenchSelectionA(name : pCHAR; hook : pHook;const tags : pTagItem) : BOOLEAN;
 FUNCTION CloseWorkbenchObjectA(name : pCHAR;const tags : pTagItem) : BOOLEAN;
 FUNCTION MakeWorkbenchObjectVisibleA(name : pCHAR;const tags : pTagItem) : BOOLEAN;
@@ -1005,7 +1009,7 @@ BEGIN
   END;
 END;
 
-FUNCTION AddAppWindowDropZoneA(aw : pAppWindow; id : CARDINAL; userdata : CARDINAL;const tags : pTagItem) : pAppWindowDropZone;
+FUNCTION AddAppWindowDropZoneA(aw : pAppWindow; id : longword; userdata : longword;const tags : pTagItem) : pAppWindowDropZone;
 BEGIN
   ASM
 	MOVE.L	A6,-(A7)
@@ -1162,7 +1166,7 @@ const
     { Change VERSION and LIBVERSION to proper values }
 
     VERSION : string[2] = '0';
-    LIBVERSION : Cardinal = 0;
+    LIBVERSION : longword = 0;
 
 {$ifdef use_init_openlib}
   {$Info Compiling initopening of workbench.library}
@@ -1244,7 +1248,10 @@ END. (* UNIT WB *)
 
 {
   $Log$
-  Revision 1.4  2003-02-07 20:48:36  nils
+  Revision 1.5  2003-02-10 17:59:46  nils
+  *  fixes for delphi mode
+
+  Revision 1.4  2003/02/07 20:48:36  nils
   * update for amigaos 3.9
 
   * changed startcode for library

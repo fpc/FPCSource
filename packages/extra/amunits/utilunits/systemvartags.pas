@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
 
     A file in Amiga system run time library.
-    Copyright (c) 1998-2002 by Nils Sjoholm
+    Copyright (c) 1998-2003 by Nils Sjoholm
     member of the Amiga RTL development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -35,12 +35,14 @@ uses exec,amigados, amigaguide, asl, bullet, intuition, datatypes ,
      
      Added the define use_amiga_smartlink.
      13 Jan 2003.
+     
+     Changed integer > smallint.
+     Moved ltrue and lfalse to exec.
+     10 Feb 2003.
+
      nils.sjoholm@mailbox.swipnet.se
 }
-          
-const
-     ltrue  : longint = 1;
-     lfalse : longint = 0;
+
 
 {
      This is functions and procedures with array of const.
@@ -101,7 +103,7 @@ PROCEDURE GetRPAttrs(rp : pRastPort; Const argv : Array Of Const);
 FUNCTION ObtainBestPen(cm : pColorMap; r : ULONG; g : ULONG; b : ULONG; Const argv : Array Of Const) : LONGINT;
 PROCEDURE SetRPAttrs(rp : pRastPort; Const argv : Array Of Const);
 FUNCTION VideoControlTags(colorMap : pColorMap; Const argv : Array Of Const) : BOOLEAN;
-FUNCTION WeighTAMatchTags(reqTextAttr : pTextAttr; targetTextAttr : pTextAttr; Const argv : Array Of Const) : INTEGER;
+FUNCTION WeighTAMatchTags(reqTextAttr : pTextAttr; targetTextAttr : pTextAttr; Const argv : Array Of Const) : smallint;
 
 { functions from intuition. }
 FUNCTION OpenScreenTags(newScreen : pNewScreen; tagList : array of const) : pScreen;
@@ -357,7 +359,7 @@ begin
     VideoControlTags := VideoControl(colorMap,readintags(argv));
 end;
 
-FUNCTION WeighTAMatchTags(reqTextAttr : pTextAttr; targetTextAttr : pTextAttr; Const argv : Array Of Const) : INTEGER;
+FUNCTION WeighTAMatchTags(reqTextAttr : pTextAttr; targetTextAttr : pTextAttr; Const argv : Array Of Const) : smallint;
 begin
     WeighTAMatchTags := WeighTAMatch(reqTextAttr,targetTextAttr,readintags(argv));
 end;
@@ -413,7 +415,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-01-13 18:14:56  nils
+  Revision 1.3  2003-02-10 17:59:46  nils
+  *  fixes for delphi mode
+
+  Revision 1.2  2003/01/13 18:14:56  nils
   * added the define use_amiga_smartlink
 
   Revision 1.1  2002/11/22 21:34:59  nils

@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
 
     A file in Amiga system run time library.
-    Copyright (c) 1998-2002 by Nils Sjoholm
+    Copyright (c) 1998-2003 by Nils Sjoholm
     member of the Amiga RTL development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -26,6 +26,9 @@ unit consoleio;
     
     Added the define use_amiga_smartlink.
     13 Jan 2003.
+    
+    Changed integer > smallint.
+    10 Feb 2003.
     
     nils.sjoholm@mailbox.swipnet.se
 
@@ -71,10 +74,10 @@ Function ReadKey(con : pConsoleSet) : Char;
 Function KeyPressed(con : pConsoleSet) : Boolean;
 Procedure WriteString(con : pConsoleSet; Str : Pchar);
 Procedure WriteString(con : pConsoleSet; Str : string);
-Function MaxX(con : pConsoleSet) : integer;
-Function MaxY(con : pConsoleSet) : integer;
-Function WhereX(con : pConsoleSet) : integer;
-Function WhereY(con : pConsoleSet) : integer;
+Function MaxX(con : pConsoleSet) : smallint;
+Function MaxY(con : pConsoleSet) : smallint;
+Function WhereX(con : pConsoleSet) : smallint;
+Function WhereY(con : pConsoleSet) : smallint;
 Procedure TextColor(con : pConsoleSet; pen : Byte);
 Procedure TextBackground(con : pConsoleSet; pen : Byte);
 Procedure DetachConsole(con : pConsoleSet);
@@ -83,8 +86,8 @@ Procedure ClrScr(con : pConsoleSet);
 Procedure CursOff(con : pConsoleSet);
 Procedure CursOn(con : pConsoleSet);
 Procedure DelLine(con : pConsoleSet);
-Function LongToStr (I : integer) : String;
-Procedure GotoXY(con : pConsoleSet; x,y : integer);
+Function LongToStr (I : smallint) : String;
+Procedure GotoXY(con : pConsoleSet; x,y : smallint);
 Procedure InsLine(con : pConsoleSet);
 Procedure OpenConsoleDevice;
 Procedure CloseConsoleDevice;
@@ -229,7 +232,7 @@ begin
     ConPutStr(con^.WriteRequest, @temp[1]);
 end;
 
-Function MaxX(con : pConsoleSet) : integer;
+Function MaxX(con : pConsoleSet) : smallint;
 var
     CU : pConUnit;
 begin
@@ -237,7 +240,7 @@ begin
     MaxX := CU^.cu_XMax;
 end;
 
-Function MaxY(con : pConsoleSet) : integer;
+Function MaxY(con : pConsoleSet) : smallint;
 var
     CU : pConUnit;
 begin
@@ -245,7 +248,7 @@ begin
     MaxY := CU^.cu_YMax;
 end;
 
-Function WhereX(con : pConsoleSet) : integer;
+Function WhereX(con : pConsoleSet) : smallint;
 var
     CU : pConUnit;
 begin
@@ -253,7 +256,7 @@ begin
     WhereX := CU^.cu_XCP;
 end;
 
-Function WhereY(con : pConsoleSet) : integer;
+Function WhereY(con : pConsoleSet) : smallint;
 var
     CU : pConUnit;
 begin
@@ -340,7 +343,7 @@ begin
     WriteString(con, CSI + 'M');
 end;
 
-Function LongToStr (I : integer) : String;
+Function LongToStr (I : smallint) : String;
 Var
     S : String;
 begin
@@ -348,7 +351,7 @@ begin
     LongToStr:=S;
 end;
 
-Procedure GotoXY(con : pConsoleSet; x,y : integer);
+Procedure GotoXY(con : pConsoleSet; x,y : smallint);
 {
     Move the text cursor to the x,y position.  This routine uses
     the ANSI CUP command.
@@ -410,7 +413,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-01-13 18:14:56  nils
+  Revision 1.3  2003-02-10 17:59:46  nils
+  *  fixes for delphi mode
+
+  Revision 1.2  2003/01/13 18:14:56  nils
   * added the define use_amiga_smartlink
 
   Revision 1.1  2002/11/22 21:34:59  nils

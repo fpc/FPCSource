@@ -25,6 +25,10 @@
     Changed start code for unit.
     06 Feb 2003.
     
+    Changed integer > smallint,
+            cardinal > longword.
+    09 Feb 2003.
+    	    
     nils.sjoholm@mailbox.swipnet.se
 }
 
@@ -62,12 +66,12 @@ type
     PrivateReserve2     : Longint;              { !! Private !! }
     Lock                : tSignalSemaphore;      { !! Private !! }
     gs_Head             : tMinList;              { !! Private !! }
-    PrivateReserve3     : Integer;                 { !! Private !! }
+    PrivateReserve3     : smallint;                 { !! Private !! }
     PrivateReserve4     : Pointer;              { !! Private !! }
     Flags               : WORD;
     fatten_count        : Shortint;                 { !! Private !! }
     LockLayersCount     : Shortint;                 { !! Private !! }
-    PrivateReserve5     : Integer;                 { !! Private !! }
+    PrivateReserve5     : smallint;                 { !! Private !! }
     BlankHook,                                  { !! Private !! }
     LayerInfo_extra     : Pointer;              { !! Private !! }
  end;
@@ -569,7 +573,7 @@ const
     { Change VERSION and LIBVERSION to proper values }
 
     VERSION : string[2] = '0';
-    LIBVERSION : Cardinal = 0;
+    LIBVERSION : longword = 0;
 
 {$ifdef use_init_openlib}
   {$Info Compiling initopening of layers.library}
@@ -651,7 +655,10 @@ END. (* UNIT LAYERS *)
 
 {
   $Log$
-  Revision 1.4  2003-02-07 20:48:36  nils
+  Revision 1.5  2003-02-10 17:59:46  nils
+  *  fixes for delphi mode
+
+  Revision 1.4  2003/02/07 20:48:36  nils
   * update for amigaos 3.9
 
   * changed startcode for library

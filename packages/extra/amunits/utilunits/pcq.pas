@@ -49,6 +49,10 @@ unit pcq;
 
      Added the define use_amiga_smartlink.
      13 Jan 2003.
+     
+     Changed integer > smallint.
+     10 Feb 2003.
+     
      Nils Sjoholm < nils.sjoholm@mailbox.swipnet.se
 
 }
@@ -174,13 +178,13 @@ Procedure strcpy(s1, s2 : pchar);
     Copies s2 into s1, appending a trailing zero.  This is the same
     as C, but opposite from 1.0.  
 }
-Procedure strncpy(s1, s2 : pchar; n : integer);    
+Procedure strncpy(s1, s2 : pchar; n : smallint);    
 {
     Copies s2 into s1, with a maximum of n characters.  Appends a
     trailing zero.
 }
 
-Procedure strncat(s1, s2 : pchar; n : integer);   
+Procedure strncat(s1, s2 : pchar; n : smallint);   
 {
     Appends at most n characters from s2 onto s1.
 }
@@ -372,12 +376,12 @@ begin
     strcopy(s1,s2)
 end;
 
-Procedure strncpy(s1, s2 : pchar; n : integer);    
+Procedure strncpy(s1, s2 : pchar; n : smallint);    
 begin
     strlcopy(s1,s2,n);
 end;
 
-Procedure strncat(s1, s2 : pchar; n : integer);   
+Procedure strncat(s1, s2 : pchar; n : smallint);
 begin
     strlcat(s1,s2,n);
 end;
@@ -454,7 +458,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-01-13 18:14:56  nils
+  Revision 1.3  2003-02-10 17:59:46  nils
+  *  fixes for delphi mode
+
+  Revision 1.2  2003/01/13 18:14:56  nils
   * added the define use_amiga_smartlink
 
   Revision 1.1  2002/11/22 21:34:59  nils

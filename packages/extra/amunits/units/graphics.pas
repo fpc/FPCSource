@@ -48,6 +48,10 @@
     LoadRGB4 and PolyDraw, fixed.
     01 Feb 2003.
 
+    Changed integer > smallint,
+            cardinal > longword.
+    09 Feb 2003.
+    	    
     nils.sjoholm@mailbox.swipnet.se
 
 }
@@ -166,7 +170,7 @@ type
         ClipRegion      : Pointer;
         saveClipRects   : Pointer;      { used to back out when in trouble}
         Width,
-        Height          : Integer;
+        Height          : smallint;
         reserved2       : Array [0..17] of Byte;
         { this must stay here }
         DamageList      : Pointer;      { list of rectangles to refresh
@@ -374,9 +378,9 @@ type
 
     pCopIns = ^tCopIns;
     tCopIns = record
-        OpCode  : Integer; { 0 = move, 1 = wait }
-        VWaitAddr : Integer; { vertical or horizontal wait position }
-        HWaitData : Integer; { destination Pointer or data to send }
+        OpCode  : smallint; { 0 = move, 1 = wait }
+        VWaitAddr : smallint; { vertical or horizontal wait position }
+        HWaitData : smallint; { destination Pointer or data to send }
     end;
 
 { structure of cprlist that points to list that hardware actually executes }
@@ -384,8 +388,8 @@ type
     pcprlist = ^tcprlist;
     tcprlist = record
         Next    : pcprlist;
-        start   : pInteger;       { start of copper list }
-        MaxCount : Integer;       { number of long instructions }
+        start   : psmallint;       { start of copper list }
+        MaxCount : smallint;       { number of long instructions }
     end;
 
     pCopList = ^tCopList;
@@ -395,11 +399,11 @@ type
         ViewPort : Pointer;    { system use }
         CopIns  : pCopIns;    { start of this block }
         CopPtr  : pCopIns;    { intermediate ptr }
-        CopLStart : pInteger;     { mrgcop fills this in for Long Frame}
-        CopSStart : pInteger;     { mrgcop fills this in for Longint Frame}
-        Count   : Integer;        { intermediate counter }
-        MaxCount : Integer;       { max # of copins for this block }
-        DyOffset : Integer;       { offset this copper list vertical waits }
+        CopLStart : psmallint;     { mrgcop fills this in for Long Frame}
+        CopSStart : psmallint;     { mrgcop fills this in for Longint Frame}
+        Count   : smallint;        { intermediate counter }
+        MaxCount : smallint;       { max # of copins for this block }
+        DyOffset : smallint;       { offset this copper list vertical waits }
         SLRepeat : Word;
         Flags    : Word;
     end;
@@ -435,10 +439,10 @@ type
         VctrPtr : Pointer;      { ptr to current vertex }
         FlagTbl : Pointer;      { ptr to start of vector flag table }
         FlagPtr : Pointer;      { ptrs to areafill flags }
-        Count   : Integer;        { number of vertices in list }
-        MaxCount : Integer;       { AreaMove/Draw will not allow Count>MaxCount}
+        Count   : smallint;        { number of vertices in list }
+        MaxCount : smallint;       { AreaMove/Draw will not allow Count>MaxCount}
         FirstX,
-        FirstY  : Integer;        { first point for this polygon }
+        FirstY  : smallint;        { first point for this polygon }
     end;
 
     pTmpRas = ^tTmpRas;
@@ -468,7 +472,7 @@ type
         leftmost,
         rightmost,
         topmost,
-        bottommost      : Integer;
+        bottommost      : smallint;
         firstBlissObj,
         lastBlissObj    : Pointer;    { system use only }
     end;
@@ -492,17 +496,17 @@ type
         Flags           : Word;        { miscellaneous control bits }
         LinePtrn        : Word;        { 16 bits for textured lines }
         cp_x,
-        cp_y            : Integer;        { current pen position }
+        cp_y            : smallint;        { current pen position }
         minterms        : Array [0..7] of Byte;
-        PenWidth        : Integer;
-        PenHeight       : Integer;
+        PenWidth        : smallint;
+        PenHeight       : smallint;
         Font            : pTextFont;      { (TextFontPtr) current font Pointer }
         AlgoStyle       : Byte;         { the algorithmically generated style }
         TxFlags         : Byte;         { text specific flags }
         TxHeight        : Word;        { text height }
         TxWidth         : Word;        { text nominal width }
         TxBaseline      : Word;        { text baseline }
-        TxSpacing       : Integer;        { text spacing (per character) }
+        TxSpacing       : smallint;        { text spacing (per character) }
         RP_User         : Pointer;
         longreserved    : Array [0..1] of ULONG;
         wordreserved    : Array [0..6] of Word;        { used to be a node }
@@ -621,9 +625,9 @@ const
 
 type
 
-    VUserStuff  = Integer;        { Sprite user stuff }
-    BUserStuff  = Integer;        { Bob user stuff }
-    AUserStuff  = Integer;        { AnimOb user stuff }
+    VUserStuff  = smallint;        { Sprite user stuff }
+    BUserStuff  = smallint;        { Bob user stuff }
+    AUserStuff  = smallint;        { AnimOb user stuff }
 
 {********************** GEL STRUCTURES **********************************}
 
@@ -648,11 +652,11 @@ type
  *  sorting easier, since (y,x) as a long Longint
  }
 
-        OldY, OldX      : Integer;        { previous position }
+        OldY, OldX      : smallint;        { previous position }
 
 { --------------------- COMMON VARIABLES --------------------------------- }
 
-        Flags           : Integer;        { VSprite flags }
+        Flags           : smallint;        { VSprite flags }
 
 
 { --------------------- USER VARIABLES ----------------------------------- }
@@ -660,14 +664,14 @@ type
  *  sorting easier, since (y,x) as a long Longint
  }
 
-        Y, X            : Integer;        { screen position }
+        Y, X            : smallint;        { screen position }
 
-        Height  : Integer;
-        Width   : Integer;        { number of words per row of image data }
-        Depth   : Integer;        { number of planes of data }
+        Height  : smallint;
+        Width   : smallint;        { number of words per row of image data }
+        Depth   : smallint;        { number of planes of data }
 
-        MeMask  : Integer;        { which types can collide with this VSprite}
-        HitMask : Integer;        { which types this VSprite can collide with}
+        MeMask  : smallint;        { which types can collide with this VSprite}
+        HitMask : smallint;        { which types this VSprite can collide with}
 
         ImageData       : Pointer;      { pointer to VSprite image }
 
@@ -734,7 +738,7 @@ type
 
 { --------------------- COMMON VARIABLES --------------------------------- }
 
-        Flags   : Integer; { general purpose flags (see definitions below) }
+        Flags   : smallint; { general purpose flags (see definitions below) }
 
 { --------------------- USER VARIABLES ----------------------------------- }
 
@@ -766,19 +770,19 @@ type
 
 { --------------------- COMMON VARIABLES --------------------------------- }
 
-        Flags   : Integer;        { AnimComp flags for system & user }
+        Flags   : smallint;        { AnimComp flags for system & user }
 
 { timer defines how long to keep this component active:
  *  if set non-zero, timer decrements to zero then switches to nextSeq
  *  if set to zero, AnimComp never switches
  }
 
-        Timer   : Integer;
+        Timer   : smallint;
 
 { --------------------- USER VARIABLES ----------------------------------- }
 { initial value for timer when the AnimComp is activated by the system }
 
-        TimeSet : Integer;
+        TimeSet : smallint;
 
 { pointer to next and previous components of animation object }
 
@@ -792,8 +796,8 @@ type
 
         AnimCRoutine : Pointer; { Pointer of special animation procedure }
 
-        YTrans  : Integer; { initial y translation (if this is a component) }
-        XTrans  : Integer; { initial x translation (if this is a component) }
+        YTrans  : smallint; { initial y translation (if this is a component) }
+        XTrans  : smallint; { initial x translation (if this is a component) }
 
         HeadOb  : Pointer; { AnimObPtr }
 
@@ -813,22 +817,22 @@ type
         Clock   : Longint;
 
         AnOldY,
-        AnOldX  : Integer;        { old y,x coordinates }
+        AnOldX  : smallint;        { old y,x coordinates }
 
 { --------------------- COMMON VARIABLES --------------------------------- }
 
         AnY,
-        AnX     : Integer;        { y,x coordinates of the AnimOb }
+        AnX     : smallint;        { y,x coordinates of the AnimOb }
 
 { --------------------- USER VARIABLES ----------------------------------- }
 
         YVel,
-        XVel    : Integer;        { velocities of this object }
+        XVel    : smallint;        { velocities of this object }
         YAccel,
-        XAccel  : Integer;        { accelerations of this object }
+        XAccel  : smallint;        { accelerations of this object }
 
         RingYTrans,
-        RingXTrans      : Integer;        { ring translation values }
+        RingXTrans      : smallint;        { ring translation values }
 
         AnimORoutine    : Pointer;      { Pointer of special animation
                                           procedure }
@@ -1077,7 +1081,7 @@ Type
         Next    : pRasInfo;     { used for dualpf }
         BitMap  : pBitMap;
         RxOffset,
-        RyOffset : Integer;       { scroll offsets in this BitMap }
+        RyOffset : smallint;       { scroll offsets in this BitMap }
     end;
 
 
@@ -1087,7 +1091,7 @@ Type
         LOFCprList      : pcprlist;   { used for interlaced and noninterlaced }
         SHFCprList      : pcprlist;   { only used during interlace }
         DyOffset,
-        DxOffset        : Integer;        { for complete View positioning }
+        DxOffset        : smallint;        { for complete View positioning }
                                 { offsets are +- adjustments to standard #s }
         Modes           : WORD;        { such as INTERLACE, GENLOC }
     end;
@@ -1114,9 +1118,9 @@ Type
         ClrIns  : pCopList;   { used by sprite stuff }
         UCopIns : pUCopList;  { User copper list }
         DWidth,
-        DHeight : Integer;
+        DHeight : smallint;
         DxOffset,
-        DyOffset : Integer;
+        DyOffset : smallint;
         Modes   : Word;
         SpritePriorities : Byte;        { used by makevp }
         reserved : Byte;
@@ -1841,7 +1845,7 @@ Type
   TotalRows,                       { display height in scanlines       }
   TotalColorClocks,                { scanline width in 280 ns units    }
   MinRow        : Word;            { absolute minimum active scanline  }
-  Compatibility : Integer;           { how this coexists with others     }
+  Compatibility : smallint;           { how this coexists with others     }
   pad : Array[0..31] of Byte;
   MouseTicks    : tPoint;
   DefaultViewPosition : tPoint;
@@ -2096,13 +2100,13 @@ type
         Modes           : Word;        { copy of current first bplcon0 }
         VBlank          : Shortint;
         Debug           : Shortint;
-        BeamSync        : Integer;
-        system_bplcon0  : Integer; { it is ored into each bplcon0 for display }
+        BeamSync        : smallint;
+        system_bplcon0  : smallint; { it is ored into each bplcon0 for display }
         SpriteReserved  : Byte;
         bytereserved    : Byte;
         Flags           : Word;
-        BlitLock        : Integer;
-        BlitNest        : Integer;
+        BlitLock        : smallint;
+        BlitNest        : smallint;
 
         BlitWaitQ       : tList;
         BlitOwner       : pTask;      { TaskPtr }
@@ -2132,9 +2136,9 @@ type
         hedley  : Array[0..7] of ULONG;
         hedley_sprites  : Array[0..7] of ULONG;     { sprite ptrs for intuition mouse }
         hedley_sprites1 : Array[0..7] of ULONG;            { sprite ptrs for intuition mouse }
-        hedley_count    : Integer;
+        hedley_count    : smallint;
         hedley_flags    : Word;
-        hedley_tmp      : Integer;
+        hedley_tmp      : smallint;
         hash_table      : Pointer;
         current_tot_rows : Word;
         current_tot_cclks : Word;
@@ -2313,7 +2317,7 @@ FUNCTION GetOutlinePen(rp : pRastPort) : ULONG;
 PROCEDURE GetRGB32(const cm : pColorMap; firstcolor : ULONG; ncolors : ULONG; table : pulong);
 FUNCTION GetRGB4(colorMap : pColorMap; entry : LONGINT) : ULONG;
 PROCEDURE GetRPAttrsA(const rp : pRastPort;const tags : pTagItem);
-FUNCTION GetSprite(sprite : pSimpleSprite; num : LONGINT) : INTEGER;
+FUNCTION GetSprite(sprite : pSimpleSprite; num : LONGINT) : smallint;
 FUNCTION GetVPModeID(const vp : pViewPort) : LONGINT;
 PROCEDURE GfxAssociate(const associateNode : POINTER; gfxNodePtr : POINTER);
 PROCEDURE GfxFree(gfxNodePtr : POINTER);
@@ -2382,9 +2386,9 @@ PROCEDURE SortGList(rp : pRastPort);
 PROCEDURE StripFont(font : pTextFont);
 PROCEDURE SyncSBitMap(layer : pLayer);
 FUNCTION GText(rp : pRastPort;const string_ : pCHAR; count : ULONG) : LONGINT;
-FUNCTION TextExtent(rp : pRastPort;const string_ : pCHAR; count : LONGINT; _textExtent : pTextExtent) : INTEGER;
+FUNCTION TextExtent(rp : pRastPort;const string_ : pCHAR; count : LONGINT; _textExtent : pTextExtent) : smallint;
 FUNCTION TextFit(rp : pRastPort;const string_ : pCHAR; strLen : ULONG; textExtent : pTextExtent; constrainingExtent : pTextExtent; strDirection : LONGINT; constrainingBitWidth : ULONG; constrainingBitHeight : ULONG) : ULONG;
-FUNCTION TextLength(rp : pRastPort;const string_ : pCHAR; count : ULONG) : INTEGER;
+FUNCTION TextLength(rp : pRastPort;const string_ : pCHAR; count : ULONG) : smallint;
 FUNCTION UCopperListInit(uCopList : pUCopList; n : LONGINT) : pCopList;
 PROCEDURE UnlockLayerRom(layer : pLayer);
 FUNCTION VBeamPos : LONGINT;
@@ -2392,7 +2396,7 @@ FUNCTION VideoControl(colorMap : pColorMap; tagarray : pTagItem) : BOOLEAN;
 PROCEDURE WaitBlit;
 PROCEDURE WaitBOVP(vp : pViewPort);
 PROCEDURE WaitTOF;
-FUNCTION WeighTAMatch(reqTextAttr : pTextAttr; targetTextAttr : pTextAttr; targetTags : pTagItem) : INTEGER;
+FUNCTION WeighTAMatch(reqTextAttr : pTextAttr; targetTextAttr : pTextAttr; targetTags : pTagItem) : smallint;
 PROCEDURE WriteChunkyPixels(rp : pRastPort; xstart : ULONG; ystart : ULONG; xstop : ULONG; ystop : ULONG; array_ : pointer; bytesperrow : LONGINT);
 FUNCTION WritePixel(rp : pRastPort; x : LONGINT; y : LONGINT) : LONGINT;
 FUNCTION WritePixelArray8(rp : pRastPort; xstart : ULONG; ystart : ULONG; xstop : ULONG; ystop : ULONG; array_ : pointer; temprp : pRastPort) : LONGINT;
@@ -2410,7 +2414,7 @@ PROCEDURE SetOPen(w: pRastPort;c: Byte);
 PROCEDURE SetWrMsk(w: pRastPort; m: Byte);
 
 PROCEDURE SafeSetOutlinePen(w : pRastPort; c : byte);
-PROCEDURE SafeSetWriteMask( w : pRastPort ; m : Integer ) ;
+PROCEDURE SafeSetWriteMask( w : pRastPort ; m : smallint ) ;
 
 PROCEDURE OFF_DISPLAY (cust: pCustom);
 PROCEDURE ON_DISPLAY (cust: pCustom);
@@ -2495,8 +2499,8 @@ begin
     END;
 END;
 
-PROCEDURE SafeSetWriteMask( w : pRastPort ; m : Integer ) ;
-  VAR x : INTEGER ;
+PROCEDURE SafeSetWriteMask( w : pRastPort ; m : smallint ) ;
+  VAR x : smallint ;
 BEGIN
   IF pGfxBase(GfxBase)^.LibNode.Lib_Version < 39 THEN w^.Mask := BYTE(m)
   ELSE x := SetWriteMask( w, m );
@@ -3554,7 +3558,7 @@ BEGIN
   END;
 END;
 
-FUNCTION GetSprite(sprite : pSimpleSprite; num : LONGINT) : INTEGER;
+FUNCTION GetSprite(sprite : pSimpleSprite; num : LONGINT) : smallint;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4445,7 +4449,7 @@ BEGIN
   END;
 END;
 
-FUNCTION TextExtent(rp : pRastPort;const string_ : pCHAR; count : LONGINT; _textExtent : pTextExtent) : INTEGER;
+FUNCTION TextExtent(rp : pRastPort;const string_ : pCHAR; count : LONGINT; _textExtent : pTextExtent) : smallint;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4479,7 +4483,7 @@ BEGIN
   END;
 END;
 
-FUNCTION TextLength(rp : pRastPort;const string_ : pCHAR; count : ULONG) : INTEGER;
+FUNCTION TextLength(rp : pRastPort;const string_ : pCHAR; count : ULONG) : smallint;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4575,7 +4579,7 @@ BEGIN
   END;
 END;
 
-FUNCTION WeighTAMatch(reqTextAttr : pTextAttr; targetTextAttr : pTextAttr; targetTags : pTagItem) : INTEGER;
+FUNCTION WeighTAMatch(reqTextAttr : pTextAttr; targetTextAttr : pTextAttr; targetTags : pTagItem) : smallint;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4691,7 +4695,7 @@ const
     { Change VERSION and LIBVERSION to proper values }
 
     VERSION : string[2] = '0';
-    LIBVERSION : Cardinal = 0;
+    LIBVERSION : longword = 0;
 
 {$ifdef use_init_openlib}
   {$Info Compiling initopening of graphics.library}
@@ -4773,7 +4777,10 @@ END. (* UNIT GRAPHICS *)
 
 {
   $Log$
-  Revision 1.4  2003-02-07 20:48:36  nils
+  Revision 1.5  2003-02-10 17:59:46  nils
+  *  fixes for delphi mode
+
+  Revision 1.4  2003/02/07 20:48:36  nils
   * update for amigaos 3.9
 
   * changed startcode for library

@@ -25,6 +25,10 @@
     Changed startcode for library.
     1 Feb 2003.
     
+    Changed integer > smallint,
+            cardinal > longword.
+    09 Feb 2003.
+
     nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
@@ -65,7 +69,7 @@ type
     glm_X0,                     { approximation of XOrigin in whole pixels }
     glm_Y0,                     { approximation of YOrigin in whole pixels }
     glm_X1,                     { approximation of XOrigin + Width }
-    glm_Y1          : Integer;  { approximation of YOrigin + Width }
+    glm_Y1          : smallint;  { approximation of YOrigin + Width }
     glm_Width       : FIXED;    { character advance, as fraction of em width }
     glm_BitMap      : Pointer;  { actual glyph bitmap }
  end;
@@ -468,7 +472,7 @@ const
     { Change VERSION and LIBVERSION to proper values }
 
     VERSION : string[2] = '0';
-    LIBVERSION : Cardinal = 0;
+    LIBVERSION : longword = 0;
 
 {$ifdef use_init_openlib}
   {$Info Compiling initopening of bullet.library}

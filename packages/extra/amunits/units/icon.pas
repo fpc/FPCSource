@@ -45,6 +45,9 @@
     Changed start code for unit.
     02 Feb 2003.
     
+    Changed cardinal > longword.
+    09 Feb 2003.
+    
     nils.sjoholm@mailbox.swipnet.se
 }
 
@@ -365,8 +368,8 @@ FUNCTION PutDiskObject(const name : pCHAR;const diskobj : pDiskObject) : BOOLEAN
 
 { version 44 }
 FUNCTION DupDiskObjectA(CONST diskObject : pDiskObject; CONST tags : pTagItem) : pDiskObject;
-FUNCTION IconControlA(icon : pDiskObject; CONST tags : pTagItem) : CARDINAL;
-PROCEDURE DrawIconStateA(rp : pRastPort; CONST icon : pDiskObject; CONST label_ : pCHAR; leftOffset : LONGINT; topOffset : LONGINT; state : CARDINAL; CONST tags : pTagItem);
+FUNCTION IconControlA(icon : pDiskObject; CONST tags : pTagItem) : longword;
+PROCEDURE DrawIconStateA(rp : pRastPort; CONST icon : pDiskObject; CONST label_ : pCHAR; leftOffset : LONGINT; topOffset : LONGINT; state : longword; CONST tags : pTagItem);
 FUNCTION GetIconRectangleA(rp : pRastPort; CONST icon : pDiskObject; CONST label_ : pCHAR; rect : pRectangle; CONST tags : pTagItem) : BOOLEAN;
 FUNCTION NewDiskObject(type_ : LONGINT) : pDiskObject;
 FUNCTION GetIconTagList(CONST name : pCHAR; CONST tags : pTagItem) : pDiskObject;
@@ -595,7 +598,7 @@ BEGIN
   END;
 END;
 
-FUNCTION IconControlA(icon : pDiskObject; CONST tags : pTagItem) : CARDINAL;
+FUNCTION IconControlA(icon : pDiskObject; CONST tags : pTagItem) : longword;
 BEGIN
   ASM
 	MOVE.L	A6,-(A7)
@@ -608,7 +611,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE DrawIconStateA(rp : pRastPort; CONST icon : pDiskObject; CONST label_ : pCHAR; leftOffset : LONGINT; topOffset : LONGINT; state : CARDINAL; CONST tags : pTagItem);
+PROCEDURE DrawIconStateA(rp : pRastPort; CONST icon : pDiskObject; CONST label_ : pCHAR; leftOffset : LONGINT; topOffset : LONGINT; state : longword; CONST tags : pTagItem);
 BEGIN
   ASM
 	MOVE.L	A6,-(A7)
@@ -783,7 +786,7 @@ const
     { Change VERSION and LIBVERSION to proper values }
 
     VERSION : string[2] = '0';
-    LIBVERSION : Cardinal = 0;
+    LIBVERSION : longword = 0;
 
 {$ifdef use_init_openlib}
   {$Info Compiling initopening of icon.library}
@@ -865,7 +868,10 @@ END. (* UNIT ICON *)
 
 {
   $Log$
-  Revision 1.4  2003-02-07 20:48:36  nils
+  Revision 1.5  2003-02-10 17:59:46  nils
+  *  fixes for delphi mode
+
+  Revision 1.4  2003/02/07 20:48:36  nils
   * update for amigaos 3.9
 
   * changed startcode for library

@@ -65,6 +65,10 @@
 
     05 Feb 2003.
     
+    Changed integer > smallint.
+    Retyped ULONG to longword
+    09 Feb 2003.
+    
     nils.sjoholm@mailbox.swipnet.se
 }
 
@@ -81,7 +85,7 @@ INTERFACE
 {
     History:
 
-    Added BOOL = Integer, some libraries need that define
+    Added BOOL = smallint, some libraries need that define
     (read triton, wizard)
     25 Oct 1998
 
@@ -96,20 +100,21 @@ INTERFACE
 TYPE
 
        STRPTR   = PChar;
-       ULONG    = Longint;
+       ULONG    = Longword;
        LONG     = longint;
        APTR     = Pointer;
        BPTR     = Longint;
        BSTR     = Longint;
-       BOOL     = Integer;
+       BOOL     = smallint;
        UWORD    = Word;
        WORDBITS = Word;
-       LONGBITS = ULONG;
+       LONGBITS = longword;
        PLONGBITS = ^LONGBITS;
        UBYTE    = Byte;
-       PULONG   = ^ULONG;
+       PULONG   = ^longword;
        PAPTR    = ^APTR;
        PLONG    = ^LONG;
+       psmallint = ^smallint;
 
 const
        {There is a problem with boolean
@@ -129,7 +134,7 @@ TYPE
     ln_Type  : Byte;
     ln_Pri   : Shortint;        { * Priority, for sorting * }
     ln_Name  : STRPTR;      { * ID string, null terminated * }
-  End;  { * Note: Integer aligned * }
+  End;  { * Note: smallint aligned * }
 
 
 { * minimal node -- no type checking possible * }
@@ -523,7 +528,7 @@ CONST
 type
     pResident = ^tResident;
     tResident =  record
-    rt_MatchWord  : Word;        { Integer to match on (ILLEGAL)  }
+    rt_MatchWord  : Word;        { smallint to match on (ILLEGAL)  }
     rt_MatchTag   : pResident;    { pointer to the above        }
     rt_EndSkip    : Pointer;      { address to continue scan    }
     rt_Flags      : Byte;        { various tag flags           }
@@ -810,7 +815,7 @@ type
     pSemaphore = ^tSemaphore;
     tSemaphore =  record
         sm_MsgPort : tMsgPort;
-        sm_Bids    : Integer;
+        sm_Bids    : smallint;
     end;
 
 {  This is the structure used to request a signal semaphore }
@@ -826,11 +831,11 @@ type
     pSignalSemaphore = ^tSignalSemaphore;
     tSignalSemaphore =  record
         ss_Link         : tNode;
-        ss_NestCount    : Integer;
+        ss_NestCount    : smallint;
         ss_WaitQueue    : tMinList;
         ss_MultipleLink : tSemaphoreRequest;
         ss_Owner        : pTask;
-        ss_QueueCount   : Integer;
+        ss_QueueCount   : smallint;
     end;
 
 
@@ -986,7 +991,7 @@ tExecBase =  Record
 { ******* Static System Variables ******* }
 
         SoftVer      : Word;   {  kickstart release number (obs.)  }
-        LowMemChkSum : Integer;    {  checksum of 68000 trap vectors  }
+        LowMemChkSum : smallint;    {  checksum of 68000 trap vectors  }
         ChkBase      : ULONG;   {  system base pointer complement  }
         ColdCapture,            {  coldstart soft capture vector  }
         CoolCapture,            {  coolstart soft capture vector  }
@@ -2947,7 +2952,10 @@ END. (* UNIT EXEC *)
 
 {
   $Log$
-  Revision 1.2  2003-02-07 20:45:08  nils
+  Revision 1.3  2003-02-10 17:59:46  nils
+  *  fixes for delphi mode
+
+  Revision 1.2  2003/02/07 20:45:08  nils
   * update for amigaos 3.9
 
   Revision 1.1.2.2  2001/07/24 07:34:30  pierre

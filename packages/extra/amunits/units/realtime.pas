@@ -26,6 +26,11 @@
     library.
     14 Jan 2003.
 
+    Changed integer > smallint,
+            cardinal > longword.
+    Changed startcode for unit.
+    09 Feb 2003.
+    	    
     nils.sjoholm@mailbox.swipnet.se
 }
 
@@ -220,7 +225,7 @@ Type
     rtb_Time,                      { current time                         }
     rtb_TimeFrac    : ULONG;       { fixed-point fraction part of time    }
     rtb_Reserved1   : WORD;
-    rtb_TickErr     : Integer;     { nanosecond error from ideal Tick     }
+    rtb_TickErr     : smallint;     { nanosecond error from ideal Tick     }
  end;                              { length to real tick length           }
 
 { Actual tick length is: 1/TICK_FREQ + rtb_TickErr/1e9 }
@@ -236,23 +241,34 @@ VAR RealTimeBase : pRealTimeBase;
 const
     REALTIMENAME : PChar = 'realtime.library';
 
-FUNCTION CreatePlayerA(tagList : pTagItem) : pPlayer;
+FUNCTION CreatePlayerA(const tagList : pTagItem) : pPlayer;
 PROCEDURE DeletePlayer(player : pPlayer);
 FUNCTION ExternalSync(player : pPlayer; minTime : LONGINT; maxTime : LONGINT) : BOOLEAN;
-FUNCTION FindConductor(name : pCHAR) : pConductor;
-FUNCTION GetPlayerAttrsA(player : pPlayer; tagList : pTagItem) : ULONG;
+FUNCTION FindConductor(const name : pCHAR) : pConductor;
+FUNCTION GetPlayerAttrsA(const player : pPlayer;const tagList : pTagItem) : ULONG;
 FUNCTION LockRealTime(lockType : ULONG) : POINTER;
-FUNCTION NextConductor(previousConductor : pConductor) : pConductor;
+FUNCTION NextConductor(const previousConductor : pConductor) : pConductor;
 FUNCTION SetConductorState(player : pPlayer; state : ULONG; time : LONGINT) : LONGINT;
-FUNCTION SetPlayerAttrsA(player : pPlayer; tagList : pTagItem) : BOOLEAN;
+FUNCTION SetPlayerAttrsA(player : pPlayer;const tagList : pTagItem) : BOOLEAN;
 PROCEDURE UnlockRealTime(lock : POINTER);
 
+{You can remove this include and use a define instead}
+{$I useautoopenlib.inc}
+{$ifdef use_init_openlib}
+procedure InitREALTIMELibrary;
+{$endif use_init_openlib}
+
+{This is a variable that knows how the unit is compiled}
+var
+    REALTIMEIsCompiledHow : longint;
 
 IMPLEMENTATION
 
+{$ifndef dont_use_openlib}
 uses msgbox;
+{$endif dont_use_openlib}
 
-FUNCTION CreatePlayerA(tagList : pTagItem) : pPlayer;
+FUNCTION CreatePlayerA(const tagList : pTagItem) : pPlayer;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -292,7 +308,7 @@ BEGIN
   END;
 END;
 
-FUNCTION FindConductor(name : pCHAR) : pConductor;
+FUNCTION FindConductor(const name : pCHAR) : pConductor;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -304,7 +320,7 @@ BEGIN
   END;
 END;
 
-FUNCTION GetPlayerAttrsA(player : pPlayer; tagList : pTagItem) : ULONG;
+FUNCTION GetPlayerAttrsA(const player : pPlayer;const tagList : pTagItem) : ULONG;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -329,7 +345,7 @@ BEGIN
   END;
 END;
 
-FUNCTION NextConductor(previousConductor : pConductor) : pConductor;
+FUNCTION NextConductor(const previousConductor : pConductor) : pConductor;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -355,7 +371,7 @@ BEGIN
   END;
 END;
 
-FUNCTION SetPlayerAttrsA(player : pPlayer; tagList : pTagItem) : BOOLEAN;
+FUNCTION SetPlayerAttrsA(player : pPlayer;const tagList : pTagItem) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -382,7 +398,48 @@ BEGIN
   END;
 END;
 
-{$I useautoopenlib.inc}
+const
+    { Change VERSION and LIBVERSION to proper values }
+
+    VERSION : string[2] = '0';
+    LIBVERSION : longword = 0;
+
+{$ifdef use_init_openlib}
+  {$Info Compiling initopening of realtime.library}
+  {$Info don't forget to use InitREALTIMELibrary in the beginning of your program}
+
+var
+    realtime_exit : Pointer;
+
+procedure CloserealtimeLibrary;
+begin
+    ExitProc := realtime_exit;
+    if RealTimeBase <> nil then begin
+        CloseLibrary(pLibrary(RealTimeBase));
+        RealTimeBase := nil;
+    end;
+end;
+
+procedure InitREALTIMELibrary;
+begin
+    RealTimeBase := nil;
+    RealTimeBase := pRealTimeBase(OpenLibrary(REALTIMENAME,LIBVERSION));
+    if RealTimeBase <> nil then begin
+        realtime_exit := ExitProc;
+        ExitProc := @CloserealtimeLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open realtime.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+end;
+
+begin
+    REALTIMEIsCompiledHow := 2;
+{$endif use_init_openlib}
+
 {$ifdef use_auto_openlib}
   {$Info Compiling autoopening of realtime.library}
 
@@ -398,18 +455,13 @@ begin
     end;
 end;
 
-const
-    { Change VERSION and LIBVERSION to proper values }
-
-    VERSION : string[2] = '0';
-    LIBVERSION : Cardinal = 0;
-
 begin
     RealTimeBase := nil;
     RealTimeBase := pRealTimeBase(OpenLibrary(REALTIMENAME,LIBVERSION));
     if RealTimeBase <> nil then begin
         realtime_exit := ExitProc;
-        ExitProc := @CloserealtimeLibrary
+        ExitProc := @CloserealtimeLibrary;
+        REALTIMEIsCompiledHow := 1;
     end else begin
         MessageBox('FPC Pascal Error',
         'Can''t open realtime.library version ' + VERSION + #10 +
@@ -418,17 +470,24 @@ begin
         halt(20);
     end;
 
-{$else}
-   {$Warning No autoopening of realtime.library compiled}
-   {$Info Make sure you open realtime.library yourself}
 {$endif use_auto_openlib}
+
+{$ifdef dont_use_openlib}
+begin
+    REALTIMEIsCompiledHow := 3;
+   {$Warning No autoopening of realtime.library compiled}
+   {$Warning Make sure you open realtime.library yourself}
+{$endif dont_use_openlib}
 
 
 END. (* UNIT REALTIME *)
 
 {
   $Log$
-  Revision 1.3  2003-01-14 18:46:04  nils
+  Revision 1.4  2003-02-10 17:59:46  nils
+  *  fixes for delphi mode
+
+  Revision 1.3  2003/01/14 18:46:04  nils
   * added defines use_amia_smartlink and use_auto_openlib
 
   * implemented autoopening of library
@@ -438,4 +497,4 @@ END. (* UNIT REALTIME *)
 
 }
 
-  
+

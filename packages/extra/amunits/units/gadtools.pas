@@ -37,6 +37,10 @@
     Changed startup code for the unit.
     01 Feb 2003.
     
+    Changed integer > smallint,
+            cardinal > longword.
+    09 Feb 2003.
+    	     
     nils.sjoholm@mailbox.swipnet.se
 
 }
@@ -113,8 +117,8 @@ CONST
 Type
    pNewGadget = ^tNewGadget;
    tNewGadget = record
-    ng_LeftEdge, ng_TopEdge : Integer;     {  gadget position }
-    ng_Width, ng_Height     : Integer;     {  gadget size }
+    ng_LeftEdge, ng_TopEdge : smallint;     {  gadget position }
+    ng_Width, ng_Height     : smallint;     {  gadget size }
     ng_GadgetText           : STRPTR;      {  gadget label }
     ng_TextAttr             : pTextAttr;   {  desired font for gadget label }
     ng_GadgetID             : Word;        {  gadget ID }
@@ -770,7 +774,7 @@ const
     { Change VERSION and LIBVERSION to proper values }
 
     VERSION : string[2] = '0';
-    LIBVERSION : Cardinal = 0;
+    LIBVERSION : longword = 0;
 
 {$ifdef use_init_openlib}
   {$Info Compiling initopening of gadtools.library}
@@ -853,7 +857,10 @@ END. (* UNIT GADTOOLS *)
 
 {
   $Log$
-  Revision 1.4  2003-02-07 20:48:36  nils
+  Revision 1.5  2003-02-10 17:59:46  nils
+  *  fixes for delphi mode
+
+  Revision 1.4  2003/02/07 20:48:36  nils
   * update for amigaos 3.9
 
   * changed startcode for library

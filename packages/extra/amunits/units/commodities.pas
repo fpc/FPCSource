@@ -24,6 +24,10 @@
     of the library.
     13 Jan 2003.
     
+    changed integer > smallint,
+            cardinal > longword.
+    09 Feb 2003.
+    
     nils.sjoholm@mailbox.swipnet.se
 }
 
@@ -67,11 +71,11 @@ Type
    nb_Title,
    nb_Descr     : STRPTR;
    nb_Unique,
-   nb_Flags     : Integer;
+   nb_Flags     : smallint;
    nb_Pri       : Shortint;
    {     new in V5   }
    nb_Port      : pMsgPort;
-   nb_ReservedChannel  : Integer;  {     plans for later port sharing     }
+   nb_ReservedChannel  : smallint;  {     plans for later port sharing     }
   END;
 
 CONST
@@ -621,7 +625,7 @@ const
     { Change VERSION and LIBVERSION to proper values }
 
     VERSION : string[2] = '0';
-    LIBVERSION : Cardinal = 0;
+    LIBVERSION : longword = 0;
 
 begin
     CxBase := nil;
@@ -647,7 +651,10 @@ END. (* UNIT COMMODITIES *)
 
 {
   $Log$
-  Revision 1.3  2003-01-14 18:46:04  nils
+  Revision 1.4  2003-02-10 17:59:46  nils
+  *  fixes for delphi mode
+
+  Revision 1.3  2003/01/14 18:46:04  nils
   * added defines use_amia_smartlink and use_auto_openlib
 
   * implemented autoopening of library

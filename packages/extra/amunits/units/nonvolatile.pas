@@ -21,6 +21,10 @@
     of the library.
     14 Jan 2003.
     
+    Update for Amigaos 3.9
+    Changed startcode for unit.
+    09 Feb 2003.
+    
     nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
@@ -82,19 +86,32 @@ VAR NVBase : pLibrary;
 const
     NONVOLATILENAME : PChar = 'nonvolatile.library';
 
-FUNCTION DeleteNV(appName : pCHAR; itemName : pCHAR; killRequesters : LONGINT) : BOOLEAN;
+FUNCTION DeleteNV(const appName : pCHAR;const itemName : pCHAR; killRequesters : LONGINT) : BOOLEAN;
 PROCEDURE FreeNVData(data : POINTER);
-FUNCTION GetCopyNV(appName : pCHAR; itemName : pCHAR; killRequesters : LONGINT) : POINTER;
+FUNCTION GetCopyNV(const appName : pCHAR;const itemName : pCHAR; killRequesters : LONGINT) : POINTER;
 FUNCTION GetNVInfo(killRequesters : LONGINT) : pNVInfo;
-FUNCTION GetNVList(appName : pCHAR; killRequesters : LONGINT) : pMinList;
-FUNCTION SetNVProtection(appName : pCHAR; itemName : pCHAR; mask : LONGINT; killRequesters : LONGINT) : BOOLEAN;
-FUNCTION StoreNV(appName : pCHAR; itemName : pCHAR; data : POINTER; length : ULONG; killRequesters : LONGINT) : WORD;
+FUNCTION GetNVList(const appName : pCHAR; killRequesters : LONGINT) : pMinList;
+FUNCTION SetNVProtection(const appName : pCHAR;const itemName : pCHAR; mask : LONGINT; killRequesters : LONGINT) : BOOLEAN;
+FUNCTION StoreNV(const appName : pCHAR;const itemName : pCHAR;const data : POINTER; length : ULONG; killRequesters : LONGINT) : WORD;
+
+{Here we read how to compile this unit}
+{You can remove this include and use a define instead}
+{$I useautoopenlib.inc}
+{$ifdef use_init_openlib}
+procedure InitNONVOLATILELibrary;
+{$endif use_init_openlib}
+
+{This is a variable that knows how the unit is compiled}
+var
+    NONVOLATILEIsCompiledHow : longint;
 
 IMPLEMENTATION
 
+{$ifndef dont_use_openlib}
 uses msgbox;
+{$endif dont_use_openlib}
 
-FUNCTION DeleteNV(appName : pCHAR; itemName : pCHAR; killRequesters : LONGINT) : BOOLEAN;
+FUNCTION DeleteNV(const appName : pCHAR;const itemName : pCHAR; killRequesters : LONGINT) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -122,7 +139,7 @@ BEGIN
   END;
 END;
 
-FUNCTION GetCopyNV(appName : pCHAR; itemName : pCHAR; killRequesters : LONGINT) : POINTER;
+FUNCTION GetCopyNV(const appName : pCHAR;const itemName : pCHAR; killRequesters : LONGINT) : POINTER;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -148,7 +165,7 @@ BEGIN
   END;
 END;
 
-FUNCTION GetNVList(appName : pCHAR; killRequesters : LONGINT) : pMinList;
+FUNCTION GetNVList(const appName : pCHAR; killRequesters : LONGINT) : pMinList;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -161,7 +178,7 @@ BEGIN
   END;
 END;
 
-FUNCTION SetNVProtection(appName : pCHAR; itemName : pCHAR; mask : LONGINT; killRequesters : LONGINT) : BOOLEAN;
+FUNCTION SetNVProtection(const appName : pCHAR;const itemName : pCHAR; mask : LONGINT; killRequesters : LONGINT) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -179,7 +196,7 @@ BEGIN
   END;
 END;
 
-FUNCTION StoreNV(appName : pCHAR; itemName : pCHAR; data : POINTER; length : ULONG; killRequesters : LONGINT) : WORD;
+FUNCTION StoreNV(const appName : pCHAR;const itemName : pCHAR;const data : POINTER; length : ULONG; killRequesters : LONGINT) : WORD;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -195,7 +212,48 @@ BEGIN
   END;
 END;
 
-{$I useautoopenlib.inc}
+const
+    { Change VERSION and LIBVERSION to proper values }
+
+    VERSION : string[2] = '0';
+    LIBVERSION : longword = 0;
+
+{$ifdef use_init_openlib}
+  {$Info Compiling initopening of nonvolatile.library}
+  {$Info don't forget to use InitNONVOLATILELibrary in the beginning of your program}
+
+var
+    nonvolatile_exit : Pointer;
+
+procedure ClosenonvolatileLibrary;
+begin
+    ExitProc := nonvolatile_exit;
+    if NVBase <> nil then begin
+        CloseLibrary(NVBase);
+        NVBase := nil;
+    end;
+end;
+
+procedure InitNONVOLATILELibrary;
+begin
+    NVBase := nil;
+    NVBase := OpenLibrary(NONVOLATILENAME,LIBVERSION);
+    if NVBase <> nil then begin
+        nonvolatile_exit := ExitProc;
+        ExitProc := @ClosenonvolatileLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open nonvolatile.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+end;
+
+begin
+    NONVOLATILEIsCompiledHow := 2;
+{$endif use_init_openlib}
+
 {$ifdef use_auto_openlib}
   {$Info Compiling autoopening of nonvolatile.library}
 
@@ -211,18 +269,13 @@ begin
     end;
 end;
 
-const
-    { Change VERSION and LIBVERSION to proper values }
-
-    VERSION : string[2] = '0';
-    LIBVERSION : Cardinal = 0;
-
 begin
     NVBase := nil;
     NVBase := OpenLibrary(NONVOLATILENAME,LIBVERSION);
     if NVBase <> nil then begin
         nonvolatile_exit := ExitProc;
-        ExitProc := @ClosenonvolatileLibrary
+        ExitProc := @ClosenonvolatileLibrary;
+        NONVOLATILEIsCompiledHow := 1;
     end else begin
         MessageBox('FPC Pascal Error',
         'Can''t open nonvolatile.library version ' + VERSION + #10 +
@@ -231,10 +284,15 @@ begin
         halt(20);
     end;
 
-{$else}
-   {$Warning No autoopening of nonvolatile.library compiled}
-   {$Info Make sure you open nonvolatile.library yourself}
 {$endif use_auto_openlib}
+
+{$ifdef dont_use_openlib}
+begin
+    NONVOLATILEIsCompiledHow := 3;
+   {$Warning No autoopening of nonvolatile.library compiled}
+   {$Warning Make sure you open nonvolatile.library yourself}
+{$endif dont_use_openlib}
+
 
 
 END. (* UNIT NONVOLATILE *)

@@ -99,7 +99,7 @@ Type
    tIEPointerPixel = record
     iepp_Screen : Pointer;   { pointer to an open screen }
     iepp_Position : record
-       x,y : Integer;
+       x,y : smallint;
     end;
    END;
 
@@ -266,8 +266,8 @@ CONST
             ie_position : record
                 case longint of
                    0 : ( ie_xy : record
-                        ie_x : Integer;
-                        ie_y : Integer;
+                        ie_x : smallint;
+                        ie_y : smallint;
                      end );
                    1 : ( ie_addr : APTR );
                    2 : ( ie_dead : record

@@ -59,6 +59,9 @@ unit doublebuffer;
      Added the define use_amiga_smartlink.
      13 Jan 2003.
 
+     Changed integer > smallint.
+     10 Feb 2003.
+     
      nils.sjoholm@mailbox.swipnet.se
 }
 
@@ -102,7 +105,7 @@ var
     s : pScreen;
     w : pWindow;
     bm : pBitMap;
-    i,j : Integer;
+    i,j : smallint;
     nw : tNewWindow;
     rp : pRastPort;
 begin
@@ -242,7 +245,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-01-13 18:14:56  nils
+  Revision 1.3  2003-02-10 17:59:46  nils
+  *  fixes for delphi mode
+
+  Revision 1.2  2003/01/13 18:14:56  nils
   * added the define use_amiga_smartlink
 
   Revision 1.1  2002/11/22 21:34:59  nils

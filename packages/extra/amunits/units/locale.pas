@@ -29,6 +29,9 @@
     Changed the start code for unit.
     01 Feb 2003.
 
+    Changed integer > smallint.
+    09 Feb 2003.
+    
     nils.sjoholm@mailbox.swipnet.se
 }
 
@@ -671,7 +674,7 @@ const
     { Change VERSION and LIBVERSION to proper values }
 
     VERSION : string[2] = '0';
-    LIBVERSION : Cardinal = 0;
+    LIBVERSION : longword = 0;
 
 {$ifdef use_init_openlib}
   {$Info Compiling initopening of locale.library}
@@ -753,7 +756,10 @@ END. (* UNIT LOCALE *)
 
 {
   $Log$
-  Revision 1.4  2003-02-07 20:49:54  nils
+  Revision 1.5  2003-02-10 17:59:46  nils
+  *  fixes for delphi mode
+
+  Revision 1.4  2003/02/07 20:49:54  nils
   * changed startcode for library
 
   Revision 1.3  2003/01/14 18:46:04  nils

@@ -19,8 +19,7 @@
 
      First version of this unit.
      Just use this unit when you want to
-     use taglist. Remember that you have
-     to use $mode objfpc in your programs.
+     use taglist.
 
      09 Nov 2002
 
@@ -34,10 +33,6 @@ unit tagsarray;
 interface
 
 uses Exec, Utility;
-
-const
-    ltrue : longint = 1;
-    lfalse : longint = 0;
 
 
 function readintags(const args : array of const): pTagItem;
@@ -77,7 +72,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-11-22 21:34:59  nils
+  Revision 1.2  2003-02-10 17:59:46  nils
+  *  fixes for delphi mode
+
+  Revision 1.1  2002/11/22 21:34:59  nils
 
     * initial release
 

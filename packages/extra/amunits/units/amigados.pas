@@ -38,6 +38,9 @@
     Added some const.
     26 Jan 2003.
     
+    Changed integer > smallint.
+    09 Feb 2003.
+    
     nils.sjoholm@mailbox.swipnet.se
 }
 
@@ -401,7 +404,7 @@ Type
 
        pAnchorPath = ^tAnchorPath;
        tAnchorPath = record
-        case integer of
+        case smallint of
         0 : (
         ap_First      : pAChain;
         ap_Last       : pAChain;
@@ -413,7 +416,7 @@ Type
         ap_FoundBreak : Longint;    { Bits we broke on. Also returns ERROR_BREAK }
         ap_Flags      : Shortint;       { New use for extra Integer. }
         ap_Reserved   : Shortint;
-        ap_Strlen     : Integer;       { This is what ap_Length used to be }
+        ap_Strlen     : smallint;       { This is what ap_Length used to be }
         ap_Info       : tFileInfoBlock;
         ap_Buf        : Array[0..0] of Char;     { Buffer for path name, allocated by user !! }
         { FIX! }
@@ -537,13 +540,13 @@ Type
 
 { All DOS processes have this structure }
 { Create and Device Proc returns pointer to the MsgPort in this structure }
-{ dev_proc = Address(Integer(DeviceProc()) - SizeOf(Task)) }
+{ dev_proc = Address(smallint(DeviceProc()) - SizeOf(Task)) }
 
     pProcess = ^tProcess;
     tProcess = record
         pr_Task         : tTask;
         pr_MsgPort      : tMsgPort;     { This is BPTR address from DOS functions  }
-        pr_Pad          : Integer;         { Remaining variables on 4 byte boundaries }
+        pr_Pad          : smallint;         { Remaining variables on 4 byte boundaries }
         pr_SegList      : BPTR;         { Array of seg lists used by this process  }
         pr_StackSize    : Longint;      { Size of process stack in bytes            }
         pr_GlobVec      : Pointer;      { Global vector for this process (BCPL)    }
@@ -588,7 +591,7 @@ CONST
  PRF_FREEARGS          =  32;
 
 
-{ The long Integer address (BPTR) of this structure is returned by
+{ The long smallint address (BPTR) of this structure is returned by
  * Open() and other routines that return a file.  You need only worry
  * about this struct to do async io's via PutMsg() instead of
  * standard file system calls }
@@ -618,7 +621,7 @@ Type
         dp_Link : pMessage;     { EXEC message        }
         dp_Port : pMsgPort;     { Reply port for the packet }
                                 { Must be filled in each send. }
-        case integer of
+        case smallint of
         0 : (
         dp_Action : Longint;
         dp_Status : Longint;
@@ -797,7 +800,7 @@ CONST
 Type
     pDosInfo = ^tDosInfo;
     tDosInfo = record
-        case integer of
+        case smallint of
         0 : (
         di_ResList : BPTR;
         );
@@ -922,7 +925,7 @@ Type
     dol_Type            : Longint;        {    see DLT below }
     dol_Task            : pMsgPort;       {    ptr to handler task }
     dol_Lock            : BPTR;
-    case integer of
+    case smallint of
     0 : (
         dol_Handler : record
           dol_Handler    : BSTR;      {    file name to load IF seglist is null }
@@ -1132,7 +1135,7 @@ Type
                                         * 0X444F5300 is old filesystem,
                                         * 0X444F5301 is fast file system }
         de_Baud           : ULONG;      {     Baud rate for serial handler }
-        de_Control        : ULONG;      {     Control Integer for handler/filesystem }
+        de_Control        : ULONG;      {     Control smallint for handler/filesystem }
         de_BootBlocks     : ULONG;      {     Number of blocks containing boot code }
     end;
 
@@ -1162,7 +1165,7 @@ Const
                                  * 0X444F5300 is old filesystem,
                                  * 0X444F5301 is fast file system }
     DE_BAUD             = 17;   {     Baud rate for serial handler }
-    DE_CONTROL          = 18;   {     Control Integer for handler/filesystem }
+    DE_CONTROL          = 18;   {     Control smallint for handler/filesystem }
     DE_BOOTBLOCKS       = 19;   {     Number of blocks containing boot code }
 
 
@@ -1238,7 +1241,7 @@ Type
             nr_UserData : ULONG;
             nr_Flags : ULONG;
             nr_stuff : record
-                case integer of
+                case smallint of
                    0 : ( nr_Msg : record
                         nr_Port : pMsgPort;
                      end );
@@ -1720,7 +1723,7 @@ FUNCTION SetPrompt(const name : pCHAR) : BOOLEAN;
 FUNCTION SetProtection(const name : pCHAR; protect : LONGINT) : BOOLEAN;
 FUNCTION SetVar(const name : pCHAR; buffer : pCHAR; size : LONGINT; flags : LONGINT) : BOOLEAN;
 FUNCTION SetVBuf(fh : LONGINT; buff : pCHAR; type_ : LONGINT; size : LONGINT) : BOOLEAN;
-FUNCTION SplitName(const name : pCHAR; seperator : ULONG; buf : pCHAR; oldpos : LONGINT; size : LONGINT) : INTEGER;
+FUNCTION SplitName(const name : pCHAR; seperator : ULONG; buf : pCHAR; oldpos : LONGINT; size : LONGINT) : smallint;
 FUNCTION StartNotify(notify : pNotifyRequest) : BOOLEAN;
 FUNCTION StrToDate(datetime : pDateTime) : BOOLEAN;
 FUNCTION StrToLong(const string_ : pCHAR; VAR value : LONGINT) : LONGINT;
@@ -1817,7 +1820,7 @@ FUNCTION SetProgramName(const name : string) : BOOLEAN;
 FUNCTION SetPrompt(const name : string) : BOOLEAN;
 FUNCTION SetProtection(const name : string; protect : LONGINT) : BOOLEAN;
 FUNCTION SetVar(const name : string; buffer : pCHAR; size : LONGINT; flags : LONGINT) : BOOLEAN;
-FUNCTION SplitName(const name : string; seperator : ULONG; buf : pCHAR; oldpos : LONGINT; size : LONGINT) : INTEGER;
+FUNCTION SplitName(const name : string; seperator : ULONG; buf : pCHAR; oldpos : LONGINT; size : LONGINT) : smallint;
 FUNCTION StrToLong(const string_ : string; VAR value : LONGINT) : LONGINT;
 FUNCTION SystemTagList(const command : string;const tags : pTagItem) : LONGINT;
 FUNCTION DOSSystem(const command : string;const tags : pTagItem) : LONGINT;
@@ -3884,7 +3887,7 @@ BEGIN
   END;
 END;
 
-FUNCTION SplitName(const name : pCHAR; seperator : ULONG; buf : pCHAR; oldpos : LONGINT; size : LONGINT) : INTEGER;
+FUNCTION SplitName(const name : pCHAR; seperator : ULONG; buf : pCHAR; oldpos : LONGINT; size : LONGINT) : smallint;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4493,7 +4496,7 @@ begin
      SetVar := SetVar(pas2c(name),buffer,size,flags);
 end;
 
-FUNCTION SplitName(const name : string; seperator : ULONG; buf : pCHAR; oldpos : LONGINT; size : LONGINT) : INTEGER;
+FUNCTION SplitName(const name : string; seperator : ULONG; buf : pCHAR; oldpos : LONGINT; size : LONGINT) : smallint;
 begin
      SplitName := SplitName(pas2c(name), seperator,buf,oldpos,size);
 end;
@@ -4518,7 +4521,10 @@ END. (* UNIT DOS *)
 
 {
    $Log$
-   Revision 1.6  2003-02-07 20:45:08  nils
+   Revision 1.7  2003-02-10 17:59:46  nils
+   *  fixes for delphi mode
+   
+   Revision 1.6  2003/02/07 20:45:08  nils
    * update for amigaos 3.9
    
    Revision 1.5  2003/01/13 18:14:56  nils

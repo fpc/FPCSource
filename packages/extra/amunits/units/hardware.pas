@@ -497,8 +497,8 @@ Const
        n         : pbltnode;
        _function : Pointer;
        stat      : Byte;
-       blitsize  : Integer;
-       beamsync  : Integer;
+       blitsize  : smallint;
+       beamsync  : smallint;
        cleanup   : Pointer;
     end;
 

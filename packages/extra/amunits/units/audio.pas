@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
 
     A file in Amiga system run time library.
-    Copyright (c) 1998 by Nils Sjoholm
+    Copyright (c) 1998-2003 by Nils Sjoholm
     member of the Amiga RTL development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -14,6 +14,15 @@
 
  **********************************************************************}
 
+{
+    History:
+    
+    Changed integer > smallint.
+    09 Feb 2003.
+
+    nils.sjoholm@mailbox.swipnet.se
+}
+    
 unit audio;
 
 INTERFACE
@@ -56,7 +65,7 @@ type
     pIOAudio = ^tIOAudio;
     tIOAudio = record
         ioa_Request     : tIORequest;
-        ioa_AllocKey    : Integer;
+        ioa_AllocKey    : smallint;
         ioa_Data        : Pointer;
         ioa_Length      : ULONG;
         ioa_Period      : Word;

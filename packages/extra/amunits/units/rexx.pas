@@ -27,6 +27,10 @@
     the library.
     14 Jan 2003.
 
+    Changed integer > smallint,
+            cardinal > longword.
+    09 Feb 2003.
+    	    
     nils.sjoholm@mailbox.swipnet.se
 }
 
@@ -199,7 +203,7 @@ Type
     pRexxRsrc = ^tRexxRsrc;
     tRexxRsrc = record
     rr_Node     : tNode;
-    rr_Func     : Integer;    { "auto-delete" offset          }
+    rr_Func     : smallint;    { "auto-delete" offset          }
     rr_Base     : Pointer;  { "auto-delete" base            }
     rr_Size     : Longint;  { total size of node            }
     rr_Arg1     : Longint;  { available ...                 }
@@ -419,18 +423,18 @@ Type
     rl_ReadLock : Word;    { lock count                    }
     rl_TraceFH  : Longint;  { global trace console          }
     rl_TaskList : tList;     { REXX task list                }
-    rl_NumTask  : Integer;    { task count                    }
+    rl_NumTask  : smallint;    { task count                    }
     rl_LibList  : tList;     { Library List header           }
-    rl_NumLib   : Integer;    { library count                 }
+    rl_NumLib   : smallint;    { library count                 }
     rl_ClipList : tList;     { ClipList header               }
-    rl_NumClip  : Integer;    { clip node count               }
+    rl_NumClip  : smallint;    { clip node count               }
     rl_MsgList  : tList;     { pending messages              }
-    rl_NumMsg   : Integer;    { pending count                 }
+    rl_NumMsg   : smallint;    { pending count                 }
     rl_PgmList  : tList;     { cached programs               }
-    rl_NumPgm   : Integer;    { program count                 }
+    rl_NumPgm   : smallint;    { program count                 }
 
     rl_TraceCnt : Word;    { usage count for trace console }
-    rl_avail    : Integer;
+    rl_avail    : smallint;
     end;
 
 Const
@@ -683,7 +687,7 @@ const
     { Change VERSION and LIBVERSION to proper values }
 
     VERSION : string[2] = '0';
-    LIBVERSION : Cardinal = 0;
+    LIBVERSION : longword = 0;
 
 {$ifdef use_init_openlib}
   {$Info Compiling initopening of rexxsyslib.library}
@@ -765,7 +769,10 @@ END. (* UNIT REXXSYSLIB *)
 
 {
   $Log$
-  Revision 1.5  2003-02-07 20:48:36  nils
+  Revision 1.6  2003-02-10 17:59:46  nils
+  *  fixes for delphi mode
+
+  Revision 1.5  2003/02/07 20:48:36  nils
   * update for amigaos 3.9
 
   * changed startcode for library

@@ -26,6 +26,10 @@
     of the library.
     14 Jan 2003.
     
+    Changed integer > smallint,
+            cardinal > longword.
+    09 Feb 2003.
+    	    
     nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
@@ -112,7 +116,7 @@ const
 
 FUNCTION AskKeyMapDefault : pKeyMap;
 FUNCTION MapANSI(thestring : pCHAR; count : LONGINT; buffer : pCHAR; length : LONGINT; keyMap : pKeyMap) : LONGINT;
-FUNCTION MapRawKey(event : pInputEvent; buffer : pCHAR; length : LONGINT; keyMap : pKeyMap) : INTEGER;
+FUNCTION MapRawKey(event : pInputEvent; buffer : pCHAR; length : LONGINT; keyMap : pKeyMap) : smallint;
 PROCEDURE SetKeyMapDefault(keyMap : pKeyMap);
 
 IMPLEMENTATION
@@ -146,7 +150,7 @@ BEGIN
   END;
 END;
 
-FUNCTION MapRawKey(event : pInputEvent; buffer : pCHAR; length : LONGINT; keyMap : pKeyMap) : INTEGER;
+FUNCTION MapRawKey(event : pInputEvent; buffer : pCHAR; length : LONGINT; keyMap : pKeyMap) : smallint;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -192,7 +196,7 @@ const
     { Change VERSION and LIBVERSION to proper values }
 
     VERSION : string[2] = '0';
-    LIBVERSION : Cardinal = 0;
+    LIBVERSION : longword = 0;
 
 begin
     KeymapBase := nil;
