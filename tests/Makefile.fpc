@@ -70,7 +70,7 @@ alltbs : testcheck $(patsubst %.pp,%.log,$(wildcard tbs/*.pp))
 alltbf : testcheck $(patsubst %.pp,%.log,$(wildcard tbf/*.pp))
 
 allwebtbs : testcheck $(patsubst %.pp,%.log,$(wildcard webtbs/*.pp))
-allwebtbf : testcheck $(patsubst %.pp,%.log,$(wildcard webtbs/*.pp))
+allwebtbf : testcheck $(patsubst %.pp,%.log,$(wildcard webtbf/*.pp))
 
 alltest : testcheck $(patsubst %.pp,%.log,$(wildcard test/*.pp))
 alltestopt : testcheck $(patsubst %.pp,%.log,$(wildcard testopt/*.pp))
