@@ -1,3 +1,4 @@
+{ %version=1.1 }
 {****************************************************************}
 {  CODE GENERATOR TEST PROGRAM                                   }
 {  Copyright (c) 2002 Carl Eric Codere                           }
@@ -3294,7 +3295,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2002-10-21 19:07:08  carl
+  Revision 1.6  2002-10-21 19:21:28  carl
+    * only test on version 1.1 +
+
+  Revision 1.5  2002/10/21 19:07:08  carl
     + reinstate test
     - remove virtual method calls
 
