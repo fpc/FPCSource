@@ -116,15 +116,15 @@ Begin
    End;
   End;
   TextRec(t).mode:=mode;
-  If TextRec(t).Name[0]<>#0 Then
+{  If TextRec(t).Name[0]<>#0 Then }
    FileFunc(TextRec(t).OpenFunc)(TextRec(t))
-  else
+{  else
    Begin
      TextRec(t).Handle:=defHdl;
      TextRec(t).InOutFunc:=@FileInOutFunc;
      TextRec(t).FlushFunc:=@FileInOutFunc;
      TextRec(t).CloseFunc:=@FileCloseFunc;
-   End;
+   End; }
 End;
 
 
@@ -948,7 +948,10 @@ Begin
 End;
 {
   $Log$
-  Revision 1.6  1998-05-21 19:31:01  peter
+  Revision 1.7  1998-05-27 00:19:21  peter
+    * fixed crt input
+
+  Revision 1.6  1998/05/21 19:31:01  peter
     * objects compiles for linux
     + assign(pchar), assign(char), rename(pchar), rename(char)
     * fixed read_text_as_array
