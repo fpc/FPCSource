@@ -867,7 +867,6 @@ uses
     procedure tppumodule.load_implementation;
       var
         b : byte;
-        oldobjectlibrary : tasmlibrarydata;
       begin
          { read implementation part }
          repeat
@@ -883,18 +882,6 @@ uses
              Message1(unit_f_ppu_invalid_entry,tostr(b));
            end;
          until false;
-
-         { we can now derefence all pointers to the implementation parts }
-         oldobjectlibrary:=objectlibrary;
-         objectlibrary:=librarydata;
-         aktglobalsymtable:=tstoredsymtable(globalsymtable);
-         tstoredsymtable(globalsymtable).derefimpl;
-         if assigned(localsymtable) then
-           begin
-             aktstaticsymtable:=tstoredsymtable(localsymtable);
-             tstoredsymtable(localsymtable).derefimpl;
-           end;
-         objectlibrary:=oldobjectlibrary;
       end;
 
 
@@ -1139,6 +1126,7 @@ uses
       var
         pu           : tused_unit;
         load_refs    : boolean;
+        oldobjectlibrary : tasmlibrarydata;
       begin
         if current_module<>self then
          internalerror(200212284);
@@ -1212,6 +1200,18 @@ uses
            pu:=tused_unit(pu.next);
          end;
         numberunits;
+
+        { we can now derefence all pointers to the implementation parts }
+        oldobjectlibrary:=objectlibrary;
+        objectlibrary:=librarydata;
+        aktglobalsymtable:=tstoredsymtable(globalsymtable);
+        tstoredsymtable(globalsymtable).derefimpl;
+        if assigned(localsymtable) then
+          begin
+            aktstaticsymtable:=tstoredsymtable(localsymtable);
+            tstoredsymtable(localsymtable).derefimpl;
+          end;
+        objectlibrary:=oldobjectlibrary;
 
         { load browser info if stored }
         if ((flags and uf_has_browser)<>0) and load_refs then
@@ -1507,7 +1507,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.48  2003-12-14 18:13:18  peter
+  Revision 1.49  2003-12-22 22:15:43  peter
+    * deref implementation after implementation units are loaded and
+      numbered
+
+  Revision 1.48  2003/12/14 18:13:18  peter
     * also check currnet dir when searching source files
 
   Revision 1.47  2003/11/28 17:23:16  peter
