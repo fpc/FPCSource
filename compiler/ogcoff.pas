@@ -43,7 +43,7 @@ interface
     type
        pcoffsection = ^tcoffsection;
        tcoffsection = object(toutputsection)
-          flags    : longint;
+          flags    : cardinal;
           relocpos : longint;
           constructor initsec(sec:TSection;AAlign,AFlags:longint);
        end;
@@ -235,7 +235,7 @@ implementation
           sec_data :
             begin
               if win32 then
-               Flags:=longint($c0300040)
+               Flags:=$c0300040
               else
                Flags:=$40;
               Aalign:=4;
@@ -243,7 +243,7 @@ implementation
           sec_bss :
             begin
               if win32 then
-               Flags:=longint($c0300080)
+               Flags:=$c0300080
               else
                Flags:=$80;
               Aalign:=4;
@@ -260,7 +260,7 @@ implementation
           sec_edata :
             begin
               if win32 then
-               Flags:=longint($c0300040);
+               Flags:=$c0300040;
             end;
         end;
         sects[sec]:=new(PcoffSection,InitSec(Sec,AAlign,Flags));
@@ -385,13 +385,9 @@ implementation
       var
         stab : coffstab;
         s : tsection;
+        curraddr : longint;
       begin
-        { This is wrong because
-          sec_none is used only for external bss
-        if section=sec_none then
-         s:=currsec
-        else }
-         s:=section;
+        s:=section;
         { local var can be at offset -1 !! PM }
         if reloc then
          begin
@@ -419,13 +415,15 @@ implementation
         sects[sec_stab]^.write(stab,sizeof(stab));
         { when the offset is not 0 then write a relocation, take also the
           hdrstab into account with the offset }
+        { current address }
+        curraddr:=sects[sec_stab]^.mempos+sects[sec_stab]^.datasize;
         if reloc then
           if DLLSource and RelocSection then
           { avoid relocation in the .stab section
             because it ends up in the .reloc section instead }
-            sects[sec_stab]^.addsectionreloc(sects[sec_stab]^.datasize-4,s,relative_rva)
+            sects[sec_stab]^.addsectionreloc(curraddr-4,s,relative_rva)
           else
-            sects[sec_stab]^.addsectionreloc(sects[sec_stab]^.datasize-4,s,relative_false);
+            sects[sec_stab]^.addsectionreloc(curraddr-4,s,relative_false);
       end;
 
 
@@ -433,6 +431,7 @@ implementation
                                                  nidx,nother,line:longint;reloc:boolean);
       var
         stab : coffstab;
+        curraddr : longint;
       begin
         { do not use the size stored in offset field
          this is DJGPP specific ! PM }
@@ -465,14 +464,16 @@ implementation
         sects[sec_stab]^.write(stab,sizeof(stab));
         { when the offset is not 0 then write a relocation, take also the
           hdrstab into account with the offset }
+        { current address }
+        curraddr:=sects[sec_stab]^.mempos+sects[sec_stab]^.datasize;
         if reloc then
          begin
            if DLLSource and RelocSection then
             { avoid relocation in the .stab section
               because it ends up in the .reloc section instead }
-            sects[sec_stab]^.addsymreloc(sects[sec_stab]^.datasize-4,ps,relative_rva)
+            sects[sec_stab]^.addsymreloc(curraddr-4,ps,relative_rva)
            else
-            sects[sec_stab]^.addsymreloc(sects[sec_stab]^.datasize-4,ps,relative_false);
+            sects[sec_stab]^.addsymreloc(curraddr-4,ps,relative_false);
          end;
       end;
 
@@ -747,7 +748,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2000-12-07 17:19:42  jonas
+  Revision 1.3  2000-12-18 21:56:35  peter
+    * fixed stab reloc writing
+
+  Revision 1.2  2000/12/07 17:19:42  jonas
     * new constant handling: from now on, hex constants >$7fffffff are
       parsed as unsigned constants (otherwise, $80000000 got sign extended
       and became $ffffffff80000000), all constants in the longint range
