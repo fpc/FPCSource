@@ -123,7 +123,7 @@ procedure TestSpeed(Row,Len:byte);
 var
   l      : longint;
   hstr,
-  OrgStr : string[10];
+  OrgStr : string;
 begin
   HeadBen[Row]:=Len;
   OrgStr:='';
