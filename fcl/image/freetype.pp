@@ -180,7 +180,7 @@ begin
   raise FreeTypeException.CreateFmt (sErrFreeType, [Err,Event]);
 end;
 
-Function CheckFT (Res: Integer; Msg:string) : Integer;
+Function FTCheck (Res: Integer; Msg:string) : Integer;
 
 begin
   Result:=Res;
@@ -199,7 +199,7 @@ begin
   FSizes := TList.create;
   LastSize := nil;
   Try 
-    CheckFt(FT_New_Face (aMgr.FTLib, pchar(afilename), anindex, font),format (sErrLoadFont,[anindex,afilename]));
+    FTCheck(FT_New_Face (aMgr.FTLib, pchar(afilename), anindex, font),format (sErrLoadFont,[anindex,afilename]));
   except
     Font:=Nil;
     Raise;
@@ -651,12 +651,8 @@ begin
       pos.x := pos.x + kern.x;
       end;
     // render the glyph
-    e := FT_Glyph_Copy (g^.glyph, gl);
-    if e <> 0 then
-      FTError (sErrMakingString, e);
-    e := FT_Glyph_To_Bitmap (gl, CurRenderMode, @pos, true);
-    if e <> 0 then
-      FTError (sErrMakingString, e);
+    FTCheck(FT_Glyph_Copy (g^.glyph, gl),sErrMakingString1);
+    FTCheck(FT_Glyph_To_Bitmap (gl, CurRenderMode, @pos, true),sErrMakingString2);
     // Copy what is needed to record
     bm := PFT_BitmapGlyph(gl);
     with result.Bitmaps[r]^ do
