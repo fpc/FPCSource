@@ -244,7 +244,11 @@ end;
 Procedure TStrings.Error(const Msg: string; Data: Integer);
 
 begin
+{$ifdef VER1_0}
   Raise EStringListError.CreateFmt(Msg,[Data]) at get_caller_addr(get_frame);
+{$else VER1_0}
+  Raise EStringListError.CreateFmt(Msg,[Data]) at pointer(get_caller_addr(get_frame));
+{$endif VER1_0}
 end;
 
 
@@ -1031,7 +1035,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  2001-05-20 12:10:03  peter
+  Revision 1.11  2002-07-17 11:52:01  florian
+    * at and frame addresses in raise statements changed to pointer; fixed
+
+  Revision 1.10  2001/05/20 12:10:03  peter
     * fixed setcommatext
 
   Revision 1.9  2001/04/13 18:03:28  peter
