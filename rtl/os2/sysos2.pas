@@ -165,7 +165,7 @@ begin
     asm
         movb $0x4c,%ah
         movb errnum,%al
-        call ___syscall
+        call ___SYSCALL
     end;
 end;
 
@@ -210,7 +210,7 @@ var hl:longint;
 begin
     asm
         movb $0x2c,%ah
-        call ___syscall
+        call ___SYSCALL
         movw %cx,-4(%ebp)
         movw %dx,-2(%ebp)
     end;
@@ -232,8 +232,8 @@ function sbrk(size:longint):longint;
 begin
     asm
         movl size,%edx
-        movl $0x7f00,%ax
-        int  $0x21
+        movw $0x7f00,%ax
+        call ___SYSCALL
         movl %eax,__RESULT
     end;
 end;
@@ -273,7 +273,7 @@ begin
      asm
         movb $0x3e,%ah
         mov h,%ebx
-        call ___syscall
+        call ___SYSCALL
      end;
 end;
 
@@ -284,7 +284,7 @@ begin
     asm
         movl 8(%ebp),%edx
         movb $0x41,%ah
-        call ___syscall
+        call ___SYSCALL
         jnc LERASE1
         movw %ax,U_SYSOS2_INOUTRES;
     LERASE1:
@@ -300,7 +300,7 @@ begin
         movl 8(%ebp),%edx
         movl 12(%ebp),%edi
         movb $0x56,%ah
-        call ___syscall
+        call ___SYSCALL
         jnc LRENAME1
         movw %ax,U_SYSOS2_INOUTRES;
     LRENAME1:
@@ -315,7 +315,7 @@ begin
         movl 12(%ebp),%edx
         movl 8(%ebp),%ebx
         movb $0x3f,%ah
-        call ___syscall
+        call ___SYSCALL
         jnc LDOSREAD1
         movw %ax,U_SYSOS2_INOUTRES;
         xorl %eax,%eax
@@ -333,7 +333,7 @@ begin
         movl 12(%ebp),%edx
         movl 8(%ebp),%ebx
         movb $0x40,%ah
-        call ___syscall
+        call ___SYSCALL
         jnc LDOSWRITE1
         movw %ax,U_SYSOS2_INOUTRES;
     LDOSWRITE1:
@@ -345,11 +345,10 @@ function do_filepos(handle:longint):longint;
 
 begin
     asm
-        movb $0x42,%ah
-        movb $0x1,%al
+        movw $0x4201,%ax
         movl 8(%ebp),%ebx
         xorl %edx,%edx
-        call ___syscall
+        call ___SYSCALL
         jnc LDOSFILEPOS
         movw %ax,U_SYSOS2_INOUTRES;
         xorl %eax,%eax
@@ -363,12 +362,10 @@ procedure do_seek(handle,pos:longint);
 
 begin
     asm
-        movl $0x4200,%eax
+        movw $0x4200,%ax
         movl 8(%ebp),%ebx
         movl 12(%ebp),%edx
-        movl %edx,%ecx
-        shrl $16,%ecx
-        call ___syscall
+        call ___SYSCALL
         jnc .LDOSSEEK1
         movw %ax,U_SYSOS2_INOUTRES;
     .LDOSSEEK1:
@@ -381,20 +378,14 @@ function do_seekend(handle:longint):longint;
 
 begin
     asm
-        movl $0x4202,%eax
+        movw $0x4202,%ax
         movl 8(%ebp),%ebx
-        xorl %ecx,%ecx
         xorl %edx,%edx
-        call ___syscall
+        call ___SYSCALL
         jnc .Lset_at_end1
         movw %ax,U_SYSOS2_INOUTRES;
         xorl %eax,%eax
-        jmp .Lset_at_end2
     .Lset_at_end1:
-        shll $16,%edx
-        movzwl %ax,%eax
-        orl %edx,%eax
-    .Lset_at_end2:
         leave
         ret $4
     end;
@@ -417,16 +408,14 @@ begin
         movl $0x4200,%eax
         movl 8(%ebp),%ebx
         movl 12(%ebp),%edx
-        movl %edx,%ecx
-        shrl $16,%ecx
-        call ___syscall
+        call ___SYSCALL
         jc .LTruncate1
         movl 8(%ebp),%ebx
         movl 12(%ebp),%edx
         movl %ebp,%edx
         xorl %ecx,%ecx
         movb $0x40,%ah
-        call ___syscall
+        call ___SYSCALL
         jnc .LTruncate2
         .LTruncate1:
         movw %ax,U_SYSOS2_INOUTRES;
@@ -446,7 +435,7 @@ procedure do_open(var f;p:pchar;flags:longint);
   when (flags and $1000) there is no check for close (needed for textfiles)
 }
 
-var oflags:longint;
+var oflags:byte;
 
 begin
     allowslash(p);
@@ -465,12 +454,12 @@ begin
        end;
     { reset file handle }
     filerec(f).handle:=high(word);
-    oflags:=$8404;
+    oflags:=2;
     { convert filemode to filerec modes }
     case (flags and 3) of
         0 : begin
             filerec(f).mode:=fminput;
-            oflags:=$8001;
+            oflags:=0;
         end;
         1 : filerec(f).mode:=fmoutput;
         2 : filerec(f).mode:=fminout;
@@ -478,13 +467,13 @@ begin
     if (flags and $100)<>0 then
         begin
             filerec(f).mode:=fmoutput;
-            oflags:=$8302;
+            oflags:=2;
         end
     else
         if (flags and $10)<>0 then
             begin
                 filerec(f).mode:=fmoutput;
-                oflags:=$8404;
+                oflags:=2;
             end;
     { empty name is special }
     if p[0]=#0 then
@@ -498,18 +487,34 @@ begin
             end;
             exit;
         end;
-    asm
-        movl $0xff02,%ax
-        movl -4(%ebp),%ecx
-        movl 12(%ebp),%ebx
-        call ___syscall
-        jnc .LOPEN1
-        movw %ax,U_SYSOS2_INOUTRES;
-        movw $0xffff,%ax
-    .LOPEN1:
-        movl 8(%ebp),%edx
-        movw %ax,(%edx)
-    end;
+    if (flags and $100)<>0 then
+        {Use create function.}
+        asm
+            movb $0x3c,%ah
+            movl p,%edx
+            xorw %cx,%cx
+            call ___SYSCALL
+            jnc LOPEN1
+            movw %ax,U_SYSOS2_INOUTRES;
+            movw $0xffff,%ax
+        LOPEN1:
+            movl f,%edx
+            movw %ax,(%edx)
+        end
+    else
+        {Use open function.}
+        asm
+            movb $0x3d,%ah
+            movb oflags,%al
+            movl p,%edx
+            call ___SYSCALL
+            jnc LOPEN2
+            movw %ax,U_SYSOS2_INOUTRES;
+            movw $0xffff,%ax
+        LOPEN2:
+            movl f,%edx
+            movw %ax,(%edx)
+        end;
     if (flags and $10)<>0 then
         do_seekend(filerec(f).handle);
 end;
@@ -555,7 +560,7 @@ begin
     asm
         leal buffer,%edx
         movb 8(%ebp),%ah
-        call ___syscall
+        call ___SYSCALL
         jnc  .LDOS_DIRS1
         movw %ax,U_SYSOS2_INOUTRES;
     .LDOS_DIRS1:
@@ -600,7 +605,7 @@ begin
         movb drivenr,%dl
         movl sof,%esi
         mov  $0x47,%ah
-        call ___syscall
+        call ___SYSCALL
     end;
     { Now Dir should be filled with directory in ASCIIZ, }
     { starting from dir[4]                               }
@@ -627,7 +632,7 @@ begin
             { because the drive was the default, which can be unknown }
             asm
                 movb $0x19,%ah
-                call ___syscall
+                call ___SYSCALL
                 addb $65,%al
                 movb %al,i
             end;
@@ -661,7 +666,7 @@ begin
     {Determine the operating system we are running on.}
     asm
         movw $0x7f0a,%ax
-        call ___syscall
+        call ___SYSCALL
         test $512,%bx          {Bit 9 is OS/2 flag.}
         setnzb U_SYSOS2_OS_MODE
         test $4096,%bx
@@ -674,7 +679,13 @@ begin
     asm
         mov $0x7f01,%ax
         movl HEAPSIZE,%edx
-        call ___syscall
+        addl __heap_base,%edx
+        call ___SYSCALL
+        cmpl $-1,%eax
+        jnz _heapok
+        pushl $204
+        call _SYSOS2$$_RUNERROR$WORD
+    _heapok:
     end;
 
     {Now request, if we are running under DOS,
@@ -685,7 +696,7 @@ begin
             xor %ebx,%ebx
             mov $0xfff,%ecx
             xor %edx,%edx
-            call ___syscall
+            call ___SYSCALL
             mov %eax,U_SYSOS2_FIRST_MEG
         end
     else
