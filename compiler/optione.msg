@@ -135,11 +135,13 @@ Report bugs,suggestions etc to:
 3*2OG_optimize for time
 3*2Ox_optimize maximum
 3*2Oz_uncertain optimizes (see docs)
-3*2O2_optimize for Pentium II (tm)
-3*2O3_optimize for i386
-3*2O4_optimize for i486
-3*2O5_optimize for Pentium (tm)
-3*2O6_optimizations for PentiumPro (tm)
+3*2O2_optimize for the Pentium II (tm)
+3*2O3_optimize for the i386
+3*2O4_optimize for the i486
+3*2O5_optimize for the Pentium (tm)
+3*2O6_optimize for the PentiumPro (tm)
+3*2O7_optimize for the Cyrix 6x86
+3*2O8_optimize for the AMD K6
 6*1A_output format
 6*2Agas_GNU Motorola assembler
 6*2Ao_UNIX o-file

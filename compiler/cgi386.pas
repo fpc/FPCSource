@@ -5254,7 +5254,7 @@ do_jmp:
                      inc(max_linear_list,3);
                        if opt_processors=pentium then
                      inc(max_linear_list,6);
-                   if opt_processors=pentiumpro then
+                   if opt_processors>=pentiumpro then
                      inc(max_linear_list,9);
 
                    if (labels<=max_linear_list) then
@@ -5709,7 +5709,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.6  1998-04-08 11:34:20  peter
+  Revision 1.7  1998-04-09 14:28:05  jonas
+    + basic k6 and 6x86 optimizing support (-O7 and -O8)
+
+  Revision 1.6  1998/04/08 11:34:20  peter
     * nasm works (linux only tested)
 
   Revision 1.5  1998/04/07 22:45:04  florian
