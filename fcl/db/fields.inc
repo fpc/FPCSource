@@ -1823,8 +1823,8 @@ var
   Stream: TStream;
 begin
   Stream := GetBlobStream(bmRead);
-  if Stream<>nil then
-    With GetBlobStream(bmRead) do
+  if Stream <> nil then
+    With Stream do
       try
         SetLength(Result,Size);
         ReadBuffer(Pointer(Result)^,Size);
@@ -2190,7 +2190,11 @@ end;
 
 {
   $Log$
-  Revision 1.26  2005-03-01 14:00:53  joost
+  Revision 1.27  2005-03-15 22:44:22  michael
+    * Patch from Luiz Americo
+      - fixes a memory leak in TBlobField.GetAsString
+
+  Revision 1.26  2005/03/01 14:00:53  joost
   - Fix to avoid scientific format in TDBCFields from Jesus Reyes
 
   Revision 1.25  2005/02/28 16:19:07  joost
