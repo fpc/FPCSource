@@ -369,12 +369,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       begin
          exprasmlist^.concat(new(paicpu,op_const_reg_reg(i,s,c,reg1,reg2)));
       end;
-      
+
     procedure emit_reg_reg_reg(i : tasmop;s : topsize;reg1,reg2,reg3 : tregister);
       begin
          exprasmlist^.concat(new(paicpu,op_reg_reg_reg(i,s,reg1,reg2,reg3)));
       end;
-      
+
     procedure emit_sym(i : tasmop;s : topsize;op : pasmsymbol);
       begin
         exprasmlist^.concat(new(paicpu,op_sym(i,s,op)));
@@ -1141,7 +1141,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               { any reasons why this was moved into the index register ? }
               { normally usage of base register is much better (FK)      }
               p^.location.reference.base:=hregister;
-              set_location(p^.left^.location,p^.location);
+              { Why is this done? We can never be sure about p^.left
+              set_location(p^.left^.location,p^.location); }
            end;
 {$ifdef TEMPS_NOT_PUSH}
          ungetiftemp(href);
@@ -1175,8 +1176,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          else
            begin
               reset_reference(p^.location.reference);
-              p^.location.reference.index:=hregister;
-              set_location(p^.left^.location,p^.location);
+              p^.location.reference.base:=hregister;
+              { Why is this done? We can never be sure about p^.left
+              set_location(p^.left^.location,p^.location); }
            end;
          ungetiftemp(href);
       end;
@@ -3289,7 +3291,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.32  1999-08-28 15:34:17  florian
+  Revision 1.33  1999-08-28 17:48:34  peter
+    * fixed crash in restore
+
+  Revision 1.32  1999/08/28 15:34:17  florian
     * bug 519 fixed
 
   Revision 1.31  1999/08/25 11:59:55  jonas
