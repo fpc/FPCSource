@@ -712,8 +712,8 @@ implementation
                                               frac_para:=nil;
                                               hpp:=hp^.right;
                                            end;
-                                         isreal:=hpp^.resulttype^.deftype=floatdef;
-                                         if (not is_integer(length_para^.resulttype)) then
+                                         isreal:=(hpp^.left^.resulttype^.deftype=floatdef);
+                                         if (not is_integer(length_para^.left^.resulttype)) then
                                           CGMessage(type_e_integer_expr_expected)
                                         else
                                           length_para^.left:=gentypeconvnode(length_para^.left,s32bitdef);
@@ -721,7 +721,7 @@ implementation
                                           begin
                                             if isreal then
                                              begin
-                                               if (not is_integer(frac_para^.resulttype)) then
+                                               if (not is_integer(frac_para^.left^.resulttype)) then
                                                  CGMessage(type_e_integer_expr_expected)
                                                else
                                                  frac_para^.left:=gentypeconvnode(frac_para^.left,s32bitdef);
@@ -1123,7 +1123,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  1999-07-18 14:47:35  florian
+  Revision 1.43  1999-07-30 12:28:43  peter
+    * fixed crash with unknown id and colon parameter in write
+
+  Revision 1.42  1999/07/18 14:47:35  florian
     * bug 487 fixed, (inc(<property>) isn't allowed)
     * more fixes to compile with Delphi
 

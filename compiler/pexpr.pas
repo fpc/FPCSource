@@ -1158,6 +1158,7 @@ unit pexpr;
                             end;
                  errorsym : begin
                               p1:=genzeronode(errorn);
+                              p1^.resulttype:=generrordef;
                               pd:=generrordef;
                               if token=LKLAMMER then
                                begin
@@ -2060,7 +2061,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.125  1999-07-27 23:42:14  peter
+  Revision 1.126  1999-07-30 12:28:40  peter
+    * fixed crash with unknown id and colon parameter in write
+
+  Revision 1.125  1999/07/27 23:42:14  peter
     * indirect type referencing is now allowed
 
   Revision 1.124  1999/07/23 21:31:42  peter
