@@ -373,13 +373,15 @@ implementation
          preserved_by_proc:=Apreserved_by_proc;
          used_in_proc:=[];
          live_registers.init;
-         ibitmap:=tinterferencebitmap.create;
          { Get reginfo for CPU registers }
          reginfo:=allocmem(first_imaginary*sizeof(treginfo));
          maxreginfo:=first_imaginary;
          maxreginfoinc:=16;
          for i:=0 to first_imaginary-1 do
-           reginfo[i].degree:=high(tsuperregister);
+           begin
+             reginfo[i].degree:=high(tsuperregister);
+             reginfo[i].alias:=RS_INVALID;
+           end;
          worklist_moves:=Tlinkedlist.create;
          { Usable registers }
          fillchar(usable_registers,sizeof(usable_registers),0);
@@ -393,8 +395,6 @@ implementation
          spillworklist.init;
          coalescednodes.init;
          selectstack.init;
-         for i:=0 to maxreg-1 do
-           reginfo[i].alias:=RS_INVALID;
       end;
 
     destructor trgobj.destroy;
@@ -417,7 +417,6 @@ implementation
         end;
       freemem(reginfo);
       worklist_moves.free;
-      ibitmap.free;
     end;
 
 
@@ -507,6 +506,7 @@ implementation
       begin
         { Insert regalloc info for imaginary registers }
         insert_regalloc_info(list,headertai);
+        ibitmap:=tinterferencebitmap.create;
         generate_interference_graph(list,headertai);
         { Don't do the real allocation when -sr is passed }
         if (cs_no_regalloc in aktglobalswitches) then
@@ -526,6 +526,7 @@ implementation
               endspill:=not spill_registers(list,headertai);
             end;
         until endspill;
+        ibitmap.free;
         translate_registers(list);
       end;
 
@@ -1816,7 +1817,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.112  2004-01-12 16:37:59  peter
+  Revision 1.113  2004-01-25 23:21:02  daniel
+    * Keep interference bitmap only allocated during register allocation.
+      Saves 2 mb of memory.
+
+  Revision 1.112  2004/01/12 16:37:59  peter
     * moved spilling code from taicpu to rg
 
   Revision 1.109  2003/12/26 14:02:30  peter
