@@ -115,6 +115,9 @@ implementation
                     def_cgsize(left.resulttype.def),
                     left.location.reference,location.register);
                  location_release(exprasmlist,left.location);
+                 location_reset(left.location,LOC_FPUREGISTER,
+                   left.location.size);
+                 left.location.register := location.register;
                end
            else
               internalerror(309991);
@@ -147,7 +150,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2002-08-19 17:35:42  jonas
+  Revision 1.3  2002-09-18 09:19:37  jonas
+    * fixed LOC_REFERENCE/LOC_CREFERENCE problems
+
+  Revision 1.2  2002/08/19 17:35:42  jonas
     * fixes
 
   Revision 1.1  2002/08/10 17:15:00  jonas
