@@ -136,10 +136,10 @@ begin
  Fpftruncate:=Do_syscall(syscall_nr___syscall,syscall_nr_ftruncate,0,fd,0,lo(flength),hi(flength));
 end;
 
-Function Fpmmap(adr,len,prot,flags,fdes,off:longint):longint;  [public, alias : 'FPC_SYSC_MMAP'];
+Function Fpmmap(start:pointer;len:size_t;prot:cint;flags:cint;fd:cint;offst:off_t):pointer; [public, alias:  'FPC_SYSC_MMAP'];
 
 begin
-  Fpmmap:=do_syscall(syscall_nr_mmap,Adr,Len,Prot,Flags,fdes,{$ifdef cpupowerpc} 0,{$endif}off{$ifdef i386},0{$endif});
+  Fpmmap:=pointer(longint(do_syscall(syscall_nr_mmap,TSysParam(Start),Len,Prot,Flags,fd,{$ifdef cpupowerpc}0,{$endif}offst{$ifdef i386},0{$endif})));
 end;
 
 {$endif}
@@ -471,16 +471,15 @@ CONST
   MAP_ANONYMOUS =$1000;
 
 
-
-Function Fpmunmap(adr:longint;len:size_t):longint; [public, alias :'FPC_SYSC_MUNMAP'];
+Function Fpmunmap(start:pointer;len:size_t):cint;    [public, alias :'FPC_SYSC_MUNMAP'];
 begin
-  Fpmunmap:=do_syscall(syscall_nr_munmap,TSysParam(Adr),Len);
+  Fpmunmap:=do_syscall(syscall_nr_munmap,TSysParam(start),Len);
 end;
 
-Function sbrk(size : longint) : Longint;
+Function sbrk(size : longint) : cint;
 begin
-  sbrk:=Fpmmap(0,Size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0);
-  if sbrk<>-1 then
+  sbrk:=longint(Fpmmap(0,Size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0)); // ugh
+  if sbrk<>(-1) then
    errno:=0;
   {! It must be -1, not 0 as before, see heap.inc. Should be in sysmmap?}
 end;
@@ -598,7 +597,10 @@ end;
 
 {
  $Log$
- Revision 1.7  2003-09-15 20:08:49  marco
+ Revision 1.8  2003-09-16 12:45:49  marco
+  * mmap typing fixes
+
+ Revision 1.7  2003/09/15 20:08:49  marco
   * small fixes. FreeBSD now cycles
 
  Revision 1.6  2003/09/14 20:15:01  marco

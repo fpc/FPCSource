@@ -15,8 +15,9 @@
  ****************************************************************************
 }
 
-Function Fpmmap(adr,len,prot,flags,fdes,off:longint):longint;  external name  'FPC_SYSC_MMAP';
-Function Fpmunmap(adr:longint;len:size_t):longint;  external name 'FPC_SYSC_MUNMAP';
+Function Fpmmap(start:pointer;len:size_t;prot:cint;flags:cint;fd:cint;offst:off_t):pointer; external name  'FPC_SYSC_MMAP';
+//Function Fpmmap(adr,len,prot,flags,fdes,off:longint):longint;  external name  'FPC_SYSC_MMAP';
+Function Fpmunmap(start:pointer;len:size_t):cint;  external name 'FPC_SYSC_MUNMAP';
 Function FpIOCtl(Handle:cint;Ndx: culong;Data: Pointer):cint;  external name  'FPC_SYSC_IOCTL';
 Function FpGetPid:LongInt;   external name  'FPC_SYSC_GETPID';
 //Function FpReadLink(name,linkname:pchar;maxlen:longint):longint;  external name  'FPC_SYSC_READLINK';
@@ -30,7 +31,10 @@ Function Fpgetcwd (path:pchar; siz:size_t):pchar; external name 'FPC_SYSC_GETCWD
 
 {
   $Log$
-  Revision 1.3  2003-09-15 20:08:49  marco
+  Revision 1.4  2003-09-16 12:45:49  marco
+   * mmap typing fixes
+
+  Revision 1.3  2003/09/15 20:08:49  marco
    * small fixes. FreeBSD now cycles
 
   Revision 1.2  2003/09/14 20:15:01  marco
