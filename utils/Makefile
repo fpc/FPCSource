@@ -20,6 +20,9 @@
 # Default place of the makefile.fpc
 DEFAULTFPCDIR=..
 
+# We need the FCL
+NEEDUNITDIR=../fcl/$(OS_TARGET)
+
 
 #####################################################################
 # Real targets
@@ -35,11 +38,11 @@ EXTRACLEANUNITS=ppu ptopu
 #####################################################################
 
 .PHONY: all clean install info \
-        staticlib sharedlib libsclean \
-        staticinstall sharedinstall libinstall \
-        extra_clean \
-        h2pas_all h2pas_clean h2pas_install \
-        
+	staticlib sharedlib libsclean \
+	staticinstall sharedinstall libinstall \
+	extra_clean \
+	h2pas_all h2pas_clean h2pas_install \
+
 all: testfpcmake fpc_all h2pas_all
 
 clean: testfpcmake fpc_clean h2pas_clean
@@ -134,14 +137,17 @@ h2pas_install:
 
 #
 # $Log$
-# Revision 1.4  1999-07-23 18:23:45  michael
+# Revision 1.5  1999-07-27 13:02:32  peter
+#   * add to needunits
+#
+# Revision 1.4	1999/07/23 18:23:45  michael
 # + Added rstconv
 #
-# Revision 1.3  1999/07/16 13:45:37  peter
+# Revision 1.3	1999/07/16 13:45:37  peter
 #   * 0.99.12b updates
 #   * merges
 #
-# Revision 1.2  1999/06/18 11:03:13  peter
+# Revision 1.2	1999/06/18 11:03:13  peter
 #   * merged
 #
 # Revision 1.1.2.2  1999/07/16 13:40:58  peter
@@ -151,7 +157,7 @@ h2pas_install:
 #   * version fixes
 #   * EXTRAUNITS to set extra units that are build and needs to be cleaned
 #
-# Revision 1.1  1999/05/12 16:11:39  peter
+# Revision 1.1	1999/05/12 16:11:39  peter
 #   * moved
 #
 # Revision 1.14  1999/05/03 18:03:13  peter
@@ -165,7 +171,7 @@ h2pas_install:
 # Revision 1.12  1999/04/01 22:52:00  peter
 #   * update for makefile.fpc
 #
-# Revision 1.1  1999/03/16 00:50:29  peter
+# Revision 1.1	1999/03/16 00:50:29  peter
 #   + init
 #
 #
