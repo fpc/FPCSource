@@ -1820,7 +1820,7 @@ implementation
 
     function torddef.is_publishable : boolean;
       begin
-         is_publishable:=typ in [uchar..bool8bit];
+         is_publishable:=typ in [uchar..bool8bit,u64bit,s64bit,uwidechar];
       end;
 
     function torddef.gettypename : string;
@@ -5396,7 +5396,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.55  2001-11-02 22:58:06  peter
+  Revision 1.56  2001-11-18 18:27:57  florian
+    * publishing of qword, int64 and widechar properties is now possible
+
+  Revision 1.55  2001/11/02 22:58:06  peter
     * procsym definition rewrite
 
   Revision 1.54  2001/10/25 21:22:37  peter
