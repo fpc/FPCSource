@@ -243,11 +243,11 @@ begin
 end;
 
 
-procedure HLine16(x,x2,y: integer);
+procedure HLine16(x, x2, y: Integer);
 var
-  xtmp: integer;
-  ScrOfs,HLength : word;
-  LMask,RMask : byte;
+  xtmp: Integer;
+  ScrOfs, HLength: Word;
+  LMask, RMask: Byte;
 begin
   { must we swap the values? }
   if x > x2 then

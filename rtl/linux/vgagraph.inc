@@ -460,16 +460,17 @@ end;
              DirectPutPixel := @libvga_DirectPixelProc;
              GetPixel       := @libvga_GetPixelProc;
              PutPixel       := @libvga_PutPixelProc;
-	     {Can be added later:
+	     { May be implemented later:
 	     HLine          := @libvga_HLineProc;
              VLine          := @libvga_VLineProc;
              GetScanLine    := @libvga_GetScanLineProc;}
+             ClearViewPort  := @libvga_ClrViewProc;
            end;
            SetRGBPalette  := @libvga_SetRGBPaletteProc;
            GetRGBPalette  := @libvga_GetRGBPaletteProc;
-           ClearViewPort  := @libvga_ClrViewProc;
-           PutImage       := @libvga_PutImageProc;
-           GetImage       := @libvga_GetImageProc;
+           { These are not really implemented yet:
+	   PutImage       := @libvga_PutImageProc;
+           GetImage       := @libvga_GetImageProc;}
            ImageSize      := @libvga_ImageSizeProc;
            { Add later maybe ?
            SetVisualPage  := SetVisualPageProc;
@@ -487,7 +488,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  2000-03-17 13:30:35  sg
+  Revision 1.11  2000-03-18 10:46:16  sg
+  * Fixed ClearViewport for 4 bpp modes
+
+  Revision 1.10  2000/03/17 13:30:35  sg
   * Added accelerated drawing functions for modes with 4 bits per pixel
 
   Revision 1.9  2000/02/27 14:41:25  peter
