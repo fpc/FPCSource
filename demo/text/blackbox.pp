@@ -85,7 +85,7 @@ begin
   Writeln ('Please enter beam start coordinates : ');
   Repeat
     GetCoords (x,y,z);
-    OK:=((X=1) or (X=MaxSize)) or ((y=1) or (Y=MaxSize)) or
+    OK:=((X=1) or (X=MaxSize)) and ((y=1) or (Y=MaxSize)) and
         ((Z=1) or (z=maxsize));
     if Not OK then
       writeln ('The beam should enter at an edge. Please try again');
@@ -101,8 +101,8 @@ begin
   Writeln ('Please enter atom coordinates : ');
   Repeat
     getcoords (x,y,z);
-    OK:=((X>=1) or (X<=MaxSize)) or ((y>=1) or (Y<=MaxSize)) or
-        ((Z>=1) or (z<=maxsize));
+    OK:=((X>=1) and (X<=MaxSize)) and ((y>=1) and (Y<=MaxSize)) and
+        ((Z>=1) and (z<=maxsize));
     if Not OK then
       writeln ('These are not valid coordinates. Please try again');
   until OK;
@@ -189,10 +189,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2001-05-03 21:39:34  peter
-    * moved to own module
+  Revision 1.2  2002-02-22 21:47:00  carl
+  + fix some wrong logical comparisons
 
-  Revision 1.2  2000/07/13 11:33:10  michael
-  + removed logs
- 
 }
