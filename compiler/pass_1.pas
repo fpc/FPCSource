@@ -3719,23 +3719,20 @@ unit pass_1;
                    begin
                       firstcallparan(p^.left,nil);
                       { first param must be var }
-                      if p^.left^.left^.location.loc<>LOC_REFERENCE then
+                      if not (p^.left^.left^.location.loc in [LOC_MEM,LOC_REFERENCE]) then
                         Message(cg_e_illegal_expression);
                       { check type }
-                      if (p^.left^.resulttype^.deftype=pointerdef) or
-                        (p^.left^.resulttype^.deftype=enumdef) or
-                        ( (p^.left^.resulttype^.deftype=orddef) and
-                          (porddef(p^.left^.resulttype)^.typ in [u8bit,s8bit,u16bit,s16bit,u32bit,s32bit])
-                        ) then
+                      if (p^.left^.resulttype^.deftype in [enumdef,pointerdef]) or
+                         ((p^.left^.resulttype^.deftype=orddef) and
+                          (porddef(p^.left^.resulttype)^.typ in [bool8bit,u8bit,s8bit,
+                             bool16bit,u16bit,s16bit,bool32bit,u32bit,s32bit])) then
                         begin
                            { two paras ? }
                            if assigned(p^.left^.right) then
                              begin
                                 { insert a type conversion         }
                                 { the second param is always longint }
-                                p^.left^.right^.left:=gentypeconvnode(
-                                  p^.left^.right^.left,
-                                  s32bitdef);
+                                p^.left^.right^.left:=gentypeconvnode(p^.left^.right^.left,s32bitdef);
                                 { check the type conversion }
                                 firstpass(p^.left^.right^.left);
                                 if assigned(p^.left^.right^.right) then
@@ -3810,10 +3807,10 @@ unit pass_1;
                                      end
                                    else if hp^.left^.resulttype^.deftype=orddef then
                                      case porddef(hp^.left^.resulttype)^.typ of
-                                       u8bit,s8bit,
-                                       u16bit,s16bit :
-                                         hp^.left:=gentypeconvnode(hp^.left,s32bitdef);
-                                       end
+                                         u8bit,s8bit,
+                                       u16bit,s16bit : hp^.left:=gentypeconvnode(hp^.left,s32bitdef);
+                                 bool16bit,bool32bit : hp^.left:=gentypeconvnode(hp^.left,booldef);
+                                     end
                                    { but we convert only if the first index<>0, because in this case }
                                    { we have a ASCIIZ string                                         }
                                    else if (hp^.left^.resulttype^.deftype=arraydef) and
@@ -4408,7 +4405,7 @@ unit pass_1;
          if codegenerror then
            exit;
          if not((p^.left^.resulttype^.deftype=orddef) and
-            (porddef(p^.left^.resulttype)^.typ=bool8bit)) then
+            (porddef(p^.left^.resulttype)^.typ in [bool8bit,bool16bit,bool32bit])) then
             begin
                Message(sym_e_type_mismatch);
                exit;
@@ -5047,7 +5044,10 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.34  1998-06-25 08:48:14  florian
+  Revision 1.35  1998-06-25 14:04:19  peter
+    + internal inc/dec
+
+  Revision 1.34  1998/06/25 08:48:14  florian
     * first version of rtti support
 
   Revision 1.33  1998/06/16 08:56:24  peter

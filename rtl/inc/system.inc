@@ -62,6 +62,7 @@ Function  lo(l : Longint) : Word;  [INTERNPROC: In_lo_long];
 Function  hi(i : Integer) : byte;  [INTERNPROC: In_hi_Word];
 Function  hi(w : Word) : byte;     [INTERNPROC: In_hi_Word];
 Function  hi(l : Longint) : Word;  [INTERNPROC: In_hi_long];
+{$ifndef INTERN_INC}
 Procedure Inc(var i : Cardinal);   [INTERNPROC: In_Inc_DWord];
 Procedure Inc(var i : Longint);    [INTERNPROC: In_Inc_DWord];
 Procedure Inc(var i : Integer);    [INTERNPROC: In_Inc_Word];
@@ -78,6 +79,7 @@ Procedure Dec(var i : shortint);   [INTERNPROC: In_Dec_byte];
 Procedure Dec(var i : byte);       [INTERNPROC: In_Dec_byte];
 Procedure Dec(var c : Char);       [INTERNPROC: In_Dec_byte];
 Procedure Dec(var p : PChar);      [INTERNPROC: In_Dec_DWord];
+{$endif INTERN_INC}
 
 Function chr(b : byte) : Char;      [INTERNPROC: In_chr_byte];
 Function Length(s : string) : byte; [INTERNPROC: In_Length_string];
@@ -110,11 +112,11 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: In_Rewrite_TypedFile];
 { Provide dummy procedures needed for rtti}
 Procedure decr_ansi_ref (P : pointer);[Alias : 'DECR_ANSI_REF'];
   begin
-  end; 
+  end;
 
 Procedure incr_ansi_ref (P : pointer);[Alias : 'INCR_ANSI_REF'];
   begin
-  end; 
+  end;
 
 {$endif}
 
@@ -123,8 +125,8 @@ Procedure incr_ansi_ref (P : pointer);[Alias : 'INCR_ANSI_REF'];
 		     Run-Time Type Information (RTTI)
 ****************************************************************************}
 
-
 {$i rtti.inc}
+
 
 {****************************************************************************
                                Math Routines
@@ -141,6 +143,8 @@ function Lo(b : byte): byte;
 begin
    Lo := b and $0f
 end;
+
+{$ifndef INTERN_INC}
 
 Procedure Inc(var i : Cardinal;a: Longint);
 Begin
@@ -222,6 +226,8 @@ Begin
   longint(p):=longint(p)+a;
 End;
 
+{$endif INTERN_INC}
+
 Function swap (X : Word) : Word;
 Begin
   swap:=(X and $ff) shl 8 + (X shr 8)
@@ -262,7 +268,7 @@ End;
 {$I math.inc}
 
 {****************************************************************************
-							 Memory Management
+                                                         Memory Management
 ****************************************************************************}
 
 {$ifndef RTLLITE}
@@ -296,7 +302,7 @@ End;
 {$endif RTLLITE}
 
 {*****************************************************************************
-							 Miscellaneous
+                                                         Miscellaneous
 *****************************************************************************}
 
 
@@ -434,7 +440,10 @@ End;
 
 {
   $Log$
-  Revision 1.11  1998-06-25 09:44:20  daniel
+  Revision 1.12  1998-06-25 14:04:25  peter
+    + internal inc/dec
+
+  Revision 1.11  1998/06/25 09:44:20  daniel
   + RTLLITE directive to compile minimal RTL.
 
   Revision 1.10  1998/06/15 15:16:26  daniel

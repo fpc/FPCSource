@@ -58,9 +58,10 @@ begin
   p^.insert(new(psyssym,init('INCLUDE',in_include_x_y)));
   p^.insert(new(psyssym,init('BREAK',in_break)));
   p^.insert(new(psyssym,init('CONTINUE',in_continue)));
-  { for testing purpose }
-  p^.insert(new(psyssym,init('DECI',in_dec_x)));
-  p^.insert(new(psyssym,init('INCI',in_inc_x)));
+{$ifndef OLDINC}
+  p^.insert(new(psyssym,init('DEC',in_dec_x)));
+  p^.insert(new(psyssym,init('INC',in_inc_x)));
+{$endif}
   p^.insert(new(psyssym,init('STR',in_str_x_string)));
 end;
 
@@ -231,7 +232,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  1998-06-04 23:51:55  peter
+  Revision 1.4  1998-06-25 14:04:24  peter
+    + internal inc/dec
+
+  Revision 1.3  1998/06/04 23:51:55  peter
     * m68k compiles
     + .def file creation moved to gendef.pas so it could also be used
       for win32

@@ -290,14 +290,15 @@ unit pexpr;
                           consume(LKLAMMER);
                           in_args:=true;
                           p1:=comp_expr(true);
-                          p2:=gencallparanode(p1,nil);
                           Must_be_valid:=false;
                           if token=COMMA then
-                            begin
-                               consume(COMMA);
-                               p1:=comp_expr(true);
-                               p2:=gencallparanode(p1,p2);
-                            end;
+                           begin
+                             consume(COMMA);
+                             p2:=gencallparanode(comp_expr(true),nil);
+                           end
+                          else
+                           p2:=nil;
+                          p2:=gencallparanode(p1,p2);
                           statement_syssym:=geninlinenode(l,p2);
                           consume(RKLAMMER);
                           pd:=voiddef;
@@ -745,7 +746,7 @@ unit pexpr;
                                else
                                  begin
                                     p2:=comp_expr(true);
-{$ifdef i386}                           
+{$ifdef i386}
 
                                   { support SEG:OFS for go32v2 Mem[] }
                                     if (target_info.target=target_GO32V2) and
@@ -774,7 +775,7 @@ unit pexpr;
                                          end;
                                       end
                                     else
-{$endif}                                
+{$endif}
 
                                       p1:=gennode(vecn,p1,p2);
                                     if pd^.deftype=stringdef then
@@ -1786,7 +1787,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.26  1998-06-09 16:01:46  pierre
+  Revision 1.27  1998-06-25 14:04:23  peter
+    + internal inc/dec
+
+  Revision 1.26  1998/06/09 16:01:46  pierre
     + added procedure directive parsing for procvars
       (accepted are popstack cdecl and pascal)
     + added C vars with the following syntax

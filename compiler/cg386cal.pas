@@ -1353,25 +1353,33 @@ implementation
 *****************************************************************************}
 
     procedure secondinline(var p : ptree);
-     const     in2size:array[in_inc_byte..in_dec_dword] of Topsize=
+     const
+{$ifdef OLDINC}
+               decisize:array[in_inc_byte..in_dec_dword] of Topsize=
                          (S_B,S_W,S_L,S_B,S_W,S_L);
                in2instr:array[in_inc_byte..in_dec_dword] of Tasmop=
                          (A_INC,A_INC,A_INC,A_DEC,A_DEC,A_DEC);
                ad2instr:array[in_inc_byte..in_dec_dword] of Tasmop=
                          (A_ADD,A_ADD,A_ADD,A_SUB,A_SUB,A_SUB);
+{$endif OLDINC}
             { tfloattype = (f32bit,s32real,s64real,s80real,s64bit); }
             float_name: array[tfloattype] of string[8]=
                 ('FIXED','SINGLE','REAL','EXTENDED','COMP','FIXED16');
+            incdecop:array[in_inc_x..in_dec_x] of tasmop=(A_INC,A_DEC);
+            addsubop:array[in_inc_x..in_dec_x] of tasmop=(A_ADD,A_SUB);
        var
          aktfile : treference;
          ft : tfiletype;
          opsize : topsize;
          asmop : tasmop;
          pushed : tpushed;
+         {inc/dec}
+         addconstant : boolean;
+         addvalue : longint;
 
-      { produces code for READ(LN) and WRITE(LN) }
 
       procedure handlereadwrite(doread,callwriteln : boolean);
+      { produces code for READ(LN) and WRITE(LN) }
 
         procedure loadstream;
           const
@@ -1382,8 +1390,7 @@ implementation
             new(r);
             reset_reference(r^);
             r^.symbol:=stringdup('U_'+upper(target_info.system_unit)+io[byte(doread)]);
-{           if not (cs_compilesystem in aktswitches) then }
-              concat_external(r^.symbol^,EXT_NEAR);
+            concat_external(r^.symbol^,EXT_NEAR);
             exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,r,R_EDI)))
           end;
 
@@ -1398,18 +1405,19 @@ implementation
         begin
            { I/O check }
            if cs_iocheck in aktswitches then
-                begin
+             begin
                 getlabel(iolabel);
                 emitl(A_LABEL,iolabel);
              end
-           else iolabel:=nil;
+           else
+             iolabel:=nil;
            { no automatic call from flush }
            doflush:=false;
            { for write of real with the length specified }
            has_length:=false;
            hp:=nil;
            { reserve temporary pointer to data variable }
-             aktfile.symbol:=nil;
+           aktfile.symbol:=nil;
            gettempofsizereference(4,aktfile);
            { first state text data }
            ft:=ft_text;
@@ -1956,6 +1964,77 @@ implementation
                  { could this be usefull I don't think so (PM)
                  emitoverflowcheck;}
               end;
+            in_dec_x,
+            in_inc_x :
+              begin
+              { set defaults }
+                addvalue:=1;
+                addconstant:=true;
+              { load first parameter, must be a reference }
+                secondpass(p^.left^.left);
+                case p^.left^.left^.resulttype^.deftype of
+                  orddef,
+                 enumdef : begin
+                             case p^.left^.left^.resulttype^.size of
+                              1 : opsize:=S_B;
+                              2 : opsize:=S_W;
+                              4 : opsize:=S_L;
+                             end;
+                           end;
+              pointerdef : begin
+                             opsize:=S_L;
+                             addvalue:=ppointerdef(p^.left^.left^.resulttype)^.definition^.savesize;
+                           end;
+                else
+                 internalerror(10081);
+                end;
+              { second argument specified?, must be a s32bit in register }
+                if assigned(p^.left^.right) then
+                 begin
+                   secondpass(p^.left^.right^.left);
+                 { when constant, just multiply the addvalue }
+                   if is_constintnode(p^.left^.right^.left) then
+                    addvalue:=addvalue*get_ordinal_value(p^.left^.right^.left)
+                   else
+                    begin
+                      case p^.left^.right^.left^.location.loc of
+                   LOC_REGISTER,
+                  LOC_CREGISTER : hregister:=p^.left^.right^.left^.location.register;
+                        LOC_MEM,
+                  LOC_REFERENCE : begin
+                                    hregister:=getregister32;
+                                    exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                                      newreference(p^.left^.right^.left^.location.reference),hregister)));
+                                  end;
+                       else
+                        internalerror(10082);
+                       end;
+                    { insert multiply with addvalue if its >1 }
+                      if addvalue>1 then
+                       exprasmlist^.concat(new(pai386,op_const_reg(A_IMUL,opsize,
+                         addvalue,hregister)));
+                      addconstant:=false;
+                    end;
+                 end;
+              { write the add instruction }
+                if addconstant then
+                 begin
+                   if (addvalue=1) and not(cs_check_overflow in aktswitches) then
+                    exprasmlist^.concat(new(pai386,op_ref(incdecop[p^.inlinenumber],opsize,
+                      newreference(p^.left^.left^.location.reference))))
+                   else
+                    exprasmlist^.concat(new(pai386,op_const_ref(addsubop[p^.inlinenumber],opsize,
+                      addvalue,newreference(p^.left^.left^.location.reference))));
+                 end
+                else
+                 begin
+                   exprasmlist^.concat(new(pai386,op_reg_ref(addsubop[p^.inlinenumber],opsize,
+                      hregister,newreference(p^.left^.left^.location.reference))));
+                   ungetregister32(hregister);
+                 end;
+                emitoverflowcheck(p^.left^.left);
+              end;
+{$ifdef OLDINC}
             in_inc_byte..in_dec_dword:
               begin
                  secondpass(p^.left);
@@ -1971,6 +2050,7 @@ implementation
                  exprasmlist^.concat(new(pai386,op_ref(in2instr[p^.inlinenumber],
                    in2size[p^.inlinenumber],newreference(p^.left^.location.reference))));
               end;
+{$endif OLDINC}
             in_assigned_x :
               begin
                  secondpass(p^.left^.left);
@@ -2193,7 +2273,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  1998-06-25 08:48:06  florian
+  Revision 1.5  1998-06-25 14:04:17  peter
+    + internal inc/dec
+
+  Revision 1.4  1998/06/25 08:48:06  florian
     * first version of rtti support
 
   Revision 1.3  1998/06/09 16:01:33  pierre

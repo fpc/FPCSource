@@ -183,25 +183,26 @@ unit pdecl;
       var
          sc : pstringcontainer;
          s : stringid;
+         old_block_type : tblock_type;
+         filepos : tfileposinfo;
+         symdone : boolean;
+         { to handle absolute }
+         abssym : pabsolutesym;
+{$ifdef i386}	 
          l    : longint;
          code : word;
-         hs : string;
+{$endif i386}
+         { c var }
+         Csym : pvarsym;
+         is_cdecl,extern_Csym,export_Csym : boolean;
+         C_name : string;
+	 { case }
          p,casedef : pdef;
          { maxsize contains the max. size of a variant }
          { startvarrec contains the start of the variant part of a record }
          maxsize,startvarrec : longint;
          pt : ptree;
-         old_block_type : tblock_type;
-         { to handle absolute }
-         abssym : pabsolutesym;
-         filepos : tfileposinfo;
-
-         Csym : pvarsym;
-         is_cdecl,extern_Csym,export_Csym : boolean;
-         C_name : string;
-         symdone : boolean;
       begin
-         hs:='';
          old_block_type:=block_type;
          block_type:=bt_type;
        { Force an expected ID error message }
@@ -1859,7 +1860,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.28  1998-06-24 12:26:45  peter
+  Revision 1.29  1998-06-25 14:04:21  peter
+    + internal inc/dec
+
+  Revision 1.28  1998/06/24 12:26:45  peter
     * stricter var parsing like tp7 and some optimizes with directive
       parsing
 

@@ -104,7 +104,7 @@ Procedure FillWord(Var x;count:Longint;Value:Word);
 {$endif RTLLITE}
 
 {****************************************************************************
-							   Math Routines
+                                                           Math Routines
 ****************************************************************************}
 
 {$ifndef RTLLITE}
@@ -116,9 +116,12 @@ Function  hi(w:Word):byte;
 Function  hi(i:Integer):byte;
 Function  hi(l:Longint):Word;
 Function  Hi(B : Byte): byte;
+Function  Swap (X:Word):Word;
+Function  Swap (X:Integer):Integer;
+Function  Swap (X:Cardinal):Cardinal;
+Function  Swap (X:Longint):Longint;
 
-{$endif RTLLITE}
-
+{$ifndef INTERN_INC}
 Procedure Inc(Var i:cardinal);
 Procedure Inc(Var i:Longint);
 Procedure Inc(Var i:Integer);
@@ -135,11 +138,6 @@ Procedure Dec(Var i:shortint);
 Procedure Dec(Var i:byte);
 Procedure Dec(Var c:Char);
 Procedure Dec(Var p:PChar);
-Function Chr(b:byte):Char;
-Function Length(s:string):byte;
-
-{$ifndef RTLLITE}
-
 Procedure Dec(Var i:cardinal;a:Longint);
 Procedure Inc(Var i:cardinal;a:Longint);
 Procedure Dec(Var i:Longint;a:Longint);
@@ -156,12 +154,11 @@ Procedure Dec(Var c:Char;a:Longint);
 Procedure Inc(Var c:Char;a:Longint);
 Procedure Dec(Var p:PChar;a:Longint);
 Procedure Inc(Var p:PChar;a:Longint);
-Function  Swap (X:Word):Word;
-Function  Swap (X:Integer):Integer;
-Function  Swap (X:Cardinal):Cardinal;
-Function  Swap (X:Longint):Longint;
+{$endif INTERN_INC}
 
 {$endif RTLLITE}
+Function Chr(b:byte):Char;
+Function Length(s:string):byte;
 
 Function  Random(l:Longint):Longint;
 Function  Random:real;
@@ -175,7 +172,7 @@ Function odd(l:Longint):Boolean;
 
 
 {****************************************************************************
-							 Memory management
+                                                         Memory management
 ****************************************************************************}
 
 Procedure getmem(Var p:pointer;Size:Longint);
@@ -192,7 +189,7 @@ Function  Sseg:Word;
 {$endif RTLLITE}
 
 {****************************************************************************
-							  PChar Handling
+                                                          PChar Handling
 ****************************************************************************}
 
 function strpas(p:pchar):string;
@@ -254,34 +251,34 @@ Procedure Val(const s:string;Var v:cardinal);
 
 {$ifdef UseAnsiStrings }
 
-Procedure SetLength (Var S : AnsiString; l : Longint); 
-Procedure UniqueAnsiString (Var S : AnsiString); 
-Function  Length (Const S : AnsiString) : Longint; 
-Function  Copy (Const S : AnsiString; Index,Size : Longint) : AnsiString; 
-Function  Pos (Const Substr : AnsiString; Const Source : AnsiString) : Longint; 
-Procedure Insert (Const Source : AnsiString; Var S : AnsiString; Index : Longint); 
-Procedure Delete (Var S : AnsiString; Index,Size: Longint); 
-Procedure Val (Const S : AnsiString; var R : real; Var Code : Integer); 
+Procedure SetLength (Var S : AnsiString; l : Longint);
+Procedure UniqueAnsiString (Var S : AnsiString);
+Function  Length (Const S : AnsiString) : Longint;
+Function  Copy (Const S : AnsiString; Index,Size : Longint) : AnsiString;
+Function  Pos (Const Substr : AnsiString; Const Source : AnsiString) : Longint;
+Procedure Insert (Const Source : AnsiString; Var S : AnsiString; Index : Longint);
+Procedure Delete (Var S : AnsiString; Index,Size: Longint);
+Procedure Val (Const S : AnsiString; var R : real; Var Code : Integer);
 {
 Procedure Val (Const S : AnsiString; var D : Double; Var Code : Integer);
 }
-Procedure Val (Const S : AnsiString; var E : Extended; Code : Integer); 
-Procedure Val (Const S : AnsiString; var C : Cardinal; Code : Integer); 
+Procedure Val (Const S : AnsiString; var E : Extended; Code : Integer);
+Procedure Val (Const S : AnsiString; var C : Cardinal; Code : Integer);
 Procedure Val (Const S : AnsiString; var L : Longint; Var Code : Integer);
 Procedure Val (Const S : AnsiString; var W : Word; Var Code : Integer);
-Procedure Val (Const S : AnsiString; var I : Integer; Var Code : Integer); 
-Procedure Val (Const S : AnsiString; var B : Byte; Var Code : Integer); 
-Procedure Val (Const S : AnsiString; var SI : ShortInt; Var  Code : Integer); 
+Procedure Val (Const S : AnsiString; var I : Integer; Var Code : Integer);
+Procedure Val (Const S : AnsiString; var B : Byte; Var Code : Integer);
+Procedure Val (Const S : AnsiString; var SI : ShortInt; Var  Code : Integer);
 {
-Procedure Str (Const R : Real;Len, fr : longint; Var S : AnsiString); 
+Procedure Str (Const R : Real;Len, fr : longint; Var S : AnsiString);
 Procedure Str (Const D : Double;Len,fr : longint; Var S : AnsiString);
-Procedure Str (Const E : Extended;Len,fr : longint; Var S : AnsiString); 
-Procedure Str (Const C : Cardinal;len : Longint; Var S : AnsiString); 
-Procedure Str (Const L : LongInt;len : longint; Var S : AnsiString); 
-Procedure Str (Const W : Word;len : longint; Var S : AnsiString); 
-Procedure Str (Const I : Integer;len : Longint; Var S : AnsiString); 
-Procedure Str (Const B : Byte; Len : longint; Var S : AnsiString); 
-Procedure Str (Const SI : ShortInt; Len : longint; Var S : AnsiString); 
+Procedure Str (Const E : Extended;Len,fr : longint; Var S : AnsiString);
+Procedure Str (Const C : Cardinal;len : Longint; Var S : AnsiString);
+Procedure Str (Const L : LongInt;len : longint; Var S : AnsiString);
+Procedure Str (Const W : Word;len : longint; Var S : AnsiString);
+Procedure Str (Const I : Integer;len : Longint; Var S : AnsiString);
+Procedure Str (Const B : Byte; Len : longint; Var S : AnsiString);
+Procedure Str (Const SI : ShortInt; Len : longint; Var S : AnsiString);
 }
 {$endif}
 
@@ -389,7 +386,10 @@ Procedure halt;
 
 {
   $Log$
-  Revision 1.13  1998-06-25 09:44:21  daniel
+  Revision 1.14  1998-06-25 14:04:26  peter
+    + internal inc/dec
+
+  Revision 1.13  1998/06/25 09:44:21  daniel
   + RTLLITE directive to compile minimal RTL.
 
   Revision 1.12  1998/06/15 15:16:27  daniel
