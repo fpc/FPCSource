@@ -268,8 +268,13 @@
       TVarRec = record
          case VType : Longint of
            vtInteger    : (VInteger: Longint);
+{$ifdef ENDIAN_BIG}
+           vtBoolean    : (booldummy1,booldummy2,booldummy3: byte; VBoolean: Boolean);
+           vtChar       : (chardummy1,chardummy2,chardummy3: byte; VChar: Char);
+{$else ENDIAN_BIG}
            vtBoolean    : (VBoolean: Boolean);
            vtChar       : (VChar: Char);
+{$endif ENDIAN_BIG}
            vtExtended   : (VExtended: PExtended);
            vtString     : (VString: PShortString);
            vtPointer    : (VPointer: Pointer);
@@ -293,7 +298,10 @@
 
 {
   $Log$
-  Revision 1.19  2003-11-30 19:48:20  florian
+  Revision 1.20  2003-12-05 23:54:04  jonas
+    * changed tvarrec so chars and booleans work on big endian machines
+
+  Revision 1.19  2003/11/30 19:48:20  florian
     * fixed some arm stuff
 
   Revision 1.18  2003/11/03 09:42:28  marco
