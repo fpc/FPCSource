@@ -208,7 +208,7 @@ unit files;
 
     constructor tinputfile.init(const fn:string);
       var
-        p:sirstr;
+        p:dirstr;
         n:namestr;
         e:extstr;
       begin
@@ -1021,7 +1021,10 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.62  1998-10-14 10:59:37  daniel
+  Revision 1.63  1998-10-14 11:02:49  daniel
+  * Stupid typo fixed.
+
+  Revision 1.62  1998/10/14 10:59:37  daniel
   * Staticlibfilename now doesn't include path.
 
   Revision 1.61  1998/10/14 10:57:25  daniel
