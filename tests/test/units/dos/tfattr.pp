@@ -125,12 +125,15 @@ Begin
  CheckDosError(3);
  WriteLn('Success!');
 }
- { Should normally fail, because of end directory separator }
+{$ifdef go32v2}
+ { Should normally fail, because of end directory separator. This is
+   allowed under unixes so the test is go32v2 only }
  WriteLn('Trying to open a directory file...Success!');
  GetDir(0,s);
  Assign(f,s+DirectorySeparator);
  GetFAttr(f, Attr);
  CheckDosError(3);
+{$endif}
 
  Write('Trying to open a directory file...');
  GetDir(0,s);
@@ -315,7 +318,10 @@ Begin
 end.
 {
   $Log$
-  Revision 1.2  2002-11-18 09:49:49  pierre
+  Revision 1.3  2002-12-06 16:48:02  peter
+    * Not supporting an ending slash is Dos specific
+
+  Revision 1.2  2002/11/18 09:49:49  pierre
    * tried to make as many as possible tests non interactive
 
   Revision 1.1  2002/11/08 21:01:18  carl
