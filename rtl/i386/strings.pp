@@ -3,6 +3,8 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 1993,97 by the Free Pascal development team.
 
+    Strings unit for PChar (asciiz/C compatible strings) handling
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -11,15 +13,8 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-
 unit strings;
-
-  { Zero-terminated (ascii-z) string handling }
-
-  interface
-    {$ifndef FPK}
-    {$E-}
-    {$endif}
+interface
 
     { Returns the length of a string }
     function strlen(p : pchar) : longint;
@@ -95,7 +90,7 @@ unit strings;
     { Releases a null-terminated string from the heap  }
     procedure strdispose(p : pchar);
 
-  implementation
+implementation
 
     function strcopy(dest,source : pchar) : pchar;
 
@@ -254,7 +249,7 @@ unit strings;
         stosb
         cmpl    $7,%eax
         jl      .LStrPas2
-        movl    %edi,%ecx       # Align on 32bits
+        movl    %edi,%ecx       // Align on 32bits
         negl    %ecx
         andl    $3,%ecx
         subl    %ecx,%eax
@@ -590,49 +585,8 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:42  root
-  Initial revision
+  Revision 1.2  1998-05-23 01:14:06  peter
+    + I386_ATT switch
 
-  Revision 1.7  1998/02/24 17:50:46  peter
-    * upto 100% (255's char is different ;) faster STRCMP
-    * faster StrPas from i386.inc also strings.pp
-
-  Revision 1.6  1998/01/26 11:59:12  michael
-  + Added log at the end
-
-  revision 1.5
-  date: 1998/01/16 16:14:08;  author: michael;  state: Exp;  lines: +11 -1
-  + Implemented StrAlloc() function.
-  ----------------------------
-  revision 1.4
-  date: 1997/12/01 18:21:39;  author: pierre;  state: Exp;  lines: +2 -2
-     * small bug without importance fixed
-       in strrscan a call to a label in strscan was called
-  ----------------------------
-  revision 1.3
-  date: 1997/12/01 12:34:38;  author: michael;  state: Exp;  lines: +11 -4
-  + added copyright reference in header.
-  ----------------------------
-  revision 1.2
-  date: 1997/11/28 18:59:10;  author: pierre;  state: Exp;  lines: +42 -42
-     local labels prefixed with .L
-  ----------------------------
-  revision 1.1
-  date: 1997/11/27 08:33:47;  author: michael;  state: Exp;
-  Initial revision
-  ----------------------------
-  revision 1.1.1.1
-  date: 1997/11/27 08:33:47;  author: michael;  state: Exp;  lines: +0 -0
-  FPC RTL CVS start
-  =============================================================================
-
-  1.5.1994: Version 0.9
-            Unit ist komplett implementiert (noch nicht getestet)
-  20.3.1995: Version 0.91
-            strmove korriert, fÅr system.move mÅssen Pointer
-            dereferenziert werden
-  24.12.1995: Version 0.92
-            strcomp war fehlerhaft; korrigiert
-            dito strlcomp
 }
 
