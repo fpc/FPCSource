@@ -81,6 +81,7 @@ const
   scan_e_too_many_pop=02064;
   scan_e_error_macro_lacks_value=02065;
   scan_e_wrong_switch_toggle_default=02066;
+  scan_e_mode_switch_not_allowed=02067;
   parser_e_syntax_error=03000;
   parser_e_dont_nest_interrupt=03004;
   parser_w_proc_directive_ignored=03005;
@@ -644,16 +645,14 @@ const
   option_interpreting_file_option=11033;
   option_read_config_file=11034;
   option_found_file=11035;
-  option_defining_symbol=11037;
-  option_undefining_symbol=11038;
   option_code_page_not_available=11039;
   option_logo=11023;
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 37959;
+  MsgTxtSize = 37945;
 
   MsgIdxMax : array[1..20] of longint=(
-    18,67,213,59,57,46,100,20,35,60,
+    18,68,213,59,57,46,100,20,35,60,
     40,1,1,1,1,1,1,1,1,1
   );

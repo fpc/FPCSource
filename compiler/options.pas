@@ -33,7 +33,7 @@ type
   TOption=class
     FirstPass,
     NoPressEnter,
-    DoWriteLogo : boolean;
+    LogoWritten : boolean;
     FileLevel : longint;
     QuickInfo : string;
     ParaIncludePath,
@@ -76,7 +76,8 @@ uses
   dos,
 {$ENDIF USE_SYSUTILS}
   version,
-  cutils,cmsgs
+  cutils,cmsgs,
+  symtable
 {$ifdef BrowserLog}
   ,browlog
 {$endif BrowserLog}
@@ -100,47 +101,23 @@ var
                                  Defines
 ****************************************************************************}
 
-procedure def_symbol(const s : string);
-begin
-  if s='' then
-   exit;
-  initdefines.insert(upper(s));
-  Message1(option_defining_symbol,s);
-end;
-
-
-procedure undef_symbol(const s : string);
-begin
-  if s='' then
-   exit;
-  InitDefines.Remove(s);
-  Message1(option_undefining_symbol,s);
-end;
-
-
-function check_symbol(const s:string):boolean;
-begin
-  check_symbol:=(initdefines.find(s)<>nil);
-end;
-
-
 procedure set_default_link_type;
 begin
   { win32 and wdosx need smartlinking by default to prevent including too much
     dll dependencies }
   if (target_info.system in [system_i386_win32,system_i386_wdosx]) then
     begin
-      def_symbol('FPC_LINK_SMART');
-      undef_symbol('FPC_LINK_STATIC');
-      undef_symbol('FPC_LINK_DYNAMIC');
+      def_system_macro('FPC_LINK_SMART');
+      undef_system_macro('FPC_LINK_STATIC');
+      undef_system_macro('FPC_LINK_DYNAMIC');
       initglobalswitches:=initglobalswitches+[cs_link_smart];
       initglobalswitches:=initglobalswitches-[cs_link_shared,cs_link_static];
     end
   else
     begin
-      undef_symbol('FPC_LINK_SMART');
-      def_symbol('FPC_LINK_STATIC');
-      undef_symbol('FPC_LINK_DYNAMIC');
+      undef_system_macro('FPC_LINK_SMART');
+      def_system_macro('FPC_LINK_STATIC');
+      undef_system_macro('FPC_LINK_DYNAMIC');
       initglobalswitches:=initglobalswitches+[cs_link_static];
       initglobalswitches:=initglobalswitches-[cs_link_shared,cs_link_smart];
     end;
@@ -168,9 +145,13 @@ procedure Toption.WriteLogo;
 var
   p : pchar;
 begin
-  p:=MessagePchar(option_logo);
-  while assigned(p) do
-   Comment(V_Normal,GetMsgLine(p));
+  if not LogoWritten then
+    begin
+      p:=MessagePchar(option_logo);
+      while assigned(p) do
+        Comment(V_Normal,GetMsgLine(p));
+      LogoWritten:= true;
+    end;
 end;
 
 
@@ -384,9 +365,9 @@ begin
   if opt='' then
    exit;
 
-  { only parse define,undef,target,verbosity and link options the firsttime }
+  { only parse define,undef,target,verbosity,link etc options the firsttime }
   if firstpass and
-     not((opt[1]='-') and (opt[2] in ['i','d','v','T','u','n','X'])) then
+     not((opt[1]='-') and (opt[2] in ['i','d','v','T','u','n','X','l'])) then
    exit;
 
   Message1(option_handling_option,opt);
@@ -587,7 +568,8 @@ begin
              end;
 
            'd' :
-             def_symbol(more);
+             if more <> '' then
+               def_system_macro(more);
 
            'D' :
              begin
@@ -834,7 +816,8 @@ begin
              end;
 
            'l' :
-             DoWriteLogo:=not UnSetBool(more,0);
+             if not UnSetBool(more,0) then
+               WriteLogo;
 
            'm' :
              parapreprocess:=not UnSetBool(more,0);
@@ -874,7 +857,7 @@ begin
                if UnsetBool(More, 0) then
                  begin
                    initmoduleswitches:=initmoduleswitches-[cs_profile];
-                   undef_symbol('FPC_PROFILE');
+                   undef_system_macro('FPC_PROFILE');
                  end
                else
                  if Length(More)=0 then
@@ -884,12 +867,12 @@ begin
                   'g' : if UnsetBool(more, 1) then
                          begin
                            exclude(initmoduleswitches,cs_profile);
-                           undef_symbol('FPC_PROFILE');
+                           undef_system_macro('FPC_PROFILE');
                          end
                         else
                          begin
                            include(initmoduleswitches,cs_profile);
-                           def_symbol('FPC_PROFILE');
+                           def_system_macro('FPC_PROFILE');
                         end;
                  else
                    IllegalPara(opt);
@@ -1008,8 +991,8 @@ begin
              end;
 
            'u' :
-             undef_symbol(upper(More));
-
+             if more <> '' then
+               undef_system_macro(more);
            'U' :
              begin
                j:=1;
@@ -1148,9 +1131,9 @@ begin
                       include(initglobalswitches,cs_link_staticflag);
                     'D' :
                       begin
-                        def_symbol('FPC_LINK_DYNAMIC');
-                        undef_symbol('FPC_LINK_SMART');
-                        undef_symbol('FPC_LINK_STATIC');
+                        def_system_macro('FPC_LINK_DYNAMIC');
+                        undef_system_macro('FPC_LINK_SMART');
+                        undef_system_macro('FPC_LINK_STATIC');
                         exclude(initglobalswitches,cs_link_static);
                         exclude(initglobalswitches,cs_link_smart);
                         include(initglobalswitches,cs_link_shared);
@@ -1167,9 +1150,9 @@ begin
                           end;
                     'S' :
                       begin
-                        def_symbol('FPC_LINK_STATIC');
-                        undef_symbol('FPC_LINK_SMART');
-                        undef_symbol('FPC_LINK_DYNAMIC');
+                        def_system_macro('FPC_LINK_STATIC');
+                        undef_system_macro('FPC_LINK_SMART');
+                        undef_system_macro('FPC_LINK_DYNAMIC');
                         include(initglobalswitches,cs_link_static);
                         exclude(initglobalswitches,cs_link_smart);
                         exclude(initglobalswitches,cs_link_shared);
@@ -1177,9 +1160,9 @@ begin
                       end;
                     'X' :
                       begin
-                        def_symbol('FPC_LINK_SMART');
-                        undef_symbol('FPC_LINK_STATIC');
-                        undef_symbol('FPC_LINK_DYNAMIC');
+                        def_system_macro('FPC_LINK_SMART');
+                        undef_system_macro('FPC_LINK_STATIC');
+                        undef_system_macro('FPC_LINK_DYNAMIC');
                         exclude(initglobalswitches,cs_link_static);
                         include(initglobalswitches,cs_link_smart);
                         exclude(initglobalswitches,cs_link_shared);
@@ -1253,7 +1236,7 @@ const
   maxlevel=16;
 var
   f     : text;
-  s,
+  s, tmp,
   opts  : string;
   skip  : array[0..maxlevel-1] of boolean;
   level : longint;
@@ -1294,7 +1277,7 @@ begin
               RemoveSep(opts);
               s:=upper(GetName(opts));
               if level=0 then
-               skip[level]:=not (check_symbol(s) or (s='COMMON'));
+               skip[level]:=not (assigned(search_macro(s)) or (s='COMMON'));
             end
            else
             if (s='IFDEF') then
@@ -1306,7 +1289,7 @@ begin
                   stopOptions(1);
                 end;
                inc(Level);
-               skip[level]:=(skip[level-1] or (not check_symbol(upper(GetName(opts)))));
+               skip[level]:=(skip[level-1] or not assigned(search_macro(upper(GetName(opts)))));
              end
            else
             if (s='IFNDEF') then
@@ -1318,7 +1301,7 @@ begin
                   stopOptions(1);
                 end;
                inc(Level);
-               skip[level]:=(skip[level-1] or (check_symbol(upper(GetName(opts)))));
+               skip[level]:=(skip[level-1] or assigned(search_macro(upper(GetName(opts)))));
              end
            else
             if (s='ELSE') then
@@ -1340,13 +1323,17 @@ begin
                if (s='DEFINE') then
                 begin
                   RemoveSep(opts);
-                  def_symbol(upper(GetName(opts)));
+                  tmp:= GetName(opts);
+                  if tmp <> '' then
+                    def_system_macro(tmp);
                 end
               else
                if (s='UNDEF') then
                 begin
                   RemoveSep(opts);
-                  undef_symbol(upper(GetName(opts)));
+                  tmp:= GetName(opts);
+                  if tmp <> '' then
+                    undef_system_macro(tmp);
                 end
               else
                if (s='WRITE') then
@@ -1587,9 +1574,9 @@ var
   i : integer;
 begin
   if def then
-   def_symbol(upper(target_info.shortname))
+   def_system_macro(target_info.shortname)
   else
-   undef_symbol(upper(target_info.shortname));
+   undef_system_macro(target_info.shortname);
   s:=target_info.extradefines;
   while (s<>'') do
    begin
@@ -1597,9 +1584,9 @@ begin
      if i=0 then
       i:=length(s)+1;
      if def then
-      def_symbol(Copy(s,1,i-1))
+      def_system_macro(Copy(s,1,i-1))
      else
-      undef_symbol(Copy(s,1,i-1));
+      undef_system_macro(Copy(s,1,i-1));
      delete(s,1,i);
    end;
 end;
@@ -1607,7 +1594,7 @@ end;
 
 constructor TOption.create;
 begin
-  DoWriteLogo:=false;
+  LogoWritten:=false;
   NoPressEnter:=false;
   FirstPass:=false;
   FileLevel:=0;
@@ -1697,145 +1684,6 @@ begin
   option:=coption.create;
   disable_configfile:=false;
 
-{ default defines }
-  def_symbol(upper(target_info.shortname));
-  def_symbol('FPC');
-  def_symbol('VER'+version_nr);
-  def_symbol('VER'+version_nr+'_'+release_nr);
-  def_symbol('VER'+version_nr+'_'+release_nr+'_'+patch_nr);
-
-{ Temporary defines, until things settle down }
-  def_symbol('HASWIDECHAR');
-  def_symbol('HASWIDESTRING');
-  def_symbol('HASOUT');
-  def_symbol('HASGLOBALPROPERTY');
-  def_symbol('FPC_HASPREFETCH');
-  def_symbol('FPC_LINEEND_IN_TEXTREC');
-  def_symbol('FPC_ALIGNSRTTI');
-{$ifdef i386}
-  def_symbol('HASINTF');
-  def_symbol('HASVARIANT');
-{$endif i386}
-{$ifdef x86_64}
-  def_symbol('HASINTF');
-  def_symbol('HASVARIANT');
-{$endif x86_64}
-{$ifdef powerpc}
-  def_symbol('HASINTF');
-  def_symbol('HASVARIANT');
-  def_symbol('FPC_MTFSB0_CORRECTED');
-{$endif powerpc}
-{$ifdef arm}
-  def_symbol('HASINTF');
-  def_symbol('HASVARIANT');
-{$endif arm}
-{$ifdef sparc}
-  def_symbol('HASINTF');
-  def_symbol('HASVARIANT');
-{$endif sparc}
-  def_symbol('INTERNSETLENGTH');
-  def_symbol('INTERNLENGTH');
-  def_symbol('INTERNCOPY');
-  def_symbol('INT64FUNCRESOK');
-  def_symbol('HAS_ADDR_STACK_ON_STACK');
-  def_symbol('NOBOUNDCHECK');
-  def_symbol('HASCOMPILERPROC');
-  def_symbol('INTERNCONSTINTF');
-  def_symbol('VALUEGETMEM');
-  def_symbol('VALUEFREEMEM');
-  def_symbol('HASCURRENCY');
-  def_symbol('HASTHREADVAR');
-  def_symbol('HAS_GENERICCONSTRUCTOR');
-  def_symbol('NOCLASSHELPERS');
-  if pocall_default = pocall_register then
-    def_symbol('REGCALL');
-  def_symbol('DECRREFNOTNIL');
-  def_symbol('HAS_INTERNAL_INTTYPES');
-  def_symbol('STR_USES_VALINT');
-  def_symbol('NOSAVEREGISTERS');
-  def_symbol('SHORTSTRCOMPAREINREG');
-  def_symbol('HASGETHEAPSTATUS');
-
-{ using a case is pretty useless here (FK) }
-{ some stuff for TP compatibility }
-{$ifdef i386}
-  def_symbol('CPU86');
-  def_symbol('CPU87');
-{$endif}
-{$ifdef m68k}
-  def_symbol('CPU68');
-{$endif}
-
-{ new processor stuff }
-{$ifdef i386}
-  def_symbol('CPUI386');
-  def_symbol('CPU32');
-  def_symbol('FPC_HAS_TYPE_EXTENDED');
-  def_symbol('FPC_HAS_TYPE_DOUBLE');
-  def_symbol('FPC_HAS_TYPE_SINGLE');
-{$endif}
-{$ifdef m68k}
-  def_symbol('CPU68K');
-  def_symbol('CPUM68K');
-  def_symbol('CPU32');
-  def_symbol('FPC_CURRENCY_IS_INT64');
-  def_symbol('FPC_COMP_IS_INT64');
-{$endif}
-{$ifdef ALPHA}
-  def_symbol('CPUALPHA');
-  def_symbol('CPU64');
-{$endif}
-{$ifdef powerpc}
-  def_symbol('CPUPOWERPC');
-  def_symbol('CPUPOWERPC32');
-  def_symbol('CPU32');
-  def_symbol('FPC_HAS_TYPE_DOUBLE');
-  def_symbol('FPC_HAS_TYPE_SINGLE');
-  def_symbol('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
-  def_symbol('FPC_CURRENCY_IS_INT64');
-  def_symbol('FPC_COMP_IS_INT64');
-{$endif}
-{$ifdef iA64}
-  def_symbol('CPUIA64');
-  def_symbol('CPU64');
-{$endif}
-{$ifdef x86_64}
-  def_symbol('CPUX86_64');
-  def_symbol('CPUAMD64');
-  def_symbol('CPU64');
-  { not supported for now, afaik (FK)
-   def_symbol('FPC_HAS_TYPE_FLOAT128'); }
-  def_symbol('FPC_HAS_TYPE_EXTENDED');
-  def_symbol('FPC_HAS_TYPE_DOUBLE');
-  def_symbol('FPC_HAS_TYPE_SINGLE');
-{$endif}
-{$ifdef sparc}
-  def_symbol('CPUSPARC');
-  def_symbol('CPUSPARC32');
-  def_symbol('CPU32');
-  def_symbol('FPC_HAS_TYPE_DOUBLE');
-  def_symbol('FPC_HAS_TYPE_SINGLE');
-  def_symbol('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
-  def_symbol('FPC_CURRENCY_IS_INT64');
-  def_symbol('FPC_COMP_IS_INT64');
-  def_symbol('FPC_REQUIRES_PROPER_ALIGNMENT');
-{$endif}
-{$ifdef vis}
-  def_symbol('CPUVIS');
-  def_symbol('CPU32');
-{$endif}
-{$ifdef arm}
-  def_symbol('CPUARM');
-  def_symbol('FPUFPA');
-  def_symbol('CPU32');
-  def_symbol('FPC_HAS_TYPE_DOUBLE');
-  def_symbol('FPC_HAS_TYPE_SINGLE');
-  def_symbol('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
-  def_symbol('FPC_CURRENCY_IS_INT64');
-  def_symbol('FPC_COMP_IS_INT64');
-  def_symbol('FPC_REQUIRES_PROPER_ALIGNMENT');
-{$endif arm}
-
 { get default messagefile }
 {$IFDEF USE_SYSUTILS}
   msgfilename:=GetEnvironmentVariable('PPC_ERROR_FILE');
@@ -1843,31 +1691,170 @@ begin
   msgfilename:=dos.getenv('PPC_ERROR_FILE');
 {$ENDIF USE_SYSUTILS}
 
-   { default configfile can be specified on the commandline,
-     remove it first }
-   if (cmd<>'') and (cmd[1]='[') then
+{ default configfile can be specified on the commandline,
+   remove it first }
+  if (cmd<>'') and (cmd[1]='[') then
     begin
       ppccfg:=Copy(cmd,2,pos(']',cmd)-2);
       Delete(cmd,1,pos(']',cmd));
     end
-   else
+  else
     begin
       ppccfg:='fpc.cfg';
       ppcaltcfg:='ppc386.cfg';
     end;
 
-   { read the parameters quick, only -i -v -T }
-   option.firstpass:=true;
-   if cmd<>'' then
-     option.parsecmd(cmd)
-   else
+{ first pass reading of parameters, only -i -v -T etc.}
+  option.firstpass:=true;
+  if cmd<>'' then
+    option.parsecmd(cmd)
+  else
     begin
       option.read_parameters;
       { Write only quickinfo }
       if option.quickinfo<>'' then
-       option.writequickinfo;
+        option.writequickinfo;
     end;
-   option.firstpass:=false;
+  option.firstpass:=false;
+
+{ default defines }
+  def_system_macro(target_info.shortname);
+  def_system_macro('FPC');
+  def_system_macro('VER'+version_nr);
+  def_system_macro('VER'+version_nr+'_'+release_nr);
+  def_system_macro('VER'+version_nr+'_'+release_nr+'_'+patch_nr);
+
+{ Temporary defines, until things settle down }
+  def_system_macro('HASWIDECHAR');
+  def_system_macro('HASWIDESTRING');
+  def_system_macro('HASOUT');
+  def_system_macro('HASGLOBALPROPERTY');
+  def_system_macro('FPC_HASPREFETCH');
+  def_system_macro('FPC_LINEEND_IN_TEXTREC');
+  def_system_macro('FPC_ALIGNSRTTI');
+{$ifdef i386}
+  def_system_macro('HASINTF');
+  def_system_macro('HASVARIANT');
+{$endif i386}
+{$ifdef x86_64}
+  def_system_macro('HASINTF');
+  def_system_macro('HASVARIANT');
+{$endif x86_64}
+{$ifdef powerpc}
+  def_system_macro('HASINTF');
+  def_system_macro('HASVARIANT');
+  def_system_macro('FPC_MTFSB0_CORRECTED');
+{$endif powerpc}
+{$ifdef arm}
+  def_system_macro('HASINTF');
+  def_system_macro('HASVARIANT');
+{$endif arm}
+{$ifdef sparc}
+  def_system_macro('HASINTF');
+  def_system_macro('HASVARIANT');
+{$endif sparc}
+  def_system_macro('INTERNSETLENGTH');
+  def_system_macro('INTERNLENGTH');
+  def_system_macro('INTERNCOPY');
+  def_system_macro('INT64FUNCRESOK');
+  def_system_macro('HAS_ADDR_STACK_ON_STACK');
+  def_system_macro('NOBOUNDCHECK');
+  def_system_macro('HASCOMPILERPROC');
+  def_system_macro('INTERNCONSTINTF');
+  def_system_macro('VALUEGETMEM');
+  def_system_macro('VALUEFREEMEM');
+  def_system_macro('HASCURRENCY');
+  def_system_macro('HASTHREADVAR');
+  def_system_macro('HAS_GENERICCONSTRUCTOR');
+  def_system_macro('NOCLASSHELPERS');
+  if pocall_default = pocall_register then
+    def_system_macro('REGCALL');
+  def_system_macro('DECRREFNOTNIL');
+  def_system_macro('HAS_INTERNAL_INTTYPES');
+  def_system_macro('STR_USES_VALINT');
+  def_system_macro('NOSAVEREGISTERS');
+  def_system_macro('SHORTSTRCOMPAREINREG');
+  def_system_macro('HASGETHEAPSTATUS');
+
+{ using a case is pretty useless here (FK) }
+{ some stuff for TP compatibility }
+{$ifdef i386}
+  def_system_macro('CPU86');
+  def_system_macro('CPU87');
+{$endif}
+{$ifdef m68k}
+  def_system_macro('CPU68');
+{$endif}
+
+{ new processor stuff }
+{$ifdef i386}
+  def_system_macro('CPUI386');
+  def_system_macro('CPU32');
+  def_system_macro('FPC_HAS_TYPE_EXTENDED');
+  def_system_macro('FPC_HAS_TYPE_DOUBLE');
+  def_system_macro('FPC_HAS_TYPE_SINGLE');
+{$endif}
+{$ifdef m68k}
+  def_system_macro('CPU68K');
+  def_system_macro('CPUM68K');
+  def_system_macro('CPU32');
+  def_system_macro('FPC_CURRENCY_IS_INT64');
+  def_system_macro('FPC_COMP_IS_INT64');
+{$endif}
+{$ifdef ALPHA}
+  def_system_macro('CPUALPHA');
+  def_system_macro('CPU64');
+{$endif}
+{$ifdef powerpc}
+  def_system_macro('CPUPOWERPC');
+  def_system_macro('CPUPOWERPC32');
+  def_system_macro('CPU32');
+  def_system_macro('FPC_HAS_TYPE_DOUBLE');
+  def_system_macro('FPC_HAS_TYPE_SINGLE');
+  def_system_macro('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
+  def_system_macro('FPC_CURRENCY_IS_INT64');
+  def_system_macro('FPC_COMP_IS_INT64');
+{$endif}
+{$ifdef iA64}
+  def_system_macro('CPUIA64');
+  def_system_macro('CPU64');
+{$endif}
+{$ifdef x86_64}
+  def_system_macro('CPUX86_64');
+  def_system_macro('CPUAMD64');
+  def_system_macro('CPU64');
+  { not supported for now, afaik (FK)
+   def_system_macro('FPC_HAS_TYPE_FLOAT128'); }
+  def_system_macro('FPC_HAS_TYPE_EXTENDED');
+  def_system_macro('FPC_HAS_TYPE_DOUBLE');
+  def_system_macro('FPC_HAS_TYPE_SINGLE');
+{$endif}
+{$ifdef sparc}
+  def_system_macro('CPUSPARC');
+  def_system_macro('CPUSPARC32');
+  def_system_macro('CPU32');
+  def_system_macro('FPC_HAS_TYPE_DOUBLE');
+  def_system_macro('FPC_HAS_TYPE_SINGLE');
+  def_system_macro('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
+  def_system_macro('FPC_CURRENCY_IS_INT64');
+  def_system_macro('FPC_COMP_IS_INT64');
+  def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
+{$endif}
+{$ifdef vis}
+  def_system_macro('CPUVIS');
+  def_system_macro('CPU32');
+{$endif}
+{$ifdef arm}
+  def_system_macro('CPUARM');
+  def_system_macro('FPUFPA');
+  def_system_macro('CPU32');
+  def_system_macro('FPC_HAS_TYPE_DOUBLE');
+  def_system_macro('FPC_HAS_TYPE_SINGLE');
+  def_system_macro('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
+  def_system_macro('FPC_CURRENCY_IS_INT64');
+  def_system_macro('FPC_COMP_IS_INT64');
+  def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
+{$endif arm}
 
   { read configuration file }
   if (not disable_configfile) and
@@ -1917,32 +1904,28 @@ begin
   case target_info.endian of
     endian_little :
       begin
-         def_symbol('ENDIAN_LITTLE');
-         def_symbol('FPC_LITTLE_ENDIAN');
+         def_system_macro('ENDIAN_LITTLE');
+         def_system_macro('FPC_LITTLE_ENDIAN');
       end;
     endian_big :
       begin
-         def_symbol('ENDIAN_BIG');
-         def_symbol('FPC_BIG_ENDIAN');
+         def_system_macro('ENDIAN_BIG');
+         def_system_macro('FPC_BIG_ENDIAN');
       end;
   end;
 
   { abi define }
   case target_info.abi of
     abi_powerpc_sysv :
-      def_symbol('FPC_ABI_SYSV');
+      def_system_macro('FPC_ABI_SYSV');
     abi_powerpc_aix :
-      def_symbol('FPC_ABI_AIX');
+      def_system_macro('FPC_ABI_AIX');
   end;
 
 {$ifdef m68k}
   if initoptprocessor=MC68020 then
-    def_symbol('CPUM68020');
+    def_system_macro('CPUM68020');
 {$endif m68k}
-
-{ write logo if set }
-  if option.DoWriteLogo then
-   option.WriteLogo;
 
 { Check file to compile }
   if param_file='' then
@@ -2089,6 +2072,10 @@ begin
    end;
   UpdateAlignment(initalignment,option.paraalignment);
 
+  set_system_macro('FPC_VERSION',version_nr);
+  set_system_macro('FPC_RELEASE',release_nr);
+  set_system_macro('FPC_PATCH',patch_nr);
+
   option.free;
   Option:=nil;
 end;
@@ -2102,7 +2089,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.160  2005-01-08 23:14:50  peter
+  Revision 1.161  2005-01-09 20:24:43  olle
+    * rework of macro subsystem
+    + exportable macros for mode macpas
+
+  Revision 1.160  2005/01/08 23:14:50  peter
     * Allow #include ~/.fpc.cfg
 
   Revision 1.159  2005/01/04 16:19:52  florian

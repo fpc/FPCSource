@@ -64,20 +64,22 @@ interface
           procedure load_implementation;
           procedure load_symtable_refs;
           procedure load_usedunits;
-          procedure writeusedmacro(p:TNamedIndexItem;arg:pointer);
-          procedure writeusedmacros;
           procedure writesourcefiles;
           procedure writeusedunit(intf:boolean);
           procedure writelinkcontainer(var p:tlinkcontainer;id:byte;strippath:boolean);
           procedure writederefdata;
           procedure putasmsymbol_in_idx(s:tnamedindexitem;arg:pointer);
           procedure writeasmsymbols;
-          procedure readusedmacros;
           procedure readsourcefiles;
           procedure readloadunit;
           procedure readlinkcontainer(var p:tlinkcontainer);
           procedure readderefdata;
           procedure readasmsymbols;
+{$IFDEF MACRO_DIFF_HINT}
+          procedure writeusedmacro(p:TNamedIndexItem;arg:pointer);
+          procedure writeusedmacros;
+          procedure readusedmacros;
+{$ENDIF}
        end;
 
     procedure reload_flagged_units;
@@ -88,7 +90,7 @@ implementation
 
 uses
   verbose,systems,version,
-  symtable,
+  symtable, symsym,
   scanner,
   aasmbase,
   parser;
@@ -398,25 +400,33 @@ uses
     PPU Reading/Writing Helpers
 ***********************************}
 
+{$IFDEF MACRO_DIFF_HINT}
+    var
+      is_initial: Boolean;
+
     procedure tppumodule.writeusedmacro(p:TNamedIndexItem;arg:pointer);
       begin
-        if tmacro(p).is_used or tmacro(p).defined_at_startup then
+        if tmacro(p).is_used or is_initial then
           begin
             ppufile.putstring(p.name);
-            ppufile.putbyte(byte(tmacro(p).defined_at_startup));
+            ppufile.putbyte(byte(is_initial));
             ppufile.putbyte(byte(tmacro(p).is_used));
           end;
       end;
 
-
     procedure tppumodule.writeusedmacros;
       begin
         ppufile.do_crc:=false;
-        tscannerfile(scanner).macros.foreach(@writeusedmacro,nil);
+        is_initial:= true;
+        initialmacrosymtable.foreach(@writeusedmacro,nil);
+        is_initial:= false;
+        if assigned(globalmacrosymtable) then
+          globalmacrosymtable.foreach(@writeusedmacro,nil);
+        localmacrosymtable.foreach(@writeusedmacro,nil);
         ppufile.writeentry(ibusedmacros);
         ppufile.do_crc:=true;
       end;
-
+{$ENDIF}
 
     procedure tppumodule.writesourcefiles;
       var
@@ -588,41 +598,55 @@ uses
         ppufile.writeentry(ibasmsymbols);
       end;
 
+{$IFDEF MACRO_DIFF_HINT}
 
+{
+  Define MACRO_DIFF_HINT for the whole compiler (and ppudump)
+  to turn this facility on. There is some problems with this,
+  thats why it is shut off:
+  
+  At the first compilation, consider a macro which is not initially
+  defined, but it is used (e g the check that it is undefined is true).
+  Since it do not exist, there is no macro object where the is_used 
+  flag can be set. Later on when the macro is defined, and the ppu
+  is opened, the check cannot detect this.
+  
+  Also, in which macro object should this flag be set ? It cant be set
+  for macros in the initialmacrosymboltable since this table is shared
+  between different files.
+}
+  
     procedure tppumodule.readusedmacros;
       var
         hs : string;
         mac : tmacro;
-        was_defined_at_startup,
+        was_initial,
         was_used : boolean;
+      {Reads macros which was defined or used when the module was compiled.
+       This is done when a ppu file is open, before it possibly is parsed.}
       begin
-        { only possible when we've a scanner of the current file }
-        if not assigned(current_scanner) then
-         exit;
         while not ppufile.endofentry do
          begin
            hs:=ppufile.getstring;
-           was_defined_at_startup:=boolean(ppufile.getbyte);
+           was_initial:=boolean(ppufile.getbyte);
            was_used:=boolean(ppufile.getbyte);
-           mac:=tmacro(tscannerfile(current_scanner).macros.search(hs));
+           mac:=tmacro(initialmacrosymtable.search(hs));
            if assigned(mac) then
              begin
 {$ifndef EXTDEBUG}
            { if we don't have the sources why tell }
               if sources_avail then
 {$endif ndef EXTDEBUG}
-               if (not was_defined_at_startup) and
-                  was_used and
-                  mac.defined_at_startup then
+               if (not was_initial) and was_used then
                 Message2(unit_h_cond_not_set_in_last_compile,hs,mainsource^);
              end
            else { not assigned }
-             if was_defined_at_startup and
+             if was_initial and
                 was_used then
               Message2(unit_h_cond_set_in_last_compile,hs,mainsource^);
          end;
       end;
-
+{$ENDIF}
 
     procedure tppumodule.readsourcefiles;
       var
@@ -854,8 +878,10 @@ uses
                end;
              ibsourcefiles :
                readsourcefiles;
+{$IFDEF MACRO_DIFF_HINT}
              ibusedmacros :
                readusedmacros;
+{$ENDIF}
              ibloadunit :
                readloadunit;
              iblinkunitofiles :
@@ -962,7 +988,9 @@ uses
          ppufile.writeentry(ibmodulename);
 
          writesourcefiles;
+{$IFDEF MACRO_DIFF_HINT}
          writeusedmacros;
+{$ENDIF}
 
          { write interface uses }
          writeusedunit(true);
@@ -999,6 +1027,18 @@ uses
 
          { write the symtable entries }
          tstoredsymtable(globalsymtable).ppuwrite(ppufile);
+
+         if assigned(globalmacrosymtable) and (globalmacrosymtable.symindex.count > 0) then
+           begin
+             ppufile.putbyte(byte(true));
+             ppufile.writeentry(ibexportedmacros);
+             tstoredsymtable(globalmacrosymtable).ppuwrite(ppufile);           
+           end
+         else
+           begin
+             ppufile.putbyte(byte(false));
+             ppufile.writeentry(ibexportedmacros);
+           end;
 
          { everything after this doesn't affect the crc }
          ppufile.do_crc:=false;
@@ -1095,6 +1135,18 @@ uses
          { write the symtable entries }
          tstoredsymtable(globalsymtable).ppuwrite(ppufile);
 
+         if assigned(globalmacrosymtable) and (globalmacrosymtable.symindex.count > 0) then
+           begin
+             ppufile.putbyte(byte(true));
+             ppufile.writeentry(ibexportedmacros);
+             tstoredsymtable(globalmacrosymtable).ppuwrite(ppufile);           
+           end
+         else
+           begin
+             ppufile.putbyte(byte(false));
+             ppufile.writeentry(ibexportedmacros);
+           end;
+
          { save crc  }
          crc:=ppufile.crc;
          interface_crc:=ppufile.interface_crc;
@@ -1180,6 +1232,15 @@ uses
          internalerror(200208187);
         globalsymtable:=tglobalsymtable.create(modulename^);
         tstoredsymtable(globalsymtable).ppuload(ppufile);
+    
+        if ppufile.readentry<>ibexportedmacros then
+          Message(unit_f_ppu_read_error);
+        if boolean(ppufile.getbyte) then
+          begin
+            globalmacrosymtable:=tmacrosymtable.Create(true);
+            tstoredsymtable(globalmacrosymtable).ppuload(ppufile)
+          end;
+
         interface_compiled:=true;
 
         { read the implementation part, containing
@@ -1512,7 +1573,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.63  2004-10-15 09:14:16  mazen
+  Revision 1.64  2005-01-09 20:24:43  olle
+    * rework of macro subsystem
+    + exportable macros for mode macpas
+
+  Revision 1.63  2004/10/15 09:14:16  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

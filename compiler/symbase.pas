@@ -117,6 +117,8 @@ interface
           procedure foreach(proc2call : tnamedindexcallback;arg:pointer);
           procedure foreach_static(proc2call : tnamedindexstaticcallback;arg:pointer);
           procedure insert(sym : tsymentry);virtual;
+          { deletes a tsymentry and removes it from the tsymtable}
+          procedure delete(sym:tsymentry);
           procedure replace(oldsym,newsym:tsymentry);
           function  search(const s : stringid) : tsymentry;
           function  speedsearch(const s : stringid;speedvalue : cardinal) : tsymentry;virtual;
@@ -136,11 +138,16 @@ interface
 
        defaultsymtablestack : tsymtable;  { symtablestack after default units have been loaded }
        symtablestack     : tsymtable;     { linked list of symtables }
+       defaultmacrosymtablestack : tsymtable;{ macrosymtablestack after default units have been loaded }
+       macrosymtablestack: tsymtable;     { linked list of macro symtables }
 
        aktrecordsymtable : tsymtable;     { current record symtable }
        aktparasymtable   : tsymtable;     { current proc para symtable }
        aktlocalsymtable  : tsymtable;     { current proc local symtable }
 
+       initialmacrosymtable: tsymtable;   { macros initially defined by the compiler or
+                                            given on the command line. Is common
+                                            for all files compiled and do not change. }
 
 implementation
 
@@ -266,6 +273,13 @@ implementation
          symsearch.insert(sym);
       end;
 
+    procedure tsymtable.delete(sym:tsymentry);
+      begin
+         sym.owner:=nil;
+         { remove from index and search hash }
+         symsearch.delete(sym.name);
+         symindex.delete(sym);
+      end;
 
     procedure tsymtable.replace(oldsym,newsym:tsymentry);
       begin
@@ -331,7 +345,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  2004-10-15 09:14:17  mazen
+  Revision 1.24  2005-01-09 20:24:43  olle
+    * rework of macro subsystem
+    + exportable macros for mode macpas
+
+  Revision 1.23  2004/10/15 09:14:17  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

@@ -1250,10 +1250,10 @@ begin
              readderef;
              writeln(space,'       ParaNr : ',getword);
              if (vo_has_explicit_paraloc in varoptions) then
-	       begin
-	         i:=getbyte;
-		 getdata(tempbuf,i);
-	       end;
+               begin
+                 i:=getbyte;
+                 getdata(tempbuf,i);
+               end;
            end;
 
          ibenumsym :
@@ -1274,6 +1274,24 @@ begin
            begin
              readcommonsym('RTTI symbol ');
              writeln(space,'    RTTI Type : ',getbyte);
+           end;
+
+         ibmacrosym :
+           begin
+             readcommonsym('Macro symbol ');
+             writeln(space,'          Name: ',getstring);
+             writeln(space,'       Defined: ',getbyte);
+             writeln(space,'  Compiler var: ',getbyte);
+             len:=getlongint;
+             writeln(space,'  Value length: ',len);
+             if len > 0 then
+               begin
+                 getmem(pc,len+1);
+                 getdata(pc^,len);
+                 (pc+len)^:= #0;
+                 writeln(space,'         Value: "',pc,'"');
+                 freemem(pc,len+1);
+               end;
            end;
 
          ibtypedconstsym :
@@ -1703,7 +1721,7 @@ begin
                 inc(sourcenumber);
               end;
            end;
-
+{$IFDEF MACRO_DIFF_HINT}
          ibusedmacros :
            begin
              while not EndOfEntry do
@@ -1721,7 +1739,7 @@ begin
                   writeln;
               end;
            end;
-
+{$ENDIF}
          ibloadunit :
            ReadLoadUnit;
 
@@ -1944,6 +1962,32 @@ begin
    end
   else
    ppufile.skipuntilentry(ibendsyms);
+
+{read the macro symbols}
+  if (verbose and v_syms)<>0 then
+   begin
+     Writeln;
+     Writeln('Interface Macro Symbols');
+     Writeln('-----------------------');
+   end;
+  if ppufile.readentry<>ibexportedmacros then
+    begin
+      Writeln('!! Error in PPU');
+      exit;
+    end;
+  if boolean(ppufile.getbyte) then
+    begin
+      {skip the definition section for macros (since they are never used) }
+      ppufile.skipuntilentry(ibenddefs);
+      {read the macro symbols}
+      if (verbose and v_syms)<>0 then
+        readsymbols('interface macro')
+      else
+        ppufile.skipuntilentry(ibendsyms);
+    end
+  else
+    Writeln('(no exported macros)');
+
 {read the implementation stuff}
   if (verbose and v_implementation)<>0 then
    begin
@@ -2064,7 +2108,7 @@ begin
      case upcase(para[2]) of
       'V' : begin
               verbose:=0;
-              for i:=3to length(para) do
+              for i:=3 to length(para) do
                case upcase(para[i]) of
                 'H' : verbose:=verbose or v_header;
                 'I' : verbose:=verbose or v_interface;
@@ -2088,7 +2132,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.63  2004-11-19 08:33:02  marco
+  Revision 1.64  2005-01-09 20:24:43  olle
+    * rework of macro subsystem
+    + exportable macros for mode macpas
+
+  Revision 1.63  2004/11/19 08:33:02  marco
    * fix for " Split po_public into po_public and po_global"
 
   Revision 1.62  2004/11/19 08:17:02  michael

@@ -95,6 +95,7 @@ interface
         is_unit,
         in_interface,             { processing the implementation part? }
         in_global     : boolean;  { allow global settings }
+        mode_switch_allowed  : boolean;  { Whether a mode switch is still allowed at this point in the parsing.}
         mainfilepos   : tfileposinfo;
         recompile_reason : trecompile_reason;  { the reason why the unit should be recompiled }
         crc,
@@ -107,6 +108,8 @@ interface
         derefdata     : tdynamicarray;
         globalsymtable,           { pointer to the global symtable of this unit }
         localsymtable : tsymtable;{ pointer to the local symtable of this unit }
+        globalmacrosymtable,           { pointer to the global macro symtable of this unit }
+        localmacrosymtable : tsymtable;{ pointer to the local macro symtable of this unit }
         scanner       : pointer;  { scanner object used }
         procinfo      : pointer;  { current procedure being compiled }
         loaded_from   : tmodule;
@@ -396,6 +399,8 @@ implementation
         derefdataintflen:=0;
         globalsymtable:=nil;
         localsymtable:=nil;
+        globalmacrosymtable:=nil;
+        localmacrosymtable:=nil;
         loaded_from:=LoadedFrom;
         do_reload:=false;
         do_compile:=false;
@@ -410,6 +415,7 @@ implementation
         islibrary:=false;
         is_stab_written:=false;
         is_reset:=false;
+        mode_switch_allowed:= true;
         uses_imports:=false;
         imports:=TLinkedList.Create;
         _exports:=TLinkedList.Create;
@@ -484,6 +490,10 @@ implementation
           globalsymtable.free;
         if assigned(localsymtable) then
           localsymtable.free;
+        if assigned(globalmacrosymtable) then
+          globalmacrosymtable.free;
+        if assigned(localmacrosymtable) then
+          localmacrosymtable.free;
 {$ifdef MEMDEBUG}
         d.free;
 {$endif}
@@ -534,6 +544,16 @@ implementation
             localsymtable.free;
             localsymtable:=nil;
           end;
+        if assigned(globalmacrosymtable) then
+          begin
+            globalmacrosymtable.free;
+            globalmacrosymtable:=nil;
+          end;
+        if assigned(localmacrosymtable) then
+          begin
+            localmacrosymtable.free;
+            localmacrosymtable:=nil;
+          end;
         derefdata.free;
         derefdata:=TDynamicArray.Create(1024);
         if assigned(map) then
@@ -577,6 +597,7 @@ implementation
         interface_compiled:=false;
         in_interface:=true;
         in_global:=true;
+        mode_switch_allowed:=true;
         is_stab_written:=false;
         is_reset:=false;
         crc:=0;
@@ -711,7 +732,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  2004-12-28 20:43:01  hajny
+  Revision 1.51  2005-01-09 20:24:43  olle
+    * rework of macro subsystem
+    + exportable macros for mode macpas
+
+  Revision 1.50  2004/12/28 20:43:01  hajny
     * 8.3 fixes (short target name in paths)
 
   Revision 1.49  2004/11/04 23:59:13  peter

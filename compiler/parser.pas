@@ -160,22 +160,6 @@ implementation
       end;
 
 
-    procedure default_macros;
-      var
-        hp : tstringlistitem;
-      begin
-      { commandline }
-        hp:=tstringlistitem(initdefines.first);
-        while assigned(hp) do
-         begin
-           current_scanner.def_macro(hp.str);
-           hp:=tstringlistitem(hp.next);
-         end;
-      { set macros for version checking }
-        current_scanner.set_macro('FPC_VERSION',version_nr);
-        current_scanner.set_macro('FPC_RELEASE',release_nr);
-        current_scanner.set_macro('FPC_PATCH',patch_nr);
-      end;
 
 
 {$ifdef PREPROCWRITE}
@@ -184,11 +168,15 @@ implementation
         i : longint;
       begin
          new(preprocfile,init('pre'));
-       { default macros }
-         current_scanner^.macros:=new(pdictionary,init);
-         default_macros;
        { initialize a module }
          current_module:=new(pmodule,init(filename,false));
+
+         macrosymtablestack:= initialmacrosymtable;
+         current_module.localmacrosymtable:= tmacrosymtable.create(false);
+         current_module.localmacrosymtable.next:= initialmacrosymtable;
+         macrosymtablestack:= current_module.localmacrosymtable;
+         ConsolidateMode;
+
          main_module:=current_module;
        { startup scanner, and save in current_module }
          current_scanner:=new(pscannerfile,Init(filename));
@@ -334,6 +322,8 @@ implementation
           oldrefsymtable,
           olddefaultsymtablestack,
           oldsymtablestack : tsymtable;
+          olddefaultmacrosymtablestack,
+          oldmacrosymtablestack : tsymtable;
           oldaktprocsym    : tprocsym;
         { cg }
           oldparse_only  : boolean;
@@ -395,7 +385,9 @@ implementation
             old_compiled_module:=compiled_module;
           { save symtable state }
             oldsymtablestack:=symtablestack;
+            oldmacrosymtablestack:=macrosymtablestack;
             olddefaultsymtablestack:=defaultsymtablestack;
+            olddefaultmacrosymtablestack:=defaultmacrosymtablestack;
             oldrefsymtable:=refsymtable;
             oldcurrent_procinfo:=current_procinfo;
             oldaktdefproccall:=aktdefproccall;
@@ -457,7 +449,9 @@ implementation
 
        { reset symtable }
          symtablestack:=nil;
+         macrosymtablestack:=nil;
          defaultsymtablestack:=nil;
+         defaultmacrosymtablestack:=nil;
          systemunit:=nil;
          refsymtable:=nil;
          aktdefproccall:=initdefproccall;
@@ -506,8 +500,13 @@ implementation
          current_scanner:=tscannerfile.Create(filename);
          current_scanner.firstfile;
          current_module.scanner:=current_scanner;
-         { macros }
-         default_macros;
+
+         { init macros before anything in the file is parsed.}
+         macrosymtablestack:= initialmacrosymtable;
+         current_module.localmacrosymtable:= tmacrosymtable.create(false);
+         current_module.localmacrosymtable.next:= initialmacrosymtable;
+         macrosymtablestack:= current_module.localmacrosymtable;
+
          { read the first token }
          current_scanner.readtoken;
 
@@ -606,7 +605,9 @@ implementation
                  { restore symtable state }
                  refsymtable:=oldrefsymtable;
                  symtablestack:=oldsymtablestack;
+                 macrosymtablestack:=oldmacrosymtablestack;
                  defaultsymtablestack:=olddefaultsymtablestack;
+                 defaultmacrosymtablestack:=olddefaultmacrosymtablestack;
                  aktdefproccall:=oldaktdefproccall;
                  current_procinfo:=oldcurrent_procinfo;
                  aktsourcecodepage:=oldsourcecodepage;
@@ -698,7 +699,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.68  2004-10-25 15:38:41  peter
+  Revision 1.69  2005-01-09 20:24:43  olle
+    * rework of macro subsystem
+    + exportable macros for mode macpas
+
+  Revision 1.68  2004/10/25 15:38:41  peter
     * heap and heapsize removed
     * checkpointer fixes
 

@@ -180,6 +180,11 @@ interface
           constructor create;
        end;
 
+       tmacrosymtable = class(tstoredsymtable)
+       public
+          constructor create(exported: boolean);
+          procedure ppuload(ppufile:tcompilerppufile);override;
+       end;
 
     var
        constsymtable  : tsymtable;      { symtable were the constants can be inserted }
@@ -208,10 +213,21 @@ interface
 {$endif notused}
     function  search_class_member(pd : tobjectdef;const s : string):tsym;
     function  search_assignment_operator(from_def,to_def:Tdef):Tprocdef;
+    {Looks for macro s (must be given in upper case) in the macrosymbolstack, }
+    {and returns it if found. Returns nil otherwise.}
+    function  search_macro(const s : string):tsym;
 
 {*** Object Helpers ***}
     procedure search_class_overloads(aprocsym : tprocsym);
     function search_default_property(pd : tobjectdef) : tpropertysym;
+
+{*** Macro Helpers ***}
+    {If called initially, the following procedures manipulate macros in }
+    {initialmacrotable, otherwise they manipulate system macros local to a module.}
+    {Name can be given in any case (it will be converted to upper case).}
+    procedure def_system_macro(const name : string);
+    procedure set_system_macro(const name, value : string);
+    procedure undef_system_macro(const name : string);
 
 {*** symtable stack ***}
 {$ifdef DEBUG}
@@ -374,6 +390,7 @@ implementation
                iblabelsym : sym:=tlabelsym.ppuload(ppufile);
                  ibsyssym : sym:=tsyssym.ppuload(ppufile);
                 ibrttisym : sym:=trttisym.ppuload(ppufile);
+               ibmacrosym : sym:=tmacro.ppuload(ppufile);
                 ibendsyms : break;
                     ibend : Message(unit_f_ppu_read_error);
            else
@@ -1699,6 +1716,33 @@ implementation
       end;
 
 
+{****************************************************************************
+                          TMacroSymtable
+****************************************************************************}
+
+    constructor tmacrosymtable.create(exported: boolean);
+      begin
+        inherited create('');
+        if exported then
+          symtabletype:=exportedmacrosymtable
+        else
+          symtabletype:=localmacrosymtable;
+        symtablelevel:=main_program_level;
+      end;
+
+
+    procedure tmacrosymtable.ppuload(ppufile:tcompilerppufile);
+      begin
+        next:=macrosymtablestack;
+        macrosymtablestack:=self;
+
+        inherited ppuload(ppufile);
+
+        { restore symtablestack }
+        macrosymtablestack:=next;
+      end;
+
+
 {*****************************************************************************
                              Helper Routines
 *****************************************************************************}
@@ -2086,6 +2130,28 @@ implementation
         search_class_member:=nil;
       end;
 
+    function search_macro(const s : string):tsym;
+      var
+        p : tsymtable;
+        speedvalue : cardinal;
+        srsym      : tsym;
+
+      begin
+        speedvalue:= getspeedvalue(s);
+        p:=macrosymtablestack;
+        while assigned(p) do
+          begin
+             srsym:=tsym(p.speedsearch(s,speedvalue));
+             if assigned(srsym) then
+               begin
+                 search_macro:= srsym;
+                 exit;
+               end;
+             p:=p.next;
+          end;
+        search_macro:= nil;
+      end;
+
 
 {*****************************************************************************
                             Definition Helpers
@@ -2197,6 +2263,88 @@ implementation
         search_default_property:=_defaultprop;
      end;
 
+{****************************************************************************
+                              Macro Helpers
+****************************************************************************}
+{NOTE: Initially, macrosymtablestack contains initialmacrosymtable.}
+
+    procedure def_system_macro(const name : string);
+      var
+        mac : tmacro;
+        s: string;
+      begin
+         if name = '' then
+           internalerror(2004121201);
+         s:= upper(name);
+         mac:=tmacro(search_macro(s));
+         if not assigned(mac) then
+           begin
+             mac:=tmacro.create(s);
+             if macrosymtablestack.symtabletype=localmacrosymtable then
+               macrosymtablestack.insert(mac)
+             else
+               macrosymtablestack.next.insert(mac)
+           end;
+         if not mac.defined then
+           Message1(parser_c_macro_defined,mac.name); 
+         mac.defined:=true;
+      end;
+
+    procedure set_system_macro(const name, value : string);
+      var
+        mac : tmacro;
+        s: string;
+      begin
+        if name = '' then
+          internalerror(2004121201);
+         s:= upper(name);
+         mac:=tmacro(search_macro(s));
+         if not assigned(mac) then
+           begin
+             mac:=tmacro.create(s);
+             if macrosymtablestack.symtabletype=localmacrosymtable then
+               macrosymtablestack.insert(mac)
+             else
+               macrosymtablestack.next.insert(mac)
+           end
+         else
+           begin
+             mac.is_compiler_var:=false;
+             if assigned(mac.buftext) then
+               freemem(mac.buftext,mac.buflen);
+           end;
+         Message2(parser_c_macro_set_to,mac.name,value);
+         mac.buflen:=length(value);
+         getmem(mac.buftext,mac.buflen);
+         move(value[1],mac.buftext^,mac.buflen);
+         mac.defined:=true;
+      end;
+
+    procedure undef_system_macro(const name : string);
+      var
+        mac : tmacro;
+        s: string;
+      begin
+         if name = '' then
+           internalerror(2004121201);
+         s:= upper(name);
+         mac:=tmacro(search_macro(s));
+         if not assigned(mac) then
+           {If not found, then it's already undefined.}
+         else
+           begin
+             if mac.defined then
+               Message1(parser_c_macro_undefined,mac.name);
+             mac.defined:=false;
+             mac.is_compiler_var:=false;
+             { delete old definition }
+             if assigned(mac.buftext) then
+               begin
+                  freemem(mac.buftext,mac.buflen);
+                  mac.buftext:=nil;
+               end;
+           end;
+      end;
 
 {$ifdef UNITALIASES}
 {****************************************************************************
@@ -2290,6 +2438,7 @@ implementation
         { Reset symbolstack }
         registerdef:=false;
         symtablestack:=nil;
+        macrosymtablestack:=nil;
         systemunit:=nil;
 {$ifdef GDB}
         globaltypecount:=1;
@@ -2302,6 +2451,9 @@ implementation
         { unit aliases }
         unitaliases:=tdictionary.create;
 {$endif}
+        initialmacrosymtable:= tmacrosymtable.create(false);
+        macrosymtablestack:= initialmacrosymtable;
+
         dupnr:=0;
      end;
 
@@ -2313,12 +2465,17 @@ implementation
 {$ifdef UNITALIASES}
         unitaliases.free;
 {$endif}
+        initialmacrosymtable.Free;
      end;
 
 end.
 {
   $Log$
-  Revision 1.167  2004-12-27 16:35:48  peter
+  Revision 1.168  2005-01-09 20:24:43  olle
+    * rework of macro subsystem
+    + exportable macros for mode macpas
+
+  Revision 1.167  2004/12/27 16:35:48  peter
     * set flag if a procedure references a symbol in staticsymtable
 
   Revision 1.166  2004/12/21 08:38:16  michael

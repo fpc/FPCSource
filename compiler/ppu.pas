@@ -44,7 +44,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion=46;
+  CurrentPPUVersion=47;
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -79,8 +79,11 @@ const
   ibdefref               = 13;
   ibendsymtablebrowser   = 14;
   ibbeginsymtablebrowser = 15;
+{$IFDEF MACRO_DIFF_HINT}
   ibusedmacros           = 16;
+{$ENDIF}
   ibderefdata            = 17;
+  ibexportedmacros       = 18;
   {syms}
   ibtypesym        = 20;
   ibprocsym        = 21;
@@ -97,6 +100,7 @@ const
   ibrttisym        = 32;
   iblocalvarsym    = 33;
   ibparavarsym     = 34;
+  ibmacrosym       = 35;
   {definitions}
   iborddef         = 40;
   ibpointerdef     = 41;
@@ -1055,7 +1059,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.60  2004-12-06 19:23:05  peter
+  Revision 1.61  2005-01-09 20:24:43  olle
+    * rework of macro subsystem
+    + exportable macros for mode macpas
+
+  Revision 1.60  2004/12/06 19:23:05  peter
   implicit load of variants unit
 
   Revision 1.59  2004/11/15 23:35:31  peter

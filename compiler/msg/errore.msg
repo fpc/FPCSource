@@ -303,6 +303,9 @@ scan_e_error_macro_lacks_value=02065_E_Macro "$1" does not have any value
 % Thus the conditional compiling expression cannot be evaluated.
 scan_e_wrong_switch_toggle_default=02066_E_Wrong switch toggle, use ON/OFF/DEFAULT or +/-/*
 % You need to use ON or OFF or DEFAULT or a + or - or * to toggle the switch
+scan_e_mode_switch_not_allowed=02067_E_Mode switch "$1" not allowed here
+% A mode switch has already been encountered, or, in case of option -Mmacpas,
+% a mode switch occur after UNIT.
 % \end{description}
 #
 # Parser
@@ -2076,8 +2079,6 @@ option_interpreting_firstpass_option=11036_D_interpreting firstpass option "$1"
 option_interpreting_file_option=11033_D_interpreting file option "$1"
 option_read_config_file=11034_D_Reading config file "$1"
 option_found_file=11035_D_found source file name "$1"
-option_defining_symbol=11037_D_Defining symbol $1
-option_undefining_symbol=11038_D_Undefining symbol $1
 % Additional infos about options, displayed
 % when you have debug option turned on.
 option_code_page_not_available=11039_E_Unknown code page

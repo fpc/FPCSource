@@ -310,7 +310,7 @@ begin
   do_initSymbolInfo;
 {$endif BrowserCol}
   inittokens;
-  InitSymtable;
+  InitSymtable; {Must come before read_arguments, to enable macrosymstack}
   CompilerInited:=true;
 { this is needed here for the IDE
   in case of compilation failure
@@ -448,7 +448,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.50  2004-11-22 19:34:58  peter
+  Revision 1.51  2005-01-09 20:24:43  olle
+    * rework of macro subsystem
+    + exportable macros for mode macpas
+
+  Revision 1.50  2004/11/22 19:34:58  peter
     * GetHeapStatus added, removed MaxAvail,MemAvail,HeapSize
 
   Revision 1.49  2004/10/15 09:14:16  mazen

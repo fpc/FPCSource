@@ -36,29 +36,13 @@ interface
     const
        max_include_nesting=32;
        max_macro_nesting=16;
-       maxmacrolen=16*1024;
        preprocbufsize=32*1024;
 
 
     type
        tcommentstyle = (comment_none,comment_tp,comment_oldtp,comment_delphi,comment_c);
 
-       pmacrobuffer = ^tmacrobuffer;
-       tmacrobuffer = array[0..maxmacrolen-1] of char;
        tscannerfile = class;
-
-       tmacro = class(TNamedIndexItem)
-          defined : boolean; { normally true, but false when the macro is undef-ed}
-          defined_at_startup : boolean;
-          is_used : boolean;
-          is_compiler_var : boolean; { if this is a mac style compiler variable, in
-                                  which case no macro substitutions shall be done.}
-          buftext : pchar;
-          buflen  : longint;
-          fileinfo : tfileposinfo;
-          constructor Create(const n : string);
-          destructor  destroy;override;
-       end;
 
        preproctyp = (pp_ifdef,pp_ifndef,pp_if,pp_ifopt,pp_else,pp_elseif);
 
@@ -103,7 +87,6 @@ interface
           lastasmgetchar : char;
           ignoredirectives : tstringlist; { ignore directives, used to give warnings only once }
           preprocstack   : tpreprocstack;
-          macros         : Tdictionary;
           in_asm_string  : boolean;
 
           preproc_pattern : string;
@@ -124,8 +107,6 @@ interface
           procedure reload;
           procedure insertmacro(const macname:string;p:pchar;len,line,fileindex:longint);
         { Scanner things }
-          procedure def_macro(const s : string);
-          procedure set_macro(const s : string;value : string);
           procedure gettokenpos;
           procedure inc_comment_level;
           procedure dec_comment_level;
@@ -200,6 +181,8 @@ interface
     procedure InitScanner;
     procedure DoneScanner;
 
+    {To be called when the language mode is finally determined}
+    procedure ConsolidateMode;
 
 implementation
 
@@ -251,6 +234,33 @@ implementation
       end;
 
 
+    {To be called when the language mode is finally determined}
+    procedure ConsolidateMode;
+
+    begin
+      if m_mac in aktmodeswitches then
+        if current_module.is_unit and not assigned(current_module.globalmacrosymtable) then
+          begin
+            current_module.globalmacrosymtable:= tmacrosymtable.create(true);
+            current_module.globalmacrosymtable.next:= current_module.localmacrosymtable;
+            macrosymtablestack:=current_module.globalmacrosymtable;
+          end;
+
+      { define a symbol in delphi,objfpc,tp,gpc,macpas mode }
+      if (m_delphi in aktmodeswitches) then
+        def_system_macro('FPC_DELPHI')
+      else if (m_tp7 in aktmodeswitches) then
+        def_system_macro('FPC_TP')
+      else if (m_objfpc in aktmodeswitches) then
+        def_system_macro('FPC_OBJFPC')
+      else if (m_gpc in aktmodeswitches) then
+        def_system_macro('FPC_GPC')
+      else if (m_mac in aktmodeswitches) then
+        def_system_macro('FPC_MACPAS');
+    end;
+
+
+
 {*****************************************************************************
                            Conditional Directives
 *****************************************************************************}
@@ -276,7 +286,7 @@ implementation
         hs:=current_scanner.readid;
         if hs='' then
           Message(scan_e_error_in_preproc_expr);
-        mac:=tmacro(current_scanner.macros.search(hs));
+        mac:=tmacro(search_macro(hs));
         if assigned(mac) then
           mac.is_used:=true;
         current_scanner.addpreprocstack(pp_ifdef,assigned(mac) and mac.defined,hs,scan_c_ifdef_found);
@@ -292,7 +302,7 @@ implementation
         hs:=current_scanner.readid;
         if hs='' then
           Message(scan_e_error_in_preproc_expr);
-        mac:=tmacro(current_scanner.macros.search(hs));
+        mac:=tmacro(search_macro(hs));
         if assigned(mac) then
           mac.is_used:=true;
         current_scanner.addpreprocstack(pp_ifndef,not(assigned(mac) and mac.defined),hs,scan_c_ifndef_found);
@@ -383,7 +393,7 @@ implementation
             For real macros also do recursive substitution. }
           macrocount:=0;
           repeat
-            mac:=tmacro(current_scanner.macros.search(result));
+            mac:=tmacro(search_macro(result));
 
             inc(macrocount);
             if macrocount>max_macro_nesting then
@@ -405,6 +415,7 @@ implementation
                   hs[0]:=char(len);
                   move(mac.buftext^,hs[1],len);
                   result:=upcase(hs);
+                  mac.is_used:=true;
                 end
               else
                 begin
@@ -445,9 +456,12 @@ implementation
                     if current_scanner.preproc_token =_ID then
                       begin
                         hs := current_scanner.preproc_pattern;
-                        mac := tmacro(current_scanner.macros.search(hs));
+                        mac := tmacro(search_macro(hs));
                         if assigned(mac) then
-                          hs := '1'
+                          begin
+                            hs := '1';
+                            mac.is_used:=true;
+                          end
                         else
                           hs := '0';
                         read_factor := hs;
@@ -469,9 +483,12 @@ implementation
                     if current_scanner.preproc_token =_ID then
                       begin
                         hs := current_scanner.preproc_pattern;
-                        mac := tmacro(current_scanner.macros.search(hs));
+                        mac := tmacro(search_macro(hs));
                         if assigned(mac) then
-                          hs := '0'
+                          begin
+                            hs := '0';
+                            mac.is_used:=true;
+                          end
                         else
                           hs := '1';
                         read_factor := hs;
@@ -757,13 +774,13 @@ implementation
       begin
         current_scanner.skipspace;
         hs:=current_scanner.readid;
-        mac:=tmacro(current_scanner.macros.search(hs));
-        if not assigned(mac) then
+        mac:=tmacro(search_macro(hs));
+        if not assigned(mac) or (mac.owner <> macrosymtablestack) then
           begin
             mac:=tmacro.create(hs);
             mac.defined:=true;
             Message1(parser_c_macro_defined,mac.name);
-            current_scanner.macros.insert(mac);
+            macrosymtablestack.insert(mac);
           end
         else
           begin
@@ -855,14 +872,14 @@ implementation
       begin
         current_scanner.skipspace;
         hs:=current_scanner.readid;
-        mac:=tmacro(current_scanner.macros.search(hs));
-        if not assigned(mac) then
+        mac:=tmacro(search_macro(hs));
+        if not assigned(mac) or (mac.owner <> macrosymtablestack) then
           begin
             mac:=tmacro.create(hs);
             mac.defined:=true;
             mac.is_compiler_var:=true;
             Message1(parser_c_macro_defined,mac.name);
-            current_scanner.macros.insert(mac);
+            macrosymtablestack.insert(mac);
           end
         else
           begin
@@ -920,13 +937,13 @@ implementation
       begin
         current_scanner.skipspace;
         hs:=current_scanner.readid;
-        mac:=tmacro(current_scanner.macros.search(hs));
-        if not assigned(mac) then
+        mac:=tmacro(search_macro(hs));
+        if not assigned(mac) or (mac.owner <> macrosymtablestack) then
           begin
              mac:=tmacro.create(hs);
              Message1(parser_c_macro_undefined,mac.name);
              mac.defined:=false;
-             current_scanner.macros.insert(mac);
+             macrosymtablestack.insert(mac);
           end
         else
           begin
@@ -1071,32 +1088,6 @@ implementation
       end;
 
 
-
-{*****************************************************************************
-                                 TMacro
-*****************************************************************************}
-
-    constructor tmacro.create(const n : string);
-      begin
-         inherited createname(n);
-         defined:=true;
-         defined_at_startup:=false;
-         fileinfo:=akttokenpos;
-         is_used:=false;
-         is_compiler_var:= false;
-         buftext:=nil;
-         buflen:=0;
-      end;
-
-
-    destructor tmacro.destroy;
-      begin
-         if assigned(buftext) then
-           freemem(buftext,buflen);
-         inherited destroy;
-      end;
-
-
 {*****************************************************************************
                             Preprocessor writting
 *****************************************************************************}
@@ -1206,7 +1197,6 @@ implementation
         lastasmgetchar:=#0;
         ignoredirectives:=TStringList.Create;
         in_asm_string:=false;
-        macros:=tdictionary.create;
       end;
 
 
@@ -1233,48 +1223,6 @@ implementation
         if not inputfile.closed then
           closeinputfile;
         ignoredirectives.free;
-        macros.free;
-      end;
-
-
-    procedure tscannerfile.def_macro(const s : string);
-      var
-        mac : tmacro;
-      begin
-         mac:=tmacro(macros.search(s));
-         if mac=nil then
-           begin
-             mac:=tmacro.create(s);
-             Message1(parser_c_macro_defined,mac.name);
-             macros.insert(mac);
-           end;
-         mac.defined:=true;
-         mac.defined_at_startup:=true;
-      end;
-
-
-    procedure tscannerfile.set_macro(const s : string;value : string);
-      var
-        mac : tmacro;
-      begin
-         mac:=tmacro(macros.search(s));
-         if mac=nil then
-           begin
-             mac:=tmacro.create(s);
-             macros.insert(mac);
-           end
-         else
-           begin
-             mac.is_compiler_var:=false;
-             if assigned(mac.buftext) then
-               freemem(mac.buftext,mac.buflen);
-           end;
-         Message2(parser_c_macro_set_to,mac.name,value);
-         mac.buflen:=length(value);
-         getmem(mac.buftext,mac.buflen);
-         move(value[1],mac.buftext^,mac.buflen);
-         mac.defined:=true;
-         mac.defined_at_startup:=true;
       end;
 
 
@@ -2483,11 +2431,12 @@ implementation
             { this takes some time ... }
               if (cs_support_macro in aktmoduleswitches) then
                begin
-                 mac:=tmacro(macros.search(pattern));
+                 mac:=tmacro(search_macro(pattern));
                  if assigned(mac) and (not mac.is_compiler_var) and (assigned(mac.buftext)) then
                   begin
                     if yylexcount<max_macro_nesting then
                      begin
+                       mac.is_used:=true;
                        inc(yylexcount);
                        insertmacro(pattern,mac.buftext,mac.buflen,
                          mac.fileinfo.line,mac.fileinfo.fileindex);
@@ -3310,7 +3259,11 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.97  2005-01-04 16:34:03  peter
+  Revision 1.98  2005-01-09 20:24:43  olle
+    * rework of macro subsystem
+    + exportable macros for mode macpas
+
+  Revision 1.97  2005/01/04 16:34:03  peter
     * give error when reading identifier > 255 chars
 
   Revision 1.96  2004/11/08 22:09:59  peter

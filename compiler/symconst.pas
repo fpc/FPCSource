@@ -334,7 +334,8 @@ type
     globalsymtable,staticsymtable,
     objectsymtable,recordsymtable,
     localsymtable,parasymtable,
-    withsymtable,stt_exceptsymtable
+    withsymtable,stt_exceptsymtable,
+    exportedmacrosymtable, localmacrosymtable
   );
 
 
@@ -439,7 +440,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.99  2005-01-06 02:13:03  karoly
+  Revision 1.100  2005-01-09 20:24:43  olle
+    * rework of macro subsystem
+    + exportable macros for mode macpas
+
+  Revision 1.99  2005/01/06 02:13:03  karoly
     * more SysV call support stuff for MorphOS
 
   Revision 1.98  2005/01/05 02:31:06  karoly

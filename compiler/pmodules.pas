@@ -381,6 +381,11 @@ implementation
         { add to symtable stack }
         tsymtable(hp.globalsymtable).next:=symtablestack;
         symtablestack:=hp.globalsymtable;
+        if (m_mac in aktmodeswitches) and assigned(hp.globalmacrosymtable) then
+          begin
+            tsymtable(hp.globalmacrosymtable).next:=macrosymtablestack;
+            macrosymtablestack:=hp.globalmacrosymtable;
+          end;
         { insert unitsym }
         unitsym:=tunitsym.create(s,hp.globalsymtable);
         inc(unitsym.refs);
@@ -424,7 +429,8 @@ implementation
            exit;
          end;
         { insert the system unit, it is allways the first }
-        Symtablestack:=nil;
+        symtablestack:=nil;
+        macrosymtablestack:=initialmacrosymtable;
         AddUnit('System');
         SystemUnit:=TGlobalSymtable(Symtablestack);
         { read default constant definitions }
@@ -468,6 +474,7 @@ implementation
          end;
         { save default symtablestack }
         defaultsymtablestack:=symtablestack;
+        defaultmacrosymtablestack:=macrosymtablestack;
       end;
 
 
@@ -479,6 +486,8 @@ implementation
          hp2     : tmodule;
          hp3     : tsymtable;
          unitsym : tunitsym;
+         top_of_macrosymtable : tsymtable;
+         
       begin
          consume(_USES);
 {$ifdef DEBUG}
@@ -536,9 +545,9 @@ implementation
            else
             break;
          until false;
-         consume(_SEMICOLON);
 
          { Load the units }
+         top_of_macrosymtable:= macrosymtablestack;
          pu:=tused_unit(current_module.used_units.first);
          while assigned(pu) do
           begin
@@ -571,6 +580,7 @@ implementation
            then insert the units in the symtablestack }
          pu:=tused_unit(current_module.used_units.first);
          symtablestack:=defaultsymtablestack;
+         macrosymtablestack:=defaultmacrosymtablestack;
          while assigned(pu) do
            begin
               if pu.in_uses then
@@ -588,6 +598,11 @@ implementation
                           begin
                              tsymtable(pu.u.globalsymtable).next:=symtablestack;
                              symtablestack:=tsymtable(pu.u.globalsymtable);
+                             if (m_mac in aktmodeswitches) and assigned(pu.u.globalmacrosymtable) then
+                               begin
+                                 tsymtable(pu.u.globalmacrosymtable).next:=macrosymtablestack;
+                                 macrosymtablestack:=tsymtable(pu.u.globalmacrosymtable);
+                               end;
 {$ifdef DEBUG}
                              test_symtablestack;
 {$endif DEBUG}
@@ -596,6 +611,13 @@ implementation
                 end;
               pu:=tused_unit(pu.next);
            end;
+
+         if assigned (current_module.globalmacrosymtable) then
+           top_of_macrosymtable.next.next:= macrosymtablestack
+         else
+           top_of_macrosymtable.next:= macrosymtablestack;
+         macrosymtablestack:= top_of_macrosymtable;
+         consume(_SEMICOLON);
       end;
 
 
@@ -771,22 +793,6 @@ implementation
         if (cs_local_browser in aktmoduleswitches) and
            not(cs_browser in aktmoduleswitches) then
           exclude(aktmoduleswitches,cs_local_browser);
-
-        { define a symbol in delphi,objfpc,tp,gpc mode }
-        if (m_delphi in aktmodeswitches) then
-         current_scanner.def_macro('FPC_DELPHI')
-        else
-         if (m_tp7 in aktmodeswitches) then
-          current_scanner.def_macro('FPC_TP')
-        else
-         if (m_objfpc in aktmodeswitches) then
-          current_scanner.def_macro('FPC_OBJFPC')
-        else
-         if (m_gpc in aktmodeswitches) then
-          current_scanner.def_macro('FPC_GPC')
-        else
-         if (m_mac in aktmodeswitches) then
-          current_scanner.def_macro('FPC_MACPAS');
       end;
 
 
@@ -880,7 +886,15 @@ implementation
         release_main_proc(pd);
       end;
 
-
+    procedure delete_duplicate_macros(p:TNamedIndexItem; arg:pointer);
+    var
+      hp: tsymentry;
+    begin
+      hp:= current_module.localmacrosymtable.search(p.name);
+      if assigned(hp) then
+        current_module.localmacrosymtable.delete(hp);
+    end;
+    
     procedure proc_unit;
 
       function is_assembler_generated:boolean;
@@ -907,6 +921,12 @@ implementation
          unitname8 : string[8];
          has_impl: boolean;
       begin
+         if m_mac in aktmodeswitches then
+           begin
+             ConsolidateMode;
+             current_module.mode_switch_allowed:= false;
+           end;
+       
          consume(_UNIT);
          if compile_level=1 then
           Status.IsExe:=false;
@@ -956,6 +976,7 @@ implementation
          current_module.in_global:=false;
 
          { handle the global switches }
+         ConsolidateMode;
          setupglobalswitches;
 
          message1(unit_u_loading_interface_units,current_module.modulename^);
@@ -986,8 +1007,19 @@ implementation
          { with the same name as the unit                  }
          refsymtable.insert(tunitsym.create(current_module.realmodulename^,unitst));
 
+         macrosymtablestack:= initialmacrosymtable;
+
          { load default units, like the system unit }
          loaddefaultunits;
+
+         current_module.localmacrosymtable.next:=macrosymtablestack;
+         if assigned(current_module.globalmacrosymtable) then
+           begin
+             current_module.globalmacrosymtable.next:= current_module.localmacrosymtable;
+             macrosymtablestack:=current_module.globalmacrosymtable;
+           end
+         else
+           macrosymtablestack:=current_module.localmacrosymtable;
 
          { reset }
          make_ref:=true;
@@ -1054,13 +1086,7 @@ implementation
          if (m_mac in aktmodeswitches) and try_to_consume(_END) then
            has_impl:= false
          else
-           begin
-             consume(_IMPLEMENTATION);
-             has_impl:= true;
-           end;
-
-         if has_impl then
-           Message1(unit_u_loading_implementation_units,current_module.modulename^);
+           has_impl:= true;
 
          parse_only:=false;
 
@@ -1068,16 +1094,30 @@ implementation
          st:=tstaticsymtable.create(current_module.modulename^);
          current_module.localsymtable:=st;
 
+         { Swap the positions of the local and global macro sym table}        
+         if assigned(current_module.globalmacrosymtable) then
+           begin
+             macrosymtablestack:=current_module.localmacrosymtable;
+             current_module.globalmacrosymtable.next:= current_module.localmacrosymtable.next;
+             current_module.localmacrosymtable.next:=current_module.globalmacrosymtable;
+             
+             current_module.globalmacrosymtable.foreach_static(@delete_duplicate_macros, nil);
+           end;
+
          { remove the globalsymtable from the symtable stack }
          { to reinsert it after loading the implementation units }
          symtablestack:=unitst.next;
 
          { we don't want implementation units symbols in unitsymtable !! PM }
          refsymtable:=st;
-
-         { Read the implementation units }
+         
          if has_impl then
-           parse_implementation_uses;
+           begin
+             consume(_IMPLEMENTATION);     
+             Message1(unit_u_loading_implementation_units,current_module.modulename^);     
+             { Read the implementation units }
+             parse_implementation_uses;
+           end;
 
          if current_module.state=ms_compiled then
            exit;
@@ -1340,7 +1380,8 @@ implementation
          { global switches are read, so further changes aren't allowed }
          current_module.in_global:=false;
 
-         { setup things using the global switches }
+         { setup things using the switches }
+         ConsolidateMode;
          setupglobalswitches;
 
          { set implementation flag }
@@ -1353,9 +1394,14 @@ implementation
          current_module.localsymtable:=st;
          refsymtable:=st;
 
+         macrosymtablestack:= nil;
+
          { load standard units (system,objpas,profile unit) }
          loaddefaultunits;
 
+         current_module.localmacrosymtable.next:=macrosymtablestack;
+         macrosymtablestack:=current_module.localmacrosymtable;
+         
          {Load the units used by the program we compile.}
          if token=_USES then
            loadunits;
@@ -1554,7 +1600,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.178  2004-12-06 19:23:05  peter
+  Revision 1.179  2005-01-09 20:24:43  olle
+    * rework of macro subsystem
+    + exportable macros for mode macpas
+
+  Revision 1.178  2004/12/06 19:23:05  peter
   implicit load of variants unit
 
   Revision 1.177  2004/11/29 18:50:15  peter

@@ -187,7 +187,6 @@ interface
        aktexceptblock        : integer;  { the exceptblock number of the current block (0 if none) }
 
      { commandline values }
-       initdefines        : tstringlist;
        initglobalswitches : tglobalswitches;
        initmoduleswitches : tmoduleswitches;
        initlocalswitches  : tlocalswitches;
@@ -2041,7 +2040,6 @@ end;
 
    procedure DoneGlobals;
      begin
-       initdefines.free;
        if assigned(DLLImageBase) then
          StringDispose(DLLImageBase);
        librarysearchpath.Free;
@@ -2168,7 +2166,6 @@ end;
 {$endif x86_64}
         initinterfacetype:=it_interfacecom;
         initdefproccall:=pocall_default;
-        initdefines:=TStringList.Create;
 
       { memory sizes, will be overriden by parameter or default for target
         in options or init_parser }
@@ -2180,7 +2177,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.159  2005-01-06 13:40:41  florian
+  Revision 1.160  2005-01-09 20:24:43  olle
+    * rework of macro subsystem
+    + exportable macros for mode macpas
+
+  Revision 1.159  2005/01/06 13:40:41  florian
     * 1.0.10 starting patch from Peter
 
   Revision 1.158  2005/01/06 09:20:36  karoly

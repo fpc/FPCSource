@@ -37,6 +37,7 @@ implementation
       verbose,comphook,
       scanner,switches,
       fmodule,
+      symtable,
       rabase;
 
     const
@@ -617,17 +618,24 @@ implementation
 
 
     procedure dir_mode;
-      begin
-        if not current_module.in_global then
-         Message(scan_w_switch_is_global)
-        else
-          begin
-            current_scanner.skipspace;
-            current_scanner.readstring;
-            if not SetCompileMode(pattern,false) then
-             Message1(scan_w_illegal_switch,pattern);
-          end;
-      end;
+
+    begin
+      if not current_module.in_global then
+        Message(scan_w_switch_is_global)
+      else
+        begin
+          current_scanner.skipspace;
+          current_scanner.readstring;
+          if not current_module.mode_switch_allowed and 
+              not ((m_mac in aktmodeswitches) and (pattern='MACPAS')) then
+            Message1(scan_e_mode_switch_not_allowed,pattern)
+          else if SetCompileMode(pattern,false) then
+            ConsolidateMode
+          else
+            Message1(scan_w_illegal_switch,pattern)
+        end;
+      current_module.mode_switch_allowed:= false;
+    end;
 
     procedure dir_mmx;
       begin
@@ -779,18 +787,13 @@ implementation
     end;
 
     procedure dir_profile;
-      var
-        mac : tmacro;
       begin
         do_moduleswitch(cs_profile);
         { defined/undefine FPC_PROFILE }
-        mac:=tmacro(current_scanner.macros.search('FPC_PROFILE'));
-        if not assigned(mac) then
-         begin
-           mac:=tmacro.create('FPC_PROFILE');
-           current_scanner.macros.insert(mac);
-         end;
-        mac.defined:=(cs_profile in aktmoduleswitches);
+        if cs_profile in aktmoduleswitches then
+          def_system_macro('FPC_PROFILE')
+        else
+          undef_system_macro('FPC_PROFILE');
       end;
 
     procedure dir_push;
@@ -895,18 +898,13 @@ implementation
 {$endif}
 
     procedure dir_threading;
-      var
-        mac : tmacro;
       begin
         do_moduleswitch(cs_threading);
         { defined/undefine FPC_THREADING }
-        mac:=tmacro(current_scanner.macros.search('FPC_THREADING'));
-        if not assigned(mac) then
-         begin
-           mac:=tmacro.create('FPC_THREADING');
-           current_scanner.macros.insert(mac);
-         end;
-        mac.defined:=(cs_threading in aktmoduleswitches);
+        if cs_threading in aktmoduleswitches then
+          def_system_macro('FPC_THREADING')
+        else
+          undef_system_macro('FPC_THREADING');
       end;
 
     procedure dir_typedaddress;
@@ -1170,7 +1168,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.50  2005-01-06 02:13:03  karoly
+  Revision 1.51  2005-01-09 20:24:43  olle
+    * rework of macro subsystem
+    + exportable macros for mode macpas
+
+  Revision 1.50  2005/01/06 02:13:03  karoly
     * more SysV call support stuff for MorphOS
 
   Revision 1.49  2005/01/04 17:40:33  karoly

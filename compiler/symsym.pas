@@ -340,6 +340,31 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
        end;
 
+    const
+       maxmacrolen=16*1024;
+
+    type
+       pmacrobuffer = ^tmacrobuffer;
+       tmacrobuffer = array[0..maxmacrolen-1] of char;
+
+       tmacro = class(tstoredsym)
+          {Normally true, but false when a previously defined macro is undef-ed}
+          defined : boolean; 
+          {True if this is a mac style compiler variable, in which case no macro
+           substitutions shall be done.}
+          is_compiler_var : boolean; 
+          {Whether the macro was used. NOTE: A use of a macro which was never defined}
+          {e. g. an IFDEF which returns false, will not be registered as used,}
+          {since there is no place to register its use. }
+          is_used : boolean; 
+          buftext : pchar;
+          buflen  : longint;
+          constructor create(const n : string);
+          constructor ppuload(ppufile:tcompilerppufile);
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          destructor  destroy;override;
+       end;
+
        { compiler generated symbol to point to rtti and init/finalize tables }
        trttisym = class(tstoredsym)
        private
@@ -2498,6 +2523,61 @@ implementation
       end;
 
 
+{*****************************************************************************
+                                 TMacro
+*****************************************************************************}
+
+    constructor tmacro.create(const n : string);
+      begin
+         inherited create(n);
+         typ:= macrosym;
+         owner:= nil;
+
+         defined:=false;
+         is_used:=false;
+         is_compiler_var:= false;
+         buftext:=nil;
+         buflen:=0;
+      end;
+
+    constructor tmacro.ppuload(ppufile:tcompilerppufile);
+      begin
+         inherited ppuload(ppufile);
+         typ:=macrosym;
+         name:=ppufile.getstring;
+         defined:=boolean(ppufile.getbyte);
+         is_compiler_var:=boolean(ppufile.getbyte);
+         is_used:=false;
+         buflen:= ppufile.getlongint;
+         if buflen > 0 then
+           begin
+             getmem(buftext, buflen);
+             ppufile.getdata(buftext^, buflen)
+           end
+         else
+           buftext:=nil;
+      end;
+
+    destructor tmacro.destroy;
+      begin
+         if assigned(buftext) then
+           freemem(buftext,buflen);
+         inherited destroy;
+      end;
+
+    procedure tmacro.ppuwrite(ppufile:tcompilerppufile);
+      begin
+         inherited ppuwrite(ppufile);
+         ppufile.putstring(name);
+         ppufile.putbyte(byte(defined));
+         ppufile.putbyte(byte(is_compiler_var));
+         ppufile.putlongint(buflen);
+         if buflen > 0 then
+           ppufile.putdata(buftext^,buflen);
+         ppufile.writeentry(ibmacrosym);
+      end;
+
+
 {****************************************************************************
                                   TRTTISYM
 ****************************************************************************}
@@ -2569,7 +2649,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.198  2005-01-04 16:38:54  peter
+  Revision 1.199  2005-01-09 20:24:43  olle
+    * rework of macro subsystem
+    + exportable macros for mode macpas
+
+  Revision 1.198  2005/01/04 16:38:54  peter
     * fix setting minval for enum with specified values
 
   Revision 1.197  2005/01/03 22:27:56  peter
