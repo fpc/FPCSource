@@ -336,11 +336,7 @@ implementation
            as LOC_MEM, could also become LOC_REGISTER }
          if pstringdef(p^.resulttype)^.string_typ in [st_ansistring,st_widestring] then
            { we may use ansistrings so no fast exit here }
-           begin
-             procinfo^.no_fast_exit:=true;
-             if p^.registers32 < 2 then
-               p^.registers32 := 2;
-           end;
+           procinfo^.no_fast_exit:=true;
          p^.location.loc:=LOC_MEM;
       end;
 
@@ -1028,7 +1024,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2000-08-01 10:41:35  jonas
+  Revision 1.5  2000-08-02 07:20:32  jonas
+      - undid my changes from the previous two commits because it was a bug
+        in cg386cnv which I've now fixed (previous changes only masked it in
+        some cases) (merged from fixes branch)
+
+  Revision 1.4  2000/08/01 10:41:35  jonas
     * refined my previous IE(10) fix (in some cases, too many registers could
       be reserved) (merged from fixes branch)
 
