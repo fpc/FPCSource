@@ -273,8 +273,25 @@ type
     arm_cpsr : dword;
     fault_address : dword;
   end;
+
+  { from include/asm-ppc/signal.h }
+  stack_t = record
+    ss_sp: pointer;
+    ss_flags: longint;
+    ss_size: size_t;
+  end;
+
+  { from include/asm-arm/ucontext.h }
+  pucontext = ^tucontext;
+  tucontext = record
+    uc_flags : dword;
+    uc_link : pucontext;
+    uc_stack : stack_t;
+    uc_mcontext : SigContextRec;
+    uc_sigmask : sigset_t;
+  end;
 {$endif cpuarm}
-(*
+
   PSigInfoRec = ^SigInfoRec;
   SigInfoRec = record
     si_signo: longint;
@@ -283,7 +300,7 @@ type
 
     case longint of
       0:
-        (pad: array[SI_PAD_SIZE] of longint);
+        (pad: array[0..SI_PAD_SIZE-1] of longint);
       1: { kill }
         ( kill: record
             pid: longint;  { sender's pid }
@@ -318,7 +335,6 @@ type
             fd : longint;
           end );
   end;
-*)
 
   SignalHandler   = Procedure(Sig : Longint);cdecl;
   PSignalHandler  = ^SignalHandler;
@@ -338,16 +354,25 @@ type
         1: (Sa: TSigAction);
       end;
    {$endif}
+   {$ifdef CPUARM}
+    Sa_Flags    : Longint;
+    Sa_restorer : SignalRestorer; { Obsolete - Don't use }
+    Sa_Mask     : SigSet;
+   {$else CPUARM}
     Sa_Mask     : SigSet;
     Sa_Flags    : Longint;
     Sa_restorer : SignalRestorer; { Obsolete - Don't use }
+   {$endif CPUARM}
   end;
   TSigActionRec = SigActionRec;
   PSigActionRec = ^SigActionRec;
 
 {
   $Log$
-  Revision 1.16  2004-02-05 01:16:12  florian
+  Revision 1.17  2004-03-27 14:35:13  florian
+    * structs for arm adapted
+
+  Revision 1.16  2004/02/05 01:16:12  florian
     + completed x86-64/linux system unit
 
   Revision 1.15  2004/01/01 16:28:16  jonas
