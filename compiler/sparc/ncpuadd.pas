@@ -169,7 +169,7 @@ interface
         location_force_fpureg(exprasmlist,right.location,true);
 
         location_reset(location,LOC_FLAGS,OS_NO);
-        location.resflags := getresflags(true);
+        location.resflags:=getresflags(true);
 
         exprasmlist.concat(taicpu.op_reg_reg(A_FCMPs,
            left.location.register,right.location.register));
@@ -194,7 +194,7 @@ interface
           exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBcc,left.location.register,right.location.register,zeroreg));
 
         location_reset(location,LOC_FLAGS,OS_NO);
-        location.resflags := getresflags(true);
+        location.resflags:=getresflags(true);
       end;
 
 
@@ -214,23 +214,33 @@ interface
           exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBcc,left.location.register,right.location.register,zeroreg));
 
         location_reset(location,LOC_FLAGS,OS_NO);
-        location.resflags := getresflags(true);
+        location.resflags:=getresflags(true);
       end;
 
 
     procedure tsparcaddnode.second_cmp64bit;
+      var
+        unsigned : boolean;
       begin
+{$warning TODO 64bit compare}
+        unsigned:=not(is_signed(left.resulttype.def)) or
+                  not(is_signed(right.resulttype.def));
+
         location_reset(location,LOC_FLAGS,OS_NO);
-        location.resflags := getresflags(true);
+        location.resflags:=getresflags(unsigned);
       end;
 
 
     procedure tsparcaddnode.second_cmpordinal;
       var
         zeroreg : tregister;
+        unsigned : boolean;
       begin
         pass_left_right;
         force_reg_left_right(true,true);
+
+        unsigned:=not(is_signed(left.resulttype.def)) or
+                  not(is_signed(right.resulttype.def));
 
         zeroreg.enum:=R_INTREGISTER;
         zeroreg.number:=NR_G0;
@@ -241,7 +251,7 @@ interface
           exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBcc,left.location.register,right.location.register,zeroreg));
 
         location_reset(location,LOC_FLAGS,OS_NO);
-        location.resflags := getresflags(true);
+        location.resflags:=getresflags(unsigned);
       end;
 
 begin
@@ -249,7 +259,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2003-07-06 17:44:12  peter
+  Revision 1.17  2003-07-06 22:09:50  peter
+    * signed compare fixed
+
+  Revision 1.16  2003/07/06 17:44:12  peter
     * cleanup and first sparc implementation
 
   Revision 1.15  2003/06/01 21:38:06  peter
