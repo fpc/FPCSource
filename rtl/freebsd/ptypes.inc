@@ -140,6 +140,43 @@ type
   );
 
 
+Const 
+     MNAMLEN = 80; 	// slightly machine specific.
+
+type
+
+  TStatfs = packed record
+    spare2,            { place holder}
+    bsize,             { fundamental block size}
+    iosize,            { optimal block size }
+    blocks,            {  total blocks}
+    bfree,             { blocks free}
+    bavail,            { block available for mortal users}
+    files,             { Total file nodes}
+    ffree          : clong ;    { file nodes free}
+    fsid           : array[0..1] of longint;  // fsid_t
+    fowner         : tuid; {mounter uid}
+    ftype          : cint;
+    fflags         : cint; {copy of mount flags}
+    fsyncwrites,
+    fasyncwrites   : cint;	
+    fstypename     : array[0..15] of char;
+    mountpoint     : array[0..MNAMLEN-1] of char;
+    fsyncreads,            { count of sync reads since mount }
+    fasyncreads    : clong;
+    fspares1	   : cshort;  
+    mnfromname     : array[0..MNAMLEN-1] of char;
+    fspares2	   : cshort;
+    fspare3	   : array[0..1] of clong; 
+  end;
+  PStatFS=^TStatFS;
+
+  ITimerVal= Record
+              It_Interval,
+              It_Value      : TimeVal;
+             end;
+
+
 const
   _PTHREAD_MUTEX_DEFAULT     = _PTHREAD_MUTEX_ERRORCHECK;
   _MUTEX_TYPE_FAST          = _PTHREAD_MUTEX_NORMAL;
@@ -159,9 +196,14 @@ const
 //   wordsinsigset   = 4;		// words in sigset_t
 
 
+
+
 {
   $Log$
-  Revision 1.14  2004-09-09 20:29:06  jonas
+  Revision 1.15  2004-10-31 14:34:14  marco
+   * statfs moved and updated
+
+  Revision 1.14  2004/09/09 20:29:06  jonas
     * fixed definition of pthread_mutex_t for non-linux targets (and for
       linux as well, actually).
     * base libpthread definitions are now in ptypes.inc, included in unixtype
