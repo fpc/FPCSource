@@ -42,7 +42,7 @@ Type
     Function IsLoadInstr(p: pai): Boolean; Virtual;
     Function IsStoreInstr(p: pai): Boolean; Virtual;
     Function TCh2Reg(Ch: TChange): TRegister; Virtual;
-    Function RegReadByInstr(Reg: TRegister; p: Pai); Virtual;
+    Function RegReadByInstrCPU(Reg: TRegister; p: Pai); Virtual;
   End;
 
 Implementation
@@ -107,25 +107,59 @@ Begin
 End;
 
 Function TAOptCpu.RegReadByInstr(Reg: TRegister; p: Pai);
+Var Cnt: AWord;
+    InstrProp: TAsmInstrucProp;
+    TmpResult: Boolean;
 Begin
-  RegReadByInstr := False;
+  TmpResult := False;
   If (p^.typ = ait_instruction) Then
     Case p^.opcode of
       A_IMUL:
         With PInstr(p)^ Do
-          RegReadByInstr :=
+          TmpResult :=
             RegInOp(Reg,op[0]) or
             RegInOp(Reg,op[1]) or
             ((ops = 1) and
              (reg in [R_EAX,R_EDX]))
       A_IDIV, A_MUL:
-         RegReadByInstr :=
+         TmpResult :=
            RegInOp(Reg,op[0]) or
            (Reg = R_EAX) or
            ((Reg = R_EDX) and
             (p^.opcode = A_IDIV) and
-            (p^.size = S_L));
-    Else RegReadByInstr := true !!!!!!!!!!!!!!!
+            (p^.size = S_L))
+    Else
+      Begin
+        Cnt := 1;
+        InstrProp := AsmInstr[PInstr(p)^.OpCode);
+        While (Cnt <= MaxCh) And
+              (InstrProp.Ch[Cnt] <> C_None) And
+              Not(TmpResult) Do
+          Begin
+            Case InstrProp.Ch[Cnt] Of
+              C_REAX..C_REDI,C_RWEAX..C_RWEDI
+{$ifdef arithopt}
+              ,C_MEAX..C_MEDI
+{$endif arithopt}:
+                TmpResult := Reg = TCh2Reg(InstrProp.Ch[Cnt]);
+              C_ROp1,C_RWOp1{$ifdef arithopt},C_Mop1{$endif arithopt}:
+                TmpResult := RegInOp(PInstr(p)^.oper[0]);
+              C_ROp2,C_RWOp2{$ifdef arithopt},C_Mop2{$endif arithopt}:
+                TmpResult := RegInOp(PInstr(p)^.oper[1]);
+              C_ROp3,C_RWOp3{$ifdef arithopt},C_Mop3{$endif arithopt}:
+                TmpResult := RegInOp(PInstr(p)^.oper[2]);
+              C_WOp1: TmpResult := (PInstr^.oper[0].typ = top_ref) And
+                                   (RegInRef(Reg,PInstr^.oper[0].ref);
+              C_WOp2: TmpResult := (PInstr^.oper[0].typ = top_ref) And
+                                   (RegInRef(Reg,PInstr^.oper[0].ref);
+              C_WOp3: TmpResult := (PInstr^.oper[0].typ = top_ref) And
+                                   (RegInRef(Reg,PInstr^.oper[0].ref);
+              C_WMemEDI: TmpResult := (Reg = R_EDI);
+              C_FPU: TmpResult := Reg in [R_ST..R_ST7,R_MM0..R_MM7];
+            End;
+            Inc(Cnt);
+          End
+      End;
   End;
 End;
 
@@ -177,8 +211,8 @@ End;
 End.
 {
  $Log$
- Revision 1.2  1999-08-09 14:07:26  jonas
- commit.msg
+ Revision 1.3  1999-08-10 12:40:20  jonas
+   + implemented RegReadByInstr
 
  Revision 1.1  1999/08/08 13:24:50  jonas
    + added copyright header/GNU license info
