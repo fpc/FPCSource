@@ -18,6 +18,7 @@ units_linux=sysmsg
 units_freebsd=sysmsg
 units_netbsd=sysmsg
 units_openbsd=sysmsg
+units_darwin=sysmsg
 exampledirs=test
 
 [libs]
