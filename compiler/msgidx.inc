@@ -58,6 +58,7 @@ general_i_targetos,
 general_u_exepath,
 general_u_gcclibpath,
 general_i_abslines_compiled,
+general_f_no_memory_left,
 {
   Scanner part
 }
@@ -102,6 +103,8 @@ scan_c_skipping_until,
 scan_i_press_enter,
 scan_w_unsupported_switch,
 scan_w_illegal_directive,
+scan_d_back_in,
+scan_w_unsupported_asmmode_specifier,
 {
   Parser
 }
@@ -204,6 +207,18 @@ parser_e_constructor_cannot_be_not_virtual,
 parser_e_no_default_property_available,
 parser_e_cant_have_published,
 parser_forward_declaration_must_be_resolved,
+parser_e_no_local_operator,
+parser_e_proc_dir_not_allowed_in_interface,
+parser_e_proc_dir_not_allowed_in_implementation,
+parser_e_proc_dir_not_allowed_in_procvar,
+parser_e_function_already_declared_public_forward,
+parser_e_not_external_and_export,
+parser_e_name_keyword_expected,
+parser_w_not_supported_for_inline,
+parser_w_inlining_disabled,
+parser_i_writing_browser_log,
+parser_h_maybe_deref_caret_missing,
+parser_f_assembler_reader_not_supported,
 {
   Symbol table
 }
@@ -270,6 +285,9 @@ cg_f_internal_error_in_secondinline,
 cg_d_register_weight,
 cg_e_stacklimit_in_local_routine,
 cg_d_stackframe_omited,
+cg_e_unable_inline_object_methods,
+cg_e_unable_inline_procvar,
+cg_e_no_code_for_inline_stored,
 {
   Assembler parsers
 }
@@ -409,6 +427,9 @@ assem_f_invalid_suffix_intel,
 assem_e_extended_not_supported,
 assem_e_comp_not_supported,
 assem_w_mmxwarning_as_281,
+assem_f_too_many_asm_files,
+assem_f_assembler_output_not_supported,
+assem_e_unsupported_symbol_type,
 {
   Exec, assembler, linker, binder calls
 }

@@ -549,7 +549,7 @@ const
         if upcase(c)='N' then
          begin
            hs:=current_scanner^.readid;
-           if hs='NORMAL' then
+           if (hs='NORMAL') or (hs='DEFAULT') then
             aktpackrecords:=2
            else
             Message(scan_w_only_pack_records);
@@ -560,6 +560,7 @@ const
             1 : aktpackrecords:=1;
             2 : aktpackrecords:=2;
             4 : aktpackrecords:=4;
+           16 : aktpackrecords:=16;
            else
             Message(scan_w_only_pack_records);
            end;
@@ -582,7 +583,7 @@ const
          aktasmmode:=initasmmode
         else
          if not set_string_asmmode(s,aktasmmode) then
-          Comment(V_Warning,'Unsupported asm mode specified '+s);
+          Message1(scan_w_unsupported_asmmode_specifier,s);
       end;
 
     procedure dir_oldasmmode(t:tdirectivetoken);
@@ -705,7 +706,10 @@ const
 
 {
   $Log$
-  Revision 1.14  1998-07-14 14:47:03  peter
+  Revision 1.15  1998-07-14 21:46:55  peter
+    * updated messages file
+
+  Revision 1.14  1998/07/14 14:47:03  peter
     * released NEWINPUT
 
   Revision 1.13  1998/07/07 12:32:54  peter

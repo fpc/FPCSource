@@ -222,7 +222,7 @@ procedure TAsmList.NextSmartName;
 begin
   inc(SmartLinkFilesCnt);
   if SmartLinkFilesCnt>999999 then
-   Comment(V_Fatal,'Too many assembler files');
+   Message(assem_f_too_many_asm_files);
   AsmFile:=Path+FixFileName('as'+tostr(SmartLinkFilesCnt)+target_info.asmext);
   ObjFile:=Path+FixFileName('as'+tostr(SmartLinkFilesCnt)+target_info.objext);
 end;
@@ -427,7 +427,7 @@ begin
   {$endif NoAg86KMot}
 {$endif}
   else
-   Comment(V_Fatal,'Selected assembler output not supported!');
+   Message(assem_f_assembler_output_not_supported);
   end;
   a^.AsmCreate;
   a^.WriteAsmList;
@@ -450,7 +450,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  1998-07-08 14:58:34  daniel
+  Revision 1.13  1998-07-14 21:46:40  peter
+    * updated messages file
+
+  Revision 1.12  1998/07/08 14:58:34  daniel
   * First check if call to assembler is succesfull, then check it's exit code.
   This is more logical than first checking the exit code. For some mysterious
   reason this did not give problems on DOS & Linux. On OS/2 it did.

@@ -595,8 +595,8 @@ unit pstatmnt;
       begin
          if (aktprocsym^.definition^.options and poinline)<>0 then
            Begin
-              Comment(V_Warning,'asm statement inside inline procedure/function not yet supported');
-              Comment(V_Warning,'inlining disabled');
+              Message1(parser_w_not_supported_for_inline,'asm statement');
+              Message(parser_w_inlining_disabled);
               aktprocsym^.definition^.options:= aktprocsym^.definition^.options and not poinline;
            End;
          case aktasmmode of
@@ -617,7 +617,7 @@ unit pstatmnt;
   {$endif NoRA68kMot}
 {$endif}
          else
-           Comment(V_Fatal,'Selected assembler reader not supported');
+           Message(parser_f_assembler_reader_not_supported);
          end;
 
          { Read first the _ASM statement }
@@ -1168,7 +1168,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.24  1998-07-10 10:48:42  peter
+  Revision 1.25  1998-07-14 21:46:53  peter
+    * updated messages file
+
+  Revision 1.24  1998/07/10 10:48:42  peter
     * fixed realnumber scanning
     * [] after asmblock was not uppercased anymore
 

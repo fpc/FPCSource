@@ -1280,7 +1280,7 @@ end;
                   end
           else
            begin
-             Comment(V_Error,'Unsupported symbol type for operand');
+             Message(assem_e_unsupported_symbol_type);
              exit;
            end;
           end;
@@ -1324,7 +1324,7 @@ end;
                   end;
           else
            begin
-             Comment(V_Error,'Unsupported symbol type for operand');
+             Message(assem_e_unsupported_symbol_type);
              exit;
            end;
           end; { case }
@@ -1393,7 +1393,7 @@ end;
                   end;
        else
         begin
-          Comment(V_Error,'Unsupported symbol type for operand');
+          Message(assem_e_unsupported_symbol_type);
           exit;
         end;
        end; {case}
@@ -1628,7 +1628,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  1998-06-04 23:51:31  peter
+  Revision 1.5  1998-07-14 21:46:38  peter
+    * updated messages file
+
+  Revision 1.4  1998/06/04 23:51:31  peter
     * m68k compiles
     + .def file creation moved to gendef.pas so it could also be used
       for win32

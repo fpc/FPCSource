@@ -837,7 +837,7 @@ unit tree;
          getmem(pc,p^.length+1);
          { Peter can you change that ? }
          if pc=nil then
-           comment(V_fatal,'No memory left');
+           Message(general_f_no_memory_left);
          move(p^.values^,pc^,p^.length+1);
          getpcharcopy:=pc;
       end;
@@ -1595,7 +1595,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.20  1998-07-14 14:47:11  peter
+  Revision 1.21  1998-07-14 21:46:56  peter
+    * updated messages file
+
+  Revision 1.20  1998/07/14 14:47:11  peter
     * released NEWINPUT
 
   Revision 1.19  1998/07/08 14:56:53  daniel

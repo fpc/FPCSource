@@ -35,6 +35,7 @@ unit pbase;
 
        { true, if we are after an assignement }
        afterassignment : boolean = false;
+
        { sspecial for handling procedure vars }
        getprocvar : boolean = false;
        getprocvardef : pprocvardef = nil;
@@ -54,8 +55,7 @@ unit pbase;
        { symtable were unit references are stored }
        refsymtable : psymtable;
 
-       { true, if only routine headers should be }
-       { parsed                                  }
+       { true, if only routine headers should be parsed }
        parse_only : boolean;
 
        { true, if we are in a except block }
@@ -63,6 +63,7 @@ unit pbase;
 
        { true, if we should ignore an equal in const x : 1..2=2 }
        ignore_equal : boolean;
+
 
     { consumes token i, if the current token is unequal i }
     { a syntax error is written                           }
@@ -87,29 +88,18 @@ unit pbase;
     var
        last_endtoken_filepos: tfileposinfo;
 
+
   implementation
 
     uses
-
        files,scanner,systems,verbose;
 
-      { generates a syntax error message }
-      procedure syntaxerror(s : string);
-
-        begin
-           Message2(scan_f_syn_expected,tostr(aktfilepos.column),s);
-        end;
-
-      { This is changed since I changed the order of token
-      in cobjects.pas for operator overloading !!!! }
       { ttoken = (PLUS,MINUS,STAR,SLASH,EQUAL,GT,
                  LT,LTE,GTE,SYMDIF,STARSTAR,ASSIGNMENT,CARET,
                  LECKKLAMMER,RECKKLAMMER,
                  POINT,COMMA,LKLAMMER,RKLAMMER,COLON,SEMICOLON,
                  KLAMMERAFFE,UNEQUAL,POINTPOINT,
                  ID,REALNUMBER,_EOF,INTCONST,CSTRING,CCHAR,DOUBLEADDR,}
-
-
       const tokens : array[PLUS..DOUBLEADDR] of string[12] = (
                  '+','-','*','/','=','>','<','>=','<=','is','as','in',
                  '><','**',':=','^','<>','[',']','.',',','(',')',':',';',
@@ -118,45 +108,35 @@ unit pbase;
                  'ord const','const string','const char','@@');
 
     function tokenstring(i : ttoken) : string;
-
       var
-         j : integer;
-
+        j : longint;
       begin
          if i<_AND then
            tokenstring:=tokens[i]
          else
            begin
-              { um die Programmgr”áe klein zu halten, }
-              { wird fr ein Schlsselwort-Token der  }
-              { "Text" in der Schlsselworttabelle    }
-              { des Scanners nachgeschaut             }
-
-              for j:=1 to anz_keywords do
-                if keyword_token[j]=i then
-                tokenstring:=keyword[j];
+             for j:=1 to anz_keywords do
+              if keyword_token[j]=i then
+               tokenstring:=keyword[j];
            end;
       end;
 
-    { consumes token i, if the current token is unequal i }
-    { a syntax error is written                           }
+
+    { consumes token i, write error if token is different }
     procedure consume(i : ttoken);
-
       begin
-         if token<>i then
-           begin
-              syntaxerror(tokenstring(i));
-           end
-         else
-           begin
-             if token=_END then
-                last_endtoken_filepos:=tokenpos;
-             token:=current_scanner^.yylex;
-           end;
+        if token<>i then
+          Message1(scan_f_syn_expected,tokenstring(i))
+        else
+          begin
+            if token=_END then
+              last_endtoken_filepos:=tokenpos;
+            token:=current_scanner^.yylex;
+          end;
       end;
+
 
     procedure consume_all_until(atoken : ttoken);
-
       begin
          while (token<>atoken) and (token<>_EOF) do
            consume(token);
@@ -167,19 +147,18 @@ unit pbase;
          Message(scan_f_end_of_file);
       end;
 
-    procedure emptystats;
 
+    procedure emptystats;
       begin
          while token=SEMICOLON do
            consume(SEMICOLON);
       end;
 
+
     { reads a list of identifiers into a string container }
     function idlist : pstringcontainer;
-
       var
         sc : pstringcontainer;
-
       begin
          sc:=new(pstringcontainer,init);
          repeat
@@ -192,16 +171,14 @@ unit pbase;
          idlist:=sc;
       end;
 
+
     { inserts the symbols of sc in st with def as definition }
     { sc is disposed                                         }
     procedure insert_syms(st : psymtable;sc : pstringcontainer;def : pdef);
-
       var
          s : string;
          filepos : tfileposinfo;
          ss : pvarsym;
-
-
       begin
          while not sc^.empty do
            begin
@@ -224,7 +201,10 @@ end.
 
 {
   $Log$
-  Revision 1.13  1998-07-14 14:46:52  peter
+  Revision 1.14  1998-07-14 21:46:49  peter
+    * updated messages file
+
+  Revision 1.13  1998/07/14 14:46:52  peter
     * released NEWINPUT
 
   Revision 1.12  1998/07/09 23:59:59  peter

@@ -330,7 +330,7 @@ unit pdecl;
                     begin
                       consume(ID);
                       if extern_csym then
-                       Comment(V_Error,'can''t use both EXPORT and EXTERNAL')
+                       Message(parser_e_not_external_and_export)
                       else
                        export_Csym:=true;
                     end;
@@ -340,7 +340,7 @@ unit pdecl;
                       if (token=ID) and (pattern='NAME') then
                        consume(ID)
                       else
-                       Comment(V_Error,'NAME keyword expected');
+                       Message(parser_e_name_keyword_expected);
                       C_name:=pattern;
                     { allow also char }
                       if token=CCHAR then
@@ -1791,8 +1791,8 @@ unit pdecl;
          if assigned(aktprocsym) and
             ((aktprocsym^.definition^.options and poinline)<>0) then
            Begin
-              Comment(V_Warning,tokenstring(t)+' not yet supported inside inline procedure/function ');
-              Comment(V_Warning,'inlining disabled');
+              Message1(parser_w_not_supported_for_inline,tokenstring(t));
+              Message(parser_w_inlining_disabled);
               aktprocsym^.definition^.options:= aktprocsym^.definition^.options and not poinline;
            End;
       end;
@@ -1864,7 +1864,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.31  1998-07-14 14:46:53  peter
+  Revision 1.32  1998-07-14 21:46:50  peter
+    * updated messages file
+
+  Revision 1.31  1998/07/14 14:46:53  peter
     * released NEWINPUT
 
   Revision 1.30  1998/07/10 00:00:00  peter

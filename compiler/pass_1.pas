@@ -3303,16 +3303,16 @@ unit pass_1;
               if (p^.procdefinition^.options and poinline)<>0 then
                 begin
                    if assigned(p^.methodpointer) then
-                     comment(v_fatal,'Unable to inline object methods');
+                     Message(cg_e_unable_inline_object_methods);
                    if assigned(p^.right) and (p^.right^.treetype<>procinlinen) then
-                     comment(v_fatal,'Unable to inline procvar calls');
+                     Message(cg_e_unable_inline_procvar);
                    { p^.treetype:=procinlinen; }
                    if not assigned(p^.right) then
                      begin
                         if assigned(p^.procdefinition^.code) then
                           inlinecode:=genprocinlinenode(p,ptree(p^.procdefinition^.code))
                         else
-                          comment(v_fatal,'no code for inline procedure stored');
+                          Message(cg_e_no_code_for_inline_stored);
                         if assigned(inlinecode) then
                           begin
                              { consider it has not inlined if called
@@ -3321,7 +3321,6 @@ unit pass_1;
                              firstpass(inlinecode);
                              inlined:=true;
                           end;
-
                      end;
                 end
               else
@@ -5041,7 +5040,10 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.38  1998-07-14 14:46:50  peter
+  Revision 1.39  1998-07-14 21:46:47  peter
+    * updated messages file
+
+  Revision 1.38  1998/07/14 14:46:50  peter
     * released NEWINPUT
 
   Revision 1.37  1998/07/07 12:31:44  peter

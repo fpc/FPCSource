@@ -299,7 +299,11 @@ done:
 {$endif Splitheap}
 
          { restore old state, close trees }
+{$ifndef go32v2}
+  {$ifndef linux}
          if dispose_asm_lists then
+  {$endif}
+{$endif}
            codegen_donemodule;
 
 {$ifdef GDB}
@@ -372,7 +376,7 @@ done:
           { Write Browser }
             if cs_browser in initswitches then
              begin
-               Comment(V_Info,'Writing Browser '+Browse.Fname);
+               Message1(parser_i_writing_browser_log,Browse.Fname);
                Browse.CreateLog;
                write_browser_log;
                Browse.CloseLog;
@@ -386,7 +390,10 @@ done:
 end.
 {
   $Log$
-  Revision 1.30  1998-07-14 14:46:49  peter
+  Revision 1.31  1998-07-14 21:46:46  peter
+    * updated messages file
+
+  Revision 1.30  1998/07/14 14:46:49  peter
     * released NEWINPUT
 
   Revision 1.29  1998/07/07 11:19:59  peter

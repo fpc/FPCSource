@@ -845,9 +845,7 @@ unit pexpr;
                                     in [recorddef,objectdef,classrefdef] then
                                     begin
                                        Message(cg_e_invalid_qualifier);
-                                       { exterror:=strpnew(' may be pointer deref ^ is missing');
-                                       error(invalid_qualifizier); }
-                                       Comment(V_hint,' may be pointer deref ^ is missing');
+                                       Message(parser_h_maybe_deref_caret_missing);
                                     end
                                  else
                                     Message(cg_e_invalid_qualifier);
@@ -1787,7 +1785,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.27  1998-06-25 14:04:23  peter
+  Revision 1.28  1998-07-14 21:46:51  peter
+    * updated messages file
+
+  Revision 1.27  1998/06/25 14:04:23  peter
     + internal inc/dec
 
   Revision 1.26  1998/06/09 16:01:46  pierre
