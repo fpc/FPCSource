@@ -1,21 +1,28 @@
 # Makefile for freepascal rtl for netware
 # Needs working nlmconv + i386-netware-ld
 
-UNITDIR = /usr/lib/fpc/1.1/units/netware/rtl
-PPC386OPT = -n -di386 -dSYSTEMDEBUG -O3 -Sg -Tnetware -Aelf -a -al -FE.
+UNITDIR = $(INSTALL_PREFIX)/usr/lib/fpc/1.1/units/netware/rtl
+#PPC386OPT = -n -dMT -dDEBUG_MT -di386 -dSYSTEMDEBUG -O3 -Sg -Tnetware -Aelf -a -al -gg -FE.
+#PPC386OPT = -n -di386 -dSYSTEMDEBUG -O3 -Sg -Tnetware -Aelf -a -al -gg -FE.
+PPC386OPT = -n -di386 -O3 -Sg -Tnetware -Aelf -a -al -FE.
+PPC386OPTDBG = -n -di386 -O3 -Sg -Tnetware -Aelf -a -al -gg -FE.
 INCLUDES = -I../inc -I../i386 -I../objpas
 
 SYSUNIT=system
+NWPRE=nwpre
 OBJEXT=on
 PPUEXT=ppn
 ASMEXT=s
-OBJS = $(SYSUNIT).$(OBJEXT) ../inc/strings.$(OBJEXT) dos.$(OBJEXT) nwpre.$(OBJEXT) ../objpas/objpas.$(OBJEXT) sysutils.$(OBJEXT) crt.$(OBJEXT) sockets.$(OBJEXT) mouse.$(OBJEXT) netware.$(OBJEXT) video.$(OBJEXT) keyboard.$(OBJEXT) ../objpas/math.$(OBJEXT) ../objpas/typinfo.$(OBJEXT) ../inc/objects.$(OBJEXT) ../inc/getopts.$(OBJEXT) ../inc/heaptrc.$(OBJEXT) varutils.$(OBJEXT) ../i386/cpu.$(OBJEXT) ../i386/mmx.$(OBJEXT)
+OBJS = $(SYSUNIT).$(OBJEXT) $(NWPRE).$(OBJEXT) ../inc/os_types.$(OBJEXT) ../inc/strings.$(OBJEXT) dos.$(OBJEXT) ../objpas/objpas.$(OBJEXT) sysutils.$(OBJEXT) crt.$(OBJEXT) sockets.$(OBJEXT) mouse.$(OBJEXT) netware.$(OBJEXT) video.$(OBJEXT) keyboard.$(OBJEXT) ../objpas/math.$(OBJEXT) ../objpas/typinfo.$(OBJEXT) ../inc/objects.$(OBJEXT) ../inc/getopts.$(OBJEXT) ../inc/heaptrc.$(OBJEXT) varutils.$(OBJEXT) ../i386/cpu.$(OBJEXT) ../i386/mmx.$(OBJEXT) winsock2.$(OBJEXT)
 
 
 all:	$(OBJS)
 
 $(SYSUNIT).$(OBJEXT):	$(SYSUNIT).pp nwsys.inc
 	ppc386 -Us $(PPC386OPT) $(INCLUDES) $(SYSUNIT).pp
+
+$(NWPRE).$(OBJEXT):	$(NWPRE).pp
+	ppc386 $(PPC386OPTDBG) $(INCLUDES) $(NWPRE).pp
 
 %.$(OBJEXT):	%.pp nwsys.inc
 	ppc386 $(PPC386OPT) $(INCLUDES) $*.pp
@@ -62,6 +69,9 @@ install: $(OBJS)
 	cp -f cpu.$(PPUEXT) $(UNITDIR)
 	cp -f mmx.$(OBJEXT) $(UNITDIR)
 	cp -f mmx.$(PPUEXT) $(UNITDIR)
+	cp -f os_types.$(PPUEXT) $(UNITDIR)
+	cp -f winsock2.$(OBJEXT) $(UNITDIR)
+	cp -f winsock2.$(PPUEXT) $(UNITDIR)
 	cp -f nwimp/*.imp $(UNITDIR)
 
 clean:

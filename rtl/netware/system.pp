@@ -585,7 +585,6 @@ procedure InitFPU;assembler;
 *****************************************************************************}
 
 Begin
-_EnterDebugger;
 {$ifdef MT}
   { the exceptions use threadvars so do this _before_ initexceptions }
   AllocateThreadVars;
@@ -615,8 +614,8 @@ _EnterDebugger;
 End.
 {
   $Log$
-  Revision 1.6  2002-03-08 19:13:49  armin
-  * changes for current rtl, basic MT support
+  Revision 1.7  2002-03-17 17:57:33  armin
+  + threads and winsock2 implemented
 
   Revision 1.5  2001/06/18 14:26:16  jonas
     * move platform independent constant declarations after inclusion of

@@ -85,7 +85,7 @@ TYPE
     wchar_tSize    : LONGINT;
   END;
 
-CONST NLM_INFO_SIGNATURE             = 'NLMI';  // $494d3c3e;
+CONST NLM_INFO_SIGNATURE             = 'NLMI';  // 0x494d3c3e;
 
       kNLMInfo : kNLMInfoT =
        (Signature      : NLM_INFO_SIGNATURE;
@@ -152,7 +152,10 @@ END;
 end.
 {
   $Log$
-  Revision 1.3  2001-04-16 18:39:50  florian
+  Revision 1.4  2002-03-17 17:57:33  armin
+  + threads and winsock2 implemented
+
+  Revision 1.3  2001/04/16 18:39:50  florian
     * updates from Armin commited
 
   Revision 1.2  2001/04/11 14:17:00  florian
