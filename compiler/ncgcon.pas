@@ -254,25 +254,30 @@ implementation
                          end
                        else
                          begin
-                            { when changing that code, be careful that }
-                            { you don't use typed consts, which are    }
-                            { are also written to consts           }
-                            { currently, this is no problem, because   }
-                            { typed consts have no leading length or   }
-                            { they have no trailing zero           }
-                            if (hp1.typ=ait_string) and (lastlabel<>nil) and
+                            same_string:=false;
+                            if (hp1.typ=ait_string) and
+                               (lastlabel<>nil) and
                                (tai_string(hp1).len=mylength) then
                               begin
-                                 same_string:=true;
                                  { if shortstring then check the length byte first and
                                    set the start index to 1 }
                                  case st_type of
                                    st_shortstring:
                                      begin
                                        if len=ord(tai_string(hp1).str[0]) then
-                                        j:=1
-                                       else
-                                        same_string:=false;
+                                         begin
+                                           j:=1;
+                                           same_string:=true;
+                                           for i:=0 to len-1 do
+                                            begin
+                                              if tai_string(hp1).str[j]<>value_str[i] then
+                                               begin
+                                                 same_string:=false;
+                                                 break;
+                                               end;
+                                              inc(j);
+                                            end;
+                                         end;
                                      end;
                                    st_ansistring,
                                    st_widestring :
@@ -301,33 +306,26 @@ implementation
                                           (tai(hp2.previous.previous.previous.previous).typ=ait_label) then
                                          begin
                                            lastlabel:=tai_label(hp2.previous.previous.previous.previous).l;
+                                           same_string:=true;
                                            j:=0;
-                                         end
-                                       else
-                                         same_string:=false;
+                                           for i:=0 to len-1 do
+                                            begin
+                                              if tai_string(hp1).str[j]<>value_str[i] then
+                                               begin
+                                                 same_string:=false;
+                                                 break;
+                                               end;
+                                              inc(j);
+                                            end;
+                                         end;
                                      end;
-                                   else
-                                     same_string:=false;
                                  end;
-                                 { don't check if the length byte was already wrong }
-                                 if same_string then
-                                  begin
-                                    for i:=0 to len do
-                                     begin
-                                       if tai_string(hp1).str[j]<>value_str[i] then
-                                        begin
-                                          same_string:=false;
-                                          break;
-                                        end;
-                                       inc(j);
-                                     end;
-                                  end;
                                  { found ? }
                                  if same_string then
-                                  begin
-                                    lab_str:=lastlabel;
-                                    break;
-                                  end;
+                                   begin
+                                     lab_str:=lastlabel;
+                                     break;
+                                   end;
                               end;
                             lastlabel:=nil;
                          end;
@@ -574,7 +572,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2004-02-26 16:16:38  peter
+  Revision 1.38  2004-03-16 16:19:44  peter
+    * fix out of bounds for string compares
+
+  Revision 1.37  2004/02/26 16:16:38  peter
     * tai_const.create_ptr added
 
   Revision 1.36  2004/01/24 18:12:40  florian
