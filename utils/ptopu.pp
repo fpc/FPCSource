@@ -40,7 +40,7 @@ Uses objects;
 
 Const
 
-  MAXSYMBOLSIZE = 80;
+  MAXSYMBOLSIZE = 255;
   MAXSTACKSIZE = 100;
   MAXKEYLENGTH = 15;     { The longest keyword is PROCEDURE }
   MAXLINESIZE = 90;     { Maximum length of output line }
@@ -1219,7 +1219,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2003-03-27 14:23:00  michael
+  Revision 1.7  2003-11-24 22:39:25  michael
+  + set maxsymbolsize to 255
+
+  Revision 1.6  2003/03/27 14:23:00  michael
   + Fixed use of linesize property, reported by Wolfgang Waffenschmidt
 
   Revision 1.5  2002/09/07 15:40:31  peter
