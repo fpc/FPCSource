@@ -837,6 +837,12 @@ type
     property ReturnValue: Integer read FReturnValue write FReturnValue;
     property Terminated: Boolean read FTerminated;
   public
+{$ifdef linux}
+    { Needed for linux }
+    FStackPointer : integer;
+    FStackSize    : integer;
+    FCallExitProcess : boolean;
+{$endif}
     constructor Create(CreateSuspended: Boolean);
     destructor Destroy; { override; }
     procedure Resume;
@@ -1065,7 +1071,10 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.12  1999-05-14 17:52:53  peter
+  Revision 1.13  1999-05-31 12:43:10  peter
+    * fixed tthread for linux additions
+
+  Revision 1.12  1999/05/14 17:52:53  peter
     * removed wrong destroy overrides (gave errors with the new compiler)
 
   Revision 1.11  1999/04/09 12:13:30  michael
