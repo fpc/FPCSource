@@ -1259,7 +1259,7 @@ implementation
           Result:=TFPUExceptionMask(CtlWord and $3F);
         end;
 {$else CPUI386}
-      function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
+      function SetFPUExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
         begin
         end;
 {$endif CPUI386}
@@ -1674,7 +1674,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.97  2003-09-07 22:09:34  peter
+  Revision 1.98  2003-09-14 12:55:06  jonas
+    * fixed compilation for non-x86
+
+  Revision 1.97  2003/09/07 22:09:34  peter
     * preparations for different default calling conventions
     * various RA fixes
 
