@@ -39,7 +39,8 @@ type
      RunCount : longint;
      FPCBreakErrorNumber : longint;
     constructor Init;
-    procedure setexe(const exefn:string);
+    procedure SetExe(const exefn:string);
+    procedure SetDirectories;
     destructor  Done;
     procedure DoSelectSourceline(const fn:string;line:longint);virtual;
 {    procedure DoStartSession;virtual;
@@ -563,7 +564,7 @@ begin
 end;
 
 procedure TDebugController.SetExe(const exefn:string);
-  var f: string;
+  var f : string;
 begin
   f := GetShortName(GDBFileName(exefn));
   if (f<>'') and ExistsFile(exefn) then
@@ -578,6 +579,7 @@ begin
         ' (('+FrameName+' + 12)^ <> 0)');
 {$endif FrameNameKnown}
       SetArgs(GetRunParameters);
+      SetDirectories;
       InsertBreakpoints;
       ReadWatches;
     end
@@ -586,6 +588,24 @@ begin
       HasExe:=false;
       Command('file');
     end;
+end;
+
+procedure TDebugController.SetDirectories;
+  var f,s: string;
+      i : longint;
+begin
+  f:=GetSourceDirectories;
+  repeat
+    i:=pos(';',f);
+    if i=0 then
+        s:=f
+    else
+      begin
+        s:=copy(f,1,i-1);
+        system.delete(f,1,i);
+      end;
+    Command('dir '+s);
+  until i=0;
 end;
 
 procedure TDebugController.InsertBreakpoints;
@@ -3876,7 +3896,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2001-08-07 22:58:10  pierre
+  Revision 1.4  2001-09-12 09:48:38  pierre
+   + SetDirectories method added to help for disassembly window
+
+  Revision 1.3  2001/08/07 22:58:10  pierre
    * watches display enhanced and crashes removed
 
   Revision 1.2  2001/08/05 02:01:47  peter
