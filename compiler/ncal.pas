@@ -1725,6 +1725,7 @@ type
                         like a bug. It's also not documented }
                       if (m_delphi in aktmodeswitches) and
                          (nf_auto_inherited in flags) and
+                         (symtableprocentry.owner.symtabletype=objectsymtable) and
                          (po_overload in symtableprocentry.first_procdef.procoptions) and
                          (symtableprocentry.procdef_count>=2) then
                         result:=cnothingnode.create
@@ -2374,7 +2375,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.124  2003-01-09 21:45:46  peter
+  Revision 1.125  2003-01-12 17:52:07  peter
+    * only check for auto inherited in objectsymtable
+
+  Revision 1.124  2003/01/09 21:45:46  peter
     * extended information about overloaded candidates when compiled
       with EXTDEBUG
 
