@@ -38,7 +38,7 @@ interface
 uses
 {$ifdef unix}
   {$define has_signal}
-  linux,
+  Unix,
 {$endif}
 {$ifdef go32v2}
   {$define has_signal}
@@ -101,7 +101,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2000-11-13 15:26:12  marco
+  Revision 1.6  2001-01-21 20:32:45  marco
+   * Renamefest. Compiler part. Not that hard.
+
+  Revision 1.5  2000/11/13 15:26:12  marco
    * Renamefest
 
   Revision 1.4  2000/09/24 15:06:11  peter

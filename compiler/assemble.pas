@@ -91,7 +91,7 @@ Implementation
 uses
   cutils,script,fmodule,systems,verbose
 {$ifdef unix}
-  ,linux
+  ,unix
 {$endif}
 {$ifdef i386}
   {$ifndef NoAg386Bin}
@@ -597,7 +597,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2001-01-12 19:19:44  peter
+  Revision 1.10  2001-01-21 20:32:45  marco
+   * Renamefest. Compiler part. Not that hard.
+
+  Revision 1.9  2001/01/12 19:19:44  peter
     * fixed searching for utils
 
   Revision 1.8  2000/12/25 00:07:25  peter

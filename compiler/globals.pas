@@ -31,7 +31,7 @@ interface
       windows,
 {$endif}
 {$ifdef unix}
-      linux,
+      unix,
 {$endif}
 {$ifdef os2}
       doscalls,
@@ -957,7 +957,7 @@ implementation
       {$endif}
       begin
       {$ifdef unix}
-        GetEnvPchar:=Linux.Getenv(envname);
+        GetEnvPchar:=Unix.Getenv(envname);
         {$define GETENVOK}
       {$endif}
       {$ifdef win32}
@@ -1017,7 +1017,7 @@ implementation
         expansion under linux }
       {$ifdef unix}
       begin
-        Linux.Shell(command);
+        Unix.Shell(command);
       end;
       {$else}
       var
@@ -1299,7 +1299,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2001-01-20 18:32:52  hajny
+  Revision 1.25  2001-01-21 20:32:45  marco
+   * Renamefest. Compiler part. Not that hard.
+
+  Revision 1.24  2001/01/20 18:32:52  hajny
     + APPTYPE support under OS/2, app_fs, GetEnvPChar for OS/2
 
   Revision 1.23  2001/01/13 00:03:41  peter

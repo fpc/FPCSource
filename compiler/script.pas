@@ -68,7 +68,7 @@ implementation
 
 uses
 {$ifdef Unix}
-  linux,
+  Unix,
 {$endif}
   globals,systems;
 
@@ -237,7 +237,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2000-12-25 00:07:29  peter
+  Revision 1.6  2001-01-21 20:32:45  marco
+   * Renamefest. Compiler part. Not that hard.
+
+  Revision 1.5  2000/12/25 00:07:29  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

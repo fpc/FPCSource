@@ -139,7 +139,7 @@ implementation
 
   uses
 {$ifdef Unix}
-   linux,
+   Unix,
 {$endif}
 {$ifdef delphi}
    dmisc
@@ -363,7 +363,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  2000-12-26 15:58:29  peter
+  Revision 1.12  2001-01-21 20:32:45  marco
+   * Renamefest. Compiler part. Not that hard.
+
+  Revision 1.11  2000/12/26 15:58:29  peter
     * check for verbosity in verbose instead of comphook
 
   Revision 1.10  2000/12/25 00:07:25  peter
