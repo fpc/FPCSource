@@ -10,7 +10,7 @@ defaulttarget=linux
 
 [require]
 options=-S2
-packages=zlib
+packages=zlib inet
 
 [install]
 unitsubdir=fcl
