@@ -92,7 +92,14 @@ begin
                    else
                     aktlocalswitches:=aktlocalswitches-[tlocalswitch(setsw)];
                  { Message for linux which has global checking only }
-                   if (switch='S') and (target_info.target=target_linux) then
+                   if (switch='S')
+{$ifdef i386}
+                      and (target_info.target=target_linux)
+{$endif i386}
+{$ifdef m68k}
+                      and (target_info.target=target_linux_m68k)
+{$endif m68k}
+                      then
                     Message(scan_n_stack_check_global_under_linux);
                  end;
       modulesw : begin
@@ -154,7 +161,18 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  1998-09-22 17:13:52  pierre
+  Revision 1.14  1998-10-13 08:19:41  pierre
+    + source_os is now set correctly for cross-processor compilers
+      (tos contains all target_infos and
+       we use CPU86 and CPU68 conditionnals to
+       get the source operating system
+       this only works if you do not undefine
+       the source target  !!)
+    * several cg68k memory leaks fixed
+    + started to change the code so that it should be possible to have
+      a complete compiler (both for m68k and i386 !!)
+
+  Revision 1.13  1998/09/22 17:13:52  pierre
     + browsing updated and developed
       records and objects fields are also stored
 

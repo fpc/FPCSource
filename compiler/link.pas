@@ -297,7 +297,7 @@ begin
 {$endif i386}
 {$ifdef m68k}
   target_Palmos : prtobj:='';
-   target_linux : begin
+   target_linux_m68k : begin
                     if cs_profile in aktmoduleswitches then
                      begin
                        prtobj:='gprt0';
@@ -502,7 +502,18 @@ end;
 end.
 {
   $Log$
-  Revision 1.28  1998-10-08 23:28:56  peter
+  Revision 1.29  1998-10-13 08:19:34  pierre
+    + source_os is now set correctly for cross-processor compilers
+      (tos contains all target_infos and
+       we use CPU86 and CPU68 conditionnals to
+       get the source operating system
+       this only works if you do not undefine
+       the source target  !!)
+    * several cg68k memory leaks fixed
+    + started to change the code so that it should be possible to have
+      a complete compiler (both for m68k and i386 !!)
+
+  Revision 1.28  1998/10/08 23:28:56  peter
     * -vu shows unit info, -vt shows tried/used files
 
   Revision 1.27  1998/10/06 17:16:52  pierre

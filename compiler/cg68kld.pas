@@ -425,6 +425,8 @@ implementation
 
                            end;
          end;
+         freelabel(truelabel);
+         freelabel(falselabel);
          truelabel:=otlabel;
          falselabel:=oflabel;
       end;
@@ -507,7 +509,18 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  1998-10-06 20:48:59  peter
+  Revision 1.4  1998-10-13 08:19:28  pierre
+    + source_os is now set correctly for cross-processor compilers
+      (tos contains all target_infos and
+       we use CPU86 and CPU68 conditionnals to
+       get the source operating system
+       this only works if you do not undefine
+       the source target  !!)
+    * several cg68k memory leaks fixed
+    + started to change the code so that it should be possible to have
+      a complete compiler (both for m68k and i386 !!)
+
+  Revision 1.3  1998/10/06 20:48:59  peter
     * m68k compiler compiles again
 
   Revision 1.2  1998/09/17 09:42:27  peter

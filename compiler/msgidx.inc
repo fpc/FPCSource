@@ -392,6 +392,7 @@ type tmsgconst=(
   assem_f_too_many_asm_files,
   assem_f_assembler_output_not_supported,
   assem_e_unsupported_symbol_type,
+  exec_w_source_os_redefined,
   exec_i_assembling_pipe,
   exec_d_cant_create_asmfile,
   exec_w_assembler_not_found,

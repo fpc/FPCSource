@@ -536,7 +536,7 @@ begin
         begin
             {Init the stack checking.}
             if (cs_check_stack in aktlocalswitches) and
-             (target_info.target=target_linux) then
+             (target_info.target=target_linux_m68k) then
                 begin
                     procinfo.aktentrycode^.insert(new(pai68k,
                      op_csymbol(A_JSR,S_NO,newcsymbol('FPC_INIT_STACK_CHECK',0))));
@@ -614,7 +614,7 @@ begin
                     if cs_littlesize in aktglobalswitches  then
                         begin
                             if (cs_check_stack in aktlocalswitches) and
-                               (target_info.target<>target_linux) then
+                               (target_info.target<>target_linux_m68k) then
                                 begin
                                   { If only not in main program, do we setup stack checking }
                                   if (aktprocsym^.definition^.options and poproginit=0) then
@@ -1345,7 +1345,18 @@ end;
 end.
 {
   $Log$
-  Revision 1.19  1998-10-08 13:48:40  peter
+  Revision 1.20  1998-10-13 08:19:29  pierre
+    + source_os is now set correctly for cross-processor compilers
+      (tos contains all target_infos and
+       we use CPU86 and CPU68 conditionnals to
+       get the source operating system
+       this only works if you do not undefine
+       the source target  !!)
+    * several cg68k memory leaks fixed
+    + started to change the code so that it should be possible to have
+      a complete compiler (both for m68k and i386 !!)
+
+  Revision 1.19  1998/10/08 13:48:40  peter
     * fixed memory leaks for do nothing source
     * fixed unit interdependency
 

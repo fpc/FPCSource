@@ -116,8 +116,14 @@ uses
 Function DoPipe:boolean;
 begin
   DoPipe:=(cs_asm_pipe in aktglobalswitches) and
-          not(cs_asm_leave in aktglobalswitches) and
-          (aktoutputformat=as_o);
+          not(cs_asm_leave in aktglobalswitches)
+{$ifdef i386}
+          and (aktoutputformat=as_o)
+{$else}
+{$ifdef m68k}
+          and (aktoutputformat=as_m68k_o)
+{$endif m68k}
+{$endif i386}
 end;
 
 
@@ -423,16 +429,16 @@ begin
 {$endif}
 {$ifdef m68k}
   {$ifndef NoAg68kGas}
-     as_o,
-   as_gas : a:=new(pm68kgasasmlist,Init);
+     as_m68k_o,
+   as_m68k_gas : a:=new(pm68kgasasmlist,Init);
   {$endif NoAg86KGas}
   {$ifndef NoAg68kMot}
-   as_mot : a:=new(pm68kmotasmlist,Init);
+   as_m68k_mot : a:=new(pm68kmotasmlist,Init);
   {$endif NoAg86kMot}
   {$ifndef NoAg68kMit}
-   as_mit : a:=new(pm68kmitasmlist,Init);
+   as_m68k_mit : a:=new(pm68kmitasmlist,Init);
   {$endif NoAg86KMot}
-   as_mpw : a:=new(pm68kmpwasmlist,Init);
+   as_m68k_mpw : a:=new(pm68kmpwasmlist,Init);
 {$endif}
   else
    Message(assem_f_assembler_output_not_supported);
@@ -458,7 +464,18 @@ end;
 end.
 {
   $Log$
-  Revision 1.24  1998-10-08 23:28:50  peter
+  Revision 1.25  1998-10-13 08:19:24  pierre
+    + source_os is now set correctly for cross-processor compilers
+      (tos contains all target_infos and
+       we use CPU86 and CPU68 conditionnals to
+       get the source operating system
+       this only works if you do not undefine
+       the source target  !!)
+    * several cg68k memory leaks fixed
+    + started to change the code so that it should be possible to have
+      a complete compiler (both for m68k and i386 !!)
+
+  Revision 1.24  1998/10/08 23:28:50  peter
     * -vu shows unit info, -vt shows tried/used files
 
   Revision 1.23  1998/10/07 04:27:37  carl

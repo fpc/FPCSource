@@ -762,6 +762,7 @@ implementation
                                end
                              else
                                begin
+                                  hregister:=getregister32;
                                   emit_reg_reg(A_MOVE,opsize,p^.left^.location.register,
                                     hregister);
                                end
@@ -777,6 +778,7 @@ implementation
                                end
                              else
                                begin
+                                  hregister:=getregister32;
                                   { first give free, then demand new register }
                                  exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,opsize,
                                    newreference(p^.left^.location.reference),hregister)));
@@ -1268,7 +1270,18 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  1998-10-09 11:47:47  pierre
+  Revision 1.9  1998-10-13 08:19:25  pierre
+    + source_os is now set correctly for cross-processor compilers
+      (tos contains all target_infos and
+       we use CPU86 and CPU68 conditionnals to
+       get the source operating system
+       this only works if you do not undefine
+       the source target  !!)
+    * several cg68k memory leaks fixed
+    + started to change the code so that it should be possible to have
+      a complete compiler (both for m68k and i386 !!)
+
+  Revision 1.8  1998/10/09 11:47:47  pierre
     * still more memory leaks fixes !!
 
   Revision 1.7  1998/10/08 17:17:15  pierre
