@@ -35,26 +35,25 @@ Under no circumstances should the two units be used together.
 \item The mouse driver does not know when the text screen scrolls. This results
 in unerased mouse cursors on the screen when the screen scrolls while the
 mouse cursor is visible. The solution is to hide the mouse cursor (using
-HideMouse) when you write something to the screen and to show it again
+HideMouse) when writing something to the screen and to show it again
 afterwards (using ShowMouse).
 \item All Functions/Procedures that return and/or accept coordinates of the mouse
 cursor, always do so in pixels and zero based (so the upper left corner of
 the screen is (0,0)). To get the (column, row) in standard text mode, divide
-both x and y by 8 (and add 1 if you want to have it 1 based).
+both x and y by 8 (and add 1 if it must be 1 based).
 \item The real resolution of graphic modes and the one the mouse driver uses can
 differ. For example, mode 13h (320*200 pixels) is handled by the mouse driver
-as 640*200, so you will have to multiply the X coordinates you give to the
-driver and divide the ones you get from it by 2 in that mode.
+as 640*200, so the X coordinates given to the
+driver must be multiplied by 2 and divided by 2 when the return from the
+driver in that mode.
 \item By default the msmouse unit is compiled with the conditional define
 MouseCheck. This causes every procedure/function of the unit to check the
 MouseFound variable prior to doing anything. Of course this is not necessary,
-so if you are sure you are not calling any mouse unit procedures when no
-mouse is found, you can recompile the mouse unit without this conditional
-define.
-\item
-You will notice that several procedures/functions have longint sized
-parameters while only the lower 16 bits are used. This is because FPC is
-a 32 bit compiler and consequently 32 bit parameters result in faster code.
+so when proper checking is added to the calling program, this define may be
+removed and the unit can be recompiled.
+\item Several procedures/functions have longint sized parameters while only 
+the lower 16 bits are used. This is because FPC is a 32 bit compiler and 
+consequently 32 bit parameters result in faster code.
 \end{itemize}
 \section{Constants, types and variables}
 The following constants are defined (to be used in e.g. the
@@ -80,8 +79,8 @@ Function GetLastButtonPress (Button: Longint; Var x,y:Longint) : Longint;
 Stores the position where \var{Button} was last pressed in \var{x} and
 \var{y} and returns
 the number of times this button has been pressed since the last call to this
-function with \var{Button} as parameter. For \var{Button} you can use the 
-\var{LButton}, \var{RButton} and \var{MButton} constants for resp. the left, 
+function with \var{Button} as parameter. For \var{Button} the 
+\var{LButton}, \var{RButton} and \var{MButton} constants can be used for resp. the left, 
 right and middle button.
 With certain mouse drivers, checking the middle button when using a
 two-button mouse to gives and clears the stats of the right button.
@@ -104,8 +103,8 @@ Function GetLastButtonRelease (Button: Longint; Var x,y:Longint) : Longint;
 stores the position where \var{Button} was last released in \var{x} and 
 \var{y} and returns
 the number of times this button has been released since the last call to this
-function with \var{Button} as parameter. For button you can use the
-\var{LButton}, \var{RButton} and \var{MButton} constants for resp. 
+function with \var{Button} as parameter. For button the
+\var{LButton}, \var{RButton} and \var{MButton} constants can be used for resp. 
 the left, right and middle button.
 With certain mouse drivers, checking the middle button when using a
 two-button mouse to gives and clears the stats of the right button.
@@ -127,7 +126,7 @@ Procedure GetMouseState (Var x, y, buttons: Longint);
 \var{GetMouseState} Returns information on the current mouse position 
 and which buttons are currently pressed.
 \var{x} and \var{y} return the mouse cursor coordinates in pixels.
-\var{Buttons} is a bitmask. Check the example program to see how you can get the
+\var{Buttons} is a bitmask. Check the example program to see how to get the
 necessary information from it.
 
 \Errors
@@ -163,10 +162,9 @@ Procedure InitMouse ;
 
 \var{InitMouse}
 Initializes the mouse driver sets the variable \var{MouseFound} depending on
-whether or not a mouse is found.
-This is Automatically called at the start of your program. 
-You should never have to call it, unless you want to reset everything to 
-its default values.
+whether or not a mouse is found. This is Automatically called at the start of 
+a program. Normally it should never be called, unless everything should be
+reset to its default values.
 
 \Errors
 None.
@@ -237,8 +235,8 @@ Procedure SetMouseAscii (Ascii: Byte);
 sets the \var{Ascii} value of the character that depicts the mouse cursor in 
 text mode.
 The difference between this one and \seep{SetMouseShape}, is that the foreground
-and background colors stay the same and that the Ascii code you enter is the
-character that you will get on screen; there's no XOR'ing.
+and background colors stay the same and that the Ascii code entered is the
+character that will get on screen; there's no XOR'ing.
 
 \Errors
 None
@@ -258,9 +256,9 @@ Procedure SetMouseHideWindow (xmin,ymin,xmax,ymax: Longint);
 defines a rectangle on screen with top-left corner at (\var{xmin,ymin}) and
 botto-right corner at (\var{xmax,ymax}),which causes the mouse cursor to be 
 turned off when it is moved into it.
-When the mouse is moved into the specified region, it is turned off until you
-call \var{ShowMouse} again. However, once you've called \seep{ShowMouse}, you'll have to
-call \var{SetMouseHideWindow} again to redefine the hide window... 
+When the mouse is moved into the specified region, it is turned off until 
+call \var{ShowMouse} is called again. However, once \seep{ShowMouse} is
+called,  \var{SetMouseHideWindow} must be called again to redefine the hide window... 
 This may be annoying, but it's the way it's implemented in the mouse driver.
 While \var{xmin, ymin, xmax} and \var{ymax} are Longint parameters, 
 only the lower 16 bits are used.
@@ -323,7 +321,7 @@ Procedure SetMouseSpeed (Horizontal, Vertical: Longint);
 
 \var{SetMouseSpeed} sets the mouse speed in mickeys per 8 pixels.
 A mickey is the smallest measurement unit handled by a mouse. With this
-procedure you can set how many mickeys the mouse should move to move the
+procedure one can set how many mickeys the mouse should move to move the
 cursor 8 pixels horizontally of vertically. The default values are 8 for
 horizontal and 16 for vertical movement.
 While this procedure accepts longint parameters, only the low 16 bits are
@@ -407,7 +405,7 @@ Procedure ShowMouse ;
 \Description
 
 \var{ShowMouse} makes the mouse cursor visible.
-At the start of your progam, the mouse cursor is invisible.
+At the start of the program, the mouse cursor is invisible.
 
 \Errors
 None.

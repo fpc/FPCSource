@@ -25,6 +25,11 @@
 This document describes the \var{GRAPH} unit for Free Pascal, for all
 platforms. The unit was first written for \dos by Florian kl\"ampfl, but was
 later completely rewritten by Carl-Eric Codere to be completely portable.
+The unit is provided for compatibility only: It is recommended to use more
+modern graphical systems. The graph unit will allow to recompile old
+programs, they will work to some extent, but if the application has 
+heavy graphical needs, it's recommended to use another set of graphical
+routines, suited to the platform the program should work on.
 
 This chapter is divided in 4 sections. 
 \begin{itemize}
@@ -860,9 +865,7 @@ None.
 \Declaration
 Procedure InitGraph (var GraphDriver,GraphModus : integer;\\
 const PathToDriver : string);
-
 \Description
-
 \var{InitGraph} initializes the \var{graph} package.
 \var{GraphDriver} has two valid values: \var{GraphDriver=0} which
 performs an auto detect and initializes the highest possible mode with the most
@@ -873,7 +876,8 @@ from zero
 and \var{graphmode} to the mode you wish (VESA modes where 640x480x256
 is \var {101h} etc.).
 \var{PathToDriver} is only needed, if you use the BGI fonts from
-Borland.
+Borland. Free Pascal does not offer BGI fonts like Borland, these must be
+obtained separately. 
 \Errors
 None.
 \SeeAlso
@@ -1497,6 +1501,71 @@ In what follows we describe some things that are different on the various
 platforms:
 
 \subsection{\dos}
-\subsection{\windows}
-\subsection{\linux}
+VESA modes (i.e., anything but 320x200x256 and 640x480x16) do not work 
+under most installations of Windows NT, Windows 2000 and Windows XP. 
+They also do not work for some people under Windows 98 and Windows ME, 
+depending on their graphics drivers. However, the graph unit cannot 
+detect this, because no errors are returned from the system. 
+In such cases, the screen simply turns black, or will show garbage.
 
+Nothing can be done about this, the reason is missing or buggy
+support in the graphics drivers of the operating system.
+
+\subsection{\windows}
+The windows version of the Graph units is not very performant. It works,
+thus allowing to port old TP programs to Windows, but that is all what can
+be expected from it. Further, it is windowed only: A separate window is
+opened in which the graphics are displayed. This means that the normal 
+keyboard/mouse handling as provided by the crt and/or keyboard/mouse units
+wil not work in the graphical window. If keyboard and mouse input are needed
+the winmouse and the wincrt unit should be used instead. 
+To hide the console window, compile with the
+\begin{verbatim}
+{$apptype gui}
+\end{verbatim}
+switch.
+
+Further, the following extra modes are available:
+\begin{verbatim}
+mLargestWindow16  = $f0;
+mLargestWindow256 = $f1;
+mLargestWindow32k = $f2;
+mLargestWindow64k = $f3;
+mLargestWindow16M = $f4;
+mMaximizedWindow16 = $f5;
+mMaximizedWindow256 = $f6;
+mMaximizedWindow32k = $f7;
+mMaximizedWindow64k = $f8;
+mMaximizedWindow16M = $f9;
+\end{verbatim}
+
+\subsection{\linux}
+There are several issues on Linux that need to be taken care of:
+\begin{enumerate}
+\item The Linux version of the \file{Graph} unit uses the \file{libvga} 
+library. This library works on the console, not under X.
+\item If you get an error similar to
+\begin{verbatim}
+/usr/bin/ld: cannot find -lvga
+\end{verbatim}
+This can mean one of two things: either libvga is not installed properly, or
+the directory where it is installed is not in the linker path. To remedy the
+former, you should install both the libvga package and libvga-devel package
+(or compile and install from scratch).
+
+To remedy the latter, you should add the path to the compiler command-line
+using the \var{-Fl} option.
+\item Programs using \file{libvga} need root privileges to run. 
+You can make them setuid root with the following command:
+\begin{verbatim}
+chown root.root myprogram
+chmod u+s myprogram
+\end{verbatim}
+The libvga library will give up the root privileges after it is initialized.
+\item there is an experimental version of the Graphics library available that
+uses GGI to do all the drawing, but it is not well tested. It's called
+\file{ggigraph} and is distributed in source form only.
+\item Do not use the CRT unit together with the Graph unit: the console may
+end up in an unusable state. Instead, the \file{ncurses} unit may function 
+fine.
+\end{enumerate}

@@ -99,6 +99,18 @@ ifndef DEBUG
 endif
 	touch fpdoc.chk
 
+chart: chart.chk
+chart.chk: htex.chk includes
+	cp -f preamble.html preamble.inc
+	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 2 -link 2\
+	-t "Free Pascal documentation tool manual" chart.htex
+	-sed -f foot.sed <chart/footnode.html >chart/footnote.html
+	-mv chart/footnote.html chart/footnode.html
+ifndef DEBUG
+	-rm -f chart/labels.pl chart/internals.pl chart/.*.pag chart/.*.dir
+	-rm -f chart/images.* chart/*.log chart/WARNINGS
+endif
+	touch chart.chk
 
 html: $(HTML)
 

@@ -1,12 +1,19 @@
 \begin{psyntax}{Constant parameters}{constparameters}
 \synt{constant\ parameter}
-\lit*{const} \synt{identifier\ list} 
+\lit*{const} 
+\begin{stack}
+\synt{identifier\ list} 
 \begin{stack}\\
 \lit* :
-\begin{stack}\\
+\begin{stack}
+\\
 \lit*{array}
 \lit*{of}
 \end{stack}
 \synt{parameter\ type}
+\end{stack}
+\\
+\synt{identifier} \lit*: \synt{parameter\ type}
+\lit*= \synt{default\ parameter\ value}
 \end{stack}
 \end{psyntax}

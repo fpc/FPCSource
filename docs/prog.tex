@@ -1281,7 +1281,7 @@ practice to use makefiles and makefile variables.
 
 \subsection{\var{\protect\$W} or \var{\protect\$STACKFRAMES} : Generate stackframes}
 
-The \var{\{\$W\}} switch directove controls the generation of stackframes.
+The \var{\{\$W\}} switch directive controls the generation of stackframes.
 In the on state, the compiler will generate a
 stackframe for every procedure or function.
 
@@ -1673,7 +1673,7 @@ need to compile with the \var{-Sm} command-line switch.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Using Assembly language}
 \label{ch:AsmLang}
-\fpc supports inserting assembler statements in your code. The
+\fpc supports inserting assembler statements in between Pascal code. The
 mechanism for this is the same as under Turbo Pascal. There are, however
 some substantial differences, as will be explained in the following
 sections.
@@ -5652,6 +5652,8 @@ Limitations section in this guide (\ref{se:ProcessorLimits}).
 Here we list the exact effect of the different compiler modes. They can be
 set with the \var{\$Mode} switch, or by command line switches.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% FPC mode
 \section{FPC mode}
 This mode is selected by the \var{{\$MODE FPC}} switch. On the command-line,
 this means that you use none of the other compatibility mode switches.
@@ -5667,6 +5669,9 @@ parameters when implementing the function or procedure.
 \item You can use the cvar type.
 \item PChars are converted to strings automatically.
 \end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% TP mode
 \section{TP mode}
 This mode is selected by the \var{{\$MODE TP}} switch. It tries to emulate, 
 as closely as possible, the behavior of Turbo Pascal 7. On the command-line,
@@ -5684,6 +5689,9 @@ parameters when implementing the function or procedure.
 \item Nested comments are not allowed.
 \item You can not use the cvar type.
 \end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Delphi mode.
 \section{Delphi mode}
 This mode is selected by the \var{{\$MODE DELPHI}} switch. It tries to emulate,
 as closely as possible, the behavior of Delphi 4. On the command-line,
@@ -5698,7 +5706,12 @@ parameters when implementing the function or procedure.
 \item The Objpas unit is loaded right after the \file{system} unit. One of the
 consequences of this is that the type \var{Integer} is redefined as
 \var{Longint}.
+\item Parameters in class methods can have the same names as class
+properties (although it is bad programming practice).
 \end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% GPC Mode
 \section{GPC mode}
 This mode is selected by the \var{{\$MODE GPC}} switch. On the command-line,
 this mode is selected by the \var{-Sp} switch.
@@ -5712,6 +5725,9 @@ parameters when implementing the function or procedure.
 \item Nested comments are not allowed.
 \item You can not use the cvar type.
 \end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Objfpc mode
 \section{OBJFPC mode}
 This mode is selected by the \var{{\$MODE OBJFPC}} switch. On the command-line,
 this mode is selected by the \var{-S2} switch.
@@ -5727,6 +5743,8 @@ consequences of this is that the type \var{Integer} is redefined as
 \var{Longint}.
 \item You can use the cvar type.
 \item PChars are converted to strings automatically.
+\item Parameters in class methods cannot have the same names as class
+properties.
 \end{enumerate}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -13,6 +13,8 @@ preamble4:
 	cp preamble.ts4 preamble.inc		
 
 %.html: %.tex 
+	rm -f $(basename $<).aux $(basename $<).idx 
+	rm -f $(basename $<).toc $(basename $<).ind
 	$(LATEX) $<
 	$(LATEX) $<
 	$(LATEX) $<
@@ -27,5 +29,6 @@ prog: htmlincludes preamble3 prog.html
 onechap: htmlincludes preamble3 onechap.html
 ref: htmlincludes preamble4 ref.html
 fpdoc: htmlincludes preamble3 fpdoc.html
+chart: htmlincludes preamble3 chart.html
 
 html: htmlincludes $(HTML)

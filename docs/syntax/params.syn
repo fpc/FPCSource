@@ -6,9 +6,9 @@
 \begin{mysyntdiag}
 \synt{parameter\ declaration}
 \begin{stack}
-\synt{value\ parameter}\\
-\synt{variable\ parameter}\\
-\synt{constant\ parameter}
+\synt{value\ parameter} \\
+\synt{constant\ parameter} \\
+\synt{variable\ parameter}
 \end{stack}
 \end{mysyntdiag}
 \end{diagram}

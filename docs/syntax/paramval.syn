@@ -1,6 +1,11 @@
 \begin{psyntax}{Value parameters}{valueparameters}
 \synt{value\ parameter}
+\begin{stack}
 \synt{identifier\ list} \lit*: 
 \begin{stack}\\ \lit*{array} \lit*{of} \end{stack}
 \synt{parameter\ type}
+\\
+\synt{identifier} \lit*: \synt{parameter\ type}
+\lit*= \synt{default\ parameter\ value}
+\end{stack}
 \end{psyntax}

@@ -441,6 +441,9 @@ in a compiler error:
   s := 'some other string';
 \end{verbatim}
 
+Prior to version 1.9, \fpc did not correctly support 64-bit constants. As
+of version 1.9, 64-bits constants can be specified.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Typed constants
 \section{Typed constants}
@@ -950,6 +953,26 @@ It is therefore NOT advisable to typecast one of the following:
 \item strings that have reference count larger than 0.
 (call uniquestring to ensure a string has reference count 1)
 \end{enumerate}
+
+\subsection{WideStrings}
+Widestrings (used to represent unicode character strings) are implemented in much 
+the same way as ansistrings: reference counted, null-terminated arrays, only they 
+are implemented as arrays of \var{WideChars} instead of regular \var{Chars}.
+A \var{WideChar} is a two-byte character (an element of a DBCS: Double Byte
+Character Set). Mostly the same rules apply for \var{WideStrings} as for 
+\var{AnsiStrings}. The compiler transparantly converts WideStrings to
+AnsiStrings and vice versa. 
+
+Similarly to the typecast of an Ansistring to a \var{PChar} null-terminated 
+array of characters, a WideString can be converted to a \var{PWideChar} 
+null-terminated array of characters. 
+Note that the \var{PWideChar} array is terminated by 2 null bytes instead of
+1, so a typecast to a pchar is not automatic.
+
+The compiler itself provides no support for any conversion from Unicode to
+ansistrings or vice versa; 2 procedural variables are present in the system 
+unit which can be set to handle the conversion. For more information, see
+the system units reference.
 
 % Constant strings
 \subsection{Constant strings}
@@ -1779,7 +1802,53 @@ begin
   Writeln('I : ',I);
 end.
 \end{verbatim}
-The first assignment will work
+The first assignment will work, but the second will not, as \var{Something else}
+cannot be converted to a valid integer value. An \var{EConvertError} exception 
+will be the result.
+
+The result of an expression involving a variant will be of type variant again, 
+but this can be assigned to a variable of a different type - if the result
+can be converted to a variable of this type.
+
+Note that expressions involving variants take more time to be evaluated, and
+should therefore be used with caution. If a lot of calculations need to be
+made, it is best to avoid the use of variants.
+ 
+\subsection{Variants and interfaces}
+
+\begin{remark}
+Dispatch interface support for variants is currently broken in the compiler.
+\end{remark}
+
+Variants can contain a reference to an interface - a normal interface
+(descending from \var{IInterface}) or a dispatchinterface (descending 
+from \var{IDispatch}). Variants containing a reference to a dispatch
+interface can be used to control the object behind it: the compiler will use
+late binding to perform the call to the dispatch interface: there will be no
+run-time checking of the function names and parameters or arguments given to 
+the functions. The result type is also not checked. The compiler will simply
+insert code to make the dispatch call and retrieve the result. 
+
+This means basically, that you can do the following on Windows:
+\begin{verbatim}
+Var
+  W : Variant;
+  V : String;
+
+begin
+  W:=CreateOleObject('Word.Application');
+  V:=W.Application.Version;
+  Writeln('Installed version of MS Word is : ',V);
+end;
+\end{verbatim}
+The line 
+\begin{verbatim}
+  V:=W.Application.Version;
+\end{verbatim}
+is executed by inserting the necessary code to query the dispatch interface
+stored in the variant \var{W}, and execute the call if the needed dispatch
+information is found.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Objects
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2187,6 +2256,26 @@ these classes. Fields defined in a \var{published} section must be of class type
 Array peroperties cannot be in a \var{published} section.
 \end{description}
 
+It is also possible to define class reference types:
+\input{syntax/classref.syn}
+Class reference types are used to create instances of a certain class, which
+is not yet known at compile time, but which is specified at run time. 
+Essentially, a variable of a class reference type contains a pointer to the
+VMT of the speficied class. This can be used to construct an instance of the
+class corresponding to the VMT. The following example shows how it works:
+\begin{verbatim}
+Type
+  TComponentClass = Class of TComponent;
+
+Function CreateComponent(AClass : TComponentClass; AOwner : TComponent) : TComponent;
+
+begin
+  // ...
+  Result:=AClass.Create(AOwner);
+  // ...
+end;
+\end{verbatim}
+More about instantiating a class can be found in the next section.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Class instantiation
@@ -2245,12 +2334,13 @@ virtual was used.
 
 The following code is {\em wrong}:
 \begin{verbatim}
-Type ObjParent = Class
-        Procedure MyProc; virtual;
-     end;
-     ObjChild  = Class(ObjPArent)
-       Procedure MyProc; virtual;
-     end;
+Type 
+  ObjParent = Class
+    Procedure MyProc; virtual;
+  end;
+  ObjChild  = Class(ObjPArent)
+    Procedure MyProc; virtual;
+  end;
 \end{verbatim}
 The compiler will produce a warning:
 \begin{verbatim}
@@ -2787,7 +2877,7 @@ The function that will get called is the function with a declared parameter
 list that matches the actual parameter list. This means that
 \begin{enumerate}
 \item The number of actual parameters must equal the number of declared
-parameters.
+parameters (unless default parameter values are used).
 \item The types of the parameters must be compatible. For variable
 reference parameters, the parameter types must be exactly the same.
 \end{enumerate}
@@ -3582,6 +3672,11 @@ only in that procedure or function's block.
 \input{syntax/params.syn}
 Constant parameters and variable parameters can also be \var{untyped}
 parameters if they have no type identifier.
+
+As of version 1.1, \fpc supports default values for both constant parameters
+and value parameters, but only for simple types. The compiler must be in
+\var{OBJFPC} or \var{DELPHI} mode to accept default values. 
+
 \subsection{Value parameters}
 Value parameters are declared as follows:
 \input{syntax/paramval.syn}
@@ -3601,6 +3696,31 @@ portability's sake (the Intel version limits this to 64K).
 
 Open arrays can be passed as value parameters. See \sees{openarray} for
 more information on using open arrays.
+
+For a parameter of a  simple type (i.e. not a structured type), a default
+value can be specified. This can be an untyped constant. If the function
+call omits the parameter, the default value will be passed on to the
+function. For dynamic arrays or other types that can be considered as
+equivalent to a pointer, the only possible default value is \var{Nil}.
+
+The following example will print 20 on the screen:
+\begin{verbatim}
+program testp;
+
+Const
+  MyConst = 20;
+
+Procedure MyRealFunc(I : Integer = MyConst);
+
+begin
+  Writeln('Function received : ',I);
+end;  
+  
+begin
+  MyRealFunc;
+end.    
+\end{verbatim}
+
 \subsection{Variable parameters}
 \label{se:varparams}
 Variable parameters are declared as follows:
@@ -3626,6 +3746,25 @@ File type variables must always be passed as variable parameters.
 
 Open arrays can be passed as variable parameters. See \sees{openarray} for
 more information on using open arrays.
+
+Note that default values are not supported for variable parameters. This
+would make little sense since it defeats the purpose of being able to pass a
+value back to the caller.
+
+\subsection{Out parameters}
+\label{se:outparams}
+Out parameters  (output parameters) are declared as follows:
+\input{syntax/paramout.syn}
+The purpose of an \var{out} parameter is to pass values back to the calling
+routine: The variable is passed by reference. The initial value of the 
+parameter on function entry is discarded, and should not be used.
+
+If a variable must be used to pass a value to a function and retrieve data
+from the function, then a variable parameter must be used. If only a value
+must be retrieved, a \var{out} parameter can be used.
+
+Needless to say, default values are not supported for \var{out} parameters.
+
 \subsection{Constant parameters}
 In addition to variable parameters and value parameters \fpc also supports
 Constant parameters. A constant parameter as can be specified as follows:
@@ -3642,6 +3781,8 @@ performance, and still retaining the semantics of passing by value...
 
 Constant parameters can also be untyped. See \sees{varparams} for more
 information about untyped parameters.
+
+As for value parameters, constant parameters can get default values.
 
 Open arrays can be passed as constant parameters. See \sees{openarray} for
 more information on using open arrays.
@@ -3823,6 +3964,13 @@ generated.
 functions that have a \var{cdecl} modifier cannot be overloaded.
 (Technically, because this modifier prevents the mangling of
 the function name by the compiler).
+
+Prior to version 1.9 of the compiler, the overloaded functions needed to be
+in the same unit. Now the compiler will continue searching in other units if
+it doesn't find a matching version of an overloaded function in one unit.
+
+The compiler accepts the presence of the \var{overload} modifier as in
+Delphi, but it is not required, unless in Delphi mode.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % forward defined functions

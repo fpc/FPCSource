@@ -23,7 +23,7 @@
 
 HOSTOS=$(shell ppc386 -iSO)
 # Which docs are made when 'html' is specified
-HTML = user units ref prog fpdoc fcl
+HTML = user units ref prog fpdoc fcl chart
 
 # Can be 'report','book', 'html', 'hevea', 'ts3' 'ts4'
 ifdef USEHEVEA
@@ -319,7 +319,8 @@ endif
 #####################################################################
 # Tex from XML
 #####################################################################
-FCLOPTS=--package=fcl --descr=classes.xml --input='$(FPCSRCDIR)/rtl/$(HOSTOS)/classes.pp -Fi$(FPCSRCDIR)/rtl/objpas/classes'
+FCLOPTS=--package=fcl --descr=classes.xml --input='$(FPCSRCDIR)/fcl/classes/$(HOSTOS)/classes.pp -Fi$(FPCSRCDIR)/fcl/inc -Fi$(FPCSRCDIR)/fcl/classes'
+#FCLOPTS=--package=fcl --descr=classes.xml --input='$(FPCSRCDIR)/rtl/$(HOSTOS)/classes.pp -Fi$(FPCSRCDIR)/rtl/objpas/classes'
 
 fcl.inc: classes.xml
 	$(FPDOC) --output=fcl.inc $(FCLOPTS) --format=latex
@@ -342,6 +343,8 @@ fpdoc.dvi: fpdoc.tex includes
 
 fcl.dvi: fcl.tex fcl.inc includes
 
+chart.dvi: chart.tex
+
 units.pdf: units.tex includes $(CHAPTERS)
 
 ref.pdf: ref.tex includes
@@ -357,6 +360,8 @@ onechap.dvi: onechap.tex includes
 fpdoc.pdf: fpdoc.tex includes
 
 fcl.pdf: fcl.tex fcl.inc includes
+
+chart.pdf: chart.tex
 
 dvi : $(DVI)
 
@@ -550,7 +555,10 @@ execute:
 
 #
 # $Log$
-# Revision 1.23  2003-11-02 00:14:23  marco
+# Revision 1.24  2003-11-16 00:03:03  michael
+# + Many changes for 2.0 beta
+#
+# Revision 1.23  2003/11/02 00:14:23  marco
 #  * fixed classes moving to rtl, and the OS dependancy of the classes unit
 #    generation.
 #
