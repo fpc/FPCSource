@@ -74,12 +74,16 @@ end;
 Function FileAge (Const FileName : String): Longint;
 
 Var Info : Stat;
+    Y,M,D,hh,mm,ss : word;
 
 begin
   If not fstat (FileName,Info) then
     exit(-1)
   else
-    Exit (Info.mtime);
+    begin
+    EpochToLocal(info.mtime,y,m,d,hh,mm,ss);
+    Result:=DateTimeToFileDate(EncodeDate(y,m,d)+EncodeTime(hh,mm,ss,0));
+    end;
 end;
 
 
@@ -93,6 +97,8 @@ end;
 
 Function LinuxToWinAttr (FN : Char; Const Info : Stat) : Longint;
 
+
+
 begin
   Result:=0;
   If FN='.' then
@@ -101,6 +107,9 @@ begin
     Result:=Result or faDirectory;
   If (Info.Mode and STAT_IWUSR)=0 Then
      Result:=Result or faReadOnly;
+  If (Info.Mode and 
+      (STAT_IFSOCK or STAT_IFBLK or STAT_IFCHR or STAT_IFIFO))<>0 then
+     Result:=Result or faSysFile;  
 end;
 
 {
@@ -272,7 +281,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  1999-04-08 11:31:01  peter
+  Revision 1.10  1999-05-13 21:54:09  michael
+  * Fixed FileAge and corrected FileGetAttr
+
+  Revision 1.9  1999/04/08 11:31:01  peter
     * removed warnings
 
   Revision 1.8  1999/02/28 13:18:10  michael
