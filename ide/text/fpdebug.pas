@@ -35,6 +35,8 @@ type
      HiddenStepsCount : longint;
      { no need to switch if using another terminal }
      NoSwitch : boolean;
+     IsRunning : boolean;
+     RunCount : longint;
     constructor Init(const exefn:string);
     destructor  Done;
     procedure DoSelectSourceline(const fn:string;line:longint);virtual;
@@ -56,6 +58,7 @@ type
     procedure CommandBegin(const s:string);virtual;
     procedure CommandEnd(const s:string);virtual;
     function  AllowQuit : boolean;virtual;
+    function GetValue(Const expr : string) : pchar;
   end;
 
   BreakpointType = (bt_function,bt_file_line,bt_watch,bt_awatch,bt_rwatch,bt_invalid);
@@ -601,6 +604,7 @@ begin
   { Switch to user screen to get correct handles }
   UserScreen;
   inherited Run;
+  IsRunning:=true;
   DebuggerScreen;
   IDEApp.SetCmdState([cmResetDebugger,cmUntilReturn],true);
   UpdateDebugViews;
@@ -679,6 +683,7 @@ procedure TDebugController.Reset;
 begin
   inherited Reset;
   NoSwitch:=false;
+  IsRunning:=false;
   IDEApp.SetCmdState([cmResetDebugger,cmUntilReturn],false);
   ResetDebuggerRows;
 end;
@@ -694,6 +699,39 @@ begin
     end;
 end;
 
+function TDebugController.GetValue(Const expr : string) : pchar;
+var
+  p,p2,p3 : pchar;
+begin
+  Command('p '+expr);
+  p:=GetOutput;
+  p3:=nil;
+  if assigned(p) and (p[strlen(p)-1]=#10) then
+   begin
+     p3:=p+strlen(p)-1;
+     p3^:=#0;
+   end;
+  if assigned(p) then
+    p2:=strpos(p,'=')
+  else
+    p2:=nil;
+  if assigned(p2) then
+    p:=p2+1;
+  while p^ in [' ',TAB] do
+    inc(p);
+  { get rid of type }
+  if p^ = '(' then
+    p:=strpos(p,')')+1;
+  while p^ in [' ',TAB] do
+    inc(p);
+  if assigned(p) then
+    GetValue:=StrNew(p)
+  else
+    GetValue:=StrNew(GetError);
+  if assigned(p3) then
+    p3^:=#10;
+  got_error:=false;
+end;
 
 procedure TDebugController.DoSelectSourceLine(const fn:string;line:longint);
 var
@@ -818,6 +856,7 @@ begin
                    #3'exitcode = %d'#13+
                    #3'hidden steps = %d',@P);
      end;
+   IsRunning:=false;
 end;
 
 
@@ -837,6 +876,7 @@ end;
 
 procedure TDebugController.DoUserScreen;
 begin
+  Inc(RunCount);
   if NoSwitch then
     begin
       PushStatus('Executable running in another window..');
@@ -2717,7 +2757,7 @@ end;
                         rs.esp:=v
                       else if reg='ebp' then
                         rs.ebp:=v
-                      { under win32 flags are on a register named ps !! PM }
+                       under win32 flags are on a register named ps !! PM
                       else if (reg='eflags') or (reg='ps') then
                         rs.eflags:=v
                       else if reg='cs' then
@@ -3072,7 +3112,7 @@ begin
 
   if TargetSwitches^.GetCurrSelParam<>source_os.shortname then
     begin
-     cm:=ConfirmBox(#3'Sorry, can not debug'#13#3'programs compiled for'
+     cm:=ConfirmBox(#3'Sorry, can not debug'#13#3'programs compiled for '
        +TargetSwitches^.GetCurrSelParam+'.'#13#3
        +'Change target to '
        +source_os.shortname+'?',nil,true);
@@ -3230,7 +3270,10 @@ end.
 
 {
   $Log$
-  Revision 1.54  2000-03-06 11:34:25  pierre
+  Revision 1.55  2000-03-07 21:52:54  pierre
+   + TDebugController.GetValue
+
+  Revision 1.54  2000/03/06 11:34:25  pierre
    + windebug unit for Window Title change when debugging
 
   Revision 1.53  2000/02/07 12:51:32  pierre
