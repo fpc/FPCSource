@@ -45,15 +45,6 @@
        vmtDefaultHandlerStr    = vmtMethodStart+28;
 
     type
-       { some pointer definitions }
-       pshortstring = ^shortstring;
-       plongstring  = ^longstring;
-       pansistring  = ^ansistring;
-       pwidestring  = ^widestring;
-       // pstring   = pansistring;
-       pextended    = ^extended;
-       ppointer     = ^pointer;
-
        { now the let's declare the base classes for the class object }
        { model                                                       }
        tobject = class;
@@ -183,6 +174,12 @@
           property RefCount : longint read frefcount;
        end;
 
+       { some pointer definitions }
+       PUnknown = ^IUnknown;
+       PPUnknown = ^PUnknown;
+       PDispatch = ^IDispatch;
+       PPDispatch = ^PDispatch;
+
 {$endif HASINTF}
 
        TExceptProc = Procedure (Obj : TObject; Addr,Frame: Pointer);
@@ -273,7 +270,11 @@
        end;
 {
   $Log$
-  Revision 1.8  2000-11-07 23:42:21  florian
+  Revision 1.9  2001-03-22 23:26:37  florian
+    * some types moved to systemh
+    + some types like PDispatch added
+
+  Revision 1.8  2000/11/07 23:42:21  florian
     + AfterConstruction and BeforeDestruction implemented
     + TInterfacedObject implemented
 
