@@ -129,6 +129,9 @@ interface
     { returns the mmx type }
     function mmx_type(p : pdef) : tmmxtype;
 
+    { should we try to unget a temp of this type
+      or is it done by temptoremove list (PM) }
+    function ungettempoftype(p : pdef) : boolean;
 
 implementation
 
@@ -473,7 +476,17 @@ implementation
         end;
       end;
 
+    { should we try to unget a temp of this type
+      or is it done by temptoremove list (PM) }
+    function ungettempoftype(p : pdef) : boolean;
 
+      begin
+         ungettempoftype:=true;
+         if assigned(p) and (p^.deftype=stringdef) and
+            (pstringdef(p)^.string_typ in [st_ansistring,st_widestring]) then
+           ungettempoftype:=false;
+      end;
+      
     function mmx_type(p : pdef) : tmmxtype;
       begin
          mmx_type:=mmxno;
@@ -781,7 +794,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.57  1999-04-14 09:15:08  peter
+  Revision 1.58  1999-04-19 09:29:51  pierre
+    + ungettempoftype(pdef) boolean function
+      returns true (can call ungetiftemp )
+      unless the temp should be "unget" with temptoremove
+      (currently ansistring or widestring !)
+
+  Revision 1.57  1999/04/14 09:15:08  peter
     * first things to store the symbol/def number in the ppu
 
   Revision 1.56  1999/03/24 23:17:42  peter
