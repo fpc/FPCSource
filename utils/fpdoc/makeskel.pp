@@ -82,6 +82,24 @@ function TSkelEngine.CreateElement(AClass: TPTreeElement; const AName: String;
         Writeln(stderr,'Creating documentation for new node ',APasElement.PathName);
       end;
   end;
+
+  Function WriteOnlyShort(APasElement : TPasElement) : Boolean;
+  
+  begin
+    Result:=(APasElement.ClassType=TPasArgument) or 
+            (APasElement.ClassType=TPasResultElement) or
+            (APasElement.ClassType=TPasEnumValue);
+  end;
+  
+  Function IsTypeVarConst(APasElement : TPasElement) : Boolean;
+  
+  begin
+    With APasElement do
+      Result:=(InheritsFrom(TPasType) and not InheritsFrom(TPasClassType)) or 
+              (InheritsFrom(TPasResString)) or
+              (InheritsFrom(TPasVariable));
+                    
+  end;
   
 begin
   Result := AClass.Create(AName, AParent);
@@ -119,18 +137,21 @@ begin
     Writeln(F,'<!-- ', Result.ElementTypeName,' Visibility: ',VisibilityNames[AVisibility], ' -->');
     WriteLn(f,'<element name="', Result.FullName, '">');
     WriteLn(f, '<short></short>');
-    WriteLn(f, '<descr>');
-    WriteLn(f, '</descr>');
-    if not DisableErrors then
-      begin
-      WriteLn(f, '<errors>');
-      WriteLn(f, '</errors>');
-      end;
-    if not DisableSeealso then
-      begin
-      WriteLn(f, '<seealso>');
-      WriteLn(f, '</seealso>');
-      end;
+    if Not WriteOnlyShort(Result) then
+      begin  
+      WriteLn(f, '<descr>');
+      WriteLn(f, '</descr>');
+      if not (DisableErrors or IsTypeVarConst(Result)) then
+        begin
+        WriteLn(f, '<errors>');
+        WriteLn(f, '</errors>');
+        end;
+      if not DisableSeealso then
+        begin
+        WriteLn(f, '<seealso>');
+        WriteLn(f, '</seealso>');
+        end;
+      end;  
     WriteLn(f, '</element>');
     end;
 end;
@@ -328,7 +349,10 @@ end.
 
 {
   $Log$
-  Revision 1.11  2004-08-28 18:18:59  michael
+  Revision 1.12  2004-08-29 15:32:41  michael
+  + More intelligent handling of nodes. Do not write unused nodes.
+
+  Revision 1.11  2004/08/28 18:18:59  michael
   + Do not write descr nodes for module when updating
 
   Revision 1.10  2004/08/28 18:15:14  michael
