@@ -572,7 +572,7 @@ implementation
                       hr2 := rg.getaddressregister(exprasmlist);
                       cg.a_loadaddr_ref_reg(exprasmlist,href, hr2);
                       reference_reset_base(href,hr2,0);
-                      right.location.reference.index := hr;
+                      href.index := hr;
                     end;
                   reference_release(exprasmlist,href);
                   cg.a_load_ref_reg(exprasmlist,OS_32,OS_32,href,location.register);
@@ -1086,7 +1086,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2003-07-06 14:28:04  jonas
+  Revision 1.45  2003-07-20 18:03:27  jonas
+    * fixed bug in tcginnode.pass_2
+
+  Revision 1.44  2003/07/06 14:28:04  jonas
     * fixed register leak
     * changed a couple of case-statements to location_force_reg()
 
