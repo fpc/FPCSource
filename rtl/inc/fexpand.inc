@@ -111,7 +111,7 @@ begin
                     Pa := S + Copy (Pa, 3, Length (Pa) - 2)
                 else
                     Pa := S + Copy (Pa, 2, Pred (Length (Pa)));
-   end;
+        end;
 {$ENDIF FPC_FEXPAND_TILDE}
 {$IFDEF FPC_FEXPAND_VOLUMES}
     if PathStart > 1 then
@@ -160,7 +160,8 @@ begin
             Delete (Pa, 1, 2);
         end;
     {Check whether we don't have an absolute path already}
-    if (Length (Pa) >= PathStart) and (Pa [PathStart] <> DirSep) then
+    if (Length (Pa) >= PathStart) and (Pa [PathStart] <> DirSep) or
+                                                 (Length (Pa) < PathStart) then
 {$ENDIF FPC_FEXPAND_DRIVES}
         begin
             GetDirIO (0, S);
@@ -296,11 +297,8 @@ end;
 
 {
   $Log$
-  Revision 1.7  2001-04-08 12:47:23  hajny
-    * invalid UNC paths handled more consistently to OS/2 and Win32 API functions
-
-  Revision 1.6  2001/04/07 19:37:27  hajny
-    * fix for absolute paths on platforms without drives (*nix), support for long volume names added
+  Revision 1.8  2001-04-09 19:28:40  hajny
+    * yet another fix for FExpand under Unix
 
   Revision 1.5  2001/03/21 21:08:20  hajny
     * GetDir fixed
