@@ -167,7 +167,7 @@ end;
 
 
 
-Procedure AssignAnsiString (Var S1 : AnsiString; S2 : AnsiString); 
+Procedure AssignAnsiString (Var S1 : AnsiString; S2 : AnsiString); [Public, Alias : 'ASSIGN_ANSI_STRING'];
 {
  Assigns S2 to S1 (S1:=S2), taking in account reference counts.
  If S2 is a constant string, a new S1 is allocated on the heap.
@@ -325,7 +325,7 @@ end;
 
 
 
-Procedure Write_Text_AnsiString (Len : Longint; T : TextRec; Var S : AnsiString);
+Procedure Write_Text_AnsiString (Len : Longint; T : TextRec; Var S : AnsiString);[Public, alias 'WRITE_TEXT_ANSISTRING'];
 {
  Writes a AnsiString to the Text file T
 }
@@ -672,7 +672,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  1998-06-25 08:41:44  florian
+  Revision 1.7  1998-07-06 14:29:08  michael
+  + Added Public,Alias directives for some calls
+
+  Revision 1.6  1998/06/25 08:41:44  florian
     * better rtti
 
   Revision 1.5  1998/06/12 07:39:13  michael
