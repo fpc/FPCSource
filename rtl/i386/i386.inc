@@ -236,7 +236,7 @@ asm
         movl    len,%ecx       // Load len
         xorl    %eax,%eax
         testl   %ecx,%ecx
-        jz      .Lready
+        jz      .Lcharposnotfound
         cld
         movl    %ecx,%edx      // Copy for easy manipulation
         movb    %bl,%al
@@ -269,7 +269,7 @@ asm
         movl    Len,%ecx       // Load len
         xorl    %eax,%eax
         testl   %ecx,%ecx
-        jz      .Lready
+        jz      .Lcharposnotfound
         cld
         movl    %ecx,%edx      // Copy for easy manipulation
         movw    %bx,%ax
@@ -308,7 +308,7 @@ asm
 {$endif}
         xorl    %eax,%eax
         testl   %ecx,%ecx
-        jz      .Lready
+        jz      .Lcharposnotfound
         cld
         movl    %ecx,%edx      // Copy for easy manipulation
         movl    %ebx,%eax
@@ -1450,7 +1450,10 @@ end;
 
 {
   $Log$
-  Revision 1.62  2004-07-07 17:38:58  daniel
+  Revision 1.63  2004-07-18 16:40:08  jonas
+    * fixed indexbyte/word/dword when length is 0 (return -1 instead of 0)
+
+  Revision 1.62  2004/07/07 17:38:58  daniel
     * Aligment code in fillchar proved to slow down stuff seriously instead of
       speeding it up. This is logical, the compiler aligns everything very well,
       it is possible that fillchar gets called on misaligned data, but it seems
