@@ -123,14 +123,14 @@ Const
 const
   SI_PAD_SIZE   = ((128 div sizeof(longint)) - 3);
 
-  
+
 type
   SigSet  =  array[0..wordsinsigset-1] of cint;
   sigset_t= SigSet;
   PSigSet = ^SigSet;
   psigset_t=psigset;
   TSigSet = SigSet;
-  
+
   psiginfo = ^tsiginfo;
   tsiginfo = record
        si_signo : longint;
@@ -172,16 +172,12 @@ type
 { CPU dependent TSigContext }
 {$i sighndh.inc}
 
-type   
+type
   SignalHandler   = Procedure(Sig : Longint);cdecl;
   PSignalHandler  = ^SignalHandler;
   SignalRestorer  = Procedure;cdecl;
   PSignalRestorer = ^SignalRestorer;
-{$ifdef CPUARM}  
-  SigActionHandler = procedure(Sig: longint; _a2,_a3,_a4 : dword; SigContext: PSigInfo; uContext : PuContext); cdecl;
-{$else}  
   SigActionHandler = procedure(sig : longint; SigInfo: PSigInfo; SigContext: PSigContext);cdecl;
-{$endif}
 
 {$ifdef CPUARM}
 {$define NEWSIGNAL}
@@ -208,7 +204,10 @@ type
 
 {
   $Log$
-  Revision 1.24  2005-02-05 22:45:54  peter
+  Revision 1.25  2005-02-05 22:53:43  peter
+    * use typecasted sigactionhandler, needed for arm
+
+  Revision 1.24  2005/02/05 22:45:54  peter
     * sigactionhandler fixed for arm
 
   Revision 1.23  2005/01/30 18:01:15  peter

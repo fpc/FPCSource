@@ -491,7 +491,7 @@ begin
   { all flags and information set to zero }
   FillChar(act, sizeof(SigActionRec),0);
   { initialize handler                    }
-  act.sa_handler := @SignalToRunError;
+  act.sa_handler := SigActionHandler(@SignalToRunError);
   act.sa_flags:=SA_SIGINFO
 {$ifdef cpux86_64}
     or $4000000
@@ -563,7 +563,10 @@ end;
 
 {
  $Log$
- Revision 1.25  2005-02-03 21:42:17  peter
+ Revision 1.26  2005-02-05 22:53:43  peter
+   * use typecasted sigactionhandler, needed for arm
+
+ Revision 1.25  2005/02/03 21:42:17  peter
    * readded magic value $4000000 for sa_flags for x86_64
 
  Revision 1.24  2005/01/31 20:13:24  peter
