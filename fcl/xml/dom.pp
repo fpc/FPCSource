@@ -64,7 +64,11 @@ type
 //   DOMString
 // -------------------------------------------------------
 
-  DOMString = String;  // !!!: should be WideString as soon as this is supported by the compiler
+{$IFDEF ver1_0}
+  DOMString = String;
+{$ELSE}
+  DOMString = WideString;
+{$ENDIF} 
 
 
 // -------------------------------------------------------
@@ -1500,7 +1504,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2001-05-06 21:37:39  sg
+  Revision 1.8  2001-12-17 20:25:25  sg
+  * Use WideStrings when not using FPC 1.0.x
+
+  Revision 1.7  2001/05/06 21:37:39  sg
   * Fixed two bugs reported by Florian:
     - TDOMText.SplitText didn't set the result value
     - Fixed TDOMNode_WithChildren.InsertBefore, which didn't link the new
