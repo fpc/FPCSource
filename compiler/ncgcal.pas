@@ -485,11 +485,11 @@ implementation
                       location.registerlow:=rg.getregisterint(exprasmlist,OS_INT);
                       location.registerhigh:=rg.getregisterint(exprasmlist,OS_INT);
 {$else newra}
-                      if RS_ACCUMULATOR in rg.unusedregsint then
+                      if (RS_ACCUMULATOR shr 8) in rg.unusedregsint then
                         location.registerlow:=rg.getexplicitregisterint(exprasmlist,NR_ACCUMULATOR)
                       else
                         cg.a_reg_alloc(exprasmlist,r);
-                      if RS_ACCUMULATORHIGH in rg.unusedregsint then
+                      if (RS_ACCUMULATORHIGH shr 8) in rg.unusedregsint then
                         location.registerhigh:=rg.getexplicitregisterint(exprasmlist,NR_ACCUMULATORHIGH)
                       else
                         cg.a_reg_alloc(exprasmlist,hregister);
@@ -517,7 +517,7 @@ implementation
                       location.register:=rg.getregisterint(exprasmlist,cgsize);
 {$else newra}
                       cg.a_reg_alloc(exprasmlist,r);
-                      if RS_ACCUMULATOR in rg.unusedregsint then
+                      if (RS_ACCUMULATOR shr 8) in rg.unusedregsint then
                         location.register:=rg.getexplicitregisterint(exprasmlist,nr)
                       else
                         location.register:=rg.getregisterint(exprasmlist,cgsize);
@@ -1128,7 +1128,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.69  2003-05-23 18:01:56  jonas
+  Revision 1.70  2003-05-23 19:11:58  jonas
+    * fixed tests for whether a certain int register is unused
+
+  Revision 1.69  2003/05/23 18:01:56  jonas
     * fixed ppc compiler
 
   Revision 1.68  2003/05/23 14:27:35  peter
