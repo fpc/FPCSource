@@ -233,7 +233,7 @@ TYPE
   THandle = Longint;
 {$ENDIF}
 {$IFDEF OS_OS2}
-  ???????
+  THandle = Word;
 {$ENDIF}
 {$IFDEF OS_MAC}
   ???????
@@ -1875,7 +1875,7 @@ BEGIN
      MOVL %EAX, HOLD_BP;                    { Store to global }
    {$ENDIF}
    {$IFDEF CPU68}
-     movel.l (a6),d0
+     move.l (a6),d0
      move.l  d0, Hold_BP
    {$ENDIF}
    END;
@@ -2729,8 +2729,9 @@ END;
 END.
 {
   $Log$
-  Revision 1.5  1998-07-07 13:29:48  carl
-    * make it compiler for win32 and m68k
+  Revision 1.6  1998-07-08 12:00:25  carl
+    * fixed problem with m68k asm syntax
+    * i386_att put back in, and only in cpu86 defined
 
   Revision 1.4  1998/05/30 14:24:42  peter
     * ATT asmparsing always
