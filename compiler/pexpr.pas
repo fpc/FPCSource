@@ -643,6 +643,23 @@ implementation
       begin
          prevafterassn:=afterassignment;
          afterassignment:=false;
+         aprocdef:=nil;
+
+         { When we are expecting a procvar we also need
+           to get the address in some cases }
+         if assigned(getprocvardef) then
+          begin
+            if (block_type=bt_const) then
+             getaddr:=true
+            else
+             if (m_tp_procvar in aktmodeswitches) then
+              begin
+                aprocdef:=Tprocsym(sym).search_procdef_byprocvardef(getprocvardef);
+                if assigned(aprocdef) then
+                 getaddr:=true;
+              end;
+          end;
+
          { want we only determine the address of }
          { a subroutine ?                       }
          if not(getaddr) then
@@ -681,33 +698,35 @@ implementation
                  end;
               end;
              p1:=ccallnode.create(para,tprocsym(sym),st,p1);
-             include(p1.flags,nf_auto_inherited);
            end
         else
            begin
               { address operator @: }
               if not assigned(p1) then
                begin
-                 if (st.symtabletype=withsymtable) and
-                    (st.defowner.deftype=objectdef) then
-                   begin
-                     p1:=tnode(twithsymtable(st).withrefnode).getcopy;
-                   end
-                 else
-                   begin
-                      { we must provide a method pointer, if it isn't given, }
-                      { it is self                                           }
-                      if (st.symtabletype=objectsymtable) then
+                 case st.symtabletype of
+                   withsymtable :
+                     begin
+                       if (st.defowner.deftype=objectdef) then
+                         p1:=tnode(twithsymtable(st).withrefnode).getcopy;
+                     end;
+                   objectsymtable :
+                     begin
+                       { we must provide a method pointer, if it isn't given, }
+                       { it is self                                           }
                        p1:=cselfnode.create(tobjectdef(st.defowner));
-                   end;
+                     end;
+                 end;
                end;
+
+               { Retrieve info which procvar to call. For tp_procvar the
+                 aprocdef is already loaded above so we can reuse it }
+              if not assigned(aprocdef) and
+                 assigned(getprocvardef) then
+                aprocdef:=Tprocsym(sym).search_procdef_byprocvardef(getprocvardef);
 
               { generate a methodcallnode or proccallnode }
               { we shouldn't convert things like @tcollection.load }
-              if assigned(getprocvardef) then
-                aprocdef:=Tprocsym(sym).search_procdef_byprocvardef(getprocvardef)
-              else
-                aprocdef:=nil;
               p2:=cloadnode.create_procvar(sym,aprocdef,st);
               if assigned(p1) and
                  (p1.nodetype<>typen) then
@@ -720,38 +739,42 @@ implementation
          afterassignment:=prevafterassn;
       end;
 
-    procedure handle_procvar(pv : tprocvardef;var p2 : tnode; getaddr: boolean);
 
-        procedure doconv(procvar : tprocvardef;var t : tnode);
-        var
-          hp : tnode;
-          currprocdef : tprocdef;
-        begin
-          hp:=nil;
-          currprocdef:=tcallnode(t).symtableprocentry.search_procdef_byprocvardef(procvar);
-          if assigned(currprocdef) then
-           begin
-             hp:=cloadnode.create_procvar(tprocsym(tcallnode(t).symtableprocentry),currprocdef,tcallnode(t).symtableproc);
-             if (po_methodpointer in procvar.procoptions) then
-               tloadnode(hp).set_mp(tnode(tcallnode(t).methodpointer).getcopy);
-             t.destroy;
-             t:=hp;
-           end;
-        end;
-
+    procedure handle_procvar(pv : tprocvardef;var p2 : tnode);
+      var
+        hp,hp2 : tnode;
+        hpp    : ^tnode;
+        currprocdef : tprocdef;
       begin
-        if ((m_tp_procvar in aktmodeswitches) or
-            not getaddr) then
-          if (p2.nodetype=calln) and
-             { a procvar can't have parameters! }
-             not assigned(tcallnode(p2).left) then
-           doconv(pv,p2)
-          else
-           if (p2.nodetype=typeconvn) and
-              (ttypeconvnode(p2).left.nodetype=calln) and
+        if not assigned(pv) then
+         internalerror(200301121);
+        if (m_tp_procvar in aktmodeswitches) then
+         begin
+           hp:=p2;
+           hpp:=@p2;
+           while assigned(hp) and
+                 (hp.nodetype=typeconvn) do
+            begin
+              hp:=ttypeconvnode(hp).left;
+              { save orignal address of the old tree so we can replace the node }
+              hpp:=@hp;
+            end;
+           if (hp.nodetype=calln) and
               { a procvar can't have parameters! }
-              not assigned(tcallnode(ttypeconvnode(p2).left).left) then
-            doconv(pv,ttypeconvnode(p2).left);
+              not assigned(tcallnode(hp).left) then
+            begin
+              currprocdef:=tcallnode(hp).symtableprocentry.search_procdef_byprocvardef(pv);
+              if assigned(currprocdef) then
+               begin
+                 hp2:=cloadnode.create_procvar(tprocsym(tcallnode(hp).symtableprocentry),currprocdef,tcallnode(hp).symtableproc);
+                 if (po_methodpointer in pv.procoptions) then
+                   tloadnode(hp2).set_mp(tnode(tcallnode(hp).methodpointer).getcopy);
+                 hp.destroy;
+                 { replace the old callnode with the new loadnode }
+                 hpp^:=hp2;
+               end;
+            end;
+         end;
       end;
 
 
@@ -831,7 +854,7 @@ implementation
                            getprocvardef:=tprocvardef(tpropertysym(sym).proptype.def);
                          p2:=comp_expr(true);
                          if assigned(getprocvardef) then
-                           handle_procvar(getprocvardef,p2,getaddr);
+                           handle_procvar(getprocvardef,p2);
                          tcallnode(p1).left:=ccallparanode.create(p2,tcallnode(p1).left);
                          include(tcallnode(p1).flags,nf_isproperty);
                          getprocvardef:=nil;
@@ -932,17 +955,8 @@ implementation
                  procsym:
                    begin
                       do_proc_call(sym,sym.owner,
-                                   (getaddr and not(token in [_CARET,_POINT])) or
-                                   (assigned(getprocvardef) and
-                                    ((block_type=bt_const) or
-                                     ((m_tp_procvar in aktmodeswitches) and
-                                      (proc_to_procvar_equal(tprocsym(sym).first_procdef,getprocvardef)>te_incompatible)
-                                     )
-                                    )
-                                   ),again,p1);
-                      if (block_type=bt_const) and
-                         assigned(getprocvardef) then
-                        handle_procvar(getprocvardef,p1,getaddr);
+                                   (getaddr and not(token in [_CARET,_POINT])),
+                                   again,p1);
                       { we need to know which procedure is called }
                       do_resulttypepass(p1);
                       { now we know the real method e.g. we can check for a class method }
@@ -1275,17 +1289,8 @@ implementation
                                     assigned(aktprocsym) and
                                     (po_classmethod in aktprocdef.procoptions);
                     do_proc_call(srsym,srsymtable,
-                                 (getaddr and not(token in [_CARET,_POINT])) or
-                                 (assigned(getprocvardef) and
-                                  ((block_type=bt_const) or
-                                   ((m_tp_procvar in aktmodeswitches) and
-                                    (proc_to_procvar_equal(tprocsym(srsym).first_procdef,getprocvardef)>te_incompatible)
-                                   )
-                                  )
-                                 ),again,p1);
-                    if (block_type=bt_const) and
-                       assigned(getprocvardef) then
-                     handle_procvar(getprocvardef,p1,getaddr);
+                                 (getaddr and not(token in [_CARET,_POINT])),
+                                 again,p1);
                     { we need to know which procedure is called }
                     if possible_error then
                      begin
@@ -1793,6 +1798,9 @@ implementation
                         p1:=ctypenode.create(htype);
                       end;
                      do_member_read(false,sym,p1,again);
+                     { Add flag to indicate that inherited is used }
+                     if p1.nodetype=calln then
+                       include(p1.flags,nf_auto_inherited);
                    end
                   else
                    begin
@@ -2220,7 +2228,7 @@ implementation
                   getprocvardef:=tprocvardef(p1.resulttype.def);
                 p2:=sub_expr(opcompare,true);
                 if assigned(getprocvardef) then
-                  handle_procvar(getprocvardef,p2,true);
+                  handle_procvar(getprocvardef,p2);
                 getprocvardef:=nil;
                 p1:=cassignmentnode.create(p1,p2);
              end;
@@ -2304,7 +2312,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.97  2003-01-05 22:44:14  peter
+  Revision 1.98  2003-01-12 17:51:42  peter
+    * tp procvar handling fix for tb0448
+
+  Revision 1.97  2003/01/05 22:44:14  peter
     * remove a lot of code to support typen in loadn-procsym
 
   Revision 1.96  2002/12/11 22:40:36  peter
