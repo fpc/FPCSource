@@ -17,10 +17,9 @@ begin
     begin
     Str(Random(100),S);
     S:='String with value '+S;
-    P:=StrAlloc(Length(S)+1);
-    C^.Insert(StrPCopy(P,S));
+    C^.Insert(NewStr(S));
     end;
   For I:=0 to 99 do
-    Writeln (I:2,': ',PChar(C^.At(i)));
+    Writeln (I:2,': ',PString(C^.At(i))^ );
   Dispose(C,Done);
 end.
