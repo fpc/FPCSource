@@ -274,6 +274,7 @@ implementation
                         ON 64-BIT SYSTEMS: SINCE PROCSYM FOR METHODS
                         CONSISTS OF TWO OS_ADDR, so you cannot set it
                         to OS_64 - how to solve?? Carl
+                        Solved. Florian
                       }
                       if (sizeof(aword) = 4) then
                          location_reset(location,LOC_CREFERENCE,OS_64)
@@ -905,7 +906,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.110  2004-02-22 16:30:37  florian
+  Revision 1.111  2004-02-22 16:48:09  florian
+    * x86_64 uses generic concatcopy_valueopenarray for now
+
+  Revision 1.110  2004/02/22 16:30:37  florian
     * fixed
     + second_cmpfloatsse
 

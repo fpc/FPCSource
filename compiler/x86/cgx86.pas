@@ -116,7 +116,6 @@ unit cgx86;
         procedure g_exception_reason_load(list : taasmoutput; const href : treference);override;
 
         { entry/exit code helpers }
-        procedure g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:aword);override;
         procedure g_releasevaluepara_openarray(list : taasmoutput;const ref:treference);override;
         procedure g_interrupt_stackframe_entry(list : taasmoutput);override;
         procedure g_interrupt_stackframe_exit(list : taasmoutput;accused,acchiused:boolean);override;
@@ -159,6 +158,10 @@ unit cgx86;
          S_NO,S_NO,S_NO,S_MD,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO);
 {$endif x86_64}
 
+{$ifndef NOTARGETWIN32}
+      winstackpagesize = 4096;
+{$endif NOTARGETWIN32}
+
 
   implementation
 
@@ -166,11 +169,7 @@ unit cgx86;
        globtype,globals,verbose,systems,cutils,
        symdef,defutil,paramgr,tgobj,procinfo;
 
-{$ifndef NOTARGETWIN32}
     const
-      winstackpagesize = 4096;
-{$endif NOTARGETWIN32}
-
       TOpCG2AsmOp: Array[topcg] of TAsmOp = (A_NONE,A_ADD,A_AND,A_DIV,
                             A_IDIV,A_MUL, A_IMUL, A_NEG,A_NOT,A_OR,
                             A_SAR,A_SHL,A_SHR,A_SUB,A_XOR);
@@ -1500,111 +1499,6 @@ unit cgx86;
                               Entry/Exit Code Helpers
 ****************************************************************************}
 
-    procedure tcgx86.g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:aword);
-      var
-        power,len  : longint;
-        opsize : topsize;
-{$ifndef __NOWINPECOFF__}
-        again,ok : tasmlabel;
-{$endif}
-      begin
-        { get stack space }
-        getexplicitregister(list,NR_EDI);
-        list.concat(Taicpu.op_ref_reg(A_MOV,S_L,lenref,NR_EDI));
-        list.concat(Taicpu.op_reg(A_INC,S_L,NR_EDI));
-        if (elesize<>1) then
-         begin
-           if ispowerof2(elesize, power) then
-             list.concat(Taicpu.op_const_reg(A_SHL,S_L,power,NR_EDI))
-           else
-             list.concat(Taicpu.op_const_reg(A_IMUL,S_L,elesize,NR_EDI));
-         end;
-{$ifndef __NOWINPECOFF__}
-        { windows guards only a few pages for stack growing, }
-        { so we have to access every page first              }
-        if target_info.system=system_i386_win32 then
-          begin
-             objectlibrary.getlabel(again);
-             objectlibrary.getlabel(ok);
-             a_label(list,again);
-             list.concat(Taicpu.op_const_reg(A_CMP,S_L,winstackpagesize,NR_EDI));
-             a_jmp_cond(list,OC_B,ok);
-             list.concat(Taicpu.op_const_reg(A_SUB,S_L,winstackpagesize-4,NR_ESP));
-             list.concat(Taicpu.op_reg(A_PUSH,S_L,NR_EDI));
-             list.concat(Taicpu.op_const_reg(A_SUB,S_L,winstackpagesize,NR_EDI));
-             a_jmp_always(list,again);
-
-             a_label(list,ok);
-             list.concat(Taicpu.op_reg_reg(A_SUB,S_L,NR_EDI,NR_ESP));
-             ungetregister(list,NR_EDI);
-             { now reload EDI }
-             getexplicitregister(list,NR_EDI);
-             list.concat(Taicpu.op_ref_reg(A_MOV,S_L,lenref,NR_EDI));
-             list.concat(Taicpu.op_reg(A_INC,S_L,NR_EDI));
-
-             if (elesize<>1) then
-              begin
-                if ispowerof2(elesize, power) then
-                  list.concat(Taicpu.op_const_reg(A_SHL,S_L,power,NR_EDI))
-                else
-                  list.concat(Taicpu.op_const_reg(A_IMUL,S_L,elesize,NR_EDI));
-              end;
-          end
-        else
-{$endif __NOWINPECOFF__}
-          list.concat(Taicpu.op_reg_reg(A_SUB,S_L,NR_EDI,NR_ESP));
-        { align stack on 4 bytes }
-        list.concat(Taicpu.op_const_reg(A_AND,S_L,$fffffff4,NR_ESP));
-        { load destination }
-        a_load_reg_reg(list,OS_INT,OS_INT,NR_ESP,NR_EDI);
-
-        { Allocate other registers }
-        getexplicitregister(list,NR_ECX);
-        getexplicitregister(list,NR_ESI);
-
-        { load count }
-        a_load_ref_reg(list,OS_INT,OS_INT,lenref,NR_ECX);
-
-        { load source }
-        a_load_ref_reg(list,OS_INT,OS_INT,ref,NR_ESI);
-
-        { scheduled .... }
-        list.concat(Taicpu.op_reg(A_INC,S_L,NR_ECX));
-
-        { calculate size }
-        len:=elesize;
-        opsize:=S_B;
-        if (len and 3)=0 then
-         begin
-           opsize:=S_L;
-           len:=len shr 2;
-         end
-        else
-         if (len and 1)=0 then
-          begin
-            opsize:=S_W;
-            len:=len shr 1;
-          end;
-
-        if ispowerof2(len, power) then
-          list.concat(Taicpu.op_const_reg(A_SHL,S_L,power,NR_ECX))
-        else
-          list.concat(Taicpu.op_const_reg(A_IMUL,S_L,len,NR_ECX));
-        list.concat(Taicpu.op_none(A_REP,S_NO));
-        case opsize of
-          S_B : list.concat(Taicpu.Op_none(A_MOVSB,S_NO));
-          S_W : list.concat(Taicpu.Op_none(A_MOVSW,S_NO));
-          S_L : list.concat(Taicpu.Op_none(A_MOVSL,S_NO));
-        end;
-        ungetregister(list,NR_EDI);
-        ungetregister(list,NR_ECX);
-        ungetregister(list,NR_ESI);
-
-        { patch the new address }
-        a_load_reg_ref(list,OS_INT,OS_INT,NR_ESP,ref);
-      end;
-
-
     procedure tcgx86.g_releasevaluepara_openarray(list : taasmoutput;const ref:treference);
       begin
         { Nothing to release }
@@ -1887,7 +1781,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.112  2004-02-21 19:46:37  florian
+  Revision 1.113  2004-02-22 16:48:10  florian
+    * x86_64 uses generic concatcopy_valueopenarray for now
+
+  Revision 1.112  2004/02/21 19:46:37  florian
     * OP_SH* code generation fixed
 
   Revision 1.111  2004/02/20 16:01:49  peter
