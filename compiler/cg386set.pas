@@ -702,14 +702,22 @@ implementation
            { extend with sign }
            if opsize=S_W then
              begin
-                exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_WL,hregister,
-                  reg16toreg32(hregister))));
+                if with_sign then
+                  exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVSX,S_WL,hregister,
+                    reg16toreg32(hregister))))
+                else
+                  exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_WL,hregister,
+                    reg16toreg32(hregister))));
                 hregister:=reg16toreg32(hregister);
              end
            else if opsize=S_B then
              begin
-                exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_BL,hregister,
-                  reg8toreg32(hregister))));
+                if with_sign then
+                  exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVSX,S_BL,hregister,
+                    reg8toreg32(hregister))))
+                else
+                  exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_BL,hregister,
+                    reg8toreg32(hregister))));
                 hregister:=reg8toreg32(hregister);
              end;
            new(hr);
@@ -910,7 +918,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  1999-06-08 15:27:24  pierre
+  Revision 1.35  1999-07-18 14:01:16  florian
+    * handling of integer and shortint in case was wrong, if a case
+      label was negative and a jump table was generated
+
+  Revision 1.34  1999/06/08 15:27:24  pierre
    * fix for bug0258
 
   Revision 1.33  1999/06/02 10:11:48  florian
