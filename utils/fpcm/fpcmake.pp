@@ -241,7 +241,8 @@ begin
   writeln(' -w  Write Makefile');
   writeln('');
   writeln('Options:');
-  writeln(' -T<target>[,target] Support only specified targets');
+  writeln(' -T<target>[,target] Support only specified targets. If "-Tall", all targets are');
+  writeln('                     supported. If omitted only default target is supported');
   writeln(' -r                  Recursively process target directories from Makefile.fpc');
   writeln(' -v                  Be more verbose');
   writeln(' -q                  Be quiet');
@@ -291,7 +292,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2002-09-07 15:40:31  peter
+  Revision 1.9  2004-04-01 12:16:31  olle
+    * updated help text
+
+  Revision 1.8  2002/09/07 15:40:31  peter
     * old logs removed and tabs fixed
 
   Revision 1.7  2002/01/27 21:42:35  peter
