@@ -580,129 +580,104 @@ Begin
 end;
 
 
-Procedure FindFirst(const Path: PathStr; Attr: Word; Var f: SearchRec);
+procedure FindFirst(const Path: PathStr; Attr: Word; Var f: SearchRec);
 var
- tmpStr: Array[0..255] of char;
- Anchor: pAnchorPath;
- Result: Longint;
- index : Integer;
- s     : string;
- j     : integer;
-Begin
- tmpStr:=PathConv(path)+#0;
- DosError:=0;
+ tmpStr: array[0..255] of Char;
+ Anchor: PAnchorPath;
+ Result: LongInt;
+begin
+  tmpStr:=PathConv(path)+#0;
+  DosError:=0;
 
- New(Anchor);
- FillChar(Anchor^,sizeof(TAnchorPath),#0);
+  new(Anchor);
+  FillChar(Anchor^,sizeof(TAnchorPath),#0);
 
- Result:=MatchFirst(@tmpStr,Anchor);
- f.AnchorPtr:=Anchor;
- if Result = ERROR_NO_MORE_ENTRIES then
-   DosError:=18
- else
- if Result <> 0 then
-   DosError:=3;
- { If there is an error, deallocate }
- { the anchorpath structure         }
- if DosError <> 0 then
-   Begin
-     MatchEnd(Anchor);
-     if assigned(Anchor) then
-       Dispose(Anchor);
-   end
- else
- {-------------------------------------------------------------------}
- { Here we fill up the SearchRec attribute, but we also do check     }
- { something else, if the it does not match the mask we are looking  }
- { for we should go to the next file or directory.                   }
- {-------------------------------------------------------------------}
-   begin
-         with Anchor^.ap_Info do
-          Begin
-             f.Time := fib_Date.ds_Days * (24 * 60 * 60) +
-             fib_Date.ds_Minute * 60 +
-             fib_Date.ds_Tick div 50;
-           {*------------------------------------*}
-           {* Determine if is a file or a folder *}
-           {*------------------------------------*}
-           if fib_DirEntryType > 0 then
-               f.attr:=f.attr OR DIRECTORY;
+  Result:=MatchFirst(@tmpStr,Anchor);
+  f.AnchorPtr:=Anchor;
+  if Result = ERROR_NO_MORE_ENTRIES then 
+    DosError:=18
+  else
+    if Result<>0 then DosError:=3;
 
-           {*------------------------------------*}
-           {* Determine if Read only             *}
-           {*  Readonly if R flag on and W flag  *}
-           {*   off.                             *}
-           {* Should we check also that EXEC     *}
-           {* is zero? for read only?            *}
-           {*------------------------------------*}
-           if   ((fib_Protection and FIBF_READ) <> 0)
-            AND ((fib_Protection and FIBF_WRITE) = 0)
-           then
-              f.attr:=f.attr or READONLY;
-           f.Name := strpas(fib_FileName);
-           f.Size := fib_Size;
-         end; { end with }
-   end;
-End;
+  if DosError=0 then begin
+    {-------------------------------------------------------------------}
+    { Here we fill up the SearchRec attribute, but we also do check     }
+    { something else, if the it does not match the mask we are looking  }
+    { for we should go to the next file or directory.                   }
+    {-------------------------------------------------------------------}
+    with Anchor^.ap_Info do begin
+      f.Time := fib_Date.ds_Days * (24 * 60 * 60) +
+                fib_Date.ds_Minute * 60 +
+                fib_Date.ds_Tick div 50;
+      {*------------------------------------*}
+      {* Determine if is a file or a folder *}
+      {*------------------------------------*}
+      if fib_DirEntryType>0 then f.attr:=f.attr OR DIRECTORY;
+
+      {*------------------------------------*}
+      {* Determine if Read only             *}
+      {*  Readonly if R flag on and W flag  *}
+      {*   off.                             *}
+      {* Should we check also that EXEC     *}
+      {* is zero? for read only?            *}
+      {*------------------------------------*}
+      if ((fib_Protection and FIBF_READ) <> 0) and
+         ((fib_Protection and FIBF_WRITE) = 0) then f.attr:=f.attr or READONLY;
+      f.Name := strpas(fib_FileName);
+      f.Size := fib_Size;
+    end; { end with }
+  end;
+end;
 
 
-Procedure FindNext(Var f: SearchRec);
+procedure FindNext(Var f: SearchRec);
 var
  Result: longint;
- Anchor : pAnchorPath;
-Begin
- DosError:=0;
- Result:=MatchNext(f.AnchorPtr);
- if Result = ERROR_NO_MORE_ENTRIES then
-   DosError:=18
- else
- if Result <> 0 then
-   DosError:=3;
- { If there is an error, deallocate }
- { the anchorpath structure         }
- if DosError <> 0 then
-   Begin
-     MatchEnd(f.AnchorPtr);
-     if assigned(f.AnchorPtr) then
-       {Dispose}FreeMem(f.AnchorPtr);
-   end
- else
- { Fill up the Searchrec information     }
- { and also check if the files are with  }
- { the correct attributes                }
-   Begin
-         Anchor:=pAnchorPath(f.AnchorPtr);
-         with Anchor^.ap_Info do
-          Begin
-             f.Time := fib_Date.ds_Days * (24 * 60 * 60) +
-             fib_Date.ds_Minute * 60 +
-             fib_Date.ds_Tick div 50;
-           {*------------------------------------*}
-           {* Determine if is a file or a folder *}
-           {*------------------------------------*}
-           if fib_DirEntryType > 0 then
-               f.attr:=f.attr OR DIRECTORY;
+ Anchor: PAnchorPath;
+begin
+  DosError:=0;
+  Result:=MatchNext(f.AnchorPtr);
+  if Result = ERROR_NO_MORE_ENTRIES then 
+    DosError:=18
+  else 
+    if Result <> 0 then DosError:=3;
 
-           {*------------------------------------*}
-           {* Determine if Read only             *}
-           {*  Readonly if R flag on and W flag  *}
-           {*   off.                             *}
-           {* Should we check also that EXEC     *}
-           {* is zero? for read only?            *}
-           {*------------------------------------*}
-           if   ((fib_Protection and FIBF_READ) <> 0)
-            AND ((fib_Protection and FIBF_WRITE) = 0)
-           then
-              f.attr:=f.attr or READONLY;
-           f.Name := strpas(fib_FileName);
-           f.Size := fib_Size;
-         end; { end with }
-   end;
-End;
+  if DosError=0 then begin
+    { Fill up the Searchrec information     }
+    { and also check if the files are with  }
+    { the correct attributes                }
+    Anchor:=pAnchorPath(f.AnchorPtr);
+    with Anchor^.ap_Info do begin
+      f.Time := fib_Date.ds_Days * (24 * 60 * 60) +
+                fib_Date.ds_Minute * 60 +
+                fib_Date.ds_Tick div 50;
+      {*------------------------------------*}
+      {* Determine if is a file or a folder *}
+      {*------------------------------------*}
+      if fib_DirEntryType > 0 then f.attr:=f.attr OR DIRECTORY;
 
-    Procedure FindClose(Var f: SearchRec);
-      begin
-      end;
+      {*------------------------------------*}
+      {* Determine if Read only             *}
+      {*  Readonly if R flag on and W flag  *}
+      {*   off.                             *}
+      {* Should we check also that EXEC     *}
+      {* is zero? for read only?            *}
+      {*------------------------------------*}
+      if ((fib_Protection and FIBF_READ) <> 0) and
+         ((fib_Protection and FIBF_WRITE) = 0) then f.attr:=f.attr or READONLY;
+      f.Name := strpas(fib_FileName);
+      f.Size := fib_Size;
+    end; { end with }
+  end;
+end;
+
+procedure FindClose(Var f: SearchRec);
+begin
+  MatchEnd(f.AnchorPtr);
+  if assigned(f.AnchorPtr) then
+    Dispose(PAnchorPath(f.AnchorPtr));
+end;
+
 
 {******************************************************************************
                                --- File ---
@@ -718,11 +693,7 @@ begin
   { No wildcards allowed in these things }
   if (pos('?',path)<>0) or (pos('*',path)<>0) or (path='') then
     FSearch:=''
-  else begin
-    { allow slash as backslash }
-    for counter:=1 to length(dirlist) do
-      if dirlist[counter]='\' then dirlist[counter]:='/';
-    
+  else begin  
     repeat
       p1:=pos(';',dirlist);
       if p1<>0 then begin
@@ -1032,7 +1003,11 @@ End.
 
 {
   $Log$
-  Revision 1.12  2004-12-06 20:01:20  karoly
+  Revision 1.13  2004-12-07 13:35:53  karoly
+    * more cleanup in FindFirst/FindNext
+    * implemented FindClose, no more leaking of file locks
+
+  Revision 1.12  2004/12/06 20:01:20  karoly
 
     * made it compile again after changes by Tomas
     * cleaned up FindFirst mess (still more things to do, as usual)
