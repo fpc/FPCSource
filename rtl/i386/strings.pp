@@ -324,8 +324,8 @@ implementation
             repe
             cmpsb
             jz .LSTRICOMP3      // If last reached then exit
-            movb (%esi),%al
-            movzbl (%edi),%ebx
+            movzbl -1(%esi),%eax
+            movzbl -1(%edi),%ebx
             cmpb $97,%al
             jb .LSTRICOMP1
             cmpb $122,%al
@@ -364,8 +364,8 @@ implementation
             repe
             cmpsb
             jz .LSTRLICOMP3     // If last reached, exit
-            movb (%esi),%al
-            movzbl (%edi),%ebx
+            movzbl -1(%esi),%eax
+            movzbl -1(%edi),%ebx
             cmpb $97,%al
             jb .LSTRLICOMP1
             cmpb $122,%al
@@ -532,7 +532,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  1998-07-29 23:46:37  michael
+  Revision 1.6  1998-08-03 11:46:07  florian
+    * stricomp and strlicomp were buggy (unworkable :(), should be fixed now
+
+  Revision 1.5  1998/07/29 23:46:37  michael
   + changed wehere possible, procs to assembler procs
 
   Revision 1.4  1998/05/31 14:15:52  peter
