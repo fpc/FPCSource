@@ -166,6 +166,7 @@ function ThreadMain(param : pointer) : dword;stdcall;
      writeln('Jumping to thread function');
 {$endif DEBUG_MT}
      ThreadMain:=ti.f(ti.p);
+     DoneThread;
   end;
 
 
@@ -249,7 +250,10 @@ procedure LeaveCriticalSection(var cs : TRTLCriticalSection);
 
 {
   $Log$
-  Revision 1.7  2002-03-28 16:31:35  armin
+  Revision 1.8  2002-03-31 10:03:13  armin
+  + call to DoneThread was missing
+
+  Revision 1.7  2002/03/28 16:31:35  armin
   + initialize threadvars defined local in units
 
   Revision 1.6  2001/10/23 21:51:03  peter
