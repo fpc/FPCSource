@@ -350,6 +350,7 @@ unit typinfo;
         to by proplist. PRopList must contain enough space to hold ALL
         properties.
       }
+      Type PWord = ^Word;
 
       Var TD : PTypeData;
           TP : PPropInfo;
@@ -357,16 +358,18 @@ unit typinfo;
           
       begin
       TD:=GetTypeData(TypeInfo);
-      // Get this objects published properties count 
+      // Get this objects TOTAL published properties count 
       // Delphi uses propdata for this...
+      // Writeln ('Getting total of ',TD^.PropCount,' infos');
       TP:=(@TD^.UnitName+Length(TD^.UnitName)+1);
-      Count:=PLongint(TP)^;
+      Count:=PWord(TP)^;
+      // Writeln ('Getting ',Count,' LOCAL infos');
       // Now point TP to first propinfo record.
       Inc(Longint(TP),SizeOF(Word));
       While Count>0 do
         begin
         PropList^[0]:=TP;
-        Inc(PropList);
+        Inc(Longint(PropList),SizeOf(Pointer));
         // Point to TP next propinfo record. 
         // Located at Name[Length(Name)+1] !
         TP:=PPropInfo((@TP^.Name)+PByte(@TP^.Name)^+1);
@@ -649,8 +652,8 @@ end.
 
 {
   $Log$
-  Revision 1.13  1998-11-25 16:47:03  michael
-  + Fixed typinfo count of properties
+  Revision 1.14  1998-11-26 14:22:18  michael
+  + Fixed Gettypeinfos
 
   Revision 1.11  1998/09/24 23:45:28  peter
     * updated for auto objpas loading
