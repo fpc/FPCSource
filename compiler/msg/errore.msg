@@ -1103,6 +1103,13 @@ type_w_mixed_signed_unsigned2=04036_W_Mixing signed expressions and cardinals he
 type_e_typecast_wrong_size_for_assignment=04037_E_Typecast has different size ($1 -> $2) in assignment
 % Type casting to a type with a different size is not allowed when the variable is
 % used for assigning.
+type_e_array_index_enums_with_assign_not_possible=04038_E_enums with assignments can't be used as array index
+% When you declared an enumeration type which has assignments in it, as in C,
+% like in the following:
+% \begin{verbatim}
+%   Tenum = (a,b,e:=5);
+% \end{verbatim}
+% you cannot use it as index of an array.
 % \end{description}
 #
 # Symtable

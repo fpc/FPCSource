@@ -193,7 +193,11 @@ implementation
                 id_type(tt,s,isforwarddef);
               end;
             else
-              message(type_e_type_id_expected);
+              begin
+                message(type_e_type_id_expected);
+                s:='<unknown>';
+                tt:=generrortype;
+              end;
          end;
       end;
 
@@ -328,6 +332,8 @@ implementation
                 begin
                   lowval:=tenumdef(t.def).min;
                   highval:=tenumdef(t.def).max;
+                  if tenumdef(t.def).has_jumps then
+                   Message(type_e_array_index_enums_with_assign_not_possible);
                   arraytype:=t;
                 end;
               orddef :
@@ -458,7 +464,21 @@ implementation
                      (token=_ASSIGNMENT) then
                     begin
                        consume(_ASSIGNMENT);
-                       v:=get_intconst;
+                       p:=comp_expr(true);
+                       if (p.nodetype=ordconstn) then
+                        begin
+                          { we expect an integer or an enum of the
+                            same type }
+                          if is_integer(p.resulttype.def) or
+                             is_char(p.resulttype.def) or
+                             is_equal(p.resulttype.def,aktenumdef) then
+                           v:=tordconstnode(p).value
+                          else
+                           Message2(type_e_incompatible_types,p.resulttype.def.typename,s32bittype.def.typename);
+                        end
+                       else
+                        Message(cg_e_illegal_expression);
+                       p.free;
                        { please leave that a note, allows type save }
                        { declarations in the win32 units ! }
                        if (v<=l) and (not enumdupmsg) then
@@ -610,7 +630,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  2002-04-04 19:06:04  peter
+  Revision 1.36  2002-04-16 16:12:47  peter
+    * give error when using enums with jumps as array index
+    * allow char as enum value
+
+  Revision 1.35  2002/04/04 19:06:04  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 

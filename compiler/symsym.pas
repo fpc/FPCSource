@@ -2162,6 +2162,10 @@ implementation
          typ:=enumsym;
          definition:=def;
          value:=v;
+         { check for jumps }
+         if v>def.max+1 then
+          def.has_jumps:=true;
+         { update low and high }
          if def.min>v then
            def.setmin(v);
          if def.max<v then
@@ -2514,7 +2518,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  2002-04-15 19:08:22  carl
+  Revision 1.34  2002-04-16 16:12:47  peter
+    * give error when using enums with jumps as array index
+    * allow char as enum value
+
+  Revision 1.33  2002/04/15 19:08:22  carl
   + target_info.size_of_pointer -> pointer_size
   + some cleanup of unused types/variables
 
