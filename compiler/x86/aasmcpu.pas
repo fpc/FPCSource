@@ -1291,19 +1291,18 @@ implementation
 
     function taicpu.needaddrprefix(opidx:byte):boolean;
       begin
-        needaddrprefix:=false;
-        if (OT_MEMORY and (not oper[opidx]^.ot))=0 then
-          begin
-            if (
-                (oper[opidx]^.ref^.index<>NR_NO) and
-                (getsubreg(oper[opidx]^.ref^.index)<>R_SUBD)
-               ) or
-               (
-                (oper[opidx]^.ref^.base<>NR_NO) and
-                (getsubreg(oper[opidx]^.ref^.base)<>R_SUBD)
-               ) then
-              needaddrprefix:=true;
-          end;
+        result:=(oper[opidx]^.typ=top_ref) and
+                (oper[opidx]^.ref^.refaddr=addr_no) and
+                (
+                 (
+                  (oper[opidx]^.ref^.index<>NR_NO) and
+                  (getsubreg(oper[opidx]^.ref^.index)<>R_SUBD)
+                 ) or
+                 (
+                  (oper[opidx]^.ref^.base<>NR_NO) and
+                  (getsubreg(oper[opidx]^.ref^.base)<>R_SUBD)
+                 )
+                );
       end;
 
 
@@ -1969,7 +1968,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.54  2004-03-15 08:44:51  michael
+  Revision 1.55  2004-03-16 16:19:19  peter
+    * check for top_ref instead of OT_MEMORY in needaddrprefix
+
+  Revision 1.54  2004/03/15 08:44:51  michael
   + Fix from peter: fixes crash when inlining assembler code referencing local vars
 
   Revision 1.53  2004/03/04 17:25:38  peter
