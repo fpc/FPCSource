@@ -401,6 +401,25 @@ type
 var
   RootTree : Array[0..255] of PTreeElement;
 
+procedure FreeElement (PT:PTreeElement);
+var next : PTreeElement;
+begin
+  while PT <> nil do
+  begin
+    FreeElement(PT^.Child);
+    next := PT^.Next;
+    dispose(PT);
+    PT := next;
+  end;
+end;
+
+procedure FreeTree;
+var i : integer;
+begin
+  for i := low(RootTree) to high(RootTree) do
+    FreeElement(RootTree[i]);
+end;
+
 function NewPTree(ch : byte;Pa : PTreeElement) : PTreeElement;
 var PT : PTreeElement;
 begin
@@ -1267,6 +1286,11 @@ procedure SysDoneKeyboard;
 begin
   unpatchkeyboard;
   SetRawMode(false);
+
+{$ifndef NotUseTree}
+  FreeTree;
+{$endif not NotUseTree}
+
 {$ifdef logging}
   close(f);
 {$endif logging}
@@ -1505,7 +1529,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2002-09-07 16:01:27  peter
+  Revision 1.12  2003-03-26 12:35:23  armin
+  * Free the Tree in SysDoneKeyboard to avoid a lot of messages if heaptrace is enabled
+
+  Revision 1.11  2002/09/07 16:01:27  peter
     * old logs removed and tabs fixed
 
   Revision 1.10  2002/03/03 13:23:51  peter
