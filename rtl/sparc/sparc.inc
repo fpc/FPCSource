@@ -90,6 +90,7 @@ function Sptr:Pointer;assembler;nostackframe;
   end;
 
 
+{$ifndef FPC_SYSTEM_HAS_MOVE}
 {$define FPC_SYSTEM_HAS_MOVE}
 procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];assembler;
 {
@@ -287,6 +288,7 @@ procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];
     nop
   .Lmoveexit:
   end;
+{$endif FPC_SYSTEM_HAS_MOVE}
 
 
 {****************************************************************************
@@ -360,7 +362,10 @@ end;
 
 {
   $Log$
-  Revision 1.18  2005-01-27 21:26:39  florian
+  Revision 1.19  2005-02-07 22:17:48  peter
+    * add $ifdef for move
+
+  Revision 1.18  2005/01/27 21:26:39  florian
     + getgot function added
 
   Revision 1.17  2005/01/18 20:37:26  florian
