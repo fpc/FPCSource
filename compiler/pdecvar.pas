@@ -163,17 +163,17 @@ implementation
              { this is needed for Delphi mode at least
                but should be OK for all modes !! (PM) }
              ignore_equal:=true;
-             if is_record then
+             if is_record or is_object then
               begin
                 { for records, don't search the recordsymtable for
                   the symbols of the types }
-   	            oldsymtablestack:=symtablestack;
-	            symtablestack:=symtablestack^.next;
+                oldsymtablestack:=symtablestack;
+                symtablestack:=symtablestack^.next;
                 read_type(tt,'');
-	            symtablestack:=oldsymtablestack;
-	          end
-	         else
-	          read_type(tt,'');   
+                symtablestack:=oldsymtablestack;
+              end
+             else
+              read_type(tt,'');
              if (variantrecordlevel>0) and tt.def^.needs_inittable then
                Message(parser_e_cant_use_inittable_here);
              ignore_equal:=false;
@@ -451,10 +451,10 @@ implementation
                  { for records, don't search the recordsymtable for
                    the symbols of the types }
                  oldsymtablestack:=symtablestack;
-	             symtablestack:=symtablestack^.next;
+                 symtablestack:=symtablestack^.next;
                  read_type(casetype,'');
-	             symtablestack:=oldsymtablestack;
-	           end
+                 symtablestack:=oldsymtablestack;
+               end
               else
                 begin
                   consume(_ID);
@@ -462,9 +462,9 @@ implementation
                   { for records, don't search the recordsymtable for
                     the symbols of the types }
                   oldsymtablestack:=symtablestack;
-	              symtablestack:=symtablestack^.next;
+                  symtablestack:=symtablestack^.next;
                   read_type(casetype,'');
-  	              symtablestack:=oldsymtablestack;
+                  symtablestack:=oldsymtablestack;
                   symtablestack^.insert(new(pvarsym,init(s,casetype)));
                 end;
               if not(is_ordinal(casetype.def)) or is_64bitint(casetype.def)  then
@@ -538,7 +538,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2001-02-20 11:19:45  marco
+  Revision 1.8  2001-02-20 18:35:35  peter
+    * same fix for objects and classes
+
+  Revision 1.7  2001/02/20 11:19:45  marco
    * Fix passing tvarrec to array of const
 
   Revision 1.6  2000/12/25 00:07:27  peter
