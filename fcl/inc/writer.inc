@@ -595,6 +595,8 @@ var
   SavedAncestor: TPersistent;
   SavedPropPath, Name: String;
   Int64Value, DefInt64Value: Int64;
+  BoolValue, DefBoolValue: boolean;
+  
 begin
 
   if (not Assigned(PPropInfo(PropInfo)^.SetProc)) or
@@ -779,13 +781,26 @@ begin
           DefInt64Value := GetInt64Prop(Ancestor, PropInfo)
         else
           DefInt64Value := 0;
-
         if Int64Value <> DefInt64Value then
         begin
           Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
           WriteInteger(Int64Value);
-	  Driver.EndProperty;
+       	  Driver.EndProperty;
         end;
+      end;
+    tkBool:
+      begin
+        BoolValue := GetOrdProp(Instance, PropInfo)<>0;
+        if HasAncestor then
+          DefBoolValue := GetOrdProp(Ancestor, PropInfo)<>0
+        else
+          DefBoolValue := false;
+        if BoolValue <> DefBoolValue then
+          begin
+          Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
+          WriteBoolean(BoolValue);
+          Driver.EndProperty;
+          end;
       end;
   end;
 end;
@@ -808,7 +823,10 @@ end;}
 
 {
   $Log$
-  Revision 1.3  2000-12-21 09:10:16  sg
+  Revision 1.4  2002-09-03 06:02:57  michael
+  + Applied patch from Matthias Gaertner to stream booleans
+
+  Revision 1.3  2000/12/21 09:10:16  sg
   Merged from fixbranch:
   * Applied bugfix by Mattias Gaertner for TWriter.WriteProperty
     (writing of NIL object instanced caused an invalid access)
