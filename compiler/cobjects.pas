@@ -1550,8 +1550,8 @@ end;
            j:=i-j;
            if posnblock^.used+j>blocksize then
             begin
-              posnblock^.used:=blocksize;
               dec(j,blocksize-posnblock^.used);
+              posnblock^.used:=blocksize;
               grow;
               posnblock:=lastblock;
             end;
@@ -1843,7 +1843,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  2000-10-31 22:02:46  peter
+  Revision 1.17  2000-11-03 19:41:06  jonas
+    * fixed bug in tdynamicarray.align (merged)
+
+  Revision 1.16  2000/10/31 22:02:46  peter
     * symtable splitted, no real code changes
 
   Revision 1.15  2000/10/14 10:14:46  peter
