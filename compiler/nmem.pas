@@ -661,6 +661,8 @@ implementation
          result:=nil;
          resulttypepass(left);
          resulttypepass(right);
+         set_varstate(left,vs_used,true);
+         set_varstate(right,vs_used,true);
          if codegenerror then
           exit;
 
@@ -957,7 +959,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.73  2003-11-29 14:33:13  peter
+  Revision 1.74  2003-12-01 18:44:15  peter
+    * fixed some crashes
+    * fixed varargs and register calling probs
+
+  Revision 1.73  2003/11/29 14:33:13  peter
     * typed address only used for @ and addr() that are parsed
 
   Revision 1.72  2003/11/10 22:02:52  peter

@@ -1382,8 +1382,7 @@ implementation
     destructor tonnode.destroy;
       begin
         { copied nodes don't need to release the symtable }
-        if assigned(exceptsymtable) and
-           not(nf_copy in flags) then
+        if assigned(exceptsymtable) then
          exceptsymtable.free;
         inherited destroy;
       end;
@@ -1402,7 +1401,7 @@ implementation
          n : tonnode;
       begin
          n:=tonnode(inherited getcopy);
-         n.exceptsymtable:=exceptsymtable;
+         n.exceptsymtable:=exceptsymtable.getcopy;
          n.excepttype:=excepttype;
          result:=n;
       end;
@@ -1472,7 +1471,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.88  2003-11-23 17:39:16  peter
+  Revision 1.89  2003-12-01 18:44:15  peter
+    * fixed some crashes
+    * fixed varargs and register calling probs
+
+  Revision 1.88  2003/11/23 17:39:16  peter
     * don't release exceptsymtable for copied nodes
 
   Revision 1.87  2003/11/12 15:48:27  peter

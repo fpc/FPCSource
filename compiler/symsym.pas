@@ -242,6 +242,7 @@ interface
           ref     : tsymlist;
           constructor create(const n : string;const tt : ttype);
           constructor create_ref(const n : string;const tt : ttype;_ref:tsymlist);
+          destructor  destroy;override;
           constructor ppuload(ppufile:tcompilerppufile);
           procedure buildderef;override;
           procedure deref;override;
@@ -1499,6 +1500,7 @@ implementation
       begin
         inherited create(n,vs_value,tt);
         typ:=absolutesym;
+        ref:=nil;
       end;
 
 
@@ -1509,7 +1511,15 @@ implementation
         ref:=_ref;
       end;
 
-
+    
+    destructor tabsolutesym.destroy;
+      begin
+        if assigned(ref) then
+          ref.free;
+        inherited destroy;  
+      end;
+      
+      
     constructor tabsolutesym.ppuload(ppufile:tcompilerppufile);
       begin
          { Note: This needs to load everything of tvarsym.write }
@@ -2689,7 +2699,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.136  2003-11-29 18:16:39  jonas
+  Revision 1.137  2003-12-01 18:44:15  peter
+    * fixed some crashes
+    * fixed varargs and register calling probs
+
+  Revision 1.136  2003/11/29 18:16:39  jonas
     * don't internalerror when emitting debuginfo for LOC_FPUREGISTER
 
   Revision 1.135  2003/11/23 17:05:16  peter

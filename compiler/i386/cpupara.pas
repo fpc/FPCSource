@@ -290,7 +290,7 @@ unit cpupara;
             paraloc.reference.index:=NR_STACK_POINTER_REG;
             l:=push_size(hp.paratyp,hp.paratype.def,p.proccalloption);
             varalign:=size_2_align(l);
-            paraloc.reference.offset:=parasize+target_info.first_parm_offset;
+            paraloc.reference.offset:=parasize;
             varalign:=used_align(varalign,paraalign,paraalign);
             parasize:=align(parasize+l,varalign);
             hp.paraloc[callerside]:=paraloc;
@@ -451,21 +451,19 @@ unit cpupara;
           end;
         { Register parameters are assigned from left-to-right, adapt offset
           for calleeside to be reversed }
-        if (side=calleeside) then
+        hp:=tparaitem(p.para.first);
+        while assigned(hp) do
           begin
-            hp:=tparaitem(p.para.first);
-            while assigned(hp) do
+            if (hp.paraloc[side].loc=LOC_REFERENCE) then
               begin
-                if (hp.paraloc[side].loc=LOC_REFERENCE) then
-                  begin
-                    l:=push_size(hp.paratyp,hp.paratype.def,p.proccalloption);
-                    varalign:=used_align(size_2_align(l),paraalign,paraalign);
-                    l:=align(l,varalign);
-                    hp.paraloc[side].reference.offset:=parasize-hp.paraloc[side].reference.offset-l+
-                        target_info.first_parm_offset;
-                  end;
-                hp:=tparaitem(hp.next);
-              end;
+                l:=push_size(hp.paratyp,hp.paratype.def,p.proccalloption);
+                varalign:=used_align(size_2_align(l),paraalign,paraalign);
+                l:=align(l,varalign);
+                hp.paraloc[side].reference.offset:=parasize-hp.paraloc[side].reference.offset-l;
+                if side=calleeside then
+                  inc(hp.paraloc[side].reference.offset,target_info.first_parm_offset);
+              end;    
+            hp:=tparaitem(hp.next);
           end;
         { We need to return the size allocated }
         result:=parasize;
@@ -500,7 +498,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  2003-11-28 17:24:22  peter
+  Revision 1.46  2003-12-01 18:44:15  peter
+    * fixed some crashes
+    * fixed varargs and register calling probs
+
+  Revision 1.45  2003/11/28 17:24:22  peter
     * reversed offset calculation for caller side so it works
       correctly for interfaces
 

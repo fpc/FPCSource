@@ -272,6 +272,8 @@ implementation
                end;
             procsym:
                begin
+                  if not assigned(procdef) then
+                    internalerror(200312011);
                   if assigned(left) then
                     begin
                       {
@@ -890,7 +892,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.99  2003-11-23 17:39:33  peter
+  Revision 1.100  2003-12-01 18:44:15  peter
+    * fixed some crashes
+    * fixed varargs and register calling probs
+
+  Revision 1.99  2003/11/23 17:39:33  peter
     * removed obsolete nf_cargs flag
 
   Revision 1.98  2003/10/29 19:48:50  peter

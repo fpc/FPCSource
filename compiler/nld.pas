@@ -361,6 +361,7 @@ implementation
          n:=tloadnode(inherited getcopy);
          n.symtable:=symtable;
          n.symtableentry:=symtableentry;
+         n.procdef:=procdef;
          result:=n;
       end;
 
@@ -510,6 +511,7 @@ implementation
         docompare :=
           inherited docompare(p) and
           (symtableentry = tloadnode(p).symtableentry) and
+          (procdef = tloadnode(p).procdef) and
           (symtable = tloadnode(p).symtable);
       end;
 
@@ -517,7 +519,10 @@ implementation
     procedure Tloadnode.printnodedata(var t:text);
       begin
         inherited printnodedata(t);
-        writeln(t,printnodeindention,'symbol = ',symtableentry.name);
+        write(t,printnodeindention,'symbol = ',symtableentry.name);
+        if symtableentry.typ=procsym then
+          write(t,printnodeindention,'procdef = ',procdef.mangledname);
+        writeln(t,'');
       end;
 
 
@@ -1241,7 +1246,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.118  2003-11-26 14:25:26  michael
+  Revision 1.119  2003-12-01 18:44:15  peter
+    * fixed some crashes
+    * fixed varargs and register calling probs
+
+  Revision 1.118  2003/11/26 14:25:26  michael
   + Applied patch from peter to support ansistrings in array constructors
 
   Revision 1.117  2003/11/23 17:39:33  peter

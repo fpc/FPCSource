@@ -107,8 +107,11 @@ interface
           unitid        : word;
           { level of symtable, used for nested procedures }
           symtablelevel : byte;
+          refcount  : integer;
           constructor Create(const s:string);
           destructor  destroy;override;
+          procedure freeinstance;override;
+          function  getcopy:tsymtable;
           procedure clear;virtual;
           function  rename(const olds,news : stringid):tsymentry;
           procedure foreach(proc2call : tnamedindexcallback;arg:pointer);
@@ -171,11 +174,15 @@ implementation
          symsearch:=tdictionary.create;
          symsearch.noclear:=true;
          unitid:=0;
+         refcount:=1;
       end;
 
 
     destructor tsymtable.destroy;
       begin
+        { freeinstance decreases refcount }
+        if refcount>1 then
+          exit;
         stringdispose(name);
         stringdispose(realname);
         symindex.destroy;
@@ -189,6 +196,21 @@ implementation
       end;
 
 
+    procedure tsymtable.freeinstance;
+      begin
+        dec(refcount);
+        if refcount=0 then
+          inherited freeinstance;
+      end;
+      
+
+    function tsymtable.getcopy:tsymtable;
+      begin
+        inc(refcount);
+        result:=self;
+      end;
+      
+      
 {$ifdef EXTDEBUG}
     procedure tsymtable.dumpsym(p : TNamedIndexItem;arg:pointer);
       begin
@@ -311,7 +333,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2003-09-23 17:56:06  peter
+  Revision 1.16  2003-12-01 18:44:15  peter
+    * fixed some crashes
+    * fixed varargs and register calling probs
+
+  Revision 1.15  2003/09/23 17:56:06  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure

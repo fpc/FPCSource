@@ -2282,10 +2282,12 @@ type
                  tvarsym(tloadnode(hpt).symtableentry).varstate:=vs_used;
              end;
 
-            { if we are calling the constructor, ignore inherited
-              calls }
+            { if we are calling the constructor check for abstract
+              methods. Ignore inherited and member calls, because the
+              class is then already created }
             if (procdefinition.proctypeoption=potype_constructor) and
-               not(nf_inherited in flags) then
+               not(nf_inherited in flags) and
+               not(nf_member_call in flags) then
               verifyabstractcalls;
           end
          else
@@ -2694,7 +2696,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.209  2003-11-28 17:24:22  peter
+  Revision 1.210  2003-12-01 18:44:15  peter
+    * fixed some crashes
+    * fixed varargs and register calling probs
+
+  Revision 1.209  2003/11/28 17:24:22  peter
     * reversed offset calculation for caller side so it works
       correctly for interfaces
 

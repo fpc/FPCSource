@@ -198,7 +198,6 @@ interface
          nf_swapable,    { tbinop operands can be swaped }
          nf_swaped,      { tbinop operands are swaped    }
          nf_error,
-         nf_copy,
 
          { general }
          nf_write,       { Node is written to            }
@@ -767,8 +766,6 @@ implementation
 {$ifdef extdebug}
          p.firstpasscount:=firstpasscount;
 {$endif extdebug}
-         { mark node as being a copy }
-         include(p.flags,nf_copy);
 {         p.list:=list; }
          getcopy:=p;
       end;
@@ -1090,7 +1087,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.77  2003-11-29 14:33:13  peter
+  Revision 1.78  2003-12-01 18:44:15  peter
+    * fixed some crashes
+    * fixed varargs and register calling probs
+
+  Revision 1.77  2003/11/29 14:33:13  peter
     * typed address only used for @ and addr() that are parsed
 
   Revision 1.76  2003/11/23 17:38:48  peter
