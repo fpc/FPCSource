@@ -1336,12 +1336,17 @@ begin
     Color:=ColorTab[coTextColor];
     FillChar(FreeFormat,SizeOf(FreeFormat),1);
     MoveChar(B,' ',Color,Size.X);
-    if AY<LineCount then Line:=GetLine(AY) else Line:=@NulLine;
-     GetDisplayTextFormat(AY,LineText,Format);
     if AY<LineCount then
-      IsBreak:=Lines^.at(AY)^.isBreakpoint
+     begin
+       Line:=GetLine(AY);
+       IsBreak:=Lines^.at(AY)^.isBreakpoint;
+     end
     else
-      IsBreak:=false;
+     begin
+       Line:=@NulLine;
+       IsBreak:=false;
+     end;
+    GetDisplayTextFormat(AY,LineText,Format);
 
 {    if (Flags and efSyntaxHighlight)<>0 then MaxX:=length(LineText)+1
        else }MaxX:=Size.X+Delta.X;
@@ -3294,7 +3299,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.13  1999-02-05 13:22:43  pierre
+  Revision 1.14  1999-02-05 13:51:45  peter
+    * unit name of FPSwitches -> FPSwitch which is easier to use
+    * some fixes for tp7 compiling
+
+  Revision 1.13  1999/02/05 13:22:43  pierre
    * bug that caused crash for empty files
 
   Revision 1.12  1999/02/05 12:04:56  pierre

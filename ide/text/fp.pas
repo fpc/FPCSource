@@ -18,7 +18,7 @@ program FP;
 uses
   Dos,
   BrowCol,
-  FPIni,FPViews,FPConst,FPVars,FPUtils,FPIde,FPHelp,FPSwitches,FPUsrScr,
+  FPIni,FPViews,FPConst,FPVars,FPUtils,FPIde,FPHelp,FPSwitch,FPUsrScr,
   FPTools;
 
 
@@ -98,7 +98,11 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.6  1999-01-21 11:54:10  peter
+  Revision 1.7  1999-02-05 13:51:38  peter
+    * unit name of FPSwitches -> FPSwitch which is easier to use
+    * some fixes for tp7 compiling
+
+  Revision 1.6  1999/01/21 11:54:10  peter
     + tools menu
     + speedsearch in symbolbrowser
     * working run command

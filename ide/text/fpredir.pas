@@ -112,7 +112,9 @@ begin
       end;
     Regs.ax:=$46;
     Regs.bx:=fh;
+{$ifndef TP}
     Regs.cs:=nh;
+{$endif}
     MsDos (Regs);
     If (Regs.Flags and fCarry)=0 then
       Dup2:=nh
@@ -327,13 +329,14 @@ begin
 {$endif FPC}
 end;
 
-{$else in_dos}
+{$endif indos}
 
 
 {*****************************************************************************
                                  Linux
 *****************************************************************************}
 
+{$ifdef linux}
 
 function ExecuteRedir (Const ProgName, ComLine, RedirStdOut, RedirStdErr : String) : boolean;
 begin
@@ -362,7 +365,8 @@ procedure InitRedir;
 begin
 end;
 
-{$endif in_dos}
+{$endif linux}
+
 
 {*****************************************************************************
                                   Initialize
@@ -371,3 +375,10 @@ end;
 Begin
   InitRedir;
 End.
+{
+  $Log$
+  Revision 1.6  1999-02-05 13:51:43  peter
+    * unit name of FPSwitches -> FPSwitch which is easier to use
+    * some fixes for tp7 compiling
+
+}

@@ -27,7 +27,7 @@ implementation
 
 uses
   Compiler,
-  FPSwitches;
+  FPSwitch;
 
 {****************************************************************************
                                    Run
@@ -61,7 +61,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  1998-12-28 15:47:45  peter
+  Revision 1.3  1999-02-05 13:51:41  peter
+    * unit name of FPSwitches -> FPSwitch which is easier to use
+    * some fixes for tp7 compiling
+
+  Revision 1.2  1998/12/28 15:47:45  peter
     + Added user screen support, display & window
     + Implemented Editor,Mouse Options dialog
     + Added location of .INI and .CFG file

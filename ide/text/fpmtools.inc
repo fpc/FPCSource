@@ -51,7 +51,7 @@ procedure TIDEApp.Grep;
       GrepExe,GrepArgs,Line,ModuleName : String;
       GrepOut : text;
       Params : Array[0..4] of longint;
-      
+
   Const GrepOutName = 'grep$$.out';
 {$ifdef linux}
    GrepExeName = 'grep';
@@ -74,7 +74,7 @@ begin
       R2.A.X:=R.A.X+3;
       R2.B.X:=R.B.X-3;
       New(IL, Init(R2, 128));
-      If Assigned(DeskTop^.First) and
+      If not(DeskTop^.First=nil) and
          (DeskTop^.First^.HelpCtx=hcSourceWindow) then
         GrepArgs:=PSourceWindow(DeskTop^.First)^.Editor^.GetCurrentWord
       else
@@ -127,7 +127,11 @@ begin
 end;
 {
   $Log$
-  Revision 1.5  1999-02-05 12:11:59  pierre
+  Revision 1.6  1999-02-05 13:51:42  peter
+    * unit name of FPSwitches -> FPSwitch which is easier to use
+    * some fixes for tp7 compiling
+
+  Revision 1.5  1999/02/05 12:11:59  pierre
     + SourceDir that stores directories for sources that the
       compiler should not know about
       Automatically asked for addition when a new file that

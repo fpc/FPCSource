@@ -109,7 +109,7 @@ uses
   Dos,Objects,Memory,Menus,Dialogs,StdDlg,ColorSel,Commands,HelpCtx,
   Systems,BrowCol,
   WHelp,WHlpView,WINI,
-  FPConst,FPVars,FPUtils,FPSwitches,FPIni,FPIntf,FPCompile,FPHelp,
+  FPConst,FPVars,FPUtils,FPSwitch,FPIni,FPIntf,FPCompile,FPHelp,
   FPTemplt,FPCalc,FPUsrScr,FPSymbol,FPTools,FPDebug,FPRedir;
 
 
@@ -646,7 +646,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.9  1999-02-05 13:03:54  pierre
+  Revision 1.10  1999-02-05 13:51:40  peter
+    * unit name of FPSwitches -> FPSwitch which is easier to use
+    * some fixes for tp7 compiling
+
+  Revision 1.9  1999/02/05 13:03:54  pierre
    * DosShell is not virtual in app !
 
   Revision 1.8  1999/02/05 12:11:54  pierre

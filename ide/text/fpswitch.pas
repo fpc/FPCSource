@@ -13,7 +13,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-unit FPSwitches;
+unit FPSwitch;
 
 interface
 
@@ -785,7 +785,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  1999-02-05 12:12:00  pierre
+  Revision 1.6  1999-02-05 13:51:44  peter
+    * unit name of FPSwitches -> FPSwitch which is easier to use
+    * some fixes for tp7 compiling
+
+  Revision 1.5  1999/02/05 12:12:00  pierre
     + SourceDir that stores directories for sources that the
       compiler should not know about
       Automatically asked for addition when a new file that

@@ -45,7 +45,7 @@ uses
 {$ifdef go32v2}
   FPRedir,
 {$endif def go32v2}
-  FPConst,FPVars,FPUtils,FPIntf,FPSwitches;
+  FPConst,FPVars,FPUtils,FPIntf,FPSwitch;
 
 constructor TCompileStatusDialog.Init;
 var R: TRect;
@@ -246,7 +246,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  1999-02-05 13:06:28  pierre
+  Revision 1.10  1999-02-05 13:51:39  peter
+    * unit name of FPSwitches -> FPSwitch which is easier to use
+    * some fixes for tp7 compiling
+
+  Revision 1.9  1999/02/05 13:06:28  pierre
    * allow cmClose for Compilation Dialog box
 
   Revision 1.8  1999/02/04 13:32:01  pierre
