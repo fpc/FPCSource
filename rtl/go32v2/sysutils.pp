@@ -24,9 +24,6 @@ interface
 uses
   go32,dos;
 
-type
-  THandle = type Longint;
-
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -754,7 +751,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.16  2003-06-03 07:54:27  michael
+  Revision 1.17  2003-10-25 23:42:35  hajny
+    * THandle in sysutils common using System.THandle
+
+  Revision 1.16  2003/06/03 07:54:27  michael
   + Patch from Peter for millisecond timing
 
   Revision 1.15  2003/04/02 15:18:28  peter

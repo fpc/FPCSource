@@ -24,9 +24,6 @@ interface
 uses
   Unix,errors;
 
-type
-  THandle = type Longint;
-
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -493,7 +490,10 @@ end.
 {
 
   $Log$
-  Revision 1.23  2003-10-07 08:28:49  marco
+  Revision 1.24  2003-10-25 23:43:59  hajny
+    * THandle in sysutils common using System.THandle
+
+  Revision 1.23  2003/10/07 08:28:49  marco
    * fix from Vincent to casetables
 
   Revision 1.22  2003/09/27 12:51:33  peter

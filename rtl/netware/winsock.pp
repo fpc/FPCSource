@@ -65,7 +65,6 @@ unit winsock;
        LPINT   = ^integer;
        LPDWORD = ^dword;
        {$ifdef netware}
-       THandle = longint;  {win32 system unit defines THandle and overlapped}
        OVERLAPPED = record
           Internal    : DWORD;
           InternalHigh: DWORD;
@@ -2431,7 +2430,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.2  2003-03-30 12:35:43  armin
+  Revision 1.3  2003-10-25 23:42:35  hajny
+    * THandle in sysutils common using System.THandle
+
+  Revision 1.2  2003/03/30 12:35:43  armin
   * removed uses netware from winsock, DirectoryExists implemented
 
   Revision 1.1  2003/03/25 18:17:54  armin

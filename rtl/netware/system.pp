@@ -32,6 +32,9 @@ interface
 
 {$I systemh.inc}
 
+type
+ THandle = cardinal;
+
 {Platform specific information}
 const
  LineEnding = #13#10;
@@ -812,7 +815,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.19  2003-10-17 22:12:02  olle
+  Revision 1.20  2003-10-25 23:43:59  hajny
+    * THandle in sysutils common using System.THandle
+
+  Revision 1.19  2003/10/17 22:12:02  olle
     * changed i386 to cpui386
 
   Revision 1.18  2003/09/27 11:52:35  peter

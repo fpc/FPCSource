@@ -35,9 +35,6 @@ TYPE
     Magic : WORD;                    { to avoid abends with uninitialized TSearchRec }
   END;
 
-type
-  THandle = Cardinal;
-
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -500,7 +497,10 @@ end.
 {
 
   $Log$
-  Revision 1.11  2003-04-12 13:21:27  armin
+  Revision 1.12  2003-10-25 23:42:35  hajny
+    * THandle in sysutils common using System.THandle
+
+  Revision 1.11  2003/04/12 13:21:27  armin
   * added THandle
 
   Revision 1.10  2003/03/30 12:35:43  armin

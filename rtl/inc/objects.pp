@@ -153,11 +153,6 @@ TYPE
 {---------------------------------------------------------------------------}
 type
    FNameStr = String;
-{$ifdef win32}
-   THandle = Windows.THandle;
-{$else}
-   THandle = longint;
-{$endif}
 const
    MaxReadBytes = $7fffffff;
    invalidhandle = -1;
@@ -2927,7 +2922,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.22  2003-09-16 15:57:33  peter
+  Revision 1.23  2003-10-25 23:43:59  hajny
+    * THandle in sysutils common using System.THandle
+
+  Revision 1.22  2003/09/16 15:57:33  peter
     * sparc register typo
 
   Revision 1.21  2003/08/21 22:17:13  olle

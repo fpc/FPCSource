@@ -38,8 +38,6 @@ uses
 {$i sysutilh.inc}
 
 type
-  THandle = Windows.Handle;
-
   TSystemTime = Windows.TSystemTime;
 
   EWin32Error = class(Exception)
@@ -712,7 +710,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.24  2003-09-17 15:06:36  peter
+  Revision 1.25  2003-10-25 23:44:33  hajny
+    * THandle in sysutils common using System.THandle
+
+  Revision 1.24  2003/09/17 15:06:36  peter
     * stdcall patch
 
   Revision 1.23  2003/09/06 22:23:35  marco

@@ -30,6 +30,9 @@ unit {$ifdef VER1_0}sysatari{$else}{$ifdef VER0_99}sysatari{$ELSE}system{$endif}
 
     {$I systemh.inc}
 
+type
+ THandle = longint;
+
     {$I heaph.inc}
 
 {Platform specific information}
@@ -759,7 +762,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2003-09-29 18:52:36  hajny
+  Revision 1.9  2003-10-25 23:42:35  hajny
+    * THandle in sysutils common using System.THandle
+
+  Revision 1.8  2003/09/29 18:52:36  hajny
     * append fix applied to Amiga, Atari, EMX, GO32v2, OS/2 and Watcom
 
   Revision 1.7  2003/09/27 11:52:35  peter

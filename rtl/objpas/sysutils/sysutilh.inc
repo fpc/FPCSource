@@ -15,8 +15,6 @@
 
 
   { Read date & Time function declarations }
-(* This must be placed before other functions, because TDateTime from DosCalls
-   would be used under OS/2 instead of that one from datih.inc otherwise. *)
   {$i osutilsh.inc}
 
   {$i datih.inc}
@@ -26,6 +24,14 @@
 
 type
    { some helpful data types }
+
+{$IFDEF VER1_0}
+(* System type alias cannot be used under version *)
+(* 1.0 because of different names of System unit. *)
+   THandle = longint;
+{$ELSE VER1_0}
+   THandle = System.THandle;
+{$ENDIF VER1_0}
 
    tprocedure = procedure;
 
@@ -213,7 +219,10 @@ Type
 
 {
   $Log$
-  Revision 1.1  2003-10-06 21:01:06  peter
+  Revision 1.2  2003-10-25 23:43:59  hajny
+    * THandle in sysutils common using System.THandle
+
+  Revision 1.1  2003/10/06 21:01:06  peter
     * moved classes unit to rtl
 
   Revision 1.20  2003/09/06 20:49:54  marco

@@ -27,6 +27,9 @@ interface
 
 {$I systemh.inc}
 
+type
+ THandle = longint;
+
 { include heap support headers }
 
 {$I heaph.inc}
@@ -535,7 +538,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2003-09-27 11:52:35  peter
+  Revision 1.10  2003-10-25 23:42:35  hajny
+    * THandle in sysutils common using System.THandle
+
+  Revision 1.9  2003/09/27 11:52:35  peter
     * sbrk returns pointer
 
   Revision 1.8  2003/01/08 22:32:28  marco
