@@ -16,43 +16,45 @@
  {$warning CHECK ME and FIX ME !!!!!!!!!!!}
   Stat = packed Record  // No unix typing because of differences
     case byte of
-      0: (st_dev    : cardinal;
-          st_ino,
-          st_mode   : cardinal;
-          nlink     : word;
+      0: (st_dev    : word;
           __pad1    : word;
-          uid,
-          gid,
-          rdev      : cardinal;
+          st_ino    : cardinal;
+          st_mode   : word;
+          nlink     : smallint;
+          uid       : word;
+          gid       : word;
+          rdev      : word;
+	  __pad2    : word;
           st_size   : longint;
-          st_blksize,
-          st_blocks,
-          st_atime,
+          st_atime  : longint;
+	  st_atime_nsecs : cardinal;
+          st_mtime  : longint;
+	  st_mtime_nsecs : cardinal;
+          st_ctime  : longint;
+	  st_ctime_nsecs : cardinal;
+          st_blksize : longint;
+          st_blocks  : longint;
           __unused1,
-          st_mtime,
-          __unused2,
-          st_ctime,
-          __unused3,
-          __unused4,
-          __unused5  : cardinal;
+          __unused2  : cardinal;
          );
-      1: (dev    : cardinal;
-          ino,
+      1: (dev    : word;
+          __pad3 : word;
+          ino    : word;
           mode   : cardinal;
-          nlink_dummy     : word;
-          __pad2    : word;
+          nlink_dummy  : smallint;
           uid_dummy,
           gid_dummy,
-          rdev_dummy      : cardinal;
+          rdev_dummy      : word;
+	  __pad4 : word;
           size   : longint;
-          blksize,
-          blocks,
           atime,
           __unused1_dummy,
           mtime,
           __unused2_dummy,
           ctime,
           __unused3_dummy,
+          blksize,
+          blocks            : longint;
           __unused4_dummy,
           __unused5_dummy  : cardinal;
          );
@@ -60,6 +62,10 @@
 
 {
   $Log$
-  Revision 1.1  2003-05-23 22:36:39  florian
+  Revision 1.2  2004-05-27 23:15:02  peter
+    * startup argc,argv,envp fix
+    * stat fixed
+
+  Revision 1.1  2003/05/23 22:36:39  florian
     * fixed compilation of sparc system unit
 }

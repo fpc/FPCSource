@@ -25,53 +25,56 @@
 	.type _start,#function
 _start:
 
-  /* Terminate the stack frame, and reserve space for functions to
-     drop their arguments.  */
+  	/* Terminate the stack frame, and reserve space for functions to
+     	   drop their arguments.  */
 	mov	%g0, %fp
 	sub	%sp, 6*4, %sp
 
-  /* Extract the arguments and environment as encoded on the stack.  The
-     argument info starts after one register window (16 words) past the SP.  */
-	ld	[%sp+22*4], %o1
-	add	%sp, 23*4, %o2
+  	/* Extract the arguments and environment as encoded on the stack.  The
+     	   argument info starts after one register window (16 words) past the SP.  */
+	ld	[%sp+22*4], %o2
+	sethi	%hi(U_SYSTEM_ARGC),%o1
+	or	%o1,%lo(U_SYSTEM_ARGC),%o1
+	st	%o2, [%o1]	
 
-  /* Load the addresses of the user entry points.  */
-	sethi	%hi(main), %o0
-	sethi	%hi(fpc_initialize), %o3
-	sethi	%hi(fpc_finalize), %o4
-	or	%o0, %lo(main), %o0
-	or	%o3, %lo(fpc_initialize), %o3
-	or	%o4, %lo(fpc_finalize), %o4
+	add	%sp, 23*4, %o0
+	sethi	%hi(U_SYSTEM_ARGV),%o1
+	or	%o1,%lo(U_SYSTEM_ARGV),%o1
+	st	%o0, [%o1]	
 
-  /* When starting a binary via the dynamic linker, %g1 contains the
-     address of the shared library termination function, which will be
-     registered with atexit().  If we are statically linked, this will
-     be NULL.  */
-  mov	%g1, %o5
-
-  /* Call the user program entry point.  */
-  call	PASCALMAIN
-  nop
+	/* envp=(argc+1)*4+argv */
+	inc     %o2
+	sll     %o2, 2, %o2
+	add	%o2, %o0, %o2
+	sethi	%hi(U_SYSTEM_ENVP),%o1
+	or	%o1,%lo(U_SYSTEM_ENVP),%o1
+	st	%o2, [%o1]	
+	
+  	/* Call the user program entry point.  */
+  	call	PASCALMAIN
+  	nop
   
-  .globl  _haltproc
-  .type   _haltproc,@function
+.globl  _haltproc
+.type   _haltproc,@function
 _haltproc:
 	mov	1, %g1			/* "exit" system call */
-  sethi	%hi(U_SYSTEM_EXITCODE),%o0
+	sethi	%hi(U_SYSTEM_EXITCODE),%o0
 	or	%o0,%lo(U_SYSTEM_EXITCODE),%o0
 	ldsh	[%o0], %o0			/* give exit status to parent process*/
 	ta	0x10			/* dot the system call */
-  nop				/* delay slot */
-/* and what if it goes wrong? just retry! */
-  call	_haltproc
-
-  /* Die very horribly if exit returns.  */
+	nop				/* delay slot */
+	/* Die very horribly if exit returns.  */
 	unimp
 
 	.size _start, .-_start
 
+#
 # $Log$
-# Revision 1.6  2004-05-17 20:56:56  peter
+# Revision 1.7  2004-05-27 23:15:02  peter
+#   * startup argc,argv,envp fix
+#   * stat fixed
+#
+# Revision 1.6  2004/05/17 20:56:56  peter
 #   * use ldsh to load exitcode
 #
 # Revision 1.5  2004/03/16 10:19:11  mazen
