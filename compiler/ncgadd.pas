@@ -106,7 +106,7 @@ interface
           end;
         secondpass(left);
         if left.location.loc in [LOC_FLAGS,LOC_JUMP] then
-          location_force_reg(exprasmlist,left.location,left.location.size,false);
+          location_force_reg(exprasmlist,left.location,def_cgsize(resulttype.def),false);
         if isjump then
           begin
             truelabel:=otl;
@@ -128,7 +128,7 @@ interface
           end;
         secondpass(right);
         if right.location.loc in [LOC_FLAGS,LOC_JUMP] then
-          location_force_reg(exprasmlist,right.location,right.location.size,false);
+          location_force_reg(exprasmlist,right.location,def_cgsize(resulttype.def),false);
         if isjump then
           begin
             truelabel:=otl;
@@ -164,7 +164,7 @@ interface
         else
          if right.location.loc=LOC_REGISTER then
           begin
-            if right.location.size<>location.size then
+            if TCGSize2Size[right.location.size]<>TCGSize2Size[location.size] then
               internalerror(200307042);
 {$ifndef cpu64bit}
             if location.size in [OS_64,OS_S64] then
@@ -265,15 +265,23 @@ interface
 
         pass_left_right;
         force_reg_left_right(true,true);
+
+        { setelementn is a special case, it must be on right.
+          We need an extra check if left is a register because the
+          default case can skip the register loading when the
+          setelementn is in a register (PFV) }
+        if (nf_swaped in flags) and
+           (left.nodetype=setelementn) then
+          swapleftright;
+        if (right.nodetype=setelementn) and
+           (left.location.loc<>LOC_REGISTER) then
+          location_force_reg(exprasmlist,left.location,left.location.size,false);
+
         set_result_location_reg;
 
         case nodetype of
           addn :
             begin
-              { non-commucative }
-              if (nf_swaped in flags) and
-                 (left.nodetype=setelementn) then
-                swapleftright;
               { are we adding set elements ? }
               if right.nodetype=setelementn then
                 begin
@@ -727,7 +735,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2003-09-03 15:55:00  peter
+  Revision 1.18  2003-09-14 21:34:16  peter
+    * fix setelementn support
+    * fix loading of flags
+
+  Revision 1.17  2003/09/03 15:55:00  peter
     * NEWRA branch merged
 
   Revision 1.16  2003/09/03 11:18:36  florian
