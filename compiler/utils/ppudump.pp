@@ -356,7 +356,7 @@ begin
       write('Uses unit: ',ppufile.getstring,' (Number: ',unitnumber,')');
       ucrc:=ppufile.getlongint;
       uintfcrc:=ppufile.getlongint;
-      write(' (Crc: ',hexstr(ucrc,8),', IntfcCrc: ',hexstr(uintfcrc,8),')');
+      writeln(' (Crc: ',hexstr(ucrc,8),', IntfcCrc: ',hexstr(uintfcrc,8),')');
     end;
 end;
 
@@ -1929,7 +1929,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.48  2003-11-10 22:02:52  peter
+  Revision 1.49  2003-12-08 21:04:08  peter
+    * line break in uses unit
+
+  Revision 1.48  2003/11/10 22:02:52  peter
     * cross unit inlining fixed
 
   Revision 1.47  2003/10/22 20:40:00  peter
