@@ -12,6 +12,9 @@ uses
 {$ifdef linux}
  ,linux
 {$endif}
+{$IFDEF OS2}
+ , DosCalls
+{$ENDIF OS2}
  ;
 
 {***********************************************************************}
@@ -89,6 +92,20 @@ procedure cgi_init;
 procedure cgi_deinit;
 
 implementation
+
+{$IFDEF OS2}
+function GetEnv (EnvVar: string): PChar;
+
+var RC: longint;
+    P, Q: PChar;
+
+begin
+ GetMem (Q, Succ (Length (EnvVar)));
+ RC := DosScanEnv (Q, P);
+ FreeMem (Q, Succ (Length (EnvVar)));
+ GetEnv := P;
+end;
+{$ENDIF OS2}
 
 {$ifdef win32}
 Var EnvP : PChar;
@@ -413,7 +430,10 @@ end.
 {
   HISTORY
   $Log$
-  Revision 1.2  2000-07-13 11:33:32  michael
+  Revision 1.3  2000-12-19 00:47:11  hajny
+    + OS/2 support added
+
+  Revision 1.2  2000/07/13 11:33:32  michael
   + removed logs
  
 }
