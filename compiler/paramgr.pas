@@ -168,14 +168,23 @@ unit paramgr;
           recorddef :
             push_addr_param:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (def.size>pointer_size);
           arraydef :
-            push_addr_param:=(calloption in [pocall_cdecl,pocall_cppdecl]) or
-                             (
-                              (tarraydef(def).highrange>=tarraydef(def).lowrange) and
-                              (def.size>pointer_size)
-                             ) or
-                             is_open_array(def) or
-                             is_array_of_const(def) or
-                             is_array_constructor(def);
+            begin
+              if (calloption in [pocall_cdecl,pocall_cppdecl]) then
+               begin
+                 { array of const values are pushed on the stack }
+                 push_addr_param:=not is_array_of_const(def);
+               end
+              else
+               begin
+                 push_addr_param:=(
+                                   (tarraydef(def).highrange>=tarraydef(def).lowrange) and
+                                   (def.size>pointer_size)
+                                  ) or
+                                  is_open_array(def) or
+                                  is_array_of_const(def) or
+                                  is_array_constructor(def);
+               end;
+            end;
           objectdef :
             push_addr_param:=is_object(def);
           stringdef :
@@ -401,7 +410,10 @@ end.
 
 {
    $Log$
-   Revision 1.32  2003-04-22 13:47:08  peter
+   Revision 1.33  2003-04-23 10:14:30  peter
+     * cdecl array of const has no addr push
+
+   Revision 1.32  2003/04/22 13:47:08  peter
      * fixed C style array of const
      * fixed C array passing
      * fixed left to right with high parameters
