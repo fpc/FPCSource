@@ -198,7 +198,7 @@ implementation
               end;
             pointerdef :
               begin
-                if ((rd.deftype in [orddef,pointerdef,classrefdef,procvardef]) or
+                if ((rd.deftype in [orddef,enumdef,pointerdef,classrefdef,procvardef]) or
                     is_class_or_interface(rd)) then
                  begin
                    allowed:=false;
@@ -206,13 +206,10 @@ implementation
                  end;
 
                 { don't allow pchar+string }
-                if is_pchar(ld) and
-                   (is_char(rd) or
-                    is_widechar(rd) or
+                if (is_pchar(ld) or is_pwidechar(ld)) and
+                   ((rd.deftype=stringdef) or
                     is_pchar(rd) or
                     is_pwidechar(rd) or
-                    is_integer(rd) or
-                    (rd.deftype=stringdef) or
                     is_chararray(rd) or
                     is_widechararray(rd)) then
                  begin
@@ -231,13 +228,10 @@ implementation
                    exit;
                  end;
                 { not chararray+[(wide)char,(wide)string,(wide)chararray] }
-                if is_chararray(ld) and
-                   (is_char(rd) or
-                    is_widechar(rd) or
+                if (is_chararray(ld) or is_widechararray(ld)) and
+                   ((rd.deftype in [stringdef,orddef,enumdef]) or
                     is_pchar(rd) or
                     is_pwidechar(rd) or
-                    is_integer(rd) or
-                    (rd.deftype=stringdef) or
                     is_chararray(rd) or
                     is_widechararray(rd) or
                     (rt=niln)) then
@@ -270,9 +264,7 @@ implementation
               end;
             stringdef :
               begin
-                if ((rd.deftype=stringdef) or
-                    is_char(rd) or
-                    is_widechar(rd) or
+                if ((rd.deftype in [orddef,enumdef,stringdef]) or
                     is_pchar(rd) or
                     is_pwidechar(rd) or
                     is_chararray(rd) or
@@ -1923,7 +1915,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.85  2004-04-18 07:52:43  florian
+  Revision 1.86  2004-05-16 13:29:46  peter
+    * forbid more overloaded operators with orddef/enumdef
+
+  Revision 1.85  2004/04/18 07:52:43  florian
     * fixed web bug 3048: comparision of dyn. arrays
 
   Revision 1.84  2004/03/18 16:29:07  peter
