@@ -71,6 +71,8 @@ implementation
            while assigned(vs) do
              begin
                 vs.vartype:=tt;
+                if (sp_static in current_object_option) then
+                  include(vs.symoptions,sp_static);
                 if is_threadvar then
                   include(vs.varoptions,vo_is_thread_var);
                 { static data fields are inserted in the globalsymtable }
@@ -555,7 +557,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  2002-09-09 17:34:15  peter
+  Revision 1.33  2002-09-16 18:08:45  peter
+    * fix setting of sp_static
+
+  Revision 1.32  2002/09/09 17:34:15  peter
     * tdicationary.replace added to replace and item in a dictionary. This
       is only allowed for the same name
     * varsyms are inserted in symtable before the types are parsed. This
