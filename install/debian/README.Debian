@@ -4,15 +4,17 @@ Free Pascal for DEBIAN
 No changes were necessary to the source tree as checked out from
 CVS at cvs.freepascal.org by
  cvs -d :pserver:cvs@cvs.freepascal.org:/FPC/CVS -z3 co -r FIXES_1_0_0 fpc
-The Debian Build Directory was created by 'make debcopy FPC_VERSION=1.0.2'
+The Debian Build Directory was created by 'make debcopy FPC_VERSION=1.0.3'
 and then duplicated to .orig before 'dpkg-buildpackage -sa -rfakeroot' was
 run.
 
 In order to build the package yourself, you need a ppc386 compiler
 later or equal to 0.99.14. And you need to change the following settings
-in /etc/texmf/texmf.cnf:
+in /etc/texmf/texmf.cnf to use (at least) the specified values:
+ hash_extra = 10000
  pool_size.context = 1500000
  pool_size = 250000
+
 
 As shipped, only the .pdf docs are built. You may want to make the HTML
 files with latex2html by yourself, and eventually adapt the doc-base file.
