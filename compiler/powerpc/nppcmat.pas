@@ -142,17 +142,17 @@ implementation
              begin
                exprasmlist.concat(taicpu.op_reg_reg_reg(A_MULLW,resultreg,
                  divider,resultreg));
-               rg.ungetregister(exprasmlist,divider);
+               rg.ungetregisterint(exprasmlist,divider);
                exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUB,location.register,
                  numerator,resultreg));
                cg.free_scratch_reg(exprasmlist,resultreg);
                resultreg := location.register;
              end
            else
-             rg.ungetregister(exprasmlist,divider);
+             rg.ungetregisterint(exprasmlist,divider);
            end;
        { free used registers }
-        if numerator.enum <> resultreg.enum then
+        if numerator.number <> resultreg.number then
           rg.ungetregisterint(exprasmlist,numerator);
         { set result location }
         location.loc:=LOC_REGISTER;
@@ -268,7 +268,8 @@ implementation
                    end;
 
                  rg.getexplicitregisterint(exprasmlist,NR_R0);
-                 r.enum:=R_0;
+                 r.enum:=R_INTREGISTER;
+                 r.number:=NR_R0;
                  exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBFIC,
                    r,hregister1,32));
                  exprasmlist.concat(taicpu.op_reg_reg_reg(asmop1,
@@ -285,12 +286,12 @@ implementation
                    location.registerhigh,location.registerhigh,r));
                  exprasmlist.concat(taicpu.op_reg_reg_reg(asmop1,
                    location.registerlow,hregisterlow,hregister1));
-                 rg.ungetregister(exprasmlist,r);
+                 rg.ungetregisterint(exprasmlist,r);
 
                  if right.location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then
                    cg.free_scratch_reg(exprasmlist,hregister1)
                  else
-                   rg.ungetregister(exprasmlist,hregister1);
+                   rg.ungetregisterint(exprasmlist,hregister1);
                end
            end
          else
@@ -326,7 +327,7 @@ implementation
                   cg.a_op_reg_reg_reg(exprasmlist,op,OS_32,hregister2,
                     hregister1,resultreg);
 
-                  rg.ungetregister(exprasmlist,hregister2);
+                  rg.ungetregisterint(exprasmlist,hregister2);
                 end;
            end;
       end;
@@ -508,7 +509,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2003-02-19 22:00:16  daniel
+  Revision 1.24  2003-03-11 21:46:24  jonas
+    * lots of new regallocator fixes, both in generic and ppc-specific code
+      (ppc compiler still can't compile the linux system unit though)
+
+  Revision 1.23  2003/02/19 22:00:16  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

@@ -218,6 +218,8 @@ uses
       NR_R27 = $1C00; NR_R28 = $1D00; NR_R29 = $1E00;
       NR_R30 = $1F00; NR_R31 = $2000;
 
+      NR_RTOC = NR_R3;
+
     {Super registers:}
       RS_R0 = $01; RS_R1 = $02; RS_R2 = $03;
       RS_R3 = $04; RS_R4 = $05; RS_R5 = $06;
@@ -874,7 +876,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  2003-02-19 22:00:16  daniel
+  Revision 1.45  2003-03-11 21:46:24  jonas
+    * lots of new regallocator fixes, both in generic and ppc-specific code
+      (ppc compiler still can't compile the linux system unit though)
+
+  Revision 1.44  2003/02/19 22:00:16  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

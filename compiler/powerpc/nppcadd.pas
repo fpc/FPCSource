@@ -164,19 +164,29 @@ interface
       begin
         if (right.location.loc in [LOC_REGISTER,LOC_FPUREGISTER]) and
            (cmpop or
-            (location.register.enum <> right.location.register.enum)) then
+            ((location.register.enum = R_INTREGISTER) and
+             (location.register.number <> right.location.register.number)) or
+              (location.register.enum <> right.location.register.enum)) then
           begin
-            rg.ungetregisterint(exprasmlist,right.location.register);
+            if (right.location.register.enum = R_INTREGISTER) then
+              rg.ungetregisterint(exprasmlist,right.location.register)
+            else
+              rg.ungetregister(exprasmlist,right.location.register);
             if is_64bitint(right.resulttype.def) then
-              rg.ungetregisterint(exprasmlist,right.location.registerhigh);
+              rg.ungetregisterint(exprasmlist,right.location.registerhigh)
           end;
         if (left.location.loc in [LOC_REGISTER,LOC_FPUREGISTER]) and
            (cmpop or
-            (location.register.enum <> left.location.register.enum)) then
+            ((location.register.enum = R_INTREGISTER) and
+             (location.register.number <> left.location.register.number)) or
+              (location.register.enum <> left.location.register.enum)) then
           begin
-            rg.ungetregisterint(exprasmlist,left.location.register);
+            if (left.location.register.enum = R_INTREGISTER) then
+              rg.ungetregisterint(exprasmlist,left.location.register)
+            else
+              rg.ungetregister(exprasmlist,left.location.register);
             if is_64bitint(left.resulttype.def) then
-              rg.ungetregisterint(exprasmlist,left.location.registerhigh);
+              rg.ungetregisterint(exprasmlist,left.location.registerhigh)
           end;
       end;
 
@@ -223,7 +233,7 @@ interface
         if (right.location.loc = LOC_CONSTANT) then
           begin
 {$ifdef extdebug}
-            if (right.location.size in [OS_64,OS_S64]) and (hi(right.location.valueqword)<>0) and ((hi(right.location.valueqword)<>-1) or unsigned) then
+            if (right.location.size in [OS_64,OS_S64]) and (hi(right.location.valueqword)<>0) and ((hi(right.location.valueqword)<>cardinal(-1)) or unsigned) then
               internalerror(2002080301);
 {$endif extdebug}
             if (nodetype in [equaln,unequaln]) then
@@ -562,7 +572,7 @@ interface
         load_left_right(cmpop,false);
 
         if not(cmpop) and
-           (location.register.enum = R_NO) then
+           (location.register.number = NR_NO) then
           location.register := rg.getregisterint(exprasmlist,OS_INT);
 
         case nodetype of
@@ -939,14 +949,15 @@ interface
                          tempreg64);
                     end;
 
-                  r.enum:=R_0;
+                  r.enum:=R_INTREGISTER;
+                  r.number:=NR_R0;
                   cg.a_reg_alloc(exprasmlist,r);
                   exprasmlist.concat(taicpu.op_reg_reg_reg(A_OR_,r,
                     tempreg64.reglo,tempreg64.reghi));
                   cg.a_reg_dealloc(exprasmlist,r);
-                  if (tempreg64.reglo.enum <> left.location.registerlow.enum) then
+                  if (tempreg64.reglo.number <> left.location.registerlow.number) then
                     cg.free_scratch_reg(exprasmlist,tempreg64.reglo);
-                  if (tempreg64.reghi.enum <> left.location.registerhigh.enum) then
+                  if (tempreg64.reghi.number <> left.location.registerhigh.number) then
                     cg.free_scratch_reg(exprasmlist,tempreg64.reghi);
 
                   location_reset(location,LOC_FLAGS,OS_NO);
@@ -954,7 +965,7 @@ interface
                 end;
               xorn,orn,andn,addn:
                 begin
-                  if (location.registerlow.enum = R_NO) then
+                  if (location.registerlow.number = NR_NO) then
                     begin
                       location.registerlow := rg.getregisterint(exprasmlist,OS_INT);
                       location.registerhigh := rg.getregisterint(exprasmlist,OS_INT);
@@ -976,7 +987,7 @@ interface
 
                   if left.location.loc <> LOC_CONSTANT then
                     begin
-                      if (location.registerlow.enum = R_NO) then
+                      if (location.registerlow.number = NR_NO) then
                         begin
                          location.registerlow := rg.getregisterint(exprasmlist,OS_INT);
                          location.registerhigh := rg.getregisterint(exprasmlist,OS_INT);
@@ -994,7 +1005,7 @@ interface
                     end
                   else if ((left.location.valueqword shr 32) = 0) then
                     begin
-                      if (location.registerlow.enum = R_NO) then
+                      if (location.registerlow.number = NR_NO) then
                         begin
                          location.registerlow := rg.getregisterint(exprasmlist,OS_INT);
                          location.registerhigh := rg.getregisterint(exprasmlist,OS_INT);
@@ -1022,7 +1033,7 @@ interface
                   else if (aword(left.location.valueqword) = 0) then
                     begin
                       // (const32 shl 32) - reg64
-                      if (location.registerlow.enum = R_NO) then
+                      if (location.registerlow.number = NR_NO) then
                         begin
                          location.registerlow := rg.getregisterint(exprasmlist,OS_INT);
                          location.registerhigh := rg.getregisterint(exprasmlist,OS_INT);
@@ -1042,7 +1053,7 @@ interface
                         def_cgsize(left.resulttype.def),true);
                       if (left.location.loc = LOC_REGISTER) then
                         location.register64 := left.location.register64
-                      else if (location.registerlow.enum = R_NO) then
+                      else if (location.registerlow.number = NR_NO) then
                         begin
                          location.registerlow := rg.getregisterint(exprasmlist,OS_INT);
                          location.registerhigh := rg.getregisterint(exprasmlist,OS_INT);
@@ -1368,7 +1379,7 @@ interface
          load_left_right(cmpop, (cs_check_overflow in aktlocalswitches) and
             (nodetype in [addn,subn,muln]));
 
-         if (location.register.enum = R_NO) and
+         if (location.register.number = NR_NO) and
             not(cmpop) then
            location.register := rg.getregisterint(exprasmlist,OS_INT);
 
@@ -1468,7 +1479,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2003-03-10 18:11:41  olle
+  Revision 1.24  2003-03-11 21:46:24  jonas
+    * lots of new regallocator fixes, both in generic and ppc-specific code
+      (ppc compiler still can't compile the linux system unit though)
+
+  Revision 1.23  2003/03/10 18:11:41  olle
     * changed ungetregister to ungetregisterint in tppcaddnode.clear_left_right
 
   Revision 1.22  2003/02/19 22:00:16  daniel

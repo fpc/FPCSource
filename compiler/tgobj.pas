@@ -438,9 +438,9 @@ unit tgobj;
          { ref.index = R_NO was missing
            led to problems with local arrays
            with lower bound > 0 (PM) }
-         if ref.base.enum<>R_INTREGISTER then
+         if (ref.base.enum<>R_NO) and (ref.base.enum<>R_INTREGISTER) then
            internalerror(200301225);
-         if ref.index.enum<>R_INTREGISTER then
+         if (ref.index.enum<>R_NO) and (ref.index.enum<>R_INTREGISTER) then
            internalerror(200301225);
          if procinfo.framepointer.enum<>R_INTREGISTER then
            internalerror(200301225);
@@ -542,7 +542,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.26  2003-02-19 22:00:15  daniel
+  Revision 1.27  2003-03-11 21:46:24  jonas
+    * lots of new regallocator fixes, both in generic and ppc-specific code
+      (ppc compiler still can't compile the linux system unit though)
+
+  Revision 1.26  2003/02/19 22:00:15  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

@@ -55,12 +55,14 @@ unit cpupara;
          else if nr<=8 then
            begin
               result.loc:=LOC_REGISTER;
-              result.register.enum:=Toldregister(longint(R_2)+nr);
+              result.register.enum:=R_INTREGISTER;
+              result.register.number:=NR_R2+nr*(NR_R1-NR_R0);
            end
          else
            begin
               result.loc:=LOC_REFERENCE;
-              result.reference.index.enum:=stack_pointer_reg;
+              result.reference.index.enum:=R_INTREGISTER;
+              result.reference.index.number:=NR_STACK_POINTER_REG;
               result.reference.offset:=(nr-8)*4;
            end;
       end;
@@ -132,23 +134,25 @@ unit cpupara;
       procedure assignintreg;
 
         begin
-           if nextintreg.enum<=R_10 then
+           if nextintreg.number<=NR_R10 then
              begin
                 hp.paraloc.loc:=LOC_REGISTER;
                 hp.paraloc.register:=nextintreg;
-                inc(nextintreg.enum);
+                inc(nextintreg.number,NR_R1-NR_R0);
              end
            else
               begin
                  hp.paraloc.loc:=LOC_REFERENCE;
-                 hp.paraloc.reference.index.enum:=stack_pointer_reg;
+                 hp.paraloc.reference.index.enum:=R_INTREGISTER;
+                 hp.paraloc.reference.index.number:=NR_STACK_POINTER_REG;
                  hp.paraloc.reference.offset:=stack_offset;
                  inc(stack_offset,4);
              end;
         end;
 
       begin
-         nextintreg.enum:=R_3;
+         nextintreg.enum:=R_INTREGISTER;
+         nextintreg.number:=NR_R3;
          nextfloatreg.enum:=R_F1;
          nextmmreg.enum:=R_M1;
          stack_offset:=0;
@@ -156,7 +160,7 @@ unit cpupara;
          if not is_void(p.rettype.def) then
            begin
               if not(ret_in_reg(p.rettype.def,p.proccalloption)) then
-                inc(nextintreg.enum);
+                inc(nextintreg.number,NR_R1-NR_R0);
            end;
 
          { frame pointer for nested procedures? }
@@ -176,22 +180,23 @@ unit cpupara;
                       if hp.paraloc.size = OS_NO then
                         hp.paraloc.size := OS_ADDR;
                       is_64bit := hp.paraloc.size in [OS_64,OS_S64];
-                      if nextintreg.enum<=Toldregister(ord(R_10)-ord(is_64bit))  then
+                      if nextintreg.number<=(NR_R10-ord(is_64bit)*(NR_R1-NR_R0))  then
                         begin
                            hp.paraloc.loc:=LOC_REGISTER;
                            hp.paraloc.registerlow:=nextintreg;
-                           inc(nextintreg.enum);
+                           inc(nextintreg.number,NR_R1-NR_R0);
                            if is_64bit then
                              begin
                                hp.paraloc.registerhigh:=nextintreg;
-                               inc(nextintreg.enum);
+                               inc(nextintreg.number,NR_R1-NR_R0);
                              end;
                         end
                       else
                          begin
-                            nextintreg.enum := R_11;
+                            nextintreg.number := NR_R11;
                             hp.paraloc.loc:=LOC_REFERENCE;
-                            hp.paraloc.reference.index.enum:=stack_pointer_reg;
+                            hp.paraloc.reference.index.enum:=R_INTREGISTER;
+                            hp.paraloc.reference.index.number:=NR_STACK_POINTER_REG;
                             hp.paraloc.reference.offset:=stack_offset;
                             if not is_64bit then
                               inc(stack_offset,4)
@@ -203,12 +208,12 @@ unit cpupara;
                    begin
                       if hp.paratyp in [vs_var,vs_out] then
                         begin
-                            if nextintreg.enum<=R_10 then
+                            if nextintreg.number<=NR_R10 then
                              begin
                                 hp.paraloc.size:=OS_ADDR;
                                 hp.paraloc.loc:=LOC_REGISTER;
                                 hp.paraloc.register:=nextintreg;
-                                inc(nextintreg.enum);
+                                inc(nextintreg.number,NR_R1-NR_R0);
                              end
                            else
                               begin
@@ -242,7 +247,8 @@ unit cpupara;
                       else
                         begin
                            hp.paraloc.loc:=LOC_REFERENCE;
-                           hp.paraloc.reference.index.enum:=stack_pointer_reg;
+                           hp.paraloc.reference.index.enum:=R_INTREGISTER;
+                           hp.paraloc.reference.index.number:=NR_STACK_POINTER_REG;
                            hp.paraloc.reference.offset:=stack_offset;
                            inc(stack_offset,hp.paratype.def.size);
                         end;
@@ -261,10 +267,14 @@ unit cpupara;
             enumdef:
               begin
                 getfuncretparaloc.loc:=LOC_REGISTER;
-                getfuncretparaloc.register.enum:=R_3;
+                getfuncretparaloc.register.enum:=R_INTREGISTER;
+                getfuncretparaloc.register.number:=NR_R3;
                 getfuncretparaloc.size:=def_cgsize(p.rettype.def);
                 if getfuncretparaloc.size in [OS_S64,OS_64] then
-                  getfuncretparaloc.registerhigh.enum:=R_4;
+                  begin
+                    getfuncretparaloc.registerhigh.enum:=R_INTREGISTER;
+                    getfuncretparaloc.registerhigh.number:=NR_R4;
+                  end;
               end;
             floatdef:
               begin
@@ -288,7 +298,8 @@ unit cpupara;
             errordef:
               begin
                 getfuncretparaloc.loc:=LOC_REGISTER;
-                getfuncretparaloc.register.enum:=R_3;
+                getfuncretparaloc.register.enum:=R_INTREGISTER;
+                getfuncretparaloc.register.number:=NR_R3;
                 getfuncretparaloc.size:=OS_ADDR;
               end;
             else
@@ -302,7 +313,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2003-01-09 22:00:53  florian
+  Revision 1.23  2003-03-11 21:46:24  jonas
+    * lots of new regallocator fixes, both in generic and ppc-specific code
+      (ppc compiler still can't compile the linux system unit though)
+
+  Revision 1.22  2003/01/09 22:00:53  florian
     * fixed some PowerPC issues
 
   Revision 1.21  2003/01/09 20:41:10  florian

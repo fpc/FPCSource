@@ -223,7 +223,7 @@ implementation
          if (left.location.loc = LOC_REGISTER) or
             ((left.location.loc = LOC_CREGISTER) and
              not signed) then
-           rg.ungetregister(exprasmlist,leftreg)
+           rg.ungetregisterint(exprasmlist,leftreg)
          else
            cg.free_scratch_reg(exprasmlist,valuereg);
 
@@ -298,7 +298,7 @@ implementation
                   hreg2,1));
                 exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBFE,hreg1,hreg1,
                   hreg2));
-                rg.ungetregister(exprasmlist,hreg2);
+                rg.ungetregisterint(exprasmlist,hreg2);
               end;
             LOC_FLAGS :
               begin
@@ -394,7 +394,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2003-02-19 22:00:16  daniel
+  Revision 1.30  2003-03-11 21:46:24  jonas
+    * lots of new regallocator fixes, both in generic and ppc-specific code
+      (ppc compiler still can't compile the linux system unit though)
+
+  Revision 1.29  2003/02/19 22:00:16  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

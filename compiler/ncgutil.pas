@@ -262,7 +262,8 @@ implementation
        cg.a_param_const(list,OS_S32,1,paramanager.getintparaloc(1));
        cg.a_call_name(list,'FPC_PUSHEXCEPTADDR');
 
-       r.enum:=accumulator;
+       r.enum:=R_INTREGISTER;
+       r.number:=NR_ACCUMULATOR;
        cg.a_param_reg(list,OS_ADDR,r,paramanager.getintparaloc(1));
        cg.a_call_name(list,'FPC_SETJMP');
 
@@ -282,7 +283,8 @@ implementation
          if not onlyfree then
           begin
             cg.g_exception_reason_load(list, href);
-            r.enum:=accumulator;
+            r.enum:=R_INTREGISTER;
+            r.number:=NR_ACCUMULATOR;
             cg.a_cmp_const_reg_label(list,OS_S32,OC_EQ,a,r,endexceptlabel);
           end;
      end;
@@ -1994,7 +1996,11 @@ function returns in a register and the caller receives it in an other one}
 end.
 {
   $Log$
-  Revision 1.78  2003-02-26 21:15:43  daniel
+  Revision 1.79  2003-03-11 21:46:24  jonas
+    * lots of new regallocator fixes, both in generic and ppc-specific code
+      (ppc compiler still can't compile the linux system unit though)
+
+  Revision 1.78  2003/02/26 21:15:43  daniel
     * Fixed the optimizer
 
   Revision 1.77  2003/02/19 22:00:14  daniel

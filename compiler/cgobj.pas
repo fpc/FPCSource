@@ -599,7 +599,8 @@ unit cgobj;
               begin
                  if locpara.sp_fixup<>0 then
                    begin
-                      t.enum:=stack_pointer_reg;
+                      t.enum:=R_INTREGISTER;;
+                      t.number:=NR_STACK_POINTER_REG;
                       a_op_const_reg(list,OP_ADD,locpara.sp_fixup,t);
                    end;
                  reference_reset(ref);
@@ -704,9 +705,9 @@ unit cgobj;
         if size in [OS_8,OS_S8] then
           if (rg.countunusedregsint = 0) then
             begin
-              if dref.base.enum<>R_INTREGISTER then
+              if (dref.base.enum<>R_NO) and (dref.base.enum<>R_INTREGISTER) then
                 internalerror(200302037);
-              if dref.index.enum<>R_INTREGISTER then
+              if (dref.index.enum<>R_NO) and (dref.index.enum<>R_INTREGISTER) then
                 internalerror(200302037);
                 
               if (dref.base.number shr 8<>RS_EBX) and
@@ -923,7 +924,8 @@ unit cgobj;
               begin
                  if locpara.sp_fixup<>0 then
                    begin
-                      t.enum:=stack_pointer_reg;
+                      t.enum:=R_INTREGISTER;
+                      t.number:=NR_STACK_POINTER_REG;
                       a_op_const_reg(list,OP_ADD,locpara.sp_fixup,t);
                    end;
                  reference_reset(ref);
@@ -1509,8 +1511,10 @@ unit cgobj;
       hregister : tregister;
       spr,acc : Tregister;
      begin
-        acc.enum:=accumulator;
-        spr.enum:=SELF_POINTER_REG;
+        acc.enum:=R_INTREGISTER;
+        acc.number:=NR_ACCUMULATOR;
+        spr.enum:=R_INTREGISTER;
+        spr.number:=NR_SELF_POINTER_REG;
         if is_class(procinfo._class) then
           begin
             if (cs_implicit_exceptions in aktmoduleswitches) then
@@ -1563,7 +1567,8 @@ unit cgobj;
       hregister : tregister;
         spr : Tregister;
       begin
-        spr.enum:=SELF_POINTER_REG;
+        spr.enum:=R_INTREGISTER;
+        spr.number:=NR_SELF_POINTER_REG;
         if is_class(procinfo._class) then
          begin
            { 2nd parameter  : flag }
@@ -1612,7 +1617,8 @@ unit cgobj;
         hregister : tregister;
         spr : Tregister;
       begin
-        spr.enum:=SELF_POINTER_REG;
+        spr.enum:=R_INTREGISTER;
+        spr.number:=NR_SELF_POINTER_REG;
         if is_class(procinfo._class) then
           begin
             {
@@ -1676,7 +1682,8 @@ unit cgobj;
     var r:Tregister;
 
      begin
-       r.enum:=accumulator;
+       r.enum:=R_INTREGISTER;;
+       r.number:=NR_ACCUMULATOR;
        a_load_reg_ref(list, OS_S32, r, href);
      end;
 
@@ -1692,7 +1699,8 @@ unit cgobj;
     var r:Tregister;
 
      begin
-       r.enum:=accumulator;
+       r.enum:=R_INTREGISTER;;
+       r.number:=NR_ACCUMULATOR;
        a_load_ref_reg(list, OS_S32, href, r);
      end;
 
@@ -1721,7 +1729,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.77  2003-02-19 22:00:14  daniel
+  Revision 1.78  2003-03-11 21:46:24  jonas
+    * lots of new regallocator fixes, both in generic and ppc-specific code
+      (ppc compiler still can't compile the linux system unit though)
+
+  Revision 1.77  2003/02/19 22:00:14  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

@@ -613,7 +613,15 @@ unit rgobj;
          end
        else
 {         getexplicitregisterint:=getregisterint(list,r and $ff);}
-          internalerror(200301103);
+{$ifndef i386}
+          // not very cleanm I know :/ The self pointer is allocated a lot
+          // more than necessary (in tcgselfnode.pass_2), but a lot of those
+          // allocations are necessary for the optimizer.
+          // The i386 doesn't care, probably because esi isn't a normal
+          // allocatable register (JM)
+          if (r <> NR_SELF_POINTER_REG) then
+{$endif i386}
+            internalerror(200301103);
     end;
 
 
@@ -1342,7 +1350,11 @@ end.
 
 {
   $Log$
-  Revision 1.30  2003-03-09 21:18:59  olle
+  Revision 1.31  2003-03-11 21:46:24  jonas
+    * lots of new regallocator fixes, both in generic and ppc-specific code
+      (ppc compiler still can't compile the linux system unit though)
+
+  Revision 1.30  2003/03/09 21:18:59  olle
     + added cutils to the uses clause
 
   Revision 1.29  2003/03/08 20:36:41  daniel

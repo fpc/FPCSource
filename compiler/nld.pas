@@ -590,7 +590,7 @@ implementation
                       result:=ccallnode.createintern('fpc_ansistr_append_char',hp)
                     else if is_shortstring(tbinarynode(right).right.resulttype.def) then
                       result:=ccallnode.createintern('fpc_ansistr_append_shortstring',hp)
-                    else if is_ansistring(tbinarynode(right).right.resulttype.def) then
+                    else
                       result:=ccallnode.createintern('fpc_ansistr_append_ansistring',hp);
                     tbinarynode(right).right:=nil;
                     left:=nil;
@@ -1257,7 +1257,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.80  2003-01-07 16:52:58  jonas
+  Revision 1.81  2003-03-11 21:46:24  jonas
+    * lots of new regallocator fixes, both in generic and ppc-specific code
+      (ppc compiler still can't compile the linux system unit though)
+
+  Revision 1.80  2003/01/07 16:52:58  jonas
     * fixed ansistring+char and ansistring+shortstring optimizations (those
       cases were always handled as ansistring+ansistring due to
       typeconversions inserted by the add-node)
