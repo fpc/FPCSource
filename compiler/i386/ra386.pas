@@ -270,7 +270,11 @@ begin
              begin
                { Only allow register as operand to take the size from }
                if operands[operand2]^.opr.typ=OPR_REGISTER then
-                operands[i]^.size:=operands[operand2]^.size
+                 begin
+                   if ((opcode<>A_MOVD) and
+                       (opcode<>A_CVTSI2SS)) then
+                     operands[i]^.size:=operands[operand2]^.size;
+                 end
                else
                 begin
                   { if no register then take the opsize (which is available with ATT),
@@ -347,6 +351,9 @@ begin
                   end;
               end;
             end;
+          A_MOVD : { movd is a move from a mmx register to a
+                     32 bit register or memory, so no opsize is correct here PM }
+            exit;
           A_OUT :
             opsize:=operands[1]^.size;
           else
@@ -366,9 +373,10 @@ var
 begin
   { Check only the most common opcodes here, the others are done in
     the assembler pass }
+  { movd also added as it needs special care here PM }
   case opcode of
     A_PUSH,A_POP,A_DEC,A_INC,A_NOT,A_NEG,
-    A_CMP,A_MOV,
+    A_CMP,A_MOV,A_MOVD,
     A_ADD,A_SUB,A_ADC,A_SBB,
     A_AND,A_OR,A_TEST,A_XOR: ;
   else
@@ -401,7 +409,7 @@ begin
    end
   else
    begin
-     for i:=1to ops do
+     for i:=1 to ops do
       begin
         if (operands[i]^.opr.typ<>OPR_CONSTANT) and
            (operands[i]^.size in [S_B,S_W,S_L]) and
@@ -469,7 +477,7 @@ end;
 procedure T386Instruction.ConcatInstruction(p : taasmoutput);
 var
   siz  : topsize;
-  i    : longint;
+  i,asize : longint;
   ai   : taicpu;
 begin
 { Get Opsize }
@@ -481,8 +489,17 @@ begin
       siz:=operands[1]^.size
      else
       siz:=operands[Ops]^.size;
+     { MOVD should be of size S_LQ or S_QL, but these do not exist PM }
+     if (ops=2) and (operands[1]^.size<>S_NO) and
+        (operands[2]^.size<>S_NO) and (operands[1]^.size<>operands[2]^.size) then
+       siz:=S_NO;
    end;
 
+   if ((opcode=A_MOVD)or
+       (opcode=A_CVTSI2SS)) and
+      ((operands[1]^.size=S_NO) or
+       (operands[2]^.size=S_NO)) then
+     siz:=S_NO;
    { NASM does not support FADD without args
      as alias of FADDP
      and GNU AS interprets FADD without operand differently
@@ -549,10 +566,12 @@ begin
   if (ops=1) and
       ((operands[1]^.opr.typ=OPR_REGISTER) and
       (operands[1]^.opr.reg in [R_ST1..R_ST7])) and
-     ((opcode=A_FSUBP) or
+      ((opcode=A_FSUBP) or
       (opcode=A_FSUBRP) or
       (opcode=A_FDIVP) or
-      (opcode=A_FDIVRP)) then
+      (opcode=A_FDIVRP) or
+      (opcode=A_FADDP) or
+      (opcode=A_FMULP)) then
      begin
 {$ifdef ATTOP}
        message1(asmr_w_adding_explicit_first_arg_fXX,att_op2str[opcode]);
@@ -572,10 +591,12 @@ begin
   if (ops=1) and
       ((operands[1]^.opr.typ=OPR_REGISTER) and
       (operands[1]^.opr.reg in [R_ST1..R_ST7])) and
-     ((opcode=A_FSUB) or
+      ((opcode=A_FSUB) or
       (opcode=A_FSUBR) or
       (opcode=A_FDIV) or
-      (opcode=A_FDIVR)) then
+      (opcode=A_FDIVR) or
+      (opcode=A_FADD) or
+      (opcode=A_FMUL)) then
      begin
 {$ifdef ATTOP}
        message1(asmr_w_adding_explicit_second_arg_fXX,att_op2str[opcode]);
@@ -617,7 +638,27 @@ begin
        OPR_SYMBOL:
          ai.loadsymbol(i-1,operands[i]^.opr.symbol,operands[i]^.opr.symofs);
        OPR_REFERENCE:
-         ai.loadref(i-1,newreference(operands[i]^.opr.ref));
+         begin
+           ai.loadref(i-1,newreference(operands[i]^.opr.ref));
+           if operands[i]^.size<>S_NO then
+             begin
+               asize:=0;
+               case operands[i]^.size of
+                   S_B :
+                     asize:=OT_BITS8;
+                   S_W, S_IS :
+                     asize:=OT_BITS16;
+                   S_L, S_IL, S_FS:
+                     asize:=OT_BITS32;
+                   S_Q, S_D, S_FL, S_FV :
+                     asize:=OT_BITS64;
+                   S_FX :
+                     asize:=OT_BITS80;
+                 end;
+               if asize<>0 then
+                 ai.oper[i-1].ot:=(ai.oper[i-1].ot and not OT_SIZE_MASK) or asize;
+             end;
+         end;
      end;
    end;
 
@@ -647,7 +688,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2001-03-05 21:49:44  peter
+  Revision 1.8  2001-04-05 21:33:45  peter
+    * movd and opsize fix merged
+
+  Revision 1.7  2001/03/05 21:49:44  peter
     * noag386bin fix
 
   Revision 1.6  2001/02/20 21:51:36  peter

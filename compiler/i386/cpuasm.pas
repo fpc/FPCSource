@@ -793,7 +793,10 @@ begin
         top_ref :
           begin
           { create ot field }
-            ot:=OT_MEMORY or opsize_2_type[i,opsize];
+            if (ot and OT_SIZE_MASK)=0 then
+              ot:=OT_MEMORY or opsize_2_type[i,opsize]
+            else
+              ot:=OT_MEMORY or (ot and OT_SIZE_MASK);
             if (ref^.base=R_NO) and (ref^.index=R_NO) then
               ot:=ot or OT_MEM_OFFS;
           { fix scalefactor }
@@ -1770,7 +1773,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  2001-03-25 12:29:45  peter
+  Revision 1.13  2001-04-05 21:33:45  peter
+    * movd and opsize fix merged
+
+  Revision 1.12  2001/03/25 12:29:45  peter
     * offset_fixup fixes (merged)
 
   Revision 1.11  2001/02/20 21:51:36  peter
