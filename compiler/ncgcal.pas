@@ -1314,7 +1314,9 @@ implementation
               { inlined code block are (JM)                                    }
               rg.resetusableregisters;
               rg.clearregistercount;
+            {$ifndef newra}
               rg.cleartempgen;
+            {$endif}
               if assigned(inlineprocdef.regvarinfo) then
                 with pregvarinfo(inlineprocdef.regvarinfo)^ do
                   for i := 1 to maxvarregs do
@@ -1465,7 +1467,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.51  2003-04-22 23:50:22  peter
+  Revision 1.52  2003-04-25 08:25:26  daniel
+    * Ifdefs around a lot of calls to cleartempgen
+    * Fixed registers that are allocated but not freed in several nodes
+    * Tweak to register allocator to cause less spills
+    * 8-bit registers now interfere with esi,edi and ebp
+      Compiler can now compile rtl successfully when using new register
+      allocator
+
+  Revision 1.51  2003/04/22 23:50:22  peter
     * firstpass uses expectloc
     * checks if there are differences between the expectloc and
       location.loc from secondpass in EXTDEBUG

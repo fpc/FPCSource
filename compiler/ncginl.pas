@@ -349,7 +349,6 @@ implementation
         else
           cg.a_op_const_reg(exprasmlist,cgop,1,location.register);
 
-        cg.g_overflowcheck(exprasmlist,self);
         cg.g_rangecheck(exprasmlist,self,resulttype.def);
       end;
 
@@ -433,8 +432,9 @@ implementation
 {$endif cpu64bit}
                  cg.a_op_reg_loc(exprasmlist,addsubop[inlinenumber],
                    hregister,tcallparanode(left).left.location);
-                 location_release(exprasmlist,tcallparanode(tcallparanode(left).right).left.location);
+               location_release(exprasmlist,tcallparanode(tcallparanode(left).right).left.location);
              end;
+          location_release(exprasmlist,tcallparanode(left).left.location);
           cg.g_overflowcheck(exprasmlist,tcallparanode(left).left);
           cg.g_rangecheck(exprasmlist,tcallparanode(left).left,tcallparanode(left).left.resulttype.def);
         end;
@@ -671,7 +671,15 @@ end.
 
 {
   $Log$
-  Revision 1.26  2003-04-24 22:29:57  florian
+  Revision 1.27  2003-04-25 08:25:26  daniel
+    * Ifdefs around a lot of calls to cleartempgen
+    * Fixed registers that are allocated but not freed in several nodes
+    * Tweak to register allocator to cause less spills
+    * 8-bit registers now interfere with esi,edi and ebp
+      Compiler can now compile rtl successfully when using new register
+      allocator
+
+  Revision 1.26  2003/04/24 22:29:57  florian
     * fixed a lot of PowerPC related stuff
 
   Revision 1.25  2003/04/22 23:50:22  peter

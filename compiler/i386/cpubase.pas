@@ -682,7 +682,8 @@ implementation
           NR_ES:  r.enum:=R_ES;         NR_FS:  r.enum:=R_FS;
           NR_GS:  r.enum:=R_GS;         NR_SS:  r.enum:=R_SS;
         else
-          internalerror(200301082);
+{          internalerror(200301082);}
+          r.enum:=R_TR3;
         end;
     end;
 
@@ -798,7 +799,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  2003-04-22 23:50:23  peter
+  Revision 1.50  2003-04-25 08:25:26  daniel
+    * Ifdefs around a lot of calls to cleartempgen
+    * Fixed registers that are allocated but not freed in several nodes
+    * Tweak to register allocator to cause less spills
+    * 8-bit registers now interfere with esi,edi and ebp
+      Compiler can now compile rtl successfully when using new register
+      allocator
+
+  Revision 1.49  2003/04/22 23:50:23  peter
     * firstpass uses expectloc
     * checks if there are differences between the expectloc and
       location.loc from secondpass in EXTDEBUG

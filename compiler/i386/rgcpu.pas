@@ -39,8 +39,8 @@ unit rgcpu;
           fpuvaroffset : byte;
 
           { to keep the same allocation order as with the old routines }
-{$ifndef newra}
           function getregisterint(list:Taasmoutput;size:Tcgsize):Tregister;override;
+{$ifndef newra}
           function getaddressregister(list:Taasmoutput):Tregister;override;
           procedure ungetregisterint(list:Taasmoutput;r:Tregister); override;
           function getexplicitregisterint(list:Taasmoutput;r:Tnewregister):Tregister;override;
@@ -166,6 +166,21 @@ unit rgcpu;
 {************************************************************************}
 {                               trgcpu                                   }
 {************************************************************************}
+
+{$ifdef newra}
+    function Trgcpu.getregisterint(list:Taasmoutput;size:Tcgsize):Tregister;
+
+    begin
+      getregisterint:=inherited getregisterint(list,size);
+      if size in [OS_8,OS_S8] then
+        begin
+          {These registers have no 8-bit subregister, so add interferences.}
+          add_edge(getregisterint.number shr 8,RS_ESI);
+          add_edge(getregisterint.number shr 8,RS_EDI);
+          add_edge(getregisterint.number shr 8,RS_EBP);
+        end;
+    end;
+{$endif}
 
 {$ifndef newra}
     function trgcpu.getregisterint(list:Taasmoutput;size:Tcgsize):Tregister;
@@ -566,7 +581,15 @@ end.
 
 {
   $Log$
-  Revision 1.20  2003-04-23 14:42:08  daniel
+  Revision 1.21  2003-04-25 08:25:26  daniel
+    * Ifdefs around a lot of calls to cleartempgen
+    * Fixed registers that are allocated but not freed in several nodes
+    * Tweak to register allocator to cause less spills
+    * 8-bit registers now interfere with esi,edi and ebp
+      Compiler can now compile rtl successfully when using new register
+      allocator
+
+  Revision 1.20  2003/04/23 14:42:08  daniel
     * Further register allocator work. Compiler now smaller with new
       allocator than without.
     * Somebody forgot to adjust ppu version number

@@ -1793,10 +1793,12 @@ uses
                   else if Taicpu_abstract(p).oper[i].typ=Top_ref then
                     begin
                       r:=Taicpu_abstract(p).oper[i].ref;
-                      r^.base.number:=(r^.base.number and $ff) or
-                                      (table[r^.base.number shr 8] shl 8);
-                      r^.index.number:=(r^.index.number and $ff) or
-                                       (table[r^.index.number shr 8] shl 8);
+                      if r^.base.number<>NR_NO then
+                        r^.base.number:=(r^.base.number and $ff) or
+                                        (table[r^.base.number shr 8] shl 8);
+                      if r^.index.number<>NR_NO then
+                        r^.index.number:=(r^.index.number and $ff) or
+                                         (table[r^.index.number shr 8] shl 8);
                     end;
                 if Taicpu_abstract(p).is_nop then
                   begin
@@ -1814,7 +1816,15 @@ uses
 end.
 {
   $Log$
-  Revision 1.24  2003-04-24 13:03:01  florian
+  Revision 1.25  2003-04-25 08:25:26  daniel
+    * Ifdefs around a lot of calls to cleartempgen
+    * Fixed registers that are allocated but not freed in several nodes
+    * Tweak to register allocator to cause less spills
+    * 8-bit registers now interfere with esi,edi and ebp
+      Compiler can now compile rtl successfully when using new register
+      allocator
+
+  Revision 1.24  2003/04/24 13:03:01  florian
     * comp is now written with its bit pattern to the ppu instead as an extended
 
   Revision 1.23  2003/04/22 14:33:38  peter

@@ -254,6 +254,7 @@ implementation
              {$endif}
                opsize := S_L;
                emit_ref_reg(A_MOVZX,S_BL,left.location.reference,pleftreg);
+               location_release(exprasmlist,left.location);
              end;
 
             { Get a label to jump to the end }
@@ -272,6 +273,7 @@ implementation
             { "x in [y..z]" expression                               }
             adjustment := 0;
 
+            r.enum:=R_NO;
             for i:=1 to numparts do
              if setparts[i].range then
               { use fact that a <= x <= b <=> cardinal(x-a) <= cardinal(b-a) }
@@ -285,13 +287,17 @@ implementation
                       { so in case of a LOC_CREGISTER first move the value }
                       { to edi (not done before because now we can do the  }
                       { move and substract in one instruction with LEA)    }
-                      if (pleftreg.number <> NR_EDI) and
+                      if {$ifndef newra}(pleftreg.number <> NR_EDI) and{$endif}
                          (left.location.loc = LOC_CREGISTER) then
                         begin
+                          rg.ungetregister(exprasmlist,pleftreg);
+                        {$ifdef newra}
+                          r:=rg.getregisterint(exprasmlist,OS_INT);
+                        {$else}
                           r.enum:=R_INTREGISTER;
                           r.number:=NR_EDI;
-                          rg.ungetregister(exprasmlist,pleftreg);
                           rg.getexplicitregisterint(exprasmlist,NR_EDI);
+                        {$endif}
                           reference_reset_base(href,pleftreg,-setparts[i].start);
                           emit_ref_reg(A_LEA,S_L,href,r);
                           { only now change pleftreg since previous value is }
@@ -352,6 +358,11 @@ implementation
              right.location.reference.symbol:=nil;
              { Now place the end label }
              cg.a_label(exprasmlist,l);
+          {$ifdef newra}
+             rg.ungetregisterint(exprasmlist,pleftreg);
+             if r.enum=R_INTREGISTER then
+              rg.ungetregisterint(exprasmlist,r);
+          {$else}
              case left.location.loc of
                LOC_REGISTER,
                LOC_CREGISTER :
@@ -364,6 +375,7 @@ implementation
                    rg.ungetregisterint(exprasmlist,r);
                  end;
              end;
+          {$endif}
           end
          else
           begin
@@ -726,7 +738,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.55  2003-04-23 09:51:16  daniel
+  Revision 1.56  2003-04-25 08:25:26  daniel
+    * Ifdefs around a lot of calls to cleartempgen
+    * Fixed registers that are allocated but not freed in several nodes
+    * Tweak to register allocator to cause less spills
+    * 8-bit registers now interfere with esi,edi and ebp
+      Compiler can now compile rtl successfully when using new register
+      allocator
+
+  Revision 1.55  2003/04/23 09:51:16  daniel
     * Removed usage of edi in a lot of places when new register allocator used
     + Added newra versions of g_concatcopy and secondadd_float
 

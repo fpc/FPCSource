@@ -590,7 +590,9 @@ implementation
          result:=nil;
          expectloc:=LOC_VOID;
          { evalutes the case expression }
+       {$ifndef newra}
          rg.cleartempgen;
+       {$endif}
          firstpass(left);
          set_varstate(left,true);
          if codegenerror then
@@ -615,7 +617,9 @@ implementation
          hp:=tstatementnode(right);
          while assigned(hp) do
            begin
+            {$ifndef newra}
               rg.cleartempgen;
+            {$endif}
               firstpass(hp.left);
 
               { searchs max registers }
@@ -634,7 +638,9 @@ implementation
          { may be handle else tree }
          if assigned(elseblock) then
            begin
+            {$ifndef newra}
               rg.cleartempgen;
+            {$endif}
               firstpass(elseblock);
               if codegenerror then
                 exit;
@@ -708,7 +714,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2003-04-22 23:50:23  peter
+  Revision 1.40  2003-04-25 08:25:26  daniel
+    * Ifdefs around a lot of calls to cleartempgen
+    * Fixed registers that are allocated but not freed in several nodes
+    * Tweak to register allocator to cause less spills
+    * 8-bit registers now interfere with esi,edi and ebp
+      Compiler can now compile rtl successfully when using new register
+      allocator
+
+  Revision 1.39  2003/04/22 23:50:23  peter
     * firstpass uses expectloc
     * checks if there are differences between the expectloc and
       location.loc from secondpass in EXTDEBUG

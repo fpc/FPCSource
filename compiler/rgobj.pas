@@ -1511,15 +1511,29 @@ unit rgobj;
     procedure Trgobj.simplify;
 
     var adj:Pstring;
-        i:byte;
+        i,min,p:byte;
         m:char;
         n:Tsuperregister;
 
     begin
-      {We need to take a random element out of the simplifyworklist. We take
-       the last element. Dirty code!}
-      n:=Tsuperregister(simplifyworklist[byte(simplifyworklist[0])]);
-      dec(simplifyworklist[0]);
+      {We the element with the least interferences out of the 
+       simplifyworklist.}
+      min:=$ff;
+      p:=1;
+      for i:=1 to length(simplifyworklist) do
+        begin
+          adj:=igraph.adjlist[Tsuperregister(simplifyworklist[i])];
+          if (adj<>nil) and (length(adj^)<min) then
+            begin
+              min:=length(adj^);
+              if min=0 then
+                break;  {We won't find smaller ones.}
+              p:=i;
+            end;
+        end;
+      n:=Tsuperregister(simplifyworklist[p]);
+      delete(simplifyworklist,p,1);
+          
       {Push it on the selectstack.}
       selectstack:=selectstack+char(n);
       adj:=igraph.adjlist[n];
@@ -1728,32 +1742,33 @@ unit rgobj;
         v,x,y:Tsuperregister;
 
     begin
-      for i:=0 to movelist[u]^.count-1 do
-        begin
-          m:=movelist[u]^.data[i];
-          if Tmoveins(m).moveset in [ms_worklist_moves,ms_active_moves] then
-            begin
-              x:=Tmoveins(m).instruction.oper[0].reg.number shr 8;
-              y:=Tmoveins(m).instruction.oper[1].reg.number shr 8;
-              if get_alias(y)=get_alias(u) then
-                v:=get_alias(x)
-              else
-                v:=get_alias(y);
-              {Move m from active_moves/worklist_moves to frozen_moves.}
-              if Tmoveins(m).moveset=ms_active_moves then
-                active_moves.remove(m)
-              else
-                worklist_moves.remove(m);
-              Tmoveins(m).moveset:=ms_frozen_moves;
-              frozen_moves.insert(m);
-
-              if not(move_related(v)) and (degree[v]<cpu_registers) then
-                begin
-                  delete(freezeworklist,pos(char(v),freezeworklist),1);
-                  simplifyworklist:=simplifyworklist+char(v);
-                end;
-            end;
-        end;
+      if movelist[u]<>nil then
+        for i:=0 to movelist[u]^.count-1 do
+          begin
+            m:=movelist[u]^.data[i];
+            if Tmoveins(m).moveset in [ms_worklist_moves,ms_active_moves] then
+              begin
+                x:=Tmoveins(m).instruction.oper[0].reg.number shr 8;
+                y:=Tmoveins(m).instruction.oper[1].reg.number shr 8;
+                if get_alias(y)=get_alias(u) then
+                  v:=get_alias(x)
+                else
+                  v:=get_alias(y);
+                {Move m from active_moves/worklist_moves to frozen_moves.}
+                if Tmoveins(m).moveset=ms_active_moves then
+                  active_moves.remove(m)
+                else
+                  worklist_moves.remove(m);
+                Tmoveins(m).moveset:=ms_frozen_moves;
+                frozen_moves.insert(m);
+  
+                if not(move_related(v)) and (degree[v]<cpu_registers) then
+                  begin
+                    delete(freezeworklist,pos(char(v),freezeworklist),1);
+                    simplifyworklist:=simplifyworklist+char(v);
+                  end;
+              end;
+          end;
     end;
 
     procedure Trgobj.freeze;
@@ -2001,7 +2016,15 @@ end.
 
 {
   $Log$
-  Revision 1.39  2003-04-23 20:23:06  peter
+  Revision 1.40  2003-04-25 08:25:26  daniel
+    * Ifdefs around a lot of calls to cleartempgen
+    * Fixed registers that are allocated but not freed in several nodes
+    * Tweak to register allocator to cause less spills
+    * 8-bit registers now interfere with esi,edi and ebp
+      Compiler can now compile rtl successfully when using new register
+      allocator
+
+  Revision 1.39  2003/04/23 20:23:06  peter
     * compile fix for no-newra
 
   Revision 1.38  2003/04/23 14:42:07  daniel

@@ -187,7 +187,9 @@ implementation
          consume(_CASE);
          caseexpr:=comp_expr(true);
        { determines result type }
+       {$ifndef newra}
          rg.cleartempgen;
+       {$endif}
          do_resulttypepass(caseexpr);
          casedeferror:=false;
          casedef:=caseexpr.resulttype.def;
@@ -1123,7 +1125,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.88  2003-03-28 19:16:57  peter
+  Revision 1.89  2003-04-25 08:25:26  daniel
+    * Ifdefs around a lot of calls to cleartempgen
+    * Fixed registers that are allocated but not freed in several nodes
+    * Tweak to register allocator to cause less spills
+    * 8-bit registers now interfere with esi,edi and ebp
+      Compiler can now compile rtl successfully when using new register
+      allocator
+
+  Revision 1.88  2003/03/28 19:16:57  peter
     * generic constructor working for i386
     * remove fixed self register
     * esi added as address register for i386

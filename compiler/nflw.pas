@@ -400,7 +400,9 @@ implementation
          { calc register weight }
          if not(cs_littlesize in aktglobalswitches ) then
            rg.t_times:=rg.t_times*8;
+       {$ifndef newra}
          rg.cleartempgen;
+       {$endif}
 
          firstpass(left);
          if codegenerror then
@@ -414,7 +416,9 @@ implementation
          { loop instruction }
          if assigned(right) then
            begin
+            {$ifndef newra}
               rg.cleartempgen;
+            {$endif}
               firstpass(right);
               if codegenerror then
                 exit;
@@ -560,7 +564,9 @@ implementation
          result:=nil;
          expectloc:=LOC_VOID;
          old_t_times:=rg.t_times;
+      {$ifndef newra}
          rg.cleartempgen;
+      {$endif}
          firstpass(left);
          registers32:=left.registers32;
          registersfpu:=left.registersfpu;
@@ -577,7 +583,9 @@ implementation
          { if path }
          if assigned(right) then
            begin
+            {$ifndef newra}
               rg.cleartempgen;
+            {$endif}
               firstpass(right);
 
               if registers32<right.registers32 then
@@ -593,7 +601,9 @@ implementation
          { else path }
          if assigned(t1) then
            begin
+            {$ifndef newra}
               rg.cleartempgen;
+            {$endif}
               firstpass(t1);
 
               if registers32<t1.registers32 then
@@ -768,10 +778,14 @@ implementation
          if not(cs_littlesize in aktglobalswitches) then
            rg.t_times:=rg.t_times*8;
 
+        {$ifndef newra}
          rg.cleartempgen;
+        {$endif}
          firstpass(left);
 
+        {$ifndef newra}
          rg.cleartempgen;
+        {$endif}
          if assigned(t1) then
           begin
             firstpass(t1);
@@ -793,7 +807,9 @@ implementation
 {$endif SUPPORT_MMX}
 
          { process count var }
+        {$ifndef newra}
          rg.cleartempgen;
+        {$endif}
          firstpass(t2);
          if codegenerror then
           exit;
@@ -806,7 +822,9 @@ implementation
            registersmmx:=t2.registersmmx;
 {$endif SUPPORT_MMX}
 
+        {$ifndef newra}
          rg.cleartempgen;
+        {$endif}
          firstpass(right);
       {$ifdef loopvar_dont_mind}
          { Check count var, record fields are also allowed in tp7 }
@@ -1100,7 +1118,9 @@ implementation
          expectloc:=LOC_VOID;
          if assigned(left) then
           begin
+          {$ifndef newra}
             rg.cleartempgen;
+          {$endif}
             firstpass(left);
             registers32:=left.registers32;
             registersfpu:=left.registersfpu;
@@ -1266,12 +1286,16 @@ implementation
       begin
          result:=nil;
          expectloc:=LOC_VOID;
+        {$ifndef newra}
          rg.cleartempgen;
+        {$endif}
          firstpass(left);
          { on statements }
          if assigned(right) then
            begin
+            {$ifndef newra}
               rg.cleartempgen;
+            {$endif}
               firstpass(right);
               registers32:=max(registers32,right.registers32);
               registersfpu:=max(registersfpu,right.registersfpu);
@@ -1319,10 +1343,14 @@ implementation
       begin
          result:=nil;
          expectloc:=LOC_VOID;
+        {$ifndef newra}
          rg.cleartempgen;
+        {$endif}
          firstpass(left);
 
+        {$ifndef newra}
          rg.cleartempgen;
+        {$endif}
          firstpass(right);
          left_right_max;
       end;
@@ -1466,7 +1494,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.66  2003-04-22 23:50:23  peter
+  Revision 1.67  2003-04-25 08:25:26  daniel
+    * Ifdefs around a lot of calls to cleartempgen
+    * Fixed registers that are allocated but not freed in several nodes
+    * Tweak to register allocator to cause less spills
+    * 8-bit registers now interfere with esi,edi and ebp
+      Compiler can now compile rtl successfully when using new register
+      allocator
+
+  Revision 1.66  2003/04/22 23:50:23  peter
     * firstpass uses expectloc
     * checks if there are differences between the expectloc and
       location.loc from secondpass in EXTDEBUG

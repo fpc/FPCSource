@@ -948,7 +948,9 @@ implementation
               jmp_lt:=OC_B;
               jmp_le:=OC_BE;
            end;
+        {$ifndef newra}
          rg.cleartempgen;
+        {$endif}
          { save current truelabel and falselabel }
          isjump:=false;
          if left.location.loc=LOC_JUMP then
@@ -1070,7 +1072,9 @@ implementation
          hp:=tstatementnode(right);
          while assigned(hp) do
            begin
+            {$ifndef newra}
               rg.cleartempgen;
+            {$endif}
               { relabel when inlining }
               if inlining_procedure then
                 begin
@@ -1089,7 +1093,9 @@ implementation
          { ...and the else block }
          if assigned(elseblock) then
            begin
+            {$ifndef newra}
               rg.cleartempgen;
+            {$endif}
               secondpass(elseblock);
               load_all_regvars(exprasmlist);
            end;
@@ -1115,7 +1121,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2003-04-22 23:50:23  peter
+  Revision 1.31  2003-04-25 08:25:26  daniel
+    * Ifdefs around a lot of calls to cleartempgen
+    * Fixed registers that are allocated but not freed in several nodes
+    * Tweak to register allocator to cause less spills
+    * 8-bit registers now interfere with esi,edi and ebp
+      Compiler can now compile rtl successfully when using new register
+      allocator
+
+  Revision 1.30  2003/04/22 23:50:23  peter
     * firstpass uses expectloc
     * checks if there are differences between the expectloc and
       location.loc from secondpass in EXTDEBUG
