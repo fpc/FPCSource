@@ -475,6 +475,13 @@ Unit raarmgas;
                   oper.opr.typ:=OPR_REGISTER;
                   oper.opr.reg:=tempreg;
                 end
+              else if (actasmtoken=AS_NOT) and (actopcode in [A_LDM,A_STM]) then
+                begin
+                  consume(AS_NOT);
+                  oper.opr.typ:=OPR_REFERENCE;
+                  oper.opr.ref.addressmode:=AM_PREINDEXED;
+                  oper.opr.ref.index:=tempreg;
+                end
               else
                 Message(asmr_e_syn_operand);
             end;
@@ -734,7 +741,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2003-12-03 17:39:05  florian
+  Revision 1.5  2003-12-08 17:43:57  florian
+    * fixed ldm/stm arm assembler reading
+    * fixed a_load_reg_reg with OS_8 on ARM
+    * non supported calling conventions cause only a warning now
+
+  Revision 1.4  2003/12/03 17:39:05  florian
     * fixed several arm calling conventions issues
     * fixed reference reading in the assembler reader
     * fixed a_loadaddr_ref_reg

@@ -696,6 +696,13 @@ unit raatt;
                  exit;
                end;
 
+             '!' :
+               begin
+                 actasmtoken:=AS_NOT;
+                 c:=current_scanner.asmgetchar;
+                 exit;
+               end;
+
              '@' :
                begin
                  actasmtoken:=AS_AT;
@@ -1471,7 +1478,12 @@ end.
 
 {
   $Log$
-  Revision 1.6  2003-12-07 14:03:37  jonas
+  Revision 1.7  2003-12-08 17:43:57  florian
+    * fixed ldm/stm arm assembler reading
+    * fixed a_load_reg_reg with OS_8 on ARM
+    * non supported calling conventions cause only a warning now
+
+  Revision 1.6  2003/12/07 14:03:37  jonas
     * go to the next character after consuming a "%"
 
   Revision 1.5  2003/12/03 17:39:04  florian

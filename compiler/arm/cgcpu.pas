@@ -53,6 +53,7 @@ unit cgcpu;
         procedure do_register_allocation(list:Taasmoutput;headertai:tai);override;
         procedure allocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);override;
         procedure deallocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);override;
+        function  uses_registers(rt:Tregistertype):boolean;override;
 
         procedure a_param_const(list : taasmoutput;size : tcgsize;a : aword;const locpara : tparalocation);override;
         procedure a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const locpara : tparalocation);override;
@@ -237,6 +238,21 @@ unit cgcpu;
             rgmm.deallocexplicitregisters(list,r);
           else
             internalerror(200310093);
+        end;
+      end;
+
+
+    function  tcgarm.uses_registers(rt:Tregistertype):boolean;
+      begin
+        case rt of
+          R_INTREGISTER :
+            result:=rgint.uses_registers;
+          R_MMREGISTER :
+            result:=rgmm.uses_registers;
+          R_FPUREGISTER :
+            result:=rgfpu.uses_registers;
+          else
+            internalerror(200310094);
         end;
       end;
 
@@ -737,8 +753,8 @@ unit cgcpu;
            begin
              case tosize of
                OS_8:
-                 instr := taicpu.op_reg_reg_const(A_AND,
-                   reg2,reg1,$ff);
+                 list.concat(taicpu.op_reg_reg_const(A_AND,
+                   reg2,reg1,$ff));
                OS_S8:
                  begin
                    so.shiftmode:=SM_LSL;
@@ -1320,7 +1336,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2003-12-03 17:39:05  florian
+  Revision 1.27  2003-12-08 17:43:57  florian
+    * fixed ldm/stm arm assembler reading
+    * fixed a_load_reg_reg with OS_8 on ARM
+    * non supported calling conventions cause only a warning now
+
+  Revision 1.26  2003/12/03 17:39:05  florian
     * fixed several arm calling conventions issues
     * fixed reference reading in the assembler reader
     * fixed a_loadaddr_ref_reg
