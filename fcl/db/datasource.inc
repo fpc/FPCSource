@@ -219,13 +219,14 @@ end;
 Procedure TDataLink.SetDataSource(Value : TDatasource);
 
 begin
-  If Not FDataSourceFixed then
-    begin
-    If FDatasource<>Nil then
-      FDataSource.UnRegisterDatalink(Self);
-    FDataSource:=Value;
-    FDataSource.RegisterDatalink(Self);
-    end;
+  if not FDataSourceFixed then
+  begin
+    if Assigned(DataSource) then
+      DataSource.UnregisterDatalink(Self);
+    FDataSource := Value;
+    if Assigned(DataSource) then
+      DataSource.RegisterDatalink(Self);
+  end;
 end;
 
 Procedure TDatalink.SetReadOnly(Value : Boolean); 
@@ -291,6 +292,7 @@ end;
 destructor TMasterDataLink.Destroy; 
 
 begin
+  inherited Destroy;
 end;
   
 
@@ -350,8 +352,9 @@ begin
   Dataset:=Nil;
   With FDataLinks do 
     While Count>0 do
-      TDatalink(Items[Count]).DataSource:=Nil;
+      TDatalink(Items[Count - 1]).DataSource:=Nil;
   FDatalinks.Free;
+  inherited Destroy;
 end;
 
 
