@@ -74,6 +74,7 @@ unit tgobj;
           { Offsets of the first/last temp }
           firsttemp,
           lasttemp      : longint;
+          direction : shortint;
           constructor create;
           {# Clear and free the complete linked list of temporary memory
              locations. The list is set to nil.}
@@ -110,7 +111,7 @@ unit tgobj;
        tg: ttgobj;
 
 
-  implementation
+    implementation
 
     uses
        systems,
@@ -150,6 +151,12 @@ unit tgobj;
      begin
        tempfreelist:=nil;
        templist:=nil;
+       { we could create a new child class for this but I don't if it is worth the effort (FK) }
+{$ifdef powerpc}
+       direction:=1;
+{$else powerpc}
+       direction:=-1;
+{$endif powerpc}
      end;
 
 
@@ -183,10 +190,10 @@ unit tgobj;
     procedure ttgobj.setfirsttemp(l : longint);
       begin
          { this is a negative value normally }
-         if l <= 0 then
+         if l*direction>=0 then
           begin
             if odd(l) then
-             dec(l);
+             inc(l,direction);
           end
          else
            internalerror(200204221);
@@ -206,11 +213,11 @@ unit tgobj;
           _align:=4;
 {$ifdef testtemp}
         if firsttemp <> lasttemp then
-           gettempsize:=Align(-(lasttemp-firsttemp),_align)
+           gettempsize:=Align(direction*(lasttemp-firsttemp),_align)
         else
            gettempsize := 0;
 {$else}
-        gettempsize:=Align(-lasttemp,_align);
+        gettempsize:=Align(direction*lasttemp,_align);
 {$endif}
       end;
 
@@ -315,12 +322,23 @@ unit tgobj;
               in problems when finding the corresponding temprecord }
             if size<4 then
              size:=4;
-            { Extend the temp }
-            dec(lasttemp,size);
             { now we can create the templist entry }
             new(tl);
             tl^.temptype:=temptype;
-            tl^.pos:=lasttemp;
+
+            if direction=-1 then
+              begin
+                 { Extend the temp }
+                 dec(lasttemp,size);
+                 tl^.pos:=lasttemp;
+              end
+            else
+              begin
+                 tl^.pos:=lasttemp;
+                 { Extend the temp }
+                 inc(lasttemp,size);
+              end;
+
             tl^.size:=size;
             tl^.next:=templist;
             tl^.nextfree:=nil;
@@ -383,6 +401,7 @@ unit tgobj;
                else
                 begin
                   hp^.nextfree:=tempfreelist;
+
                   tempfreelist:=hp;
                 end;
                { Next block tt_free ? Yes, then concat }
@@ -422,7 +441,7 @@ unit tgobj;
            with lower bound > 0 (PM) }
          istemp:=((ref.base=procinfo.framepointer) and
                   (ref.index=R_NO) and
-                  (ref.offset<firsttemp));
+                  (ref.offset*direction>firsttemp));
       end;
 
 
@@ -503,7 +522,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.15  2002-09-01 18:42:50  peter
+  Revision 1.16  2002-09-07 18:25:00  florian
+    + added tcg.direction to allow upwards growing temp areas
+      i.e. temps with positive index
+
+  Revision 1.15  2002/09/01 18:42:50  peter
     * reduced level of comment that type is wrong for release
 
   Revision 1.14  2002/09/01 12:14:53  peter
