@@ -22,7 +22,7 @@
 }
 unit pmodules;
 
-{define TEST_IMPL does not work well }
+{.$define TEST_IMPL does not work well }
 
   interface
 
@@ -200,10 +200,13 @@ unit pmodules;
               if loaded_unit^.crc<>pu^.checksum then
                begin
                  current_module^.do_compile:=true;
+                 dispose(current_module^.map);
+                 current_module^.map:=nil;
+                 Comment(V_Warning,'recompiling, interface of '+pu^.name^+' (intfc) is changed');
                  exit;
                end;
             { setup the map entry for deref }
-              current_module^.map^[nextmapentry]:=loaded_unit^.symtable;
+              current_module^.map^[nextmapentry]:=loaded_unit^.globalsymtable;
               inc(nextmapentry);
               if nextmapentry>maxunits then
                Message(unit_f_too_much_units);
@@ -211,12 +214,12 @@ unit pmodules;
            pu:=pused_unit(pu^.next);
          end;
       { ok, now load the unit }
-        current_module^.symtable:=new(punitsymtable,loadasunit);
+        current_module^.globalsymtable:=new(punitsymtable,loadasunit);
       { if this is the system unit insert the intern symbols }
         if compile_system then
          begin
            make_ref:=false;
-           insertinternsyms(psymtable(current_module^.symtable));
+           insertinternsyms(psymtable(current_module^.globalsymtable));
            make_ref:=true;
          end;
       { now only read the implementation part }
@@ -238,11 +241,14 @@ unit pmodules;
               if loaded_unit^.crc<>pu^.checksum then
                begin
                  current_module^.do_compile:=true;
+                 Comment(V_Warning,'recompiling, interface of '+pu^.name^+' (impl) is changed');
+                 dispose(current_module^.map);
+                 current_module^.map:=nil;
                  exit;
                end;
 {$endif TEST_IMPL}
             { setup the map entry for deref }
-              current_module^.map^[nextmapentry]:=loaded_unit^.symtable;
+              current_module^.map^[nextmapentry]:=loaded_unit^.globalsymtable;
               inc(nextmapentry);
               if nextmapentry>maxunits then
                Message(unit_f_too_much_units);
@@ -251,18 +257,15 @@ unit pmodules;
          end;
 {$ifdef UseBrowser}
         if cs_browser in aktmoduleswitches then
-          begin
-             punitsymtable(current_module^.symtable)^.
-               load_symtable_refs;
-          end;
+          punitsymtable(current_module^.symtable)^.load_symtable_refs;
         if ((current_module^.flags and uf_has_browser)<>0) and
            (cs_local_browser in aktmoduleswitches) then
-          begin
-             current_module^.implsymtable:=new(psymtable,load);
-             psymtable(current_module^.implsymtable)^.name:=
-               stringdup('implementation of '+psymtable(current_module^.symtable)^.name^);
-             psymtable(current_module^.implsymtable)^.load_browser;
-          end;
+         begin
+           current_module^.implsymtable:=new(psymtable,load);
+           psymtable(current_module^.implsymtable)^.name:=
+              stringdup('implementation of '+psymtable(current_module^.symtable)^.name^);
+           psymtable(current_module^.implsymtable)^.load_browser;
+         end;
 {$endif UseBrowser}
         { remove the map, it's not needed anymore }
         dispose(current_module^.map);
@@ -300,10 +303,20 @@ unit pmodules;
               Message1(unit_f_cant_compile_unit,current_module^.modulename^)
              else
               begin
-                current_scanner^.tempcloseinputfile;
+                if assigned(old_current_module^.scanner) then
+                 begin
+                   current_scanner^.tempcloseinputfile;
+                   current_scanner:=nil;
+                   { the current_scanner is always the same
+                     as current_module^.scanner (PFV) }
+                 end;
                 compile(current_module^.mainsource^,compile_system);
-                if (not old_current_module^.compiled) then
-                 current_scanner^.tempopeninputfile;
+                if (not old_current_module^.compiled) and
+                   assigned(old_current_module^.scanner) then
+                 begin
+                   current_scanner:=old_current_module^.scanner;
+                   current_scanner^.tempopeninputfile;
+                 end;
               end;
            end
           else
@@ -338,8 +351,8 @@ unit pmodules;
                    { and this means that the unit     }
                    { is already compiled              }
                    { else there is a cyclic unit use  }
-                   if assigned(hp^.symtable) then
-                     st:=punitsymtable(hp^.symtable)
+                   if assigned(hp^.globalsymtable) then
+                     st:=punitsymtable(hp^.globalsymtable)
                    else
                     begin
                     { both units in interface ? }
@@ -366,16 +379,17 @@ unit pmodules;
        { the unit is not in the symtable stack }
          if (not assigned(st)) then
           begin
-          { if the unit is loaded remove it first }
+          { if the unit is loaded remove it first, but hold the same
+            memory position, so no new/dispose }
           { this creates problem with the browser !! }
             if assigned(hp) then
              begin
                { remove the old unit }
                loaded_units.remove(hp);
-               hp^.done;
-               hp^.init(s,true);
+               hp^.reset;
                current_module:=hp;
                current_module^.in_second_compile:=true;
+               current_module^.do_compile:=true;
              end
             else
           { generates a new unit info record }
@@ -414,7 +428,7 @@ unit pmodules;
          end;
      { insert the system unit, it is allways the first }
         hp:=loadunit(upper(target_info.system_unit),true);
-        systemunit:=hp^.symtable;
+        systemunit:=hp^.globalsymtable;
         { it's always the first unit }
         systemunit^.next:=nil;
         symtablestack:=systemunit;
@@ -433,7 +447,7 @@ unit pmodules;
         if m_objpas in aktmodeswitches then
          begin
            hp:=loadunit('OBJPAS',false);
-           objpasunit:=hp^.symtable;
+           objpasunit:=hp^.globalsymtable;
            { insert in stack }
            objpasunit^.next:=symtablestack;
            symtablestack:=objpasunit;
@@ -470,7 +484,7 @@ unit pmodules;
            pused_unit(current_module^.used_units.last)^.in_uses:=true;
            if current_module^.compiled then
              exit;
-           refsymtable^.insert(new(punitsym,init(s,hp2^.symtable)));
+           refsymtable^.insert(new(punitsym,init(s,hp2^.globalsymtable)));
            if token=COMMA then
             begin
               pattern:='';
@@ -492,9 +506,9 @@ unit pmodules;
               if (cs_debuginfo in aktmoduleswitches) and
                 not hp^.is_stab_written then
                 begin
-                   punitsymtable(hp^.u^.symtable)^.concattypestabto(debuglist);
+                   punitsymtable(hp^.u^.globalsymtable)^.concattypestabto(debuglist);
                    hp^.is_stab_written:=true;
-                   hp^.unitid:=psymtable(hp^.u^.symtable)^.unitid;
+                   hp^.unitid:=psymtable(hp^.u^.globalsymtable)^.unitid;
                 end;
 {$EndIf GDB}
               if hp^.in_uses then
@@ -503,14 +517,14 @@ unit pmodules;
                    while assigned(hp3) do
                      begin
                         { insert units only once ! }
-                        if hp^.u^.symtable=hp3 then
+                        if hp^.u^.globalsymtable=hp3 then
                           break;
                         hp3:=hp3^.next;
                         { unit isn't inserted }
                         if hp3=nil then
                           begin
-                             psymtable(hp^.u^.symtable)^.next:=symtablestack;
-                             symtablestack:=psymtable(hp^.u^.symtable);
+                             psymtable(hp^.u^.globalsymtable)^.next:=symtablestack;
+                             symtablestack:=psymtable(hp^.u^.globalsymtable);
 {$ifdef CHAINPROCSYMS}
                              symtablestack^.chainprocsyms;
 {$endif CHAINPROCSYMS}
@@ -540,13 +554,43 @@ unit pmodules;
       end;
 
 
+    procedure gen_main_procsym(const name:string;options:longint;st:psymtable);
+      begin
+        {Generate a procsym for main}
+        make_ref:=false;
+        aktprocsym:=new(Pprocsym,init(name));
+        aktprocsym^.definition:=new(Pprocdef,init);
+        aktprocsym^.definition^.options:=aktprocsym^.definition^.options or options;
+        aktprocsym^.definition^.setmangledname(target_os.cprefix+name);
+        aktprocsym^.definition^.forwarddef:=false;
+        make_ref:=true;
+        { The localst is a local symtable. Change it into the static
+          symtable }
+        dispose(aktprocsym^.definition^.localst,done);
+        aktprocsym^.definition^.localst:=st;
+        { and insert the procsym in symtable }
+        st^.insert(aktprocsym);
+        { set some informations about the main program }
+        with procinfo do
+         begin
+           retdef:=voiddef;
+           _class:=nil;
+           call_offset:=8;
+           framepointer:=frame_pointer;
+           flags:=0;
+         end;
+      end;
+
+
     procedure proc_unit;
       var
          { unitname : stringid; }
          names  : Tstringcontainer;
-         p      : psymtable;
+         st     : psymtable;
          unitst : punitsymtable;
+{$ifdef GDB}
          pu     : pused_unit;
+{$endif GDB}
          i      : longint;
          s1,s2  : ^string; {Saves stack space}
       begin
@@ -604,9 +648,11 @@ unit pmodules;
          parse_only:=true;
 
          { generate now the global symboltable }
-         p:=new(punitsymtable,init(globalsymtable,current_module^.modulename^));
-         refsymtable:=p;
-         unitst:=punitsymtable(p);
+         st:=new(punitsymtable,init(globalsymtable,current_module^.modulename^));
+         refsymtable:=st;
+         unitst:=punitsymtable(st);
+         { define first as local to overcome dependency conflicts }
+         current_module^.localsymtable:=st;
 
          { the unit name must be usable as a unit specifier }
          { inside the unit itself (PM)                      }
@@ -638,21 +684,24 @@ unit pmodules;
                    unitst^.symtabletype:=globalsymtable;
                 end;
               { ... but insert the symbol table later }
-              p^.next:=symtablestack;
-              symtablestack:=p;
+              st^.next:=symtablestack;
+              symtablestack:=st;
            end
          else
          { while compiling a system unit, some types are directly inserted }
            begin
-              p^.next:=symtablestack;
-              symtablestack:=p;
-              insert_intern_types(p);
+              st^.next:=symtablestack;
+              symtablestack:=st;
+              insert_intern_types(st);
            end;
 
-         { displaced for inter-dependency considerations }
-         current_module^.symtable:=psymtable(p);
-
+         { now we know the place to insert the constants }
          constsymtable:=symtablestack;
+
+         { move the global symtab from the temporary local to global }
+         current_module^.globalsymtable:=current_module^.localsymtable;
+         current_module^.localsymtable:=nil;
+
          { ... parse the declarations }
          read_interface_declarations;
 
@@ -674,20 +723,8 @@ unit pmodules;
          parse_only:=false;
 
          { generates static symbol table }
-         p:=new(punitsymtable,init(staticsymtable,current_module^.modulename^));
-
-         {Generate a procsym.}
-         make_ref:=false;
-         aktprocsym:=new(Pprocsym,init(current_module^.modulename^+'_init'));
-         aktprocsym^.definition:=new(Pprocdef,init);
-         aktprocsym^.definition^.options:=aktprocsym^.definition^.options or pounitinit;
-         aktprocsym^.definition^.setmangledname(current_module^.modulename^+'_init');
-         make_ref:=true;
-
-         {The generated procsym has a local symtable. Discard it and turn
-          it into the static one.}
-         dispose(aktprocsym^.definition^.localst,done);
-         aktprocsym^.definition^.localst:=p;
+         st:=new(punitsymtable,init(staticsymtable,current_module^.modulename^));
+         current_module^.localsymtable:=st;
 
          { remove the globalsymtable from the symtable stack }
          { to reinsert it after loading the implementation units }
@@ -698,7 +735,7 @@ unit pmodules;
 {$ifdef UseBrowser}
          refsymtable^.number_symbols;
          { we don't want implementation units symbols in unitsymtable !! PM }
-         refsymtable:=p;
+         refsymtable:=st;
 {$endif UseBrowser}
          { Read the implementation units }
          parse_implementation_uses(unitst);
@@ -707,7 +744,7 @@ unit pmodules;
          numberunits;
 
          { now we can change refsymtable }
-         refsymtable:=p;
+         refsymtable:=st;
 
          { but reinsert the global symtable as lasts }
          unitst^.next:=symtablestack;
@@ -729,78 +766,81 @@ unit pmodules;
          allow_special:=false;
 {$endif Splitheap}
 
-         { set some informations }
-         procinfo.retdef:=voiddef;
-         procinfo._class:=nil;
-         procinfo.call_offset:=8;
-         { for temporary values }
-         procinfo.framepointer:=frame_pointer;
-         { clear flags }
-         procinfo.flags:=0;
-
-         { Create a new procedure }
-         codegen_newprocedure;
+         { Generate a procsym }
+         gen_main_procsym(current_module^.modulename^+'_init',pounitinit,st);
 
          { Compile the unit }
+         codegen_newprocedure;
          names.init;
-         names.insert(current_module^.modulename^+'_init');
          names.insert('INIT$$'+current_module^.modulename^);
+         names.insert(target_os.cprefix+current_module^.modulename^+'_init');
          compile_proc_body(names,true,false);
          names.done;
-
-         { Shutdown the codegen for this procedure }
          codegen_doneprocedure;
-{$ifdef dummy}
-         if token=_FINALIZATION then
-           begin
-              current_module^.flags:=current_module^.flags or uf_finalize;
-              { clear flags }
-              procinfo.flags:=0;
-
-              {Reset the codegenerator.}
-              codegen_newprocedure;
-
-              names.init;
-              names.insert(current_module^.modulename^+'_finalize');
-              names.insert('FINALIZE$$'+current_module^.modulename^);
-              compile_proc_body(names,true,false);
-              names.done;
-
-              codegen_doneprocedure;
-           end;
-{$endif dummy}
-         consume(POINT);
-
-         { size of the static data }
-         datasize:=symtablestack^.datasize;
 
          { avoid self recursive destructor call !! PM }
          aktprocsym^.definition^.localst:=nil;
 
-         { unsed static symbols ? }
-         symtablestack^.allsymbolsused;
+         { finalize? }
+         if token=_FINALIZATION then
+           begin
+              { set module options }
+              current_module^.flags:=current_module^.flags or uf_finalize;
+
+              { Generate a procsym }
+              gen_main_procsym(current_module^.modulename^+'_finalize',pounitfinalize,st);
+
+              { Compile the finalize }
+              codegen_newprocedure;
+              names.init;
+              names.insert('FINALIZE$$'+current_module^.modulename^);
+              names.insert(target_os.cprefix+current_module^.modulename^+'_finalize');
+              compile_proc_body(names,true,false);
+              names.done;
+              codegen_doneprocedure;
+
+              { avoid self recursive destructor call !! PM }
+              aktprocsym^.definition^.localst:=nil;
+           end;
+
+         { the last char should always be a point }
+         consume(POINT);
+
+         { test static symtable }
+         st^.allsymbolsused;
+
+         { size of the static data }
+         datasize:=st^.datasize;
 
 {$ifdef GDB}
          { add all used definitions even for implementation}
          if (cs_debuginfo in aktmoduleswitches) then
           begin
             { all types }
-            punitsymtable(symtablestack)^.concattypestabto(debuglist);
+            punitsymtable(st)^.concattypestabto(debuglist);
             { and all local symbols}
-            symtablestack^.concatstabto(debuglist);
+            st^.concatstabto(debuglist);
           end;
 {$endif GDB}
 
-         current_module^.in_implementation:=false;
-         { deletes all symtables generated in the implementation part }
-         while symtablestack^.symtabletype<>globalsymtable do
+         { deletes all symtables generated in the implementation part
+           This could not ever happen, the static symtable is never
+           inserted in the symtablestack (PFV)
+          while symtablestack^.symtabletype<>globalsymtable do
            if cs_local_browser in aktmoduleswitches then
              symtablestack:=symtablestack^.next
            else
-             dellexlevel;
+             dellexlevel; }
 
-         { tests, if all forwards are resolved }
+         { remove static symtable here to save some mem ;) }
+         dispose(st,done);
+         current_module^.localsymtable:=nil;
+
+         { tests, if all (interface) forwards are resolved }
          symtablestack^.check_forwards;
+
+         { now we have a correct unit, change the symtable type }
+         current_module^.in_implementation:=false;
          symtablestack^.symtabletype:=unitsymtable;
 {$ifdef GDB}
          punitsymtable(symtablestack)^.is_stab_written:=false;
@@ -833,7 +873,7 @@ unit pmodules;
          pu:=pused_unit(usedunits.first);
          while assigned(pu) do
            begin
-              punitsymtable(pu^.u^.symtable)^.is_stab_written:=false;
+              punitsymtable(pu^.u^.globalsymtable)^.is_stab_written:=false;
               pu:=pused_unit(pu^.next);
            end;
 {$endif GDB}
@@ -889,7 +929,7 @@ unit pmodules;
          { insert after the unit symbol tables the static symbol table }
          { of the program                                              }
          st:=new(punitsymtable,init(staticsymtable,current_module^.modulename^));
-         current_module^.symtable:=st;
+         current_module^.localsymtable:=st;
          symtablestack:=st;
          refsymtable:=st;
 
@@ -898,19 +938,6 @@ unit pmodules;
 
          { load standard units (system,objpas unit) }
          loaddefaultunits;
-
-         {Generate a procsym for main}
-         make_ref:=false;
-         aktprocsym:=new(Pprocsym,init('main'));
-         aktprocsym^.definition:=new(Pprocdef,init);
-         aktprocsym^.definition^.options:=aktprocsym^.definition^.options or poproginit;
-         aktprocsym^.definition^.setmangledname(target_os.Cprefix+'main');
-         make_ref:=true;
-
-         {The localst is a local symtable. Change it into the static
-          symtable.}
-         dispose(aktprocsym^.definition^.localst,done);
-         aktprocsym^.definition^.localst:=st;
 
          { reset }
          lexlevel:=0;
@@ -927,23 +954,16 @@ unit pmodules;
          { the elements of enumeration types are inserted       }
          constsymtable:=st;
 
-         { set some informations about the main program }
-         with procinfo do
-          begin
-            retdef:=voiddef;
-            _class:=nil;
-            call_offset:=8;
-            framepointer:=frame_pointer;
-            flags:=0;
-          end;
+         { Generate a procsym for main }
+         gen_main_procsym('main',poproginit,st);
 
+         { reset }
          procprefix:='';
          in_except_block:=false;
 
-         codegen_newprocedure;
-
          {The program intialization needs an alias, so it can be called
           from the bootstrap code.}
+         codegen_newprocedure;
          names.init;
          names.insert('program_init');
          names.insert('PASCALMAIN');
@@ -954,12 +974,12 @@ unit pmodules;
 {$endif}
          compile_proc_body(names,true,false);
          names.done;
+         codegen_doneprocedure;
 
          { avoid self recursive destructor call !! PM }
          aktprocsym^.definition^.localst:=nil;
 
-         codegen_doneprocedure;
-
+         { consume the last point }
          consume(POINT);
 
          { leave when we got an error }
@@ -1002,7 +1022,11 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.60  1998-10-06 17:16:54  pierre
+  Revision 1.61  1998-10-08 13:48:47  peter
+    * fixed memory leaks for do nothing source
+    * fixed unit interdependency
+
+  Revision 1.60  1998/10/06 17:16:54  pierre
     * some memory leaks fixed (thanks to Peter for heaptrc !)
 
   Revision 1.59  1998/10/05 21:33:26  peter

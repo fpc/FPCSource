@@ -321,7 +321,7 @@
       begin
          tsym.load;
          typ:=unitsym;
-         unitsymtable:=punitsymtable(current_module^.symtable);
+         unitsymtable:=punitsymtable(current_module^.globalsymtable);
          prevsym:=nil;
       end;
 
@@ -1719,7 +1719,11 @@
 
 {
   $Log$
-  Revision 1.50  1998-10-06 17:16:56  pierre
+  Revision 1.51  1998-10-08 13:48:50  peter
+    * fixed memory leaks for do nothing source
+    * fixed unit interdependency
+
+  Revision 1.50  1998/10/06 17:16:56  pierre
     * some memory leaks fixed (thanks to Peter for heaptrc !)
 
   Revision 1.49  1998/10/01 09:22:55  peter

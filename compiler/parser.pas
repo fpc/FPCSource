@@ -284,8 +284,15 @@ unit parser;
             dispose(current_module^.ppufile,done);
             current_module^.ppufile:=nil;
           end;
-       { free scanner }
-         dispose(current_scanner,done);
+
+       { free scanner, but it can already be freed due a 2nd compile }
+         if assigned(current_scanner) then
+          begin
+            dispose(current_scanner,done);
+            current_scanner:=nil;
+          end;
+         current_module^.scanner:=nil;
+
        { free macros }
 {!!! No check for unused macros yet !!! }
          dispose(macros,done);
@@ -367,7 +374,11 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.55  1998-10-06 17:16:53  pierre
+  Revision 1.56  1998-10-08 13:48:45  peter
+    * fixed memory leaks for do nothing source
+    * fixed unit interdependency
+
+  Revision 1.55  1998/10/06 17:16:53  pierre
     * some memory leaks fixed (thanks to Peter for heaptrc !)
 
   Revision 1.54  1998/10/05 21:33:23  peter

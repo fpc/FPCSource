@@ -597,14 +597,14 @@ begin
         begin
             CGMessage(cg_d_stackframe_omited);
             nostackframe:=true;
-            if (aktprocsym^.definition^.options and (pounitinit or poproginit)<>0) then
+            if (aktprocsym^.definition^.options and (pounitinit or poproginit or pounitfinalize)<>0) then
                 parasize:=0
             else
                 parasize:=aktprocsym^.definition^.parast^.datasize+procinfo.call_offset;
         end
     else
         begin
-             if (aktprocsym^.definition^.options and (pounitinit or poproginit)<>0) then
+             if (aktprocsym^.definition^.options and (pounitinit or poproginit or pounitfinalize)<>0) then
                 parasize:=0
              else
                 parasize:=aktprocsym^.definition^.parast^.datasize+procinfo.call_offset-8;
@@ -1345,7 +1345,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.18  1998-09-28 16:57:17  pierre
+  Revision 1.19  1998-10-08 13:48:40  peter
+    * fixed memory leaks for do nothing source
+    * fixed unit interdependency
+
+  Revision 1.18  1998/09/28 16:57:17  pierre
     * changed all length(p^.value_str^) into str_length(p)
       to get it work with and without ansistrings
     * changed sourcefiles field of tmodule to a pointer

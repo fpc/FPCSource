@@ -688,7 +688,7 @@ unit pdecl;
         begin
            consume(_CONSTRUCTOR);
            { must be at same level as in implementation }
-           _proc_head(poconstructor);
+           parse_proc_head(poconstructor);
 
            if (cs_constructor_name in aktglobalswitches) and (aktprocsym^.name<>'INIT') then
             Message(parser_e_constructorname_must_be_init);
@@ -1023,7 +1023,7 @@ unit pdecl;
       procedure destructor_head;
         begin
            consume(_DESTRUCTOR);
-           _proc_head(podestructor);
+           parse_proc_head(podestructor);
            if (cs_constructor_name in aktglobalswitches) and (aktprocsym^.name<>'DONE') then
             Message(parser_e_destructorname_must_be_done);
            consume(SEMICOLON);
@@ -1281,7 +1281,7 @@ unit pdecl;
            _CLASS : begin
                       oldparse_only:=parse_only;
                       parse_only:=true;
-                      proc_head;
+                      parse_proc_dec;
                       parse_only:=oldparse_only;
                       case idtoken of
                        _DYNAMIC,
@@ -2024,7 +2024,7 @@ unit pdecl;
               _FUNCTION,_PROCEDURE,_OPERATOR,_CLASS:
                 begin
                    Not_supported_for_inline(token);
-                   unter_dec;
+                   read_proc;
                 end;
               _EXPORTS:
                 begin
@@ -2053,7 +2053,7 @@ unit pdecl;
               _VAR : var_dec;
          _FUNCTION,
         _PROCEDURE,
-         _OPERATOR : unter_dec;
+         _OPERATOR : read_proc;
            else
              break;
            end;
@@ -2064,7 +2064,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.66  1998-10-06 20:43:31  peter
+  Revision 1.67  1998-10-08 13:48:46  peter
+    * fixed memory leaks for do nothing source
+    * fixed unit interdependency
+
+  Revision 1.66  1998/10/06 20:43:31  peter
     * fixed set of bugs. like set of false..true set of #1..#255 and
       set of #1..true which was allowed
 

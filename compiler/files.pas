@@ -123,7 +123,8 @@ unit files;
           map           : punitmap; { mapping of all used units }
           unitcount     : word;     { local unit counter }
           unit_index    : word;     { global counter for browser }
-          symtable      : pointer;  { pointer to the psymtable of this unit }
+          globalsymtable,           { pointer to the local/static symtable of this unit }
+          localsymtable : pointer;  { pointer to the psymtable of this unit }
 {$ifdef UseBrowser}
           implsymtable  : pointer;
 {$endif UseBrowser}
@@ -778,8 +779,32 @@ unit files;
 
     procedure tmodule.reset;
       begin
+{$ifndef VER0_99_8}
+        if assigned(globalsymtable) then
+          begin
+            dispose(punitsymtable(globalsymtable),done);
+            globalsymtable:=nil;
+          end;
+        if assigned(localsymtable) then
+          begin
+            dispose(punitsymtable(localsymtable),done);
+            localsymtable:=nil;
+          end;
+{$endif}
+        if assigned(map) then
+         begin
+           dispose(map);
+           map:=nil;
+         end;
+        if assigned(ppufile) then
+         begin
+           dispose(ppufile,done);
+           ppufile:=nil;
+         end;
         sourcefiles^.done;
         sourcefiles^.init;
+        imports^.done;
+        imports^.init;
         used_units.done;
         used_units.init;
         linkofiles.done;
@@ -788,6 +813,17 @@ unit files;
         linkstaticlibs.init;
         linksharedlibs.done;
         linksharedlibs.init;
+        uses_imports:=false;
+        do_assemble:=false;
+        do_compile:=false;
+        sources_avail:=true;
+        compiled:=false;
+        in_implementation:=false;
+        in_global:=true;
+        loaded_from:=nil;
+        flags:=0;
+        crc:=0;
+        unitcount:=1;
       end;
 
 
@@ -830,7 +866,8 @@ unit files;
          ppufile:=nil;
          scanner:=nil;
          map:=nil;
-         symtable:=nil;
+         globalsymtable:=nil;
+         localsymtable:=nil;
 {$ifdef UseBrowser}
          implsymtable:=nil;
 {$endif UseBrowser}
@@ -850,9 +887,6 @@ unit files;
          is_unit:=_is_unit;
          uses_imports:=false;
          imports:=new(plinkedlist,init);
-       { set smartlink flag }
-         if (cs_smartlink in aktmoduleswitches) then
-          flags:=flags or uf_smartlink;
        { search the PPU file if it is an unit }
          if is_unit then
           begin
@@ -870,9 +904,9 @@ unit files;
          dispose(ppufile,done);
         if assigned(imports) then
          dispose(imports,done);
-        used_units.done;
         if assigned(sourcefiles) then
          dispose(sourcefiles,done);
+        used_units.done;
         linkofiles.done;
         linkstaticlibs.done;
         linksharedlibs.done;
@@ -887,8 +921,10 @@ unit files;
         stringdispose(mainsource);
         stringdispose(asmprefix);
 {$ifndef VER0_99_8}
-        if assigned(symtable) then
-          dispose(punitsymtable(symtable),done);
+        if assigned(globalsymtable) then
+          dispose(punitsymtable(globalsymtable),done);
+        if assigned(localsymtable) then
+          dispose(punitsymtable(localsymtable),done);
 {$endif}
         inherited done;
       end;
@@ -933,7 +969,11 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.52  1998-10-06 22:09:48  peter
+  Revision 1.53  1998-10-08 13:48:43  peter
+    * fixed memory leaks for do nothing source
+    * fixed unit interdependency
+
+  Revision 1.52  1998/10/06 22:09:48  peter
     * fixed for compiling with 0.99.8 due circular units
 
   Revision 1.51  1998/10/06 17:16:47  pierre
