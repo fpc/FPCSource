@@ -178,7 +178,8 @@ implementation
                 { we need the real called method }
                 do_resulttypepass(p2);
 
-                if (p2.nodetype=calln) then
+                if (p2.nodetype=calln) and
+                   assigned(tcallnode(p2).procdefinition) then
                   begin
                     if is_new then
                      begin
@@ -754,7 +755,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  2005-02-14 17:13:07  peter
+  Revision 1.40  2005-03-03 19:36:42  jonas
+    * fixed web bug 3740
+
+  Revision 1.39  2005/02/14 17:13:07  peter
     * truncate log
 
 }
