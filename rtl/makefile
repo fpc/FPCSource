@@ -36,9 +36,33 @@ BININSTALLDIR=/usr/bin
 # for DOS, OS/2
 # BININSTALLDIR=\pp\bin
 
+#####################################################################
+# Try to determine Operating System
+#####################################################################
+
+BASEDIR=$(shell pwd)
+
+# in linux no : in pathes
+ifeq ($(findstring :,$(BASEDIR)),)
+inlinux=1
+endif
+
+# in case pwd is not present on the DOS-OS
+ifeq ($(strip $(BASEDIR)),'')
+inlinux=
+BASEDIR:=.
+endif
+
 # set here the type of the ppc386 you use:
 # Choose from: go32v1 go32v2 linux or os2
+# can determine if on linux otherwise assume go32v2
+
+ifdef inlinux
 OS_SRC=linux
+else
+OS_SRC=go32v2
+endif
+
 
 # Set redir to YES if you want a log file to be kept.
 REDIR=YES
@@ -177,7 +201,7 @@ diffs: diffs_rtl diffs_inc diffs_i386 diffs_m68k diffs_dos diffs_cfg \
 
 
 rtlgo32v1:
-	$(MAKE) -C dos/go32v1 CFGFILE=../../cfg/ppdos.cfg OS_TARGET=go32v1
+	$(MAKE) -C dos/go32v1 CFGFILE=../../cfg/ppgo32v1.cfg OS_TARGET=go32v1
 
 rtlgo32v2:
 	$(MAKE) -C dos/go32v2 CFGFILE=../../cfg/ppgo32v2.cfg  OS_TARGET=go32v2
