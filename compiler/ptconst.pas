@@ -496,10 +496,14 @@ unit ptconst;
                             { third write use count (set to -1 for safety ) }
                             consts^.concat(new(pai_const,init_32bit(-1)));
                             consts^.concat(new(pai_label,init(ll)));
-                            getmem(ca,strlength+1);
+                            getmem(ca,strlength+2);
                             move(strval^,ca^,strlength);
+                            { The terminating #0 to be stored in the .data section (JM) }
                             ca[strlength]:=#0;
-                            consts^.concat(new(pai_string,init_length_pchar(ca,strlength)));
+                            { End of the PChar. The memory has to be allocated because in }
+                            { tai_string.done, there is a freemem(len+1) (JM)             } 
+                            ca[strlength+1]:=#0;
+                            consts^.concat(new(pai_string,init_length_pchar(ca,strlength+1)));
                           end;
                      end;
                  end;
@@ -790,7 +794,11 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.67  2000-05-17 17:10:06  peter
+  Revision 1.68  2000-06-06 13:06:17  jonas
+    * ansistring constants now also get a trailing #0 (bug reported by
+      Thomas Schatzl)
+
+  Revision 1.67  2000/05/17 17:10:06  peter
     * add support for loading of typed const strings with resourcestrings,
       made the loading also a bit more generic
 
