@@ -2002,7 +2002,6 @@ const
        var
          tmpreg: tregister;
          orgindex: tregister;
-         freeindex: boolean;
        begin
          result := false;
          if (ref.base = NR_NO) then
@@ -2016,35 +2015,11 @@ const
                 ((ref.offset <> 0) or assigned(ref.symbol)) then
                begin
                  result := true;
-                 { references are often freed before they are used. Since we allocate  }
-                 { a register here, we must first reallocate the index register, since }
-                 { otherwise it may be overwritten (and it's still used afterwards)    }
-                 freeindex := false;
-                 if (ref.index >= first_int_imreg) and
-                    (supregset_in(rg[R_INTREGISTER].unusedregs,getsupreg(ref.index))) then
-                   begin
-                     rg[R_INTREGISTER].getexplicitregister(list,ref.index);
-                     orgindex := ref.index;
-                     freeindex := true;
-                   end;
                  tmpreg := rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
-                 if not assigned(ref.symbol) and
-                    (cardinal(ref.offset-low(smallint)) <=
-                      high(smallint)-low(smallint)) then
-                   begin
-                     list.concat(taicpu.op_reg_reg_const(
-                       A_ADDI,tmpreg,ref.base,ref.offset));
-                     ref.offset := 0;
-                   end
-                 else
-                   begin
-                     list.concat(taicpu.op_reg_reg_reg(
-                       A_ADD,tmpreg,ref.base,ref.index));
-                     ref.index := NR_NO;
-                   end;
+                 list.concat(taicpu.op_reg_reg_reg(
+                   A_ADD,tmpreg,ref.base,ref.index));
+                 ref.index := NR_NO;
                  ref.base := tmpreg;
-                 if freeindex then
-                   rg[R_INTREGISTER].ungetregister(list,orgindex);
                end
            end
          else
@@ -2339,7 +2314,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.146  2003-12-12 17:16:18  peter
+  Revision 1.147  2003-12-15 21:37:09  jonas
+    * fixed compilation and simplified fixref, so it never has to reallocate
+      already freed registers anymore
+
+  Revision 1.146  2003/12/12 17:16:18  peter
     * rg[tregistertype] added in tcg
 
   Revision 1.145  2003/12/10 00:09:57  karoly
