@@ -135,6 +135,10 @@ interface
     type
       { What an instruction can change. Needed for optimizer and spilling code }
       TInsChange = (Ch_None,
+        Ch_All,
+        Ch_Rop1, Ch_Wop1, Ch_RWop1,Ch_Mop1,
+        Ch_Rop2, Ch_Wop2, Ch_RWop2,Ch_Mop2,
+        Ch_Rop3, Ch_WOp3, Ch_RWOp3,Ch_Mop3,
         {Read from a register}
         Ch_REAX, Ch_RECX, Ch_REDX, Ch_REBX, Ch_RESP, Ch_REBP, Ch_RESI, Ch_REDI,
         {write from a register}
@@ -147,11 +151,12 @@ interface
         Ch_MEAX, Ch_MECX, Ch_MEDX, Ch_MEBX, Ch_MESP, Ch_MEBP, Ch_MESI, Ch_MEDI,
         Ch_CDirFlag {clear direction flag}, Ch_SDirFlag {set dir flag},
         Ch_RFlags, Ch_WFlags, Ch_RWFlags, Ch_FPU,
-        Ch_Rop1, Ch_Wop1, Ch_RWop1,Ch_Mop1,
-        Ch_Rop2, Ch_Wop2, Ch_RWop2,Ch_Mop2,
-        Ch_Rop3, Ch_WOp3, Ch_RWOp3,Ch_Mop3,
         Ch_WMemEDI,
-        Ch_All
+        { x86_64 registers }
+        Ch_RRAX, Ch_RRCX, Ch_RRDX, Ch_RRBX, Ch_RRSP, Ch_RRBP, Ch_RRSI, Ch_RRDI,
+        Ch_WRAX, Ch_WRCX, Ch_WRDX, Ch_WRBX, Ch_WRSP, Ch_WRBP, Ch_WRSI, Ch_WRDI,
+        Ch_RWRAX, Ch_RWRCX, Ch_RWRDX, Ch_RWRBX, Ch_RWRSP, Ch_RWRBP, Ch_RWRSI, Ch_RWRDI,
+        Ch_MRAX, Ch_MRCX, Ch_MRDX, Ch_MRBX, Ch_MRSP, Ch_MRBP, Ch_MRSI, Ch_MRDI
       );
 
       TInsProp = packed record
@@ -159,7 +164,12 @@ interface
       end;
 
     const
-      InsProp : array[tasmop] of TInsProp = {$i i386prop.inc}
+      InsProp : array[tasmop] of TInsProp =
+{$ifdef x86_64}
+        {$i x8664pro.inc}
+{$else x86_64}
+        {$i i386prop.inc}
+{$endif x86_64}
 
     type
       TOperandOrder = (op_intel,op_att);
@@ -2098,7 +2108,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.59  2004-10-04 20:46:22  peter
+  Revision 1.60  2004-10-04 20:55:04  peter
+    * fix x86_64 compile
+
+  Revision 1.59  2004/10/04 20:46:22  peter
     * spilling code rewritten for x86. It now used the generic
       spilling routines. Special x86 optimization still needs
       to be added.
