@@ -30,7 +30,7 @@ unit og386;
     uses
        dos,
        owbase,owar,
-       i386base,aasm;
+       systems,i386base,aasm;
 
     type
        tsecsize = array[tsection] of longint;
@@ -77,7 +77,7 @@ unit og386;
   implementation
 
     uses
-      systems,globtype,globals,verbose,files,
+      globtype,globals,verbose,files,
       assemble;
 
 
@@ -236,7 +236,11 @@ unit og386;
 end.
 {
   $Log$
-  Revision 1.1  1999-05-01 13:24:23  peter
+  Revision 1.2  1999-05-02 22:41:54  peter
+    * moved section names to systems
+    * fixed nasm,intel writer
+
+  Revision 1.1  1999/05/01 13:24:23  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 

@@ -209,6 +209,8 @@ uses
 
     procedure tai386.loadconst(opidx:longint;l:longint);
       begin
+        if opidx>=ops then
+         ops:=opidx+1;
         with oper[opidx] do
          begin
            if typ=top_ref then
@@ -220,6 +222,8 @@ uses
 
     procedure tai386.loadsymbol(opidx:longint;s:pasmsymbol;sofs:longint);
       begin
+        if opidx>=ops then
+         ops:=opidx+1;
         with oper[opidx] do
          begin
            if typ=top_ref then
@@ -232,6 +236,8 @@ uses
 
     procedure tai386.loadref(opidx:longint;p:preference);
       begin
+        if opidx>=ops then
+         ops:=opidx+1;
         with oper[opidx] do
          begin
            if typ=top_ref then
@@ -257,6 +263,8 @@ uses
 
     procedure tai386.loadreg(opidx:longint;r:tregister);
       begin
+        if opidx>=ops then
+         ops:=opidx+1;
         with oper[opidx] do
          begin
            if typ=top_ref then
@@ -268,6 +276,8 @@ uses
 
     procedure tai386.loadoper(opidx:longint;o:toper);
       begin
+        if opidx>=ops then
+         ops:=opidx+1;
         if oper[opidx].typ=top_ref then
           disposereference(oper[opidx].ref);
         oper[opidx]:=o;
@@ -1569,7 +1579,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  1999-05-02 21:33:52  florian
+  Revision 1.3  1999-05-02 22:41:53  peter
+    * moved section names to systems
+    * fixed nasm,intel writer
+
+  Revision 1.2  1999/05/02 21:33:52  florian
     * several bugs regarding -Or fixed
 
   Revision 1.1  1999/05/01 13:24:23  peter

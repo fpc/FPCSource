@@ -85,7 +85,7 @@ uses
 {$endif}
   ,strings
 {$ifdef i386}
-  {$ifndef OLDASM}
+  {$ifndef NoAg386Bin}
     ,ag386bin
   {$endif}
   {$ifndef NoAg386Att}
@@ -446,14 +446,14 @@ Procedure GenerateAsm;
 var
   a : PAsmList;
 {$ifdef i386}
-  {$ifndef OLDASM}
+  {$ifndef NoAg386Bin}
     b : Pi386binasmlist;
   {$endif}
 {$endif}
 begin
   case aktoutputformat of
 {$ifdef i386}
-  {$ifndef OLDASM}
+  {$ifndef NoAg386Bin}
      as_i386_dbg,
      as_i386_coff,
      as_i386_pecoff :
@@ -479,7 +479,7 @@ begin
            SynchronizeFileTime(current_module^.ppufilename^,current_module^.objfilename^);
          exit;
        end;
-  {$endif Ag386Bin}
+  {$endif NoAg386Bin}
   {$ifndef NoAg386Att}
      as_i386_as,
      as_i386_as_aout,
@@ -541,7 +541,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.42  1999-05-01 13:24:00  peter
+  Revision 1.43  1999-05-02 22:41:51  peter
+    * moved section names to systems
+    * fixed nasm,intel writer
+
+  Revision 1.42  1999/05/01 13:24:00  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 

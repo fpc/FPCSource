@@ -25,7 +25,7 @@ unit aasm;
   interface
 
     uses
-       cobjects,files,globals;
+       systems,cobjects,files,globals;
 
     type
 {$ifdef i386}
@@ -69,13 +69,6 @@ unit aasm;
           ait_marker,
           { never used, makes insertation of new ait_ easier to type }
           ait_dummy);
-
-       tsection=(sec_none,
-         sec_code,sec_data,sec_bss,
-         sec_stab,sec_stabstr,
-         sec_idata2,sec_idata4,sec_idata5,sec_idata6,sec_idata7,sec_edata,
-         sec_fake
-       );
 
 
   { asm symbol functions }
@@ -350,7 +343,7 @@ type
 implementation
 
 uses
-  strings,verbose,systems,globtype;
+  strings,verbose,globtype;
 
 {****************************************************************************
                              TAI
@@ -1013,7 +1006,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.40  1999-04-21 09:43:28  peter
+  Revision 1.41  1999-05-02 22:41:46  peter
+    * moved section names to systems
+    * fixed nasm,intel writer
+
+  Revision 1.40  1999/04/21 09:43:28  peter
     * storenumber works
     * fixed some typos in double_checksum
     + incompatible types type1 and type2 message (with storenumber)

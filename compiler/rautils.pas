@@ -287,7 +287,7 @@ begin
   if RPNTop < RPNMax then
   begin
     Inc(RPNTop);
-    RPNStack[RPNTop] := Num;
+    RPNStack[RPNTop]:=Num;
   end
   else
     Error(stack_overflow); { Put some error handler here }
@@ -300,7 +300,7 @@ Function TExprParse.RPNPop : longint;       { Get the operand at the top of the 
 begin
   if RPNTop > 0 then
   begin
-    RPNPop := RPNStack[RPNTop];
+    RPNPop:=RPNStack[RPNTop];
     Dec(RPNTop);
   end
   else  { Put some error handler here }
@@ -334,7 +334,7 @@ begin
     '<' : RPNPush(RPNPop SHL RPNPop);
     '>' : RPNPush(RPNPop SHR RPNPop);
     '%' : begin
-      Temp := RPNPop;
+      Temp:=RPNPop;
       if Temp <> 0 then
        RPNPush(RPNPop mod Temp)
       else Error(zero_divide); { Handle divide by zero error }
@@ -342,7 +342,7 @@ begin
     '^' : RPNPush(RPNPop XOR RPNPop);
     '/' :
     begin
-      Temp := RPNPop;
+      Temp:=RPNPop;
       if Temp <> 0 then
    RPNPush(RPNPop div Temp)
       else  Error(zero_divide);{ Handle divide by 0 error }
@@ -368,8 +368,8 @@ begin
   if OpTop < OpMax then
   begin
     Inc(OpTop);
-    OpStack[OpTop].ch := _Operator;
-    OpStack[OpTop].is_prefix := prefix;
+    OpStack[OpTop].ch:=_Operator;
+    OpStack[OpTop].is_prefix:=prefix;
   end
   else Error(stack_overflow); { Put some error handler here }
 end;
@@ -378,7 +378,7 @@ Procedure TExprParse.OpPop(var _Operator:TExprOperator);               { Get ope
 begin
   if OpTop > 0 then
   begin
-    _Operator := OpStack[OpTop];
+    _Operator:=OpStack[OpTop];
     Dec(OpTop);
   end
   else Error(stack_underflow); { Put some error handler here }
@@ -388,10 +388,10 @@ Function TExprParse.Priority(_Operator : Char) : Integer; { Return priority of o
 { The greater the priority, the higher the precedence }
 begin
   Case _Operator OF
-    '('      : Priority := 0;
-    '+', '-' : Priority := 1;
-    '*', '/','%','<','>' : Priority := 2;
-    '|','&','^','~': Priority := 0;
+    '('      : Priority:=0;
+    '+', '-' : Priority:=1;
+    '*', '/','%','<','>' : Priority:=2;
+    '|','&','^','~': Priority:=0;
     else  Error(invalid_op);{ More error handling }
   end;
 end;
@@ -403,15 +403,19 @@ Var
   Token : String15;
   opr: TExprOperator;
 begin
-  OpTop  := 0;                                              { Reset stacks }
-  RPNTop := 0;
-  Token  := '';
-
-  For I := 1 to Length(Expr) DO
+  Evaluate:=0;
+  { Reset stacks }
+  OpTop :=0;
+  RPNTop:=0;
+  Token :='';
+  { nothing to do ? }
+  if Expr='' then
+   exit;
+  For I:=1 to Length(Expr) DO
    begin
      if Expr[I] in ['0'..'9'] then
       begin       { Build multi-digit numbers }
-        Token := Token + Expr[I];
+        Token:=Token + Expr[I];
         if I = Length(Expr) then          { Send last one to calculator }
          RPNCalc(Token,false);
       end
@@ -421,7 +425,7 @@ begin
          if Token <> '' then
           begin        { Send last built number to calc. }
             RPNCalc(Token,false);
-            Token := '';
+            Token:='';
           end;
 
          Case Expr[I] OF
@@ -480,7 +484,7 @@ begin
    end;
 
 { The result is stored on the top of the stack }
-  Evaluate := RPNPop;
+  Evaluate:=RPNPop;
 end;
 
 
@@ -494,7 +498,7 @@ var
   expr: TExprParse;
 Begin
   expr.Init;
-  CalculateExpression := expr.Evaluate(expression);
+  CalculateExpression:=expr.Evaluate(expression);
   expr.Done;
 end;
 
@@ -573,7 +577,7 @@ Function ValDecimal(const S:String):longint;
 var
   vs,c : longint;
 Begin
-  vs := 0;
+  vs:=0;
   for c:=1 to length(s) do
    begin
      vs:=vs*10;
@@ -595,7 +599,7 @@ Function ValOctal(const S:String):longint;
 var
   vs,c : longint;
 Begin
-  vs := 0;
+  vs:=0;
   for c:=1 to length(s) do
    begin
      vs:=vs shl 3;
@@ -617,7 +621,7 @@ Function ValBinary(const S:String):longint;
 var
   vs,c : longint;
 Begin
-  vs := 0;
+  vs:=0;
   for c:=1 to length(s) do
    begin
      vs:=vs shl 1;
@@ -639,7 +643,7 @@ Function ValHexadecimal(const S:String):longint;
 var
   vs,c : longint;
 Begin
-  vs := 0;
+  vs:=0;
   for c:=1 to length(s) do
    begin
      vs:=vs shl 4;
@@ -664,22 +668,22 @@ end;
 
 Function PadZero(Var s: String; n: byte): Boolean;
 Begin
-  PadZero := TRUE;
+  PadZero:=TRUE;
   { Do some error checking first }
   if Length(s) = n then
     exit
   else
   if Length(s) > n then
   Begin
-    PadZero := FALSE;
+    PadZero:=FALSE;
     delete(s,n+1,length(s));
     exit;
   end
   else
-    PadZero := TRUE;
+    PadZero:=TRUE;
   { Fill it up with the specified character }
   fillchar(s[length(s)+1],n-1,#0);
-  s[0] := chr(n);
+  s[0]:=chr(n);
 end;
 
 
@@ -692,7 +696,7 @@ Begin
   Opcode:=A_NONE;
   Opsize:=S_NO;
   Condition:=C_NONE;
-  labeled := FALSE;
+  labeled:=FALSE;
   Ops:=0;
   FillChar(Operands,sizeof(Operands),0);
 end;
@@ -709,8 +713,8 @@ end;
 
   Constructor TAsmLabelList.Init;
   Begin
-    First := nil;
-    Last := nil;
+    First:=nil;
+    Last:=nil;
   end;
 
 
@@ -728,17 +732,17 @@ end;
       if First = nil then
        Begin
           New(First);
-          Last := First;
+          Last:=First;
        end
       else
        Begin
           New(Last^.Next);
-          Last := Last^.Next;
+          Last:=Last^.Next;
        end;
-      Last^.name := stringdup(s);
-      Last^.Lab := lab;
-      Last^.Next := nil;
-      Last^.emitted := emitted;
+      Last^.name:=stringdup(s);
+      Last^.Lab:=lab;
+      Last^.Next:=nil;
+      Last^.emitted:=emitted;
     end;
   end;
 
@@ -753,18 +757,18 @@ end;
   Var
     asmlab: PAsmLabel;
   Begin
-    asmlab := First;
+    asmlab:=First;
     if First = nil then
     Begin
-      Search := nil;
+      Search:=nil;
       exit;
     end;
     While (asmlab^.name^ <> s) and (asmlab^.Next <> nil) do
-       asmlab := asmlab^.Next;
+       asmlab:=asmlab^.Next;
     if asmlab^.name^ = s then
-       search := asmlab
+       search:=asmlab
     else
-       search := nil;
+       search:=nil;
   end;
 
 
@@ -781,13 +785,13 @@ end;
     temp: PAsmLabel;
     temp1: PAsmLabel;
   Begin
-    temp := First;
+    temp:=First;
     while temp <> nil do
     Begin
       Freemem(Temp^.name, length(Temp^.name^)+1);
-      Temp1 := Temp^.Next;
+      Temp1:=Temp^.Next;
       Dispose(Temp);
-      Temp := Temp1;
+      Temp:=Temp1;
       { The plabel could be deleted here, but let us not do }
       { it, FPC will do it instead.                         }
     end;
@@ -804,16 +808,16 @@ end;
   Begin
     if instr.Ops = 2 then
     Begin
-      tempopr := instr.operands[1];
-      instr.operands[1] := instr.operands[2];
-      instr.operands[2] := tempopr;
+      tempopr:=instr.operands[1];
+      instr.operands[1]:=instr.operands[2];
+      instr.operands[2]:=tempopr;
     end
     else
     if instr.Ops = 3 then
     Begin
-      tempopr := instr.operands[1];
-      instr.operands[1] := instr.operands[3];
-      instr.operands[3] := tempopr;
+      tempopr:=instr.operands[1];
+      instr.operands[1]:=instr.operands[3];
+      instr.operands[3]:=tempopr;
     end;
   end;
 
@@ -830,18 +834,18 @@ end;
   var
     sym: psym;
   Begin
-    SearchIConstant := FALSE;
+    SearchIConstant:=FALSE;
     { check for TRUE or FALSE reserved words first }
     if s = 'TRUE' then
      Begin
-       SearchIConstant := TRUE;
-       l := 1;
+       SearchIConstant:=TRUE;
+       l:=1;
      end
     else
      if s = 'FALSE' then
       Begin
-        SearchIConstant := TRUE;
-        l := 0;
+        SearchIConstant:=TRUE;
+        l:=0;
       end
     else
      if assigned(aktprocsym) then
@@ -851,16 +855,16 @@ end;
          { Check the local constants }
            if assigned(aktprocsym^.definition^.localst) and
               (lexlevel >= normal_function_level) then
-            sym := aktprocsym^.definition^.localst^.search(s)
+            sym:=aktprocsym^.definition^.localst^.search(s)
            else
-            sym := nil;
+            sym:=nil;
            if assigned(sym) then
             Begin
               if (sym^.typ = constsym) and
                  (pconstsym(sym)^.consttype in [constord,constint,constchar,constbool]) then
                Begin
                  l:=pconstsym(sym)^.value;
-                 SearchIConstant := TRUE;
+                 SearchIConstant:=TRUE;
                  exit;
                end;
             end;
@@ -876,7 +880,7 @@ end;
              if (pconstsym(srsym)^.consttype in [constord,constint,constchar,constbool]) then
               Begin
                 l:=pconstsym(srsym)^.value;
-                SearchIConstant := TRUE;
+                SearchIConstant:=TRUE;
                 exit;
               end;
            end;
@@ -898,8 +902,8 @@ end;
     if assigned(procinfo.retdef) and
       (procinfo.retdef<>pdef(voiddef)) then
     begin
-      instr.operands[operandnum].ref.offset := procinfo.retoffset;
-      instr.operands[operandnum].ref.base :=  procinfo.framepointer;
+      instr.operands[operandnum].ref.offset:=procinfo.retoffset;
+      instr.operands[operandnum].ref.base:= procinfo.framepointer;
       { always assume that the result is valid. }
       procinfo.funcret_is_valid:=true;
     end
@@ -925,16 +929,16 @@ end;
     if (instr.operands[operandnum].size = S_NO) or (instr.operands[operandnum].overriden = FALSE) then
     Begin
       case size of
-       1: instr.operands[operandnum].size := S_B;
-       2: instr.operands[operandnum].size := S_W{ could be S_IS};
-       4: instr.operands[operandnum].size := S_L{ could be S_IL or S_FS};
-       8: instr.operands[operandnum].size := S_IQ{ could be S_D or S_FL};
-       extended_size: instr.operands[operandnum].size := S_FX;
+       1: instr.operands[operandnum].size:=S_B;
+       2: instr.operands[operandnum].size:=S_W{ could be S_IS};
+       4: instr.operands[operandnum].size:=S_L{ could be S_IL or S_FS};
+       8: instr.operands[operandnum].size:=S_IQ{ could be S_D or S_FL};
+       extended_size: instr.operands[operandnum].size:=S_FX;
       else
        { this is in the case where the instruction is LEA }
        { or something like that, in that case size is not }
        { important.                                       }
-        instr.operands[operandnum].size := S_NO;
+        instr.operands[operandnum].size:=S_NO;
       end; { end case }
     end;
   end;
@@ -951,7 +955,7 @@ var
   i    : longint;
   base : string;
 Begin
-  GetRecordOffsetSize := FALSE;
+  GetRecordOffsetSize:=FALSE;
   Offset:=0;
   Size:=0;
   i:=pos('.',s);
@@ -1028,7 +1032,7 @@ Function CreateVarInstr(var Instr: TInstruction; const hs:string;operandnum:byte
 var
   sym : psym;
 Begin
-  CreateVarInstr := FALSE;
+  CreateVarInstr:=FALSE;
 { are we in a routine ? }
   getsym(hs,false);
   sym:=srsym;
@@ -1048,10 +1052,10 @@ Begin
             instr.operands[operandnum].ref.symbol:=newasmsymbol(pvarsym(sym)^.mangledname);
           parasymtable :
             begin
-              instr.operands[operandnum].ref.base := procinfo.framepointer;
-              instr.operands[operandnum].ref.offset := pvarsym(sym)^.address;
+              instr.operands[operandnum].ref.base:=procinfo.framepointer;
+              instr.operands[operandnum].ref.offset:=pvarsym(sym)^.address;
               instr.operands[operandnum].ref.offsetfixup:=aktprocsym^.definition^.parast^.address_fixup;
-              instr.operands[operandnum].ref.options := ref_parafixup;
+              instr.operands[operandnum].ref.options:=ref_parafixup;
             end;
           localsymtable :
             begin
@@ -1059,9 +1063,9 @@ Begin
                 instr.operands[operandnum].ref.symbol:=newasmsymbol(pvarsym(sym)^.mangledname)
               else
                 begin
-                  instr.operands[operandnum].ref.base := procinfo.framepointer;
-                  instr.operands[operandnum].ref.offset := -(pvarsym(sym)^.address);
-                  instr.operands[operandnum].ref.options := ref_localfixup;
+                  instr.operands[operandnum].ref.base:=procinfo.framepointer;
+                  instr.operands[operandnum].ref.offset:=-(pvarsym(sym)^.address);
+                  instr.operands[operandnum].ref.options:=ref_localfixup;
                   instr.operands[operandnum].ref.offsetfixup:=aktprocsym^.definition^.localst^.address_fixup;
                 end;
             end;
@@ -1075,7 +1079,7 @@ Begin
             SetOperandSize(instr,operandnum,parraydef(pvarsym(sym)^.definition)^.elesize)
         end;
         instr.operands[operandnum].hasvar:=true;
-        CreateVarInstr := TRUE;
+        CreateVarInstr:=TRUE;
         Exit;
       end;
     typedconstsym :
@@ -1090,7 +1094,7 @@ Begin
             SetOperandSize(instr,operandnum,parraydef(ptypedconstsym(sym)^.definition)^.elesize)
         end;
         instr.operands[operandnum].hasvar:=true;
-        CreateVarInstr := TRUE;
+        CreateVarInstr:=TRUE;
         Exit;
       end;
     constsym :
@@ -1100,7 +1104,7 @@ Begin
            instr.operands[operandnum].operandtype:=OPR_CONSTANT;
            instr.operands[operandnum].val:=pconstsym(sym)^.value;
            instr.operands[operandnum].hasvar:=true;
-           CreateVarInstr := TRUE;
+           CreateVarInstr:=TRUE;
            Exit;
          end;
       end;
@@ -1111,7 +1115,7 @@ Begin
            instr.operands[operandnum].operandtype:=OPR_CONSTANT;
            instr.operands[operandnum].val:=0;
            instr.operands[operandnum].hasvar:=true;
-           CreateVarInstr := TRUE;
+           CreateVarInstr:=TRUE;
            Exit;
          end;
       end;
@@ -1122,7 +1126,7 @@ Begin
         instr.operands[operandnum].operandtype:=OPR_SYMBOL;
         instr.operands[operandnum].symbol:=newasmsymbol(pprocsym(sym)^.definition^.mangledname);
         instr.operands[operandnum].hasvar:=true;
-        CreateVarInstr := TRUE;
+        CreateVarInstr:=TRUE;
         Exit;
       end;
     else
@@ -1143,22 +1147,22 @@ end;
   var
     sym: psym;
   Begin
-    SearchLabel := FALSE;
+    SearchLabel:=FALSE;
     if assigned(aktprocsym) then
     Begin
       { Check the local constants }
     if assigned(aktprocsym^.definition) then
     Begin
         if assigned(aktprocsym^.definition^.localst) then
-          sym := aktprocsym^.definition^.localst^.search(s)
+          sym:=aktprocsym^.definition^.localst^.search(s)
       else
-       sym := nil;
+       sym:=nil;
       if assigned(sym) then
       Begin
        if (sym^.typ = labelsym) then
        Begin
           hl:=plabelsym(sym)^.number;
-          SearchLabel := TRUE;
+          SearchLabel:=TRUE;
           exit;
        end;
       end;
@@ -1171,7 +1175,7 @@ end;
       if (srsym^.typ=labelsym) then
       Begin
         hl:=plabelsym(srsym)^.number;
-        SearchLabel:= TRUE;
+        SearchLabel:=TRUE;
         exit;
       end;
     end;
@@ -1192,20 +1196,20 @@ Begin
      begin
        instr.operands[operandnum].ref.symbol:=p^.sym;
         case p^.exttyp of
-           EXT_BYTE   : instr.operands[operandnum].size := S_B;
-           EXT_WORD   : instr.operands[operandnum].size := S_W;
+           EXT_BYTE   : instr.operands[operandnum].size:=S_B;
+           EXT_WORD   : instr.operands[operandnum].size:=S_W;
            EXT_NEAR,EXT_FAR,EXT_PROC,EXT_DWORD,EXT_CODEPTR,EXT_DATAPTR:
-           instr.operands[operandnum].size := S_L;
-           EXT_QWORD  : instr.operands[operandnum].size := S_FL;
-           EXT_TBYTE  : instr.operands[operandnum].size := S_FX;
+           instr.operands[operandnum].size:=S_L;
+           EXT_QWORD  : instr.operands[operandnum].size:=S_FL;
+           EXT_TBYTE  : instr.operands[operandnum].size:=S_FX;
          else
            { this is in the case where the instruction is LEA }
            { or something like that, in that case size is not }
            { important.                                       }
-             instr.operands[operandnum].size := S_NO;
+             instr.operands[operandnum].size:=S_NO;
          end;
        instr.operands[operandnum].hasvar:=true;
-       SearchDirectVar := TRUE;
+       SearchDirectVar:=TRUE;
        Exit;
      end;
 end;
@@ -1273,7 +1277,7 @@ end;
       Begin
          Message(assem_e_constant_out_of_bounds);
          { assuming a value of maxvalue }
-         value := maxvalue;
+         value:=maxvalue;
       end;
       if maxvalue = $ff then
           p^.concat(new(pai_const,init_8bit(byte(value))))
@@ -1397,7 +1401,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  1999-05-01 13:24:41  peter
+  Revision 1.11  1999-05-02 22:41:57  peter
+    * moved section names to systems
+    * fixed nasm,intel writer
+
+  Revision 1.10  1999/05/01 13:24:41  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 

@@ -338,9 +338,6 @@ unit ag386int;
       ait_const2str:array[ait_const_32bit..ait_const_8bit] of string[8]=
         (#9'DD'#9,#9'DW'#9,#9'DB'#9);
 
-      ait_section2masmstr : array[tsection] of string[6]=
-       ('','CODE','DATA','BSS','','','','','','','','','');
-
     Function PadTabs(const p:string;addch:char):string;
     var
       s : string;
@@ -395,13 +392,13 @@ unit ag386int;
        ait_tempalloc : ;
        ait_section : begin
                        if LastSec<>sec_none then
-                        AsmWriteLn('_'+ait_section2masmstr[LastSec]+#9#9'ENDS');
+                        AsmWriteLn('_'+target_asm.secnames[LastSec]+#9#9'ENDS');
                        if pai_section(hp)^.sec<>sec_none then
                         begin
                           AsmLn;
-                          AsmWriteLn('_'+ait_section2masmstr[pai_section(hp)^.sec]+#9#9+
+                          AsmWriteLn('_'+target_asm.secnames[pai_section(hp)^.sec]+#9#9+
                                      'SEGMENT'#9'PARA PUBLIC USE32 '''+
-                                     ait_section2masmstr[pai_section(hp)^.sec]+'''');
+                                     target_asm.secnames[pai_section(hp)^.sec]+'''');
                         end;
                        LastSec:=pai_section(hp)^.sec;
                      end;
@@ -554,6 +551,7 @@ ait_labeled_instruction : AsmWriteLn(#9#9+int_op2str[pai386_labeled(hp)^.opcode]
    ait_instruction : begin
                        suffix:='';
                        prefix:= '';
+                       s:='';
 {$ifndef OLDASM}
                      { added prefix instructions, must be on same line as opcode }
                        if (pai386(hp)^.ops = 0) and
@@ -582,7 +580,7 @@ ait_labeled_instruction : AsmWriteLn(#9#9+int_op2str[pai386_labeled(hp)^.opcode]
                        if pai386(hp)^.ops<>0 then
                         begin
                           if pai386(hp)^.opcode=A_CALL then
-                           s:='dword ptr '+getopstr_jmp(pai386(hp)^.oper[0])
+                           s:=#9+getopstr_jmp(pai386(hp)^.oper[0])
                           else
                            begin
                              for i:=0to pai386(hp)^.ops-1 do
@@ -594,30 +592,6 @@ ait_labeled_instruction : AsmWriteLn(#9#9+int_op2str[pai386_labeled(hp)^.opcode]
                                 s:=s+sep+getopstr(pai386(hp)^.oper[i],pai386(hp)^.opsize,pai386(hp)^.opcode,(i=1));
                               end;
                            end;
-                        end
-                       else
-                        begin
-                          { check if string instruction }
-                          { long form, otherwise may give range check errors }
-                          { in turbo pascal...                               }
-{                          if ((pai386(hp)^.opcode = A_CMPS) or
-                             (pai386(hp)^.opcode = A_INS) or
-                             (pai386(hp)^.opcode = A_OUTS) or
-                             (pai386(hp)^.opcode = A_SCAS) or
-                             (pai386(hp)^.opcode = A_STOS) or
-                             (pai386(hp)^.opcode = A_MOVS) or
-                             (pai386(hp)^.opcode = A_LODS) or
-                             (pai386(hp)^.opcode = A_XLAT)) then
-                           Begin
-                             case pai386(hp)^.opsize of
-                              S_B: suffix:='b';
-                              S_W: suffix:='w';
-                              S_L: suffix:='d';
-                             else
-                              Message(assem_f_invalid_suffix_intel);
-                             end;
-                           end; }
-                          s:='';
                         end;
                        AsmWriteLn(#9#9+prefix+int_op2str[pai386(hp)^.opcode]+cond2str[pai386_labeled(hp)^.condition]+suffix+s);
 {$else}
@@ -722,7 +696,7 @@ ait_stab_function_name : ;
                        else
                         begin
                           if LastSec<>sec_none then
-                           AsmWriteLn('_'+ait_section2masmstr[LastSec]+#9#9'ENDS');
+                           AsmWriteLn('_'+target_asm.secnames[LastSec]+#9#9'ENDS');
                           AsmLn;
                           AsmWriteLn(#9'END');
                           AsmClose;
@@ -743,9 +717,9 @@ ait_stab_function_name : ;
                        AsmWriteLn(#9'.386p');
                        AsmWriteLn(#9'LOCALS '+target_asm.labelprefix);
                        if lastsec<>sec_none then
-                          AsmWriteLn('_'+ait_section2masmstr[lastsec]+#9#9+
+                          AsmWriteLn('_'+target_asm.secnames[lastsec]+#9#9+
                                      'SEGMENT'#9'PARA PUBLIC USE32 '''+
-                                     ait_section2masmstr[lastsec]+'''');
+                                     target_asm.secnames[lastsec]+'''');
                        AsmStartSize:=AsmSize;
                      end;
              ait_marker: ;
@@ -795,7 +769,11 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.34  1999-05-01 13:23:58  peter
+  Revision 1.35  1999-05-02 22:41:49  peter
+    * moved section names to systems
+    * fixed nasm,intel writer
+
+  Revision 1.34  1999/05/01 13:23:58  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 

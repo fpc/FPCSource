@@ -344,12 +344,6 @@ unit ag386nsm;
       ait_const2str:array[ait_const_32bit..ait_const_8bit] of string[8]=
         (#9'DD'#9,#9'DW'#9,#9'DB'#9);
 
-      ait_section2nasmstr : array[tsection] of string[8]=
-       ('','.text','.data','.bss',
-        '.stab','.stabstr',
-        '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
-        '');
-
     Function PadTabs(const p:string;addch:char):string;
     var
       s : string;
@@ -408,7 +402,7 @@ unit ag386nsm;
                        if pai_section(hp)^.sec<>sec_none then
                         begin
                           AsmLn;
-                          AsmWriteLn('SECTION '+ait_section2nasmstr[pai_section(hp)^.sec]);
+                          AsmWriteLn('SECTION '+target_asm.secnames[pai_section(hp)^.sec]);
                         end;
                        LastSec:=pai_section(hp)^.sec;
                      end;
@@ -557,6 +551,7 @@ ait_labeled_instruction :
    ait_instruction : begin
                        suffix:='';
                        prefix:='';
+                       s:='';
 {$ifndef OLDASM}
                        if pai386(hp)^.ops<>0 then
                         begin
@@ -573,9 +568,7 @@ ait_labeled_instruction :
                                 s:=s+sep+getopstr(pai386(hp)^.oper[i],pai386(hp)^.opsize,pai386(hp)^.opcode,(i=1));
                               end;
                            end;
-                        end
-                       else
-                        s:='';
+                        end;
                        if pai386(hp)^.opcode=A_FWAIT then
                         AsmWriteln(#9#9'DB'#9'09bh')
                        else
@@ -696,7 +689,7 @@ ait_stab_function_name : ;
                           hp:=pai(hp^.next);
                         end;
                        if lastsec<>sec_none then
-                         AsmWriteLn('SECTION '+ait_section2nasmstr[lastsec]);
+                         AsmWriteLn('SECTION '+target_asm.secnames[lastsec]);
                        AsmStartSize:=AsmSize;
                      end;
         ait_marker : ;
@@ -740,7 +733,11 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.29  1999-05-01 13:23:59  peter
+  Revision 1.30  1999-05-02 22:41:50  peter
+    * moved section names to systems
+    * fixed nasm,intel writer
+
+  Revision 1.29  1999/05/01 13:23:59  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 

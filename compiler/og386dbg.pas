@@ -28,7 +28,7 @@ unit og386dbg;
 
   interface
     uses
-       i386base,
+       systems,i386base,
        aasm,
        og386;
 
@@ -189,7 +189,11 @@ unit og386dbg;
 end.
 {
   $Log$
-  Revision 1.1  1999-05-01 13:24:24  peter
+  Revision 1.2  1999-05-02 22:41:55  peter
+    * moved section names to systems
+    * fixed nasm,intel writer
+
+  Revision 1.1  1999/05/01 13:24:24  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 

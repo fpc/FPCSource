@@ -37,6 +37,12 @@ unit systems;
             ,MC68000,MC68100,MC68020
        );
 
+       tsection=(sec_none,
+         sec_code,sec_data,sec_bss,
+         sec_stab,sec_stabstr,
+         sec_idata2,sec_idata4,sec_idata5,sec_idata6,sec_idata7,sec_edata,
+         sec_fake
+       );
 
      type
        tasmmode= (asmmode_none
@@ -150,6 +156,7 @@ unit systems;
           externals   : boolean;
           labelprefix : string[2];
           comment     : string[2];
+          secnames    : array[tsection] of string[20];
        end;
 
        tlinkinfo = packed record
@@ -471,7 +478,12 @@ implementation
             asmcmd : '-o $OBJ $ASM';
             externals : false;
             labelprefix : '.L';
-            comment : '# '
+            comment : '# ';
+            secnames : ('',
+              '.text','.data','.bss',
+              '.stab','.stabstr',
+              '','','','','','',
+              '')
           )
           ,(
             id     : as_i386_as_aout;
@@ -480,7 +492,12 @@ implementation
             asmcmd : '-o $OBJ $ASM';
             externals : false;
             labelprefix : 'L';
-            comment : '# '
+            comment : '# ';
+            secnames : ('',
+              '.text','.data','.bss',
+              '.stab','.stabstr',
+              '','','','','','',
+              '')
           )
           ,(
             id     : as_i386_asw;
@@ -489,7 +506,13 @@ implementation
             asmcmd : '-o $OBJ $ASM';
             externals : false;
             labelprefix : '.L';
-            comment : '# '
+            comment : '# ';
+            secnames : ('',
+              '.text','.data','.section .bss',
+              '.stab','.stabstr',
+              '.section .idata$2','.section .idata$4','.section .idata$5',
+                '.section .idata$6','.section .idata$7','.section .edata',
+              '')
           )
           ,(
             id     : as_i386_nasmcoff;
@@ -498,7 +521,12 @@ implementation
             asmcmd : '-f coff -o $OBJ $ASM';
             externals : true;
             labelprefix : 'L';
-            comment : '; '
+            comment : '; ';
+            secnames : ('',
+              '.text','.data','.bss',
+              '.stab','.stabstr',
+              '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
+              '')
           )
           ,(
             id     : as_i386_nasmelf;
@@ -507,7 +535,12 @@ implementation
             asmcmd : '-f elf -o $OBJ $ASM';
             externals : true;
             labelprefix : 'L';
-            comment : '; '
+            comment : '; ';
+            secnames : ('',
+              '.text','.data','.bss',
+              '.stab','.stabstr',
+              '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
+              '')
           )
           ,(
             id     : as_i386_nasmobj;
@@ -516,7 +549,12 @@ implementation
             asmcmd : '-f obj -o $OBJ $ASM';
             externals : true;
             labelprefix : 'L';
-            comment : '; '
+            comment : '; ';
+            secnames : ('',
+              '.text','.data','.bss',
+              '.stab','.stabstr',
+              '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
+              '')
           )
           ,(
             id     : as_i386_tasm;
@@ -524,8 +562,12 @@ implementation
             asmbin : 'tasm';
             asmcmd : '/m2 $ASM $OBJ';
             externals : true;
-            labelprefix : 'L';
-            comment : '; '
+            labelprefix : '@@';
+            comment : '; ';
+            secnames : ('',
+              'CODE','DATA','BSS',
+              '','','','','','','','',
+              '')
           )
           ,(
             id     : as_i386_masm;
@@ -534,7 +576,11 @@ implementation
             asmcmd : '$ASM $OBJ';
             externals : true;
             labelprefix : '.L';
-            comment : '; '
+            comment : '; ';
+            secnames : ('',
+              'CODE','DATA','BSS',
+              '','','','','','','','',
+              '')
           )
           ,(
             id     : as_i386_dbg;
@@ -543,7 +589,12 @@ implementation
             asmcmd : '';
             externals : true;
             labelprefix : 'L';
-            comment : ''
+            comment : '';
+            secnames : ('',
+              '.text','.data','.bss',
+              '.stab','.stabstr',
+              '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
+              '.fake')
           )
           ,(
             id     : as_i386_coff;
@@ -552,7 +603,12 @@ implementation
             asmcmd : '';
             externals : true;
             labelprefix : '.L';
-            comment : ''
+            comment : '';
+            secnames : ('',
+              '.text','.data','.bss',
+              '.stab','.stabstr',
+              '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
+              '.fake')
           )
           ,(
             id     : as_i386_pecoff;
@@ -561,7 +617,12 @@ implementation
             asmcmd : '';
             externals : true;
             labelprefix : '.L';
-            comment : ''
+            comment : '';
+            secnames : ('',
+              '.text','.data','.bss',
+              '.stab','.stabstr',
+              '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
+              '.fake')
           )
 {$endif i386}
 {$ifdef m68k}
@@ -572,7 +633,12 @@ implementation
             asmcmd : '-o $OBJ $ASM';
             externals : false;
             labelprefix : '.L';
-            comment : '# '
+            comment : '# ';
+            secnames : ('',
+              '.text','.data','.bss',
+              '.stab','.stabstr',
+              '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
+              '.fake')
           )
           ,(
             id     : as_m68k_gas;
@@ -581,7 +647,12 @@ implementation
             asmcmd : '--register-prefix-optional -o $OBJ $ASM';
             externals : false;
             labelprefix : '.L';
-            comment : '| '
+            comment : '| ';
+            secnames : ('',
+              '.text','.data','.bss',
+              '.stab','.stabstr',
+              '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
+              '.fake')
           )
           ,(
             id     : as_m68k_mit;
@@ -590,7 +661,12 @@ implementation
             asmcmd : '-o $OBJ $ASM';
             externals : false;
             labelprefix : '.L';
-            comment : '| '
+            comment : '| ';
+            secnames : ('',
+              '.text','.data','.bss',
+              '.stab','.stabstr',
+              '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
+              '.fake')
           )
           ,(
             id     : as_m68k_mot;
@@ -599,7 +675,12 @@ implementation
             asmcmd : '-o $OBJ $ASM';
             externals : false;
             labelprefix : '__L';
-            comment : '| '
+            comment : '| ';
+            secnames : ('',
+              '.text','.data','.bss',
+              '.stab','.stabstr',
+              '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
+              '.fake')
           )
           ,(
             id     : as_m68k_mpw;
@@ -608,7 +689,12 @@ implementation
             asmcmd : '-model far -o $OBJ $ASM';
             externals : false;
             labelprefix : '__L';
-            comment : '| '
+            comment : '| ';
+            secnames : ('',
+              '.text','.data','.bss',
+              '.stab','.stabstr',
+              '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
+              '.fake')
           )
 {$endif m68k}
           );
@@ -1369,7 +1455,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.67  1999-05-01 14:18:12  peter
+  Revision 1.68  1999-05-02 22:41:59  peter
+    * moved section names to systems
+    * fixed nasm,intel writer
+
+  Revision 1.67  1999/05/01 14:18:12  peter
     * win32 pecoff disabled because it's still not ok
 
   Revision 1.66  1999/05/01 13:24:44  peter
