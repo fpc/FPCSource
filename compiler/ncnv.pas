@@ -994,6 +994,7 @@ implementation
         { left is reused }
         left := nil;
         result := cderefnode.create(result);
+        include(result.flags,nf_no_checkpointer);
         result.resulttype := resulttype;
       end;
 
@@ -2466,7 +2467,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.158  2004-11-01 15:31:58  peter
+  Revision 1.159  2004-11-01 17:15:47  peter
+    * no checkpointer code for dynarr to openarr
+
+  Revision 1.158  2004/11/01 15:31:58  peter
     * -Or fix for absolute
 
   Revision 1.157  2004/10/24 11:44:28  peter

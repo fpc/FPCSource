@@ -208,6 +208,9 @@ interface
          nf_procvarload,
          nf_typedaddr,
 
+         { tderefnode }
+         nf_no_checkpointer,
+
          { tvecnode }
          nf_memindex,
          nf_memseg,
@@ -1132,7 +1135,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.88  2004-10-31 21:45:03  peter
+  Revision 1.89  2004-11-01 17:15:47  peter
+    * no checkpointer code for dynarr to openarr
+
+  Revision 1.88  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 

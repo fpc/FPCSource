@@ -263,12 +263,10 @@ implementation
               end;
          end;
          if (cs_gdb_heaptrc in aktglobalswitches) and
-           (cs_checkpointer in aktlocalswitches) and
+            (cs_checkpointer in aktlocalswitches) and
             not(cs_compilesystem in aktmoduleswitches) and
-            not(
-                tpointerdef(left.resulttype.def).is_far or
-                is_dynamic_array(left.resulttype.def)
-               ) then
+            not(tpointerdef(left.resulttype.def).is_far) and
+            not(nf_no_checkpointer in flags) then
           begin
             paraloc1.init;
             paramanager.getintparaloc(pocall_default,1,paraloc1);
@@ -879,7 +877,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.99  2004-11-01 15:31:57  peter
+  Revision 1.100  2004-11-01 17:15:47  peter
+    * no checkpointer code for dynarr to openarr
+
+  Revision 1.99  2004/11/01 15:31:57  peter
     * -Or fix for absolute
 
   Revision 1.98  2004/10/25 15:38:41  peter
