@@ -108,6 +108,7 @@ var
   argc  : longint;external name '_argc';
   argv  : ppchar;external name '_argv';
   envp  : ppchar;external name '_environ';
+  EnvC: cardinal; external name '_envc';
 
 (* Pointer to the block of environment variables - used e.g. in unit Dos. *)
   Environment: PChar;
@@ -925,6 +926,7 @@ const
   WinInitialize: TWinInitialize = nil;
   WinCreateMsgQueue: TWinCreateMsgQueue = nil;
   WinMessageBox: TWinMessageBox = nil;
+  EnvSize: cardinal = 0;
 
 var
   ErrorBuf: array [0..ErrorBufferLength] of char;
@@ -995,6 +997,70 @@ begin
   Assign (T, '');
   TextRec (T).OpenFunc := @ErrorOpen;
   Rewrite (T);
+end;
+
+
+procedure DosEnvInit;
+var
+ Q: PPChar;
+ I: cardinal;
+begin
+(* It's a hack, in fact - DOS stores the environment the same way as OS/2 does,
+   but I don't know how to find Program Segment Prefix and thus the environment
+   address under EMX, so I'm recreating this structure using EnvP pointer. *)
+{$ASMMODE INTEL}
+ asm
+  cld
+  mov ecx, EnvC
+  mov esi, EnvP
+  xor eax, eax
+  xor edx, edx
+@L1:
+  xchg eax, edx
+  push ecx
+  mov ecx, -1
+  mov edi, [esi]
+  repne
+  scasb
+  neg ecx
+  dec ecx
+  xchg eax, edx
+  add eax, ecx
+  pop ecx
+  dec ecx
+  jecxz @Stop
+  inc esi
+  inc esi
+  inc esi
+  inc esi
+  jmp @L1
+@Stop:
+  inc eax
+  mov EnvSize, eax
+ end;
+ Environment := GetMem (EnvSize);
+ asm
+  cld
+  mov ecx, EnvC
+  mov edx, EnvP
+  mov edi, Environment
+@L2:
+  mov esi, [edx]
+@Copying:
+  lodsb
+  stosb
+  or al, al
+  jnz @Copying
+  dec ecx
+  jecxz @Stop2
+  inc edx
+  inc edx
+  inc edx
+  inc edx
+  jmp @L2
+@Stop2:
+  stosb
+ end;
 end;
 
 
@@ -1108,7 +1174,7 @@ begin
             mov ecx, 0FFFh
             xor edx, edx
             call syscall
-            jnc  @endmem
+            jc @endmem
             mov first_meg, eax
          @endmem:
         end
@@ -1125,8 +1191,7 @@ begin
                                                      also the stack bottom.}
                 ApplicationType := 1;   (* Running under DOS. *)
                 IsConsole := true;
-(* Currently broken!!! *)
-                Environment := nil;
+                DosEnvInit;
             end;
         osOS2:
             begin
@@ -1142,8 +1207,7 @@ begin
                                      always zero.}
                 ApplicationType := 1;   (* Running under DOS. *)
                 IsConsole := true;
-(* Currently broken!!! *)
-                Environment := nil;
+                DosEnvInit;
             end;
     end;
     exitproc:=nil;
@@ -1173,7 +1237,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2002-12-08 16:39:58  hajny
+  Revision 1.30  2002-12-15 22:41:41  hajny
+    * First_Meg fixed + Environment initialization under Dos
+
+  Revision 1.29  2002/12/08 16:39:58  hajny
     - WriteLn in GUI mode support commented out until fixed
 
   Revision 1.28  2002/12/07 19:17:14  hajny

@@ -5,7 +5,7 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2002 by Free Pascal development team
 
-    Free Pascal - EMX runtime library
+    Free Pascal - OS/2 runtime library
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -108,6 +108,19 @@ var
   argc  : longint;external name '_argc';
   argv  : ppchar;external name '_argv';
   envp  : ppchar;external name '_environ';
+  EnvC: cardinal; external name '_envc';
+
+(* Pointer to the block of environment variables - used e.g. in unit Dos. *)
+  Environment: PChar;
+
+var
+(* Type / run mode of the current process: *)
+(* 0 .. full screen OS/2 session           *)
+(* 1 .. DOS session                        *)
+(* 2 .. VIO windowable OS/2 session        *)
+(* 3 .. Presentation Manager OS/2 session  *)
+(* 4 .. detached (background) OS/2 process *)
+  ApplicationType: cardinal;
 
 implementation
 
@@ -117,6 +130,8 @@ var
     heap_base: pointer; external name '__heap_base';
     heap_brk: pointer; external name '__heap_brk';
     heap_end: pointer; external name '__heap_end';
+
+(* Maximum heap size - only used if heap is allocated as continuous block. *)
 {$IFDEF CONTHEAP}
     BrkLimit: cardinal;
 {$ENDIF CONTHEAP}
@@ -124,6 +139,14 @@ var
 procedure DosGetInfoBlocks (PATIB: PPThreadInfoBlock;
                             PAPIB: PPProcessInfoBlock); cdecl;
                             external 'DOSCALLS' index 312;
+
+function DosLoadModule (ObjName: PChar; ObjLen: cardinal; DLLName: PChar;
+                                         var Handle: cardinal): longint; cdecl;
+external 'DOSCALLS' index 318;
+
+function DosQueryProcAddr (Handle, Ordinal: cardinal; ProcName: PChar;
+                                         var Address: pointer): longint; cdecl;
+external 'DOSCALLS' index 321;
 
 function DosSetRelMaxFH (var ReqCount, CurMaxFH: longint): longint; cdecl;
 external 'DOSCALLS' index 382;
@@ -134,9 +157,9 @@ external 'DOSCALLS' index 255;
 function DosSetDefaultDisk (DiskNum:longint): longint; cdecl;
 external 'DOSCALLS' index 220;
 
-{ This is not real prototype, but its close enough  }
-{ for us. (The 2nd parameter is acutally a pointer) }
-{ to a structure.                                   }
+{ This is not real prototype, but is close enough }
+{ for us (the 2nd parameter is actually a pointer }
+{ to a structure).                                }
 function DosCreateDir( Name : pchar; p : pointer): longint; cdecl;
 external 'DOSCALLS' index 270;
 
@@ -883,12 +906,204 @@ end;
 
 ****************************************************************************}
 
+{****************************************************************************
+                    Error Message writing using messageboxes
+****************************************************************************}
+
+type
+  TWinMessageBox = function (Parent, Owner: cardinal;
+         BoxText, BoxTitle: PChar; Identity, Style: cardinal): cardinal; cdecl;
+  TWinInitialize = function (Options: cardinal): cardinal; cdecl;
+  TWinCreateMsgQueue = function (Handle: cardinal; cmsg: longint): cardinal;
+                                                                         cdecl;
+
+const
+  ErrorBufferLength = 1024;
+  mb_OK = $0000;
+  mb_Error = $0040;
+  mb_Moveable = $4000;
+  MBStyle = mb_OK or mb_Error or mb_Moveable;
+  WinInitialize: TWinInitialize = nil;
+  WinCreateMsgQueue: TWinCreateMsgQueue = nil;
+  WinMessageBox: TWinMessageBox = nil;
+  EnvSize: cardinal = 0;
+
+var
+  ErrorBuf: array [0..ErrorBufferLength] of char;
+  ErrorLen: longint;
+  PMWinHandle: cardinal;
+
+function ErrorWrite (var F: TextRec): integer;
+{
+  An error message should always end with #13#10#13#10
+}
+var
+  P: PChar;
+  I: longint;
+begin
+  if F.BufPos > 0 then
+   begin
+     if F.BufPos + ErrorLen > ErrorBufferLength then
+       I := ErrorBufferLength - ErrorLen
+     else
+       I := F.BufPos;
+     Move (F.BufPtr^, ErrorBuf [ErrorLen], I);
+     Inc (ErrorLen, I);
+     ErrorBuf [ErrorLen] := #0;
+   end;
+  if ErrorLen > 3 then
+   begin
+     P := @ErrorBuf [ErrorLen];
+     for I := 1 to 4 do
+      begin
+        Dec (P);
+        if not (P^ in [#10, #13]) then
+          break;
+      end;
+   end;
+   if ErrorLen = ErrorBufferLength then
+     I := 4;
+   if (I = 4) then
+    begin
+      WinMessageBox (0, 0, @ErrorBuf, PChar ('Error'), 0, MBStyle);
+      ErrorLen := 0;
+    end;
+  F.BufPos := 0;
+  ErrorWrite := 0;
+end;
+
+function ErrorClose (var F: TextRec): integer;
+begin
+  if ErrorLen > 0 then
+   begin
+     WinMessageBox (0, 0, @ErrorBuf, PChar ('Error'), 0, MBStyle);
+     ErrorLen := 0;
+   end;
+  ErrorLen := 0;
+  ErrorClose := 0;
+end;
+
+function ErrorOpen (var F: TextRec): integer;
+begin
+  TextRec(F).InOutFunc := @ErrorWrite;
+  TextRec(F).FlushFunc := @ErrorWrite;
+  TextRec(F).CloseFunc := @ErrorClose;
+  ErrorOpen := 0;
+end;
+
+
+procedure AssignError (var T: Text);
+begin
+  Assign (T, '');
+  TextRec (T).OpenFunc := @ErrorOpen;
+  Rewrite (T);
+end;
+
+
+procedure DosEnvInit;
+var
+ Q: PPChar;
+ I: cardinal;
+begin
+(* It's a hack, in fact - DOS stores the environment the same way as OS/2 does,
+   but I don't know how to find Program Segment Prefix and thus the environment
+   address under EMX, so I'm recreating this structure using EnvP pointer. *)
+{$ASMMODE INTEL}
+ asm
+  cld
+  mov ecx, EnvC
+  mov esi, EnvP
+  xor eax, eax
+  xor edx, edx
+@L1:
+  xchg eax, edx
+  push ecx
+  mov ecx, -1
+  mov edi, [esi]
+  repne
+  scasb
+  neg ecx
+  dec ecx
+  xchg eax, edx
+  add eax, ecx
+  pop ecx
+  dec ecx
+  jecxz @Stop
+  inc esi
+  inc esi
+  inc esi
+  inc esi
+  jmp @L1
+@Stop:
+  inc eax
+  mov EnvSize, eax
+ end;
+ Environment := GetMem (EnvSize);
+ asm
+  cld
+  mov ecx, EnvC
+  mov edx, EnvP
+  mov edi, Environment
+@L2:
+  mov esi, [edx]
+@Copying:
+  lodsb
+  stosb
+  or al, al
+  jnz @Copying
+  dec ecx
+  jecxz @Stop2
+  inc edx
+  inc edx
+  inc edx
+  inc edx
+  jmp @L2
+@Stop2:
+  stosb
+ end;
+end;
+
+
 procedure SysInitStdIO;
 begin
-    OpenStdIO(Input,fmInput,StdInputHandle);
-    OpenStdIO(Output,fmOutput,StdOutputHandle);
-    OpenStdIO(StdOut,fmOutput,StdOutputHandle);
-    OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+  { Setup stdin, stdout and stderr, for GUI apps redirect stderr,stdout to be
+    displayed in a messagebox }
+(*
+  StdInputHandle := longint(GetStdHandle(cardinal(STD_INPUT_HANDLE)));
+  StdOutputHandle := longint(GetStdHandle(cardinal(STD_OUTPUT_HANDLE)));
+  StdErrorHandle := longint(GetStdHandle(cardinal(STD_ERROR_HANDLE)));
+
+  if not IsConsole then
+    begin
+      if (DosLoadModule (nil, 0, 'PMWIN', PMWinHandle) = 0) and
+       (DosQueryProcAddr (PMWinHandle, 789, nil, pointer (WinMessageBox)) = 0)
+                                                                           and
+       (DosQueryProcAddr (PMWinHandle, 763, nil, pointer (WinInitialize)) = 0)
+                                                                           and
+       (DosQueryProcAddr (PMWinHandle, 716, nil, pointer (WinCreateMsgQueue))
+                                                                           = 0)
+        then
+          begin
+            WinInitialize (0);
+            WinCreateMsgQueue (0, 0);
+          end
+        else
+          HandleError (2);
+     AssignError (StdErr);
+     AssignError (StdOut);
+     Assign (Output, '');
+     Assign (Input, '');
+   end
+  else
+   begin
+*)
+     OpenStdIO (Input, fmInput, StdInputHandle);
+     OpenStdIO (Output, fmOutput, StdOutputHandle);
+     OpenStdIO (StdOut, fmOutput, StdOutputHandle);
+     OpenStdIO (StdErr, fmOutput, StdErrorHandle);
+(*
+   end;
+*)
 end;
 
 
@@ -900,10 +1115,10 @@ begin
                                                  else GetFileHandleCount := L2;
 end;
 
-var tib:Pthreadinfoblock;
+var TIB: PThreadInfoBlock;
+    PIB: PProcessInfoBlock;
 
 begin
-    IsConsole := TRUE;
     IsLibrary := FALSE;
     {Determine the operating system we are running on.}
 {$ASMMODE INTEL}
@@ -959,7 +1174,7 @@ begin
             mov ecx, 0FFFh
             xor edx, edx
             call syscall
-            jnc  @endmem
+            jc @endmem
             mov first_meg, eax
          @endmem:
         end
@@ -971,16 +1186,29 @@ begin
     {At 0.9.2, case for enumeration does not work.}
     case os_mode of
         osDOS:
-            stackbottom:=cardinal(heap_brk);     {In DOS mode, heap_brk is also the
-                                 stack bottom.}
+            begin
+                stackbottom:=cardinal(heap_brk);    {In DOS mode, heap_brk is
+                                                     also the stack bottom.}
+                ApplicationType := 1;   (* Running under DOS. *)
+                IsConsole := true;
+                DosEnvInit;
+            end;
         osOS2:
             begin
-                dosgetinfoblocks(@tib,nil);
-                stackbottom:=cardinal(tib^.stack);
+                DosGetInfoBlocks (@TIB, @PIB);
+                StackBottom := cardinal (TIB^.Stack);
+                Environment := pointer (PIB^.Env);
+                ApplicationType := PIB^.ProcType;
+                IsConsole := ApplicationType <> 3;
             end;
         osDPMI:
-            stackbottom:=0;     {Not sure how to get it, but seems to be
-                                 always zero.}
+            begin
+                stackbottom:=0;     {Not sure how to get it, but seems to be
+                                     always zero.}
+                ApplicationType := 1;   (* Running under DOS. *)
+                IsConsole := true;
+                DosEnvInit;
+            end;
     end;
     exitproc:=nil;
 
@@ -1009,7 +1237,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2002-11-17 22:32:05  hajny
+  Revision 1.3  2002-12-15 22:46:29  hajny
+    * First_Meg fixed + Environment initialization under Dos
+
+  Revision 1.2  2002/11/17 22:32:05  hajny
     * type corrections (longing x cardinal)
 
   Revision 1.1  2002/11/17 16:22:54  hajny
