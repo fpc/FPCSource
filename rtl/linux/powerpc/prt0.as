@@ -17,7 +17,8 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
    02111-1307 USA.  */
 
-	.section ".text"
+        .section ".text"
+        .globl  _start
 _start:
  	/* Save the stack pointer, in case we're statically linked under Linux.  */
 	mr	9,1
@@ -50,7 +51,10 @@ ___fpc_brk_addr:
         .long   0
 /*
   $Log$
-  Revision 1.6  2002-08-31 14:02:23  florian
+  Revision 1.7  2002-08-31 16:13:12  florian
+    * made _start global
+
+  Revision 1.6  2002/08/31 14:02:23  florian
     * r3 renamed to 3
 
   Revision 1.5  2002/08/31 14:01:28  florian
