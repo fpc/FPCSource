@@ -29,8 +29,10 @@ unit cpupara;
   interface
 
     uses
-       cpubase,
-       symdef,paramgr;
+      globtype,
+      cpubase,
+      symconst,symdef,
+      paramgr;
 
     type
        { Returns the location for the nr-st 32 Bit int parameter
@@ -39,9 +41,8 @@ unit cpupara;
          rtl are used.
        }
        tm68kparamanager = class(tparamanager)
-          function getintparaloc(nr : longint) : tparalocation;override;
-          procedure create_param_loc_info(p : tabstractprocdef);override;
-          function getselflocation(p : tabstractprocdef) : tparalocation;override;
+          function getintparaloc(calloption : tproccalloption;nr : longint) : tparalocation;override;
+          function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
        end;
 
   implementation
@@ -49,12 +50,11 @@ unit cpupara;
     uses
        verbose,
        globals,
-       globtype,
        systems,
-       cpuinfo,cginfo,cgbase,
+       cpuinfo,cgbase,
        defutil;
 
-    function tm68kparamanager.getintparaloc(nr : longint) : tparalocation;
+    function tm68kparamanager.getintparaloc(calloption : tproccalloption;nr : longint) : tparalocation;
       begin
          fillchar(result,sizeof(tparalocation),0);
          if nr<1 then
@@ -65,49 +65,51 @@ unit cpupara;
                 WHICH MUST ALWAYS PASS 4-BYTE PARAMETERS!!
               }
               result.loc:=LOC_REFERENCE;
-              result.reference.index.enum:=frame_pointer_reg;
-              result.reference.offset:=target_info.first_parm_offset
-                  +nr*4;
+              result.reference.index:=NR_STACK_POINTER_REG;
+              result.reference.offset:=target_info.first_parm_offset+nr*4;
            end;
       end;
 
-    procedure tm68kparamanager.create_param_loc_info(p : tabstractprocdef);
+
+    function tm68kparamanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
       var
-        param_offset : integer;  
+        param_offset : integer;
         hp : tparaitem;
+        paraloc: tparalocation;
+        l : longint;
+        parasize : longint;
       begin
          { frame pointer for nested procedures? }
          { inc(nextintreg);                     }
          { constructor? }
          { destructor? }
-         param_offset := target_info.first_parm_offset;    
+         param_offset := target_info.first_parm_offset;
          hp:=tparaitem(p.para.last);
          while assigned(hp) do
            begin
-              hp.paraloc.loc:=LOC_REFERENCE;
-              hp.paraloc.sp_fixup:=0;
-              hp.paraloc.reference.index.enum:=frame_pointer_reg;
-              hp.paraloc.reference.offset:=param_offset;
-              inc(param_offset,aktalignment.paraalign);  
-              hp.paraloc.size := def_cgsize(hp.paratype.def);
-              hp:=tparaitem(hp.previous);
+             paraloc.size:=def_cgsize(hp.paratype.def);
+             paraloc.loc:=LOC_REFERENCE;
+             paraloc.alignment:=4;
+             paraloc.reference.index:=NR_FRAME_POINTER_REG;
+             l:=push_size(hp.paratyp,hp.paratype.def,p.proccalloption);
+             paraloc.reference.offset:=parasize;
+             parasize:=parasize+l;
+             hp.paraloc[callerside]:=paraloc;
+             hp:=tparaitem(hp.next);
            end;
       end;
 
-    function tm68kparamanager.getselflocation(p : tabstractprocdef) : tparalocation;
-      begin
-         getselflocation.loc:=LOC_REFERENCE;
-         getselflocation.reference.index.enum:=R_SP;
-         getselflocation.reference.offset:=4;
-      end;
 
 begin
-   paramanager:=tm68kparamanager.create;
+  paramanager:=tm68kparamanager.create;
 end.
 
 {
   $Log$
-  Revision 1.4  2003-02-02 19:25:54  carl
+  Revision 1.5  2004-01-30 12:17:18  florian
+    * fixed some m68k compilation problems
+
+  Revision 1.4  2003/02/02 19:25:54  carl
     * Several bugfixes for m68k target (register alloc., opcode emission)
     + VIS target
     + Generic add more complete (still not verified)

@@ -29,7 +29,7 @@ interface
 uses
   cclasses,aasmtai,
   aasmbase,globals,verbose,
-  cpubase,cpuinfo;
+  cpubase,cpuinfo,cgbase;
 
 
 const
@@ -65,11 +65,11 @@ type
      constructor op_reg_reg_ref(op : tasmop;_size : topsize;_op1,_op2 : tregister; _op3 : treference);
      constructor op_const_reg_ref(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister;_op3 : treference);
 
-     constructor op_reg_reglist(op: tasmop; _size : topsize; _op1: tregister;_op2: Tsupregset);
-     constructor op_reglist_reg(op: tasmop; _size : topsize; _op1: Tsupregset; _op2: tregister);
+     constructor op_reg_regset(op: tasmop; _size : topsize; _op1: tregister;const _op2: tcpuregisterset);
+     constructor op_regset_reg(op: tasmop; _size : topsize;const  _op1: tcpuregisterset; _op2: tregister);
 
-     constructor op_ref_reglist(op: tasmop; _size : topsize; _op1: treference;_op2: Tsupregset);
-     constructor op_reglist_ref(op: tasmop; _size : topsize; _op1: Tsupregset; _op2: treference);
+     constructor op_ref_regset(op: tasmop; _size : topsize; _op1: treference;const _op2: tcpuregisterset);
+     constructor op_regset_ref(op: tasmop; _size : topsize;const  _op1: tcpuregisterset; _op2: treference);
 
      { this is for Jmp instructions }
      constructor op_cond_sym(op : tasmop;cond:TAsmCond;_size : topsize;_op1 : tasmsymbol);
@@ -83,7 +83,7 @@ type
      constructor op_sym_ofs_ref(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint;const _op2 : treference);
 
   private
-     procedure loadreglist(opidx:longint;r:Tsupregset);
+     procedure loadregset(opidx:longint;const s:tcpuregisterset);
      procedure init(_size : topsize); { this need to be called by all constructor }
   end;
 
@@ -105,14 +105,28 @@ implementation
 
 
 
-   procedure taicpu.loadreglist(opidx:longint;r:Tsupregset);
+    procedure taicpu.loadregset(opidx:longint;const s:tcpuregisterset);
+      var
+        i : byte;
       begin
-        if opidx>=ops then
-         ops:=opidx+1;
-        with oper[opidx] do
+        allocate_oper(opidx+1);
+        with oper[opidx]^ do
          begin
-           registerlist:=r;
-           typ:=top_reglist;
+           if typ<>top_regset then
+             clearop(opidx);
+           new(regset);
+           regset^:=s;
+           typ:=top_regset;
+           for i:=RS_D0 to RS_D7 do
+             begin
+               if assigned(add_reg_instruction_hook) and (i in regset^) then
+                 add_reg_instruction_hook(self,newreg(R_INTREGISTER,i,R_SUBWHOLE));
+             end;
+           for i:=RS_A0 to RS_SP do
+             begin
+               if assigned(add_reg_instruction_hook) and (i in regset^) then
+                 add_reg_instruction_hook(self,newreg(R_ADDRESSREGISTER,i,R_SUBWHOLE));
+             end;
          end;
       end;
 
@@ -293,46 +307,44 @@ implementation
       end;
 
 
-   constructor taicpu.op_ref_reglist(op: tasmop; _size : topsize; _op1: treference;_op2: Tsupregset);
+   constructor taicpu.op_ref_regset(op: tasmop; _size : topsize; _op1: treference;const _op2: tcpuregisterset);
      Begin
         inherited create(op);;
         init(_size);
         ops:=2;
         loadref(0,_op1);
-        loadreglist(1,_op2);
+        loadregset(1,_op2);
      end;
 
-   constructor taicpu.op_reglist_ref(op: tasmop; _size : topsize; _op1: Tsupregset; _op2: treference);
+   constructor taicpu.op_regset_ref(op: tasmop; _size : topsize;const _op1: tcpuregisterset; _op2: treference);
      Begin
         inherited create(op);;
         init(_size);
         ops:=2;
-        loadreglist(0,_op1);
+        loadregset(0,_op1);
         loadref(1,_op2);
      End;
 
 
 
-   constructor taicpu.op_reg_reglist(op: tasmop; _size : topsize; _op1: tregister;_op2: Tsupregset);
+   constructor taicpu.op_reg_regset(op: tasmop; _size : topsize; _op1: tregister;const _op2: tcpuregisterset);
      Begin
         inherited create(op);;
         init(_size);
         ops:=2;
         loadreg(0,_op1);
-        loadreglist(1,_op2);
+        loadregset(1,_op2);
      end;
 
 
-   constructor taicpu.op_reglist_reg(op: tasmop; _size : topsize; _op1: Tsupregset; _op2: tregister);
+   constructor taicpu.op_regset_reg(op: tasmop; _size : topsize;const _op1: tcpuregisterset; _op2: tregister);
      Begin
         inherited create(op);;
         init(_size);
         ops:=2;
-        loadreglist(0,_op1);
+        loadregset(0,_op1);
         loadreg(1,_op2);
      End;
-
-
 
 
     constructor taicpu.op_sym(op : tasmop;_size : topsize;_op1 : tasmsymbol);
@@ -414,7 +426,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2003-06-14 14:53:50  jonas
+  Revision 1.10  2004-01-30 12:17:18  florian
+    * fixed some m68k compilation problems
+
+  Revision 1.9  2003/06/14 14:53:50  jonas
     * fixed newra cycle for x86
     * added constants for indicating source and destination operands of the
       "move reg,reg" instruction to aasmcpu (and use those in rgobj)

@@ -29,7 +29,7 @@ unit cpubase;
 interface
 
 uses
-  strings,cutils,cclasses,aasmbase,cpuinfo,cginfo;
+  strings,cutils,cclasses,aasmbase,cpuinfo,cgbase;
 
 
 {*****************************************************************************
@@ -101,114 +101,49 @@ uses
                                   Registers
 *****************************************************************************}
 
-    {$packenum 1}
     type
-       Toldregister = (
-         R_NO,R_D0,R_D1,R_D2,R_D3,R_D4,R_D5,R_D6,R_D7,
-         R_A0,R_A1,R_A2,R_A3,R_A4,R_A5,R_A6,R_SP,
-         { PUSH/PULL- quick and dirty hack }
-         R_SPPUSH,R_SPPULL,
-         { misc. }
-         R_CCR,R_FP0,R_FP1,R_FP2,R_FP3,R_FP4,R_FP5,R_FP6,
-         R_FP7,R_FPCR,R_SR,R_SSP,R_DFC,R_SFC,R_VBR,R_FPSR,
-         R_INTREGISTER,R_FLOATREGISTER);
-
-      Tnewregister=word;
-
-      Tregister=record
-        enum:Toldregister;
-        number:word;
-      end;
-
-      Tsuperregister=byte;
-      Tsubregister=byte;
-
-      {# Set type definition for registers }
-      tregisterset = set of Toldregister;
-      Tsupregset = set of Tsuperregister;
-      {$packenum normal}
-
-      { A type to store register locations for 64 Bit values. }
-      tregister64 = packed record
-        reglo,reghi : tregister;
-      end;
-
-      { alias for compact code }
-      treg64 = tregister64;
-
-
-    {New register coding:}
-
-    {Special registers:}
-    const
-      NR_NO = $0000;  {Invalid register}
-
-    {Normal registers:}
-
-    {General purpose registers:}
-      NR_D0 = $0100; NR_D1 = $0200; NR_D2 = $0300;
-      NR_D3 = $0400; NR_D4 = $0500; NR_D5 = $0600;
-      NR_D6 = $0700; NR_D7 = $0800; NR_A0 = $0900;
-      NR_A1 = $0A00; NR_A2 = $0B00; NR_A3 = $0C00;
-      NR_A4 = $0D00; NR_A5 = $0E00; NR_A6 = $0F00;
-      NR_A7 = $1000;
-
-    {Super registers.}
-      RS_D0 = $01; RS_D1 = $02; RS_D2 = $03;
-      RS_D3 = $04; RS_D4 = $05; RS_D5 = $06;
-      RS_D6 = $07; RS_D7 = $08; RS_A0 = $09;
-      RS_A1 = $0A; RS_A2 = $0B; RS_A3 = $0C;
-      RS_A4 = $0D; RS_A5 = $0E; RS_A6 = $0F;
-      RS_A7 = $10;
-
-     {Sub register numbers:}
-                  R_SUBL        = $00;      {8 bits}
-                  R_SUBW        = $01;      {16 bits}
-                  R_SUBD        = $02;      {32 bits}
-
-     {The subregister that specifies the entire register.}
-                  R_SUBWHOLE    = R_SUBD;  {i386}
-                  {R_SUBWHOLE    = R_SUBQ;} {Hammer}
-
-      {Number of first and last superregister.}
-      first_supreg    = $01;
-      last_supreg     = $10;
-
-{$warning FIXME!!!}
-      { integer registers which may be destroyed by calls }
-      VOLATILE_INTREGISTERS = [first_supreg..last_supreg];
-{$warning FIXME!!!}
-      { fpu registers which may be destroyed by calls }
-      VOLATILE_FPUREGISTERS = [first_supreg..last_supreg];
-
-      first_imreg     = $11;
-      last_imreg      = $ff;
-
-      {# First register in the tregister enumeration }
-      firstreg = low(Toldregister);
-      {# Last register in the tregister enumeration }
-      lastreg  = R_FPSR;
-
-    type
-      {# Type definition for the array of string of register nnames }
-      reg2strtable = array[firstreg..lastreg] of string[7];
-      regname2regnumrec = record
-        name:string[6];
-        number:Tnewregister;
-      end;
+      { Number of registers used for indexing in tables }
+      tregisterindex=0..{$i r68knor.inc}-1;
 
     const
-     std_reg2str : reg2strtable =
-      ('', 'd0','d1','d2','d3','d4','d5','d6','d7',
-       'a0','a1','a2','a3','a4','a5','a6','sp',
-       '-(sp)','(sp)+',
-       'ccr','fp0','fp1','fp2','fp3','fp4','fp5',
-       'fp6','fp7','fpcr','sr','ssp','dfc',
-       'sfc','vbr','fpsr');
+      { Available Superregisters }
+      {$i r68ksup.inc}
 
-{*****************************************************************************
-                                Conditions
-*****************************************************************************}
+      { No Subregisters }
+      R_SUBWHOLE = R_SUBNONE;
+
+      { Available Registers }
+      {$i r68kcon.inc}
+
+      { Integer Super registers first and last }
+      first_int_supreg = RS_SP;
+      first_int_imreg = RS_SP+1;
+
+      { Float Super register first and last }
+      first_fpu_supreg    = RS_FP7;
+      first_fpu_imreg     = RS_FP7+1;
+
+      { MM Super register first and last }
+      first_mm_supreg    = 0;
+      first_mm_imreg     = 0;
+
+      regnumber_count_bsstart = 64;
+
+      regnumber_table : array[tregisterindex] of tregister = (
+        {$i r68knum.inc}
+      );
+
+      regstabs_table : array[tregisterindex] of shortint = (
+        {$i r68ksta.inc}
+      );
+
+      { registers which may be destroyed by calls }
+      VOLATILE_INTREGISTERS = [];
+      VOLATILE_FPUREGISTERS = [];
+
+    type
+      totherregisterset = set of tregisterindex;
+
 
 {*****************************************************************************
                                 Conditions
@@ -265,33 +200,11 @@ uses
 
       { reference record }
       pparareference = ^tparareference;
-      tparareference = packed record
-         index       : tregister;
+      tparareference = record
          offset      : longint;
+         index       : tregister;
       end;
 
-
-
-{*****************************************************************************
-                                Operands
-*****************************************************************************}
-
-      { Types of operand }
-      toptype=(top_none,top_reg,top_ref,top_const,top_symbol,top_reglist);
-
-      tregisterlist = set of Toldregister;
-
-      toper=record
-        ot  : longint;
-        case typ : toptype of
-         top_none   : ();
-         top_reg    : (reg:tregister);
-         top_ref    : (ref:preference);
-         top_const  : (val:aword);
-         top_symbol : (sym:tasmsymbol;symofs:longint);
-         { used for pushing/popping multiple registers }
-         top_reglist : (registerlist:Tsupregset);
-      end;
 
 {*****************************************************************************
                                Generic Location
@@ -302,10 +215,10 @@ uses
         References are given from the caller's point of view. The usual
         TLocation isn't used, because contains a lot of unnessary fields.
       }
-      tparalocation = packed record
+      tparalocation = record
          size : TCGSize;
          loc  : TCGLoc;
-         sp_fixup : longint;
+         alignment : byte;
          case TCGLoc of
             LOC_REFERENCE : (reference : tparareference);
             { segment in reference at the same place as in loc_register }
@@ -320,7 +233,7 @@ uses
               );
       end;
 
-      tlocation = packed record
+      tlocation = record
          loc  : TCGLoc;
          size : TCGSize;
          case TCGLoc of
@@ -371,119 +284,6 @@ uses
       {# maximum number of operands in assembler instruction }
       max_operands = 4;
 
-      lvaluelocations = [LOC_REFERENCE,LOC_CFPUREGISTER,LOC_CREGISTER];
-
-      general_registers = [R_D0..R_D7];
-      general_superregisters = [RS_D0..RS_D7];
-
-      {# low and high of the available maximum width integer general purpose }
-      { registers                                                            }
-      LoGPReg = R_D0;
-      HiGPReg = R_D7;
-
-      {# low and high of every possible width general purpose register (same as }
-      { above on most architctures apart from the 80x86)                        }
-      LoReg = LoGPReg;
-      HiReg = HiGPReg;
-
-      { Table of registers which can be allocated by the code generator
-         internally, when generating the code.
-
-       legend:
-        xxxregs = set of all possibly used registers of that type in the code
-                 generator
-        usableregsxxx = set of all 32bit components of registers that can be
-                 possible allocated to a regvar or using getregisterxxx (this
-                 excludes registers which can be only used for parameter
-                 passing on ABI's that define this)
-       c_countusableregsxxx = amount of registers in the usableregsxxx set    }
-
-      maxintregs = 8;
-      { to determine how many registers to use for regvars }
-      maxintscratchregs = 1;
-      intregs    = [R_D0..R_D7];
-      usableregsint = [RS_D2..RS_D7];
-      c_countusableregsint = 6;
-
-      maxfpuregs = 8;
-      fpuregs    = [R_FP0..R_FP7];
-      usableregsfpu = [R_FP2..R_FP7];
-      c_countusableregsfpu = 6;
-
-      mmregs     = [];
-      usableregsmm  = [];
-      c_countusableregsmm  = 0;
-
-      maxaddrregs = 8;
-      addrregs    = [R_A0..R_SP];
-      usableregsaddr = [RS_A2..RS_A4];
-      c_countusableregsaddr = 3;
-
-
-      { The first register in the usableregsint array }
-      firstsaveintreg = RS_D2;
-      { The last register in the usableregsint array }
-      lastsaveintreg  = RS_D7;
-      { The first register in the usableregsfpu array }
-      firstsavefpureg = R_FP2;
-      { The last  register in the usableregsfpu array }
-      lastsavefpureg  = R_FP7;
-
-      { these constants are m68k specific              }
-      { The first register in the usableregsaddr array }
-      firstsaveaddrreg = RS_A2;
-      { The last  register in the usableregsaddr array }
-      lastsaveaddrreg  = RS_A4;
-
-      firstsavemmreg  = R_NO;
-      lastsavemmreg   = R_NO;
-
-      {
-       Defines the maxinum number of integer registers which can be used as variable registers
-      }
-      maxvarregs = 6;
-      { Array of integer registers which can be used as variable registers }
-      varregs : Array [1..maxvarregs] of Toldregister =
-                (R_D2,R_D3,R_D4,R_D5,R_D6,R_D7);
-
-      {
-       Defines the maxinum number of float registers which can be used as variable registers
-      }
-      maxfpuvarregs = 6;
-      { Array of float registers which can be used as variable registers }
-      fpuvarregs : Array [1..maxfpuvarregs] of Toldregister =
-                (R_FP2,R_FP3,R_FP4,R_FP5,R_FP6,R_FP7);
-
-      {
-       Defines the number of integer registers which are used in the ABI to pass parameters
-       (might be empty on systems which use the stack to pass parameters)
-      }
-      max_param_regs_int = 0;
-      {param_regs_int: Array[1..max_param_regs_int] of tregister =
-        (R_3,R_4,R_5,R_6,R_7,R_8,R_9,R_10);}
-
-      {
-       Defines the number of float registers which are used in the ABI to pass parameters
-       (might be empty on systems which use the stack to pass parameters)
-      }
-      max_param_regs_fpu = 0;
-      {param_regs_fpu: Array[1..max_param_regs_fpu] of tregister =
-        (R_F1,R_F2,R_F3,R_F4,R_F5,R_F6,R_F7,R_F8,R_F9,R_F10,R_F11,R_F12,R_F13);}
-
-      {
-       Defines the number of mmx registers which are used in the ABI to pass parameters
-       (might be empty on systems which use the stack to pass parameters)
-      }
-      max_param_regs_mm = 0;
-      {param_regs_mm: Array[1..max_param_regs_mm] of tregister =
-        (R_M1,R_M2,R_M3,R_M4,R_M5,R_M6,R_M7,R_M8,R_M9,R_M10,R_M11,R_M12,R_M13);}
-
-      {# Registers which are defined as scratch integer and no need to save across
-         routine calls or in assembler blocks.
-      }
-      max_scratch_regs = 4;
-      scratch_regs: Array[1..max_scratch_regs] of Tsuperregister = (RS_D0,RS_D1,RS_A0,RS_A1);
-
 {*****************************************************************************
                           Default generic sizes
 *****************************************************************************}
@@ -511,57 +311,47 @@ uses
          This is not compatible with the m68k-sun
          implementation.
       }
-          stab_regindex : array[firstreg..lastreg] of shortint =
-        (-1,                 { R_NO }
-          0,1,2,3,4,5,6,7,   { R_D0..R_D7 }
-          8,9,10,11,12,13,14,15,  { R_A0..R_A7 }
-          -1,-1,-1,                { R_SPPUSH, R_SPPULL, R_CCR }
-          18,19,20,21,22,23,24,25, { R_FP0..R_FP7    }
-          -1,-1,-1,-1,-1,-1,-1);
+          stab_regindex : array[tregisterindex] of shortint =
+        (
+          {$i r68ksta.inc}
+        );
 
 {*****************************************************************************
                           Generic Register names
 *****************************************************************************}
 
       {# Stack pointer register }
-      stack_pointer_reg = R_SP;
-      NR_STACK_POINTER_REG = NR_A7;
-      RS_STACK_POINTER_REG = RS_A7;
+      NR_STACK_POINTER_REG = NR_SP;
+      RS_STACK_POINTER_REG = RS_SP;
       {# Frame pointer register }
-      frame_pointer_reg = R_A6;
       NR_FRAME_POINTER_REG = NR_A6;
       RS_FRAME_POINTER_REG = RS_A6;
-      {# Self pointer register : contains the instance address of an
-         object or class. }
-      self_pointer_reg  = R_A5;
-      NR_SELF_POINTER_REG = NR_A5;
-      RS_SELF_POINTER_REG = RS_A5;
       {# Register for addressing absolute data in a position independant way,
          such as in PIC code. The exact meaning is ABI specific. For
          further information look at GCC source : PIC_OFFSET_TABLE_REGNUM
       }
-      pic_offset_reg = R_A5;
-      {# Results are returned in this register (32-bit values) }
-      accumulator   = R_D0;
-      NR_ACCUMULATOR = NR_D0;
-      RS_ACCUMULATOR = RS_D0;
-  {the return_result_reg, is used inside the called function to store its return
-  value when that is a scalar value otherwise a pointer to the address of the
-  result is placed inside it}
-  return_result_reg   = accumulator;
-  NR_RETURN_RESULT_REG = NR_ACCUMULATOR;
-  RS_RETURN_RESULT_REG = RS_ACCUMULATOR;
+      NR_PIC_OFFSET_REG = NR_A5;
+      { Results are returned in this register (32-bit values) }
+      NR_FUNCTION_RETURN_REG = NR_D0;
+      RS_FUNCTION_RETURN_REG = NR_D0;
+      { Low part of 64bit return value }
+      NR_FUNCTION_RETURN64_LOW_REG = NR_D0;
+      RS_FUNCTION_RETURN64_LOW_REG = RS_D0;
+      { High part of 64bit return value }
+      NR_FUNCTION_RETURN64_HIGH_REG = NR_D1;
+      RS_FUNCTION_RETURN64_HIGH_REG = RS_D1;
+      { The value returned from a function is available in this register }
+      NR_FUNCTION_RESULT_REG = NR_FUNCTION_RETURN_REG;
+      RS_FUNCTION_RESULT_REG = RS_FUNCTION_RETURN_REG;
+      { The lowh part of 64bit value returned from a function }
+      NR_FUNCTION_RESULT64_LOW_REG = NR_FUNCTION_RETURN64_LOW_REG;
+      RS_FUNCTION_RESULT64_LOW_REG = RS_FUNCTION_RETURN64_LOW_REG;
+      { The high part of 64bit value returned from a function }
+      NR_FUNCTION_RESULT64_HIGH_REG = NR_FUNCTION_RETURN64_HIGH_REG;
+      RS_FUNCTION_RESULT64_HIGH_REG = RS_FUNCTION_RETURN64_HIGH_REG;
 
-  {the function_result_reg contains the function result after a call to a scalar
-  function othewise it contains a pointer to the returned result}
-  function_result_reg = accumulator;
-      {# Hi-Results are returned in this register (64-bit value high register) }
-      accumulatorhigh = R_D1;
-      NR_ACCUMULATORHIGH = NR_D1;
-      RS_ACCUMULATORHIGH = RS_D1;
       {# Floating point results will be placed into this register }
-      FPU_RESULT_REG = R_FP0;
-      mmresultreg = R_NO;
+      NR_FPU_RESULT_REG = NR_FP0;
 
 {*****************************************************************************
                        GCC /ABI linking information
@@ -597,14 +387,32 @@ uses
 
     procedure inverse_flags(var r : TResFlags);
     function  flags_to_cond(const f: TResFlags) : TAsmCond;
-    procedure convert_register_to_enum(var r:Tregister);
     function cgsize2subreg(s:Tcgsize):Tsubregister;
-    function supreg_name(r:Tsuperregister):string;
+
+    function findreg_by_number(r:Tregister):tregisterindex;
+    function std_regnum_search(const s:string):Tregister;
+    function std_regname(r:Tregister):string;
 
 implementation
 
     uses
-      verbose;
+      verbose,
+      rgbase;
+
+
+    const
+      std_regname_table : array[tregisterindex] of string[7] = (
+        {$i r68kstd.inc}
+      );
+
+      regnumber_index : array[tregisterindex] of tregisterindex = (
+        {$i r68krni.inc}
+      );
+
+      std_regname_index : array[tregisterindex] of tregisterindex = (
+        {$i r68ksri.inc}
+      );
+
 
 {*****************************************************************************
                                   Helpers
@@ -617,6 +425,7 @@ implementation
           A_JSR,A_BSR,A_JMP] then
            is_calljmp := true;
       end;
+
 
     procedure inverse_flags(var r: TResFlags);
       const flagsinvers : array[F_E..F_BE] of tresflags =
@@ -650,71 +459,51 @@ implementation
         flags_to_cond := flags2cond[f];
       end;
 
-    procedure convert_register_to_enum(var r:Tregister);
-
-    begin
-      if r.enum = R_INTREGISTER then
-        case r.number of
-          NR_NO: r.enum:= R_NO;
-          NR_D0: r.enum:= R_D0;
-          NR_D1: r.enum:= R_D1;
-          NR_D2: r.enum:= R_D2;
-          NR_D3: r.enum:= R_D3;
-          NR_D4: r.enum:= R_D4;
-          NR_D5: r.enum:= R_D5;
-          NR_D6: r.enum:= R_D6;
-          NR_D7: r.enum:= R_D7;
-          NR_A0: r.enum:= R_A0;
-          NR_A1: r.enum:= R_A1;
-          NR_A2: r.enum:= R_A2;
-          NR_A3: r.enum:= R_A3;
-          NR_A4: r.enum:= R_A4;
-          NR_A5: r.enum:= R_A5;
-          NR_A6: r.enum:= R_A6;
-          NR_A7: r.enum:= R_SP;
-        else
-          internalerror(200301082);
-        end;
-    end;
-
     function cgsize2subreg(s:Tcgsize):Tsubregister;
-
-    begin
-      case s of
-        OS_8,OS_S8:
-          cgsize2subreg:=R_SUBL;
-        OS_16,OS_S16:
-          cgsize2subreg:=R_SUBW;
-        OS_32,OS_S32:
-          cgsize2subreg:=R_SUBD;
-        else
-          internalerror(200301231);
-      end;
-    end;
-
-    function supreg_name(r:Tsuperregister):string;
-
-    var s:string[4];
-
-    const supreg_names:array[0..last_supreg] of string[4]=
-          ('INV',
-           'd0','d1','d2','d3','d4','d5','d6','d7',
-           'a0','a1','a2','a3','a4','a5','a6','sp');
-
-    begin
-      if r in [0..last_supreg] then
-        supreg_name:=supreg_names[r]
-      else
-        begin
-          str(r,s);
-          supreg_name:='reg'+s;
+      begin
+        case s of
+          OS_8,OS_S8:
+            cgsize2subreg:=R_SUBL;
+          OS_16,OS_S16:
+            cgsize2subreg:=R_SUBW;
+          OS_32,OS_S32:
+            cgsize2subreg:=R_SUBD;
+          else
+            internalerror(200301231);
         end;
-    end;
+      end;
+
+
+    function findreg_by_number(r:Tregister):tregisterindex;
+      begin
+        result:=findreg_by_number_table(r,regnumber_index);
+      end;
+
+
+    function std_regnum_search(const s:string):Tregister;
+      begin
+        result:=regnumber_table[findreg_by_name_table(s,std_regname_table,std_regname_index)];
+      end;
+
+
+    function std_regname(r:Tregister):string;
+      var
+        p : tregisterindex;
+      begin
+        p:=findreg_by_number_table(r,regnumber_index);
+        if p<>0 then
+          result:=std_regname_table[p]
+        else
+          result:=generic_regname(r);
+      end;
 
 end.
 {
   $Log$
-  Revision 1.23  2003-08-17 16:59:20  jonas
+  Revision 1.24  2004-01-30 12:17:18  florian
+    * fixed some m68k compilation problems
+
+  Revision 1.23  2003/08/17 16:59:20  jonas
     * fixed regvars so they work with newra (at least for ppc)
     * fixed some volatile register bugs
     + -dnotranslation option for -dnewra, which causes the registers not to

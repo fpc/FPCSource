@@ -17,6 +17,9 @@ Unit CPUInfo;
 
 Interface
 
+  uses
+    globtype;
+
 Type
    { Architecture word - Native unsigned type }
    aword  = longword;
@@ -35,6 +38,7 @@ Type
    ts32real = single;
    ts64real = double;
    ts80real = extended;
+   ts128real = type extended;
    ts64comp = extended;
 
    pbestreal=^bestreal;
@@ -46,6 +50,13 @@ Type
        MC68020,
        Coldfire
       );
+
+   tfputype =
+     (no_fpuprocessor,
+      fpu_soft,
+      fpu_libgcc,
+      fpu_68881
+     );
 
 Const
    {# Size of native extended floating point type }
@@ -73,15 +84,30 @@ Const
      { the difference to stdcall is only the name mangling }
      pocall_cppdecl,
      { this used by the PalmOS port only }
-     pocall_syscall
+     pocall_palmossyscall
    ];
+
+   processorsstr : array[tprocessors] of string[5] = ('',
+     '68000',
+     '68020',
+     'COLDFIRE'
+   );
+
+   fputypestr : array[tfputype] of string[6] = ('',
+     'SOFT',
+     'LIBGCC',
+     '68881'
+   );
 
 Implementation
 
 end.
 {
   $Log$
-  Revision 1.7  2003-11-07 15:58:32  florian
+  Revision 1.8  2004-01-30 12:17:18  florian
+    * fixed some m68k compilation problems
+
+  Revision 1.7  2003/11/07 15:58:32  florian
     * Florian's culmutative nr. 1; contains:
       - invalid calling conventions for a certain cpu are rejected
       - arm softfloat calling conventions

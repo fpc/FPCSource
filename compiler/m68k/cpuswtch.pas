@@ -54,7 +54,7 @@ begin
                  '-' :
                    begin
                      initglobalswitches:=initglobalswitches-[cs_optimize,cs_fastoptimize,cs_slowoptimize,cs_littlesize,
-                       cs_regalloc,cs_uncertainopts];
+                       cs_regvars,cs_uncertainopts];
                      FillChar(ParaAlignment,sizeof(ParaAlignment),0);
                    end;
                  'a' :
@@ -66,7 +66,7 @@ begin
                  'G' : initglobalswitches:=initglobalswitches-[cs_littlesize];
                  'r' :
                    begin
-                     initglobalswitches:=initglobalswitches+[cs_regalloc];
+                     initglobalswitches:=initglobalswitches+[cs_regvars];
                      Simplify_ppu:=false;
                    end;
                  'u' : initglobalswitches:=initglobalswitches+[cs_uncertainopts];
@@ -107,7 +107,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.6  2002-08-13 18:51:29  carl
+  Revision 1.7  2004-01-30 12:17:18  florian
+    * fixed some m68k compilation problems
+
+  Revision 1.6  2002/08/13 18:51:29  carl
     + m68k problems with cvs fixed?()!
 
 }

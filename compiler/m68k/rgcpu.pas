@@ -35,184 +35,18 @@ unit rgcpu;
 
      type
        trgcpu = class(trgobj)
-          procedure saveStateForInline(var state: pointer);override;
-          procedure restoreStateAfterInline(var state: pointer);override;
-          procedure saveUnusedState(var state: pointer);override;
-          procedure restoreUnusedState(var state: pointer);override;
-          function isaddressregister(reg: tregister): boolean; override;
-          function getaddressregister(list: taasmoutput): tregister; override;
-          procedure ungetaddressregister(list: taasmoutput; r: tregister); override;
-          procedure resetusableregisters;override;
-          procedure restoreusedintregisters(list:Taasmoutput;
-                                            const saved:Tpushedsavedint);override;
-          procedure saveusedintregisters(list:Taasmoutput;
-                                         var saved:Tpushedsavedint;
-                                         const s:Tsupregset);override;
-          procedure cleartempgen;override;
-
        end;
 
   implementation
 
-    uses
-      cgobj,tgobj,cpuinfo;
-
-     procedure trgcpu.ungetaddressregister(list: taasmoutput; r: tregister);
-       begin
-         ungetregistergenint(list,r,usableregsaddr,unusedregsaddr,
-           countunusedregsaddr);
-       end;
-
-
-    function trgcpu.getaddressregister(list: taasmoutput): tregister;
-
-    begin
-      result:=getregistergenint(list,
-                                R_SUBWHOLE,
-                                firstsaveaddrreg,
-                                lastsaveaddrreg,
-                                usedintbyproc,
-                                usedintinproc,
-                                unusedregsint,
-                                countunusedregsint);
-
-    end;
-
-    function trgcpu.isaddressregister(reg: tregister): boolean;
-
-    begin
-      isaddressregister := reg.enum in addrregs;
-    end;
-
-
-    procedure trgcpu.resetusableregisters;
-
-      begin
-        inherited resetusableregisters;
-        { initialize fields with constant values from cpubase }
-        countusableregsaddr := cpubase.c_countusableregsaddr;
-        usableregsaddr := cpubase.usableregsaddr;
-      end;
-
-
-    procedure Trgcpu.restoreusedintregisters(list:Taasmoutput;
-                                             const saved:Tpushedsavedint);
-    var r:Tsuperregister;
-        r2,r3:Tregister;
-        hr:Treference;
-
-    begin
-      inherited restoreusedintregisters(list, saved);
-
-      for r:=lastsaveaddrreg downto firstsaveaddrreg do
-        begin
-          if saved[r].ofs<>reg_not_saved then
-            begin
-              r2.enum:=R_INTREGISTER;
-              r2.number:=NR_FRAME_POINTER_REG;
-              reference_reset_base(hr,r2,saved[r].ofs);
-              r3.enum:=R_INTREGISTER;
-              r3.number:=r shl 8 or R_SUBWHOLE;
-              cg.a_reg_alloc(list,r3);
-              cg.a_load_ref_reg(list,OS_ADDR,hr,r3);
-              if not (r in unusedregsaddr) then
-                { internalerror(10)
-                  in n386cal we always save/restore the reg *state*
-                  using save/restoreunusedstate -> the current state
-                  may not be real (JM) }
-              else
-                begin
-                  dec(countunusedregsaddr);
-                  exclude(unusedregsaddr,r);
-                end;
-              tg.ungettemp(list,hr);
-            end;
-        end;
-    end;
-
-
-    procedure Trgcpu.saveusedintregisters(list:Taasmoutput;
-                                          var saved:Tpushedsavedint;
-                                          const s:Tsupregset);
-    var r:Tsuperregister;
-        r2:Tregister;
-        hr:Treference;
-
-    begin
-      inherited saveusedintregisters(list,saved,s);
-      for r:=firstsaveaddrreg to lastsaveaddrreg do
-        begin
-          saved[r].ofs:=reg_not_saved;
-          { if the register is used by the calling subroutine and if }
-          { it's not a regvar (those are handled separately)         }
-          if not(r in is_reg_var_int) and (r in s) and
-               { and is present in use }
-               not(r in unusedregsaddr) then
-            begin
-              { then save it }
-              tg.gettemp(list,pointer_size,tt_persistant,hr);
-              saved[r].ofs:=hr.offset;
-              r2.enum:=R_INTREGISTER;
-              r2.number:=r shl 8 or R_SUBWHOLE;
-              cg.a_load_reg_ref(list,OS_ADDR,r2,hr);
-              cg.a_reg_dealloc(list,r2);
-              include(unusedregsaddr,r);
-              inc(countunusedregsaddr);
-            end;
-        end;
-    end;
-
-
-
-    procedure trgcpu.saveStateForInline(var state: pointer);
-      begin
-        inherited savestateforinline(state);
-        psavedstate(state)^.unusedregsaddr := unusedregsaddr;
-        psavedstate(state)^.usableregsaddr := usableregsaddr;
-        psavedstate(state)^.countunusedregsaddr := countunusedregsaddr;
-      end;
-
-
-    procedure trgcpu.restoreStateAfterInline(var state: pointer);
-      begin
-        unusedregsaddr := psavedstate(state)^.unusedregsaddr;
-        usableregsaddr := psavedstate(state)^.usableregsaddr;
-        countunusedregsaddr := psavedstate(state)^.countunusedregsaddr;
-        inherited restoreStateAfterInline(state);
-      end;
-
-
-    procedure trgcpu.saveUnusedState(var state: pointer);
-      begin
-        inherited saveUnusedState(state);
-        punusedstate(state)^.unusedregsaddr := unusedregsaddr;
-        punusedstate(state)^.countunusedregsaddr := countunusedregsaddr;
-      end;
-
-
-    procedure trgcpu.restoreUnusedState(var state: pointer);
-      begin
-        unusedregsaddr := punusedstate(state)^.unusedregsaddr;
-        countunusedregsaddr := punusedstate(state)^.countunusedregsaddr;
-        inherited restoreUnusedState(state);
-      end;
-
-    procedure trgcpu.cleartempgen;
-
-      begin
-         inherited cleartempgen;
-         countunusedregsaddr:=countusableregsaddr;
-         unusedregsaddr:=usableregsaddr;
-      end;
-
-
-initialization
-  rg := trgcpu.create(16);
 end.
 
 {
   $Log$
-  Revision 1.9  2003-04-23 13:40:33  peter
+  Revision 1.10  2004-01-30 12:17:18  florian
+    * fixed some m68k compilation problems
+
+  Revision 1.9  2003/04/23 13:40:33  peter
     * fix m68k compile
 
   Revision 1.8  2003/04/22 10:09:35  daniel
