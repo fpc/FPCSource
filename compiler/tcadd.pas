@@ -27,6 +27,7 @@ interface
       tree;
 
     procedure firstadd(var p : ptree);
+    function isbinaryoverloaded(var p : ptree) : boolean;
 
 
 implementation
@@ -38,6 +39,113 @@ implementation
       hcodegen,htypechk,pass_1,
       cpubase,tccnv
       ;
+
+    function isbinaryoverloaded(var p : ptree) : boolean;
+
+     var
+         rd,ld   : pdef;
+         t : ptree;
+         optoken : ttoken;
+
+      begin
+        isbinaryoverloaded:=false;
+        { overloaded operator ? }
+        { load easier access variables }
+        rd:=p^.right^.resulttype;
+        ld:=p^.left^.resulttype;
+        if (p^.treetype=starstarn) or
+           (ld^.deftype=recorddef) or
+           ((ld^.deftype=arraydef) and
+             not((cs_mmx in aktlocalswitches) and
+             is_mmx_able_array(ld)) and
+            (not (rd^.deftype in [orddef])) and
+            (not is_chararray(ld))
+           ) or
+           { <> and = are defined for classes }
+           ((ld^.deftype=objectdef) and
+            (not(pobjectdef(ld)^.is_class) or
+             not(p^.treetype in [equaln,unequaln])
+            )
+           ) or
+           (rd^.deftype=recorddef) or
+           ((rd^.deftype=arraydef) and
+             not((cs_mmx in aktlocalswitches) and
+             is_mmx_able_array(rd)) and
+            (not (ld^.deftype in [orddef])) and
+            (not is_chararray(rd))
+           ) or
+           { <> and = are defined for classes }
+           ((rd^.deftype=objectdef) and
+            (not(pobjectdef(rd)^.is_class) or
+             not(p^.treetype in [equaln,unequaln])
+            )
+           ) then
+          begin
+             isbinaryoverloaded:=true;
+             {!!!!!!!!! handle paras }
+             case p^.treetype of
+                { the nil as symtable signs firstcalln that this is
+                  an overloaded operator }
+                addn:
+                  optoken:=_PLUS;
+                subn:
+                  optoken:=_MINUS;
+                muln:
+                  optoken:=_STAR;
+                starstarn:
+                  optoken:=_STARSTAR;
+                slashn:
+                  optoken:=_SLASH;
+                ltn:
+                  optoken:=tokens._lt;
+                gtn:
+                  optoken:=tokens._gt;
+                lten:
+                  optoken:=_lte;
+                gten:
+                  optoken:=_gte;
+                equaln,unequaln :
+                  optoken:=_EQUAL;
+                symdifn :
+                  optoken:=_SYMDIF;
+                modn :
+                  optoken:=_OP_MOD;
+                orn :
+                  optoken:=_OP_OR;
+                xorn :
+                  optoken:=_OP_XOR;
+                andn :
+                  optoken:=_OP_AND;
+                divn :
+                  optoken:=_OP_DIV;
+                shln :
+                  optoken:=_OP_SHL;
+                shrn :
+                  optoken:=_OP_SHR;
+                else
+                  exit;
+             end;
+             t:=gencallnode(overloaded_operators[optoken],nil);
+             { we have to convert p^.left and p^.right into
+              callparanodes }
+             if t^.symtableprocentry=nil then
+               begin
+                  CGMessage(parser_e_operator_not_overloaded);
+                  putnode(t);
+               end
+             else
+               begin
+                  inc(t^.symtableprocentry^.refs);
+                  t^.left:=gencallparanode(p^.left,nil);
+                  t^.left:=gencallparanode(p^.right,t^.left);
+                  if p^.treetype=unequaln then
+                   t:=gensinglenode(notn,t);
+                  firstpass(t);
+                  putnode(p);
+                  p:=t;
+               end;
+          end;
+      end;
 
 {*****************************************************************************
                                 FirstAdd
@@ -79,14 +187,9 @@ implementation
          resultset : pconstset;
          i : longint;
          b : boolean;
-         optoken : ttoken;
          convdone : boolean;
          s1,s2 : pchar;
          l1,l2 : longint;
-
-         { this totally forgets to set the pi_do_call flag !! }
-      label
-         no_overload;
 
       begin
          { first do the two subtrees }
@@ -113,99 +216,8 @@ implementation
          ld:=p^.left^.resulttype;
          convdone:=false;
 
-         { overloaded operator ? }
-         if (p^.treetype=starstarn) or
-            (ld^.deftype=recorddef) or
-            ((ld^.deftype=arraydef) and
-              not((cs_mmx in aktlocalswitches) and
-              is_mmx_able_array(ld)) and
-             (not (rd^.deftype in [orddef])) and
-             (not is_chararray(ld))
-            ) or
-            { <> and = are defined for classes }
-            ((ld^.deftype=objectdef) and
-             (not(pobjectdef(ld)^.is_class) or
-              not(p^.treetype in [equaln,unequaln])
-             )
-            ) or
-            (rd^.deftype=recorddef) or
-            ((rd^.deftype=arraydef) and
-              not((cs_mmx in aktlocalswitches) and
-              is_mmx_able_array(rd)) and
-             (not (ld^.deftype in [orddef])) and
-             (not is_chararray(rd))
-            ) or
-            { <> and = are defined for classes }
-            ((rd^.deftype=objectdef) and
-             (not(pobjectdef(rd)^.is_class) or
-              not(p^.treetype in [equaln,unequaln])
-             )
-            ) then
-           begin
-              {!!!!!!!!! handle paras }
-              case p^.treetype of
-                 { the nil as symtable signs firstcalln that this is
-                   an overloaded operator }
-                 addn:
-                   optoken:=_PLUS;
-                 subn:
-                   optoken:=_MINUS;
-                 muln:
-                   optoken:=_STAR;
-                 starstarn:
-                   optoken:=_STARSTAR;
-                 slashn:
-                   optoken:=_SLASH;
-                 ltn:
-                   optoken:=tokens._lt;
-                 gtn:
-                   optoken:=tokens._gt;
-                 lten:
-                   optoken:=_lte;
-                 gten:
-                   optoken:=_gte;
-                 equaln,unequaln :
-                   optoken:=_EQUAL;
-                 symdifn :
-                   optoken:=_SYMDIF;
-                 modn :
-                   optoken:=_OP_MOD;
-                 orn :
-                   optoken:=_OP_OR;
-                 xorn :
-                   optoken:=_OP_XOR;
-                 andn :
-                   optoken:=_OP_AND;
-                 divn :
-                   optoken:=_OP_DIV;
-                 shln :
-                   optoken:=_OP_SHL;
-                 shrn :
-                   optoken:=_OP_SHR;
-                 else goto no_overload;
-              end;
-              t:=gencallnode(overloaded_operators[optoken],nil);
-              { we have to convert p^.left and p^.right into
-               callparanodes }
-              if t^.symtableprocentry=nil then
-                begin
-                   CGMessage(parser_e_operator_not_overloaded);
-                   putnode(t);
-                end
-              else
-                begin
-                   inc(t^.symtableprocentry^.refs);
-                   t^.left:=gencallparanode(p^.left,nil);
-                   t^.left:=gencallparanode(p^.right,t^.left);
-                   if p^.treetype=unequaln then
-                    t:=gensinglenode(notn,t);
-                   firstpass(t);
-                   putnode(p);
-                   p:=t;
-                   exit;
-                end;
-           end;
-         no_overload:
+         if isbinaryoverloaded(p) then
+           exit;
          { compact consts }
 
          { convert int consts to real consts, if the }
@@ -1175,7 +1187,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.56  1999-11-18 15:34:48  pierre
+  Revision 1.57  1999-11-26 13:51:29  pierre
+   * fix for overloading of shr shl mod and div
+
+  Revision 1.56  1999/11/18 15:34:48  pierre
     * Notes/Hints for local syms changed to
       Set_varstate function
 

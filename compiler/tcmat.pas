@@ -38,7 +38,9 @@ implementation
       globtype,systems,tokens,
       cobjects,verbose,globals,
       symconst,symtable,aasm,types,
-      hcodegen,htypechk,pass_1,cpubase;
+      hcodegen,htypechk,pass_1,cpubase,
+      { for isbinaryoverloaded function }
+      tcadd;
 
 {*****************************************************************************
                              FirstModDiv
@@ -56,6 +58,9 @@ implementation
          firstpass(p^.right);
          set_varstate(p^.right,true);
          if codegenerror then
+           exit;
+
+         if isbinaryoverloaded(p) then
            exit;
 
          { check for division by zero }
@@ -156,6 +161,9 @@ implementation
          firstpass(p^.right);
          set_varstate(p^.right,true);
          if codegenerror then
+           exit;
+
+         if isbinaryoverloaded(p) then
            exit;
 
          if is_constintnode(p^.left) and is_constintnode(p^.right) then
@@ -414,7 +422,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  1999-11-18 15:34:50  pierre
+  Revision 1.24  1999-11-26 13:51:29  pierre
+   * fix for overloading of shr shl mod and div
+
+  Revision 1.23  1999/11/18 15:34:50  pierre
     * Notes/Hints for local syms changed to
       Set_varstate function
 
