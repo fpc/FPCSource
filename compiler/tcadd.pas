@@ -61,18 +61,24 @@ implementation
         if (p^.treetype=starstarn) or
            (ld^.deftype=recorddef) or
            (rd^.deftype=recorddef) or
-           { array def, but not mmx or chararray+char }
+           { array def, but not mmx or chararray+[char,string,chararray] }
            ((ld^.deftype=arraydef) and
             not((cs_mmx in aktlocalswitches) and
                 is_mmx_able_array(ld)) and
-            not(is_char(rd) and
-                is_chararray(ld))
+            not(is_chararray(ld) and
+                (is_char(rd) or
+		 is_pchar(rd) or
+                 (rd^.deftype=stringdef) or
+                 is_chararray(rd)))
            ) or
            ((rd^.deftype=arraydef) and
             not((cs_mmx in aktlocalswitches) and
                 is_mmx_able_array(rd)) and
-            not(is_char(ld) and
-                is_chararray(rd))
+            not(is_chararray(rd) and
+                (is_char(ld) or
+		 is_pchar(ld) or
+                 (ld^.deftype=stringdef) or
+                 is_chararray(ld)))
            ) or
            { <> and = are defined for classes }
            ((ld^.deftype=objectdef) and
@@ -1301,7 +1307,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.76  2000-05-11 16:47:37  peter
+  Revision 1.77  2000-05-11 17:53:40  peter
+    * small fix for previous commit
+
+  Revision 1.76  2000/05/11 16:47:37  peter
     * fixed check for overloaded operator with array and chararray check
 
   Revision 1.75  2000/04/25 14:43:36  jonas
