@@ -1711,7 +1711,7 @@ unit_w_cant_compile_unit_with_changed_incfile=10040_W_Can't recompile unit $1, b
 #
 #  Options
 #
-# 11025 is the last used one
+# 11029 is the last used one
 #
 option_usage=11000_$1 [options] <inputfile> [options]
 # BeginOfTeX
@@ -1788,6 +1788,7 @@ option_using_env=11027_T_Reading options from environment $1
 % Options are also read from this environment string
 option_handling_option=11028_D_Handling option "$1"
 % Debug info that an option is found and will be handled
+option_help_press_enter=11029__*** press enter ***
 %\end{description}
 # EndOfTeX
 

@@ -581,13 +581,14 @@ const
   option_using_file=11026;
   option_using_env=11027;
   option_handling_option=11028;
+  option_help_press_enter=11029;
   option_logo=11023;
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 32666;
+  MsgTxtSize = 32693;
 
   MsgIdxMax : array[1..20] of longint=(
     17,59,174,37,41,41,98,14,35,41,
-    29,1,1,1,1,1,1,1,1,1
+    30,1,1,1,1,1,1,1,1,1
   );

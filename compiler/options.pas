@@ -291,11 +291,11 @@ begin
            inc(Lines);
          end;
       { page full ? }
-        if (lines>=page_size) then
+        if (lines >= page_size - 1) then
          begin
            if not NoPressEnter then
             begin
-              write('*** press enter ***');
+              Message(option_help_press_enter);
               readln(input);
               if upper(input)='Q' then
                StopOptions;
@@ -1572,7 +1572,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.33  2001-03-03 12:41:22  jonas
+  Revision 1.34  2001-03-05 21:50:29  peter
+    * press enter moved to errore.msg
+
+  Revision 1.33  2001/03/03 12:41:22  jonas
     * simplified and optimized range checking code, FPC_BOUNDCHECK is no longer necessary
 
   Revision 1.32  2001/02/26 19:44:53  peter
