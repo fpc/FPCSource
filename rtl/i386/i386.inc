@@ -549,7 +549,6 @@ procedure runerror(w : word);[alias: 'runerror'];
      exitcode:=w;
      erroraddr:=pointer(get_addr);
      errorbase:=get_error_bp;
-     doError:=True;
      halt(errorcode);
   end;
 
@@ -729,7 +728,10 @@ end;
 
 {
   $Log$
-  Revision 1.12  1998-05-31 14:15:47  peter
+  Revision 1.13  1998-06-26 08:20:57  daniel
+  - Doerror removed.
+
+  Revision 1.12  1998/05/31 14:15:47  peter
     * force to use ATT or direct parsing
 
   Revision 1.11  1998/05/30 14:30:21  peter

@@ -29,8 +29,6 @@ type
   FileFunc = Procedure(var t : TextRec);
 
 var
-{ For Error Handling.}
-  DoError   : Boolean;
   ErrorBase : Longint;
 
 {****************************************************************************
@@ -440,7 +438,10 @@ End;
 
 {
   $Log$
-  Revision 1.12  1998-06-25 14:04:25  peter
+  Revision 1.13  1998-06-26 08:21:09  daniel
+  - Doerror removed.
+
+  Revision 1.12  1998/06/25 14:04:25  peter
     + internal inc/dec
 
   Revision 1.11  1998/06/25 09:44:20  daniel
