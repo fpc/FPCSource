@@ -410,9 +410,9 @@ const
      procedure tcgppc.a_load_reg_reg(list : taasmoutput;fromsize, tosize : tcgsize;reg1,reg2 : tregister);
 
        begin
-         if reg1.enum<>R_INTREGISTER then
+         if (reg1.enum<>R_INTREGISTER) or (reg1.number = 0) then
            internalerror(200303101);
-         if reg2.enum<>R_INTREGISTER then
+         if (reg2.enum<>R_INTREGISTER) or (reg2.number = 0) then
            internalerror(200303102);
          if (reg1.number<>reg2.number) or
             (tcgsize2size[tosize] < tcgsize2size[fromsize]) or
@@ -942,12 +942,13 @@ const
      { sum of the size necessary for local variables and the maximum possible   }
      { combined size of ALL the parameters of a procedure called by the current }
      { one                                                                      }
-     var regcounter,firstregfpu,firstreggpr, regcounter2 : TRegister;
+     var regcounter,firstregfpu,firstreggpr: TRegister;
          href : treference;
          usesfpr,usesgpr,gotgot : boolean;
          parastart : aword;
          offset : aword;
          r,r2,rsp:Tregister;
+         regcounter2: Tsuperregister;
 
       begin
         { we do our own localsize calculation }
@@ -963,12 +964,11 @@ const
         r.number:=NR_R0;
         a_reg_alloc(list,r);
         { allocate registers containing reg parameters }
-        regcounter2.enum := R_INTREGISTER;
-        regcounter2.number := NR_R3;
-        for regcounter.enum := R_3 to R_10 do
+        r.enum := R_INTREGISTER;
+        for regcounter2 := RS_R3 to RS_R10 do
           begin
-            a_reg_alloc(list,regcounter2);
-            inc(regcounter2.number,NR_R1-NR_R0);
+            r.number:=regcounter2 shl 8;
+            a_reg_alloc(list,r);
           end;
 
         usesfpr:=false;
@@ -981,17 +981,15 @@ const
             end;
 
         usesgpr:=false;
-        regcounter2.enum := R_INTREGISTER;
-        regcounter2.number := NR_R14;
-        for regcounter.enum:=R_14 to R_31 do
+        for regcounter2:=RS_R14 to RS_R31 do
           begin
-            if regcounter.enum in rg.usedbyproc then
+            if regcounter2 in rg.usedintbyproc then
               begin
                  usesgpr:=true;
-                 firstreggpr:=regcounter;
+                 firstreggpr.enum := R_INTREGISTER;
+                 firstreggpr.number := regcounter2 shl 8;
                  break;
               end;
-           inc(regcounter2.number,NR_R1-NR_R0);
          end;
 
         { save link register? }
@@ -1114,19 +1112,19 @@ const
     procedure tcgppc.g_return_from_proc_sysv(list : taasmoutput;parasize : aword);
 
       var
-         regcounter,firstregfpu,firstreggpr, regcounter2 : TRegister;
+         regcounter,firstregfpu,firstreggpr: TRegister;
          href : treference;
          usesfpr,usesgpr,genret : boolean;
          r,r2:Tregister;
+         regcounter2:Tsuperregister;
 
       begin
         { release parameter registers }
-        regcounter2.enum := R_INTREGISTER;
-        regcounter2.number := NR_R3;
-        for regcounter.enum := R_3 to R_10 do
+        r.enum := R_INTREGISTER;
+        for regcounter2 := RS_R3 to RS_R10 do
           begin
-            a_reg_dealloc(list,regcounter2);
-            inc(regcounter2.number,NR_R1-NR_R0);
+            r.number:=regcounter2 shl 8;
+            a_reg_dealloc(list,r);
           end;
         { AltiVec context restore, not yet implemented !!! }
 
@@ -1140,17 +1138,15 @@ const
             end;
 
         usesgpr:=false;
-        regcounter2.enum := R_INTREGISTER;
-        regcounter2.number := NR_R14;
-        for regcounter.enum:=R_14 to R_30 do
+        for regcounter2:=RS_R14 to RS_R30 do
           begin
-            if regcounter.enum in rg.usedbyproc then
+            if regcounter2 in rg.usedintbyproc then
               begin
                  usesgpr:=true;
-                 firstreggpr:=regcounter2;
+                 firstreggpr.enum:=R_INTREGISTER;
+                 firstreggpr.number:=regcounter2 shl 8;
                  break;
               end;
-            inc(regcounter2.number,NR_R1-NR_R0);
           end;
 
         { no return (blr) generated yet }
@@ -1221,11 +1217,12 @@ const
      the save area right below the address the stackpointer point to.
      Returns the actual used save area size.}
 
-     var regcounter,firstregfpu,firstreggpr, regcounter2: TRegister;
+     var regcounter,firstregfpu,firstreggpr: TRegister;
          usesfpr,usesgpr: boolean;
          href : treference;
          offset: integer;
-         r:Tregister;
+         r,r2:Tregister;
+         regcounter2: Tsuperregister;
 
     begin
       usesfpr:=false;
@@ -1238,17 +1235,15 @@ const
           end;
 
       usesgpr:=false;
-      r.enum := R_INTREGISTER;
-      r.number := NR_R13;
-      for regcounter.enum:=R_13 to R_31 do
+      for regcounter2:=RS_R13 to RS_R31 do
         begin
-          if regcounter.enum in rg.usedbyproc then
+          if regcounter2 in rg.usedintbyproc then
             begin
                usesgpr:=true;
-               firstreggpr:=r;
+               firstreggpr.enum:=R_INTREGISTER;
+               firstreggpr.number:=regcounter2 shl 8;
                break;
             end;
-          inc(r.number,NR_R1-NR_R0);
         end;
       offset:= 0;
 
@@ -1277,16 +1272,16 @@ const
           end
         else
           begin
-            regcounter2 := firstreggpr;
+            r.enum:=R_INTREGISTER;
+            r.number:=NR_STACK_POINTER_REG;
+            r2 := firstreggpr;
             convert_register_to_enum(firstreggpr);
             for regcounter.enum := firstreggpr.enum to R_31 do
               begin
                 offset:= offset - 4;
-                r.enum:=R_INTREGISTER;
-                r.number:=NR_STACK_POINTER_REG;
                 reference_reset_base(href, r, offset);
-                list.concat(taicpu.op_reg_ref(A_STW, regcounter2, href));
-                inc(regcounter2.number,NR_R1-NR_R0);
+                list.concat(taicpu.op_reg_ref(A_STW, r2, href));
+                inc(r2.number,NR_R1-NR_R0);
               end;
           end;
 
@@ -1299,11 +1294,12 @@ const
     {Generates code which restores used non-volatile registers from
     the save area right below the address the stackpointer point to.}
 
-     var regcounter,firstregfpu,firstreggpr,regcounter2: TRegister;
+     var regcounter,firstregfpu,firstreggpr: TRegister;
          usesfpr,usesgpr: boolean;
          href : treference;
          offset: integer;
-         r:Tregister;
+         r,r2:Tregister;
+         regcounter2: Tsuperregister;
 
     begin
       usesfpr:=false;
@@ -1316,14 +1312,13 @@ const
           end;
 
       usesgpr:=false;
-      r.enum := R_INTREGISTER;
-      r.number := NR_R13;
-      for regcounter.enum:=R_13 to R_31 do
+      for regcounter2:=RS_R13 to RS_R31 do
         begin
-          if regcounter.enum in rg.usedbyproc then
+          if regcounter2 in rg.usedintbyproc then
             begin
                usesgpr:=true;
-               firstreggpr:=r;
+               firstreggpr.enum:=R_INTREGISTER;
+               firstreggpr.number:=regcounter2 shl 8;
                break;
             end;
           inc(r.number,NR_R1-NR_R0);
@@ -1356,16 +1351,16 @@ const
           end
         else
           begin
-            regcounter2 := firstreggpr;
+            r.enum:=R_INTREGISTER;
+            r.number:=NR_STACK_POINTER_REG;
+            r2 := firstreggpr;
             convert_register_to_enum(firstreggpr);
             for regcounter.enum := firstreggpr.enum to R_31 do
               begin
                 offset:= offset - 4;
-                r.enum:=R_INTREGISTER;
-                r.number:=NR_STACK_POINTER_REG;
                 reference_reset_base(href, r, offset);
-                list.concat(taicpu.op_reg_ref(A_LWZ, regcounter2, href));
-                inc(regcounter2.number,NR_R1-NR_R0);
+                list.concat(taicpu.op_reg_ref(A_LWZ, r2, href));
+                inc(r2.number,NR_R1-NR_R0);
               end;
           end;
 
@@ -1382,10 +1377,11 @@ const
      const
          macosLinkageAreaSize = 24;
 
-     var regcounter,regcounter2: TRegister;
+     var regcounter: TRegister;
          href : treference;
          registerSaveAreaSize : longint;
          r,r2,rsp:Tregister;
+         regcounter2: Tsuperregister;
 
       begin
         if (localsize mod 8) <> 0 then internalerror(58991);
@@ -1401,12 +1397,11 @@ const
         a_reg_alloc(list,r);
 
         { allocate registers containing reg parameters }
-        regcounter2.enum := R_INTREGISTER;
-        regcounter2.number := NR_R3;
-        for regcounter.enum := R_3 to R_10 do
+        r.enum := R_INTREGISTER;
+        for regcounter2 := RS_R3 to RS_R10 do
           begin
-            a_reg_alloc(list,regcounter2);
-            inc(regcounter2.number,NR_R1-NR_R0);
+            r.number:=regcounter2 shl 8;
+            a_reg_alloc(list,r);
           end;
 
         {TODO: Allocate fp and altivec parameter registers also}
@@ -1466,17 +1461,17 @@ const
     procedure tcgppc.g_return_from_proc_mac(list : taasmoutput;parasize : aword);
 
       var
-        regcounter, regcounter2: TRegister;
+        regcounter: TRegister;
         href : treference;
         r,r2,rsp:Tregister;
+        regcounter2: Tsuperregister;
       begin
         { release parameter registers }
-        regcounter2.enum := R_INTREGISTER;
-        regcounter2.number := NR_R3;
-        for regcounter.enum := R_3 to R_10 do
+        r.enum := R_INTREGISTER;
+        for regcounter2 := RS_R3 to RS_R10 do
           begin
-            a_reg_dealloc(list,regcounter2);
-            inc(regcounter2.number,NR_R1-NR_R0);
+            r.number := regcounter2 shl 8;
+            a_reg_dealloc(list,r);
           end;
         {TODO: Release fp and altivec parameter registers also}
 
@@ -2192,7 +2187,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.72  2003-03-11 21:46:24  jonas
+  Revision 1.73  2003-03-12 22:43:38  jonas
+    * more powerpc and generic fixes related to the new register allocator
+
+  Revision 1.72  2003/03/11 21:46:24  jonas
     * lots of new regallocator fixes, both in generic and ppc-specific code
       (ppc compiler still can't compile the linux system unit though)
 

@@ -174,6 +174,10 @@ unit agppcgas;
            if (symaddr <> refs_full) then
              s := s+')'+symaddr2str[symaddr];
 
+            if (index.enum < firstreg) or (index.enum > lastreg) then
+              internalerror(20030312);
+            if (base.enum < firstreg) or (base.enum > lastreg) then
+              internalerror(200303123);
            if (index.enum=R_NO) and (base.enum<>R_NO) then
              begin
                 if offset=0 then
@@ -200,7 +204,11 @@ unit agppcgas;
     begin
       case o.typ of
         top_reg :
-          getopstr_jmp:=gas_reg2str[o.reg.enum];
+          begin
+            if (o.reg.enum < R_0) or (o.reg.enum > lastreg) then
+              internalerror(200303121);
+            getopstr_jmp:=gas_reg2str[o.reg.enum];
+          end;
         { no top_ref jumping for powerpc }
         top_const :
           getopstr_jmp:=tostr(o.val);
@@ -234,8 +242,11 @@ unit agppcgas;
     begin
       case o.typ of
         top_reg:
-          getopstr:=gas_reg2str[o.reg.enum];
-        { no top_ref jumping for powerpc }
+          begin
+            if (o.reg.enum < R_0) or (o.reg.enum > lastreg) then
+              internalerror(200303125);
+            getopstr:=gas_reg2str[o.reg.enum];
+          end;
         top_const:
           getopstr:=tostr(longint(o.val));
         top_ref:
@@ -366,7 +377,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2003-01-08 18:43:57  daniel
+  Revision 1.21  2003-03-12 22:43:38  jonas
+    * more powerpc and generic fixes related to the new register allocator
+
+  Revision 1.20  2003/01/08 18:43:57  daniel
    * Tregister changed into a record
 
   Revision 1.19  2002/11/07 15:50:23  jonas

@@ -364,9 +364,7 @@ implementation
                 procinfo.aktproccode.concatlist(procinfo.aktexitcode);
                 if not(cs_no_regalloc in aktglobalswitches) then
                   begin
-{$ifdef i386}
                     procinfo.aktproccode.convert_registers;
-{$endif}                
 {$ifndef NoOpt}
                     if (cs_optimize in aktglobalswitches) and
                     { do not optimize pure assembler procedures }
@@ -851,7 +849,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.93  2003-03-08 08:59:07  daniel
+  Revision 1.94  2003-03-12 22:43:38  jonas
+    * more powerpc and generic fixes related to the new register allocator
+
+  Revision 1.93  2003/03/08 08:59:07  daniel
     + $define newra will enable new register allocator
     + getregisterint will return imaginary registers with $newra
     + -sr switch added, will skip register allocation so you can see

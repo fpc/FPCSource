@@ -522,12 +522,12 @@ implementation
 
      procedure tcgvecnode.update_reference_reg_mul(reg:tregister;l:aword);
        begin
-         if location.reference.base.enum=R_NO then
+         if location.reference.base.number=NR_NO then
           begin
             cg.a_op_const_reg(exprasmlist,OP_IMUL,l,reg);
             location.reference.base:=reg;
           end
-         else if location.reference.index.enum=R_NO then
+         else if location.reference.index.number=NR_NO then
           begin
             cg.a_op_const_reg(exprasmlist,OP_IMUL,l,reg);
             location.reference.index:=reg;
@@ -925,7 +925,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  2003-02-19 22:00:14  daniel
+  Revision 1.43  2003-03-12 22:43:38  jonas
+    * more powerpc and generic fixes related to the new register allocator
+
+  Revision 1.42  2003/02/19 22:00:14  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 
