@@ -160,6 +160,9 @@ endif
 ifeq ($(OS_TARGET),freebsd)
 override COMPILER_INCLUDEDIR+=unix
 endif
+ifeq ($(OS_TARGET),netbsd)
+override COMPILER_INCLUDEDIR+=unix
+endif
 override COMPILER_SOURCEDIR+=$(OS_TARGET) inc
 override COMPILER_TARGETDIR+=$(OS_TARGET)
 ifndef ECHO

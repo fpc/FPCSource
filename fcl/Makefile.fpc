@@ -28,6 +28,7 @@ targetdir=$(OS_TARGET)
 includedir=$(OS_TARGET) inc
 includedir_linux=unix
 includedir_freebsd=unix
+includedir_netbsd=unix
 sourcedir=$(OS_TARGET) inc
 
 [libs]
