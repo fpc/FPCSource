@@ -749,8 +749,12 @@ Begin
               { this is not allowed, because we don't know if the self
                 register is still free, and loading it first is also
                 not possible, because this could break code }
-              opr.typ:=OPR_CONSTANT;
-              opr.val:=pvarsym(sym)^.address;
+              {opr.typ:=OPR_CONSTANT;
+              opr.val:=pvarsym(sym)^.address;}
+              { I do not agree here people using method vars should ensure
+                that %esi is valid there }
+              opr.ref.base:=self_pointer;
+              opr.ref.offset:=pvarsym(sym)^.address;
               hasvar:=true;
               SetupVar:=true;
               Exit;
@@ -769,7 +773,9 @@ Begin
                 implementation
               if (pvarsym(sym)^.owner=procinfo^.def^.parast) or }
                 GetOffset then
-                opr.ref.base:=procinfo^.framepointer
+                begin
+                  opr.ref.base:=procinfo^.framepointer;
+                end
               else
                 begin
                   if (procinfo^.framepointer=R_ESP) and
@@ -783,8 +789,16 @@ Begin
                     message1(asmr_e_local_para_unreachable,hs);
                 end;
               opr.ref.offset:=pvarsym(sym)^.address;
-              opr.ref.offsetfixup:=aktprocsym^.definition^.parast^.address_fixup;
-              opr.ref.options:=ref_parafixup;
+              if (lexlevel=pvarsym(sym)^.owner^.symtablelevel) then
+                begin
+                  opr.ref.offsetfixup:=aktprocsym^.definition^.parast^.address_fixup;
+                  opr.ref.options:=ref_parafixup;
+                end
+              else
+                begin
+                  opr.ref.offsetfixup:=0;
+                  opr.ref.options:=ref_none;
+                end;
             end;
           localsymtable :
             begin
@@ -810,8 +824,16 @@ Begin
                         message1(asmr_e_local_para_unreachable,hs);
                     end;
                   opr.ref.offset:=-(pvarsym(sym)^.address);
-                  opr.ref.options:=ref_localfixup;
-                  opr.ref.offsetfixup:=aktprocsym^.definition^.localst^.address_fixup;
+                  if (lexlevel=pvarsym(sym)^.owner^.symtablelevel) then
+                    begin
+                      opr.ref.offsetfixup:=aktprocsym^.definition^.localst^.address_fixup;
+                      opr.ref.options:=ref_localfixup;
+                    end
+                  else
+                    begin
+                      opr.ref.offsetfixup:=0;
+                      opr.ref.options:=ref_none;
+                    end;
                 end;
             end;
         end;
@@ -1479,7 +1501,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.36  2000-03-15 23:10:01  pierre
+  Revision 1.37  2000-03-16 15:10:25  pierre
+   * correct the fixups for inlined assembler code
+
+  Revision 1.36  2000/03/15 23:10:01  pierre
     * fix for bug 848 (that still genrated wrong code)
     + better testing for variables used in assembler
       (gives an error if variable is not directly reachable !)
