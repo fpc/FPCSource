@@ -274,56 +274,6 @@ begin
    end;
  end;
 
-
-{
-Function SysCall( callnr:longint;var regs : SysCallregs ):longint;
-{
-  This function serves as an interface to do_SysCall.
-  If the SysCall returned a negative number, it returns -1, and puts the
-  SysCall result in errno. Otherwise, it returns the SysCall return value
-}
-begin
-  do_SysCall(callnr,regs);
-  if regs.reg1<0 then
-   begin
-     ErrNo:=-regs.reg1;
-     SysCall:=-1;
-   end
-  else
-   begin
-     SysCall:=regs.reg1;
-     errno:=0
-   end;
-end;
-}
-
-{$PACKRECORDS C}
-{
-TYPE timeval=RECORD
-	      tv_sec,
-	      tv_used : int64;
-	      END;
-    timezone=RECORD
-	      tz_minuteswest,
-	      tz_dsttime   : LONGINT;
-              END;
-
-}
-function checkreturnvalue(retval:LONGINT;value:LONGINT):LONGINT;
-
-begin
- if retval<0 THEN
-   begin
-     errno:=-retval;
-     checkreturnvalue:=-1;
-   end
-  else
-   begin
-     checkreturnvalue:=value;
-     errno:=0
-   end;
-end;
-
 Function Sys_Time:longint;
 
 VAR tv     : timeval;
@@ -346,43 +296,43 @@ end;
 Function Sys_Open(f:pchar;flags:longint;mode:integer):longint;
 
 Begin
- sys_open:=do_syscall(5,longint(f),flags,mode);
+ sys_open:=do_syscall(syscall_nr_open,longint(f),flags,mode);
 End;
 
 Function Sys_Close(f:longint):longint;
 
 begin
- sys_close:=do_syscall(6,f);
+ sys_close:=do_syscall(syscall_nr_close,f);
 end;
 
 Function Sys_Lseek(F:longint;Off:longint;Whence:longint):longint;
 
 begin
- sys_lseek:=do_syscall(199,F,Off,Whence);
+ sys_lseek:=do_syscall(syscall_nr_lseek,F,Off,Whence);
 end;
 
 Function Sys_Read(f:longint;buffer:pchar;count:longint):longint;
 
 begin
-  sys_read:=do_syscall(3,F,longint(buffer),count);
+  sys_read:=do_syscall(syscall_nr_read,F,longint(buffer),count);
 end;
 
 Function Sys_Write(f:longint;buffer:pchar;count:longint):longint;
 
 begin
- sys_write:=do_syscall(4,F,longint(buffer),count);
+ sys_write:=do_syscall(syscall_nr_write,F,longint(buffer),count);
 end;
 
 Function Sys_Unlink(Filename:pchar):longint;
 
 begin
-  sys_unlink:=do_syscall(10,longint(Filename));
+  sys_unlink:=do_syscall(syscall_nr_unlink,longint(Filename));
 end;
 
 Function Sys_Rename(Oldname,Newname:pchar):longint;
 
 begin
-  sys_rename:=do_syscall(38,longint(oldname),longint(newname));
+  sys_rename:=do_syscallsyscall_nr_rename,longint(oldname),longint(newname));
 end;
 
 Function Sys_Stat(Filename:pchar;var Buffer: stat):longint;
@@ -391,7 +341,7 @@ Function Sys_Stat(Filename:pchar;var Buffer: stat):longint;
 }
 
 begin
- sys_stat:=do_syscall(188,longint(filename),longint(@buffer));
+ sys_stat:=do_syscall(syscall_nr_stat,longint(filename),longint(@buffer));
 end;
 
 Function Sys_Symlink(oldname,newname:pchar):longint;
@@ -400,14 +350,14 @@ Function Sys_Symlink(oldname,newname:pchar):longint;
 }
 
 begin
- sys_symlink:=do_syscall(57,longint(oldname),longint(newname));
+ sys_symlink:=do_syscall(syscall_nr_symlink,longint(oldname),longint(newname));
 end;
 
 
 Function Sys_ReadLink(name,linkname:pchar;maxlen:longint):longint;
 
 begin
-  sys_readlink:=do_syscall(58, longint(name),longint(linkname),maxlen);
+  sys_readlink:=do_syscall(syscall_nr_readlink, longint(name),longint(linkname),maxlen);
 end;
 
 
@@ -419,26 +369,26 @@ end;
 Function Sys_Chdir(Filename:pchar):longint;
 
 begin
- sys_chdir:=do_syscall(12,longint(filename));
+ sys_chdir:=do_syscall(syscall_nr_chdir,longint(filename));
 end;
 
 Function Sys_Mkdir(Filename:pchar;mode:longint):longint;
 
 begin {Mode is 16-bit on F-BSD}
-  sys_mkdir:=do_syscall(longint(filename),mode shl 8);
+  sys_mkdir:=do_syscall(syscall_nr_mkdir,longint(filename),mode shl 8);
 end;
 
 Function Sys_Rmdir(Filename:pchar):longint;
 
 begin
- sys_rmdir:=do_syscall(137,longint(filename));
+ sys_rmdir:=do_syscall(syscall_nr_rmdir,longint(filename));
 end;
 
 { we need this for getcwd, NOT touched for BSD version }
 Function OpenDir(f:pchar):pdir;
 
 var
-  fd:integer;
+  fd:longint;
   st:stat;
   ptr:pdir;
 begin
@@ -480,7 +430,7 @@ Function Sys_ReadDir(p:pdir):pdirent;
 var
     retval : longint;
 begin
-  retval:=do_syscall(272,longint(p^.fd),longint(p^.buf),sizeof(dirent));
+  retval:=do_syscall(syscall_nr_getdents,longint(p^.fd),longint(p^.buf),sizeof(dirent));
   if retval=0 then
    sys_readdir:=nil
   else
@@ -498,18 +448,21 @@ Function sys_GetPid:LongInt;
 }
 
 begin
- sys_GetPID:=do_syscall(20);
+ sys_GetPID:=do_syscall(syscall_nr_getpid);
 end;
 
 Procedure Sys_Exit(ExitCode:longint);
 
 begin
-  do_syscall(1,exitcode);
+  do_syscall(syscall_nr_,exitcode);
 end;
 
 {
   $Log$
-  Revision 1.10  2000-03-16 16:18:12  marco
+  Revision 1.11  2000-04-05 13:58:40  marco
+   * syscall variablenames reintroduced.
+
+  Revision 1.10  2000/03/16 16:18:12  marco
    * Last changes before next test. ppc386 -h works with these srcs.
 
   Revision 1.9  2000/03/02 15:34:07  marco
