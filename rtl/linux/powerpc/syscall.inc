@@ -23,7 +23,7 @@
                      --- Main:The System Call Self ---
 *****************************************************************************}
 
-function Do_SysCall(sysnr:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL1'];
+function FpSysCall(sysnr:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL1'];
 {
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
@@ -38,14 +38,14 @@ asm
   li    r3,-1
 end;
 
-function Do_SysCall(sysnr,param1:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL1'];
+function FpSysCall(sysnr,param1:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL1'];
 {
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
 }
 asm
   mr  r0,r3
-  mr  r3,r4   
+  mr  r3,r4
   sc
   bnslr
   neg   r3, r3
@@ -55,14 +55,14 @@ asm
 end;
 
 
-function Do_SysCall(sysnr,param1,param2:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL2'];
+function FpSysCall(sysnr,param1,param2:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL2'];
 {
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
 }
 asm
   mr  r0,r3
-  mr  r3,r4   
+  mr  r3,r4
   mr  r4,r5
   sc
    bnslr
@@ -72,17 +72,17 @@ asm
    li    r3,-1
 end;
 
-function Do_SysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL3'];
+function FpSysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL3'];
 {
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
 }
 asm
   mr  r0,r3
-  mr  r3,r4   
+  mr  r3,r4
   mr  r4,r5
   mr  r5,r6
-  sc 
+  sc
    bnslr
    neg   r3, r3
    lis   r4,Errno@ha
@@ -92,18 +92,18 @@ asm
 end;
 
 
-function Do_SysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL4'];
+function FpSysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL4'];
 {
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
 }
 asm
   mr  r0,r3
-  mr  r3,r4   
+  mr  r3,r4
   mr  r4,r5
   mr  r5,r6
   mr  r6,r7
-  sc 
+  sc
    bnslr
    neg   r3, r3
    lis   r4,Errno@ha
@@ -111,19 +111,19 @@ asm
    li    r3,-1
 end;
 
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL5'];
+function FpSysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL5'];
 {
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
 }
 asm
   mr  r0,r3
-  mr  r3,r4   
+  mr  r3,r4
   mr  r4,r5
   mr  r5,r6
   mr  r6,r7
   mr  r7,r8
-  sc 
+  sc
    bnslr
    neg   r3, r3
    lis   r4,Errno@ha
@@ -134,7 +134,7 @@ end;
 // Old style syscall:
 // Better use ktrace/strace/gdb for debugging.
 
-Procedure Do_SysCall( callnr:longint;var regs : SysCallregs );assembler;
+Procedure FpSysCall( callnr:longint;var regs : SysCallregs );assembler;
 {
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
@@ -178,7 +178,7 @@ Function SysCall( callnr:longint;var regs : SysCallregs ):longint;
   SysCall result in errno. Otherwise, it returns the SysCall return value
 }
 begin
-  do_SysCall(callnr,regs);
+  FpSysCall(callnr,regs);
   if regs.reg1<0 then
    begin
 {$IFDEF SYSCALL_DEBUG}
@@ -216,7 +216,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2002-12-22 16:00:28  jonas
+  Revision 1.3  2003-01-09 13:38:26  florian
+    * syscall stuff fixed
+
+  Revision 1.2  2002/12/22 16:00:28  jonas
     + added syscallh.inc, adapted syscall.inc
 
   Revision 1.1  2002/11/09 20:32:14  marco
@@ -226,4 +229,4 @@ end;
     * syscall moved into seperate include
 
 }
- 
+
