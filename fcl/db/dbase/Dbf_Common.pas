@@ -417,7 +417,7 @@ end;
 
 {$else}
 
-function SwapInt(const Value: Integer): Integer;
+function SwapInt(const Value: Cardinal): Cardinal;
 begin
   PByteArray(@Result)[0] := PByteArray(@Value)[3];
   PByteArray(@Result)[1] := PByteArray(@Value)[2];
