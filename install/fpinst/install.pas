@@ -189,6 +189,8 @@ program install;
      DStr: DirStr;
      EStr: ExtStr;
      UnzDlg      : punzipdialog;
+     log         : text;
+     createlog   : boolean;
 {$IFNDEF DLL}
 
   const
@@ -590,6 +592,38 @@ program install;
                                TInstallDialog
 *****************************************************************************}
 
+  var
+     islfn : boolean;
+
+  procedure lfnreport( Retcode : longint;Rec : pReportRec );
+
+    var
+       p : pathstr;
+       n : namestr;
+       e : extstr;
+
+    begin
+       fsplit(strpas(rec^.Filename),p,n,e);
+       if length(n)>8 then
+         islfn:=true;
+    end;
+
+  function haslfn(const zipfile,path : string) : boolean;
+
+    var
+       buf : array[0..255] of char;
+
+    begin
+       strpcopy(buf,path+DirSep+zipfile);
+       islfn:=false;
+{$ifdef FPC}
+       ViewZip(buf,AllFiles,@lfnreport);
+{$else FPC}
+       ViewZip(buf,AllFiles,lfnreport);
+{$endif FPC}
+       haslfn:=islfn;
+    end;
+
   constructor tinstalldialog.init;
     const
        width = 76;
@@ -628,9 +662,31 @@ program install;
             begin
               if file_exists(package[i].zip,startpath) then
                begin
-                 items[j]:=newsitem(package[i].name+diskspace(startpath+DirSep+package[i].zip),items[j]);
-                 packmask[j]:=packmask[j] or packagemask(i);
-                 firstitem[j]:=i;
+{$ifdef go32v2}
+                 if not(lfnsupport) then
+                   begin
+                      if not(haslfn(package[i].zip,startpath)) then
+                        begin
+                           items[j]:=newsitem(package[i].name+diskspace(startpath+DirSep+package[i].zip),items[j]);
+                           packmask[j]:=packmask[j] or packagemask(i);
+                           firstitem[j]:=i;
+                           if createlog then
+                             writeln(log,'Checking lfn usage for ',startpath+DirSep+package[i].zip,' ... no lfn');
+                        end
+                      else
+                        begin
+                           items[j]:=newsitem(package[i].name+' (requires LFN support)',items[j]);
+                           if createlog then
+                             writeln(log,'Checking lfn usage for ',startpath+DirSep+package[i].zip,' ... uses lfn');
+                        end;
+                   end
+                 else
+{$endif go32v2}
+                   begin
+                      items[j]:=newsitem(package[i].name+diskspace(startpath+DirSep+package[i].zip),items[j]);
+                      packmask[j]:=packmask[j] or packagemask(i);
+                      firstitem[j]:=i;
+                   end;
                end
               else
                items[j]:=newsitem(package[i].name,items[j]);
@@ -789,6 +845,7 @@ program install;
                   if S [Length (S)] = DirSep then
                    Dec (S [0]);
                   Space := DiskFree (byte (Upcase(S [1])) - 64) shr 10;
+
                   if Space < DSize then
                    S := 'is not'
                   else
@@ -1161,6 +1218,9 @@ begin
 end;
 {$ENDIF}
 
+var
+   i : longint;
+
 begin
 {$ifdef FPC}
 {$ifdef win32}
@@ -1182,6 +1242,33 @@ begin
 {$IFDEF DOSSTUB}
    if CheckOS2 then Halt;
 {$ENDIF}
+   createlog:=false;
+   for i:=1 to paramcount do
+     begin
+        if paramstr(i)='-l' then
+          createlog:=true
+        else if paramstr(i)='-h' then
+          begin
+             writeln('FPC Installer Copyright (c) 1993-2000 Florian Klaempfl');
+             writeln('Command line options:');
+             writeln('  -l   create log file');
+             writeln;
+             writeln('  -h   displays this help');
+             halt(0);
+          end
+        else
+          begin
+             writeln('Illegal command line parameter: ',paramstr(i));
+             halt(1);
+          end;
+     end;
+   if createlog then
+     begin
+        assign(log,'install.log');
+        rewrite(log);
+        if not(lfnsupport) then
+          writeln(log,'OS doesn''t have LFN support');
+     end;
    getdir(0,startpath);
    successfull:=false;
 
@@ -1195,12 +1282,20 @@ begin
    installapp.readcfg(CfgName + CfgExt);
    installapp.checkavailpack;
 {   installapp.readcfg(startpath+dirsep+cfgfile);}
+   if not(lfnsupport) then
+     MessageBox('The operating system doesn''t support LFN (long file names),'+
+       ' so some packages won''t be installed',nil,mfinformation or mfokbutton);
    installapp.do_installdialog;
    installapp.done;
+   if createlog then
+     close(log);
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:21  michael
+  Revision 1.2  2000-07-21 10:43:01  florian
+    + added for lfn support
+
+  Revision 1.1  2000/07/13 06:30:21  michael
   + Initial import
 
   Revision 1.20  2000/07/09 12:55:45  hajny
