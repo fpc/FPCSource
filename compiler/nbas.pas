@@ -89,10 +89,11 @@ interface
        ttempinfo = record
          { set to the copy of a tempcreate pnode (if it gets copied) so that the }
          { refs and deletenode can hook to this copy once they get copied too    }
-         hookoncopy : ptempinfo;
-         ref        : treference;
-         restype    : ttype;
-         valid      : boolean;
+         hookoncopy                 : ptempinfo;
+         ref                        : treference;
+         restype                    : ttype;
+         valid                      : boolean;
+         nextref_set_hookoncopy_nil : boolean;
        end;
 
        { a node which will create a (non)persistent temp of a given type with a given  }
@@ -275,7 +276,8 @@ implementation
            exit;
 
          { right is the next statement in the list }
-         resulttypepass(right);
+         if assigned(right) then
+           resulttypepass(right);
          if codegenerror then
            exit;
       end;
@@ -298,7 +300,8 @@ implementation
          registersmmx:=left.registersmmx;
 {$endif SUPPORT_MMX}
          { right is the next in the list }
-         firstpass(right);
+         if assigned(right) then
+           firstpass(right);
          if codegenerror then
            exit;
       end;
@@ -597,6 +600,7 @@ implementation
         { so that if the refs get copied as well, they can hook themselves }
         { to the copy of the temp                                          }
         tempinfo^.hookoncopy := n.tempinfo;
+        tempinfo^.nextref_set_hookoncopy_nil := false;
 
         result := n;
       end;
@@ -650,6 +654,12 @@ implementation
           begin
             { hook the ref to the copied temp }
             n.tempinfo := tempinfo^.hookoncopy;
+            { if we passed a ttempdeletenode that changed the temp }
+            { from a persistent one into a normal one, we must be  }
+            { the last reference (since our parent should free the }
+            { temp (JM)                                            }
+            if (tempinfo^.nextref_set_hookoncopy_nil) then
+              tempinfo^.hookoncopy := nil;
           end
         else
           { if the temp we refer to hasn't been copied, assume }
@@ -715,6 +725,7 @@ implementation
         n: ttempdeletenode;
       begin
         n := ttempdeletenode(inherited getcopy);
+        n.release_to_normal := release_to_normal;
 
         if assigned(tempinfo^.hookoncopy) then
           { if the temp has been copied, assume it becomes a new }
@@ -722,8 +733,13 @@ implementation
           begin
             { hook the tempdeletenode to the copied temp }
             n.tempinfo := tempinfo^.hookoncopy;
-            { the temp shall not be used, reset hookoncopy }
-            tempinfo^.hookoncopy:=nil;
+            { the temp shall not be used, reset hookoncopy    }
+            { Only if release_to_normal is false, otherwise   }
+            { the temp can still be referenced once more (JM) }
+            if (not release_to_normal) then
+              tempinfo^.hookoncopy:=nil
+            else
+              tempinfo^.nextref_set_hookoncopy_nil := true;
           end
         else
           { if the temp we refer to hasn't been copied, we have a }
@@ -768,7 +784,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  2003-04-17 07:50:24  daniel
+  Revision 1.43  2003-04-21 15:00:22  jonas
+    * fixed tstatementnode.det_resulttype and tststatementnode.pass_1
+    * fixed some getcopy issues with ttemp*nodes
+
+  Revision 1.42  2003/04/17 07:50:24  daniel
     * Some work on interference graph construction
 
   Revision 1.41  2003/04/12 14:53:59  jonas
