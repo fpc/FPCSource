@@ -181,10 +181,12 @@ begin
 end;
 
 
-Procedure FindClose (Var F : TSearchrec);
-
+procedure FindClose (var F: TSearchrec);
 begin
-  //!! Needs implementing
+    if os_mode = osOS2 then
+        begin
+           DosCalls.FindClose (F.FindHandle);
+        end;
 end;
 
 
@@ -340,7 +342,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2000-05-28 18:22:58  hajny
+  Revision 1.8  2000-05-29 17:59:58  hajny
+    * FindClose implemented
+
+  Revision 1.7  2000/05/28 18:22:58  hajny
     + implementation started
 
   Revision 1.6  2000/02/17 22:16:05  sg
