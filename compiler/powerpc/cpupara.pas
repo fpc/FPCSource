@@ -42,6 +42,7 @@ unit cpupara;
 
     uses
        verbose,
+       globtype,
        cpuinfo,cginfo,
        symtype,defbase;
 
@@ -186,7 +187,7 @@ unit cpupara;
                  LOC_REFERENCE:
                    begin
                       hp.paraloc.size:=OS_32;
-                      if push_addr_param(hp.paratype.def) or (hp.paratyp in [vs_var,vs_out]) then
+                      if push_addr_param(hp.paratype.def,p.proccalloption in [pocall_cdecl,pocall_cppdecl]) or (hp.paratyp in [vs_var,vs_out]) then
                         begin
                            if nextintreg<=R_8 then
                              begin
@@ -227,7 +228,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2002-08-18 10:42:38  florian
+  Revision 1.9  2002-08-31 12:43:31  florian
+    * ppc compilation fixed
+
+  Revision 1.8  2002/08/18 10:42:38  florian
     * remaining assembler writer bugs fixed, the errors in the
       system unit are inline assembler problems
 

@@ -23,7 +23,7 @@
 {
   This unit implements an asmoutput class for PowerPC with MPW syntax
 }
-unit agppcmpwt;
+unit agppcmpw;
 
 {$i fpcdefs.inc}
 
@@ -739,7 +739,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.1  2002-08-20 21:40:44  florian
+  Revision 1.2  2002-08-31 12:43:31  florian
+    * ppc compilation fixed
+
+  Revision 1.1  2002/08/20 21:40:44  florian
     + target macos for ppc added
     + frame work for mpw assembler output
 }
