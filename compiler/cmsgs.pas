@@ -75,6 +75,47 @@ uses
   strings;
 {$endif DELPHI}
 
+
+    function MsgReplace(const s,s1,s2,s3,s4:string):string;
+      var
+        last,
+        i  : longint;
+        hs : string;
+      begin
+        if s='' then
+         begin
+           MsgReplace:='';
+           exit;
+         end;
+        hs:='';
+        i:=0;
+        last:=0;
+        while (i<length(s)-1) do
+         begin
+           inc(i);
+           if (s[i]='$') and
+              (s[i+1] in ['1'..'4']) then
+            begin
+              hs:=hs+copy(s,last+1,i-last-1);
+              case s[i+1] of
+               '1' :
+                 hs:=hs+s1;
+               '2' :
+                 hs:=hs+s2;
+               '3' :
+                 hs:=hs+s3;
+               '4' :
+                 hs:=hs+s4;
+              end;
+              inc(i);
+              last:=i;
+            end;
+         end;
+        MsgReplace:=hs+copy(s,last+1,length(s)-last);;
+      end;
+
+
+
 constructor TMessage.Init(n:longint;const idxmax:array of longint);
 var
   i : longint;
@@ -394,56 +435,38 @@ begin
 end;
 
 
-function TMessage.Get3(nr:longint;const s1,s2,s3:string):string;
-var
-  s : string;
+function TMessage.Get4(nr:longint;const s1,s2,s3,s4:string):string;
 begin
-  s:=Get(nr);
-  Replace(s,'$1',s1);
-  Replace(s,'$2',s2);
-  Replace(s,'$3',s3);
-  Get3:=s;
+  Get4:=MsgReplace(Get(nr),s1,s2,s3,s4);
 end;
 
 
-function TMessage.Get4(nr:longint;const s1,s2,s3,s4:string):string;
-var
-  s : string;
+function TMessage.Get3(nr:longint;const s1,s2,s3:string):string;
 begin
-  s:=Get(nr);
-  Replace(s,'$1',s1);
-  Replace(s,'$2',s2);
-  Replace(s,'$3',s3);
-  Replace(s,'$4',s4);
-  Get4:=s;
+  Get3:=MsgReplace(Get(nr),s1,s2,s3,'');
 end;
 
 
 function TMessage.Get2(nr:longint;const s1,s2:string):string;
-var
-  s : string;
 begin
-  s:=Get(nr);
-  Replace(s,'$1',s1);
-  Replace(s,'$2',s2);
-  Get2:=s;
+  Get2:=MsgReplace(Get(nr),s1,s2,'','');
 end;
 
 
 function TMessage.Get1(nr:longint;const s1:string):string;
-var
-  s : string;
 begin
-  s:=Get(nr);
-  Replace(s,'$1',s1);
-  Get1:=s;
+  Get1:=MsgReplace(Get(nr),s1,'','','');
 end;
 
 
 end.
 {
   $Log$
-  Revision 1.2  2002-03-01 12:41:40  peter
+  Revision 1.3  2002-04-19 15:41:39  peter
+    * better replacements that also allow $1 in the replacements without
+      replacing that instance also
+
+  Revision 1.2  2002/03/01 12:41:40  peter
     * fixed Message4()
 
   Revision 1.1  2001/08/20 10:58:48  florian
