@@ -480,6 +480,15 @@ Const
 \end{verbatim}
 The order of the fields in a constant record needs to be the same as in the type declaration,
 otherwise a compile-time error will occur.
+
+\begin{remark}
+It should be stressed that typed constants are initialized at program start.
+This is also true for {\em local} typed constants. Local typed constants are
+also initialized at program start. If their value was changed during previous
+invocations of the function, they will retain their changed value, i.e. they
+are not initialized each time the function is invoked.
+\end{remark}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % resource strings
 \section{Resource strings}
@@ -799,7 +808,6 @@ conversions. Note, however, that the result of an expression that contains
 ansistrings and short strings will always be an ansistring.
 
 \subsection{Short strings}
-
 A string declaration declares a short string in the following cases:
 
 \begin{enumerate}
@@ -808,7 +816,6 @@ will always be a short string declaration.
 \item If the switch is on \var{\{\$H+\}}, and there is a length
 specifier, the declaration is a short string declaration.
 \end{enumerate}
-
 The predefined type \var{ShortString} is defined as a string of length 255:
 \begin{verbatim}
  ShortString = String[255];
@@ -829,21 +836,25 @@ Type
 \var{StreetString} can contain up to 255 characters.
 
 \subsection{Ansistrings}
-
-If the \var{\{\$H\}} switch is on, then a string definition that doesn't
-contain a length specifier, will be regarded as an ansistring.
-
 Ansistrings are strings that have no length limit. They are reference
-counted. Internally, an ansistring is treated as a pointer.
+counted and null terminated. Internally, an ansistring is treated as 
+a pointer. This is all handled transparantly, i.e. they can be manipulated 
+as a normal short string. Ansistrings can be defined using the predefined
+\var{AnsiString} type.
 
-If the string is empty (\var{''}), then the pointer is nil.
-If the string is not empty, then the pointer points to a structure in
-heap memory.
+If the \var{\{\$H\}} switch is on, then a string definition using the
+regular \var{String} keyword and that doesn't contain a length specifier, 
+will be regarded as an ansistring as well. If a length specifier is present,
+a short string will be used, regardless of the \var{\{\$H\}} setting.
 
-It is possible to typecast an ansistring to a pchar.
-If the string is empty (so the pointer is nil) then the compiler
-makes sure that the typecasted pchar will point to a null byte. AnsiStrings
-can be unlimited in length.
+If the string is empty (\var{''}), then the internal pointer representation
+of the string pointer is \var{Nil}. If the string is not empty, then the 
+pointer points to a structure in heap memory.
+
+The internal representation as a pointer, and the automatic null-termination
+make it possible to typecast an ansistring to a pchar. If the string is empty 
+(so the pointer is nil) then the compiler makes sure that the typecasted 
+pchar will point to a null byte.
 
 Assigning one ansistring to another doesn't involve moving the actual
 string. A statement
@@ -855,13 +866,14 @@ The referece count of \var{S1} is increased by one, and finally \var{S1}
 (as a pointer) is copied to \var{S2}. This is a significant speed-up in
 the code.
 
-If a reference count reaches zero, then the memory occupied by the
+If the reference count reaches zero, then the memory occupied by the
 string is deallocated automatically, so no memory leaks arise.
 
 When an ansistring is declared, the \fpc compiler initially
 allocates just memory for a pointer, not more. This pointer is guaranteed
 to be nil, meaning that the string is initially empty. This is
-true for local, global or part of a structure (arrays, records or objects).
+true for local and global ansistrings or anstrings that are part of a 
+structure (arrays, records or objects).
 
 This does introduce an overhead. For instance, declaring
 \begin{verbatim}
@@ -869,12 +881,15 @@ Var
   A : Array[1..100000] of string;
 \end{verbatim}
 Will copy 100,000 times \var{nil} into \var{A}. When \var{A} goes out of scope, then
-the 100,000 strings will be dereferenced one by one. All this happens
+the reference count of the 100,000 strings will be decreased by 1 for each
+of these strings. All this happens
 invisibly for the programmer, but when considering performance issues,
 this is important.
 
 Memory will be allocated only when the string is assigned a value.
-If the string goes out of scope, then it is automatically dereferenced.
+If the string goes out of scope, then its reference count is automatically 
+decreased by 1. If the reference count reaches zero, the memory reserved for
+the string is released.
 
 If a value is assigned to a character of a string that has a reference count
 greater than 1, such as in the following
@@ -922,6 +937,8 @@ It is therefore NOT advisable to typecast one of the following:
 \item strings that have reference count larger than 0.
 (call uniquestring to ensure a string has reference count 1)
 \end{enumerate}
+
+% Constant strings
 \subsection{Constant strings}
 
 To specify a constant string, it must be enclosed in single-quotes, just
@@ -943,8 +960,8 @@ between them. Strings can not be substracted, however.
 Whether the constant string is stored as an ansistring or a short string
 depends on the settings of the \var{\{\$H\}} switch.
 
-
-\subsection{PChar}
+% PChar
+\subsection{PChar - Null terminated strings}
 \fpc supports the Delphi implementation of the \var{PChar} type. \var{PChar}
 is defined as a pointer to a \var{Char} type, but allows additional
 operations.
@@ -3124,7 +3141,7 @@ Because of this, the calling block must pass a parameter of {\em exactly}
 the same type as the declared parameter's type. If it does not, the compiler
 will generate an error.
 
-Variable parameters can be untyped. In that case the variable has no type,
+Variable and constant parameters can be untyped. In that case the variable has no type,
 and hence is incompatible with all other types. However, the address operator
 can be used on it, or it can be can passed to a function that has also an
 untyped parameter. If an untyped parameter is used in an assigment,
@@ -4929,6 +4946,7 @@ Functions concerning memory issues.
 \procref{New}{Dynamically allocate memory for variable}
 \funcref{Ofs}{Return offset of variable}
 \funcref{Ptr}{Combine segment and offset to pointer}
+\funcref{ReAllocMem}{Resize a memory block on the heap}
 \procref{Release}{Release memory above mark point}
 \funcref{Seg}{Return segment}
 \procref{SetMemoryManager}{Set a memory manager}
@@ -7511,6 +7529,25 @@ In case \var{Param} is an invalid value, an empty string is returned.
 \end{functionl}
 
 For an example, see \seef{Paramstr}.
+
+\begin{function}{ReAllocMem}
+\Declaration
+function ReAllocMem(var p:pointer;Size:Longint):pointer;
+\Description
+\var{ReAllocMem} resizes the memory pointed to by \var{P} so it has size
+\var{Size}. The value of \var{P} may change during this operation. 
+The contents of the memory pointed to by \var{P} (if any) will be copied to 
+the new location, but may be truncated if the newly allocated memory block
+is smaller in size. If a larger block is allocated, only the used memory is
+initialized, extra memory will not be zeroed out.
+
+Note that \var{P} may be nil, in that case the behaviour of \var{ReAllocMem}
+is equivalent to \seep{Getmem}.
+\Errors
+If no memory is available then a run-time error will occur.
+\SeeAlso
+\seep{Getmem}, \seep{Freemem}
+\end{function}
 
 \begin{procedure}{ResetResourceTables}
 \Declaration

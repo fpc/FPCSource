@@ -3952,11 +3952,10 @@ should do thereafter (cf. \seet{Heaperrorresult}).
 
 \begin{FPCltable}{|c|l|}{Heap error result}{Heaperrorresult}
 \hline
- Value returned & Memory manager action \\
- \hline
-     0		& Generates a runtime error 203 \\
-     1		& \var{GetMem},\var{ReallocMem} and \var{New} returns \var{nil} \\
-     2		& Try allocating the memory block once again \\
+ Value returned & Memory manager action \\ \hline
+ 0		& Generates a runtime error 203 \\
+ 1		& \var{GetMem},\var{ReallocMem} and \var{New} returns \var{nil} \\
+ 2		& Try allocating the memory block once again \\
 \hline
 \end{FPCltable}
 
@@ -4064,7 +4063,8 @@ be filled with zeroes before the call returns.
 and should fill it with the contents of the memory block pointed to by
 \var{P}, truncating this to the new size of needed. After that, the memory
 pointed to by P may be deallocated. The return value is a pointer to the
-new memory block.
+new memory block. Note that \var{P} may be \var{Nil}, in which case the
+behaviour is equivalent to \var{GetMem}.
 \item[MemSize] should return the total amount of memory available for
 allocation. This function may return zero if the memory manager does not
 allow to determine this information.
@@ -5963,7 +5963,7 @@ i.e. under a separate directory. The directory will be named with the name
 specified in the \var{package} section.
 \item[files] extra data files to be installed in the directory specified
 with the \var{datadir} key.
-\item[prefix] is the directory below wchich all installs are done.
+\item[prefix] is the directory below which all installs are done.
 This corresponds to the \var{--prefix} argument to \gnu \file{configure}.
 It is used for the installation of programs and units. By default, this is
 \file{/usr} on \linux, and \file{/pp} on all other platforms.

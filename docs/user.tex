@@ -246,8 +246,13 @@ your path variable to contain the \verb|C:\PP\BIN| directory.
 Usually this is done in the \file{AUTOEXEC.BAT} file.
 It should look something like this :
 \begin{verbatim}
-  SET PATH=%PATH%;C:\PP\BIN
+  SET PATH=%PATH%;C:\PP\GO32V2\BIN
 \end{verbatim}
+for \dos or 
+\begin{verbatim}
+  SET PATH=%PATH%;C:\PP\WIN32\BIN
+\end{verbatim}
+for \windows
 (Again, assuming that you installed in the default location).
 
 
@@ -3582,5 +3587,10 @@ document pst
   Print out a pascal string
 end
 \end{verbatim}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Options summary tables
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{options.tex}
 
 \end{document}

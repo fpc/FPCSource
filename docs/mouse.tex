@@ -28,6 +28,10 @@
 The \var{Mouse} unit implements a platform independent mouse handling 
 interface. It is implemented identically on all platforms supported by 
 \fpc{} and can be enhanced with custom drivers, should this be needed.
+It is intended to be used only in text-based screens, for instance in 
+conjunction with the keyboard and video unit. No support for graphical
+screens is implemented, and there are (currently) no plans to implement
+this.
 
 \section{Constants, Types and Variables}
 \subsection{Constants}	

@@ -22,7 +22,7 @@
 #INSTALLDEBUG=1
 
 # Which docs are made when 'html' is specified
-HTML = user units ref prog 
+HTML = user units ref prog
 
 # Can be 'report','book' or 'html'
 PREAMBLETYPE = report
@@ -36,7 +36,7 @@ ifndef DOCINSTALLDIR
 DOCINSTALLDIR:=$(PREFIXINSTALLDIR)/doc/fpc-$(shell ppc386 -iV)
 endif
 
-FPDOC=fpdoc
+FPDOC=/home/michael/projects/fpdoc/fpdoc
 
 #
 # Program definitions
@@ -124,7 +124,8 @@ endif
 #####################################################################
 
 .PHONY: clean dvi help html ps psdist htmldist pdfdist txtdist \
-        htm txt pdf refex alldist messages onechap gtk
+        htm txt pdf refex alldist messages onechap gtk \
+        user ref prog units
 
 .SUFFIXES: .dvi .tex .ps .txt .pdf
 
@@ -186,6 +187,7 @@ clean:
 	-$(MAKE) -C heapex clean
 	-$(MAKE) -C ipcex clean
 	-$(MAKE) -C linuxex clean
+	-$(MAKE) -C mmouseex clean
 	-$(MAKE) -C mouseex clean
 	-$(MAKE) -C objectex clean
 	-$(MAKE) -C optex clean
@@ -198,6 +200,7 @@ clean:
 	-$(MAKE) -C gpmex clean
 	-$(MAKE) -C typinfex clean
 	-$(MAKE) -C kbdex clean
+	-$(MAKE) -C videoex clean
 # Reference
 	-$(MAKE) -C refex clean
 # Programmers manual
@@ -280,7 +283,7 @@ endif
 #####################################################################
 # Tex from XML
 #####################################################################
-FPCLASSESOPT=--descr=classes.xml --input='../fcl/linux/classes.pp -I../fcl/inc'
+FPCLASSESOPT=--package=fcl --descr=classes.xml --input='../fcl/linux/classes.pp -I../fcl/inc'
 
 classes.tex: classes.xml
 	$(FPDOC) --output=. $(FPCLASSESOPT) --format=latex
@@ -476,7 +479,7 @@ htmlinstall: html
 	cp -R buttons $(DOCINSTALLDIR)
 	cp -R pics $(DOCINSTALLDIR)
 	cp -R $(HTML) $(DOCINSTALLDIR)
-	find $(DOCINSTALLDIR) -name 'CVS' | xargs -n1 rm -rf
+	find $(DOCINSTALLDIR) -name 'CVS' -or -name '*.eps' | xargs -n1 rm -rf
 
 install:
 	@echo Choose install from:
@@ -507,27 +510,36 @@ txtdist: txt
 DOCPREFIX=doc
 BASEDIR=$(shell pwd)
 
-htmltar:
+htmltar: 
+ifndef SKIPINSTALL
 	$(MAKE) htmlinstall DOCINSTALLDIR=$(DOCPREFIX)
+endif
 	cd $(DOCPREFIX) ; tar cz * > $(BASEDIR)/fpcdoc.tar.gz ; cd $(BASEDIR)
 	rm -rf $(DOCPREFIX)
 
 htmlzip:
+ifndef SKIPINSTALL
 	$(MAKE) htmlinstall DOCINSTALLDIR=$(DOCPREFIX)
+endif
 	zip -D9rq doc-html $(DOCPREFIX)/*
 	rm -rf $(DOCPREFIX)
 
 htmzip:
+ifndef SKIPINSTALL
 	$(MAKE) htmlinstall DOCINSTALLDIR=$(DOCPREFIX)
+endif
 	makehtm `find $(DOCPREFIX) -name '*.html'`
-	zip -D9rq doc-htm `find $(DOCPREFIX) -name '*.htm' -or -name '*.gif' -or -name '*.css'`
+	zip -D9rq doc-htm `find $(DOCPREFIX) -name '*.htm' -or -name '*.gif' -or -name '*.png' -or -name '*.css'`
 	rm -rf $(DOCPREFIX)
 
 htmldist: htmlzip htmltar
 
 htmdist: htmzip
 
-alldist: dvidist psdist txtdist pdfdist htmldist htmdist
+alldist: dvidist psdist txtdist pdfdist 
+	$(MAKE) htmltar
+	$(MAKE) htmlzip SKIPINSTALL=Y
+	$(MAKE) htmzip SKIPINSTALL=Y
 
 distclean: clean
 	-rm -f *.tar.gz *.zip
@@ -577,7 +589,10 @@ execute:
 
 #
 # $Log$
-# Revision 1.15  2002-11-10 12:22:10  carl
+# Revision 1.16  2003-02-24 23:37:52  michael
+# + Preparations for version 1.0.8
+#
+# Revision 1.15  2002/11/10 12:22:10  carl
 #   * update makefiles for testing
 #   * update example which did not compile
 #

@@ -30,12 +30,32 @@ and Peter Vreman. It works on the \linux console, and in xterm and rxvt windows
 under X-Windows. The functionality for both is the same, except that under
 \linux the use of an early implementation (versions 0.9.1 and earlier of the
 compiler) the crt unit automatically cleared the screen at program startup.
+
+There are some caveats when using the CRT unit:
+\begin{itemize}
+\item Programs using the CRT unit will {\em not} be usable when input/output 
+is being redirected on the command-line.
+
+\item For similar reasons they are not usable as CGI-scripts for use with a 
+webserver. 
+
+\item The use of the CRT unit and the graph unit may not always be supported. 
+
+\item On \linux or other unix OSes , executing other programs that expect 
+special terminal behaviour (using one of the special functions in the linux
+unit) will not work. The terminal is set in RAW mode, which will destroy
+most terminal emulation settings.
+\end{itemize}
+
 This chapter is divided in two sections. 
 \begin{itemize}
 \item The first section lists the pre-defined constants, types and variables. 
 \item The second section describes the functions which appear in the
 interface part of the CRT unit.
 \end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Types, Variables, Constants
 \section{Types, Variables, Constants}
 Color definitions :
 \begin{verbatim}

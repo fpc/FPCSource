@@ -1373,13 +1373,19 @@ Procedure SetTextStyle (Font,Direction,Magnitude : Word);
 \var{SetTextStyle} controls the style of text to be put on the screen.
 pre-defined constants for \var{Font} are:
 
-\begin{itemize}
-\item \var{DefaultFont=0;}
-\item \var{TriplexFont=2;}
-\item \var{SmallFont=2;}
-\item \var{SansSerifFont=3;}
-\item \var{GothicFont=4;}
-\end{itemize}
+\begin{verbatim}
+DefaultFont   = 0;
+TriplexFont   = 1;
+SmallFont     = 2;
+SansSerifFont = 3;
+GothicFont    = 4;
+ScriptFont    = 5;
+SimpleFont    = 6;
+TSCRFont      = 7;
+LCOMFont      = 8;
+EuroFont      = 9;
+BoldFont      = 10;
+\end{verbatim}
 Pre-defined constants for \var{Direction} are :
 
 \begin{itemize}
