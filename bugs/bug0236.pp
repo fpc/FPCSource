@@ -22,7 +22,7 @@ procedure test;
  
  begin
    new(hp);
-   hp^.en:=two;
+   hp^.en:=zero;
    new(hp^.next);
    hp^.next^.en:=three;
    t:=hp^.en;

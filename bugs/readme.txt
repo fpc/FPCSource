@@ -284,6 +284,7 @@ Fixed bugs:
   bug0231.pp   Problem with comments                                OK 0.99.11 (PFV)
   bug0233.pp   Problem with enum sets in args                       OK 0.99.11 (PFV)
   bug0235.pp   Val(cardinal) bug                                    OK 0.99.11 (JM)
+  bug0236.pp   Problem with range check of subsets !! compile with -Cr OK 0.99.11 (PFV)
 
 
 Unproducable bugs:
@@ -319,4 +320,3 @@ bug0230.pp   several strange happen on the ln function: ln(0): no
 bug0232.pp   const. procedure variables need a special syntax
              if they use calling specification modifiers
 bug0234.pp   New with void pointer
-bug0236.pp   Problem with range check of subsets !! compile with -Cr
