@@ -676,9 +676,9 @@ begin
      (PSearchRec(Key2)^.Attr and Directory = 0) then Compare := 1
   else if (PSearchRec(Key2)^.Attr and Directory <> 0) and
      (PSearchRec(Key1)^.Attr and Directory = 0) then Compare := -1
-{$ifdef linux}
+{$ifdef Unix}
   else if PSearchRec(Key1)^.Name > PSearchRec(Key2)^.Name then
-{$else linux}
+{$else Unix}
   else if UpperName(PSearchRec(Key1)^.Name) > UpperName(PSearchRec(Key2)^.Name) then
 {$endif def linux}
     Compare := 1
@@ -784,7 +784,7 @@ var
   N1,N2 : NameStr;
   E1,E2 : Extstr;
 begin
-{$ifdef linux}
+{$ifdef Unix}
   FSplit(What,D1,N1,E1);
   FSplit(Mask,D2,N2,E2);
 {$else}
@@ -852,7 +852,7 @@ begin
     SR.Attr := Directory
   else SR.Attr := 0;
   SR.Name := S;
-{$ifndef linux}
+{$ifndef Unix}
   UpStr(SR.Name);
 {$endif linux}
   GetKey := @SR;
@@ -900,7 +900,7 @@ end;
 procedure TFileList.ReadDirectory(AWildCard: PathStr);
 const
   FindAttr = ReadOnly + Archive;
-{$ifdef linux}
+{$ifdef Unix}
   AllFiles = '*';
 {$else}
   AllFiles = '*.*';
@@ -977,7 +977,7 @@ begin
  {$ifdef fpc}
   FindClose(S);
  {$endif}
- {$ifndef linux}
+ {$ifndef Unix}
   if Length(Dir) > 4 then
  {$endif not linux}
   begin

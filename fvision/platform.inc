@@ -55,6 +55,7 @@
 {  1.31    03 Nov 99  LdB    FPC windows defines WIN32     }
 {  1.32    04 Nov 99  LdB    Delphi 5 definitions added    }
 {  1.33    16 Oct 00  LdB    WIN32/WIN16 defines added     }
+{  1.34    02 May 02  MvdV   FreeBSD, NetBSD, OS_UNIX      }
 {**********************************************************}
 
 { ****************************************************************************
@@ -84,6 +85,13 @@
                       FPC      PPC_FPC      PROC_Protected  BIT_32  ASM_FPC
 
  LINUX    OS_LINUX    FPC      PPC_FPC      PROC_Protected  BIT_32  ASM_FPC
+	  OS_UNIX
+
+ FREEBSD  OS_FREEBSD  FPC      PPC_FPC      PROC_Protected  BIT_32  ASM_FPC
+	  OS_UNIX
+
+ NETBSD   OS_NETBSD   FPC      PPC_FPC      PROC_Protected  BIT_32  ASM_FPC
+	  OS_UNIX
 
  WINDOWS  OS_WINDOWS  BP/TP7   PPC_BP       PROC_Protected  BIT_16  ASM_BP
                       DELPHI   PPC_DELPHI   PROC_Protected  BIT_16  ASM_BP
@@ -112,22 +120,24 @@ FOR ALL COMPILERS BP_VMTLink defined but FPC and Delphi3/Delphi4 undefine it
 
 FOR FPC THESE ARE THE TRANSLATIONS
 
-  PLATFORM  SYSTEM    COMPILER  HANDLE SIZE      ASM          CPU
- --------  ------    --------  -----------      ----         ---
+  PLATFORM  SYSTEM          COMPILER  HANDLE SIZE      ASM          CPU
+ --------  ------           --------  -----------      ----         ---
 
- DOS      OS_DOS,OS_GO32 FPC     32-bit         AT&T         CPU86
+ DOS      OS_DOS,OS_GO32       FPC     32-bit         AT&T         CPU86
 
- WIN32    OS_WINDOWS   FPC     32-bit           AT&T         ----
+ WIN32    OS_WINDOWS           FPC     32-bit           AT&T         ----
 
- LINUX    OS_LINUX     FPC     32-bit           AT&T         ----
+ LINUX    OS_LINUX,OS_UNIX     FPC     32-bit           AT&T         ----
+ FREEBSD  OS_NETBSD,OS_UNIX    FPC     32-bit           AT&T         ----
+ NETBSD   OS_FREEBSD,OS_UNIX   FPC     32-bit           AT&T         ----
 
- OS2      OS_OS2       FPC     ?????            AT&T         CPU86
+ OS2      OS_OS2       	       FPC     ?????            AT&T         CPU86
 
- ATARI    OS_ATARI     FPC     32-bit           Internal     CPU68
+ ATARI    OS_ATARI             FPC     32-bit           Internal     CPU68
 
- MACOS    OS_MAC       FPC     ?????            Internal     CPU68
+ MACOS    OS_MAC       	       FPC     ?????            Internal     CPU68
 
- AMIGA    OS_AMIGA     FPC     32-bit           Internal     CPU68
+ AMIGA    OS_AMIGA     	       FPC     32-bit           Internal     CPU68
 
  ****************************************************************************}
 
@@ -185,7 +195,21 @@ FOR FPC THESE ARE THE TRANSLATIONS
 {$IFDEF LINUX}
   {$UNDEF OS_DOS}
   {$DEFINE OS_LINUX}
+  {$DEFINE OS_UNIX}
 {$ENDIF}
+
+{$IFDEF FreeBSD}
+  {$UNDEF OS_DOS}
+  {$DEFINE OS_FREEBSD}
+  {$DEFINE OS_UNIX}
+{$ENDIF}
+
+{$IFDEF NETBSD}
+  {$UNDEF OS_DOS}
+  {$DEFINE OS_NETBSD}
+  {$DEFINE OS_UNIX}
+{$ENDIF}
+
 
 {---------------------------------------------------------------------------}
 {  FPC GO32V2 COMPILER changes operating system - Updated 27Aug98 LdB       }
@@ -376,7 +400,10 @@ FOR FPC THESE ARE THE TRANSLATIONS
 
 {
  $Log$
- Revision 1.7  2002-05-21 12:02:02  pierre
+ Revision 1.8  2002-06-02 08:32:51  marco
+  * renamefest
+
+ Revision 1.7  2002/05/21 12:02:02  pierre
   define HASSYSMSGUNIT for go32v2 and win32
 
  Revision 1.6  2001/10/02 16:35:51  pierre
