@@ -11,14 +11,12 @@ begin
   Writeln ('Creating stream.');
   Stream:=TMemoryStream.Create;
   Writeln ('Initial Size : ',Stream.Size);
-  Writeln ('Initial Capacity : ',Stream.Capacity);
   Writeln ('Initial Position : ',Stream.Position);
   Stream.WriteByte  (1);
   Stream.WriteWord  (2);
   Stream.WriteDWord (3);
   Stream.WriteBuffer (S[1],Length(S));
   Writeln ('Stream Size is : ',Stream.Size);
-  Writeln ('Streem Capacity is : ',STream.Capacity);
   Stream.Seek(0,soFromBeginning);
   If Stream.ReadByte<>1 then  Writeln ('First byte not 1');
   If Stream.ReadWord<>2 then  Writeln ('First word not 2');
@@ -29,7 +27,6 @@ begin
   Stream.WriteDWord (3);
   Stream.WriteBuffer (S[1],Length(S));
   Writeln ('Stream Size is : ',Stream.Size);
-  Writeln ('Streem Capacity is : ',STream.Capacity);
   Stream.SaveToFile('Test2.dat');
   Stream.Free;
 end.
