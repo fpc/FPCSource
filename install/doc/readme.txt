@@ -88,7 +88,8 @@ Win32:
  - Win95/98/Me/2000/XP or WinNT
  - 16 MB RAM
 OS/2:
- - OS/2 Warp v3.0, OS/2 Warp v4.0, WSeB, MCP or any eComStation version
+ - OS/2 Warp v3.0 with one of late fixpaks - FP 35 should be fine,
+   OS/2 Warp v4.0 with FP 5 and above, WSeB, MCP or any eComStation version
    (OS/2 2.0/2.1 may work partly, but not supported)
 Linux:
  - system running a 2.0.x kernel
