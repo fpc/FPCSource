@@ -187,7 +187,7 @@ end;
                                            if (sym.typ=procsym) and ((pos('CALL',upper(s))>0) or
                                               (pos('LEA',upper(s))>0)) then
                                              begin
-                                                hs:=tprocsym(sym).defs^.def.mangledname;
+                                                hs:=tprocsym(sym).first_procdef.mangledname;
                                              end;
                                         end
                                       else
@@ -235,10 +235,10 @@ end;
                                                      { procs can be called or the address can be loaded }
                                                      if ((pos('CALL',upper(s))>0) or (pos('LEA',upper(s))>0)) then
                                                       begin
-                                                        if assigned(tprocsym(sym).defs^.def) then
+                                                        if assigned(tprocsym(sym).first_procdef) then
                                                           Message1(asmr_w_direct_global_is_overloaded_func,hs);
-                                                        Message2(asmr_h_direct_global_to_mangled,hs,tprocsym(sym).defs^.def.mangledname);
-                                                        hs:=tprocsym(sym).defs^.def.mangledname;
+                                                        Message2(asmr_h_direct_global_to_mangled,hs,tprocsym(sym).first_procdef.mangledname);
+                                                        hs:=tprocsym(sym).first_procdef.mangledname;
                                                       end;
                                                    end;
                                                  else
@@ -314,7 +314,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.1  2002-08-23 10:08:28  mazen
+  Revision 1.2  2002-09-19 20:24:47  mazen
+  + call support
+
+  Revision 1.1  2002/08/23 10:08:28  mazen
   *** empty log message ***
 
   Revision 1.2  2002/08/17 09:23:47  florian
