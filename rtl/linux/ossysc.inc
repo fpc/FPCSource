@@ -353,6 +353,10 @@ type
 {$define OLDMMAP}
 {$endif cpum68k}
 
+{$ifdef cpuarm}
+{$define OLDMMAP}
+{$endif cpuarm}
+
 Function Fpmmap(adr:pointer;len:size_t;prot:cint;flags:cint;fd:cint;off:off_t):pointer;  [public, alias : 'FPC_SYSC_MMAP'];
 // OFF_T procedure, and returns a pointer, NOT cint.
 
@@ -467,7 +471,10 @@ end;
 
 {
  $Log$
- Revision 1.12  2003-12-30 16:26:10  marco
+ Revision 1.13  2004-01-23 00:00:06  florian
+   * arm requires oldmmap call as well
+
+ Revision 1.12  2003/12/30 16:26:10  marco
   * some more fixes. Testing on idefix
 
  Revision 1.11  2003/12/30 15:43:20  marco
