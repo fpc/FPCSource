@@ -35,7 +35,7 @@ interface
     private
        Function  WriteResponseFile(isdll:boolean) : Boolean;
     public
-       constructor Create;
+       constructor Create;override;
        procedure SetDefaultInfo;override;
        function  MakeExecutable:boolean;override;
     end;
@@ -245,7 +245,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2001-06-03 15:15:31  peter
+  Revision 1.6  2001-06-28 19:46:25  peter
+    * added override and virtual for constructors
+
+  Revision 1.5  2001/06/03 15:15:31  peter
     * dllprt0 stub for linux shared libs
     * pass -init and -fini for linux shared libs
     * libprefix splitted into staticlibprefix and sharedlibprefix

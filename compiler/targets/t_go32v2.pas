@@ -41,7 +41,7 @@ implementation
        Function  WriteResponseFile(isdll:boolean) : Boolean;
        Function  WriteScript(isdll:boolean) : Boolean;
     public
-       constructor Create;
+       constructor Create;override;
        procedure SetDefaultInfo;override;
        function  MakeExecutable:boolean;override;
     end;
@@ -473,7 +473,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.6  2001-06-18 20:36:26  peter
+  Revision 1.7  2001-06-28 19:46:25  peter
+    * added override and virtual for constructors
+
+  Revision 1.6  2001/06/18 20:36:26  peter
     * -Ur switch (merged)
     * masm fixes (merged)
     * quoted filenames for go32v2 and win32

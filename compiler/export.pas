@@ -55,7 +55,7 @@ type
       procedure NotSupported;
    public
       edatalabel : tasmlabel;
-      constructor Create;
+      constructor Create;virtual;
       destructor Destroy;override;
       procedure preparelib(const s : string);virtual;
       procedure exportprocedure(hp : texported_item);virtual;
@@ -180,7 +180,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  2001-06-06 21:58:16  peter
+  Revision 1.16  2001-06-28 19:46:25  peter
+    * added override and virtual for constructors
+
+  Revision 1.15  2001/06/06 21:58:16  peter
     * Win32 fixes for Makefile so it doesn't require sh.exe
 
   Revision 1.14  2001/04/18 22:01:53  peter

@@ -69,7 +69,7 @@ implementation
        Function  WriteResponseFile(isdll:boolean) : Boolean;
        Function  PostProcessExecutable(const fn:string;isdll:boolean) : Boolean;
     public
-       Constructor Create;
+       Constructor Create;override;
        Procedure SetDefaultInfo;override;
        function  MakeExecutable:boolean;override;
        function  MakeSharedLibrary:boolean;override;
@@ -1456,7 +1456,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.12  2001-06-18 20:36:26  peter
+  Revision 1.13  2001-06-28 19:46:25  peter
+    * added override and virtual for constructors
+
+  Revision 1.12  2001/06/18 20:36:26  peter
     * -Ur switch (merged)
     * masm fixes (merged)
     * quoted filenames for go32v2 and win32

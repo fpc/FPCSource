@@ -54,7 +54,7 @@ type
       notsupmsg : boolean;
       procedure NotSupported;
    public
-      constructor Create;
+      constructor Create;virtual;
       destructor Destroy;override;
       procedure preparelib(const s:string);virtual;
       procedure importprocedure(const func,module:string;index:longint;const name:string);virtual;
@@ -237,7 +237,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  2001-04-18 22:01:54  peter
+  Revision 1.14  2001-06-28 19:46:25  peter
+    * added override and virtual for constructors
+
+  Revision 1.13  2001/04/18 22:01:54  peter
     * registration of targets and assemblers
 
   Revision 1.12  2001/04/13 01:22:08  peter
