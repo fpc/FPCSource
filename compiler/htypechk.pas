@@ -448,45 +448,9 @@ implementation
              begin
              { assignment overwritten ?? }
                if is_assignment_overloaded(def_from,def_to) then
-                b:=1;
+                b:=2;
              end;
          end;
-
-           { nil is compatible with ansi- and wide strings }
-           { no, that isn't true, (FK)
-           if (fromtreetype=niln) and (def_to^.deftype=stringdef)
-             and (pstringdef(def_to)^.string_typ in [st_ansistring,st_widestring]) then
-             begin
-                doconv:=tc_equal;
-                b:=1;
-             end
-         else
-           }
-           { ansi- and wide strings can be assigned to void pointers }
-           { no, (FK)
-           if (def_from^.deftype=stringdef) and
-             (pstringdef(def_from)^.string_typ in [st_ansistring,st_widestring]) and
-             (def_to^.deftype=pointerdef) and
-             (ppointerdef(def_to)^.definition^.deftype=orddef) and
-             (porddef(ppointerdef(def_to)^.definition)^.typ=uvoid) then
-             begin
-                doconv:=tc_equal;
-                b:=1;
-             end
-         else
-           }
-           { ansistrings can be assigned to pchar
-             this needs an explicit type cast (FK)
-           if is_ansistring(def_from) and
-             (def_to^.deftype=pointerdef) and
-             (ppointerdef(def_to)^.definition^.deftype=orddef) and
-             (porddef(ppointerdef(def_to)^.definition)^.typ=uchar) then
-             begin
-                doconv:=tc_ansistring_2_pchar;
-                b:=1;
-             end
-         else
-           }
         isconvertable:=b;
       end;
 
@@ -684,7 +648,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  1999-04-26 09:30:47  peter
+  Revision 1.24  1999-05-06 10:10:02  peter
+    * overloaded conversion has lower priority
+
+  Revision 1.23  1999/04/26 09:30:47  peter
     * small tp7 fix
     * fix void pointer with formaldef
 
