@@ -22,7 +22,7 @@ uses
   Objects,Drivers,Views,App,Gadgets,MsgBox,
   {$ifdef EDITORS}Editors,{$else}WEditor,{$endif}
   Comphook,Browcol,
-  FPViews,FPSymbol;
+  FPViews,FPSymbol,fpstring;
 
 type
     TExecType = (exNormal,exNoSwap,exDosShell);
@@ -221,143 +221,143 @@ begin
 {$ifdef WinClipSupported}
   if WinClipboardSupported then
     WinPMI:=NewLine(
-      NewItem('Cop~y~ to Windows','', kbNoKey, cmCopyWin, hcCopyWin,
-      NewItem('Paste from ~W~indows','', kbNoKey, cmPasteWin, hcPasteWin,
+      NewItem(menu_edit_copywin,'', kbNoKey, cmCopyWin, hcCopyWin,
+      NewItem(menu_edit_pastewin,'', kbNoKey, cmPasteWin, hcPasteWin,
       nil)));
 {$endif WinClipSupported}
   MenuBar:=New(PAdvancedMenuBar, Init(R, NewMenu(
-    NewSubMenu('~F~ile',hcFileMenu, NewMenu(
-      NewItem('~N~ew','',kbNoKey,cmNew,hcNew,
-      NewItem('New from ~t~emplate...','',kbNoKey,cmNewFromTemplate,hcNewFromTemplate,
-      NewItem('~O~pen...','F3',kbF3,cmOpen,hcOpen,
-      NewItem('~S~ave','F2',kbF2,cmSave,hcSave,
-      NewItem('Save ~a~s...','',kbNoKey,cmSaveAs,hcSaveAs,
-      NewItem('Save a~l~l','',kbNoKey,cmSaveAll,hcSaveAll,
+    NewSubMenu(menu_file,hcFileMenu, NewMenu(
+      NewItem(menu_file_new,'',kbNoKey,cmNew,hcNew,
+      NewItem(menu_file_template,'',kbNoKey,cmNewFromTemplate,hcNewFromTemplate,
+      NewItem(menu_file_open,menu_key_file_open,kbF3,cmOpen,hcOpen,
+      NewItem(menu_file_save,menu_key_file_save,kbF2,cmSave,hcSave,
+      NewItem(menu_file_saveas,'',kbNoKey,cmSaveAs,hcSaveAs,
+      NewItem(menu_file_saveall,'',kbNoKey,cmSaveAll,hcSaveAll,
       NewLine(
-      NewItem('~C~hange dir...','',kbNoKey,cmChangeDir,hcChangeDir,
-      NewItem('~D~OS shell','',kbNoKey,cmDOSShell,hcDOSShell,
-      NewItem('E~x~it','Alt+X',kbNoKey,cmQuit,hcQuit,
+      NewItem(menu_file_changedir,'',kbNoKey,cmChangeDir,hcChangeDir,
+      NewItem(menu_file_dosshell,'',kbNoKey,cmDOSShell,hcDOSShell,
+      NewItem(menu_file_exit,menu_key_file_exit,kbNoKey,cmQuit,hcQuit,
       nil))))))))))),
-    NewSubMenu('~E~dit',hcEditMenu, NewMenu(
-      NewItem('~U~ndo','Alt+BkSp', kbAltBack, cmUndo, hcUndo,
-      NewItem('~R~edo','', kbNoKey, cmRedo, hcRedo,
+    NewSubMenu(menu_edit,hcEditMenu, NewMenu(
+      NewItem(menu_edit_undo,menu_key_edit_undo, kbAltBack, cmUndo, hcUndo,
+      NewItem(menu_edit_redo,'', kbNoKey, cmRedo, hcRedo,
 {$ifdef DebugUndo}
       NewItem('~D~ump Undo','', kbNoKey, cmDumpUndo, hcUndo,
       NewItem('U~n~do All','', kbNoKey, cmUndoAll, hcUndo,
       NewItem('R~e~do All','', kbNoKey, cmRedoAll, hcRedo,
 {$endif DebugUndo}
       NewLine(
-      NewItem('Cu~t~','Shift+Del', kbShiftDel, cmCut, hcCut,
-      NewItem('~C~opy','Ctrl+Ins', kbCtrlIns, cmCopy, hcCut,
-      NewItem('~P~aste','Shift+Ins', kbShiftIns, cmPaste, hcPaste,
-      NewItem('C~l~ear','Ctrl+Del', kbCtrlDel, cmClear, hcClear,
+      NewItem(menu_edit_cut,menu_key_edit_cut, kbShiftDel, cmCut, hcCut,
+      NewItem(menu_edit_copy,menu_key_edit_copy, kbCtrlIns, cmCopy, hcCut,
+      NewItem(menu_edit_paste,menu_key_edit_paste, kbShiftIns, cmPaste, hcPaste,
+      NewItem(menu_edit_clear,menu_key_edit_clear, kbCtrlDel, cmClear, hcClear,
       NewLine(
-      NewItem('~S~how clipboard','', kbNoKey, cmShowClipboard, hcShowClipboard,
+      NewItem(menu_edit_showclipboard,'', kbNoKey, cmShowClipboard, hcShowClipboard,
       WinPMI))))))
 {$ifdef DebugUndo}))){$endif DebugUndo}
       )))),
-    NewSubMenu('~S~earch',hcSearchMenu, NewMenu(
-      NewItem('~F~ind...','', kbNoKey, cmFind, hcFind,
-      NewItem('~R~eplace...','', kbNoKey, cmReplace, hcReplace,
-      NewItem('~S~earch again','', kbNoKey, cmSearchAgain, hcSearchAgain,
+    NewSubMenu(menu_search,hcSearchMenu, NewMenu(
+      NewItem(menu_search_find,'', kbNoKey, cmFind, hcFind,
+      NewItem(menu_search_replace,'', kbNoKey, cmReplace, hcReplace,
+      NewItem(menu_search_searchagain,'', kbNoKey, cmSearchAgain, hcSearchAgain,
       NewLine(
-      NewItem('~G~o to line number...','', kbNoKey, cmJumpLine, hcGotoLine,
-      NewItem('Find ~p~rocedure...','', kbNoKey, cmFindProcedure, hcFindProcedure,
+      NewItem(menu_search_jumpline,'', kbNoKey, cmJumpLine, hcGotoLine,
+      NewItem(menu_search_findproc,'', kbNoKey, cmFindProcedure, hcFindProcedure,
       NewLine(
-      NewItem('~O~bjects','', kbNoKey, cmObjects, hcObjects,
-      NewItem('Mod~u~les','', kbNoKey, cmModules, hcModules,
-      NewItem('G~l~obals','', kbNoKey, cmGlobals, hcGlobals,
+      NewItem(menu_search_objects,'', kbNoKey, cmObjects, hcObjects,
+      NewItem(menu_search_modules,'', kbNoKey, cmModules, hcModules,
+      NewItem(menu_search_globals,'', kbNoKey, cmGlobals, hcGlobals,
       NewLine(
-      NewItem('S~y~mbol','', kbNoKey, cmSymbol, hcSymbol,
+      NewItem(menu_search_symbol,'', kbNoKey, cmSymbol, hcSymbol,
       nil))))))))))))),
-    NewSubMenu('~R~un',hcRunMenu, NewMenu(
-      NewItem('~R~un','Ctrl+F9', kbCtrlF9, cmRun, hcRun,
-      NewItem('~S~tep over','F8', kbF8, cmStepOver, hcRun,
-      NewItem('~T~race into','F7', kbF7, cmTraceInto, hcRun,
-      NewItem('~G~oto Cursor','F4', kbF4, cmContToCursor, hcContToCursor,
-      NewItem('~U~ntil return','', kbNoKey,cmUntilReturn,hcUntilReturn,
-      NewItem('P~a~rameters...','', kbNoKey, cmParameters, hcParameters,
-      NewItem('~P~rogram reset','Ctrl+F2', kbCtrlF2, cmResetDebugger, hcResetDebugger,
+    NewSubMenu(menu_run,hcRunMenu, NewMenu(
+      NewItem(menu_run_run,menu_key_run_run, kbCtrlF9, cmRun, hcRun,
+      NewItem(menu_run_stepover,menu_key_run_stepover, kbF8, cmStepOver, hcRun,
+      NewItem(menu_run_traceinto,menu_key_run_traceinto, kbF7, cmTraceInto, hcRun,
+      NewItem(menu_run_conttocursor,menu_key_run_conttocursor, kbF4, cmContToCursor, hcContToCursor,
+      NewItem(menu_run_untilreturn,'', kbNoKey,cmUntilReturn,hcUntilReturn,
+      NewItem(menu_run_parameters,'', kbNoKey, cmParameters, hcParameters,
+      NewItem(menu_run_resetdebugger,menu_key_run_resetdebugger, kbCtrlF2, cmResetDebugger, hcResetDebugger,
       nil)))))))),
-    NewSubMenu('~C~ompile',hcCompileMenu, NewMenu(
-      NewItem('~C~ompile','Alt+F9', kbAltF9, cmCompile, hcCompile,
-      NewItem('~M~ake','F9', kbF9, cmMake, hcMake,
-      NewItem('~B~uild','', kbNoKey, cmBuild, hcBuild,
+    NewSubMenu(menu_compile,hcCompileMenu, NewMenu(
+      NewItem(menu_compile_compile,menu_key_compile_compile, kbAltF9, cmCompile, hcCompile,
+      NewItem(menu_compile_make,menu_key_compile_make, kbF9, cmMake, hcMake,
+      NewItem(menu_compile_build,'', kbNoKey, cmBuild, hcBuild,
       NewLine(
-      NewItem('~T~arget...','', kbNoKey, cmTarget, hcTarget,
-      NewItem('~P~rimary file...','', kbNoKey, cmPrimaryFile, hcPrimaryFile,
-      NewItem('C~l~ear primary file','', kbNoKey, cmClearPrimary, hcClearPrimary,
+      NewItem(menu_compile_target,'', kbNoKey, cmTarget, hcTarget,
+      NewItem(menu_compile_primaryfile,'', kbNoKey, cmPrimaryFile, hcPrimaryFile,
+      NewItem(menu_compile_clearprimaryfile,'', kbNoKey, cmClearPrimary, hcClearPrimary,
       NewLine(
-      NewItem('~I~nformation...','', kbNoKey, cmInformation, hcInformation,
-      NewItem('C~o~mpiler messages','F12', kbF12, cmCompilerMessages, hcCompilerMessages,
+      NewItem(menu_compile_information,'', kbNoKey, cmInformation, hcInformation,
+      NewItem(menu_compile_compilermessages,menu_key_compile_compilermessages, kbF12, cmCompilerMessages, hcCompilerMessages,
       nil))))))))))),
-    NewSubMenu('~D~ebug', hcDebugMenu, NewMenu(
-      NewItem('~O~utput','', kbNoKey, cmUserScreenWindow, hcUserScreenWindow,
-      NewItem('~U~ser screen','Alt+F5', kbAltF5, cmUserScreen, hcUserScreen,
-      NewItem('~B~reakpoint','Ctrl+F8', kbCtrlF8, cmToggleBreakpoint, hcToggleBreakpoint,
-      NewItem('~C~all stack','Ctrl+F3', kbCtrlF3, cmStack, hcStack,
-      NewItem('~R~egisters','', kbNoKey, cmRegisters, hcRegisters,
-      NewItem('~A~dd Watch','Ctrl+F7', kbCtrlF7, cmAddWatch, hcAddWatch,
-      NewItem('~W~atches','', kbNoKey, cmWatches, hcWatches,
-      NewItem('Breakpoint ~L~ist','', kbNoKey, cmBreakpointList, hcBreakpointList,
+    NewSubMenu(menu_debug, hcDebugMenu, NewMenu(
+      NewItem(menu_debug_output,'', kbNoKey, cmUserScreenWindow, hcUserScreenWindow,
+      NewItem(menu_debug_userscreen,menu_key_debug_userscreen, kbAltF5, cmUserScreen, hcUserScreen,
+      NewItem(menu_debug_breakpoint,menu_key_debug_breakpoint, kbCtrlF8, cmToggleBreakpoint, hcToggleBreakpoint,
+      NewItem(menu_debug_callstack,menu_key_debug_callstack, kbCtrlF3, cmStack, hcStack,
+      NewItem(menu_debug_registers,'', kbNoKey, cmRegisters, hcRegisters,
+      NewItem(menu_debug_addwatch,menu_key_debug_addwatch, kbCtrlF7, cmAddWatch, hcAddWatch,
+      NewItem(menu_debug_watches,'', kbNoKey, cmWatches, hcWatches,
+      NewItem(menu_debug_breakpointlist,'', kbNoKey, cmBreakpointList, hcBreakpointList,
       NewLine(
-      NewItem('~G~DB window','', kbNoKey, cmOpenGDBWindow, hcOpenGDBWindow,
+      NewItem(menu_debug_gdbwindow,'', kbNoKey, cmOpenGDBWindow, hcOpenGDBWindow,
       nil))))))))))),
-    NewSubMenu('~T~ools', hcToolsMenu, NewMenu(
-      NewItem('~M~essages', 'F11', kbF11, cmToolsMessages, hcToolsMessages,
-      NewItem('Goto ~n~ext','Alt+F8', kbAltF8, cmToolsMsgNext, hcToolsMsgNext,
-      NewItem('Goto ~p~revious','Alt+F7', kbAltF7, cmToolsMsgPrev, hcToolsMsgPrev,
+    NewSubMenu(menu_tools, hcToolsMenu, NewMenu(
+      NewItem(menu_tools_messages,menu_key_tools_messages, kbF11, cmToolsMessages, hcToolsMessages,
+      NewItem(menu_tools_msgnext,menu_key_tools_msgnext, kbAltF8, cmToolsMsgNext, hcToolsMsgNext,
+      NewItem(menu_tools_msgprev,menu_key_tools_msgprev, kbAltF7, cmToolsMsgPrev, hcToolsMsgPrev,
       NewLine(
-      NewItem('~G~rep', 'Shift+F2', kbShiftF2, cmGrep, hcGrep,
-      NewItem('~C~alculator', '', kbNoKey, cmCalculator, hcCalculator,
-      NewItem('Ascii ~t~able', '', kbNoKey, cmAsciiTable, hcAsciiTable,
+      NewItem(menu_tools_grep,menu_key_tools_grep, kbShiftF2, cmGrep, hcGrep,
+      NewItem(menu_tools_calculator, '', kbNoKey, cmCalculator, hcCalculator,
+      NewItem(menu_tools_asciitable, '', kbNoKey, cmAsciiTable, hcAsciiTable,
       nil)))))))),
-    NewSubMenu('~O~ptions', hcOptionsMenu, NewMenu(
-      NewItem('Mode~.~..','', kbNoKey, cmSwitchesMode, hcSwitchesMode,
-      NewItem('~C~ompiler...','', kbNoKey, cmCompiler, hcCompiler,
-      NewItem('~M~emory sizes...','', kbNoKey, cmMemorySizes, hcMemorySizes,
-      NewItem('~L~inker...','', kbNoKey, cmLinker, hcLinker,
-      NewItem('De~b~ugger...','', kbNoKey, cmDebugger, hcDebugger,
-      NewItem('~D~irectories...','', kbNoKey, cmDirectories, hcDirectories,
-      NewItem('Bro~w~ser...','',kbNoKey, cmBrowser, hcBrowser,
-      NewItem('~T~ools...','', kbNoKey, cmTools, hcTools,
+    NewSubMenu(menu_options, hcOptionsMenu, NewMenu(
+      NewItem(menu_options_mode,'', kbNoKey, cmSwitchesMode, hcSwitchesMode,
+      NewItem(menu_options_compiler,'', kbNoKey, cmCompiler, hcCompiler,
+      NewItem(menu_options_memory,'', kbNoKey, cmMemorySizes, hcMemorySizes,
+      NewItem(menu_options_linker,'', kbNoKey, cmLinker, hcLinker,
+      NewItem(menu_options_debugger,'', kbNoKey, cmDebugger, hcDebugger,
+      NewItem(menu_options_directories,'', kbNoKey, cmDirectories, hcDirectories,
+      NewItem(menu_options_browser,'',kbNoKey, cmBrowser, hcBrowser,
+      NewItem(menu_options_tools,'', kbNoKey, cmTools, hcTools,
       NewLine(
-      NewSubMenu('~E~nvironment', hcEnvironmentMenu, NewMenu(
-        NewItem('~P~references...','', kbNoKey, cmPreferences, hcPreferences,
-        NewItem('~E~ditor...','', kbNoKey, cmEditor, hcEditor,
-        NewItem('~D~esktop...','', kbNoKey, cmDesktopOptions, hcDesktopOptions,
-        NewItem('~M~ouse...','', kbNoKey, cmMouse, hcMouse,
-        NewItem('~S~tartup...','', kbNoKey, cmStartup, hcStartup,
-        NewItem('~C~olors...','', kbNoKey, cmColors, hcColors,
+      NewSubMenu(menu_options_env, hcEnvironmentMenu, NewMenu(
+        NewItem(menu_options_env_preferences,'', kbNoKey, cmPreferences, hcPreferences,
+        NewItem(menu_options_env_editor,'', kbNoKey, cmEditor, hcEditor,
+        NewItem(menu_options_env_desktop,'', kbNoKey, cmDesktopOptions, hcDesktopOptions,
+        NewItem(menu_options_env_mouse,'', kbNoKey, cmMouse, hcMouse,
+        NewItem(menu_options_env_startup,'', kbNoKey, cmStartup, hcStartup,
+        NewItem(menu_options_env_colors,'', kbNoKey, cmColors, hcColors,
         nil))))))),
       NewLine(
-      NewItem('~O~pen...','', kbNoKey, cmOpenINI, hcOpenINI,
-      NewItem('~S~ave','', kbNoKey, cmSaveINI, hcSaveINI,
-      NewItem('Save ~a~s...','', kbNoKey, cmSaveAsINI, hcSaveAsINI,
+      NewItem(menu_options_open,'', kbNoKey, cmOpenINI, hcOpenINI,
+      NewItem(menu_options_save,'', kbNoKey, cmSaveINI, hcSaveINI,
+      NewItem(menu_options_saveas,'', kbNoKey, cmSaveAsINI, hcSaveAsINI,
       nil))))))))))))))),
-    NewSubMenu('~W~indow', hcWindowMenu, NewMenu(
-      NewItem('~T~ile','', kbNoKey, cmTile, hcTile,
-      NewItem('C~a~scade','', kbNoKey, cmCascade, hcCascade,
-      NewItem('Cl~o~se all','', kbNoKey, cmCloseAll, hcCloseAll,
+    NewSubMenu(menu_window, hcWindowMenu, NewMenu(
+      NewItem(menu_window_tile,'', kbNoKey, cmTile, hcTile,
+      NewItem(menu_window_cascade,'', kbNoKey, cmCascade, hcCascade,
+      NewItem(menu_window_closeall,'', kbNoKey, cmCloseAll, hcCloseAll,
       NewLine(
-      NewItem('~S~ize/Move','Ctrl+F5', kbCtrlF5, cmResize, hcResize,
-      NewItem('~Z~oom','F5', kbF5, cmZoom, hcZoom,
-      NewItem('~N~ext','F6', kbF6, cmNext, hcNext,
-      NewItem('~P~revious','Shift+F6', kbShiftF6, cmPrev, hcPrev,
-      NewItem('~C~lose','Alt+F3', kbAltF3, cmClose, hcClose,
+      NewItem(menu_window_resize,menu_key_window_resize, kbCtrlF5, cmResize, hcResize,
+      NewItem(menu_window_zoom,menu_key_window_zoom, kbF5, cmZoom, hcZoom,
+      NewItem(menu_window_next,menu_key_window_next, kbF6, cmNext, hcNext,
+      NewItem(menu_window_previous,menu_key_window_previous, kbShiftF6, cmPrev, hcPrev,
+      NewItem(menu_window_close,menu_key_window_close, kbAltF3, cmClose, hcClose,
       NewLine(
-      NewItem('~L~ist...','Alt+0', kbAlt0, cmWindowList, hcWindowList,
-      NewItem('~R~efresh display','', kbNoKey, cmUpdate, hcUpdate,
+      NewItem(menu_window_list,menu_key_window_list, kbAlt0, cmWindowList, hcWindowList,
+      NewItem(menu_window_update,'', kbNoKey, cmUpdate, hcUpdate,
       nil))))))))))))),
-    NewSubMenu('~H~elp', hcHelpMenu, NewMenu(
-      NewItem('~C~ontents','', kbNoKey, cmHelpContents, hcHelpContents,
-      NewItem('~I~ndex','Shift+F1', kbShiftF1, cmHelpIndex, hcHelpIndex,
-      NewItem('~T~opic search','Ctrl+F1', kbCtrlF1, cmHelpTopicSearch, hcHelpTopicSearch,
-      NewItem('~P~revious topic','Alt+F1', kbAltF1, cmHelpPrevTopic, hcHelpPrevTopic,
-      NewItem('~U~sing help','',kbNoKey, cmHelpUsingHelp, hcHelpUsingHelp,
-      NewItem('~F~iles...','',kbNoKey, cmHelpFiles, hcHelpFiles,
+    NewSubMenu(menu_help, hcHelpMenu, NewMenu(
+      NewItem(menu_help_contents,'', kbNoKey, cmHelpContents, hcHelpContents,
+      NewItem(menu_help_index,menu_key_help_helpindex, kbShiftF1, cmHelpIndex, hcHelpIndex,
+      NewItem(menu_help_topicsearch,menu_key_help_topicsearch, kbCtrlF1, cmHelpTopicSearch, hcHelpTopicSearch,
+      NewItem(menu_help_prevtopic,menu_key_help_prevtopic, kbAltF1, cmHelpPrevTopic, hcHelpPrevTopic,
+      NewItem(menu_help_using,'',kbNoKey, cmHelpUsingHelp, hcHelpUsingHelp,
+      NewItem(menu_help_files,'',kbNoKey, cmHelpFiles, hcHelpFiles,
       NewLine(
-      NewItem('~A~bout...','',kbNoKey, cmAbout, hcAbout,
+      NewItem(menu_help_about,'',kbNoKey, cmAbout, hcAbout,
       nil))))))))),
     nil)))))))))))));
   DisableCommands(EditorCmds+SourceCmds+CompileCmds);
@@ -372,50 +372,50 @@ begin
   R.A.Y := R.B.Y - 1;
   StatusLine:=New(PIDEStatusLine, Init(R,
     NewStatusDef(hcFirstCommand, hcLastCommand,
-      NewStatusKey('~F1~ Help', kbF1, cmHelp,
+      NewStatusKey(status_help, kbF1, cmHelp,
       StdStatusKeys(
       nil)),
     NewStatusDef(hcHelpWindow, hcHelpWindow,
-      NewStatusKey('~F1~ Help on help', kbF1, cmHelpUsingHelp,
-      NewStatusKey('~Alt+F1~ Previous topic', kbAltF1, cmHelpPrevTopic,
-      NewStatusKey('~Shift+F1~ Help index', kbShiftF1, cmHelpIndex,
-      NewStatusKey('~Esc~ Close help', kbEsc, cmClose,
+      NewStatusKey(status_help_on_help, kbF1, cmHelpUsingHelp,
+      NewStatusKey(status_help_previoustopic, kbAltF1, cmHelpPrevTopic,
+      NewStatusKey(status_help_index, kbShiftF1, cmHelpIndex,
+      NewStatusKey(status_help_close, kbEsc, cmClose,
       StdStatusKeys(
       nil))))),
     NewStatusDef(hcSourceWindow, hcSourceWindow,
-      NewStatusKey('~F1~ Help', kbF1, cmHelp,
-      NewStatusKey('~F2~ Save', kbF2, cmSave,
-      NewStatusKey('~F3~ Open', kbF3, cmOpen,
-      NewStatusKey('~Alt+F9~ Compile', kbAltF9, cmCompile,
-      NewStatusKey('~F9~ Make', kbF9, cmMake,
-      NewStatusKey('~Alt+F10~ Local menu', kbAltF10, cmLocalMenu,
+      NewStatusKey(status_help, kbF1, cmHelp,
+      NewStatusKey(status_save, kbF2, cmSave,
+      NewStatusKey(status_open, kbF3, cmOpen,
+      NewStatusKey(status_compile, kbAltF9, cmCompile,
+      NewStatusKey(status_make, kbF9, cmMake,
+      NewStatusKey(status_localmenu, kbAltF10, cmLocalMenu,
       StdStatusKeys(
       nil))))))),
     NewStatusDef(hcASCIITableWindow, hcASCIITableWindow,
-      NewStatusKey('~F1~ Help', kbF1, cmHelp,
-      NewStatusKey('~Ctrl+Enter~ Transfer char', kbCtrlEnter, cmTransfer,
+      NewStatusKey(status_help, kbF1, cmHelp,
+      NewStatusKey(status_transferchar, kbCtrlEnter, cmTransfer,
       StdStatusKeys(
       nil))),
     NewStatusDef(hcMessagesWindow, hcMessagesWindow,
-      NewStatusKey('~F1~ Help', kbF1, cmHelp,
-      NewStatusKey('~'+EnterSign+'~ Goto source', kbEnter, cmMsgGotoSource,
-      NewStatusKey('~Space~ Track source', kbNoKey, cmMsgTrackSource,
-      NewStatusKey('~Alt+F10~ Local menu', kbAltF10, cmLocalMenu,
+      NewStatusKey(status_help, kbF1, cmHelp,
+      NewStatusKey(status_msggotosource, kbEnter, cmMsgGotoSource,
+      NewStatusKey(status_msgtracksource, kbNoKey, cmMsgTrackSource,
+      NewStatusKey(status_localmenu, kbAltF10, cmLocalMenu,
       NewStatusKey('', kbEsc, cmClose,
       StdStatusKeys(
       nil)))))),
     NewStatusDef(hcCalcWindow, hcCalcWindow,
-      NewStatusKey('~F1~ Help', kbF1, cmHelp,
-      NewStatusKey('~Esc~ Close', kbEsc, cmClose,
-      NewStatusKey('~Ctrl+Enter~ Transfer result', kbCtrlEnter, cmCalculatorPaste,
+      NewStatusKey(status_help, kbF1, cmHelp,
+      NewStatusKey(status_close, kbEsc, cmClose,
+      NewStatusKey(status_calculatorpaste, kbCtrlEnter, cmCalculatorPaste,
       StdStatusKeys(
       nil)))),
     NewStatusDef(0, $FFFF,
-      NewStatusKey('~F1~ Help', kbF1, cmHelp,
-      NewStatusKey('~F3~ Open', kbF3, cmOpen,
-      NewStatusKey('~Alt+F9~ Compile', kbAltF9, cmCompile,
-      NewStatusKey('~F9~ Make', kbF9, cmMake,
-      NewStatusKey('~Alt+F10~ Local menu', kbAltF10, cmLocalMenu,
+      NewStatusKey(status_help, kbF1, cmHelp,
+      NewStatusKey(status_open, kbF3, cmOpen,
+      NewStatusKey(status_compile, kbAltF9, cmCompile,
+      NewStatusKey(status_make, kbF9, cmMake,
+      NewStatusKey(status_localmenu, kbAltF10, cmLocalMenu,
       StdStatusKeys(
       nil)))))),
     nil)))))))));
@@ -620,7 +620,7 @@ begin
     begin
       IOK:=WriteINIFile;
       if IOK=false then
-        ErrorBox('Error saving configuration.',nil);
+        ErrorBox(error_saving_cfg_file,nil);
     end;
   if (AutoSaveOptions and asEditorFiles)=0 then
       SOK:=SaveAll;
@@ -633,8 +633,7 @@ begin
       CloseAllBrowsers;
       DOK:=SaveDesktop;
       if DOK=false then
-        ErrorBox('Error saving desktop file.'#13+
-                 'Desktop layout could not be stored.',nil);
+        ErrorBox(error_saving_dsk_file,nil);
     end;
   AutoSave:=IOK and SOK and DOK;
 end;
@@ -650,7 +649,7 @@ begin
   begin
     if UserScreen=nil then
      begin
-       ErrorBox('Sorry, user screen not available.',nil);
+       ErrorBox(error_user_screen_not_avail,nil);
        Exit;
      end;
 
@@ -872,7 +871,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.50  2000-01-08 18:26:20  florian
+  Revision 1.51  2000-01-23 21:25:17  florian
+    + start of internationalization support
+
+  Revision 1.50  2000/01/08 18:26:20  florian
     + added a register window, doesn't work yet
 
   Revision 1.49  2000/01/05 00:31:50  pierre
