@@ -711,7 +711,7 @@ implementation
          else
            p:=nil;
          p:=cexitnode.create(p);
-         p.resulttype:=voidtype;
+         do_resulttypepass(p);
          exit_statement:=p;
       end;
 
@@ -1222,7 +1222,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  2001-05-04 15:52:04  florian
+  Revision 1.30  2001-05-17 13:25:24  jonas
+    * fixed web bugs 1480 and 1481
+
+  Revision 1.29  2001/05/04 15:52:04  florian
     * some Delphi incompatibilities fixed:
        - out, dispose and new can be used as idenfiers now
        - const p = apointerype(nil); is supported now
