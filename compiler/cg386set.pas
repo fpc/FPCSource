@@ -538,7 +538,7 @@ implementation
                          of the sign!
                        }
                        if t^._low=0 then
-                         emitl(A_JLE,elselabel)
+                         emitl(A_JBE,elselabel)
                        else
                          emitl(jmp_lee,elselabel);
                     end
@@ -782,7 +782,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  1998-08-19 16:07:38  jonas
+  Revision 1.8  1998-08-25 11:51:46  peter
+    * fixed -15 seen as byte in case
+
+  Revision 1.7  1998/08/19 16:07:38  jonas
     * changed optimizer switches + cleanup of DestroyRefs in daopt386.pas
 
   Revision 1.6  1998/08/18 09:24:39  pierre
