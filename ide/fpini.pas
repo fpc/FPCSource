@@ -537,7 +537,7 @@ begin
   { Run }
   INIFile^.SetEntry(secRun,ieRunParameters,GetRunParameters);
 {$ifndef GABOR}
-  If DebuggeeTTY<>'' then
+  { If DebuggeeTTY<>'' then }
     INIFile^.SetEntry(secRun,ieDebuggeeRedir,DebuggeeTTY);
 {$endif}
   { Compile }
@@ -622,7 +622,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2001-08-12 00:04:50  pierre
+  Revision 1.4  2002-04-02 14:06:50  pierre
+   * avoid a problem if resetting debuggee redirection
+
+  Revision 1.3  2001/08/12 00:04:50  pierre
    * some speed improvements for string operations
 
   Revision 1.2  2001/08/05 02:01:48  peter
