@@ -65,6 +65,7 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     function  FpWrite	(fd: cint;buf:pchar; nbytes : TSize): TSSize; cdecl; external clib name 'write';
     procedure FpExit	(status : cint); cdecl; external clib name '_exit';
     function  fpmmap	(addr:pointer;len:size_t;prot:cint;flags:cint;fd:cint;ofs:off_t):pointer; cdecl; external clib name 'mmap';
+    function  fpmunmap	(addr:pointer;len:size_t):cint; cdecl; external clib name 'munmap';
     function  FpIOCtl   (Handle:cint;Ndx: culong;Data: Pointer):cint; cdecl; external clib name 'ioctl';
     Function  FPSelect  (N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cint; cdecl; external clib name 'select';
     function  fpgetenv  (name : pchar):pchar; cdecl; external clib name 'getenv';
@@ -84,10 +85,15 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     Function  FpFcntl      (fildes : cInt; cmd : cInt): cInt; cdecl; external clib name 'fcntl';   
     Function  FpFcntl      (fildes : cInt; cmd : cInt; arg :cInt): cInt; cdecl; external clib name 'fcntl';
     Function  FpFcntl      (fildes : cInt; cmd : cInt; var arg : flock): cInt; cdecl external clib name 'fcntl';
+    Function  FPnanosleep  (const rqtp: ptimespec; rmtp: ptimespec): cint; cdecl; external clib name 'nanosleep';
 
 {
    $Log$
-   Revision 1.7  2004-01-12 23:43:22  marco
+   Revision 1.8  2004-02-06 20:47:00  jonas
+     + fpnanosleep for oscdeclh.inc
+     - removed obsolete darwin remarks from bsd/ossysc.inc
+
+   Revision 1.7  2004/01/12 23:43:22  marco
     * some semi colons added
 
    Revision 1.6  2004/01/04 21:05:01  jonas

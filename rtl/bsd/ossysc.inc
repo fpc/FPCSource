@@ -526,15 +526,10 @@ end;
 {$user BLA!}
 Function FpNanoSleep(req : ptimespec;rem : ptimespec) : cint; [public, alias : 'FPC_SYSC_NANOSLEEP'];
 begin
-{$ifndef darwin}
   FpNanoSleep:=Do_SysCall(syscall_nr_nanosleep,TSysParam(req),TSysParam(rem));
-{$else not darwin}
-{$warning: TODO: nanosleep!!!}
-{$endif not darwin}
 end;
 
 function Fpgetcwd(pt:pchar; _size:size_t):pchar;[public, alias :'FPC_SYSC_GETCWD'];
-{$ifndef darwin}
 const intpathmax = 1024-4;      // didn't use POSIX data in libc
                                 // implementation.
 var ept,bpt : pchar;
@@ -583,9 +578,6 @@ begin
            End;
  Fpgetcwd:=pt;
 end;
-{$else not darwin}
-{$i getcwd.inc}
-{$endif darwin}
 
 {$endif}
 
@@ -624,7 +616,11 @@ end;
 
 {
  $Log$
- Revision 1.16  2003-12-30 12:26:21  marco
+ Revision 1.17  2004-02-06 20:47:00  jonas
+   + fpnanosleep for oscdeclh.inc
+   - removed obsolete darwin remarks from bsd/ossysc.inc
+
+ Revision 1.16  2003/12/30 12:26:21  marco
   * FPC_USE_LIBC
 
  Revision 1.15  2003/12/16 19:43:59  marco
