@@ -28,7 +28,7 @@ const
    {$define DELPHI_3}
 {$endif}
 
-{$ifdef linux}
+{$ifdef unix}
   DirSeparator = '/';
 {$else}
   DirSeparator = '\';

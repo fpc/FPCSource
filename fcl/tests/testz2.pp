@@ -3,7 +3,7 @@ Program testz2;
 uses zstream;
 
 const
-{$ifdef linux}
+{$ifdef unix}
   eol=#10;
 {$else}
   eol=#10#13;
@@ -31,7 +31,10 @@ begin
 end.
 
   $Log$
-  Revision 1.2  2000-07-13 11:33:05  michael
+  Revision 1.3  2002-05-31 11:31:46  marco
+   * 1.0.x Renamefest for FCL. Fixed some oddities in 1.1 too
+
+  Revision 1.2  2000/07/13 11:33:05  michael
   + removed logs
  
 }

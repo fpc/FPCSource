@@ -148,22 +148,13 @@ type
 Implementation
 
 uses
-{$ifdef linux}
- {$ifndef freebsd}
+{$ifdef unix}
   {$ifdef ver1_0}
     Linux,
   {$else}
     Unix,
   {$endif}
  {$endif}
-{$endif}
-{$ifdef freebsd}
-  {$ifdef ver1_0}
-    Linux,
-  {$else}
-    Unix,
-  {$endif}
-{$endif}
   inet
   ;
 
@@ -524,7 +515,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  2001-12-17 21:03:55  sg
+  Revision 1.11  2002-05-31 11:31:46  marco
+   * 1.0.x Renamefest for FCL. Fixed some oddities in 1.1 too
+
+  Revision 1.10  2001/12/17 21:03:55  sg
   * Fixed merging mistake of my last commit :/
 
   Revision 1.9  2001/12/17 20:21:35  sg
