@@ -100,9 +100,6 @@ End;
 {******************************************************************************
                                --- Exec ---
 ******************************************************************************}
-var
-  LastDosExitCode: word;
-
 Procedure Exec(const path: pathstr; const comline: comstr);
 var p:string;
     argv:ppchar;
@@ -122,11 +119,6 @@ begin
   wait_for_thread(th,status);
   LastDosExitCode:=status and $FF; { only keep the lower 8-bits }
 end;
-
-Function DosExitCode: Word;
-Begin
-  DosExitCode:=LastDosExitCode;
-End;
 
 
 function GetTimeZoneString : string;
@@ -152,7 +144,10 @@ end;
 
 {
  $Log$
- Revision 1.2  2003-01-08 22:32:28  marco
+ Revision 1.1  2004-12-05 16:43:40  hajny
+   * dos.inc renamed to dos_beos.inc
+
+ Revision 1.2  2003/01/08 22:32:28  marco
   * Small fixes and quick merge with 1.0.x. At least the compiler builds now,
      but it could crash hard, since there are lots of unimplemented funcs.
 
