@@ -1400,12 +1400,12 @@ Implementation
             place := cut_normal;
 
            { avoid empty files }
-           while assigned(hp.next) and
-                 (Tai(hp.next).typ in [ait_marker,ait_comment,ait_section,ait_cut]) do
+           while assigned(hp) and
+                 (Tai(hp).typ in [ait_marker,ait_comment,ait_section,ait_cut]) do
             begin
-              if Tai(hp.next).typ=ait_section then
-               startsec:=Tai_section(hp.next).sec
-              else if (Tai(hp.next).typ=ait_cut) then
+              if Tai(hp).typ=ait_section then
+               startsec:=Tai_section(hp).sec
+              else if (Tai(hp).typ=ait_cut) then
                place := Tai_cut(hp).place;
               hp:=Tai(hp.next);
             end;
@@ -1413,8 +1413,6 @@ Implementation
            NextSmartName(place);
            objectoutput.initwriting(ObjFile);
            objectdata:=objectoutput.data;
-
-           hp:=Tai(hp.next);
 
            { there is a problem if startsec is sec_none !! PM }
            if startsec=sec_none then
@@ -1517,7 +1515,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.19  2001-04-21 15:34:49  peter
+  Revision 1.20  2001-06-13 18:31:57  peter
+    * smartlink with dll fixed (merged)
+
+  Revision 1.19  2001/04/21 15:34:49  peter
     * used target_asm.id instead of target_info.assem
 
   Revision 1.18  2001/04/18 22:01:53  peter
