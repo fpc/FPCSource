@@ -2,6 +2,9 @@
 uses
    dpmiexcp;
 {$endif go32v2}
+
+procedure dumpqword(q : qword);forward;
+
 {$i ..\rtl\inc\int64.inc}
 
 procedure dumpqword(q : qword);
@@ -36,8 +39,6 @@ procedure do_error;
   begin
      do_error(0);
   end;
-
-{ $define error:=do_error({$line});}
 
 procedure simpletestcmpqword;
 
@@ -397,9 +398,9 @@ procedure testmulqword;
      for i:=1 to 1000000 do
        begin
           tqwordrec(q1).high:=0;
-          tqwordrec(q1).low:=random($ffffffff);
+          tqwordrec(q1).low:=random($7ffffffe);
           tqwordrec(q2).high:=0;
-          tqwordrec(q2).low:=random($ffffffff);
+          tqwordrec(q2).low:=random($7ffffffe);
           if q1*q2<>q2*q1 then
             begin
                write('Multiplication of ');
@@ -415,10 +416,10 @@ procedure testmulqword;
      for i:=1 to 1000000 do
        begin
           tqwordrec(q1).high:=0;
-          tqwordrec(q1).low:=random($ffffffff);
+          tqwordrec(q1).low:=random($7ffffffe);
           q1:=q1 shl 16;
           tqwordrec(q2).high:=0;
-          tqwordrec(q2).low:=random($ffff);
+          tqwordrec(q2).low:=random($fffe);
           if q1*q2<>q2*q1 then
             begin
                write('Multiplication of ');
@@ -452,7 +453,7 @@ procedure testdivqword;
      { to test the code generation }
      if q2 div q1<>q2 then
        do_error(1900);
-     if q2 div q1 div q1<>q1 then
+     if q2 div q1 div q1<>q2 then
        do_error(1901);
      if q2 div (q4 div q3)<>q1 then
        do_error(1902);
@@ -462,16 +463,19 @@ procedure testdivqword;
      { a more complex expression }
      if (q4 div q3) div (q2 div q1)<>(q2 div q1) div (q4 div q3) then
        do_error(1904);
-
+     
      { now test the division procedure with random bit patterns }
      writeln('Doing some random divisions, takes a few seconds');
      writeln('.................100%');
      for i:=1 to 100000 do
        begin
-          tqwordrec(q1).high:=random($ffffffff);
-          tqwordrec(q1).low:=random($ffffffff);
-          tqwordrec(q2).high:=random($ffffffff);
-          tqwordrec(q2).low:=random($ffffffff);
+          tqwordrec(q1).high:=random($7ffffffe);
+          tqwordrec(q1).low:=random($7ffffffe);
+          tqwordrec(q2).high:=random($7ffffffe);
+          tqwordrec(q2).low:=random($7ffffffe);
+          { avoid division by zero }
+          if (tqwordrec(q2).low or tqwordrec(q2).high)=0 then
+            tqwordrec(q2).low:=1;
           q3:=q1 div q2;
           { get a restless division }
           q1:=q2*q3;
@@ -490,15 +494,18 @@ procedure testdivqword;
        end;
      for i:=1 to 100000 do
        begin
-          tqwordrec(q1).high:=random($ffffffff);
-          tqwordrec(q1).low:=random($ffffffff);
+          tqwordrec(q1).high:=random($7ffffffe);
+          tqwordrec(q1).low:=random($7ffffffe);
           tqwordrec(q2).high:=0;
-          tqwordrec(q2).low:=random($ffffffff);
+          tqwordrec(q2).low:=random($7ffffffe);
+          { avoid division by zero }
+          if tqwordrec(q2).low=0 then
+            tqwordrec(q2).low:=1;
           { get a restless division }
           q3:=q1 div q2;
           q1:=q2*q3;
           q3:=q1 div q2;
-          if q3<>q1 then
+          if q3*q2<>q1 then
             begin
                write('Division of ');
                dumpqword(q1);
