@@ -230,7 +230,7 @@ ifndef USELIBGGI
 USELIBGGI=NO
 endif
 override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings sysctl baseunix unixutil unix initc   dos dl objects printer sysutils typinfo systhrds classes math varutils charset ucomplex getopts heaptrc lineinfo errors terminfo variants types sysctl dateutils sysconst cthreads strutils rtlconst
-override TARGET_RSTS+=math varutils typinfo classes variants dateutils sysconst math varutils typinfo classes variants dateutils systhrds sysconst rtlconst
+override TARGET_RSTS+=math varutils typinfo classes variants dateutils systhrds sysconst rtlconst
 override INSTALL_FPCPACKAGE=y
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC) $(BSDPROCINC) $(OSPROCINC)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC)
@@ -1333,6 +1333,7 @@ SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 $(SYSTEMUNIT)$(PPUEXT) : $(BSDINC)/$(SYSTEMUNIT).pp sysconst.inc $(SYSDEPS)
 	$(COMPILER) -Us -Sg $(BSDINC)/$(SYSTEMUNIT).pp
+systhrds$(PPUEXT): systhrds.pp $(INC)/threadh.inc $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
 dateutils$(PPUEXT): $(OBJPASDIR)/dateutils.pp baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)

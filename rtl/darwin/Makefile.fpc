@@ -17,7 +17,6 @@ units=$(SYSTEMUNIT) objpas strings sysctl baseunix unixutil \
       variants types sysctl dateutils \
       sysconst cthreads strutils rtlconst
 
-rsts=math varutils typinfo classes variants dateutils sysconst
 rsts=math varutils typinfo classes variants dateutils systhrds sysconst rtlconst
 
 [require]
@@ -109,6 +108,8 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
 $(SYSTEMUNIT)$(PPUEXT) : $(BSDINC)/$(SYSTEMUNIT).pp sysconst.inc $(SYSDEPS)
         $(COMPILER) -Us -Sg $(BSDINC)/$(SYSTEMUNIT).pp
+
+systhrds$(PPUEXT): systhrds.pp $(INC)/threadh.inc $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
 
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
