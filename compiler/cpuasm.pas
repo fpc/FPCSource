@@ -556,6 +556,7 @@ uses
       var
         i : longint;
         s : string;
+        addsize : boolean;
 {$endif}
       begin
 {$ifdef ASMDEBUG}
@@ -567,30 +568,52 @@ uses
            else
             s:=s+',';
            { type }
-           if (oper[i-1].ot and OT_REGISTER)<>0 then
-             s:=s+'reg'
+           addsize:=false;
+           if (oper[i-1].ot and OT_XMMREG)=OT_XMMREG then
+            s:=s+'xmmreg'
            else
-            if (oper[i-1].ot and OT_IMMEDIATE)<>0 then
-             s:=s+'imm'
+             if (oper[i-1].ot and OT_MMXREG)=OT_MMXREG then
+              s:=s+'mmxreg'
            else
-            if (oper[i-1].ot and OT_MEMORY)<>0 then
-             s:=s+'mem'
+             if (oper[i-1].ot and OT_FPUREG)=OT_FPUREG then
+              s:=s+'fpureg'
+           else
+            if (oper[i-1].ot and OT_REGISTER)=OT_REGISTER then
+             begin
+               s:=s+'reg';
+               addsize:=true;
+             end
+           else
+            if (oper[i-1].ot and OT_IMMEDIATE)=OT_IMMEDIATE then
+             begin
+               s:=s+'imm';
+               addsize:=true;
+             end
+           else
+            if (oper[i-1].ot and OT_MEMORY)=OT_MEMORY then
+             begin
+               s:=s+'mem';
+               addsize:=true;
+             end
            else
              s:=s+'???';
            { size }
-           if (oper[i-1].ot and OT_BITS8)<>0 then
-             s:=s+'8'
-           else
-            if (oper[i-1].ot and OT_BITS16)<>0 then
-             s:=s+'16'
-           else
-            if (oper[i-1].ot and OT_BITS32)<>0 then
-             s:=s+'32'
-           else
-             s:=s+'??';
-           { signed }
-           if (oper[i-1].ot and OT_SIGNED)<>0 then
-             s:=s+'s';
+           if addsize then
+            begin
+              if (oper[i-1].ot and OT_BITS8)<>0 then
+                s:=s+'8'
+              else
+               if (oper[i-1].ot and OT_BITS16)<>0 then
+                s:=s+'16'
+              else
+               if (oper[i-1].ot and OT_BITS32)<>0 then
+                s:=s+'32'
+              else
+                s:=s+'??';
+              { signed }
+              if (oper[i-1].ot and OT_SIGNED)<>0 then
+               s:=s+'s';
+            end;
          end;
         GetString:=s+']';
 {$else}
@@ -1542,7 +1565,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  1999-12-24 15:22:52  peter
+  Revision 1.8  2000-01-07 00:07:24  peter
+    * display fpu,mmx,xmm names instead of reg??
+
+  Revision 1.7  1999/12/24 15:22:52  peter
     * reset insentry/lastinsoffset so writing smartlink works correct for
       short jmps
 
