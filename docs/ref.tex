@@ -6003,15 +6003,9 @@ Function Ptr (Sel,Off : Longint) : Pointer;
 \var{Ptr} returns a pointer, pointing to the address specified by
 segment \var{Sel} and offset \var{Off}.
 
- \begin{remark}
-\begin{enumerate}
-\item In the 32-bit flat-memory model supported by \fpc, this
-function is obsolete.
-\item The returned address is simply the offset. If you recompile
-the RTL with \var{-dDoMapping} defined, then the compiler returns the
-following : \var{ptr := pointer(\$e0000000+sel shl 4+off)} under \dos, or
-\var{ptr := pointer(sel shl 4+off)} on other Operating systems.
-\end{enumerate}
+\begin{remark}
+In the 32-bit flat-memory model supported by \fpc, this
+function is obsolete. The value will always be the offset.
 \end{remark}
 \Errors
 None.
