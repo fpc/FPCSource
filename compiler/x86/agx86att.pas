@@ -22,7 +22,7 @@
 }
 { This unit implements an asmoutput class for i386 AT&T syntax
 }
-unit ag386att;
+unit agx86att;
 
 {$i fpcdefs.inc}
 
@@ -34,7 +34,7 @@ interface
       aasmbase,aasmtai,aasmcpu,assemble,aggas;
 
     type
-      T386ATTAssembler=class(TGNUassembler)
+      Tx86ATTAssembler=class(TGNUassembler)
       private
         procedure WriteReference(var ref : treference);
         procedure WriteOper(const o:toper);
@@ -46,13 +46,35 @@ interface
     TAttSuffix = (AttSufNONE,AttSufINT,AttSufFPU,AttSufFPUint);
 
     const
+{$ifdef x86_64}
+      gas_op2str:op2strtable={$i x64att.inc}
+      gas_needsuffix:array[tasmop] of TAttSuffix={$i x64atts.inc}
+{$else x86_64}
       gas_op2str:op2strtable={$i i386att.inc}
       gas_needsuffix:array[tasmop] of TAttSuffix={$i i386atts.inc}
+{$endif x86_64}
 
       gas_reg2str : reg2strtable = ('',
+      {$ifdef x86_64}
+         '%rax','%rcx','%rdx','%rbx','%rsp','%rbp','%rsi','%rdi',
+         '%r8','%r9','%r10','%r11','%r12','%r13','%r14','%r15','%rip',
+      {$endif x86_64}
         '%eax','%ecx','%edx','%ebx','%esp','%ebp','%esi','%edi',
+      {$ifdef x86_64}
+         '%r8d','%r9d','%r10d','%r11d','%r12d','%r13d','%r14d','%r15d',
+      {$endif x86_64}
         '%ax','%cx','%dx','%bx','%sp','%bp','%si','%di',
-        '%al','%cl','%dl','%bl','%ah','%ch','%bh','%dh',
+      {$ifdef x86_64}
+         '%r8w','%r9w','%r10w','%r11w','%r12w','%r13w','%r14w','%r15w',
+      {$endif x86_64}
+        '%al','%cl','%dl','%bl',
+      {$ifdef x86_64}
+        '%spl','%bpl','%sil','%dil',
+        '%r8b','%r9b','%r10b','%r11b','%r12b','%r13b','%r14b','%r15b',
+      {$endif x86_64}
+        '%ah','%ch','%bh','%dh',
+      {$ifdef x86_64}
+      {$endif x86_64}
         '%cs','%ds','%es','%ss','%fs','%gs',
         '%st','%st(0)','%st(1)','%st(2)','%st(3)','%st(4)','%st(5)','%st(6)','%st(7)',
         '%dr0','%dr1','%dr2','%dr3','%dr6','%dr7',
@@ -60,11 +82,14 @@ interface
         '%tr3','%tr4','%tr5','%tr6','%tr7',
         '%mm0','%mm1','%mm2','%mm3','%mm4','%mm5','%mm6','%mm7',
         '%xmm0','%xmm1','%xmm2','%xmm3','%xmm4','%xmm5','%xmm6','%xmm7'
+      {$ifdef x86_64}
+        ,'%xmm8','%xmm9','%xmm10','%xmm11','%xmm12','%xmm13','%xmm14','%xmm15'
+      {$endif x86_64}
        );
-       
+
      regname_count=45;
      regname_count_bsstart=32;
-     
+
      gas_regname2regnum:array[0..regname_count-1] of regname2regnumrec=(
         (name:'%ah';     number:NR_AH),
         (name:'%al';     number:NR_AL),
@@ -113,15 +138,24 @@ interface
         (name:'%tr7';    number:NR_DR7)
      );
 
+{$ifdef x86_64}
+     gas_opsize2str : array[topsize] of string[2] = ('',
+       'b','w','l','bw','bl','wl','bq','wq','lq',
+       's','l','q',
+       's','l','t','d','q','v','x',
+       '','',''
+     );
+{$else x86_64}
      gas_opsize2str : array[topsize] of string[2] = ('',
        'b','w','l','bw','bl','wl',
        's','l','q',
        's','l','t','d','q','v','',
        '','',''
      );
+{$endif x86_64}
 
      function gas_regnum_search(const s:string):Tnewregister;
-       
+
 
   implementation
 
@@ -131,10 +165,10 @@ interface
 
 
 {****************************************************************************
-                            TI386ATTASMOUTPUT
+                            TX86ATTASMOUTPUT
  ****************************************************************************}
 
-    procedure T386AttAssembler.WriteReference(var ref : treference);
+    procedure Tx86AttAssembler.WriteReference(var ref : treference);
       begin
         with ref do
          begin
@@ -189,7 +223,7 @@ interface
       end;
 
 
-    procedure T386AttAssembler.WriteOper(const o:toper);
+    procedure Tx86AttAssembler.WriteOper(const o:toper);
       begin
         case o.typ of
           top_reg :
@@ -222,7 +256,7 @@ interface
       end;
 
 
-    procedure T386AttAssembler.WriteOper_jmp(const o:toper);
+    procedure Tx86AttAssembler.WriteOper_jmp(const o:toper);
       begin
         case o.typ of
           top_reg :
@@ -253,7 +287,7 @@ interface
       end;
 
 
-    procedure T386AttAssembler.WriteInstruction(hp: tai);
+    procedure Tx86AttAssembler.WriteInstruction(hp: tai);
       var
        op       : tasmop;
        calljmp  : boolean;
@@ -271,7 +305,7 @@ interface
         if (Taicpu(hp).oper[0].typ=top_reg) and
             (Taicpu(hp).oper[0].reg.enum>lastreg) then
           internalerror(200301081);
-          
+
         if (not calljmp) and
             (gas_needsuffix[op]<>AttSufNONE) and
             (op<>A_FNSTSW) and (op<>A_FSTSW) and
@@ -306,12 +340,12 @@ interface
 
 
      function gas_regnum_search(const s:string):Tnewregister;
-     
+
      {Searches the register number that belongs to the register in s.
       s must be in uppercase!.}
-     
+
      var i,p:byte;
-     
+
      begin
         {Binary search.}
         p:=0;
@@ -333,6 +367,26 @@ interface
 *****************************************************************************}
 
     const
+{$ifdef x86_64}
+       as_x86_64_as_info : tasminfo =
+          (
+            id     : as_x86_64_as;
+            idtxt  : 'AS';
+            asmbin : 'as';
+            asmcmd : '-o $OBJ $ASM';
+            supported_target : system_any;
+            outputbinary: false;
+            allowdirect : true;
+            needar : true;
+            labelprefix_only_inside_procedure : false;
+            labelprefix : '.L';
+            comment : '# ';
+            secnames : ('',
+              '.text','.data','.bss',
+              '','','','','','',
+              '.stab','.stabstr','COMMON')
+          );
+{$else x86_64}
        as_i386_as_info : tasminfo =
           (
             id     : as_gas;
@@ -391,15 +445,23 @@ interface
                 '.section .idata$6','.section .idata$7','.section .edata',
               '.stab','.stabstr','COMMON')
           );
+{$endif x86_64}
 
 initialization
-  RegisterAssembler(as_i386_as_info,T386ATTAssembler);
-  RegisterAssembler(as_i386_as_aout_info,T386ATTAssembler);
-  RegisterAssembler(as_i386_asw_info,T386ATTAssembler);
+{$ifdef x86_64}
+  RegisterAssembler(as_x86_64_as_info,Tx86ATTAssembler);
+{$else x86_64}
+  RegisterAssembler(as_i386_as_info,Tx86ATTAssembler);
+  RegisterAssembler(as_i386_as_aout_info,Tx86ATTAssembler);
+  RegisterAssembler(as_i386_asw_info,Tx86ATTAssembler);
+{$endif x86_64}
 end.
 {
   $Log$
-  Revision 1.31  2003-03-23 23:33:10  hajny
+  Revision 1.1  2003-04-25 12:04:31  florian
+    * merged agx64att and ag386att to x86/agx86att
+
+  Revision 1.31  2003/03/23 23:33:10  hajny
     + emx target added
 
   Revision 1.30  2003/02/19 22:00:15  daniel

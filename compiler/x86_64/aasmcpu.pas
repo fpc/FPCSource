@@ -210,7 +210,7 @@ implementation
 
      uses
        cutils,
-       agx64att;
+       agx86att;
 
 {*****************************************************************************
                               Instruction table
@@ -1808,7 +1808,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2003-03-26 12:50:54  armin
+  Revision 1.7  2003-04-25 12:04:31  florian
+    * merged agx64att and ag386att to x86/agx86att
+
+  Revision 1.6  2003/03/26 12:50:54  armin
   * avoid problems with the ide in init/dome
 
   Revision 1.5  2003/01/05 13:36:53  florian

@@ -81,7 +81,7 @@ implementation
 
 uses
   globtype,globals,systems,verbose,
-  cpuinfo,ag386att;
+  cpuinfo,agx86att;
 
 {$define ATTOP}
 {$define INTELOP}
@@ -680,7 +680,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.29  2003-02-19 22:00:16  daniel
+  Revision 1.30  2003-04-25 12:04:31  florian
+    * merged agx64att and ag386att to x86/agx86att
+
+  Revision 1.29  2003/02/19 22:00:16  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

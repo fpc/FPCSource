@@ -72,7 +72,7 @@ implementation
 **************************************}
 
     {$ifndef NOAG386ATT}
-      ,ag386att
+      ,agx86att
     {$endif}
     {$ifndef NOAG386NSM}
       ,ag386nsm
@@ -88,7 +88,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2003-03-23 23:33:10  hajny
+  Revision 1.11  2003-04-25 12:04:31  florian
+    * merged agx64att and ag386att to x86/agx86att
+
+  Revision 1.10  2003/03/23 23:33:10  hajny
     + emx target added
 
   Revision 1.9  2002/05/18 13:34:22  peter

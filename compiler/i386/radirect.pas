@@ -51,7 +51,7 @@ interface
        { codegen }
        cgbase,
        { constants }
-       ag386att,
+       agx86att,
        cpubase
        ;
 
@@ -308,7 +308,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.7  2003-04-21 20:05:10  peter
+  Revision 1.8  2003-04-25 12:04:31  florian
+    * merged agx64att and ag386att to x86/agx86att
+
+  Revision 1.7  2003/04/21 20:05:10  peter
     * removed some ie checks
 
   Revision 1.6  2003/01/08 18:43:57  daniel
