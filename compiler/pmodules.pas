@@ -750,7 +750,10 @@ implementation
           current_scanner.def_macro('FPC_OBJFPC')
         else
          if (m_gpc in aktmodeswitches) then
-          current_scanner.def_macro('FPC_GPC');
+          current_scanner.def_macro('FPC_GPC')
+        else
+         if (m_mac in aktmodeswitches) then
+          current_scanner.def_macro('FPC_MAC');
       end;
 
 
@@ -869,6 +872,7 @@ implementation
          force_init_final : boolean;
          pd : tprocdef;
          unitname8 : string[8];
+         has_impl: boolean;
       begin
          consume(_UNIT);
          if compile_level=1 then
@@ -1010,9 +1014,16 @@ implementation
          reload_flagged_units;
 
          { Parse the implementation section }
-         consume(_IMPLEMENTATION);
+         if (m_mac in aktmodeswitches) and try_to_consume(_END) then
+           has_impl:= false
+         else 
+           begin
+             consume(_IMPLEMENTATION);
+             has_impl:= true;
+           end;
 
-         Message1(unit_u_loading_implementation_units,current_module.modulename^);
+         if has_impl then
+           Message1(unit_u_loading_implementation_units,current_module.modulename^);
 
          parse_only:=false;
 
@@ -1028,7 +1039,8 @@ implementation
          refsymtable:=st;
 
          { Read the implementation units }
-         parse_implementation_uses;
+         if has_impl then
+           parse_implementation_uses;
 
          if current_module.state=ms_compiled then
            exit;
@@ -1062,17 +1074,20 @@ implementation
          allow_special:=false;
 {$endif Splitheap}
 
-         Message1(parser_u_parsing_implementation,current_module.modulename^);
-         if current_module.in_interface then
-           internalerror(200212285);
+         if has_impl then
+           begin
+             Message1(parser_u_parsing_implementation,current_module.modulename^);
+             if current_module.in_interface then
+               internalerror(200212285);
 
-         { Compile the unit }
-         pd:=create_main_proc(make_mangledname('',current_module.localsymtable,'init'),potype_unitinit,st);
-         pd.aliasnames.insert(make_mangledname('INIT$',current_module.localsymtable,''));
-         tcgprocinfo(current_procinfo).parse_body;
-         tcgprocinfo(current_procinfo).generate_code;
-         tcgprocinfo(current_procinfo).resetprocdef;
-         release_main_proc(pd);
+             { Compile the unit }
+             pd:=create_main_proc(make_mangledname('',current_module.localsymtable,'init'),potype_unitinit,st);
+             pd.aliasnames.insert(make_mangledname('INIT$',current_module.localsymtable,''));
+             tcgprocinfo(current_procinfo).parse_body;
+             tcgprocinfo(current_procinfo).generate_code;
+             tcgprocinfo(current_procinfo).resetprocdef;
+             release_main_proc(pd);
+           end;
 
          { if the unit contains ansi/widestrings, initialization and
            finalization code must be forced }
@@ -1084,7 +1099,7 @@ implementation
          if force_init_final and ((current_module.flags and uf_init)=0) then
            gen_implicit_initfinal(uf_init,st);
          { finalize? }
-         if token=_FINALIZATION then
+         if has_impl and (token=_FINALIZATION) then
            begin
               { set module options }
               current_module.flags:=current_module.flags or uf_finalize;
@@ -1458,7 +1473,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.149  2004-05-02 17:26:19  peter
+  Revision 1.150  2004-05-03 09:55:27  olle
+    + enable omitting of IMPLEMENTATION for mode mac
+    + added macro FPC_MAC for mode mac
+
+  Revision 1.149  2004/05/02 17:26:19  peter
     * fix stabs for globals
 
   Revision 1.148  2004/03/24 20:24:25  hajny
