@@ -154,12 +154,7 @@ implementation
     procedure tcgordconstnode.pass_2;
       begin
          location_reset(location,LOC_CONSTANT,def_cgsize(resulttype.def));
-{$ifdef delphi}
-   { Delphi crashes on this statement }
-         location.valueqword:=value;
-{$else}         
-         location.valueqword:=qword(value);
-{$endif}
+         location.valueqword:=TConstExprUInt(value);
       end;
 
 
@@ -532,7 +527,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2002-10-05 12:43:25  carl
+  Revision 1.21  2002-10-06 21:01:50  peter
+    * use tconstexpruint instead of qword
+
+  Revision 1.20  2002/10/05 12:43:25  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 
