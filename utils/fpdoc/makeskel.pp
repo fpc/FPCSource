@@ -210,12 +210,17 @@ end;
 var
   i: Integer;
   Module: TPasModule;
+  MOFilename: string;
 begin
 {$IFDEF Unix}
-  gettext.TranslateResourceStrings('/usr/local/share/locale/%s/LC_MESSAGES/makeskel.mo');
+  MOFilename:='/usr/local/share/locale/%s/LC_MESSAGES/makeskel.mo';
 {$ELSE}
-  gettext.TranslateResourceStrings('intl/makeskel.%s.mo');
+  MOFilename:='intl/makeskel.%s.mo';
 {$ENDIF}
+  if FileExists(MOFilename) then
+    gettext.TranslateResourceStrings(MOFilename)
+  else
+    writeln('NOTE: unable to find tranlation file ',MOFilename);
 
   WriteLn(STitle);
   WriteLn(SCopyright);
@@ -275,7 +280,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2003-05-07 16:31:32  sg
+  Revision 1.4  2003-09-02 13:26:47  mattias
+  MG: makeskel now ignores missing translation file
+
+  Revision 1.3  2003/05/07 16:31:32  sg
   * Fixed a severe memory corruption problem on termination
 
   Revision 1.2  2003/03/28 13:01:36  michael
