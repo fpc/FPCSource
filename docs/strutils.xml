@@ -1,0 +1,3508 @@
+<?xml version="1.0"?>
+<fpdoc-descriptions>
+  <package name="rtl">
+    <!--
+  ====================================================================
+    strutils
+  ====================================================================
+-->
+    <module name="strutils">
+      <element name="SysUtils">
+        <short>Various calls.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiResemblesText">
+        <short>Check whether 2 strings resemble each other.</short>
+        <descr>
+          <var>AnsiResemblesText</var>
+
+
+
+
+
+ will check whether <link id="AnsiResemblesProc"/> is set. 
+If it is not set, <var>False</var> is returned. If it is set, <var>AText</var> and <var>AOtherText</var> are passed to it and it's result is returned.</descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="AnsiResemblesProc"/>
+          <link id="SoundexProc"/>
+        </seealso>
+      </element>
+      <element name="AnsiResemblesText.Result">
+        <short>
+          <var>True</var>
+
+
+
+
+
+
+
+
+ if the words match, <var>False</var> if not</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiResemblesText.AText">
+        <short>First text to compare</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiResemblesText.AOther">
+        <short>Second text to compare</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiContainsText">
+        <short>Check whether a string contains a certain substring, ignoring case.</short>
+        <descr>
+          <var>AnsiContainsString</var>
+
+
+
+
+
+checks whether <var>AText</var> contains <var>ASubText</var>, and returns <var>True</var>
+ if this is the case, or returns <var>False</var>  otherwise.
+The search is performed case-insensitive.</descr>
+        <errors/>
+        <seealso>
+          <link id="AnsiContainsStr"/>
+          <link id="AnsiEndsText"/>
+          <link id="AnsiIndexText"/>
+          <link id="AnsiStartsText"/>
+        </seealso>
+      </element>
+      <element name="AnsiContainsText.Result">
+        <short>
+          <var>True</var>
+
+
+
+
+
+
+
+
+
+
+ if the substring was found, <var>False</var> otherwise.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiContainsText.AText">
+        <short>The string to be searched</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiContainsText.ASubText">
+        <short>The substring to search for</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiStartsText">
+        <short>Check whether a string starts with a given substring, ignoring case</short>
+        <descr>
+          <var>AnsiEndsText</var>
+
+
+
+
+
+
+ checks <var>AText</var>
+ to see whether it starts with <var>ASubText</var>
+, and returns <var>True</var>
+ if it does, <var>False</var>
+ if not.
+The check is performed case-insensitive. Basically, it checks whether the position of <var>ASubText</var>
+ equals 1.</descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="AnsiEndsText"/>
+          <link id="AnsiStartsStr"/>
+          <link id="AnsiIndexText"/>
+          <link id="AnsiContainsText"/>
+        </seealso>
+      </element>
+      <element name="AnsiStartsText.Result">
+        <short>
+          <var>True</var>
+
+
+
+
+
+
+
+
+  if the given string starts with the substring, <var>False</var>  if not.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiStartsText.ASubText">
+        <short>Substring to check for</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiStartsText.AText">
+        <short>String to check in</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiEndsText">
+        <short>Check whether a string ends with a certain substring, ignoring case.</short>
+        <descr>
+          <var>AnsiEndsStr</var>
+
+
+
+
+
+
+
+ checks <var>AText</var>
+
+ to see whether it ends with <var>ASubText</var>
+
+, and returns <var>True</var>
+
+ if it does, <var>False</var>
+
+ if not.
+The check is performed case-insensitive. Basically, it checks whether the position of <var>ASubText</var>
+
+ equals the length of <var>AText</var>
+
+ minus the length of <var>ASubText</var>
+
+ plus one.</descr>
+        <errors>None</errors>
+        <seealso>
+          <link id="AnsiStartsText"/>
+          <link id="AnsiEndsStr"/>
+          <link id="AnsiIndexText"/>
+          <link id="AnsiContainsText"/>
+        </seealso>
+      </element>
+      <element name="AnsiEndsText.Result">
+        <short>
+          <var>True</var>
+
+
+
+
+
+
+
+
+
+
+ if the string ends on the substring, <var>False</var>  otherwise.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiEndsText.ASubText">
+        <short>Substring to check for.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiEndsText.AText">
+        <short>Text to check the end of</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiReplaceText">
+        <short>Search and replace all occurrences of a string, case sensitive.</short>
+        <descr>
+          <var>AnsiReplaceString</var>
+
+
+
+
+
+
+ searches <var>AText</var>
+ for all occurrences of the string <var>AFromText</var>
+ and replaces them with <var>AToText</var>
+
+, and returns the resulting string. The search is performed ignoring case.</descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="AnsiReplaceStr"/>
+          <link id="SearchBuf"/>
+        </seealso>
+      </element>
+      <element name="AnsiReplaceText.Result">
+        <short>Result of the search and replace operation.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiReplaceText.AText">
+        <short>String in which to search and replace.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiReplaceText.AFromText">
+        <short>String to search for</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiReplaceText.AToText">
+        <short>String to replace with</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiMatchText">
+        <short>Check whether a string occurs in an array of strings, disregarding case.</short>
+        <descr>
+          <p>
+            <var>AnsiIndexStr</var>
+
+
+
+
+
+ matches <var>AText</var> against each string in <var>AValues</var>. 
+If a match is found, it returns <var>True</var>, otherwise <var>False</var> is returned.
+The strings are matched ignoring case. 
+</p>
+          <p>This function simply calls <link id="AnsiIndexText"/> ad checks whether it returns -1 or not.
+</p>
+        </descr>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiMatchText.Result">
+        <short>
+          <var>True</var>
+
+
+
+
+
+
+
+
+  if the value appears in the array, <var>False</var>  if not.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiMatchText.AText">
+        <short>String to check for</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiMatchText.AValues">
+        <short>Array of string values to search in</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiIndexText">
+        <short>Searches, case insensitive, for a string in an array of strings.</short>
+        <descr>
+          <var>AnsiIndexStr</var>
+
+
+
+
+
+
+
+ matches <var>AText</var>
+
+ against each string in <var>AValues</var>
+
+. 
+If a match is found, the corresponding index (zero-based) in the <var>AValues</var>
+
+ array is returned. 
+If no match is found, -1 is returned.
+
+The strings are matched ignoring case.</descr>
+        <errors>None</errors>
+        <seealso>
+          <link id="AnsiIndexStr"/>
+          <link id="AnsiMatchStr"/>
+          <link id="AnsiMatchText"/>
+        </seealso>
+      </element>
+      <element name="AnsiIndexText.Result">
+        <short>Index of the matching element in the array, otherwise -1.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiIndexText.AText">
+        <short>String to search for</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiIndexText.AValues">
+        <short>Array of strings to search in.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiContainsStr">
+        <short>Checks whether a string contains a given substring</short>
+        <descr>
+          <var>AnsiContainsString</var>
+
+
+
+
+
+
+checks whether <var>AText</var>
+contains <var>ASubText</var>, and returns <var>True</var> if this is the case, or returns <var>False</var> otherwise.
+The search is performed case-sensitive.</descr>
+        <errors>None</errors>
+        <seealso>
+          <link id="AnsiContainsText"/>
+          <link id="AnsiEndsStr"/>
+          <link id="AnsiIndexStr"/>
+          <link id="AnsiStartsStr"/>
+        </seealso>
+      </element>
+      <element name="AnsiContainsStr.Result">
+        <short>
+          <var>True</var>
+
+
+
+
+
+
+
+
+
+
+ if the string contains the given substring, <var>False</var> otherwise</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiContainsStr.AText">
+        <short>String to search in</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiContainsStr.ASubText">
+        <short>The substring to be searched for</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiStartsStr">
+        <short>Check whether a string starts with a given substring, observing case</short>
+        <descr>
+          <var>AnsiEndsStr</var>
+
+
+
+
+
+
+ checks <var>AText</var>
+ to see whether it starts with <var>ASubText</var>
+, and returns <var>True</var>
+ if it does, <var>False</var>
+ if not.
+The check is performed case-sensitive. Basically, it checks whether the position of <var>ASubText</var>
+ equals 1.</descr>
+        <errors/>
+        <seealso>
+          <link id="AnsiEndsStr"/>
+          <link id="AnsiStartsStr"/>
+          <link id="AnsiIndexStr"/>
+          <link id="AnsiContainsStr"/>
+        </seealso>
+      </element>
+      <element name="AnsiStartsStr.Result">
+        <short>
+          <var>True</var>
+
+
+
+
+
+
+
+
+ if the given string starts with the substring, <var>False</var> if not.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiStartsStr.ASubText">
+        <short>Substring to check for</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiStartsStr.AText">
+        <short>String to check in</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiEndsStr">
+        <short>Check whether a string ends with a certain substring</short>
+        <descr>
+          <var>AnsiEndsStr</var>
+
+
+
+
+
+ checks <var>AText</var> to see whether it ends with <var>ASubText</var>, and returns <var>True</var> if it does, <var>False</var> if not.
+The check is performed case-sensitive. Basically, it checks whether the position of <var>ASubText</var> equals the length of <var>AText</var> minus the length of <var>ASubText</var> plus one.</descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="AnsiEndsText"/>
+          <link id="AnsiStartsStr"/>
+          <link id="AnsiIndexStr"/>
+          <link id="AnsiContainsStr"/>
+        </seealso>
+      </element>
+      <element name="AnsiEndsStr.Result">
+        <short>
+          <var>True</var>
+
+
+
+
+
+
+
+
+
+
+ if the string ends on the substring, <var>False</var> otherwise.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiEndsStr.ASubText">
+        <short>Substring to check for.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiEndsStr.AText">
+        <short>Text to check the end of</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiReplaceStr">
+        <short>Search and replace all occurrences of a string, case sensitive.</short>
+        <descr>
+          <var>AnsiReplaceString</var>
+
+
+
+
+
+ searches <var>AText</var> for all occurrences of the string <var>AFromText</var> and replaces them with <var>AToText</var>, and returns the resulting string. The search is performed observing case.</descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="AnsiReplaceText"/>
+          <link id="SearchBuf"/>
+        </seealso>
+      </element>
+      <element name="AnsiReplaceStr.Result">
+        <short>Result of the search and replace operation</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiReplaceStr.AText">
+        <short>String in which to search and replace.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiReplaceStr.AFromText">
+        <short>String to search for</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiReplaceStr.AToText">
+        <short>String to replace with</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiMatchStr">
+        <short>Check whether a string occurs in an array of strings, observing case.</short>
+        <descr>
+          <p>
+            <var>AnsiIndexStr</var>
+
+
+
+
+
+ matches <var>AText</var> against each string in <var>AValues</var>. 
+If a match is found, it returns <var>True</var>, otherwise <var>False</var> is returned.
+The strings are matched observing case. 
+</p>
+          <p>This function simply calls <link id="AnsiIndexStr"/> ad checks whether it returns -1 or not.
+</p>
+        </descr>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiMatchStr.Result">
+        <short>
+          <var>True</var>
+
+
+
+
+
+
+
+
+ if the value appears in the array, <var>False</var> if not.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiMatchStr.AText">
+        <short>String to check for</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiMatchStr.AValues">
+        <short>Array of string values to search in</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiIndexStr">
+        <short>Searches, observing case, for a string in an array of strings.</short>
+        <descr>
+          <var>AnsiIndexStr</var>
+
+
+
+
+
+
+
+ matches <var>AText</var>
+
+ against each string in <var>AValues</var>
+
+. 
+If a match is found, the corresponding index (zero-based) in the <var>AValues</var>
+
+ array is returned. 
+If no match is found, -1 is returned.
+
+The strings are matched observing case.</descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="AnsiIndexText"/>
+          <link id="AnsiMatchStr"/>
+          <link id="AnsiMatchText"/>
+        </seealso>
+      </element>
+      <element name="AnsiIndexStr.Result">
+        <short>Index of the matching element in the array, otherwise -1.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiIndexStr.AText">
+        <short>String to search for</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiIndexStr.AValues">
+        <short>Array of strings to search in.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="DupeString">
+        <short>Creates and concatenates N copies of a string</short>
+        <descr>
+          <p>
+            <var>DupeString</var>
+
+
+
+
+ returns a string consisting of <var>ACount</var> concatenations of <var>AText</var>.
+Thus 
+</p>
+          <pre>DupeString('1234567890',3);
+</pre>
+          <p>will produce a string
+</p>
+          <pre>'123456789012345678901234567890'
+</pre>
+        </descr>
+        <errors>None.</errors>
+        <seealso/>
+      </element>
+      <element name="DupeString.Result">
+        <short>Copies of the original string.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="DupeString.AText">
+        <short>String to duplicate</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="DupeString.ACount">
+        <short>Number of copies to create</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="ReverseString">
+        <short>Reverse characters in a string</short>
+        <descr>
+          <var>ReverseString</var>
+ returns a string, made up of the characters in string <var>AText</var>, in reverse order.</descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="RandomFrom"/>
+        </seealso>
+      </element>
+      <element name="ReverseString.Result">
+        <short>String with characters in reversed order.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="ReverseString.AText">
+        <short>String to reverse</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiReverseString">
+        <short>Reverse the letters in a string.</short>
+        <descr>
+          <p>
+            <var>AnsiReverseString</var>
+
+
+
+
+
+ returns a string with all characters of <var>AText</var> in reverse order. 
+</p>
+          <p>if the result of this function equals <var>AText</var>, <var>AText</var> is called an anagram.</p>
+        </descr>
+        <errors>None.</errors>
+        <seealso/>
+      </element>
+      <element name="AnsiReverseString.Result">
+        <short>Reversed string</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiReverseString.AText">
+        <short>String to reverse</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="StuffString">
+        <short>Replace part of a string with another string.</short>
+        <descr>
+          <var>StuffString</var>
+ returns a copy of <var>AText</var> with the segment starting at <var>AStart</var> with length <var>ALength</var>, replaced with the string <var>ASubText</var>. 
+Basically it deletes the segment of <var>Atext</var> and inserts the new text in it's place.</descr>
+        <errors>No checking on the validity of the AStart and ALength parameters is done. Providing invalid values may result in access violation errors.</errors>
+        <seealso>
+          <link id="FindPart"/>
+          <link id="DelChars"/>
+          <link id="DelSpace"/>
+          <link id="ExtractSubStr"/>
+          <link id="DupeString"/>
+        </seealso>
+      </element>
+      <element name="StuffString.Result">
+        <short>Resulting string with indicated section replaced.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="StuffString.AText">
+        <short>Text on which to operate.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="StuffString.AStart">
+        <short>Start of section to be replaced.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="StuffString.ALength">
+        <short>Length of section to be replaced.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="StuffString.ASubText">
+        <short>Text to insert at the indicated position.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="RandomFrom">
+        <short>Choose a random string from an array of strings.</short>
+        <descr>
+          <var>RandomFrom</var>
+ picks at random a valid index in the array <var>AValues</var> and returns the string at that position in the array.</descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="AnsiMatchStr"/>
+          <link id="AnsiMatchText"/>
+        </seealso>
+      </element>
+      <element name="RandomFrom.Result">
+        <short>Random string picked from the array.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="RandomFrom.AValues">
+        <short>Strings to choose from</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="IfThen">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="IfThen.Result">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="IfThen.AValue">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="IfThen.ATrue">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="IfThen.AFalse">
+        <short>String to return if the expression evaluates as <var>false</var>. Default is the empty string.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="IfThen">
+        <short>Returns one of two strings, depending on a boolean expression</short>
+        <descr>
+          <var>IfThen</var>
+
+
+
+ returns <var>ATrue</var> if <var>AValue</var> is <var>True</var>, and returns <var>AFalse</var> if <var>AValue</var> is false.</descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="AnsiMatchStr"/>
+          <link id="AnsiMatchText"/>
+        </seealso>
+      </element>
+      <element name="IfThen.Result">
+        <short>Either <var>AFalse</var> or <var>ATrue</var>, depending on the expression.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="IfThen.AValue">
+        <short>Determines which of the two possibilities to take</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="IfThen.ATrue">
+        <short>String to return if the expression evaluates as <var>True</var>.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="LeftStr">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="LeftStr.Result">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="LeftStr.AText">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="LeftStr.ACount">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="RightStr">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="RightStr.Result">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="RightStr.AText">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="RightStr.ACount">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="MidStr">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="MidStr.Result">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="MidStr.AText">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="MidStr.AStart">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="MidStr.ACount">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="RightBStr">
+        <short>Copy a given number of characters (bytes), counting from the right of a string.</short>
+        <descr>
+          <var>RightBStr</var>
+ returns a string containing the rightmost <var>AByteCount</var> bytes from the string <var>AText</var>.
+If <var>AByteCount</var> is larger than the length (in bytes) of <var>AText</var>, only as many bytes as available are returned.</descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="LeftBStr"/>
+          <link id="AnsiRightStr"/>
+          <link id="RightStr"/>
+          <link id="MidBStr"/>
+        </seealso>
+      </element>
+      <element name="RightBStr.Result">
+        <short>Resulting string.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="RightBStr.AText">
+        <short>String to copy characters from.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="RightBStr.AByteCount">
+        <short>Number of characters (bytes) to copy.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="MidBStr">
+        <short>Copies a number of characters starting at a given position in a string.</short>
+        <descr>
+          <var>MidBStr</var>
+
+ returns a string containing the first <var>AByteCount</var>
+ bytes from the string <var>AText</var> starting at position <var>AByteStart</var>.
+If <var>AByteStart+AByteCount</var>  is larger than the length (in bytes) of <var>AText</var>, only as many bytes as available are returned.
+If <var>AByteStart</var> is less than 1 or larger than the length of <var>AText</var>, then no characters are returned.</descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="LeftBStr"/>
+          <link id="AnsiMidStr"/>
+          <link id="RightBStr"/>
+          <link id="MidStr"/>
+        </seealso>
+      </element>
+      <element name="MidBStr.Result">
+        <short>Resulting string</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="MidBStr.AText">
+        <short>String to copy characters from.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="MidBStr.AByteStart">
+        <short>Position (in bytes) to start copying from.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="MidBStr.AByteCount">
+        <short>Number of characters (bytes) to copy.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiLeftStr">
+        <short>Copies a number of characters starting at the left of a string</short>
+        <descr>
+          <p>
+            <var>AnsiLeftStr</var>
+
+
+
+
+
+ returns the <var>ACount</var> leftmost characters from <var>AText</var>. If <var>ACount</var> is larger than the length of <var>AText</var>, only as much characters as available in <var>AText</var> will be copied.
+If <var>ACount</var> is zero or negative, no characters will be copied. The characters are counted as characters, not as Bytes.
+</p>
+          <p>This function corresponds to the Visual Basic <var>LeftStr</var> function.</p>
+        </descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="AnsiMidStr"/>
+          <link id="AnsiRightStr"/>
+          <link id="LeftStr"/>
+          <link id="RightStr"/>
+          <link id="MidStr"/>
+          <link id="LeftBStr"/>
+          <link id="RightBStr"/>
+          <link id="MidBStr"/>
+        </seealso>
+      </element>
+      <element name="AnsiLeftStr.Result">
+        <short>Resulting string contains the first <var>ACount</var> characters</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiLeftStr.AText">
+        <short>String to copy characters from.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiLeftStr.ACount">
+        <short>The number of characters to copy.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiRightStr">
+        <short>Copies a number of characters starting at the right of a string</short>
+        <descr>
+          <p>
+            <var>AnsiLeftStr</var>
+
+
+
+
+
+
+ returns the <var>ACount</var> rightmost characters from <var>AText</var>. If <var>ACount</var> is larger than the length of <var>AText</var>, only as much characters as available in <var>AText</var> will be copied.
+If <var>ACount</var> is zero or negative, no characters will be copied. The characters are counted as characters, not as Bytes.
+</p>
+          <p>This function corresponds to the Visual Basic <var>RightStr</var> function.</p>
+        </descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="AnsiLeftStr"/>
+          <link id="AnsiMidStr"/>
+          <link id="LeftStr"/>
+          <link id="RightStr"/>
+          <link id="MidStr"/>
+          <link id="LeftBStr"/>
+          <link id="RightBStr"/>
+          <link id="MidBStr"/>
+        </seealso>
+      </element>
+      <element name="AnsiRightStr.Result">
+        <short>Resulting string</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiRightStr.AText">
+        <short>String to copy characters from</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiRightStr.ACount">
+        <short>Number of characters to copy</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiMidStr">
+        <short>Returns a number of characters copied from a given location in a string</short>
+        <descr>
+          <p>
+            <var>AnsiMidStr</var>
+
+
+
+
+
+
+ returns <var>ACount</var> characters from <var>AText</var>, starting at position <var>AStart</var>. If <var>AStart+ACount</var> is larger than the length of <var>AText</var>, only as much characters as available in <var>AText</var> (starting from <var>AStart</var>) will be copied.
+If <var>ACount</var> is zero or negative, no characters will be copied. The characters are counted as characters, not as Bytes.
+</p>
+          <p>This function corresponds to the Visual Basic <var>MidStr</var> function.</p>
+        </descr>
+        <errors>None</errors>
+        <seealso>
+          <link id="AnsiLeftStr"/>
+          <link id="AnsiRightStr"/>
+          <link id="LeftStr"/>
+          <link id="RightStr"/>
+          <link id="MidStr"/>
+          <link id="LeftBStr"/>
+          <link id="RightBStr"/>
+          <link id="MidBStr"/>
+        </seealso>
+      </element>
+      <element name="AnsiMidStr.Result">
+        <short>The resulting string</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiMidStr.AText">
+        <short>String from which to copy</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiMidStr.AStart">
+        <short>1-based location in the string where to copy from.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiMidStr.ACount">
+        <short>Number of characters to copy.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="LeftBStr">
+        <short>Copies Count characters starting at the left of a string.</short>
+        <descr>
+          <var>LeftBStr</var>
+
+
+
+
+ returns a string containing the leftmost <var>AByteCount</var>
+
+
+ bytes from the string <var>AText</var>
+
+
+. 
+If <var>AByteCount</var>
+
+
+ is larger than the length (in bytes) of <var>AText</var>
+
+
+, only as many bytes as available are returned.</descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="LeftStr"/>
+          <link id="AnsiLeftStr"/>
+          <link id="RightBStr"/>
+          <link id="MidBStr"/>
+        </seealso>
+      </element>
+      <element name="LeftBStr.Result">
+        <short>First N characters of the string.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="LeftBStr.AText">
+        <short>String to copy characters from.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="LeftBStr.AByteCount">
+        <short>Number of characters to copy.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="LeftStr">
+        <short>Copies Count characters starting at the left of a string.</short>
+        <descr>
+          <var>LeftStr</var>
+
+
+
+ returns a string containing the leftmost <var>ACount</var>
+
+ characters from the string <var>AText</var>
+
+. 
+If <var>ACount</var>
+
+ is larger than the length (in characters) of <var>AText</var>
+
+, only as many characters as available are returned.</descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="LeftBStr"/>
+          <link id="AnsiLeftStr"/>
+          <link id="RightStr"/>
+          <link id="MidStr"/>
+        </seealso>
+      </element>
+      <element name="LeftStr.Result">
+        <short>First N characters of the string.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="LeftStr.AText">
+        <short>String to copy characters from.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="LeftStr.ACount">
+        <short>Number of characters to copy.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="RightStr">
+        <short>Copy a given number of characters, counting from the right of a string.</short>
+        <descr>
+          <var>RightStr</var>
+
+ returns a string containing the rightmost <var>ACount</var>
+ characters from the string <var>AText</var>
+.
+If <var>ACount</var>
+ is larger than the length (in characters) of <var>AText</var>
+, only as many characters as available are returned.</descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="LeftStr"/>
+          <link id="AnsiRightStr"/>
+          <link id="RightBStr"/>
+          <link id="MidStr"/>
+        </seealso>
+      </element>
+      <element name="RightStr.Result">
+        <short>Resulting string.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="RightStr.AText">
+        <short>String to copy characters from.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="RightStr.ACount">
+        <short>Number of characters to copy.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="MidStr">
+        <short>Copies a number of characters starting at a given position in a string.</short>
+        <descr>
+          <p>
+            <var>MidStr</var>
+
+
+ returns a string containing the first <var>ACount</var> bytes from the string <var>AText</var>
+starting at position <var>AStart</var>. If <var>AStart+ACount</var> is larger than the length (in characters) of 
+<var>AText</var>, only as many characters as available are returned.
+If <var>AStart</var> is less than 1 or larger than the length of <var>AText</var>, then no characters are returned.
+</p>
+          <p>This function is equivalent to the standard <var>Copy</var> function, and is provided for completeness only.
+</p>
+        </descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="LeftStr"/>
+          <link id="AnsiMidStr"/>
+          <link id="RightStr"/>
+          <link id="MidBStr"/>
+        </seealso>
+      </element>
+      <element name="MidStr.Result">
+        <short>Resulting string</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="MidStr.AText">
+        <short>String to copy characters from.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="MidStr.AStart">
+        <short>Position (in characters) to start copying from.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="MidStr.ACount">
+        <short>Number of characters to copy.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="WordDelimiters">
+        <short>Standard word delimiters</short>
+        <descr>Standard word delimiters, used in the <link id="SearchBuf"/> call.</descr>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="TStringSearchOption">
+        <short>Possible options for <link id="SearchBuf"/> call.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="TStringSearchOption.soDown">
+        <short>Search in down direction.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="TStringSearchOption.soMatchCase">
+        <short>Match case</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="TStringSearchOption.soWholeWord">
+        <short>Search whole words only.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="TStringSearchOptions">
+        <short>Set of options for <link id="SearchBuf"/>  call.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SearchBuf">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SearchBuf.Result">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SearchBuf.Buf">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SearchBuf.BufLen">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SearchBuf.SelStart">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SearchBuf.SelLength">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SearchBuf.SearchString">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SearchBuf.Options">
+        <short>Search options</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SearchBuf">
+        <short>Search a buffer for a certain string.</short>
+        <descr>
+          <p>
+            <var>SearchBuf</var>
+
+ searches the buffer <var>Buf</var> for the occurrence of <var>SearchString</var>. 
+At must <var>Buflen</var> characters are searched, and the search is started at <var>SelStart</var>+<var>SelLength</var>. 
+If a match is found, a pointer to the position of the match is returned. 
+The parameter <link id="TStringSearchOption">Options</link> specifies how the search is conducted. It is a set of the following options:
+</p>
+          <table>
+            <th>
+              <td>Option</td>
+              <td>Effect</td>
+            </th>
+            <tr>
+              <td>soDown</td>
+              <td>Searches forward, starting at the end of the selection. Default is searching up</td>
+            </tr>
+            <tr>
+              <td>soMatchCase</td>
+              <td>Observe case when searching. Default is to ignore case.</td>
+            </tr>
+            <tr>
+              <td>soWholeWord</td>
+              <td>Match only whole words. Default also returns parts of words</td>
+            </tr>
+          </table>
+          <p>The standard constant <link id="WordDelimiters"/> is used to mark the boundaries of words.
+</p>
+          <p>The <var>SelStart</var> parameter is zero based.
+</p>
+        </descr>
+        <errors>Buflen must be the real length of the string, no checking on this is performed.</errors>
+        <seealso>
+          <link id="FindPart"/>
+          <link id="ExtractWord"/>
+          <link id="ExtractWordPos"/>
+          <link id="ExtractSubStr"/>
+          <link id="IsWordPresent"/>
+        </seealso>
+      </element>
+      <element name="SearchBuf.Result">
+        <short>Position of the string</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SearchBuf.Buf">
+        <short>Buffer to search</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SearchBuf.BufLen">
+        <short>Length of the buffer.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SearchBuf.SelStart">
+        <short>Start of selection.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SearchBuf.SelLength">
+        <short>Length of selection.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SearchBuf.SearchString">
+        <short>String to search for.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="PosEx">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="PosEx.Result">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="PosEx.SubStr">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="PosEx.S">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="PosEx.Offset">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="PosEx">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="PosEx.Result">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="PosEx.SubStr">
+        <short>String to search for.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="PosEx.S">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="PosEx">
+        <short>Search for the occurance of a character in a string, starting at a certain position.</short>
+        <descr>
+          <var>PosEx</var>
+ returns the position of the first occurrence of the character <var>C</var> or the substring 
+<var>SubStr</var> in the string <var>S</var>, starting the search at position <var>Offset</var> (default 1).
+If <var>C</var> or <var>SubStr</var> does not occur in <var>S</var> after the given <var>Offset</var>, zero is returned.
+The position Offset is also searched.</descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="NPos"/>
+          <link id="AnsiContainsText"/>
+          <link id="AnsiContainsStr"/>
+        </seealso>
+      </element>
+      <element name="PosEx.Result">
+        <short>Position of the character, or -1 if it is not found.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="PosEx.c">
+        <short>Character to search for.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="PosEx.S">
+        <short>String to search.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="PosEx.Offset">
+        <short>Initial position where to start searching.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="TSoundexLength">
+        <short>Range of allowed  soundex lengths.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="Soundex">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="Soundex.Result">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="Soundex.AText">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="Soundex.ALength">
+        <short>Length of the soundex</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="Soundex">
+        <short>Compute the soundex of a string</short>
+        <descr>
+          <var>Soundex</var>
+ computes a soundex code for <var>AText</var>. 
+The resulting code will at most have <var>ALength</var> characters.
+The soundex code is computed according to the US system of soundex computing, which may result in 
+inaccurate results in other languages.</descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="SoundexCompare"/>
+          <link id="SoundexInt"/>
+          <link id="SoundexProc"/>
+          <link id="SoundexWord"/>
+          <link id="SoundexSimilar"/>
+        </seealso>
+      </element>
+      <element name="Soundex.Result">
+        <short>String with the soundex code of the original string.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="Soundex.AText">
+        <short>Text to compute soundex of</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="TSoundexIntLength">
+        <short>Range of allowed integer soundex lengths.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SoundexInt">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SoundexInt.Result">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SoundexInt.AText">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SoundexInt.ALength">
+        <short>Length of the soundex value to compute.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SoundexInt">
+        <short>Soundex value as an integer.</short>
+        <descr>
+          <var>SoundexInt</var>
+  computes the <link id="Soundex"/>  code (with length <var>ALength</var>, default 4) of <var>AText</var>,
+and converts the code to an integer value.</descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="Soundex"/>
+          <link id="SoundexCompare"/>
+          <link id="SoundexProc"/>
+          <link id="SoundexWord"/>
+          <link id="SoundexSimilar"/>
+        </seealso>
+      </element>
+      <element name="SoundexInt.Result">
+        <short>Soundex value as a astring.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SoundexInt.AText">
+        <short>Text for which to compute soundex value.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="DecodeSoundexInt">
+        <short>Decodes the integer representation of a soundex code and returns the original soundex code.</short>
+        <descr>
+          <var>DecodeSoundexInt</var>
+
+
+
+
+ converts the integer value <var>AValue</var> to a soundex string. 
+It performs the reverse operation of the <link id="SoundexInt"/>  function. 
+The result is the soundex string corresponding to <var>AValue</var>.
+
+.</descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="SoundexInt"/>
+          <link id="DecodeSoundexWord"/>
+          <link id="Soundex"/>
+        </seealso>
+      </element>
+      <element name="DecodeSoundexInt.Result">
+        <short>Soundex code corresponding to the integer value.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="DecodeSoundexInt.AValue">
+        <short>Integer soundex value.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SoundexWord">
+        <short>Calculate a word-sized soundex value</short>
+        <descr>
+          <var>SoundexInt</var>
+ computes the <link id="Soundex"/> code (with length 4) of <var>AText</var>
+, and converts the code to a word-sized value.</descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="Soundex"/>
+          <link id="SoundexCompare"/>
+          <link id="SoundexInt"/>
+          <link id="SoundexProc"/>
+          <link id="SoundexSimilar"/>
+        </seealso>
+      </element>
+      <element name="SoundexWord.Result">
+        <short>Soundex value as a word.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SoundexWord.AText">
+        <short>String to calculate soundex value of</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="DecodeSoundexWord">
+        <short>Decodes the word-sized representation of a soundex code and returns the original soundex code.</short>
+        <descr>
+          <var>DecodeSoundexWord</var>
+
+
+
+
+
+ converts the integer value <var>AValue</var>
+  to a soundex string. 
+It performs the reverse operation of the <link id="SoundexWord"/>
+  function.
+The result is the soundex string corresponding to <var>AValue</var>
+.</descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="SoundexInt"/>
+          <link id="DecodeSoundexInt"/>
+          <link id="Soundex"/>
+        </seealso>
+      </element>
+      <element name="DecodeSoundexWord.Result">
+        <short>Soundex code corresponding to the word-sized value.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="DecodeSoundexWord.AValue">
+        <short>Word-sized soundex value.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SoundexSimilar">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SoundexSimilar.Result">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SoundexSimilar.AText">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SoundexSimilar.AOther">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SoundexSimilar.ALength">
+        <short>Soundex length (default 4)</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SoundexSimilar">
+        <short>Check whether 2 strings have equal soundex values</short>
+        <descr>
+          <var>SoundexSimilar</var>
+ returns <var>True</var> if the soundex codes (with length <var>ALength</var>) of <var>AText</var> and <var>AOther</var> are equal, and <var>False</var> if they are not.</descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="Soundex"/>
+          <link id="SoundexCompare"/>
+          <link id="SoundexInt"/>
+          <link id="SoundexProc"/>
+          <link id="SoundexWord"/>
+          <link id="Soundex"/>
+        </seealso>
+      </element>
+      <element name="SoundexSimilar.Result">
+        <short>
+          <var>True</var>
+
+
+
+
+
+
+
+ if the strings have the same soundex value, <var>False</var> otherwise</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SoundexSimilar.AText">
+        <short>First string</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SoundexSimilar.AOther">
+        <short>Second string</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SoundexCompare">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SoundexCompare.Result">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SoundexCompare.AText">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SoundexCompare.AOther">
+        <short/>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SoundexCompare.ALength">
+        <short>Length of soundexes to compare.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SoundexCompare">
+        <short>Compare soundex values of 2 strings.</short>
+        <descr>
+          <var>SoundexCompare</var>
+ computes the soundex codes of <var>AText</var> and <var>AOther</var> and feeds these to <var>CompareText</var>.
+It will return -1 if the soundex code of <var>AText</var> is less than the soundex code of <var>AOther</var>, 0 if they are equal, 
+and 1 if the code of <var>AOther</var> is larger than the code of <var>AText</var>.</descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="Soundex"/>
+          <link id="SoundexInt"/>
+          <link id="SoundexProc"/>
+          <link id="SoundexWord"/>
+          <link id="SoundexSimilar"/>
+        </seealso>
+      </element>
+      <element name="SoundexCompare.Result">
+        <short>0 if the soundexes are equal. Negative of the first is smaller as the second, positive otherwise.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SoundexCompare.AText">
+        <short>First string.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SoundexCompare.AOther">
+        <short>Second string.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SoundexProc">
+        <short>Default AnsiResemblesText implementation.</short>
+        <descr>
+          <var>SoundexProc</var>
+ is the standard implementation for the <link id="AnsiResemblesText"/> procedure: 
+By default, <var>AnsiResemblesProc</var> is set to this function.
+It compares the soundex codes of <var>AOther</var> and <var>AText</var> and returns <var>True</var> if they are equal, or <var>False</var> if they are not.</descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="Soundex"/>
+          <link id="SoundexCompare"/>
+          <link id="SoundexInt"/>
+          <link id="SoundexWord"/>
+          <link id="SoundexSimilar"/>
+        </seealso>
+      </element>
+      <element name="SoundexProc.Result">
+        <short>0 if the soundexes are equal. Negative of the first is smaller as the second, positive otherwise.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SoundexProc.AText">
+        <short>Second string.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="SoundexProc.AOther">
+        <short>First string.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="TCompareTextProc">
+        <short>Function prototype for comparing two string in <link id="AnsiResemblesText"/></short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="TCompareTextProc.Result">
+        <short>True if strings match, false otherwise.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="TCompareTextProc.AText">
+        <short>First string</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="TCompareTextProc.AOther">
+        <short>Second string.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiResemblesProc">
+        <short>Procedural variable, called when checking 2 strings for resemblances in <link id="AnsiResemblesText"/></short>
+        <descr>This procedural variable is standard set to <link id="SoundexProc"/> but can be overriden with a user-defined algorithm. 
+This algorithm should return <var>True</var> if <var>AText</var> resembles <var>AOtherText</var>, or <var>False</var> otherwise. 
+The standard routine compares the soundexes of the two strings and returns <var>True</var> if they are equal.</descr>
+        <errors>None</errors>
+        <seealso>
+          <link id="AnsiResemblesText"/>
+          <link id="SoundexProc"/>
+        </seealso>
+      </element>
+      <element name="IsEmptyStr">
+        <short>Check whether a string is empty, disregaring whitespace characters</short>
+        <descr>
+          <var>IsEmptyStr</var>
+
+
+
+ returns <var>True</var> if the string <var>S</var> only contains characters whitespace characters, all characters in <var>EmptyChars</var> are considered whitespace characters. 
+If a character not present in <var>EmptyChars</var> is found in <var>S</var>, <var>False</var> is returned.</descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="IsWild"/>
+          <link id="FindPart"/>
+          <link id="IsWordPresent"/>
+        </seealso>
+      </element>
+      <element name="IsEmptyStr.Result">
+        <short>
+          <var>True</var>
+
+
+
+
+
+
+
+
+ if the string consists solely of empty characters.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="IsEmptyStr.S">
+        <short>String to check</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="IsEmptyStr.EmptyChars">
+        <short>Characters to consider as whitespace</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="DelSpace">
+        <short>Delete all occurrences of a space from a string.</short>
+        <descr>
+          <var>DelSpace</var>
+
+
+
+
+
+
+
+ returns a copy of <var>S</var>
+
+
+ with all spaces (ASCII code 32) removed from it.</descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="DelChars"/>
+          <link id="DelSpace1"/>
+        </seealso>
+      </element>
+      <element name="DelSpace.Result">
+        <short>String with all spaces removed.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="DelSpace.S">
+        <short>String to delete spaces from.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="DelChars">
+        <short>Delete all occurrences of a given character from a string.</short>
+        <descr>
+          <var>DelChars</var>
+
+
+
+
+ returns a copy of <var>S</var> with all <var>Chr</var> characters removed from it.</descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="DelSpace"/>
+          <link id="DelSpace1"/>
+        </seealso>
+      </element>
+      <element name="DelChars.Result">
+        <short>Original string with all occurrences of the given character deleted.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="DelChars.S">
+        <short>String to delete characters from.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="DelChars.Chr">
+        <short>Character which must be deleted.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="DelSpace1">
+        <short>Reduces sequences of space characters to 1 space character.</short>
+        <descr>
+          <var>DelSpace1</var>
+
+
+
+
+
+ returns a copy of <var>S</var>
+ with all sequences of spaces reduced to 1 space.</descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="DelChars"/>
+          <link id="DelSpace"/>
+        </seealso>
+      </element>
+      <element name="DelSpace1.Result">
+        <short>Original string with series of maximal 1 space.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="DelSpace1.S">
+        <short>String to reduce space sequences in.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="Tab2Space">
+        <short>Convert tab characters to a number of spaces</short>
+        <descr>
+          <var>Tab2Space</var>
+ returns a copy of <var>S</var> with all tab characters (ASCII character 9) converted to <var>Numb</var> spaces.</descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="StuffString"/>
+          <link id="FindPart"/>
+          <link id="ExtractWord"/>
+          <link id="DelChars"/>
+          <link id="DelSpace"/>
+          <link id="DelSpace1"/>
+          <link id="DupeString"/>
+        </seealso>
+      </element>
+      <element name="Tab2Space.Result">
+        <short>Strng with tab characters replaced</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="Tab2Space.S">
+        <short>String in which to replace tab characters.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="Tab2Space.Numb">
+        <short>Number of spaces to replace tab characters with.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="NPos">
+        <short>Returns the position of the N-th occurence of a substring in a string.</short>
+        <descr>
+          <var>NPos</var>
+
+ checks <var>S</var> for the position of the <var>N</var>-th occurrence of <var>C</var>. 
+If <var>C</var> occurs less than <var>N</var> times in <var>S</var>, or does not occur in <var>S</var> at all, 0 is returned.
+If <var>N</var> is less than 1, zero is returned.</descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="WordPosition"/>
+          <link id="FindPart"/>
+        </seealso>
+      </element>
+      <element name="NPos.Result">
+        <short>Position of N-th occurrence of the substring, -1 if there is none.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="NPos.C">
+        <short>Substring to search for</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="NPos.S">
+        <short>String to search.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="NPos.N">
+        <short>Which position to return</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AddChar">
+        <short>Add characters to the left of a string till a certain length</short>
+        <descr>
+          <var>AddChar</var>
+
+
+
+
+
+
+
+
+ adds characters (<var>C</var>
+
+) to the left of S till the length <var>N</var>
+
+ is reached, and returns the resulting string.
+If the length of <var>S</var>
+
+ is already equal to or larger than <var>N</var>
+
+, then no characters are added.
+The resulting string can be thought of as a right-aligned version of <var>S</var>
+
+, with length <var>N</var>
+
+.</descr>
+        <errors>None</errors>
+        <seealso>
+          <link id="AddCharR"/>
+          <link id="PadLeft"/>
+          <link id="PadRight"/>
+          <link id="PadCenter"/>
+        </seealso>
+      </element>
+      <element name="AddChar.Result">
+        <short>The resulting string with length <var>N</var></short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AddChar.C">
+        <short>Char to be added</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AddChar.S">
+        <short>The string to be treated</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AddChar.N">
+        <short>The minimal length the string should have</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AddCharR">
+        <short>Add chars at the end of a string till it reaches a certain length</short>
+        <descr>
+          <var>AddCharR</var>
+
+
+
+
+
+
+ adds characters (<var>C</var>) to the right of S till the length <var>N</var> is reached, and returns the resulting string.
+If the length of <var>S</var> is already equal to or larger than <var>N</var>, then no characters are added.
+The resulting string can be thought of as a left-aligned version of <var>S</var>, with length <var>N</var>
+.</descr>
+        <errors>None</errors>
+        <seealso>
+          <link id="AddChar"/>
+        </seealso>
+      </element>
+      <element name="AddCharR.Result">
+        <short>The resulting string with length <var>N</var></short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AddCharR.C">
+        <short>The character to be added</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AddCharR.S">
+        <short>The string to be treated</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AddCharR.N">
+        <short>The minimal length the string should have</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="PadLeft">
+        <short>Add spaces to the left of a string till a certain length is reached.</short>
+        <descr>
+          <var>PadLeft</var>
+
+
+ add spaces to the left of the string <var>S</var>
+
+ till the result reaches length <var>Len</var>
+
+. 
+If the string <var>S</var>
+
+ has length equal to or largert than <var>Len</var>
+
+, no spaces are added, and the string
+<var>S</var>
+
+ is returned as-is.
+The resulting string is <var>S</var>
+
+, right-justified on length <var>Len</var>
+
+.</descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="PadLeft"/>
+          <link id="PadCenter"/>
+          <link id="AddChar"/>
+          <link id="AddCharR"/>
+        </seealso>
+      </element>
+      <element name="PadLeft.Result">
+        <short>String of length N, padded to the left with spaces</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="PadLeft.S">
+        <short>String to pad.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="PadLeft.N">
+        <short>Minimal length of the resulting string.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="PadRight">
+        <short>Add spaces to the right of a string till a certain length is reached.</short>
+        <descr>
+          <var>PadRight</var>
+ add spaces to the left of the string <var>S</var> till the result reaches length <var>Len</var>.
+If the string <var>S</var> has length equal to or largert than <var>Len</var>, no spaces are added, and the string <var>S</var> is returned as-is.
+The resulting string is <var>S</var>, left-justified on length <var>Len</var>
+
+.</descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="PadLeft"/>
+          <link id="PadCenter"/>
+          <link id="AddChar"/>
+          <link id="AddCharR"/>
+        </seealso>
+      </element>
+      <element name="PadRight.Result">
+        <short>String of length N, padded to the right with spaces</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="PadRight.S">
+        <short>String to pad.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="PadRight.N">
+        <short>Minimal length of the resulting string.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="PadCenter">
+        <short>Pad the string to a certain length, so the string is centered.</short>
+        <descr>
+          <var>PadCenter</var>
+ add spaces to the left and right of the string <var>S</var> till the result reaches length <var>Len</var>. 
+If the number of spaces to add is odd, then the extra space will be added at the end.
+If the string <var>S</var> has length equal to or largert than <var>Len</var>, no spaces are added, and the string <var>S</var> is returned as-is.</descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="PadLeft"/>
+          <link id="PadRight"/>
+          <link id="AddChar"/>
+          <link id="AddCharR"/>
+        </seealso>
+      </element>
+      <element name="PadCenter.Result">
+        <short>Centered string of the specified length</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="PadCenter.S">
+        <short>String to center</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="PadCenter.Len">
+        <short>Desired length of the resulting string</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="Copy2Symb">
+        <short>Returns all characters in a string till a given character (not included).</short>
+        <descr>
+          <p>
+            <var>Copy2SymbDel</var>
+
+
+
+
+
+ determines the position of the first occurrence of <var>Symb</var> in the string <var>S</var> 
+and returns all characters up to this position. The <var>Symb</var> character itself is not included in the result string. The string <var>S</var> is left untouched. 
+If <var>Symb</var> does not appear in <var>S</var>, then the whole of <var>S</var> is returned.
+</p>
+        </descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="Copy2Space"/>
+          <link id="Copy2SymbDel"/>
+        </seealso>
+      </element>
+      <element name="Copy2Symb.Result">
+        <short>Characters from the string till the first occurence of the given character.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="Copy2Symb.S">
+        <short>String to return first characters from.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="Copy2Symb.Symb">
+        <short>Symbol till which characters will be copied. Will not be included in the result.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="Copy2SymbDel">
+        <short>Deletes and returns all characters in a string till a given character (not included).</short>
+        <descr>
+          <p>
+            <var>Copy2SymbDel</var>
+
+
+
+
+
+  determines the position of the first occurrence of <var>Symb</var> in the string <var>S</var> 
+and returns all characters up to this position. The <var>Symb</var> character itself is not included in the result string.
+All returned characters, including the <var>Symb</var> character, are deleted from the string <var>S</var>, after which it is right-trimmed.
+If <var>Symb</var> does not appear in <var>S</var>, then the whole of <var>S</var> is returned, and <var>S</var> itself is emptied.
+</p>
+        </descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="Copy2SpaceDel"/>
+          <link id="Copy2Symb"/>
+        </seealso>
+      </element>
+      <element name="Copy2SymbDel.Result">
+        <short>Characters from the string till the first occurence of the given character.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="Copy2SymbDel.S">
+        <short>String to delete and return first characters from.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="Copy2SymbDel.Symb">
+        <short>Symbol till which characters will be copied. Will not be included in the result.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="Copy2Space">
+        <short>Returns all characters in a string till the first space character (not included).</short>
+        <descr>
+          <p>
+            <var>Copy2Space</var>
+
+
+
+
+ determines the position of the first space in the string <var>S</var> and returns all characters up to this position.
+The space character itself is not included in the result string. The string <var>S</var> is left untouched.
+If there is no space in <var>S</var>, then the whole string <var>S</var> is returned.
+</p>
+          <p>This function simply calls <link id="Copy2Symb"/> with the space (ASCII code 32) as the symbol argument.
+</p>
+        </descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="Copy2Symb"/>
+          <link id="Copy2SpaceDel"/>
+        </seealso>
+      </element>
+      <element name="Copy2Space.Result">
+        <short>Characters from <var>S</var> till the first space.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="Copy2Space.S">
+        <short>String to return first characters from.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="Copy2SpaceDel">
+        <short>Deletes and returns all characters in a string till the first space character (not included).</short>
+        <descr>
+          <p>
+            <var>Copy2SpaceDel</var>
+
+
+
+
+
+
+ determines the position of the first space in the string <var>S</var> 
+and returns all characters up to this position. The space character itself is not included in the result string.
+All returned characters, including the space, are deleted from the string <var>S</var>, after which it is right-trimmed.
+If there is no space in <var>S</var>, then the whole string <var>S</var> is returned, and <var>S</var> itself is emptied.
+</p>
+          <p>This function simply calls <link id="Copy2SymbDel"/> with the space (ASCII code 32) as the symbol argument.
+</p>
+        </descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="Copy2SymbDel"/>
+          <link id="Copy2Space"/>
+        </seealso>
+      </element>
+      <element name="Copy2SpaceDel.Result">
+        <short>Deleted characters from the string</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="Copy2SpaceDel.S">
+        <short>String to delete and return first characters from.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiProperCase">
+        <short>Pretty-Print a string: make lowercase and capitalize first letters of words</short>
+        <descr>
+          <var>AnsiProperCase</var>
+
+
+
+
+
+ converts <var>S</var> to an all lowercase string, but capitalizes the first letter of every word in the string, and returns the resulting string.
+When searching for words, the characters in <var>WordDelimiters</var> are used to determine the boundaries of words. 
+The constant <link id="StdWordDelims"/> can be used for this.</descr>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiProperCase.Result">
+        <short>Resulting lowercase string with first letters capitalized</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiProperCase.S">
+        <short>String to pretty-print</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="AnsiProperCase.WordDelims">
+        <short>Characters to use as word delimiters</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="WordCount">
+        <short>Count the number of words in a string.</short>
+        <descr>
+          <p>
+            <var>WordCount</var>
+ returns the number of words in the string <var>S</var>. 
+A word is a non-empty string of characters bounded by one of the characters in <var>WordDelims</var>.
+</p>
+          <p>The pre-defined <link id="StdWordDelims"/> constant can be used for the <var>WordDelims</var> argument.
+</p>
+        </descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="WordPosition"/>
+          <link id="StdWordDelims"/>
+          <link id="ExtractWord"/>
+          <link id="ExtractWordPos"/>
+        </seealso>
+      </element>
+      <element name="WordCount.Result">
+        <short>Number of words in the string.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="WordCount.S">
+        <short>String to search in.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="WordCount.WordDelims">
+        <short>Characters to be used as word delimiters.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="WordPosition">
+        <short>Search position of Nth word in a string.</short>
+        <descr>
+          <p>
+            <var>WordPosition</var>
+ returns the position (in characters) of the <var>N</var>-th word in the string <var>S</var>.
+A word is a non-empty string of characters bounded by one of the characters in <var>WordDelims</var>.
+If <var>N</var>  is out of range, zero is returned.
+</p>
+          <p>The pre-defined <link id="StdWordDelims"/> constant can be used for the <var>WordDelims</var> argument.
+</p>
+        </descr>
+        <errors>None</errors>
+        <seealso>
+          <link id="WordCount"/>
+          <link id="StdWordDelims"/>
+          <link id="ExtractWord"/>
+          <link id="ExtractWordPos"/>
+        </seealso>
+      </element>
+      <element name="WordPosition.Result">
+        <short>Position of the N-th word, or -1 if there is none.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="WordPosition.N">
+        <short>Which word to search for</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="WordPosition.S">
+        <short>String to search in.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="WordPosition.WordDelims">
+        <short>Characters to be used as word delimiters.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="ExtractWord">
+        <short>Extract the N-th word out of a string.</short>
+        <descr>
+          <p>
+            <var>ExtractWord</var>
+
+
+
+
+extracts the <var>N</var>-th word from the string <var>S</var>. 
+The set of characters in <var>WordDelims</var> are used to mark word boundaries. 
+A word is defined as any non-empty sequence of characters which are not present in <var>WordDelims</var>:
+if a character is not in <var>WordDelims</var>, it is considered as part of a word.
+If an <var>N</var>-th word cannot be found, an empty string is returned.
+</p>
+          <p>Unlike <link id="ExtractDelimited"/>, an empty string is not a valid return value, i.e. is not a word. 
+If an empty string is returned, the index <var>N</var> was out of range.
+</p>
+          <p>The pre-defined constant <link id="StdWordDelims"/> can be used for the <var>WordDelims</var> argument.
+</p>
+        </descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="ExtractWordPos"/>
+          <link id="ExtractSubStr"/>
+          <link id="ExtractDelimited"/>
+          <link id="IsWordPresent"/>
+          <link id="WordCount"/>
+          <link id="WordPosition"/>
+        </seealso>
+      </element>
+      <element name="ExtractWord.Result">
+        <short>The N-th word, or empty if N is out of range.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="ExtractWord.N">
+        <short>Which word to extract.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="ExtractWord.S">
+        <short>String to extract the word from.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="ExtractWord.WordDelims">
+        <short>Characters to use as word delimiters</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="ExtractWordPos">
+        <short>Extract a word from a string, and return the position where it was located in the string.</short>
+        <descr>
+          <p>
+            <var>ExtractWordPos</var>
+
+
+
+
+
+
+ extracts the <var>N</var>-th word from the string <var>S</var>
+and returns the position of this word in <var>Pos</var>. 
+The set of characters in <var>WordDelims</var>
+ are used to mark word boundaries. 
+A word is defined as any non-empty sequence of characters which are not present in <var>WordDelims</var>
+:
+if a character is not in <var>WordDelims</var>
+, it is considered as part of a word.
+If an <var>N</var>
+-th word cannot be found, an empty string is returned and <var>Pos</var> is zero.
+</p>
+          <p>Unlike <link id="ExtractDelimited"/>, an empty string is not a valid return value, i.e. is not a word. 
+If an empty string is returned, the index <var>N</var> was out of range. 
+</p>
+          <p>The pre-defined constant <link id="StdWordDelims"/> can be used for the <var>WordDelims</var> argument.
+</p>
+        </descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="ExtractWord"/>
+          <link id="ExtractSubStr"/>
+          <link id="IsWordPresent"/>
+          <link id="WordCount"/>
+          <link id="WordPosition"/>
+        </seealso>
+      </element>
+      <element name="ExtractWordPos.Result">
+        <short>N-th word of the string, or empty if N is out of range.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="ExtractWordPos.N">
+        <short>Which word to extract</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="ExtractWordPos.S">
+        <short>String to extract a word from.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="ExtractWordPos.WordDelims">
+        <short>Characters to use as word delimiters</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="ExtractWordPos.Pos">
+        <short>On return, contains the position of the N-th word.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="ExtractDelimited">
+        <short>Extract the N-th delimited part from a string.</short>
+        <descr>
+          <p>
+            <var>ExtractDelimited</var>
+
+
+
+
+ extracts the <var>N</var>-th part from the string <var>S</var>.
+The set of characters in <var>Delims</var> are used to mark part boundaries. 
+When a delimiter is encountered, a new part is started and the old part is ended. 
+Another way of stating this is that any (possibly empty) series of characters not in <var>Delims</var>,
+situated between 2 characters in <var>Delims</var>, it is considered as piece of a part.
+This means that if 2 delimiter characters appear next to each other, there is an empty part between it.
+If an <var>N</var>-th part cannot be found, an empty string is returned. However,
+unlike <link id="ExtractWord"/>, an empty string is a valid return value, i.e. a part can be empty.
+</p>
+          <p>The pre-defined constant <link id="StdWordDelims"/> can be used for the <var>Delims</var> argument.
+The pre-defined constant <link id="Brackets"/> would be better suited the <var>Delims</var> argument 
+e.g. in case factors in a  mathematical expression are searched.
+</p>
+        </descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="ExtractSubStr"/>
+          <link id="ExtractWord"/>
+          <link id="ExtractWordPos"/>
+        </seealso>
+      </element>
+      <element name="ExtractDelimited.Result">
+        <short>N-th word</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="ExtractDelimited.N">
+        <short>Which word to extract</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="ExtractDelimited.S">
+        <short>String to extract word from</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="ExtractDelimited.Delims">
+        <short>Characters to use as word delimiters.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="ExtractSubstr">
+        <short>Extract a word from a string, starting at a given position in the string.</short>
+        <descr>
+          <p>
+            <var>ExtractSubStr</var>
+
+
+
+
+ returns all characters from <var>S</var> starting at position <var>Pos</var> till the first character in <var>Delims</var>, 
+or till the end of <var>S</var> is reached.
+The delimiter character is not included in the result.
+<var>Pos</var> is then updated to point to the next first non-delimiter character in <var>S</var>.
+If <var>Pos</var> is larger than the Length of <var>S</var>, an empty string is returned.
+</p>
+          <p>The pre-defined constant <link id="StdWordDelims"/> can be used for the <var>Delims</var> argument.
+</p>
+        </descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="ExtractDelimited"/>
+          <link id="ExtractWord"/>
+          <link id="ExtractWordPos"/>
+        </seealso>
+      </element>
+      <element name="ExtractSubstr.Result">
+        <short>The extracted word.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="ExtractSubstr.S">
+        <short>String to search in.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="ExtractSubstr.Pos">
+        <short>Initial position to start extracting. On exit returns the position of the next word.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="ExtractSubstr.Delims">
+        <short>Characters to use as word delimiters</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="IsWordPresent">
+        <short>Check for the presence of a word in a string.</short>
+        <descr>
+          <p>
+            <var>IsWordPresent</var>
+
+ checks for the presence of the word <var>W</var> in the string <var>S</var>. 
+Words are delimited by the characters found in <var>WordDelims</var>.
+The function returns <var>True</var> if a match is found, <var>False</var> otherwise. 
+The search is performed case sensitive.
+</p>
+          <p>This function is equivalent to the <link id="SearchBuf"/> function with the <var>soWholeWords</var> option specified.
+</p>
+        </descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="SearchBuf"/>
+        </seealso>
+      </element>
+      <element name="IsWordPresent.Result">
+        <short>
+          <var>True</var>
+
+
+
+
+
+
+
+
+ if the word is present, <var>False</var> if not.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="IsWordPresent.W">
+        <short>Word to search for</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="IsWordPresent.S">
+        <short>String to search</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="IsWordPresent.WordDelims">
+        <short>Characters to use as word separators</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="FindPart">
+        <short>Search for a substring in a string, using wildcards.</short>
+        <descr>
+          <var>FindPart</var>
+
+
+
+
+
+ searches the string <var>InputStr</var>
+ and returns the first string that matches the wildcards specification in <var>HelpWilds</var>
+. If no match is found, and empty string is returned.
+valid wildcards are the "?" (question mark) and "*" (asterisk) characters.</descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="SearchBuf"/>
+        </seealso>
+      </element>
+      <element name="FindPart.Result">
+        <short>String matching the search expression.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="FindPart.HelpWilds">
+        <short>Search string, may contain wildcards.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="FindPart.InputStr">
+        <short>String to search in.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="IsWild">
+        <short>Check whether a string matches a wildcard search expression.</short>
+        <descr>
+          <p>
+            <var>IsWild</var>
+
+
+
+ checks <var>InputStr</var> for the presence of the <var>Wilds</var> string. 
+<var>Wilds</var> may contain "?" and "*" wildcard characters, which have their usual meaning:
+"*" matches any series of characters, possibly empty. "?" matches any single character.
+The function returns <var>True</var> if a string is found that matches <var>Wilds</var>, <var>False</var> otherwise.
+</p>
+          <p>If <var>IgnoreCase</var> is <var>True</var>, the non-wildcard characters are matched case insensitively. 
+If it is <var>False</var>, case is observed when searching.
+</p>
+        </descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="SearchBuf"/>
+          <link id="FindPart"/>
+        </seealso>
+      </element>
+      <element name="IsWild.Result">
+        <short>
+          <var>True</var>
+
+
+
+
+
+
+
+
+ if the string matches the wildcard specification, <var>False</var> otherwise.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="IsWild.InputStr">
+        <short>String to search</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="IsWild.Wilds">
+        <short>Wildcard specification</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="IsWild.IgnoreCase">
+        <short>Search case insensitive or not.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="XorString">
+        <short>Encode a string by XOR-ing its characters using characters of a given key.</short>
+        <descr>
+          <p>
+            <var>XorString</var>
+ encodes the string <var>Src</var> by XOR-ing each character in <var>Source</var> with the corresponding character in <var>Key</var>, repeating <var>Key</var> as often as necessary.
+The resulting string may contain unreadable characters and may even contain null characters. 
+For this reason it may be a better idea to use the <link id="XorEncode"/> function instead, 
+which will representing each resulting ASCII code as a hexadecimal number (of length 2). 
+</p>
+          <p>Feeding the result again to <var>XorString</var> with the same <var>Key</var>, will result in the original string <var>Src</var>.
+</p>
+        </descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="XorEncode"/>
+          <link id="XorDecode"/>
+        </seealso>
+      </element>
+      <element name="XorString.Result">
+        <short>Resulting string</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="XorString.Key">
+        <short>Key to use</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="XorString.Src">
+        <short>String to encode.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="XorEncode">
+        <short>Encode a string by XOR-ing its characters using characters of a given key, representing the result as hex values.</short>
+        <descr>
+          <p>
+            <var>XorEncode</var>
+ encodes the string <var>Source</var> by XOR-ing each character in <var>Source</var> with the corresponding character in <var>Key</var> (repeating <var>Key</var> as often as necessary) and representing the resulting ASCII code as a hexadecimal number (of length 2). The result is therefore twice as long as the original string, and every 2 bytes represent an ASCII code. 
+</p>
+          <p>Feeding the resulting string with the same key <var>Key</var> to the <link id="XorDecode"/> function will result in the original <var>Source</var> string.
+</p>
+          <p>This function can be used e.g. to trivially encode a password in a configuration file.
+</p>
+        </descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="XorDecode"/>
+          <link id="XorString"/>
+          <link id="Hex2Dec"/>
+        </seealso>
+      </element>
+      <element name="XorEncode.Result">
+        <short>Original encoded string.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="XorEncode.Key">
+        <short>Key to use when encoding.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="XorEncode.Source">
+        <short>String ro encode.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="XorDecode">
+        <short>Decode a string encoded with <link id="XorEncode"/></short>
+        <descr>
+          <var>XorDecode</var>
+ decodes <var>Source</var> and returns the original string that was encrypted using <link id="XorEncode"/> with key <var>Key</var>.
+If a different key is used than the key used to encode the string, the result will be unreadable.</descr>
+        <errors>If the string <var>Source</var> is not a valid XorEncode result (e.g. contains non-numerical characters), then a <var>EConversionError</var> exception will be raised.</errors>
+        <seealso>
+          <link id="XorEncode"/>
+          <link id="XorString"/>
+        </seealso>
+      </element>
+      <element name="XorDecode.Result">
+        <short>Hexadecimal representation of the XOR-encoded string.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="XorDecode.Key">
+        <short>Key to use when decoding.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="XorDecode.Source">
+        <short>String to decode</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="GetCmdLineArg">
+        <short>Returns the command-line argument following the given switch.</short>
+        <descr>
+          <p>
+            <var>GetCmdLineArg</var>
+
+
+
+
+
+ returns the value for the <var>Switch</var> option on the command-line, if any is given. 
+Command-line arguments are considered switches if they start with one of the characters in the <var>SwitchChars</var> set.
+The value is the command-line argument following the switch command-line argument. 
+</p>
+          <p>Gnu-style (long) Options of the form switch=value are not supported.
+</p>
+          <p>The <link id="StdSwitchChars"/> constant can be used as value for the <var>SwitchChars</var> parameter.
+</p>
+        </descr>
+        <errors>
+          <p>The GetCmdLineArg does not check whether the value of the option does not start with a switch character. i.e. </p>
+          <pre>myprogram -option1 -option2
+</pre>
+          <p>will result in "-option2" as the result of the <var>GetCmdLineArg</var>
+ call for option1.</p>
+        </errors>
+        <seealso>
+          <link id="StdSwitchChars"/>
+        </seealso>
+      </element>
+      <element name="GetCmdLineArg.Result">
+        <short>Command line argument that followed the switch</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="GetCmdLineArg.Switch">
+        <short>Switch to search for</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="GetCmdLineArg.SwitchChars">
+        <short>Switch characters to use. Can be empty.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="Numb2USA">
+        <short>Insert thousand separators.</short>
+        <descr>
+          <var>Numb2USA</var>
+ inserts thousand separators in the string <var>S</var> at the places where they are supposed to be, i.e. every 3 digits.
+The string <var>S</var> should contain a valid integer number, i.e. no digital number. No checking on this is done.</descr>
+        <errors>None.</errors>
+        <seealso/>
+      </element>
+      <element name="Numb2USA.Result">
+        <short>String with thousand separators inserted.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="Numb2USA.S">
+        <short>String to insert thousand separators in.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="Hex2Dec">
+        <short>Converts a hexadecimal string to a decimal value</short>
+        <descr>
+          <var>Hex2Dec</var>
+
+
+
+
+ converts the hexadecimal value in the string <var>S</var> to its decimal value. 
+Unlike the standard <var>Val</var>or <var>StrToInt</var> functions, there need not be a $ sign in 
+front of the hexadecimal value to indicate that it is indeed a hexadecimal value.</descr>
+        <errors>If <var>S</var> does not contain a valid hexadecimal value, an <var>EConvertError</var> exception will be raised.</errors>
+        <seealso>
+          <link id="Dec2Numb"/>
+          <link id="IntToBin"/>
+          <link id="intToRoman"/>
+          <link id="RomanToInt"/>
+        </seealso>
+      </element>
+      <element name="Hex2Dec.Result">
+        <short>Hexadecimal value of the string</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="Hex2Dec.S">
+        <short>String to convert</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="Dec2Numb">
+        <short>Convert a decimal number to a string representation, using given a base.</short>
+        <descr>
+          <var>Dec2Numb</var>
+
+
+
+
+
+ converts <var>N</var>
+ to its representation using base <var>Base</var>
+. 
+The resulting string is left-padded with zeroes till it has length <var>Len</var>
+.
+<var>Base</var>
+ must be in the range 2-36 to be meaningful, but no checking on this is performed.</descr>
+        <errors>If <var>Base </var>
+is out of range, the resulting string will contain unreadable (non-alphanumeric) characters.</errors>
+        <seealso>
+          <link id="Hex2Dec"/>
+          <link id="IntToBin"/>
+          <link id="intToRoman"/>
+          <link id="RomanToInt"/>
+        </seealso>
+      </element>
+      <element name="Dec2Numb.Result">
+        <short>The representation of the given number.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="Dec2Numb.N">
+        <short>Number to represent.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="Dec2Numb.Len">
+        <short>Minimal length of the returned string</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="Dec2Numb.Base">
+        <short>Base to use when converting</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="Numb2Dec">
+        <short>Converts a string representation of a number to its numerical value, given a certain base.</short>
+        <descr>
+          <var>Numb2Dec</var>
+ converts the number in string <var>S</var> to a decimal value. 
+It assumes the number is represented using <var>Base</var> as the base. 
+No checking is performed to see whether <var>S</var> contains a valid number using base <var>Base</var>.</descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="Hex2Dec"/>
+          <link id="Hex2USA"/>
+        </seealso>
+      </element>
+      <element name="Numb2Dec.Result">
+        <short>Numerical value of the string.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="Numb2Dec.S">
+        <short>String to convert</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="Numb2Dec.Base">
+        <short>Base to use when converting.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="IntToBin">
+        <short>Converts an integer to a binary string representation, inserting spaces at fixed locations.</short>
+        <descr>
+          <var>IntToBin</var>
+
+
+
+ converts <var>Value</var> to a string with it's binary (base 2) representation.
+The resulting string contains at least <var>Digits</var> digits, with spaces inserted every <var>Spaces</var> digits.
+<var>Spaces</var> should be a nonzero value. If <var>Digits</var> is larger than 32, it is truncated to 32.</descr>
+        <errors>If spaces is zero, a division by zero error will occur.</errors>
+        <seealso>
+          <link id="Hex2Dec"/>
+          <link id="IntToRoman"/>
+        </seealso>
+      </element>
+      <element name="IntToBin.Result">
+        <short>Resulting string</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="IntToBin.Value">
+        <short>Value to convert</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="IntToBin.Digits">
+        <short>Number of bits in the resulting string.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="IntToBin.Spaces">
+        <short>Number of digits after which to insert a space.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="IntToRoman">
+        <short>Represent an integer with roman numerals</short>
+        <descr>
+          <var>IntToRoman</var>
+
+
+
+ converts <var>Value</var> to a string with the Roman representation of <var>Value</var>.
+Number up to 1 million can be represented this way.</descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="RomanToInt"/>
+          <link id="Hex2Dec"/>
+          <link id="IntToBin"/>
+        </seealso>
+      </element>
+      <element name="IntToRoman.Result">
+        <short>
+          <var>Value</var>
+
+
+
+
+
+
+
+
+ in roman numerals</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="IntToRoman.Value">
+        <short>Value to convert</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="RomanToInt">
+        <short>Convert a string with a Roman number to it's decimal value.</short>
+        <descr>
+          <var>RomanToInt</var>
+ returns the decimal equivalent of the Roman numerals in the string <var>S</var>.
+Invalid characters are dropped from <var>S</var>. A negative numeral is supported as well.</descr>
+        <errors>None.</errors>
+        <seealso>
+          <link id="IntToRoman"/>
+          <link id="Hex2Dec"/>
+          <link id="Numb2Dec"/>
+        </seealso>
+      </element>
+      <element name="RomanToInt.Result">
+        <short>Value of the string.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="RomanToInt.S">
+        <short>String to convert.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="DigitChars">
+        <short>Set of digit characters</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="Brackets">
+        <short>Set of characters that contain all possible bracket characters</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="StdWordDelims">
+        <short>Standard word delimiter values.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+      <short>Various string handling routines</short>
+      <descr/>
+      <errors/>
+      <seealso/>
+      <element name="TStringSeachOption">
+        <short>Possible options for <link id="SearchBuf"/>   call.</short>
+        <descr>There is an typo error in the original Borland StrUtils unit. 
+This type just refers to the correct <link id="TStringSearchOption"/> and is provided for compatibility only.</descr>
+        <errors/>
+        <seealso/>
+      </element>
+      <element name="StdSwitchChars">
+        <short>Standard characters for the <var>SwitchChars</var> argument of <link id="GetCmdLineArg"/>.</short>
+        <descr/>
+        <errors/>
+        <seealso/>
+      </element>
+    </module>
+    <!-- strutils -->
+  </package>
+</fpdoc-descriptions>

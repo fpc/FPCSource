@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<fpdoc-descriptions>
+  <package name="rtl">
+    <!--
+  ====================================================================
+    systhrds
+  ====================================================================
+-->
+    <module name="systhrds">
+      <short>System threading routines and implementation of thread manager</short>
+      <descr/>
+      <errors/>
+      <seealso/>
+    </module>
+    <!-- systhrds -->
+  </package>
+</fpdoc-descriptions>
