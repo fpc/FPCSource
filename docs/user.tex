@@ -496,8 +496,8 @@ look for compiled versions of these units in the following way:
 (not under \linux)
 \item It will look in all the directories specified in the unit search path.
 \end{enumerate}
-You can add a directory to the unit search path with the \var{-Fu} option
-(\seeo{Fu}). Every occurrence of one of this options will {\em insert}
+You can add a directory to the unit search path with the (\seeo{Fu})
+option. Every occurrence of one of this options will {\em insert}
 a directory to the unit search path. i.e. last path on the command line
 will be searched first.
 
@@ -580,9 +580,8 @@ directive, the compiler will look for it in the following places:
 \item it will look in all directories specified in the include file search
 path.
 \end{enumerate}
-You can add files to the include file search
- path with the \var{-I} (\seeo{I})
-option.
+You can add files to the include file search path with the \seeo{I} or
+\seeo{Fi} options.
 
 As an example, consider the following include statement in a file
 \file{units/foo.pp}:
@@ -614,13 +613,12 @@ files:
 \item It will look in the directory where the current source file is.
 \item it will look in all directories specified in the object file search path.
 \end{enumerate}
-You can add files to the object file search path with the \var{-Fo} (\seeo{Fo})
-option.
+You can add files to the object file search path with the \seeo{Fo} option.
 
 % Configuration file
 \subsection{Configuration file}
 \label{searchconfig}
-Unless you specify the \var{-n} (\seeo{n}) option, the compiler will look
+Unless you specify the \seeo{n} option, the compiler will look
 for a configuration file \file{ppc386.cfg} in the following places:
 
 \begin{itemize}
@@ -863,14 +861,14 @@ full in the programmers guide.
 \begin{itemize}
 \item \textbf{IO-error -2 at ...} : Under \linux you can get this message at
 compiler startup. It means typically that the compiler doesn't find the
-error definitions file. You can correct this mistake with the \var{-Fr}
-option under \linux. (\seeo{Fr})
+error definitions file. You can correct this mistake with the \seeo{Fr}
+option under \linux. 
 \item \textbf {Error : File not found : xxx} or \textbf{Error: couldn't compile
 unit xxx}: This typically happens when
 your unit path isn't set correctly. Remember that the compiler looks for
 units only in the current directory, and in the directory where the compiler
 itself is. If you want it to look somewhere else too, you must explicitly
-tell it to do so using the \var{-Fu} option (\seeo{Fu}). Or you must set op
+tell it to do so using the \seeo{Fu} option. Or you must set op
 a configuration file.
 \end{itemize}
 
@@ -1013,8 +1011,8 @@ the file named \file{xxx}.
 \item [-FExxx] tells the compiler to write the executable and units in
 directory \file{xxx} instead of th current directory.
 \olabel{FE}
-\item [-FIxxx] Adds \var{xxx} to the include file search path.
-\olabel{FI}
+\item [-Fixxx] Adds \var{xxx} to the include file search path.
+\olabel{Fi}
 \item [-Flxxx] Adds \var{xxx} to the library searching path, and is passed
 to the linker.
 \olabel{Fl}
@@ -1045,6 +1043,7 @@ the compiler on \ostwo and \linux. Only with assemblers (such as \gnu
 
 % Options controlling the kind of output.
 \subsection{Options controlling the kind of output.}
+\label{se:codegen}
 for more information on these options, see also \progref
 \begin{description}
 \item [-a] \olabel{a} Tells the compiler not to delete the assembler files
@@ -1152,13 +1151,14 @@ can be one of the following:
 \begin{itemize}
 % \item \textbf{e} : (\linux only) Create an \file{ELF} executable (default).
 \item \textbf{c} : (\linux only) Link with the C library. You should only use this when
-  you start to port \fpc to another operating system.
+  you start to port \fpc to another operating system. \olabel{Xe}
 \item \textbf{D} : Link with dynamic libraries (defines the
-\var{FPC\_LINK\_DYNAMIC} symbol)
-\item \textbf{s} : Strip the symbols from the executable.
+\var{FPC\_LINK\_DYNAMIC} symbol) \olabel{XD}
+\item \textbf{s} : Strip the symbols from the executable. \olabel{Xs}
 \item \textbf{S} : Link with static units (defines the \var{FPC\_LINK\_STATIC} symbol)
+\olabel{XS}
 \item \textbf{X} : Link with smartlinked units (defines the
-\var{FPC\_LINK\_SMART} symbol)
+\var{FPC\_LINK\_SMART} symbol) \olabel{XX}
 \end{itemize}
 \end{description}
 
@@ -1168,6 +1168,7 @@ can be one of the following:
 % Options concerning the sources (language options)
 
 \subsection{Options concerning the sources (language options)}
+\label{se:sourceoptions}
 for more information on these options, see also \progref
 \begin{description}
 \item [-Rxxx] \olabel{R} Specifies what kind of assembler you use in
@@ -1186,6 +1187,7 @@ from \var{-Sd} because some \fpc constructs are still available to you.
 -=}.
 \item [-Sd] Tells the compiler to be Delphi compatible. This is more strict
 than the \var{-S2} option, since some \var{fpc} extensions are switched off.
+\olabel{Sd}
 \item [-SeN] \olabel{Se} The compiler stops after the N-th error. Normally,
 the compiler tries to continue compiling after an error, until 50 errors are
 reached, or a fatal error is reached, and then it stops. With this switch,
@@ -1471,7 +1473,7 @@ which are not supported by \fpc. Where possible, we indicate the reason.
 and will not be changed.
 \item Parameter lists of previously defined functions and procedures must
 match exactly. The reason for this is the function overloading mechanism of
-\fpc. (however, the \var{-So} switch solves this. \seeo{So})
+\fpc. (however, the \seeo{So} option solves this.)
 \item \var {(* ... *)} as comment delimiters are not allowed in versions
 older than 0.9.1. This can easily be remedied with a grown-up editor.
 \item The \var{MEM, MEMW, MEML} and \var{PORT} variables for memory and port
@@ -2267,6 +2269,7 @@ which you can debug it using \gnu \var{gdb}.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Using gdb
 \section{Using \var{gdb} to debug your program}
+\label{se:usinggdb}
 
 To use gdb to debug your program, you can start the debugger, and give it as
 an option the {\em full} name of your program:

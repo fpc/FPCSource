@@ -1397,7 +1397,7 @@ A list of watches and their present value is available in the watches
 window, which can be opened with the \menu{Debug|Watches} menu.
 \begin{htmlonly}
 The watch list window looks as follows:
-\fpcaddimg{../pics/ide/watch.png}
+\fpcaddimg{../pics/ide/watchlst.png}
 \end{htmlonly}
 \begin{latexonly}
 The watch list window is shown in \seefig{brklist}
@@ -2026,17 +2026,17 @@ The directories dialog is shown in \seefig{odirs}.
 The following directories can be specified:
 \begin{description}
 \item[EXE \& PPU directories] Specifies where the compiled units and
-executables will go. (\seeo{-FE} on the command line.)
+executables will go. (\seeo{FE} on the command line.)
 \item[Object directories] Specifies where the compiler looks for external
-object files. (\seeo{-Fo} on the command line.)
+object files. (\seeo{Fo} on the command line.)
 \item[Library directories] Specifies where the compiler (more exactly, the
-linker) looks for external libraries. (\seeo{-Fl} on the command line.)
+linker) looks for external libraries. (\seeo{Fl} on the command line.)
 \item[Include directories] Specifies where the compiler will look for 
 include files, included with the \var{\{\$i \}} directive. 
-(\seeo{-Fi} or \seeo{-I} on the command line.)
+(\seeo{Fi} or \seeo{I} on the command line.)
 \item[Unit directories] Specifies where the compiler will look for compiled
 units. The compiler always looks first in the current directory, and also in
-some standard directories. (\seeo{-Fu} on the command line.)
+some standard directories. (\seeo{Fu} on the command line.)
 \end{description}
 %
 % The target operating system.
@@ -2046,7 +2046,7 @@ The menu item \menu{Compile|Target} allows to specify the target
 operating system for which the sources will be compiled. 
 Changing the target doesn't affect any compiler switches or 
 directories. It does affect some defines defined by the compiler.
-The settings here correspond to the option \seeo{-T}
+The settings here correspond to the option \seeo{T}
 on the command-line.
 \begin{htmlonly}
 The target dialog looks as follows:
@@ -2058,9 +2058,9 @@ The compilation target dialog is shown in \seefig{target}.
 \begin{center}
 \caption{The compilation target dialog.}\label{fig:target}
 \ifpdf
-\epsfig{file=pics/ide/target.png}%,width=\textwidth}
+\epsfig{file=pics/ide/target.png}
 \else
-\epsfig{file=pics/ide/target.eps,width=\textwidth}
+\epsfig{file=pics/ide/target.eps}
 \fi
 \end{center}
 \end{figure}
@@ -2402,9 +2402,9 @@ The memory sizes dialog is shown in \seefig{omemsize}.
 \begin{center}
 \caption{The memory sizes dialog.}\label{fig:omemsize}
 \ifpdf
-\epsfig{file=pics/ide/omemsize.png}%,width=\textwidth}
+\epsfig{file=pics/ide/omemsize.png}
 \else
-\epsfig{file=pics/ide/omemsize.eps}%,width=\textwidth}
+\epsfig{file=pics/ide/omemsize.eps}
 \fi
 \end{center}
 \end{figure}
@@ -2511,9 +2511,9 @@ The switches mode dialog is shown in \seefig{oswitch}.
 \begin{center}
 \caption{The switches mode dialog.}\label{fig:oswitch}
 \ifpdf
-\epsfig{file=pics/ide/oswitch.png}%,width=\textwidth}
+\epsfig{file=pics/ide/oswitch.png}
 \else
-\epsfig{file=pics/ide/oswitch.eps}%,width=\textwidth}
+\epsfig{file=pics/ide/oswitch.eps}
 \fi
 \end{center}
 \end{figure}
@@ -2615,9 +2615,9 @@ The desktop preferences dialog is shown in \seefig{odesktop}.
 \begin{center}
 \caption{The desktop preferences dialog.}\label{fig:odesktop}
 \ifpdf
-\epsfig{file=pics/ide/oedesk.png}%,width=\textwidth}
+\epsfig{file=pics/ide/oedesk.png}
 \else
-\epsfig{file=pics/ide/oedesk.eps,width=\textwidth}
+\epsfig{file=pics/ide/oedesk.eps}
 \fi
 \end{center}
 \end{figure}
@@ -2657,7 +2657,7 @@ Several aspects of the editor window behaviour can be set in this dialog.
 
 \begin{htmlonly}
 The editor preferences dialog looks as follows:
-\fpcaddimg{../pics/ide/oeprefs.png}
+\fpcaddimg{../pics/ide/oeeditor.png}
 \end{htmlonly}
 \begin{latexonly}
 The editor preferences dialog is shown in \seefig{oeeditor}.
@@ -2821,7 +2821,7 @@ The colors dialog is shown in \seefig{ocolors}.
 \ifpdf
 \epsfig{file=pics/ide/oecolors.png,width=\textwidth}
 \else
-\epsfig{file=pics/ide/oemouse.eps,width=\textwidth}
+\epsfig{file=pics/ide/oecolors.eps,width=\textwidth}
 \fi
 \end{center}
 \end{figure}
@@ -3126,7 +3126,10 @@ Undo & \key{Alt-Backspace} & \\
 \end{FPCltable}
 %
 %  $Log$
-%  Revision 1.1.2.17  2000-12-08 16:55:54  michael
+%  Revision 1.1.2.18  2000-12-08 20:41:50  michael
+%  + Fixed some references
+%
+%  Revision 1.1.2.17  2000/12/08 16:55:54  michael
 %  + Some remarks corrected
 %
 %  Revision 1.1.2.16  2000/12/08 12:57:21  michael
