@@ -48,6 +48,7 @@ Uses
 
 Function RegUsedAfterInstruction(Reg: TRegister; p: Pai; Var UsedRegs: TRegSet): Boolean;
 Begin
+  reg := reg32(reg);
   UpdateUsedRegs(UsedRegs, Pai(p^.Next));
   RegUsedAfterInstruction :=
     (Reg in UsedRegs) and
@@ -1809,7 +1810,7 @@ Begin
                      TmpUsedRegs := UsedRegs;
                      UpdateUsedRegs(TmpUsedRegs,Pai(hp1^.next));
                      If (RefsEqual(Paicpu(hp2)^.oper[1].ref^, Paicpu(p)^.oper[0].ref^) And
-                         Not(RegUsedAfterInstruction(Reg32(Paicpu(p)^.oper[1].reg),
+                         Not(RegUsedAfterInstruction(Paicpu(p)^.oper[1].reg,
                               hp2, TmpUsedRegs)))
                        Then
   { change   mov            (ref), reg            }
@@ -1892,7 +1893,12 @@ End.
 
 {
  $Log$
- Revision 1.88  2000-03-25 18:57:02  jonas
+ Revision 1.89  2000-03-26 08:46:52  jonas
+   * fixed bug in regUsedAfterInstruction (it didn't convert the reg
+     to 32bit before checking)
+   * result: make cycle now works with -OG3p3r!!!!
+
+ Revision 1.88  2000/03/25 18:57:02  jonas
    * remove dealloc/alloc of reg1 between "movl %reg1,%reg2;
      movl %reg2,%reg1" when removing the second instruction (it
      confused the CSE and caused errors with -Or)
