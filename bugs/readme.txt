@@ -369,3 +369,4 @@ bug0274.pp   @(proc) is not allowed
 bug0275.pp   too many warnings
 bug0277.pp   typecasting with const not possible
 bug0279.pp   crash with ansistring and new(^ansistring)
+bug0281.pp   dup id checking with property is wrong
