@@ -115,6 +115,7 @@ var
   { Should be set in InitGraph once only.                           }
   IntCurrentMode : smallint;
   IntCurrentDriver : smallint;       { Currently loaded driver          }
+  IntCurrentNewDriver: smallint;
   XAspect : word;
   YAspect : word;
   MaxX : smallint;       { Maximum resolution - ABSOLUTE }
@@ -1476,6 +1477,7 @@ end;
     { Reset to default values }
     IntCurrentMode := 0;
     IntCurrentDriver := 0;
+    IntCurrentNewDriver := 0;
     XAspect := 0;
     YAspect := 0;
     MaxX := 0;
@@ -2292,6 +2294,7 @@ end;
 
         { _GraphResult is now already set to grOK by DetectGraph }
         IntCurrentDriver := GraphDriver;
+        IntCurrentNewDriver := GraphDriver;
         SaveVideoState;
 { Actually set the graph mode...}
         SetGraphMode(GraphMode);
@@ -2308,6 +2311,7 @@ end;
          begin
            _GraphResult := grOK;
            IntCurrentDriver := GraphDriver;
+           IntCurrentNewDriver := GraphDriver;
            SaveVideoState;
 {$ifdef logging}
            If _GraphResult <> grOK then
@@ -2430,7 +2434,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.38  2000-06-27 13:37:04  jonas
+  Revision 1.39  2000-07-07 17:29:30  jonas
+    * fixed setgraphmode together with the new graphdrivers
+
+  Revision 1.38  2000/06/27 13:37:04  jonas
     * released -dnewmodes
 
   Revision 1.37  2000/06/23 19:56:37  jonas

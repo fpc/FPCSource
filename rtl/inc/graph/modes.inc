@@ -340,7 +340,7 @@ end;
       mode:=nil;
       GetModeName:='';
       { only search in the current driver modes ... }
-      mode:=SearchMode(IntCurrentDriver,ModeNumber);
+      mode:=SearchMode(IntCurrentNewDriver,ModeNumber);
       if assigned(mode) then
           GetModeName:=Mode^.ModeName
       else
@@ -367,7 +367,7 @@ end;
         inc(i);
         { mode 0 always exists... }
         { start search at 1..     }
-        mode:=SearchMode(IntCurrentDriver,i);
+        mode:=SearchMode(IntCurrentNewDriver,i);
       until not assigned(mode);
       GetMaxMode:=i;
     end;
@@ -417,7 +417,7 @@ end;
      modeinfo: PModeInfo;
     begin
       { check if the mode exists... }
-      modeinfo := searchmode(IntcurrentDriver,mode);
+      modeinfo := searchmode(IntcurrentNewDriver,mode);
       if not assigned(modeinfo) then
         begin
 {$ifdef logging}
@@ -573,7 +573,10 @@ end;
 
 {
 $Log$
-Revision 1.30  2000-07-05 13:07:48  jonas
+Revision 1.31  2000-07-07 17:29:30  jonas
+  * fixed setgraphmode together with the new graphdrivers
+
+Revision 1.30  2000/07/05 13:07:48  jonas
   * final fixes for linux support (graphdriver value of the modes
     is now also not modified anymore)
 
