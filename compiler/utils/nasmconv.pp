@@ -15,8 +15,10 @@
  **********************************************************************}
 program nasmconv;
 
+const
+  Version = '0.99.13';
+
 var
-   infile,outfile : text;
    s : string;
    i : longint;
 
@@ -42,6 +44,21 @@ var
     s[0]:=chr(i);
   end;
 {$endif}
+
+    function lower(const s : string) : string;
+    {
+      return lowercased string of s
+    }
+      var
+         i : longint;
+      begin
+         for i:=1 to length(s) do
+          if s[i] in ['A'..'Z'] then
+           lower[i]:=char(byte(s[i])+32)
+          else
+           lower[i]:=s[i];
+         lower[0]:=s[0];
+      end;
 
       function Replace(var s:string;const s1,s2:string):boolean;
       var
@@ -91,21 +108,6 @@ function formatop(s:string):string;
     formatop:=s;
   end;
 
-
-procedure maybe_newline;
-
-  begin
-     if s[i]=#10 then
-       begin
-          readln(infile,s);
-          i:=1;
-       end;
-     while s[1]=';' do
-       begin
-          readln(infile,s);
-          i:=1;
-       end;
-  end;
 
 function readnumber : longint;
 
@@ -177,27 +179,55 @@ procedure skipspace;
 var
    hs : string;
    j : longint;
+   firstopcode,attsuffix,
    first : boolean;
    maxinfolen,
    code : byte;
    insns : longint;
+   attsuffile,propfile,opfile,attfile,intfile,
+   infile,insfile : text;
    { instruction fields }
    last,
    ops    : longint;
+   intopcode,
+   attopcode,
    opcode,
    codes,
    flags   : string;
    optypes : array[1..3] of string;
 begin
-   writeln('Nasm Instruction Table Converter Version 0.99.13');
+   writeln('Nasm Instruction Table Converter Version ',Version);
    insns:=0;
    maxinfolen:=0;
    assign(infile,'insns.dat');
    reset(infile);
-   assign(outfile,'i386tab.inc');
-   rewrite(outfile);
-   writeln(outfile,'(');
+   assign(insfile,'i386tab.inc');
+   rewrite(insfile);
+   writeln(insfile,'{ don''t edit, this file is generated from insns.dat }');
+   writeln(insfile,'(');
+   assign(opfile,'i386op.inc');
+   rewrite(opfile);
+   writeln(opfile,'{ don''t edit, this file is generated from insns.dat }');
+   writeln(opfile,'(');
+   assign(attfile,'i386att.inc');
+   rewrite(attfile);
+   writeln(attfile,'{ don''t edit, this file is generated from insns.dat }');
+   writeln(attfile,'(');
+   assign(attsuffile,'i386atts.inc');
+   rewrite(attsuffile);
+   writeln(attsuffile,'{ don''t edit, this file is generated from insns.dat }');
+   writeln(attsuffile,'(');
+   assign(intfile,'i386int.inc');
+   rewrite(intfile);
+   writeln(intfile,'{ don''t edit, this file is generated from insns.dat }');
+   writeln(intfile,'(');
+   assign(propfile,'i386prop.inc');
+   rewrite(propfile);
+   writeln(propfile,'{ don''t edit, this file is generated from insns.dat }');
+   writeln(propfile,'(');
    first:=true;
+   opcode:='';
+   firstopcode:=true;
    while not(eof(infile)) do
      begin
         { handle comment }
@@ -206,24 +236,81 @@ begin
          delete(s,1,1);
         if (s='') or (s[1]=';') then
           continue;
+        if (s[1]='[') then
+         begin
+           i:=pos(',',s);
+           j:=pos(']',s);
+           if i=0 then
+            begin
+              opcode:='A_'+Copy(s,2,j-2);
+              intopcode:=Copy(s,2,j-2);
+              { Conditional }
+              if (intopcode[length(intopcode)]='c') and
+                 (intopcode[length(intopcode)-1]='c') then
+                dec(byte(intopcode[0]),2);
+              attopcode:=intopcode;
+              attsuffix:=false;
+            end
+           else
+            begin
+              opcode:='A_'+Copy(s,2,i-2);
+              intopcode:=Copy(s,2,i-2);
+              { intel conditional }
+              if (intopcode[length(intopcode)]='c') and
+                 (intopcode[length(intopcode)-1]='c') then
+                dec(byte(intopcode[0]),2);
+              attopcode:=Copy(s,i+1,j-i-1);
+              { att Suffix }
+              if attopcode[length(attopcode)]='X' then
+               begin
+                 dec(attopcode[0]);
+                 attsuffix:=true;
+               end
+              else
+               attsuffix:=false;
+              { att Conditional }
+              if (attopcode[length(attopcode)]='C') and
+                 (attopcode[length(attopcode)-1]='C') then
+                dec(byte(attopcode[0]),2);
+            end;
+           intopcode:=Lower(intopcode);
+           attopcode:=Lower(attopcode);
+           if firstopcode then
+            firstopcode:=false
+           else
+            begin
+              writeln(opfile,',');
+              writeln(attfile,',');
+              writeln(attsuffile,',');
+              writeln(intfile,',');
+              writeln(propfile,',');
+            end;
+           write(opfile,opcode);
+           write(intfile,'''',intopcode,'''');
+           write(attfile,'''',attopcode,'''');
+           if attsuffix then
+            write(attsuffile,'true')
+           else
+            write(attsuffile,'false');
+           { read the next line which contains the Change options }
+           repeat
+             readln(infile,s);
+           until eof(infile) or ((s<>'') and (s[1]<>';'));
+           write(propfile,'(Ch: ',s,')');
+           continue;
+         end;
+        { we must have an opcode }
+        if opcode='' then
+         runerror(234);
         { clear }
-        opcode:='';
         ops:=0;
         optypes[1]:='';
         optypes[2]:='';
         optypes[3]:='';
         codes:='';
         flags:='';
-        { opcode }
-        opcode:='A_';
-        i:=1;
-        while not(s[i] in [' ',#9]) do
-          begin
-            opcode:=opcode+s[i];
-            inc(i);
-          end;
-        skipspace;
         { ops and optypes }
+        i:=1;
         repeat
           hs:=readstr;
           if (hs='void') or (hs='ignore') then
@@ -272,7 +359,10 @@ begin
                end;
           end
         else
-          codes:='#0';
+          begin
+            readstr;
+            codes:='#0';
+          end;
         if j>maxinfolen then
          maxinfolen:=j;
         { flags }
@@ -289,7 +379,7 @@ begin
               begin
                 if flags<>'' then
                  flags:=flags+' or ';
-                flags:=flags+'if_'+hs;
+                flags:=flags+'if_'+lower(hs);
               end;
              if (s[i]=',') and (i<=length(s)) then
               inc(i)
@@ -298,28 +388,45 @@ begin
           end;
       { write instruction }
         if not(first) then
-          writeln(outfile,',')
+          writeln(insfile,',')
         else
           first:=false;
-        writeln(outfile,'  (');
-        writeln(outfile,'    opcode  : ',opcode,';');
-        writeln(outfile,'    ops     : ',ops,';');
-        writeln(outfile,'    optypes : (',optypes[1],',',optypes[2],',',optypes[3],');');
-        writeln(outfile,'    code    : ',codes,';');
-        writeln(outfile,'    flags   : ',flags);
-        write(outfile,'  )');
-        maybe_newline;
+        writeln(insfile,'  (');
+        writeln(insfile,'    opcode  : ',opcode,';');
+        writeln(insfile,'    ops     : ',ops,';');
+        writeln(insfile,'    optypes : (',optypes[1],',',optypes[2],',',optypes[3],');');
+        writeln(insfile,'    code    : ',codes,';');
+        writeln(insfile,'    flags   : ',flags);
+        write(insfile,'  )');
         inc(insns);
      end;
-   writeln(outfile);
-   writeln(outfile,');');
+   writeln(insfile);
+   writeln(insfile,');');
+   writeln(attfile);
+   writeln(attfile,');');
+   writeln(attsuffile);
+   writeln(attsuffile,');');
+   writeln(intfile);
+   writeln(intfile,');');
+   writeln(opfile);
+   writeln(opfile,');');
+   writeln(propfile);
+   writeln(propfile,');');
    close(infile);
-   close(outfile);
+   close(insfile);
+   close(intfile);
+   close(attfile);
+   close(attsuffile);
+   close(opfile);
+   close(propfile);
    writeln(insns,' nodes procesed (maxinfolen=',maxinfolen,')');
 end.
 {
   $Log$
-  Revision 1.3  1999-08-12 14:36:09  peter
+  Revision 1.4  1999-10-27 16:06:52  peter
+    * updated for new layout
+
+  Revision 1.3  1999/08/12 14:36:09  peter
     + KNI instructions
 
   Revision 1.2  1999/05/23 18:42:24  florian
