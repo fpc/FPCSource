@@ -116,7 +116,8 @@ external 'EMXWRAP' index 132;
 function VioGetCurType(var CurData:TVioCursorInfo;VioHandle:word):word; cdecl;
 external 'EMXWRAP' index 127;
 {external 'VIOCALLS' index 27;}
-
+function DosBeep (Freq, MS: cardinal): cardinal; cdecl;
+external 'DOSCALLS' index 286;
 
 
 procedure setscreenmode(mode:word);
@@ -384,18 +385,16 @@ begin
   while i<=len-1 do
   begin
     case s[i] of
-      #8: x:=x-1;
-      #9: x:=(x-lo(windmin)) and $fff8+8+lo(windmin);
-      #10: ;
-      #13: begin
-              x:=lo(windmin);
-              inc(y);
-        end;
+      #7: DosBeep (800, 250);
+      #8: if x > Lo (WindMin) then Dec (X);
+{      #9: x:=(x-lo(windmin)) and $fff8+8+lo(windmin);}
+      #10: inc(y);
+      #13: x:=lo(windmin);
       else
       begin
         ca:=@s[i];
         n:=1;
-        while not(s[i+1] in [#8,#9,#10,#13]) and
+        while not(s[i+1] in [#7,#8,#10,#13]) and
               (x+n<=lo(windmax)) and (i<len-1) do
         begin
           inc(n);
@@ -614,7 +613,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2005-02-14 17:13:31  peter
+  Revision 1.9  2005-03-30 22:11:55  hajny
+    * patch from Sterling Bates for bug 3762 (with additional enhancements for better compatibility)
+
+  Revision 1.8  2005/02/14 17:13:31  peter
     * truncate log
 
 }
