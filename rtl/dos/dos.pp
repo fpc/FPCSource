@@ -288,7 +288,7 @@ begin
    dosregs.dl:=day;
    dosregs.ah:=$2b;
    msdos(dosregs);
-   LoadDosError;
+   DosError:=0;
 end;
 
 
@@ -300,6 +300,7 @@ begin
   minute:=dosregs.cl;
   second:=dosregs.dh;
   sec100:=dosregs.dl;
+  DosError:=0;
 end;
 
 
@@ -311,7 +312,7 @@ begin
   dosregs.dl:=sec100;
   dosregs.ah:=$2d;
   msdos(dosregs);
-  LoadDosError;
+  DosError:=0;
 end;
 
 
@@ -500,6 +501,7 @@ end;
 
 procedure getcbreak(var breakvalue : boolean);
 begin
+  DosError:=0;
   dosregs.ax:=$3300;
   msdos(dosregs);
   breakvalue:=dosregs.dl<>0;
@@ -508,6 +510,7 @@ end;
 
 procedure setcbreak(breakvalue : boolean);
 begin
+  DosError:=0;
   dosregs.ax:=$3301;
   dosregs.dl:=ord(breakvalue);
   msdos(dosregs);
@@ -516,6 +519,7 @@ end;
 
 procedure getverify(var verify : boolean);
 begin
+  DosError:=0;
   dosregs.ah:=$54;
   msdos(dosregs);
   verify:=dosregs.al<>0;
@@ -524,6 +528,7 @@ end;
 
 procedure setverify(verify : boolean);
 begin
+  DosError:=0;
   dosregs.ah:=$2e;
   dosregs.al:=ord(verify);
   msdos(dosregs);
@@ -536,6 +541,7 @@ end;
 
 function diskfree(drive : byte) : longint;
 begin
+  DosError:=0;
   dosregs.dl:=drive;
   dosregs.ah:=$36;
   msdos(dosregs);
@@ -548,6 +554,7 @@ end;
 
 function disksize(drive : byte) : longint;
 begin
+  DosError:=0;
   dosregs.dl:=drive;
   dosregs.ah:=$36;
   msdos(dosregs);
@@ -790,6 +797,7 @@ end;
 
 Procedure FindClose(Var f: SearchRec);
 begin
+  DosError:=0;
 {$ifdef Go32V2}
   if LFNSupport then
    LFNFindClose(f);
@@ -800,6 +808,7 @@ end;
 {$ASMMODE DIRECT}
 procedure swapvectors;
 begin
+  DosError:=0;
 {$ifdef go32v2}
   asm
 { uses four global symbols from v2prt0.as to be able to know the current
@@ -1019,8 +1028,8 @@ begin
   dosregs.bx:=textrec(f).handle;
   dosregs.ax:=$5700;
   msdos(dosregs);
+  loaddoserror;
   time:=(dosregs.dx shl 16)+dosregs.cx;
-  doserror:=dosregs.al;
 end;
 
 
@@ -1031,7 +1040,7 @@ begin
   dosregs.dx:=time shr 16;
   dosregs.ax:=$5701;
   msdos(dosregs);
-  doserror:=dosregs.al;
+  loaddoserror;
 end;
 
 
@@ -1151,7 +1160,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.14  1998-10-22 15:05:28  pierre
+  Revision 1.15  1998-11-01 20:27:18  peter
+    * fixed some doserror settings
+
+  Revision 1.14  1998/10/22 15:05:28  pierre
    * fsplit adapted to long filenames
 
   Revision 1.13  1998/09/16 16:47:24  peter
