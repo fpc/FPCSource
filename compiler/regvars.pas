@@ -371,9 +371,9 @@ implementation
                 if cs_asm_source in aktglobalswitches then
                  asml.insert(Tai_asm_comment.Create(strpnew(regvarinfo^.regvars[i].name+
                   ' with weight '+tostr(regvarinfo^.regvars[i].refs)+' assigned to register '+
-                  reg2str(regvarinfo^.regvars[i].reg))));
+                  std_reg2str[regvarinfo^.regvars[i].reg])));
                 if (status.verbosity and v_debug)=v_debug then
-                 Message3(cg_d_register_weight,reg2str(regvarinfo^.regvars[i].reg),
+                 Message3(cg_d_register_weight,std_reg2str[regvarinfo^.regvars[i].reg],
                   tostr(regvarinfo^.regvars[i].refs),regvarinfo^.regvars[i].name);
                end;
             end;
@@ -401,9 +401,9 @@ implementation
                     if cs_asm_source in aktglobalswitches then
                       asml.insert(Tai_asm_comment.Create(strpnew(regvarinfo^.fpuregvars[i].name+
                         ' with weight '+tostr(regvarinfo^.fpuregvars[i].refs)+' assigned to register '+
-                        reg2str(regvarinfo^.fpuregvars[i].reg))));
+                        std_reg2str[regvarinfo^.fpuregvars[i].reg])));
                     if (status.verbosity and v_debug)=v_debug then
-                      Message3(cg_d_register_weight,reg2str(regvarinfo^.fpuregvars[i].reg),
+                      Message3(cg_d_register_weight,std_reg2str[regvarinfo^.fpuregvars[i].reg],
                         tostr(regvarinfo^.fpuregvars[i].refs),regvarinfo^.fpuregvars[i].name);
                  end;
             end;
@@ -459,7 +459,10 @@ end.
 
 {
   $Log$
-  Revision 1.25  2002-04-06 18:13:01  jonas
+  Revision 1.26  2002-04-15 19:04:04  carl
+  + reg2str -> std_reg2str()
+
+  Revision 1.25  2002/04/06 18:13:01  jonas
     * several powerpc-related additions and fixes
 
   Revision 1.24  2002/04/02 17:11:29  peter

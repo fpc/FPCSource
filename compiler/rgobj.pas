@@ -45,7 +45,7 @@ unit rgobj;
            1: (ofs: longint);
        end;
 
-       tpushedsaved = array[lowsavereg..highsavereg] of tpushedsavedloc;
+       tpushedsaved = array[firstreg..lastreg] of tpushedsavedloc;
 
        trgobj = class
           { The "usableregsxxx" contain all registers of type "xxx" that }
@@ -247,7 +247,7 @@ unit rgobj;
          if (r in unusedregs) then
 {$ifdef EXTTEMPREGDEBUG}
            begin
-             Comment(V_Debug,'register freed twice '+reg2str(r));
+             Comment(V_Debug,'register freed twice '+std_reg2str[r]);
              testregisters32;
              exit;
            end
@@ -842,7 +842,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2002-04-06 18:13:01  jonas
+  Revision 1.6  2002-04-15 19:03:31  carl
+  + reg2str -> std_reg2str()
+
+  Revision 1.5  2002/04/06 18:13:01  jonas
     * several powerpc-related additions and fixes
 
   Revision 1.4  2002/04/04 19:06:04  peter
