@@ -382,6 +382,8 @@ begin
    if (pvmt(ppointer(_self+vmt_pos)^)^.size=0) or
       (pvmt(ppointer(_self+vmt_pos)^)^.size+pvmt(ppointer(_self+vmt_pos)^)^.msize<>0) then
      RunError(210);
+   if (vmt = nil) then
+     exit;
    objectsize:=pvmt(vmt)^.size;
    { reset vmt to nil for protection }
    ppointer(_self+vmt_pos)^:=nil;
@@ -392,8 +394,7 @@ end;
 {$endif ndef FPC_SYSTEM_HAS_FPC_HELP_DESTRUCTOR}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_HELP_FAIL}
-{$error No pascal version of Int_help_fail}
-procedure int_help_fail(var _self : pointer; var vmt : pointer; vmt_pos : cardinal); [public,alias:'FPC_HELP_FAIL'];
+procedure fpc_help_fail(var _self : pointer; var vmt : pointer; vmt_pos : cardinal);safecall; [public,alias:'FPC_HELP_FAIL'];
    type
      ppointer = ^pointer;
      pvmt = ^tvmt;
@@ -444,7 +445,11 @@ function fpc_new_class(_vmt: pointer; _self : pointer):pointer;saveregisters;[pu
 {$endif FPC_SYSTEM_HAS_FPC_NEW_CLASS}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_DISPOSE_CLASS}
-{$error No pascal version of Int_dispose_class}
+procedure fpc_dispose_class(_self: tobject; flag : longint);saveregisters;[public,alias:'FPC_DISPOSE_CLASS'];
+ begin
+   if (_self <> nil) and (flag = 1) then
+      _self.FreeInstance;
+ end;
 {$endif ndef FPC_SYSTEM_HAS_FPC_DISPOSE_CLASS}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_CHECK_OBJECT}
@@ -941,7 +946,12 @@ end;
 
 {
   $Log$
-  Revision 1.25  2002-05-16 19:58:05  carl
+  Revision 1.26  2002-05-22 18:48:29  carl
+  + generic FPC_HELP_FAIL
+  + generic FPC_HELP_DESTRUCTOR instated (original from Pierre)
+  + generic FPC_DISPOSE_CLASS
+
+  Revision 1.25  2002/05/16 19:58:05  carl
   * generic constructor implemented
 
   Revision 1.24  2002/03/30 13:08:54  carl
