@@ -75,6 +75,10 @@ procedure EnableRedirError;
 procedure RedirDisableAll;
 procedure RedirEnableAll;
 
+{ unused in UNIX }
+const
+  UseComSpec : boolean = true;
+
 Implementation
 
 Uses
@@ -96,9 +100,14 @@ Uses
 Const
 {$ifdef UNIX}
   DirSep='/';
+  listsep = [';',':'];
+  exeext = '';
 {$else UNIX}
   DirSep='\';
+  listsep = [';'];
+  exeext = '.exe';
 {$endif UNIX}
+
 
 var
   FIN,FOUT,FERR     : ^File;
@@ -246,6 +255,58 @@ begin
   Assign(f, FileName);
   GetFAttr(f, Attr);
   FileExist := DosError = 0;
+end;
+
+function CompleteDir(const Path: string): string;
+begin
+  { keep c: untouched PM }
+  if (Path<>'') and (Path[Length(Path)]<>DirSep) and
+     (Path[Length(Path)]<>':') then
+   CompleteDir:=Path+DirSep
+  else
+   CompleteDir:=Path;
+end;
+
+
+function LocateExeFile(var FileName:string): boolean;
+var
+  dir,s,d,n,e : string;
+  i : longint;
+begin
+  LocateExeFile:=False;
+  if FileExist(FileName) then
+    begin
+      LocateExeFile:=true;
+      Exit;
+    end;
+
+  Fsplit(Filename,d,n,e);
+
+  if (e='') and FileExist(FileName+exeext) then
+    begin
+      FileName:=FileName+exeext;
+      LocateExeFile:=true;
+      Exit;
+    end;
+
+  S:=GetEnv('PATH');
+  While Length(S)>0 do
+    begin
+      i:=1;
+      While (i<=Length(S)) and not (S[i] in ListSep) do
+        Inc(i);
+      Dir:=CompleteDir(Copy(S,1,i-1));
+      if i<Length(S) then
+        Delete(S,1,i)
+      else
+        S:='';
+      if FileExist(Dir+FileName) then
+        Begin
+           FileName:=Dir+FileName;
+           LocateExeFile:=true;
+           Exit;
+        End;
+   end;
 end;
 
 
@@ -758,7 +819,15 @@ end;
     ExecInheritsHandles:=true;
   {$endif win32}
     DosError:=0;
-    Dos.Exec (Getenv('COMSPEC'),'/C '+FixPath(progname)+' '+Comline);
+    If UseComSpec then
+      Dos.Exec (Getenv('COMSPEC'),'/C '+FixPath(progname)+' '+Comline)
+    else
+      begin
+        if LocateExeFile(progname) then
+          Dos.Exec(ProgName,Comline)
+        else
+          DosError:=2;
+      end;
   {$ifdef win32}
     ExecInheritsHandles:=StoreInherit;
   {$endif win32}
@@ -790,7 +859,10 @@ finalization
 End.
 {
   $Log$
-  Revision 1.10  2002-09-07 15:40:56  peter
+  Revision 1.11  2002-12-05 16:03:04  pierre
+   + UseComSpec boolean added to be able to not use ComSpec
+
+  Revision 1.10  2002/09/07 15:40:56  peter
     * old logs removed and tabs fixed
 
   Revision 1.9  2002/06/03 19:07:55  pierre
