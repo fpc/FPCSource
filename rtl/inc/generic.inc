@@ -808,7 +808,7 @@ function count_leading_zeros_32bit(l : longint) : longint;
   begin
      for i:=0 to 31 do
        begin
-          if (l and ($80000000 shr i))<>0 then
+          if (l and (longint($80000000) shr i))<>0 then
             begin
                result:=i;
                exit;
@@ -839,7 +839,7 @@ function fpc_div_dword(n,z : dword) : dword; [public,alias: 'FPC_DIV_DWORD']; {$
        if z>=n then
          begin
             z:=z-n;
-            result:=result+(1 shl shift);
+            result:=result+dword(1 shl shift);
          end;
        dec(shift);
        n:=n shr 1;
@@ -1134,7 +1134,10 @@ end;
 
 {
   $Log$
-  Revision 1.65  2004-01-20 23:16:56  florian
+  Revision 1.66  2004-01-21 01:25:02  florian
+    * improved generic int. div routines
+
+  Revision 1.65  2004/01/20 23:16:56  florian
     + created generic versions of software dword/longint mod/div
 
   Revision 1.64  2004/01/10 17:01:29  jonas
