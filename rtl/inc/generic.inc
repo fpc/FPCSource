@@ -322,92 +322,86 @@ end;
 ****************************************************************************}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_HELP_CONSTRUCTOR}
-
-{ Generic code does not set the register used for self !
-  So this needs to be done by the compiler after calling
-  FPC_HELP_CONSTRUCTOR : generic allways means aa little less efficient (PM) }
-{ I don't think we really need to save any registers here      }
-{ since this is called at the start of the constructor (CEC)   }
-procedure fpc_help_constructor;[public,alias:'FPC_HELP_CONSTRUCTOR'];{$ifdef hascompilerproc}compilerproc;{$endif}
-  type
-    ppointer = ^pointer;
-    pvmt = ^tvmt;
-    tvmt=packed record
-      size,msize:longint;
-      parent:pointer;
-    end;
-  var
-    objectsize:longint;
-    vmtcopy:pointer;
-    _self:pointer;
-    vmt:pointer;
-    vmt_pos:cardinal;
+{ Note: _vmt will be reset to -1 when memory is allocated,
+  this is needed for fpc_help_fail }
+function fpc_help_constructor(_self:pointer;var _vmt:pointer;_vmt_pos:cardinal):pointer;[public,alias:'FPC_HELP_CONSTRUCTOR'];{$ifdef hascompilerproc}compilerproc;{$endif}
+type
+  ppointer = ^pointer;
+  pvmt = ^tvmt;
+  tvmt=packed record
+    size,msize:longint;
+    parent:pointer;
+  end;
+var
+  vmtcopy : pointer;
 begin
-  if vmt=nil
-  then
-    exit;
-  vmtcopy:=vmt;
-  objectsize:=pvmt(vmtcopy)^.size;
-  if _self=nil
-  then
+  { Inherited call? }
+  if _vmt=nil then
     begin
-      getmem(_self,objectsize);
-      longint(vmt):=-1; { needed for fail }
+      fpc_help_constructor:=_self;
+      exit;
     end;
-  if _self<>nil
-  then
-    begin
-      fillchar(_self^,objectsize,#0);
-      ppointer(_self+vmt_pos)^:=vmtcopy;
-    end;
-end;
+  vmtcopy:=_vmt;
 
+  if _self=nil then
+    begin
+      getmem(_self,pvmt(_vmt)^.size);
+      { reset vmt needed for fail }
+      _vmt:=pointer(-1);
+    end;
+  if _self<>nil then
+    begin
+      fillchar(_self^,pvmt(vmtcopy)^.size,#0);
+      ppointer(_self+_vmt_pos)^:=vmtcopy;
+    end;
+  fpc_help_constructor:=_self;
+end;
 {$endif FPC_SYSTEM_HAS_FPC_HELP_CONSTRUCTOR}
 
-{$ifndef FPC_SYSTEM_HAS_FPC_HELP_DESTRUCTOR}
 
-procedure fpc_help_destructor(var _self : pointer; vmt : pointer; vmt_pos : cardinal);[public,alias:'fpc_help_destructor'];  {$ifdef hascompilerproc} compilerproc; {$endif}
-   type
-     ppointer = ^pointer;
-     pvmt = ^tvmt;
-     tvmt = packed record
-        size,msize : longint;
-        parent : pointer;
-        end;
-   var
-      objectsize : longint;
+{$ifndef FPC_SYSTEM_HAS_FPC_HELP_DESTRUCTOR}
+{ Note: _self will not be reset, the compiler has to generate the reset }
+procedure fpc_help_destructor(_self,_vmt:pointer;vmt_pos:cardinal);[public,alias:'FPC_HELP_DESTRUCTOR'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+type
+  ppointer = ^pointer;
+  pvmt = ^tvmt;
+  tvmt = packed record
+    size,msize : longint;
+    parent : pointer;
+  end;
+var
+  objectsize : longint;
 begin
    if (_self=nil) then
      exit;
    if (pvmt(ppointer(_self+vmt_pos)^)^.size=0) or
       (pvmt(ppointer(_self+vmt_pos)^)^.size+pvmt(ppointer(_self+vmt_pos)^)^.msize<>0) then
      RunError(210);
-   if (vmt = nil) then
+   if (_vmt = nil) then
      exit;
-   objectsize:=pvmt(vmt)^.size;
+   objectsize:=pvmt(_vmt)^.size;
    { reset vmt to nil for protection }
    ppointer(_self+vmt_pos)^:=nil;
    freemem(_self,objectsize);
-   _self:=nil;
 end;
-
 {$endif FPC_SYSTEM_HAS_FPC_HELP_DESTRUCTOR}
 
+
 {$ifndef FPC_SYSTEM_HAS_FPC_HELP_FAIL}
-procedure fpc_help_fail(var _self:pointer;var vmt:pointer;vmt_pos:cardinal);[public,alias:'FPC_HELP_FAIL'];compilerproc;
-   type
-     ppointer = ^pointer;
-     pvmt = ^tvmt;
-     tvmt = packed record
-        size,msize : longint;
-        parent : pointer;
-        end;
-   var
-      objectsize : longint;
+{ Note: _self will not be reset, the compiler has to generate the reset }
+procedure fpc_help_fail(_self:pointer;var _vmt:pointer;vmt_pos:cardinal);[public,alias:'FPC_HELP_FAIL'];compilerproc;
+type
+  ppointer = ^pointer;
+  pvmt = ^tvmt;
+  tvmt = packed record
+    size,msize : longint;
+    parent : pointer;
+  end;
 begin
-   if vmt=nil then
+   if _vmt=nil then
      exit;
-   if longint(vmt)=-1 then
+   { vmt=-1 when memory was allocated }
+   if longint(_vmt)=-1 then
      begin
        if (_self=nil) or (ppointer(_self+vmt_pos)^=nil) then
          HandleError(210)
@@ -415,54 +409,51 @@ begin
          begin
            ppointer(_self+vmt_pos)^:=nil;
            freemem(_self);
-           _self:=nil;
-           vmt:=nil;
+           { reset _vmt to 0 so it will not be freed a
+             second time }
+           _vmt:=0;
          end;
      end
    else
      ppointer(_self+vmt_pos)^:=nil;
-   _self := nil;
 end;
 {$endif FPC_SYSTEM_HAS_FPC_HELP_FAIL}
 
+
 {$ifndef FPC_SYSTEM_HAS_FPC_NEW_CLASS}
-{ the constructor receives as first parameter a pointer        }
-{ to the vmt or nil, if called when class already instanciated }
-{ RETURNS SELF                                                 }
-{ IMPORTANT: SELF REGISTER should be pre-loaded before call to }
-{ constructor for this to work!                                }
-function fpc_new_class(_vmt:pointer;_self:pointer):pointer;[public,alias:'FPC_NEW_CLASS']; {$ifdef hascompilerproc} compilerproc; {$endif}
- begin
-   if _vmt <> nil then
-     begin
-        fpc_new_class := tclass(_vmt).NewInstance;
-     end
-   else
-     begin
-       { calling when class already instanciated  }
-       { then simply returna a boolean value <> 0 }
-       fpc_new_class := _self;
-     end;
- end;
+function fpc_new_class(_self,_vmt:pointer):pointer;[public,alias:'FPC_NEW_CLASS']; {$ifdef hascompilerproc} compilerproc; {$endif}
+begin
+  { Inherited call? }
+  if _vmt=nil then
+    begin
+      fpc_new_class:=_self;
+      exit;
+    end;
+
+  fpc_new_class := tclass(_vmt).NewInstance
+end;
 {$endif FPC_SYSTEM_HAS_FPC_NEW_CLASS}
 
+
 {$ifndef FPC_SYSTEM_HAS_FPC_DISPOSE_CLASS}
-procedure fpc_dispose_class(_self: tobject; flag : longint);[public,alias:'FPC_DISPOSE_CLASS'];compilerproc;
- begin
-   if (_self <> nil) and (flag = 1) then
-      _self.FreeInstance;
- end;
+procedure fpc_dispose_class(_self: pointer; flag : longint);[public,alias:'FPC_DISPOSE_CLASS'];compilerproc;
+begin
+  { inherited -> flag = 0 -> no destroy }
+  { normal -> flag = 1 -> destroy }
+  if (_self <> nil) and (flag = 1) then
+    tobject(_self).FreeInstance;
+end;
 {$endif ndef FPC_SYSTEM_HAS_FPC_DISPOSE_CLASS}
 
-{$ifndef FPC_SYSTEM_HAS_FPC_CHECK_OBJECT}
 
+{$ifndef FPC_SYSTEM_HAS_FPC_CHECK_OBJECT}
 procedure fpc_check_object(obj : pointer);[public,alias:'FPC_CHECK_OBJECT'];  {$ifdef hascompilerproc} compilerproc; {$endif}
-   type
-     pvmt = ^tvmt;
-     tvmt = packed record
-        size,msize : longint;
-        parent : pointer;
-        end;
+type
+  pvmt = ^tvmt;
+  tvmt = packed record
+    size,msize : longint;
+    parent : pointer;
+  end;
 begin
 (*   if (vmt=nil) or
       (pvmt(vmt)^.size=0) or
@@ -472,19 +463,18 @@ end;
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_CHECK_OBJECT}
 
+
+{$ifndef FPC_SYSTEM_HAS_FPC_CHECK_OBJECT_EXT}
 { checks for a correct vmt pointer }
 { deeper check to see if the current object is }
 { really related to the true }
-
-{$ifndef FPC_SYSTEM_HAS_FPC_CHECK_OBJECT_EXT}
-
 procedure fpc_check_object_ext(vmt, expvmt : pointer);[public,alias:'FPC_CHECK_OBJECT_EXT']; {$ifdef hascompilerproc} compilerproc; {$endif}
-   type
-     pvmt = ^tvmt;
-     tvmt = packed record
-        size,msize : longint;
-        parent : pointer;
-        end;
+type
+  pvmt = ^tvmt;
+  tvmt = packed record
+    size,msize : longint;
+    parent : pointer;
+  end;
 begin
    if (vmt=nil) or
       (pvmt(vmt)^.size=0) or
@@ -497,7 +487,6 @@ begin
        vmt:=pvmt(vmt)^.parent;
    RunError(219);
 end;
-
 {$endif not FPC_SYSTEM_HAS_FPC_CHECK_OBJECT_EXT}
 
 
@@ -973,7 +962,10 @@ end;
 
 {
   $Log$
-  Revision 1.50  2003-02-18 17:56:06  jonas
+  Revision 1.51  2003-03-26 00:17:34  peter
+    * generic constructor/destructor fixes
+
+  Revision 1.50  2003/02/18 17:56:06  jonas
     - removed buggy i386-specific FPC_CHARARRAY_TO_SHORTSTR
     * fixed generic FPC_CHARARRAY_TO_SHORTSTR (web bug 2382)
     * fixed some potential range errors in indexchar/word/dword
