@@ -62,19 +62,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2003-12-24 00:33:10  florian
-    * x86-64 compilation fixed
-
-  Revision 1.4  2003/04/30 15:45:35  florian
-    * merged more x86-64/i386 code
-
-  Revision 1.3  2002/09/07 15:25:15  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.2  2002/07/25 22:55:34  florian
-    * several fixes, small test units can be compiled
-
-  Revision 1.1  2002/07/24 22:38:15  florian
-    + initial release of x86-64 target code
+  Revision 1.6  2004-06-20 08:55:32  florian
+    * logs truncated
 
 }

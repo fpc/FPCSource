@@ -1487,7 +1487,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.42  2004-06-16 20:07:10  florian
+  Revision 1.43  2004-06-20 08:55:30  florian
+    * logs truncated
+
+  Revision 1.42  2004/06/16 20:07:10  florian
     * dwarf branch merged
 
   Revision 1.41  2004/05/23 15:23:30  peter
@@ -1503,120 +1506,6 @@ end.
 
   Revision 1.39  2004/02/11 19:59:06  peter
     * fix compilation without GDB
-
-  Revision 1.38  2004/01/31 22:48:31  daniel
-    * Fix stabs generation problem reported by Jonas
-
-  Revision 1.37  2004/01/31 21:09:58  daniel
-    * Stabs lineinfo problem fixed
-
-  Revision 1.36  2004/01/31 18:40:15  daniel
-    * Last steps before removal of aasmtai dependency in symsym can be
-      accomplished.
-
-  Revision 1.35  2004/01/26 16:12:28  daniel
-    * reginfo now also only allocated during register allocation
-    * third round of gdb cleanups: kick out most of concatstabto
-
-  Revision 1.34  2003/11/10 22:02:52  peter
-    * cross unit inlining fixed
-
-  Revision 1.33  2003/10/28 15:36:01  peter
-    * absolute to object field supported, fixes tb0458
-
-  Revision 1.32  2003/10/23 14:44:07  peter
-    * splitted buildderef and buildderefimpl to fix interface crc
-      calculation
-
-  Revision 1.31  2003/10/22 20:40:00  peter
-    * write derefdata in a separate ppu entry
-
-  Revision 1.30  2003/10/22 15:22:33  peter
-    * fixed unitsym-globalsymtable relation so the uses of a unit
-      is counted correctly
-
-  Revision 1.29  2003/10/17 14:38:32  peter
-    * 64k registers supported
-    * fixed some memory leaks
-
-  Revision 1.28  2003/10/07 16:06:30  peter
-    * tsymlist.def renamed to tsymlist.procdef
-    * tsymlist.procdef is now only used to store the procdef
-
-  Revision 1.27  2003/09/14 12:58:29  peter
-    * give IE when st is not assigned in deref
-
-  Revision 1.26  2003/06/25 18:31:23  peter
-    * sym,def resolving partly rewritten to support also parent objects
-      not directly available through the uses clause
-
-  Revision 1.25  2003/06/07 20:26:32  peter
-    * re-resolving added instead of reloading from ppu
-    * tderef object added to store deref info for resolving
-
-  Revision 1.24  2002/12/29 18:26:31  peter
-    * also use gettypename for procdef always
-
-  Revision 1.23  2002/12/29 14:57:50  peter
-    * unit loading changed to first register units and load them
-      afterwards. This is needed to support uses xxx in yyy correctly
-    * unit dependency check fixed
-
-  Revision 1.22  2002/09/05 19:29:46  peter
-    * memdebug enhancements
-
-  Revision 1.21  2002/08/18 20:06:28  peter
-    * inlining is now also allowed in interface
-    * renamed write/load to ppuwrite/ppuload
-    * tnode storing in ppu
-    * nld,ncon,nbas are already updated for storing in ppu
-
-  Revision 1.20  2002/08/11 13:24:16  peter
-    * saving of asmsymbols in ppu supported
-    * asmsymbollist global is removed and moved into a new class
-      tasmlibrarydata that will hold the info of a .a file which
-      corresponds with a single module. Added librarydata to tmodule
-      to keep the library info stored for the module. In the future the
-      objectfiles will also be stored to the tasmlibrarydata class
-    * all getlabel/newasmsymbol and friends are moved to the new class
-
-  Revision 1.19  2002/07/01 18:46:29  peter
-    * internal linker
-    * reorganized aasm layer
-
-  Revision 1.18  2002/05/18 13:34:21  peter
-    * readded missing revisions
-
-  Revision 1.17  2002/05/16 19:46:45  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.15  2002/05/12 16:53:15  peter
-    * moved entry and exitcode to ncgutil and cgobj
-    * foreach gets extra argument for passing local data to the
-      iterator function
-    * -CR checks also class typecasts at runtime by changing them
-      into as
-    * fixed compiler to cycle with the -CR option
-    * fixed stabs with elf writer, finally the global variables can
-      be watched
-    * removed a lot of routines from cga unit and replaced them by
-      calls to cgobj
-    * u32bit-s32bit updates for and,or,xor nodes. When one element is
-      u32bit then the other is typecasted also to u32bit without giving
-      a rangecheck warning/error.
-    * fixed pascal calling method with reversing also the high tree in
-      the parast, detected by tcalcst3 test
-
-  Revision 1.14  2002/04/19 15:46:04  peter
-    * mangledname rewrite, tprocdef.mangledname is now created dynamicly
-      in most cases and not written to the ppu
-    * add mangeledname_prefix() routine to generate the prefix of
-      manglednames depending on the current procedure, object and module
-    * removed static procprefix since the mangledname is now build only
-      on demand from tprocdef.mangledname
 
 }
 

@@ -102,69 +102,7 @@ end.
 
 {
   $Log$
-  Revision 1.3  2003-04-27 07:29:52  peter
-    * aktprocdef cleanup, aktprocdef is now always nil when parsing
-      a new procdef declaration
-    * aktprocsym removed
-    * lexlevel removed, use symtable.symtablelevel instead
-    * implicit init/final code uses the normal genentry/genexit
-    * funcret state checking updated for new funcret handling
-
-  Revision 1.2  2002/10/05 12:43:29  carl
-    * fixes for Delphi 6 compilation
-     (warning : Some features do not work under Delphi)
-
-  Revision 1.1  2002/09/06 15:03:50  carl
-    * moved files to systems directory
-
-  Revision 1.10  2002/08/12 15:08:44  carl
-    + stab register indexes for powerpc (moved from gdb to cpubase)
-    + tprocessor enumeration moved to cpuinfo
-    + linker in target_info is now a class
-    * many many updates for m68k (will soon start to compile)
-    - removed some ifdef or correct them for correct cpu
-
-  Revision 1.9  2002/07/26 21:15:46  florian
-    * rewrote the system handling
-
-  Revision 1.8  2002/05/18 13:34:27  peter
-    * readded missing revisions
-
-  Revision 1.7  2002/05/16 19:46:53  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.5  2002/05/12 16:53:18  peter
-    * moved entry and exitcode to ncgutil and cgobj
-    * foreach gets extra argument for passing local data to the
-      iterator function
-    * -CR checks also class typecasts at runtime by changing them
-      into as
-    * fixed compiler to cycle with the -CR option
-    * fixed stabs with elf writer, finally the global variables can
-      be watched
-    * removed a lot of routines from cga unit and replaced them by
-      calls to cgobj
-    * u32bit-s32bit updates for and,or,xor nodes. When one element is
-      u32bit then the other is typecasted also to u32bit without giving
-      a rangecheck warning/error.
-    * fixed pascal calling method with reversing also the high tree in
-      the parast, detected by tcalcst3 test
-
-  Revision 1.4  2002/04/22 18:19:22  carl
-  - remove use_bound_instruction field
-
-  Revision 1.3  2002/04/20 21:43:18  carl
-  * fix stack size for some targets
-  + add offset to parameters from frame pointer info.
-  - remove some unused stuff
-
-  Revision 1.2  2002/04/15 19:16:57  carl
-  - remove size_of_pointer field
-
-  Revision 1.1  2002/04/04 18:09:49  carl
-  + added wdosx patch from Pavel
+  Revision 1.4  2004-06-20 08:55:32  florian
+    * logs truncated
 
 }

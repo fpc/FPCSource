@@ -42,18 +42,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2004-05-20 21:54:33  florian
+  Revision 1.5  2004-06-20 08:55:31  florian
+    * logs truncated
+
+  Revision 1.4  2004/05/20 21:54:33  florian
     + <pointer> - <pointer> result is divided by the pointer element size now
       this is delphi compatible as well as resulting in the expected result for p1+(p2-p1)
 
   Revision 1.3  2004/05/01 23:29:01  florian
     * continued to fix m68k compiler compilation
 
-  Revision 1.2  2002/08/18 09:02:12  florian
-    * fixed compilation problems
-
-  Revision 1.1  2002/08/17 09:23:48  florian
-    * first part of procinfo rewrite
 }
 
 

@@ -2301,7 +2301,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.34  2004-06-16 20:07:07  florian
+  Revision 1.35  2004-06-20 08:55:28  florian
+    * logs truncated
+
+  Revision 1.34  2004/06/16 20:07:07  florian
     * dwarf branch merged
 
   Revision 1.33  2004/05/24 17:30:09  peter
@@ -2317,109 +2320,5 @@ end.
 
   Revision 1.30.2.3  2004/05/02 14:27:21  peter
     * use sizeof(pointer) instead of 4
-
-  Revision 1.30.2.2  2004/04/09 14:34:53  peter
-    * fixed compilation for win32
-
-  Revision 1.30.2.1  2004/04/08 18:33:22  peter
-    * rewrite of TAsmSection
-
-  Revision 1.30  2004/01/15 15:16:17  daniel
-    * Some minor stuff
-    * Managed to eliminate speed effects of string compression
-
-  Revision 1.29  2004/01/11 23:56:19  daniel
-    * Experiment: Compress strings to save memory
-      Did not save a single byte of mem; clearly the core size is boosted by
-      temporary memory usage...
-
-  Revision 1.28  2003/10/23 14:44:07  peter
-    * splitted buildderef and buildderefimpl to fix interface crc
-      calculation
-
-  Revision 1.27  2003/10/22 20:40:00  peter
-    * write derefdata in a separate ppu entry
-
-  Revision 1.26  2003/10/11 16:06:42  florian
-    * fixed some MMX<->SSE
-    * started to fix ppc, needs an overhaul
-    + stabs info improve for spilling, not sure if it works correctly/completly
-    - MMX_SUPPORT removed from Makefile.fpc
-
-  Revision 1.25  2003/09/29 20:52:50  peter
-    * insertbefore added
-
-  Revision 1.24  2003/09/24 13:02:10  marco
-   * (Peter) patch to fix snapshot
-
-  Revision 1.23  2003/06/09 12:19:34  peter
-    * insertlistafter added
-
-  Revision 1.22  2002/12/15 19:34:31  florian
-    + some front end stuff for vs_hidden added
-
-  Revision 1.21  2002/11/24 18:18:39  carl
-    - remove some unused defines
-
-  Revision 1.20  2002/10/05 12:43:23  carl
-    * fixes for Delphi 6 compilation
-     (warning : Some features do not work under Delphi)
-
-  Revision 1.19  2002/09/09 17:34:14  peter
-    * tdicationary.replace added to replace and item in a dictionary. This
-      is only allowed for the same name
-    * varsyms are inserted in symtable before the types are parsed. This
-      fixes the long standing "var longint : longint" bug
-    - consume_idlist and idstringlist removed. The loops are inserted
-      at the callers place and uses the symtable for duplicate id checking
-
-  Revision 1.18  2002/09/05 19:29:42  peter
-    * memdebug enhancements
-
-  Revision 1.17  2002/08/11 13:24:11  peter
-    * saving of asmsymbols in ppu supported
-    * asmsymbollist global is removed and moved into a new class
-      tasmlibrarydata that will hold the info of a .a file which
-      corresponds with a single module. Added librarydata to tmodule
-      to keep the library info stored for the module. In the future the
-      objectfiles will also be stored to the tasmlibrarydata class
-    * all getlabel/newasmsymbol and friends are moved to the new class
-
-  Revision 1.16  2002/08/09 19:08:53  carl
-    + fix incorrect comment in insertlistcopy
-
-  Revision 1.15  2002/07/01 18:46:21  peter
-    * internal linker
-    * reorganized aasm layer
-
-  Revision 1.14  2002/06/17 13:56:14  jonas
-    * tdictionary.rename() returns nil if the original object wasn't found
-      (reported by Sergey Korshunoff <seyko@comail.ru>)
-
-  Revision 1.13  2002/05/18 13:34:05  peter
-    * readded missing revisions
-
-  Revision 1.12  2002/05/16 19:46:35  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.10  2002/05/12 16:53:04  peter
-    * moved entry and exitcode to ncgutil and cgobj
-    * foreach gets extra argument for passing local data to the
-      iterator function
-    * -CR checks also class typecasts at runtime by changing them
-      into as
-    * fixed compiler to cycle with the -CR option
-    * fixed stabs with elf writer, finally the global variables can
-      be watched
-    * removed a lot of routines from cga unit and replaced them by
-      calls to cgobj
-    * u32bit-s32bit updates for and,or,xor nodes. When one element is
-      u32bit then the other is typecasted also to u32bit without giving
-      a rangecheck warning/error.
-    * fixed pascal calling method with reversing also the high tree in
-      the parast, detected by tcalcst3 test
 
 }

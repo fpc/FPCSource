@@ -1053,7 +1053,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.50  2004-06-16 20:07:09  florian
+  Revision 1.51  2004-06-20 08:55:30  florian
+    * logs truncated
+
+  Revision 1.50  2004/06/16 20:07:09  florian
     * dwarf branch merged
 
   Revision 1.49  2004/05/19 21:16:13  peter
@@ -1073,153 +1076,5 @@ end.
     * constants ordinals now always have a type assigned
     * integer constants have the smallest type, unsigned prefered over
       signed
-
-  Revision 1.46  2004/02/27 10:21:05  florian
-    * top_symbol killed
-    + refaddr to treference added
-    + refsymbol to treference added
-    * top_local stuff moved to an extra record to save memory
-    + aint introduced
-    * tppufile.get/putint64/aint implemented
-
-  Revision 1.45  2004/01/30 13:42:03  florian
-    * fixed more alignment issues
-
-  Revision 1.44  2003/11/10 22:02:52  peter
-    * cross unit inlining fixed
-
-  Revision 1.43  2003/10/22 20:40:00  peter
-    * write derefdata in a separate ppu entry
-
-  Revision 1.42  2003/09/23 17:56:05  peter
-    * locals and paras are allocated in the code generation
-    * tvarsym.localloc contains the location of para/local when
-      generating code for the current procedure
-
-  Revision 1.41  2003/07/05 20:06:28  jonas
-    * fixed some range check errors that occurred on big endian systems
-    * slightly optimized the swap*() functions
-
-  Revision 1.40  2003/06/17 16:34:44  jonas
-    * lots of newra fixes (need getfuncretparaloc implementation for i386)!
-    * renamed all_intregisters to volatile_intregisters and made it
-      processor dependent
-
-  Revision 1.39  2003/06/07 20:26:32  peter
-    * re-resolving added instead of reloading from ppu
-    * tderef object added to store deref info for resolving
-
-  Revision 1.38  2003/05/26 19:39:51  peter
-    * removed systems unit
-
-  Revision 1.37  2003/05/26 15:49:54  jonas
-    * endian fix is now done using a define instead of with source_info
-
-  Revision 1.36  2003/05/24 13:37:10  jonas
-    * endian fixes
-
-  Revision 1.35  2003/05/23 17:03:51  peter
-    * write header for crc_only
-
-  Revision 1.34  2003/04/25 20:59:34  peter
-    * removed funcretn,funcretsym, function result is now in varsym
-      and aliases for result and function name are added using absolutesym
-    * vs_hidden parameter for funcret passed in parameter
-    * vs_hidden fixes
-    * writenode changed to printnode and released from extdebug
-    * -vp option added to generate a tree.log with the nodetree
-    * nicer printnode for statements, callnode
-
-  Revision 1.33  2003/04/24 13:03:01  florian
-    * comp is now written with its bit pattern to the ppu instead as an extended
-
-  Revision 1.32  2003/04/23 14:42:07  daniel
-    * Further register allocator work. Compiler now smaller with new
-      allocator than without.
-    * Somebody forgot to adjust ppu version number
-
-  Revision 1.31  2003/04/10 17:57:53  peter
-    * vs_hidden released
-
-  Revision 1.30  2003/03/17 15:54:22  peter
-    * store symoptions also for procdef
-    * check symoptions (private,public) when calculating possible
-      overload candidates
-
-  Revision 1.29  2003/01/08 18:43:56  daniel
-   * Tregister changed into a record
-
-  Revision 1.28  2002/11/15 01:58:53  peter
-    * merged changes from 1.0.7 up to 04-11
-      - -V option for generating bug report tracing
-      - more tracing for option parsing
-      - errors for cdecl and high()
-      - win32 import stabs
-      - win32 records<=8 are returned in eax:edx (turned off by default)
-      - heaptrc update
-      - more info for temp management in .s file with EXTDEBUG
-
-  Revision 1.27  2002/10/14 19:42:33  peter
-    * only use init tables for threadvars
-
-  Revision 1.26  2002/08/18 20:06:25  peter
-    * inlining is now also allowed in interface
-    * renamed write/load to ppuwrite/ppuload
-    * tnode storing in ppu
-    * nld,ncon,nbas are already updated for storing in ppu
-
-  Revision 1.25  2002/08/15 19:10:35  peter
-    * first things tai,tnode storing in ppu
-
-  Revision 1.24  2002/08/15 15:09:42  carl
-    + fpu emulation helpers (ppu checking also)
-
-  Revision 1.23  2002/08/13 21:40:56  florian
-    * more fixes for ppc calling conventions
-
-  Revision 1.22  2002/08/11 13:24:12  peter
-    * saving of asmsymbols in ppu supported
-    * asmsymbollist global is removed and moved into a new class
-      tasmlibrarydata that will hold the info of a .a file which
-      corresponds with a single module. Added librarydata to tmodule
-      to keep the library info stored for the module. In the future the
-      objectfiles will also be stored to the tasmlibrarydata class
-    * all getlabel/newasmsymbol and friends are moved to the new class
-
-  Revision 1.21  2002/08/09 07:33:02  florian
-    * a couple of interface related fixes
-
-  Revision 1.20  2002/05/18 13:34:13  peter
-    * readded missing revisions
-
-  Revision 1.19  2002/05/16 19:46:44  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.17  2002/04/04 19:06:03  peter
-    * removed unused units
-    * use tlocation.size in cg.a_*loc*() routines
-
-  Revision 1.16  2002/03/31 20:26:36  jonas
-    + a_loadfpu_* and a_loadmm_* methods in tcg
-    * register allocation is now handled by a class and is mostly processor
-      independent (+rgobj.pas and i386/rgcpu.pas)
-    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
-    * some small improvements and fixes to the optimizer
-    * some register allocation fixes
-    * some fpuvaroffset fixes in the unary minus node
-    * push/popusedregisters is now called rg.save/restoreusedregisters and
-      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
-      also better optimizable)
-    * fixed and optimized register saving/restoring for new/dispose nodes
-    * LOC_FPU locations now also require their "register" field to be set to
-      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
-    - list field removed of the tnode class because it's not used currently
-      and can cause hard-to-find bugs
-
-  Revision 1.15  2002/03/28 16:07:52  armin
-  + initialize threadvars defined local in units
 
 }

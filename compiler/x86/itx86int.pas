@@ -88,32 +88,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2003-10-01 20:34:51  peter
-    * procinfo unit contains tprocinfo
-    * cginfo renamed to cgbase
-    * moved cgmessage to verbose
-    * fixed ppc and sparc compiles
-
-  Revision 1.3  2003/09/04 14:42:44  peter
-    * return 0 instead of $ff when no reg is found
-
-  Revision 1.2  2003/09/03 15:55:02  peter
-    * NEWRA branch merged
-
-  Revision 1.1.2.5  2003/08/31 15:46:26  peter
-    * more updates for tregister
-
-  Revision 1.1.2.4  2003/08/31 13:50:16  daniel
-    * Remove sorting and use pregenerated indexes
-    * Some work on making things compile
-
-  Revision 1.1.2.3  2003/08/28 18:35:08  peter
-    * tregister changed to cardinal
-
-  Revision 1.1.2.2  2003/08/27 21:06:34  peter
-    * more updates
-
-  Revision 1.1.2.1  2003/08/27 19:55:54  peter
-    * first tregister patch
+  Revision 1.5  2004-06-20 08:55:32  florian
+    * logs truncated
 
 }

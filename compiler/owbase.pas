@@ -322,23 +322,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  2004-06-16 20:07:09  florian
+  Revision 1.13  2004-06-20 08:55:30  florian
+    * logs truncated
+
+  Revision 1.12  2004/06/16 20:07:09  florian
     * dwarf branch merged
 
   Revision 1.11.2.1  2004/04/08 18:33:22  peter
     * rewrite of TAsmSection
-
-  Revision 1.11  2002/07/01 18:46:24  peter
-    * internal linker
-    * reorganized aasm layer
-
-  Revision 1.10  2002/05/18 13:34:11  peter
-    * readded missing revisions
-
-  Revision 1.9  2002/05/16 19:46:42  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
 
 }

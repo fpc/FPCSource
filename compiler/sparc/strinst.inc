@@ -69,7 +69,10 @@
           'fmovd'
 {
         $Log$
-        Revision 1.12  2004-06-16 20:07:11  florian
+        Revision 1.13  2004-06-20 08:55:32  florian
+          * logs truncated
+
+        Revision 1.12  2004/06/16 20:07:11  florian
           * dwarf branch merged
 
         Revision 1.11.2.3  2004/05/27 23:34:59  peter
@@ -86,33 +89,4 @@
           * sparc fpu flags branching added
           * moved powerpc copy_valye_openarray to generic
 
-        Revision 1.10  2004/01/12 16:39:41  peter
-          * sparc updates, mostly float related
-
-        Revision 1.9  2003/12/08 13:02:21  mazen
-        + support for native sparc assembler reader
-
-        Revision 1.8  2003/07/02 22:18:04  peter
-          * paraloc splitted in callerparaloc,calleeparaloc
-          * sparc calling convention updates
-
-        Revision 1.7  2003/06/01 21:38:07  peter
-          * getregisterfpu size parameter added
-          * op_const_reg size parameter added
-          * sparc updates
-
-        Revision 1.6  2003/05/26 21:31:27  mazen
-        * mnemonic of A_LDF is ld, ldf does not exist!
-
-        Revision 1.5  2003/05/06 20:23:44  mazen
-        * A_BI ==> A_BL (bi ==> bl) instructions renamed
-
-        Revision 1.4  2003/04/29 10:00:31  mazen
-        * instruction are moved lowercase to allow using old assmeblers
-
-        Revision 1.3  2002/10/17 14:48:34  mazen
-        * branch instructions are now contigous
-
-        Revision 1.2  2002/10/01 21:07:48  mazen
-        attinst.inc --> strinst.inc
 }

@@ -91,77 +91,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2003-10-10 17:48:14  peter
-    * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
-    * tregisteralloctor renamed to trgobj
-    * removed rgobj from a lot of units
-    * moved location_* and reference_* to cgobj
-    * first things for mmx register allocation
-
-  Revision 1.23  2003/10/09 21:31:37  daniel
-    * Register allocator splitted, ans abstract now
-
-  Revision 1.22  2003/10/01 20:34:49  peter
-    * procinfo unit contains tprocinfo
-    * cginfo renamed to cgbase
-    * moved cgmessage to verbose
-    * fixed ppc and sparc compiles
-
-  Revision 1.21  2003/09/06 16:47:24  florian
-    + support of NaN and Inf in the compiler as values of real constants
-
-  Revision 1.20  2003/09/03 15:55:01  peter
-    * NEWRA branch merged
-
-  Revision 1.19.2.1  2003/08/29 17:29:00  peter
-    * next batch of updates
-
-  Revision 1.19  2003/04/22 23:50:23  peter
-    * firstpass uses expectloc
-    * checks if there are differences between the expectloc and
-      location.loc from secondpass in EXTDEBUG
-
-  Revision 1.18  2003/04/22 09:54:18  peter
-    * use location_reset
-
-  Revision 1.17  2003/01/08 18:43:57  daniel
-   * Tregister changed into a record
-
-  Revision 1.16  2002/05/18 13:34:25  peter
-    * readded missing revisions
-
-  Revision 1.15  2002/05/16 19:46:51  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.13  2002/04/02 17:11:36  peter
-    * tlocation,treference update
-    * LOC_CONSTANT added for better constant handling
-    * secondadd splitted in multiple routines
-    * location_force_reg added for loading a location to a register
-      of a specified size
-    * secondassignment parses now first the right and then the left node
-      (this is compatible with Kylix). This saves a lot of push/pop especially
-      with string operations
-    * adapted some routines to use the new cg methods
-
-  Revision 1.12  2002/03/31 20:26:38  jonas
-    + a_loadfpu_* and a_loadmm_* methods in tcg
-    * register allocation is now handled by a class and is mostly processor
-      independent (+rgobj.pas and i386/rgcpu.pas)
-    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
-    * some small improvements and fixes to the optimizer
-    * some register allocation fixes
-    * some fpuvaroffset fixes in the unary minus node
-    * push/popusedregisters is now called rg.save/restoreusedregisters and
-      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
-      also better optimizable)
-    * fixed and optimized register saving/restoring for new/dispose nodes
-    * LOC_FPU locations now also require their "register" field to be set to
-      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
-    - list field removed of the tnode class because it's not used currently
-      and can cause hard-to-find bugs
+  Revision 1.25  2004-06-20 08:55:31  florian
+    * logs truncated
 
 }

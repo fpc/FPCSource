@@ -51,16 +51,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2003-11-02 14:30:03  florian
-    * fixed ARM for new reg. allocation scheme
+  Revision 1.4  2004-06-20 08:55:31  florian
+    * logs truncated
 
-  Revision 1.2  2003/09/11 11:55:00  florian
-    * improved arm code generation
-    * move some protected and private field around
-    * the temp. register for register parameters/arguments are now released
-      before the move to the parameter register is done. This improves
-      the code in a lot of cases.
-
-  Revision 1.1  2003/08/27 00:27:56  florian
-    + same procedure as very day: today's work on arm
 }

@@ -54,13 +54,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2004-06-16 20:07:11  florian
+  Revision 1.3  2004-06-20 08:55:32  florian
+    * logs truncated
+
+  Revision 1.2  2004/06/16 20:07:11  florian
     * dwarf branch merged
 
   Revision 1.1.2.1  2004/05/25 21:38:53  peter
     * assembler reader/writer updates
-
-  Revision 1.1  2003/12/08 13:02:21  mazen
-  + support for native sparc assembler reader
 
 }

@@ -314,31 +314,7 @@ initialization
 end.
 {
   $Log$
-  Revision 1.1  2002-09-29 23:42:45  florian
-    * several fixes to get forward with alpha compilation
+  Revision 1.2  2004-06-20 08:55:31  florian
+    * logs truncated
 
-  Revision 1.5  2002/09/03 19:04:18  daniel
-    * Fixed PowerPC & M68000 compilation
-
-  Revision 1.4  2002/09/03 16:26:28  daniel
-    * Make Tprocdef.defs protected
-
-  Revision 1.3  2002/08/31 15:59:31  florian
-    + HEAP* stuff must be generated for Linux/PPC as well
-    + direct assembler reader searches now global and static symtables as well
-
-  Revision 1.2  2002/08/18 21:36:42  florian
-    + handling of local variables in direct reader implemented
-
-  Revision 1.1  2002/08/10 14:52:52  carl
-    + moved target_cpu_string to cpuinfo
-    * renamed asmmode enum.
-    * assembler reader has now less ifdef's
-    * move from nppcmem.pas -> ncgmem.pas vec. node.
-
-  Revision 1.2  2002/07/28 20:45:23  florian
-    + added direct assembler reader for PowerPC
-
-  Revision 1.1  2002/07/11 14:41:34  florian
-    * start of the new generic parameter handling
 }

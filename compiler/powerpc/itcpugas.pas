@@ -144,7 +144,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2004-01-10 00:16:21  jonas
+  Revision 1.6  2004-06-20 08:55:32  florian
+    * logs truncated
+
+  Revision 1.5  2004/01/10 00:16:21  jonas
     * fixed mtfsb0 instruction for assembler reader/writer
     * fixed initialisation of fpscr register to avoid spurious SIGPFE's
       (uses mtfsb0 instruction, so added extra define in options.pas to avoid
@@ -155,23 +158,4 @@ end.
       * never generate register->number mappings for Darwin
       * always use real register names for Darwin
 
-  Revision 1.3  2003/12/10 22:19:27  florian
-    + short gas register names for smartlinking added
-
-  Revision 1.2  2003/11/15 19:00:10  florian
-    * fixed ppc assembler reader
-
-  Revision 1.1  2003/11/12 16:05:40  florian
-    * assembler readers OOPed
-    + typed currency constants
-    + typed 128 bit float constants if the CPU supports it
-
-  Revision 1.2  2003/10/01 20:34:49  peter
-    * procinfo unit contains tprocinfo
-    * cginfo renamed to cgbase
-    * moved cgmessage to verbose
-    * fixed ppc and sparc compiles
-
-  Revision 1.1  2003/09/03 19:35:24  peter
-    * powerpc compiles again
 }

@@ -116,42 +116,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.12  2004-01-12 16:39:40  peter
+  Revision 1.13  2004-06-20 08:55:31  florian
+    * logs truncated
+
+  Revision 1.12  2004/01/12 16:39:40  peter
     * sparc updates, mostly float related
-
-  Revision 1.11  2003/11/07 15:58:32  florian
-    * Florian's culmutative nr. 1; contains:
-      - invalid calling conventions for a certain cpu are rejected
-      - arm softfloat calling conventions
-      - -Sp for cpu dependend code generation
-      - several arm fixes
-      - remaining code for value open array paras on heap
-
-  Revision 1.10  2003/08/09 18:56:54  daniel
-    * cs_regalloc renamed to cs_regvars to avoid confusion with register
-      allocator
-    * Some preventive changes to i386 spillinh code
-
-  Revision 1.9  2002/08/12 15:08:42  carl
-    + stab register indexes for powerpc (moved from gdb to cpubase)
-    + tprocessor enumeration moved to cpuinfo
-    + linker in target_info is now a class
-    * many many updates for m68k (will soon start to compile)
-    - removed some ifdef or correct them for correct cpu
-
-  Revision 1.8  2002/08/10 14:47:50  carl
-    + moved target_cpu_string to cpuinfo
-    * renamed asmmode enum.
-    * assembler reader has now less ifdef's
-    * move from nppcmem.pas -> ncgmem.pas vec. node.
-
-  Revision 1.7  2002/05/18 13:34:22  peter
-    * readded missing revisions
-
-  Revision 1.6  2002/05/16 19:46:50  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
 
 }

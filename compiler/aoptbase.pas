@@ -262,17 +262,7 @@ End.
 
 {
   $Log$
-  Revision 1.6  2002-07-07 09:52:32  florian
-    * powerpc target fixed, very simple units can be compiled
-    * some basic stuff for better callparanode handling, far from being finished
-
-  Revision 1.5  2002/05/18 13:34:05  peter
-    * readded missing revisions
-
-  Revision 1.4  2002/05/16 19:46:34  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
+  Revision 1.7  2004-06-20 08:55:28  florian
+    * logs truncated
 
 }

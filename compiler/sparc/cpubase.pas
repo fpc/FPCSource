@@ -563,7 +563,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.66  2004-06-16 20:07:10  florian
+  Revision 1.67  2004-06-20 08:55:32  florian
+    * logs truncated
+
+  Revision 1.66  2004/06/16 20:07:10  florian
     * dwarf branch merged
 
   Revision 1.65.2.5  2004/06/13 20:38:38  florian
@@ -577,135 +580,5 @@ end.
 
   Revision 1.65.2.2  2004/05/13 20:58:47  florian
     * fixed register addressed jumps in interface wrappers
-
-  Revision 1.65.2.1  2004/05/11 21:06:51  peter
-    * sparc compiler fixed
-
-  Revision 1.65  2004/03/12 08:18:11  mazen
-  - revert '../' from include path
-
-  Revision 1.64  2004/03/11 16:22:52  mazen
-  + help lazarus analyze the file
-
-  Revision 1.63  2004/02/27 11:43:56  mazen
-  * symaddr ==> refaddr to follow the rest of compiler changes
-
-  Revision 1.62  2004/02/27 10:21:05  florian
-    * top_symbol killed
-    + refaddr to treference added
-    + refsymbol to treference added
-    * top_local stuff moved to an extra record to save memory
-    + aint introduced
-    * tppufile.get/putint64/aint implemented
-
-  Revision 1.61  2004/02/25 14:25:47  mazen
-  * fix compile problem for sparc
-
-  Revision 1.60  2004/01/12 22:11:39  peter
-    * use localalign info for alignment for locals and temps
-    * sparc fpu flags branching added
-    * moved powerpc copy_valye_openarray to generic
-
-  Revision 1.59  2004/01/12 16:39:40  peter
-    * sparc updates, mostly float related
-
-  Revision 1.58  2003/12/19 14:38:03  mazen
-  * new TRegister definition applied
-
-  Revision 1.57  2003/11/10 19:05:50  peter
-    * fixed alias/colouring > 255
-
-  Revision 1.56  2003/11/01 19:27:54  peter
-    * 1.9.0
-
-  Revision 1.55  2003/10/31 08:47:13  mazen
-  * rgHelper renamed to rgBase
-  * using findreg_by_<name|number>_table directly to decrease heap overheading
-
-  Revision 1.54  2003/10/30 15:03:18  mazen
-  * now uses standard routines in rgBase unit to search registers by number and by name
-
-  Revision 1.53  2003/10/08 14:11:36  mazen
-  + Alignement field added to TParaLocation (=4 as 32 bits archs)
-
-  Revision 1.52  2003/10/01 20:34:50  peter
-    * procinfo unit contains tprocinfo
-    * cginfo renamed to cgbase
-    * moved cgmessage to verbose
-    * fixed ppc and sparc compiles
-
-  Revision 1.51  2003/09/14 21:35:15  peter
-    * new volatile registers proc
-
-  Revision 1.50  2003/09/14 19:19:05  peter
-    * updates for new ra
-
-  Revision 1.49  2003/09/03 16:29:37  peter
-    * superregisters also from .dat file
-
-  Revision 1.48  2003/09/03 15:55:01  peter
-    * NEWRA branch merged
-
-  Revision 1.47.2.3  2003/09/02 17:49:17  peter
-    * newra updates
-
-  Revision 1.47.2.2  2003/09/01 21:02:55  peter
-    * sparc updates for new tregister
-
-  Revision 1.47.2.1  2003/08/31 21:08:16  peter
-    * first batch of sparc fixes
-
-  Revision 1.47  2003/08/19 13:22:51  mazen
-  + implemented gas_regname based on convert_register_to_enum std_Reg2str
-
-  Revision 1.46  2003/08/17 16:59:20  jonas
-    * fixed regvars so they work with newra (at least for ppc)
-    * fixed some volatile register bugs
-    + -dnotranslation option for -dnewra, which causes the registers not to
-      be translated from virtual to normal registers. Requires support in
-      the assembler writer as well, which is only implemented in aggas/
-      agppcgas currently
-
-  Revision 1.45  2003/07/06 17:58:22  peter
-    * framepointer fixes for sparc
-    * parent framepointer code more generic
-
-  Revision 1.44  2003/07/02 22:18:04  peter
-    * paraloc splitted in callerparaloc,calleeparaloc
-    * sparc calling convention updates
-
-  Revision 1.43  2003/06/17 16:34:44  jonas
-    * lots of newra fixes (need getfuncretparaloc implementation for i386)!
-    * renamed all_intregisters to volatile_intregisters and made it
-      processor dependent
-
-  Revision 1.42  2003/06/13 21:08:30  peter
-    * supreg_name added
-
-  Revision 1.41  2003/06/12 19:11:34  jonas
-    - removed ALL_INTREGISTERS (only the one in rgobj is valid)
-
-  Revision 1.40  2003/06/04 21:00:54  mazen
-  - making TOldRegister only declared for compatibility and
-    no more used in cpubase
-
-  Revision 1.39  2003/06/01 21:38:06  peter
-    * getregisterfpu size parameter added
-    * op_const_reg size parameter added
-    * sparc updates
-
-  Revision 1.38  2003/06/01 01:04:35  peter
-    * reference fixes
-
-  Revision 1.37  2003/05/31 15:05:28  peter
-    * FUNCTION_RESULT64_LOW/HIGH_REG added for int64 results
-
-  Revision 1.36  2003/05/31 01:00:51  peter
-    * register fixes
-
-  Revision 1.35  2003/05/30 23:57:08  peter
-    * more sparc cleanup
-    * accumulator removed, splitted in function_return_reg (called) and
-      function_result_reg (caller)
 
 }

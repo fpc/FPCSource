@@ -364,7 +364,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2004-06-16 20:07:10  florian
+  Revision 1.25  2004-06-20 08:55:32  florian
+    * logs truncated
+
+  Revision 1.24  2004/06/16 20:07:10  florian
     * dwarf branch merged
 
   Revision 1.23.2.3  2004/06/02 16:07:52  peter
@@ -383,35 +386,4 @@ end.
     * sparc fpu flags branching added
     * moved powerpc copy_valye_openarray to generic
 
-  Revision 1.22  2004/01/12 16:39:41  peter
-    * sparc updates, mostly float related
-
-  Revision 1.21  2003/10/24 11:28:35  mazen
-  -unused units removed from uses clause
-
-  Revision 1.20  2003/10/01 20:34:50  peter
-    * procinfo unit contains tprocinfo
-    * cginfo renamed to cgbase
-    * moved cgmessage to verbose
-    * fixed ppc and sparc compiles
-
-  Revision 1.19  2003/09/03 15:55:01  peter
-    * NEWRA branch merged
-
-  Revision 1.18.2.1  2003/09/01 21:02:55  peter
-    * sparc updates for new tregister
-
-  Revision 1.18  2003/07/08 21:25:00  peter
-    * sparc fixes
-
-  Revision 1.17  2003/07/06 22:09:50  peter
-    * signed compare fixed
-
-  Revision 1.16  2003/07/06 17:44:12  peter
-    * cleanup and first sparc implementation
-
-  Revision 1.15  2003/06/01 21:38:06  peter
-    * getregisterfpu size parameter added
-    * op_const_reg size parameter added
-    * sparc updates
 }

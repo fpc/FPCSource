@@ -98,27 +98,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2004-01-13 18:08:58  florian
+  Revision 1.5  2004-06-20 08:55:32  florian
+    * logs truncated
+
+  Revision 1.4  2004/01/13 18:08:58  florian
     * x86-64 compilation fixed
 
-  Revision 1.3  2003/09/25 13:13:32  florian
-    * more x86-64 fixes
-
-  Revision 1.2  2002/08/10 14:53:38  carl
-    + moved target_cpu_string to cpuinfo
-    * renamed asmmode enum.
-    * assembler reader has now less ifdef's
-    * move from nppcmem.pas -> ncgmem.pas vec. node.
-
-  Revision 1.1  2002/07/24 22:38:15  florian
-    + initial release of x86-64 target code
-
-  Revision 1.7  2002/05/18 13:34:22  peter
-    * readded missing revisions
-
-  Revision 1.6  2002/05/16 19:46:50  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
 }

@@ -2118,7 +2118,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2004-06-16 20:07:07  florian
+  Revision 1.39  2004-06-20 08:55:28  florian
+    * logs truncated
+
+  Revision 1.38  2004/06/16 20:07:07  florian
     * dwarf branch merged
 
   Revision 1.37.2.1  2004/05/03 21:08:56  peter
@@ -2128,60 +2131,5 @@ end.
     * constants ordinals now always have a type assigned
     * integer constants have the smallest type, unsigned prefered over
       signed
-
-  Revision 1.36  2003/10/01 20:34:48  peter
-    * procinfo unit contains tprocinfo
-    * cginfo renamed to cgbase
-    * moved cgmessage to verbose
-    * fixed ppc and sparc compiles
-
-  Revision 1.35  2003/09/24 13:02:10  marco
-   * (Peter) patch to fix snapshot
-
-  Revision 1.34  2003/09/07 22:09:34  peter
-    * preparations for different default calling conventions
-    * various RA fixes
-
-  Revision 1.33  2003/04/26 00:29:17  peter
-    * adapted for removed funcretsym
-
-  Revision 1.32  2002/12/29 14:57:50  peter
-    * unit loading changed to first register units and load them
-      afterwards. This is needed to support uses xxx in yyy correctly
-    * unit dependency check fixed
-
-  Revision 1.31  2002/11/27 20:04:10  peter
-    * tvarsym.get_push_size replaced by paramanager.push_size
-
-  Revision 1.30  2002/11/24 18:17:29  carl
-    * fix compilation problems after my changes to tcontsym
-
-  Revision 1.29  2002/11/20 22:48:42  pierre
-   * fix compilation failure for IDE
-
-  Revision 1.28  2002/09/07 14:13:40  peter
-    * fixed procdef access
-
-  Revision 1.27  2002/08/25 19:25:18  peter
-    * sym.insert_in_data removed
-    * symtable.insertvardata/insertconstdata added
-    * removed insert_in_data call from symtable.insert, it needs to be
-      called separatly. This allows to deref the address calculation
-    * procedures now calculate the parast addresses after the procedure
-      directives are parsed. This fixes the cdecl parast problem
-    * push_addr_param has an extra argument that specifies if cdecl is used
-      or not
-
-  Revision 1.26  2002/07/02 06:09:08  michael
-  + Patch from peter to fix snapshots
-
-  Revision 1.25  2002/05/18 13:34:05  peter
-    * readded missing revisions
-
-  Revision 1.24  2002/05/16 19:46:35  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
 
 }

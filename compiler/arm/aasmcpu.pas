@@ -486,7 +486,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  2004-06-16 20:07:10  florian
+  Revision 1.33  2004-06-20 08:55:31  florian
+    * logs truncated
+
+  Revision 1.32  2004/06/16 20:07:10  florian
     * dwarf branch merged
 
   Revision 1.31.2.2  2004/06/13 10:51:17  florian
@@ -503,113 +506,4 @@ end.
   Revision 1.30  2004/03/15 22:20:13  florian
     * handling of spilling improved
 
-  Revision 1.29  2004/03/14 16:15:39  florian
-    * spilling problem fixed
-    * handling of floating point memory references fixed
-
-  Revision 1.28  2004/02/09 22:48:45  florian
-    * several fixes to parameter handling on arm
-
-  Revision 1.27  2004/02/08 23:10:21  jonas
-    * taicpu.is_same_reg_move() now gets a regtype parameter so it only
-      removes moves of that particular register type. This is necessary so
-      we don't remove the live_start instruction of a register before it
-      has been processed
-
-  Revision 1.26  2004/02/08 20:15:42  jonas
-    - removed taicpu.is_reg_move because it's not used anymore
-    + support tracking fpu register moves by rgobj for the ppc
-
-  Revision 1.25  2004/01/26 19:05:56  florian
-    * fixed several arm issues
-
-  Revision 1.24  2004/01/24 20:19:46  florian
-    * fixed some spilling stuff
-    + not(<int64>) implemented
-    + small set comparisations implemented
-
-  Revision 1.23  2004/01/23 15:12:49  florian
-    * fixed generic shl/shr operations
-    + added register allocation hook calls for arm specific operand types:
-      register set and shifter op
-
-  Revision 1.22  2004/01/21 19:01:03  florian
-    * fixed handling of max. distance of pc relative symbols
-
-  Revision 1.21  2004/01/20 21:02:55  florian
-    * fixed symbol type writing for arm-linux
-    * fixed assembler generation for abs
-
-  Revision 1.20  2003/12/28 16:20:09  jonas
-    - removed unused methods from old generic spilling code
-
-  Revision 1.19  2003/12/26 14:02:30  peter
-    * sparc updates
-    * use registertype in spill_register
-
-  Revision 1.18  2003/12/18 17:06:21  florian
-    * arm compiler compilation fixed
-
-  Revision 1.17  2003/12/03 17:39:05  florian
-    * fixed several arm calling conventions issues
-    * fixed reference reading in the assembler reader
-    * fixed a_loadaddr_ref_reg
-
-  Revision 1.16  2003/11/30 19:35:29  florian
-    * fixed several arm related problems
-
-  Revision 1.15  2003/11/29 17:36:56  peter
-    * fixed is_move
-
-  Revision 1.14  2003/11/24 15:17:37  florian
-    * changed some types to prevend range check errors
-
-  Revision 1.13  2003/11/02 14:30:03  florian
-    * fixed ARM for new reg. allocation scheme
-
-  Revision 1.12  2003/09/11 11:54:59  florian
-    * improved arm code generation
-    * move some protected and private field around
-    * the temp. register for register parameters/arguments are now released
-      before the move to the parameter register is done. This improves
-      the code in a lot of cases.
-
-  Revision 1.11  2003/09/06 11:21:49  florian
-    * fixed stm and ldm to be usable with preindex operand
-
-  Revision 1.10  2003/09/04 21:07:03  florian
-    * ARM compiler compiles again
-
-  Revision 1.9  2003/09/04 00:15:29  florian
-    * first bunch of adaptions of arm compiler for new register type
-
-  Revision 1.8  2003/09/03 11:18:37  florian
-    * fixed arm concatcopy
-    + arm support in the common compiler sources added
-    * moved some generic cg code around
-    + tfputype added
-    * ...
-
-  Revision 1.7  2003/08/29 21:36:28  florian
-    * fixed procedure entry/exit code
-    * started to fix reference handling
-
-  Revision 1.6  2003/08/28 00:05:29  florian
-    * today's arm patches
-
-  Revision 1.5  2003/08/27 00:27:56  florian
-    + same procedure as very day: today's work on arm
-
-  Revision 1.4  2003/08/25 23:20:38  florian
-    + started to implement FPU support for the ARM
-    * fixed a lot of other things
-
-  Revision 1.3  2003/08/24 12:27:26  florian
-    * continued to work on the arm port
-
-  Revision 1.2  2003/08/20 15:50:12  florian
-    * more arm stuff
-
-  Revision 1.1  2003/08/16 13:23:01  florian
-    * several arm related stuff fixed
 }

@@ -422,7 +422,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2004-06-16 20:07:07  florian
+  Revision 1.3  2004-06-20 08:55:29  florian
+    * logs truncated
+
+  Revision 1.2  2004/06/16 20:07:07  florian
     * dwarf branch merged
 
   Revision 1.1.2.6  2004/05/01 16:02:09  peter
@@ -437,11 +440,5 @@ end.
 
   Revision 1.1.2.3  2004/04/12 19:34:45  peter
     * basic framework for dwarf CFI
-
-  Revision 1.1.2.2  2004/04/12 14:45:11  peter
-    * tai_const_symbol and tai_const merged
-
-  Revision 1.1.2.1  2004/04/08 21:04:24  peter
-    * prototype
 
 }

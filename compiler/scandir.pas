@@ -1045,7 +1045,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  2004-06-16 20:07:09  florian
+  Revision 1.37  2004-06-20 08:55:30  florian
+    * logs truncated
+
+  Revision 1.36  2004/06/16 20:07:09  florian
     * dwarf branch merged
 
   Revision 1.35  2004/05/19 23:29:56  peter
@@ -1059,90 +1062,5 @@ end.
 
   Revision 1.32.2.1  2004/05/03 14:59:57  peter
     * no dlltool needed for win32 linking executables
-
-  Revision 1.32  2004/04/04 18:46:09  olle
-    + added $APPTYPE TOOL for MPW tools on MacOS
-
-  Revision 1.31  2004/03/14 20:08:37  peter
-    * packrecords fixed for settings from $PACKRECORDS
-    * default packrecords now uses value 0 and uses info from aligment
-      structure only, initpackrecords removed
-
-  Revision 1.30  2004/01/28 22:16:31  peter
-    * more record alignment fixes
-
-  Revision 1.29  2003/12/25 01:07:09  florian
-    + $fputype directive support
-    + single data type operations with sse unit
-    * fixed more x86-64 stuff
-
-  Revision 1.28  2003/11/12 16:05:39  florian
-    * assembler readers OOPed
-    + typed currency constants
-    + typed 128 bit float constants if the CPU supports it
-
-  Revision 1.27  2003/11/07 15:58:32  florian
-    * Florian's culmutative nr. 1; contains:
-      - invalid calling conventions for a certain cpu are rejected
-      - arm softfloat calling conventions
-      - -Sp for cpu dependend code generation
-      - several arm fixes
-      - remaining code for value open array paras on heap
-
-  Revision 1.26  2003/09/17 22:30:19  olle
-    + support for a different set of compiler directives under $MODE MAC
-    + added mac directives $SETC $IFC $ELSEC $ENDC
-
-  Revision 1.25  2003/03/23 23:20:38  hajny
-    + emx target added
-
-  Revision 1.24  2003/01/03 21:25:01  peter
-    * OBJECTCHECKS added, equivalent of -CR
-    * WRITEABLECONST added, equivalent of $J
-
-  Revision 1.23  2002/12/07 14:06:20  carl
-    * stricter version / revision checking (also remove some warnings)
-
-  Revision 1.22  2002/11/20 11:12:46  mazen
-  + module path is now passed to AddPath to fix relative unit path
-
-  Revision 1.21  2002/10/16 19:01:43  peter
-    + $IMPLICITEXCEPTIONS switch to turn on/off generation of the
-      implicit exception frames for procedures with initialized variables
-      and for constructors. The default is on for compatibility
-
-  Revision 1.20  2002/10/14 19:43:41  peter
-    * threading switch, defines the symbol FPC_THREADING
-
-  Revision 1.19  2002/08/13 18:01:52  carl
-    * rename swatoperands to swapoperands
-    + m68k first compilable version (still needs a lot of testing):
-        assembler generator, system information , inline
-        assembler reader.
-
-  Revision 1.18  2002/07/26 21:15:42  florian
-    * rewrote the system handling
-
-  Revision 1.17  2002/07/20 17:16:03  florian
-    + source code page support
-
-  Revision 1.16  2002/07/16 15:37:58  florian
-    + Directive $EXTERNALSYM added, it is ignored for now
-
-  Revision 1.15  2002/05/18 13:34:17  peter
-    * readded missing revisions
-
-  Revision 1.14  2002/05/16 19:46:44  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.12  2002/04/07 13:34:20  carl
-  + wdosx target
-
-  Revision 1.11  2002/04/04 19:06:05  peter
-    * removed unused units
-    * use tlocation.size in cg.a_*loc*() routines
 
 }

@@ -295,7 +295,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.24  2004-06-16 20:07:07  florian
+  Revision 1.25  2004-06-20 08:55:29  florian
+    * logs truncated
+
+  Revision 1.24  2004/06/16 20:07:07  florian
     * dwarf branch merged
 
   Revision 1.23  2004/05/23 15:23:30  peter
@@ -312,54 +315,5 @@ end.
 
   Revision 1.22.2.1  2004/04/12 14:45:11  peter
     * tai_const_symbol and tai_const merged
-
-  Revision 1.22  2004/03/02 00:36:33  olle
-    * big transformation of Tai_[const_]Symbol.Create[data]name*
-
-  Revision 1.21  2004/02/26 16:16:38  peter
-    * tai_const.create_ptr added
-
-  Revision 1.20  2003/12/29 19:31:20  florian
-    * fixed error message, if a resource file can't be written
-
-  Revision 1.19  2003/12/08 22:34:24  peter
-    * tai_const.create_32bit changed to cardinal
-
-  Revision 1.18  2003/10/29 19:48:50  peter
-    * renamed mangeldname_prefix to make_mangledname and made it more
-      generic
-    * make_mangledname is now also used for internal threadvar/resstring
-      lists
-    * Add P$ in front of program modulename to prevent duplicated symbols
-      at assembler level, because the main program can have the same name
-      as a unit, see webtbs/tw1251b
-
-  Revision 1.17  2002/11/09 15:39:03  carl
-    + resource string tables are now aligned
-
-  Revision 1.16  2002/08/11 14:32:26  peter
-    * renamed current_library to objectlibrary
-
-  Revision 1.15  2002/08/11 13:24:11  peter
-    * saving of asmsymbols in ppu supported
-    * asmsymbollist global is removed and moved into a new class
-      tasmlibrarydata that will hold the info of a .a file which
-      corresponds with a single module. Added librarydata to tmodule
-      to keep the library info stored for the module. In the future the
-      objectfiles will also be stored to the tasmlibrarydata class
-    * all getlabel/newasmsymbol and friends are moved to the new class
-
-  Revision 1.14  2002/07/01 18:46:22  peter
-    * internal linker
-    * reorganized aasm layer
-
-  Revision 1.13  2002/05/18 13:34:06  peter
-    * readded missing revisions
-
-  Revision 1.12  2002/05/16 19:46:35  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
 
 }

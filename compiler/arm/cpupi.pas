@@ -106,7 +106,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2004-06-16 20:07:10  florian
+  Revision 1.9  2004-06-20 08:55:31  florian
+    * logs truncated
+
+  Revision 1.8  2004/06/16 20:07:10  florian
     * dwarf branch merged
 
   Revision 1.7.2.2  2004/06/12 17:01:01  florian
@@ -124,21 +127,5 @@ end.
     * fixed arm compilation
     * cleaned up code generation for exported linux procedures
 
-  Revision 1.5  2003/12/03 17:39:05  florian
-    * fixed several arm calling conventions issues
-    * fixed reference reading in the assembler reader
-    * fixed a_loadaddr_ref_reg
-
-  Revision 1.4  2003/11/30 19:35:29  florian
-    * fixed several arm related problems
-
-  Revision 1.3  2003/11/24 15:17:37  florian
-    * changed some types to prevend range check errors
-
-  Revision 1.2  2003/11/02 14:30:03  florian
-    * fixed ARM for new reg. allocation scheme
-
-  Revision 1.1  2003/08/20 15:50:13  florian
-    * more arm stuff
 }
 

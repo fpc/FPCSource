@@ -855,7 +855,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.64  2004-06-16 20:07:09  florian
+  Revision 1.65  2004-06-20 08:55:29  florian
+    * logs truncated
+
+  Revision 1.64  2004/06/16 20:07:09  florian
     * dwarf branch merged
 
   Revision 1.63  2004/05/28 21:14:34  peter
@@ -870,155 +873,5 @@ end.
 
   Revision 1.61  2004/03/29 14:44:10  peter
     * fixes to previous constant integer commit
-
-  Revision 1.60  2004/03/23 22:34:49  peter
-    * constants ordinals now always have a type assigned
-    * integer constants have the smallest type, unsigned prefered over
-      signed
-
-  Revision 1.59  2004/02/24 16:12:39  peter
-    * operator overload chooses rewrite
-    * overload choosing is now generic and moved to htypechk
-
-  Revision 1.58  2004/02/04 22:15:15  daniel
-    * Rtti generation moved to ncgutil
-    * Assmtai usage of symsym removed
-    * operator overloading cleanup up
-
-  Revision 1.57  2004/02/04 19:22:27  peter
-  *** empty log message ***
-
-  Revision 1.56  2004/02/03 22:32:54  peter
-    * renamed xNNbittype to xNNinttype
-    * renamed registers32 to registersint
-    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
-
-  Revision 1.55  2004/01/23 15:12:49  florian
-    * fixed generic shl/shr operations
-    + added register allocation hook calls for arm specific operand types:
-      register set and shifter op
-
-  Revision 1.54  2003/12/09 21:17:04  jonas
-    + support for evaluating qword constant expressions (both arguments have
-      to be a qword, constants have to be explicitly typecasted to qword)
-
-  Revision 1.53  2003/10/08 19:19:45  peter
-    * set_varstate cleanup
-
-  Revision 1.52  2003/10/01 20:34:49  peter
-    * procinfo unit contains tprocinfo
-    * cginfo renamed to cgbase
-    * moved cgmessage to verbose
-    * fixed ppc and sparc compiles
-
-  Revision 1.51  2003/09/07 22:09:35  peter
-    * preparations for different default calling conventions
-    * various RA fixes
-
-  Revision 1.50  2003/09/03 11:18:37  florian
-    * fixed arm concatcopy
-    + arm support in the common compiler sources added
-    * moved some generic cg code around
-    + tfputype added
-    * ...
-
-  Revision 1.49  2003/05/24 16:32:34  jonas
-    * fixed expectloc of notnode for all processors that have flags
-
-  Revision 1.48  2003/05/09 17:47:02  peter
-    * self moved to hidden parameter
-    * removed hdisposen,hnewn,selfn
-
-  Revision 1.47  2003/04/25 20:59:33  peter
-    * removed funcretn,funcretsym, function result is now in varsym
-      and aliases for result and function name are added using absolutesym
-    * vs_hidden parameter for funcret passed in parameter
-    * vs_hidden fixes
-    * writenode changed to printnode and released from extdebug
-    * -vp option added to generate a tree.log with the nodetree
-    * nicer printnode for statements, callnode
-
-  Revision 1.46  2003/04/23 20:16:04  peter
-    + added currency support based on int64
-    + is_64bit for use in cg units instead of is_64bitint
-    * removed cgmessage from n386add, replace with internalerrors
-
-  Revision 1.45  2003/04/22 23:50:23  peter
-    * firstpass uses expectloc
-    * checks if there are differences between the expectloc and
-      location.loc from secondpass in EXTDEBUG
-
-  Revision 1.44  2002/11/25 17:43:20  peter
-    * splitted defbase in defutil,symutil,defcmp
-    * merged isconvertable and is_equal into compare_defs(_ext)
-    * made operator search faster by walking the list only once
-
-  Revision 1.43  2002/10/04 21:19:28  jonas
-    * fixed web bug 2139: checking for division by zero fixed
-
-  Revision 1.42  2002/09/07 12:16:04  carl
-    * second part bug report 1996 fix, testrange in cordconstnode
-      only called if option is set (also make parsing a tiny faster)
-
-  Revision 1.41  2002/09/03 16:26:26  daniel
-    * Make Tprocdef.defs protected
-
-  Revision 1.40  2002/08/25 11:32:33  peter
-    * don't optimize not([lten,gten]) for setdefs
-
-  Revision 1.39  2002/08/25 09:10:58  peter
-    * fixed not(not()) removal
-
-  Revision 1.38  2002/08/15 15:09:42  carl
-    + fpu emulation helpers (ppu checking also)
-
-  Revision 1.37  2002/08/14 19:26:55  carl
-    + generic int_to_real type conversion
-    + generic unaryminus node
-
-  Revision 1.36  2002/07/20 11:57:54  florian
-    * types.pas renamed to defbase.pas because D6 contains a types
-      unit so this would conflicts if D6 programms are compiled
-    + Willamette/SSE2 instructions to assembler added
-
-  Revision 1.35  2002/07/19 11:41:36  daniel
-  * State tracker work
-  * The whilen and repeatn are now completely unified into whilerepeatn. This
-    allows the state tracker to change while nodes automatically into
-    repeat nodes.
-  * Resulttypepass improvements to the notn. 'not not a' is optimized away and
-    'not(a>b)' is optimized into 'a<=b'.
-  * Resulttypepass improvements to the whilerepeatn. 'while not a' is optimized
-    by removing the notn and later switchting the true and falselabels. The
-    same is done with 'repeat until not a'.
-
-  Revision 1.34  2002/05/18 13:34:10  peter
-    * readded missing revisions
-
-  Revision 1.33  2002/05/16 19:46:39  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.31  2002/04/07 13:26:10  carl
-  + change unit use
-
-  Revision 1.30  2002/04/02 17:11:29  peter
-    * tlocation,treference update
-    * LOC_CONSTANT added for better constant handling
-    * secondadd splitted in multiple routines
-    * location_force_reg added for loading a location to a register
-      of a specified size
-    * secondassignment parses now first the right and then the left node
-      (this is compatible with Kylix). This saves a lot of push/pop especially
-      with string operations
-    * adapted some routines to use the new cg methods
-
-  Revision 1.29  2002/03/04 19:10:11  peter
-    * removed compiler warnings
-
-  Revision 1.28  2002/02/11 11:45:51  michael
-  * Compilation without mmx support fixed from Peter
 
 }

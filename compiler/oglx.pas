@@ -399,24 +399,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2002-09-07 15:25:05  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.4  2002/08/12 15:08:40  carl
-    + stab register indexes for powerpc (moved from gdb to cpubase)
-    + tprocessor enumeration moved to cpuinfo
-    + linker in target_info is now a class
-    * many many updates for m68k (will soon start to compile)
-    - removed some ifdef or correct them for correct cpu
-
-  Revision 1.3  2002/07/14 18:00:44  daniel
-  + Added the beginning of a state tracker. This will track the values of
-    variables through procedures and optimize things away.
-
-  Revision 1.2  2002/07/11 15:23:25  daniel
-  * Continued work on LX header
-
-  Revision 1.1  2002/07/08 19:22:22  daniel
-  + OS/2 lx format support: Copied ogcoff and started to modify it
+  Revision 1.6  2004-06-20 08:55:30  florian
+    * logs truncated
 
 }

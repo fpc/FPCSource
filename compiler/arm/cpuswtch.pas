@@ -119,6 +119,7 @@ initialization
 end.
 {
   $Log$
-  Revision 1.1  2003-08-20 15:50:13  florian
-    * more arm stuff
+  Revision 1.2  2004-06-20 08:55:31  florian
+    * logs truncated
+
 }

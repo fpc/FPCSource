@@ -169,7 +169,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.27  2004-06-20 07:11:32  florian
+    Revision 1.28  2004-06-20 08:55:32  florian
+      * logs truncated
+
+    Revision 1.27  2004/06/20 07:11:32  florian
       - offsetfixup removed
 
     Revision 1.26  2004/06/16 20:07:10  florian
@@ -185,75 +188,5 @@ end.
 
     Revision 1.25.2.1  2004/05/11 21:06:51  peter
       * sparc compiler fixed
-
-    Revision 1.25  2004/02/27 15:15:33  mazen
-    * symaddr ==> refaddr to follow the rest of compiler changes
-
-    Revision 1.24  2004/01/12 16:39:41  peter
-      * sparc updates, mostly float related
-
-    Revision 1.23  2003/10/24 11:22:50  mazen
-    *fix related to toper==>poper
-
-    Revision 1.22  2003/09/03 15:55:01  peter
-      * NEWRA branch merged
-
-    Revision 1.21.2.1  2003/09/01 21:02:55  peter
-      * sparc updates for new tregister
-
-    Revision 1.21  2003/07/08 21:25:00  peter
-      * sparc fixes
-
-    Revision 1.20  2003/07/02 22:18:04  peter
-      * paraloc splitted in callerparaloc,calleeparaloc
-      * sparc calling convention updates
-
-    Revision 1.19  2003/06/01 21:38:06  peter
-      * getregisterfpu size parameter added
-      * op_const_reg size parameter added
-      * sparc updates
-
-    Revision 1.18  2003/06/01 01:04:35  peter
-      * reference fixes
-
-    Revision 1.17  2003/05/31 01:00:51  peter
-      * register fixes
-
-    Revision 1.16  2003/05/30 23:57:08  peter
-      * more sparc cleanup
-      * accumulator removed, splitted in function_return_reg (called) and
-        function_result_reg (caller)
-
-    Revision 1.15  2003/05/28 23:18:31  florian
-      * started to fix and clean up the sparc port
-
-    Revision 1.14  2003/05/07 11:55:34  mazen
-    - unused units removed from uses clause
-    - unused variables removed from implemntation declarations
-
-    Revision 1.13  2003/05/06 14:55:27  mazen
-    * comment changed to ;# instead of ##
-    * .bss section changed to .section ".bss"
-
-    Revision 1.12  2003/03/15 22:51:58  mazen
-    * remaking sparc rtl compile
-
-    Revision 1.11  2003/01/08 18:43:58  daniel
-     * Tregister changed into a record
-
-    Revision 1.10  2002/11/16 15:29:16  florian
-      * fixed Cish syntax
-
-    Revision 1.9  2002/11/10 19:07:46  mazen
-    * SPARC calling mechanism almost OK (as in GCC./mppcsparc )
-
-    Revision 1.8  2002/10/25 19:37:53  mazen
-    * bug of references name missing last character fixed
-
-    Revision 1.7  2002/10/20 19:01:38  mazen
-    + op_raddr_reg and op_caddr_reg added to fix functions prologue
-
-    Revision 1.6  2002/10/15 09:00:28  mazen
-    * sone coding style modified
 
 }

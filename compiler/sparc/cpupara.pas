@@ -340,7 +340,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2004-06-16 20:07:10  florian
+  Revision 1.40  2004-06-20 08:55:32  florian
+    * logs truncated
+
+  Revision 1.39  2004/06/16 20:07:10  florian
     * dwarf branch merged
 
   Revision 1.38.2.2  2004/05/31 22:08:21  peter
@@ -358,139 +361,4 @@ end.
   Revision 1.37  2004/03/09 13:05:49  mazen
   + give location for 64bit to fix IE 200402061
 
-  Revision 1.36  2004/02/25 14:25:47  mazen
-  * fix compile problem for sparc
-
-  Revision 1.35  2003/11/10 19:05:50  peter
-    * fixed alias/colouring > 255
-
-  Revision 1.34  2003/10/24 11:25:32  mazen
-  -unused units removed from uses clause
-  *fix related to rg which was removed
-
-  Revision 1.33  2003/10/08 21:16:27  olle
-    * changed to symbolic const for alignment
-    + alignment set for function result
-
-  Revision 1.32  2003/10/08 14:11:36  mazen
-  + Alignement field added to TParaLocation (=4 as 32 bits archs)
-
-  Revision 1.31  2003/10/01 20:34:50  peter
-    * procinfo unit contains tprocinfo
-    * cginfo renamed to cgbase
-    * moved cgmessage to verbose
-    * fixed ppc and sparc compiles
-
-  Revision 1.30  2003/09/14 21:35:15  peter
-    * new volatile registers proc
-
-  Revision 1.29  2003/09/14 19:19:05  peter
-    * updates for new ra
-
-  Revision 1.28  2003/09/03 15:55:01  peter
-    * NEWRA branch merged
-
-  Revision 1.27.2.1  2003/08/31 21:08:16  peter
-    * first batch of sparc fixes
-
-  Revision 1.27  2003/08/11 21:18:20  peter
-    * start of sparc support for newra
-
-  Revision 1.26  2003/07/08 21:25:00  peter
-    * sparc fixes
-
-  Revision 1.25  2003/07/06 22:10:56  peter
-    * big endian first allocates high
-
-  Revision 1.24  2003/07/06 17:58:22  peter
-    * framepointer fixes for sparc
-    * parent framepointer code more generic
-
-  Revision 1.23  2003/07/05 20:11:41  jonas
-    * create_paraloc_info() is now called separately for the caller and
-      callee info
-    * fixed ppc cycle
-
-  Revision 1.22  2003/07/02 22:18:04  peter
-    * paraloc splitted in callerparaloc,calleeparaloc
-    * sparc calling convention updates
-
-  Revision 1.21  2003/06/17 16:36:59  peter
-    * freeintparaloc
-
-  Revision 1.20  2003/06/09 21:44:14  mazen
-  * fix compile problem related to modification
-    of the declareation of GetIntParaLoc in the
-    ancestor's declaration
-
-  Revision 1.19  2003/06/01 21:38:06  peter
-    * getregisterfpu size parameter added
-    * op_const_reg size parameter added
-    * sparc updates
-
-  Revision 1.18  2003/05/31 01:00:51  peter
-    * register fixes
-
-  Revision 1.17  2003/05/30 23:57:08  peter
-    * more sparc cleanup
-    * accumulator removed, splitted in function_return_reg (called) and
-      function_result_reg (caller)
-
-  Revision 1.16  2003/04/23 13:35:39  peter
-    * fix sparc compile
-
-  Revision 1.15  2003/04/23 12:35:35  florian
-    * fixed several issues with powerpc
-    + applied a patch from Jonas for nested function calls (PowerPC only)
-    * ...
-
-  Revision 1.14  2003/01/08 18:43:58  daniel
-   * Tregister changed into a record
-
-  Revision 1.13  2003/01/05 21:32:35  mazen
-  * fixing several bugs compiling the RTL
-
-  Revision 1.12  2002/11/25 19:21:49  mazen
-  * fixed support of nSparcInline
-
-  Revision 1.11  2002/11/25 17:43:28  peter
-    * splitted defbase in defutil,symutil,defcmp
-    * merged isconvertable and is_equal into compare_defs(_ext)
-    * made operator search faster by walking the list only once
-
-  Revision 1.10  2002/11/18 17:32:01  peter
-    * pass proccalloption to ret_in_xxx and push_xxx functions
-
-  Revision 1.9  2002/11/03 20:22:40  mazen
-  * parameter handling updated
-
-  Revision 1.8  2002/10/13 21:46:07  mazen
-  * assembler output format fixed
-
-  Revision 1.7  2002/10/10 19:57:51  mazen
-  * Just to update repsitory
-
-  Revision 1.6  2002/10/10 15:10:39  mazen
-  * Internal error fixed, but usually i386 parameter model used
-
-  Revision 1.5  2002/10/09 13:52:19  mazen
-  just incase some one wolud help me debugging that\!
-
-  Revision 1.4  2002/10/08 21:02:22  mazen
-  * debugging register allocation
-
-  Revision 1.3  2002/10/07 20:33:05  mazen
-  word alignement modified in g_stack_frame
-
-  Revision 1.2  2002/10/04 21:57:42  mazen
-  * register allocation for parameters now done in cpupara, but InternalError(200109223) in cgcpu.pas:1053 is still not fixed du to location_force problem in ncgutils.pas:419
-
-  Revision 1.1  2002/08/21 13:30:07  mazen
-  *** empty log message ***
-
-  Revision 1.2  2002/07/11 14:41:34  florian
-    * start of the new generic parameter handling
-
-  Revision 1.1  2002/07/07 09:44:32  florian
-    * powerpc target fixed, very simple units can be compiled
 }

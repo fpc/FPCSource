@@ -1500,7 +1500,10 @@ end.
 
 {
   $Log$
-  Revision 1.11  2004-06-16 20:07:09  florian
+  Revision 1.12  2004-06-20 08:55:30  florian
+    * logs truncated
+
+  Revision 1.11  2004/06/16 20:07:09  florian
     * dwarf branch merged
 
   Revision 1.10.2.3  2004/05/01 23:36:47  peter
@@ -1515,38 +1518,4 @@ end.
   Revision 1.10  2004/03/02 00:36:33  olle
     * big transformation of Tai_[const_]Symbol.Create[data]name*
 
-  Revision 1.9  2004/02/07 23:28:34  daniel
-    * Take advantage of our new with statement optimization
-
-  Revision 1.8  2003/12/25 01:25:43  peter
-    * sparc assembler reader updates
-
-  Revision 1.7  2003/12/08 17:43:57  florian
-    * fixed ldm/stm arm assembler reading
-    * fixed a_load_reg_reg with OS_8 on ARM
-    * non supported calling conventions cause only a warning now
-
-  Revision 1.6  2003/12/07 14:03:37  jonas
-    * go to the next character after consuming a "%"
-
-  Revision 1.5  2003/12/03 17:39:04  florian
-    * fixed several arm calling conventions issues
-    * fixed reference reading in the assembler reader
-    * fixed a_loadaddr_ref_reg
-
-  Revision 1.4  2003/11/29 16:27:19  jonas
-    * fixed several ppc assembler reader related problems
-    * local vars in assembler procedures now start at offset 4
-    * fixed second_int_to_bool (apparently an integer can be in  LOC_JUMP??)
-
-  Revision 1.3  2003/11/17 23:23:47  florian
-    + first part of arm assembler reader
-
-  Revision 1.2  2003/11/15 19:00:10  florian
-    * fixed ppc assembler reader
-
-  Revision 1.1  2003/11/12 16:05:39  florian
-    * assembler readers OOPed
-    + typed currency constants
-    + typed 128 bit float constants if the CPU supports it
 }

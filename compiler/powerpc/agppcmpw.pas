@@ -1343,7 +1343,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.35  2004-06-17 16:55:46  peter
+  Revision 1.36  2004-06-20 08:55:31  florian
+    * logs truncated
+
+  Revision 1.35  2004/06/17 16:55:46  peter
     * powerpc compiles again
 
   Revision 1.34  2004/03/17 12:03:31  olle
@@ -1362,98 +1365,4 @@ end.
     + aint introduced
     * tppufile.get/putint64/aint implemented
 
-  Revision 1.30  2004/02/04 15:28:24  olle
-    * made more in phase with agppcgas.pas
-
-  Revision 1.29  2004/01/12 00:08:03  olle
-    * gen of conditional instr updated according to agppcgas
-    * gen of PPCAsm command fixed
-
-  Revision 1.28  2003/11/12 16:05:40  florian
-    * assembler readers OOPed
-    + typed currency constants
-    + typed 128 bit float constants if the CPU supports it
-
-  Revision 1.27  2003/10/25 10:37:26  florian
-    * fixed compilation of ppc compiler
-
-  Revision 1.26  2003/10/01 20:34:49  peter
-    * procinfo unit contains tprocinfo
-    * cginfo renamed to cgbase
-    * moved cgmessage to verbose
-    * fixed ppc and sparc compiles
-
-  Revision 1.25  2003/09/12 12:30:27  olle
-    * max lenght of symbols increased to 255
-    * emitted strings can now contain backslashes
-
-  Revision 1.24  2003/09/03 19:35:24  peter
-    * powerpc compiles again
-
-  Revision 1.23  2003/08/24 21:40:12  olle
-    * minor adjustment
-
-  Revision 1.21  2003/08/18 11:47:15  olle
-    + added asm directive ALIGNING OFF to avoid unexpected aligning by the assembler
-
-  Revision 1.20  2002/10/01 05:17:27  olle
-    * minor fix
-
-  Revision 1.19  2003/04/06 21:01:40  olle
-    + line numbers are now emitted in the assembler code
-    * bug in export and import directive fixed
-    * made code more in sync with aggas.pas
-
-  Revision 1.18  2003/01/13 17:17:50  olle
-    * changed global var access, TOC now contain pointers to globals
-    * fixed handling of function pointers
-
-  Revision 1.17  2003/01/08 18:43:57  daniel
-   * Tregister changed into a record
-
-  Revision 1.16  2002/11/28 10:56:07  olle
-    * changed proc ref from .xxx[PR] (refering to its section)
-      to .xxx (refering to its label) to allow for multiple ref to a proc.
-
-  Revision 1.15  2002/11/17 16:31:59  carl
-    * memory optimization (3-4%) : cleanup of tai fields,
-       cleanup of tdef and tsym fields.
-    * make it work for m68k
-
-  Revision 1.14  2002/11/07 15:50:23  jonas
-    * fixed bctr(l) problems
-
-  Revision 1.13  2002/11/04 18:24:53  olle
-    * globals are located in TOC and relative r2, instead of absolute
-    * symbols which only differs in case are treated as a single symbol
-    + tai_const_symbol supported
-    * only refs_full accepted
-
-  Revision 1.12  2002/10/23 15:31:01  olle
-    * branch b does not jump to dotted symbol now
-
-  Revision 1.11  2002/10/19 23:52:40  olle
-    * import directive changed
-
-  Revision 1.10  2002/10/10 19:39:37  florian
-    * changes from Olle to get simple programs compiled and assembled
-
-  Revision 1.9  2002/10/07 21:19:53  florian
-    * more mpw fixes
-
-  Revision 1.8  2002/10/06 22:46:20  florian
-    * fixed function exporting
-
-  Revision 1.7  2002/10/02 22:14:15  florian
-    * improve function imports
-
-  Revision 1.6  2002/09/27 21:09:49  florian
-    + readed because previous version was broken
-
-  Revision 1.2  2002/08/31 12:43:31  florian
-    * ppc compilation fixed
-
-  Revision 1.1  2002/08/20 21:40:44  florian
-    + target macos for ppc added
-    + frame work for mpw assembler output
 }

@@ -66,6 +66,7 @@ Begin
 end.
 {
   $Log$
-  Revision 1.1  2002-09-29 23:42:45  florian
-    * several fixes to get forward with alpha compilation
+  Revision 1.2  2004-06-20 08:55:31  florian
+    * logs truncated
+
 }

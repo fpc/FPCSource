@@ -850,33 +850,7 @@ End.
 
 {
   $Log$
-  Revision 1.8  2003-03-28 19:16:56  peter
-    * generic constructor working for i386
-    * remove fixed self register
-    * esi added as address register for i386
-
-  Revision 1.7  2002/05/18 13:34:05  peter
-    * readded missing revisions
-
-  Revision 1.6  2002/05/16 19:46:34  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.4  2002/04/20 21:32:23  carl
-  + generic FPC_CHECKPOINTER
-  + first parameter offset in stack now portable
-  * rename some constants
-  + move some cpu stuff to other units
-  - remove unused constents
-  * fix stacksize for some targets
-  * fix generic size problems which depend now on EXTEND_SIZE constant
-
-  Revision 1.3  2002/04/15 18:55:39  carl
-  + change reg2str array use
-
-  Revision 1.2  2002/04/14 16:49:30  carl
-  + att_reg2str -> gas_reg2str
+  Revision 1.9  2004-06-20 08:55:28  florian
+    * logs truncated
 
 }

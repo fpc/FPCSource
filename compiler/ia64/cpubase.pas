@@ -283,23 +283,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2004-06-16 20:07:10  florian
+  Revision 1.8  2004-06-20 08:55:31  florian
+    * logs truncated
+
+  Revision 1.7  2004/06/16 20:07:10  florian
     * dwarf branch merged
 
   Revision 1.6.2.1  2004/05/01 16:02:10  peter
     * POINTER_SIZE replaced with sizeof(aint)
     * aint,aword,tconst*int moved to globtype
-
-  Revision 1.6  2002/11/17 18:26:16  mazen
-  * fixed a compilation bug accmulator-->accumulator, in definition of return_result_reg
-
-  Revision 1.5  2002/11/17 17:49:09  mazen
-  + return_result_reg and function_result_reg are now used, in all plateforms, to pass functions result between called function and its caller. See the explanation of each one
-
-  Revision 1.4  2002/09/07 15:25:11  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.3  2002/04/20 21:38:45  carl
-  * renamed some constants
 
 }

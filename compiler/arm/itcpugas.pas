@@ -113,21 +113,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2004-03-13 18:45:40  florian
+  Revision 1.4  2004-06-20 08:55:31  florian
+    * logs truncated
+
+  Revision 1.3  2004/03/13 18:45:40  florian
     * floating compares fixed
     * unary minus for floats fixed
 
-  Revision 1.2  2003/11/17 23:23:47  florian
-    + first part of arm assembler reader
-
-  Revision 1.1  2003/11/12 16:05:39  florian
-    * assembler readers OOPed
-    + typed currency constants
-    + typed 128 bit float constants if the CPU supports it
-
-  Revision 1.2  2003/11/02 14:30:03  florian
-    * fixed ARM for new reg. allocation scheme
-
-  Revision 1.1  2003/09/04 00:15:29  florian
-    * first bunch of adaptions of arm compiler for new register type
 }

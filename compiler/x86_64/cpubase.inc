@@ -146,7 +146,10 @@ const
 
 {
   $Log$
-  Revision 1.14  2004-06-16 20:07:11  florian
+  Revision 1.15  2004-06-20 08:55:32  florian
+    * logs truncated
+
+  Revision 1.14  2004/06/16 20:07:11  florian
     * dwarf branch merged
 
   Revision 1.13.2.3  2004/05/02 19:08:01  florian
@@ -163,43 +166,4 @@ const
     * tparalocation.lochigh is now used to indicate if registerhigh
       is used and what the type is
 
-  Revision 1.12  2004/02/05 18:28:37  peter
-    * x86_64 fixes for opsize
-
-  Revision 1.11  2004/01/15 13:57:58  florian
-    * renamed instruction tables
-
-  Revision 1.10  2004/01/14 23:39:05  florian
-    * another bunch of x86-64 fixes mainly calling convention and
-      assembler reader related
-
-  Revision 1.9  2003/12/22 19:00:17  florian
-    * fixed some x86-64 issues
-
-  Revision 1.8  2003/09/25 13:13:32  florian
-    * more x86-64 fixes
-
-  Revision 1.7  2003/09/24 17:12:02  florian
-    * several fixes for new reg allocator
-
-  Revision 1.6  2003/06/03 13:01:59  daniel
-    * Register allocator finished
-
-  Revision 1.5  2003/05/31 15:05:28  peter
-    * FUNCTION_RESULT64_LOW/HIGH_REG added for int64 results
-
-  Revision 1.4  2003/05/30 23:57:08  peter
-    * more sparc cleanup
-    * accumulator removed, splitted in function_return_reg (called) and
-      function_result_reg (caller)
-
-  Revision 1.3  2003/04/30 15:45:35  florian
-    * merged more x86-64/i386 code
-
-  Revision 1.2  2002/04/25 16:12:09  florian
-    * fixed more problems with cpubase and x86-64
-
-  Revision 1.1  2003/04/25 11:12:09  florian
-    * merged i386/cpubase and x86_64/cpubase to x86/cpubase;
-      different stuff went to cpubase.inc
 }

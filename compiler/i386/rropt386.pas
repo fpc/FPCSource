@@ -364,124 +364,15 @@ End.
 
 {
   $Log$
-  Revision 1.26  2004-02-27 10:21:05  florian
+  Revision 1.27  2004-06-20 08:55:31  florian
+    * logs truncated
+
+  Revision 1.26  2004/02/27 10:21:05  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added
     * top_local stuff moved to an extra record to save memory
     + aint introduced
     * tppufile.get/putint64/aint implemented
-
-  Revision 1.25  2003/12/15 16:08:16  jonas
-    - disable removal of dead loads before a call, because register
-      parameters are released before a call
-    * fix storeback of registers in case of different sizes (e.g., first
-      a "movl %eax,%edx" and later a "movb %dl,%al")
-
-  Revision 1.24  2003/12/07 19:19:56  jonas
-    * fixed some more bugs which only showed up in a ppc cross compiler
-
-  Revision 1.23  2003/11/22 00:40:19  jonas
-    * fixed optimiser so it compiles again
-    * fixed several bugs which were in there already for a long time, but
-      which only popped up now :) -O2/-O3 will now optimise less than in
-      the past (and correctly so), but -O2u/-O3u will optimise a bit more
-    * some more small improvements for -O3 are still possible
-
-  Revision 1.22  2003/06/03 21:09:05  peter
-    * internal changeregsize for optimizer
-    * fix with a hack to not remove the first instruction of a block
-      which will leave blockstart pointing to invalid memory
-
-  Revision 1.21  2003/03/28 19:16:57  peter
-    * generic constructor working for i386
-    * remove fixed self register
-    * esi added as address register for i386
-
-  Revision 1.20  2003/02/19 22:00:16  daniel
-    * Code generator converted to new register notation
-    - Horribily outdated todo.txt removed
-
-  Revision 1.19  2003/01/08 18:43:57  daniel
-   * Tregister changed into a record
-
-  Revision 1.18  2002/07/01 18:46:34  peter
-    * internal linker
-    * reorganized aasm layer
-
-  Revision 1.17  2002/05/18 13:34:26  peter
-    * readded missing revisions
-
-  Revision 1.16  2002/05/16 19:46:52  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.14  2002/05/12 16:53:18  peter
-    * moved entry and exitcode to ncgutil and cgobj
-    * foreach gets extra argument for passing local data to the
-      iterator function
-    * -CR checks also class typecasts at runtime by changing them
-      into as
-    * fixed compiler to cycle with the -CR option
-    * fixed stabs with elf writer, finally the global variables can
-      be watched
-    * removed a lot of routines from cga unit and replaced them by
-      calls to cgobj
-    * u32bit-s32bit updates for and,or,xor nodes. When one element is
-      u32bit then the other is typecasted also to u32bit without giving
-      a rangecheck warning/error.
-    * fixed pascal calling method with reversing also the high tree in
-      the parast, detected by tcalcst3 test
-
-  Revision 1.13  2002/04/21 15:42:17  carl
-  * changeregsize -> changeregsize
-
-  Revision 1.12  2002/04/20 21:37:08  carl
-  + generic FPC_CHECKPOINTER
-  + first parameter offset in stack now portable
-  * rename some constants
-  + move some cpu stuff to other units
-  - remove unused constents
-  * fix stacksize for some targets
-  * fix generic size problems which depend now on EXTEND_SIZE constant
-  * removing frame pointer in routines is only available for : i386,m68k and vis targets
-
-  Revision 1.11  2002/04/15 19:44:22  peter
-    * fixed stackcheck that would be called recursively when a stack
-      error was found
-    * generic changeregsize(reg,size) for i386 register resizing
-    * removed some more routines from cga unit
-    * fixed returnvalue handling
-    * fixed default stacksize of linux and go32v2, 8kb was a bit small :-)
-
-  Revision 1.10  2002/04/02 17:11:39  peter
-    * tlocation,treference update
-    * LOC_CONSTANT added for better constant handling
-    * secondadd splitted in multiple routines
-    * location_force_reg added for loading a location to a register
-      of a specified size
-    * secondassignment parses now first the right and then the left node
-      (this is compatible with Kylix). This saves a lot of push/pop especially
-      with string operations
-    * adapted some routines to use the new cg methods
-
-  Revision 1.9  2002/03/31 20:26:41  jonas
-    + a_loadfpu_* and a_loadmm_* methods in tcg
-    * register allocation is now handled by a class and is mostly processor
-      independent (+rgobj.pas and i386/rgcpu.pas)
-    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
-    * some small improvements and fixes to the optimizer
-    * some register allocation fixes
-    * some fpuvaroffset fixes in the unary minus node
-    * push/popusedregisters is now called rg.save/restoreusedregisters and
-      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
-      also better optimizable)
-    * fixed and optimized register saving/restoring for new/dispose nodes
-    * LOC_FPU locations now also require their "register" field to be set to
-      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
-    - list field removed of the tnode class because it's not used currently
-      and can cause hard-to-find bugs
 
 }

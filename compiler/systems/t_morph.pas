@@ -228,7 +228,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.6  2004-06-08 15:04:23  karoly
+  Revision 1.7  2004-06-20 08:55:32  florian
+    * logs truncated
+
+  Revision 1.6  2004/06/08 15:04:23  karoly
     * fixed stripping really this time
 
   Revision 1.5  2004/06/07 23:44:37  karoly
@@ -242,9 +245,5 @@ end.
 
   Revision 1.2  2004/04/08 17:11:02  karoly
    * added external linker support based on 1.0 amiga support
-
-  Revision 1.1  2004/02/13 05:46:58  karoly
-   * added powerpc-morphos target
-
 
 }

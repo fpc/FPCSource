@@ -503,7 +503,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.28  2004-04-06 22:44:16  olle
+  Revision 1.29  2004-06-20 08:55:30  florian
+    * logs truncated
+
+  Revision 1.28  2004/04/06 22:44:16  olle
     + Status checks in scripts
     + Scripts support apptype tool
     + Added some ScriptFixFileName
@@ -516,48 +519,5 @@ end.
     + Support for Link on target especially for MacOS
     + TLinkerMPW
     + TAsmScriptMPW
-
-  Revision 1.25  2003/11/10 17:22:28  marco
-   * havelinuxrtl10 fixes
-
-  Revision 1.24  2003/09/30 19:54:23  peter
-    * better link on target support
-
-  Revision 1.23  2003/09/16 13:42:39  marco
-   * Had a useless dependancy on unit unix in 1_1 mode
-
-  Revision 1.22  2003/09/14 20:26:18  marco
-   * Unix reform
-
-  Revision 1.21  2003/04/22 14:33:38  peter
-    * removed some notes/hints
-
-  Revision 1.20  2003/02/07 21:21:39  marco
-   * Some small fix
-
-  Revision 1.19  2003/01/10 21:49:00  marco
-   * more hasunix fixes
-
-  Revision 1.18  2003/01/06 20:16:42  peter
-    * don't prepend ./ to quoted filenames
-
-  Revision 1.17  2002/11/15 01:58:54  peter
-    * merged changes from 1.0.7 up to 04-11
-      - -V option for generating bug report tracing
-      - more tracing for option parsing
-      - errors for cdecl and high()
-      - win32 import stabs
-      - win32 records<=8 are returned in eax:edx (turned off by default)
-      - heaptrc update
-      - more info for temp management in .s file with EXTDEBUG
-
-  Revision 1.16  2002/05/18 13:34:18  peter
-    * readded missing revisions
-
-  Revision 1.15  2002/05/16 19:46:44  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
 
 }

@@ -332,7 +332,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2004-06-16 20:07:11  florian
+  Revision 1.18  2004-06-20 08:55:32  florian
+    * logs truncated
+
+  Revision 1.17  2004/06/16 20:07:11  florian
     * dwarf branch merged
 
   Revision 1.16.2.3  2004/05/30 17:07:08  peter
@@ -343,135 +346,5 @@ end.
 
   Revision 1.16.2.1  2004/05/27 23:35:12  peter
     * div fixed
-
-  Revision 1.16  2003/10/24 11:33:30  mazen
-  *fixes related to removal of rg
-
-  Revision 1.15  2003/10/01 20:34:50  peter
-    * procinfo unit contains tprocinfo
-    * cginfo renamed to cgbase
-    * moved cgmessage to verbose
-    * fixed ppc and sparc compiles
-
-  Revision 1.14  2003/09/03 15:55:01  peter
-    * NEWRA branch merged
-
-  Revision 1.13  2003/09/03 11:18:37  florian
-    * fixed arm concatcopy
-    + arm support in the common compiler sources added
-    * moved some generic cg code around
-    + tfputype added
-    * ...
-
-  Revision 1.12.2.1  2003/09/01 21:02:55  peter
-    * sparc updates for new tregister
-
-  Revision 1.12  2003/07/06 22:09:32  peter
-    * shr and div fixed
-
-  Revision 1.11  2003/06/12 16:43:07  peter
-    * newra compiles for sparc
-
-  Revision 1.10  2003/06/04 20:59:37  mazen
-  + added size of destination in code gen methods
-  + making g_overflowcheck declaration same as
-    ancestor's method declaration
-
-  Revision 1.9  2003/06/01 21:38:07  peter
-    * getregisterfpu size parameter added
-    * op_const_reg size parameter added
-    * sparc updates
-
-  Revision 1.8  2003/05/30 23:57:08  peter
-    * more sparc cleanup
-    * accumulator removed, splitted in function_return_reg (called) and
-      function_result_reg (caller)
-
-  Revision 1.7  2003/03/15 22:51:58  mazen
-  * remaking sparc rtl compile
-
-  Revision 1.6  2003/03/10 21:59:54  mazen
-  * fixing index overflow in handling new registers arrays.
-
-  Revision 1.5  2003/02/19 22:00:17  daniel
-    * Code generator converted to new register notation
-    - Horribily outdated todo.txt removed
-
-  Revision 1.4  2003/02/04 21:50:54  mazen
-  * fixing internal errors related to notn when compiling RTL
-
-  Revision 1.3  2003/01/08 18:43:58  daniel
-   * Tregister changed into a record
-
-  Revision 1.2  2002/12/30 21:17:22  mazen
-  - unit cga no more used in sparc compiler.
-
-  Revision 1.1  2002/12/21 23:22:59  mazen
-  + added shift support
-
-  Revision 1.20  2002/11/25 17:43:28  peter
-    * splitted defbase in defutil,symutil,defcmp
-    * merged isconvertable and is_equal into compare_defs(_ext)
-    * made operator search faster by walking the list only once
-
-  Revision 1.19  2002/09/10 21:21:29  jonas
-    * fixed unary minus of 64bit values
-
-  Revision 1.18  2002/09/07 15:25:14  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.17  2002/08/15 15:15:55  carl
-    * jmpbuf size allocation for exceptions is now cpu specific (as it should)
-    * more generic nodes for maths
-    * several fixes for better m68k support
-
-  Revision 1.16  2002/08/10 17:15:31  jonas
-    * various fixes and optimizations
-
-  Revision 1.15  2002/07/26 10:48:34  jonas
-    * fixed bug in shl/shr code
-
-  Revision 1.14  2002/07/20 11:58:05  florian
-    * types.pas renamed to defbase.pas because D6 contains a types
-      unit so this would conflicts if D6 programms are compiled
-    + Willamette/SSE2 instructions to assembler added
-
-  Revision 1.13  2002/07/11 07:41:27  jonas
-    * fixed tSparcmoddivnode
-    * fixed 64bit parts of tSparcshlshrnode
-
-  Revision 1.12  2002/07/09 19:45:01  jonas
-    * unarynminus and shlshr node fixed for 32bit and smaller ordinals
-    * small fixes in the assembler writer
-    * changed scratch registers, because they were used by the linker (r11
-      and r12) and by the abi under linux (r31)
-
-  Revision 1.11  2002/07/07 09:44:32  florian
-    * powerpc target fixed, very simple units can be compiled
-
-  Revision 1.10  2002/05/20 13:30:42  carl
-  * bugfix of hdisponen (base must be set, not index)
-  * more portability fixes
-
-  Revision 1.9  2002/05/18 13:34:26  peter
-    * readded missing revisions
-
-  Revision 1.8  2002/05/16 19:46:53  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.5  2002/05/13 19:52:46  peter
-    * a ppcSparc can be build again
-
-  Revision 1.4  2002/04/21 15:48:39  carl
-  * some small updates according to i386 version
-
-  Revision 1.3  2002/04/06 18:13:02  jonas
-    * several powerpc-related additions and fixes
-
-  Revision 1.2  2002/01/03 14:57:52  jonas
-    * completed (not compilale yet though)
 
 }

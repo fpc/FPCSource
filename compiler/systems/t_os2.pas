@@ -518,75 +518,7 @@ initialization
 end.
 {
   $Log$
-  Revision 1.7  2003-04-27 07:29:52  peter
-    * aktprocdef cleanup, aktprocdef is now always nil when parsing
-      a new procdef declaration
-    * aktprocsym removed
-    * lexlevel removed, use symtable.symtablelevel instead
-    * implicit init/final code uses the normal genentry/genexit
-    * funcret state checking updated for new funcret handling
-
-  Revision 1.6  2003/04/26 09:16:08  peter
-    * .o files belonging to the unit are first searched in the same dir
-      as the .ppu
-
-  Revision 1.5  2003/03/23 23:31:54  hajny
-    + platform extensions unified
-
-  Revision 1.4  2003/03/17 13:36:39  peter
-    * fix import linking under linux
-
-  Revision 1.3  2002/12/01 16:19:16  carl
-    * fix compilation problems
-
-  Revision 1.2  2002/12/01 13:20:33  hajny
-    * fix for not linked import libraries for units with no code
-
-  Revision 1.1  2002/09/06 15:03:50  carl
-    * moved files to systems directory
-
-  Revision 1.24  2002/08/12 15:08:44  carl
-    + stab register indexes for powerpc (moved from gdb to cpubase)
-    + tprocessor enumeration moved to cpuinfo
-    + linker in target_info is now a class
-    * many many updates for m68k (will soon start to compile)
-    - removed some ifdef or correct them for correct cpu
-
-  Revision 1.23  2002/07/26 21:15:46  florian
-    * rewrote the system handling
-
-  Revision 1.22  2002/07/01 18:46:35  peter
-    * internal linker
-    * reorganized aasm layer
-
-  Revision 1.21  2002/05/18 13:34:27  peter
-    * readded missing revisions
-
-  Revision 1.20  2002/05/16 19:46:53  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.18  2002/04/22 18:19:22  carl
-  - remove use_bound_instruction field
-
-  Revision 1.17  2002/04/20 21:43:18  carl
-  * fix stack size for some targets
-  + add offset to parameters from frame pointer info.
-  - remove some unused stuff
-
-  Revision 1.16  2002/04/15 19:16:57  carl
-  - remove size_of_pointer field
-
-  Revision 1.15  2002/04/04 19:06:13  peter
-    * removed unused units
-    * use tlocation.size in cg.a_*loc*() routines
-
-  Revision 1.14  2002/01/29 21:27:34  peter
-    * default alignment changed to 4 bytes for locals and static const,var
-
-  Revision 1.12  2002/01/27 12:58:42  hajny
-    * fix for a problem with importprocedure
+  Revision 1.8  2004-06-20 08:55:32  florian
+    * logs truncated
 
 }

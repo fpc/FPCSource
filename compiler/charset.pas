@@ -267,17 +267,7 @@ finalization
 end.
 {
   $Log$
-  Revision 1.4  2003-04-22 14:33:38  peter
-    * removed some notes/hints
-
-  Revision 1.3  2002/10/05 12:43:24  carl
-    * fixes for Delphi 6 compilation
-     (warning : Some features do not work under Delphi)
-
-  Revision 1.2  2002/09/07 15:25:02  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.1  2002/07/20 17:11:48  florian
-    + source code page support
+  Revision 1.5  2004-06-20 08:55:29  florian
+    * logs truncated
 
 }

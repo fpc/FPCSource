@@ -505,7 +505,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.9  2004-03-02 00:36:33  olle
+  Revision 1.10  2004-06-20 08:55:32  florian
+    * logs truncated
+
+  Revision 1.9  2004/03/02 00:36:33  olle
     * big transformation of Tai_[const_]Symbol.Create[data]name*
 
   Revision 1.8  2004/01/29 23:57:15  florian
@@ -513,95 +516,5 @@ end.
 
   Revision 1.7  2004/01/29 22:50:53  florian
     * tried to fix BeOS linking
-
-  Revision 1.6  2003/10/03 14:16:48  marco
-   * -XP<prefix> support
-
-  Revision 1.5  2003/04/27 07:29:52  peter
-    * aktprocdef cleanup, aktprocdef is now always nil when parsing
-      a new procdef declaration
-    * aktprocsym removed
-    * lexlevel removed, use symtable.symtablelevel instead
-    * implicit init/final code uses the normal genentry/genexit
-    * funcret state checking updated for new funcret handling
-
-  Revision 1.4  2003/04/26 09:16:08  peter
-    * .o files belonging to the unit are first searched in the same dir
-      as the .ppu
-
-  Revision 1.3  2002/10/05 12:43:29  carl
-    * fixes for Delphi 6 compilation
-     (warning : Some features do not work under Delphi)
-
-  Revision 1.2  2002/09/09 17:34:17  peter
-    * tdicationary.replace added to replace and item in a dictionary. This
-      is only allowed for the same name
-    * varsyms are inserted in symtable before the types are parsed. This
-      fixes the long standing "var longint : longint" bug
-    - consume_idlist and idstringlist removed. The loops are inserted
-      at the callers place and uses the symtable for duplicate id checking
-
-  Revision 1.1  2002/09/06 15:03:51  carl
-    * moved files to systems directory
-
-  Revision 1.24  2002/09/03 16:26:28  daniel
-    * Make Tprocdef.defs protected
-
-  Revision 1.23  2002/08/12 15:08:44  carl
-    + stab register indexes for powerpc (moved from gdb to cpubase)
-    + tprocessor enumeration moved to cpuinfo
-    + linker in target_info is now a class
-    * many many updates for m68k (will soon start to compile)
-    - removed some ifdef or correct them for correct cpu
-
-  Revision 1.22  2002/08/11 14:32:32  peter
-    * renamed current_library to objectlibrary
-
-  Revision 1.21  2002/08/11 13:24:19  peter
-    * saving of asmsymbols in ppu supported
-    * asmsymbollist global is removed and moved into a new class
-      tasmlibrarydata that will hold the info of a .a file which
-      corresponds with a single module. Added librarydata to tmodule
-      to keep the library info stored for the module. In the future the
-      objectfiles will also be stored to the tasmlibrarydata class
-    * all getlabel/newasmsymbol and friends are moved to the new class
-
-  Revision 1.20  2002/07/26 21:15:45  florian
-    * rewrote the system handling
-
-  Revision 1.19  2002/07/01 18:46:34  peter
-    * internal linker
-    * reorganized aasm layer
-
-  Revision 1.18  2002/05/18 13:34:26  peter
-    * readded missing revisions
-
-  Revision 1.17  2002/05/16 19:46:53  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.15  2002/04/22 18:19:22  carl
-  - remove use_bound_instruction field
-
-  Revision 1.14  2002/04/20 21:43:18  carl
-  * fix stack size for some targets
-  + add offset to parameters from frame pointer info.
-  - remove some unused stuff
-
-  Revision 1.13  2002/04/19 15:46:04  peter
-    * mangledname rewrite, tprocdef.mangledname is now created dynamicly
-      in most cases and not written to the ppu
-    * add mangeledname_prefix() routine to generate the prefix of
-      manglednames depending on the current procedure, object and module
-    * removed static procprefix since the mangledname is now build only
-      on demand from tprocdef.mangledname
-
-  Revision 1.12  2002/04/15 19:16:57  carl
-  - remove size_of_pointer field
-
-  Revision 1.11  2002/01/29 21:27:34  peter
-    * default alignment changed to 4 bytes for locals and static const,var
 
 }

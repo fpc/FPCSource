@@ -177,23 +177,11 @@ End.
 
 {
   $Log$
-  Revision 1.7  2004-01-31 17:45:16  peter
+  Revision 1.8  2004-06-20 08:55:28  florian
+    * logs truncated
+
+  Revision 1.7  2004/01/31 17:45:16  peter
     * Change several $ifdef i386 to x86
     * Change several OS_32 to OS_INT/OS_ADDR
-
-  Revision 1.6  2002/05/18 13:34:05  peter
-    * readded missing revisions
-
-  Revision 1.5  2002/05/16 19:46:35  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.3  2002/04/15 18:55:40  carl
-  + change reg2str array use
-
-  Revision 1.2  2002/04/14 16:49:30  carl
-  + att_reg2str -> gas_reg2str
 
 }

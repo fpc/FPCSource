@@ -516,26 +516,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  2004-02-11 22:00:10  peter
+  Revision 1.18  2004-06-20 08:55:28  florian
+    * logs truncated
+
+  Revision 1.17  2004/02/11 22:00:10  peter
     * fixed compile with -CR
-
-  Revision 1.16  2002/09/07 15:25:00  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.15  2002/08/20 10:31:26  daniel
-   * Tcallnode.det_resulttype rewritten
-
-  Revision 1.14  2002/07/23 09:51:22  daniel
-  * Tried to make Tprocsym.defs protected. I didn't succeed but the cleanups
-    are worth comitting.
-
-  Revision 1.13  2002/05/18 13:34:05  peter
-    * readded missing revisions
-
-  Revision 1.12  2002/05/16 19:46:35  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
 
 }

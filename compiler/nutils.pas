@@ -438,7 +438,10 @@ end.
 
 {
   $Log$
-  Revision 1.13  2004-06-16 20:07:09  florian
+  Revision 1.14  2004-06-20 08:55:29  florian
+    * logs truncated
+
+  Revision 1.13  2004/06/16 20:07:09  florian
     * dwarf branch merged
 
   Revision 1.12  2004/05/23 18:28:41  peter
@@ -453,42 +456,5 @@ end.
 
   Revision 1.10  2004/02/20 21:55:59  peter
     * procvar cleanup
-
-  Revision 1.9  2004/02/03 22:32:54  peter
-    * renamed xNNbittype to xNNinttype
-    * renamed registers32 to registersint
-    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
-
-  Revision 1.8  2003/11/10 22:02:52  peter
-    * cross unit inlining fixed
-
-  Revision 1.7  2003/10/01 20:34:49  peter
-    * procinfo unit contains tprocinfo
-    * cginfo renamed to cgbase
-    * moved cgmessage to verbose
-    * fixed ppc and sparc compiles
-
-  Revision 1.6  2003/06/13 21:19:30  peter
-    * current_procdef removed, use current_procinfo.procdef instead
-
-  Revision 1.5  2003/05/26 21:17:17  peter
-    * procinlinenode removed
-    * aktexit2label removed, fast exit removed
-    + tcallnode.inlined_pass_2 added
-
-  Revision 1.4  2003/05/16 14:33:31  peter
-    * regvar fixes
-
-  Revision 1.3  2003/05/13 20:54:06  peter
-    * fail checks vmt value before calling dispose
-
-  Revision 1.2  2003/05/13 19:14:41  peter
-    * failn removed
-    * inherited result code check moven to pexpr
-
-  Revision 1.1  2003/04/23 12:35:34  florian
-    * fixed several issues with powerpc
-    + applied a patch from Jonas for nested function calls (PowerPC only)
-    * ...
 
 }

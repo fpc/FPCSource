@@ -426,21 +426,15 @@ end.
 
 {
   $Log$
-  Revision 1.4  2004-04-25 21:26:16  florian
+  Revision 1.5  2004-06-20 08:55:31  florian
+    * logs truncated
+
+  Revision 1.4  2004/04/25 21:26:16  florian
     * some m68k stuff fixed
 
   Revision 1.3  2004/02/03 22:32:54  peter
     * renamed xNNbittype to xNNinttype
     * renamed registers32 to registersint
     * replace some s32bit,u32bit with torddef([su]inttype).def.typ
-
-  Revision 1.2  2003/02/19 22:00:16  daniel
-    * Code generator converted to new register notation
-    - Horribily outdated todo.txt removed
-
-  Revision 1.1  2003/02/02 19:25:54  carl
-    * Several bugfixes for m68k target (register alloc., opcode emission)
-    + VIS target
-    + Generic add more complete (still not verified)
 
 }

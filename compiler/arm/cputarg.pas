@@ -52,6 +52,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2003-08-21 03:14:00  florian
-    * arm compiler can be compiled; far from being working
+  Revision 1.2  2004-06-20 08:55:31  florian
+    * logs truncated
+
 }

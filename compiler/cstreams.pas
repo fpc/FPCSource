@@ -614,7 +614,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2004-06-16 20:07:07  florian
+  Revision 1.8  2004-06-20 08:55:29  florian
+    * logs truncated
+
+  Revision 1.7  2004/06/16 20:07:07  florian
     * dwarf branch merged
 
   Revision 1.6.2.2  2004/04/29 19:07:22  peter
@@ -622,19 +625,5 @@ end.
 
   Revision 1.6.2.1  2004/04/28 21:46:56  peter
     * compile fixes for x86-64
-
-  Revision 1.6  2002/07/01 16:23:52  peter
-    * cg64 patch
-    * basics for currency
-    * asnode updates for class and interface (not finished)
-
-  Revision 1.5  2002/05/18 13:34:06  peter
-    * readded missing revisions
-
-  Revision 1.4  2002/05/16 19:46:36  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
 
 }

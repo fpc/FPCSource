@@ -343,7 +343,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2004-03-23 21:03:50  florian
+  Revision 1.15  2004-06-20 08:55:31  florian
+    * logs truncated
+
+  Revision 1.14  2004/03/23 21:03:50  florian
     * arm assembler instructions can have 4 operands
     * qword comparisations fixed
 
@@ -362,34 +365,4 @@ end.
     + not(<int64>) implemented
     + small set comparisations implemented
 
-  Revision 1.9  2004/01/24 18:12:40  florian
-    * fixed several arm floating point issues
-
-  Revision 1.8  2004/01/23 00:01:48  florian
-    * another fix to flag handling
-
-  Revision 1.7  2004/01/22 20:13:18  florian
-    * fixed several issues with flags
-
-  Revision 1.6  2004/01/22 01:47:15  florian
-    * improved register usage
-    + implemented second_cmp64bit
-
-  Revision 1.5  2003/11/02 14:30:03  florian
-    * fixed ARM for new reg. allocation scheme
-
-  Revision 1.4  2003/09/01 15:11:16  florian
-    * fixed reference handling
-    * fixed operand postfix for floating point instructions
-    * fixed wrong shifter constant handling
-
-  Revision 1.3  2003/09/01 09:54:57  florian
-    *  results of work on arm port last weekend
-
-  Revision 1.2  2003/08/25 23:20:38  florian
-    + started to implement FPU support for the ARM
-    * fixed a lot of other things
-
-  Revision 1.1  2003/08/21 03:14:00  florian
-    * arm compiler can be compiled; far from being working
 }

@@ -438,7 +438,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2004-06-16 20:07:10  florian
+  Revision 1.19  2004-06-20 08:55:31  florian
+    * logs truncated
+
+  Revision 1.18  2004/06/16 20:07:10  florian
     * dwarf branch merged
 
   Revision 1.17.2.1  2004/06/13 20:38:38  florian
@@ -455,58 +458,4 @@ end.
   Revision 1.15  2004/03/07 00:16:59  florian
     * compilation of arm rtl fixed
 
-  Revision 1.14  2004/02/09 22:48:45  florian
-    * several fixes to parameter handling on arm
-
-  Revision 1.13  2004/01/24 01:32:49  florian
-    * genintparaloc fixed
-
-  Revision 1.12  2004/01/20 23:18:00  florian
-    * fixed a_call_reg
-    + implemented paramgr.get_volative_registers
-
-  Revision 1.11  2003/12/18 17:06:21  florian
-    * arm compiler compilation fixed
-
-  Revision 1.10  2003/12/03 17:39:05  florian
-    * fixed several arm calling conventions issues
-    * fixed reference reading in the assembler reader
-    * fixed a_loadaddr_ref_reg
-
-  Revision 1.9  2003/11/07 15:58:32  florian
-    * Florian's culmutative nr. 1; contains:
-      - invalid calling conventions for a certain cpu are rejected
-      - arm softfloat calling conventions
-      - -Sp for cpu dependend code generation
-      - several arm fixes
-      - remaining code for value open array paras on heap
-
-  Revision 1.8  2003/11/02 14:30:03  florian
-    * fixed ARM for new reg. allocation scheme
-
-  Revision 1.7  2003/09/11 11:55:00  florian
-    * improved arm code generation
-    * move some protected and private field around
-    * the temp. register for register parameters/arguments are now released
-      before the move to the parameter register is done. This improves
-      the code in a lot of cases.
-
-  Revision 1.6  2003/09/09 12:53:40  florian
-    * some assembling problems fixed
-    * improved loadaddr_ref_reg
-
-  Revision 1.5  2003/09/05 23:57:01  florian
-    * arm is working again as before the new register naming scheme was implemented
-
-  Revision 1.4  2003/09/04 00:15:29  florian
-    * first bunch of adaptions of arm compiler for new register type
-
-  Revision 1.3  2003/08/27 00:27:56  florian
-    + same procedure as very day: today's work on arm
-
-  Revision 1.2  2003/08/16 13:23:01  florian
-    * several arm related stuff fixed
-
-  Revision 1.1  2003/07/21 16:35:30  florian
-    * very basic stuff for the arm
 }

@@ -271,7 +271,10 @@ unit cg64f64;
 end.
 {
   $Log$
-  Revision 1.12  2004-06-16 20:07:07  florian
+  Revision 1.13  2004-06-20 08:55:28  florian
+    * logs truncated
+
+  Revision 1.12  2004/06/16 20:07:07  florian
     * dwarf branch merged
 
   Revision 1.11.2.2  2004/04/27 18:18:25  peter
@@ -282,45 +285,5 @@ end.
 
   Revision 1.11  2004/01/13 18:08:58  florian
     * x86-64 compilation fixed
-
-  Revision 1.10  2003/12/24 00:10:02  florian
-    - delete parameter in cg64 methods removed
-
-  Revision 1.9  2003/12/22 19:00:17  florian
-    * fixed some x86-64 issues
-
-  Revision 1.8  2003/06/03 21:11:09  peter
-    * cg.a_load_* get a from and to size specifier
-    * makeregsize only accepts newregister
-    * i386 uses generic tcgnotnode,tcgunaryminus
-
-  Revision 1.7  2003/05/30 23:49:18  jonas
-    * a_load_loc_reg now has an extra size parameter for the destination
-      register (properly fixes what I worked around in revision 1.106 of
-      ncgutil.pas)
-
-  Revision 1.6  2003/01/05 13:36:53  florian
-    * x86-64 compiles
-    + very basic support for float128 type (x86-64 only)
-
-  Revision 1.5  2002/09/07 15:25:00  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.4  2002/08/19 18:17:48  carl
-    + optimize64_op_const_reg implemented (optimizes 64-bit constant opcodes)
-    * more fixes to m68k for 64-bit operations
-
-  Revision 1.3  2002/08/17 22:09:43  florian
-    * result type handling in tcgcal.pass_2 overhauled
-    * better tnode.dowrite
-    * some ppc stuff fixed
-
-  Revision 1.2  2002/07/01 16:23:52  peter
-    * cg64 patch
-    * basics for currency
-    * asnode updates for class and interface (not finished)
-
-  Revision 1.1  2002/06/08 19:36:54  florian
-    * initial release
 
 }

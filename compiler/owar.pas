@@ -287,23 +287,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  2004-05-27 18:53:43  peter
+  Revision 1.15  2004-06-20 08:55:30  florian
+    * logs truncated
+
+  Revision 1.14  2004/05/27 18:53:43  peter
     * fix writing of // header
 
   Revision 1.13  2004/05/09 11:07:39  peter
   strip path from filenames of members, because win32 changes .\ to ./ for long filenames
-
-  Revision 1.12  2002/05/18 13:34:11  peter
-    * readded missing revisions
-
-  Revision 1.11  2002/05/16 19:46:42  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.9  2002/04/04 19:06:00  peter
-    * removed unused units
-    * use tlocation.size in cg.a_*loc*() routines
 
 }

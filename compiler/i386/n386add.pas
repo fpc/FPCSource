@@ -687,7 +687,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.97  2004-06-16 20:07:10  florian
+  Revision 1.98  2004-06-20 08:55:31  florian
+    * logs truncated
+
+  Revision 1.97  2004/06/16 20:07:10  florian
     * dwarf branch merged
 
   Revision 1.96  2004/05/19 23:30:18  peter
@@ -702,6 +705,4 @@ end.
   Revision 1.94  2004/01/20 12:59:37  florian
     * common addnode code for x86-64 and i386
 
-  Revision 1.93  2004/01/14 17:19:04  peter
-    * disable addmmxset
 }

@@ -221,83 +221,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  2004-05-23 15:06:21  peter
+  Revision 1.34  2004-06-20 08:55:30  florian
+    * logs truncated
+
+  Revision 1.33  2004/05/23 15:06:21  peter
     * implicit_finally flag must be set in pass1
     * add check whether the implicit frame is generated when expected
-
-  Revision 1.32  2003/10/01 20:34:49  peter
-    * procinfo unit contains tprocinfo
-    * cginfo renamed to cgbase
-    * moved cgmessage to verbose
-    * fixed ppc and sparc compiles
-
-  Revision 1.31  2003/09/23 17:56:05  peter
-    * locals and paras are allocated in the code generation
-    * tvarsym.localloc contains the location of para/local when
-      generating code for the current procedure
-
-  Revision 1.30  2003/04/22 23:50:23  peter
-    * firstpass uses expectloc
-    * checks if there are differences between the expectloc and
-      location.loc from secondpass in EXTDEBUG
-
-  Revision 1.29  2002/12/17 22:19:33  peter
-    * fixed pushing of records>8 bytes with stdcall
-    * simplified hightree loading
-
-  Revision 1.28  2002/09/05 19:28:30  peter
-    * removed repetitive pass counting
-    * display heapsize also for extdebug
-
-  Revision 1.27  2002/07/19 12:55:27  daniel
-  * Further developed state tracking in whilerepeatn
-
-  Revision 1.26  2002/07/19 11:41:36  daniel
-  * State tracker work
-  * The whilen and repeatn are now completely unified into whilerepeatn. This
-    allows the state tracker to change while nodes automatically into
-    repeat nodes.
-  * Resulttypepass improvements to the notn. 'not not a' is optimized away and
-    'not(a>b)' is optimized into 'a<=b'.
-  * Resulttypepass improvements to the whilerepeatn. 'while not a' is optimized
-    by removing the notn and later switchting the true and falselabels. The
-    same is done with 'repeat until not a'.
-
-  Revision 1.25  2002/07/14 18:00:44  daniel
-  + Added the beginning of a state tracker. This will track the values of
-    variables through procedures and optimize things away.
-
-  Revision 1.24  2002/06/16 08:15:54  carl
-  * commented out uncompilable debug code
-
-  Revision 1.23  2002/05/18 13:34:11  peter
-    * readded missing revisions
-
-  Revision 1.22  2002/05/16 19:46:42  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.20  2002/04/04 19:06:00  peter
-    * removed unused units
-    * use tlocation.size in cg.a_*loc*() routines
-
-  Revision 1.19  2002/03/31 20:26:35  jonas
-    + a_loadfpu_* and a_loadmm_* methods in tcg
-    * register allocation is now handled by a class and is mostly processor
-      independent (+rgobj.pas and i386/rgcpu.pas)
-    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
-    * some small improvements and fixes to the optimizer
-    * some register allocation fixes
-    * some fpuvaroffset fixes in the unary minus node
-    * push/popusedregisters is now called rg.save/restoreusedregisters and
-      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
-      also better optimizable)
-    * fixed and optimized register saving/restoring for new/dispose nodes
-    * LOC_FPU locations now also require their "register" field to be set to
-      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
-    - list field removed of the tnode class because it's not used currently
-      and can cause hard-to-find bugs
 
 }

@@ -410,7 +410,10 @@ uses cutils,rgobj;
 end.
 {
   $Log$
-  Revision 1.26  2004-06-17 16:55:46  peter
+  Revision 1.27  2004-06-20 08:55:31  florian
+    * logs truncated
+
+  Revision 1.26  2004/06/17 16:55:46  peter
     * powerpc compiles again
 
   Revision 1.25  2004/02/08 23:10:21  jonas
@@ -422,100 +425,5 @@ end.
   Revision 1.24  2004/02/08 20:15:42  jonas
     - removed taicpu.is_reg_move because it's not used anymore
     + support tracking fpu register moves by rgobj for the ppc
-
-  Revision 1.23  2003/12/28 22:09:12  florian
-    + setting of bit 6 of cr for c var args on ppc implemented
-
-  Revision 1.22  2003/12/26 14:02:30  peter
-    * sparc updates
-    * use registertype in spill_register
-
-  Revision 1.21  2003/12/16 21:49:47  florian
-    * fixed ppc compilation
-
-  Revision 1.20  2003/12/06 22:16:13  jonas
-    * completely overhauled and fixed generic spilling code. New method:
-      spilling_get_operation_type(operand_number): returns the operation
-      performed by the instruction on the operand: read/write/read+write.
-      See powerpc/aasmcpu.pas for an example
-
-  Revision 1.19  2003/10/25 10:37:26  florian
-    * fixed compilation of ppc compiler
-
-  Revision 1.18  2003/10/01 20:34:49  peter
-    * procinfo unit contains tprocinfo
-    * cginfo renamed to cgbase
-    * moved cgmessage to verbose
-    * fixed ppc and sparc compiles
-
-  Revision 1.17  2003/09/03 19:35:24  peter
-    * powerpc compiles again
-
-  Revision 1.16  2003/09/03 15:55:01  peter
-    * NEWRA branch merged
-
-  Revision 1.15.2.1  2003/08/31 21:08:16  peter
-    * first batch of sparc fixes
-
-  Revision 1.15  2003/08/18 21:27:00  jonas
-    * some newra optimizations (eliminate lots of moves between registers)
-
-  Revision 1.14  2003/08/17 16:53:19  jonas
-    * fixed compilation of ppc compiler with -dnewra
-
-  Revision 1.13  2003/08/11 21:18:20  peter
-    * start of sparc support for newra
-
-  Revision 1.12  2002/09/30 23:16:49  jonas
-    * is_nop() now identifies "mr rA,rA" instructions for removal
-
-  Revision 1.11  2003/07/23 10:58:06  jonas
-    - disabled some debugging code
-
-  Revision 1.10  2003/07/06 21:26:06  jonas
-    * committed wrong file previously :(
-
-  Revision 1.8  2003/06/14 22:32:43  jonas
-    * ppc compiles with -dnewra, haven't tried to compile anything with it
-      yet though
-
-  Revision 1.7  2003/06/14 14:53:50  jonas
-    * fixed newra cycle for x86
-    * added constants for indicating source and destination operands of the
-      "move reg,reg" instruction to aasmcpu (and use those in rgobj)
-
-  Revision 1.6  2003/05/11 11:08:25  jonas
-    + op_reg_reg_reg_const_const (for rlwnm)
-
-  Revision 1.5  2003/03/12 22:43:38  jonas
-    * more powerpc and generic fixes related to the new register allocator
-
-  Revision 1.4  2002/12/14 15:02:03  carl
-    * maxoperands -> max_operands (for portability in rautils.pas)
-    * fix some range-check errors with loadconst
-    + add ncgadd unit to m68k
-    * some bugfix of a_param_reg with LOC_CREFERENCE
-
-  Revision 1.3  2002/09/17 18:26:02  jonas
-    - removed taicpu.destroy, its job is already handled by
-      taicpu_abstract.destroy() and this caused heap corruption
-
-  Revision 1.2  2002/07/26 11:19:57  jonas
-    * fixed range errors
-
-  Revision 1.1  2002/07/07 09:44:31  florian
-    * powerpc target fixed, very simple units can be compiled
-
-  Revision 1.8  2002/05/18 13:34:26  peter
-    * readded missing revisions
-
-  Revision 1.7  2002/05/16 19:46:53  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.4  2002/05/13 19:52:46  peter
-    * a ppcppc can be build again
 
 }

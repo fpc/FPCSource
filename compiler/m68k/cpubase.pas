@@ -515,7 +515,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  2004-06-20 08:47:33  florian
+  Revision 1.31  2004-06-20 08:55:31  florian
+    * logs truncated
+
+  Revision 1.30  2004/06/20 08:47:33  florian
     * spilling of doubles on sparc fixed
 
   Revision 1.29  2004/06/16 20:07:10  florian
@@ -530,92 +533,4 @@ end.
   Revision 1.26  2004/04/25 21:26:16  florian
     * some m68k stuff fixed
 
-  Revision 1.25  2004/04/18 21:13:59  florian
-    * more adaptions for m68k
-
-  Revision 1.24.2.1  2004/06/13 20:38:38  florian
-    * fixed floating point register spilling on sparc
-
-  Revision 1.24  2004/01/30 12:17:18  florian
-    * fixed some m68k compilation problems
-
-  Revision 1.23  2003/08/17 16:59:20  jonas
-    * fixed regvars so they work with newra (at least for ppc)
-    * fixed some volatile register bugs
-    + -dnotranslation option for -dnewra, which causes the registers not to
-      be translated from virtual to normal registers. Requires support in
-      the assembler writer as well, which is only implemented in aggas/
-      agppcgas currently
-
-  Revision 1.22  2003/06/17 16:34:44  jonas
-    * lots of newra fixes (need getfuncretparaloc implementation for i386)!
-    * renamed all_intregisters to volatile_intregisters and made it
-      processor dependent
-
-  Revision 1.21  2003/06/03 13:01:59  daniel
-    * Register allocator finished
-
-  Revision 1.20  2003/04/23 13:40:33  peter
-    * fix m68k compile
-
-  Revision 1.19  2003/04/23 12:35:35  florian
-    * fixed several issues with powerpc
-    + applied a patch from Jonas for nested function calls (PowerPC only)
-    * ...
-
-  Revision 1.18  2003/02/19 22:00:16  daniel
-    * Code generator converted to new register notation
-    - Horribily outdated todo.txt removed
-
-  Revision 1.17  2003/02/02 19:25:54  carl
-    * Several bugfixes for m68k target (register alloc., opcode emission)
-    + VIS target
-    + Generic add more complete (still not verified)
-
-  Revision 1.16  2003/01/09 15:49:56  daniel
-    * Added register conversion
-
-  Revision 1.15  2003/01/08 18:43:57  daniel
-   * Tregister changed into a record
-
-  Revision 1.14  2002/11/30 23:33:03  carl
-    * merges from Pierre's fixes in m68k fixes branch
-
-  Revision 1.13  2002/11/17 18:26:16  mazen
-  * fixed a compilation bug accmulator-->accumulator, in definition of return_result_reg
-
-  Revision 1.12  2002/11/17 17:49:09  mazen
-  + return_result_reg and function_result_reg are now used, in all plateforms, to pass functions result between called function and its caller. See the explanation of each one
-
-  Revision 1.11  2002/10/14 16:32:36  carl
-    + flag_2_cond implemented
-
-  Revision 1.10  2002/08/18 09:02:12  florian
-    * fixed compilation problems
-
-  Revision 1.9  2002/08/15 08:13:54  carl
-    - a_load_sym_ofs_reg removed
-    * loadvmt now calls loadaddr_ref_reg instead
-
-  Revision 1.8  2002/08/14 18:41:47  jonas
-    - remove valuelow/valuehigh fields from tlocation, because they depend
-      on the endianess of the host operating system -> difficult to get
-      right. Use lo/hi(location.valueqword) instead (remember to use
-      valueqword and not value!!)
-
-  Revision 1.7  2002/08/13 21:40:58  florian
-    * more fixes for ppc calling conventions
-
-  Revision 1.6  2002/08/13 18:58:54  carl
-    + m68k problems with cvs fixed?()!
-
-  Revision 1.4  2002/08/12 15:08:44  carl
-    + stab register indexes for powerpc (moved from gdb to cpubase)
-    + tprocessor enumeration moved to cpuinfo
-    + linker in target_info is now a class
-    * many many updates for m68k (will soon start to compile)
-    - removed some ifdef or correct them for correct cpu
-
-  Revision 1.3  2002/07/29 17:51:32  carl
-    + restart m68k support
 }

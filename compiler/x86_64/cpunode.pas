@@ -60,7 +60,10 @@ unit cpunode;
 end.
 {
   $Log$
-  Revision 1.9  2004-06-16 20:07:11  florian
+  Revision 1.10  2004-06-20 08:55:32  florian
+    * logs truncated
+
+  Revision 1.9  2004/06/16 20:07:11  florian
     * dwarf branch merged
 
   Revision 1.8.2.2  2004/05/03 20:18:52  peter
@@ -75,28 +78,5 @@ end.
 
   Revision 1.7  2004/02/05 01:24:08  florian
     * several fixes to compile x86-64 system
-
-  Revision 1.6  2004/01/31 17:45:17  peter
-    * Change several $ifdef i386 to x86
-    * Change several OS_32 to OS_INT/OS_ADDR
-
-  Revision 1.5  2004/01/20 12:59:37  florian
-    * common addnode code for x86-64 and i386
-
-  Revision 1.4  2003/04/30 22:15:59  florian
-    * some 64 bit adaptions in ncgadd
-    * x86-64 now uses ncgadd
-    * tparamanager.ret_in_acc doesn't return true anymore for a void-def
-
-  Revision 1.3  2003/04/30 20:53:32  florian
-    * error when address of an abstract method is taken
-    * fixed some x86-64 problems
-    * merged some more x86-64 and i386 code
-
-  Revision 1.2  2002/07/25 22:55:34  florian
-    * several fixes, small test units can be compiled
-
-  Revision 1.1  2002/07/24 22:38:15  florian
-    + initial release of x86-64 target code
 
 }

@@ -240,7 +240,10 @@ unit widestr;
 end.
 {
   $Log$
-  Revision 1.14  2004-06-16 20:07:10  florian
+  Revision 1.15  2004-06-20 08:55:30  florian
+    * logs truncated
+
+  Revision 1.14  2004/06/16 20:07:10  florian
     * dwarf branch merged
 
   Revision 1.13  2004/05/02 11:48:46  peter
@@ -252,19 +255,4 @@ end.
   Revision 1.12.2.1  2004/05/02 00:31:33  peter
     * fixedi i386 compile
 
-  Revision 1.12  2002/10/05 12:43:29  carl
-    * fixes for Delphi 6 compilation
-     (warning : Some features do not work under Delphi)
-
-  Revision 1.11  2002/07/20 17:16:03  florian
-    + source code page support
-
-  Revision 1.10  2002/05/18 13:34:21  peter
-    * readded missing revisions
-
-  Revision 1.9  2002/05/16 19:46:47  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
 }

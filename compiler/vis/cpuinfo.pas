@@ -63,14 +63,14 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.2  2004-06-16 20:07:11  florian
+  Revision 1.3  2004-06-20 08:55:32  florian
+    * logs truncated
+
+  Revision 1.2  2004/06/16 20:07:11  florian
     * dwarf branch merged
 
   Revision 1.1.2.1  2004/05/01 16:02:10  peter
     * POINTER_SIZE replaced with sizeof(aint)
     * aint,aword,tconst*int moved to globtype
-
-  Revision 1.1  2002/10/14 16:31:52  carl
-    + first revision of vm
 
 }

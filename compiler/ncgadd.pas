@@ -807,7 +807,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2004-06-16 20:07:08  florian
+  Revision 1.31  2004-06-20 08:55:29  florian
+    * logs truncated
+
+  Revision 1.30  2004/06/16 20:07:08  florian
     * dwarf branch merged
 
   Revision 1.29.2.5  2004/06/13 10:51:16  florian
@@ -823,131 +826,5 @@ end.
     + implemented cmp64bit
     * started to fix spilling
     * fixed int64 sub partially
-
-  Revision 1.29.2.1  2004/04/27 18:18:25  peter
-    * aword -> aint
-
-  Revision 1.29  2004/02/26 16:11:29  peter
-    * use op_ordinal for dynarr compares
-
-  Revision 1.28  2004/02/04 19:22:27  peter
-  *** empty log message ***
-
-  Revision 1.27  2004/01/31 17:45:17  peter
-    * Change several $ifdef i386 to x86
-    * Change several OS_32 to OS_INT/OS_ADDR
-
-  Revision 1.26  2004/01/12 16:39:40  peter
-    * sparc updates, mostly float related
-
-  Revision 1.25  2003/12/29 11:37:52  jonas
-    * hopefully fixed bug tb0454 (merged from nppcadd)
-
-  Revision 1.24  2003/12/23 14:38:07  florian
-    + second_floataddsse implemented
-
-  Revision 1.23  2003/12/21 11:28:41  daniel
-    * Some work to allow mmx instructions to be used for 32 byte sets
-
-  Revision 1.22  2003/10/17 01:22:08  florian
-    * compilation of the powerpc compiler fixed
-
-  Revision 1.21  2003/10/10 17:48:13  peter
-    * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
-    * tregisteralloctor renamed to trgobj
-    * removed rgobj from a lot of units
-    * moved location_* and reference_* to cgobj
-    * first things for mmx register allocation
-
-  Revision 1.20  2003/10/01 20:34:48  peter
-    * procinfo unit contains tprocinfo
-    * cginfo renamed to cgbase
-    * moved cgmessage to verbose
-    * fixed ppc and sparc compiles
-
-  Revision 1.19  2003/09/14 21:57:08  jonas
-    * fixed release_reg_left_right for fpu registers
-
-  Revision 1.18  2003/09/14 21:34:16  peter
-    * fix setelementn support
-    * fix loading of flags
-
-  Revision 1.17  2003/09/03 15:55:00  peter
-    * NEWRA branch merged
-
-  Revision 1.16  2003/09/03 11:18:36  florian
-    * fixed arm concatcopy
-    + arm support in the common compiler sources added
-    * moved some generic cg code around
-    + tfputype added
-    * ...
-
-  Revision 1.15.2.2  2003/09/01 21:02:55  peter
-    * sparc updates for new tregister
-
-  Revision 1.15.2.1  2003/08/27 20:23:55  peter
-    * remove old ra code
-
-  Revision 1.15  2003/07/08 21:24:59  peter
-    * sparc fixes
-
-  Revision 1.14  2003/07/06 17:44:12  peter
-    * cleanup and first sparc implementation
-
-  Revision 1.13  2003/06/12 16:43:07  peter
-    * newra compiles for sparc
-
-  Revision 1.12  2003/06/10 20:46:17  mazen
-  * fixing a general compile problem related to
-    cg.g_overflowcheck declaration that has
-    changed
-
-  Revision 1.11  2003/06/01 21:38:06  peter
-    * getregisterfpu size parameter added
-    * op_const_reg size parameter added
-    * sparc updates
-
-  Revision 1.10  2003/05/23 14:27:35  peter
-    * remove some unit dependencies
-    * current_procinfo changes to store more info
-
-  Revision 1.9  2003/04/30 22:15:59  florian
-    * some 64 bit adaptions in ncgadd
-    * x86-64 now uses ncgadd
-    * tparamanager.ret_in_acc doesn't return true anymore for a void-def
-
-  Revision 1.8  2003/04/23 20:16:04  peter
-    + added currency support based on int64
-    + is_64bit for use in cg units instead of is_64bitint
-    * removed cgmessage from n386add, replace with internalerrors
-
-  Revision 1.7  2003/04/22 23:50:22  peter
-    * firstpass uses expectloc
-    * checks if there are differences between the expectloc and
-      location.loc from secondpass in EXTDEBUG
-
-  Revision 1.6  2003/02/19 22:00:14  daniel
-    * Code generator converted to new register notation
-    - Horribily outdated todo.txt removed
-
-  Revision 1.5  2003/02/02 19:25:54  carl
-    * Several bugfixes for m68k target (register alloc., opcode emission)
-    + VIS target
-    + Generic add more complete (still not verified)
-
-  Revision 1.4  2003/01/08 18:43:56  daniel
-   * Tregister changed into a record
-
-  Revision 1.3  2002/12/14 15:02:03  carl
-    * maxoperands -> max_operands (for portability in rautils.pas)
-    * fix some range-check errors with loadconst
-    + add ncgadd unit to m68k
-    * some bugfix of a_param_reg with LOC_CREFERENCE
-
-  Revision 1.2  2002/12/08 15:02:17  carl
-    + more fixes
-
-  Revision 1.1  2002/12/07 19:51:35  carl
-    + first version (uncompilable!)
 
 }

@@ -748,32 +748,14 @@ initialization
 end.
 {
   $Log$
-  Revision 1.8  2004-03-02 00:36:33  olle
+  Revision 1.9  2004-06-20 08:55:31  florian
+    * logs truncated
+
+  Revision 1.8  2004/03/02 00:36:33  olle
     * big transformation of Tai_[const_]Symbol.Create[data]name*
 
   Revision 1.7  2004/01/20 21:02:56  florian
     * fixed symbol type writing for arm-linux
     * fixed assembler generation for abs
 
-  Revision 1.6  2003/12/18 17:06:21  florian
-    * arm compiler compilation fixed
-
-  Revision 1.5  2003/12/08 17:43:57  florian
-    * fixed ldm/stm arm assembler reading
-    * fixed a_load_reg_reg with OS_8 on ARM
-    * non supported calling conventions cause only a warning now
-
-  Revision 1.4  2003/12/03 17:39:05  florian
-    * fixed several arm calling conventions issues
-    * fixed reference reading in the assembler reader
-    * fixed a_loadaddr_ref_reg
-
-  Revision 1.3  2003/11/24 15:17:37  florian
-    * changed some types to prevend range check errors
-
-  Revision 1.2  2003/11/21 16:29:26  florian
-    * fixed reading of reg. sets in the arm assembler reader
-
-  Revision 1.1  2003/11/17 23:23:47  florian
-    + first part of arm assembler reader
 }

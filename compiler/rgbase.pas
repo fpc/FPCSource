@@ -81,11 +81,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2003-11-15 19:00:10  florian
-    * fixed ppc assembler reader
-
-  Revision 1.1  2003/10/30 17:13:18  peter
-    * fixed findreg_by_number
-    * renamed rghelper to rgbase
+  Revision 1.3  2004-06-20 08:55:30  florian
+    * logs truncated
 
 }

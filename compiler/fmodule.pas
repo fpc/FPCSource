@@ -694,111 +694,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  2004-03-08 22:07:46  peter
+  Revision 1.45  2004-06-20 08:55:29  florian
+    * logs truncated
+
+  Revision 1.44  2004/03/08 22:07:46  peter
     * stabs updates to write stabs for def for all implictly used
       units
-
-  Revision 1.43  2003/12/08 22:33:43  peter
-    * don't allow duplicate uses
-    * fix wrong circular dependency
-
-  Revision 1.42  2003/11/23 17:23:49  peter
-    * fixed memleak with derefdata
-
-  Revision 1.41  2003/10/23 14:44:07  peter
-    * splitted buildderef and buildderefimpl to fix interface crc
-      calculation
-
-  Revision 1.40  2003/10/22 20:40:00  peter
-    * write derefdata in a separate ppu entry
-
-  Revision 1.39  2003/10/22 15:22:33  peter
-    * fixed unitsym-globalsymtable relation so the uses of a unit
-      is counted correctly
-
-  Revision 1.38  2003/10/01 20:34:48  peter
-    * procinfo unit contains tprocinfo
-    * cginfo renamed to cgbase
-    * moved cgmessage to verbose
-    * fixed ppc and sparc compiles
-
-  Revision 1.37  2003/08/23 22:31:42  peter
-    * reload also caller module when it is already compiled
-
-  Revision 1.36  2003/06/07 20:26:32  peter
-    * re-resolving added instead of reloading from ppu
-    * tderef object added to store deref info for resolving
-
-  Revision 1.35  2003/05/25 10:27:12  peter
-    * moved Comment calls to messge file
-
-  Revision 1.34  2003/05/23 14:27:35  peter
-    * remove some unit dependencies
-    * current_procinfo changes to store more info
-
-  Revision 1.33  2003/04/27 11:21:32  peter
-    * aktprocdef renamed to current_procdef
-    * procinfo renamed to current_procinfo
-    * procinfo will now be stored in current_module so it can be
-      cleaned up properly
-    * gen_main_procsym changed to create_main_proc and release_main_proc
-      to also generate a tprocinfo structure
-    * fixed unit implicit initfinal
-
-  Revision 1.32  2002/12/29 14:57:50  peter
-    * unit loading changed to first register units and load them
-      afterwards. This is needed to support uses xxx in yyy correctly
-    * unit dependency check fixed
-
-  Revision 1.31  2002/12/07 14:27:07  carl
-    * 3% memory optimization
-    * changed some types
-    + added type checking with different size for call node and for
-       parameters
-
-  Revision 1.30  2002/11/24 18:19:56  carl
-    + tos also has short filenames
-
-  Revision 1.29  2002/11/20 12:36:23  mazen
-  * $UNITPATH directive is now working
-
-  Revision 1.28  2002/09/05 19:29:42  peter
-    * memdebug enhancements
-
-  Revision 1.27  2002/08/16 15:31:08  peter
-    * fixed possible crashes with current_scanner
-
-  Revision 1.26  2002/08/12 16:46:04  peter
-    * tscannerfile is now destroyed in tmodule.reset and current_scanner
-      is updated accordingly. This removes all the loading and saving of
-      the old scanner and the invalid flag marking
-
-  Revision 1.25  2002/08/11 14:28:19  peter
-    * TScannerFile.SetInvalid added that will also reset inputfile
-
-  Revision 1.24  2002/08/11 13:24:11  peter
-    * saving of asmsymbols in ppu supported
-    * asmsymbollist global is removed and moved into a new class
-      tasmlibrarydata that will hold the info of a .a file which
-      corresponds with a single module. Added librarydata to tmodule
-      to keep the library info stored for the module. In the future the
-      objectfiles will also be stored to the tasmlibrarydata class
-    * all getlabel/newasmsymbol and friends are moved to the new class
-
-  Revision 1.23  2002/05/16 19:46:36  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.22  2002/05/14 19:34:41  peter
-    * removed old logs and updated copyright year
-
-  Revision 1.21  2002/04/04 19:05:55  peter
-    * removed unused units
-    * use tlocation.size in cg.a_*loc*() routines
-
-  Revision 1.20  2002/03/28 20:46:59  carl
-  - remove go32v1 support
 
 }

@@ -160,28 +160,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  2004-06-16 20:07:07  florian
+  Revision 1.14  2004-06-20 08:55:29  florian
+    * logs truncated
+
+  Revision 1.13  2004/06/16 20:07:07  florian
     * dwarf branch merged
 
   Revision 1.12.2.1  2004/05/03 14:59:57  peter
     * no dlltool needed for win32 linking executables
-
-  Revision 1.12  2003/03/23 23:20:38  hajny
-    + emx target added
-
-  Revision 1.11  2002/07/26 21:15:38  florian
-    * rewrote the system handling
-
-  Revision 1.10  2002/05/18 13:34:08  peter
-    * readded missing revisions
-
-  Revision 1.9  2002/05/16 19:46:36  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.7  2002/04/04 18:36:46  carl
-  + added wdosx support (patch from Pavel)
 
 }

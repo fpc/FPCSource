@@ -352,7 +352,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2004-06-16 20:07:11  florian
+  Revision 1.5  2004-06-20 08:55:32  florian
+    * logs truncated
+
+  Revision 1.4  2004/06/16 20:07:11  florian
     * dwarf branch merged
 
   Revision 1.3  2004/05/22 23:34:28  peter
@@ -368,17 +371,4 @@ end.
   Revision 1.2.2.2  2004/04/29 19:07:22  peter
     * compile fixes
 
-  Revision 1.2.2.1  2004/04/26 15:54:33  peter
-    * small x86-64 fixes
-
-  Revision 1.2  2004/02/27 10:21:06  florian
-    * top_symbol killed
-    + refaddr to treference added
-    + refsymbol to treference added
-    * top_local stuff moved to an extra record to save memory
-    + aint introduced
-    * tppufile.get/putint64/aint implemented
-
-  Revision 1.1  2004/02/05 01:24:08  florian
-    * several fixes to compile x86-64 system
 }

@@ -684,7 +684,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.9  2004-06-16 20:07:11  florian
+  Revision 1.10  2004-06-20 08:55:32  florian
+    * logs truncated
+
+  Revision 1.9  2004/06/16 20:07:11  florian
     * dwarf branch merged
 
   Revision 1.8.2.4  2004/06/02 20:59:05  peter
@@ -698,32 +701,5 @@ end.
 
   Revision 1.8.2.1  2004/05/01 23:36:47  peter
     * assembler reader 64bit fixes
-
-  Revision 1.8  2004/03/02 00:36:33  olle
-    * big transformation of Tai_[const_]Symbol.Create[data]name*
-
-  Revision 1.7  2004/02/27 13:27:28  mazen
-  * symaddr ==> refaddr to follow the rest of compiler changes
-
-  Revision 1.6  2004/01/12 22:11:39  peter
-    * use localalign info for alignment for locals and temps
-    * sparc fpu flags branching added
-    * moved powerpc copy_valye_openarray to generic
-
-  Revision 1.5  2004/01/12 16:39:41  peter
-    * sparc updates, mostly float related
-
-  Revision 1.4  2003/12/26 14:02:30  peter
-    * sparc updates
-    * use registertype in spill_register
-
-  Revision 1.3  2003/12/25 01:25:43  peter
-    * sparc assembler reader updates
-
-  Revision 1.2  2003/12/10 13:16:36  mazen
-  * improve hadlign %hi and %lo operators
-
-  Revision 1.1  2003/12/08 13:02:21  mazen
-  + support for native sparc assembler reader
 
 }

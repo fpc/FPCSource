@@ -362,7 +362,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.12  2004-06-16 20:07:10  florian
+  Revision 1.13  2004-06-20 08:55:31  florian
+    * logs truncated
+
+  Revision 1.12  2004/06/16 20:07:10  florian
     * dwarf branch merged
 
   Revision 1.11  2004/05/01 23:29:01  florian
@@ -376,27 +379,5 @@ end.
 
   Revision 1.8  2004/04/25 21:26:16  florian
     * some m68k stuff fixed
-
-  Revision 1.7.2.1  2004/06/13 20:38:38  florian
-    * fixed floating point register spilling on sparc
-
-  Revision 1.7  2003/02/19 22:00:16  daniel
-    * Code generator converted to new register notation
-    - Horribily outdated todo.txt removed
-
-  Revision 1.6  2003/02/15 22:19:40  carl
-   * bugfix of emissions of jmp instructions
-
-  Revision 1.5  2003/01/08 18:43:57  daniel
-   * Tregister changed into a record
-
-  Revision 1.4  2002/11/30 23:33:02  carl
-    * merges from Pierre's fixes in m68k fixes branch
-
-  Revision 1.3  2002/09/07 15:25:11  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.2  2002/08/13 18:58:54  carl
-    + m68k problems with cvs fixed?()!
 
 }

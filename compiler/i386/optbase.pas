@@ -79,24 +79,7 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-05-12 16:53:18  peter
-    * moved entry and exitcode to ncgutil and cgobj
-    * foreach gets extra argument for passing local data to the
-      iterator function
-    * -CR checks also class typecasts at runtime by changing them
-      into as
-    * fixed compiler to cycle with the -CR option
-    * fixed stabs with elf writer, finally the global variables can
-      be watched
-    * removed a lot of routines from cga unit and replaced them by
-      calls to cgobj
-    * u32bit-s32bit updates for and,or,xor nodes. When one element is
-      u32bit then the other is typecasted also to u32bit without giving
-      a rangecheck warning/error.
-    * fixed pascal calling method with reversing also the high tree in
-      the parast, detected by tcalcst3 test
-
-  Revision 1.1  2002/04/20 21:50:14  carl
-  + optimization cpu specific information base file
+  Revision 1.3  2004-06-20 08:55:31  florian
+    * logs truncated
 
 }

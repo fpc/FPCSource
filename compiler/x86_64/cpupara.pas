@@ -390,7 +390,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2004-06-16 20:07:11  florian
+  Revision 1.9  2004-06-20 08:55:32  florian
+    * logs truncated
+
+  Revision 1.8  2004/06/16 20:07:11  florian
     * dwarf branch merged
 
   Revision 1.7.2.7  2004/05/03 20:18:52  peter
@@ -405,38 +408,4 @@ end.
   Revision 1.7.2.4  2004/05/02 19:08:01  florian
     * rewrote tcgcallnode.handle_return_value
 
-  Revision 1.7.2.3  2004/05/02 12:45:32  peter
-    * enabled cpuhasfixedstack for x86-64 again
-    * fixed size of temp allocation for parameters
-
-  Revision 1.7.2.2  2004/04/26 21:15:26  peter
-    * fixed size for comp paraloc
-
-  Revision 1.7.2.1  2004/04/26 21:00:59  peter
-    * varargs support added
-
-  Revision 1.7  2004/02/04 22:01:13  peter
-    * first try to get cpupara working for x86_64
-
-  Revision 1.6  2004/01/14 23:39:05  florian
-    * another bunch of x86-64 fixes mainly calling convention and
-      assembler reader related
-
-  Revision 1.5  2003/12/24 00:10:03  florian
-    - delete parameter in cg64 methods removed
-
-  Revision 1.4  2003/04/30 20:53:32  florian
-    * error when address of an abstract method is taken
-    * fixed some x86-64 problems
-    * merged some more x86-64 and i386 code
-
-  Revision 1.3  2002/04/25 16:12:09  florian
-    * fixed more problems with cpubase and x86-64
-
-  Revision 1.2  2003/01/05 13:36:54  florian
-    * x86-64 compiles
-    + very basic support for float128 type (x86-64 only)
-
-  Revision 1.1  2002/07/24 22:38:15  florian
-    + initial release of x86-64 target code
 }

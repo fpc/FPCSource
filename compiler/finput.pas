@@ -712,66 +712,13 @@ uses
 end.
 {
   $Log$
-  Revision 1.24  2004-06-16 20:07:07  florian
+  Revision 1.25  2004-06-20 08:55:29  florian
+    * logs truncated
+
+  Revision 1.24  2004/06/16 20:07:07  florian
     * dwarf branch merged
 
   Revision 1.23.2.1  2004/04/28 21:46:56  peter
     * compile fixes for x86-64
-
-  Revision 1.23  2003/12/27 22:27:24  peter
-    * check with fileexists() before opening a file
-
-  Revision 1.22  2003/04/28 16:18:16  peter
-    * sharedlib is placed in exe outputdir
-
-  Revision 1.21  2002/12/29 14:57:50  peter
-    * unit loading changed to first register units and load them
-      afterwards. This is needed to support uses xxx in yyy correctly
-    * unit dependency check fixed
-
-  Revision 1.20  2002/11/15 01:58:46  peter
-    * merged changes from 1.0.7 up to 04-11
-      - -V option for generating bug report tracing
-      - more tracing for option parsing
-      - errors for cdecl and high()
-      - win32 import stabs
-      - win32 records<=8 are returned in eax:edx (turned off by default)
-      - heaptrc update
-      - more info for temp management in .s file with EXTDEBUG
-
-  Revision 1.19  2002/10/20 14:49:31  peter
-    * store original source time in ppu so it can be compared instead of
-      comparing with the ppu time
-
-  Revision 1.18  2002/08/11 13:24:11  peter
-    * saving of asmsymbols in ppu supported
-    * asmsymbollist global is removed and moved into a new class
-      tasmlibrarydata that will hold the info of a .a file which
-      corresponds with a single module. Added librarydata to tmodule
-      to keep the library info stored for the module. In the future the
-      objectfiles will also be stored to the tasmlibrarydata class
-    * all getlabel/newasmsymbol and friends are moved to the new class
-
-  Revision 1.17  2002/07/26 21:15:37  florian
-    * rewrote the system handling
-
-  Revision 1.16  2002/07/01 18:46:22  peter
-    * internal linker
-    * reorganized aasm layer
-
-  Revision 1.15  2002/05/18 13:34:07  peter
-    * readded missing revisions
-
-  Revision 1.14  2002/05/16 19:46:36  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.13  2002/05/14 19:34:41  peter
-    * removed old logs and updated copyright year
-
-  Revision 1.12  2002/04/04 18:34:00  carl
-  + added wdosx support (patch from Pavel)
 
 }

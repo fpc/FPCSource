@@ -478,26 +478,10 @@ end.
 
 {
   $Log$
-  Revision 1.13  2004-02-22 14:52:59  hajny
+  Revision 1.14  2004-06-20 08:55:29  florian
+    * logs truncated
+
+  Revision 1.13  2004/02/22 14:52:59  hajny
     * compilation fixes + *w tools renamed to *
-
-  Revision 1.12  2003/10/03 14:16:48  marco
-   * -XP<prefix> support
-
-  Revision 1.11  2003/10/02 21:17:08  peter
-    * use as,ld,ar instead of asw,ldw,arw for win32
-
-  Revision 1.10  2002/10/05 12:43:24  carl
-    * fixes for Delphi 6 compilation
-     (warning : Some features do not work under Delphi)
-
-  Revision 1.9  2002/05/18 13:34:08  peter
-    * readded missing revisions
-
-  Revision 1.8  2002/05/16 19:46:37  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
 
 }

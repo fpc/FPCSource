@@ -246,40 +246,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2004-04-25 21:26:16  florian
+  Revision 1.9  2004-06-20 08:55:31  florian
+    * logs truncated
+
+  Revision 1.8  2004/04/25 21:26:16  florian
     * some m68k stuff fixed
-
-  Revision 1.7  2003/06/07 18:57:04  jonas
-    + added freeintparaloc
-    * ppc get/freeintparaloc now check whether the parameter regs are
-      properly allocated/deallocated (and get an extra list para)
-    * ppc a_call_* now internalerrors if pi_do_call is not yet set
-    * fixed lot of missing pi_do_call's
-
-  Revision 1.6  2003/02/19 22:00:16  daniel
-    * Code generator converted to new register notation
-    - Horribily outdated todo.txt removed
-
-  Revision 1.5  2003/02/02 19:25:54  carl
-    * Several bugfixes for m68k target (register alloc., opcode emission)
-    + VIS target
-    + Generic add more complete (still not verified)
-
-  Revision 1.4  2002/09/07 15:25:13  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.3  2002/08/15 15:15:55  carl
-    * jmpbuf size allocation for exceptions is now cpu specific (as it should)
-    * more generic nodes for maths
-    * several fixes for better m68k support
-
-  Revision 1.2  2002/08/15 08:13:54  carl
-    - a_load_sym_ofs_reg removed
-    * loadvmt now calls loadaddr_ref_reg instead
-
-  Revision 1.1  2002/08/14 19:16:34  carl
-    + m68k type conversion nodes
-    + started some mathematical nodes
-    * out of bound references should now be handled correctly
 
 }

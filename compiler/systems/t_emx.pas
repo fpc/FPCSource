@@ -518,20 +518,7 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2003-04-27 07:29:52  peter
-    * aktprocdef cleanup, aktprocdef is now always nil when parsing
-      a new procdef declaration
-    * aktprocsym removed
-    * lexlevel removed, use symtable.symtablelevel instead
-    * implicit init/final code uses the normal genentry/genexit
-    * funcret state checking updated for new funcret handling
-
-  Revision 1.2  2003/04/26 09:16:08  peter
-    * .o files belonging to the unit are first searched in the same dir
-      as the .ppu
-
-  Revision 1.1  2003/03/23 23:28:33  hajny
-    + emx target added
-
+  Revision 1.4  2004-06-20 08:55:32  florian
+    * logs truncated
 
 }

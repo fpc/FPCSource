@@ -115,31 +115,7 @@ end.
 
 {
   $Log$
-  Revision 1.17  2003-11-10 17:22:28  marco
-   * havelinuxrtl10 fixes
-
-  Revision 1.16  2003/09/18 08:50:48  marco
-   * fix for snapshot building.
-
-  Revision 1.15  2003/09/14 20:26:18  marco
-   * Unix reform
-
-  Revision 1.14  2003/09/05 17:41:12  florian
-    * merged Wiktor's Watcom patches in 1.1
-
-  Revision 1.13  2003/04/23 10:10:31  peter
-    * unix signalhandler has longint argument
-
-  Revision 1.12  2003/01/10 21:37:48  marco
-   * beos shouldnt define hassignal (unix<-> hasunix problem)
-
-  Revision 1.11  2002/05/18 13:34:05  peter
-    * readded missing revisions
-
-  Revision 1.10  2002/05/16 19:46:35  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
+  Revision 1.18  2004-06-20 08:55:28  florian
+    * logs truncated
 
 }

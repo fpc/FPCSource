@@ -429,7 +429,10 @@ type
 end.
 {
   $Log$
-  Revision 1.12  2004-06-20 08:47:33  florian
+  Revision 1.13  2004-06-20 08:55:31  florian
+    * logs truncated
+
+  Revision 1.12  2004/06/20 08:47:33  florian
     * spilling of doubles on sparc fixed
 
   Revision 1.11  2004/05/06 22:01:54  florian
@@ -437,40 +440,5 @@ end.
 
   Revision 1.10  2004/01/30 12:17:18  florian
     * fixed some m68k compilation problems
-
-  Revision 1.9  2003/06/14 14:53:50  jonas
-    * fixed newra cycle for x86
-    * added constants for indicating source and destination operands of the
-      "move reg,reg" instruction to aasmcpu (and use those in rgobj)
-
-  Revision 1.8  2003/02/19 22:00:16  daniel
-    * Code generator converted to new register notation
-    - Horribily outdated todo.txt removed
-
-  Revision 1.7  2002/12/14 15:02:03  carl
-    * maxoperands -> max_operands (for portability in rautils.pas)
-    * fix some range-check errors with loadconst
-    + add ncgadd unit to m68k
-    * some bugfix of a_param_reg with LOC_CREFERENCE
-
-  Revision 1.6  2002/11/30 23:33:02  carl
-    * merges from Pierre's fixes in m68k fixes branch
-
-  Revision 1.5  2002/09/07 15:25:11  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.4  2002/08/13 18:58:54  carl
-    + m68k problems with cvs fixed?()!
-
-  Revision 1.2  2002/08/12 15:08:43  carl
-    + stab register indexes for powerpc (moved from gdb to cpubase)
-    + tprocessor enumeration moved to cpuinfo
-    + linker in target_info is now a class
-    * many many updates for m68k (will soon start to compile)
-    - removed some ifdef or correct them for correct cpu
-
-  Revision 1.1  2002/07/29 17:51:32  carl
-    + restart m68k support
-
 
 }

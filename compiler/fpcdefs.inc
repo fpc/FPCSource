@@ -102,7 +102,10 @@
 
 {
   $Log$
-  Revision 1.37  2004-06-16 20:07:07  florian
+  Revision 1.38  2004-06-20 08:55:29  florian
+    * logs truncated
+
+  Revision 1.37  2004/06/16 20:07:07  florian
     * dwarf branch merged
 
   Revision 1.36  2004/05/30 21:20:40  jonas
@@ -118,131 +121,4 @@
   Revision 1.35.2.2  2004/04/29 23:30:28  peter
     * fix i386 compiler
 
-  Revision 1.35.2.1  2004/04/23 22:12:37  florian
-    * fixed some potential stack corruption reasons
-
-  Revision 1.35  2004/03/16 22:12:10  florian
-    * some alignment issues resolved
-    * compiler doesn't generate anymore instructions not supported by the linux fpe
-
-  Revision 1.34  2004/03/10 11:55:22  mazen
-  * $M directive renamed to $MEMORY : Long directive name
-
-  Revision 1.33  2004/02/17 15:57:49  peter
-  - fix rtti generation for properties containing sl_vec
-  - fix crash when overloaded operator is not available
-  - fix record alignment for C style variant records
-
-  Revision 1.32  2004/02/09 22:48:45  florian
-    * several fixes to parameter handling on arm
-
-  Revision 1.31  2004/01/28 16:47:45  peter
-  Stacksize force to 1mb
-
-  Revision 1.30  2003/12/14 22:41:46  peter
-    * USEOPT to override NOOPT for 1.0.x
-
-  Revision 1.29  2003/12/14 20:20:14  peter
-    * disable optimizer again for 1.0.x
-
-  Revision 1.28  2003/12/14 14:18:59  peter
-    * optimizer works again with 1.0.x
-    * fixed wrong loop in FindRegWithConst
-
-  Revision 1.27  2003/11/22 13:11:10  jonas
-    - disable the optimizer if compiling with 1.0, because it has a code
-      generator (not optimizer) bug that causes crashes in the 1.1
-      optimizer
-
-  Revision 1.26  2003/10/31 15:51:11  peter
-    * USEINLINE directive added (not enabled yet)
-
-  Revision 1.25  2003/09/06 16:47:24  florian
-    + support of NaN and Inf in the compiler as values of real constants
-
-  Revision 1.24  2003/09/03 15:55:00  peter
-    * NEWRA branch merged
-
-  Revision 1.23  2003/09/03 11:18:36  florian
-    * fixed arm concatcopy
-    + arm support in the common compiler sources added
-    * moved some generic cg code around
-    + tfputype added
-    * ...
-
-  Revision 1.22.2.2  2003/08/31 21:07:44  daniel
-    * callparatemp ripped
-
-  Revision 1.22.2.1  2003/08/27 20:11:29  peter
-    * newra default
-
-  Revision 1.22  2003/08/11 21:18:20  peter
-    * start of sparc support for newra
-
-  Revision 1.21  2003/07/21 11:52:57  florian
-    * very basic stuff for the arm
-
-  Revision 1.20  2003/05/24 21:12:57  florian
-    * if something doesn't work with callparatemp, the define callparatemp
-      should be used because other processors with reigster calling conventions
-      depend on this as well
-
-  Revision 1.19  2003/05/09 17:47:02  peter
-    * self moved to hidden parameter
-    * removed hdisposen,hnewn,selfn
-
-  Revision 1.18  2003/04/30 09:42:42  florian
-    + first changes to make self a hidden parameter
-
-  Revision 1.17  2003/04/24 22:29:57  florian
-    * fixed a lot of PowerPC related stuff
-
-  Revision 1.16  2003/04/23 13:47:41  peter
-    * optimizer is x86
-
-  Revision 1.15  2003/04/23 12:35:34  florian
-    * fixed several issues with powerpc
-    + applied a patch from Jonas for nested function calls (PowerPC only)
-    * ...
-
-  Revision 1.14  2002/12/06 16:56:57  peter
-    * only compile cs_fp_emulation support when cpufpuemu is defined
-    * define cpufpuemu for m68k only
-
-  Revision 1.13  2002/10/16 19:01:43  peter
-    + $IMPLICITEXCEPTIONS switch to turn on/off generation of the
-      implicit exception frames for procedures with initialized variables
-      and for constructors. The default is on for compatibility
-
-  Revision 1.12  2002/10/05 12:43:24  carl
-    * fixes for Delphi 6 compilation
-     (warning : Some features do not work under Delphi)
-
-  Revision 1.11  2002/09/30 07:00:45  florian
-    * fixes to common code to get the alpha compiler compiled applied
-
-  Revision 1.10  2002/09/29 23:19:05  florian
-    + added define 64bit
-
-  Revision 1.9  2002/09/07 15:25:02  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.8  2002/08/30 13:42:29  mazen
-  - undefining win32 when SPARC defined removed, no more needed.
-
-
-  Revision 1.6  2002/08/19 18:17:48  carl
-    + optimize64_op_const_reg implemented (optimizes 64-bit constant opcodes)
-    * more fixes to m68k for 64-bit operations
-
-  Revision 1.5  2002/08/15 15:11:53  carl
-    * oldset define is now correct for all cpu's except i386
-    * correct compilation problems because of the above
-
-  Revision 1.4  2002/07/23 12:34:29  daniel
-  * Readded old set code. To use it define 'oldset'. Activated by default
-    for ppc.
-
-  Revision 1.3  2002/07/04 18:56:50  florian
-    + log added
 }

@@ -128,13 +128,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-09-29 23:42:45  florian
-    * several fixes to get forward with alpha compilation
-
-  Revision 1.2  2002/09/07 15:25:10  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.1  2002/08/18 09:06:54  florian
-    * alpha files moved compiler/alpha
+  Revision 1.2  2004-06-20 08:55:30  florian
+    * logs truncated
 
 }

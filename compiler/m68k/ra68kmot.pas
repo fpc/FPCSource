@@ -2271,7 +2271,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2004-05-20 21:54:33  florian
+  Revision 1.5  2004-06-20 08:55:31  florian
+    * logs truncated
+
+  Revision 1.4  2004/05/20 21:54:33  florian
     + <pointer> - <pointer> result is divided by the pointer element size now
       this is delphi compatible as well as resulting in the expected result for p1+(p2-p1)
 
@@ -2281,54 +2284,5 @@ end.
   Revision 1.14  2004/03/02 00:36:33  olle
     * big transformation of Tai_[const_]Symbol.Create[data]name*
 
-  Revision 1.13  2003/02/19 22:00:16  daniel
-    * Code generator converted to new register notation
-    - Horribily outdated todo.txt removed
-
-  Revision 1.12  2003/02/12 22:11:13  carl
-    * some small m68k bugfixes
-
-  Revision 1.11  2003/01/08 18:43:57  daniel
-   * Tregister changed into a record
-
-  Revision 1.10  2002/12/14 15:02:03  carl
-    * maxoperands -> max_operands (for portability in rautils.pas)
-    * fix some range-check errors with loadconst
-    + add ncgadd unit to m68k
-    * some bugfix of a_param_reg with LOC_CREFERENCE
-
-  Revision 1.9  2002/11/30 23:33:03  carl
-    * merges from Pierre's fixes in m68k fixes branch
-
-  Revision 1.8  2002/09/07 15:25:13  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.7  2002/09/03 19:04:18  daniel
-    * Fixed PowerPC & M68000 compilation
-
-  Revision 1.6  2002/08/13 18:58:54  carl
-    + m68k problems with cvs fixed?()!
-
-  Revision 1.4  2002/08/12 15:08:44  carl
-    + stab register indexes for powerpc (moved from gdb to cpubase)
-    + tprocessor enumeration moved to cpuinfo
-    + linker in target_info is now a class
-    * many many updates for m68k (will soon start to compile)
-    - removed some ifdef or correct them for correct cpu
-
-  Revision 1.3  2002/08/11 14:32:32  peter
-    * renamed current_library to objectlibrary
-
-  Revision 1.2  2002/08/11 13:24:18  peter
-    * saving of asmsymbols in ppu supported
-    * asmsymbollist global is removed and moved into a new class
-      tasmlibrarydata that will hold the info of a .a file which
-      corresponds with a single module. Added librarydata to tmodule
-      to keep the library info stored for the module. In the future the
-      objectfiles will also be stored to the tasmlibrarydata class
-    * all getlabel/newasmsymbol and friends are moved to the new class
-
-  Revision 1.1  2002/08/06 15:15:42  carl
-    + more m68k fixes
 }
 

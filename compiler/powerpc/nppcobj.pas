@@ -170,7 +170,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.6  2004-03-02 00:36:33  olle
+  Revision 1.7  2004-06-20 08:55:32  florian
+    * logs truncated
+
+  Revision 1.6  2004/03/02 00:36:33  olle
     * big transformation of Tai_[const_]Symbol.Create[data]name*
 
   Revision 1.5  2004/02/27 13:42:56  olle
@@ -184,13 +187,4 @@ end.
     + aint introduced
     * tppufile.get/putint64/aint implemented
 
-  Revision 1.3  2003/12/28 15:14:14  jonas
-    * hopefully fixed interfaces (untested)
-
-  Revision 1.2  2003/12/23 23:12:44  peter
-    * extnumber failure is $ffff instead of -1
-    * fix non-vmt call for register calling on i386
-
-  Revision 1.1  2003/12/10 01:10:47  florian
-    + initial interface support added
 }

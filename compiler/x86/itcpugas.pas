@@ -135,55 +135,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2004-02-05 18:28:37  peter
+  Revision 1.4  2004-06-20 08:55:32  florian
+    * logs truncated
+
+  Revision 1.3  2004/02/05 18:28:37  peter
     * x86_64 fixes for opsize
 
   Revision 1.2  2004/01/15 14:01:32  florian
     + x86 instruction tables for x86-64 extended
-
-  Revision 1.1  2003/11/12 16:05:40  florian
-    * assembler readers OOPed
-    + typed currency constants
-    + typed 128 bit float constants if the CPU supports it
-
-  Revision 1.6  2003/10/01 20:34:51  peter
-    * procinfo unit contains tprocinfo
-    * cginfo renamed to cgbase
-    * moved cgmessage to verbose
-    * fixed ppc and sparc compiles
-
-  Revision 1.5  2003/09/24 17:12:36  florian
-    * x86-64 adaptions
-
-  Revision 1.4  2003/09/03 15:55:02  peter
-    * NEWRA branch merged
-
-  Revision 1.3.2.6  2003/08/31 15:46:26  peter
-    * more updates for tregister
-
-  Revision 1.3.2.5  2003/08/31 13:50:16  daniel
-    * Remove sorting and use pregenerated indexes
-    * Some work on making things compile
-
-  Revision 1.3.2.4  2003/08/29 17:29:00  peter
-    * next batch of updates
-
-  Revision 1.3.2.3  2003/08/29 09:41:25  daniel
-    * Further mkx86reg development
-
-  Revision 1.3.2.2  2003/08/28 18:35:08  peter
-    * tregister changed to cardinal
-
-  Revision 1.3.2.1  2003/08/27 19:55:54  peter
-    * first tregister patch
-
-  Revision 1.3  2003/08/18 11:49:47  daniel
-    * Made ATT asm writer work with -sr
-
-  Revision 1.2  2003/07/06 15:31:21  daniel
-    * Fixed register allocator. *Lots* of fixes.
-
-  Revision 1.1  2003/05/22 21:33:08  peter
-    * i386 att instruction table moved to separate unit
 
 }

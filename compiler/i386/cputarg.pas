@@ -91,51 +91,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2003-09-05 17:41:13  florian
-    * merged Wiktor's Watcom patches in 1.1
-
-  Revision 1.12  2003/05/20 23:54:00  florian
-    + basic darwin support added
-
-  Revision 1.11  2003/04/25 12:04:31  florian
-    * merged agx64att and ag386att to x86/agx86att
-
-  Revision 1.10  2003/03/23 23:33:10  hajny
-    + emx target added
-
-  Revision 1.9  2002/05/18 13:34:22  peter
-    * readded missing revisions
-
-  Revision 1.8  2002/05/16 19:46:50  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.6  2002/05/12 16:53:16  peter
-    * moved entry and exitcode to ncgutil and cgobj
-    * foreach gets extra argument for passing local data to the
-      iterator function
-    * -CR checks also class typecasts at runtime by changing them
-      into as
-    * fixed compiler to cycle with the -CR option
-    * fixed stabs with elf writer, finally the global variables can
-      be watched
-    * removed a lot of routines from cga unit and replaced them by
-      calls to cgobj
-    * u32bit-s32bit updates for and,or,xor nodes. When one element is
-      u32bit then the other is typecasted also to u32bit without giving
-      a rangecheck warning/error.
-    * fixed pascal calling method with reversing also the high tree in
-      the parast, detected by tcalcst3 test
-
-  Revision 1.5  2002/04/14 17:00:49  carl
-  + att_reg2str -> gas_reg2str
-
-  Revision 1.4  2002/04/04 18:31:37  carl
-  + added wdosx support (patch from Pavel)
-
-  Revision 1.3  2002/03/28 20:48:04  carl
-  - remove go32v1 support
+  Revision 1.14  2004-06-20 08:55:31  florian
+    * logs truncated
 
 }

@@ -184,7 +184,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2004-06-16 20:07:09  florian
+  Revision 1.16  2004-06-20 08:55:30  florian
+    * logs truncated
+
+  Revision 1.15  2004/06/16 20:07:09  florian
     * dwarf branch merged
 
   Revision 1.14.2.2  2004/05/03 20:18:52  peter
@@ -205,53 +208,5 @@ end.
     * top_local stuff moved to an extra record to save memory
     + aint introduced
     * tppufile.get/putint64/aint implemented
-
-  Revision 1.12  2004/02/19 17:07:42  florian
-    * fixed arg. area calculation
-
-  Revision 1.11  2003/12/26 14:02:30  peter
-    * sparc updates
-    * use registertype in spill_register
-
-  Revision 1.10  2003/12/16 21:29:24  florian
-    + inlined procedures inherit procinfo flags
-
-  Revision 1.9  2003/12/03 23:13:20  peter
-    * delayed paraloc allocation, a_param_*() gets extra parameter
-      if it needs to allocate temp or real paralocation
-    * optimized/simplified int-real loading
-
-  Revision 1.8  2003/11/10 22:02:52  peter
-    * cross unit inlining fixed
-
-  Revision 1.7  2003/10/17 14:38:32  peter
-    * 64k registers supported
-    * fixed some memory leaks
-
-  Revision 1.6  2003/10/14 00:30:48  florian
-    + some code for PIC support added
-
-  Revision 1.5  2003/10/10 17:48:13  peter
-    * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
-    * tregisteralloctor renamed to trgobj
-    * removed rgobj from a lot of units
-    * moved location_* and reference_* to cgobj
-    * first things for mmx register allocation
-
-  Revision 1.4  2003/10/09 21:31:37  daniel
-    * Register allocator splitted, ans abstract now
-
-  Revision 1.3  2003/10/05 21:21:52  peter
-    * c style array of const generates callparanodes
-    * varargs paraloc fixes
-
-  Revision 1.2  2003/10/03 22:00:33  peter
-    * parameter alignment fixes
-
-  Revision 1.1  2003/10/01 20:34:49  peter
-    * procinfo unit contains tprocinfo
-    * cginfo renamed to cgbase
-    * moved cgmessage to verbose
-    * fixed ppc and sparc compiles
 
 }

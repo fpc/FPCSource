@@ -240,7 +240,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2004-04-25 21:26:16  florian
+  Revision 1.13  2004-06-20 08:55:31  florian
+    * logs truncated
+
+  Revision 1.12  2004/04/25 21:26:16  florian
     * some m68k stuff fixed
 
   Revision 1.11  2004/02/03 22:32:54  peter
@@ -248,38 +251,4 @@ end.
     * renamed registers32 to registersint
     * replace some s32bit,u32bit with torddef([su]inttype).def.typ
 
-  Revision 1.10  2003/04/23 21:10:54  peter
-    * fix compile for ppc,sparc,m68k
-
-  Revision 1.9  2003/04/23 13:40:33  peter
-    * fix m68k compile
-
-  Revision 1.8  2003/02/19 22:00:16  daniel
-    * Code generator converted to new register notation
-    - Horribily outdated todo.txt removed
-
-  Revision 1.7  2002/12/05 14:27:53  florian
-    * some variant <-> dyn. array stuff
-
-  Revision 1.6  2002/11/25 17:43:27  peter
-    * splitted defbase in defutil,symutil,defcmp
-    * merged isconvertable and is_equal into compare_defs(_ext)
-    * made operator search faster by walking the list only once
-
-  Revision 1.5  2002/11/09 16:10:35  carl
-    + update for compilation
-
-  Revision 1.4  2002/09/07 20:53:28  carl
-    * cardinal -> longword
-
-  Revision 1.3  2002/09/07 15:25:13  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.2  2002/08/14 19:31:26  carl
-    * fix small compilation problem
-
-  Revision 1.1  2002/08/14 19:16:34  carl
-    + m68k type conversion nodes
-    + started some mathematical nodes
-    * out of bound references should now be handled correctly
 }

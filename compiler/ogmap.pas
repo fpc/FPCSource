@@ -138,17 +138,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2004-06-16 20:07:09  florian
+  Revision 1.4  2004-06-20 08:55:30  florian
+    * logs truncated
+
+  Revision 1.3  2004/06/16 20:07:09  florian
     * dwarf branch merged
 
   Revision 1.2.2.1  2004/04/08 18:33:22  peter
     * rewrite of TAsmSection
-
-  Revision 1.2  2003/04/22 14:33:38  peter
-    * removed some notes/hints
-
-  Revision 1.1  2002/07/01 18:46:24  peter
-    * internal linker
-    * reorganized aasm layer
 
 }

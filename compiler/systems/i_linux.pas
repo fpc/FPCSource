@@ -514,7 +514,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.26  2004-06-16 20:07:11  florian
+  Revision 1.27  2004-06-20 08:55:32  florian
+    * logs truncated
+
+  Revision 1.26  2004/06/16 20:07:11  florian
     * dwarf branch merged
 
   Revision 1.25.2.5  2004/05/31 22:08:21  peter
@@ -529,104 +532,4 @@ end.
   Revision 1.25.2.2  2004/05/02 14:17:27  peter
     * fix cpux86_64 ifdef
 
-  Revision 1.25.2.1  2004/04/28 19:54:56  peter
-    * alignment updates for x86-64
-
-  Revision 1.25  2004/02/22 16:51:51  peter
-    * tf_need_symbol_size added
-
-  Revision 1.24  2004/02/05 18:28:37  peter
-    * x86_64 fixes for opsize
-
-  Revision 1.23  2004/01/28 22:16:31  peter
-    * more record alignment fixes
-
-  Revision 1.22  2004/01/28 15:36:47  florian
-    * fixed another couple of arm bugs
-
-  Revision 1.21  2004/01/26 19:05:56  florian
-    * fixed several arm issues
-
-  Revision 1.20  2004/01/12 22:11:39  peter
-    * use localalign info for alignment for locals and temps
-    * sparc fpu flags branching added
-    * moved powerpc copy_valye_openarray to generic
-
-  Revision 1.19  2004/01/12 16:39:41  peter
-    * sparc updates, mostly float related
-
-  Revision 1.18  2003/12/31 17:28:19  jonas
-    * fixed C record max alignment
-
-  Revision 1.17  2003/12/21 21:20:58  florian
-    * sysv calling conventions enabled for powerpc-linux
-
-  Revision 1.16  2003/12/11 19:06:21  florian
-    * staticlib extension for powerpc fixed
-
-  Revision 1.15  2003/10/03 22:09:49  peter
-    * removed paraalign
-
-  Revision 1.14  2003/09/23 17:58:38  peter
-    * recordminalign for sparc 0
-
-  Revision 1.13  2003/09/07 09:08:26  olle
-    * reverted last change, linux on powerpc still uses aix abi
-
-  Revision 1.12  2003/09/06 10:46:56  olle
-    * linux on powerpc now uses sysv abi
-
-  Revision 1.11  2003/09/03 11:18:37  florian
-    * fixed arm concatcopy
-    + arm support in the common compiler sources added
-    * moved some generic cg code around
-    + tfputype added
-    * ...
-
-  Revision 1.10  2003/07/21 11:52:57  florian
-    * very basic stuff for the arm
-
-  Revision 1.9  2003/07/06 17:58:22  peter
-    * framepointer fixes for sparc
-    * parent framepointer code more generic
-
-  Revision 1.8  2003/05/31 18:14:06  jonas
-    * add default system for ppc
-
-  Revision 1.7  2003/05/19 12:15:28  florian
-    * fixed calling sequence for subroutines using the aix abi
-
-  Revision 1.6  2003/05/18 15:15:59  florian
-    + added abi field to tsysteminfo
-
-  Revision 1.5  2003/04/30 15:45:35  florian
-    * merged more x86-64/i386 code
-
-  Revision 1.4  2003/02/06 22:36:55  mazen
-  * fixing bug related to errornous program main entry stack frame
-
-  Revision 1.3  2003/01/11 16:35:15  marco
-   * HASUNIX defined for now.
-
-  Revision 1.2  2002/10/04 21:57:42  mazen
-  * register allocation for parameters now done in cpupara, but InternalError(200109223) in cgcpu.pas:1053 is still not fixed du to location_force problem in ncgutils.pas:419
-
-  Revision 1.1  2002/09/06 15:03:51  carl
-    * moved files to systems directory
-
-  Revision 1.3  2002/08/13 18:01:51  carl
-    * rename swatoperands to swapoperands
-    + m68k first compilable version (still needs a lot of testing):
-        assembler generator, system information , inline
-        assembler reader.
-
-  Revision 1.2  2002/08/12 15:08:39  carl
-    + stab register indexes for powerpc (moved from gdb to cpubase)
-    + tprocessor enumeration moved to cpuinfo
-    + linker in target_info is now a class
-    * many many updates for m68k (will soon start to compile)
-    - removed some ifdef or correct them for correct cpu
-
-  Revision 1.1  2002/07/26 21:15:38  florian
-    * rewrote the system handling
 }

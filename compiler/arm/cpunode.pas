@@ -46,29 +46,11 @@ unit cpunode;
 end.
 {
   $Log$
-  Revision 1.8  2004-03-21 22:40:15  florian
+  Revision 1.9  2004-06-20 08:55:31  florian
+    * logs truncated
+
+  Revision 1.8  2004/03/21 22:40:15  florian
     + added interface support for the arm
     * added  FPC_REQUIRES_PROPER_ALIGNMENT define for targets which require proper alignment
 
-  Revision 1.7  2003/08/28 00:05:29  florian
-    * today's arm patches
-
-  Revision 1.6  2003/08/27 00:27:56  florian
-    + same procedure as very day: today's work on arm
-
-  Revision 1.5  2003/08/25 23:20:38  florian
-    + started to implement FPU support for the ARM
-    * fixed a lot of other things
-
-  Revision 1.4  2003/08/24 12:27:26  florian
-    * continued to work on the arm port
-
-  Revision 1.3  2003/08/21 23:24:08  florian
-    * continued to work on the arm skeleton
-
-  Revision 1.2  2003/08/21 03:14:00  florian
-    * arm compiler can be compiled; far from being working
-
-  Revision 1.1  2003/07/21 16:35:30  florian
-    * very basic stuff for the arm
 }

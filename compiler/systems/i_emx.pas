@@ -116,13 +116,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2004-05-16 20:41:19  hajny
+  Revision 1.4  2004-06-20 08:55:32  florian
+    * logs truncated
+
+  Revision 1.3  2004/05/16 20:41:19  hajny
     * fix for IE
-
-  Revision 1.2  2003/10/03 22:09:49  peter
-    * removed paraalign
-
-  Revision 1.1  2003/03/23 23:28:33  hajny
-    + emx target added
 
 }

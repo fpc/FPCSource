@@ -239,40 +239,11 @@ end.
 
 {
   $Log$
-  Revision 1.18  2004-03-08 22:07:46  peter
+  Revision 1.19  2004-06-20 08:55:29  florian
+    * logs truncated
+
+  Revision 1.18  2004/03/08 22:07:46  peter
     * stabs updates to write stabs for def for all implictly used
       units
-
-  Revision 1.17  2003/10/22 15:22:33  peter
-    * fixed unitsym-globalsymtable relation so the uses of a unit
-      is counted correctly
-
-  Revision 1.16  2002/11/17 16:31:56  carl
-    * memory optimization (3-4%) : cleanup of tai fields,
-       cleanup of tdef and tsym fields.
-    * make it work for m68k
-
-  Revision 1.15  2002/08/12 15:08:39  carl
-    + stab register indexes for powerpc (moved from gdb to cpubase)
-    + tprocessor enumeration moved to cpuinfo
-    + linker in target_info is now a class
-    * many many updates for m68k (will soon start to compile)
-    - removed some ifdef or correct them for correct cpu
-
-  Revision 1.14  2002/07/01 18:46:22  peter
-    * internal linker
-    * reorganized aasm layer
-
-  Revision 1.13  2002/05/18 13:34:08  peter
-    * readded missing revisions
-
-  Revision 1.12  2002/05/16 19:46:36  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.10  2002/05/06 19:49:26  carl
-  + added more patches from Mazen for SPARC port
 
 }

@@ -71,19 +71,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-09-29 23:42:45  florian
-    * several fixes to get forward with alpha compilation
-
-  Revision 1.3  2002/07/07 09:44:32  florian
-    * powerpc target fixed, very simple units can be compiled
-
-  Revision 1.2  2002/05/16 19:46:53  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.1  2002/04/06 18:13:02  jonas
-    * several powerpc-related additions and fixes
+  Revision 1.2  2004-06-20 08:55:31  florian
+    * logs truncated
 
 }

@@ -676,7 +676,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.41  2004-02-24 00:53:49  olle
+  Revision 1.42  2004-06-20 08:55:29  florian
+    * logs truncated
+
+  Revision 1.41  2004/02/24 00:53:49  olle
     * increased maxsize of link.res file name
     * fixed a 255-limit in TScript.WriteToDisk
 
@@ -684,64 +687,5 @@ end.
     + Support for Link on target especially for MacOS
     + TLinkerMPW
     + TAsmScriptMPW
-
-  Revision 1.39  2003/12/11 17:53:03  florian
-    * fixed external smartlinking
-
-  Revision 1.38  2003/09/14 21:33:11  peter
-    * don't check exepath when linking on target
-
-  Revision 1.37  2003/06/12 16:41:51  peter
-    * add inputfile prefix to ppas/link.res
-
-  Revision 1.36  2003/05/09 17:47:02  peter
-    * self moved to hidden parameter
-    * removed hdisposen,hnewn,selfn
-
-  Revision 1.35  2003/04/26 09:16:07  peter
-    * .o files belonging to the unit are first searched in the same dir
-      as the .ppu
-
-  Revision 1.34  2003/02/12 22:04:59  carl
-    - removed my stupid hello debug code
-
-  Revision 1.33  2002/11/15 01:58:48  peter
-    * merged changes from 1.0.7 up to 04-11
-      - -V option for generating bug report tracing
-      - more tracing for option parsing
-      - errors for cdecl and high()
-      - win32 import stabs
-      - win32 records<=8 are returned in eax:edx (turned off by default)
-      - heaptrc update
-      - more info for temp management in .s file with EXTDEBUG
-
-  Revision 1.32  2002/11/09 15:37:21  carl
-    - removed no longer used defines
-
-  Revision 1.31  2002/09/07 15:25:02  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.30  2002/08/12 15:08:39  carl
-    + stab register indexes for powerpc (moved from gdb to cpubase)
-    + tprocessor enumeration moved to cpuinfo
-    + linker in target_info is now a class
-    * many many updates for m68k (will soon start to compile)
-    - removed some ifdef or correct them for correct cpu
-
-  Revision 1.29  2002/07/01 18:46:22  peter
-    * internal linker
-    * reorganized aasm layer
-
-  Revision 1.28  2002/05/18 13:34:08  peter
-    * readded missing revisions
-
-  Revision 1.27  2002/05/16 19:46:37  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.25  2002/01/19 11:57:05  peter
-    * fixed path appending for lib
 
 }

@@ -117,7 +117,7 @@ End.
 
 {
  $Log$
- Revision 1.2  2002-08-13 18:58:54  carl
-   + m68k problems with cvs fixed?()!
+ Revision 1.3  2004-06-20 08:55:31  florian
+   * logs truncated
 
 }

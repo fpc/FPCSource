@@ -219,7 +219,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2004-06-16 20:07:11  florian
+  Revision 1.6  2004-06-20 08:55:32  florian
+    * logs truncated
+
+  Revision 1.5  2004/06/16 20:07:11  florian
     * dwarf branch merged
 
   Revision 1.4.2.3  2004/05/03 16:27:38  peter
@@ -234,12 +237,4 @@ end.
   Revision 1.4  2004/02/05 18:28:37  peter
     * x86_64 fixes for opsize
 
-  Revision 1.3  2004/02/05 01:24:08  florian
-    * several fixes to compile x86-64 system
-
-  Revision 1.2  2004/02/04 19:22:27  peter
-  *** empty log message ***
-
-  Revision 1.1  2004/01/20 12:59:37  florian
-    * common addnode code for x86-64 and i386
 }

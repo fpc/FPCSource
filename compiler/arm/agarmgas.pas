@@ -238,7 +238,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2004-06-16 20:07:10  florian
+  Revision 1.21  2004-06-20 08:55:31  florian
+    * logs truncated
+
+  Revision 1.20  2004/06/16 20:07:10  florian
     * dwarf branch merged
 
   Revision 1.19.2.1  2004/06/12 17:01:01  florian
@@ -253,62 +256,4 @@ end.
     * fixed arm compilation
     * cleaned up code generation for exported linux procedures
 
-  Revision 1.17  2003/11/30 19:35:29  florian
-    * fixed several arm related problems
-
-  Revision 1.16  2003/11/29 17:36:56  peter
-    * fixed is_move
-
-  Revision 1.15  2003/11/21 16:29:26  florian
-    * fixed reading of reg. sets in the arm assembler reader
-
-  Revision 1.14  2003/11/17 23:23:47  florian
-    + first part of arm assembler reader
-
-  Revision 1.13  2003/11/07 15:58:32  florian
-    * Florian's culmutative nr. 1; contains:
-      - invalid calling conventions for a certain cpu are rejected
-      - arm softfloat calling conventions
-      - -Sp for cpu dependend code generation
-      - several arm fixes
-      - remaining code for value open array paras on heap
-
-  Revision 1.12  2003/11/02 14:30:03  florian
-    * fixed ARM for new reg. allocation scheme
-
-  Revision 1.11  2003/09/06 11:21:49  florian
-    * fixed stm and ldm to be usable with preindex operand
-
-  Revision 1.10  2003/09/05 23:57:01  florian
-    * arm is working again as before the new register naming scheme was implemented
-
-  Revision 1.9  2003/09/04 00:15:29  florian
-    * first bunch of adaptions of arm compiler for new register type
-
-  Revision 1.8  2003/09/03 19:10:30  florian
-    * initial revision of new register naming
-
-  Revision 1.7  2003/09/01 15:11:16  florian
-    * fixed reference handling
-    * fixed operand postfix for floating point instructions
-    * fixed wrong shifter constant handling
-
-  Revision 1.6  2003/08/29 21:36:28  florian
-    * fixed procedure entry/exit code
-    * started to fix reference handling
-
-  Revision 1.5  2003/08/28 13:26:10  florian
-    * another couple of arm fixes
-
-  Revision 1.4  2003/08/28 00:05:29  florian
-    * today's arm patches
-
-  Revision 1.3  2003/08/24 12:27:26  florian
-    * continued to work on the arm port
-
-  Revision 1.2  2003/08/20 15:50:12  florian
-    * more arm stuff
-
-  Revision 1.1  2003/08/16 13:23:01  florian
-    * several arm related stuff fixed
 }

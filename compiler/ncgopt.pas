@@ -201,58 +201,14 @@ end.
 
 {
   $Log$
-  Revision 1.13  2004-05-22 23:34:28  peter
+  Revision 1.14  2004-06-20 08:55:29  florian
+    * logs truncated
+
+  Revision 1.13  2004/05/22 23:34:28  peter
   tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
 
   Revision 1.12  2004/01/31 17:45:17  peter
     * Change several $ifdef i386 to x86
     * Change several OS_32 to OS_INT/OS_ADDR
 
-  Revision 1.11  2003/10/10 17:48:13  peter
-    * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
-    * tregisteralloctor renamed to trgobj
-    * removed rgobj from a lot of units
-    * moved location_* and reference_* to cgobj
-    * first things for mmx register allocation
-
-  Revision 1.10  2003/10/09 21:31:37  daniel
-    * Register allocator splitted, ans abstract now
-
-  Revision 1.9  2003/10/01 20:34:48  peter
-    * procinfo unit contains tprocinfo
-    * cginfo renamed to cgbase
-    * moved cgmessage to verbose
-    * fixed ppc and sparc compiles
-
-  Revision 1.8  2003/09/07 22:09:35  peter
-    * preparations for different default calling conventions
-    * various RA fixes
-
-  Revision 1.7  2003/09/03 15:55:00  peter
-    * NEWRA branch merged
-
-  Revision 1.6.2.1  2003/08/29 17:28:59  peter
-    * next batch of updates
-
-  Revision 1.6  2003/06/03 21:11:09  peter
-    * cg.a_load_* get a from and to size specifier
-    * makeregsize only accepts newregister
-    * i386 uses generic tcgnotnode,tcgunaryminus
-
-  Revision 1.5  2003/06/03 13:01:59  daniel
-    * Register allocator finished
-
-  Revision 1.4  2003/06/01 21:38:06  peter
-    * getregisterfpu size parameter added
-    * op_const_reg size parameter added
-    * sparc updates
-
-  Revision 1.3  2003/05/26 21:15:18  peter
-    * disable string node optimizations for the moment
-
-  Revision 1.2  2003/04/26 09:12:55  peter
-    * add string returns in LOC_REFERENCE
-
-  Revision 1.1  2003/04/24 11:20:06  florian
-    + created from n386opt
 }

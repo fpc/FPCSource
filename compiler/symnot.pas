@@ -65,23 +65,7 @@ end.
 
 {
   $Log$
-  Revision 1.3  2003-10-22 15:22:33  peter
-    * fixed unitsym-globalsymtable relation so the uses of a unit
-      is counted correctly
-
-  Revision 1.2  2002/12/31 09:55:58  daniel
-   + Notification implementation complete
-   + Add for loop code optimization using notifications
-     results in 1.5-1.9% speed improvement in nestloop benchmark
-     Optimization incomplete, compiler does not cycle yet with
-     notifications enabled.
-
-  Revision 1.1  2002/09/01 08:04:42  daniel
-   + Added read/write notifications of variables. These will be usefull
-     for providing information for several optimizations. For example
-     the value of the loop variable of a for loop does matter is the
-     variable is read after the for loop, but if it's no longer used
-     or written, it doesn't matter and this can be used to optimize
-     the loop code generation.
+  Revision 1.4  2004-06-20 08:55:30  florian
+    * logs truncated
 
 }

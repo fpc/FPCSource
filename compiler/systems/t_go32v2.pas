@@ -362,59 +362,7 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2003-10-03 14:16:48  marco
-   * -XP<prefix> support
-
-  Revision 1.2  2003/04/26 09:16:08  peter
-    * .o files belonging to the unit are first searched in the same dir
-      as the .ppu
-
-  Revision 1.1  2002/09/06 15:03:51  carl
-    * moved files to systems directory
-
-  Revision 1.25  2002/08/12 15:08:44  carl
-    + stab register indexes for powerpc (moved from gdb to cpubase)
-    + tprocessor enumeration moved to cpuinfo
-    + linker in target_info is now a class
-    * many many updates for m68k (will soon start to compile)
-    - removed some ifdef or correct them for correct cpu
-
-  Revision 1.24  2002/07/26 21:15:46  florian
-    * rewrote the system handling
-
-  Revision 1.23  2002/07/01 18:46:35  peter
-    * internal linker
-    * reorganized aasm layer
-
-  Revision 1.22  2002/05/18 13:34:26  peter
-    * readded missing revisions
-
-  Revision 1.21  2002/05/16 19:46:53  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.19  2002/04/22 18:19:22  carl
-  - remove use_bound_instruction field
-
-  Revision 1.18  2002/04/20 21:43:18  carl
-  * fix stack size for some targets
-  + add offset to parameters from frame pointer info.
-  - remove some unused stuff
-
-  Revision 1.17  2002/04/15 19:44:23  peter
-    * fixed stackcheck that would be called recursively when a stack
-      error was found
-    * generic changeregsize(reg,size) for i386 register resizing
-    * removed some more routines from cga unit
-    * fixed returnvalue handling
-    * fixed default stacksize of linux and go32v2, 8kb was a bit small :-)
-
-  Revision 1.16  2002/04/15 19:16:57  carl
-  - remove size_of_pointer field
-
-  Revision 1.15  2002/01/29 21:27:34  peter
-    * default alignment changed to 4 bytes for locals and static const,var
+  Revision 1.4  2004-06-20 08:55:32  florian
+    * logs truncated
 
 }

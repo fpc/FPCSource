@@ -935,7 +935,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2004-06-16 20:07:11  florian
+  Revision 1.11  2004-06-20 08:55:32  florian
+    * logs truncated
+
+  Revision 1.10  2004/06/16 20:07:11  florian
     * dwarf branch merged
 
   Revision 1.9.2.4  2004/05/02 16:46:28  peter
@@ -950,33 +953,4 @@ end.
   Revision 1.9.2.1  2004/04/26 15:54:33  peter
     * small x86-64 fixes
 
-  Revision 1.9  2004/02/22 16:30:37  florian
-    * fixed
-    + second_cmpfloatsse
-
-  Revision 1.8  2004/02/06 16:44:42  florian
-    + improved floating point compares for x86-64 and Pentium2 and above
-
-  Revision 1.7  2004/02/04 19:22:27  peter
-  *** empty log message ***
-
-  Revision 1.6  2004/01/20 12:59:37  florian
-    * common addnode code for x86-64 and i386
-
-  Revision 1.5  2003/12/26 13:19:16  florian
-    * rtl and compiler compile with -Cfsse2
-
-  Revision 1.4  2003/12/26 00:32:22  florian
-    + fpu<->mm register conversion
-
-  Revision 1.3  2003/12/25 01:07:09  florian
-    + $fputype directive support
-    + single data type operations with sse unit
-    * fixed more x86-64 stuff
-
-  Revision 1.2  2003/12/23 14:38:07  florian
-    + second_floataddsse implemented
-
-  Revision 1.1  2003/10/13 01:58:04  florian
-    * some ideas for mm support implemented
 }

@@ -227,7 +227,10 @@ end.
 
 {
   $Log$
-  Revision 1.11  2004-06-16 20:07:10  florian
+  Revision 1.12  2004-06-20 08:55:31  florian
+    * logs truncated
+
+  Revision 1.11  2004/06/16 20:07:10  florian
     * dwarf branch merged
 
   Revision 1.10.2.4  2004/06/13 20:38:38  florian
@@ -242,40 +245,4 @@ end.
   Revision 1.10.2.1  2004/06/12 17:01:01  florian
     * fixed compilation of arm compiler
 
-  Revision 1.10  2004/03/14 16:15:40  florian
-    * spilling problem fixed
-    * handling of floating point memory references fixed
-
-  Revision 1.9  2004/03/06 20:35:20  florian
-    * fixed arm compilation
-    * cleaned up code generation for exported linux procedures
-
-  Revision 1.8  2004/02/08 23:06:59  florian
-    * fixed compilation problem
-
-  Revision 1.7  2004/01/28 15:36:47  florian
-    * fixed another couple of arm bugs
-
-  Revision 1.6  2004/01/26 19:05:56  florian
-    * fixed several arm issues
-
-  Revision 1.5  2003/11/02 14:30:03  florian
-    * fixed ARM for new reg. allocation scheme
-
-  Revision 1.4  2003/09/11 11:55:00  florian
-    * improved arm code generation
-    * move some protected and private field around
-    * the temp. register for register parameters/arguments are now released
-      before the move to the parameter register is done. This improves
-      the code in a lot of cases.
-
-  Revision 1.3  2003/09/04 00:15:29  florian
-    * first bunch of adaptions of arm compiler for new register type
-
-  Revision 1.2  2003/08/25 23:20:38  florian
-    + started to implement FPU support for the ARM
-    * fixed a lot of other things
-
-  Revision 1.1  2003/08/16 13:23:01  florian
-    * several arm related stuff fixed
 }

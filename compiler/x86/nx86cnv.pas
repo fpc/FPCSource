@@ -301,7 +301,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2004-06-16 20:07:11  florian
+  Revision 1.13  2004-06-20 08:55:32  florian
+    * logs truncated
+
+  Revision 1.12  2004/06/16 20:07:11  florian
     * dwarf branch merged
 
   Revision 1.11  2004/05/10 20:57:45  florian
@@ -316,51 +319,4 @@ end.
   Revision 1.10.2.2  2004/04/27 18:18:26  peter
     * aword -> aint
 
-  Revision 1.10.2.1  2004/04/26 15:54:33  peter
-    * small x86-64 fixes
-
-  Revision 1.10  2004/02/27 10:21:06  florian
-    * top_symbol killed
-    + refaddr to treference added
-    + refsymbol to treference added
-    * top_local stuff moved to an extra record to save memory
-    + aint introduced
-    * tppufile.get/putint64/aint implemented
-
-  Revision 1.9  2004/02/05 01:24:08  florian
-    * several fixes to compile x86-64 system
-
-  Revision 1.8  2003/12/26 00:32:22  florian
-    + fpu<->mm register conversion
-
-  Revision 1.7  2003/10/10 17:48:14  peter
-    * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
-    * tregisteralloctor renamed to trgobj
-    * removed rgobj from a lot of units
-    * moved location_* and reference_* to cgobj
-    * first things for mmx register allocation
-
-  Revision 1.6  2003/10/09 21:31:38  daniel
-    * Register allocator splitted, ans abstract now
-
-  Revision 1.5  2003/10/01 20:34:51  peter
-    * procinfo unit contains tprocinfo
-    * cginfo renamed to cgbase
-    * moved cgmessage to verbose
-    * fixed ppc and sparc compiles
-
-  Revision 1.4  2003/09/28 21:48:57  peter
-    * fix register leak
-
-  Revision 1.3  2003/09/03 15:55:02  peter
-    * NEWRA branch merged
-
-  Revision 1.2.2.1  2003/08/31 15:46:26  peter
-    * more updates for tregister
-
-  Revision 1.2  2003/05/22 21:33:31  peter
-    * removed some unit dependencies
-
-  Revision 1.1  2003/05/01 08:02:42  florian
-    * i386 and x86-64 share second_int_to_bool, moved to nx86cnv.pas
 }

@@ -78,7 +78,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  2004-06-16 20:07:10  florian
+  Revision 1.18  2004-06-20 08:55:32  florian
+    * logs truncated
+
+  Revision 1.17  2004/06/16 20:07:10  florian
     * dwarf branch merged
 
   Revision 1.16  2004/04/28 15:19:03  florian
@@ -93,42 +96,5 @@ end.
 
   Revision 1.15  2004/03/12 08:18:11  mazen
   - revert '../' from include path
-
-  Revision 1.14  2004/03/11 16:22:28  mazen
-  + help lazarus analyze the file
-
-  Revision 1.13  2004/02/27 11:44:48  mazen
-  + added AInt support
-
-  Revision 1.12  2003/12/01 18:43:32  peter
-    * s128real type is not compatible with s80real
-
-  Revision 1.11  2003/11/28 13:09:07  mazen
-  + defintion of ts128real
-  + globtype is needed in interface uses clause
-
-  Revision 1.10  2003/11/07 15:58:33  florian
-    * Florian's culmutative nr. 1; contains:
-      - invalid calling conventions for a certain cpu are rejected
-      - arm softfloat calling conventions
-      - -Sp for cpu dependend code generation
-      - several arm fixes
-      - remaining code for value open array paras on heap
-
-  Revision 1.9  2003/09/03 15:55:01  peter
-    * NEWRA branch merged
-
-  Revision 1.8  2003/06/17 16:35:42  peter
-    * JMP_BUF_SIZE changed to 4 to remove Alloctemp warnings
-
-  Revision 1.7  2003/05/23 22:33:48  florian
-    * fix some small flaws which prevent sparc linux system unit from compiling
-    * some reformatting done
-
-  Revision 1.6  2002/11/16 20:07:57  florian
-    * made target_cpu_name lowercase
-
-  Revision 1.5  2002/10/16 12:36:54  mazen
-  * patch of Carl Eric added
 
 }

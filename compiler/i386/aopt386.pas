@@ -120,23 +120,7 @@ End;
 End.
 {
   $Log$
-  Revision 1.9  2003-06-08 18:48:03  jonas
-    * first small steps towards an oop optimizer
-
-  Revision 1.8  2003/02/26 21:15:43  daniel
-    * Fixed the optimizer
-
-  Revision 1.7  2002/07/01 18:46:29  peter
-    * internal linker
-    * reorganized aasm layer
-
-  Revision 1.6  2002/05/18 13:34:21  peter
-    * readded missing revisions
-
-  Revision 1.5  2002/05/16 19:46:50  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
+  Revision 1.10  2004-06-20 08:55:31  florian
+    * logs truncated
 
 }

@@ -753,7 +753,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.15  2004-06-16 20:07:10  florian
+  Revision 1.16  2004-06-20 08:55:32  florian
+    * logs truncated
+
+  Revision 1.15  2004/06/16 20:07:10  florian
     * dwarf branch merged
 
   Revision 1.14.2.1  2004/05/01 23:36:47  peter
@@ -768,46 +771,4 @@ end.
   Revision 1.12  2004/02/28 14:14:44  florian
     * fixed syntax error in previous commit
 
-  Revision 1.11  2004/02/28 13:24:36  florian
-    * jmps in inline assembler fixed
-
-  Revision 1.10  2004/02/27 10:21:05  florian
-    * top_symbol killed
-    + refaddr to treference added
-    + refsymbol to treference added
-    * top_local stuff moved to an extra record to save memory
-    + aint introduced
-    * tppufile.get/putint64/aint implemented
-
-  Revision 1.9  2004/02/04 15:23:28  olle
-    * uodated header comment
-
-  Revision 1.8  2003/11/29 22:54:32  jonas
-    * more ppc fixes, hello world works again under linuxppc
-
-  Revision 1.7  2003/11/29 16:27:19  jonas
-    * fixed several ppc assembler reader related problems
-    * local vars in assembler procedures now start at offset 4
-    * fixed second_int_to_bool (apparently an integer can be in  LOC_JUMP??)
-
-  Revision 1.6  2003/11/23 20:00:39  jonas
-  * fixed is_condreg
-  * fixed branch condition parsing in assembler reader
-
-  Revision 1.5  2003/11/23 18:32:42  florian
-    + skeleton for bXX crX,<label>
-
-  Revision 1.4  2003/11/23 17:33:24  jonas
-    * fixed uninitialised var
-
-  Revision 1.3  2003/11/15 19:00:10  florian
-    * fixed ppc assembler reader
-
-  Revision 1.2  2003/11/12 16:05:40  florian
-    * assembler readers OOPed
-    + typed currency constants
-    + typed 128 bit float constants if the CPU supports it
-
-  Revision 1.1  2003/11/06 20:48:02  florian
-    * initial revision
 }

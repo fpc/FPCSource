@@ -1191,7 +1191,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.40  2004-06-16 20:07:07  florian
+  Revision 1.41  2004-06-20 08:55:29  florian
+    * logs truncated
+
+  Revision 1.40  2004/06/16 20:07:07  florian
     * dwarf branch merged
 
   Revision 1.39  2004/05/22 23:33:18  peter
@@ -1205,101 +1208,5 @@ end.
 
   Revision 1.38.2.1  2004/04/20 16:35:58  peter
     * generate dwarf for stackframe entry
-
-  Revision 1.38  2004/03/29 19:19:35  florian
-    + arm floating point register saving implemented
-    * hopefully stabs generation for MacOSX fixed
-    + some defines for arm added
-
-  Revision 1.37  2004/03/22 09:28:34  michael
-  + Patch from peter for stack overflow
-
-  Revision 1.36  2004/02/27 10:21:05  florian
-    * top_symbol killed
-    + refaddr to treference added
-    + refsymbol to treference added
-    * top_local stuff moved to an extra record to save memory
-    + aint introduced
-    * tppufile.get/putint64/aint implemented
-
-  Revision 1.35  2004/02/22 22:13:27  daniel
-    * Escape newlines in constant string stabs
-
-  Revision 1.34  2004/01/26 22:08:20  daniel
-    * Bugfix on constant strings stab generation. Never worked and still
-      doesn't work for unknown reasons.
-
-  Revision 1.33  2004/01/25 13:18:59  daniel
-    * Made varags parameter constant
-
-  Revision 1.32  2004/01/25 11:33:48  daniel
-    * 2nd round of gdb cleanup
-
-  Revision 1.31  2004/01/15 15:16:18  daniel
-    * Some minor stuff
-    * Managed to eliminate speed effects of string compression
-
-  Revision 1.30  2004/01/11 23:56:19  daniel
-    * Experiment: Compress strings to save memory
-      Did not save a single byte of mem; clearly the core size is boosted by
-      temporary memory usage...
-
-  Revision 1.29  2003/10/31 15:51:11  peter
-    * USEINLINE directive added (not enabled yet)
-
-  Revision 1.28  2003/09/03 15:55:00  peter
-    * NEWRA branch merged
-
-  Revision 1.27.2.2  2003/08/29 17:28:59  peter
-    * next batch of updates
-
-  Revision 1.27.2.1  2003/08/29 09:41:25  daniel
-    * Further mkx86reg development
-
-  Revision 1.27  2003/07/05 20:06:28  jonas
-    * fixed some range check errors that occurred on big endian systems
-    * slightly optimized the swap*() functions
-
-  Revision 1.26  2003/04/04 15:34:25  peter
-    * quote names with hi-ascii chars
-
-  Revision 1.25  2003/01/09 21:42:27  peter
-    * realtostr added
-
-  Revision 1.24  2002/12/27 18:05:27  peter
-    * support quotes in gettoken
-
-  Revision 1.23  2002/10/05 12:43:24  carl
-    * fixes for Delphi 6 compilation
-     (warning : Some features do not work under Delphi)
-
-  Revision 1.22  2002/09/05 19:29:42  peter
-    * memdebug enhancements
-
-  Revision 1.21  2002/07/26 11:16:35  jonas
-    * fixed (actual and potential) range errors
-
-  Revision 1.20  2002/07/07 11:13:34  carl
-    * range check error fix (patch from Sergey)
-
-  Revision 1.19  2002/07/07 09:52:32  florian
-    * powerpc target fixed, very simple units can be compiled
-    * some basic stuff for better callparanode handling, far from being finished
-
-  Revision 1.18  2002/07/01 18:46:22  peter
-    * internal linker
-    * reorganized aasm layer
-
-  Revision 1.17  2002/05/18 13:34:07  peter
-    * readded missing revisions
-
-  Revision 1.16  2002/05/16 19:46:36  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.14  2002/04/12 17:16:35  carl
-  + more documentation of basic unit
 
 }

@@ -418,7 +418,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  2004-06-16 20:07:07  florian
+  Revision 1.12  2004-06-20 08:55:29  florian
+    * logs truncated
+
+  Revision 1.11  2004/06/16 20:07:07  florian
     * dwarf branch merged
 
   Revision 1.10.2.1  2004/05/02 14:09:54  peter
@@ -431,27 +434,5 @@ end.
 
   Revision 1.9  2004/01/28 15:36:46  florian
     * fixed another couple of arm bugs
-
-  Revision 1.8  2003/05/10 23:57:23  florian
-    * vmtpointer_offset must be adjusted in after_pass1 as well
-
-  Revision 1.7  2003/04/22 14:33:38  peter
-    * removed some notes/hints
-
-  Revision 1.6  2002/05/18 13:34:06  peter
-    * readded missing revisions
-
-  Revision 1.5  2002/05/16 19:46:35  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.3  2002/04/19 15:41:39  peter
-    * better replacements that also allow $1 in the replacements without
-      replacing that instance also
-
-  Revision 1.2  2002/03/01 12:41:40  peter
-    * fixed Message4()
 
 }

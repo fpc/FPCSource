@@ -165,24 +165,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  2003-12-03 17:45:36  peter
-    * don't turn off debuginfo when line info is requested
-
-  Revision 1.12  2002/05/18 13:34:18  peter
-    * readded missing revisions
-
-  Revision 1.11  2002/05/16 19:46:44  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.9  2002/04/15 19:44:20  peter
-    * fixed stackcheck that would be called recursively when a stack
-      error was found
-    * generic changeregsize(reg,size) for i386 register resizing
-    * removed some more routines from cga unit
-    * fixed returnvalue handling
-    * fixed default stacksize of linux and go32v2, 8kb was a bit small :-)
+  Revision 1.14  2004-06-20 08:55:30  florian
+    * logs truncated
 
 }

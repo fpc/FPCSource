@@ -53,27 +53,7 @@ unit cpunode;
 end.
 {
   $Log$
-  Revision 1.4  2003-02-02 19:25:54  carl
-    * Several bugfixes for m68k target (register alloc., opcode emission)
-    + VIS target
-    + Generic add more complete (still not verified)
-
-  Revision 1.3  2002/12/14 15:02:03  carl
-    * maxoperands -> max_operands (for portability in rautils.pas)
-    * fix some range-check errors with loadconst
-    + add ncgadd unit to m68k
-    * some bugfix of a_param_reg with LOC_CREFERENCE
-
-  Revision 1.2  2002/08/14 19:16:34  carl
-    + m68k type conversion nodes
-    + started some mathematical nodes
-    * out of bound references should now be handled correctly
-
-  Revision 1.1  2002/08/13 18:01:52  carl
-    * rename swatoperands to swapoperands
-    + m68k first compilable version (still needs a lot of testing):
-        assembler generator, system information , inline
-        assembler reader.
-
+  Revision 1.5  2004-06-20 08:55:31  florian
+    * logs truncated
 
 }

@@ -104,28 +104,7 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2003-10-03 22:09:49  peter
-    * removed paraalign
+  Revision 1.6  2004-06-20 08:55:32  florian
+    * logs truncated
 
-  Revision 1.4  2003/10/02 21:17:08  peter
-    * use as,ld,ar instead of asw,ldw,arw for win32
-
-  Revision 1.3  2003/03/23 23:31:54  hajny
-    + platform extensions unified
-
-  Revision 1.2  2002/09/07 15:25:15  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.1  2002/09/06 15:03:51  carl
-    * moved files to systems directory
-
-  Revision 1.2  2002/08/12 15:08:39  carl
-    + stab register indexes for powerpc (moved from gdb to cpubase)
-    + tprocessor enumeration moved to cpuinfo
-    + linker in target_info is now a class
-    * many many updates for m68k (will soon start to compile)
-    - removed some ifdef or correct them for correct cpu
-
-  Revision 1.1  2002/07/26 21:15:38  florian
-    * rewrote the system handling
 }

@@ -480,7 +480,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2004-06-16 20:07:08  florian
+  Revision 1.27  2004-06-20 08:55:29  florian
+    * logs truncated
+
+  Revision 1.26  2004/06/16 20:07:08  florian
     * dwarf branch merged
 
   Revision 1.25.2.4  2004/06/02 19:04:51  peter
@@ -494,129 +497,5 @@ end.
 
   Revision 1.25.2.1  2004/04/27 18:18:25  peter
     * aword -> aint
-
-  Revision 1.25  2004/01/23 15:12:49  florian
-    * fixed generic shl/shr operations
-    + added register allocation hook calls for arm specific operand types:
-      register set and shifter op
-
-  Revision 1.24  2004/01/20 12:59:37  florian
-    * common addnode code for x86-64 and i386
-
-  Revision 1.23  2003/12/06 01:15:22  florian
-    * reverted Peter's alloctemp patch; hopefully properly
-
-  Revision 1.22  2003/12/03 23:13:20  peter
-    * delayed paraloc allocation, a_param_*() gets extra parameter
-      if it needs to allocate temp or real paralocation
-    * optimized/simplified int-real loading
-
-  Revision 1.21  2003/10/10 17:48:13  peter
-    * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
-    * tregisteralloctor renamed to trgobj
-    * removed rgobj from a lot of units
-    * moved location_* and reference_* to cgobj
-    * first things for mmx register allocation
-
-  Revision 1.20  2003/10/09 21:31:37  daniel
-    * Register allocator splitted, ans abstract now
-
-  Revision 1.19  2003/10/01 20:34:48  peter
-    * procinfo unit contains tprocinfo
-    * cginfo renamed to cgbase
-    * moved cgmessage to verbose
-    * fixed ppc and sparc compiles
-
-  Revision 1.18  2003/09/10 08:31:47  marco
-   * Patch from Peter for paraloc
-
-  Revision 1.17  2003/09/03 15:55:00  peter
-    * NEWRA branch merged
-
-  Revision 1.16  2003/09/03 11:18:37  florian
-    * fixed arm concatcopy
-    + arm support in the common compiler sources added
-    * moved some generic cg code around
-    + tfputype added
-    * ...
-
-  Revision 1.15.2.2  2003/08/31 15:46:26  peter
-    * more updates for tregister
-
-  Revision 1.15.2.1  2003/08/31 13:50:15  daniel
-    * Remove sorting and use pregenerated indexes
-    * Some work on making things compile
-
-  Revision 1.15  2003/07/02 22:18:04  peter
-    * paraloc splitted in callerparaloc,calleeparaloc
-    * sparc calling convention updates
-
-  Revision 1.14  2003/06/07 18:57:04  jonas
-    + added freeintparaloc
-    * ppc get/freeintparaloc now check whether the parameter regs are
-      properly allocated/deallocated (and get an extra list para)
-    * ppc a_call_* now internalerrors if pi_do_call is not yet set
-    * fixed lot of missing pi_do_call's
-
-  Revision 1.13  2003/06/03 21:11:09  peter
-    * cg.a_load_* get a from and to size specifier
-    * makeregsize only accepts newregister
-    * i386 uses generic tcgnotnode,tcgunaryminus
-
-  Revision 1.12  2003/06/01 21:38:06  peter
-    * getregisterfpu size parameter added
-    * op_const_reg size parameter added
-    * sparc updates
-
-  Revision 1.11  2003/05/30 23:49:18  jonas
-    * a_load_loc_reg now has an extra size parameter for the destination
-      register (properly fixes what I worked around in revision 1.106 of
-      ncgutil.pas)
-
-  Revision 1.10  2003/05/23 14:27:35  peter
-    * remove some unit dependencies
-    * current_procinfo changes to store more info
-
-  Revision 1.9  2003/04/23 20:16:04  peter
-    + added currency support based on int64
-    + is_64bit for use in cg units instead of is_64bitint
-    * removed cgmessage from n386add, replace with internalerrors
-
-  Revision 1.8  2003/04/22 10:09:35  daniel
-    + Implemented the actual register allocator
-    + Scratch registers unavailable when new register allocator used
-    + maybe_save/maybe_restore unavailable when new register allocator used
-
-  Revision 1.7  2003/03/28 19:16:56  peter
-    * generic constructor working for i386
-    * remove fixed self register
-    * esi added as address register for i386
-
-  Revision 1.6  2003/02/19 22:00:14  daniel
-    * Code generator converted to new register notation
-    - Horribily outdated todo.txt removed
-
-  Revision 1.5  2002/11/25 17:43:18  peter
-    * splitted defbase in defutil,symutil,defcmp
-    * merged isconvertable and is_equal into compare_defs(_ext)
-    * made operator search faster by walking the list only once
-
-  Revision 1.4  2002/09/17 18:54:02  jonas
-    * a_load_reg_reg() now has two size parameters: source and dest. This
-      allows some optimizations on architectures that don't encode the
-      register size in the register name.
-
-  Revision 1.3  2002/08/23 16:14:48  peter
-    * tempgen cleanup
-    * tt_noreuse temp type added that will be used in genentrycode
-
-  Revision 1.2  2002/08/15 15:15:55  carl
-    * jmpbuf size allocation for exceptions is now cpu specific (as it should)
-    * more generic nodes for maths
-    * several fixes for better m68k support
-
-  Revision 1.1  2002/08/14 19:26:55  carl
-    + generic int_to_real type conversion
-    + generic unaryminus node
 
 }

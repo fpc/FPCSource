@@ -308,7 +308,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2004-06-16 20:07:11  florian
+  Revision 1.5  2004-06-20 08:55:32  florian
+    * logs truncated
+
+  Revision 1.4  2004/06/16 20:07:11  florian
     * dwarf branch merged
 
   Revision 1.3.2.1  2004/04/27 18:18:26  peter
@@ -322,6 +325,4 @@ end.
   Revision 1.2  2004/01/20 12:59:37  florian
     * common addnode code for x86-64 and i386
 
-  Revision 1.1  2003/12/26 13:47:41  florian
-    * rtl and compiler compile with -Cfsse2
 }

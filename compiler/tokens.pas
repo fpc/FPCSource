@@ -514,7 +514,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.29  2004-06-16 20:07:10  florian
+  Revision 1.30  2004-06-20 08:55:30  florian
+    * logs truncated
+
+  Revision 1.29  2004/06/16 20:07:10  florian
     * dwarf branch merged
 
   Revision 1.28  2004/05/03 10:06:38  olle
@@ -530,43 +533,5 @@ end.
 
   Revision 1.26  2004/02/17 17:38:11  daniel
     * Enable threadvars for all modes
-
-  Revision 1.25  2003/11/07 15:58:32  florian
-    * Florian's culmutative nr. 1; contains:
-      - invalid calling conventions for a certain cpu are rejected
-      - arm softfloat calling conventions
-      - -Sp for cpu dependend code generation
-      - several arm fixes
-      - remaining code for value open array paras on heap
-
-  Revision 1.24  2003/09/07 22:09:35  peter
-    * preparations for different default calling conventions
-    * various RA fixes
-
-  Revision 1.23  2003/09/04 21:58:16  olle
-    + bugfix, put token UNIMPLEMENTED in right order
-
-  Revision 1.22  2003/08/10 17:25:23  peter
-    * fixed some reported bugs
-
-  Revision 1.21  2003/03/26 12:50:54  armin
-  * avoid problems with the ide in init/dome
-
-  Revision 1.20  2002/11/29 22:31:21  carl
-    + unimplemented hint directive added
-    * hint directive parsing implemented
-    * warning on these directives
-
-  Revision 1.19  2002/07/16 15:34:21  florian
-    * exit is now a syssym instead of a keyword
-
-  Revision 1.18  2002/05/18 13:34:21  peter
-    * readded missing revisions
-
-  Revision 1.17  2002/05/16 19:46:46  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
 
 }

@@ -91,7 +91,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.13  2004-06-16 20:07:11  florian
+  Revision 1.14  2004-06-20 08:55:32  florian
+    * logs truncated
+
+  Revision 1.13  2004/06/16 20:07:11  florian
     * dwarf branch merged
 
   Revision 1.12  2004/04/28 15:19:03  florian
@@ -106,51 +109,5 @@ end.
 
   Revision 1.10.2.3  2004/04/26 21:00:37  peter
     * AInt fixed, PAInt added
-
-  Revision 1.10.2.2  2004/04/24 20:13:24  florian
-    * fixed x86-64 exception handling
-
-  Revision 1.10.2.1  2004/04/08 18:33:22  peter
-    * rewrite of TAsmSection
-
-  Revision 1.10  2003/12/25 01:07:09  florian
-    + $fputype directive support
-    + single data type operations with sse unit
-    * fixed more x86-64 stuff
-
-  Revision 1.9  2003/12/22 19:00:17  florian
-    * fixed some x86-64 issues
-
-  Revision 1.8  2003/12/20 12:38:51  florian
-    * some x86-64 compilation fixe
-
-  Revision 1.7  2003/09/24 17:12:02  florian
-    * several fixes for new reg allocator
-
-  Revision 1.6  2003/01/05 13:36:54  florian
-    * x86-64 compiles
-    + very basic support for float128 type (x86-64 only)
-
-  Revision 1.5  2002/09/07 15:25:15  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.4  2002/08/12 15:08:45  carl
-    + stab register indexes for powerpc (moved from gdb to cpubase)
-    + tprocessor enumeration moved to cpuinfo
-    + linker in target_info is now a class
-    * many many updates for m68k (will soon start to compile)
-    - removed some ifdef or correct them for correct cpu
-
-  Revision 1.3  2002/08/10 14:53:38  carl
-    + moved target_cpu_string to cpuinfo
-    * renamed asmmode enum.
-    * assembler reader has now less ifdef's
-    * move from nppcmem.pas -> ncgmem.pas vec. node.
-
-  Revision 1.2  2002/07/25 22:55:34  florian
-    * several fixes, small test units can be compiled
-
-  Revision 1.1  2002/07/24 22:38:15  florian
-    + initial release of x86-64 target code
 
 }

@@ -116,28 +116,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2004-03-23 22:34:50  peter
+  Revision 1.5  2004-06-20 08:55:30  florian
+    * logs truncated
+
+  Revision 1.4  2004/03/23 22:34:50  peter
     * constants ordinals now always have a type assigned
     * integer constants have the smallest type, unsigned prefered over
       signed
-
-  Revision 1.3  2003/12/07 16:40:45  jonas
-    * moved count_locals from pstatmnt to symutils
-    * use count_locals in powerpc/cpupi to check whether we should set the
-      first temp offset (and as such generate a stackframe)
-
-  Revision 1.2  2003/04/25 20:59:35  peter
-    * removed funcretn,funcretsym, function result is now in varsym
-      and aliases for result and function name are added using absolutesym
-    * vs_hidden parameter for funcret passed in parameter
-    * vs_hidden fixes
-    * writenode changed to printnode and released from extdebug
-    * -vp option added to generate a tree.log with the nodetree
-    * nicer printnode for statements, callnode
-
-  Revision 1.1  2002/11/25 17:43:26  peter
-    * splitted defbase in defutil,symutil,defcmp
-    * merged isconvertable and is_equal into compare_defs(_ext)
-    * made operator search faster by walking the list only once
 
 }

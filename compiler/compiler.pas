@@ -426,95 +426,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.44  2004-01-14 23:39:05  florian
+  Revision 1.45  2004-06-20 08:55:29  florian
+    * logs truncated
+
+  Revision 1.44  2004/01/14 23:39:05  florian
     * another bunch of x86-64 fixes mainly calling convention and
       assembler reader related
-
-  Revision 1.43  2003/12/04 10:46:19  mazen
-  + added support for spac assembler reader
-
-  Revision 1.42  2003/11/17 23:23:47  florian
-    + first part of arm assembler reader
-
-  Revision 1.41  2003/11/12 16:05:39  florian
-    * assembler readers OOPed
-    + typed currency constants
-    + typed 128 bit float constants if the CPU supports it
-
-  Revision 1.40  2003/09/05 17:41:12  florian
-    * merged Wiktor's Watcom patches in 1.1
-
-  Revision 1.39  2003/09/03 11:18:36  florian
-    * fixed arm concatcopy
-    + arm support in the common compiler sources added
-    * moved some generic cg code around
-    + tfputype added
-    * ...
-
-  Revision 1.38  2003/05/22 21:39:51  peter
-    * add cgcpu
-
-  Revision 1.37  2003/03/23 23:20:38  hajny
-    + emx target added
-
-  Revision 1.36  2003/02/02 19:25:54  carl
-    * Several bugfixes for m68k target (register alloc., opcode emission)
-    + VIS target
-    + Generic add more complete (still not verified)
-
-  Revision 1.35  2002/09/05 19:28:31  peter
-    * removed repetitive pass counting
-    * display heapsize also for extdebug
-
-  Revision 1.34  2002/08/17 09:23:34  florian
-    * first part of procinfo rewrite
-
-  Revision 1.33  2002/07/26 21:15:37  florian
-    * rewrote the system handling
-
-  Revision 1.32  2002/07/11 14:41:27  florian
-    * start of the new generic parameter handling
-
-  Revision 1.31  2002/07/04 19:00:23  florian
-    + x86_64 define added
-
-  Revision 1.30  2002/07/01 18:46:22  peter
-    * internal linker
-    * reorganized aasm layer
-
-  Revision 1.29  2002/05/18 13:34:06  peter
-    * readded missing revisions
-
-  Revision 1.28  2002/05/16 19:46:35  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.26  2002/05/12 16:53:05  peter
-    * moved entry and exitcode to ncgutil and cgobj
-    * foreach gets extra argument for passing local data to the
-      iterator function
-    * -CR checks also class typecasts at runtime by changing them
-      into as
-    * fixed compiler to cycle with the -CR option
-    * fixed stabs with elf writer, finally the global variables can
-      be watched
-    * removed a lot of routines from cga unit and replaced them by
-      calls to cgobj
-    * u32bit-s32bit updates for and,or,xor nodes. When one element is
-      u32bit then the other is typecasted also to u32bit without giving
-      a rangecheck warning/error.
-    * fixed pascal calling method with reversing also the high tree in
-      the parast, detected by tcalcst3 test
-
-  Revision 1.25  2002/04/15 19:53:54  peter
-    * fixed conflicts between the last 2 commits
-
-  Revision 1.24  2002/04/15 18:56:42  carl
-  + InitAsm
-
-  Revision 1.23  2002/03/24 19:05:31  carl
-  + patch for SPARC from Mazen NEIFER
 
 }

@@ -226,7 +226,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2004-06-16 20:07:10  florian
+  Revision 1.26  2004-06-20 08:55:32  florian
+    * logs truncated
+
+  Revision 1.25  2004/06/16 20:07:10  florian
     * dwarf branch merged
 
   Revision 1.24.2.1  2004/05/31 16:39:42  peter
@@ -244,147 +247,5 @@ end.
     * use localalign info for alignment for locals and temps
     * sparc fpu flags branching added
     * moved powerpc copy_valye_openarray to generic
-
-  Revision 1.21  2003/11/04 22:30:15  florian
-    + type cast variant<->enum
-    * cnv. node second pass uses now as well helper wrappers
-
-  Revision 1.20  2003/10/24 11:31:43  mazen
-  *fixes related to removal of rg
-
-  Revision 1.19  2003/10/01 20:34:50  peter
-    * procinfo unit contains tprocinfo
-    * cginfo renamed to cgbase
-    * moved cgmessage to verbose
-    * fixed ppc and sparc compiles
-
-  Revision 1.18  2003/09/14 21:36:01  peter
-    * remove ppc code
-
-  Revision 1.17  2003/06/04 20:59:37  mazen
-  + added size of destination in code gen methods
-  + making g_overflowcheck declaration same as
-    ancestor's method declaration
-
-  Revision 1.16  2003/06/01 21:38:06  peter
-    * getregisterfpu size parameter added
-    * op_const_reg size parameter added
-    * sparc updates
-
-  Revision 1.15  2003/04/23 21:10:54  peter
-    * fix compile for ppc,sparc,m68k
-
-  Revision 1.14  2003/04/23 13:35:39  peter
-    * fix sparc compile
-
-  Revision 1.13  2003/03/10 21:59:54  mazen
-  * fixing index overflow in handling new registers arrays.
-
-  Revision 1.12  2003/02/19 22:00:17  daniel
-    * Code generator converted to new register notation
-    - Horribily outdated todo.txt removed
-
-  Revision 1.11  2003/01/22 20:45:15  mazen
-  * making math code in RTL compiling.
-  *NB : This does NOT mean necessary that it will generate correct code!
-
-  Revision 1.10  2003/01/20 22:21:36  mazen
-  * many stuff related to RTL fixed
-
-  Revision 1.9  2002/12/05 14:28:03  florian
-    * some variant <-> dyn. array stuff
-
-  Revision 1.8  2002/11/25 17:43:28  peter
-    * splitted defbase in defutil,symutil,defcmp
-    * merged isconvertable and is_equal into compare_defs(_ext)
-    * made operator search faster by walking the list only once
-
-  Revision 1.7  2002/11/10 19:07:46  mazen
-  * SPARC calling mechanism almost OK (as in GCC./mppcsparc )
-
-  Revision 1.6  2002/11/06 11:31:24  mazen
-  * op_reg_reg_reg don't need any more a TOpSize parameter
-
-  Revision 1.5  2002/10/22 13:43:01  mazen
-  - cga.pas redueced to an empty unit
-
-  Revision 1.4  2002/10/10 19:57:52  mazen
-  * Just to update repsitory
-
-  Revision 1.3  2002/09/07 15:25:14  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.2  2002/08/30 06:15:27  mazen
-  ncgcall.pas moved to ncpucall.pas (I'd like ncpu* insteade of nsparc* since it
-  provides processor independent units naming)
-
-  Revision 1.1  2002/08/29 10:16:20  mazen
-  File added support to the new generic parameter handling
-
-  Revision 1.24  2002/08/23 16:14:50  peter
-    * tempgen cleanup
-    * tt_noreuse temp type added that will be used in genentrycode
-
-  Revision 1.23  2002/08/18 10:34:30  florian
-    * more ppc assembling fixes
-
-  Revision 1.22  2002/08/14 19:30:42  carl
-    + added fixing because first_in_to_real is now completely generic
-
-  Revision 1.21  2002/08/11 06:14:41  florian
-    * fixed powerpc compilation problems
-
-  Revision 1.20  2002/08/10 17:15:31  jonas
-    * various fixes and optimizations
-
-  Revision 1.19  2002/07/29 21:23:44  florian
-    * more fixes for the ppc
-    + wrappers for the tcnvnode.first_* stuff introduced
-
-  Revision 1.18  2002/07/29 09:20:20  jonas
-    + second_int_to_int implementation which is almost the same as the
-      generic implementation, but it avoids some unnecessary type conversions
-
-  Revision 1.17  2002/07/27 19:55:15  jonas
-    + generic implementation of tcg.g_flags2ref()
-    * tcg.flags2xxx() now also needs a size parameter
-
-  Revision 1.16  2002/07/24 14:38:00  florian
-    * small typo fixed, compiles with 1.0.x again
-
-  Revision 1.15  2002/07/21 16:57:22  jonas
-    * hopefully final fix for second_int_to_real()
-
-  Revision 1.14  2002/07/20 11:58:05  florian
-    * types.pas renamed to defbase.pas because D6 contains a types
-      unit so this would conflicts if D6 programms are compiled
-    + Willamette/SSE2 instructions to assembler added
-
-  Revision 1.13  2002/07/13 06:49:39  jonas
-    * fixed fpu constants in second_int_to_real (fpu values are also stored
-      in big endian)
-
-  Revision 1.12  2002/07/12 22:02:22  florian
-    * fixed to compile with 1.1
-
-  Revision 1.11  2002/07/11 14:41:34  florian
-    * start of the new generic parameter handling
-
-  Revision 1.10  2002/07/11 07:42:31  jonas
-    * fixed nppccnv and enabled it
-    - removed PPC specific second_int_to_int and use the generic one instead
-
-  Revision 1.9  2002/05/20 13:30:42  carl
-  * bugfix of hdisponen (base must be set, not index)
-  * more portability fixes
-
-  Revision 1.8  2002/05/18 13:34:26  peter
-    * readded missing revisions
-
-  Revision 1.7  2002/05/16 19:46:53  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
 
 }

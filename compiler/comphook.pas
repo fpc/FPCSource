@@ -385,44 +385,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.26  2003-04-26 19:32:31  peter
-    * print lineinfo for internalerror
-
-  Revision 1.25  2003/02/15 22:20:43  carl
-   + give line number of internal error
-
-  Revision 1.24  2003/01/09 21:52:37  peter
-    * merged some verbosity options.
-    * V_LineInfo is a verbosity flag to include line info
-
-  Revision 1.23  2002/12/29 14:57:50  peter
-    * unit loading changed to first register units and load them
-      afterwards. This is needed to support uses xxx in yyy correctly
-    * unit dependency check fixed
-
-  Revision 1.22  2002/12/20 18:14:23  peter
-    * traceback added in EXTDEBUG mode for internalerror
-
-  Revision 1.21  2002/11/15 01:58:46  peter
-    * merged changes from 1.0.7 up to 04-11
-      - -V option for generating bug report tracing
-      - more tracing for option parsing
-      - errors for cdecl and high()
-      - win32 import stabs
-      - win32 records<=8 are returned in eax:edx (turned off by default)
-      - heaptrc update
-      - more info for temp management in .s file with EXTDEBUG
-
-  Revision 1.20  2002/09/05 19:29:42  peter
-    * memdebug enhancements
-
-  Revision 1.19  2002/05/18 13:34:06  peter
-    * readded missing revisions
-
-  Revision 1.18  2002/05/16 19:46:35  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
+  Revision 1.27  2004-06-20 08:55:29  florian
+    * logs truncated
 
 }

@@ -92,26 +92,7 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2003-01-12 15:42:23  peter
-    * m68k pathexist update from 1.0.x
-    * palmos res update from 1.0.x
+  Revision 1.3  2004-06-20 08:55:32  florian
+    * logs truncated
 
-  Revision 1.1  2002/09/06 15:03:51  carl
-    * moved files to systems directory
-
-  Revision 1.3  2002/08/13 18:01:51  carl
-    * rename swatoperands to swapoperands
-    + m68k first compilable version (still needs a lot of testing):
-        assembler generator, system information , inline
-        assembler reader.
-
-  Revision 1.2  2002/08/12 15:08:39  carl
-    + stab register indexes for powerpc (moved from gdb to cpubase)
-    + tprocessor enumeration moved to cpuinfo
-    + linker in target_info is now a class
-    * many many updates for m68k (will soon start to compile)
-    - removed some ifdef or correct them for correct cpu
-
-  Revision 1.1  2002/07/26 21:15:38  florian
-    * rewrote the system handling
 }

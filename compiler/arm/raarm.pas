@@ -55,6 +55,7 @@ unit raarm;
 end.
 {
   $Log$
-  Revision 1.1  2003-11-17 23:23:47  florian
-    + first part of arm assembler reader
+  Revision 1.2  2004-06-20 08:55:31  florian
+    * logs truncated
+
 }

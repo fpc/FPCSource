@@ -644,22 +644,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2003-02-19 22:00:17  daniel
-    * Code generator converted to new register notation
-    - Horribily outdated todo.txt removed
-
-  Revision 1.4  2003/02/02 19:25:54  carl
-    * Several bugfixes for m68k target (register alloc., opcode emission)
-    + VIS target
-    + Generic add more complete (still not verified)
-
-  Revision 1.3  2002/11/17 18:26:16  mazen
-  * fixed a compilation bug accmulator-->accumulator, in definition of return_result_reg
-
-  Revision 1.2  2002/11/17 17:49:09  mazen
-  + return_result_reg and function_result_reg are now used, in all plateforms, to pass functions result between called function and its caller. See the explanation of each one
-
-  Revision 1.1  2002/10/14 16:31:52  carl
-    + first revision of vm
+  Revision 1.6  2004-06-20 08:55:32  florian
+    * logs truncated
 
 }

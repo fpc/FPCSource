@@ -238,55 +238,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.23  2003-04-27 11:21:32  peter
-    * aktprocdef renamed to current_procdef
-    * procinfo renamed to current_procinfo
-    * procinfo will now be stored in current_module so it can be
-      cleaned up properly
-    * gen_main_procsym changed to create_main_proc and release_main_proc
-      to also generate a tprocinfo structure
-    * fixed unit implicit initfinal
-
-  Revision 1.22  2003/04/27 07:29:50  peter
-    * current_procdef cleanup, current_procdef is now always nil when parsing
-      a new procdef declaration
-    * aktprocsym removed
-    * lexlevel removed, use symtable.symtablelevel instead
-    * implicit init/final code uses the normal genentry/genexit
-    * funcret state checking updated for new funcret handling
-
-  Revision 1.21  2002/11/15 01:58:48  peter
-    * merged changes from 1.0.7 up to 04-11
-      - -V option for generating bug report tracing
-      - more tracing for option parsing
-      - errors for cdecl and high()
-      - win32 import stabs
-      - win32 records<=8 are returned in eax:edx (turned off by default)
-      - heaptrc update
-      - more info for temp management in .s file with EXTDEBUG
-
-  Revision 1.20  2002/09/09 17:34:14  peter
-    * tdicationary.replace added to replace and item in a dictionary. This
-      is only allowed for the same name
-    * varsyms are inserted in symtable before the types are parsed. This
-      fixes the long standing "var longint : longint" bug
-    - consume_idlist and idstringlist removed. The loops are inserted
-      at the callers place and uses the symtable for duplicate id checking
-
-  Revision 1.19  2002/07/26 21:15:38  florian
-    * rewrote the system handling
-
-  Revision 1.18  2002/07/01 18:46:22  peter
-    * internal linker
-    * reorganized aasm layer
-
-  Revision 1.17  2002/05/18 13:34:08  peter
-    * readded missing revisions
-
-  Revision 1.16  2002/05/16 19:46:37  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
+  Revision 1.24  2004-06-20 08:55:29  florian
+    * logs truncated
 
 }

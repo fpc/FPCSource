@@ -122,16 +122,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2004-03-13 18:45:40  florian
+  Revision 1.7  2004-06-20 08:55:31  florian
+    * logs truncated
+
+  Revision 1.6  2004/03/13 18:45:40  florian
     * floating compares fixed
     * unary minus for floats fixed
 
   Revision 1.5  2004/01/28 15:36:47  florian
     * fixed another couple of arm bugs
 
-  Revision 1.4  2003/11/02 14:30:03  florian
-    * fixed ARM for new reg. allocation scheme
-
-  Revision 1.3  2003/08/27 00:27:56  florian
-    + same procedure as very day: today's work on arm
 }

@@ -65,7 +65,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2004-06-16 20:07:11  florian
+  Revision 1.5  2004-06-20 08:55:32  florian
+    * logs truncated
+
+  Revision 1.4  2004/06/16 20:07:11  florian
     * dwarf branch merged
 
   Revision 1.3.2.1  2004/04/23 22:12:37  florian
@@ -74,12 +77,6 @@ end.
   Revision 1.3  2004/02/04 22:01:13  peter
     * first try to get cpupara working for x86_64
 
-  Revision 1.2  2003/12/24 00:33:10  florian
-    * x86-64 compilation fixed
-
-  Revision 1.1  2003/01/05 13:36:54  florian
-    * x86-64 compiles
-    + very basic support for float128 type (x86-64 only)
 }
 
 

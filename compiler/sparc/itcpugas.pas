@@ -93,27 +93,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2004-01-12 16:39:41  peter
+  Revision 1.3  2004-06-20 08:55:32  florian
+    * logs truncated
+
+  Revision 1.2  2004/01/12 16:39:41  peter
     * sparc updates, mostly float related
-
-  Revision 1.1  2003/12/08 13:03:06  mazen
-  + support for native sparc assembler reader
-
-  Revision 1.2  2003/11/15 19:00:10  florian
-    * fixed ppc assembler reader
-
-  Revision 1.1  2003/11/12 16:05:40  florian
-    * assembler readers OOPed
-    + typed currency constants
-    + typed 128 bit float constants if the CPU supports it
-
-  Revision 1.2  2003/10/01 20:34:49  peter
-    * procinfo unit contains tprocinfo
-    * cginfo renamed to cgbase
-    * moved cgmessage to verbose
-    * fixed ppc and sparc compiles
-
-  Revision 1.1  2003/09/03 19:35:24  peter
-    * powerpc compiles again
 
 }

@@ -61,29 +61,7 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.7  2002-09-07 15:25:11  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.6  2002/08/12 15:08:42  carl
-    + stab register indexes for powerpc (moved from gdb to cpubase)
-    + tprocessor enumeration moved to cpuinfo
-    + linker in target_info is now a class
-    * many many updates for m68k (will soon start to compile)
-    - removed some ifdef or correct them for correct cpu
-
-  Revision 1.5  2002/08/10 14:48:09  carl
-    + moved target_cpu_string to cpuinfo
-    * renamed asmmode enum.
-    * assembler reader has now less ifdef's
-    * move from nppcmem.pas -> ncgmem.pas vec. node.
-
-  Revision 1.4  2002/05/16 19:46:52  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.3  2002/04/07 13:42:40  carl
-  - moved type constant
+  Revision 1.8  2004-06-20 08:55:31  florian
+    * logs truncated
 
 }

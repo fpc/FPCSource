@@ -72,7 +72,10 @@ A_FMOVD
 
 {
         $Log$
-        Revision 1.13  2004-06-16 20:07:11  florian
+        Revision 1.14  2004-06-20 08:55:32  florian
+          * logs truncated
+
+        Revision 1.13  2004/06/16 20:07:11  florian
           * dwarf branch merged
 
         Revision 1.12.2.3  2004/05/27 23:34:59  peter
@@ -88,35 +91,5 @@ A_FMOVD
           * use localalign info for alignment for locals and temps
           * sparc fpu flags branching added
           * moved powerpc copy_valye_openarray to generic
-
-        Revision 1.11  2004/01/12 16:39:41  peter
-          * sparc updates, mostly float related
-
-        Revision 1.10  2003/12/08 13:02:21  mazen
-        + support for native sparc assembler reader
-
-        Revision 1.9  2003/07/02 22:18:04  peter
-          * paraloc splitted in callerparaloc,calleeparaloc
-          * sparc calling convention updates
-
-        Revision 1.8  2003/06/01 21:38:07  peter
-          * getregisterfpu size parameter added
-          * op_const_reg size parameter added
-          * sparc updates
-
-        Revision 1.7  2003/06/01 01:03:53  peter
-          * FMOVs fixed
-
-        Revision 1.6  2003/05/06 20:23:44  mazen
-        * A_BI ==> A_BL (bi ==> bl) instructions renamed
-
-        Revision 1.5  2003/01/20 20:15:44  mazen
-        * A_CMPrs --> A_FCMPs and A_CMPd --> A_FCMPd
-
-        Revision 1.4  2002/11/10 17:49:14  mazen
-        * A_RET --> A_RETT (RET from Trap)
-
-        Revision 1.3  2002/10/17 14:48:34  mazen
-        * branch instructions are now contigous
 
 }

@@ -186,7 +186,10 @@ end.
 
 {
   $Log$
-  Revision 1.27  2004-06-16 20:07:09  florian
+  Revision 1.28  2004-06-20 08:55:30  florian
+    * logs truncated
+
+  Revision 1.27  2004/06/16 20:07:09  florian
     * dwarf branch merged
 
   Revision 1.26  2004/04/24 17:32:05  peter
@@ -197,31 +200,5 @@ end.
 
   Revision 1.25  2004/04/08 11:07:05  michael
   indexed exports needs to be sorted (patch from Pavel)
-
-  Revision 1.24  2002/10/05 12:43:26  carl
-    * fixes for Delphi 6 compilation
-     (warning : Some features do not work under Delphi)
-
-  Revision 1.23  2002/09/03 16:26:27  daniel
-    * Make Tprocdef.defs protected
-
-  Revision 1.22  2002/07/26 21:15:41  florian
-    * rewrote the system handling
-
-  Revision 1.21  2002/05/18 13:34:12  peter
-    * readded missing revisions
-
-  Revision 1.20  2002/05/16 19:46:43  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.18  2002/04/04 19:06:03  peter
-    * removed unused units
-    * use tlocation.size in cg.a_*loc*() routines
-
-  Revision 1.17  2002/04/04 18:41:07  carl
-  + added wdosx support (patch from Pavel)
 
 }

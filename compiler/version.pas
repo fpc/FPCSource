@@ -93,7 +93,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.25  2004-06-16 20:07:10  florian
+  Revision 1.26  2004-06-20 08:55:30  florian
+    * logs truncated
+
+  Revision 1.25  2004/06/16 20:07:10  florian
     * dwarf branch merged
 
   Revision 1.24  2004/05/31 12:00:56  peter
@@ -108,45 +111,4 @@ end.
   Revision 1.22  2004/01/11 20:59:41  florian
     * version changed to 1.9.3
 
-  Revision 1.21  2004/01/03 12:31:44  michael
-  + Changed version to 1.9.2
-
-  Revision 1.20  2003/11/06 15:58:27  peter
-    * 1.9.1
-
-  Revision 1.19  2003/11/01 16:37:17  peter
-    * don't remove .0 when patchlevel = 0
-
-  Revision 1.17  2003/04/24 22:29:58  florian
-    * fixed a lot of PowerPC related stuff
-
-  Revision 1.16  2002/09/07 15:25:10  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.15  2002/08/10 14:46:31  carl
-    + moved target_cpu_string to cpuinfo
-    * renamed asmmode enum.
-    * assembler reader has now less ifdef's
-    * move from nppcmem.pas -> ncgmem.pas vec. node.
-
-  Revision 1.14  2002/08/09 19:15:41  carl
-     - removed newcg define
-
-  Revision 1.13  2002/07/04 20:43:02  florian
-    * first x86-64 patches
-
-  Revision 1.12  2002/05/18 13:34:21  peter
-    * readded missing revisions
-
-  Revision 1.11  2002/05/16 19:46:47  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.9  2002/03/24 19:12:11  carl
-  + patch for SPARC from Mazen NEIFER
-
-  Revision 1.8  2002/03/01 12:47:21  pierre
-   * used shl 7 for release number
 }

@@ -155,32 +155,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.19  2003-10-08 17:54:23  florian
-    * fixed resource compiler search if no utilty directory was given
-
-  Revision 1.18  2003/03/23 23:20:38  hajny
-    + emx target added
-
-  Revision 1.17  2003/01/30 21:45:40  peter
-    * path fix (merged)
-
-  Revision 1.16  2003/01/12 15:42:23  peter
-    * m68k pathexist update from 1.0.x
-    * palmos res update from 1.0.x
-
-  Revision 1.15  2002/07/26 21:15:37  florian
-    * rewrote the system handling
-
-  Revision 1.14  2002/05/18 13:34:06  peter
-    * readded missing revisions
-
-  Revision 1.13  2002/05/16 19:46:35  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.11  2002/04/04 18:32:37  carl
-  + added wdosx support (patch from Pavel)
+  Revision 1.20  2004-06-20 08:55:29  florian
+    * logs truncated
 
 }

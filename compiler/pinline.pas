@@ -759,7 +759,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  2004-05-23 18:28:41  peter
+  Revision 1.32  2004-06-20 08:55:30  florian
+    * logs truncated
+
+  Revision 1.31  2004/05/23 18:28:41  peter
     * methodpointer is loaded into a temp when it was a calln
 
   Revision 1.30  2004/04/29 19:56:37  daniel
@@ -780,115 +783,5 @@ end.
        multiple times for the same register doesn't matter. We need again
        a way to specify that a register is currently a regvar and as such
        should not be freed when you call ungetregister() on it.
-
-  Revision 1.26  2004/01/22 16:44:35  peter
-    * fixed allocation of dimension buffer for setlength(dynarr)
-
-  Revision 1.25  2003/11/29 16:19:54  peter
-    * Initialize() added
-
-  Revision 1.24  2003/11/10 22:02:52  peter
-    * cross unit inlining fixed
-
-  Revision 1.23  2003/11/04 19:05:03  peter
-    * fixed initialize call after getmem
-
-  Revision 1.22  2003/10/17 14:38:32  peter
-    * 64k registers supported
-    * fixed some memory leaks
-
-  Revision 1.21  2003/10/08 19:19:45  peter
-    * set_varstate cleanup
-
-  Revision 1.20  2003/10/02 21:15:31  peter
-    * protected visibility fixes
-
-  Revision 1.19  2003/10/01 20:34:49  peter
-    * procinfo unit contains tprocinfo
-    * cginfo renamed to cgbase
-    * moved cgmessage to verbose
-    * fixed ppc and sparc compiles
-
-  Revision 1.18  2003/09/23 17:56:05  peter
-    * locals and paras are allocated in the code generation
-    * tvarsym.localloc contains the location of para/local when
-      generating code for the current procedure
-
-  Revision 1.17  2003/08/21 15:10:51  peter
-    * fixed copy support for array of char,pchar in $H+ mode
-    * fixed copy support for pwidechar,array of widechar
-
-  Revision 1.16  2003/08/10 17:25:23  peter
-    * fixed some reported bugs
-
-  Revision 1.15  2003/05/17 13:30:08  jonas
-    * changed tt_persistant to tt_persistent :)
-    * tempcreatenode now doesn't accept a boolean anymore for persistent
-      temps, but a ttemptype, so you can also create ansistring temps etc
-
-  Revision 1.14  2003/05/16 14:33:31  peter
-    * regvar fixes
-
-  Revision 1.13  2003/05/09 17:47:03  peter
-    * self moved to hidden parameter
-    * removed hdisposen,hnewn,selfn
-
-  Revision 1.12  2002/04/25 20:15:40  florian
-    * block nodes within expressions shouldn't release the used registers,
-      fixed using a flag till the new rg is ready
-
-  Revision 1.11  2002/11/26 22:59:09  peter
-    * fix Copy(array,x,y)
-
-  Revision 1.10  2002/11/25 17:43:22  peter
-    * splitted defbase in defutil,symutil,defcmp
-    * merged isconvertable and is_equal into compare_defs(_ext)
-    * made operator search faster by walking the list only once
-
-  Revision 1.9  2002/10/29 10:01:22  pierre
-   * fix crash report as webbug 2174
-
-  Revision 1.8  2002/10/02 18:20:52  peter
-    * Copy() is now internal syssym that calls compilerprocs
-
-  Revision 1.7  2002/09/07 12:16:03  carl
-    * second part bug report 1996 fix, testrange in cordconstnode
-      only called if option is set (also make parsing a tiny faster)
-
-  Revision 1.6  2002/07/20 11:57:56  florian
-    * types.pas renamed to defbase.pas because D6 contains a types
-      unit so this would conflicts if D6 programms are compiled
-    + Willamette/SSE2 instructions to assembler added
-
-  Revision 1.5  2002/05/18 13:34:12  peter
-    * readded missing revisions
-
-  Revision 1.4  2002/05/16 19:46:43  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.2  2002/05/12 16:53:09  peter
-    * moved entry and exitcode to ncgutil and cgobj
-    * foreach gets extra argument for passing local data to the
-      iterator function
-    * -CR checks also class typecasts at runtime by changing them
-      into as
-    * fixed compiler to cycle with the -CR option
-    * fixed stabs with elf writer, finally the global variables can
-      be watched
-    * removed a lot of routines from cga unit and replaced them by
-      calls to cgobj
-    * u32bit-s32bit updates for and,or,xor nodes. When one element is
-      u32bit then the other is typecasted also to u32bit without giving
-      a rangecheck warning/error.
-    * fixed pascal calling method with reversing also the high tree in
-      the parast, detected by tcalcst3 test
-
-  Revision 1.1  2002/04/23 19:16:35  peter
-    * add pinline unit that inserts compiler supported functions using
-      one or more statements
-    * moved finalize and setlength from ninl to pinline
 
 }

@@ -942,7 +942,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  2004-06-16 20:07:06  florian
+  Revision 1.19  2004-06-20 08:55:28  florian
+    * logs truncated
+
+  Revision 1.18  2004/06/16 20:07:06  florian
     * dwarf branch merged
 
   Revision 1.17.2.4  2004/05/11 21:04:40  peter
@@ -956,85 +959,5 @@ end.
 
   Revision 1.17.2.1  2004/04/08 18:33:22  peter
     * rewrite of TAsmSection
-
-  Revision 1.17  2004/03/18 11:45:39  olle
-    + added type similarity check in newasmsymbol
-
-  Revision 1.16  2004/03/02 00:36:32  olle
-    * big transformation of Tai_[const_]Symbol.Create[data]name*
-
-  Revision 1.15  2003/05/23 14:27:35  peter
-    * remove some unit dependencies
-    * current_procinfo changes to store more info
-
-  Revision 1.14  2003/04/06 21:11:23  olle
-    * changed newasmsymbol to newasmsymboldata for data symbols
-
-  Revision 1.13  2003/01/30 21:46:20  peter
-    * tai_const_symbol.createdataname added
-
-  Revision 1.12  2002/11/17 16:31:55  carl
-    * memory optimization (3-4%) : cleanup of tai fields,
-       cleanup of tdef and tsym fields.
-    * make it work for m68k
-
-  Revision 1.11  2002/11/15 16:29:30  peter
-    * made tasmsymbol.refs private (merged)
-
-  Revision 1.10  2002/11/15 01:58:45  peter
-    * merged changes from 1.0.7 up to 04-11
-      - -V option for generating bug report tracing
-      - more tracing for option parsing
-      - errors for cdecl and high()
-      - win32 import stabs
-      - win32 records<=8 are returned in eax:edx (turned off by default)
-      - heaptrc update
-      - more info for temp management in .s file with EXTDEBUG
-
-  Revision 1.9  2002/10/05 12:43:23  carl
-    * fixes for Delphi 6 compilation
-     (warning : Some features do not work under Delphi)
-
-  Revision 1.8  2002/08/19 19:36:42  peter
-    * More fixes for cross unit inlining, all tnodes are now implemented
-    * Moved pocall_internconst to po_internconst because it is not a
-      calling type at all and it conflicted when inlining of these small
-      functions was requested
-
-  Revision 1.7  2002/08/18 20:06:23  peter
-    * inlining is now also allowed in interface
-    * renamed write/load to ppuwrite/ppuload
-    * tnode storing in ppu
-    * nld,ncon,nbas are already updated for storing in ppu
-
-  Revision 1.6  2002/08/12 15:08:39  carl
-    + stab register indexes for powerpc (moved from gdb to cpubase)
-    + tprocessor enumeration moved to cpuinfo
-    + linker in target_info is now a class
-    * many many updates for m68k (will soon start to compile)
-    - removed some ifdef or correct them for correct cpu
-
-  Revision 1.5  2002/08/11 14:32:25  peter
-    * renamed current_library to objectlibrary
-
-  Revision 1.4  2002/08/11 13:24:10  peter
-    * saving of asmsymbols in ppu supported
-    * asmsymbollist global is removed and moved into a new class
-      tasmlibrarydata that will hold the info of a .a file which
-      corresponds with a single module. Added librarydata to tmodule
-      to keep the library info stored for the module. In the future the
-      objectfiles will also be stored to the tasmlibrarydata class
-    * all getlabel/newasmsymbol and friends are moved to the new class
-
-  Revision 1.3  2002/07/10 07:24:40  jonas
-    * memory leak fixes from Sergey Korshunoff
-
-  Revision 1.2  2002/07/07 09:52:32  florian
-    * powerpc target fixed, very simple units can be compiled
-    * some basic stuff for better callparanode handling, far from being finished
-
-  Revision 1.1  2002/07/01 18:46:20  peter
-    * internal linker
-    * reorganized aasm layer
 
 }

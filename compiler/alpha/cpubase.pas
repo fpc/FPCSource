@@ -458,22 +458,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2002-11-17 18:26:15  mazen
-  * fixed a compilation bug accmulator-->accumulator, in definition of return_result_reg
-
-  Revision 1.5  2002/11/17 17:49:08  mazen
-  + return_result_reg and function_result_reg are now used, in all plateforms, to pass functions result between called function and its caller. See the explanation of each one
-
-  Revision 1.4  2002/09/29 23:54:12  florian
-    * alpha compiles again, changes to common code not yet commited
-
-  Revision 1.3  2002/09/29 23:42:45  florian
-    * several fixes to get forward with alpha compilation
-
-  Revision 1.2  2002/09/07 15:25:10  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.1  2002/08/18 09:06:54  florian
-    * alpha files moved compiler/alpha
+  Revision 1.7  2004-06-20 08:55:31  florian
+    * logs truncated
 
 }

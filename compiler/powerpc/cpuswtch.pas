@@ -119,35 +119,7 @@ initialization
 end.
 {
   $Log$
-  Revision 1.9  2003-08-09 18:56:54  daniel
-    * cs_regalloc renamed to cs_regvars to avoid confusion with register
-      allocator
-    * Some preventive changes to i386 spillinh code
+  Revision 1.10  2004-06-20 08:55:32  florian
+    * logs truncated
 
-  Revision 1.8  2002/09/07 17:54:59  florian
-    * first part of PowerPC fixes
-
-  Revision 1.7  2002/09/04 16:03:53  jonas
-    + parse basic optimization parameters
-
-  Revision 1.6  2002/08/10 14:52:52  carl
-    + moved target_cpu_string to cpuinfo
-    * renamed asmmode enum.
-    * assembler reader has now less ifdef's
-    * move from nppcmem.pas -> ncgmem.pas vec. node.
-
-  Revision 1.5  2002/07/28 20:45:23  florian
-    + added direct assembler reader for PowerPC
-
-  Revision 1.4  2002/05/18 13:34:26  peter
-    * readded missing revisions
-
-  Revision 1.3  2002/05/16 19:46:53  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.1  2002/05/13 19:52:46  peter
-    * a ppcppc can be build again
 }

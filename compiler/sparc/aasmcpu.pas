@@ -311,7 +311,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.49  2004-06-20 08:47:33  florian
+  Revision 1.50  2004-06-20 08:55:32  florian
+    * logs truncated
+
+  Revision 1.49  2004/06/20 08:47:33  florian
     * spilling of doubles on sparc fixed
 
   Revision 1.48  2004/06/16 20:07:10  florian
@@ -327,90 +330,5 @@ end.
 
   Revision 1.47.2.3  2004/05/28 20:29:49  florian
     * fixed currency trouble on x86-64
-
-  Revision 1.47.2.2  2004/05/25 21:38:53  peter
-    * assembler reader/writer updates
-
-  Revision 1.47.2.1  2004/05/11 21:06:51  peter
-    * sparc compiler fixed
-
-  Revision 1.47  2004/03/12 08:18:11  mazen
-  - revert '../' from include path
-
-  Revision 1.46  2004/03/11 16:21:27  mazen
-  + help lazarus analyze the file
-
-  Revision 1.45  2004/03/08 16:28:39  mazen
-  * make it as similar to PPC one ase possible
-
-  Revision 1.44  2004/02/27 11:47:32  mazen
-  * symaddr ==> refaddr to follow the rest of compiler changes
-
-  Revision 1.43  2004/02/08 23:10:21  jonas
-    * taicpu.is_same_reg_move() now gets a regtype parameter so it only
-      removes moves of that particular register type. This is necessary so
-      we don't remove the live_start instruction of a register before it
-      has been processed
-
-  Revision 1.42  2004/02/08 20:15:43  jonas
-    - removed taicpu.is_reg_move because it's not used anymore
-    + support tracking fpu register moves by rgobj for the ppc
-
-  Revision 1.41  2004/01/12 16:39:40  peter
-    * sparc updates, mostly float related
-
-  Revision 1.40  2003/12/28 16:20:09  jonas
-    - removed unused methods from old generic spilling code
-
-  Revision 1.39  2003/12/26 14:02:30  peter
-    * sparc updates
-    * use registertype in spill_register
-
-  Revision 1.38  2003/12/19 14:38:03  mazen
-  * new TRegister definition applied
-
-  Revision 1.37  2003/12/10 13:16:35  mazen
-  * improve hadlign %hi and %lo operators
-
-  Revision 1.36  2003/10/30 15:03:18  mazen
-  * now uses standard routines in rgHelper unit to search registers by number and by name
-
-  Revision 1.35  2003/10/24 07:00:17  mazen
-  * fixed compil problem when using ObjFpc mode (^ required).
-
-  Revision 1.34  2003/10/01 20:34:49  peter
-    * procinfo unit contains tprocinfo
-    * cginfo renamed to cgbase
-    * moved cgmessage to verbose
-    * fixed ppc and sparc compiles
-
-  Revision 1.33  2003/09/14 19:19:04  peter
-    * updates for new ra
-
-  Revision 1.32  2003/09/03 15:55:01  peter
-    * NEWRA branch merged
-
-  Revision 1.31.2.1  2003/08/31 21:08:16  peter
-    * first batch of sparc fixes
-
-  Revision 1.31  2003/08/11 21:18:20  peter
-    * start of sparc support for newra
-
-  Revision 1.30  2003/06/14 14:53:50  jonas
-    * fixed newra cycle for x86
-    * added constants for indicating source and destination operands of the
-      "move reg,reg" instruction to aasmcpu (and use those in rgobj)
-
-  Revision 1.29  2003/06/12 16:43:07  peter
-    * newra compiles for sparc
-
-  Revision 1.28  2003/06/01 01:03:41  peter
-    * remove unsupported combinations
-    * reg_ref_reg only allowed for refs_lo,refs_hi
-
-  Revision 1.27  2003/05/30 23:57:08  peter
-    * more sparc cleanup
-    * accumulator removed, splitted in function_return_reg (called) and
-      function_result_reg (caller)
 
 }

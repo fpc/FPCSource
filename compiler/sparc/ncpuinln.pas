@@ -123,43 +123,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2004-02-03 22:32:54  peter
+  Revision 1.9  2004-06-20 08:55:32  florian
+    * logs truncated
+
+  Revision 1.8  2004/02/03 22:32:54  peter
     * renamed xNNbittype to xNNinttype
     * renamed registers32 to registersint
     * replace some s32bit,u32bit with torddef([su]inttype).def.typ
 
-  Revision 1.7  2003/10/24 11:32:34  mazen
-  *fixes related to removal of rg
-
-  Revision 1.6  2003/10/01 20:34:50  peter
-    * procinfo unit contains tprocinfo
-    * cginfo renamed to cgbase
-    * moved cgmessage to verbose
-    * fixed ppc and sparc compiles
-
-  Revision 1.5  2003/06/13 17:05:24  jonas
-    * fixed small LOC_(C)FPUREGISTER bug
-
-  Revision 1.4  2003/06/01 21:38:07  peter
-    * getregisterfpu size parameter added
-    * op_const_reg size parameter added
-    * sparc updates
-
-  Revision 1.3  2003/01/05 21:32:35  mazen
-  * fixing several bugs compiling the RTL
-
-  Revision 1.2  2002/12/30 21:17:22  mazen
-  - unit cga no more used in sparc compiler.
-
-  Revision 1.1  2002/11/30 20:03:49  mazen
-  + ncpuinln node
-
-  Revision 1.3  2002/09/18 09:19:37  jonas
-    * fixed LOC_REFERENCE/LOC_CREFERENCE problems
-
-  Revision 1.2  2002/08/19 17:35:42  jonas
-    * fixes
-
-  Revision 1.1  2002/08/10 17:15:00  jonas
-    + abs, sqr, sqrt implementations
 }

@@ -788,34 +788,14 @@ End.
 
 {
  $Log$
- Revision 1.10  2004-01-31 17:45:17  peter
+ Revision 1.11  2004-06-20 08:55:28  florian
+   * logs truncated
+
+ Revision 1.10  2004/01/31 17:45:17  peter
    * Change several $ifdef i386 to x86
    * Change several OS_32 to OS_INT/OS_ADDR
 
  Revision 1.9  2004/01/30 13:42:03  florian
    * fixed more alignment issues
-
- Revision 1.8  2002/11/18 17:31:54  peter
-   * pass proccalloption to ret_in_xxx and push_xxx functions
-
- Revision 1.7  2002/08/18 18:16:55  florian
-   * fixed compilation error
-
- Revision 1.6  2002/07/07 09:52:32  florian
-   * powerpc target fixed, very simple units can be compiled
-   * some basic stuff for better callparanode handling, far from being finished
-
- Revision 1.5  2002/07/01 18:46:21  peter
-   * internal linker
-   * reorganized aasm layer
-
- Revision 1.4  2002/05/18 13:34:05  peter
-   * readded missing revisions
-
- Revision 1.3  2002/05/16 19:46:35  carl
- + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
- + try to fix temp allocation (still in ifdef)
- + generic constructor calls
- + start of tassembler / tmodulebase class cleanup
 
 }

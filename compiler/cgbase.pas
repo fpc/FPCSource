@@ -588,7 +588,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.89  2004-06-16 20:07:07  florian
+  Revision 1.90  2004-06-20 08:55:28  florian
+    * logs truncated
+
+  Revision 1.89  2004/06/16 20:07:07  florian
     * dwarf branch merged
 
   Revision 1.88.2.2  2004/05/01 16:02:09  peter
@@ -610,88 +613,5 @@ end.
     * more x86_64 parameter fixes
     * tparalocation.lochigh is now used to indicate if registerhigh
       is used and what the type is
-
-  Revision 1.86  2004/01/12 22:11:38  peter
-    * use localalign info for alignment for locals and temps
-    * sparc fpu flags branching added
-    * moved powerpc copy_valye_openarray to generic
-
-  Revision 1.85  2004/01/12 16:35:05  peter
-    * R_SUB_FS added to make a difference between double and single
-      floats, required for sparc only
-
-  Revision 1.84  2004/01/09 22:02:29  daniel
-    * Degree=0 problem fixed
-    * Degree to high problem fixed
-
-  Revision 1.83  2003/12/25 01:07:09  florian
-    + $fputype directive support
-    + single data type operations with sse unit
-    * fixed more x86-64 stuff
-
-  Revision 1.82  2003/12/22 23:10:21  peter
-    * use low(longint) instead of $8000000
-
-  Revision 1.81  2003/12/21 19:42:42  florian
-    * fixed ppc inlining stuff
-    * fixed wrong unit writing
-    + added some sse stuff
-
-  Revision 1.80  2003/12/19 22:08:44  daniel
-    * Some work to restore the MMX capabilities
-
-  Revision 1.79  2003/12/15 21:25:48  peter
-    * reg allocations for imaginary register are now inserted just
-      before reg allocation
-    * tregister changed to enum to allow compile time check
-    * fixed several tregister-tsuperregister errors
-
-  Revision 1.78  2003/12/14 20:24:28  daniel
-    * Register allocator speed optimizations
-      - Worklist no longer a ringbuffer
-      - No find operations are left
-      - Simplify now done in constant time
-      - unusedregs is now a Tsuperregisterworklist
-      - Microoptimizations
-
-  Revision 1.77  2003/11/04 15:35:13  peter
-    * fix for referencecounted temps
-
-  Revision 1.76  2003/11/03 17:48:04  peter
-    * int_cgsize returned garbage for a=0
-
-  Revision 1.75  2003/10/31 15:51:11  peter
-    * USEINLINE directive added (not enabled yet)
-
-  Revision 1.74  2003/10/30 14:56:40  mazen
-  + add support for double float register vars
-
-  Revision 1.73  2003/10/29 15:07:01  mazen
-  * 32 registers are available
-
-  Revision 1.72  2003/10/24 15:21:31  peter
-    * renamed R_SUBF64 to R_SUBFD
-
-  Revision 1.71  2003/10/17 14:38:32  peter
-    * 64k registers supported
-    * fixed some memory leaks
-
-  Revision 1.70  2003/10/13 01:10:01  florian
-    * some ideas for mm support implemented
-
-  Revision 1.69  2003/10/11 16:06:42  florian
-    * fixed some MMX<->SSE
-    * started to fix ppc, needs an overhaul
-    + stabs info improve for spilling, not sure if it works correctly/completly
-    - MMX_SUPPORT removed from Makefile.fpc
-
-  Revision 1.68  2003/10/09 21:31:37  daniel
-    * Register allocator splitted, ans abstract now
-
-  Revision 1.67  2003/10/01 20:34:48  peter
-    * procinfo unit contains tprocinfo
-    * cginfo renamed to cgbase
-    * moved cgmessage to verbose
-    * fixed ppc and sparc compiles
 
 }

@@ -1784,7 +1784,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.28  2004-06-16 20:07:09  florian
+  Revision 1.29  2004-06-20 08:55:30  florian
+    * logs truncated
+
+  Revision 1.28  2004/06/16 20:07:09  florian
     * dwarf branch merged
 
   Revision 1.27.2.5  2004/05/01 16:02:09  peter
@@ -1799,50 +1802,5 @@ end.
 
   Revision 1.27.2.2  2004/04/09 14:34:53  peter
     * fixed compilation for win32
-
-  Revision 1.27.2.1  2004/04/08 18:33:22  peter
-    * rewrite of TAsmSection
-
-  Revision 1.27  2003/04/23 11:37:15  peter
-    * fix range check error after previous commit
-
-  Revision 1.26  2003/04/22 14:33:38  peter
-    * removed some notes/hints
-
-  Revision 1.25  2002/12/07 14:08:11  carl
-    * fix warning
-
-  Revision 1.24  2002/08/12 15:08:39  carl
-    + stab register indexes for powerpc (moved from gdb to cpubase)
-    + tprocessor enumeration moved to cpuinfo
-    + linker in target_info is now a class
-    * many many updates for m68k (will soon start to compile)
-    - removed some ifdef or correct them for correct cpu
-
-  Revision 1.23  2002/07/26 21:15:38  florian
-    * rewrote the system handling
-
-  Revision 1.22  2002/07/01 18:46:24  peter
-    * internal linker
-    * reorganized aasm layer
-
-  Revision 1.21  2002/05/18 13:34:10  peter
-    * readded missing revisions
-
-  Revision 1.20  2002/05/16 19:46:39  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.19  2002/05/14 19:34:43  peter
-    * removed old logs and updated copyright year
-
-  Revision 1.18  2002/04/04 19:05:58  peter
-    * removed unused units
-    * use tlocation.size in cg.a_*loc*() routines
-
-  Revision 1.17  2002/04/04 18:38:30  carl
-  + added wdosx support (patch from Pavel)
 
 }

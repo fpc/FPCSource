@@ -150,7 +150,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2004-05-31 11:57:48  jonas
+  Revision 1.15  2004-06-20 08:55:32  florian
+    * logs truncated
+
+  Revision 1.14  2004/05/31 11:57:48  jonas
     * fixed second_sqr_real (mainly for regvars)
 
   Revision 1.13  2004/02/03 22:32:54  peter
@@ -160,51 +163,6 @@ end.
 
   Revision 1.12  2004/02/02 21:22:19  jonas
     + implemented second_prefetch
-
-  Revision 1.11  2003/10/17 01:22:08  florian
-    * compilation of the powerpc compiler fixed
-
-  Revision 1.10  2003/10/01 20:34:49  peter
-    * procinfo unit contains tprocinfo
-    * cginfo renamed to cgbase
-    * moved cgmessage to verbose
-    * fixed ppc and sparc compiles
-
-  Revision 1.9  2003/08/08 19:01:02  jonas
-    * fixed bug in load_fpu_location found by Olle
-
-  Revision 1.8  2003/06/13 17:03:38  jonas
-    * fixed bugs in case the left node was a LOC_(C)REFERENCE
-
-  Revision 1.7  2003/06/01 21:38:06  peter
-    * getregisterfpu size parameter added
-    * op_const_reg size parameter added
-    * sparc updates
-
-  Revision 1.6  2003/05/24 13:39:32  jonas
-    * fsqrt is an optional instruction in the ppc architecture and isn't
-      implemented by any current ppc afaik, so use the generic sqrt routine
-      instead (adapted so it works with compilerproc)
-
-  Revision 1.5  2003/04/23 12:35:35  florian
-    * fixed several issues with powerpc
-    + applied a patch from Jonas for nested function calls (PowerPC only)
-    * ...
-
-  Revision 1.4  2002/11/25 17:43:28  peter
-    * splitted defbase in defutil,symutil,defcmp
-    * merged isconvertable and is_equal into compare_defs(_ext)
-    * made operator search faster by walking the list only once
-
-  Revision 1.3  2002/09/18 09:19:37  jonas
-    * fixed LOC_REFERENCE/LOC_CREFERENCE problems
-
-  Revision 1.2  2002/08/19 17:35:42  jonas
-    * fixes
-
-  Revision 1.1  2002/08/10 17:15:00  jonas
-    + abs, sqr, sqrt implementations
-
 
 }
 

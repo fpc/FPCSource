@@ -163,26 +163,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2002-11-19 12:08:24  pierre
-   * fix compilation failure
-
-  Revision 1.11  2002/11/15 01:58:53  peter
-    * merged changes from 1.0.7 up to 04-11
-      - -V option for generating bug report tracing
-      - more tracing for option parsing
-      - errors for cdecl and high()
-      - win32 import stabs
-      - win32 records<=8 are returned in eax:edx (turned off by default)
-      - heaptrc update
-      - more info for temp management in .s file with EXTDEBUG
-
-  Revision 1.10  2002/05/18 13:34:13  peter
-    * readded missing revisions
-
-  Revision 1.9  2002/05/16 19:46:43  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
+  Revision 1.13  2004-06-20 08:55:30  florian
+    * logs truncated
 
 }

@@ -55,9 +55,7 @@ unit cpunode;
 end.
 {
   $Log$
-  Revision 1.2  2002-09-29 23:54:12  florian
-    * alpha compiles again, changes to common code not yet commited
+  Revision 1.3  2004-06-20 08:55:31  florian
+    * logs truncated
 
-  Revision 1.1  2002/08/18 09:13:02  florian
-    * small fixes to the alpha stuff
 }

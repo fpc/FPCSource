@@ -169,7 +169,10 @@
 
 {
   $Log$
-  Revision 1.13  2004-06-16 20:07:10  florian
+  Revision 1.14  2004-06-20 08:55:31  florian
+    * logs truncated
+
+  Revision 1.13  2004/06/16 20:07:10  florian
     * dwarf branch merged
 
   Revision 1.12.2.1  2004/04/20 16:35:58  peter
@@ -182,51 +185,4 @@
     * another bunch of x86-64 fixes mainly calling convention and
       assembler reader related
 
-  Revision 1.10  2003/10/17 14:38:32  peter
-    * 64k registers supported
-    * fixed some memory leaks
-
-  Revision 1.9  2003/09/03 15:55:01  peter
-    * NEWRA branch merged
-
-  Revision 1.8  2003/09/03 11:18:37  florian
-    * fixed arm concatcopy
-    + arm support in the common compiler sources added
-    * moved some generic cg code around
-    + tfputype added
-    * ...
-
-  Revision 1.7.2.3  2003/08/29 17:29:00  peter
-    * next batch of updates
-
-  Revision 1.7.2.2  2003/08/28 18:35:08  peter
-    * tregister changed to cardinal
-
-  Revision 1.7.2.1  2003/08/27 20:05:04  peter
-    * forgotten
-
-  Revision 1.7  2003/07/06 17:58:22  peter
-    * framepointer fixes for sparc
-    * parent framepointer code more generic
-
-  Revision 1.6  2003/06/03 13:01:59  daniel
-    * Register allocator finished
-
-  Revision 1.5  2003/05/31 15:05:28  peter
-    * FUNCTION_RESULT64_LOW/HIGH_REG added for int64 results
-
-  Revision 1.4  2003/05/30 23:57:08  peter
-    * more sparc cleanup
-    * accumulator removed, splitted in function_return_reg (called) and
-      function_result_reg (caller)
-
-  Revision 1.3  2003/05/16 14:33:31  peter
-    * regvar fixes
-
-  Revision 1.2  2002/04/25 16:12:09  florian
-    * fixed more problems with cpubase and x86-64
-
-  Revision 1.1  2003/04/25 11:12:09  florian
-    * merged i386/cpubase and x86_64/cpubase to x86/cpubase;
-      different stuff went to cpubase.inc
 }

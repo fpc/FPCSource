@@ -271,61 +271,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  2004-02-21 20:10:27  daniel
+  Revision 1.28  2004-06-20 08:55:30  florian
+    * logs truncated
+
+  Revision 1.27  2004/02/21 20:10:27  daniel
     - Comment out unused tokenstring function
 
   Revision 1.26  2004/01/22 17:24:49  peter
     * except is also an end of block token
     * after a label don't try to parse a statement when the next token
       is an end token
-
-  Revision 1.25  2003/09/23 17:56:05  peter
-    * locals and paras are allocated in the code generation
-    * tvarsym.localloc contains the location of para/local when
-      generating code for the current procedure
-
-  Revision 1.24  2003/05/15 18:58:53  peter
-    * removed selfpointer_offset, vmtpointer_offset
-    * tvarsym.adjusted_address
-    * address in localsymtable is now in the real direction
-    * removed some obsolete globals
-
-  Revision 1.23  2003/03/17 18:55:30  peter
-    * allow more tokens instead of only semicolon after inherited
-
-  Revision 1.22  2002/12/05 19:28:05  carl
-    - remove lower in hint
-
-  Revision 1.21  2002/11/30 11:12:48  carl
-    + checking for symbols used with hint directives is done mostly in pexpr
-      only now
-
-  Revision 1.20  2002/11/29 22:31:19  carl
-    + unimplemented hint directive added
-    * hint directive parsing implemented
-    * warning on these directives
-
-  Revision 1.19  2002/09/09 17:34:15  peter
-    * tdicationary.replace added to replace and item in a dictionary. This
-      is only allowed for the same name
-    * varsyms are inserted in symtable before the types are parsed. This
-      fixes the long standing "var longint : longint" bug
-    - consume_idlist and idstringlist removed. The loops are inserted
-      at the callers place and uses the symtable for duplicate id checking
-
-  Revision 1.18  2002/08/17 09:23:38  florian
-    * first part of procinfo rewrite
-
-  Revision 1.17  2002/05/18 13:34:11  peter
-    * readded missing revisions
-
-  Revision 1.16  2002/05/16 19:46:42  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.14  2002/01/06 21:47:32  peter
-    * removed getprocvar, use only getprocvardef
 
 }

@@ -204,7 +204,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2004-06-16 20:07:09  florian
+  Revision 1.33  2004-06-20 08:55:30  florian
+    * logs truncated
+
+  Revision 1.32  2004/06/16 20:07:09  florian
     * dwarf branch merged
 
   Revision 1.31  2004/05/23 16:46:39  peter
@@ -221,78 +224,5 @@ end.
   Revision 1.29  2004/01/26 17:39:12  florian
     * when compiled with -dnocatch, known rtes aren't translated anymore
       and a stack dump is written
-
-  Revision 1.28  2003/12/06 01:15:22  florian
-    * reverted Peter's alloctemp patch; hopefully properly
-
-  Revision 1.27  2003/09/06 16:47:24  florian
-    + support of NaN and Inf in the compiler as values of real constants
-
-  Revision 1.26  2003/09/05 17:41:12  florian
-    * merged Wiktor's Watcom patches in 1.1
-
-  Revision 1.25  2003/09/03 11:18:37  florian
-    * fixed arm concatcopy
-    + arm support in the common compiler sources added
-    * moved some generic cg code around
-    + tfputype added
-    * ...
-
-  Revision 1.24  2003/07/07 19:59:41  peter
-    * Fix halt() call
-
-  Revision 1.23  2003/07/06 15:31:21  daniel
-    * Fixed register allocator. *Lots* of fixes.
-
-  Revision 1.22  2003/04/22 14:33:38  peter
-    * removed some notes/hints
-
-  Revision 1.21  2003/02/15 22:25:50  carl
-   + give more information on some new defines
-
-  Revision 1.20  2003/02/02 19:25:54  carl
-    * Several bugfixes for m68k target (register alloc., opcode emission)
-    + VIS target
-    + Generic add more complete (still not verified)
-
-  Revision 1.19  2002/11/15 01:58:53  peter
-    * merged changes from 1.0.7 up to 04-11
-      - -V option for generating bug report tracing
-      - more tracing for option parsing
-      - errors for cdecl and high()
-      - win32 import stabs
-      - win32 records<=8 are returned in eax:edx (turned off by default)
-      - heaptrc update
-      - more info for temp management in .s file with EXTDEBUG
-
-  Revision 1.18  2002/10/30 21:45:02  peter
-    * do not include catch unit when compiling with NOCATCH
-
-  Revision 1.17  2002/10/15 18:16:44  peter
-    * GDB switch is not required
-
-  Revision 1.16  2002/08/23 13:17:59  mazen
-  *** empty log message ***
-
-  Revision 1.15  2002/07/04 20:43:01  florian
-    * first x86-64 patches
-
-  Revision 1.14  2002/05/22 19:02:16  carl
-  + generic FPC_HELP_FAIL
-  + generic FPC_HELP_DESTRUCTOR instated (original from Pierre)
-  + generic FPC_DISPOSE_CLASS
-  + TEST_GENERIC define
-
-  Revision 1.13  2002/05/18 13:34:13  peter
-    * readded missing revisions
-
-  Revision 1.12  2002/05/16 19:46:43  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.10  2002/03/24 19:06:29  carl
-  + patch for SPARC from Mazen NEIFER
 
 }

@@ -85,7 +85,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2004-06-16 20:07:10  florian
+  Revision 1.28  2004-06-20 08:55:32  florian
+    * logs truncated
+
+  Revision 1.27  2004/06/16 20:07:10  florian
     * dwarf branch merged
 
   Revision 1.26.2.1  2004/05/31 22:08:21  peter
@@ -100,103 +103,4 @@ end.
   Revision 1.24  2004/02/25 14:25:47  mazen
   * fix compile problem for sparc
 
-  Revision 1.23  2004/01/12 22:11:39  peter
-    * use localalign info for alignment for locals and temps
-    * sparc fpu flags branching added
-    * moved powerpc copy_valye_openarray to generic
-
-  Revision 1.22  2003/10/01 20:34:50  peter
-    * procinfo unit contains tprocinfo
-    * cginfo renamed to cgbase
-    * moved cgmessage to verbose
-    * fixed ppc and sparc compiles
-
-  Revision 1.21  2003/09/14 19:19:05  peter
-    * updates for new ra
-
-  Revision 1.20  2003/09/03 15:55:01  peter
-    * NEWRA branch merged
-
-  Revision 1.19.2.1  2003/09/01 21:02:55  peter
-    * sparc updates for new tregister
-
-  Revision 1.19  2003/08/20 17:48:49  peter
-    * fixed stackalloc to not allocate localst.datasize twice
-    * order of stackalloc code fixed for implicit init/final
-
-  Revision 1.18  2003/07/06 17:58:22  peter
-    * framepointer fixes for sparc
-    * parent framepointer code more generic
-
-  Revision 1.17  2003/06/13 21:19:32  peter
-    * current_procdef removed, use current_procinfo.procdef instead
-
-  Revision 1.16  2003/05/30 23:57:08  peter
-    * more sparc cleanup
-    * accumulator removed, splitted in function_return_reg (called) and
-      function_result_reg (caller)
-
-  Revision 1.15  2003/05/23 22:33:48  florian
-    * fix some small flaws which prevent sparc linux system unit from compiling
-    * some reformatting done
-
-  Revision 1.14  2003/04/27 11:21:36  peter
-    * aktprocdef renamed to current_procinfo.procdef
-    * procinfo renamed to current_procinfo
-    * procinfo will now be stored in current_module so it can be
-      cleaned up properly
-    * gen_main_procsym changed to create_main_proc and release_main_proc
-      to also generate a tprocinfo structure
-    * fixed unit implicit initfinal
-
-  Revision 1.13  2003/04/27 07:48:05  peter
-    * updated for removed lexlevel
-
-  Revision 1.12  2003/02/06 22:36:55  mazen
-  * fixing bug related to errornous program main entry stack frame
-
-  Revision 1.11  2003/01/05 21:32:35  mazen
-  * fixing several bugs compiling the RTL
-
-  Revision 1.10  2002/12/24 21:30:20  mazen
-  - some writeln(s) removed in compiler
-  + many files added to RTL
-  * some errors fixed in RTL
-
-  Revision 1.9  2002/12/21 23:21:47  mazen
-  + added support for the shift nodes
-  + added debug output on screen with -an command line option
-
-  Revision 1.8  2002/11/17 17:49:09  mazen
-  + return_result_reg and FUNCTION_RESULT_REG are now used, in all plateforms, to pass functions result between called function and its caller. See the explanation of each one
-
-  Revision 1.7  2002/11/14 21:42:08  mazen
-  * fixing return value variable address
-
-  Revision 1.6  2002/11/10 19:07:46  mazen
-  * SPARC calling mechanism almost OK (as in GCC./mppcsparc )
-
-  Revision 1.5  2002/11/03 20:22:40  mazen
-  * parameter handling updated
-
-  Revision 1.4  2002/10/20 19:01:38  mazen
-  + op_raddr_reg and op_caddr_reg added to fix functions prologue
-
-  Revision 1.3  2002/10/10 15:10:39  mazen
-  * Internal error fixed, but usually i386 parameter model used
-
-  Revision 1.2  2002/08/29 11:02:36  mazen
-  added support for SPARC processors
-
-  Revision 1.1  2002/08/23 10:08:28  mazen
-  *** empty log message ***
-
-  Revision 1.2  2002/08/18 20:06:30  peter
-    * inlining is now also allowed in interface
-    * renamed write/load to ppuwrite/ppuload
-    * tnode storing in ppu
-    * nld,ncon,nbas are already updated for storing in ppu
-
-  Revision 1.1  2002/08/17 09:23:49  florian
-    * first part of procinfo rewrite
 }

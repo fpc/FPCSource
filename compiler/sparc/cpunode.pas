@@ -35,24 +35,13 @@ uses
 end.
 {
     $Log$
-    Revision 1.9  2004-06-16 20:07:10  florian
+    Revision 1.10  2004-06-20 08:55:32  florian
+      * logs truncated
+
+    Revision 1.9  2004/06/16 20:07:10  florian
       * dwarf branch merged
 
     Revision 1.8.2.1  2004/05/13 20:10:38  florian
       * released variant and interface support
-
-    Revision 1.8  2003/08/11 09:05:09  mazen
-    - Code cleaning : removed unused commentd units which equivalent were already added.
-
-    Revision 1.7  2003/01/22 20:45:15  mazen
-    * making math code in RTL compiling.
-    *NB : This does NOT mean necessary that it will generate correct code!
-
-    Revision 1.6  2002/12/21 23:21:47  mazen
-    + added support for the shift nodes
-    + added debug output on screen with -an command line option
-
-    Revision 1.5  2002/11/30 20:03:29  mazen
-    + ncpuinln node
 
 }

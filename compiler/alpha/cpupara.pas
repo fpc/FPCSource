@@ -291,55 +291,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2002-09-29 23:54:12  florian
-    * alpha compiles again, changes to common code not yet commited
+  Revision 1.2  2004-06-20 08:55:31  florian
+    * logs truncated
 
-  Revision 1.14  2002/09/28 21:27:16  florian
-    + getparaloc supports now sets and variants
-
-  Revision 1.13  2002/09/10 21:28:05  jonas
-    * int64 paras are now handled correctly (until the registers are used up
-      anyway :)
-    * the return location is now initialized correctly
-    * fixed bug where ret_in_reg() was called for the procdefinition instead
-      of for the result of the procedure
-
-  Revision 1.12  2002/09/09 09:11:37  florian
-    - removed passes_parameters_in_reg
-
-  Revision 1.11  2002/09/07 17:54:59  florian
-    * first part of PowerPC fixes
-
-  Revision 1.10  2002/09/01 21:04:49  florian
-    * several powerpc related stuff fixed
-
-  Revision 1.9  2002/08/31 12:43:31  florian
-    * ppc compilation fixed
-
-  Revision 1.8  2002/08/18 10:42:38  florian
-    * remaining assembler writer bugs fixed, the errors in the
-      system unit are inline assembler problems
-
-  Revision 1.7  2002/08/17 22:09:47  florian
-    * result type handling in tcgcal.pass_2 overhauled
-    * better tnode.dowrite
-    * some ppc stuff fixed
-
-  Revision 1.6  2002/08/13 21:40:58  florian
-    * more fixes for ppc calling conventions
-
-  Revision 1.5  2002/07/30 20:50:44  florian
-    * the code generator knows now if parameters are in registers
-
-  Revision 1.4  2002/07/28 20:45:22  florian
-    + added direct assembler reader for PowerPC
-
-  Revision 1.3  2002/07/26 22:22:10  florian
-    * several PowerPC related fixes to get forward with system unit compilation
-
-  Revision 1.2  2002/07/11 14:41:34  florian
-    * start of the new generic parameter handling
-
-  Revision 1.1  2002/07/07 09:44:32  florian
-    * powerpc target fixed, very simple units can be compiled
 }

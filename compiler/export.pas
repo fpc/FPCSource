@@ -180,20 +180,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.21  2002-07-26 21:15:37  florian
-    * rewrote the system handling
-
-  Revision 1.20  2002/07/01 18:46:22  peter
-    * internal linker
-    * reorganized aasm layer
-
-  Revision 1.19  2002/05/18 13:34:07  peter
-    * readded missing revisions
-
-  Revision 1.18  2002/05/16 19:46:36  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
+  Revision 1.22  2004-06-20 08:55:29  florian
+    * logs truncated
 
 }

@@ -227,7 +227,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2004-02-03 22:32:54  peter
+  Revision 1.10  2004-06-20 08:55:31  florian
+    * logs truncated
+
+  Revision 1.9  2004/02/03 22:32:54  peter
     * renamed xNNbittype to xNNinttype
     * renamed registers32 to registersint
     * replace some s32bit,u32bit with torddef([su]inttype).def.typ
@@ -235,28 +238,4 @@ end.
   Revision 1.8  2004/01/22 20:13:18  florian
     * fixed several issues with flags
 
-  Revision 1.7  2003/11/30 19:35:29  florian
-    * fixed several arm related problems
-
-  Revision 1.6  2003/11/04 22:30:15  florian
-    + type cast variant<->enum
-    * cnv. node second pass uses now as well helper wrappers
-
-  Revision 1.5  2003/11/02 14:30:03  florian
-    * fixed ARM for new reg. allocation scheme
-
-  Revision 1.4  2003/09/01 15:11:16  florian
-    * fixed reference handling
-    * fixed operand postfix for floating point instructions
-    * fixed wrong shifter constant handling
-
-  Revision 1.3  2003/09/01 09:54:57  florian
-    *  results of work on arm port last weekend
-
-  Revision 1.2  2003/08/25 23:20:38  florian
-    + started to implement FPU support for the ARM
-    * fixed a lot of other things
-
-  Revision 1.1  2003/08/21 23:24:08  florian
-    * continued to work on the arm skeleton
 }

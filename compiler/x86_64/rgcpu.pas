@@ -41,9 +41,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2004-02-05 01:24:08  florian
+  Revision 1.9  2004-06-20 08:55:32  florian
+    * logs truncated
+
+  Revision 1.8  2004/02/05 01:24:08  florian
     * several fixes to compile x86-64 system
 
-  Revision 1.7  2003/12/24 00:10:03  florian
-    - delete parameter in cg64 methods removed
 }

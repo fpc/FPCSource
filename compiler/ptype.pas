@@ -656,7 +656,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.67  2004-06-16 20:07:09  florian
+  Revision 1.68  2004-06-20 08:55:30  florian
+    * logs truncated
+
+  Revision 1.67  2004/06/16 20:07:09  florian
     * dwarf branch merged
 
   Revision 1.66.2.1  2004/04/28 19:55:52  peter
@@ -675,156 +678,5 @@ end.
     * renamed xNNbittype to xNNinttype
     * renamed registers32 to registersint
     * replace some s32bit,u32bit with torddef([su]inttype).def.typ
-
-  Revision 1.63  2004/01/29 16:51:29  peter
-    * fixed alignment calculation for variant records
-    * fixed alignment padding of records
-
-  Revision 1.62  2004/01/28 22:16:31  peter
-    * more record alignment fixes
-
-  Revision 1.61  2004/01/28 20:30:18  peter
-    * record alignment splitted in fieldalignment and recordalignment,
-      the latter is used when this record is inserted in another record.
-
-  Revision 1.60  2003/10/21 18:16:13  peter
-    * IncompatibleTypes() added that will include unit names when
-      the typenames are the same
-
-  Revision 1.59  2003/10/03 14:45:09  peter
-    * more proc directive for procvar fixes
-
-  Revision 1.58  2003/10/02 21:13:09  peter
-    * procvar directive parsing fixes
-
-  Revision 1.57  2003/10/01 19:05:33  peter
-    * searchsym_type to search for type definitions. It ignores
-      records,objects and parameters
-
-  Revision 1.56  2003/09/23 17:56:06  peter
-    * locals and paras are allocated in the code generation
-    * tvarsym.localloc contains the location of para/local when
-      generating code for the current procedure
-
-  Revision 1.55  2003/05/15 18:58:53  peter
-    * removed selfpointer_offset, vmtpointer_offset
-    * tvarsym.adjusted_address
-    * address in localsymtable is now in the real direction
-    * removed some obsolete globals
-
-  Revision 1.54  2003/05/09 17:47:03  peter
-    * self moved to hidden parameter
-    * removed hdisposen,hnewn,selfn
-
-  Revision 1.53  2003/04/27 11:21:34  peter
-    * aktprocdef renamed to current_procdef
-    * procinfo renamed to current_procinfo
-    * procinfo will now be stored in current_module so it can be
-      cleaned up properly
-    * gen_main_procsym changed to create_main_proc and release_main_proc
-      to also generate a tprocinfo structure
-    * fixed unit implicit initfinal
-
-  Revision 1.52  2003/04/27 07:29:51  peter
-    * current_procdef cleanup, current_procdef is now always nil when parsing
-      a new procdef declaration
-    * aktprocsym removed
-    * lexlevel removed, use symtable.symtablelevel instead
-    * implicit init/final code uses the normal genentry/genexit
-    * funcret state checking updated for new funcret handling
-
-  Revision 1.51  2003/04/25 20:59:34  peter
-    * removed funcretn,funcretsym, function result is now in varsym
-      and aliases for result and function name are added using absolutesym
-    * vs_hidden parameter for funcret passed in parameter
-    * vs_hidden fixes
-    * writenode changed to printnode and released from extdebug
-    * -vp option added to generate a tree.log with the nodetree
-    * nicer printnode for statements, callnode
-
-  Revision 1.50  2003/01/05 15:54:15  florian
-    + added proper support of type = type <type>; for simple types
-
-  Revision 1.49  2003/01/03 23:50:41  peter
-    * also allow = in fpc mode to assign enums
-
-  Revision 1.48  2003/01/02 19:49:00  peter
-    * update self parameter only for methodpointer and methods
-
-  Revision 1.47  2002/12/21 13:07:34  peter
-    * type redefine fix for tb0437
-
-  Revision 1.46  2002/11/25 17:43:23  peter
-    * splitted defbase in defutil,symutil,defcmp
-    * merged isconvertable and is_equal into compare_defs(_ext)
-    * made operator search faster by walking the list only once
-
-  Revision 1.45  2002/09/27 21:13:29  carl
-    * low-highval always checked if limit ober 2GB is reached (to avoid overflow)
-
-  Revision 1.44  2002/09/10 16:26:39  peter
-    * safety check for typesym added for incomplete type def check
-
-  Revision 1.43  2002/09/09 19:34:07  peter
-    * check for incomplete types in the current symtable when parsing
-      forwarddef. Maybe this shall be delphi/tp only
-
-  Revision 1.42  2002/07/20 11:57:56  florian
-    * types.pas renamed to defbase.pas because D6 contains a types
-      unit so this would conflicts if D6 programms are compiled
-    + Willamette/SSE2 instructions to assembler added
-
-  Revision 1.41  2002/05/18 13:34:16  peter
-    * readded missing revisions
-
-  Revision 1.40  2002/05/16 19:46:44  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.38  2002/05/12 16:53:10  peter
-    * moved entry and exitcode to ncgutil and cgobj
-    * foreach gets extra argument for passing local data to the
-      iterator function
-    * -CR checks also class typecasts at runtime by changing them
-      into as
-    * fixed compiler to cycle with the -CR option
-    * fixed stabs with elf writer, finally the global variables can
-      be watched
-    * removed a lot of routines from cga unit and replaced them by
-      calls to cgobj
-    * u32bit-s32bit updates for and,or,xor nodes. When one element is
-      u32bit then the other is typecasted also to u32bit without giving
-      a rangecheck warning/error.
-    * fixed pascal calling method with reversing also the high tree in
-      the parast, detected by tcalcst3 test
-
-  Revision 1.37  2002/04/19 15:46:03  peter
-    * mangledname rewrite, tprocdef.mangledname is now created dynamicly
-      in most cases and not written to the ppu
-    * add mangeledname_prefix() routine to generate the prefix of
-      manglednames depending on the current procedure, object and module
-    * removed static procprefix since the mangledname is now build only
-      on demand from tprocdef.mangledname
-
-  Revision 1.36  2002/04/16 16:12:47  peter
-    * give error when using enums with jumps as array index
-    * allow char as enum value
-
-  Revision 1.35  2002/04/04 19:06:04  peter
-    * removed unused units
-    * use tlocation.size in cg.a_*loc*() routines
-
-  Revision 1.34  2002/01/24 18:25:49  peter
-   * implicit result variable generation for assembler routines
-   * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
-
-  Revision 1.33  2002/01/15 16:13:34  jonas
-    * fixed web bugs 1758 and 1760
-
-  Revision 1.32  2002/01/06 12:08:15  peter
-    * removed uauto from orddef, use new range_to_basetype generating
-      the correct ordinal type for a range
 
 }

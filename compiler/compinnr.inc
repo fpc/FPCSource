@@ -109,28 +109,10 @@ const
 
 {
   $Log$
-  Revision 1.12  2004-02-02 20:41:59  florian
+  Revision 1.13  2004-06-20 08:55:29  florian
+    * logs truncated
+
+  Revision 1.12  2004/02/02 20:41:59  florian
     + added prefetch(const mem) support
-
-  Revision 1.11  2003/11/29 16:19:54  peter
-    * Initialize() added
-
-  Revision 1.10  2002/11/18 18:35:01  peter
-    * Swap(QWord) constant support
-
-  Revision 1.9  2002/10/02 18:20:52  peter
-    * Copy() is now internal syssym that calls compilerprocs
-
-  Revision 1.8  2002/07/16 15:34:20  florian
-    * exit is now a syssym instead of a keyword
-
-  Revision 1.7  2002/05/18 13:34:06  peter
-    * readded missing revisions
-
-  Revision 1.6  2002/05/16 19:46:35  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
 
 }

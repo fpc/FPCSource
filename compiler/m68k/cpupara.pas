@@ -162,32 +162,13 @@ end.
 
 {
   $Log$
-  Revision 1.6  2004-05-12 13:28:01  karoly
+  Revision 1.7  2004-06-20 08:55:31  florian
+    * logs truncated
+
+  Revision 1.6  2004/05/12 13:28:01  karoly
    * added some basic code for later syscall support on M68k/Amiga
 
   Revision 1.5  2004/01/30 12:17:18  florian
     * fixed some m68k compilation problems
-
-  Revision 1.4  2003/02/02 19:25:54  carl
-    * Several bugfixes for m68k target (register alloc., opcode emission)
-    + VIS target
-    + Generic add more complete (still not verified)
-
-  Revision 1.3  2003/01/08 18:43:57  daniel
-   * Tregister changed into a record
-
-  Revision 1.2  2002/12/14 15:02:03  carl
-    * maxoperands -> max_operands (for portability in rautils.pas)
-    * fix some range-check errors with loadconst
-    + add ncgadd unit to m68k
-    * some bugfix of a_param_reg with LOC_CREFERENCE
-
-  Revision 1.1  2002/08/12 15:08:44  carl
-    + stab register indexes for powerpc (moved from gdb to cpubase)
-    + tprocessor enumeration moved to cpuinfo
-    + linker in target_info is now a class
-    * many many updates for m68k (will soon start to compile)
-    - removed some ifdef or correct them for correct cpu
-
 
 }

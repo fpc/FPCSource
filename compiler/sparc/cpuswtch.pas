@@ -126,24 +126,13 @@ initialization
 end.
 {
   $Log$
-  Revision 1.6  2004-01-26 14:41:24  mazen
+  Revision 1.7  2004-06-20 08:55:32  florian
+    * logs truncated
+
+  Revision 1.6  2004/01/26 14:41:24  mazen
   * Supported assembler modes are GAS and STANDARD
 
   Revision 1.5  2004/01/12 16:39:41  peter
     * sparc updates, mostly float related
-
-  Revision 1.4  2003/08/09 18:56:54  daniel
-    * cs_regalloc renamed to cs_regvars to avoid confusion with register
-      allocator
-    * Some preventive changes to i386 spillinh code
-
-  Revision 1.3  2002/09/07 15:25:14  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.2  2002/08/23 10:08:28  mazen
-  *** empty log message ***
-
-  Revision 1.1  2002/08/22 08:30:50  mazen
-  first insertion 2002\08\22
 
 }

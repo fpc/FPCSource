@@ -213,38 +213,7 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2003-01-12 15:42:23  peter
-    * m68k pathexist update from 1.0.x
-    * palmos res update from 1.0.x
-
-  Revision 1.1  2002/09/06 15:03:50  carl
-    * moved files to systems directory
-
-  Revision 1.14  2002/07/26 21:15:46  florian
-    * rewrote the system handling
-
-  Revision 1.13  2002/07/01 18:46:35  peter
-    * internal linker
-    * reorganized aasm layer
-
-  Revision 1.12  2002/05/18 13:34:27  peter
-    * readded missing revisions
-
-  Revision 1.11  2002/05/16 19:46:53  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.9  2002/04/22 18:19:22  carl
-  - remove use_bound_instruction field
-
-  Revision 1.8  2002/04/20 21:43:18  carl
-  * fix stack size for some targets
-  + add offset to parameters from frame pointer info.
-  - remove some unused stuff
-
-  Revision 1.7  2002/04/15 19:16:57  carl
-  - remove size_of_pointer field
+  Revision 1.3  2004-06-20 08:55:32  florian
+    * logs truncated
 
 }

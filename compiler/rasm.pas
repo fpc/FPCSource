@@ -69,8 +69,7 @@ unit rasm;
 end.
 {
   $Log$
-  Revision 1.1  2003-11-12 16:05:39  florian
-    * assembler readers OOPed
-    + typed currency constants
-    + typed 128 bit float constants if the CPU supports it
+  Revision 1.2  2004-06-20 08:55:30  florian
+    * logs truncated
+
 }

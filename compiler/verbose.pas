@@ -873,7 +873,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.31  2004-02-23 15:59:46  peter
+  Revision 1.32  2004-06-20 08:55:30  florian
+    * logs truncated
+
+  Revision 1.31  2004/02/23 15:59:46  peter
     * fix crashes with 1.0.x
 
   Revision 1.30  2004/02/20 19:49:21  daniel
@@ -883,63 +886,5 @@ end.
 
   Revision 1.29  2004/02/15 12:17:59  peter
     * reset compiling_module, fixes crash in ide with second compile
-
-  Revision 1.28  2003/10/08 19:17:43  peter
-    * -P to -ap
-    * -V to -vv
-
-  Revision 1.27  2003/10/01 20:34:49  peter
-    * procinfo unit contains tprocinfo
-    * cginfo renamed to cgbase
-    * moved cgmessage to verbose
-    * fixed ppc and sparc compiles
-
-  Revision 1.26  2003/04/25 20:59:35  peter
-    * removed funcretn,funcretsym, function result is now in varsym
-      and aliases for result and function name are added using absolutesym
-    * vs_hidden parameter for funcret passed in parameter
-    * vs_hidden fixes
-    * writenode changed to printnode and released from extdebug
-    * -vp option added to generate a tree.log with the nodetree
-    * nicer printnode for statements, callnode
-
-  Revision 1.25  2003/04/22 14:33:38  peter
-    * removed some notes/hints
-
-  Revision 1.24  2003/01/09 21:52:38  peter
-    * merged some verbosity options.
-    * V_LineInfo is a verbosity flag to include line info
-
-  Revision 1.23  2002/12/29 14:57:50  peter
-    * unit loading changed to first register units and load them
-      afterwards. This is needed to support uses xxx in yyy correctly
-    * unit dependency check fixed
-
-  Revision 1.22  2002/11/15 01:58:54  peter
-    * merged changes from 1.0.7 up to 04-11
-      - -V option for generating bug report tracing
-      - more tracing for option parsing
-      - errors for cdecl and high()
-      - win32 import stabs
-      - win32 records<=8 are returned in eax:edx (turned off by default)
-      - heaptrc update
-      - more info for temp management in .s file with EXTDEBUG
-
-  Revision 1.21  2002/10/05 12:43:29  carl
-    * fixes for Delphi 6 compilation
-     (warning : Some features do not work under Delphi)
-
-  Revision 1.20  2002/08/18 19:59:03  peter
-    * renamed local current_module to compiling_module because it
-      confused a lot in gdb
-
-  Revision 1.19  2002/05/18 13:34:21  peter
-    * readded missing revisions
-
-  Revision 1.18  2002/05/16 19:46:47  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
 
 }

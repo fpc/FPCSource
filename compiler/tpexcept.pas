@@ -258,19 +258,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2004-02-12 16:00:39  peter
+  Revision 1.11  2004-06-20 08:55:30  florian
+    * logs truncated
+
+  Revision 1.10  2004/02/12 16:00:39  peter
     * don't use the local longjmp for 1.9.x
-
-  Revision 1.9  2003/11/23 17:03:05  peter
-    * use oldfpccall
-
-  Revision 1.8  2002/05/18 13:34:21  peter
-    * readded missing revisions
-
-  Revision 1.7  2002/05/16 19:46:46  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
 
 }

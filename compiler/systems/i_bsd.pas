@@ -513,7 +513,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.11  2004-06-16 20:07:11  florian
+  Revision 1.12  2004-06-20 08:55:32  florian
+    * logs truncated
+
+  Revision 1.11  2004/06/16 20:07:11  florian
     * dwarf branch merged
 
   Revision 1.10.2.1  2004/05/11 17:07:55  marco
@@ -528,48 +531,4 @@ end.
   Revision 1.8  2004/01/29 15:48:10  marco
    * fix added as comment till I can test (8 byte C alignment on netbsd/ppc)
 
-  Revision 1.7  2004/01/21 20:53:51  marco
-   * Copy and pasted some structures from Net- to OpenBSD (3.4+ ELF!)
-
-  Revision 1.6  2004/01/06 21:26:18  jonas
-    * fixed alignment constants for Darwin
-
-  Revision 1.5  2004/01/04 21:19:57  jonas
-    * use "as_darwin" assembler for Darwin
-    * Cprefix = '_' on Darwin
-    * use_function_relative_addresses must be false on Darwin
-
-  Revision 1.4  2003/10/03 22:09:49  peter
-    * removed paraalign
-
-  Revision 1.3  2003/05/28 23:18:31  florian
-    * started to fix and clean up the sparc port
-
-  Revision 1.2  2003/05/25 23:15:04  marco
-   * NetBSD target support. OpenBSD reserved in the enum, for future use.
-
-  Revision 1.1  2003/05/20 23:54:00  florian
-    + basic darwin support added
-
-  Revision 1.2  2003/01/11 16:35:15  marco
-   * HASUNIX defined for now.
-
-  Revision 1.1  2002/09/06 15:03:51  carl
-    * moved files to systems directory
-
-  Revision 1.3  2002/08/13 18:01:51  carl
-    * rename swatoperands to swapoperands
-    + m68k first compilable version (still needs a lot of testing):
-        assembler generator, system information , inline
-        assembler reader.
-
-  Revision 1.2  2002/08/12 15:08:39  carl
-    + stab register indexes for powerpc (moved from gdb to cpubase)
-    + tprocessor enumeration moved to cpuinfo
-    + linker in target_info is now a class
-    * many many updates for m68k (will soon start to compile)
-    - removed some ifdef or correct them for correct cpu
-
-  Revision 1.1  2002/07/26 21:15:38  florian
-    * rewrote the system handling
 }

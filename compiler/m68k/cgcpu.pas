@@ -1313,7 +1313,10 @@ end.
 
 {
   $Log$
-  Revision 1.27  2004-05-20 21:54:33  florian
+  Revision 1.28  2004-06-20 08:55:31  florian
+    * logs truncated
+
+  Revision 1.27  2004/05/20 21:54:33  florian
     + <pointer> - <pointer> result is divided by the pointer element size now
       this is delphi compatible as well as resulting in the expected result for p1+(p2-p1)
 
@@ -1328,110 +1331,6 @@ end.
 
   Revision 1.23  2004/04/18 21:13:59  florian
     * more adaptions for m68k
-
-  Revision 1.22  2004/03/02 00:36:33  olle
-    * big transformation of Tai_[const_]Symbol.Create[data]name*
-
-  Revision 1.21  2004/01/30 12:17:18  florian
-    * fixed some m68k compilation problems
-
-  Revision 1.20  2003/04/27 11:21:36  peter
-    * aktprocdef renamed to current_procdef
-    * procinfo renamed to current_procinfo
-    * procinfo will now be stored in current_module so it can be
-      cleaned up properly
-    * gen_main_procsym changed to create_main_proc and release_main_proc
-      to also generate a tprocinfo structure
-    * fixed unit implicit initfinal
-
-  Revision 1.19  2003/04/23 13:40:33  peter
-    * fix m68k compile
-
-  Revision 1.18  2003/02/19 22:00:16  daniel
-    * Code generator converted to new register notation
-    - Horribily outdated todo.txt removed
-
-  Revision 1.17  2003/02/12 22:11:13  carl
-    * some small m68k bugfixes
-
-  Revision 1.16  2003/02/02 19:25:54  carl
-    * Several bugfixes for m68k target (register alloc., opcode emission)
-    + VIS target
-    + Generic add more complete (still not verified)
-
-  Revision 1.15  2003/01/08 18:43:57  daniel
-   * Tregister changed into a record
-
-  Revision 1.14  2003/01/05 13:36:53  florian
-    * x86-64 compiles
-    + very basic support for float128 type (x86-64 only)
-
-  Revision 1.13  2002/12/01 22:12:36  carl
-    * rename an error message
-
-  Revision 1.12  2002/11/25 17:43:27  peter
-    * splitted defbase in defutil,symutil,defcmp
-    * merged isconvertable and is_equal into compare_defs(_ext)
-    * made operator search faster by walking the list only once
-
-  Revision 1.11  2002/11/18 17:32:00  peter
-    * pass proccalloption to ret_in_xxx and push_xxx functions
-
-  Revision 1.10  2002/09/22 14:15:31  carl
-    + a_call_reg
-
-  Revision 1.9  2002/09/17 18:54:05  jonas
-    * a_load_reg_reg() now has two size parameters: source and dest. This
-      allows some optimizations on architectures that don't encode the
-      register size in the register name.
-
-  Revision 1.8  2002/09/08 15:12:45  carl
-    + a_call_reg
-
-  Revision 1.7  2002/09/07 20:53:28  carl
-    * cardinal -> longword
-
-  Revision 1.6  2002/09/07 15:25:12  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.5  2002/08/19 18:17:48  carl
-    + optimize64_op_const_reg implemented (optimizes 64-bit constant opcodes)
-    * more fixes to m68k for 64-bit operations
-
-  Revision 1.4  2002/08/16 14:24:59  carl
-    * issameref() to test if two references are the same (then emit no opcodes)
-    + ret_in_reg to replace ret_in_acc
-      (fix some register allocation bugs at the same time)
-    + save_std_register now has an extra parameter which is the
-      usedinproc registers
-
-  Revision 1.3  2002/08/15 08:13:54  carl
-    - a_load_sym_ofs_reg removed
-    * loadvmt now calls loadaddr_ref_reg instead
-
-  Revision 1.2  2002/08/14 19:16:34  carl
-    + m68k type conversion nodes
-    + started some mathematical nodes
-    * out of bound references should now be handled correctly
-
-  Revision 1.1  2002/08/13 18:30:22  carl
-    * rename swatoperands to swapoperands
-    + m68k first compilable version (still needs a lot of testing):
-        assembler generator, system information , inline
-        assembler reader.
-
-  Revision 1.5  2002/08/12 15:08:43  carl
-    + stab register indexes for powerpc (moved from gdb to cpubase)
-    + tprocessor enumeration moved to cpuinfo
-    + linker in target_info is now a class
-    * many many updates for m68k (will soon start to compile)
-    - removed some ifdef or correct them for correct cpu
-
-  Revision 1.2  2002/08/05 17:27:52  carl
-    + updated m68k
-
-  Revision 1.1  2002/07/29 17:51:32  carl
-    + restart m68k support
 
 }
 

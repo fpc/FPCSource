@@ -290,65 +290,7 @@ end.
 
 {
   $Log$
-  Revision 1.18  2003-12-16 21:29:24  florian
-    + inlined procedures inherit procinfo flags
+  Revision 1.19  2004-06-20 08:55:29  florian
+    * logs truncated
 
-  Revision 1.17  2003/10/01 20:34:49  peter
-    * procinfo unit contains tprocinfo
-    * cginfo renamed to cgbase
-    * moved cgmessage to verbose
-    * fixed ppc and sparc compiles
-
-  Revision 1.16  2003/05/26 21:15:18  peter
-    * disable string node optimizations for the moment
-
-  Revision 1.15  2003/04/27 11:21:33  peter
-    * aktprocdef renamed to current_procdef
-    * procinfo renamed to current_procinfo
-    * procinfo will now be stored in current_module so it can be
-      cleaned up properly
-    * gen_main_procsym changed to create_main_proc and release_main_proc
-      to also generate a tprocinfo structure
-    * fixed unit implicit initfinal
-
-  Revision 1.14  2003/04/26 09:12:55  peter
-    * add string returns in LOC_REFERENCE
-
-  Revision 1.13  2003/04/22 23:50:23  peter
-    * firstpass uses expectloc
-    * checks if there are differences between the expectloc and
-      location.loc from secondpass in EXTDEBUG
-
-  Revision 1.12  2002/11/25 17:43:20  peter
-    * splitted defbase in defutil,symutil,defcmp
-    * merged isconvertable and is_equal into compare_defs(_ext)
-    * made operator search faster by walking the list only once
-
-  Revision 1.11  2002/08/17 09:23:37  florian
-    * first part of current_procinfo rewrite
-
-  Revision 1.10  2002/07/20 11:57:55  florian
-    * types.pas renamed to defbase.pas because D6 contains a types
-      unit so this would conflicts if D6 programms are compiled
-    + Willamette/SSE2 instructions to assembler added
-
-  Revision 1.9  2002/05/18 13:34:10  peter
-    * readded missing revisions
-
-  Revision 1.8  2002/05/16 19:46:39  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.6  2002/04/02 17:11:29  peter
-    * tlocation,treference update
-    * LOC_CONSTANT added for better constant handling
-    * secondadd splitted in multiple routines
-    * location_force_reg added for loading a location to a register
-      of a specified size
-    * secondassignment parses now first the right and then the left node
-      (this is compatible with Kylix). This saves a lot of push/pop especially
-      with string operations
-    * adapted some routines to use the new cg methods
 }

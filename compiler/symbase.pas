@@ -333,7 +333,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  2004-03-02 17:32:12  florian
+  Revision 1.21  2004-06-20 08:55:30  florian
+    * logs truncated
+
+  Revision 1.20  2004/03/02 17:32:12  florian
     * make cycle fixed
     + pic support for darwin
     + support of importing vars from shared libs on darwin implemented
@@ -351,92 +354,5 @@ end.
     * Experiment: Compress strings to save memory
       Did not save a single byte of mem; clearly the core size is boosted by
       temporary memory usage...
-
-  Revision 1.16  2003/12/01 18:44:15  peter
-    * fixed some crashes
-    * fixed varargs and register calling probs
-
-  Revision 1.15  2003/09/23 17:56:06  peter
-    * locals and paras are allocated in the code generation
-    * tvarsym.localloc contains the location of para/local when
-      generating code for the current procedure
-
-  Revision 1.14  2003/06/25 18:31:23  peter
-    * sym,def resolving partly rewritten to support also parent objects
-      not directly available through the uses clause
-
-  Revision 1.13  2003/06/07 20:26:32  peter
-    * re-resolving added instead of reloading from ppu
-    * tderef object added to store deref info for resolving
-
-  Revision 1.12  2003/04/27 11:21:34  peter
-    * aktprocdef renamed to current_procdef
-    * procinfo renamed to current_procinfo
-    * procinfo will now be stored in current_module so it can be
-      cleaned up properly
-    * gen_main_procsym changed to create_main_proc and release_main_proc
-      to also generate a tprocinfo structure
-    * fixed unit implicit initfinal
-
-  Revision 1.11  2003/04/27 07:29:51  peter
-    * current_procdef cleanup, current_procdef is now always nil when parsing
-      a new procdef declaration
-    * aktprocsym removed
-    * lexlevel removed, use symtable.symtablelevel instead
-    * implicit init/final code uses the normal genentry/genexit
-    * funcret state checking updated for new funcret handling
-
-  Revision 1.10  2002/12/07 14:27:09  carl
-    * 3% memory optimization
-    * changed some types
-    + added type checking with different size for call node and for
-       parameters
-
-  Revision 1.9  2002/10/02 20:51:59  peter
-    * tsymtable.dump to dump the names in a symtable to stdout
-
-  Revision 1.8  2002/09/09 17:34:15  peter
-    * tdicationary.replace added to replace and item in a dictionary. This
-      is only allowed for the same name
-    * varsyms are inserted in symtable before the types are parsed. This
-      fixes the long standing "var longint : longint" bug
-    - consume_idlist and idstringlist removed. The loops are inserted
-      at the callers place and uses the symtable for duplicate id checking
-
-  Revision 1.7  2002/08/25 19:25:20  peter
-    * sym.insert_in_data removed
-    * symtable.insertvardata/insertconstdata added
-    * removed insert_in_data call from symtable.insert, it needs to be
-      called separatly. This allows to deref the address calculation
-    * procedures now calculate the parast addresses after the procedure
-      directives are parsed. This fixes the cdecl parast problem
-    * push_addr_param has an extra argument that specifies if cdecl is used
-      or not
-
-  Revision 1.6  2002/05/18 13:34:18  peter
-    * readded missing revisions
-
-  Revision 1.5  2002/05/16 19:46:44  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.3  2002/05/12 16:53:10  peter
-    * moved entry and exitcode to ncgutil and cgobj
-    * foreach gets extra argument for passing local data to the
-      iterator function
-    * -CR checks also class typecasts at runtime by changing them
-      into as
-    * fixed compiler to cycle with the -CR option
-    * fixed stabs with elf writer, finally the global variables can
-      be watched
-    * removed a lot of routines from cga unit and replaced them by
-      calls to cgobj
-    * u32bit-s32bit updates for and,or,xor nodes. When one element is
-      u32bit then the other is typecasted also to u32bit without giving
-      a rangecheck warning/error.
-    * fixed pascal calling method with reversing also the high tree in
-      the parast, detected by tcalcst3 test
 
 }

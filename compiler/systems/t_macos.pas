@@ -228,7 +228,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.9  2004-05-11 18:24:39  olle
+  Revision 1.10  2004-06-20 08:55:32  florian
+    * logs truncated
+
+  Revision 1.9  2004/05/11 18:24:39  olle
     + added GUI apptype to MacOS
 
   Revision 1.8  2004/04/06 22:44:22  olle
@@ -241,30 +244,4 @@ end.
     + TLinkerMPW
     + TAsmScriptMPW
 
-  Revision 1.6  2003/04/27 08:52:00  florian
-    * another compile fix
-
-  Revision 1.5  2003/04/27 08:50:45  peter
-    * compile fix
-
-  Revision 1.4  2002/11/17 16:32:04  carl
-    * memory optimization (3-4%) : cleanup of tai fields,
-       cleanup of tdef and tsym fields.
-    * make it work for m68k
-
-  Revision 1.3  2002/10/16 20:18:33  olle
-    * header comment updated
-
-  Revision 1.2  2002/10/02 21:50:19  florian
-    * importing via external is now possible for macos
-
-  Revision 1.1  2002/09/06 15:03:50  carl
-    * moved files to systems directory
-
-  Revision 1.13  2002/08/20 21:40:44  florian
-    + target macos for ppc added
-    + frame work for mpw assembler output
-
-  Revision 1.12  2002/07/26 21:15:46  florian
-    * rewrote the system handling
 }

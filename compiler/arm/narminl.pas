@@ -202,7 +202,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2004-03-16 22:12:10  florian
+  Revision 1.7  2004-06-20 08:55:31  florian
+    * logs truncated
+
+  Revision 1.6  2004/03/16 22:12:10  florian
     * some alignment issues resolved
     * compiler doesn't generate anymore instructions not supported by the linux fpe
 
@@ -219,9 +222,4 @@ end.
     * fixed symbol type writing for arm-linux
     * fixed assembler generation for abs
 
-  Revision 1.2  2003/11/02 14:30:03  florian
-    * fixed ARM for new reg. allocation scheme
-
-  Revision 1.1  2003/08/28 00:05:29  florian
-    * today's arm patches
 }

@@ -102,7 +102,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.14  2004-05-03 09:48:15  olle
+  Revision 1.15  2004-06-20 08:55:32  florian
+    * logs truncated
+
+  Revision 1.14  2004/05/03 09:48:15  olle
     * changed .pas back to .p
 
   Revision 1.13  2004/02/19 20:40:20  olle
@@ -110,53 +113,4 @@ end.
     + TLinkerMPW
     + TAsmScriptMPW
 
-  Revision 1.12  2003/10/03 22:09:49  peter
-    * removed paraalign
-
-  Revision 1.11  2003/08/08 15:54:01  olle
-    * merged macos entry/exit code generation into the general one.
-
-  Revision 1.10  2002/08/18 17:10:15  olle
-    + abi_powerpc_macos added to TSystemInfo
-
-  Revision 1.9  2003/06/18 10:19:07  olle
-    * changed .p to .pas to make the compiler compile
-
-  Revision 1.8  2003/01/13 22:15:58  florian
-    * changed ppu extentions from pput to ppu
-
-  Revision 1.7  2003/01/13 17:16:44  olle
-    * Fixed typo
-
-  Revision 1.6  2003/01/13 13:03:56  florian
-    - fixed res entry for MacOS, I don't understand why it worked before :/
-
-  Revision 1.5  2002/10/20 17:54:32  olle
-    * changed newline char, asm file ending and case sensitivity
-
-  Revision 1.4  2002/10/02 21:50:19  florian
-    * importing via external is now possible for macos
-
-  Revision 1.3  2002/10/02 21:29:34  florian
-    * ppus have the extension ppu on macos as well now
-
-  Revision 1.2  2002/09/11 19:59:14  florian
-    * renamed target macosppc to macppc
-
-  Revision 1.1  2002/09/06 15:03:51  carl
-    * moved files to systems directory
-
-  Revision 1.3  2002/08/20 21:40:44  florian
-    + target macos for ppc added
-    + frame work for mpw assembler output
-
-  Revision 1.2  2002/08/12 15:08:39  carl
-    + stab register indexes for powerpc (moved from gdb to cpubase)
-    + tprocessor enumeration moved to cpuinfo
-    + linker in target_info is now a class
-    * many many updates for m68k (will soon start to compile)
-    - removed some ifdef or correct them for correct cpu
-
-  Revision 1.1  2002/07/26 21:15:38  florian
-    * rewrote the system handling
 }

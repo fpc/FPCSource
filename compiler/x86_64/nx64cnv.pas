@@ -67,14 +67,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2004-02-05 01:24:08  florian
+  Revision 1.4  2004-06-20 08:55:32  florian
+    * logs truncated
+
+  Revision 1.3  2004/02/05 01:24:08  florian
     * several fixes to compile x86-64 system
 
-  Revision 1.2  2003/12/24 00:33:10  florian
-    * x86-64 compilation fixed
-
-  Revision 1.1  2003/04/30 20:53:32  florian
-    * error when address of an abstract method is taken
-    * fixed some x86-64 problems
-    * merged some more x86-64 and i386 code
 }

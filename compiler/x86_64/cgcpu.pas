@@ -111,7 +111,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2004-06-16 20:07:11  florian
+  Revision 1.14  2004-06-20 08:55:32  florian
+    * logs truncated
+
+  Revision 1.13  2004/06/16 20:07:11  florian
     * dwarf branch merged
 
   Revision 1.12.2.6  2004/05/27 23:36:18  peter
@@ -125,51 +128,5 @@ end.
 
   Revision 1.12.2.3  2004/05/01 11:12:24  florian
     * spilling of registers with size<>4 fixed
-
-  Revision 1.12.2.2  2004/04/27 18:18:26  peter
-    * aword -> aint
-
-  Revision 1.12.2.1  2004/04/24 18:30:12  florian
-    * extended parameters shouldn't be poped by the callee on x86-64 either
-
-  Revision 1.12  2004/02/22 18:27:21  florian
-    * fixed exception reason size for 64 bit systems
-
-  Revision 1.11  2004/02/09 22:14:17  peter
-    * more x86_64 parameter fixes
-    * tparalocation.lochigh is now used to indicate if registerhigh
-      is used and what the type is
-
-  Revision 1.10  2004/02/04 22:01:13  peter
-    * first try to get cpupara working for x86_64
-
-  Revision 1.9  2004/01/14 23:39:05  florian
-    * another bunch of x86-64 fixes mainly calling convention and
-      assembler reader related
-
-  Revision 1.8  2004/01/13 18:08:58  florian
-    * x86-64 compilation fixed
-
-  Revision 1.7  2003/12/24 01:47:23  florian
-    * first fixes to compile the x86-64 system unit
-
-  Revision 1.6  2003/12/22 19:00:17  florian
-    * fixed some x86-64 issues
-
-  Revision 1.5  2003/09/25 13:13:32  florian
-    * more x86-64 fixes
-
-  Revision 1.4  2003/04/30 15:45:35  florian
-    * merged more x86-64/i386 code
-
-  Revision 1.3  2003/01/05 13:36:54  florian
-    * x86-64 compiles
-    + very basic support for float128 type (x86-64 only)
-
-  Revision 1.2  2002/07/25 22:55:33  florian
-    * several fixes, small test units can be compiled
-
-  Revision 1.1  2002/07/24 22:38:15  florian
-    + initial release of x86-64 target code
 
 }

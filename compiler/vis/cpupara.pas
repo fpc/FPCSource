@@ -76,9 +76,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2003-02-02 19:25:54  carl
-    * Several bugfixes for m68k target (register alloc., opcode emission)
-    + VIS target
-    + Generic add more complete (still not verified)
+  Revision 1.2  2004-06-20 08:55:32  florian
+    * logs truncated
 
 }

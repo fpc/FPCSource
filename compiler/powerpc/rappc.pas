@@ -42,8 +42,7 @@ unit rappc;
 end.
 {
   $Log$
-  Revision 1.3  2003-11-12 16:05:40  florian
-    * assembler readers OOPed
-    + typed currency constants
-    + typed 128 bit float constants if the CPU supports it
+  Revision 1.4  2004-06-20 08:55:32  florian
+    * logs truncated
+
 }
