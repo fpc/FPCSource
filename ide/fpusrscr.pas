@@ -1043,9 +1043,6 @@ begin
   IDEScreenBufferHandle:=NewScreenBufferHandle;
   DosScreenBufferHandle:=StartScreenBufferHandle;
   Capture;
-{$ifdef fvision}
-  if TextModeGFV then
-{$endif fvision}
   IdeScreenMode.row:=0;
   SwitchBackToIDEScreen;
 end;
@@ -1265,44 +1262,29 @@ end;
   do hold all the info }
 procedure TWin32Screen.SaveIDEScreen;
 begin
-{$ifdef fvision}
-  if TextModeGFV then
-{$endif fvision}
-    begin
-      IdeScreenMode:=ScreenMode;
-      GetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), @IdeMode);
-      { set the dummy buffer as active already now PM }
-      SetStdHandle(cardinal(Std_Output_Handle),DummyScreenBufferHandle);
-      UpdateFileHandles;
-    end;
+  IdeScreenMode:=ScreenMode;
+  GetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), @IdeMode);
+  { set the dummy buffer as active already now PM }
+  SetStdHandle(cardinal(Std_Output_Handle),DummyScreenBufferHandle);
+  UpdateFileHandles;
 end;
 
 { dummy for win32 as the Buffer screen
   do hold all the info }
 procedure TWin32Screen.SaveConsoleScreen;
 begin
-{$ifdef fvision}
-  if TextModeGFV then
-{$endif fvision}
-    begin
-      GetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), @ConsoleMode);
-      { set the dummy buffer as active already now PM }
-      SetStdHandle(cardinal(Std_Output_Handle),DummyScreenBufferHandle);
-      UpdateFileHandles;
-    end;
+  GetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), @ConsoleMode);
+  { set the dummy buffer as active already now PM }
+  SetStdHandle(cardinal(Std_Output_Handle),DummyScreenBufferHandle);
+  UpdateFileHandles;
 end;
 
 procedure TWin32Screen.SwitchToConsoleScreen;
 begin
-{$ifdef fvision}
-  if TextModeGFV then
-{$endif fvision}
-    begin
-      SetConsoleActiveScreenBuffer(DosScreenBufferHandle);
-      SetStdHandle(cardinal(Std_Output_Handle),DosScreenBufferHandle);
-      SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), ConsoleMode);
-      UpdateFileHandles;
-    end;
+  SetConsoleActiveScreenBuffer(DosScreenBufferHandle);
+  SetStdHandle(cardinal(Std_Output_Handle),DosScreenBufferHandle);
+  SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), ConsoleMode);
+  UpdateFileHandles;
   IDEActive:=false;
 end;
 
@@ -1313,46 +1295,41 @@ var
   res : boolean;
   error : longint;
 begin
+  SetStdHandle(cardinal(Std_Output_Handle),IDEScreenBufferHandle);
+  UpdateFileHandles;
+  GetConsoleScreenBufferInfo(IDEScreenBufferHandle,
+    @ConsoleScreenBufferInfo);
+  SetConsoleActiveScreenBuffer(IDEScreenBufferHandle);
 {$ifdef fvision}
-  if TextModeGFV then
+  { Needed to force InitSystemMsg to use the right console handle }
+  DoneEvents;
+  InitEvents;
 {$endif fvision}
+  IdeMode:=(IdeMode or ENABLE_MOUSE_INPUT or ENABLE_WINDOW_INPUT) and not ENABLE_PROCESSED_INPUT;
+  SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), IdeMode);
+  WindowPos.left:=0;
+  WindowPos.right:=ConsoleScreenBufferInfo.srWindow.right
+                   -ConsoleScreenBufferInfo.srWindow.left;
+  WindowPos.top:=0;
+  WindowPos.bottom:=ConsoleScreenBufferInfo.srWindow.bottom
+                   -ConsoleScreenBufferInfo.srWindow.top;
+  with ConsoleScreenBufferInfo.dwMaximumWindowSize do
     begin
-      SetStdHandle(cardinal(Std_Output_Handle),IDEScreenBufferHandle);
-      UpdateFileHandles;
-      GetConsoleScreenBufferInfo(IDEScreenBufferHandle,
-        @ConsoleScreenBufferInfo);
-      SetConsoleActiveScreenBuffer(IDEScreenBufferHandle);
-{$ifdef fvision}
-      { Needed to force InitSystemMsg to use the right console handle }
-      DoneEvents;
-      InitEvents;
-{$endif fvision}
-      IdeMode:=(IdeMode or ENABLE_MOUSE_INPUT or ENABLE_WINDOW_INPUT) and not ENABLE_PROCESSED_INPUT;
-      SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), IdeMode);
-      WindowPos.left:=0;
-      WindowPos.right:=ConsoleScreenBufferInfo.srWindow.right
-                       -ConsoleScreenBufferInfo.srWindow.left;
-      WindowPos.top:=0;
-      WindowPos.bottom:=ConsoleScreenBufferInfo.srWindow.bottom
-                       -ConsoleScreenBufferInfo.srWindow.top;
-      with ConsoleScreenBufferInfo.dwMaximumWindowSize do
-        begin
-        if WindowPos.Right<X-1 then
-          WindowPos.right:=X-1;
-        if WindowPos.Bottom<Y-1 then
-          WindowPos.Bottom:=Y-1;
-        end;
-      res:=SetConsoleWindowInfo(IDEScreenBufferHandle,true,WindowPos);
-      if not res then
-        error:=GetLastError;
-{$ifdef DEBUG}
-      IdeScreenMode.row:=WindowPos.bottom+1;
-      IdeScreenMode.col:=WindowPos.right+1;
-{$endif DEBUG}
-      { needed to force the correct size for videobuf }
-      if Assigned(Application) and (IdeScreenMode.row<>0)then
-        Application^.SetScreenVideoMode(IdeScreenMode);
+    if WindowPos.Right<X-1 then
+      WindowPos.right:=X-1;
+    if WindowPos.Bottom<Y-1 then
+      WindowPos.Bottom:=Y-1;
     end;
+  res:=SetConsoleWindowInfo(IDEScreenBufferHandle,true,WindowPos);
+  if not res then
+    error:=GetLastError;
+{$ifdef DEBUG}
+  IdeScreenMode.row:=WindowPos.bottom+1;
+  IdeScreenMode.col:=WindowPos.right+1;
+{$endif DEBUG}
+  { needed to force the correct size for videobuf }
+  if Assigned(Application) and (IdeScreenMode.row<>0)then
+    Application^.SetScreenVideoMode(IdeScreenMode);
   IDEActive:=true;
 end;
 
@@ -1537,7 +1514,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.35  2004-09-19 14:51:03  armin
+  Revision 1.36  2004-11-04 11:46:54  peter
+  fixed compilation for new fvision
+
+  Revision 1.35  2004/09/19 14:51:03  armin
   * added support for target netwlibc
 
   Revision 1.34  2004/07/09 23:17:26  peter
