@@ -1014,7 +1014,7 @@ type
     FCallExitProcess : boolean;
 {$endif}
     constructor Create(CreateSuspended: Boolean);
-    destructor Destroy; { override; !!!: Why???}
+    destructor Destroy; override;
     procedure Resume;
     procedure Suspend;
     procedure Terminate;
@@ -1242,7 +1242,10 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.8  2001-02-09 20:38:28  sg
+  Revision 1.9  2001-04-13 18:03:51  peter
+    * added tthread.destroy override
+
+  Revision 1.8  2001/02/09 20:38:28  sg
   Merges from Fixbranch:
   * Extended TRect type to have TopLeft and BottomRight fields as well
   * Added "Driver" property to TReader
