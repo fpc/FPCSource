@@ -26,8 +26,6 @@
 
 procedure Move(var source;var dest;count:longint);assembler;
 asm
-          {  load the begin of the source in the data cache }
-          dcbt    0,r3
           {  count <= 0 ?  }
           cmpwi   cr0,r5,0
           {  check if we have to do the move backwards because of overlap  }
@@ -35,8 +33,8 @@ asm
           {  carry := boolean(dest-source < count) = boolean(overlap) }
           subc    r10,r10,r5
 
-          {  count < 11 ? (to decide whether we will move dwords or bytes  }
-          cmpwi   cr1,r5,11
+          {  count < 15 ? (to decide whether we will move dwords or bytes  }
+          cmpwi   cr1,r5,15
 
           {  if overlap, then r10 := -1 else r10 := 0  }
           subfe   r10,r10,r10
@@ -46,6 +44,11 @@ asm
 
           {  if count <= 0, stop  }
           ble     cr0,LMoveDone
+
+          {  load the begin of the source in the data cache }
+          dcbt    0,r3
+          { and the dest as well }
+          dcbst   0,r4
 
           {  if overlap, then r0 := count else r0 := 0  }
           and     r0,r5,r10
@@ -64,7 +67,7 @@ asm
           add     r3,r3,r0
           add     r4,r4,r0
 
-          {  if count < 11, copy everything byte by byte  }
+          {  if count < 15, copy everything byte by byte  }
           blt     cr1,LMoveBytes
 
           {  otherwise, guarantee 4 byte alignment for dest for starters  }
@@ -177,52 +180,133 @@ end ['R0','R3','R4','R5','R10','F0','F11','F12','F13','CTR','CR0','CR1','CR7'];
 
 {$define FPC_SYSTEM_HAS_FILLCHAR}
 
-Procedure FillChar(var x;count:longint;value:byte);
-begin
-        asm
-{ Register Usage:
-        r3      x
-        r4      count
-        r5      value
-        r13     value.value.value.value
-        r14     ptr to current dest char
-        r15     byte increment, Scratch
-        r16     Block count
-        r17 misalignment byte count
-}
-                cmpwi   cr2,r4,12
-                mr              r14,r3
-                andi.   r17,r3,3
-                sub             r14,r3,r17              //32 bit align
-                blt             cr2,.FillBytes  //if count<12 then fill byte by byte
-                sub             r16,r4,r17
-                andi    r17,r16,3
-                cmpwi   cr2,r17,0
-                srwi    r16,r16,2               //r16:=count div 4
-                subi    r16,r16,2
-                mtctr   r16                             //counter:=r16
-                mr              r13,r5                  //insert
-                insrwi  r13,r5,8,16             //              value into all four bytes
-                insrwi  r13,r13,16,0    //                                                                      of r13
-                li              r15,4
-                stw             r13,0(r3)               //fill first few bytes
-.FillWordLoop:
-                stwux   r13,r14,r15
-                bdnz    .FillWordLoop
-                beq             cr2,FillEnd             //No trailing bytes, so exit
-                add             r14,r3,r4
-                stw             r13,-4(r14)             //fill last few bytes
-                b               .FillEnd
+Procedure FillChar(var x;count:longint;value:byte);assembler;
+{ input: x in r3, count in r4, value in r5 }
 
-.FillBytes:
-                mtctr   r4                              //counter:=count
-                li              r15,1
-                subi    r14,r3,1
-.FillByteLoop:
-                stbux   r13,r14,r15
-                bdnz    .FillByteLoop
-.FillEnd:
-        end [r13,r14,r15,r16,r17,ctr];
+{$ifndef ABI_AIX}
+{ in the AIX ABI, we can use te red zone for temp storage, otherwise we have }
+{ to explicitely allocate room                                               }
+var
+  temp: record
+    case byte of
+      0: (l1,l2: longint);
+      1: (d: double);
+    end;
+{$endif ABI_AIX}
+asm
+        { no bytes? }
+        cmpwi     cr6,r4,0
+        { less than 15 bytes? }
+        cmpwi     cr7,r4,15
+        { less than 63 bytes? }
+        cmpwi     cr1,r4,63
+        { fill r5 with ValueValueValueValue }
+        rlwimi    r5,r5,8,16,23
+        { setup for aligning x to multiple of 4}
+        rlwinm    r10,r3,0,31-2+1,31
+        rlwimi    r5,r5,16,0,15
+        beq       cr6,LFillCharDone
+        { get the start of the data in the cache (and mark it as "will be }
+        { modified")                                                      }
+        dcbst     0,r3
+        subfic    r10,r10,4
+        blt       cr7,LFillCharVerySmall
+        { just store 4 bytes instead of using a loop to align (there are }
+        { plenty of other instructions now to keep the processor busy    }
+        { while it handles the (possibly unaligned) store)               }
+        stw       r5,0(r3)
+        { r3 := align(r3,4) }
+        add       r3,r3,r10
+        { decrease count with number of bytes already stored }
+        sub       r4,r4,r10
+        blt       cr1,LFillCharSmall
+        { if we have to fill with 0 (which happens a lot), we can simply use }
+        { dcbz for the most part, which is very fast, so make a special case }
+        { for that                                                           }
+        cmplwi    cr1,r5,0
+        { align to a multiple of 32 (and immediately check whether we aren't }
+        { already 32 byte aligned)                                           }
+        rlwinm.   r10,r3,0,31-5+1,31
+        { setup r3 for using update forms of store instructions }
+        subi      r3,r3,4
+        { get number of bytes to store }
+        subfic    r10,r10,32
+        { if already 32byte aligned, skip align loop }
+        beq       L32ByteAlignLoopDone
+        { substract from the total count }
+        sub       r4,r4,r10
+L32ByteAlignLoop:
+        { we were already aligned to 4 byres, so this will count down to }
+        { exactly 0                                                      }
+        subic.    r10,r10,4
+        stwu      r5,4(r3)
+        bne       L32ByteAlignLoop
+L32ByteAlignLoopDone:
+        { get the amount of 32 byte blocks }
+        srwi      r10,r4,5
+        { and keep the rest in r4 (recording whether there is any rest) }
+        rlwinm.   r4,r4,0,31-5+2,31
+        { move to ctr }
+        mtctr     r10
+        { check how many rest there is (to decide whether we'll use }
+        { FillCharSmall or FillCharVerySmall)                       } 
+        cmpl      cr7,r4,11
+        { if filling with zero, only use dcbz }
+        bne       cr1, LFillCharNoZero
+        { make r3 point again to the actual store position }
+        addi      r3,r3,4
+LFillCharDCBZLoop:
+        dcbz      0,r3
+        add       r3,r3,32
+        bdnz      LFillCharDCBZLoop
+        { if there was no rest, we're finished }
+        beq       LFillCharDone
+        b         LFillCharSmall
+LFillCharNoZero:
+{$ifdef ABI_AIX}
+        stw       r5,0(sp)
+        stw       r5,4(sp)
+        lfd       f0,0(sp)
+{$else ABI_AIX}
+        stw       r5,temp.l1
+        stw       r5,temp.l2
+        lfd       f0,temp.d
+{$endif ABI_AIX}
+        { make r3 point to address-8, so we're able to use fp double stores }
+        { with update (it's already -4 now)                                 }
+        subi      r3,r3,4
+        { load r10 with 8, so that dcbz uses the correct address }
+LFillChar32ByteLoop:
+        dcbz      r3,r10
+        stfdu     f0,8(r3)
+        stfdu     f0,8(r3)
+        stfdu     f0,8(r3)
+        stfdu     f0,8(r3)
+        bdnz      LFillChar32ByteLoop
+        { if there was no rest, we're finished }
+        beq       LFillCharDone
+LFillCharSmall:
+        { when we arrive here, we're already 4 byte aligned }
+        { get count div 4 to store dwords }
+        srwi      r10,r4,2
+        { get ready for use of update stores }
+        subi      r3,r3,4
+        mtctr     r10
+        rlwinm.   r4,r4,0,31-2+1,31
+LFillCharSmallLoop:
+        stwu      r5,4(r3)
+        bdnz      LFillCharSmallLoop
+        { if nothing left, stop }
+        beq       LFillCharDone
+        { get ready to store bytes }
+        addi      r3,r3,4
+LFillCharVerySmall:
+        mtctr     r4
+        subi      r3,r3,1
+LFillCharVerySmallLoop:
+        stbu      r5,1(r3)
+        bdnz      LFillCharVerySmallLoop
+LFillCharDone:
 end;
 
 
@@ -758,7 +842,12 @@ end ['r3','r10'];
 
 {
   $Log$
-  Revision 1.6  2001-09-27 15:30:29  jonas
+  Revision 1.7  2001-09-28 13:28:49  jonas
+    * small changes to move (different count values trigger the selection of
+      moving bytes instead dwords/doubles and move dcbt instruction)
+    + implemented fillchar (untested)
+
+  Revision 1.6  2001/09/27 15:30:29  jonas
     * conversion to compilerproc and to structure used by i386 rtl
     * some bugfixes
     * powerpc.inc is almost complete (only fillchar/word/dword, get_frame etc
