@@ -1489,7 +1489,7 @@ implementation
                                       if not (cs_compilesystem in aktmoduleswitches) then
                                       concat_external('FPC_WIDESTR_DECR_REF',EXT_NEAR);
                                    end;
-
+                                 ungetiftemp(hr);
                                  popusedregisters(pushedregs);
                               end
                             else
@@ -1665,7 +1665,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.54  1998-12-19 00:23:41  florian
+  Revision 1.55  1998-12-22 13:10:58  florian
+    * memory leaks for ansistring type casts fixed
+
+  Revision 1.54  1998/12/19 00:23:41  florian
     * ansistring memory leaks fixed
 
   Revision 1.53  1998/12/11 00:02:47  peter

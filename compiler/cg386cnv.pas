@@ -477,7 +477,6 @@ implementation
 
     var
        ltemptoremove : plinkedlist;
-       destroys : boolean;
 
     procedure second_string_to_string(pto,pfrom : ptree;convtyp : tconverttype);
 
@@ -509,8 +508,10 @@ implementation
                    begin
                       gettempofsizereference(pto^.resulttype^.size,pto^.location.reference);
                       loadansi2short(pfrom,pto);
+                      { this is done in secondtypeconv (FK)
                       removetemps(exprasmlist,temptoremove);
                       destroys:=true;
+                      }
                    end;
                  st_widestring:
                    begin
@@ -546,7 +547,7 @@ implementation
                       pto^.location.loc:=LOC_REFERENCE;
                       clear_reference(pto^.location.reference);
                       gettempofsizereference(pto^.resulttype^.size,pto^.location.reference);
-                      temptoremove^.concat(new(ptemptodestroy,init(pto^.location.reference,pto^.resulttype)));
+                      ltemptoremove^.concat(new(ptemptodestroy,init(pto^.location.reference,pto^.resulttype)));
                       exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,0,newreference(pto^.location.reference))));
                       pushusedregisters(pushed,$ff);
                       emit_push_lea_loc(pfrom^.location);
@@ -746,7 +747,7 @@ implementation
            st_ansistring :
              begin
                gettempofsizereference(4,pto^.location.reference);
-               temptoremove^.concat(new(ptemptodestroy,init(pto^.location.reference,pto^.resulttype)));
+               ltemptoremove^.concat(new(ptemptodestroy,init(pto^.location.reference,pto^.resulttype)));
                exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,0,newreference(pto^.location.reference))));
                pushusedregisters(pushed,$ff);
                emit_pushw_loc(pfrom^.location);
@@ -1235,6 +1236,8 @@ implementation
              begin
                 stringdispose(pto^.location.reference.symbol);
                 gettempofsizereference(pto^.resulttype^.size,pto^.location.reference);
+                ltemptoremove^.concat(new(ptemptodestroy,init(pto^.location.reference,pto^.resulttype)));
+                exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,0,newreference(pto^.location.reference))));
                 case pfrom^.location.loc of
                    LOC_REGISTER,LOC_CREGISTER:
                      begin
@@ -1336,9 +1339,11 @@ implementation
 
       begin
          { the ansi string disposing is a little bit hairy: }
-         destroys:=false;
          oldrl:=temptoremove;
          temptoremove:=new(plinkedlist,init);
+
+         { the helper routines need access to the release list }
+         ltemptoremove:=oldrl;
 
          { this isn't good coding, I think tc_bool_2_int, shouldn't be }
          { type conversion (FK)                                        }
@@ -1352,14 +1357,11 @@ implementation
               if codegenerror then
                exit;
            end;
-         { the helper routines need access to the release list }
-         ltemptoremove:=temptoremove;
-         {the second argument only is for maybe_range_checking !}
+         { the second argument only is for maybe_range_checking !}
          secondconvert[p^.convtyp](p,p^.left,p^.convtyp);
 
-         { are the temp. ansistrings been destroyed ? }
-         if not destroys then
-           oldrl^.concatlist(temptoremove);
+         { clean up all temp. objects (ansi/widestrings) }
+         removetemps(exprasmlist,temptoremove);
          dispose(temptoremove,done);
          temptoremove:=oldrl;
       end;
@@ -1474,7 +1476,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  1998-12-19 00:23:42  florian
+  Revision 1.43  1998-12-22 13:10:59  florian
+    * memory leaks for ansistring type casts fixed
+
+  Revision 1.42  1998/12/19 00:23:42  florian
     * ansistring memory leaks fixed
 
   Revision 1.41  1998/11/30 19:48:54  peter

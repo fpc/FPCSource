@@ -1156,16 +1156,17 @@ implementation
 
                    if p^.treetype=muln then
                      begin
-                        if cs_check_overflow in aktlocalswitches then
-                          push_int(1)
-                        else
-                          push_int(0);
                         release_qword_loc(p^.left^.location);
                         release_qword_loc(p^.right^.location);
                         p^.location.registerlow:=getexplicitregister32(R_EAX);
                         p^.location.registerhigh:=getexplicitregister32(R_EDX);
-                        { ($80 shr byte(r) }
-                        pushusedregisters(pushedreg,$ff);
+                        pushusedregisters(pushedreg,$ff
+                          and not($80 shr byte(p^.location.registerlow))
+                          and not($80 shr byte(p^.location.registerhigh)));
+                        if cs_check_overflow in aktlocalswitches then
+                          push_int(1)
+                        else
+                          push_int(0);
                         emit_pushq_loc(p^.left^.location);
                         emit_pushq_loc(p^.right^.location);
                         if porddef(p^.resulttype)^.typ=u64bit then
@@ -1733,7 +1734,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  1998-12-19 00:23:40  florian
+  Revision 1.37  1998-12-22 13:10:56  florian
+    * memory leaks for ansistring type casts fixed
+
+  Revision 1.36  1998/12/19 00:23:40  florian
     * ansistring memory leaks fixed
 
   Revision 1.35  1998/12/11 23:36:06  florian
