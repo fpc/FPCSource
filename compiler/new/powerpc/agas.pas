@@ -25,7 +25,7 @@ unit agas;
   interface
 
     uses
-       dos,globals,systems,errors,cobjects,aasm,alpha,strings,files
+       cpubase,dos,globals,systems,errors,cobjects,aasm,strings,files
 {$ifdef GDB}
        ,gdb
 {$endif GDB}
@@ -244,7 +244,11 @@ unit agas;
 end.
 {
   $Log$
-  Revision 1.4  2000-01-07 01:14:57  peter
+  Revision 1.5  2000-03-26 16:37:36  jonas
+    + use cpubase unit
+    - removed use of alpha unit
+
+  Revision 1.4  2000/01/07 01:14:57  peter
     * updated copyright to 2000
 
   Revision 1.3  1999/09/03 13:15:47  jonas
