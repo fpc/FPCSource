@@ -709,9 +709,10 @@ implementation
     function _asm_statement : tnode;
       var
         asmstat : tasmnode;
-        Marker : tai;
-        r,r2 : tregister;
-        found : boolean;
+        Marker  : tai;
+        r,r2    : tregister;
+        found   : boolean;
+        hs      : string;
       begin
          Inside_asm_statement:=true;
          case aktasmmode of
@@ -753,30 +754,31 @@ implementation
          { END is read }
          if try_to_consume(_LECKKLAMMER) then
            begin
-              if token<>_RECKKLAMMER then
-              repeat
-              { it's possible to specify the modified registers }
-              include(asmstat.flags,nf_object_preserved);
-              found:=false;
-              for r:=low(tregister) to high(tregister) do
-                if pattern=upper(std_reg2str[r]) then
-                  begin
-                    if r = SELF_POINTER_REG then
-                       begin
-                         exclude(asmstat.flags,nf_object_preserved);
-                       end;
-                     include(rg.usedinproc,r);
-                     include(rg.usedbyproc,r);
-                     found:=true;
-                     break;
-                  end;
-                 if not(found) then
-                    consume(_RECKKLAMMER);
-                 consume(_CSTRING);
-                 if not try_to_consume(_COMMA) then
+             if token<>_RECKKLAMMER then
+              begin
+                repeat
+                  { it's possible to specify the modified registers }
+                  include(asmstat.flags,nf_object_preserved);
+                  hs:=upper(pattern);
+                  found:=false;
+                  for r:=low(tregister) to high(tregister) do
+                   if hs=upper(std_reg2str[r]) then
+                    begin
+                      if r = SELF_POINTER_REG then
+                        exclude(asmstat.flags,nf_object_preserved);
+                      include(rg.usedinproc,r);
+                      include(rg.usedbyproc,r);
+                      found:=true;
+                      break;
+                    end;
+                  if not(found) then
+                    Message(asmr_e_invalid_register);
+                  consume(_CSTRING);
+                  if not try_to_consume(_COMMA) then
                     break;
-              until false;
-              consume(_RECKKLAMMER);
+                until false;
+              end;
+             consume(_RECKKLAMMER);
            end
          else
            begin
@@ -1144,7 +1146,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.74  2002-09-01 14:43:12  peter
+  Revision 1.75  2002-09-02 18:40:52  peter
+    * fixed parsing of register names with lowercase
+
+  Revision 1.74  2002/09/01 14:43:12  peter
     * fixed direct assembler for i386
 
   Revision 1.73  2002/08/25 19:25:20  peter
