@@ -26,9 +26,9 @@
 ****************************************************************************}
 
 procedure fpc_cpuinit;
-begin
-end;
-
+  begin
+    SysResetFPU;
+  end;
 
 {$define FPC_SYSTEM_HAS_SPTR}
 Function Sptr : Pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -329,6 +329,7 @@ procedure inclocked(var l : int64);assembler;
 
 const
   fpucw : word = $1332;
+  mxcsr : dword = %0001100000000000;
   { Internal constants for use in system unit }
   FPU_Invalid = 1;
   FPU_Denormal = 2;
@@ -342,13 +343,20 @@ const
 {$define FPC_SYSTEM_HAS_SYSRESETFPU}
 Procedure SysResetFPU;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
-    fninit
-    fldcw   fpucw
+  { initialize fpu }
+  fninit                          
+  fwait
+  fldcw fpucw
+  { set sse exceptions }
+  ldmxcsr mxcsr
 end;
 
 {
   $Log$
-  Revision 1.14  2004-11-01 20:31:35  florian
+  Revision 1.15  2004-11-02 15:26:21  florian
+    * fixed sse exception handling
+
+  Revision 1.14  2004/11/01 20:31:35  florian
     * another fix for locked reference counting
 
   Revision 1.13  2004/06/05 07:55:22  peter

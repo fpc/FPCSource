@@ -29,8 +29,15 @@ function GetExceptionMask: TFPUExceptionMask;
 function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
 procedure ClearExceptions(RaisePending: Boolean {$ifndef VER1_0}=true{$endif});
 
+procedure SetSSECSR(w : dword);
+function GetSSECSR : dword;
+
+
 {
   $Log$
-  Revision 1.1  2003-04-24 09:16:31  florian
+  Revision 1.2  2004-11-02 15:26:21  florian
+    * fixed sse exception handling
+
+  Revision 1.1  2003/04/24 09:16:31  florian
     * initial implementation with code from math.pp
 }

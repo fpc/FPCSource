@@ -49,8 +49,6 @@ _start:
         movq     %rax,operatingsystem_parameter_envp
         andq     $~15,%rsp            /* Align the stack to a 16 byte boundary to follow the ABI.  */
 
-/* !!!! CPU initialization? */
-
         xorq    %rbp, %rbp
         call    PASCALMAIN
 	jmp	_haltproc
@@ -95,7 +93,10 @@ __data_start:
 
 #
 # $Log$
-# Revision 1.8  2004-07-03 21:50:31  daniel
+# Revision 1.9  2004-11-02 15:26:21  florian
+#   * fixed sse exception handling
+#
+# Revision 1.8  2004/07/03 21:50:31  daniel
 #   * Modified bootstrap code so separate prt0.as/prt0_10.as files are no
 #     longer necessary
 #
