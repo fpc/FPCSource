@@ -74,18 +74,11 @@ implementation
            exit;
 
          left_right_max;
-         { this is not allways true due to optimization }
-         { but if we don't set this we get problems with optimizing self code }
-         if tsetdef(right.resulttype.def).settype<>smallset then
-           include(current_procinfo.flags,pi_do_call)
-         else
-           begin
-              { a smallset needs maybe an misc. register }
-              if (left.nodetype<>ordconstn) and
-                not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) and
-                (right.registers32<1) then
-                inc(registers32);
-           end;
+         { a smallset needs maybe an misc. register }
+         if (left.nodetype<>ordconstn) and
+            not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) and
+            (right.registers32<1) then
+           inc(registers32);
       end;
 
 
@@ -737,7 +730,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.61  2003-06-03 21:11:09  peter
+  Revision 1.62  2003-06-12 22:10:44  jonas
+    * t386innode.pass_2 already doesn't call a helper anymore since a long
+      time
+
+  Revision 1.61  2003/06/03 21:11:09  peter
     * cg.a_load_* get a from and to size specifier
     * makeregsize only accepts newregister
     * i386 uses generic tcgnotnode,tcgunaryminus
