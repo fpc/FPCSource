@@ -33,7 +33,7 @@ const
  LFNSupport = true;
  DirectorySeparator = ':';
  DriveSeparator = ':';
- PathSeparator = ',';  // Is used in MPW and OzTeX
+ PathSeparator = ',';  {Is used in MPW and OzTeX}
  FileNameCaseSensitive = false;
 
 { include heap support headers }
@@ -261,7 +261,14 @@ Sys_EINVAL      = 22;   { Invalid parameter * }
 Sys_ENFILE      = 23;   { File table overflow }
 Sys_EMFILE      = 24;   { Too many open files }
 Sys_ENOTTY      = 25;   { Not a typewriter }
-Sys_ETXTBSY     = 26;   { Text file busy }
+Sys_ETXTBSY     = 26;   { Text file busy. The new process was
+                          a pure procedure (shared text) file which was
+                          open for writing by another process, or file
+                          which was open for writing by another process,
+                          or while the pure procedure file was being
+                          executed an open(2) call requested write access
+                          requested write access.
+						  (Probably not applicable on macos)}
 Sys_EFBIG       = 27;   { File too large }
 Sys_ENOSPC      = 28;   { No space left on device }
 Sys_ESPIPE      = 29;   { Illegal seek }
@@ -283,7 +290,7 @@ var
   curDirectorySpec: FSSpec;
 
 function GetAppFileLocation (var spec: FSSpec): Boolean;
-//Requires >= System 7
+{Requires >= System 7}
 
   var
    PSN: ProcessSerialNumber;
@@ -408,7 +415,6 @@ begin
     Sys_EINTR,  //Happens when attempt to rename a file fails
     Sys_EBUSY,  //Happens when attempt to remove a locked file
    Sys_EACCES,
-  Sys_ETXTBSY,  //Happens when attempt to open an already open file
    Sys_EMLINK : Inoutres:=5; //Happens when attempt to remove open file
     Sys_ENXIO : InOutRes:=152;
    Sys_ESPIPE : InOutRes:=156; //Illegal seek
@@ -523,7 +529,7 @@ begin
   InOutRes:= MacOSErr2RTEerr(err);
 end;
 
-function PathArgToFSSpec(s: string; var spec: FSSpec): Boolean;
+function PathArgToFSSpec(s: string; var spec: FSSpec): Integer;
 var
   err: OSErr;
 begin 
@@ -531,22 +537,21 @@ begin
       curDirectorySpec.parID, s, spec);
 
   if err in [ noErr, fnfErr] then
-    PathArgToFSSpec:= true
+    PathArgToFSSpec:= 0
   else
-    begin
-      OSErr2InOutRes(err);
-      PathArgToFSSpec:= false;
-    end;
+    PathArgToFSSpec:= MacOSErr2RTEerr(err);  
 end;
 
 function PathArgToFullPath(s: string; var fullpath: AnsiString): Boolean;
 var
   err: OSErr;
+  res: Integer;
   spec: FSSpec;
   pathHandle: Mac_Handle;
 begin
   PathArgToFullPath:= false;
-  if PathArgToFSSpec(s, spec) then
+  res:= PathArgToFSSpec(s, spec);
+  if res = 0  then
     begin
       err:= FSpGetFullPath(spec, pathHandle, false);
       if err = noErr then
@@ -557,7 +562,9 @@ begin
         end
       else
         OSErr2InOutRes(err);
-    end;
+    end
+  else
+    InOutRes:=res;
 end;
 
 function FSpLocationFromFullPath(fullPathLength: Integer;
@@ -632,7 +639,7 @@ end;
 { function to allocate size bytes more for the program }
 { must return the first address of new data space or nil if failed }
 function Sbrk(logicalSize: Longint): Mac_Ptr ;
-external 'InterfaceLib' name 'NewPtr'; //Directly mapped to NewPtr
+external 'InterfaceLib' name 'NewPtr'; {Directly mapped to NewPtr}
 
 
 { include standard heap management }
@@ -694,10 +701,10 @@ begin
   {$endif}
 end;
 
-function do_write(h,addr,len : longint) : longint;
+function do_write(h:longint;addr:pointer;len : longint) : longint;
 begin
   {$ifdef MACOS_USE_STDCLIB}
-  do_write:= c_write(h, pointer(addr), len);
+  do_write:= c_write(h, addr, len);
   Errno2InoutRes;
   {$else}
   InOutRes:=1;
@@ -707,20 +714,20 @@ begin
   {$endif}
 end;
 
-function do_read(h,addr,len : longint) : longint;
+function do_read(h:longint;addr:pointer;len : longint) : longint;
 
 var
   i: Longint;
 
 begin
   {$ifdef MACOS_USE_STDCLIB}
-  len:= c_read(h, pointer(addr), len);
+  len:= c_read(h, addr, len);
   Errno2InoutRes;
 
   // TEMP BUGFIX Exchange CR to LF.
   for i:= 0 to len-1 do
-    if SignedBytePtr(ord(addr) + i)^ = 13 then
-      SignedBytePtr(ord(addr) + i)^ := 10;
+    if SignedBytePtr(addr + i)^ = 13 then
+      SignedBytePtr(addr + i)^ := 10;
 
   do_read:= len;
 
@@ -972,15 +979,19 @@ var
   spec: FSSpec;
   createdDirID: Longint;
   err: OSErr;
+  res: Integer;
 begin
   If (s='') or (InOutRes <> 0) then
     exit;
- 
-  if PathArgToFSSpec(s, spec) then
+
+  res:= PathArgToFSSpec(s, spec); 
+  if res = 0 then
     begin
       err:= FSpDirCreate(spec, smSystemScript, createdDirID);
       OSErr2InOutRes(err);
-    end;
+    end
+  else
+    InOutRes:=res;
 end;
 
 procedure rmdir(const s:string);[IOCheck];
@@ -988,26 +999,32 @@ procedure rmdir(const s:string);[IOCheck];
 var
   spec: FSSpec;
   err: OSErr;
+  res: Integer;
 begin
   If (s='') or (InOutRes <> 0) then
     exit;
 
-  if PathArgToFSSpec(s, spec) then
+  res:= PathArgToFSSpec(s, spec); 
+  if res = 0 then
     begin
       err:= FSpDelete(spec);
       OSErr2InOutRes(err);
-    end;
+    end
+  else
+    InOutRes:=res;
 end;
 
 procedure chdir(const s:string);[IOCheck];
 var
   spec, newDirSpec: FSSpec;
   err: OSErr;
+  res: Integer;
 begin
   if (s='') or (InOutRes <> 0) then
     exit;
 
-  if PathArgToFSSpec(s, spec) then
+  res:= PathArgToFSSpec(s, spec); 
+  if res = 0 then
     begin
       { The fictive file x is appended to the directory name to make 
         FSMakeFSSpec return a FSSpec to a file in the directory.
@@ -1022,10 +1039,12 @@ begin
         end
       else
         begin
-          //E g if the directory doesn't exist.
+          {E g if the directory doesn't exist.}
           OSErr2InOutRes(err);
         end;
-    end;
+    end
+  else
+    InOutRes:=res;
 end;
 
 procedure getDir (DriveNr: byte; var Dir: ShortString);
@@ -1034,13 +1053,13 @@ var
   pathHandleSize: Longint;
 begin
   if FSpGetFullPath(curDirectorySpec, pathHandle, false) <> noErr then
-    Halt(3);  //exit code 3 according to MPW
+    Halt(3);  {exit code 3 according to MPW}
 
   pathHandleSize:= GetHandleSize(pathHandle);
   SetString(dir, pathHandle^, pathHandleSize);
   DisposeHandle(pathHandle);
 
-  if pathHandleSize <= 255 then //because dir is ShortString
+  if pathHandleSize <= 255 then {because dir is ShortString}
     InOutRes := 0
   else
     InOutRes := 1; //TODO Exchange to something better 
@@ -1066,7 +1085,7 @@ end;
 
 procedure setup_arguments;
          begin
-           //Nothing needs to be done here.	
+           {Nothing needs to be done here.}
          end;
 
 procedure setup_environment;
@@ -1083,7 +1102,7 @@ begin
   if StandAlone <> 0 then
     ExitToShell;
   {$else}
-  c_exit(exitcode); //exitcode is only utilized by an MPW tool
+  c_exit(exitcode); {exitcode is only utilized by an MPW tool}
   {$endif}
 end;
 
@@ -1148,7 +1167,11 @@ end.
 
 {
   $Log$
-  Revision 1.13  2004-02-04 15:17:16  olle
+  Revision 1.14  2004-04-29 11:27:36  olle
+    * do_read/do_write addr arg changed to pointer
+    * misc internal changes
+
+  Revision 1.13  2004/02/04 15:17:16  olle
     * internal changes
 
   Revision 1.12  2004/01/20 23:11:20  hajny
