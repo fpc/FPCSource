@@ -32,7 +32,7 @@ program install;
 
      filenr = version+release+patchlevel;
 
-     doc_version = '101';
+     doc_version = '110';
 
 {*****************************************************************************
                                   Helpers
@@ -55,12 +55,12 @@ program install;
     end;
 
 
-  function diskspace(const zipfile : string) : string;
+  function diskspace(const path,zipfile : string) : string;
     var
       compressed,uncompressed : longint;
       s : string;
     begin
-      s:=zipfile+#0;
+      s:=path+zipfile+#0;
       uncompressed:=UnzipSize(@s[1],compressed);
       uncompressed:=uncompressed shr 10;
       str(uncompressed,s);
@@ -200,16 +200,16 @@ program install;
        inc(line,3);
        r.assign(3,line+1,breite-3,line+11);
        p:=new(pcheckboxes,init(r,
-         newsitem('~B~asic system (required)'+diskspace('BASEDOS.ZIP'),
-         newsitem('GNU ~L~inker and GNU Assembler (required)'+diskspace('GNUASLD.ZIP'),
-         newsitem('D~e~mos'+diskspace('DEMO.ZIP'),
-         newsitem('GNU ~D~ebugger'+diskspace('GDB.ZIP'),
-         newsitem('GNU ~U~tilities (required to recompile run time library)'+diskspace('GNUUTILS.ZIP'),
-         newsitem('Documentation (~H~TML)'+diskspace('DOCS.ZIP'),
-         newsitem('Documentation (~P~ostscript)'+diskspace('DOC100PS.ZIP'),
-         newsitem('~R~un time library sources'+diskspace('RL09900S.ZIP'),
-         newsitem('~C~ompiler sources'+diskspace('PP09900S.ZIP'),
-         newsitem('Documentation sources (La~T~eX)'+diskspace('DOC100S.ZIP'),
+         newsitem('~B~asic system (required)'+diskspace(startpath,'BASEDOS.ZIP'),
+         newsitem('GNU ~L~inker and GNU Assembler (required)'+diskspace(startpath,'GNUASLD.ZIP'),
+         newsitem('D~e~mos'+diskspace(startpath,'DEMO.ZIP'),
+         newsitem('GNU ~D~ebugger'+diskspace(startpath,'GDB.ZIP'),
+         newsitem('GNU ~U~tilities (required to recompile run time library)'+diskspace(startpath,'GNUUTILS.ZIP'),
+         newsitem('Documentation (~H~TML)'+diskspace(startpath,'DOCS.ZIP'),
+         newsitem('Documentation (~P~ostscript)'+diskspace(startpath,'DOC'+doc_version+'PS.ZIP'),
+         newsitem('~R~un time library sources'+diskspace(startpath,'RL'+filenr+'S.ZIP'),
+         newsitem('~C~ompiler sources'+diskspace(startpath,'PP'+filenr+'S.ZIP'),
+         newsitem('Documentation sources (La~T~eX)'+diskspace(startpath,'DOC'+doc_version+'.ZIP'),
          nil
        ))))))))))));
        pcluster(p)^.enablemask:=mask_components;
@@ -439,7 +439,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  1998-09-09 13:39:58  peter
+  Revision 1.4  1998-09-10 10:50:49  florian
+    * DOS install program updated
+
+  Revision 1.3  1998/09/09 13:39:58  peter
     + internal unzip
     * dialog is showed automaticly
 
