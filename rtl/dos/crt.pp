@@ -846,6 +846,7 @@ Function CrtRead(Var F: TextRec): Integer;
 var
   ch : Char;
 Begin
+  GetScreenCursor(CurrX,CurrY);
   f.bufpos:=0;
   f.bufend:=0;
   repeat
@@ -982,7 +983,10 @@ end.
 
 {
   $Log$
-  Revision 1.12  1998-08-19 17:57:55  peter
+  Revision 1.13  1998-08-26 10:01:54  peter
+    * fixed readln cursor position
+
+  Revision 1.12  1998/08/19 17:57:55  peter
     * fixed crtread with wrong cursor position
 
   Revision 1.11  1998/08/19 14:55:44  peter
