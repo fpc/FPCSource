@@ -201,7 +201,10 @@ unit pstatmnt;
          if (not assigned(casedef)) or
             not(is_ordinal(casedef) or is_64bitint(casedef)) then
           begin
-            Message(type_e_ordinal_expr_expected);
+            CGMessage(type_e_ordinal_expr_expected);
+            { create a correct tree }
+            disposetree(caseexpr);
+            caseexpr:=genordinalconstnode(0,u32bitdef);
             { set error flag so no rangechecks are done }
             casedeferror:=true;
           end;
@@ -230,7 +233,7 @@ unit pstatmnt;
                       hl1:=get_ordinal_value(p^.left);
                       hl2:=get_ordinal_value(p^.right);
                       if hl1>hl2 then
-                        Message(parser_e_case_lower_less_than_upper_bound);
+                        CGMessage(parser_e_case_lower_less_than_upper_bound);
                       if not casedeferror then
                        begin
                          testrange(casedef,hl1);
@@ -238,14 +241,14 @@ unit pstatmnt;
                        end;
                     end
                   else
-                    Message(parser_e_case_mismatch);
+                    CGMessage(parser_e_case_mismatch);
                   newcaselabel(hl1,hl2,firstlabel);
                end
              else
                begin
                   { type checking for case statements }
                   if not is_subequal(casedef, p^.resulttype) then
-                    Message(parser_e_case_mismatch);
+                    CGMessage(parser_e_case_mismatch);
                   hl1:=get_ordinal_value(p);
                   if not casedeferror then
                     testrange(casedef,hl1);
@@ -1381,7 +1384,11 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.130  2000-05-04 12:59:10  pierre
+  Revision 1.131  2000-06-30 22:15:39  peter
+    * fixed internalerror 2002 when case expr is not correct, by creating
+      a temp correct case expression
+
+  Revision 1.130  2000/05/04 12:59:10  pierre
    * bug found by Kovacs Attila Zoltan corrected
 
   Revision 1.129  2000/04/29 12:50:14  peter
