@@ -91,7 +91,7 @@ interface
        TSearchPathList = class(TStringList)
          procedure AddPath(s:string;addfirst:boolean);
          procedure AddList(list:TSearchPathList;addfirst:boolean);
-         function  FindFile(const f : string;var b : boolean) : string;
+         function  FindFile(const f : string;var foundfile:string):boolean;
        end;
 
     var
@@ -254,8 +254,8 @@ interface
     function  FixFileName(const s:string):string;
     procedure SplitBinCmd(const s:string;var bstr,cstr:string);
     procedure SynchronizeFileTime(const fn1,fn2:string);
-    function  FindFile(const f : string;path : string;var b : boolean) : string;
-    function  FindExe(bin:string;var found:boolean):string;
+    function  FindFile(const f : string;path : string;var foundfile:string):boolean;
+    function  FindExe(const bin:string;var foundfile:string):boolean;
     function  GetShortName(const n:string):string;
 
     Procedure Shell(const command:string);
@@ -619,29 +619,19 @@ implementation
    function FixFileName(const s:string):string;
      var
        i      : longint;
-      {$ifdef Linux}
-       NoPath : boolean;
-      {$endif Linux}
      begin
-      {$ifdef Linux}
-       NoPath:=true;
-      {$endif Linux}
        for i:=length(s) downto 1 do
         begin
           case s[i] of
-      {$ifdef Linux}
-       '/','\' : begin
-                   FixFileName[i]:='/';
-                   NoPath:=false; {Skip lowercasing path: 'X11'<>'x11' }
-                 end;
-      'A'..'Z' : if NoPath then
-                  FixFileName[i]:=char(byte(s[i])+32)
-                 else
-                  FixFileName[i]:=s[i];
-      {$else}
-           '/' : FixFileName[i]:='\';
-      'A'..'Z' : FixFileName[i]:=char(byte(s[i])+32);
-      {$endif}
+{$ifdef Unix}
+            '/','\' :
+              FixFileName[i]:='/';
+{$else Unix}
+           '/' :
+              FixFileName[i]:='\';
+           'A'..'Z' :
+              FixFileName[i]:=char(byte(s[i])+32);
+{$endif Unix}
           else
            FixFileName[i]:=s[i];
           end;
@@ -805,23 +795,45 @@ implementation
      end;
 
 
-   function TSearchPathList.FindFile(const f : string;var b : boolean) : string;
+   function TSearchPathList.FindFile(const f : string;var foundfile:string):boolean;
      Var
        p : TStringListItem;
      begin
-       FindFile:='';
-       b:=false;
+       FindFile:=false;
        p:=TStringListItem(first);
        while assigned(p) do
         begin
-          If FileExists(p.Str+f) then
+          {
+            Search order for case sensitive systems:
+             1. lowercase
+             2. NormalCase
+             3. UPPERCASE
+            None case sensitive only lowercase
+          }
+          FoundFile:=p.Str+Lower(f);
+          If FileExists(FoundFile) then
            begin
-             FindFile:=p.Str;
-             b:=true;
+             FindFile:=true;
              exit;
            end;
+{$ifdef UNIX}
+          FoundFile:=p.Str+f;
+          If FileExists(FoundFile) then
+           begin
+             FindFile:=true;
+             exit;
+           end;
+          FoundFile:=p.Str+Upper(f);
+          If FileExists(FoundFile) then
+           begin
+             FindFile:=true;
+             exit;
+           end;
+{$endif UNIX}
           p:=TStringListItem(p.next);
         end;
+       { Return original filename if not found }
+       FoundFile:=f;
      end;
 
 
@@ -877,40 +889,61 @@ implementation
    end;
 
 
-   function FindFile(const f : string;path : string;var b : boolean) : string;
+   function FindFile(const f : string;path : string;var foundfile:string):boolean;
       Var
         singlepathstring : string;
         i : longint;
      begin
-     {$ifdef unix}
+{$ifdef Unix}
        for i:=1 to length(path) do
         if path[i]=':' then
-       path[i]:=';';
-     {$endif}
-       b:=false;
-       FindFile:='';
+         path[i]:=';';
+{$endif Unix}
+       FindFile:=false;
        repeat
-         i:=pos(';',path);
-         if i=0 then
+          i:=pos(';',path);
+          if i=0 then
            i:=256;
-         singlepathstring:=FixPath(copy(path,1,i-1),false);
-         delete(path,1,i);
-         If FileExists (singlepathstring+f) then
+          singlepathstring:=FixPath(copy(path,1,i-1),false);
+          delete(path,1,i);
+          {
+            Search order for case sensitive systems:
+             1. lowercase
+             2. NormalCase
+             3. UPPERCASE
+            None case sensitive only lowercase
+          }
+          FoundFile:=singlepathstring+Lower(f);
+          If FileExists(FoundFile) then
            begin
-             FindFile:=singlepathstring;
-             b:=true;
+             FindFile:=true;
              exit;
            end;
+{$ifdef UNIX}
+          FoundFile:=singlepathstring+f;
+          If FileExists(FoundFile) then
+           begin
+             FindFile:=true;
+             exit;
+           end;
+          FoundFile:=singlepathstring+Upper(f);
+          If FileExists(FoundFile) then
+           begin
+             FindFile:=true;
+             exit;
+           end;
+{$endif UNIX}
        until path='';
+       FoundFile:=f;
      end;
 
-   function FindExe(bin:string;var found:boolean):string;
+
+   function  FindExe(const bin:string;var foundfile:string):boolean;
    begin
-     bin:=FixFileName(AddExtension(bin,source_os.exeext));
 {$ifdef delphi}
-     FindExe:=FindFile(bin,'.;'+exepath+';'+dmisc.getenv('PATH'),found)+bin;
+     FindExe:=FindFile(FixFileName(AddExtension(bin,source_os.exeext)),'.;'+exepath+';'+dmisc.getenv('PATH'),foundfile);
 {$else delphi}
-     FindExe:=FindFile(bin,'.;'+exepath+';'+dos.getenv('PATH'),found)+bin;
+     FindExe:=FindFile(FixFileName(AddExtension(bin,source_os.exeext)),'.;'+exepath+';'+dos.getenv('PATH'),foundfile);
 {$endif delphi}
    end;
 
@@ -1182,9 +1215,6 @@ implementation
      var
        hs1 : namestr;
        hs2 : extstr;
-{$ifdef need_path_search}
-       b   : boolean;
-{$endif}
      begin
 {$ifdef delphi}
        exepath:=dmisc.getenv('PPC_EXEC_PATH');
@@ -1200,10 +1230,11 @@ implementation
                (length(hs1) - length(source_os.exeext)+1) then
             hs1 := hs1 + source_os.exeext;
       {$ifdef delphi}
-          exepath := findfile(hs1,dmisc.getenv('PATH'),b);
+          findfile(hs1,dmisc.getenv('PATH'),exepath);
       {$else delphi}
-          exepath := findfile(hs1,dos.getenv('PATH'),b);
+          findfile(hs1,dos.getenv('PATH'),exepath);
       {$endif delphi}
+          exepath:=SplitPath(exepath);
         end;
 {$endif need_path_search}
        exepath:=FixPath(exepath,false);
@@ -1310,7 +1341,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2001-02-09 23:05:45  peter
+  Revision 1.28  2001-02-20 21:41:16  peter
+    * new fixfilename, findfile for unix. Look first for lowercase, then
+      NormalCase and last for UPPERCASE names.
+
+  Revision 1.27  2001/02/09 23:05:45  peter
     * default packenum=1 for tp7 mode
 
   Revision 1.26  2001/02/05 20:47:00  peter

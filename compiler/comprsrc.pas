@@ -78,9 +78,9 @@ var
 begin
   resbin:='';
   if utilsdirectory<>'' then
-   resbin:=FindFile(target_res.resbin+source_os.exeext,utilsdirectory,resfound)+target_res.resbin+source_os.exeext;
-  if resbin='' then
-   resbin:=FindExe(target_res.resbin,resfound);
+   resfound:=FindFile(target_res.resbin+source_os.exeext,utilsdirectory,resbin);
+  if not resfound then
+   resfound:=FindExe(target_res.resbin,resbin);
   { get also the path to be searched for the windres.h }
   fsplit(resbin,respath,n,e);
   if (not resfound) and not(cs_link_extern in aktglobalswitches) then
@@ -142,7 +142,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2000-12-25 00:07:25  peter
+  Revision 1.7  2001-02-20 21:41:17  peter
+    * new fixfilename, findfile for unix. Look first for lowercase, then
+      NormalCase and last for UPPERCASE names.
+
+  Revision 1.6  2000/12/25 00:07:25  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

@@ -1543,14 +1543,11 @@ implementation
               if (Source_Time=-1) then
                 begin
                   if is_main then
-                    temp_dir:=unitsearchpath.FindFile(hs,main_found)
+                    main_found:=unitsearchpath.FindFile(hs,temp_dir)
                   else
-                    temp_dir:=includesearchpath.FindFile(hs,incfile_found);
+                    incfile_found:=includesearchpath.FindFile(hs,temp_dir);
                   if incfile_found or main_found then
-                   begin
-                     hs:=temp_dir+hs;
-                     Source_Time:=GetNamedFileTime(hs);
-                   end
+                    Source_Time:=GetNamedFileTime(temp_dir);
                 end;
               if Source_Time=-1 then
                begin
@@ -2372,7 +2369,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  2001-01-08 21:40:27  peter
+  Revision 1.25  2001-02-20 21:41:16  peter
+    * new fixfilename, findfile for unix. Look first for lowercase, then
+      NormalCase and last for UPPERCASE names.
+
+  Revision 1.24  2001/01/08 21:40:27  peter
     * fixed crash with unsupported token overloading
 
   Revision 1.23  2000/12/25 00:07:30  peter

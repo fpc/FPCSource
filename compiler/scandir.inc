@@ -622,6 +622,7 @@ const
 
     procedure dir_include(t:tdirectivetoken);
       var
+        foundfile,
         hs    : string;
         path  : dirstr;
         name  : namestr;
@@ -683,13 +684,14 @@ const
             2. local includepath
             3. global includepath }
            found:=false;
+           foundfile:='';
            if path<>'' then
              path:=path+';';
-           path:=FindFile(name+ext,path+current_scanner^.inputfile.path^+';.'+DirSep,found);
+           found:=FindFile(name+ext,path+current_scanner^.inputfile.path^+';.'+DirSep,foundfile);
            if (not found) then
-            path:=current_module.localincludesearchpath.FindFile(name+ext,found);
+            found:=current_module.localincludesearchpath.FindFile(name+ext,foundfile);
            if (not found) then
-            path:=includesearchpath.FindFile(name+ext,found);
+            found:=includesearchpath.FindFile(name+ext,foundfile);
          { save old postion and decrease linebreak }
            if c=newline then
             dec(current_scanner^.line_no);
@@ -697,7 +699,7 @@ const
          { shutdown current file }
            current_scanner^.tempcloseinputfile;
          { load new file }
-           hp:=do_openinputfile(path+name+ext);
+           hp:=do_openinputfile(foundfile);
            current_scanner^.addfile(hp);
            if not current_scanner^.openinputfile then
             Message1(scan_f_cannot_open_includefile,hs);
@@ -1393,7 +1395,11 @@ const
 
 {
   $Log$
-  Revision 1.17  2001-01-20 18:32:52  hajny
+  Revision 1.18  2001-02-20 21:41:18  peter
+    * new fixfilename, findfile for unix. Look first for lowercase, then
+      NormalCase and last for UPPERCASE names.
+
+  Revision 1.17  2001/01/20 18:32:52  hajny
     + APPTYPE support under OS/2, app_fs, GetEnvPChar for OS/2
 
   Revision 1.16  2001/01/13 00:09:21  peter

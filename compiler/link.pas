@@ -255,9 +255,9 @@ begin
   FoundBin:='';
   Found:=false;
   if utilsdirectory<>'' then
-   FoundBin:=FindFile(utilexe,utilsdirectory,Found)+utilexe;
+   Found:=FindFile(utilexe,utilsdirectory,Foundbin);
   if (not Found) then
-   FoundBin:=FindExe(utilexe,Found);
+   Found:=FindExe(utilexe,Foundbin);
   if (not Found) and not(cs_link_extern in aktglobalswitches) then
    begin
      Message1(exec_w_util_not_found,utilexe);
@@ -273,6 +273,7 @@ end;
 function TLinker.FindObjectFile(s:string;const unitpath:string) : string;
 var
   found : boolean;
+  foundfile : string;
 begin
   findobjectfile:='';
   if s='' then
@@ -294,24 +295,27 @@ begin
      6. exepath }
   found:=false;
   if unitpath<>'' then
-   findobjectfile:=FindFile(s,unitpath,found)+s;
+   found:=FindFile(s,unitpath,foundfile);
   if (not found) then
-   findobjectfile:=FindFile(s,'.'+DirSep,found)+s;
+   found:=FindFile(s,'.'+DirSep,foundfile);
   if (not found) then
-   findobjectfile:=UnitSearchPath.FindFile(s,found)+s;
+   found:=UnitSearchPath.FindFile(s,foundfile);
   if (not found) then
-   findobjectfile:=current_module.localobjectsearchpath.FindFile(s,found)+s;
+   found:=current_module.localobjectsearchpath.FindFile(s,foundfile);
   if (not found) then
-   findobjectfile:=objectsearchpath.FindFile(s,found)+s;
+   found:=objectsearchpath.FindFile(s,foundfile);
   if (not found) then
-   findobjectfile:=FindFile(s,exepath,found)+s;
+   found:=FindFile(s,exepath,foundfile);
   if not(cs_link_extern in aktglobalswitches) and (not found) then
    Message1(exec_w_objfile_not_found,s);
+  findobjectfile:=foundfile;
 end;
 
 
 { searches an library file }
 function TLinker.FindLibraryFile(s:string;const ext:string;var found : boolean) : string;
+var
+  foundfile : string;
 begin
   found:=false;
   findlibraryfile:='';
@@ -330,14 +334,14 @@ begin
      2. local libary dir
      3. global libary dir
      4. exe path of the compiler }
-  found:=false;
-  findlibraryfile:=FindFile(s,'.'+DirSep,found)+s;
+  found:=FindFile(s,'.'+DirSep,foundfile);
   if (not found) then
-   findlibraryfile:=current_module.locallibrarysearchpath.FindFile(s,found)+s;
+   found:=current_module.locallibrarysearchpath.FindFile(s,foundfile);
   if (not found) then
-   findlibraryfile:=librarysearchpath.FindFile(s,found)+s;
+   found:=librarysearchpath.FindFile(s,foundfile);
   if (not found) then
-   findlibraryfile:=FindFile(s,exepath,found)+s;
+   found:=FindFile(s,exepath,foundfile);
+  findlibraryfile:=foundfile;
 end;
 
 
@@ -543,7 +547,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  2001-01-12 19:19:44  peter
+  Revision 1.13  2001-02-20 21:41:17  peter
+    * new fixfilename, findfile for unix. Look first for lowercase, then
+      NormalCase and last for UPPERCASE names.
+
+  Revision 1.12  2001/01/12 19:19:44  peter
     * fixed searching for utils
 
   Revision 1.11  2000/12/25 00:07:26  peter

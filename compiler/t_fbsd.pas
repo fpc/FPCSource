@@ -289,11 +289,9 @@ begin
   { try to add crti and crtbegin if linking to C }
   if linklibc then
    begin
-     s:=librarysearchpath.FindFile('crtbegin.o',found)+'crtbegin.o';
-     if found then
+     if librarysearchpath.FindFile('crtbegin.o',s) then
       LinkRes.AddFileName(s);
-     s:=librarysearchpath.FindFile('crti.o',found)+'crti.o';
-     if found then
+     if librarysearchpath.FindFile('crti.o',s) then
       LinkRes.AddFileName(s);
    end;
   { main objectfiles }
@@ -306,11 +304,9 @@ begin
   { objects which must be at the end }
   if linklibc then
    begin
-     s:=librarysearchpath.FindFile('crtend.o',found)+'crtend.o';
-     if found then
+     if librarysearchpath.FindFile('crtend.o',s) then
       LinkRes.AddFileName(s);
-     s:=librarysearchpath.FindFile('crtn.o',found)+'crtn.o';
-     if found then
+     if librarysearchpath.FindFile('crtn.o',s) then
       LinkRes.AddFileName(s);
    end;
   LinkRes.Add(')');
@@ -449,7 +445,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2000-12-30 22:53:25  peter
+  Revision 1.7  2001-02-20 21:41:17  peter
+    * new fixfilename, findfile for unix. Look first for lowercase, then
+      NormalCase and last for UPPERCASE names.
+
+  Revision 1.6  2000/12/30 22:53:25  peter
     * export with the case provided in the exports section
 
   Revision 1.5  2000/12/25 00:07:30  peter

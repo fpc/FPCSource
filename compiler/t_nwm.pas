@@ -325,7 +325,7 @@ begin
            if i>0 then
             Delete(S,i,255);
            S := S + '.imp';
-           S := librarysearchpath.FindFile(S,found)+S;
+           librarysearchpath.FindFile(S,s);
            LinkRes.Add('IMPORT @'+s);
          end
       end;
@@ -349,7 +349,7 @@ begin
            if i>0 then
             Delete(S,i,255);
            S := S + '.imp';
-           S := librarysearchpath.FindFile(S,found)+S;
+           librarysearchpath.FindFile(S,s);
            LinkRes.Add('IMPORT @'+s);
            LinkRes.Add('MODULE '+s2);
          end
@@ -422,7 +422,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2000-12-25 00:07:30  peter
+  Revision 1.6  2001-02-20 21:41:16  peter
+    * new fixfilename, findfile for unix. Look first for lowercase, then
+      NormalCase and last for UPPERCASE names.
+
+  Revision 1.5  2000/12/25 00:07:30  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

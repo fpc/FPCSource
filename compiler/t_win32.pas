@@ -38,6 +38,7 @@ interface
       procedure importprocedure(const func,module:string;index:longint;const name:string);override;
       procedure importvariable(const varname,module:string;const name:string);override;
       procedure generatelib;override;
+      procedure generatenasmlib;virtual;
       procedure generatesmartlib;override;
     end;
 
@@ -48,6 +49,7 @@ interface
       procedure exportprocedure(hp : texported_item);override;
       procedure exportvar(hp : texported_item);override;
       procedure generatelib;override;
+      procedure generatenasmlib;virtual;
     end;
 
     tlinkerwin32=class(tlinker)
@@ -101,13 +103,13 @@ implementation
           1. Current dir
           2. Library Path
           3. windir,windir/system,windir/system32 }
-        FoundDll:=FindFile(s,'.'+DirSep,found)+s;
+        Found:=FindFile(s,'.'+DirSep,founddll);
         if (not found) then
-         FoundDll:=includesearchpath.FindFile(s,found)+s;
+         Found:=includesearchpath.FindFile(s,founddll);
         if (not found) then
          begin
            sysdir:=FixPath(GetEnv('windir'),false);
-           FoundDll:=FindFile(s,sysdir+';'+sysdir+'system'+DirSep+';'+sysdir+'system32'+DirSep,found)+s;
+           Found:=FindFile(s,sysdir+';'+sysdir+'system'+DirSep+';'+sysdir+'system32'+DirSep,founddll);
          end;
         if (not found) then
          begin
@@ -191,6 +193,33 @@ implementation
          hp1.imported_items.concat(hp2);
       end;
 
+    procedure timportlibwin32.generatenasmlib;
+      var
+         hp1 : timportlist;
+         hp2 : timported_item;
+         p : pchar;
+      begin
+         importssection.concat(tai_section.create(sec_code));
+         hp1:=timportlist(current_module.imports.first);
+         while assigned(hp1) do
+           begin
+             hp2:=timported_item(hp1.imported_items.first);
+             while assigned(hp2) do
+               begin
+                 if (aktoutputformat=as_i386_tasm) or
+                    (aktoutputformat=as_i386_masm) then
+                   p:=strpnew(#9+'EXTRN '+hp2.func^)
+                 else
+                   p:=strpnew(#9+'EXTERN '+hp2.func^);
+                 importssection.concat(tai_direct.create(p));
+                 p:=strpnew(#9+'import '+hp2.func^+' '+hp1.dllname^+' '+hp2.name^);
+                 importssection.concat(tai_direct.create(p));
+                 hp2:=timported_item(hp2.next);
+               end;
+             hp1:=timportlist(hp1.next);
+           end;
+      end;
+
 
     procedure timportlibwin32.generatesmartlib;
       var
@@ -200,6 +229,12 @@ implementation
          lidata4,lidata5 : pasmlabel;
          r : preference;
       begin
+         if (aktoutputformat<>as_i386_asw) and
+            (aktoutputformat<>as_i386_pecoff) then
+          begin
+            generatenasmlib;
+            exit;
+          end;
          hp1:=timportlist(current_module.imports.first);
          while assigned(hp1) do
            begin
@@ -305,6 +340,12 @@ implementation
          l1,l2,l3,l4 : pasmlabel;
          r : preference;
       begin
+         if (aktoutputformat<>as_i386_asw) and
+            (aktoutputformat<>as_i386_pecoff) then
+          begin
+            generatenasmlib;
+            exit;
+          end;
          hp1:=timportlist(current_module.imports.first);
          while assigned(hp1) do
            begin
@@ -490,6 +531,12 @@ implementation
          address_table,name_table_pointers,
          name_table,ordinal_table : TAAsmoutput;
       begin
+        if (aktoutputformat<>as_i386_asw) and
+           (aktoutputformat<>as_i386_pecoff) then
+         begin
+           generatenasmlib;
+           exit;
+         end;
 
          hp:=texported_item(current_module._exports.first);
          if not assigned(hp) then
@@ -635,6 +682,21 @@ implementation
          ordinal_table.free;
          name_table.free;
          temtexport.free;
+      end;
+
+    procedure texportlibwin32.generatenasmlib;
+      var
+         hp : texported_item;
+         p : pchar;
+      begin
+         exportssection.concat(tai_section.create(sec_code));
+         hp:=texported_item(current_module._exports.first);
+         while assigned(hp) do
+           begin
+             p:=strpnew(#9+'export '+hp.sym^.mangledname+' '+hp.name^+' '+tostr(hp.index));
+             exportssection.concat(tai_direct.create(p));
+             hp:=texported_item(hp.next);
+           end;
       end;
 
 
@@ -830,7 +892,6 @@ function TLinkerWin32.MakeExecutable:boolean;
 var
   binstr,
   cmdstr  : string;
-  found,
   success : boolean;
   i       : longint;
   AsBinStr     : string[80];
@@ -847,7 +908,7 @@ begin
   AppTypeStr:='';
   ImageBaseStr:='';
   StripStr:='';
-  AsBinStr:=FindExe('asw',found);
+  FindExe('asw',AsBinStr);
   if RelocSection then
    { Using short form to avoid problems with 128 char limitation under Dos. }
    RelocStr:='-b base.$$$';
@@ -910,7 +971,6 @@ Function TLinkerWin32.MakeSharedLibrary:boolean;
 var
   binstr,
   cmdstr  : string;
-  found,
   success : boolean;
   i       : longint;
   AsBinStr     : string[80];
@@ -928,7 +988,7 @@ begin
   AppTypeStr:='';
   ImageBaseStr:='';
   StripStr:='';
-  AsBinStr:=FindExe('asw',found);
+  FindExe('asw',AsBinStr);
   if RelocSection then
    { Using short form to avoid problems with 128 char limitation under Dos. }
    RelocStr:='-b base.$$$';
@@ -1194,7 +1254,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2001-01-13 00:09:22  peter
+  Revision 1.10  2001-02-20 21:41:16  peter
+    * new fixfilename, findfile for unix. Look first for lowercase, then
+      NormalCase and last for UPPERCASE names.
+
+  Revision 1.9  2001/01/13 00:09:22  peter
     * made Pavel O. happy ;)
 
   Revision 1.8  2000/12/30 22:53:25  peter

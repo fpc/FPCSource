@@ -455,23 +455,24 @@ uses
          singlepathstring,
          filename : string;
 
-         Function UnitExists(const ext:string):boolean;
+         Function UnitExists(const ext:string;var foundfile:string):boolean;
          begin
            Message1(unit_t_unitsearch,Singlepathstring+filename+ext);
-           UnitExists:=FileExists(Singlepathstring+FileName+ext);
+           UnitExists:=FindFile(FileName+ext,Singlepathstring,foundfile);
          end;
 
          Function PPUSearchPath(const s:string):boolean;
          var
-           found   : boolean;
+           found : boolean;
+           hs    : string;
          begin
            Found:=false;
            singlepathstring:=FixPath(s,false);
          { Check for PPU file }
-           Found:=UnitExists(target_info.unitext);
+           Found:=UnitExists(target_info.unitext,hs);
            if Found then
             Begin
-              SetFileName(SinglePathString+FileName,false);
+              SetFileName(hs,false);
               Found:=OpenPPU;
             End;
            PPUSearchPath:=Found;
@@ -481,6 +482,7 @@ uses
          var
            found   : boolean;
            ext     : string[8];
+           hs      : string;
          begin
            Found:=false;
            singlepathstring:=FixPath(s,false);
@@ -489,13 +491,11 @@ uses
            do_compile:=true;
            recompile_reason:=rr_noppu;
          {Check for .pp file}
-           Found:=UnitExists(target_os.sourceext);
-           if Found then
-            Ext:=target_os.sourceext
-           else
+           Found:=UnitExists(target_os.sourceext,hs);
+           if not Found then
             begin
-            {Check for .pas}
-              Found:=UnitExists(target_os.pasext);
+              { Check for .pas }
+              Found:=UnitExists(target_os.pasext,hs);
               if Found then
                Ext:=target_os.pasext;
             end;
@@ -503,9 +503,9 @@ uses
            if Found then
             begin
               sources_avail:=true;
-            {Load Filenames when found}
-              mainsource:=StringDup(SinglePathString+FileName+Ext);
-              SetFileName(SinglePathString+FileName,false);
+              { Load Filenames when found }
+              mainsource:=StringDup(hs);
+              SetFileName(hs,false);
             end
            else
             sources_avail:=false;
@@ -873,7 +873,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.6  2000-12-25 00:07:25  peter
+  Revision 1.7  2001-02-20 21:41:15  peter
+    * new fixfilename, findfile for unix. Look first for lowercase, then
+      NormalCase and last for UPPERCASE names.
+
+  Revision 1.6  2000/12/25 00:07:25  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 
