@@ -270,13 +270,24 @@ uses
       { reference record }
       preference = ^treference;
       treference = packed record
+         { base register, R_NO if none }
          base,
+         { index register, R_NO if none }
          index       : tregister;
+         { offset, 0 if none }
          offset      : longint;
+         { symbol this reference refers to, nil if none }
          symbol      : tasmsymbol;
+         { used in conjunction with symbols and offsets: refs_full means }
+         { means a full 32bit reference, refs_ha means the upper 16 bits }
+         { and refs_l the lower 16 bits of the address                   }
          symaddr     : trefsymaddr;
+         { changed when inlining and possibly in other cases, don't }
+         { set manually                                             }
          offsetfixup : longint;
+         { used in conjunction with the previous field }
          options     : trefoptions;
+         { alignment this reference is guaranteed to have }
          alignment   : byte;
       end;
 
@@ -729,7 +740,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  2002-11-17 18:26:16  mazen
+  Revision 1.37  2002-11-24 14:28:56  jonas
+    + some comments describing the fields of treference
+
+  Revision 1.36  2002/11/17 18:26:16  mazen
   * fixed a compilation bug accmulator-->accumulator, in definition of return_result_reg
 
   Revision 1.35  2002/11/17 17:49:09  mazen
