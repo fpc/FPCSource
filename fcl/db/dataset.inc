@@ -1312,7 +1312,6 @@ begin
     CheckBrowseMode;
     DoBeforeScroll;
     InternalGotoBookMark(ABookMark);
-    SetCurrentRecord(FActiverecord);
     Resync([rmExact,rmCenter]);
     DoAfterScroll;
     end;
@@ -1726,7 +1725,10 @@ end;
 
 {
   $Log$
-  Revision 1.25  2004-10-10 14:25:21  michael
+  Revision 1.26  2004-10-16 09:27:23  michael
+  + Fixed GotoBookMark (as suggested by Americo Luiz)
+
+  Revision 1.25  2004/10/10 14:25:21  michael
   + Small fix for close so it does not check browsemode
 
   Revision 1.24  2004/09/26 16:55:24  michael
