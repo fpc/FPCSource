@@ -44,7 +44,11 @@ unit mmx;
 
     const
        is_mmx_cpu : boolean = false;
+       is_sse_cpu : boolean = false;
+       is_sse2_cpu : boolean = false;
        is_amd_3d_cpu : boolean = false;
+       is_amd_3d_dsp_cpu : boolean = false;
+       is_amd_3d_mmx_cpu : boolean = false;
 
     { sets all floating point registers to empty
       (use this after mmx usage)
@@ -57,6 +61,32 @@ unit mmx;
        cpu;
 
   {$ASMMODE ATT}
+
+    { return base type of processor: 0 - is Unknown, 10 - is AMD
+(AuthenticAMD), }
+    {                                20 - is Intel (GenuineIntel) }
+    function getdevel:byte;
+
+      var
+         _ebx,_ecx,_edx : longint;
+      begin
+        getdevel:=0;
+        if cpuid_support then
+        begin
+            asm
+                movl $0,%eax
+                cpuid
+                movl %ebx,_ebx
+                movl %ecx,_ecx
+                movl %edx,_edx
+            end;
+            if ((_ebx=$68747541) and (_ecx=$444D4163) and (_edx=$69746E65))
+then getdevel:=10;
+            if ((_ebx=$756E6547) and (_ecx=$6C65746E) and (_edx=$49656E69))
+then getdevel:=20;
+        end
+    end;
+
 
     { returns true, if the processor supports the mmx instructions }
     function mmx_support : boolean;
@@ -92,11 +122,91 @@ unit mmx;
                  cpuid
                  movl %edx,_edx
               end;
-              amd_3d_support:=(_edx and longint($80000000))<>0;
+              amd_3d_support:=(_edx and $80000000)<>0;
            end
          else
            { a cpu with without cpuid instruction supports never mmx }
            amd_3d_support:=false;
+      end;
+
+    function amd_3d_dsp_support : boolean;
+
+      var
+         _edx : longint;
+
+      begin
+         if cpuid_support then
+           begin
+              asm
+                 movl $0x80000001,%eax
+                 cpuid
+                 movl %edx,_edx
+              end;
+              amd_3d_dsp_support:=(_edx and $40000000)<>0;
+           end
+         else
+           { a cpu with without cpuid instruction supports never mmx }
+           amd_3d_dsp_support:=false;
+      end;
+
+    function amd_3d_mmx_support : boolean;
+
+      var
+         _edx : longint;
+
+      begin
+         if cpuid_support then
+           begin
+              asm
+                 movl $0x80000001,%eax
+                 cpuid
+                 movl %edx,_edx
+              end;
+              amd_3d_mmx_support:=(_edx and $400000)<>0;
+           end
+         else
+           { a cpu with without cpuid instruction supports never mmx }
+           amd_3d_mmx_support:=false;
+      end;
+
+    function sse_support : boolean;
+
+      var
+         _edx : longint;
+
+      begin
+         if cpuid_support then
+           begin
+              asm
+                 movl $1,%eax
+                 cpuid
+                 movl %edx,_edx
+              end;
+              sse_support:=(_edx and $2000000)<>0;
+           end
+         else
+           { a cpu with without cpuid instruction supports never sse }
+           sse_support:=false;
+      end;
+
+    function sse2_support : boolean;
+
+      var
+         _edx : longint;
+
+      begin
+         if cpuid_support then
+           begin
+              asm
+                 movl $1,%eax
+                 cpuid
+                 movl %edx,_edx
+              end;
+              sse2_support:=(_edx and $4000000)<>0;
+           end
+         else
+           { a cpu with without cpuid instruction supports never sse2 }
+           sse2_support:=false;
       end;
 
     procedure emms;assembler;
@@ -122,12 +232,25 @@ begin
         { the exit code sets the fpu stack to empty }
         oldexitproc:=exitproc;
         exitproc:=@mmxexitproc;
-        is_amd_3d_cpu:=amd_3d_support;
+        if amd_3d_support then
+          begin
+             is_amd_3d_cpu:=true;
+             is_amd_3d_dsp_cpu:=amd_3d_dsp_support;
+             is_amd_3d_mmx_cpu:=amd_3d_mmx_support;
+          end;
+        if getdevel=20 then
+          begin
+            is_sse_cpu:=sse_support;
+            is_sse2_cpu:=sse2_support;
+          end;
      end;
 end.
 {
   $Log$
-  Revision 1.3  2000-12-16 15:58:18  jonas
+  Revision 1.4  2002-03-16 11:51:50  peter
+    * sse and 3dnow extensions from Michail added
+
+  Revision 1.3  2000/12/16 15:58:18  jonas
     * removed warnings about possible range check errors
 
   Revision 1.2  2000/07/13 11:33:41  michael
