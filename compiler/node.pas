@@ -118,6 +118,7 @@ interface
           arrayconstructorn, {Construction node for [...] parsing}
           arrayconstructorrangen, {Range element to allow sets in array construction tree}
           { added for optimizations where we cannot suppress }
+          addoptn,
           nothingn,
           loadvmtn
        );
@@ -829,7 +830,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2001-01-01 11:38:45  peter
+  Revision 1.13  2001-01-13 00:08:09  peter
+    * added missing addoptn
+
+  Revision 1.12  2001/01/01 11:38:45  peter
     * forgot to remove node.inc and nodeh.inc that were merged into node.pas
       already.
 
