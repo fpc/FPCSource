@@ -30,7 +30,7 @@ asm
   movq  FPC_THREADVAR_RELOCATE,%rax
   testq %rax,%rax
   jne   .LThread
-  movq  %rdx,Errno+4
+  movq  %rdx,Errno+8
   jmp   .LNoThread
 .LThread:
   pushq %rdx
@@ -56,7 +56,7 @@ asm
   movq  FPC_THREADVAR_RELOCATE,%rax
   testq %rax,%rax
   jne   .LThread
-  movq  %rdx,Errno+4
+  movq  %rdx,Errno+8
   jmp   .LNoThread
 .LThread:
   pushq %rdx
@@ -83,7 +83,7 @@ asm
   movq  FPC_THREADVAR_RELOCATE,%rax
   testq %rax,%rax
   jne   .LThread
-  movq  %rdx,Errno+4
+  movq  %rdx,Errno+8
   jmp   .LNoThread
 .LThread:
   pushq %rdx
@@ -111,7 +111,7 @@ asm
   movq  FPC_THREADVAR_RELOCATE,%rax
   testq %rax,%rax
   jne   .LThread
-  movq  %rdx,Errno+4
+  movq  %rdx,Errno+8
   jmp   .LNoThread
 .LThread:
   pushq %rdx
@@ -140,7 +140,7 @@ asm
   movq  FPC_THREADVAR_RELOCATE,%rax
   testq %rax,%rax
   jne   .LThread
-  movq  %rdx,Errno+4
+  movq  %rdx,Errno+8
   jmp   .LNoThread
 .LThread:
   pushq %rdx
@@ -170,7 +170,7 @@ asm
   movq  FPC_THREADVAR_RELOCATE,%rax
   testq %rax,%rax
   jne   .LThread
-  movq  %rdx,Errno+4
+  movq  %rdx,Errno+8
   jmp   .LNoThread
 .LThread:
   pushq %rdx
@@ -202,7 +202,7 @@ asm
   movq  FPC_THREADVAR_RELOCATE,%rax
   testq %rax,%rax
   jne   .LThread
-  movq  %rdx,Errno+4
+  movq  %rdx,Errno+8
   jmp   .LNoThread
 .LThread:
   pushq %rdx
@@ -224,7 +224,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  2004-05-16 11:04:27  marco
+  Revision 1.7  2004-05-18 20:13:12  peter
+    * fix offset of errno
+
+  Revision 1.6  2004/05/16 11:04:27  marco
    * comment removed and four dud instrcutions
 
   Revision 1.5  2004/04/22 17:17:23  peter
