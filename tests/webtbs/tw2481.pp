@@ -17,9 +17,8 @@ Var
 
   Operator := (V : Real) B : TMoo;
   Begin
-
+    B:=TMoo.Create;
     B.A := V;
-
   End;
 
 Constructor TMoo.Init;
