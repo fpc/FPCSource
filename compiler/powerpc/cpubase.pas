@@ -525,7 +525,7 @@ uses
 
 
       firstsaveintreg = RS_R13;
-      lastsaveintreg  = RS_R31;
+      lastsaveintreg  = RS_R27;
       firstsavefpureg = R_F14;
       lastsavefpureg  = R_F31;
       { no altivec support yet. Need to override tcgobj.a_loadmm_* first in tcgppc }
@@ -852,7 +852,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  2003-05-15 21:37:00  florian
+  Revision 1.50  2003-05-15 22:14:43  florian
+    * fixed last commit, changing lastsaveintreg to r31 caused some strange problems
+
+  Revision 1.49  2003/05/15 21:37:00  florian
     * sysv entry code saves r13 now as well
 
   Revision 1.48  2003/04/23 12:35:35  florian

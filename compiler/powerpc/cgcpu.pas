@@ -998,7 +998,7 @@ const
 
         usesgpr:=false;
         if not (po_assembler in current_procdef.procoptions) then
-          for regcounter2:=firstsaveintreg to lastsaveintreg do
+          for regcounter2:=firstsaveintreg to RS_R31 do
             begin
               if regcounter2 in rg.usedintbyproc then
                 begin
@@ -1181,7 +1181,7 @@ const
 
         usesgpr:=false;
         if not (po_assembler in current_procdef.procoptions) then
-          for regcounter2:=firstsaveintreg to lastsaveintreg do
+          for regcounter2:=firstsaveintreg to RS_R31 do
             begin
               if regcounter2 in rg.usedintbyproc then
                 begin
@@ -1281,7 +1281,7 @@ const
 
       usesgpr:=false;
       if not (po_assembler in current_procdef.procoptions) then
-        for regcounter2:=firstsaveintreg to lastsaveintreg do
+        for regcounter2:=firstsaveintreg to RS_R31 do
           begin
             if regcounter2 in rg.usedintbyproc then
               begin
@@ -2392,7 +2392,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.92  2003-05-15 21:37:00  florian
+  Revision 1.93  2003-05-15 22:14:42  florian
+    * fixed last commit, changing lastsaveintreg to r31 caused some strange problems
+
+  Revision 1.92  2003/05/15 21:37:00  florian
     * sysv entry code saves r13 now as well
 
   Revision 1.91  2003/05/15 19:39:09  florian
