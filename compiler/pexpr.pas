@@ -1396,7 +1396,12 @@ unit pexpr;
                      end;
                   end
                  else
-                  Message(parser_e_generic_methods_only_in_methods);
+                   begin
+                      Message(parser_e_generic_methods_only_in_methods);
+                      again:=false;
+                      pd:=generrordef;
+                      p1:=genzeronode(errorn);
+                   end;
                  postfixoperators;
                end;
     INTCONST : begin
@@ -1765,7 +1770,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.57  1998-09-28 16:18:16  florian
+  Revision 1.58  1998-09-30 07:40:35  florian
+    * better error recovering
+
+  Revision 1.57  1998/09/28 16:18:16  florian
     * two fixes to get ansi strings work
 
   Revision 1.56  1998/09/26 17:45:36  peter

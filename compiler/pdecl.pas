@@ -1262,17 +1262,18 @@ unit pdecl;
                                     aktprocsym^.definition^.options:=aktprocsym^.definition^.options or
                                       pooverridingmethod or povirtualmethod;
                                   end;
-                      _ABSTRACT : begin
-                                    if (aktprocsym^.definition^.options and povirtualmethod)<>0 then
-                                      aktprocsym^.definition^.options:=aktprocsym^.definition^.options or poabstractmethod
-                                    else
-                                      Message(parser_e_only_virtual_methods_abstract);
-                                    consume(_ABSTRACT);
-                                    consume(SEMICOLON);
-                                    { the method is defined }
-                                    aktprocsym^.definition^.forwarddef:=false;
-                                  end;
                       end;
+                      if idtoken=_abstract then
+                        begin
+                           if (aktprocsym^.definition^.options and povirtualmethod)<>0 then
+                             aktprocsym^.definition^.options:=aktprocsym^.definition^.options or poabstractmethod
+                           else
+                             Message(parser_e_only_virtual_methods_abstract);
+                           consume(_ABSTRACT);
+                           consume(SEMICOLON);
+                           { the method is defined }
+                           aktprocsym^.definition^.forwarddef:=false;
+                        end;
                       if (cs_static_keyword in aktglobalswitches) and (idtoken=_STATIC) then
                        begin
                          consume(_STATIC);
@@ -2036,7 +2037,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.59  1998-09-26 17:45:33  peter
+  Revision 1.60  1998-09-30 07:40:33  florian
+    * better error recovering
+
+  Revision 1.59  1998/09/26 17:45:33  peter
     + idtoken and only one token table
 
   Revision 1.58  1998/09/25 00:04:01  florian
