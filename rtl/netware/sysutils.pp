@@ -35,11 +35,14 @@ TYPE
     Magic : WORD;                    { to avoid abends with uninitialized TSearchRec }
   END;
 
-
+type
+  THandle = Cardinal;
 
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
+
+  
 { additional NetWare file flags}
 CONST
   faSHARE              = $00000080;  { Sharable file                   }
@@ -497,7 +500,10 @@ end.
 {
 
   $Log$
-  Revision 1.10  2003-03-30 12:35:43  armin
+  Revision 1.11  2003-04-12 13:21:27  armin
+  * added THandle
+
+  Revision 1.10  2003/03/30 12:35:43  armin
   * removed uses netware from winsock, DirectoryExists implemented
 
   Revision 1.9  2003/03/29 15:16:26  hajny
