@@ -14,6 +14,23 @@
 
  **********************************************************************}
 
+{$IFNDEF HAS_FILENAMELEN}
+Const 
+  FileNameLen = 255;
+{$ENDIF HAS_FILENAMELEN}
+
+{$IFDEF CPUI386}
+ {$IFNDEF HAS_REGISTERS}
+type
+  Registers = packed record
+    case i : integer of
+     0 : (ax,f1,bx,f2,cx,f3,dx,f4,bp,f5,si,f51,di,f6,ds,f7,es,f8,flags,fs,gs : word);
+     1 : (al,ah,f9,f10,bl,bh,f11,f12,cl,ch,f13,f14,dl,dh : byte);
+     2 : (eax, ebx, ecx, edx, ebp, esi, edi : longint);
+    End;
+ {$ENDIF HAS_REGISTERS}
+{$ENDIF CPUI386}
+
 Const
   {Bitmasks for CPU Flags}
   fcarry     = $0001;
@@ -126,10 +143,20 @@ Procedure GetIntVec(intno: byte; var vector: pointer);
 Procedure SetIntVec(intno: byte; vector: pointer);
 Procedure Keep(exitcode: word);
 
+{Additional (non-TP) function for quick access to system timer - for FV etc.}
+Function  GetMsCount: int64;
+{Offset between two return values corresponds to amount of milliseconds
+ between the two calls, however the exact value is not guaranteed to have
+ particular meaning - it can be e.g. amount of milliseconds since computer
+ startup on DOS-like x86 platforms, derived from Unix time on Unix etc.}
+
 
 {
   $Log$
-  Revision 1.4  2004-05-03 18:00:24  hajny
+  Revision 1.5  2004-12-05 19:02:57  hajny
+    * GetMsCount added, platform independent routines moved to single include file
+
+  Revision 1.4  2004/05/03 18:00:24  hajny
     * another global var to threadvar change, plus CVS log added
 
   Revision 1.3  2004/02/15 21:34:06  hajny
