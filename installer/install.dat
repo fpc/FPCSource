@@ -168,6 +168,12 @@ package=uftpapiemx.zip[uftpemx.zip],FTP API interface units
 package=uhwvideoemx.zip[uhwvemx.zip],HW Video interface units
 # OS/2-2 9
 package=ummtkemx.zip,MMOS/2 interface units
+# OS/2-2 10
+package=ux11emx.zip,X11 interface units
+# OS/2-2 11
+package=ugtkemx.zip,GTK interface units
+# OS/2-2 12
+package=ufpgtkemx.zip,fpGTK units
 
 
 #
