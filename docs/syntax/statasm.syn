@@ -1,0 +1,17 @@
+\begin{diagram}{Assembler statements}{asmstatement}
+\begin{mysyntdiag}
+\synt{asm\ statement}
+\lit*{asm}
+\synt{assembler\ code}
+\lit{end}
+\[
+\synt{registerlist}
+\]
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{registerlist}
+\lit*[
+\<[b] \synt{string constant} \\ \lit*, \>
+\lit*]
+\end{mysyntdiag}
+\end{diagram}
