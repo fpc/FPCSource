@@ -113,7 +113,7 @@ type
     a_srwi, a_srwi_, a_clrlwi, a_clrlwi_, a_clrrwi, a_clrrwi_, a_clrslwi,
     a_clrslwi_, a_blr, a_bctr, a_blrl, a_bctrl, a_crset, a_crclr, a_crmove,
     a_crnot, a_mt {move to special prupose reg}, a_mf {move from special purpose reg},
-    a_nop, a_li, a_lis, a_la, a_mr, a_not, a_mtcr);
+    a_nop, a_li, a_lis, a_la, a_mr, a_mr_, a_not, a_mtcr);
 
   op2strtable=array[tasmop] of string[8];
 
@@ -241,7 +241,7 @@ const
   AsmCondFlagTF: Array[TAsmCondFlags] of Boolean =
     (false,true,false,true,false,true,false,false,false,true,false,true,false,
      true,false,false,true,false,false,true,false);
-  
+
 
   AsmCondFlag2Str: Array[tasmcondflags] of string[2] = ({cf_none}'',
      { conditions when not using ctr decrement etc}
@@ -260,13 +260,18 @@ const
 *****************************************************************************}
 
 type
-  TResFlags = (F_LT,F_GT,F_EQ,F_SO,F_FX,F_FEX,F_VX,F_OX);
-(*
+  TResFlagsEnum = (F_EQ,F_NE,F_LT,F_LE,F_GT,F_GE,F_SO,F_FX,F_FEX,F_VX,F_OX);
+  TResFlags = record
+    cr: byte;
+    flag: TResFlagsEnum;
+  end;
+
 const
   { arrays for boolean location conversions }
+{
   flag_2_cond : array[TResFlags] of TAsmCond =
-     (C_E,C_NE,C_G,C_L,C_GE,C_LE,C_C,C_NC,C_A,C_AE,C_B,C_BE);
-*)
+     (C_E,C_NE,C_LT,C_LE,C_GT,C_GE,???????????????);
+}
 
 {*****************************************************************************
                                 Reference
@@ -602,7 +607,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2001-09-06 15:25:56  jonas
+  Revision 1.4  2001-09-28 20:40:05  jonas
+    * several additions, almost complete (only some problems with resflags left)
+
+  Revision 1.3  2001/09/06 15:25:56  jonas
     * changed type of tcg from object to class ->  abstract methods are now
       a lot cleaner :)
     + more updates: load_*_loc methods, op_*_* methods, g_flags2reg method

@@ -34,42 +34,42 @@ unit cgcpu;
         { left to right), this allows to move the parameter to    }
         { register, if the cpu supports register calling          }
         { conventions                                             }
-        procedure a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;nr : longint);virtual;
-        procedure a_param_const(list : taasmoutput;size : tcgsize;a : aword;nr : longint);virtual;
-        procedure a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;nr : longint);virtual;
-        procedure a_paramaddr_ref(list : taasmoutput;const r : treference;nr : longint);virtual;
+        procedure a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;nr : longint);override;
+        procedure a_param_const(list : taasmoutput;size : tcgsize;a : aword;nr : longint);override;
+        procedure a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;nr : longint);override;
+        procedure a_paramaddr_ref(list : taasmoutput;const r : treference;nr : longint);override;
 
 
         procedure a_call_name(list : taasmoutput;const s : string;
-          offset : longint);virtual;
+          offset : longint);override;
 
-        procedure a_op_const_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; reg: TRegister); virtual;
-        procedure a_op_reg_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; reg1, reg2: TRegister); virtual;
+        procedure a_op_const_reg(list : taasmoutput; Op: TOpCG; a: AWord; reg: TRegister); override;
+        procedure a_op_reg_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; src, dst: TRegister); override;
 
         { move instructions }
-        procedure a_load_const_reg(list : taasmoutput; size: tcgsize; a : aword;reg : tregister);virtual;
-        procedure a_load_reg_ref(list : taasmoutput; size: tcgsize; reg : tregister;const ref2 : treference);virtual;
-        procedure a_load_ref_reg(list : taasmoutput;size : tcgsize;const Ref2 : treference;reg : tregister);virtual;
-        procedure a_load_reg_reg(list : taasmoutput;size : tcgsize;reg1,reg2 : tregister);virtual;
+        procedure a_load_const_reg(list : taasmoutput; size: tcgsize; a : aword;reg : tregister);override;
+        procedure a_load_reg_ref(list : taasmoutput; size: tcgsize; reg : tregister;const ref : treference);override;
+        procedure a_load_ref_reg(list : taasmoutput;size : tcgsize;const Ref : treference;reg : tregister);override;
+        procedure a_load_reg_reg(list : taasmoutput;size : tcgsize;reg1,reg2 : tregister);override;
 
         {  comparison operations }
         procedure a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
-          l : pasmlabel);virtual;
+          l : pasmlabel);override;
         procedure a_cmp_reg_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : pasmlabel);
 
         procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: pasmlabel);
-        procedure g_flags2reg(const f: TAsmCond; reg: TRegister); abstract;
+        procedure g_flags2reg(list: taasmoutput; const f: TAsmCond; reg: TRegister); override;
 
 
         procedure g_stackframe_entry_sysv(list : taasmoutput;localsize : longint);
         procedure g_stackframe_entry_mac(list : taasmoutput;localsize : longint);
-        procedure g_stackframe_entry(list : taasmoutput;localsize : longint);virtual;
-        procedure g_restore_frame_pointer(list : taasmoutput);virtual;
-        procedure g_return_from_proc(list : taasmoutput;parasize : aword); virtual;
+        procedure g_stackframe_entry(list : taasmoutput;localsize : longint);override;
+        procedure g_restore_frame_pointer(list : taasmoutput);override;
+        procedure g_return_from_proc(list : taasmoutput;parasize : aword); override;
 
-        procedure a_loadaddress_ref_reg(list : taasmoutput;const ref2 : treference;r : tregister);virtual;
+        procedure a_loadaddress_ref_reg(list : taasmoutput;const ref2 : treference;r : tregister);override;
 
-        procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword; delsource,loadref : boolean);virtual;
+        procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword; delsource,loadref : boolean);override;
 
 
         private
@@ -115,10 +115,16 @@ const
   TOpCmp2AsmCond: Array[topcmp] of TAsmCondFlags = (CF_NONE,CF_EQ,CF_GT,
                        CF_LT,CF_GE,CF_LE,CF_NE,CF_LE,CF_NG,CF_GE,CF_NL);
 
-  LoadInstr: Array[OS_8..OS_32,boolean, boolean] of TAsmOp =
+  LoadInstr: Array[OS_8..OS_S32,boolean, boolean] of TAsmOp =
                          { indexed? updating?}
              (((A_LBZ,A_LBZU),(A_LBZX,A_LBZUX)),
               ((A_LHZ,A_LHZU),(A_LHZX,A_LHZUX)),
+              ((A_LWZ,A_LWZU),(A_LWZX,A_LWZUX)),
+              { 64bit stuff should be handled separately }
+              ((A_NONE,A_NONE),(A_NONE,A_NONE)),
+              { there's no load-byte-with-sign-extend :( }
+              ((A_LBZ,A_LBZU),(A_LBZX,A_LBZUX)),
+              ((A_LHA,A_LHAU),(A_LHAX,A_LHAUX)),
               ((A_LWZ,A_LWZU),(A_LWZX,A_LWZUX)));
 
   StoreInstr: Array[OS_8..OS_32,boolean, boolean] of TAsmOp =
@@ -243,42 +249,58 @@ const
      procedure tcgppc.a_load_const_reg(list : taasmoutput; size: TCGSize; a : aword; reg : TRegister);
 
        begin
-          If (a and $ffff) <> 0 Then
-            Begin
+          if (a and $ffff) <> 0 Then
+            begin
               list.concat(taicpu.op_reg_const(A_LI,reg,a and $ffff));
-              If (a shr 16) <> 0 Then
+              if (longint(a) < low(smallint)) or
+                 (longint(a) > high(smallint))  then
                 list.concat(taicpu.op_reg_const(A_ADDIS,reg,
                   (a shr 16)+ord(smallint(a and $ffff) < 0)))
-            End
-          Else
+            end
+          else
             list.concat(taicpu.op_reg_const(A_LIS,reg,a shr 16));
        end;
 
-     procedure tcgppc.a_load_reg_ref(list : taasmoutput; size: TCGSize; reg : tregister;const ref2 : treference);
+     procedure tcgppc.a_load_reg_ref(list : taasmoutput; size: TCGSize; reg : tregister;const ref : treference);
 
        var
          op: TAsmOp;
-         ref: TReference;
+         ref2: TReference;
 
        begin
-         ref := ref2;
-         FixRef(ref);
-         op := storeinstr[size,ref.index<>R_NO,false];
-         a_load_store(list,op,reg,ref);
+         ref2 := ref;
+         FixRef(ref2);
+         if size in [OS_S8..OS_S16] then
+           { storing is the same for signed and unsigned values }
+           size := tcgsize(ord(size)-(ord(OS_S8)-ord(OS_8)));
+         { 64 bit stuff should be handled separately }
+         if size = OS_64 then
+           internalerror(200109236);
+         op := storeinstr[size,ref2.index<>R_NO,false];
+         a_load_store(list,op,reg,ref2);
        End;
 
-     procedure tcgppc.a_load_ref_reg(list : taasmoutput;size : tcgsize;const ref2: treference;reg : tregister);
+     procedure tcgppc.a_load_ref_reg(list : taasmoutput;size : tcgsize;const ref: treference;reg : tregister);
 
        var
-         op: TAsmOp;
+         op: tasmop;
          tmpreg: tregister;
-         ref, tmpref: TReference;
+         ref2, tmpref: treference;
 
        begin
-         ref := ref2;
-         FixRef(ref);
-         op := loadinstr[size,ref.index<>R_NO,false];
-         a_load_store(list,op,reg,ref);
+         if ref.is_immediate then
+           a_load_const_reg(list,size,ref.offset,reg)
+         else
+           begin
+             ref2 := ref;
+             fixref(ref2);
+             op := loadinstr[size,ref2.index<>R_NO,false];
+             a_load_store(list,op,reg,ref2);
+             { sign extend shortint if necessary, since there is no }
+             { load instruction that does that automatically (JM)   }
+             if size = OS_S8 then
+               list.concat(taicpu.op_reg_reg(A_EXTSB,reg,reg));
+          end;
        end;
 
      procedure tcgppc.a_load_reg_reg(list : taasmoutput;size : tcgsize;reg1,reg2 : tregister);
@@ -287,7 +309,7 @@ const
          list.concat(taicpu.op_reg_reg(A_MR,reg2,reg1));
        end;
 
-     procedure tcgppc.a_op_const_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; reg: TRegister);
+     procedure tcgppc.a_op_const_reg(list : taasmoutput; Op: TOpCG; a: AWord; reg: TRegister);
 
        var
          scratch_register: TRegister;
@@ -320,10 +342,10 @@ const
          end;
        end;
 
-      procedure tcgppc.a_op_reg_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; reg1, reg2: TRegister);
+      procedure tcgppc.a_op_reg_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; src, dst: TRegister);
 
          begin
-           a_op_reg_reg_reg(list,op,reg2,reg1,reg2);
+           a_op_reg_reg_reg(list,op,dst,src,dst);
          end;
 
 {*************** compare instructructions ****************}
@@ -848,18 +870,17 @@ const
         useReg: boolean;
 
       begin
-        useReg := false;
         ophi := TOpCG2AsmOpConstHi[op];
-       oplo := TOpCG2AsmOpConstLo[op];
-       { constants in a PPC instruction are always interpreted as signed }
-       { 16bit values, so if the value is between low(smallint) and      }
-       { high(smallint), it's easy                                       }
-       if (longint(a) >= low(smallint)) and
-          (longint(a) <= high(smallint)) then
-         begin
-           list.concat(taicpu.op_reg_reg_const(oplo,reg1,reg2,a));
-           exit;
-         end;
+        oplo := TOpCG2AsmOpConstLo[op];
+        { constants in a PPC instruction are always interpreted as signed }
+        { 16bit values, so if the value is between low(smallint) and      }
+        { high(smallint), it's easy                                       }
+        if (longint(a) >= low(smallint)) and
+           (longint(a) <= high(smallint)) then
+          begin
+            list.concat(taicpu.op_reg_reg_const(oplo,reg1,reg2,a));
+            exit;
+          end;
         { all basic constant instructions also have a shifted form that }
         { works only on the highest 16bits, so if low(a) is 0, we can   }
         { use that one                                                  }
@@ -868,8 +889,9 @@ const
             list.concat(taicpu.op_reg_reg(ophi,reg1,reg2,high(a)));
             exit;
           end;
-        { otherwise, the instructinos we can generate depend on the }
+        { otherwise, the instructions we can generate depend on the }
         { operation                                                 }
+        useReg := false;
         case op of
           OP_ADD,OP_SUB:
             begin
@@ -880,8 +902,15 @@ const
           OP_OR:
             { try to use rlwimi }
             if get_rlwi_const then
-              list.concat(taicpu.op_reg_reg_const_const_const(A_RLWIMI,reg1,
-                reg2,0,l1,l2))
+              begin
+                if reg1 <> reg2 then
+                  list.concat(taicpu.op_reg_reg(A_MR,reg1,reg2));
+                scratch_reg := get_scratch_reg(list);
+                list.concat(taicpu.op_reg_const(A_LI,scratch_reg,-1));
+                list.concat(taicpu.op_reg_reg_const_const_const(A_RLWIMI,reg1,
+                  reg2,0,l1,l2));
+                free_scratch_reg(list,scratch_reg);
+              end
             else
               useReg := true;
           OP_AND:
@@ -961,22 +990,25 @@ const
         p: paicpu;
 
       begin
-        p := taicpu.op_sym(op,newasmsymbol(l^.name));
-        create_cond_norm(c,0,p^.condition);
+        p := taicpu.op_sym(op,newasmsymbol(l.name));
+        create_cond_norm(c,0,p.condition);
         list.concat(p)
       end;
 
 end.
 {
   $Log$
-  Revision 1.5  2001-09-16 10:33:21  jonas
+  Revision 1.6  2001-09-28 20:40:05  jonas
+    * several additions, almost complete (only some problems with resflags left)
+
+  Revision 1.5  2001/09/16 10:33:21  jonas
     * some fixes to operations with constants
 
   Revision 1.3  2001/09/06 15:25:55  jonas
     * changed type of tcg from object to class ->  abstract methods are now
       a lot cleaner :)
     + more updates: load_*_loc methods, op_*_* methods, g_flags2reg method
-      (if possible with geenric implementation and necessary ppc
+      (if possible with generic implementation and necessary ppc
        implementations)
     * worked a bit further on cgflw, now working on exitnode
 
