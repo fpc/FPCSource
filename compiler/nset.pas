@@ -329,10 +329,12 @@ implementation
            exit;
 
          left_right_max;
-         { this is not allways true due to optimization }
-         { but if we don't set this we get problems with optimizing self code }
+
          if tsetdef(right.resulttype.def).settype<>smallset then
-           include(current_procinfo.flags,pi_do_call)
+           begin
+             if registers32 < 3 then
+               registers32 := 3;
+           end
          else
            begin
               { a smallset needs maybe an misc. register }
@@ -705,7 +707,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  2003-05-13 19:14:41  peter
+  Revision 1.43  2003-06-12 22:09:54  jonas
+    * tcginnode.pass_2 doesn't call a helper anymore in any case
+    * fixed ungetregisterfpu compilation problems
+
+  Revision 1.42  2003/05/13 19:14:41  peter
     * failn removed
     * inherited result code check moven to pexpr
 

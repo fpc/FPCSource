@@ -245,7 +245,7 @@ implementation
 
          exprasmlist.concat(taicpu.op_reg_reg_reg(A_FSUB,location.register,
            location.register,tmpfpureg));
-         rg.ungetregisterfpu(exprasmlist,tmpfpureg);
+         rg.ungetregisterfpu(exprasmlist,tmpfpureg,OS_F64);
 
          { work around bug in some PowerPC processors }
          if (tfloatdef(resulttype.def).typ = s32real) then
@@ -434,7 +434,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2003-06-04 11:58:58  jonas
+  Revision 1.39  2003-06-12 22:09:54  jonas
+    * tcginnode.pass_2 doesn't call a helper anymore in any case
+    * fixed ungetregisterfpu compilation problems
+
+  Revision 1.38  2003/06/04 11:58:58  jonas
     * calculate localsize also in g_return_from_proc since it's now called
       before g_stackframe_entry (still have to fix macos)
     * compilation fixes (cycle doesn't work yet though)

@@ -159,18 +159,19 @@ implementation
            start,stop : byte;    {Start/stop when range; Stop=element when an element.}
          end;
        var
+         l,l2,l3       : tasmlabel;
+         adjustment : longint;
+         href : treference;
+         r:Tregister;
+         hr,hr2,hr3,
+         pleftreg   : tregister;
+         setparts   : array[1..8] of Tsetpart;
+         pushedregs : tmaybesave;
+         opsize     : tcgsize;
          genjumps,
          use_small,
          ranges     : boolean;
-         hr,hr2,hr3,
-         pleftreg   : tregister;
-         opsize     : tcgsize;
-         setparts   : array[1..8] of Tsetpart;
          i,numparts : byte;
-         adjustment : longint;
-         pushedregs : tmaybesave;
-         l,l2,l3       : tasmlabel;
-         r:Tregister;
 
 {$ifdef oldset}
          function analizeset(Aset:Pconstset;is_small:boolean):boolean;
@@ -606,25 +607,36 @@ implementation
                   else
                     pleftreg:=rg.getregisterint(exprasmlist,OS_INT);
                   cg.a_load_loc_reg(exprasmlist,OS_INT,left.location,pleftreg);
+
                   location_freetemp(exprasmlist,left.location);
+                  hr := rg.getaddressregister(exprasmlist);
                   location_release(exprasmlist,left.location);
-                  cg.a_param_reg(exprasmlist,OS_8,pleftreg,paramanager.getintparaloc(exprasmlist,2));
-                  { release the allocated register  }
-                  if not (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-                    rg.ungetregisterint(exprasmlist,pleftreg);
-                  cg.a_paramaddr_ref(exprasmlist,right.location.reference,paramanager.getintparaloc(exprasmlist,1));
-                  cg.a_call_name(exprasmlist,'FPC_SET_IN_BYTE');
-                  paramanager.freeintparaloc(exprasmlist,2);
-                  paramanager.freeintparaloc(exprasmlist,1);
-                  { result of value is always one full register }
-                  r.enum:=R_INTREGISTER;
-                  r.number:=NR_FUNCTION_RESULT_REG;
-{$ifdef newra}
-                  rg.getexplicitregisterint(exprasmlist,NR_FUNCTION_RESULT_REG);
-                  rg.ungetregisterint(exprasmlist,r);
-{$endif newra}
-                  cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,r,location.register);
-                  location_release(exprasmlist,right.location);
+                  cg.a_op_const_reg_reg(exprasmlist,OP_SHR,OS_32,5,pleftreg,hr);
+                  cg.a_op_const_reg(exprasmlist,OP_SHL,OS_32,2,hr);
+
+                  href := right.location.reference;
+                  if (href.base.number = NR_NO) then
+                    href.base := hr
+                  else if (right.location.reference.index.number = NR_NO) then
+                    href.index := hr
+                  else
+                    begin
+                      reference_release(exprasmlist,href);
+                      hr2 := rg.getaddressregister(exprasmlist);
+                      cg.a_loadaddr_ref_reg(exprasmlist,href, hr2);
+                      reference_reset_base(href,hr2,0);
+                      right.location.reference.index := hr;
+                    end;
+                  reference_release(exprasmlist,href);
+                  cg.a_load_ref_reg(exprasmlist,OS_32,OS_32,href,location.register);
+                  if left.location.loc = LOC_CREGISTER then
+                    hr := rg.getregisterint(exprasmlist,OS_32)
+                  else
+                    hr := pleftreg;
+                  cg.a_op_const_reg_reg(exprasmlist,OP_AND,OS_32,31,pleftreg,hr);
+                  cg.a_op_reg_reg(exprasmlist,OP_SHR,OS_32,hr,location.register);
+                  rg.ungetregisterint(exprasmlist,hr);
+                  cg.a_op_const_reg(exprasmlist,OP_AND,OS_32,1,location.register);
                 end;
              end;
           end;
@@ -1127,7 +1139,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  2003-06-08 16:03:22  jonas
+  Revision 1.43  2003-06-12 22:09:54  jonas
+    * tcginnode.pass_2 doesn't call a helper anymore in any case
+    * fixed ungetregisterfpu compilation problems
+
+  Revision 1.42  2003/06/08 16:03:22  jonas
     - disabled gentreejmp for now, it expects that the case labels are
       ordered as a perfectly balanced tree, while they are often a linked
       list -> generates extremely bad code

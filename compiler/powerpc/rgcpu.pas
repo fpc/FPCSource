@@ -30,6 +30,7 @@ unit rgcpu;
 
      uses
        aasmbase,aasmtai,
+       cginfo,
        cpubase,
        rgobj;
 
@@ -38,7 +39,7 @@ unit rgcpu;
          function getexplicitregisterint(list: taasmoutput; reg: Tnewregister): tregister; override;
          procedure ungetregisterint(list: taasmoutput; reg: tregister); override;
          function getexplicitregisterfpu(list : taasmoutput; r : Toldregister) : tregister;override;
-         procedure ungetregisterfpu(list: taasmoutput; r : tregister);override;
+         procedure ungetregisterfpu(list: taasmoutput; r : tregister; size:TCGsize);override;
          procedure saveusedintregisters(list:Taasmoutput;
                                          var saved:Tpushedsavedint;
                                          const s:Tsupregset);override;
@@ -105,7 +106,7 @@ unit rgcpu;
       end;
 
 
-    procedure trgcpu.ungetregisterfpu(list: taasmoutput; r : tregister);
+    procedure trgcpu.ungetregisterfpu(list: taasmoutput; r : tregister; size:TCGsize);
       begin
         if (r.enum in [R_F1..R_F13]) and
            not is_reg_var_other[r.enum] then
@@ -116,7 +117,7 @@ unit rgcpu;
             cg.a_reg_dealloc(list,r);
           end
         else
-          inherited ungetregisterfpu(list,r);
+          inherited ungetregisterfpu(list,r,size);
       end;
 
 
@@ -156,7 +157,11 @@ end.
 
 {
   $Log$
-  Revision 1.9  2003-06-09 14:54:26  jonas
+  Revision 1.10  2003-06-12 22:09:54  jonas
+    * tcginnode.pass_2 doesn't call a helper anymore in any case
+    * fixed ungetregisterfpu compilation problems
+
+  Revision 1.9  2003/06/09 14:54:26  jonas
     * (de)allocation of registers for parameters is now performed properly
       (and checked on the ppc)
     - removed obsolete allocation of all parameter registers at the start
