@@ -758,7 +758,7 @@ Implementation
            hp:=newasmsymboltype('Ltext'+ToStr(IncludeCount),AB_LOCAL,AT_FUNCTION);
            if currpass=1 then
              begin
-                hp.setaddress(objectalloc.currsec,objectalloc.sectionsize,0);
+                hp.setaddress(currpass,objectalloc.currsec,objectalloc.sectionsize,0);
                 UsedAsmSymbolListInsert(hp);
              end
            else
@@ -806,7 +806,7 @@ Implementation
         hp:=newasmsymboltype('Letext',AB_LOCAL,AT_FUNCTION);
         if currpass=1 then
           begin
-            hp.setaddress(objectalloc.currsec,objectalloc.sectionsize,0);
+            hp.setaddress(currpass,objectalloc.currsec,objectalloc.sectionsize,0);
             UsedAsmSymbolListInsert(hp);
           end
         else
@@ -896,9 +896,9 @@ Implementation
              ait_section:
                objectalloc.setsection(Tai_section(hp).sec);
              ait_symbol :
-               Tai_symbol(hp).sym.setaddress(objectalloc.currsec,objectalloc.sectionsize,0);
+               Tai_symbol(hp).sym.setaddress(currpass,objectalloc.currsec,objectalloc.sectionsize,0);
              ait_label :
-               Tai_label(hp).l.setaddress(objectalloc.currsec,objectalloc.sectionsize,0);
+               Tai_label(hp).l.setaddress(currpass,objectalloc.currsec,objectalloc.sectionsize,0);
              ait_string :
                objectalloc.sectionalloc(Tai_string(hp).len);
              ait_instruction :
@@ -957,7 +957,7 @@ Implementation
                   begin
                     if Tai_datablock(hp).is_global then
                      begin
-                       Tai_datablock(hp).sym.setaddress(sec_none,Tai_datablock(hp).size,Tai_datablock(hp).size);
+                       Tai_datablock(hp).sym.setaddress(currpass,sec_none,Tai_datablock(hp).size,Tai_datablock(hp).size);
                        { force to be common/external, must be after setaddress as that would
                          set it to AS_GLOBAL }
                        Tai_datablock(hp).sym.bind:=AB_COMMON;
@@ -969,7 +969,7 @@ Implementation
                          objectalloc.sectionalign(4)
                        else if l>1 then
                          objectalloc.sectionalign(2);
-                       Tai_datablock(hp).sym.setaddress(objectalloc.currsec,objectalloc.sectionsize,
+                       Tai_datablock(hp).sym.setaddress(currpass,objectalloc.currsec,objectalloc.sectionsize,
                          Tai_datablock(hp).size);
                        objectalloc.sectionalloc(Tai_datablock(hp).size);
                      end;
@@ -981,7 +981,7 @@ Implementation
                        objectalloc.sectionalign(4)
                      else if l>1 then
                        objectalloc.sectionalign(2);
-                     Tai_datablock(hp).sym.setaddress(objectalloc.currsec,objectalloc.sectionsize,Tai_datablock(hp).size);
+                     Tai_datablock(hp).sym.setaddress(currpass,objectalloc.currsec,objectalloc.sectionsize,Tai_datablock(hp).size);
                      objectalloc.sectionalloc(Tai_datablock(hp).size);
                    end;
                  UsedAsmSymbolListInsert(Tai_datablock(hp).sym);
@@ -1040,7 +1040,7 @@ Implementation
 {$endif}
              ait_symbol :
                begin
-                 Tai_symbol(hp).sym.setaddress(objectalloc.currsec,objectalloc.sectionsize,0);
+                 Tai_symbol(hp).sym.setaddress(currpass,objectalloc.currsec,objectalloc.sectionsize,0);
                  UsedAsmSymbolListInsert(Tai_symbol(hp).sym);
                end;
              ait_symbol_end :
@@ -1053,7 +1053,7 @@ Implementation
                 end;
              ait_label :
                begin
-                 Tai_label(hp).l.setaddress(objectalloc.currsec,objectalloc.sectionsize,0);
+                 Tai_label(hp).l.setaddress(currpass,objectalloc.currsec,objectalloc.sectionsize,0);
                  UsedAsmSymbolListInsert(Tai_label(hp).l);
                end;
              ait_string :
@@ -1534,7 +1534,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.24  2001-08-26 13:36:35  florian
+  Revision 1.25  2001-08-30 19:43:50  peter
+    * detect duplicate labels
+
+  Revision 1.24  2001/08/26 13:36:35  florian
     * some cg reorganisation
     * some PPC updates
 

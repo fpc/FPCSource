@@ -118,10 +118,12 @@ interface
          proclocal : boolean;
          { is the symbol in the used list }
          inusedlist : boolean;
+         { assembler pass label is set, used for detecting multiple labels }
+         pass : byte;
          constructor create(const s:string;_bind:TAsmsymbind;_typ:Tasmsymtype);
          procedure reset;
          function  is_used:boolean;
-         procedure setaddress(sec:tsection;offset,len:longint);
+         procedure setaddress(_pass:byte;sec:tsection;offset,len:longint);
          procedure GenerateAltSymbol;
        end;
 
@@ -890,6 +892,7 @@ uses
         defbind:=_bind;
         typ:=_typ;
         inusedlist:=false;
+        pass:=255;
         { mainly used to remove unused labels from the codesegment }
         refs:=0;
       end;
@@ -912,6 +915,7 @@ uses
         address:=0;
         size:=0;
         idx:=-1;
+        pass:=255;
         bind:=AB_EXTERNAL;
         proclocal:=false;
       end;
@@ -921,8 +925,14 @@ uses
         is_used:=(refs>0);
       end;
 
-    procedure tasmsymbol.setaddress(sec:tsection;offset,len:longint);
+    procedure tasmsymbol.setaddress(_pass:byte;sec:tsection;offset,len:longint);
       begin
+        if (_pass=pass) then
+         begin
+           Message1(asmw_e_duplicate_label,name);
+           exit;
+         end;
+        pass:=_pass;
         section:=sec;
         address:=offset;
         size:=len;
@@ -1150,7 +1160,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.17  2001-04-13 01:22:06  peter
+  Revision 1.18  2001-08-30 19:43:50  peter
+    * detect duplicate labels
+
+  Revision 1.17  2001/04/13 01:22:06  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

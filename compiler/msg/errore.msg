@@ -1543,7 +1543,7 @@ asmw_e_immediate_or_reference_expected=08010_E_Asm: Immediate or reference expec
 asmw_e_value_exceeds_bounds=08011_E_Asm: $1 value exceeds bounds $2
 asmw_e_short_jmp_out_of_range=08012_E_Asm: Short jump is out of range $1
 asmw_e_undefined_label=08013_E_Asm: Undefined label $1
-
+asmw_e_duplicate_label=08014_E_Asm: Duplicate label $1
 
 #
 # Executing linker/assembler
