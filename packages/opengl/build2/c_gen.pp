@@ -276,7 +276,15 @@ begin
   begin
     s := procs.Strings[i];
     j := Pos('//', s);
-    if (Length(s) = 0) or ((j > 0) and (Trim(s)[1] = '/')) then
+    if (Length(s) = 0)
+    then
+      WriteLn(dest)
+    else
+    if (Pos('{', s) = 1)
+    then
+      WriteLn(dest,procs.Strings[i])
+    else
+    if ((j > 0) and (Trim(s)[1] = '/')) then
       WriteLn(dest, s)
     else if j = 0 then
       WriteLn(dest, s, ' ',Modifier)
@@ -294,16 +302,26 @@ begin
   for i := 0 to procs.Count - 1 do
   begin
     s := Trim(procs.Strings[i]);
-    j := Pos(':', s);
-    s := Trim(Copy(s, 1, j - 1));
-    if (Length(s) = 0) or (Pos('//', s) > 0) then continue;
-    WriteLn(dest, '  ', s, ' := GetProc(', libname, ', ''', s, ''');');
+    if (Pos('//', s) > 0)
+    or (Pos('{', s) = 1)
+    then
+      WriteLn(dest,procs.Strings[i])
+    else
+    begin
+      j := Pos(':', s);
+      s := Trim(Copy(s, 1, j - 1));
+      if (Length(s) = 0)
+      then
+        continue
+      else
+        WriteLn(dest, '  ', s, ' := GetProc(', libname, ', ''', s, ''');');
+    end;
   end;
 end;
 
 procedure PrintProcStatic(var dest: Text; procs: TStringList; const Modifier: String);
 var
-  i, j: Integer;
+  i, j, k: Integer;
   s: String;
   t: String;
 begin
@@ -317,13 +335,19 @@ begin
     begin
       // swap order of leading symbols and remove ':'
       t := Trim(procs.Strings[i]);
-      j := Pos(':', s);
+      j := Pos(':', t);
       t := Trim(Copy(t, 1, j - 1));
 
+      j := Pos(':', s);
       Delete(s,1,j);
       s := Trim(s);
 
-      j := Pos('(', s);
+      j := Pos(';', s);
+      k := Pos('(', s);
+      if k>0 then if j>k then j := k;
+      k := Pos(':', s);
+      if k>0 then if j>k then j := k;
+
       Insert(t,s,j);
       Insert(' ',s,j);
 
