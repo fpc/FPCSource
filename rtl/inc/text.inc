@@ -598,7 +598,7 @@ Procedure fpc_Write_Text_AnsiStr (Len : Longint; Var f : Text; S : AnsiString); 
 var
   SLen : longint;
 begin
-  If (pointer(S)=nil) or (InOutRes<>0) then
+  If (InOutRes<>0) then
    exit;
   case TextRec(f).mode of
     fmOutput { fmAppend gets changed to fmOutPut in do_open (JM) }:
@@ -606,7 +606,8 @@ begin
         SLen:=Length(s);
         If Len>SLen Then
           WriteBlanks(f,Len-SLen);
-        WriteBuffer(f,PChar(S)^,SLen);
+        if slen > 0 then
+          WriteBuffer(f,PChar(S)^,SLen);
       end;
     fmInput: InOutRes:=105
     else InOutRes:=103;
@@ -1237,7 +1238,10 @@ end;
 
 {
   $Log$
-  Revision 1.15  2001-09-25 16:34:59  jonas
+  Revision 1.16  2001-11-21 14:51:33  jonas
+    * fixed writing of empty ansistring with specified width (merged)
+
+  Revision 1.15  2001/09/25 16:34:59  jonas
     * fixed seekeof() so that it doesn't move the current possition in the
       file anymore (merged)
     * seekeof() now only regards #26 as EOF marker if EOF_CTRLZ is defined
