@@ -272,7 +272,7 @@ ifdef SNAPSHOT
 ALLTARGET=all
 else
 ifndef ALLTARGET
-SMARTTARGETS=win32 go32v2 linux freebsd netbsd openbsd
+SMARTTARGETS=win32 go32v2 linux freebsd netbsd openbsd netware netwlibc
 ifneq ($(findstring $(OS_TARGET),$(SMARTTARGETS)),)
 ALLTARGET=smart
 else
