@@ -53,6 +53,7 @@ _start:
         popl    %eax
         popl    %eax
 
+        xorl    %ebp,%ebp
         call    PASCALMAIN              /* start the program */
 
         .globl _haltproc
@@ -93,7 +94,10 @@ __environ:
 
 #
 # $Log$
-# Revision 1.2  1998-10-14 21:28:46  peter
+# Revision 1.3  1998-11-04 10:16:25  peter
+#   + xorl ebp,ebp to indicate end of backtrace
+#
+# Revision 1.2  1998/10/14 21:28:46  peter
 #   * initialize fpu so sigfpe is finally generated for fpu errors
 #
 # Revision 1.1  1998/08/12 19:16:09  peter

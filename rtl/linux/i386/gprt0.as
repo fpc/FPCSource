@@ -41,6 +41,7 @@ __entry:
         call    atexit
         addl    $4,%esp
 
+        xorl    %ebp,%ebp
         call    PASCALMAIN
 
         .globl  _haltproc
@@ -76,7 +77,10 @@ __curbrk:
 
 #
 # $Log$
-# Revision 1.4  1998-10-14 21:28:47  peter
+# Revision 1.5  1998-11-04 10:16:26  peter
+#   + xorl ebp,ebp to indicate end of backtrace
+#
+# Revision 1.4  1998/10/14 21:28:47  peter
 #   * initialize fpu so sigfpe is finally generated for fpu errors
 #
 # Revision 1.3  1998/08/08 14:42:09  peter

@@ -38,6 +38,7 @@ _start:
         fwait
         fldcw   ___fpucw
 
+        xorl    %ebp,%ebp
         call    PASCALMAIN
 
         .globl  _haltproc
@@ -68,7 +69,10 @@ __curbrk:
 
 #
 # $Log$
-# Revision 1.4  1998-10-14 21:28:50  peter
+# Revision 1.5  1998-11-04 10:16:29  peter
+#   + xorl ebp,ebp to indicate end of backtrace
+#
+# Revision 1.4  1998/10/14 21:28:50  peter
 #   * initialize fpu so sigfpe is finally generated for fpu errors
 #
 # Revision 1.3  1998/08/08 14:42:12  peter
