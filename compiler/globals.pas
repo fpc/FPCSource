@@ -1459,7 +1459,7 @@ implementation
       { Init values }
         initmodeswitches:=fpcmodeswitches;
         initlocalswitches:=[cs_check_io,cs_typed_const_writable];
-        initmoduleswitches:=[cs_extsyntax,cs_browser,cs_implicit_exceptions];
+        initmoduleswitches:=[cs_extsyntax,cs_implicit_exceptions];
         initsourcecodepage:='8859-1';
         initglobalswitches:=[cs_check_unit_name,cs_link_static{$ifdef INTERNALLINKER},cs_link_internal,cs_link_map{$endif}];
         initoutputformat:=target_asm.id;
@@ -1512,7 +1512,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.69  2002-11-15 01:58:47  peter
+  Revision 1.70  2002-11-16 14:49:12  carl
+    - browser information is off by default
+
+  Revision 1.69  2002/11/15 01:58:47  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing
