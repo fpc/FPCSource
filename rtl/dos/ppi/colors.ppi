@@ -15,6 +15,7 @@
 
 { GetBkColor , SetBkColor , GetColor , SetColor , GetMaxColor }
 
+
 function Convert(Color:longint):longint;
 var c,r,g,b:longint;
 begin
@@ -33,14 +34,41 @@ begin
          C:=(Color and $FF000000);
          Convert:=(C shr 24) + (C shr 16) + (C shr 8) + C;
        end;
-    end else
+    end else if BytesPerPixel>2 then
+      Convert:=Color and $FFFFFF
+    else
     begin
        R:=(Color and $00FF0000) shr (24-VESAInfo.rm_size);
        G:=(Color and $0000FF00) shr (16-VESAInfo.gm_size);
        B:=(Color and $000000FF) shr (8-VESAInfo.bm_size);
        C:=(R shl VESAInfo.rf_pos) or (G shl VESAInfo.gf_pos) or
           (B shl VESAInfo.bf_pos);
-       Convert:=(C shl 16) or C;
+       if BytesPerPixel = 2 then
+         Convert:=(C shl 16) or C;
+    end;
+end;
+
+function Unconvert(Color:longint):longint;
+var c,r,g,b:longint;
+begin
+  if BytesPerPixel=1 then
+    begin
+       UnConvert:=Color and $FF;
+    end
+  else if BytesPerPixel>2 then
+    Unconvert:=Color and $FFFFFF
+  else
+    begin
+       C:=Color shr VesaInfo.bf_pos;
+       b:= C and ( (1 shl (VesaInfo.bm_size))-1);
+       b:= b shl (8-VesaInfo.bm_size);
+       C:=Color shr VesaInfo.gf_pos;
+       g:= C and ( (1 shl (VesaInfo.gm_size))-1);
+       g:= g shl (8-VesaInfo.gm_size);
+       C:=Color shr VesaInfo.rf_pos;
+       r:= C and ( (1 shl (VesaInfo.rm_size))-1);
+       r:= r shl (8-VesaInfo.rm_size);
+       Unconvert:= r*$10000+g*$100+b;
     end;
 end;
 
@@ -52,7 +80,7 @@ begin
       _graphresult:=grNoInitGraph;
       exit;
     end;
-  getcolor:=aktcolor;
+  getcolor:=truecolor;
 end;
 
 { ----------------------------------------------------------------------- }
@@ -65,6 +93,7 @@ begin
     _graphresult:=grNoInitGraph;
   exit;
   end;
+  truecolor:=color;
   aktcolor:=convert(Color);
 end;
 
@@ -78,7 +107,7 @@ begin
       _graphresult:=grNoInitGraph;
       exit;
     end;
-  getbkcolor:=aktbackcolor;
+  getbkcolor:=truebackcolor;
 end;
 
 procedure SetBkColor(Color : longint);
@@ -89,6 +118,7 @@ begin
       _graphresult:=grNoInitGraph;
       exit;
     end;
+  truebackcolor:=color;
   aktbackcolor:=convert(Color);
 end;
   
@@ -103,10 +133,62 @@ begin
   getmaxcolor:=(1 shl VESAInfo.BitsPerPixel)-1;
 end;
 
+  procedure setstdcolors;
+
+    begin
+       if bytesperpixel>1 then
+         begin
+            black := stdcolors[0];
+            blue  := stdcolors[1];
+            green := stdcolors[2];
+            cyan  := stdcolors[3];
+            red   := stdcolors[4];
+            magenta := stdcolors[5];
+            brown := stdcolors[6];
+            lightgray := stdcolors[7];
+            darkgray := stdcolors[8];
+            lightblue := stdcolors[9];
+            lightgreen := stdcolors[10];
+            lightcyan := stdcolors[11];
+            lightred := stdcolors[12];
+            lightmagenta := stdcolors[13];
+            yellow := stdcolors[14];
+            white := stdcolors[15];
+         end
+       else
+         begin
+            black := 0;
+            blue  := 1;
+            green := 2;
+            cyan  := 3;
+            red   := 4;
+            magenta := 5;
+            brown := 6;
+            lightgray := 7;
+            darkgray := 8;
+            lightblue := 9;
+            lightgreen := 10;
+            lightcyan := 11;
+            lightred := 12;
+            lightmagenta := 13;
+            yellow := 14;
+            white := 15;
+         end;
+  end;
+    
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:42  root
-  Initial revision
+  Revision 1.2  1998-11-18 09:31:31  pierre
+    * changed color scheme
+      all colors are in RGB format if more than 256 colors
+    + added 24 and 32 bits per pixel mode
+      (compile with -dDEBUG)
+      24 bit mode with banked still as problems on pixels across
+      the bank boundary, but works in LinearFrameBufferMode
+      Look at install/demo/nmandel.pp
+
+  Revision 1.1.1.1  1998/03/25 11:18:42  root
+  * Restored version
 
   Revision 1.3  1998/01/26 11:57:43  michael
   + Added log at the end

@@ -14,6 +14,17 @@
 
 procedure DrawPattern(x1,x2,y:integer);
 begin
+  if BytesPerPixel=3 then
+   { big problem one point can be across boundary !! }
+   begin
+     if ((Y_Array[y]+X_array[x1]) and winlomask)+3 > winlomask then
+       begin
+         { special point !! }
+         { not implemented yet !! }
+         inc(x1);
+       end;
+   end;
+   
   asm
     movswl x1,%ebx
     movswl x2,%ecx
@@ -34,57 +45,127 @@ begin
     movw   _SEG_WRITE,%ax
     movw   %ax,%es
     testw  $1,_AKTWRITEMODE
-    jnz    pl_xord
- pl_movd:
-    testw  $1,_BYTESPERPIXEL
-    jz     pl_movdw
-
+    jnz    .Lpl_xord
+ .Lpl_movd:
+    cmpw   $2,_BYTESPERPIXEL
+    je     .Lpl_movdw
+    jb     .Lpl_movdb
+    
+{$ifdef TEST_24BPP}
+    cmpw   $3,_BYTESPERPIXEL
+    je     .Lpl_movd24BPP
  .align 4,0x90
- pl_movdb:
+ .Lpl_movd32BPP:
+    andl   $7,%ebx
+    movl   (%esi,%ebx,4),%eax
+    andl   $0x00FFFFFF,%eax
+    movl   %eax,%es:(%edi)
+    addl   $4,%edi
+    cmpl   _WINLOMASKMINUSPIXELSIZE,%edi
+    ja     .Lpl_d_exit
+    incl   %ebx
+    decl   %ecx
+    jnz    .Lpl_movd32BPP
+    jz     .Lpl_d_exit    
+ .align 4,0x90
+ .Lpl_movd24BPP:
+    andl   $7,%ebx
+    movl   (%esi,%ebx,4),%eax
+    andl   $0x00FFFFFF,%eax
+    movl   %es:(%edi),%edx
+    andl   $0xFF000000,%edx
+    orl    %edx,%eax
+    movl   %eax,%es:(%edi)
+    addl   $3,%edi
+    cmpl   _WINLOMASKMINUSPIXELSIZE,%edi
+    ja     .Lpl_d_exit
+    incl   %ebx
+    decl   %ecx
+    jnz    .Lpl_movd24BPP
+    jz     .Lpl_d_exit    
+{$endif TEST_24BPP}
+ .align 4,0x90
+ .Lpl_movdb:
     andl   %edx,%ebx
     movb   (%esi,%ebx,4),%al
     movb   %al,%es:(%edi)
     incl   %edi
     incl   %ebx
     decl   %ecx
-    jnz    pl_movdb
-    jz     pl_d_exit    
+    jnz    .Lpl_movdb
+    jz     .Lpl_d_exit    
 
  .align 4,0x90
- pl_movdw:
+ .Lpl_movdw:
     andl   %edx,%ebx
     movw   (%esi,%ebx,4),%ax
     movw   %ax,%es:(%edi)
     addl   $2,%edi
     incl   %ebx
     decl   %ecx
-    jnz    pl_movdw
-    jz     pl_d_exit    
- pl_xord:
-    testw  $1,_BYTESPERPIXEL
-    jz     pl_xordw
+    jnz    .Lpl_movdw
+    jz     .Lpl_d_exit    
+ .Lpl_xord:
+    cmpw   $2,_BYTESPERPIXEL
+    je     .Lpl_xordw
+    jb     .Lpl_xordb
+
+{$ifdef TEST_24BPP}
+    cmpw   $3,_BYTESPERPIXEL
+    je     .Lpl_xord24BPP
  .align 4,0x90
- pl_xordb:
+ .Lpl_xord32BPP:
+    andl   $7,%ebx
+    movl   (%esi,%ebx,4),%eax
+    andl   $0x00FFFFFF,%eax
+    movl   %es:(%edi),%edx
+    xorl   %edx,%eax
+    movl   %eax,%es:(%edi)
+    addl   $4,%edi
+    cmpl   _WINLOMASKMINUSPIXELSIZE,%edi
+    ja     .Lpl_d_exit
+    incl   %ebx
+    decl   %ecx
+    jnz    .Lpl_xord32BPP
+    jz     .Lpl_d_exit    
+ .align 4,0x90
+ .Lpl_xord24BPP:
+    andl   $7,%ebx
+    movl   (%esi,%ebx,4),%eax
+    andl   $0x00FFFFFF,%eax
+    movl   %es:(%edi),%edx
+    xorl   %edx,%eax
+    movl   %eax,%es:(%edi)
+    addl   $3,%edi
+    cmpl   _WINLOMASKMINUSPIXELSIZE,%edi
+    ja     .Lpl_d_exit
+    incl   %ebx
+    decl   %ecx
+    jnz    .Lpl_xord24BPP
+    jz     .Lpl_d_exit    
+{$endif TEST_24BPP}
+ .align 4,0x90
+ .Lpl_xordb:
     andl   %edx,%ebx
     movb   (%esi,%ebx,4),%al
     xorb   %al,%es:(%edi)
     incl   %edi
     incl   %ebx
     decl   %ecx
-    jnz    pl_xordb
-    jz     pl_d_exit 
+    jnz    .Lpl_xordb
+    jz     .Lpl_d_exit 
  .align 4,0x90
- pl_xordw:
+ .Lpl_xordw:
     andl   %edx,%ebx
     movw   (%esi,%ebx,4),%ax
     xorw   %ax,%es:(%edi)
     addl   $2,%edi
     incl   %ebx
     decl   %ecx
-    jnz    pl_xordw
- pl_d_exit:
+    jnz    .Lpl_xordw
+ .Lpl_d_exit:
     popw   %es
- pl_exit:
+ .Lpl_exit:
  end;
 end;
 
@@ -109,15 +190,14 @@ begin
   ofs1:= ofs1 + X_ARRAY[x1];
   bank1:=ofs1 shr winshift;
   bank2:=ofs2 shr winshift;
-  if bank1 <> AW_BANK then
+  if bank1 <> A_BANK then
   begin
     Switchbank(bank1);
-    AW_BANK:=bank1;
   end;
   if bank1 <> bank2 then begin
      diff:=(((bank2 shl winshift)-ofs1) div BytesPerPixel)+x1;  
      DrawPattern(x1,diff-1,y);
-     Switchbank(bank2); AW_BANK:=bank2;
+     Switchbank(bank2);
      DrawPattern(diff,x2,y);
   end else DrawPattern(x1,x2,y);
 end;
@@ -125,7 +205,36 @@ end;
 
 procedure HorizontalLine(x1,x2,y:integer);
 { without bankswitching }
+{ nothing for 24BPP yet (PM) }
+{$ifdef TEST_24BPP}
+var i,j : longint;
+{$endif TEST_24BPP}
 begin
+{$ifdef TEST_24BPP}
+  if BytesPerPixel=3 then
+   { big problem one point can be across boundary !! }
+   begin
+     if ((Y_Array[y]+X_array[x1]) and winlomask)+3 > winlomask then
+       begin
+         { special point !! }
+         { not implemented yet !! }
+         inc(x1);
+       end;
+     j:=Y_array[y]+X_array[x1];
+     for i:=x1 to x2 do
+       begin
+          if aktwritemode=normalput then
+            pixel(j)
+          else
+            begin
+              putpixeli(i,y,aktcolor xor getpixel(i,y));
+            end;
+         inc(j,3);
+       end;
+      exit;
+   end;
+{$endif TEST_24BPP}
+   
   asm
     movw   %es,%dx
     movzwl y,%ebx
@@ -144,40 +253,40 @@ begin
     movw   _SEG_WRITE,%bx
     movw   %bx,%es 
     testl  %esi,%esi                    // { Writemode ?       }
-    jnz    hl_xor
+    jnz    .Lhl_xor
     shrl   %ecx
-    jnc    _movw
+    jnc    .L_movw
     stosb
- _movw:
+ .L_movw:
     shrl   %ecx
-    jnc    _movd
+    jnc    .L_movd
     stosw
- _movd:
+ .L_movd:
     rep
     stosl
-    jmp    hl_exit
+    jmp    .Lhl_exit
 
- hl_xor:   // -------------------------------------------------
+ .Lhl_xor:   // -------------------------------------------------
 
     movl   $4,%esi
     shrl   %ecx
-    jnc    hl_xorw
+    jnc    .Lhl_xorw
     xorb   %al,%es:(%edi)
     incl   %edi 
- hl_xorw:
+ .Lhl_xorw:
     shrl   %ecx
-    jnc    hl_xord
+    jnc    .Lhl_xord
     xorw   %ax,%es:(%edi)
     addl   $2,%edi
- hl_xord:   
-    jecxz  hl_exit
+ .Lhl_xord:   
+    jecxz  .Lhl_exit
  .align 4,0x90
- hl_xorloop:
+ .Lhl_xorloop:
     xorl   %eax,%es:(%edi)
     addl   %esi,%edi
     decl   %ecx
-    jnz    hl_xorloop
- hl_exit:
+    jnz    .Lhl_xorloop
+ .Lhl_exit:
     movw   %dx,%es
  end;
 end;
@@ -214,17 +323,16 @@ begin
         ofs2:=ofs+X_ARRAY[x2];
         ofs:= ofs+X_ARRAY[x1];
         i1:=ofs shr winshift; i2:=ofs2 shr winshift;
-        if i1 <> aw_bank then 
+        if i1 <> a_bank then
           begin 
             switchbank(i1); 
-            aw_bank:=i1; 
           end;
         if i1=i2 then Horizontalline(x1,x2,y1)
           else                             
             begin 
             dx:=((i2 shl winshift)-ofs) div BytesPerPixel;
             horizontalline(x1,x1+dx-1,y1);
-            Switchbank(i2); AW_BANK:=i2;
+            Switchbank(i2);
             horizontalline(dx+x1,x2,y1); 
           end;
       end;
@@ -270,9 +378,11 @@ begin
    d:=i1 - dx;
   i2:=(dx shl 1)-i1;
 
+  { for 24BPP use slow checking code,easy and poor implementation ! PM }
 dontcheck:=(y1>=viewport.y1) and (y2<=viewport.y2) and 
            (x1>=viewport.x1) and (x1<=viewport.x2) and
-           (x2>=viewport.x1) and (x2<=viewport.x2);
+           (x2>=viewport.x1) and (x2<=viewport.x2) and
+           (BytesPerPixel<=2);
 
 if aktlineinfo.thickness=3 then 
 
@@ -326,7 +436,7 @@ end else
      movl   %eax,i2long
      movl   _WBUFFER,%eax
      movl   %eax,.Lwbuffer
-     movl   _WINSHIFT,%eax
+     movzbl _WINSHIFT,%eax
      movb   %al,.Lwinshift
      movl   _WINLOMASK,%eax
      movl   %eax,.Lwinlomask
@@ -366,13 +476,12 @@ line1_loop:
       .byte 0x88                      // _WINSHIFT
       
       pushl  %edi
-      cmpl   _AW_BANK,%eax
+      cmpl   _A_BANK,%eax
       je     line1_dontswitch
       
       pushl  %ebx
       pushl  %edx
       pushl  %esi   
-      movl   %eax,_AW_BANK             // newbank
       pushl  %eax
       movl   _BANKSWITCHPTR,%eax
       call   %eax
@@ -510,10 +619,10 @@ begin
      end;
      aktlineinfo.linestyle:=linestyle;
      if aktlineinfo.linestyle=UserBitLn then
-        aktlineinfo.pattern:=pattern
-        else
-        aktlineinfo.pattern:=linepatterns[aktlineinfo.linestyle];
-        aktlineinfo.thickness:=thickness;
+       aktlineinfo.pattern:=pattern
+     else
+       aktlineinfo.pattern:=linepatterns[aktlineinfo.linestyle];
+     aktlineinfo.thickness:=thickness;
 end;
 
     procedure DrawPoly(points : word;var polypoints);
@@ -544,7 +653,16 @@ end;
 
 {
   $Log$
-  Revision 1.2  1998-09-02 08:16:00  pierre
+  Revision 1.3  1998-11-18 09:31:37  pierre
+    * changed color scheme
+      all colors are in RGB format if more than 256 colors
+    + added 24 and 32 bits per pixel mode
+      (compile with -dDEBUG)
+      24 bit mode with banked still as problems on pixels across
+      the bank boundary, but works in LinearFrameBufferMode
+      Look at install/demo/nmandel.pp
+
+  Revision 1.2  1998/09/02 08:16:00  pierre
     * local asm labels with global variable names removed !!
 
   Revision 1.1.1.1  1998/03/25 11:18:42  root

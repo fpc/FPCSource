@@ -81,8 +81,8 @@ begin
   asm
     movl   palette,%edi
     movw   $0,(%edi)
-    testw  $2,_BYTESPERPIXEL
-    jnz    gp_end
+    cmpl   $2,_BYTESPERPIXEL
+    jge    gp_end
     movw   $0x100,(%edi)
     movl   $767,%ecx
     xorl   %eax,%eax
@@ -102,7 +102,16 @@ gp_end:
 end;
 {
   $Log$
-  Revision 1.2  1998-07-18 21:29:59  carl
+  Revision 1.3  1998-11-18 09:31:39  pierre
+    * changed color scheme
+      all colors are in RGB format if more than 256 colors
+    + added 24 and 32 bits per pixel mode
+      (compile with -dDEBUG)
+      24 bit mode with banked still as problems on pixels across
+      the bank boundary, but works in LinearFrameBufferMode
+      Look at install/demo/nmandel.pp
+
+  Revision 1.2  1998/07/18 21:29:59  carl
     * bugfix of palette setting with wrong asm counter
       (from Ingemar Ragnemalm)
 

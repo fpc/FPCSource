@@ -16,11 +16,21 @@
  **********************************************************************}
 unit GRAPH;
 
+{ there are some problems with ranges in this file !! (PM) }
+{$R-}
+{$Q-}
 { $DEFINE DEBUG}
 {$I os.inc}
 
-{ Don't use smartlinking, becuase of the direct assembler that is used }
+{$ifdef DEBUG}
+{$define TEST_24BPP}
+{$define Test_Linear}
+{$endif DEBUG}
+
+{ Don't use smartlinking, because of the direct assembler that is used }
+{$ifndef VER0_99_8}
 {$SMARTLINK OFF}
+{$endif not VER0_99_8}
 
 interface
 
@@ -33,6 +43,7 @@ procedure CloseGraph;
 function  GraphResult : Integer;
 procedure InitGraph(var GraphDriver:Integer;var GraphMode:Integer;const PathToDriver:String);
 procedure SetGraphMode(GraphMode : integer);
+procedure GraphDefaults;
 procedure RestoreCRTMode;
 procedure SetGraphBufSize(BufSize : longint);
 function  RegisterBGIdriver(driver : pointer) : integer;
@@ -101,9 +112,11 @@ procedure GetFillSettings(var FillInfo : FillSettingsType);
 procedure GetFillPattern(var FillPattern : FillPatternType);
 procedure SetFillStyle(pattern : word;color : longint);
 procedure SetFillPattern(pattern : FillPatternType;color : longint);
+{ just dummy not implemented yet }
+procedure FillPoly(points : word;var polypoints);
 
 { IMAGE.PPI }
-function  ImageSize(x1,y1,x2,y2 : integer) : word;
+function  ImageSize(x1,y1,x2,y2 : integer) : longint;
 procedure GetImage(x1,y1,x2,y2 : integer;var BitMap);
 procedure PutImage(x,y : integer;var BitMap;BitBlt : word);
 
@@ -126,8 +139,27 @@ function  InstallUserFont(const FontFileName : string) : integer;
 { TRIANGLE.PPI }
 procedure FillTriangle(A,B,C:Pointtype);
 
+{ to compare colors on different resolutions }
+function ColorsEqual(c1,c2 : longint) : boolean;
+{ this will return true if the two colors will appear
+  equal in the current video mode }
+  
 procedure WaitRetrace;
+{$ifdef debug}
+procedure pixel(offset:longint);
 function  Convert(color:longint):longint;
+function  UnConvert(color:longint):longint;
+{$endif debug}
+
+{$ifdef Test_linear}
+  const
+     UseLinear : boolean = false;
+     { the two below are the settings the work for ATI 3D Rage Pro !! }
+     switch_physical_address : boolean = true;
+     split_physical_address : boolean = false;
+{$endif Test_linear}
+
+{$I MODES.PPI}
 
 implementation
 
@@ -192,8 +224,6 @@ type
     reserved2      : Array[1..458]of Byte;
    end;
 
-{$I MODES.PPI}
-
 const
      CheckRange    : Boolean=true;
      isVESA2       : Boolean=false;
@@ -204,10 +234,14 @@ var    { X/Y Verhaeltnis des Bildschirm }
        XAsp , YAsp  : Word;
        { Zeilen & Spalten des aktuellen Graphikmoduses }
        _maxx,_maxy : longint;
-       { aktuell eingestellte Farbe }
+       { Current color internal format (depending on bitsperpixel) }
        aktcolor : longint;
-       { Hintegrundfarbe }
+       { Current color RGB value }
+       truecolor : longint;
+       { Current background color internal format (depending on bitsperpixel) }
        aktbackcolor : longint;
+       { Current background color RGB value }
+       truebackcolor : longint;
        { Videospeicherbereiche }
        wbuffer,rbuffer,wrbuffer : ^byte;
        { aktueller Ausgabebereich }
@@ -229,6 +263,8 @@ var    { X/Y Verhaeltnis des Bildschirm }
        aktfillpattern : FillPatternType;
        { Schreibmodus }
        aktwritemode : word;
+       { put background color around text }
+       ClearText : boolean;
        { Schrifteinstellung }
        akttextinfo : TextSettingsType;
        { momentan gesetzte Textskalierungswerte }
@@ -252,15 +288,31 @@ var    { X/Y Verhaeltnis des Bildschirm }
    { Selectors for Protected Mode }
        seg_WRITE    : word;
        seg_READ     : word;
+   { linear Frame Buffer }
+       LinearFrameBufferSupported : boolean;
+       FrameBufferLinearAddress : longint;
+       UseLinearFrameBuffer : Boolean;
+   const
+       EnableLinearFrameBuffer = $4000;
    { Registers for RealModeInterrupts in DPMI-Mode }
+   var
        dregs        : TRealRegs;
-       AW_Bank      : longint;
-{       AR_Bank      : Longint;}
+       { read and write bank are allways equal !! }
+       A_Bank       : longint;
+       AW_window    : longint;
+       AR_Window    : longint;
+       same_window  : boolean;
+   const
+       AWindow = 0;
+       BWindow = 1;
+       
    { Variables for Bankswitching }
+   var
        BytesPerLine : longint;
        BytesPerPixel: Word;
        WinSize      : longint;   { Expample $0x00010000 . $0x00008000 }
        WinLoMask    : longint;   {          $0x0000FFFF   $0x00007FFF }
+       WinLoMaskMinusPixelSize : longint;   {          $0x0000FFFF   $0x00007FFF }
        WinShift     : byte;
        GranShift    : byte;
        Granular     : longint;
@@ -272,6 +324,14 @@ var    { X/Y Verhaeltnis des Bildschirm }
        SwitchCS,SwitchIP : word;
 
 
+function ColorsEqual(c1,c2 : longint) : boolean;
+Begin
+  ColorsEqual:=((BytesPerPixel=1) and ((c1 and $FF)=(c2 and $FF))) or
+         ((GetMaxColor=$7FFF) and ((c1 and $F8F8F8)=(c2 and $F8F8F8))) or
+         ((GetMaxColor=$FFFF) and ((c1 and $F8FCF8)=(c2 and $F8FCF8))) or
+         ((BytesPerPixel>2) and ((c1 and $FFFFFF)=(c2 and $FFFFFF)));
+End;
+   
 function GraphErrorMsg(ErrorCode: Integer): string;
 Begin
  GraphErrorMsg:='';
@@ -339,6 +399,9 @@ begin
   end;
 end;
 
+
+{$I COLORS.PPI}
+
 procedure graphdefaults;
       begin
          _graphresult:=grOk;
@@ -352,9 +415,11 @@ procedure graphdefaults;
          aktlineinfo.thickness:=normwidth;
 
 
+         { std colors }
+         setstdcolors;
          { Zeichenfarbe }
-         aktcolor:=(white shl 24)+(white shl 16)+(white shl 8)+white;
-         aktbackcolor:=black;
+         aktcolor:=convert(white);
+         aktbackcolor:=convert(black);
 
          { FÅllmuster }
          setfillstyle(solidfill,white);
@@ -390,7 +455,6 @@ procedure graphdefaults;
 { #################  Ende der internen Routinen  ################ }
 { ############################################################### }
 
-{$I COLORS.PPI}
 {$I PALETTE.PPI}
 {$I PIXEL.PPI}
 {$I LINE.PPI}
@@ -439,6 +503,8 @@ procedure ClearViewport;
 var bank1,bank2,diff,c:longint;
     ofs1,ofs2         :longint;
     y : integer;
+    storewritemode : word;
+    
 begin
   if not isgraphmode then
     begin
@@ -447,27 +513,29 @@ begin
     end;
   c:=aktcolor;
   aktcolor:=aktbackcolor;
+  storewritemode:=aktwritemode;
+  aktwritemode:=normalput;
   ofs1:=Y_ARRAY[aktviewport.y1] + X_ARRAY[aktviewport.x1] ;
   ofs2:=Y_ARRAY[aktviewport.y1] + X_ARRAY[aktviewport.x2] ;
   for y:=aktviewport.y1 to aktviewport.y2 do
   begin
     bank1:=ofs1 shr winshift;
     bank2:=ofs2 shr winshift;
-    if bank1 <> AW_BANK then
+    if bank1 <> A_BANK then
     begin
       Switchbank(bank1);
-      AW_BANK:=bank1;
     end;
     if bank1 <> bank2 then
     begin
       diff:=((bank2 shl winshift)-ofs1) div BytesPerPixel;
       horizontalline(aktviewport.x1, aktviewport.x1+diff-1, y);
-      Switchbank(bank2); AW_BANK:=bank2;
+      Switchbank(bank2);
       horizontalline(aktviewport.x1+diff, aktviewport.x2, y);
     end else horizontalline(aktviewport.x1, aktviewport.x2, y);
     ofs1:=ofs1 + BytesPerLine;
     ofs2:=ofs2 + BytesPerLine;
   end;
+  aktwritemode:=storewritemode;
   aktcolor:=c;
 end;
 
@@ -476,7 +544,7 @@ begin
   _graphresult:=grOk;
   if not isgraphmode then
     begin
-      _graphresult:=grnoinitgraph;;
+      _graphresult:=grnoinitgraph;
       exit;
     end;
     _XAsp:=XAsp; _YAsp:=YAsp;
@@ -586,11 +654,16 @@ const
 
 procedure CloseGraph;
 begin
-  if isgraphmode then begin
-    SetVESAMode(startmode);
-    DoneVESA;
-    isgraphmode:=false;
-  end;
+  if isgraphmode then
+    begin
+       SetVESAMode(startmode);
+       { DoneVESA; only in exitproc !! PM }
+       isgraphmode:=false;
+       if assigned(buffermem) then
+         freemem(buffermem,buffersize);
+       buffermem:=nil;
+       buffersize:=0;
+     end;
 end;
 
 procedure InitGraph(var GraphDriver:Integer;var GraphMode:Integer;const PathToDriver:String);
@@ -624,6 +697,9 @@ begin
   while i>=0 do begin
     isgraphmode:=SetVESAMode(GraphMode);
     if isgraphmode then begin
+      GetVESAInfo(GraphMode);
+      if UseLinearFrameBuffer then
+        isgraphmode:=SetVESAMode(GraphMode or EnableLinearFrameBuffer);
       for index:=0 to VESAInfo.XResolution do X_Array[index]:=index * BytesPerPixel;
       for index:=0 to VESAInfo.YResolution do Y_Array[index]:=index * BytesPerLine;
       SetGraphBufSize(bufferstandardsize);
@@ -651,6 +727,8 @@ begin
          isgraphmode:=SetVESAMode(GraphMode);
          if isgraphmode then
            begin
+              if UseLinearFrameBuffer then
+                isgraphmode:=SetVESAMode(GraphMode or EnableLinearFrameBuffer);
               for index:=0 to VESAInfo.XResolution do
                 X_Array[index]:=index * BytesPerPixel;
               for index:=0 to VESAInfo.YResolution do
@@ -789,12 +867,16 @@ begin
       _graphresult:=grNoInitGraph;;
       exit;
     end;
-  if (writemode<>xorput) and (writemode<>normalput) then
+  if (writemode and $7F<>xorput) and (writemode and $7F<>normalput) then
    begin
       _graphresult:=grError;
       exit;
    end;
-  aktwritemode:=writemode;
+  aktwritemode:=(writemode and $7F);
+  if (writemode and $80)<>0 then
+    ClearText:=true
+  else
+    ClearText:=false;
 end;
 
 function GraphResult:Integer;
@@ -813,9 +895,19 @@ begin
   isgraphmode:=false;
 end;
 
+var PrevExitProc : pointer;
+
+procedure GraphExit;
+begin
+  ExitProc:=PrevExitProc;
+  CloseGraph;
+  DoneVesa; { frees the ldt descriptos seg_read and seg_write !! }
+end;
+
 begin
   InitVESA;
-  if not DetectVESA then Oh_Kacke('VESA-BIOS not found...');
+  if not DetectVESA then
+    Oh_Kacke('VESA-BIOS not found...');
   startmode:=GetVESAMode;
   bankswitchptr:=@switchbank;
   GraphGetMemPtr:=@system.getmem;
@@ -834,7 +926,16 @@ end.
 
 {
   $Log$
-  Revision 1.6  1998-10-22 09:44:57  pierre
+  Revision 1.7  1998-11-18 09:31:29  pierre
+    * changed color scheme
+      all colors are in RGB format if more than 256 colors
+    + added 24 and 32 bits per pixel mode
+      (compile with -dDEBUG)
+      24 bit mode with banked still as problems on pixels across
+      the bank boundary, but works in LinearFrameBufferMode
+      Look at install/demo/nmandel.pp
+
+  Revision 1.6  1998/10/22 09:44:57  pierre
    * PatternBuffer was not set on entry !!
 
   Revision 1.5  1998/09/16 16:47:25  peter

@@ -12,7 +12,8 @@
 
  **********************************************************************}
 
-procedure putpixel(x,y:integer;colour:longint);
+ { internal put pixel with colour in internal format }
+procedure putpixeli(x,y:integer;colour:longint);
 var viewport:viewporttype;
 begin
 if aktviewport.clip then viewport:=aktviewport else viewport:=aktscreen;
@@ -44,33 +45,59 @@ if aktviewport.clip then viewport:=aktviewport else viewport:=aktscreen;
       movl   _Y_ARRAY(,%eax,4),%eax
       addl   _X_ARRAY(,%ebx,4),%eax     
       movl   %eax,%esi
-      movl   _WINSHIFT,%ecx                // { offset / winsize        }
+      movzbl _WINSHIFT,%ecx                // { offset / winsize        }
       shrl   %cl,%eax                      // 
-      cmpl   _AW_BANK,%eax                 // { same bank ?             }
+      cmpl   _A_BANK,%eax                 // { same bank ?             }
       je     p_dont_switch                 // { yep                     } 
-      movl   %eax,_AW_BANK                 // { newbank                 }
+      pushl  %esi
       pushl  %eax                          // 
       movl   _BANKSWITCHPTR,%eax           // { switchbank              }
       call   %eax                          //
+      popl   %esi
   p_dont_switch:
       andl   _WINLOMASK,%esi
       movl   colour,%eax
       addl   _WBUFFER,%esi
       movw   _SEG_WRITE,%bx
       movw   _BYTESPERPIXEL,%cx
-      movw   %ds,%dx
-      movw   %bx,%ds
-      testl  $1,%ecx
-      jz     pp_2BPP
-      movb   %al,(%esi)
-      jnz    pp_exit
-  pp_2BPP:
-      movw   %ax,(%esi)
+      movw   %bx,%gs
+      cmpl   $2,%ecx
+      je     pp_16BPP
+      jb     pp_8BPP
+{$ifdef TEST_24BPP}
+      cmpl   $3,%ecx
+      je     pp_24BPP
+  pp_32BPP:
+      movl   %eax,%gs:(%esi)
+      jmp    pp_exit
+  pp_24BPP:
+      movl   _WINLOMASKMINUSPIXELSIZE,%edi
+      cmpl   %edi,%esi
+      ja     pp_exit
+      movl   %gs:(%esi),%edi
+      andl   $0xFF000000,%edi
+      andl   $0x00FFFFFF,%eax
+      orl    %edi,%eax
+      movl   %eax,%gs:(%esi)
+      jmp    pp_exit
+{$endif TEST_24BPP}
+  pp_8BPP:
+      movb   %al,%gs:(%esi)
+      jmp    pp_exit
+  pp_16BPP:
+      movw   %ax,%gs:(%esi)
   pp_exit:
-      movw   %dx,%ds
+      (* movw   %dx,%ds use %gs now
+      does not need to be kept constant PM *)
   p_exit:
   end; 
 end; { proc }
+
+procedure putpixel(x,y:integer;colour:longint);
+begin
+  colour:=convert(colour);
+  putpixeli(x,y,colour);
+end;
 
 procedure pixel(offset:longint);
  { wird nur intern aufgerufen, umrechnung auf Viewport und Range- }
@@ -80,14 +107,15 @@ procedure pixel(offset:longint);
    asm
       movl   offset,%eax             
       movl   %eax,%esi
-      movl   _WINSHIFT,%ecx                // { offset / winsize        }
+      movzbl _WINSHIFT,%ecx                // { offset / winsize        }
       shrl   %cl,%eax                      // 
-      cmpl   _AW_BANK,%eax                 // { same bank ?             }
+      cmpl   _A_BANK,%eax                 // { same bank ?             }
       je     dont_switch                   // { yep                     } 
-      movl   %eax,_AW_BANK                 // { newbank                 }
+      pushl  %esi
       pushl  %eax                          // 
       movl   _BANKSWITCHPTR,%eax           // { switchbank              }
       call   %eax                          //
+      popl   %esi
  dont_switch:
       movl   _WINLOMASK,%eax
       andl   %eax,%esi
@@ -96,31 +124,71 @@ procedure pixel(offset:longint);
       movw   _BYTESPERPIXEL,%bx
       addl   _WBUFFER,%esi
       movw   _SEG_WRITE,%dx
-      movw   %ds,%di
-      movw   %dx,%ds
+      movw   %dx,%gs
       testl  %ecx,%ecx
       jz     dmove
-      shrl   %ebx
-      jnc    dxor2BPP
-      xorb   %al,(%esi)
-      jnc    pd_exit
- dxor2BPP:
-      xorw   %ax,(%esi)
-      jnc    pd_exit 
+      cmpl   $2,%ebx
+      je     dxor16BPP
+      jb     dxor8BPP
+{$ifdef TEST_24BPP}
+      cmpl   $3,%ebx
+      je     dxor24BPP
+ dxor32BPP:
+      movl   %gs:(%esi),%edx
+      andl   $0x00FFFFFF,%eax
+      xorl   %edx,%eax
+      movl   %eax,%gs:(%esi)
+      jmp    pd_exit
+ dxor24BPP:
+      movl   _WINLOMASKMINUSPIXELSIZE,%ecx
+      cmpl   %ecx,%esi
+      ja     pd_exit
+      movl   %gs:(%esi),%edx
+      andl   $0x00FFFFFF,%eax
+      xorl   %edx,%eax
+      movl   %eax,%gs:(%esi)
+      jmp    pd_exit
+{$endif TEST_24BPP}
+ dxor8BPP:
+      xorb   %al,%gs:(%esi)
+      jmp    pd_exit
+ dxor16BPP:
+      xorw   %ax,%gs:(%esi)
+      jmp    pd_exit
  dmove:      
-      shrl   %ebx
-      jnc    dmove2BPP
-      movb   %al,(%esi)
-      jc     pd_exit
- dmove2BPP:
-      movw   %ax,(%esi)  
+      cmpl   $2,%ebx
+      je    dmove16BPP
+      jb    dmove8BPP
+{$ifdef TEST_24BPP}
+      cmpl   $3,%ebx
+      je     dmove24BPP
+ dmove32BPP:
+      andl   $0x00FFFFFF,%eax
+      movl   %eax,%gs:(%esi)
+      jmp    pd_exit
+ dmove24BPP:
+      movl   _WINLOMASKMINUSPIXELSIZE,%ecx
+      cmpl   %ecx,%esi
+      ja     pd_exit
+      movl   %gs:(%esi),%edx
+      andl   $0xFF000000,%edx
+      andl   $0x00FFFFFF,%eax
+      orl    %edx,%eax
+      movl   %eax,%gs:(%esi)
+      jmp    pd_exit
+{$endif TEST_24BPP}
+ dmove8BPP:
+      movb   %al,%gs:(%esi)
+      jmp    pd_exit
+ dmove16BPP:
+      movw   %ax,%gs:(%esi)
  pd_exit:
-      movw   %di,%ds 
    end; 
 end; { proc }
 
 function getpixel(x,y:integer):longint;
 var viewport:viewporttype;
+    col : longint;
 begin
 if aktviewport.clip then viewport:=aktviewport else viewport:=aktscreen;
   asm
@@ -140,22 +208,21 @@ if aktviewport.clip then viewport:=aktviewport else viewport:=aktscreen;
       that depends on alignment settings !! PM *)
       lea    viewport,%edx
       cmpw   (%edx),%bx
-      jl     gp_exit                        // wenn x < x1 Ende
+      jl     gp_eexit                        // wenn x < x1 Ende
       cmpw   4(%edx),%bx
-      jg     gp_exit                        // wenn x > x2 Ende
+      jg     gp_eexit                        // wenn x > x2 Ende
       cmpw   2(%edx),%ax
-      jl     gp_exit                        // wenn y < y1 Ende
+      jl     gp_eexit                        // wenn y < y1 Ende
       cmpw   6(%edx),%ax
-      jg     gp_exit                        // wenn y > y2 Ende
+      jg     gp_eexit                        // wenn y > y2 Ende
       movl   _Y_ARRAY(,%eax,4),%eax
       addl   _X_ARRAY(,%ebx,4),%eax     
       movl   %eax,%esi
-      movl   _WINSHIFT,%ecx                // { offset / winsize        }
+      movzbl _WINSHIFT,%ecx                // { offset / winsize        }
       shrl   %cl,%eax                      // 
-      cmpl   _AW_BANK,%eax                 // { same bank ?             }
+      cmpl   _A_BANK,%eax                  // { same bank ?             }
       je     g_dont_switch                 // { yep                     }
       pushl  %esi                          // { save Offset             }       
-      movl   %eax,_AW_BANK                 // { newbank                 }
       pushl  %eax                          // 
       movl   _BANKSWITCHPTR,%eax           // { switchbank              }
       call   %eax                          //
@@ -164,28 +231,69 @@ if aktviewport.clip then viewport:=aktviewport else viewport:=aktscreen;
       movl   _WINLOMASK,%eax
       andl   %eax,%esi
       xorl   %eax,%eax
-      movl   _BYTESPERPIXEL,%edx
+      movzwl _BYTESPERPIXEL,%edx
       addl   _WBUFFER,%esi   
-      movw   _SEG_WRITE,%bx
-      movw   %ds,%cx
-      movw   %bx,%ds   
-      testl  $1,%edx                       // { 1 or 2 BytesPerPixel ? }
-      jnz    g_8BPP
-      movw   %ds:(%esi),%ax
-      jnz    g_Result
+      movw   _SEG_READ,%bx
+      movw   %bx,%gs
+      cmpl   $2,%edx                       // { 1 or 2 BytesPerPixel ? }
+      je     g_16BPP
+      jb     g_8BPP
+{$ifdef TEST_24BPP}
+      cmpl   $3,%edx                       // { 1 or 2 BytesPerPixel ? }
+      je     g_24BPP
+  g_32BPP:
+      movl   %gs:(%esi),%eax
+      andl   $0x00FFFFFF,%eax
+      jmp    g_Result
+  g_24BPP:
+      movl   _WINLOMASKMINUSPIXELSIZE,%edi
+      cmpl   %edi,%esi
+      ja     g_ErrorResult
+      movl   %gs:(%esi),%eax
+      andl   $0x00FFFFFF,%eax
+      jmp    g_Result
+  g_ErrorResult:
+      movl   $-3,%edi
+      addl   _WINLOMASK,%edi
+      cmpl   %edi,%esi
+      ja     g_nohope
+      decl   %esi
+      movl   %gs:(%esi),%eax
+      shrl   $8,%eax
+      jmp    g_Result
+  g_nohope:
+      movl   $0xABCDEF,%eax
+      jmp    g_Result
+{$endif TEST_24BPP}
+  g_16BPP:
+      movw   %gs:(%esi),%ax
+      jmp    g_Result
   g_8BPP:    
-      movb   %ds:(%esi),%al
+      movb   %gs:(%esi),%al
+      jmp    g_Result
+  gp_eexit:
+      xorl   %eax,%eax
+      jmp    gp_exit
   g_Result:    
-      movw   %cx,%ds
-      movl   %eax,__RESULT 
   gp_exit:
+      movl   %eax,col
   end;
+    getpixel:=unconvert(col);
 end; { proc }
 
 
 {
   $Log$
-  Revision 1.2  1998-10-22 08:22:06  pierre
+  Revision 1.3  1998-11-18 09:31:40  pierre
+    * changed color scheme
+      all colors are in RGB format if more than 256 colors
+    + added 24 and 32 bits per pixel mode
+      (compile with -dDEBUG)
+      24 bit mode with banked still as problems on pixels across
+      the bank boundary, but works in LinearFrameBufferMode
+      Look at install/demo/nmandel.pp
+
+  Revision 1.2  1998/10/22 08:22:06  pierre
    * mandel problem fixed !!
 
   Revision 1.1.1.1  1998/03/25 11:18:42  root

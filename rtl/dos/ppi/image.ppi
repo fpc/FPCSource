@@ -28,13 +28,13 @@ begin
 x1:=x1+aktviewport.x1;
 y1:=y1+aktviewport.y1;
 x2:=x2+aktviewport.x1;
-y2:=y2+aktviewport.y1;        
+y2:=y2+aktviewport.y1;
 
-if (x1>_maxx) or (y1>_maxy) or (x2<0) or (y2<0) then exit;       
+if (x1>_maxx) or (y1>_maxy) or (x2<0) or (y2<0) then exit;
 
 target:=longint(@bitmap)+4;
 pinteger(@bitmap)^:=x2-x1+1;
-pinteger(@bitmap+2)^:=y2-y1+1; 
+pinteger(@bitmap+2)^:=y2-y1+1;
 linesize:=(x2-x1+1)*BytesPerPixel;
 
 for i:=y1 to y2 do
@@ -42,19 +42,17 @@ for i:=y1 to y2 do
     ofs1:=Y_ARRAY[i]+X_ARRAY[x1];
     ofs2:=Y_ARRAY[i]+X_ARRAY[x2];
     bank1:=ofs1 shr WinShift;
-    bank2:=ofs2 shr WinShift;  
-    if bank1 <> AW_BANK then 
+    bank2:=ofs2 shr WinShift;
+    if bank1 <> A_BANK then
       begin
         Switchbank(bank1);
-        AW_BANK:=bank1;
       end;
-    if bank1=bank2 
+    if bank1=bank2
       then ScreenToMem(ofs1 and WinLoMask,target,linesize)
-      else begin     
+      else begin
         diff:=(bank2 shl winshift)-ofs2;
         ScreenToMem(ofs1 and WinLoMask,target,diff-BytesPerPixel);
         Switchbank(bank2);
-        AW_BANK:=bank2;
         ScreenToMem((ofs1+diff) and WinLoMask,target+diff,linesize-diff);
       end; 
     target:=target+linesize;
@@ -88,7 +86,7 @@ procedure PutImage(x,y : integer;var BitMap;BitBlt : word);
          
          if aktviewport.clip then viewport:=aktviewport else viewport:=aktscreen; 
          if (x > viewport.x2 ) or 
-             (y > viewport.y2 ) or 
+             (y > viewport.y2 ) or
               (x+Increment < viewport.x1) or 
                (y+height < viewport.y1) then exit;
   
@@ -102,7 +100,7 @@ procedure PutImage(x,y : integer;var BitMap;BitBlt : word);
              end;
            { Clip unten }
            
-           if y+height > viewport.y2 then 
+           if y+height > viewport.y2 then
                height:=viewport.y2-y;
            
            { Clip links }
@@ -128,10 +126,9 @@ procedure PutImage(x,y : integer;var BitMap;BitBlt : word);
      offset:=Y_ARRAY[i] + X_ARRAY[x];
      o1:=offset shr winshift;
      o2:=( offset + width ) shr winshift;
-     if o1 <> AW_BANK then 
+     if o1 <> A_BANK then
        begin
          Switchbank(o1);
-         AW_BANK:=o1;
        end;
      if o1 = o2 then
      begin  
@@ -148,27 +145,27 @@ procedure PutImage(x,y : integer;var BitMap;BitBlt : word);
        case bitblt of
          normalput : begin
                       MemToScreen (source,offset and WinLoMask,diff-BytesPerPixel);
-                      Switchbank(o2); AW_BANK:=o2;
+                      Switchbank(o2);
                       MemToScreen (source+diff,(offset+diff) and WinLoMask,width-diff);
                      end;
          andput    : begin
                       MemAndScreen (source,offset and WinLoMask,diff-BytesPerPixel);
-                      Switchbank(o2); AW_BANK:=o2;
+                      Switchbank(o2);
                       MemAndScreen (source+diff,(offset+diff) and WinLoMask,width-diff);
                      end;
          orput     : begin
                       MemOrScreen (source,offset and WinLoMask,diff-BytesPerPixel);
-                      Switchbank(o2); AW_BANK:=o2;
+                      Switchbank(o2);
                       MemOrScreen (source++diff,(offset+diff) and WinLoMask,width-diff);
                      end;
          xorput    : begin
                       MemXorScreen(source,offset and WinLoMask,diff-BytesPerPixel);
-                      Switchbank(o2); AW_BANK:=o2;
+                      Switchbank(o2);
                       MemXorScreen(source+diff,(offset+diff) and WinLoMask,width-diff);
                      end;
          notput    : begin
                       MemNotScreen(source,offset and WinLoMask,diff-BytesPerPixel);
-                      Switchbank(o2); AW_BANK:=o2;
+                      Switchbank(o2);
                       MemNotScreen(source+diff,(offset+diff) and WinLoMask,width-diff);
                      end;
        end; { case }
@@ -181,20 +178,29 @@ procedure PutImage(x,y : integer;var BitMap;BitBlt : word);
 end;
     
     
-    function ImageSize(x1,y1,x2,y2 : integer) : word;
+    function ImageSize(x1,y1,x2,y2 : integer) : longint;
 
       begin
          _graphresult:=grOk;
          ImageSize:=(x2-x1+1)*(y2-y1+1)*BytesPerPixel+4;
-         { +4, da Breite und H”he mit abgespeichert werden }
+         { 4 bytes for Height and width in words at the beginning }
       end;
 
  
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:42  root
-  Initial revision
+  Revision 1.2  1998-11-18 09:31:36  pierre
+    * changed color scheme
+      all colors are in RGB format if more than 256 colors
+    + added 24 and 32 bits per pixel mode
+      (compile with -dDEBUG)
+      24 bit mode with banked still as problems on pixels across
+      the bank boundary, but works in LinearFrameBufferMode
+      Look at install/demo/nmandel.pp
+
+  Revision 1.1.1.1  1998/03/25 11:18:42  root
+  * Restored version
 
   Revision 1.5  1998/03/03 22:48:42  florian
     + graph.drawpoly procedure

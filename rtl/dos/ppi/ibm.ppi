@@ -31,6 +31,9 @@ end;
 
 function GetVESAInfo( Mode : WORD ):Boolean;
 var Result_:longint;
+    Temp,ReadFrameBufferLinearAddress : longint;
+    St : string;
+    w : word;
 begin
   Result_:=Global_dos_alloc($0200);
      Sel:=word(Result_);
@@ -49,12 +52,24 @@ begin
   if (dregs.RealEAX and $1ff) =$4F then
     begin
       GetVESAInfo:=true;
+      { mode is supported only if bit 0 in modeAttributes is set }
+      if (VESAInfo.ModeAttributes and 1)=0 then
+        GetVESAInfo:=false;
       BytesPerLine:=VESAInfo.BPL;
       case VESAInfo.BitsPerPixel of
        8     : BytesPerPixel:=1;
        15,16 : BytesPerPixel:=2;
+{$ifdef TEST_24BPP}
        24    : begin
-               Oh_Kacke('24-Bit Modis nicht implementiert !');
+               BytesPerPixel:=3;
+               end;
+       32    : begin
+               BytesPerPixel:=4;
+               end;
+{$endif TEST_24BPP}
+       else    begin
+               str(VESAInfo.BitsPerPixel,St);
+               Oh_Kacke(St+'-Bit Mode not implemented !');
                exit;
                end;
       end;
@@ -75,6 +90,9 @@ begin
      Granularity:=VESAInfo.WinGranularity;
      Granular:=VESAInfo.WinSize div Granularity;
      case Granular of
+       256 : GranShift:=8;
+       128 : GranShift:=7;
+        64 : GranShift:=6;
         32 : GranShift:=5;
         16 : GranShift:=4; 
          8 : GranShift:=3;
@@ -82,14 +100,104 @@ begin
          2 : GranShift:=1;
          1 : GranShift:=0;
      end;
-     { set selector for writing }
+     (* { on my ATI rage pro card these field are zeroed !! (PM) }
+     
+     if VesaInfo.rf_pos=VesaInfo.bf_pos then
+       begin
+         VesaInfo.rm_size:=VESAInfo.BitsPerPixel div 3;
+         VesaInfo.bm_size:=VESAInfo.BitsPerPixel div 3;
+         VesaInfo.gm_size:=VESAInfo.BitsPerPixel -2*VesaInfo.bm_size;
+         VesaInfo.bf_pos:=0;
+         VesaInfo.gf_pos:=VesaInfo.bm_size;
+         VesaInfo.rf_pos:=VesaInfo.bm_size+VesaInfo.gm_size;
+       end;   *)
+       
      if isDPMI then begin
        set_segment_base_address(seg_write,$A000 shl 4);
        set_segment_limit(seg_write,$FFFF);
-       seg_read:=seg_write;
+       set_segment_base_address(seg_read,$A000 shl 4);
+       set_segment_limit(seg_read,$FFFF);
      end;
+     { read and write window can be different !!! PM }
+     if ((VESAInfo.WinAAttributes and 5)=5) then
+       AW_Window:=AWindow
+     else if ((VESAInfo.WinBAttributes and 5)=5) then
+       AW_Window:=BWindow
+     else Oh_Kacke('No write window !! ');
+     if ((VESAInfo.WinAAttributes and 3)=3) then
+       AR_Window:=AWindow
+     else if ((VESAInfo.WinBAttributes and 3)=3) then
+       AR_Window:=BWindow
+     else Oh_Kacke('No read window !! ');
+     if AW_Window=AR_Window then
+       same_window:=true
+     else
+       same_window:=false;
+
+      if (VESAInfo.ModeAttributes and $80)=$80 then
+        LinearFrameBufferSupported:=true
+      else
+        LinearFrameBufferSupported:=false;
+
+{$ifdef Test_linear}
+      { try to swap the FrameBuffer Physical Address }
+      if switch_physical_address then
+        begin
+           w:=VESAInfo.PhysAddress and $FFFF;
+           VESAInfo.PhysAddress:=(w shl 16) or (VESAInfo.PhysAddress shr 16);
+        end;
+      if split_physical_address and not same_window then
+        begin
+           ReadFrameBufferLinearAddress:=Get_linear_addr(VESAInfo.PhysAddress and $FFFF0000,VGAInfo.TotalMem shl 16);
+           if int31error<>0 then
+             writeln(stderr,'Error in get linear address for ',hexstr(VESAInfo.PhysAddress and $FFFF0000,8));
+           FrameBufferLinearAddress:=Get_linear_addr((VESAInfo.PhysAddress and $FFFF) shl 16,VGAInfo.TotalMem shl 16);
+           if int31error<>0 then
+             writeln(stderr,'Error in get linear address for ',hexstr((VESAInfo.PhysAddress and $FFFF) shl 16,8));
+        end;
+      If LinearFrameBufferSupported then
+        begin
+           if same_window or not split_physical_address then
+             FrameBufferLinearAddress:=Get_linear_addr(VESAInfo.PhysAddress and $FFFF0000,VGAInfo.TotalMem shl 16);
+           if int31error<>0 then
+             writeln(stderr,'Error in get linear address for ',hexstr(VESAInfo.PhysAddress,8));
+        end
+      else
+{$endif Test_linear}
+        FrameBufferLinearAddress:=$A0000;
+        
+{$ifdef Test_linear}
+      If isDPMI and LinearFrameBufferSupported and UseLinear then
+        UseLinearFrameBuffer:=true
+      else
+        UseLinearFrameBuffer:=false;
+     if UseLinearFrameBuffer then
+       begin
+          set_segment_base_address(seg_write,FrameBufferLinearAddress);
+          set_segment_limit(seg_write,(VGAInfo.TotalMem shl 16)-1);
+          if split_physical_address and not same_window then
+            set_segment_base_address(seg_read,ReadFrameBufferLinearAddress)
+          else
+            set_segment_base_address(seg_read,FrameBufferLinearAddress);
+          set_segment_limit(seg_read,(VGAInfo.TotalMem shl 16)-1);
+          WinSize:=(VGAInfo.TotalMem shl 16);
+          WinLoMask:=(VGAInfo.TotalMem shl 16)-1;
+          WinShift:=16;
+          Temp:=VGAInfo.TotalMem;
+          while Temp>0 do
+            begin
+               inc(WinShift);
+               Temp:=Temp shr 1;
+            end;
+       end;
+{$endif Test_linear}
      SwitchCS:=hi(VESAInfo.RealWinFuncPtr);
      SwitchIP:=lo(VESAInfo.RealWinFuncPtr);
+     { usefull for boundary problems }
+     if BytesPerPixel=3 then
+       WinLoMaskMinusPixelSize:=WinLoMask-4
+     else
+       WinLoMaskMinusPixelSize:=WinLoMask-BytesPerPixel;
    end else GetVESAInfo:=false;
 end;
 
@@ -118,15 +226,17 @@ var RM:Word;
 begin
   isDPMI:=false;
   rm:=get_run_mode;
+{$ifdef Debug}
   case rm of
     0 : writeln('unknown mode');
     1 : writeln('RAW mode');
     2 : writeln('XMS detected');
     3 : writeln('VCPI detected');
-    4 : begin writeln('DPMI detected'); 
-              isDPMI:=true; 
-              end;
+    4 : writeln('DPMI detected');
   end; { case }
+{$endif Debug}
+  if rm=4 then
+    isDPMI:=true;
   if isDPMI then begin
     seg_write:=allocate_ldt_descriptors(1);
     seg_read:=allocate_ldt_descriptors(1);
@@ -146,27 +256,55 @@ end;
 
 procedure Switchbank(bank:longint);
 begin
+  with dregs do
+    begin
+       a_bank:=bank;
+       realedx:=bank shl granshift;
+       realcs:=switchcs;
+       realip:=switchip;
+       realebx:=aw_window;
+       realss:=0;
+       realsp:=0;
+    end;
   asm
-    leal   _DREGS,%edi
-    movl   bank,%eax
-    movzbl _GRANSHIFT,%ecx
-    shll   %cl,%eax
-    movl   %eax,20(%edi)    // RealEDX
-    movw   _SWITCHCS,%ax
-    movw   %ax,44(%edi)     // RealCS
-    movw   _SWITCHIP,%ax    // RealIP
-    movw   %ax,42(%edi)    
-    xorl   %ecx,%ecx
-    movl   %ecx,46(%edi)    // RealSS,RealSP
-    movl   %ecx,16(%edi)    // RealEBX 
-    movw   $0x0301,%ax
-    int    $0x31
+     leal   _DREGS,%edi
+     xorl   %ecx,%ecx
+     movl   %ecx,%ebx
+     movw   $0x0301,%ax
+     int    $0x31
+  end;
+  if not same_window then
+   with dregs do
+    begin
+       realedx:=bank shl granshift;
+       realcs:=switchcs;
+       realip:=switchip;
+       realebx:=ar_window;
+       realss:=0;
+       realsp:=0;
+       asm
+         leal   _DREGS,%edi
+         xorl   %ecx,%ecx
+         movl   %ecx,%ebx
+         movw   $0x0301,%ax
+         int    $0x31
+       end;
   end;
 end;
 
+
 {
   $Log$
-  Revision 1.2  1998-10-09 10:26:36  peter
+  Revision 1.3  1998-11-18 09:31:35  pierre
+    * changed color scheme
+      all colors are in RGB format if more than 256 colors
+    + added 24 and 32 bits per pixel mode
+      (compile with -dDEBUG)
+      24 bit mode with banked still as problems on pixels across
+      the bank boundary, but works in LinearFrameBufferMode
+      Look at install/demo/nmandel.pp
+
+  Revision 1.2  1998/10/09 10:26:36  peter
     * rename result -> result_
 
   Revision 1.1.1.1  1998/03/25 11:18:42  root

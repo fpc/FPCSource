@@ -51,14 +51,14 @@
     { umschalten zu verhindern }
     
     while aq <> count do begin
-      PutPixel( PWord(buffermem)[aq]  ,PWord(buffermem)[aq+3],aktcolor);
-      PutPixel( PWord(buffermem)[aq+2],PWord(buffermem)[aq+3],aktcolor);
+      PutPixeli( PWord(buffermem)[aq]  ,PWord(buffermem)[aq+3],aktcolor);
+      PutPixeli( PWord(buffermem)[aq+2],PWord(buffermem)[aq+3],aktcolor);
       aq:=aq+4;
     end;
     while aq <> 0 do begin
       aq:=aq-4;
-      PutPixel( PWord(buffermem)[aq]  ,PWord(buffermem)[aq+1],aktcolor);
-      PutPixel( PWord(buffermem)[aq+2],PWord(buffermem)[aq+1],aktcolor);
+      PutPixeli( PWord(buffermem)[aq]  ,PWord(buffermem)[aq+1],aktcolor);
+      PutPixeli( PWord(buffermem)[aq+2],PWord(buffermem)[aq+1],aktcolor);
     end;
   end;
 
@@ -112,8 +112,17 @@
  
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:42  root
-  Initial revision
+  Revision 1.2  1998-11-18 09:31:32  pierre
+    * changed color scheme
+      all colors are in RGB format if more than 256 colors
+    + added 24 and 32 bits per pixel mode
+      (compile with -dDEBUG)
+      24 bit mode with banked still as problems on pixels across
+      the bank boundary, but works in LinearFrameBufferMode
+      Look at install/demo/nmandel.pp
+
+  Revision 1.1.1.1  1998/03/25 11:18:42  root
+  * Restored version
 
   Revision 1.3  1998/01/26 11:57:54  michael
   + Added log at the end

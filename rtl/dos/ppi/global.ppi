@@ -40,22 +40,22 @@
        Default = 0;
        
        { Farben fÅr setpalette und setallpalette }
-       black = 0;
-       blue = 1;
-       green = 2;
-       cyan = 3;
-       red = 4;
-       magenta = 5;
-       brown = 6;
-       lightgray = 7;
-       darkgray = 8;
-       lightblue = 9;
-       lightgreen = 10;
-       lightcyan = 11;
-       lightred = 12;
-       lightmagenta = 13;
-       yellow = 14;
-       white = 15;
+       black : longint = 0;
+       blue  : longint = 1;
+       green : longint = 2;
+       cyan  : longint = 3;
+       red   : longint = 4;
+       magenta : longint = 5;
+       brown : longint = 6;
+       lightgray : longint = 7;
+       darkgray : longint = 8;
+       lightblue : longint = 9;
+       lightgreen : longint = 10;
+       lightcyan : longint = 11;
+       lightred : longint = 12;
+       lightmagenta : longint = 13;
+       yellow : longint = 14;
+       white : longint = 15;
 
        { Linenart fÅr Get/SetLineStyle: }
        SolidLn = 0;
@@ -114,6 +114,7 @@
        OrPut         = 2;
        AndPut        = 3;
        NotPut        = 4;
+       ClearTextPut  = $80;
 
        { SetTextJustify constants }
        LeftText   = 0;
@@ -188,7 +189,16 @@
 
 {
   $Log$
-  Revision 1.2  1998-03-26 10:41:15  florian
+  Revision 1.3  1998-11-18 09:31:34  pierre
+    * changed color scheme
+      all colors are in RGB format if more than 256 colors
+    + added 24 and 32 bits per pixel mode
+      (compile with -dDEBUG)
+      24 bit mode with banked still as problems on pixels across
+      the bank boundary, but works in LinearFrameBufferMode
+      Look at install/demo/nmandel.pp
+
+  Revision 1.2  1998/03/26 10:41:15  florian
     * some warnings fixed
 
   Revision 1.1.1.1  1998/03/25 11:18:42  root

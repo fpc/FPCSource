@@ -81,7 +81,15 @@ begin
     bordercol:=bordercol and $FF;
     fillcol:=aktfillsettings.color and $FF;
   end
-  else begin
+{$ifdef TEST_24BPP}
+  else if BytesPerPixel=3
+  then begin
+    bordercol:=bordercol and $FFFFFF;
+    fillcol:=aktfillsettings.color and $FFFFFF;
+  end
+{$endif TEST_24BPP}
+  else if BytesPerPixel=2
+  then begin
     bordercol:=bordercol and $FFFF;
     fillcol:=aktfillsettings.color and $FFFF;
   end;
@@ -97,6 +105,7 @@ begin
       exit;
     end;
   Fillinfo:=aktfillsettings;
+  Fillinfo.color:=unconvert(aktfillsettings.color);
 end;
 
 procedure GetFillPattern(var FillPattern:FillPatternType);
@@ -165,10 +174,28 @@ begin
     end;
   lineinfo:=aktlineinfo;
 end;
+
+{ just dummy not implemented yet }
+procedure FillPoly(points : word;var polypoints);
+begin
+   { simply call drawpoly instead (PM) }
+   DrawPoly(points,polypoints);
+end;
+
+
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:42  root
-  Initial revision
+  Revision 1.2  1998-11-18 09:31:33  pierre
+    * changed color scheme
+      all colors are in RGB format if more than 256 colors
+    + added 24 and 32 bits per pixel mode
+      (compile with -dDEBUG)
+      24 bit mode with banked still as problems on pixels across
+      the bank boundary, but works in LinearFrameBufferMode
+      Look at install/demo/nmandel.pp
+
+  Revision 1.1.1.1  1998/03/25 11:18:42  root
+  * Restored version
 
   Revision 1.3  1998/01/26 11:57:57  michael
   + Added log at the end

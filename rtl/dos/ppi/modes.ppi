@@ -12,26 +12,77 @@
 
  **********************************************************************}
 
-const VESANumber=10;
-      VESAModes : Array[0..VESANumber] of word=
-      ($100,    {   640x400x256 }
-       $101,    {   640x480x256 }
-       $110,    {   640x480x32K }
-       $111,    {   640x480x64k }
-       $103,    {   800x600x256 }
-       $113,    {   800x600x32k }
-       $114,    {   800x600x64k }
-       $105,    {  1024x768x256 }
-       $116,    {  1024x768x32k }
-       $107,    { 1280x1024x256 }
-       $117);   {  1024x768x64k }
-     
- 
+const
+{$ifndef TEST_24BPP}
+   VESANumber=13;
+{$else TEST_24BPP}
+   VESANumber=16;
+{$endif TEST_24BPP}
+      VESAModes : Array[0..VESANumber-1] of word=
+      ( $100    {   640x400x256 }
+       ,$101    {   640x480x256 }
+       ,$110    {   640x480x32K }
+       ,$111    {   640x480x64k }
+       ,$103    {   800x600x256 }
+       ,$113    {   800x600x32k }
+       ,$114    {   800x600x64k }
+       ,$105    {  1024x768x256 }
+       ,$116    {  1024x768x32k }
+       ,$117    {  1024x768x64k }
+       ,$107    { 1280x1024x256 }
+       ,$119    { 1280x1024x32K }
+       ,$11A    { 1280x1024x64K }
+{$ifdef TEST_24BPP}
+       ,$112    {   640x480x16M }
+       ,$115    {   800x600x16M }
+       ,$118    {  1024x768x16M }
+       ,$11B    { 1280x1024x16M }
+{$endif TEST_24BPP}
+       );
+
+  G640x400x256      = $100;
+  G640x480x256      = $101;
+  G800x600x256      = $103;
+  G1024x768x256     = $105;
+
+  G1280x1024x256    = $107;   { Additional modes. }
+
+  G640x480x32K      = $110;
+  G640x480x64K      = $111;
+  G640x480x16M      = $112;
+  
+  G800x600x32K      = $113;
+  G800x600x64K      = $114;
+  G800x600x16M      = $115;
+
+  G1024x768x32K     = $116;
+  G1024x768x64K     = $117;
+  G1024x768x16M     = $118;
+
+  G1280x1024x32K    = $119;
+  G1280x1024x64K    = $11A;
+  G1280x1024x16M    = $11B;
+
+(*   G320x200x16M32    = 33;       { 32-bit per pixel modes. }
+  G640x480x16M32    = 34;
+  G800x600x16M32    = 35;
+  G1024x768x16M32   = 36;
+  G1280x1024x16M32  = 37; *)
+
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:42  root
-  Initial revision
+  Revision 1.2  1998-11-18 09:31:38  pierre
+    * changed color scheme
+      all colors are in RGB format if more than 256 colors
+    + added 24 and 32 bits per pixel mode
+      (compile with -dDEBUG)
+      24 bit mode with banked still as problems on pixels across
+      the bank boundary, but works in LinearFrameBufferMode
+      Look at install/demo/nmandel.pp
+
+  Revision 1.1.1.1  1998/03/25 11:18:42  root
+  * Restored version
 
   Revision 1.5  1998/01/26 11:58:22  michael
   + Added log at the end
