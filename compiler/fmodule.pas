@@ -27,6 +27,9 @@ unit fmodule;
 {$ifdef go32v2}
   {$define shortasmprefix}
 {$endif}
+{$ifdef tos}
+  {$define shortasmprefix}
+{$endif}
 {$ifdef OS2}
   { Allthough OS/2 supports long filenames I play it safe and
     use 8.3 filenames, because this allows the compiler to run
@@ -606,7 +609,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.29  2002-11-20 12:36:23  mazen
+  Revision 1.30  2002-11-24 18:19:56  carl
+    + tos also has short filenames
+
+  Revision 1.29  2002/11/20 12:36:23  mazen
   * $UNITPATH directive is now working
 
   Revision 1.28  2002/09/05 19:29:42  peter
