@@ -37,7 +37,7 @@ Uses Dos;
 {$IFDEF WIN32}
         {$DEFINE EXTATTR}
 {$ENDIF}
-{$IFDEF TOS}
+{$IFDEF ATARI}
         {$DEFINE EXTATTR}
 {$ENDIF}
 
@@ -120,157 +120,10 @@ Procedure CheckDosError(err: Integer);
  end;
 
 
-Procedure TestdiskSize;
-Var
- i : Integer;
-Begin
- WriteLn('----------------------------------------------------------------------');
- WriteLn('                          DISKSIZE/DISKFREE                           ');
- WriteLn('----------------------------------------------------------------------');
- WriteLn(' Note: Should return -1 on both functions if device is not ready.     ');
- WriteLn('----------------------------------------------------------------------');
- CheckDosError(0);
-{ Check Disksize / DiskFree routines }
- for I:=0 to 20 do
- Begin
-   Write('Disk unit ',i:2,' free size : ',DiskFree(i):10, ' Total Size: ',DiskSize(i):10);
-   WriteLn(' bytes.');
- end;
- CheckDosError(0);
- PauseScreen;
-end;
 
-Procedure TestDosVersion;
-Begin
- WriteLn('----------------------------------------------------------------------');
- WriteLn('                          DOSVERSION                                  ');
- WriteLn('----------------------------------------------------------------------');
- WriteLn(' Note: Number should be major version followed by minor version.      ');
- WriteLn('----------------------------------------------------------------------');
- CheckDosError(0);
- {*------------------------- NOTE -------------------------------------*}
- {* This is OS specific. LO -> Major revision, HI -> Minor Revision    *}
- {*--------------------------------------------------------------------*}
- WriteLn('Operating system Version :',Lo(DosVersion),'.',Hi(DosVersion));
- CheckDosError(0);
- PauseScreen;
-end;
 
-Procedure TestEnvCount;
-Var
- I: Integer;
-Begin
- WriteLn('----------------------------------------------------------------------');
- WriteLn('                       ENVCOUNT/ENVSTR                                ');
- WriteLn('----------------------------------------------------------------------');
- WriteLn(' Note: Environment variables should be of the form VAR=VALUE          ');
- WriteLn(' Note: Non valid indexes should return empty strings.                 ');
- WriteLn(' Note: Index 0 points to an empty string                              ');
- WriteLn('----------------------------------------------------------------------');
- CheckDosError(0);
- PauseScreen;
- {*------------------------- NOTE -------------------------------------*}
- {* Variables should be of the form VAR=VALUE                          *}
- {*--------------------------------------------------------------------*}
- WriteLn('Number of environment variables : ',EnvCount);
- WriteLn('CURRENT ENVIRONMENT');
- For I:=1 to EnvCount do
-  WriteLn(EnvStr(i));
- CheckDosError(0);
- WriteLn('----------------------------------------------------------------------');
- WriteLn(' Note: The next few lines should be empty strings, as they are        ');
- WriteLn('       invalid environment indexes.                                   ');
- WriteLn('----------------------------------------------------------------------');
- For i:=-5 to 0 do
-  WriteLn(EnvStr(i));
- CheckDosError(0);
- For i:=20000 to 20002 do
-  WriteLn(EnvStr(i));
- CheckDosError(0);
- PauseScreen;
-end;
 
-Procedure TestVerify;
-Var
- B: Boolean;
- s: string;
-Begin
- WriteLn('----------------------------------------------------------------------');
- WriteLn('                       GETVERIFY/SETVERIFY                            ');
- WriteLn('----------------------------------------------------------------------');
- CheckDosError(0);
- s:='Testing GetVerify...';
- SetVerify(TRUE);
- CheckDosError(0);
- GetVerify(b);
- CheckDosError(0);
- if b then
-   WriteLn(s+'Success.')
- else
-  Begin
-    WriteLn(s+'FAILURE.');
-  end;
- s:='Testing GetVerify...';
- SetVerify(FALSE);
- CheckDosError(0);
- GetVerify(b);
- CheckDosError(0);
-{ verify actually only works under dos       }
-{ and always returns TRUE on other platforms }
-{$ifdef go32v2}
- if NOT b then
-   WriteLn(s+'Success.')
- else
-  Begin
-    WriteLn(s+'FAILURE.');
-  end;
-{$else}
- if b then
-   WriteLn(s+'Success.')
- else
-  Begin
-    WriteLn(s+'FAILURE.');
-  end;
-{$endif}
- PauseScreen;
-end;
 
-Procedure TestCBreak;
-Var
- B: Boolean;
- s: string;
-Begin
- WriteLn('----------------------------------------------------------------------');
- WriteLn('                       GETCBREAK/SETCBREAK                            ');
- WriteLn('----------------------------------------------------------------------');
- CheckDosError(0);
- s:='Testing GetCBreak...';
- SetCBreak(TRUE);
- CheckDosError(0);
- GetCBreak(b);
- CheckDosError(0);
- if b then
-   WriteLn(s+'Success.')
- else
-  Begin
-    WriteLn(s+'FAILURE.');
-  end;
-{ actually setting Ctrl-C only works under DOS }
-{$ifdef go32v2}
- s:='Testing GetCBreak...';
- SetCBreak(FALSE);
- CheckDosError(0);
- GetCBreak(b);
- CheckDosError(0);
- if NOT b then
-   WriteLn(s+'Success.')
- else
-  Begin
-    WriteLn(s+'FAILURE.');
-  end;
-{$endif}
- PauseScreen;
-end;
 
 
 Procedure TestSystemDate;
@@ -415,142 +268,6 @@ Begin
 end;
 
 
-Procedure TestFAttr;
-Var
- F: File;
- Attr: Word;
- s: string;
-Begin
- PauseScreen;
- WriteLn('----------------------------------------------------------------------');
- WriteLn('                         GETFATTR / SETFATTR                          ');
- WriteLn('----------------------------------------------------------------------');
- CheckDosError(0);
-
- WriteLn('Opening an invalid file...Success.');
- Assign(f,'');
- GetFAttr(f,Attr);
- CheckDosError(3);
- Assign(f,TestFName);
- WriteLn('Trying to open a valid file..Success.');
- GetFAttr(f,Attr);
- CheckDosError(0);
- {----------------------------------------------------------------}
- { This routine causes problems, because it all depends on the    }
- { operating system. It is assumed here that HIDDEN is available  }
- { to all operating systems.                                      }
- {----------------------------------------------------------------}
- s:='Setting read-only attribute on '+TestFName+'...';
- SetFAttr(f,ReadOnly);
- CheckDosError(0);
-{$IFDEF EXTATTR}
- GetFAttr(f,Attr);
- CheckDosError(0);
- if Attr and ReadOnly<> 0 then
-   WriteLn(s+'Success.')
- else
-  Begin
-    WriteLn(s+'FAILURE. Read-only attribute not set.');
-  end;
- { file should no longer be read only }
- s:='Removing read-only attribute...';
- SetFAttr(f,Archive);
- CheckDosError(0);
- GetFAttr(f,Attr);
- CheckDosError(0);
- if Attr and ReadOnly<> 0 then
-  Begin
-    WriteLn(s+'FAILURE. Read-only attribute still set.');
-  end
- else
-   WriteLn(s+'Success.');
-{$ENDIF}
-
- s:='Setting hidden attribute on '+TestFName+'...';
- SetFAttr(f,Hidden);
- CheckDosError(0);
-{$IFDEF EXTATTR}
- GetFAttr(f,Attr);
- CheckDosError(0);
- if Attr and Hidden<> 0 then
-   WriteLn(s+'Success.')
- else
-  Begin
-    WriteLn(s+'FAILURE. Hidden attribute not set.');
-  end;
-
- { file should no longer be read only }
- s:='Removing hidden attribute...';
- SetFAttr(f,Archive);
- CheckDosError(0);
- GetFAttr(f,Attr);
- CheckDosError(0);
- if Attr and Hidden<> 0 then
-  Begin
-    WriteLn(s+'FAILURE. Hidden attribute still set.');
-  end
- else
-   WriteLn(s+'Success.');
-{$ENDIF}
-
- s:='Setting system attribute on '+TestFName+'...';
- SetFAttr(f,SysFile);
- CheckDosError(0);
-{$IFDEF EXTATTR}
- GetFAttr(f,Attr);
- CheckDosError(0);
- if Attr and SysFile<> 0 then
-   WriteLn(s+'Success.')
- else
-  Begin
-    WriteLn(s+'FAILURE. SysFile attribute not set.');
-  end;
- { file should no longer be read only }
- s:='Removing read-only attribute...';
- SetFAttr(f,Archive);
- CheckDosError(0);
- GetFAttr(f,Attr);
- CheckDosError(0);
- if Attr and Sysfile<> 0 then
-  Begin
-    WriteLn(s+'FAILURE. SysFile attribute still set.');
-  end
- else
-   WriteLn(s+'Success.');
-{$ENDIF}
-
- s:='Setting Directory attribute on '+TestFName+'...';
- SetFAttr(f,Directory);
- CheckDosError(5);
- GetFAttr(f,Attr);
- CheckDosError(0);
- if Attr and Directory<> 0 then
-  Begin
-    WriteLn(s+'FAILURE. Directory Attribute set.');
-  end
- else
-   WriteLn(s+'Success.');
-
- {**********************************************************************}
- {********************** TURBO PASCAL BUG ******************************}
- { The File is not a volume name, and DosError = 0, which is incorrect  }
- { it shoulf not be so in FPC.                                          }
- {**********************************************************************}
- {********************** TURBO PASCAL BUG ******************************}
- s:='Setting Volume attribute on '+TestFName+'...';
- SetFAttr(f,VolumeID);
- CheckDosError(5);
- GetFAttr(f,Attr);
- CheckDosError(0);
- if Attr and VolumeID<> 0 then
-  Begin
-    WriteLn(s+'FAILURE. Volume Attribute set.');
-  end
- else
-   WriteLn(s+'Success.');
-
- PauseScreen;
-end;
 
 
 Procedure TestFTime;
@@ -942,10 +659,7 @@ var
  F: File;
  Attr : Word;
 Begin
- TestDiskSize;
- TestDosVersion;
  TestEnvCount;
- TestVerify;
  TestSystemDate;
  TestSystemTime;
 
@@ -959,7 +673,6 @@ Begin
  Rewrite(f,1);
  Close(F);
  MkDir(TestDir);
- TestFAttr;
  TestFTime;
  TestCBreak;
  TestFind;
@@ -971,7 +684,11 @@ end.
 
 {
   $Log$
-  Revision 1.7  2002-09-07 15:40:56  peter
+  Revision 1.8  2002-11-08 21:01:18  carl
+    * separated some tests
+    * make tfexpand more portable
+
+  Revision 1.7  2002/09/07 15:40:56  peter
     * old logs removed and tabs fixed
 
 }

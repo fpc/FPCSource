@@ -29,21 +29,17 @@ function _DosError (Error: longint): longint; cdecl;
 {$ENDIF NETWARE}
 
 const
-{$IFDEF FPC}
- {$IFDEF VER1_0}
-  {$IFDEF UNIX}
-   FileNameCaseSensitive = true;
-  {$ENDIF}
- {$ENDIF}
-{$ELSE}
+{$IFNDEF FPC}
  FileNameCaseSensitive = false;
-{$ENDIF}
-{$IFDEF UNIX}
- DirSep = '/';
- CDrive = '';
-{$ELSE}
  DirSep = '\';
  CDrive = 'C:';
+{$ELSE}
+   DirSep = System.DirectorySeparator;
+  {$IFDEF UNIX}
+   CDrive = '';
+  {$ELSE}
+   CDrive = 'C:';
+  {$ENDIF}
 {$ENDIF}
  HasErrors: boolean = false;
 
