@@ -373,7 +373,8 @@ procedure TLaTeXWriter.WriteDoc;
 var
   i : Integer;
   DocNode : TDocNode;
-  
+  L : TstringList;
+    
 begin
   PackageName := LowerCase(Copy(Package.Name, 2, 255));
   If (Engine.OutPut='') then
@@ -384,17 +385,27 @@ begin
     WriteLn('% This file has been created automatically by FPDoc,');
     WriteLn('% (c) 2000-2003 by Areca Systems GmbH / Sebastian Guenther (sg@freepascal.org)');
     ProcessPackage;
-    for i := 0 to Package.Modules.Count - 1 do
-    begin
-      Module := TPasModule(Package.Modules[i]);
-      ModuleName := LowerCase(Module.Name);
-      WriteLn('');
-      WriteLnF('\chapter{%s}', [EscapeTex(Format(SDocUnitTitle, [Module.Name]))]);
-      WriteLabel(Module);
-      DocNode:=Engine.FindDocNode(Module);
-      If Assigned(DocNode) then
-        ProcessTopics(DocNode,1);
-      ProcessSection(Module.InterfaceSection);
+    L:=TStringList.Create;
+    Try
+      L.Sorted:=True;
+      // Sort modules.
+      For I:=0 to Package.Modules.Count-1 do 
+        L.AddObject(TPasModule(Package.Modules[i]).Name,TPasModule(Package.Modules[i]));
+      // Now create table.
+      for i:=0 to L.Count - 1 do
+        begin
+        Module := TPasModule(L.Objects[i]);
+        ModuleName := LowerCase(Module.Name);
+        WriteLn('');
+        WriteLnF('\chapter{%s}', [EscapeTex(Format(SDocUnitTitle, [Module.Name]))]);
+        WriteLabel(Module);
+        DocNode:=Engine.FindDocNode(Module);
+        If Assigned(DocNode) then
+          ProcessTopics(DocNode,1);
+        ProcessSection(Module.InterfaceSection);
+        end;
+    Finally
+      L.Free;
     end;
   finally
     Close(f);
@@ -598,7 +609,7 @@ end;
 
 procedure TLaTeXWriter.DescrBeginDefinitionList;
 begin
-  WriteLn('\begin{description');
+  WriteLn('\begin{description}');
 end;
 
 procedure TLaTeXWriter.DescrEndDefinitionList;
@@ -1015,18 +1026,27 @@ end;
 procedure TlatexWriter.WriteExample(ADocNode: TDocNode);
 var
   Example: TDOMElement;
+  S : string;
+  
 begin
   if Assigned(ADocNode) then
-  begin
+    begin
     Example := ADocNode.FirstExample;
     while Assigned(Example) do
-    begin
-      WritelnF('\FPCexample{%s}', [Engine.GetExampleFileName(Example)]);
-      if Assigned(Example.NextSibling) then
-        WriteLn('');
+      begin
+      if (Example.NodeType = ELEMENT_NODE) and (Example.NodeName = 'example') then
+        begin
+        if (S<>'') then // not first example, start new paragraph
+          WriteLn('');
+        s:=Engine.GetExampleFileName(Example);
+        If (s<>'') then
+           WritelnF('\FPCexample{%s}', [ChangeFileExt(S,'')]);
+        if Assigned(Example.NextSibling) then
+           WriteLn('');
+        end;  
       Example := TDomElement(Example.NextSibling);   
+      end;
     end;
-  end;
 end;
 
 procedure TLateXWriter.WriteSeeAlso(ADocNode: TDocNode);
@@ -1066,7 +1086,7 @@ begin
         Writeln(',');
       S:=TDomElement(Node)['id'];
       DescrBeginLink(S);
-      Writeln(S);
+      Writeln(EscapeTex(S));
       DescrEndLink();
       end;  
     Node:=Node.NextSibling;  
@@ -1456,7 +1476,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2004-07-23 23:39:48  michael
+  Revision 1.7  2004-11-15 18:01:16  michael
+  + Example fixes, and more escape seqences
+
+  Revision 1.6  2004/07/23 23:39:48  michael
   + Some fixes in verbatim writing
 
   Revision 1.5  2004/06/06 10:53:02  michael
