@@ -482,15 +482,19 @@ implementation
                       location.registerlow:=rg.getregisterint(exprasmlist,OS_INT);
                       location.registerhigh:=rg.getregisterint(exprasmlist,OS_INT);
 {$else newra}
-                      cg.a_reg_alloc(exprasmlist,r);
-                      cg.a_reg_alloc(exprasmlist,hregister);
                       if RS_ACCUMULATOR in rg.unusedregsint then
                         location.registerlow:=rg.getexplicitregisterint(exprasmlist,NR_ACCUMULATOR)
                       else
-                        location.registerlow:=rg.getregisterint(exprasmlist,OS_INT);
+                        cg.a_reg_alloc(exprasmlist,r);
                       if RS_ACCUMULATORHIGH in rg.unusedregsint then
                         location.registerhigh:=rg.getexplicitregisterint(exprasmlist,NR_ACCUMULATORHIGH)
                       else
+                        cg.a_reg_alloc(exprasmlist,hregister);
+                      { do this after both low,high are allocated, else it is possible that
+                        low will be loaded in the register that still contains high }
+                      if location.registerlow.number=NR_NO then
+                        location.registerlow:=rg.getregisterint(exprasmlist,OS_INT);
+                      if location.registerhigh.number=NR_NO then
                         location.registerhigh:=rg.getregisterint(exprasmlist,OS_INT);
 {$endif newra}
                       cg64.a_load64_reg_reg(exprasmlist,joinreg64(r,hregister),
@@ -1125,7 +1129,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.63  2003-05-13 19:14:41  peter
+  Revision 1.64  2003-05-14 19:36:54  jonas
+    * patch from Peter for int64 function results
+
+  Revision 1.63  2003/05/13 19:14:41  peter
     * failn removed
     * inherited result code check moven to pexpr
 

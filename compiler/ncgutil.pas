@@ -410,10 +410,26 @@ implementation
                  (TCGSize2Size[dst_size]=TCGSize2Size[l.size]) then
                hregister:=l.register
               else
-               hregister:=rg.getregisterint(list,OS_INT);
+               begin
+                 hregister.enum:=R_INTREGISTER;
+                 hregister.number:=NR_NO;
+               end;
             end;
            if hregister.enum<>R_INTREGISTER then
             internalerror(200302022);
+           { need to load into address register? }
+           if (dst_size=OS_ADDR) then
+             begin
+               if (hregister.number=NR_NO) or
+                  (not rg.isaddressregister(hregister)) then
+                 hregister:=rg.getaddressregister(list);
+             end
+           else
+             begin
+               if (hregister.number=NR_NO) {or
+                  rg.isaddressregister(hregister)} then
+                 hregister:=rg.getregisterint(list,dst_size);
+             end;
            hregister.number:=(hregister.number and not $ff) or cgsize2subreg(dst_size);
            { load value in new register }
            case l.loc of
@@ -448,6 +464,15 @@ implementation
                     l.size:=dst_size;
                   end;
                  cg.a_load_loc_reg(list,l,hregister);
+                 { Release old register when the superregister is changed }
+                 if (l.loc=LOC_REGISTER) and
+                    (l.register.number shr 8<>hregister.number shr 8) then
+                   begin
+                     if rg.isaddressregister(l.register) then
+                       rg.ungetaddressregister(list,l.register)
+                     else
+                       rg.ungetregisterint(list,l.register);
+                   end;
                end;
            end;
            location_reset(l,LOC_REGISTER,dst_size);
@@ -1847,7 +1872,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.102  2003-05-13 19:14:41  peter
+  Revision 1.103  2003-05-14 19:37:25  jonas
+    * patch from Peter for int64 function results
+
+  Revision 1.102  2003/05/13 19:14:41  peter
     * failn removed
     * inherited result code check moven to pexpr
 
