@@ -781,18 +781,17 @@ End;
 
 Procedure Read_AnsiString(var f : TextRec;var s : AnsiString);[Public,Alias:'FPC_READ_TEXT_ANSISTR'];
 var
-  len : longint;
+  slen,len : longint;
 Begin
-{ Delete the string }
-  Setlength(S,0);
+  slen:=0;
   Repeat
     // SetLength will reallocate the length.
-    SetLength(S,Length(S)+255);
-    len:=ReadPCharLen(f,pchar(Pointer(S)+Length(S)-255),255);
-    If Len<255 then
-      // Set actual length
-      SetLength(S,Length(S)-255+Len);
+    SetLength(S,slen+255);
+    len:=ReadPCharLen(f,pchar(Pointer(S)+slen),255);
+    inc(slen,len);
   Until len<255;
+  // Set actual length
+  SetLength(S,Slen);
 End;
 
 
@@ -950,7 +949,10 @@ end;
 
 {
   $Log$
-  Revision 1.57  1999-09-10 17:14:43  peter
+  Revision 1.58  1999-10-04 20:42:45  peter
+    * read ansistring speedup (no length(s) calls anymore)
+
+  Revision 1.57  1999/09/10 17:14:43  peter
     * remove CR when reading one char less then size
 
   Revision 1.56  1999/09/10 15:40:33  peter
