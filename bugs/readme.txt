@@ -348,6 +348,7 @@ Fixed bugs:
   bug0291.pp   @procvar in tp mode bugs                             OK 0.99.13 (PFV)
   bug0292.pp   objects not finalized when disposed                  OK 0.99.13 (FK)
   bug0295.pp   forward type definition is resolved wrong            OK 0.99.13 (PFV)
+  bug0296.pp   exit(string) does not work (web form bug 613)        OK 0.99.13 (PM)
 
 
 Unproducable bugs:
@@ -385,4 +386,7 @@ bug0263.pp   export directive is not necessary in delphi anymore
 bug0265.pp   nested proc with for-counter in other lex level
 bug0281.pp   dup id checking with property is wrong
 bug0293.pp   no error with variable name = type name
-bug0296.pp   exit(string) does not work (web form bug 613)
+bug0297.pp   calling of interrupt procedure allowed but wrong code generated
+bug0298.pp   l1+l2:=l1+l2 gives no error
+bug0299.pp   passing Array[0..1] of char by value to proc leads to problems
+bug0300.pp   crash if method on non existing object is parsed (form bug 651)
