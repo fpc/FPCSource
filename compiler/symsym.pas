@@ -1051,7 +1051,7 @@ implementation
         while assigned(pd) do
          begin
            eq:=proc_to_procvar_equal(pd^.def,d);
-           if eq>te_incompatible then
+           if eq>=te_equal then
             begin
               { multiple procvars with the same equal level }
               if assigned(bestpd) and
@@ -2479,7 +2479,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.77  2002-11-25 18:43:34  carl
+  Revision 1.78  2002-11-27 02:34:20  peter
+    * only find real equal procvars
+
+  Revision 1.77  2002/11/25 18:43:34  carl
    - removed the invalid if <> checking (Delphi is strange on this)
    + implemented abstract warning on instance creation of class with
       abstract methods.
