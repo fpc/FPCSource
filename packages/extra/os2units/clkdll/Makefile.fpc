@@ -1,0 +1,17 @@
+#
+#   Makefile.fpc for CLKDLL.DLL interface unit
+#
+
+[package]
+name=clkdll
+version=1.0.8
+
+[target]
+units=clkdll
+examples=clktest
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../../..

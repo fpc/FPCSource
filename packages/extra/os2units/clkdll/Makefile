@@ -90,7 +90,7 @@ endif
 endif
 export ECHO
 endif
-override DEFAULT_FPCDIR=../../..
+override DEFAULT_FPCDIR=../../../..
 ifndef FPC
 ifdef PP
 FPC=$(PP)
@@ -203,9 +203,11 @@ else
 UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
-override TARGET_DIRS+=ftpapi mmtk hwvideo lvm clkdll
+override PACKAGE_NAME=clkdll
+override PACKAGE_VERSION=1.0.8
+override TARGET_UNITS+=clkdll
+override TARGET_EXAMPLES+=clktest
 override INSTALL_FPCPACKAGE=y
-override INSTALL_FPCSUBDIR=packages
 ifdef REQUIRE_UNITSDIR
 override UNITSDIR+=$(REQUIRE_UNITSDIR)
 endif
@@ -1137,10 +1139,210 @@ ifeq ($(FULL_SOURCE),$(FULL_TARGET))
 EXECPPAS:=@$(PPAS)
 endif
 endif
+.PHONY: fpc_units
+ifdef TARGET_UNITS
+override ALLTARGET+=fpc_units
+override UNITPPUFILES=$(addsuffix $(PPUEXT),$(TARGET_UNITS))
+override IMPLICITUNITPPUFILES=$(addsuffix $(PPUEXT),$(TARGET_IMPLICITUNITS))
+override INSTALLPPUFILES+=$(UNITPPUFILES) $(IMPLICITUNITPPUFILES)
+override CLEANPPUFILES+=$(UNITPPUFILES) $(IMPLICITUNITPPUFILES)
+endif
+fpc_units: $(UNITPPUFILES)
 ifdef TARGET_RSTS
 override RSTFILES=$(addsuffix $(RSTEXT),$(TARGET_RSTS))
 override CLEANRSTFILES+=$(RSTFILES)
 endif
+.PHONY: fpc_examples
+ifdef TARGET_EXAMPLES
+HASEXAMPLES=1
+override EXAMPLESOURCEFILES:=$(wildcard $(addsuffix .pp,$(TARGET_EXAMPLES)) $(addsuffix .pas,$(TARGET_EXAMPLES)))
+override EXAMPLEFILES:=$(addsuffix $(EXEEXT),$(TARGET_EXAMPLES))
+override EXAMPLEOFILES:=$(addsuffix $(OEXT),$(TARGET_EXAMPLES)) $(addprefix $(STATICLIBPREFIX),$(addsuffix $(STATICLIBEXT),$(TARGET_EXAMPLES)))
+override CLEANEXEFILES+=$(EXAMPLEFILES) $(EXAMPLEOFILES)
+ifeq ($(OS_TARGET),os2)
+override CLEANEXEFILES+=$(addsuffix $(AOUTEXT),$(TARGET_EXAMPLES))
+endif
+ifeq ($(OS_TARGET),emx)
+override CLEANEXEFILES+=$(addsuffix $(AOUTEXT),$(TARGET_EXAMPLES))
+endif
+endif
+ifdef TARGET_EXAMPLEDIRS
+HASEXAMPLES=1
+endif
+fpc_examples: all $(EXAMPLEFILES) $(addsuffix _all,$(TARGET_EXAMPLEDIRS))
+.PHONY: fpc_all fpc_smart fpc_debug fpc_release
+$(FPCMADE): $(ALLDEPENDENCIES) $(ALLTARGET)
+	@$(ECHOREDIR) Compiled > $(FPCMADE)
+fpc_all: $(FPCMADE)
+fpc_smart:
+	$(MAKE) all LINKSMART=1 CREATESMART=1
+fpc_debug:
+	$(MAKE) all DEBUG=1
+fpc_release:
+	$(MAKE) all RELEASE=1
+.SUFFIXES: $(EXEEXT) $(PPUEXT) $(OEXT) .pas .pp .rc .res
+%$(PPUEXT): %.pp
+	$(COMPILER) $<
+	$(EXECPPAS)
+%$(PPUEXT): %.pas
+	$(COMPILER) $<
+	$(EXECPPAS)
+%$(EXEEXT): %.pp
+	$(COMPILER) $<
+	$(EXECPPAS)
+%$(EXEEXT): %.pas
+	$(COMPILER) $<
+	$(EXECPPAS)
+%.res: %.rc
+	windres -i $< -o $@
+vpath %.pp $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
+vpath %.pas $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
+vpath %$(PPUEXT) $(COMPILER_UNITTARGETDIR)
+.PHONY: fpc_install fpc_sourceinstall fpc_exampleinstall
+ifdef INSTALL_UNITS
+override INSTALLPPUFILES+=$(addsuffix $(PPUEXT),$(INSTALL_UNITS))
+endif
+ifdef INSTALL_BUILDUNIT
+override INSTALLPPUFILES:=$(filter-out $(INSTALL_BUILDUNIT)$(PPUEXT),$(INSTALLPPUFILES))
+endif
+ifdef INSTALLPPUFILES
+override INSTALLPPULINKFILES:=$(subst $(PPUEXT),$(OEXT),$(INSTALLPPUFILES)) $(addprefix $(STATICLIBPREFIX),$(subst $(PPUEXT),$(STATICLIBEXT),$(INSTALLPPUFILES)))
+override INSTALLPPUFILES:=$(addprefix $(UNITTARGETDIRPREFIX),$(INSTALLPPUFILES))
+override INSTALLPPULINKFILES:=$(wildcard $(addprefix $(UNITTARGETDIRPREFIX),$(INSTALLPPULINKFILES)))
+override INSTALL_CREATEPACKAGEFPC=1
+endif
+ifdef INSTALLEXEFILES
+override INSTALLEXEFILES:=$(addprefix $(TARGETDIRPREFIX),$(INSTALLEXEFILES))
+endif
+fpc_install: all $(INSTALLTARGET)
+ifdef INSTALLEXEFILES
+	$(MKDIR) $(INSTALL_BINDIR)
+ifdef UPXPROG
+	-$(UPXPROG) $(INSTALLEXEFILES)
+endif
+	$(INSTALLEXE) $(INSTALLEXEFILES) $(INSTALL_BINDIR)
+endif
+ifdef INSTALL_CREATEPACKAGEFPC
+ifdef FPCMAKE
+ifdef PACKAGE_VERSION
+ifneq ($(wildcard Makefile.fpc),)
+	$(FPCMAKE) -p -T$(OS_TARGET) Makefile.fpc
+	$(MKDIR) $(INSTALL_UNITDIR)
+	$(INSTALL) Package.fpc $(INSTALL_UNITDIR)
+endif
+endif
+endif
+endif
+ifdef INSTALLPPUFILES
+	$(MKDIR) $(INSTALL_UNITDIR)
+	$(INSTALL) $(INSTALLPPUFILES) $(INSTALL_UNITDIR)
+ifneq ($(INSTALLPPULINKFILES),)
+	$(INSTALL) $(INSTALLPPULINKFILES) $(INSTALL_UNITDIR)
+endif
+ifneq ($(wildcard $(LIB_FULLNAME)),)
+	$(MKDIR) $(INSTALL_LIBDIR)
+	$(INSTALL) $(LIB_FULLNAME) $(INSTALL_LIBDIR)
+ifdef inUnix
+	ln -sf $(LIB_FULLNAME) $(INSTALL_LIBDIR)/$(LIB_NAME)
+endif
+endif
+endif
+ifdef INSTALL_FILES
+	$(MKDIR) $(INSTALL_DATADIR)
+	$(INSTALL) $(INSTALL_FILES) $(INSTALL_DATADIR)
+endif
+fpc_sourceinstall: distclean
+	$(MKDIR) $(INSTALL_SOURCEDIR)
+	$(COPYTREE) $(BASEDIR)/* $(INSTALL_SOURCEDIR)
+fpc_exampleinstall: $(addsuffix _distclean,$(TARGET_EXAMPLEDIRS))
+ifdef HASEXAMPLES
+	$(MKDIR) $(INSTALL_EXAMPLEDIR)
+endif
+ifdef EXAMPLESOURCEFILES
+	$(COPY) $(EXAMPLESOURCEFILES) $(INSTALL_EXAMPLEDIR)
+endif
+ifdef TARGET_EXAMPLEDIRS
+	$(COPYTREE) $(addsuffix /*,$(TARGET_EXAMPLEDIRS)) $(INSTALL_EXAMPLEDIR)
+endif
+.PHONY: fpc_distinstall
+fpc_distinstall: install exampleinstall
+.PHONY: fpc_zipinstall fpc_zipsourceinstall fpc_zipexampleinstall
+ifndef PACKDIR
+ifndef inUnix
+PACKDIR=$(BASEDIR)/../fpc-pack
+else
+PACKDIR=/tmp/fpc-pack
+endif
+endif
+ifndef ZIPNAME
+ifdef DIST_ZIPNAME
+ZIPNAME=$(DIST_ZIPNAME)
+else
+ZIPNAME=$(ZIPPREFIX)$(PACKAGE_NAME)$(ZIPSUFFIX)
+endif
+endif
+ifndef ZIPTARGET
+ifdef DIST_ZIPTARGET
+ZIPTARGET=DIST_ZIPTARGET
+else
+ZIPTARGET=install
+endif
+endif
+ifndef USEZIP
+ifdef inUnix
+USETAR=1
+endif
+endif
+ifndef inUnix
+USEZIPWRAPPER=1
+endif
+ifdef USEZIPWRAPPER
+ZIPPATHSEP=$(PATHSEP)
+ZIPWRAPPER=$(subst /,$(PATHSEP),$(DIST_DESTDIR)/fpczip$(BATCHEXT))
+else
+ZIPPATHSEP=/
+endif
+ZIPCMD_CDPACK:=cd $(subst /,$(ZIPPATHSEP),$(PACKDIR))
+ZIPCMD_CDBASE:=cd $(subst /,$(ZIPPATHSEP),$(BASEDIR))
+ifdef USETAR
+ZIPDESTFILE:=$(DIST_DESTDIR)/$(ZIPNAME)$(TAREXT)
+ZIPCMD_ZIP:=$(TARPROG) cf$(TAROPT) $(ZIPDESTFILE) *
+else
+ZIPDESTFILE:=$(DIST_DESTDIR)/$(ZIPNAME)$(ZIPEXT)
+ZIPCMD_ZIP:=$(subst /,$(ZIPPATHSEP),$(ZIPPROG)) -Dr $(ZIPOPT) $(ZIPDESTFILE) *
+endif
+fpc_zipinstall:
+	$(MAKE) $(ZIPTARGET) INSTALL_PREFIX=$(PACKDIR) ZIPINSTALL=1
+	$(MKDIR) $(DIST_DESTDIR)
+	$(DEL) $(ZIPDESTFILE)
+ifdef USEZIPWRAPPER
+ifneq ($(ECHOREDIR),echo)
+	$(ECHOREDIR) -e "$(subst \,\\,$(ZIPCMD_CDPACK))" > $(ZIPWRAPPER)
+	$(ECHOREDIR) -e "$(subst \,\\,$(ZIPCMD_ZIP))" >> $(ZIPWRAPPER)
+	$(ECHOREDIR) -e "$(subst \,\\,$(ZIPCMD_CDBASE))" >> $(ZIPWRAPPER)
+else
+	echo $(ZIPCMD_CDPACK) > $(ZIPWRAPPER)
+	echo $(ZIPCMD_ZIP) >> $(ZIPWRAPPER)
+	echo $(ZIPCMD_CDBASE) >> $(ZIPWRAPPER)
+endif
+ifdef inUnix
+	/bin/sh $(ZIPWRAPPER)
+else
+	$(ZIPWRAPPER)
+endif
+	$(DEL) $(ZIPWRAPPER)
+else
+	$(ZIPCMD_CDPACK) ; $(ZIPCMD_ZIP) ; $(ZIPCMD_CDBASE)
+endif
+	$(DELTREE) $(PACKDIR)
+fpc_zipsourceinstall:
+	$(MAKE) fpc_zipinstall ZIPTARGET=sourceinstall ZIPSUFFIX=src
+fpc_zipexampleinstall:
+ifdef HASEXAMPLES
+	$(MAKE) fpc_zipinstall ZIPTARGET=exampleinstall ZIPSUFFIX=exm
+endif
+fpc_zipdistinstall:
+	$(MAKE) fpc_zipinstall ZIPTARGET=distinstall
 .PHONY: fpc_clean fpc_cleanall fpc_distclean
 ifdef EXEFILES
 override CLEANEXEFILES:=$(addprefix $(TARGETDIRPREFIX),$(CLEANEXEFILES))
@@ -1289,245 +1491,25 @@ endif
 fpc_makefile_sub2: $(addsuffix _makefile_dirs,$(TARGET_DIRS) $(TARGET_EXAMPLEDIRS))
 fpc_makefile_dirs: fpc_makefile_sub1 fpc_makefile_sub2
 fpc_makefiles: fpc_makefile fpc_makefile_dirs
-TARGET_DIRS_FTPAPI=1
-TARGET_DIRS_MMTK=1
-TARGET_DIRS_HWVIDEO=1
-TARGET_DIRS_LVM=1
-TARGET_DIRS_CLKDLL=1
-ifdef TARGET_DIRS_FTPAPI
-ftpapi_all:
-	$(MAKE) -C ftpapi all
-ftpapi_debug:
-	$(MAKE) -C ftpapi debug
-ftpapi_smart:
-	$(MAKE) -C ftpapi smart
-ftpapi_release:
-	$(MAKE) -C ftpapi release
-ftpapi_examples:
-	$(MAKE) -C ftpapi examples
-ftpapi_shared:
-	$(MAKE) -C ftpapi shared
-ftpapi_install:
-	$(MAKE) -C ftpapi install
-ftpapi_sourceinstall:
-	$(MAKE) -C ftpapi sourceinstall
-ftpapi_exampleinstall:
-	$(MAKE) -C ftpapi exampleinstall
-ftpapi_distinstall:
-	$(MAKE) -C ftpapi distinstall
-ftpapi_zipinstall:
-	$(MAKE) -C ftpapi zipinstall
-ftpapi_zipsourceinstall:
-	$(MAKE) -C ftpapi zipsourceinstall
-ftpapi_zipexampleinstall:
-	$(MAKE) -C ftpapi zipexampleinstall
-ftpapi_zipdistinstall:
-	$(MAKE) -C ftpapi zipdistinstall
-ftpapi_clean:
-	$(MAKE) -C ftpapi clean
-ftpapi_distclean:
-	$(MAKE) -C ftpapi distclean
-ftpapi_cleanall:
-	$(MAKE) -C ftpapi cleanall
-ftpapi_info:
-	$(MAKE) -C ftpapi info
-ftpapi_makefiles:
-	$(MAKE) -C ftpapi makefiles
-ftpapi:
-	$(MAKE) -C ftpapi all
-.PHONY: ftpapi_all ftpapi_debug ftpapi_smart ftpapi_release ftpapi_examples ftpapi_shared ftpapi_install ftpapi_sourceinstall ftpapi_exampleinstall ftpapi_distinstall ftpapi_zipinstall ftpapi_zipsourceinstall ftpapi_zipexampleinstall ftpapi_zipdistinstall ftpapi_clean ftpapi_distclean ftpapi_cleanall ftpapi_info ftpapi_makefiles ftpapi
-endif
-ifdef TARGET_DIRS_MMTK
-mmtk_all:
-	$(MAKE) -C mmtk all
-mmtk_debug:
-	$(MAKE) -C mmtk debug
-mmtk_smart:
-	$(MAKE) -C mmtk smart
-mmtk_release:
-	$(MAKE) -C mmtk release
-mmtk_examples:
-	$(MAKE) -C mmtk examples
-mmtk_shared:
-	$(MAKE) -C mmtk shared
-mmtk_install:
-	$(MAKE) -C mmtk install
-mmtk_sourceinstall:
-	$(MAKE) -C mmtk sourceinstall
-mmtk_exampleinstall:
-	$(MAKE) -C mmtk exampleinstall
-mmtk_distinstall:
-	$(MAKE) -C mmtk distinstall
-mmtk_zipinstall:
-	$(MAKE) -C mmtk zipinstall
-mmtk_zipsourceinstall:
-	$(MAKE) -C mmtk zipsourceinstall
-mmtk_zipexampleinstall:
-	$(MAKE) -C mmtk zipexampleinstall
-mmtk_zipdistinstall:
-	$(MAKE) -C mmtk zipdistinstall
-mmtk_clean:
-	$(MAKE) -C mmtk clean
-mmtk_distclean:
-	$(MAKE) -C mmtk distclean
-mmtk_cleanall:
-	$(MAKE) -C mmtk cleanall
-mmtk_info:
-	$(MAKE) -C mmtk info
-mmtk_makefiles:
-	$(MAKE) -C mmtk makefiles
-mmtk:
-	$(MAKE) -C mmtk all
-.PHONY: mmtk_all mmtk_debug mmtk_smart mmtk_release mmtk_examples mmtk_shared mmtk_install mmtk_sourceinstall mmtk_exampleinstall mmtk_distinstall mmtk_zipinstall mmtk_zipsourceinstall mmtk_zipexampleinstall mmtk_zipdistinstall mmtk_clean mmtk_distclean mmtk_cleanall mmtk_info mmtk_makefiles mmtk
-endif
-ifdef TARGET_DIRS_HWVIDEO
-hwvideo_all:
-	$(MAKE) -C hwvideo all
-hwvideo_debug:
-	$(MAKE) -C hwvideo debug
-hwvideo_smart:
-	$(MAKE) -C hwvideo smart
-hwvideo_release:
-	$(MAKE) -C hwvideo release
-hwvideo_examples:
-	$(MAKE) -C hwvideo examples
-hwvideo_shared:
-	$(MAKE) -C hwvideo shared
-hwvideo_install:
-	$(MAKE) -C hwvideo install
-hwvideo_sourceinstall:
-	$(MAKE) -C hwvideo sourceinstall
-hwvideo_exampleinstall:
-	$(MAKE) -C hwvideo exampleinstall
-hwvideo_distinstall:
-	$(MAKE) -C hwvideo distinstall
-hwvideo_zipinstall:
-	$(MAKE) -C hwvideo zipinstall
-hwvideo_zipsourceinstall:
-	$(MAKE) -C hwvideo zipsourceinstall
-hwvideo_zipexampleinstall:
-	$(MAKE) -C hwvideo zipexampleinstall
-hwvideo_zipdistinstall:
-	$(MAKE) -C hwvideo zipdistinstall
-hwvideo_clean:
-	$(MAKE) -C hwvideo clean
-hwvideo_distclean:
-	$(MAKE) -C hwvideo distclean
-hwvideo_cleanall:
-	$(MAKE) -C hwvideo cleanall
-hwvideo_info:
-	$(MAKE) -C hwvideo info
-hwvideo_makefiles:
-	$(MAKE) -C hwvideo makefiles
-hwvideo:
-	$(MAKE) -C hwvideo all
-.PHONY: hwvideo_all hwvideo_debug hwvideo_smart hwvideo_release hwvideo_examples hwvideo_shared hwvideo_install hwvideo_sourceinstall hwvideo_exampleinstall hwvideo_distinstall hwvideo_zipinstall hwvideo_zipsourceinstall hwvideo_zipexampleinstall hwvideo_zipdistinstall hwvideo_clean hwvideo_distclean hwvideo_cleanall hwvideo_info hwvideo_makefiles hwvideo
-endif
-ifdef TARGET_DIRS_LVM
-lvm_all:
-	$(MAKE) -C lvm all
-lvm_debug:
-	$(MAKE) -C lvm debug
-lvm_smart:
-	$(MAKE) -C lvm smart
-lvm_release:
-	$(MAKE) -C lvm release
-lvm_examples:
-	$(MAKE) -C lvm examples
-lvm_shared:
-	$(MAKE) -C lvm shared
-lvm_install:
-	$(MAKE) -C lvm install
-lvm_sourceinstall:
-	$(MAKE) -C lvm sourceinstall
-lvm_exampleinstall:
-	$(MAKE) -C lvm exampleinstall
-lvm_distinstall:
-	$(MAKE) -C lvm distinstall
-lvm_zipinstall:
-	$(MAKE) -C lvm zipinstall
-lvm_zipsourceinstall:
-	$(MAKE) -C lvm zipsourceinstall
-lvm_zipexampleinstall:
-	$(MAKE) -C lvm zipexampleinstall
-lvm_zipdistinstall:
-	$(MAKE) -C lvm zipdistinstall
-lvm_clean:
-	$(MAKE) -C lvm clean
-lvm_distclean:
-	$(MAKE) -C lvm distclean
-lvm_cleanall:
-	$(MAKE) -C lvm cleanall
-lvm_info:
-	$(MAKE) -C lvm info
-lvm_makefiles:
-	$(MAKE) -C lvm makefiles
-lvm:
-	$(MAKE) -C lvm all
-.PHONY: lvm_all lvm_debug lvm_smart lvm_release lvm_examples lvm_shared lvm_install lvm_sourceinstall lvm_exampleinstall lvm_distinstall lvm_zipinstall lvm_zipsourceinstall lvm_zipexampleinstall lvm_zipdistinstall lvm_clean lvm_distclean lvm_cleanall lvm_info lvm_makefiles lvm
-endif
-ifdef TARGET_DIRS_CLKDLL
-clkdll_all:
-	$(MAKE) -C clkdll all
-clkdll_debug:
-	$(MAKE) -C clkdll debug
-clkdll_smart:
-	$(MAKE) -C clkdll smart
-clkdll_release:
-	$(MAKE) -C clkdll release
-clkdll_examples:
-	$(MAKE) -C clkdll examples
-clkdll_shared:
-	$(MAKE) -C clkdll shared
-clkdll_install:
-	$(MAKE) -C clkdll install
-clkdll_sourceinstall:
-	$(MAKE) -C clkdll sourceinstall
-clkdll_exampleinstall:
-	$(MAKE) -C clkdll exampleinstall
-clkdll_distinstall:
-	$(MAKE) -C clkdll distinstall
-clkdll_zipinstall:
-	$(MAKE) -C clkdll zipinstall
-clkdll_zipsourceinstall:
-	$(MAKE) -C clkdll zipsourceinstall
-clkdll_zipexampleinstall:
-	$(MAKE) -C clkdll zipexampleinstall
-clkdll_zipdistinstall:
-	$(MAKE) -C clkdll zipdistinstall
-clkdll_clean:
-	$(MAKE) -C clkdll clean
-clkdll_distclean:
-	$(MAKE) -C clkdll distclean
-clkdll_cleanall:
-	$(MAKE) -C clkdll cleanall
-clkdll_info:
-	$(MAKE) -C clkdll info
-clkdll_makefiles:
-	$(MAKE) -C clkdll makefiles
-clkdll:
-	$(MAKE) -C clkdll all
-.PHONY: clkdll_all clkdll_debug clkdll_smart clkdll_release clkdll_examples clkdll_shared clkdll_install clkdll_sourceinstall clkdll_exampleinstall clkdll_distinstall clkdll_zipinstall clkdll_zipsourceinstall clkdll_zipexampleinstall clkdll_zipdistinstall clkdll_clean clkdll_distclean clkdll_cleanall clkdll_info clkdll_makefiles clkdll
-endif
-all: $(addsuffix _all,$(TARGET_DIRS))
-debug: $(addsuffix _debug,$(TARGET_DIRS))
-smart: $(addsuffix _smart,$(TARGET_DIRS))
-release: $(addsuffix _release,$(TARGET_DIRS))
-examples: $(addsuffix _examples,$(TARGET_DIRS))
-shared: $(addsuffix _shared,$(TARGET_DIRS))
-install: $(addsuffix _install,$(TARGET_DIRS))
-sourceinstall: $(addsuffix _sourceinstall,$(TARGET_DIRS))
-exampleinstall: $(addsuffix _exampleinstall,$(TARGET_DIRS))
-distinstall: $(addsuffix _distinstall,$(TARGET_DIRS))
-zipinstall: $(addsuffix _zipinstall,$(TARGET_DIRS))
-zipsourceinstall: $(addsuffix _zipsourceinstall,$(TARGET_DIRS))
-zipexampleinstall: $(addsuffix _zipexampleinstall,$(TARGET_DIRS))
-zipdistinstall: $(addsuffix _zipdistinstall,$(TARGET_DIRS))
-clean: $(addsuffix _clean,$(TARGET_DIRS))
-distclean: $(addsuffix _distclean,$(TARGET_DIRS))
-cleanall: $(addsuffix _cleanall,$(TARGET_DIRS))
+all: fpc_all
+debug: fpc_debug
+smart: fpc_smart
+release: fpc_release
+examples: fpc_examples
+shared:
+install: fpc_install
+sourceinstall: fpc_sourceinstall
+exampleinstall: fpc_exampleinstall
+distinstall: fpc_distinstall
+zipinstall: fpc_zipinstall
+zipsourceinstall: fpc_zipsourceinstall
+zipexampleinstall: fpc_zipexampleinstall
+zipdistinstall: fpc_zipdistinstall
+clean: fpc_clean
+distclean: fpc_distclean
+cleanall: fpc_cleanall
 info: fpc_info
-makefiles: fpc_makefiles $(addsuffix _makefiles,$(TARGET_DIRS))
+makefiles: fpc_makefiles
 .PHONY: all debug smart release examples shared install sourceinstall exampleinstall distinstall zipinstall zipsourceinstall zipexampleinstall zipdistinstall clean distclean cleanall info makefiles
 ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
