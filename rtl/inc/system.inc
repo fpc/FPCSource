@@ -463,7 +463,7 @@ begin
 end;
 
 
-Procedure HandleErrorAddrFrame (Errno : longint;addr,frame : longint);
+Procedure HandleErrorAddrFrame (Errno : longint;addr,frame : longint);[public,alias:'FPC_BREAK_ERROR'];
 begin
   If pointer(ErrorProc)<>Nil then
     ErrorProc(Errno,pointer(addr),pointer(frame));
@@ -635,7 +635,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2000-08-13 17:55:14  michael
+  Revision 1.6  2000-10-13 12:04:03  peter
+    * FPC_BREAK_ERROR added
+
+  Revision 1.5  2000/08/13 17:55:14  michael
   + Added some delphi compatibility types
 
   Revision 1.4  2000/08/09 19:31:18  marco
@@ -646,5 +649,5 @@ end;
 
   Revision 1.2  2000/07/13 11:33:45  michael
   + removed logs
- 
+
 }
