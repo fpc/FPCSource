@@ -1,7 +1,7 @@
 {
     $Id$
 
-    HTTP: Classes for dealing with HTTP requests
+    HTTPBase: Common HTTP utility declarations and classes
     Copyright (C) 2000-2003 by Sebastian Guenther (sg@freepascal.org)
 
     See the file COPYING.FPC, included in this distribution,
@@ -13,11 +13,11 @@
 }
 
 
-unit HTTP;
+unit HTTPBase;
 
 interface
 
-uses Classes, SSockets, fpAsync;
+uses Classes, fpAsync;
 
 const
 
@@ -197,117 +197,12 @@ type
   end;
 
 
-  TCustomHttpConnection = class
-  protected
-    FManager: TEventLoop;
-    FSocket: TInetSocket;
-    SendBuffer: TAsyncWriteStream;
-    FOnPrepareSending: TNotifyEvent;
-    FOnHeaderSent: TNotifyEvent;
-    FOnStreamSent: TNotifyEvent;
-    FOnPrepareReceiving: TNotifyEvent;
-    FOnHeaderReceived: TNotifyEvent;
-    FOnStreamReceived: TNotifyEvent;
-    FOnDestroy: TNotifyEvent;
-    RecvSize: Integer;	// How many bytes are still to be read. -1 if unknown.
-    DataAvailableNotifyHandle: Pointer;
-    ReceivedHTTPVersion: String;
-
-    procedure HeaderToSendCompleted(Sender: TObject);
-    procedure StreamToSendCompleted(Sender: TObject);
-    procedure ReceivedHeaderCompleted(Sender: TObject);
-    procedure ReceivedHeaderEOF(Sender: TObject);
-    procedure DataAvailable(Sender: TObject);
-    procedure ReceivedStreamCompleted(Sender: TObject);
-
-    property OnPrepareSending: TNotifyEvent read FOnPrepareSending write FOnPrepareSending;
-    property OnHeaderSent: TNotifyEvent read FOnHeaderSent write FOnHeaderSent;
-    property OnStreamSent: TNotifyEvent read FOnStreamSent write FOnStreamSent;
-    property OnPrepareReceiving: TNotifyEvent read FOnPrepareReceiving write FOnPrepareReceiving;
-    property OnHeaderReceived: TNotifyEvent read FOnHeaderReceived write FOnHeaderReceived;
-    property OnStreamReceived: TNotifyEvent read FOnStreamReceived write FOnStreamReceived;
-    property OnDestroy: TNotifyEvent read FOnDestroy write FOnDestroy;
-
-  public
-    HeaderToSend: THttpHeader;
-    StreamToSend: TStream;
-    ReceivedHeader: THttpHeader;
-    ReceivedStream: TStream;
-    DoDestroy: Boolean;
-
-    constructor Create(AManager: TEventLoop; ASocket: TInetSocket);
-    destructor Destroy; override;
-    procedure Receive;
-    procedure Send;
-  end;
-
-  THttpConnection = class(TCustomHttpConnection)
-  public
-    property OnPrepareSending;
-    property OnHeaderSent;
-    property OnStreamSent;
-    property OnPrepareReceiving;
-    property OnHeaderReceived;
-    property OnStreamReceived;
-    property OnDestroy;
-  end;
-
-  {TCustomHTTPClient = class
-  protected
-    FEventLoop: TEventLoop;
-    FSocket: TInetSocket;
-    SendBuffer: TAsyncWriteStream;
-    FOnPrepareSending: TNotifyEvent;
-    FOnHeaderSent: TNotifyEvent;
-    FOnStreamSent: TNotifyEvent;
-    FOnPrepareReceiving: TNotifyEvent;
-    FOnHeaderReceived: TNotifyEvent;
-    FOnStreamReceived: TNotifyEvent;
-    FOnDestroy: TNotifyEvent;
-    RecvSize: Integer;	// How many bytes are still to be read. -1 if unknown.
-    DataAvailableNotifyHandle: Pointer;
-    ReceivedHTTPVersion: String;
-
-    procedure HeaderToSendCompleted(Sender: TObject);
-    procedure StreamToSendCompleted(Sender: TObject);
-    procedure ReceivedHeaderCompleted(Sender: TObject);
-    procedure ReceivedHeaderEOF(Sender: TObject);
-    procedure DataAvailable(Sender: TObject);
-    procedure ReceivedStreamCompleted(Sender: TObject);
-
-    property OnPrepareSending: TNotifyEvent read FOnPrepareSending write FOnPrepareSending;
-    property OnHeaderSent: TNotifyEvent read FOnHeaderSent write FOnHeaderSent;
-    property OnStreamSent: TNotifyEvent read FOnStreamSent write FOnStreamSent;
-    property OnPrepareReceiving: TNotifyEvent read FOnPrepareReceiving write FOnPrepareReceiving;
-    property OnHeaderReceived: TNotifyEvent read FOnHeaderReceived write FOnHeaderReceived;
-    property OnStreamReceived: TNotifyEvent read FOnStreamReceived write FOnStreamReceived;
-    property OnDestroy: TNotifyEvent read FOnDestroy write FOnDestroy;
-
-  public
-    HeaderToSend: THttpHeader;
-    StreamToSend: TStream;
-    ReceivedHeader: THttpHeader;
-    ReceivedStream: TStream;
-    DoDestroy: Boolean;
-
-    constructor Create(AEventLoop: TEventLoop; ASocket: TInetSocket);
-    destructor Destroy; override;
-    procedure Receive;
-    procedure Send;
-  end;}
-
-
-// ===================================================================
-// ===================================================================
-
 implementation
 
 uses SysUtils;
 
 
-// -------------------------------------------------------------------
-//   THttpHeader
-// -------------------------------------------------------------------
+// THttpHeader
 
 procedure THttpHeader.LineReceived(const ALine: String);
 var
@@ -587,206 +482,14 @@ begin
   CodeText := 'OK';
 end;
 
-
-// -------------------------------------------------------------------
-//   TCustomHttpConnection
-// -------------------------------------------------------------------
-
-procedure TCustomHttpConnection.HeaderToSendCompleted(Sender: TObject);
-begin
-  // WriteLn('TCustomHttpConnection.HeaderToSendCompleted');
-  if Assigned(FOnHeaderSent) then
-    FOnHeaderSent(Self);
-  if Assigned(StreamToSend) then
-  begin
-    SendBuffer := TAsyncWriteStream.Create(FManager, FSocket);
-    SendBuffer.CopyFrom(StreamToSend, StreamToSend.Size);
-    SendBuffer.OnBufferSent := @StreamToSendCompleted;
-  end else
-  begin
-    StreamToSendCompleted(nil);
-    if DoDestroy then
-      Self.Free;
-  end;
-end;
-
-procedure TCustomHttpConnection.StreamToSendCompleted(Sender: TObject);
-begin
-  // WriteLn('TCustomHttpConnection.StreamToSendCompleted');
-  if Assigned(FOnStreamSent) then
-    FOnStreamSent(Self);
-  FreeAndNil(SendBuffer);
-  if DoDestroy then
-    Self.Free
-  else
-    Receive;
-end;
-
-procedure TCustomHttpConnection.ReceivedHeaderCompleted(Sender: TObject);
-var
-  BytesInBuffer: Integer;
-  NeedMoreData: Boolean;
-begin
-  // WriteLn('TCustomHttpConnection.ReceivedHeaderCompleted');
-  ReceivedHeader.DataReceived := False;
-  ReceivedHTTPVersion := ReceivedHeader.HttpVersion;
-  BytesInBuffer := ReceivedHeader.Reader.BytesInBuffer;
-  //WriteLn('BytesInBuffer: ', BytesInBuffer, ', Content length: ', ReceivedHeader.ContentLength);
-  if Assigned(FOnHeaderReceived) then
-    FOnHeaderReceived(Self);
-
-  RecvSize := ReceivedHeader.ContentLength;
-  if Assigned(ReceivedStream) then
-  begin
-    if BytesInBuffer = 0 then
-      NeedMoreData := True
-    else
-    begin
-      ReceivedStream.Write(ReceivedHeader.Reader.Buffer^, BytesInBuffer);
-      if RecvSize > 0 then
-        Dec(RecvSize, BytesInBuffer);
-      if BytesInBuffer = ReceivedHeader.ContentLength then
-	NeedMoreData := False
-      else
-        NeedMoreData := (not ReceivedHeader.InheritsFrom(THttpRequestHeader)) or
-	  (THttpRequestHeader(ReceivedHeader).Command <> 'GET');
-    end;
-  end else
-    NeedMoreData := False;
-
-  if NeedMoreData then
-    DataAvailableNotifyHandle :=
-      FManager.SetDataAvailableNotify(FSocket.Handle, @DataAvailable, FSocket)
-  else
-    ReceivedStreamCompleted(nil);
-
-  if DoDestroy then
-    Self.Free;
-end;
-
-procedure TCustomHttpConnection.ReceivedHeaderEOF(Sender: TObject);
-begin
-  Self.Free;
-end;
-
-procedure TCustomHttpConnection.DataAvailable(Sender: TObject);
-var
-  FirstRun: Boolean;
-  ReadNow, BytesRead: Integer;
-  buf: array[0..1023] of Byte;
-begin
-  FirstRun := True;
-  while True do
-  begin
-    if RecvSize >= 0 then
-    begin
-      ReadNow := RecvSize;
-      if ReadNow > 1024 then
-        ReadNow := 1024;
-    end else
-      ReadNow := 1024;
-    BytesRead := FSocket.Read(buf, ReadNow);
-    // WriteLn('TCustomHttpConnection.DataAvailable: Read ', BytesRead, ' bytes; RecvSize=', RecvSize);
-    if BytesRead <= 0 then
-    begin
-      if FirstRun then
-        ReceivedStreamCompleted(nil);
-      break;
-    end;
-    FirstRun := False;
-    ReceivedStream.Write(buf, BytesRead);
-    if RecvSize > 0 then
-      Dec(RecvSize, BytesRead);
-    if RecvSize = 0 then
-    begin
-      ReceivedStreamCompleted(nil);
-      break;
-    end;
-  end;
-  if DoDestroy then
-    Self.Free;
-end;
-
-procedure TCustomHttpConnection.ReceivedStreamCompleted(Sender: TObject);
-begin
-  // WriteLn('TCustomHttpConnection.ReceivedStreamCompleted');
-  if Assigned(DataAvailableNotifyHandle) then
-  begin
-    FManager.ClearDataAvailableNotify(DataAvailableNotifyHandle);
-    DataAvailableNotifyHandle := nil;
-  end;
-  if Assigned(FOnStreamReceived) then
-    FOnStreamReceived(Self);
-  if DoDestroy then
-    Self.Free
-  else
-    Send;
-end;
-
-constructor TCustomHttpConnection.Create(AManager: TEventLoop; ASocket: TInetSocket);
-begin
-  inherited Create;
-  FManager := AManager;
-  FSocket := ASocket;
-end;
-
-destructor TCustomHttpConnection.Destroy;
-begin
-  if Assigned(DataAvailableNotifyHandle) then
-    FManager.ClearDataAvailableNotify(DataAvailableNotifyHandle);
-  if Assigned(OnDestroy) then
-    OnDestroy(Self);
-  FreeAndNil(SendBuffer);
-  inherited Destroy;
-end;
-
-procedure TCustomHttpConnection.Receive;
-begin
-  // Start receiver
-  ReceivedHttpVersion := '';
-  if Assigned(OnPrepareReceiving) then
-    OnPrepareReceiving(Self);
-  if Assigned(ReceivedHeader) then
-  begin
-    ReceivedHeader.OnCompleted := @ReceivedHeaderCompleted;
-    ReceivedHeader.OnEOF := @ReceivedHeaderEOF;
-    ReceivedHeader.AsyncReceive(FManager, FSocket);
-  end;
-end;
-
-procedure TCustomHttpConnection.Send;
-begin
-  // Start sender
-  if Assigned(OnPrepareSending) then
-    OnPrepareSending(Self);
-  if Assigned(HeaderToSend) then
-  begin
-    if ReceivedHttpVersion <> '' then
-    begin
-      HeaderToSend.HttpVersion := ReceivedHttpVersion;
-      ReceivedHttpVersion := '';
-    end;
-    HeaderToSend.OnCompleted := @HeaderToSendCompleted;
-    HeaderToSend.AsyncSend(FManager, FSocket);
-  end;
-end;
-
-
 end.
 
 
 {
   $Log$
-  Revision 1.3  2003-11-22 11:59:19  sg
-  * Many many changes to prepare a shift to using the servlet classes for
-    HTTP servers; this unit will then contain basic HTTP definitions and a
-    client-only class
+  Revision 1.1  2004-01-31 19:13:14  sg
+  * Splittet old HTTP unit into httpbase and httpclient
+  * Many improvements in fpSock (e.g. better disconnection detection)
 
-  Revision 1.2  2003/06/18 19:13:04  sg
-  * Fixed silly typo in THttpHeader.SetHeaderValues
-
-  Revision 1.1  2002/04/25 19:30:29  sg
-  * First version (with exception of the HTTP unit: This is an improved version
-    of the old asyncio HTTP unit, now adapted to fpAsync)
 
 }

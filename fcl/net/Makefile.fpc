@@ -7,11 +7,10 @@ main=fcl
 
 [target]
 units=servlets
-units_linux=fpsock http httpsvlt xmlrpc
-units_freebsd=fpsock http httpsvlt xmlrpc
-units_darwin=fpsock http httpsvlt xmlrpc
-units_netbsd=fpsock http httpsvlt xmlrpc
-units_openbsd=fpsock http httpsvlt xmlrpc
+units_linux=fpsock httpbase httpsvlt xmlrpc
+units_freebsd=fpsock httpbase httpsvlt xmlrpc
+units_netbsd=fpsock httpbase httpsvlt xmlrpc
+units_openbsd=fpsock httpbase httpsvlt xmlrpc
 programs_linux=mkxmlrpc
 programs_freebsd=mkxmlrpc
 programs_darwin=mkxmlrpc

@@ -17,7 +17,7 @@ unit HTTPSvlt;
 
 interface
 
-uses SysUtils, Classes, fpAsync, fpSock, HTTP, Servlets;
+uses SysUtils, Classes, fpAsync, fpSock, HTTPBase, Servlets;
 
 resourcestring
   SErrUnknownMethod = 'Unknown HTTP method "%s" used';
@@ -633,7 +633,11 @@ end.
 
 {
   $Log$
-  Revision 1.3  2003-11-22 12:01:18  sg
+  Revision 1.4  2004-01-31 19:13:14  sg
+  * Splittet old HTTP unit into httpbase and httpclient
+  * Many improvements in fpSock (e.g. better disconnection detection)
+
+  Revision 1.3  2003/11/22 12:01:18  sg
   * Adaptions to new version of HTTP unit: All server functionality now is
     in this unit, and not http.pp anymore
 

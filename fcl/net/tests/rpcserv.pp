@@ -30,6 +30,7 @@ begin
   XMLRPCServlet.ServerClass := ServerClass;
 
   HttpServer := THttpServer.Create(Self);
+  HttpServer.EventLoop := EventLoop;
   if ParamCount = 2 then
     HttpServer.Port := StrToInt(ParamStr(1))
   else
@@ -51,7 +52,7 @@ end;
 procedure TServerApplication.Run;
 begin
   EventLoop.SetDataAvailableNotify(StdInputHandle, @OnKeyboardData, nil);
-  HttpServer.Start(EventLoop);
+  HttpServer.Active := True;
   EventLoop.Run;
 end;
 
