@@ -72,6 +72,11 @@ ifndef LANGUAGE
 LANGUAGE=e
 endif
 
+# Release version ?
+ifdef RELEASE
+OPT=-Xs -OG2p2
+endif
+
 #####################################################################
 # Setup Files Directories
 #####################################################################
@@ -192,13 +197,13 @@ endif
 # set correct defines (also needed by mkdep)
 PPDEFS:=-d$(CPU) -dGDB -dFPC
 
+# for i386 also insert MMX support
+ifdef i386
+PPDEFS:=$(PPDEFS) -dSUPPORT_MMX
+endif
+
 # Set the needed compiler options
 PPOPTS:=$(OPT) $(LOCALOPT) $(PPDEFS) -Sg -T$(TARGET)
-
-# for win32 create at least 8 mb heap
-ifdef Win32
-PPOPTS:=$(PPOPTS) -Ch8000000
-endif
 
 # Unitdir specified ?
 ifneq ("$(UNITDIR)", "")
@@ -213,6 +218,9 @@ endif
 # Create the whole compiler commandline
 COMPILER=$(PP) $(PPOPTS)
 
+# RTL options
+RTLOPTS=$(OPT) $(RTLOPT)
+
 #####################################################################
 # Setup os-independent filenames
 #####################################################################
@@ -225,6 +233,7 @@ TEMPNAME1=ppc1$(EXEEXT)
 TEMPNAME2=ppc2$(EXEEXT)
 TEMPNAME3=ppc3$(EXEEXT)
 MAKEDEP=mkdep$(EXEEXT)
+MSG2INC=msg2inc$(EXEEXT)
 
 PASFILES:=$(wildcard *.pas)
 INCFILES:=$(wildcard *.inc)
@@ -242,7 +251,7 @@ MSGFILES:=$(wildcard *.msg)
 	 diff diff3 patch rtl toflor replacediff3 restorediff3 \
 	 test rtlzip rtlclean \
 
-# also call ppas if with command option -s 
+# also call ppas if with command option -s
 ifeq (,$(findstring -s ,$(COMPILER)))
 EXECPPAS=
 else
@@ -284,13 +293,14 @@ next :
 else
 next :
 	$(MAKE) clean
-	$(MAKE) -C $(UNITDIR) clean
-	$(MAKE) -C $(UNITDIR) 'PP=$(COMPILERDIR)/$(PP)' all
+	$(MAKE) -C $(UNITDIR) libsclean
+	$(MAKE) -C $(UNITDIR) 'PP=$(COMPILERDIR)/$(PP)' 'OPT=$(RTLOPTS)' all
 	$(MAKE) all
 endif
 
 clean :
-	-rm -f *.o *.ppu *.ppw *.s $(EXENAME)
+	-rm -rf *.sl
+	-rm -f *.a *.o *.ppu *.ppw *.s $(EXENAME)
 
 distclean: clean
 	-rm -f $(TEMPNAME) $(TEMPNAME1) $(TEMPNAME2) $(TEMPNAME3)
@@ -315,7 +325,7 @@ info :
 
 ifdef inlinux
 $(MAKEDEP) : $(RTLDIR)/utils/mkdep.pp
-	$(PP) $(RTLDIR)/utils/mkdep.pp
+	$(COMPILER) $(RTLDIR)/utils/mkdep.pp
 	$(CP) $(RTLDIR)/utils/$(MAKEDEP) $(MAKEDEP)
 
 dependencies : $(MAKEDEP)
@@ -329,8 +339,12 @@ endif
 # Make targets
 #####################################################################
 
-msgtxt.inc: $(MSGFILE)
-	$(RTLDIR)/utils/msg2inc $(MSGFILE) msg msg
+$(MSG2INC): $(RTLDIR)/utils/msg2inc.pp
+	$(COMPILER) $(RTLDIR)/utils/msg2inc.pp
+	$(CP) $(RTLDIR)/utils/$(MSG2INC) $(MSG2INC)
+
+msgtxt.inc: $(MSGFILE) $(MSG2INC)
+	$(RTLDIR)/utils/$(MSG2INC) $(MSGFILE) msg msg
 
 msg: msgtxt.inc
 
@@ -350,8 +364,8 @@ endif
 remake: $(EXENAME)
 	$(REPLACE) $(EXENAME) $(TEMPNAME)
 	$(MAKE) clean
-	$(MAKE) -C $(UNITDIR) clean
-	$(MAKE) -C $(UNITDIR) 'PP=$(COMPILERDIR)/$(TEMPNAME)' all
+	$(MAKE) -C $(UNITDIR) libsclean
+	$(MAKE) -C $(UNITDIR) 'PP=$(COMPILERDIR)/$(TEMPNAME)' 'OPT=$(RTLOPTS)' all
 	$(MAKE) 'PP=./$(TEMPNAME)' all
 
 remake3: $(TEMPNAME3)
@@ -374,13 +388,13 @@ $(TEMPNAME3) : $(TEMPNAME2)
 
 cycle:
 	$(MAKE) clean
-	$(MAKE) -C $(UNITDIR) clean
+	$(MAKE) -C $(UNITDIR) libsclean
 	$(MAKE) -C $(UNITDIR)
 	$(MAKE) remake3
 	$(MAKE) echotime
 
 ansirtl:
-	$(MAKE) -C $(UNITDIR) clean
+	$(MAKE) -C $(UNITDIR) libsclean
 	$(MAKE) -C $(UNITDIR) PP=$(COMPILERDIR)/ppc386 \
 	 OPT='-g -dUSeAnsiStrings' all
 
@@ -492,7 +506,7 @@ rtl :
 	$(MAKE) -C $(UNITDIR) all
 
 rtlclean :
-	$(MAKE) -C $(UNITDIR) clean
+	$(MAKE) -C $(UNITDIR) libsclean
 
 # just a quick way to get ppc68k
 $(M68KEXENAME):
@@ -503,10 +517,12 @@ $(M68KEXENAME):
 test:
 	@echo time is $(STARTTIME) date.exe is $(DATE)
 
-# Test of log at the end
-# does CVS add # at start of each line ??
+#
 # $Log$
-# Revision 1.31  1998-09-09 18:26:25  michael
+# Revision 1.1  1998-09-10 13:53:54  peter
+#   * msg2inc compile works
+#
+# Revision 1.31  1998/09/09 18:26:25  michael
 # Spaces to tabs...
 #
 # Revision 1.30  1998/09/09 18:17:15  florian
