@@ -1523,52 +1523,64 @@ unit pdecl;
             consume(LKLAMMER);
             inc(testcurobject);
             repeat
-              if token=_VAR then
-                begin
-                   consume(_VAR);
-                   varspez:=vs_var;
-                end
-              else if token=_CONST then
-                begin
-                   consume(_CONST);
-                   varspez:=vs_const;
-                end
-              else varspez:=vs_value;
+              case token of
+                _VAR :
+                  begin
+                    consume(_VAR);
+                    varspez:=vs_var;
+                  end;
+                _CONST :
+                  begin
+                    consume(_CONST);
+                    varspez:=vs_const;
+                  end;
+              else
+                varspez:=vs_value;
+              end;
+
               sc:=idlist;
-              if token=COLON then
+              if (token=COLON) or (varspez=vs_value) then
                 begin
                    consume(COLON);
                    if token=_ARRAY then
                      begin
-                        {
-                        if (varspez<>vs_const) and
-                          (varspez<>vs_var) then
-                          begin
-                             varspez:=vs_const;
-                             Message(parser_e_illegal_open_parameter);
-                          end;
-                        }
-                        consume(_ARRAY);
-                        consume(_OF);
-                        { define range and type of range }
-                        p:=new(parraydef,init(0,-1,s32bitdef));
+                       consume(_ARRAY);
+                       consume(_OF);
+                     { define range and type of range }
+                       p:=new(Parraydef,init(0,-1,s32bitdef));
+                     { array of const ? }
+                       if (token=_CONST) and (m_objpas in aktmodeswitches) then
+                        begin
+                          consume(_CONST);
+                          srsym:=nil;
+                          if assigned(objpasunit) then
+                           getsymonlyin(objpasunit,'TVARREC');
+                          if not assigned(srsym) then
+                           InternalError(1234124);
+                          Parraydef(p)^.definition:=ptypesym(srsym)^.definition;
+                          Parraydef(p)^.IsArrayOfConst:=true;
+                        end
+                       else
+                        begin
                         { define field type }
-                        parraydef(p)^.definition:=single_type(s);
+                          Parraydef(p)^.definition:=single_type(s);
+                        end;
                      end
                    else
                      p:=single_type(s);
                 end
               else
                 p:=new(pformaldef,init);
-              s:=sc^.get;
-              while s<>'' do
+              while not sc^.empty do
                 begin
-                   procvardef^.concatdef(p,varspez);
                    s:=sc^.get;
+                   procvardef^.concatdef(p,varspez);
                 end;
               dispose(sc,done);
-              if token=SEMICOLON then consume(SEMICOLON)
-            else break;
+              if token=SEMICOLON then
+                consume(SEMICOLON)
+              else
+                break;
             until false;
             dec(testcurobject);
             consume(RKLAMMER);
@@ -2070,7 +2082,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.75  1998-10-21 08:39:59  florian
+  Revision 1.76  1998-10-25 23:31:18  peter
+    * procvar parsing updated just like psub.pas routine
+
+  Revision 1.75  1998/10/21 08:39:59  florian
     + ansistring operator +
     + $h and string[n] for n>255 added
     * small problem with TP fixed
