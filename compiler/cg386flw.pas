@@ -675,7 +675,8 @@ do_jmp:
 
          oldflowcontrol,tryflowcontrol,
          exceptflowcontrol : tflowcontrol;
-
+      label
+         errorexit;
       begin
          oldflowcontrol:=flowcontrol;
          flowcontrol:=[];
@@ -738,7 +739,7 @@ do_jmp:
          tryflowcontrol:=flowcontrol;
          aktexceptblock:=oldexceptblock;
          if codegenerror then
-           exit;
+           goto errorexit;
 
          emitlab(exceptlabel);
          emitcall('FPC_POPADDRSTACK');
@@ -892,6 +893,8 @@ do_jmp:
 
          emitlab(endexceptlabel);
 
+       errorexit:
+         { restore all saved labels }
          endexceptlabel:=oldendexceptlabel;
 
          { restore the control flow labels }
@@ -1234,7 +1237,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.3  2000-07-21 15:14:02  jonas
+  Revision 1.4  2000-08-13 08:41:07  peter
+    * restore labels when error in except block (merged)
+
+  Revision 1.3  2000/07/21 15:14:02  jonas
     + added is_addr field for labels, if they are only used for getting the address
        (e.g. for io checks) and corresponding getaddrlabel() procedure
 
