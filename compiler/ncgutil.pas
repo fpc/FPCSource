@@ -227,7 +227,10 @@ implementation
             begin
               { load a smaller size to OS_64 }
               if l.loc=LOC_REGISTER then
-               hregister:=rg.makeregsize(l.registerlow,OS_INT)
+               begin
+                 hregister:=rg.makeregsize(l.registerlow,OS_INT);
+                 cg.a_load_reg_reg(list,l.size,l.registerlow,hregister);
+               end
               else
                hregister:=rg.getregisterint(list);
               { load value in low register }
@@ -261,8 +264,8 @@ implementation
                   end
                  else
                   begin
-                    cg.a_load_reg_reg(list,OS_32,hregister,hregisterhi);
-                    cg.a_op_const_reg(list,OP_SAR,31,hregisterhi);
+                    cg.a_op_const_reg_reg(list,OP_SAR,OS_32,31,hregister,
+                      hregisterhi);
                   end;
                end
               else
@@ -1625,7 +1628,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  2002-07-27 19:53:51  jonas
+  Revision 1.27  2002-07-28 15:59:57  jonas
+    * fixed bug in location_force_reg32() when converting smaller values to
+      64 bit locations
+    * use cg.op_const_reg_reg() instead of a move and then cg.op_const_reg()
+      in location_force_reg32()
+
+  Revision 1.26  2002/07/27 19:53:51  jonas
     + generic implementation of tcg.g_flags2ref()
     * tcg.flags2xxx() now also needs a size parameter
 
