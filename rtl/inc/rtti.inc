@@ -162,10 +162,16 @@ begin
   Temp:=PByte(TypeInfo);
   case temp^ of
     tkAstring :
-      fpc_AnsiStr_Decr_Ref(PPointer(Data)^);
+      begin
+        fpc_AnsiStr_Decr_Ref(PPointer(Data)^);
+	PPointer(Data)^:=nil;
+      end;	
 {$ifdef HASWIDESTRING}
     tkWstring :
-      fpc_WideStr_Decr_Ref(PPointer(Data)^);
+      begin
+        fpc_WideStr_Decr_Ref(PPointer(Data)^);
+	PPointer(Data)^:=nil;
+      end;	
 {$endif HASWIDESTRING}
     tkArray :
       begin
@@ -206,7 +212,10 @@ begin
       end;
 {$ifdef HASINTF}
     tkInterface:
-      Intf_Decr_Ref(PPointer(Data)^);
+      begin
+        Intf_Decr_Ref(PPointer(Data)^);
+	PPointer(Data)^:=nil;
+      end;	
 {$endif HASINTF}
     tkDynArray:
       fpc_dynarray_decr_ref(PPointer(Data)^,TypeInfo);
@@ -372,7 +381,11 @@ procedure fpc_finalize_array(data,typeinfo : pointer;count,size : longint); [Pub
 
 {
   $Log$
-  Revision 1.12  2004-05-31 20:25:04  peter
+  Revision 1.13  2004-07-02 21:21:09  peter
+    * decr ref doesn't reset pointer
+    * finalize resets pointer for astring,wstring
+
+  Revision 1.12  2004/05/31 20:25:04  peter
     * removed warnings
 
   Revision 1.11  2004/03/27 23:22:38  florian

@@ -115,7 +115,9 @@ Begin
   If declocked(l^) then
     { Ref count dropped to zero }
     DisposeAnsiString (S);        { Remove...}
+{$ifndef decrrefnotnil}
   s:=nil;
+{$endif}
 end;
 
 {$ifdef hascompilerproc}
@@ -513,7 +515,7 @@ end;
 Procedure UniqueString(Var S : AnsiString); [external name 'FPC_ANSISTR_UNIQUE'];
 Function fpc_ansistr_Unique(Var S : Pointer): Pointer; [Public,Alias : 'FPC_ANSISTR_UNIQUE']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {$else}
-Procedure UniqueString(Var S : AnsiString); [Public,Alias : 'FPC_ANSISTR_UNIQUE']; 
+Procedure UniqueString(Var S : AnsiString); [Public,Alias : 'FPC_ANSISTR_UNIQUE'];
 {$endif}
 {
   Make sure reference count of S is 1,
@@ -525,7 +527,7 @@ Var
 begin
 {$ifdef HASCOMPILERPROC}
   pointer(result) := pointer(s);
-{$endif}  
+{$endif}
   If Pointer(S)=Nil then
     exit;
   if PAnsiRec(Pointer(S)-Firstoff)^.Ref<>1 then
@@ -538,7 +540,7 @@ begin
      pointer(S):=SNew;
 {$ifdef HASCOMPILERPROC}
      pointer(result):=SNew;
-{$endif}     
+{$endif}
    end;
 end;
 
@@ -876,7 +878,11 @@ end;
 
 {
   $Log$
-  Revision 1.45  2004-05-29 15:39:08  florian
+  Revision 1.46  2004-07-02 21:21:09  peter
+    * decr ref doesn't reset pointer
+    * finalize resets pointer for astring,wstring
+
+  Revision 1.45  2004/05/29 15:39:08  florian
     * the decr functions set the data now to nil
 
   Revision 1.44  2004/05/16 16:52:28  peter

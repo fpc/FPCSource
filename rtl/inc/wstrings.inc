@@ -201,7 +201,9 @@ Begin
   If declocked(l^) then
     { Ref count dropped to zero }
     DisposeWideString (S);        { Remove...}
+{$ifndef decrrefnotnil}
   s:=nil;
+{$endif}
 end;
 
 {$ifdef hascompilerproc}
@@ -1042,7 +1044,11 @@ end;
 
 {
   $Log$
-  Revision 1.39  2004-05-31 14:31:57  peter
+  Revision 1.40  2004-07-02 21:21:09  peter
+    * decr ref doesn't reset pointer
+    * finalize resets pointer for astring,wstring
+
+  Revision 1.39  2004/05/31 14:31:57  peter
     * remove comment warnings
 
   Revision 1.38  2004/05/29 15:39:08  florian
