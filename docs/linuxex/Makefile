@@ -37,8 +37,8 @@ OBJECTS=ex1 ex2 ex3 ex4 ex5 ex6 ex7 ex8 ex9 ex10 ex11 ex12 ex13 ex14 \
         ex28 ex29 ex30 ex31 ex32 ex33 ex34 ex35 ex36 ex37 ex38 ex39 ex40 \
         ex41 ex42 ex43 ex44 ex45 ex46 ex47 ex48 ex49 ex51 ex52 ex53 ex54 ex55 \
         ex56 ex57 ex58 ex59 ex60 ex61 ex62 ex63  ex64 ex65 ex66 \
-        ex67 ex68 ex69 ex70 ex71 
-# ex72 ex73 ex74 ex75 ex76 ex77
+        ex67 ex68 ex69 ex70 ex71 ex72
+# ex73 ex74 ex75 ex76 ex77
 
 TEXOBJECTS=$(addsuffix .tex, $(OBJECTS))
 
