@@ -240,6 +240,8 @@ Fixed bugs:
   bug0196.pp   "function a;" is accepted (should require result type) OK 0.99.1 (PM)
   bug0197.pp   should produce an error: problem with c1:=c2<c3 where c? is OK 0.99.11 (PM)
                a comp type
+  bug0198.pp   calling specifications aren't allowed in class declarations,
+               this should be allowed                                OK 0.99.11  (PM)
   bug0199.pp   bug in mul code                                       OK 0.99.11  (FK)
   bug0200.pp   array of char overloading problem with strings        OK 0.99.11 (PFV)
   bug0201.pp   problem with record var-parameters and assembler      OK 0.99.11 (PFV)
@@ -302,8 +304,6 @@ bug0226.pp   Asm, offset of var is not allowed as constant
 bug0228.pp   Asm, wrong warning for size
 
 bug0185.pp   missing range checking for Val and subrange types
-bug0198.pp   calling specifications aren't allowed in class declarations,
-             this should be allowed
 bug0212.pp   problem with properties
 bug0217.pp   in tp mode can't use the procvar in writeln
 bug0221.pp   syntax parsing incompatibilities with tp7
