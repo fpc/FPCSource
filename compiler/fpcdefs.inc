@@ -1,20 +1,17 @@
 {$ifdef FPC}
-  {$ifdef DELPHI}
-    {$mode delphi}
-    {$asmmode intel}
-  {$else}
-    {$mode objfpc}
-    {$H-}
-    {$goto on}
-    {$inline on}
+  {$mode objfpc}
+  {$asmmode default}
+  {$H-}
+  {$goto on}
+  {$inline on}
 
-    { 1Mb stack }
-    {$MEMORY 1000000}
+  { 1Mb stack }
+  {$MEMORY 1000000}
 
-    { This reduces the memory requirements a lot }
-    {$PACKENUM 1}
+  { This reduces the memory requirements a lot }
+  {$PACKENUM 1}
 
-    {$ifndef VER1_0}
+  {$ifndef VER1_0}
       { We don't use exceptions, so turn off the implicit
         exceptions in the constructors }
       {$IMPLICITEXCEPTIONS OFF}
@@ -22,46 +19,30 @@
       {$ifndef EXTDEBUG}
         {$define USEINLINE}
       {$endif EXTDEBUG}
-    {$else}
+  {$else}
       { Optimizer is broken when compiling with optimizations using 1.0.x }
       {$ifndef USEOPT}
         {$define NOOPT}
       {$endif}
-    {$endif VER1_0}
+  {$endif VER1_0}
 
-    {$define FPCPROCVAR}
-    {$ifdef I386}
-      {$define USEEXCEPT}
-    {$endif}
-  {$endif}
-{$ifdef cpuarm}
-{$packrecords c}
-{$endif cpuarm}
+  {$define FPCPROCVAR}
+  {$define USEEXCEPT}
+  
+  {$ifdef cpuarm}
+    {$packrecords c}
+  {$endif cpuarm}
 {$endif}
-
-{$ifdef DELPHI}
-  {$H-}
-  {$J+}
-
-  {$Z1}
-
-  {$undef FPCPROCVAR}
-{$endif}
-
-
-{ assume a processor with flags }
-{$define cpuflags}
 
 {$ifdef i386}
-  {$ifdef delphi}
-    {$define oldset}
-  {$endif}
   {$define x86}
+  {$define cpuflags}
   {$define cpuextended}
 {$endif i386}
 
 {$ifdef x86_64}
   {$define x86}
+  {$define cpuflags}
   {$define cpu64bit}
   {$define cpuextended}
   {$define cpufloat128}
@@ -71,43 +52,41 @@
 
 {$ifdef alpha}
   {$define cpu64bit}
-  {$undef cpuflags}
   {$define noopt}
-  {$define oldset}
 {$endif alpha}
 
 {$ifdef sparc}
+  {$define cpuflags}
   {$define noopt}
-  {$define oldset}
   {$define cputargethasfixedstack}
 {$endif sparc}
 
-{$ifdef cpusparc}
-  {$undef useinline}
-{$endif cpusparc}
-
 {$ifdef powerpc}
+  {$define cpuflags}
   {$define noopt}
-  {$define oldset}
   {$define oldregvars}
 {$endif powerpc}
 
 {$ifdef arm}
+  {$define cpuflags}
   {$define cpuneedsdiv32helper}
   {$define cputargethasfixedstack}
   {$define noopt}
-  {$define oldset}
 {$endif arm}
 
 {$ifdef m68k}
+  {$define cpuflags}
   {$define cpufpemu}
   {$define noopt}
-  {$define oldset}
 {$endif m68k}
 
 {
   $Log$
-  Revision 1.40  2004-09-21 17:25:12  peter
+  Revision 1.41  2004-09-21 19:59:51  peter
+    * x86_64 fixes
+    * cleanup of fpcdefs.icn
+
+  Revision 1.40  2004/09/21 17:25:12  peter
     * paraloc branch merged
 
   Revision 1.39.4.1  2004/08/31 20:43:06  peter

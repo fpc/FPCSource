@@ -1402,12 +1402,12 @@ implementation
       {$endif}
 
 
-{$if defined(CPUI386) or defined(CPUX86_64)}
+{$ifdef CPUI386}
   {$define HASSETFPUEXCEPTIONMASK}
       { later, this should be replaced by the math unit }
       const
         Default8087CW : word = $1332;
-{$ASMMODE ATT}
+	
       procedure Set8087CW(cw:word);assembler;
         asm
           movw cw,%ax
@@ -1432,7 +1432,39 @@ implementation
           CtlWord:=Get8087CW;
           Set8087CW( (CtlWord and $FFC0) or Byte(Longint(Mask)) );
         end;
-{$endif CPUI386 OR CPUX86_64}
+{$endif CPUI386}
+
+{$ifdef CPUX86_64}
+  {$define HASSETFPUEXCEPTIONMASK}
+      { later, this should be replaced by the math unit }
+      const
+        Default8087CW : word = $1332;
+	
+      procedure Set8087CW(cw:word);assembler;
+        asm
+          movw cw,%ax
+          movw %ax,default8087cw
+          fnclex
+          fldcw default8087cw
+        end;
+
+
+      function Get8087CW:word;assembler;
+        asm
+          pushq $0
+          fnstcw (%rsp)
+          popq %rax
+        end;
+
+
+      procedure SetFPUExceptionMask(const Mask: TFPUExceptionMask);
+        var
+          CtlWord: Word;
+        begin
+          CtlWord:=Get8087CW;
+          Set8087CW( (CtlWord and $FFC0) or Byte(Longint(Mask)) );
+        end;
+{$endif CPUX86_64}
 
 {$ifdef CPUPOWERPC}
   {$define HASSETFPUEXCEPTIONMASK}
@@ -2013,7 +2045,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.139  2004-09-21 17:25:12  peter
+  Revision 1.140  2004-09-21 19:59:51  peter
+    * x86_64 fixes
+    * cleanup of fpcdefs.icn
+
+  Revision 1.139  2004/09/21 17:25:12  peter
     * paraloc branch merged
 
   Revision 1.138  2004/09/08 11:23:31  michael
