@@ -89,6 +89,8 @@ function ExtOf(const S: string): string;
 function NameOf(const S: string): string;
 function NameAndExtOf(const S: string): string;
 function DirAndNameOf(const S: string): string;
+{ return Dos GetFTime value or -1 if the file does not exist }
+function GetFileTime(const FileName: string): longint;
 
 function EatIO: integer;
 
@@ -311,6 +313,30 @@ begin
   DirAndNameOf:=D+N;
 end;
 
+{ return Dos GetFTime value or -1 if the file does not exist }
+function GetFileTime(const FileName: string): longint;
+var T: longint;
+    f: file;
+    FM: integer;
+begin
+  if FileName='' then
+    T:=-1
+  else
+    begin
+      FM:=FileMode; FileMode:=0;
+      EatIO; DosError:=0;
+      Assign(f,FileName);
+      {$I-}
+      Reset(f);
+      GetFTime(f,T);
+      Close(f);
+      {$I+}
+      if (EatIO<>0) or (DosError<>0) then T:=-1;
+      FileMode:=FM;
+    end;
+  GetFileTime:=T;
+end;
+
 
 function EatIO: integer;
 begin
@@ -448,7 +474,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.8  1999-10-25 16:39:03  pierre
+  Revision 1.9  1999-12-01 16:19:46  pierre
+   + GetFileTime moved here
+
+  Revision 1.8  1999/10/25 16:39:03  pierre
    + GetPChar to avoid nil pointer problems
 
   Revision 1.7  1999/09/13 11:44:00  peter
