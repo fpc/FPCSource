@@ -68,7 +68,6 @@ implementation
       var
         intreg,
         hregister : tregister;
-        is_cdecl,
         freereg   : boolean;
         symtabletype : tsymtabletype;
         i : longint;
@@ -107,6 +106,7 @@ implementation
               end;
             varsym :
                begin
+                  symtabletype:=symtable.symtabletype;
                   hregister:=R_NO;
                   { C variable }
                   if (vo_is_C_var in tvarsym(symtableentry).varoptions) then
@@ -164,7 +164,6 @@ implementation
                          end
                        else
                          begin
-                           symtabletype:=symtable.symtabletype;
                            case symtabletype of
                               localsymtable,
                               parasymtable,
@@ -212,26 +211,6 @@ implementation
                                          end;
                                        location.reference.base:=hregister;
                                     end;
-
-                                  if (symtabletype in [parasymtable,inlineparasymtable]) then
-                                    begin
-                                      { in case call by reference, then calculate. Open array
-                                        is always an reference! }
-                                      if (tvarsym(symtableentry).varspez in [vs_var,vs_out]) or
-                                         is_open_array(tvarsym(symtableentry).vartype.def) or
-                                         is_array_of_const(tvarsym(symtableentry).vartype.def) or
-                                         paramanager.push_addr_param(tvarsym(symtableentry).vartype.def,
-                                             (tprocdef(symtable.defowner).proccalloption in [pocall_cdecl,pocall_cppdecl])) then
-                                        begin
-                                           if hregister=R_NO then
-                                             hregister:=rg.getaddressregister(exprasmlist);
-                                           { we need to load only an address }
-                                           location.size:=OS_ADDR;
-                                           cg.a_load_loc_reg(exprasmlist,location,hregister);
-                                           location_reset(location,LOC_REFERENCE,newsize);
-                                           location.reference.base:=hregister;
-                                       end;
-                                    end;
                                 end;
                               globalsymtable,
                               staticsymtable :
@@ -269,6 +248,27 @@ implementation
                                 end;
                            end;
                          end;
+                    end;
+
+                  { handle call by reference variables }
+                  if (symtabletype in [parasymtable,inlineparasymtable]) then
+                    begin
+                      { in case call by reference, then calculate. Open array
+                        is always an reference! }
+                      if (tvarsym(symtableentry).varspez in [vs_var,vs_out]) or
+                         is_open_array(tvarsym(symtableentry).vartype.def) or
+                         is_array_of_const(tvarsym(symtableentry).vartype.def) or
+                         paramanager.push_addr_param(tvarsym(symtableentry).vartype.def,
+                             (tprocdef(symtable.defowner).proccalloption in [pocall_cdecl,pocall_cppdecl])) then
+                        begin
+                           if hregister=R_NO then
+                             hregister:=rg.getaddressregister(exprasmlist);
+                           { we need to load only an address }
+                           location.size:=OS_ADDR;
+                           cg.a_load_loc_reg(exprasmlist,location,hregister);
+                           location_reset(location,LOC_REFERENCE,newsize);
+                           location.reference.base:=hregister;
+                       end;
                     end;
                end;
             procsym:
@@ -401,7 +401,6 @@ implementation
          otlabel,hlabel,oflabel : tasmlabel;
          fputyp : tfloattype;
          href : treference;
-         ai : taicpu;
          releaseright : boolean;
          pushedregs : tmaybesave;
          cgsize : tcgsize;
@@ -947,7 +946,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2002-09-01 12:15:40  peter
+  Revision 1.28  2002-09-01 19:26:32  peter
+    * fixed register variable loading from parasymtable, the call by
+      reference code was moved wrong
+
+  Revision 1.27  2002/09/01 12:15:40  peter
     * fixed loading of procvar of object when the object is initialized
       with 0
 
