@@ -396,7 +396,7 @@ Begin
                         New(TmpRef);
                         TmpRef^.segment := R_DEFAULT_SEG;
                         TmpRef^.symbol := nil;
-                        TmpRef^.isintvalue := false;
+                        TmpRef^.is_immediate := false;
                         TmpRef^.offset := 0;
                         Case Longint(Pai386(p)^.op1) Of
                           3: Begin
@@ -463,7 +463,7 @@ Begin
                                     New(TmpRef);
                                     TmpRef^.segment := R_DEFAULT_SEG;
                                     TmpRef^.symbol := nil;
-                                    TmpRef^.isintvalue := false;
+                                    TmpRef^.is_immediate := false;
                                     TmpRef^.offset := 0;
                                     TmpRef^.Index := TRegister(twowords(Pai386(p)^.op2).Word1);
                                     TmpRef^.ScaleFactor := 2;
@@ -569,7 +569,7 @@ Begin
                                      New(TmpRef);
                                      TmpRef^.segment := R_DEFAULT_SEG;
                                      TmpRef^.symbol := nil;
-                                     TmpRef^.isintvalue := false;
+                                     TmpRef^.is_immediate := false;
                                      TmpRef^.offset := 0;
                                      TmpRef^.Index := TRegister(twowords(Pai386(p)^.op2).Word1);
                                      If (Pai386(p)^.op3t = Top_Reg)
@@ -874,18 +874,8 @@ Begin
                                               If (Pai386(p)^.op2 <> Pai386(hp2)^.op2) Then
                                                 Begin
                                                   Pai386(hp1)^.opxt := top_ref + top_reg shl 4;
-                                                  If Assigned(TReference(Pai386(hp1)^.op2^).Symbol)
-                                                    Then Freemem(TReference(Pai386(hp1)^.op2^).Symbol,
-                                                                 Length(TReference(Pai386(hp1)^.op2^).Symbol^)+1);
                                                   Pai386(hp1)^.op1 := Pai386(hp1)^.op2; {move the treference}
                                                   TReference(Pai386(hp1)^.op1^) := TReference(Pai386(p)^.op1^);
-                                                  If Assigned(TReference(Pai386(p)^.op1^).Symbol) Then
-                                                    Begin
-                                                      Getmem(TReference(Pai386(hp1)^.op1^).Symbol,
-                                                             Length(TReference(Pai386(p)^.op1^).Symbol^)+1);
-                                                      TReference(Pai386(hp1)^.op1^).Symbol^ :=
-                                                          TReference(Pai386(p)^.op1^).Symbol^;
-                                                    End;
                                                   Pai386(hp1)^.op2 := Pai386(hp2)^.op2;
                                                 End
                                               Else
@@ -1133,7 +1123,7 @@ Begin
                          TmpRef^.index := R_NO;
                          TmpRef^.scalefactor := 1;
                          TmpRef^.symbol := nil;
-                         TmpRef^.isintvalue := false;
+                         TmpRef^.is_immediate := false;
                          TmpRef^.offset := 0;
                          Pai386(p)^.op1 := Pointer(TmpRef);
                          hp1 := Pai(p^.next);
@@ -1175,7 +1165,7 @@ Begin
                         TmpRef^.index := TRegister(Pai386(p)^.op2);
                         TmpRef^.scalefactor := 1 shl Longint(Pai386(p)^.op1);
                         TmpRef^.symbol := nil;
-                        TmpRef^.isintvalue := false;
+                        TmpRef^.is_immediate := false;
                         TmpRef^.offset := 0;
                         While TmpBool1 And
                               GetNextInstruction(p, hp1) And
@@ -1259,7 +1249,7 @@ Begin
                                    TmpRef^.index := TRegister(Pai386(p)^.op2);
                                    TmpRef^.scalefactor := 1 shl Longint(Pai386(p)^.op1);
                                    TmpRef^.symbol := nil;
-                                   TmpRef^.isintvalue := false;
+                                   TmpRef^.is_immediate := false;
                                    TmpRef^.offset := 0;
                                    hp1 := new(Pai386,op_ref_reg(A_LEA,S_L,TmpRef, TRegister(Pai386(p)^.op2)));
                                    hp1^.fileinfo := p^.fileinfo;
@@ -1523,7 +1513,7 @@ Begin
                    (hp1^.typ = ait_labeled_instruction) And
                    (pai386_labeled(hp1)^._operator = A_JMP) Then
                   Begin
-                    hp2 := New(Pai386,op_csymbol(A_PUSH,S_L,NewCSymbol(Lab2Str(pai386_labeled(hp1)^.lab),0)));
+                    hp2 := New(Pai386,op_sym(A_PUSH,S_L,NewAsmSymbol(Lab2Str(pai386_labeled(hp1)^.lab))));
                     hp2^.fileinfo := p^.fileinfo;
                     InsertLLItem(AsmL, p^.previous, p, hp2);
                     Pai386(p)^._operator := A_JMP;
@@ -1619,7 +1609,11 @@ End.
 
 {
  $Log$
- Revision 1.37  1999-02-22 02:15:30  peter
+ Revision 1.38  1999-02-25 21:02:44  peter
+   * ag386bin updates
+   + coff writer
+
+ Revision 1.37  1999/02/22 02:15:30  peter
    * updates for ag386bin
 
  Revision 1.36  1999/01/04 22:04:15  jonas

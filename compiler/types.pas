@@ -862,10 +862,8 @@ unit types;
            writestrentry(p^.l);
 
          { write name label }
-         datasegment^.concat(new(pai_const,init_symbol(strpnew(lab2str(p^.nl)))));
-
-         datasegment^.concat(new(pai_const,
-           init_symbol(strpnew(p^.p^.mangledname))));
+         datasegment^.concat(new(pai_const_symbol,init(lab2str(p^.nl))));
+         datasegment^.concat(new(pai_const_symbol,init(p^.p^.mangledname)));
          maybe_concat_external(p^.p^.owner,p^.p^.mangledname);
 
          if assigned(p^.r) then
@@ -931,9 +929,7 @@ unit types;
 
          { write name label }
          datasegment^.concat(new(pai_const,init_32bit(p^.p^.messageinf.i)));
-
-         datasegment^.concat(new(pai_const,
-           init_symbol(strpnew(p^.p^.mangledname))));
+         datasegment^.concat(new(pai_const_symbol,init(p^.p^.mangledname)));
          maybe_concat_external(p^.p^.owner,p^.p^.mangledname);
 
          if assigned(p^.r) then
@@ -1250,13 +1246,13 @@ unit types;
                                   if (procdefcoll^.data^.options and poabstractmethod)<>0 then
                                     begin
                                        _class^.options:=_class^.options or oo_is_abstract;
-                                       datasegment^.concat(new(pai_const,
-                                         init_symbol(strpnew('FPC_ABSTRACTERROR'))));
+                                       datasegment^.concat(new(pai_const_symbol,
+                                         init('FPC_ABSTRACTERROR')));
                                     end
                                   else
                                     begin
-                                      datasegment^.concat(new(pai_const,
-                                        init_symbol(strpnew(procdefcoll^.data^.mangledname))));
+                                      datasegment^.concat(new(pai_const_symbol,
+                                        init(procdefcoll^.data^.mangledname)));
                                       maybe_concat_external(procdefcoll^.data^.owner,
                                         procdefcoll^.data^.mangledname);
                                     end;
@@ -1288,7 +1284,11 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.52  1999-02-24 09:51:44  florian
+  Revision 1.53  1999-02-25 21:02:57  peter
+    * ag386bin updates
+    + coff writer
+
+  Revision 1.52  1999/02/24 09:51:44  florian
     * wrong warning fixed, if a non-virtual method was hidden by a virtual
       method (repoerted by Matthias Koeppe)
 

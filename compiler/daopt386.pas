@@ -1039,8 +1039,8 @@ End;
 
 Function RefsEquivalent(Const R1, R2: TReference; var RegInfo: TRegInfo; OpAct: TOpAction): Boolean;
 Begin
-  If R1.IsIntValue
-     Then RefsEquivalent := R2.IsIntValue and (R1.Offset = R2.Offset)
+  If R1.is_immediate
+     Then RefsEquivalent := R2.is_immediate and (R1.Offset = R2.Offset)
      Else If (R1.Offset = R2.Offset) And
              RegsEquivalent(R1.Base, R2.Base, RegInfo, OpAct) And
              RegsEquivalent(R1.Index, R2.Index, RegInfo, OpAct) And
@@ -1048,7 +1048,7 @@ Begin
             Then
               Begin
                 If Assigned(R1.Symbol)
-                  Then RefsEquivalent := Assigned(R2.Symbol) And (R1.Symbol^=R2.Symbol^)
+                  Then RefsEquivalent := Assigned(R2.Symbol) And (R1.Symbol=R2.Symbol)
                   Else RefsEquivalent := Not(Assigned(R2.Symbol));
               End
             Else RefsEquivalent := False;
@@ -1057,15 +1057,15 @@ End;
 
 Function RefsEqual(Const R1, R2: TReference): Boolean;
 Begin
-  If R1.IsIntValue
-     Then RefsEqual := R2.IsIntValue and (R1.Offset = R2.Offset)
+  If R1.is_immediate
+     Then RefsEqual := R2.is_immediate and (R1.Offset = R2.Offset)
      Else If (R1.Offset = R2.Offset) And (R1.Base = R2.Base) And
              (R1.Index = R2.Index) And (R1.Segment = R2.Segment) And
              (R1.ScaleFactor = R2.ScaleFactor)
             Then
               Begin
                 If Assigned(R1.Symbol)
-                  Then RefsEqual := Assigned(R2.Symbol) And (R1.Symbol^=R2.Symbol^)
+                  Then RefsEqual := Assigned(R2.Symbol) And (R1.Symbol=R2.Symbol)
                   Else RefsEqual := Not(Assigned(R2.Symbol));
               End
             Else RefsEqual := False;
@@ -2227,7 +2227,11 @@ End.
 
 {
  $Log$
- Revision 1.37  1999-02-22 02:15:20  peter
+ Revision 1.38  1999-02-25 21:02:34  peter
+   * ag386bin updates
+   + coff writer
+
+ Revision 1.37  1999/02/22 02:15:20  peter
    * updates for ag386bin
 
  Revision 1.36  1999/01/20 17:41:26  jonas

@@ -529,7 +529,7 @@ implementation
             asmbin : '';
             asmcmd : '';
             externals : true;
-            labelprefix : '';
+            labelprefix : 'L';
             comment : ''
           )
           ,(
@@ -538,7 +538,7 @@ implementation
             asmbin : '';
             asmcmd : '';
             externals : true;
-            labelprefix : '';
+            labelprefix : 'L';
             comment : ''
           )
           ,(
@@ -547,7 +547,7 @@ implementation
             asmbin : '';
             asmcmd : '';
             externals : true;
-            labelprefix : '';
+            labelprefix : 'L';
             comment : ''
           )
 {$endif i386}
@@ -810,7 +810,11 @@ implementation
             exeext      : '.exe';
             os          : os_i386_GO32V2;
             link        : link_i386_ldgo32v2;
+{$ifdef Ag386Bin}
+            assem       : as_i386_coff;
+{$else}
             assem       : as_i386_o;
+{$endif}
             ar          : ar_i386_ar;
             res         : res_none;
             heapsize    : 2048*1024;
@@ -1342,7 +1346,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.58  1999-02-24 00:59:16  peter
+  Revision 1.59  1999-02-25 21:02:53  peter
+    * ag386bin updates
+    + coff writer
+
+  Revision 1.58  1999/02/24 00:59:16  peter
     * small updates for ag386bin
 
   Revision 1.57  1999/02/22 02:15:42  peter

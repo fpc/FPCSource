@@ -109,7 +109,7 @@ unit ag386nsm;
       s     : string;
       first : boolean;
     begin
-      if ref.isintvalue then
+      if ref.is_immediate then
        s:= tostr(ref.offset)
       else
       with ref do
@@ -121,7 +121,7 @@ unit ag386nsm;
            s:='[';
          if assigned(symbol) then
           begin
-            s:=s+symbol^;
+            s:=s+symbol^.name;
             first:=false;
           end;
          if (base<>R_NO) then
@@ -151,7 +151,7 @@ unit ag386nsm;
        getreferencestring:=s;
      end;
 
-    function getopstr(t : byte;o : pointer;s : topsize; _operator: tasmop;dest : boolean) : string;
+    function getopstr(t : byte;o : pointer;opofs:longint;s : topsize; _operator: tasmop;dest : boolean) : string;
     var
       hs : string;
     begin
@@ -197,13 +197,12 @@ unit ag386nsm;
                    getopstr:=hs;
                  end;
     top_symbol : begin
-                   hs:=strpas(pchar(pcsymbol(o)^.symbol));
-                   hs:='dword '+hs;
-                   if pcsymbol(o)^.offset>0 then
-                     hs:=hs+'+'+tostr(pcsymbol(o)^.offset)
+                   hs:='dword '+pasmsymbol(o)^.name;
+                   if opofs>0 then
+                    hs:=hs+'+'+tostr(opofs)
                    else
-                     if pcsymbol(o)^.offset<0 then
-                       hs:=hs+tostr(pcsymbol(o)^.offset);
+                    if opofs<0 then
+                     hs:=hs+tostr(opofs);
                    getopstr:=hs;
                  end;
       else
@@ -211,7 +210,7 @@ unit ag386nsm;
       end;
     end;
 
-    function getopstr_jmp(t : byte;o : pointer) : string;
+    function getopstr_jmp(t : byte;o : pointer;opofs:longint) : string;
     var
       hs : string;
     begin
@@ -220,12 +219,12 @@ unit ag386nsm;
           top_ref : getopstr_jmp:=getreferencestring(preference(o)^);
         top_const : getopstr_jmp:=tostr(longint(o));
        top_symbol : begin
-                      hs:=strpas(pchar(pcsymbol(o)^.symbol));
-                      if pcsymbol(o)^.offset>0 then
-                        hs:=hs+'+'+tostr(pcsymbol(o)^.offset)
+                      hs:=pasmsymbol(o)^.name;
+                      if opofs>0 then
+                       hs:=hs+'+'+tostr(opofs)
                       else
-                        if pcsymbol(o)^.offset<0 then
-                          hs:=hs+tostr(pcsymbol(o)^.offset);
+                       if opofs<0 then
+                        hs:=hs+tostr(opofs);
                       getopstr_jmp:=hs;
                     end;
       else
@@ -239,28 +238,27 @@ unit ag386nsm;
 
     var
       LastSec : tsection;
-      lastsecidx : longint;
 
     const
       ait_const2str:array[ait_const_32bit..ait_const_8bit] of string[8]=
         (#9'DD'#9,#9'DW'#9,#9'DB'#9);
 
       ait_section2nasmstr : array[tsection] of string[6]=
-       ('','.text','.data','.bss','.idata','.edata');
+       ('','.text','.data','.bss','.idata2','.idata4','.idata5','.idata6','.idata7','.edata');
 
-    Function PadTabs(p:pchar;addch:char):string;
+    Function PadTabs(const p:string;addch:char):string;
     var
       s : string;
       i : longint;
     begin
-      i:=strlen(p);
+      i:=length(p);
       if addch<>#0 then
        begin
          inc(i);
-         s:=StrPas(p)+addch;
+         s:=p+addch;
        end
       else
-       s:=StrPas(p);
+       s:=p;
       if i<8 then
        PadTabs:=s+#9#9
       else
@@ -308,11 +306,11 @@ unit ag386nsm;
                        LastSec:=pai_section(hp)^.sec;
                      end;
          ait_align : AsmWriteLn(#9'ALIGN '+tostr(pai_align(hp)^.aligntype));
-      ait_external : AsmWriteLn('EXTERN '+StrPas(pai_external(hp)^.name));
+      ait_external : AsmWriteLn('EXTERN '+pai_external(hp)^.sym^.name);
      ait_datablock : begin
                        if pai_datablock(hp)^.is_global then
-                        AsmWriteLn(#9'GLOBAL '+StrPas(pai_datablock(hp)^.name));
-                       AsmWriteLn(PadTabs(pai_datablock(hp)^.name,':')+'RESB'#9+tostr(pai_datablock(hp)^.size));
+                        AsmWriteLn(#9'GLOBAL '+pai_datablock(hp)^.sym^.name);
+                       AsmWriteLn(PadTabs(pai_datablock(hp)^.sym^.name,':')+'RESB'#9+tostr(pai_datablock(hp)^.size));
                      end;
    ait_const_32bit,
     ait_const_8bit,
@@ -333,18 +331,15 @@ unit ag386nsm;
                        AsmLn;
                      end;
   ait_const_symbol : begin
-                       AsmWrite(#9#9+'DD '#9);
-                       AsmWritePChar(pchar(pai_const(hp)^.value));
+                       AsmWriteLn(#9#9'DD'#9+pai_const_symbol(hp)^.sym^.name);
+                       if pai_const_symbol(hp)^.offset>0 then
+                         AsmWrite('+'+tostr(pai_const_symbol(hp)^.offset))
+                       else if pai_const_symbol(hp)^.offset<0 then
+                         AsmWrite(tostr(pai_const_symbol(hp)^.offset));
                        AsmLn;
                      end;
-  ait_const_symbol_offset : begin
-                       AsmWrite(#9#9+'DD '#9);
-                       AsmWritePChar(pai_const_symbol_offset(hp)^.name);
-                       if pai_const_symbol_offset(hp)^.offset>0 then
-                         AsmWrite('+'+tostr(pai_const_symbol_offset(hp)^.offset))
-                       else if pai_const_symbol_offset(hp)^.offset<0 then
-                         AsmWrite(tostr(pai_const_symbol_offset(hp)^.offset));
-                       AsmLn;
+     ait_const_rva : begin
+                       AsmWriteLn(#9#9'RVA'#9+pai_const_symbol(hp)^.sym^.name);
                      end;
     ait_real_32bit : AsmWriteLn(#9#9'DD'#9+double2str(pai_single(hp)^.value));
     ait_real_64bit : AsmWriteLn(#9#9'DQ'#9+double2str(pai_double(hp)^.value));
@@ -444,11 +439,11 @@ ait_labeled_instruction :
                      end;
         ait_symbol : begin
                        if pai_symbol(hp)^.is_global then
-                        AsmWriteLn(#9'GLOBAL '+StrPas(pai_symbol(hp)^.name));
-                       AsmWritePChar(pai_symbol(hp)^.name);
+                        AsmWriteLn(#9'GLOBAL '+pai_symbol(hp)^.sym^.name);
+                       AsmWrite(pai_symbol(hp)^.sym^.name);
                        if assigned(hp^.next) and not(pai(hp^.next)^.typ in
                           [ait_const_32bit,ait_const_16bit,ait_const_8bit,
-                           ait_const_symbol,ait_const_symbol_offset,
+                           ait_const_symbol,ait_const_rva,
                            ait_real_64bit,ait_string]) then
                         AsmWriteLn(':')
                      end;
@@ -486,21 +481,22 @@ ait_labeled_instruction :
                        if pai386(hp)^.op1t<>top_none then
                         begin
                           if pai386(hp)^._operator=A_CALL then
-                           s:=getopstr_jmp(pai386(hp)^.op1t,pai386(hp)^.op1)
+                           s:=getopstr_jmp(pai386(hp)^.op1t,pai386(hp)^.op1,pai386(hp)^.op1ofs)
                           else
                            begin
-                             s:=getopstr(pai386(hp)^.op1t,pai386(hp)^.op1,pai386(hp)^.size,pai386(hp)^._operator,false);
+                             s:=getopstr(pai386(hp)^.op1t,pai386(hp)^.op1,pai386(hp)^.op1ofs,
+                               pai386(hp)^.size,pai386(hp)^._operator,false);
                              if pai386(hp)^.op3t<>top_none then
                               begin
                                 if pai386(hp)^.op2t<>top_none then
-                                 s:=getopstr(pai386(hp)^.op2t,pointer(longint(twowords(pai386(hp)^.op2).word1)),
+                                 s:=getopstr(pai386(hp)^.op2t,pointer(longint(twowords(pai386(hp)^.op2).word1)),0,
                                              pai386(hp)^.size,pai386(hp)^._operator,true)+','+s;
-                                          s:=getopstr(pai386(hp)^.op3t,pointer(longint(twowords(pai386(hp)^.op2).word2)),
+                                          s:=getopstr(pai386(hp)^.op3t,pointer(longint(twowords(pai386(hp)^.op2).word2)),0,
                                            pai386(hp)^.size,pai386(hp)^._operator,false)+','+s;
                               end
                              else
                               if pai386(hp)^.op2t<>top_none then
-                               s:=getopstr(pai386(hp)^.op2t,pai386(hp)^.op2,pai386(hp)^.size,
+                               s:=getopstr(pai386(hp)^.op2t,pai386(hp)^.op2,0,pai386(hp)^.size,
                                            pai386(hp)^._operator,true)+','+s;
                            end;
                           s:=#9+s;
@@ -556,10 +552,7 @@ ait_stab_function_name : ;
                        while assigned(hp^.next) and (pai(hp^.next)^.typ in [ait_cut,ait_section,ait_comment]) do
                         begin
                           if pai(hp^.next)^.typ=ait_section then
-                           begin
-                             lastsec:=pai_section(hp^.next)^.sec;
-                             lastsecidx:=pai_section(hp^.next)^.idataidx;
-                           end;
+                            lastsec:=pai_section(hp^.next)^.sec;
                           hp:=pai(hp^.next);
                         end;
                        if lastsec<>sec_none then
@@ -607,7 +600,11 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.18  1999-02-22 02:15:00  peter
+  Revision 1.19  1999-02-25 21:02:19  peter
+    * ag386bin updates
+    + coff writer
+
+  Revision 1.18  1999/02/22 02:15:00  peter
     * updates for ag386bin
 
   Revision 1.17  1998/12/20 16:21:23  peter

@@ -143,7 +143,7 @@ Type
        OPR_LABINSTR: (hl: plabel);
        { Register list such as in the movem instruction }
        OPR_REGLIST:  (list: set of tregister);
-       OPR_SYMBOL : (symbol:pstring);
+       OPR_SYMBOL : (symbol:pasmsymbol);
     end;
 
 
@@ -826,18 +826,7 @@ end;
  end;
 
  Procedure TInstruction.done;
- var
-  k: integer;
  Begin
-  for k:=1 to numops do
-    begin
-       if (operands[k].operandtype=OPR_REFERENCE) and
-          assigned(operands[k].ref.symbol) then
-            stringdispose(operands[k].ref.symbol);
-       if (operands[k].operandtype=OPR_SYMBOL) and
-          assigned(operands[k].symbol) then
-            stringdispose(operands[k].symbol);
-    end;
  end;
 
 {*************************************************************************}
@@ -1357,9 +1346,7 @@ end;
                     pvarsym(sym)^.is_valid:=1;
                     if pvarsym(sym)^.owner^.symtabletype=staticsymtable then
                      begin
-                       if assigned(instr.operands[operandnum].ref.symbol) then
-                         FreeMem(instr.operands[operandnum].ref.symbol,length(instr.operands[operandnum].ref.symbol^)+1);
-                       instr.operands[operandnum].ref.symbol:=newpasstr(pvarsym(sym)^.mangledname);
+                       instr.operands[operandnum].ref.symbol:=newasmsymbol(pvarsym(sym)^.mangledname);
                      end
                     else
                      begin
@@ -1391,9 +1378,7 @@ end;
   typedconstsym : begin
                     { we always assume in asm statements that     }
                     { that the variable is valid.                 }
-                    if assigned(instr.operands[operandnum].ref.symbol) then
-                      FreeMem(instr.operands[operandnum].ref.symbol,length(instr.operands[operandnum].ref.symbol^)+1);
-                    instr.operands[operandnum].ref.symbol:=newpasstr(pvarsym(sym)^.mangledname);
+                    instr.operands[operandnum].ref.symbol:=newasmsymbol(pvarsym(sym)^.mangledname);
                    { the current size is NOT overriden if it already }
                    { exists, such as in the case of a byte ptr, in   }
                    { front of the identifier.                        }
@@ -1432,11 +1417,8 @@ end;
                      end;
                   end;
         procsym : begin
-                    { free the memory before changing the symbol name. }
-                    if assigned(instr.operands[operandnum].ref.symbol) then
-                      FreeMem(instr.operands[operandnum].ref.symbol,length(instr.operands[operandnum].ref.symbol^)+1);
                     instr.operands[operandnum].operandtype:=OPR_SYMBOL;
-                    instr.operands[operandnum].symbol:=newpasstr(pprocsym(sym)^.definition^.mangledname);
+                    instr.operands[operandnum].symbol:=newasmsymbol(pprocsym(sym)^.definition^.mangledname);
                     CreateVarInstr := TRUE;
                     Exit;
                   end
@@ -1505,10 +1487,7 @@ end;
        case sym^.typ of
           varsym,
    typedconstsym : Begin
-                   { free the memory before changing the symbol name. }
-                     if assigned(instr.operands[operandnum].ref.symbol) then
-                      FreeMem(instr.operands[operandnum].ref.symbol,length(instr.operands[operandnum].ref.symbol^)+1);
-                     instr.operands[operandnum].ref.symbol:=newpasstr(sym^.mangledname);
+                     instr.operands[operandnum].ref.symbol:=newasmsymbol(sym^.mangledname);
                    { the current size is NOT overriden if it already }
                    { exists, such as in the case of a byte ptr, in   }
                    { front of the identifier.                        }
@@ -1567,12 +1546,9 @@ end;
         procsym : begin
                     if assigned(pprocsym(sym)^.definition^.nextoverloaded) then
                      Message(assem_w_calling_overload_func);
-                    { free the memory before changing the symbol name. }
-                    if assigned(instr.operands[operandnum].ref.symbol) then
-                      FreeMem(instr.operands[operandnum].ref.symbol,length(instr.operands[operandnum].ref.symbol^)+1);
                     instr.operands[operandnum].operandtype:=OPR_SYMBOL;
                     instr.operands[operandnum].size:=S_L;
-                    instr.operands[operandnum].symbol:=newpasstr(pprocsym(sym)^.definition^.mangledname);
+                    instr.operands[operandnum].symbol:=newasmsymbol(pprocsym(sym)^.definition^.mangledname);
                     CreateVarInstr := TRUE;
                     Exit;
                   end;
@@ -1810,7 +1786,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  1999-02-22 02:15:39  peter
+  Revision 1.5  1999-02-25 21:02:51  peter
+    * ag386bin updates
+    + coff writer
+
+  Revision 1.4  1999/02/22 02:15:39  peter
     * updates for ag386bin
 
   Revision 1.3  1999/02/16 00:47:28  peter

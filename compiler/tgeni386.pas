@@ -258,11 +258,10 @@ implementation
     procedure del_reference(const ref : treference);
 
       begin
-         if ref.isintvalue then
+         if ref.is_immediate then
            exit;
          ungetregister32(ref.base);
          ungetregister32(ref.index);
-         { ref.segment:=R_DEFAULT_SEG; }
       end;
 
     procedure del_locref(const location : tlocation);
@@ -270,7 +269,7 @@ implementation
       begin
          if (location.loc<>loc_mem) and (location.loc<>loc_reference) then
            exit;
-         if location.reference.isintvalue then
+         if location.reference.is_immediate then
            exit;
          ungetregister32(location.reference.base);
          ungetregister32(location.reference.index);
@@ -374,7 +373,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  1999-02-22 02:15:58  peter
+  Revision 1.20  1999-02-25 21:02:55  peter
+    * ag386bin updates
+    + coff writer
+
+  Revision 1.19  1999/02/22 02:15:58  peter
     * updates for ag386bin
 
   Revision 1.18  1999/01/18 16:02:20  pierre

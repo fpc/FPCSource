@@ -502,8 +502,8 @@ implementation
                    if assigned(ptree(pwithsymtable(p^.symtable)^.withnode)^.pref) then
                      begin
                         r^:=ptree(pwithsymtable(p^.symtable)^.withnode)^.pref^;
-                        if assigned(r^.symbol) then
-                          r^.symbol:=stringdup(r^.symbol^);
+                        {if assigned(r^.symbol) then
+                          r^.symbol:=stringdup(r^.symbol^);}
                      end
                    else
 {$endif def NODIRECTWITH}
@@ -563,9 +563,9 @@ implementation
                                            exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,S_L,0,R_ESI)))
                                          else
                                            begin
-                                             exprasmlist^.concat(new(pai386,op_csymbol_reg(A_MOV,S_L,
-                                               newcsymbol(pobjectdef(
-                                               p^.methodpointer^.resulttype)^.vmt_mangledname,0),R_ESI)));
+                                             exprasmlist^.concat(new(pai386,op_sym_ofs_reg(A_MOV,S_L,
+                                               newasmsymbol(pobjectdef(
+                                               p^.methodpointer^.resulttype)^.vmt_mangledname),0,R_ESI)));
                                              maybe_concat_external(pobjectdef(p^.methodpointer^.resulttype)^.owner,
                                                pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname);
                                            end;
@@ -620,8 +620,8 @@ implementation
                                     exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,S_L,R_ESI,R_ESI)));
                                     exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
                                     { insert the vmt }
-                                    exprasmlist^.concat(new(pai386,op_csymbol(A_PUSH,S_L,
-                                      newcsymbol(pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname,0))));
+                                    exprasmlist^.concat(new(pai386,op_sym(A_PUSH,S_L,
+                                      newasmsymbol(pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname))));
                                     maybe_concat_external(pobjectdef(p^.methodpointer^.resulttype)^.owner,
                                       pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname);
                                     extended_new:=true;
@@ -636,8 +636,8 @@ implementation
                                       newreference(p^.methodpointer^.location.reference),R_ESI)));
                                     del_reference(p^.methodpointer^.location.reference);
                                     exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
-                                    exprasmlist^.concat(new(pai386,op_csymbol(A_PUSH,S_L,
-                                    newcsymbol(pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname,0))));
+                                    exprasmlist^.concat(new(pai386,op_sym(A_PUSH,S_L,
+                                    newasmsymbol(pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname))));
                                     maybe_concat_external(pobjectdef(p^.methodpointer^.resulttype)^.owner,
                                       pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname);
                                  end;
@@ -705,9 +705,8 @@ implementation
                                               if ((p^.procdefinition^.options and poconstructor)<>0) then
                                                 begin
                                                    { it's no bad idea, to insert the VMT }
-                                                   exprasmlist^.concat(new(pai386,op_csymbol(A_PUSH,S_L,
-                                                     newcsymbol(pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname,
-                                                     0))));
+                                                   exprasmlist^.concat(new(pai386,op_sym(A_PUSH,S_L,newasmsymbol(
+                                                     pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname))));
                                                    maybe_concat_external(pobjectdef(p^.methodpointer^.resulttype)^.owner,
                                                      pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname);
                                                 end
@@ -866,8 +865,8 @@ implementation
 {$else TESTOBJEXT}
                    if (cs_check_range in aktlocalswitches) then
                      begin
-                        exprasmlist^.concat(new(pai386,op_csymbol(A_PUSH,S_L,
-                          newcsymbol(p^.procdefinition^._class^.vmt_mangledname,0))));
+                        exprasmlist^.concat(new(pai386,op_sym(A_PUSH,S_L,
+                          newasmsymbol(p^.procdefinition^._class^.vmt_mangledname,0))));
                         exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,r^.base)));
                         emitcall('FPC_CHECK_OBJECT_EXT',true);
                      end;
@@ -978,7 +977,7 @@ implementation
          if (p^.resulttype<>pdef(voiddef)) and ret_in_param(p^.resulttype) then
            begin
               p^.location.loc:=LOC_MEM;
-              stringdispose(p^.location.reference.symbol);
+              p^.location.reference.symbol:=nil;
               p^.location.reference:=funcretref;
            end;
          { we have only to handle the result if it is used, but        }
@@ -1122,14 +1121,14 @@ implementation
                                  if is_ansistring(p^.resulttype) then
                                    begin
                                       exprasmlist^.concat(new(pai386,
-                                        op_csymbol(A_CALL,S_NO,newcsymbol('FPC_ANSISTR_DECR_REF',0))));
+                                        op_sym(A_CALL,S_NO,newasmsymbol('FPC_ANSISTR_DECR_REF'))));
                                       if not (cs_compilesystem in aktmoduleswitches) then
                                       concat_external('FPC_ANSISTR_DECR_REF',EXT_NEAR);
                                    end
                                  else
                                    begin
                                       exprasmlist^.concat(new(pai386,
-                                        op_csymbol(A_CALL,S_NO,newcsymbol('FPC_WIDESTR_DECR_REF',0))));
+                                        op_sym(A_CALL,S_NO,newasmsymbol('FPC_WIDESTR_DECR_REF'))));
                                       if not (cs_compilesystem in aktmoduleswitches) then
                                       concat_external('FPC_WIDESTR_DECR_REF',EXT_NEAR);
                                    end;
@@ -1147,7 +1146,7 @@ implementation
          { perhaps i/o check ? }
          if iolabel<>nil then
            begin
-              exprasmlist^.concat(new(pai386,op_csymbol(A_PUSH,S_L,newcsymbol(lab2str(iolabel),0))));
+              exprasmlist^.concat(new(pai386,op_sym(A_PUSH,S_L,newasmsymbol(lab2str(iolabel)))));
               emitcall('FPC_IOCHECK',true);
            end;
          if pop_size>0 then
@@ -1309,7 +1308,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.68  1999-02-22 02:15:04  peter
+  Revision 1.69  1999-02-25 21:02:21  peter
+    * ag386bin updates
+    + coff writer
+
+  Revision 1.68  1999/02/22 02:15:04  peter
     * updates for ag386bin
 
   Revision 1.67  1999/02/11 09:46:21  pierre

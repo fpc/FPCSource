@@ -209,7 +209,7 @@ unit ptconst;
                    (p^.treetype<>addrn) then
                   begin
                     getdatalabel(ll);
-                    datasegment^.concat(new(pai_const,init_symbol(strpnew(lab2str(ll)))));
+                    datasegment^.concat(new(pai_const_symbol,init(lab2str(ll))));
                     consts^.concat(new(pai_label,init(ll)));
                     if p^.treetype=stringconstn then
                       begin
@@ -269,8 +269,7 @@ unit ptconst;
                              end;
                              hp:=hp^.left;
                           end;
-                        datasegment^.concat(new(pai_const_symbol_offset,init(
-                               strpnew(hp^.symtableentry^.mangledname),offset)));
+                        datasegment^.concat(new(pai_const_symbol,init_offset(hp^.symtableentry^.mangledname,offset)));
                         (*if token=POINT then
                           begin
                              offset:=0;
@@ -308,8 +307,7 @@ unit ptconst;
                   begin
                     if (p^.left^.treetype=typen) then
                       begin
-                        datasegment^.concat(new(pai_const,init_symbol(
-                          strpnew(pobjectdef(p^.left^.resulttype)^.vmt_mangledname))));
+                        datasegment^.concat(new(pai_const_symbol,init(pobjectdef(p^.left^.resulttype)^.vmt_mangledname)));
                         if pobjectdef(p^.left^.resulttype)^.owner^.symtabletype=unitsymtable then
                           concat_external(pobjectdef(p^.left^.resulttype)^.vmt_mangledname,EXT_NEAR);
                       end
@@ -446,7 +444,7 @@ unit ptconst;
                            else
                             strlength:=p^.length;
                            getdatalabel(ll);
-                           datasegment^.concat(new(pai_const,init_symbol(strpnew(lab2str(ll)))));
+                           datasegment^.concat(new(pai_const_symbol,init(lab2str(ll))));
                            { first write the maximum size }
                            consts^.concat(new(pai_const,init_32bit(strlength)));
                            { second write the real length }
@@ -589,7 +587,7 @@ unit ptconst;
                      end
                    else
                      Message(type_e_mismatch);
-                   datasegment^.concat(new(pai_const,init_symbol(strpnew(pd^.mangledname))));
+                   datasegment^.concat(new(pai_const_symbol,init(pd^.mangledname)));
                    if pd^.owner^.symtabletype=unitsymtable then
                      concat_external(pd^.mangledname,EXT_NEAR);
                 end;
@@ -706,7 +704,11 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.37  1999-02-22 02:44:13  peter
+  Revision 1.38  1999-02-25 21:02:45  peter
+    * ag386bin updates
+    + coff writer
+
+  Revision 1.37  1999/02/22 02:44:13  peter
     * ag386bin doesn't use i386.pas anymore
 
   Revision 1.36  1999/02/17 10:15:26  peter

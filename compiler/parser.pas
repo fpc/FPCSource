@@ -164,6 +164,7 @@ unit parser;
          oldinternals,
          oldexternals,
          oldconsts     : paasmoutput;
+         oldasmsymbollist : pasmsymbollist;
        { akt.. things }
          oldaktlocalswitches  : tlocalswitches;
          oldaktmoduleswitches : tmoduleswitches;
@@ -217,6 +218,7 @@ unit parser;
          oldimports:=importssection;
          oldexports:=exportssection;
          oldresource:=resourcesection;
+         oldasmsymbollist:=asmsymbollist;
        { save akt... state }
          oldaktlocalswitches:=aktlocalswitches;
          oldaktmoduleswitches:=aktmoduleswitches;
@@ -383,6 +385,7 @@ unit parser;
               exportssection:=oldexports;
               resourcesection:=oldresource;
               rttilist:=oldrttilist;
+              asmsymbollist:=oldasmsymbollist;
               { restore symtable state }
               refsymtable:=oldrefsymtable;
               symtablestack:=oldsymtablestack;
@@ -449,7 +452,11 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.68  1999-02-02 16:39:41  peter
+  Revision 1.69  1999-02-25 21:02:40  peter
+    * ag386bin updates
+    + coff writer
+
+  Revision 1.68  1999/02/02 16:39:41  peter
     * reset c,pattern,orgpattern also at startup
 
   Revision 1.67  1999/01/27 13:05:44  pierre

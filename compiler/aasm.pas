@@ -49,7 +49,6 @@ unit aasm;
           ait_const_16bit,
           ait_const_8bit,
           ait_const_symbol,
-          ait_const_symbol_offset,
           ait_real_64bit,
           ait_real_32bit,
           ait_real_extended,
@@ -71,7 +70,30 @@ unit aasm;
           { never used, makes insertation of new ait_ easier to type }
           ait_dummy);
 
-     type
+       tsection=(sec_none,
+         sec_code,sec_data,sec_bss,
+         sec_idata2,sec_idata4,sec_idata5,sec_idata6,sec_idata7,sec_edata
+       );
+
+
+  { asm symbol functions }
+    type
+       TAsmsymtype=(AS_NONE,AS_LOCAL,AS_GLOBAL,AS_EXTERNAL);
+
+       pasmsymbol = ^tasmsymbol;
+       tasmsymbol = object(tnamed_object)
+         idx     : longint;
+         section : tsection;
+         address,
+         size    : longint;
+         typ     : TAsmsymtype;
+         constructor init(const s:string);
+       end;
+
+       pasmsymbollist = ^tasmsymbollist;
+       tasmsymbollist = object(tdictionary)
+       end;
+
        { the short name makes typing easier }
        pai = ^tai;
        tai = object(tlinkedlist_item)
@@ -94,11 +116,10 @@ unit aasm;
        { generates a common label }
        pai_symbol = ^tai_symbol;
        tai_symbol = object(tai)
-          name : pchar;
+          sym : pasmsymbol;
           is_global : boolean;
           constructor init(const _name : string);
           constructor init_global(const _name : string);
-          destructor done;virtual;
        end;
 
        { external types defined for TASM }
@@ -110,22 +131,22 @@ unit aasm;
        { generates an symbol which is marked as external }
        pai_external = ^tai_external;
        tai_external = object(tai)
-          name : pchar;
+          sym    : pasmsymbol;
           exttyp : texternal_typ;
-          constructor init(const _name : string;exttype : texternal_typ);
-          destructor done; virtual;
+          constructor init(_sym:pasmsymbol;exttype : texternal_typ);
        end;
 
      { type for a temporary label test if used for dispose of
        unnecessary labels }
        plabel = ^tlabel;
        tlabel = record
-                  nb       : longint;
-                  address  : longint;
-                  is_data  : boolean;
-                  is_used  : boolean;
-                  is_set   : boolean;
-                  refcount : word;
+                  nb        : longint;
+                  address   : longint;
+                  is_data   : boolean;
+                  is_used   : boolean;
+                  is_set    : boolean;
+                  is_symbol : boolean; { if its used as symbol lab2str() }
+                  refcount  : word;
                 end;
 
        pai_label = ^tai_label;
@@ -163,32 +184,24 @@ unit aasm;
           use_op    : boolean;
           constructor init(b:byte);
           constructor init_op(b: byte; _op: byte);
-          destructor done;virtual;
        end;
-
-
-       tsection=(sec_none,sec_code,sec_data,sec_bss,sec_idata,sec_edata);
 
        { Insert a section/segment directive }
        pai_section = ^tai_section;
        tai_section = object(tai)
-          sec      : tsection;
-          idataidx : longint;
+          sec : tsection;
           constructor init(s : tsection);
-          constructor init_idata(i:longint);
-          destructor done;virtual;
        end;
 
 
        { generates an uninitializised data block }
        pai_datablock = ^tai_datablock;
        tai_datablock = object(tai)
+          sym  : pasmsymbol;
           size : longint;
-          name : pchar;
           is_global : boolean;
           constructor init(const _name : string;_size : longint);
           constructor init_global(const _name : string;_size : longint);
-          destructor done; virtual;
        end;
 
 
@@ -199,17 +212,16 @@ unit aasm;
           constructor init_32bit(_value : longint);
           constructor init_16bit(_value : word);
           constructor init_8bit(_value : byte);
-          constructor init_symbol(p : pchar);
-          constructor init_rva(p : pchar);
-          destructor done;virtual;
        end;
 
-       pai_const_symbol_offset = ^tai_const_symbol_offset;
-       tai_const_symbol_offset= object(tai)
-          name : pchar;
+       pai_const_symbol = ^tai_const_symbol;
+       tai_const_symbol = object(tai)
+          sym    : pasmsymbol;
+          address,
           offset : longint;
-          constructor init(p : pchar; l : longint);
-          destructor done;virtual;
+          constructor init(const name:string);
+          constructor init_offset(const name:string;ofs:longint);
+          constructor init_rva(const name:string);
        end;
 
        { generates a double (64 bit real) }
@@ -285,14 +297,13 @@ type
 
        paasmoutput = ^taasmoutput;
        taasmoutput = object(tlinkedlist)
-                   function getlasttaifilepos : pfileposinfo;
-                   end;
+         function getlasttaifilepos : pfileposinfo;
+       end;
 
     var
     { temporary lists }
       exprasmlist,
     { default lists }
-
       datasegment,codesegment,bsssegment,
       internals,externals,debuglist,consts,
       importssection,exportssection,
@@ -302,6 +313,12 @@ type
     function search_assembler_symbol(pl : paasmoutput;const _name : string;exttype : texternal_typ) : pai_external;
     procedure concat_external(const _name : string;exttype : texternal_typ);
     procedure concat_internal(const _name : string;exttype : texternal_typ);
+
+  { asm symbol list }
+    var
+      asmsymbollist : pasmsymbollist;
+
+    function newasmsymbol(const s : string) : pasmsymbol;
 
   { label functions }
     const
@@ -342,28 +359,12 @@ uses
  ****************************************************************************}
 
     constructor tai_section.init(s : tsection);
-
       begin
          inherited init;
          typ:=ait_section;
          sec:=s;
-         idataidx:=0;
       end;
 
-    constructor tai_section.init_idata(i:longint);
-
-      begin
-         inherited init;
-         typ:=ait_section;
-         sec:=sec_idata;
-         idataidx:=i;
-      end;
-
-    destructor tai_section.done;
-
-      begin
-         inherited done;
-      end;
 
 {****************************************************************************
                              TAI_DATABLOCK
@@ -374,29 +375,23 @@ uses
       begin
          inherited init;
          typ:=ait_datablock;
-         name:=strpnew(_name);
+         sym:=newasmsymbol(_name);
          concat_internal(_name,EXT_ANY);
          size:=_size;
          is_global:=false;
       end;
 
-    constructor tai_datablock.init_global(const _name : string;_size : longint);
 
+    constructor tai_datablock.init_global(const _name : string;_size : longint);
       begin
          inherited init;
          typ:=ait_datablock;
-         name:=strpnew(_name);
+         sym:=newasmsymbol(_name);
          concat_internal(_name,EXT_ANY);
          size:=_size;
          is_global:=true;
       end;
 
-    destructor tai_datablock.done;
-
-      begin
-         strdispose(name);
-         inherited done;
-      end;
 
 {****************************************************************************
                                TAI_SYMBOL
@@ -407,7 +402,7 @@ uses
       begin
          inherited init;
          typ:=ait_symbol;
-         name:=strpnew(_name);
+         sym:=newasmsymbol(_name);
          concat_internal(_name,EXT_ANY);
          is_global:=false;
       end;
@@ -417,37 +412,25 @@ uses
       begin
          inherited init;
          typ:=ait_symbol;
-         name:=strpnew(_name);
+         sym:=newasmsymbol(_name);
          concat_internal(_name,EXT_ANY);
          is_global:=true;
       end;
 
-    destructor tai_symbol.done;
-
-      begin
-         strdispose(name);
-         inherited done;
-      end;
 
 {****************************************************************************
                                TAI_EXTERNAL
  ****************************************************************************}
 
-    constructor tai_external.init(const _name : string;exttype : texternal_typ);
+    constructor tai_external.init(_sym:pasmsymbol;exttype : texternal_typ);
 
       begin
          inherited init;
          typ:=ait_external;
          exttyp:=exttype;
-         name:=strpnew(_name);
+         sym:=_sym;
       end;
 
-    destructor tai_external.done;
-
-      begin
-         strdispose(name);
-         inherited done;
-      end;
 
 {****************************************************************************
                                TAI_CONST
@@ -477,50 +460,35 @@ uses
          value:=_value;
       end;
 
-    constructor tai_const.init_symbol(p : pchar);
-
-      begin
-         inherited init;
-         typ:=ait_const_symbol;
-         value:=longint(p);
-      end;
-
-    constructor tai_const.init_rva(p : pchar);
-
-      begin
-         inherited init;
-         typ:=ait_const_rva;
-         value:=longint(p);
-      end;
-
-    destructor tai_const.done;
-
-      begin
-         if typ=ait_const_symbol then
-           strdispose(pchar(value));
-         inherited done;
-      end;
-
 
 {****************************************************************************
                                TAI_CONST_SYMBOL_OFFSET
  ****************************************************************************}
 
-    constructor tai_const_symbol_offset.init(p : pchar; l : longint);
-
+    constructor tai_const_symbol.init(const name:string);
       begin
          inherited init;
-         typ:=ait_const_symbol_offset;
-         name:=p;
-         offset:=l;
+         typ:=ait_const_symbol;
+         sym:=newasmsymbol(name);
+         offset:=0;
       end;
 
-    destructor tai_const_symbol_offset.done;
-
+    constructor tai_const_symbol.init_offset(const name:string;ofs:longint);
       begin
-         strdispose(name);
-         inherited done;
+         inherited init;
+         typ:=ait_const_symbol;
+         sym:=newasmsymbol(name);
+         offset:=ofs;
       end;
+
+    constructor tai_const_symbol.init_rva(const name:string);
+      begin
+         inherited init;
+         typ:=ait_const_rva;
+         sym:=newasmsymbol(name);
+         offset:=0;
+      end;
+
 
 {****************************************************************************
                                TAI_DOUBLE
@@ -722,11 +690,6 @@ uses
           use_op:=true;
        end;
 
-    destructor tai_align.done;
-
-      begin
-         inherited done;
-      end;
 
 {****************************************************************************
                               TAI_CUT
@@ -780,7 +743,7 @@ uses
                 { there is probably an error                   }
                 if (p^.typ=ait_external) and
                    ((exttype=EXT_ANY) or (pai_external(p)^.exttyp=exttype)) and
-                   (strpas(pai_external(p)^.name)=_name) then
+                   (pai_external(p)^.sym^.name=_name) then
                   begin
                      search_assembler_symbol:=pai_external(p);
                      exit;
@@ -790,7 +753,7 @@ uses
               if (p<>nil) and
                  (p^.typ=ait_external) and
                  (pai_external(p)^.exttyp=exttype) and
-                 (strpas(pai_external(p)^.name)=_name) then
+                 (pai_external(p)^.sym^.name=_name) then
                 begin
                    search_assembler_symbol:=pai_external(p);
                    exit;
@@ -801,21 +764,63 @@ uses
 
     { insert each need external only once }
     procedure concat_external(const _name : string;exttype : texternal_typ);
+      var
+        hp : pasmsymbol;
       begin
         if not target_asm.externals then
          exit;
+        { insert in symbollist }
+        hp:=newasmsymbol(_name);
+        { insert in externals }
         if search_assembler_symbol(externals,_name,exttype)=nil then
-         externals^.concat(new(pai_external,init(_name,exttype)));
+         externals^.concat(new(pai_external,init(hp,exttype)));
       end;
 
 
     { insert each need internal only once }
     procedure concat_internal(const _name : string;exttype : texternal_typ);
+      var
+        hp : pasmsymbol;
       begin
         if not target_asm.externals then
          exit;
+        { insert in symbollist }
+        hp:=newasmsymbol(_name);
+        { insert in externals }
         if search_assembler_symbol(internals,_name,exttype)=nil then
-         internals^.concat(new(pai_external,init(_name,exttype)));
+         internals^.concat(new(pai_external,init(hp,exttype)));
+      end;
+
+
+{*****************************************************************************
+                                  AsmSymbol
+*****************************************************************************}
+
+    constructor tasmsymbol.init(const s:string);
+      begin;
+        inherited init(s);
+        idx:=0;
+        section:=sec_none;
+        address:=0;
+        size:=0;
+        typ:=AS_NONE;
+      end;
+
+
+    { generates an help record for constants }
+    function newasmsymbol(const s : string) : pasmsymbol;
+      var
+        hp : pasmsymbol;
+      begin
+        hp:=pasmsymbol(asmsymbollist^.search(s));
+        if assigned(hp) then
+         begin
+           newasmsymbol:=hp;
+           exit;
+         end;
+        hp:=new(pasmsymbol,init(s));
+        asmsymbollist^.insert(hp);
+        newasmsymbol:=hp;
       end;
 
 
@@ -845,6 +850,7 @@ uses
          if countlabelref then
            inc(l^.refcount);
 {$endif HEAPTRC}
+         l^.is_symbol:=true;
          l^.is_used:=true;
       end;
 
@@ -856,6 +862,8 @@ uses
          l^.is_used:=false;
          l^.is_set:=false;
          l^.is_data:=false;
+         l^.is_symbol:=false;
+         l^.address:=-1;
          l^.refcount:=0;
          inc(nextlabelnr);
       end;
@@ -868,6 +876,8 @@ uses
          l^.is_used:=false;
          l^.is_set:=false;
          l^.is_data:=true;
+         l^.is_symbol:=false;
+         l^.address:=-1;
          l^.refcount:=0;
          inc(nextlabelnr);
       end;
@@ -889,6 +899,8 @@ uses
            is_used:=false;
            is_set:=false;
            is_data:=false;
+           is_symbol:=false;
+           address:=-1;
            refcount:=0;
          end;
       end;
@@ -901,6 +913,8 @@ uses
          l^.is_used:=false;
          l^.is_set:=false;
          l^.is_data:=false;
+         l^.is_symbol:=false;
+         l^.address:=-1;
          l^.refcount:=0;
       end;
 
@@ -923,7 +937,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.30  1999-02-17 10:16:24  peter
+  Revision 1.31  1999-02-25 21:02:16  peter
+    * ag386bin updates
+    + coff writer
+
+  Revision 1.30  1999/02/17 10:16:24  peter
     * small fixes for the binary writer
 
   Revision 1.29  1998/12/29 18:48:24  jonas

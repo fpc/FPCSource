@@ -468,7 +468,6 @@ implementation
                      ungetiftemp(p^.left^.location.reference);
                      ungetiftemp(p^.right^.location.reference);
                      p^.location.loc:=LOC_MEM;
-                     stringdispose(p^.location.reference.symbol);
                      p^.location.reference:=href;
                    end;
             subn,
@@ -492,7 +491,6 @@ implementation
                      ungetiftemp(p^.left^.location.reference);
                      ungetiftemp(p^.right^.location.reference);
                      p^.location.loc:=LOC_MEM;
-                     stringdispose(p^.location.reference.symbol);
                      p^.location.reference:=href;
                    end;
         else
@@ -1815,7 +1813,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  1999-02-22 02:15:02  peter
+  Revision 1.45  1999-02-25 21:02:20  peter
+    * ag386bin updates
+    + coff writer
+
+  Revision 1.44  1999/02/22 02:15:02  peter
     * updates for ag386bin
 
   Revision 1.43  1999/02/16 00:46:30  peter

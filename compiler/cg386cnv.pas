@@ -200,7 +200,7 @@ implementation
 
             { get op and opsize, handle separate for constants, becuase
               movz doesn't support constant values }
-            if (pfrom^.location.loc=LOC_MEM) and (pfrom^.location.reference.isintvalue) then
+            if (pfrom^.location.loc=LOC_MEM) and (pfrom^.location.reference.is_immediate) then
              begin
                opsize:=def_opsize(pto^.resulttype);
                op:=A_MOV;
@@ -314,7 +314,7 @@ implementation
                 end
               else internalerror(6);
               hp:=new_reference(R_NO,0);
-              hp^.symbol:=stringdup(porddef(p1)^.getrangecheckstring);
+              hp^.symbol:=newasmsymbol(porddef(p1)^.getrangecheckstring);
               if porddef(p1)^.low>porddef(p1)^.high then
                 begin
                    getlabel(neglabel);
@@ -326,7 +326,7 @@ implementation
               if porddef(p1)^.low>porddef(p1)^.high then
                 begin
                    hp:=new_reference(R_NO,0);
-                   hp^.symbol:=stringdup(porddef(p1)^.getrangecheckstring);
+                   hp^.symbol:=newasmsymbol(porddef(p1)^.getrangecheckstring);
                    { second part here !! }
                    hp^.offset:=8;
                    emitjmp(C_None,poslabel);
@@ -376,13 +376,13 @@ implementation
                      exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
                        newreference(pto^.location.reference),R_EDI)));
                    hpp:=new_reference(R_NO,0);
-                   hpp^.symbol:=stringdup(porddef(pfrom^.resulttype)^.getrangecheckstring);
+                   hpp^.symbol:=newasmsymbol(porddef(pfrom^.resulttype)^.getrangecheckstring);
                    exprasmlist^.concat(new(pai386,op_reg_ref(A_BOUND,S_L,hregister,hpp)));
 
                    { then we do a normal range check }
                    porddef(pto^.resulttype)^.genrangecheck;
                    hpp:=new_reference(R_NO,0);
-                   hpp^.symbol:=stringdup(porddef(pto^.resulttype)^.getrangecheckstring);
+                   hpp^.symbol:=newasmsymbol(porddef(pto^.resulttype)^.getrangecheckstring);
                    exprasmlist^.concat(new(pai386,op_reg_ref(A_BOUND,S_L,hregister,hpp)));
                 end
               else
@@ -420,7 +420,7 @@ implementation
                      end
                    else internalerror(6);
                    hpp:=new_reference(R_NO,0);
-                   hpp^.symbol:=stringdup(porddef(pto^.resulttype)^.getrangecheckstring);
+                   hpp^.symbol:=newasmsymbol(porddef(pto^.resulttype)^.getrangecheckstring);
                    exprasmlist^.concat(new(pai386,op_reg_ref(A_BOUND,S_L,hregister,hpp)));
                    (*
                    if (p^.location.loc=LOC_REGISTER) or
@@ -489,7 +489,7 @@ implementation
          for the length(string !!!
          use only for constant values }
            {Constant cannot be loaded into registers using MOVZX!}
-           if (pfrom^.location.loc<>LOC_MEM) or (not pfrom^.location.reference.isintvalue) then
+           if (pfrom^.location.loc<>LOC_MEM) or (not pfrom^.location.reference.is_immediate) then
                 case convtyp of
                     tc_u8bit_2_s32bit,tc_u8bit_2_u32bit :
                       begin
@@ -604,7 +604,6 @@ implementation
               case pstringdef(pfrom^.resulttype)^.string_typ of
                  st_shortstring:
                    begin
-                      stringdispose(pto^.location.reference.symbol);
                       gettempofsizereference(pto^.resulttype^.size,pto^.location.reference);
                       del_reference(pfrom^.location.reference);
                       copyshortstring(pto^.location.reference,pfrom^.location.reference,
@@ -1344,7 +1343,7 @@ implementation
          emitlab(l1);
          new(hr);
          reset_reference(hr^);
-         hr^.symbol:=stringdup('FPC_EMPTYCHAR');
+         hr^.symbol:=newasmsymbol('FPC_EMPTYCHAR');
          exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,hr,
            pto^.location.register)));
          emitlab(l2);
@@ -1359,7 +1358,6 @@ implementation
            st_shortstring:
              begin
                 pushusedregisters(pushed,$ff);
-                stringdispose(pto^.location.reference.symbol);
                 gettempofsizereference(pto^.resulttype^.size,pto^.location.reference);
                 case pfrom^.location.loc of
                    LOC_REGISTER,LOC_CREGISTER:
@@ -1380,7 +1378,6 @@ implementation
              end;
            st_ansistring:
              begin
-                stringdispose(pto^.location.reference.symbol);
                 gettempofsizereference(pto^.resulttype^.size,pto^.location.reference);
                 ltemptoremove^.concat(new(ptemptodestroy,init(pto^.location.reference,pto^.resulttype)));
                 exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,0,newreference(pto^.location.reference))));
@@ -1623,7 +1620,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.57  1999-02-22 02:15:06  peter
+  Revision 1.58  1999-02-25 21:02:23  peter
+    * ag386bin updates
+    + coff writer
+
+  Revision 1.57  1999/02/22 02:15:06  peter
     * updates for ag386bin
 
   Revision 1.56  1999/02/15 11:30:39  pierre

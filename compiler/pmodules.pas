@@ -194,10 +194,10 @@ unit pmodules;
                target_link.binders:=2;
               end;
              if apptype=at_cui then
-              datasegment^.concat(new(pai_const,init_symbol(strpnew('_mainCRTStartup'))))
+              datasegment^.concat(new(pai_const_symbol,init('_mainCRTStartup')))
              else
               begin
-               datasegment^.concat(new(pai_const,init_symbol(strpnew('_WinMainCRTStartup'))));
+               datasegment^.concat(new(pai_const_symbol,init('_WinMainCRTStartup')));
                target_link.linkcmd:='--subsystem windows '+target_link.linkcmd;
                target_link.bindcmd[2]:='--subsystem windows '+target_link.bindcmd[2];
               end;
@@ -1247,7 +1247,11 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.100  1999-02-23 18:29:20  pierre
+  Revision 1.101  1999-02-25 21:02:43  peter
+    * ag386bin updates
+    + coff writer
+
+  Revision 1.100  1999/02/23 18:29:20  pierre
     * win32 compilation error fix
     + some work for local browser (not cl=omplete yet)
 

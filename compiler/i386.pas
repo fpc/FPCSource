@@ -262,10 +262,10 @@ unit i386;
        treference = record
           base,segment,index : tregister;
           offset : longint;
-          symbol : pstring;
+          symbol : pasmsymbol;
           { a constant is also a treference, this makes the code generator }
           { easier                                                         }
-          isintvalue : boolean;
+          is_immediate : boolean;
           scalefactor : byte;
        end;
 
@@ -287,13 +287,6 @@ unit i386;
                { overlay a registerlow }
                2 : (registerlow : tregister);
              );
-       end;
-
-       pcsymbol = ^tcsymbol;
-
-       tcsymbol = record
-          symbol : pchar;
-          offset : longint;
        end;
 
     type
@@ -405,8 +398,9 @@ unit i386;
 
        tai386 = object(tai)
           { this isn't a proper style, but not very memory expensive }
-          op1,op2: pointer;
+          op1,op2 : pointer; { op3 is also used for the csymbol offset }
           _operator : tasmop;
+          op1ofs : longint;
           opxt:word;
           size:topsize;
           constructor op_none(op : tasmop;_size : topsize);
@@ -429,7 +423,7 @@ unit i386;
           constructor op_const_loc(op : tasmop;_size : topsize;_op1 : longint;_op2 : tlocation);
 
           constructor op_ref_reg(op : tasmop;_size : topsize;_op1 : preference;_op2 : tregister);
-          { this is only allowed if _op1 is an int value (_op1^.isintvalue=true) }
+          { this is only allowed if _op1 is an int value (_op1^.is_immediate=true) }
           constructor op_ref_ref(op : tasmop;_size : topsize;_op1,_op2 : preference);
           {
           constructor op_ref_loc(op : tasmop;_size : topsize;_op1 : preference;_op2 : tlcation);}
@@ -441,10 +435,11 @@ unit i386;
           { so op_csymbol(A_PUSH,S_L,strnew('P')); generates }
           { an instruction which pushes the address of P     }
           { to the stack                                     }
-          constructor op_csymbol(op : tasmop;_size : topsize;_op1 : pcsymbol);
-          constructor op_csymbol_reg(op : tasmop;_size : topsize;_op1 : pcsymbol;_op2 : tregister);
-          constructor op_csymbol_ref(op : tasmop;_size : topsize;_op1 : pcsymbol;_op2 : preference);
-          constructor op_csymbol_loc(op : tasmop;_size : topsize;_op1 : pcsymbol;_op2 : tlocation);
+          constructor op_sym(op : tasmop;_size : topsize;_op1 : pasmsymbol);
+          constructor op_sym_ofs(op : tasmop;_size : topsize;_op1 : pasmsymbol;_op1ofs:longint);
+          constructor op_sym_ofs_reg(op : tasmop;_size : topsize;_op1 : pasmsymbol;_op1ofs:longint;_op2 : tregister);
+          constructor op_sym_ofs_ref(op : tasmop;_size : topsize;_op1 : pasmsymbol;_op1ofs:longint;_op2 : preference);
+          constructor op_sym_ofs_loc(op : tasmop;_size : topsize;_op1 : pasmsymbol;_op1ofs:longint;_op2 : tlocation);
           { OUT immediate8  }
           constructor op_reg_const(op:tasmop; _size: topsize; _op1: tregister; _op2: longint);
           function op1t:byte;
@@ -496,9 +491,6 @@ unit i386;
     procedure disposereference(var r : preference);
 
     function reg2str(r : tregister) : string;
-
-    { generates an help record for constants }
-    function newcsymbol(const s : string;l : longint) : pcsymbol;
 
 
     const
@@ -1270,13 +1262,11 @@ unit i386;
 
 
     procedure disposereference(var r : preference);
-
       begin
-         if assigned(r^.symbol) then
-           stringdispose(r^.symbol);
          dispose(r);
          r:=nil;
       end;
+
 
     function newreference(const r : treference) : preference;
       var
@@ -1284,10 +1274,9 @@ unit i386;
       begin
          new(p);
          p^:=r;
-         if assigned(r.symbol) then
-           p^.symbol:=stringdup(r.symbol^);
          newreference:=p;
       end;
+
 
     function reg8toreg16(reg : tregister) : tregister;
 
@@ -1372,7 +1361,7 @@ unit i386;
               segment:=R_DEFAULT_SEG;
               offset:=0;
               scalefactor:=1;
-              isintvalue:=false;
+              is_immediate:=false;
               symbol:=nil;
            end;
       end;
@@ -1392,28 +1381,10 @@ unit i386;
       procedure clear_reference(var ref : treference);
 
       begin
-         stringdispose(ref.symbol);
          reset_reference(ref);
       end;
 
-    function newcsymbol(const s : string;l : longint) : pcsymbol;
 
-      var
-         p : pcsymbol;
-
-      begin
-         new(p);
-         p^.symbol:=strpnew(s);
-         p^.offset:=l;
-         newcsymbol:=p;
-      end;
-
-    procedure disposecsymbol(p : pcsymbol);
-
-      begin
-      strdispose(p^.symbol);
-      dispose(p);
-      end;
 {****************************************************************************
                        objects for register de/allocation
  ****************************************************************************}
@@ -1485,7 +1456,7 @@ unit i386;
          typ:=ait_instruction;
          _operator:=op;
          size:=_size;
-         if _op1^.isintvalue then
+         if _op1^.is_immediate then
            begin
               opxt:=top_const;
               op1:=pointer(_op1^.offset);
@@ -1513,7 +1484,7 @@ unit i386;
              op1:=pointer(_op1.register);
            end
          else
-         if _op1.reference.isintvalue then
+         if _op1.reference.is_immediate then
            begin
               opxt:=top_const;
               op1:=pointer(_op1.reference.offset);
@@ -1568,7 +1539,7 @@ unit i386;
          size:=_size;
          op1:=pointer(_op1);
 
-         if _op2^.isintvalue then
+         if _op2^.is_immediate then
            begin
               opxt:=opxt+top_const shl 4;
               op2:=pointer(_op2^.offset);
@@ -1598,7 +1569,7 @@ unit i386;
              op2:=pointer(_op2.register);
            end
          else
-         if _op2.reference.isintvalue then
+         if _op2.reference.is_immediate then
            begin
               opxt:=opxt+top_const shl 4;
               op2:=pointer(_op2.reference.offset);
@@ -1627,7 +1598,7 @@ unit i386;
              op1:=pointer(_op1.register);
            end
          else
-         if _op1.reference.isintvalue then
+         if _op1.reference.is_immediate then
            begin
               opxt:=opxt+top_const;
               op1:=pointer(_op1.reference.offset);
@@ -1703,7 +1674,7 @@ unit i386;
          size:=_size;
          op1:=pointer(_op1);
 
-         if _op2^.isintvalue then
+         if _op2^.is_immediate then
            begin
               opxt:=opxt+top_const shl 4;
               op2:=pointer(_op2^.offset);
@@ -1733,7 +1704,7 @@ unit i386;
              op2:=pointer(_op2.register);
            end
          else
-         if _op2.reference.isintvalue then
+         if _op2.reference.is_immediate then
            begin
               opxt:=opxt+top_const shl 4;
               op2:=pointer(_op2.reference.offset);
@@ -1756,7 +1727,7 @@ unit i386;
          size:=_size;
          op2:=pointer(_op2);
 
-         if _op1^.isintvalue then
+         if _op1^.is_immediate then
            begin
               opxt:=opxt+top_const;
               op1:=pointer(_op1^.offset);
@@ -1778,7 +1749,7 @@ unit i386;
          _operator:=op;
          size:=_size;
 
-         if _op1^.isintvalue then
+         if _op1^.is_immediate then
            begin
               opxt:=top_const;
               op1:=pointer(_op1^.offset);
@@ -1790,7 +1761,7 @@ unit i386;
               op1:=pointer(_op1);
            end;
 
-         if _op2^.isintvalue then
+         if _op2^.is_immediate then
            begin
               opxt:=opxt+top_const shl 4;
               op2:=pointer(_op2^.offset);
@@ -1804,7 +1775,7 @@ unit i386;
 
       end;
 
-    constructor tai386.op_csymbol(op : tasmop;_size : topsize;_op1 : pcsymbol);
+    constructor tai386.op_sym(op : tasmop;_size : topsize;_op1 : pasmsymbol);
 
       begin
          inherited init;
@@ -1815,10 +1786,27 @@ unit i386;
          opxt:=top_symbol;
          size:=_size;
          op1:=pointer(_op1);
+         op1ofs:=0;
          op2:=nil;
       end;
 
-    constructor tai386.op_csymbol_reg(op : tasmop;_size : topsize;_op1 : pcsymbol;_op2 : tregister);
+
+    constructor tai386.op_sym_ofs(op : tasmop;_size : topsize;_op1 : pasmsymbol;_op1ofs:longint);
+
+      begin
+         inherited init;
+         typ:=ait_instruction;
+         _operator:=op;
+         if (op=A_CALL) and (use_esp_stackframe) then
+          Message(cg_e_stackframe_with_esp);
+         opxt:=top_symbol;
+         size:=_size;
+         op1:=pointer(_op1);
+         op1ofs:=_op1ofs;
+         op2:=nil;
+      end;
+
+    constructor tai386.op_sym_ofs_reg(op : tasmop;_size : topsize;_op1 : pasmsymbol;_op1ofs:longint;_op2 : tregister);
 
       begin
          inherited init;
@@ -1827,11 +1815,11 @@ unit i386;
          opxt:=Top_symbol+Top_reg shl 4;
          size:=_size;
          op1:=pointer(_op1);
+         op1ofs:=_op1ofs;
          op2:=pointer(_op2);
-
       end;
 
-    constructor tai386.op_csymbol_ref(op : tasmop;_size : topsize;_op1 : pcsymbol;_op2 : preference);
+    constructor tai386.op_sym_ofs_ref(op : tasmop;_size : topsize;_op1 : pasmsymbol;_op1ofs:longint;_op2 : preference);
 
       begin
          inherited init;
@@ -1840,8 +1828,9 @@ unit i386;
          opxt:=top_symbol;
          size:=_size;
          op1:=pointer(_op1);
+         op1ofs:=_op1ofs;
 
-         if _op2^.isintvalue then
+         if _op2^.is_immediate then
            begin
               opxt:=opxt+top_const shl 4;
               op2:=pointer(_op2^.offset);
@@ -1855,7 +1844,7 @@ unit i386;
 
       end;
 
-    constructor tai386.op_csymbol_loc(op : tasmop;_size : topsize;_op1 : pcsymbol;_op2 : tlocation);
+    constructor tai386.op_sym_ofs_loc(op : tasmop;_size : topsize;_op1 : pasmsymbol;_op1ofs:longint;_op2 : tlocation);
 
       begin
          inherited init;
@@ -1864,14 +1853,14 @@ unit i386;
          opxt:=top_symbol;
          size:=_size;
          op1:=pointer(_op1);
-
+         op1ofs:=_op1ofs;
          if (_op2.loc=loc_register) or (_op2.loc=loc_cregister)  then
            begin
              opxt:=top_reg shl 4;
              op2:=pointer(_op2.register);
            end
          else
-         if _op2.reference.isintvalue then
+         if _op2.reference.is_immediate then
            begin
               opxt:=opxt+top_const shl 4;
               op2:=pointer(_op2.reference.offset);
@@ -1917,16 +1906,12 @@ unit i386;
    destructor tai386.done;
 
      begin
-        if op1t=top_symbol then
-          disposecsymbol(pcsymbol(op1))
-        else if op1t=top_ref then
+       if op1t=top_ref then
           begin
              clear_reference(preference(op1)^);
              dispose(preference(op1));
           end;
-        if op2t=top_symbol then
-          disposecsymbol(pcsymbol(op2))
-        else if op2t=top_ref then
+       if op2t=top_ref then
           begin
              clear_reference(preference(op2)^);
              dispose(preference(op2));
@@ -1992,7 +1977,11 @@ Begin
 end.
 {
   $Log$
-  Revision 1.35  1999-02-22 02:15:23  peter
+  Revision 1.36  1999-02-25 21:02:38  peter
+    * ag386bin updates
+    + coff writer
+
+  Revision 1.35  1999/02/22 02:15:23  peter
     * updates for ag386bin
 
   Revision 1.34  1999/01/26 11:32:14  pierre

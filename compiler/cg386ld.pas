@@ -56,7 +56,7 @@ implementation
          symtabletype : tsymtabletype;
          i : longint;
          hp : preference;
-         s : pcsymbol;
+         s : pasmsymbol;
       begin
          simple_loadn:=true;
          reset_reference(p^.location.reference);
@@ -64,7 +64,7 @@ implementation
               { this is only for toasm and toaddr }
               absolutesym :
                  begin
-                    stringdispose(p^.location.reference.symbol);
+                    p^.location.reference.symbol:=nil;
                     if (pabsolutesym(p^.symtableentry)^.abstyp=toaddr) then
                      begin
                        if pabsolutesym(p^.symtableentry)^.absseg then
@@ -72,7 +72,7 @@ implementation
                        p^.location.reference.offset:=pabsolutesym(p^.symtableentry)^.address;
                      end
                     else
-                     p^.location.reference.symbol:=stringdup(p^.symtableentry^.mangledname);
+                     p^.location.reference.symbol:=newasmsymbol(p^.symtableentry^.mangledname);
                     maybe_concat_external(p^.symtableentry^.owner,p^.symtableentry^.mangledname);
                  end;
               varsym :
@@ -81,8 +81,7 @@ implementation
                     { C variable }
                     if (pvarsym(p^.symtableentry)^.var_options and vo_is_C_var)<>0 then
                       begin
-                         stringdispose(p^.location.reference.symbol);
-                         p^.location.reference.symbol:=stringdup(p^.symtableentry^.mangledname);
+                         p^.location.reference.symbol:=newasmsymbol(p^.symtableentry^.mangledname);
                          if (pvarsym(p^.symtableentry)^.var_options and vo_is_external)<>0 then
                            maybe_concat_external(p^.symtableentry^.owner,p^.symtableentry^.mangledname);
                       end
@@ -90,10 +89,9 @@ implementation
                     else if (pvarsym(p^.symtableentry)^.var_options and vo_is_dll_var)<>0 then
                       begin
                          hregister:=getregister32;
-                         stringdispose(p^.location.reference.symbol);
-                         p^.location.reference.symbol:=stringdup(p^.symtableentry^.mangledname);
+                         p^.location.reference.symbol:=newasmsymbol(p^.symtableentry^.mangledname);
                          exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(p^.location.reference),hregister)));
-                         stringdispose(p^.location.reference.symbol);
+                         p^.location.reference.symbol:=nil;
                          p^.location.reference.base:=hregister;
                          if (pvarsym(p^.symtableentry)^.var_options and vo_is_external)<>0 then
                            maybe_concat_external(p^.symtableentry^.owner,p^.symtableentry^.mangledname);
@@ -148,12 +146,12 @@ implementation
                               else
                                 case symtabletype of
                                    unitsymtable,globalsymtable,
-                                   staticsymtable : begin
-                                                       stringdispose(p^.location.reference.symbol);
-                                                       p^.location.reference.symbol:=stringdup(p^.symtableentry^.mangledname);
-                                                       if symtabletype=unitsymtable then
-                                                         concat_external(p^.symtableentry^.mangledname,EXT_NEAR);
-                                                    end;
+                                   staticsymtable :
+                                     begin
+                                       p^.location.reference.symbol:=newasmsymbol(p^.symtableentry^.mangledname);
+                                       if symtabletype=unitsymtable then
+                                        concat_external(p^.symtableentry^.mangledname,EXT_NEAR);
+                                     end;
                                    stt_exceptsymtable:
                                      begin
                                         p^.location.reference.base:=procinfo.framepointer;
@@ -163,9 +161,7 @@ implementation
                                      begin
                                         if (pvarsym(p^.symtableentry)^.properties and sp_static)<>0 then
                                           begin
-                                             stringdispose(p^.location.reference.symbol);
-                                             p^.location.reference.symbol:=
-                                                stringdup(p^.symtableentry^.mangledname);
+                                             p^.location.reference.symbol:=newasmsymbol(p^.symtableentry^.mangledname);
                                              if p^.symtable^.defowner^.owner^.symtabletype=unitsymtable then
                                                concat_external(p^.symtableentry^.mangledname,EXT_NEAR);
                                           end
@@ -300,11 +296,9 @@ implementation
                            end
                          else
                            begin
-                              new(s);
-                              s^.symbol:=strpnew(pprocsym(p^.symtableentry)^.definition^.mangledname);
-                              s^.offset:=0;
+                              s:=newasmsymbol(pprocsym(p^.symtableentry)^.definition^.mangledname);
 
-                              exprasmlist^.concat(new(pai386,op_csymbol_ref(A_MOV,S_L,s,
+                              exprasmlist^.concat(new(pai386,op_sym_ofs_ref(A_MOV,S_L,s,0,
                                 newreference(p^.location.reference))));
 
                               maybe_concat_external(p^.symtable,p^.symtableentry^.mangledname);
@@ -313,15 +307,13 @@ implementation
                     else
                       begin
                          {!!!!! Be aware, work on virtual methods too }
-                         stringdispose(p^.location.reference.symbol);
-                         p^.location.reference.symbol:=stringdup(pprocsym(p^.symtableentry)^.definition^.mangledname);
+                         p^.location.reference.symbol:=newasmsymbol(pprocsym(p^.symtableentry)^.definition^.mangledname);
                          maybe_concat_external(p^.symtable,p^.symtableentry^.mangledname);
                       end;
                  end;
               typedconstsym :
                  begin
-                    stringdispose(p^.location.reference.symbol);
-                    p^.location.reference.symbol:=stringdup(p^.symtableentry^.mangledname);
+                    p^.location.reference.symbol:=newasmsymbol(p^.symtableentry^.mangledname);
                     maybe_concat_external(p^.symtable,p^.symtableentry^.mangledname);
                  end;
               else internalerror(4);
@@ -502,12 +494,12 @@ implementation
                                    { increment source reference counter }
                                    new(r);
                                    reset_reference(r^);
-                                   r^.symbol:=stringdup(lab2str(p^.right^.resulttype^.get_inittable_label));
+                                   r^.symbol:=newasmsymbol(lab2str(p^.right^.resulttype^.get_inittable_label));
                                    emitpushreferenceaddr(exprasmlist,r^);
 
                                    emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
                                    exprasmlist^.concat(new(pai386,
-                                     op_csymbol(A_CALL,S_NO,newcsymbol('FPC_ADDREF',0))));
+                                     op_sym(A_CALL,S_NO,newasmsymbol('FPC_ADDREF'))));
 
                                    if not (cs_compilesystem in aktmoduleswitches) then
                                      concat_external('FPC_ADDREF',EXT_NEAR);
@@ -515,12 +507,12 @@ implementation
                                    { decrement destination reference counter }
                                    new(r);
                                    reset_reference(r^);
-                                   r^.symbol:=stringdup(lab2str(p^.left^.resulttype^.get_inittable_label));
+                                   r^.symbol:=newasmsymbol(lab2str(p^.left^.resulttype^.get_inittable_label));
                                    emitpushreferenceaddr(exprasmlist,r^);
 
                                    emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
                                    exprasmlist^.concat(new(pai386,
-                                     op_csymbol(A_CALL,S_NO,newcsymbol('FPC_DECREF',0))));
+                                     op_sym(A_CALL,S_NO,newasmsymbol('FPC_DECREF'))));
 
                                    if not(cs_compilesystem in aktmoduleswitches) then
                                      concat_external('FPC_DECREF',EXT_NEAR);
@@ -805,7 +797,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  1999-02-22 02:15:12  peter
+  Revision 1.45  1999-02-25 21:02:28  peter
+    * ag386bin updates
+    + coff writer
+
+  Revision 1.44  1999/02/22 02:15:12  peter
     * updates for ag386bin
 
   Revision 1.43  1999/01/27 00:13:54  florian

@@ -279,6 +279,7 @@ implementation
          importssection:=nil;
          exportssection:=nil;
          resourcesection:=nil;
+         asmsymbollist:=new(pasmsymbollist,init(true));
       end;
 
 
@@ -300,6 +301,7 @@ implementation
           dispose(exportssection,done);
          if assigned(resourcesection) then
           dispose(resourcesection,done);
+         dispose(asmsymbollist,done);
       end;
 
 
@@ -364,7 +366,11 @@ end.
 
 {
   $Log$
-  Revision 1.26  1999-02-22 02:15:21  peter
+  Revision 1.27  1999-02-25 21:02:37  peter
+    * ag386bin updates
+    + coff writer
+
+  Revision 1.26  1999/02/22 02:15:21  peter
     * updates for ag386bin
 
   Revision 1.25  1999/01/21 22:10:45  peter

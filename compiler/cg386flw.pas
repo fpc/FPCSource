@@ -589,7 +589,7 @@ do_jmp:
                    getlabel(a);
                    emitlab(a);
                    exprasmlist^.concat(new(pai386,
-                     op_csymbol(A_PUSH,S_L,newcsymbol(lab2str(a),0))));
+                     op_sym(A_PUSH,S_L,newasmsymbol(lab2str(a)))));
                 end;
               secondpass(p^.left);
               if codegenerror then
@@ -695,8 +695,8 @@ do_jmp:
          getlabel(nextonlabel);
 
          { push the vmt }
-         exprasmlist^.concat(new(pai386,op_csymbol(A_PUSH,S_L,
-           newcsymbol(p^.excepttype^.vmt_mangledname,0))));
+         exprasmlist^.concat(new(pai386,op_sym(A_PUSH,S_L,
+           newasmsymbol(p^.excepttype^.vmt_mangledname))));
          maybe_concat_external(p^.excepttype^.owner,
            p^.excepttype^.vmt_mangledname);
 
@@ -797,7 +797,11 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.28  1999-02-22 02:15:09  peter
+  Revision 1.29  1999-02-25 21:02:26  peter
+    * ag386bin updates
+    + coff writer
+
+  Revision 1.28  1999/02/22 02:15:09  peter
     * updates for ag386bin
 
   Revision 1.27  1999/01/26 11:26:21  pierre

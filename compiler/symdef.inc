@@ -805,7 +805,7 @@
          rttilist^.concat(new(pai_const,init_32bit(min)));
          rttilist^.concat(new(pai_const,init_32bit(max)));
          if assigned(basedef) then
-           rttilist^.concat(new(pai_const,init_symbol(strpnew(basedef^.get_rtti_label))))
+           rttilist^.concat(new(pai_const_symbol,init(basedef^.get_rtti_label)))
          else
            rttilist^.concat(new(pai_const,init_32bit(0)));
          hp:=first;
@@ -1463,7 +1463,7 @@
       begin
          rttilist^.concat(new(pai_const,init_8bit(tkSet)));
          rttilist^.concat(new(pai_const,init_8bit(otULong)));
-         rttilist^.concat(new(pai_const,init_symbol(strpnew(setof^.get_rtti_label))));
+         rttilist^.concat(new(pai_const_symbol,init(setof^.get_rtti_label)));
       end;
 
 
@@ -1666,7 +1666,7 @@
          { count of elements }
          rttilist^.concat(new(pai_const,init_32bit(highrange-lowrange+1)));
          { element type }
-         rttilist^.concat(new(pai_const,init_symbol(strpnew(definition^.get_rtti_label))));
+         rttilist^.concat(new(pai_const_symbol,init(definition^.get_rtti_label)));
       end;
 
 
@@ -1882,7 +1882,7 @@
       begin
          if (sym^.typ=varsym) and pvarsym(sym)^.definition^.needs_inittable then
            begin
-              rttilist^.concat(new(pai_const,init_symbol(strpnew(lab2str(pvarsym(sym)^.definition^.get_inittable_label)))));
+              rttilist^.concat(new(pai_const_symbol,init(lab2str(pvarsym(sym)^.definition^.get_inittable_label))));
               rttilist^.concat(new(pai_const,init_32bit(pvarsym(sym)^.address)));
            end;
       end;
@@ -1890,7 +1890,7 @@
 
     procedure write_field_rtti(sym : psym);{$ifndef fpc}far;{$endif}
       begin
-         rttilist^.concat(new(pai_const,init_symbol(strpnew(pvarsym(sym)^.definition^.get_rtti_label))));
+         rttilist^.concat(new(pai_const_symbol,init(pvarsym(sym)^.definition^.get_rtti_label)));
          rttilist^.concat(new(pai_const,init_32bit(pvarsym(sym)^.address)));
       end;
 
@@ -2267,7 +2267,7 @@ Const local_symtable_index : longint = $8001;
                       end;
                     pdo:=pdo^.childof;
                  end;
-               
+
              new(parast,loadas(parasymtable));
              parast^.next:=localsymtablestack;
              localsymtablestack:=parast;
@@ -2348,7 +2348,7 @@ Const local_symtable_index : longint = $8001;
                       end;
                     pdo:=pdo^.childof;
                  end;
-               
+
              { we need TESTLOCALBROWSER para and local symtables
                PPU files are then easier to read PM }
              if not assigned(parast) then
@@ -3210,7 +3210,7 @@ Const local_symtable_index : longint = $8001;
              begin
                 if (pprocdef(def)^.options and povirtualmethod)=0 then
                   begin
-                     rttilist^.concat(new(pai_const,init_symbol(strpnew(pprocdef(def)^.mangledname))));
+                     rttilist^.concat(new(pai_const_symbol,init(pprocdef(def)^.mangledname)));
                      typvalue:=1;
                   end
                 else
@@ -3231,7 +3231,7 @@ Const local_symtable_index : longint = $8001;
            proctypesinfo:=0;
          if (sym^.typ=propertysym) and ((sym^.properties and sp_published)<>0) then
            begin
-              rttilist^.concat(new(pai_const,init_symbol(strpnew(ppropertysym(sym)^.proptype^.get_rtti_label))));
+              rttilist^.concat(new(pai_const_symbol,init(ppropertysym(sym)^.proptype^.get_rtti_label)));
               writeproc(ppropertysym(sym)^.readaccesssym,ppropertysym(sym)^.readaccessdef,0);
               writeproc(ppropertysym(sym)^.writeaccesssym,ppropertysym(sym)^.writeaccessdef,2);
               { isn't it stored ? }
@@ -3303,11 +3303,11 @@ Const local_symtable_index : longint = $8001;
          rttilist^.concat(new(pai_string,init(name^)));
 
          { write class type }
-         rttilist^.concat(new(pai_const,init_symbol(strpnew(vmt_mangledname))));
+         rttilist^.concat(new(pai_const_symbol,init(vmt_mangledname)));
 
          { write owner typeinfo }
          if assigned(childof) and ((childof^.options and oo_can_have_published)<>0) then
-           rttilist^.concat(new(pai_const,init_symbol(strpnew(childof^.get_rtti_label))))
+           rttilist^.concat(new(pai_const_symbol,init(childof^.get_rtti_label)))
          else
            rttilist^.concat(new(pai_const,init_32bit(0)));
 
@@ -3378,7 +3378,11 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.95  1999-02-23 18:29:23  pierre
+  Revision 1.96  1999-02-25 21:02:52  peter
+    * ag386bin updates
+    + coff writer
+
+  Revision 1.95  1999/02/23 18:29:23  pierre
     * win32 compilation error fix
     + some work for local browser (not cl=omplete yet)
 

@@ -856,10 +856,7 @@ var
        begin
          { get symbol name                                  }
          { free the memory before changing the symbol name. }
-         if assigned(instr.operands[operandnum].ref.symbol) then
-           FreeMem(instr.operands[operandnum].ref.symbol,
-               length(instr.operands[operandnum].ref.symbol^)+1);
-         instr.operands[operandnum].ref.symbol:=newpasstr(strpas(p^.name));
+         instr.operands[operandnum].ref.symbol:=newasmsymbol(p^.sym^.name);
            case p^.exttyp of
              EXT_BYTE   : instr.operands[operandnum].size := S_B;
              EXT_WORD   : instr.operands[operandnum].size := S_W;
@@ -892,7 +889,7 @@ var
                            { if so then it is considered  }
                            { as a displacement.           }
                            Begin
-                             if labellist.search(ref.symbol^) <> nil then
+                             if labellist.search(ref.symbol^.name) <> nil then
                                findtype := ao_disp
                              else
                                findtype := ao_mem; { probably a mem ref. }
@@ -1152,7 +1149,7 @@ var
                (ref.symbol = nil) and
                (ref.offset <> 0)) then
              Begin
-               ref.isintvalue := TRUE;
+               ref.is_immediate := TRUE;
                Message(assem_e_const_ref_not_allowed);
              end;
             opinfo := findtype(operands[i]);
@@ -1486,9 +1483,6 @@ var
           Begin
             if numops =1 then
               Begin
-                if (operands[1].operandtype = OPR_REFERENCE) and
-                   (assigned(operands[1].ref.symbol)) then
-                  Freemem(operands[1].ref.symbol,length(operands[1].ref.symbol^)+1);
                 operands[1].operandtype := OPR_NONE;
                 numops := 0;
               end;
@@ -1499,9 +1493,6 @@ var
        { here we accept XLAT, XLATB and XLAT m8 }
             if (numops = 1) or (numops = 0) then
               Begin
-                if (operands[1].operandtype = OPR_REFERENCE) and
-                   (assigned(operands[1].ref.symbol)) then
-                  Freemem(operands[1].ref.symbol,length(operands[1].ref.symbol^)+1);
                 operands[1].operandtype := OPR_NONE;
                 numops := 0;
               { always a byte for XLAT }
@@ -1548,12 +1539,6 @@ var
           Begin
             if numops =2 then
               Begin
-                if (operands[2].operandtype = OPR_REFERENCE) and
-                   (assigned(operands[2].ref.symbol)) then
-                  Freemem(operands[2].ref.symbol,length(operands[2].ref.symbol^)+1);
-                if (operands[1].operandtype = OPR_REFERENCE) and
-                   (assigned(operands[1].ref.symbol)) then
-                  Freemem(operands[1].ref.symbol,length(operands[2].ref.symbol^)+1);
                 operands[2].operandtype := OPR_NONE;
                 operands[1].operandtype := OPR_NONE;
                 numops := 0;
@@ -1709,8 +1694,8 @@ var
              End;
            OPR_SYMBOL:
              Begin
-                p^.concat(new(pai386,op_csymbol(instruc,
-                  instr.stropsize, newcsymbol(instr.operands[1].symbol^,0))));
+                p^.concat(new(pai386,op_sym(instruc,
+                  instr.stropsize,instr.operands[1].symbol)));
              End;
            OPR_REFERENCE:
              { now first check suffix ... }
@@ -1982,7 +1967,7 @@ var
                               { create an temporary reference }
                                End; {case}
                                reset_reference(href);
-                               href.symbol:=stringdup(instr.operands[1].symbol^);
+                               href.symbol:=instr.operands[1].symbol;
                                p^.concat(new(pai386,op_ref_reg(instruc,opsize,
                                  newreference(href),operands[2].reg)));
                                clear_reference(href);
@@ -3707,7 +3692,11 @@ end.
 
 {
   $Log$
-  Revision 1.32  1999-02-22 02:15:34  peter
+  Revision 1.33  1999-02-25 21:02:47  peter
+    * ag386bin updates
+    + coff writer
+
+  Revision 1.32  1999/02/22 02:15:34  peter
     * updates for ag386bin
 
   Revision 1.31  1999/01/29 11:24:02  pierre

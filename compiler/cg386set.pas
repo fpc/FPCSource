@@ -225,7 +225,7 @@ implementation
 
             {reset_reference(href);}
             getlabel(l);
-            {href.symbol:=stringdup(lab2str(l));}
+            {href.symbol:=newasmsymbol(lab2str(l));}
 
             for i:=1 to numparts do
              if setparts[i].range then
@@ -235,7 +235,7 @@ implementation
                 {reset_reference(href2);}
                 getlabel(l2);
                 {shouldn't it be href2 here ??
-                href.symbol:=stringdup(lab2str(l2));}
+                href.symbol:=newasmsymbol(lab2str(l2));}
                 if setparts[i].start=setparts[i].stop-1 then
                  begin
                    case p^.left^.location.loc of
@@ -327,7 +327,7 @@ implementation
              if ranges then
               exprasmlist^.concat(new(pai386,op_none(A_CLC,S_NO)));
              { To compensate for not doing a second pass }
-             stringdispose(p^.right^.location.reference.symbol);
+             p^.right^.location.reference.symbol:=nil;
              { Now place the end label }
              exprasmlist^.concat(new(pai_label,init(l)));
              case p^.left^.location.loc of
@@ -390,7 +390,7 @@ implementation
                   else
                     begin
                       del_reference(p^.right^.location.reference);
-                      if p^.right^.location.reference.isintvalue then
+                      if p^.right^.location.reference.is_immediate then
                        begin
                        { We have to load the value into a register because
                          btl does not accept values only refs or regs (PFV) }
@@ -605,11 +605,9 @@ implementation
                genitem(t^.less);
              { fill possible hole }
              for i:=last+1 to t^._low-1 do
-               jumpsegment^.concat(new(pai_const,init_symbol(strpnew(lab2str
-                 (elselabel)))));
+               jumpsegment^.concat(new(pai_const_symbol,init(lab2str(elselabel))));
              for i:=t^._low to t^._high do
-               jumpsegment^.concat(new(pai_const,init_symbol(strpnew(lab2str
-                    (t^.statement)))));
+               jumpsegment^.concat(new(pai_const_symbol,init(lab2str(t^.statement))));
               last:=t^._high;
              if assigned(t^.greater) then
                genitem(t^.greater);
@@ -640,7 +638,7 @@ implementation
              end;
            new(hr);
            reset_reference(hr^);
-           hr^.symbol:=stringdup(lab2str(table));
+           hr^.symbol:=newasmsymbol(lab2str(table));
            hr^.offset:=(-min_)*4;
            hr^.index:=hregister;
            hr^.scalefactor:=4;
@@ -798,7 +796,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  1999-02-22 02:15:16  peter
+  Revision 1.23  1999-02-25 21:02:31  peter
+    * ag386bin updates
+    + coff writer
+
+  Revision 1.22  1999/02/22 02:15:16  peter
     * updates for ag386bin
 
   Revision 1.21  1999/02/17 10:12:59  peter

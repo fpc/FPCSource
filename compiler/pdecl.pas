@@ -1484,7 +1484,7 @@ unit pdecl;
               intmessagetable:=genintmsgtab(aktclass);
 
               { table for string messages }
-              datasegment^.concat(new(pai_const,init_symbol(strpnew(lab2str(strmessagetable)))));
+              datasegment^.concat(new(pai_const_symbol,init(lab2str(strmessagetable))));
 
               { interface table }
               datasegment^.concat(new(pai_const,init_32bit(0)));
@@ -1494,13 +1494,13 @@ unit pdecl;
 
               { inittable for con-/destruction }
               if aktclass^.needs_inittable then
-                datasegment^.concat(new(pai_const,init_symbol(strpnew(lab2str(aktclass^.get_inittable_label)))))
+                datasegment^.concat(new(pai_const_symbol,init(lab2str(aktclass^.get_inittable_label))))
               else
                 datasegment^.concat(new(pai_const,init_32bit(0)));
 
               { pointer to type info of published section }
               if (aktclass^.options and oo_can_have_published)<>0 then
-                datasegment^.concat(new(pai_const,init_symbol(strpnew(aktclass^.rtti_name))))
+                datasegment^.concat(new(pai_const_symbol,init(aktclass^.rtti_name)))
               else
                 datasegment^.concat(new(pai_const,init_32bit(0)));
 
@@ -1510,10 +1510,10 @@ unit pdecl;
               datasegment^.concat(new(pai_const,init_32bit(0)));
 
               { pointer to dynamic table }
-              datasegment^.concat(new(pai_const,init_symbol(strpnew(lab2str(intmessagetable)))));
+              datasegment^.concat(new(pai_const_symbol,init(lab2str(intmessagetable))));
 
               { pointer to class name string }
-              datasegment^.concat(new(pai_const,init_symbol(strpnew(lab2str(classnamelabel)))));
+              datasegment^.concat(new(pai_const_symbol,init(lab2str(classnamelabel))));
            end;
 {$ifdef GDB}
          { generate the VMT }
@@ -1542,7 +1542,7 @@ unit pdecl;
               if assigned(aktclass^.childof) and
                  ((aktclass^.childof^.options and oo_hasvmt)<>0) then
                 begin
-                   datasegment^.concat(new(pai_const,init_symbol(strpnew(aktclass^.childof^.vmt_mangledname))));
+                   datasegment^.concat(new(pai_const_symbol,init(aktclass^.childof^.vmt_mangledname)));
                    if aktclass^.childof^.owner^.symtabletype=unitsymtable then
                      concat_external(aktclass^.childof^.vmt_mangledname,EXT_NEAR);
                 end
@@ -2193,7 +2193,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.100  1999-02-24 00:59:14  peter
+  Revision 1.101  1999-02-25 21:02:41  peter
+    * ag386bin updates
+    + coff writer
+
+  Revision 1.100  1999/02/24 00:59:14  peter
     * small updates for ag386bin
 
   Revision 1.99  1999/02/22 23:33:29  florian

@@ -61,9 +61,11 @@ implementation
     procedure secondloadvmt(var p : ptree);
       begin
          p^.location.register:=getregister32;
-         exprasmlist^.concat(new(pai386,op_csymbol_reg(A_MOV,
-            S_L,newcsymbol(pobjectdef(pclassrefdef(p^.resulttype)^.definition)^.vmt_mangledname,0),
+         exprasmlist^.concat(new(pai386,op_sym_ofs_reg(A_MOV,
+            S_L,newasmsymbol(pobjectdef(pclassrefdef(p^.resulttype)^.definition)^.vmt_mangledname),0,
             p^.location.register)));
+         maybe_concat_external(pobjectdef(pclassrefdef(p^.resulttype)^.definition)^.owner,
+            pobjectdef(pclassrefdef(p^.resulttype)^.definition)^.vmt_mangledname);
       end;
 
 
@@ -106,11 +108,10 @@ implementation
                 begin
                    new(r);
                    reset_reference(r^);
-                   r^.symbol:=stringdup(lab2str(ppointerdef(p^.left^.resulttype)^.definition^.get_inittable_label));
+                   r^.symbol:=newasmsymbol(lab2str(ppointerdef(p^.left^.resulttype)^.definition^.get_inittable_label));
                    emitpushreferenceaddr(exprasmlist,r^);
                    { push pointer adress }
                    emitpushreferenceaddr(exprasmlist,p^.location.reference);
-                   stringdispose(r^.symbol);
                    dispose(r);
                    emitcall('FPC_INITIALIZE',true);
                 end;
@@ -188,7 +189,7 @@ implementation
                   begin
                      new(r);
                      reset_reference(r^);
-                     r^.symbol:=stringdup(lab2str(ppointerdef(p^.left^.resulttype)^.definition^.get_inittable_label));
+                     r^.symbol:=newasmsymbol(lab2str(ppointerdef(p^.left^.resulttype)^.definition^.get_inittable_label));
                      emitpushreferenceaddr(exprasmlist,r^);
                      { push pointer adress }
                      case p^.left^.location.loc of
@@ -197,7 +198,6 @@ implementation
                         LOC_REFERENCE:
                           emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
                      end;
-                     stringdispose(r^.symbol);
                      dispose(r);
                      emitcall('FPC_FINALIZE',true);
                   end;
@@ -210,7 +210,7 @@ implementation
                   begin
                      new(r);
                      reset_reference(r^);
-                     r^.symbol:=stringdup(lab2str(ppointerdef(p^.left^.resulttype)^.definition^.get_inittable_label));
+                     r^.symbol:=newasmsymbol(lab2str(ppointerdef(p^.left^.resulttype)^.definition^.get_inittable_label));
                      emitpushreferenceaddr(exprasmlist,r^);
                      { push pointer adress }
                      case p^.left^.location.loc of
@@ -219,7 +219,6 @@ implementation
                         LOC_REFERENCE:
                           emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
                      end;
-                     stringdispose(r^.symbol);
                      dispose(r);
                      emitcall('FPC_INITIALIZE',true);
                   end;
@@ -669,7 +668,7 @@ implementation
                    begin
                       hp:=new_reference(R_NO,0);
                       parraydef(p^.left^.resulttype)^.genrangecheck;
-                      hp^.symbol:=stringdup(parraydef(p^.left^.resulttype)^.getrangecheckstring);
+                      hp^.symbol:=newasmsymbol(parraydef(p^.left^.resulttype)^.getrangecheckstring);
                       exprasmlist^.concat(new(pai386,op_reg_ref(A_BOUND,S_L,ind,hp)));
                    end
                  else if (p^.left^.resulttype^.deftype=stringdef) then
@@ -729,7 +728,7 @@ implementation
                       { the symbol offset is loaded,               }
                       { so release the symbol name and set symbol  }
                       { to nil                                     }
-                      stringdispose(p^.location.reference.symbol);
+                      p^.location.reference.symbol:=nil;
                       p^.location.reference.offset:=0;
                       calc_emit_mul;
                       p^.location.reference.base:=p^.location.reference.index;
@@ -860,7 +859,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  1999-02-22 02:15:14  peter
+  Revision 1.31  1999-02-25 21:02:29  peter
+    * ag386bin updates
+    + coff writer
+
+  Revision 1.30  1999/02/22 02:15:14  peter
     * updates for ag386bin
 
   Revision 1.29  1999/02/07 22:53:07  florian

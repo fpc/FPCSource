@@ -105,7 +105,7 @@ implementation
                 end;
            end;
          clear_reference(p^.location.reference);
-         p^.location.reference.symbol:=stringdup(lab2str(p^.lab_real));
+         p^.location.reference.symbol:=newasmsymbol(lab2str(p^.lab_real));
          p^.location.loc:=LOC_MEM;
       end;
 
@@ -118,7 +118,7 @@ implementation
       begin
          { an fix comma const. behaves as a memory reference }
          p^.location.loc:=LOC_MEM;
-         p^.location.reference.isintvalue:=true;
+         p^.location.reference.is_immediate:=true;
          p^.location.reference.offset:=p^.value_fix;
       end;
 
@@ -131,7 +131,7 @@ implementation
       begin
          { an integer const. behaves as a memory reference }
          p^.location.loc:=LOC_MEM;
-         p^.location.reference.isintvalue:=true;
+         p^.location.reference.is_immediate:=true;
          p^.location.reference.offset:=p^.value;
       end;
 
@@ -190,7 +190,7 @@ implementation
                                     begin
                                        getdatalabel(l2);
                                        consts^.concat(new(pai_label,init(l2)));
-                                       consts^.concat(new(pai_const,init_symbol(strpnew(lab2str(p^.lab_str)))));
+                                       consts^.concat(new(pai_const_symbol,init(lab2str(p^.lab_str))));
                                        { return the offset of the real string }
                                        p^.lab_str:=l2;
                                     end;
@@ -221,7 +221,7 @@ implementation
                                 getdatalabel(l1);
                                 getdatalabel(l2);
                                 consts^.concat(new(pai_label,init(l2)));
-                                consts^.concat(new(pai_const,init_symbol(strpnew(lab2str(l1)))));
+                                consts^.concat(new(pai_const_symbol,init(lab2str(l1))));
                                 consts^.concat(new(pai_const,init_32bit(p^.length)));
                                 consts^.concat(new(pai_const,init_32bit(p^.length)));
                                 consts^.concat(new(pai_const,init_32bit(-1)));
@@ -262,7 +262,7 @@ implementation
                 end;
            end;
          clear_reference(p^.location.reference);
-         p^.location.reference.symbol:=stringdup(lab2str(p^.lab_str));
+         p^.location.reference.symbol:=newasmsymbol(lab2str(p^.lab_str));
          p^.location.loc:=LOC_MEM;
       end;
 
@@ -283,7 +283,7 @@ implementation
         if psetdef(p^.resulttype)^.settype=smallset then
          begin
            p^.location.loc:=LOC_MEM;
-           p^.location.reference.isintvalue:=true;
+           p^.location.reference.is_immediate:=true;
            p^.location.reference.offset:=plongint(p^.value_set)^;
            exit;
          end;
@@ -364,7 +364,7 @@ implementation
                end;
           end;
         clear_reference(p^.location.reference);
-        p^.location.reference.symbol:=stringdup(lab2str(p^.lab_set));
+        p^.location.reference.symbol:=newasmsymbol(lab2str(p^.lab_set));
         p^.location.loc:=LOC_MEM;
       end;
 
@@ -376,7 +376,7 @@ implementation
     procedure secondniln(var p : ptree);
       begin
          p^.location.loc:=LOC_MEM;
-         p^.location.reference.isintvalue:=true;
+         p^.location.reference.is_immediate:=true;
          p^.location.reference.offset:=0;
       end;
 
@@ -384,7 +384,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  1999-02-22 02:15:08  peter
+  Revision 1.29  1999-02-25 21:02:25  peter
+    * ag386bin updates
+    + coff writer
+
+  Revision 1.28  1999/02/22 02:15:08  peter
     * updates for ag386bin
 
   Revision 1.27  1999/01/19 14:21:59  peter

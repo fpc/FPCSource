@@ -380,10 +380,6 @@ unit tree;
                      dispose(p^.value_set);
                  end;
          end;
-         { reference info }
-         if (p^.location.loc in [LOC_MEM,LOC_REFERENCE]) and
-            assigned(p^.location.reference.symbol) then
-           stringdispose(p^.location.reference.symbol);
 {$ifdef extdebug}
          if p^.firstpasscount>maxfirstpasscount then
             maxfirstpasscount:=p^.firstpasscount;
@@ -399,8 +395,6 @@ unit tree;
       begin
          hp:=getnode;
          hp^:=p^;
-         if assigned(p^.location.reference.symbol) then
-           hp^.location.reference.symbol:=stringdup(p^.location.reference.symbol^);
          case p^.disposetyp of
             dt_leftright :
               begin
@@ -1583,9 +1577,6 @@ unit tree;
     procedure clear_location(var loc : tlocation);
 
       begin
-        if ((loc.loc=LOC_MEM) or (loc.loc=LOC_REFERENCE)) and
-           assigned(loc.reference.symbol) then
-          stringdispose(loc.reference.symbol);
         loc.loc:=LOC_INVALID;
       end;
 
@@ -1593,17 +1584,7 @@ unit tree;
     procedure set_location(var destloc,sourceloc : tlocation);
 
       begin
-        if assigned(destloc.reference.symbol) then
-          stringdispose(destloc.reference.symbol);
         destloc:= sourceloc;
-        if sourceloc.loc in [LOC_MEM,LOC_REFERENCE] then
-          begin
-             if assigned(sourceloc.reference.symbol) then
-               destloc.reference.symbol:=
-                 stringdup(sourceloc.reference.symbol^);
-          end
-        else
-          destloc.reference.symbol:=nil;
       end;
 
     procedure swap_location(var destloc,sourceloc : tlocation);
@@ -1688,7 +1669,11 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.66  1999-02-22 02:15:59  peter
+  Revision 1.67  1999-02-25 21:02:56  peter
+    * ag386bin updates
+    + coff writer
+
+  Revision 1.66  1999/02/22 02:15:59  peter
     * updates for ag386bin
 
   Revision 1.65  1999/02/11 09:46:31  pierre

@@ -702,7 +702,7 @@ var
                            { if so then it is considered  }
                            { as a displacement.           }
                            Begin
-                             if labellist.search(ref.symbol^) <> nil then
+                             if labellist.search(ref.symbol^.name) <> nil then
                                findtype := ao_disp
                              else
                                findtype := ao_mem; { probably a mem ref. }
@@ -964,7 +964,7 @@ var
                (ref.symbol = nil) and
                (ref.offset <> 0) then
                Begin
-                 ref.isintvalue := TRUE;
+                 ref.is_immediate := TRUE;
                  Message(assem_e_const_ref_not_allowed);
                end;
 {$endif Go32v2}
@@ -1233,7 +1233,7 @@ var
            Begin
              if (operands[1].operandtype = OPR_REFERENCE) and
                 (assigned(operands[1].ref.symbol)) then
-               Freemem(operands[1].ref.symbol,length(operands[1].ref.symbol^)+1);
+               Freemem(operands[1].ref.symbol,length(operands[1].ref.symbol^.name)+1);
              operands[1].operandtype := OPR_NONE;
              numops := 0;
            end;
@@ -1245,9 +1245,6 @@ var
         { here we accept XLAT, XLATB and XLAT m8 }
         if (numops = 1) or (numops = 0) then
          Begin
-           if (operands[1].operandtype = OPR_REFERENCE) and
-              (assigned(operands[1].ref.symbol)) then
-             Freemem(operands[1].ref.symbol,length(operands[1].ref.symbol^)+1);
            operands[1].operandtype := OPR_NONE;
            numops := 0;
           { always a byte for XLAT }
@@ -1264,12 +1261,6 @@ var
        Begin
          if numops =2 then
            Begin
-             if (operands[1].operandtype = OPR_REFERENCE) and
-                (assigned(operands[1].ref.symbol)) then
-               Freemem(operands[1].ref.symbol,length(operands[1].ref.symbol^)+1);
-             if (operands[2].operandtype = OPR_REFERENCE) and
-                (assigned(operands[2].ref.symbol)) then
-               Freemem(operands[2].ref.symbol,length(operands[1].ref.symbol^)+1);
              operands[1].operandtype := OPR_NONE;
              operands[2].operandtype := OPR_NONE;
              numops := 0;
@@ -1435,8 +1426,8 @@ var
                               end;
                           End;
              OPR_SYMBOL:  Begin
-                            p^.concat(new(pai386,op_csymbol(instruc,
-                             instr.stropsize, newcsymbol(instr.operands[1].symbol^,0))));
+                            p^.concat(new(pai386,op_sym(instruc,
+                             instr.stropsize,instr.operands[1].symbol)));
                           End;
            OPR_NONE: Begin
                        Message(assem_f_internal_error_in_concatopcode);
@@ -3473,7 +3464,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  1999-02-22 02:15:37  peter
+  Revision 1.22  1999-02-25 21:02:50  peter
+    * ag386bin updates
+    + coff writer
+
+  Revision 1.21  1999/02/22 02:15:37  peter
     * updates for ag386bin
 
   Revision 1.20  1999/01/10 15:37:58  peter

@@ -106,8 +106,8 @@ implementation
           begin
             new(r);
             reset_reference(r^);
-            r^.symbol:=stringdup('U_'+upper(target_info.system_unit)+io[byte(doread)]);
-            concat_external(r^.symbol^,EXT_NEAR);
+            r^.symbol:=newasmsymbol('U_'+upper(target_info.system_unit)+io[byte(doread)]);
+            concat_external(r^.symbol^.name,EXT_NEAR);
             exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,r,R_EDI)))
           end;
 
@@ -409,7 +409,7 @@ implementation
            if assigned(iolabel) then
              begin
                 { registers are saved in the procedure }
-                exprasmlist^.concat(new(pai386,op_csymbol(A_PUSH,S_L,newcsymbol(lab2str(iolabel),0))));
+                exprasmlist^.concat(new(pai386,op_sym(A_PUSH,S_L,newasmsymbol(lab2str(iolabel)))));
                 emitcall('FPC_IOCHECK',true);
              end;
          { Freeup all used temps }
@@ -672,8 +672,8 @@ implementation
                     if p^.left^.treetype=typen then
                       begin
                          p^.location.register:=getregister32;
-                         exprasmlist^.concat(new(pai386,op_csymbol_reg(A_MOV,
-                           S_L,newcsymbol(pobjectdef(p^.left^.resulttype)^.vmt_mangledname,0),
+                         exprasmlist^.concat(new(pai386,op_sym_ofs_reg(A_MOV,
+                           S_L,newasmsymbol(pobjectdef(p^.left^.resulttype)^.vmt_mangledname),0,
                            p^.location.register)));
                       end
                     else
@@ -738,7 +738,7 @@ implementation
                    begin
                      clear_location(p^.location);
                      p^.location.loc:=LOC_MEM;
-                     p^.location.reference.isintvalue:=true;
+                     p^.location.reference.is_immediate:=true;
                      p^.location.reference.offset:=1;
                    end;
               end;
@@ -1027,7 +1027,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  1999-02-22 02:15:11  peter
+  Revision 1.29  1999-02-25 21:02:27  peter
+    * ag386bin updates
+    + coff writer
+
+  Revision 1.28  1999/02/22 02:15:11  peter
     * updates for ag386bin
 
   Revision 1.27  1999/02/17 14:21:40  pierre
