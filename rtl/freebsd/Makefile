@@ -230,7 +230,7 @@ GRAPHDIR=$(INC)/graph
 ifndef USELIBGGI
 USELIBGGI=NO
 endif
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings baseunix syscall unixutil $(LINUXUNIT) unix initc dos crt objects printer sysutils typinfo math varutils cpu mmx charset ucomplex getopts heaptrc lineinfo errors sockets gpm ipc terminfo video mouse keyboard console serial variants types systhrds sysctl
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings baseunix syscall unixutil $(LINUXUNIT) unix initc  dos crt objects printer sysutils typinfo math varutils cpu mmx charset ucomplex getopts heaptrc lineinfo errors sockets gpm ipc terminfo video mouse keyboard console serial variants types systhrds sysctl
 override TARGET_LOADERS+=prt0 cprt0
 override TARGET_RSTS+=math varutils typinfo
 override INSTALL_FPCPACKAGE=y y
