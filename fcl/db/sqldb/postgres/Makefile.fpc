@@ -1,0 +1,23 @@
+#
+# Makefile.fpc for SQL PQConnection
+#
+
+[package]
+main=fcl
+
+[target]
+rsts=pqconnection
+units=pqconnection
+
+[require]
+packages=postgres
+
+[compiler]
+options=-S2 
+targetdir=../../../$(OS_TARGET)
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../../..
