@@ -1636,14 +1636,9 @@ type
               if assigned(procdefinition) and
                  (paralength<procdefinition.maxparacount) then
                begin
-                 { add default parameters, just read back the skipped
-                   paras starting from firstPara.previous, when not available
-                   (all parameters are default) then start with the last
-                   parameter and read backward (PFV) }
-                 if not assigned(procs^.firstpara) then
-                  pdc:=tparaitem(procs^.data.Para.last)
-                 else
-                  pdc:=tparaitem(procs^.firstPara.previous);
+                 pdc:=tparaitem(procdefinition.Para.last);
+                 for i:=1 to paralength do
+                   pdc:=tparaitem(pdc.previous);
                  while assigned(pdc) do
                   begin
                     if not assigned(pdc.defaultvalue) then
@@ -2192,7 +2187,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.118  2002-12-15 11:26:02  peter
+  Revision 1.119  2002-12-15 20:59:58  peter
+    * fix crash with default parameters
+
+  Revision 1.118  2002/12/15 11:26:02  peter
     * ignore vs_hidden parameters when choosing overloaded proc
 
   Revision 1.117  2002/12/11 22:42:28  peter
