@@ -1887,7 +1887,7 @@ const
               ) or
               { check arguments }
               (
-               (compare_paras(pd.para,hd.para,cp_none,false)>=te_equal) and
+               (compare_paras(pd.para,hd.para,cp_none,false,false)>=te_equal) and
                { for operators equal_paras is not enough !! }
                ((pd.proctypeoption<>potype_operator) or (optoken<>_ASSIGNMENT) or
                 equal_defs(hd.rettype.def,pd.rettype.def))
@@ -1906,7 +1906,7 @@ const
                       (
                        (m_repeat_forward in aktmodeswitches) and
                        (not((pd.maxparacount=0) or
-                            (compare_paras(pd.para,hd.para,cp_all,false)>=te_equal)))
+                            (compare_paras(pd.para,hd.para,cp_all,false,false)>=te_equal)))
                       ) or
                       (
                        ((m_repeat_forward in aktmodeswitches) or
@@ -2127,7 +2127,14 @@ const
 end.
 {
   $Log$
-  Revision 1.147  2003-10-07 20:52:54  peter
+  Revision 1.148  2003-10-07 21:14:33  peter
+    * compare_paras() has a parameter to ignore hidden parameters
+    * cross unit overload searching ignores hidden parameters when
+      comparing parameter lists. Now function(string):string is
+      not overriden with procedure(string) which has the same visible
+      parameter list
+
+  Revision 1.147  2003/10/07 20:52:54  peter
     * procvar varargs fixed
 
   Revision 1.146  2003/10/05 21:21:52  peter

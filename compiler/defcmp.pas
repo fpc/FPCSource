@@ -103,7 +103,7 @@ interface
       search for a routine with default parameters, before
       searching for the same definition with no parameters)
     }
-    function compare_paras(paralist1,paralist2 : TLinkedList; acp : compare_type;allowdefaults:boolean):tequaltype;
+    function compare_paras(paralist1,paralist2 : TLinkedList; acp : compare_type;allowdefaults,ignorehidden:boolean):tequaltype;
 
     { True if a function can be assigned to a procvar }
     { changed first argument type to pabstractprocdef so that it can also be }
@@ -1060,7 +1060,7 @@ implementation
       end;
 
 
-    function compare_paras(paralist1,paralist2 : TLinkedList; acp : compare_type;allowdefaults:boolean):tequaltype;
+    function compare_paras(paralist1,paralist2 : TLinkedList; acp : compare_type;allowdefaults,ignorehidden:boolean):tequaltype;
       var
         currpara1,
         currpara2 : TParaItem;
@@ -1074,6 +1074,13 @@ implementation
          lowesteq:=high(tequaltype);
          currpara1:=TParaItem(paralist1.first);
          currpara2:=TParaItem(paralist2.first);
+         if ignorehidden then
+           begin
+             while assigned(currpara1) and currpara1.is_hidden do
+               currpara1:=tparaitem(currpara1.next);
+             while assigned(currpara2) and currpara2.is_hidden do
+               currpara2:=tparaitem(currpara2.next);
+           end;
          while (assigned(currpara1)) and (assigned(currpara2)) do
            begin
              eq:=te_incompatible;
@@ -1153,6 +1160,13 @@ implementation
                end;
               currpara1:=TParaItem(currpara1.next);
               currpara2:=TParaItem(currpara2.next);
+              if ignorehidden then
+                begin
+                  while assigned(currpara1) and currpara1.is_hidden do
+                    currpara1:=tparaitem(currpara1.next);
+                  while assigned(currpara2) and currpara2.is_hidden do
+                    currpara2:=tparaitem(currpara2.next);
+                end;
            end;
          { when both lists are empty then the parameters are equal. Also
            when one list is empty and the other has a parameter with default
@@ -1192,32 +1206,24 @@ implementation
             { return equal type based on the parameters, but a proc->procvar
               is never exact, so map an exact match of the parameters to
               te_equal }
-            eq:=compare_paras(def1.para,def2.para,cp_procvar,false);
+            eq:=compare_paras(def1.para,def2.para,cp_procvar,false,false);
             if eq=te_exact then
              eq:=te_equal;
             proc_to_procvar_equal:=eq;
           end;
       end;
 
-
-    function is_equal(def1,def2 : tdef) : boolean;
-      var
-        doconv : tconverttype;
-        hpd : tprocdef;
-      begin
-        is_equal:=(compare_defs_ext(def1,def2,nothingn,false,true,doconv,hpd)>=te_equal);
-      end;
-
-
-    function equal_paras(paralist1,paralist2 : TLinkedList; acp : compare_type;allowdefaults:boolean) : boolean;
-      begin
-        equal_paras:=(compare_paras(paralist1,paralist2,acp,allowdefaults)>=te_equal);
-      end;
-
 end.
 {
   $Log$
-  Revision 1.30  2003-10-05 13:05:05  peter
+  Revision 1.31  2003-10-07 21:14:32  peter
+    * compare_paras() has a parameter to ignore hidden parameters
+    * cross unit overload searching ignores hidden parameters when
+      comparing parameter lists. Now function(string):string is
+      not overriden with procedure(string) which has the same visible
+      parameter list
+
+  Revision 1.30  2003/10/05 13:05:05  peter
     * when comparing hidden parameters both must be hidden
 
   Revision 1.29  2003/10/05 12:57:11  peter

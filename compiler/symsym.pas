@@ -379,7 +379,7 @@ implementation
        { module }
        fmodule,
        { codegen }
-       tgobj,paramgr,cresstr,
+       paramgr,cresstr,
        procinfo
        ;
 
@@ -1099,7 +1099,7 @@ implementation
            if (eq>=te_equal) or
               (allowconvert and (eq>te_incompatible)) then
             begin
-              eq:=compare_paras(pd^.def.para,params,cp_value_equal_const,allowdefault);
+              eq:=compare_paras(pd^.def.para,params,cp_value_equal_const,allowdefault,false);
               if (eq>=te_equal) or
                  (allowconvert and (eq>te_incompatible)) then
                 begin
@@ -2676,7 +2676,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.123  2003-10-07 15:17:07  peter
+  Revision 1.124  2003-10-07 21:14:33  peter
+    * compare_paras() has a parameter to ignore hidden parameters
+    * cross unit overload searching ignores hidden parameters when
+      comparing parameter lists. Now function(string):string is
+      not overriden with procedure(string) which has the same visible
+      parameter list
+
+  Revision 1.123  2003/10/07 15:17:07  peter
     * inline supported again, LOC_REFERENCEs are used to pass the
       parameters
     * inlineparasymtable,inlinelocalsymtable removed

@@ -1340,7 +1340,8 @@ type
                            hp:=procs;
                            while assigned(hp) do
                             begin
-                              if compare_paras(hp^.data.para,pd.para,cp_value_equal_const,false)>=te_equal then
+                              { Only compare visible parameters for the user }
+                              if compare_paras(hp^.data.para,pd.para,cp_value_equal_const,false,true)>=te_equal then
                                begin
                                  found:=true;
                                  break;
@@ -2608,7 +2609,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.191  2003-10-05 21:21:52  peter
+  Revision 1.192  2003-10-07 21:14:32  peter
+    * compare_paras() has a parameter to ignore hidden parameters
+    * cross unit overload searching ignores hidden parameters when
+      comparing parameter lists. Now function(string):string is
+      not overriden with procedure(string) which has the same visible
+      parameter list
+
+  Revision 1.191  2003/10/05 21:21:52  peter
     * c style array of const generates callparanodes
     * varargs paraloc fixes
 
