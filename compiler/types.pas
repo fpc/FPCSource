@@ -43,6 +43,9 @@ unit types;
     { true if p is a boolean }
     function is_boolean(def : pdef) : boolean;
 
+    { true if p is a char }
+    function is_char(def : pdef) : boolean;
+
     { true if p points to an open array def }
     function is_open_array(p : pdef) : boolean;
 
@@ -220,6 +223,15 @@ unit types;
         is_boolean:=(def^.deftype=orddef) and
                     (porddef(def)^.typ in [bool8bit,bool16bit,bool32bit]);
       end;
+
+
+    { true if p is a char }
+    function is_char(def : pdef) : boolean;
+      begin
+        is_char:=(def^.deftype=orddef) and
+                 (porddef(def)^.typ=uchar);
+      end;
+
 
     { true if p is signed (integer) }
     function is_signed(def : pdef) : boolean;
@@ -955,7 +967,11 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.32  1998-10-05 21:33:35  peter
+  Revision 1.33  1998-10-06 20:43:30  peter
+    * fixed set of bugs. like set of false..true set of #1..#255 and
+      set of #1..true which was allowed
+
+  Revision 1.32  1998/10/05 21:33:35  peter
     * fixed 161,165,166,167,168
 
   Revision 1.31  1998/09/23 09:58:56  peter

@@ -1606,25 +1606,30 @@ unit pdecl;
                  Message(sym_e_error_in_type_def)
                else
                  begin
-                 { Check bounds }
-                   if pt2^.value<pt1^.value then
-                     Message(cg_e_upper_lower_than_lower)
+                 { check types }
+                   if not is_equal(pt1^.resulttype,pt2^.resulttype) then
+                     Message(type_e_mismatch)
                    else
                      begin
-                     { is one an enum ? }
-                       if (pt1^.resulttype^.deftype=enumdef) or (pt2^.resulttype^.deftype=enumdef) then
-                         begin
-                         { both must be the have the same (enumdef) definition, else its a type mismatch }
-                           if (pt1^.resulttype=pt2^.resulttype) then
-                             p:=new(penumdef,init_subrange(penumdef(pt1^.resulttype),pt1^.value,pt2^.value))
-                           else
-                             Message(type_e_mismatch);
-                         end
+                     { Check bounds }
+                       if pt2^.value<pt1^.value then
+                         Message(cg_e_upper_lower_than_lower)
                        else
-                         begin
-                         { both must be are orddefs, create an uauto orddef }
-                           p:=new(porddef,init(uauto,pt1^.value,pt2^.value));
-                         end;
+                        begin
+                        { All checks passed, create the new def }
+                          case pt1^.resulttype^.deftype of
+                           enumdef : p:=new(penumdef,init_subrange(penumdef(pt1^.resulttype),pt1^.value,pt2^.value));
+                            orddef : begin
+                                       if is_char(pt1^.resulttype) then
+                                         p:=new(porddef,init(uchar,pt1^.value,pt2^.value))
+                                       else
+                                        if is_boolean(pt1^.resulttype) then
+                                         p:=new(porddef,init(bool8bit,pt1^.value,pt2^.value))
+                                       else
+                                        p:=new(porddef,init(uauto,pt1^.value,pt2^.value));
+                                     end;
+                          end;
+                        end;
                      end;
                  end;
                disposetree(pt2);
@@ -2059,7 +2064,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.65  1998-10-05 22:43:35  peter
+  Revision 1.66  1998-10-06 20:43:31  peter
+    * fixed set of bugs. like set of false..true set of #1..#255 and
+      set of #1..true which was allowed
+
+  Revision 1.65  1998/10/05 22:43:35  peter
     * commited the wrong file :(
 
   Revision 1.64  1998/10/05 21:33:24  peter
