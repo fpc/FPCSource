@@ -610,6 +610,12 @@ end;
 
 
 function RunExecutable:boolean;
+const
+{$ifdef unix}
+  CurrDir = './';
+{$else}
+  CurrDir = '';
+{$endif}
 var
   OldDir,
   FullExeLogFile,
@@ -657,9 +663,9 @@ begin
       ioresult;
       { don't redirect interactive and graph programs }
       if Config.IsInteractive or Config.UsesGraph then
-        execres:=ExecuteRedir(SplitFileName(TestExe),'','','','')
+        execres:=ExecuteRedir(CurrDir+SplitFileName(TestExe),'','','','')
       else
-        execres:=ExecuteRedir(SplitFileName(TestExe),'','',FullExeLogFile,'stdout');
+        execres:=ExecuteRedir(CurrDir+SplitFileName(TestExe),'','',FullExeLogFile,'stdout');
       {$I-}
        ChDir(OldDir);
       {$I+}
@@ -1075,7 +1081,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2004-11-09 17:26:28  peter
+  Revision 1.40  2004-11-09 21:26:29  peter
+    * use ./ before executable under unix
+
+  Revision 1.39  2004/11/09 17:26:28  peter
     * use separate output dirs
     * same tree can be used for multiple targets
 
