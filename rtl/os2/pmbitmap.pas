@@ -167,7 +167,7 @@ type    TBitmapInfoHeader=record
             bfh2:TBitmapFileHeader2;
         end;
         PBitmapArrayFileHeader2=^TBitmapArrayFileHeader2;
-        BitmapArrayFileHeader2=^BitmapArrayFileHeader2;
+        BitmapArrayFileHeader2=TBitmapArrayFileHeader2;
 
 const   CBD_COMPRESSION         =       1;
         CBD_DECOMPRESSION       =       2;
@@ -200,7 +200,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  1999-08-04 15:51:10  hajny
+  Revision 1.6  1999-09-15 09:13:49  hajny
+    * mistyping corrected
+
+  Revision 1.5  1999/08/04 15:51:10  hajny
     * merging changes by RB and DM :-(
 
   Revision 1.4  1999/06/11 13:16:21  daniel
