@@ -829,15 +829,17 @@ const
          testbit := ((ord(f.cr)-ord(R_CR0)) * 4);
          case f.flag of
            F_EQ,F_NE:
-             bitvalue := f.flag = F_EQ;
+             begin
+               inc(testbit,2);
+               bitvalue := f.flag = F_EQ;
+             end;
            F_LT,F_GE:
              begin
-               inc(testbit);
                bitvalue := f.flag = F_LT;
              end;
            F_GT,F_LE:
              begin
-               inc(testbit,2);
+               inc(testbit);
                bitvalue := f.flag = F_GT;
              end;
            else
@@ -847,7 +849,7 @@ const
          list.concat(taicpu.op_reg(A_MFCR,reg));
          { we will move the bit that has to be tested to bit 0 by rotating }
          { left                                                            }
-         testbit := (32 - testbit) and 31;
+         testbit := (testbit + 1) and 31;
          { extract bit }
          list.concat(taicpu.op_reg_reg_const_const_const(
            A_RLWINM,reg,reg,testbit,31,31));
@@ -2353,7 +2355,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.83  2003-04-26 15:25:29  florian
+  Revision 1.84  2003-04-26 16:08:41  jonas
+    * fixed g_flags2reg
+
+  Revision 1.83  2003/04/26 15:25:29  florian
     * fixed cmp_reg_reg_reg, cmp operands were emitted in the wrong order
 
   Revision 1.82  2003/04/25 20:55:34  florian
