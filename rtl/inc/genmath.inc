@@ -797,7 +797,9 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
 
       j := Trunc(z); { convert to integer for tests on the phase angle }
       { map zeros to origin }
-      if odd( j ) then
+      { typecast is to avoid "can't determine which overloaded function }
+      { to call"                                                        }
+      if odd( longint(j) ) then
       begin
          inc(j);
          y := y + 1.0;
@@ -1081,7 +1083,11 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
 
 {
   $Log$
-  Revision 1.12  2003-05-02 15:12:19  jonas
+  Revision 1.13  2003-05-23 22:58:31  jonas
+    * added longint typecase to odd(smallint_var) call to avoid overload
+      problem
+
+  Revision 1.12  2003/05/02 15:12:19  jonas
     - removed empty ppc-specific frac()
     + added correct generic frac() implementation for doubles (translated
       from glibc code)
