@@ -16,20 +16,21 @@
 
 __entry1:
                 popl    %esi
+                cld
                 xorl    %ebp, %ebp
-                leal    (%esp), %edi
+                leal    (%esp), %edi      /* argv[] */
                 movl    %edi,_environ
                 call    L_ptr_tbl
-                mov             %ecx,_envc
-                mov             %edi,_argv
+                movl    %ecx,_envc
+                movl    %edi,_argv
                 call    L_ptr_tbl
-                mov             %ecx,_argc
+                movl    %ecx,_argc
                 jmp     *%esi
 
 L_ptr_tbl:
                 xorl    %eax, %eax
                 movl    $-1, %ecx
-1:      incl    %ecx
+1:              incl    %ecx
                 scasl
                 jne     1b
                 ret

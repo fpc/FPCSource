@@ -200,8 +200,8 @@ var i,p1:longint;
 function CheckFile (FN: ShortString):boolean; assembler;
 asm
     mov ax, 4300h
-    mov edx, FN
-    inc edx
+    mov edx, FN      { get pointer to string }
+    inc edx          { avoid length byte     }
     call syscall
     mov ax, 0
     jc @LCFstop
@@ -257,7 +257,7 @@ begin
     asm
         {Load handle}
         movl f,%ebx
-        movw (%ebx),%bx
+        movl (%ebx),%ebx
         {Get date}
         movw $0x5700,%ax
         call syscall
@@ -272,14 +272,14 @@ end;
 
 procedure SetFTime (var F; Time: longint);
 
-var FStat: PFileStatus0;
+var FStat: PFileStatus3;
     RC: longint;
 
 begin
     if os_mode = osOS2 then
         begin
             New (FStat);
-            RC := DosQueryFileInfo (TextRec (F).Handle, ilStandard, FStat,
+            RC := DosQueryFileInfo (FileRec (F).Handle, ilStandard, FStat,
                                                               SizeOf (FStat^));
             if RC = 0 then
                 begin
@@ -287,16 +287,19 @@ begin
                     FStat^.DateLastWrite := Hi (Time);
                     FStat^.TimeLastAccess := Lo (Time);
                     FStat^.TimeLastWrite := Lo (Time);
-                    RC := DosSetFileInfo (TextRec (F).Handle, ilStandard,
+                    RC := DosSetFileInfo (FileRec (F).Handle, ilStandard,
                                                        FStat, SizeOf (FStat^));
+
+
                 end;
+            DosError := integer(RC);
             Dispose (FStat);
         end
     else
         asm
             {Load handle}
             movl f,%ebx
-            movw (%ebx),%bx
+            movw (%ebx),%ebx
             movl time,%ecx
             shldl $16,%ecx,%edx
             {Set date}
@@ -312,13 +315,16 @@ procedure msdos(var regs:registers);
 {Not recommended for EMX. Only works in DOS mode, not in OS/2 mode.}
 
 begin
+   if os_mode in [osDPMI,osDOS] then
     intr($21,regs);
 end;
 
-procedure intr(intno:byte;var regs:registers); assembler;
+procedure intr(intno:byte;var regs:registers);
 
 {Not recommended for EMX. Only works in DOS mode, not in OS/2 mode.}
 
+begin
+  if os_mode = osos2 then exit;
 asm
     jmp .Lstart
 {    .data}
@@ -330,7 +336,7 @@ asm
 
 {    .text}
 .Lstart:
-    movl    intno,%eax
+    movb    intno,%al
     movb    %al,.Lint86_vec
 
 {
@@ -378,13 +384,14 @@ asm
     movl    %ebx,32(%eax)
     {FS and GS too}
 end;
+end;
 
 procedure exec(const path:pathstr;const comline:comstr);
 
 {Execute a program.}
 
 begin
-    dosexitcode:=exec(path,execrunflags(ExecFlags),efdefault,comline);
+    dosexitcode:=word(exec(path,execrunflags(ExecFlags),efdefault,comline));
 end;
 
 function exec(path:pathstr;runflags:execrunflags;winflags:execwinflags;
@@ -397,40 +404,47 @@ function exec(path:pathstr;runflags:execrunflags;winflags:execwinflags;
 type    bytearray=array[0..8191] of byte;
         Pbytearray=^bytearray;
 
-        execstruc=record
-            argofs,envofs,nameofs:pointer;
-            argseg,envseg,nameseg:word;
-            numarg,sizearg,
-            numenv,sizeenv:word;
-            mode1,mode2:byte;
+        execstruc=packed record
+            argofs : pointer;    { pointer to arguments (offset)   }
+            envofs : pointer;    { pointer to environment (offset) }
+            nameofs: pointer;    { pointer to file name (offset)   }
+            argseg : word;       { pointer to arguments (selector) }
+            envseg : word;       { pointer to environment (selector}
+            nameseg: word;       { pointer to file name (selector) }
+            numarg : word;       { number of arguments             }
+            sizearg : word;      { size of arguments               }
+            numenv :  word;      { number of env strings           }
+            sizeenv:word;        { size of environment             }
+            mode1,mode2:byte;    { mode byte                       }
         end;
 
 var args:Pbytearray;
     env:Pbytearray;
-    i,j:word;
+    i,argsize:word;
     es:execstruc;
     esadr:pointer;
     d:dirstr;
     n:namestr;
     e:extstr;
+    p : ppchar;
+    j : integer;
 
 begin
     getmem(args,512);
-    getmem(env,8192);
-    j:=1;
-
+    GetMem(env, envc*sizeof(pchar)+16384);
     {Now setup the arguments. The first argument should be the program
      name without directory and extension.}
     fsplit(path,d,n,e);
     es.numarg:=1;
     args^[0]:=$80;
+    argsize:=1;
     for i:=1 to length(n) do
         begin
-            args^[j]:=byte(n[i]);
-            inc(j);
+            args^[argsize]:=byte(n[i]);
+            inc(argsize);
         end;
-    args^[j]:=0;
-    inc(j);
+    args^[argsize]:=0;
+    inc(argsize);
     {Now do the real arguments.}
     i:=1;
     while i<=length(comline) do
@@ -439,21 +453,21 @@ begin
                 begin
                     {Commandline argument found. Copy it.}
                     inc(es.numarg);
-                    args^[j]:=$80;
-                    inc(j);
+                    args^[argsize]:=$80;
+                    inc(argsize);
                     while (i<=length(comline)) and (comline[i]<>' ') do
                         begin
-                            args^[j]:=byte(comline[i]);
-                            inc(j);
+                            args^[argsize]:=byte(comline[i]);
+                            inc(argsize);
                             inc(i);
                         end;
-                    args^[j]:=0;
-                    inc(j);
+                    args^[argsize]:=0;
+                    inc(argsize);
                 end;
             inc(i);
         end;
-    args^[j]:=0;
-    inc(j);
+    args^[argsize]:=0;
+    inc(argsize);
 
     {Commandline ready, now build the environment.
 
@@ -484,21 +498,23 @@ begin
     {Environment ready, now set-up exec structure.}
     es.argofs:=args;
     es.envofs:=env;
-    asm
-        leal path,%esi
-        lodsb
-        movzbl %al,%eax
-        addl %eax,%esi
-        movb $0,(%esi)
-    end;
+    es.numenv:=envc;
+    { set an error - path is too long }
+    { since we must add a zero to the }
+    { end.                            }
+    if length(path) > 254 then
+     begin
+       exec := 8;
+       exit;
+     end;
+    path[length(path)+1] := #0;
     es.nameofs:=pointer(longint(@path)+1);
     asm
         movw %ss,es.argseg
         movw %ss,es.envseg
         movw %ss,es.nameseg
     end;
-    es.sizearg:=j;
-    es.numenv:=0;
+    es.sizearg:=argsize;
     {Typecasting of sets in FPC is a bit hard.}
     es.mode1:=byte(runflags);
     es.mode2:=byte(winflags);
@@ -506,9 +522,9 @@ begin
     {Now exec the program.}
     asm
         leal es,%edx
-        mov $0x7f06,%ax
+        movw $0x7f06,%ax
         call syscall
-        xorl %edi,%edi
+        movl $0,%edi
         jnc .Lexprg1
         xchgl %eax,%edi
         xorl %eax,%eax
@@ -519,7 +535,7 @@ begin
     end;
 
     freemem(args,512);
-    freemem(env,8192);
+    FreeMem(env, envc*sizeof(pchar)+16384);
     {Phew! That's it. This was the most sophisticated procedure to call
      a system function I ever wrote!}
 end;
@@ -562,8 +578,8 @@ begin
         begin
             DosGetDateTime (DT);
             DT.Year := Year;
-            DT.Month := Month;
-            DT.Day := Day;
+            DT.Month := byte (Month);
+            DT.Day := byte (Day);
             DosSetDateTime (DT);
         end
     else
@@ -571,7 +587,7 @@ begin
             mov  cx, Year
             mov  dh, byte ptr Month
             mov  dl, byte ptr Day
-            mov  ah, $2b
+            mov  ah, 2Bh
             call syscall
         end;
 end;
@@ -604,10 +620,10 @@ begin
     if os_mode = osOS2 then
         begin
             DosGetDateTime (DT);
-            DT.Hour := Hour;
-            DT.Minute := Minute;
-            DT.Second := Second;
-            DT.Sec100 := Sec100;
+            DT.Hour := byte (Hour);
+            DT.Minute := byte (Minute);
+            DT.Second := byte (Second);
+            DT.Sec100 := byte (Sec100);
             DosSetDateTime (DT);
         end
     else
@@ -616,7 +632,7 @@ begin
             mov  cl, byte ptr Minute
             mov  dh, byte ptr Second
             mov  dl, byte ptr Sec100
-            mov  ah, $2d
+            mov  ah, 2Dh
             call syscall
         end;
 end;
@@ -626,51 +642,58 @@ end;
 procedure getcbreak(var breakvalue:boolean);
 
 begin
-     {! Do not use in OS/2. Also not recommended in DOS. Use
-        signal handling instead.}
+    DosError := 0;
+{! Do not use in OS/2. Also not recommended in DOS. Use
+        signal handling instead.
     asm
         movw $0x3300,%ax
         call syscall
-        movl 8(%ebp),%eax
+        movl BreakValue,%eax
         movb %dl,(%eax)
     end;
+}
 end;
 
 procedure setcbreak(breakvalue:boolean);
 
 begin
-    {! Do not use in OS/2. Also not recommended in DOS. Use
-       signal handling instead.}
+    DosError := 0;
+{! Do not use in OS/2. Also not recommended in DOS. Use
+       signal handling instead.
     asm
         movb 8(%ebp),%dl
         movw $0x3301,%ax
         call syscall
     end;
+}
 end;
 
 procedure getverify(var verify:boolean);
 
 begin
+    DosError := 0;
     {! Do not use in OS/2.}
-    asm
-        movb $0x54,%ah
-        call syscall
-        movl 8(%ebp),%edi
-        stosb
-    end;
+    if os_mode in [osDOS,osDPMI] then
+        asm
+            movb $0x54,%ah
+            call syscall
+            movl verify,%edi
+            stosb
+        end;
 end;
 
 procedure setverify(verify:boolean);
 
 begin
-    {! Do not use in OS/2.}
-    asm
-        movb 8(%ebp),%al
-        movb $0x2e,%ah
-        call syscall
-    end;
+    DosError := 0;
+    {! Do not use in OS/2!}
+    if os_mode in [osDOS,osDPMI] then
+        asm
+            movb verify,%al
+            movb $0x2e,%ah
+            call syscall
+        end;
 end;
-
 
 function DiskFree (Drive: byte): int64;
 
@@ -681,7 +704,7 @@ begin
     if (os_mode = osDOS) or (os_mode = osDPMI) then
     {Function 36 is not supported in OS/2.}
         asm
-            movb 8(%ebp),%dl
+            Drive,%dl
             movb $0x36,%ah
             call syscall
             cmpw $-1,%ax
@@ -690,6 +713,7 @@ begin
             mulw %bx
             shll $16,%edx
             movw %ax,%dx
+            movl $0,%eax
             xchgl %edx,%eax
             leave
             ret
@@ -719,7 +743,7 @@ begin
     if (os_mode = osDOS) or (os_mode = osDPMI) then
         {Function 36 is not supported in OS/2.}
         asm
-            movb 8(%ebp),%dl
+            movb Drive,%dl
             movb $0x36,%ah
             call syscall
             movw %dx,%bx
@@ -729,6 +753,7 @@ begin
             mulw %bx
             shll $16,%edx
             movw %ax,%dx
+            movl $0,%eax
             xchgl %edx,%eax
             leave
             ret
@@ -804,16 +829,15 @@ begin
     end;
 end;
 
-procedure FindFirst (const Path: PathStr; Attr: word; var F: SearchRec);
 
     procedure _findfirst(path:pchar;attr:word;var f:searchrec);
 
     begin
         asm
-            movl 12(%esp),%edx
-            movw 16(%esp),%cx
+            movl path,%edx
+            movw attr,%cx
             {No need to set DTA in EMX. Just give a pointer in ESI.}
-            movl 18(%ebp),%esi
+            movl f,%esi
             movb $0x4e,%ah
             call syscall
             jnc .LFF
@@ -821,6 +845,10 @@ procedure FindFirst (const Path: PathStr; Attr: word; var F: SearchRec);
         .LFF:
         end;
     end;
+
+
+procedure FindFirst (const Path: PathStr; Attr: word; var F: SearchRec);
+
 
 var path0: array[0..255] of char;
     Count: longint;
@@ -844,14 +872,11 @@ begin
     DosSearchRec2SearchRec (F);
 end;
 
-procedure FindNext (var F: SearchRec);
-var Count: longint;
-
     procedure _findnext(var f : searchrec);
 
     begin
         asm
-            movl 12(%ebp),%esi
+            movl f,%esi
             movb $0x4f,%ah
             call syscall
             jnc .LFN
@@ -859,6 +884,11 @@ var Count: longint;
         .LFN:
         end;
     end;
+
+
+procedure FindNext (var F: SearchRec);
+var Count: longint;
+
 
 begin
     {No error}
@@ -883,9 +913,7 @@ begin
 end;
 
 procedure swapvectors;
-
 {For TP compatibility, this exists.}
-
 begin
 end;
 
@@ -898,16 +926,13 @@ asm
 end ['EAX'];
 
 function envcount:longint;assembler;
-
-var hp : ppchar;
-
 asm
     movl envc,%eax
 end ['EAX'];
 
 function envstr(index : longint) : string;
 
-var hp:PPchar;
+var hp:Pchar;
 
 begin
     if (index<=0) or (index>envcount) then
@@ -915,8 +940,8 @@ begin
             envstr:='';
             exit;
         end;
-    hp:=PPchar(cardinal(envs)+4*(index-1));
-    envstr:=strpas(hp^);
+    hp:=envs[index-1];
+    envstr:=strpas(hp);
 end;
 
 function getenv(const envvar : string) : string;
@@ -1030,37 +1055,133 @@ begin
     d.year:=time+1980;
 end;
 
-procedure getfattr(var f;var attr : word);assembler;
-
+procedure getfattr(var f;var attr : word);
+ { Under EMX, this routine requires     }
+ { the expanded path specification      }
+ { otherwise it will not function       }
+ { properly (CEC)                       }
+var
+ path:  pathstr;
+ buffer:array[0..255] of char;
+begin
+  DosError := 0;
+  path:='';
+  path := StrPas(filerec(f).Name);
+  { Takes care of slash and backslash support }
+  path:=FExPand(path);
+  move(path[1],buffer,length(path));
+  buffer[length(path)]:=#0;
 asm
     movw $0x4300,%ax
-    movl f,%edx
-    {addl $filerec.name,%edx Doesn't work!!}
-    addl $60,%edx
+    leal buffer,%edx
     call syscall
+    jnc  .Lnoerror         { is there an error ? }
+    movw %ax,doserror
+  .Lnoerror:
     movl attr,%ebx
     movw %cx,(%ebx)
-    xorb %ah,%ah
-    movw %ax,doserror
+ end;
 end;
 
-procedure setfattr(var f;attr : word);assembler;
-
+procedure setfattr(var f;attr : word);
+ { Under EMX, this routine requires     }
+ { the expanded path specification      }
+ { otherwise it will not function       }
+ { properly (CEC)                       }
+var
+ path:  pathstr;
+ buffer:array[0..255] of char;
+begin
+  path:='';
+  DosError := 0;
+  path := StrPas(filerec(f).Name);
+  { Takes care of slash and backslash support }
+  path:=FExPand(path);
+  move(path[1],buffer,length(path));
+  buffer[length(path)]:=#0;
 asm
     movw $0x4301,%ax
-    movl f,%edx
-    {addl $filerec.name,%edx Doesn't work!!}
-    addl $60,%edx
-    movw attr,%cx
-    call syscall
-    xorb %ah,%ah
-    movw %ax,doserror
+     leal buffer,%edx
+     movw attr,%cx
+     call syscall
+     jnc  .Lnoerror
+     movw %ax,doserror
+   .Lnoerror:
+  end;
 end;
 
+
+
+procedure InitEnvironment;
+var
+ cnt : integer;
+ ptr : pchar;
+ base : pchar;
+ i: integer;
+ tib : pprocessinfoblock;
+begin
+  { We need to setup the environment     }
+  { only in the case of OS/2             }
+  { otherwise everything is in the stack }
+  if os_Mode in [OsDOS,osDPMI] then
+    exit;
+  cnt := 0;
+  { count number of environment pointers }
+  dosgetinfoblocks(nil,@tib);
+  ptr := pchar(tib^.env);
+  { stringz,stringz...,#0 }
+  i := 0;
+  repeat
+    repeat
+     (inc(i));
+    until (ptr[i] = #0);
+    inc(i);
+    { here, it may be a double null, end of environment }
+    if ptr[i] <> #0 then
+       inc(cnt);
+  until (ptr[i] = #0);
+  { save environment count }
+  envc := cnt;
+  { got count of environment strings }
+  GetMem(envp, cnt*sizeof(pchar)+16384);
+  cnt := 0;
+  ptr := pchar(tib^.env);
+  i:=0;
+  repeat
+    envp[cnt] := ptr;
+    Inc(cnt);
+    { go to next string ... }
+    repeat
+      inc(ptr);
+    until (ptr^ = #0);
+    inc(ptr);
+  until ptr^ = #0;
+  envp[cnt] := #0;
+end;
+
+
+procedure DoneEnvironment;
+begin
+  { it is allocated on the stack for DOS/DPMI }
+  if os_mode = osOs2 then
+     FreeMem(envp, envc*sizeof(pchar)+16384);
+end;
+
+var
+  oldexit : pointer;
+
+
+begin
+ oldexit:=exitproc;
+ exitproc:=@doneenvironment;
+ InitEnvironment;
 end.
 {
   $Log$
-  Revision 1.10  2001-04-10 18:49:40  hajny
+  Revision 1.11  2001-05-20 18:55:48  hajny
+    * merging Carl's fixes from the fixes branch
+
+  Revision 1.10  2001/04/10 18:49:40  hajny
     * better check for FindClose
 
   Revision 1.9  2001/03/11 18:58:42  hajny
