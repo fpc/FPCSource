@@ -34,9 +34,6 @@ unit rgobj;
       cutils, cpubase,
       aasmbase,aasmtai,aasmcpu,
       cclasses,globtype,cgbase,node,
-{$ifdef delphi}
-      dmisc,
-{$endif}
       cpuinfo
       ;
 
@@ -1995,7 +1992,11 @@ unit rgobj;
 end.
 {
   $Log$
-  Revision 1.142  2004-10-13 21:12:51  peter
+  Revision 1.143  2004-10-15 09:14:17  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.142  2004/10/13 21:12:51  peter
     * -Or fixes for open array
 
   Revision 1.141  2004/10/11 15:47:03  peter

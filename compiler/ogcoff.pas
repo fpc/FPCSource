@@ -167,11 +167,7 @@ interface
 implementation
 
     uses
-{$ifdef delphi}
-       sysutils,
-{$else}
        strings,
-{$endif}
        cutils,verbose,
        globals,fmodule;
 
@@ -1793,7 +1789,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.32  2004-08-27 20:55:08  peter
+  Revision 1.33  2004-10-15 09:14:17  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.32  2004/08/27 20:55:08  peter
   don't use .rodata, it doesn't work yet
 
   Revision 1.31  2004/08/25 15:55:32  peter

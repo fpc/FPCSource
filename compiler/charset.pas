@@ -148,13 +148,8 @@ unit charset;
                           end;
                         flag:=umf_noinfo;
                      end;
-{$ifdef delphi}
-                   data^.flag:=flag;
-                   data^.unicode:=unicodevalue;
-{$else}
                    data[charpos].flag:=flag;
                    data[charpos].unicode:=unicodevalue;
-{$endif delphi}
                    if charpos>lastchar then
                      lastchar:=charpos;
                 end;
@@ -216,11 +211,7 @@ unit charset;
 
       begin
          if ord(c)<=p^.lastchar then
-{$ifdef Delphi}
-           getunicode:=p^.map.unicode
-{$else}
            getunicode:=p^.map[ord(c)].unicode
-{$endif}
          else
            getunicode:=0;
       end;
@@ -234,11 +225,7 @@ unit charset;
          { at least map to space }
          getascii:=#32;
          for i:=0 to p^.lastchar do
-{$ifdef Delphi}
-           if p^.map.unicode=c then
-{$else}
            if p^.map[i].unicode=c then
-{$endif}
              begin
                 if i<256 then
                   getascii:=chr(i)
@@ -267,7 +254,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.5  2004-06-20 08:55:29  florian
+  Revision 1.6  2004-10-15 09:14:16  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.5  2004/06/20 08:55:29  florian
     * logs truncated
 
 }

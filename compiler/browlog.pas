@@ -465,7 +465,7 @@ implementation
                       writesymtable(tobjectdef(ttypesym(hp).restype.def).symtable);
                   end;
                 procsym :
-                    Tprocsym(hp).foreach_procdef_static({$IFDEF FPCPROCVAR}@{$ENDIF}writelocalsymtables,nil);
+                    Tprocsym(hp).foreach_procdef_static(@writelocalsymtables,nil);
               end;
               hp:=tstoredsym(hp.indexnext);
             end;
@@ -516,7 +516,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  2004-06-20 08:55:28  florian
+  Revision 1.19  2004-10-15 09:14:16  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.18  2004/06/20 08:55:28  florian
     * logs truncated
 
   Revision 1.17  2004/02/11 22:00:10  peter

@@ -62,11 +62,7 @@ interface
 implementation
 
     uses
-{$ifdef delphi}
-       sysutils,
-{$else delphi}
        strings,
-{$endif delphi}
        { common }
        cutils,cclasses,
        { global }
@@ -1285,7 +1281,7 @@ const
     (
       idtok:_ABSTRACT;
       pd_flags : [pd_interface,pd_object,pd_notobjintf];
-      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_abstract;
+      handler  : @pd_abstract;
       pocall   : pocall_none;
       pooption : [po_abstractmethod];
       mutexclpocall : [pocall_internproc,pocall_inline];
@@ -1294,7 +1290,7 @@ const
     ),(
       idtok:_ALIAS;
       pd_flags : [pd_implemen,pd_body,pd_notobjintf];
-      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_alias;
+      handler  : @pd_alias;
       pocall   : pocall_none;
       pooption : [];
       mutexclpocall : [pocall_inline];
@@ -1303,7 +1299,7 @@ const
     ),(
       idtok:_ASMNAME;
       pd_flags : [pd_interface,pd_implemen,pd_notobjintf];
-      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_asmname;
+      handler  : @pd_asmname;
       pocall   : pocall_cdecl;
       pooption : [po_external];
       mutexclpocall : [pocall_internproc,pocall_inline];
@@ -1339,7 +1335,7 @@ const
     ),(
       idtok:_DYNAMIC;
       pd_flags : [pd_interface,pd_object,pd_notobjintf];
-      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_virtual;
+      handler  : @pd_virtual;
       pocall   : pocall_none;
       pooption : [po_virtualmethod];
       mutexclpocall : [pocall_internproc,pocall_inline];
@@ -1348,7 +1344,7 @@ const
     ),(
       idtok:_EXPORT;
       pd_flags : [pd_body,pd_interface,pd_implemen,pd_notobjintf];
-      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_export;
+      handler  : @pd_export;
       pocall   : pocall_none;
       pooption : [po_exports,po_public];
       mutexclpocall : [pocall_internproc,pocall_inline];
@@ -1357,7 +1353,7 @@ const
     ),(
       idtok:_EXTERNAL;
       pd_flags : [pd_implemen,pd_interface,pd_notobject,pd_notobjintf];
-      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_external;
+      handler  : @pd_external;
       pocall   : pocall_none;
       pooption : [po_external];
       mutexclpocall : [pocall_internproc,pocall_inline,pocall_syscall];
@@ -1366,7 +1362,7 @@ const
     ),(
       idtok:_FAR;
       pd_flags : [pd_implemen,pd_body,pd_interface,pd_procvar,pd_notobject,pd_notobjintf];
-      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_far;
+      handler  : @pd_far;
       pocall   : pocall_none;
       pooption : [];
       mutexclpocall : [pocall_internproc,pocall_inline];
@@ -1384,7 +1380,7 @@ const
     ),(
       idtok:_FORWARD;
       pd_flags : [pd_implemen,pd_notobject,pd_notobjintf];
-      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_forward;
+      handler  : @pd_forward;
       pocall   : pocall_none;
       pooption : [];
       mutexclpocall : [pocall_internproc,pocall_inline];
@@ -1402,7 +1398,7 @@ const
     ),(
       idtok:_INLINE;
       pd_flags : [pd_interface,pd_implemen,pd_body,pd_notobjintf];
-      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_inline;
+      handler  : @pd_inline;
       pocall   : pocall_inline;
       pooption : [];
       mutexclpocall : [];
@@ -1411,7 +1407,7 @@ const
     ),(
       idtok:_INTERNCONST;
       pd_flags : [pd_implemen,pd_body,pd_notobject,pd_notobjintf];
-      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_intern;
+      handler  : @pd_intern;
       pocall   : pocall_none;
       pooption : [po_internconst];
       mutexclpocall : [];
@@ -1420,7 +1416,7 @@ const
     ),(
       idtok:_INTERNPROC;
       pd_flags : [pd_implemen,pd_notobject,pd_notobjintf];
-      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_intern;
+      handler  : @pd_intern;
       pocall   : pocall_internproc;
       pooption : [];
       mutexclpocall : [];
@@ -1429,7 +1425,7 @@ const
     ),(
       idtok:_INTERRUPT;
       pd_flags : [pd_implemen,pd_body,pd_notobject,pd_notobjintf];
-      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_interrupt;
+      handler  : @pd_interrupt;
       pocall   : pocall_none;
       pooption : [po_interrupt];
       mutexclpocall : [pocall_internproc,pocall_cdecl,pocall_cppdecl,pocall_stdcall,
@@ -1448,7 +1444,7 @@ const
     ),(
       idtok:_MESSAGE;
       pd_flags : [pd_interface,pd_object,pd_notobjintf];
-      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_message;
+      handler  : @pd_message;
       pocall   : pocall_none;
       pooption : []; { can be po_msgstr or po_msgint }
       mutexclpocall : [pocall_inline,pocall_internproc];
@@ -1457,7 +1453,7 @@ const
     ),(
       idtok:_NEAR;
       pd_flags : [pd_implemen,pd_body,pd_procvar,pd_notobjintf];
-      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_near;
+      handler  : @pd_near;
       pocall   : pocall_none;
       pooption : [];
       mutexclpocall : [pocall_internproc];
@@ -1475,7 +1471,7 @@ const
     ),(
       idtok:_OVERLOAD;
       pd_flags : [pd_implemen,pd_interface,pd_body];
-      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_overload;
+      handler  : @pd_overload;
       pocall   : pocall_none;
       pooption : [po_overload];
       mutexclpocall : [pocall_internproc];
@@ -1484,7 +1480,7 @@ const
     ),(
       idtok:_OVERRIDE;
       pd_flags : [pd_interface,pd_object,pd_notobjintf];
-      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_override;
+      handler  : @pd_override;
       pocall   : pocall_none;
       pooption : [po_overridingmethod,po_virtualmethod];
       mutexclpocall : [pocall_inline,pocall_internproc];
@@ -1520,7 +1516,7 @@ const
     ),(
       idtok:_REINTRODUCE;
       pd_flags : [pd_interface,pd_object,pd_notobjintf];
-      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_reintroduce;
+      handler  : @pd_reintroduce;
       pocall   : pocall_none;
       pooption : [po_reintroduce];
       mutexclpocall : [pocall_inline,pocall_internproc];
@@ -1558,7 +1554,7 @@ const
     ),(
       idtok:_STATIC;
       pd_flags : [pd_interface,pd_object,pd_notobjintf];
-      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_static;
+      handler  : @pd_static;
       pocall   : pocall_none;
       pooption : [po_staticmethod];
       mutexclpocall : [pocall_inline,pocall_internproc];
@@ -1576,7 +1572,7 @@ const
     ),(
       idtok:_SYSCALL;
       pd_flags : [pd_interface,pd_implemen,pd_notobject,pd_notobjintf];
-      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_syscall;
+      handler  : @pd_syscall;
       pocall   : pocall_syscall;
       pooption : [];
       mutexclpocall : [];
@@ -1585,7 +1581,7 @@ const
     ),(
       idtok:_VIRTUAL;
       pd_flags : [pd_interface,pd_object,pd_notobjintf];
-      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_virtual;
+      handler  : @pd_virtual;
       pocall   : pocall_none;
       pooption : [po_virtualmethod];
       mutexclpocall : [pocall_inline,pocall_internproc];
@@ -1809,7 +1805,7 @@ const
                      tprocdef(pd).setmangledname(target_info.Cprefix+tprocdef(pd).procsym.realname);
                   end;
                  { check C cdecl para types }
-                 pd.parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}check_c_para,nil);
+                 pd.parast.foreach_static(@check_c_para,nil);
                end;
             end;
           pocall_cppdecl :
@@ -1820,7 +1816,7 @@ const
                  if not tprocdef(pd).has_mangledname then
                   tprocdef(pd).setmangledname(target_info.Cprefix+tprocdef(pd).cplusplusmangledname);
                  { check C cdecl para types }
-                 pd.parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}check_c_para,nil);
+                 pd.parast.foreach_static(@check_c_para,nil);
                end;
             end;
           pocall_compilerproc :
@@ -1872,7 +1868,7 @@ const
 
         { Make var parameters regable, this must be done after the calling
           convention is set. }
-        pd.parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}set_addr_param_regable,pd);
+        pd.parast.foreach_static(@set_addr_param_regable,pd);
 
         { add mangledname to external list }
         if (pd.deftype=procdef) and
@@ -2270,7 +2266,11 @@ const
 end.
 {
   $Log$
-  Revision 1.193  2004-10-11 15:45:35  peter
+  Revision 1.194  2004-10-15 09:14:17  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.193  2004/10/11 15:45:35  peter
     * mark non-regable after calling convention is set
 
   Revision 1.192  2004/10/10 21:08:55  peter

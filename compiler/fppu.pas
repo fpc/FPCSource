@@ -412,7 +412,7 @@ uses
     procedure tppumodule.writeusedmacros;
       begin
         ppufile.do_crc:=false;
-        tscannerfile(scanner).macros.foreach({$ifdef FPCPROCVAR}@{$endif}writeusedmacro,nil);
+        tscannerfile(scanner).macros.foreach(@writeusedmacro,nil);
         ppufile.writeentry(ibusedmacros);
         ppufile.do_crc:=true;
       end;
@@ -556,7 +556,7 @@ uses
         { get an ordered list of all symbols to put in the ppu }
         getmem(librarydata.asmsymbolidx,librarydata.asmsymbolppuidx*sizeof(pointer));
         fillchar(librarydata.asmsymbolidx^,librarydata.asmsymbolppuidx*sizeof(pointer),0);
-        librarydata.symbolsearch.foreach({$ifdef FPCPROCVAR}@{$endif}putasmsymbol_in_idx,nil);
+        librarydata.symbolsearch.foreach(@putasmsymbol_in_idx,nil);
         { write the number of symbols }
         ppufile.putlongint(librarydata.asmsymbolppuidx);
         { write the symbols from the indexed list to the ppu }
@@ -1512,7 +1512,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.62  2004-09-13 20:27:27  peter
+  Revision 1.63  2004-10-15 09:14:16  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.62  2004/09/13 20:27:27  peter
     * remove check for shortunitname, it broke units with 8 and 9 chars
       with the first 8 chars being equal
 

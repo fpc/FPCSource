@@ -127,17 +127,17 @@ type
   tgetnamedfiletimefunc = function(const filename: string): longint;
 
 const
-  do_stop          : tstopprocedure   = {$ifdef FPCPROCVAR}@{$endif}def_stop;
-  do_status        : tstatusfunction  = {$ifdef FPCPROCVAR}@{$endif}def_status;
-  do_comment       : tcommentfunction = {$ifdef FPCPROCVAR}@{$endif}def_comment;
-  do_internalerror : tinternalerrorfunction = {$ifdef FPCPROCVAR}@{$endif}def_internalerror;
+  do_stop          : tstopprocedure   = @def_stop;
+  do_status        : tstatusfunction  = @def_status;
+  do_comment       : tcommentfunction = @def_comment;
+  do_internalerror : tinternalerrorfunction = @def_internalerror;
 
-  do_initsymbolinfo : tinitsymbolinfoproc = {$ifdef FPCPROCVAR}@{$endif}def_initsymbolinfo;
-  do_donesymbolinfo : tdonesymbolinfoproc = {$ifdef FPCPROCVAR}@{$endif}def_donesymbolinfo;
-  do_extractsymbolinfo : textractsymbolinfoproc = {$ifdef FPCPROCVAR}@{$endif}def_extractsymbolinfo;
+  do_initsymbolinfo : tinitsymbolinfoproc = @def_initsymbolinfo;
+  do_donesymbolinfo : tdonesymbolinfoproc = @def_donesymbolinfo;
+  do_extractsymbolinfo : textractsymbolinfoproc = @def_extractsymbolinfo;
 
-  do_openinputfile : topeninputfilefunc = {$ifdef FPCPROCVAR}@{$endif}def_openinputfile;
-  do_getnamedfiletime : tgetnamedfiletimefunc = {$ifdef FPCPROCVAR}@{$endif}def_getnamedfiletime;
+  do_openinputfile : topeninputfilefunc = @def_openinputfile;
+  do_getnamedfiletime : tgetnamedfiletimefunc = @def_getnamedfiletime;
 
 implementation
 
@@ -208,17 +208,13 @@ begin
 { Status info?, Called every line }
   if ((status.verbosity and V_Status)<>0) then
    begin
-{$ifndef Delphi}
      if (status.compiledlines=1) then
        WriteLn(memavail shr 10,' Kb Free');
-{$endif Delphi}
      if (status.currentline>0) and (status.currentline mod 100=0) then
 {$ifdef FPC}
        WriteLn(status.currentline,' ',DStr(memavail shr 10),'/',DStr(system.heapsize shr 10),' Kb Free');
 {$else}
-  {$ifndef Delphi}
        WriteLn(status.currentline,' ',DStr(memavail shr 10),' Kb Free');
-  {$endif Delphi}
 {$endif}
    end
 end;
@@ -360,30 +356,33 @@ end;
 
 Function def_GetNamedFileTime (Const F : String) : Longint;
 var
-  L : Longint;
 {$IFDEF USE_SYSUTILS}
-  info : TSearchRec;
+  fh : THandle;
 {$ELSE USE_SYSUTILS}
   info : SearchRec;
 {$ENDIF USE_SYSUTILS}
 begin
-  l:=-1;
+  Result := -1;
 {$IFDEF USE_SYSUTILS}
-  if FindFirst (F,faArchive+faReadOnly+faHidden,info) = 0
-  then
+  fh := FileOpen(f, faArchive+faReadOnly+faHidden);
+  Result := FileGetDate(fh);
+  FileClose(fh);
 {$ELSE USE_SYSUTILS}
-    FindFirst (F,archive+readonly+hidden,info);
+  FindFirst (F,archive+readonly+hidden,info);
   if DosError=0 then
-{$ENDIF USE_SYSUTILS}
-   l:=info.time;
+    Result := info.time;
   FindClose(info);
-  def_GetNamedFileTime:=l;
+{$ENDIF USE_SYSUTILS}
 end;
 
 end.
 {
   $Log$
-  Revision 1.30  2004-10-14 18:16:17  mazen
+  Revision 1.31  2004-10-15 09:14:16  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.30  2004/10/14 18:16:17  mazen
   * USE_SYSUTILS merged successfully : cycles with and without defines
   * Need to be optimized in performance
 

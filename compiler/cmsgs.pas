@@ -64,11 +64,7 @@ implementation
 
 uses
   cutils,
-{$ifdef DELPHI}
-  sysutils;
-{$else DELPHI}
   strings;
-{$endif DELPHI}
 
 
 function MsgReplace(const s:string;const args:array of string):string;
@@ -418,7 +414,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  2004-06-20 08:55:29  florian
+  Revision 1.13  2004-10-15 09:14:16  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.12  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.11  2004/06/16 20:07:07  florian

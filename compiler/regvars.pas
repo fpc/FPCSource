@@ -160,10 +160,10 @@ implementation
           if (p.registersint<maxvarregs) then
             begin
               parasym:=false;
-              symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}searchregvars,@parasym);
+              symtablestack.foreach_static(searchregvars,@parasym);
               { copy parameter into a register ? }
               parasym:=true;
-              symtablestack.next.foreach_static({$ifdef FPCPROCVAR}@{$endif}searchregvars,@parasym);
+              symtablestack.next.foreach_static(searchregvars,@parasym);
               { hold needed registers free }
               for i:=maxvarregs downto maxvarregs-p.registersint+1 do
                 begin
@@ -215,7 +215,7 @@ implementation
             if ((p.registersfpu+1)<maxfpuvarregs) then
               begin
                 parasym:=false;
-                symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}searchfpuregvars,@parasym);
+                symtablestack.foreach_static(searchfpuregvars,@parasym);
 {$ifndef i386}
                 { this code should be never enabled because     }
                 { 1. the caller loads parameters into registers }
@@ -224,7 +224,7 @@ implementation
                 {                                        (FK)   }
                 { copy parameter into a register ? }
                 parasym:=true;
-                symtablestack.next.foreach_static({$ifdef FPCPROCVAR}@{$endif}searchregvars,@parasym);
+                symtablestack.next.foreach_static(searchregvars,@parasym);
 {$endif i386}
                 { hold needed registers free }
 
@@ -669,7 +669,11 @@ end.
 
 {
   $Log$
-  Revision 1.80  2004-09-26 17:45:30  peter
+  Revision 1.81  2004-10-15 09:14:17  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.80  2004/09/26 17:45:30  peter
     * simple regvar support, not yet finished
 
   Revision 1.79  2004/09/25 14:23:54  peter

@@ -198,11 +198,7 @@ interface
        end;
        TAsmObjectDataClass = class of TAsmObjectData;
 
-{$ifndef delphi}
        tasmsymbolidxarr = array[0..($7fffffff div sizeof(pointer))] of tasmsymbol;
-{$else}
-       tasmsymbolidxarr = array[0..high(word)] of tasmsymbol;
-{$endif}
        pasmsymbolidxarr = ^tasmsymbolidxarr;
 
        TAsmLibraryData = class(TLinkedListItem)
@@ -253,11 +249,7 @@ interface
 implementation
 
     uses
-{$ifdef delphi}
-      sysutils,
-{$else}
       strings,
-{$endif}
       verbose;
 
     const
@@ -949,7 +941,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  2004-07-22 10:09:10  jonas
+  Revision 1.22  2004-10-15 09:14:16  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.21  2004/07/22 10:09:10  jonas
     * fixed relabeling properly now :)
 
   Revision 1.20  2004/07/22 10:07:09  jonas

@@ -385,13 +385,8 @@ implementation
                 left:=Tunarynode(left).left;
                 t.left:=nil;
                 t.destroy;
-{$ifdef Delphi}
-                { How can this be handled in Delphi ? }
-                RunError(255);
-{$else}
                 {Symdif operator, in case you are wondering:}
                 loopflags:=loopflags >< [lnf_checknegate];
-{$endif}
             end;
          { loop instruction }
          if assigned(right) then
@@ -1429,7 +1424,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.100  2004-09-13 20:28:26  peter
+  Revision 1.101  2004-10-15 09:14:17  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.100  2004/09/13 20:28:26  peter
     * for loop variable assignment is not allowed anymore
 
   Revision 1.99  2004/08/30 12:09:45  michael

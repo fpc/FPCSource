@@ -80,11 +80,7 @@ implementation
       cutils,verbose,globals,
       symconst,symsym,symtable,defutil,paramgr,
 {$ifdef GDB}
-  {$ifdef delphi}
-      sysutils,
-  {$else}
       strings,
-  {$endif}
       gdb,
 {$endif GDB}
       cgbase,pass_2,
@@ -1243,7 +1239,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.177  2004-10-10 20:21:18  peter
+  Revision 1.178  2004-10-15 09:14:16  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.177  2004/10/10 20:21:18  peter
     * passing a var parameter to var parameter is now also allowed
       for register locations (=regvars)
 

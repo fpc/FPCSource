@@ -157,11 +157,7 @@ type    Tlxheader = packed record
 implementation
 
 uses
-{$ifdef delphi}
-       sysutils,
-{$else}
        strings,
-{$endif}
        cutils,verbose,
        globtype,globals,fmodule;
 
@@ -399,7 +395,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2004-06-20 08:55:30  florian
+  Revision 1.7  2004-10-15 09:14:17  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.6  2004/06/20 08:55:30  florian
     * logs truncated
 
 }

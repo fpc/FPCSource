@@ -36,11 +36,7 @@ interface
 implementation
 
     uses
-{$ifdef Delphi}
-       sysutils,
-{$else}
        strings,
-{$endif Delphi}
        globtype,systems,tokens,verbose,
        cutils,globals,widestr,scanner,
        symconst,symbase,symdef,symtable,
@@ -1091,7 +1087,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.91  2004-07-12 17:58:19  peter
+  Revision 1.92  2004-10-15 09:14:17  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.91  2004/07/12 17:58:19  peter
     * remove maxlen field from ansistring/widestrings
 
   Revision 1.90  2004/07/03 14:06:35  daniel

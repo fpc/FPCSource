@@ -56,10 +56,6 @@ implementation
        pbase,pexpr,ptype,ptconst,pdecsub,
        { link }
        import
-{$ifdef Delphi}
-       ,dmisc
-       ,sysutils
-{$endif}
        ;
 
 
@@ -1288,7 +1284,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.80  2004-10-12 14:36:38  peter
+  Revision 1.81  2004-10-15 09:14:17  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.80  2004/10/12 14:36:38  peter
     * gen high tree makes copy in temp when there is a calln
 
   Revision 1.79  2004/08/17 16:29:21  jonas

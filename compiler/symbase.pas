@@ -222,7 +222,7 @@ implementation
           writeln('Symtable ',name^)
         else
           writeln('Symtable <not named>');
-        symsearch.foreach({$ifdef FPCPROCVAR}@{$endif}dumpsym,nil);
+        symsearch.foreach(@dumpsym,nil);
       end;
 {$endif EXTDEBUG}
 
@@ -331,7 +331,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  2004-07-09 22:17:32  peter
+  Revision 1.23  2004-10-15 09:14:17  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.22  2004/07/09 22:17:32  peter
     * revert has_localst patch
     * replace aktstaticsymtable/aktglobalsymtable with current_module
 

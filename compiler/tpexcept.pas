@@ -52,8 +52,8 @@ type
 
    pjmp_buf = ^jmp_buf;
 
-  function setjmp(var rec : jmp_buf) : longint;{$ifdef Delphi}stdcall;{$else}{$ifndef ver1_0}oldfpccall;{$endif}{$endif}
-  procedure longjmp(const rec : jmp_buf;return_value : longint);{$ifdef Delphi}stdcall;{$else}{$ifndef ver1_0}oldfpccall;{$endif}{$endif}
+  function setjmp(var rec : jmp_buf) : longint;{$ifndef ver1_0}oldfpccall;{$endif}
+  procedure longjmp(const rec : jmp_buf;return_value : longint);{$ifndef ver1_0}oldfpccall;{$endif}
 
 {$endif HASNOLONGJMP}
 
@@ -258,7 +258,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2004-06-20 08:55:30  florian
+  Revision 1.12  2004-10-15 09:14:17  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.11  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.10  2004/02/12 16:00:39  peter

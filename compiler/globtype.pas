@@ -282,7 +282,6 @@ than 255 characters. That's why using Ansi Strings}
                     (values:longint);
        end;
 
-{$ifndef Delphi}
   {$ifndef xFPC}
     type
       pguid = ^tguid;
@@ -293,7 +292,6 @@ than 255 characters. That's why using Ansi Strings}
         D4: array[0..7] of Byte;
       end;
   {$endif}
-{$endif}
 
     const
        { link options }
@@ -308,7 +306,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.61  2004-10-14 14:42:57  mazen
+  Revision 1.62  2004-10-15 09:14:16  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.61  2004/10/14 14:42:57  mazen
   + Needed types aliases to merge USE_SYSUTILS branch
 
   Revision 1.60  2004/09/26 17:45:30  peter

@@ -49,10 +49,6 @@ implementation
       gdb,
 {$endif GDB}
       node,nbas,nflw,nset,ncon,ncnv,nld,nmem,ncal,nmat,nadd,ninl,nopt
-{$ifdef Delphi}
-      ,dmisc
-      ,sysutils
-{$endif}
       ;
 
 
@@ -538,7 +534,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.71  2004-07-05 21:49:43  olle
+  Revision 1.72  2004-10-15 09:14:17  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.71  2004/07/05 21:49:43  olle
     + macpas style: exit, cycle, leave
     + macpas compiler directive: PUSH POP
 

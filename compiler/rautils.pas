@@ -215,11 +215,7 @@ Function SearchIConstant(const s:string; var l:aint): boolean;
 Implementation
 
 uses
-{$ifdef delphi}
-  sysutils,
-{$else}
   strings,
-{$endif}
   defutil,systems,verbose,globals,
   symtable,paramgr,
   aasmcpu,
@@ -1192,7 +1188,7 @@ end;
 
 procedure TLocalLabelList.CheckEmitted;
 begin
-  ForEach_Static({$ifdef FPCPROCVAR}@{$endif}LocalLabelEmitted,nil)
+  ForEach_Static(@LocalLabelEmitted,nil)
 end;
 
 
@@ -1668,7 +1664,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.90  2004-10-08 17:09:43  peter
+  Revision 1.91  2004-10-15 09:14:17  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.90  2004/10/08 17:09:43  peter
     * tvarsym.varregable added, split vo_regable from varoptions
 
   Revision 1.89  2004/09/27 15:14:34  peter

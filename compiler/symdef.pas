@@ -40,9 +40,6 @@ interface
        aasmbase,aasmtai,
        cpubase,cpuinfo,
        cgbase,parabase
-{$ifdef Delphi}
-       ,dmisc
-{$endif}
        ;
 
 
@@ -829,11 +826,7 @@ interface
 implementation
 
     uses
-{$ifdef Delphi}
-       sysutils,
-{$else Delphi}
        strings,
-{$endif Delphi}
        { global }
        verbose,
        { target }
@@ -3236,7 +3229,7 @@ implementation
         strpcopy(state.stabstring,'s'+tostr(size));
         state.recoffset:=0;
         state.stabsize:=strlen(state.stabstring);
-        symtable.foreach({$ifdef FPCPROCVAR}@{$endif}field_addname,@state);
+        symtable.foreach(@field_addname,@state);
         state.stabstring[state.stabsize]:=';';
         state.stabstring[state.stabsize+1]:=#0;
         reallocmem(state.stabstring,state.stabsize+2);
@@ -3248,7 +3241,7 @@ implementation
       begin
         if (stab_state in [stab_state_writing,stab_state_written]) then
           exit;
-        symtable.foreach({$ifdef FPCPROCVAR}@{$endif}field_concatstabto,asmlist);
+        symtable.foreach(@field_concatstabto,asmlist);
         inherited concatstabto(asmlist);
       end;
 {$endif GDB}
@@ -3257,7 +3250,7 @@ implementation
     procedure trecorddef.write_child_rtti_data(rt:trttitype);
       begin
          FRTTIType:=rt;
-         symtable.foreach({$ifdef FPCPROCVAR}@{$endif}generate_field_rtti,nil);
+         symtable.foreach(@generate_field_rtti,nil);
       end;
 
 
@@ -3271,9 +3264,9 @@ implementation
          rttiList.concat(Tai_const.Create_32bit(size));
          Count:=0;
          FRTTIType:=rt;
-         symtable.foreach({$ifdef FPCPROCVAR}@{$endif}count_field_rtti,nil);
+         symtable.foreach(@count_field_rtti,nil);
          rttiList.concat(Tai_const.Create_32bit(Count));
-         symtable.foreach({$ifdef FPCPROCVAR}@{$endif}write_field_rtti,nil);
+         symtable.foreach(@write_field_rtti,nil);
       end;
 
 
@@ -5070,7 +5063,7 @@ implementation
         sd:=nil;
         while assigned(o) do
           begin
-             o.symtable.foreach_static({$ifdef FPCPROCVAR}@{$endif}_searchdestructor,@sd);
+             o.symtable.foreach_static(@_searchdestructor,@sd);
              if assigned(sd) then
                begin
                   searchdestructor:=sd;
@@ -5254,7 +5247,7 @@ implementation
             {virtual table to implement yet}
             state.recoffset:=0;
             state.stabsize:=strlen(state.stabstring);
-            symtable.foreach({$ifdef FPCPROCVAR}@{$endif}field_addname,@state);
+            symtable.foreach(@field_addname,@state);
             if (oo_has_vmt in objectoptions) then
               if not assigned(childof) or not(oo_has_vmt in childof.objectoptions) then
                  begin
@@ -5262,7 +5255,7 @@ implementation
                     strpcopy(state.stabstring+state.stabsize,ts);
                     inc(state.stabsize,length(ts));
                  end;
-            symtable.foreach({$ifdef FPCPROCVAR}@{$endif}proc_addname,@state);
+            symtable.foreach(@proc_addname,@state);
             if (oo_has_vmt in objectoptions) then
               begin
                  anc := self;
@@ -5355,8 +5348,8 @@ implementation
             anc:=anc.childof;
             anc.concatstabto(asmlist);
           end;
-        symtable.foreach({$ifdef FPCPROCVAR}@{$endif}field_concatstabto,asmlist);
-        symtable.foreach({$ifdef FPCPROCVAR}@{$endif}proc_concatstabto,asmlist);
+        symtable.foreach(@field_concatstabto,asmlist);
+        symtable.foreach(@proc_concatstabto,asmlist);
         stab_state:=stab_state_used;
         if objecttype=odt_class then
           begin
@@ -5560,9 +5553,9 @@ implementation
          FRTTIType:=rt;
          case rt of
            initrtti :
-             symtable.foreach({$ifdef FPCPROCVAR}@{$endif}generate_field_rtti,nil);
+             symtable.foreach(@generate_field_rtti,nil);
            fullrtti :
-             symtable.foreach({$ifdef FPCPROCVAR}@{$endif}generate_published_child_rtti,nil);
+             symtable.foreach(@generate_published_child_rtti,nil);
            else
              internalerror(200108301);
          end;
@@ -5685,7 +5678,7 @@ implementation
          else
            i:=0;
          count:=0;
-         symtable.foreach({$ifdef FPCPROCVAR}@{$endif}count_published_properties,nil);
+         symtable.foreach(@count_published_properties,nil);
          next_free_name_index:=i+count;
       end;
 
@@ -5719,9 +5712,9 @@ implementation
                 begin
                   count:=0;
                   FRTTIType:=rt;
-                  symtable.foreach({$ifdef FPCPROCVAR}@{$endif}count_field_rtti,nil);
+                  symtable.foreach(@count_field_rtti,nil);
                   rttiList.concat(Tai_const.Create_32bit(count));
-                  symtable.foreach({$ifdef FPCPROCVAR}@{$endif}write_field_rtti,nil);
+                  symtable.foreach(@write_field_rtti,nil);
                 end;
              end;
            fullrtti :
@@ -5745,7 +5738,7 @@ implementation
                  count:=0;
 
                { write it }
-               symtable.foreach({$ifdef FPCPROCVAR}@{$endif}count_published_properties,nil);
+               symtable.foreach(@count_published_properties,nil);
                rttiList.concat(Tai_const.Create_16bit(count));
 
                { write unit name }
@@ -5758,7 +5751,7 @@ implementation
 
                { write published properties count }
                count:=0;
-               symtable.foreach({$ifdef FPCPROCVAR}@{$endif}count_published_properties,nil);
+               symtable.foreach(@count_published_properties,nil);
                rttiList.concat(Tai_const.Create_16bit(count));
 
 {$ifdef cpurequiresproperalignment}
@@ -5774,7 +5767,7 @@ implementation
                else
                  count:=0;
 
-               symtable.foreach({$ifdef FPCPROCVAR}@{$endif}write_property_info,nil);
+               symtable.foreach(@write_property_info,nil);
              end;
          end;
       end;
@@ -6204,7 +6197,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.258  2004-10-10 21:08:55  peter
+  Revision 1.259  2004-10-15 09:14:17  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.258  2004/10/10 21:08:55  peter
     * parameter regvar fixes
 
   Revision 1.257  2004/10/04 21:23:15  florian

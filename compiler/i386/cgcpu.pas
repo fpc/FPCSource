@@ -32,9 +32,6 @@ unit cgcpu;
        aasmbase,aasmtai,aasmcpu,
        cpubase,cpuinfo,parabase,
        node,symconst
-{$ifdef delphi}
-       ,dmisc
-{$endif}
        ;
 
     type
@@ -574,7 +571,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.56  2004-10-13 21:12:51  peter
+  Revision 1.57  2004-10-15 09:16:21  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.56  2004/10/13 21:12:51  peter
     * -Or fixes for open array
 
   Revision 1.55  2004/10/11 15:46:45  peter

@@ -28,9 +28,6 @@ unit nobj;
 interface
 
     uses
-{$ifdef Delphi}
-       dmisc,
-{$endif}
        cutils,cclasses,
        globtype,
        symdef,symsym,
@@ -145,11 +142,7 @@ interface
 implementation
 
     uses
-{$ifdef delphi}
-       sysutils,
-{$else}
        strings,
-{$endif}
        globals,verbose,systems,
        symtable,symconst,symtype,defcmp,paramgr,
 {$ifdef GDB}
@@ -321,7 +314,7 @@ implementation
          root:=nil;
          count:=0;
          { insert all message handlers into a tree, sorted by name }
-         _class.symtable.foreach({$ifdef FPCPROCVAR}@{$endif}insertmsgstr,nil);
+         _class.symtable.foreach(@insertmsgstr,nil);
 
          { write all names }
          if assigned(root) then
@@ -362,7 +355,7 @@ implementation
          root:=nil;
          count:=0;
          { insert all message handlers into a tree, sorted by name }
-         _class.symtable.foreach({$ifdef FPCPROCVAR}@{$endif}insertmsgint,nil);
+         _class.symtable.foreach(@insertmsgint,nil);
 
          { now start writing of the message string table }
          objectlibrary.getdatalabel(r);
@@ -438,7 +431,7 @@ implementation
          count:=0;
          gendmt:=nil;
          { insert all message handlers into a tree, sorted by number }
-         _class.symtable.foreach({$ifdef FPCPROCVAR}@{$endif}insertdmtentry);
+         _class.symtable.foreach(insertdmtentry);
 
          if count>0 then
            begin
@@ -504,14 +497,14 @@ implementation
 
       begin
          count:=0;
-         _class.symtable.foreach({$ifdef FPCPROCVAR}@{$endif}do_count,nil);
+         _class.symtable.foreach(@do_count,nil);
          if count>0 then
            begin
               objectlibrary.getdatalabel(l);
               datasegment.concat(tai_align.create(const_align(sizeof(aint))));
               dataSegment.concat(Tai_label.Create(l));
               dataSegment.concat(Tai_const.Create_32bit(count));
-              _class.symtable.foreach({$ifdef FPCPROCVAR}@{$endif}genpubmethodtableentry,nil);
+              _class.symtable.foreach(@genpubmethodtableentry,nil);
               genpublishedmethodstable:=l;
            end
          else
@@ -825,7 +818,7 @@ implementation
              do_genvmt(p.childof);
 
            { walk through all public syms }
-           p.symtable.foreach({$ifdef FPCPROCVAR}@{$endif}eachsym,nil);
+           p.symtable.foreach(@eachsym,nil);
         end;
 
       begin
@@ -1389,7 +1382,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.77  2004-10-12 14:34:49  peter
+  Revision 1.78  2004-10-15 09:14:17  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.77  2004/10/12 14:34:49  peter
     * fixed visibility for procsyms
     * fixed override check when there was no entry yet
 

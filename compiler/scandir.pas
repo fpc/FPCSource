@@ -1024,90 +1024,90 @@ implementation
 
     procedure InitScannerDirectives;
       begin
-        AddDirective('ALIGN',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_align);
+        AddDirective('ALIGN',directive_all, @dir_align);
 {$ifdef m68k}
-        AddDirective('APPID',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_appid);
-        AddDirective('APPNAME',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_appname);
+        AddDirective('APPID',directive_all, @dir_appid);
+        AddDirective('APPNAME',directive_all, @dir_appname);
 {$endif m68k}
-        AddDirective('APPTYPE',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_apptype);
-        AddDirective('ASMMODE',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_asmmode);
-        AddDirective('ASSERTIONS',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_assertions);
-        AddDirective('BOOLEVAL',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_booleval);
-        AddDirective('CALLING',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_calling);
-        AddDirective('CODEPAGE',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_codepage);
-        AddDirective('COPYRIGHT',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_copyright);
-        AddDirective('D',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_description);
-        AddDirective('DEBUGINFO',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_debuginfo);
-        AddDirective('DESCRIPTION',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_description);
-        AddDirective('ERROR',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_error);
-        AddDirective('ERRORC',directive_mac, {$ifdef FPCPROCVAR}@{$endif}dir_error);
-        AddDirective('EXTENDEDSYNTAX',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_extendedsyntax);
-        AddDirective('EXTERNALSYM',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_externalsym);
-        AddDirective('FATAL',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_fatal);
-        AddDirective('FPUTYPE',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_fputype);
-        AddDirective('GOTO',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_goto);
-        AddDirective('HINT',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_hint);
-        AddDirective('HINTS',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_hints);
-        AddDirective('IOCHECKS',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_iochecks);
-        AddDirective('IMPLICITEXCEPTIONS',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_implicitexceptions);
-        AddDirective('INCLUDEPATH',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_includepath);
-        AddDirective('INFO',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_info);
-        AddDirective('INLINE',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_inline);
-        AddDirective('INTERFACES',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_interfaces);
-        AddDirective('L',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_link);
-        AddDirective('LIBEXPORT',directive_mac, {$ifdef FPCPROCVAR}@{$endif}dir_libexport);
-        AddDirective('LIBRARYPATH',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_librarypath);
-        AddDirective('LINK',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_link);
-        AddDirective('LINKLIB',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_linklib);
-        AddDirective('LOCALSYMBOLS',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_localsymbols);
-        AddDirective('LONGSTRINGS',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_longstrings);
-        AddDirective('M',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_memory);
-        AddDirective('MACRO',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_macro);
-        AddDirective('MAXFPUREGISTERS',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_maxfpuregisters);
-        AddDirective('MEMORY',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_memory);
-        AddDirective('MESSAGE',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_message);
-        AddDirective('MINENUMSIZE',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_packenum);
-        AddDirective('MMX',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_mmx);
-        AddDirective('MODE',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_mode);
-        AddDirective('NOTE',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_note);
-        AddDirective('NOTES',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_notes);
-        AddDirective('OBJECTCHECKS',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_objectchecks);
-        AddDirective('OBJECTPATH',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_objectpath);
-        AddDirective('OPENSTRINGS',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_openstrings);
-        AddDirective('OUTPUT_FORMAT',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_output_format);
-        AddDirective('OVERFLOWCHECKS',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_overflowchecks);
-        AddDirective('PACKENUM',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_packenum);
-        AddDirective('PACKRECORDS',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_packrecords);
+        AddDirective('APPTYPE',directive_all, @dir_apptype);
+        AddDirective('ASMMODE',directive_all, @dir_asmmode);
+        AddDirective('ASSERTIONS',directive_all, @dir_assertions);
+        AddDirective('BOOLEVAL',directive_all, @dir_booleval);
+        AddDirective('CALLING',directive_all, @dir_calling);
+        AddDirective('CODEPAGE',directive_all, @dir_codepage);
+        AddDirective('COPYRIGHT',directive_all, @dir_copyright);
+        AddDirective('D',directive_all, @dir_description);
+        AddDirective('DEBUGINFO',directive_all, @dir_debuginfo);
+        AddDirective('DESCRIPTION',directive_all, @dir_description);
+        AddDirective('ERROR',directive_all, @dir_error);
+        AddDirective('ERRORC',directive_mac, @dir_error);
+        AddDirective('EXTENDEDSYNTAX',directive_all, @dir_extendedsyntax);
+        AddDirective('EXTERNALSYM',directive_all, @dir_externalsym);
+        AddDirective('FATAL',directive_all, @dir_fatal);
+        AddDirective('FPUTYPE',directive_all, @dir_fputype);
+        AddDirective('GOTO',directive_all, @dir_goto);
+        AddDirective('HINT',directive_all, @dir_hint);
+        AddDirective('HINTS',directive_all, @dir_hints);
+        AddDirective('IOCHECKS',directive_all, @dir_iochecks);
+        AddDirective('IMPLICITEXCEPTIONS',directive_all, @dir_implicitexceptions);
+        AddDirective('INCLUDEPATH',directive_all, @dir_includepath);
+        AddDirective('INFO',directive_all, @dir_info);
+        AddDirective('INLINE',directive_all, @dir_inline);
+        AddDirective('INTERFACES',directive_all, @dir_interfaces);
+        AddDirective('L',directive_all, @dir_link);
+        AddDirective('LIBEXPORT',directive_mac, @dir_libexport);
+        AddDirective('LIBRARYPATH',directive_all, @dir_librarypath);
+        AddDirective('LINK',directive_all, @dir_link);
+        AddDirective('LINKLIB',directive_all, @dir_linklib);
+        AddDirective('LOCALSYMBOLS',directive_all, @dir_localsymbols);
+        AddDirective('LONGSTRINGS',directive_all, @dir_longstrings);
+        AddDirective('M',directive_all, @dir_memory);
+        AddDirective('MACRO',directive_all, @dir_macro);
+        AddDirective('MAXFPUREGISTERS',directive_all, @dir_maxfpuregisters);
+        AddDirective('MEMORY',directive_all, @dir_memory);
+        AddDirective('MESSAGE',directive_all, @dir_message);
+        AddDirective('MINENUMSIZE',directive_all, @dir_packenum);
+        AddDirective('MMX',directive_all, @dir_mmx);
+        AddDirective('MODE',directive_all, @dir_mode);
+        AddDirective('NOTE',directive_all, @dir_note);
+        AddDirective('NOTES',directive_all, @dir_notes);
+        AddDirective('OBJECTCHECKS',directive_all, @dir_objectchecks);
+        AddDirective('OBJECTPATH',directive_all, @dir_objectpath);
+        AddDirective('OPENSTRINGS',directive_all, @dir_openstrings);
+        AddDirective('OUTPUT_FORMAT',directive_all, @dir_output_format);
+        AddDirective('OVERFLOWCHECKS',directive_all, @dir_overflowchecks);
+        AddDirective('PACKENUM',directive_all, @dir_packenum);
+        AddDirective('PACKRECORDS',directive_all, @dir_packrecords);
 {$IFDEF TestVarsets}
-        AddDirective('PACKSET',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_packset);
+        AddDirective('PACKSET',directive_all, @dir_packset);
 {$ENDIF}
-        AddDirective('POP',directive_mac, {$ifdef FPCPROCVAR}@{$endif}dir_pop);
-        AddDirective('PROFILE',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_profile);
-        AddDirective('PUSH',directive_mac, {$ifdef FPCPROCVAR}@{$endif}dir_push);
-        AddDirective('R',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_resource);
-        AddDirective('RANGECHECKS',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_rangechecks);
-        AddDirective('REFERENCEINFO',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_referenceinfo);
-        AddDirective('RESOURCE',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_resource);
-        AddDirective('SATURATION',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_saturation);
-        AddDirective('SCREENNAME',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_screenname);
-        AddDirective('SMARTLINK',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_smartlink);
-        AddDirective('STACKFRAMES',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_stackframes);
-        AddDirective('STATIC',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_static);
-        AddDirective('STOP',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_stop);
-        AddDirective('THREADING',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_threading);
-        AddDirective('THREADNAME',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_threadname);
-        AddDirective('TYPEDADDRESS',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_typedaddress);
-        AddDirective('TYPEINFO',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_typeinfo);
-        AddDirective('UNITPATH',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_unitpath);
-        AddDirective('VARSTRINGCHECKS',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_varstringchecks);
-        AddDirective('VERSION',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_version);
-        AddDirective('WAIT',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_wait);
-        AddDirective('WARNING',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_warning);
-        AddDirective('WARNINGS',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_warnings);
-        AddDirective('WRITEABLECONST',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_writeableconst);
-        AddDirective('Z1',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_z1);
-        AddDirective('Z2',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_z2);
-        AddDirective('Z4',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_z4);
+        AddDirective('POP',directive_mac, @dir_pop);
+        AddDirective('PROFILE',directive_all, @dir_profile);
+        AddDirective('PUSH',directive_mac, @dir_push);
+        AddDirective('R',directive_all, @dir_resource);
+        AddDirective('RANGECHECKS',directive_all, @dir_rangechecks);
+        AddDirective('REFERENCEINFO',directive_all, @dir_referenceinfo);
+        AddDirective('RESOURCE',directive_all, @dir_resource);
+        AddDirective('SATURATION',directive_all, @dir_saturation);
+        AddDirective('SCREENNAME',directive_all, @dir_screenname);
+        AddDirective('SMARTLINK',directive_all, @dir_smartlink);
+        AddDirective('STACKFRAMES',directive_all, @dir_stackframes);
+        AddDirective('STATIC',directive_all, @dir_static);
+        AddDirective('STOP',directive_all, @dir_stop);
+        AddDirective('THREADING',directive_all, @dir_threading);
+        AddDirective('THREADNAME',directive_all, @dir_threadname);
+        AddDirective('TYPEDADDRESS',directive_all, @dir_typedaddress);
+        AddDirective('TYPEINFO',directive_all, @dir_typeinfo);
+        AddDirective('UNITPATH',directive_all, @dir_unitpath);
+        AddDirective('VARSTRINGCHECKS',directive_all, @dir_varstringchecks);
+        AddDirective('VERSION',directive_all, @dir_version);
+        AddDirective('WAIT',directive_all, @dir_wait);
+        AddDirective('WARNING',directive_all, @dir_warning);
+        AddDirective('WARNINGS',directive_all, @dir_warnings);
+        AddDirective('WRITEABLECONST',directive_all, @dir_writeableconst);
+        AddDirective('Z1',directive_all, @dir_z1);
+        AddDirective('Z2',directive_all, @dir_z2);
+        AddDirective('Z4',directive_all, @dir_z4);
       end;
 
 begin
@@ -1115,7 +1115,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2004-09-04 21:18:47  armin
+  Revision 1.44  2004-10-15 09:14:17  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.43  2004/09/04 21:18:47  armin
   * target netwlibc added (libc is preferred for newer netware versions)
 
   Revision 1.42  2004/08/31 22:07:04  olle

@@ -36,9 +36,6 @@ unit cg64f32;
        cpuinfo,cpubase,cpupara,
        cgbase,cgobj,parabase,
        node,symtype
-{$ifdef delphi}
-       ,dmisc
-{$endif}
        ;
 
     type
@@ -780,7 +777,11 @@ unit cg64f32;
 end.
 {
   $Log$
-  Revision 1.63  2004-09-25 14:23:54  peter
+  Revision 1.64  2004-10-15 09:14:16  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.63  2004/09/25 14:23:54  peter
     * ungetregister is now only used for cpuregisters, renamed to
       ungetcpuregister
     * renamed (get|unget)explicitregister(s) to ..cpuregister

@@ -44,9 +44,6 @@ interface
 implementation
 
     uses
-{$ifdef delphi}
-       SysUtils,
-{$endif}
        { common }
        cutils,
        { global }
@@ -759,7 +756,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  2004-06-20 08:55:30  florian
+  Revision 1.33  2004-10-15 09:14:17  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.32  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.31  2004/05/23 18:28:41  peter

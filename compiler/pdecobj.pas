@@ -41,10 +41,6 @@ implementation
       node,nld,nmem,ncon,ncnv,ncal,
       scanner,
       pbase,pexpr,pdecsub,pdecvar,ptype
-{$ifdef delphi}
-      ,dmisc
-      ,sysutils
-{$endif}
       ;
 
     const
@@ -737,7 +733,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.81  2004-08-29 11:28:10  peter
+  Revision 1.82  2004-10-15 09:14:17  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.81  2004/08/29 11:28:10  peter
   allow published for constructors
 
   Revision 1.80  2004/08/25 15:57:04  peter

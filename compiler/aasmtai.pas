@@ -615,11 +615,7 @@ interface
 implementation
 
     uses
-{$ifdef delphi}
-      sysutils,
-{$else}
       strings,
-{$endif}
       verbose;
 
     const
@@ -2230,7 +2226,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.90  2004-10-05 20:41:01  peter
+  Revision 1.91  2004-10-15 09:14:16  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.90  2004/10/05 20:41:01  peter
     * more spilling rewrites
 
   Revision 1.89  2004/09/26 17:45:29  peter

@@ -28,23 +28,13 @@ unit widestr;
 
     uses
        charset,globtype
-{$ifdef delphi}
-       ,sysutils
-{$endif}
        ;
 
 
     type
        tcompilerwidechar = word;
        tcompilerwidecharptr = ^tcompilerwidechar;
-{$ifdef delphi}
-       SizeInt = integer;
-       { delphi doesn't allow pointer accessing as array }
-       tcompilerwidechararray = array[0..0] of tcompilerwidechar;
-       pcompilerwidechar = ^tcompilerwidechararray;
-{$else}
        pcompilerwidechar = ^tcompilerwidechar;
-{$endif}
 
        pcompilerwidestring = ^_tcompilerwidestring;
        _tcompilerwidestring = record
@@ -152,11 +142,7 @@ unit widestr;
          temp:=s2^.len;
          if maxi>temp then
            maxi:=Temp;
-{$ifdef Delphi}
-         temp:=SizeInt(comparemem(@s1^.data,@s2^.data,maxi));
-{$else}
          temp:=compareword(s1^.data^,s2^.data^,maxi);
-{$endif}
          if temp=0 then
            temp:=s1^.len-s2^.len;
          comparewidestrings:=temp;
@@ -240,7 +226,11 @@ unit widestr;
 end.
 {
   $Log$
-  Revision 1.15  2004-06-20 08:55:30  florian
+  Revision 1.16  2004-10-15 09:14:17  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.15  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.14  2004/06/16 20:07:10  florian

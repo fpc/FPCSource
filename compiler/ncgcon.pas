@@ -68,9 +68,6 @@ implementation
       symconst,symdef,aasmbase,aasmtai,aasmcpu,defutil,
       cpuinfo,cpubase,
       cgbase,cgobj,
-{$ifdef delphi}
-      ,dmisc
-{$endif}
       ncgutil
       ;
 
@@ -754,7 +751,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  2004-08-08 16:00:56  florian
+  Revision 1.46  2004-10-15 09:14:17  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.45  2004/08/08 16:00:56  florian
     * constant floating point assignments etc. are now overflow checked
       if Q+ or R+ is turned on
 

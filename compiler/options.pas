@@ -1544,13 +1544,8 @@ begin
           case quickinfo[i] of
            'O' :
              addinfo(lower(source_info.shortname));
-{$ifdef Delphi}
-           'P' :
-             addinfo('i386');
-{$else Delphi}
            'P' :
              addinfo(source_cpu_string);
-{$endif Delphi}
            else
              IllegalPara('-i'+QuickInfo);
           end;
@@ -2117,7 +2112,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.146  2004-10-14 14:03:02  mazen
+  Revision 1.147  2004-10-15 09:14:17  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.146  2004/10/14 14:03:02  mazen
   * Merge is complete for this file, cycles !
 
   Revision 1.145  2004/10/05 20:21:02  florian

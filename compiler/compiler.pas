@@ -331,7 +331,7 @@ end;
 procedure minimal_stop(err:longint);
 begin
   DoneCompiler;
-  olddo_stop{$ifdef FPCPROCVAR}(err){$endif};
+  olddo_stop(err);
 end;
 
 
@@ -377,7 +377,7 @@ var
 {$endif}
 begin
   olddo_stop:=do_stop;
-  do_stop:={$ifdef FPCPROCVAR}@{$endif}minimal_stop;
+  do_stop:=@minimal_stop;
 { Initialize the compiler }
   InitCompiler(cmd);
 
@@ -395,7 +395,7 @@ begin
   if setjmp(recoverpos)=0 then
    begin
      recoverpospointer:=@recoverpos;
-     do_stop:={$ifdef FPCPROCVAR}@{$endif}recoverstop;
+     do_stop:=@recoverstop;
 {$endif USEEXCEPT}
      starttime:=getrealtime;
 {$ifdef PREPROCWRITE}
@@ -433,14 +433,18 @@ begin
   Writeln('Memory used (heapsize): ',DStr(system.Heapsize shr 10),' Kb');
 {$endif SHOWUSEDMEM}
 {$ifdef fixLeaksOnError}
-  do_stop{$ifdef FPCPROCVAR}(){$endif};
+  do_stop;
 {$endif fixLeaksOnError}
 end;
 
 end.
 {
   $Log$
-  Revision 1.48  2004-10-14 17:17:25  mazen
+  Revision 1.49  2004-10-15 09:14:16  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.48  2004/10/14 17:17:25  mazen
   * use SysUtils unit instead of Dos Unit
 
   Revision 1.47  2004/09/08 11:23:31  michael

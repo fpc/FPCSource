@@ -111,11 +111,7 @@ interface
 implementation
 
   uses
-{$ifdef Delphi}
-    Sysutils,
-{$else}
     strings,
-{$endif}
     cutils,cclasses,
     globals,systems,verbose,
     ppu,defutil,
@@ -2222,7 +2218,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.228  2004-10-14 17:54:06  peter
+  Revision 1.229  2004-10-15 09:14:17  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.228  2004/10/14 17:54:06  peter
     * add reg_sync when regvars are allocated to fix first use in
       loop
 

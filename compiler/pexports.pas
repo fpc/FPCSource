@@ -48,10 +48,6 @@ implementation
        pbase,pexpr,
        { link }
        gendef,export
-{$ifdef Delphi}
-       ,dmisc
-       ,sysutils
-{$endif}
        ;
 
 
@@ -186,7 +182,11 @@ end.
 
 {
   $Log$
-  Revision 1.28  2004-06-20 08:55:30  florian
+  Revision 1.29  2004-10-15 09:14:17  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.28  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.27  2004/06/16 20:07:09  florian

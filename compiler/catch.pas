@@ -103,7 +103,7 @@ end;
 begin
 {$ifndef nocatch}
   {$ifdef has_signal}
-    NewSignal:=SignalHandler({$ifdef fpcprocvar}@{$endif}CatchSignal);
+    NewSignal:=SignalHandler(@CatchSignal);
     {$ifndef sunos}
       OldSigSegm:={$ifdef havelinuxrtl10}Signal{$else}{$ifdef Unix}fpSignal{$else}Signal{$endif}{$endif} (SIGSEGV,NewSignal);
     {$endif} // lxrun on solaris hooks this for handling linux-calls!
@@ -115,7 +115,11 @@ end.
 
 {
   $Log$
-  Revision 1.19  2004-09-09 08:19:47  olle
+  Revision 1.20  2004-10-15 09:14:16  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.19  2004/09/09 08:19:47  olle
     + Added argument to Stop
 
   Revision 1.18  2004/06/20 08:55:28  florian

@@ -776,7 +776,7 @@ implementation
          if (tsym(p).typ=typesym) and
             (ttypesym(p).restype.def.deftype=objectdef) and
             (ttypesym(p).restype.def.typesym=tsym(p)) then
-           tobjectdef(ttypesym(p).restype.def).symtable.foreach({$ifdef FPCPROCVAR}@{$endif}TestPrivate,nil);
+           tobjectdef(ttypesym(p).restype.def).symtable.foreach(@TestPrivate,nil);
       end;
 
 
@@ -815,31 +815,31 @@ implementation
     { checks, if all procsyms and methods are defined }
     procedure tstoredsymtable.check_forwards;
       begin
-         foreach({$ifdef FPCPROCVAR}@{$endif}check_forward,nil);
+         foreach(@check_forward,nil);
       end;
 
 
     procedure tstoredsymtable.checklabels;
       begin
-         foreach({$ifdef FPCPROCVAR}@{$endif}labeldefined,nil);
+         foreach(@labeldefined,nil);
       end;
 
 
     procedure tstoredsymtable.allsymbolsused;
       begin
-         foreach({$ifdef FPCPROCVAR}@{$endif}varsymbolused,nil);
+         foreach(@varsymbolused,nil);
       end;
 
 
     procedure tstoredsymtable.allprivatesused;
       begin
-         foreach({$ifdef FPCPROCVAR}@{$endif}objectprivatesymbolused,nil);
+         foreach(@objectprivatesymbolused,nil);
       end;
 
 
     procedure tstoredsymtable.unchain_overloaded;
       begin
-         foreach({$ifdef FPCPROCVAR}@{$endif}unchain_overloads,nil);
+         foreach(@unchain_overloads,nil);
       end;
 
 
@@ -894,7 +894,7 @@ implementation
     function tstoredsymtable.needs_init_final : boolean;
       begin
          b_needs_init_final:=false;
-         foreach({$ifdef FPCPROCVAR}@{$endif}_needs_init_final,nil);
+         foreach(@_needs_init_final,nil);
          needs_init_final:=b_needs_init_final;
       end;
 
@@ -2186,7 +2186,7 @@ implementation
         _defaultprop:=nil;
         while assigned(pd) do
           begin
-             pd.symtable.foreach({$ifdef FPCPROCVAR}@{$endif}tstoredsymtable(pd.symtable).testfordefaultproperty,@_defaultprop);
+             pd.symtable.foreach(@tstoredsymtable(pd.symtable).testfordefaultproperty,@_defaultprop);
              if assigned(_defaultprop) then
                break;
              pd:=pd.childof;
@@ -2314,7 +2314,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.158  2004-10-12 19:51:13  peter
+  Revision 1.159  2004-10-15 09:14:17  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.158  2004/10/12 19:51:13  peter
     * all checking for visibility is now done by is_visible_for_object
 
   Revision 1.157  2004/10/11 15:48:15  peter

@@ -70,11 +70,7 @@ uses
    systems,
    globals,
    verbose,
-{$ifdef Delphi}
-   dmisc;
-{$else Delphi}
    dos;
-{$endif Delphi}
 
 const
   symrelocbufsize = 4096;
@@ -287,7 +283,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  2004-06-20 08:55:30  florian
+  Revision 1.16  2004-10-15 09:14:17  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.15  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.14  2004/05/27 18:53:43  peter

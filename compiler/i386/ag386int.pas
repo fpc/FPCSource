@@ -50,9 +50,6 @@ interface
 implementation
 
     uses
-{$ifdef delphi}
-      sysutils,
-{$endif}
       cutils,globtype,globals,systems,cclasses,
       verbose,finput,fmodule,script,cpuinfo,
       itx86int,
@@ -765,7 +762,7 @@ ait_stab_function_name : ;
     procedure T386IntelAssembler.WriteExternals;
       begin
         currentasmlist:=self;
-        objectlibrary.symbolsearch.foreach_static({$ifdef fpcprocvar}@{$endif}writeexternal,nil);
+        objectlibrary.symbolsearch.foreach_static(@writeexternal,nil);
       end;
 
 
@@ -878,7 +875,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.51  2004-09-26 17:45:30  peter
+  Revision 1.52  2004-10-15 09:16:21  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.51  2004/09/26 17:45:30  peter
     * simple regvar support, not yet finished
 
   Revision 1.50  2004/06/20 08:55:31  florian

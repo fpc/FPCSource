@@ -1112,10 +1112,6 @@ implementation
             else
              hs:=currpath;
             hsd:=SplitPath(hs);
-{$IFDEF USE_SYSUTILS}
-{$ELSE USE_SYSUTILS}
-            findfirst(hs,directory,dir);
-{$ENDIF USE_SYSUTILS}
             subdirfound:=false;
 {$IFDEF USE_SYSUTILS}
             if findfirst(hs,faDirectory,dir) = 0
@@ -1134,6 +1130,7 @@ implementation
                  WarnNonExistingPath(currpath);
             until findnext(dir) <> 0;
 {$ELSE USE_SYSUTILS}
+            findfirst(hs,directory,dir);
             while doserror=0 do
              begin
                if (dir.name<>'.') and
@@ -1414,7 +1411,7 @@ implementation
       {$ifdef GETENVOK}
         {$undef GETENVOK}
       {$else}
-        GetEnvPchar:=StrPNew({$ifdef delphi}DMisc{$else}Dos{$endif}.Getenv(envname));
+        GetEnvPchar:=StrPNew(Dos.Getenv(envname));
       {$endif}
       end;
 
@@ -2121,7 +2118,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.144  2004-10-14 18:16:17  mazen
+  Revision 1.145  2004-10-15 09:14:16  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.144  2004/10/14 18:16:17  mazen
   * USE_SYSUTILS merged successfully : cycles with and without defines
   * Need to be optimized in performance
 

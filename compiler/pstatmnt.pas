@@ -589,7 +589,7 @@ implementation
                 end;
             end;
             if try_to_consume(_COMMA) then
-              right:=_with_statement{$ifdef FPCPROCVAR}(){$endif}
+              right:=_with_statement
             else
               begin
                 consume(_DO);
@@ -620,7 +620,7 @@ implementation
             { try to recover from error }
             if try_to_consume(_COMMA) then
              begin
-               hp:=_with_statement{$ifdef FPCPROCVAR}(){$endif};
+               hp:=_with_statement;
                if (hp=nil) then; { remove warning about unused }
              end
             else
@@ -1055,7 +1055,7 @@ implementation
                  if token in endtokens then
                    tlabelnode(p).left:=cnothingnode.create
                  else
-                   tlabelnode(p).left:=statement{$ifdef FPCPROCVAR}(){$endif};
+                   tlabelnode(p).left:=statement;
                  { be sure to have left also resulttypepass }
                  resulttypepass(tlabelnode(p).left);
                end
@@ -1173,8 +1173,8 @@ implementation
                  (vm, i386, vm only currently)
              }
              locals:=0;
-             current_procinfo.procdef.localst.foreach_static({$ifdef FPCPROCVAR}@{$endif}count_locals,@locals);
-             current_procinfo.procdef.parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}count_locals,@locals);
+             current_procinfo.procdef.localst.foreach_static(@count_locals,@locals);
+             current_procinfo.procdef.parast.foreach_static(@count_locals,@locals);
              if (locals=0) and
                 (current_procinfo.procdef.owner.symtabletype<>objectsymtable) and
                 (not assigned(current_procinfo.procdef.funcretsym) or
@@ -1206,7 +1206,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.141  2004-09-27 15:15:52  peter
+  Revision 1.142  2004-10-15 09:14:17  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.141  2004/09/27 15:15:52  peter
     * register loopvarsym for fields instead of record variable
     * don't allow class fields as loop var
 

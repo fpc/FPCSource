@@ -1,8 +1,4 @@
-{$ifdef Delphi}
-const msgtxt : array[0..000154] of string[240]=(
-{$else Delphi}
 const msgtxt : array[0..000154,1..240] of char=(
-{$endif Delphi}
   '01000_T_Compiler: $1'#000+
   '01001_D_Compiler OS: $1'#000+
   '01002_I_Target OS: $1'#000+

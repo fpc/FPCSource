@@ -226,7 +226,7 @@ implementation
             begin
                block:=statement_block(_BEGIN);
                if symtablestack.symtabletype=localsymtable then
-                 symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}initializevars,block);
+                 symtablestack.foreach_static(@initializevars,block);
             end;
       end;
 
@@ -643,8 +643,8 @@ implementation
           cg.t_times:=100;
 
         { clear register count }
-        symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}clearrefs,nil);
-        symtablestack.next.foreach_static({$ifdef FPCPROCVAR}@{$endif}clearrefs,nil);
+        symtablestack.foreach_static(@clearrefs,nil);
+        symtablestack.next.foreach_static(@clearrefs,nil);
 
         { there's always a call to FPC_INITIALIZEUNITS/FPC_DO_EXIT in the main program }
         if (procdef.localst.symtablelevel=main_program_level) and
@@ -652,8 +652,8 @@ implementation
           include(flags,pi_do_call);
 
         { set implicit_finally flag when there are locals/paras to be finalized }
-        current_procinfo.procdef.parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}check_finalize_paras,nil);
-        current_procinfo.procdef.localst.foreach_static({$ifdef FPCPROCVAR}@{$endif}check_finalize_locals,nil);
+        current_procinfo.procdef.parast.foreach_static(@check_finalize_paras,nil);
+        current_procinfo.procdef.localst.foreach_static(@check_finalize_locals,nil);
 
         { firstpass everything }
         flowcontrol:=[];
@@ -956,7 +956,7 @@ implementation
             paraitem := tparaitem(paraitem.next);
           end;
         { we currently can't handle exit-statements (would exit the caller) }
-        result := not foreachnodestatic(procdef.inlininginfo^.code,{$ifdef FPCPROCVAR}@{$endif}containsforbiddennode,nil);
+        result := not foreachnodestatic(procdef.inlininginfo^.code,@containsforbiddennode,nil);
       end;
 
 
@@ -1214,7 +1214,7 @@ implementation
              { check if there are para's which require initing -> set }
              { pi_do_call (if not yet set)                            }
              if not(pi_do_call in current_procinfo.flags) then
-               pd.parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}check_init_paras,nil);
+               pd.parast.foreach_static(@check_init_paras,nil);
 
              { set _FAIL as keyword if constructor }
              if (pd.proctypeoption=potype_constructor) then
@@ -1343,7 +1343,7 @@ implementation
          { check for incomplete class definitions, this is only required
            for fpc modes }
          if (m_fpc in aktmodeswitches) then
-           symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}check_forward_class,nil);
+           symtablestack.foreach_static(@check_forward_class,nil);
       end;
 
 
@@ -1384,14 +1384,18 @@ implementation
          { check for incomplete class definitions, this is only required
            for fpc modes }
          if (m_fpc in aktmodeswitches) then
-          symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}check_forward_class,nil);
+          symtablestack.foreach_static(@check_forward_class,nil);
       end;
 
 
 end.
 {
   $Log$
-  Revision 1.208  2004-10-10 20:22:53  peter
+  Revision 1.209  2004-10-15 09:14:17  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.208  2004/10/10 20:22:53  peter
     * symtable allocation rewritten
     * loading of parameters to local temps/regs cleanup
     * regvar support for parameters

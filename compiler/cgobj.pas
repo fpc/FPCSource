@@ -37,9 +37,6 @@ unit cgobj;
   interface
 
     uses
-{$ifdef delphi}
-       dmisc,
-{$endif}
        cclasses,globtype,
        cpubase,cpuinfo,cgbase,parabase,
        aasmbase,aasmtai,aasmcpu,
@@ -541,7 +538,7 @@ implementation
     procedure tcg.init_register_allocators;
       begin
         fillchar(rg,sizeof(rg),0);
-        add_reg_instruction_hook:={$ifdef FPCPROCVAR}@{$endif}add_reg_instruction;
+        add_reg_instruction_hook:=@add_reg_instruction;
       end;
 
 
@@ -2095,7 +2092,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.178  2004-10-13 21:12:51  peter
+  Revision 1.179  2004-10-15 09:14:16  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.178  2004/10/13 21:12:51  peter
     * -Or fixes for open array
 
   Revision 1.177  2004/10/11 15:46:45  peter

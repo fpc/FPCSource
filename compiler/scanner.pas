@@ -203,11 +203,7 @@ interface
 implementation
 
     uses
-{$ifdef delphi}
-      dmisc,
-{$else}
       dos,
-{$endif delphi}
       cutils,
       systems,
       switches,
@@ -1683,7 +1679,7 @@ implementation
         oldaktfilepos:=aktfilepos;
         repeat
           current_scanner.gettokenpos;
-          p.proc{$ifdef FPCPROCVAR}(){$endif};
+          p.proc;
           { accept the text ? }
           if (current_scanner.preprocstack=nil) or current_scanner.preprocstack.accept then
            break
@@ -1780,7 +1776,7 @@ implementation
                else
                 begin
                   Message1(scan_d_handling_switch,'$'+hs);
-                  t.proc{$ifdef FPCPROCVAR}(){$endif};
+                  t.proc;
                 end;
              end
             else
@@ -3228,31 +3224,31 @@ exit_label:
         mac_scannerdirectives:=TDictionary.Create;
 
         { Default directives and conditionals for all modes }
-        AddDirective('I',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_include);
+        AddDirective('I',directive_all, @dir_include);
 
         { Common directives and conditionals }
-        AddDirective('DEFINE',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_define);
-        AddDirective('UNDEF',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_undef);
-        AddDirective('INCLUDE',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_include);
-        AddDirective('LIBPREFIX',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_libprefix);
-        AddDirective('LIBSUFFIX',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_libsuffix);
-        AddDirective('EXTENSION',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_extension);
+        AddDirective('DEFINE',directive_turbo, @dir_define);
+        AddDirective('UNDEF',directive_turbo, @dir_undef);
+        AddDirective('INCLUDE',directive_turbo, @dir_include);
+        AddDirective('LIBPREFIX',directive_turbo, @dir_libprefix);
+        AddDirective('LIBSUFFIX',directive_turbo, @dir_libsuffix);
+        AddDirective('EXTENSION',directive_turbo, @dir_extension);
 
-        AddConditional('ELSE',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_else);
-        AddConditional('ELSEIF',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_elseif);
-        AddConditional('ENDIF',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_endif);
-        AddConditional('IFEND',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_endif);
-        AddConditional('IF',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_if);
-        AddConditional('IFDEF',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_ifdef);
-        AddConditional('IFNDEF',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_ifndef);
-        AddConditional('IFOPT',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_ifopt);
+        AddConditional('ELSE',directive_turbo, @dir_else);
+        AddConditional('ELSEIF',directive_turbo, @dir_elseif);
+        AddConditional('ENDIF',directive_turbo, @dir_endif);
+        AddConditional('IFEND',directive_turbo, @dir_endif);
+        AddConditional('IF',directive_turbo, @dir_if);
+        AddConditional('IFDEF',directive_turbo, @dir_ifdef);
+        AddConditional('IFNDEF',directive_turbo, @dir_ifndef);
+        AddConditional('IFOPT',directive_turbo, @dir_ifopt);
         
         { Default Mac directives and conditionals: }
-        AddDirective('SETC',directive_mac, {$ifdef FPCPROCVAR}@{$endif}dir_setc);
-        AddDirective('DEFINEC',directive_mac, {$ifdef FPCPROCVAR}@{$endif}dir_define);
-        AddConditional('IFC',directive_mac, {$ifdef FPCPROCVAR}@{$endif}dir_if);
-        AddConditional('ELSEC',directive_mac, {$ifdef FPCPROCVAR}@{$endif}dir_else);
-        AddConditional('ENDC',directive_mac, {$ifdef FPCPROCVAR}@{$endif}dir_endif);
+        AddDirective('SETC',directive_mac, @dir_setc);
+        AddDirective('DEFINEC',directive_mac, @dir_define);
+        AddConditional('IFC',directive_mac, @dir_if);
+        AddConditional('ELSEC',directive_mac, @dir_else);
+        AddConditional('ENDC',directive_mac, @dir_endif);
       end;
 
 
@@ -3267,7 +3263,11 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.91  2004-10-09 11:29:15  olle
+  Revision 1.92  2004-10-15 09:14:17  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.91  2004/10/09 11:29:15  olle
     * Exchanged hardcoded "./" to CurDirRelPath
 
   Revision 1.90  2004/09/29 06:52:43  mazen

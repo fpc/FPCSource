@@ -62,9 +62,6 @@ interface
 implementation
 
     uses
-{$ifdef delphi}
-       SysUtils,
-{$endif}
        { common }
        cutils,
        { global }
@@ -2481,7 +2478,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.165  2004-10-12 19:51:13  peter
+  Revision 1.166  2004-10-15 09:14:17  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.165  2004/10/12 19:51:13  peter
     * all checking for visibility is now done by is_visible_for_object
 
   Revision 1.164  2004/10/12 14:35:47  peter

@@ -24,11 +24,6 @@ unit verbose;
 
 {$i fpcdefs.inc}
 
-{ Don't include messages in the executable }
-{$ifdef Delphi}
-{$define EXTERN_MSG}
-{$endif}
-
 interface
 
     uses
@@ -383,7 +378,7 @@ var
     procedure ShowStatus;
       begin
         UpdateStatus;
-        if do_status{$ifdef FPCPROCVAR}(){$endif} then
+        if do_status() then
          stop(1);
       end;
 
@@ -873,7 +868,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.33  2004-09-08 11:23:31  michael
+  Revision 1.34  2004-10-15 09:14:17  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.33  2004/09/08 11:23:31  michael
   + Check if outputdir exists,  Fix exitcode when displaying help pages
 
   Revision 1.32  2004/06/20 08:55:30  florian

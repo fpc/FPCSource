@@ -141,11 +141,7 @@ interface
 implementation
 
 uses
-{$ifdef delphi}
-  sysutils
-{$else}
   strings
-{$endif}
   ;
 
     var
@@ -1256,7 +1252,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.45  2004-10-14 14:55:12  mazen
+  Revision 1.46  2004-10-15 09:14:16  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.45  2004/10/14 14:55:12  mazen
   * use SysUtils unit instead of Dos Unit
   + overload Replace to use AnsiString
 

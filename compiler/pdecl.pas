@@ -361,7 +361,7 @@ implementation
                   end;
                end;
              recorddef :
-               trecorddef(pd).symtable.foreach_static({$ifdef FPCPROCVAR}@{$endif}resolve_type_forward,nil);
+               trecorddef(pd).symtable.foreach_static(@resolve_type_forward,nil);
              objectdef :
                begin
                  if not(m_fpc in aktmodeswitches) and
@@ -377,7 +377,7 @@ implementation
                       check objectdefs in objects/records, because these
                       can't exist (anonymous objects aren't allowed) }
                     if not(tsym(p).owner.symtabletype in [objectsymtable,recordsymtable]) then
-                     tobjectdef(pd).symtable.foreach_static({$ifdef FPCPROCVAR}@{$endif}resolve_type_forward,nil);
+                     tobjectdef(pd).symtable.foreach_static(@resolve_type_forward,nil);
                   end;
                end;
           end;
@@ -557,7 +557,7 @@ implementation
             end;
          until token<>_ID;
          typecanbeforward:=false;
-         symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}resolve_type_forward,nil);
+         symtablestack.foreach_static(@resolve_type_forward,nil);
          block_type:=old_block_type;
       end;
 
@@ -659,7 +659,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.88  2004-09-13 20:33:17  peter
+  Revision 1.89  2004-10-15 09:14:17  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.88  2004/09/13 20:33:17  peter
     * use realname in error msg
 
   Revision 1.87  2004/06/20 08:55:30  florian

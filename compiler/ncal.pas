@@ -1096,7 +1096,7 @@ type
           begin
              objectdf := objectinfo.objinfo;
              if assigned(objectdf.symtable) then
-               objectdf.symtable.foreach({$ifdef FPCPROCVAR}@{$endif}verifyabstract,nil);
+               objectdf.symtable.foreach(@verifyabstract,nil);
              objectinfo:=tobjectinfoitem(objectinfo.next);
           end;
         if assigned(parents) then
@@ -2054,7 +2054,7 @@ type
         tempnodes.createstatement := createstatement;
         tempnodes.deletestatement := deletestatement;
         setlength(inlinelocals,tprocdef(procdefinition).localst.symindex.count);
-        tprocdef(procdefinition).localst.foreach({$ifdef FPCPROCVAR}@{$endif}createlocaltemps,@tempnodes);
+        tprocdef(procdefinition).localst.foreach(@createlocaltemps,@tempnodes);
         createstatement := tempnodes.createstatement;
         deletestatement := tempnodes.deletestatement;
 {$endif ndef VER1_0}
@@ -2096,7 +2096,7 @@ type
                   { replace complex parameters with temps }
                   createinlineparas(createstatement,deletestatement);
                   { replace the parameter loads with the parameter values }
-                  foreachnode(result,{$ifdef FPCPROCVAR}@{$endif}replaceparaload,@fileinfo);
+                  foreachnode(result,replaceparaload,@fileinfo);
                   { free the temps for the locals }
                   for i := 0 to high(inlinelocals) do
                     if assigned(inlinelocals[i]) then
@@ -2415,7 +2415,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.251  2004-10-12 14:36:38  peter
+  Revision 1.252  2004-10-15 09:14:16  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.251  2004/10/12 14:36:38  peter
     * gen high tree makes copy in temp when there is a calln
 
   Revision 1.250  2004/10/10 20:22:53  peter

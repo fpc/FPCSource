@@ -382,10 +382,8 @@ implementation
       var
          olddata : polddata;
 {$ifdef USEEXCEPT}
-{$ifndef Delphi}
          recoverpos    : jmp_buf;
          oldrecoverpos : pjmp_buf;
-{$endif Delphi}
 {$endif useexcept}
        begin
          inc(compile_level);
@@ -713,7 +711,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.66  2004-06-20 08:55:30  florian
+  Revision 1.67  2004-10-15 09:14:17  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.66  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.65  2004/05/12 13:21:09  karoly

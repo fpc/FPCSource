@@ -27,11 +27,7 @@ unit gdb;
 interface
 
 uses
-{$ifdef delphi}
-  sysutils,
-{$else}
   strings,
-{$endif}
   globtype,
   aasmtai;
 
@@ -239,7 +235,11 @@ end.
 
 {
   $Log$
-  Revision 1.19  2004-06-20 08:55:29  florian
+  Revision 1.20  2004-10-15 09:14:16  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.19  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.18  2004/03/08 22:07:46  peter

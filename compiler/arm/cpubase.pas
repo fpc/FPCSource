@@ -36,9 +36,6 @@ unit cpubase;
       cpuinfo,
       aasmbase,
       cgbase
-    {$ifdef delphi}
-      ,dmisc
-    {$endif}
       ;
 
 
@@ -592,7 +589,11 @@ unit cpubase;
 end.
 {
   $Log$
-  Revision 1.31  2004-06-20 08:55:31  florian
+  Revision 1.32  2004-10-15 09:15:34  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.31  2004/06/20 08:55:31  florian
     * logs truncated
 
   Revision 1.30  2004/06/16 20:07:10  florian

@@ -370,11 +370,7 @@ implementation
 
     procedure tmemdebug.start;
       begin
-{$ifdef Delphi}
-        startmem:=0;
-{$else}
         startmem:=memavail;
-{$endif Delphi}
       end;
 
 
@@ -382,9 +378,7 @@ implementation
       begin
         if startmem<>0 then
          begin
-{$ifndef Delphi}
            inc(TotalMem,memavail-startmem);
-{$endif}
            startmem:=0;
          end;
       end;
@@ -399,13 +393,11 @@ implementation
 
     procedure tmemdebug.show;
       begin
-{$ifndef Delphi}
         write('memory [',infostr,'] ');
         if TotalMem>0 then
          writeln(DStr(TotalMem shr 10),' Kb released')
         else
          writeln(DStr((-TotalMem) shr 10),' Kb allocated');
-{$endif Delphi}
       end;
 
 
@@ -2356,7 +2348,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.37  2004-10-04 20:43:28  peter
+  Revision 1.38  2004-10-15 09:14:16  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.37  2004/10/04 20:43:28  peter
     * insertlistbefore added
 
   Revision 1.36  2004/09/13 20:26:26  peter

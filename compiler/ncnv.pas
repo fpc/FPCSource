@@ -31,9 +31,6 @@ interface
        symtype,
        defutil,defcmp,
        nld
-{$ifdef Delphi}
-       ,dmisc
-{$endif}
        ;
 
     type
@@ -2465,7 +2462,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.155  2004-10-12 14:33:41  peter
+  Revision 1.156  2004-10-15 09:14:17  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.155  2004/10/12 14:33:41  peter
     * give error when converting class to interface are not related
 
   Revision 1.154  2004/10/11 15:48:15  peter

@@ -305,11 +305,7 @@ interface
 implementation
 
     uses
-{$ifdef Delphi}
-       sysutils,
-{$else Delphi}
        strings,
-{$endif Delphi}
        { global }
        verbose,
        { target }
@@ -2255,7 +2251,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.187  2004-10-13 18:47:45  peter
+  Revision 1.188  2004-10-15 09:14:17  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.187  2004/10/13 18:47:45  peter
     * fix misplaced begin..end for self stabs
     * no fpu regable for staticsymtable
 

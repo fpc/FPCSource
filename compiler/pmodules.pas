@@ -247,8 +247,8 @@ implementation
       begin
          ltvTable:=TAAsmoutput.create;
          if assigned(current_module.globalsymtable) then
-           current_module.globalsymtable.foreach_static({$ifdef FPCPROCVAR}@{$endif}AddToThreadvarList,ltvTable);
-         current_module.localsymtable.foreach_static({$ifdef FPCPROCVAR}@{$endif}AddToThreadvarList,ltvTable);
+           current_module.globalsymtable.foreach_static(@AddToThreadvarList,ltvTable);
+         current_module.localsymtable.foreach_static(@AddToThreadvarList,ltvTable);
          if ltvTable.first<>nil then
           begin
             s:=make_mangledname('THREADVARLIST',current_module.localsymtable,'');
@@ -1564,7 +1564,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.165  2004-10-04 18:26:51  peter
+  Revision 1.166  2004-10-15 09:14:17  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.165  2004/10/04 18:26:51  peter
     * debuginfo fixes
 
   Revision 1.164  2004/09/14 16:33:46  peter
