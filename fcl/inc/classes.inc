@@ -934,7 +934,7 @@ var
           else
 	  begin
             Output.WriteByte(Ord(vaIdent));
-            WriteString(parser.TokenString);
+            WriteString(parser.TokenComponentIdent);
           end;
 	  Parser.NextToken;
 	end;
@@ -1182,7 +1182,11 @@ end;
 
 {
   $Log$
-  Revision 1.1.2.4  2000-12-13 10:16:33  michael
+  Revision 1.1.2.5  2001-04-08 11:12:24  sg
+  * ObjectTextToBinary now handles component references with a composite
+    name (e.g. 'DataModule.MyDatabase') correctly
+
+  Revision 1.1.2.4  2000/12/13 10:16:33  michael
   + Applied patch from Mattias Gaertner, bug 1292
 
   Revision 1.1.2.3  2000/12/11 09:29:59  michael
