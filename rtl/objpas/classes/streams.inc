@@ -158,18 +158,22 @@
 
     begin
        CopyFrom:=0;
+       If (Count=0) then
+         begin
+         // This WILL fail for non-seekable streams...
+         Source.Position:=0;
+         Count:=Source.Size;
+         end;
        while Count>0 do
          begin
-            if (Count>sizeof(buffer)) then
-              i:=sizeof(Buffer)
-            else
-              i:=Count;
-            i:=Source.Read(buffer,i);
-            i:=Write(buffer,i);
-            dec(count,i);
-            CopyFrom:=CopyFrom+i;
-            if i=0 then
-              exit;
+         if (Count>sizeof(buffer)) then
+           i:=sizeof(Buffer)
+         else
+           i:=Count;
+         i:=Source.Read(buffer,i);
+         i:=Write(buffer,i);
+         dec(count,i);
+         CopyFrom:=CopyFrom+i;
          end;
     end;
 
@@ -783,8 +787,14 @@ end;
 
 {
   $Log$
-  Revision 1.1  2003-10-06 21:01:06  peter
-    * moved classes unit to rtl
+  Revision 1.2  2003-10-30 16:30:53  peter
+    * merged copyfrom with 0
+
+  Revision 1.3  2003/10/28 22:04:29  michael
+  + Fixed private seeksupport stuff
+
+  Revision 1.2  2003/10/26 14:52:29  michael
+  + Fixed TStream.CopyFrom with Count=0
 
   Revision 1.13  2003/07/26 16:20:50  michael
   + Fixed readstring from TStringStream (
