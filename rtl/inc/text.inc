@@ -115,7 +115,7 @@ Begin
      exit;
    End;
   End;
-  TextRec(t).mode:=mode;
+  TextRec(t).mode:=word(mode);
 {  If TextRec(t).Name[0]<>#0 Then }
    FileFunc(TextRec(t).OpenFunc)(TextRec(t))
 {  else
@@ -500,7 +500,7 @@ End;
 { Is called wc to avoid recursive calling. }
 Procedure wc(Len : Longint;var t : TextRec;b : Boolean);[Public,Alias: 'WRITE_TEXT_BOOLEAN'];
 const
-  BoolString:array[0..1] Of String[5]=('False','True');
+  BoolString:array[0..1] Of String[5]=('FALSE','TRUE');
 Begin
    if b then
      w(Len,t,String(BoolString[1]))
@@ -959,7 +959,11 @@ End;
 
 {
   $Log$
-  Revision 1.11  1998-06-25 09:44:22  daniel
+  Revision 1.12  1998-07-01 14:48:10  carl
+    * bugfix of WRITE_TEXT_BOOLEAN , was not TP compatible
+    + added explicit typecast in OpenText
+
+  Revision 1.11  1998/06/25 09:44:22  daniel
   + RTLLITE directive to compile minimal RTL.
 
   Revision 1.10  1998/06/04 23:46:03  peter
