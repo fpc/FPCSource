@@ -35,7 +35,6 @@ type
      HiddenStepsCount : longint;
      { no need to switch if using another terminal }
      NoSwitch : boolean;
-     IsRunning : boolean;
      RunCount : longint;
     constructor Init(const exefn:string);
     destructor  Done;
@@ -57,8 +56,9 @@ type
     procedure UntilReturn;virtual;
     procedure CommandBegin(const s:string);virtual;
     procedure CommandEnd(const s:string);virtual;
+    function  IsRunning : boolean;
     function  AllowQuit : boolean;virtual;
-    function GetValue(Const expr : string) : pchar;
+    function  GetValue(Const expr : string) : pchar;
   end;
 
   BreakpointType = (bt_function,bt_file_line,bt_watch,bt_awatch,bt_rwatch,bt_invalid);
@@ -491,6 +491,7 @@ end;
 procedure UpdateDebugViews;
 
   begin
+     DeskTop^.Lock;
      If assigned(StackWindow) then
        StackWindow^.Update;
      If assigned(RegistersWindow) then
@@ -499,6 +500,7 @@ procedure UpdateDebugViews;
        Debugger^.ReadWatches;
      If assigned(FPUWindow) then
        FPUWindow^.Update;
+     DeskTop^.UnLock;
   end;
 
 constructor TDebugController.Init(const exefn:string);
@@ -597,17 +599,22 @@ begin
   NoSwitch:=DebuggeeTTY<>'';
 {$endif win32}
 {$ifdef linux}
-  { Run the debugge in another tty }
+  { Run the debuggee in another tty }
   Command('set tty '+DebuggeeTTY);
   NoSwitch:=DebuggeeTTY<>'';
 {$endif win32}
   { Switch to user screen to get correct handles }
   UserScreen;
   inherited Run;
-  IsRunning:=true;
   DebuggerScreen;
   IDEApp.SetCmdState([cmResetDebugger,cmUntilReturn],true);
   UpdateDebugViews;
+end;
+
+
+function TDebugController.IsRunning : boolean;
+begin
+  IsRunning:=debuggee_started;
 end;
 
 procedure TDebugController.Continue;
@@ -683,7 +690,6 @@ procedure TDebugController.Reset;
 begin
   inherited Reset;
   NoSwitch:=false;
-  IsRunning:=false;
   IDEApp.SetCmdState([cmResetDebugger,cmUntilReturn],false);
   ResetDebuggerRows;
 end;
@@ -766,7 +772,10 @@ begin
     end
   else
     begin
-      W:=TryToOpenFile(nil,fn,0,Line,false);
+      if fn='' then
+        W:=nil
+      else
+        W:=TryToOpenFile(nil,fn,0,Line,false);
       if assigned(W) then
         begin
           W^.Editor^.SetDebuggerRow(Line);
@@ -782,12 +791,19 @@ begin
       else
        begin
          Desktop^.UnLock;
-         Found:=IDEApp.OpenSearch(fn);
+         if fn='' then
+           Found:=false
+         else
+           Found:=IDEApp.OpenSearch(fn);
          Desktop^.Lock;
          if not Found then
            begin
              InvalidSourceLine:=true;
              LastSource:=Nil;
+             { Show the stack in that case }
+             InitStackWindow;
+             UpdateDebugViews;
+             StackWindow^.MakeFirst;
            end
          else
            begin
@@ -856,7 +872,6 @@ begin
                    #3'exitcode = %d'#13+
                    #3'hidden steps = %d',@P);
      end;
-   IsRunning:=false;
 end;
 
 
@@ -2958,6 +2973,7 @@ end;
       If not assigned(Debugger) then
         exit;
     {$ifndef NODEBUG}
+      DeskTop^.Lock;
       Clear;
       { forget all old frames }
       Debugger^.clear_frames;
@@ -2969,17 +2985,34 @@ end;
         begin
           with Debugger^.frames[i]^ do
             begin
-              AddItem(new(PMessageItem,init(0,GetPChar(function_name)+GetPChar(args),
-                AddModuleName(GetPChar(file_name)),line_number,1)));
+              if assigned(file_name) then
+                AddItem(new(PMessageItem,init(0,GetPChar(function_name)+GetPChar(args),
+                  AddModuleName(GetPChar(file_name)),line_number,1)))
+              else
+                AddItem(new(PMessageItem,init(0,HexStr(address,8)+' '+GetPChar(function_name)+GetPChar(args),
+                  AddModuleName(''),line_number,1)));
+              W:=SearchOnDesktop(GetPChar(file_name),false);
+              { First reset all Debugger rows }
+              If assigned(W) then
+                W^.Editor^.SetDebuggerRow(-1);
+            end;
+        end;
+      { Now set all Debugger rows }
+      for i:=0 to Debugger^.frame_count-1 do
+        begin
+          with Debugger^.frames[i]^ do
+            begin
               W:=SearchOnDesktop(GetPChar(file_name),false);
               If assigned(W) then
                 begin
-                  W^.editor^.SetDebuggerRow(line_number);
+                  If W^.Editor^.DebuggerRow=-1 then
+                    W^.Editor^.SetDebuggerRow(line_number-1);
                 end;
             end;
         end;
       if List^.Count > 0 then
         FocusItem(0);
+      DeskTop^.Unlock;
      {$endif}
     end;
 
@@ -3083,8 +3116,8 @@ var s : string;
     i,p : longint;
 {$endif DEBUG}
 var
+   NeedRecompileExe : boolean;
    cm : longint;
-
 begin
 {$ifdef DEBUG}
   Assign(gdb_file,GDBOutFileName);
@@ -3110,6 +3143,7 @@ begin
   {$I+}
 {$endif}
 
+  NeedRecompileExe:=false;
   if TargetSwitches^.GetCurrSelParam<>source_os.shortname then
     begin
      cm:=ConfirmBox(#3'Sorry, can not debug'#13#3'programs compiled for '
@@ -3122,11 +3156,31 @@ begin
        begin
          { force recompilation }
          PrevMainFile:='';
+         NeedRecompileExe:=true;
          TargetSwitches^.SetCurrSelParam(source_os.shortname);
+         If DebugInfoSwitches^.GetCurrSelParam='-' then
+           DebugInfoSwitches^.SetCurrSelParam('l');
        end;
     end;
-  if (not ExistsFile(ExeFile)) or (CompilationPhase<>cpDone) or
-     (PrevMainFile<>MainFile) then
+  if not NeedRecompileExe then
+    NeedRecompileExe:=(not ExistsFile(ExeFile)) or (CompilationPhase<>cpDone) or
+     (PrevMainFile<>MainFile) or NeedRecompile(false);
+  if Not NeedRecompileExe and Not MainHasDebugInfo then
+    begin
+     cm:=ConfirmBox(#3'Warning, the program'#13#3'was compiled without'#13#3
+       +'debugging info.'#13#3
+       +'Recompile it?',nil,true);
+     if cm=cmCancel then
+       Exit;
+     if cm=cmYes then
+       begin
+         { force recompilation }
+         PrevMainFile:='';
+         NeedRecompileExe:=true;
+         DebugInfoSwitches^.SetCurrSelParam('l');
+       end;
+    end;
+  if NeedRecompileExe then
     DoCompile(cRun);
   if CompilationPhase<>cpDone then
     Exit;
@@ -3270,7 +3324,11 @@ end.
 
 {
   $Log$
-  Revision 1.55  2000-03-07 21:52:54  pierre
+  Revision 1.56  2000-03-08 16:57:01  pierre
+    * Wrong highlighted line while debugging fixed
+    + Check if exe has debugging info
+
+  Revision 1.55  2000/03/07 21:52:54  pierre
    + TDebugController.GetValue
 
   Revision 1.54  2000/03/06 11:34:25  pierre
