@@ -128,7 +128,6 @@ interface
 
     procedure load_procvar_from_calln(var p1:tnode);
     function load_high_value(vs:tvarsym):tnode;
-    function load_funcret(pd:tprocdef):tnode;
 
 
 implementation
@@ -193,21 +192,6 @@ implementation
              internalerror(200212171);
          end;
         srsym:=searchsymonlyin(srsymtable,'high'+vs.name);
-        if assigned(srsym) then
-          result:=cloadnode.create(srsym,srsymtable)
-        else
-          CGMessage(cg_e_illegal_expression);
-      end;
-
-
-    function load_funcret(pd:tprocdef):tnode;
-      var
-        srsym : tsym;
-        srsymtable : tsymtable;
-      begin
-        result:=nil;
-        srsymtable:=pd.localst;
-        srsym:=searchsymonlyin(srsymtable,'result');
         if assigned(srsym) then
           result:=cloadnode.create(srsym,srsymtable)
         else
@@ -1151,7 +1135,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.87  2003-04-25 20:59:33  peter
+  Revision 1.88  2003-04-26 00:28:42  peter
+    * removed load_funcret
+
+  Revision 1.87  2003/04/25 20:59:33  peter
     * removed funcretn,funcretsym, function result is now in varsym
       and aliases for result and function name are added using absolutesym
     * vs_hidden parameter for funcret passed in parameter

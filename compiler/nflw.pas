@@ -893,8 +893,9 @@ implementation
                  (procinfo.no_fast_exit) or
                  ((procinfo.flags and pi_uses_exceptions)<>0) then
                begin
-                 pt:=load_funcret(aktprocdef);
-                 left:=cassignmentnode.create(pt,left);
+                 left:=cassignmentnode.create(
+                     cloadnode.create(aktprocdef.funcretsym,aktprocdef.funcretsym.owner),
+                     left);
                  onlyassign:=true;
                end;
               tvarsym(aktprocdef.funcretsym).varstate:=vs_assigned;
@@ -1494,7 +1495,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.68  2003-04-25 20:59:33  peter
+  Revision 1.69  2003-04-26 00:28:41  peter
+    * removed load_funcret
+
+  Revision 1.68  2003/04/25 20:59:33  peter
     * removed funcretn,funcretsym, function result is now in varsym
       and aliases for result and function name are added using absolutesym
     * vs_hidden parameter for funcret passed in parameter
