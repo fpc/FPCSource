@@ -442,40 +442,43 @@ implementation
       begin
          if is_boolean(resulttype.def) then
           begin
-            { the second pass could change the location of left }
-            { if it is a register variable, so we've to do      }
-            { this before the case statement                    }
-            if left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,
-              LOC_FLAGS,LOC_REGISTER,LOC_CREGISTER] then
-              secondpass(left);
-            case left.location.loc of
-              LOC_JUMP :
-                begin
-                  hl:=truelabel;
-                  truelabel:=falselabel;
-                  falselabel:=hl;
-                  secondpass(left);
-                  maketojumpbool(exprasmlist,left,lr_load_regvars);
-                  hl:=truelabel;
-                  truelabel:=falselabel;
-                  falselabel:=hl;
-                  location.loc:=LOC_JUMP;
+            { if the location is LOC_JUMP, we do the secondpass after the
+              labels are allocated
+            }
+            if left.expectloc=LOC_JUMP then
+              begin
+                hl:=truelabel;
+                truelabel:=falselabel;
+                falselabel:=hl;
+                secondpass(left);
+                maketojumpbool(exprasmlist,left,lr_load_regvars);
+                hl:=truelabel;
+                truelabel:=falselabel;
+                falselabel:=hl;
+                location.loc:=LOC_JUMP;
+              end
+            else
+              begin
+                secondpass(left);
+                case left.location.loc of
+                  LOC_FLAGS :
+                    begin
+                      location_copy(location,left.location);
+                      inverse_flags(location.resflags);
+                    end;
+                  LOC_REGISTER, LOC_CREGISTER, LOC_REFERENCE, LOC_CREFERENCE :
+                    begin
+                      location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),true);
+                      exprasmlist.concat(taicpu.op_reg_const(A_CMPWI,left.location.register,0));
+                      location_release(exprasmlist,left.location);
+                      location_reset(location,LOC_FLAGS,OS_NO);
+                      location.resflags.cr:=r_cr0;
+                      location.resflags.flag:=F_EQ;
+                   end;
+                  else
+                    internalerror(2003042401);
                 end;
-              LOC_FLAGS :
-                begin
-                  location_copy(location,left.location);
-                  inverse_flags(location.resflags);
-                end;
-              LOC_REGISTER, LOC_CREGISTER, LOC_REFERENCE, LOC_CREFERENCE :
-                begin
-                  location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),true);
-                  exprasmlist.concat(taicpu.op_reg_const(A_CMPWI,left.location.register,0));
-                  location_release(exprasmlist,left.location);
-                  location_reset(location,LOC_FLAGS,OS_NO);
-                  location.resflags.cr:=r_cr0;
-                  location.resflags.flag:=F_EQ;
-               end;
-            end;
+              end;
           end
          else if is_64bitint(left.resulttype.def) then
            begin
@@ -509,7 +512,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2003-03-11 21:46:24  jonas
+  Revision 1.25  2003-04-24 12:57:32  florian
+    * fixed not node
+
+  Revision 1.24  2003/03/11 21:46:24  jonas
     * lots of new regallocator fixes, both in generic and ppc-specific code
       (ppc compiler still can't compile the linux system unit though)
 
