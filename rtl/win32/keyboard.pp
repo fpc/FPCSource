@@ -28,9 +28,7 @@ implementation
 }
 
 uses
-{$ifndef DEBUG}
    Windows,
-{$endif DEBUG}
    Dos,
    WinEvent;
 
@@ -696,9 +694,6 @@ begin
      if getKeyEventFromQueueWait (t) then
        key := translateKey (t);
   until key <> 0;
-{$ifdef DEBUG}
-  last_ir.KeyEvent:=t;
-{$endif DEBUG}
   GetKeyEvent := key;
 end;
 
@@ -786,7 +781,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2001-01-14 22:20:00  peter
+  Revision 1.3  2001-05-20 12:08:17  peter
+    * fixed to compile with debug
+
+  Revision 1.2  2001/01/14 22:20:00  peter
     * slightly optimized event handling (merged)
 
   Revision 1.1  2001/01/13 11:03:59  peter
