@@ -332,6 +332,7 @@ implementation
       var
          otlabel,
          oflabel : tasmlabel;
+         hp      : tnode;
       begin
          if not(assigned(paraitem)) or
             not(assigned(paraitem.paratype.def)) or
@@ -381,9 +382,12 @@ implementation
                      (left.location.loc=LOC_CONSTANT) then
                     location_force_mem(exprasmlist,left.location);
 
-                  { allow @var }
-                  if (left.nodetype=addrn) and
-                     (not(nf_procvarload in left.flags)) then
+                  { allow (typecasted) @var }
+                  hp:=left;
+                  while (hp.nodetype=typeconvn) do
+                    hp:=ttypeconvnode(hp).left;
+                  if (hp.nodetype=addrn) and
+                     (not(nf_procvarload in hp.flags)) then
                     begin
                       inc(tcgcallnode(aktcallnode).pushedparasize,POINTER_SIZE);
                       location_release(exprasmlist,left.location);
@@ -639,9 +643,10 @@ implementation
          regs_to_alloc,
          regs_to_free : Tcpuregisterset;
          oldpushedparasize : longint;
-         { adress returned from an I/O-error }
-         { help reference pointer }
-         href,href2 : treference;
+{$ifdef cputargethasfixedstack}
+         href2,
+{$endif cputargethasfixedstack}
+         href : treference;
          pop_size : longint;
          pvreg,
          vmtreg : tregister;
@@ -1236,7 +1241,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.158  2004-02-22 13:01:15  daniel
+  Revision 1.159  2004-02-26 16:12:04  peter
+    * support typecasts for passing @var to formal const
+
+  Revision 1.158  2004/02/22 13:01:15  daniel
     * Fixed memory leak
 
   Revision 1.157  2004/02/22 12:04:04  florian
