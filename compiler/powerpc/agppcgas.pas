@@ -310,7 +310,7 @@ unit agppcgas;
           if op <> A_B then
             s:=cond2str(op,taicpu(hp).condition)+','
           else
-            s:='';
+            s:=#9'b'#9;
           s := s+getopstr_jmp(taicpu(hp).oper[0]);
         end
       else
@@ -340,7 +340,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2002-07-12 10:10:01  jonas
+  Revision 1.6  2002-07-21 16:56:20  jonas
+    * fixed bugs with writing out unconditinal jumps
+
+  Revision 1.5  2002/07/12 10:10:01  jonas
     * changed motorola syntax of references with symbols to GNU syntax
 
   Revision 1.4  2002/07/11 14:41:34  florian
