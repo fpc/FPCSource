@@ -445,7 +445,7 @@ implementation
            LOC_CREGISTER,
             LOC_REGISTER : is_mem:=false;
                LOC_FLAGS : begin
-                             emit_flag2reg(p^.right^.location.resflags,R_AL);
+                             emit_flag2reg(p^.left^.location.resflags,R_AL);
                              goto do_jmp;
                            end;
                 LOC_JUMP : begin
@@ -471,12 +471,12 @@ implementation
                                  exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_W,
                                    newreference(p^.left^.location.reference),R_AX)))
                                else
-                                 emit_reg_reg(A_MOV,S_W,p^.left^.location.register,R_AX);
+                                 emit_reg_reg(A_MOV,S_W,makereg16(p^.left^.location.register),R_AX);
                            1 : if is_mem then
                                  exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_B,
                                    newreference(p^.left^.location.reference),R_AL)))
                                else
-                                 emit_reg_reg(A_MOV,S_B,p^.left^.location.register,R_AL);
+                                 emit_reg_reg(A_MOV,S_B,makereg8(p^.left^.location.register),R_AL);
                           end;
                         end;
            pointerdef,
@@ -797,7 +797,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.29  1999-02-25 21:02:26  peter
+  Revision 1.30  1999-03-05 16:14:59  peter
+    * fixed exit() with word/byte return
+
+  Revision 1.29  1999/02/25 21:02:26  peter
     * ag386bin updates
     + coff writer
 
