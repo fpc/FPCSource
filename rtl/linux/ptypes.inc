@@ -121,6 +121,20 @@ Type
   ptimespec   = ^timespec;
   TTimeSpec   = timespec;
 
+  TStatfs = packed record
+    fstype,            { File system type }
+    bsize,             { Optimal block trensfer size }
+    blocks,            { Data blocks in system }
+    bfree,             { free blocks in system }
+    bavail,            { Available free blocks to non-root users }
+    files,             { File nodes in system }
+    ffree,             { Free file nodes in system }
+    fsid,              { File system ID } 
+    namelen : longint; { Maximum name length in system }
+    spare   : array [0..6] of longint; { For later use }
+  end;
+  PStatFS=^TStatFS;
+
 CONST
    { System limits, POSIX value in parentheses, used for buffer and stack allocation }
    { took idefix' values}
@@ -132,7 +146,11 @@ CONST
 
 {
    $Log$
-   Revision 1.6  2003-12-30 12:46:40  marco
+   Revision 1.7  2004-01-11 09:56:20  jonas
+     * moved tstatfs from systypes.inc to ptypes.inc to fix make cycle with
+       -dFPC_USE_LIBC (systypes.inc is now completely commented out)
+
+   Revision 1.6  2003/12/30 12:46:40  marco
     * ptime_t
 
    Revision 1.5  2003/09/27 13:45:58  peter

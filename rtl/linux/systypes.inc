@@ -12,7 +12,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-type
+{type}
 
 {
  Linux system calls take arguments as follows :
@@ -34,6 +34,22 @@ type
   end;
   PSysCallRegs=^SysCallRegs;
   TSysCallRegs=SysCallRegs;
+}
+
+{
+  TStatfs = packed record
+    fstype,            { File system type }
+    bsize,             { Optimal block trensfer size }
+    blocks,            { Data blocks in system }
+    bfree,             { free blocks in system }
+    bavail,            { Available free blocks to non-root users }
+    files,             { File nodes in system }
+    ffree,             { Free file nodes in system }
+    fsid,              { File system ID }
+    namelen : longint; { Maximum name length in system }
+    spare   : array [0..6] of longint; { For later use }
+  end;
+  PStatFS=^TStatFS;
 }
 {
 { The following are records for system calls }
@@ -86,19 +102,6 @@ type
   PStat=^Stat;
   TStat=Stat;
 }
-  TStatfs = packed record
-    fstype,            { File system type }
-    bsize,             { Optimal block trensfer size }
-    blocks,            { Data blocks in system }
-    bfree,             { free blocks in system }
-    bavail,            { Available free blocks to non-root users }
-    files,             { File nodes in system }
-    ffree,             { Free file nodes in system }
-    fsid,              { File system ID }
-    namelen : longint; { Maximum name length in system }
-    spare   : array [0..6] of longint; { For later use }
-  end;
-  PStatFS=^TStatFS;
 
 {
 
@@ -138,7 +141,11 @@ type
 }
 {
   $Log$
-  Revision 1.12  2003-09-14 20:15:01  marco
+  Revision 1.13  2004-01-11 09:56:20  jonas
+    * moved tstatfs from systypes.inc to ptypes.inc to fix make cycle with
+      -dFPC_USE_LIBC (systypes.inc is now completely commented out)
+
+  Revision 1.12  2003/09/14 20:15:01  marco
    * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
   Revision 1.11  2003/08/21 22:24:52  olle
