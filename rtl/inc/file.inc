@@ -183,7 +183,7 @@ End;
 
 Procedure BlockRead(var f:File;var Buf;Count:Longint;var Result:Longint);[IOCheck];
 {
-  Read Count records from file f ro Buf, return nuùber of read records in
+  Read Count records from file f ro Buf, return number of read records in
   Result
 }
 Begin
@@ -358,7 +358,13 @@ Begin
     end;
   end;
   FileRec(f).mode:=fmClosed;
+{$IFDEF OS2}
+  if (FileRec (F).Handle > 4) or
+                            (os_MODE = osOS2) and (FileRec (F).Handle > 2) then
+{ Only three standard handles under real OS/2 }
+{$ELSE}
   if FileRec(f).Handle>4 then
+{$ENDIF}
    Do_Close(FileRec(f).Handle);
 End;
 
@@ -409,7 +415,10 @@ End;
 
 {
   $Log$
-  Revision 1.10  1998-11-29 23:10:12  peter
+  Revision 1.11  1999-09-07 15:54:18  hajny
+    * fixed problem with Close under OS/2
+
+  Revision 1.10  1998/11/29 23:10:12  peter
     * also check fmInput,fmOutput
 
   Revision 1.9  1998/11/29 22:28:11  peter
