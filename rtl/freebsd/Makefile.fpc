@@ -16,7 +16,7 @@ units=$(SYSTEMUNIT) objpas strings syscall baseunix unixutil \
       sysutils typinfo systhrds classes math varutils \
       cpu mmx charset ucomplex crt getopts heaptrc lineinfo \
       errors sockets gpm ipc terminfo \
-      video mouse keyboard console serial variants types sysctl dateutils\
+      video mouse keyboard console serial variants types sysctl dateutils \
       sysconst cthreads runerrors
 
 rsts=math varutils typinfo classes variants dateutils sysconst runerrors
@@ -175,9 +175,9 @@ printer$(PPUEXT) : $(UNIXINC)/printer.pp $(INC)/textrec.inc unix$(PPUEXT) $(SYST
 #
 
 sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-                    objpas$(PPUEXT) unix$(PPUEXT) errors$(PPUEXT) sysconst$(PPUEXT) \
+                    objpas$(PPUEXT) unix$(PPUEXT) errors$(PPUEXT) $(OBJPASDIR)/sysconst$(PPUEXT) \
                     runerrors$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(UNIXINC)/sysutils.pp runerrors$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(UNIXINC)/sysutils.pp
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
                    sysutils$(PPUEXT) typinfo$(PPUEXT)
