@@ -34,7 +34,9 @@ uses
        tflowcontrol = set of tenumflowcontrol;
 
     var
+       allow_multi_pass2 : boolean;
        flowcontrol : tflowcontrol;
+
 { produces assembler for the expression in variable p }
 { and produces an assembler node at the end        }
 procedure generatecode(var p : tnode);
@@ -191,7 +193,7 @@ implementation
 {$ifdef EXTDEBUG}
             if (p.expectloc=LOC_INVALID) then
               Comment(V_Warning,'ExpectLoc is not set before secondpass: '+nodetype2str[p.nodetype]);
-            if not(nf_allow_multi_pass2 in p.flags) and
+            if (not allow_multi_pass2) and
                (p.location.loc<>LOC_INVALID) then
               Comment(V_Warning,'Location.Loc is already set before secondpass: '+nodetype2str[p.nodetype]);
             if (cs_asm_nodes in aktglobalswitches) then
@@ -350,7 +352,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  2003-04-22 23:50:23  peter
+  Revision 1.46  2003-04-23 10:12:14  peter
+    * allow multi pass2 changed to global boolean instead of node flag
+
+  Revision 1.45  2003/04/22 23:50:23  peter
     * firstpass uses expectloc
     * checks if there are differences between the expectloc and
       location.loc from secondpass in EXTDEBUG

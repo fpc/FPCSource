@@ -222,7 +222,6 @@ interface
          nf_first_use,   { First node that uses a variable after declared }
          nf_varstateset,
          nf_isproperty,
-         nf_allow_multi_pass2, { allow multiple secondpass }
 
          { flags used by tcallnode }
          nf_return_value_used,
@@ -984,7 +983,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.54  2003-04-22 23:50:23  peter
+  Revision 1.55  2003-04-23 10:12:14  peter
+    * allow multi pass2 changed to global boolean instead of node flag
+
+  Revision 1.54  2003/04/22 23:50:23  peter
     * firstpass uses expectloc
     * checks if there are differences between the expectloc and
       location.loc from secondpass in EXTDEBUG

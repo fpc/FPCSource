@@ -343,7 +343,7 @@ implementation
                       cg.a_load_reg_ref(exprasmlist,OS_ADDR,hregister,href);
 
                       { virtual method ? }
-                      if (po_virtualmethod in tprocdef(resulttype.def).procoptions) then
+                      if (po_virtualmethod in procdef.procoptions) then
                         begin
                           { load vmt pointer }
                           reference_reset_base(href,hregister,0);
@@ -352,8 +352,8 @@ implementation
                           cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister);
 
 
-                          reference_reset_base(href,hregister,tprocdef(resulttype.def)._class.vmtmethodoffset(
-                                           tprocdef(resulttype.def).extnumber));
+                          reference_reset_base(href,hregister,
+                              procdef._class.vmtmethodoffset(procdef.extnumber));
                           reference_release(exprasmlist,href);
 
                           { load method address }
@@ -368,7 +368,7 @@ implementation
                           { we don't use the hregister }
                           rg.ungetregisterint(exprasmlist,hregister);
                           { load address of the function }
-                          reference_reset_symbol(href,objectlibrary.newasmsymbol(tprocdef(resulttype.def).mangledname),0);
+                          reference_reset_symbol(href,objectlibrary.newasmsymbol(procdef.mangledname),0);
                         {$ifdef newra}
                           hregister:=rg.getaddressregister(exprasmlist);
                         {$else}
@@ -386,7 +386,7 @@ implementation
                   else
                     begin
                        {!!!!! Be aware, work on virtual methods too }
-                       location.reference.symbol:=objectlibrary.newasmsymbol(tprocdef(resulttype.def).mangledname);
+                       location.reference.symbol:=objectlibrary.newasmsymbol(procdef.mangledname);
                     end;
                end;
             typedconstsym :
@@ -407,6 +407,7 @@ implementation
          otlabel,hlabel,oflabel : tasmlabel;
          fputyp : tfloattype;
          href : treference;
+         old_allow_multi_pass2,
          releaseright : boolean;
          pushedregs : tmaybesave;
          cgsize : tcgsize;
@@ -666,8 +667,10 @@ implementation
                 {$ifndef newra}
                   maybe_save(exprasmlist,left.registers32,right.location,pushedregs);
                 {$endif}
-                  include(left.flags,nf_allow_multi_pass2);
+                  old_allow_multi_pass2:=allow_multi_pass2;
+                  allow_multi_pass2:=true;
                   secondpass(left);
+                  allow_multi_pass2:=old_allow_multi_pass2;
                 {$ifndef newra}
                   maybe_restore(exprasmlist,right.location,pushedregs);
                 {$endif newra}
@@ -1006,7 +1009,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.49  2003-04-22 23:50:22  peter
+  Revision 1.50  2003-04-23 10:12:14  peter
+    * allow multi pass2 changed to global boolean instead of node flag
+
+  Revision 1.49  2003/04/22 23:50:22  peter
     * firstpass uses expectloc
     * checks if there are differences between the expectloc and
       location.loc from secondpass in EXTDEBUG
