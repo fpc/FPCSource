@@ -51,14 +51,34 @@ implementation
 {$i bunxmain.inc}	{ implementation}
 {$i bunxovl.inc}	{ redefs and overloads implementation}
 
+{$ifndef ver1_0}
 function fpgeterrno:longint; external name 'FPC_SYS_GETERRNO';
 procedure fpseterrno(err:longint); external name 'FPC_SYS_SETERRNO';
+{$else}
+// workaround for 1.0.10 bugs.
 
+function intgeterrno:longint; external name 'FPC_SYS_GETERRNO';
+procedure intseterrno(err:longint); external name 'FPC_SYS_SETERRNO';
+
+function fpgeterrno:longint; 
+begin
+  fpgeterrno:=intgeterrno;
+end;
+
+procedure fpseterrno(err:longint); 
+begin
+  intseterrno(err);
+end;
+
+{$endif}
 end.
 
 {
   $Log$
-  Revision 1.6  2003-12-30 12:26:21  marco
+  Revision 1.7  2004-01-03 23:56:11  marco
+   * fix for 1.0 compability issue
+
+  Revision 1.6  2003/12/30 12:26:21  marco
    * FPC_USE_LIBC
 
   Revision 1.5  2003/12/10 17:13:43  marco
