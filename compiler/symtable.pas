@@ -521,7 +521,8 @@ implementation
         hp1:=pmodule(loaded_units.first);
         while assigned(hp1) do
          begin
-           psymtable(hp1^.globalsymtable)^.unitid:=-1;
+           if assigned(hp1^.globalsymtable) then
+             psymtable(hp1^.globalsymtable)^.unitid:=-1;
            hp1:=pmodule(hp1^.next);
          end;
         { number units }
@@ -2333,7 +2334,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  1999-07-23 11:37:50  peter
+  Revision 1.28  1999-07-23 12:02:20  peter
+    * fixed crash in previous commit
+
+  Revision 1.27  1999/07/23 11:37:50  peter
     * error for illegal type reference, instead of 10998
 
   Revision 1.26  1999/07/22 09:37:58  florian
