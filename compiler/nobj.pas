@@ -673,8 +673,12 @@ implementation
                                                 MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false));
                                             end;
                                          end
-                                        { check if the method to override is visible }
-                                        else if (po_overridingmethod in pd.procoptions) and
+                                        { check if the method to override is visible, check is only needed
+                                          for the current parsed class. Parent classes are already validated and
+                                          need to include all virtual methods including the ones not visible in the
+                                          current class }
+                                        else if (_class=pd._class) and
+                                                (po_overridingmethod in pd.procoptions) and
                                                 (not tstoredsym(procdefcoll^.data.procsym).is_visible_for_object(pd._class)) then
                                          begin
                                            { do nothing, the error will follow when adding the entry }
@@ -1378,7 +1382,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.71  2004-06-20 08:55:29  florian
+  Revision 1.72  2004-06-29 20:58:46  peter
+    * fix writing of private virtual/overriden methods that aren't
+      visibile in the current class, bug 3184
+
+  Revision 1.71  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.70  2004/06/16 20:07:09  florian
