@@ -1,0 +1,33 @@
+{
+    $Id$
+
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2003 by the Free Pascal development team.
+
+    SetJmp/Longjmp declarations
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
+type
+   jmp_buf = packed record
+      v1,v2,v3,v4,v5,v6,sl,fp,sp,pc : dword;
+   end;
+   pjmp_buf = ^jmp_buf;
+
+function setjmp(var S : jmp_buf) : longint;
+procedure longjmp(var S : jmp_buf;value : longint);
+
+
+{
+  $Log$
+  Revision 1.1  2003-08-21 16:41:55  florian
+    * empty dummy files
+    + [long|set]jmp implemented
+}
