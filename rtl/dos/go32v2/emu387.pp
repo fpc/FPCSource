@@ -126,7 +126,7 @@ unit emu387;
       eqpos,i : longint;
     begin
       _envvar:=upcase(envvar);
-      hp:=environ;
+      hp:=envp;
       getenv:='';
       while assigned(hp^) do
        begin
@@ -217,7 +217,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  1998-07-21 12:06:56  carl
+  Revision 1.7  1998-07-22 21:37:51  michael
+  + ENViron unknow, replaced by envp
+
+  Revision 1.6  1998/07/21 12:06:56  carl
     * restored working version
 
   Revision 1.2  1998/03/26 12:23:17  peter
@@ -254,7 +257,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  1998-07-21 12:06:56  carl
+  Revision 1.7  1998-07-22 21:37:51  michael
+  + ENViron unknow, replaced by envp
+
+  Revision 1.6  1998/07/21 12:06:56  carl
     * restored working version
 
   Revision 1.2  1998/03/26 12:23:17  peter
