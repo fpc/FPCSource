@@ -551,9 +551,11 @@ implementation
         hp : tnode;
         useshelper : boolean;
         l : longint;
+        original_size : longint;
       begin
         result:=nil;
         resulttype:=voidtype;
+        original_size := 0;
 
         { must be made unique }
         set_unique(left);
@@ -683,7 +685,33 @@ implementation
             end;
          end
         else
-         inserttypeconv(right,left.resulttype);
+          begin
+           { get the size before the type conversion - check for all nodes }
+           if assigned(right.resulttype.def) {and (right.nodetype = loadn)} then
+              original_size := right.resulttype.def.size;
+           inserttypeconv(right,left.resulttype);
+          end;
+
+
+        { check if the assignment may cause a range check error }
+        { if its not explicit, and only if the values are       }
+        { ordinals, enumdef and floatdef                        }                           
+        if (right.nodetype = typeconvn) and 
+           not (nf_explizit in ttypeconvnode(right).flags) then
+         begin
+            if assigned(left.resulttype.def) and
+              (left.resulttype.def.deftype in [enumdef,orddef,floatdef]) then
+              begin
+                if (original_size <> 0) and (left.resulttype.def.size < original_size) then
+                  begin
+                    if (cs_check_range in aktlocalswitches) then
+                      Message(type_w_smaller_possible_range_check)
+                    else
+                      Message(type_h_smaller_possible_range_check);
+                  end;
+              end;
+         end;
+         
 
         { call helpers for interface }
         if is_interfacecom(left.resulttype.def) then
@@ -713,6 +741,8 @@ implementation
          firstpass(right);
          if codegenerror then
            exit;
+
+
 
          registers32:=left.registers32+right.registers32;
          registersfpu:=max(left.registersfpu,right.registersfpu);
@@ -1214,7 +1244,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.68  2002-11-27 20:04:39  peter
+  Revision 1.69  2002-11-29 20:02:44  carl
+   * warning / hint for possible loss of data in assignment
+
+  Revision 1.68  2002/11/27 20:04:39  peter
     * cdecl array of const fixes
 
   Revision 1.67  2002/11/27 15:33:47  peter
