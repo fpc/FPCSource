@@ -372,7 +372,7 @@ unit cgobj;
           procedure g_overflowCheck_loc(List:TAasmOutput;const Loc:TLocation;def:TDef;ovloc : tlocation);virtual;
 
           procedure g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint;destreg:tregister);virtual;
-          procedure g_releasevaluepara_openarray(list : taasmoutput;const ref:treference);virtual;
+          procedure g_releasevaluepara_openarray(list : taasmoutput;const l:tlocation);virtual;
 
           {# Emits instructions when compilation is done in profile
              mode (this is set as a command line option). The default
@@ -1896,7 +1896,7 @@ implementation
       end;
 
 
-    procedure tcg.g_releasevaluepara_openarray(list : taasmoutput;const ref:treference);
+    procedure tcg.g_releasevaluepara_openarray(list : taasmoutput;const l:tlocation);
       var
         paraloc1 : TCGPara;
       begin
@@ -1905,7 +1905,7 @@ implementation
         paramanager.getintparaloc(pocall_default,1,paraloc1);
         { load source }
         paramanager.allocparaloc(list,paraloc1);
-        a_param_ref(list,OS_ADDR,ref,paraloc1);
+        a_param_loc(list,l,paraloc1);
         paramanager.freeparaloc(list,paraloc1);
         alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
         alloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
@@ -2039,7 +2039,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.184  2004-11-02 17:25:36  florian
+  Revision 1.185  2004-11-08 20:23:29  florian
+    * fixed open arrays when using register variables
+
+  Revision 1.184  2004/11/02 17:25:36  florian
     * <signed type> to qword range check for 64 bit targets fixed
 
   Revision 1.183  2004/10/31 21:45:02  peter

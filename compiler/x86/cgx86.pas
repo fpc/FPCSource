@@ -105,7 +105,7 @@ unit cgx86;
         procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint);override;
 
         { entry/exit code helpers }
-        procedure g_releasevaluepara_openarray(list : taasmoutput;const ref:treference);override;
+        procedure g_releasevaluepara_openarray(list : taasmoutput;const l:tlocation);override;
         procedure g_profilecode(list : taasmoutput);override;
         procedure g_stackpointer_alloc(list : taasmoutput;localsize : longint);override;
         procedure g_proc_entry(list : taasmoutput;localsize : longint;nostackframe:boolean);override;
@@ -1542,7 +1542,7 @@ unit cgx86;
                               Entry/Exit Code Helpers
 ****************************************************************************}
 
-    procedure tcgx86.g_releasevaluepara_openarray(list : taasmoutput;const ref:treference);
+    procedure tcgx86.g_releasevaluepara_openarray(list : taasmoutput;const l:tlocation);
       begin
         { Nothing to release }
       end;
@@ -1733,7 +1733,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.138  2004-11-02 20:50:54  florian
+  Revision 1.139  2004-11-08 20:23:29  florian
+    * fixed open arrays when using register variables
+
+  Revision 1.138  2004/11/02 20:50:54  florian
     + added profiler call for x86_64
 
   Revision 1.137  2004/11/02 18:23:16  florian

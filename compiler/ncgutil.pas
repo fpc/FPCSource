@@ -943,6 +943,7 @@ implementation
       var
         list : TAAsmoutput;
         href : treference;
+        l : tlocation;
       begin
         list:=taasmoutput(arg);
         if (tsym(p).typ=varsym) and
@@ -965,7 +966,7 @@ implementation
             { cdecl functions don't have a high pointer so it is not possible to generate
               a local copy }
             if not(current_procinfo.procdef.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
-              cg.g_releasevaluepara_openarray(list,tvarsym(p).localloc.reference);
+              cg.g_releasevaluepara_openarray(list,tvarsym(p).localloc);
           end;
       end;
 
@@ -2211,7 +2212,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.236  2004-11-04 17:12:24  peter
+  Revision 1.237  2004-11-08 20:23:29  florian
+    * fixed open arrays when using register variables
+
+  Revision 1.236  2004/11/04 17:12:24  peter
   forgot if cs_debuginfo
 
   Revision 1.235  2004/11/04 17:09:54  peter
