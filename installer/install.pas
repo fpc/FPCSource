@@ -820,8 +820,8 @@ program install;
                           if CreateLog then
                             begin
                               WriteLn (Log, 'Error while extracting ' +
-                               CurrentFile + because of missing LFN support,');
-                              WriteLn (Log, '  skipping rest of ZIP file.);
+                             CurrentFile + ' because of missing LFN support,');
+                              WriteLn (Log, '  skipping rest of ZIP file.');
                             end;
                           messagebox('Error while extracting '+currentfile+
                             #13#3'because of missing lfn support'+
@@ -2008,7 +2008,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2003-03-01 16:15:42  hajny
+  Revision 1.18  2003-03-05 21:12:32  hajny
+    * missing quotes in GO32v2-specific part
+
+  Revision 1.17  2003/03/01 16:15:42  hajny
     + logging enhanced
 
   Revision 1.16  2003/02/08 21:49:59  carl
