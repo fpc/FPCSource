@@ -59,7 +59,7 @@
       move.b d0,(a0)+
     @LMEMSET2:
       subq.l #1,d1
-      cmp.b #-1,d1
+      cmp.l #-1,d1
       bne  @LMEMSET1
       bra @LMEMSET5        { finished slow mode , exit     }
 
@@ -85,7 +85,7 @@
       move.b d0,(a0)+
     @LMEMSET2:
       subq.l #1,d1
-      cmp.b #-1,d1
+      cmp.l #-1,d1
       bne  @LMEMSET1
       bra @LMEMSET5        { finished slow mode , exit     }
 
@@ -688,7 +688,10 @@ end;
 
 {
   $Log$
-  Revision 1.14  1998-10-16 13:37:45  pierre
+  Revision 1.15  1998-10-17 14:34:37  carl
+   * FillChar and FillObject bugfix, count was compared with byte
+
+  Revision 1.14  1998/10/16 13:37:45  pierre
     * added code for vmt_offset in destructors
 
   Revision 1.13  1998/10/15 11:35:03  pierre
