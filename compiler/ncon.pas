@@ -305,29 +305,29 @@ implementation
         p1:=nil;
         case p.consttyp of
           constint :
-            p1:=genintconstnode(p.valueord);
+            p1:=genintconstnode(p.value.valueord);
           conststring :
             begin
-              len:=p.len;
+              len:=p.value.len;
               if not(cs_ansistrings in aktlocalswitches) and (len>255) then
                len:=255;
               getmem(pc,len+1);
-              move(pchar(p.valueptr)^,pc^,len);
+              move(pchar(p.value.valueptr)^,pc^,len);
               pc[len]:=#0;
               p1:=cstringconstnode.createpchar(pc,len);
             end;
           constchar :
-            p1:=cordconstnode.create(p.valueord,cchartype,true);
+            p1:=cordconstnode.create(p.value.valueord,cchartype,true);
           constreal :
-            p1:=crealconstnode.create(pbestreal(p.valueptr)^,pbestrealtype^);
+            p1:=crealconstnode.create(pbestreal(p.value.valueptr)^,pbestrealtype^);
           constbool :
-            p1:=cordconstnode.create(p.valueord,booltype,true);
+            p1:=cordconstnode.create(p.value.valueord,booltype,true);
           constset :
-            p1:=csetconstnode.create(pconstset(p.valueptr),p.consttype);
+            p1:=csetconstnode.create(pconstset(p.value.valueptr),p.consttype);
           constord :
-            p1:=cordconstnode.create(p.valueord,p.consttype,true);
+            p1:=cordconstnode.create(p.value.valueord,p.consttype,true);
           constpointer :
-            p1:=cpointerconstnode.create(p.valueordptr,p.consttype);
+            p1:=cpointerconstnode.create(p.value.valueordptr,p.consttype);
           constnil :
             p1:=cnilnode.create;
           else
@@ -924,7 +924,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2002-10-05 12:43:25  carl
+  Revision 1.44  2002-11-22 22:48:10  carl
+  * memory optimization with tconstsym (1.5%)
+
+  Revision 1.43  2002/10/05 12:43:25  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 

@@ -968,7 +968,7 @@ Begin
         if tconstsym(sym).consttyp in [constint,constchar,constbool] then
          begin
            opr.typ:=OPR_CONSTANT;
-           opr.val:=tconstsym(sym).valueord;
+           opr.val:=tconstsym(sym).value.valueord;
            SetupVar:=true;
            Exit;
          end;
@@ -1278,7 +1278,7 @@ Begin
          begin
            if (tconstsym(srsym).consttyp in [constord,constint,constchar,constbool]) then
             Begin
-              l:=tconstsym(srsym).valueord;
+              l:=tconstsym(srsym).value.valueord;
               SearchIConstant:=TRUE;
               exit;
             end;
@@ -1592,7 +1592,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.48  2002-11-18 17:31:59  peter
+  Revision 1.49  2002-11-22 22:48:10  carl
+  * memory optimization with tconstsym (1.5%)
+
+  Revision 1.48  2002/11/18 17:31:59  peter
     * pass proccalloption to ret_in_xxx and push_xxx functions
 
   Revision 1.47  2002/11/15 16:29:31  peter

@@ -3227,16 +3227,16 @@ implementation
               case hpc.consttyp of
                 conststring,
                 constresourcestring :
-                  hs:=strpas(pchar(hpc.valueptr));
+                  hs:=strpas(pchar(hpc.value.valueptr));
                 constreal :
-                  str(pbestreal(hpc.valueptr)^,hs);
+                  str(pbestreal(hpc.value.valueptr)^,hs);
                 constord :
-                  hs:=tostr(hpc.valueord);
+                  hs:=tostr(hpc.value.valueord);
                 constpointer :
-                  hs:=tostr(hpc.valueordptr);
+                  hs:=tostr(hpc.value.valueordptr);
                 constbool :
                   begin
-                    if hpc.valueord<>0 then
+                    if hpc.value.valueord<>0 then
                      hs:='TRUE'
                     else
                      hs:='FALSE';
@@ -3244,7 +3244,7 @@ implementation
                 constnil :
                   hs:='nil';
                 constchar :
-                  hs:=chr(hpc.valueord);
+                  hs:=chr(hpc.value.valueord);
                 constset :
                   hs:='<set>';
               end;
@@ -5537,7 +5537,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.107  2002-11-19 16:21:29  pierre
+  Revision 1.108  2002-11-22 22:48:10  carl
+  * memory optimization with tconstsym (1.5%)
+
+  Revision 1.107  2002/11/19 16:21:29  pierre
    * correct several stabs generation problems
 
   Revision 1.106  2002/11/18 17:31:59  peter

@@ -1188,37 +1188,37 @@ implementation
                       constint :
                         begin
                           { do a very dirty trick to bootstrap this code }
-                          if (tconstsym(srsym).valueord>=-(int64(2147483647)+int64(1))) and
-                             (tconstsym(srsym).valueord<=2147483647) then
-                           p1:=cordconstnode.create(tconstsym(srsym).valueord,s32bittype,true)
-                          else if (tconstsym(srsym).valueord > maxlongint) and
-                                  (tconstsym(srsym).valueord <= int64(maxlongint)+int64(maxlongint)+1) then
-                           p1:=cordconstnode.create(tconstsym(srsym).valueord,u32bittype,true)
+                          if (tconstsym(srsym).value.valueord>=-(int64(2147483647)+int64(1))) and
+                             (tconstsym(srsym).value.valueord<=2147483647) then
+                           p1:=cordconstnode.create(tconstsym(srsym).value.valueord,s32bittype,true)
+                          else if (tconstsym(srsym).value.valueord > maxlongint) and
+                                  (tconstsym(srsym).value.valueord <= int64(maxlongint)+int64(maxlongint)+1) then
+                           p1:=cordconstnode.create(tconstsym(srsym).value.valueord,u32bittype,true)
                           else
-                           p1:=cordconstnode.create(tconstsym(srsym).valueord,cs64bittype,true);
+                           p1:=cordconstnode.create(tconstsym(srsym).value.valueord,cs64bittype,true);
                         end;
                       conststring :
                         begin
-                          len:=tconstsym(srsym).len;
+                          len:=tconstsym(srsym).value.len;
                           if not(cs_ansistrings in aktlocalswitches) and (len>255) then
                            len:=255;
                           getmem(pc,len+1);
-                          move(pchar(tconstsym(srsym).valueptr)^,pc^,len);
+                          move(pchar(tconstsym(srsym).value.valueptr)^,pc^,len);
                           pc[len]:=#0;
                           p1:=cstringconstnode.createpchar(pc,len);
                         end;
                       constchar :
-                        p1:=cordconstnode.create(tconstsym(srsym).valueord,cchartype,true);
+                        p1:=cordconstnode.create(tconstsym(srsym).value.valueord,cchartype,true);
                       constreal :
-                        p1:=crealconstnode.create(pbestreal(tconstsym(srsym).valueptr)^,pbestrealtype^);
+                        p1:=crealconstnode.create(pbestreal(tconstsym(srsym).value.valueptr)^,pbestrealtype^);
                       constbool :
-                        p1:=cordconstnode.create(tconstsym(srsym).valueord,booltype,true);
+                        p1:=cordconstnode.create(tconstsym(srsym).value.valueord,booltype,true);
                       constset :
-                        p1:=csetconstnode.create(pconstset(tconstsym(srsym).valueptr),tconstsym(srsym).consttype);
+                        p1:=csetconstnode.create(pconstset(tconstsym(srsym).value.valueptr),tconstsym(srsym).consttype);
                       constord :
-                        p1:=cordconstnode.create(tconstsym(srsym).valueord,tconstsym(srsym).consttype,true);
+                        p1:=cordconstnode.create(tconstsym(srsym).value.valueord,tconstsym(srsym).consttype,true);
                       constpointer :
-                        p1:=cpointerconstnode.create(tconstsym(srsym).valueordptr,tconstsym(srsym).consttype);
+                        p1:=cpointerconstnode.create(tconstsym(srsym).value.valueordptr,tconstsym(srsym).consttype);
                       constnil :
                         p1:=cnilnode.create;
                       constresourcestring:
@@ -1228,7 +1228,7 @@ implementation
                           p1.resulttype:=cansistringtype;
                         end;
                       constguid :
-                        p1:=cguidconstnode.create(pguid(tconstsym(srsym).valueptr)^);
+                        p1:=cguidconstnode.create(pguid(tconstsym(srsym).value.valueptr)^);
                     end;
                   end;
 
@@ -2266,7 +2266,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.90  2002-11-20 22:49:55  pierre
+  Revision 1.91  2002-11-22 22:48:10  carl
+  * memory optimization with tconstsym (1.5%)
+
+  Revision 1.90  2002/11/20 22:49:55  pierre
    * commented check code tht was invalid in 1.1
 
   Revision 1.89  2002/11/18 18:34:41  peter

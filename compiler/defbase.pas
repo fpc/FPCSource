@@ -307,16 +307,16 @@ implementation
            constbool,
            constchar,
            constord :
-             equal_constsym:=(sym1.valueord=sym2.valueord);
+             equal_constsym:=(sym1.value.valueord=sym2.value.valueord);
            constpointer :
-             equal_constsym:=(sym1.valueordptr=sym2.valueordptr);
+             equal_constsym:=(sym1.value.valueordptr=sym2.value.valueordptr);
            conststring,constresourcestring :
              begin
-               if sym1.len=sym2.len then
+               if sym1.value.len=sym2.value.len then
                 begin
-                  p1:=pchar(sym1.valueptr);
-                  p2:=pchar(sym2.valueptr);
-                  pend:=p1+sym1.len;
+                  p1:=pchar(sym1.value.valueptr);
+                  p2:=pchar(sym2.value.valueptr);
+                  pend:=p1+sym1.value.len;
                   while (p1<pend) do
                    begin
                      if p1^<>p2^ then
@@ -329,9 +329,9 @@ implementation
                 end;
              end;
            constreal :
-             equal_constsym:=(pbestreal(sym1.valueptr)^=pbestreal(sym2.valueptr)^);
+             equal_constsym:=(pbestreal(sym1.value.valueptr)^=pbestreal(sym2.value.valueptr)^);
            constset :
-             equal_constsym:=(pnormalset(sym1.valueptr)^=pnormalset(sym2.valueptr)^);
+             equal_constsym:=(pnormalset(sym1.value.valueptr)^=pnormalset(sym2.value.valueptr)^);
            constnil :
              equal_constsym:=true;
         end;
@@ -2040,7 +2040,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  2002-11-17 16:31:55  carl
+  Revision 1.27  2002-11-22 22:48:10  carl
+  * memory optimization with tconstsym (1.5%)
+
+  Revision 1.26  2002/11/17 16:31:55  carl
     * memory optimization (3-4%) : cleanup of tai fields,
        cleanup of tdef and tsym fields.
     * make it work for m68k

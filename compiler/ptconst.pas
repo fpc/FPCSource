@@ -515,8 +515,8 @@ implementation
                 end
               else if is_constresourcestringnode(p) then
                 begin
-                  strval:=pchar(tconstsym(tloadnode(p).symtableentry).valueptr);
-                  strlength:=tconstsym(tloadnode(p).symtableentry).len;
+                  strval:=pchar(tconstsym(tloadnode(p).symtableentry).value.valueptr);
+                  strlength:=tconstsym(tloadnode(p).symtableentry).value.len;
                 end
               else
                 begin
@@ -985,7 +985,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.58  2002-11-09 15:31:57  carl
+  Revision 1.59  2002-11-22 22:48:10  carl
+  * memory optimization with tconstsym (1.5%)
+
+  Revision 1.58  2002/11/09 15:31:57  carl
     + align ansi/wide string constants
 
   Revision 1.57  2002/09/06 19:58:31  carl
