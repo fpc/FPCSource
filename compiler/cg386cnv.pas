@@ -893,59 +893,62 @@ implementation
          secondpass(hp);
          p^.location.loc:=LOC_REGISTER;
          del_reference(hp^.location.reference);
-         hregister:=getregister32;
-         case porddef(hp^.resulttype)^.typ of
-          bool8bit : begin
-                       case porddef(p^.resulttype)^.typ of
-                     u8bit,s8bit,
-                        bool8bit : opsize:=S_B;
-                   u16bit,s16bit,
-                       bool16bit : opsize:=S_BW;
-                   u32bit,s32bit,
-                       bool32bit : opsize:=S_BL;
-                       end;
+         case hp^.resulttype^.size of
+          1 : begin
+                case p^.resulttype^.size of
+                 1 : opsize:=S_B;
+                 2 : opsize:=S_BW;
+                 4 : opsize:=S_BL;
+                end;
+              end;
+          2 : begin
+                case p^.resulttype^.size of
+                 1 : begin
+                       if hp^.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
+                        hp^.location.register:=reg16toreg8(hp^.location.register);
+                       opsize:=S_B;
                      end;
-         bool16bit : begin
-                       case porddef(p^.resulttype)^.typ of
-                     u8bit,s8bit,
-                        bool8bit : opsize:=S_B;
-                   u16bit,s16bit,
-                       bool16bit : opsize:=S_W;
-                   u32bit,s32bit,
-                       bool32bit : opsize:=S_WL;
-                       end;
+                 2 : opsize:=S_W;
+                 4 : opsize:=S_WL;
+                end;
+              end;
+          4 : begin
+                case p^.resulttype^.size of
+                 1 : begin
+                       if hp^.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
+                        hp^.location.register:=reg32toreg8(hp^.location.register);
+                       opsize:=S_B;
                      end;
-         bool32bit : begin
-                       case porddef(p^.resulttype)^.typ of
-                     u8bit,s8bit,
-                        bool8bit : opsize:=S_B;
-                   u16bit,s16bit,
-                       bool16bit : opsize:=S_W;
-                   u32bit,s32bit,
-                       bool32bit : opsize:=S_L;
-                       end;
+                 2 : begin
+                       if hp^.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
+                        hp^.location.register:=reg32toreg16(hp^.location.register);
+                       opsize:=S_W;
                      end;
+                 4 : opsize:=S_L;
+                end;
+              end;
          end;
          if opsize in [S_B,S_W,S_L] then
           op:=A_MOV
          else
-          if (porddef(p^.resulttype)^.typ in [s8bit,s16bit,s32bit]) then
+          if is_signed(p^.resulttype) then
            op:=A_MOVSX
           else
            op:=A_MOVZX;
-         case porddef(p^.resulttype)^.typ of
-          bool8bit,u8bit,s8bit : begin
-                                   p^.location.register:=reg32toreg8(hregister);
-                                   newsize:=S_B;
-                                 end;
-       bool16bit,u16bit,s16bit : begin
-                                   p^.location.register:=reg32toreg16(hregister);
-                                   newsize:=S_W;
-                                 end;
-       bool32bit,u32bit,s32bit : begin
-                                   p^.location.register:=hregister;
-                                   newsize:=S_L;
-                                 end;
+         hregister:=getregister32;
+         case p^.resulttype^.size of
+          1 : begin
+                p^.location.register:=reg32toreg8(hregister);
+                newsize:=S_B;
+              end;
+          2 : begin
+                p^.location.register:=reg32toreg16(hregister);
+                newsize:=S_W;
+              end;
+          4 : begin
+                p^.location.register:=hregister;
+                newsize:=S_L;
+              end;
          else
           internalerror(10060);
          end;
@@ -955,16 +958,18 @@ implementation
       LOC_REFERENCE : exprasmlist^.concat(new(pai386,op_ref_reg(op,opsize,
                         newreference(hp^.location.reference),p^.location.register)));
        LOC_REGISTER,
-      LOC_CREGISTER : exprasmlist^.concat(new(pai386,op_reg_reg(op,opsize,
-                        hp^.location.register,p^.location.register)));
+      LOC_CREGISTER : begin
+                      { remove things like movb %al,%al }
+                        if hp^.location.register<>p^.location.register then
+                          exprasmlist^.concat(new(pai386,op_reg_reg(op,opsize,
+                            hp^.location.register,p^.location.register)));
+                      end;
           LOC_FLAGS : begin
                         hregister:=reg32toreg8(hregister);
                         exprasmlist^.concat(new(pai386,op_reg(flag_2_set[hp^.location.resflags],S_B,hregister)));
-                        case porddef(p^.resulttype)^.typ of
-                  bool16bit,
-              u16bit,s16bit : exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_BW,hregister,p^.location.register)));
-                  bool32bit,
-              u32bit,s32bit : exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_BL,hregister,p^.location.register)));
+                        case p^.resulttype^.size of
+                         2 : exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_BW,hregister,p^.location.register)));
+                         4 : exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_BL,hregister,p^.location.register)));
                         end;
                       end;
            LOC_JUMP : begin
@@ -1007,16 +1012,16 @@ implementation
          exprasmlist^.concat(new(pai386,op_reg_reg(A_OR,S_L,hregister,hregister)));
          hregister:=reg32toreg8(hregister);
          exprasmlist^.concat(new(pai386,op_reg(flag_2_set[hp^.location.resflags],S_B,hregister)));
-         case porddef(p^.resulttype)^.typ of
-           bool8bit : p^.location.register:=hregister;
-          bool16bit : begin
-                        p^.location.register:=reg8toreg16(hregister);
-                        exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_BW,hregister,p^.location.register)));
-                      end;
-          bool32bit : begin
-                        p^.location.register:=reg16toreg32(hregister);
-                        exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_BL,hregister,p^.location.register)));
-                      end;
+         case p^.resulttype^.size of
+          1 : p^.location.register:=hregister;
+          2 : begin
+                p^.location.register:=reg8toreg16(hregister);
+                exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_BW,hregister,p^.location.register)));
+              end;
+          4 : begin
+                p^.location.register:=reg16toreg32(hregister);
+                exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_BL,hregister,p^.location.register)));
+              end;
          else
           internalerror(10064);
          end;
@@ -1306,7 +1311,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  1998-09-27 10:16:22  florian
+  Revision 1.25  1998-09-30 12:14:24  peter
+    * fixed boolean(longbool) conversion
+
+  Revision 1.24  1998/09/27 10:16:22  florian
     * type casts pchar<->ansistring fixed
     * ansistring[..] calls does now an unique call
 
