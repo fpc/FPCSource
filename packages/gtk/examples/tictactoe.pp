@@ -74,9 +74,7 @@ Procedure gtk_signal_default_marshallerT(theobject : pGtkObject;
                                          func_data : gpointer;
                                          args      : pGtkArg); cdecl;
 begin
-{$ifndef win32}
   gtk_marshal_NONE__NONE (theobject,func,func_data,args);
-{$endif}
 end;
 
 Procedure tictactoe_class_init (theclass : pTictactoeClass );
@@ -163,7 +161,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:18  michael
+  Revision 1.3  2000-09-09 20:59:15  peter
+    * win32 updates
+
+  Revision 1.2  2000/07/13 11:33:18  michael
   + removed logs
- 
+
 }

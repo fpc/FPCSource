@@ -24,7 +24,7 @@ end;
 
 { this is the signal handler that got connected to button
   press/release events of the GtkList }
-procedure sigh_button_event (gtklist: pGtkWidget;event:pGdkEventButton;frame:pGtkWidget);{$ifdef win32}stdcall;{$else}cdecl;{$endif}
+procedure sigh_button_event (gtklist: pGtkWidget;event:pGdkEventButton;frame:pGtkWidget);cdecl;
 var
   dlist, free_list : pGList;
   new_prisoner     : pGtkWidget;
@@ -70,7 +70,7 @@ end;
 
 { this is the signal handler that gets called if GtkList
   emits the 'selection_changed' signal }
-procedure sigh_print_selection (gtklist   : pGtkWidget;func_data : gpointer);{$ifdef win32}stdcall;{$else}cdecl;{$endif}
+procedure sigh_print_selection (gtklist   : pGtkWidget;func_data : gpointer);cdecl;
 var dlist          : pGList;
   list_item        : pGtkObject;
   item_data_string : pgchar;
@@ -213,7 +213,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:18  michael
+  Revision 1.3  2000-09-09 20:59:15  peter
+    * win32 updates
+
+  Revision 1.2  2000/07/13 11:33:18  michael
   + removed logs
- 
+
 }

@@ -9,10 +9,6 @@ uses
   glib,gdk,gtk,
   tictactoe;
 
-{$ifndef win32}
-  {$linklib Xext}
-{$endif}
-
 procedure win (widget : pGtkWidget ; data: gpointer); cdecl;
 begin
   writeln ('Yay!');
@@ -48,7 +44,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:18  michael
+  Revision 1.3  2000-09-09 20:59:15  peter
+    * win32 updates
+
+  Revision 1.2  2000/07/13 11:33:18  michael
   + removed logs
- 
+
 }
