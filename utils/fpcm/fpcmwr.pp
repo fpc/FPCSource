@@ -482,18 +482,18 @@ implementation
           if FHasSection[Rule2Sec[rule]] then
            hs:=hs+' fpc_'+rule2str[rule];
           { include target dirs }
-          if CheckTargetVariable('target.dirs') then
+          if CheckTargetVariable('target_dirs') then
            begin
-             if CheckVariable('default.dir') then
+             if CheckVariable('default_dir') then
               hs:=hs+' $(addsuffix _'+rule2str[rule]+',$(DEFAULT_DIR))'
              else
               if not(rule in [r_sourceinstall,r_zipinstall,r_zipsourceinstall]) or
-                 not(CheckVariable('package.name')) then
+                 not(CheckVariable('package_name')) then
                hs:=hs+' $(addsuffix _'+rule2str[rule]+',$(TARGET_DIRS))';
            end;
           { include cleaning of example dirs }
           if (rule=r_clean) and
-             CheckTargetVariable('target.exampledirs') then
+             CheckTargetVariable('target_exampledirs') then
            hs:=hs+' $(addsuffix _'+rule2str[rule]+',$(TARGET_EXAMPLEDIRS))';
           { Add the rule }
           AddPhony(Rule2Str[Rule]);
@@ -774,7 +774,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2001-02-22 21:11:24  peter
+  Revision 1.6  2001-02-24 10:44:33  peter
+    * another fix for internal variable checking
+
+  Revision 1.5  2001/02/22 21:11:24  peter
     * fpcdir detection added
     * fixed loading of variables in fpcmake itself
 
