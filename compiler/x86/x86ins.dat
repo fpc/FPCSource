@@ -12,11 +12,6 @@
 ; arguments   bytes   flags
 ;
 
-;*****************************************************************************************
-; Insert i386 instructions only above the line ;!!!x86_64 ! x86-64 only instructions go
-; below this line
-;*****************************************************************************************
-
 [NONE]
 (Ch_None, Ch_None, Ch_None)
 void                  void                            none
@@ -184,29 +179,29 @@ rm32,imm              \321\300\2\x0F\xBA\205\25       386,SB
 [CALL,call]
 ; don't know value of any register
 (Ch_ROp1, Ch_All, Ch_None)
-imm                   \322\1\xE8\64                   8086
-imm|near              \322\1\xE8\64                   8086
-imm|far               \322\1\x9A\34\37                8086,ND
+imm                   \323\1\xE8\64                   8086
+imm|near              \323\1\xE8\64                   8086
+imm|far               \323\1\x9A\34\37                8086,ND
 imm16                 \320\1\xE8\64                   8086
 imm16|near            \320\1\xE8\64                   8086
 imm16|far             \320\1\x9A\34\37                8086,ND
 imm32                 \321\1\xE8\64                   8086
 imm32|near            \321\1\xE8\64                   8086
 imm32|far             \321\1\x9A\34\37                8086,ND
-imm:imm               \322\1\x9A\35\30                8086
+imm:imm               \323\1\x9A\35\30                8086
 imm16:imm             \320\1\x9A\31\30                8086
 imm:imm16             \320\1\x9A\31\30                8086
 imm32:imm             \321\1\x9A\41\30                386
 imm:imm32             \321\1\x9A\41\30                386
-mem|far               \322\300\1\xFF\203              8086
+mem|far               \323\300\1\xFF\203              8086
 mem16|far             \320\300\1\xFF\203              8086
 mem32|far             \321\300\1\xFF\203              386
-mem|near              \322\300\1\xFF\202              8086
+mem|near              \323\300\1\xFF\202              8086
 mem16|near            \320\300\1\xFF\202              8086
 mem32|near            \321\300\1\xFF\202              386
 reg16                 \320\300\1\xFF\202              8086
 reg32                 \321\300\1\xFF\202              386
-mem                   \322\300\1\xFF\202              8086
+mem                   \323\300\1\xFF\202              8086
 mem16                 \320\300\1\xFF\202              8086
 mem32                 \321\300\1\xFF\202              386
 
@@ -959,7 +954,7 @@ mem                   \300\2\x0F\x01\207              486,PRIV
 
 [IRET]
 (Ch_All, Ch_None, Ch_None)
-void                  \322\1\xCF                      8086
+void                  \323\1\xCF                      8086
 
 [IRETD,iret]
 (Ch_All, Ch_None, Ch_None)
@@ -980,29 +975,29 @@ imm                   \321\1\xE3\50                   386
 [JMP,jmpX]
 (Ch_ROp1, Ch_None, Ch_None)
 imm|short             \1\xEB\50                       8086,PASS2
-imm                   \322\1\xE9\64                   8086,PASS2
-imm|near              \322\1\xE9\64                   8086,ND,PASS2
-imm|far               \322\1\xEA\34\37                8086,ND,PASS2
+imm                   \323\1\xE9\64                   8086,PASS2
+imm|near              \323\1\xE9\64                   8086,ND,PASS2
+imm|far               \323\1\xEA\34\37                8086,ND,PASS2
 imm16                 \320\1\xE9\64                   8086,PASS2
 imm16|near            \320\1\xE9\64                   8086,ND,PASS2
 imm16|far             \320\1\xEA\34\37                8086,ND,PASS2
 imm32                 \321\1\xE9\64                   8086,PASS2
 imm32|near            \321\1\xE9\64                   8086,ND,PASS2
 imm32|far             \321\1\xEA\34\37                8086,ND,PASS2
-imm:imm               \322\1\xEA\35\30                8086
+imm:imm               \323\1\xEA\35\30                8086
 imm16:imm             \320\1\xEA\31\30                8086
 imm:imm16             \320\1\xEA\31\30                8086
 imm32:imm             \321\1\xEA\41\30                386
 imm:imm32             \321\1\xEA\41\30                386
-mem|far               \322\300\1\xFF\205              8086
+mem|far               \323\300\1\xFF\205              8086
 mem16|far             \320\300\1\xFF\205              8086
 mem32|far             \321\300\1\xFF\205              386
-mem|near              \322\300\1\xFF\204              8086
+mem|near              \323\300\1\xFF\204              8086
 mem16|near            \320\300\1\xFF\204              8086
 mem32|near            \321\300\1\xFF\204              386
 reg16                 \320\300\1\xFF\204              8086
 reg32                 \321\300\1\xFF\204              386
-mem                   \322\300\1\xFF\204              8086
+mem                   \323\300\1\xFF\204              8086
 mem16                 \320\300\1\xFF\204              8086
 mem32                 \321\300\1\xFF\204              386
 
@@ -1020,15 +1015,15 @@ reg32,reg32           \321\301\2\x0F\x02\110          286,PROT
 [LCALL,lcall]
 ; don't know value of any register
 (Ch_All, Ch_None, Ch_None)
-mem|far               \322\300\1\xFF\203              8086
+mem|far               \323\300\1\xFF\203              8086
 mem16|far             \320\300\1\xFF\203              8086
 mem32|far             \321\300\1\xFF\203              386
-mem|near              \322\300\1\xFF\202              8086
+mem|near              \323\300\1\xFF\202              8086
 mem16|near            \320\300\1\xFF\202              8086
 mem32|near            \321\300\1\xFF\202              386
 reg16                 \320\300\1\xFF\202              8086
 reg32                 \321\300\1\xFF\202              386
-mem                   \322\300\1\xFF\202              8086
+mem                   \323\300\1\xFF\202              8086
 mem16                 \320\300\1\xFF\202              8086
 mem32                 \321\300\1\xFF\202              386
 
@@ -1072,15 +1067,15 @@ mem                   \300\2\x0F\x01\203              286,PRIV
 
 [LJMP,ljmp]
 (Ch_ROp1, Ch_None, Ch_None)
-mem|far               \322\300\1\xFF\205              8086
+mem|far               \323\300\1\xFF\205              8086
 mem16|far             \320\300\1\xFF\205              8086
 mem32|far             \321\300\1\xFF\205              386
-mem|near              \322\300\1\xFF\204              8086
+mem|near              \323\300\1\xFF\204              8086
 mem16|near            \320\300\1\xFF\204              8086
 mem32|near            \321\300\1\xFF\204              386
 reg16                 \320\300\1\xFF\204              8086
 reg32                 \321\300\1\xFF\204              386
-mem                   \322\300\1\xFF\204              8086
+mem                   \323\300\1\xFF\204              8086
 mem16                 \320\300\1\xFF\204              8086
 mem32                 \321\300\1\xFF\204              386
 
@@ -1190,16 +1185,20 @@ reg_dess,reg16        \320\301\1\x8E\110              8086
 reg_fsgs,reg16        \320\301\1\x8E\110              386
 reg_dess,rm32         \321\301\1\x8E\110              8086
 reg_fsgs,rm32         \321\301\1\x8E\110              386
-reg_al,mem_offs       \301\1\xA0\35                   8086,SM
-reg_ax,mem_offs       \301\320\1\xA1\35               8086,SM
-reg_eax,mem_offs      \301\321\1\xA1\35               386,SM
-mem_offs,reg_al       \300\1\xA2\34                   8086,SM
-mem_offs,reg_ax       \300\320\1\xA3\34               8086,SM
-mem_offs,reg_eax      \300\321\1\xA3\34               386,SM
-reg32,reg_cr4         \2\x0F\x20\204                  PENT,PRIV
-reg32,reg_creg        \2\x0F\x20\101                  386,PRIV
-reg32,reg_dreg        \2\x0F\x21\101                  386,PRIV
-reg32,reg_treg        \2\x0F\x24\101                  386,PRIV
+reg_al,mem_offs       \301\1\xA0\35                   8086,SM,NOX86_64
+reg_ax,mem_offs       \301\320\1\xA1\35               8086,SM,NOX86_64
+reg_eax,mem_offs      \301\321\1\xA1\35               386,SM,NOX86_64
+mem_offs,reg_al       \300\1\xA2\34                   8086,SM,NOX86_64
+mem_offs,reg_ax       \300\320\1\xA3\34               8086,SM,NOX86_64
+mem_offs,reg_eax      \300\321\1\xA3\34               386,SM,NOX86_64
+reg32,reg_cr4         \2\x0F\x20\204                  PENT,PRIV,NOX86_64
+reg32,reg_creg        \2\x0F\x20\101                  386,PRIV,NOX86_64
+reg32,reg_dreg        \2\x0F\x21\101                  386,PRIV,NOX86_64
+reg32,reg_treg        \2\x0F\x24\101                  386,PRIV,NOX86_64
+reg64,reg_cr4         \2\x0F\x20\204                  PENT,PRIV,X86_64
+reg64,reg_creg        \2\x0F\x20\101                  386,PRIV,X86_64
+reg64,reg_dreg        \2\x0F\x21\101                  386,PRIV,X86_64
+reg64,reg_treg        \2\x0F\x24\101                  386,PRIV,X86_64
 reg_cr4,reg32         \2\x0F\x22\214                  PENT,PRIV
 reg_creg,reg32        \2\x0F\x22\110                  386,PRIV
 reg_dreg,reg32        \2\x0F\x23\110                  386,PRIV
@@ -1264,6 +1263,10 @@ xmmreg,mem            \301\3\xF2\x0F\x10\110          WILLAMETTE,SSE2
 [MOVSL]
 (Ch_All, Ch_None, Ch_None)
 void                  \321\1\xA5                      386
+
+[MOVSQ]
+(Ch_All, Ch_None, Ch_None)
+void                  \322\1\xA5                      X86_64
 
 [MOVSW]
 (Ch_All, Ch_None, Ch_None)
@@ -1661,7 +1664,7 @@ reg_fsgs              \1\x0F\5                        386
 
 [POPA,popaX]
 (Ch_All, Ch_None, Ch_None)
-void                  \322\1\x61                      186
+void                  \323\1\x61                      186
 
 [POPAD,popal]
 (Ch_All, Ch_None, Ch_None)
@@ -1673,7 +1676,7 @@ void                  \320\1\x61                      186
 
 [POPF]
 (Ch_RWESP, Ch_WFlags, Ch_None)
-void                  \322\1\x9D                      186
+void                  \323\1\x9D                      186
 
 [POPFD,popfl]
 (Ch_RWESP, Ch_WFlags, Ch_None)
@@ -1872,19 +1875,19 @@ xmmreg,xmmreg         \3\x66\x0F\x61\110              WILLAMETTE,SSE2
 
 [PUSH,pushX]
 (Ch_Rop1, Ch_RWESP, Ch_None)
-reg16                 \320\10\x50                     8086
-reg32                 \321\10\x50                     386
-rm16                  \320\300\1\xFF\206              8086
-rm32                  \321\300\1\xFF\206              386
-reg_fsgs              \1\x0F\7                        386
-reg_sreg              \6                              8086
-imm8                  \1\x6A\14                       286
-imm16                 \320\1\x68\30                   286
-imm32                 \321\1\x68\40                   386
+reg16                 \320\10\x50                     8086,NOX86_64
+reg32                 \321\10\x50                     386,NOX86_64
+rm16                  \320\300\1\xFF\206              8086,NOX86_64
+rm32                  \321\300\1\xFF\206              386,NOX86_64
+reg_fsgs              \1\x0F\7                        386,NOX86_64
+reg_sreg              \6                              8086,NOX86_64
+imm8                  \1\x6A\14                       286,NOX86_64
+imm16                 \320\1\x68\30                   286,NOX86_64
+imm32                 \321\1\x68\40                   386,NOX86_64
 
 [PUSHA,pushaX]
 (Ch_All, Ch_None, Ch_None)
-void                  \322\1\x60                      186
+void                  \323\1\x60                      186
 
 [PUSHAD,pushal]
 (Ch_All, Ch_None, Ch_None)
@@ -1896,7 +1899,7 @@ void                  \320\1\x60                      186
 
 [PUSHF]
 (Ch_RWESP, Ch_RFlags, Ch_None)
-void                  \322\1\x9C                      186
+void                  \323\1\x9C                      186
 
 [PUSHFD,pushfl]
 (Ch_RWESP, Ch_RFlags, Ch_None)
@@ -2026,7 +2029,7 @@ void                  \2\x0F\xAA                      PENT,SMM
 
 [SAHF]
 (Ch_WFlags, Ch_REAX, Ch_None)
-void                  \1\x9E                          8086
+void                  \1\x9E                          8086,NOX86_64
 
 [SAL,salX]
 (Ch_Mop2, Ch_Rop1, Ch_RWFlags)
@@ -2437,7 +2440,7 @@ reg32,reg32           \321\301\1\x0F\330\x40\110      P6
 
 [Jcc]
 (Ch_None, Ch_None, Ch_None)
-imm|near              \322\1\x0F\330\x80\64           386,PASS2
+imm|near              \323\1\x0F\330\x80\64           386,PASS2
 imm16|near            \320\1\x0F\330\x80\64           386,PASS2
 imm32|near            \321\1\x0F\330\x80\64           386,PASS2
 imm                   \330\x70\50                     8086
@@ -3404,25 +3407,21 @@ xmmreg,xmmreg		\3\xF3\x0F\x16\110		PRESCOTT,SSE3
 xmmreg,mem		\301\3\xF3\x0F\x12\110		PRESCOTT,SSE3
 xmmreg,xmmreg           \3\xF3\x0F\x12\110              PRESCOTT,SSE3
 
-;*****************************************************************************************
-; tell the i386 instruction table converter to stop here
-;!!!x86_64
 ;
-;
-; x86-64 instructions
+; GAS specific x86-64 instructions
 ;
 [MOVABS]
 (Ch_Wop2, Ch_Rop1, Ch_None)
 reg32,imm               \321\10\xB8\41                  X86_64
 
-;*****************************************************************************************
-; Insert i386 instructions only above the line ;!!!x86_64 !
-;*****************************************************************************************
-
-
 ;
 ; $Log$
-; Revision 1.8  2004-02-03 16:53:37  peter
+; Revision 1.9  2004-02-09 22:14:17  peter
+;   * more x86_64 parameter fixes
+;   * tparalocation.lochigh is now used to indicate if registerhigh
+;     is used and what the type is
+;
+; Revision 1.8  2004/02/03 16:53:37  peter
 ; *** empty log message ***
 ;
 ; Revision 1.7  2004/01/15 14:01:32  florian

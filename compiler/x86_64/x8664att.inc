@@ -199,6 +199,7 @@
 'movsb',
 'movsd',
 'movsl',
+'movsq',
 'movsw',
 'movs',
 'movz',

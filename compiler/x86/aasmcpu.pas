@@ -252,6 +252,7 @@ implementation
        IF_PRIV   = $00000100;  { it's a privileged instruction  }
        IF_SMM    = $00000200;  { it's only valid in SMM  }
        IF_PROT   = $00000400;  { it's protected mode only  }
+       IF_NOX86_64 = $00000800;  { removed instruction in x86_64  }
        IF_UNDOC  = $00001000;  { it's an undocumented instruction  }
        IF_FPU    = $00002000;  { it's an FPU instruction  }
        IF_MMX    = $00004000;  { it's an MMX instruction  }
@@ -264,7 +265,7 @@ implementation
        { SSE3 instructions  }
        IF_SSE3   = $00040000;
        { SSE64 instructions  }
-       IF_SSE64   = $00040000;
+       IF_SSE64  = $00080000;
        { the mask for processor types  }
        {IF_PMASK  = longint($FF000000);}
        { the mask for disassembly "prefer"  }
@@ -1512,13 +1513,14 @@ implementation
             192,193,194 :
               if NeedAddrPrefix(c-192) then
                inc(len);
-            208 :
+            208,
+            210 :
               inc(len);
             200,
             201,
             202,
             209,
-            210,
+            211,
             217,218: ;
             219,220 :
               inc(len);
@@ -1584,9 +1586,11 @@ implementation
        *                 the memory reference in operand x.
        * \310          - indicates fixed 16-bit address size, i.e. optional 0x67.
        * \311          - indicates fixed 32-bit address size, i.e. optional 0x67.
+       * \312          - indicates fixed 64-bit address size, i.e. optional 0x48.
        * \320          - indicates fixed 16-bit operand size, i.e. optional 0x66.
        * \321          - indicates fixed 32-bit operand size, i.e. optional 0x66.
-       * \322          - indicates that this instruction is only valid when the
+       * \322          - indicates fixed 64-bit operand size, i.e. optional 0x48.
+       * \323          - indicates that this instruction is only valid when the
        *                 operand size is the default (instruction to disassembler,
        *                 generates no code in the assembler)
        * \330          - a literal byte follows in the code stream, to be added
@@ -1805,6 +1809,11 @@ implementation
                 bytes[0]:=$66;
                 sec.writebytes(bytes,1);
               end;
+            210 :
+              begin
+                bytes[0]:=$48;
+                sec.writebytes(bytes,1);
+              end;
             216 :
               begin
                 bytes[0]:=ord(codes^)+condval[condition];
@@ -1814,7 +1823,7 @@ implementation
             201,
             202,
             209,
-            210,
+            211,
             217,218 :
               begin
                 { these are dissambler hints or 32 bit prefixes which
@@ -1955,7 +1964,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  2004-02-08 23:10:21  jonas
+  Revision 1.51  2004-02-09 22:14:17  peter
+    * more x86_64 parameter fixes
+    * tparalocation.lochigh is now used to indicate if registerhigh
+      is used and what the type is
+
+  Revision 1.50  2004/02/08 23:10:21  jonas
     * taicpu.is_same_reg_move() now gets a regtype parameter so it only
       removes moves of that particular register type. This is necessary so
       we don't remove the live_start instruction of a register before it

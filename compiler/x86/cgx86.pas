@@ -149,12 +149,12 @@ unit cgx86;
    const
 {$ifdef x86_64}
       TCGSize2OpSize: Array[tcgsize] of topsize =
-        (S_NO,S_B,S_W,S_L,S_Q,S_B,S_W,S_L,S_Q,
+        (S_NO,S_B,S_W,S_L,S_Q,S_Q,S_B,S_W,S_L,S_Q,S_Q,
          S_FS,S_FL,S_FX,S_IQ,S_FXX,
          S_NO,S_NO,S_NO,S_MD,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO);
 {$else x86_64}
       TCGSize2OpSize: Array[tcgsize] of topsize =
-        (S_NO,S_B,S_W,S_L,S_L,S_B,S_W,S_L,S_L,
+        (S_NO,S_B,S_W,S_L,S_L,S_L,S_B,S_W,S_L,S_L,S_L,
          S_FS,S_FL,S_FX,S_IQ,S_FXX,
          S_NO,S_NO,S_NO,S_MD,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO);
 {$endif x86_64}
@@ -1281,6 +1281,17 @@ unit cgx86;
     procedure Tcgx86.g_concatcopy(list:Taasmoutput;const source,dest:Treference;
                                   len:aword;delsource,loadref:boolean);
 
+    const
+{$ifdef cpu64bit}
+        REGCX=NR_RCX;
+        REGSI=NR_RSI;
+        REGDI=NR_RDI;
+{$else cpu64bit}
+        REGCX=NR_ECX;
+        REGSI=NR_ESI;
+        REGDI=NR_EDI;
+{$endif cpu64bit}
+
     type  copymode=(copy_move,copy_mmx,copy_string);
 
     var srcref,dstref:Treference;
@@ -1311,8 +1322,8 @@ unit cgx86;
           begin
             dstref:=dest;
             srcref:=source;
-            copysize:=4;
-            cgsize:=OS_32;
+            copysize:=sizeof(aword);
+            cgsize:=int_cgsize(copysize);
             while len<>0 do
               begin
                 if len<2 then
@@ -1324,6 +1335,11 @@ unit cgx86;
                   begin
                     copysize:=2;
                     cgsize:=OS_16;
+                  end
+                else if len<8 then
+                  begin
+                    copysize:=4;
+                    cgsize:=OS_32;
                   end;
                 dec(len,copysize);
                 if (len=0) and delsource then
@@ -1383,47 +1399,59 @@ unit cgx86;
           end
         else {copy_string, should be a good fallback in case of unhandled}
           begin
-            getexplicitregister(list,NR_EDI);
-            a_loadaddr_ref_reg(list,dest,NR_EDI);
-            getexplicitregister(list,NR_ESI);
+            getexplicitregister(list,REGDI);
+            a_loadaddr_ref_reg(list,dest,REGDI);
+            getexplicitregister(list,REGSI);
             if loadref then
-              a_load_ref_reg(list,OS_ADDR,OS_ADDR,source,NR_ESI)
+              a_load_ref_reg(list,OS_ADDR,OS_ADDR,source,REGSI)
             else
               begin
-                a_loadaddr_ref_reg(list,source,NR_ESI);
+                a_loadaddr_ref_reg(list,source,REGSI);
                 if delsource then
                   begin
                     srcref:=source;
                     { Don't release ESI register yet, it's needed
                       by the movsl }
-                    if (srcref.base=NR_ESI) then
+                    if (srcref.base=REGSI) then
                       srcref.base:=NR_NO
-                    else if (srcref.index=NR_ESI) then
+                    else if (srcref.index=REGSI) then
                       srcref.index:=NR_NO;
                     reference_release(list,srcref);
                   end;
               end;
 
-            getexplicitregister(list,NR_ECX);
+            getexplicitregister(list,REGCX);
 
             list.concat(Taicpu.op_none(A_CLD,S_NO));
             if cs_littlesize in aktglobalswitches  then
               begin
-                a_load_const_reg(list,OS_INT,len,NR_ECX);
+                a_load_const_reg(list,OS_INT,len,REGCX);
                 list.concat(Taicpu.op_none(A_REP,S_NO));
                 list.concat(Taicpu.op_none(A_MOVSB,S_NO));
               end
             else
               begin
-                helpsize:=len shr 2;
-                len:=len and 3;
+                helpsize:=len div sizeof(aword);
+                len:=len mod sizeof(aword);
                 if helpsize>1 then
                   begin
-                    a_load_const_reg(list,OS_INT,helpsize,NR_ECX);
+                    a_load_const_reg(list,OS_INT,helpsize,REGCX);
                     list.concat(Taicpu.op_none(A_REP,S_NO));
                   end;
                 if helpsize>0 then
-                  list.concat(Taicpu.op_none(A_MOVSL,S_NO));
+                  begin
+{$ifdef cpu64bit}
+                    if sizeof(aword)=8 then
+                      list.concat(Taicpu.op_none(A_MOVSQ,S_NO))
+                    else
+{$endif cpu64bit}
+                      list.concat(Taicpu.op_none(A_MOVSL,S_NO));
+                  end;
+                if len>2 then
+                  begin
+                    dec(len,4);
+                    list.concat(Taicpu.op_none(A_MOVSL,S_NO));
+                  end;
                 if len>1 then
                   begin
                     dec(len,2);
@@ -1431,10 +1459,10 @@ unit cgx86;
                   end;
                 if len=1 then
                   list.concat(Taicpu.op_none(A_MOVSB,S_NO));
-                end;
-            ungetregister(list,NR_ECX);
-            ungetregister(list,NR_ESI);
-            ungetregister(list,NR_EDI);
+              end;
+            ungetregister(list,REGCX);
+            ungetregister(list,REGSI);
+            ungetregister(list,REGDI);
           end;
         end;
       if delsource then
@@ -1852,7 +1880,12 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.109  2004-02-07 23:28:34  daniel
+  Revision 1.110  2004-02-09 22:14:17  peter
+    * more x86_64 parameter fixes
+    * tparalocation.lochigh is now used to indicate if registerhigh
+      is used and what the type is
+
+  Revision 1.109  2004/02/07 23:28:34  daniel
     * Take advantage of our new with statement optimization
 
   Revision 1.108  2004/02/06 14:37:48  florian

@@ -297,31 +297,41 @@ implementation
     procedure tparamanager.allocparaloc(list: taasmoutput; const loc: tparalocation);
       begin
         case loc.loc of
-          LOC_REGISTER, LOC_CREGISTER:
+          LOC_REGISTER,
+          LOC_CREGISTER,
+          LOC_FPUREGISTER,
+          LOC_CFPUREGISTER,
+          LOC_MMREGISTER,
+          LOC_CMMREGISTER :
             begin
               { NR_NO means we don't need to allocate the parameter.
                 This is used for inlining parameters which allocates
                 the parameters in gen_alloc_parast (PFV) }
               if loc.register<>NR_NO then
-                begin
-{$ifndef cpu64bit}
-                  if (loc.size in [OS_64,OS_S64,OS_F64]) then
-                    begin
-                      cg.getexplicitregister(list,loc.registerhigh);
-                      cg.getexplicitregister(list,loc.registerlow);
-                    end
-                  else
-{$endif cpu64bit}
-                    cg.getexplicitregister(list,loc.register);
-                end;
-            end;
-          LOC_FPUREGISTER, LOC_CFPUREGISTER:
-            begin
-              if loc.register<>NR_NO then
                 cg.getexplicitregister(list,loc.register);
             end;
-          LOC_REFERENCE,LOC_CREFERENCE:
+          LOC_REFERENCE,
+          LOC_CREFERENCE :
             { do nothing by default, most of the time it's the framepointer }
+          else
+            internalerror(200306091);
+        end;
+        case loc.lochigh of
+          LOC_INVALID :
+            ;
+          LOC_REGISTER,
+          LOC_CREGISTER,
+          LOC_FPUREGISTER,
+          LOC_CFPUREGISTER,
+          LOC_MMREGISTER,
+          LOC_CMMREGISTER :
+            begin
+              { NR_NO means we don't need to allocate the parameter.
+                This is used for inlining parameters which allocates
+                the parameters in gen_alloc_parast (PFV) }
+              if loc.registerhigh<>NR_NO then
+                cg.getexplicitregister(list,loc.registerhigh);
+            end;
           else
             internalerror(200306091);
         end;
@@ -331,22 +341,28 @@ implementation
     procedure tparamanager.freeparaloc(list: taasmoutput; const loc: tparalocation);
       begin
         case loc.loc of
-          LOC_REGISTER, LOC_CREGISTER:
-            begin
-{$ifndef cpu64bit}
-              if (loc.size in [OS_64,OS_S64,OS_F64]) then
-                begin
-                  cg.ungetregister(list,loc.registerhigh);
-                  cg.ungetregister(list,loc.registerlow);
-                end
-              else
-{$endif cpu64bit}
-                cg.ungetregister(list,loc.register);
-            end;
-          LOC_FPUREGISTER, LOC_CFPUREGISTER:
+          LOC_REGISTER,
+          LOC_CREGISTER,
+          LOC_FPUREGISTER,
+          LOC_CFPUREGISTER,
+          LOC_MMREGISTER,
+          LOC_CMMREGISTER :
             cg.ungetregister(list,loc.register);
           LOC_REFERENCE,LOC_CREFERENCE:
             { do nothing by default, most of the time it's the framepointer }
+          else
+            internalerror(200306091);
+        end;
+        case loc.lochigh of
+          LOC_INVALID :
+            ;
+          LOC_REGISTER,
+          LOC_CREGISTER,
+          LOC_FPUREGISTER,
+          LOC_CFPUREGISTER,
+          LOC_MMREGISTER,
+          LOC_CMMREGISTER :
+            cg.ungetregister(list,loc.register);
           else
             internalerror(200306091);
         end;
@@ -355,27 +371,53 @@ implementation
 
     procedure tparamanager.splitparaloc64(const locpara:tparalocation;var loclopara,lochipara:tparalocation);
       begin
-        if not(locpara.size in [OS_64,OS_S64]) then
-          internalerror(200307023);
         lochipara:=locpara;
         loclopara:=locpara;
-        if locpara.size=OS_S64 then
-          lochipara.size:=OS_S32
-        else
-          lochipara.size:=OS_32;
-        loclopara.size:=OS_32;
+        case locpara.size of
+          OS_S128 :
+            begin
+              lochipara.size:=OS_S64;
+              loclopara.size:=OS_64;
+            end;
+          OS_128 :
+            begin
+              lochipara.size:=OS_64;
+              loclopara.size:=OS_64;
+            end;
+          OS_S64 :
+            begin
+              lochipara.size:=OS_S32;
+              loclopara.size:=OS_32;
+            end;
+          OS_64 :
+            begin
+              lochipara.size:=OS_32;
+              loclopara.size:=OS_32;
+            end;
+          else
+            internalerror(200307023);
+        end;
+        loclopara.lochigh:=LOC_INVALID;
+        lochipara.lochigh:=LOC_INVALID;
         case locpara.loc of
-           LOC_REGISTER,LOC_CREGISTER:
+           LOC_REGISTER,
+           LOC_CREGISTER,
+           LOC_FPUREGISTER,
+           LOC_CFPUREGISTER,
+           LOC_MMREGISTER,
+           LOC_CMMREGISTER :
              begin
+               if locpara.lochigh=LOC_INVALID then
+                 internalerror(200402061);
                loclopara.register:=locpara.registerlow;
                lochipara.register:=locpara.registerhigh;
              end;
            LOC_REFERENCE:
              begin
                if target_info.endian=endian_big then
-                 inc(loclopara.reference.offset,4)
+                 inc(loclopara.reference.offset,tcgsize2size[loclopara.size])
                else
-                 inc(lochipara.reference.offset,4);
+                 inc(lochipara.reference.offset,tcgsize2size[loclopara.size]);
              end;
            else
              internalerror(200307024);
@@ -384,28 +426,32 @@ implementation
 
 
     procedure tparamanager.alloctempregs(list: taasmoutput;var locpara:tparalocation);
+      var
+        cgsize : tcgsize;
       begin
+        if locpara.lochigh<>LOC_INVALID then
+          cgsize:=OS_INT
+        else
+          cgsize:=locpara.size;
         case locpara.loc of
           LOC_REGISTER:
-            begin
-{$ifndef cpu64bit}
-              if locpara.size in [OS_64,OS_S64] then
-                begin
-                  locpara.registerlow:=cg.getintregister(list,OS_32);
-                  locpara.registerhigh:=cg.getintregister(list,OS_32);
-                end
-              else
-{$endif cpu64bit}
-                locpara.register:=cg.getintregister(list,locpara.size);
-            end;
+            locpara.register:=cg.getintregister(list,cgsize);
           LOC_FPUREGISTER:
-            begin
-              locpara.register:=cg.getfpuregister(list,locpara.size);
-            end;
+            locpara.register:=cg.getfpuregister(list,cgsize);
           LOC_MMREGISTER:
-            begin
-              locpara.register:=cg.getfpuregister(list,locpara.size);
-            end;
+            locpara.register:=cg.getmmregister(list,cgsize);
+          else
+            internalerror(200308123);
+        end;
+        case locpara.lochigh of
+          LOC_INVALID:
+            ;
+          LOC_REGISTER:
+            locpara.registerhigh:=cg.getintregister(list,cgsize);
+          LOC_FPUREGISTER:
+            locpara.registerhigh:=cg.getfpuregister(list,cgsize);
+          LOC_MMREGISTER:
+            locpara.registerhigh:=cg.getmmregister(list,cgsize);
           else
             internalerror(200308123);
         end;
@@ -458,7 +504,12 @@ end.
 
 {
    $Log$
-   Revision 1.68  2003-12-28 22:09:12  florian
+   Revision 1.69  2004-02-09 22:14:17  peter
+     * more x86_64 parameter fixes
+     * tparalocation.lochigh is now used to indicate if registerhigh
+       is used and what the type is
+
+   Revision 1.68  2003/12/28 22:09:12  florian
      + setting of bit 6 of cr for c var args on ppc implemented
 
    Revision 1.67  2003/12/06 01:15:22  florian

@@ -192,6 +192,7 @@ unit cpupara;
       begin
          fillchar(result,sizeof(tparalocation),0);
          result.size:=OS_INT;
+         result.lochigh:=LOC_INVALID;
          result.alignment:=get_para_align(calloption);
          if calloption=pocall_register then
            begin
@@ -225,6 +226,7 @@ unit cpupara;
         { Function return }
         fillchar(paraloc,sizeof(tparalocation),0);
         paraloc.size:=def_cgsize(p.rettype.def);
+        paraloc.lochigh:=LOC_INVALID;
         { Return in FPU register? }
         if p.rettype.def.deftype=floatdef then
           begin
@@ -277,6 +279,7 @@ unit cpupara;
           begin
             paraloc.size:=def_cgsize(hp.paratype.def);
             paraloc.loc:=LOC_REFERENCE;
+            paraloc.lochigh:=LOC_INVALID;
             paraloc.alignment:=paraalign;
             paraloc.reference.index:=NR_STACK_POINTER_REG;
             l:=push_size(hp.paratyp,hp.paratype.def,p.proccalloption);
@@ -325,6 +328,7 @@ unit cpupara;
             else
               paraloc.size:=def_cgsize(hp.paratype.def);
             paraloc.loc:=LOC_REFERENCE;
+            paraloc.lochigh:=LOC_INVALID;
             paraloc.alignment:=paraalign;
             if side=callerside then
               paraloc.reference.index:=NR_STACK_POINTER_REG
@@ -415,6 +419,7 @@ unit cpupara;
                   ) then
               begin
                 paraloc.loc:=LOC_REGISTER;
+                paraloc.lochigh:=LOC_INVALID;
                 if (paraloc.size=OS_NO) or is_64bit then
                   subreg:=R_SUBWHOLE
                 else
@@ -426,6 +431,7 @@ unit cpupara;
             else
               begin
                 paraloc.loc:=LOC_REFERENCE;
+                paraloc.lochigh:=LOC_INVALID;
                 if side=callerside then
                   paraloc.reference.index:=NR_STACK_POINTER_REG
                 else
@@ -488,7 +494,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.49  2004-02-05 18:28:37  peter
+  Revision 1.50  2004-02-09 22:14:17  peter
+    * more x86_64 parameter fixes
+    * tparalocation.lochigh is now used to indicate if registerhigh
+      is used and what the type is
+
+  Revision 1.49  2004/02/05 18:28:37  peter
     * x86_64 fixes for opsize
 
   Revision 1.48  2003/12/28 22:09:12  florian

@@ -95,7 +95,7 @@ interface
          not be loaded in a register directly }
        TCgSize = (OS_NO,
                  { integer registers }
-                  OS_8,OS_16,OS_32,OS_64,OS_S8,OS_S16,OS_S32,OS_S64,
+                  OS_8,OS_16,OS_32,OS_64,OS_128,OS_S8,OS_S16,OS_S32,OS_S64,OS_S128,
                  { single,double,extended,comp,float128 }
                   OS_F32,OS_F64,OS_F80,OS_C64,OS_F128,
                  { multi-media sizes: split in byte, word, dword, ... }
@@ -223,7 +223,7 @@ interface
 
        tcgsize2size : Array[tcgsize] of integer =
          { integer values }
-        (0,1,2,4,8,1,2,4,8,
+        (0,1,2,4,8,16,1,2,4,8,16,
          { floating point values }
          4,8,EXTENDED_SIZE,8,16,
          { multimedia values }
@@ -238,7 +238,7 @@ interface
        { Table to convert tcgsize variables to the correspondending
          unsigned types }
        tcgsize2unsigned : array[tcgsize] of tcgsize = (OS_NO,
-          OS_8,OS_16,OS_32,OS_64,OS_8,OS_16,OS_32,OS_64,
+          OS_8,OS_16,OS_32,OS_64,OS_128,OS_8,OS_16,OS_32,OS_64,OS_128,
           OS_F32,OS_F64,OS_F80,OS_C64,OS_F128,
           OS_M8,OS_M16,OS_M32,OS_M64,OS_M128,OS_M8,OS_M16,OS_M32,
           OS_M64,OS_M128);
@@ -583,7 +583,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.86  2004-01-12 22:11:38  peter
+  Revision 1.87  2004-02-09 22:14:17  peter
+    * more x86_64 parameter fixes
+    * tparalocation.lochigh is now used to indicate if registerhigh
+      is used and what the type is
+
+  Revision 1.86  2004/01/12 22:11:38  peter
     * use localalign info for alignment for locals and temps
     * sparc fpu flags branching added
     * moved powerpc copy_valye_openarray to generic

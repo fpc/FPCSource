@@ -96,7 +96,7 @@ const
         such as in PIC code. The exact meaning is ABI specific. For
         further information look at GCC source : PIC_OFFSET_TABLE_REGNUM
       }
-      NR_PIC_OFFSET_REG = NR_EBX;
+      NR_PIC_OFFSET_REG = NR_RBX;
       { Results are returned in this register (both 32 and 64 bits }
       NR_FUNCTION_RETURN_REG = NR_RAX;
       RS_FUNCTION_RETURN_REG = RS_RAX;
@@ -136,7 +136,12 @@ const
 
 {
   $Log$
-  Revision 1.12  2004-02-05 18:28:37  peter
+  Revision 1.13  2004-02-09 22:14:17  peter
+    * more x86_64 parameter fixes
+    * tparalocation.lochigh is now used to indicate if registerhigh
+      is used and what the type is
+
+  Revision 1.12  2004/02/05 18:28:37  peter
     * x86_64 fixes for opsize
 
   Revision 1.11  2004/01/15 13:57:58  florian
