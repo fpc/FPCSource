@@ -277,6 +277,8 @@
       MaxY := modeinfo^.MaxY;
       MaxColor := modeinfo^.MaxColor;
       PaletteSize := modeinfo^.PaletteSize;
+      { is this a direct color mode? }
+      DirectColor := modeinfo^.DirectColor;
       { now actually initialize the video mode...}
       { check first if the routine exists        }
       if not assigned(modeinfo^.InitMode) then
