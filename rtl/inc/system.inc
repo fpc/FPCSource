@@ -36,8 +36,8 @@ const
   OldRandSeed : Longint = 0;
   InitialSeed : Boolean = TRUE;
   Seed1 : Longint = 0;
-  Seed2 : Longint = 0;
-  Seed3 : Longint = 0;
+  Seed2 : Cardinal = 0;
+  Seed3 : Cardinal = 0;
 
 { For Error Handling.}
   DoError   : Boolean = FALSE;
@@ -475,7 +475,10 @@ end;
 
 {
   $Log$
-  Revision 1.36  1998-10-05 12:32:51  peter
+  Revision 1.37  1998-10-07 11:40:08  jonas
+    * changed seed2 and seed3 to cardinal to prevent overflow
+
+  Revision 1.36  1998/10/05 12:32:51  peter
     + assert() support
 
   Revision 1.35  1998/10/02 09:25:11  peter
