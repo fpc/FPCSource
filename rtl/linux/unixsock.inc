@@ -40,7 +40,7 @@ Const
 
 Function SocketCall(SockCallNr,a1,a2,a3,a4,a5,a6:longint):longint;
 var
-  Regs:SysCallRegs;
+//  Regs:SysCallRegs;
   Args:array[1..6] of longint;
 begin
 {$IFNDEF BSD}
@@ -50,11 +50,9 @@ begin
   args[4]:=a4;
   args[5]:=a5;
   args[6]:=a6;
-  regs.reg2:=SockCallNr;
-  regs.reg3:=Longint(@args);
-  SocketCall:=Syscall(syscall_nr_socketcall,regs);
+  SocketCall:=do_Syscall(syscall_nr_socketcall,sockcallnr,longint(@args));
   If SocketCall<0 then
-   SocketError:=Errno
+   SocketError:=fpgetErrno
   else
    SocketError:=0;
  {$ELSE}
@@ -80,7 +78,7 @@ end;
 
 Function CloseSocket (Sock:Longint):Longint;
 begin
-  if fdClose (Sock) then
+  if fpClose(Sock)=0 then
     CloseSocket := 0 else
     CloseSocket := -1;
 end;
@@ -274,7 +272,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2003-03-23 17:47:15  armin
+  Revision 1.8  2003-09-14 20:15:01  marco
+   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
+
+  Revision 1.7  2003/03/23 17:47:15  armin
   * CloseSocket added
 
   Revision 1.6  2002/09/07 16:01:20  peter

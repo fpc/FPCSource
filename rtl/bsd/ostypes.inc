@@ -22,11 +22,6 @@
 }
 
 Type
-  timeval  = packed record
-    tv_sec,tv_usec:clong;
-  end;
-  ptimeval = ^timeval;
-  TTimeVal = timeval;
 
   timespec = packed record
     tv_sec   : time_t;
@@ -63,7 +58,10 @@ Type
 
 {
  $Log$
- Revision 1.1  2003-01-05 19:01:28  marco
+ Revision 1.2  2003-09-14 20:15:01  marco
+  * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
+
+ Revision 1.1  2003/01/05 19:01:28  marco
   * FreeBSD compiles now with baseunix mods.
 
  Revision 1.4  2002/10/27 17:21:29  marco

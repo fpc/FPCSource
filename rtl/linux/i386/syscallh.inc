@@ -34,21 +34,20 @@ Type
 
   TSysParam  = Longint;
 
-function Do_SysCall(sysnr:TSysParam):TSysResult;{$ifndef VER1_0}oldfpccall;{$endif}external name 'FPC_SYSCALL0';
-function Do_SysCall(sysnr,param1:TSysParam):TSysResult;{$ifndef VER1_0}oldfpccall;{$endif}external name 'FPC_SYSCALL1';
-function Do_SysCall(sysnr,param1,param2:TSysParam):TSysResult; {$ifndef VER1_0}oldfpccall;{$endif}external name 'FPC_SYSCALL2';
-function Do_SysCall(sysnr,param1,param2,param3:TSysParam):TSysResult;{$ifndef VER1_0}oldfpccall;{$endif}external name 'FPC_SYSCALL3';
-function Do_SysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult;{$ifndef VER1_0}oldfpccall;{$endif}external name 'FPC_SYSCALL4';
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResult; {$ifndef VER1_0}oldfpccall;{$endif}external name 'FPC_SYSCALL5';
+function Do_SysCall(sysnr:TSysParam):TSysResult;  {$ifndef VER1_0} oldfpccall; {$endif} external name 'FPC_SYSCALL0';
+function Do_SysCall(sysnr,param1:TSysParam):TSysResult; {$ifndef VER1_0} oldfpccall; {$endif} external name 'FPC_SYSCALL1';
+function Do_SysCall(sysnr,param1,param2:TSysParam):TSysResult;  {$ifndef VER1_0} oldfpccall; {$endif} external name 'FPC_SYSCALL2';
+function Do_SysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; {$ifndef VER1_0} oldfpccall; {$endif} external name 'FPC_SYSCALL3';
+function Do_SysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; {$ifndef VER1_0} oldfpccall; {$endif} external name 'FPC_SYSCALL4';
+function Do_SysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResult;  {$ifndef VER1_0} oldfpccall; {$endif} external name 'FPC_SYSCALL5';
 {$ifdef notsupported}
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TSysResult; {$ifndef VER1_0}oldfpccall;{$endif}external name 'FPC_SYSCALL6';
+function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TSysResult;  {$ifndef VER1_0} oldfpccall; {$endif} external name 'FPC_SYSCALL6';
 {$endif notsupported}
 
 {
   $Log$
-  Revision 1.5  2003-09-14 11:34:13  peter
-    * moved int64 asm code to int64p.inc
-    * save ebx,esi
+  Revision 1.6  2003-09-14 20:15:01  marco
+   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
   Revision 1.4  2003/07/06 21:26:10  peter
     * syscall6 alias fixed

@@ -642,7 +642,7 @@ function tputs(Ndx: Word; L1: Longint; F: WriterFunc): Longint;
 implementation
 
 uses
-  Unix;
+  baseUnix;
 
 function putp(Ndx: Longint): Longint;
 var
@@ -651,7 +651,7 @@ begin
   if not assigned(cur_term) then
     RunError(219);
   P := cur_term_strings^[Ndx];
-  putp := fdWrite(cur_term_common^.filedes, P^, StrLen(P));
+  putp := fpWrite(cur_term_common^.filedes, P^, StrLen(P));
 end;
 
 function tputs(Ndx: Word; L1: Longint; F: WriterFunc): Longint;
@@ -741,7 +741,10 @@ function tparam(const char *, char *, int, ...): PChar; cdecl; external;}
 end.
 {
   $Log$
-  Revision 1.3  2002-09-07 16:01:28  peter
+  Revision 1.4  2003-09-14 20:15:01  marco
+   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
+
+  Revision 1.3  2002/09/07 16:01:28  peter
     * old logs removed and tabs fixed
 
 }

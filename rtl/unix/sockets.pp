@@ -134,12 +134,11 @@ Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:File):Boolean;
 
 Implementation
 
-Uses Unix;
+Uses BaseUnix,SysCall;
 
 { Include filerec and textrec structures }
 {$i filerec.inc}
 {$i textrec.inc}
-
 {******************************************************************************
                           Kernel Socket Callings
 ******************************************************************************}
@@ -152,7 +151,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2002-09-07 16:01:27  peter
+  Revision 1.7  2003-09-14 20:15:01  marco
+   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
+
+  Revision 1.6  2002/09/07 16:01:27  peter
     * old logs removed and tabs fixed
 
 }

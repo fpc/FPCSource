@@ -34,19 +34,22 @@ Type
 
   TSysParam  = Longint;
 
-function Do_SysCall(sysnr:TSysParam):TSysResult;  external name 'FPC_DOSYS0';
-function Do_SysCall(sysnr,param1:TSysParam):TSysResult; external name 'FPC_DOSYS1';
-//function Do_SysCall(sysnr,param1:integer):TSysResult; external name 'FPC_DOSYS1w';
-function Do_SysCall(sysnr,param1,param2:TSysParam):TSysResult;  external name 'FPC_DOSYS2';
-function Do_SysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; external name 'FPC_DOSYS3';
-function Do_SysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; external name 'FPC_DOSYS4';
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResult;  external name 'FPC_DOSYS5';
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):int64;  external name 'FPC_DOSYS6';
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6,param7:TSysParam):int64;   external name 'FPC_DOSYS7';
+function do_sysCall(sysnr:TSysParam):TSysResult;  external name 'FPC_DOSYS0';
+function do_sysCall(sysnr,param1:TSysParam):TSysResult; external name 'FPC_DOSYS1';
+//function do_sysCall(sysnr,param1:integer):TSysResult; external name 'FPC_DOSYS1w';
+function do_sysCall(sysnr,param1,param2:TSysParam):TSysResult;  external name 'FPC_DOSYS2';
+function do_sysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; external name 'FPC_DOSYS3';
+function do_sysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; external name 'FPC_DOSYS4';
+function do_sysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResult;  external name 'FPC_DOSYS5';
+function do_sysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):int64;  external name 'FPC_DOSYS6';
+function do_sysCall(sysnr,param1,param2,param3,param4,param5,param6,param7:TSysParam):int64;   external name 'FPC_DOSYS7';
 
 {
   $Log$
-  Revision 1.6  2003-05-30 19:58:40  marco
+  Revision 1.7  2003-09-14 20:15:01  marco
+   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
+
+  Revision 1.6  2003/05/30 19:58:40  marco
    * Getting NetBSD/i386 to compile.
 
   Revision 1.5  2003/01/05 19:01:28  marco

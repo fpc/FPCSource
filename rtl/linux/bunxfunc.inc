@@ -20,11 +20,12 @@
 {$i sysnr.inc}		// syscall numbers.
 {$i ostypes.inc}
 {$i ossysch.inc}	// external interface to syscalls in system unit.
+//{$i genfuncs.inc}
+
 {$i bunxmacr.inc}	// macro's.
 
 {$I gensigset.inc}     // general sigset funcs implementation. 
-
-
+{$I genfdset.inc}
 
 Function fpKill(Pid:pid_t;Sig:cint):cint;
 {
@@ -409,13 +410,33 @@ end;
 function fpgetcwd(path : pchar; siz:size_t):pchar;
 
 begin
+  fpgetcwd:=pchar(Do_Syscall(Syscall_nr_getcwd,TSysParam(Path),TSysParam(siz)));
+end;
 
-fpgetcwd:=pchar(Do_Syscall(Syscall_nr_getcwd,TSysParam(Path),TSysParam(siz)));
+Function fpSelect(N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cint;
+{
+  Select checks whether the file descriptor sets in readfs/writefs/exceptfs
+  have changed.
+}
+
+Var 
+  SelectArray : Array[1..5] of longint;
+
+begin
+  SelectArray[1]:=n;
+  SelectArray[2]:=longint(Readfds);
+  Selectarray[3]:=longint(Writefds);
+  selectarray[4]:=longint(exceptfds);
+  Selectarray[5]:=longint(TimeOut);
+  fpSelect:=do_syscall(syscall_nr_select,longint(@selectarray));
 end;
 
 {
  $Log$
- Revision 1.2  2003-01-05 19:16:45  marco
+ Revision 1.3  2003-09-14 20:15:01  marco
+  * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
+
+ Revision 1.2  2003/01/05 19:16:45  marco
   * small fix
 
  Revision 1.1  2002/12/18 16:43:26  marco

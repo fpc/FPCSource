@@ -27,16 +27,26 @@ Interface
 {$i bunxtype.inc}	{ Types }
 {$i bunxh.inc}		{ Functions}
 
+function fpgeterrno:longint;
+procedure fpseterrno(err:longint);
+
+
 implementation
 
 {$i bunxmain.inc}	{ implementation}
 {$i bunxovl.inc}	{ redefs and overloads implementation}
 
+function fpgeterrno:longint; external name 'FPC_SYS_GETERRNO';
+procedure fpseterrno(err:longint); external name 'FPC_SYS_SETERRNO';
+
 end.
 
 {
   $Log$
-  Revision 1.1  2002-12-18 16:44:09  marco
+  Revision 1.2  2003-09-14 20:15:01  marco
+   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
+
+  Revision 1.1  2002/12/18 16:44:09  marco
    * more new RTL
 
   Revision 1.2  2002/11/14 12:17:28  marco

@@ -45,13 +45,13 @@
      sched_param = record
         sched_priority : LongInt;
      end;
-
+{
      ptimespec = ^timespec;
      timespec = record
         tv_sec : LongInt;
         tv_nsec : LongInt;
      end;
-
+}
      psigset_t = ^sigset_t;
      sigset_t = DWORD; // unsigned long 32 bits
 
@@ -91,7 +91,7 @@
       PTHREAD_SCOPE_PROCESS   = 1;
 
     type
-       size_t = longint;
+//       size_t = longint;
 
        ppthread_attr_t = ^pthread_attr_t;
        pthread_attr_t = record
@@ -198,7 +198,10 @@
 
 {
   $Log$
-  Revision 1.1  2002-10-18 18:03:57  marco
+  Revision 1.2  2003-09-14 20:15:01  marco
+   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
+
+  Revision 1.1  2002/10/18 18:03:57  marco
    * From the original systhrds code.
      Turned out to be not entirely the same as *BSD's (constants with
      different names, existing and non existing constants), so I decided to

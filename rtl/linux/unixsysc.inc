@@ -25,7 +25,7 @@ var
   regs:SysCallregs;
 begin
   Fork:=SysCall(SysCall_nr_fork,regs);
-  LinuxError:=Errno;
+  LinuxError:=fpgetErrno;
 End;
 
 
@@ -44,7 +44,7 @@ begin
   regs.reg4:=longint(ep);
   SysCall(SysCall_nr_Execve,regs);
 { This only gets set when the call fails, otherwise we don't get here ! }
-  Linuxerror:=errno;
+  Linuxerror:=fpgeterrno;
 end;
 
 
@@ -62,7 +62,7 @@ begin
   regs.reg4:=longint(ep);
   SysCall(SysCall_nr_Execve,regs);
 { This only gets set when the call fails, otherwise we don't get here ! }
-  Linuxerror:=errno;
+  Linuxerror:=fpgeterrno;
 end;
 
 Procedure ExitProcess(val:longint);
@@ -88,7 +88,7 @@ begin
   regs.reg3:=longint(status);
   regs.reg4:=options;
   WaitPid:=SysCall(SysCall_nr_waitpid,regs);
-  LinuxError:=errno;
+  LinuxError:=fpgeterrno;
 end;
 
 
@@ -103,7 +103,7 @@ begin
   regs.reg2:=longint(@tv);
   regs.reg3:=0;
   SysCall(SysCall_nr_gettimeofday,regs);
-  LinuxError:=Errno;
+  LinuxError:=fpgetErrno;
 end;
 
 Function GetPriority(Which,Who:Integer):integer;
@@ -123,7 +123,7 @@ Function GetPriority(Which,Who:Integer):integer;
 var
   sr : Syscallregs;
 begin
-  errno:=0;
+  fpseterrno(0);
   if (which<prio_process) or (which>prio_user) then
    begin
      { We can save an interrupt here }
@@ -135,7 +135,7 @@ begin
      sr.reg2:=which;
      sr.reg3:=who;
      getpriority:=SysCall(Syscall_nr_getpriority,sr);
-     linuxerror:=errno;
+     linuxerror:=fpgeterrno;
    end;
 end;
 
@@ -159,7 +159,7 @@ Procedure SetPriority(Which:Integer;Who:Integer;What:Integer);
 var
   sr : Syscallregs;
 begin
-  errno:=0;
+  fpseterrno(0);
   if ((which<prio_process) or (which>prio_user)) or ((what<-20) or (what>20)) then
    linuxerror:=ESyseinval  { We can save an interrupt here }
   else
@@ -168,7 +168,7 @@ begin
      sr.reg3:=who;
      sr.reg4:=what;
      SysCall(Syscall_nr_setpriority,sr);
-     linuxerror:=errno;
+     linuxerror:=fpgeterrno;
    end;
 end;
 
@@ -183,7 +183,7 @@ var
 begin
   sr.reg2:=n;
   SysCall(Syscall_nr_nice,sr);
-  linuxerror:=errno;
+  linuxerror:=fpgeterrno;
 end;
 
 
@@ -196,7 +196,7 @@ var
   regs : SysCallregs;
 begin
   GetPid:=SysCall(SysCall_nr_getpid,regs);
-  linuxerror:=errno;
+  linuxerror:=fpgeterrno;
 end;
 
 
@@ -209,7 +209,7 @@ var
   regs : SysCallregs;
 begin
   GetPpid:=SysCall(SysCall_nr_getppid,regs);
-  linuxerror:=errno;
+  linuxerror:=fpgeterrno;
 end;
 
 
@@ -222,7 +222,7 @@ var
   regs : SysCallregs;
 begin
   GetUid:=SysCall(SysCall_nr_getuid,regs);
-  Linuxerror:=errno;
+  Linuxerror:=fpgeterrno;
 end;
 
 
@@ -235,7 +235,7 @@ var
   regs : SysCallregs;
 begin
   GetEuid:=SysCall(SysCall_nr_geteuid,regs);
-  Linuxerror:=errno;
+  Linuxerror:=fpgeterrno;
 end;
 
 
@@ -248,7 +248,7 @@ var
   regs : SysCallregs;
 begin
   Getgid:=SysCall(SysCall_nr_getgid,regs);
-  Linuxerror:=errno;
+  Linuxerror:=fpgeterrno;
 end;
 
 
@@ -261,7 +261,7 @@ var
   regs : SysCallregs;
 begin
   GetEgid:=SysCall(SysCall_nr_getegid,regs);
-  Linuxerror:=errno;
+  Linuxerror:=fpgeterrno;
 end;
 
 
@@ -277,8 +277,8 @@ begin
   regs.reg2:=longint(@tv);
   regs.reg3:=0;
   SysCall(SysCall_nr_gettimeofday,regs);
-  LinuxError:=Errno;
-  GetTimeOfDay:=tv.sec;
+  LinuxError:=fpgetErrno;
+  GetTimeOfDay:=tv.tv_sec;
 end;
 
 
@@ -289,7 +289,7 @@ begin
   Regs.reg2:=fd;
   Regs.reg3:=size;
   fdTruncate:=(SysCall(Syscall_nr_ftruncate,regs)=0);
-  LinuxError:=Errno;
+  LinuxError:=fpgetErrno;
 end;
 
 
@@ -300,7 +300,7 @@ var
 begin
   SR.reg2 := fd;
   fdFlush := (SysCall(syscall_nr_fsync, SR)=0);
-  LinuxError:=Errno;
+  LinuxError:=fpgetErrno;
 end;
 
 
@@ -323,7 +323,7 @@ begin
      Linuxerror:=SysCall(Syscall_nr_fcntl,sr);
      if linuxerror=-1 then
       begin
-        linuxerror:=errno;
+        linuxerror:=fpgeterrno;
         fcntl:=0;
       end
      else
@@ -359,7 +359,7 @@ begin
      sr.reg3:=cmd;
      sr.reg4:=arg;
      SysCall(Syscall_nr_fcntl,sr);
-     linuxerror:=errno;
+     linuxerror:=fpgeterrno;
    end
   else
    linuxerror:=ESyseinval;
@@ -377,7 +377,7 @@ begin
   sr.reg2:=longint(@(path[1]));
   sr.reg3:=newmode;
   Chmod:=(SysCall(Syscall_nr_chmod,sr)=0);
-  linuxerror:=errno;
+  linuxerror:=fpgeterrno;
 end;
 
 
@@ -396,12 +396,10 @@ begin
   sr.reg3:=newuid;
   sr.reg4:=newgid;
   ChOwn:=(Syscall(Syscall_nr_chown,sr)=0);
-  linuxerror:=errno;
+  linuxerror:=fpgeterrno;
 end;
 
-
-
-Function Utime(path:pathstr;utim:utimebuf):boolean;
+Function Utime(path:pathstr;utim:utimbuf):boolean;
 var
   sr : Syscallregs;
 begin
@@ -409,10 +407,8 @@ begin
   sr.reg2:=longint(@(path[1]));
   sr.reg3:=longint(@utim);
   Utime:=SysCall(Syscall_nr_utime,sr)=0;
-  linuxerror:=errno;
+  linuxerror:=fpgeterrno;
 end;
-
-
 
 Function  Flock (fd,mode : longint) : boolean;
 var
@@ -421,10 +417,8 @@ begin
   sr.reg2:=fd;
   sr.reg3:=mode;
   flock:=Syscall(Syscall_nr_flock,sr)=0;
-  LinuxError:=errno;
+  LinuxError:=fpgeterrno;
 end;
-
-
 
 Function Fstat(Fd:Longint;var Info:stat):Boolean;
 {
@@ -436,7 +430,7 @@ begin
   regs.reg2:=Fd;
   regs.reg3:=longint(@Info);
   FStat:=(SysCall(SysCall_nr_fstat,regs)=0);
-  LinuxError:=Errno;
+  LinuxError:=fpgetErrno;
 end;
 
 
@@ -451,7 +445,7 @@ begin
   regs.reg2:=longint(@filename[1]);
   regs.reg3:=longint(@Info);
   LStat:=(SysCall(SysCall_nr_lstat,regs)=0);
-  LinuxError:=Errno;
+  LinuxError:=fpgetErrno;
 end;
 
 
@@ -469,7 +463,7 @@ begin
   regs.reg2:=longint(@path[1]);
   regs.reg3:=longint(@Info);
   StatFS:=(SysCall(SysCall_nr_statfs,regs)=0);
-  LinuxError:=errno;
+  LinuxError:=fpgeterrno;
 end;
 
 
@@ -486,7 +480,7 @@ begin
   regs.reg2:=Fd;
   regs.reg3:=longint(@Info);
   StatFS:=(SysCall(SysCall_nr_fstatfs,regs)=0);
-  LinuxError:=errno;
+  LinuxError:=fpgeterrno;
 end;
 
 
@@ -504,7 +498,7 @@ begin
   regs.reg2:=longint(@oldpath[1]);
   regs.reg3:=longint(@newpath[1]);
   Link:=SysCall(SysCall_nr_link,regs)=0;
-  linuxerror:=errno;
+  linuxerror:=fpgeterrno;
 end;
 
 
@@ -545,7 +539,7 @@ begin
   sr.reg2:=longint(@(path[1]));
   sr.reg3:=mode;
   access:=(SysCall(Syscall_nr_access,sr)=0);
-  linuxerror:=errno;
+  linuxerror:=fpgeterrno;
 end;
 
 
@@ -558,7 +552,7 @@ var
 begin
   sr.reg2:=oldfile;
   newfile:=Syscall(Syscall_nr_dup,sr);
-  linuxerror:=errno;
+  linuxerror:=fpgeterrno;
   Dup:=(LinuxError=0);
 end;
 
@@ -573,31 +567,9 @@ begin
   sr.reg2:=oldfile;
   sr.reg3:=newfile;
   SysCall(Syscall_nr_dup2,sr);
-  linuxerror:=errno;
+  linuxerror:=fpgeterrno;
   Dup2:=(LinuxError=0);
 end;
-
-
-Function Select(N:longint;readfds,writefds,exceptfds:PFDSet;TimeOut:PTimeVal):longint;
-{
-  Select checks whether the file descriptor sets in readfs/writefs/exceptfs
-  have changed.
-}
-Var
-  SelectArray : Array[1..5] of longint;
-  Sr : Syscallregs;
-begin
-  SelectArray[1]:=n;
-  SelectArray[2]:=longint(Readfds);
-  Selectarray[3]:=longint(Writefds);
-  selectarray[4]:=longint(exceptfds);
-  Selectarray[5]:=longint(TimeOut);
-  sr.reg2:=longint(@selectarray);
-  Select:=SysCall(Syscall_nr_select,sr);
-  LinuxError:=Errno;
-end;
-
-
 
 Function AssignPipe(var pipe_in,pipe_out:longint):boolean;
 {
@@ -613,7 +585,7 @@ begin
   SysCall(SysCall_nr_pipe,regs);
   pipe_in:=pip[1];
   pipe_out:=pip[2];
-  linuxerror:=errno;
+  linuxerror:=fpgeterrno;
   AssignPipe:=(LinuxError=0);
 end;
 
@@ -684,7 +656,7 @@ var
 Begin
   regs.reg2:=longint(@unamerec);
   Uname:=SysCall(SysCall_nr_uname,regs)=0;
-  LinuxError:=Errno;
+  LinuxError:=fpgetErrno;
 End;
 
 
@@ -705,7 +677,7 @@ begin
   kill:=SysCall(Syscall_nr_kill,regs);
   if kill<0 then
    Kill:=0;
-  linuxerror:=errno;
+  linuxerror:=fpgeterrno;
 end;
 
 
@@ -725,7 +697,7 @@ begin
   sr.reg3:=longint(SSet);
   sr.reg4:=longint(OldSSet);
   SysCall(Syscall_nr_sigprocmask,sr);
-  linuxerror:=errno;
+  linuxerror:=fpgeterrno;
 end;
 
 
@@ -741,7 +713,7 @@ Var
 begin
   sr.reg2:=longint(@dummy);
   SysCall(Syscall_nr_sigpending,sr);
-  linuxerror:=errno;
+  linuxerror:=fpgeterrno;
   Sigpending:=dummy;
 end;
 
@@ -757,7 +729,7 @@ Var
 begin
   sr.reg2:=mask[0];
   SysCall(Syscall_nr_sigsuspend,sr);
-  linuxerror:=errno;
+  linuxerror:=fpgeterrno;
 end;
 
 
@@ -777,7 +749,7 @@ begin
   If linuxerror=Sig_Err then
    begin
      Signal:=nil;
-     Linuxerror:=errno;
+     Linuxerror:=fpgeterrno;
    end
   else
    begin
@@ -802,7 +774,7 @@ Var Sr : Syscallregs;
 begin
   syscall(syscall_nr_pause,sr);
 end;
-
+{
 Function NanoSleep(const req : timespec;var rem : timespec) : longint;
 
 var Sr : Syscallregs;
@@ -813,7 +785,7 @@ begin
   NanoSleep:=Syscall(syscall_nr_nanosleep,sr);
   LinuxError:=Errno;
 end;
-
+}
 Function IOCtl(Handle,Ndx: Longint;Data: Pointer):boolean;
 {
   Interface to Unix ioctl call.
@@ -829,7 +801,7 @@ begin
   sr.reg3:=Ndx;
   sr.reg4:=Longint(Data);
   IOCtl:=(SysCall(Syscall_nr_ioctl,sr)=0);
-  LinuxError:=Errno;
+  LinuxError:=fpgetErrno;
 end;
 
 
@@ -839,7 +811,7 @@ Var
 begin
   Sr.reg2:=longint(@m);
   MMap:=syscall(syscall_nr_mmap,sr);
-  LinuxError:=Errno;
+  LinuxError:=fpgetErrno;
 end;
 
 function MUnMap (P : Pointer; Size : Longint) : Boolean;
@@ -849,7 +821,7 @@ begin
   Sr.reg2:=longint(P);
   sr.reg3:=Size;
   MUnMap:=syscall(syscall_nr_munmap,sr)=0;
-  LinuxError:=Errno;
+  LinuxError:=fpgetErrno;
 end;
 
 {--------------------------------
@@ -871,7 +843,7 @@ begin
   Sr.Reg3:=Num;
   Sr.Reg4:=Value;
   IOPerm:=Syscall(Syscall_nr_ioperm,sr)=0;
-  LinuxError:=Errno;
+  LinuxError:=fpgetErrno;
 end;
 
 Function IoPL(Level : longint) : Boolean;
@@ -881,14 +853,17 @@ Var
 begin
   Sr.Reg2:=Level;
   IOPL:=Syscall(Syscall_nr_iopl,sr)=0;
-  LinuxError:=Errno;
+  LinuxError:=fpgetErrno;
 end;
 
 {$endif i386}
 
 {
   $Log$
-  Revision 1.9  2003-07-08 21:23:24  peter
+  Revision 1.10  2003-09-14 20:15:01  marco
+   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
+
+  Revision 1.9  2003/07/08 21:23:24  peter
     * sparc fixes
 
   Revision 1.8  2002/12/18 16:43:26  marco

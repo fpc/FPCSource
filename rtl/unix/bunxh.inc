@@ -19,11 +19,18 @@ Type TGrpArr = Array [0..0] of TGid;		{ C style array workarounds}
      TFilDes = Array [0..1] of cInt;
      pFilDes = ^TFilDes;
 
+    Function  fpfdaddset   (var nset : TFDSet;fdno:cint): cint;
+    Function  fpfddelset   (var nset : TFDSet;fdno:cint): cint;
+    Function  fpfdemptyset (var nset : TFDSet):cint;
+    Function  fpfdfillset  (var nset : TFDSet):cint;
+    Function  fpfdismember (const nset : TFDSet;fdno:cint): cint;
+
     Function  FpsigEmptySet(var nset : TSigSet): cint;
     Function  FpSigFillSet (var nset : TSigSet): cInt;
     Function  FpSigAddSet  (var nset : TSigSet; signo : cInt): cInt;
     Function  FpSigDelSet  (var nset : TSigSet; signo : cInt): cInt;
     Function  FpSigIsMember(Const nset : TSigSet; signo : cInt): cInt;
+
     Function  FpSigProcMask(how : cInt; nset : pSigSet; oset : pSigSet): cInt; 
     Function  FpSigProcMask(how : cInt; Const nset : TSigSet; var oset : TSigSet): cInt; 
     Function  FpSigPending (var nset : TSigSet): cInt;
@@ -87,6 +94,9 @@ Type TGrpArr = Array [0..0] of TGid;		{ C style array workarounds}
     Function  FpTime	   (var tloc : TTime): TTime;
     Function  FpFtruncate  (fd : cInt; flength : TOff): cInt;
     Function  FPSigaction  (sig: cInt; act : pSigActionRec; oact : pSigActionRec): cint; 
+    Function  FPSelect 	   (N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cint;
+    Function  FpIOCtl      (Handle:cint;Ndx: culong;Data: Pointer):cint;  
+
 
     Function  FpGetEnv	   (name : pChar): pChar;
     Function  FpGetEnv	   (name : String): pChar;
@@ -107,7 +117,10 @@ Type TGrpArr = Array [0..0] of TGid;		{ C style array workarounds}
 
 {
   $Log$
-  Revision 1.3  2003-06-01 16:28:41  marco
+  Revision 1.4  2003-09-14 20:15:01  marco
+   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
+
+  Revision 1.3  2003/06/01 16:28:41  marco
    * Enhancements to make the compiler baseunix using.
 
   Revision 1.2  2003/01/05 19:11:32  marco

@@ -44,19 +44,18 @@ Type
   PSysCallRegs= ^SysCallRegs;
   TSysCallRegs= SysCallRegs;
 
-
   ptimespec   = ^timespec;
   timespec    = packed record
     		 tv_sec   : time_t;
     		 tv_nsec  : clong;
  		end;
 
-  timeval     = packed record
-    		 tv_sec,
-		 tv_usec:clong;
-  		end;
-  ptimeval    = ^timeval;
-  TTimeVal    = timeval;
+
+  timezone = packed record
+    minuteswest,dsttime:longint;
+  end;
+  ptimezone =^timezone;
+  TTimeZone = timezone;
 
 CONST 
        _S_IFDIR = $4000;
@@ -68,7 +67,10 @@ CONST
 
 {
  $Log$
- Revision 1.2  2002-12-18 16:43:26  marco
+ Revision 1.3  2003-09-14 20:15:01  marco
+  * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
+
+ Revision 1.2  2002/12/18 16:43:26  marco
   * new unix rtl, linux part.....
 
  Revision 1.1  2002/11/12 14:37:59  marco

@@ -21,17 +21,12 @@
 {$i ossysch.inc}	// external interface to syscalls in system unit.
 {$i genfuncs.inc}	// generic calls. (like getenv)
 
-Const 			// OS specific parameters for general sigset behaviour
-   SIG_MAXSIG      = 128;	// highest signal version
-   wordsinsigset   = 4;		// words in sigset_t
-   ln2bitsinword   = 5;         { 32bit : ln(32)/ln(2)=5 } 
-
-   ln2bitmask	   = 2 shl ln2bitsinword - 1;
 
 {$I gensigset.inc}     // general sigset funcs implementation. 
+{$I genfdset.inc}      // general fdset funcs.
 
 {  $ ifndef ver1_0}
-Function  FpSigProcMask(how : cInt; Const nset : TSigSet; var oset : TSigSet): cInt; external name 'FPC_SYSC_SIGPROGMASK';
+Function  FpSigProcMask(how : cInt; Const nset : TSigSet; var oset : TSigSet): cInt; external name 'FPC_SYSC_SIGPROCMASK';
 {   $ endif}
 
 Function FPKill(Pid:pid_t;Sig:cint):cint;
@@ -50,7 +45,8 @@ begin
 //  Kill:=0;
 end;
 
-function FPSigProcMask(how:cint;nset : psigset;oset : psigset):cint; [public, alias: 'FPC_SYSC_SIGPROCMASK'];
+function FPSigProcMask(how:cint;nset : psigset;oset : psigset):cint; [public, alias : 'FPC_SYSC_SIGPROCMASK'];
+
 {
   Change the list of currently blocked signals.
   How determines which signals will be blocked :
@@ -460,10 +456,23 @@ begin
 	FPtimes:=clock_t(CONVTCK(t));
 end;
 
+Function fpSelect(N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cint;
+{
+  Select checks whether the file descriptor sets in readfs/writefs/exceptfs
+  have changed.
+}
+
+begin
+ fpSelect:=do_syscall(syscall_nr_select,n,longint(readfds),longint(writefds),longint(exceptfds),longint(timeout));
+end;
+
 
 {
  $Log$
- Revision 1.2  2003-01-05 19:10:05  marco
+ Revision 1.3  2003-09-14 20:15:01  marco
+  * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
+
+ Revision 1.2  2003/01/05 19:10:05  marco
   * Small sigprocmask fix
 
  Revision 1.1  2003/01/05 19:01:28  marco

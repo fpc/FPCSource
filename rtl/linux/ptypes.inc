@@ -106,6 +106,14 @@ Type
     TSockLen = socklen_t;
     pSockLen = ^socklen_t;
 
+  timeval     = packed record
+    		 tv_sec,
+		 tv_usec:clong;
+  		end;
+  ptimeval    = ^timeval;
+  TTimeVal    = timeval;
+
+
 CONST
    { System limits, POSIX value in parentheses, used for buffer and stack allocation }
    { took idefix' values}
@@ -113,10 +121,14 @@ CONST
     ARG_MAX  = 131072;   {4096}  { Maximum number of argument size     }
     NAME_MAX = 255;     {14}    { Maximum number of bytes in filename }
     PATH_MAX = 4095;    {255}   { Maximum number of bytes in pathname }
+    SYS_NMLM 		     = 65;
 
 {
    $Log$
-   Revision 1.3  2002-12-18 16:43:26  marco
+   Revision 1.4  2003-09-14 20:15:01  marco
+    * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
+
+   Revision 1.3  2002/12/18 16:43:26  marco
     * new unix rtl, linux part.....
 
    Revision 1.2  2002/11/12 14:28:40  marco

@@ -10,7 +10,7 @@ unit Serial;
 
 interface
 
-uses Unix;
+uses BaseUnix,Unix;
 
 type
 
@@ -70,12 +70,12 @@ implementation
 
 function SerOpen(const DeviceName: String): TSerialHandle;
 begin
-  Result := fdOpen(DeviceName, OPEN_RDWR or OPEN_NOCTTY);
+  Result := fpopen(DeviceName, OPEN_RDWR or OPEN_NOCTTY);
 end;
 
 procedure SerClose(Handle: TSerialHandle);
 begin
-  fdClose(Handle);
+  fpClose(Handle);
 end;
 
 procedure SerFlush(Handle: TSerialHandle);
@@ -85,12 +85,12 @@ end;
 
 function SerRead(Handle: TSerialHandle; var Buffer; Count: LongInt): LongInt;
 begin
-  Result := fdRead(Handle, Buffer, Count);
+  Result := fpRead(Handle, Buffer, Count);
 end;
 
 function SerWrite(Handle: TSerialHandle; var Buffer; Count: LongInt): LongInt;
 begin
-  Result := fdWrite(Handle, Buffer, Count);
+  Result := fpWrite(Handle, Buffer, Count);
 end;
 
 procedure SerSetParams(Handle: TSerialHandle; BitsPerSec: LongInt;
@@ -153,17 +153,17 @@ end;
 
 function SerSaveState(Handle: TSerialHandle): TSerialState;
 begin
-  ioctl(Handle, TIOCMGET, @Result.LineState);
-//  ioctl(Handle, TCGETS, @Result.tios);
+  fpioctl(Handle, TIOCMGET, @Result.LineState);
+//  fpioctl(Handle, TCGETS, @Result.tios);
   TcGetAttr(handle,result.tios);
 
 end;
 
 procedure SerRestoreState(Handle: TSerialHandle; State: TSerialState);
 begin
-//  ioctl(Handle, TCSETS, @State.tios);
+//  fpioctl(Handle, TCSETS, @State.tios);
     TCSetAttr(handle,TCSANOW,State.tios);
-    ioctl(Handle, TIOCMSET, @State.LineState);
+    fpioctl(Handle, TIOCMSET, @State.LineState);
 end;
 
 procedure SerSetDTR(Handle: TSerialHandle; State: Boolean);
@@ -171,9 +171,9 @@ const
   DTR: Cardinal = TIOCM_DTR;
 begin
   if State then
-    ioctl(Handle, TIOCMBIS, @DTR)
+    fpioctl(Handle, TIOCMBIS, @DTR)
   else
-    ioctl(Handle, TIOCMBIC, @DTR);
+    fpioctl(Handle, TIOCMBIC, @DTR);
 end;
 
 procedure SerSetRTS(Handle: TSerialHandle; State: Boolean);
@@ -181,16 +181,16 @@ const
   RTS: Cardinal = TIOCM_RTS;
 begin
   if State then
-    ioctl(Handle, TIOCMBIS, @RTS)
+    fpioctl(Handle, TIOCMBIS, @RTS)
   else
-    ioctl(Handle, TIOCMBIC, @RTS);
+    fpioctl(Handle, TIOCMBIC, @RTS);
 end;
 
 function SerGetCTS(Handle: TSerialHandle): Boolean;
 var
   Flags: Cardinal;
 begin
-  ioctl(Handle, TIOCMGET, @Flags);
+  fpioctl(Handle, TIOCMGET, @Flags);
   Result := (Flags and TIOCM_CTS) <> 0;
 end;
 
@@ -198,7 +198,7 @@ function SerGetDSR(Handle: TSerialHandle): Boolean;
 var
   Flags: Cardinal;
 begin
-  ioctl(Handle, TIOCMGET, @Flags);
+  fpioctl(Handle, TIOCMGET, @Flags);
   Result := (Flags and TIOCM_DSR) <> 0;
 end;
 
@@ -206,7 +206,7 @@ function SerGetRI(Handle: TSerialHandle): Boolean;
 var
   Flags: Cardinal;
 begin
-  ioctl(Handle, TIOCMGET, @Flags);
+  fpioctl(Handle, TIOCMGET, @Flags);
   Result := (Flags and TIOCM_RI) <> 0;
 end;
 
@@ -215,7 +215,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2002-09-07 16:01:27  peter
+  Revision 1.8  2003-09-14 20:15:01  marco
+   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
+
+  Revision 1.7  2002/09/07 16:01:27  peter
     * old logs removed and tabs fixed
 
   Revision 1.6  2002/08/06 13:31:50  sg

@@ -16,7 +16,7 @@
 unit gpm;
 interface
 uses
-  Unix;
+  baseUnix;
 
 {$linklib gpm}
 {$linklib c}
@@ -206,7 +206,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2002-09-07 16:01:27  peter
+  Revision 1.6  2003-09-14 20:15:01  marco
+   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
+
+  Revision 1.5  2002/09/07 16:01:27  peter
     * old logs removed and tabs fixed
 
 }

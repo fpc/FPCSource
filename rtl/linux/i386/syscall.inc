@@ -19,7 +19,7 @@
 
 {$ASMMODE ATT}
 
-function FpSysCall(sysnr:TSysParam):TSysResult; assembler;{$ifndef VER1_0}oldfpccall;{$endif}[public,alias:'FPC_SYSCALL0'];
+function FpSysCall(sysnr:TSysParam):TSysResult; assembler; {$ifndef VER1_0} oldfpccall; {$endif}[public,alias:'FPC_SYSCALL0'];
 
 asm
 { load the registers... }
@@ -44,12 +44,12 @@ asm
   popl  %edx
   movl  %edx,(%eax)
 .LNoThread:
-  movl  $-1,%eax
 {$endif}
+  movl  $-1,%eax
 .LSyscOK:
 end;
 
-function FpSysCall(sysnr,param1 : TSysParam):TSysResult; assembler;{$ifndef VER1_0}oldfpccall;{$endif}[public,alias:'FPC_SYSCALL1'];
+function FpSysCall(sysnr,param1 : TSysParam):TSysResult; assembler; {$ifndef VER1_0} oldfpccall; {$endif}[public,alias:'FPC_SYSCALL1'];
 
 asm
 { load the registers... }
@@ -75,12 +75,12 @@ asm
   popl  %edx
   movl  %edx,(%eax)
 .LNoThread:
-  movl  $-1,%eax
 {$endif}
+  movl  $-1,%eax
 .LSyscOK:
 end;
 
-function FpSysCall(sysnr,param1,param2 : TSysParam):TSysResult; assembler;{$ifndef VER1_0}oldfpccall;{$endif}[public,alias:'FPC_SYSCALL2'];
+function FpSysCall(sysnr,param1,param2 : TSysParam):TSysResult; assembler; {$ifndef VER1_0} oldfpccall; {$endif} [public,alias:'FPC_SYSCALL2'];
 
 asm
 { load the registers... }
@@ -107,12 +107,12 @@ asm
   popl  %edx
   movl  %edx,(%eax)
 .LNoThread:
-  movl  $-1,%eax
 {$endif}
+  movl  $-1,%eax
 .LSyscOK:
 end;
 
-function FpSysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; assembler;{$ifndef VER1_0}oldfpccall;{$endif}[public,alias:'FPC_SYSCALL3'];
+function FpSysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; assembler; {$ifndef VER1_0} oldfpccall; {$endif} [public,alias:'FPC_SYSCALL3'];
 
 asm
 { load the registers... }
@@ -140,12 +140,12 @@ asm
   popl  %edx
   movl  %edx,(%eax)
 .LNoThread:
-  movl  $-1,%eax
 {$endif}
+  movl  $-1,%eax
 .LSyscOK:
 end;
 
-function FpSysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; assembler;{$ifndef VER1_0}oldfpccall;{$endif}[public,alias:'FPC_SYSCALL4'];
+function FpSysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; assembler; {$ifndef VER1_0} oldfpccall; {$endif} [public,alias:'FPC_SYSCALL4'];
 
 asm
 { load the registers... }
@@ -174,12 +174,12 @@ asm
   popl  %edx
   movl  %edx,(%eax)
 .LNoThread:
-  movl  $-1,%eax
 {$endif}
+  movl  $-1,%eax
 .LSyscOK:
 end;
 
-function FpSysCall(sysnr,param1,param2,param3,param4,param5 : TSysParam):TSysResult; assembler;{$ifndef VER1_0}oldfpccall;{$endif}[public,alias:'FPC_SYSCALL5'];
+function FpSysCall(sysnr,param1,param2,param3,param4,param5 : TSysParam):TSysResult; assembler; {$ifndef VER1_0} oldfpccall; {$endif}[public,alias:'FPC_SYSCALL5'];
 
 asm
 { load the registers... }
@@ -209,14 +209,14 @@ asm
   popl  %edx
   movl  %edx,(%eax)
 .LNoThread:
-  movl  $-1,%eax
 {$endif}
+  movl  $-1,%eax
 .LSyscOK:
 end;
 
 {$ifdef notsupported}
 { Only 5 params are pushed, so it'll not work as expected (PFV) }
-function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6 : TSysParam):TSysResult; assembler;{$ifndef VER1_0}oldfpccall;{$endif}[public,alias:'FPC_SYSCALL6'];
+function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6 : TSysParam):TSysResult; assembler; {$ifndef VER1_0} oldfpccall; {$endif}[public,alias:'FPC_SYSCALL6'];
 
 asm
 { load the registers... }
@@ -246,8 +246,8 @@ asm
   popl  %edx
   movl  %edx,(%eax)
 .LNoThread:
-  movl  $-1,%eax
 {$endif}
+  movl  $-1,%eax
 .LSyscOK:
 end;
 {$endif notsupported}
@@ -261,7 +261,7 @@ end;
                      --- Main:The System Call Self ---
 *****************************************************************************}
 
-Procedure FpSysCall( callnr:TSysParam;var regs : SysCallregs );assembler;{$ifndef VER1_0}oldfpccall;{$endif}
+Procedure FpSysCall( callnr:TSysParam;var regs : SysCallregs );assembler; {$ifndef VER1_0} oldfpccall; {$endif}
 {
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
@@ -294,7 +294,7 @@ end;
 
 {$ASMMODE DEFAULT}
 
-Function SysCall( callnr:longint;var regs : SysCallregs ):longint;
+Function SysCall( callnr:longint;var regs : SysCallregs ):longint; {$ifndef VER1_0} oldfpccall; {$endif}
 {
   This function serves as an interface to do_SysCall.
   If the SysCall returned a negative number, it returns -1, and puts the
@@ -341,9 +341,8 @@ end;
 
 {
   $Log$
-  Revision 1.8  2003-09-14 11:34:13  peter
-    * moved int64 asm code to int64p.inc
-    * save ebx,esi
+  Revision 1.9  2003-09-14 20:15:01  marco
+   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
   Revision 1.7  2002/12/24 19:45:59  peter
     * only set errno when syscall fails

@@ -57,10 +57,6 @@ Begin
   FpExecv:=FpExecv (pchar(path),argv);
 End;
 
-Function  FpOpendir (dirname : AnsiString): pDir;
-Begin
-  FpOpenDir:=FpOpenDir(dirname);
-End;
 
 Function  FpChdir (path : AnsiString): cInt;
 Begin
@@ -137,11 +133,187 @@ begin
        fpsignal:=osa.sa_handler;
 end;
 
+function xFpread(fd: cint; buf: pchar; nbytes : size_t): ssize_t; external name 'FPC_SYSC_READ';
+
+
+Function  FpRead	   (fd : cInt;var buf; nbytes : TSize): TSsize;
+
+begin
+  FPRead:=xFpRead(fd,pchar(@buf),nbytes);
+end;
+
+Function  FpWrite	   (fd : cInt;const buf; nbytes : TSize): TSsize;
+begin
+ FpWrite:=FpWrite(fd,pchar(@buf),nbytes);
+end;
+
+Function  FpOpen    (path : pChar; flags : cInt):cInt;
+
+begin
+ FpOpen:=FpOpen(path,flags,438);
+end;
+
+Function  FpOpen    (path : AnsiString; flags : cInt):cInt;
+
+begin
+ FpOpen:=FpOpen(pchar(path),flags,438);
+end;
+
+Function  FpOpen    (path : String; flags : cInt):cInt;
+
+begin
+ path:=path+#0;
+ FpOpen:=FpOpen(@path[1],flags,438);
+end;
+
+Function  FpOpen    (path : String; flags : cInt; Mode: TMode):cInt;
+
+begin
+ path:=path+#0;
+ FpOpen:=FpOpen(@path[1],flags,Mode);
+end;
+
+Function  FpOpendir (dirname : AnsiString): pDir;
+Begin
+  FpOpenDir:=FpOpenDir(dirname);
+End;
+
+Function  FpStat (path: String; var buf : stat): cInt;
+
+begin
+ path:=path+#0;
+ FpStat:=FpStat(pchar(@path[1]),buf); 
+end;
+
+Function fpDup(var oldfile,newfile:text):cint;
+{
+  Copies the filedescriptor oldfile to newfile, after flushing the buffer of
+  oldfile.
+  After which the two textfiles are, in effect, the same, except
+  that they don't share the same buffer, and don't share the same
+  close_on_exit flag.
+}
+begin
+  flush(oldfile);{ We cannot share buffers, so we flush them. }
+  textrec(newfile):=textrec(oldfile);
+  textrec(newfile).bufptr:=@(textrec(newfile).buffer);{ No shared buffer. }
+  textrec(newfile).handle:=fpDup(textrec(oldfile).handle);
+  fpdup:=textrec(newfile).handle;
+end;
+
+Function fpDup(var oldfile,newfile:file):cint;
+{
+  Copies the filedescriptor oldfile to newfile
+}
+begin
+  filerec(newfile):=filerec(oldfile);
+  filerec(newfile).handle:=fpDup(filerec(oldfile).handle);
+  fpdup:=  filerec(newfile).handle;
+end;
+
+
+Function FpDup2(var oldfile,newfile:text):cint;
+{
+  Copies the filedescriptor oldfile to newfile, after flushing the buffer of
+  oldfile. It closes newfile if it was still open.
+  After which the two textfiles are, in effect, the same, except
+  that they don't share the same buffer, and don't share the same
+  close_on_exit flag.
+}
+var
+  tmphandle : word;
+begin
+  case TextRec(oldfile).mode of
+    fmOutput, fmInOut, fmAppend :
+      flush(oldfile);{ We cannot share buffers, so we flush them. }
+  end;
+  case TextRec(newfile).mode of
+    fmOutput, fmInOut, fmAppend :
+      flush(newfile);
+  end;
+  tmphandle:=textrec(newfile).handle;
+  textrec(newfile):=textrec(oldfile);
+  textrec(newfile).handle:=tmphandle;
+  textrec(newfile).bufptr:=@(textrec(newfile).buffer);{ No shared buffer. }
+  fpDup2:=fpDup2(textrec(oldfile).handle,textrec(newfile).handle);
+end;
+
+Function FpDup2(var oldfile,newfile:file):cint;
+{
+  Copies the filedescriptor oldfile to newfile
+}
+begin
+  filerec(newfile):=filerec(oldfile);
+  fpDup2:=fpDup2(filerec(oldfile).handle,filerec(newfile).handle);
+end;
+
+function  fptime    :time_t;
+var t:time_t;
+begin
+  fptime:=fptime(t);
+end;
+
+Function fpSelect(N:cint;readfds,writefds,exceptfds:pfdset;TimeOut:cint):cint;
+{
+  Select checks whether the file descriptor sets in readfs/writefs/exceptfs
+  have changed.
+  This function allows specification of a timeout as a longint.
+}
+var
+  p  : PTimeVal;
+  tv : TimeVal;
+begin
+  if TimeOut=-1 then
+   p:=nil
+  else
+   begin
+     tv.tv_Sec:=Timeout div 1000;
+     tv.tv_Usec:=(Timeout mod 1000)*1000;
+     p:=@tv;
+   end;
+  fpSelect:=fpSelect(N,Readfds,WriteFds,ExceptFds,p);
+end;
+
+Function fpSelect(var T:Text;TimeOut :PTimeval):cint;
+Var
+  F:TfdSet;
+begin
+  if textrec(t).mode=fmclosed then
+   begin
+     SetErrNo(ESysEBADF);
+     exit(-1);
+   end;
+  Fpfdemptyset(f);
+  fpfdaddset(f,textrec(T).handle);
+  if textrec(T).mode=fminput then
+   fpselect:=fpselect(textrec(T).handle+1,@f,nil,nil,TimeOut)
+  else
+   fpSelect:=fpselect(textrec(T).handle+1,nil,@f,nil,TimeOut);
+end;
+
+Function fpSelect(var T:Text;TimeOut :time_t):cint;
+var
+  p  : PTimeVal;
+  tv : TimeVal;
+begin
+  if TimeOut=-1 then
+   p:=nil
+  else
+   begin
+     tv.tv_Sec:=Timeout div 1000;
+     tv.tv_Usec:=(Timeout mod 1000)*1000;
+     p:=@tv;
+   end;
+  fpSelect:=fpSelect(T,p);
+end;
 
 
 {
  $Log$
- Revision 1.2  2003-06-01 16:28:41  marco
+ Revision 1.3  2003-09-14 20:15:01  marco
+  * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
+
+ Revision 1.2  2003/06/01 16:28:41  marco
   * Enhancements to make the compiler baseunix using.
 
  Revision 1.1  2002/12/18 16:49:02  marco

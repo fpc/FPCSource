@@ -492,7 +492,8 @@ end;
   Data points to data needed for the Ndx function. The structure of this
   data is function-dependent.
 }
-Function FpIOCtl(Handle,Ndx: Longint;Data: Pointer):LongInt;  [public, alias : 'FPC_SYSC_IOCTL'];
+
+Function FpIOCtl(Handle:cint;Ndx: culong;Data: Pointer):cint; [public, alias : 'FPC_SYSC_IOCTL'];
 // This was missing here, instead hardcoded in Do_IsDevice
 begin
   FpIOCtl:=do_SysCall(syscall_nr_ioctl,handle,Ndx,TSysParam(data));
@@ -524,10 +525,10 @@ begin
  FpGetPID:=do_syscall(syscall_nr_getpid);
 end;
 
-Function FpReadLink(name,linkname:pchar;maxlen:longint):longint;  [public, alias : 'FPC_SYSC_READLINK'];
+function gettimeofday(tp: ptimeval;tzp:ptimezone):cint; [public, alias: 'FPC_SYSC_GETTIMEOFDAY'];
 
 begin
-  Fpreadlink:=do_syscall(syscall_nr_readlink, TSysParam(name),TSysParam(linkname),maxlen);
+ gettimeofday:=do_syscall(syscall_nr_gettimeofday,TSysParam(tp),TSysParam(tzp));
 end;
 
 Function FpNanoSleep(const req : timespec;var rem : timespec) : longint; [public, alias : 'FPC_SYSC_NANOSLEEP'];
@@ -597,7 +598,10 @@ end;
 
 {
  $Log$
- Revision 1.5  2003-08-21 22:23:34  olle
+ Revision 1.6  2003-09-14 20:15:01  marco
+  * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
+
+ Revision 1.5  2003/08/21 22:23:34  olle
    - removed parameter from fpc_iocheck
 
  Revision 1.4  2003/05/29 21:45:23  marco

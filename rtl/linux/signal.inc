@@ -16,13 +16,6 @@
 {$packrecords C}
 
 
-Const 			// OS specific parameters for general sigset behaviour
-   SIG_MAXSIG      = 1024;	// highest signal version
-   wordsinsigset   = 32;	// words in sigset_t
-   ln2bitsinword   = 5;         { 32bit : ln(32)/ln(2)=5 }
-
-   ln2bitmask	   = 2 shl ln2bitsinword - 1;
-
 
 {********************
       Signal
@@ -216,6 +209,7 @@ type
   psigset_t=psigset;
   TSigSet = SigSet;
 
+
   SigActionRec = packed record  // this is temporary for the migration
    {$ifdef posixworkaround}
     sa_handler : signalhandler;
@@ -235,7 +229,10 @@ type
 
 {
   $Log$
-  Revision 1.11  2003-09-03 14:09:37  florian
+  Revision 1.12  2003-09-14 20:15:01  marco
+   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
+
+  Revision 1.11  2003/09/03 14:09:37  florian
     * arm fixes to the common rtl code
     * some generic math code fixed
     * ...

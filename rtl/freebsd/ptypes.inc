@@ -76,6 +76,12 @@ type
     TSocklen = socklen_t;
     pSocklen = ^socklen_t;
 
+  timeval  = packed record
+    tv_sec,tv_usec:clong;
+  end;
+  ptimeval = ^timeval;
+  TTimeVal = timeval;
+
 CONST
    { System limits, POSIX value in parentheses, used for buffer and stack allocation }
     ARG_MAX  = 65536;   {4096}  { Maximum number of argument size     }
@@ -86,7 +92,10 @@ CONST
 
 {
   $Log$
-  Revision 1.5  2003-01-03 13:11:32  marco
+  Revision 1.6  2003-09-14 20:15:01  marco
+   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
+
+  Revision 1.5  2003/01/03 13:11:32  marco
    * split into ptypes and ctypes
 
 

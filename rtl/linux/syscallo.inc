@@ -23,7 +23,8 @@
                      --- Main:The System Call Self ---
 *****************************************************************************}
 
-Procedure Do_SysCall( callnr:longint;var regs : SysCallregs );assembler;
+
+Procedure Do_SysCallspec( callnr:longint;var regs : SysCallregs );assembler;
 {
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
@@ -141,6 +142,7 @@ var
   LastCall : longint;
   DebugTxt : string[20];
 {$ENDIF}
+
 Function SysCall( callnr:longint;var regs : SysCallregs ):longint;
 {
   This function serves as an interface to do_SysCall.
@@ -148,14 +150,14 @@ Function SysCall( callnr:longint;var regs : SysCallregs ):longint;
   SysCall result in errno. Otherwise, it returns the SysCall return value
 }
 begin
-  do_SysCall(callnr,regs);
+  do_SysCallspec(callnr,regs);
   if regs.reg1<0 then
    begin
 {$IFDEF SYSCALL_DEBUG}
      If DoSysCallDebug then
        debugtxt:=' syscall error: ';
 {$endif}
-     ErrNo:=-regs.reg1;
+     fpseterrno(-regs.reg1);
      SysCall:=-1;
    end
   else
@@ -165,7 +167,7 @@ begin
        debugtxt:=' syscall returned: ';
 {$endif}
      SysCall:=regs.reg1;
-     errno:=0
+     fpseterrno(0);
    end;
 {$IFDEF SYSCALL_DEBUG}
   if DoSysCallDebug then
@@ -186,7 +188,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2003-08-21 22:24:52  olle
+  Revision 1.6  2003-09-14 20:15:01  marco
+   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
+
+  Revision 1.5  2003/08/21 22:24:52  olle
     - removed parameter from fpc_iocheck
 
   Revision 1.4  2003/06/17 16:39:58  jonas

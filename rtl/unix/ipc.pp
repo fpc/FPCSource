@@ -239,7 +239,7 @@ Function semctl(semid:longint; semnum:longint; cmd:longint; var arg: tsemun): lo
 
 implementation
 
-uses Unix;
+uses BaseUnix,Syscall;
 
 { The following definitions come from linux/ipc.h }
 
@@ -261,30 +261,30 @@ Const
 function ipccall(Call,First,Second,Third : Longint; P : Pointer) : longint;
 
 {$ifndef bsd}
-Var SR : SysCallRegs;
+//Var SR : SysCallRegs;
 {$endif}
 begin
  {$IFNDEF bsd}
-  SR.Reg2:=Call;
+{  SR.Reg2:=Call;
   SR.reg3:=first;
   SR.reg4:=second;
   SR.Reg5:=third;
-  SR.Reg6:=Longint(P);
-  ipccall:=syscall(syscall_nr_ipc,sr);
+  SR.Reg6:=Longint(P); }
+  ipccall:=do_syscall(syscall_nr_ipc,call,first,second,third,longint(P));
   {$Endif}
- ipcerror:=Errno;
+ ipcerror:=fpgetErrno;
 end;
 
 Function ftok (Path : String; ID : char) : TKey;
 
-Var Info : Stat;
+Var Info : TStat;
 
 begin
-  If not fstat(path,info) then
+  If fpstat(path,info)<0 then
     ftok:=-1
   else
     begin
-    ftok:= (info.ino and $FFFF) or ((info.dev and $ff) shl 16) or (byte(ID) shl 24)
+    ftok:= (info.st_ino and $FFFF) or ((info.st_dev and $ff) shl 16) or (byte(ID) shl 24)
     end;
 end;
 
@@ -372,7 +372,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2002-09-07 16:01:27  peter
+  Revision 1.5  2003-09-14 20:15:01  marco
+   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
+
+  Revision 1.4  2002/09/07 16:01:27  peter
     * old logs removed and tabs fixed
 
 }

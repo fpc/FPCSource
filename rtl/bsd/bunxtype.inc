@@ -36,6 +36,13 @@
 //    _UTSNAME_LENGTH = ;
 //    _UTSNAME_NODENAME_LENGTH = ;
 
+CONST                		// OS specific parameters for general<fd,sig>set behaviour
+   SIG_MAXSIG      = 128;	// highest signal version
+   FD_MAXFDSET	   = 1024;
+   wordsinsigset   = 4;		// words in sigset_t
+   ln2bitsinword   = 5;         { 32bit : ln(32)/ln(2)=5 } 
+   ln2bitmask	   = 2 shl ln2bitsinword - 1;
+
 TYPE
    { system information services }
    utsname = record
@@ -137,6 +144,9 @@ TYPE
  TTms= tms;
  pTms= ^tms;
 
+ TFDSet    = ARRAY[0..(FD_MAXFDSET div 32)-1] of Cardinal;
+ pFDSet    = ^TFDSet;
+
 {***********************************************************************}
 {                  POSIX CONSTANT ROUTINE DEFINITIONS                   }
 {***********************************************************************}
@@ -180,6 +190,7 @@ CONST
     WUNTRACED =          2;     { report status of stopped children }
 
 
+
     {*************************************************************************}
     {                               SIGNALS                                   }
     {*************************************************************************}
@@ -191,7 +202,10 @@ CONST
 
 {
   $Log$
-  Revision 1.3  2003-08-21 22:23:34  olle
+  Revision 1.4  2003-09-14 20:15:01  marco
+   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
+
+  Revision 1.3  2003/08/21 22:23:34  olle
     - removed parameter from fpc_iocheck
 
   Revision 1.2  2003/06/01 16:35:27  marco

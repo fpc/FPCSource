@@ -154,17 +154,17 @@ begin
    fn:='localtime';
   if fn[1]<>'/' then
    begin
-     tzdir:=getenv('TZDIR');
+     tzdir:=fpgetenv('TZDIR');
      if tzdir='' then
       tzdir:='/usr/share/zoneinfo';
      if tzdir[length(tzdir)]<>'/' then
       tzdir:=tzdir+'/';
      fn:=tzdir+fn;
    end;
-  f:=fdopen(fn,Open_RdOnly);
+  f:=fpopen(fn,Open_RdOnly);
   if f<0 then
    exit;
-  i:=fdread(f,tzhead,sizeof(tzhead));
+  i:=fpread(f,tzhead,sizeof(tzhead));
   if i<>sizeof(tzhead) then
    exit;
   decode(tzhead.tzh_timecnt);
@@ -184,44 +184,44 @@ begin
   reallocmem(zone_names,chars);
   reallocmem(leaps,num_leaps*sizeof(tleap));
 
-  fdread(f,transitions^,num_transitions*4);
-  fdread(f,type_idxs^,num_transitions);
+  fpread(f,transitions^,num_transitions*4);
+  fpread(f,type_idxs^,num_transitions);
 
   for i:=0 to num_transitions-1 do
    decode(transitions[i]);
 
   for i:=0 to num_types-1 do
    begin
-     fdread(f,types[i].offset,4);
-     fdread(f,types[i].isdst,1);
-     fdread(f,types[i].idx,1);
+     fpread(f,types[i].offset,4);
+     fpread(f,types[i].isdst,1);
+     fpread(f,types[i].idx,1);
      decode(types[i].offset);
      types[i].isstd:=0;
      types[i].isgmt:=0;
    end;
 
-  fdread(f,zone_names^,chars);
+  fpread(f,zone_names^,chars);
 
   for i:=0 to num_leaps-1 do
    begin
-     fdread(f,leaps[i].transition,4);
-     fdread(f,leaps[i].change,4);
+     fpread(f,leaps[i].transition,4);
+     fpread(f,leaps[i].change,4);
      decode(leaps[i].transition);
      decode(leaps[i].change);
    end;
 
   getmem(buf,tzhead.tzh_ttisstdcnt);
-  fdread(f,buf^,tzhead.tzh_ttisstdcnt);
+  fpread(f,buf^,tzhead.tzh_ttisstdcnt);
   for i:=0 to tzhead.tzh_ttisstdcnt-1 do
    types[i].isstd:=byte(buf[i]<>0);
   freemem(buf);
 
   getmem(buf,tzhead.tzh_ttisgmtcnt);
-  fdread(f,buf^,tzhead.tzh_ttisgmtcnt);
+  fpread(f,buf^,tzhead.tzh_ttisgmtcnt);
   for i:=0 to tzhead.tzh_ttisgmtcnt-1 do
    types[i].isgmt:=byte(buf[i]<>0);
   freemem(buf);
-  fdclose(f);
+  fpclose(f);
 end;
 
 Const
@@ -240,22 +240,22 @@ var
 
 begin
   GetTimezoneFile:='';
-  f:=fdopen(TimeZoneLocationFile,Open_RdOnly);
+  f:=fpopen(TimeZoneLocationFile,Open_RdOnly);
   if f>0 then
     begin
-    len:=fdread(f,s[1],high(s));
+    len:=fpread(f,s[1],high(s));
     s[0]:=chr(len);
     len:=pos(#10,s);
     if len<>0 then
      s[0]:=chr(len-1);
-    fdclose(f);
+    fpclose(f);
     GetTimezoneFile:=s;
     end
   // Try SuSE
-  else if fstat(TimeZoneFile,info) then
+  else if fpstat(TimeZoneFile,info)>=0 then
     GetTimeZoneFile:=TimeZoneFile
   // Try RedHat
-  else If fstat(AltTimeZoneFile,Info) then
+  else If fpstat(AltTimeZoneFile,Info)>=0 then
       GetTimeZoneFile:=AltTimeZoneFile;
 end;
 
@@ -263,7 +263,7 @@ end;
 procedure InitLocalTime;
 begin
   ReadTimezoneFile(GetTimezoneFile);
-  GetLocalTimezone(GetTimeOfDay);
+  GetLocalTimezone(fptime);
 end;
 
 
@@ -286,7 +286,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2002-09-07 16:01:28  peter
+  Revision 1.4  2003-09-14 20:15:01  marco
+   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
+
+  Revision 1.3  2002/09/07 16:01:28  peter
     * old logs removed and tabs fixed
 
 }

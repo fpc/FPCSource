@@ -16,17 +16,24 @@
 Unit Linux;
 Interface
 
+Uses BaseUnix;
+
 { Get Types and Constants }
 {$i sysconst.inc}
 {$i systypes.inc}
 
-{ Get System call numbers and error-numbers}
+{$i ptypes.inc}
+{$i ostypes.inc}
 {$i sysnr.inc}
+{$i syscallh.inc}
+
+{ Get System call numbers and error-numbers}
 {$i errno.inc}
 {$I signal.inc}
 
+Type stat=baseunix.tstat;
+
 var
-  ErrNo,
   LinuxError : Longint;
 
 
@@ -159,20 +166,6 @@ Type
                             Procedure/Functions
 ******************************************************************************}
 
-{$ifdef bsd}
-function Do_SysCall(sysnr:longint):longint;
-//function Do_Syscall(sysnr,param1:integer):longint;
-function Do_SysCall(sysnr,param1:LONGINT):longint;
-function Do_SysCall(sysnr,param1,param2:LONGINT):longint;
-function Do_SysCall(sysnr,param1,param2,param3:LONGINT):longint;
-function Do_SysCall(sysnr,param1,param2,param3,param4:LONGINT):longint;
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5:LONGINT):longint;
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:LONGINT):int64;
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6,param7:LONGINT):int64;
-{$else}
-Function SysCall(callnr:longint;var regs:SysCallregs):longint;
-{$endif}
-
 {**************************
      Time/Date Handling
 ***************************}
@@ -268,7 +261,7 @@ Function  fdOpen(pathname:string;flags,mode:longint):longint;
 Function  fdOpen(pathname:pchar;flags:longint):longint;
 Function  fdOpen(pathname:pchar;flags,mode:longint):longint;
 Function  fdClose(fd:longint):boolean;
-Function  fdRead(fd:longint;var buf;size:longint):longint;
+Function  fdRead(fd:longint;var buf;tsize:longint):longint;
 Function  fdWrite(fd:longint;const buf;size:longint):longint;
 Function  fdTruncate(fd,size:longint):boolean;
 Function  fdSeek (fd,pos,seektype :longint): longint;
@@ -310,8 +303,8 @@ Function  Dup(var oldfile,newfile:file):Boolean;
 Function  Dup2(oldfile,newfile:longint):Boolean;
 Function  Dup2(var oldfile,newfile:text):Boolean;
 Function  Dup2(var oldfile,newfile:file):Boolean;
-Function  Select(N:longint;readfds,writefds,exceptfds:PFDSet;TimeOut:PTimeVal):longint;
-Function  Select(N:longint;readfds,writefds,exceptfds:PFDSet;TimeOut:Longint):longint;
+Function  Select(N:longint;readfds,writefds,exceptfds:pfdset;TimeOut:PTimeVal):longint;
+Function  Select(N:longint;readfds,writefds,exceptfds:pfdset;TimeOut:Longint):longint;
 Function  SelectText(var T:Text;TimeOut :PTimeVal):Longint;
 Function  SelectText(var T:Text;TimeOut :Longint):Longint;
 
@@ -359,7 +352,7 @@ Function  Uname(var unamerec:utsname):Boolean;
         Signal
 ***************************}
 
-Procedure SigAction(Signum:longint;Act,OldAct:PSigActionRec );
+Procedure SigAction(Signum:longint;Act,OldAct:baseunix.PSigActionRec );
 Procedure SigProcMask (How:longint;SSet,OldSSet:PSigSet);
 Function  SigPending:SigSet;
 Procedure SigSuspend(Mask:Sigset);
@@ -476,10 +469,10 @@ Function  StringToPPChar(S : Pchar):ppchar;
 Function  GetFS(var T:Text):longint;
 Function  GetFS(Var F:File):longint;
 {Filedescriptorsets}
-Procedure FD_Zero(var fds:fdSet);
-Procedure FD_Clr(fd:longint;var fds:fdSet);
-Procedure FD_Set(fd:longint;var fds:fdSet);
-Function  FD_IsSet(fd:longint;var fds:fdSet):boolean;
+Procedure FD_Zero(var fds:tfdset);
+Procedure FD_Clr(fd:longint;var fds:tfdset);
+Procedure FD_Set(fd:longint;var fds:tfdset);
+Function  FD_IsSet(fd:longint;var fds:tfdset):boolean;
 {Stat.Mode Types}
 Function S_ISLNK(m:word):boolean;
 Function S_ISREG(m:word):boolean;
@@ -497,7 +490,7 @@ Function S_ISSOCK(m:word):boolean;
 
 Implementation
 
-Uses Strings,baseunix;
+Uses Strings,Unix;
 
 
 { Get the definitions of textrec and filerec }
@@ -505,9 +498,12 @@ Uses Strings,baseunix;
 {$i filerec.inc}
 
 { Raw System calls are in Syscalls.inc}
+{$DEFINE FROMLINUXUNIT}
 {$i syscalls.inc}
 
 {$i unixsysc.inc}   {Syscalls only used in unit Unix/Linux}
+
+Function FpNanoSleep(const req : timespec;rem : ptimespec) : longint; external name 'FPC_SYSC_NANOSLEEP';
 
 
 {******************************************************************************
@@ -898,9 +894,9 @@ var
   t : timeval;
 begin
   gettimeofday(t);
-  EpochToLocal(t.sec,year,month,day,hour,min,sec);
-  msec:=t.usec div 1000;
-  usec:=t.usec mod 1000;
+  EpochToLocal(t.tv_sec,year,month,day,hour,min,sec);
+  msec:=t.tv_usec div 1000;
+  usec:=t.tv_usec mod 1000;
 end;
 
 
@@ -954,7 +950,7 @@ var
 begin
   sr.reg2:=longint(@t);
   SysCall(Syscall_nr_stime,sr);
-  linuxerror:=errno;
+  linuxerror:=fpgeterrno;
    stime:=linuxerror=0;
 end;
 {$endif}
@@ -1004,6 +1000,120 @@ end;
 { Include timezone handling routines which use /usr/share/timezone info }
 {$i timezone.inc}
 
+Function NanoSleep(const req : timespec;var rem : timespec) : longint;
+
+begin
+ nanosleep:=fpnanosleep(req,@rem);
+end;
+
+Function  OpenDir(f:pchar):pdir;
+
+begin
+   OpenDir:=fpopendir(f);
+  linuxerror:=fpgeterrno;
+end;
+
+function  CloseDir(p:pdir):integer;
+
+begin
+  CloseDir:=Fpclosedir(p^);
+  linuxerror:=fpgeterrno;
+end;
+
+Procedure SigAction(Signum:longint;Act:baseunix.psigactionrec;OldAct:baseunix.PSigActionRec );
+
+begin
+   fpsigaction(signum,act,oldact);
+  linuxerror:=fpgeterrno;
+end;
+
+
+Function  sys_ReadDir(p:pdir):pdirent;
+
+begin
+  sys_readdir:=fpreaddir(p^);
+  linuxerror:=fpgeterrno;
+end;
+
+function sys_unlink(p:pchar):longint;
+
+begin
+  sys_unlink:=fpunlink(p);
+  linuxerror:=fpgeterrno;
+end;
+
+function sys_rename(p,p2:pchar):longint;
+
+begin
+  sys_rename:=fprename(p,p2);
+  linuxerror:=fpgeterrno;
+end;
+
+Function sys_SymLink(OldPath,newPath:pchar):longint;
+
+begin
+  sys_Symlink:=fpsymlink(oldpath,newpath);
+  linuxerror:=fpgeterrno;
+end;
+
+
+Function sys_ReadLink(name,linkname:pchar;maxlen:longint):longint;
+{
+  Read a link (where it points to)
+}
+begin
+  sys_Readlink:=fpreadlink(Name,LinkName,maxlen);
+  linuxerror:=fpgeterrno;
+end;
+
+function sys_open(p:pchar;f,i:longint):longint;
+
+begin
+  sys_open:=fpopen(p,f,i);
+  linuxerror:=fpgeterrno;
+end;
+
+Function Sys_Lseek(F:longint;Off:longint;Whence:longint):longint;
+begin
+ sys_lseek:=fplseek(f,off,whence);
+ linuxerror:=fpgeterrno;
+end;
+
+Function Sys_Stat(Filename:pchar;var Buffer: stat):longint;
+
+begin
+ Sys_stat:=fpstat(filename,buffer); 
+ linuxerror:=fpgeterrno;
+end;
+
+function sys_close(f:longint):longint;
+
+begin
+ sys_close:=fpclose(f);
+ linuxerror:=fpgeterrno;
+end;
+
+function sys_read(f:longint;p:pchar;i:longint):longint;
+
+begin
+ sys_read:=fpread(f,p,i);
+ linuxerror:=fpgeterrno;
+end;
+
+function sys_write(f:longint;p:pchar;i:longint):longint;
+
+begin
+ sys_write:=fpwrite(f,p,i);
+ linuxerror:=fpgeterrno;
+end;
+
+
+Function  Select(N:longint;readfds,writefds,exceptfds:pfdset;TimeOut:PTimeVal):longint;
+
+begin
+   select:=fpSelect(N,readfds,writefds,exceptfds,TimeOut^.tv_sec);
+   linuxerror:=fpgeterrno;
+end;
 
 {******************************************************************************
                            FileSystem calls
@@ -1013,7 +1123,6 @@ Function fdOpen(pathname:string;flags:longint):longint;
 begin
   pathname:=pathname+#0;
   fdOpen:=Sys_Open(@pathname[1],flags,438);
-  LinuxError:=Errno;
 end;
 
 
@@ -1021,7 +1130,6 @@ Function fdOpen(pathname:string;flags,mode:longint):longint;
 begin
   pathname:=pathname+#0;
   fdOpen:=Sys_Open(@pathname[1],flags,mode);
-  LinuxError:=Errno;
 end;
 
 
@@ -1029,7 +1137,6 @@ end;
 Function  fdOpen(pathname:pchar;flags:longint):longint;
 begin
   fdOpen:=Sys_Open(pathname,flags,0);
-  LinuxError:=Errno;
 end;
 
 
@@ -1037,7 +1144,6 @@ end;
 Function  fdOpen(pathname:pchar;flags,mode:longint):longint;
 begin
   fdOpen:=Sys_Open(pathname,flags,mode);
-  LinuxError:=Errno;
 end;
 
 
@@ -1045,15 +1151,13 @@ end;
 Function fdClose(fd:longint):boolean;
 begin
   fdClose:=(Sys_Close(fd)=0);
-  LinuxError:=Errno;
 end;
 
 
 
-Function fdRead(fd:longint;var buf;size:longint):longint;
+Function fdRead(fd:longint;var buf;tsize:longint):longint;
 begin
-  fdRead:=Sys_Read(fd,pchar(@buf),size);
-  LinuxError:=Errno;
+  fdRead:=Sys_Read(fd,pchar(@buf),tsize);
 end;
 
 
@@ -1061,7 +1165,6 @@ end;
 Function fdWrite(fd:longint;const buf;size:longint):longint;
 begin
   fdWrite:=Sys_Write(fd,pchar(@buf),size);
-  LinuxError:=Errno;
 end;
 
 
@@ -1074,7 +1177,7 @@ Function  fdSeek (fd,pos,seektype :longint): longint;
 }
 begin
    fdseek:=Sys_LSeek (fd,pos,seektype);
-   LinuxError:=Errno;
+   linuxerror:=fpgeterrno;
 end;
 
 {$ifdef BSD}
@@ -1093,7 +1196,7 @@ begin
      Linuxerror:=fpfcntl(fd,cmd,0);
      if linuxerror=-1 then
       begin
-        linuxerror:=errno;
+        linuxerror:=fpgeterrno;
         fcntl:=0;
       end
      else
@@ -1123,7 +1226,7 @@ begin
   if (cmd in [F_SetFd,F_SetFl,F_GetLk,F_SetLk,F_SetLkw,F_SetOwn]) then
    begin
      fpfcntl(fd,cmd,arg);
-     LinuxError:=ErrNo;
+     linuxerror:=fpgeterrno;
    end
   else
    linuxerror:=ESyseinval;
@@ -1164,7 +1267,7 @@ Function FStat(Path:Pathstr;Var Info:stat):Boolean;
 begin
   path:=path+#0;
   FStat:=(Sys_stat(@(path[1]),Info)=0);
-  LinuxError:=errno;
+  linuxerror:=fpgeterrno;
 end;
 
 
@@ -1196,7 +1299,7 @@ begin
   oldpath:=oldpath+#0;
   newpath:=newpath+#0;
   Symlink:=Sys_symlink(pchar(@(oldpath[1])),pchar(@(newpath[1])))=0;
-  linuxerror:=errno;
+  linuxerror:=fpgeterrno;
 end;
 
 
@@ -1206,7 +1309,7 @@ Function ReadLink(name,linkname:pchar;maxlen:longint):longint;
 }
 begin
   Readlink:=Sys_readlink(Name,LinkName,maxlen);
-  linuxerror:=errno;
+  linuxerror:=fpgeterrno;
 end;
 
 
@@ -1238,7 +1341,7 @@ Function UnLink(Path:pathstr):boolean;
 begin
   path:=path+#0;
   Unlink:=Sys_unlink(pchar(@(path[1])))=0;
-  linuxerror:=errno;
+  linuxerror:=fpgeterrno;
 end;
 
 
@@ -1249,14 +1352,14 @@ Function  UnLink(Path:pchar):Boolean;
 }
 begin
   Unlink:=(Sys_unlink(path)=0);
-  linuxerror:=errno;
+  linuxerror:=fpgeterrno;
 end;
 
 
 Function  FRename (OldName,NewName : Pchar) : Boolean;
 begin
   FRename:=Sys_rename(OldName,NewName)=0;
-  LinuxError:=Errno;
+  linuxerror:=fpgeterrno;
 end;
 
 
@@ -1330,9 +1433,7 @@ begin
   Dup2:=Dup2(filerec(oldfile).handle,filerec(newfile).handle);
 end;
 
-
-
-Function  Select(N:longint;readfds,writefds,exceptfds:PFDSet;TimeOut:Longint):longint;
+Function  Select(N:longint;readfds,writefds,exceptfds:pfdset;TimeOut:Longint):longint;
 {
   Select checks whether the file descriptor sets in readfs/writefs/exceptfs
   have changed.
@@ -1346,8 +1447,8 @@ begin
    p:=nil
   else
    begin
-     tv.Sec:=Timeout div 1000;
-     tv.Usec:=(Timeout mod 1000)*1000;
+     tv.tv_Sec:=Timeout div 1000;
+     tv.tv_Usec:=(Timeout mod 1000)*1000;
      p:=@tv;
    end;
   Select:=Select(N,Readfds,WriteFds,ExceptFds,p);
@@ -1357,7 +1458,7 @@ end;
 
 Function SelectText(var T:Text;TimeOut :PTimeval):Longint;
 Var
-  F:FDSet;
+  F:tfdset;
 begin
   if textrec(t).mode=fmclosed then
    begin
@@ -1382,8 +1483,8 @@ begin
    p:=nil
   else
    begin
-     tv.Sec:=Timeout div 1000;
-     tv.Usec:=(Timeout mod 1000)*1000;
+     tv.tv_Sec:=Timeout div 1000;
+     tv.tv_Usec:=(Timeout mod 1000)*1000;
      p:=@tv;
    end;
   SelectText:=SelectText(T,p);
@@ -1398,7 +1499,7 @@ Function OpenDir(F:String):PDir;
 begin
   F:=F+#0;
   OpenDir:=OpenDir(@F[1]);
-  LinuxError:=ErrNo;
+  linuxerror:=fpgeterrno;
 end;
 
 
@@ -1406,17 +1507,16 @@ procedure SeekDir(p:pdir;off:longint);
 begin
   if p=nil then
    begin
-     errno:=ESysEBadf;
+     fpseterrno(ESysEBadf);
      exit;
    end;
- {$ifndef bsd}                          {Should be ifdef Linux, but can't because
-                                                of 1.0.5 cycle}
+ {$ifndef bsd}                         
   {$ifndef Solaris}
-  p^.nextoff:=Sys_lseek(p^.fd,off,seek_set);
+  p^.dd_nextoff:=Sys_lseek(p^.dd_fd,off,seek_set);
   {$endif}
  {$endif}
-  p^.size:=0;
-  p^.loc:=0;
+  p^.dd_size:=0;
+  p^.dd_loc:=0;
 end;
 
 
@@ -1424,11 +1524,11 @@ function TellDir(p:pdir):longint;
 begin
   if p=nil then
    begin
-     errno:=ESysEBadf;
+     fpseterrno(ESysEBadf);
      telldir:=-1;
      exit;
    end;
-  telldir:=Sys_lseek(p^.fd,0,seek_cur)
+  telldir:=Sys_lseek(p^.dd_fd,0,seek_cur)
   { We could try to use the nextoff field here, but on my 1.2.13
     kernel, this gives nothing... This may have to do with
     the readdir implementation of libc... I also didn't find any trace of
@@ -1441,7 +1541,7 @@ end;
 Function ReadDir(P:pdir):pdirent;
 begin
   ReadDir:=Sys_ReadDir(p);
-  LinuxError:=Errno;
+  linuxerror:=fpgeterrno;
 end;
 
 
@@ -1943,11 +2043,11 @@ Var
   Sysn : utsname;
 begin
   Uname(Sysn);
-  linuxerror:=errno;
+  linuxerror:=fpgeterrno;
   If linuxerror<>0 then
    getdomainname:=''
   else
-   getdomainname:=strpas(@Sysn.domainname[0]);
+   getdomainname:=strpas(@Sysn.domain[0]);
 end;
 
 
@@ -1960,7 +2060,7 @@ Var
   Sysn : utsname;
 begin
   uname(Sysn);
-  linuxerror:=errno;
+  linuxerror:=fpgeterrno;
   If linuxerror<>0 then
    gethostname:=''
   else
@@ -2011,7 +2111,7 @@ begin
   {$endif}
   else
    begin
-     ErrNo:=ESysEINVAL;
+     fpsetErrNo(ESysEINVAL);
      TCSetAttr:=false;
      exit;
    end;
@@ -2178,15 +2278,15 @@ var
     d:=Readdir(dirstream);
     while (d<>nil) do
      begin
-       name:=n+'/'+strpas(@(d^.name));
+       name:=n+'/'+strpas(@(d^.d_name));
        fstat(name,st);
        if linuxerror=0 then
         begin
           if ((st.mode and $E000)=$4000) and  { if it is a directory }
-             (strpas(@(d^.name))<>'.') and    { but not ., .. and fd subdirs }
-             (strpas(@(d^.name))<>'..') and
-             (strpas(@(d^.name))<>'') and
-             (strpas(@(d^.name))<>'fd') then
+             (strpas(@(d^.d_name))<>'.') and    { but not ., .. and fd subdirs }
+             (strpas(@(d^.d_name))<>'..') and
+             (strpas(@(d^.d_name))<>'') and
+             (strpas(@(d^.d_name))<>'fd') then
            begin                      {we found a directory, search inside it}
              if mysearch(name) then
               begin                 {the device is here}
@@ -2195,7 +2295,7 @@ var
                 exit;
               end;
            end
-          else if (d^.ino=myino) and (st.dev=mydev) then
+          else if (d^.d_fileno=myino) and (st.st_dev=mydev) then
            begin
              closedir(dirstream);
              ttyname:=name;
@@ -2212,7 +2312,7 @@ var
 begin
   TTYName:='';
   fstat(handle,st);
-  if (errno<>0) and isatty (handle) then
+  if (fpgeterrno<>0) and isatty (handle) then
    exit;
   mydev:=st.dev;
   myino:=st.ino;
@@ -2554,13 +2654,13 @@ begin
   if thedir=nil then
    begin
      glob:=nil;
-     linuxerror:=errno;
+     linuxerror:=fpgeterrno;
      exit;
    end;
   temp:=basename(path,''); { get the pattern }
-  if thedir^.fd<0 then
+  if thedir^.dd_fd<0 then
    begin
-     linuxerror:=errno;
+     linuxerror:=fpgeterrno;
      glob:=nil;
      exit;
    end;
@@ -2571,7 +2671,7 @@ begin
     buffer:=Sys_readdir(thedir);
     if buffer=nil then
      break;
-    temp2:=strpas(@(buffer^.name[0]));
+    temp2:=strpas(@(buffer^.d_name[0]));
     if fnmatch(temp,temp2) then
      begin
        if root=nil then
@@ -2598,7 +2698,7 @@ begin
           globfree(root);
           break;
         end;
-       move(buffer^.name[0],current^.name^,length(temp2)+1);
+       move(buffer^.d_name[0],current^.name^,length(temp2)+1);
      end;
   until false;
   closedir(thedir);
@@ -2610,17 +2710,17 @@ end;
       FiledescriptorSets
 --------------------------------}
 
-Procedure FD_Zero(var fds:fdSet);
+Procedure FD_Zero(var fds:tfdset);
 {
   Clear the set of filedescriptors
 }
 begin
-  FillChar(fds,sizeof(fdSet),0);
+  FillChar(fds,sizeof(tfdset),0);
 end;
 
 
 
-Procedure FD_Clr(fd:longint;var fds:fdSet);
+Procedure FD_Clr(fd:longint;var fds:tfdset);
 {
   Remove fd from the set of filedescriptors
 }
@@ -2630,7 +2730,7 @@ end;
 
 
 
-Procedure FD_Set(fd:longint;var fds:fdSet);
+Procedure FD_Set(fd:longint;var fds:tfdset);
 {
   Add fd to the set of filedescriptors
 }
@@ -2640,7 +2740,7 @@ end;
 
 
 
-Function FD_IsSet(fd:longint;var fds:fdSet):boolean;
+Function FD_IsSet(fd:longint;var fds:tfdset):boolean;
 {
   Test if fd is part of the set of filedescriptors
 }
@@ -3032,7 +3132,10 @@ End.
 
 {
   $Log$
-  Revision 1.30  2003-05-30 19:58:40  marco
+  Revision 1.31  2003-09-14 20:15:01  marco
+   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
+
+  Revision 1.30  2003/05/30 19:58:40  marco
    * Getting NetBSD/i386 to compile.
 
   Revision 1.29  2003/05/30 19:37:14  marco

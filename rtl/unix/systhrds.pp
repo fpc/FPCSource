@@ -45,9 +45,13 @@ interface
 
 implementation
 
+Uses BaseUnix;
+
 {*****************************************************************************
                              Generic overloaded
 *****************************************************************************}
+{$i ostypes.inc}
+{$i ossysch.inc}
 
 { Include generic overloaded routines }
 {$i thread.inc}
@@ -106,6 +110,7 @@ const
   MAP_PRIVATE   =2;
   MAP_ANONYMOUS =$20;
 
+{
 type
   SysCallRegs=record
     reg1,reg2,reg3,reg4,reg5,reg6 : longint;
@@ -149,7 +154,7 @@ begin
   t.reg3:=len;
   Fpmunmap:=syscall(syscall_nr_munmap,t);
 end;
-
+}
 {$else}
 CONST
   { Constansts for MMAP. These are still private for *BSD }
@@ -157,9 +162,7 @@ CONST
   MAP_ANONYMOUS =$1000;
 
   // include some non posix internal types.
-  {$i ostypes.inc}
   // *BSD POSIX. Include headers to syscalls.
-  {$I ossysch.inc}
 
 {$endif}
 
@@ -203,7 +206,11 @@ CONST
 
     procedure SysReleaseThreadVars;
       begin
+	{$ifdef ver1_0}
         Fpmunmap(longint(pthread_getspecific(tlskey)),threadvarblocksize);
+	{$else}
+        Fpmunmap(pointer(pthread_getspecific(tlskey)),threadvarblocksize);
+	{$endif}
       end;
 
 { Include OS independent Threadvar initialization }
@@ -425,7 +432,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.8  2003-03-27 17:14:27  armin
+  Revision 1.9  2003-09-14 20:15:01  marco
+   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
+
+  Revision 1.8  2003/03/27 17:14:27  armin
   * more platform independent thread routines, needs to be implemented for unix
 
   Revision 1.7  2003/01/05 19:11:32  marco

@@ -17,10 +17,11 @@
 
 Function Fpmmap(adr,len,prot,flags,fdes,off:longint):longint;  external name  'FPC_SYSC_MMAP';
 Function Fpmunmap(adr:longint;len:size_t):longint;  external name 'FPC_SYSC_MUNMAP';
-Function FpIOCtl(Handle,Ndx: Longint;Data: Pointer):LongInt;  external name  'FPC_SYSC_IOCTL';
+Function FpIOCtl(Handle:cint;Ndx: culong;Data: Pointer):cint;  external name  'FPC_SYSC_IOCTL';
 Function FpGetPid:LongInt;   external name  'FPC_SYSC_GETPID';
-Function FpReadLink(name,linkname:pchar;maxlen:longint):longint;  external name  'FPC_SYSC_READLINK';
+//Function FpReadLink(name,linkname:pchar;maxlen:longint):longint;  external name  'FPC_SYSC_READLINK';
 
+function gettimeofday(tp: ptimeval;tzp:ptimezone):cint; external name 'FPC_SYSC_GETTIMEOFDAY';
 { Needed in both POSIX (for implementation of sleep()) as POSIX realtime extensions or  Unix/freebsd}
 Function FpNanoSleep (const req : timespec;var rem : timespec) : longint; external name 'FPC_SYSC_NANOSLEEP';
 
@@ -29,7 +30,10 @@ Function Fpgetcwd (path:pchar; siz:size_t):pchar; external name 'FPC_SYSC_GETCWD
 
 {
   $Log$
-  Revision 1.1  2003-01-05 19:01:28  marco
+  Revision 1.2  2003-09-14 20:15:01  marco
+   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
+
+  Revision 1.1  2003/01/05 19:01:28  marco
    * FreeBSD compiles now with baseunix mods.
 
   Revision 1.4  2002/10/27 11:58:29  marco

@@ -111,7 +111,7 @@ procedure CursorOff;
 
 Implementation
 
-uses Unix;
+uses BaseUnix,unix;
 
 {
   The definitions of TextRec and FileRec are in separate files.
@@ -349,7 +349,7 @@ procedure ttyFlushOutput;
 begin
   if OutCnt>0 then
    begin
-     fdWrite(ttyOut,OutBuf,OutCnt);
+     fpWrite(ttyOut,OutBuf,OutCnt);
      OutCnt:=0;
    end;
 end;
@@ -406,7 +406,7 @@ begin
      if InTail>InHead then
       i:=InTail-InHead;
    {Read}
-     Readed:=fdRead(TTYIn,InBuf[InHead],i);
+     Readed:=fpread(TTYIn,InBuf[InHead],i);
    {Increase Counters}
      inc(InCnt,Readed);
      inc(InHead,Readed);
@@ -897,15 +897,15 @@ End;
 { TTYLevel (including ones that are waiting in the TTYRecvChar buffer) }
 function sysKeyPressed: boolean;
 var
-  fdsin : fdSet;
+  fdsin : tfdSet;
 begin
   if (InCnt>0) then
    sysKeyPressed:=true
   else
    begin
-     FD_Zero(fdsin);
-     fd_Set(TTYin,fdsin);
-     sysKeypressed:=(Select(TTYIn+1,@fdsin,nil,nil,0)>0);
+     FPfdEmptyset(fdsin);
+     Fpfdaddset(fdsin,TTYin);
+     sysKeypressed:=(fpSelect(TTYIn+1,@fdsin,nil,nil,0)>0);
    end;
 end;
 
@@ -919,7 +919,7 @@ Var
   ch       : char;
   OldState,
   State    : longint;
-  FDS      : FDSet;
+  FDS      : TFDSet;
 Begin
 {Check Buffer first}
   if KeySend<>KeyPut then
@@ -931,9 +931,9 @@ Begin
 { Only if none are waiting! (JM) }
   if not sysKeyPressed then
     begin
-      FD_Zero (FDS);
-      FD_Set (0,FDS);
-      Select (1,@FDS,nil,nil,nil);
+      Fpfdemptyset (FDS);
+      fpfdaddset (FDS,0);
+      fpSelect (1,@FDS,nil,nil,nil);
     end;
 
   ch:=ttyRecvChar;
@@ -1370,7 +1370,7 @@ Begin
       CrtRead := 0;
       exit;
     end;
-  F.BufEnd:=fdRead(F.Handle, F.BufPtr^, F.BufSize);
+  F.BufEnd:=fpRead(F.Handle, F.BufPtr^, F.BufSize);
 { fix #13 only's -> #10 to overcome terminal setting }
   for i:=1to F.BufEnd do
    begin
@@ -1461,7 +1461,7 @@ const
 Procedure Sound(Hz: Word);
 begin
   if not OutputRedir then
-    ioctl(TextRec(Output).Handle, KIOCSOUND, Pointer(1193180 div Hz));
+    fpIoctl(TextRec(Output).Handle, KIOCSOUND, Pointer(1193180 div Hz));
 end;
 
 
@@ -1469,7 +1469,7 @@ end;
 Procedure NoSound;
 begin
   if not OutputRedir then
-    ioctl(TextRec(Output).Handle, KIOCSOUND, nil);
+    fpIoctl(TextRec(Output).Handle, KIOCSOUND, nil);
 end;
 
 
@@ -1571,7 +1571,7 @@ End;
 
 procedure GetXY(var x,y:byte);
 var
-  fds    : fdSet;
+  fds    : tfdSet;
   i,j,
   readed : longint;
   buf    : array[0..255] of char;
@@ -1580,12 +1580,12 @@ begin
   x:=0;
   y:=0;
   s:=#27'[6n';
-  fdWrite(0,s[1],length(s));
-  FD_Zero(fds);
-  FD_Set(1,fds);
+  fpWrite(0,s[1],length(s));
+  fpFDemptyset(fds);
+  fpfdaddset(fds,1);
   if (Select(2,@fds,nil,nil,1000)>0) then
    begin
-     readed:=fdRead(1,buf,sizeof(buf));
+     readed:=fpRead(1,buf,sizeof(buf));
      i:=0;
      while (i+5<readed) and (buf[i]<>#27) and (buf[i+1]<>'[') do
       inc(i);
@@ -1613,7 +1613,7 @@ var
 begin
   if Assigned(ConsoleBuf) then
    FreeMem(ConsoleBuf,ScreenHeight*ScreenWidth*2);
-  if (not OutputRedir) and IOCtl(TextRec(Output).Handle,TIOCGWINSZ,@Wininfo) then
+  if (not OutputRedir) and (fpIOCtl(TextRec(Output).Handle,TIOCGWINSZ,@Wininfo)>=0) then
    begin
      ScreenWidth:=Wininfo.ws_col;
      ScreenHeight:=Wininfo.ws_row;
@@ -1682,7 +1682,10 @@ Finalization
 End.
 {
   $Log$
-  Revision 1.10  2002-09-07 16:01:27  peter
+  Revision 1.11  2003-09-14 20:15:01  marco
+   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
+
+  Revision 1.10  2002/09/07 16:01:27  peter
     * old logs removed and tabs fixed
 
   Revision 1.9  2002/05/31 13:37:24  marco

@@ -16,6 +16,9 @@
 Unit Unix;
 Interface
 
+Uses BaseUnix;
+
+{// i ostypes.inc}
 { Get Types and Constants }
 {$i sysconst.inc}
 {$i systypes.inc}
@@ -24,11 +27,11 @@ Interface
 {$i sysnr.inc}
 {$i errno.inc}
 {$I signal.inc}
+{$i ostypes.inc}
 
 var
-  ErrNo,
+//  ErrNo,
   LinuxError : Longint;
-
 
 {********************
       Process
@@ -48,7 +51,6 @@ const
   __WCLONE  = $80000000;
 {$ENDIF}
 
-
 {********************
       File
 ********************}
@@ -62,7 +64,6 @@ Const
   LOCK_EX = 2;
   LOCK_UN = 8;
   LOCK_NB = 4;
-
 
 Type
   Tpipe = array[1..2] of longint;
@@ -80,12 +81,6 @@ Type
   ExtStr  = String[255];
 
 const
-
-  { For testing  access rights }
-  R_OK = 4;
-  W_OK = 2;
-  X_OK = 1;
-  F_OK = 0;
 
   { For File control mechanism }
   F_GetFd  = 1;
@@ -123,23 +118,6 @@ const
 
 Type
 
-  UTimBuf = packed record{in BSD array[0..1] of timeval, but this is
-                                backwards compatible with linux version}
-    actime,
-    {$ifdef BSD}
-    uactime,            {BSD Micro seconds}
-    {$endif}
-    modtime
-    {$ifdef BSD}
-         ,
-    umodtime             {BSD Micro seconds}
-    {$endif}
-         : longint;
-  end;
-  UTimeBuf=UTimBuf;
-  TUTimeBuf=UTimeBuf;
-  PUTimeBuf=^UTimeBuf;
-
   TSysinfo = packed record
     uptime    : longint;
     loads     : array[1..3] of longint;
@@ -158,20 +136,6 @@ Type
                             Procedure/Functions
 ******************************************************************************}
 
-{$ifdef bsd}
-function Do_SysCall(sysnr:longint):longint;
-//function Do_Syscall(sysnr,param1:integer):longint;
-function Do_SysCall(sysnr,param1:LONGINT):longint;
-function Do_SysCall(sysnr,param1,param2:LONGINT):longint;
-function Do_SysCall(sysnr,param1,param2,param3:LONGINT):longint;
-function Do_SysCall(sysnr,param1,param2,param3,param4:LONGINT):longint;
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5:LONGINT):longint;
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:LONGINT):int64;
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6,param7:LONGINT):int64;
-{$else}
-Function SysCall(callnr:longint;var regs:SysCallregs):longint;
-{$endif}
-
 {**************************
      Time/Date Handling
 ***************************}
@@ -187,8 +151,8 @@ procedure GetLocalTimezone(timer:longint);
 procedure ReadTimezoneFile(fn:string);
 function  GetTimezoneFile:string;
 
-Procedure GetTimeOfDay(var tv:timeval);
-Function  GetTimeOfDay:longint;
+//Procedure GetTimeOfDay(var tv:timeval);
+//Function  GetTimeOfDay:longint;
 Function  GetEpochTime: longint;
 Procedure EpochToLocal(epoch:longint;var year,month,day,hour,minute,second:Word);
 Function  LocalToEpoch(year,month,day,hour,minute,second:Word):Longint;
@@ -201,16 +165,15 @@ function SetTime(Hour,Min,Sec:word) : Boolean;
 function SetDate(Year,Month,Day:Word) : Boolean;
 function SetDateTime(Year,Month,Day,hour,minute,second:Word) : Boolean;
 
-
 {**************************
      Process Handling
 ***************************}
 
 function  CreateShellArgV(const prog:string):ppchar;
 function  CreateShellArgV(const prog:Ansistring):ppchar;
-Procedure Execve(Path: pathstr;args:ppchar;ep:ppchar);
-Procedure Execve(Path: AnsiString;args:ppchar;ep:ppchar);
-Procedure Execve(path: pchar;args:ppchar;ep:ppchar);
+//Procedure Execve(Path: pathstr;args:ppchar;ep:ppchar);
+//Procedure Execve(Path: AnsiString;args:ppchar;ep:ppchar);
+//Procedure Execve(path: pchar;args:ppchar;ep:ppchar);
 Procedure Execv(const path:pathstr;args:ppchar);
 Procedure Execv(const path: AnsiString;args:ppchar);
 Procedure Execvp(Path: Pathstr;Args:ppchar;Ep:ppchar);
@@ -221,91 +184,31 @@ Procedure Execle(Todo: String;Ep:ppchar);
 Procedure Execle(Todo: AnsiString;Ep:ppchar);
 Procedure Execlp(Todo: string;Ep:ppchar);
 Procedure Execlp(Todo: Ansistring;Ep:ppchar);
+
 Function  Shell(const Command:String):Longint;
 Function  Shell(const Command:AnsiString):Longint;
-Function  Fork:longint;
 {Clone for FreeBSD is copied from the LinuxThread port, and rfork based}
 function  Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint;
-Procedure ExitProcess(val:longint);
-Function  WaitPid(Pid:longint;Status:pointer;Options:Longint):Longint;  {=>PID (Status Valid), 0 (No Status), -1: Error, special case errno=EINTR }
 Function  WaitProcess(Pid:longint):Longint; { like WaitPid(PID,@result,0) Handling of Signal interrupts (errno=EINTR), returning the Exitcode of Process (>=0) or -Status if terminated}
-Procedure Nice(N:integer);
-function WEXITSTATUS(Status: Integer): Integer;
-function WTERMSIG(Status: Integer): Integer;
-function WSTOPSIG(Status: Integer): Integer;
-Function WIFEXITED(Status: Integer): Boolean;
+
 Function WIFSTOPPED(Status: Integer): Boolean;
-Function WIFSIGNALED(Status: Integer): Boolean;
 Function W_EXITCODE(ReturnCode, Signal: Integer): Integer;
 Function W_STOPCODE(Signal: Integer): Integer;
-{$ifdef bsd}
-Function  GetPriority(Which,Who:longint):longint;
-procedure SetPriority(Which,Who,What:longint);
-{$else}
-Function  GetPriority(Which,Who:Integer):integer;
-Procedure SetPriority(Which:Integer;Who:Integer;What:Integer);
-{$endif}
-
-Function  GetPid:LongInt;
-Function  GetPPid:LongInt;
-Function  GetUid:Longint;
-Function  GetEUid:Longint;
-Function  GetGid:Longint;
-Function  GetEGid:Longint;
 
 {**************************
      File Handling
 ***************************}
 
-Function  fdOpen(pathname:string;flags:longint):longint;
-Function  fdOpen(pathname:string;flags,mode:longint):longint;
-Function  fdOpen(pathname:pchar;flags:longint):longint;
-Function  fdOpen(pathname:pchar;flags,mode:longint):longint;
-Function  fdClose(fd:longint):boolean;
-Function  fdRead(fd:longint;var buf;size:longint):longint;
-Function  fdWrite(fd:longint;const buf;size:longint):longint;
-Function  fdTruncate(fd,size:longint):boolean;
-Function  fdSeek (fd,pos,seektype :longint): longint;
 Function  fdFlush (fd : Longint) : Boolean;
-Function  Link(OldPath,NewPath:pathstr):boolean;
-Function  SymLink(OldPath,NewPath:pathstr):boolean;
-Function  ReadLink(name,linkname:pchar;maxlen:longint):longint;
-Function  ReadLink(name:pathstr):pathstr;
-Function  UnLink(Path:pathstr):boolean;
-Function  UnLink(Path:pchar):Boolean;
-Function  FReName (OldName,NewName : Pchar) : Boolean;
-Function  FReName (OldName,NewName : String) : Boolean;
-Function  Chown(path:pathstr;NewUid,NewGid:longint):boolean;
-Function  Chmod(path:pathstr;Newmode:longint):boolean;
-Function  Utime(path:pathstr;utim:utimebuf):boolean;
-{$ifdef BSD}
-Function  Access(Path:Pathstr ;mode:longint):boolean;
-{$else}
-Function  Access(Path:Pathstr ;mode:integer):boolean;
-{$endif}
-Function  Umask(Mask:Integer):integer;
+
 Function  Flock (fd,mode : longint) : boolean;
 Function  Flock (var T : text;mode : longint) : boolean;
 Function  Flock (var F : File;mode : longint) : boolean;
-Function  FStat(Path:Pathstr;Var Info:stat):Boolean;
-Function  FStat(Fd:longint;Var Info:stat):Boolean;
-Function  FStat(var F:Text;Var Info:stat):Boolean;
-Function  FStat(var F:File;Var Info:stat):Boolean;
-Function  Lstat(Filename: PathStr;var Info:stat):Boolean;
+
 Function  StatFS(Path:Pathstr;Var Info:tstatfs):Boolean;
 Function  StatFS(Fd: Longint;Var Info:tstatfs):Boolean;
-Function  Fcntl(Fd:longint;Cmd:longint):longint;
-Procedure Fcntl(Fd:longint;Cmd:longint;Arg:Longint);
-Function  Fcntl(var Fd:Text;Cmd:longint):longint;
-Procedure Fcntl(var Fd:Text;Cmd:longint;Arg:Longint);
-Function  Dup(oldfile:longint;var newfile:longint):Boolean;
-Function  Dup(var oldfile,newfile:text):Boolean;
-Function  Dup(var oldfile,newfile:file):Boolean;
-Function  Dup2(oldfile,newfile:longint):Boolean;
-Function  Dup2(var oldfile,newfile:text):Boolean;
-Function  Dup2(var oldfile,newfile:file):Boolean;
-Function  Select(N:longint;readfds,writefds,exceptfds:PFDSet;TimeOut:PTimeVal):longint;
-Function  Select(N:longint;readfds,writefds,exceptfds:PFDSet;TimeOut:Longint):longint;
+
+Function  Select(N:cint;readfds,writefds,exceptfds:pfdset;TimeOut:cint):cint;
 Function  SelectText(var T:Text;TimeOut :PTimeVal):Longint;
 Function  SelectText(var T:Text;TimeOut :Longint):Longint;
 
@@ -313,10 +216,6 @@ Function  SelectText(var T:Text;TimeOut :Longint):Longint;
    Directory Handling
 ***************************}
 
-Function  OpenDir(f:pchar):pdir;
-Function  OpenDir(f: String):pdir;
-function  CloseDir(p:pdir):integer;
-Function  ReadDir(p:pdir):pdirent;
 procedure SeekDir(p:pdir;off:longint);
 function  TellDir(p:pdir):longint;
 
@@ -332,45 +231,19 @@ Function  PClose(Var F:file) : longint;
 Procedure POpen(var F:text;const Prog:String;rw:char);
 Procedure POpen(var F:file;const Prog:String;rw:char);
 
-Function  mkFifo(pathname:string;mode:longint):boolean;
-
 function AssignStream(Var StreamIn,Streamout:text;Const Prog:String) : longint;
 function AssignStream(var StreamIn, StreamOut, StreamErr: Text; const prog: String): LongInt;
-
-{**************************
-    General information
-***************************}
-
-Function  GetEnv(P:string):Pchar;
 
 {$ifndef BSD}
 Function  GetDomainName:String;
 Function  GetHostName:String;
 Function  Sysinfo(var Info:TSysinfo):Boolean;
-Function  Uname(var unamerec:utsname):Boolean;
 {$endif}
-{**************************
-        Signal
-***************************}
-
-Procedure SigAction(Signum:longint;Act,OldAct:PSigActionRec );
-Procedure SigProcMask (How:longint;SSet,OldSSet:PSigSet);
-Function  SigPending:SigSet;
-Procedure SigSuspend(Mask:Sigset);
-Function  Signal(Signum:longint;Handler:SignalHandler):SignalHandler;
-Function  Kill(Pid:longint;Sig:longint):integer;
-Procedure SigRaise(Sig:integer);
-{$ifndef BSD}
-Function  Alarm(Sec : Longint) : longint;
-Procedure Pause;
-{$endif}
-Function NanoSleep(const req : timespec;var rem : timespec) : longint;
 
 {**************************
   IOCtl/Termios Functions
 ***************************}
 
-Function  IOCtl(Handle,Ndx: Longint;Data: Pointer):boolean;
 Function  TCGetAttr(fd:longint;var tios:TermIOS):boolean;
 Function  TCSetAttr(fd:longint;OptAct:longint;const tios:TermIOS):boolean;
 Procedure CFSetISpeed(var tios:TermIOS;speed:Cardinal);
@@ -419,37 +292,8 @@ type
     offset  : longint;
   end;
 
-function MMap(const m:tmmapargs):longint;
+//function MMap(const m:tmmapargs):longint;
 function MUnMap (P : Pointer; Size : Longint) : Boolean;
-
-{***********************************
-  Port IO functions (x86 specific)
-***********************************}
-
-{$ifdef i386}
-Function  IOperm (From,Num : Cardinal; Value : Longint) : boolean;
-{$ifndef BSD}
-Function  IoPL(Level : longint) : Boolean;
-{$endif}
-Procedure WritePort (Port : Longint; Value : Byte);
-Procedure WritePort (Port : Longint; Value : Word);
-Procedure WritePort (Port : Longint; Value : Longint);
-Procedure WritePortB (Port : Longint; Value : Byte);
-Procedure WritePortW (Port : Longint; Value : Word);
-Procedure WritePortL (Port : Longint; Value : Longint);
-Procedure WritePortL (Port : Longint; Var Buf; Count: longint);
-Procedure WritePortW (Port : Longint; Var Buf; Count: longint);
-Procedure WritePortB (Port : Longint; Var Buf; Count: longint);
-Procedure ReadPort (Port : Longint; Var Value : Byte);
-Procedure ReadPort (Port : Longint; Var Value : Word);
-Procedure ReadPort (Port : Longint; Var Value : Longint);
-function  ReadPortB (Port : Longint): Byte;
-function  ReadPortW (Port : Longint): Word;
-function  ReadPortL (Port : Longint): LongInt;
-Procedure ReadPortL (Port : Longint; Var Buf; Count: longint);
-Procedure ReadPortW (Port : Longint; Var Buf; Count: longint);
-Procedure ReadPortB (Port : Longint; Var Buf; Count: longint);
-{$endif i386}
 
 {**************************
     Utility functions
@@ -470,29 +314,23 @@ Function  StringToPPChar(S : Pchar):ppchar;
 Function  GetFS(var T:Text):longint;
 Function  GetFS(Var F:File):longint;
 {Filedescriptorsets}
-Procedure FD_Zero(var fds:fdSet);
-Procedure FD_Clr(fd:longint;var fds:fdSet);
-Procedure FD_Set(fd:longint;var fds:fdSet);
-Function  FD_IsSet(fd:longint;var fds:fdSet):boolean;
 {Stat.Mode Types}
 Function S_ISLNK(m:word):boolean;
-Function S_ISREG(m:word):boolean;
-Function S_ISDIR(m:word):boolean;
-
-Function S_ISCHR(m:word):boolean;
-Function S_ISBLK(m:word):boolean;
-Function S_ISFIFO(m:word):boolean;
 Function S_ISSOCK(m:word):boolean;
-
 
 {******************************************************************************
                             Implementation
 ******************************************************************************}
 
+{$i unxsysch.inc}
+
 Implementation
 
 Uses Strings;
 
+{$i syscallh.inc}
+{$i unxsysc.inc}
+{$i ossysch.inc}
 
 { Get the definitions of textrec and filerec }
 {$i textrec.inc}
@@ -502,6 +340,8 @@ Uses Strings;
 {$i syscalls.inc}
 
 {$i unixsysc.inc}   {Syscalls only used in unit Unix/Linux}
+
+Function getenv(name:string):Pchar; external name 'FPC_SYSC_FPGETENV';
 
 
 {******************************************************************************
@@ -514,7 +354,7 @@ var     r,s     : LongInt;
 begin
   repeat
     s:=$7F00;
-    r:=WaitPid(Pid,@s,0);
+    r:=fpWaitPid(Pid,s,0);
   until (r<>-1) or (LinuxError<>ESysEINTR);
   if (r=-1) or (r=0) then // 0 is not a valid return and should never occur (it means status invalid when using WNOHANG)
     WaitProcess:=-1 // return -1 to indicate an error
@@ -571,7 +411,6 @@ begin
   CreateShellArgV:=InternalCreateShellArgV(@prog[1],length(prog)); // if ppc works like delphi this also work when @prog[1] is invalid (len=0)
 end;
 
-
 procedure FreeShellArgV(p:ppchar);
 begin
   if (p<>nil) then begin
@@ -580,21 +419,12 @@ begin
    end;
 end;
 
-
-Procedure Execve(Path: AnsiString;args:ppchar;ep:ppchar);
-{
-  overloaded ansistring version.
-}
-begin
-  ExecVE(PChar(Path),args,ep);
-end;
-
 Procedure Execv(const path: AnsiString;args:ppchar);
 {
   Overloaded ansistring version.
 }
 begin
-  ExecVe(Path,Args,envp)
+  fpExecVe(Path,Args,envp)
 end;
 
 Procedure Execvp(Path: AnsiString; Args:ppchar;Ep:ppchar);
@@ -606,7 +436,7 @@ var
 begin
   if path[1]<>'/' then
    begin
-     Thepath:=strpas(getenv('PATH'));
+     Thepath:=strpas(fpgetenv('PATH'));
      if thepath='' then
       thepath:='.';
      Path:=FSearch(path,thepath)
@@ -616,7 +446,7 @@ begin
   if Path='' then
    linuxerror:=ESysEnoent
   else
-   Execve(Path,args,ep);{On error linuxerror will get set there}
+   fpExecve(Path,args,ep);{On error linuxerror will get set there}
 end;
 
 Procedure Execv(const path:pathstr;args:ppchar);
@@ -626,9 +456,8 @@ Procedure Execv(const path:pathstr;args:ppchar);
   the current environment is passed on.
 }
 begin
-  Execve(path,args,envp); {On error linuxerror will get set there}
+  fpExecve(path,args,envp); {On error linuxerror will get set there}
 end;
-
 
 Procedure Execvp(Path:Pathstr;Args:ppchar;Ep:ppchar);
 {
@@ -641,7 +470,7 @@ var
 begin
   if path[1]<>'/' then
    begin
-     Thepath:=strpas(getenv('PATH'));
+     Thepath:=strpas(fpgetenv('PATH'));
      if thepath='' then
       thepath:='.';
      Path:=FSearch(path,thepath)
@@ -651,9 +480,8 @@ begin
   if Path='' then
    linuxerror:=ESysEnoent
   else
-   Execve(Path,args,ep);{On error linuxerror will get set there}
+   fpExecve(Path,args,ep);{On error linuxerror will get set there}
 end;
-
 
 Procedure Execle(Todo:string;Ep:ppchar);
 {
@@ -670,9 +498,8 @@ begin
   p:=StringToPPChar(ToDo);
   if (p=nil) or (p^=nil) then
    exit;
-  ExecVE(p^,p,EP);
+  fpExecVE(p^,p,EP);
 end;
-
 
 Procedure Execle(Todo:AnsiString;Ep:ppchar);
 {
@@ -689,7 +516,7 @@ begin
   p:=StringToPPChar(ToDo);
   if (p=nil) or (p^=nil) then
    exit;
-  ExecVE(p^,p,EP);
+  fpExecVE(p^,p,EP);
 end;
 
 Procedure Execl(const Todo:string);
@@ -704,7 +531,6 @@ Procedure Execl(const Todo:string);
 begin
   ExecLE(ToDo,EnvP);
 end;
-
 
 Procedure Execlp(Todo:string;Ep:ppchar);
 {
@@ -724,7 +550,6 @@ begin
   ExecVP(StrPas(p^),p,EP);
 end;
 
-
 Procedure Execlp(Todo: Ansistring;Ep:ppchar);
 {
   Overloaded ansistring version.
@@ -737,7 +562,6 @@ begin
    exit;
   ExecVP(StrPas(p^),p,EP);
 end;
-
 
 Function Shell(const Command:String):Longint;
 {
@@ -758,12 +582,12 @@ var
   pid    : longint;
 begin
   p:=CreateShellArgv(command);
-  pid:=fork;
+  pid:=fpfork;
   if pid=0 then // We are in the Child
    begin
      {This is the child.}
-     Execve(p^,p,envp);
-     ExitProcess(127);  // was Exit(127)
+     fpExecve(p^,p,envp);
+     fpExit(127);  // was Exit(127)
    end
   else if (pid<>-1) then // Successfull started
    Shell:=WaitProcess(pid) {Linuxerror is set there}
@@ -771,7 +595,6 @@ begin
    Shell:=-1; // indicate an error
   FreeShellArgV(p);
 end;
-
 
 Function Shell(const Command:AnsiString):Longint;
 {
@@ -782,11 +605,11 @@ var
   pid   : longint;
 begin { Changes as above }
   p:=CreateShellArgv(command);
-  pid:=fork;
+  pid:=fpfork;
   if pid=0 then // We are in the Child
    begin
-     Execve(p^,p,envp);
-     ExitProcess(127); // was exit(127)!! We must exit the Process, not the function
+     fpExecve(p^,p,envp);
+     fpExit(127); // was exit(127)!! We must exit the Process, not the function
    end
   else if (pid<>-1) then // Successfull started
    Shell:=WaitProcess(pid) {Linuxerror is set there}
@@ -795,35 +618,10 @@ begin { Changes as above }
   FreeShellArgV(p);
 end;
 
-function WEXITSTATUS(Status: Integer): Integer;
-begin
-  WEXITSTATUS:=(Status and $FF00) shr 8;
-end;
-
-function WTERMSIG(Status: Integer): Integer;
-begin
-  WTERMSIG:=(Status and $7F);
-end;
-
-function WSTOPSIG(Status: Integer): Integer;
-begin
-  WSTOPSIG:=WEXITSTATUS(Status);
-end;
-
-Function WIFEXITED(Status: Integer): Boolean;
-begin
-  WIFEXITED:=(WTERMSIG(Status)=0);
-end;
 
 Function WIFSTOPPED(Status: Integer): Boolean;
 begin
   WIFSTOPPED:=((Status and $FF)=$7F);
-end;
-
-Function WIFSIGNALED(Status: Integer): Boolean;
-begin
-  WIFSIGNALED:=(not WIFSTOPPED(Status)) and
-               (not WIFEXITED(Status));
 end;
 
 Function W_EXITCODE(ReturnCode, Signal: Integer): Integer;
@@ -864,7 +662,6 @@ Begin
 End;
 
 
-
 Procedure JulianToGregorian(JulianDN:LongInt;Var Year,Month,Day:Word);
 Var
   YYear,XYear,Temp,TempMonth : LongInt;
@@ -892,9 +689,8 @@ Function GetEpochTime: longint;
   the time NOT corrected any way
 }
 begin
-  GetEpochTime:=GetTimeOfDay;
+  GetEpochTime:=fptime;
 end;
-
 
 Procedure EpochToLocal(epoch:longint;var year,month,day,hour,minute,second:Word);
 {
@@ -913,7 +709,6 @@ Begin
   Second:=Epoch Mod 60;
 End;
 
-
 Function LocalToEpoch(year,month,day,hour,minute,second:Word):Longint;
 {
   Transforms local time (year,month,day,hour,minutes,second) to Epoch time
@@ -924,21 +719,19 @@ Begin
                 (LongInt(Hour)*3600)+(Minute*60)+Second-TZSeconds;
 End;
 
-
 procedure GetTime(var hour,min,sec,msec,usec:word);
 {
   Gets the current time, adjusted to local time
 }
 var
   year,day,month:Word;
-  t : timeval;
+  tz:timeval;
 begin
-  gettimeofday(t);
-  EpochToLocal(t.sec,year,month,day,hour,min,sec);
-  msec:=t.usec div 1000;
-  usec:=t.usec mod 1000;
+  gettimeofday(@tz,nil);
+  EpochToLocal(tz.tv_sec,year,month,day,hour,min,sec);
+  msec:=tz.tv_usec div 1000;
+  usec:=tz.tv_usec mod 1000;
 end;
-
 
 procedure GetTime(var hour,min,sec,sec100:word);
 {
@@ -951,7 +744,6 @@ begin
   sec100:=sec100 div 10;
 end;
 
-
 Procedure GetTime(Var Hour,Min,Sec:Word);
 {
   Gets the current time, adjusted to local time
@@ -962,7 +754,6 @@ Begin
   gettime(hour,min,sec,msec,usec);
 End;
 
-
 Procedure GetDate(Var Year,Month,Day:Word);
 {
   Gets the current date, adjusted to local time
@@ -970,16 +761,15 @@ Procedure GetDate(Var Year,Month,Day:Word);
 var
   hour,minute,second : word;
 Begin
-  EpochToLocal(GetTimeOfDay,year,month,day,hour,minute,second);
+  EpochToLocal(fptime,year,month,day,hour,minute,second);
 End;
-
 
 Procedure GetDateTime(Var Year,Month,Day,hour,minute,second:Word);
 {
   Gets the current date, adjusted to local time
 }
 Begin
-  EpochToLocal(GetTimeOfDay,year,month,day,hour,minute,second);
+  EpochToLocal(fptime,year,month,day,hour,minute,second);
 End;
 
 {$ifndef BSD}
@@ -990,7 +780,7 @@ var
 begin
   sr.reg2:=longint(@t);
   SysCall(Syscall_nr_stime,sr);
-  linuxerror:=errno;
+  linuxerror:=fpgeterrno;;
    stime:=linuxerror=0;
 end;
 {$endif}
@@ -1027,7 +817,6 @@ end;
 { Include timezone handling routines which use /usr/share/timezone info }
 {$i timezone.inc}
 
-
 {******************************************************************************
                            FileSystem calls
 ******************************************************************************}
@@ -1035,16 +824,15 @@ end;
 Function fdOpen(pathname:string;flags:longint):longint;
 begin
   pathname:=pathname+#0;
-  fdOpen:=Sys_Open(@pathname[1],flags,438);
-  LinuxError:=Errno;
+  fdOpen:=fpOpen(@pathname[1],flags,438);
+  linuxerror:=fpgeterrno;;
 end;
-
 
 Function fdOpen(pathname:string;flags,mode:longint):longint;
 begin
   pathname:=pathname+#0;
-  fdOpen:=Sys_Open(@pathname[1],flags,mode);
-  LinuxError:=Errno;
+  fdOpen:=fpOpen(@pathname[1],flags,mode);
+  linuxerror:=fpgeterrno;;
 end;
 
 Procedure Execl(const Todo:Ansistring);
@@ -1056,59 +844,6 @@ Procedure Execl(const Todo:Ansistring);
 begin
   ExecLE(ToDo,EnvP);
 end;
-
-
-Function  fdOpen(pathname:pchar;flags:longint):longint;
-begin
-  fdOpen:=Sys_Open(pathname,flags,0);
-  LinuxError:=Errno;
-end;
-
-
-
-Function  fdOpen(pathname:pchar;flags,mode:longint):longint;
-begin
-  fdOpen:=Sys_Open(pathname,flags,mode);
-  LinuxError:=Errno;
-end;
-
-
-
-Function fdClose(fd:longint):boolean;
-begin
-  fdClose:=(Sys_Close(fd)=0);
-  LinuxError:=Errno;
-end;
-
-
-
-Function fdRead(fd:longint;var buf;size:longint):longint;
-begin
-  fdRead:=Sys_Read(fd,pchar(@buf),size);
-  LinuxError:=Errno;
-end;
-
-
-
-Function fdWrite(fd:longint;const buf;size:longint):longint;
-begin
-  fdWrite:=Sys_Write(fd,pchar(@buf),size);
-  LinuxError:=Errno;
-end;
-
-
-
-
-Function  fdSeek (fd,pos,seektype :longint): longint;
-{
-  Do a Seek on a file descriptor fd to position pos, starting from seektype
-
-}
-begin
-   fdseek:=Sys_LSeek (fd,pos,seektype);
-   LinuxError:=Errno;
-end;
-
 
 {$ifdef BSD}
 Function Fcntl(Fd:longint;Cmd:longint):longint;
@@ -1123,10 +858,10 @@ Function Fcntl(Fd:longint;Cmd:longint):longint;
 begin
   if (cmd in [F_GetFd,F_GetFl,F_GetOwn]) then
    begin
-     Linuxerror:=sys_fcntl(fd,cmd,0);
+     Linuxerror:=fpfcntl(fd,cmd,0);
      if linuxerror=-1 then
       begin
-        linuxerror:=errno;
+        linuxerror:=fpgeterrno;;
         fcntl:=0;
       end
      else
@@ -1142,7 +877,6 @@ begin
    end;
 end;
 
-
 Procedure Fcntl(Fd:longint;Cmd:longint;Arg:Longint);
 {
   Read or manipulate a file. (See also fcntl (2) )
@@ -1155,14 +889,13 @@ Procedure Fcntl(Fd:longint;Cmd:longint;Arg:Longint);
 begin
   if (cmd in [F_SetFd,F_SetFl,F_GetLk,F_SetLk,F_SetLkw,F_SetOwn]) then
    begin
-     sys_fcntl(fd,cmd,arg);
-     LinuxError:=ErrNo;
+     fpfcntl(fd,cmd,arg);
+     linuxerror:=fpgeterrno;;
    end
   else
    linuxerror:=ESysEinval;
 end;
 {$endif}
-
 
 Function Fcntl(var Fd:Text;Cmd:longint):longint;
 
@@ -1176,12 +909,10 @@ begin
   Fcntl(textrec(Fd).handle, Cmd, Arg);
 end;
 
-
 Function Flock (var T : text;mode : longint) : boolean;
 begin
   Flock:=Flock(TextRec(T).Handle,mode);
 end;
-
 
 
 Function  Flock (var F : File;mode : longint) : boolean;
@@ -1191,182 +922,8 @@ end;
 
 
 
-Function FStat(Path:Pathstr;Var Info:stat):Boolean;
-{
-  Get all information on a file, and return it in Info.
-}
-begin
-  path:=path+#0;
-  FStat:=(Sys_stat(@(path[1]),Info)=0);
-  LinuxError:=errno;
-end;
 
-
-
-
-Function  FStat(var F:Text;Var Info:stat):Boolean;
-{
-  Get all information on a text file, and return it in info.
-}
-begin
-  FStat:=Fstat(TextRec(F).Handle,INfo);
-end;
-
-
-
-Function  FStat(var F:File;Var Info:stat):Boolean;
-{
-  Get all information on a untyped file, and return it in info.
-}
-begin
-  FStat:=Fstat(FileRec(F).Handle,Info);
-end;
-
-Function SymLink(OldPath,newPath:pathstr):boolean;
-{
-  Proceduces a soft link from new to old.
-}
-begin
-  oldpath:=oldpath+#0;
-  newpath:=newpath+#0;
-  Symlink:=Sys_symlink(pchar(@(oldpath[1])),pchar(@(newpath[1])))=0;
-  linuxerror:=errno;
-end;
-
-
-Function ReadLink(name,linkname:pchar;maxlen:longint):longint;
-{
-  Read a link (where it points to)
-}
-begin
-  Readlink:=Sys_readlink(Name,LinkName,maxlen);
-  linuxerror:=errno;
-end;
-
-
-Function ReadLink(Name:pathstr):pathstr;
-{
-  Read a link (where it points to)
-}
-var
-  LinkName : pathstr;
-  i : longint;
-begin
-  Name:=Name+#0;
-  i:=ReadLink(@Name[1],@LinkName[1],high(linkname));
-  if i>0 then
-   begin
-     linkname[0]:=chr(i);
-     ReadLink:=LinkName;
-   end
-  else
-   ReadLink:='';
-end;
-
-
-Function UnLink(Path:pathstr):boolean;
-{
-  Removes the file in 'Path' (that is, it decreases the link count with one.
-  if the link count is zero, the file is removed from the disk.
-}
-begin
-  path:=path+#0;
-  Unlink:=Sys_unlink(pchar(@(path[1])))=0;
-  linuxerror:=errno;
-end;
-
-
-Function  UnLink(Path:pchar):Boolean;
-{
-  Removes the file in 'Path' (that is, it decreases the link count with one.
-  if the link count is zero, the file is removed from the disk.
-}
-begin
-  Unlink:=(Sys_unlink(path)=0);
-  linuxerror:=errno;
-end;
-
-
-Function  FRename (OldName,NewName : Pchar) : Boolean;
-begin
-  FRename:=Sys_rename(OldName,NewName)=0;
-  LinuxError:=Errno;
-end;
-
-
-Function  FRename (OldName,NewName : String) : Boolean;
-begin
-  OldName:=OldName+#0;
-  NewName:=NewName+#0;
-  FRename:=FRename (@OldName[1],@NewName[1]);
-end;
-
-Function Dup(var oldfile,newfile:text):Boolean;
-{
-  Copies the filedescriptor oldfile to newfile, after flushing the buffer of
-  oldfile.
-  After which the two textfiles are, in effect, the same, except
-  that they don't share the same buffer, and don't share the same
-  close_on_exit flag.
-}
-begin
-  flush(oldfile);{ We cannot share buffers, so we flush them. }
-  textrec(newfile):=textrec(oldfile);
-  textrec(newfile).bufptr:=@(textrec(newfile).buffer);{ No shared buffer. }
-  Dup:=Dup(textrec(oldfile).handle,textrec(newfile).handle);
-end;
-
-
-Function Dup(var oldfile,newfile:file):Boolean;
-{
-  Copies the filedescriptor oldfile to newfile
-}
-begin
-  filerec(newfile):=filerec(oldfile);
-  Dup:=Dup(filerec(oldfile).handle,filerec(newfile).handle);
-end;
-
-
-
-Function Dup2(var oldfile,newfile:text):Boolean;
-{
-  Copies the filedescriptor oldfile to newfile, after flushing the buffer of
-  oldfile. It closes newfile if it was still open.
-  After which the two textfiles are, in effect, the same, except
-  that they don't share the same buffer, and don't share the same
-  close_on_exit flag.
-}
-var
-  tmphandle : word;
-begin
-  case TextRec(oldfile).mode of
-    fmOutput, fmInOut, fmAppend :
-      flush(oldfile);{ We cannot share buffers, so we flush them. }
-  end;
-  case TextRec(newfile).mode of
-    fmOutput, fmInOut, fmAppend :
-      flush(newfile);
-  end;
-  tmphandle:=textrec(newfile).handle;
-  textrec(newfile):=textrec(oldfile);
-  textrec(newfile).handle:=tmphandle;
-  textrec(newfile).bufptr:=@(textrec(newfile).buffer);{ No shared buffer. }
-  Dup2:=Dup2(textrec(oldfile).handle,textrec(newfile).handle);
-end;
-
-
-Function Dup2(var oldfile,newfile:file):Boolean;
-{
-  Copies the filedescriptor oldfile to newfile
-}
-begin
-  filerec(newfile):=filerec(oldfile);
-  Dup2:=Dup2(filerec(oldfile).handle,filerec(newfile).handle);
-end;
-
-
-
-Function  Select(N:longint;readfds,writefds,exceptfds:PFDSet;TimeOut:Longint):longint;
+Function Select(N:cint;readfds,writefds,exceptfds:pfdset;TimeOut:cint):cint;
 {
   Select checks whether the file descriptor sets in readfs/writefs/exceptfs
   have changed.
@@ -1380,32 +937,29 @@ begin
    p:=nil
   else
    begin
-     tv.Sec:=Timeout div 1000;
-     tv.Usec:=(Timeout mod 1000)*1000;
+     tv.tv_Sec:=Timeout div 1000;
+     tv.tv_Usec:=(Timeout mod 1000)*1000;
      p:=@tv;
    end;
-  Select:=Select(N,Readfds,WriteFds,ExceptFds,p);
+  Select:=fpSelect(N,Readfds,WriteFds,ExceptFds,p);
 end;
-
-
 
 Function SelectText(var T:Text;TimeOut :PTimeval):Longint;
 Var
-  F:FDSet;
+  F:TfdSet;
 begin
   if textrec(t).mode=fmclosed then
    begin
      LinuxError:=ESysEBADF;
      exit(-1);
    end;
-  FD_Zero(f);
-  FD_Set(textrec(T).handle,f);
+  Fpfdemptyset(f);
+  fpfdaddset(f,textrec(T).handle);
   if textrec(T).mode=fminput then
-   SelectText:=select(textrec(T).handle+1,@f,nil,nil,TimeOut)
+   SelectText:=fpselect(textrec(T).handle+1,@f,nil,nil,TimeOut)
   else
-   SelectText:=select(textrec(T).handle+1,nil,@f,nil,TimeOut);
+   SelectText:=fpselect(textrec(T).handle+1,nil,@f,nil,TimeOut);
 end;
-
 
 Function SelectText(var T:Text;TimeOut :Longint):Longint;
 var
@@ -1416,65 +970,46 @@ begin
    p:=nil
   else
    begin
-     tv.Sec:=Timeout div 1000;
-     tv.Usec:=(Timeout mod 1000)*1000;
+     tv.tv_Sec:=Timeout div 1000;
+     tv.tv_Usec:=(Timeout mod 1000)*1000;
      p:=@tv;
    end;
   SelectText:=SelectText(T,p);
 end;
 
-
 {******************************************************************************
                                Directory
 ******************************************************************************}
-
-Function OpenDir(F:String):PDir;
-begin
-  F:=F+#0;
-  OpenDir:=OpenDir(@F[1]);
-  LinuxError:=ErrNo;
-end;
-
 
 procedure SeekDir(p:pdir;off:longint);
 begin
   if p=nil then
    begin
-     errno:=ESysEBADF;
+     fpseterrno(ESysEBADF);
      exit;
    end;
  {$ifndef bsd}
-  p^.nextoff:=Sys_lseek(p^.fd,off,seek_set);
+  p^.dd_nextoff:=fplseek(p^.dd_fd,off,seek_set);
  {$endif}
-  p^.size:=0;
-  p^.loc:=0;
+  p^.dd_size:=0;
+  p^.dd_loc:=0;
 end;
-
 
 function TellDir(p:pdir):longint;
 begin
   if p=nil then
    begin
-     errno:=ESysEBADF;
+     fpseterrno(ESysEBADF);
      telldir:=-1;
      exit;
    end;
-  telldir:=Sys_lseek(p^.fd,0,seek_cur)
+  telldir:=fplseek(p^.dd_fd,0,seek_cur)
   { We could try to use the nextoff field here, but on my 1.2.13
     kernel, this gives nothing... This may have to do with
     the readdir implementation of libc... I also didn't find any trace of
     the field in the kernel code itself, So I suspect it is an artifact of libc.
     Michael. }
 end;
-
-
-
-Function ReadDir(P:pdir):pdirent;
-begin
-  ReadDir:=Sys_ReadDir(p);
-  LinuxError:=Errno;
-end;
-
 
 {******************************************************************************
                                Pipes/Fifo
@@ -1494,7 +1029,6 @@ begin
   end;
 end;
 
-
 Procedure IOPipe(var F:text);
 begin
   case textrec(f).mode of
@@ -1503,14 +1037,13 @@ begin
         { first check if we need something to write, else we may
           get a SigPipe when Close() is called (PFV) }
         if textrec(f).bufpos>0 then
-          Sys_write(textrec(f).handle,pchar(textrec(f).bufptr),textrec(f).bufpos);
+          fpwrite(textrec(f).handle,pchar(textrec(f).bufptr),textrec(f).bufpos);
       end;
     fminput :
-      textrec(f).bufend:=Sys_read(textrec(f).handle,pchar(textrec(f).bufptr),textrec(f).bufsize);
+      textrec(f).bufend:=fpread(textrec(f).handle,pchar(textrec(f).bufptr),textrec(f).bufsize);
   end;
   textrec(f).bufpos:=0;
 end;
-
 
 Procedure FlushPipe(var F:Text);
 begin
@@ -1519,13 +1052,11 @@ begin
   textrec(f).bufpos:=0;
 end;
 
-
 Procedure ClosePipe(var F:text);
 begin
   textrec(f).mode:=fmclosed;
-  Sys_close(textrec(f).handle);
+  fpclose(textrec(f).handle);
 end;
-
 
 Function AssignPipe(var pipe_in,pipe_out:text):boolean;
 {
@@ -1561,7 +1092,6 @@ begin
   TextRec(Pipe_out).CloseFunc:=@ClosePipe;
   AssignPipe:=true;
 end;
-
 
 Function AssignPipe(var pipe_in,pipe_out:file):boolean;
 {
@@ -1601,7 +1131,6 @@ begin
 end;
 
 
-
 Procedure POpen(var F:text;const Prog:String;rw:char);
 {
   Starts the program in 'Prog' and makes it's input or out put the
@@ -1627,7 +1156,7 @@ begin
   AssignPipe(pipi,pipo);
   if Linuxerror<>0 then
    exit;
-  pid:=fork;
+  pid:=fpfork;
   if linuxerror<>0 then
    begin
      close(pipi);
@@ -1640,7 +1169,7 @@ begin
      if rw='W' then
       begin
         close(pipo);
-        dup2(pipi,input);
+        fpdup2(pipi,input);
         close(pipi);
         if linuxerror<>0 then
          halt(127);
@@ -1648,13 +1177,13 @@ begin
      else
       begin
         close(pipi);
-        dup2(pipo,output);
+        fpdup2(pipo,output);
         close(pipo);
         if linuxerror<>0 then
          halt(127);
       end;
      pp:=createshellargv(prog);
-     Execve(pp^,pp,envp);
+     fpExecve(pp^,pp,envp);
      halt(127);
    end
   else
@@ -1678,7 +1207,6 @@ begin
      textrec(f).closefunc:=@PCloseText;
    end;
 end;
-
 
 Procedure POpen(var F:file;const Prog:String;rw:char);
 {
@@ -1706,7 +1234,7 @@ begin
   AssignPipe(pipi,pipo);
   if Linuxerror<>0 then
    exit;
-  pid:=fork;
+  pid:=fpfork;
   if linuxerror<>0 then
    begin
      close(pipi);
@@ -1719,7 +1247,7 @@ begin
      if rw='W' then
       begin
         close(pipo);
-        dup2(filerec(pipi).handle,stdinputhandle);
+        fpdup2(filerec(pipi).handle,stdinputhandle);
         close(pipi);
         if linuxerror<>0 then
          halt(127);
@@ -1727,7 +1255,7 @@ begin
      else
       begin
         close(pipi);
-        dup2(filerec(pipo).handle,stdoutputhandle);
+        fpdup2(filerec(pipo).handle,stdoutputhandle);
         close(pipo);
         if linuxerror<>0 then
          halt(127);
@@ -1742,7 +1270,7 @@ begin
      p^:=@temp[12];
      inc(p);
      p^:=Nil;
-     Execve('/bin/sh',pp,envp);
+     fpExecve(ansistring('/bin/sh'),pp,envp);
      halt(127);
    end
   else
@@ -1763,7 +1291,6 @@ begin
      pl^:=pid;
    end;
 end;
-
 
 Function AssignStream(Var StreamIn,Streamout:text;Const Prog:String) : longint;
 {
@@ -1791,7 +1318,7 @@ begin
   AssignPipe(pipi,streamout);
   if Linuxerror<>0 then
    exit;
-  pid:=fork;
+  pid:=fpfork;
   if linuxerror<>0 then
    begin
      close(pipi);
@@ -1806,11 +1333,11 @@ begin
      { Close what we don't need }
      close(streamout);
      close(streamin);
-     dup2(pipi,input);
+     fpdup2(pipi,input);
      if linuxerror<>0 then
       halt(127);
      close(pipi);
-     dup2(pipo,output);
+     fpdup2(pipo,output);
      if linuxerror<>0 then
        halt (127);
      close(pipo);
@@ -1833,7 +1360,6 @@ begin
      AssignStream:=Pid;
    end;
 end;
-
 
 function AssignStream(var StreamIn, StreamOut, StreamErr: Text; const prog: String): LongInt;
 {
@@ -1878,7 +1404,7 @@ begin
 
   // Fork
 
-  pid := Fork;
+  pid := fpFork;
   if LinuxError <> 0 then begin
     Close(StreamIn);
     Close(PipeOut);
@@ -1896,13 +1422,13 @@ begin
     Close(StreamIn);
     Close(StreamErr);
     // Connect pipes
-    dup2(PipeIn, Input);
+    fpdup2(PipeIn, Input);
     if LinuxError <> 0 then Halt(127);
     Close(PipeIn);
-    dup2(PipeOut, Output);
+    fpdup2(PipeOut, Output);
     if LinuxError <> 0 then Halt(127);
     Close(PipeOut);
-    dup2(PipeErr, StdErr);
+    fpdup2(PipeErr, StdErr);
     if LinuxError <> 0 then Halt(127);
     Close(PipeErr);
     // Execute program
@@ -1929,59 +1455,28 @@ begin
   end;
 end;
 
-
 {******************************************************************************
                         General information calls
 ******************************************************************************}
 
-
-Function GetEnv(P:string):Pchar;
-{
-  Searches the environment for a string with name p and
-  returns a pchar to it's value.
-  A pchar is used to accomodate for strings of length > 255
-}
-var
-  ep    : ppchar;
-  found : boolean;
-Begin
-  p:=p+'=';            {Else HOST will also find HOSTNAME, etc}
-  ep:=envp;
-  found:=false;
-  if ep<>nil then
-   begin
-     while (not found) and (ep^<>nil) do
-      begin
-        if strlcomp(@p[1],(ep^),length(p))=0 then
-         found:=true
-        else
-         inc(ep);
-      end;
-   end;
-  if found then
-   getenv:=ep^+length(p)
-  else
-   getenv:=nil;
-end;
-
-
-{$ifndef bsd}
-Function GetDomainName:String;
+{$ifndef BSD}
+Function GetDomainName:String;  { linux only!}
+// domainname is a glibc extension.
+ 
 {
   Get machines domain name. Returns empty string if not set.
 }
 Var
   Sysn : utsname;
 begin
-  Uname(Sysn);
-  linuxerror:=errno;
+  fpUname(Sysn);
+  linuxerror:=fpgeterrno;;
   If linuxerror<>0 then
    getdomainname:=''
   else
-   getdomainname:=strpas(@Sysn.domainname[0]);
+   getdomainname:=strpas(@Sysn.domain[0]);
 end;
-
-
+{$endif}
 
 Function GetHostName:String;
 {
@@ -1990,14 +1485,13 @@ Function GetHostName:String;
 Var
   Sysn : utsname;
 begin
-  uname(Sysn);
-  linuxerror:=errno;
+  fpuname(Sysn);
+  linuxerror:=fpgeterrno;;
   If linuxerror<>0 then
    gethostname:=''
   else
    gethostname:=strpas(@Sysn.nodename[0]);
 end;
-{$endif}
 
 {******************************************************************************
                           Signal handling calls
@@ -2005,24 +1499,21 @@ end;
 
 procedure SigRaise(sig:integer);
 begin
-  Kill(GetPid,Sig);
+  fpKill(fpGetPid,Sig);
 end;
-
 
 {******************************************************************************
                          IOCtl and Termios calls
 ******************************************************************************}
 
-
 Function TCGetAttr(fd:longint;var tios:TermIOS):boolean;
 begin
  {$ifndef BSD}
-  TCGetAttr:=IOCtl(fd,TCGETS,@tios);
+  TCGetAttr:=fpIOCtl(fd,TCGETS,@tios)>0;
  {$else}
-  TCGETAttr:=IoCtl(Fd,TIOCGETA,@tios);
+  TCGETAttr:=fpIoCtl(Fd,TIOCGETA,@tios)>0;
  {$endif}
 end;
-
 
 
 Function TCSetAttr(fd:longint;OptAct:longint;const tios:TermIOS):boolean;
@@ -2042,14 +1533,13 @@ begin
   {$endif}
   else
    begin
-     ErrNo:=ESysEINVAL;
+     fpsetErrNo(ESysEINVAL);
      TCSetAttr:=false;
      exit;
    end;
   end;
-  TCSetAttr:=IOCtl(fd,nr,@Tios);
+  TCSetAttr:=fpIOCtl(fd,nr,@Tios)>0;
 end;
-
 
 
 Procedure CFSetISpeed(var tios:TermIOS;speed:Cardinal);
@@ -2062,7 +1552,6 @@ begin
 end;
 
 
-
 Procedure CFSetOSpeed(var tios:TermIOS;speed:Cardinal);
 begin
   {$ifndef BSD}
@@ -2071,7 +1560,6 @@ begin
    tios.c_ospeed:=speed;
   {$endif}
 end;
-
 
 
 
@@ -2103,65 +1591,58 @@ begin
  {$endif}
 end;
 
-
 Function TCSendBreak(fd,duration:longint):boolean;
 begin
   {$ifndef BSD}
-  TCSendBreak:=IOCtl(fd,TCSBRK,pointer(duration));
+  TCSendBreak:=fpIOCtl(fd,TCSBRK,pointer(duration))>0;
   {$else}
-  TCSendBreak:=IOCtl(fd,TIOCSBRK,0);
+  TCSendBreak:=fpIOCtl(fd,TIOCSBRK,0)>0;
   {$endif}
 end;
 
 
-
 Function TCSetPGrp(fd,id:longint):boolean;
 begin
-  TCSetPGrp:=IOCtl(fd,TIOCSPGRP,pointer(id));
+  TCSetPGrp:=fpIOCtl(fd,TIOCSPGRP,pointer(id))>0;
 end;
-
 
 
 Function TCGetPGrp(fd:longint;var id:longint):boolean;
 begin
-  TCGetPGrp:=IOCtl(fd,TIOCGPGRP,@id);
+  TCGetPGrp:=fpIOCtl(fd,TIOCGPGRP,@id)>0;
 end;
-
 
 Function TCDrain(fd:longint):boolean;
 begin
  {$ifndef BSD}
-  TCDrain:=IOCtl(fd,TCSBRK,pointer(1));
+  TCDrain:=fpIOCtl(fd,TCSBRK,pointer(1))>0;
  {$else}
-  TCDrain:=IOCtl(fd,TIOCDRAIN,0); {Should set timeout to 1 first?}
+  TCDrain:=fpIOCtl(fd,TIOCDRAIN,0)>0; {Should set timeout to 1 first?}
  {$endif}
 end;
-
 
 
 Function TCFlow(fd,act:longint):boolean;
 begin
   {$ifndef BSD}
-   TCFlow:=IOCtl(fd,TCXONC,pointer(act));
+   TCFlow:=fpIOCtl(fd,TCXONC,pointer(act))>0;
   {$else}
     case act OF
-     TCOOFF :  TCFlow:=Ioctl(fd,TIOCSTOP,0);
-     TCOOn  :  TCFlow:=IOctl(Fd,TIOCStart,0);
+     TCOOFF :  TCFlow:=fpIoctl(fd,TIOCSTOP,0)>0;
+     TCOOn  :  TCFlow:=fpIOctl(Fd,TIOCStart,0)>0;
      TCIOFF :  {N/I}
     end;
   {$endif}
 end;
 
-
 Function TCFlush(fd,qsel:longint):boolean;
 begin
  {$ifndef BSD}
-  TCFlush:=IOCtl(fd,TCFLSH,pointer(qsel));
+  TCFlush:=fpIOCtl(fd,TCFLSH,pointer(qsel))>0;
  {$else}
-  TCFlush:=IOCtl(fd,TIOCFLUSH,pointer(qsel));
+  TCFlush:=fpIOCtl(fd,TIOCFLUSH,pointer(qsel))>0;
  {$endif}
 end;
-
 
 Function IsATTY(Handle:Longint):Boolean;
 {
@@ -2174,7 +1655,6 @@ begin
 end;
 
 
-
 Function IsATTY(f: text):Boolean;
 {
   Idem as previous, only now for text variables.
@@ -2182,7 +1662,6 @@ Function IsATTY(f: text):Boolean;
 begin
   IsATTY:=IsaTTY(textrec(f).handle);
 end;
-
 
 
 function TTYName(Handle:Longint):string;
@@ -2203,53 +1682,52 @@ var
       name      : string;
       st        : stat;
   begin
-    dirstream:=opendir(n);
+    dirstream:=fpopendir(n);
     if (linuxerror<>0) then
      exit;
-    d:=Readdir(dirstream);
+    d:=fpReaddir(dirstream^);
     while (d<>nil) do
      begin
-       name:=n+'/'+strpas(@(d^.name));
-       fstat(name,st);
+       name:=n+'/'+strpas(@(d^.d_name));
+       fpstat(name,st);
        if linuxerror=0 then
         begin
-          if ((st.mode and $E000)=$4000) and  { if it is a directory }
-             (strpas(@(d^.name))<>'.') and    { but not ., .. and fd subdirs }
-             (strpas(@(d^.name))<>'..') and
-             (strpas(@(d^.name))<>'') and
-             (strpas(@(d^.name))<>'fd') then
+          if (fpISDIR(st.st_mode)) and  { if it is a directory }
+             (strpas(@(d^.d_name))<>'.') and    { but not ., .. and fd subdirs }
+             (strpas(@(d^.d_name))<>'..') and
+             (strpas(@(d^.d_name))<>'') and
+             (strpas(@(d^.d_name))<>'fd') then
            begin                      {we found a directory, search inside it}
              if mysearch(name) then
               begin                 {the device is here}
-                closedir(dirstream);  {then don't continue searching}
+                fpclosedir(dirstream^);  {then don't continue searching}
                 mysearch:=true;
                 exit;
               end;
            end
-          else if (d^.ino=myino) and (st.dev=mydev) then
+          else if (d^.d_fileno=myino) and (st.st_dev=mydev) then
            begin
-             closedir(dirstream);
+             fpclosedir(dirstream^);
              ttyname:=name;
              mysearch:=true;
              exit;
            end;
         end;
-       d:=Readdir(dirstream);
+       d:=fpReaddir(dirstream^);
      end;
-    closedir(dirstream);
+    fpclosedir(dirstream^);
     mysearch:=false;
   end;
 
 begin
   TTYName:='';
-  fstat(handle,st);
-  if (errno<>0) and isatty (handle) then
+  fpfstat(handle,st);
+  if (fpgeterrno<>0) and isatty (handle) then
    exit;
-  mydev:=st.dev;
-  myino:=st.ino;
+  mydev:=st.st_dev;
+  myino:=st.st_ino;
   mysearch('/dev');
 end;
-
 
 
 function TTYName(var F:Text):string;
@@ -2259,7 +1737,6 @@ function TTYName(var F:Text):string;
 begin
   TTYName:=TTYName(textrec(f).handle);
 end;
-
 
 
 {******************************************************************************
@@ -2325,7 +1802,6 @@ begin
    end;
 end;
 
-
 {
 function FExpand (const Path: PathStr): PathStr;
 - declared in fexpand.inc
@@ -2338,7 +1814,6 @@ function FExpand (const Path: PathStr): PathStr;
 
 {$UNDEF FPC_FEXPAND_GETENVPCHAR}
 {$UNDEF FPC_FEXPAND_TILDE}
-
 
 Function FSearch(const path:pathstr;dirlist:string):pathstr;
 {
@@ -2370,7 +1845,7 @@ Begin
         NewDir:=NewDir+'/';
        NewDir:=NewDir+Path;
        Delete(DirList,1,p1);
-       if FStat(NewDir,Info) then
+       if FpStat(NewDir,Info)>=0 then
         Begin
           If Pos('./',NewDir)=1 Then
            Delete(NewDir,1,2);
@@ -2382,7 +1857,6 @@ Begin
      FSearch:=NewDir;
    End;
 End;
-
 
 
 Procedure FSplit(const Path:PathStr;Var Dir:DirStr;Var Name:NameStr;Var Ext:ExtStr);
@@ -2406,7 +1880,6 @@ Begin
   Dir:=Copy(Path,1,SlashPos);
   Name:=Copy(Path,SlashPos + 1,DotPos - SlashPos - 1);
 End;
-
 
 
 Function Dirname(Const path:pathstr):pathstr;
@@ -2448,7 +1921,6 @@ begin
   StringToPPChar:=StringToPPChar(PChar(S));
 end;
 
-
 Function Basename(Const path:pathstr;Const suf:pathstr):pathstr;
 {
   This function returns the filename part of a complete path. If suf is
@@ -2464,7 +1936,6 @@ begin
    Name:=Name+Ext;
   BaseName:=Name;
 end;
-
 
 
 Function FNMatch(const Pattern,Name:string):Boolean;
@@ -2537,7 +2008,6 @@ Begin {start FNMatch}
 End;
 
 
-
 Procedure Globfree(var p : pglob);
 {
   Release memory occupied by pglob structure, and names in it.
@@ -2555,7 +2025,6 @@ begin
      p:=temp;
    end;
 end;
-
 
 
 Function Glob(Const path:pathstr):pglob;
@@ -2577,17 +2046,17 @@ begin
   if temp='' then
    temp:='.';
   temp:=temp+#0;
-  thedir:=opendir(@temp[1]);
+  thedir:=fpopendir(@temp[1]);
   if thedir=nil then
    begin
      glob:=nil;
-     linuxerror:=errno;
+     linuxerror:=fpgeterrno;;
      exit;
    end;
   temp:=basename(path,''); { get the pattern }
-  if thedir^.fd<0 then
+  if thedir^.dd_fd<0 then
    begin
-     linuxerror:=errno;
+     linuxerror:=fpgeterrno;;
      glob:=nil;
      exit;
    end;
@@ -2595,10 +2064,10 @@ begin
   root:=nil;
   current:=nil;
   repeat
-    buffer:=Sys_readdir(thedir);
+    buffer:=fpreaddir(thedir^);
     if buffer=nil then
      break;
-    temp2:=strpas(@(buffer^.name[0]));
+    temp2:=strpas(@(buffer^.d_name[0]));
     if fnmatch(temp,temp2) then
      begin
        if root=nil then
@@ -2625,57 +2094,12 @@ begin
           globfree(root);
           break;
         end;
-       move(buffer^.name[0],current^.name^,length(temp2)+1);
+       move(buffer^.d_name[0],current^.name^,length(temp2)+1);
      end;
   until false;
-  closedir(thedir);
+  fpclosedir(thedir^);
   glob:=root;
 end;
-
-
-{--------------------------------
-      FiledescriptorSets
---------------------------------}
-
-Procedure FD_Zero(var fds:fdSet);
-{
-  Clear the set of filedescriptors
-}
-begin
-  FillChar(fds,sizeof(fdSet),0);
-end;
-
-
-
-Procedure FD_Clr(fd:longint;var fds:fdSet);
-{
-  Remove fd from the set of filedescriptors
-}
-begin
-  fds[fd shr 5]:=fds[fd shr 5] and (not (1 shl (fd and 31)));
-end;
-
-
-
-Procedure FD_Set(fd:longint;var fds:fdSet);
-{
-  Add fd to the set of filedescriptors
-}
-begin
-  fds[fd shr 5]:=fds[fd shr 5] or (1 shl (fd and 31));
-end;
-
-
-
-Function FD_IsSet(fd:longint;var fds:fdSet):boolean;
-{
-  Test if fd is part of the set of filedescriptors
-}
-begin
-  FD_IsSet:=((fds[fd shr 5] and (1 shl (fd and 31)))<>0);
-end;
-
-
 
 Function GetFS (var T:Text):longint;
 {
@@ -2687,7 +2111,6 @@ begin
   else
    GETFS:=textrec(t).Handle
 end;
-
 
 
 Function GetFS(Var F:File):longint;
@@ -2702,7 +2125,6 @@ begin
    GETFS:=filerec(f).Handle
 end;
 
-
 {--------------------------------
       Stat.Mode Macro's
 --------------------------------}
@@ -2715,59 +2137,6 @@ begin
   S_ISLNK:=(m and STAT_IFMT)=STAT_IFLNK;
 end;
 
-
-
-Function S_ISREG(m:word):boolean;
-{
-  Check mode field of inode for regular file.
-}
-begin
-  S_ISREG:=(m and STAT_IFMT)=STAT_IFREG;
-end;
-
-
-
-Function S_ISDIR(m:word):boolean;
-
-{
-  Check mode field of inode for directory.
-}
-begin
-  S_ISDIR:=(m and STAT_IFMT)=STAT_IFDIR;
-end;
-
-
-
-Function S_ISCHR(m:word):boolean;
-{
-  Check mode field of inode for character device.
-}
-begin
-  S_ISCHR:=(m and STAT_IFMT)=STAT_IFCHR;
-end;
-
-
-
-Function S_ISBLK(m:word):boolean;
-{
-  Check mode field of inode for block device.
-}
-begin
-  S_ISBLK:=(m and STAT_IFMT)=STAT_IFBLK;
-end;
-
-
-
-Function S_ISFIFO(m:word):boolean;
-{
-  Check mode field of inode for named pipe (FIFO).
-}
-begin
-  S_ISFIFO:=(m and STAT_IFMT)=STAT_IFIFO;
-end;
-
-
-
 Function S_ISSOCK(m:word):boolean;
 {
   Check mode field of inode for socket.
@@ -2775,279 +2144,6 @@ Function S_ISSOCK(m:word):boolean;
 begin
   S_ISSOCK:=(m and STAT_IFMT)=STAT_IFSOCK;
 end;
-
-
-{--------------------------------
-      Memory functions
---------------------------------}
-
-{$IFDEF I386}
-Procedure WritePort (Port : Longint; Value : Byte);
-{
-  Writes 'Value' to port 'Port'
-}
-begin
-        asm
-        movl port,%edx
-        movb value,%al
-        outb %al,%dx
-        end ['EAX','EDX'];
-end;
-
-Procedure WritePort (Port : Longint; Value : Word);
-{
-  Writes 'Value' to port 'Port'
-}
-
-begin
-        asm
-        movl port,%edx
-        movw value,%ax
-        outw %ax,%dx
-        end ['EAX','EDX'];
-end;
-
-
-
-Procedure WritePort (Port : Longint; Value : Longint);
-{
-  Writes 'Value' to port 'Port'
-}
-
-begin
-        asm
-        movl port,%edx
-        movl value,%eax
-        outl %eax,%dx
-        end ['EAX','EDX'];
-end;
-
-
-Procedure WritePortB (Port : Longint; Value : Byte);
-{
-  Writes 'Value' to port 'Port'
-}
-begin
-        asm
-        movl port,%edx
-        movb value,%al
-        outb %al,%dx
-        end ['EAX','EDX'];
-end;
-
-Procedure WritePortW (Port : Longint; Value : Word);
-{
-  Writes 'Value' to port 'Port'
-}
-
-begin
-        asm
-        movl port,%edx
-        movw value,%ax
-        outw %ax,%dx
-        end ['EAX','EDX'];
-end;
-
-
-
-Procedure WritePortL (Port : Longint; Value : Longint);
-{
-  Writes 'Value' to port 'Port'
-}
-
-begin
-        asm
-        movl port,%edx
-        movl value,%eax
-        outl %eax,%dx
-        end ['EAX','EDX'];
-end;
-
-
-
-Procedure WritePortl (Port : Longint; Var Buf; Count: longint);
-{
-  Writes 'Count' longints from 'Buf' to Port
-}
-begin
-  asm
-        movl count,%ecx
-        movl buf,%esi
-        movl port,%edx
-        cld
-        rep
-        outsl
-  end ['ECX','ESI','EDX'];
-end;
-
-
-
-Procedure WritePortW (Port : Longint; Var Buf; Count: longint);
-{
-  Writes 'Count' words from 'Buf' to Port
-}
-begin
-  asm
-        movl count,%ecx
-        movl buf,%esi
-        movl port,%edx
-        cld
-        rep
-        outsw
-  end ['ECX','ESI','EDX'];
-end;
-
-
-
-Procedure WritePortB (Port : Longint; Var Buf; Count: longint);
-{
-  Writes 'Count' bytes from 'Buf' to Port
-}
-begin
-  asm
-        movl count,%ecx
-        movl buf,%esi
-        movl port,%edx
-        cld
-        rep
-        outsb
-  end ['ECX','ESI','EDX'];
-end;
-
-
-
-Procedure ReadPort (Port : Longint; Var Value : Byte);
-{
-  Reads 'Value' from port 'Port'
-}
-begin
-        asm
-        movl port,%edx
-        inb %dx,%al
-        movl value,%edx
-        movb %al,(%edx)
-        end ['EAX','EDX'];
-end;
-
-
-
-Procedure ReadPort (Port : Longint; Var Value : Word);
-{
-  Reads 'Value' from port 'Port'
-}
-begin
-        asm
-        movl port,%edx
-        inw %dx,%ax
-        movl value,%edx
-        movw %ax,(%edx)
-        end ['EAX','EDX'];
-end;
-
-
-
-Procedure ReadPort (Port : Longint; Var Value : Longint);
-{
-  Reads 'Value' from port 'Port'
-}
-begin
-        asm
-        movl port,%edx
-        inl %dx,%eax
-        movl value,%edx
-        movl %eax,(%edx)
-        end ['EAX','EDX'];
-end;
-
-
-
-function ReadPortB (Port : Longint): Byte; assembler;
-{
-  Reads a byte from port 'Port'
-}
-
-asm
-  xorl %eax,%eax
-  movl port,%edx
-  inb %dx,%al
-end ['EAX','EDX'];
-
-
-
-function ReadPortW (Port : Longint): Word; assembler;
-{
-  Reads a word from port 'Port'
-}
-asm
-  xorl %eax,%eax
-  movl port,%edx
-  inw %dx,%ax
-end ['EAX','EDX'];
-
-
-
-function ReadPortL (Port : Longint): LongInt; assembler;
-{
-  Reads a LongInt from port 'Port'
-}
-asm
-  movl port,%edx
-  inl %dx,%eax
-end ['EAX','EDX'];
-
-
-
-Procedure ReadPortL (Port : Longint; Var Buf; Count: longint);
-{
-  Reads 'Count' longints from port 'Port' to 'Buf'.
-}
-begin
-  asm
-        movl count,%ecx
-        movl buf,%edi
-        movl port,%edx
-        cld
-        rep
-        insl
-  end ['ECX','EDI','EDX'];
-end;
-
-
-
-Procedure ReadPortW (Port : Longint; Var Buf; Count: longint);
-{
-  Reads 'Count' words from port 'Port' to 'Buf'.
-}
-begin
-  asm
-        movl count,%ecx
-        movl buf,%edi
-        movl port,%edx
-        cld
-        rep
-        insw
-  end ['ECX','EDI','EDX'];
-end;
-
-
-
-Procedure ReadPortB (Port : Longint; Var Buf; Count: longint);
-{
-  Reads 'Count' bytes from port 'Port' to 'Buf'.
-}
-begin
-  asm
-        movl count,%ecx
-        movl buf,%edi
-        movl port,%edx
-        cld
-        rep
-        insb
-  end ['ECX','EDI','EDX'];
-end;
-{$ENDIF}
-
-
 
 Initialization
   InitLocalTime;
@@ -3059,7 +2155,10 @@ End.
 
 {
   $Log$
-  Revision 1.30  2003-07-08 21:23:24  peter
+  Revision 1.31  2003-09-14 20:15:01  marco
+   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
+
+  Revision 1.30  2003/07/08 21:23:24  peter
     * sparc fixes
 
   Revision 1.29  2003/05/30 19:58:40  marco

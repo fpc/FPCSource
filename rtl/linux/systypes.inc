@@ -28,13 +28,14 @@ type
   That is why we define a special type, with only these arguments
   To make it processor independent, we don't give any system dependent
   names, but the rather abstract reg1,reg2 etc;
-}
+
   SysCallRegs=record
     reg1,reg2,reg3,reg4,reg5,reg6 : longint;
   end;
   PSysCallRegs=^SysCallRegs;
   TSysCallRegs=SysCallRegs;
-
+}
+{
 { The following are records for system calls }
   dirent = packed record
     ino,
@@ -57,9 +58,11 @@ type
   end;
   PDir =^TDir;
 
+}
 { can't put definition in stat.inc because stat.inc is also included in }
 { bunxtype.inc, which is used together with ptypes.inc, which defines   }
 { def_t in another way :(                                               }
+{
 {$ifdef cpui386}
   dev_t = word;
 {$else cpui386}
@@ -77,12 +80,12 @@ type
 {$endif cpupowerpc}
 {$endif cpum68k}
 {$endif cpui386}
-
+}{
 { definition of stat record type }
-{$i stat.inc}
+{i stat.inc}
   PStat=^Stat;
   TStat=Stat;
-
+}
   TStatfs = packed record
     fstype,            { File system type }
     bsize,             { Optimal block trensfer size }
@@ -97,6 +100,8 @@ type
   end;
   PStatFS=^TStatFS;
 
+{
+
   fdSet=array[0..31] of longint;{=1024 bits}
   pfdset=^fdset;
   TFDSet=fdset;
@@ -107,15 +112,18 @@ type
   ptimeval=^timeval;
   TTimeVal=timeval;
 
+
   timespec = packed record
     tv_sec,tv_nsec:longint;
   end;
+
 
   timezone = packed record
     minuteswest,dsttime:longint;
   end;
   ptimezone =^timezone;
   TTimeZone = timezone;
+
 
   utsname = packed record
     sysname,
@@ -127,10 +135,13 @@ type
   end;
   PUTSName=^UTSName;
   TUTSName=UTSName;
-
+}
 {
   $Log$
-  Revision 1.11  2003-08-21 22:24:52  olle
+  Revision 1.12  2003-09-14 20:15:01  marco
+   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
+
+  Revision 1.11  2003/08/21 22:24:52  olle
     - removed parameter from fpc_iocheck
 
   Revision 1.10  2003/07/08 21:23:24  peter

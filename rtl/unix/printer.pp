@@ -61,7 +61,7 @@ Procedure AssignLst ( Var F : text; ToFile : string);
 }
 
 Implementation
-Uses Unix,Strings;
+Uses Unix,BaseUnix,Strings;
 
 {
   include definition of textrec
@@ -87,7 +87,7 @@ begin
   f:=f+#0;
   if lpr='' then
    exit;
-  i:=Fork;
+  i:=fpFork;
   if i<0 then
    exit; { No printing was done. We leave the file where it is.}
   if i=0 then
@@ -102,18 +102,18 @@ begin
      pp^:=@f[1];
      inc(pp);
      pp^:=nil;
-     Execve(lpr,p,envp);
+     fpExecve(lpr,p,envp);
      { In trouble here ! }
      halt(128)
    end
   else
    begin
    { We're in the parent. }
-     waitpid (i,@j,0);
+     fpwaitpid (i,j,0);
      if j<>0 then
       exit;
    { Erase the file }
-     Unlink(f);
+     fpUnlink(f);
    end;
 end;
 
@@ -136,7 +136,7 @@ begin
  If textrec(f).mode <> fmoutput then
   exit;
  textrec(f).userdata[15]:=0; { set Zero length flag }
- i:=fdOpen(StrPas(textrec(f).name),(Open_WrOnly or Open_Creat), 438);
+ i:=fpOpen(StrPas(textrec(f).name),(Open_WrOnly or Open_Creat), 438);
  if i<0 then
   textrec(f).mode:=fmclosed
  else
@@ -150,11 +150,11 @@ begin
 {$IFDEF PRINTERDEBUG}
   writeln ('Printer : In CloseLstFile');
 {$ENDIF}
-  fdclose (textrec(f).handle);
+  fpclose (textrec(f).handle);
 { In case length is zero, don't print : lpr would give an error }
   if (textrec(f).userdata[15]=0) and (textrec(f).userdata[16]=P_TOF) then
    begin
-     Unlink(StrPas(textrec(f).name));
+     fpUnlink(StrPas(textrec(f).name));
      exit
    end;
 { Non empty : needs printing ? }
@@ -174,7 +174,7 @@ begin
    exit;
   if textrec(f).bufpos<>0 then
    textrec(f).userdata[15]:=1; { Set it is not empty. Important when closing !!}
-  fdwrite(textrec(f).handle,textrec(f).bufptr^,textrec(f).bufpos);
+  fpwrite(textrec(f).handle,textrec(f).bufptr^,textrec(f).bufpos);
   textrec(f).bufpos:=0;
 end;
 
@@ -189,7 +189,7 @@ begin
   if i=0 then
    exit;
   delete (s,i,3);
-  str(GetPid,temp);
+  str(fpGetPid,temp);
   insert(temp,s,i);
 {$IFDEF PRINTERDEBUG}
   writeln ('Print : Filename became : ',s);
@@ -254,7 +254,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2002-09-07 16:01:27  peter
+  Revision 1.5  2003-09-14 20:15:01  marco
+   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
+
+  Revision 1.4  2002/09/07 16:01:27  peter
     * old logs removed and tabs fixed
 
 }

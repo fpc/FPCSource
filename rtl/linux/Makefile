@@ -210,7 +210,7 @@ INC=$(RTL)/inc
 PROCINC=$(RTL)/$(CPU_TARGET)
 UNIXINC=$(RTL)/unix
 ifeq ($(CPU_TARGET),i386)
-CPU_UNITS=ports cpu mmx graph
+CPU_UNITS= cpu mmx graph
 else
 CPU_UNITS=
 endif
@@ -1341,7 +1341,6 @@ baseunix$(PPUEXT) : errno.inc bunxtype.inc ptypes.inc ctypes.inc \
 	bunxfunc.inc $(CPU_TARGET)/syscallh.inc $(CPU_TARGET)/sysnr.inc \
 	ostypes.inc ossysch.inc bunxmacr.inc $(UNIXINC)/gensigset.inc \
 	$(UNIXINC)/genfuncs.inc $(SYSTEMUNIT)$(PPUEXT)
-ports$(PPUEXT) : ports.pp unix$(PPUEXT) objpas$(PPUEXT)
 dl$(PPUEXT) : $(UNIXINC)/dl.pp $(SYSTEMUNIT)$(PPUEXT)
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pp $(UNIXINC)/dynlibs.inc dl$(PPUEXT) objpas$(PPUEXT)
 dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \

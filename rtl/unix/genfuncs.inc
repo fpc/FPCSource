@@ -96,15 +96,15 @@ Begin
 	exit(cp+1);
    inc(p);
   end;
+ fpgetenv:=nil;
 End;
 
-Function fpgetenv(name:string):Pchar;
+Function fpgetenv(name:string):Pchar; [public, alias : 'FPC_SYSC_FPGETENV'];
 {
   Searches the environment for a string with name p and
   returns a pchar to it's value.
   A pchar is used to accomodate for strings of length > 255
 }
-
 
 Begin
   name:=name+'=';            {Else HOST will also find HOSTNAME, etc}
@@ -113,7 +113,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2002-12-18 16:50:39  marco
+  Revision 1.2  2003-09-14 20:15:01  marco
+   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
+
+  Revision 1.1  2002/12/18 16:50:39  marco
    * Unix RTL generic parts. Linux working, *BSD will follow shortly
 
   Revision 1.2  2002/10/27 17:21:30  marco

@@ -42,7 +42,7 @@ uses
   Strings,
   TermInfo,
 {$endif NotUseTree}
-  Unix;
+  Unix,baseUnix;
 
 {$i keyboard.inc}
 
@@ -130,19 +130,19 @@ var
   entry : kbentry;
   i : longint;
 begin
-  Ioctl(stdinputhandle,KDGKBMETA,@oldmeta);
+  fpIoctl(stdinputhandle,KDGKBMETA,@oldmeta);
   meta:=K_ESCPREFIX;
-  Ioctl(stdinputhandle,KDSKBMETA,@meta);
+  fpIoctl(stdinputhandle,KDSKBMETA,@meta);
   for i:=1 to kbdchanges do
    begin
      e:=@kbdchange[i];
      entry.kb_table:=e^.tab;
      entry.kb_index:=e^.idx;
-     Ioctl(stdinputhandle,KDGKBENT,@entry);
+     fpIoctl(stdinputhandle,KDGKBENT,@entry);
      e^.oldval:=entry.kb_value;
      entry.kb_table:=e^.oldtab;
      entry.kb_index:=e^.oldidx;
-     ioctl(stdinputhandle,KDGKBENT,@entry);
+     fpioctl(stdinputhandle,KDGKBENT,@entry);
      e^.newval:=entry.kb_value;
    end;
   for i:=1 to kbdchanges do
@@ -151,7 +151,7 @@ begin
      entry.kb_table:=e^.tab;
      entry.kb_index:=e^.idx;
      entry.kb_value:=e^.newval;
-     Ioctl(stdinputhandle,KDSKBENT,@entry);
+     fpioctl(stdinputhandle,KDSKBENT,@entry);
    end;
 end;
 
@@ -163,14 +163,14 @@ var
   i : longint;
 begin
   if oldmeta in [K_ESCPREFIX,K_METABIT] then
-    Ioctl(stdinputhandle,KDSKBMETA,@oldmeta);
+    fpioctl(stdinputhandle,KDSKBMETA,@oldmeta);
   for i:=1 to kbdchanges do
    begin
      e:=@kbdchange[i];
      entry.kb_table:=e^.tab;
      entry.kb_index:=e^.idx;
      entry.kb_value:=e^.oldval;
-     Ioctl(stdinputhandle,KDSKBENT,@entry);
+     fpioctl(stdinputhandle,KDSKBENT,@entry);
    end;
 end;
 
@@ -197,7 +197,7 @@ begin
      if InTail>InHead then
       i:=InTail-InHead;
    {Read}
-     Readed:=fdRead(StdInputHandle,InBuf[InHead],i);
+     Readed:=fpRead(StdInputHandle,InBuf[InHead],i);
    {Increase Counters}
      inc(InCnt,Readed);
      inc(InHead,Readed);
@@ -283,15 +283,15 @@ End;
 { TTYLevel (including ones that are waiting in the TTYRecvChar buffer) }
 function sysKeyPressed: boolean;
 var
-  fdsin : fdSet;
+  fdsin : tfdSet;
 begin
   if (InCnt>0) then
    sysKeyPressed:=true
   else
    begin
-     FD_Zero(fdsin);
-     fd_Set(StdInputHandle,fdsin);
-     sysKeypressed:=(Select(StdInputHandle+1,@fdsin,nil,nil,0)>0);
+     fpfdemptyset(fdsin);
+     fpfdaddset(fdsin,StdInputHandle);
+     sysKeypressed:=(fpSelect(StdInputHandle+1,@fdsin,nil,nil,0)>0);
    end;
 end;
 
@@ -331,13 +331,13 @@ Const
   procedure GenMouseEvent;
   var MouseEvent: TMouseEvent;
       ch : char;
-      fdsin : fdSet;
+      fdsin : tfdSet;
   begin
-    FD_Zero(fdsin);
-    fd_Set(StdInputHandle,fdsin);
+    fpfdemptyset(fdsin);
+    fpfdaddset(fdsin,StdInputHandle);
     Fillchar(MouseEvent,SizeOf(TMouseEvent),#0);
      if InCnt=0 then
-       Select(StdInputHandle+1,@fdsin,nil,nil,10);
+       fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
      ch:=ttyRecvChar;
     { Other bits are used for Shift, Meta and Ctrl modifiers PM }
     case (ord(ch)-ord(' ')) and 3  of
@@ -350,11 +350,11 @@ Const
       3 : { no button pressed };
       end;
      if InCnt=0 then
-       Select(StdInputHandle+1,@fdsin,nil,nil,10);
+       fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
      ch:=ttyRecvChar;
      MouseEvent.x:=Ord(ch)-ord(' ')-1;
      if InCnt=0 then
-      Select(StdInputHandle+1,@fdsin,nil,nil,10);
+      fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
      ch:=ttyRecvChar;
      MouseEvent.y:=Ord(ch)-ord(' ')-1;
      if (MouseEvent.buttons<>0) then
@@ -802,7 +802,7 @@ end;
 
 Function RawReadKey:char;
 Var
-  fdsin    : fdSet;
+  fdsin    : tfdSet;
 Begin
 {Check Buffer first}
   if KeySend<>KeyPut then
@@ -813,9 +813,9 @@ Begin
 {Wait for Key}
   if not sysKeyPressed then
    begin
-     FD_Zero (fdsin);
-     FD_Set (StdInputHandle,fdsin);
-     Select (StdInputHandle+1,@fdsin,nil,nil,nil);
+     fpfdemptyset (fdsin);
+     fpfdaddSet (fdsin,StdInputHandle);
+     fpSelect (StdInputHandle+1,@fdsin,nil,nil,nil);
    end;
   RawReadKey:=ttyRecvChar;
 end;
@@ -824,15 +824,15 @@ end;
 Function RawReadString : String;
 Var
   ch : char;
-  fdsin : fdSet;
+  fdsin : tfdSet;
   St : String;
 Begin
   St:=RawReadKey;
-  FD_Zero (fdsin);
-  FD_Set (StdInputHandle,fdsin);
+  fpfdemptyset (fdsin);
+  fpfdaddSet (fdsin,StdInputHandle);
   Repeat
      if InCnt=0 then
-       Select(StdInputHandle+1,@fdsin,nil,nil,10);
+       fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
      if SysKeyPressed then
        ch:=ttyRecvChar
      else
@@ -852,7 +852,7 @@ Var
   State    : longint;
 {$endif NotUseTree}
   is_delay : boolean;
-  fdsin    : fdSet;
+  fdsin    : tfdSet;
   store    : array [0..8] of char;
   arrayind : byte;
 {$ifndef NotUseTree}
@@ -872,11 +872,11 @@ Var
       #35 : { no button pressed };
       end;
      if InCnt=0 then
-       Select(StdInputHandle+1,@fdsin,nil,nil,10);
+       fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
      ch:=ttyRecvChar;
      MouseEvent.x:=Ord(ch)-ord(' ')-1;
      if InCnt=0 then
-      Select(StdInputHandle+1,@fdsin,nil,nil,10);
+      fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
      ch:=ttyRecvChar;
      MouseEvent.y:=Ord(ch)-ord(' ')-1;
      if (MouseEvent.buttons<>0) then
@@ -917,9 +917,9 @@ Begin
 {Wait for Key}
   if not sysKeyPressed then
    begin
-     FD_Zero (fdsin);
-     FD_Set (StdInputHandle,fdsin);
-     Select (StdInputHandle+1,@fdsin,nil,nil,nil);
+     fpfdemptyset (fdsin);
+     fpfdaddSet (fdsin,StdInputHandle);
+     fpSelect (StdInputHandle+1,@fdsin,nil,nil,nil);
    end;
   ch:=ttyRecvChar;
 {$ifndef NotUseTree}
@@ -928,14 +928,14 @@ Begin
     PushKey(ch)
   else
     begin
-     FD_Zero(fdsin);
-     fd_Set(StdInputHandle,fdsin);
+     fpfdemptyset(fdsin);
+     fpfdaddSet(fdsin,StdInputHandle);
      store[0]:=ch;
      arrayind:=1;
       while assigned(NPT) and syskeypressed do
         begin
           if (InCnt=0) then
-            Select(StdInputHandle+1,@fdsin,nil,nil,10);
+            fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
           ch:=ttyRecvChar;
           NNPT:=FindChild(ord(ch),NPT);
           if assigned(NNPT) then
@@ -983,8 +983,8 @@ Begin
 {Esc Found ?}
   If (ch=#27) then
    begin
-     FD_Zero(fdsin);
-     fd_Set(StdInputHandle,fdsin);
+     fpfdemptyset(fdsin);
+     fpfdaddSet(fdsin,StdInputHandle);
      State:=1;
      store[0]:=#27;
      arrayind:=1;
@@ -992,7 +992,7 @@ Begin
      write(f,'Esc');
 {$endif logging}
      if InCnt=0 then
-      Select(StdInputHandle+1,@fdsin,nil,nil,10);
+      fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
      while (State<>0) and (sysKeyPressed) do
       begin
         ch:=ttyRecvChar;
@@ -1173,7 +1173,7 @@ Begin
       255 : { just forget this trailing char };
         end;
         if (State<>0) and (InCnt=0) then
-         Select(StdInputHandle+1,@fdsin,nil,nil,10);
+         fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
       end;
      if State=1 then
       PushKey(ch);
@@ -1181,7 +1181,7 @@ Begin
      if ch='$' then
        begin { '$<XX>' means a delay of XX millisecs }
          is_delay :=false;
-         Select(StdInputHandle+1,@fdsin,nil,nil,10);
+         fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
          if (sysKeyPressed) then
            begin
              ch:=ttyRecvChar;
@@ -1196,7 +1196,7 @@ Begin
 {$ifdef logging}
                  write(f,'$<');
 {$endif logging}
-                 Select(StdInputHandle+1,@fdsin,nil,nil,10);
+                 fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
                  while (sysKeyPressed) and (ch<>'>') do
                    begin
                      { Should we really repect this delay ?? }
@@ -1204,7 +1204,7 @@ Begin
 {$ifdef logging}
                      write(f,ch);
 {$endif logging}
-                     Select(StdInputHandle+1,@fdsin,nil,nil,10);
+                     fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
                    end;
                end;
            end
@@ -1239,7 +1239,7 @@ begin
   arg:=6;
   shift:=0;
   {$Ifndef BSD}
-  if IOCtl(StdInputHandle,TIOCLINUX,@arg) then
+  if fpioctl(StdInputHandle,TIOCLINUX,@arg)=0 then
    begin
      if (arg and 8)<>0 then
       shift:=kbAlt;
@@ -1532,7 +1532,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2003-03-27 12:52:10  armin
+  Revision 1.14  2003-09-14 20:15:01  marco
+   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
+
+  Revision 1.13  2003/03/27 12:52:10  armin
   * forgot to initialize RootTree to nil in FreeTree
 
   Revision 1.12  2003/03/26 12:35:23  armin

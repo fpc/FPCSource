@@ -18,6 +18,7 @@
 { These things are set in the makefile, }
 { But you can override them here.}
 
+
 { If you use an aout system, set the conditional AOUT}
 { $Define AOUT}
 
@@ -135,7 +136,10 @@ End.
 
 {
   $Log$
-  Revision 1.7  2003-04-30 22:11:06  florian
+  Revision 1.8  2003-09-14 20:15:01  marco
+   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
+
+  Revision 1.7  2003/04/30 22:11:06  florian
     + for a lot of x86-64 dependend files mostly dummies added
 
   Revision 1.6  2002/12/27 18:36:16  peter

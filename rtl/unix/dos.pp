@@ -158,7 +158,7 @@ Procedure SetVerify(verify: boolean);
 Implementation
 
 Uses
-  Strings,Unix;
+  Strings,Unix,BaseUnix;
 
 {******************************************************************************
                            --- Link C Lib if set ---
@@ -206,13 +206,9 @@ Var
   Rel    : LongInt;
   info   : utsname;
 Begin
-  {$IFNDEF BSD}
-   UName(info);
-   Move(info.release,buffer[0],40);
-   TmpStr:=StrPas(Buffer);
-  {$ELSE}
-   TmpStr:='FreeBSD doesn''t support UName';
- {$ENDIF}
+  FPUName(info);
+  Move(info.release,buffer[0],40);
+  TmpStr:=StrPas(Buffer);
   SubRel:=0;
   TmpPos:=Pos('.',TmpStr);
   if TmpPos>0 then
@@ -328,7 +324,7 @@ var
   // The Error-Checking in the previous Version failed, since halt($7F) gives an WaitPid-status of $7F00
 Begin
   LastDosExitCode:=0;
-  pid:=Fork;
+  pid:=fpFork;
   if pid=0 then
    begin
    {The child does the actual exec, and then exits}
@@ -337,7 +333,7 @@ Begin
      else
       Execl(Path+' '+ComLine);
    {If the execve fails, we return an exitvalue of 127, to let it be known}
-     ExitProcess(127);
+     fpExit(127);
    end
   else
    if pid=-1 then         {Fork failed}
@@ -463,7 +459,7 @@ Begin
       Begin
         RtlFindRecs[i].SearchNum:=0;
         if f.dirptr<>0 then
-         closedir(pdir(f.dirptr));
+         fpclosedir(pdir(f.dirptr)^);
       End;
    end;
   f.dirptr:=0;
@@ -474,18 +470,18 @@ Function FindGetFileInfo(const s:string;var f:SearchRec):boolean;
 var
   DT   : DateTime;
   Info : RtlInfoType;
-  st   : stat;
+  st   : baseunix.stat;
 begin
   FindGetFileInfo:=false;
-  if not Fstat(s,st) then
+  if not fpstat(s,st)>=0 then
    exit;
-  info.FSize:=st.Size;
-  info.FMTime:=st.mtime;
-  if (st.mode and STAT_IFMT)=STAT_IFDIR then
+  info.FSize:=st.st_Size;
+  info.FMTime:=st.st_mtime;
+  if (st.st_mode and STAT_IFMT)=STAT_IFDIR then
    info.fmode:=$10
   else
    info.fmode:=$20;
-  if (st.mode and STAT_IWUSR)=0 then
+  if (st.st_mode and STAT_IWUSR)=0 then
    info.fmode:=info.fmode or 1;
   If ((Info.FMode and Not(f.searchattr))=0) Then
    Begin
@@ -565,12 +561,12 @@ Begin
            Move(f.SearchSpec[1], DirName[0], f.NamePos);
            DirName[f.NamePos] := #0;
          End;
-        f.DirPtr := longint(opendir(@(DirName)));
+        f.DirPtr := longint(fpopendir(@(DirName)));
         If f.DirPtr <> 0 Then
          begin
            ArrayPos:=FindLastUsed;
            If RtlFindRecs[ArrayPos].SearchNum > 0 Then
-            CloseDir(pdir(rtlfindrecs[arraypos].dirptr));
+            FpCloseDir((pdir(rtlfindrecs[arraypos].dirptr)^));
            RtlFindRecs[ArrayPos].SearchNum := f.SearchNum;
            RtlFindRecs[ArrayPos].DirPtr := f.DirPtr;
            if f.searchpos>0 then
@@ -586,11 +582,11 @@ Begin
   Finished:=(f.dirptr=0);
   While Not Finished Do
    Begin
-     p:=readdir(pdir(f.dirptr));
+     p:=fpreaddir(pdir(f.dirptr)^);
      if p=nil then
       FName:=''
      else
-      FName:=Strpas(@p^.name);
+      FName:=Strpas(@p^.d_name);
      If FName='' Then
       Finished:=True
      Else
@@ -682,9 +678,9 @@ End;
 
 Function FSearch(path : pathstr;dirlist : string) : pathstr;
 Var
-  info:stat;
+  info : BaseUnix.stat;
 Begin
-  if (length(Path)>0) and (path[1]='/') and FStat(path,info) then
+  if (length(Path)>0) and (path[1]='/') and (fpStat(path,info)>=0) then
     FSearch:=path
   else
     FSearch:=Unix.FSearch(path,dirlist);
@@ -694,25 +690,25 @@ End;
 
 Procedure GetFAttr(var f; var attr : word);
 Var
-  info : stat;
+  info    : baseunix.stat;
   LinAttr : longint;
 Begin
   DosError:=0;
-  if not FStat(strpas(@textrec(f).name),info) then
+  if FPStat(strpas(@textrec(f).name),info)<0 then
    begin
      Attr:=0;
      DosError:=3;
      exit;
    end
   else
-   LinAttr:=Info.Mode;
-  if S_ISDIR(LinAttr) then
+   LinAttr:=Info.st_Mode;
+  if fpISDIR(LinAttr) then
    Attr:=$10
   else
    Attr:=$20;
-  if not Access(strpas(@textrec(f).name),W_OK) then
+  if fpAccess(strpas(@textrec(f).name),W_OK)<0 then
    Attr:=Attr or $1;
-  if (not S_ISDIR(LinAttr)) and (filerec(f).name[0]='.')  then
+  if (not fpISDIR(LinAttr)) and (filerec(f).name[0]='.')  then
    Attr:=Attr or $2;
 end;
 
@@ -720,18 +716,18 @@ end;
 
 Procedure getftime (var f; var time : longint);
 Var
-  Info: stat;
+  Info: baseunix.stat;
   DT: DateTime;
 Begin
   doserror:=0;
-  if not fstat(filerec(f).handle,info) then
+  if fpfstat(filerec(f).handle,info)<0 then
    begin
      Time:=0;
      doserror:=6;
      exit
    end
   else
-   UnixDateToDT(Info.mTime,DT);
+   UnixDateToDT(Info.st_mTime,DT);
   PackTime(DT,Time);
 End;
 
@@ -782,7 +778,7 @@ Function GetEnv(EnvVar: String): String;
 var
   p     : pchar;
 Begin
-  p:=Unix.GetEnv(EnvVar);
+  p:=BaseUnix.fpGetEnv(EnvVar);
   if p=nil then
    GetEnv:=''
   else
@@ -855,7 +851,7 @@ Begin
     end;
   for Index:=0 to FilerecNameLength-1 do
     path[Index+1]:=filerec(f).name[Index];
-  if not utime(path,utim) then
+  if fputime(path,@utim)<0 then
     begin
     Time:=0;
     doserror:=3;
@@ -910,7 +906,10 @@ End.
 
 {
   $Log$
-  Revision 1.15  2003-05-16 20:56:06  florian
+  Revision 1.16  2003-09-14 20:15:01  marco
+   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
+
+  Revision 1.15  2003/05/16 20:56:06  florian
   no message
 
   Revision 1.14  2003/05/14 13:51:03  florian

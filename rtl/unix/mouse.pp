@@ -26,7 +26,7 @@ interface
 implementation
 
 uses
-  Unix,Video
+  BaseUnix,Video
 {$ifndef NOGPM}
   ,gpm
 {$endif ndef NOGPM}
@@ -129,7 +129,7 @@ begin
       connect.MinMod:=0;
       connect.MaxMod:=0;
       gpm_fs:=Gpm_Open(connect,0);
-      if (gpm_fs=-2) and (getenv('TERM')<>'xterm') then
+      if (gpm_fs=-2) and (fpgetenv('TERM')<>'xterm') then
         begin
           gpm_fs:=-1;
           Gpm_Close;
@@ -145,7 +145,7 @@ begin
   if gpm_fs<>-1 then
     ShowMouse;
 {$else ifdef NOGPM}
-      if (getenv('TERM')='xterm') then
+      if (fpgetenv('TERM')='xterm') then
         begin
           gpm_fs:=-2;
           Write(#27'[?1001s'); { save old hilit tracking }
@@ -187,7 +187,7 @@ begin
       connect.MinMod:=0;
       connect.MaxMod:=0;
       gpm_fs:=Gpm_Open(connect,0);
-      if (gpm_fs=-2) and (getenv('TERM')<>'xterm') then
+      if (gpm_fs=-2) and (fpgetenv('TERM')<>'xterm') then
         begin
           Gpm_Close;
           gpm_fs:=-1;
@@ -206,7 +206,7 @@ begin
   else
     SysDetectMouse:=0;
 {$else ifdef NOGPM}
-  if (getenv('TERM')='xterm') then
+  if (fpgetenv('TERM')='xterm') then
     SysDetectMouse:=2;
 {$endif NOGPM}
 end;
@@ -335,7 +335,7 @@ function SysPollMouseEvent(var MouseEvent: TMouseEvent):boolean;
 {$ifndef NOGPM}
 var
   e : TGPMEvent;
-  fds : FDSet;
+  fds : tFDSet;
 {$endif ndef NOGPM}
 begin
   fillchar(MouseEvent,SizeOf(TMouseEvent),#0);
@@ -344,10 +344,10 @@ begin
    exit(false);
   if gpm_fs>0 then
     begin
-      FD_Zero(fds);
-      FD_Set(gpm_fs,fds);
+      fpfdemptyset(fds);
+      fpFDaddset(fds,gpm_fs);
     end;
-  if (Select(gpm_fs+1,@fds,nil,nil,1)>0) then
+  if (fpSelect(gpm_fs+1,@fds,nil,nil,1)>0) then
    begin
      FillChar(e,SizeOf(e),#0);
      { Gpm_snapshot does not work here PM }
@@ -418,7 +418,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2002-10-14 18:37:15  peter
+  Revision 1.10  2003-09-14 20:15:01  marco
+   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
+
+  Revision 1.9  2002/10/14 18:37:15  peter
     * use Unix unit
 
   Revision 1.8  2002/09/15 17:52:30  peter

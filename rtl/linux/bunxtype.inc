@@ -20,13 +20,20 @@
 
 {$i ptypes.inc}
 
+
 CONST
-    SYS_NMLM 		     = 65;
+//  SYS_NMLM 		     = 65;
     UTSNAME_LENGTH 	     = SYS_NMLM;
     UTSNAME_NODENAME_LENGTH  = UTSNAME_LENGTH;
     {$ifdef usedomain}
     UTSNAME_DOMAIN_LENGTH    = UTSNAME_LENGTH;
     {$endif}
+
+   SIG_MAXSIG      = 128;	// highest signal version
+   FD_MAXFDSET	   = 1024;
+   wordsinsigset   = 4;		// words in sigset_t
+   ln2bitsinword   = 5;         { 32bit : ln(32)/ln(2)=5 } 
+   ln2bitmask	   = 2 shl ln2bitsinword - 1;
 
 TYPE
    Blksize_t  = cuint;
@@ -129,21 +136,18 @@ TYPE
   TDirent    = Dirent;
   pDirent    = ^Dirent;
 
-
-
-
 {$ifdef oldreaddir}
 	   { Still old one. This is a userland struct}
 
    Dir       = packed record
-                fd     : integer;
-                loc    : longint;
-                size   : integer;
-                buf    : pdirent;
+                dd_fd     : integer;
+                dd_loc    : longint;
+                dd_size   : integer;
+                dd_buf    : pdirent;
                 {The following are used in libc, but NOT in the linux kernel sources ??}
-                nextoff: longint;
+                dd_nextoff: longint;
                 dd_max : integer; {size of buf. Irrelevant, as buf is of type dirent}
-                lock   : pointer;
+                dd_lock   : pointer;
                end;
 {$else}
 	// new libc one. NOTE that off_t must be real, so 64-bit ifdef
@@ -191,6 +195,9 @@ TYPE
 	       end;
    TTms      = tms;
    PTms	     = ^tms;
+
+ TFDSet    = ARRAY[0..(FD_MAXFDSET div 32)-1] of Cardinal;
+ pFDSet    = ^TFDSet;
 
 {***********************************************************************}
 {                  POSIX CONSTANT ROUTINE DEFINITIONS                   }
@@ -246,7 +253,10 @@ CONST
 
 {
   $Log$
-  Revision 1.2  2003-05-15 22:50:50  jonas
+  Revision 1.3  2003-09-14 20:15:01  marco
+   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
+
+  Revision 1.2  2003/05/15 22:50:50  jonas
     * the stat type is processor-dependent
     * the dev_t tpye is processor dependent. Don't use it in the stat type
       however, as that one is also used at a time where dev_t is already

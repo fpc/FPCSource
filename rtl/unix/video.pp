@@ -23,7 +23,7 @@ interface
 implementation
 
 uses
-  Unix, Strings, TermInfo;
+  BaseUnix, Unix, Strings, TermInfo;
 
 {$i video.inc}
 
@@ -155,7 +155,7 @@ begin
      pdelay:=strpos(p,'$<');
      if assigned(pdelay) then
        pdelay^:=#0;
-     fdWrite(TTYFd, P^, StrLen(P));
+     fpWrite(TTYFd, P^, StrLen(P));
      SendEscapeSeqNdx:=true;
      if assigned(pdelay) then
        pdelay^:='$';
@@ -165,7 +165,7 @@ end;
 
 procedure SendEscapeSeq(const S: String);
 begin
-  fdWrite(TTYFd, S[1], Length(S));
+  fpWrite(TTYFd, S[1], Length(S));
 end;
 
 
@@ -367,7 +367,7 @@ end;
        blockwrite(f,outbuf,outptr);
        blockwrite(f,nl,1);
 {$endif logging}
-       fdWrite(TTYFd,outbuf,outptr);
+       fpWrite(TTYFd,outbuf,outptr);
        outptr:=0;
      end;
   end;
@@ -476,7 +476,7 @@ begin
   blockwrite(f,outbuf,outptr);
   blockwrite(f,nl,1);
 {$endif logging}
-  fdWrite(TTYFd,outbuf,outptr);
+  fpWrite(TTYFd,outbuf,outptr);
   if InACS then
     SendEscapeSeqNdx(exit_alt_charset_mode);
  {turn autowrap on}
@@ -580,14 +580,14 @@ begin
      { save current terminal characteristics and remove rawness }
      prepareInitVideo;
      { write code to set a correct font }
-     fdWrite(stdoutputhandle,fontstr[1],length(fontstr));
+     fpWrite(stdoutputhandle,fontstr[1],length(fontstr));
      { running on a tty, find out whether locally or remotely }
      if (Copy(ThisTTY, 1, 8) = '/dev/tty') and
         (ThisTTY[9] >= '0') and (ThisTTY[9] <= '9') then
       begin
         { running on the console }
         FName:='/dev/vcsa' + ThisTTY[9];
-        TTYFd:=fdOpen(FName, Octal(666), Open_RdWr); { open console }
+        TTYFd:=fpOpen(FName, Octal(666), Open_RdWr); { open console }
       end
      else
       TTYFd:=-1;
@@ -600,7 +600,7 @@ begin
         LowAscii:=false;
         TTYFd:=stdoutputhandle;
       end;
-     ioctl(stdinputhandle, TIOCGWINSZ, @WS);
+     fpioctl(stdinputhandle, TIOCGWINSZ, @WS);
      if WS.ws_Col=0 then
       WS.ws_Col:=80;
      if WS.ws_Row=0 then
@@ -739,8 +739,8 @@ begin
    exit;
   if Console then
    begin
-     fdSeek(TTYFd, 4, Seek_Set);
-     fdWrite(TTYFd, VideoBuf^,VideoBufSize);
+     fplSeek(TTYFd, 4, Seek_Set);
+     fpWrite(TTYFd, VideoBuf^,VideoBufSize);
    end
   else
    begin
@@ -763,10 +763,10 @@ var
 begin
   if Console then
    begin
-     fdSeek(TTYFd, 2, Seek_Set);
+     fplSeek(TTYFd, 2, Seek_Set);
      Pos[1]:=NewCursorX;
      Pos[2]:=NewCursorY;
-     fdWrite(TTYFd, Pos, 2);
+     fpWrite(TTYFd, Pos, 2);
    end
   else
    begin
@@ -826,7 +826,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.13  2003-03-26 12:45:21  armin
+  Revision 1.14  2003-09-14 20:15:01  marco
+   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
+
+  Revision 1.13  2003/03/26 12:45:21  armin
   * added wrapoff to avoid problems in the ide with some terminal emulators
 
   Revision 1.12  2002/09/07 16:01:28  peter

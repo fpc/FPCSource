@@ -33,6 +33,8 @@ type
 
 implementation
 
+Uses Baseunix;
+
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
@@ -52,7 +54,7 @@ BEGIN
     1 : LinuxFlags:=LinuxFlags or Open_WrOnly;
     2 : LinuxFlags:=LinuxFlags or Open_RdWr;
   end;
-  FileOpen:=fdOpen (FileName,LinuxFlags);
+  FileOpen:=fpOpen (FileName,LinuxFlags);
   //!! We need to set locking based on Mode !!
 end;
 
@@ -60,7 +62,7 @@ end;
 Function FileCreate (Const FileName : String) : Longint;
 
 begin
-  FileCreate:=fdOpen(FileName,Open_RdWr or Open_Creat or Open_Trunc);
+  FileCreate:=fpOpen(FileName,Open_RdWr or Open_Creat or Open_Trunc);
 end;
 
 
@@ -75,28 +77,28 @@ BEGIN
     1 : LinuxFlags:=LinuxFlags or Open_WrOnly;
     2 : LinuxFlags:=LinuxFlags or Open_RdWr;
   end;
-  FileCreate:=fdOpen(FileName,LinuxFlags or Open_Creat or Open_Trunc);
+  FileCreate:=fpOpen(FileName,LinuxFlags or Open_Creat or Open_Trunc);
 end;
 
 
 Function FileRead (Handle : Longint; Var Buffer; Count : longint) : Longint;
 
 begin
-  FileRead:=fdRead (Handle,Buffer,Count);
+  FileRead:=fpRead (Handle,Buffer,Count);
 end;
 
 
 Function FileWrite (Handle : Longint; const Buffer; Count : Longint) : Longint;
 
 begin
-  FileWrite:=fdWrite (Handle,Buffer,Count);
+  FileWrite:=fpWrite (Handle,Buffer,Count);
 end;
 
 
 Function FileSeek (Handle,FOffset,Origin : Longint) : Longint;
 
 begin
-  FileSeek:=fdSeek (Handle,FOffset,Origin);
+  FileSeek:=fplSeek (Handle,FOffset,Origin);
 end;
 
 
@@ -104,20 +106,20 @@ Function FileSeek (Handle : Longint; FOffset,Origin : Int64) : Int64;
 
 begin
   {$warning need to add 64bit call }
-  FileSeek:=fdSeek (Handle,FOffset,Origin);
+  FileSeek:=fplSeek (Handle,FOffset,Origin);
 end;
 
 
 Procedure FileClose (Handle : Longint);
 
 begin
-  fdclose(Handle);
+  fpclose(Handle);
 end;
 
 Function FileTruncate (Handle,Size: Longint) : boolean;
 
 begin
-  FileTruncate:=fdtruncate(Handle,Size);
+  FileTruncate:=fpftruncate(Handle,Size)>=0;
 end;
 
 Function FileAge (Const FileName : String): Longint;
@@ -126,11 +128,11 @@ Var Info : Stat;
     Y,M,D,hh,mm,ss : word;
 
 begin
-  If not fstat (FileName,Info) then
+  If  fpstat (FileName,Info)<0 then
     exit(-1)
   else
     begin
-    EpochToLocal(info.mtime,y,m,d,hh,mm,ss);
+    EpochToLocal(info.st_mtime,y,m,d,hh,mm,ss);
     Result:=DateTimeToFileDate(EncodeDate(y,m,d)+EncodeTime(hh,mm,ss,0));
     end;
 end;
@@ -141,7 +143,7 @@ Function FileExists (Const FileName : String) : Boolean;
 Var Info : Stat;
 
 begin
-  FileExists:=fstat(filename,Info);
+  FileExists:=fpstat(filename,Info)>=0;
 end;
 
 
@@ -150,8 +152,8 @@ Function DirectoryExists (Const Directory : String) : Boolean;
 Var Info : Stat;
 
 begin
-  DirectoryExists:=fstat(Directory,Info) and
-                   ((info.mode and STAT_IFMT)=STAT_IFDIR);
+  DirectoryExists:=(fpstat(Directory,Info)>=0) and
+                   ((info.st_mode and STAT_IFMT)=STAT_IFDIR);
 end;
 
 
@@ -159,13 +161,13 @@ Function LinuxToWinAttr (FN : Pchar; Const Info : Stat) : Longint;
 
 begin
   Result:=faArchive;
-  If (Info.Mode and STAT_IFDIR)=STAT_IFDIR then
+  If (Info.st_Mode and STAT_IFDIR)=STAT_IFDIR then
     Result:=Result or faDirectory;
   If (FN[0]='.') and (not (FN[1] in [#0,'.']))  then
     Result:=Result or faHidden;
-  If (Info.Mode and STAT_IWUSR)=0 Then
+  If (Info.st_Mode and STAT_IWUSR)=0 Then
      Result:=Result or faReadOnly;
-  If (Info.Mode and
+  If (Info.st_Mode and
       (STAT_IFSOCK or STAT_IFBLK or STAT_IFCHR or STAT_IFIFO))<>0 then
      Result:=Result or faSysFile;
 end;
@@ -196,7 +198,7 @@ begin
   If Result then
     begin
     GlobSearchRec^.GlobHandle:=P^.Next;
-    Result:=Fstat(GlobSearchRec^.Path+StrPas(p^.name),SInfo);
+    Result:=Fpstat(GlobSearchRec^.Path+StrPas(p^.name),SInfo)>=0;
     If Result then
       begin
       Info.Attr:=LinuxToWinAttr(p^.name,SInfo);
@@ -207,8 +209,8 @@ begin
            Attr:=Info.Attr;
            If P^.Name<>Nil then
            Name:=strpas(p^.name);
-           Time:=Sinfo.mtime;
-           Size:=Sinfo.Size;
+           Time:=Sinfo.st_mtime;
+           Size:=Sinfo.st_Size;
            end;
       end;
     P^.Next:=Nil;
@@ -270,10 +272,10 @@ Function FileGetDate (Handle : Longint) : Longint;
 Var Info : Stat;
 
 begin
-  If Not(FStat(Handle,Info)) then
+  If (fpFStat(Handle,Info))<0 then
     Result:=-1
   else
-    Result:=Info.Mtime;
+    Result:=Info.st_Mtime;
 end;
 
 
@@ -290,7 +292,7 @@ Function FileGetAttr (Const FileName : String) : Longint;
 Var Info : Stat;
 
 begin
-  If Not FStat (FileName,Info) then
+  If  FpStat (FileName,Info)<0 then
     Result:=-1
   Else
     Result:=LinuxToWinAttr(Pchar(FileName),Info);
@@ -307,14 +309,14 @@ end;
 Function DeleteFile (Const FileName : String) : Boolean;
 
 begin
-  Result:=UnLink (FileName);
+  Result:=fpUnLink (FileName)>=0;
 end;
 
 
 Function RenameFile (Const OldName, NewName : String) : Boolean;
 
 begin
-  RenameFile:=Unix.FRename(OldNAme,NewName);
+  RenameFile:=BaseUnix.FpRename(OldNAme,NewName)>=0;
 end;
 
 
@@ -477,7 +479,7 @@ end;
 Function GetEnvironmentVariable(Const EnvVar : String) : String;
 
 begin
-  Result:=StrPas(Unix.Getenv(PChar(EnvVar)));
+  Result:=StrPas(BaseUnix.FPGetenv(PChar(EnvVar)));
 end;
 
 
@@ -494,7 +496,10 @@ end.
 {
 
   $Log$
-  Revision 1.18  2003-04-01 15:57:41  peter
+  Revision 1.19  2003-09-14 20:15:01  marco
+   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
+
+  Revision 1.18  2003/04/01 15:57:41  peter
     * made THandle platform dependent and unique type
 
   Revision 1.17  2003/03/30 10:38:00  armin

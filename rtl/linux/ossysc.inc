@@ -137,21 +137,21 @@ begin
   new(ptr);
   if ptr=nil then
    exit;
-  getmem(ptr^.buf,sizeof(dirent));
-  if ptr^.buf=nil then
+  getmem(ptr^.dd_buf,sizeof(dirent));
+  if ptr^.dd_buf=nil then
    exit;
-  ptr^.fd:=fd;
-  ptr^.loc:=0;
-  ptr^.size:=0;
-  ptr^.dd_max:=sizeof(ptr^.buf^);
+  ptr^.dd_fd:=fd;
+  ptr^.dd_loc:=0;
+  ptr^.dd_size:=0;
+  ptr^.dd_max:=sizeof(ptr^.dd_buf^);
   Fpopendir:=ptr;
 end;
 
 function Fpclosedir(dirp : pdir): cint; [public, alias : 'FPC_SYSC_CLOSEDIR'];
 
 begin
-  Fpclosedir:=Fpclose(dirp^.fd);
-  freemem(dirp^.buf,sizeof(dirent));
+  Fpclosedir:=Fpclose(dirp^.dd_fd);
+  freemem(dirp^.dd_buf,sizeof(dirent));
   dispose(dirp);
 end;
 
@@ -164,11 +164,11 @@ This usually the sectorsize =512 bytes, but maybe tapedrives and harddisks
 with blockmode have this higher?}
 
 begin
-  if do_SysCall(SysCall_nr_readdir,TSysParam(dirp^.fd),TSysParam(dirp^.buf),TSysParam(1))=0 Then
+  if do_SysCall(SysCall_nr_readdir,TSysParam(dirp^.dd_fd),TSysParam(dirp^.dd_buf),TSysParam(1))=0 Then
 { the readdir system call returns the number of bytes written }
    Fpreaddir:=nil
   else
-   Fpreaddir:=dirp^.buf
+   Fpreaddir:=dirp^.dd_buf
 end;
 
 {*****************************************************************************
@@ -443,11 +443,21 @@ end;
 // The following belongs here, but this should be researched more.
 // function Fpgetcwd(pt:pchar; _size:size_t):pchar;[public, alias :'FPC_SYSC_GETCWD'];
 
-{$endif}
+function gettimeofday(tp: ptimeval;tzp:ptimezone):cint; [public, alias:
+'FPC_SYSC_GETTIMEOFDAY'];
+
+begin
+ gettimeofday:=do_syscall(syscall_nr_gettimeofday,TSysParam(tp),TSysParam(tzp));
+end;
+
+{$ENDIF}
 
 {
  $Log$
- Revision 1.3  2003-05-11 16:07:55  jonas
+ Revision 1.4  2003-09-14 20:15:01  marco
+  * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
+
+ Revision 1.3  2003/05/11 16:07:55  jonas
    * fixed mmap for non-i386 non-m68k architectures (not sure about
      x86-64)
 
