@@ -39,6 +39,10 @@ uses
 var
   InputHandle : Handle;
   StoredControlKeyState : longint;
+  lastir : INPUT_RECORD;
+
+const
+  LastChar : char = #0;
 
 
 const
@@ -52,12 +56,12 @@ const
   { 05 unassigned } #0,
   { 06 unassigned } #0,
   { 07 unassigned } #0,
-  { 08 VK_BACK } #0,
+  { 08 VK_BACK } #8,
   { 09 VK_TAB } #9,
   { 0A unassigned } #0,
   { 0B unassigned } #0,
   { 0C VK_CLEAR ?? } #0,
-  { 0D VK_RETURN } #0,
+  { 0D VK_RETURN } #13,
   { 0E unassigned } #0,
   { 0F unassigned } #0,
   { 10 VK_SHIFT } #0,
@@ -313,17 +317,35 @@ var
 begin
   fvisioncharmessagehandler:=0;
   if (AMessage = WM_CHAR) then
-    exit;
+    begin
+      if LastChar<>#0 then
+        begin
+          Writeln('char ',chr(wparam and $ff),' $',hexstr(wparam,2));
+          Lastir.Event.KeyEvent.AsciiChar:=chr(wparam and $ff);
+          WriteConsoleInput(InputHandle,lastir,1,NumWritten);
+          LastChar:=#0;
+        end
+      else
+        begin
+          Writeln('char ',chr(wparam and $ff),' $',hexstr(wparam,2),' ignored');
+        end;
+      exit;
+    end;
+  if LastChar<>#0 then
+    begin
+      WriteConsoleInput(InputHandle,lastir,1,NumWritten);
+      LastChar:=#0;
+    end;
   fillchar(ir,sizeof(ir),#0);
   ir.EventType:=KEY_EVENT;
   with ir.Event.KeyEvent do
     begin
       vKey:=WParam and $ff;
+      wRepeatCount:=lparam and $ffff;
       IsExtended:=(lParam and (1 shl 24))<>0;
       if AMessage = WM_KEYDOWN then
         bKeyDown:=true;
       wVirtualKeyCode:=vKey;
-      dwControlKeyState:=StoredControlKeyState;
       AsciiChar:=KeyToAsciiCode[vKey];
       if AsciiChar<>#0 then
         begin
@@ -331,6 +353,8 @@ begin
           if ((StoredControlKeyState and SHIFT_PRESSED)=0) and
             ((wVirtualKeyCode>=VK_A) and (wVirtualKeyCode<=VK_Z)) then
               AsciiChar:=chr(ord(AsciiChar) + ord('a')-ord('A'));
+          if bKeyDown then
+            LastChar:=AsciiChar;
         end;
       case vKey of
         VK_SHIFT :
@@ -367,9 +391,12 @@ begin
               StoredControlKeyState:= StoredControlKeyState and not LEFT_ALT_PRESSED;
           end;
         end;
-
+      dwControlKeyState:=StoredControlKeyState;
     end;
-  WriteConsoleInput(InputHandle,ir,1,NumWritten);
+  if Lastchar=#0 then
+    WriteConsoleInput(InputHandle,ir,1,NumWritten)
+  else
+    Lastir:=ir;
 end;
 
 { this procedure allows to hook mouse messages }
@@ -418,7 +445,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-05-24 09:35:20  pierre
+  Revision 1.2  2002-05-28 19:12:26  pierre
+   * fix fvisioncharmessage
+
+  Revision 1.1  2002/05/24 09:35:20  pierre
    first commit, not fully functional yet
 
 
