@@ -7,6 +7,7 @@ main=fcl
 
 [target]
 units=mysqldb
+rsts=mysqldb
 examples=mtest
 
 [clean]
