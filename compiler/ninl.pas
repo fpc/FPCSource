@@ -1648,7 +1648,10 @@ implementation
                        if (left.resulttype.def.deftype in [enumdef,pointerdef]) or
                           is_ordinal(left.resulttype.def) then
                         begin
-                          { two paras ? }
+                           { value of left gets changed -> must be unique }
+                           { (bug 1735) (JM)                              }
+                           set_unique(tcallparanode(left).left);
+                           { two paras ? }
                           if assigned(tcallparanode(left).right) then
                            begin
                              { insert a type conversion       }
@@ -2321,7 +2324,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.66  2001-12-10 14:26:22  jonas
+  Revision 1.67  2001-12-28 14:09:21  jonas
+    * fixed web bug 1735 (argument of inc/dec must be made unique) ("merged")
+
+  Revision 1.66  2001/12/10 14:26:22  jonas
     - removed unnecessary resulttypepass call
 
   Revision 1.65  2001/12/04 15:59:03  jonas
