@@ -1,27 +1,29 @@
 #
-# OS/2 Install file
+# $Id$
 #
-title=Free Pascal Compiler for OS/2
-version=0.99.10
+# EMX Install file
+#
+title=Free Pascal Compiler for OS/2 and DOS
+version=0.99.12
 
-basepath=c:\fpc
+basepath=c:\pp
 binsub=\bin\os2
 ppc386=ppos2
 
-package=binaries.zip,~B~inaries and runtime library (required)
-package=emx.zip,Selected ~E~MX (0.9d) files (if you don't have EMX)
-package=debug.zip,GNU ~D~ebugger and PMGDB front-end
-package=utilos2.zip,GNU ~U~tilities (for makefiles)
+package=baseemx.zip,~B~asic system for EMX (required)
+package=asldemx.zip,GNU ~L~inker and assembler for EMX (required)
+package=gdbemx.zip,GNU ~D~ebugger for EMX and PMGDB front-end
+package=utilemx.zip,GNU ~U~tilities (for makefiles)
 package=demos.zip,D~e~mos
 package=docs-htm.zip,Documentation (~H~TML)
-package=rtlsrc.zip,~R~un time library sources
-package=compsrc.zip,~C~ompiler sources
-package=doc110s.zip,Documentation sources (La~T~eX)
+package=rl09912s.zip,~R~un time library sources
+package=pp09912s.zip,~C~ompiler sources
+package=doc120s.zip,Documentation sources (La~T~eX)
 
 cfgfile=ppc386.cfg
 defaultcfg=
 #
-# Example ppc386.cfg for Free Pascal Compiler Version 0.99.10
+# Example ppc386.cfg for Free Pascal Compiler Version 0.99.12
 #
 
 # ----------------------
@@ -217,7 +219,7 @@ defaultcfg=
 #-k-s
 
 # Always strip debuginfo from the executable
-#-Xs
+-Xs
 
 
 # -------------
