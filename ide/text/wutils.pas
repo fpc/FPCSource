@@ -71,7 +71,7 @@ type
   procedure readln(var t:text;var s:string);
 {$endif}
 
-procedure readlnfromstream(Stream: PStream; var s:string);
+procedure ReadlnFromStream(Stream: PStream; var s:string;var linecomplete : boolean);
 function eofstream(s: pstream): boolean;
 
 function Min(A,B: longint): longint;
@@ -146,11 +146,12 @@ begin
   eofstream:=(s^.getpos>=s^.getsize);
 end;
 
-procedure readlnfromstream(Stream: PStream; var S:string);
+procedure ReadlnFromStream(Stream: PStream; var S:string;var linecomplete : boolean);
   var
     c : char;
     i : longint;
   begin
+    linecomplete:=false;
     c:=#0;
     i:=0;
     { this created problems for lines longer than 255 characters
@@ -164,6 +165,9 @@ procedure readlnfromstream(Stream: PStream; var S:string);
           s[i]:=c;
         end;
      end;
+    if (c=#10) or eofstream(stream) then
+      linecomplete:=true;
+    { if there was a CR LF then remove the CR Dos newline style }
     if (i>0) and (s[i]=#13) then
       dec(i);
     s[0]:=chr(i);
@@ -531,7 +535,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.10  2000-01-03 11:38:35  michael
+  Revision 1.11  2000-01-05 17:27:20  pierre
+   + linecomplete arg for ReadlnFromStream
+
+  Revision 1.10  2000/01/03 11:38:35  michael
   Changes from Gabor
 
   Revision 1.9  1999/12/01 16:19:46  pierre
