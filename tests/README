@@ -31,6 +31,7 @@ ts010019.pp	  tests problems of name mangling
 ts010020.pp	  tests for const strings problems if const is a single char.
 ts010021.pp	  test for long mangled names (they are strings, ie no longer then
 		  255 chars (but they have to be allways shorten the same way !!)
+ts010022.pp       tests a problem of writing pchar in files
 ts10100.pp        tests for delphi object model
 -
 ts101xx.pp
