@@ -1251,8 +1251,7 @@ implementation
                              is_void(left.resulttype.def)  and
                              (left.nodetype=derefn)
                             )
-                           ) or
-                        (left.resulttype.def.deftype=classrefdef) then
+                           ) then
                        CGMessage(cg_e_illegal_type_conversion);
                    end;
                end
@@ -2104,7 +2103,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.122  2003-10-08 19:19:45  peter
+  Revision 1.123  2003-10-09 14:39:03  peter
+    * allow explicit typecasts from classrefdef, fixes 2728
+
+  Revision 1.122  2003/10/08 19:19:45  peter
     * set_varstate cleanup
 
   Revision 1.121  2003/10/07 14:30:27  peter
