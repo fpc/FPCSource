@@ -508,6 +508,7 @@ implementation
                 if not(is_ordinal(p.proptype.def) or
                        is_64bitint(p.proptype.def) or
                        is_class(p.proptype.def) or
+                       is_single(p.proptype.def) or
                        (p.proptype.def.deftype in [classrefdef,pointerdef]) or
                        ((p.proptype.def.deftype=setdef) and
                         (tsetdef(p.proptype.def).settype=smallset))) or
@@ -542,6 +543,8 @@ implementation
                         p.default:=tordconstnode(pt).value;
                       niln :
                         p.default:=0;
+                      realconstn:
+                        p.default:=longint(single(trealconstnode(pt).value_real));
                     end;
                     pt.free;
                   end;
@@ -1157,7 +1160,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.72  2003-10-30 16:23:13  peter
+  Revision 1.73  2003-11-10 18:06:25  florian
+    + published single properties can have a default value now
+
+  Revision 1.72  2003/10/30 16:23:13  peter
     * don't search for overloads in parents for constructors
 
   Revision 1.71  2003/10/22 15:22:33  peter
