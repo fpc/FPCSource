@@ -18,13 +18,9 @@ Interface
 Uses UnixType;
 {$endif}
 
-{$macro on}
-{$DEFINE FPC_NEW_SOCKETS_UNIT}
-{$ifdef FPC_USE_LIBC}
-{   define maybelibc:=cdecl;external;}	  // in future. Have to wrap now
-{$endif}				  // because of !@$!@#% socketerror
-
-{$define maybelibc:=}
+{$ifdef FreeBSD}
+{$DEFINE SOCK_HAS_SINLEN}		// BSD definition of scoketaddr
+{$endif}
 
 {$i unxsockh.inc}
 {$i socketsh.inc}
@@ -74,7 +70,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2004-03-16 18:03:37  marco
+  Revision 1.10  2004-12-21 09:48:14  michael
+  + Removed maybelibc macro
+
+  Revision 1.9  2004/03/16 18:03:37  marco
    * first changes sockets units
 
   Revision 1.8  2003/11/25 15:13:28  marco

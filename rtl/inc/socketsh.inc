@@ -19,9 +19,6 @@
   {$endif}  
 {$ENDIF}
 
-{$ifdef FreeBSD}
-{$DEFINE SOCK_HAS_SINLEN}		// BSD definition of scoketaddr
-{$endif}
 Type
 {$ifdef SOCK_HAS_SINLEN}
     sa_family_t=cuchar;
@@ -144,6 +141,7 @@ TInetSockAddr = packed Record
 Var
   SocketError:cint;
 
+{$ifndef FPC_USE_LIBC}
 function  fpsocket      (domain:cint; xtype:cint; protocol: cint):cint; maybelibc
 function  fprecv        (s:cint; buf: pointer; len: size_t; flags: cint):ssize_t; maybelibc
 function  fprecvfrom    (s:cint; buf: pointer; len: size_t; flags: cint; from : psockaddr; fromlen : psocklen):ssize_t; maybelibc
@@ -159,6 +157,23 @@ function  fpgetpeername (s:cint; name  : psockaddr; namelen : psocklen):cint; ma
 function  fpgetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen : psocklen):cint; maybelibc
 function  fpsetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen : tsocklen):cint; maybelibc
 function  fpsocketpair  (d:cint; xtype:cint; protocol:cint; sv:pcint):cint; maybelibc
+{$else}
+function  fpsocket      (domain:cint; xtype:cint; protocol: cint):cint; cdecl; external;
+function  fprecv        (s:cint; buf: pointer; len: size_t; flags: cint):ssize_t; cdecl; external;
+function  fprecvfrom    (s:cint; buf: pointer; len: size_t; flags: cint; from : psockaddr; fromlen : psocklen):ssize_t; cdecl; external;
+function  fpsend        (s:cint; msg:pointer; len:size_t; flags:cint):ssize_t; cdecl; external;
+function  fpsendto      (s:cint; msg:pointer; len:size_t; flags:cint; tox :psockaddr; tolen: tsocklen):ssize_t; cdecl; external;
+function  fpbind        (s:cint; addrx : psockaddr; addrlen : tsocklen):cint;  cdecl; external;
+function  fplisten      (s:cint; backlog : cint):cint;                          cdecl; external;
+function  fpaccept      (s:cint; addrx : psockaddr; addrlen : psocklen):cint; cdecl; external;
+function  fpconnect     (s:cint; name  : psockaddr; namelen : tsocklen):cint;  cdecl; external;
+function  fpshutdown    (s:cint; how:cint):cint; cdecl; external;
+function  fpgetsockname (s:cint; name  : psockaddr; namelen : psocklen):cint; cdecl; external;
+function  fpgetpeername (s:cint; name  : psockaddr; namelen : psocklen):cint; cdecl; external;
+function  fpgetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen : psocklen):cint; cdecl; external;
+function  fpsetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen : tsocklen):cint; cdecl; external;
+function  fpsocketpair  (d:cint; xtype:cint; protocol:cint; sv:pcint):cint; cdecl; external;
+{$endif}
 
 {Basic Socket Functions}
 Function Socket(Domain,SocketType,Protocol:Longint):Longint;
@@ -197,7 +212,10 @@ Function NToHs (Net : word):word;         {$ifdef HASINLINE} inline; {$endif}
 
 {
   $Log$
-  Revision 1.18  2004-11-01 19:39:19  peter
+  Revision 1.19  2004-12-21 09:48:14  michael
+  + Removed maybelibc macro
+
+  Revision 1.18  2004/11/01 19:39:19  peter
     * disable inline for 1.9.4
 
   Revision 1.17  2004/11/01 17:35:22  marco
