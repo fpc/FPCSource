@@ -7,17 +7,17 @@ begin
   Socket:=Do_Syscall(syscall_nr_socket,Domain,SocketType,Protocol);
 end;
 
-Function Send(Sock:Longint;Var Addr;AddrLen,Flags:Longint):Longint;
+Function Send(Sock:Longint;Const Buf;BufLen,Flags:Longint):Longint;
 begin
-  Send:=do_syscall(syscall_nr_sendto,Sock,Longint(@Addr),AddrLen,Flags,0,0);
+  Send:=do_syscall(syscall_nr_sendto,Sock,Longint(@Buf),BufLen,Flags,0,0);
 end;
 
-Function Recv(Sock:Longint;Var Addr;AddrLen,Flags:Longint):Longint;
+Function Recv(Sock:Longint;Var Buf;BufLen,Flags:Longint):Longint;
 begin
-  Recv:=do_syscall(syscall_nr_Recvfrom,Sock,Longint(@Addr),AddrLen,Flags,0,0);
+  Recv:=do_syscall(syscall_nr_Recvfrom,Sock,Longint(@Buf),BufLen,Flags,0,0);
 end;
 
-Function Bind(Sock:Longint;Var Addr;AddrLen:Longint):Boolean;
+Function Bind(Sock:Longint;Const Addr;AddrLen:Longint):Boolean;
 begin
   Bind:=(do_syscall(syscall_nr_Bind,Sock,Longint(@Addr),AddrLen)=0);
 end;
@@ -34,7 +34,7 @@ begin
     Accept:=-1;
 end;
 
-Function Connect(Sock:Longint;Var Addr;Addrlen:Longint): boolean;
+Function Connect(Sock:Longint;Const Addr;Addrlen:Longint): boolean;
 
 begin
   Connect:=do_syscall(syscall_nr_connect,Sock,longint(@Addr),AddrLen)=0;
@@ -61,7 +61,7 @@ end;
 
 
 
-Function SetSocketOptions(Sock,Level,OptName:Longint;Var OptVal;optlen:longint):Longint;
+Function SetSocketOptions(Sock,Level,OptName:Longint;Const OptVal;optlen:longint):Longint;
 begin
   SetSocketOptions:=do_syscall(syscall_nr_SetSockOpt,Sock,Level,OptName,Longint(@OptVal),OptLen,0);
 end;

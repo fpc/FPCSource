@@ -102,7 +102,7 @@ type
   PStat=^Stat;
   TStat=Stat;
 
-  Statfs = packed record
+  TStatfs = packed record
     spare2,	       { place holder}
     bsize,	       { fundamental block size}
     iosize,            { optimal block size }
@@ -120,8 +120,7 @@ type
     mountpoint     : array[0..89] of char;
     mnfromname     : array[0..89] of char;
   end;
-  PStatFS=^StatFS;
-  TStatFS=StatFS;
+  PStatFS=^TStatFS;
 
   fdSet=array[0..7] of longint;{=256 bits}
   pfdset=^fdset;
@@ -156,7 +155,10 @@ type
 
 {
   $Log$
-  Revision 1.6  2001-06-19 08:34:16  marco
+  Revision 1.7  2001-06-19 08:59:01  marco
+   * Fixes from Unix merge and changes of socketh.inc
+
+  Revision 1.6  2001/06/19 08:34:16  marco
    * Peter didn't merge the FreeBSD directory when he merged the Unix one. Fixed
 
   Revision 1.5  2001/01/20 16:52:37  marco

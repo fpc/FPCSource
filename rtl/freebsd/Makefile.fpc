@@ -131,7 +131,7 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 
 unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
                  syscalls.inc systypes.inc sysconst.inc $(UNIXINC)/timezone.inc $(SYSTEMUNIT)$(PPUEXT) \
-                 $(UNIXINC)/linsysca.inc
+                 unixsysc.inc
 
 
 #

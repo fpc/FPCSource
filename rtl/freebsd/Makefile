@@ -877,7 +877,7 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 		   $(SYSTEMUNIT)$(PPUEXT)
 unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
 		 syscalls.inc systypes.inc sysconst.inc $(UNIXINC)/timezone.inc $(SYSTEMUNIT)$(PPUEXT) \
-		 $(UNIXINC)/linsysca.inc
+		 unixsysc.inc
 dos$(PPUEXT) : $(UNIXINC)/dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
 	       unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 crt$(PPUEXT) : $(UNIXINC)/crt.pp $(INC)/textrec.inc unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)

@@ -375,7 +375,7 @@ begin
 end;
 
 
-Function FSStat(Path:Pathstr;Var Info:statfs):Boolean;
+Function StatFS(Path:Pathstr;Var Info:Tstatfs):Boolean;
 
 {
   Get all information on a fileSystem, and return it in Info.
@@ -385,11 +385,11 @@ Function FSStat(Path:Pathstr;Var Info:statfs):Boolean;
 
 begin
   path:=path+#0;
-  FSStat:=Do_Syscall(syscall_nr_statfs,longint(@path[1]),longint(@info))=0;
+  StatFS:=Do_Syscall(syscall_nr_statfs,longint(@path[1]),longint(@info))=0;
   LinuxError:=Errno;
 end;
 
-Function FSStat(Fd:Longint;Var Info:statfs):Boolean;
+Function StatFS(Fd:Longint;Var Info:tstatfs):Boolean;
 {
   Get all information on a fileSystem, and return it in Info.
   Fd is the file descriptor of a file/directory on the fileSystem
@@ -397,7 +397,7 @@ Function FSStat(Fd:Longint;Var Info:statfs):Boolean;
 }
 
 begin
- FSStat:=do_syscall(syscall_nr_fstatfs,fd,longint(@info))=0;
+ StatFS:=do_syscall(syscall_nr_fstatfs,fd,longint(@info))=0;
  LinuxError:=Errno;
 end;
 
@@ -748,7 +748,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2001-06-02 00:31:30  peter
+  Revision 1.3  2001-06-19 08:59:01  marco
+   * Fixes from Unix merge and changes of socketh.inc
+
+  Revision 1.2  2001/06/02 00:31:30  peter
     * merge unix updates from the 1.0 branch, mostly related to the
       solaris target
 
