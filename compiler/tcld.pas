@@ -30,6 +30,7 @@ interface
     procedure firstassignment(var p : ptree);
     procedure firstfuncret(var p : ptree);
     procedure firstarrayconstruct(var p : ptree);
+    procedure firsttype(var p : ptree);
 
 
 implementation
@@ -381,10 +382,24 @@ implementation
       end;
 
 
+{*****************************************************************************
+                                 Type
+*****************************************************************************}
+
+    procedure firsttype(var p : ptree);
+      begin
+      { do nothing, p^.resulttype is already set }
+      end;
+
+
+
 end.
 {
   $Log$
-  Revision 1.1  1998-09-23 20:42:24  peter
+  Revision 1.2  1998-09-24 15:13:48  peter
+    * fixed type node which was always set to void :(
+
+  Revision 1.1  1998/09/23 20:42:24  peter
     * splitted pass_1
 
 }

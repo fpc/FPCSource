@@ -236,7 +236,7 @@ implementation
              firstinline,      {inlinen}
              firstniln,        {niln}
              firsterror,       {errorn}
-             firstnothing,     {typen}
+             firsttype,        {typen}
              firsthnew,        {hnewn}
              firsthdispose,    {hdisposen}
              firstnew,         {newn}
@@ -350,7 +350,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.94  1998-09-23 20:42:22  peter
+  Revision 1.95  1998-09-24 15:13:44  peter
+    * fixed type node which was always set to void :(
+
+  Revision 1.94  1998/09/23 20:42:22  peter
     * splitted pass_1
 
 }
