@@ -64,14 +64,14 @@ end;
 Procedure TComponent.ReadLeft(Reader: TReader);
 
 begin
-//  LongRec(FDesignInfo).Lo:=Reader.ReadInteger;
+  LongRec(FDesignInfo).Lo:=Reader.ReadInteger;
 end;
 
 
 Procedure TComponent.ReadTop(Reader: TReader);
 
 begin
-//  LongRec(FDesignInfo).Hi:=Reader.ReadInteger;
+  LongRec(FDesignInfo).Hi:=Reader.ReadInteger;
 end;
 
 
@@ -154,15 +154,17 @@ Var Ancestor : TComponent;
     Temp : longint;
 
 begin
+  { The Left and Top properties are only stored if different from the
+    ancestor's ones (if present) }
   Temp:=0;
   Ancestor:=TComponent(Filer.Ancestor);
-  If Assigned(Ancestor) then Temp:=Ancestor.FDesignInfo;
-{
-  Filer.Defineproperty('left',readleft,writeleft,
-                       (longrec(FDesignInfo).Lo<>Longrec(temp).Lo));
-  Filer.Defineproperty('top',readtop,writetop,
-                       (longrec(FDesignInfo).Hi<>Longrec(temp).Hi));
-}
+  if Assigned(Ancestor) then
+    Temp:=Ancestor.FDesignInfo;
+
+  Filer.DefineProperty('Left', @ReadLeft, @WriteLeft,
+                       longrec(FDesignInfo).Lo <> Longrec(temp).Lo);
+  Filer.DefineProperty('Top', @ReadTop, @WriteTop,
+                       longrec(FDesignInfo).Hi <> Longrec(temp).Hi);
 end;
 
 
@@ -488,7 +490,10 @@ end;
 
 {
   $Log$
-  Revision 1.1.2.1  2001-01-08 18:35:20  sg
+  Revision 1.1.2.2  2001-03-14 13:43:50  sg
+  * The "Top" and "Left" properties (from DesignInfo) are now streamed
+
+  Revision 1.1.2.1  2001/01/08 18:35:20  sg
   * Applied bugfix for bug #1330
 
   Revision 1.1  2000/07/13 06:31:30  michael
