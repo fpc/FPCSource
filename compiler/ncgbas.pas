@@ -152,6 +152,7 @@ interface
 {$endif x86}
               getoffset:=op.localoper^.localgetoffset;
               sym:=tvarsym(pointer(op.localoper^.localsym));
+              dispose(op.localoper);
               case sym.localloc.loc of
                 LOC_REFERENCE :
                   begin
@@ -475,7 +476,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.59  2004-03-10 20:41:17  peter
+  Revision 1.60  2004-03-15 08:44:51  michael
+  + Fix from peter: fixes crash when inlining assembler code referencing local vars
+
+  Revision 1.59  2004/03/10 20:41:17  peter
     * maybe_in_reg moved to tempinfo
     * fixed expectloc for maybe_in_reg
 

@@ -96,7 +96,7 @@ interface
           );
 
     const
-       taitypestr : array[taitype] of string[14] = (
+       taitypestr : array[taitype] of string[24] = (
           '<none>',
           'align',
           'section',
@@ -540,7 +540,7 @@ interface
        taasmoutput = class(tlinkedlist)
           constructor create;
           function getlasttaifilepos : pfileposinfo;
-          procedure InsertAfter(Item,Loc : TLinkedListItem);
+          procedure InsertAfter(Item,Loc : TLinkedListItem);override;
        end;
 
 
@@ -966,7 +966,7 @@ implementation
          sym.increfs;
       end;
 
-    constructor tai_const_symbol.Create_offset(_sym:tasmsymbol;ofs:longint);
+    constructor tai_const_symbol.Create_offset(_sym:tasmsymbol;ofs:aint);
       begin
          inherited Create;
          typ:=ait_const_symbol;
@@ -999,7 +999,7 @@ implementation
       end;
 
 
-    constructor tai_const_symbol.Createname(const name:string;_symtyp:Tasmsymtype;ofs:longint);
+    constructor tai_const_symbol.Createname(const name:string;_symtyp:Tasmsymtype;ofs:aint);
       begin
          inherited Create;
          typ:=ait_const_symbol;
@@ -1822,11 +1822,25 @@ implementation
         for i:=0 to ops-1 do
           begin
             p.oper[i]^:=oper[i]^;
-            if (oper[i]^.typ=top_ref) then
-              begin
-                new(p.oper[i]^.ref);
-                p.oper[i]^.ref^:=oper[i]^.ref^;
-              end;
+            case oper[i]^.typ of
+              top_local :
+                begin
+                  new(p.oper[i]^.localoper);
+                  p.oper[i]^.localoper^:=oper[i]^.localoper^;
+                end;
+              top_ref :
+                begin
+                  new(p.oper[i]^.ref);
+                  p.oper[i]^.ref^:=oper[i]^.ref^;
+                end;
+{$ifdef ARM}
+              top_shifterop:
+                begin
+                  new(p.oper[i]^.shifterop);
+                  p.oper[i]^.shifterop^:=oper[i]^.shifterop^;
+                end;
+{$endif ARM}
+            end;    
           end;
         getcopy:=p;
       end;
@@ -1992,7 +2006,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.78  2004-03-14 22:47:56  peter
+  Revision 1.79  2004-03-15 08:44:51  michael
+  + Fix from peter: fixes crash when inlining assembler code referencing local vars
+
+  Revision 1.78  2004/03/14 22:47:56  peter
     * fix memleak with top_local
 
   Revision 1.77  2004/03/14 20:10:56  peter
