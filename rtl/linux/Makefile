@@ -74,7 +74,7 @@ UNITOBJECTS=$(SYSTEMUNIT) objpas strings \
             dos crt objects printer graph \
             sysutils typinfo math \
             cpu mmx getopts heaptrc \
-            errors sockets graph
+            errors sockets ipc
 
 
 #####################################################################
@@ -282,7 +282,10 @@ ipc$(PPUEXT) : ipc.pp linux$(PPUEXT) $(SYSTEMPPU)
 
 #
 # $Log$
-# Revision 1.26  1999-05-28 11:21:06  peter
+# Revision 1.27  1999-05-28 11:28:30  peter
+#   * ipc unit can be compiled with 0.99.10 again
+#
+# Revision 1.26  1999/05/28 11:21:06  peter
 #   * moved fpc_version check so it works correct
 #
 # Revision 1.25  1999/05/13 07:39:07  michael
