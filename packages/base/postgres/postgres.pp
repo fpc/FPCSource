@@ -165,74 +165,6 @@ type
    end;
    PPQconninfoOption = ^TPQconninfoOption;
 
-
-Function  PQconnectdb(conninfo:Pchar):PPGconn; cdecl;
-Function  PQconndefaults:PPQconninfoOption; cdecl;
-Function  PQsetdbLogin(pghost,pgport,pgoptions,pgtty,dbName,login,pwd : pchar):PPGConn; cdecl;
-{$ifdef PGSQL6_2_1}
-Function  PQsetdb(pghost,pgport,pgoptions,pgtty,dbName : pchar):PPGConn; cdecl;
-{$else}
-Function  PQsetdb(pghost,pgport,pgoptions,pgtty,dbName : pchar):PPGConn;
-{$endif}
-procedure PQfinish(conn:PPGconn); cdecl;
-procedure PQreset(conn:PPGconn); cdecl;
-Function  PQdb(conn:PPGconn):Pchar; cdecl;
-Function  PQuser(conn:PPGconn):Pchar; cdecl;
-Function  PQhost(conn:PPGconn):Pchar; cdecl;
-Function  PQoptions(conn:PPGconn):Pchar; cdecl;
-Function  PQport(conn:PPGconn):Pchar; cdecl;
-Function  PQtty(conn:PPGconn):Pchar; cdecl;
-Function  PQstatus(conn:PPGconn):TConnStatusType; cdecl;
-Function  PQerrorMessage(conn:PPGconn):Pchar; cdecl;
-procedure PQtrace(conn:PPGconn; debug_port:PFILE); cdecl;
-procedure PQuntrace(conn:PPGconn); cdecl;
-Function  PQexec(conn:PPGconn; query:Pchar):PPGresult; cdecl;
-Function  PQgetline(conn:PPGconn; str:Pchar; len:longint):longint; cdecl;
-Function  PQendcopy(conn:PPGconn):longint; cdecl;
-Function  PQputline(conn:PPGconn; str:Pchar) : longint; cdecl;
-Function  PQresultStatus(res:PPGresult):TExecStatusType; cdecl;
-Function  PQntuples(res:PPGresult):longint; cdecl;
-Function  PQnfields(res:PPGresult):longint; cdecl;
-Function  PQfname(res:PPGresult; field_num:longint):Pchar; cdecl;
-Function  PQfnumber(res:PPGresult; field_name:Pchar):longint; cdecl;
-Function  PQftype(res:PPGresult; field_num:longint):Oid; cdecl;
-Function  PQfsize(res:PPGresult; field_num:longint):integer; cdecl;
-Function  PQcmdStatus(res:PPGresult):Pchar; cdecl;
-
-Function  PQoidStatus(res : PPGresult) : pchar; cdecl;
-Function  PQcmdTuples(res : PPGresult) : pchar; cdecl;
-
-Function  PQgetvalue(res:PPGresult; tup_num:longint; field_num:longint):Pchar; cdecl;
-Function  PQgetlength(res:PPGresult; tup_num:longint; field_num:longint):longint; cdecl;
-Function  PQgetisnull(res:PPGresult; tup_num:longint; field_num:longint):longint; cdecl;
-procedure PQclear(res:PPGresult);cdecl;
-procedure PQdisplayTuples(res:PPGresult; fp:PFILE; fillAlign:longint; fieldSep:Pchar; printHeader:longint; quiet:longint);cdecl;
-procedure PQprintTuples(res:PPGresult; fout:PFILE; printAttName:longint; terseOutput:longint; width:longint);cdecl;
-procedure PQprint(fout:PFILE; res:PPGresult; ps:PPQprintOpt);cdecl;
-Function  PQnotifies(conn:PPGconn):PPGnotify; cdecl;
-Function  PQfn(conn:PPGconn; fnid:longint; result_buf:Plongint; result_len:Plongint; result_is_int:longint; args:PPQArgBlock; nargs:longint):PPGresult; cdecl;
-Function  fe_getauthsvc(PQerrormsg:Pchar):MsgType; cdecl;
-procedure fe_setauthsvc(name:Pchar; PQerrormsg:Pchar);cdecl;
-Function  fe_getauthname(PQerrormsg:Pchar):Pchar; cdecl;
-Function  pqGets(s:Pchar; maxlen:longint; stream:PFILE; debug:PFILE):longint; cdecl;
-Function  pqGetnchar(s:Pchar; maxlen:longint; stream:PFILE; debug:PFILE):longint; cdecl;
-Function  pqPutnchar(s:Pchar; maxlen:longint; stream:PFILE; debug:PFILE):longint; cdecl;
-Function  pqPuts(s:Pchar; stream:PFILE; debug:PFILE):longint; cdecl;
-Function  pqGetc(stream:PFILE; debug:PFILE):longint; cdecl;
-Function  pqGetInt(result:Plongint; bytes:longint; stream:PFILE; debug:PFILE):longint; cdecl;
-Function  pqPutInt(n:longint; bytes:longint; stream:PFILE; debug:PFILE):longint; cdecl;
-procedure pqFlush(stream:PFILE; debug:PFILE);cdecl;
-Function  lo_open(conn:PPGconn; lobjId:Oid; mode:longint):longint; cdecl;
-Function  lo_close(conn:PPGconn; fd:longint):longint; cdecl;
-Function  lo_read(conn:PPGconn; fd:longint; buf:Pchar; len:longint):longint; cdecl;
-Function  lo_write(conn:PPGconn; fd:longint; buf:Pchar; len:longint):longint; cdecl;
-Function  lo_lseek(conn:PPGconn; fd:longint; offset:longint; whence:longint):longint; cdecl;
-Function  lo_creat(conn:PPGconn; mode:longint):Oid; cdecl;
-Function  lo_tell(conn:PPGconn; fd:longint):longint; cdecl;
-Function  lo_unlink(conn:PPGconn; lobjId:Oid):longint; cdecl;
-Function  lo_import(conn:PPGconn; filename:Pchar):Oid; cdecl;
-Function  lo_export(conn:PPGconn; lobjId:Oid; filename:Pchar):longint; cdecl;
-
 const
    MAX_MESSAGE_LEN = 8193;
    BYTELEN = 8;
@@ -246,8 +178,6 @@ const
 type
    TTUPLE = pointer;
    PTUPLE = ^TTUPLE;
-
-implementation
 
 
   function  PQconnectdb(conninfo:Pchar):PPGconn;cdecl; external;
@@ -309,6 +239,16 @@ implementation
   function  lo_unlink(conn:PPGconn; lobjId:Oid):longint; cdecl; external;
   function  lo_import(conn:PPGconn; filename:Pchar):Oid;cdecl;external;
   function  lo_export(conn:PPGconn; lobjId:Oid; filename:Pchar):longint; cdecl; external;
+  
+{$ifdef PGSQL6_2_1}
+  Function  PQsetdb(pghost,pgport,pgoptions,pgtty,dbName : pchar):PPGConn; cdecl;external;
+{$else}
+  function PQsetdb(pghost,pgport,pgoptions,pgtty,dbName : pchar):PPGConn;
+{$endif}
+
+implementation
+
+
 
 { Define helper functions }
 
@@ -317,21 +257,17 @@ implementation
   in version 6.3.xxx, PGsetdb is a macro, pointing to setdblogin !!
 }
 
-{$ifdef PGSQL6_2_1}
-Function  PQsetdb(pghost,pgport,pgoptions,pgtty,dbName : pchar):PPGConn; cdecl;external;
-{$else}
+{$ifndef PGSQL6_2_1}
 function PQsetdb(pghost,pgport,pgoptions,pgtty,dbName : pchar):PPGConn;
-
 begin
  PQsetdb:=PQsetdbLogin(pghost,pgport,pgoptions,pgtty,dbName,nil,nil);
 end;
 {$endif}
 
-end.  $Log$
-end.  Revision 1.2  2002-09-07 15:42:53  peter
-end.    * old logs removed and tabs fixed
 end.
-end.  Revision 1.1  2002/01/29 17:54:56  peter
-end.    * splitted to base and extra
-end.
+{
+  $Log$
+  Revision 1.3  2004-11-21 16:33:55  peter
+    * external fixes
+
 }

@@ -193,76 +193,6 @@ uses ncurses;
   #endif
    }
   { --------- prototypes for libmenu functions -----------------------------  }
-  function menu_items(_para1:pMENU):ppITEM;cdecl;
-  function current_item(_para1:pMENU):pITEM;cdecl;
-  function new_item(_para1:pchar; _para2:pchar):pITEM;cdecl;
-  function new_menu(_para1:ppITEM):pMENU;cdecl;
-  function item_opts(_para1:pITEM):Item_Options;cdecl;
-  function menu_opts(_para1:pMENU):Menu_Options;cdecl;
-(*
-  function item_init(_para1:pMENU):Menu_Hook;
-  function item_term(_para1:pMENU):Menu_Hook;
-  function menu_init(_para1:pMENU):Menu_Hook;
-  function menu_term(_para1:pMENU):Menu_Hook;
-*)
-  function menu_sub(_para1:pMENU):pWINDOW;cdecl;
-  function menu_win(_para1:pMENU):pWINDOW;cdecl;
-  function item_description(_para1:pITEM):pchar;cdecl;
-  function item_name(_para1:pITEM):pchar;cdecl;
-  function menu_mark(_para1:pMENU):pchar;cdecl;
-  function menu_request_name(_para1:longint):pchar;cdecl;
-  function menu_pattern(_para1:pMENU):pchar;cdecl;
-  function menu_userptr(_para1:pMENU):pointer;cdecl;
-  function item_userptr(_para1:pITEM):pointer;cdecl;
-  function menu_back(_para1:pMENU):chtype;cdecl;
-  function menu_fore(_para1:pMENU):chtype;cdecl;
-  function menu_grey(_para1:pMENU):chtype;cdecl;
-  function free_item(_para1:pITEM):longint;cdecl;
-  function free_menu(_para1:pMENU):longint;cdecl;
-  function item_count(_para1:pMENU):longint;cdecl;
-  function item_index(_para1:pITEM):longint;cdecl;
-  function item_opts_off(_para1:pITEM; _para2:Item_Options):longint;cdecl;
-  function item_opts_on(_para1:pITEM; _para2:Item_Options):longint;cdecl;
-  function menu_driver(_para1:pMENU; _para2:longint):longint;cdecl;
-  function menu_opts_off(_para1:pMENU; _para2:Menu_Options):longint;cdecl;
-  function menu_opts_on(_para1:pMENU; _para2:Menu_Options):longint;cdecl;
-  function menu_pad(_para1:pMENU):longint;cdecl;
-  function pos_menu_cursor(_para1:pMENU):longint;cdecl;
-  function post_menu(_para1:pMENU):longint;cdecl;
-  function scale_menu(_para1:pMENU; _para2:plongint; _para3:plongint):longint;cdecl;
-  function set_current_item(menu:pMENU; item:pITEM):longint;cdecl;
-{  function set_item_init(_para1:pMENU; _para2:Menu_Hook):longint;cdecl;}
-  function set_item_opts(_para1:pITEM; _para2:Item_Options):longint;cdecl;
-{  function set_item_term(_para1:pMENU; _para2:Menu_Hook):longint;cdecl;}
-  function set_item_userptr(_para1:pITEM; _para2:pointer):longint;cdecl;
-  function set_item_value(_para1:pITEM; _para2:bool):longint;cdecl;
-  function set_menu_back(_para1:pMENU; _para2:chtype):longint;cdecl;
-  function set_menu_fore(_para1:pMENU; _para2:chtype):longint;cdecl;
-  function set_menu_format(_para1:pMENU; _para2:longint; _para3:longint):longint;cdecl;
-  function set_menu_grey(_para1:pMENU; _para2:chtype):longint;cdecl;
-{  function set_menu_init(_para1:pMENU; _para2:Menu_Hook):longint;cdecl;}
-  function set_menu_items(_para1:pMENU; _para2:ppITEM):longint;cdecl;
-  function set_menu_mark(_para1:pMENU; _para2:pchar):longint;cdecl;
-  function set_menu_opts(_para1:pMENU; _para2:Menu_Options):longint;cdecl;
-  function set_menu_pad(_para1:pMENU; _para2:longint):longint;cdecl;
-  function set_menu_pattern(_para1:pMENU; _para2:pchar):longint;cdecl;
-  function set_menu_sub(_para1:pMENU; _para2:pWINDOW):longint;cdecl;
-{  function set_menu_term(_para1:pMENU; _para2:Menu_Hook):longint;cdecl;}
-  function set_menu_userptr(_para1:pMENU; _para2:pointer):longint;cdecl;
-  function set_menu_win(_para1:pMENU; _para2:pWINDOW):longint;cdecl;
-  function set_top_row(_para1:pMENU; _para2:longint):longint;cdecl;
-  function top_row(_para1:pMENU):longint;cdecl;
-  function unpost_menu(_para1:pMENU):longint;cdecl;
-  function menu_request_by_name(_para1:pchar):longint;cdecl;
-  function set_menu_spacing(_para1:pMENU; _para2:longint; _para3:longint; _para4:longint):longint;cdecl;
-  function menu_spacing(_para1:pMENU; _para2:plongint; _para3:plongint; _para4:plongint):longint;cdecl;
-  function item_value(_para1:pITEM):bool;cdecl;
-  function item_visible(_para1:pITEM):bool;cdecl;
-{  procedure menu_format(_para1:pMENU; _para2:plongint; _para3:plongint);}
-
-  implementation
-
-{const External_library=''; Setup as you need!}
 
   function menu_items(_para1:pMENU):ppITEM;cdecl;external libmenu;
   function current_item(_para1:pMENU):pITEM;cdecl;external libmenu;
@@ -347,5 +277,8 @@ uses ncurses;
        { You must implemented this function }
     end;
 *)
+
+  implementation
+
 begin
 end.

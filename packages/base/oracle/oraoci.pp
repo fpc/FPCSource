@@ -788,653 +788,6 @@ type
   OCIParam              = pointer;
 
 
-  function OCIErrorGet(
-          hndlp:pointer;
-          recordno:cardinal;
-          sqlstate:PChar;
-          var errcodep:plongint;
-          bufp:PChar;
-          bufsiz:cardinal;
-          AType:cardinal):sword;cdecl;
-
-  function OCIInitialize(
-          mode:cardinal;
-          ctxp:pointer;
-          malocfp:pointer;
-          ralocfp:pointer;
-          mfreefp:pointer):sword;cdecl;
-
-  function OCIHandleAlloc(
-          parenth:pointer;
-          var hndlpp:pointer;
-          AType:cardinal;
-          xtramem_sz:cardinal;
-          usrmempp:pointer):sword;cdecl;
-
-  function OCIHandleFree(
-          hndlp:pointer;
-          AType:cardinal):sword;cdecl;
-
-  function OCIEnvInit(
-          var envp: OCIEnv;
-
-          mode: ub4;
-          xtramemsz: Integer;
-          usrmempp: pointer): sword; cdecl;
-
-  function OCIDescriptorAlloc(
-          parenth:pointer;
-          descpp:pointer;
-          AType:cardinal;
-          xtramem_sz:cardinal;
-          usrmempp:pointer):sword;cdecl;
-
-  function OCIDescriptorFree(
-          descp:pointer;
-          AType:cardinal):sword;cdecl;
-
-  function OCIServerAttach(
-          srvhp:OCIServer;
-          errhp:OCIError;
-          dblink:PChar;
-          dblink_len:longint;
-          mode:cardinal):sword;cdecl;
-
-  function OCIServerDetach(
-          srvhp:OCIServer;
-          errhp:OCIError;
-          mode:cardinal):sword;cdecl;
-
-  function OCISessionBegin(
-          svchp:OCISvcCtx;
-          errhp:OCIError;
-          usrhp:OCISession;
-          credt:cardinal;
-          mode:cardinal):sword;cdecl;
-
-  function OCISessionEnd(
-          svchp:OCISvcCtx;
-          errhp:OCIError;
-          usrhp:OCISession;
-          mode:cardinal):sword;cdecl;
-
-  function OCILogon(
-          envhp:OCIEnv;
-          errhp:OCIError;
-          var svchp:OCISvcCtx;
-          username:PChar;
-          uname_len:cardinal;
-          password:PChar;
-          passwd_len:cardinal;
-          dbname:PChar;
-          dbname_len:cardinal):sword;cdecl;
-
-  function OCILogoff(
-          svchp:OCISvcCtx;
-          errhp:OCIError):sword;cdecl;
-
-  {----------------------------------------------------------------------------}
-
-  function OCIPasswordChange(
-          svchp:OCISvcCtx;
-          errhp:OCIError;
-          user_name:PChar;
-          usernm_len:cardinal;
-          opasswd:PChar;
-          opasswd_len:cardinal;
-          npasswd:PChar;
-          npasswd_len:cardinal;
-          mode:cardinal):sword;cdecl;
-
-  function OCIStmtPrepare(
-          stmtp:OCIStmt;
-          errhp:OCIError;
-          stmt:PChar;
-          stmt_len:cardinal;
-          language:cardinal;
-          mode:cardinal):sword;cdecl;
-
-  function OCIBindByPos(
-          stmtp:OCIStmt;
-          bindp:OCIBind;
-          errhp:OCIError;
-          position:cardinal;
-          valuep:pointer;
-          value_sz:longint;
-          dty:word;
-          indp:pointer;
-          alenp:pword; rcodep:pword;
-          maxarr_len:cardinal;
-          curelep:pcardinal;
-          mode:cardinal):sword;cdecl;
-
-  function OCIBindByName(
-          stmtp:OCIStmt;
-          bindp:OCIBind;
-          errhp:OCIError;
-          placeholder:PChar;
-          placeh_len:longint;
-          valuep:pointer;
-          value_sz:longint;
-          dty:word;
-          indp:pointer;
-          alenp:pword;
-          rcodep:pword;
-          maxarr_len:cardinal;
-          curelep:pcardinal;
-          mode:cardinal):sword;cdecl;
-
-  function OCIBindObject(
-          bindp:OCIBind;
-          errhp:OCIError;
-          AType:OCIType;
-          pgvpp:pointer;
-          pvszsp:pcardinal;
-          indpp:pointer;
-          indszp:pcardinal):sword;cdecl;
-
-  function OCIBindDynamic(
-          bindp:OCIBind;
-          errhp:OCIError;
-          ictxp:pointer;
-          icbfp:OCICallbackInBind;
-          octxp:pointer;
-          ocbfp:OCICallbackOutBind):sword;cdecl;
-
-  function OCIBindArrayOfStruct(
-          bindp:OCIBind;
-          errhp:OCIError;
-          pvskip:cardinal;
-          indskip:cardinal;
-          alskip:cardinal;
-          rcskip:cardinal):sword;cdecl;
-
-  function OCIStmtGetPieceInfo(
-          stmtp:OCIStmt;
-          errhp:OCIError;
-          hndlpp:pointer;
-          typep:pcardinal;
-          in_outp:pbyte;
-          iterp:pcardinal;
-          idxp:pcardinal;
-          piecep:pbyte):sword;cdecl;
-
-  function OCIStmtSetPieceInfo(
-          hndlp:pointer;
-          AType:cardinal;
-          errhp:OCIError;
-          bufp:pointer;
-          alenp:pcardinal;
-          piece:byte;
-          indp:pointer;
-          rcodep:pword):sword;cdecl;
-
-  function OCIStmtExecute(
-          svchp:OCISvcCtx;
-          stmtp:OCIStmt;
-          errhp:OCIError;
-          iters:cardinal;
-          rowoff:cardinal;
-          snap_in:OCISnapshot;
-          snap_out:OCISnapshot;
-          mode:cardinal):sword;cdecl;
-
-  function OCIDefineByPos(
-          stmtp:OCIStmt;
-          defnp:OCIDefine;
-          errhp:OCIError;
-          position:cardinal;
-          valuep:pointer;
-          value_sz:longint;
-          dty:word;
-          indp:pointer;
-          rlenp:pword;
-          rcodep:pword;
-          mode:cardinal):sword;cdecl;
-
-  function OCIDefineObject(
-          defnp:OCIDefine;
-          errhp:OCIError;
-          AType:OCIType;
-          pgvpp:pointer;
-          pvszsp:pcardinal;
-          indpp:pointer;
-          indszp:pcardinal):sword;cdecl;
-
-  function OCIDefineDynamic(
-          defnp:OCIDefine;
-          errhp:OCIError;
-          octxp:pointer;
-          ocbfp:OCICallbackDefine):sword;cdecl;
-
-  function OCIDefineArrayOfStruct(
-          defnp:OCIDefine;
-          errhp:OCIError;
-          pvskip:cardinal;
-          indskip:cardinal;
-          rlskip:cardinal;
-          rcskip:cardinal):sword;cdecl;
-
-  function OCIStmtFetch(
-          stmtp:OCIStmt;
-          errhp:OCIError;
-          nrows:cardinal;
-          orientation:word;
-          mode:cardinal):sword;cdecl;
-
-  function OCIStmtGetBindInfo(
-          stmtp:OCIStmt;
-          errhp:OCIError;
-          size:cardinal;
-          startloc:cardinal;
-          found:plongint;
-          bvnp:PChar;
-          bvnl:byte;
-          invp:PChar;
-          inpl:byte;
-          dupl:byte;
-          hndl:OCIBind):sword;cdecl;
-
-  function OCIDescribeAny(
-          svchp:OCISvcCtx;
-          errhp:OCIError;
-          objptr:pointer;
-          objnm_len:cardinal;
-          objptr_typ:byte;
-          info_level:byte;
-          objtyp:byte;
-          dschp:OCIDescribe):sword;cdecl;
-
-  function OCIParamGet(
-          hndlp:pointer;
-          htype:cardinal;
-          errhp:OCIError;
-          parmdpp:pointer;
-          pos:cardinal):sword;cdecl;
-
-  function OCIParamSet(
-          hdlp:pointer;
-          htyp:cardinal;
-          errhp:OCIError;
-          dscp:pointer;
-          dtyp:cardinal;
-          pos:cardinal):sword;cdecl;
-
-  function OCITransStart(
-          svchp:OCISvcCtx;
-          errhp:OCIError;
-          timeout:uword;
-          flags:cardinal):sword;cdecl;
-
-  function OCITransDetach(
-          svchp:OCISvcCtx;
-          errhp:OCIError;
-          flags:cardinal):sword;cdecl;
-
-  function OCITransCommit(
-          svchp:OCISvcCtx;
-          errhp:OCIError;
-          flags:cardinal):sword;cdecl;
-
-  function OCITransRollback(
-          svchp:OCISvcCtx;
-          errhp:OCIError;
-          flags:cardinal):sword;cdecl;
-
-  function OCITransPrepare(
-          svchp:OCISvcCtx;
-          errhp:OCIError;
-          flags:cardinal):sword;cdecl;
-
-  function OCITransForget(
-          svchp:OCISvcCtx;
-          errhp:OCIError;
-          flags:cardinal):sword;cdecl;
-
-  function OCILobAppend(
-          svchp:OCISvcCtx;
-          errhp:OCIError;
-          dst_locp:OCILobLocator;
-          src_locp:OCILobLocator):sword;cdecl;
-
-  function OCILobAssign(
-          envhp:OCIEnv;
-          errhp:OCIError;
-          src_locp:OCILobLocator;
-          dst_locpp:OCILobLocator):sword;cdecl;
-
-  function OCILobCharSetForm(
-          envhp:OCIEnv;
-          errhp:OCIError;
-          locp:OCILobLocator;
-          csfrm:pbyte):sword;cdecl;
-
-  function OCILobCharSetId(
-          envhp:OCIEnv;
-          errhp:OCIError;
-          locp:OCILobLocator;
-          csid:pword):sword;cdecl;
-
-  function OCILobCopy(
-          svchp:OCISvcCtx;
-          errhp:OCIError;
-          dst_locp:OCILobLocator;
-          src_locp:OCILobLocator;
-          amount:cardinal;
-          dst_offset:cardinal;
-          src_offset:cardinal):sword;cdecl;
-
-  function OCILobDisableBuffering(
-          svchp:OCISvcCtx;
-          errhp:OCIError;
-          locp:OCILobLocator):sword;cdecl;
-
-  function OCILobEnableBuffering(
-          svchp:OCISvcCtx;
-          errhp:OCIError;
-          locp:OCILobLocator):sword;cdecl;
-
-  function OCILobErase(
-          svchp:OCISvcCtx;
-          errhp:OCIError;
-          locp:OCILobLocator;
-          amount:pcardinal;
-          offset:cardinal):sword;cdecl;
-
-  function OCILobFileClose(
-          svchp:OCISvcCtx;
-          errhp:OCIError;
-          filep:OCILobLocator):sword;cdecl;
-
-  function OCILobFileCloseAll(
-          svchp:OCISvcCtx;
-          errhp:OCIError):sword;cdecl;
-
-  function OCILobFileExists(
-          svchp:OCISvcCtx;
-          errhp:OCIError;
-          filep:OCILobLocator;
-          flag:pboolean):sword;cdecl;
-
-  function OCILobFileGetName(
-          envhp:OCIEnv;
-          errhp:OCIError;
-          filep:OCILobLocator;
-          dir_alias:PChar;
-          d_length:pword;
-          filename:PChar;
-          f_length:pword):sword;cdecl;
-
-  function OCILobFileIsOpen(
-          svchp:OCISvcCtx;
-          errhp:OCIError;
-          filep:OCILobLocator;
-          flag:pboolean):sword;cdecl;
-
-  function OCILobFileOpen(
-          svchp:OCISvcCtx;
-          errhp:OCIError;
-          filep:OCILobLocator;
-          mode:byte):sword;cdecl;
-
-  function OCILobFileSetName(
-          envhp:OCIEnv;
-          errhp:OCIError;
-          filepp:OCILobLocator;
-          dir_alias:PChar;
-          d_length:word;
-          filename:PChar;
-          f_length:word):sword;cdecl;
-
-  function OCILobFlushBuffer(
-          svchp:OCISvcCtx;
-          errhp:OCIError;
-          locp:OCILobLocator;
-          flag:cardinal):sword;cdecl;
-
-  function OCILobGetLength(
-          svchp:OCISvcCtx;
-          errhp:OCIError;
-          locp:OCILobLocator;
-          lenp:pcardinal):sword;cdecl;
-
-  function OCILobIsEqual(
-          envhp:OCIEnv;
-          x:OCILobLocator;
-          y:OCILobLocator;
-          is_equal:pboolean):sword;cdecl;
-
-  function OCILobLoadFromFile(
-          svchp:OCISvcCtx;
-          errhp:OCIError;
-          dst_locp:OCILobLocator;
-          src_filep:OCILobLocator;
-          amount:cardinal;
-          dst_offset:cardinal;
-          src_offset:cardinal):sword;cdecl;
-
-  function OCILobLocatorIsInit(
-          envhp:OCIEnv;
-          errhp:OCIError;
-          locp:OCILobLocator;
-          is_initialized:pboolean):sword;cdecl;
-
-  function OCILobRead(
-          svchp:OCISvcCtx;
-          errhp:OCIError;
-          locp:OCILobLocator;
-          amtp:pcardinal;
-          offset:cardinal;
-          bufp:pointer;
-          bufl:cardinal;
-          ctxp:pointer;
-          cbfp:pointer;
-          csid:word;
-          csfrm:byte):sword;cdecl;
-
-  function OCILobTrim(
-          svchp:OCISvcCtx;
-          errhp:OCIError;
-          locp:OCILobLocator;
-          newlen:cardinal):sword;cdecl;
-
-  function OCILobWrite(
-          svchp:OCISvcCtx;
-          errhp:OCIError;
-          locp:OCILobLocator;
-          amtp:pcardinal;
-          offset:cardinal;
-          bufp:pointer;
-          buflen:cardinal;
-          piece:byte;
-          ctxp:pointer;
-          cbfp:pointer;
-          csid:word;
-          csfrm:byte):sword;cdecl;
-
-  function OCIBreak(
-          hndlp:pointer;
-          errhp:OCIError):sword;cdecl;
-
-  function OCIReset(
-          hndlp:pointer;
-          errhp:OCIError):sword;cdecl;
-
-  function OCIServerVersion(
-          hndlp:pointer;
-          errhp:OCIError;
-          bufp:PChar;
-          bufsz:cardinal;
-          hndltype:byte):sword;cdecl;
-
-  function OCIAttrGet(
-          trgthndlp:pointer;
-          trghndltyp:cardinal;
-          attributep:pointer;
-          sizep:pcardinal;
-          attrtype:cardinal;
-          errhp:OCIError):sword;cdecl;
-
-  function OCIAttrSet(
-          trgthndlp:pointer;
-          trghndltyp:cardinal;
-          attributep:pointer;
-          size:cardinal;
-          attrtype:cardinal;
-          errhp:OCIError):sword;cdecl;
-
-  function OCISvcCtxToLda(
-          svchp:OCISvcCtx;
-          errhp:OCIError;
-          ldap:pLda_Def):sword;cdecl;
-
-  function OCILdaToSvcCtx(
-          svchpp:OCISvcCtx;
-          errhp:OCIError;
-          ldap:pLda_Def):sword;cdecl;
-
-  function OCIResultSetToStmt(
-          rsetdp:OCIResult;
-          errhp:OCIError):sword;cdecl;
-
-  {-------------------------------------------------------------------------------------------}
-  { Security Package                                                                          }
-  {-------------------------------------------------------------------------------------------}
-  {
-  function OCISecurityInitialize(sechandle:pOCISecurity; error_handle:OCIError):sword;cdecl;
-
-  function OCISecurityTerminate(sechandle:pOCISecurity; error_handle:OCIError):sword;cdecl;
-
-  function OCISecurityOpenWallet(osshandle:pOCISecurity; error_handle:OCIError; wrllen:size_t; wallet_resource_locator:PChar; pwdlen:size_t;
-             password:PChar; wallet:pnzttWallet):sword;cdecl;
-
-  function OCISecurityCloseWallet(osshandle:pOCISecurity; error_handle:OCIError; wallet:pnzttWallet):sword;cdecl;
-
-  function OCISecurityCreateWallet(osshandle:pOCISecurity; error_handle:OCIError; wrllen:size_t; wallet_resource_locator:PChar; pwdlen:size_t;
-             password:PChar; wallet:pnzttWallet):sword;cdecl;
-
-  function OCISecurityDestroyWallet(osshandle:pOCISecurity; error_handle:OCIError; wrllen:size_t; wallet_resource_locator:PChar; pwdlen:size_t;
-             password:PChar):sword;cdecl;
-
-  function OCISecurityStorePersona(osshandle:pOCISecurity; error_handle:OCIError; persona:ppnzttPersona; wallet:pnzttWallet):sword;cdecl;
-
-  function OCISecurityOpenPersona(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona):sword;cdecl;
-
-  function OCISecurityClosePersona(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona):sword;cdecl;
-
-  function OCISecurityRemovePersona(osshandle:pOCISecurity; error_handle:OCIError; persona:ppnzttPersona):sword;cdecl;
-
-  function OCISecurityCreatePersona(osshandle:pOCISecurity; error_handle:OCIError; identity_type:nzttIdentType; cipher_type:nzttCipherType; desc:pnzttPersonaDesc;
-             persona:ppnzttPersona):sword;cdecl;
-
-  function OCISecuritySetProtection(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; crypto_engine_function:nzttcef; data_unit_format:nztttdufmt;
-             protection_info:pnzttProtInfo):sword;cdecl;
-
-  function OCISecurityGetProtection(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; crypto_engine_function:nzttcef; data_unit_format_ptr:pnztttdufmt;
-             protection_info:pnzttProtInfo):sword;cdecl;
-
-  function OCISecurityRemoveIdentity(osshandle:pOCISecurity; error_handle:OCIError; identity_ptr:ppnzttIdentity):sword;cdecl;
-
-  function OCISecurityCreateIdentity(osshandle:pOCISecurity; error_handle:OCIError; AType:nzttIdentType; desc:pnzttIdentityDesc; identity_ptr:ppnzttIdentity):sword;cdecl;
-
-  function OCISecurityAbortIdentity(osshandle:pOCISecurity; error_handle:OCIError; identity_ptr:ppnzttIdentity):sword;cdecl;
-
-  function OCISecurityFreeIdentity(osshandle:pOCISecurity; error_handle:OCIError; identity_ptr:ppnzttIdentity):sword;cdecl;
-
-  function OCISecurityStoreTrustedIdentity(osshandle:pOCISecurity; error_handle:OCIError; identity_ptr:ppnzttIdentity; persona:pnzttPersona):sword;cdecl;
-
-  function OCISecuritySign(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; signature_state:nzttces; input_length:size_t;
-             input:pbyte; buffer_block:pnzttBufferBlock):sword;cdecl;
-
-  function OCISecuritySignExpansion(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; inputlen:size_t; signature_length:psize_t):sword;cdecl;
-
-  function OCISecurityVerify(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; signature_state:nzttces; siglen:size_t;
-             signature:pbyte; extracted_message:pnzttBufferBlock; verified:pboolean; validated:pboolean; signing_party_identity:ppnzttIdentity):sword;cdecl;
-
-  function OCISecurityValidate(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; identity:pnzttIdentity; validated:pboolean):sword;cdecl;
-
-  function OCISecuritySignDetached(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; signature_state:nzttces; input_length:size_t;
-             input:pbyte; signature:pnzttBufferBlock):sword;cdecl;
-
-  function OCISecuritySignDetExpansion(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; input_length:size_t; required_buffer_length:psize_t):sword;cdecl;
-
-  function OCISecurityVerifyDetached(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; signature_state:nzttces; data_length:size_t;
-             data:pbyte; siglen:size_t; signature:pbyte; verified:pboolean; validated:pboolean;
-             signing_party_identity:ppnzttIdentity):sword;cdecl;
-
-  function OCISecurity_PKEncrypt(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; number_of_recipients:size_t; recipient_list:pnzttIdentity;
-             encryption_state:nzttces; input_length:size_t; input:pbyte; encrypted_data:pnzttBufferBlock):sword;cdecl;
-
-  function OCISecurityPKEncryptExpansion(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; number_recipients:size_t; input_length:size_t;
-             buffer_length_required:psize_t):sword;cdecl;
-
-  function OCISecurityPKDecrypt(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; encryption_state:nzttces; input_length:size_t;
-             input:pbyte; encrypted_data:pnzttBufferBlock):sword;cdecl;
-
-  function OCISecurityEncrypt(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; encryption_state:nzttces; input_length:size_t;
-             input:pbyte; encrypted_data:pnzttBufferBlock):sword;cdecl;
-
-  function OCISecurityEncryptExpansion(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; input_length:size_t; encrypted_data_length:psize_t):sword;cdecl;
-
-  function OCISecurityDecrypt(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; decryption_state:nzttces; input_length:size_t;
-             input:pbyte; decrypted_data:pnzttBufferBlock):sword;cdecl;
-
-  function OCISecurityEnvelope(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; number_of_recipients:size_t; identity:pnzttIdentity;
-             encryption_state:nzttces; input_length:size_t; input:pbyte; enveloped_data:pnzttBufferBlock):sword;cdecl;
-
-  function OCISecurityDeEnvelope(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; decryption_state:nzttces; input_length:size_t;
-             input:pbyte; output_message:pnzttBufferBlock; verified:pboolean; validated:pboolean; sender_identity:ppnzttIdentity):sword;cdecl;
-
-  function OCISecurityKeyedHash(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; hash_state:nzttces; input_length:size_t;
-             input:pbyte; keyed_hash:pnzttBufferBlock):sword;cdecl;
-
-  function OCISecurityKeyedHashExpansion(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; input_length:size_t; required_buffer_length:psize_t):sword;cdecl;
-
-  function OCISecurityHash(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; hash_state:nzttces; input:size_t;
-             input_length:pbyte; hash:pnzttBufferBlock):sword;cdecl;
-
-  function OCISecurityHashExpansion(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; input_length:size_t; required_buffer_length:psize_t):sword;cdecl;
-
-  function OCISecuritySeedRandom(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; seed_length:size_t; seed:pbyte):sword;cdecl;
-
-  function OCISecurityRandomBytes(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; number_of_bytes_desired:size_t; random_bytes:pnzttBufferBlock):sword;cdecl;
-
-  function OCISecurityRandomNumber(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; random_number_ptr:puword):sword;cdecl;
-
-  function OCISecurityInitBlock(osshandle:pOCISecurity; error_handle:OCIError; buffer_block:pnzttBufferBlock):sword;cdecl;
-
-  function OCISecurityReuseBlock(osshandle:pOCISecurity; error_handle:OCIError; buffer_block:pnzttBufferBlock):sword;cdecl;
-
-  function OCISecurityPurgeBlock(osshandle:pOCISecurity; error_handle:OCIError; buffer_block:pnzttBufferBlock):sword;cdecl;
-
-  function OCISecuritySetBlock(osshandle:pOCISecurity; error_handle:OCIError; flags_to_set:uword; buffer_length:size_t; used_buffer_length:size_t;
-             buffer:pbyte; buffer_block:pnzttBufferBlock):sword;cdecl;
-
-  function OCISecurityGetIdentity(osshandle:pOCISecurity; error_handle:OCIError; namelen:size_t; distinguished_name:PChar; identity:ppnzttIdentity):sword;cdecl;
-
-  function OCIAQEnq(svchp:OCISvcCtx; errhp:OCIError; queue_name:PChar; enqopt:pOCIAQEnqOptions; msgprop:pOCIAQMsgProperties;
-             payload_tdo:pOCIType; payload:ppointer; payload_ind:ppointer; msgid:ppOCIRaw; flags:cardinal):sword;cdecl;
-
-  function OCIAQDeq(svchp:OCISvcCtx; errhp:OCIError; queue_name:PChar; deqopt:pOCIAQDeqOptions; msgprop:pOCIAQMsgProperties;
-             payload_tdo:pOCIType; payload:ppointer; payload_ind:ppointer; msgid:ppOCIRaw; flags:cardinal):sword;cdecl;
-}
-
-  {-------------------------------------------------------------------------------------------}
-  { Datatype Mapping                                                                          }
-  {-------------------------------------------------------------------------------------------}
-
-  function OCIDateToText(
-      err:OCIError;
-          date:POCIDate;
-          fmt:PChar;
-          fmt_length:ub1;
-          lang_name:PChar;
-      lang_length:ub4;
-          buf_size:PCardinal;
-          buf:PChar):sword;cdecl;
-
-implementation
-
   function OCIInitialize(
           mode:cardinal;
           ctxp:pointer;
@@ -1952,11 +1305,143 @@ implementation
           buf_size:PCardinal;
           buf:PChar):sword;cdecl;external;
 
+  {-------------------------------------------------------------------------------------------}
+  { Security Package                                                                          }
+  {-------------------------------------------------------------------------------------------}
+  {
+  function OCISecurityInitialize(sechandle:pOCISecurity; error_handle:OCIError):sword;cdecl;
+
+  function OCISecurityTerminate(sechandle:pOCISecurity; error_handle:OCIError):sword;cdecl;
+
+  function OCISecurityOpenWallet(osshandle:pOCISecurity; error_handle:OCIError; wrllen:size_t; wallet_resource_locator:PChar; pwdlen:size_t;
+             password:PChar; wallet:pnzttWallet):sword;cdecl;
+
+  function OCISecurityCloseWallet(osshandle:pOCISecurity; error_handle:OCIError; wallet:pnzttWallet):sword;cdecl;
+
+  function OCISecurityCreateWallet(osshandle:pOCISecurity; error_handle:OCIError; wrllen:size_t; wallet_resource_locator:PChar; pwdlen:size_t;
+             password:PChar; wallet:pnzttWallet):sword;cdecl;
+
+  function OCISecurityDestroyWallet(osshandle:pOCISecurity; error_handle:OCIError; wrllen:size_t; wallet_resource_locator:PChar; pwdlen:size_t;
+             password:PChar):sword;cdecl;
+
+  function OCISecurityStorePersona(osshandle:pOCISecurity; error_handle:OCIError; persona:ppnzttPersona; wallet:pnzttWallet):sword;cdecl;
+
+  function OCISecurityOpenPersona(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona):sword;cdecl;
+
+  function OCISecurityClosePersona(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona):sword;cdecl;
+
+  function OCISecurityRemovePersona(osshandle:pOCISecurity; error_handle:OCIError; persona:ppnzttPersona):sword;cdecl;
+
+  function OCISecurityCreatePersona(osshandle:pOCISecurity; error_handle:OCIError; identity_type:nzttIdentType; cipher_type:nzttCipherType; desc:pnzttPersonaDesc;
+             persona:ppnzttPersona):sword;cdecl;
+
+  function OCISecuritySetProtection(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; crypto_engine_function:nzttcef; data_unit_format:nztttdufmt;
+             protection_info:pnzttProtInfo):sword;cdecl;
+
+  function OCISecurityGetProtection(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; crypto_engine_function:nzttcef; data_unit_format_ptr:pnztttdufmt;
+             protection_info:pnzttProtInfo):sword;cdecl;
+
+  function OCISecurityRemoveIdentity(osshandle:pOCISecurity; error_handle:OCIError; identity_ptr:ppnzttIdentity):sword;cdecl;
+
+  function OCISecurityCreateIdentity(osshandle:pOCISecurity; error_handle:OCIError; AType:nzttIdentType; desc:pnzttIdentityDesc; identity_ptr:ppnzttIdentity):sword;cdecl;
+
+  function OCISecurityAbortIdentity(osshandle:pOCISecurity; error_handle:OCIError; identity_ptr:ppnzttIdentity):sword;cdecl;
+
+  function OCISecurityFreeIdentity(osshandle:pOCISecurity; error_handle:OCIError; identity_ptr:ppnzttIdentity):sword;cdecl;
+
+  function OCISecurityStoreTrustedIdentity(osshandle:pOCISecurity; error_handle:OCIError; identity_ptr:ppnzttIdentity; persona:pnzttPersona):sword;cdecl;
+
+  function OCISecuritySign(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; signature_state:nzttces; input_length:size_t;
+             input:pbyte; buffer_block:pnzttBufferBlock):sword;cdecl;
+
+  function OCISecuritySignExpansion(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; inputlen:size_t; signature_length:psize_t):sword;cdecl;
+
+  function OCISecurityVerify(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; signature_state:nzttces; siglen:size_t;
+             signature:pbyte; extracted_message:pnzttBufferBlock; verified:pboolean; validated:pboolean; signing_party_identity:ppnzttIdentity):sword;cdecl;
+
+  function OCISecurityValidate(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; identity:pnzttIdentity; validated:pboolean):sword;cdecl;
+
+  function OCISecuritySignDetached(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; signature_state:nzttces; input_length:size_t;
+             input:pbyte; signature:pnzttBufferBlock):sword;cdecl;
+
+  function OCISecuritySignDetExpansion(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; input_length:size_t; required_buffer_length:psize_t):sword;cdecl;
+
+  function OCISecurityVerifyDetached(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; signature_state:nzttces; data_length:size_t;
+             data:pbyte; siglen:size_t; signature:pbyte; verified:pboolean; validated:pboolean;
+             signing_party_identity:ppnzttIdentity):sword;cdecl;
+
+  function OCISecurity_PKEncrypt(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; number_of_recipients:size_t; recipient_list:pnzttIdentity;
+             encryption_state:nzttces; input_length:size_t; input:pbyte; encrypted_data:pnzttBufferBlock):sword;cdecl;
+
+  function OCISecurityPKEncryptExpansion(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; number_recipients:size_t; input_length:size_t;
+             buffer_length_required:psize_t):sword;cdecl;
+
+  function OCISecurityPKDecrypt(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; encryption_state:nzttces; input_length:size_t;
+             input:pbyte; encrypted_data:pnzttBufferBlock):sword;cdecl;
+
+  function OCISecurityEncrypt(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; encryption_state:nzttces; input_length:size_t;
+             input:pbyte; encrypted_data:pnzttBufferBlock):sword;cdecl;
+
+  function OCISecurityEncryptExpansion(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; input_length:size_t; encrypted_data_length:psize_t):sword;cdecl;
+
+  function OCISecurityDecrypt(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; decryption_state:nzttces; input_length:size_t;
+             input:pbyte; decrypted_data:pnzttBufferBlock):sword;cdecl;
+
+  function OCISecurityEnvelope(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; number_of_recipients:size_t; identity:pnzttIdentity;
+             encryption_state:nzttces; input_length:size_t; input:pbyte; enveloped_data:pnzttBufferBlock):sword;cdecl;
+
+  function OCISecurityDeEnvelope(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; decryption_state:nzttces; input_length:size_t;
+             input:pbyte; output_message:pnzttBufferBlock; verified:pboolean; validated:pboolean; sender_identity:ppnzttIdentity):sword;cdecl;
+
+  function OCISecurityKeyedHash(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; hash_state:nzttces; input_length:size_t;
+             input:pbyte; keyed_hash:pnzttBufferBlock):sword;cdecl;
+
+  function OCISecurityKeyedHashExpansion(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; input_length:size_t; required_buffer_length:psize_t):sword;cdecl;
+
+  function OCISecurityHash(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; hash_state:nzttces; input:size_t;
+             input_length:pbyte; hash:pnzttBufferBlock):sword;cdecl;
+
+  function OCISecurityHashExpansion(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; input_length:size_t; required_buffer_length:psize_t):sword;cdecl;
+
+  function OCISecuritySeedRandom(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; seed_length:size_t; seed:pbyte):sword;cdecl;
+
+  function OCISecurityRandomBytes(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; number_of_bytes_desired:size_t; random_bytes:pnzttBufferBlock):sword;cdecl;
+
+  function OCISecurityRandomNumber(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; random_number_ptr:puword):sword;cdecl;
+
+  function OCISecurityInitBlock(osshandle:pOCISecurity; error_handle:OCIError; buffer_block:pnzttBufferBlock):sword;cdecl;
+
+  function OCISecurityReuseBlock(osshandle:pOCISecurity; error_handle:OCIError; buffer_block:pnzttBufferBlock):sword;cdecl;
+
+  function OCISecurityPurgeBlock(osshandle:pOCISecurity; error_handle:OCIError; buffer_block:pnzttBufferBlock):sword;cdecl;
+
+  function OCISecuritySetBlock(osshandle:pOCISecurity; error_handle:OCIError; flags_to_set:uword; buffer_length:size_t; used_buffer_length:size_t;
+             buffer:pbyte; buffer_block:pnzttBufferBlock):sword;cdecl;
+
+  function OCISecurityGetIdentity(osshandle:pOCISecurity; error_handle:OCIError; namelen:size_t; distinguished_name:PChar; identity:ppnzttIdentity):sword;cdecl;
+
+  function OCIAQEnq(svchp:OCISvcCtx; errhp:OCIError; queue_name:PChar; enqopt:pOCIAQEnqOptions; msgprop:pOCIAQMsgProperties;
+             payload_tdo:pOCIType; payload:ppointer; payload_ind:ppointer; msgid:ppOCIRaw; flags:cardinal):sword;cdecl;
+
+  function OCIAQDeq(svchp:OCISvcCtx; errhp:OCIError; queue_name:PChar; deqopt:pOCIAQDeqOptions; msgprop:pOCIAQMsgProperties;
+             payload_tdo:pOCIType; payload:ppointer; payload_ind:ppointer; msgid:ppOCIRaw; flags:cardinal):sword;cdecl;
+}
+
+  {-------------------------------------------------------------------------------------------}
+  { Datatype Mapping                                                                          }
+  {-------------------------------------------------------------------------------------------}
+
+implementation
+
+
 end.
 
 {
   $Log$
-  Revision 1.3  2003-08-09 15:19:01  marco
+  Revision 1.4  2004-11-21 16:33:55  peter
+    * external fixes
+
+  Revision 1.3  2003/08/09 15:19:01  marco
    * dl linking killed
 
   Revision 1.2  2002/09/07 15:42:53  peter

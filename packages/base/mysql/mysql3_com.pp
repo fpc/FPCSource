@@ -194,13 +194,6 @@ Const
 FIELD_TYPE_CHAR = FIELD_TYPE_TINY;              { For compability }
 FIELD_TYPE_INTERVAL = FIELD_TYPE_ENUM;          { For compability }
 
-Procedure sql_free (root : PMEM_ROOT);stdcall;
-Procedure init_alloc_root (root: PMEM_ROOT;block_size : Cardinal);stdcall;
-Function sql_alloc_first_block(root : PMEM_ROOT) : my_bool;stdcall;
-Function sql_alloc_root(mem_root : PMEM_ROOT;len : Cardinal) : longint;stdcall;
-Function sql_strdup_root(root : PMEM_ROOT;st : pchar) : pchar;stdcall;
-Function sql_memdup_root(root: PMEM_ROOT;st : pchar; len : Cardinal): longint;stdcall;
-
 {
 extern unsigned long max_allowed_packet;
 extern unsigned long net_buffer_length;
@@ -210,14 +203,6 @@ extern unsigned long net_buffer_length;
 #define net_new_transaction(net) ((net)->pkt_nr=0)
 }
 
-Function  my_net_init(net :PNET; fd : Socket) : Longint;stdcall;
-procedure net_end(net : PNET);stdcall;
-Procedure net_clear(net : PNET);stdcall;
-Function  net_flush(net : PNET) : longint;stdcall;
-Function  my_net_write(net : PNET;packet : pbyte;len : cardinal) : longint;stdcall;
-Function  net_write_command(net : PNET; command : char;packet : pbyte;len : cardinal) : longint;stdcall;
-Function  net_real_write(net : PNET;packet : pbyte; len : Cardinal) : longint;stdcall;
-Function  my_net_read(net : PNET) : Cardinal;stdcall;
 
 Type
 TRand_struct  = record
@@ -252,20 +237,6 @@ PUDF_INIT = TUDF_INIT;
 
   { Prototypes to password functions }
 
-procedure randominit(rand : Prand_struct; seed1,seed2 : Cardinal);stdcall;
-Function  rnd(rand : Prand_struct) : double;stdcall;
-procedure make_scrambled_password(toarg, passwd : Pchar);stdcall;
-procedure get_salt_from_password(res : pcardinal; password : pchar);stdcall;
-procedure scramble(toarg,message,password : pchar; old_ver : my_bool);stdcall;
-function  check_scramble(scramble,message : pchar; salt : cardinal;old_ver:my_bool) : my_bool;stdcall;
-function  get_tty_password(opt_message:  pchar) : pchar;stdcall;
-
-{
-#define NULL_LENGTH ((unsigned long) ~0) { For net_store_length }
-}
-
-implementation
-
 Procedure sql_free (root : PMEM_ROOT);stdcall;external;
 Procedure init_alloc_root (root: PMEM_ROOT;block_size : Cardinal);stdcall;external;
 Function sql_alloc_first_block(root : PMEM_ROOT) : my_bool;stdcall;external;
@@ -288,9 +259,19 @@ procedure scramble(toarg,message,password : pchar; old_ver : my_bool);stdcall;ex
 function  check_scramble(scramble,message : pchar; salt : cardinal;old_ver:my_bool) : my_bool;stdcall;external;
 function  get_tty_password(opt_message:  pchar) : pchar;stdcall;external;
 
+(*
+#define NULL_LENGTH ((unsigned long) ~0) { For net_store_length }
+*)
+
+implementation
+
+
 end.
   $Log$
-  Revision 1.2  2004-11-02 23:33:32  florian
+  Revision 1.3  2004-11-21 16:33:55  peter
+    * external fixes
+
+  Revision 1.2  2004/11/02 23:33:32  florian
     * 64 bit fixes
 
   Revision 1.1  2004/09/30 19:34:47  michael

@@ -128,12 +128,12 @@ const
   function LOG_MASK(pri : longint) : longint;
   function LOG_UPTO(pri : longint) : longint;
 
-  procedure closelog;cdecl;
+  procedure closelog;cdecl;external;
+  procedure openlog(__ident:pchar; __option:longint; __facilit:longint);cdecl;external;
+  function setlogmask(__mask:longint):longint;cdecl;external;
+  procedure syslog(__pri:longint; __fmt:pchar; args:array of const);cdecl;external;
+//   procedure vsyslog(__pri:longint; __fmt:pchar; __ap:_BSD_VA_LIST_);cdecl;external;
 
-  procedure openlog(__ident:pchar; __option:longint; __facilit:longint);cdecl;
-  function setlogmask(__mask:longint):longint;cdecl;
-  procedure syslog(__pri:longint; __fmt:pchar; args:array of const);cdecl;
-//  procedure vsyslog(__pri:longint; __fmt:pchar; __ap:_BSD_VA_LIST_);cdecl;
 
   implementation
 
@@ -163,16 +163,13 @@ const
        LOG_UPTO:=(1 shl (pri + 1)) - 1;
     end;
 
-  procedure closelog;cdecl;external;
-  procedure openlog(__ident:pchar; __option:longint; __facilit:longint);cdecl;external;
-  function setlogmask(__mask:longint):longint;cdecl;external;
-  procedure syslog(__pri:longint; __fmt:pchar; args:array of const);cdecl;external;
-//   procedure vsyslog(__pri:longint; __fmt:pchar; __ap:_BSD_VA_LIST_);cdecl;external;
-
 end.
 {
   $Log$
-  Revision 1.2  2002-09-07 15:43:06  peter
+  Revision 1.3  2004-11-21 16:33:56  peter
+    * external fixes
+
+  Revision 1.2  2002/09/07 15:43:06  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:22  peter

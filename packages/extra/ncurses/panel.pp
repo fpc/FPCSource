@@ -41,28 +41,6 @@ uses ncurses;
           obscure : pointer;
        end;
 
-  function panel_window(_para1:pPANEL):pWINDOW;cdecl;
-  procedure update_panels;cdecl;
-  function hide_panel(_para1:pPANEL):longint;cdecl;
-  function show_panel(_para1:pPANEL):longint;cdecl;
-  function del_panel(_para1:pPANEL):longint;cdecl;
-  function top_panel(_para1:pPANEL):longint;cdecl;
-  function bottom_panel(_para1:pPANEL):longint;cdecl;
-  function new_panel(_para1:pWINDOW):pPANEL;cdecl;
-  function panel_above(_para1:pPANEL):pPANEL;cdecl;
-  function panel_below(_para1:pPANEL):pPANEL;cdecl;
-
-  { extern  int set_panel_userptr(PANEL  , NCURSES_CONST void  );  }
-  { extern  NCURSES_CONST void  panel_userptr(const PANEL  );  }
-
-  function move_panel(_para1:pPANEL; _para2:longint; _para3:longint):longint;cdecl;
-  function replace_panel(_para1:pPANEL; _para2:pWINDOW):longint;cdecl;
-  function panel_hidden(_para1:pPANEL):longint;cdecl;
-
-implementation
-
-{const External_library='';}
-
   function panel_window(_para1:pPANEL):pWINDOW;cdecl;external libpanel;
   procedure update_panels;cdecl;external libpanel;
   function hide_panel(_para1:pPANEL):longint;cdecl;external libpanel;
@@ -81,10 +59,15 @@ implementation
   function replace_panel(_para1:pPANEL; _para2:pWINDOW):longint;cdecl;external libpanel;
   function panel_hidden(_para1:pPANEL):longint;cdecl;external libpanel;
 
+implementation
+
 end.
 {
   $Log$
-  Revision 1.4  2004-05-08 20:50:19  jonas
+  Revision 1.5  2004-11-21 16:33:55  peter
+    * external fixes
+
+  Revision 1.4  2004/05/08 20:50:19  jonas
     * Darwin fixes by mischi
 
   Revision 1.3  2002/09/09 19:43:48  peter

@@ -98,7 +98,8 @@ Procedure ReName(Const OldName,NewName : String);
 Function  Access(Const FileName : String; Mode :Integer) : Boolean;
 Procedure Glob(Const Pattern : String; Flags : TGlobFlags; List : TStrings);
 // Globfree call with correct calling conventions.
-Procedure globfree(__pglob: PGlobData);cdecl;
+Procedure globfree(__pglob: PGlobData);cdecl;external 'libc.so.6' name 'globfree';
+
 Function  OpenDir(Const Dir : String) : PDirectoryStream;
 Function  FNMatch(Const Pattern,Name : String; Flags : TFnmFlags) : Boolean;
 Procedure GetDirectoryListing(Const Dir : String; List : TStrings);overload;
@@ -230,9 +231,6 @@ begin
     Raise EUnixOperationFailed.Create(Error);
   Result:=Error;
 end;
-
-
-Procedure globfree(__pglob: PGlobData);cdecl;external 'libc.so.6' name 'globfree';
 
 
 Procedure Stat(Const FileName : String; Var StatInfo : TStatBuf); 

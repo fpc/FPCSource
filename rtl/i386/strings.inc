@@ -165,13 +165,6 @@ end;
 {$endif FPC_UNIT_HAS_STRLCOPY}
 
 
-{$ifndef FPC_UNIT_HAS_STRLEN}
-{$define FPC_UNIT_HAS_STRLEN}
-function strlen(p : pchar) : longint;assembler;
-{$i strlen.inc}
-{$endif FPC_UNIT_HAS_STRLEN}
-
-
 {$ifndef FPC_UNIT_HAS_STREND}
 {$define FPC_UNIT_HAS_STREND}
 function strend(p : pchar) : pchar;assembler;
@@ -635,7 +628,10 @@ end;
 
 {
   $Log$
-  Revision 1.16  2004-11-04 20:57:33  peter
+  Revision 1.17  2004-11-21 16:33:55  peter
+    * external fixes
+
+  Revision 1.16  2004/11/04 20:57:33  peter
   fixed result of strlcopy
 
   Revision 1.15  2004/06/13 10:49:50  florian

@@ -16,12 +16,6 @@
  **********************************************************************}
 
 
-{$ifndef FPC_UNIT_HAS_STRPAS}
-{$define FPC_UNIT_HAS_STRPAS}
-function strpas(p : pchar) : string; assembler;
-{$i strpas.inc}
-{$endif FPC_UNIT_HAS_STRPAS}
-
 {$ifndef FPC_UNIT_HAS_STRPCOPY}
 {$define FPC_UNIT_HAS_STRPCOPY}
 function strpcopy(d : pchar;const s : string) : pchar;assembler;
@@ -53,7 +47,10 @@ end;
 
 {
   $Log$
-  Revision 1.12  2004-05-01 15:26:33  jonas
+  Revision 1.13  2004-11-21 16:33:55  peter
+    * external fixes
+
+  Revision 1.12  2004/05/01 15:26:33  jonas
     * use some more string routines from libc if FPC_USE_LIBC is used
 
   Revision 1.11  2003/11/19 16:58:44  peter
