@@ -22,7 +22,6 @@ program test_fail;
        end;
   var
     ta1, ta2 : tarraycla;
-    availmem : longint;
 
   constructor tarraycla.create(do_fail : boolean);
     begin
@@ -63,7 +62,6 @@ program test_fail;
     end;
 
   begin
-     availmem:=memavail;
      ta1:=tarraycla.create(false);
      writeln('Call to ta1.test after successful init');
      ta1.test;

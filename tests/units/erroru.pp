@@ -2,6 +2,13 @@
 unit erroru;
 interface
 
+{$ifdef ver1_0}
+type
+  ptrint=longint;
+  sizeint=longint;
+{$endif}
+
+
   procedure do_error(l : longint);
 
   procedure error;
@@ -9,6 +16,21 @@ interface
   procedure accept_error(num : longint);
 
   procedure require_error(num : longint);
+
+{$ifndef HASGETHEAPSTATUS}
+type
+  THeapStatus = record
+    MaxHeapSize,
+    MaxHeapUsed,
+    CurrHeapSize,
+    CurrHeapUsed,
+    CurrHeapFree  : ptrint;
+  end;
+
+  procedure getheapstatus(var status:THeapStatus);
+{$endif HASGETHEAPSTATUS}
+
+Procedure DoMem (Var StartMem : sizeint);
 
 
 implementation
@@ -78,6 +100,29 @@ begin
         exitcode:=0;
         erroraddr:=nil;
      end;
+end;
+
+{$ifndef HASGETHEAPSTATUS}
+  procedure getheapstatus(var status:THeapStatus);
+  begin
+    fillchar(status,sizeof(status),0);
+    status.MaxHeapSize:=HeapSize;
+    status.MaxHeapUsed:=HeapSize-MemAvail;
+    status.CurrHeapSize:=HeapSize;
+    status.CurrHeapUsed:=HeapSize-MemAvail;
+    status.CurrHeapFree:=MemAvail;
+  end;
+{$endif HASGETHEAPSTATUS}
+
+
+Procedure DoMem (Var StartMem : sizeint);
+var
+  hstatus : THeapstatus;
+begin
+  GetHeapStatus(hstatus);
+  if StartMem<>0 then
+    Writeln ('Used: ',hstatus.CUrrHeapUsed shr 10,'Kb, Lost ',hstatus.CurrHeapUsed-StartMem,' Bytes.');
+  StartMem:=hstatus.CurrHeapUsed;
 end;
 
 

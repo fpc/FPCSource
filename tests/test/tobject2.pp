@@ -94,10 +94,7 @@ var
  obj: pbase;
  devobj: tderived;
 Begin
- WriteLn(MemAvail);
  obj:=new(pbase,init(10));
  obj^.showit;
- WriteLn(MemAvail);
  dispose(obj,done);
- WriteLn(MemAvail);
 end.

@@ -3,6 +3,9 @@
 
 program test_fail;
 
+  uses
+    erroru;
+    
   type
      parrayobj = ^tarrayobj;
      tarrayobj = object
@@ -64,20 +67,24 @@ program test_fail;
     end;
 
   begin
-     availmem:=memavail;
      new(pa1,init(false));
-     writeln('After successful new(pa1,init), memory used = ',availmem - memavail);
+     getheapstatus(hstatus);
+     writeln('After successful new(pa1,init), memory used = ',hstatus.CurrHeapUsed);
      new(pa2,init(true));
-     writeln('After unsuccessful new(pa2,init), memory used = ',availmem - memavail);
+     getheapstatus(hstatus);
+     writeln('After unsuccessful new(pa2,init), memory used = ',hstatus.CurrHeapUsed);
      writeln('pa1 = ',longint(pa1),' pa2 = ',longint(pa2));
      writeln('Call to pa1^.test after successful init');
      pa1^.test;
      dispose(pa1,done);
-     writeln('After release of pa1, memory used = ',availmem - memavail);
+     getheapstatus(hstatus);
+     writeln('After release of pa1, memory used = ',hstatus.CurrHeapUsed);
      pa1:=new(pbigarrayobj,good_init);
-     writeln('After successful pa1:=new(pbigarrayobj,good_init), memory used = ',availmem - memavail);
+     getheapstatus(hstatus);
+     writeln('After successful pa1:=new(pbigarrayobj,good_init), memory used = ',hstatus.CurrHeapUsed);
      pa2:=new(pbigarrayobj,wrong_init);
-     writeln('After unsuccessful pa2:=new(pbigarrayobj,wrong_init), memory used = ',availmem - memavail);
+     getheapstatus(hstatus);
+     writeln('After unsuccessful pa2:=new(pbigarrayobj,wrong_init), memory used = ',hstatus.CurrHeapUsed);
      writeln('pa1 = ',longint(pa1),' pa2 = ',longint(pa2));
      writeln('Call to pa1^.test after successful init');
      pa1^.test;

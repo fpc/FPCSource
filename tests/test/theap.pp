@@ -5,6 +5,8 @@
 }
 PROGRAM TestHeap;
 
+uses
+  erroru;
 
 const
 {$ifdef cpusparc}
@@ -27,8 +29,10 @@ end;
 
 
 procedure ShowHeap;
+var
+  hstatus : THeapstatus;
 begin
-   WriteLn ('MaxAvail: ', MaxAvail, '   MemAvail: ', MemAvail,'   Heapsize: ',Heapsize);
+   WriteLn ('Used: ', hstatus.CurrHeapUsed, '   Free: ', hstatus.CurrHeapFree,'   Size: ',hstatus.CurrHeapSize);
 end;
 
 
@@ -142,21 +146,6 @@ BEGIN
    Delta := MSTimer-Start-LoopTime2;
    Inc (TotalTime, Delta);
    WriteLn (Delta:5, ' ms');
-   ShowHeap;
-   Start := MSTimer;
-   FOR L := 1 TO Blocks DO BEGIN
-      MaxAvail;
-   END;
-   Delta := MSTimer-Start;
-   Inc (TotalTime, (Delta + 5) DIV 10);
-   WriteLn (Blocks,' calls to MaxAvail:                        ', Delta:5, ' ms');
-   Start := MSTimer;
-   FOR L := 1 TO Blocks DO BEGIN
-      MemAvail;
-   END;
-   Delta := MSTimer - Start;
-   Inc (TotalTime, (Delta + 5) DIV 10);
-   WriteLn (Blocks,' calls to MemAvail:                        ', Delta:5, ' ms');
    ShowHeap;
    Write ('Reallocating deallocated ',(Blocks div 2 + 1),' blocks at random: ');
    Start := MSTimer;

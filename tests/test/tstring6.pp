@@ -1,25 +1,13 @@
 { %VERSION=1.1 }
 Program widetest;
 
-Function MemUsed : Longint;
-begin
-{$ifdef fpc}
- MemUsed:=Heapsize-Memavail;
-{$else}
- MemUsed:=0;
-{$endif}
-end;
-
+uses
+  erroru;
+  
 { -------------------------------------------------------------------
     General stuff
   ------------------------------------------------------------------- }
 
-Procedure DoMem (Var StartMem : Longint);
-
-begin
-  Writeln ('Lost ',StartMem-MemUsed,' Bytes.');
-  StartMem:=MemUsed;
-end;
 
 Procedure DoRef (P : Pointer);
 
@@ -132,7 +120,8 @@ Var S : WideString;
     Mem : Longint;
 
 begin
-  Mem:=MemUsed;
+  Mem:=0;
+  DoMem(Mem);
   S :='This is another WideString';
   Writeln ('Calling testvalparam with "',s,'"');
   testvalparam (s);
@@ -329,7 +318,8 @@ Var I : Integer;
     mem : Longint;
 
 begin
- mem:=MemUsed;
+ mem:=0;
+ DoMem(Mem);
  S3 := 'ABCDEF';
  Write ('S1+S2=S3 :');
  If S1+S2=S3 then writeln (ok) else writeln (nok);
@@ -372,7 +362,8 @@ Var S,T : WideString;
     Co : Comp;
     TempMem:Longint;
 begin
-  TempMem:=MemUsed;
+  TempMem:=0;
+  DoMem(TempMem);
   S:='ABCDEF';
   Write ('S = "',S,'"');Doref(Pointer(S));
   T:=Copy(S,1,3);
@@ -459,8 +450,10 @@ end;
 Var GlobalStartMem,StartMem : Longint;
 
 begin
-  GlobalStartMem:=MemUsed;
-  StartMem:=MemUsed;
+  GlobalStartMem:=0;
+  StartMem:=0;
+  DoMem(GlobalStartMem);
+  DoMem(StartMem);
   Writeln ('Testing Initialize/Finalize.');
   TestInitFinal;
   Write ('End of Initialize/finalize test : ');DoMem(StartMem);

@@ -600,11 +600,11 @@ procedure test119;
   end;
 
 var
-   startmemavail : longint;
-
+  hstatusstart,
+  hstatusend : theapstatus;
 begin
    writeln('Testing exception handling');
-   startmemavail:=memavail;
+   getheapstatus(hstatusstart);
    i:=-1;
    try
      test1;
@@ -769,7 +769,8 @@ begin
    if i<>2 then
      do_error(1119);
 
-   if memavail<startmemavail then
+   getheapstatus(hstatusend);
+   if hstatusstart.Currheapused<>hstatusend.Currheapused then
      begin
        writeln('exception generates memory holes');
        do_error(99999);

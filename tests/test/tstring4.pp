@@ -1,5 +1,8 @@
 Program ansitest;
 
+uses
+  erroru;
+  
 {$ifdef cpu68k}
   {$define COMP_IS_INT64}
 {$endif cpu68k}
@@ -10,32 +13,10 @@ Program ansitest;
   {$define COMP_IS_INT64}
 {$endif FPC_COMP_IS_INT64}
 
-{$ifdef ver1_0}
-type
-  ptrint=longint;
-  sizeint=longint;
-{$endif}
-
-{$ifndef fpc}
-type
-  ptrint=longint;
-  sizeint=longint;
-Function Memavail : ptrint;
-begin
- Result:=0;
-end;
-{$endif}
 
 { -------------------------------------------------------------------
     General stuff
   ------------------------------------------------------------------- }
-
-Procedure DoMem (Var StartMem : sizeint);
-
-begin
-  Writeln ('Lost ',StartMem-Memavail,' Bytes.');
-  StartMem:=MemAvail;
-end;
 
 Procedure DoRef (P : Pointer);
 
@@ -142,7 +123,8 @@ Var S : AnsiString;
     Mem : sizeint;
 
 begin
-  Mem:=MemAvail;
+  Mem:=0;
+  DoMem(Mem);
   S :='This is another ansistring';
   Writeln ('Calling testvalparam with "',s,'"');
   testvalparam (s);
@@ -338,7 +320,8 @@ Var I : Integer;
     mem : sizeint;
 
 begin
- mem:=memavail;
+ mem:=0;
+ DoMem(mem);
  S3 := 'ABCDEF';
  Write ('S1+S2=S3 :');
  If S1+S2=S3 then writeln (ok) else writeln (nok);
@@ -381,7 +364,8 @@ Var S,T : AnsiString;
     Co : Comp;
     TempMem:sizeint;
 begin
-  TempMem:=Memavail;
+  TempMem:=0;
+  DoMem(TempMem);
   S:='ABCDEF';
   Write ('S = "',S,'"');Doref(Pointer(S));
   T:=Copy(S,1,3);
@@ -468,8 +452,10 @@ end;
 Var GlobalStartMem,StartMem : PtrInt;
 
 begin
-  GlobalStartMem:=MemAvail;
-  StartMem:=MemAvail;
+  GlobalStartMem:=0;
+  StartMem:=0;
+  DoMem(GlobalStartMem);
+  DoMem(StartMem);
   Writeln ('Testing Initialize/Finalize.');
   TestInitFinal;
   Write ('End of Initialize/finalize test : ');DoMem(StartMem);
