@@ -279,8 +279,7 @@ var
 begin
     libname:=FixFileName(s+'.ao2');
     seq_no:=1;
-    current_module.linkunitstaticlibs.add(libname,link_allways);
-    current_module.flags:=current_module.flags or uf_static_linked;
+    current_module.linkotherstaticlibs.add(libname,link_allways);
     assign(out_file,current_module.outputpath^+libname);
     rewrite(out_file,1);
     blockwrite(out_file,ar_magic,sizeof(ar_magic));
@@ -517,7 +516,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2002-12-01 16:19:16  carl
+  Revision 1.4  2003-03-17 13:36:39  peter
+    * fix import linking under linux
+
+  Revision 1.3  2002/12/01 16:19:16  carl
     * fix compilation problems
 
   Revision 1.2  2002/12/01 13:20:33  hajny

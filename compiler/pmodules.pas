@@ -1101,8 +1101,7 @@ implementation
          if is_assembler_generated then
            insertobjectfile
          else
-           if not (current_module.uses_imports) then
-             current_module.flags:=current_module.flags or uf_no_link;
+           current_module.flags:=current_module.flags or uf_no_link;
 
          if cs_local_browser in aktmoduleswitches then
            current_module.localsymtable:=refsymtable;
@@ -1445,7 +1444,10 @@ So, all parameters are passerd into registers in sparc architecture.}
 end.
 {
   $Log$
-  Revision 1.96  2003-02-19 22:00:14  daniel
+  Revision 1.97  2003-03-17 13:36:39  peter
+    * fix import linking under linux
+
+  Revision 1.96  2003/02/19 22:00:14  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 
