@@ -128,6 +128,7 @@ type
       EndsWithComment : boolean;
       BeginsWithDirective,
       EndsWithDirective : boolean;
+      {BeginCommentType,}EndCommentType : byte;
     end;
 
     PLineCollection = ^TLineCollection;
@@ -2482,6 +2483,8 @@ function TCodeEditor.UpdateAttrs(FromLine: integer; Attrs: byte): integer;
 type
     TCharClass = (ccWhiteSpace,ccTab,ccAlpha,ccNumber,ccSymbol);
 var
+  SymbolIndex: Sw_integer;
+  CurrentCommentType : Byte;
   LastCC: TCharClass;
   InAsm,InComment,InSingleLineComment,InDirective,InString: boolean;
   X,ClassStart: Sw_integer;
@@ -2501,14 +2504,15 @@ var
   var MatchedSymbol: boolean;
       MatchingSymbol: string;
   function MatchesAnySpecSymbol(const What: string; SClass: TSpecSymbolClass; PartialMatch: boolean): boolean;
-  var I: Sw_integer;
-      S: string;
+  var S: string;
+      I: Sw_integer;
       Match,Found: boolean;
   begin
     Found:=false;
     if What<>'' then
     for I:=1 to GetSpecSymbolCount(SClass) do
     begin
+      SymbolIndex:=I;
       S:=GetSpecSymbol(SClass,I-1);
       if PartialMatch then Match:=MatchSymbol(What,S)
             else Match:=What=S;
@@ -2531,7 +2535,8 @@ var
 
   function IsCommentSuffix: boolean;
   begin
-    IsCommentSuffix:=MatchesAnySpecSymbol(SymbolConcat,ssCommentSuffix,true);
+    IsCommentSuffix:=(MatchesAnySpecSymbol(SymbolConcat,ssCommentSuffix,true))
+      and (CurrentCommentType=SymbolIndex);
   end;
 
   function IsStringPrefix: boolean;
@@ -2653,9 +2658,10 @@ var
           begin InDirective:=true; InComment:=false; Dec(ClassStart,length(MatchingSymbol)-1); end else
        if IsDirectiveSuffix and (InComment=false) and (InDirective=true) then
           InDirective:=false else
-       if IsCommentPrefix and (InString=false) then
+       if IsCommentPrefix and (InComment=false) and (InString=false) then
          begin
            InComment:=true;
+           CurrentCommentType:=SymbolIndex;
            InSingleLineComment:=IsSingleLineCommentPrefix;
            {InString:=false; }
            Dec(ClassStart,length(MatchingSymbol)-1);
@@ -2690,12 +2696,14 @@ begin
      begin
        InAsm:=PrevLine^.EndsWithAsm;
        InComment:=PrevLine^.EndsWithComment and not PrevLine^.EndsInSingleLineComment;
+       CurrentCommentType:=PrevLine^.EndCommentType;
        InDirective:=PrevLine^.EndsWithDirective;
      end
     else
      begin
        InAsm:=false;
        InComment:=false;
+       CurrentCommentType:=0;
        InDirective:=false;
      end;
     OldLine:=Line;
@@ -2719,6 +2727,7 @@ begin
     Line^.EndsWithAsm:=InAsm;
     Line^.EndsWithComment:=InComment;
     Line^.EndsInSingleLineComment:=InSingleLineComment;
+    Line^.EndCommentType:=CurrentCommentType;
     Line^.EndsWithDirective:=InDirective;
     Inc(CurLine);
     if CurLine>=GetLineCount then
@@ -3320,7 +3329,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.17  1999-02-15 09:32:58  pierre
+  Revision 1.18  1999-02-15 15:12:25  pierre
+   + TLine remembers Comment type
+
+  Revision 1.17  1999/02/15 09:32:58  pierre
    * single line comment // fix : comments intermix still wrong !!
 
   Revision 1.16  1999/02/11 19:07:26  pierre
