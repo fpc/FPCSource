@@ -98,9 +98,6 @@ implementation
 {$endif cpu64bit}
       ;
 
-    const
-      EXCEPT_BUF_SIZE = 12;
-
 {*****************************************************************************
                          Second_While_RepeatN
 *****************************************************************************}
@@ -863,25 +860,6 @@ implementation
        endexceptlabel : tasmlabel;
 
 
-    procedure try_new_exception(list : taasmoutput;var jmpbuf,envbuf, href : treference;
-      a : aword; exceptlabel : tasmlabel);
-     begin
-       tg.GetTemp(list,EXCEPT_BUF_SIZE,tt_persistent,envbuf);
-       tg.GetTemp(list,JMP_BUF_SIZE,tt_persistent,jmpbuf);
-       tg.GetTemp(list,sizeof(aword),tt_persistent,href);
-       new_exception(list, jmpbuf,envbuf, href, a, exceptlabel);
-     end;
-
-
-    procedure try_free_exception(list : taasmoutput;var jmpbuf, envbuf : treference;const href : treference;
-     a : aword ; endexceptlabel : tasmlabel; onlyfree : boolean);
-     begin
-         free_exception(list, jmpbuf, envbuf, href, a, endexceptlabel, onlyfree);
-         tg.Ungettemp(list,jmpbuf);
-         tg.ungettemp(list,envbuf);
-     end;
-
-
     { does the necessary things to clean up the object stack }
     { in the except block                                    }
     procedure cleanupobjectstack;
@@ -919,8 +897,8 @@ implementation
          oldaktbreaklabel : tasmlabel;
          oldflowcontrol,tryflowcontrol,
          exceptflowcontrol : tflowcontrol;
-         tempbuf,tempaddr : treference;
-         href : treference;
+         destroytemps,
+         excepttemps : texceptiontemps;
          paraloc1 : tparalocation;
       label
          errorexit;
@@ -956,7 +934,8 @@ implementation
          objectlibrary.getlabel(endexceptlabel);
          objectlibrary.getlabel(lastonlabel);
 
-         try_new_exception(exprasmlist,tempbuf,tempaddr,href,1,exceptlabel);
+         get_exception_temps(exprasmlist,excepttemps);
+         new_exception(exprasmlist,excepttemps,1,exceptlabel);
 
          { try block }
          { set control flow labels for the try block }
@@ -975,7 +954,7 @@ implementation
 
          cg.a_label(exprasmlist,exceptlabel);
 
-         try_free_exception(exprasmlist,tempbuf,tempaddr,href,0,endexceptlabel,false);
+         free_exception(exprasmlist, excepttemps, 0, endexceptlabel, false);
 
          cg.a_label(exprasmlist,doexceptlabel);
 
@@ -1013,7 +992,8 @@ implementation
               objectlibrary.getlabel(doobjectdestroy);
               objectlibrary.getlabel(doobjectdestroyandreraise);
 
-              try_new_exception(exprasmlist,tempbuf,tempaddr,href,1,doobjectdestroyandreraise);
+              get_exception_temps(exprasmlist,destroytemps);
+              new_exception(exprasmlist,destroytemps,1,doobjectdestroyandreraise);
 
               { here we don't have to reset flowcontrol           }
               { the default and on flowcontrols are handled equal }
@@ -1022,7 +1002,7 @@ implementation
 
               cg.a_label(exprasmlist,doobjectdestroyandreraise);
 
-              try_free_exception(exprasmlist,tempbuf,tempaddr,href,0,doobjectdestroy,false);
+              free_exception(exprasmlist,destroytemps,0,doobjectdestroy,false);
 
               cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               cg.a_call_name(exprasmlist,'FPC_POPSECONDOBJECTSTACK');
@@ -1041,6 +1021,7 @@ implementation
 
               cg.a_label(exprasmlist,doobjectdestroy);
               cleanupobjectstack;
+              unget_exception_temps(exprasmlist,destroytemps);
               cg.a_jmp_always(exprasmlist,endexceptlabel);
            end
          else
@@ -1058,7 +1039,7 @@ implementation
               cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
               cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-              cg.g_exception_reason_load(exprasmlist,href);
+              cg.g_exception_reason_load(exprasmlist,excepttemps.reasonbuf);
               cleanupobjectstack;
               cg.a_jmp_always(exprasmlist,oldaktexitlabel);
            end;
@@ -1071,7 +1052,7 @@ implementation
               cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
               cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-              cg.g_exception_reason_load(exprasmlist,href);
+              cg.g_exception_reason_load(exprasmlist,excepttemps.reasonbuf);
               cleanupobjectstack;
               cg.a_jmp_always(exprasmlist,oldaktbreaklabel);
            end;
@@ -1084,7 +1065,7 @@ implementation
               cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
               cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-              cg.g_exception_reason_load(exprasmlist,href);
+              cg.g_exception_reason_load(exprasmlist,excepttemps.reasonbuf);
               cleanupobjectstack;
               cg.a_jmp_always(exprasmlist,oldaktcontinuelabel);
            end;
@@ -1096,7 +1077,7 @@ implementation
               cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
               cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-              cg.g_exception_reason_load(exprasmlist,href);
+              cg.g_exception_reason_load(exprasmlist,excepttemps.reasonbuf);
               cg.a_jmp_always(exprasmlist,oldaktexitlabel);
            end;
 
@@ -1106,7 +1087,7 @@ implementation
               cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
               cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-              cg.g_exception_reason_load(exprasmlist,href);
+              cg.g_exception_reason_load(exprasmlist,excepttemps.reasonbuf);
               cg.a_jmp_always(exprasmlist,oldaktbreaklabel);
            end;
 
@@ -1116,10 +1097,10 @@ implementation
               cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
               cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-              cg.g_exception_reason_load(exprasmlist,href);
+              cg.g_exception_reason_load(exprasmlist,excepttemps.reasonbuf);
               cg.a_jmp_always(exprasmlist,oldaktcontinuelabel);
            end;
-         tg.ungettemp(exprasmlist,href);
+         unget_exception_temps(exprasmlist,excepttemps);
          cg.a_label(exprasmlist,endexceptlabel);
 
        errorexit:
@@ -1152,9 +1133,8 @@ implementation
          doobjectdestroy,
          oldaktbreaklabel : tasmlabel;
          oldflowcontrol : tflowcontrol;
+         excepttemps : texceptiontemps;
          exceptref,
-         tempbuf,tempaddr : treference;
-         href : treference;
          href2: treference;
          paraloc1 : tparalocation;
       begin
@@ -1183,9 +1163,9 @@ implementation
              tvarsym(exceptsymtable.symindex.first).localloc.loc:=LOC_REFERENCE;
              tg.GetLocal(exprasmlist,POINTER_SIZE,voidpointertype.def,
                 tvarsym(exceptsymtable.symindex.first).localloc.reference);
-             reference_reset_base(href,tvarsym(exceptsymtable.symindex.first).localloc.reference.index,
+             reference_reset_base(href2,tvarsym(exceptsymtable.symindex.first).localloc.reference.index,
                 tvarsym(exceptsymtable.symindex.first).localloc.reference.offset);
-             cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,href);
+             cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,href2);
            end
          else
            begin
@@ -1199,7 +1179,8 @@ implementation
          objectlibrary.getlabel(doobjectdestroyandreraise);
 
          { call setjmp, and jump to finally label on non-zero result }
-         try_new_exception(exprasmlist,tempbuf,tempaddr,href,1,doobjectdestroyandreraise);
+         get_exception_temps(exprasmlist,excepttemps);
+         new_exception(exprasmlist,excepttemps,1,doobjectdestroyandreraise);
 
          if assigned(right) then
            begin
@@ -1221,7 +1202,7 @@ implementation
          objectlibrary.getlabel(doobjectdestroy);
          cg.a_label(exprasmlist,doobjectdestroyandreraise);
 
-         try_free_exception(exprasmlist,tempbuf,tempaddr,href,0,doobjectdestroy,false);
+         free_exception(exprasmlist,excepttemps,0,doobjectdestroy,false);
 
          cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
          cg.a_call_name(exprasmlist,'FPC_POPSECONDOBJECTSTACK');
@@ -1281,6 +1262,7 @@ implementation
                end;
            end;
 
+         unget_exception_temps(exprasmlist,excepttemps);
          cg.a_label(exprasmlist,nextonlabel);
          flowcontrol:=oldflowcontrol+flowcontrol;
          { next on node }
@@ -1305,9 +1287,7 @@ implementation
          oldaktbreaklabel : tasmlabel;
          oldflowcontrol,tryflowcontrol : tflowcontrol;
          decconst : longint;
-         tempbuf,tempaddr : treference;
-         href : treference;
-
+         excepttemps : texceptiontemps;
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
@@ -1345,7 +1325,8 @@ implementation
           end;
 
          { call setjmp, and jump to finally label on non-zero result }
-         try_new_exception(exprasmlist,tempbuf,tempaddr,href,1,finallylabel);
+         get_exception_temps(exprasmlist,excepttemps);
+         new_exception(exprasmlist,excepttemps,1,finallylabel);
 
          { try code }
          if assigned(left) then
@@ -1358,7 +1339,7 @@ implementation
 
          cg.a_label(exprasmlist,finallylabel);
          { just free the frame information }
-         try_free_exception(exprasmlist,tempbuf,tempaddr,href,1,finallylabel,true);
+         free_exception(exprasmlist,excepttemps,1,finallylabel,true);
 
          { finally code }
          flowcontrol:=[];
@@ -1369,7 +1350,7 @@ implementation
            exit;
 
          { the value should now be in the exception handler }
-         cg.g_exception_reason_load(exprasmlist,href);
+         cg.g_exception_reason_load(exprasmlist,excepttemps.reasonbuf);
          if implicitframe then
            begin
              cg.a_cmp_const_reg_label(exprasmlist,OS_INT,OC_EQ,0,NR_FUNCTION_RESULT_REG,endfinallylabel);
@@ -1414,27 +1395,27 @@ implementation
              if fc_exit in tryflowcontrol then
                begin
                   cg.a_label(exprasmlist,exitfinallylabel);
-                  cg.g_exception_reason_load(exprasmlist,href);
-                  cg.g_exception_reason_save_const(exprasmlist,href,2);
+                  cg.g_exception_reason_load(exprasmlist,excepttemps.reasonbuf);
+                  cg.g_exception_reason_save_const(exprasmlist,excepttemps.reasonbuf,2);
                   cg.a_jmp_always(exprasmlist,finallylabel);
                end;
              if fc_break in tryflowcontrol then
               begin
                  cg.a_label(exprasmlist,breakfinallylabel);
-                 cg.g_exception_reason_load(exprasmlist,href);
-                 cg.g_exception_reason_save_const(exprasmlist,href,3);
+                 cg.g_exception_reason_load(exprasmlist,excepttemps.reasonbuf);
+                 cg.g_exception_reason_save_const(exprasmlist,excepttemps.reasonbuf,3);
                  cg.a_jmp_always(exprasmlist,finallylabel);
                end;
              if fc_continue in tryflowcontrol then
                begin
                   cg.a_label(exprasmlist,continuefinallylabel);
-                  cg.g_exception_reason_load(exprasmlist,href);
-                  cg.g_exception_reason_save_const(exprasmlist,href,4);
+                  cg.g_exception_reason_load(exprasmlist,excepttemps.reasonbuf);
+                  cg.g_exception_reason_save_const(exprasmlist,excepttemps.reasonbuf,4);
                   cg.a_jmp_always(exprasmlist,finallylabel);
                end;
            end;
+         unget_exception_temps(exprasmlist,excepttemps);
          cg.a_label(exprasmlist,endfinallylabel);
-         tg.ungettemp(exprasmlist,href);
 
          current_procinfo.aktexitlabel:=oldaktexitlabel;
          if assigned(aktbreaklabel) then
@@ -1462,7 +1443,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.94  2004-03-02 00:36:33  olle
+  Revision 1.95  2004-03-29 14:43:47  peter
+    * cleaner temp get/unget for exceptions
+
+  Revision 1.94  2004/03/02 00:36:33  olle
     * big transformation of Tai_[const_]Symbol.Create[data]name*
 
   Revision 1.93  2004/02/27 10:21:05  florian

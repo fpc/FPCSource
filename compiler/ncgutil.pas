@@ -84,10 +84,20 @@ interface
       be modified, all temps should be allocated on the heap instead of the
       stack.
     }
-    procedure new_exception(list:TAAsmoutput;const jmpbuf,envbuf, href : treference;
-      a : aword; exceptlabel : tasmlabel);
-    procedure free_exception(list:TAAsmoutput;const jmpbuf, envbuf, href : treference;
-      a : aword ; endexceptlabel : tasmlabel; onlyfree : boolean);
+
+    const
+      EXCEPT_BUF_SIZE = 12;
+    type
+      texceptiontemps=record
+        jmpbuf,
+        envbuf,
+        reasonbuf  : treference;
+      end;
+
+    procedure get_exception_temps(list:taasmoutput;var t:texceptiontemps);
+    procedure unget_exception_temps(list:taasmoutput;const t:texceptiontemps);
+    procedure new_exception(list:TAAsmoutput;const t:texceptiontemps;a:aword;exceptlabel:tasmlabel);
+    procedure free_exception(list:TAAsmoutput;const t:texceptiontemps;a:aword;endexceptlabel:tasmlabel;onlyfree:boolean);
 
     procedure insertconstdata(sym : ttypedconstsym);
     procedure insertbssdata(sym : tvarsym);
@@ -268,9 +278,23 @@ implementation
                             EXCEPTION MANAGEMENT
 *****************************************************************************}
 
-    procedure new_exception(list:TAAsmoutput;const jmpbuf,envbuf, href : treference;
-      a : aword; exceptlabel : tasmlabel);
+    procedure get_exception_temps(list:taasmoutput;var t:texceptiontemps);
+      begin
+        tg.GetTemp(list,EXCEPT_BUF_SIZE,tt_persistent,t.envbuf);
+        tg.GetTemp(list,JMP_BUF_SIZE,tt_persistent,t.jmpbuf);
+        tg.GetTemp(list,sizeof(aword),tt_persistent,t.reasonbuf);
+      end;
 
+
+    procedure unget_exception_temps(list:taasmoutput;const t:texceptiontemps);
+      begin
+        tg.Ungettemp(list,t.jmpbuf);
+        tg.ungettemp(list,t.envbuf);
+        tg.ungettemp(list,t.reasonbuf);
+      end;
+
+
+    procedure new_exception(list:TAAsmoutput;const t:texceptiontemps;a:aword;exceptlabel:tasmlabel);
       var
         paraloc1,paraloc2,paraloc3 : tparalocation;
       begin
@@ -278,9 +302,9 @@ implementation
         paraloc2:=paramanager.getintparaloc(pocall_default,2);
         paraloc3:=paramanager.getintparaloc(pocall_default,3);
         paramanager.allocparaloc(list,paraloc3);
-        cg.a_paramaddr_ref(list,envbuf,paraloc3);
+        cg.a_paramaddr_ref(list,t.envbuf,paraloc3);
         paramanager.allocparaloc(list,paraloc2);
-        cg.a_paramaddr_ref(list,jmpbuf,paraloc2);
+        cg.a_paramaddr_ref(list,t.jmpbuf,paraloc2);
         { push type of exceptionframe }
         paramanager.allocparaloc(list,paraloc1);
         cg.a_param_const(list,OS_S32,1,paraloc1);
@@ -299,14 +323,12 @@ implementation
         cg.a_call_name(list,'FPC_SETJMP');
         cg.deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
 
-        cg.g_exception_reason_save(list, href);
+        cg.g_exception_reason_save(list, t.reasonbuf);
         cg.a_cmp_const_reg_label(list,OS_S32,OC_NE,0,cg.makeregsize(NR_FUNCTION_RESULT_REG,OS_S32),exceptlabel);
      end;
 
 
-    procedure free_exception(list:TAAsmoutput;const jmpbuf, envbuf, href : treference;
-     a : aword ; endexceptlabel : tasmlabel; onlyfree : boolean);
-
+    procedure free_exception(list:TAAsmoutput;const t:texceptiontemps;a:aword;endexceptlabel:tasmlabel;onlyfree:boolean);
      begin
          cg.allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
          cg.a_call_name(list,'FPC_POPADDRSTACK');
@@ -314,7 +336,7 @@ implementation
 
          if not onlyfree then
           begin
-            cg.g_exception_reason_load(list, href);
+            cg.g_exception_reason_load(list, t.reasonbuf);
             cg.a_cmp_const_reg_label(list,OS_INT,OC_EQ,a,NR_FUNCTION_RESULT_REG,endexceptlabel);
           end;
      end;
@@ -2124,7 +2146,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.196  2004-03-03 22:02:52  peter
+  Revision 1.197  2004-03-29 14:43:47  peter
+    * cleaner temp get/unget for exceptions
+
+  Revision 1.196  2004/03/03 22:02:52  peter
     * use loadnode and finalize_data_node for init/final code to support
       threadvars correctly
 
