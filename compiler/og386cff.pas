@@ -352,7 +352,8 @@ unit og386cff;
         createsection(sec_code);
         createsection(sec_data);
         createsection(sec_bss);
-        if (cs_debuginfo in aktmoduleswitches) then
+        if (cs_gdb_lineinfo in aktglobalswitches) or
+           (cs_debuginfo in aktmoduleswitches) then
          begin
            createsection(sec_stab);
            createsection(sec_stabstr);
@@ -775,7 +776,8 @@ unit og386cff;
         { multiply stab with real size }
         s[sec_stab]:=s[sec_stab]*sizeof(coffstab);
         { if debug then also count header stab }
-        if (cs_debuginfo in aktmoduleswitches) then
+        if (cs_gdb_lineinfo in aktglobalswitches) or
+           (cs_debuginfo in aktmoduleswitches) then
          begin
            inc(s[sec_stab],sizeof(coffstab));
            inc(s[sec_stabstr],length(SplitFileName(current_module^.mainsource^))+2);
@@ -993,7 +995,10 @@ unit og386cff;
 end.
 {
   $Log$
-  Revision 1.22  2000-03-10 16:05:28  pierre
+  Revision 1.23  2000-04-12 12:42:29  pierre
+   * fix the -g-l option
+
+  Revision 1.22  2000/03/10 16:05:28  pierre
    * check that symbol is in object
 
   Revision 1.21  2000/03/10 09:15:54  pierre

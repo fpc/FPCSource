@@ -350,8 +350,9 @@ unit ag386bin;
         hp : pasmsymbol;
         store_sec : tsection;
       begin
-        if not (cs_debuginfo in aktmoduleswitches) then
-          exit;
+          if not ((cs_debuginfo in aktmoduleswitches) or
+             (cs_gdb_lineinfo in aktglobalswitches)) then
+           exit;
         store_sec:=objectalloc^.currsec;
         objectalloc^.setsection(sec_code);
         hp:=newasmsymbol('Letext');
@@ -978,7 +979,10 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.42  2000-04-06 07:04:51  pierre
+  Revision 1.43  2000-04-12 12:42:28  pierre
+   * fix the -g-l option
+
+  Revision 1.42  2000/04/06 07:04:51  pierre
    + generate line stabs if cs_gdb_lineinfo is aktglobalswitches
 
   Revision 1.41  2000/03/10 16:05:57  pierre

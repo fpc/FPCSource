@@ -339,8 +339,9 @@ unit ag386att;
       procedure ti386attasmlist.WriteFileEndInfo;
 
         begin
-          if not (cs_debuginfo in aktmoduleswitches) then
-            exit;
+          if not ((cs_debuginfo in aktmoduleswitches) or
+             (cs_gdb_lineinfo in aktglobalswitches)) then
+           exit;
           AsmLn;
           AsmWriteLn(ait_section2str(sec_code));
           AsmWriteLn(#9'.stabs "",'+tostr(n_sourcefile)+',0,0,Letext');
@@ -901,7 +902,10 @@ unit ag386att;
 end.
 {
   $Log$
-  Revision 1.32  2000-04-06 07:04:50  pierre
+  Revision 1.33  2000-04-12 12:42:28  pierre
+   * fix the -g-l option
+
+  Revision 1.32  2000/04/06 07:04:50  pierre
    + generate line stabs if cs_gdb_lineinfo is aktglobalswitches
 
   Revision 1.31  2000/04/01 14:18:03  peter
