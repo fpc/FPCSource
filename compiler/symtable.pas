@@ -93,9 +93,10 @@ interface
        tabstractrecordsymtable = class(tstoredsymtable)
        public
           datasize       : longint;
+          usefieldalignment,     { alignment to use for fields (PACKRECORDS value), -1 is C style }
           recordalignment,       { alignment required when inserting this record }
-          fieldalignment : byte; { alignment used when fields are inserted }
-          constructor create(const n:string);
+          fieldalignment : shortint; { alignment current alignment used when fields are inserted }
+          constructor create(const n:string;usealign:shortint);
           procedure ppuload(ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure load_references(ppufile:tcompilerppufile;locals:boolean);override;
@@ -105,13 +106,13 @@ interface
 
        trecordsymtable = class(tabstractrecordsymtable)
        public
-          constructor create;
+          constructor create(usealign:shortint);
           procedure insert_in(tsymt : trecordsymtable;offset : longint);
        end;
 
        tobjectsymtable = class(tabstractrecordsymtable)
        public
-          constructor create(const n:string);
+          constructor create(const n:string;usealign:shortint);
           procedure insert(sym : tsymentry);override;
        end;
 
@@ -975,11 +976,18 @@ implementation
                           TAbstractRecordSymtable
 ****************************************************************************}
 
-    constructor tabstractrecordsymtable.create(const n:string);
+    constructor tabstractrecordsymtable.create(const n:string;usealign:shortint);
       begin
         inherited create(n);
         datasize:=0;
-        fieldalignment:=1;
+        recordalignment:=1;
+        usefieldalignment:=usealign;
+        { recordalign -1 means C record packing, that starts
+          with an alignment of 1 }
+        if usealign=-1 then
+          fieldalignment:=1
+        else
+          fieldalignment:=usealign;
       end;
 
 
@@ -1057,7 +1065,7 @@ implementation
         vardef:=tvarsym(sym).vartype.def;
         varalign:=vardef.alignment;
         { Calc the alignment size for C style records }
-        if (aktalignment.recordalignmax=-1) then
+        if (usefieldalignment=-1) then
          begin
            if (varalign>4) and
               ((varalign mod 4)<>0) and
@@ -1098,9 +1106,9 @@ implementation
                               TRecordSymtable
 ****************************************************************************}
 
-    constructor trecordsymtable.create;
+    constructor trecordsymtable.create(usealign:shortint);
       begin
-        inherited create('');
+        inherited create('',usealign);
         symtabletype:=recordsymtable;
       end;
 
@@ -1156,9 +1164,9 @@ implementation
                               TObjectSymtable
 ****************************************************************************}
 
-    constructor tobjectsymtable.create(const n:string);
+    constructor tobjectsymtable.create(const n:string;usealign:shortint);
       begin
-        inherited create(n);
+        inherited create(n,usealign);
         symtabletype:=objectsymtable;
       end;
 
@@ -2302,7 +2310,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.127  2004-01-28 20:30:18  peter
+  Revision 1.128  2004-01-28 22:16:31  peter
+    * more record alignment fixes
+
+  Revision 1.127  2004/01/28 20:30:18  peter
     * record alignment splitted in fieldalignment and recordalignment,
       the latter is used when this record is inserted in another record.
 

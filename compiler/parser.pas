@@ -341,6 +341,7 @@ implementation
           oldaktlocalswitches  : tlocalswitches;
           oldaktmoduleswitches : tmoduleswitches;
           oldaktfilepos      : tfileposinfo;
+          oldaktpackrecords,
           oldaktpackenum,oldaktmaxfpuregisters : longint;
           oldaktalignment  : talignmentinfo;
           oldaktoutputformat : tasm;
@@ -421,6 +422,7 @@ implementation
             oldaktmoduleswitches:=aktmoduleswitches;
             oldaktalignment:=aktalignment;
             oldaktpackenum:=aktpackenum;
+            oldaktpackrecords:=aktpackrecords;
             oldaktfputype:=aktfputype;
             oldaktmaxfpuregisters:=aktmaxfpuregisters;
             oldaktoutputformat:=aktoutputformat;
@@ -478,6 +480,7 @@ implementation
          aktalignment:=initalignment;
          aktfputype:=initfputype;
          aktpackenum:=initpackenum;
+         aktpackrecords:=initpackrecords;
          aktoutputformat:=initoutputformat;
          set_target_asm(aktoutputformat);
          aktoptprocessor:=initoptprocessor;
@@ -608,6 +611,7 @@ implementation
                  aktmoduleswitches:=oldaktmoduleswitches;
                  aktalignment:=oldaktalignment;
                  aktpackenum:=oldaktpackenum;
+                 aktpackrecords:=oldaktpackrecords;
                  aktmaxfpuregisters:=oldaktmaxfpuregisters;
                  aktoutputformat:=oldaktoutputformat;
                  set_target_asm(aktoutputformat);
@@ -691,7 +695,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.58  2003-10-29 21:02:51  peter
+  Revision 1.59  2004-01-28 22:16:31  peter
+    * more record alignment fixes
+
+  Revision 1.58  2003/10/29 21:02:51  peter
     * set ms_compiled after the program/unit is parsed
     * check for ms_compiled before checking preproc matches
 

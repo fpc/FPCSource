@@ -81,7 +81,7 @@ unit i_linux;
                 localalignmin   : 4;
                 localalignmax   : 4;
                 recordalignmin  : 0;
-                recordalignmax  : 2;
+                recordalignmax  : 4;
                 maxCrecordalign : 4
               );
             first_parm_offset : 8;
@@ -207,7 +207,7 @@ unit i_linux;
                 localalignmin   : 4;
                 localalignmax   : 4;
                 recordalignmin  : 0;
-                recordalignmax  : 2;
+                recordalignmax  : 4;
                 maxCrecordalign : 8
               );
             first_parm_offset : 8;
@@ -514,7 +514,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.22  2004-01-28 15:36:47  florian
+  Revision 1.23  2004-01-28 22:16:31  peter
+    * more record alignment fixes
+
+  Revision 1.22  2004/01/28 15:36:47  florian
     * fixed another couple of arm bugs
 
   Revision 1.21  2004/01/26 19:05:56  florian

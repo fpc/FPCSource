@@ -1064,7 +1064,7 @@ implementation
               if not(is_ordinal(casetype.def)) or is_64bitint(casetype.def)  then
                Message(type_e_ordinal_expr_expected);
               consume(_OF);
-              UnionSymtable:=trecordsymtable.create;
+              UnionSymtable:=trecordsymtable.create(aktpackrecords);
               Unionsymtable.next:=symtablestack;
               registerdef:=false;
               UnionDef:=trecorddef.create(unionsymtable);
@@ -1114,7 +1114,7 @@ implementation
               symtablestack:=symtablestack.next;
               { we do NOT call symtablestack.insert
                on purpose PM }
-              if aktalignment.recordalignmax=-1 then
+              if trecordsymtable(symtablestack).usefieldalignment=-1 then
                begin
 {$ifdef i386}
                  if maxalignment>2 then
@@ -1152,7 +1152,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.60  2004-01-28 20:30:18  peter
+  Revision 1.61  2004-01-28 22:16:31  peter
+    * more record alignment fixes
+
+  Revision 1.60  2004/01/28 20:30:18  peter
     * record alignment splitted in fieldalignment and recordalignment,
       the latter is used when this record is inserted in another record.
 

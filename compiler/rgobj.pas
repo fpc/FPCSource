@@ -425,6 +425,7 @@ implementation
       spillworklist.done;
       coalescednodes.done;
       selectstack.done;
+      live_registers.done;
       worklist_moves.free;
       dispose_reginfo;
     end;
@@ -1562,7 +1563,7 @@ implementation
             p:=Tai(p.previous);
           end;
         live_registers.done;
-        live_registers.copyfrom(back);
+        live_registers:=back;
       end;
 
 
@@ -1862,7 +1863,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.115  2004-01-26 17:40:11  florian
+  Revision 1.116  2004-01-28 22:16:31  peter
+    * more record alignment fixes
+
+  Revision 1.115  2004/01/26 17:40:11  florian
     * made DoSpill* overrideable
     + add_cpu_interferences added
 

@@ -198,7 +198,7 @@ implementation
         addtype('$s80real',s80floattype);
         addtype('$s64currency',s64currencytype);
         { Add a type for virtual method tables }
-        hrecst:=trecordsymtable.create;
+        hrecst:=trecordsymtable.create(aktpackrecords);
         vmttype.setdef(trecorddef.create(hrecst));
         pvmttype.setdef(tpointerdef.create(vmttype));
         hrecst.insertfield(tvarsym.create('$parent',vs_value,pvmttype),true);
@@ -213,7 +213,7 @@ implementation
         tarraydef(vmtarraytype.def).setelementtype(pvmttype);
         addtype('$vtblarray',vmtarraytype);
         { Add a type for methodpointers }
-        hrecst:=trecordsymtable.create;
+        hrecst:=trecordsymtable.create(1);
         hrecst.insertfield(tvarsym.create('$proc',vs_value,voidpointertype),true);
         hrecst.insertfield(tvarsym.create('$self',vs_value,voidpointertype),true);
         methodpointertype.setdef(trecorddef.create(hrecst));
@@ -521,7 +521,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.59  2004-01-20 12:59:37  florian
+  Revision 1.60  2004-01-28 22:16:31  peter
+    * more record alignment fixes
+
+  Revision 1.59  2004/01/20 12:59:37  florian
     * common addnode code for x86-64 and i386
 
   Revision 1.58  2003/11/29 16:19:54  peter

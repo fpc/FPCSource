@@ -3044,12 +3044,6 @@ implementation
          deftype:=recorddef;
          symtable:=p;
          symtable.defowner:=self;
-         { recordalign -1 means C record packing, that starts
-           with an alignment of 1 }
-         if aktalignment.recordalignmax=-1 then
-           trecordsymtable(symtable).fieldalignment:=1
-         else
-           trecordsymtable(symtable).fieldalignment:=aktalignment.recordalignmax;
          isunion:=false;
       end;
 
@@ -3059,7 +3053,7 @@ implementation
          inherited ppuloaddef(ppufile);
          deftype:=recorddef;
          savesize:=ppufile.getlongint;
-         symtable:=trecordsymtable.create;
+         symtable:=trecordsymtable.create(0);
          trecordsymtable(symtable).datasize:=ppufile.getlongint;
          trecordsymtable(symtable).fieldalignment:=ppufile.getbyte;
          trecordsymtable(symtable).recordalignment:=ppufile.getbyte;
@@ -4667,16 +4661,10 @@ implementation
         deftype:=objectdef;
         objectoptions:=[];
         childof:=nil;
-        symtable:=tobjectsymtable.create(n);
+        symtable:=tobjectsymtable.create(n,aktpackrecords);
         { create space for vmt !! }
         vmt_offset:=0;
         symtable.defowner:=self;
-        { recordalign -1 means C record packing, that starts
-          with an alignment of 1 }
-        if aktalignment.recordalignmax=-1 then
-         tobjectsymtable(symtable).fieldalignment:=1
-        else
-         tobjectsymtable(symtable).fieldalignment:=aktalignment.recordalignmax;
         lastvtableindex:=0;
         set_parent(c);
         objname:=stringdup(upper(n));
@@ -4735,7 +4723,7 @@ implementation
          else
            implementedinterfaces:=nil;
 
-         symtable:=tobjectsymtable.create(objrealname^);
+         symtable:=tobjectsymtable.create(objrealname^,aktpackrecords);
          tobjectsymtable(symtable).datasize:=ppufile.getlongint;
          tobjectsymtable(symtable).fieldalignment:=ppufile.getbyte;
          tobjectsymtable(symtable).recordalignment:=ppufile.getbyte;
@@ -6164,7 +6152,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.212  2004-01-28 21:05:56  florian
+  Revision 1.213  2004-01-28 22:16:31  peter
+    * more record alignment fixes
+
+  Revision 1.212  2004/01/28 21:05:56  florian
     * fixed alignment of classes
 
   Revision 1.211  2004/01/28 20:30:18  peter

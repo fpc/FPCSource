@@ -189,7 +189,8 @@ interface
        {$IFDEF testvarsets}
         Initsetalloc,                            {0=fixed, 1 =var}
        {$ENDIF}
-       initpackenum       : longint;
+       initpackrecords,
+       initpackenum       : shortint;
        initalignment      : talignmentinfo;
        initoptprocessor,
        initspecificoptprocessor : tprocessors;
@@ -210,6 +211,7 @@ interface
        {$IFDEF testvarsets}
         aktsetalloc,
        {$ENDIF}
+       aktpackrecords,
        aktpackenum        : longint;
        aktmaxfpuregisters : longint;
        aktalignment       : talignmentinfo;
@@ -1734,6 +1736,7 @@ implementation
 
         initfputype:=fpu_x87;
 
+        initpackrecords:=4;
         initpackenum:=4;
         {$IFDEF testvarsets}
         initsetalloc:=0;
@@ -1742,6 +1745,7 @@ implementation
 {$endif i386}
 {$ifdef m68k}
         initoptprocessor:=MC68020;
+        initpackrecords:=2;
         initpackenum:=4;
         {$IFDEF testvarsets}
          initsetalloc:=0;
@@ -1749,6 +1753,7 @@ implementation
 {$endif m68k}
 {$ifdef powerpc}
         initoptprocessor:=PPC604;
+        initpackrecords:=4;
         initpackenum:=4;
         {$IFDEF testvarsets}
          initsetalloc:=0;
@@ -1757,12 +1762,14 @@ implementation
 {$endif powerpc}
 {$ifdef sparc}
         initoptprocessor:=SPARC_V8;
+        initpackrecords:=8;
         initpackenum:=4;
         {$IFDEF testvarsets}
          initsetalloc:=0;
         {$ENDIF}
 {$endif sparc}
 {$ifdef arm}
+        initpackrecords:=4;
         initpackenum:=4;
         {$IFDEF testvarsets}
         initsetalloc:=0;
@@ -1775,6 +1782,7 @@ implementation
 
         initfputype:=fpu_sse64;
 
+        initpackrecords:=8;
         initpackenum:=4;
         {$IFDEF testvarsets}
         initsetalloc:=0;
@@ -1796,7 +1804,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.122  2004-01-28 21:05:56  florian
+  Revision 1.123  2004-01-28 22:16:31  peter
+    * more record alignment fixes
+
+  Revision 1.122  2004/01/28 21:05:56  florian
     * fixed alignment of classes
 
   Revision 1.121  2004/01/14 23:39:05  florian

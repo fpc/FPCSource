@@ -119,22 +119,22 @@ implementation
            { Support also the ON and OFF as switch }
            hs:=current_scanner.readid;
            if (hs='ON') then
-            aktalignment.recordalignmax:=4
+            aktpackrecords:=4
            else
             if (hs='OFF') then
-             aktalignment.recordalignmax:=1
+             aktpackrecords:=1
            else
             Message(scan_w_only_pack_records);
          end
         else
          begin
            case current_scanner.readval of
-             1 : aktalignment.recordalignmax:=1;
-             2 : aktalignment.recordalignmax:=2;
-             4 : aktalignment.recordalignmax:=4;
-             8 : aktalignment.recordalignmax:=8;
-            16 : aktalignment.recordalignmax:=16;
-            32 : aktalignment.recordalignmax:=32;
+             1 : aktpackrecords:=1;
+             2 : aktpackrecords:=2;
+             4 : aktpackrecords:=4;
+             8 : aktpackrecords:=8;
+            16 : aktpackrecords:=16;
+            32 : aktpackrecords:=32;
            else
             Message(scan_w_only_pack_records);
            end;
@@ -602,22 +602,22 @@ implementation
            hs:=current_scanner.readid;
            { C has the special recordalignmax of -1 }
            if (hs='C') then
-            aktalignment.recordalignmax:=-1
+            aktpackrecords:=-1
            else
             if (hs='NORMAL') or (hs='DEFAULT') then
-             aktalignment.recordalignmax:=2
+             aktpackrecords:=2
            else
             Message(scan_w_only_pack_records);
          end
         else
          begin
            case current_scanner.readval of
-             1 : aktalignment.recordalignmax:=1;
-             2 : aktalignment.recordalignmax:=2;
-             4 : aktalignment.recordalignmax:=4;
-             8 : aktalignment.recordalignmax:=8;
-            16 : aktalignment.recordalignmax:=16;
-            32 : aktalignment.recordalignmax:=32;
+             1 : aktpackrecords:=1;
+             2 : aktpackrecords:=2;
+             4 : aktpackrecords:=4;
+             8 : aktpackrecords:=8;
+            16 : aktpackrecords:=16;
+            32 : aktpackrecords:=32;
            else
             Message(scan_w_only_pack_records);
            end;
@@ -992,7 +992,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  2003-12-25 01:07:09  florian
+  Revision 1.30  2004-01-28 22:16:31  peter
+    * more record alignment fixes
+
+  Revision 1.29  2003/12/25 01:07:09  florian
     + $fputype directive support
     + single data type operations with sse unit
     * fixed more x86-64 stuff

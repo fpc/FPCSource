@@ -226,7 +226,7 @@ implementation
          old_object_option : tsymoptions;
       begin
          { create recdef }
-         symtable:=trecordsymtable.create;
+         symtable:=trecordsymtable.create(aktpackrecords);
          record_dec:=trecorddef.create(symtable);
          { update symtable stack }
          symtable.next:=symtablestack;
@@ -582,13 +582,13 @@ implementation
                   array_dec
                 else
                   begin
-                    oldaktpackrecords:=aktalignment.recordalignmax;
-                    aktalignment.recordalignmax:=1;
+                    oldaktpackrecords:=aktpackrecords;
+                    aktpackrecords:=1;
                     if token in [_CLASS,_OBJECT] then
                       tt.setdef(object_dec(name,nil))
                     else
                       tt.setdef(record_dec);
-                    aktalignment.recordalignmax:=oldaktpackrecords;
+                    aktpackrecords:=oldaktpackrecords;
                   end;
               end;
             _CLASS,
@@ -644,7 +644,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.61  2004-01-28 20:30:18  peter
+  Revision 1.62  2004-01-28 22:16:31  peter
+    * more record alignment fixes
+
+  Revision 1.61  2004/01/28 20:30:18  peter
     * record alignment splitted in fieldalignment and recordalignment,
       the latter is used when this record is inserted in another record.
 
