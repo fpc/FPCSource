@@ -18,6 +18,8 @@ Free Pascal is currently available for the following platforms:
 - Linux (i386), both aout and elf
 - OS/2 & DOS, via the EMX extender
 - Win32 (Win32s, Win95/98 and WinNT)
+- Sun Solaris i386
+- BeOS i386
 
 Older version of the compiler (0.99.5) is also available on:
 - Commodore Amiga
@@ -54,13 +56,12 @@ More platforms will be supported in the future.
 - can call external C code
 - smartlinking
 - support for the GNU debugger
-- cross-platform API
 - IDE (currently for GO32v2 and Win32 only, in beta testing phase)
 - can create binaries running natively under both DOS and OS/2 (EMX version)
 
 
 ****************************************************************************
-* Requirements
+* Requirements (Intel version)
 ****************************************************************************
 
 386 processor
@@ -198,7 +199,6 @@ Optional source package src106.zip:
   compsrc.zip     contains the compiler sources
   rtlsrc.zip      contains the runtime library sources
   fclsrc.zip      contains the Free Component Library sources
-  apisrc.zip      contains the API sources
   pkgssrc         contains the packages (various units) sources
   utilssrc.zip    contains the Utilities sources
   instsrc.zip     contains the installer sources
@@ -250,7 +250,7 @@ utils for GO32v2 and Win32. The latest snapshots are in: ftp... /fpc/snapshot/
 in appropriately named .zip/tar files.
 
 You will also normally find in the snapshot archive file a readme, with
-a note about the latest included changes. It is quite common, tho' doesn't
+a note about the latest included changes. It is quite common, though it doesn't
 always happen, that when a bug is reported it is fixed and a fixed version
 can be obtained the NEXT day in the appropriate snapshot.... yes really!
 
