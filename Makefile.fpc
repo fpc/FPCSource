@@ -4,7 +4,7 @@
 
 [package]
 name=fpc
-version=1.9.4
+version=1.9.6
 
 [target]
 dirs=compiler rtl utils fcl fv packages ide installer
@@ -81,7 +81,7 @@ ifdef SNAPSHOT
 ALLTARGET=all
 else
 ifndef ALLTARGET
-SMARTTARGETS=win32 go32v2 linux freebsd netbsd openbsd netware netwlibc
+SMARTTARGETS=win32 go32v2 linux freebsd netbsd openbsd
 ifneq ($(findstring $(OS_TARGET),$(SMARTTARGETS)),)
 ALLTARGET=smart
 else
@@ -489,6 +489,13 @@ renametoshort:
         -mv $(PKGUNITSPRE)clkdll$(ZIPSUFFIX).zip uclk$(ZIPSUFFIXSHORT).zip
         -mv $(PKGUNITSPRE)pasjpeg$(ZIPSUFFIX).zip upjp$(ZIPSUFFIXSHORT).zip
         -mv $(PKGUNITSPRE)fv$(ZIPSUFFIX).zip ufv$(ZIPSUFFIXSHORT).zip
+        -mv $(PKGUNITSPRE)rexx$(ZIPSUFFIX).zip urexx$(ZIPSUFFIXSHORT).zip
+        -mv $(PKGUNITSPRE)zlib$(ZIPSUFFIX).zip uzlib$(ZIPSUFFIXSHORT).zip
+        -mv $(PKGUNITSPRE)mmtk$(ZIPSUFFIX).zip ummtk$(ZIPSUFFIXSHORT).zip
+        -mv $(PKGUNITSPRE)lvm$(ZIPSUFFIX).zip ulvm$(ZIPSUFFIXSHORT).zip
+        -mv $(PKGUNITSPRE)imlib$(ZIPSUFFIX).zip uimlb$(ZIPSUFFIXSHORT).zip
+        -mv $(PKGUNITSPRE)libpng$(ZIPSUFFIX).zip ulpng$(ZIPSUFFIXSHORT).zip
+        -mv $(PKGUNITSPRE)opengl$(ZIPSUFFIX).zip uogl$(ZIPSUFFIXSHORT).zip
 
 shortsrc:
         $(MAKE) renametoshort ZIPSUFFIX=$(ZIPSOURCESUFFIX) ZIPSUFFIXSHORT=src

@@ -261,7 +261,7 @@ package=ux11emx.zip,X11 interface units
 # EMX-2 10
 package=ugtkemx.zip,GTK interface units
 # EMX-2 11
-package=ufpgtkemx.zip[ufpgtemx.zip],fpGTK units
+package=ufpgtkemx.zip,fpGTK units
 # EMX-2 12
 package=uimlibemx.zip[uimlbemx.zip],ImLib interface units
 # EMX-2 13
@@ -312,9 +312,9 @@ package=units-regexpr.source.zip[uregsrc.zip],Regular expression units
 # Source 11
 package=units-paszlib.source.zip[upzlsrc.zip],PasZLib units
 # Source 12
-package=units-rexx.source.zip,REXX SAA interface units
+package=units-rexx.source.zip[urexxsrc.zip],REXX SAA interface units
 # Source 13
-package=units-zlib.source.zip,ZLib interface units
+package=units-zlib.source.zip[uzlibsrc.zip],ZLib interface units
 # Source 14
 package=units-netdb.source.zip[undbsrc.zip],NetDB units
 # Source 15
@@ -328,7 +328,7 @@ package=units-gdbint.source.zip[ugdbsrc.zip],GDB Interfacing units
 pack=So~u~rces 2
 filecheck=*.source.zip[*src.zip]
 # Source-2 1
-package=units-opengl.source.zip,OpenGL units
+package=units-opengl.source.zip[uoglsrc.zip],OpenGL units
 # Source-2 2
 package=units-gtk.source.zip,GTK units
 # Source-2 4
@@ -340,15 +340,19 @@ package=units-ftpapi.source.zip[uftpsrc.zip],FTP API interface units
 # Source-2 7
 package=units-hwvideo.source.zip[uhwvsrc.zip],HW Video interface units
 # Source-2 8
-package=units-mmtk.source.zip,MMOS/2 interface units
+package=units-mmtk.source.zip[ummtksrc.zip],MMOS/2 interface units
 # Source-2 9
 package=units-clkdll.source.zip[uclksrc.zip],CLKDLL interface unit (eCS 1.1+)
 # Source-2 10
-package=units-lvm.source.zip,LVM interface unit
+package=units-lvm.source.zip[ulvmsrc.zip],LVM interface unit
 # Source-2 11
 package=units-pasjpeg.source.zip[upjpsrc.zip],PasJPEG units
 # Source-2 12
-package=units-fv.source.zip,Free ~V~ision (FV)
+package=units-fv.source.zip[ufvsrc.zip],Free ~V~ision (FV)
+# Source-2 13
+package=units-libpng.source.zip[ulpngsrc.zip],LibPNG interface units
+# Source-2 14
+package=units-imlib.source.zip[uimlbsrc.zip],ImLib interface units
 
 
 defaultcfg=

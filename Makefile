@@ -220,7 +220,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=fpc
-override PACKAGE_VERSION=1.9.4
+override PACKAGE_VERSION=1.9.6
 ifndef inOS2
 override FPCDIR:=$(BASEDIR)
 export FPCDIR
@@ -2285,6 +2285,13 @@ renametoshort:
 	-mv $(PKGUNITSPRE)clkdll$(ZIPSUFFIX).zip uclk$(ZIPSUFFIXSHORT).zip
 	-mv $(PKGUNITSPRE)pasjpeg$(ZIPSUFFIX).zip upjp$(ZIPSUFFIXSHORT).zip
 	-mv $(PKGUNITSPRE)fv$(ZIPSUFFIX).zip ufv$(ZIPSUFFIXSHORT).zip
+	-mv $(PKGUNITSPRE)rexx$(ZIPSUFFIX).zip urexx$(ZIPSUFFIXSHORT).zip
+	-mv $(PKGUNITSPRE)zlib$(ZIPSUFFIX).zip uzlib$(ZIPSUFFIXSHORT).zip
+	-mv $(PKGUNITSPRE)mmtk$(ZIPSUFFIX).zip ummtk$(ZIPSUFFIXSHORT).zip
+	-mv $(PKGUNITSPRE)lvm$(ZIPSUFFIX).zip ulvm$(ZIPSUFFIXSHORT).zip
+	-mv $(PKGUNITSPRE)imlib$(ZIPSUFFIX).zip uimlb$(ZIPSUFFIXSHORT).zip
+	-mv $(PKGUNITSPRE)libpng$(ZIPSUFFIX).zip ulpng$(ZIPSUFFIXSHORT).zip
+	-mv $(PKGUNITSPRE)opengl$(ZIPSUFFIX).zip uogl$(ZIPSUFFIXSHORT).zip
 shortsrc:
 	$(MAKE) renametoshort ZIPSUFFIX=$(ZIPSOURCESUFFIX) ZIPSUFFIXSHORT=src
 shortbin:
