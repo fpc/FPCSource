@@ -42,8 +42,8 @@ begin
 
   FillChar(URI, SizeOf(URI), #0);
 
-  URI := ParseURI(s, 'defaultprotocol', 1234);
-
+//  URI := ParseURI(s, 'defaultprotocol', 1234);
+  URI:=ParseURI('http://www.lazarus.freepascal.org/main.php');
   with URI do
   begin
     WriteLn('Protocol: ', Protocol);
@@ -61,7 +61,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2003-05-17 20:54:03  michael
+  Revision 1.2  2003-11-22 23:17:50  michael
+  Patch for ipv6 and CNAME record support from Johannes Berg
+
+  Revision 1.1  2003/05/17 20:54:03  michael
   + uriparser unit added. Header/Footer blocks added
 
 }

@@ -30,6 +30,8 @@ Const
   SServicesFile  = '/etc/services'; 
   SHostsFile     = '/etc/hosts';
   SNetworksFile  = '/etc/networks';
+
+  MaxRecursion = 10;
   
 Type
   TDNSServerArray = Array[1..MaxServers] of THostAddr;
@@ -63,6 +65,9 @@ Var
 Function GetDNSServers(FN : String) : Integer;
 
 Function ResolveName(HostName : String; Var Addresses : Array of THostAddr) : Integer;
+Function ResolveName6(HostName : String; Var Addresses : Array of THostAddr6) : Integer;
+
+
 Function ResolveAddress(HostAddr : THostAddr; Var Addresses : Array of String) : Integer;
 
 Function ResolveHostByName(HostName : String; Var H : THostEntry) : Boolean;
@@ -90,11 +95,14 @@ uses
 {$i hs.inc}
 
 const
+  { from http://www.iana.org/assignments/dns-parameters }
   DNSQRY_A     = 1;                     // name to IP address 
   DNSQRY_AAAA  = 28;                    // name to IP6 address
+  DNSQRY_A6    = 38;                    // name to IP6 (new)
   DNSQRY_PTR   = 12;                    // IP address to name 
   DNSQRY_MX    = 15;                    // name to MX 
   DNSQRY_TXT   = 16;                    // name to TXT
+  DNSQRY_CNAME = 5;
 
   // Flags 1
   QF_QR     = $80;
@@ -155,6 +163,7 @@ begin
   {$else}
   result := w;
   {$endif}
+  w := result;
 end;
 
 Function ntohs(var W : Word) : Word;
@@ -165,6 +174,7 @@ begin
   {$else}
   result := w;
   {$endif}
+  w := result;
 end;
 
 function ntohl(i:integer):integer;
@@ -174,6 +184,7 @@ begin
   {$else}
   result := i;
   {$endif}
+  i := result;
 end;
 
 { ---------------------------------------------------------------------
@@ -544,6 +555,91 @@ begin
     Result:=ResolveNameAt(I,HostName,Addresses);
     Inc(I);
     end;
+end;
+
+function stringfromlabel(pl: TPayLoad; start: integer): string;
+var
+  l,i: integer;
+begin
+  result := '';
+  l := 0;
+  i := 0;
+  repeat
+    l := ord(pl[start]);
+    if l <> 0 then begin
+      setlength(result,length(result)+l);
+      move(pl[start+1],result[i+1],l);
+      result := result + '.';
+      inc(start,l); inc(start);
+      inc(i,l); inc(i);
+    end;
+  until l = 0;
+  if result[length(result)] = '.' then setlength(result,length(result)-1);
+end;
+
+Function ResolveNameAt6(Resolver : Integer; HostName : String; Var Addresses : Array of THostAddr6; Recurse: Integer) : Integer;
+                                                                                                                                        
+Var
+  Qry, Ans            : TQueryData;
+  MaxAnswer,I,QryLen,
+  AnsLen,AnsStart     : Longint;
+  RR                  : TRRData;
+  cname               : string;
+                                                                                                                                        
+begin
+  Result:=0;
+  QryLen:=BuildPayLoad(Qry,HostName,DNSQRY_AAAA,1);
+  If Not Query(Resolver,Qry,Ans,QryLen,AnsLen) then
+    Result:=-1
+  else
+    begin
+    AnsStart:=SkipAnsQueries(Ans,AnsLen);
+    MaxAnswer:=Ans.AnCount-1;
+    If MaxAnswer>High(Addresses) then
+      MaxAnswer:=High(Addresses);
+    I:=0;
+    While (I<=MaxAnswer) and NextRR(Ans.Payload,AnsStart,AnsLen,RR) do
+      begin
+      if (1=NtoHS(RR.AClass)) then
+      case ntohs(rr.atype) of
+        DNSQRY_AAAA: begin
+            Move(Ans.PayLoad[AnsStart],Addresses[i],SizeOf(THostAddr6));
+            inc(Result);
+            rr.rdlength := ntohs(rr.rdlength);
+            Inc(AnsStart,RR.RDLength);
+          end;
+        DNSQRY_CNAME: begin
+          if Recurse >= MaxRecursion then begin
+            Result := -1;
+            exit;
+          end;
+          rr.rdlength := ntohs(rr.rdlength);
+          writeln(rr.rdlength);
+          setlength(cname, rr.rdlength);
+          cname := stringfromlabel(ans.payload, ansstart);
+          writeln(cname);
+          Result := ResolveNameAt6(Resolver, cname, Addresses, Recurse+1);
+          exit; // FIXME: what about other servers?!
+        end;
+      end;
+      Inc(I);
+      end;
+    end;
+end;
+                                                                                                                                        
+
+
+Function ResolveName6(HostName: String; Var Addresses: Array of THostAddr6) : Integer;
+var
+  i: Integer;
+begin
+  CheckResolveFile;
+  i := 1;
+  Result := 0;
+  while (Result = 0) and (I<= DNSServerCount) do begin
+    Result := ResolveNameAt6(I, Hostname, Addresses, 0);
+    Inc(i);
+  end;
 end;
 
 Function ResolveAddressAt(Resolver : Integer; Address : String; Var Names : Array of String) : Integer;
@@ -978,7 +1074,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2003-09-29 19:21:19  marco
+  Revision 1.8  2003-11-22 23:17:50  michael
+  Patch for ipv6 and CNAME record support from Johannes Berg
+
+  Revision 1.7  2003/09/29 19:21:19  marco
    * ; added to line 150
 
   Revision 1.6  2003/09/29 07:44:11  michael

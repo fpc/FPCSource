@@ -66,7 +66,7 @@ Var
 
 begin
   Writeln('Resolving name ');
-  l:=ResolveName('malpertuus.wisa.be',Ans);  
+  l:=ResolveName('db.wisa.be',Ans);  
   Writeln('Got : ',l,' answers');
   For I:=1 to l do
     Writeln(i:2,': ',hostAddrtostr(Ans[i]));
@@ -84,7 +84,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-05-17 20:54:03  michael
+  Revision 1.3  2003-11-22 23:17:50  michael
+  Patch for ipv6 and CNAME record support from Johannes Berg
+
+  Revision 1.2  2003/05/17 20:54:03  michael
   + uriparser unit added. Header/Footer blocks added
 
 }
