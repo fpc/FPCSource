@@ -536,7 +536,7 @@ end;
 
 function get_error_bp : Longint;assembler;
 asm
-   movl (%ebp),%eax 
+   movl (%ebp),%eax
 end;
 
 begin
@@ -619,7 +619,7 @@ begin
 end;
 
 
-function abs(l:longint):longint;assembler;
+function abs(l:longint):longint;assembler;{$ifdef INTERNCONST}[internconst:in_const_abs];{$endif}
 asm
         movl    l,%eax
         orl     %eax,%eax
@@ -629,7 +629,7 @@ asm
 end ['EAX'];
 
 
-function odd(l:longint):boolean;assembler;
+function odd(l:longint):boolean;assembler;{$ifdef INTERNCONST}[internconst:in_const_odd];{$endif}
 asm
        movl     l,%eax
        andl     $1,%eax
@@ -637,7 +637,7 @@ asm
 end ['EAX'];
 
 
-function sqr(l:longint):longint;assembler;
+function sqr(l:longint):longint;assembler;{$ifdef INTERNCONST}[internconst:in_const_sqr];{$endif}
 asm
         mov     l,%eax
         imull   %eax,%eax
@@ -752,7 +752,10 @@ end;
 
 {
   $Log$
-  Revision 1.18  1998-08-11 00:04:47  peter
+  Revision 1.19  1998-09-01 17:36:17  peter
+    + internconst
+
+  Revision 1.18  1998/08/11 00:04:47  peter
     * $ifdef ver0_99_5 updates
 
   Revision 1.17  1998/07/30 13:26:20  michael

@@ -272,7 +272,7 @@
          end [];
       end;
 
-    function abs(d : extended) : extended;
+    function abs(d : extended) : extended;{$ifdef INTERNCONST}[internconst:in_const_abs];{$endif}
 
       begin
          asm
@@ -283,7 +283,7 @@
          end [];
       end;
 
-    function sqr(d : extended) : extended;
+    function sqr(d : extended) : extended;{$ifdef INTERNCONST}[internconst:in_const_sqr];{$endif}
 
       begin
          asm
@@ -376,7 +376,7 @@
          end;
       end;
 
-    function frac(d : extended) : extended;
+    function frac(d : extended) : extended;{$ifdef INTERNCONST}[internconst:in_const_frac];{$endif}
 
       begin
          asm
@@ -400,7 +400,7 @@
          end ['ECX'];
       end;
 
-    function int(d : extended) : extended;
+    function int(d : extended) : extended;{$ifdef INTERNCONST}[internconst:in_const_int];{$endif}
 
       begin
          asm
@@ -421,7 +421,7 @@
          end ['ECX'];
       end;
 
-    function trunc(d : extended) : longint;
+    function trunc(d : extended) : longint;{$ifdef INTERNCONST}[internconst:in_const_trunc];{$endif}
 
       begin
          asm
@@ -442,7 +442,7 @@
          end ['EAX','ECX'];
       end;
 
-    function round(d : extended) : longint;
+    function round(d : extended) : longint;{$ifdef INTERNCONST}[internconst:in_const_round];{$endif}
 
       begin
          asm
@@ -634,7 +634,10 @@
 
 {
   $Log$
-  Revision 1.7  1998-08-25 08:49:05  florian
+  Revision 1.8  1998-09-01 17:36:18  peter
+    + internconst
+
+  Revision 1.7  1998/08/25 08:49:05  florian
     * corrected exp() function
 
   Revision 1.6  1998/08/11 21:39:04  peter

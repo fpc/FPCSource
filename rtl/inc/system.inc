@@ -43,23 +43,6 @@ const
   ErrorBase : Longint = 0;
 
 {****************************************************************************
-                    Include processor specific routines
-****************************************************************************}
-
-{$IFDEF I386}
-  {$IFDEF M68K}
-    {$Error Can't determine processor type !}
-  {$ENDIF}
-  {$I i386.inc}  { Case dependent, don't change }
-{$ELSE}
-  {$IFDEF M68K}
-    {$I m68k.inc}  { Case dependent, don't change }
-  {$ELSE}
-    {$Error Can't determine processor type !}
-  {$ENDIF}
-{$ENDIF}
-
-{****************************************************************************
                      Routines which have compiler magic
 ****************************************************************************}
 
@@ -96,6 +79,22 @@ Function Length(s : string) : byte; [INTERNPROC: In_Length_string];
 Procedure Reset(var f : TypedFile);   [INTERNPROC: In_Reset_TypedFile];
 Procedure Rewrite(var f : TypedFile); [INTERNPROC: In_Rewrite_TypedFile];
 
+{****************************************************************************
+                    Include processor specific routines
+****************************************************************************}
+
+{$IFDEF I386}
+  {$IFDEF M68K}
+    {$Error Can't determine processor type !}
+  {$ENDIF}
+  {$I i386.inc}  { Case dependent, don't change }
+{$ELSE}
+  {$IFDEF M68K}
+    {$I m68k.inc}  { Case dependent, don't change }
+  {$ELSE}
+    {$Error Can't determine processor type !}
+  {$ENDIF}
+{$ENDIF}
 
 {****************************************************************************
                                 Set Handling
@@ -242,22 +241,22 @@ End;
 
 {$endif VER0_99_5}
 
-Function swap (X : Word) : Word;
+Function swap (X : Word) : Word;{$ifdef INTERNCONST}[internconst:in_const_swap_word];{$endif}
 Begin
   swap:=(X and $ff) shl 8 + (X shr 8)
 End;
 
-Function Swap (X : Integer) : Integer;
+Function Swap (X : Integer) : Integer;{$ifdef INTERNCONST}[internconst:in_const_swap_word];{$endif}
 Begin
   Swap:=Integer(Swap(Word(X)));
 End;
 
-Function swap (X : Longint) : Longint;
+Function swap (X : Longint) : Longint;{$ifdef INTERNCONST}[internconst:in_const_swap_long];{$endif}
 Begin
   Swap:=(X and $ffff) shl 16 + (X shr 16)
 End;
 
-Function Swap (X : Cardinal) : Cardinal;
+Function Swap (X : Cardinal) : Cardinal;{$ifdef INTERNCONST}[internconst:in_const_swap_long];{$endif}
 Begin
   Swap:=Swap(Longint(X));
 End;
@@ -266,8 +265,8 @@ End;
 
 {****************************************************************************
                           Random function routines
-			      
-	This implements a very long cycle random number generator by combining
+                        
+        This implements a very long cycle random number generator by combining
    three independant generators.  The technique was described in the March
    1987 issue of Byte.
    Taken and modified with permission from the PCQ Pascal rtl code.
@@ -343,7 +342,7 @@ end;
 
 {$ifndef RTLLITE}
 
-Function Ptr(sel,off : Longint) : pointer;
+Function Ptr(sel,off : Longint) : pointer;{$ifdef INTERNCONST}[internconst:in_const_ptr];{$endif}
 Begin
   sel:=0;
   ptr:=pointer(off);
@@ -534,7 +533,10 @@ end;
 
 {
   $Log$
-  Revision 1.28  1998-08-17 12:24:16  carl
+  Revision 1.29  1998-09-01 17:36:21  peter
+    + internconst
+
+  Revision 1.28  1998/08/17 12:24:16  carl
     + important comment added
 
   Revision 1.27  1998/08/13 16:22:11  jonas

@@ -28,6 +28,13 @@
 
 {$i version.inc}
 
+{$ifndef VER0_99_5}
+  {$ifndef VER0_99_6}
+    {$define INTERNCONST}
+  {$endif}
+{$endif}
+
+
 {****************************************************************************
                          Global Types and Constants
 ****************************************************************************}
@@ -433,7 +440,10 @@ Procedure halt;
 
 {
   $Log$
-  Revision 1.24  1998-08-11 21:39:08  peter
+  Revision 1.25  1998-09-01 17:36:22  peter
+    + internconst
+
+  Revision 1.24  1998/08/11 21:39:08  peter
     * splitted default_extended from support_extended
 
   Revision 1.23  1998/08/11 00:05:27  peter
