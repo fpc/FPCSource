@@ -260,7 +260,7 @@ begin
   else
     Include(FCOmponentState,csAncestor);
   if Assigned(FComponents) then
-    For Runner:=0 To FComponents.Count do
+    For Runner:=0 To FComponents.Count-1 do
       TComponent(FComponents.Items[Runner]).SetAncestor(Value);
 end;
 
@@ -533,7 +533,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2002-09-07 15:15:24  peter
+  Revision 1.8  2002-10-15 20:06:19  michael
+  + Fixed SetAncestor. Index was getting too big
+
+  Revision 1.7  2002/09/07 15:15:24  peter
     * old logs removed and tabs fixed
 
   Revision 1.6  2002/01/09 10:40:24  michael
