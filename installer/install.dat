@@ -173,7 +173,15 @@ package=ux11emx.zip,X11 interface units
 # OS/2-2 11
 package=ugtkemx.zip,GTK interface units
 # OS/2-2 12
-package=ufpgtkemx.zip,fpGTK units
+package=ufpgtkemx.zip[ufpgtemx.zip],fpGTK units
+# OS/2-2 13
+package=uimlibemx.zip[uimlbemx.zip],ImLib interface units
+# OS/2-2 14
+package=ulibpngemx.zip[ulpngemx.zip],LibPNG interface units
+# OS/2-2 15
+package=utclemx.zip,TCL interface units
+# OS/2-2 16
+package=uzlibemx.zip,ZLib interface units
 
 
 #
