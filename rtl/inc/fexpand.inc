@@ -97,7 +97,7 @@ begin
     for I := 1 to Length (Pa) do
         if Pa [I] = '/' then
             Pa [I] := DirSep;
-{$ELSE}            
+{$ELSE}
     {Allow backslash as slash}
     for I := 1 to Length (Pa) do
         if Pa [I] = '\' then
@@ -108,7 +108,7 @@ begin
 {$ENDIF FPC_FEXPAND_VOLUMES}
 {$IFDEF FPC_FEXPAND_TILDE}
     {Replace ~/ with $HOME/}
-    if (Length (Pa) >= 1) and (Pa [1] = '~') and 
+    if (Length (Pa) >= 1) and (Pa [1] = '~') and
                                   ((Pa [2] = DirSep) or (Length (Pa) = 1)) then
         begin
  {$IFDEF FPC_FEXPAND_GETENV_PCHAR}
@@ -309,26 +309,13 @@ end;
 
 {
   $Log$
-  Revision 1.10  2002-05-14 19:25:24  hajny
+  Revision 1.11  2002-09-07 15:07:45  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.10  2002/05/14 19:25:24  hajny
     * fix for bug 1964 merged
 
   Revision 1.9  2002/03/03 15:19:36  carl
   * fixes unix conversion of slashes
 
-  Revision 1.8  2001/04/09 19:28:40  hajny
-    * yet another fix for FExpand under Unix
-
-  Revision 1.5  2001/03/21 21:08:20  hajny
-    * GetDir fixed
-
-  Revision 1.4  2001/03/19 21:09:30  hajny
-    * one more problem in the Unix part
-
-  Revision 1.3  2001/03/19 21:05:42  hajny
-    * mistyping in the Unix part fixed
-
-  Revision 1.2  2001/03/10 09:57:51  hajny
-    * FExpand without IOResult change, remaining direct asm removed
-
- 
 }

@@ -383,11 +383,7 @@ CONST
 
 {
   $Log$
-  Revision 1.3  2000-08-12 12:27:14  jonas
-    + setallpalette hook
-    + setallpalette implemented for standard vga and VESA 2.0+
-
-  Revision 1.2  2000/07/13 11:33:47  michael
-  + removed logs
+  Revision 1.4  2002-09-07 15:07:47  peter
+    * old logs removed and tabs fixed
 
 }

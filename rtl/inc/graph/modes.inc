@@ -588,28 +588,9 @@ end;
 
 {
   $Log$
-  Revision 1.8  2002-09-07 12:37:19  carl
+  Revision 1.9  2002-09-07 15:07:47  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.8  2002/09/07 12:37:19  carl
     - unit cleanup (removed unused defines)
-
-  Revision 1.7  2001/06/01 11:13:22  jonas
-    * GetMaxMode() now returns a smallint instead of a word (since the type
-      of the modenumbers is smallint too) (merged)
-
-  Revision 1.6  2001/04/14 16:06:03  jonas
-    * fixed problem with new modes system (reported by Vladimir Ravodin) (merged)
-
-  Revision 1.5  2001/04/13 23:49:48  peter
-    * fixes for the stricter compiler
-
-  Revision 1.4  2000/08/12 12:27:14  jonas
-    + setallpalette hook
-    + setallpalette implemented for standard vga and VESA 2.0+
-
-  Revision 1.3  2000/08/01 06:03:32  jonas
-    * the defaulthooks are reset if setmode() fails at any point  (merged
-      from fixes branch)
-
-  Revision 1.2  2000/07/13 11:33:47  michael
-  + removed logs
-
 }

@@ -1,10 +1,10 @@
 UNIT os_types;
 
-{ 
-  Note: 
-  This file is meant as a helper for porting C and C++ interfaces to FreePascal. 
+{
+  Note:
+  This file is meant as a helper for porting C and C++ interfaces to FreePascal.
   It got required since FPC's resolving of the integer type depends on selected
-  slang but not much on the target platform like its state of the art in C. 
+  slang but not much on the target platform like its state of the art in C.
   When porting API interfaces its recomended to use the types defined here.
   2000-Mar-18   alex    <AlexS@freepage.de>
 }
@@ -65,16 +65,13 @@ IMPLEMENTATION
 end.
 
   $Log$
-  Revision 1.5  2002-03-28 20:57:41  carl
+  Revision 1.6  2002-09-07 15:07:46  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.5  2002/03/28 20:57:41  carl
   - remove go32v1 support
 
   Revision 1.4  2002/03/16 12:46:09  armin
   + Netware added
 
-  Revision 1.3  2000/11/13 13:40:04  marco
-   * Renamefest
-
-  Revision 1.2  2000/07/13 11:33:45  michael
-  + removed logs
- 
 }

@@ -270,37 +270,8 @@ procedure do_unset_byte(p : pointer;b : byte);[public,alias:'FPC_SET_UNSET_BYTE'
 
 {
   $Log$
-  Revision 1.6  2001-09-04 11:38:56  jonas
-    + searchsystype() and searchsystype() functions in symtable
-    * changed ninl and nadd to use these functions
-    * i386 set comparison functions now return their results in al instead
-      of in the flags so that they can be sued as compilerprocs
-    - removed all processor specific code from n386add.pas that has to do
-      with set handling, it's now all done in nadd.pas
-    * fixed fpc_set_contains_sets in genset.inc
-    * fpc_set_in_byte is now coded inline in n386set.pas and doesn't use a
-      helper anymore
-    * some small fixes in compproc.inc/set.inc regarding the declaration of
-      internal helper types (fpc_small_set and fpc_normal_set)
-
-  Revision 1.5  2001/09/03 13:27:43  jonas
-    * compilerproc implementation of set addition/substraction/...
-    * changed the declaration of some set helpers somewhat to accomodate the
-      above change
-    * i386 still uses the old code for comparisons of sets, because its
-      helpers return the results in the flags
-    * dummy tc_normal_2_small_set type conversion because I need the original
-      resulttype of the set add nodes
-    NOTE: you have to start a cycle with 1.0.5!
-
-  Revision 1.4  2001/06/27 21:37:38  peter
-    * v10 merges
-
-  Revision 1.3  2001/05/18 22:59:59  peter
-    * merged fixes branch fixes
-
-  Revision 1.2  2001/05/09 19:57:07  peter
-  *** empty log message ***
+  Revision 1.7  2002-09-07 15:07:45  peter
+    * old logs removed and tabs fixed
 
 }
 

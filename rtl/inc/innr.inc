@@ -100,10 +100,7 @@ const
 
 {
   $Log$
-  Revision 1.3  2000-07-19 20:03:19  florian
-    + in_typeinfo_x added
-
-  Revision 1.2  2000/07/13 11:33:44  michael
-  + removed logs
+  Revision 1.4  2002-09-07 15:07:45  peter
+    * old logs removed and tabs fixed
 
 }

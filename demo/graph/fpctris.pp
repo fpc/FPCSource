@@ -853,19 +853,10 @@ END.
 
 {
   $Log$
-  Revision 1.4  2002-06-02 09:49:17  marco
+  Revision 1.5  2002-09-07 15:06:34  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.4  2002/06/02 09:49:17  marco
    * Renamefest
 
-  Revision 1.3  2001/12/11 11:24:52  marco
-   * some linux <-> unix fixes.
-
-  Revision 1.2  2001/11/11 21:09:49  marco
-   * Gameunit, Fpctris and samegame  fixed for win32 GUI
-
-  Revision 1.1  2001/05/03 21:39:33  peter
-    * moved to own module
-
-  Revision 1.2  2000/07/13 11:33:08  michael
-  + removed logs
- 
 }

@@ -295,39 +295,8 @@ end;
 
 {
   $Log$
-  Revision 1.6  2001-10-12 16:03:15  peter
-    * pollkey fixes (merged)
-
-  Revision 1.5  2001/10/10 20:19:00  michael
-  + Merge of Fixed PollKeyEvent - Pierres fix was not complete
-
-  Revision 1.4  2001/10/03 20:08:36  michael
-  * SetKeyBoardDriver now returns true if driver set - merged
-
-  Revision 1.3  2001/09/30 21:08:58  peter
-    * merged fixes
-  Revision 1.1.2.5  2001/10/10 20:17:11  michael
-  + Fixed PollKeyEvent - Pierres fix was not complete
-
-  Revision 1.1.2.4  2001/10/03 20:06:58  michael
-  * SetKeyBoardDriver now returns true if driver set
-
-  Revision 1.2  2001/09/21 21:33:36  michael
-  + Merged driver support from fixbranch
-
-  Revision 1.1.2.2  2001/09/21 21:20:43  michael
-  + Added support for keyboard driver.
-  + Added DefaultTranslateKeyEvent,DefaultTranslateKeyEventUnicode
-  + PendingKeyEvent variable no longer public. Handling of this variable is
-    now done entirely by global functions. System dependent code should not
-    need it, it is set automatically.
-  + InitVideo DoneVideo will check whether the keyboard is initialized or not.
-
-  Revision 1.1.2.1  2001/01/30 22:21:22  peter
-    * move api to rtl
-
-  Revision 1.1  2001/01/13 11:13:12  peter
-    * API 2 RTL
+  Revision 1.7  2002-09-07 15:07:45  peter
+    * old logs removed and tabs fixed
 
 }
 

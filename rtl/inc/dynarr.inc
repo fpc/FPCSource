@@ -261,7 +261,10 @@ function fpc_dynarray_copy(var p : pointer;ti : pointer;
 
 {
   $Log$
-  Revision 1.17  2002-04-26 15:19:05  peter
+  Revision 1.18  2002-09-07 15:07:45  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.17  2002/04/26 15:19:05  peter
     * use saveregisters for incr routines, saves also problems with
       the optimizer
 
@@ -272,57 +275,4 @@ function fpc_dynarray_copy(var p : pointer;ti : pointer;
   Revision 1.15  2002/01/21 20:16:08  peter
     * updated for dynarr:=nil
 
-  Revision 1.14  2001/12/29 15:51:11  jonas
-    * correctly check for 0-size dynarray in previous patch
-
-  Revision 1.13  2001/12/28 14:19:07  jonas
-    * don't allocate memory when doing a setlength(dynarr,0) when dynarr is
-      already nil
-
-  Revision 1.12  2001/11/17 16:56:08  florian
-    * init and final code in genrtti.inc updated
-
-  Revision 1.11  2001/09/27 08:59:13  jonas
-    * fixed bug in dynarr_decr_ref I introduced with my previous fixes
-
-  Revision 1.10  2001/09/26 14:07:25  jonas
-    * fixed several bugs, most related to handling multi-dimensional
-      dynamical arrays
-
-  Revision 1.9  2001/08/19 21:02:01  florian
-    * fixed and added a lot of stuff to get the Jedi DX8 headers
-      compiled
-
-  Revision 1.8  2001/08/01 15:00:10  jonas
-    + "compproc" helpers
-    * renamed several helpers so that their name is the same as their
-      "public alias", which should facilitate the conversion of processor
-      specific code in the code generator to processor independent code
-    * some small fixes to the val_ansistring and val_widestring helpers
-      (always immediately exit if the source string is longer than 255
-       chars)
-    * fixed fpc_dynarray_high and fpc_dynarray_length if the dynarray is
-      still nil (used to crash, now return resp -1 and 0)
-
-  Revision 1.7  2001/05/27 14:28:44  florian
-    + made the ref. couting MT safe
-
-  Revision 1.6  2001/04/13 23:49:48  peter
-    * fixes for the stricter compiler
-
-  Revision 1.5  2000/12/01 23:30:00  florian
-    * fixed some bugs in setlength
-
-  Revision 1.4  2000/11/12 23:23:34  florian
-    * interfaces basically running
-
-  Revision 1.3  2000/11/07 23:42:21  florian
-    + AfterConstruction and BeforeDestruction implemented
-    + TInterfacedObject implemented
-
-  Revision 1.2  2000/11/06 21:35:59  peter
-    * removed some warnings
-
-  Revision 1.1  2000/11/04 17:52:46  florian
-    * fixed linker errors
 }

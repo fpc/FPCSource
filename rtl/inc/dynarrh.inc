@@ -23,15 +23,7 @@ type
 
 {
   $Log$
-  Revision 1.1  2001-08-01 15:00:10  jonas
-    + "compproc" helpers
-    * renamed several helpers so that their name is the same as their
-      "public alias", which should facilitate the conversion of processor
-      specific code in the code generator to processor independent code
-    * some small fixes to the val_ansistring and val_widestring helpers
-      (always immediately exit if the source string is longer than 255
-       chars)
-    * fixed fpc_dynarray_high and fpc_dynarray_length if the dynarray is
-      still nil (used to crash, now return resp -1 and 0)
+  Revision 1.2  2002-09-07 15:07:45  peter
+    * old logs removed and tabs fixed
 
 }

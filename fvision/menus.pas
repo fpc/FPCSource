@@ -1759,7 +1759,10 @@ END;
 END.
 {
  $Log$
- Revision 1.14  2002-06-10 18:41:26  pierre
+ Revision 1.15  2002-09-07 15:06:37  peter
+   * old logs removed and tabs fixed
+
+ Revision 1.14  2002/06/10 18:41:26  pierre
   + add Submenu recognition sign
 
  Revision 1.13  2002/05/30 06:58:28  pierre
@@ -1770,28 +1773,5 @@ END.
 
  Revision 1.11  2002/05/21 10:53:25  pierre
   * fix graphical separation lines
-
- Revision 1.10  2001/08/05 21:49:56  pierre
-  * GetItemRect returned graphic coordinates, renamed to GetItemRectX
-
- Revision 1.9  2001/08/05 02:03:14  peter
-   * view redrawing and small cursor updates
-   * merged some more FV extensions
-
- Revision 1.8  2001/05/30 13:26:17  pierre
-  * fix border problems for views and menus
-
- Revision 1.7  2001/05/07 22:22:03  pierre
-  * removed NO_WINDOW cond, added GRAPH_API
-
- Revision 1.6  2001/05/04 15:43:45  pierre
-  * several more fixes
-
- Revision 1.5  2001/05/04 10:46:02  pierre
-  * various fixes  for win32 api mode
-
- Revision 1.4  2001/04/10 21:57:55  pierre
-  + first adds for Use_API define
-
 
 }

@@ -354,7 +354,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2002-04-11 19:47:48  pierre
+  Revision 1.6  2002-09-07 15:06:35  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.5  2002/04/11 19:47:48  pierre
    * avoid RTE 103 for win32
 
   Revision 1.4  2002/02/25 21:32:13  carl
@@ -362,17 +365,5 @@ end.
 
   Revision 1.3  2002/02/22 21:40:45  carl
   * range check error fix
-
-  Revision 1.2  2001/11/11 21:09:49  marco
-   * Gameunit, Fpctris and samegame  fixed for win32 GUI
-
-  Revision 1.1  2001/05/03 21:39:33  peter
-    * moved to own module
-
-  Revision 1.3  2001/04/25 22:45:41  peter
-    * regenerated
-
-  Revision 1.2  2000/07/13 11:33:08  michael
-  + removed logs
 
 }

@@ -5782,7 +5782,10 @@ END.
 
 {
  $Log$
- Revision 1.34  2002-08-22 13:40:49  pierre
+ Revision 1.35  2002-09-07 15:06:38  peter
+   * old logs removed and tabs fixed
+
+ Revision 1.34  2002/08/22 13:40:49  pierre
   * several graphic mode improovements
 
  Revision 1.33  2002/06/10 13:47:38  pierre
@@ -5829,59 +5832,5 @@ END.
 
  Revision 1.19  2002/05/16 21:23:34  pierre
   * fix some display problems
-
- Revision 1.18  2001/10/02 16:35:51  pierre
-  * fix several problems, try to get the graph version to compile
-
- Revision 1.17  2001/08/05 23:54:33  pierre
-  * some improovements for TListViewer
-
- Revision 1.16  2001/08/05 02:03:14  peter
-   * view redrawing and small cursor updates
-   * merged some more FV extensions
-
- Revision 1.15  2001/08/04 19:14:33  peter
-   * Added Makefiles
-   * added FV specific units and objects from old FV
-
- Revision 1.14  2001/06/01 16:01:20  pierre
-  TScrollBar Drawing  and TView.DragView corrected
-
- Revision 1.13  2001/05/31 12:14:06  pierre
-  * fix problems for multiple insert/delete and use Redraw for hild drawing like TV
-
- Revision 1.12  2001/05/30 13:26:18  pierre
-  * fix border problems for views and menus
-
- Revision 1.11  2001/05/30 10:22:25  pierre
-  * fix Shadow bugs
-
- Revision 1.10  2001/05/10 16:46:28  pierre
-  + some improovements made
-
- Revision 1.9  2001/05/07 23:36:35  pierre
-  NO_WINDOW cond removed
-
- Revision 1.8  2001/05/04 15:43:46  pierre
-  * several more fixes
-
- Revision 1.7  2001/05/04 10:46:03  pierre
-  * various fixes  for win32 api mode
-
- Revision 1.6  2001/05/04 08:42:56  pierre
-  * some corrections for linux
-
- Revision 1.5  2001/05/03 22:32:52  pierre
-  new bunch of changes, displays something for dos at least
-
- Revision 1.4  2001/04/10 21:57:56  pierre
-  + first adds for Use_API define
-
- Revision 1.3  2001/04/10 21:29:55  pierre
-  * import of Leon de Boer's files
-
- Revision 1.2  2000/08/24 12:00:22  marco
-  * CVS log and ID tags
-
 
 }

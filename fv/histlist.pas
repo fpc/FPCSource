@@ -420,7 +420,10 @@ END.
 
 {
  $Log$
- Revision 1.8  2002-06-10 11:51:08  pierre
+ Revision 1.9  2002-09-07 15:06:37  peter
+   * old logs removed and tabs fixed
+
+ Revision 1.8  2002/06/10 11:51:08  pierre
   * render history load/store compatible with older fvnew lib
 
  Revision 1.7  2002/06/03 20:07:44  pierre
@@ -428,19 +431,5 @@ END.
 
  Revision 1.6  2002/05/24 09:30:33  pierre
   * fix bug with HistoryUsed, now is really a used size
-
- Revision 1.5  2001/11/07 22:07:55  pierre
-  * removed another bug in InsertString
-
- Revision 1.4  2001/11/07 21:50:40  pierre
-  * copied from fvnew the changed that I made toremove runerror(199)
-
- Revision 1.3  2001/08/04 19:14:33  peter
-   * Added Makefiles
-   * added FV specific units and objects from old FV
-
- Revision 1.2  2000/08/24 12:00:22  marco
-  * CVS log and ID tags
-
 
 }

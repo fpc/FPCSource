@@ -4,7 +4,7 @@
     Copyright (c) 1999-2000 by the Free Pascal development team
 
     Implements OS-independent loading of dynamic libraries.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -49,7 +49,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-08-18 19:15:34  michael
-  + Implemented loading of dynamical libraries
+  Revision 1.2  2002-09-07 15:07:45  peter
+    * old logs removed and tabs fixed
 
 }

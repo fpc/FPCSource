@@ -787,24 +787,13 @@ Function GetDriverName: string;
 
 {
   $Log$
-  Revision 1.7  2002-09-07 12:43:03  carl
+  Revision 1.8  2002-09-07 15:07:47  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.7  2002/09/07 12:43:03  carl
     - unit cleanup (removed unused defines)
 
   Revision 1.6  2002/07/18 07:11:11  pierre
    merged from FIXES branch: DrawTextBackground support
-
-  Revision 1.5  2001/06/01 11:13:22  jonas
-    * GetMaxMode() now returns a smallint instead of a word (since the type
-      of the modenumbers is smallint too) (merged)
-
-  Revision 1.4  2000/08/12 12:27:14  jonas
-    + setallpalette hook
-    + setallpalette implemented for standard vga and VESA 2.0+
-
-  Revision 1.3  2000/08/05 18:34:47  peter
-    * merged setvideostate patch
-
-  Revision 1.2  2000/07/13 11:33:47  michael
-  + removed logs
 
 }

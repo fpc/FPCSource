@@ -80,13 +80,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2001-05-03 21:39:34  peter
-    * moved to own module
-
-  Revision 1.2  2001/04/22 10:13:14  hajny
-    * APPTYPE specified within the source files, RC called from makefiles
-
-  Revision 1.1  2001/01/14 19:02:14  hajny
-    + OS/2 demos added
+  Revision 1.2  2002-09-07 15:06:35  peter
+    * old logs removed and tabs fixed
 
 }

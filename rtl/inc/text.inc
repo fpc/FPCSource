@@ -1228,70 +1228,10 @@ end;
 
 {
   $Log$
-  Revision 1.17  2002-07-01 16:29:05  peter
+  Revision 1.18  2002-09-07 15:07:46  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.17  2002/07/01 16:29:05  peter
     * sLineBreak changed to normal constant like Kylix
-
-  Revision 1.16  2001/11/21 14:51:33  jonas
-    * fixed writing of empty ansistring with specified width (merged)
-
-  Revision 1.15  2001/09/25 16:34:59  jonas
-    * fixed seekeof() so that it doesn't move the current possition in the
-      file anymore (merged)
-    * seekeof() now only regards #26 as EOF marker if EOF_CTRLZ is defined
-      (just like eof()) (merged)
-    * very tiny optimization to read_array_as_pchar
-
-  Revision 1.14  2001/08/23 14:28:36  jonas
-    + tempcreate/ref/delete nodes (allows the use of temps in the
-      resulttype and first pass)
-    * made handling of read(ln)/write(ln) processor independent
-    * moved processor independent handling for str and reset/rewrite-typed
-      from firstpass to resulttype pass
-    * changed names of helpers in text.inc to be generic for use as
-      compilerprocs + added "iocheck" directive for most of them
-    * reading of ordinals is done by procedures instead of functions
-      because otherwise FPC_IOCHECK overwrote the result before it could
-      be stored elsewhere (range checking still works)
-    * compilerprocs can now be used in the system unit before they are
-      implemented
-    * added note to errore.msg that booleans can't be read using read/readln
-
-  Revision 1.13  2001/08/22 20:49:18  peter
-    * regenerated
-
-  Revision 1.12  2001/08/19 11:23:10  peter
-    * read_array fix merged
-
-  Revision 1.11  2001/07/21 15:53:28  jonas
-    * really fixed write_array this time :/ (merged)
-
-  Revision 1.10  2001/07/16 13:53:21  jonas
-    * correctly fixed potential buffer overrun in write_array
-
-  Revision 1.9  2001/07/08 21:00:18  peter
-    * various widestring updates, it works now mostly without charset
-      mapping supported
-
-  Revision 1.8  2001/06/27 21:37:38  peter
-    * v10 merges
-
-  Revision 1.7  2001/06/04 11:43:51  peter
-    * Formal const to var fixes
-    * Hexstr(int64) added
-
-  Revision 1.6  2001/04/08 13:21:30  jonas
-    * fixed potential buffer overflow in FPC_WRITE_TEXT_PCHAR_AS_ARRAY (merged)
-
-  Revision 1.5  2001/03/21 23:29:40  florian
-    + sLineBreak and misc. stuff for Kylix compatiblity
-
-  Revision 1.4  2000/11/23 13:14:02  jonas
-    * fix for web bug 1210 from Peter (merged)
-
-  Revision 1.3  2000/07/14 10:33:10  michael
-  + Conditionals fixed
-
-  Revision 1.2  2000/07/13 11:33:46  michael
-  + removed logs
 
 }

@@ -946,7 +946,10 @@ end;
 
 {
   $Log$
-  Revision 1.32  2002-08-19 19:34:02  peter
+  Revision 1.33  2002-09-07 15:07:45  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.32  2002/08/19 19:34:02  peter
     * SYSTEMINLINE define that will add inline directives for small
       functions and wrappers. This will be defined automaticly when
       the compiler defines the HASINLINE directive
@@ -991,98 +994,5 @@ end;
     * is_in_limit() moved from ncal to types unit, should always be used
       instead of direct comparisons of low/high values of orddefs because
       qword is a special case
-
-  Revision 1.21  2001/09/03 13:27:43  jonas
-    * compilerproc implementation of set addition/substraction/...
-    * changed the declaration of some set helpers somewhat to accomodate the
-      above change
-    * i386 still uses the old code for comparisons of sets, because its
-      helpers return the results in the flags
-    * dummy tc_normal_2_small_set type conversion because I need the original
-      resulttype of the set add nodes
-    NOTE: you have to start a cycle with 1.0.5!
-
-  Revision 1.20  2001/08/30 15:43:15  jonas
-    * converted adding/comparing of strings to compileproc. Note that due
-      to the way the shortstring helpers for i386 are written, they are
-      still handled by the old code (reason: fpc_shortstr_compare returns
-      results in the flags instead of in eax and fpc_shortstr_concat
-      has wierd parameter conventions). The compilerproc stuff should work
-      fine with the generic implementations though.
-    * removed some nested comments warnings
-
-  Revision 1.19  2001/08/29 19:49:04  jonas
-    * some fixes in compilerprocs for chararray to string conversions
-    * conversion from string to chararray is now also done via compilerprocs
-
-  Revision 1.18  2001/08/28 13:24:47  jonas
-    + compilerproc implementation of most string-related type conversions
-    - removed all code from the compiler which has been replaced by
-      compilerproc implementations (using (ifdef hascompilerproc) is not
-      necessary in the compiler)
-
-  Revision 1.17  2001/08/01 15:00:10  jonas
-    + "compproc" helpers
-    * renamed several helpers so that their name is the same as their
-      "public alias", which should facilitate the conversion of processor
-      specific code in the code generator to processor independent code
-    * some small fixes to the val_ansistring and val_widestring helpers
-      (always immediately exit if the source string is longer than 255
-       chars)
-    * fixed fpc_dynarray_high and fpc_dynarray_length if the dynarray is
-      still nil (used to crash, now return resp -1 and 0)
-
-  Revision 1.16  2001/07/31 19:36:51  peter
-    * small cleanup of commented code (merged)
-
-  Revision 1.15  2001/07/29 13:49:15  peter
-    * m68k updates merged
-
-  Revision 1.14  2001/07/08 21:00:18  peter
-    * various widestring updates, it works now mostly without charset
-      mapping supported
-
-  Revision 1.13  2001/05/28 20:43:17  peter
-    * more saveregisters added (merged)
-
-  Revision 1.12  2001/05/18 22:59:59  peter
-    * merged fixes branch fixes
-
-  Revision 1.11  2001/05/16 17:44:25  jonas
-    + odd() for cardinal, int64 and qword (merged)
-
-  Revision 1.10  2001/05/09 19:57:07  peter
-  *** empty log message ***
-
-  Revision 1.9  2001/04/21 12:16:28  peter
-    * int_str cardinal fix (merged)
-
-  Revision 1.8  2001/04/13 18:06:28  peter
-    * removed rtllite define
-
-  Revision 1.7  2001/03/05 17:10:40  jonas
-    * changed typecast in FPC_STR_TO_CHARARRAY so that no temp ansistring is
-      generated anymore (merged)
-
-  Revision 1.6  2001/03/03 12:41:22  jonas
-    * simplified and optimized range checking code, FPC_BOUNDCHECK is no longer necessary
-
-  Revision 1.5  2000/10/01 13:17:35  michael
-  + Merged from fixbranch
-
-  Revision 1.4  2000/08/09 11:29:01  jonas
-
-  Revision 1.1.2.2  2000/10/01 13:14:50  michael
-  + Corrected and (hopefully) improved compare0
-
-  Revision 1.1.2.1  2000/08/09 11:21:32  jonas
-    + FPC_STR_TO_CHARARRAY routine necessary for string -> chararray
-      conversions fix (merged fropm fixes branch)
-
-  Revision 1.3  2000/07/14 10:33:10  michael
-  + Conditionals fixed
-
-  Revision 1.2  2000/07/13 11:33:43  michael
-  + removed logs
 
 }

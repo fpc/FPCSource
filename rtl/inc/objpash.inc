@@ -269,43 +269,7 @@
 
 {
   $Log$
-  Revision 1.13  2001-08-19 21:02:01  florian
-    * fixed and added a lot of stuff to get the Jedi DX( headers
-      compiled
+  Revision 1.14  2002-09-07 15:07:46  peter
+    * old logs removed and tabs fixed
 
-  Revision 1.12  2001/08/12 22:11:48  peter
-    * freeandnil added
-
-  Revision 1.11  2001/04/13 23:49:48  peter
-    * fixes for the stricter compiler
-
-  Revision 1.10  2001/04/04 17:56:45  florian
-    * TGUID definition from win32/wininc/struct.inc copied
-
-  Revision 1.9  2001/03/22 23:26:37  florian
-    * some types moved to systemh
-    + some types like PDispatch added
-
-  Revision 1.8  2000/11/07 23:42:21  florian
-    + AfterConstruction and BeforeDestruction implemented
-    + TInterfacedObject implemented
-
-  Revision 1.7  2000/11/06 20:34:24  peter
-    * changed ver1_0 defines to temporary defs
-
-  Revision 1.6  2000/11/04 17:31:50  florian
-    * fixed some out declarations
-
-  Revision 1.5  2000/11/04 16:28:55  florian
-    + interfaces support
-
-  Revision 1.4  2000/09/30 07:38:07  sg
-  * Added 'RaiseProc': A user-definable callback procedure which gets
-    called whenever an exception is being raised
-
-  Revision 1.3  2000/07/14 10:33:10  michael
-  + Conditionals fixed
-
-  Revision 1.2  2000/07/13 11:33:45  michael
-  + removed logs
 }

@@ -303,16 +303,7 @@ END;
 END.
 {
  $Log$
- Revision 1.4  2001-08-05 02:03:13  peter
-   * view redrawing and small cursor updates
-   * merged some more FV extensions
-
- Revision 1.3  2001/08/04 19:14:33  peter
-   * Added Makefiles
-   * added FV specific units and objects from old FV
-
- Revision 1.2  2000/08/24 12:00:21  marco
-  * CVS log and ID tags
-
+ Revision 1.5  2002-09-07 15:06:36  peter
+   * old logs removed and tabs fixed
 
 }

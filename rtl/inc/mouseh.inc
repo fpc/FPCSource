@@ -36,15 +36,15 @@ const
   MouseMiddleButton = $04;                         { Middle mouse button }
 
   MouseEventBufSize = 16;                { Size of event queue }
-  
+
 var
   MouseIntFlag : Byte;                                { Mouse in int flag }
   MouseButtons : Byte;                                { Mouse button state }
   MouseWhereX,
   MouseWhereY  : Word;                                { Mouse position }
 
-Type 
-  TMouseDriver = Record 
+Type
+  TMouseDriver = Record
     UseDefaultQueue : Boolean;
     InitDriver : Procedure;
     DoneDriver : Procedure;
@@ -57,7 +57,7 @@ Type
     SetMouseXY : procedure (x,y:word);
     GetMouseEvent : procedure (var MouseEvent:TMouseEvent);
     PollMouseEvent : function (var MouseEvent: TMouseEvent):boolean;
-    PutMouseEvent : procedure (Const MouseEvent:TMouseEvent); 
+    PutMouseEvent : procedure (Const MouseEvent:TMouseEvent);
   end;
 
 procedure InitMouse;
@@ -107,16 +107,7 @@ Procedure GetMouseDriver(Var Driver : TMouseDriver);
 
 {
   $Log$
-  Revision 1.2  2001-09-22 00:01:42  michael
-  + Merged driver support for mouse from fixbranch
-
-  Revision 1.1.2.2  2001/09/21 23:53:48  michael
-  + Added mouse driver support.
-
-  Revision 1.1.2.1  2001/01/30 22:21:22  peter
-    * move api to rtl
-
-  Revision 1.1  2001/01/13 11:13:12  peter
-    * API 2 RTL
+  Revision 1.3  2002-09-07 15:07:45  peter
+    * old logs removed and tabs fixed
 
 }

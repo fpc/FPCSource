@@ -353,24 +353,7 @@ END.
 
 {
  $Log$
- Revision 1.1  2001-08-04 19:14:34  peter
-   * Added Makefiles
-   * added FV specific units and objects from old FV
-
- Revision 1.6  2001/05/31 21:40:10  pierre
-  * some debug stuff changed
-
- Revision 1.5  2001/05/04 15:43:46  pierre
-  * several more fixes
-
- Revision 1.4  2001/05/04 10:46:02  pierre
-  * various fixes  for win32 api mode
-
- Revision 1.3  2001/05/04 08:42:55  pierre
-  * some corrections for linux
-
- Revision 1.2  2000/08/24 12:00:22  marco
-  * CVS log and ID tags
-
+ Revision 1.2  2002-09-07 15:06:38  peter
+   * old logs removed and tabs fixed
 
 }

@@ -660,7 +660,10 @@ end;
 
 {
   $Log$
-  Revision 1.20  2002-09-02 19:24:41  peter
+  Revision 1.21  2002-09-07 15:07:46  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.20  2002/09/02 19:24:41  peter
     * array of char support for Str()
 
   Revision 1.19  2002/08/06 20:53:38  michael
@@ -668,75 +671,5 @@ end;
 
   Revision 1.18  2002/01/24 18:27:06  peter
     * lowercase() overloaded
-
-  Revision 1.17  2001/11/16 15:09:47  jonas
-    * optimized fpc_val_sint_shortstr
-
-  Revision 1.16  2001/08/13 12:40:16  jonas
-    * renamed some str(x,y) and val(x,y) helpers so the naming scheme is the
-      same for all string types
-    + added the str(x,y) and val(x,y,z) helpers for int64/qword to
-      compproc.inc
-
-  Revision 1.15  2001/08/01 15:00:10  jonas
-    + "compproc" helpers
-    * renamed several helpers so that their name is the same as their
-      "public alias", which should facilitate the conversion of processor
-      specific code in the code generator to processor independent code
-    * some small fixes to the val_ansistring and val_widestring helpers
-      (always immediately exit if the source string is longer than 255
-       chars)
-    * fixed fpc_dynarray_high and fpc_dynarray_length if the dynarray is
-      still nil (used to crash, now return resp -1 and 0)
-
-  Revision 1.14  2001/07/08 21:00:18  peter
-    * various widestring updates, it works now mostly without charset
-      mapping supported
-
-  Revision 1.13  2001/07/04 12:02:14  jonas
-    * fixed bug in ValSignedInt (it accepted some values slightly larger than
-      high(cardinal) such as 4294967297) (merged)
-
-  Revision 1.12  2001/06/04 11:43:51  peter
-    * Formal const to var fixes
-    * Hexstr(int64) added
-
-  Revision 1.11  2001/04/13 22:30:04  peter
-    * remove warnings
-
-  Revision 1.10  2001/04/13 18:06:28  peter
-    * removed rtllite define
-
-  Revision 1.9  2001/03/03 12:38:53  jonas
-    * made val for longints a bit faster
-
-  Revision 1.8  2000/12/09 20:52:41  florian
-    * val for dword and qword didn't handle the max values
-      correctly
-    * val for qword works again
-    + val with int64/qword and ansistring implemented
-
-  Revision 1.7  2000/11/23 11:41:56  jonas
-    * fix for web bug 1265 by Peter (merged)
-
-  Revision 1.6  2000/11/17 17:01:23  jonas
-    * fixed bug for val when processing -2147483648 and low(int64) (merged)
-
-  Revision 1.5  2000/11/06 20:34:24  peter
-    * changed ver1_0 defines to temporary defs
-
-  Revision 1.4  2000/10/21 18:20:17  florian
-    * a lot of small changes:
-       - setlength is internal
-       - win32 graph unit extended
-       ....
-
-  Revision 1.3  2000/07/28 12:29:49  jonas
-    * fixed web bug1069
-    * fixed similar (and other) problems in val() for int64 and qword
-      (both merged from fixes branch)
-
-  Revision 1.2  2000/07/13 11:33:45  michael
-  + removed logs
 
 }

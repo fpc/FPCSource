@@ -626,18 +626,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2002-05-21 12:21:53  pierre
+  Revision 1.5  2002-09-07 15:06:36  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.4  2002/05/21 12:21:53  pierre
    * fix various graphic problems
 
   Revision 1.3  2002/05/21 12:00:49  pierre
    + cmResizeApp added
-
-  Revision 1.2  2001/08/05 02:03:13  peter
-    * view redrawing and small cursor updates
-    * merged some more FV extensions
-
-  Revision 1.1  2001/08/04 19:14:33  peter
-    * Added Makefiles
-    * added FV specific units and objects from old FV
 
 }

@@ -412,14 +412,7 @@ End;
 
 {
   $Log$
-  Revision 1.4  2001-06-27 21:37:38  peter
-    * v10 merges
-
-  Revision 1.3  2001/06/04 11:43:51  peter
-    * Formal const to var fixes
-    * Hexstr(int64) added
-
-  Revision 1.2  2000/07/13 11:33:43  michael
-  + removed logs
+  Revision 1.5  2002-09-07 15:07:45  peter
+    * old logs removed and tabs fixed
 
 }

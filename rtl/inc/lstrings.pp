@@ -13,10 +13,10 @@
 
  **********************************************************************}
 {
-  This file contains the implementation of the LongString type, 
+  This file contains the implementation of the LongString type,
   and all things that are needed for it.
   LongSTring is defined as a 'silent' pchar :
-  a pchar that points to :    
+  a pchar that points to :
 
   @   : Longint for size
   @+4 : Unused byte;
@@ -26,14 +26,14 @@
   pchar[0]-pchar[3] : Longint Size
   pchar [4] : Unused
   pchar[5] : String;
-  
+
 }
 
-{$ifdef lstrings_unit} 
+{$ifdef lstrings_unit}
 { Compile as a separate unit - development only}
 unit lstrings;
 
-Interface 
+Interface
 
 Type longstring = pchar;
      ShortString = string;
@@ -147,9 +147,9 @@ Var Size : Longint;
 begin
   Size:=Byte(S2[0]);
   if MaxLen<>-1 then
-    if Size+PLongint(S1)^>Maxlen then  
+    if Size+PLongint(S1)^>Maxlen then
       Size:=Maxlen-PLongint(S1)^;
-  If Size<=0 then exit; 
+  If Size<=0 then exit;
   Move (S2[1],Pchar(S1)[PLongint(S1)^+5],Size);
   PLongint(S1)^:=PLongint(S1)^+Size;
 end;
@@ -160,7 +160,7 @@ Procedure Long_To_ShortString (Var S1 : ShortString; Const S2 : LongString; Maxl
 {
  Converts a LongString to a longstring;
  if maxlen<>-1, the resulting string has maximal length maxlen
- else a default length of 255 is taken. 
+ else a default length of 255 is taken.
 }
 Var Size : Longint;
 
@@ -183,7 +183,7 @@ Var Size : Longint;
 
 begin
   Size:=Byte(S2[0]);
-  if maxlen=-1 then maxlen:=255; 
+  if maxlen=-1 then maxlen:=255;
   If Size>maxlen then Size:=maxlen;
   Move (S2[1],pchar(S1)[5],Size);
   PLongint(S1)^:=Size;
@@ -212,7 +212,7 @@ begin
    inc(i);
    end;
  if temp=0 then temp:=Plongint(S1)^-PLongint(S2)^;
- LongCompare:=Temp; 
+ LongCompare:=Temp;
 end;
 
 
@@ -237,7 +237,7 @@ begin
    Temp:=(Byte(Pchar(S1)[i+4])-Byte(S2[I]));
    inc(i);
    end;
- LongCompare:=Temp; 
+ LongCompare:=Temp;
 end;
 
 
@@ -251,7 +251,7 @@ end;
 
 
 { ---------------------------------------------------------------------
-   Public functions, In interface.  
+   Public functions, In interface.
   ---------------------------------------------------------------------}
 
 Function Length (Const S : LongString) : Longint;
@@ -278,9 +278,9 @@ begin
     {We're in deep shit here !!}
     exit;
   dec(index);
-  if PLongint(S)^<Index+Size then 
+  if PLongint(S)^<Index+Size then
     Size:=PLongint(S)^-Index;
-  if Size>0 then 
+  if Size>0 then
     Move (Pchar(S)[Index+5],ResultAddress[5],Size)
   Else
     Size:=0;
@@ -295,7 +295,7 @@ Function Pos (Const Substr : LongString; Const Source : Longstring) : Longint;
 var i,j : longint;
     e : boolean;
     s : longstring;
-    
+
 begin
  i := 0;
  j := 0;
@@ -320,7 +320,7 @@ end;
 Procedure Val (Const S : LongString; var R : real; Var Code : Integer);
 
 Var SS : String;
-    
+
 begin
  Long_To_ShortString (SS,S,255);
  System.Val(SS,R,Code);
@@ -535,7 +535,7 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:44  michael
-  + removed logs
- 
+  Revision 1.3  2002-09-07 15:07:45  peter
+    * old logs removed and tabs fixed
+
 }

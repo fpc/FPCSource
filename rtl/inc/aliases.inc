@@ -10,7 +10,7 @@
     forward definitions, because there's a bug which causes all
     sorts of trouble if you you first declare a procedure as
     forward, then call it and then implement it using an
-    "external name 'bla'" where 'bla' is a public alias of a 
+    "external name 'bla'" where 'bla' is a public alias of a
     procedure defined after the call to the forward defined
     procedure.
 
@@ -33,15 +33,7 @@ procedure int_FinalizeArray(data,typeinfo : pointer;count,size : longint); [exte
 
 {
   $Log$
-  Revision 1.1  2001-08-01 15:00:10  jonas
-    + "compproc" helpers
-    * renamed several helpers so that their name is the same as their
-      "public alias", which should facilitate the conversion of processor
-      specific code in the code generator to processor independent code
-    * some small fixes to the val_ansistring and val_widestring helpers
-      (always immediately exit if the source string is longer than 255
-       chars)
-    * fixed fpc_dynarray_high and fpc_dynarray_length if the dynarray is
-      still nil (used to crash, now return resp -1 and 0)
+  Revision 1.2  2002-09-07 15:07:44  peter
+    * old logs removed and tabs fixed
 
 }

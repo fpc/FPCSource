@@ -291,12 +291,7 @@ END.
 
 {
  $Log$
- Revision 1.3  2001-08-05 02:03:14  peter
-   * view redrawing and small cursor updates
-   * merged some more FV extensions
-
- Revision 1.2  2000/08/24 12:00:22  marco
-  * CVS log and ID tags
-
+ Revision 1.4  2002-09-07 15:06:38  peter
+   * old logs removed and tabs fixed
 
 }

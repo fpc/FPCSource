@@ -699,9 +699,13 @@
 
 {
   $Log$
-  Revision 1.26  2002-09-07 11:08:58  carl
+  Revision 1.27  2002-09-07 15:07:46  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.26  2002/09/07 11:08:58  carl
     - remove logs
 
   Revision 1.25  2002/08/31 13:11:11  florian
     * several fixes for Linux/PPC compilation
-}
+
+}

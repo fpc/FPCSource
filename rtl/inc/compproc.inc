@@ -265,7 +265,10 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 
 {
   $Log$
-  Revision 1.20  2002-09-02 19:24:41  peter
+  Revision 1.21  2002-09-07 15:07:45  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.20  2002/09/02 19:24:41  peter
     * array of char support for Str()
 
   Revision 1.19  2002/08/20 18:24:05  jonas
@@ -291,97 +294,4 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
   Revision 1.13  2002/01/21 20:16:08  peter
     * updated for dynarr:=nil
 
-  Revision 1.12  2001/12/03 21:39:20  peter
-    * freemem(var) -> freemem(value)
-
-  Revision 1.11  2001/09/29 21:32:47  jonas
-    * almost all second pass typeconvnode helpers are now processor independent
-    * fixed converting boolean to int64/qword
-    * fixed register allocation bugs which could cause internalerror 10
-    * isnode and asnode are completely processor indepent now as well
-    * fpc_do_as now returns its class argument (necessary to be able to use it
-      properly with compilerproc)
-
-  Revision 1.10  2001/09/05 15:22:09  jonas
-    * made multiplying, dividing and mod'ing of int64 and qword processor
-      independent with compilerprocs (+ small optimizations by using shift/and
-      where possible)
-
-  Revision 1.9  2001/09/04 11:38:55  jonas
-    + searchsystype() and searchsystype() functions in symtable
-    * changed ninl and nadd to use these functions
-    * i386 set comparison functions now return their results in al instead
-      of in the flags so that they can be sued as compilerprocs
-    - removed all processor specific code from n386add.pas that has to do
-      with set handling, it's now all done in nadd.pas
-    * fixed fpc_set_contains_sets in genset.inc
-    * fpc_set_in_byte is now coded inline in n386set.pas and doesn't use a
-      helper anymore
-    * some small fixes in compproc.inc/set.inc regarding the declaration of
-      internal helper types (fpc_small_set and fpc_normal_set)
-
-  Revision 1.8  2001/09/03 13:27:43  jonas
-    * compilerproc implementation of set addition/substraction/...
-    * changed the declaration of some set helpers somewhat to accomodate the
-      above change
-    * i386 still uses the old code for comparisons of sets, because its
-      helpers return the results in the flags
-    * dummy tc_normal_2_small_set type conversion because I need the original
-      resulttype of the set add nodes
-    NOTE: you have to start a cycle with 1.0.5!
-
-  Revision 1.7  2001/08/30 15:43:15  jonas
-    * converted adding/comparing of strings to compileproc. Note that due
-      to the way the shortstring helpers for i386 are written, they are
-      still handled by the old code (reason: fpc_shortstr_compare returns
-      results in the flags instead of in eax and fpc_shortstr_concat
-      has wierd parameter conventions). The compilerproc stuff should work
-      fine with the generic implementations though.
-    * removed some nested comments warnings
-
-  Revision 1.6  2001/08/29 19:49:04  jonas
-    * some fixes in compilerprocs for chararray to string conversions
-    * conversion from string to chararray is now also done via compilerprocs
-
-  Revision 1.5  2001/08/28 13:24:47  jonas
-    + compilerproc implementation of most string-related type conversions
-    - removed all code from the compiler which has been replaced by
-      compilerproc implementations (using (ifdef hascompilerproc) is not
-      necessary in the compiler)
-
-  Revision 1.4  2001/08/23 14:28:36  jonas
-    + tempcreate/ref/delete nodes (allows the use of temps in the
-      resulttype and first pass)
-    * made handling of read(ln)/write(ln) processor independent
-    * moved processor independent handling for str and reset/rewrite-typed
-      from firstpass to resulttype pass
-    * changed names of helpers in text.inc to be generic for use as
-      compilerprocs + added "iocheck" directive for most of them
-    * reading of ordinals is done by procedures instead of functions
-      because otherwise FPC_IOCHECK overwrote the result before it could
-      be stored elsewhere (range checking still works)
-    * compilerprocs can now be used in the system unit before they are
-      implemented
-    * added note to errore.msg that booleans can't be read using read/readln
-
-  Revision 1.3  2001/08/13 12:40:16  jonas
-    * renamed some str(x,y) and val(x,y) helpers so the naming scheme is the
-      same for all string types
-    + added the str(x,y) and val(x,y,z) helpers for int64/qword to
-      compproc.inc
-
-  Revision 1.2  2001/08/06 14:13:55  jonas
-    * changed buf parameter of fpc_type_write from var to const
-    + added names of helpers in typefile.inc to compproc.inc
-
-  Revision 1.1  2001/08/01 15:00:10  jonas
-    + "compproc" helpers
-    * renamed several helpers so that their name is the same as their
-      "public alias", which should facilitate the conversion of processor
-      specific code in the code generator to processor independent code
-    * some small fixes to the val_ansistring and val_widestring helpers
-      (always immediately exit if the source string is longer than 255
-       chars)
-    * fixed fpc_dynarray_high and fpc_dynarray_length if the dynarray is
-      still nil (used to crash, now return resp -1 and 0)
 }

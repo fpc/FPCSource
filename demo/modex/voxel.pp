@@ -171,13 +171,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2002-02-22 21:45:24  carl
+  Revision 1.3  2002-09-07 15:06:35  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.2  2002/02/22 21:45:24  carl
   - range check option gives big problems
 
-  Revision 1.1  2001/05/03 21:39:33  peter
-    * moved to own module
-
-  Revision 1.2  2000/07/13 11:33:09  michael
-  + removed logs
- 
 }

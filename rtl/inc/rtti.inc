@@ -265,10 +265,10 @@ begin
     { see AddRef for comment about below construct (JM) }
     tkAstring:
       fpc_AnsiStr_Decr_Ref(PPointer(Data)^);
-{$ifdef HASWIDESTRING}      
+{$ifdef HASWIDESTRING}
     tkWstring:
       fpc_WideStr_Decr_Ref(PPointer(Data)^);
-{$endif HASWIDESTRING}      
+{$endif HASWIDESTRING}
     tkArray:
       begin
          inc(Temp);
@@ -313,24 +313,12 @@ procedure fpc_finalize_array(data,typeinfo : pointer;count,size : longint); [Pub
 
 {
   $Log$
-  Revision 1.6  2002-09-02 18:42:41  peter
+  Revision 1.7  2002-09-07 15:07:46  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.6  2002/09/02 18:42:41  peter
     * moved genrtti.inc code to rtti
     * removed rttip.inc, the generic code is almost as fast and
       much easier to maintain and has less risks on bugs
-
-  Revision 1.5  2001/11/17 16:56:08  florian
-    * init and final code in genrtti.inc updated
-
-  Revision 1.4  2001/04/23 18:25:45  peter
-    * m68k updates
-
-  Revision 1.3  2000/10/21 18:20:17  florian
-    * a lot of small changes:
-       - setlength is internal
-       - win32 graph unit extended
-       ....
-
-  Revision 1.2  2000/07/13 11:33:45  michael
-  + removed logs
 
 }

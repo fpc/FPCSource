@@ -813,7 +813,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.4  2002-06-02 09:49:17  marco
+  Revision 1.5  2002-09-07 15:06:35  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.4  2002/06/02 09:49:17  marco
    * Renamefest
 
   Revision 1.3  2002/02/27 16:29:54  carl
@@ -821,11 +824,5 @@ End.
 
   Revision 1.2  2002/02/25 12:23:05  marco
    * Fixes for Quad Win32 GUI mode
-
-  Revision 1.1  2001/05/03 21:39:33  peter
-    * moved to own module
-
-  Revision 1.2  2000/07/13 11:33:08  michael
-  + removed logs
 
 }

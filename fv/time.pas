@@ -438,20 +438,13 @@ END.
 
 {
  $Log$
- Revision 1.6  2002-06-04 11:12:41  marco
+ Revision 1.7  2002-09-07 15:06:38  peter
+   * old logs removed and tabs fixed
+
+ Revision 1.6  2002/06/04 11:12:41  marco
   * Renamefest
 
  Revision 1.5  2002/06/03 20:26:16  pierre
   * use local time for windows
-
- Revision 1.4  2001/05/04 09:04:08  pierre
-  * fix dos assembler problem
-
- Revision 1.3  2001/05/04 08:42:56  pierre
-  * some corrections for linux
-
- Revision 1.2  2000/08/24 12:00:22  marco
-  * CVS log and ID tags
-
 
 }

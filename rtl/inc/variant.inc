@@ -16,7 +16,7 @@
  **********************************************************************}
 
 var
-   variantmanager : tvariantmanager;   
+   variantmanager : tvariantmanager;
 
 procedure invalidvariantop;
   begin
@@ -33,7 +33,7 @@ procedure vardisperror;
 { ---------------------------------------------------------------------
     Compiler helper routines.
   ---------------------------------------------------------------------}
- 
+
 
 procedure varclear(var v : tvardata);
 begin
@@ -56,7 +56,7 @@ procedure variant_clear(var v : variant);[Public,Alias:'FPC_VARIANT_CLEAR'];
 { ---------------------------------------------------------------------
     Overloaded operators.
   ---------------------------------------------------------------------}
-  
+
 
 { Integer }
 
@@ -241,7 +241,7 @@ operator :=(const source : tdatetime) dest : variant;
 
 operator :=(const source : variant) dest : byte;
 
-begin     
+begin
   dest:=variantmanager.vartoint(source);
 end;
 
@@ -413,7 +413,7 @@ end;
 { ---------------------------------------------------------------------
     Variant manager functions
   ---------------------------------------------------------------------}
-  
+
 
 
 procedure GetVariantManager(var VarMgr: TVariantManager);
@@ -431,10 +431,10 @@ end;
 function IsVariantManagerSet: Boolean;
 
 var
-   i : longint;     
+   i : longint;
 begin
    I:=0;
-   Result:=True; 
+   Result:=True;
    While Result and (I<(sizeof(tvariantmanager) div sizeof(pointer))-1) do
      begin
      Result:=Pointer(ppointer(@variantmanager+i*sizeof(pointer))^)<>Pointer(@invalidvariantop);
@@ -457,16 +457,7 @@ procedure initvariantmanager;
 
 {
   $Log$
-  Revision 1.4  2001-11-14 23:00:16  michael
-  + First working variant support
+  Revision 1.5  2002-09-07 15:07:46  peter
+    * old logs removed and tabs fixed
 
-  Revision 1.3  2001/11/08 20:59:10  michael
-  + System unit implementation of variants
-
-  Revision 1.2  2001/11/08 16:17:30  florian
-    + beginning of variant dispatching
-
-  Revision 1.1  2001/08/19 21:02:01  florian
-    * fixed and added a lot of stuff to get the Jedi DX8 headers
-      compiled
 }

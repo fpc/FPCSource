@@ -438,16 +438,7 @@ end;
 
 {
   $Log$
-  Revision 1.5  2001-07-29 13:49:15  peter
-    * m68k updates merged
-
-  Revision 1.4  2001/06/13 18:32:05  peter
-    * big endian updates (merged)
-
-  Revision 1.3  2001/04/23 18:25:45  peter
-    * m68k updates
-
-  Revision 1.2  2000/07/13 11:33:45  michael
-  + removed logs
+  Revision 1.6  2002-09-07 15:07:46  peter
+    * old logs removed and tabs fixed
 
 }

@@ -627,65 +627,14 @@
 
 {
   $Log$
-  Revision 1.15  2002-09-01 14:44:01  peter
+  Revision 1.16  2002-09-07 15:07:45  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.15  2002/09/01 14:44:01  peter
     * renamed conditional to insert optimized mod_qword for i386. The
       code is broken
 
   Revision 1.14  2002/07/01 16:29:05  peter
     * sLineBreak changed to normal constant like Kylix
 
-  Revision 1.13  2001/11/15 00:07:42  florian
-    * qword div qword for i386 improved
-
-  Revision 1.12  2001/09/05 15:22:09  jonas
-    * made multiplying, dividing and mod'ing of int64 and qword processor
-      independent with compilerprocs (+ small optimizations by using shift/and
-      where possible)
-
-  Revision 1.11  2001/08/13 12:40:16  jonas
-    * renamed some str(x,y) and val(x,y) helpers so the naming scheme is the
-      same for all string types
-    + added the str(x,y) and val(x,y,z) helpers for int64/qword to
-      compproc.inc
-
-  Revision 1.10  2001/04/23 18:25:45  peter
-    * m68k updates
-
-  Revision 1.9  2001/04/13 22:30:04  peter
-    * remove warnings
-
-  Revision 1.8  2001/03/03 12:39:09  jonas
-    * fixed qword_str for values with bit 63 = 1
-
-  Revision 1.7  2000/12/10 15:00:14  florian
-    * val for int64 hopefully works now correct
-
-  Revision 1.6  2000/12/09 20:52:40  florian
-    * val for dword and qword didn't handle the max values
-      correctly
-    * val for qword works again
-    + val with int64/qword and ansistring implemented
-
-  Revision 1.5  2000/12/07 17:19:47  jonas
-    * new constant handling: from now on, hex constants >$7fffffff are
-      parsed as unsigned constants (otherwise, $80000000 got sign extended
-      and became $ffffffff80000000), all constants in the longint range
-      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
-      are cardinals and the rest are int64's.
-    * added lots of longint typecast to prevent range check errors in the
-      compiler and rtl
-    * type casts of symbolic ordinal constants are now preserved
-    * fixed bug where the original resulttype wasn't restored correctly
-      after doing a 64bit rangecheck
-
-  Revision 1.4  2000/11/17 17:01:23  jonas
-    * fixed bug for val when processing -2147483648 and low(int64) (merged)
-
-  Revision 1.3  2000/07/28 12:29:49  jonas
-    * fixed web bug1069
-    * fixed similar (and other) problems in val() for int64 and qword
-      (both merged from fixes branch)
-
-  Revision 1.2  2000/07/13 11:33:44  michael
-  + removed logs
 }

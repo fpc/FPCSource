@@ -587,7 +587,10 @@ const
 
 {
   $Log$
-  Revision 1.52  2002-08-19 19:34:02  peter
+  Revision 1.53  2002-09-07 15:07:46  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.52  2002/08/19 19:34:02  peter
     * SYSTEMINLINE define that will add inline directives for small
       functions and wrappers. This will be defined automaticly when
       the compiler defines the HASINLINE directive
@@ -641,141 +644,4 @@ const
       instead of direct comparisons of low/high values of orddefs because
       qword is a special case
 
-  Revision 1.39  2001/11/14 22:59:11  michael
-  + Initial variant support
-
-  Revision 1.38  2001/11/07 14:59:20  michael
-  + Moved PathDelim,DriveDelim,PathSep to sysutilh
-
-  Revision 1.37  2001/11/07 13:52:37  michael
-  + Added PathDelim,DriveDelim,PathSep
-
-  Revision 1.36  2001/10/09 02:32:51  carl
-  * bugfix #1639 (IsMultiThread varialbe setting)
-
-  Revision 1.35  2001/08/19 21:02:01  florian
-    * fixed and added a lot of stuff to get the Jedi DX8 headers
-      compiled
-
-  Revision 1.34  2001/08/01 18:01:20  peter
-    * WChar fix to compile also with 1.0.x
-
-  Revision 1.33  2001/08/01 15:00:11  jonas
-    + "compproc" helpers
-    * renamed several helpers so that their name is the same as their
-      "public alias", which should facilitate the conversion of processor
-      specific code in the code generator to processor independent code
-    * some small fixes to the val_ansistring and val_widestring helpers
-      (always immediately exit if the source string is longer than 255
-       chars)
-    * fixed fpc_dynarray_high and fpc_dynarray_length if the dynarray is
-      still nil (used to crash, now return resp -1 and 0)
-
-  Revision 1.32  2001/07/31 08:57:22  marco
-   * Either I did something wrong, or Peter's merge killed wchar decl. Fixed.
-
-  Revision 1.31  2001/07/30 21:38:55  peter
-    * m68k updates merged
-
-  Revision 1.29  2001/07/29 13:49:15  peter
-    * m68k updates merged
-
-  Revision 1.28  2001/07/15 11:57:16  peter
-    * merged m68k updates
-
-  Revision 1.27  2001/07/10 18:04:37  peter
-    * merged textfile, readlink and concat ansistring fixes
-
-  Revision 1.26  2001/07/09 21:15:41  peter
-    * Length made internal
-    * Add array support for Length
-
-  Revision 1.25  2001/07/08 21:00:18  peter
-    * various widestring updates, it works now mostly without charset
-      mapping supported
-
-  Revision 1.24  2001/06/04 11:43:51  peter
-    * Formal const to var fixes
-    * Hexstr(int64) added
-
-  Revision 1.23  2001/06/03 20:17:06  peter
-    * ucs4char added
-
-  Revision 1.22  2001/05/16 17:44:25  jonas
-    + odd() for cardinal, int64 and qword (merged)
-
-  Revision 1.21  2001/05/09 19:57:07  peter
-  *** empty log message ***
-
-  Revision 1.20  2001/04/23 18:25:45  peter
-    * m68k updates
-
-  Revision 1.19  2001/04/13 18:06:07  peter
-    * upcase, lowercase for ansistring
-
-  Revision 1.18  2001/03/22 23:26:05  florian
-    * some new types added like PBoolean
-
-  Revision 1.17  2001/03/21 23:29:40  florian
-    + sLineBreak and misc. stuff for Kylix compatiblity
-
-  Revision 1.16  2001/01/24 21:47:18  florian
-    + more MT stuff added
-
-  Revision 1.15  2000/12/16 15:56:19  jonas
-    - removed all ifdef cardinalmulfix code
-
-  Revision 1.14  2000/12/08 14:04:43  jonas
-    + added pos(char,ansistring), because there is also a pos(char,shortstring)
-      and without the ansistring version, the shortstring version is always
-      called when calling pos(char,pchar), even when using $h+ (because the
-      first parameter matches exactly) (merged)
-
-  Revision 1.13  2000/12/07 17:19:47  jonas
-    * new constant handling: from now on, hex constants >$7fffffff are
-      parsed as unsigned constants (otherwise, $80000000 got sign extended
-      and became $ffffffff80000000), all constants in the longint range
-      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
-      are cardinals and the rest are int64's.
-    * added lots of longint typecast to prevent range check errors in the
-      compiler and rtl
-    * type casts of symbolic ordinal constants are now preserved
-    * fixed bug where the original resulttype wasn't restored correctly
-      after doing a 64bit rangecheck
-
-  Revision 1.12  2000/11/13 13:40:04  marco
-   * Renamefest
-
-  Revision 1.11  2000/11/11 16:12:01  peter
-    * ptr returns farpointer
-
-  Revision 1.10  2000/11/06 21:35:59  peter
-    * removed some warnings
-
-  Revision 1.9  2000/11/06 20:34:24  peter
-    * changed ver1_0 defines to temporary defs
-
-  Revision 1.8  2000/10/23 16:15:40  jonas
-    * renamed strlenint to longint since 1.0 doesn't know that type
-
-  Revision 1.7  2000/10/23 14:00:59  florian
-    * setlength export declaration for 1.0.2 fixed
-
-  Revision 1.6  2000/10/21 18:20:17  florian
-    * a lot of small changes:
-       - setlength is internal
-       - win32 graph unit extended
-       ....
-
-  Revision 1.5  2000/08/13 17:55:15  michael
-  + Added some delphi compatibility types
-
-  Revision 1.4  2000/08/08 22:11:45  sg
-  * Added declarations for WideString utility functions
-
-  Revision 1.3  2000/07/14 10:33:10  michael
-  + Conditionals fixed
-
-  Revision 1.2  2000/07/13 11:33:45  michael
-  + removed logs
 }

@@ -94,11 +94,7 @@ End;
 
 {
   $Log$
-  Revision 1.3  2001-08-06 14:13:55  jonas
-    * changed buf parameter of fpc_type_write from var to const
-    + added names of helpers in typefile.inc to compproc.inc
+  Revision 1.4  2002-09-07 15:07:46  peter
+    * old logs removed and tabs fixed
 
-  Revision 1.2  2000/07/13 11:33:46  michael
-  + removed logs
- 
 }

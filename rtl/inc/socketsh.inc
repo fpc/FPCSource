@@ -161,50 +161,10 @@ Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:file):
 
 {
   $Log$
-  Revision 1.7  2002-02-04 21:29:34  michael
+  Revision 1.8  2002-09-07 15:07:46  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.7  2002/02/04 21:29:34  michael
   + merged missing sendto/rcvfrom functions
-
-  Revision 1.6  2001/06/06 21:58:24  peter
-    * Win32 fixes for Makefile so it doesn't require sh.exe
-
-  Revision 1.5  2001/06/04 11:43:51  peter
-
-  Revision 1.1.2.4  2002/02/04 21:25:28  michael
-    + Added missing sendto/rcvfrom functions
-
-  Revision 1.1.2.3  2001/06/06 22:00:39  peter
-    * Win32 fixes
-
-  Revision 1.1.2.2  2001/06/04 11:43:18  peter
-    * Formal const to var fixes
-    * Hexstr(int64) added
-
-  Revision 1.4  2000/11/13 13:40:04  marco
-   * Renamefest
-
-  Revision 1.3  2000/09/11 14:53:14  marco
-   * FreeBSD adjustments patched in from fixes branch
-
-  Revision 1.1.2.1  2000/09/10 16:12:05  marco
-  BSD SO_ constants added
-
-  Revision 1.1  2000/07/13 06:30:48  michael
-  + Initial import
-
-  Revision 1.7  2000/06/19 13:31:46  michael
-  + Corrected GetSocketOptions
-
-  Revision 1.6  2000/06/02 17:30:43  marco
-   * added some constants for getsocketoptions under a linux define.
-        Allows server example to work ok.
-
-  Revision 1.5  2000/02/09 16:59:31  peter
-    * truncated log
-
-  Revision 1.4  2000/01/07 16:41:36  daniel
-    * copyright 2000
-
-  Revision 1.3  2000/01/07 16:32:25  daniel
-    * copyright 2000 added
 
 }

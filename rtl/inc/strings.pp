@@ -140,11 +140,7 @@ end.
 
 {
   $Log$
-  Revision 1.3  2001-11-19 00:31:07  carl
-  - no stack checking possible because used by lineinfo which
-    might get infinite recursion if stack limit reached
+  Revision 1.4  2002-09-07 15:07:46  peter
+    * old logs removed and tabs fixed
 
-  Revision 1.2  2000/07/13 11:33:45  michael
-  + removed logs
- 
 }

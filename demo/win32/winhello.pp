@@ -111,17 +111,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2002-02-22 13:37:49  pierre
+  Revision 1.4  2002-09-07 15:06:35  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.3  2002/02/22 13:37:49  pierre
    * fix problem if started through cygwin bash
-
-  Revision 1.2  2001/09/04 01:08:09  carl
-  * bugfix of range check errors (bug #1588)
-  + added win32 types for easier porting to win64
-
-  Revision 1.1  2001/05/03 21:39:34  peter
-    * moved to own module
-
-  Revision 1.2  2000/07/13 11:33:10  michael
-  + removed logs
 
 }

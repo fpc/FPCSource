@@ -35,7 +35,7 @@ Type
   end;
 
 
-  TExceptObjectClass = Class of TObject; 
+  TExceptObjectClass = Class of TObject;
 
 Const
   CatchAllExceptions = -1;
@@ -281,31 +281,7 @@ begin
 end;
 {
   $Log$
-  Revision 1.7  2001-08-01 15:00:10  jonas
-    + "compproc" helpers
-    * renamed several helpers so that their name is the same as their
-      "public alias", which should facilitate the conversion of processor
-      specific code in the code generator to processor independent code
-    * some small fixes to the val_ansistring and val_widestring helpers
-      (always immediately exit if the source string is longer than 255
-       chars)
-    * fixed fpc_dynarray_high and fpc_dynarray_length if the dynarray is
-      still nil (used to crash, now return resp -1 and 0)
+  Revision 1.8  2002-09-07 15:07:45  peter
+    * old logs removed and tabs fixed
 
-  Revision 1.6  2001/04/13 22:30:04  peter
-    * remove warnings
-
-  Revision 1.5  2001/01/24 21:47:18  florian
-    + more MT stuff added
-
-  Revision 1.4  2001/01/05 17:35:50  florian
-  * the info about exception frames is stored now on the stack
-  instead on the heap
-
-  Revision 1.3  2000/09/30 07:38:07  sg
-  * Added 'RaiseProc': A user-definable callback procedure which gets
-    called whenever an exception is being raised
-
-  Revision 1.2  2000/07/13 11:33:42  michael
-  + removed logs
 }

@@ -853,7 +853,10 @@ end;
 
 {
   $Log$
-  Revision 1.18  2002-07-29 21:28:17  florian
+  Revision 1.19  2002-09-07 15:07:46  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.18  2002/07/29 21:28:17  florian
     * several fixes to get further with linux/ppc system unit compilation
 
   Revision 1.17  2002/04/26 15:19:05  peter
@@ -864,72 +867,4 @@ end;
     * updated compilerprocs
     * incr ref count has now a value argument instead of var
 
-  Revision 1.15  2001/08/30 15:43:15  jonas
-    * converted adding/comparing of strings to compileproc. Note that due
-      to the way the shortstring helpers for i386 are written, they are
-      still handled by the old code (reason: fpc_shortstr_compare returns
-      results in the flags instead of in eax and fpc_shortstr_concat
-      has wierd parameter conventions). The compilerproc stuff should work
-      fine with the generic implementations though.
-    * removed some nested comments warnings
-
-  Revision 1.14  2001/08/29 19:49:04  jonas
-    * some fixes in compilerprocs for chararray to string conversions
-    * conversion from string to chararray is now also done via compilerprocs
-
-  Revision 1.13  2001/08/28 13:24:47  jonas
-    + compilerproc implementation of most string-related type conversions
-    - removed all code from the compiler which has been replaced by
-      compilerproc implementations (using (ifdef hascompilerproc) is not
-      necessary in the compiler)
-
-  Revision 1.12  2001/08/13 12:40:16  jonas
-    * renamed some str(x,y) and val(x,y) helpers so the naming scheme is the
-      same for all string types
-    + added the str(x,y) and val(x,y,z) helpers for int64/qword to
-      compproc.inc
-
-  Revision 1.11  2001/08/01 15:00:11  jonas
-    + "compproc" helpers
-    * renamed several helpers so that their name is the same as their
-      "public alias", which should facilitate the conversion of processor
-      specific code in the code generator to processor independent code
-    * some small fixes to the val_ansistring and val_widestring helpers
-      (always immediately exit if the source string is longer than 255
-       chars)
-    * fixed fpc_dynarray_high and fpc_dynarray_length if the dynarray is
-      still nil (used to crash, now return resp -1 and 0)
-
-  Revision 1.10  2001/07/16 12:33:08  jonas
-    * fixed wrong public alieases for val(widestring,...)
-
-  Revision 1.9  2001/07/09 21:15:41  peter
-    * Length made internal
-    * Add array support for Length
-
-  Revision 1.8  2001/07/08 21:00:18  peter
-    * various widestring updates, it works now mostly without charset
-      mapping supported
-
-  Revision 1.7  2001/05/27 14:28:03  florian
-    + some procedures added
-
-  Revision 1.6  2000/11/06 23:17:15  peter
-    * removed some warnings
-
-  Revision 1.5  2000/11/06 20:34:24  peter
-    * changed ver1_0 defines to temporary defs
-
-  Revision 1.4  2000/10/21 18:20:17  florian
-    * a lot of small changes:
-       - setlength is internal
-       - win32 graph unit extended
-       ....
-
-  Revision 1.3  2000/08/08 22:12:36  sg
-  * Implemented WideString helper functions (but they are not tested yet
-    due to the lack of full compiler support for WideString/WideChar!)
-
-  Revision 1.2  2000/07/13 11:33:46  michael
-  + removed logs
 }

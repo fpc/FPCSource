@@ -111,13 +111,13 @@ const
   SScanCode    : String = 'Key with scancode ';
   SUnknownFunctionKey : String = 'Unknown function key : ';
   SAnd         : String = 'AND';
-  SKeyPad      : Array [0..($FF2F-kbdHome)] of string[6] = 
+  SKeyPad      : Array [0..($FF2F-kbdHome)] of string[6] =
                  ('Home','Up','PgUp','Left',
                   'Middle','Right','End','Down',
                   'PgDn','Insert','Delete','',
                   '','','','');
 
-Type 
+Type
   TKeyboardDriver = Record
     InitDriver : Procedure;
     DoneDriver : Procedure;
@@ -184,7 +184,7 @@ Procedure GetKeyboardDriver (Var Driver : TKeyboardDriver);
 { Returns the currently active keyboard driver }
 
 Function ShiftStateToString(KeyEvent : TKeyEvent; UseLeftRight : Boolean) : String;
-{ Returns a string representation of a shift state as returned by 
+{ Returns a string representation of a shift state as returned by
   pollshiftstate }
 Function FunctionKeyName (KeyCode : Word) : String;
 { Returns the name of a function key if the key is one of the special keys . }
@@ -193,24 +193,7 @@ Function KeyEventToString(KeyEvent : TKeyEvent) : String;
 
 {
   $Log$
-  Revision 1.3  2001-10-03 20:08:36  michael
-  * SetKeyBoardDriver now returns true if driver set - merged
-
-  Revision 1.2  2001/09/21 21:33:36  michael
-  + Merged driver support from fixbranch
-
-  Revision 1.1.2.2  2001/09/21 21:20:43  michael
-  + Added support for keyboard driver.
-  + Added DefaultTranslateKeyEvent,DefaultTranslateKeyEventUnicode
-  + PendingKeyEvent variable no longer public. Handling of this variable is
-    now done entirely by global functions. System dependent code should not
-    need it, it is set automatically.
-  + InitVideo DoneVideo will check whether the keyboard is initialized or not.
-
-  Revision 1.1.2.1  2001/01/30 22:21:22  peter
-    * move api to rtl
-
-  Revision 1.1  2001/01/13 11:13:12  peter
-    * API 2 RTL
+  Revision 1.4  2002-09-07 15:07:45  peter
+    * old logs removed and tabs fixed
 
 }

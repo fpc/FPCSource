@@ -111,7 +111,7 @@ type
          2:(vbytes : array[0..13] of byte);
       end;
    pvardata = ^tvardata;
-   
+
    pcalldesc = ^tcalldesc;
    tcalldesc = packed record
       calltype,argcount,namedargcount : byte;
@@ -149,7 +149,7 @@ type
       varfrompstr: procedure(var dest: variant; const source: ShortString);
       varfromlstr: procedure(var dest: variant; const source: ansistring);
       varfromwstr: procedure(var dest: variant; const source: WideString);
-            
+
       {!!!!!!!}
 
       { operators }
@@ -256,20 +256,11 @@ operator :=(const source : variant) dest : tdatetime;
 }
 {
   $Log$
-  Revision 1.5  2002-06-12 15:45:42  jonas
+  Revision 1.6  2002-09-07 15:07:46  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.5  2002/06/12 15:45:42  jonas
     * fixed bug in tvariantmanager declaration (string -> ansistring, this
       file is compiled in non-objpas mode!)
 
-  Revision 1.4  2001/11/14 23:00:17  michael
-  + First working variant support
-
-  Revision 1.3  2001/11/08 20:59:10  michael
-  + System unit implementation of variants
-
-  Revision 1.2  2001/11/08 16:17:30  florian
-    + beginning of variant dispatching
-
-  Revision 1.1  2001/08/19 21:02:02  florian
-    * fixed and added a lot of stuff to get the Jedi DX8 headers
-      compiled
 }

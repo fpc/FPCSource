@@ -341,16 +341,13 @@ End.
 
 {
   $Log$
-  Revision 1.3  2002-02-22 13:37:49  pierre
+  Revision 1.4  2002-09-07 15:06:35  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.3  2002/02/22 13:37:49  pierre
    * fix problem if started through cygwin bash
 
   Revision 1.2  2002/02/21 11:43:54  pierre
    * fix range check problems and wrong uses of HEdit and HStatus handles
-
-  Revision 1.1  2001/05/03 21:39:34  peter
-    * moved to own module
-
-  Revision 1.2  2000/07/13 11:33:10  michael
-  + removed logs
 
 }

@@ -2851,31 +2851,13 @@ END;
 END.
 {
   $Log$
-  Revision 1.10  2002-09-01 19:03:19  florian
+  Revision 1.11  2002-09-07 15:07:45  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.10  2002/09/01 19:03:19  florian
     + powerpc support added
 
   Revision 1.9  2002/03/28 20:56:00  carl
   - remove go32v1 support
-
-  Revision 1.8  2001/07/31 19:36:09  peter
-    * wordrec for big endian
-
-  Revision 1.7  2001/07/30 21:38:55  peter
-    * m68k updates merged
-
-  Revision 1.6  2001/07/15 11:57:16  peter
-    * merged m68k updates
-
-  Revision 1.5  2001/05/06 17:13:22  jonas
-    * completed incomplete typed constant records
-
-  Revision 1.4  2001/04/16 18:36:41  florian
-    * updates from Armin commited
-
-  Revision 1.3  2000/11/13 13:40:04  marco
-   * Renamefest
-
-  Revision 1.2  2000/07/13 11:33:44  michael
-  + removed logs
 
 }

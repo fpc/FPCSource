@@ -44,16 +44,10 @@
 
 {
   $Log$
-  Revision 1.7  2002-07-26 22:46:06  florian
+  Revision 1.8  2002-09-07 15:07:45  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.7  2002/07/26 22:46:06  florian
     * interface of system unit for Linux/PowerPC compiles
-
-  Revision 1.6  2001/12/26 21:03:56  peter
-    * merged fixes from 1.0.x
-
-  Revision 1.5  2001/12/13 20:23:19  michael
-  + Added double2real function from main branch
-
-  Revision 1.4  2001/07/30 21:38:55  peter
-    * m68k updates merged
 
 }

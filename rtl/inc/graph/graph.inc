@@ -2132,35 +2132,13 @@ begin
 end;
 {
   $Log$
-  Revision 1.8  2002-09-07 12:43:02  carl
+  Revision 1.9  2002-09-07 15:07:47  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.8  2002/09/07 12:43:02  carl
     - unit cleanup (removed unused defines)
 
   Revision 1.7  2002/06/01 19:42:02  marco
    * Renamefest
-
-  Revision 1.6  2001/04/14 16:06:03  jonas
-    * fixed problem with new modes system (reported by Vladimir Ravodin) (merged)
-
-  Revision 1.5  2000/12/07 17:19:47  jonas
-    * new constant handling: from now on, hex constants >$7fffffff are
-      parsed as unsigned constants (otherwise, $80000000 got sign extended
-      and became $ffffffff80000000), all constants in the longint range
-      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
-      are cardinals and the rest are int64's.
-    * added lots of longint typecast to prevent range check errors in the
-      compiler and rtl
-    * type casts of symbolic ordinal constants are now preserved
-    * fixed bug where the original resulttype wasn't restored correctly
-      after doing a 64bit rangecheck
-
-  Revision 1.4  2000/08/12 12:27:13  jonas
-    + setallpalette hook
-    + setallpalette implemented for standard vga and VESA 2.0+
-
-  Revision 1.3  2000/08/05 18:34:47  peter
-    * merged setvideostate patch
-
-  Revision 1.2  2000/07/13 11:33:46  michael
-  + removed logs
 
 }

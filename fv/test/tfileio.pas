@@ -26,4 +26,4 @@ BEGIN
   Writeln('FileClose: ', FileClose(Handle));
 END.
 
-  
+

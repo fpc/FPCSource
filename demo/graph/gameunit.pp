@@ -911,7 +911,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.7  2002-06-02 17:34:21  marco
+  Revision 1.8  2002-09-07 15:06:35  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.7  2002/06/02 17:34:21  marco
    * Renamefest
 
   Revision 1.6  2002/06/02 09:49:17  marco
@@ -922,17 +925,5 @@ END.
 
   Revision 1.4  2002/02/22 21:40:09  carl
   * fix compilation problem
-
-  Revision 1.3  2001/12/11 11:10:27  marco
-   * Small renamefest fix
-
-  Revision 1.2  2001/11/11 21:09:49  marco
-   * Gameunit, Fpctris and samegame  fixed for win32 GUI
-
-  Revision 1.1  2001/05/03 21:39:33  peter
-    * moved to own module
-
-  Revision 1.2  2000/07/13 11:33:08  michael
-  + removed logs
 
 }

@@ -548,7 +548,7 @@ begin
        { Peter, why can't we add this one if free ?? }
        { It's already added in the previous iteration, we only go to the }
        { next heap record after this check (JM)                          }
-       pcurr^.size:=pcurrsize or beforeheapendmask; 
+       pcurr^.size:=pcurrsize or beforeheapendmask;
        break;
      end;
     { get next block }
@@ -1257,7 +1257,10 @@ end;
 
 {
   $Log$
-  Revision 1.14  2002-06-17 08:33:04  jonas
+  Revision 1.15  2002-09-07 15:07:45  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.14  2002/06/17 08:33:04  jonas
     * heap manager now fragments the heap much less
 
   Revision 1.13  2002/04/21 18:56:59  peter
@@ -1269,30 +1272,5 @@ end;
   Revision 1.11  2002/01/02 13:43:09  jonas
     * fix for web bug 1727 from Peter (corrected)
 
-  Revision 1.9  2001/12/03 21:39:20  peter
-    * freemem(var) -> freemem(value)
-
-  Revision 1.8  2001/10/25 21:22:34  peter
-    * moved locking of heap
-
-  Revision 1.7  2001/10/23 21:51:03  peter
-    * criticalsection renamed to rtlcriticalsection for kylix compatibility
-
-  Revision 1.6  2001/06/06 17:20:22  jonas
-    * fixed wrong typed constant procvars in preparation of my fix which will
-      disallow them in FPC mode (plus some other unmerged changes since
-      LAST_MERGE)
-
-  Revision 1.5  2001/01/24 21:47:18  florian
-    + more MT stuff added
-
-  Revision 1.4  2000/08/08 19:22:46  peter
-    * smallatheapptr undef and other cleanup (merged)
-
-  Revision 1.3  2000/07/14 10:33:10  michael
-  + Conditionals fixed
-
-  Revision 1.2  2000/07/13 11:33:43  michael
-  + removed logs
 }
 

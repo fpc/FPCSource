@@ -1020,19 +1020,14 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
 
 {
   $Log$
-  Revision 1.5  2002-07-28 21:39:29  florian
+  Revision 1.6  2002-09-07 15:07:45  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.5  2002/07/28 21:39:29  florian
     * made abs a compiler proc if it is generic
 
   Revision 1.4  2002/07/28 20:43:48  florian
     * several fixes for linux/powerpc
     * several fixes to MT
 
-  Revision 1.3  2001/12/26 21:03:56  peter
-    * merged fixes from 1.0.x
-
-  Revision 1.2  2001/07/30 21:38:55  peter
-    * m68k updates merged
-
-  Revision 1.1.2.1  2001/07/29 23:58:16  carl
-  + generic version of mathematical routines (taken from m68k directory)
 }

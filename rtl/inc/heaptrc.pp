@@ -1145,59 +1145,7 @@ finalization
 end.
 {
   $Log$
-  Revision 1.16  2001-12-03 21:39:20  peter
-    * freemem(var) -> freemem(value)
-
-  Revision 1.15  2001/07/29 13:43:57  peter
-    * m68k updates merged
-
-  Revision 1.14  2001/06/06 17:20:22  jonas
-    * fixed wrong typed constant procvars in preparation of my fix which will
-      disallow them in FPC mode (plus some other unmerged changes since
-      LAST_MERGE)
-
-  Revision 1.13  2001/04/23 18:25:44  peter
-    * m68k updates
-
-  Revision 1.12  2001/04/21 12:18:09  peter
-    * add nop after popa (merged)
-
-  Revision 1.11  2001/04/13 18:05:34  peter
-    * win32 getenv version
-
-  Revision 1.10  2001/04/13 01:18:08  peter
-    * always clear memory in getmem and freemem
-
-  Revision 1.8  2001/04/11 14:08:31  peter
-    * some small fixes to my previous commit
-
-  Revision 1.7  2001/04/11 12:34:50  peter
-    * extra info update so it can be always be set on/off
-
-  Revision 1.6  2000/12/16 15:57:17  jonas
-    * removed 64bit evaluations when range checking is on
-
-  Revision 1.5  2000/12/07 17:19:47  jonas
-    * new constant handling: from now on, hex constants >$7fffffff are
-      parsed as unsigned constants (otherwise, $80000000 got sign extended
-      and became $ffffffff80000000), all constants in the longint range
-      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
-      are cardinals and the rest are int64's.
-    * added lots of longint typecast to prevent range check errors in the
-      compiler and rtl
-    * type casts of symbolic ordinal constants are now preserved
-    * fixed bug where the original resulttype wasn't restored correctly
-      after doing a 64bit rangecheck
-
-  Revision 1.4  2000/11/13 13:40:03  marco
-   * Renamefest
-
-  Revision 1.3  2000/08/24 09:01:07  jonas
-    * clear inoutres in traceexit before writing anything (to avoid an RTE
-      when writing the heaptrc output when a program didn't handle ioresult)
-      (merged from fixes branch)
-
-  Revision 1.2  2000/07/13 11:33:44  michael
-  + removed logs
+  Revision 1.17  2002-09-07 15:07:45  peter
+    * old logs removed and tabs fixed
 
 }

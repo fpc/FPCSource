@@ -352,7 +352,7 @@ end;
     function TextWidth(const TextString : string) : word;
       var i,x : smallint;
           c   : byte;
-    s   : String;
+          s   : String;
       begin
          x := 0;
          { if this is the default font ... }
@@ -360,7 +360,7 @@ end;
             TextWidth:=length(TextString)*8*CurrentTextInfo.CharSize
          { This is a stroked font ... }
             else begin
-         s := ConvertString(TextString);
+               s := ConvertString(TextString);
                for i:=1 to length(s) do
                 begin
                    c:=byte(s[i]);
@@ -404,7 +404,7 @@ end;
          X:=X-XPos; Y:=Y+YPos;
          XPos:=X; YPos:=Y;
 
-   ConvString := ConvertString(TextString);
+         ConvString := ConvertString(TextString);
          CharSize := CurrentTextInfo.Charsize;
          if Currenttextinfo.font=DefaultFont then
          begin
@@ -730,7 +730,7 @@ end;
 {$i-}
 {$endif}
               reset(f,1);
-{$ifdef IOCHECK_WAS_ON}              
+{$ifdef IOCHECK_WAS_ON}
 {$i+}
 {$endif}
               if ioresult<>0 then
@@ -791,14 +791,14 @@ end;
 
 {
   $Log$
-  Revision 1.4  2002-09-07 12:36:15  carl
+  Revision 1.5  2002-09-07 15:07:47  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.4  2002/09/07 12:36:15  carl
     - unit cleanup (removed unused defines)
     * compilation options are restored
 
   Revision 1.3  2002/07/18 07:11:11  pierre
    merged from FIXES branch: DrawTextBackground support
-
-  Revision 1.2  2000/07/13 11:33:47  michael
-  + removed logs
 
 }

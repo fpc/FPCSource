@@ -4204,7 +4204,10 @@ END;
 END.
 {
  $Log$
- Revision 1.17  2002-05-31 12:35:21  pierre
+ Revision 1.18  2002-09-07 15:06:36  peter
+   * old logs removed and tabs fixed
+
+ Revision 1.17  2002/05/31 12:35:21  pierre
   * use graph mode to display button title
 
  Revision 1.16  2002/05/24 21:00:10  pierre
@@ -4219,40 +4222,6 @@ END.
  Revision 1.13  2002/05/16 20:36:24  pierre
   * break lines of static text if too long
 
- Revision 1.12  2001/08/05 02:03:13  peter
-   * view redrawing and small cursor updates
-   * merged some more FV extensions
-
- Revision 1.11  2001/08/04 19:14:32  peter
-   * Added Makefiles
-   * added FV specific units and objects from old FV
-
- Revision 1.10  2001/06/01 16:00:00  pierre
-  * small changes for tbutton.draw
-
- Revision 1.9  2001/05/31 12:14:50  pierre
-  Better button draw
-
- Revision 1.8  2001/05/10 16:46:27  pierre
-  + some improovements made
-
- Revision 1.7  2001/05/07 22:22:03  pierre
-  * removed NO_WINDOW cond, added GRAPH_API
-
- Revision 1.6  2001/05/04 10:46:01  pierre
-  * various fixes  for win32 api mode
-
- Revision 1.5  2001/05/04 08:42:54  pierre
-  * some corrections for linux
-
- Revision 1.4  2001/05/03 22:32:52  pierre
-  new bunch of changes, displays something for dos at least
-
- Revision 1.3  2001/04/10 21:29:55  pierre
-  * import of Leon de Boer's files
-
- Revision 1.2  2000/08/24 12:00:20  marco
-  * CVS log and ID tags
 }
 {******************[ REVISION HISTORY ]********************}
 {  Version  Date        Fix                                }

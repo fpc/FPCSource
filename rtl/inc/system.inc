@@ -756,7 +756,10 @@ end;
 
 {
   $Log$
-  Revision 1.33  2002-08-19 19:34:02  peter
+  Revision 1.34  2002-09-07 15:07:46  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.33  2002/08/19 19:34:02  peter
     * SYSTEMINLINE define that will add inline directives for small
       functions and wrappers. This will be defined automaticly when
       the compiler defines the HASINLINE directive
@@ -788,88 +791,5 @@ end;
 
   Revision 1.25  2002/04/12 17:37:36  carl
   + generic stack checking
-
-  Revision 1.24  2001/12/13 20:23:19  michael
-  + Added double2real function from main branch
-
-  Revision 1.23  2001/11/19 02:40:24  carl
-  + don't print stack information if previous frame = 0
-
-  Revision 1.22  2001/08/19 21:02:01  florian
-    * fixed and added a lot of stuff to get the Jedi DX( headers
-      compiled
-
-  Revision 1.21  2001/08/01 15:00:10  jonas
-    + "compproc" helpers
-    * renamed several helpers so that their name is the same as their
-      "public alias", which should facilitate the conversion of processor
-      specific code in the code generator to processor independent code
-    * some small fixes to the val_ansistring and val_widestring helpers
-      (always immediately exit if the source string is longer than 255
-       chars)
-    * fixed fpc_dynarray_high and fpc_dynarray_length if the dynarray is
-      still nil (used to crash, now return resp -1 and 0)
-
-  Revision 1.20  2001/07/30 21:38:55  peter
-    * m68k updates merged
-
-  Revision 1.19  2001/07/29 14:05:55  peter
-    * include lowmath for m68k (merged)
-
-  Revision 1.18  2001/07/29 13:49:15  peter
-    * m68k updates merged
-
-  Revision 1.17  2001/07/09 21:15:41  peter
-    * Length made internal
-    * Add array support for Length
-
-  Revision 1.16  2001/07/08 21:00:18  peter
-    * various widestring updates, it works now mostly without charset
-      mapping supported
-
-  Revision 1.15  2001/06/13 18:32:05  peter
-    * big endian updates (merged)
-
-  Revision 1.14  2001/06/03 15:15:58  peter
-    * lib_exit added
-
-  Revision 1.13  2001/05/09 19:57:07  peter
-  *** empty log message ***
-
-  Revision 1.12  2001/04/13 18:06:28  peter
-    * removed rtllite define
-
-  Revision 1.11  2000/12/16 15:56:19  jonas
-    - removed all ifdef cardinalmulfix code
-
-  Revision 1.10  2000/11/13 14:47:46  jonas
-    * support for range checking when converting from 64bit to something
-      smaller (32bit, 16bit, 8bit)
-    * fixed range checking between longint/cardinal and for array indexing
-      with cardinal (values > $7fffffff were considered negative)
-
-  Revision 1.9  2000/11/11 16:12:01  peter
-    * ptr returns farpointer
-
-  Revision 1.8  2000/11/06 21:35:59  peter
-    * removed some warnings
-
-  Revision 1.7  2000/11/04 17:52:46  florian
-    * fixed linker errors
-
-  Revision 1.6  2000/10/13 12:04:03  peter
-    * FPC_BREAK_ERROR added
-
-  Revision 1.5  2000/08/13 17:55:14  michael
-  + Added some delphi compatibility types
-
-  Revision 1.4  2000/08/09 19:31:18  marco
-   * fixes for val(int64 or qword) to ansistring
-
-  Revision 1.3  2000/07/14 10:33:10  michael
-  + Conditionals fixed
-
-  Revision 1.2  2000/07/13 11:33:45  michael
-  + removed logs
 
 }

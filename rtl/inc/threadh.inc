@@ -53,23 +53,11 @@ procedure LeaveCriticalsection(var cs : TRTLCriticalSection);
 
 {
   $Log$
-  Revision 1.6  2002-07-28 20:43:48  florian
+  Revision 1.7  2002-09-07 15:07:46  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.6  2002/07/28 20:43:48  florian
     * several fixes for linux/powerpc
     * several fixes to MT
 
-  Revision 1.5  2001/10/23 21:51:03  peter
-    * criticalsection renamed to rtlcriticalsection for kylix compatibility
-
-  Revision 1.4  2001/01/26 16:37:54  florian
-  *** empty log message ***
-
-  Revision 1.3  2001/01/24 21:47:18  florian
-    + more MT stuff added
-
-  Revision 1.2  2001/01/05 17:35:50  florian
-    * the info about exception frames is stored now on the stack
-      instead on the heap
-
-  Revision 1.1  2001/01/01 19:06:59  florian
-    + initial release
 }

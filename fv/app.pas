@@ -1193,7 +1193,10 @@ END;
 END.
 {
  $Log$
- Revision 1.19  2002-08-22 13:39:29  pierre
+ Revision 1.20  2002-09-07 15:06:35  peter
+   * old logs removed and tabs fixed
+
+ Revision 1.19  2002/08/22 13:39:29  pierre
   * Postpone InitDesktop to set the correct size
 
  Revision 1.18  2002/06/07 14:12:21  pierre
@@ -1208,46 +1211,6 @@ END.
  Revision 1.15  2002/05/23 07:30:33  pierre
   * fix problem in InitScreen
 
- Revision 1.14  2001/10/02 16:35:50  pierre
-  * fix several problems, try to get the graph version to compile
-
- Revision 1.13  2001/08/05 02:03:13  peter
-   * view redrawing and small cursor updates
-   * merged some more FV extensions
-
- Revision 1.12  2001/08/04 19:14:32  peter
-   * Added Makefiles
-   * added FV specific units and objects from old FV
-
- Revision 1.11  2001/05/31 21:39:11  pierre
-  + AltF12 to force Redraw of Application
-
- Revision 1.10  2001/05/31 12:15:24  pierre
-  + some debug stuff added
-
- Revision 1.9  2001/05/10 16:46:26  pierre
-  + some improovements made
-
- Revision 1.8  2001/05/07 22:22:03  pierre
-  * removed NO_WINDOW cond, added GRAPH_API
-
- Revision 1.7  2001/05/04 15:43:45  pierre
-  * several more fixes
-
- Revision 1.6  2001/05/04 08:42:54  pierre
-  * some corrections for linux
-
- Revision 1.5  2001/05/03 22:32:52  pierre
-  new bunch of changes, displays something for dos at least
-
- Revision 1.4  2001/04/10 21:57:55  pierre
-  + first adds for Use_API define
-
- Revision 1.3  2001/04/10 21:29:54  pierre
-  * import of Leon de Boer's files
-
- Revision 1.2  2000/08/24 11:43:13  marco
-  * Added CVS log and ID entries.
 }
 {******************[ REVISION HISTORY ]********************}
 {  Version  Date        Fix                                }

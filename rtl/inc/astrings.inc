@@ -801,7 +801,10 @@ end;
 
 {
   $Log$
-  Revision 1.25  2002-04-26 15:19:05  peter
+  Revision 1.26  2002-09-07 15:07:44  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.25  2002/04/26 15:19:05  peter
     * use saveregisters for incr routines, saves also problems with
       the optimizer
 
@@ -812,98 +815,4 @@ end;
   Revision 1.23  2002/01/07 13:23:53  jonas
     * fixed bug in fpc_char_to_ansistr when converting #0 (found by Peter)
 
-  Revision 1.22  2001/11/17 23:58:12  florian
-    * code of ansitr_concat improved
-
-  Revision 1.21  2001/08/30 15:43:15  jonas
-    * converted adding/comparing of strings to compileproc. Note that due
-      to the way the shortstring helpers for i386 are written, they are
-      still handled by the old code (reason: fpc_shortstr_compare returns
-      results in the flags instead of in eax and fpc_shortstr_concat
-      has wierd parameter conventions). The compilerproc stuff should work
-      fine with the generic implementations though.
-    * removed some nested comments warnings
-
-  Revision 1.20  2001/08/29 19:49:04  jonas
-    * some fixes in compilerprocs for chararray to string conversions
-    * conversion from string to chararray is now also done via compilerprocs
-
-  Revision 1.19  2001/08/28 13:24:47  jonas
-    + compilerproc implementation of most string-related type conversions
-    - removed all code from the compiler which has been replaced by
-      compilerproc implementations (using (ifdef hascompilerproc) is not
-      necessary in the compiler)
-
-  Revision 1.18  2001/08/13 12:40:16  jonas
-    * renamed some str(x,y) and val(x,y) helpers so the naming scheme is the
-      same for all string types
-    + added the str(x,y) and val(x,y,z) helpers for int64/qword to
-      compproc.inc
-
-  Revision 1.17  2001/08/01 15:00:10  jonas
-    + "compproc" helpers
-    * renamed several helpers so that their name is the same as their
-      "public alias", which should facilitate the conversion of processor
-      specific code in the code generator to processor independent code
-    * some small fixes to the val_ansistring and val_widestring helpers
-      (always immediately exit if the source string is longer than 255
-       chars)
-    * fixed fpc_dynarray_high and fpc_dynarray_length if the dynarray is
-      still nil (used to crash, now return resp -1 and 0)
-
-  Revision 1.16  2001/07/10 18:04:37  peter
-    * merged textfile, readlink and concat ansistring fixes
-
-  Revision 1.15  2001/07/09 21:15:41  peter
-    * Length made internal
-    * Add array support for Length
-
-  Revision 1.14  2001/07/09 11:41:57  florian
-    * another MT fix
-
-  Revision 1.13  2001/07/08 21:00:18  peter
-    * various widestring updates, it works now mostly without charset
-      mapping supported
-
-  Revision 1.12  2001/07/04 12:17:09  jonas
-    * removed DestSize parameter from declaration of ValAnsiSignedInt64
-      (merged)
-
-  Revision 1.11  2001/05/27 14:28:44  florian
-    + made the ref. couting MT safe
-
-  Revision 1.10  2001/04/13 18:06:07  peter
-    * upcase, lowercase for ansistring
-
-  Revision 1.9  2000/12/10 15:00:14  florian
-    * val for int64 hopefully works now correct
-
-  Revision 1.8  2000/12/08 14:04:43  jonas
-    + added pos(char,ansistring), because there is also a pos(char,shortstring)
-      and without the ansistring version, the shortstring version is always
-      called when calling pos(char,pchar), even when using $h+ (because the
-      first parameter matches exactly) (merged)
-
-  Revision 1.7  2000/11/06 20:34:24  peter
-    * changed ver1_0 defines to temporary defs
-
-  Revision 1.6  2000/10/21 18:20:17  florian
-    * a lot of small changes:
-       - setlength is internal
-       - win32 graph unit extended
-       ....
-
-  Revision 1.5  2000/08/29 18:39:42  peter
-    * fixed chararray to ansistring (merged)
-
-  Revision 1.4  2000/08/24 07:37:21  jonas
-    * fixed bug in setlength (it sometimes read after the end of the heap)
-      and small improvement to ansistring_to_chararray conversion (merged
-      from fixes branch)
-
-  Revision 1.3  2000/08/09 19:31:18  marco
-   * fixes for val(int64 or qword) to ansistring
-
-  Revision 1.2  2000/07/13 11:33:42  michael
-  + removed logs
 }

@@ -809,7 +809,10 @@ end;
 END.
 {
  $Log$
- Revision 1.17  2002-08-22 13:40:49  pierre
+ Revision 1.18  2002-09-07 15:06:36  peter
+   * old logs removed and tabs fixed
+
+ Revision 1.17  2002/08/22 13:40:49  pierre
   * several graphic mode improovements
 
  Revision 1.16  2002/06/06 06:41:14  pierre
@@ -829,32 +832,5 @@ END.
 
  Revision 1.11  2002/05/28 19:13:44  pierre
   + GraphUpdateScreen function
-
- Revision 1.10  2001/10/02 16:35:51  pierre
-  * fix several problems, try to get the graph version to compile
-
- Revision 1.9  2001/05/31 21:40:10  pierre
-  * some debug stuff changed
-
- Revision 1.8  2001/05/10 16:46:28  pierre
-  + some improovements made
-
- Revision 1.7  2001/05/07 23:36:35  pierre
-  NO_WINDOW cond removed
-
- Revision 1.6  2001/05/07 22:22:03  pierre
-  * removed NO_WINDOW cond, added GRAPH_API
-
- Revision 1.5  2001/05/04 15:43:45  pierre
-  * several more fixes
-
- Revision 1.4  2001/04/10 21:57:55  pierre
-  + first adds for Use_API define
-
- Revision 1.3  2001/04/10 21:29:55  pierre
-  * import of Leon de Boer's files
-
- Revision 1.2  2000/08/24 12:00:21  marco
-  * CVS log and ID tags
 
 }

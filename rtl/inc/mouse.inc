@@ -210,13 +210,7 @@ end;
 
 {
   $Log$
-  Revision 1.3  2001-09-30 21:08:58  peter
-    * merged fixes
-
-  Revision 1.2  2001/09/22 00:01:42  michael
-  + Merged driver support for mouse from fixbranch
-
-  Revision 1.1.2.1  2001/09/21 23:53:48  michael
-  + Added mouse driver support.
+  Revision 1.4  2002-09-07 15:07:45  peter
+    * old logs removed and tabs fixed
 
 }

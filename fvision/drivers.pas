@@ -1673,7 +1673,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.30  2002-06-10 19:40:14  pierre
+ Revision 1.31  2002-09-07 15:06:36  peter
+   * old logs removed and tabs fixed
+
+ Revision 1.30  2002/06/10 19:40:14  pierre
   * add DoneMouse in DoneEvents
 
  Revision 1.29  2002/06/10 18:16:55  pierre
@@ -1724,43 +1727,6 @@ END.
  Revision 1.14  2002/05/16 20:21:50  pierre
   + fix for bug report 1953 adapted from S Wiktor
 
- Revision 1.13  2001/10/02 16:35:50  pierre
-  * fix several problems, try to get the graph version to compile
-
- Revision 1.12  2001/08/05 02:03:13  peter
-   * view redrawing and small cursor updates
-   * merged some more FV extensions
-
- Revision 1.11  2001/08/04 19:14:33  peter
-   * Added Makefiles
-   * added FV specific units and objects from old FV
-
- Revision 1.10  2001/05/10 16:46:27  pierre
-  + some improovements made
-
- Revision 1.9  2001/05/07 22:22:03  pierre
-  * removed NO_WINDOW cond, added GRAPH_API
-
- Revision 1.8  2001/05/04 15:43:45  pierre
-  * several more fixes
-
- Revision 1.7  2001/05/04 10:46:02  pierre
-  * various fixes  for win32 api mode
-
- Revision 1.6  2001/05/04 08:42:55  pierre
-  * some corrections for linux
-
- Revision 1.5  2001/05/03 22:32:52  pierre
-  new bunch of changes, displays something for dos at least
-
- Revision 1.4  2001/04/10 21:57:55  pierre
-  + first adds for Use_API define
-
- Revision 1.3  2001/04/10 21:29:55  pierre
-  * import of Leon de Boer's files
-
- Revision 1.2  2000/08/24 12:00:21  marco
-  * CVS log and ID tags
 }
 {******************[ REVISION HISTORY ]********************}
 {  Version  Date        Fix                                }

@@ -41,13 +41,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-02-25 21:33:04  carl
+  Revision 1.3  2002-09-07 15:06:35  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.2  2002/02/25 21:33:04  carl
   * bugfix of demo compilation problem
-
-  Revision 1.1  2001/05/03 21:39:34  peter
-    * moved to own module
-
-  Revision 1.1  2001/01/14 19:02:14  hajny
-    + OS/2 demos added
 
 }

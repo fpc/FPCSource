@@ -82,10 +82,7 @@ Procedure AsmFreemem(var p:pointer);
 
 {
   $Log$
-  Revision 1.3  2001-12-03 21:39:20  peter
-    * freemem(var) -> freemem(value)
-
-  Revision 1.2  2000/07/13 11:33:44  michael
-  + removed logs
+  Revision 1.4  2002-09-07 15:07:45  peter
+    * old logs removed and tabs fixed
 
 }

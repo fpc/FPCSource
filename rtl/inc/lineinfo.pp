@@ -69,8 +69,8 @@ var
   filestab   : tstab;   { stab with current file info }
   { value to subtract to addr parameter to get correct address on file }
   { this should be equal to the process start address in memory        }
-  processaddress : cardinal; 
-  
+  processaddress : cardinal;
+
 
 
 {****************************************************************************
@@ -590,7 +590,7 @@ begin
   if (info._type = B_APP_IMAGE) then
      processaddress := cardinal(info.text)
   else
-     processaddress := 0; 
+     processaddress := 0;
   LoadElf32:=false;
   stabofs:=-1;
   stabstrofs:=-1;
@@ -732,7 +732,7 @@ begin
   { correct the value to the correct address in the file }
   { processaddress is set in OpenStabs                   }
   addr := addr - processaddress;
-  
+
   fillchar(funcstab,sizeof(tstab),0);
   fillchar(filestab,sizeof(tstab),0);
   fillchar(dirstab,sizeof(tstab),0);
@@ -875,17 +875,13 @@ finalization
 end.
 {
   $Log$
-  Revision 1.10  2002-09-07 11:09:40  carl
+  Revision 1.11  2002-09-07 15:07:45  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.10  2002/09/07 11:09:40  carl
     * stack checking supported for all systems
 
   Revision 1.9  2002/05/31 13:37:24  marco
    * more Renamefest
-
-  Revision 1.8  2001/12/13 03:50:00  carl
-  + SunOS target
-
-  Revision 1.1  2000/07/13 06:30:47  michael
-  + Initial import
-
 
 }

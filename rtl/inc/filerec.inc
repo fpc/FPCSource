@@ -35,7 +35,7 @@ type
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:43  michael
-  + removed logs
- 
+  Revision 1.3  2002-09-07 15:07:45  peter
+    * old logs removed and tabs fixed
+
 }

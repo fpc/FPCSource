@@ -85,13 +85,13 @@
                       FPC      PPC_FPC      PROC_Protected  BIT_32  ASM_FPC
 
  LINUX    OS_LINUX    FPC      PPC_FPC      PROC_Protected  BIT_32  ASM_FPC
-	  OS_UNIX
+          OS_UNIX
 
  FREEBSD  OS_FREEBSD  FPC      PPC_FPC      PROC_Protected  BIT_32  ASM_FPC
-	  OS_UNIX
+          OS_UNIX
 
  NETBSD   OS_NETBSD   FPC      PPC_FPC      PROC_Protected  BIT_32  ASM_FPC
-	  OS_UNIX
+          OS_UNIX
 
  WINDOWS  OS_WINDOWS  BP/TP7   PPC_BP       PROC_Protected  BIT_16  ASM_BP
                       DELPHI   PPC_DELPHI   PROC_Protected  BIT_16  ASM_BP
@@ -131,13 +131,13 @@ FOR FPC THESE ARE THE TRANSLATIONS
  FREEBSD  OS_NETBSD,OS_UNIX    FPC     32-bit           AT&T         ----
  NETBSD   OS_FREEBSD,OS_UNIX   FPC     32-bit           AT&T         ----
 
- OS2      OS_OS2       	       FPC     ?????            AT&T         CPU86
+ OS2      OS_OS2               FPC     ?????            AT&T         CPU86
 
  ATARI    OS_ATARI             FPC     32-bit           Internal     CPU68
 
- MACOS    OS_MAC       	       FPC     ?????            Internal     CPU68
+ MACOS    OS_MAC               FPC     ?????            Internal     CPU68
 
- AMIGA    OS_AMIGA     	       FPC     32-bit           Internal     CPU68
+ AMIGA    OS_AMIGA             FPC     32-bit           Internal     CPU68
 
  ****************************************************************************}
 
@@ -403,7 +403,10 @@ FOR FPC THESE ARE THE TRANSLATIONS
 
 {
  $Log$
- Revision 1.9  2002-06-07 14:15:10  pierre
+ Revision 1.10  2002-09-07 15:06:38  peter
+   * old logs removed and tabs fixed
+
+ Revision 1.9  2002/06/07 14:15:10  pierre
   * add window resizing support for unix
 
  Revision 1.8  2002/06/02 08:32:51  marco
@@ -411,22 +414,6 @@ FOR FPC THESE ARE THE TRANSLATIONS
 
  Revision 1.7  2002/05/21 12:02:02  pierre
   define HASSYSMSGUNIT for go32v2 and win32
-
- Revision 1.6  2001/10/02 16:35:51  pierre
-  * fix several problems, try to get the graph version to compile
-
- Revision 1.5  2001/05/03 22:32:52  pierre
-  new bunch of changes, displays something for dos at least
-
- Revision 1.4  2001/04/10 21:57:56  pierre
-  + first adds for Use_API define
-
- Revision 1.3  2001/04/10 21:29:55  pierre
-  * import of Leon de Boer's files
-
- Revision 1.2  2000/08/24 12:00:22  marco
-  * CVS log and ID tags
-
 
 }
 
