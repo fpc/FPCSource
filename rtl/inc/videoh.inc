@@ -38,7 +38,6 @@ type
     GetCursorType     : function : Word;
     SetCursorType     : procedure (NewType: Word);
     GetCapabilities   : Function : Word;
-    DefaultVideoMode  : TVideoMode;
   end;
 
 const
@@ -165,7 +164,10 @@ const
 
 {
   $Log$
-  Revision 1.5  2001-10-06 22:28:24  michael
+  Revision 1.6  2001-10-13 12:59:46  michael
+  + Removed defaultmode field from driver
+
+  Revision 1.5  2001/10/06 22:28:24  michael
   + Merged video mode selection/setting system
 
   Revision 1.4  2001/10/04 20:51:56  michael

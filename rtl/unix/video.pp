@@ -803,12 +803,6 @@ begin
 end;
 
 Const
-  SysVideoMode : TVideoMode = (
-    Col   : 80;
-    Row   : 25;
-    Color : True;
-  );
-
   SysVideoDriver : TVideoDriver = (
     InitDriver : @SysInitVideo;
     DoneDriver : @SysDoneVideo;
@@ -821,7 +815,6 @@ Const
     GetCursorType : @SysGetCursorType;
     SetCursorType : @SysSetCursorType;
     GetCapabilities : @SysGetCapabilities;
-    DefaultVideoMode : (Col : 80; Row : 25;Color : True);
   );
 
 initialization
@@ -829,7 +822,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.9  2001-10-06 22:28:25  michael
+  Revision 1.10  2001-10-13 13:00:31  michael
+  + Removed defaultmode field from driver
+
+  Revision 1.9  2001/10/06 22:28:25  michael
   + Merged video mode selection/setting system
 
   Revision 1.8  2001/09/21 19:50:19  michael
