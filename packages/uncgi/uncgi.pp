@@ -96,14 +96,11 @@ implementation
 {$IFDEF OS2}
 function GetEnv (EnvVar: string): PChar;
 
-var RC: longint;
-    P, Q: PChar;
+var P: PChar;
 
 begin
- GetMem (Q, Succ (Length (EnvVar)));
- RC := DosScanEnv (Q, P);
- FreeMem (Q, Succ (Length (EnvVar)));
- GetEnv := P;
+ EnvVar := EnvVar + #0;
+ if DosScanEnv (@EnvVar [1], P) = 0 then GetEnv := P else GetEnv := nil;
 end;
 {$ENDIF OS2}
 
@@ -430,7 +427,10 @@ end.
 {
   HISTORY
   $Log$
-  Revision 1.1.2.1  2000-12-19 00:48:07  hajny
+  Revision 1.1.2.2  2001-01-27 18:41:22  hajny
+    * OS/2 GetEnv correction
+
+  Revision 1.1.2.1  2000/12/19 00:48:07  hajny
     + OS/2 support added
 
   Revision 1.1  2000/07/13 06:34:23  michael
