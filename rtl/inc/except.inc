@@ -144,7 +144,7 @@ begin
 end;
 
 
-Procedure PopObjectStack;[Public, Alias : 'FPC_POPOBJECTSTACK'];
+function PopObjectStack : TObject;[Public, Alias : 'FPC_POPOBJECTSTACK'];
 var
   hp : PExceptObject;
 begin
@@ -158,6 +158,7 @@ begin
     end
   else
     begin
+       PopObjectStack:=ExceptObjectStack^.FObject;
        hp:=ExceptObjectStack;
        ExceptObjectStack:=ExceptObjectStack^.next;
        dispose(hp);
@@ -201,7 +202,8 @@ end;
 
 Procedure DestroyException(o : TObject);[Public, Alias : 'FPC_DESTROYEXCEPTION'];
 begin
-  o.Destroy;
+  { with free we're on the really save side }
+  o.Free;
 end;
 
 
@@ -215,7 +217,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.14  2000-01-07 16:41:33  daniel
+  Revision 1.15  2000-02-06 17:17:57  florian
+    * popobjectstack is now a function
+
+  Revision 1.14  2000/01/07 16:41:33  daniel
     * copyright 2000
 
   Revision 1.13  1999/07/27 08:14:15  florian
