@@ -50,6 +50,9 @@ unit objpas;
      Procedure AssignFile(Var f:TypedFile;p:pchar);
      Procedure AssignFile(Var f:TypedFile;c:char);
 
+     { ParamStr should return also an ansistring }
+     Function ParamStr(Param : Integer) : Ansistring;
+
   implementation
 
 {****************************************************************************
@@ -128,10 +131,21 @@ begin
   system.Assign (F,C);
 end;
 
+Function ParamStr(Param : Integer) : Ansistring;
+
+  begin
+     paramstr:=system.paramstr(Param);
+  end;
+
 end.
 {
   $Log$
-  Revision 1.24  1999-05-17 21:52:43  florian
+  Revision 1.25  1999-07-06 22:44:22  florian
+    + implemented a paramstr function which returns an ansistring, nevertheless
+      it is limited to 255 chars because it maps to the system.paramstr, maybe
+      we should use cmdline instead
+
+  Revision 1.24  1999/05/17 21:52:43  florian
     * most of the Object Pascal stuff moved to the system unit
 
   Revision 1.23  1999/05/13 21:54:28  peter
