@@ -559,6 +559,13 @@ implementation
                     end;
                end;
 
+             in_typeinfo_x:
+               begin
+                  p^.resulttype:=voidpointerdef;
+                  p^.location.loc:=LOC_REGISTER;
+                  p^.registers32:=1;
+               end;
+
              in_assigned_x:
                begin
                   set_varstate(p^.left,true);
@@ -1328,7 +1335,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2000-08-01 14:07:49  jonas
+  Revision 1.5  2000-08-16 13:06:07  florian
+    + support of 64 bit integer constants
+
+  Revision 1.4  2000/08/01 14:07:49  jonas
     * fixed crash when passing undeclared identifiers to str() (merged from
       fixes branch)
 

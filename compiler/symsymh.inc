@@ -270,10 +270,10 @@
           consttype  : ttype;
           consttyp : tconsttyp;
           resstrindex,    { needed for resource strings }
-          value,
+          value      : tconstexprint;
           len        : longint; { len is needed for string length }
-          constructor init(const n : string;t : tconsttyp;v : longint);
-          constructor init_def(const n : string;t : tconsttyp;v : longint;def : pdef);
+          constructor init(const n : string;t : tconsttyp;v : tconstexprint);
+          constructor init_def(const n : string;t : tconsttyp;v : tconstexprint;def : pdef);
           constructor init_string(const n : string;t : tconsttyp;str:pchar;l:longint);
           constructor load;
           destructor  done;virtual;
@@ -319,7 +319,10 @@
 
 {
   $Log$
-  Revision 1.3  2000-08-13 12:54:56  peter
+  Revision 1.4  2000-08-16 13:06:07  florian
+    + support of 64 bit integer constants
+
+  Revision 1.3  2000/08/13 12:54:56  peter
     * class member decl wrong then no other error after it
     * -vb has now also line numbering
     * -vb is also used for interface/implementation different decls and
@@ -327,5 +330,5 @@
 
   Revision 1.2  2000/07/13 11:32:50  michael
   + removed logs
- 
+
 }

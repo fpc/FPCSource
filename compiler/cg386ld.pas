@@ -536,15 +536,21 @@ implementation
                                 end
                               else
                                 begin
-                                  emit_const_ref(A_MOV,opsize,
-                                    p^.right^.location.reference.offset,
-                                    newreference(p^.left^.location.reference));
                                   if is_64bitint(p^.right^.resulttype) then
                                     begin
+                                       emit_const_ref(A_MOV,opsize,
+                                         lo(p^.right^.value),
+                                         newreference(p^.left^.location.reference));
                                        r:=newreference(p^.left^.location.reference);
                                        inc(r^.offset,4);
                                        emit_const_ref(A_MOV,opsize,
-                                         0,r);
+                                         hi(p^.right^.value),r);
+                                    end
+                                  else
+                                    begin
+                                       emit_const_ref(A_MOV,opsize,
+                                         p^.right^.location.reference.offset,
+                                         newreference(p^.left^.location.reference));
                                     end;
 {$IfDef regallocfix}
                                   del_reference(p^.left^.location.reference);
@@ -1002,7 +1008,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2000-07-13 12:08:25  michael
+  Revision 1.4  2000-08-16 13:06:06  florian
+    + support of 64 bit integer constants
+
+  Revision 1.3  2000/07/13 12:08:25  michael
   + patched to 1.1.0 with former 1.09patch from peter
 
   Revision 1.2  2000/07/13 11:32:34  michael

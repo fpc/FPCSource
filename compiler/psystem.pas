@@ -65,6 +65,7 @@ begin
   p^.insert(new(psyssym,init('ASSERT',in_assert_x_y)));
   p^.insert(new(psyssym,init('VAL',in_val_x)));
   p^.insert(new(psyssym,init('ADDR',in_addr_x)));
+  p^.insert(new(psyssym,init('TYPEINFO',in_typeinfo_x)));
 end;
 
 
@@ -249,7 +250,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:47  michael
+  Revision 1.3  2000-08-16 13:06:06  florian
+    + support of 64 bit integer constants
+
+  Revision 1.2  2000/07/13 11:32:47  michael
   + removed logs
 
 }

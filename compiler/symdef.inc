@@ -2502,9 +2502,9 @@
 	      case hpc^.consttyp of
 	        conststring,
 		constresourcestring :
-		  hs:=+strpas(pchar(hpc^.value));
+		  hs:=+strpas(pchar(tpointerord(hpc^.value)));
 		constreal :
-  	          str(pbestreal(hpc^.value)^,hs);
+                  str(pbestreal(tpointerord(hpc^.value))^,hs);
 		constord,
 		constpointer :
 		  hs:=tostr(hpc^.value);
@@ -2520,8 +2520,8 @@
 		constchar :
 		  hs:=chr(hpc^.value);
 		constset :
-		  hs:='<set>';      
-              end;  
+		  hs:='<set>';
+              end;
 	      if hs<>'' then
 	       s:=s+'="'+hs+'"';
 	    end;
@@ -2682,7 +2682,7 @@
          localst^.defowner:=@self;
          parast^.next:=localst;
 	 localst^.next:=owner;}
-	 
+	
          forwarddef:=false;
          interfacedef:=false;
          hasforward:=false;
@@ -2940,7 +2940,7 @@ Const local_symtable_index : longint = $8001;
                }
            end;
          current_ppu^.writeentry(ibprocdef);
-	 
+	
          { Save the para and local symtable, for easier reading
 	   save both always, they don't influence the interface crc }
          oldintfcrc:=current_ppu^.do_interface_crc;
@@ -2955,7 +2955,7 @@ Const local_symtable_index : longint = $8001;
 	  begin
             localst:=new(psymtable,init(localsymtable));
 	    localst^.defowner:=@self;
-	  end;  
+	  end;
          localst^.writeas;}
          current_ppu^.do_interface_crc:=oldintfcrc;
       end;
@@ -3030,7 +3030,7 @@ Const local_symtable_index : longint = $8001;
          resolvedef(pdef(nextoverloaded));
          resolvedef(pdef(_class));
          { parast }
-	 oldsymtablestack:=symtablestack; 
+	 oldsymtablestack:=symtablestack;
          oldlocalsymtable:=aktlocalsymtable;
          aktlocalsymtable:=parast;
          parast^.deref;
@@ -3038,7 +3038,7 @@ Const local_symtable_index : longint = $8001;
          aktlocalsymtable:=localst;
          localst^.deref;}
          aktlocalsymtable:=oldlocalsymtable;
-	 symtablestack:=oldsymtablestack; 
+	 symtablestack:=oldsymtablestack;
       end;
 
 
@@ -4252,7 +4252,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.9  2000-08-13 13:06:37  peter
+  Revision 1.10  2000-08-16 13:06:06  florian
+    + support of 64 bit integer constants
+
+  Revision 1.9  2000/08/13 13:06:37  peter
     * store parast always for procdef (browser needs still update)
     * add default parameter value to demangledpara
 

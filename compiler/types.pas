@@ -24,7 +24,7 @@ unit types;
 interface
 
     uses
-       cobjects,symtable
+       cobjects,symtable,cpuinfo
        {$IFDEF NEWST}
        ,defs
        {$ENDIF NEWST};
@@ -168,7 +168,7 @@ interface
 
     { if l isn't in the range of def a range check error is generated and
       the value is placed within the range }
-    procedure testrange(def : pdef;var l : longint);
+    procedure testrange(def : pdef;var l : tconstexprint);
 
     { returns the range of def }
     procedure getrange(def : pdef;var l : longint;var h : longint);
@@ -241,8 +241,8 @@ implementation
              begin
                if sym1^.len=sym2^.len then
                 begin
-                  p1:=pchar(sym1^.value);
-                  p2:=pchar(sym2^.value);
+                  p1:=pchar(tpointerord(sym1^.value));
+                  p2:=pchar(tpointerord(sym2^.value));
                   pend:=p1+sym1^.len;
                   while (p1<pend) do
                    begin
@@ -256,9 +256,9 @@ implementation
                 end;
              end;
            constreal :
-             equal_constsym:=(pbestreal(sym1^.value)^=pbestreal(sym2^.value)^);
+             equal_constsym:=(pbestreal(tpointerord(sym1^.value))^=pbestreal(tpointerord(sym2^.value))^);
            constset :
-             equal_constsym:=(pnormalset(sym1^.value)^=pnormalset(sym2^.value)^);
+             equal_constsym:=(pnormalset(tpointerord(sym1^.value))^=pnormalset(tpointerord(sym2^.value))^);
            constnil :
              equal_constsym:=true;
         end;
@@ -705,7 +705,7 @@ implementation
       end;
 
     { test if l is in the range of def, outputs error if out of range }
-    procedure testrange(def : pdef;var l : longint);
+    procedure testrange(def : pdef;var l : tconstexprint);
       var
          lv,hv: longint;
 
@@ -1140,7 +1140,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2000-08-13 13:07:18  peter
+  Revision 1.7  2000-08-16 13:06:07  florian
+    + support of 64 bit integer constants
+
+  Revision 1.6  2000/08/13 13:07:18  peter
     * equal_paras now also checks default parameter value
 
   Revision 1.5  2000/08/12 06:49:22  florian

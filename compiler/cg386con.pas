@@ -79,7 +79,7 @@ implementation
               { const already used ? }
               if not assigned(p^.lab_real) then
                 begin
-                   { tries to found an old entry }
+                   { tries to find an old entry }
                    hp1:=pai(consts^.first);
                    while assigned(hp1) do
                      begin
@@ -152,11 +152,29 @@ implementation
 *****************************************************************************}
 
     procedure secondordconst(var p : ptree);
+
+      var
+         l : pasmlabel;
+
       begin
-         { an integer const. behaves as a memory reference }
          p^.location.loc:=LOC_MEM;
-         p^.location.reference.is_immediate:=true;
-         p^.location.reference.offset:=p^.value;
+         if is_64bitint(p^.resulttype) then
+           begin
+              getdatalabel(l);
+              if (cs_create_smart in aktmoduleswitches) then
+                consts^.concat(new(pai_cut,init));
+              consts^.concat(new(pai_label,init(l)));
+              consts^.concat(new(pai_const,init_32bit(lo(p^.value))));
+              consts^.concat(new(pai_const,init_32bit(hi(p^.value))));
+              reset_reference(p^.location.reference);
+              p^.location.reference.symbol:=l;
+           end
+         else
+           begin
+              { non int64 const. behaves as a memory reference }
+              p^.location.reference.is_immediate:=true;
+              p^.location.reference.offset:=p^.value;
+           end;
       end;
 
 
@@ -440,7 +458,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:33  michael
+  Revision 1.3  2000-08-16 13:06:06  florian
+    + support of 64 bit integer constants
+
+  Revision 1.2  2000/07/13 11:32:33  michael
   + removed logs
 
 }

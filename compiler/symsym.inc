@@ -1639,7 +1639,7 @@
                                   TCONSTSYM
 ****************************************************************************}
 
-    constructor tconstsym.init(const n : string;t : tconsttyp;v : longint);
+    constructor tconstsym.init(const n : string;t : tconsttyp;v : TConstExprInt);
       begin
          inherited init(n);
          typ:=constsym;
@@ -1651,7 +1651,7 @@
       end;
 
 
-    constructor tconstsym.init_def(const n : string;t : tconsttyp;v : longint;def : pdef);
+    constructor tconstsym.init_def(const n : string;t : tconsttyp;v : TConstExprInt;def : pdef);
       begin
          inherited init(n);
          typ:=constsym;
@@ -1671,20 +1671,31 @@
          consttype.reset;
          len:=l;
          if t=constresourcestring then
-           ResStrIndex:=ResourceStrings^.Register(name,pchar(value),len);
+           ResStrIndex:=ResourceStrings^.Register(name,
+             pchar(tpointerord(value)),len);
       end;
 
     constructor tconstsym.load;
       var
          pd : pbestreal;
          ps : pnormalset;
+         l1,l2 : longint;
+
       begin
          tsym.load;
          typ:=constsym;
          consttype.reset;
          consttyp:=tconsttyp(readbyte);
          case consttyp of
-           constint,
+           constint:
+             if sizeof(tconstexprint)=8 then
+               begin
+                  l1:=readlong;
+                  l2:=readlong;
+                  value:=int64(l1)+(int64(l2) shl 32);
+               end
+             else
+               value:=readlong;
            constbool,
            constchar :
              value:=readlong;
@@ -1692,13 +1703,20 @@
            constord :
              begin
                consttype.load;
-               value:=readlong;
+               if sizeof(TConstExprInt)=8 then
+                 begin
+                    l1:=readlong;
+                    l2:=readlong;
+                    value:=int64(l1)+(int64(l2) shl 32);
+                 end
+               else
+                 value:=readlong;
              end;
            conststring,constresourcestring :
              begin
                len:=readlong;
-               getmem(pchar(value),len+1);
-               current_ppu^.getdata(pchar(value)^,len);
+               getmem(pchar(tpointerord(value)),len+1);
+               current_ppu^.getdata(pchar(tpointerord(value))^,len);
                if consttyp=constresourcestring then
                  ResStrIndex:=readlong;
              end;
@@ -1726,11 +1744,11 @@
       begin
         case consttyp of
           conststring,constresourcestring :
-            freemem(pchar(value),len+1);
+            freemem(pchar(tpointerord(value)),len+1);
           constreal :
-            dispose(pbestreal(value));
+            dispose(pbestreal(tpointerord(value)));
           constset :
-            dispose(pnormalset(value));
+            dispose(pnormalset(tpointerord(value)));
         end;
         inherited done;
       end;
@@ -1755,7 +1773,15 @@
          writebyte(byte(consttyp));
          case consttyp of
            constnil : ;
-           constint,
+           constint:
+             if sizeof(TConstExprInt)=8 then
+               begin
+                  writelong(lo(value));
+                  writelong(hi(value));
+               end
+             else
+               writelong(value);
+
            constbool,
            constchar :
              writelong(value);
@@ -1763,21 +1789,27 @@
            constord :
              begin
                consttype.write;
-               writelong(value);
+               if sizeof(TConstExprInt)=8 then
+                 begin
+                    writelong(lo(value));
+                    writelong(hi(value));
+                 end
+               else
+                 writelong(value);
              end;
            conststring,constresourcestring :
              begin
                writelong(len);
-               current_ppu^.putdata(pchar(value)^,len);
+               current_ppu^.putdata(pchar(TPointerOrd(value))^,len);
                if consttyp=constresourcestring then
                  writelong(ResStrIndex);
              end;
            constreal :
-             writereal(pbestreal(value)^);
+             writereal(pbestreal(TPointerOrd(value))^);
            constset :
              begin
                consttype.write;
-               writenormalset(pointer(value)^);
+               writenormalset(pointer(TPointerOrd(value))^);
              end;
          else
            internalerror(13);
@@ -1793,7 +1825,7 @@
          case consttyp of
             conststring : begin
                           { I had to remove ibm2ascii !! }
-                          st := pstring(value)^;
+                          st := pstring(TPointerOrd(value))^;
                           {st := ibm2ascii(pstring(value)^);}
                           st := 's'''+st+'''';
                           end;
@@ -1803,7 +1835,7 @@
             constord,
             constchar : st := 'i'+tostr(value);
             constreal : begin
-                        system.str(pbestreal(value)^,st);
+                        system.str(pbestreal(TPointerOrd(value))^,st);
                         st := 'r'+st;
                         end;
          { if we don't know just put zero !! }
@@ -2157,7 +2189,10 @@
 
 {
   $Log$
-  Revision 1.4  2000-08-13 12:54:56  peter
+  Revision 1.5  2000-08-16 13:06:07  florian
+    + support of 64 bit integer constants
+
+  Revision 1.4  2000/08/13 12:54:56  peter
     * class member decl wrong then no other error after it
     * -vb has now also line numbering
     * -vb is also used for interface/implementation different decls and
@@ -2168,5 +2203,5 @@
 
   Revision 1.2  2000/07/13 11:32:49  michael
   + removed logs
- 
+
 }

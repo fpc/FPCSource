@@ -270,6 +270,27 @@ unit pexpr;
                end;
             end;
 
+          in_typeinfo_x :
+            begin
+              consume(_LKLAMMER);
+              in_args:=true;
+              {allow_type:=true;}
+              p1:=comp_expr(true);
+              do_firstpass(p1);
+              {allow_type:=false; }
+              if p1^.treetype<>typen then
+                begin
+                   disposetree(p1);
+                   p1:=genzeronode(errorn);
+                   Message(parser_e_illegal_parameter_list);
+                end;
+              consume(_RKLAMMER);
+              p2:=gencallparanode(p1,nil);
+              p2:=geninlinenode(in_typeinfo_x,false,p2);
+              pd:=voidpointerdef;
+              statement_syssym:=p2;
+            end;
+
           in_assigned_x :
             begin
               consume(_LKLAMMER);
@@ -894,6 +915,7 @@ unit pexpr;
     function factor(getaddr : boolean) : ptree;
       var
          l      : longint;
+         ic     : TConstExprInt;
          oldp1,
          p1,p2,p3 : ptree;
          code     : integer;
@@ -1172,25 +1194,29 @@ unit pexpr;
                  constsym : begin
                               case pconstsym(srsym)^.consttyp of
                                 constint :
-                                  p1:=genordinalconstnode(pconstsym(srsym)^.value,s32bitdef);
+                                  { do a very dirty trick to bootstrap this code }
+                                  if (pconstsym(srsym)^.value>=-(int64(2147483647)+int64(1))) and (pconstsym(srsym)^.value<=2147483647) then
+                                    p1:=genordinalconstnode(pconstsym(srsym)^.value,s32bitdef)
+                                  else
+                                    p1:=genordinalconstnode(pconstsym(srsym)^.value,cs64bitdef);
                                 conststring :
                                   begin
                                     len:=pconstsym(srsym)^.len;
                                     if not(cs_ansistrings in aktlocalswitches) and (len>255) then
                                      len:=255;
                                     getmem(pc,len+1);
-                                    move(pchar(pconstsym(srsym)^.value)^,pc^,len);
+                                    move(pchar(tpointerord(pconstsym(srsym)^.value))^,pc^,len);
                                     pc[len]:=#0;
                                     p1:=genpcharconstnode(pc,len);
                                   end;
                                 constchar :
                                   p1:=genordinalconstnode(pconstsym(srsym)^.value,cchardef);
                                 constreal :
-                                  p1:=genrealconstnode(pbestreal(pconstsym(srsym)^.value)^,bestrealdef^);
+                                  p1:=genrealconstnode(pbestreal(tpointerord(pconstsym(srsym)^.value))^,bestrealdef^);
                                 constbool :
                                   p1:=genordinalconstnode(pconstsym(srsym)^.value,booldef);
                                 constset :
-                                  p1:=gensetconstnode(pconstset(pconstsym(srsym)^.value),
+                                  p1:=gensetconstnode(pconstset(tpointerord(pconstsym(srsym)^.value)),
                                         psetdef(pconstsym(srsym)^.consttype.def));
                                 constord :
                                   p1:=genordinalconstnode(pconstsym(srsym)^.value,
@@ -1812,24 +1838,36 @@ unit pexpr;
                  valint(pattern,l,code);
                  if code<>0 then
                   begin
-                    val(pattern,d,code);
-                    if code<>0 then
-                     begin
-                       Message(cg_e_invalid_integer);
-                       consume(_INTCONST);
-                       l:=1;
-                       p1:=genordinalconstnode(l,s32bitdef);
-                     end
-                    else
-                     begin
-                       consume(_INTCONST);
-                       p1:=genrealconstnode(d,bestrealdef^);
-                     end;
+                     { try int64 if available                          }
+                     { if no int64 available longint is tried a second }
+                     { time which doesn't hurt                         }
+                     val(pattern,ic,code);
+                     if code<>0 then
+                       begin
+                          val(pattern,d,code);
+                          if code<>0 then
+                           begin
+                              Message(cg_e_invalid_integer);
+                              consume(_INTCONST);
+                              l:=1;
+                              p1:=genordinalconstnode(l,s32bitdef);
+                           end
+                         else
+                           begin
+                              consume(_INTCONST);
+                              p1:=genrealconstnode(d,bestrealdef^);
+                           end;
+                       end
+                     else
+                       begin
+                          consume(_INTCONST);
+                          p1:=genordinalconstnode(ic,cs64bitdef);
+                       end;
                   end
                  else
                   begin
-                    consume(_INTCONST);
-                    p1:=genordinalconstnode(l,s32bitdef);
+                     consume(_INTCONST);
+                     p1:=genordinalconstnode(l,s32bitdef)
                   end;
                end;
  _REALNUMBER : begin
@@ -2170,7 +2208,10 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.3  2000-08-04 22:00:52  peter
+  Revision 1.4  2000-08-16 13:06:06  florian
+    + support of 64 bit integer constants
+
+  Revision 1.3  2000/08/04 22:00:52  peter
     * merges from fixes
 
   Revision 1.2  2000/07/13 11:32:44  michael

@@ -39,7 +39,7 @@ unit ptconst;
 {$else}
        strings,
 {$endif Delphi}
-       globtype,systems,tokens,
+       globtype,systems,tokens,cpuinfo,
        cobjects,globals,scanner,
        symconst,aasm,types,verbose,
        tree,pass_1,
@@ -435,7 +435,7 @@ unit ptconst;
                 end
               else if is_constresourcestringnode(p) then
                 begin
-                  strval:=pchar(pconstsym(p^.symtableentry)^.value);
+                  strval:=pchar(tpointerord(pconstsym(p^.symtableentry)^.value));
                   strlength:=pconstsym(p^.symtableentry)^.len;
                 end
               else
@@ -800,7 +800,10 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.3  2000-08-05 13:25:06  peter
+  Revision 1.4  2000-08-16 13:06:06  florian
+    + support of 64 bit integer constants
+
+  Revision 1.3  2000/08/05 13:25:06  peter
     * packenum 1 fixes (merged)
 
   Revision 1.2  2000/07/13 11:32:47  michael

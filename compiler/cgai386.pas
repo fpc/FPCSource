@@ -186,7 +186,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          2 : def_opsize:=S_W;
          4 : def_opsize:=S_L;
         else
-         internalerror(78);
+         internalerror(130820001);
         end;
       end;
 
@@ -202,7 +202,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          { I don't know if we need it (FK) }
          8 : o1:=S_L;
         else
-         internalerror(78);
+         internalerror(130820002);
         end;
         if assigned(p2) then
          begin
@@ -234,7 +234,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          2 : def_getreg:=reg32toreg16(getregister32);
          4 : def_getreg:=getregister32;
         else
-         internalerror(78);
+         internalerror(130820003);
         end;
       end;
 
@@ -4067,7 +4067,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.9  2000-08-10 18:42:03  peter
+  Revision 1.10  2000-08-16 13:06:06  florian
+    + support of 64 bit integer constants
+
+  Revision 1.9  2000/08/10 18:42:03  peter
     * fixed for constants in emit_push_mem_size for go32v2 (merged)
 
   Revision 1.8  2000/08/07 11:29:40  jonas

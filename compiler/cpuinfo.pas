@@ -30,8 +30,14 @@ Type
 {$else FPC}
    AWord = Longint;
 {$endif FPC}
-   TConstExprInt = longint;
-   TConstExprUInt = dword;
+   { the ordinal type used when evaluating constant integer expressions }
+   TConstExprInt = int64;
+   { ... the same unsigned }
+   TConstExprUInt = qword;
+   { this must be an ordinal type with the same size as a pointer }
+   { to allow some dirty type casts for example when using        }
+   { tconstsym.value                                              }
+   TPointerOrd = longint;
 
 Const
    { Size of native extended type }
@@ -42,7 +48,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.3  2000-08-12 06:45:08  florian
+  Revision 1.4  2000-08-16 13:06:06  florian
+    + support of 64 bit integer constants
+
+  Revision 1.3  2000/08/12 06:45:08  florian
     + type TConstExprInt added
 
   Revision 1.2  2000/07/13 11:32:39  michael

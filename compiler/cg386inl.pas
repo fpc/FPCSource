@@ -1293,6 +1293,15 @@ implementation
                 emitoverflowcheck(p^.left^.left);
                 emitrangecheck(p^.left^.left,p^.left^.left^.resulttype);
               end;
+            in_typeinfo_x:
+               begin
+                  p^.left^.left^.typenodetype^.generate_rtti;
+                  p^.location.register:=getregister32;
+                  new(r);
+                  reset_reference(r^);
+                  r^.symbol:=p^.left^.left^.typenodetype^.rtti_label;
+                  emit_ref_reg(A_MOV,S_L,r,p^.location.register);
+               end;
             in_assigned_x :
               begin
                  secondpass(p^.left^.left);
@@ -1528,7 +1537,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2000-08-04 22:00:50  peter
+  Revision 1.6  2000-08-16 13:06:06  florian
+    + support of 64 bit integer constants
+
+  Revision 1.5  2000/08/04 22:00:50  peter
     * merges from fixes
 
   Revision 1.4  2000/07/29 18:27:53  sg

@@ -229,7 +229,7 @@ unit tree;
                       no_check,unit_specific,
                       return_value_used,static_call : boolean);
              addrn : (procvarload:boolean);
-             ordconstn : (value : longint);
+             ordconstn : (value : TConstExprInt);
              realconstn : (value_real : bestreal;lab_real : pasmlabel);
              fixconstn : (value_fix: longint);
              funcretn : (funcretprocinfo : pointer;
@@ -273,8 +273,8 @@ unit tree;
     function genloadmethodcallnode(v: pprocsym;st: psymtable; mp:ptree): ptree;
     function gensinglenode(t : ttreetyp;l : ptree) : ptree;
     function gensubscriptnode(varsym : pvarsym;l : ptree) : ptree;
-    function genordinalconstnode(v : longint;def : pdef) : ptree;
-    function genpointerconstnode(v : longint;def : pdef) : ptree;
+    function genordinalconstnode(v : TConstExprInt;def : pdef) : ptree;
+    function genpointerconstnode(v : tpointerord;def : pdef) : ptree;
     function genfixconstnode(v : longint;def : pdef) : ptree;
     function gentypeconvnode(node : ptree;t : pdef) : ptree;
     function gentypenode(t : pdef;sym:ptypesym) : ptree;
@@ -848,7 +848,7 @@ unit tree;
          genloopnode:=p;
       end;
 
-    function genordinalconstnode(v : longint;def : pdef) : ptree;
+    function genordinalconstnode(v : tconstexprint;def : pdef) : ptree;
 
       var
          p : ptree;
@@ -876,7 +876,7 @@ unit tree;
          genordinalconstnode:=p;
       end;
 
-    function genpointerconstnode(v : longint;def : pdef) : ptree;
+    function genpointerconstnode(v : tpointerord;def : pdef) : ptree;
 
       var
          p : ptree;
@@ -1470,18 +1470,18 @@ unit tree;
               if not(cs_ansistrings in aktlocalswitches) and (len>255) then
                len:=255;
               getmem(pc,len+1);
-              move(pchar(p^.value)^,pc^,len);
+              move(pchar(tpointerord(p^.value))^,pc^,len);
               pc[len]:=#0;
               p1:=genpcharconstnode(pc,len);
             end;
           constchar :
             p1:=genordinalconstnode(p^.value,cchardef);
           constreal :
-            p1:=genrealconstnode(pbestreal(p^.value)^,bestrealdef^);
+            p1:=genrealconstnode(pbestreal(tpointerord(p^.value))^,bestrealdef^);
           constbool :
             p1:=genordinalconstnode(p^.value,booldef);
           constset :
-            p1:=gensetconstnode(pconstset(p^.value),psetdef(p^.consttype.def));
+            p1:=gensetconstnode(pconstset(tpointerord(p^.value)),psetdef(p^.consttype.def));
           constord :
             p1:=genordinalconstnode(p^.value,p^.consttype.def);
           constpointer :
@@ -2133,7 +2133,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.5  2000-08-12 06:46:51  florian
+  Revision 1.6  2000-08-16 13:06:07  florian
+    + support of 64 bit integer constants
+
+  Revision 1.5  2000/08/12 06:46:51  florian
     + case statement for int64/qword implemented
 
   Revision 1.4  2000/08/06 19:39:28  peter

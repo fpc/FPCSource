@@ -32,6 +32,7 @@ unit t_go32v2;
     tlinkergo32v2=object(tlinker)
     private
        Function  WriteResponseFile(isdll:boolean) : Boolean;
+       Function  WriteScript(isdll:boolean) : Boolean;
     public
        constructor Init;
        procedure SetDefaultInfo;virtual;
@@ -62,7 +63,14 @@ procedure TLinkerGo32v2.SetDefaultInfo;
 begin
   with Info do
    begin
-     ExeCmd[1]:='ld -oformat coff-go32-exe $OPT $STRIP -o $EXE @$RES';
+{$ifdef OPTALIGN}
+      if cs_align in aktglobalswitches then
+        ExeCmd[1]:='ld $SCRIPT $OPT $STRIP -o $EXE'
+      else
+        ExeCmd[1]:='ld -oformat coff-go32-exe $OPT $STRIP -o $EXE @$RES'
+{$else OPTALIGN}
+      ExeCmd[1]:='ld -oformat coff-go32-exe $OPT $STRIP -o $EXE @$RES';
+{$endif OPTALIGN}
    end;
 end;
 
@@ -152,6 +160,131 @@ begin
   WriteResponseFile:=True;
 end;
 
+Function TLinkerGo32v2.WriteScript(isdll:boolean) : Boolean;
+Var
+  scriptres  : TLinkRes;
+  i        : longint;
+{$IFDEF NEWST}
+  HPath    : PStringItem;
+{$ELSE}
+  HPath    : PStringQueueItem;
+{$ENDIF NEWST}
+  s        : string;
+  linklibc : boolean;
+begin
+  WriteScript:=False;
+
+  { Open link.res file }
+  ScriptRes.Init(outputexedir+Info.ResName);
+  ScriptRes.Add('OUTPUT_FORMAT("coff-go32-exe")');
+  ScriptRes.Add('ENTRY(start)');
+
+{$ifdef dummy}
+  { Write path to search libraries }
+  HPath:=current_module^.locallibrarysearchpath.First;
+  while assigned(HPath) do
+   begin
+     ScriptRes.Add('SEARCH_PATH("'+GetShortName(HPath^.Data^)+'")');
+     HPath:=HPath^.Next;
+   end;
+  HPath:=LibrarySearchPath.First;
+  while assigned(HPath) do
+   begin
+     ScriptRes.Add('SEARCH_PATH("'+GetShortName(HPath^.Data^)+'")');
+     HPath:=HPath^.Next;
+   end;
+{$endif dummy}
+
+  ScriptRes.Add('SECTIONS');
+  ScriptRes.Add('{');
+  ScriptRes.Add('  .text  0x1000+SIZEOF_HEADERS : {');
+  ScriptRes.Add('  . = ALIGN(16);');
+  { add objectfiles, start with prt0 always }
+  ScriptRes.Add('  '+GetShortName(FindObjectFile('prt0',''))+'(.text)');
+  while not ObjectFiles.Empty do
+   begin
+     s:=ObjectFiles.Get;
+     if s<>'' then
+       begin
+          ScriptRes.Add('  . = ALIGN(16);');
+          ScriptRes.Add('  '+GetShortName(s)+'(.text)');
+       end;
+   end;
+  ScriptRes.Add('    *(.text)');
+  ScriptRes.Add('    etext  =  . ; _etext = .;');
+  ScriptRes.Add('    . = ALIGN(0x200);');
+  ScriptRes.Add('  }');
+  ScriptRes.Add('    .data  ALIGN(0x200) : {');
+  ScriptRes.Add('      djgpp_first_ctor = . ;');
+  ScriptRes.Add('      *(.ctor)');
+  ScriptRes.Add('      djgpp_last_ctor = . ;');
+  ScriptRes.Add('      djgpp_first_dtor = . ;');
+  ScriptRes.Add('      *(.dtor)');
+  ScriptRes.Add('      djgpp_last_dtor = . ;');
+  ScriptRes.Add('      *(.data)');
+  ScriptRes.Add('      *(.gcc_exc)');
+  ScriptRes.Add('      ___EH_FRAME_BEGIN__ = . ;');
+  ScriptRes.Add('      *(.eh_fram)');
+  ScriptRes.Add('      ___EH_FRAME_END__ = . ;');
+  ScriptRes.Add('      LONG(0)');
+  ScriptRes.Add('       edata  =  . ; _edata = .;');
+  ScriptRes.Add('       . = ALIGN(0x200);');
+  ScriptRes.Add('    }');
+  ScriptRes.Add('    .bss  SIZEOF(.data) + ADDR(.data) :');
+  ScriptRes.Add('    {');
+  ScriptRes.Add('      _object.2 = . ;');
+  ScriptRes.Add('      . += 24 ;');
+  ScriptRes.Add('      *(.bss)');
+  ScriptRes.Add('      *(COMMON)');
+  ScriptRes.Add('       end = . ; _end = .;');
+  ScriptRes.Add('       . = ALIGN(0x200);');
+  ScriptRes.Add('    }');
+  ScriptRes.Add('  }');
+
+  { Write staticlibraries }
+  if not StaticLibFiles.Empty then
+   begin
+     ScriptRes.Add('-(');
+     While not StaticLibFiles.Empty do
+      begin
+        S:=StaticLibFiles.Get;
+        ScriptRes.AddFileName(GetShortName(s))
+      end;
+     ScriptRes.Add('-)');
+   end;
+
+  { Write sharedlibraries like -l<lib>, also add the needed dynamic linker
+    here to be sure that it gets linked this is needed for glibc2 systems (PFV) }
+  linklibc:=false;
+  While not SharedLibFiles.Empty do
+   begin
+     S:=SharedLibFiles.Get;
+     if s<>'c' then
+      begin
+        i:=Pos(target_os.sharedlibext,S);
+        if i>0 then
+         Delete(S,i,255);
+        ScriptRes.Add('-l'+s);
+      end
+     else
+      begin
+        ScriptRes.Add('-l'+s);
+        linklibc:=true;
+      end;
+   end;
+  { be sure that libc&libgcc is the last lib }
+  if linklibc then
+   begin
+     ScriptRes.Add('-lc');
+     ScriptRes.Add('-lgcc');
+   end;
+
+{ Write and Close response }
+  ScriptRes.WriteToDisk;
+  ScriptRes.done;
+
+  WriteScript:=True;
+end;
 
 function TLinkerGo32v2.MakeExecutable:boolean;
 var
@@ -168,8 +301,15 @@ begin
   if (cs_link_strip in aktglobalswitches) then
    StripStr:='-s';
 
+{$ifdef OPTALIGN}
+  if cs_align in aktglobalswitches then
+    WriteScript(false)
+  else
+    WriteResponseFile(false);
+{$else OPTALIGN}
 { Write used files and libraries }
   WriteResponseFile(false);
+{$endif OPTALIGN}
 
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
@@ -177,6 +317,9 @@ begin
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$RES',outputexedir+Info.ResName);
   Replace(cmdstr,'$STRIP',StripStr);
+{$ifdef OPTALIGN}
+  Replace(cmdstr,'$SCRIPT','--script='+outputexedir+Info.ResName);
+{$endif OPTALIGN}
   success:=DoExec(FindUtil(BinStr),cmdstr,true,false);
 
 { Remove ReponseFile }
@@ -292,7 +435,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:50  michael
+  Revision 1.3  2000-08-16 13:06:07  florian
+    + support of 64 bit integer constants
+
+  Revision 1.2  2000/07/13 11:32:50  michael
   + removed logs
 
 }
