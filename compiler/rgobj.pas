@@ -161,7 +161,7 @@ unit rgobj;
           { aren't currently allocated to a regvar. The "unusedregsxxx"  }
           { contain all registers of type "xxx" that aren't currently    }
           { allocated                                                    }
-          lastintreg,maxintreg:Tsuperregister;
+          maxintreg:Tsuperregister;
           usable_registers:string[32];
           unusedregsint,usableregsint:Tsuperregisterset;
           unusedregsaddr,usableregsaddr:Tsuperregisterset;
@@ -456,9 +456,9 @@ unit rgobj;
   implementation
 
     uses
-       systems,{$ifdef EXTDEBUG}fmodule,{$endif}
+       systems,
        globals,verbose,
-       cgobj,tgobj,regvars;
+       cgobj,tgobj;
 
     constructor Trgobj.create(Acpu_registers:byte;const Ausable:string);
 
@@ -469,7 +469,6 @@ unit rgobj;
        used_in_proc_other:=[];
        t_times := 0;
        resetusableregisters;
-       lastintreg:=0;
        maxintreg:=first_int_imreg;
        cpu_registers:=Acpu_registers;
        unusedregsint:=[0..254]; { 255 (RS_INVALID) can't be used }
@@ -539,38 +538,60 @@ unit rgobj;
                                       subreg:Tsubregister;
                                       const lowreg,highreg:Tsuperregister;
                                       var fusedinproc,unusedregs:Tsuperregisterset):Tregister;
-    var i:Tsuperregister;
+    var i,p:Tsuperregister;
         r:Tregister;
-
+        min : byte;
+        adj : pstring;
     begin
-      if not (lastintreg in [lowreg..highreg]) then
-        lastintreg:=lowreg;
-      i:=lastintreg;
-      repeat
-        if i=highreg then
-          i:=lowreg
-        else
-          inc(i);
-        if (i in unusedregs) and (pos(char(i),abtlist)=0) then
-          begin
-            exclude(unusedregs,i);
-            include(fusedinproc,i);
-            r:=newreg(R_INTREGISTER,i,subreg);
-            list.concat(Tai_regalloc.alloc(r));
-            result:=r;
-            lastintreg:=i;
-            if i>maxintreg then
-              maxintreg:=i;
-            add_edges_used(i);
-            add_constraints(r);
-            exit;
-          end;
-      until i=lastintreg;
-{$ifdef ALLOWEDUPREG}
-      result:=newreg(R_INTREGISTER,RS_INVALID,subreg);
+      if maxintreg<highreg then
+        begin
+          inc(maxintreg);
+          p:=maxintreg;
+          min:=0;
+        end
+      else
+        begin
+          min:=$ff;
+          p:=first_int_imreg;
+          for i:=lowreg to maxintreg do
+           if (i in unusedregs) and
+              (pos(char(i),abtlist)=0) then
+            begin
+              adj:=igraph.adjlist[Tsuperregister(i)];
+              if adj=nil then
+                begin
+                  p:=i;
+                  min:=0;
+                  break;  {We won't find smaller ones.}
+                end
+              else
+                if length(adj^)<min then
+                  begin
+                    p:=i;
+                    min:=length(adj^);
+                    if min=0 then
+                      break;  {We won't find smaller ones.}
+                  end;
+            end;
+
+           if min=$ff then
+             begin
+{$ifdef ALLOWDUPREG}
+               result:=newreg(R_INTREGISTER,RS_INVALID,subreg);
+               exit;
 {$else}
-      internalerror(10);
+               internalerror(10);
 {$endif}
+             end;
+        end;
+
+       exclude(unusedregs,p);
+       include(fusedinproc,p);
+       r:=newreg(R_INTREGISTER,p,subreg);
+       list.concat(Tai_regalloc.alloc(r));
+       add_edges_used(p);
+       add_constraints(r);
+       result:=r;
     end;
 
 
@@ -1916,8 +1937,8 @@ unit rgobj;
       else
         begin
           min:=$ff;
-          p:=1;
-          for i:=first_int_imreg to lastintreg do
+          p:=first_int_imreg;
+          for i:=first_int_imreg to maxintreg do
            if (i in unusedregsint) and
               (pos(char(i),abtlist)=0) and
               (pos(char(i),spillednodes)=0) then
@@ -1938,17 +1959,17 @@ unit rgobj;
                       break;  {We won't find smaller ones.}
                   end;
             end;
-        end;
 
-       if min=$ff then
-         begin
+           if min=$ff then
+             begin
 {$ifdef ALLOWDUPREG}
-           result:=newreg(R_INTREGISTER,RS_INVALID,subreg);
-           exit;
+               result:=newreg(R_INTREGISTER,RS_INVALID,subreg);
+               exit;
 {$else}
-           internalerror(10);
+               internalerror(10);
 {$endif}
-         end;
+             end;
+        end;
 
 {$ifdef ra_debug}
        writeln('Spilling temp: ',p,' min ',min);
@@ -1991,58 +2012,80 @@ unit rgobj;
 
     function Trgobj.getabtregisterint(list:Taasmoutput;size:Tcgsize):Tregister;
 
-    var i:Tsuperregister;
+    var p,i:Tsuperregister;
         r:Tregister;
         subreg:tsubregister;
         found:boolean;
+        min : byte;
+        adj:Pstring;
 
     begin
-      if not (lastintreg in [first_int_imreg..last_int_imreg]) then
-        lastintreg:=first_int_imreg;
-      found:=false;
+      min:=$ff;
       for i:=1 to length(abtlist) do
         if Tsuperregister(abtlist[i]) in unusedregsint then
           begin
-            found:=true;
+            p:=tsuperregister(abtlist[i]);
+            min:=0;
             break;
           end;
-      i:=lastintreg;
-      repeat
-        if i=last_int_imreg then
-          i:=first_int_imreg
-        else
-          inc(i);
-        if (i in unusedregsint) and ((igraph.adjlist[i]=nil) or (length(igraph.adjlist[i]^)<cpu_registers)) then
-          begin
-            found:=true;
-            break;
-          end;
-      until i=lastintreg;
-      if found then
+
+      if min>0 then
         begin
-          exclude(unusedregsint,i);
-          include(used_in_proc_int,i);
-          subreg:=cgsize2subreg(size);
-          r:=newreg(R_INTREGISTER,i,subreg);
-          list.concat(Tai_regalloc.alloc(r));
-          getabtregisterint:=r;
-          lastintreg:=i;
-          if i>maxintreg then
-            maxintreg:=i;
-          add_edges_used(i);
-          add_constraints(r);
-          if pos(char(i),abtlist)=0 then
-            abtlist:=abtlist+char(i);
-        end
-      else
-        begin
+          if maxintreg<last_int_imreg then
+            begin
+              inc(maxintreg);
+              p:=maxintreg;
+              min:=0;
+            end
+          else
+            begin
+              p:=first_int_imreg;
+              for i:=first_int_imreg to maxintreg do
+               if (i in unusedregsint) and
+                  ((igraph.adjlist[i]=nil) or
+                   (length(igraph.adjlist[i]^)<cpu_registers)) then
+                begin
+                  adj:=igraph.adjlist[i];
+                  if adj=nil then
+                    begin
+                      p:=i;
+                      min:=0;
+                      break;  {We won't find smaller ones.}
+                    end
+                  else
+                    if length(adj^)<min then
+                      begin
+                        p:=i;
+                        min:=length(adj^);
+                        if min=0 then
+                          break;  {We won't find smaller ones.}
+                      end;
+                end;
+            end;
+
+           if min=$ff then
+             begin
 {$ifdef ALLOWDUPREG}
-          result:=newreg(R_INTREGISTER,RS_INVALID,cgsize2subreg(size));
+               result:=newreg(R_INTREGISTER,RS_INVALID,cgsize2subreg(size));
+               exit;
 {$else}
-          internalerror(10)
+               internalerror(10);
 {$endif}
-        end;
+             end;
+         end;
+
+       exclude(unusedregsint,p);
+       include(used_in_proc_int,p);
+       subreg:=cgsize2subreg(size);
+       r:=newreg(R_INTREGISTER,p,subreg);
+       list.concat(Tai_regalloc.alloc(r));
+       getabtregisterint:=r;
+       add_edges_used(p);
+       add_constraints(r);
+       if pos(char(p),abtlist)=0 then
+         abtlist:=abtlist+char(p);
     end;
+
 
     procedure Trgobj.ungetregisterintinline(list:Taasmoutput;position:Tai;r:Tregister);
 
@@ -2160,12 +2203,6 @@ unit rgobj;
       end;
 
 
-    procedure reference_reset_old(var ref : treference);
-      begin
-        FillChar(ref,sizeof(treference),0);
-      end;
-
-
     procedure reference_reset_base(var ref : treference;base : tregister;offset : longint);
       begin
         reference_reset(ref);
@@ -2261,7 +2298,10 @@ end.
 
 {
   $Log$
-  Revision 1.79  2003-09-29 20:58:56  peter
+  Revision 1.80  2003-09-30 19:54:42  peter
+    * reuse registers with the least conflicts
+
+  Revision 1.79  2003/09/29 20:58:56  peter
     * optimized releasing of registers
 
   Revision 1.78  2003/09/28 13:41:12  peter
