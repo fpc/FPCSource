@@ -1294,12 +1294,17 @@ implementation
         dataalignment:=_alignment;
         sym:=tvarsym(symindex.first);
         datasize:=0;
-        { there can be only varsyms }
+        { there can be only varsyms      }
+        { no, default parameters         }
+        { lead to constsyms as well (FK) }
         while assigned(sym) do
           begin
-             l:=sym.getpushsize;
-             sym.address:=datasize;
-             datasize:=align(datasize+l,dataalignment);
+             if sym.typ=varsym then
+               begin
+                  l:=sym.getpushsize;
+                  sym.address:=datasize;
+                  datasize:=align(datasize+l,dataalignment);
+               end;
              sym:=tvarsym(sym.indexnext);
           end;
       end;
@@ -2060,7 +2065,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.62  2002-07-01 18:46:28  peter
+  Revision 1.63  2002-07-15 19:44:53  florian
+    * fixed crash with default parameters and stdcall calling convention
+
+  Revision 1.62  2002/07/01 18:46:28  peter
     * internal linker
     * reorganized aasm layer
 
