@@ -369,7 +369,7 @@ unit rgobj;
           procedure saveUnusedState(var state: pointer);virtual;
           procedure restoreUnusedState(var state: pointer);virtual;
 {$ifdef newra}
-{$ifdef ra_debug}
+{$ifdef ra_debug2}
           procedure writegraph;
 {$endif}
           procedure add_move_instruction(instr:Taicpu);
@@ -525,7 +525,7 @@ unit rgobj;
   implementation
 
     uses
-       systems,
+       systems,{$ifdef ra_debug2}fmodule,{$endif}
        globals,verbose,
        cgobj,tgobj,regvars;
 
@@ -776,6 +776,9 @@ unit rgobj;
           r2.enum:=R_INTREGISTER;
           r2.number:=r;
           list.concat(tai_regalloc.alloc(r2));
+{$ifdef newra}
+          add_edges_used(r shr 8);
+{$endif}
 {$ifdef TEMPREGDEBUG}
           testregisters32;
 {$endif TEMPREGDEBUG}
@@ -1499,7 +1502,7 @@ unit rgobj;
           add_edge(u,i);
     end;
 
-{$ifdef ra_debug}
+{$ifdef ra_debug2}
     procedure Trgobj.writegraph;
 
     {This procedure writes out the current interference graph in the
@@ -1510,7 +1513,7 @@ unit rgobj;
         i,j:Tsuperregister;
 
     begin
-      assign(f,'igraph'+char(48+random(10))+char(48+random(10)));
+      assign(f,'igraph.'+Lower(current_module.modulename^));
       rewrite(f);
       writeln(f,'Interference graph');
       writeln(f);
@@ -2535,7 +2538,13 @@ end.
 
 {
   $Log$
-  Revision 1.60  2003-07-06 15:31:21  daniel
+  Revision 1.61  2003-07-21 13:32:39  jonas
+    * add_edges_used() is now also called for registers allocated with
+      getexplicitregisterint()
+    * writing the intereference graph is now only done with -dradebug2 and
+      the created files are now called "igraph.<module_name>"
+
+  Revision 1.60  2003/07/06 15:31:21  daniel
     * Fixed register allocator. *Lots* of fixes.
 
   Revision 1.59  2003/07/06 15:00:47  jonas
