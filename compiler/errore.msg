@@ -1597,7 +1597,7 @@ option_info5=This program comes under the GNU General Public Licence
 option_info6=For more information read COPYING.FPC
 option_info7=<lf>
 option_info8=Report bugs,suggestions etc to:
-option_info_end=                 fpc-devel@vekoll.saturnus.vein.hu
+option_info_end=                 bugrep@freepascal.org
 
 #
 # Help pages (option -? and -h)
