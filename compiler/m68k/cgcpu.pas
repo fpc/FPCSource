@@ -29,56 +29,57 @@ unit cgcpu;
     uses
        cgbase,cgobj,globtype,
        aasmbase,aasmtai,aasmcpu,
-       cpubase,cpuinfo,cpupara,
+       cpubase,cpuinfo,
+       parabase,cpupara,
        node,symconst,symtype,
        cgutils,cg64f32;
 
     type
       tcg68k = class(tcg)
-          procedure init_register_allocators;override;
-          procedure done_register_allocators;override;
-          procedure a_call_name(list : taasmoutput;const s : string);override;
-          procedure a_call_reg(list : taasmoutput;reg : tregister);override;
-          procedure a_load_const_reg(list : taasmoutput;size : tcgsize;a : aint;register : tregister);override;
-          procedure a_load_reg_ref(list : taasmoutput;fromsize,tosize : tcgsize;register : tregister;const ref : treference);override;
-          procedure a_load_reg_reg(list : taasmoutput;fromsize,tosize : tcgsize;reg1,reg2 : tregister);override;
-          procedure a_load_ref_reg(list : taasmoutput;fromsize,tosize : tcgsize;const ref : treference;register : tregister);override;
-          procedure a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);override;
-          procedure a_loadfpu_reg_reg(list: taasmoutput; size: tcgsize; reg1, reg2: tregister); override;
-          procedure a_loadfpu_ref_reg(list: taasmoutput; size: tcgsize; const ref: treference; reg: tregister); override;
-          procedure a_loadfpu_reg_ref(list: taasmoutput; size: tcgsize; reg: tregister; const ref: treference); override;
-          procedure a_loadmm_reg_reg(list: taasmoutput;fromsize,tosize : tcgsize; reg1, reg2: tregister;shuffle : pmmshuffle); override;
-          procedure a_loadmm_ref_reg(list: taasmoutput;fromsize,tosize : tcgsize; const ref: treference; reg: tregister;shuffle : pmmshuffle); override;
-          procedure a_loadmm_reg_ref(list: taasmoutput;fromsize,tosize : tcgsize; reg: tregister; const ref: treference;shuffle : pmmshuffle); override;
-          procedure a_parammm_reg(list: taasmoutput; size: tcgsize; reg: tregister;const locpara : tparalocation;shuffle : pmmshuffle); override;
-          procedure a_op_const_reg(list : taasmoutput; Op: TOpCG; size: tcgsize; a: aint; reg: TRegister); override;
-          procedure a_op_reg_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; reg1, reg2: TRegister); override;
-          procedure a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aint;reg : tregister;
-            l : tasmlabel);override;
-          procedure a_cmp_reg_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel); override;
-          procedure a_jmp_always(list : taasmoutput;l: tasmlabel); override;
-          procedure a_jmp_flags(list : taasmoutput;const f : TResFlags;l: tasmlabel); override;
-          procedure g_flags2reg(list: taasmoutput; size: TCgSize; const f: tresflags; reg: TRegister); override;
+        procedure init_register_allocators;override;
+        procedure done_register_allocators;override;
+        procedure a_call_name(list : taasmoutput;const s : string);override;
+        procedure a_call_reg(list : taasmoutput;reg : tregister);override;
+        procedure a_load_const_reg(list : taasmoutput;size : tcgsize;a : aint;register : tregister);override;
+        procedure a_load_reg_ref(list : taasmoutput;fromsize,tosize : tcgsize;register : tregister;const ref : treference);override;
+        procedure a_load_reg_reg(list : taasmoutput;fromsize,tosize : tcgsize;reg1,reg2 : tregister);override;
+        procedure a_load_ref_reg(list : taasmoutput;fromsize,tosize : tcgsize;const ref : treference;register : tregister);override;
+        procedure a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);override;
+        procedure a_loadfpu_reg_reg(list: taasmoutput; size: tcgsize; reg1, reg2: tregister); override;
+        procedure a_loadfpu_ref_reg(list: taasmoutput; size: tcgsize; const ref: treference; reg: tregister); override;
+        procedure a_loadfpu_reg_ref(list: taasmoutput; size: tcgsize; reg: tregister; const ref: treference); override;
+        procedure a_loadmm_reg_reg(list: taasmoutput;fromsize,tosize : tcgsize; reg1, reg2: tregister;shuffle : pmmshuffle); override;
+        procedure a_loadmm_ref_reg(list: taasmoutput;fromsize,tosize : tcgsize; const ref: treference; reg: tregister;shuffle : pmmshuffle); override;
+        procedure a_loadmm_reg_ref(list: taasmoutput;fromsize,tosize : tcgsize; reg: tregister; const ref: treference;shuffle : pmmshuffle); override;
+        procedure a_parammm_reg(list: taasmoutput; size: tcgsize; reg: tregister;const locpara : TCGPara;shuffle : pmmshuffle); override;
+        procedure a_op_const_reg(list : taasmoutput; Op: TOpCG; size: tcgsize; a: aint; reg: TRegister); override;
+        procedure a_op_reg_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; reg1, reg2: TRegister); override;
+        procedure a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aint;reg : tregister;
+          l : tasmlabel);override;
+        procedure a_cmp_reg_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel); override;
+        procedure a_jmp_always(list : taasmoutput;l: tasmlabel); override;
+        procedure a_jmp_flags(list : taasmoutput;const f : TResFlags;l: tasmlabel); override;
+        procedure g_flags2reg(list: taasmoutput; size: TCgSize; const f: tresflags; reg: TRegister); override;
 
-          procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint;delsource,loadref : boolean);override;
-          { generates overflow checking code for a node }
-          procedure g_overflowcheck(list: taasmoutput; const l:tlocation; def:tdef); override;
-          procedure g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint); override;
-          procedure g_stackframe_entry(list : taasmoutput;localsize : longint);override;
-          procedure g_restore_frame_pointer(list : taasmoutput);override;
-          procedure g_return_from_proc(list : taasmoutput;parasize : aint);override;
-          procedure g_restore_standard_registers(list:Taasmoutput);override;
-          procedure g_save_standard_registers(list:Taasmoutput);override;
-          procedure g_save_all_registers(list : taasmoutput);override;
-          procedure g_restore_all_registers(list : taasmoutput;const funcretparaloc:tparalocation);override;
+        procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint;delsource,loadref : boolean);override;
+        { generates overflow checking code for a node }
+        procedure g_overflowcheck(list: taasmoutput; const l:tlocation; def:tdef); override;
+        procedure g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint); override;
+        procedure g_stackframe_entry(list : taasmoutput;localsize : longint);override;
+        procedure g_restore_frame_pointer(list : taasmoutput);override;
+        procedure g_return_from_proc(list : taasmoutput;parasize : aint);override;
+        procedure g_restore_standard_registers(list:Taasmoutput);override;
+        procedure g_save_standard_registers(list:Taasmoutput);override;
+        procedure g_save_all_registers(list : taasmoutput);override;
+        procedure g_restore_all_registers(list : taasmoutput;const funcretparaloc:TCGPara);override;
      protected
-         function fixref(list: taasmoutput; var ref: treference): boolean;
+        function fixref(list: taasmoutput; var ref: treference): boolean;
      private
-          { # Sign or zero extend the register to a full 32-bit value.
-              The new value is left in the same register.
-          }
-          procedure sign_extend(list: taasmoutput;_oldsize : tcgsize; reg: tregister);
-          procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel);
+        { # Sign or zero extend the register to a full 32-bit value.
+            The new value is left in the same register.
+        }
+        procedure sign_extend(list: taasmoutput;_oldsize : tcgsize; reg: tregister);
+        procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel);
 
      end;
 
@@ -380,7 +381,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg68k.a_parammm_reg(list: taasmoutput; size: tcgsize; reg: tregister;const locpara : tparalocation;shuffle : pmmshuffle);
+    procedure tcg68k.a_parammm_reg(list: taasmoutput; size: tcgsize; reg: tregister;const locpara : TCGPara;shuffle : pmmshuffle);
       begin
         internalerror(20020729);
       end;
@@ -1134,7 +1135,7 @@ unit cgcpu;
       begin
       end;
 
-    procedure tcg68k.g_restore_all_registers(list : taasmoutput;const funcretparaloc:tparalocation);
+    procedure tcg68k.g_restore_all_registers(list : taasmoutput;const funcretparaloc:TCGPara);
       begin
       end;
 
@@ -1313,7 +1314,10 @@ end.
 
 {
   $Log$
-  Revision 1.31  2004-11-09 22:32:59  peter
+  Revision 1.32  2004-11-27 16:16:02  florian
+    * some m68k stuff updated
+
+  Revision 1.31  2004/11/09 22:32:59  peter
     * small m68k updates to bring it up2date
     * give better error for external local variable
 

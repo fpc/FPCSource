@@ -31,7 +31,7 @@ unit cpupara;
     uses
       globtype,
       cpubase,
-      symconst,symdef,
+      symconst,symdef,symsym,
       parabase,paramgr;
 
     type
@@ -44,7 +44,7 @@ unit cpupara;
           procedure getintparaloc(calloption : tproccalloption; nr : longint;var cgpara : TCGPara);override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
          private
-           function parseparaloc(p : tparaitem;const s : string) : boolean;override;
+           function parseparaloc(p : tparavarsym;const s : string) : boolean;override;
        end;
 
   implementation
@@ -81,24 +81,42 @@ unit cpupara;
     function tm68kparamanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
       var
         paraloc      : pcgparalocation;
-        hp           : tparaitem;
+        hp           : tparavarsym;
         paracgsize   : tcgsize;
         paralen      : longint;
         parasize     : longint;
+        i            : longint;
       begin
         parasize:=0;
-        hp:=tparaitem(p.para.first);
-        while assigned(hp) do
+        for i:=0 to p.paras.count-1 do
           begin
-            if push_addr_param(hp.paratyp,hp.paratype.def,p.proccalloption) then
+            hp:=tparavarsym(p.paras[i]);
+
+            hp.paraloc[side].reset;
+            { currently only support C-style array of const }
+            if (p.proccalloption in [pocall_cdecl,pocall_cppdecl]) and
+               is_array_of_const(hp.vartype.def) then
+              begin
+                paraloc:=hp.paraloc[side].add_location;
+                { hack: the paraloc must be valid, but is not actually used }
+                paraloc^.loc:=LOC_REFERENCE;
+                if side=callerside then
+                  paraloc^.reference.index:=NR_STACK_POINTER_REG
+                else
+                  paraloc^.reference.index:=NR_FRAME_POINTER_REG;
+                paraloc^.size:=OS_ADDR;
+                paraloc^.reference.offset:=0;
+                break;
+              end;
+
+            if push_addr_param(hp.varspez,hp.vartype.def,p.proccalloption) then
               paracgsize:=OS_ADDR
             else
               begin
-                paracgsize:=def_cgSize(hp.paratype.def);
+                paracgsize:=def_cgsize(hp.vartype.def);
                 if paracgsize=OS_NO then
                   paracgsize:=OS_ADDR;
               end;
-            hp.paraloc[side].reset;
             hp.paraloc[side].size:=paracgsize;
             hp.paraloc[side].Alignment:=std_param_align;
             paraloc:=hp.paraloc[side].add_location;
@@ -109,13 +127,12 @@ unit cpupara;
             else
               paraloc^.reference.index:=NR_FRAME_POINTER_REG;
             paraloc^.reference.offset:=target_info.first_parm_offset+parasize;
-            hp:=TParaItem(hp.Next);
           end;
         result:=parasize;
       end;
 
 
-    function tm68kparamanager.parseparaloc(p : tparaitem;const s : string) : boolean;
+    function tm68kparamanager.parseparaloc(p : tparavarsym;const s : string) : boolean;
       var
         paraloc : pcgparalocation;
       begin
@@ -126,7 +143,7 @@ unit cpupara;
               p.paraloc[callerside].alignment:=4;
               paraloc:=p.paraloc[callerside].add_location;
               paraloc^.loc:=LOC_REGISTER;
-              paraloc^.size:=def_cgsize(p.paratype.def);
+              paraloc^.size:=def_cgsize(p.vartype.def);
               { pattern is always uppercase'd }
               if s='D0' then
                 paraloc^.register:=NR_D0
@@ -179,7 +196,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2004-11-09 22:32:59  peter
+  Revision 1.9  2004-11-27 16:16:02  florian
+    * some m68k stuff updated
+
+  Revision 1.8  2004/11/09 22:32:59  peter
     * small m68k updates to bring it up2date
     * give better error for external local variable
 
