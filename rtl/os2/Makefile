@@ -1206,7 +1206,7 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
 		   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
 		   $(SYSTEMUNIT)$(PPUEXT)
 ports$(PPUEXT) : ports.pas objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-doscalls$(PPUEXT) : doscalls.pas strings$(PPUEXT) objects$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+doscalls$(PPUEXT) : doscalls.pas strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 kbdcalls$(PPUEXT) : kbdcalls.pas $(SYSTEMUNIT)$(PPUEXT)
 moucalls$(PPUEXT) : moucalls.pas $(SYSTEMUNIT)$(PPUEXT)
 moncalls$(PPUEXT) : moncalls.pas strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
@@ -1223,7 +1223,7 @@ dynlibs$(PPUEXT) : $(INC)/dynlibs.pp doscalls$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 dos$(PPUEXT) : dos.pas $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
 	       doscalls$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 crt$(PPUEXT) : crt.pas $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEXT)
-objects$(PPUEXT) : $(INC)/objects.pp $(SYSTEMUNIT)$(PPUEXT)
+objects$(PPUEXT) : $(INC)/objects.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 printer$(PPUEXT) : printer.pas $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEXT)
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/*.inc) \
 		    objpas$(PPUEXT) dos$(PPUEXT) doscalls$(PPUEXT)

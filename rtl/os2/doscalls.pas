@@ -17,32 +17,13 @@
 
 unit DosCalls;
 
-{****************************************************************************
-                           Preprocessor definitions
-****************************************************************************}
-
-
-{$IFNDEF FVISION_PSTRING}
-{$IFNDEF OWN_PSTRING}
-{$DEFINE FVISION_PSTRING}       {Get the PString type from Free Vision.}
-{$ENDIF}
-{$ENDIF}
-
 {***************************************************************************}
 interface
 {***************************************************************************}
 
-{$IFDEF OWN_PSTRING}
 uses    Strings;
 
-type    PString=^string;
-{$ELSE}
- {$IFDEF FVISION_PSTRING}
-uses    Strings,Objects;
- {$ELSE}
-    {$ERROR PString source unknown.}
- {$ENDIF}
-{$ENDIF}
+type    PString = PShortString;
 
 {$PACKRECORDS 1}
 
@@ -93,7 +74,7 @@ const   dtSuspended         =1; {Thread is started suspended instead of
  Flags      = Flags. Either dtsuspended or dt_stackcommited.
  StackSize  = Size of the stack of the new thread.}
 function DosCreateThread (var TID: longint; Address: TThreadEntry;
-                   AParam: pointer; Flags, StackSize: longint): longint; cdecl;
+                 AParam: pointer; Flags, StackSize: longint): longint; cdecl;
 
 (* Overloaded version for compatibility. *)
 function DosCreateThread (var TID: longint; Address: pointer;
@@ -4553,7 +4534,10 @@ external 'DOSCALLS' index 582;
 end.
 {
   $Log$
-  Revision 1.18  2002-11-14 21:16:22  hajny
+  Revision 1.19  2003-01-05 16:37:22  hajny
+    * DosCalls not using Objects any more
+
+  Revision 1.18  2002/11/14 21:16:22  hajny
     * corruption from the last commit corrected
 
   Revision 1.17  2002/11/04 21:22:12  hajny
