@@ -64,223 +64,227 @@
 
     const
     { Operation not permitted  }
-       Sys_EPERM = 1;
+       ESysEPERM = 1;
     { No such file or directory  }
-       Sys_ENOENT = 2;
+       ESysENOENT = 2;
     { No such process  }
-       Sys_ESRCH = 3;
+       ESysESRCH = 3;
     { Interrupted system call  }
-       Sys_EINTR = 4;
+       ESysEINTR = 4;
     { Input/output error  }
-       Sys_EIO = 5;
+       ESysEIO = 5;
     { Device not configured  }
-       Sys_ENXIO = 6;
+       ESysENXIO = 6;
     { Argument list too long  }
-       Sys_E2BIG = 7;
+       ESysE2BIG = 7;
     { Exec format error  }
-       Sys_ENOEXEC = 8;
+       ESysENOEXEC = 8;
     { Bad file descriptor  }
-       Sys_EBADF = 9;
+       ESysEBADF = 9;
     { No child processes  }
-       Sys_ECHILD = 10;
+       ESysECHILD = 10;
     { Resource deadlock avoided  }
-       Sys_EDEADLK = 11;
+       ESysEDEADLK = 11;
     { 11 was EAGAIN  }
     { Cannot allocate memory  }
-       Sys_ENOMEM = 12;
+       ESysENOMEM = 12;
     { Permission denied  }
-       Sys_EACCES = 13;
+       ESysEACCES = 13;
     { Bad address  }
-       Sys_EFAULT = 14;
+       ESysEFAULT = 14;
 {$ifndef _POSIX_SOURCE}
     { Block device required  }
-       Sys_ENOTBLK = 15;
+       ESysENOTBLK = 15;
 {$endif}
     { Device busy  }
-       Sys_EBUSY = 16;
+       ESysEBUSY = 16;
     { File exists  }
-       Sys_EEXIST = 17;
+       ESysEEXIST = 17;
     { Cross-device link  }
-       Sys_EXDEV = 18;
+       ESysEXDEV = 18;
     { Operation not supported by device  }
-       Sys_ENODEV = 19;
+       ESysENODEV = 19;
     { Not a directory  }
-       Sys_ENOTDIR = 20;
+       ESysENOTDIR = 20;
     { Is a directory  }
-       Sys_EISDIR = 21;
+       ESysEISDIR = 21;
     { Invalid argument  }
-       Sys_EINVAL = 22;
+       ESysEINVAL = 22;
     { Too many open files in system  }
-       Sys_ENFILE = 23;
+       ESysENFILE = 23;
     { Too many open files  }
-       Sys_EMFILE = 24;
+       ESysEMFILE = 24;
     { Inappropriate ioctl for device  }
-       Sys_ENOTTY = 25;
+       ESysENOTTY = 25;
 {$ifndef _POSIX_SOURCE}
     { Text file busy  }
-       Sys_ETXTBSY = 26;
+       ESysETXTBSY = 26;
 {$endif}
     { File too large  }
-       Sys_EFBIG = 27;
+       ESysEFBIG = 27;
     { No space left on device  }
-       Sys_ENOSPC = 28;
+       ESysENOSPC = 28;
     { Illegal seek  }
-       Sys_ESPIPE = 29;
+       ESysESPIPE = 29;
     { Read-only file system  }
-       Sys_EROFS = 30;
+       ESysEROFS = 30;
     { Too many links  }
-       Sys_EMLINK = 31;
+       ESysEMLINK = 31;
     { Broken pipe  }
-       Sys_EPIPE = 32;
+       ESysEPIPE = 32;
     { math software  }
     { Numerical argument out of domain  }
-       Sys_EDOM = 33;
+       ESysEDOM = 33;
     { Result too large  }
-       Sys_ERANGE = 34;
+       ESysERANGE = 34;
     { non-blocking and interrupt i/o  }
     { Resource temporarily unavailable  }
-       Sys_EAGAIN = 35;
+       ESysEAGAIN = 35;
 {$ifndef _POSIX_SOURCE}
     { Operation would block  }
-       Sys_EWOULDBLOCK = EAGAIN;
+       ESysEWOULDBLOCK = ESysEAGAIN;
     { Operation now in progress  }
-       Sys_EINPROGRESS = 36;
+       ESysEINPROGRESS = 36;
     { Operation already in progress  }
-       Sys_EALREADY = 37;
+       ESysEALREADY = 37;
     { ipc/network software -- argument errors  }
     { Socket operation on non-socket  }
-       Sys_ENOTSOCK = 38;
+       ESysENOTSOCK = 38;
     { Destination address required  }
-       Sys_EDESTADDRREQ = 39;
+       ESysEDESTADDRREQ = 39;
     { Message too long  }
-       Sys_EMSGSIZE = 40;
+       ESysEMSGSIZE = 40;
     { Protocol wrong type for socket  }
-       Sys_EPROTOTYPE = 41;
+       ESysEPROTOTYPE = 41;
     { Protocol not available  }
-       Sys_ENOPROTOOPT = 42;
+       ESysENOPROTOOPT = 42;
     { Protocol not supported  }
-       Sys_EPROTONOSUPPORT = 43;
+       ESysEPROTONOSUPPORT = 43;
     { Socket type not supported  }
-       Sys_ESOCKTNOSUPPORT = 44;
+       ESysESOCKTNOSUPPORT = 44;
 {$endif}
     { ! _POSIX_SOURCE  }
     { Operation not supported  }
-       Sys_ENOTSUP = 45;
+       ESysENOTSUP = 45;
 {$ifndef _POSIX_SOURCE}
     { Operation not supported  }
-       Sys_EOPNOTSUPP = ENOTSUP;
+       ESysEOPNOTSUPP = ESysENOTSUP;
     { Protocol family not supported  }
-       Sys_EPFNOSUPPORT = 46;
+       ESysEPFNOSUPPORT = 46;
     { Address family not supported by protocol family  }
-       Sys_EAFNOSUPPORT = 47;
+       ESysEAFNOSUPPORT = 47;
     { Address already in use  }
-       Sys_EADDRINUSE = 48;
+       ESysEADDRINUSE = 48;
     { Can't assign requested address  }
-       Sys_EADDRNOTAVAIL = 49;
+       ESysEADDRNOTAVAIL = 49;
     { ipc/network software -- operational errors  }
     { Network is down  }
-       Sys_ENETDOWN = 50;
+       ESysENETDOWN = 50;
     { Network is unreachable  }
-       Sys_ENETUNREACH = 51;
+       ESysENETUNREACH = 51;
     { Network dropped connection on reset  }
-       Sys_ENETRESET = 52;
+       ESysENETRESET = 52;
     { Software caused connection abort  }
-       Sys_ECONNABORTED = 53;
+       ESysECONNABORTED = 53;
     { Connection reset by peer  }
-       Sys_ECONNRESET = 54;
+       ESysECONNRESET = 54;
     { No buffer space available  }
-       Sys_ENOBUFS = 55;
+       ESysENOBUFS = 55;
     { Socket is already connected  }
-       Sys_EISCONN = 56;
+       ESysEISCONN = 56;
     { Socket is not connected  }
-       Sys_ENOTCONN = 57;
+       ESysENOTCONN = 57;
     { Can't send after socket shutdown  }
-       Sys_ESHUTDOWN = 58;
+       ESysESHUTDOWN = 58;
     { Too many references: can't splice  }
-       Sys_ETOOMANYREFS = 59;
+       ESysETOOMANYREFS = 59;
     { Operation timed out  }
-       Sys_ETIMEDOUT = 60;
+       ESysETIMEDOUT = 60;
     { Connection refused  }
-       Sys_ECONNREFUSED = 61;
+       ESysECONNREFUSED = 61;
     { Too many levels of symbolic links  }
-       Sys_ELOOP = 62;
+       ESysELOOP = 62;
 {$endif}
     { _POSIX_SOURCE  }
     { File name too long  }
-       Sys_ENAMETOOLONG = 63;
+       ESysENAMETOOLONG = 63;
     { should be rearranged  }
 {$ifndef _POSIX_SOURCE}
     { Host is down  }
-       Sys_EHOSTDOWN = 64;
+       ESysEHOSTDOWN = 64;
     { No route to host  }
-       Sys_EHOSTUNREACH = 65;
+       ESysEHOSTUNREACH = 65;
 {$endif}
     { _POSIX_SOURCE  }
     { Directory not empty  }
-       Sys_ENOTEMPTY = 66;
+       ESysENOTEMPTY = 66;
     { quotas & mush  }
 {$ifndef _POSIX_SOURCE}
     { Too many processes  }
-       Sys_EPROCLIM = 67;
+       ESysEPROCLIM = 67;
     { Too many users  }
-       Sys_EUSERS = 68;
+       ESysEUSERS = 68;
     { Disc quota exceeded  }
-       Sys_EDQUOT = 69;
+       ESysEDQUOT = 69;
     { Network File System  }
     { Stale NFS file handle  }
-       Sys_ESTALE = 70;
+       ESysESTALE = 70;
     { Too many levels of remote in path  }
-       Sys_EREMOTE = 71;
+       ESysEREMOTE = 71;
     { RPC struct is bad  }
-       Sys_EBADRPC = 72;
+       ESysEBADRPC = 72;
     { RPC version wrong  }
-       Sys_ERPCMISMATCH = 73;
+       ESysERPCMISMATCH = 73;
     { RPC prog. not avail  }
-       Sys_EPROGUNAVAIL = 74;
+       ESysEPROGUNAVAIL = 74;
     { Program version wrong  }
-       Sys_EPROGMISMATCH = 75;
+       ESysEPROGMISMATCH = 75;
     { Bad procedure for program  }
-       Sys_EPROCUNAVAIL = 76;
+       ESysEPROCUNAVAIL = 76;
 {$endif}
     { _POSIX_SOURCE  }
     { No locks available  }
-       Sys_ENOLCK = 77;
+       ESysENOLCK = 77;
     { Function not implemented  }
-       Sys_ENOSYS = 78;
+       ESysENOSYS = 78;
 {$ifndef _POSIX_SOURCE}
     { Inappropriate file type or format  }
-       Sys_EFTYPE = 79;
+       ESysEFTYPE = 79;
     { Authentication error  }
-       Sys_EAUTH = 80;
+       ESysEAUTH = 80;
     { Need authenticator  }
-       Sys_ENEEDAUTH = 81;
+       ESysENEEDAUTH = 81;
 {$endif}
     { _POSIX_SOURCE  }
     { Intelligent device errors  }
     { Device power is off  }
-       Sys_EPWROFF = 82;
+       ESysEPWROFF = 82;
     { Device error, e.g. paper out  }
-       Sys_EDEVERR = 83;
+       ESysEDEVERR = 83;
 {$ifndef _POSIX_SOURCE}
     { Value too large to be stored in data type  }
-       Sys_EOVERFLOW = 84;
+       ESysEOVERFLOW = 84;
     { Program loading errors  }
     { Bad executable  }
-       Sys_EBADEXEC = 85;
+       ESysEBADEXEC = 85;
     { Bad CPU type in executable  }
-       Sys_EBADARCH = 86;
+       ESysEBADARCH = 86;
     { Shared library version mismatch  }
-       Sys_ESHLIBVERS = 87;
+       ESysESHLIBVERS = 87;
     { Malformed Macho file  }
-       Sys_EBADMACHO = 88;
+       ESysEBADMACHO = 88;
     { Must be equal largest errno  }
-       Sys_ELAST = 88;
+       ESysELAST = 88;
 {$endif}
     { _POSIX_SOURCE  }
 
 {
   $Log$
-  Revision 1.1  2002-09-08 09:00:17  jonas
+  Revision 1.2  2003-05-25 12:59:56  jonas
+    * several fixes, addition of Mach trap numbers (thye are simply syscalls
+      with a negative number)
+
+  Revision 1.1  2002/09/08 09:00:17  jonas
     + initial revision
 
 }

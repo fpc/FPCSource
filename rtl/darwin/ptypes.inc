@@ -20,39 +20,63 @@
 {                       POSIX TYPE DEFINITIONS                          }
 {***********************************************************************}
 
+{$i ctypes.inc}
+
 type
     { the following type definitions are compiler dependant }
     { and system dependant                                  }
 
-    cint8  = shortint;
-    cuint8 = byte;
-    cuint16= word;
-    cint16 = smallint;
-    cint32 = longint;
-    cuint32= cardinal;
-    cint64 = int64;
-{$ifndef VER_1_0}
-    cuint64= qword;
-{$endif}
-
-    cint   = longint;           { minimum range is : 32-bit    }
-    cuint  = Cardinal;          { minimum range is : 32-bit    }
-    clong  = longint;
-    culong = Cardinal;
-
     dev_t    = cuint32;         { used for device numbers      }
+    TDev     = dev_t;
+    pDev     = ^dev_t;
+
     gid_t    = cuint32;         { used for group IDs           }
+    TGid     = gid_t;
+    pGid     = ^gid_t;
+
     ino_t    = clong;           { used for file serial numbers }
+    TIno     = ino_t;
+    pIno     = ^ino_t;
+
     mode_t   = cuint16;         { used for file attributes     }
+    TMode    = mode_t;
+    pMode    = ^mode_t;
+
     nlink_t  = cuint16;         { used for link counts         }
+    TnLink   = nlink_t;
+    pnLink   = ^nlink_t;
+
     off_t    = cint64;          { used for file sizes          }
+    TOff     = off_t;
+    pOff     = ^off_t;
+
     pid_t    = cint32;          { used as process identifier   }
+    TPid     = pid_t;
+    pPid     = ^pid_t;
+
     size_t   = cuint32;         { as definied in the C standard}
+   TSize    = size_t;
+    pSize    = ^size_t;         
+
     ssize_t  = cint32;          { used by function for returning number of bytes }
+    TsSize   = ssize_t;
+    psSize   = ^ssize_t;                
+
     uid_t    = cuint32;         { used for user ID type        }
+    TUid     = Uid_t;
+    pUid     = ^Uid_t;
+
+    clock_t  = culong;
+    TClock   = clock_t;
+    pClock   = ^clock_t;
 
     time_t   = clong;           { used for returning the time  }
+    TTime    = time_t; 
+    pTime    = ^time_t;
+
     socklen_t= cuint32;
+    TSocklen = socklen_t;
+    pSocklen = ^socklen_t;
 
 CONST
    { System limits, POSIX value in parentheses, used for buffer and stack allocation }
@@ -64,7 +88,11 @@ CONST
 
 {
   $Log$
-  Revision 1.1  2002-09-08 09:00:54  jonas
+  Revision 1.2  2003-05-25 12:59:57  jonas
+    * several fixes, addition of Mach trap numbers (thye are simply syscalls
+      with a negative number)
+
+  Revision 1.1  2002/09/08 09:00:54  jonas
     + initial revision, simply copied from FreeBSD
 
 }

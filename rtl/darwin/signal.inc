@@ -64,7 +64,7 @@
     }
 
 {$ifdef powerpc}
-{$include ppc/signal.inc}    { sigcontext }
+{$include powerpc/signal.inc}    { sigcontext }
 {$else powerpc}
 {$ifdef i386}
 {$include i386/signal.inc}    { sigcontext }
@@ -156,14 +156,15 @@
     PSigSet = ^SigSet;
 
     SigActionRec = packed record
-      Handler  : record
-        case byte of
-          0: (Sh: SignalHandler);
-          1: (Sa: TSigAction);
-        end;
-      Sa_Flags    : Longint;
-      Sa_Mask     : SigSet;
-    end;
+{
+      case byte of
+        0: (Sh: SignalHandler; Sa_Flags: longint; Sa_Mask: SigSet);
+        1: (sa_handler: TSigAction);
+}
+      Sa_Handler: SignalHandler;
+      Sa_Flags: longint;
+      Sa_Mask: SigSet;
+   end;
 
   const
      SA_ONSTACK = $0001;
@@ -242,7 +243,11 @@
 
 {
   $Log$
-  Revision 1.1  2002-09-08 09:06:07  jonas
+  Revision 1.2  2003-05-25 12:59:57  jonas
+    * several fixes, addition of Mach trap numbers (thye are simply syscalls
+      with a negative number)
+
+  Revision 1.1  2002/09/08 09:06:07  jonas
     + initial revision, h2pas of sys/signal.h
 
 }
