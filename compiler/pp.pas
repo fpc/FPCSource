@@ -186,11 +186,14 @@ begin
   exitproc:=@myexit;
 
 { Call the compiler with empty command, so it will take the parameters }
-  {Halt(}compiler.Compile(''){)};
+  Halt(compiler.Compile(''));
 end.
 {
   $Log$
-  Revision 1.23  2003-07-06 15:31:21  daniel
+  Revision 1.24  2003-07-07 19:59:41  peter
+    * Fix halt() call
+
+  Revision 1.23  2003/07/06 15:31:21  daniel
     * Fixed register allocator. *Lots* of fixes.
 
   Revision 1.22  2003/04/22 14:33:38  peter
