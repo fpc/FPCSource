@@ -201,6 +201,7 @@ begin
     hcTools         : S:=hint_tools;
     hcRemoteDialog  : S:=hint_remotedialog;
     hcTransferRemote: S:=hint_transferremote;
+    hcDoReload      : S:=hint_reloadmodifiedfile;
 
     hcEnvironmentMenu:S:=hint_environmentmenu;
     hcPreferences   : S:=hint_preferences;
@@ -265,10 +266,21 @@ end;
 
 function TFPHTMLFileLinkScanner.CheckText(const Text: string): boolean;
 var OK: boolean;
+    i : sw_integer;
     S: string;
 begin
   S:=Trim(Text);
-  OK:=(S<>'') and (copy(S,1,1)<>'[');
+  OK:=(S<>'') and (S[1]<>'[') and (S[1]<>',');
+  { remove all Indexes }
+  if s[1] in ['0'..'9'] then
+    begin
+      i:=1;
+      while (i<length(s)) and (s[i] in ['0'..'9']) do
+        inc(i);
+      if (i<length(s)) and (s[i] in [' ',#9,'.']) then
+        OK:=false;
+    end;
+
   CheckText:=OK;
 end;
 
@@ -508,7 +520,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.7  2002-11-28 12:57:42  pierre
+  Revision 1.8  2003-01-22 00:27:58  pierre
+   * implement reloadfile if changed
+
+  Revision 1.7  2002/11/28 12:57:42  pierre
    * new hints for remote addition
 
   Revision 1.6  2002/09/07 15:40:43  peter

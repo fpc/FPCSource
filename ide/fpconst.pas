@@ -250,6 +250,7 @@ const
 
      cmEditorOptions     = 2202;
      cmBrowserOptions    = 2203;
+     cmDoReload          = 2204;
 
      cmTrackReference    = 2300;
      cmGotoReference     = 2301;
@@ -411,7 +412,7 @@ const
      hcBrowseAtCursor    = hcShift+cmBrowseAtCursor;
      hcEditorOptions     = hcShift+cmEditorOptions;
      hcBrowserOptions    = hcShift+cmBrowserOptions;
-
+     hcDoReload          = hcShift+cmDoReload;
      { History constants }
      hisChDirDialog      = 2000;
 
@@ -473,7 +474,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.12  2002-11-30 01:53:02  pierre
+  Revision 1.13  2003-01-22 00:27:58  pierre
+   * implement reloadfile if changed
+
+  Revision 1.12  2002/11/30 01:53:02  pierre
    + cross-powerpc specific filenames
 
   Revision 1.11  2002/11/28 12:52:14  pierre

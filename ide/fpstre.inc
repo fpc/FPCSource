@@ -189,7 +189,7 @@ const
       menu_srclocal_browseatcursor = '~B~rowse symbol at cursor';
       menu_srclocal_topicsearch = 'Topic ~s~earch';
       menu_srclocal_options = menu_local_options;
-
+      menu_srclocal_reload = '~R~eload modified file';
       { Help viewer local menu items }
       menu_hlplocal_contents = menu_common_contents;
       menu_hlplocal_index = menu_common_index;
@@ -992,6 +992,7 @@ const
       hint_transferremote    = 'Transfer executable to remote target';
       hint_directories       = 'Set paths for units, include, object and generated files';
       hint_browser           = 'Specify global browser settings';
+      hint_reloadmodifiedfile= 'Reload file modified on disk';
       hint_tools             = 'Create or change tools';
       hint_environmentmenu   = 'Specify environment settins';
       hint_preferences       = 'Specify desktop settings';
@@ -1053,7 +1054,10 @@ const
 
 {
   $Log$
-  Revision 1.18  2003-01-14 16:24:02  pierre
+  Revision 1.19  2003-01-22 00:27:58  pierre
+   * implement reloadfile if changed
+
+  Revision 1.18  2003/01/14 16:24:02  pierre
    + msg_connectingto added
 
   Revision 1.17  2002/11/30 01:55:33  pierre

@@ -1642,8 +1642,9 @@ end;
 
 function TSourceEditor.GetLocalMenu: PMenu;
 var M: PMenu;
+    MI: PMenuItem;
 begin
-  M:=NewMenu(
+  MI:=
     NewItem(menu_edit_cut,menu_key_edit_cut,kbShiftDel,cmCut,hcCut,
     NewItem(menu_edit_copy,menu_key_edit_copy,kbCtrlIns,cmCopy,hcCopy,
     NewItem(menu_edit_paste,menu_key_edit_paste,kbShiftIns,cmPaste,hcPaste,
@@ -1654,7 +1655,11 @@ begin
     NewItem(menu_srclocal_topicsearch,menu_key_help_topicsearch,kbCtrlF1,cmHelpTopicSearch,hcHelpTopicSearch,
     NewLine(
     NewItem(menu_srclocal_options,'',kbNoKey,cmEditorOptions,hcEditorOptions,
-    nil)))))))))));
+    nil))))))))));
+  if IsChangedOnDisk then
+    MI:=NewItem(menu_srclocal_reload,'',kbNoKey,cmDoReload,hcDoReload,
+      MI);
+  M:=NewMenu(MI);
   GetLocalMenu:=M;
 end;
 
@@ -1764,6 +1769,7 @@ begin
           cmUndoAll     : UndoAll;
           cmRedoAll     : RedoAll;
 {$endif DebugUndo}
+          cmDoReload : ReloadFile;
           cmBrowseAtCursor:
             begin
               S:=LowerCaseStr(GetEditorCurWord(@Self,[]));
@@ -4559,7 +4565,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.39  2002-12-16 15:16:15  pierre
+  Revision 1.40  2003-01-22 00:27:58  pierre
+   * implement reloadfile if changed
+
+  Revision 1.39  2002/12/16 15:16:15  pierre
    * try to fix the moving of breakpoints
 
   Revision 1.38  2002/12/12 00:09:08  pierre
