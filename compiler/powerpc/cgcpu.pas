@@ -1238,14 +1238,14 @@ const
                 begin
                   a_load_ref_ref(list,int_cgsize(len),source,dest);
                   if delsource then
-                    reference_release(exprasmlist,source);
+                    reference_release(list,source);
                 end
               else
                 begin
                   a_reg_alloc(list,R_F0);
                   a_loadfpu_ref_reg(list,OS_F64,source,R_F0);
                   if delsource then
-                    reference_release(exprasmlist,source);
+                    reference_release(list,source);
                   a_loadfpu_reg_ref(list,OS_F64,R_F0,dest);
                   a_reg_dealloc(list,R_F0);
                 end;
@@ -1275,7 +1275,7 @@ const
             orgsrc := true;
           end;
         if not orgsrc and delsource then
-          reference_release(exprasmlist,source);
+          reference_release(list,source);
         { load the address of dest into dst.base }
         if not issimpleref(dest) or
            ((dest.index <> R_NO) and
@@ -1364,7 +1364,7 @@ const
        if orgsrc then
          begin
            if delsource then
-             reference_release(exprasmlist,source);
+             reference_release(list,source);
          end
        else
          free_scratch_reg(list,src.base);
@@ -1688,7 +1688,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.48  2002-08-31 21:38:02  jonas
+  Revision 1.49  2002-09-01 12:09:27  peter
+    + a_call_reg, a_call_loc added
+    * removed exprasmlist references
+
+  Revision 1.48  2002/08/31 21:38:02  jonas
     * fixed a_call_ref (it should load ctr, not lr)
 
   Revision 1.47  2002/08/31 21:30:45  florian

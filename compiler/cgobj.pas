@@ -176,6 +176,9 @@ unit cgobj;
           }
           procedure a_call_name(list : taasmoutput;const s : string);virtual; abstract;
           procedure a_call_ref(list : taasmoutput;const ref : treference);virtual;abstract;
+          procedure a_call_reg(list : taasmoutput;reg : tregister);virtual;abstract;
+          procedure a_call_loc(list : taasmoutput;const loc:tlocation);
+
 
           { move instructions }
           procedure a_load_const_reg(list : taasmoutput;size : tcgsize;a : aword;register : tregister);virtual; abstract;
@@ -255,7 +258,7 @@ unit cgobj;
                     be emitted)
              @param(reg The register to emit the opcode with, returns the register with
                    which the opcode will be emitted)
-          }   
+          }
           function optimize_op_const_reg(list: taasmoutput; var op: topcg; var a : aword; var reg: tregister): boolean;virtual;
 
          {#
@@ -449,18 +452,18 @@ unit cgobj;
         procedure a_param64_ref(list : taasmoutput;const r : treference;const loc : tparalocation);virtual;abstract;
         procedure a_param64_loc(list : taasmoutput;const l : tlocation;const loc : tparalocation);virtual;abstract;
 
-        { 
+        {
              This routine tries to optimize the const_reg opcode, and should be
              called at the start of a_op64_const_reg. It returns the actual opcode
              to emit, and the constant value to emit. If this routine returns
              TRUE, @var(no) instruction should be emitted (.eg : imul reg by 1 )
-             
+
              @param(op The opcode to emit, returns the opcode which must be emitted)
              @param(a  The constant which should be emitted, returns the constant which must
                     be emitted)
              @param(reg The register to emit the opcode with, returns the register with
                    which the opcode will be emitted)
-        }   
+        }
         function optimize64_op_const_reg(list: taasmoutput; var op: topcg; var a : qword; var reg: tregister64): boolean;virtual;abstract;
 
 
@@ -675,7 +678,7 @@ unit cgobj;
               list.concat(taicpu.op_reg(A_PUSH,S_L,pushed_reg));
             end
           else
-            tmpreg := rg.getregisterint(exprasmlist)
+            tmpreg := rg.getregisterint(list)
         else
 {$endif i386}
         tmpreg := get_scratch_reg_int(list);
@@ -688,7 +691,7 @@ unit cgobj;
             if (pushed_reg <> R_NO) then
               list.concat(taicpu.op_reg(A_POP,S_L,pushed_reg))
             else
-              rg.ungetregister(exprasmlist,tmpreg)
+              rg.ungetregister(list,tmpreg)
           end
         else
 {$endif i386}
@@ -771,6 +774,19 @@ unit cgobj;
       end;
 
 
+    procedure tcg.a_call_loc(list : taasmoutput;const loc:tlocation);
+      begin
+        case loc.loc of
+           LOC_REGISTER,LOC_CREGISTER:
+             cg.a_call_reg(list,loc.register);
+           LOC_REFERENCE,LOC_CREFERENCE :
+             cg.a_call_ref(list,loc.reference);
+           else
+             internalerror(200203311);
+        end;
+      end;
+
+
     function tcg.optimize_op_const_reg(list: taasmoutput; var op: topcg; var a : aword; var reg:tregister): boolean;
       var
         powerval : longint;
@@ -817,7 +833,7 @@ unit cgobj;
             end;
         OP_SAR,OP_SHL,OP_SHR:
            begin
-              if a = 0 then 
+              if a = 0 then
                  optimize_op_const_reg := true;
               exit;
            end;
@@ -1044,7 +1060,7 @@ unit cgobj;
               { since all this is only necessary for the 80x86 (because EDI   }
               { doesn't have an 8bit component which is directly addressable) }
               if size in [OS_8,OS_S8] then
-                tmpreg := rg.getregisterint(exprasmlist)
+                tmpreg := rg.getregisterint(list)
               else
 {$endif i386}
               tmpreg := get_scratch_reg_int(list);
@@ -1053,7 +1069,7 @@ unit cgobj;
               a_cmp_ref_reg_label(list,size,cmp_op,ref,tmpreg,l);
 {$ifdef i386}
               if size in [OS_8,OS_S8] then
-                rg.ungetregister(exprasmlist,tmpreg)
+                rg.ungetregister(list,tmpreg)
               else
 {$endif i386}
               free_scratch_reg(list,tmpreg);
@@ -1530,7 +1546,7 @@ unit cgobj;
 
     procedure tcg.g_exception_reason_save(list : taasmoutput; const href : treference);
      begin
-       a_load_reg_ref(exprasmlist, OS_S32, accumulator, href);
+       a_load_reg_ref(list, OS_S32, accumulator, href);
      end;
 
 
@@ -1568,7 +1584,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.53  2002-08-19 18:17:48  carl
+  Revision 1.54  2002-09-01 12:09:27  peter
+    + a_call_reg, a_call_loc added
+    * removed exprasmlist references
+
+  Revision 1.53  2002/08/19 18:17:48  carl
     + optimize64_op_const_reg implemented (optimizes 64-bit constant opcodes)
     * more fixes to m68k for 64-bit operations
 

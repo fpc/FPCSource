@@ -50,6 +50,7 @@ unit cgx86;
 
         procedure a_call_name(list : taasmoutput;const s : string);override;
         procedure a_call_ref(list : taasmoutput;const ref : treference);override;
+        procedure a_call_reg(list : taasmoutput;reg : tregister);override;
 
 
         procedure a_op_const_reg(list : taasmoutput; Op: TOpCG; a: AWord; reg: TRegister); override;
@@ -409,6 +410,12 @@ unit cgx86;
         list.concat(taicpu.op_ref(A_CALL,S_NO,ref));
       end;
 
+
+    procedure tcgx86.a_call_reg(list : taasmoutput;reg : tregister);
+
+      begin
+        list.concat(taicpu.op_reg(A_CALL,S_NO,reg));
+      end;
 
 
 {********************** load instructions ********************}
@@ -1644,7 +1651,11 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.12  2002-08-17 09:23:50  florian
+  Revision 1.13  2002-09-01 12:09:27  peter
+    + a_call_reg, a_call_loc added
+    * removed exprasmlist references
+
+  Revision 1.12  2002/08/17 09:23:50  florian
     * first part of procinfo rewrite
 
   Revision 1.11  2002/08/16 14:25:00  carl
