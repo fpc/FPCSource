@@ -506,6 +506,7 @@ echo *Compiling unit Ports ... >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling PM units ... >> %FPCERRLOG%
+%REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\OS2DEF.PAS
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\PMWIN.PAS
 if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
@@ -658,7 +659,10 @@ goto End
 
 
   $Log$
-  Revision 1.16  2000-05-14 16:46:09  hajny
+  Revision 1.17  2000-05-21 16:09:42  hajny
+    * os2def.pas added
+
+  Revision 1.16  2000/05/14 16:46:09  hajny
     * cmd.exe compatibility problem fixed
 
   Revision 1.15  2000/04/03 17:42:46  hajny
