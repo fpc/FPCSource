@@ -904,6 +904,10 @@ unit pmodules;
             exit;
           end;
 
+         { generate imports }
+         if current_module^.uses_imports then
+          importlib^.generatelib;
+
          { insert own objectfile, or say that it's in a library
            (no check for an .o when loading) }
          if is_assembler_generated then
@@ -938,10 +942,6 @@ unit pmodules;
          dispose(st,done);
          current_module^.localsymtable:=nil;
 {$endif UseBrowser}
-
-         { generate imports }
-         if current_module^.uses_imports then
-          importlib^.generatelib;
 
          if is_assembler_generated then
           begin
@@ -1053,12 +1053,12 @@ unit pmodules;
             exit;
           end;
 
-         { insert heap }
-         insertheap;
-
          { generate imports }
          if current_module^.uses_imports then
           importlib^.generatelib;
+
+         { insert heap }
+         insertheap;
 
          inserttargetspecific;
 
@@ -1086,7 +1086,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.71  1998-10-21 20:13:10  peter
+  Revision 1.72  1998-10-22 11:36:34  peter
+    * fixed imports generation at the wrong place
+
+  Revision 1.71  1998/10/21 20:13:10  peter
     * check for importsection for empty asm file
 
   Revision 1.70  1998/10/20 09:30:05  peter
