@@ -462,7 +462,7 @@ begin
   InitThreads;
   inherited Create;
   FSem := SemaphoreInit;
-  FSuspended := true;
+  FSuspended := CreateSuspended;
   FSuspendedExternal := false;
   FInitialSuspended := CreateSuspended;
   FFatalException := nil;
@@ -606,7 +606,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  2003-11-19 10:12:02  marco
+  Revision 1.7  2003-11-22 11:04:08  marco
+   * Johill: suspend fix
+
+  Revision 1.6  2003/11/19 10:12:02  marco
    * more cleanups
 
   Revision 1.5  2003/11/17 10:05:51  marco

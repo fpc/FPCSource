@@ -182,7 +182,7 @@ begin
   InitThreads;
   inherited Create;
   FSem := SemaphoreInit;
-  FSuspended := true;
+  FSuspended :=CreateSuspended;
   FSuspendedExternal := false;
   FInitialSuspended := CreateSuspended;
   FFatalException := nil;
@@ -325,7 +325,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2003-11-19 15:51:54  peter
+  Revision 1.6  2003-11-22 11:04:08  marco
+   * Johill: suspend fix
+
+  Revision 1.5  2003/11/19 15:51:54  peter
     * tthread disabled for 1.0.x
 
   Revision 1.4  2003/11/17 08:27:49  marco
