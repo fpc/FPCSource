@@ -67,7 +67,7 @@ begin
     OutPipe:=ToutputPipeStream.Create (OutHandle);
     end
   Else
-    Raise EPipeCreation.CreateFmt (EPipeMsg,[getlasterror])
+    Raise EPipeCreation.Create (EPipeMsg)
 end;
 
 Function TPipeStream.Seek (Offset : Longint;Origin : Word) : longint;
