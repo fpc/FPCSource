@@ -23,9 +23,14 @@ var s : string;
     line : longint;
     regcount:byte;
     regcount_bsstart:byte;
-    names,regtypes,numbers,stdnames,stabs:
-        array[0..max_regcount-1] of string[63];
-    regnumber_index,std_regname_index:array[0..max_regcount-1] of byte;
+    names,
+    regtypes,
+    supregs,
+    numbers,
+    stdnames,
+    stabs : array[0..max_regcount-1] of string[63];
+    regnumber_index,
+    std_regname_index : array[0..max_regcount-1] of byte;
 
 {$ifndef FPC}
   procedure readln(var t:text;var s:string);
@@ -192,17 +197,19 @@ begin
         readcomma;
         regtypes[regcount]:=readstr;
         readcomma;
-        numbers[regcount]:=readstr;
-        if numbers[regcount][1]<>'$' then
+        supregs[regcount]:=readstr;
+        readcomma;
+        stdnames[regcount]:=readstr;
+        readcomma;
+        stabs[regcount]:=readstr;
+        { Create register number }
+        if supregs[regcount][1]<>'$' then
           begin
             writeln('Missing $ before number, at line ',line);
             writeln('Line: "',s,'"');
             halt(1);
           end;
-        readcomma;
-        stdnames[regcount]:=readstr;
-        readcomma;
-        stabs[regcount]:=readstr;
+        numbers[regcount]:=regtypes[regcount]+'0000'+copy(supregs[regcount],2,255);
         if i<length(s) then
           begin
             writeln('Extra chars at end of line, at line ',line);
@@ -250,8 +257,8 @@ begin
         end
       else
         first:=false;
-      writeln(confile,'NR_',names[i],' = ',regtypes[i],'0000',copy(numbers[i],2,255),';');
-      writeln(supfile,'RS_',names[i],' = ',numbers[i],';');
+      writeln(confile,'NR_',names[i],' = ',numbers[i],';');
+      writeln(supfile,'RS_',names[i],' = ',supregs[i],';');
       write(numfile,'NR_',names[i]);
       write(stdfile,'''',stdnames[i],'''');
       write(stabfile,stabs[i]);
@@ -286,7 +293,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2003-09-03 19:09:35  florian
+  Revision 1.2  2003-09-03 20:35:06  peter
+    * fixed number sorting
+
+  Revision 1.1  2003/09/03 19:09:35  florian
     * inital revision derived from sparc
 
 }
