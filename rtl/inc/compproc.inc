@@ -164,6 +164,7 @@ Procedure fpc_Write_Text_WideChar(Len : Longint;var t : Text;c : WideChar); comp
 
 {$ifdef HASVARIANT}
 Procedure fpc_Write_Text_Variant(Len : Longint;var f : Text;const v : variant); compilerproc;
+function fpc_variant_to_dynarray(const v : variant;typeinfo : pointer) : pointer;compilerproc;
 {$endif HASVARIANT}
 
 Procedure fpc_Read_End(var f:Text); compilerproc;
@@ -215,13 +216,13 @@ Function fpc_Catches(Objtype : TClass) : TObject; compilerproc;
 {$ifndef i386}
 Procedure fpc_DestroyException(o : TObject); compilerproc;
 procedure fpc_help_constructor; compilerproc;
-procedure fpc_help_fail(var _self:pointer;var vmt:pointer;vmt_pos:cardinal);safecall;compilerproc;
-procedure fpc_help_destructor(var _self : pointer; vmt : pointer; vmt_pos : cardinal);saveregisters;compilerproc;
-function fpc_new_class(_vmt:pointer;_self:pointer):pointer;saveregisters;compilerproc;
-procedure fpc_dispose_class(_self: tobject; flag : longint);saveregisters;compilerproc;
-function fpc_help_fail_class(_vmt:pointer;_self:pointer):pointer;saveregisters;compilerproc;
+procedure fpc_help_fail(var _self:pointer;var vmt:pointer;vmt_pos:cardinal);compilerproc;
+procedure fpc_help_destructor(var _self : pointer; vmt : pointer; vmt_pos : cardinal);compilerproc;
+function fpc_new_class(_vmt:pointer;_self:pointer):pointer;compilerproc;
+procedure fpc_dispose_class(_self: tobject; flag : longint);compilerproc;
+function fpc_help_fail_class(_vmt:pointer;_self:pointer):pointer;compilerproc;
 procedure fpc_check_object(obj:pointer); compilerproc;
-procedure fpc_check_object_ext(vmt,expvmt:pointer);saveregisters;compilerproc;
+procedure fpc_check_object_ext(vmt,expvmt:pointer);compilerproc;
 {$endif i386}
 Procedure fpc_Initialize (Data,TypeInfo : pointer); compilerproc;
 Procedure fpc_finalize (Data,TypeInfo: Pointer); compilerproc;
@@ -285,7 +286,10 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 
 {
   $Log$
-  Revision 1.33  2003-01-06 23:04:21  mazen
+  Revision 1.34  2003-01-09 20:14:20  florian
+    * fixed helper declarations
+
+  Revision 1.33  2003/01/06 23:04:21  mazen
   * functions headers modified in generic.inc to make it possible compiling sparc
     RTL based on generic code
 

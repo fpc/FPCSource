@@ -620,7 +620,7 @@ asm
 end;
 
 {$define FPC_SYSTEM_HAS_FPC_HELP_FAIL}
-procedure fpc_help_fail;assembler;[public,alias:'FPC_HELP_FAIL']; compilerproc;
+procedure fpc_help_fail(var _self:pointer;var vmt:pointer;vmt_pos:cardinal);assembler;[public,alias:'FPC_HELP_FAIL']; compilerproc;
 assembler;
 asm
 {$warning FIX ME!}
@@ -632,12 +632,12 @@ end;
 { use generic implementation for now }
 { that's a problem currently, the generic has a another prototyp than this defined in compproc.inc (FK) }
 
-procedure fpc_help_destructor;assembler; compilerproc;
+procedure fpc_help_destructor(var _self : pointer; vmt : pointer; vmt_pos : cardinal);assembler; compilerproc;
 asm
 end;
 
 {$define FPC_SYSTEM_HAS_FPC_NEW_CLASS}
-procedure fpc_new_class;assembler;[public,alias:'FPC_NEW_CLASS']; compilerproc;
+function fpc_new_class(_vmt:pointer;_self:pointer):pointer;assembler;[public,alias:'FPC_NEW_CLASS']; compilerproc;
 assembler;
 asm
 {$warning FIX ME!}
@@ -646,7 +646,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_DISPOSE_CLASS}
-procedure fpc_dispose_class;assembler;[public,alias:'FPC_DISPOSE_CLASS']; compilerproc;
+procedure fpc_dispose_class(_self: tobject; flag : longint);assembler;[public,alias:'FPC_DISPOSE_CLASS']; compilerproc;
 assembler;
 asm
 {$warning FIX ME!}
@@ -654,7 +654,7 @@ asm
 end;
 
 {$define FPC_SYSTEM_HAS_FPC_HELP_FAIL_CLASS}
-procedure fpc_help_fail_class;assembler;[public,alias:'FPC_HELP_FAIL_CLASS']; {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_help_fail_class(_vmt:pointer;_self:pointer):pointer;assembler;[public,alias:'FPC_HELP_FAIL_CLASS']; {$ifdef hascompilerproc} compilerproc; {$endif}
 { a non zero class must allways be disposed
   VMT is allways at pos 0 }
 assembler;
@@ -677,7 +677,7 @@ end;
 { use generic implementation for now }
 { that's a problem currently, the generic has a another prototy than this defined in compproc.inc (FK) }
 {$define FPC_SYSTEM_HAS_FPC_CHECK_OBJECT_EXT}
-procedure fpc_check_object_ext; compilerproc;assembler;
+procedure fpc_check_object_ext(vmt,expvmt:pointer); compilerproc;assembler;
 asm
 {$warning FIX ME!}
 // !!!!!!!!!!!
@@ -948,7 +948,10 @@ end ['R3','R10'];
 
 {
   $Log$
-  Revision 1.28  2003-01-09 13:38:56  florian
+  Revision 1.29  2003-01-09 20:14:35  florian
+    * fixed helper declarations
+
+  Revision 1.28  2003/01/09 13:38:56  florian
     * dec/inclocked got defines
 
   Revision 1.27  2002/11/07 15:23:13  jonas

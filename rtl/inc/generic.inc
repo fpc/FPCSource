@@ -366,7 +366,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_HELP_DESTRUCTOR}
 
-procedure fpc_help_destructor(var _self : pointer; vmt : pointer; vmt_pos : cardinal);saveregisters;[public,alias:'FPC_HELP_DESTRUCTOR'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_help_destructor(var _self : pointer; vmt : pointer; vmt_pos : cardinal);[public,alias:'fpc_help_destructor'];  {$ifdef hascompilerproc} compilerproc; {$endif}
    type
      ppointer = ^pointer;
      pvmt = ^tvmt;
@@ -394,7 +394,7 @@ end;
 {$endif FPC_SYSTEM_HAS_FPC_HELP_DESTRUCTOR}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_HELP_FAIL}
-procedure fpc_help_fail(var _self:pointer;var vmt:pointer;vmt_pos:cardinal);safecall;[public,alias:'FPC_HELP_FAIL'];compilerproc;
+procedure fpc_help_fail(var _self:pointer;var vmt:pointer;vmt_pos:cardinal);[public,alias:'FPC_HELP_FAIL'];compilerproc;
    type
      ppointer = ^pointer;
      pvmt = ^tvmt;
@@ -431,7 +431,7 @@ end;
 { RETURNS SELF                                                 }
 { IMPORTANT: SELF REGISTER should be pre-loaded before call to }
 { constructor for this to work!                                }
-function fpc_new_class(_vmt:pointer;_self:pointer):pointer;saveregisters;[public,alias:'FPC_NEW_CLASS']; {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_new_class(_vmt:pointer;_self:pointer):pointer;[public,alias:'FPC_NEW_CLASS']; {$ifdef hascompilerproc} compilerproc; {$endif}
  begin
    if _vmt <> nil then
      begin
@@ -447,7 +447,7 @@ function fpc_new_class(_vmt:pointer;_self:pointer):pointer;saveregisters;[public
 {$endif FPC_SYSTEM_HAS_FPC_NEW_CLASS}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_DISPOSE_CLASS}
-procedure fpc_dispose_class(_self: tobject; flag : longint);saveregisters;[public,alias:'FPC_DISPOSE_CLASS'];compilerproc;
+procedure fpc_dispose_class(_self: tobject; flag : longint);[public,alias:'FPC_DISPOSE_CLASS'];compilerproc;
  begin
    if (_self <> nil) and (flag = 1) then
       _self.FreeInstance;
@@ -456,7 +456,7 @@ procedure fpc_dispose_class(_self: tobject; flag : longint);saveregisters;[publi
 
 {$ifndef FPC_SYSTEM_HAS_FPC_CHECK_OBJECT}
 
-procedure fpc_check_object(obj : pointer);saveregisters;[public,alias:'FPC_CHECK_OBJECT'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_check_object(obj : pointer);[public,alias:'FPC_CHECK_OBJECT'];  {$ifdef hascompilerproc} compilerproc; {$endif}
    type
      pvmt = ^tvmt;
      tvmt = packed record
@@ -478,7 +478,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_CHECK_OBJECT_EXT}
 
-procedure fpc_check_object_ext(vmt, expvmt : pointer);saveregisters;[public,alias:'FPC_CHECK_OBJECT_EXT']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_check_object_ext(vmt, expvmt : pointer);[public,alias:'FPC_CHECK_OBJECT_EXT']; {$ifdef hascompilerproc} compilerproc; {$endif}
    type
      pvmt = ^tvmt;
      tvmt = packed record
@@ -965,7 +965,10 @@ end;
 
 {
   $Log$
-  Revision 1.47  2003-01-07 22:04:12  mazen
+  Revision 1.48  2003-01-09 20:14:20  florian
+    * fixed helper declarations
+
+  Revision 1.47  2003/01/07 22:04:12  mazen
   - space removed
 
   Revision 1.46  2003/01/06 23:04:21  mazen
