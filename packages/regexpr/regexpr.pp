@@ -35,9 +35,13 @@ unit regexpr;
              ret_or : (alternative : pregexprentry);
        end;
 
+       tregexprflag = (ref_singleline,ref_multiline,ref_caseinsensitive);
+       tregexprflags = set of tregexprflag;
+
        TRegExprEngine = record
           Data : pregexprentry;
           DestroyList : pregexprentry;
+          Flags : TRegExprFlags;
        end;
 
      const
@@ -55,7 +59,7 @@ unit regexpr;
 
      { the following procedures can be used by units basing }
      { on the regexpr unit                                  }
-     function GenerateRegExprEngine(regexpr : pchar) : TRegExprEngine;
+     function GenerateRegExprEngine(regexpr : pchar;flags : tregexprflags) : TRegExprEngine;
 
      procedure DestroyRegExprEngine(var regexpr : TRegExprEngine);
 
@@ -80,7 +84,7 @@ unit regexpr;
        end;
 {$endif DEBUG}
 
-     function GenerateRegExprEngine(regexpr : pchar) : TRegExprEngine;
+     function GenerateRegExprEngine(regexpr : pchar;flags : tregexprflags) : TRegExprEngine;
 
        var
           first : pregexprentry;
@@ -175,7 +179,11 @@ unit regexpr;
                   end;
                else
                  begin
-                    c1:=currentpos^;
+                    if ref_caseinsensitive in flags then
+                       c1:=upcase(currentpos^)
+                    else
+                       c1:=currentpos^;
+
                     inc(currentpos);
                     if currentpos^='-' then
                       begin
@@ -185,7 +193,10 @@ unit regexpr;
                               error:=true;
                               exit;
                            end;
-                         readchars:=[c1..currentpos^];
+                         if ref_caseinsensitive in flags then
+                           readchars:=[c1..upcase(currentpos^)]
+                         else
+                           readchars:=[c1..currentpos^];
                          inc(currentpos);
                       end
                     else
@@ -356,13 +367,14 @@ unit regexpr;
           new(endp);
           doregister(endp);
           endp^.typ:=ret_illegalend;
+          GenerateRegExprEngine.flags:=flags;
           GenerateRegExprEngine.Data:=parseregexpr(endp);
           GenerateRegExprEngine.DestroyList:=first;
           if error then
             DestroyRegExprEngine(GenerateRegExprEngine);
        end;
 
-     procedure DestroyRegExprEngine(var regexpr : TRegExprEngine);
+    procedure DestroyRegExprEngine(var regexpr : TRegExprEngine);
 
        var
           hp : pregexprentry;
@@ -405,7 +417,9 @@ unit regexpr;
                       else
                         exit;
                    end;
-                 if pos^ in regexpr^.chars then
+                 if (pos^ in regexpr^.chars) or
+                   ((ref_caseinsensitive in regexprengine.flags) and
+                    (upcase(pos^) in regexpr^.chars)) then
                    begin
 {$ifdef DEBUG}
                       writeln('Found matching: ',pos^);
@@ -463,7 +477,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-03-14 22:09:03  florian
-    * Initial revision
+  Revision 1.2  2000-03-14 22:57:51  florian
+    + added flags
+    + support of case insensitive search
 
+  Revision 1.1  2000/03/14 22:09:03  florian
+    * Initial revision
 }
