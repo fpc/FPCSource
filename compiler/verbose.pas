@@ -112,7 +112,9 @@ procedure SetRedirectFile(const fn:string);
 begin
   assign(status.redirfile,fn);
   {$I-}
-   rewrite(status.redirfile);
+   append(status.redirfile);
+   if ioresult <> 0 then
+    rewrite(status.redirfile);
   {$I+}
   status.use_redir:=(ioresult=0);
   if status.use_redir then
@@ -516,7 +518,10 @@ end.
 
 {
   $Log$
-  Revision 1.49  2000-03-12 08:24:45  daniel
+  Revision 1.50  2000-04-01 10:46:29  hajny
+    * logfile appended if exists
+
+  Revision 1.49  2000/03/12 08:24:45  daniel
     * Made check for message file TP compilable.
 
   Revision 1.48  2000/03/01 22:29:18  peter
