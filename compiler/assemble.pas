@@ -1225,9 +1225,9 @@ Implementation
         fillbuffer : tfillbuffer;
         InlineLevel,
         l  : longint;
-{$ifdef i386}
+{$ifdef x86}
         co : comp;
-{$endif i386}
+{$endif x86}
       begin
         inlinelevel:=0;
         { main loop }
@@ -1299,14 +1299,14 @@ Implementation
                objectdata.writebytes(Tai_real_32bit(hp).value,4);
              ait_comp_64bit :
                begin
-{$ifdef i386}
+{$ifdef x86}
 {$ifdef FPC}
                  co:=comp(Tai_comp_64bit(hp).value);
 {$else}
                  co:=Tai_comp_64bit(hp).value;
 {$endif}
                  objectdata.writebytes(co,8);
-{$endif i386}
+{$endif x86}
                end;
              ait_string :
                objectdata.writebytes(Tai_string(hp).str^,Tai_string(hp).len);
@@ -1661,7 +1661,11 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.60  2004-01-30 15:44:23  jonas
+  Revision 1.61  2004-01-31 17:45:17  peter
+    * Change several $ifdef i386 to x86
+    * Change several OS_32 to OS_INT/OS_ADDR
+
+  Revision 1.60  2004/01/30 15:44:23  jonas
     + support for piped assembling under Darwin
 
   Revision 1.59  2003/11/10 17:22:28  marco

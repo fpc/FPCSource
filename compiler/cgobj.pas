@@ -1257,7 +1257,7 @@ implementation
           end
         else
           begin
-            tmpreg:=cg.getintregister(list,size);
+            tmpreg:=getintregister(list,size);
             a_load_reg_reg(list,size,size,src2,tmpreg);
             a_op_reg_reg(list,op,size,src1,tmpreg);
             a_load_reg_reg(list,size,size,tmpreg,dst);
@@ -1922,8 +1922,8 @@ implementation
 
         { calculate necessary memory }
         a_load_ref_reg(list,OS_INT,OS_INT,lenref,sizereg);
-        a_op_const_reg_reg(list,OP_ADD,OS_INT,1,sizereg,sizereg);
-        a_op_const_reg_reg(list,OP_MUL,OS_INT,elesize,sizereg,sizereg);
+        a_op_const_reg(list,OP_ADD,OS_INT,1,sizereg);
+        a_op_const_reg(list,OP_MUL,OS_INT,elesize,sizereg);
         { load source }
         a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,sourcereg);
 
@@ -2139,7 +2139,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.152  2004-01-22 22:12:21  peter
+  Revision 1.153  2004-01-31 17:45:17  peter
+    * Change several $ifdef i386 to x86
+    * Change several OS_32 to OS_INT/OS_ADDR
+
+  Revision 1.152  2004/01/22 22:12:21  peter
     * g_finalize needs to reset to nil after decr_ref
     * support loadref in decr_ref reset to nil
 

@@ -408,7 +408,7 @@ interface
             else
               internalerror(2002032214);
          end;
-         cg.a_cmp_const_reg_label(exprasmlist,OS_32,OC_NE,0,location.register,l1);
+         cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_NE,0,location.register,l1);
          reference_reset(hr);
          hr.symbol:=objectlibrary.newasmsymboldata('FPC_EMPTYCHAR');
          cg.a_loadaddr_ref_reg(exprasmlist,hr,location.register);
@@ -448,7 +448,7 @@ interface
            begin
               if hd.implementedinterfaces.searchintf(resulttype.def)<>-1 then
                 begin
-                   cg.a_op_const_reg(exprasmlist,OP_ADD,OS_32,aword(
+                   cg.a_op_const_reg(exprasmlist,OP_ADD,OS_ADDR,aword(
                      hd.implementedinterfaces.ioffsets(
                        hd.implementedinterfaces.searchintf(resulttype.def))^),location.register);
                    break;
@@ -535,7 +535,11 @@ end.
 
 {
   $Log$
-  Revision 1.52  2003-12-26 00:32:21  florian
+  Revision 1.53  2004-01-31 17:45:17  peter
+    * Change several $ifdef i386 to x86
+    * Change several OS_32 to OS_INT/OS_ADDR
+
+  Revision 1.52  2003/12/26 00:32:21  florian
     + fpu<->mm register conversion
 
   Revision 1.51  2003/12/22 23:08:59  peter

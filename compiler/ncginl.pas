@@ -373,7 +373,9 @@ implementation
         var
          addvalue : TConstExprInt;
          addconstant : boolean;
+{$ifndef cpu64bit}
          hregisterhi,
+{$endif cpu64bit}
          hregister : tregister;
          cgsize : tcgsize;
         begin
@@ -408,7 +410,9 @@ implementation
                 begin
                   location_force_reg(exprasmlist,tcallparanode(tcallparanode(left).right).left.location,cgsize,false);
                   hregister:=tcallparanode(tcallparanode(left).right).left.location.register;
+{$ifndef cpu64bit}
                   hregisterhi:=tcallparanode(tcallparanode(left).right).left.location.registerhigh;
+{$endif cpu64bit}
                   { insert multiply with addvalue if its >1 }
                   if addvalue>1 then
                     cg.a_op_const_reg(exprasmlist,OP_IMUL,cgsize,addvalue,hregister);
@@ -461,15 +465,16 @@ implementation
 {*****************************************************************************
                      INCLUDE/EXCLUDE GENERIC HANDLING
 *****************************************************************************}
+
       procedure tcginlinenode.second_IncludeExclude;
         var
-         hregister : tregister;
-         L : longint;
-         cgop : topcg;
-         addrreg, hregister2: tregister;
-         use_small : boolean;
-         cgsize : tcgsize;
-         href : treference;
+          L : longint;
+          cgop : topcg;
+          addrreg2,addrreg,
+          hregister,hregister2: tregister;
+          use_small : boolean;
+          cgsize : tcgsize;
+          href : treference;
         begin
           secondpass(tcallparanode(left).left);
           if tcallparanode(tcallparanode(left).right).left.nodetype=ordconstn then
@@ -500,7 +505,7 @@ implementation
             end
           else
             begin
-             use_small:=
+              use_small:=
                  { set type }
                  (tsetdef(tcallparanode(left).left.resulttype.def).settype=smallset)
                   and
@@ -514,33 +519,17 @@ implementation
               secondpass(tcallparanode(tcallparanode(left).right).left);
 
               { bitnumber - which must be loaded into register }
-              hregister:=cg.getintregister(exprasmlist,OS_INT);
-              hregister2:=cg.getintregister(exprasmlist,OS_INT);
+              hregister:=cg.getintregister(exprasmlist,OS_32);
+              hregister2:=cg.getintregister(exprasmlist,OS_32);
 
-              case tcallparanode(tcallparanode(left).right).left.location.loc of
-                 LOC_CREGISTER,
-                 LOC_REGISTER:
-                   begin
-                     cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,
-                       tcallparanode(tcallparanode(left).right).left.location.register,hregister);
-                   end;
-                 LOC_CREFERENCE,
-                 LOC_REFERENCE:
-                   begin
-                     cgsize := def_cgsize(tcallparanode(tcallparanode(left).right).left.resulttype.def);
-                     cg.a_load_ref_reg(exprasmlist,cgsize,cgsize,
-                       tcallparanode(tcallparanode(left).right).left.location.reference,hregister);
-                   end;
-               else
-                 internalerror(20020727);
-               end;
+              cg.a_load_loc_reg(exprasmlist,OS_32,
+                  tcallparanode(tcallparanode(left).right).left.location,hregister);
 
               if use_small then
                 begin
                   { hregister contains the bitnumber to add }
-                   cg.a_load_const_reg(exprasmlist, OS_INT, 1, hregister2);
-                   cg.a_op_reg_reg(exprasmlist, OP_SHL, OS_INT, hregister, hregister2);
-
+                  cg.a_load_const_reg(exprasmlist, OS_32, 1, hregister2);
+                  cg.a_op_reg_reg(exprasmlist, OP_SHL, OS_32, hregister, hregister2);
 
                   { possiblities :
                        bitnumber : LOC_REFERENCE, LOC_REGISTER, LOC_CREGISTER
@@ -549,19 +538,17 @@ implementation
                   { location of set }
                   if (tcallparanode(left).left.location.loc=LOC_REFERENCE) then
                     begin
-                     if inlinenumber=in_include_x_y then
-                       begin
-                         cg.a_op_reg_ref(exprasmlist, OP_OR, OS_32, hregister2,
-                         tcallparanode(left).left.location.reference);
-                       end
-                     else
-                       begin
-                         cg.a_op_reg_reg(exprasmlist, OP_NOT, OS_32, hregister2,
-                         hregister2);
-                         cg.a_op_reg_ref(exprasmlist, OP_AND, OS_32, hregister2,
-                         tcallparanode(left).left.location.reference);
-                       end;
-
+                      if inlinenumber=in_include_x_y then
+                        begin
+                          cg.a_op_reg_ref(exprasmlist, OP_OR, OS_32, hregister2,
+                          tcallparanode(left).left.location.reference);
+                        end
+                      else
+                        begin
+                          cg.a_op_reg_reg(exprasmlist, OP_NOT, OS_32, hregister2,hregister2);
+                          cg.a_op_reg_ref(exprasmlist, OP_AND, OS_32, hregister2,
+                              tcallparanode(left).left.location.reference);
+                        end;
                     end
                   else
                     internalerror(20020728);
@@ -578,33 +565,35 @@ implementation
                   cg.a_op_const_reg_reg(exprasmlist, OP_SHR, OS_32, 5, hregister,hregister2);
                   cg.a_op_const_reg(exprasmlist, OP_SHL, OS_32, 2, hregister2);
                   addrreg:=cg.getaddressregister(exprasmlist);
+                  { we need an extra address register to be able to do an ADD operation }
+                  addrreg2:=cg.getaddressregister(exprasmlist);
+                  cg.a_load_reg_reg(exprasmlist,OS_32,OS_ADDR,hregister2,addrreg2);
                   { calculate the correct address of the operand }
                   cg.a_loadaddr_ref_reg(exprasmlist, tcallparanode(left).left.location.reference,addrreg);
-                  cg.a_op_reg_reg(exprasmlist, OP_ADD, OS_INT, hregister2, addrreg);
+                  cg.a_op_reg_reg(exprasmlist, OP_ADD, OS_32, addrreg2, addrreg);
+                  cg.ungetregister(exprasmlist,addrreg2);
 
                   { hregister contains the bitnumber to add }
-                  cg.a_load_const_reg(exprasmlist, OS_INT, 1, hregister2);
-                  cg.a_op_const_reg(exprasmlist, OP_AND, OS_INT, 31, hregister);
-                  cg.a_op_reg_reg(exprasmlist, OP_SHL, OS_INT, hregister, hregister2);
-
+                  cg.a_load_const_reg(exprasmlist, OS_32, 1, hregister2);
+                  cg.a_op_const_reg(exprasmlist, OP_AND, OS_32, 31, hregister);
+                  cg.a_op_reg_reg(exprasmlist, OP_SHL, OS_32, hregister, hregister2);
 
                   reference_reset_base(href,addrreg,0);
 
                   if inlinenumber=in_include_x_y then
-                       begin
-                         cg.a_op_reg_ref(exprasmlist, OP_OR, OS_32, hregister2, href);
-                       end
-                     else
-                       begin
-                         cg.a_op_reg_reg(exprasmlist, OP_NOT, OS_32, hregister2, hregister2);
-                         cg.a_op_reg_ref(exprasmlist, OP_AND, OS_32, hregister2, href);
-                       end;
+                    cg.a_op_reg_ref(exprasmlist, OP_OR, OS_32, hregister2, href)
+                  else
+                    begin
+                      cg.a_op_reg_reg(exprasmlist, OP_NOT, OS_32, hregister2, hregister2);
+                      cg.a_op_reg_ref(exprasmlist, OP_AND, OS_32, hregister2, href);
+                    end;
                   cg.ungetregister(exprasmlist,addrreg);
                 end;
-                cg.ungetregister(exprasmlist,hregister);
-                cg.ungetregister(exprasmlist,hregister2);
+              cg.ungetregister(exprasmlist,hregister);
+              cg.ungetregister(exprasmlist,hregister2);
             end;
         end;
+
 
 {*****************************************************************************
                             FLOAT GENERIC HANDLING
@@ -676,7 +665,11 @@ end.
 
 {
   $Log$
-  Revision 1.50  2003-12-31 20:47:02  jonas
+  Revision 1.51  2004-01-31 17:45:17  peter
+    * Change several $ifdef i386 to x86
+    * Change several OS_32 to OS_INT/OS_ADDR
+
+  Revision 1.50  2003/12/31 20:47:02  jonas
     * properly fixed assigned() mess (by handling it separately in ncginl)
       -> all assigned()-related tests in the test suite work again
 

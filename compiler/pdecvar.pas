@@ -622,7 +622,7 @@ implementation
          { startvarrec contains the start of the variant part of a record }
          maxsize, startvarrecsize : longint;
          usedalign,
-         minalignment,maxalignment,startvarrecalign : byte;
+         maxalignment,startvarrecalign : byte;
          hp,pt : tnode;
          vs,vs2    : tvarsym;
          srsym : tsym;
@@ -755,8 +755,9 @@ implementation
                    abssym:=tabsolutesym.create(vs.realname,tt);
                    abssym.fileinfo:=vs.fileinfo;
                    abssym.abstyp:=toaddr;
-                   abssym.absseg:=false;
                    abssym.fieldoffset:=tordconstnode(pt).value;
+{$ifdef i386}
+                   abssym.absseg:=false;
                    if (target_info.system in [system_i386_go32v2,system_i386_watcom]) and
                       try_to_consume(_COLON) then
                     begin
@@ -770,6 +771,7 @@ implementation
                       else
                          Message(type_e_ordinal_expr_expected);
                     end;
+{$endif i386}
                    symtablestack.replace(vs,abssym);
                    vs.free;
                  end
@@ -1113,25 +1115,7 @@ implementation
               UnionSym:=tvarsym.create('$case',vs_value,uniontype);
               symtablestack:=symtablestack.next;
               { Align the offset where the union symtable is added }
-              if trecordsymtable(symtablestack).usefieldalignment=-1 then
-               begin
-{$ifdef i386}
-                 if maxalignment>2 then
-                  minalignment:=4
-                 else if maxalignment>1 then
-                  minalignment:=2
-                 else
-                  minalignment:=1;
-{$else}
-{$ifdef m68k}
-                 minalignment:=2;
-{$endif}
-                 minalignment:=1;
-{$endif}
-               end
-              else
-               minalignment:=maxalignment;
-              usedalign:=used_align(maxalignment,minalignment,maxalignment);
+              usedalign:=used_align(maxalignment,aktalignment.recordalignmin,aktalignment.maxCrecordalign);
               offset:=align(trecordsymtable(symtablestack).datasize,usedalign);
               trecordsymtable(symtablestack).datasize:=offset+unionsymtable.datasize;
               if maxalignment>trecordsymtable(symtablestack).fieldalignment then
@@ -1151,7 +1135,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.62  2004-01-29 16:51:29  peter
+  Revision 1.63  2004-01-31 17:45:17  peter
+    * Change several $ifdef i386 to x86
+    * Change several OS_32 to OS_INT/OS_ADDR
+
+  Revision 1.62  2004/01/29 16:51:29  peter
     * fixed alignment calculation for variant records
     * fixed alignment padding of records
 

@@ -428,7 +428,9 @@ implementation
             hp:=left;
             while assigned(hp) and (hp.nodetype in [vecn,derefn,subscriptn]) do
              hp:=tunarynode(hp).left;
-            if assigned(hp) and (hp.nodetype=loadn) and
+{$ifdef i386}
+            if assigned(hp) and
+               (hp.nodetype=loadn) and
                ((tloadnode(hp).symtableentry.typ=absolutesym) and
                 tabsolutesym(tloadnode(hp).symtableentry).absseg) then
              begin
@@ -438,6 +440,7 @@ implementation
                  resulttype.setdef(tpointerdef.createfar(left.resulttype));
              end
             else
+{$endif i386}
              begin
                if not(nf_typedaddr in flags) then
                  resulttype:=voidpointertype
@@ -967,7 +970,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.77  2004-01-26 16:12:28  daniel
+  Revision 1.78  2004-01-31 17:45:17  peter
+    * Change several $ifdef i386 to x86
+    * Change several OS_32 to OS_INT/OS_ADDR
+
+  Revision 1.77  2004/01/26 16:12:28  daniel
     * reginfo now also only allocated during register allocation
     * third round of gdb cleanups: kick out most of concatstabto
 

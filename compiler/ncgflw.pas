@@ -179,7 +179,6 @@ implementation
 
       var
          hl,otlabel,oflabel : tasmlabel;
-{$ifdef i386}
 (*
          org_regvar_loaded_other,
          then_regvar_loaded_other,
@@ -191,7 +190,6 @@ implementation
          then_list,
          else_list : taasmoutput;
 *)
-{$endif i386}
 
       begin
          location_reset(location,LOC_VOID,OS_NO);
@@ -202,7 +200,6 @@ implementation
          objectlibrary.getlabel(falselabel);
          secondpass(left);
 
-{$ifdef i386}
 (*
          { save regvars loaded in the beginning so that we can restore them }
          { when processing the else-block                                   }
@@ -212,10 +209,8 @@ implementation
              exprasmlist := taasmoutput.create;
            end;
 *)
-{$endif i386}
          maketojumpbool(exprasmlist,left,lr_dont_load_regvars);
 
-{$ifdef i386}
 (*
          if cs_regvars in aktglobalswitches then
            begin
@@ -223,7 +218,6 @@ implementation
              org_regvar_loaded_other := rg.regvar_loaded_other;
            end;
 *)
-{$endif i386}
 
          if assigned(right) then
            begin
@@ -231,7 +225,6 @@ implementation
               secondpass(right);
            end;
 
-{$ifdef i386}
          { save current asmlist (previous instructions + then-block) and }
          { loaded regvar state and create new clean ones                 }
          if cs_regvars in aktglobalswitches then
@@ -243,7 +236,6 @@ implementation
              then_list := exprasmlist;
              exprasmlist := taasmoutput.create;}
            end;
-{$endif i386}
 
          if assigned(t1) then
            begin
@@ -252,16 +244,12 @@ implementation
                    objectlibrary.getlabel(hl);
                    { do go back to if line !! }
 (*
-{$ifdef i386}
                    if not(cs_regvars in aktglobalswitches) then
-{$endif i386}
 *)
                      aktfilepos:=exprasmList.getlasttaifilepos^
 (*
-{$ifdef i386}
                    else
                      aktfilepos:=then_list.getlasttaifilepos^
-{$endif i386}
 *)
                    ;
                    cg.a_jmp_always(exprasmlist,hl);
@@ -269,7 +257,6 @@ implementation
               cg.a_label(exprasmlist,falselabel);
               secondpass(t1);
 (*
-{$ifdef i386}
               { save current asmlist (previous instructions + else-block) }
               { and loaded regvar state and create a new clean list       }
               if cs_regvars in aktglobalswitches then
@@ -279,7 +266,6 @@ implementation
                   else_list := exprasmlist;
                   exprasmlist := taasmoutput.create;
                 end;
-{$endif i386}
 *)
               if assigned(right) then
                 cg.a_label(exprasmlist,hl);
@@ -287,7 +273,6 @@ implementation
          else
            begin
 (*
-{$ifdef i386}
               if cs_regvars in aktglobalswitches then
                 begin
 {                  else_regvar_loaded_int := rg.regvar_loaded_int;
@@ -295,7 +280,6 @@ implementation
                   else_list := exprasmlist;
                   exprasmlist := taasmoutput.create;
                 end;
-{$endif i386}
 *)
               cg.a_label(exprasmlist,falselabel);
            end;
@@ -305,7 +289,6 @@ implementation
            end;
 
 (*
-{$ifdef i386}
          if cs_regvars in aktglobalswitches then
            begin
              { add loads of regvars at the end of the then- and else-blocks  }
@@ -338,7 +321,6 @@ implementation
              exprasmlist.free;
              exprasmlist := org_list;
            end;
-{$endif i386}
 *)
 
          truelabel:=otlabel;
@@ -1391,7 +1373,7 @@ implementation
          cg.g_exception_reason_load(exprasmlist,href);
          if implicitframe then
            begin
-             cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,NR_FUNCTION_RESULT_REG,endfinallylabel);
+             cg.a_cmp_const_reg_label(exprasmlist,OS_INT,OC_EQ,0,NR_FUNCTION_RESULT_REG,endfinallylabel);
              { finally code only needed to be executed on exception }
              flowcontrol:=[];
              secondpass(t1);
@@ -1403,29 +1385,29 @@ implementation
            end
          else
            begin
-             cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,NR_FUNCTION_RESULT_REG,endfinallylabel);
-             cg.a_op_const_reg(exprasmlist,OP_SUB,OS_32,1,NR_FUNCTION_RESULT_REG);
-             cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,NR_FUNCTION_RESULT_REG,reraiselabel);
+             cg.a_cmp_const_reg_label(exprasmlist,OS_INT,OC_EQ,0,NR_FUNCTION_RESULT_REG,endfinallylabel);
+             cg.a_op_const_reg(exprasmlist,OP_SUB,OS_INT,1,NR_FUNCTION_RESULT_REG);
+             cg.a_cmp_const_reg_label(exprasmlist,OS_INT,OC_EQ,0,NR_FUNCTION_RESULT_REG,reraiselabel);
              if fc_exit in tryflowcontrol then
                begin
-                  cg.a_op_const_reg(exprasmlist,OP_SUB,OS_32,1,NR_FUNCTION_RESULT_REG);
-                  cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,NR_FUNCTION_RESULT_REG,oldaktexitlabel);
+                  cg.a_op_const_reg(exprasmlist,OP_SUB,OS_INT,1,NR_FUNCTION_RESULT_REG);
+                  cg.a_cmp_const_reg_label(exprasmlist,OS_INT,OC_EQ,0,NR_FUNCTION_RESULT_REG,oldaktexitlabel);
                   decconst:=1;
                end
              else
                decconst:=2;
              if fc_break in tryflowcontrol then
                begin
-                  cg.a_op_const_reg(exprasmlist,OP_SUB,OS_32,decconst,NR_FUNCTION_RESULT_REG);
-                  cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,NR_FUNCTION_RESULT_REG,oldaktbreaklabel);
+                  cg.a_op_const_reg(exprasmlist,OP_SUB,OS_INT,decconst,NR_FUNCTION_RESULT_REG);
+                  cg.a_cmp_const_reg_label(exprasmlist,OS_INT,OC_EQ,0,NR_FUNCTION_RESULT_REG,oldaktbreaklabel);
                   decconst:=1;
                end
              else
                inc(decconst);
              if fc_continue in tryflowcontrol then
                begin
-                  cg.a_op_const_reg(exprasmlist,OP_SUB,OS_32,decconst,NR_FUNCTION_RESULT_REG);
-                  cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,NR_FUNCTION_RESULT_REG,oldaktcontinuelabel);
+                  cg.a_op_const_reg(exprasmlist,OP_SUB,OS_INT,decconst,NR_FUNCTION_RESULT_REG);
+                  cg.a_cmp_const_reg_label(exprasmlist,OS_INT,OC_EQ,0,NR_FUNCTION_RESULT_REG,oldaktcontinuelabel);
                end;
              cg.a_label(exprasmlist,reraiselabel);
              cg.a_call_name(exprasmlist,'FPC_RERAISE');
@@ -1481,7 +1463,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.89  2004-01-12 22:11:38  peter
+  Revision 1.90  2004-01-31 17:45:17  peter
+    * Change several $ifdef i386 to x86
+    * Change several OS_32 to OS_INT/OS_ADDR
+
+  Revision 1.89  2004/01/12 22:11:38  peter
     * use localalign info for alignment for locals and temps
     * sparc fpu flags branching added
     * moved powerpc copy_valye_openarray to generic

@@ -2032,12 +2032,6 @@ const
                         { retrieve names, remove reg for register parameters }
                         s1:=ad.name;
                         s2:=fd.name;
-{$ifdef i386}
-                        if copy(s1,1,3)='reg' then
-                          delete(s1,1,3);
-                        if copy(s2,1,3)='reg' then
-                          delete(s2,1,3);
-{$endif i386}
                         { compare names }
                         if (s1<>s2) then
                          begin
@@ -2155,7 +2149,11 @@ const
 end.
 {
   $Log$
-  Revision 1.156  2004-01-21 14:22:00  florian
+  Revision 1.157  2004-01-31 17:45:17  peter
+    * Change several $ifdef i386 to x86
+    * Change several OS_32 to OS_INT/OS_ADDR
+
+  Revision 1.156  2004/01/21 14:22:00  florian
     + reintroduce implemented
 
   Revision 1.155  2003/11/23 17:05:15  peter

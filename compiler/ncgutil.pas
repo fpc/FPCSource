@@ -458,15 +458,15 @@ implementation
                     if (target_info.endian = ENDIAN_BIG) and
                        (l.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                       inc(l.reference.offset,TCGSize2Size[l.size]-TCGSize2Size[dst_size]);
-{$ifdef i386}
+{$ifdef x86}
                    l.size:=dst_size;
-{$endif i386}
+{$endif x86}
                   end;
                  cg.a_load_loc_reg(list,dst_size,l,hregister);
-{$ifndef i386}
+{$ifndef x86}
                  if (TCGSize2Size[dst_size]<TCGSize2Size[l.size]) then
                    l.size:=dst_size;
-{$endif not i386}
+{$endif not x86}
                end;
            end;
            if (l.loc <> LOC_CREGISTER) or
@@ -580,16 +580,16 @@ implementation
                     if (target_info.endian = ENDIAN_BIG) and
                        (l.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                       inc(l.reference.offset,TCGSize2Size[l.size]-TCGSize2Size[dst_size]);
-{$ifdef i386}
+{$ifdef x86}
                    l.size:=dst_size;
-{$endif i386}
+{$endif x86}
                   end;
 
                  cg.a_load_loc_reg(list,dst_size,l,hregister);
-{$ifndef i386}
+{$ifndef x86}
                  if (TCGSize2Size[dst_size]<TCGSize2Size[l.size]) then
                    l.size:=dst_size;
-{$endif not i386}
+{$endif not x86}
                end;
            end;
            location_reset(l,LOC_REGISTER,dst_size);
@@ -1560,7 +1560,7 @@ implementation
                 if paraloc1.loc=LOC_REGISTER then
                   cg.a_load_reg_ref(list,OS_INT,OS_INT,paraloc1.register,href);
                 paramanager.allocparaloc(list,paraloc1);
-                cg.a_param_const(list,OS_32,stackframe,paraloc1);
+                cg.a_param_const(list,OS_INT,stackframe,paraloc1);
                 paramanager.freeparaloc(list,paraloc1);
                 { No register saving needed, saveregisters is used }
 {$ifndef x86}
@@ -1591,7 +1591,7 @@ implementation
           begin
             stacksize:=current_procinfo.calc_stackframe_size;
             if (stacksize<>0) then
-              cg.a_op_const_reg(list,OP_ADD,OS_32,stacksize,current_procinfo.framepointer);
+              cg.a_op_const_reg(list,OP_ADD,OS_ADDR,stacksize,current_procinfo.framepointer);
           end
         else
           cg.g_restore_frame_pointer(list);
@@ -2098,7 +2098,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.184  2004-01-21 21:01:34  peter
+  Revision 1.185  2004-01-31 17:45:17  peter
+    * Change several $ifdef i386 to x86
+    * Change several OS_32 to OS_INT/OS_ADDR
+
+  Revision 1.184  2004/01/21 21:01:34  peter
     * fixed stackchecking for register calling
 
   Revision 1.183  2004/01/17 15:55:10  jonas

@@ -813,7 +813,7 @@ implementation
                end;
 
               { if mulsize = 1, we won't have to modify the index }
-              location_force_reg(exprasmlist,right.location,OS_32,mulsize = 1);
+              location_force_reg(exprasmlist,right.location,OS_ADDR,(mulsize = 1));
 
               if isjump then
                begin
@@ -881,7 +881,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.84  2004-01-12 16:38:50  peter
+  Revision 1.85  2004-01-31 17:45:17  peter
+    * Change several $ifdef i386 to x86
+    * Change several OS_32 to OS_INT/OS_ADDR
+
+  Revision 1.84  2004/01/12 16:38:50  peter
     * don't generate IMUL reg,1
 
   Revision 1.83  2003/12/06 01:15:22  florian

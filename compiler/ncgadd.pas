@@ -721,8 +721,8 @@ interface
                   if cs_mmx in aktlocalswitches then
                     second_opmmxset
                   else
-{$endif SUPPORT_MMX}
                 {$endif}
+{$endif SUPPORT_MMX}
                     internalerror(200109041);
                 end
               else
@@ -749,7 +749,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2004-01-12 16:39:40  peter
+  Revision 1.27  2004-01-31 17:45:17  peter
+    * Change several $ifdef i386 to x86
+    * Change several OS_32 to OS_INT/OS_ADDR
+
+  Revision 1.26  2004/01/12 16:39:40  peter
     * sparc updates, mostly float related
 
   Revision 1.25  2003/12/29 11:37:52  jonas

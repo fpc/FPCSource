@@ -1684,8 +1684,8 @@ implementation
               end;
 
             ref^:=r;
-{$ifdef i386}
-            { We allow this exception for i386, since overloading this would be
+{$ifdef x86}
+            { We allow this exception for x86, since overloading this would be
               too much of a a speed penalty}
             if (ref^.segment<>NR_NO) and (ref^.segment<>NR_DS) then
               segprefix:=ref^.segment;
@@ -1826,9 +1826,9 @@ implementation
         for i:=0 to ops-1 do
           ppuloadoper(ppufile,oper[i]^);
         opcode:=tasmop(ppufile.getword);
-{$ifdef i386}
+{$ifdef x86}
         ppufile.getdata(segprefix,sizeof(Tregister));
-{$endif i386}
+{$endif x86}
         is_jmp:=boolean(ppufile.getbyte);
       end;
 
@@ -1843,9 +1843,9 @@ implementation
         for i:=0 to ops-1 do
           ppuwriteoper(ppufile,oper[i]^);
         ppufile.putword(word(opcode));
-{$ifdef i386}
+{$ifdef x86}
         ppufile.putdata(segprefix,sizeof(Tregister));
-{$endif i386}
+{$endif x86}
         ppufile.putbyte(byte(is_jmp));
       end;
 
@@ -1975,7 +1975,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.68  2004-01-30 13:42:03  florian
+  Revision 1.69  2004-01-31 17:45:16  peter
+    * Change several $ifdef i386 to x86
+    * Change several OS_32 to OS_INT/OS_ADDR
+
+  Revision 1.68  2004/01/30 13:42:03  florian
     * fixed more alignment issues
 
   Revision 1.67  2004/01/26 16:12:27  daniel

@@ -114,7 +114,6 @@ implementation
         if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
           internalerror(200304235);
         location_release(exprasmlist,left.location);
-//        allocate_tempparaloc;
         cg.a_paramaddr_ref(exprasmlist,left.location.reference,tempparaloc);
         inc(tcgcallnode(aktcallnode).pushedparasize,POINTER_SIZE);
       end;
@@ -138,15 +137,14 @@ implementation
         if left.resulttype.def.deftype=floatdef then
          begin
            location_release(exprasmlist,left.location);
-//           allocate_tempparaloc;
-{$ifdef i386}
+{$ifdef x86}
            if tempparaloc.loc<>LOC_REFERENCE then
              internalerror(200309291);
            case left.location.loc of
              LOC_FPUREGISTER,
              LOC_CFPUREGISTER:
                begin
-                 size:=align(tfloatdef(left.resulttype.def).size,tempparaloc.alignment);
+                 size:=align(TCGSize2Size[left.location.size],tempparaloc.alignment);
                  inc(tcgcallnode(aktcallnode).pushedparasize,size);
                  if tempparaloc.reference.index=NR_STACK_POINTER_REG then
                    begin
@@ -208,7 +206,7 @@ implementation
              else
                internalerror(200204243);
            end;
-{$else i386}
+{$else x86}
            case left.location.loc of
              LOC_FPUREGISTER,
              LOC_CFPUREGISTER:
@@ -230,7 +228,7 @@ implementation
                   aktcallnode.procdefinition.proccalloption) then
             begin
               location_release(exprasmlist,left.location);
-{$ifdef i386}
+{$ifdef x86}
               if tempparaloc.loc<>LOC_REFERENCE then
                 internalerror(200309292);
               if not (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
@@ -246,9 +244,9 @@ implementation
               else
                 reference_reset_base(href,tempparaloc.reference.index,tempparaloc.reference.offset);
               cg.g_concatcopy(exprasmlist,left.location.reference,href,size,false,false);
-{$else i386}
+{$else x86}
               cg.a_param_copy_ref(exprasmlist,left.resulttype.def.size,left.location.reference,tempparaloc);
-{$endif i386}
+{$endif x86}
             end
            else
             begin
@@ -263,14 +261,12 @@ implementation
                     if cgsize in [OS_64,OS_S64] then
                      begin
                        inc(tcgcallnode(aktcallnode).pushedparasize,8);
-//                       allocate_tempparaloc;
                        cg64.a_param64_loc(exprasmlist,left.location,tempparaloc);
                        location_release(exprasmlist,left.location);
                      end
                     else
                      begin
                        location_release(exprasmlist,left.location);
-//                       allocate_tempparaloc;
                        inc(tcgcallnode(aktcallnode).pushedparasize,align(tcgsize2size[tempparaloc.size],tempparaloc.alignment));
                        cg.a_param_loc(exprasmlist,left.location,tempparaloc);
                      end;
@@ -280,7 +276,6 @@ implementation
                 LOC_CMMXREGISTER:
                   begin
                      location_release(exprasmlist,left.location);
-//                     allocate_tempparaloc;
                      inc(tcgcallnode(aktcallnode).pushedparasize,8);
                      cg.a_parammm_reg(exprasmlist,left.location.register);
                   end;
@@ -353,7 +348,6 @@ implementation
                     begin
                       inc(tcgcallnode(aktcallnode).pushedparasize,POINTER_SIZE);
                       location_release(exprasmlist,left.location);
-//                      allocate_tempparaloc;
                       cg.a_param_loc(exprasmlist,left.location,tempparaloc);
                     end
                   else
@@ -1163,7 +1157,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.151  2004-01-26 17:34:14  florian
+  Revision 1.152  2004-01-31 17:45:17  peter
+    * Change several $ifdef i386 to x86
+    * Change several OS_32 to OS_INT/OS_ADDR
+
+  Revision 1.151  2004/01/26 17:34:14  florian
     * set aktlocaldata for inlined procedures correctly
 
   Revision 1.150  2004/01/12 16:39:40  peter

@@ -46,8 +46,9 @@ interface
              instructions to do bit tests.
           }
 
-          procedure emit_bit_test_reg_reg(list : taasmoutput; bitnumber : tregister;
-             value : tregister; __result :tregister);virtual;
+          procedure emit_bit_test_reg_reg(list : taasmoutput;
+                                          bitsize: tcgsize; bitnumber,value : tregister;
+                                          ressize: tcgsize; res :tregister);virtual;
        end;
 
        tcgcasenode = class(tcasenode)
@@ -129,7 +130,9 @@ implementation
   {  __Result register is set to 1, if the bit is set otherwise, __Result}
   {   is set to zero. __RESULT register is also used as scratch.         }
   {**********************************************************************}
-  procedure tcginnode.emit_bit_test_reg_reg(list : taasmoutput; bitnumber : tregister; value : tregister; __result :tregister);
+  procedure tcginnode.emit_bit_test_reg_reg(list : taasmoutput;
+                                            bitsize: tcgsize; bitnumber,value : tregister;
+                                            ressize: tcgsize; res :tregister);
     begin
       { first make sure that the bit number is modulo 32 }
 
@@ -138,9 +141,10 @@ implementation
       { cg.a_op_const_reg(list,OP_AND,31,bitnumber);                     }
 
       { rotate value register "bitnumber" bits to the right }
-      cg.a_op_reg_reg_reg(list,OP_SHR,OS_INT,bitnumber,value,__result);
+      cg.a_op_reg_reg(list,OP_SHR,bitsize,bitnumber,value);
       { extract the bit we want }
-      cg.a_op_const_reg(list,OP_AND,OS_INT,1,__result);
+      cg.a_op_const_reg(list,OP_AND,bitsize,1,value);
+      cg.a_load_reg_reg(list,bitsize,ressize,value,res);
     end;
 
 
@@ -314,8 +318,9 @@ implementation
                       if (left.location.loc = LOC_CREGISTER) and
                          (hr<>pleftreg) then
                         begin
+                          cg.a_op_const_reg(exprasmlist,OP_SUB,opsize,setparts[i].start,pleftreg);
                           hr:=cg.getintregister(exprasmlist,OS_INT);
-                          cg.a_op_const_reg_reg(exprasmlist,OP_SUB,opsize,setparts[i].start,pleftreg,hr);
+                          cg.a_load_reg_reg(exprasmlist,opsize,OS_INT,pleftreg,hr);
                           pleftreg:=hr;
                           opsize := OS_INT;
                         end
@@ -381,49 +386,29 @@ implementation
               handle smallsets separate, because it allows faster checks }
             if use_small then
              begin
-             {****************************  SMALL SET **********************}
+               {****************************  SMALL SET **********************}
                if left.nodetype=ordconstn then
                 begin
                   location_force_reg(exprasmlist,right.location,OS_32,true);
-                 cg.ungetregister(exprasmlist,right.location.register);
-                 { allocate a register for the result }
-                 location.register := cg.getintregister(exprasmlist,location.size);
-                 { then SHR the register }
-                 cg.a_op_const_reg_reg(exprasmlist,OP_SHR,OS_INT,
-                   tordconstnode(left).value and 31,right.location.register,location.register);
-                 { then extract the lowest bit }
-                 cg.a_op_const_reg(exprasmlist,OP_AND,OS_INT,1,location.register);
+                  { first SHR the register }
+                  cg.a_op_const_reg(exprasmlist,OP_SHR,OS_32,tordconstnode(left).value and 31,right.location.register);
+                  { then extract the lowest bit }
+                  cg.a_op_const_reg(exprasmlist,OP_AND,OS_32,1,right.location.register);
+                  location.register:=cg.getintregister(exprasmlist,location.size);
+                  cg.a_load_reg_reg(exprasmlist,OS_32,location.size,right.location.register,location.register);
                 end
                else
                 begin
-                  case left.location.loc of
-                     LOC_REGISTER,
-                     LOC_CREGISTER:
-                       begin
-                          hr3:=cg.makeregsize(left.location.register,OS_INT);
-                          cg.a_load_reg_reg(exprasmlist,left.location.size,OS_INT,left.location.register,hr3);
-                          hr:=cg.getintregister(exprasmlist,OS_INT);
-                          cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,hr3,hr);
-                       end;
-                  else
-                    begin
-                      hr:=cg.getintregister(exprasmlist,OS_INT);
-                      cg.a_load_ref_reg(exprasmlist,def_cgsize(left.resulttype.def),OS_INT,
-                         left.location.reference,hr);
-                      location_release(exprasmlist,left.location);
-                    end;
-                  end;
-
+                  location_force_reg(exprasmlist,left.location,OS_32,false);
                   location_force_reg(exprasmlist,right.location,OS_32,true);
-                  { free the resources }
-                  cg.ungetregister(exprasmlist,right.location.register);
                   { allocate a register for the result }
-                  location.register := cg.getintregister(exprasmlist,location.size);
+                  location.register:=cg.getintregister(exprasmlist,location.size);
                   { emit bit test operation }
-                  emit_bit_test_reg_reg(exprasmlist,hr,right.location.register,location.register);
-                  { free bitnumber register }
-                  cg.ungetregister(exprasmlist,hr);
+                  emit_bit_test_reg_reg(exprasmlist,right.location.size,left.location.register,
+                      right.location.register,location.size,location.register);
                 end;
+               location_release(exprasmlist,left.location);
+               location_release(exprasmlist,right.location);
              end
             else
              {************************** NOT SMALL SET ********************}
@@ -437,21 +422,21 @@ implementation
                   { assumption (other cases will be caught by range checking) (JM)  }
 
                   { load left in register }
-                  location_force_reg(exprasmlist,left.location,OS_INT,true);
+                  location_force_reg(exprasmlist,left.location,OS_32,true);
                   if left.location.loc = LOC_CREGISTER then
-                    hr := cg.getintregister(exprasmlist,OS_INT)
+                    hr := cg.getintregister(exprasmlist,OS_32)
                   else
                     hr := left.location.register;
                   { load right in register }
-                  hr2:=cg.getintregister(exprasmlist,OS_INT);
-                  cg.a_load_const_reg(exprasmlist,OS_INT,right.location.value,hr2);
+                  hr2:=cg.getintregister(exprasmlist,OS_32);
+                  cg.a_load_const_reg(exprasmlist,OS_32,right.location.value,hr2);
 
                   { emit bit test operation }
-                  emit_bit_test_reg_reg(exprasmlist,left.location.register,hr2,hr2);
+                  emit_bit_test_reg_reg(exprasmlist,OS_32,left.location.register,hr2,OS_32,hr2);
 
                   { if left > 31 then hr := 0 else hr := $ffffffff }
-                  cg.a_op_const_reg_reg(exprasmlist,OP_SUB,OS_INT,32,left.location.register,hr);
-                  cg.a_op_const_reg(exprasmlist,OP_SAR,OS_INT,31,hr);
+                  cg.a_op_const_reg_reg(exprasmlist,OP_SUB,OS_32,32,left.location.register,hr);
+                  cg.a_op_const_reg(exprasmlist,OP_SAR,OS_32,31,hr);
 
                   { free registers }
                   cg.ungetregister(exprasmlist,hr2);
@@ -460,10 +445,11 @@ implementation
                   else
                     cg.ungetregister(exprasmlist,left.location.register);
 
+                  { if left > 31, then result := 0 else result := result of bit test }
+                  cg.a_op_reg_reg(exprasmlist,OP_AND,OS_32,hr,hr2);
                   { allocate a register for the result }
                   location.register := cg.getintregister(exprasmlist,location.size);
-                  { if left > 31, then result := 0 else result := result of bit test }
-                  cg.a_op_reg_reg_reg(exprasmlist,OP_AND,OS_INT,hr,hr2,location.register);
+                  cg.a_load_reg_reg(exprasmlist,OS_32,location.size,hr2,location.register);
                 end { of right.location.loc=LOC_CONSTANT }
                { do search in a normal set which could have >32 elementsm
                  but also used if the left side contains higher values > 32 }
@@ -485,13 +471,14 @@ implementation
                 end
                else
                 begin
-                  location_force_reg(exprasmlist,left.location,OS_INT,true);
+                  location_force_reg(exprasmlist,left.location,OS_32,true);
                   pleftreg := left.location.register;
 
                   location_freetemp(exprasmlist,left.location);
+                  cg.a_op_const_reg(exprasmlist,OP_SHR,OS_32,5,pleftreg);
                   hr := cg.getaddressregister(exprasmlist);
-                  cg.a_op_const_reg_reg(exprasmlist,OP_SHR,OS_32,5,pleftreg,hr);
-                  cg.a_op_const_reg(exprasmlist,OP_SHL,OS_32,2,hr);
+                  cg.a_load_reg_reg(exprasmlist,OS_32,OS_ADDR,pleftreg,hr);
+                  cg.a_op_const_reg(exprasmlist,OP_SHL,OS_ADDR,2,hr);
 
                   href := right.location.reference;
                   if (href.base = NR_NO) then
@@ -508,15 +495,15 @@ implementation
                     end;
                   reference_release(exprasmlist,href);
                   { allocate a register for the result }
-                  location.register := cg.getintregister(exprasmlist,location.size);
-                  cg.a_load_ref_reg(exprasmlist,OS_32,OS_32,href,location.register);
-
-                  cg.ungetregister(exprasmlist,pleftreg);
                   hr := cg.getintregister(exprasmlist,OS_32);
-                  cg.a_op_const_reg_reg(exprasmlist,OP_AND,OS_32,31,pleftreg,hr);
-                  cg.a_op_reg_reg(exprasmlist,OP_SHR,OS_32,hr,location.register);
+                  cg.a_load_ref_reg(exprasmlist,OS_32,OS_32,href,hr);
+                  cg.a_op_const_reg(exprasmlist,OP_AND,OS_32,31,pleftreg);
+                  cg.a_op_reg_reg(exprasmlist,OP_SHR,OS_32,pleftreg,hr);
+                  cg.ungetregister(exprasmlist,pleftreg);
+                  cg.a_op_const_reg(exprasmlist,OP_AND,OS_32,1,hr);
+                  location.register := cg.getintregister(exprasmlist,location.size);
+                  cg.a_load_reg_reg(exprasmlist,OS_32,location.size,hr,location.register);
                   cg.ungetregister(exprasmlist,hr);
-                  cg.a_op_const_reg(exprasmlist,OP_AND,OS_32,1,location.register);
                 end;
              end;
           end;
@@ -1010,7 +997,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.55  2004-01-28 15:36:46  florian
+  Revision 1.56  2004-01-31 17:45:17  peter
+    * Change several $ifdef i386 to x86
+    * Change several OS_32 to OS_INT/OS_ADDR
+
+  Revision 1.55  2004/01/28 15:36:46  florian
     * fixed another couple of arm bugs
 
   Revision 1.54  2003/12/09 19:14:50  jonas

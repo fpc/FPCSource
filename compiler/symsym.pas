@@ -225,7 +225,9 @@ interface
 
        tabsolutesym = class(tvarsym)
           abstyp  : absolutetyp;
+{$ifdef i386}
           absseg  : boolean;
+{$endif i386}
           asmname : pstring;
           ref     : tsymlist;
           constructor create(const n : string;const tt : ttype);
@@ -1414,7 +1416,9 @@ implementation
          fieldoffset:=0;
          asmname:=nil;
          abstyp:=absolutetyp(ppufile.getbyte);
+{$ifdef i386}
          absseg:=false;
+{$endif i386}
          case abstyp of
            tovar :
              ref:=ppufile.getsymlist;
@@ -1423,7 +1427,9 @@ implementation
            toaddr :
              begin
                fieldoffset:=ppufile.getlongint;
+{$ifdef i386}
                absseg:=boolean(ppufile.getbyte);
+{$endif i386}
              end;
          end;
       end;
@@ -1450,7 +1456,9 @@ implementation
            toaddr :
              begin
                ppufile.putlongint(fieldoffset);
+{$ifdef i386}
                ppufile.putbyte(byte(absseg));
+{$endif i386}
              end;
          end;
         ppufile.writeentry(ibabsolutesym);
@@ -2547,7 +2555,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.147  2004-01-27 22:45:30  daniel
+  Revision 1.148  2004-01-31 17:45:17  peter
+    * Change several $ifdef i386 to x86
+    * Change several OS_32 to OS_INT/OS_ADDR
+
+  Revision 1.147  2004/01/27 22:45:30  daniel
     * Stab generation bug fixed
 
   Revision 1.146  2004/01/26 22:08:20  daniel

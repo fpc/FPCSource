@@ -32,14 +32,18 @@ unit cpunode;
   implementation
 
     uses
+       { generic nodes }
        ncgbas,
+       ncgld,
        ncgflw,
        ncgcnv,
        ncgmem,
+       ncgmat,
        ncgcon,
-       ncgld,
        ncgcal,
-       ncgadd,
+       ncgset,
+       ncginl,
+       ncgopt,
        // n386con,n386flw,n386mat,n386mem,
        // n386set,n386inl,n386opt,
        { this not really a node }
@@ -54,7 +58,11 @@ unit cpunode;
 end.
 {
   $Log$
-  Revision 1.5  2004-01-20 12:59:37  florian
+  Revision 1.6  2004-01-31 17:45:17  peter
+    * Change several $ifdef i386 to x86
+    * Change several OS_32 to OS_INT/OS_ADDR
+
+  Revision 1.5  2004/01/20 12:59:37  florian
     * common addnode code for x86-64 and i386
 
   Revision 1.4  2003/04/30 22:15:59  florian

@@ -490,7 +490,7 @@ Begin
         With Regs[Counter] Do
           If (typ = Con_Ref) And
              (Not(cs_UncertainOpts in aktglobalswitches) Or
-{$ifdef i386}
+{$ifdef x86}
         {for movsl}
               (Ref.Base = R_EDI) Or
 {$endif}
@@ -788,7 +788,11 @@ End.
 
 {
  $Log$
- Revision 1.9  2004-01-30 13:42:03  florian
+ Revision 1.10  2004-01-31 17:45:17  peter
+   * Change several $ifdef i386 to x86
+   * Change several OS_32 to OS_INT/OS_ADDR
+
+ Revision 1.9  2004/01/30 13:42:03  florian
    * fixed more alignment issues
 
  Revision 1.8  2002/11/18 17:31:54  peter

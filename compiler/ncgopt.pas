@@ -169,9 +169,9 @@ begin
     else
       begin
         href2.index := lengthreg;
-{$ifdef i386}
+{$ifdef x86}
         href2.scalefactor := 1;
-{$endif i386}
+{$endif x86}
       end;
   { we need to be one position after the last char }
   inc(href2.offset);
@@ -201,7 +201,11 @@ end.
 
 {
   $Log$
-  Revision 1.11  2003-10-10 17:48:13  peter
+  Revision 1.12  2004-01-31 17:45:17  peter
+    * Change several $ifdef i386 to x86
+    * Change several OS_32 to OS_INT/OS_ADDR
+
+  Revision 1.11  2003/10/10 17:48:13  peter
     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
     * tregisteralloctor renamed to trgobj
     * removed rgobj from a lot of units
