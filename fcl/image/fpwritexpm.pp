@@ -21,14 +21,22 @@ interface
 uses FPImage, classes, sysutils;
 
 type
+
   TFPWriterXPM = class (TFPCustomImageWriter)
     private
       FPalChars : string;
+      FColorFormat : string;
+      FColorShift : word;
+      FColorSize : byte;
+      procedure SetColorSize (AValue : byte);
+      function ColorToHex (c:TFPColor) : string;
     protected
       procedure InternalWrite (Str:TStream; Img:TFPCustomImage); override;
     public
       constructor Create; override;
       property PalChars : string read FPalChars write FPalChars;
+      property ColorCharSize : byte read FColorSize write SetColorSize;
+      // number of characters to use for 1 colorcomponent
   end;
 
 
@@ -41,22 +49,29 @@ constructor TFPWriterXPM.create;
 begin
   inherited create;
   PalChars := DefPalChars;
+  FColorSize := 4;
 end;
 
-function ColorToHex (c:TFPColor; size:integer) : string;
-var fmt : string;
-    l : integer;
+procedure TFPWriterXPM.SetColorSize (AValue : byte);
 begin
-{
+  if AValue > 3 then
+    FColorSize := 4
+  else if AValue = 0 then
+    FColorSize := 1
+  else
+    FColorSize := AValue;
+end;
+
+function TFPWriterXPM.ColorToHex (c:TFPColor) : string;
+var r,g,b : word;
+begin
   with c do
-    write ('color=',red,',',green,',',blue,',',alpha);
-}
-  l := size div 3;
-  fmt := inttostr(l);
-  fmt := '%'+fmt+'.'+fmt+'x';
-  fmt := fmt+fmt+fmt;
-  with c do
-    result := format(fmt,[red,green,blue]);
+    begin
+    r := red shr FColorShift;
+    g := green shr FColorShift;
+    b := blue shr FColorShift;
+    end;
+  result := format(FColorFormat,[r,g,b]);
 end;
 
 procedure TFPWriterXPM.InternalWrite (Str:TStream; Img:TFPCustomImage);
@@ -92,6 +107,19 @@ var p, l : TStringList;
       end;
     MakeCodes ('',len);
   end;
+  procedure InitConsts;
+  var fmt : string;
+  begin
+    fmt := inttostr(FColorSize);
+    fmt := '%'+fmt+'.'+fmt+'x';
+    FColorFormat := fmt+fmt+fmt;
+    case FColorSize of
+      1 : FColorShift := 12;
+      2 : FColorShift := 8;
+      3 : FColorShift := 4;
+      else FColorShift := 0;
+    end;
+  end;
 var s : string;
 begin
   l := TStringList.Create;
@@ -102,10 +130,11 @@ begin
     c := img.palette.count;
     BuildPaletteStrings;
     l.add (format('"%d %d %d %d",',[img.width,img.height,c,len]));
+    InitConsts;
     for r := 0 to c-1 do
       begin
       if img.palette[r] <> colTransparent then
-        l.Add (format('"%s c #%s",',[p[r],ColorToHex(img.palette.color[r],6)]))
+        l.Add (format('"%s c #%s",',[p[r],ColorToHex(img.palette.color[r])]))
       else
         l.Add (format('"%s c None",',[p[r]]));
       end;

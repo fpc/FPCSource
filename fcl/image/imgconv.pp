@@ -56,6 +56,11 @@ begin
       UseAlpha := pos ('A', t) > 0;
       writeln ('Grayscale ',Grayscale, ' - Indexed ',Indexed,
                ' - WordSized ',WordSized,' - UseAlpha ',UseAlpha);
+      end
+  else if (t[1] = 'X') then
+    with (Writer as TFPWriterXPM) do
+      begin
+      ColorCharSize := ord(t[2]) - ord('0');
       end;
   img.SaveToFile (paramstr(4), Writer);
 end;
@@ -72,9 +77,12 @@ begin
     begin
     writeln ('Give filename to read and to write, preceded by filetype:');
     writeln ('X for XPM, P for PNG');
-    writeln ('imgconv X hello.xpm P hello.png');
-    writeln ('  The P has settings when writing:  G : grayscale,');
+    writeln ('example: imgconv X hello.xpm P hello.png');
+    writeln ('  The PNG has settings when writing:  G : grayscale,');
     writeln ('    A : use alpha, I : Indexed in palette, W : Word sized.');
+    writeln ('  The color size of an XPM can be set after the X as 1,2,3 or 4');
+    writeln ('example: imgconv X hello.xpm PIA hello.png');
+    writeln ('example: imgconv P hello.png X2 hello.xpm');
     end
   else
     try
