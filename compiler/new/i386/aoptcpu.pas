@@ -120,47 +120,48 @@ Begin
             RegInOp(Reg,op[0]) or
             RegInOp(Reg,op[1]) or
             ((ops = 1) and
-             (reg in [R_EAX,R_EDX]))
-      A_IDIV, A_MUL:
-         TmpResult :=
-           RegInOp(Reg,op[0]) or
-           (Reg = R_EAX) or
-           ((Reg = R_EDX) and
-            (p^.opcode = A_IDIV) and
-            (p^.size = S_L))
-    Else
-      Begin
-        Cnt := 1;
-        InstrProp := AsmInstr[PInstr(p)^.OpCode);
-        While (Cnt <= MaxCh) And
-              (InstrProp.Ch[Cnt] <> C_None) And
-              Not(TmpResult) Do
-          Begin
-            Case InstrProp.Ch[Cnt] Of
-              C_REAX..C_REDI,C_RWEAX..C_RWEDI
-{$ifdef arithopt}
-              ,C_MEAX..C_MEDI
-{$endif arithopt}:
-                TmpResult := Reg = TCh2Reg(InstrProp.Ch[Cnt]);
-              C_ROp1,C_RWOp1{$ifdef arithopt},C_Mop1{$endif arithopt}:
-                TmpResult := RegInOp(PInstr(p)^.oper[0]);
-              C_ROp2,C_RWOp2{$ifdef arithopt},C_Mop2{$endif arithopt}:
-                TmpResult := RegInOp(PInstr(p)^.oper[1]);
-              C_ROp3,C_RWOp3{$ifdef arithopt},C_Mop3{$endif arithopt}:
-                TmpResult := RegInOp(PInstr(p)^.oper[2]);
-              C_WOp1: TmpResult := (PInstr^.oper[0].typ = top_ref) And
-                                   (RegInRef(Reg,PInstr^.oper[0].ref);
-              C_WOp2: TmpResult := (PInstr^.oper[0].typ = top_ref) And
-                                   (RegInRef(Reg,PInstr^.oper[0].ref);
-              C_WOp3: TmpResult := (PInstr^.oper[0].typ = top_ref) And
-                                   (RegInRef(Reg,PInstr^.oper[0].ref);
-              C_WMemEDI: TmpResult := (Reg = R_EDI);
-              C_FPU: TmpResult := Reg in [R_ST..R_ST7,R_MM0..R_MM7];
-            End;
-            Inc(Cnt);
-          End
-      End;
-  End;
+             (reg = R_EAX]))
+      A_DIV, A_IDIV, A_MUL:
+        TmpResult :=
+          RegInOp(Reg,op[0]) or
+          (Reg = R_EAX) or
+          ((Reg = R_EDX) and
+           ((p^.opcode = A_DIV) or
+            (p^.opcode = A_IDIV)) and
+           (p^.size = S_L))
+      Else
+        Begin
+          Cnt := 1;
+          InstrProp := AsmInstr[PInstr(p)^.OpCode);
+          While (Cnt <= MaxCh) And
+                (InstrProp.Ch[Cnt] <> C_None) And
+                Not(TmpResult) Do
+            Begin
+              Case InstrProp.Ch[Cnt] Of
+                C_REAX..C_REDI,C_RWEAX..C_RWEDI
+  {$ifdef arithopt}
+                ,C_MEAX..C_MEDI
+  {$endif arithopt}:
+                  TmpResult := Reg = TCh2Reg(InstrProp.Ch[Cnt]);
+                C_ROp1,C_RWOp1{$ifdef arithopt},C_Mop1{$endif arithopt}:
+                  TmpResult := RegInOp(PInstr(p)^.oper[0]);
+                C_ROp2,C_RWOp2{$ifdef arithopt},C_Mop2{$endif arithopt}:
+                  TmpResult := RegInOp(PInstr(p)^.oper[1]);
+                C_ROp3,C_RWOp3{$ifdef arithopt},C_Mop3{$endif arithopt}:
+                  TmpResult := RegInOp(PInstr(p)^.oper[2]);
+                C_WOp1: TmpResult := (PInstr^.oper[0].typ = top_ref) And
+                                     (RegInRef(Reg,PInstr^.oper[0].ref);
+                C_WOp2: TmpResult := (PInstr^.oper[0].typ = top_ref) And
+                                     (RegInRef(Reg,PInstr^.oper[0].ref);
+                C_WOp3: TmpResult := (PInstr^.oper[0].typ = top_ref) And
+                                     (RegInRef(Reg,PInstr^.oper[0].ref);
+                C_WMemEDI: TmpResult := (Reg = R_EDI);
+                C_FPU: TmpResult := Reg in [R_ST..R_ST7,R_MM0..R_MM7]
+              End;
+              Inc(Cnt)
+            End
+        End
+    End
 End;
 
 { ********************* TRegInfoCpu *****************}
@@ -211,7 +212,10 @@ End;
 End.
 {
  $Log$
- Revision 1.3  1999-08-10 12:40:20  jonas
+ Revision 1.4  1999-08-11 14:23:39  jonas
+   * some fixes to RegReadByInstr
+
+ Revision 1.3  1999/08/10 12:40:20  jonas
    + implemented RegReadByInstr
 
  Revision 1.1  1999/08/08 13:24:50  jonas
