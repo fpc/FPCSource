@@ -248,7 +248,7 @@ implementation
           ),
           (
             id           : os_i386_linux;
-            name         : 'Linux-i386';
+            name         : 'Linux for i386';
             sharedlibext : '.so';
             staticlibext : '.a';
             sourceext    : '.pp';
@@ -284,7 +284,7 @@ implementation
           ),
           (
             id           : os_i386_win32;
-            name         : 'Win32';
+            name         : 'Win32 for i386';
             sharedlibext : '.dll';
             staticlibext : '.aw';
             sourceext    : '.pp';
@@ -356,7 +356,7 @@ implementation
           ),
           (
             id           : os_m68k_linux;
-            name         : 'Linux-m68k';
+            name         : 'Linux for m68k';
             sharedlibext : '.so';
             staticlibext : '.a';
             sourceext    : '.pp';
@@ -1174,7 +1174,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  1998-10-20 08:07:04  pierre
+  Revision 1.48  1998-10-26 14:19:30  pierre
+    + added options -lS and -lT for source and target os output
+      (to have a easier way to test OS_SOURCE abd OS_TARGET in makefiles)
+    * several problems with rtti data
+      (type of sym was not checked)
+      assumed to be varsym when they could be procsym or property syms !!
+
+  Revision 1.47  1998/10/20 08:07:04  pierre
     * several memory corruptions due to double freemem solved
       => never use p^.loc.location:=p^.left^.loc.location;
     + finally I added now by default

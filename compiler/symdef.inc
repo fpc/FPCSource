@@ -1791,7 +1791,7 @@
        count : longint;
     procedure count_inittable_fields(sym : psym);{$ifndef fpc}far;{$endif}
       begin
-         if pvarsym(sym)^.definition^.needs_inittable then
+         if (sym^.typ=varsym) and (pvarsym(sym)^.definition^.needs_inittable) then
            inc(count);
       end;
 
@@ -1804,7 +1804,7 @@
 
     procedure write_field_inittable(sym : psym);{$ifndef fpc}far;{$endif}
       begin
-         if pvarsym(sym)^.definition^.needs_inittable then
+         if (sym^.typ=varsym) and pvarsym(sym)^.definition^.needs_inittable then
            begin
               rttilist^.concat(new(pai_const,init_symbol(strpnew(lab2str(pvarsym(sym)^.definition^.get_inittable_label)))));
               rttilist^.concat(new(pai_const,init_32bit(pvarsym(sym)^.address)));
@@ -3199,7 +3199,14 @@
 
 {
   $Log$
-  Revision 1.64  1998-10-22 17:11:21  pierre
+  Revision 1.65  1998-10-26 14:19:28  pierre
+    + added options -lS and -lT for source and target os output
+      (to have a easier way to test OS_SOURCE abd OS_TARGET in makefiles)
+    * several problems with rtti data
+      (type of sym was not checked)
+      assumed to be varsym when they could be procsym or property syms !!
+
+  Revision 1.64  1998/10/22 17:11:21  pierre
     + terminated the include exclude implementation for i386
     * enums inside records fixed
 
