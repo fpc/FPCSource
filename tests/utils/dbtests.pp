@@ -16,13 +16,15 @@ Function GetTestID(Name : string) : Integer;
 Function GetOSID(Name : String) : Integer;
 Function GetCPUID(Name : String) : Integer;
 Function GetVersionID(Name : String) : Integer;
+Function GetRunID(OSID, CPUID, VERSIONID : Integer; Date : TDateTime) : Integer;
+Function AddRun(OSID, CPUID, VERSIONID : Integer; Date : TDateTime) : Integer;
 Function AddTest(Name : String; AddSource : Boolean) : Integer;
 Function UpdateTest(ID : Integer; Info : TConfig; Source : String) : Boolean;
-Function AddTestResult(TestID,OSID,CPUID,VersionID,TestRes : Integer; 
+Function AddTestResult(TestID,RunID,TestRes : Integer; 
                        OK, Skipped : Boolean;
-                       Log : String;
-                       TestDate : TDateTime) : Integer;
+                       Log : String) : Integer;
 Function RequireTestID(Name : String): Integer;
+Function CleanTestRun(ID : Integer) : Boolean;
 
 { ---------------------------------------------------------------------
     Low-level DB access.
@@ -39,6 +41,7 @@ Procedure FreeQueryResult (Res : TQueryResult);
 Function  GetResultField (Res : TQueryResult; Id : Integer) : String;
 Function  IDQuery(Qry : String) : Integer;
 Function  EscapeSQL( S : String) : String;
+Function SQLDate(D : TDateTime) : String;
 
 Implementation
 
@@ -144,11 +147,15 @@ begin
 end;
 
 
+Function SQLDate(D : TDateTime) : String;
+
+begin
+  Result:=FormatDateTime('YYYY/MM/DD',D);
+end;
 
 { ---------------------------------------------------------------------
   High-level access  
   ---------------------------------------------------------------------}
- 
  
   
 Function GetTestID(Name : string) : Integer; 
@@ -193,6 +200,40 @@ Const
 begin
   Result:=IDQuery(Format(SFromName,[Name]));
 end;
+
+
+Function GetRunID(OSID, CPUID, VERSIONID : Integer; Date : TDateTime) : Integer;
+
+
+Const 
+  SFromIDS = 'SELECT TU_ID FROM TESTRUN WHERE '+
+             ' (TU_OS_FK=%d) '+
+             ' AND (TU_CPU_FK=%d) '+
+             ' AND (TU_VERSION_FK=%d) '+
+             ' AND (TU_DATE="%s")';
+              
+begin
+  Result:=IDQuery(Format(SFromIDS,[OSID,CPUID,VERSIONID,SQLDate(Date)]));
+end;
+
+Function AddRun(OSID, CPUID, VERSIONID : Integer; Date : TDateTime) : Integer;
+
+Const 
+  SInsertRun = 'INSERT INTO TESTRUN '+
+               '(TU_OS_FK,TU_CPU_FK,TU_VERSION_FK,TU_DATE)'+
+               ' VALUES '+
+               '(%d,%d,%d,"%s")'; 
+
+Var
+  Res : TQueryResult;
+
+begin
+  If RunQuery(Format(SInsertRun,[OSID,CPUID,VERSIONID,SQLDate(Date)]),Res) then
+    Result:=mysql_insert_id(@connection)
+  else
+    Result:=-1;  
+end;
+
 
 Function AddTest(Name : String; AddSource : Boolean) : Integer;
 
@@ -263,18 +304,15 @@ begin
   Result:=RunQuery(Qry,res)
 end;
 
-Function AddTestResult(TestID,OSID,CPUID,VersionID,TestRes : Integer; 
+Function AddTestResult(TestID,RunID,TestRes : Integer; 
                        OK, Skipped : Boolean;
-                       Log : String;
-                       TestDate : TDateTime) : Integer;
+                       Log : String) : Integer;
 
 Const
-  SInsertRes = 'Insert into TESTRESULTS ('+
-              ' TR_TEST_FK, TR_DATE, TR_CPU_FK, TR_OS_FK,TR_VERSION_FK,'+
-              ' TR_OK, TR_SKIP, TR_RESULT, TR_LOG)'+
-              'VALUES ('+
-              ' %d,"%s",%d,%d,%d,'+
-              ' "%s","%s",%d,"%s")';
+  SInsertRes='Insert into TESTRESULTS '+
+             '(TR_TEST_FK,TR_TESTRUN_FK,TR_OK,TR_SKIP,TR_RESULT,TR_LOG) '+
+             ' VALUES '+
+             '(%d,%d,"%s","%s",%d,"%s") ';
 
 Var
   Qry : String;
@@ -282,9 +320,8 @@ Var
    
 begin
   Result:=-1;
-  Qry:=Format(SInsertRes,[TestID,FormatDateTime('yyyymmdd',TestDate),CPUID,OSID,VersionID,
-                         B[OK],B[Skipped],TestRes,EscapeSQL(Log)
-                         ]);
+  Qry:=Format(SInsertRes,
+              [TestID,RunID,B[OK],B[Skipped],TestRes,EscapeSQL(Log)]);
   If RunQuery(Qry,Res) then
     Result:=mysql_insert_id(@connection);
 end;
@@ -297,6 +334,18 @@ begin
     Result:=AddTest(Name,FileExists(Name));
   If Result=-1 then
     Verbose(V_WARNING,'Could not find or create entry for test '+Name);
+end;
+
+Function CleanTestRun(ID : Integer) : Boolean;
+
+Const
+  SDeleteRun = 'DELETE FROM TESTRESULTS WHERE TR_TESTRUN_FK=%d';
+
+Var
+ Res : TQueryResult;
+
+begin
+  Result:=RunQuery(Format(SDeleteRun,[ID]),Res);
 end;
 
 end.

@@ -328,7 +328,8 @@ Var
   TestCPUID : Integer;
   TestOSID  : Integer;
   TestVersionID  : Integer;
-
+  TestRunID : Integer;
+  
 Procedure GetIDs;
 
 begin
@@ -343,6 +344,15 @@ begin
     Verbose(V_Error,'NO ID for version "'+TestVersion+'" found.');
   If (Round(TestDate)=0) then
     Testdate:=Date;
+  TestRunID:=GetRunID(TestOSID,TestCPUID,TestVersionID,TestDate);
+  If (TestRunID=-1) then
+    begin
+    TestRunID:=AddRun(TestOSID,TestCPUID,TestVersionID,TestDate);
+    If TestRUnID=-1 then
+      Verbose(V_Error,'Could not insert new testrun record!');
+    end            
+  else
+    CleanTestRun(TestRunID);
 end;
 
 Function GetLog(FN : String) : String;
@@ -387,10 +397,7 @@ begin
             TestLog:=GetLog(Line)
           else
             TestLog:='';
-          AddTestResult(ID,TestOSID,TestCPUID,TestVersionID,Ord(TS),
-                        TestOK[TS],TestSkipped[TS],
-                        TestLog,
-                        TestDate);
+          AddTestResult(ID,TestRunID,Ord(TS),TestOK[TS],TestSkipped[TS],TestLog);
           end;
         end
       end
@@ -416,7 +423,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2002-12-24 21:47:49  peter
+  Revision 1.5  2003-10-03 22:51:02  michael
+  + Changed database structure after suggestion of florian
+
+  Revision 1.4  2002/12/24 21:47:49  peter
     * NeedTarget, SkipTarget, SkipCPU added
     * Retrieve compiler info in a single call for 1.1 compiler
 
