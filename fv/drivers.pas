@@ -1575,13 +1575,21 @@ BEGIN
    {$ifdef Graph_API}
    TextModeGFV:=false;
    {$endif Graph_API}
+{$ifdef win32}
+   SetFileApisToOEM;
+   SetConsoleCP(437);
+   SetConsoleOutputCP(437);
+{$endif}
 
    SaveExit := ExitProc;                              { Save old exit }
    ExitProc := @ExitDrivers;                          { Set new exit }
 END.
 {
  $Log$
- Revision 1.18  2002-05-24 09:36:33  pierre
+ Revision 1.19  2002-05-24 10:36:52  pierre
+  * Try to enhance win32 special chars support
+
+ Revision 1.18  2002/05/24 09:36:33  pierre
   + use win32gr unit to add mouse and keyboard support for win32 graph
 
  Revision 1.17  2002/05/23 15:07:31  pierre
