@@ -612,8 +612,8 @@ implementation
                                 if assigned(hp^.left^.resulttype) then
                                   begin
                                     isreal:=false;
-                                    { support writeln(procvar) for tp7 }
-                                    if (m_tp_procvar in aktmodeswitches) and (hp^.left^.resulttype^.deftype=procvardef) then
+                                    { support writeln(procvar) }
+                                    if (hp^.left^.resulttype^.deftype=procvardef) then
                                      begin
                                        p1:=gencallnode(nil,nil);
                                        p1^.right:=hp^.left;
@@ -1101,7 +1101,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  1999-05-27 19:45:19  peter
+  Revision 1.36  1999-06-15 18:58:36  peter
+    * merged
+
+  Revision 1.35.2.1  1999/06/15 18:54:54  peter
+    * more procvar fixes
+
+  Revision 1.35  1999/05/27 19:45:19  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly

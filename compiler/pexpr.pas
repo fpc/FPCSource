@@ -109,6 +109,29 @@ unit pexpr;
       end;
 
 
+    procedure check_tp_procvar(var p : ptree);
+      var
+         p1 : ptree;
+      begin
+         if (m_tp_procvar in aktmodeswitches) and
+{            (not afterassignment) and }
+            (not in_args) and
+            (p^.treetype in [loadn]) then
+            begin
+               { support if procvar then for tp7 and many other expression like this }
+               firstpass(p);
+               if p^.resulttype^.deftype=procvardef then
+                 begin
+                    p1:=gencallnode(nil,nil);
+                    p1^.right:=p;
+                    p1^.resulttype:=pprocvardef(p^.resulttype)^.retdef;
+                    firstpass(p1);
+                    p:=p1;
+                 end;
+            end;
+      end;
+
+
     function statement_syssym(l : longint;var pd : pdef) : ptree;
       var
         p1,p2,paras  : ptree;
@@ -539,21 +562,14 @@ unit pexpr;
       var
         hp : ptree;
       begin
-         hp:=nil;
-         if ((procvar^.options and pomethodpointer)<>0) then
-           begin
-              if assigned(t^.methodpointer) and
-                 (t^.methodpointer^.resulttype^.deftype=objectdef) and
-                 (pobjectdef(t^.methodpointer^.resulttype)^.isclass) and
-                 (proc_to_procvar_equal(pprocsym(t^.symtableentry)^.definition,procvar)) then
-                hp:=genloadmethodcallnode(pprocsym(t^.symtableprocentry),t^.symtable,getcopy(t^.methodpointer))
-              else
-                Message(type_e_mismatch);
-           end
-         else if (proc_to_procvar_equal(pprocsym(t^.symtableentry)^.definition,getprocvardef)) then
-           begin
-              hp:=genloadcallnode(pprocsym(t^.symtableprocentry),t^.symtable);
-           end;
+        hp:=nil;
+        if (proc_to_procvar_equal(pprocsym(t^.symtableentry)^.definition,procvar)) then
+         begin
+           if ((procvar^.options and pomethodpointer)<>0) then
+             hp:=genloadmethodcallnode(pprocsym(t^.symtableprocentry),t^.symtable,getcopy(t^.methodpointer))
+           else
+             hp:=genloadcallnode(pprocsym(t^.symtableprocentry),t^.symtable);
+         end;
         if assigned(hp) then
          begin
            disposetree(t);
@@ -606,10 +622,16 @@ unit pexpr;
                         { read the expression }
                         getprocvar:=ppropertysym(sym)^.proptype^.deftype=procvardef;
                         p2:=comp_expr(true);
-                        if (p2^.treetype<>errorn) and getprocvar then
-                          handle_procvar(pprocvardef(ppropertysym(sym)^.proptype),p2);
+                        if getprocvar then
+                         begin
+                           if (p2^.treetype=calln) then
+                            handle_procvar(pprocvardef(ppropertysym(sym)^.proptype),p2)
+                           else
+                            if (p2^.treetype=typeconvn) and
+                               (p2^.left^.treetype=calln) then
+                             handle_procvar(pprocvardef(ppropertysym(sym)^.proptype),p2^.left);
+                         end;
                         p1^.left:=gencallparanode(p2,p1^.left);
-{                       firstcallparan(p1^.left,nil); }
                         getprocvar:=false;
                      end
                    else if ppropertysym(sym)^.writeaccesssym^.typ=varsym then
@@ -1763,6 +1785,9 @@ unit pexpr;
         { generate error node if no node is created }
         if not assigned(p1) then
           p1:=genzeronode(errorn);
+         { tp7 procvar handling }
+         if (m_tp_procvar in aktmodeswitches) then
+           check_tp_procvar(p1);
         factor:=p1;
         check_tokenpos;
       end;
@@ -1858,27 +1883,6 @@ unit pexpr;
         sub_expr:=p1;
       end;
 
-    procedure check_tp_procvar(var p : ptree);
-      var
-         p1 : ptree;
-      begin
-         if (m_tp_procvar in aktmodeswitches) and
-            (not afterassignment) and
-            (not in_args) and (p^.treetype=loadn) then
-            begin
-               { support if procvar then for tp7 and many other expression like this }
-               firstpass(p);
-               if p^.resulttype^.deftype=procvardef then
-                 begin
-                    p1:=gencallnode(nil,nil);
-                    p1^.right:=p;
-                    p1^.resulttype:=pprocvardef(p^.resulttype)^.retdef;
-                    firstpass(p1);
-                    p:=p1;
-                 end;
-            end;
-      end;
-
 
     function comp_expr(accept_equal : boolean):Ptree;
       var
@@ -1889,8 +1893,6 @@ unit pexpr;
          afterassignment:=true;
          p1:=sub_expr(opcompare,accept_equal);
          afterassignment:=oldafterassignment;
-         if (m_tp_procvar in aktmodeswitches) then
-           check_tp_procvar(p1);
          comp_expr:=p1;
       end;
 
@@ -1929,12 +1931,16 @@ unit pexpr;
                                  getprocvardef:=pprocvardef(p1^.resulttype);
                               end;
                             p2:=sub_expr(opcompare,true);
-                            if getprocvar and (p2^.treetype=calln) then
-                              handle_procvar(getprocvardef,p2);
-                            { also allow p:= proc(t); !! (PM) }
-                            if getprocvar and (p2^.treetype=typeconvn) and
-                               (p2^.left^.treetype=calln) then
-                              handle_procvar(getprocvardef,p2^.left);
+                            if getprocvar then
+                             begin
+                               if (p2^.treetype=calln) then
+                                handle_procvar(getprocvardef,p2)
+                               else
+                                { also allow p:= proc(t); !! (PM) }
+                                if (p2^.treetype=typeconvn) and
+                                   (p2^.left^.treetype=calln) then
+                                 handle_procvar(getprocvardef,p2^.left);
+                             end;
                             getprocvar:=false;
                             p1:=gennode(assignn,p1,p2);
                          end;
@@ -2018,8 +2024,14 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.113  1999-06-13 22:41:05  peter
+  Revision 1.114  1999-06-15 18:58:33  peter
+    * merged
+
+  Revision 1.113  1999/06/13 22:41:05  peter
     * merged from fixes
+
+  Revision 1.112.2.2  1999/06/15 18:54:52  peter
+    * more procvar fixes
 
   Revision 1.112.2.1  1999/06/13 22:38:09  peter
     * tp_procvar check for loading of procvars when getaddr=false
