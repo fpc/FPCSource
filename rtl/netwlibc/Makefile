@@ -1473,7 +1473,8 @@ nwl_main$(OEXT) : nwl_main.as
 	$(AS) -o $(UNITTARGETDIRPREFIX)nwl_main$(OEXT) nwl_main.as
 nwl_dlle$(OEXT) : nwl_dlle.as
 	$(AS) -o $(UNITTARGETDIRPREFIX)nwl_dlle$(OEXT) nwl_dlle.as
-$(SYSTEMUNIT)$(PPUEXT) : copyimpfiles $(SYSTEMUNIT).pp libc.pp $(SYSDEPS)
+$(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp libc.pp $(SYSDEPS)
+	$(COPY) $(IMPFILES) $(COMPILER_UNITTARGETDIR)
 	$(COMPILER) -Us -Sg $(SYSTEMUNIT).pp
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp

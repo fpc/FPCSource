@@ -193,28 +193,6 @@ begin
 end;
 
 
-(*
-PROCEDURE find_setfields (VAR f : TsearchRec);
-VAR T : Dos.DateTime;
-BEGIN
-  WITH F DO
-  BEGIN
-    IF FindData.Magic = $AD01 THEN
-    BEGIN
-      {attr := FindData.EntryP^.d_attr AND $FF;}  // lowest 8 bit -> same as dos
-      attr := FindData.EntryP^.d_flags;   { return complete netware attributes }
-      //!!UnpackTime(FindData.EntryP^.d_time + (LONGINT (FindData.EntryP^.d_date) SHL 16), T);
-      //!!time := DateTimeToFileDate(EncodeDate(T.Year,T.Month,T.day)+EncodeTime(T.Hour,T.Min,T.Sec,0));
-      size := FindData.EntryP^.d_size;
-      name := strpas (FindData.EntryP^.d_name);
-    END ELSE
-    BEGIN
-      FillChar (f,SIZEOF(f),0);
-    END;
-  END;
-END;*)
-
-
 Function UnixToWinAge(UnixAge : time_t): Longint;
 Var tm : TTm;
 begin
@@ -531,11 +509,21 @@ end;
 ****************************************************************************}
 
 Procedure GetLocalTime(var SystemTime: TSystemTime);
-var xx : word;
+var t : TTime;
+    tm: Ttm;
 begin
-  Dos.GetTime(SystemTime.Hour, SystemTime.Minute, SystemTime.Second, xx);
-  Dos.GetDate(SystemTime.Year, SystemTime.Month, SystemTime.Day, xx);
-  SystemTime.MilliSecond := 0;
+  libc.time(t);
+  libc.localtime_r(t,tm);
+  with SystemTime do
+  begin
+    Hour := tm.tm_hour;
+    Minute := tm.tm_min;
+    Second := tm.tm_sec;
+    MilliSecond := 0;
+    Day := tm.tm_mday;
+    Month := tm.tm_mon+1;
+    Year := tm.tm_year+1900;
+  end;
 end;
 
 
@@ -585,58 +573,109 @@ end;
 Function GetEnvironmentVariableCount : Integer;
 
 begin
-  // Result:=FPCCountEnvVar(EnvP);
-  Result:=0;
+  Result:=FPCCountEnvVar(EnvP);
 end;
-    
+
 Function GetEnvironmentString(Index : Integer) : String;
-    
+
 begin
-  // Result:=FPCGetEnvStrFromP(Envp,Index);
-  Result:='';
+  Result:=FPCGetEnvStrFromP(Envp,Index);
 end;
-        
+
 
 function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integer;
-
 var
-  e : EOSError;
-  CommandLine: AnsiString;
-
+  params:array of AnsiString;
+  count,i: longint;
+  Buf  : pchar;
+  p    : pchar;
+  CLine: AnsiString;
 begin
-  dos.exec(path,comline);
-
-  if (Dos.DosError <> 0) then
+  cLine := ComLine;
+  buf:=pchar(CLine);
+  count:=0;
+  while(buf^<>#0) do
+  begin
+    while (buf^ in [' ',#9,#10]) do
+      inc(buf);
+    inc(count);
+    while not (buf^ in [' ',#0,#9,#10]) do
+      inc(buf);
+  end;
+  i := 0;
+  setlength(params,count);
+  buf:=pchar(CLine);
+  while(buf^<>#0) do
+  begin
+    while (buf^ in [' ',#9,#10]) do
+      inc(buf);
+    p := buf;
+    while not (buf^ in [' ',#0,#9,#10]) do
+      inc(buf);
+    if buf^ <> #0 then
     begin
-      if ComLine <> '' then
-       CommandLine := Path + ' ' + ComLine
-      else
-       CommandLine := Path;
-      e:=EOSError.CreateFmt(SExecuteProcessFailed,[CommandLine,Dos.DosError]);
-      e.ErrorCode:=Dos.DosError;
-      raise e;
+      buf^ := #0;
+      inc(buf);
     end;
-  Result := DosExitCode;
+    params[i]:=p;
+    inc(i);
+  end;
+  result := ExecuteProcess (Path, params);
 end;
 
 
+{******************************************************************************
+                               --- Exec ---
+******************************************************************************}
+
+const maxargs=256;
 function ExecuteProcess (const Path: AnsiString;
                                   const ComLine: array of AnsiString): integer;
-
-var
-  CommandLine: AnsiString;
-  I: integer;
-
+var c : comstr;
+    i : integer;
+    args : array[0..maxargs+1] of pchar;
+    arg0 : string;
+    numargs,wstat : integer;
+    Wiring : TWiring;
+    newPath : string;
+    e : EOSError;
 begin
-  Commandline := '';
+  if pos ('.',path) = 0 then
+    arg0 := fexpand(path+'.nlm')
+  else
+    arg0 := fexpand (path);
+  args[0] := pchar(arg0);
+  numargs := 0;
   for I := 0 to High (ComLine) do
-   if Pos (' ', ComLine [I]) <> 0 then
-    CommandLine := CommandLine + ' ' + '"' + ComLine [I] + '"'
-   else
-    CommandLine := CommandLine + ' ' + Comline [I];
-  ExecuteProcess := ExecuteProcess (Path, CommandLine);
+    if numargs < maxargs then
+    begin
+      inc(numargs);
+      args[numargs] := pchar(ComLine[i]);
+    end;
+  args[numargs+1] := nil;
+  Wiring.infd := StdInputHandle;  //textrec(Stdin).Handle;
+  Wiring.outfd:= textrec(stdout).Handle;
+  Wiring.errfd:= textrec(stderr).Handle;
+  i := procve(args[0],
+              PROC_CURRENT_SPACE+PROC_INHERIT_CWD,
+              envP,         // const char * env[] If passed as NULL, the child process inherits the parent.s environment at the time of the call.
+              @Wiring,      // wiring_t *wiring, Pass NULL to inherit system defaults for wiring.
+              nil,          // struct fd_set *fds, Not currently implemented. Pass in NULL.
+              nil,          // void *appdata, Not currently implemented. Pass in NULL.
+              0,            // size_t appdata_size, Not currently implemented. Pass in 0
+              nil,          // void *reserved, Reserved. Pass NULL.
+              @args);       // const char *argv[]
+  if i <> -1 then
+  begin
+    Fpwaitpid(i,@wstat,0);
+    result := wstat;
+  end else
+  begin
+    e:=EOSError.CreateFmt(SExecuteProcessFailed,[arg0,___errno^]);
+    e.ErrorCode:=___errno^;
+    raise e;
+  end;
 end;
-
 
 
 {****************************************************************************
@@ -652,7 +691,12 @@ end.
 {
 
   $Log$
-  Revision 1.5  2004-12-11 11:32:44  michael
+  Revision 1.6  2004-12-14 19:23:22  armin
+  * dont copy imp files with a rule because this always builds system.pp
+  * implemented GetEnvironmentVariableCount and GetEnvironmentString
+  * removed dependency from dos unit
+
+  Revision 1.5  2004/12/11 11:32:44  michael
   + Added GetEnvironmentVariableCount and GetEnvironmentString calls
 
   Revision 1.4  2004/09/26 19:23:34  armin
@@ -675,3 +719,4 @@ end.
   * first rtl version for netwlibc
 
 }
+
