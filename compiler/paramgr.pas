@@ -162,6 +162,14 @@ unit paramgr;
                 ((vo_regable in tvarsym(hp.parasym).varoptions) or
                  (vo_fpuregable in tvarsym(hp.parasym).varoptions)) then
                 begin
+                   case hp.paraloc.loc of
+                     LOC_REGISTER:
+                       hp.paraloc.loc := LOC_CREGISTER;
+                     LOC_FPUREGISTER:
+                       hp.paraloc.loc := LOC_CFPUREGISTER;
+                     LOC_MMREGISTER:
+                       hp.paraloc.loc := LOC_CMMREGISTER;
+                   end;
                    tvarsym(hp.parasym).reg:=hp.paraloc.register;
                    rg.regvar_loaded[hp.paraloc.register]:=true;
                 end;
@@ -175,7 +183,10 @@ end.
 
 {
    $Log$
-   Revision 1.9  2002-08-09 07:33:02  florian
+   Revision 1.10  2002-08-10 17:15:20  jonas
+     * register parameters are now LOC_CREGISTER instead of LOC_REGISTER
+
+   Revision 1.9  2002/08/09 07:33:02  florian
      * a couple of interface related fixes
 
    Revision 1.8  2002/08/06 20:55:21  florian

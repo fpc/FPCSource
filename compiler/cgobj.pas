@@ -25,7 +25,7 @@
 {# @abstract(Abstract code generator unit)
    Abstreact code generator unit. This contains the base class
    to implement for all new supported processors.
-   
+
    WARNING: None of the routines implemented in these modules,
    or their descendants, should use the temp. allocator, as
    these routines may be called inside genentrycode, and the
@@ -249,22 +249,22 @@ unit cgobj;
           procedure g_flags2reg(list: taasmoutput; size: TCgSize; const f: tresflags; reg: TRegister); virtual; abstract;
           procedure g_flags2ref(list: taasmoutput; size: TCgSize; const f: tresflags; const ref:TReference); virtual;
 
-          
+
          {#
              This routine is used in exception management nodes. It should
              save the exception reason currently in the accumulator. The
-             save should be done either to a temp (pointed to by href). 
+             save should be done either to a temp (pointed to by href).
              or on the stack (pushing the value on the stack).
-             
-             The size of the value to save is OS_S32. 
+
+             The size of the value to save is OS_S32.
           }
          procedure g_exception_reason_save(list : taasmoutput; const href : treference);virtual;
          {#
              This routine is used in exception management nodes. It should
              save the exception reason constant. The
-             save should be done either to a temp (pointed to by href). 
+             save should be done either to a temp (pointed to by href).
              or on the stack (pushing the value on the stack).
-             
+
              The size of the value to save is OS_S32
           }
          procedure g_exception_reason_save_const(list : taasmoutput; const href : treference; a: aword);virtual;
@@ -273,11 +273,11 @@ unit cgobj;
              load the exception reason to the accumulator. The saved value
              should either be in the temp. area (pointed to by href , href should
              *NOT* be freed) or on the stack (the value should be popped).
-             
-             The size of the value to restore is OS_S32. 
+
+             The size of the value to restore is OS_S32.
           }
          procedure g_exception_reason_load(list : taasmoutput; const href : treference);virtual;
-          
+
 
           procedure g_maybe_loadself(list : taasmoutput);virtual;
           {# This should emit the opcode to copy len bytes from the source
@@ -316,7 +316,7 @@ unit cgobj;
              the runtime library. The default behavior
              does not need to be modified, as it is generic
              for all platforms.
-             
+
              @param(stackframesize Number of bytes which will be allocated on the stack)
           }
           procedure g_stackcheck(list : taasmoutput;stackframesize : longint);virtual;
@@ -358,19 +358,19 @@ unit cgobj;
           {# Emits instruction for allocating the locals in entry
              code of a routine. This is one of the first
              routine called in @var(genentrycode).
-             
+
              @param(localsize Number of bytes to allocate as locals)
           }
           procedure g_stackframe_entry(list : taasmoutput;localsize : longint);virtual; abstract;
-          {# Emits instructiona for restoring the frame pointer 
+          {# Emits instructiona for restoring the frame pointer
              at routine exit. For some processors, this routine
              may do nothing at all.
           }
           procedure g_restore_frame_pointer(list : taasmoutput);virtual; abstract;
           {# Emits instructions for returning from a subroutine.
-             Should also restore the stack. 
-             
-             @param(parasize  Number of bytes of parameters to deallocate from stack)   
+             Should also restore the stack.
+
+             @param(parasize  Number of bytes of parameters to deallocate from stack)
           }
           procedure g_return_from_proc(list : taasmoutput;parasize : aword);virtual; abstract;
           procedure g_call_constructor_helper(list : taasmoutput);virtual;
@@ -419,8 +419,8 @@ unit cgobj;
         procedure a_param64_const(list : taasmoutput;value : qword;const loc : tparalocation);virtual;abstract;
         procedure a_param64_ref(list : taasmoutput;const r : treference;const loc : tparalocation);virtual;abstract;
         procedure a_param64_loc(list : taasmoutput;const l : tlocation;const loc : tparalocation);virtual;abstract;
-        
-        
+
+
 
         { override to catch 64bit rangechecks }
         procedure g_rangecheck64(list: taasmoutput; const p: tnode;
@@ -526,7 +526,7 @@ unit cgobj;
 
       begin
          case locpara.loc of
-            LOC_REGISTER:
+            LOC_REGISTER,LOC_CREGISTER:
               a_load_reg_reg(list,size,r,locpara.register);
             LOC_REFERENCE:
               begin
@@ -1427,25 +1427,25 @@ unit cgobj;
     procedure tcg.g_profilecode(list : taasmoutput);
       begin
       end;
-      
-      
+
+
     procedure tcg.g_exception_reason_save(list : taasmoutput; const href : treference);
      begin
        a_load_reg_ref(exprasmlist, OS_S32, accumulator, href);
      end;
-     
+
     procedure tcg.g_exception_reason_save_const(list : taasmoutput; const href : treference; a: aword);
      begin
        a_load_const_ref(list, OS_S32, a, href);
      end;
-     
+
     procedure tcg.g_exception_reason_load(list : taasmoutput; const href : treference);
      begin
        a_load_ref_reg(list, OS_S32, href, accumulator);
      end;
-     
-    
-      
+
+
+
 
 
     procedure tcg64.a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : qword;regsrc,regdst : tregister64);
@@ -1460,8 +1460,8 @@ unit cgobj;
         a_load64_reg_reg(list,regsrc2,regdst);
         a_op64_reg_reg(list,op,regsrc1,regdst);
       end;
-      
-      
+
+
 
 
 finalization
@@ -1470,7 +1470,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.44  2002-08-09 19:10:05  carl
+  Revision 1.45  2002-08-10 17:15:20  jonas
+    * register parameters are now LOC_CREGISTER instead of LOC_REGISTER
+
+  Revision 1.44  2002/08/09 19:10:05  carl
     - moved new_exception and free_exception to ncgutils
 
   Revision 1.43  2002/08/05 18:27:48  carl
