@@ -1,3 +1,5 @@
+{$mode delphi}
+
 type
   tprocedure = procedure;
 

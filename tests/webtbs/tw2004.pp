@@ -1,5 +1,3 @@
- {%interactive }
-
  {
  ide 0.9.2 dos/win32 2002/05/31
 press F7 or F8 more times:
@@ -29,7 +27,7 @@ within a macro. Merged to 1.1 branch. }
 
 
 
-{$include tw2004i.inc}
+{$include uw2004.inc}
 
 
 
@@ -51,4 +49,5 @@ x;
 write('ppppp');
 y;
 x;
+writeln;
 end.
