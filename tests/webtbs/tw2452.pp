@@ -23,7 +23,10 @@ Begin
     error;
   { allow a small error }
   if abs(arctan2(1, 0)-1.5707963267948966E+0000)>2.0E-0017 then
-    error;
+    begin
+      writeln(arctan2(1, 0));
+      error;
+    end;
   { allow a small error }
   if abs(arctan2(-1, 0)+1.5707963267948966E+0000)>2.0E-0017 then
     error;
