@@ -336,7 +336,7 @@ end;
 
 function def_internalerror(i : longint) : boolean;
 begin
-  do_comment(V_Fatal,'Internal error '+tostr(i));
+  do_comment(V_Fatal,'Internal error '+tostr(i)+':'+tostr(status.currentline));
 {$ifdef EXTDEBUG}
   {$ifdef FPC}
     { Internalerror() and def_internalerror() do not
@@ -385,7 +385,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.24  2003-01-09 21:52:37  peter
+  Revision 1.25  2003-02-15 22:20:43  carl
+   + give line number of internal error
+
+  Revision 1.24  2003/01/09 21:52:37  peter
     * merged some verbosity options.
     * V_LineInfo is a verbosity flag to include line info
 
