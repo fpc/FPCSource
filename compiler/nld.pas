@@ -269,19 +269,22 @@ implementation
                inc(tvarsym(symtableentry).refs);
                { Nested variable? The we need to load the framepointer of
                  the parent procedure }
-               if (symtable.symtabletype in [localsymtable,parasymtable]) and
-                  (symtable.symtablelevel<>current_procinfo.procdef.parast.symtablelevel) then
+               if assigned(current_procinfo) then
                  begin
-                   if assigned(left) then
-                     internalerror(200309289);
-                   left:=cloadparentfpnode.create(tprocdef(symtable.defowner));
-                   { reference in nested procedures, variable needs to be in memory }
-                   make_not_regable(self);
+                   if (symtable.symtabletype in [localsymtable,parasymtable]) and
+                      (symtable.symtablelevel<>current_procinfo.procdef.parast.symtablelevel) then
+                     begin
+                       if assigned(left) then
+                         internalerror(200309289);
+                       left:=cloadparentfpnode.create(tprocdef(symtable.defowner));
+                       { reference in nested procedures, variable needs to be in memory }
+                       make_not_regable(self);
+                     end;
+                   { static variables referenced in procedures, variable needs to be in memory }
+                   if (symtable.symtabletype=staticsymtable) and
+                      (symtable.symtablelevel<>current_procinfo.procdef.localst.symtablelevel) then
+                     make_not_regable(self);
                  end;
-               { static variables referenced in procedures, variable needs to be in memory }
-               if (symtable.symtabletype=staticsymtable) and
-                  (symtable.symtablelevel<>current_procinfo.procdef.parast.symtablelevel) then
-                 make_not_regable(self);
                { fix self type which is declared as voidpointer in the
                  definition }
                if vo_is_self in tvarsym(symtableentry).varoptions then
@@ -1163,7 +1166,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.133  2004-10-11 15:48:15  peter
+  Revision 1.134  2004-10-12 14:35:14  peter
+    * fixed crash when current_procinfo was not yet available
+
+  Revision 1.133  2004/10/11 15:48:15  peter
     * small regvar for para fixes
     * function tvarsym.is_regvar added
     * tvarsym.getvaluesize removed, use getsize instead
