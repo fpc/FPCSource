@@ -430,7 +430,7 @@ unit pstatmnt;
                                 pwithsymtable(withsymtable)^.direct_with:=true;
                               {symtab^.withnode:=p; not yet allocated !! }
                               pwithsymtable(withsymtable)^.withrefnode:=p;
-                           withsymtable^.defowner:=obj;
+                           withsymtable^.defowner:=precorddef(p^.resulttype);
                            symtablestack:=withsymtable;
                         end;
             end;
@@ -1381,7 +1381,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.129  2000-04-29 12:50:14  peter
+  Revision 1.130  2000-05-04 12:59:10  pierre
+   * bug found by Kovacs Attila Zoltan corrected
+
+  Revision 1.129  2000/04/29 12:50:14  peter
     * support asm block without assembler directive for -Sd
 
   Revision 1.128  2000/04/24 11:11:50  peter
