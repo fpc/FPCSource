@@ -1029,6 +1029,9 @@ procedure testcritical;
   var
      a : array[0..10,0..10,0..10] of qword;
      i,j,k : longint;
+     d1,d2 : double;
+     q1,q2 : qword;
+     i1,i2 : int64;
 
   begin
      i:=1;
@@ -1046,6 +1049,14 @@ procedure testcritical;
        do_error(2702);
      if (a[i,j,k] shl (i-i))<>a[i,j,k] then
        do_error(2703);
+     q1:=10;
+     q2:=100;
+     i1:=1000;
+     i2:=10000;
+     d1:=q1/q2;
+     d2:=i1/i2;
+     if (d1<>d2) then
+       do_error(2704);
   end;
 
 var
