@@ -184,7 +184,7 @@ unit types;
        STATSTG = TStatStg;
        PStatStg = ^TStatStg;
 
-
+{$ifdef HASINTF}
        IClassFactory = Interface(IUnknown) ['{00000001-0000-0000-C000-000000000046}']
           Function CreateInstance(Const unkOuter : IUnknown;Const riid : TGUID;Out vObject) : HResult;StdCall;
           Function LockServer(fLock : LongBool) : HResult;StdCall;
@@ -210,6 +210,7 @@ unit types;
           Function Stat(out statstg : TStatStg;grfStatFlag : Longint) : HRESULT;stdcall;
           function Clone(out stm : IStream) : HRESULT;stdcall;
        end;
+{$endif HASINTF}
 {$endif win32}
 
     function EqualRect(const r1,r2 : TRect) : Boolean;
@@ -332,7 +333,10 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.3  2003-01-02 22:22:12  peter
+  Revision 1.4  2003-04-24 11:09:36  florian
+    * check included, if the compiler supports interfaces
+
+  Revision 1.3  2003/01/02 22:22:12  peter
     * reuse Windows types to fix incompatible parameters
 
   Revision 1.2  2002/07/27 07:28:10  florian
