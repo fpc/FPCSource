@@ -198,8 +198,10 @@ Function ExtractLib(const libfn:string):string;
   wildcard
 }
 var
-  n,d,e : string;
-  i     : word;
+  n : namestr;
+  d : dirstr;
+  e : extstr;
+  i : word;
 begin
 { create the temp dir first }
   fsplit(libfn,d,n,e);
@@ -580,7 +582,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  1999-07-28 16:53:58  peter
+  Revision 1.5  1999-07-29 01:40:21  peter
+    * fsplit var type fixes
+
+  Revision 1.4  1999/07/28 16:53:58  peter
     * updated for new linking, but still doesn't work because ld-linux.so.2
       requires some more crt*.o files
 
