@@ -9,7 +9,8 @@ units=$(SYSTEMUNIT) objpas strings \
       dos crt objects printer graph ggigraph \
       sysutils typinfo math \
       cpu mmx getopts heaptrc lineinfo \
-      errors sockets gpm ipc serial
+      errors sockets gpm ipc serial dl dynlibs
+
 rst=math
 
 [require]
@@ -35,7 +36,7 @@ libunits=$(SYSTEMUNIT) objpas strings \
       dos crt objects printer \
       sysutils typinfo math \
       cpu mmx getopts heaptrc \
-      errors sockets ipc
+      errors sockets ipc dl dynlibs
 
 
 [presettings]
@@ -128,6 +129,11 @@ linux$(PPUEXT) : linux.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc
                  linsysca.inc
 
 ports$(PPUEXT) : ports.pp linux$(PPUEXT) objpas$(PPUEXT)
+
+dl$(PPUEXT) : dl.pp
+
+dynlibs$(PPUEXT) : $(INC)/dynlibs.pp dynlibs.inc dl$(PPUEXT) objpas$(PPUEXT)
+
 
 #
 # TP7 Compatible RTL Units
