@@ -1700,13 +1700,10 @@ const CrtAddress: word = 0;
         out dx, al
         inc dx              { Point to DAC registers            }
         mov ax, [RedValue]  { Get RedValue                      }
-        shr al, 2           { convert to LSB RGB format         }
         out dx, al
         mov ax, [GreenValue]{ Get RedValue                      }
-        shr al, 2           { convert to LSB RGB format         }
         out dx, al
         mov ax, [BlueValue] { Get RedValue                      }
-        shr al, 2           { convert to LSB RGB format         }
         out dx, al
       end
     End;
@@ -1721,9 +1718,10 @@ const CrtAddress: word = 0;
      Port[$03C7] := ColorNum;
      { we must convert to lsb values... because the vga uses the 6 msb bits }
      { which is not compatible with anything.                               }
-     RedValue := Integer(Port[$3C9] shl 2);
-     GreenValue := Integer(Port[$3C9] shl 2);
-     BlueValue := Integer(Port[$3C9] shl 2);
+     { not true. It's 6bit lsb, not msb, so no shifts necessary! (JM) }
+     RedValue := Integer(Port[$3C9]);
+     GreenValue := Integer(Port[$3C9]);
+     BlueValue := Integer(Port[$3C9]);
    end;
 
 
@@ -2499,7 +2497,10 @@ const CrtAddress: word = 0;
 
 {
 $Log$
-Revision 1.3  1999-11-27 21:48:00  jonas
+Revision 1.4  1999-11-29 07:32:53  jonas
+  * fixed setvgargbpalette (it's 6bit lsb, not msb values, so no shifts!)
+
+Revision 1.3  1999/11/27 21:48:00  jonas
   * fixed VlineVESA256 and re-enabled it in graph.inc
   * added procedure detectgraph to interface of graph unit
 
