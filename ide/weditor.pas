@@ -765,25 +765,30 @@ uses
   WConsts,WViews,WCEdit;
 
 type
+{$ifdef FVISION}
+    RecordWord = sw_word;
+{$else  not FVISION}
+    RecordWord = word;
+{$endif not FVISION}
      TFindDialogRec = packed record
        Find     : String[FindStrSize];
-       Options  : Word{longint};
+       Options  : RecordWord{longint};
        { checkboxes need 32  bits PM  }
        { reverted to word in dialogs.TCluster for TP compatibility (PM) }
        { anyhow its complete nonsense : you can only have 16 fields
          but use a longint to store it !! }
-       Direction: word;{ and tcluster has word size }
-       Scope    : word;
-       Origin   : word;
+       Direction: RecordWord;{ and tcluster has word size }
+       Scope    : RecordWord;
+       Origin   : RecordWord;
      end;
 
      TReplaceDialogRec = packed record
        Find     : String[FindStrSize];
        Replace  : String[FindStrSize];
-       Options  : Word{longint};
-       Direction: word;
-       Scope    : word;
-       Origin   : word;
+       Options  : RecordWord{longint};
+       Direction: RecordWord;
+       Scope    : RecordWord;
+       Origin   : RecordWord;
      end;
 
      TEditorInputLine = object(TInputLine)
@@ -7104,7 +7109,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.19  2002-05-30 22:01:12  pierre
+  Revision 1.20  2002-05-31 12:33:49  pierre
+   * fix fvision dialog problem due to DataSize differences
+
+  Revision 1.19  2002/05/30 22:01:12  pierre
    * fix ResetCursor for fvision
 
   Revision 1.18  2002/04/16 08:27:01  pierre
