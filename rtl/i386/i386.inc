@@ -609,6 +609,9 @@ asm
 end;
 
 
+{ Internal alias that can be reference from asm code }
+procedure int_dispose_class;external name 'FPC_DISPOSE_CLASS';
+
 {$define FPC_SYSTEM_HAS_FPC_DISPOSE_CLASS}
 procedure fpc_dispose_class;assembler;[public,alias:'FPC_DISPOSE_CLASS']; {$ifdef hascompilerproc} compilerproc; {$endif}
 asm
@@ -645,7 +648,9 @@ procedure fpc_help_fail_class;assembler;[public,alias:'FPC_HELP_FAIL_CLASS']; {$
 asm
         testl  %esi,%esi
         je     .LHFC_1
-        call   FPC_DISPOSE_CLASS
+        { can't use the compilerproc version as that will generate a
+          reference instead of a symbol }
+        call   int_dispose_class
         { set both object places to zero }
         xorl    %esi,%esi
         movl    %esi,8(%ebp)
@@ -1176,7 +1181,11 @@ procedure inclocked(var l : longint);assembler;
 
 {
   $Log$
-  Revision 1.27  2002-08-19 19:34:02  peter
+  Revision 1.28  2002-09-03 15:43:36  peter
+    * add alias for fpc_dispose_class so it can be called from
+      fpc_help_fail_class
+
+  Revision 1.27  2002/08/19 19:34:02  peter
     * SYSTEMINLINE define that will add inline directives for small
       functions and wrappers. This will be defined automaticly when
       the compiler defines the HASINLINE directive
