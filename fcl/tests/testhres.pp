@@ -5,7 +5,7 @@
 
 program testhostresolve;
 
-uses resolve;
+uses resolve,sockets;
 
 Var
   I : integer;
@@ -27,7 +27,7 @@ begin
         Writeln('Addres        : ',AddressAsString);
         Writeln('Address count : ',AddressCount);
         For I:=0 to AddressCount-1 do
-          Writeln('Adress ',I:2,'     : ',HostAddrToStr(Addresses[I]));
+          Writeln('Adress ',I:2,'     : ',NetAddrToStr(Addresses[I]));
         Writeln('Alias count   : ',AliasCount);
         For I:=0 to AliasCount-1 do
           Writeln('Alias ',i:2,'  : ',Aliases[I]);
