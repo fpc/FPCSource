@@ -1532,6 +1532,7 @@ end;
 function TFileEditor.LoadFile: boolean;
 var S: PBufStream;
     OK: boolean;
+    PA : Array[1..2] of pointer;
 begin
   New(S, Init(FileName,stOpenRead,EditorTextBufSize));
   OK:=Assigned(S);
@@ -1541,6 +1542,12 @@ begin
   EventMask:=EventMask or evIdle;
 {$endif TEST_PARTIAL_SYNTAX}
   if OK then OK:=LoadFromStream(S);
+  if GetModified then
+    begin
+      PA[1]:=@FileName;
+      longint(PA[2]):=Core^.GetChangedLine;
+      EditorDialog(edChangedOnloading,@PA);
+    end;
   if Assigned(S) then Dispose(S, Done);
   OnDiskLoadTime:=GetFileTime(FileName);
   LoadFile:=OK;
@@ -1688,7 +1695,7 @@ begin
   Valid:=OK;
 end;
 
-(*constructor TFileEditor.Load(var S: TStream);
+(* constructor TFileEditor.Load(var S: TStream);
 var P: PString;
     SSP,SEP,CP,DP: TPoint;
     HR: TRect;
