@@ -2142,8 +2142,8 @@ end;
 {$i fills.inc}
 {$i gtext.inc}
 
-
-  procedure DetectGraph(var GraphDriver:smallint;var GraphMode:smallint);
+  procedure internDetectGraph(var GraphDriver, GraphMode:smallint;
+    calledFromInitGraph: boolean);
   var LoMode, HiMode: smallint;
       CpyMode: smallint;
       CpyDriver: smallint;
@@ -2151,36 +2151,51 @@ end;
     HiMode := -1;
     LoMode := -1;
 {$ifdef newmodes}
-    { Search lowest supported bitDepth }
-    graphdriver := D1bit;
-    while (graphDriver <= highNewDriver) and
-          (hiMode = -1) do
+    if not calledFromInitGraph or
+       (graphDriver < lowNewDriver) or
+       (graphDriver > highNewDriver) then
       begin
+        { Search lowest supported bitDepth }
+        graphdriver := D1bit;
+        while (graphDriver <= highNewDriver) and
+              (hiMode = -1) do
+          begin
+            getModeRange(graphDriver,loMode,hiMode);
+            inc(graphDriver);
+          end;
+        dec(graphdriver);
+        if hiMode = -1 then
+          begin
+            _GraphResult := grNotDetected;
+            exit;
+          end;
+        CpyMode := 0;
+        repeat
+           GetModeRange(GraphDriver,LoMode,HiMode);
+           { save the highest mode possible...}
+           {$ifdef logging}
+           logln('Found driver '+strf(graphdriver)+' with modes '+
+                  strf(lomode)+' - '+strf(himode));
+           {$endif logging}
+           if HiMode <> -1 then
+             begin
+               CpyMode:=HiMode;
+               CpyDriver:=GraphDriver;
+             end;
+           { go to next driver if it exists...}
+           Inc(graphDriver);
+        until (graphDriver > highNewDriver);
+      end
+    else
+      begin
+        cpyMode := 0;
         getModeRange(graphDriver,loMode,hiMode);
-        inc(graphDriver);
+        if hiMode <> -1 then
+          begin
+            cpyDriver := graphDriver;
+            cpyMode := hiMode;
+          end;
       end;
-    dec(graphdriver);
-    if hiMode = -1 then
-      begin
-        _GraphResult := grNotDetected;
-        exit;
-      end;
-    CpyMode := 0;
-    repeat
-       GetModeRange(GraphDriver,LoMode,HiMode);
-       { save the highest mode possible...}
-       {$ifdef logging}
-       logln('Found driver '+strf(graphdriver)+' with modes '+
-              strf(lomode)+' - '+strf(himode));
-       {$endif logging}
-       if HiMode <> -1 then
-         begin
-           CpyMode:=HiMode;
-           CpyDriver:=GraphDriver;
-         end;
-       { go to next driver if it exists...}
-       Inc(graphDriver);
-    until (graphDriver > highNewDriver);
     if cpyMode = 0 then
       begin
         _GraphResult := grNotDetected;
@@ -2218,6 +2233,11 @@ end;
     GraphMode := CpyMode;
   end;
 
+  procedure detectGraph(var GraphDriver: smallint; var GraphMode:smallint);
+  begin
+    internDetectGraph(graphDriver,graphMode,false);
+  end;
+
   procedure InitGraph(var GraphDriver:smallint;var GraphMode:smallint;
     const PathToDriver:String);
   const
@@ -2237,9 +2257,10 @@ end;
       RunError(216);
     DriverName:=InternalDriverName;   { DOS Graphics driver }
 
-    if (Graphdriver=Detect) then
+    if (Graphdriver=Detect) or
+       (GraphMode = detectMode) then
       begin
-        DetectGraph(GraphDriver,GraphMode);
+        internDetectGraph(GraphDriver,GraphMode,true);
         If _GraphResult = grNotDetected then Exit;
 
         { _GraphResult is now already set to grOK by DetectGraph }
@@ -2370,7 +2391,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.33  2000-06-17 19:09:22  jonas
+  Revision 1.34  2000-06-18 06:11:20  jonas
+    + added missing detectMode stuff for -dnewmodes
+
+  Revision 1.33  2000/06/17 19:09:22  jonas
     * new platform independent mode handling (between -dnewmodes)
 
   Revision 1.32  2000/06/07 07:33:42  jonas

@@ -337,7 +337,6 @@ type
 
 {$ifdef newmodes}
 
-       detectDriver = 30000;
        D1bit = 11;
        D2bit = 12;
        D4bit = 13;
@@ -368,6 +367,7 @@ type
        { consecutive mode number for that, so they are generated on-the-fly }
        { starting from 1)                                                   }
 
+       detectMode = 30000;
        m320x200 = 30001;
        m512x384 = 30002; { mac resolution }
        m640x200 = 30003; { vga resolution }
@@ -793,7 +793,10 @@ Function GetDriverName: string;
 
 {
   $Log$
-  Revision 1.6  2000-06-17 19:09:23  jonas
+  Revision 1.7  2000-06-18 06:11:21  jonas
+    + added missing detectMode stuff for -dnewmodes
+
+  Revision 1.6  2000/06/17 19:09:23  jonas
     * new platform independent mode handling (between -dnewmodes)
 
   Revision 1.5  2000/06/17 11:16:07  sg
