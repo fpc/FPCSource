@@ -49,9 +49,11 @@ var
   stabcnt,              { amount of stabs }
   stabofs,              { absolute stab section offset in executable }
   stabstrofs : longint; { absolute stabstr section offset in executable }
+  dirlength  : longint; { length of the dirctory part of the source file }
   stabs      : array[0..maxstabs-1] of tstab;  { buffer }
   funcstab,             { stab with current function info }
   linestab,             { stab with current line info }
+  dirstab,              { stab with current directory info }
   filestab   : tstab;   { stab with current file info }
 
 
@@ -391,6 +393,7 @@ begin
    end;
   fillchar(funcstab,sizeof(tstab),0);
   fillchar(filestab,sizeof(tstab),0);
+  fillchar(dirstab,sizeof(tstab),0);
   fillchar(linestab,sizeof(tstab),0);
   fillchar(lastfunc,sizeof(tstab),0);
   found:=false;
@@ -412,7 +415,7 @@ begin
            begin
              inc(stabs[i].nvalue,lastfunc.nvalue);
              if (stabs[i].nvalue<=addr) and
-                ((addr-stabs[i].nvalue)<(addr-linestab.nvalue)) then
+                (stabs[i].nvalue>linestab.nvalue) then
               begin
                 { if it's equal we can stop and take the last info }
                 if stabs[i].nvalue=addr then
@@ -425,7 +428,7 @@ begin
            begin
              lastfunc:=stabs[i];
              if (stabs[i].nvalue<=addr) and
-                ((addr-stabs[i].nvalue)<(addr-funcstab.nvalue)) then
+                (stabs[i].nvalue>funcstab.nvalue) then
               begin
                 funcstab:=stabs[i];
                 fillchar(linestab,sizeof(tstab),0);
@@ -435,8 +438,14 @@ begin
          N_IncludeFile :
            begin
              if (stabs[i].nvalue<=addr) and
-                ((addr-stabs[i].nvalue)<(addr-filestab.nvalue)) then
+                (stabs[i].nvalue>=filestab.nvalue) then
               begin
+                { if same value then the first one
+                  contained the directory PM }
+                if stabs[i].nvalue=filestab.nvalue then
+                  dirstab:=filestab
+                else
+                  fillchar(dirstab,sizeof(tstab),0);
                 filestab:=stabs[i];
                 fillchar(linestab,sizeof(tstab),0);
               end;
@@ -447,10 +456,19 @@ begin
   until found or (stabsleft=0);
 { get the line,source,function info }
   line:=linestab.ndesc;
+  if dirstab.ntype<>0 then
+   begin
+     seek(f,stabstrofs+dirstab.strpos);
+     blockread(f,source[1],high(source)-1,res);
+     dirlength:=strlen(@source[1]);
+     source[0]:=chr(dirlength);
+   end
+  else
+   dirlength:=0;
   if filestab.ntype<>0 then
    begin
      seek(f,stabstrofs+filestab.strpos);
-     blockread(f,source[1],high(source)-1,res);
+     blockread(f,source[dirlength+1],high(source)-(dirlength+1),res);
      source[0]:=chr(strlen(@source[1]));
    end;
   if funcstab.ntype<>0 then
@@ -504,7 +522,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.3  2000-02-06 22:13:42  florian
+  Revision 1.4  2000-02-08 15:23:02  pierre
+   * fix for directories included in stabsinfo
+
+  Revision 1.3  2000/02/06 22:13:42  florian
     * small typo for go32 fixed
 
   Revision 1.2  2000/02/06 19:14:22  peter
