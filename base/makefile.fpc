@@ -354,7 +354,11 @@ ifdef inlinux
 ifndef GCCLIBDIR
 GCCLIBDIR:=$(shell dirname `(gcc -v 2>&1)| head -n 1| awk '{ print $$4 } '`)
 endif
+ifndef OTHERLIBDIR
+OTHERLIBDIR:=$(shell cat /etc/ld.so.conf | awk '{ ORS=" "; print $1 }')
 endif
+endif
+
 
 #####################################################################
 # Install Directories based on BASEINSTALLDIR
@@ -474,9 +478,16 @@ override PPOPT+=$(addprefix -Fl,$(NEEDLIBDIR))
 endif
 
 # Add GCC lib path if asked
-ifeq ($(NEEDGCCLIB),YES)
+ifdef NEEDGCCLIB
 ifdef GCCLIBDIR
 override PPOPT+=-Fl$(GCCLIBDIR)
+endif
+endif
+
+# Add Other dirs path if asked
+ifdef NEEDOTHERLIB
+ifdef OTHERLIBDIR
+override PPOPT+=$(addprefix -Fl,$(OTHERLIBDIR))
 endif
 endif
 
@@ -655,6 +666,7 @@ export FPCDIR FPCMAKE FPC_VERSION
 export RELEASEVER OS_SOURCE OS_TARGET OPT OPTDEF CPU PP RELEASE VERBOSE
 export SMARTLINK LIBTYPE LIBNAME
 export BASEINSTALLDIR PACKAGESUFFIX
+export GCCLIBDIR OTHERLIBDIR
 
 
 #####################################################################
@@ -892,10 +904,10 @@ fpc_cfginfo:
 	@$(ECHO)  FPCDir.... $(FPCDIR)
 	@$(ECHO)  FPCMake... $(FPCMAKE)
 	@$(ECHO)
+	@$(ECHO)  Version... $(FPC_VERSION)
 	@$(ECHO)  Source.... $(OS_SOURCE)
 	@$(ECHO)  Target.... $(OS_TARGET)
 	@$(ECHO)  Basedir... $(BASEDIR)
-	@$(ECHO)  Version... $(FPC_VERSION)
 	@$(ECHO)
 
 fpc_dirinfo:
@@ -903,10 +915,14 @@ ifdef inlinux
 	@$(ECHO)
 	@$(ECHO)  == Directory info ==
 	@$(ECHO)
-ifeq ($(NEEDGCCLIB),YES)
+ifdef NEEDGCCLIB
 	@$(ECHO)  GCC library is needed.
 endif
-	@$(ECHO)  GCC library in $(GCCLIBDIR)
+ifdef NEEDOTHERLIB
+	@$(ECHO)  Other library is needed.
+endif
+	@$(ECHO)  GCC library..... $(GCCLIBDIR)
+	@$(ECHO)  Other library... $(OTHERLIBDIR)
 	@$(ECHO)
 
 endif
@@ -994,7 +1010,10 @@ endif
 
 #
 # $Log$
-# Revision 1.22  1999-05-04 23:20:42  pierre
+# Revision 1.23  1999-05-10 15:18:43  peter
+#   * NEEDOTHERLIB define to load ld.so.conf for linux
+#
+# Revision 1.22  1999/05/04 23:20:42  pierre
 #  + FPC_VERSION (with shell $(PP) -iV)
 #
 # Revision 1.21  1999/05/03 22:38:10  peter
