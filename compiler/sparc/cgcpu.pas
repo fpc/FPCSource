@@ -94,7 +94,7 @@ interface
 
     const
       TOpCG2AsmOp : array[topcg] of TAsmOp=(
-        A_NONE,A_ADD,A_AND,A_UDIV,A_SDIV,A_UMUL,A_SMUL,A_NEG,A_NOT,A_OR,A_SRA,A_SRL,A_SLL,A_SUB,A_XOR
+        A_NONE,A_ADD,A_AND,A_UDIV,A_SDIV,A_UMUL,A_SMUL,A_NEG,A_NOT,A_OR,A_SRA,A_SLL,A_SRL,A_SUB,A_XOR
       );
       TOpCmp2AsmCond : array[topcmp] of TAsmCond=(
         C_NONE,C_E,C_G,C_L,C_GE,C_LE,C_NE,C_BE,C_B,C_AE,C_A
@@ -793,7 +793,7 @@ implementation
       begin
         zeroreg.enum:=R_INTREGISTER;
         zeroreg.number:=NR_G0;
-        list.concat(taicpu.op_reg_reg_reg(A_SUBcc,reg1,reg2,zeroreg));
+        list.concat(taicpu.op_reg_reg_reg(A_SUBcc,reg2,reg1,zeroreg));
         a_jmp_cond(list,cmp_op,l);
       end;
 
@@ -875,9 +875,9 @@ implementation
         href : treference;
       begin
         reference_reset_base(href,current_procinfo.framepointer,PARENT_FRAMEPOINTER_OFFSET);
-        { Parent framepointer is always pushed in o0 }
+        { Parent framepointer is always pushed the first parameter (%i0) }
         hreg.enum:=R_INTREGISTER;
-        hreg.number:=NR_O0;
+        hreg.number:=NR_I0;
         a_load_reg_ref(list,OS_ADDR,OS_ADDR,hreg,href);
       end;
 
@@ -1255,7 +1255,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.63  2003-07-06 17:58:22  peter
+  Revision 1.64  2003-07-06 22:10:13  peter
+    * operand order of cmp fixed
+
+  Revision 1.63  2003/07/06 17:58:22  peter
     * framepointer fixes for sparc
     * parent framepointer code more generic
 
