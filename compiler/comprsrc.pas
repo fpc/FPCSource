@@ -24,6 +24,17 @@ unit comprsrc;
 
 interface
 
+type
+   presourcefile=^tresourcefile;
+   tresourcefile=object
+   private
+      fname : string;
+   public
+      constructor Init(const fn:string);
+      destructor Done;
+      procedure  Compile;virtual;
+   end;
+
 procedure CompileResourceFiles;
 
 
@@ -38,70 +49,84 @@ uses
   Systems,Globtype,Globals,Verbose,Files,
   Script;
 
+{****************************************************************************
+                              TRESOURCEFILE
+****************************************************************************}
+
+constructor tresourcefile.init(const fn:string);
+begin
+  fname:=fn;
+end;
+
+
+destructor tresourcefile.done;
+begin
+end;
+
+
+procedure tresourcefile.compile;
+var
+  s,
+  resobj,
+  respath,
+  resbin : string;
+  resfound : boolean;
+begin
+  if utilsdirectory<>'' then
+   respath:=FindFile(target_res.resbin+source_os.exeext,utilsdirectory,resfound)
+  else
+   respath:=FindExe(target_res.resbin,resfound);
+  resbin:=respath+target_res.resbin+source_os.exeext;
+  if (not resfound) and not(cs_link_extern in aktglobalswitches) then
+   begin
+     Message(exec_w_res_not_found);
+     aktglobalswitches:=aktglobalswitches+[cs_link_extern];
+   end;
+  resobj:=ForceExtension(current_module^.objfilename^,target_info.resobjext);
+  s:=target_res.rescmd;
+  Replace(s,'$OBJ',resobj);
+  Replace(s,'$RES',fname);
+  Replace(s,'$INC',respath);
+{ Exec the command }
+  if not (cs_link_extern in aktglobalswitches) then
+   begin
+     Message1(exec_i_compilingresource,fname);
+     swapvectors;
+     exec(resbin,s);
+     swapvectors;
+     if (doserror<>0) then
+      begin
+        Message(exec_w_cant_call_linker);
+        aktglobalswitches:=aktglobalswitches+[cs_link_extern];
+      end
+     else
+      if (dosexitcode<>0) then
+       begin
+         Message(exec_w_error_while_linking);
+         aktglobalswitches:=aktglobalswitches+[cs_link_extern];
+       end;
+    end;
+  { Update asmres when externmode is set }
+  if cs_link_extern in aktglobalswitches then
+    AsmRes.AddLinkCommand(resbin,s,'');
+  current_module^.linkotherofiles.insert(resobj,link_allways);
+end;
+
+
 procedure CompileResourceFiles;
 var
-  s     : string;
-
-  procedure CompileResource(const fn:string);
-  var
-    s,
-    resobj,
-    respath,
-    resbin : string;
-    resfound : boolean;
-  begin
-    if utilsdirectory<>'' then
-      begin
-         respath:=FindFile(target_res.resbin+source_os.exeext,
-           utilsdirectory,resfound);
-      end
-    else
-{$ifdef Delphi}
-      respath:=FindFile(target_res.resbin+source_os.exeext,'.;'+exepath+';'+dmisc.getenv('PATH'),resfound);
-{$else Delphi}
-      respath:=FindFile(target_res.resbin+source_os.exeext,'.;'+exepath+';'+dos.getenv('PATH'),resfound);
-{$endif Delphi}
-    resbin:=respath+target_res.resbin+source_os.exeext;
-    if (not resfound) and not(cs_link_extern in aktglobalswitches) then
-     begin
-       Message(exec_w_res_not_found);
-       aktglobalswitches:=aktglobalswitches+[cs_link_extern];
-     end;
-    resobj:=ForceExtension(current_module^.objfilename^,target_info.resobjext);
-    s:=target_res.rescmd;
-    Replace(s,'$OBJ',resobj);
-    Replace(s,'$RES',fn);
-    Replace(s,'$INC',respath);
-  { Exec the command }
-    if not (cs_link_extern in aktglobalswitches) then
-     begin
-       Message1(exec_i_compilingresource,fn);
-       swapvectors;
-       exec(resbin,s);
-       swapvectors;
-       if (doserror<>0) then
-        begin
-          Message(exec_w_cant_call_linker);
-          aktglobalswitches:=aktglobalswitches+[cs_link_extern];
-        end
-       else
-        if (dosexitcode<>0) then
-         begin
-           Message(exec_w_error_while_linking);
-           aktglobalswitches:=aktglobalswitches+[cs_link_extern];
-         end;
-      end;
-    { Update asmres when externmode is set }
-    if cs_link_extern in aktglobalswitches then
-      AsmRes.AddLinkCommand(resbin,s,'');
-    current_module^.linkotherofiles.insert(resobj,link_allways);
-  end;
-
+  hr : presourcefile;
 begin
   While not Current_module^.ResourceFiles.Empty do
    begin
-     S:=Current_module^.ResourceFiles.get;
-     CompileResource(s);
+     case target_info.target of
+       target_i386_win32 :
+         hr:=new(presourcefile,init(Current_module^.ResourceFiles.get));
+       else
+         Message(scan_e_resourcefiles_not_supported);
+     end;
+     hr^.compile;
+     dispose(hr,done);
    end;
 end;
 
@@ -109,7 +134,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2000-02-09 13:22:50  peter
+  Revision 1.11  2000-06-23 20:11:05  peter
+    * made resourcecompiling object so it can be inherited and replaced
+      for other targets if needed
+
+  Revision 1.10  2000/02/09 13:22:50  peter
     * log truncated
 
   Revision 1.9  2000/01/07 01:14:23  peter
