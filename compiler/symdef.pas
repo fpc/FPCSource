@@ -2820,7 +2820,7 @@ implementation
          read_member:=true;
          symtable:=new(pstoredsymtable,loadas(recordsymtable));
          read_member:=oldread_member;
-         symtable^.defowner := @self;
+         symtable^.defowner:=@self;
       end;
 
 
@@ -2882,6 +2882,12 @@ implementation
          { now dereference the definitions }
          pstoredsymtable(symtable)^.deref;
          aktrecordsymtable:=oldrecsyms;
+         { assign TGUID? }
+         if not(assigned(rec_tguid)) and
+           (upper(typename)='TGUID') and
+           assigned(owner) and
+           (owner^.name^='SYSTEM') then
+           rec_tguid:=@self;
       end;
 
 
@@ -5620,7 +5626,10 @@ Const local_symtable_index : longint = $8001;
 end.
 {
   $Log$
-  Revision 1.22  2001-03-22 00:10:58  florian
+  Revision 1.23  2001-03-22 23:28:39  florian
+    * correct initialisation of rec_tguid when loading the system unit
+
+  Revision 1.22  2001/03/22 00:10:58  florian
     + basic variant type support in the compiler
 
   Revision 1.21  2001/03/11 22:58:50  peter
