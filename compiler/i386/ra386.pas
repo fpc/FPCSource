@@ -65,7 +65,22 @@ uses
 {$endif}
   globtype,symconst,symdef,systems,types,globals,verbose,cpuasm;
 
+{$define ATTOP}
+{$define INTELOP}
 
+{$ifdef NORA386INT}
+  {$ifdef NOAG386NSM}
+    {$ifdef NOAG386INT}
+      {$undef INTELOP}
+    {$endif}
+  {$endif}
+{$endif}
+
+{$ifdef NORA386ATT}
+  {$ifdef NOAG386ATT}
+    {$undef ATTOP}
+  {$endif}
+{$endif}
 {*****************************************************************************
                               Parser Helpers
 *****************************************************************************}
@@ -417,9 +432,6 @@ begin
      { if the first is ST and the second is also a register
        it is necessarily ST1 .. ST7 }
      (operands[1]^.opr.reg=R_ST)) or
-     ((ops=1) and
-      (operands[1]^.opr.typ=OPR_REGISTER) and
-      (operands[1]^.opr.reg in [R_ST1..R_ST7])) or
       (ops=0)  then
       if opcode=A_FSUBR then
         opcode:=A_FSUB
@@ -430,6 +442,17 @@ begin
       else if opcode=A_FDIV then
         opcode:=A_FDIVR
       else if opcode=A_FSUBRP then
+        opcode:=A_FSUBP
+      else if opcode=A_FSUBP then
+        opcode:=A_FSUBRP
+      else if opcode=A_FDIVRP then
+        opcode:=A_FDIVP
+      else if opcode=A_FDIVP then
+        opcode:=A_FDIVRP;
+  if  ((ops=1) and
+      (operands[1]^.opr.typ=OPR_REGISTER) and
+      (operands[1]^.opr.reg in [R_ST1..R_ST7])) then
+      if opcode=A_FSUBRP then
         opcode:=A_FSUBP
       else if opcode=A_FSUBP then
         opcode:=A_FSUBRP
@@ -464,10 +487,108 @@ begin
      as alias of FADDP
      and GNU AS interprets FADD without operand differently
      for version 2.9.1 and 2.9.5 !! }
-   if (opcode=A_FADD) and (ops=0) then
+   if (ops=0) and
+      ((opcode=A_FADD) or
+       (opcode=A_FMUL) or
+       (opcode=A_FSUB) or
+       (opcode=A_FSUBR) or
+       (opcode=A_FDIV) or
+       (opcode=A_FDIVR)) then
      begin
-       opcode:=A_FADDP;
-       message(asmr_w_fadd_to_faddp);
+       if opcode=A_FADD then
+         opcode:=A_FADDP
+       else if opcode=A_FMUL then
+         opcode:=A_FMULP
+       else if opcode=A_FSUB then
+         opcode:=A_FSUBP
+       else if opcode=A_FSUBR then
+         opcode:=A_FSUBRP
+       else if opcode=A_FDIV then
+         opcode:=A_FDIVP
+       else if opcode=A_FDIVR then
+         opcode:=A_FDIVRP;
+{$ifdef ATTOP}
+       message1(asmr_w_fadd_to_faddp,att_op2str[opcode]);
+{$else}
+  {$ifdef INTELOP}
+       message1(asmr_w_fadd_to_faddp,int_op2str[opcode]);
+  {$else}
+       message1(asmr_w_fadd_to_faddp,'fXX');
+  {$endif INTELOP}
+{$endif ATTOP}
+     end;
+
+   { GNU AS interprets FDIV without operand differently
+     for version 2.9.1 and 2.10
+     we add explicit args to it !! }
+  if (ops=0) and
+     ((opcode=A_FSUBP) or
+      (opcode=A_FSUBRP) or
+      (opcode=A_FDIVP) or
+      (opcode=A_FDIVRP) or
+      (opcode=A_FSUB) or
+      (opcode=A_FSUBR) or
+      (opcode=A_FDIV) or
+      (opcode=A_FDIVR)) then
+     begin
+{$ifdef ATTOP}
+       message1(asmr_w_adding_explicit_args_fXX,att_op2str[opcode]);
+{$else}
+  {$ifdef INTELOP}
+       message1(asmr_w_adding_explicit_args_fXX,int_op2str[opcode]);
+  {$else}
+       message1(asmr_w_adding_explicit_args_fXX,'fXX');
+  {$endif INTELOP}
+{$endif ATTOP}
+       ops:=2;
+       operands[1]^.opr.typ:=OPR_REGISTER;
+       operands[2]^.opr.typ:=OPR_REGISTER;
+       operands[1]^.opr.reg:=R_ST;
+       operands[2]^.opr.reg:=R_ST1;
+     end;
+  if (ops=1) and
+      ((operands[1]^.opr.typ=OPR_REGISTER) and
+      (operands[1]^.opr.reg in [R_ST1..R_ST7])) and
+     ((opcode=A_FSUBP) or
+      (opcode=A_FSUBRP) or
+      (opcode=A_FDIVP) or
+      (opcode=A_FDIVRP)) then
+     begin
+{$ifdef ATTOP}
+       message1(asmr_w_adding_explicit_first_arg_fXX,att_op2str[opcode]);
+{$else}
+  {$ifdef INTELOP}
+       message1(asmr_w_adding_explicit_first_arg_fXX,int_op2str[opcode]);
+  {$else}
+       message1(asmr_w_adding_explicit_first_arg_fXX,'fXX');
+  {$endif INTELOP}
+{$endif ATTOP}
+       ops:=2;
+       operands[2]^.opr.typ:=OPR_REGISTER;
+       operands[2]^.opr.reg:=operands[1]^.opr.reg;
+       operands[1]^.opr.reg:=R_ST;
+     end;
+
+  if (ops=1) and
+      ((operands[1]^.opr.typ=OPR_REGISTER) and
+      (operands[1]^.opr.reg in [R_ST1..R_ST7])) and
+     ((opcode=A_FSUB) or
+      (opcode=A_FSUBR) or
+      (opcode=A_FDIV) or
+      (opcode=A_FDIVR)) then
+     begin
+{$ifdef ATTOP}
+       message1(asmr_w_adding_explicit_second_arg_fXX,att_op2str[opcode]);
+{$else}
+  {$ifdef INTELOP}
+       message1(asmr_w_adding_explicit_second_arg_fXX,int_op2str[opcode]);
+  {$else}
+       message1(asmr_w_adding_explicit_second_arg_fXX,'fXX');
+  {$endif INTELOP}
+{$endif ATTOP}
+       ops:=2;
+       operands[2]^.opr.typ:=OPR_REGISTER;
+       operands[2]^.opr.reg:=R_ST;
      end;
 
    { I tried to convince Linus Torwald to add
@@ -500,6 +621,12 @@ begin
      end;
    end;
 
+  if (opcode=A_CALL) and (opsize=S_FAR) then
+    opcode:=A_LCALL;
+  if (opcode=A_JMP) and (opsize=S_FAR) then
+    opcode:=A_LJMP;
+  if (opcode=A_LCALL) or (opcode=A_LJMP) then
+    opsize:=S_FAR;
  { Condition ? }
   if condition<>C_None then
    ai.SetCondition(condition);
@@ -518,7 +645,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2001-01-12 19:18:42  peter
+  Revision 1.6  2001-02-20 21:51:36  peter
+    * fpu fixes (merged)
+
+  Revision 1.5  2001/01/12 19:18:42  peter
     * check for valid asm instructions
 
   Revision 1.4  2000/12/25 00:07:34  peter

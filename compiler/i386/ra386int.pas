@@ -1605,6 +1605,7 @@ Procedure T386IntelInstruction.BuildOpCode;
 var
   PrefixOp,OverrideOp: tasmop;
   size : topsize;
+  lasttoken : tasmtoken;
   operandnum : longint;
 Begin
   PrefixOp:=A_None;
@@ -1727,9 +1728,15 @@ Begin
       AS_FAR :
         Begin
           if actasmtoken = AS_NEAR then
-            Message(asmr_w_near_ignored)
+            begin
+              Message(asmr_w_near_ignored);
+              opsize:=S_NEAR;
+            end
           else
-            Message(asmr_w_far_ignored);
+            begin
+              Message(asmr_w_far_ignored);
+              opsize:=S_FAR;
+            end;
           Consume(actasmtoken);
           if actasmtoken=AS_PTR then
            begin
@@ -1943,7 +1950,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2001-02-09 23:42:49  peter
+  Revision 1.9  2001-02-20 21:51:36  peter
+    * fpu fixes (merged)
+
+  Revision 1.8  2001/02/09 23:42:49  peter
     * merged fix for bug 1327
 
   Revision 1.7  2001/01/05 17:36:58  florian

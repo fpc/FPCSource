@@ -725,9 +725,9 @@ begin
      { if the first is ST and the second is also a register
        it is necessarily ST1 .. ST7 }
      (oper[0].reg=R_ST)) or
-     ((ops=1) and
+     { ((ops=1) and
       (oper[0].typ=top_reg) and
-      (oper[0].reg in [R_ST1..R_ST7])) or
+      (oper[0].reg in [R_ST1..R_ST7]))  or}
      (ops=0) then
       if opcode=A_FSUBR then
         opcode:=A_FSUB
@@ -738,6 +738,17 @@ begin
       else if opcode=A_FDIV then
         opcode:=A_FDIVR
       else if opcode=A_FSUBRP then
+        opcode:=A_FSUBP
+      else if opcode=A_FSUBP then
+        opcode:=A_FSUBRP
+      else if opcode=A_FDIVRP then
+        opcode:=A_FDIVP
+      else if opcode=A_FDIVP then
+        opcode:=A_FDIVRP;
+   if  ((ops=1) and
+      (oper[0].typ=top_reg) and
+      (oper[0].reg in [R_ST1..R_ST7])) then
+      if opcode=A_FSUBRP then
         opcode:=A_FSUBP
       else if opcode=A_FSUBP then
         opcode:=A_FSUBRP
@@ -1738,7 +1749,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2001-01-13 20:24:24  peter
+  Revision 1.11  2001-02-20 21:51:36  peter
+    * fpu fixes (merged)
+
+  Revision 1.10  2001/01/13 20:24:24  peter
     * fixed operand order that got mixed up for external writers after
       my previous assembler block valid instruction check
 
