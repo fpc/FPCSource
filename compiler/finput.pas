@@ -112,6 +112,8 @@ interface
        tmodulebase = class(TLinkedListItem)
           { index }
           unit_index    : longint;  { global counter for browser }
+          { status }
+          in_compile    : boolean;  { is it being compiled ?? }
           { sources }
           sourcefiles   : tinputfilemanager;
           { paths and filenames }
@@ -653,6 +655,8 @@ uses
         exefilename:=nil;
         outputpath:=nil;
         path:=nil;
+        { status }
+        in_compile:=false;
         { unit index }
         inc(global_unit_count);
         unit_index:=global_unit_count;
@@ -683,7 +687,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.10  2001-06-03 15:15:31  peter
+  Revision 1.11  2001-08-04 10:23:54  peter
+    * updates so it works with the ide
+
+  Revision 1.10  2001/06/03 15:15:31  peter
     * dllprt0 stub for linux shared libs
     * pass -init and -fini for linux shared libs
     * libprefix splitted into staticlibprefix and sharedlibprefix

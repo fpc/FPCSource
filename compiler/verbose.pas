@@ -333,6 +333,8 @@ var
              lastfileidx:=0;
            lastmoduleidx:=current_module.unit_index;
          end;
+        if assigned(current_module) then
+          status.compiling_current:=current_module.in_compile;
       end;
 
 
@@ -655,6 +657,12 @@ var
         status.verbosity:=V_Default;
         Status.MaxErrorCount:=50;
         Loadprefixes;
+        lastfileidx:=-1;
+        lastmoduleidx:=-1;
+        status.currentmodule:='';
+        status.currentsource:='';
+        status.currentsourcepath:='';
+        status.compiling_current:=false;
       end;
 
 
@@ -672,7 +680,10 @@ var
 end.
 {
   $Log$
-  Revision 1.14  2001-05-27 14:30:55  florian
+  Revision 1.15  2001-08-04 10:23:55  peter
+    * updates so it works with the ide
+
+  Revision 1.14  2001/05/27 14:30:55  florian
     + some widestring stuff added
 
   Revision 1.13  2001/04/13 01:22:17  peter

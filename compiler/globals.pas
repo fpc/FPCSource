@@ -211,7 +211,6 @@ interface
        RelocSection : boolean = true;
        RelocSectionSetExplicitly : boolean = false;
        LinkTypeSetExplicitly : boolean = false;
-       IsExe : boolean = false;
        DLLsource : boolean = false;
        DLLImageBase : pstring = nil;
        UseDeffileForExport : boolean = true;
@@ -1250,9 +1249,6 @@ implementation
         do_release:=false;
         do_make:=true;
         compile_level:=0;
-        { these two should not be cleared in
-          DoneGlobals as the IDE might need their value }
-        IsExe:=false;
         DLLsource:=false;
 
       { Output }
@@ -1331,7 +1327,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2001-07-01 20:16:15  peter
+  Revision 1.40  2001-08-04 10:23:54  peter
+    * updates so it works with the ide
+
+  Revision 1.39  2001/07/01 20:16:15  peter
     * alignmentinfo record added
     * -Oa argument supports more alignment settings that can be specified
       per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN

@@ -90,7 +90,6 @@ interface
           sources_avail,            { if all sources are reachable }
           sources_checked,          { if there is already done a check for the sources }
           is_unit,
-          in_compile,               { is it being compiled ?? }
           in_second_compile,        { is this unit being compiled for the 2nd time? }
           in_second_load,           { is this unit PPU loaded a 2nd time? }
           in_implementation,        { processing the implementation part? }
@@ -406,7 +405,6 @@ uses
         compiled:=false;
         recompile_reason:=rr_unknown;
         in_second_load:=false;
-        in_compile:=false;
         in_second_compile:=false;
         in_implementation:=false;
         in_global:=true;
@@ -589,7 +587,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.17  2001-06-04 11:49:08  peter
+  Revision 1.18  2001-08-04 10:23:54  peter
+    * updates so it works with the ide
+
+  Revision 1.17  2001/06/04 11:49:08  peter
     * store used units in original type in ppu
 
   Revision 1.16  2001/06/03 15:15:31  peter

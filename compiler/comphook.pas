@@ -73,6 +73,9 @@ type
   { Total Status }
     compiledlines : longint;  { the number of lines which are compiled }
     errorcount    : longint;  { number of generated errors }
+  { program info }
+    isexe,
+    islibrary     : boolean;
   { Settings for the output }
     verbosity     : longint;
     maxerrorcount : longint;
@@ -82,7 +85,8 @@ type
     skip_error,
     use_stderr,
     use_redir,
-    use_gccoutput : boolean;
+    use_gccoutput,
+    compiling_current : boolean;
   { Redirection support }
     redirfile : text;
   end;
@@ -351,7 +355,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  2001-06-07 21:25:57  peter
+  Revision 1.16  2001-08-04 10:23:54  peter
+    * updates so it works with the ide
+
+  Revision 1.15  2001/06/07 21:25:57  peter
     * Regenerated
 
   Revision 1.14  2001/06/06 17:20:21  jonas
