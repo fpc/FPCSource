@@ -93,7 +93,7 @@ unit pdecl;
               EQUAL:
                 begin
                    consume(EQUAL);
-                   p:=expr;
+                   p:=comp_expr(true);
                    do_firstpass(p);
                    case p^.treetype of
                       ordconstn:
@@ -185,7 +185,7 @@ unit pdecl;
          if token=LECKKLAMMER then
            begin
               consume(LECKKLAMMER);
-              p:=expr;
+              p:=comp_expr(true);
               do_firstpass(p);
               if not is_constintnode(p) then
                 Message(cg_e_illegal_expression);
@@ -1708,7 +1708,7 @@ unit pdecl;
               startvarrec:=symtablestack^.datasize;
               repeat
                 repeat
-                  pt:=expr;
+                  pt:=comp_expr(true);
                   do_firstpass(pt);
                   if not(pt^.treetype=ordconstn) then
                     Message(cg_e_illegal_expression);
@@ -1792,7 +1792,12 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.15  1998-05-01 09:01:23  florian
+  Revision 1.16  1998-05-05 12:05:42  florian
+    * problems with properties fixed
+    * crash fixed:  i:=l when i and l are undefined, was a problem with
+      implementation of private/protected
+
+  Revision 1.15  1998/05/01 09:01:23  florian
     + correct semantics of private and protected
     * small fix in variable scope:
        a id can be used in a parameter list of a method, even it is used in

@@ -78,7 +78,7 @@ unit ptconst;
          case def^.deftype of
             orddef:
               begin
-                 p:=expr;
+                 p:=comp_expr(true);
                  do_firstpass(p);
                  case porddef(def)^.typ of
                     s8bit,
@@ -129,7 +129,7 @@ unit ptconst;
               end;
          floatdef:
            begin
-              p:=expr;
+              p:=comp_expr(true);
               do_firstpass(p);
               if is_constrealnode(p) then
                 value:=p^.valued
@@ -150,7 +150,7 @@ unit ptconst;
            end;
          pointerdef:
            begin
-              p:=expr;
+              p:=comp_expr(true);
               do_firstpass(p);
               { nil pointer ? }
               if p^.treetype=niln then
@@ -206,7 +206,7 @@ unit ptconst;
            end;
          setdef:
            begin
-              p:=expr;
+              p:=comp_expr(true);
               do_firstpass(p);
               if p^.treetype=setconstrn then
                 begin
@@ -226,7 +226,7 @@ unit ptconst;
            end;
          enumdef:
        begin
-              p:=expr;
+              p:=comp_expr(true);
               do_firstpass(p);
               if p^.treetype=ordconstn then
                 begin
@@ -243,7 +243,7 @@ unit ptconst;
            end;
          stringdef:
            begin
-              p:=expr;
+              p:=comp_expr(true);
               do_firstpass(p);
               { first take care of prefixes for long and ansi strings }
 {$ifdef UseLongString}
@@ -323,7 +323,7 @@ unit ptconst;
                  end
               else
                 begin
-                   p:=expr;
+                   p:=comp_expr(true);
                    do_firstpass(p);
                    if p^.treetype=stringconstn then
                      s:=p^.values^
@@ -450,7 +450,12 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.3  1998-04-29 10:34:00  pierre
+  Revision 1.4  1998-05-05 12:05:42  florian
+    * problems with properties fixed
+    * crash fixed:  i:=l when i and l are undefined, was a problem with
+      implementation of private/protected
+
+  Revision 1.3  1998/04/29 10:34:00  pierre
     + added some code for ansistring (not complete nor working yet)
     * corrected operator overloading
     * corrected nasm output

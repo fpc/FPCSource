@@ -71,12 +71,12 @@ unit pstatmnt;
 
       begin
          consume(_IF);
-         ex:=expr;
+         ex:=comp_expr(true);
          consume(_THEN);
          if token<>_ELSE then
            if_a:=statement
          else
-       if_a:=nil;
+           if_a:=nil;
 
          if token=_ELSE then
            begin
@@ -167,7 +167,7 @@ unit pstatmnt;
 
       begin
          consume(_CASE);
-         caseexpr:=expr;
+         caseexpr:=comp_expr(true);
          { determines result type }
          cleartempgen;
          do_firstpass(caseexpr);
@@ -184,7 +184,7 @@ unit pstatmnt;
            getlabel(aktcaselabel);
            {aktcaselabel^.is_used:=true; }
 
-           { an instruction has may be more case labels }
+           { may be an instruction has more case labels }
            repeat
              p:=expr;
              cleartempgen;
@@ -278,7 +278,7 @@ unit pstatmnt;
            end;
          consume(_UNTIL);
          first:=gensinglenode(blockn,first);
-         p_e:=expr;
+         p_e:=comp_expr(true);
          repeat_statement:=genloopnode(repeatn,p_e,first,nil,false);
       end;
 
@@ -289,7 +289,7 @@ unit pstatmnt;
 
       begin
          consume(_WHILE);
-     p_e:=expr;
+         p_e:=comp_expr(true);
          consume(_DO);
          p_a:=statement;
          while_statement:=genloopnode(whilen,p_e,p_a,nil,false);
@@ -315,13 +315,13 @@ unit pstatmnt;
               consume(_TO);
               backward:=false;
            end;
-         tovalue:=expr;
+         tovalue:=comp_expr(true);
          consume(_DO);
 
          { ... now the instruction }
-                 p_a:=statement;
-                 for_statement:=genloopnode(forn,p_e,tovalue,p_a,backward);
-          end;
+         p_a:=statement;
+         for_statement:=genloopnode(forn,p_e,tovalue,p_a,backward);
+      end;
 
     function _with_statement : ptree;
 
@@ -333,7 +333,7 @@ unit pstatmnt;
 
       begin
          Must_be_valid:=false;
-         p:=expr;
+         p:=comp_expr(true);
          do_firstpass(p);
          right:=nil;
          case p^.resulttype^.deftype of
@@ -361,33 +361,33 @@ unit pstatmnt;
                         end;
             else
               begin
-                    Message(parser_e_false_with_expr);
-                    { try to recover from error }
-                    if token=COMMA then
-                      begin
-                         consume(COMMA);
+                 Message(parser_e_false_with_expr);
+                 { try to recover from error }
+                 if token=COMMA then
+                   begin
+                      consume(COMMA);
 {$ifdef tp}
-                                                 hp:=_with_statement;
+                      hp:=_with_statement;
 {$else}
-                                                 hp:=_with_statement();
+                      hp:=_with_statement();
 {$endif}
-                                          end
-                                        else
-                                          begin
-                                                 consume(_DO);
-                                                 { ignore all }
-                                                 if token<>SEMICOLON then
-                                                   statement;
-                      end;
-                    _with_statement:=nil;
-                    exit;
-                 end;
+                   end
+                 else
+                   begin
+                      consume(_DO);
+                      { ignore all }
+                      if token<>SEMICOLON then
+                      statement;
+                   end;
+                 _with_statement:=nil;
+                 exit;
+              end;
          end;
          if token=COMMA then
            begin
               consume(COMMA);
 {$ifdef tp}
-                          right:=_with_statement;
+              right:=_with_statement;
 {$else}
               right:=_with_statement();
 {$endif}
@@ -424,11 +424,11 @@ unit pstatmnt;
          consume(_RAISE);
          if token<>SEMICOLON then
            begin
-              p1:=expr;
+              p1:=comp_expr(true);
               if (token=ID) and (pattern='AT') then
                 begin
                    consume(ID);
-                   p2:=expr;
+                   p2:=comp_expr(true);
                 end;
            end
          else
@@ -490,11 +490,11 @@ unit pstatmnt;
                 begin
                    repeat
                      consume(_ON);
-             e1:=expr;
+                     e1:=comp_expr(true);
                      if token=COLON then
                        begin
                           consume(COLON);
-              e2:=expr;
+                          e2:=comp_expr(true);
                           { !!!!! }
                        end
                      else
@@ -534,7 +534,7 @@ unit pstatmnt;
          if token=LKLAMMER then
            begin
               consume(LKLAMMER);
-              p:=expr;
+              p:=comp_expr(true);
               consume(RKLAMMER);
               if procinfo.retdef=pdef(voiddef) then
                 Message(parser_e_void_function)
@@ -656,7 +656,7 @@ unit pstatmnt;
                  else
                    tt:=hdisposen;
                  consume(LKLAMMER);
-                 p:=expr;
+                 p:=comp_expr(true);
 
                  { calc return type }
                  cleartempgen;
@@ -1077,7 +1077,12 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.7  1998-05-01 16:38:46  florian
+  Revision 1.8  1998-05-05 12:05:42  florian
+    * problems with properties fixed
+    * crash fixed:  i:=l when i and l are undefined, was a problem with
+      implementation of private/protected
+
+  Revision 1.7  1998/05/01 16:38:46  florian
     * handling of private and protected fixed
     + change_keywords_to_tp implemented to remove
       keywords which aren't supported by tp

@@ -79,20 +79,20 @@ unit pexpr;
          inc(parsing_para_level);
          while true do
            begin
-              p1:=expr;
+              p1:=comp_expr(true);
               p2:=gencallparanode(p1,p2);
 
               { it's for the str(l:5,s); }
               if _colon and (token=COLON) then
                 begin
                    consume(COLON);
-                   p1:=expr;
+                   p1:=comp_expr(true);
                    p2:=gencallparanode(p1,p2);
                    p2^.is_colon_para:=true;
                    if token=COLON then
                      begin
                         consume(COLON);
-                        p1:=expr;
+                        p1:=comp_expr(true);
                         p2:=gencallparanode(p1,p2);
                         p2^.is_colon_para:=true;
                      end
@@ -125,7 +125,7 @@ unit pexpr;
                  consume(LKLAMMER);
                  in_args:=true;
                  Must_be_valid:=true;
-                 p1:=expr;
+                 p1:=comp_expr(true);
                  consume(RKLAMMER);
                  do_firstpass(p1);
                  p1:=geninlinenode(in_ord_x,p1);
@@ -146,7 +146,7 @@ unit pexpr;
             in_typeof_x : begin
                              consume(LKLAMMER);
                              in_args:=true;
-                             p1:=expr;
+                             p1:=comp_expr(true);
                              consume(RKLAMMER);
                              pd:=voidpointerdef;
                              if p1^.treetype=typen then
@@ -187,7 +187,7 @@ unit pexpr;
             in_sizeof_x : begin
                              consume(LKLAMMER);
                              in_args:=true;
-                             p1:=expr;
+                             p1:=comp_expr(true);
                              consume(RKLAMMER);
                              pd:=s32bitdef;
                              if p1^.treetype=typen then
@@ -217,7 +217,7 @@ unit pexpr;
             in_assigned_x : begin
                                consume(LKLAMMER);
                                in_args:=true;
-                               p1:=expr;
+                               p1:=comp_expr(true);
                                Must_be_valid:=true;
                                do_firstpass(p1);
                                case p1^.resulttype^.deftype of
@@ -238,7 +238,7 @@ unit pexpr;
             in_ofs_x : begin
                           consume(LKLAMMER);
                           in_args:=true;
-                          p1:=expr;
+                          p1:=comp_expr(true);
                           p1:=gensinglenode(addrn,p1);
                           Must_be_valid:=false;
                           do_firstpass(p1);
@@ -251,7 +251,7 @@ unit pexpr;
             in_seg_x : begin
                           consume(LKLAMMER);
                           in_args:=true;
-                          p1:=expr;
+                          p1:=comp_expr(true);
                           do_firstpass(p1);
                           if p1^.location.loc<>LOC_REFERENCE then
                             Message(cg_e_illegal_expression);
@@ -265,7 +265,7 @@ unit pexpr;
             in_low_x : begin
                           consume(LKLAMMER);
                           in_args:=true;
-                          p1:=expr;
+                          p1:=comp_expr(true);
                           do_firstpass(p1);
                           Must_be_valid:=false;
                           p2:=geninlinenode(l,p1);
@@ -277,7 +277,7 @@ unit pexpr;
             in_pred_x : begin
                           consume(LKLAMMER);
                           in_args:=true;
-                          p1:=expr;
+                          p1:=comp_expr(true);
                           do_firstpass(p1);
                           Must_be_valid:=false;
                           p2:=geninlinenode(l,p1);
@@ -289,13 +289,13 @@ unit pexpr;
             in_dec_x : begin
                           consume(LKLAMMER);
                           in_args:=true;
-                          p1:=expr;
+                          p1:=comp_expr(true);
                           p2:=gencallparanode(p1,nil);
                           Must_be_valid:=false;
                           if token=COMMA then
                             begin
                                consume(COMMA);
-                               p1:=expr;
+                               p1:=comp_expr(true);
                                p2:=gencallparanode(p1,p2);
                             end;
                           statement_syssym:=geninlinenode(l,p2);
@@ -308,7 +308,7 @@ unit pexpr;
                              p2:=nil;
                              while true do
                                begin
-                                  p1:=expr;
+                                  p1:=comp_expr(true);
                                   Must_be_valid:=true;
                                   do_firstpass(p1);
                                   if not((p1^.resulttype^.deftype=stringdef) or
@@ -376,10 +376,10 @@ unit pexpr;
               begin
                  consume(LKLAMMER);
                  in_args:=true;
-                 p1:=expr;
+                 p1:=comp_expr(true);
                  Must_be_valid:=false;
                  consume(COMMA);
-                 p2:=expr;
+                 p2:=comp_expr(true);
                  { just a bit lisp feeling }
                  statement_syssym:=geninlinenode(l,
                    gencallparanode(p1,gencallparanode(p2,nil)));
@@ -484,14 +484,10 @@ unit pexpr;
                           force the usage of that procedure }
                         p1^.procdefinition:=pprocdef(ppropertysym(sym)^.writeaccessdef);
                         p1^.left:=paras;
-                        { to be on the save side }
-                        oldafterassignment:=afterassignment;
                         consume(ASSIGNMENT);
                         { read the expression }
-                        afterassignment:=true;
-                        p2:=expr;
+                        p2:=comp_expr(true);
                         p1^.left:=gencallparanode(p2,p1^.left);
-                        afterassignment:=oldafterassignment;
                      end
                    else if ppropertysym(sym)^.writeaccesssym^.typ=varsym then
                      begin
@@ -506,14 +502,10 @@ unit pexpr;
                         else
                           p1:=gensubscriptnode(pvarsym(
                             ppropertysym(sym)^.readaccesssym),p1);
-                        { to be on the save side }
-                        oldafterassignment:=afterassignment;
                         consume(ASSIGNMENT);
                         { read the expression }
-                        afterassignment:=true;
-                        p2:=expr;
+                        p2:=comp_expr(true);
                         p1:=gennode(assignn,p1,p2);
-                        afterassignment:=oldafterassignment;
                      end
                    else
                      begin
@@ -724,13 +716,13 @@ unit pexpr;
                                  end
                                else if (pd^.deftype=pointerdef) then
                                  begin
-                                    p2:=expr;
+                                    p2:=comp_expr(true);
                                     p1:=gennode(vecn,p1,p2);
                                     pd:=ppointerdef(pd)^.definition;
                                  end
                                else
                                  begin
-                                    p2:=expr;
+                                    p2:=comp_expr(true);
                                   { support SEG:OFS for go32v2 Mem[] }
                                     if (target_info.target=target_GO32V2) and
                                        (p1^.treetype=loadn) and
@@ -745,7 +737,7 @@ unit pexpr;
                                          begin
                                            consume(COLON);
                                            p3:=gennode(muln,genordinalconstnode($10,s32bitdef),p2);
-                                           p2:=expr;
+                                           p2:=comp_expr(true);
                                            p2:=gennode(addn,p2,p3);
                                            p1:=gennode(vecn,p1,p2);
                                            p1^.memseg:=true;
@@ -970,7 +962,8 @@ unit pexpr;
                            else
                              unit_specific:=false;
                            { check semantics of private }
-                           if srsymtable^.symtabletype=objectsymtable then
+                           if (srsym^.typ in [propertysym,procsym,varsym]) and
+                              (srsymtable^.symtabletype=objectsymtable) then
                              begin
                                 if ((srsym^.properties and sp_private)<>0) and
                                   (pobjectdef(srsym^.owner^.defowner)^.
@@ -1030,7 +1023,7 @@ unit pexpr;
                                         if token=LKLAMMER then
                                           begin
                                              consume(LKLAMMER);
-                                             p1:=expr;
+                                             p1:=comp_expr(true);
                                              consume(RKLAMMER);
                                              p1:=gentypeconvnode(p1,pd);
                                              p1^.explizit:=true;
@@ -1347,7 +1340,7 @@ unit pexpr;
               begin
                  pd:=stringtype;
                  consume(LKLAMMER);
-                 p1:=expr;
+                 p1:=comp_expr(true);
                  consume(RKLAMMER);
                  p1:=gentypeconvnode(p1,pd);
                  p1^.explizit:=true;
@@ -1360,7 +1353,7 @@ unit pexpr;
                  pd:=cfiledef;
                  consume(_FILE);
                  consume(LKLAMMER);
-                 p1:=expr;
+                 p1:=comp_expr(true);
                  consume(RKLAMMER);
                  p1:=gentypeconvnode(p1,pd);
                  p1^.explizit:=true;
@@ -1385,7 +1378,7 @@ unit pexpr;
                           end;
             LKLAMMER : begin
                           consume(LKLAMMER);
-                          p1:=expr;
+                          p1:=comp_expr(true);
                           consume(RKLAMMER);
                           { it's not a good solution        }
                           { but (a+b)^ makes some problems  }
@@ -1412,7 +1405,7 @@ unit pexpr;
                              if token<>RECKKLAMMER then
                                while true do
                                  begin
-                                    p1:=expr;
+                                    p1:=comp_expr(true);
                                     do_firstpass(p1);
                                     case p1^.treetype of
                                        ordconstn : begin
@@ -1421,19 +1414,22 @@ unit pexpr;
                                                      if not(is_equal(pd,p1^.resulttype)) then
                                                        Message(parser_e_typeconflict_in_set)
                                                      else
-                                                       do_set(constset,p1^.value);
+                                                       if token=POINTPOINT then
+                                                         begin
+                                                            consume(POINTPOINT);
+                                                            p3:=comp_expr(true);
+                                                            do_firstpass(p3);
+                                                            if not(is_equal(pd,p3^.resulttype)) then
+                                                              Message(parser_e_typeconflict_in_set)
+                                                            else
+                                                              for l:=p1^.value to p3^.value do
+                                                                do_set(constset,l);
+                                                            disposetree(p3);
+                                                         end
+                                                       else
+                                                         do_set(constset,p1^.value);
                                                      disposetree(p1);
                                                    end;
-                                       rangen : begin
-                                                   if pd=nil then
-                                                     pd:=p1^.left^.resulttype;
-                                                   if not(is_equal(pd,p1^.left^.resulttype)) then
-                                                     Message(parser_e_typeconflict_in_set)
-                                                   else
-                                                     for l:=p1^.left^.value to p1^.right^.value do
-                                                       do_set(constset,l);
-                                                   disposetree(p1);
-                                                end;
                                        stringconstn : begin
                                                          if pd=nil then
                                                            pd:=cchardef;
@@ -1563,8 +1559,14 @@ unit pexpr;
 
     function comp_expr(accept_equal : boolean):Ptree;
 
+      var
+         oldafterassignment : boolean;
+
       begin
+         oldafterassignment:=afterassignment;
+         afterassignment:=true;
          comp_expr:=sub_expr(opcompare,accept_equal);
+         afterassignment:=oldafterassignment;
       end;
 
     function expr : ptree;
@@ -1641,7 +1643,7 @@ unit pexpr;
     var p:Ptree;
 
     begin
-        p:=expr;
+        p:=comp_expr(true);
         do_firstpass(p);
         if (p^.treetype<>ordconstn) and
          (p^.resulttype^.deftype=orddef) and
@@ -1662,7 +1664,7 @@ unit pexpr;
 
     begin
         get_stringconst:='';
-        p:=expr;
+        p:=comp_expr(true);
         do_firstpass(p);
         if p^.treetype<>stringconstn then
             if (p^.treetype=ordconstn) and
@@ -1679,7 +1681,12 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.11  1998-05-04 11:22:26  florian
+  Revision 1.12  1998-05-05 12:05:42  florian
+    * problems with properties fixed
+    * crash fixed:  i:=l when i and l are undefined, was a problem with
+      implementation of private/protected
+
+  Revision 1.11  1998/05/04 11:22:26  florian
     * problem with DOM solved: it crashes when accessing a property in a method
 
   Revision 1.10  1998/05/01 16:38:45  florian
