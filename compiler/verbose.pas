@@ -243,8 +243,16 @@ begin
   if not(msg=nil) then
    dispose(msg,Done);
   msg:=new(pmessage,InitExtern(fn,ord(endmsgconst)));
+{$IFDEF TP}
+  if msg=nil then
+    begin
+        writeln('Fatal: Cannot find error message file.');
+        halt(3);
+    end;
+{$ELSE}
   if msg=nil then
    msg:=new(pmessage,Init(@msgtxt,ord(endmsgconst)));
+{$ENDIF TP}
 end;
 
 
@@ -508,7 +516,10 @@ end.
 
 {
   $Log$
-  Revision 1.48  2000-03-01 22:29:18  peter
+  Revision 1.49  2000-03-12 08:24:45  daniel
+    * Made check for message file TP compilable.
+
+  Revision 1.48  2000/03/01 22:29:18  peter
     * message files are check for amount of msgs found. If not correct a
       line is written to stdout and switched to internal messages
 
