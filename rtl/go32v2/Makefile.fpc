@@ -9,7 +9,7 @@ units=$(SYSTEMUNIT) objpas strings \
       dos crt objects printer graph \
       sysutils math typinfo \
       cpu mmx getopts heaptrc lineinfo \
-      msmouse varutils
+      msmouse charset varutils
 rst=math varutils
 
 [require]
@@ -172,6 +172,7 @@ heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMPPU)
 
 lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMPPU)
 
+charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMPPU)
 
 #
 # Other system-dependent RTL Units
