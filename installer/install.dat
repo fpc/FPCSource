@@ -138,13 +138,13 @@ package=baseos2.zip,~B~asic system for OS/2 (required)
 # OS/2 2
 package=asldos2.zip,GNU ~L~inker and GNU assembler for OS/2 (required)
 # OS/2 3
-#package=ideos2.zip,~I~DE with integrated debugger/compiler (BETA)
+package=ideos2.zip,~I~DE with integrated compiler (BETA - no debugger)
 # OS/2 4
 package=utilos2.zip,~E~xtra Utilities
 # OS/2 5
 package=makeos2.zip,GNU ~U~tilities (needed for Makefile usage)
 # OS/2 6
-#package=gdbos2.zip,GNU ~D~ebugger for EMX and PMGDB front-end
+package=gdbos2.zip,GNU ~D~ebugger for EMX and PMGDB front-end
 # OS/2 7
 package=ufclos2.zip,~F~ree Component Library (FCL)
 # OS/2 9
@@ -214,7 +214,7 @@ package=baseemx.zip,~B~asic system for EMX (required)
 # EMX 2
 package=asldemx.zip,GNU ~L~inker and GNU assembler for EMX (required)
 # EMX 3
-#package=ideemx.zip,~I~DE with integrated debugger/compiler (BETA)
+package=ideemx.zip,~I~DE with integrated compiler (BETA - no debugger)
 # EMX 4
 package=utilemx.zip,~E~xtra Utilities
 # EMX 5
