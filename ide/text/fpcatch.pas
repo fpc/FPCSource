@@ -16,53 +16,78 @@
 Unit fpcatch;
 interface
 
+{$i globdir.inc}
+
 {$ifdef linux}
-{$define has_signal}
 uses
   linux;
 {$endif}
 {$ifdef go32v2}
-{$define has_signal}
 uses
   dpmiexcp;
 {$endif}
 
-{$ifdef has_signal}
+{$ifdef HasSignal}
 Var
   NewSignal,OldSigSegm,OldSigInt : SignalHandler;
 {$endif}
 
+Const
+  CtrlCPressed : Boolean = false;
 
 Implementation
 
 uses
+{$ifdef FPC}
+  keyboard,
+  drivers,
+{$endif FPC}
   app,commands,msgbox,
   fpide,fpviews;
 
 
-{$ifdef has_signal}
+{$ifdef HasSignal}
 {$ifdef linux}
 Procedure CatchSignal(Sig : Integer);cdecl;
 {$else}
 Function CatchSignal(Sig : longint):longint;
 {$endif}
-var CanQuit: boolean;
+var MustQuit: boolean;
 begin
   case Sig of
    SIGSEGV : begin
                if Assigned(Application) then IDEApp.Done;
                Writeln('Internal Error caught');
+{$ifndef DEBUG}
                Halt;
+{$else DEBUG}
+               RunError(216);
+{$endif DEBUG}
              end;
     SIGINT : begin
-               if Assigned(Application) then
-                 CanQuit:=MessageBox(#3'Do You really want to quit?',nil,mferror+mfyesbutton+mfnobutton)=cmYes
+               IF NOT CtrlCPressed and Assigned(Application) then
+                 begin
+                   MustQuit:=false;
+{$ifdef FPC}
+                   CtrlCPressed:=true;
+                   Keyboard.PutKeyEvent((kbCtrl shl 16) or kbCtrlC);
+{$endif FPC}
+                 end
                else
-                 CanQuit:=true;
-               if CanQuit then
+                 begin
+                   if Assigned(Application) then
+                     MustQuit:=MessageBox(#3'Do You really want to quit?',nil,mferror+mfyesbutton+mfnobutton)=cmYes
+                   else
+                     MustQuit:=true;
+                 end;
+               if MustQuit then
                 begin
                   if Assigned(Application) then IDEApp.Done;
+{$ifndef DEBUG}
                   Halt;
+{$else DEBUG}
+                  RunError(216);
+{$endif DEBUG}
                 end;
              end;
   end;
@@ -70,11 +95,11 @@ begin
   CatchSignal:=0;
 {$endif}
 end;
-{$endif def has_signal}
+{$endif def HasSignal}
 
 
 begin
-{$ifdef has_signal}
+{$ifdef HasSignal}
 {$ifndef TP}
   NewSignal:=SignalHandler(@CatchSignal);
 {$else TP}
@@ -87,7 +112,11 @@ end.
 
 {
   $Log$
-  Revision 1.3  1999-12-20 14:23:16  pierre
+  Revision 1.4  2000-03-07 21:09:20  pierre
+    * Use globdir.inc HasSignal conditional
+    + Uses PutKeyEvent for CtrlC
+
+  Revision 1.3  1999/12/20 14:23:16  pierre
     * MyApp renamed IDEApp
     * TDebugController.ResetDebuggerRows added to
       get resetting of debugger rows
