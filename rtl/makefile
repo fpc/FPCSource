@@ -135,17 +135,6 @@ ifneq (YES,$(NODEBUG))
 OPT:=$(OPT) -g
 endif
 
-# Check logfile.
-ifeq (YES,$(REDIR))
-ifdef REDIRFILE
-override REDIR:= >> $(REDIRFILE)
-else
-override REDIR:= >> log
-endif
-else
-override REDIR:= >> con
-endif
-
 # Check error definitions file.
 ifdef ERRORFILE
 OPT:= $(OPT) -Fr$(ERRORFILE)
@@ -162,6 +151,17 @@ PP:=redir -eo $(PP)
 # set the verbosity to max
 OPT:=$(OPT) -va
 endif
+endif
+
+# Check logfile.
+ifeq (YES,$(REDIR))
+ifdef REDIRFILE
+override REDIR:= >> $(REDIRFILE)
+else
+override REDIR:= >> log
+endif
+else
+override REDIR:= >> con
 endif
 
 # Check copy delete commands.
@@ -194,9 +194,12 @@ OPT:=$(OPT) -d$(CPU)
 export OS_SRC DOS SEP PP OPT REDIR COPY DEL LIBINSTALLDIR INSTALL MKDIR \
        REFPATH CPU PPUMOVE UNITINSTALLDIR
 
-.PHONY: rtl_go32v1 rtl_go32v2 rtl_linux rtl_os2 clean install install_os2 install_linux \
-        install_go3v2 install_go32v1 native diffs diffclean libs libinstall utils\
-        utils_install
+.PHONY: rtl_go32v1 rtl_go32v2 rtl_linux rtl_os2 rtl_win32 \
+        install_go32v1 install_go32v2 install_linux install_os2 install_win32 \
+        go32v1libs go32v2libs linuxlibs os2libs win32libs \
+	clean install native diffs diffclean \
+	libs libinstall \
+	utils utils_install
 
 native: rtl$(OS_SRC)
 
@@ -204,10 +207,11 @@ nativelibs : $(OS_SRC)libs
 
 all: rtlgo32v1 rtlgo32v2 rtllinux rtlos2 rtlwin32
 
-libs: go32v1libs go32v2libs linuxlibs os2libs
+libs: go32v1libs go32v2libs linuxlibs os2libs win32libs
 
 diffs: diffs_rtl diffs_inc diffs_i386 diffs_m68k diffs_dos diffs_cfg \
-	diffs_os2 diffs_go32v1 diffs_go32v2 diffs_linux diffs_template
+	diffs_os2 diffs_go32v1 diffs_go32v2 diffs_linux diffs_win32 \
+	diffs_template
 
 
 rtlgo32v1:
@@ -223,7 +227,7 @@ rtlos2:
 	$(MAKE) -C os2 CFGFILE=../cfg/ppos2.cfg OS_TARGET=os2
 
 rtlwin32:
-	$(MAKE) -C win32 CFGFILE=../cfg/ppw32.cfg OS_TARGET=win32
+	$(MAKE) -C win32 CFGFILE=../cfg/ppwin32.cfg OS_TARGET=win32
 
 go32v1libs:
 	$(MAKE) -C dos/go32v1 CFGFILE=../../cfg/ppdos.cfg OS_TARGET=go32v1 libs
@@ -238,7 +242,7 @@ os2libs:
 	$(MAKE) -C os2 CFGFILE=../cfg/ppos2.cfg OS_TARGET=os2 libs
 
 win32libs:
-	$(MAKE) -C win32 CFGFILE=../cfg/ppw32.cfg OS_TARGET=win32 libs
+	$(MAKE) -C win32 CFGFILE=../cfg/ppwin32.cfg OS_TARGET=win32 libs
 
 clean:
 	$(MAKE) -C template clean
@@ -262,9 +266,10 @@ diffclean:
 	-$(DEL) *.dif
 
 
-install: install_linux install_go32v1 install_go32v2 install_os2
+install: install_linux install_go32v1 install_go32v2 install_os2 install_win32
 
-libinstall: libinstall_linux libinstall_go32v1 libinstall_go32v2 libinstall_os2
+libinstall: libinstall_linux libinstall_go32v1 libinstall_go32v2 \
+	libinstall_os2 libinstall_win32
 
 native_install: install_$(OS_SRC)
 
@@ -307,6 +312,8 @@ install_linux:
 	$(MAKE) -C linux install
 install_os2:
 	$(MAKE) -C os2 install
+install_win32:
+	$(MAKE) -C win32 install
 
 libinstall_go32v1:
 	$(MAKE) -C dos/go32v1 libinstall
@@ -316,9 +323,15 @@ libinstall_linux:
 	$(MAKE) -C linux libinstall
 libinstall_os2:
 	$(MAKE) -C os2 libinstall
+libinstall_win32:
+	$(MAKE) -C win32 libinstall
 
 utils:
 	$(MAKE) -C utils all
 utils_install:
 	$(MAKE) -C utils install
 
+# $Log$
+# Revision 1.10  1998-09-04 17:32:36  pierre
+#   * REDIR handling corrected
+#
