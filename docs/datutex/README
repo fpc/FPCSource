@@ -43,3 +43,19 @@ ex43.pp contains examples of the PartOfTheDay functions.
 ex44.pp contains examples of the PartOfTheHour functions.
 ex45.pp contains examples of the PartOfTheMinute functions.
 ex46.pp contains an example of the MilliSecondOfTheSecond functions.
+ex47.pp contains an example of the WithinPastYears function.
+ex48.pp contains an example of the WithinPastMonths function.
+ex49.pp contains an example of the WithinPastWeeks function.
+ex50.pp contains an example of the WithinPastDays function.
+ex51.pp contains an example of the WithinPastHours function.
+ex52.pp contains an example of the WithinPastMinutes function.
+ex53.pp contains an example of the WithinPastSeconds function.
+ex54.pp contains an example of the WithinPastMilliSeconds function.
+ex55.pp contains an example of the YearsBetween function.
+ex56.pp contains an example of the MonthsBetween function.
+ex57.pp contains an example of the WeeksBetween function.
+ex58.pp contains an example of the DaysBetween function.
+ex59.pp contains an example of the HoursBetween function.
+ex60.pp contains an example of the MinutesBetween function.
+ex61.pp contains an example of the SecondsBetween function.
+ex62.pp contains an example of the MilliSecondsBetween function.

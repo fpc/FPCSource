@@ -2728,6 +2728,30 @@ HH:MM:SS.000 will return 0.
 <!-- function Visibility: default -->
 <element name="WithinPastYears">
 <short>Check whether two datetimes are only a number of years apart</short>
+<descr>
+<p>
+<var>WithinPastYears</var> compares the timestamps <var>ANow</var> and <var>AThen</var> 
+and returns <var>True</var> if the difference between them is at most
+<var>AYears</var> years apart, or <var>False</var> if they are further
+apart.
+</p>
+<remark>
+Since this function uses the <link id="YearsBetween"/> function to calculate
+the difference in years, this means that fractional years do not count, and
+the fractional part is simply dropped, so for two dates actually 2 and a half
+years apart, the result will also be <var>True</var>
+</remark>
+</descr>
+<seealso>
+<link id="WithinPastMonths"/>
+<link id="WithinPastWeeks"/>
+<link id="WithinPastDays"/>
+<link id="WithinPastHours"/>
+<link id="WithinPastMinutes"/>
+<link id="WithinPastSeconds"/>
+<link id="WithinPastMilliSeconds"/>
+</seealso>
+<example file="datutex/ex47"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -2754,6 +2778,30 @@ HH:MM:SS.000 will return 0.
 <!-- function Visibility: default -->
 <element name="WithinPastMonths">
 <short>Check whether two datetimes are only a number of months apart</short>
+<descr>
+<p>
+<var>WithinPastMonths</var> compares the timestamps <var>ANow</var> and <var>AThen</var> 
+and returns <var>True</var> if the difference between them is at most
+<var>AMonths</var> months apart, or <var>False</var> if they are further
+apart.
+</p>
+<remark>
+Since this function uses the <link id="MonthsBetween"/> function to calculate
+the difference in Months, this means that fractional months do not count, and
+the fractional part is simply dropped, so for two dates actually 2 and a half
+months apart, the result will also be <var>True</var>
+</remark>
+</descr>
+<seealso>
+<link id="WithinPastYears"/>
+<link id="WithinPastWeeks"/>
+<link id="WithinPastDays"/>
+<link id="WithinPastHours"/>
+<link id="WithinPastMinutes"/>
+<link id="WithinPastSeconds"/>
+<link id="WithinPastMilliSeconds"/>
+</seealso>
+<example file="datutex/ex48"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -2780,6 +2828,30 @@ HH:MM:SS.000 will return 0.
 <!-- function Visibility: default -->
 <element name="WithinPastWeeks">
 <short>Check whether two datetimes are only a number of weeks apart</short>
+<descr>
+<p>
+<var>WithinPastWeeks</var> compares the timestamps <var>ANow</var> and <var>AThen</var> 
+and returns <var>True</var> if the difference between them is at most
+<var>AWeeks</var> weeks apart, or <var>False</var> if they are further
+apart.
+</p>
+<remark>
+Since this function uses the <link id="WeeksBetween"/> function to calculate
+the difference in Weeks, this means that fractional Weeks do not count, and
+the fractional part is simply dropped, so for two dates actually 2 and a half
+weeks apart, the result will also be <var>True</var>
+</remark>
+</descr>
+<seealso>
+<link id="WithinPastYears"/>
+<link id="WithinPastMonths"/>
+<link id="WithinPastDays"/>
+<link id="WithinPastHours"/>
+<link id="WithinPastMinutes"/>
+<link id="WithinPastSeconds"/>
+<link id="WithinPastMilliSeconds"/>
+</seealso>
+<example file="datutex/ex49"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -2806,6 +2878,30 @@ HH:MM:SS.000 will return 0.
 <!-- function Visibility: default -->
 <element name="WithinPastDays">
 <short>Check whether two datetimes are only a number of days apart</short>
+<descr>
+<p>
+<var>WithinPastDays</var> compares the timestamps <var>ANow</var> and <var>AThen</var> 
+and returns <var>True</var> if the difference between them is at most
+<var>ADays</var> days apart, or <var>False</var> if they are further
+apart.
+</p>
+<remark>
+Since this function uses the <link id="DaysBetween"/> function to calculate
+the difference in days, this means that fractional days do not count, and
+the fractional part is simply dropped, so for two dates actually 2 and a half
+days apart, the result will also be <var>True</var>
+</remark>
+</descr>
+<seealso>
+<link id="WithinPastYears"/>
+<link id="WithinPastMonths"/>
+<link id="WithinPastWeeks"/>
+<link id="WithinPastHours"/>
+<link id="WithinPastMinutes"/>
+<link id="WithinPastSeconds"/>
+<link id="WithinPastMilliSeconds"/>
+</seealso>
+<example file="datutex/ex50"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -2832,6 +2928,30 @@ HH:MM:SS.000 will return 0.
 <!-- function Visibility: default -->
 <element name="WithinPastHours">
 <short>Check whether two datetimes are only a number of hours apart</short>
+<descr>
+<p>
+<var>WithinPastHours</var> compares the timestamps <var>ANow</var> and <var>AThen</var> 
+and returns <var>True</var> if the difference between them is at most
+<var>AHours</var> hours apart, or <var>False</var> if they are further
+apart.
+</p>
+<remark>
+Since this function uses the <link id="HoursBetween"/> function to calculate
+the difference in Hours, this means that fractional hours do not count, and
+the fractional part is simply dropped, so for two dates actually 2 and a half
+hours apart, the result will also be <var>True</var>
+</remark>
+</descr>
+<seealso>
+<link id="WithinPastYears"/>
+<link id="WithinPastMonths"/>
+<link id="WithinPastWeeks"/>
+<link id="WithinPastDays"/>
+<link id="WithinPastMinutes"/>
+<link id="WithinPastSeconds"/>
+<link id="WithinPastMilliSeconds"/>
+</seealso>
+<example file="datutex/ex51"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -2858,6 +2978,30 @@ HH:MM:SS.000 will return 0.
 <!-- function Visibility: default -->
 <element name="WithinPastMinutes">
 <short>Check whether two datetimes are only a number of minutes apart</short>
+<descr>
+<p>
+<var>WithinPastMinutes</var> compares the timestamps <var>ANow</var> and <var>AThen</var> 
+and returns <var>True</var> if the difference between them is at most
+<var>AMinutes</var> minutes apart, or <var>False</var> if they are further
+apart.
+</p>
+<remark>
+Since this function uses the <link id="MinutesBetween"/> function to calculate
+the difference in Minutes, this means that fractional minutes do not count, and
+the fractional part is simply dropped, so for two dates actually 2 and a half
+minutes apart, the result will also be <var>True</var>
+</remark>
+</descr>
+<seealso>
+<link id="WithinPastYears"/>
+<link id="WithinPastMonths"/>
+<link id="WithinPastWeeks"/>
+<link id="WithinPastDays"/>
+<link id="WithinPastHours"/>
+<link id="WithinPastSeconds"/>
+<link id="WithinPastMilliSeconds"/>
+</seealso>
+<example file="datutex/ex52"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -2884,6 +3028,30 @@ HH:MM:SS.000 will return 0.
 <!-- function Visibility: default -->
 <element name="WithinPastSeconds">
 <short>Check whether two datetimes are only a number of seconds apart</short>
+<descr>
+<p>
+<var>WithinPastSeconds</var> compares the timestamps <var>ANow</var> and <var>AThen</var> 
+and returns <var>True</var> if the difference between them is at most
+<var>ASeconds</var> seconds apart, or <var>False</var> if they are further
+apart.
+</p>
+<remark>
+Since this function uses the <link id="SecondsBetween"/> function to calculate
+the difference in seconds, this means that fractional seconds do not count, and
+the fractional part is simply dropped, so for two dates actually 2 and a half
+seconds apart, the result will also be <var>True</var>
+</remark>
+</descr>
+<seealso>
+<link id="WithinPastYears"/>
+<link id="WithinPastMonths"/>
+<link id="WithinPastWeeks"/>
+<link id="WithinPastDays"/>
+<link id="WithinPastHours"/>
+<link id="WithinPastMinutes"/>
+<link id="WithinPastMilliSeconds"/>
+</seealso>
+<example file="datutex/ex53"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -2910,6 +3078,30 @@ HH:MM:SS.000 will return 0.
 <!-- function Visibility: default -->
 <element name="WithinPastMilliSeconds">
 <short>Check whether two datetimes are only a number of milliseconds apart</short>
+<descr>
+<p>
+<var>WithinPastMilliSeconds</var> compares the timestamps <var>ANow</var> and <var>AThen</var> 
+and returns <var>True</var> if the difference between them is at most
+<var>AMilliSeconds</var> milliseconds apart, or <var>False</var> if they are further
+apart.
+</p>
+<remark>
+Since this function uses the <link id="MilliSecondsBetween"/> function to calculate
+the difference in milliseconds, this means that fractional milliseconds do not count, and
+the fractional part is simply dropped, so for two dates actually 2 and a half
+milliseconds apart, the result will also be <var>True</var>
+</remark>
+</descr>
+<seealso>
+<link id="WithinPastYears"/>
+<link id="WithinPastMonths"/>
+<link id="WithinPastWeeks"/>
+<link id="WithinPastDays"/>
+<link id="WithinPastHours"/>
+<link id="WithinPastMinutes"/>
+<link id="WithinPastSeconds"/>
+</seealso>
+<example file="datutex/ex54"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -2936,6 +3128,22 @@ HH:MM:SS.000 will return 0.
 <!-- function Visibility: default -->
 <element name="YearsBetween">
 <short>Calculate the number of whole years between two DateTime values</short>
+<descr>
+<var>YearsBetween</var> returns the number of whole years between
+<var>ANow</var> and <var>AThen</var>. This number is an approximation,
+based on an average number of days of 365.25 per year (average over 4
+years). This means the fractional part of a year is dropped.
+</descr>
+<seealso>
+<link id="MonthsBetween"/>
+<link id="WeeksBetween"/>
+<link id="DaysBetween"/>
+<link id="HoursBetween"/>
+<link id="MinutesBetween"/>
+<link id="SecondsBetween"/>
+<link id="MilliSecondsBetween"/>
+</seealso>
+<example file="datutex/ex55"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -2956,6 +3164,22 @@ HH:MM:SS.000 will return 0.
 <!-- function Visibility: default -->
 <element name="MonthsBetween">
 <short>Calculate the number of whole months between two DateTime values</short>
+<descr>
+<var>MonthsBetween</var> returns the number of whole months between
+<var>ANow</var> and <var>AThen</var>. This number is an approximation,
+based on an average number of days of 30.4375 per month (average over 4
+years). This means the fractional part of a month is dropped.
+</descr>
+<seealso>
+<link id="YearsBetween"/>
+<link id="WeeksBetween"/>
+<link id="DaysBetween"/>
+<link id="HoursBetween"/>
+<link id="MinutesBetween"/>
+<link id="SecondsBetween"/>
+<link id="MilliSecondsBetween"/>
+</seealso>
+<example file="datutex/ex56"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -2976,6 +3200,21 @@ HH:MM:SS.000 will return 0.
 <!-- function Visibility: default -->
 <element name="WeeksBetween">
 <short>Calculate the number of whole weeks between two DateTime values</short>
+<descr>
+<var>WeeksBetween</var> returns the number of whole weeks between
+<var>ANow</var> and <var>AThen</var>. 
+This means the fractional part of a Week is dropped.
+</descr>
+<seealso>
+<link id="YearsBetween"/>
+<link id="MonthsBetween"/>
+<link id="DaysBetween"/>
+<link id="HoursBetween"/>
+<link id="MinutesBetween"/>
+<link id="SecondsBetween"/>
+<link id="MilliSecondsBetween"/>
+</seealso>
+<example file="datutex/ex57"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -2996,6 +3235,21 @@ HH:MM:SS.000 will return 0.
 <!-- function Visibility: default -->
 <element name="DaysBetween">
 <short>Number of whole days between two DateTime values.</short>
+<descr>
+<var>DaysBetween</var> returns the number of whole days between
+<var>ANow</var> and <var>AThen</var>. 
+This means the fractional part of a day (hours, minutes, etc.) is dropped.
+</descr>
+<seealso>
+<link id="YearsBetween"/>
+<link id="MonthsBetween"/>
+<link id="WeeksBetween"/>
+<link id="HoursBetween"/>
+<link id="MinutesBetween"/>
+<link id="SecondsBetween"/>
+<link id="MilliSecondsBetween"/>
+</seealso>
+<example file="datutex/ex58"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -3016,6 +3270,21 @@ HH:MM:SS.000 will return 0.
 <!-- function Visibility: default -->
 <element name="HoursBetween">
 <short>Calculate the number of whole hours between two DateTime values.</short>
+<descr>
+<var>HoursBetween</var> returns the number of whole hours between
+<var>ANow</var> and <var>AThen</var>. 
+This means the fractional part of an hour (minutes,seconds etc.) is dropped.
+</descr>
+<seealso>
+<link id="YearsBetween"/>
+<link id="MonthsBetween"/>
+<link id="WeeksBetween"/>
+<link id="DaysBetween"/>
+<link id="MinutesBetween"/>
+<link id="SecondsBetween"/>
+<link id="MilliSecondsBetween"/>
+</seealso>
+<example file="datutex/ex59"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -3036,6 +3305,21 @@ HH:MM:SS.000 will return 0.
 <!-- function Visibility: default -->
 <element name="MinutesBetween">
 <short>Calculate the number of whole minutes between two DateTime values.</short>
+<descr>
+<var>MinutesBetween</var> returns the number of whole minutes between
+<var>ANow</var> and <var>AThen</var>. 
+This means the fractional part of a minute (seconds, milliseconds etc.) is dropped.
+</descr>
+<seealso>
+<link id="YearsBetween"/>
+<link id="MonthsBetween"/>
+<link id="WeeksBetween"/>
+<link id="DaysBetween"/>
+<link id="HoursBetween"/>
+<link id="SecondsBetween"/>
+<link id="MilliSecondsBetween"/>
+</seealso>
+<example file="datutex/ex60"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -3056,6 +3340,21 @@ HH:MM:SS.000 will return 0.
 <!-- function Visibility: default -->
 <element name="SecondsBetween">
 <short>Calculate the number of whole seconds between two DateTime values.</short>
+<descr>
+<var>SecondsBetween</var> returns the number of whole seconds between
+<var>ANow</var> and <var>AThen</var>. 
+This means the fractional part of a second (milliseconds etc.) is dropped.
+</descr>
+<seealso>
+<link id="YearsBetween"/>
+<link id="MonthsBetween"/>
+<link id="WeeksBetween"/>
+<link id="DaysBetween"/>
+<link id="HoursBetween"/>
+<link id="MinutesBetween"/>
+<link id="MilliSecondsBetween"/>
+</seealso>
+<example file="datutex/ex61"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -3076,6 +3375,21 @@ HH:MM:SS.000 will return 0.
 <!-- function Visibility: default -->
 <element name="MilliSecondsBetween">
 <short>Calculate the number of whole milliseconds between two DateTime values.</short>
+<descr>
+<var>MillisSecondsBetween</var> returns the number of whole milliseconds between
+<var>ANow</var> and <var>AThen</var>. 
+This means a fractional part of a millisecond is dropped.
+</descr>
+<seealso>
+<link id="YearsBetween"/>
+<link id="MonthsBetween"/>
+<link id="WeeksBetween"/>
+<link id="DaysBetween"/>
+<link id="HoursBetween"/>
+<link id="MinutesBetween"/>
+<link id="SecondsBetween"/>
+</seealso>
+<example file="datutex/ex62"/>
 </element>
 
 <!-- function result Visibility: default -->
