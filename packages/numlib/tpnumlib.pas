@@ -22,11 +22,9 @@
 
 library tpnumlib;
 
-uses TYP, DET, DSL, EIG, INT, INV, IOM, MDT, ODE, OMV, ROO, SLE, SPE, SPL,IPF;
+uses  DET, TYP, DSL, EIG, INT, INV, IOM, MDT, ODE, OMV, ROO, SLE, SPE, SPL,IPF;
 
 exports
-
-
  detgen          index      1,
  detgsy          index      2,
  detgpd          index      3,
@@ -166,7 +164,5 @@ exports
  spline          index    124,
  splineparameters index   125;
 
-
 begin
-
 end.

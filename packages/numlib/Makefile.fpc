@@ -1,0 +1,17 @@
+#
+#   Makefile.fpc for NumLib
+#
+
+[package]
+name=numlib
+version=1.0.5
+
+[target]
+units=typ omv dsl mdt det eig eigh1 eigh2 int inv iom ipf ode roo sle spe spl numlib tpnumlib
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+

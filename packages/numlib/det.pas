@@ -44,10 +44,11 @@ procedure detgpb(n, l: ArbInt; var a, f: ArbFloat; var k, term:ArbInt);
 {determinant of a tridiagonal matrix}
 procedure detgtr(n: ArbInt; var l, d, u, f: ArbFloat; var k, term:ArbInt);
 
+{ moved to the TYP unit because of a bug in FPC 1.0.x FK
 var og          : ArbFloat absolute ogx;
     bg          : ArbFloat absolute bgx;
     MaxExp      : ArbInt   absolute maxexpx;
-
+}
 
 implementation
 
@@ -402,7 +403,11 @@ end; {detgtr}
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:34:14  michael
+  Revision 1.2  2002-01-16 14:47:16  florian
+    + Makefile.fpc added
+    * several small changes to get things running with FPC 1.0.x
+
+  Revision 1.1  2000/07/13 06:34:14  michael
   + Initial import
 
   Revision 1.2  2000/01/25 20:21:41  marco
@@ -410,6 +415,4 @@ end.
 
   Revision 1.1  2000/01/24 22:08:57  marco
    * initial version
-
-
 }
