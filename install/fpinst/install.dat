@@ -3,13 +3,15 @@
 #
 # Install file for Go32v2/Win32/OS2
 #
-title=Free Pascal Compiler 1.02
-version=1.02
+title=Free Pascal Compiler 1.0.4
+version=1.0.4
 
 #
 # General
 #
 basepath=c:\pp
+docsub=doc
+helpidx=fpctoc.htm
 
 #
 # Go32v2 packages
@@ -17,7 +19,10 @@ basepath=c:\pp
 pack=Dos/Go~3~2v2
 binsub=\bin\go32v2
 ppc386=ppc386
+targetname=go32v2
 cfgfile=ppc386.cfg
+idecfgfile=fp.cfg
+ideinifile=fp.ini
 filecheck=*go32.zip
 package=basego32.zip,~B~asic system for Go32v2 (required)
 package=asldgo32.zip,GNU ~L~inker and GNU Assembler for Go32v2 (required)
@@ -39,7 +44,10 @@ package=umisgo32.zip,~M~iscellaneous units
 pack=~W~in32
 binsub=\bin\win32
 ppc386=ppc386
+targetname=win32
 cfgfile=ppc386.cfg
+idecfgfile=fp.cfg
+ideinifile=fp.ini
 filecheck=*w32.zip
 package=basew32.zip,~B~asic system for Win32 (required)
 package=asldw32.zip,GNU ~L~inker and GNU Assembler for Win32 (required)
@@ -64,19 +72,23 @@ package=umisw32.zip,~M~iscellaneous units
 pack=OS/2 ~E~MX
 binsub=\bin\os2
 ppc386=ppc386
+targetname=os2
 cfgfile=ppc386.cfg
+idecfgfile=fp.cfg
+ideinifile=fp.ini
 filecheck=*emx.zip
 package=baseemx.zip,~B~asic system for EMX (required)
 package=asldemx.zip,GNU ~L~inker and assembler for EMX (required)
 package=gdbemx.zip,GNU ~D~ebugger for EMX and PMGDB front-end
 package=utilemx.zip,GNU ~U~tilities (for makefiles)
-package=uapiemx.zip,~A~PI units
+
 
 #
 # Common packages
 #
 pack=C~o~mmon
 package=docs-pdf.zip,Documentation (~P~DF)
+package=doc-htm.zip,Documentation (~H~MTL)
 package=demo.zip,D~e~mos
 package=ufclexm.zip,Examples for ~F~CL
 package=uapiexm.zip,Examples for ~A~PI
@@ -94,13 +106,13 @@ package=rtlsrc.zip,~R~un time library sources
 package=fclsrc.zip,~F~ree component library (FCL) sources
 package=apisrc.zip,~A~PI units sources
 package=pkgssrc.zip,~P~ackages units sources
-package=utilssrc.zip,~U~tils sources
+package=utilsrc.zip,~U~tils sources
 package=instsrc.zip,~I~nstaller sources
 package=docsrc.zip,~D~ocumentation sources (LaTeX)
 
 defaultcfg=
 #
-# Example ppc386.cfg for Free Pascal Compiler Version 1.00
+# Example ppc386.cfg for Free Pascal Compiler Version 1.0.2
 #
 
 # ----------------------
@@ -216,13 +228,15 @@ defaultcfg=
 #-Fr$1/msg/errores.msg
 #-Fr$1/msg/errord.msg
 #-Fr$1/msg/errorr.msg
--Fr$1/msg/$L
 
 # path to the gcclib
 #-Fl$1/lib
 
 # searchpath for includefiles
--Fi$1/source/rtl/inc;$1/source/rtl/i386
+# release them only if you know what you do
+# because this could cause a rebuild of the runtime library
+# if you tell them compiler/ide to build the project (FK)
+#-Fi$1/source/rtl/inc;$1/source/rtl/i386
 
 # searchpath for objectfiles
 #-Fo$1/source/rtl/inc;$1/source/rtl/i386
@@ -245,7 +259,7 @@ defaultcfg=
 
 # generate always debugging information for GDB (slows down the compiling
 # process)
-#-g
+#-gl
 
 # always pass an option to the linker
 #-k-s
@@ -275,7 +289,116 @@ defaultcfg=
 # If you don't want so much verbosity use
 #-vw
 
+endcfg
+
+# the IDE configuration files
+
+defaultidecfg=
+#IFDEF NORMAL
+ -T$target
+ -Sg
+ -O1
+ -OG
+ -Op2
+ -Ratt
+ -Fu$1\units\$TARGET
+ -Fu$1\units\$TARGET\*
+ -Fu$1\units\$TARGET\rtl
+ -Cs131072
+ -Ch2097152
+ -g-
+ -p-
+ -b-
+#ENDIF
+
+#IFDEF DEBUG
+ -T$target
+ -Sg
+ -Cr
+ -Ci
+ -Co
+ -OG
+ -Op2
+ -Ratt
+ -Fu$1\units\$TARGET
+ -Fu$1\units\$TARGET\*
+ -Fu$1\units\$TARGET\rtl
+ -Cs131072
+ -Ch2097152
+ -g
+ -p-
+ -b-
+#ENDIF
+
+#IFDEF RELEASE
+ -T$target
+ -Sg
+ -O1
+ -O2
+ -OG
+ -Op2
+ -Ratt
+ -Fu$1\units\$TARGET
+ -Fu$1\units\$TARGET\*
+ -Fu$1\units\$TARGET\rtl
+ -Cs131072
+ -Ch2097152
+ -g-
+ -p-
+ -b-
+#ENDIF
+endcfg
+
+defaultideini=
+[Compile]
+CompileMode=DEBUG
+
+[Help]
+Files="$1\doc\fpctoc.htx"
+
+[Editor]
+DefaultTabSize=8
+DefaultFlags=20599
+DefaultSaveExt=.pas
+DefaultIndentSize=1
+
+[Highlight]
+Exts="*.pas;*.pp;*.inc"
+NeedsTabs="make*;make*.*"
+
+[SourcePath]
+SourceList=""
+
+[Mouse]
+DoubleDelay=8
+ReverseButtons=0
+AltClickAction=6
+CtrlClickAction=1
+
+[Search]
+FindFlags=4
+
+[Breakpoints]
+Count=0
+
+[Watches]
+Count=0
+
+[Preferences]
+DesktopFileFlags=209
+CenterCurrentLineWhileDebugging=1
+AutoSaveFlags=7
+MiscOptions=6
+DesktopLocation=1
+
+[Misc]
+ShowReadme=1
+
+[Files]
+OpenExts="*.pas;*.pp;*.inc"
+
+endcfg
+
 #
 # That's all folks
 #
-endcfg
