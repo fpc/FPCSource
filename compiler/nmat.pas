@@ -88,8 +88,12 @@ interface
          if codegenerror then
            exit;
 
-         if isbinaryoverloaded(p) then
-           exit;
+         t:=self;
+         if isbinaryoverloaded(t) then
+           begin
+              pass_1:=t;
+              exit;
+           end;
 
          { check for division by zero }
          rv:=tordconstnode(right).value;
@@ -219,8 +223,12 @@ interface
          if codegenerror then
            exit;
 
-         if isbinaryoverloaded(self) then
-           exit;
+         t:=self;
+         if isbinaryoverloaded(t) then
+           begin
+              pass_1:=t;
+              exit;
+           end;
 
          if is_constintnode(left) and is_constintnode(right) then
            begin
@@ -520,7 +528,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-09-27 20:25:44  florian
+  Revision 1.6  2000-09-27 21:33:22  florian
+    * finally nadd.pas compiles
+
+  Revision 1.5  2000/09/27 20:25:44  florian
     * more stuff fixed
 
   Revision 1.4  2000/09/24 15:06:19  peter

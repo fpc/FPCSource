@@ -42,7 +42,7 @@ interface
        { specific node types can be created               }
        caddnode : class of taddnode;
 
-    function isbinaryoverloaded(var p : tnode) : boolean;
+    function isbinaryoverloaded(var p : tbinarynode) : boolean;
 
 implementation
 
@@ -58,10 +58,10 @@ implementation
 {$endif newcg}
       htypechk,pass_1,
       cpubase,ncnv,ncal,nld,
-      ncon,nmat
+      ncon,nmat,nset
       ;
 
-    function isbinaryoverloaded(var p : ptree) : boolean;
+    function isbinaryoverloaded(var p : tbinarynode) : boolean;
 
      var
          rd,ld   : pdef;
@@ -126,21 +126,19 @@ implementation
              if tcallnode(t).symtableprocentry=nil then
                begin
                   CGMessage(parser_e_operator_not_overloaded);
-                  putnode(t);
+                  t.free;
                end
              else
                begin
-                  inc(t.symtableprocentry^.refs);
-                  t.left:=gencallparanode(p.left,nil);
-                  t.left:=gencallparanode(p.right,t.left);
+                  inc(tcallnode(t).symtableprocentry^.refs);
+                  tcallnode(t).left:=gencallparanode(p.left,nil);
+                  tcallnode(t).left:=gencallparanode(p.right,tcallnode(t).left);
                   if p.nodetype=unequaln then
                    t:=cnotnode.create(t);
                   p.left:=nil;
                   p.right:=nil;
-                  p.free;
                   firstpass(t);
-                  putnode(p);
-                  p:=t;
+                  p:=tbinarynode(t);
                end;
           end;
       end;
@@ -220,7 +218,8 @@ implementation
          ld:=left.resulttype;
          convdone:=false;
 
-         if isbinaryoverloaded() then
+         hp:=self;
+         if isbinaryoverloaded(hp) then
            begin
               pass_1:=hp;
               exit;
@@ -372,7 +371,7 @@ implementation
            begin
               s1:=tstringconstnode(left).getpcharcopy;
               l1:=tstringconstnode(left).len;
-              s2:=getpcharcopy(right);
+              s2:=tstringconstnode(right).getpcharcopy;
               l2:=tstringconstnode(right).len;
               concatstrings:=true;
            end;
@@ -452,24 +451,26 @@ implementation
                         if (right.nodetype=ordconstn) then
                          begin
                            hp:=left;
-                           b:=(right.value<>0);
+                           b:=(tordconstnode(right).value<>0);
                            ot:=nodetype;
-                           disposetree(right);
-                           putnode(p);
-                           p:=hp;
+                           right.free;
+                           right:=nil;
+                           left:=nil;
+
                            if (not(b) and (ot=equaln)) or
                               (b and (ot=unequaln)) then
                             begin
-                              p:=gensinglenode(notn,p);
-                              firstpass(p);
+                              hp:=cnotnode.create(hp);
+                              firstpass(hp);
                             end;
+                           pass_1:=hp;
                            exit;
                          end;
                         if (left.location.loc in [LOC_JUMP,LOC_FLAGS]) and
                           (left.location.loc in [LOC_JUMP,LOC_FLAGS]) then
-                          calcregisters(p,2,0,0)
+                          calcregisters(self,2,0,0)
                         else
-                          calcregisters(p,1,0,0);
+                        calcregisters(self,1,0,0);
                       end;
                   else
                     CGMessage(type_e_mismatch);
@@ -516,11 +517,11 @@ implementation
                      firstpass(right);
                      { here we call STRCOPY }
                      procinfo^.flags:=procinfo^.flags or pi_do_call;
-                     calcregisters(p,0,0,0);
+                     calcregisters(self,0,0,0);
                      location.loc:=LOC_MEM;
                    end
                  else
-                   calcregisters(p,1,0,0);
+                   calcregisters(self,1,0,0);
                  convdone:=true;
                end
               { is there a 64 bit type ? }
@@ -538,7 +539,7 @@ implementation
                        right:=gentypeconvnode(right,cs64bitdef);
                        firstpass(right);
                     end;
-                  calcregisters(p,2,0,0);
+                  calcregisters(self,2,0,0);
                   convdone:=true;
                end
              else if ((porddef(rd)^.typ=u64bit) or (porddef(ld)^.typ=u64bit)) and
@@ -555,7 +556,7 @@ implementation
                        right:=gentypeconvnode(right,cu64bitdef);
                        firstpass(right);
                     end;
-                  calcregisters(p,2,0,0);
+                  calcregisters(self,2,0,0);
                   convdone:=true;
                end
              else
@@ -618,7 +619,7 @@ implementation
                        firstpass(right);
                      end;
 {$endif cardinalmulfix}
-                 calcregisters(p,1,0,0);
+                 calcregisters(self,1,0,0);
                  { for unsigned mul we need an extra register }
 {                 registers32:=left.registers32+right.registers32; }
                  if nodetype=muln then
@@ -659,7 +660,7 @@ implementation
                 { ranges require normsets }
                 if (psetdef(ld)^.settype=smallset) and
                    (rt=setelementn) and
-                   assigned(right.right) then
+                   assigned(tsetelementnode(right).right) then
                  begin
                    { generate a temporary normset def, it'll be destroyed
                      when the symtable is unloaded }
@@ -676,9 +677,10 @@ implementation
                  begin
                    if (right.nodetype=setconstn) then
                      begin
-                        t:=gensetconstnode(right.value_set,psetdef(left.resulttype));
-                        t^.left:=right.left;
-                        putnode(right);
+                        t:=gensetconstnode(tsetconstnode(right).value_set,psetdef(left.resulttype));
+                        tsetconstnode(t).left:=tsetconstnode(right).left;
+                        tsetconstnode(right).left:=nil;
+                        right.free;
                         right:=t;
                      end
                    else
@@ -688,40 +690,40 @@ implementation
 
                 { do constant evaluation }
                 if (right.nodetype=setconstn) and
-                   not assigned(right.left) and
+                   not assigned(tsetconstnode(right).left) and
                    (left.nodetype=setconstn) and
-                   not assigned(left.left) then
+                   not assigned(tsetconstnode(left).left) then
                   begin
                      new(resultset);
                      case nodetype of
                         addn : begin
                                   for i:=0 to 31 do
                                     resultset^[i]:=
-                                      right.value_set^[i] or left.value_set^[i];
+                                      tsetconstnode(right).value_set^[i] or tsetconstnode(left).value_set^[i];
                                   t:=gensetconstnode(resultset,psetdef(ld));
                                end;
                         muln : begin
                                   for i:=0 to 31 do
                                     resultset^[i]:=
-                                      right.value_set^[i] and left.value_set^[i];
+                                      tsetconstnode(right).value_set^[i] and tsetconstnode(left).value_set^[i];
                                   t:=gensetconstnode(resultset,psetdef(ld));
                                end;
                         subn : begin
                                   for i:=0 to 31 do
                                     resultset^[i]:=
-                                      left.value_set^[i] and not(right.value_set^[i]);
+                                      tsetconstnode(left).value_set^[i] and not(tsetconstnode(right).value_set^[i]);
                                   t:=gensetconstnode(resultset,psetdef(ld));
                                end;
                      symdifn : begin
                                   for i:=0 to 31 do
                                     resultset^[i]:=
-                                      left.value_set^[i] xor right.value_set^[i];
+                                      tsetconstnode(left).value_set^[i] xor tsetconstnode(right).value_set^[i];
                                   t:=gensetconstnode(resultset,psetdef(ld));
                                end;
                     unequaln : begin
                                  b:=true;
                                  for i:=0 to 31 do
-                                  if right.value_set^[i]=left.value_set^[i] then
+                                  if tsetconstnode(right).value_set^[i]=tsetconstnode(left).value_set^[i] then
                                    begin
                                      b:=false;
                                      break;
@@ -731,7 +733,7 @@ implementation
                       equaln : begin
                                  b:=true;
                                  for i:=0 to 31 do
-                                  if right.value_set^[i]<>left.value_set^[i] then
+                                  if tsetconstnode(right).value_set^[i]<>tsetconstnode(left).value_set^[i] then
                                    begin
                                      b:=false;
                                      break;
@@ -742,8 +744,8 @@ implementation
                        lten : Begin
                                 b := true;
                                 For i := 0 to 31 Do
-                                  If (right.value_set^[i] And left.value_set^[i]) <>
-                                      left.value_set^[i] Then
+                                  If (tsetconstnode(right).value_set^[i] And tsetconstnode(left).value_set^[i]) <>
+                                      tsetconstnode(left).value_set^[i] Then
                                     Begin
                                       b := false;
                                       Break
@@ -753,8 +755,8 @@ implementation
                        gten : Begin
                                 b := true;
                                 For i := 0 to 31 Do
-                                  If (left.value_set^[i] And right.value_set^[i]) <>
-                                      right.value_set^[i] Then
+                                  If (tsetconstnode(left).value_set^[i] And tsetconstnode(right).value_set^[i]) <>
+                                      tsetconstnode(right).value_set^[i] Then
                                     Begin
                                       b := false;
                                       Break
@@ -764,9 +766,8 @@ implementation
 {$EndIf NoSetInclusion}
                      end;
                      dispose(resultset);
-                     disposetree(p);
-                     p:=t;
-                     firstpass(p);
+                     firstpass(t);
+                     pass_1:=t;
                      exit;
                   end
                 else
@@ -774,14 +775,14 @@ implementation
                   begin
                      { are we adding set elements ? }
                      if right.nodetype=setelementn then
-                       calcregisters(p,2,0,0)
+                       calcregisters(self,2,0,0)
                      else
-                       calcregisters(p,1,0,0);
+                       calcregisters(self,1,0,0);
                      location.loc:=LOC_REGISTER;
                   end
                  else
                   begin
-                     calcregisters(p,0,0,0);
+                     calcregisters(self,0,0,0);
                      { here we call SET... }
                      procinfo^.flags:=procinfo^.flags or pi_do_call;
                      location.loc:=LOC_MEM;
@@ -805,7 +806,7 @@ implementation
                    firstpass(left);
                  end;
                location.loc:=LOC_REGISTER;
-               calcregisters(p,1,0,0);
+               calcregisters(self,1,0,0);
                convdone:=true;
              end
          else
@@ -874,9 +875,9 @@ implementation
               { here we call STRCONCAT or STRCMP or STRCOPY }
               procinfo^.flags:=procinfo^.flags or pi_do_call;
               if location.loc=LOC_MEM then
-                calcregisters(p,0,0,0)
+                calcregisters(self,0,0,0)
               else
-                calcregisters(p,1,0,0);
+                calcregisters(self,1,0,0);
 {$ifdef newoptimizations2}
 {$ifdef i386}
               { not always necessary, only if it is not a constant char and }
@@ -902,7 +903,7 @@ implementation
                    left:=gentypeconvnode(left,s32fixeddef);
                  firstpass(left);
                  firstpass(right);
-                 calcregisters(p,1,0,0);
+                 calcregisters(self,1,0,0);
                  location.loc:=LOC_REGISTER;
                end
               else
@@ -912,7 +913,7 @@ implementation
                   left:=gentypeconvnode(left,bestrealdef^);
                   firstpass(left);
                   firstpass(right);
-                  calcregisters(p,0,1,0);
+                  calcregisters(self,0,1,0);
                   location.loc:=LOC_FPU;
                 end;
               convdone:=true;
@@ -925,7 +926,7 @@ implementation
               location.loc:=LOC_REGISTER;
               { right:=gentypeconvnode(right,ld); }
               { firstpass(right); }
-              calcregisters(p,1,0,0);
+              calcregisters(self,1,0,0);
               case nodetype of
                  equaln,unequaln :
                    begin
@@ -984,7 +985,7 @@ implementation
                 left:=gentypeconvnode(left,rd);
               firstpass(right);
               firstpass(left);
-              calcregisters(p,1,0,0);
+              calcregisters(self,1,0,0);
               case nodetype of
                  equaln,unequaln : ;
                  else CGMessage(type_e_mismatch);
@@ -1003,7 +1004,7 @@ implementation
                 left:=gentypeconvnode(left,rd);
               firstpass(right);
               firstpass(left);
-              calcregisters(p,1,0,0);
+              calcregisters(self,1,0,0);
               case nodetype of
                  equaln,unequaln : ;
                  else CGMessage(type_e_mismatch);
@@ -1019,7 +1020,7 @@ implementation
               location.loc:=LOC_REGISTER;
               left:=gentypeconvnode(left,rd);
               firstpass(left);
-              calcregisters(p,1,0,0);
+              calcregisters(self,1,0,0);
               case nodetype of
                  equaln,unequaln : ;
                  else CGMessage(type_e_mismatch);
@@ -1034,7 +1035,7 @@ implementation
               location.loc:=LOC_REGISTER;
               right:=gentypeconvnode(right,ld);
               firstpass(right);
-              calcregisters(p,1,0,0);
+              calcregisters(self,1,0,0);
               case nodetype of
                  equaln,unequaln : ;
                  else CGMessage(type_e_mismatch);
@@ -1047,7 +1048,7 @@ implementation
             begin
               left:=gentypeconvnode(left,rd);
               firstpass(left);
-              calcregisters(p,1,0,0);
+              calcregisters(self,1,0,0);
               case nodetype of
                  equaln,unequaln : ;
                  else CGMessage(type_e_mismatch);
@@ -1060,7 +1061,7 @@ implementation
             begin
               right:=gentypeconvnode(right,ld);
               firstpass(right);
-              calcregisters(p,1,0,0);
+              calcregisters(self,1,0,0);
               case nodetype of
                 equaln,unequaln : ;
               else
@@ -1074,7 +1075,7 @@ implementation
            if ((ld^.deftype=procvardef) and (rt=niln)) or
               ((rd^.deftype=procvardef) and (lt=niln)) then
             begin
-              calcregisters(p,1,0,0);
+              calcregisters(self,1,0,0);
               location.loc:=LOC_REGISTER;
               case nodetype of
                  equaln,unequaln : ;
@@ -1123,7 +1124,7 @@ implementation
               location.loc:=LOC_REGISTER;
               left:=gentypeconvnode(left,s32bitdef);
               firstpass(left);
-              calcregisters(p,1,0,0);
+              calcregisters(self,1,0,0);
               if nodetype=addn then
                 begin
                   if not(cs_extsyntax in aktmoduleswitches) or
@@ -1134,7 +1135,7 @@ implementation
                      (rd^.deftype=pointerdef) and
                      (ppointerdef(rd)^.pointertype.def^.size>1) then
                    begin
-                     left:=gennode(muln,left,genordinalconstnode(ppointerdef(rd)^.pointertype.def^.size,s32bitdef));
+                     left:=caddnode.create(muln,left,genordinalconstnode(ppointerdef(rd)^.pointertype.def^.size,s32bitdef));
                      firstpass(left);
                    end;
                 end
@@ -1156,7 +1157,7 @@ implementation
               location.loc:=LOC_REGISTER;
               right:=gentypeconvnode(right,s32bitdef);
               firstpass(right);
-              calcregisters(p,1,0,0);
+              calcregisters(self,1,0,0);
               case nodetype of
                 addn,subn : begin
                               if not(cs_extsyntax in aktmoduleswitches) or
@@ -1167,7 +1168,7 @@ implementation
                                  (ld^.deftype=pointerdef) and
                                  (ppointerdef(ld)^.pointertype.def^.size>1) then
                                begin
-                                 right:=gennode(muln,right,
+                                 right:=caddnode.create(muln,right,
                                    genordinalconstnode(ppointerdef(ld)^.pointertype.def^.size,s32bitdef));
                                  firstpass(right);
                                end;
@@ -1181,7 +1182,7 @@ implementation
 
            if (rd^.deftype=procvardef) and (ld^.deftype=procvardef) and is_equal(rd,ld) then
             begin
-              calcregisters(p,1,0,0);
+              calcregisters(self,1,0,0);
               location.loc:=LOC_REGISTER;
               case nodetype of
                  equaln,unequaln : ;
@@ -1199,7 +1200,7 @@ implementation
                    right:=gentypeconvnode(right,ld);
                    firstpass(right);
                 end;
-              calcregisters(p,1,0,0);
+              calcregisters(self,1,0,0);
               case nodetype of
                  equaln,unequaln,
                  ltn,lten,gtn,gten : ;
@@ -1224,9 +1225,9 @@ implementation
                    if ((left.location.loc<>LOC_FPU) or
                        (right.location.loc<>LOC_FPU)) and
                        (left.registers32=right.registers32) then
-                     calcregisters(p,1,1,0)
+                     calcregisters(self,1,1,0)
                    else
-                     calcregisters(p,0,1,0);
+                     calcregisters(self,0,1,0);
                    location.loc:=LOC_FPU;
                 end
               else
@@ -1235,7 +1236,7 @@ implementation
                    left:=gentypeconvnode(left,s32bitdef);
                    firstpass(left);
                    firstpass(right);
-                   calcregisters(p,1,0,0);
+                   calcregisters(self,1,0,0);
                    location.loc:=LOC_REGISTER;
                 end;
            end;
@@ -1315,7 +1316,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2000-09-27 20:25:44  florian
+  Revision 1.9  2000-09-27 21:33:22  florian
+    * finally nadd.pas compiles
+
+  Revision 1.8  2000/09/27 20:25:44  florian
     * more stuff fixed
 
   Revision 1.7  2000/09/27 18:14:31  florian

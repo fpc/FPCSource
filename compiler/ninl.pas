@@ -51,7 +51,7 @@ implementation
       globtype,
       symconst,symtable,aasm,types,
       htypechk,pass_1,
-      ncal,ncon,ncnv,nadd,
+      ncal,ncon,ncnv,nadd,nld,
       cpubase
 {$ifdef newcg}
       ,cgbase
@@ -190,7 +190,7 @@ implementation
          if assigned(left) then
            begin
               if left.nodetype=callparan then
-                firstcallparan(left,nil,false)
+                tcallparanode(left).firstcallparan(nil,false)
               else
                 firstpass(left);
               left_right_max;
@@ -198,7 +198,7 @@ implementation
            end;
          inc(parsing_para_level);
          { handle intern constant functions in separate case }
-         if inlineconst then
+         if nf_inlineconst in flags then
           begin
             hp:=nil;
             { no parameters? }
@@ -390,7 +390,7 @@ implementation
              end;
             disposetree(p);
             if hp=nil then
-             hp:=genzeronode(errorn);
+             hp:=tnode.create(errorn);
             firstpass(hp);
             p:=hp;
           end
@@ -455,7 +455,7 @@ implementation
                                      genordinalconstnode(1,s32bitdef));
                     if (left.resulttype^.deftype=arraydef) and
                        (parraydef(left.resulttype)^.elesize<>1) then
-                      hp:=gennode(muln,hp,genordinalconstnode(parraydef(left.resulttype)^.elesize,s32bitdef));
+                      hp:=caddnode.create(muln,hp,genordinalconstnode(parraydef(left.resulttype)^.elesize,s32bitdef));
                     firstpass(hp);
                   end;
                  if hp.registers32<1 then
@@ -546,24 +546,24 @@ implementation
 
              in_chr_byte:
                begin
-                  set_varstate(left,true);
+                  left.set_varstate(true);
                   hp:=gentypeconvnode(left,cchardef);
-                  putnode(p);
-                  p:=hp;
-                  explizit:=true;
-                  firstpass(p);
+                  left:=nil;
+                  include(hp.flags,nf_explizit);
+                  firstpass(hp);
+                  pass_1:=hp;
                end;
 
              in_length_string:
                begin
-                  set_varstate(left,true);
+                  left.set_varstate(true);
                   if is_ansistring(left.resulttype) then
                     resulttype:=s32bitdef
                   else
                     resulttype:=u8bitdef;
                   { we don't need string conversations here }
                   if (left.nodetype=typeconvn) and
-                     (left.left.resulttype^.deftype=stringdef) then
+                     (ttypeconvnode(left).left.resulttype^.deftype=stringdef) then
                     begin
                        hp:=left.left;
                        putnode(left);
@@ -578,18 +578,16 @@ implementation
                   { evaluates length of constant strings direct }
                   if (left.nodetype=stringconstn) then
                     begin
-                       hp:=genordinalconstnode(left.length,s32bitdef);
-                       disposetree(p);
+                       hp:=genordinalconstnode(tstringconstnode(left).len,s32bitdef);
                        firstpass(hp);
-                       p:=hp;
+                       pass_1:=hp;
                     end
                   { length of char is one allways }
                   else if is_constcharnode(left) then
                     begin
                        hp:=genordinalconstnode(1,s32bitdef);
-                       disposetree(p);
                        firstpass(hp);
-                       p:=hp;
+                       pass_1:=hp;
                     end;
                end;
 
@@ -602,14 +600,14 @@ implementation
 
              in_assigned_x:
                begin
-                  set_varstate(left,true);
+                  left.set_varstate(true);
                   resulttype:=booldef;
                   location.loc:=LOC_FLAGS;
                end;
 
              in_ofs_x,
              in_seg_x :
-               set_varstate(left,false);
+               left.set_varstate(false);
              in_pred_x,
              in_succ_x:
                begin
@@ -625,7 +623,7 @@ implementation
                          registers32:=1;
                     end;
                   location.loc:=LOC_REGISTER;
-                  set_varstate(left,true);
+                  left.set_varstate(true);
                   if not is_ordinal(resulttype) then
                     CGMessage(type_e_ordinal_expr_expected)
                   else
@@ -637,12 +635,11 @@ implementation
                         if left.nodetype=ordconstn then
                          begin
                            if inlinenumber=in_succ_x then
-                             hp:=genordinalconstnode(left.value+1,left.resulttype)
+                             hp:=genordinalconstnode(tordconstnode(left).value+1,left.resulttype)
                            else
-                             hp:=genordinalconstnode(left.value-1,left.resulttype);
-                           disposetree(p);
+                             hp:=genordinalconstnode(tordconstnode(left).value-1,left.resulttype);
                            firstpass(hp);
-                           p:=hp;
+                           pass_1:=hp;
                          end;
                     end;
                end;
@@ -653,8 +650,8 @@ implementation
                  resulttype:=voiddef;
                  if assigned(left) then
                    begin
-                      firstcallparan(left,nil,true);
-                      set_varstate(left,true);
+                      tcallparanode(left).firstcallparan(nil,true);
+                      left.set_varstate(true);
                       if codegenerror then
                        exit;
                       { first param must be var }
@@ -1003,7 +1000,7 @@ implementation
                              else
                                begin
                                  firstpass(hpp.left);
-                                 set_varstate(hpp.left,true);
+                                 hpp.left.set_varstate(true);
                                  hpp.left:=gentypeconvnode(hpp.left,s32bitdef);
                                end;
                            end
@@ -1015,7 +1012,7 @@ implementation
                   { pass all parameters again for the typeconversions }
                   if codegenerror then
                     exit;
-                  firstcallparan(left,nil,true);
+                  tcallparanode(left).firstcallparan(nil,true);
                   { calc registers }
                   left_right_max(p);
                end;
@@ -1361,6 +1358,9 @@ implementation
            { generate an error if no resulttype is set }
            if not assigned(resulttype) then
              resulttype:=generrordef;
+           { ... also if the node will be replaced }
+           if not assigned(pass_1.resulttype) then
+             pass_1.resulttype:=generrordef;
          dec(parsing_para_level);
        end;
 {$ifdef fpc}
@@ -1372,7 +1372,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-09-27 20:25:44  florian
+  Revision 1.3  2000-09-27 21:33:22  florian
+    * finally nadd.pas compiles
+
+  Revision 1.2  2000/09/27 20:25:44  florian
     * more stuff fixed
 
   Revision 1.1  2000/09/26 14:59:34  florian
