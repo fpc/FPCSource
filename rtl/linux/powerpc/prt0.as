@@ -55,9 +55,12 @@ END(_start)
 	.globl	__data_start
 __data_start:
 weak_alias (__data_start, data_start)
-/* 
+/*
   $Log$
-  Revision 1.1  2002-07-26 16:57:40  florian
+  Revision 1.2  2002-07-26 17:09:44  florian
+    * log fixed
+
+  Revision 1.1  2002/07/26 16:57:40  florian
     + initial version, plain copy from glibc/sysdeps/powerpc/elf/start.S
- */
+*/
 
