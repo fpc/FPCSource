@@ -87,7 +87,7 @@ Const
 {$ifdef GDB}
   ,ait_stabs, ait_stabn, ait_stab_function_name
 {$endif GDB}
-  ,ait_regalloc, ait_regdealloc
+  ,ait_regalloc,ait_tempalloc
   ];
 
 {the maximum number of things (registers, memory, ...) a single instruction
@@ -756,26 +756,29 @@ Begin
 End;
 
 Function FindRegAlloc(Reg: TRegister; StartPai: Pai): Boolean;
-{Returns true if a ait_regalloc object for Reg is found in the block of Pai's
+{Returns true if a ait_alloc object for Reg is found in the block of Pai's
  starting with StartPai and ending with the next "real" instruction}
-Var TmpResult: Boolean;
 Begin
-  TmpResult := False;
+  FindRegAlloc:=False;
   Repeat
     While Assigned(StartPai) And
-          ((StartPai^.typ in (SkipInstr - [ait_RegAlloc])) Or
+          ((StartPai^.typ in (SkipInstr - [ait_regAlloc])) Or
            ((StartPai^.typ = ait_label) and
             Not(Pai_Label(StartPai)^.l^.Is_Used))) Do
       StartPai := Pai(StartPai^.Next);
     If Assigned(StartPai) And
-       (StartPai^.typ = ait_RegAlloc) Then
+       (StartPai^.typ = ait_regAlloc) and (PairegAlloc(StartPai)^.allocation) Then
       Begin
-        TmpResult := (PaiRegAlloc(StartPai)^.Reg = Reg);
+        if PairegAlloc(StartPai)^.Reg = Reg then
+         begin
+           FindRegAlloc:=true;
+           exit;
+         end;
         StartPai := Pai(StartPai^.Next);
-      End;
-  Until Not(Assigned(StartPai)) Or
-        Not(StartPai^.typ in SkipInstr) or TmpResult;
-  FindRegAlloc := TmpResult;
+      End
+    else
+      exit;
+  Until false;
 End;
 
 Procedure BuildLabelTableAndFixRegAlloc(AsmL: PAasmOutput; Var LabelTable: PLabelTable; LowLabel: Longint;
@@ -802,45 +805,48 @@ Begin
                   ait_Label:
                     If Pai_Label(p)^.l^.is_used Then
                       LabelTable^[Pai_Label(p)^.l^.nb-LowLabel].PaiObj := p;
-                  ait_RegAlloc:
-                    Begin
-                      If Not(PaiRegAlloc(p)^.Reg in UsedRegs) Then
-                        UsedRegs := UsedRegs + [PaiRegAlloc(p)^.Reg]
-                      Else
+                  ait_regAlloc:
+                     begin
+                       if PairegAlloc(p)^.Allocation then
                         Begin
+                          If Not(PaiRegAlloc(p)^.Reg in UsedRegs) Then
+                            UsedRegs := UsedRegs + [PaiRegAlloc(p)^.Reg]
+                          Else
+                            Begin
+                              hp1 := p;
+                              hp2 := nil;
+                              While GetLastInstruction(hp1, hp1) And
+                                    Not(RegInInstruction(PaiRegAlloc(p)^.Reg, hp1)) Do
+                                hp2 := hp1;
+                             If hp2 <> nil Then
+                               Begin
+                                 hp1 := New(PaiRegAlloc, DeAlloc(PaiRegAlloc(p)^.Reg));
+                                 InsertLLItem(AsmL, Pai(hp2^.previous), hp2, hp1);
+                               End;
+                            End;
+                        End
+                       else
+                        Begin
+                          UsedRegs := UsedRegs - [PaiRegAlloc(p)^.Reg];
                           hp1 := p;
                           hp2 := nil;
-                          While GetLastInstruction(hp1, hp1) And
-                                Not(RegInInstruction(PaiRegAlloc(p)^.Reg, hp1)) Do
+                          While Not(FindRegAlloc(PaiRegAlloc(p)^.Reg, Pai(hp1^.Next))) And
+                                GetNextInstruction(hp1, hp1) And
+                                RegInInstruction(PaiRegAlloc(p)^.Reg, hp1) Do
                             hp2 := hp1;
-                         If hp2 <> nil Then
-                           Begin
-                             hp1 := New(PaiRegDeAlloc, Init(PaiRegAlloc(p)^.Reg));
-                             InsertLLItem(AsmL, Pai(hp2^.previous), hp2, hp1);
-                           End;
+                          If hp2 <> nil Then
+                            Begin
+                              hp1 := Pai(p^.previous);
+                              AsmL^.Remove(p);
+                              InsertLLItem(AsmL, hp2, Pai(hp2^.Next), p);
+                              p := hp1;
+                            End;
                         End;
-                    End;
-                  ait_RegDeAlloc:
-                    Begin
-                      UsedRegs := UsedRegs - [PaiRegDeAlloc(p)^.Reg];
-                      hp1 := p;
-                      hp2 := nil;
-                      While Not(FindRegAlloc(PaiRegDeAlloc(p)^.Reg, Pai(hp1^.Next))) And
-                            GetNextInstruction(hp1, hp1) And
-                            RegInInstruction(PaiRegDeAlloc(p)^.Reg, hp1) Do
-                        hp2 := hp1;
-                      If hp2 <> nil Then
-                        Begin
-                          hp1 := Pai(p^.previous);
-                          AsmL^.Remove(p);
-                          InsertLLItem(AsmL, hp2, Pai(hp2^.Next), p);
-                          p := hp1;
-                        End;
-                    End;
+                     end;
                 End;
                 P := Pai(p^.Next);
                 While Assigned(p) And
-                      (p^.typ in (SkipInstr - [ait_regdealloc,ait_regalloc])) Do
+                      (p^.typ in (SkipInstr - [ait_regalloc])) Do
                   P := Pai(P^.Next);
               End;
 {$IfDef TP}
@@ -1240,17 +1246,17 @@ Procedure UpdateUsedRegs(Var UsedRegs: TRegSet; p: Pai);
 Begin
   Repeat
     While Assigned(p) And
-          ((p^.typ in (SkipInstr - [ait_RegAlloc, ait_RegDealloc])) or
+          ((p^.typ in (SkipInstr - [ait_RegAlloc])) or
            ((p^.typ = ait_label) And
             Not(Pai_Label(p)^.l^.is_used))) Do
          p := Pai(p^.next);
     While Assigned(p) And
-          (p^.typ in [ait_RegAlloc, ait_RegDealloc]) Do
+          (p^.typ=ait_RegAlloc) Do
       Begin
-        Case p^.typ Of
-          ait_RegAlloc: UsedRegs := UsedRegs + [PaiRegAlloc(p)^.Reg];
-          ait_regdealloc: UsedRegs := UsedRegs - [PaiRegDeAlloc(p)^.Reg];
-        End;
+        if pairegalloc(p)^.allocation then
+          UsedRegs := UsedRegs + [PaiRegAlloc(p)^.Reg]
+        else
+          UsedRegs := UsedRegs - [PaiRegAlloc(p)^.Reg];
         p := pai(p^.next);
       End;
   Until Not(Assigned(p)) Or
@@ -2227,7 +2233,11 @@ End.
 
 {
  $Log$
- Revision 1.39  1999-02-26 00:48:18  peter
+ Revision 1.40  1999-04-16 11:49:41  peter
+   + tempalloc
+   + -at to show temp alloc info in .s file
+
+ Revision 1.39  1999/02/26 00:48:18  peter
    * assembler writers fixed for ag386bin
 
  Revision 1.38  1999/02/25 21:02:34  peter

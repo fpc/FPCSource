@@ -214,7 +214,7 @@ implementation
               unused:=unused+[r];
               inc(usablereg32);
            end;
-         exprasmlist^.concat(new(pairegdealloc,init(r)));
+         exprasmlist^.concat(new(pairegalloc,dealloc(r)));
       end;
 
 {$ifdef SUPPORT_MMX}
@@ -287,28 +287,28 @@ implementation
               unused:=unused-[R_EAX];
               usedinproc:=usedinproc or ($80 shr byte(R_EAX));
               getregister32:=R_EAX;
-              exprasmlist^.concat(new(pairegalloc,init(R_EAX)));
+              exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
            end
          else if R_EDX in unused then
            begin
               unused:=unused-[R_EDX];
               usedinproc:=usedinproc or ($80 shr byte(R_EDX));
               getregister32:=R_EDX;
-              exprasmlist^.concat(new(pairegalloc,init(R_EDX)));
+              exprasmlist^.concat(new(pairegalloc,alloc(R_EDX)));
            end
          else if R_EBX in unused then
            begin
               unused:=unused-[R_EBX];
               usedinproc:=usedinproc or ($80 shr byte(R_EBX));
               getregister32:=R_EBX;
-              exprasmlist^.concat(new(pairegalloc,init(R_EBX)));
+              exprasmlist^.concat(new(pairegalloc,alloc(R_EBX)));
            end
          else if R_ECX in unused then
            begin
               unused:=unused-[R_ECX];
               usedinproc:=usedinproc or ($80 shr byte(R_ECX));
               getregister32:=R_ECX;
-              exprasmlist^.concat(new(pairegalloc,init(R_ECX)));
+              exprasmlist^.concat(new(pairegalloc,alloc(R_ECX)));
            end
          else internalerror(10);
       end;
@@ -322,7 +322,7 @@ implementation
               unused:=unused-[r];
               usedinproc:=usedinproc or ($80 shr byte(r));
               getexplicitregister32:=R_ECX;
-              exprasmlist^.concat(new(pairegalloc,init(r)));
+              exprasmlist^.concat(new(pairegalloc,alloc(r)));
               getexplicitregister32:=r;
            end
          else
@@ -373,7 +373,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  1999-02-25 21:02:55  peter
+  Revision 1.21  1999-04-16 11:49:47  peter
+    + tempalloc
+    + -at to show temp alloc info in .s file
+
+  Revision 1.20  1999/02/25 21:02:55  peter
     * ag386bin updates
     + coff writer
 

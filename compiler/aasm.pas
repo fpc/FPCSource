@@ -64,8 +64,8 @@ unit aasm;
           ait_force_line,
           ait_stab_function_name,
           ait_cut, { used to split into tiny assembler files }
-          ait_regalloc,
-          ait_regdealloc,
+          ait_regalloc, { for register,temp allocation debugging }
+          ait_tempalloc,
           ait_marker,
           { never used, makes insertation of new ait_ easier to type }
           ait_dummy);
@@ -1013,7 +1013,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.38  1999-04-14 09:14:44  peter
+  Revision 1.39  1999-04-16 11:49:36  peter
+    + tempalloc
+    + -at to show temp alloc info in .s file
+
+  Revision 1.38  1999/04/14 09:14:44  peter
     * first things to store the symbol/def number in the ppu
 
   Revision 1.37  1999/03/10 13:25:42  pierre

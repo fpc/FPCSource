@@ -1,4 +1,4 @@
-{                                                   
+{
     $Id$
     Copyright (c) 1995-98 by Florian Klaempfl
 
@@ -381,21 +381,23 @@ unit i386;
        end;
 
        pairegalloc = ^tairegalloc;
-
        tairegalloc = object(tai)
-          reg : tregister;
-          constructor init(r : tregister);
+          allocation : boolean;
+          reg        : tregister;
+          constructor alloc(r : tregister);
+          constructor dealloc(r : tregister);
        end;
 
-       pairegdealloc = ^tairegdealloc;
-
-       tairegdealloc = object(tai)
-          reg : tregister;
-          constructor init(r : tregister);
+       paitempalloc = ^taitempalloc;
+       taitempalloc = object(tai)
+          allocation : boolean;
+          temppos,
+          tempsize   : longint;
+          constructor alloc(pos,size:longint);
+          constructor dealloc(pos,size:longint);
        end;
 
        pai386 = ^tai386;
-
        tai386 = object(tai)
           opcode : tasmop;
           opsize:topsize;
@@ -1399,21 +1401,44 @@ unit i386;
                        objects for register de/allocation
  ****************************************************************************}
 
-    constructor tairegalloc.init(r : tregister);
 
+    constructor tairegalloc.alloc(r : tregister);
       begin
-         inherited init;
-         typ:=ait_regalloc;
-         reg:=r;
+        inherited init;
+        typ:=ait_regalloc;
+        allocation:=true;
+        reg:=r;
       end;
 
-    constructor tairegdealloc.init(r : tregister);
 
+    constructor tairegalloc.dealloc(r : tregister);
       begin
-         inherited init;
-         typ:=ait_regdealloc;
-         reg:=r;
+        inherited init;
+        typ:=ait_regalloc;
+        allocation:=false;
+        reg:=r;
       end;
+
+
+    constructor taitempalloc.alloc(pos,size:longint);
+      begin
+        inherited init;
+        typ:=ait_tempalloc;
+        allocation:=true;
+        temppos:=pos;
+        tempsize:=size;
+      end;
+
+
+    constructor taitempalloc.dealloc(pos,size:longint);
+      begin
+        inherited init;
+        typ:=ait_tempalloc;
+        allocation:=false;
+        temppos:=pos;
+        tempsize:=size;
+      end;
+
 
 {****************************************************************************
                              TAI386
@@ -2041,7 +2066,11 @@ Begin
 end.
 {
   $Log$
-  Revision 1.40  1999-04-16 10:00:57  pierre
+  Revision 1.41  1999-04-16 11:49:43  peter
+    + tempalloc
+    + -at to show temp alloc info in .s file
+
+  Revision 1.40  1999/04/16 10:00:57  pierre
     + ifdef USE_OP3 code :
       added all missing op_... constructors for tai386 needed
       for SHRD,SHLD and IMUL code in assembler readers

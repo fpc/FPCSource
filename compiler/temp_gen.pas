@@ -27,7 +27,7 @@ unit temp_gen;
     uses
 {$ifdef i386}
 {$ifdef ag386bin}
-      i386base,
+      i386base,i386asm,
 {$else}
       i386,
 {$endif}
@@ -236,6 +236,7 @@ unit temp_gen;
 {$ifdef EXTDEBUG}
          tl^.posinfo:=aktfilepos;
 {$endif}
+         exprasmlist^.concat(new(paitempalloc,alloc(ofs,size)));
          gettempofsize:=ofs;
       end;
 
@@ -424,7 +425,7 @@ unit temp_gen;
            size:=size+(4-(size mod 4));
          if size = 0 then
            exit;
-
+         exprasmlist^.concat(new(paitempalloc,dealloc(pos,size)));
          if pos<=lastoccupied then
            if pos=lastoccupied then
              begin
@@ -635,7 +636,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  1999-04-14 09:10:46  peter
+  Revision 1.17  1999-04-16 11:49:45  peter
+    + tempalloc
+    + -at to show temp alloc info in .s file
+
+  Revision 1.16  1999/04/14 09:10:46  peter
     * fixed tempansi which set wrong pos in free temp
 
   Revision 1.15  1999/04/09 13:05:45  pierre

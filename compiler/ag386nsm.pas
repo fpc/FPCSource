@@ -402,8 +402,8 @@ unit ag386nsm;
                        AsmWritePChar(pai_asm_comment(hp)^.str);
                        AsmLn;
                      End;
-      ait_regalloc,
-    ait_regdealloc :;
+       ait_regalloc,
+       ait_tempalloc : ;
        ait_section : begin
                        if pai_section(hp)^.sec<>sec_none then
                         begin
@@ -740,7 +740,11 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.26  1999-04-16 10:00:56  pierre
+  Revision 1.27  1999-04-16 11:49:40  peter
+    + tempalloc
+    + -at to show temp alloc info in .s file
+
+  Revision 1.26  1999/04/16 10:00:56  pierre
     + ifdef USE_OP3 code :
       added all missing op_... constructors for tai386 needed
       for SHRD,SHLD and IMUL code in assembler readers
