@@ -184,7 +184,8 @@ begin
     '[',']',
     '(',')':
       Result := drNONE;
-    #$0600..#$06FF:
+    #$0590..#$05FF,      //Hebrew
+    #$0600..#$06FF:      //Arabic
       Result := drRTL;
   else
     Result := drLTR;
