@@ -42,8 +42,8 @@
     function sys_mkdir(const path : pchar; mode: mode_t):cint; cdecl; external name 'mkdir';
     function sys_rmdir(const path : pchar): cint; cdecl; external name 'rmdir';
     function sys_opendir(const dirname : pchar): pdir; cdecl; external name 'opendir';
-    function sys_readdir(dirp : pdir) : pdirent;cdecl; external name 'readdir';
-    function sys_closedir(dirp : pdir): cint; cdecl; external name 'closedir';
+    function sys_readdir(var dirp : dir) : pdirent;cdecl; external name 'readdir';
+    function sys_closedir(var dirp : dir): cint; cdecl; external name 'closedir';
     procedure sys_exit(status : cint); cdecl; external name '_exit';
     function sys_sigaction(sig: cint; var act : sigactionrec; var oact : sigactionrec): cint; cdecl; external name 'sigaction';
     function sys_ftruncate(fd : cint; flength : off_t): cint; cdecl; external name 'ftruncate';
@@ -54,11 +54,10 @@
     function sys_waitpid(pid : pid_t; var stat_loc : cint; options: cint): pid_t; cdecl; external name 'waitpid';
     function sys_access(const pathname : pchar; amode : cint): cint; cdecl; external name 'access';
 
-//    function sys_uname(var name: utsname): cint; cdecl; external name 'uname';
+    function sys_uname(var name: utsname): cint; cdecl; external name 'uname';
 
     function sys_Dup(oldd:cint):cint; cdecl; external name 'dup';
     function sys_Dup2(oldd:cint;newd:cint):cint; cdecl; external name 'dup2';
-
 
 {$else}
 
@@ -507,13 +506,31 @@ begin
   Do_IsDevice:=(sys_ioctl(handle,IOCTL_TCGETS,@data)<>-1);
 end;
 
+Function sys_GetPid:LongInt;   [public, alias : 'FPC_SYSC_GETPID'];
+{
+  Get Process ID.
+}
+
+begin
+ sys_GetPID:=do_syscall(syscall_nr_getpid);
+end;
+
+Function Sys_ReadLink(name,linkname:pchar;maxlen:longint):longint;  [public, alias : 'FPC_SYSC_READLINK'];
+
+begin
+  sys_readlink:=do_syscall(syscall_nr_readlink, longint(name),longint(linkname),maxlen);
+end;
+
 
 
 {$endif}
 
 {
  $Log$
- Revision 1.1  2002-08-19 12:29:11  marco
+ Revision 1.2  2002-08-21 07:03:16  marco
+  * Fixes from Tuesday.
+
+ Revision 1.1  2002/08/19 12:29:11  marco
   * First working POSIX *BSD system unit.
 
 

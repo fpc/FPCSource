@@ -137,9 +137,15 @@ CONST
     
 {$i signal.inc}
 
+// function geterrno:longint; 
+// procedure seterrno(i:longint); 
+
 {
   $Log$
-  Revision 1.2  2002-08-19 12:29:11  marco
+  Revision 1.3  2002-08-21 07:03:16  marco
+   * Fixes from Tuesday.
+
+  Revision 1.2  2002/08/19 12:29:11  marco
    * First working POSIX *BSD system unit.
 
   Revision 1.1  2002/08/03 19:34:19  marco

@@ -26,7 +26,9 @@
  ****************************************************************************
 }
 
-{$I bsdstruct.inc}
+Uses Sysctl;
+
+{$I bsdtypes.inc}
 {$I bsdmacro.inc}
 
 {$ifdef uselibc}
@@ -48,8 +50,8 @@
     function sys_mkdir(const path : pchar; mode: mode_t):cint; cdecl; external name 'mkdir';
     function sys_rmdir(const path : pchar): cint; cdecl; external name 'rmdir';
     function sys_opendir(const dirname : pchar): pdir; cdecl; external name 'opendir';
-    function sys_readdir(dirp : pdir) : pdirent;cdecl; external name 'readdir';
-    function sys_closedir(dirp : pdir): cint; cdecl; external name 'closedir';
+    function sys_readdir(var dirp : dir) : pdirent;cdecl; external name 'readdir';
+    function sys_closedir(var dirp : dir): cint; cdecl; external name 'closedir';
     procedure sys_exit(status : cint); cdecl; external name '_exit';
     function sys_sigaction(sig: cint; var act : sigactionrec; var oact : sigactionrec): cint; cdecl; external name 'sigaction';
     function sys_ftruncate(fd : cint; flength : off_t): cint; cdecl; external name 'ftruncate';
@@ -85,8 +87,8 @@ function sys_chdir(const path : pchar): cint; external name 'FPC_SYSC_CHDIR';
 function sys_mkdir(const path : pchar; mode: mode_t):cint; external name 'FPC_SYSC_MKDIR';
 function sys_rmdir(const path : pchar): cint; external name 'FPC_SYSC_RMDIR';
 function sys_opendir(const dirname : pchar): pdir; external name 'FPC_SYSC_OPENDIR';
-function sys_closedir(dirp : pdir): cint; external name 'FPC_SYSC_CLOSEDIR';
-function sys_readdir(dirp : pdir) : pdirent; external name 'FPC_SYSC_READDIR';
+function sys_closedir(var dirp : dir): cint; external name 'FPC_SYSC_CLOSEDIR';
+function sys_readdir(var dirp : dir) : pdirent; external name 'FPC_SYSC_READDIR';
 procedure sys_exit(status : cint); external name 'FPC_SYSC_EXIT';
 function sys_sigaction(sig: cint; var act : sigactionrec; var oact : sigactionrec): cint;  external name 'FPC_SYSC_SIGACTION';
 function sys_ftruncate(fd : cint; flength : off_t): cint; external name 'FPC_SYSC_FTRUNCATE';
@@ -97,12 +99,21 @@ function sys_waitpid(pid : pid_t; var stat_loc : cint; options: cint): pid_t; ex
 function sys_access(const pathname : pchar; amode : cint): cint;external name 'FPC_SYSC_ACCESS'; 
 function sys_Dup(oldd:cint):cint;  external name 'FPC_SYSC_DUP';
 function sys_Dup2(oldd:cint;newd:cint):cint; external name 'FPC_SYSC_DUP2';
+function geterrno:longint; external name  'FPC_SYS_GETERRNO';
+procedure seterrno (i:longint); external name  'FPC_SYS_SETERRNO';
+
 {$endif}
+
+{$I bsdfuncs.inc}
+
 
 
 {
  $Log$
- Revision 1.3  2002-08-19 12:29:11  marco
+ Revision 1.4  2002-08-21 07:03:16  marco
+  * Fixes from Tuesday.
+
+ Revision 1.3  2002/08/19 12:29:11  marco
   * First working POSIX *BSD system unit.
 
 
