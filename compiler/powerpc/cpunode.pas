@@ -41,7 +41,7 @@ unit cpunode;
 //       nppcflw,
 //       nppcmem,
 //       nppcset,
-//       nppcinl,
+       nppcinl,
 //       nppcopt,
        { this not really a node }
 //       nppcobj,
@@ -52,7 +52,10 @@ unit cpunode;
 end.
 {
   $Log$
-  Revision 1.12  2002-08-10 14:52:52  carl
+  Revision 1.13  2002-08-10 17:15:00  jonas
+    + abs, sqr, sqrt implementations
+
+  Revision 1.12  2002/08/10 14:52:52  carl
     + moved target_cpu_string to cpuinfo
     * renamed asmmode enum.
     * assembler reader has now less ifdef's
