@@ -1,3 +1,25 @@
+%
+%   $Id$
+%   This file is part of the FPC documentation.
+%   Copyright (C) 2001, by Michael Van Canneyt
+%
+%   The FPC documentation is free text; you can redistribute it and/or
+%   modify it under the terms of the GNU Library General Public License as
+%   published by the Free Software Foundation; either version 2 of the
+%   License, or (at your option) any later version.
+%
+%   The FPC Documentation is distributed in the hope that it will be useful,
+%   but WITHOUT ANY WARRANTY; without even the implied warranty of
+%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+%   Library General Public License for more details.
+%
+%   You should have received a copy of the GNU Library General Public
+%   License along with the FPC documentation; see the file COPYING.LIB.  If not,
+%   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+%   Boston, MA 02111-1307, USA.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The Keyboard unit
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -77,19 +99,45 @@ They can be used to check And the following shift-state flags:
   kbCtrl        = 4;
   kbAlt         = 8;
 \end{verbatim}
+The following constant strings are used in the key name functions 
+\seef{FunctionKeyName} and \seef{KeyEventToString}:
+\begin{verbatim}
+SShift       : Array [1..3] of string[5] = ('SHIFT','CTRL','ALT');
+LeftRight   : Array [1..2] of string[5] = ('LEFT','RIGHT');
+UnicodeChar : String = 'Unicode character ';
+SScanCode    : String = 'Key with scancode ';
+SUnknownFunctionKey : String = 'Unknown function key : ';
+SAnd         : String = 'AND';
+SKeyPad      : Array [0..($FF2F-kbdHome)] of string[6] = 
+               ('Home','Up','PgUp','Left',
+                'Middle','Right','End','Down',
+                'PgDn','Insert','Delete','',
+                '','','','');
+\end{verbatim}
+They can be changed to localize the key names when needed.
+
 \subsection{Types}
 The \var{TKeyEvent} type is the base type for all keyboard events:
 \begin{verbatim}
   TKeyEvent = Longint;
 \end{verbatim}
-The structure of a \var{TKeyEvent} is explained in \seet{keyevent}.
+The key stroke is encoded in the 4 bytes of the \var{TKeyEvent} type. 
+The various fields of the key stroke encoding can be obtained by typecasting
+the \var{TKeyEvent} type to the \var{TKeyRecord} type:
+\begin{verbatim}
+  TKeyRecord = packed record
+    KeyCode : Word;
+    ShiftState, Flags : Byte;
+  end;
+\end{verbatim}
+The structure of a \var{TKeyRecord} structure is explained in \seet{keyevent}.
 \begin{FPCltable}{ll}{Structure of TKeyEvent}{keyevent}
-Bytes & Meaning \\ \hline
-2 bytes & Depending on \var{flags} either the physical representation of a key
+Field & Meaning \\ \hline
+KeyCode & Depending on \var{flags} either the physical representation of a key
          (under DOS scancode, ascii code pair), or the translated
            ASCII/unicode character.\\
-1 byte & shift-state when this key was pressed (or shortly after) \\
-1 byte & \var{flags}, determining how to read the first two bytes \\ \hline.
+ShiftState & shift-state when this key was pressed (or shortly after) \\
+Flags & Determine how to interpret \var{KeyCode} \\ \hline.
 \end{FPCltable}
 The shift-state can be checked using the various shift-state constants, 
 and the flags in the last byte can be checked using one of the
@@ -100,13 +148,23 @@ out which one was pressed (Gray+ and Simple+). If it needs to be known which
 was pressed, the untranslated keycodes must be used, but these are system
 dependent. System dependent constants may be defined to cover those, with
 possibily having the same name (but different value).
-\subsection{Variables}
-The following variable contains any pending (i.e. not yet consumed) keyboard
-event:
+
+The \var{TKeyboardDriver} record can be used to install a custom keyboard
+driver with the \seef{SetKeyboardDriver} function:
 \begin{verbatim}
-var
-  PendingKeyEvent : TKeyEvent;
+Type 
+  TKeyboardDriver = Record
+    InitDriver : Procedure;
+    DoneDriver : Procedure;
+    GetKeyEvent : Function : TKeyEvent;
+    PollKeyEvent : Function : TKeyEvent;
+    GetShiftState : Function : Byte;
+    TranslateKeyEvent : Function (KeyEvent: TKeyEvent): TKeyEvent;
+    TranslateKeyEventUniCode: Function (KeyEvent: TKeyEvent): TKeyEvent;
+  end;
 \end{verbatim}
+The various correspond to the different functions of the keyboard unit 
+interface. For more information about this record see \sees{kbddriver}
 
 \section{Functions and Procedures}
 
@@ -114,9 +172,13 @@ var
 \Declaration
 Procedure DoneKeyboard;
 \Description
-\var{DoneKeyboard} de-initializes the keyboard interface. 
-It clears up any allocated memory, or restores the console or terminal 
-the program was running in to its initial state. This function should 
+\var{DoneKeyboard} de-initializes the keyboard interface if the keyboard
+driver is active. If the keyboard driver is not active, the function does
+nothing.
+
+This will cause the keyboard driver to clear up any allocated memory, 
+or restores the console or terminal the program was running in to its 
+initial state before the call to \seep{InitKeyBoard}. This function should 
 be called on program exit. Failing to do so may leave the terminal or
 console window in an unusable state. Its exact action depends on the 
 platform on which the program is running.
@@ -127,6 +189,40 @@ None.
 \end{procedure}
 
 For an example, see most other functions.
+
+\begin{function}{FunctionKeyName}
+\Declaration
+Function FunctionKeyName (KeyCode : Word) : String;
+\Description
+\var{FunctionKeyName} returns a string representation of the function key
+with code \var{KeyCode}. This can be an actual function key, or one of the
+cursor movement keys.
+\Errors
+In case \var{KeyCode} does not contain a function code, the
+\var{SUnknownFunctionKey} string is returned, appended with the
+\var{KeyCode}.
+\SeeAlso
+\seef{ShiftStateToString}
+\seef{KeyEventToString}
+\end{function}
+
+\FPCexample{ex8}
+
+\begin{procedure}{GetKeyboardDriver}
+\Declaration
+Procedure GetKeyboardDriver (Var Driver : TKeyboardDriver);
+\Description
+\var{GetKeyBoardDriver} returns in \var{Driver} the currently active
+keyboard driver. This function can be used to enhance an existing
+keyboarddriver.
+
+For more information on getting and setting the keyboard driver
+\sees{kbddriver}.
+\Errors
+None.
+\SeeAlso
+\seef{SetKeyboardDriver}
+\end{procedure}
 
 \begin{function}{GetKeyEvent}
 \Declaration
@@ -257,16 +353,19 @@ No example available yet.
 \Declaration
 procedure InitKeyboard;
 \Description
-\var{InitKeyboard} initializes the keyboard interface, any 
-additional platform specific parameters should be passed by 
-setting platform-specific global variables.
+\var{InitKeyboard} initializes the keyboard driver. 
+If the driver is already active, it does nothing. When the driver is
+initialized, it will do everything necessary to ensure the functioning of
+the keyboard, including allocating memory, initializing the terminal etc.
 
 This function should be called once, before using any of the
-keyboard functions.
+keyboard functions. When it is called, the \seep{DoneKeyboard} function
+should also be called before exiting the program or changing the keyboard
+driver with \seef{SetKeyboardDriver}.
 \Errors
 None.
 \SeeAlso
-\seep{DoneKeyboard}
+\seep{DoneKeyboard}, \seef{SetKeyboardDriver}
 \end{procedure}
 
 For an example, see most other functions.
@@ -284,6 +383,22 @@ None.
 \end{function}
 
 \FPCexample{ex7}
+
+\begin{function}{KeyEventToString}
+\Declaration
+Function KeyEventToString(KeyEvent : TKeyEvent) : String;
+\Description
+\var{KeyEventToString} translates the key event in \var{KeyEvent} to a
+human-readable description of the pressed key. It will use the constants
+described in the constants section to do so.
+\Errors
+if an unknown key is passed, the scancode is returned, prefixed with the 
+\var{SScanCode} string.
+\SeeAlso
+\seef{FunctionKeyName}, \seef{ShiftStateToString}
+\end{function}
+
+For an example, see most other functions.
 
 \begin{function}{PollKeyEvent}
 \Declaration
@@ -334,6 +449,41 @@ None
 
 \FPCexample{ex5}
 
+\begin{function}{SetKeyboardDriver}
+\Declaration
+Function SetKeyboardDriver (Const Driver : TKeyboardDriver) : Boolean;
+\Description
+\var{SetKeyBoardDriver} sets the keyboard driver to \var{Driver}, if the
+current keyboard driver is not yet initialized. If the current
+keyboard driver is initialized, then \var{SetKeyboardDriver} does 
+nothing. Before setting the driver, the currently active driver should
+be disabled with a call to \seep{DoneKeyboard}.
+
+The function returns \var{True} if the driver was set, \var{False} if not.
+
+For more information on setting the keyboard driver, see \sees{kbddriver}.
+\Errors
+None.
+\SeeAlso
+\seep{GetKeyboardDriver}, \seep{DoneKeyboard}.
+\end{function}
+
+\begin{function}{ShiftStateToString}
+\Declaration
+Function ShiftStateToString(KeyEvent : TKeyEvent; UseLeftRight : Boolean) : String;
+\Description
+\var{ShiftStateToString} returns a string description of the shift state
+of the key event \var{KeyEvent}. This can be an empty string. 
+
+The shift state is described using the strings in the \var{SShift} constant.
+\Errors
+None.
+\SeeAlso
+\seef{FunctionKeyName}, \seef{KeyEventToString}
+\end{function}
+
+For an example, see \seef{PollShiftStateEvent}.
+
 \begin{function}{TranslateKeyEvent}
 \Declaration
 function TranslateKeyEvent(KeyEvent: TKeyEvent): TKeyEvent;
@@ -368,16 +518,19 @@ No example available yet.
 \section{Keyboard scan codes}
 Special physical keys are encoded with the DOS scan codes for these keys
 in the second byte of the \var{TKeyEvent} type.
-A complete list of scan codes can be found in \seet{keyscans}.
-
-A list of scan codes for special keys and combinations with the SHIFT, ALT
-and CTRl keys can be found in \seet{speckeys}.
+A complete list of scan codes can be found in \seet{keyscans}. This is the
+list of keys that is used by the default key event translation mechanism.
+When writing a keyboard driver, either these constants should be returned
+by the various key event functions, or the \var{TranslateKeyEvent} hook
+should be implemented by the driver.
 \begin{FPCltable}{llllll}{Physical keys scan codes}{keyscans}
 Code & Key & Code & Key & Code & Key\\ \hline
 \input{keys.tex}
 \hline
 \end{FPCltable}
-
+A list of scan codes for special keys and combinations with the SHIFT, ALT
+and CTRl keys can be found in \seet{speckeys}; They are for quick reference
+only.
 \begin{FPCltable}{llccc}{Special keys scan codes}{speckeys}
 Key         & Code  & SHIFT-Key & CTRL-Key & Alt-Key \\ \hline
 NoKey       &  00   &       &     &     \\
@@ -408,4 +561,178 @@ Tab         &  8    & 0F    & 94  & A5  \\
 GreyPlus    &       &       & 90  & 4E  \\
 \hline
 \end{FPCltable}
+\section{Writing a keyboard driver}
+\label{se:kbddriver}
+Writing a keyboard driver means that hooks must be created for most of the 
+keyboard unit functions. The \var{TKeyBoardDriver} record contains a field
+for each of the possible hooks:
+\begin{verbatim}
+TKeyboardDriver = Record
+  InitDriver : Procedure;
+  DoneDriver : Procedure;
+  GetKeyEvent : Function : TKeyEvent;
+  PollKeyEvent : Function : TKeyEvent;
+  GetShiftState : Function : Byte;
+  TranslateKeyEvent : Function (KeyEvent: TKeyEvent): TKeyEvent;
+  TranslateKeyEventUniCode: Function (KeyEvent: TKeyEvent): TKeyEvent;
+end;
+\end{verbatim}
+The meaning of these hooks is explained below:
+\begin{description}
+\item[InitDriver] Called to initialize and enable the driver. 
+Guaranteed to be called only once. This should initialize all needed things
+for the driver.
+\item[DoneDriver] Called to disable and clean up the driver. Guaranteed to be
+called after a call to \var{initDriver}. This should clean up all
+things initialized by \var{InitDriver}.
+\item[GetKeyEvent] Called by \seef{GetKeyEvent}. Must wait for and return the
+next key event. It should NOT store keys.
+\item[PollKeyEvent] Called by \seef{PollKeyEvent}. It must return the next key
+event if there is one. Should not store keys. 
+\item[GetShiftState] Called by \seef{PollShiftStateEvent}.  Must return the current
+shift state.
+\item[TranslateKeyEvent] Should translate a raw key event to a currect
+key event, i.e. should fill in the shiftstate and convert function key
+scancodes to function key keycodes. If the
+\var{TranslateKeyEvent} is not filled in, a default translation function
+will be called which converts the known scancodes from the tables in the
+previous section to a correct keyevent.
+\item[TranslateKeyEventUniCode] Should translate a key event to a unicode key
+representation. 
+\end{description}
+Strictly speaking, only the \var{GetKeyEvent} and \var{PollKeyEvent}
+hooks must be implemented for the driver to function correctly. 
 
+The following unit demonstrates how a keyboard driver can be installed.
+It takes the installed driver, and hooks into the \var{GetKeyEvent}
+function to register and log the key events in a file. This driver
+can work on top of any other driver, as long as it is inserted in the 
+\var{uses} clause {\em after} the real driver unit, and the real driver unit
+should set the driver record in its initialization section.
+\begin{verbatim}
+unit logkeys;
+
+interface
+
+Procedure StartKeyLogging;
+Procedure StopKeyLogging;
+Function  IsKeyLogging : Boolean;
+Procedure  SetKeyLogFileName(FileName : String);
+
+
+implementation
+
+uses sysutils,keyboard;
+
+var
+  NewKeyBoardDriver,
+  OldKeyBoardDriver : TKeyboardDriver;
+  Active,Logging : Boolean;
+  LogFileName : String;
+  KeyLog : Text;
+
+Function TimeStamp : String;
+
+begin
+  TimeStamp:=FormatDateTime('hh:nn:ss',Time());
+end;
+  
+Procedure StartKeyLogging;
+
+begin
+  Logging:=True;
+  Writeln(KeyLog,'Start logging keystrokes at: ',TimeStamp);
+end;
+
+Procedure StopKeyLogging;
+
+begin
+  Writeln(KeyLog,'Stop logging keystrokes at: ',TimeStamp);
+  Logging:=False;
+end;
+
+Function IsKeyLogging : Boolean;
+
+begin
+  IsKeyLogging:=Logging;
+end;
+
+Function LogGetKeyEvent : TKeyEvent;
+
+Var
+  K : TKeyEvent;
+
+begin
+  K:=OldkeyboardDriver.GetKeyEvent();
+  If Logging then
+    begin
+    Write(KeyLog,TimeStamp);
+    Writeln(KeyLog,': Key event: ',KeyEventToString(TranslateKeyEvent(K)));
+    end;
+  LogGetKeyEvent:=K;  
+end;
+
+Procedure LogInitKeyBoard;
+
+begin
+  OldKeyBoardDriver.InitDriver();
+  Assign(KeyLog,logFileName);
+  Rewrite(KeyLog);
+  Active:=True;
+  StartKeyLogging;
+end;
+
+Procedure LogDoneKeyBoard;
+
+begin
+  StopKeyLogging;
+  Close(KeyLog);
+  Active:=False;
+  OldKeyBoardDriver.DoneDriver();
+end;
+
+Procedure SetKeyLogFileName(FileName : String);
+
+begin
+  If Not Active then
+    LogFileName:=FileName;
+end;
+
+Initialization
+  GetKeyBoardDriver(OldKeyBoardDriver);
+  NewKeyBoardDriver:=OldKeyBoardDriver;
+  NewKeyBoardDriver.GetKeyEvent:=@LogGetKeyEvent;
+  NewKeyBoardDriver.InitDriver:=@LogInitKeyboard;
+  NewKeyBoardDriver.DoneDriver:=@LogDoneKeyboard;
+  LogFileName:='keyboard.log';
+  Logging:=False;
+  SetKeyboardDriver(NewKeyBoardDriver);
+end.  
+\end{verbatim}
+The following program demonstrates the use of the unit:
+\begin{verbatim}
+program example9;
+
+{ This program demonstrates the logkeys unit. }
+
+uses keyboard,logkeys;
+
+Var
+  K : TKeyEvent;
+
+begin
+  InitKeyBoard;
+  Writeln('Press keys, press "q" to end, "s" toggles logging.');
+  Repeat
+    K:=GetKeyEvent;
+    K:=TranslateKeyEvent(K);
+    Writeln('Got key : ',KeyEventToString(K));
+    if GetKeyEventChar(K)='s' then
+      if IsKeyLogging then
+        StopKeyLogging
+      else
+        StartKeyLogging;  
+  Until (GetKeyEventChar(K)='q');
+  DoneKeyBoard;
+end.
+\end{verbatim}
