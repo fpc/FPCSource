@@ -541,7 +541,13 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
 
 
 {$ifndef FPC_SYSTEM_HAS_ROUND}
-    function Round(d: Real): int64;[internconst:in_const_round];
+{$ifdef hascompilerproc}
+    function round(d : Real) : int64;[internconst:in_const_round, external name 'FPC_ROUND'];
+
+    function fpc_round(d : Real) : int64;assembler;[public, alias:'FPC_ROUND'];{$ifdef hascompilerproc}compilerproc;{$endif hascompilerproc}
+{$else}
+    function round(d : Real) : int64;assembler;[internconst:in_const_round];
+{$endif hascompilerproc}
      var
       fr: Real;
       tr: Real;
@@ -1024,7 +1030,10 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
 
 {
   $Log$
-  Revision 1.10  2003-01-15 00:45:17  peter
+  Revision 1.11  2003-04-23 21:28:21  peter
+    * fpc_round added, needed for int64 currency
+
+  Revision 1.10  2003/01/15 00:45:17  peter
     * use generic int64 power
 
   Revision 1.9  2002/10/12 20:28:49  carl

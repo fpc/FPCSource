@@ -178,7 +178,13 @@ end{ ['R0','R3','F0','F1','F2','F3']};
 
 
     {$define FPC_SYSTEM_HAS_ROUND}
-    function round(d : extended) : int64;{assembler;}[internconst:in_const_round];
+{$ifdef hascompilerproc}
+    function round(d : extended) : int64;[internconst:in_const_round, external name 'FPC_ROUND'];
+
+    function fpc_round(d : extended) : int64;[public, alias:'FPC_ROUND'];{$ifdef hascompilerproc}compilerproc;{$endif hascompilerproc}
+{$else}
+    function round(d : extended) : int64;[internconst:in_const_round];
+{$endif hascompilerproc}
       { input: d in fr1      }
       { output: result in r3 }
       {assembler;}
@@ -284,7 +290,10 @@ end{ ['R0','R3','F0','F1','F2','F3']};
 
 {
   $Log$
-  Revision 1.3  2003-01-22 20:45:15  mazen
+  Revision 1.4  2003-04-23 21:28:21  peter
+    * fpc_round added, needed for int64 currency
+
+  Revision 1.3  2003/01/22 20:45:15  mazen
   * making math code in RTL compiling.
   *NB : This does NOT mean necessary that it will generate correct code!
 

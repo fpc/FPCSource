@@ -151,7 +151,13 @@
 
 
     {$define FPC_SYSTEM_HAS_ROUND}
+{$ifdef hascompilerproc}
+    function round(d : extended) : int64;[internconst:in_const_round, external name 'FPC_ROUND'];
+    
+    function fpc_round(d : extended) : int64;assembler;[public, alias:'FPC_ROUND'];{$ifdef hascompilerproc}compilerproc;{$endif hascompilerproc}
+{$else}
     function round(d : extended) : int64;assembler;[internconst:in_const_round];
+{$endif hascompilerproc}
       var
         oldcw,
         newcw : word;
@@ -192,7 +198,10 @@
 
 {
   $Log$
-  Revision 1.13  2003-02-05 19:53:17  carl
+  Revision 1.14  2003-04-23 21:28:21  peter
+    * fpc_round added, needed for int64 currency
+
+  Revision 1.13  2003/02/05 19:53:17  carl
     * round bugfix with -Or switch
 
   Revision 1.12  2003/01/15 00:45:17  peter

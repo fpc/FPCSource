@@ -95,7 +95,13 @@
 
 
     {$define FPC_SYSTEM_HAS_ROUND}
+{$ifdef hascompilerproc}
+    function round(d : extended) : int64;[internconst:in_const_round, external name 'FPC_ROUND'];
+
+    function fpc_round(d : extended) : int64;assembler;[public, alias:'FPC_ROUND'];{$ifdef hascompilerproc}compilerproc;{$endif hascompilerproc}
+{$else}
     function round(d : extended) : int64;assembler;[internconst:in_const_round];
+{$endif hascompilerproc}
       { input: d in fr1      }
       { output: result in r3 }
       assembler;
@@ -290,7 +296,10 @@ end ['R0','R3','F0','F1','F2','F3'];
 
 {
   $Log$
-  Revision 1.16  2003-01-16 11:29:11  olle
+  Revision 1.17  2003-04-23 21:28:21  peter
+    * fpc_round added, needed for int64 currency
+
+  Revision 1.16  2003/01/16 11:29:11  olle
     * changed access of globals to be indirect via TOC
 
   Revision 1.15  2003/01/15 01:09:04  florian

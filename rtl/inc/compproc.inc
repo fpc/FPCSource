@@ -197,6 +197,8 @@ function fpc_mod_int64(n,z : int64) : int64; compilerproc;
 function fpc_mul_qword(f1,f2 : qword;checkoverflow : longbool) : qword; compilerproc;
 function fpc_mul_int64(f1,f2 : int64;checkoverflow : longbool) : int64; compilerproc;
 
+function fpc_round(d : Extended) : int64;compilerproc;
+
 function fpc_do_is(aclass : tclass;aobject : tobject) : boolean; compilerproc;
 function fpc_do_as(aclass : tclass;aobject : tobject): tobject; compilerproc;
 procedure fpc_intf_decr_ref(var i: pointer); compilerproc;
@@ -286,7 +288,10 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 
 {
   $Log$
-  Revision 1.37  2003-04-02 14:07:30  peter
+  Revision 1.38  2003-04-23 21:28:21  peter
+    * fpc_round added, needed for int64 currency
+
+  Revision 1.37  2003/04/02 14:07:30  peter
     * class helpers compilerprocs are not needed yet, changed
       ifndef i386 to ifdef dummy
 
