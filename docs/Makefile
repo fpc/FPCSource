@@ -56,6 +56,16 @@ override FPC:=$(subst $(SRCEXEEXT),,$(FPC))
 override FPC:=$(subst \,/,$(FPC))$(SRCEXEEXT)
 
 HOSTOS=$(shell $(FPC) -iSO)
+SYSTEMUNITDIR=$(HOSTOS)
+
+ifeq ($(findstring bsd,$(HOSTOS)),)
+override SYSTEMUNITDIR=bsd
+endif
+ifeq ($(findstring darwin,$(HOSTOS)),)
+override SYSTEMUNITDIR=bsd
+endif
+
+
 # Which docs are made when 'html' is specified
 HTML = user rtl fcl ref prog fpdoc chart
 
@@ -405,7 +415,7 @@ RTLOPTS+= --descr=x86.xml --input="../rtl/unix/x86.pp"
 RTLOPTS+= --descr=dynlibs.xml --input="../rtl/inc/dynlibs.pp -Fi../rtl/unix"
 RTLOPTS+= --descr=linux.xml --input="../rtl/unix/linux.pp -Fi../rtl/linux -Fi../rtl/unix"
 RTLOPTS+= --descr=math.xml --input="../rtl/objpas/math.pp -Fi../rtl/i386 -dFPC_HAS_TYPE_EXTENDED"
-RTLOPTS+= --descr=system.xml --input="-dfpdocsystem -dHASGETHEAPSTATUS -dSUPPORT_DOUBLE ../rtl/$(HOSTOS)/system.pp -Fi../rtl/unix -Fi../rtl/inc -Fi../rtl/i386 -dCPU32 -dHASVARIANT -dFPC_HAS_TYPE_EXTENDED -dHASWIDECHAR"
+RTLOPTS+= --descr=system.xml --input="-dfpdocsystem -dHASGETHEAPSTATUS -dSUPPORT_DOUBLE ../rtl/$(SYSTEMUNITDIR)/system.pp -Fi../rtl/unix -Fi../rtl/inc -Fi../rtl/i386 -dCPU32 -dHASVARIANT -dFPC_HAS_TYPE_EXTENDED -dHASWIDECHAR"
 RTLOPTS+=--descr=objpas.xml --input="-dHASINTF ../rtl/objpas/objpas.pp"
 RTLOPTS+=--descr=dateutils.xml --input="../rtl/objpas/dateutils.pp -Fi../rtl/objpas"
 else
@@ -667,7 +677,10 @@ execute:
 
 #
 # $Log$
-# Revision 1.36  2004-12-21 22:58:24  michael
+# Revision 1.37  2004-12-22 08:47:31  marco
+#  * bsd system unit location fix. Hope it works for Darwin too
+#
+# Revision 1.36  2004/12/21 22:58:24  michael
 # + Added dateutils functions
 #
 # Revision 1.35  2004/12/19 20:20:16  peter
