@@ -3,6 +3,8 @@
 { e-mail: Den.Jean@pandora.be }
 unit tw2883;
 
+{$mode objfpc}
+
 interface
    type TRec = record
       Field1 : smallint;

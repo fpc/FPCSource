@@ -3,6 +3,7 @@
 { e-mail: clootie@ixbt.com }
 program Project2;
 {$mode objfpc}
+{$goto on}
 {$APPTYPE CONSOLE}
 uses SysUtils;
 

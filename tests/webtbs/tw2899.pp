@@ -22,7 +22,7 @@ begin
   writeln('Before NestedProc: "',s,'"');
   NestedProc(s);
   writeln('After NestedProc: "',s,'"'); // s is now emtpy
-  if s<>'WhatAStrangeBug' then
+  if s<>'AStrangeBug' then
     halt(1);
 end;
 
