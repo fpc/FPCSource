@@ -30,7 +30,7 @@ interface
        cclasses,
        cpuinfo,
        node,
-       symbase,symtype,symdef,symsym;
+       symconst,symbase,symtype,symdef,symsym;
 
     type
        tmmxtype = (mmxno,mmxu8bit,mmxs8bit,mmxu16bit,mmxs16bit,
@@ -49,6 +49,9 @@ interface
 
     { returns the min. value of the type }
     function get_min_value(def : tdef) : longint;
+
+    { returns basetype of the specified range }
+    function range_to_basetype(low,high:TConstExprInt):tbasetype;
 
     { returns true, if def defines an ordinal type }
     function is_integer(def : tdef) : boolean;
@@ -250,7 +253,7 @@ implementation
 
     uses
        globtype,globals,systems,tokens,verbose,
-       symconst,symtable;
+       symtable;
 
 
     function needs_prop_entry(sym : tsym) : boolean;
@@ -510,6 +513,24 @@ implementation
       end;
 
 
+    function range_to_basetype(low,high:TConstExprInt):tbasetype;
+      begin
+        { generate a unsigned range if high<0 and low>=0 }
+        if (low>=0) and (high<0) then
+         range_to_basetype:=u32bit
+        else if (low>=0) and (high<=255) then
+         range_to_basetype:=u8bit
+        else if (low>=-128) and (high<=127) then
+         range_to_basetype:=s8bit
+        else if (low>=0) and (high<=65536) then
+         range_to_basetype:=u16bit
+        else if (low>=-32768) and (high<=32767) then
+         range_to_basetype:=s16bit
+        else
+         range_to_basetype:=s32bit;
+      end;
+
+
     { true if p is an ordinal }
     function is_ordinal(def : tdef) : boolean;
       var
@@ -550,8 +571,8 @@ implementation
     function is_integer(def : tdef) : boolean;
       begin
         is_integer:=(def.deftype=orddef) and
-                    (torddef(def).typ in [uauto,u8bit,u16bit,u32bit,u64bit,
-                                           s8bit,s16bit,s32bit,s64bit]);
+                    (torddef(def).typ in [u8bit,u16bit,u32bit,u64bit,
+                                          s8bit,s16bit,s32bit,s64bit]);
       end;
 
 
@@ -1184,7 +1205,7 @@ implementation
                     b := is_dynamic_array(def1) and is_dynamic_array(def2) and
                          is_equal(tarraydef(def1).elementtype.def,tarraydef(def2).elementtype.def);
                   end
-               else   
+               else
                 if is_open_array(def1) or is_open_array(def2) then
                  begin
                    b:=is_equal(tarraydef(def1).elementtype.def,tarraydef(def2).elementtype.def);
@@ -1322,19 +1343,22 @@ implementation
              fromtreetype : tnodetype;
              explicit : boolean) : byte;
 
-      { Tbasetype:  uauto,uvoid,uchar,
-                    u8bit,u16bit,u32bit,
-                    s8bit,s16bit,s32,
-                    bool8bit,bool16bit,bool32bit,
-                    u64bit,s64bitint,uwidechar }
+      { Tbasetype:
+           uvoid,
+           u8bit,u16bit,u32bit,u64bit,
+           s8bit,s16bit,s32bit,s64bit,
+           bool8bit,bool16bit,bool32bit,
+           uchar,uwidechar }
+
       type
         tbasedef=(bvoid,bchar,bint,bbool);
       const
         basedeftbl:array[tbasetype] of tbasedef =
-          (bvoid,bvoid,bchar,
-           bint,bint,bint,
-           bint,bint,bint,
-           bbool,bbool,bbool,bint,bint,bchar);
+          (bvoid,
+           bint,bint,bint,bint,
+           bint,bint,bint,bint,
+           bbool,bbool,bbool,
+           bchar,bchar);
 
         basedefconverts : array[tbasedef,tbasedef] of tconverttype =
          ((tc_not_possible,tc_not_possible,tc_not_possible,tc_not_possible),
@@ -1897,7 +1921,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.60  2001-12-17 12:49:08  jonas
+  Revision 1.61  2002-01-06 12:08:16  peter
+    * removed uauto from orddef, use new range_to_basetype generating
+      the correct ordinal type for a range
+
+  Revision 1.60  2001/12/17 12:49:08  jonas
     * added type conversion from procvar to procvar (if their arguments are
       convertable, two procvars are convertable too) ("merged")
 

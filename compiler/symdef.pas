@@ -1655,64 +1655,25 @@ implementation
 
     procedure torddef.setsize;
       begin
-         if typ=uauto then
-           begin
-              { generate a unsigned range if high<0 and low>=0 }
-              if (low>=0) and (high<0) then
-                begin
-                   savesize:=4;
-                   typ:=u32bit;
-                end
-              else if (low>=0) and (high<=255) then
-                begin
-                   savesize:=1;
-                   typ:=u8bit;
-                end
-              else if (low>=-128) and (high<=127) then
-                begin
-                   savesize:=1;
-                   typ:=s8bit;
-                end
-              else if (low>=0) and (high<=65536) then
-                begin
-                   savesize:=2;
-                   typ:=u16bit;
-                end
-              else if (low>=-32768) and (high<=32767) then
-                begin
-                   savesize:=2;
-                   typ:=s16bit;
-                end
-              else
-                begin
-                   savesize:=4;
-                   typ:=s32bit;
-                end;
-           end
-         else
-           begin
-             case typ of
-                u8bit,s8bit,
-                uchar,bool8bit:
-                  savesize:=1;
-
-                u16bit,s16bit,
-                bool16bit,uwidechar:
-                  savesize:=2;
-
-                s32bit,u32bit,
-                bool32bit:
-                  savesize:=4;
-
-                u64bit,s64bit:
-                  savesize:=8;
-             else
-               savesize:=0;
-             end;
-           end;
+         case typ of
+            u8bit,s8bit,
+            uchar,bool8bit:
+              savesize:=1;
+            u16bit,s16bit,
+            bool16bit,uwidechar:
+              savesize:=2;
+            s32bit,u32bit,
+            bool32bit:
+              savesize:=4;
+            u64bit,s64bit:
+              savesize:=8;
+            else
+              savesize:=0;
+         end;
        { there are no entrys for range checking }
          rangenr:=0;
       end;
+
 
     function torddef.getrangecheckstring : string;
 
@@ -1808,8 +1769,12 @@ implementation
 
         procedure dointeger;
         const
-          trans : array[uchar..bool8bit] of byte =
-            (otUByte,otUByte,otUWord,otULong,otSByte,otSWord,otSLong,otUByte);
+          trans : array[tbasetype] of byte =
+            (otUByte{otNone},
+             otUByte,otUWord,otULong,otUByte{otNone},
+             otSByte,otSWord,otSLong,otUByte{otNone},
+             otUByte,otUWord,otULong,
+             otUByte,otUWord);
         begin
           write_rtti_name;
           rttiList.concat(Tai_const.Create_8bit(byte(trans[typ])));
@@ -1873,10 +1838,12 @@ implementation
     function torddef.gettypename : string;
 
       const
-        names : array[tbasetype] of string[20] = ('<unknown type>',
-          'untyped','Char','Byte','Word','DWord','ShortInt',
-          'SmallInt','LongInt','Boolean','WordBool',
-          'LongBool','QWord','Int64','WideChar');
+        names : array[tbasetype] of string[20] = (
+          'untyped',
+          'Byte','Word','DWord','QWord',
+          'ShortInt','SmallInt','LongInt','Int64',
+          'Boolean','WordBool','LongBool',
+          'Char','WideChar');
 
       begin
          gettypename:=names[typ];
@@ -3805,11 +3772,11 @@ implementation
 
         const
            ordtype2str : array[tbasetype] of string[2] = (
-             '','','c',
-             'Uc','Us','Ui',
-             'Sc','s','i',
+             '',
+             'Uc','Us','Ui','Us',
+             'Sc','s','i','x',
              'b','b','b',
-             'Us','x','w');
+             'c','w');
 
         var
            s : string;
@@ -5506,7 +5473,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.61  2001-12-19 09:34:51  florian
+  Revision 1.62  2002-01-06 12:08:15  peter
+    * removed uauto from orddef, use new range_to_basetype generating
+      the correct ordinal type for a range
+
+  Revision 1.61  2001/12/19 09:34:51  florian
     * publishing of publishable classes fixed
 
   Revision 1.60  2001/12/06 17:57:39  florian

@@ -506,6 +506,8 @@ implementation
                             is_64bitint(p.proptype.def) or
                             ((p.proptype.def.deftype=setdef) and
                              (tsetdef(p.proptype.def).settype=smallset))) or
+                            ((p.proptype.def.deftype=arraydef) and
+                             (ppo_indexed in p.propoptions)) or
                         not(propertyparas.empty) then
                        Message(parser_e_property_cant_have_a_default_value);
                      { Get the result of the default, the firstpass is
@@ -1109,8 +1111,9 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  2001-12-31 16:59:41  peter
-    * protected/private symbols parsing fixed
+  Revision 1.36  2002-01-06 12:08:15  peter
+    * removed uauto from orddef, use new range_to_basetype generating
+      the correct ordinal type for a range
 
   Revision 1.34  2001/12/06 17:57:35  florian
     + parasym to tparaitem added

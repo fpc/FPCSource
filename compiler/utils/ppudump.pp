@@ -87,7 +87,7 @@ type
              target_i386_netbsd,        { 17 }
              target_m68k_netbsd,        { 18 }
              target_i386_Netware,       { 19 }
-             target_i386_qnx            { 20 }    
+             target_i386_qnx            { 20 }
        );
 const
   Targets : array[ttarget] of string[12]=(
@@ -933,11 +933,11 @@ procedure readdefinitions(start_read : boolean);
 type
   tsettype  = (normset,smallset,varset);
   tbasetype = (
-    uauto,uvoid,uchar,
-    u8bit,u16bit,u32bit,
-    s8bit,s16bit,s32bit,
+    uvoid,
+    u8bit,u16bit,u32bit,u64bit,
+    s8bit,s16bit,s32bit,s64bit,
     bool8bit,bool16bit,bool32bit,
-    u64bit,s64bit,uwidechar
+    uchar,uwidechar
   );
   tobjectdeftype = (odt_none,
     odt_class,
@@ -989,20 +989,19 @@ begin
              write  (space,'        Base type : ');
              b:=getbyte;
              case tbasetype(b) of
-               uauto     : writeln('uauto');
                uvoid     : writeln('uvoid');
-               uchar     : writeln('uchar');
                u8bit     : writeln('u8bit');
                u16bit    : writeln('u16bit');
                u32bit    : writeln('s32bit');
+               u64bit    : writeln('u64bit');
                s8bit     : writeln('s8bit');
                s16bit    : writeln('s16bit');
                s32bit    : writeln('s32bit');
+               s64bit    : writeln('s64bit');
                bool8bit  : writeln('bool8bit');
                bool16bit : writeln('bool16bit');
                bool32bit : writeln('bool32bit');
-               u64bit    : writeln('u64bit');
-               s64bit    : writeln('s64bit');
+               uchar     : writeln('uchar');
                uwidechar : writeln('uwidechar');
                else        writeln('!! Warning: Invalid base type ',b);
              end;
@@ -1645,7 +1644,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2001-12-15 05:28:01  carl
+  Revision 1.11  2002-01-06 12:08:16  peter
+    * removed uauto from orddef, use new range_to_basetype generating
+      the correct ordinal type for a range
+
+  Revision 1.10  2001/12/15 05:28:01  carl
   + Added QNX target
 
   Revision 1.9  2001/11/02 22:58:12  peter

@@ -246,6 +246,7 @@ implementation
         procedure expr_type;
         var
            pt1,pt2 : tnode;
+           lv,hv   : TConstExprInt;
         begin
            { use of current parsed object ? }
            if (token=_ID) and (testcurobject=2) and (curobjectname=pattern) then
@@ -274,24 +275,26 @@ implementation
                if (pt1.nodetype=ordconstn) and
                   (pt2.nodetype=ordconstn) then
                  begin
+                   lv:=tordconstnode(pt1).value;
+                   hv:=tordconstnode(pt2).value;
                    { Check bounds }
-                   if tordconstnode(pt2).value<tordconstnode(pt1).value then
+                   if hv<lv then
                      Message(cg_e_upper_lower_than_lower)
                    else
                      begin
                        { All checks passed, create the new def }
                        case pt1.resulttype.def.deftype of
                          enumdef :
-                           tt.setdef(tenumdef.create_subrange(tenumdef(pt1.resulttype.def),tordconstnode(pt1).value,tordconstnode(pt2).value));
+                           tt.setdef(tenumdef.create_subrange(tenumdef(pt1.resulttype.def),lv,hv));
                          orddef :
                            begin
                              if is_char(pt1.resulttype.def) then
-                               tt.setdef(torddef.create(uchar,tordconstnode(pt1).value,tordconstnode(pt2).value))
+                               tt.setdef(torddef.create(uchar,lv,hv))
                              else
                                if is_boolean(pt1.resulttype.def) then
-                                 tt.setdef(torddef.create(bool8bit,tordconstnode(pt1).value,tordconstnode(pt2).value))
+                                 tt.setdef(torddef.create(bool8bit,l,hv))
                                else
-                                 tt.setdef(torddef.create(uauto,tordconstnode(pt1).value,tordconstnode(pt2).value));
+                                 tt.setdef(torddef.create(range_to_basetype(lv,hv),lv,hv));
                            end;
                        end;
                      end;
@@ -607,8 +610,9 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  2001-12-31 16:59:43  peter
-    * protected/private symbols parsing fixed
+  Revision 1.32  2002-01-06 12:08:15  peter
+    * removed uauto from orddef, use new range_to_basetype generating
+      the correct ordinal type for a range
 
   Revision 1.30  2001/08/30 20:13:53  peter
     * rtti/init table updates

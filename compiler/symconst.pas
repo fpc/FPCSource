@@ -132,11 +132,11 @@ type
 
   { base types for orddef }
   tbasetype = (
-    uauto,uvoid,uchar,
-    u8bit,u16bit,u32bit,
-    s8bit,s16bit,s32bit,
+    uvoid,
+    u8bit,u16bit,u32bit,u64bit,
+    s8bit,s16bit,s32bit,s64bit,
     bool8bit,bool16bit,bool32bit,
-    u64bit,s64bit,uwidechar
+    uchar,uwidechar
   );
 
   { float types }
@@ -326,7 +326,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  2001-10-25 21:22:37  peter
+  Revision 1.28  2002-01-06 12:08:15  peter
+    * removed uauto from orddef, use new range_to_basetype generating
+      the correct ordinal type for a range
+
+  Revision 1.27  2001/10/25 21:22:37  peter
     * calling convention rewrite
 
   Revision 1.26  2001/10/23 21:49:43  peter
