@@ -320,7 +320,7 @@ Fixed bugs:
   bug0267.pp   parameters after methodpointer are wrong             OK 0.99.12b (FK)
   bug0269.pp   wrong linenumber for repeat until when type mismatch OK 0.99.12b (PM)
   bug0278.pp   (* in conditional code is handled wrong for tp,delphi OK 0.99.13 (PFV)
-
+  bug0280.pp   problem with object finalization.                    OK 0.99.13 (FK)
 
 Unproducable bugs:
 ------------------
