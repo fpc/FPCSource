@@ -94,7 +94,7 @@ Begin
  S:=FileName;
  DoDirSeparators(S);
 {$ifdef Unix}
-  Result:=Linux.fexpand(S);
+  Result:=Unix.fexpand(S);
 {$else}
   Result:=Dos.Fexpand(S);
 {$endif}
@@ -188,7 +188,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2000-11-13 14:41:20  marco
+  Revision 1.4  2001-01-21 20:21:40  marco
+   * Rename fest II. Rtl OK
+
+  Revision 1.3  2000/11/13 14:41:20  marco
    * Unix renamefest for defines
 
   Revision 1.2  2000/07/13 11:33:51  michael

@@ -61,49 +61,52 @@ var
 
 implementation
 
-uses linux;
+uses unix;
 
 { to give easy port access like tp with port[] }
 
 procedure tport.writeport(p : Longint;data : byte);
 
 begin
-  linux.writeport (p,data)
+  unix.writeport (p,data)
 end;
 
 function tport.readport(p : Longint) : byte;
 
 begin
-  readport := linux.readportb (p);
+  readport := unix.readportb (p);
 end;
 
 procedure tportw.writeport(p : longint;data : word);
 
 begin
-  linux.writeport (p,data)
+  unix.writeport (p,data)
 end;
 
 function tportw.readport(p : longint) : word;
 
 begin
-  readport := linux.readportw(p);
+  readport := unix.readportw(p);
 end;
 
 procedure tportl.writeport(p : longint;data : longint);
 
 begin
-  linux.writeport (p,data)
+  unix.writeport (p,data)
 end;
 
 function tportl.readport(p : longint) : longint;
 
 begin
-  readPort := Linux.readportl(p);
+  readPort := Unix.readportl(p);
 end;
 
 end.
   $Log$
-  Revision 1.2  2000-09-18 13:14:51  marco
+  Revision 1.3  2001-01-21 20:21:40  marco
+   * Rename fest II. Rtl OK
+
+  Revision 1.2  2000/09/18 13:14:51  marco
    * Global Linux +bsd to (rtl/freebsd rtl/unix rtl/linux structure)
 
   Revision 1.2  2000/07/13 11:33:49  michael

@@ -202,7 +202,7 @@ endif
 # Targets
 
 override LOADEROBJECTS+=prt0 cprt0
-override UNITOBJECTS+=$(SYSTEMUNIT) objpas strings linux initc dos crt objects printer sysutils typinfo math cpu mmx getopts heaptrc lineinfo errors sockets gpm ipc terminfo video mouse keyboard console
+override UNITOBJECTS+=$(SYSTEMUNIT) objpas strings unix initc dos crt objects printer sysutils typinfo math cpu mmx getopts heaptrc lineinfo errors sockets gpm ipc terminfo video mouse keyboard console
 override RSTOBJECTS+=math
 
 # Clean
@@ -230,7 +230,7 @@ endif
 
 LIBNAME=libfprtl.so
 LIBVERSION=1.0
-SHAREDLIBUNITOBJECTS=$(SYSTEMUNIT) objpas strings linux  dos crt objects printer sysutils typinfo math cpu mmx getopts heaptrc errors sockets ipc
+SHAREDLIBUNITOBJECTS=$(SYSTEMUNIT) objpas strings unix  dos crt objects printer sysutils typinfo math cpu mmx getopts heaptrc errors sockets ipc
 
 # Info
 
@@ -1309,7 +1309,7 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 # System Dependent Units
 #
 
-linux$(PPUEXT) : $(UNIXINC)/linux.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
+unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
 		 syscalls.inc systypes.inc sysconst.inc $(UNIXINC)/timezone.inc $(SYSTEMUNIT)$(PPUEXT) \
 		 $(UNIXINC)/linsysca.inc
 
@@ -1319,13 +1319,13 @@ linux$(PPUEXT) : $(UNIXINC)/linux.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/
 #
 
 dos$(PPUEXT) : $(UNIXINC)/dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
-	       linux$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	       unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-crt$(PPUEXT) : $(UNIXINC)/crt.pp $(INC)/textrec.inc linux$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+crt$(PPUEXT) : $(UNIXINC)/crt.pp $(INC)/textrec.inc unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 objects$(PPUEXT) : $(INC)/objects.pp $(UNIXINC)/objinc.inc $(SYSTEMUNIT)$(PPUEXT)
 
-printer$(PPUEXT) : $(UNIXINC)/printer.pp $(INC)/textrec.inc linux$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+printer$(PPUEXT) : $(UNIXINC)/printer.pp $(INC)/textrec.inc unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 #
 # Graph
@@ -1336,7 +1336,7 @@ printer$(PPUEXT) : $(UNIXINC)/printer.pp $(INC)/textrec.inc linux$(PPUEXT) $(SYS
 #
 
 sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/*.inc) \
-		    objpas$(PPUEXT) linux$(PPUEXT) errors$(PPUEXT)
+		    objpas$(PPUEXT) unix$(PPUEXT) errors$(PPUEXT)
 	$(COMPILER) -I$(OBJPASDIR) $(UNIXINC)/sysutils.pp $(REDIR)
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
@@ -1368,10 +1368,10 @@ lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
 #
 
 sockets$(PPUEXT) : $(UNIXINC)/sockets.pp $(INC)/textrec.inc $(INC)/filerec.inc \
-		   linux$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+		   unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 errors$(PPUEXT) : $(UNIXINC)/errors.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-ipc$(PPUEXT) : $(UNIXINC)/ipc.pp linux$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+ipc$(PPUEXT) : $(UNIXINC)/ipc.pp unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-terminfo$(PPUEXT) : terminfo.pp linux$(PPUEXT)
+terminfo$(PPUEXT) : terminfo.pp unix$(PPUEXT)

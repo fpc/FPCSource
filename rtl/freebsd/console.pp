@@ -1821,7 +1821,7 @@ function physicalconsole(fd:longint) : boolean;
 
 IMPLEMENTATION
 
-Uses Linux;
+Uses Unix;
 
 function physicalconsole(fd:longint) : boolean;
 

@@ -16,7 +16,7 @@
 unit gpm;
 interface
 uses
-  linux;
+  Unix;
 
 {$linklib gpm}
 {$linklib c}
@@ -206,7 +206,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-11-22 22:44:08  peter
+  Revision 1.4  2001-01-21 20:21:40  marco
+   * Rename fest II. Rtl OK
+
+  Revision 1.3  2000/11/22 22:44:08  peter
     * fixed gpmevent
 
   Revision 1.2  2000/09/18 13:14:50  marco

@@ -10,7 +10,7 @@ unit Serial;
 
 interface
 
-uses Linux;
+uses Unix;
 
 type
 
@@ -213,7 +213,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2000-12-28 20:50:04  peter
+  Revision 1.5  2001-01-21 20:21:40  marco
+   * Rename fest II. Rtl OK
+
+  Revision 1.4  2000/12/28 20:50:04  peter
     * merged fixes from 1.0.x
 
   Revision 1.3  2000/10/10 14:12:36  sg

@@ -41,7 +41,7 @@ uses
   Strings,
   TermInfo,
 {$endif NotUseTree}
-  Linux;
+  Unix;
 
 {$i keyboard.inc}
 
@@ -1680,7 +1680,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2001-01-13 11:03:58  peter
+  Revision 1.2  2001-01-21 20:21:40  marco
+   * Rename fest II. Rtl OK
+
+  Revision 1.1  2001/01/13 11:03:58  peter
     * API 2 RTL commit
 
 }

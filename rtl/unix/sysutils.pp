@@ -22,7 +22,7 @@ interface
 {$H+}
 
 uses
-  linux,errors;
+  Unix,errors;
 
 { Include platform independent interface part }
 {$i sysutilh.inc}
@@ -278,14 +278,14 @@ end;
 Function RenameFile (Const OldName, NewName : String) : Boolean;
 
 begin
-  RenameFile:=Linux.FRename(OldNAme,NewName);
+  RenameFile:=Unix.FRename(OldNAme,NewName);
 end;
 
 
 Function FileSearch (Const Name, DirList : String) : String;
 
 begin
-  FileSearch:=Linux.FSearch(Name,Dirlist);
+  FileSearch:=Unix.FSearch(Name,Dirlist);
 end;
 
 
@@ -401,8 +401,8 @@ end;
 
 Procedure GetLocalTime(var SystemTime: TSystemTime);
 begin
-  linux.GetTime(SystemTime.Hour, SystemTime.Minute, SystemTime.Second);
-  linux.GetDate(SystemTime.Year, SystemTime.Month, SystemTime.Day);
+  Unix.GetTime(SystemTime.Hour, SystemTime.Minute, SystemTime.Second);
+  Unix.GetDate(SystemTime.Year, SystemTime.Month, SystemTime.Day);
   SystemTime.MilliSecond := 0;
 end ;
 
@@ -456,7 +456,10 @@ end.
 {
 
   $Log$
-  Revision 1.5  2000-12-28 20:50:04  peter
+  Revision 1.6  2001-01-21 20:21:40  marco
+   * Rename fest II. Rtl OK
+
+  Revision 1.5  2000/12/28 20:50:04  peter
     * merged fixes from 1.0.x
 
   Revision 1.4  2000/12/18 14:01:42  jonas

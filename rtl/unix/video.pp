@@ -23,7 +23,7 @@ interface
 implementation
 
 uses
-  Linux, Strings, TermInfo;
+  Unix, Strings, TermInfo;
 
 {$i video.inc}
 
@@ -469,10 +469,10 @@ begin
 end;
 
 var
-  InitialVideoTio, preInitVideoTio, postInitVideoTio: linux.termios;
+  InitialVideoTio, preInitVideoTio, postInitVideoTio: Unix.termios;
   inputRaw, outputRaw: boolean;
 
-procedure saveRawSettings(const tio: linux.termios);
+procedure saveRawSettings(const tio: Unix.termios);
 Begin
   with tio do
    begin
@@ -487,7 +487,7 @@ Begin
    end;
 end;
 
-procedure restoreRawSettings(tio: linux.termios);
+procedure restoreRawSettings(tio: Unix.termios);
 begin
   with tio do
     begin
@@ -531,7 +531,7 @@ end;
 
 procedure prepareDoneVideo;
 var
-  tio: linux.termios;
+  tio: Unix.termios;
 begin
   TCGetAttr(1,tio);
   saveRawSettings(tio);
@@ -819,7 +819,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.1  2001-01-13 11:03:58  peter
+  Revision 1.2  2001-01-21 20:21:41  marco
+   * Rename fest II. Rtl OK
+
+  Revision 1.1  2001/01/13 11:03:58  peter
     * API 2 RTL commit
 
 }

@@ -61,7 +61,7 @@ Procedure AssignLst ( Var F : text; ToFile : string);
 }
 
 Implementation
-Uses Linux,Strings;
+Uses Unix,Strings;
 
 {
   include definition of textrec
@@ -254,7 +254,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-09-18 13:14:51  marco
+  Revision 1.3  2001-01-21 20:21:40  marco
+   * Rename fest II. Rtl OK
+
+  Revision 1.2  2000/09/18 13:14:51  marco
    * Global Linux +bsd to (rtl/freebsd rtl/unix rtl/linux structure)
 
   Revision 1.2  2000/07/13 11:33:49  michael

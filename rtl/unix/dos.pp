@@ -152,7 +152,7 @@ Procedure SetVerify(verify: boolean);
 Implementation
 
 Uses
-  Strings,linux;
+  Strings,Unix;
 
 {******************************************************************************
                            --- Link C Lib if set ---
@@ -250,7 +250,7 @@ end;
 
 Procedure GetDate(Var Year, Month, MDay, WDay: Word);
 Begin
-  Linux.GetDate(Year,Month,MDay);
+  Unix.GetDate(Year,Month,MDay);
   Wday:=weekday(Year,Month,MDay);
 end;
 
@@ -265,7 +265,7 @@ End;
 
 Procedure GetTime(Var Hour, Minute, Second, Sec100: Word);
 Begin
-  Linux.GetTime(Hour,Minute,Second,Sec100);
+  Unix.GetTime(Hour,Minute,Second,Sec100);
 end;
 
 
@@ -660,14 +660,14 @@ End;
 
 Procedure FSplit(Path: PathStr; Var Dir: DirStr; Var Name: NameStr;Var Ext: ExtStr);
 Begin
-  Linux.FSplit(Path,Dir,Name,Ext);
+  Unix.FSplit(Path,Dir,Name,Ext);
 End;
 
 
 
 Function FExpand(Const Path: PathStr): PathStr;
 Begin
-  FExpand:=Linux.FExpand(Path);
+  FExpand:=Unix.FExpand(Path);
 End;
 
 
@@ -679,7 +679,7 @@ Begin
   if (length(Path)>0) and (path[1]='/') and FStat(path,info) then
     FSearch:=path
   else
-    FSearch:=Linux.FSearch(path,dirlist);
+    FSearch:=Unix.FSearch(path,dirlist);
 End;
 
 
@@ -774,7 +774,7 @@ Function GetEnv(EnvVar: String): String;
 var
   p     : pchar;
 Begin
-  p:=Linux.GetEnv(EnvVar);
+  p:=Unix.GetEnv(EnvVar);
   if p=nil then
    GetEnv:=''
   else
@@ -879,7 +879,10 @@ End.
 
 {
   $Log$
-  Revision 1.2  2000-09-18 13:14:50  marco
+  Revision 1.3  2001-01-21 20:21:40  marco
+   * Rename fest II. Rtl OK
+
+  Revision 1.2  2000/09/18 13:14:50  marco
    * Global Linux +bsd to (rtl/freebsd rtl/unix rtl/linux structure)
 
   Revision 1.3  2000/07/14 10:33:10  michael
