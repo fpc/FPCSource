@@ -34,6 +34,10 @@
     Displaying copyright does not work with nlmconv from gnu bunutils
     version less that 2.13
 
+    Additional parameters for the nlmvonv-inputfile can be passed with
+    -k, i.e. -kREENTRANT will add the option REENTRANT to the nlmconv
+    inputfile. A ; will be converted into a newline
+
     Exports will be handled like in win32:
     procedure bla;
     begin
@@ -266,7 +270,11 @@ begin
   with Info do
    begin
      ExeCmd[1]:= 'ld -Ur -T $RES $STRIP -o $TMPOBJ';
+     {$ifdef win32}
+     ExeCmd[2]:='nlmconv -m i386nw -T$RES';
+     {$else}
      ExeCmd[2]:='nlmconv -T$RES';
+     {$endif}
    end;
 end;
 
@@ -290,8 +298,8 @@ begin
   NlmNam := ProgNam + target_info.exeext;
 
   { Open link.res file }
-  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);         {for ld}
-  NLMConvLinkFile:=TLinkRes.Create(outputexedir+Info.ResName); {for nlmconv, written in CreateExeFile}
+  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);             {for ld}
+  NLMConvLinkFile:=TLinkRes.Create(outputexedir+'n'+Info.ResName); {for nlmconv, written in CreateExeFile}
 
   p := Pos ('"', Description);
   while (p > 0) do
@@ -336,14 +344,20 @@ begin
 
   { add objectfiles, start with nwpre always }
   LinkRes.Add ('INPUT (');
-  LinkRes.Add (FindObjectFile('nwpre',''));
+  s2 := FindObjectFile('nwpre','');
+  Comment (V_Debug,'adding Object File '+s2);
+  LinkRes.Add (s2);
 
   { main objectfiles, add to linker input }
   while not ObjectFiles.Empty do
   begin
     s:=ObjectFiles.GetFirst;
     if s<>'' then
-      LinkRes.Add (FindObjectFile (s,''));
+    begin
+      s2 := FindObjectFile (s,'');
+      Comment (V_Debug,'adding Object File '+s2);
+      LinkRes.Add (s2);
+    end;  
   end;
 
   { output file (nlm), add to nlmconv }
@@ -375,7 +389,7 @@ begin
          begin
 	   S2 := FindObjectFile(s,'');
            LinkRes.Add (S2);
-	   Comment(V_Debug,'INPUT '+S2);
+	   Comment(V_Debug,'adding Object File (StaticLibFiles) '+S2);
          end else
          begin
            i:=Pos(target_info.staticlibext,S);
@@ -438,6 +452,32 @@ begin
   linkres.writetodisk;
   LinkRes.Free;
 
+{ pass options from -k to nlmconv, ; is interpreted as newline }
+  s := ParaLinkOptions;
+  while(Length(s) > 0) and (s[1] = ' ') do
+    delete (s,1,1);
+  p := pos ('"',s);
+  while p > 0 do
+  begin
+    delete (s,p,1);
+    p := pos ('"',s);
+  end;
+
+  p := pos (';',s);
+  while p > 0 do
+  begin
+    s2 := copy(s,1,p-1);
+    comment (V_Debug,'adding "'+s2+'" to nlmvonv input');
+    NLMConvLinkFile.Add(s2);
+    delete (s,1,p);
+    p := pos (';',s);
+  end;
+  if s <> '' then
+  begin
+    comment (V_Debug,'adding "'+s+'" to nlmvonv input');
+    NLMConvLinkFile.Add(s);
+  end;
+
   WriteResponseFile:=True;
 end;
 
@@ -482,11 +522,11 @@ begin
     NLMConvLinkFile.writetodisk;
     NLMConvLinkFile.Free;
     SplitBinCmd(Info.ExeCmd[2],binstr,cmdstr);
-    Replace(cmdstr,'$RES',outputexedir+Info.ResName);
+    Replace(cmdstr,'$RES',outputexedir+'n'+Info.ResName);
     Comment (v_debug,'Executing '+BinStr+' '+cmdstr);
     success:=DoExec(FindUtil(BinStr),CmdStr,true,false);
-    if success then
-      RemoveFile(outputexedir+Info.ResName);
+    if (success) and not(cs_link_extern in aktglobalswitches) then
+      RemoveFile(outputexedir+'n'+Info.ResName);
     {always remove the temp object file}
     RemoveFile(outputexedir+tmpLinkFileName);
   end;
@@ -508,7 +548,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2003-03-21 22:36:42  armin
+  Revision 1.6  2003-03-22 14:51:27  armin
+  * support -k for additional nlmvonv headeroptions, -m i386nw for win32, support -sh
+
+  Revision 1.5  2003/03/21 22:36:42  armin
   * changed linking: now we will link all objects to a single one and call nlmconv with that one object file. This makes it possible to create nlms without debug info.
 
   Revision 1.4  2003/03/21 19:19:51  armin
