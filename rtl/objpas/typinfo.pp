@@ -21,10 +21,17 @@ unit typinfo;
 
   interface
 
-    uses
+    uses objpas;
+{
        sysutils;
+}
+// temporary types:
 
     type
+       ShortSTring=String;
+       PByte      =^Byte;
+       PBoolean   =^Boolean;
+
 {$MINENUMSIZE 1   this saves a lot of memory }
        // if you change one of the following enumeration types
        // you have also to change the compiler in an appropriate way !
@@ -67,12 +74,13 @@ unit typinfo;
             tkUnKnown,tkLString,tkWString,tkAString,tkVariant:
               ();
             tkInteger,tkChar,tkEnumeration,tkWChar:
-              (OrdType : TOrdType;
+              (OrdType : TTOrdType;
                case TTypeKind of
                   tkInteger,tkChar,tkEnumeration,tkBool,tkWChar : (
                     MinValue,MaxValue : Longint;
                     case TTypeKind of
                       tkEnumeration:
+                        ( 
                         BaseType : PTypeInfo;
                         NameList : ShortString)
                     );
@@ -151,13 +159,16 @@ unit typinfo;
 
       var
          hp : PTypeData;
-
+         i : longint;
+                  
       begin
          Result:=Nil;
          while Assigned(hp) do
            begin
               // skip the name
-              hp:=GetTypeData;
+              //!! Florian, I added (typeinfo) so it would compile
+              
+              hp:=GetTypeData(Typeinfo);
 
               // the class info rtti the property rtti follows
               // immediatly
@@ -172,7 +183,8 @@ unit typinfo;
                    Result:=PPropInfo(@Result^.Name)+byte(Result^.Name[0])+1;
                 end;
               // parent class
-              hp:=hp^.ParentInfo;
+              //!! Florian, commented out, because the types are wrong
+              // hp:=hp^.ParentInfo;
            end;
       end;
 
@@ -189,19 +201,20 @@ unit typinfo;
 
       begin
          caller.Instance:=Instance;
-         case (PropInfo^.PropProcs shr 4) and 3 of
+         //!! propprocs doesn't exist, changed to procprops
+         case (PropInfo^.ProcProcs shr 4) and 3 of
             0:
               IsStoredProp:=
                 PBoolean(Pointer(Instance)+Longint(PropInfo^.StoredProc))^;
             1:
               begin
                  caller.Address:=PropInfo^.StoredProc;
-                 IsStoredProc:=tbfunction(caller);
+              //   IsStoredProp:=tbfunction(caller);
               end;
             2:
               begin
                  caller.Address:=PPointer(PPointer(Instance.ClassType)+Longint(PropInfo^.StoredProc))^;
-                 IsStoredProc:=tbfunction(caller);
+               //  IsStoredProp:=tbfunction(caller);
               end;
             4:
               begin
@@ -215,7 +228,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  1998-09-07 23:11:43  florian
+  Revision 1.6  1998-09-08 00:08:36  michael
+  Made it compilable
+
+  Revision 1.5  1998/09/07 23:11:43  florian
     + more fields to TTypeInfo added
 
   Revision 1.4  1998/09/07 19:34:47  florian
