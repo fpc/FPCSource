@@ -497,8 +497,15 @@ unit pexpr;
                      begin
                         if assigned(paras) then
                           message(parser_e_no_paras_allowed);
-                        p1:=gensubscriptnode(pvarsym(
-                          ppropertysym(sym)^.readaccesssym),p1);
+                        { subscribed access? }
+                        if p1=nil then
+                          begin
+                             p1:=genloadnode(pvarsym(ppropertysym(sym)^.readaccesssym),
+                               ppropertysym(sym)^.readaccesssym^.owner);
+                          end
+                        else
+                          p1:=gensubscriptnode(pvarsym(
+                            ppropertysym(sym)^.readaccesssym),p1);
                         { to be on the save side }
                         oldafterassignment:=afterassignment;
                         consume(ASSIGNMENT);
@@ -530,8 +537,15 @@ unit pexpr;
                      begin
                         if assigned(paras) then
                           message(parser_e_no_paras_allowed);
-                        p1:=gensubscriptnode(pvarsym(
-                          ppropertysym(sym)^.readaccesssym),p1);
+                        { subscribed access? }
+                        if p1=nil then
+                          begin
+                             p1:=genloadnode(pvarsym(ppropertysym(sym)^.readaccesssym),
+                               ppropertysym(sym)^.readaccesssym^.owner);
+                          end
+                        else
+                          p1:=gensubscriptnode(pvarsym(
+                            ppropertysym(sym)^.readaccesssym),p1);
                      end
                    else if ppropertysym(sym)^.readaccesssym^.typ=procsym then
                      begin
@@ -1665,7 +1679,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.10  1998-05-01 16:38:45  florian
+  Revision 1.11  1998-05-04 11:22:26  florian
+    * problem with DOM solved: it crashes when accessing a property in a method
+
+  Revision 1.10  1998/05/01 16:38:45  florian
     * handling of private and protected fixed
     + change_keywords_to_tp implemented to remove
       keywords which aren't supported by tp
