@@ -3179,6 +3179,7 @@ implementation
         strpcopy(stabRecString,'s'+tostr(size));
         RecOffset := 0;
         symtable.foreach({$ifdef FPCPROCVAR}@{$endif}addname,nil);
+        strpcopy(strend(StabRecString),';');
         reallocmem(stabrecstring,strlen(stabrecstring));
         stabstring:=stabrecstring;
       end;
@@ -6181,7 +6182,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.203  2004-01-25 11:33:48  daniel
+  Revision 1.204  2004-01-25 12:37:15  daniel
+    * Last commit broke debug info for records. Fixed.
+
+  Revision 1.203  2004/01/25 11:33:48  daniel
     * 2nd round of gdb cleanup
 
   Revision 1.202  2004/01/22 21:33:54  peter
