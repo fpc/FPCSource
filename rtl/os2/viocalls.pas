@@ -1,32 +1,34 @@
 {Set tabsize to 4.}
 {****************************************************************************
 
+  $Id$
+
                            VIOCALLS interface unit
-                     FPK-Pascal Runtime Library for OS/2
+                     Free Pascal Runtime Library for OS/2
                    Copyright (c) 1999-2000 by Florian Kl„mpfl
-                    Copyright (c) 1999-2000 by Dani‰l Mantione
+                    Copyright (c) 1999-2000 by Daniel Mantione
                       Copyright (c) 1999-2000 by Tomas Hajny
 
- The FPK-Pascal runtime library is distributed under the Library GNU Public
+ The Free Pascal runtime library is distributed under the Library GNU Public
  License v2. So is this unit. The Library GNU Public License requires you to
  distribute the source code of this unit with any product that uses it.
  Because the EMX library isn't under the LGPL, we grant you an exception to
- this, and that is, when you compile a program with the FPK Pascal compiler,
+ this, and that is, when you compile a program with the Free Pascal Compiler,
  you do not need to ship source code with that program, AS LONG AS YOU ARE
  USING UNMODIFIED CODE! If you modify this code, you MUST change the next
  line:
 
- <This is an official, unmodified FPK Pascal source code file.>
+ <This is an official, unmodified Free Pascal source code file.>
 
  Send us your modified files, we can work together if you want!
 
- FPK-Pascal is distributed in the hope that it will be useful,
+ Free Pascal is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  Library GNU General Public License for more details.
 
  You should have received a copy of the Library GNU General Public License
- along with FPK-Pascal; see the file COPYING.LIB.  If not, write to
+ along with Free Pascal; see the file COPYING.LIB.  If not, write to
  the Free Software Foundation, 59 Temple Place - Suite 330,
  Boston, MA 02111-1307, USA.
 
@@ -51,10 +53,10 @@ Changelog:
 
 Coding style:
 
-    I have tried to use the same coding style as Dani‰l Mantione in unit
+    I have tried to use the same coding style as Daniel Mantione in unit
     DOSCALLS, although I can't say I would write it the same way otherwise
     (I would write much more spaces myself, at least). Try to use it as well,
-    please. Original note by Dani‰l Mantione follows:
+    please. Original note by Daniel Mantione follows:
 
 
     It may be well possible that coding style feels a bit strange to you.
@@ -68,9 +70,9 @@ Coding style:
 interface
 {***************************************************************************}
 
-{$ifdef FPK}
-    {$packrecords 1}
-{$endif FPK}
+{$IFDEF FPC}
+    {$PACKRECORDS 1}
+{$ENDIF FPC}
 
 
 const
@@ -610,151 +612,160 @@ type
 
 
 function VioRegister(ModuleName,ProcName:PChar;FnMask1,FnMask2:cardinal):word;
+                                                                         cdecl;
 
 function VioRegister(ModuleName,ProcName:string;FnMask1,FnMask2:cardinal):word;
 
 function VioGlobalReg(ModuleName,ProcName:PChar;FnMask1,FnMask2:cardinal;
-                                                             Return:word):word;
+                                                      Return:word):word; cdecl;
 
 function VioGlobalReg(ModuleName,ProcName:string;FnMask1,FnMask2:cardinal;
                                                              Return:word):word;
 
-function VioDeRegister:word;
+function VioDeRegister:word; cdecl;
 
 function VioGetBuf(var LVBAddr:pointer;var LVBLength:word;VioHandle:word):word;
+                                                                         cdecl;
 
-function VioGetCurPos(var Row,Column:word;VioHandle:word):word;
+function VioGetCurPos(var Row,Column:word;VioHandle:word):word; cdecl;
 
-function VioSetCurPos(Row,Column,VioHandle:word):word;
+function VioSetCurPos(Row,Column,VioHandle:word):word; cdecl;
 
-function VioGetCurType(var CurData:TVioCursorInfo;VioHandle:word):word;
+function VioGetCurType(var CurData:TVioCursorInfo;VioHandle:word):word; cdecl;
 
-function VioSetCurType(var CurData:TVioCursorInfo;VioHandle:word):word;
+function VioSetCurType(var CurData:TVioCursorInfo;VioHandle:word):word; cdecl;
 
-function VioGetMode(var Mode:TVioModeInfo;VioHandle:word):word;
+function VioGetMode(var Mode:TVioModeInfo;VioHandle:word):word; cdecl;
 
-function VioSetMode(var Mode:TVioModeInfo;VioHandle:word):word;
+function VioSetMode(var Mode:TVioModeInfo;VioHandle:word):word; cdecl;
 
-function VioGetPhysBuf(var PBData:TVioPhysBuf;Reserved:word):word;
+function VioGetPhysBuf(var PBData:TVioPhysBuf;Reserved:word):word; cdecl;
 
 function VioReadCellStr(var Buf;var BufLen:word;
-                                               Row,Column,VioHandle:word):word;
+                                        Row,Column,VioHandle:word):word; cdecl;
 
 function VioReadCharStr(var Buf;var BufLen:word;
-                                               Row,Column,VioHandle:word):word;
+                                        Row,Column,VioHandle:word):word; cdecl;
 
 function VioWrtCellStr(CellStr:pointer;Len,Row,Column,VioHandle:word):word;
+                                                                         cdecl;
 
 function VioWrtCharStr(CharStr:pointer;Len,Row,Column,VioHandle:word):word;
+                                                                         cdecl;
 
 function VioScrollDn(TopRow,LeftCol,BotRow,RightCol,Lines:word;var Cell:word;
-                                                          VioHandle:word):word;
+                                                   VioHandle:word):word; cdecl;
 
 function VioScrollUp(TopRow,LeftCol,BotRow,RightCol,Lines:word;var Cell:word;
-                                                          VioHandle:word):word;
+                                                   VioHandle:word):word; cdecl;
 
 function VioScrollLf(TopRow,LeftCol,BotRow,RightCol,Col:word;var Cell:word;
-                                                          VioHandle:word):word;
+                                                   VioHandle:word):word; cdecl;
 
 function VioScrollRt(TopRow,LeftCol,BotRow,RightCol,Col:word;var Cell:word;
-                                                          VioHandle:word):word;
+                                                   VioHandle:word):word; cdecl;
 
 function VioWrtNAttr(var Attr:byte;Times,Row,Column,VioHandle:word):word;
+                                                                         cdecl;
 
 function VioWrtNCell(var Cell:word;Times,Row,Column,VioHandle:word):word;
+                                                                         cdecl;
 
-function VioWrtNChar(var Ch:byte;Times,Row,Column,VioHandle:word):word;
+function VioWrtNChar(var Ch:byte;Times,Row,Column,VioHandle:word):word; cdecl;
 
-function VioWrtNChar(var Ch:char;Times,Row,Column,VioHandle:word):word;
+function VioWrtNChar(var Ch:char;Times,Row,Column,VioHandle:word):word; cdecl;
 
-function VioWrtTTY(CharStr:pointer;Len,VioHandle:word):word;
+function VioWrtTTY(CharStr:pointer;Len,VioHandle:word):word; cdecl;
 
 function VioWrtCharStrAtt(CharStr:pointer;Len,Row,Column:word;var Attr:byte;
-                                                          VioHandle:word):word;
+                                                   VioHandle:word):word; cdecl;
 
 function VioCheckCharType(var CharType:word;Row,Column,VioHandle:word):word;
+                                                                         cdecl;
 
-function VioShowBuf(BufOfs,Len,VioHandle:word):word;
+function VioShowBuf(BufOfs,Len,VioHandle:word):word; cdecl;
 
-function VioSetAnsi(Mode,VioHandle:word):word;
+function VioSetAnsi(Mode,VioHandle:word):word; cdecl;
 
-function VioGetAnsi(var Mode:word;VioHandle:word):word;
+function VioGetAnsi(var Mode:word;VioHandle:word):word; cdecl;
 
-function VioPrtSc(VioHandle:word):word;
+function VioPrtSc(VioHandle:word):word; cdecl;
 
-function VioPrtScToggle(VioHandle:word):word;
+function VioPrtScToggle(VioHandle:word):word; cdecl;
 
 (*
 function VioRedrawSize(var RedrawSize:cardinal):word;
 *)
 
 function VioSavRedrawWait(RequestType:word;var NotifyType:word;
-                                                           Reserved:word):word;
+                                                    Reserved:word):word; cdecl;
 
-function VioSavRedrawUndo(Ownership,KillThread,Reserved:word):word;
+function VioSavRedrawUndo(Ownership,KillThread,Reserved:word):word; cdecl;
 
 function VioModeWait(RequestType:word;var NotifyType:word;Reserved:word):word;
+                                                                         cdecl;
 
-function VioModeUndo(Ownership,KillThread,Reserved:word):word;
+function VioModeUndo(Ownership,KillThread,Reserved:word):word; cdecl;
 
-function VioScrLock(WaitFlag:word;var Status:word;VioHandle:word):word;
+function VioScrLock(WaitFlag:word;var Status:word;VioHandle:word):word; cdecl;
 
-function VioScrUnLock(VioHandle:word):word;
+function VioScrUnLock(VioHandle:word):word; cdecl;
 
-function VioPopUp(var OptionFlags:word;VioHandle:word):word;
+function VioPopUp(var OptionFlags:word;VioHandle:word):word; cdecl;
 
-function VioEndPopUp(VioHandle:word):word;
+function VioEndPopUp(VioHandle:word):word; cdecl;
 
 function VioGetConfig(ConfigId:word;var VideoConfig:TVioConfigInfo;
-                                                          VioHandle:word):word;
+                                                   VioHandle:word):word; cdecl;
 
-function VioGetFont(var FontData:TVioFontInfo;VioHandle:word):word;
+function VioGetFont(var FontData:TVioFontInfo;VioHandle:word):word; cdecl;
 
-function VioSetFont(var FontData:TVioFontInfo;VioHandle:word):word;
+function VioSetFont(var FontData:TVioFontInfo;VioHandle:word):word; cdecl;
 
-function VioGetCp(Reserved:word;var CodePage:word;VioHandle:word):word;
+function VioGetCp(Reserved:word;var CodePage:word;VioHandle:word):word; cdecl;
 
-function VioSetCp(Reserved:word;CodePage:word;VioHandle:word):word;
+function VioSetCp(Reserved:word;CodePage:word;VioHandle:word):word; cdecl;
 
-function VioGetState(var State;VioHandle:word):word;
+function VioGetState(var State;VioHandle:word):word; cdecl;
 
-function VioSetState(var State;VioHandle:word):word;
+function VioSetState(var State;VioHandle:word):word; cdecl;
 
-function VioAssociate(DC:cardinal;VPS:word):word;
+function VioAssociate(DC:cardinal;VPS:word):word; cdecl;
 
 function VioCreateLogFont(var FAtAttrs:TFAttrs;LLCId:longint;var Name:TStr8;
-                                                                VPS:word):word;
+                                                         VPS:word):word; cdecl;
 
 function VioCreatePS(var VPS:word;Depth,Width,Format,Attrs:integer;
-                                                           Reserved:word):word;
+                                                    Reserved:word):word; cdecl;
 
-function VioDeleteSetId(LLCId:longint;VPS:word):word;
+function VioDeleteSetId(LLCId:longint;VPS:word):word; cdecl;
 
-function VioDestroyPS(VPS:word):word;
+function VioDestroyPS(VPS:word):word; cdecl;
 
-function VioGetDeviceCellSize(var Height,Width:integer;VPS:word):word;
+function VioGetDeviceCellSize(var Height,Width:integer;VPS:word):word; cdecl;
 
-function VioGetOrg(var Row,Column:integer;VPS:word):word;
+function VioGetOrg(var Row,Column:integer;VPS:word):word; cdecl;
 
 function VioQueryFonts(var Remfonts:longint;var fmMetrics:TFontMetrics;
                 MetricsLength:longint;var Fonts:longint;FaceName:PChar;
-                                             flOptions:cardinal;VPS:word):word;
+                                      flOptions:cardinal;VPS:word):word; cdecl;
 
 function VioQueryFonts(var Remfonts:longint;var fmMetrics:TFontMetrics;
                 MetricsLength:longint;var Fonts:longint;FaceName:string;
                                              flOptions:cardinal;VPS:word):word;
 
 function VioQuerySetIds(var allCIds:longint;var Names:TStr8;
-                              var alTypes:longint;Count:longint;VPS:word):word;
+                       var alTypes:longint;Count:longint;VPS:word):word; cdecl;
 
-function VioSetDeviceCellSize(Height,Width:integer;VPS:word):word;
+function VioSetDeviceCellSize(Height,Width:integer;VPS:word):word; cdecl;
 
-function VioSetOrg(Row,Column:integer;VPS:word):word;
+function VioSetOrg(Row,Column:integer;VPS:word):word; cdecl;
 
-function VioShowPS(Depth,Width,offCell:integer;VPS:word):word;
+function VioShowPS(Depth,Width,offCell:integer;VPS:word):word; cdecl;
 
 {Default message processing for AVio PS's - imported from PMVIOP.DLL}
 function WinDefAVioWindowProc(WND:cardinal;Msg:word;mp1,mp2:cardinal):pointer;
+                                                                         cdecl;
 
 
 (* Following routines are not supported
@@ -787,6 +798,7 @@ implementation
 
 
 function VioRegister(ModuleName,ProcName:PChar;FnMask1,FnMask2:cardinal):word;
+                                                                         cdecl;
 external 'EMXWRAP' index 145;
 {external 'VIOCALLS' index 45;}
 
@@ -800,7 +812,7 @@ begin
 end;
 
 function VioGlobalReg(ModuleName,ProcName:PChar;FnMask1,FnMask2:cardinal;
-                                                             Return:word):word;
+                                                      Return:word):word; cdecl;
 external 'EMXWRAP' index 170;
 {external 'VIOCALLS' index 70;}
 
@@ -815,126 +827,132 @@ begin
                                                                        Return);
 end;
 
-function VioDeRegister:word;
+function VioDeRegister:word; cdecl;
 external 'EMXWRAP' index 106;
 {external 'VIOCALLS' index 6;}
 
 function VioGetBuf(var LVBAddr:pointer;var LVBLength:word;VioHandle:word):word;
+                                                                         cdecl;
 external 'EMXWRAP' index 131;
 {external 'VIOCALLS' index 31;}
 
-function VioGetCurPos(var Row,Column:word;VioHandle:word):word;
+function VioGetCurPos(var Row,Column:word;VioHandle:word):word; cdecl;
 external 'EMXWRAP' index 109;
 {external 'VIOCALLS' index 9;}
 
-function VioSetCurPos(Row,Column,VioHandle:word):word;
+function VioSetCurPos(Row,Column,VioHandle:word):word; cdecl;
 external 'EMXWRAP' index 115;
 {external 'VIOCALLS' index 15;}
 
-function VioGetCurType(var CurData:TVioCursorInfo;VioHandle:word):word;
+function VioGetCurType(var CurData:TVioCursorInfo;VioHandle:word):word; cdecl;
 external 'EMXWRAP' index 127;
 {external 'VIOCALLS' index 27;}
 
-function VioSetCurType(var CurData:TVioCursorInfo;VioHandle:word):word;
+function VioSetCurType(var CurData:TVioCursorInfo;VioHandle:word):word; cdecl;
 external 'EMXWRAP' index 132;
 {external 'VIOCALLS' index 32;}
 
-function VioGetMode(var Mode:TVioModeInfo;VioHandle:word):word;
+function VioGetMode(var Mode:TVioModeInfo;VioHandle:word):word; cdecl;
 external 'EMXWRAP' index 121;
 {external 'VIOCALLS' index 21;}
 
-function VioSetMode(var Mode:TVioModeInfo;VioHandle:word):word;
+function VioSetMode(var Mode:TVioModeInfo;VioHandle:word):word; cdecl;
 external 'EMXWRAP' index 122;
 {external 'VIOCALLS' index 22;}
 
-function VioGetPhysBuf(var PBData:TVioPhysBuf;Reserved:word):word;
+function VioGetPhysBuf(var PBData:TVioPhysBuf;Reserved:word):word; cdecl;
 external 'EMXWRAP' index 102;
 {external 'VIOCALLS' index 2;}
 
 function VioReadCellStr(var Buf;var BufLen:word;
-                                               Row,Column,VioHandle:word):word;
+                                        Row,Column,VioHandle:word):word; cdecl;
 external 'EMXWRAP' index 124;
 {external 'VIOCALLS' index 24;}
 
 function VioReadCharStr(var Buf;var BufLen:word;
-                                               Row,Column,VioHandle:word):word;
+                                        Row,Column,VioHandle:word):word; cdecl;
 external 'EMXWRAP' index 130;
 {external 'VIOCALLS' index 30;}
 
 function VioWrtCellStr(CellStr:pointer;Len,Row,Column,VioHandle:word):word;
+                                                                         cdecl;
 external 'EMXWRAP' index 110;
 {external 'VIOCALLS' index 10;}
 
 function VioWrtCharStr(CharStr:pointer;Len,Row,Column,VioHandle:word):word;
+                                                                         cdecl;
 external 'EMXWRAP' index 113;
 {external 'VIOCALLS' index 13;}
 
 function VioScrollDn(TopRow,LeftCol,BotRow,RightCol,Lines:word;var Cell:word;
-                                                          VioHandle:word):word;
+                                                   VioHandle:word):word; cdecl;
 external 'EMXWRAP' index 147;
 {external 'VIOCALLS' index 47;}
 
 function VioScrollUp(TopRow,LeftCol,BotRow,RightCol,Lines:word;var Cell:word;
-                                                          VioHandle:word):word;
+                                                   VioHandle:word):word; cdecl;
 external 'EMXWRAP' index 107;
 {external 'VIOCALLS' index 7;}
 
 function VioScrollLf(TopRow,LeftCol,BotRow,RightCol,Col:word;var Cell:word;
-                                                          VioHandle:word):word;
+                                                   VioHandle:word):word; cdecl;
 external 'EMXWRAP' index 144;
 {external 'VIOCALLS' index 44;}
 
 function VioScrollRt(TopRow,LeftCol,BotRow,RightCol,Col:word;var Cell:word;
-                                                          VioHandle:word):word;
+                                                   VioHandle:word):word; cdecl;
 external 'EMXWRAP' index 112;
 {external 'VIOCALLS' index 12;}
 
 function VioWrtNAttr(var Attr:byte;Times,Row,Column,VioHandle:word):word;
+                                                                         cdecl;
 external 'EMXWRAP' index 126;
 {external 'VIOCALLS' index 26;}
 
 function VioWrtNCell(var Cell:word;Times,Row,Column,VioHandle:word):word;
+                                                                         cdecl;
 external 'EMXWRAP' index 152;
 {external 'VIOCALLS' index 52;}
 
-function VioWrtNChar(var Ch:byte;Times,Row,Column,VioHandle:word):word;
+function VioWrtNChar(var Ch:byte;Times,Row,Column,VioHandle:word):word; cdecl;
 external 'EMXWRAP' index 153;
 {external 'VIOCALLS' index 53;}
 
-function VioWrtNChar(var Ch:char;Times,Row,Column,VioHandle:word):word;
+function VioWrtNChar(var Ch:char;Times,Row,Column,VioHandle:word):word; cdecl;
 external 'EMXWRAP' index 153;
 {external 'VIOCALLS' index 53;}
 
-function VioWrtTTY(CharStr:pointer;Len,VioHandle:word):word;
+function VioWrtTTY(CharStr:pointer;Len,VioHandle:word):word; cdecl;
 external 'EMXWRAP' index 119;
 {external 'VIOCALLS' index 19;}
 
 function VioWrtCharStrAtt(CharStr:pointer;Len,Row,Column:word;var Attr:byte;
-                                                          VioHandle:word):word;
+                                                   VioHandle:word):word; cdecl;
 external 'EMXWRAP' index 148;
 {external 'VIOCALLS' index 48;}
 
 function VioCheckCharType(var CharType:word;Row,Column,VioHandle:word):word;
+                                                                         cdecl;
 external 'EMXWRAP' index 175;
 {external 'VIOCALLS' index 75;}
 
-function VioShowBuf(BufOfs,Len,VioHandle:word):word;
+function VioShowBuf(BufOfs,Len,VioHandle:word):word; cdecl;
 external 'EMXWRAP' index 143;
 {external 'VIOCALLS' index 43;}
 
-function VioSetAnsi(Mode,VioHandle:word):word;
+function VioSetAnsi(Mode,VioHandle:word):word; cdecl;
 external 'EMXWRAP' index 105;
 {external 'VIOCALLS' index 5;}
 
-function VioGetAnsi(var Mode:word;VioHandle:word):word;
+function VioGetAnsi(var Mode:word;VioHandle:word):word; cdecl;
 external 'EMXWRAP' index 103;
 {external 'VIOCALLS' index 3;}
 
-function VioPrtSc(VioHandle:word):word;
+function VioPrtSc(VioHandle:word):word; cdecl;
 external 'EMXWRAP' index 108;
 {external 'VIOCALLS' index 8;}
 
-function VioPrtScToggle(VioHandle:word):word;
+function VioPrtScToggle(VioHandle:word):word; cdecl;
 external 'EMXWRAP' index 150;
 {external 'VIOCALLS' index 50;}
 
@@ -945,102 +963,103 @@ function VioRedrawSize(var RedrawSize:cardinal):word;
 *)
 
 function VioSavRedrawWait(RequestType:word;var NotifyType:word;
-                                                           Reserved:word):word;
+                                                    Reserved:word):word; cdecl;
 external 'EMXWRAP' index 125;
 {external 'VIOCALLS' index 25;}
 
-function VioSavRedrawUndo(Ownership,KillThread,Reserved:word):word;
+function VioSavRedrawUndo(Ownership,KillThread,Reserved:word):word; cdecl;
 external 'EMXWRAP' index 128;
 {external 'VIOCALLS' index 28;}
 
 function VioModeWait(RequestType:word;var NotifyType:word;Reserved:word):word;
+                                                                         cdecl;
 external 'EMXWRAP' index 137;
 {external 'VIOCALLS' index 37;}
 
-function VioModeUndo(Ownership,KillThread,Reserved:word):word;
+function VioModeUndo(Ownership,KillThread,Reserved:word):word; cdecl;
 external 'EMXWRAP' index 135;
 {external 'VIOCALLS' index 35;}
 
-function VioScrLock(WaitFlag:word;var Status:word;VioHandle:word):word;
+function VioScrLock(WaitFlag:word;var Status:word;VioHandle:word):word; cdecl;
 external 'EMXWRAP' index 123;
 {external 'VIOCALLS' index 23;}
 
-function VioScrUnLock(VioHandle:word):word;
+function VioScrUnLock(VioHandle:word):word; cdecl;
 external 'EMXWRAP' index 118;
 {external 'VIOCALLS' index 18;}
 
-function VioPopUp(var OptionFlags:word;VioHandle:word):word;
+function VioPopUp(var OptionFlags:word;VioHandle:word):word; cdecl;
 external 'EMXWRAP' index 111;
 {external 'VIOCALLS' index 11;}
 
-function VioEndPopUp(VioHandle:word):word;
+function VioEndPopUp(VioHandle:word):word; cdecl;
 external 'EMXWRAP' index 101;
 {external 'VIOCALLS' index 1;}
 
 function VioGetConfig(ConfigId:word;var VideoConfig:TVioConfigInfo;
-                                                          VioHandle:word):word;
+                                                   VioHandle:word):word; cdecl;
 external 'EMXWRAP' index 146;
 {external 'VIOCALLS' index 46;}
 
-function VioGetFont(var FontData:TVioFontInfo;VioHandle:word):word;
+function VioGetFont(var FontData:TVioFontInfo;VioHandle:word):word; cdecl;
 external 'EMXWRAP' index 129;
 {external 'VIOCALLS' index 29;}
 
-function VioSetFont(var FontData:TVioFontInfo;VioHandle:word):word;
+function VioSetFont(var FontData:TVioFontInfo;VioHandle:word):word; cdecl;
 external 'EMXWRAP' index 133;
 {external 'VIOCALLS' index 33;}
 
-function VioGetCp(Reserved:word;var CodePage:word;VioHandle:word):word;
+function VioGetCp(Reserved:word;var CodePage:word;VioHandle:word):word; cdecl;
 external 'EMXWRAP' index 140;
 {external 'VIOCALLS' index 40;}
 
-function VioSetCp(Reserved:word;CodePage:word;VioHandle:word):word;
+function VioSetCp(Reserved:word;CodePage:word;VioHandle:word):word; cdecl;
 external 'EMXWRAP' index 142;
 {external 'VIOCALLS' index 42;}
 
-function VioGetState(var State;VioHandle:word):word;
+function VioGetState(var State;VioHandle:word):word; cdecl;
 external 'EMXWRAP' index 149;
 {external 'VIOCALLS' index 49;}
 
-function VioSetState(var State;VioHandle:word):word;
+function VioSetState(var State;VioHandle:word):word; cdecl;
 external 'EMXWRAP' index 151;
 {external 'VIOCALLS' index 51;}
 
 
 {Extended functions for windowed VIO follow.}
-function VioAssociate(DC:cardinal;VPS:word):word;
+function VioAssociate(DC:cardinal;VPS:word):word; cdecl;
 external 'EMXWRAP' index 155;
 {external 'VIOCALLS' index 55;}
 
 function VioCreateLogFont(var FAtAttrs:TFAttrs;LLCId:longint;var Name:TStr8;
-                                                                VPS:word):word;
+                                                         VPS:word):word; cdecl;
 external 'EMXWRAP' index 160;
 {external 'VIOCALLS' index 60;}
 
 function VioCreatePS(var VPS:word;Depth,Width,Format,Attrs:integer;
-                                                           Reserved:word):word;
+                                                    Reserved:word):word; cdecl;
 external 'EMXWRAP' index 156;
 {external 'VIOCALLS' index 56;}
 
-function VioDeleteSetId(LLCId:longint;VPS:word):word;
+function VioDeleteSetId(LLCId:longint;VPS:word):word; cdecl;
 external 'EMXWRAP' index 157;
 {external 'VIOCALLS' index 57;}
 
-function VioDestroyPS(VPS:word):word;
+function VioDestroyPS(VPS:word):word; cdecl;
 external 'EMXWRAP' index 161;
 {external 'VIOCALLS' index 61;}
 
-function VioGetDeviceCellSize(var Height,Width:integer;VPS:word):word;
+function VioGetDeviceCellSize(var Height,Width:integer;VPS:word):word; cdecl;
 external 'EMXWRAP' index 158;
 {external 'VIOCALLS' index 58;}
 
-function VioGetOrg(var Row,Column:integer;VPS:word):word;
+function VioGetOrg(var Row,Column:integer;VPS:word):word; cdecl;
 external 'EMXWRAP' index 159;
 {external 'VIOCALLS' index 59;}
 
 function VioQueryFonts(var Remfonts:longint;var fmMetrics:TFontMetrics;
                 MetricsLength:longint;var Fonts:longint;FaceName:PChar;
-                                             flOptions:cardinal;VPS:word):word;
+                                      flOptions:cardinal;VPS:word):word; cdecl;
 external 'EMXWRAP' index 164;
 {external 'VIOCALLS' index 64;}
 
@@ -1071,24 +1090,32 @@ begin
 end;
 
 function VioQuerySetIds(var allCIds:longint;var Names:TStr8;
-                              var alTypes:longint;Count:longint;VPS:word):word;
+                       var alTypes:longint;Count:longint;VPS:word):word; cdecl;
 external 'EMXWRAP' index 162;
 {external 'VIOCALLS' index 62;}
 
-function VioSetDeviceCellSize(Height,Width:integer;VPS:word):word;
+function VioSetDeviceCellSize(Height,Width:integer;VPS:word):word; cdecl;
 external 'EMXWRAP' index 165;
 {external 'VIOCALLS' index 65;}
 
-function VioSetOrg(Row,Column:integer;VPS:word):word;
+function VioSetOrg(Row,Column:integer;VPS:word):word; cdecl;
 external 'EMXWRAP' index 163;
 {external 'VIOCALLS' index 63;}
 
-function VioShowPS(Depth,Width,offCell:integer;VPS:word):word;
+function VioShowPS(Depth,Width,offCell:integer;VPS:word):word; cdecl;
 external 'EMXWRAP' index 166;
 {external 'VIOCALLS' index 66;}
 
 function WinDefAVioWindowProc(WND:cardinal;Msg:word;mp1,mp2:cardinal):pointer;
+                                                                         cdecl;
 external 'EMXWRAP' index 30;
 {external 'PMVIOP' index 30;}
 
 end.
+
+{
+  $Log$
+  Revision 1.7  2000-01-09 21:01:59  hajny
+    * cdecl added
+
+}

@@ -1,32 +1,34 @@
 {Set tabsize to 4.}
 {****************************************************************************
 
+  $Id$
+
                            MOUCALLS interface unit
-                     FPK-Pascal Runtime Library for OS/2
+                     Free Pascal Runtime Library for OS/2
                    Copyright (c) 1999-2000 by Florian Kl„mpfl
-                    Copyright (c) 1999-2000 by Dani‰l Mantione
+                    Copyright (c) 1999-2000 by Daniel Mantione
                       Copyright (c) 1999-2000 by Tomas Hajny
 
- The FPK-Pascal runtime library is distributed under the Library GNU Public
+ The Free Pascal runtime library is distributed under the Library GNU Public
  License v2. So is this unit. The Library GNU Public License requires you to
  distribute the source code of this unit with any product that uses it.
  Because the EMX library isn't under the LGPL, we grant you an exception to
- this, and that is, when you compile a program with the FPK Pascal compiler,
+ this, and that is, when you compile a program with the Free Pascal Compiler,
  you do not need to ship source code with that program, AS LONG AS YOU ARE
  USING UNMODIFIED CODE! If you modify this code, you MUST change the next
  line:
 
- <This is an official, unmodified FPK Pascal source code file.>
+ <This is an official, unmodified Free Pascal source code file.>
 
  Send us your modified files, we can work together if you want!
 
- FPK-Pascal is distributed in the hope that it will be useful,
+ Free Pascal is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  Library GNU General Public License for more details.
 
  You should have received a copy of the Library GNU General Public License
- along with FPK-Pascal; see the file COPYING.LIB.  If not, write to
+ along with Free Pascal; see the file COPYING.LIB.  If not, write to
  the Free Software Foundation, 59 Temple Place - Suite 330,
  Boston, MA 02111-1307, USA.
 
@@ -34,7 +36,9 @@
 
 unit MouCalls;
 
-{ Interface library to MOUCALLS.DLL (through EMXWRAP.DLL)
+{ Interface library to MOUCALLS.DLL (through EMXWRAP.DLL; C calling convention
+  - cdecl - must be used for EMXWRAP, whereas direct MOUCALLS calls would need
+  16-bit Pascal calling convention with thunking instead).
 
 Variant records and aliases for some record types created to maintain highest
 possible level of compatibility with other existing OS/2 compilers.
@@ -51,10 +55,10 @@ Changelog:
 
 Coding style:
 
-    I have tried to use the same coding style as Dani‰l Mantione in unit
+    I have tried to use the same coding style as Daniel Mantione in unit
     DOSCALLS, although I can't say I would write it the same way otherwise
     (I would write much more spaces myself, at least). Try to use it as well,
-    please. Original note by Dani‰l Mantione follows:
+    please. Original note by Daniel Mantione follows:
 
 
     It may be well possible that coding style feels a bit strange to you.
@@ -67,9 +71,9 @@ Coding style:
 interface
 {***************************************************************************}
 
-{$ifdef FPK}
-    {$packrecords 1}
-{$endif FPK}
+{$IFDEF FPC}
+    {$PACKRECORDS 1}
+{$ENDIF FPC}
 
 const
 {return codes / error constants (those marked with * shouldn't occur under
@@ -342,7 +346,7 @@ being registered - see MR_MOU* constants.}
   MouSetDevStatus             15h
 * A registered mouse sybsystem must leave the stack, on exit, in the exact
   state it was received.}
-function MouRegister(ModuleName,ProcName:PChar;FnMask:cardinal):word;
+function MouRegister(ModuleName,ProcName:PChar;FnMask:cardinal):word; cdecl;
 function MouRegister(ModuleName,ProcName:string;FnMask:cardinal):word;
 
 {Deregister a mouse subsystem previously registered within a session.}
@@ -361,7 +365,7 @@ function MouRegister(ModuleName,ProcName:string;FnMask:cardinal):word;
 * After the owning process has released the subsystem with a MouDeRegister
   call, any other process in the session may issue a MouRegister and therefore
   modify the mouse support for the entire session.}
-function MouDeRegister:word;
+function MouDeRegister:word; cdecl;
 
 {Direct the mouse driver to flush (empty) the mouse event queue and the monitor
 chain data for the session.}
@@ -372,7 +376,7 @@ chain data for the session.}
     466       ERROR_MOU_DETACHED
     501       ERROR_MOUSE_NO_CONSOLE
     505       ERROR_MOU_EXTENDED_SG}
-function MouFlushQue(MouHandle:word):word;
+function MouFlushQue(MouHandle:word):word; cdecl;
 
 {Query the mouse driver to determine the current row and column coordinate
 position of the mouse pointer.}
@@ -392,7 +396,7 @@ handle from a previous MouOpen call.}
   outside the LVB image extent, the coordinates of the nearest LVB cell are
   returned. In either case, the LVB is scrolled until the reported LVB cell
   appears within the view window.}
-function MouGetPtrPos(var MouPtr:TPtrLoc;MouHandle:word):word;
+function MouGetPtrPos(var MouPtr:TPtrLoc;MouHandle:word):word; cdecl;
 
 {Direct the mouse driver to set a new row and column coordinate position for
 the mouse pointer.}
@@ -414,7 +418,7 @@ handle from a previous MouOpen call.}
   is directed into a defined collision area, the pointer image is not drawn
   until either the pointer is moved outside the collision area or the collision
   area is released by the MouDrawPtr call.}
-function MouSetPtrPos(const MouPtr:TPtrLoc;MouHandle:word):word;
+function MouSetPtrPos(const MouPtr:TPtrLoc;MouHandle:word):word; cdecl;
 
 {Set the pointer shape and size to be used as the mouse device pointer image
 for all applications in a session.}
@@ -465,9 +469,9 @@ MouHandle is the mouse device handle from a previous MouOpen call.}
   shape on all currently supported bit planes in that session. For text modes,
   row and column offset must equal 0.}
 function MouSetPtrShape(var ImageBuf;var ImageInfo:TPtrShape;
-                                                          MouHandle:word):word;
+                                                   MouHandle:word):word; cdecl;
 function MouSetPtrShape(ImageBuf:pointer;var ImageInfo:TPtrShape;
-                                                          MouHandle:word):word;
+                                                   MouHandle:word):word; cdecl;
 
 {Get (copy) the mouse pointer shape for the session.}
 {The pointer bit image is returned in ImageBuf (see MouSetPtrShape description
@@ -516,9 +520,9 @@ the mouse device handle from a previous MouOpen call.}
 * The pointer shape may be set by the application with MouSetPtrShape or may
   be the default image provided by the installed Pointer Device Driver.}
 function MouGetPtrShape(var ImageBuf;var ImageInfo:TPtrShape;
-                                                          MouHandle:word):word;
+                                                   MouHandle:word):word; cdecl;
 function MouGetPtrShape(ImageBuf:pointer;var ImageInfo:TPtrShape;
-                                                          MouHandle:word):word;
+                                                   MouHandle:word):word; cdecl;
 
 {Return status flags for the installed mouse device driver.}
 {The current status flag settings for the installed mouse device driver are
@@ -532,7 +536,7 @@ a previous MouOpen call.}
     466       ERROR_MOU_DETACHED
     501       ERROR_MOUSE_NO_CONSOLE
     505       ERROR_MOU_EXTENDED_SG}
-function MouGetDevStatus(var Status:word;MouHandle:word):word;
+function MouGetDevStatus(var Status:word;MouHandle:word):word; cdecl;
 
 {Return the number of buttons supported on the installed mouse driver.}
 {Number of physical buttons (1..3) returned in ButtonCount, MouHandle is
@@ -543,7 +547,7 @@ the mouse device handle from a previous MouOpen call.}
     466       ERROR_MOU_DETACHED
     501       ERROR_MOUSE_NO_CONSOLE
     505       ERROR_MOU_EXTENDED_SG}
-function MouGetNumButtons(var ButtonCount:word;MouHandle:word):word;
+function MouGetNumButtons(var ButtonCount:word;MouHandle:word):word; cdecl;
 
 {Return the number of mickeys in each centimeter for the installed mouse
 driver.}
@@ -556,7 +560,7 @@ the mouse device handle from a previous MouOpen call.}
     466       ERROR_MOU_DETACHED
     501       ERROR_MOUSE_NO_CONSOLE
     505       ERROR_MOU_EXTENDED_SG}
-function MouGetNumMickeys(var MickeyCnt:word;MouHandle:word):word;
+function MouGetNumMickeys(var MickeyCnt:word;MouHandle:word):word; cdecl;
 
 {Read an event from the mouse device FIFO event queue.}
 {The mouse event queue is returned in Event, WaitFlag determines the action to
@@ -601,7 +605,7 @@ device handle from a previous MouOpen call.}
   coordinates or relative mouse motion in mickeys. See MouSetDevStatus for
   additional information.}
 function MouReadEventQue(var Event:TMouEventInfo;var WaitFlag:word;
-                                                          MouHandle:word):word;
+                                                   MouHandle:word):word; cdecl;
 
 {Return the current status for the mouse device driver event queue.}
 {Mouse queue status returned in MouseQInfo, MouHandle is the mouse device
@@ -612,7 +616,7 @@ handle from a previous MouOpen call.}
     466       ERROR_MOU_DETACHED
     501       ERROR_MOUSE_NO_CONSOLE
     505       ERROR_MOU_EXTENDED_SG}
-function MouGetNumQueEl(var MouseQInfo:TMouQueInfo;MouHandle:word):word;
+function MouGetNumQueEl(var MouseQInfo:TMouQueInfo;MouHandle:word):word; cdecl;
 
 {Return the current value of the mouse event queue mask.}
 {The current mouse device driver's event mask (as previously set by
@@ -629,7 +633,7 @@ a previous MouOpen call.}
     505       ERROR_MOU_EXTENDED_SG}
 {Remarks:
 * Buttons are logically numbered from left to right.}
-function MouGetEventMask(var EventMask:word;MouHandle:word):word;
+function MouGetEventMask(var EventMask:word;MouHandle:word):word; cdecl;
 
 {Assign a new event mask to the current mouse device driver.}
 {EventMask contains the mask indicating what mouse events are to be placed on
@@ -651,7 +655,7 @@ MouHandle is the mouse device handle from a previous MouOpen call.}
 * Setting a bit in the event mask means that the associated event is reported
   on the mouse FIFO event queue. See MouReadEventQue for examples of event
   mask use.}
-function MouSetEventMask(var EventMask:word;MouHandle:word):word;
+function MouSetEventMask(var EventMask:word;MouHandle:word):word; cdecl;
 
 {Return scaling factors for the current mouse device (a pair of 1-word
 values).}
@@ -669,7 +673,7 @@ the mouse device handle from a previous MouOpen call.}
   for the session. If the screen is operating in text mode, the scaling units
   are relative to characters. If the screen is operating in graphics mode,
   the scaling units are relative to pels.}
-function MouGetScaleFact(var Scale:TScaleFact;MouHandle:word):word;
+function MouGetScaleFact(var Scale:TScaleFact;MouHandle:word):word; cdecl;
 
 {Assign to the current mouse device driver a new pair of 1-word scaling
 factors.}
@@ -692,7 +696,7 @@ factors.}
   for the mouse that is a ratio of the number of mickeys required to move
   the cursor 8 pixels on the screen. The sensitivity determines at what rate
   the cursor moves on the screen.}
-function MouSetScaleFact(const Scale:TScaleFact;MouHandle:word):word;
+function MouSetScaleFact(const Scale:TScaleFact;MouHandle:word):word; cdecl;
 
 {Open the mouse device for the current session.}
 {DriverName contains the name of the pointer draw device driver to be used as
@@ -735,7 +739,7 @@ handle is returned in MouHandle.}
   Base Mouse Subsystem can detect a change in display configurations. This form
   of the MouOpen call is not recommended for applications. Applications should
   either send the name of the pointer draw device driver or nil.}
-function MouOpen(DriverName:PChar;var MouHandle:word):word;
+function MouOpen(DriverName:PChar;var MouHandle:word):word; cdecl;
 function MouOpen(DriverName:string;var MouHandle:word):word;
 
 {Close the mouse device for the current session.}
@@ -750,7 +754,7 @@ function MouOpen(DriverName:string;var MouHandle:word):word;
 * MouClose closes the mouse device for the current session and removes the
   mouse device driver handle from the list of valid open mouse device
   handles.}
-function MouClose(MouHandle:word):word;
+function MouClose(MouHandle:word):word; cdecl;
 
 {Notify the mouse device driver that the area defined by the passed parameters
 if for exclusive use of the application. This area is defined as the
@@ -775,7 +779,7 @@ handle from a previous MouOpen call.}
 * The MouDrawPtr command effectively cancels the MouRemovePtr command
   and allows the pointer to be drawn anywhere on the screen, until a new
   MouRemovePtr command is issued.}
-function MouRemovePtr(var ProtectArea:TNoPtrRect;MouHandle:word):word;
+function MouRemovePtr(var ProtectArea:TNoPtrRect;MouHandle:word):word; cdecl;
 
 {Notify the mouse device driver that an area previously restricted
 to the pointer image is now available to the mouse device driver.}
@@ -796,7 +800,7 @@ to the pointer image is now available to the mouse device driver.}
   after MouOpen is issued, the collision area is defined as the size of the
   display. A MouDrawPtr is issued to begin pointer drawing after the
   MouOpen.}
-function MouDrawPtr(MouHandle:word):word;
+function MouDrawPtr(MouHandle:word):word; cdecl;
 
 {Set the mouse device driver status flags for the installed mouse device
 driver.}
@@ -825,7 +829,7 @@ from a previous MouOpen call.}
     operations. By setting this status flag, the mouse device driver does not
     call the pointer draw device driver. The application must draw any required
     pointer image on the screen.}
-function MouSetDevStatus(var Status:word;MouHandle:word):word;
+function MouSetDevStatus(var Status:word;MouHandle:word):word; cdecl;
 
 {Initialize mouse pointer draw support for DOS mode.}
 {Name of the Pointer Draw Device Driver used as the pointer-image drawing
@@ -860,7 +864,7 @@ device driver must be included in the CONFIG.SYS file at system start-up time.}
   and the offset portion is non-zero, the offset portion identifies the
   power-up display configuration. However, this isn't possible in the current
   implementation (using 32-bit wrap-around function supplied in EMXWRAP.DLL).}
-function MouInitReal(DriverName:PChar):word;
+function MouInitReal(DriverName:PChar):word; cdecl;
 function MouInitReal(DriverName:string):word;
 
 {Synchronize the mouse subsystem with the mouse device driver.}
@@ -876,11 +880,13 @@ being free - see MOU_NOWAIT and MOU_WAIT constants.}
   to access dynamically modifiable shared data for each session or if it
   intends to issue a DosDevIOCtl. MouSynch does not protect globally shared
   data from threads in other sessions.}
-function MouSynch(WaitFlag:word):word;
+function MouSynch(WaitFlag:word):word; cdecl;
 
 function MouGetThreshold(var MouThreshold:TThreshold;MouHandle:word):word;
+                                                                         cdecl;
 
 function MouSetThreshold(var MouThreshold:TThreshold;MouHandle:word):word;
+                                                                         cdecl;
 
 (*
 following two functions are undocumented and not present within C header files:
@@ -902,7 +908,7 @@ implementation
 {***************************************************************************}
 
 
-function MouRegister(ModuleName,ProcName:PChar;FnMask:cardinal):word;
+function MouRegister(ModuleName,ProcName:PChar;FnMask:cardinal):word; cdecl;
 external 'EMXWRAP' index 324;
 {external 'MOUCALLS' index 24;}
 
@@ -915,80 +921,80 @@ begin
     MouRegister:=MouRegister(@ModuleName[1],@ProcName[1],FnMask);
 end;
 
-function MouDeRegister:word;
+function MouDeRegister:word; cdecl;
 external 'EMXWRAP' index 314;
 {external 'MOUCALLS' index 14;}
 
-function MouFlushQue(MouHandle:word):word;
+function MouFlushQue(MouHandle:word):word; cdecl;
 external 'EMXWRAP' index 307;
 {external 'MOUCALLS' index 7;}
 
-function MouGetPtrPos(var MouPtr:TPtrLoc;MouHandle:word):word;
+function MouGetPtrPos(var MouPtr:TPtrLoc;MouHandle:word):word; cdecl;
 external 'EMXWRAP' index 319;
 {external 'MOUCALLS' index 19;}
 
-function MouSetPtrPos(const MouPtr:TPtrLoc;MouHandle:word):word;
+function MouSetPtrPos(const MouPtr:TPtrLoc;MouHandle:word):word; cdecl;
 external 'EMXWRAP' index 321;
 {external 'MOUCALLS' index 21;}
 
 function MouSetPtrShape(ImageBuf:pointer;var ImageInfo:TPtrShape;
-                                                          MouHandle:word):word;
+                                                   MouHandle:word):word; cdecl;
 external 'EMXWRAP' index 302;
 {external 'MOUCALLS' index 2;}
 
 function MouSetPtrShape(var ImageBuf;var ImageInfo:TPtrShape;
-                                                          MouHandle:word):word;
+                                                   MouHandle:word):word; cdecl;
 external 'EMXWRAP' index 302;
 {external 'MOUCALLS' index 2;}
 
 function MouGetPtrShape(var ImageBuf;var ImageInfo:TPtrShape;
-                                                          MouHandle:word):word;
+                                                   MouHandle:word):word; cdecl;
 external 'EMXWRAP' index 301;
 {external 'MOUCALLS' index 1;}
 
 function MouGetPtrShape(ImageBuf:pointer;var ImageInfo:TPtrShape;
-                                                          MouHandle:word):word;
+                                                   MouHandle:word):word; cdecl;
 external 'EMXWRAP' index 301;
 {external 'MOUCALLS' index 1;}
 
-function MouGetDevStatus(var Status:word;MouHandle:word):word;
+function MouGetDevStatus(var Status:word;MouHandle:word):word; cdecl;
 external 'EMXWRAP' index 322;
 {external 'MOUCALLS' index 22;}
 
-function MouGetNumButtons(var ButtonCount:word;MouHandle:word):word;
+function MouGetNumButtons(var ButtonCount:word;MouHandle:word):word; cdecl;
 external 'EMXWRAP' index 308;
 {external 'MOUCALLS' index 8;}
 
-function MouGetNumMickeys(var MickeyCnt:word;MouHandle:word):word;
+function MouGetNumMickeys(var MickeyCnt:word;MouHandle:word):word; cdecl;
 external 'EMXWRAP' index 303;
 {external 'MOUCALLS' index 3;}
 
 function MouReadEventQue(var Event:TMouEventInfo;var WaitFlag:word;
-                                                          MouHandle:word):word;
+                                                   MouHandle:word):word; cdecl;
 external 'EMXWRAP' index 320;
 {external 'MOUCALLS' index 20;}
 
-function MouGetNumQueEl(var MouseQInfo:TMouQueInfo;MouHandle:word):word;
+function MouGetNumQueEl(var MouseQInfo:TMouQueInfo;MouHandle:word):word; cdecl;
 external 'EMXWRAP' index 313;
 {external 'MOUCALLS' index 13;}
 
-function MouGetEventMask(var EventMask:word;MouHandle:word):word;
+function MouGetEventMask(var EventMask:word;MouHandle:word):word; cdecl;
 external 'EMXWRAP' index 315;
 {external 'MOUCALLS' index 15;}
 
-function MouSetEventMask(var EventMask:word;MouHandle:word):word;
+function MouSetEventMask(var EventMask:word;MouHandle:word):word; cdecl;
 external 'EMXWRAP' index 316;
 {external 'MOUCALLS' index 16;}
 
-function MouGetScaleFact(var Scale:TScaleFact;MouHandle:word):word;
+function MouGetScaleFact(var Scale:TScaleFact;MouHandle:word):word; cdecl;
 external 'EMXWRAP' index 306;
 {external 'MOUCALLS' index 6;}
 
-function MouSetScaleFact(const Scale:TScaleFact;MouHandle:word):word;
+function MouSetScaleFact(const Scale:TScaleFact;MouHandle:word):word; cdecl;
 external 'EMXWRAP' index 311;
 {external 'MOUCALLS' index 11;}
 
-function MouOpen(DriverName:PChar;var MouHandle:word):word;
+function MouOpen(DriverName:PChar;var MouHandle:word):word; cdecl;
 external 'EMXWRAP' index 317;
 {external 'MOUCALLS' index 17;}
 
@@ -1013,23 +1019,23 @@ begin
     end;
 end;
 
-function MouClose(MouHandle:word):word;
+function MouClose(MouHandle:word):word; cdecl;
 external 'EMXWRAP' index 309;
 {external 'MOUCALLS' index 9;}
 
-function MouRemovePtr(var ProtectArea:TNoPtrRect;MouHandle:word):word;
+function MouRemovePtr(var ProtectArea:TNoPtrRect;MouHandle:word):word; cdecl;
 external 'EMXWRAP' index 318;
 {external 'MOUCALLS' index 18;}
 
-function MouDrawPtr(MouHandle:word):word;
+function MouDrawPtr(MouHandle:word):word; cdecl;
 external 'EMXWRAP' index 326;
 {external 'MOUCALLS' index 26;}
 
-function MouSetDevStatus(var Status:word;MouHandle:word):word;
+function MouSetDevStatus(var Status:word;MouHandle:word):word; cdecl;
 external 'EMXWRAP' index 326;
 {external 'MOUCALLS' index 26;}
 
-function MouInitReal(DriverName:PChar):word;
+function MouInitReal(DriverName:PChar):word; cdecl;
 external 'EMXWRAP' index 327;
 {external 'MOUCALLS' index 27;}
 
@@ -1054,15 +1060,17 @@ begin
     end;
 end;
 
-function MouSynch(WaitFlag:word):word;
+function MouSynch(WaitFlag:word):word; cdecl;
 external 'EMXWRAP' index 323;
 {external 'MOUCALLS' index 23;}
 
 function MouGetThreshold(var MouThreshold:TThreshold;MouHandle:word):word;
+                                                                         cdecl;
 external 'EMXWRAP' index 329;
 {external 'MOUCALLS' index 29;}
 
 function MouSetThreshold(var MouThreshold:TThreshold;MouHandle:word):word;
+                                                                         cdecl;
 external 'EMXWRAP' index 330;
 {external 'MOUCALLS' index 30;}
 
@@ -1079,3 +1087,10 @@ external 'MOUCALLS' index 10;
 
 
 end.
+
+{
+  $Log$
+  Revision 1.7  2000-01-09 21:01:59  hajny
+    * cdecl added
+
+}

@@ -1,32 +1,34 @@
 {Set tabsize to 4.}
 {****************************************************************************
 
+  $Id$
+
                            MONCALLS interface unit
-                     FPK-Pascal Runtime Library for OS/2
+                     Free Pascal Runtime Library for OS/2
                    Copyright (c) 1999-2000 by Florian Kl„mpfl
-                    Copyright (c) 1999-2000 by Dani‰l Mantione
+                    Copyright (c) 1999-2000 by Daniel Mantione
                       Copyright (c) 1999-2000 by Tomas Hajny
 
- The FPK-Pascal runtime library is distributed under the Library GNU Public
+ The Free Pascal runtime library is distributed under the Library GNU Public
  License v2. So is this unit. The Library GNU Public License requires you to
  distribute the source code of this unit with any product that uses it.
  Because the EMX library isn't under the LGPL, we grant you an exception to
- this, and that is, when you compile a program with the FPK Pascal compiler,
+ this, and that is, when you compile a program with the Free Pascal Compiler,
  you do not need to ship source code with that program, AS LONG AS YOU ARE
  USING UNMODIFIED CODE! If you modify this code, you MUST change the next
  line:
 
- <This is an official, unmodified FPK Pascal source code file.>
+ <This is an official, unmodified Free Pascal source code file.>
 
  Send us your modified files, we can work together if you want!
 
- FPK-Pascal is distributed in the hope that it will be useful,
+ Free Pascal is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  Library GNU General Public License for more details.
 
  You should have received a copy of the Library GNU General Public License
- along with FPK-Pascal; see the file COPYING.LIB.  If not, write to
+ along with Free Pascal; see the file COPYING.LIB.  If not, write to
  the Free Software Foundation, 59 Temple Place - Suite 330,
  Boston, MA 02111-1307, USA.
 
@@ -51,10 +53,10 @@ Changelog:
 
 Coding style:
 
-    I have tried to use the same coding style as Dani‰l Mantione in unit
+    I have tried to use the same coding style as Daniel Mantione in unit
     DOSCALLS, although I can't say I would write it the same way otherwise
     (I would write much more spaces myself, at least). Try to use it as well,
-    please. Original note by Dani‰l Mantione follows:
+    please. Original note by Daniel Mantione follows:
 
 
     It may be well possible that coding style feels a bit strange to you.
@@ -67,32 +69,32 @@ Coding style:
 interface
 {***************************************************************************}
 
-uses    strings;
+uses    Strings;
 
-{$ifdef FPK}
-    {$packrecords 1}
-{$endif FPK}
+{$IFDEF FPC}
+    {$PACKRECORDS 1}
+{$ENDIF FPC}
 
 const
 {return codes / error constants (those marked with * shouldn't occur)}
-    NO_ERROR                        =     0;
-    ERROR_NOT_ENOUGH_MEMORY         =     8;
-    ERROR_OPEN_FAILED               =   110;
-    ERROR_MONITORS_NOT_SUPPORTED    =   165;
-    ERROR_MON_INVALID_PARMS         =   379;
-    ERROR_MON_INVALID_DEVNAME       =   380;
-    ERROR_MON_INVALID_HANDLE        =   381;
-    ERROR_MON_BUFFER_TOO_SMALL      =   382;
-    ERROR_MON_BUFFER_EMPTY          =   383;
-    ERROR_MON_DATA_TOO_LARGE        =   384;
-    ERROR_MON_BAD_BUFFER            =   730; {*}
-    ERROR_MON_CHAIN_HANDLE          = 32784; {*}
-    ERROR_MON_NOT_REGISTERED        = 32785; {*}
+    No_Error                        =     0;
+    Error_Not_Enough_Memory         =     8;
+    Error_Open_Failed               =   110;
+    Error_Monitors_Not_Supported    =   165;
+    Error_Mon_Invalid_Parms         =   379;
+    Error_Mon_Invalid_DevName       =   380;
+    Error_Mon_Invalid_Handle        =   381;
+    Error_Mon_Buffer_Too_Small      =   382;
+    Error_Mon_Buffer_Empty          =   383;
+    Error_Mon_Data_Too_Large        =   384;
+    Error_Mon_Bad_Buffer            =   730; {*}
+    Error_Mon_Chain_Handle          = 32784; {*}
+    Error_Mon_Not_Registered        = 32785; {*}
 
 {WaitFlag}
-    IO_WAIT     =0; {The monitor thread that issues DosMonRead wishes to block}
+    IO_Wait     =0; {The monitor thread that issues DosMonRead wishes to block}
                     {until a data record is available in its input buffer.}
-    IO_NOWAIT   =1; {The monitor thread that issues DosMonRead does not wish}
+    IO_NoWait   =1; {The monitor thread that issues DosMonRead does not wish}
                     {to block when its input buffer is empty.}
 
 
@@ -100,8 +102,8 @@ const
 this process are flushed and closed.}
 {MonHandle - device handle returned from a previous DosMonOpen call.}
 {Possible return codes:
-    0         NO_ERROR
-    381       ERROR_MON_INVALID_HANDLE}
+    0         No_Error
+    381       Error_Mon_Invalid_Handle}
 {Remarks:
 * A single process may register one or more monitors with a character device
   using the same device handle returned from a previous DosMonOpen call.
@@ -119,15 +121,15 @@ this process are flushed and closed.}
 * For a detailed description of this call see the chapter "Character Device
   Monitors" in the IBM Operating System/2 Version 1.2 I/O Subsystems And
   Device Support Volume 1.}
-function DosMonClose(MonHandle:word):word;
+function DosMonClose(MonHandle:word):word; cdecl;
 
 {Gain access to a character device data stream.}
 {DevName - device name, monitor handle returned in MonHandle.}
 {Possible return codes:
-    0         NO_ERROR
-    110       ERROR_OPEN_FAILED
-    379       ERROR_MON_INVALID_PARMS
-    380       ERROR_MON_INVALID_DEVNAME}
+    0         No_Error
+    110       Error_Open_Failed
+    379       Error_Mon_Invalid_Parms
+    380       Error_Mon_Invalid_DevName}
 {Remarks:
 * Only one DosMonOpen call is necessary per device per process. That is,
   several DosMonReg calls can be made using the same monitor handle to the
@@ -138,7 +140,7 @@ function DosMonClose(MonHandle:word):word;
 * For a detailed description of this call see the chapter "Character Device
   Monitors" in the IBM Operating System/2 Version 1.2 I/O Subsystems And
   Device Support Volume 1.}
-function DosMonOpen(DevName:PChar;var MonHandle:word):word;
+function DosMonOpen(DevName:PChar;var MonHandle:word):word; cdecl;
 function DosMonOpen(DevName:string;var MonHandle:word):word;
 
 {Wait for a data record, move it from the input buffer of a registered
@@ -149,16 +151,16 @@ DataBuf - data area in the calling process address space that the data from the
 monitor's input buffer is read into, ByteCount - on input size of the DataBuf,
 on return number of bytes of data moved.}
 {Possible return codes:
-    0         NO_ERROR
-    379       ERROR_MON_INVALID_PARMS
-    382       ERROR_MON_BUFFER_TOO_SMALL
-    383       ERROR_MON_BUFFER_EMPTY}
+    0         No_Error
+    379       Error_Mon_Invalid_Parms
+    382       Error_Mon_Buffer_Too_Small
+    383       Error_Mon_Buffer_Empty}
 {Remarks:
 * For a detailed description of this call see the chapter "Character Device
   Monitors" in the IBM Operating System/2 Version 1.2 I/O Subsystems And
   Device Support Volume 1.}
 function DosMonRead(var InBuf;WaitFlag:word;var DataBuf;
-                                                      var ByteCount:word):word;
+                                               var ByteCount:word):word; cdecl;
 
 {Establish an input and output buffers to monitor an I/O stream for a character
 device.}
@@ -177,12 +179,12 @@ bellow), Index - device specific value, for the keyboard it pertains to the
 session you wish to register a monitor on, for the printer it pertains to the
 data or code page monitor chain.}
 {Possible return codes:
-    0         NO_ERROR
-    8         ERROR_NOT_ENOUGH_MEMORY
-    165       ERROR_MONITORS_NOT_SUPPORTED
-    379       ERROR_MON_INVALID_PARMS
-    381       ERROR_MON_INVALID_HANDLE
-    382       ERROR_MON_BUFFER_TOO_SMALL}
+    0         No_Error
+    8         Error_Not_Enough_Memory
+    165       Error_Monitors_Not_Supported
+    379       Error_Mon_Invalid_Parms
+    381       Error_Mon_Invalid_Handle
+    382       Error_Mon_Buffer_Too_Small}
 {Remarks:
 * PosCode meaning:
     0   DEFAULT (no position preference) and one thread for data movement
@@ -206,6 +208,7 @@ data or code page monitor chain.}
   Monitors" in the IBM Operating System/2 Version 1.2 I/O Subsystems And
   Device Support Volume 1.}
 function DosMonReg(MonHandle:word;var InBuf,OutBuf;PosCode,Index:word):word;
+                                                                         cdecl;
 
 {Move a filtered data record from the monitor's private data area into the
 monitor's output buffer.}
@@ -214,15 +217,15 @@ containing a filtered data record of length ByteCount, this filtered data
 record is moved into the monitor's output buffer by this call, ByteCount - size
 of the data record.}
 {Possible return codes:
-    0         NO_ERROR
-    8         ERROR_NOT_ENOUGH_MEMORY
-    379       ERROR_MON_INVALID_PARMS
-    384       ERROR_MON_DATA_TOO_LARGE}
+    0         No_Error
+    8         Error_Not_Enough_Memory
+    379       Error_Mon_Invalid_Parms
+    384       Error_Mon_Data_Too_Large}
 {Remarks:
 * For a detailed description of the use of this call see the chapter
   "Character Device Monitors" in the IBM Operating System/2 Version 1.2 I/O
   Subsystems And Device Support Volume 1.}
-function DosMonWrite(var OutBuf,DataBuf;ByteCount:word):word;
+function DosMonWrite(var OutBuf,DataBuf;ByteCount:word):word; cdecl;
 
 
 {***************************************************************************}
@@ -230,11 +233,11 @@ implementation
 {***************************************************************************}
 
 
-function DosMonClose(MonHandle:word):word;
+function DosMonClose(MonHandle:word):word; cdecl;
 external 'EMXWRAP' index 403;
 {external 'MONCALLS' index 3;}
 
-function DosMonOpen(DevName:PChar;var MonHandle:word):word;
+function DosMonOpen(DevName:PChar;var MonHandle:word):word; cdecl;
 external 'EMXWRAP' index 404;
 {external 'MONCALLS' index 4;}
 
@@ -256,18 +259,25 @@ begin
 end;
 
 function DosMonRead(var InBuf;WaitFlag:word;var DataBuf;
-                                                      var ByteCount:word):word;
+                                               var ByteCount:word):word; cdecl;
 external 'EMXWRAP' index 402;
 {external 'MONCALLS' index 2;}
 
 function DosMonReg(MonHandle:word;var InBuf,OutBuf;PosCode,Index:word):word;
+                                                                         cdecl;
 external 'EMXWRAP' index 405;
 {external 'MONCALLS' index 5;}
 
-function DosMonWrite(var OutBuf,DataBuf;ByteCount:word):word;
+function DosMonWrite(var OutBuf,DataBuf;ByteCount:word):word; cdecl;
 external 'EMXWRAP' index 401;
 {external 'MONCALLS' index 1;}
 
 
 end.
-
+
+{
+  $Log$
+  Revision 1.5  2000-01-09 21:01:59  hajny
+    * cdecl added
+
+}

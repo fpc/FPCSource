@@ -1,32 +1,34 @@
 {Set tabsize to 4.}
 {****************************************************************************
 
+  $Id$
+
                            KBDCALLS interface unit
-                     FPK-Pascal Runtime Library for OS/2
+                     Free Pascal Runtime Library for OS/2
                    Copyright (c) 1999-2000 by Florian Kl„mpfl
-                    Copyright (c) 1999-2000 by Dani‰l Mantione
+                    Copyright (c) 1999-2000 by Daniel Mantione
                       Copyright (c) 1999-2000 by Tomas Hajny
 
- The FPK-Pascal runtime library is distributed under the Library GNU Public
+ The Free Pascal runtime library is distributed under the Library GNU Public
  License v2. So is this unit. The Library GNU Public License requires you to
  distribute the source code of this unit with any product that uses it.
  Because the EMX library isn't under the LGPL, we grant you an exception to
- this, and that is, when you compile a program with the FPK Pascal compiler,
+ this, and that is, when you compile a program with the Free Pascal Compiler,
  you do not need to ship source code with that program, AS LONG AS YOU ARE
  USING UNMODIFIED CODE! If you modify this code, you MUST change the next
  line:
 
- <This is an official, unmodified FPK Pascal source code file.>
+ <This is an official, unmodified Free Pascal source code file.>
 
  Send us your modified files, we can work together if you want!
 
- FPK-Pascal is distributed in the hope that it will be useful,
+ Free Pascal is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  Library GNU General Public License for more details.
 
  You should have received a copy of the Library GNU General Public License
- along with FPK-Pascal; see the file COPYING.LIB.  If not, write to
+ along with Free Pascal; see the file COPYING.LIB.  If not, write to
  the Free Software Foundation, 59 Temple Place - Suite 330,
  Boston, MA 02111-1307, USA.
 
@@ -51,10 +53,10 @@ Changelog:
 
 Coding style:
 
-    I have tried to use the same coding style as Dani‰l Mantione in unit
+    I have tried to use the same coding style as Daniel Mantione in unit
     DOSCALLS, although I can't say I would write it the same way otherwise
     (I would write much more spaces myself, at least). Try to use it as well,
-    please. Original note by Dani‰l Mantione follows:
+    please. Original note by Daniel Mantione follows:
 
 
     It may be well possible that coding style feels a bit strange to you.
@@ -67,9 +69,9 @@ Coding style:
 interface
 {***************************************************************************}
 
-{$ifdef FPK}
-    {$packrecords 1}
-{$endif FPK}
+{$IFDEF FPC}
+    {$PACKRECORDS 1}
+{$ENDIF FPC}
 
 const
 {return codes / error constants (those marked with * shouldn't occur under
@@ -1236,7 +1238,7 @@ KR_* constants}
 * There can be only one KbdRegister call outstanding for each session without
   an intervening KbdDeRegister. KbdDeRegister must be issued by the same
   process that issued the KbdRegister.}
-function KbdRegister(ModuleName,ProcName:PChar;FnMask:cardinal):word;
+function KbdRegister(ModuleName,ProcName:PChar;FnMask:cardinal):word; cdecl;
 function KbdRegister(ModuleName,ProcName:string;FnMask:cardinal):word;
 
 {Deregister a keyboard subsystem previously registered within a session - only
@@ -1246,7 +1248,7 @@ the process that issued the KbdRegister may issue KbdDeRegister.}
     411       Error_Kbd_Deregister
     464       Error_Kbd_Detached
     504       Error_Kbd_Extended_SG}
-function KbdDeRegister:word;
+function KbdDeRegister:word; cdecl;
 
 {Return a character data record from the keyboard.}
 {Key - see TKbdKeyInfo record type, WaitFlag - see IO_Wait and IO_NoWait
@@ -1277,7 +1279,7 @@ constants, KbdHandle is the default keyboard (0) or a logical keyboard.}
   from executing.  If polling must be used and a minimal amount of other
   processing is being performed, the thread should periodically yield to the
   CPU by issuing a DosSleep call for an interval of at least 5 milliseconds.}
-function KbdCharIn(var Key:TKbdKeyInfo;WaitFlag,KbdHandle:word):word;
+function KbdCharIn(var Key:TKbdKeyInfo;WaitFlag,KbdHandle:word):word; cdecl;
 
 {Return any available character data record from the keyboard
 without removing it from the buffer.}
@@ -1308,7 +1310,7 @@ or a logical keyboard.}
   from executing. If polling must be used and a minimal amount of other
   processing is being performed, the thread should periodically yield the CPU
   by issuing a DosSleep call for an interval of at least 5 milliseconds.}
-function KbdPeek(var Key:TKbdKeyInfo;KbdHandle:word):word;
+function KbdPeek(var Key:TKbdKeyInfo;KbdHandle:word):word; cdecl;
 
 {Read a character string (character codes only) from the keyboard.}
 {CharBuf is a buffer for returned characters, LenInOut - see TStringInBuf
@@ -1344,9 +1346,9 @@ default keyboard (0) or a logical keyboard.}
 * KbdStringIn completes when the handle has access to the physical keyboard
   (focus), or is equal to zero and no other handle has the focus.}
 function KbdStringIn(var CharBuf;var LenInOut:TStringInBuf;WaitFlag:word;
-                                                          KbdHandle:word):word;
+                                                   KbdHandle:word):word; cdecl;
 function KbdStringIn(CharBuf:PChar;LenInOutP:PStringInBuf;WaitFlag:word;
-                                                          KbdHandle:word):word;
+                                                   KbdHandle:word):word; cdecl;
 
 {Clear the keystroke buffer.}
 {KbdHandle is the default keyboard (0) or a logical keyboard.}
@@ -1360,7 +1362,7 @@ function KbdStringIn(CharBuf:PChar;LenInOutP:PStringInBuf;WaitFlag:word;
 {Remarks:
 * KbdFlushBuffer completes when the handle has access to the physical
   keyboard (focus), or is equal to zero and no other handle has the focus.}
-function KbdFlushBuffer(KbdHandle:word):word;
+function KbdFlushBuffer(KbdHandle:word):word; cdecl;
 
 {Set the characteristics of the keyboard.}
 {Status - see TKbdInfo record type, KbdHandle is the default keyboard (0) or
@@ -1378,7 +1380,7 @@ a logical keyboard.}
 {Remarks:
 * Shift return (bit 8 in sysstate) must be disabled in ASCII mode.
 * KbdSetStatus is ignored for a Vio-windowed application.}
-function KbdSetStatus(var Status:TKbdInfo;KbdHandle:word):word;
+function KbdSetStatus(var Status:TKbdInfo;KbdHandle:word):word; cdecl;
 
 {Get the current state of the keyboard.}
 {Status - see TKbdInfo record type, KbdHandle is the default keyboard (0) or
@@ -1400,7 +1402,7 @@ a logical keyboard.}
   Character
 * KbdGetStatus completes only when the handle has access to the physical
   keyboard (focus) or the handle is 0 and no other handle has the focus.}
-function KbdGetStatus(var Status:TKbdInfo;KbdHandle:word):word;
+function KbdGetStatus(var Status:TKbdInfo;KbdHandle:word):word; cdecl;
 
 {Set the code page used to translate key strokes received from the keyboard for
 current process.}
@@ -1419,7 +1421,7 @@ otherwise, KbdHandle is the default keyboard (0) or a logical keyboard.}
 {Remarks:
 * Keyboard code page support is not available without the DEVINFO=KBD
   statement in the CONFIG.SYS file.}
-function KbdSetCp(Reserved,CodePage,KbdHandle:word):word;
+function KbdSetCp(Reserved,CodePage,KbdHandle:word):word; cdecl;
 
 {Query the code page being used to translate scan codes to ASCII characters.}
 {Reserved must be set to 0. The keyboard support returns the current code
@@ -1439,6 +1441,7 @@ the default keyboard (0) or a logical keyboard.}
   indicates the code page translation table in use is the ROM code page
   translation table provided by the hardware.}
 function KbdGetCp(Reserved:cardinal;var CodePage:word;KbdHandle:word):word;
+                                                                         cdecl;
 
 {Create a new logical keyboard.}
 {Handle for the new logical keyboard returned in KbdHandle.}
@@ -1456,7 +1459,7 @@ function KbdGetCp(Reserved:cardinal;var CodePage:word;KbdHandle:word):word;
     KbdGetFocus     wait until focus available on handle 0
     KbdOpen         get a logical keyboard handle
     KbdFreeFocus    give up the focus on handle 0}
-function KbdOpen(var KbdHandle:word):word;
+function KbdOpen(var KbdHandle:word):word; cdecl;
 
 {Close the existing logical keyboard identified by the keyboard handle}
 {KbdHandle is the default keyboard (0) or a logical keyboard}
@@ -1474,7 +1477,7 @@ function KbdOpen(var KbdHandle:word):word;
     KbdGetFocus     wait until focus available on handle 0
     KbdClose        close a logical keyboard handle
     KbdFreeFocus    give up the focus on handle 0}
-function KbdClose(KbdHandle:word):word;
+function KbdClose(KbdHandle:word):word; cdecl;
 
 {Bind the logical keyboard to the physical keyboard.}
 {KbdHandle is the default keyboard (0) or a logical keyboard}
@@ -1484,7 +1487,7 @@ function KbdClose(KbdHandle:word):word;
     445       Error_Kbd_Focus_Required
     464       Error_Kbd_Detached
     504       Error_Kbd_Extended_SG}
-function KbdGetFocus(WaitFlag,KbdHandle:word):word;
+function KbdGetFocus(WaitFlag,KbdHandle:word):word; cdecl;
 
 {Free the logical-to-physical keyboard bond created by KbdGetFocus.}
 {KbdHandle is the default keyboard (0) or a logical keyboard}
@@ -1498,7 +1501,7 @@ function KbdGetFocus(WaitFlag,KbdHandle:word):word;
 * KbdFreeFocus may be replaced by issuing KbdRegister. Unlike other keyboard
   subsystem functions, the replaced KbdFreeFocus is called only if there is
   an outstanding focus.}
-function KbdFreeFocus(KbdHandle:word):word;
+function KbdFreeFocus(KbdHandle:word):word; cdecl;
 
 {Synchronize access from a keyboard subsystem to the keyboard device driver.}
 {WaitFlag - see IO_Wait and IO_NoWait constants (wait / don't wait for access
@@ -1512,7 +1515,7 @@ to the device driver.}
   be issued by a keyboard subsystem if it intends to issue a DosDevIOCtl or
   access dynamically shared data. KbdSynch does not protect globally shared
   data from threads in other sessions.}
-function KbdSynch (WaitFlag:word):word;
+function KbdSynch (WaitFlag:word):word; cdecl;
 
 {Raise the priority of the foreground keyboard's thread.}
 {Possible return codes:
@@ -1525,7 +1528,7 @@ function KbdSynch (WaitFlag:word):word;
   threads lose their priority boost.
 * This function should only be issued by a Keyboard Subsystem during
   KbdCharIn or KbdStringIn processing.}
-function KbdSetFgnd:word;
+function KbdSetFgnd:word; cdecl;
 
 {Return the attached keyboard's hardware-generated identification value.}
 {HWID is a pointer to the caller's data area, see TKbdHWID, KbdHandle is the
@@ -1546,11 +1549,11 @@ default keyboard (0) or a logical keyboard.}
   keyboard is attached.
 * This function is of particular usefulness for applications providing Custom
   Translate Tables and mapping keyboard layouts.}
-function KbdGetHWID(var HWID:TKbdHWID;KbdHandle:word):word;
+function KbdGetHWID(var HWID:TKbdHWID;KbdHandle:word):word; cdecl;
 
 {Undocumented in official IBM documentation}
-function KbdSetHWID(var HWID:TKbdHWID;KbdHandle:word):word;
-function KbdSetHWID(HWIDP:PKbdHWID;KbdHandle:word):word;
+function KbdSetHWID(var HWID:TKbdHWID;KbdHandle:word):word; cdecl;
+function KbdSetHWID(HWIDP:PKbdHWID;KbdHandle:word):word; cdecl;
 
 {Translate scan codes with shift states into ASCII codes.}
 {TransData - see TKbdTransData, KbdHandle is the default keyboard (0) or a
@@ -1571,7 +1574,7 @@ logical keyboard.}
   The KbdXlate function is intended to be used for translating a particular
   scan code for a given shift state. The KbdXlate function is not intended
   to be a replacement for the OS/2 system keystroke translation function.}
-function KbdXlate(var TransData:TKbdTrans;KbdHandle:word):word;
+function KbdXlate(var TransData:TKbdTrans;KbdHandle:word):word; cdecl;
 
 {Install, on the specified handle, the translate table which this call points
 to. This translate table affects only this handle.}
@@ -1595,9 +1598,9 @@ logical keyboard.}
   one of the system translate tables. If memory is dynamically allocated by
   the caller for the translate table and is freed before the KbdSetCp is
   performed, KbdSetCp and future translations may fail.}
-function KbdSetCustXt(var XLateTbl:TXLateTbl;KbdHandle:word):word;
-function KbdSetCustXt(var CodePage:word;KbdHandle:word):word;
-function KbdSetCustXt(var XLateTblP:pointer;KbdHandle:word):word;
+function KbdSetCustXt(var XLateTbl:TXLateTbl;KbdHandle:word):word; cdecl;
+function KbdSetCustXt(var CodePage:word;KbdHandle:word):word; cdecl;
+function KbdSetCustXt(var XLateTblP:pointer;KbdHandle:word):word; cdecl;
 
 
 (* Following routines are not supported
@@ -1616,7 +1619,7 @@ implementation
 {***************************************************************************}
 
 
-function KbdRegister(ModuleName,ProcName:PChar;FnMask:cardinal):word;
+function KbdRegister(ModuleName,ProcName:PChar;FnMask:cardinal):word; cdecl;
 external 'EMXWRAP' index 208;
 {external 'KBDCALLS' index 8;}
 
@@ -1629,100 +1632,107 @@ begin
     KbdRegister:=KbdRegister(@ModuleName[1],@ProcName[1],FnMask);
 end;
 
-function KbdDeRegister:word;
+function KbdDeRegister:word; cdecl;
 external 'EMXWRAP' index 220;
 {external 'KBDCALLS' index 20;}
 
-function KbdCharIn(var Key:TKbdKeyInfo;WaitFlag,KbdHandle:word):word;
+function KbdCharIn(var Key:TKbdKeyInfo;WaitFlag,KbdHandle:word):word; cdecl;
 external 'EMXWRAP' index 204;
 {external 'KBDCALLS' index 4;}
 
-function KbdPeek(var Key:TKbdKeyInfo;KbdHandle:word):word;
+function KbdPeek(var Key:TKbdKeyInfo;KbdHandle:word):word; cdecl;
 external 'EMXWRAP' index 222;
 {external 'KBDCALLS' index 22;}
 
 function KbdStringIn(var CharBuf;var LenInOut:TStringInBuf;WaitFlag:word;
-                                                          KbdHandle:word):word;
+                                                   KbdHandle:word):word; cdecl;
 external 'EMXWRAP' index 209;
 {external 'KBDCALLS' index 9;}
 
 function KbdStringIn(CharBuf:PChar;LenInOutP:PStringInBuf;WaitFlag:word;
-                                                          KbdHandle:word):word;
+                                                   KbdHandle:word):word; cdecl;
 external 'EMXWRAP' index 209;
 {external 'KBDCALLS' index 9;}
 
-function KbdFlushBuffer(KbdHandle:word):word;
+function KbdFlushBuffer(KbdHandle:word):word; cdecl;
 external 'EMXWRAP' index 213;
 {external 'KBDCALLS' index 13;}
 
-function KbdSetStatus(var Status:TKbdInfo;KbdHandle:word):word;
+function KbdSetStatus(var Status:TKbdInfo;KbdHandle:word):word; cdecl;
 external 'EMXWRAP' index 211;
 {external 'KBDCALLS' index 11;}
 
-function KbdGetStatus(var Status:TKbdInfo;KbdHandle:word):word;
+function KbdGetStatus(var Status:TKbdInfo;KbdHandle:word):word; cdecl;
 external 'EMXWRAP' index 210;
 {external 'KBDCALLS' index 10;}
 
-function KbdSetCp(Reserved,CodePage,KbdHandle:word):word;
+function KbdSetCp(Reserved,CodePage,KbdHandle:word):word; cdecl;
 external 'EMXWRAP' index 205;
 {external 'KBDCALLS' index 5;}
 
 function KbdGetCp(Reserved:cardinal;var CodePage:word;KbdHandle:word):word;
+                                                                         cdecl;
 external 'EMXWRAP' index 203;
 {external 'KBDCALLS' index 3;}
 
-function KbdOpen(var KbdHandle:word):word;
+function KbdOpen(var KbdHandle:word):word; cdecl;
 external 'EMXWRAP' index 223;
 {external 'KBDCALLS' index 23;}
 
-function KbdClose(KbdHandle:word):word;
+function KbdClose(KbdHandle:word):word; cdecl;
 external 'EMXWRAP' index 217;
 {external 'KBDCALLS' index 17;}
 
-function KbdGetFocus(WaitFlag,KbdHandle:word):word;
+function KbdGetFocus(WaitFlag,KbdHandle:word):word; cdecl;
 external 'EMXWRAP' index 212;
 {external 'KBDCALLS' index 12;}
 
-function KbdFreeFocus(KbdHandle:word):word;
+function KbdFreeFocus(KbdHandle:word):word; cdecl;
 external 'EMXWRAP' index 218;
 {external 'KBDCALLS' index 18;}
 
-function KbdSynch (WaitFlag:word):word;
+function KbdSynch (WaitFlag:word):word; cdecl;
 external 'EMXWRAP' index 207;
 {external 'KBDCALLS' index 7;}
 
-function KbdSetFgnd:word;
+function KbdSetFgnd:word; cdecl;
 external 'EMXWRAP' index 221;
 {external 'KBDCALLS' index 21;}
 
-function KbdGetHWID(var HWID:TKbdHWID;KbdHandle:word):word;
+function KbdGetHWID(var HWID:TKbdHWID;KbdHandle:word):word; cdecl;
 external 'EMXWRAP' index 224;
 {external 'KBDCALLS' index 24;}
 
-function KbdSetHWID(var HWID:TKbdHWID;KbdHandle:word):word;
+function KbdSetHWID(var HWID:TKbdHWID;KbdHandle:word):word; cdecl;
 external 'EMXWRAP' index 225;
 {external 'KBDCALLS' index 25;}
 
-function KbdSetHWID(HWIDP:PKbdHWID;KbdHandle:word):word;
+function KbdSetHWID(HWIDP:PKbdHWID;KbdHandle:word):word; cdecl;
 external 'EMXWRAP' index 225;
 {external 'KBDCALLS' index 25;}
 
-function KbdXlate(var TransData:TKbdTrans;KbdHandle:word):word;
+function KbdXlate(var TransData:TKbdTrans;KbdHandle:word):word; cdecl;
 external 'EMXWRAP' index 214;
 {external 'KBDCALLS' index 14;}
 
-function KbdSetCustXt(var XLateTbl:TXLateTbl;KbdHandle:word):word;
+function KbdSetCustXt(var XLateTbl:TXLateTbl;KbdHandle:word):word; cdecl;
 external 'EMXWRAP' index 201;
 {external 'KBDCALLS' index 1;}
 
-function KbdSetCustXt(var CodePage:word;KbdHandle:word):word;
+function KbdSetCustXt(var CodePage:word;KbdHandle:word):word; cdecl;
 external 'EMXWRAP' index 201;
 {external 'KBDCALLS' index 1;}
 
-function KbdSetCustXt(var XLateTblP:pointer;KbdHandle:word):word;
+function KbdSetCustXt(var XLateTblP:pointer;KbdHandle:word):word; cdecl;
 external 'EMXWRAP' index 201;
 {external 'KBDCALLS' index 1;}
 
 
 end.
 
+{
+  $Log$
+  Revision 1.9  2000-01-09 21:01:59  hajny
+    * cdecl added
+
+}
