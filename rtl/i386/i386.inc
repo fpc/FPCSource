@@ -230,11 +230,11 @@ asm
      { load esi and insert self                         }
      movl %eax,8(%ebp)
      movl %eax,%esi
-     addl $0,%eax
+     orl  %eax,%eax
      ret
 .LNEW_CLASS1:
      movl %esi,8(%ebp)
-     addl $0,%eax
+     orl %eax,%eax
 end;
 
 
@@ -690,7 +690,10 @@ end;
 
 {
   $Log$
-  Revision 1.23  1998-09-28 08:40:47  michael
+  Revision 1.24  1998-09-28 10:23:43  florian
+    * FPC_NEW_CLASS optimized: addl $0,%eax => orl %eax,%eax
+
+  Revision 1.23  1998/09/28 08:40:47  michael
   + Bugreport from Gertjan Schouten
 
   Revision 1.22  1998/09/22 15:32:00  peter
