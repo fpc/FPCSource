@@ -1,7 +1,7 @@
 
                             Free Pascal Compiler
 
-                        Version 1.9.4 aka 2.0.0-Beta3
+                        Version 1.9.6 aka 2.0.0-Rc1
 
 
 ****************************************************************************
@@ -18,12 +18,14 @@ This package contains a freeware 32-bit pascal compiler for 386+. The language
 and the runtime library are almost compatible with TP 7.0 and recent Delphi
 releases.
 
-Free Pascal 1.9.4 is currently available for the following platforms:
+Free Pascal 1.9.6 is currently available for the following platforms:
 - Linux-i386
 - Linux-powerpc
+- Linux-sparc
+- Linux-x86_64 (amd64)
 - Linux-arm
 - Dos (i386), using the Go32v2 dos extender
-- Win32 (Win32s, Win95/98/Me/XP/2000 and WinNT)
+- Win32 (Win95/98/Me/XP/2000 and WinNT)
 - FreeBSD i386
 - Mac OS X/Darwin for PowerPC
 
@@ -38,26 +40,27 @@ targets, feel free to contact us, E-Mail addresses are listed below.
 ****************************************************************************
 
 - high speed compiler
-- fully 32-bit code
+- fully 32 or 64-bit code
 - language features:
   - almost fully compatible with Borland Pascal and Borland Delphi
   - ansi strings
+  - wide strings
   - exception support
   - RTTI support
   - procedure overloading
   - operator overloading
   - COM, CORBA and raw interfaces support
-  - dyn. array support
+  - dynamic array support
   - variant support
 - code optimizer:
   - peephole optimizer (80x86-only)
-  - loading of variables into registers (currently non-functional)
+  - loading of variables into registers
   - assembler level dataflow analyzer (80x86-only)
   - stack frame eliminations
   - sophisticated register allocator
 - integrated BASM (built-in assembler) parser
   - supports ATT syntax used by GNU C
-  - supports Intel syntax used by Turbo Pascal
+  - supports Intel syntax used by Turbo Pascal (80x86-only)
 - can compile code into assembler source code for these assemblers:
   - GNU Assembler (GAS)
   - Netwide assembler (Nasm)
@@ -74,10 +77,10 @@ targets, feel free to contact us, E-Mail addresses are listed below.
 * Minimum requirements
 ****************************************************************************
 
-386 or PowerPC processor
+i386, x86_64, PowerPC or Sparc processor
 Win32:
  - Win95/98/Me/2000/XP or WinNT
- - 8 MB RAM (16+ MB recommended)
+ - 16 MB RAM
 Linux:
  - system running a 2.0.x kernel
 FreeBSD:
@@ -87,16 +90,30 @@ FreeBSD:
  - Mac OS X 10.1 and higher (10.0 may also work, but is untested)
 
 ****************************************************************************
-* Quick start
+* Quick start - Win32
 ****************************************************************************
 
 Win32:
-Download w32190.zip and unzip it
+Download fpc-1.9.6.i386-win32.zip and unzip it
 into a temporary directory.
 
 Start the install program INSTALL.EXE and follow the instructions.
 
 Don't forget to set the path as mentioned by the install program.
+
+To test the compiler, change to the demo directory of the compiler
+and type
+        fpc hello
+        hello
+
+
+****************************************************************************
+* Quick start - Linux/FreeBSD
+****************************************************************************
+
+Download fpc-1.9.6.<cpu>-<os>.tar and untar into a temporary directory.
+
+Start the install script with ./install.sh and follow the instructions.
 
 To test the compiler, change to the demo directory of the compiler
 and type
