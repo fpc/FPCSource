@@ -1,6 +1,7 @@
 This directory contains the examples for the video unit documentation.
 
-vidutil.pp Containst the textout function.
+vidutil.pp Contains the textout function.
+viddbg.pp contains an example of how to write a custom video driver.
 
 ex1.pp demonstrates the vidutil unit.
 ex2.pp contains an example of the SetCursorPos function.

@@ -46,7 +46,8 @@ onetex : tex
 	$(MAKETEX) $(TEXOBJECTS)
 
 clean : 
-	rm -f *.o *.s $(OBJECTS) $(TEXOBJECTS) vidutil.ppu vidutil.o
+	rm -f *.o *.s $(OBJECTS) $(TEXOBJECTS)
+	rm -f vidutil.ppu vidutil.o viddbg.ppu viddbg.o Video.log
  
 $(OBJECTS): %: %.pp vidutil.ppu
 	$(PP) $(PPOPTS) $*
