@@ -500,22 +500,58 @@ const
         hs:=current_scanner^.readcomment;
         while (hs<>'') and (hs[length(hs)]=' ') do
          dec(byte(hs[0]));
-        hs:=FixFileName(hs);
-        fsplit(hs,path,name,ext);
-      { first look in the path of _d then currentmodule }
-        path:=search(name+ext,path+';'+current_scanner^.inputfile^.path^+';'+includesearchpath,found);
-      { shutdown current file }
-        current_scanner^.close;
-      { load new file }
-        hp:=new(pinputfile,init(path+name+ext));
-        current_scanner^.addfile(hp);
-        if not current_scanner^.open then
-         Message1(scan_f_cannot_open_includefile,hs);
-        Message1(scan_u_start_include_file,current_scanner^.inputfile^.path^+current_scanner^.inputfile^.name^);
-        current_scanner^.reload;
-      { register for refs }
-        current_module^.sourcefiles.register_file(hp);
-        current_module^.current_index:=hp^.ref_index;
+        if hs='' then
+         exit;
+        if (hs[1]='%') then
+         begin
+         { save old }
+           path:=hs;
+         { remove %'s }
+           Delete(hs,1,1);
+           if hs[length(hs)]='%' then
+            Delete(hs,length(hs),1);
+         { first check for internal macros }
+           if hs='TIME' then
+            hs:=gettimestr
+           else
+            if hs='DATE' then
+             hs:=getdatestr
+           else
+            if hs='FPCVERSION' then
+             hs:=version_string
+           else
+            if hs='FPCTARGET' then
+             hs:=target_string
+           else
+            hs:=getenv(hs);
+           if hs='' then
+            Comment(V_Warning,'Include environment '+path+' not found in environment')
+           else
+            begin
+              { make it a stringconst }
+              hs:=''''+hs+'''';
+              current_scanner^.insertmacro(@hs[1],length(hs));
+            end;
+         end
+        else
+         begin
+           hs:=FixFileName(hs);
+           fsplit(hs,path,name,ext);
+         { first look in the path of _d then currentmodule }
+           path:=search(name+ext,path+';'+current_scanner^.inputfile^.path^+';'+includesearchpath,found);
+         { shutdown current file }
+           current_scanner^.tempclose;
+         { load new file }
+           hp:=new(pinputfile,init(path+name+ext));
+           current_scanner^.addfile(hp);
+           if not current_scanner^.open then
+            Message1(scan_f_cannot_open_includefile,hs);
+           Message1(scan_u_start_include_file,current_scanner^.inputfile^.path^+current_scanner^.inputfile^.name^);
+           current_scanner^.reload;
+         { register for refs }
+           current_module^.sourcefiles.register_file(hp);
+           current_module^.current_index:=hp^.ref_index;
+         end;
       end;
 
 
@@ -732,7 +768,11 @@ const
 
 {
   $Log$
-  Revision 1.22  1998-08-19 14:57:50  peter
+  Revision 1.23  1998-08-26 15:35:34  peter
+    * fixed scannerfiles for macros
+    + $I %<environment>%
+
+  Revision 1.22  1998/08/19 14:57:50  peter
     * small fix for aktfilepos
 
   Revision 1.20  1998/08/18 15:11:52  peter

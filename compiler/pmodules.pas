@@ -274,10 +274,10 @@ unit pmodules;
               Message1(unit_f_cant_compile_unit,current_module^.modulename^)
              else
               begin
-                current_scanner^.close;
+                current_scanner^.tempclose;
                 compile(current_module^.mainsource^,compile_system);
                 if (not old_current_module^.compiled) then
-                 current_scanner^.reopen;
+                 current_scanner^.tempopen;
               end;
            end
           else
@@ -901,7 +901,11 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.43  1998-08-26 10:08:47  peter
+  Revision 1.44  1998-08-26 15:35:33  peter
+    * fixed scannerfiles for macros
+    + $I %<environment>%
+
+  Revision 1.43  1998/08/26 10:08:47  peter
     * fixed problem with libprefix at the wrong place
     * fixed lib generation with smartlinking and no -CS used
 

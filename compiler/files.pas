@@ -31,36 +31,43 @@ unit files;
     const
 {$ifdef FPC}
        maxunits = 1024;
-       extbufsize = 65535;
+       InputFileBufSize=32*1024;
 {$else}
        maxunits = 128;
-       extbufsize=1024;
+       InputFileBufSize=1024;
 {$endif}
 
     type
        pinputfile = ^tinputfile;
        tinputfile = object
-          path,name    : pstring;    { path and filename }
-          next         : pinputfile; { next file for reading }
+         path,name : pstring;    { path and filename }
+         next      : pinputfile; { next file for reading }
 
-          savebufstart,              { save fields for scanner }
-          savebufsize,
-          savelastlinepos,
-          saveline_no      : longint;
-          saveinputbuffer,
-          saveinputpointer : pchar;
+         f            : file;       { current file handle }
+         is_macro,
+         endoffile,                 { still bytes left to read }
+         closed       : boolean;    { is the file closed }
+         inputbufsize : longint;    { max size of the input buffer }
 
-          linebuf      : plongint;   { line buffer to retrieve lines }
-          maxlinebuf   : longint;
+         savebufstart,                  { save fields for scanner }
+         savebufsize,
+         savelastlinepos,
+         saveline_no      : longint;
 
-          ref_count    : longint;    { to handle the browser refs }
-          ref_index    : longint;
-          ref_next     : pinputfile;
+         saveinputbuffer,
+         saveinputpointer : pchar;
 
-          constructor init(const fn:string);
-          destructor done;
+         linebuf    : plongint;   { line buffer to retrieve lines }
+         maxlinebuf : longint;
+
+         ref_count  : longint;    { to handle the browser refs }
+         ref_index  : longint;
+         ref_next   : pinputfile;
+
+         constructor init(const fn:string);
+         destructor done;
 {$ifdef SourceLine}
-          function  getlinestr(l:longint):string;
+         function  getlinestr(l:longint):string;
 {$endif SourceLine}
        end;
 
@@ -172,6 +179,17 @@ unit files;
         name:=stringdup(n+e);
         path:=stringdup(p);
         next:=nil;
+      { file info }
+        is_macro:=false;
+        endoffile:=false;
+        closed:=true;
+        inputbufsize:=InputFileBufSize;
+        saveinputbuffer:=nil;
+        saveinputpointer:=nil;
+        savebufstart:=0;
+        savebufsize:=0;
+        saveline_no:=0;
+        savelastlinepos:=0;
       { indexing refs }
         ref_next:=nil;
         ref_count:=0;
@@ -647,7 +665,11 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.40  1998-08-26 10:08:48  peter
+  Revision 1.41  1998-08-26 15:35:30  peter
+    * fixed scannerfiles for macros
+    + $I %<environment>%
+
+  Revision 1.40  1998/08/26 10:08:48  peter
     * fixed problem with libprefix at the wrong place
     * fixed lib generation with smartlinking and no -CS used
 

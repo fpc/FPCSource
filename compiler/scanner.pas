@@ -33,11 +33,9 @@ unit scanner;
     const
 {$ifdef TP}
        maxmacrolen=1024;
-       InputFileBufSize=1024;
        linebufincrease=64;
 {$else}
        maxmacrolen=16*1024;
-       InputFileBufSize=32*1024;
        linebufincrease=512;
 {$endif}
 
@@ -148,25 +146,17 @@ unit scanner;
        tscannerfile = object
           inputfile    : pinputfile; { current inputfile list }
 
-          f            : file;       { current file handle }
-          filenotatend,              { still bytes left to read }
-          closed       : boolean;    { is the file closed }
-
-          inputbufsize : longint;    { max size of the input buffer }
-
+          { these fields are called save* in inputfile, and are here
+            for speed reasons (PFV) }
+          bufstart,
+          bufsize,
+          line_no,
+          lastlinepos  : longint;
           inputbuffer,
           inputpointer : pchar;
 
-          bufstart,
-          bufsize      : longint;
-
-          line_no,
-          lasttokenpos,
-          lastlinepos  : longint;
+          lasttokenpos : longint;
           lasttoken    : ttoken;
-
-          maxlinebuf   : longint;
-          linebuf      : plongint;
 
           do_special,                 { 1=point after nr, 2=caret after id }
           comment_level,
@@ -179,7 +169,8 @@ unit scanner;
         { File buffer things }
           function  open:boolean;
           procedure close;
-          function  reopen:boolean;
+          procedure tempclose;
+          function  tempopen:boolean;
           procedure seekbuf(fpos:longint);
           procedure readbuf;
           procedure saveinputfile;
@@ -188,6 +179,7 @@ unit scanner;
           procedure addfile(hp:pinputfile);
           procedure reload;
           procedure setbuf(p:pchar;l:longint);
+          procedure insertmacro(p:pchar;len:longint);
         { Scanner things }
           procedure gettokenpos;
           procedure inc_comment_level;
@@ -314,25 +306,14 @@ implementation
         inputfile:=new(pinputfile,init(fn));
         current_module^.sourcefiles.register_file(inputfile);
         current_module^.current_index:=inputfile^.ref_index;
+      { load inputfile values }
+        restoreinputfile;
       { reset scanner }
         preprocstack:=nil;
         comment_level:=0;
         do_special:=0;
         block_type:=bt_general;
-      { reset buf }
-        closed:=true;
-        filenotatend:=true;
-        inputbufsize:=InputFileBufSize;
-        inputbuffer:=nil;
-        inputpointer:=nil;
-        bufstart:=0;
-        bufsize:=0;
-      { line }
-        line_no:=0;
-        lastlinepos:=0;
         lasttokenpos:=0;
-        linebuf:=nil;
-        maxlinebuf:=0;
       { load block }
         if not open then
          Message1(scan_f_cannot_open_input,fn);
@@ -344,18 +325,21 @@ implementation
       begin
         checkpreprocstack;
       { close file }
-        if not closed then
+        if not inputfile^.closed then
          close;
-      end;
+       end;
 
 
     procedure tscannerfile.seekbuf(fpos:longint);
       begin
-        if closed then
-         exit;
-        seek(f,fpos);
-        bufstart:=fpos;
-        bufsize:=0;
+        with inputfile^ do
+         begin
+           if closed then
+            exit;
+           seek(f,fpos);
+           bufstart:=fpos;
+           bufsize:=0;
+         end;
       end;
 
 
@@ -365,17 +349,22 @@ implementation
         w : word;
     {$endif}
       begin
-        if closed then
-         exit;
-        inc(bufstart,bufsize);
-      {$ifdef TP}
-        blockread(f,inputbuffer^,inputbufsize-1,w);
-        bufsize:=w;
-      {$else}
-        blockread(f,inputbuffer^,inputbufsize-1,bufsize);
-      {$endif}
-        inputbuffer[bufsize]:=#0;
-        Filenotatend:=(bufsize=inputbufsize-1);
+        with inputfile^ do
+         begin
+           if is_macro then
+            endoffile:=true;
+           if closed then
+            exit;
+           inc(bufstart,bufsize);
+         {$ifdef TP}
+           blockread(f,inputbuffer^,inputbufsize-1,w);
+           bufsize:=w;
+         {$else}
+           blockread(f,inputbuffer^,inputbufsize-1,bufsize);
+         {$endif}
+           inputbuffer[bufsize]:=#0;
+           endoffile:=not(bufsize=inputbufsize-1);
+         end;
       end;
 
 
@@ -383,30 +372,33 @@ implementation
       var
         ofm : byte;
       begin
-        open:=false;
-        if not closed then
-         Close;
-        ofm:=filemode;
-        filemode:=0;
-        Assign(f,inputfile^.path^+inputfile^.name^);
-        {$I-}
-         reset(f,1);
-        {$I+}
-        filemode:=ofm;
-        if ioresult<>0 then
-         exit;
-      { file }
-        closed:=false;
-        filenotatend:=true;
-        Getmem(inputbuffer,inputbufsize);
-        inputpointer:=inputbuffer;
-        bufstart:=0;
-        bufsize:=0;
-      { line }
-        line_no:=0;
-        lastlinepos:=0;
-        lasttokenpos:=0;
-        open:=true;
+        with inputfile^ do
+         begin
+           open:=false;
+           if not closed then
+            Close;
+           ofm:=filemode;
+           filemode:=0;
+           Assign(f,inputfile^.path^+inputfile^.name^);
+           {$I-}
+            reset(f,1);
+           {$I+}
+           filemode:=ofm;
+           if ioresult<>0 then
+            exit;
+         { file }
+           endoffile:=false;
+           closed:=false;
+           Getmem(inputbuffer,inputbufsize);
+           inputpointer:=inputbuffer;
+           bufstart:=0;
+           bufsize:=0;
+         { line }
+           line_no:=0;
+           lastlinepos:=0;
+           lasttokenpos:=0;
+           open:=true;
+         end;
       end;
 
 
@@ -414,46 +406,89 @@ implementation
       var
         i : word;
       begin
-        inc(bufstart,inputpointer-inputbuffer);
-        if not closed then
+        with inputfile^ do
          begin
-           {$I-}
-            system.close(f);
-           {$I+}
-           i:=ioresult;
-           Freemem(inputbuffer,InputFileBufSize);
-           inputbuffer:=nil;
-           inputpointer:=nil;
-           closed:=true;
+           if is_macro then
+            begin
+              Freemem(inputbuffer,InputFileBufSize);
+              is_macro:=false;
+              inputbuffer:=nil;
+              inputpointer:=nil;
+              closed:=true;
+              exit;
+            end;
+           if not closed then
+            begin
+              {$I-}
+               system.close(f);
+              {$I+}
+              i:=ioresult;
+              Freemem(inputbuffer,InputFileBufSize);
+              inputbuffer:=nil;
+              inputpointer:=nil;
+              closed:=true;
+            end;
          end;
       end;
 
 
-    function tscannerfile.reopen:boolean;
+    procedure tscannerfile.tempclose;
+      var
+        i : word;
+      begin
+        with inputfile^ do
+         begin
+           inc(bufstart,inputpointer-inputbuffer);
+           if is_macro then
+            exit;
+           if not closed then
+            begin
+              {$I-}
+               system.close(f);
+              {$I+}
+              i:=ioresult;
+              Freemem(inputbuffer,InputFileBufSize);
+              inputbuffer:=nil;
+              inputpointer:=nil;
+              closed:=true;
+            end;
+         end;
+      end;
+
+
+    function tscannerfile.tempopen:boolean;
       var
         ofm : byte;
       begin
-        reopen:=false;
-        if not closed then
-         exit;
-        ofm:=filemode;
-        filemode:=0;
-        Assign(f,inputfile^.path^+inputfile^.name^);
-        {$I-}
-         reset(f,1);
-        {$I+}
-        filemode:=ofm;
-        if ioresult<>0 then
-         exit;
-        closed:=false;
-      { get new mem }
-        Getmem(inputbuffer,inputbufsize);
-        inputpointer:=inputbuffer;
-      { restore state }
-        seek(f,BufStart);
-        bufsize:=0;
-        readbuf;
-        reopen:=true;
+        with inputfile^ do
+         begin
+           tempopen:=false;
+           if is_macro then
+            begin
+              tempopen:=true;
+              exit;
+            end;
+           if not closed then
+            exit;
+           ofm:=filemode;
+           filemode:=0;
+           Assign(f,inputfile^.path^+inputfile^.name^);
+           {$I-}
+            reset(f,1);
+           {$I+}
+           filemode:=ofm;
+           if ioresult<>0 then
+            exit;
+           closed:=false;
+         { get new mem }
+           Getmem(inputbuffer,inputbufsize);
+           inputpointer:=inputbuffer;
+         { restore state }
+           seek(f,BufStart);
+           bufsize:=0;
+           readbuf;
+           tempopen:=true;
+         end;
       end;
 
 
@@ -461,12 +496,10 @@ implementation
       begin
         inputfile^.savebufstart:=bufstart;
         inputfile^.savebufsize:=bufsize;
-        inputfile^.savelastlinepos:=lastlinepos;
-        inputfile^.saveline_no:=line_no;
         inputfile^.saveinputbuffer:=inputbuffer;
         inputfile^.saveinputpointer:=inputpointer;
-        inputfile^.linebuf:=linebuf;
-        inputfile^.maxlinebuf:=maxlinebuf;
+        inputfile^.savelastlinepos:=lastlinepos;
+        inputfile^.saveline_no:=line_no;
       end;
 
 
@@ -478,8 +511,6 @@ implementation
         line_no:=inputfile^.saveline_no;
         inputbuffer:=inputfile^.saveinputbuffer;
         inputpointer:=inputfile^.saveinputpointer;
-        linebuf:=inputfile^.linebuf;
-        maxlinebuf:=inputfile^.maxlinebuf;
       end;
 
 
@@ -506,55 +537,94 @@ implementation
 
     procedure tscannerfile.reload;
       begin
-      { safety check }
-        if closed then
-         exit;
-        repeat
-        { still more to read?, then change the #0 to a space so its seen
-          as a seperator }
-          if (bufsize>0) and (inputpointer-inputbuffer<bufsize) then
-           begin
-             c:=' ';
-             inc(longint(inputpointer));
-             exit;
-           end;
-        { can we read more from this file ? }
-          if filenotatend then
-           begin
-             readbuf;
-             if line_no=0 then
-              line_no:=1;
-             inputpointer:=inputbuffer;
-           end
-          else
-           begin
-             close;
-           { no next module, than EOF }
-             if not assigned(inputfile^.next) then
+        with inputfile^ do
+         begin
+           repeat
+           { still more to read?, then change the #0 to a space so its seen
+             as a seperator }
+             if (bufsize>0) and (inputpointer-inputbuffer<bufsize) then
               begin
-                c:=#26;
+                c:=' ';
+                inc(longint(inputpointer));
                 exit;
               end;
-           { load next file and reopen it }
-             nextfile;
-             reopen;
-           { status }
-             Message1(scan_d_back_in,inputfile^.name^);
-           { load some current_module fields }
-             current_module^.current_index:=inputfile^.ref_index;
-           end;
-        { load next char }
-          c:=inputpointer^;
-          inc(longint(inputpointer));
-        until c<>#0; { if also end, then reload again }
+           { can we read more from this file ? }
+             if not endoffile then
+              begin
+                readbuf;
+                if line_no=0 then
+                 line_no:=1;
+                inputpointer:=inputbuffer;
+              end
+             else
+              begin
+                close;
+              { no next module, than EOF }
+                if not assigned(inputfile^.next) then
+                 begin
+                   c:=#26;
+                   exit;
+                 end;
+              { load next file and reopen it }
+                nextfile;
+                tempopen;
+              { status }
+                Message1(scan_d_back_in,inputfile^.name^);
+              { load some current_module fields }
+                current_module^.current_index:=inputfile^.ref_index;
+              end;
+           { load next char }
+             c:=inputpointer^;
+             inc(longint(inputpointer));
+           until c<>#0; { if also end, then reload again }
+         end;
       end;
 
 
     procedure tscannerfile.setbuf(p:pchar;l:longint);
       begin
-        inputbuffer:=p;
-        inputbufsize:=l;
-        inputpointer:=inputbuffer;
+        with inputfile^ do
+         begin
+           inputbufsize:=l;
+           inputbuffer:=p;
+           inputpointer:=p;
+         end;
+      end;
+
+
+    procedure tscannerfile.insertmacro(p:pchar;len:longint);
+    { load the values of tokenpos and lasttokenpos }
+      var
+        macbuf : pchar;
+        hp     : pinputfile;
+      begin
+      { save old postion }
+        dec(longint(inputpointer));
+        current_scanner^.tempclose;
+      { create macro 'file' }
+        hp:=new(pinputfile,init('Macro'));
+        addfile(hp);
+        getmem(macbuf,len+1);
+        setbuf(macbuf,len+1);
+      { fill buffer }
+        with inputfile^ do
+         begin
+           move(p^,inputbuffer^,len);
+           inputbuffer[len]:=#0;
+         { reset }
+           inputpointer:=inputbuffer;
+           bufstart:=0;
+           bufsize:=len;
+           line_no:=0;
+           lastlinepos:=0;
+           lasttokenpos:=0;
+           is_macro:=true;
+           endoffile:=true;
+           closed:=true;
+         { load new c }
+           c:=inputpointer^;
+           inc(longint(inputpointer));
+         end;
       end;
 
 
@@ -602,50 +672,52 @@ implementation
 {$endif SourceLine}
          oldtokenpos,oldaktfilepos : tfileposinfo;
       begin
-        if (byte(inputpointer^)=0) and
-           filenotatend then
-          begin
-             cur:=c;
-             reload;
-             if byte(cur)+byte(c)<>23 then
-               dec(longint(inputpointer));
-          end
-        else
+        with inputfile^ do
          begin
-         { Fix linebreak to be only newline (=#10) for all types of linebreaks }
-           if (byte(inputpointer^)+byte(c)=23) then
-             inc(longint(inputpointer));
-         end;
-        c:=newline;
-      { increase line counters }
-        lastlinepos:=bufstart+(inputpointer-inputbuffer);
-        inc(line_no);
-      { update linebuffer }
-{$ifdef SourceLine}
-        if line_no>maxlinebuf then
-         begin
-           { create new linebuf and move old info }
-           getmem(hp,maxlinebuf+linebufincrease);
-           if assigned(linebuf) then
+           if (byte(inputpointer^)=0) and not(endoffile) then
             begin
-              move(linebuf^,hp^,maxlinebuf shl 2);
-              freemem(linebuf,maxlinebuf);
+              cur:=c;
+              reload;
+              if byte(cur)+byte(c)<>23 then
+                dec(longint(inputpointer));
+            end
+           else
+            begin
+            { Fix linebreak to be only newline (=#10) for all types of linebreaks }
+              if (byte(inputpointer^)+byte(c)=23) then
+                inc(longint(inputpointer));
             end;
-           { set new linebuf }
-           linebuf:=hp;
-           inc(maxlinebuf,linebufincrease);
+           c:=newline;
+         { increase line counters }
+           lastlinepos:=bufstart+(inputpointer-inputbuffer);
+           inc(line_no);
+         { update linebuffer }
+   {$ifdef SourceLine}
+           if line_no>maxlinebuf then
+            begin
+              { create new linebuf and move old info }
+              getmem(hp,maxlinebuf+linebufincrease);
+              if assigned(linebuf) then
+               begin
+                 move(linebuf^,hp^,maxlinebuf shl 2);
+                 freemem(linebuf,maxlinebuf);
+               end;
+              { set new linebuf }
+              linebuf:=hp;
+              inc(maxlinebuf,linebufincrease);
+            end;
+           plongint(longint(linebuf)+line_no*2)^:=lastlinepos;
+   {$endif SourceLine}
+         { update for status and call the show status routine,
+           but don't touch aktfilepos ! }
+           oldaktfilepos:=aktfilepos;
+           oldtokenpos:=tokenpos;
+           gettokenpos; { update for v_status }
+           inc(status.compiledlines);
+           ShowStatus;
+           aktfilepos:=oldaktfilepos;
+           tokenpos:=oldtokenpos;
          end;
-        plongint(longint(linebuf)+line_no*2)^:=lastlinepos;
-{$endif SourceLine}
-      { update for status and call the show status routine,
-        but don't touch aktfilepos ! }
-        oldaktfilepos:=aktfilepos;
-        oldtokenpos:=tokenpos;
-        gettokenpos; { update for v_status }
-        inc(status.compiledlines);
-        ShowStatus;
-        aktfilepos:=oldaktfilepos;
-        tokenpos:=oldtokenpos;
       end;
 
 
@@ -1004,8 +1076,6 @@ implementation
         code    : word;
         l       : longint;
         mac     : pmacrosym;
-        hp      : pinputfile;
-        macbuf  : pchar;
         asciinr : string[3];
       label
          exit_label;
@@ -1064,19 +1134,7 @@ implementation
                  mac:=pmacrosym(macros^.search(pattern));
                  if assigned(mac) and (assigned(mac^.buftext)) then
                   begin
-                  { don't forget the last char }
-                    dec(longint(inputpointer));
-                    hp:=new(pinputfile,init('Macro '+pattern));
-                    addfile(hp);
-                    getmem(macbuf,mac^.buflen+1);
-                    setbuf(macbuf,mac^.buflen+1);
-                  { copy text }
-                    move(mac^.buftext^,inputbuffer^,mac^.buflen);
-                  { put end sign }
-                    inputbuffer[mac^.buflen+1]:=#0;
-                  { load c }
-                    c:=inputbuffer^;
-                    inputpointer:=inputbuffer+1;
+                    insertmacro(mac^.buftext,mac^.buflen);
                   { handle empty macros }
                     if c=#0 then
                      reload;
@@ -1561,7 +1619,11 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.44  1998-08-20 16:09:55  pierre
+  Revision 1.45  1998-08-26 15:35:35  peter
+    * fixed scannerfiles for macros
+    + $I %<environment>%
+
+  Revision 1.44  1998/08/20 16:09:55  pierre
     * tokenpos has to be restored also after
       printstatus
 
