@@ -1170,6 +1170,15 @@ implementation
         if not(resulttype.def.deftype in [recorddef,setdef]) then
           maybe_call_procvar(left,true);
 
+        { convert array constructors to sets, because there is no conversion
+          possible for array constructors }
+        if (resulttype.def.deftype<>arraydef) and
+           is_array_constructor(left.resulttype.def) then
+          begin
+            arrayconstructor_to_set(left);
+            resulttypepass(left);
+          end;
+
         cdoptions:=[cdo_check_operator,cdo_allow_variant];
         if nf_explicit in flags then
           include(cdoptions,cdo_explicit);
@@ -1451,7 +1460,8 @@ implementation
               { but not char to char because it is a widechar to char or via versa }
               { which needs extra code to do the code page transistion             }
               { constant ordinal to pointer }
-              if (resulttype.def.deftype=pointerdef) then
+              if (resulttype.def.deftype=pointerdef) and
+	         (convtype<>tc_cchar_2_pchar) then
                 begin
                    hp:=cpointerconstnode.create(TConstPtrUInt(tordconstnode(left).value),resulttype);
                    result:=hp;
@@ -2440,7 +2450,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.150  2004-06-23 16:22:45  peter
+  Revision 1.151  2004-06-29 20:57:50  peter
+    * fix pchar:=char
+    * fix longint(smallset)
+
+  Revision 1.150  2004/06/23 16:22:45  peter
     * include unit name in error messages when types are the same
 
   Revision 1.149  2004/06/20 08:55:29  florian
