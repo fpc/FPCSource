@@ -57,63 +57,79 @@ implementation
          hp1 : pai;
          lastlabel : pasmlabel;
          realait : tait;
+
       begin
-         lastlabel:=nil;
-         realait:=floattype2ait[pfloatdef(p^.resulttype)^.typ];
-         { const already used ? }
-         if not assigned(p^.lab_real) then
+         if (p^.value_real=1.0) then
            begin
-              { tries to found an old entry }
-              hp1:=pai(consts^.first);
-              while assigned(hp1) do
-                begin
-                   if hp1^.typ=ait_label then
-                     lastlabel:=pai_label(hp1)^.l
-                   else
-                     begin
-                        if (hp1^.typ=realait) and (lastlabel<>nil) then
-                          begin
-                             if(
-                                ((realait=ait_real_32bit) and (pai_real_32bit(hp1)^.value=p^.value_real)) or
-                                ((realait=ait_real_64bit) and (pai_real_64bit(hp1)^.value=p^.value_real)) or
-                                ((realait=ait_real_80bit) and (pai_real_80bit(hp1)^.value=p^.value_real)) or
-                                ((realait=ait_comp_64bit) and (pai_comp_64bit(hp1)^.value=p^.value_real))
-                               ) then
-                               begin
-                                  { found! }
-                                  p^.lab_real:=lastlabel;
-                                  break;
-                               end;
-                          end;
-                        lastlabel:=nil;
-                     end;
-                   hp1:=pai(hp1^.next);
-                end;
-              { :-(, we must generate a new entry }
+              emit_none(A_FLD1,S_NO);
+              p^.location.loc:=LOC_FPU;
+              inc(fpuvaroffset);
+           end
+         else if (p^.value_real=0.0) then
+           begin
+              emit_none(A_FLDZ,S_NO);
+              p^.location.loc:=LOC_FPU;
+              inc(fpuvaroffset);
+           end
+         else
+           begin
+              lastlabel:=nil;
+              realait:=floattype2ait[pfloatdef(p^.resulttype)^.typ];
+              { const already used ? }
               if not assigned(p^.lab_real) then
                 begin
-                   getdatalabel(lastlabel);
-                   p^.lab_real:=lastlabel;
-                   if (cs_smartlink in aktmoduleswitches) then
-                    consts^.concat(new(pai_cut,init));
-                   consts^.concat(new(pai_label,init(lastlabel)));
-                   case realait of
-                     ait_real_32bit :
-                       consts^.concat(new(pai_real_32bit,init(p^.value_real)));
-                     ait_real_64bit :
-                       consts^.concat(new(pai_real_64bit,init(p^.value_real)));
-                     ait_real_80bit :
-                       consts^.concat(new(pai_real_80bit,init(p^.value_real)));
-                     ait_comp_64bit :
-                       consts^.concat(new(pai_comp_64bit,init(p^.value_real)));
-                   else
-                     internalerror(10120);
-                   end;
+                   { tries to found an old entry }
+                   hp1:=pai(consts^.first);
+                   while assigned(hp1) do
+                     begin
+                        if hp1^.typ=ait_label then
+                          lastlabel:=pai_label(hp1)^.l
+                        else
+                          begin
+                             if (hp1^.typ=realait) and (lastlabel<>nil) then
+                               begin
+                                  if(
+                                     ((realait=ait_real_32bit) and (pai_real_32bit(hp1)^.value=p^.value_real)) or
+                                     ((realait=ait_real_64bit) and (pai_real_64bit(hp1)^.value=p^.value_real)) or
+                                     ((realait=ait_real_80bit) and (pai_real_80bit(hp1)^.value=p^.value_real)) or
+                                     ((realait=ait_comp_64bit) and (pai_comp_64bit(hp1)^.value=p^.value_real))
+                                    ) then
+                                    begin
+                                       { found! }
+                                       p^.lab_real:=lastlabel;
+                                       break;
+                                    end;
+                               end;
+                             lastlabel:=nil;
+                          end;
+                        hp1:=pai(hp1^.next);
+                     end;
+                   { :-(, we must generate a new entry }
+                   if not assigned(p^.lab_real) then
+                     begin
+                        getdatalabel(lastlabel);
+                        p^.lab_real:=lastlabel;
+                        if (cs_smartlink in aktmoduleswitches) then
+                         consts^.concat(new(pai_cut,init));
+                        consts^.concat(new(pai_label,init(lastlabel)));
+                        case realait of
+                          ait_real_32bit :
+                            consts^.concat(new(pai_real_32bit,init(p^.value_real)));
+                          ait_real_64bit :
+                            consts^.concat(new(pai_real_64bit,init(p^.value_real)));
+                          ait_real_80bit :
+                            consts^.concat(new(pai_real_80bit,init(p^.value_real)));
+                          ait_comp_64bit :
+                            consts^.concat(new(pai_comp_64bit,init(p^.value_real)));
+                        else
+                          internalerror(10120);
+                        end;
+                     end;
                 end;
+              reset_reference(p^.location.reference);
+              p^.location.reference.symbol:=p^.lab_real;
+              p^.location.loc:=LOC_MEM;
            end;
-         reset_reference(p^.location.reference);
-         p^.location.reference.symbol:=p^.lab_real;
-         p^.location.loc:=LOC_MEM;
       end;
 
 
@@ -401,7 +417,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  1999-08-04 00:22:45  florian
+  Revision 1.40  1999-09-04 20:53:06  florian
+    * bug 580 fixed
+
+  Revision 1.39  1999/08/04 00:22:45  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.38  1999/08/03 22:02:38  peter

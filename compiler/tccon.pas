@@ -47,7 +47,13 @@ implementation
 
     procedure firstrealconst(var p : ptree);
       begin
-         p^.location.loc:=LOC_MEM;
+         if (p^.value_real=1.0) or (p^.value_real=0.0) then
+           begin
+              p^.location.loc:=LOC_FPU;
+              p^.registersfpu:=1;
+           end
+         else
+           p^.location.loc:=LOC_MEM;
       end;
 
 
@@ -119,7 +125,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  1999-08-04 00:23:38  florian
+  Revision 1.9  1999-09-04 20:52:07  florian
+    * bug 580 fixed
+
+  Revision 1.8  1999/08/04 00:23:38  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.7  1999/08/03 22:03:29  peter

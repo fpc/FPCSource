@@ -696,11 +696,23 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                            reset_reference(p^.location.reference);
                            gettempofsizereference(10,p^.location.reference);
                            floatstore(pfloatdef(p^.resulttype)^.typ,p^.location.reference);
-                           p^.location.loc:=LOC_REFERENCE;
+                           {  This can't be never a l-value! (FK)
+                              p^.location.loc:=LOC_REFERENCE; }
+                           p^.location.loc:=LOC_MEM;
                          end;
                LOC_MEM,
          LOC_REFERENCE : ;
-        else
+         LOC_CFPUREGISTER : begin
+                           emit_reg(A_FLD,S_NO,correct_fpuregister(p^.location.register,fpuvaroffset));
+                           inc(fpuvaroffset);
+                           reset_reference(p^.location.reference);
+                           gettempofsizereference(10,p^.location.reference);
+                           floatstore(pfloatdef(p^.resulttype)^.typ,p^.location.reference);
+                           {  This can't be never a l-value! (FK)
+                              p^.location.loc:=LOC_REFERENCE; }
+                           p^.location.loc:=LOC_MEM;
+                         end;
+         else
          internalerror(333);
         end;
       end;
@@ -3294,7 +3306,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.37  1999-09-02 17:07:38  florian
+  Revision 1.38  1999-09-04 20:50:08  florian
+    * bug 580 fixed
+
+  Revision 1.37  1999/09/02 17:07:38  florian
     * problems with -Or fixed: tdef.isfpuregable was wrong!
 
   Revision 1.36  1999/09/01 09:26:23  peter
