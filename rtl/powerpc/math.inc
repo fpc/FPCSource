@@ -35,9 +35,6 @@ const
     {$define FPC_SYSTEM_HAS_SQR}
     function sqr(d : extended) : extended;[internproc:in_sqr_extended];
 
-    {$define FPC_SYSTEM_HAS_SQRT}
-    function sqrt(d : extended) : extended;[internproc:in_sqrt_extended];
-
     {
     function arctan(d : extended) : extended;[internconst:in_arctan_extended];
       begin
@@ -427,7 +424,12 @@ end ['R0','R3','F0','F1','F2','F3'];
 
 {
   $Log$
-  Revision 1.22  2003-05-16 16:04:33  jonas
+  Revision 1.23  2003-05-24 13:39:32  jonas
+    * fsqrt is an optional instruction in the ppc architecture and isn't
+      implemented by any current ppc afaik, so use the generic sqrt routine
+      instead (adapted so it works with compilerproc)
+
+  Revision 1.22  2003/05/16 16:04:33  jonas
     * fixed round() (almost the same as trunc)
 
   Revision 1.21  2003/05/11 18:09:45  jonas

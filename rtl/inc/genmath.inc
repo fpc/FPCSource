@@ -455,7 +455,7 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
 
 
 {$ifndef FPC_SYSTEM_HAS_SQRT}
-    function sqrt(d:Real):Real;[internconst:in_const_sqrt];
+    function sqrt(d:Real):Real;[internconst:in_const_sqrt]; [public, alias: 'FPC_SQRT_REAL'];
     {*****************************************************************}
     { Square root                                                     }
     {*****************************************************************}
@@ -511,6 +511,11 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
           sqrt := d;
        end;
     end;
+
+{$ifdef hascompilerproc}
+    function fpc_sqrt_real(d:Real):Real;compilerproc; external name 'FPC_SQRT_REAL';
+{$endif hascompilerproc}
+
 {$endif}
 
 
@@ -1083,7 +1088,12 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
 
 {
   $Log$
-  Revision 1.13  2003-05-23 22:58:31  jonas
+  Revision 1.14  2003-05-24 13:39:32  jonas
+    * fsqrt is an optional instruction in the ppc architecture and isn't
+      implemented by any current ppc afaik, so use the generic sqrt routine
+      instead (adapted so it works with compilerproc)
+
+  Revision 1.13  2003/05/23 22:58:31  jonas
     * added longint typecase to odd(smallint_var) call to avoid overload
       problem
 

@@ -37,10 +37,8 @@ interface
           }
           function first_abs_real: tnode; override;
           function first_sqr_real: tnode; override;
-          function first_sqrt_real: tnode; override;
           procedure second_abs_real; override;
           procedure second_sqr_real; override;
-          procedure second_sqrt_real; override;
        private
           procedure load_fpu_location;
        end;
@@ -83,18 +81,6 @@ implementation
 {$endif SUPPORT_MMX}
         first_sqr_real := nil;
       end;
-
-     function tppcinlinenode.first_sqrt_real : tnode;
-      begin
-        expectloc:=LOC_FPUREGISTER;
-        registers32:=left.registers32;
-        registersfpu:=max(left.registersfpu,1);
-{$ifdef SUPPORT_MMX}
-        registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
-        first_sqrt_real := nil;
-      end;
-
 
        { load the FPU into the an fpu register }
        procedure tppcinlinenode.load_fpu_location;
@@ -140,20 +126,17 @@ implementation
            left.location.register,left.location.register));
        end;
 
-     procedure tppcinlinenode.second_sqrt_real;
-       begin
-         location.loc:=LOC_FPUREGISTER;
-         load_fpu_location;
-         exprasmlist.concat(taicpu.op_reg_reg(A_FSQRT,location.register,
-           left.location.register));
-       end;
-
 begin
    cinlinenode:=tppcinlinenode;
 end.
 {
   $Log$
-  Revision 1.5  2003-04-23 12:35:35  florian
+  Revision 1.6  2003-05-24 13:39:32  jonas
+    * fsqrt is an optional instruction in the ppc architecture and isn't
+      implemented by any current ppc afaik, so use the generic sqrt routine
+      instead (adapted so it works with compilerproc)
+
+  Revision 1.5  2003/04/23 12:35:35  florian
     * fixed several issues with powerpc
     + applied a patch from Jonas for nested function calls (PowerPC only)
     * ...
