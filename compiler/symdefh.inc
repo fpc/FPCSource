@@ -103,6 +103,7 @@
           next    : pdefcoll;
           paratyp : tvarspez;
           argconvtyp : targconvtyp;
+          convertlevel : byte;
        end;
 
        tfiletype = (ft_text,ft_typed,ft_untyped);
@@ -504,7 +505,10 @@
 
 {
   $Log$
-  Revision 1.17  1999-03-01 13:45:06  pierre
+  Revision 1.18  1999-03-02 18:24:21  peter
+    * fixed overloading of array of char
+
+  Revision 1.17  1999/03/01 13:45:06  pierre
    + added staticppusymtable symtable type for local browsing
 
   Revision 1.16  1999/02/22 20:13:39  florian

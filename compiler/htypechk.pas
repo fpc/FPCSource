@@ -35,7 +35,7 @@ interface
     { Conversion }
     function isconvertable(def_from,def_to : pdef;
              var doconv : tconverttype;fromtreetype : ttreetyp;
-             explicit : boolean) : boolean;
+             explicit : boolean) : byte;
 
     { Register Allocation }
     procedure make_not_regable(p : ptree);
@@ -62,10 +62,14 @@ implementation
                              Convert
 ****************************************************************************}
 
+    { Returns:
+       0 - Not convertable
+       1 - Convertable
+       2 - Convertable, but not first choice }
     function isconvertable(def_from,def_to : pdef;
              var doconv : tconverttype;fromtreetype : ttreetyp;
-             explicit : boolean) : boolean;
-{$ifndef OLDCNV}
+             explicit : boolean) : byte;
+
       { Tbasetype:  uauto,uvoid,uchar,
                     u8bit,u16bit,u32bit,
                     s8bit,s16bit,s32,
@@ -85,83 +89,19 @@ implementation
           (tc_not_possible,tc_equal,tc_not_possible,tc_not_possible),
           (tc_not_possible,tc_not_possible,tc_int_2_int,tc_int_2_bool),
           (tc_not_possible,tc_not_possible,tc_bool_2_int,tc_int_2_bool));
-{$else}
-      const
-         basedefconverts : array[tbasetype,tbasetype] of tconverttype =
-           {uauto}
-           ((tc_not_possible,tc_not_possible,tc_not_possible,
-             tc_not_possible,tc_not_possible,tc_not_possible,
-             tc_not_possible,tc_not_possible,tc_not_possible,
-             tc_not_possible,tc_not_possible,tc_not_possible),
-           {uvoid}
-            (tc_not_possible,tc_not_possible,tc_not_possible,
-             tc_not_possible,tc_not_possible,tc_not_possible,
-             tc_not_possible,tc_not_possible,tc_not_possible,
-             tc_not_possible,tc_not_possible,tc_not_possible),
-           {uchar}
-            (tc_not_possible,tc_not_possible,tc_only_rangechecks32bit,
-             tc_not_possible,tc_not_possible,tc_not_possible,
-             tc_not_possible,tc_not_possible,tc_not_possible,
-             tc_not_possible,tc_not_possible,tc_not_possible),
-           {u8bit}
-            (tc_not_possible,tc_not_possible,tc_not_possible,
-             tc_only_rangechecks32bit,tc_u8bit_2_u16bit,tc_u8bit_2_u32bit,
-             tc_only_rangechecks32bit,tc_u8bit_2_s16bit,tc_u8bit_2_s32bit,
-             tc_int_2_bool,tc_int_2_bool,tc_int_2_bool),
-           {u16bit}
-            (tc_not_possible,tc_not_possible,tc_not_possible,
-             tc_u16bit_2_u8bit,tc_only_rangechecks32bit,tc_u16bit_2_u32bit,
-             tc_u16bit_2_s8bit,tc_only_rangechecks32bit,tc_u16bit_2_s32bit,
-             tc_int_2_bool,tc_int_2_bool,tc_int_2_bool),
-           {u32bit}
-            (tc_not_possible,tc_not_possible,tc_not_possible,
-             tc_u32bit_2_u8bit,tc_u32bit_2_u16bit,tc_only_rangechecks32bit,
-             tc_u32bit_2_s8bit,tc_u32bit_2_s16bit,tc_only_rangechecks32bit,
-             tc_int_2_bool,tc_int_2_bool,tc_int_2_bool),
-           {s8bit}
-            (tc_not_possible,tc_not_possible,tc_not_possible,
-             tc_only_rangechecks32bit,tc_s8bit_2_u16bit,tc_s8bit_2_u32bit,
-             tc_only_rangechecks32bit,tc_s8bit_2_s16bit,tc_s8bit_2_s32bit,
-             tc_int_2_bool,tc_int_2_bool,tc_int_2_bool),
-           {s16bit}
-            (tc_not_possible,tc_not_possible,tc_not_possible,
-             tc_s16bit_2_u8bit,tc_only_rangechecks32bit,tc_s16bit_2_u32bit,
-             tc_s16bit_2_s8bit,tc_only_rangechecks32bit,tc_s16bit_2_s32bit,
-             tc_int_2_bool,tc_int_2_bool,tc_int_2_bool),
-           {s32bit}
-            (tc_not_possible,tc_not_possible,tc_not_possible,
-             tc_s32bit_2_u8bit,tc_s32bit_2_u16bit,tc_only_rangechecks32bit,
-             tc_s32bit_2_s8bit,tc_s32bit_2_s16bit,tc_only_rangechecks32bit,
-             tc_int_2_bool,tc_int_2_bool,tc_int_2_bool),
-           {bool8bit}
-            (tc_not_possible,tc_not_possible,tc_not_possible,
-             tc_bool_2_int,tc_bool_2_int,tc_bool_2_int,
-             tc_bool_2_int,tc_bool_2_int,tc_bool_2_int,
-             tc_only_rangechecks32bit,tc_int_2_bool,tc_int_2_bool),
-           {bool16bit}
-            (tc_not_possible,tc_not_possible,tc_not_possible,
-             tc_bool_2_int,tc_bool_2_int,tc_bool_2_int,
-             tc_bool_2_int,tc_bool_2_int,tc_bool_2_int,
-             tc_int_2_bool,tc_only_rangechecks32bit,tc_int_2_bool),
-           {bool32bit}
-            (tc_not_possible,tc_not_possible,tc_not_possible,
-             tc_bool_2_int,tc_bool_2_int,tc_bool_2_int,
-             tc_bool_2_int,tc_bool_2_int,tc_bool_2_int,
-             tc_int_2_bool,tc_int_2_bool,tc_only_rangechecks32bit));
-{$endif}
 
       var
-         b : boolean;
+         b : byte;
          hd1,hd2 : pdef;
       begin
        { safety check }
          if not(assigned(def_from) and assigned(def_to)) then
           begin
-            isconvertable:=false;
+            isconvertable:=0;
             exit;
           end;
 
-         b:=false;
+         b:=0;
        { we walk the wanted (def_to) types and check then the def_from
          types if there is a conversion possible }
          case def_to^.deftype of
@@ -170,9 +110,8 @@ implementation
                case def_from^.deftype of
                  orddef :
                    begin
-{$ifndef OLDCNV}
                      doconv:=basedefconverts[basedeftbl[porddef(def_from)^.typ],basedeftbl[porddef(def_to)^.typ]];
-                     b:=true;
+                     b:=1;
                      if (doconv=tc_not_possible) or
                         ((doconv=tc_int_2_bool) and
                          (not explicit) and
@@ -180,24 +119,13 @@ implementation
                         ((doconv=tc_bool_2_int) and
                          (not explicit) and
                          (not is_boolean(def_to))) then
-                       b:=false;
-{$else}
-                     doconv:=basedefconverts[porddef(def_from)^.typ,porddef(def_to)^.typ];
-                     b:=true;
-                     if (doconv=tc_not_possible) or
-                        ((doconv=tc_int_2_bool) and
-                         (not explicit) and
-                         (not is_boolean(def_from))) then
-                       b:=false;
-{$endif}
+                       b:=0;
                    end;
-{$ifndef OLDCNV}
                  enumdef :
                    begin
                      doconv:=tc_int_2_int;
-                     b:=true;
+                     b:=1;
                    end;
-{$endif}
                end;
              end;
 
@@ -206,14 +134,14 @@ implementation
                case def_from^.deftype of
                 stringdef : begin
                               doconv:=tc_string_2_string;
-                              b:=true;
+                              b:=1;
                             end;
                    orddef : begin
                             { char to string}
                               if is_char(def_from) then
                                begin
                                  doconv:=tc_char_2_string;
-                                 b:=true;
+                                 b:=1;
                                end;
                             end;
                  arraydef : begin
@@ -221,7 +149,13 @@ implementation
                               if is_equal(parraydef(def_from)^.definition,cchardef) then
                                begin
                                  doconv:=tc_chararray_2_string;
-                                 b:=true;
+                                 if (not(cs_ansistrings in aktlocalswitches) and
+                                     is_shortstring(def_to)) or
+                                    ((cs_ansistrings in aktlocalswitches) and
+                                     is_ansistring(def_to)) then
+                                  b:=1
+                                 else
+                                  b:=2;
                                end;
                             end;
                pointerdef : begin
@@ -229,7 +163,7 @@ implementation
                               if is_pchar(def_from) and not(m_tp in aktmodeswitches) then
                                begin
                                  doconv:=tc_pchar_2_string;
-                                 b:=true;
+                                 b:=1;
                                end;
                             end;
                end;
@@ -245,7 +179,7 @@ implementation
                                   doconv:=tc_int_2_fix
                                 else
                                   doconv:=tc_int_2_real;
-                                b:=true;
+                                b:=1;
                              end;
                          end;
               floatdef : begin { 2 float types ? }
@@ -268,7 +202,7 @@ implementation
                                   CGMessage(type_w_convert_real_2_comp);
 {$endif}
                              end;
-                           b:=true;
+                           b:=1;
                          end;
                end;
              end;
@@ -285,7 +219,8 @@ implementation
                    hd2:=penumdef(def_to)^.basedef
                   else
                    hd2:=def_to;
-                  b:=(hd1=hd2);
+                  if (hd1=hd2) then
+                   b:=1;
                 end;
              end;
 
@@ -296,7 +231,7 @@ implementation
                   is_equal(parraydef(def_to)^.definition,def_from) then
                 begin
                   doconv:=tc_equal;
-                  b:=true;
+                  b:=1;
                 end
                else
                 begin
@@ -306,7 +241,7 @@ implementation
                                      is_equal(ppointerdef(def_from)^.definition,parraydef(def_to)^.definition) then
                                    begin
                                      doconv:=tc_pointer_2_array;
-                                     b:=true;
+                                     b:=1;
                                    end;
                                 end;
                     stringdef : begin
@@ -314,7 +249,7 @@ implementation
                                   if is_equal(parraydef(def_to)^.definition,cchardef) then
                                    begin
                                      doconv:=tc_string_2_chararray;
-                                     b:=true;
+                                     b:=1;
                                    end;
                                 end;
                   end;
@@ -330,7 +265,7 @@ implementation
                                 is_pchar(def_to) then
                               begin
                                 doconv:=tc_cstring_2_pchar;
-                                b:=true;
+                                b:=1;
                               end;
                            end;
                   orddef : begin
@@ -339,7 +274,7 @@ implementation
                                 is_pchar(def_to) then
                               begin
                                 doconv:=tc_cchar_2_pchar;
-                                b:=true;
+                                b:=1;
                               end;
                            end;
                 arraydef : begin
@@ -348,7 +283,7 @@ implementation
                                 is_equal(parraydef(def_from)^.definition,ppointerdef(def_to)^.definition) then
                               begin
                                 doconv:=tc_array_2_pointer;
-                                b:=true;
+                                b:=1;
                               end;
                            end;
               pointerdef : begin
@@ -366,7 +301,7 @@ implementation
                                 is_equal(ppointerdef(def_from)^.definition,voiddef) then
                                begin
                                  doconv:=tc_equal;
-                                 b:=true;
+                                 b:=1;
                                end;
                            end;
               procvardef : begin
@@ -377,7 +312,7 @@ implementation
                                 (porddef(ppointerdef(def_to)^.definition)^.typ=uvoid) then
                               begin
                                 doconv:=tc_equal;
-                                b:=true;
+                                b:=1;
                               end;
                            end;
              classrefdef,
@@ -392,7 +327,7 @@ implementation
                                 (porddef(ppointerdef(def_to)^.definition)^.typ=uvoid) then
                                begin
                                  doconv:=tc_equal;
-                                 b:=true;
+                                 b:=1;
                                end;
                            end;
                end;
@@ -404,7 +339,7 @@ implementation
                if (def_from^.deftype=arraydef) and (parraydef(def_from)^.IsConstructor) then
                 begin
                   doconv:=tc_arrayconstructor_2_set;
-                  b:=true;
+                  b:=1;
                 end;
              end;
 
@@ -415,7 +350,8 @@ implementation
                 begin
                   def_from^.deftype:=procvardef;
                   doconv:=tc_proc_2_procvar;
-                  b:=is_equal(def_from,def_to);
+                  if is_equal(def_from,def_to) then
+                   b:=1;
                   def_from^.deftype:=procdef;
                 end
                else
@@ -427,14 +363,14 @@ implementation
                   (porddef(ppointerdef(def_from)^.definition)^.typ=uvoid) then
                 begin
                    doconv:=tc_equal;
-                   b:=true;
+                   b:=1;
                 end
                else
                { nil is compatible with procvars }
                 if (fromtreetype=niln) then
                  begin
                    doconv:=tc_equal;
-                   b:=true;
+                   b:=1;
                  end;
              end;
 
@@ -445,14 +381,15 @@ implementation
                   pobjectdef(def_from)^.isclass and pobjectdef(def_to)^.isclass }then
                 begin
                   doconv:=tc_equal;
-                  b:=pobjectdef(def_from)^.isrelated(pobjectdef(def_to));
+                  if pobjectdef(def_from)^.isrelated(pobjectdef(def_to)) then
+                   b:=1;
                 end
                else
                 { nil is compatible with class instances }
                 if (fromtreetype=niln) and (pobjectdef(def_to)^.isclass) then
                  begin
                    doconv:=tc_equal;
-                   b:=true;
+                   b:=1;
                  end;
              end;
 
@@ -462,15 +399,16 @@ implementation
                if (def_from^.deftype=classrefdef) then
                 begin
                   doconv:=tc_equal;
-                  b:=pobjectdef(pclassrefdef(def_from)^.definition)^.isrelated(
-                       pobjectdef(pclassrefdef(def_to)^.definition));
+                  if pobjectdef(pclassrefdef(def_from)^.definition)^.isrelated(
+                       pobjectdef(pclassrefdef(def_to)^.definition)) then
+                   b:=1;
                 end
                else
                 { nil is compatible with class references }
                 if (fromtreetype=niln) then
                  begin
                    doconv:=tc_equal;
-                   b:=true;
+                   b:=1;
                  end;
              end;
 
@@ -506,7 +444,7 @@ implementation
                   ) then
                  begin
                     doconv:=tc_equal;
-                    b:=true;
+                    b:=1;
                  end
              end;
 
@@ -514,7 +452,7 @@ implementation
              begin
              { assignment overwritten ?? }
                if is_assignment_overloaded(def_from,def_to) then
-                b:=true;
+                b:=1;
              end;
          end;
 
@@ -524,7 +462,7 @@ implementation
              and (pstringdef(def_to)^.string_typ in [st_ansistring,st_widestring]) then
              begin
                 doconv:=tc_equal;
-                b:=true;
+                b:=1;
              end
          else
            }
@@ -537,7 +475,7 @@ implementation
              (porddef(ppointerdef(def_to)^.definition)^.typ=uvoid) then
              begin
                 doconv:=tc_equal;
-                b:=true;
+                b:=1;
              end
          else
            }
@@ -549,7 +487,7 @@ implementation
              (porddef(ppointerdef(def_to)^.definition)^.typ=uchar) then
              begin
                 doconv:=tc_ansistring_2_pchar;
-                b:=true;
+                b:=1;
              end
          else
            }
@@ -706,8 +644,7 @@ implementation
           while passproc<>nil do
             begin
               if is_equal(passproc^.retdef,to_def) and
-                 isconvertable(from_def,passproc^.para1^.data,convtyp,
-                   ordconstn { nur Dummy},false ) then
+                 (isconvertable(from_def,passproc^.para1^.data,convtyp,ordconstn,false)=1) then
                 begin
                    is_assignment_overloaded:=true;
                    break;
@@ -719,7 +656,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  1999-01-27 13:53:27  pierre
+  Revision 1.17  1999-03-02 18:24:20  peter
+    * fixed overloading of array of char
+
+  Revision 1.16  1999/01/27 13:53:27  pierre
   htypechk.pas
 
   Revision 1.15  1999/01/27 13:12:10  pierre

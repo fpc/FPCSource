@@ -239,8 +239,6 @@ implementation
     type
        tfirstconvproc = procedure(var p : ptree);
 
-{$ifndef OLDCNV}
-
     procedure first_int_to_int(var p : ptree);
       begin
         if (p^.registers32=0) and
@@ -252,14 +250,6 @@ implementation
          end;
       end;
 
-{$else}
-    procedure first_bigger_smaller(var p : ptree);
-      begin
-         if (p^.left^.location.loc<>LOC_REGISTER) and (p^.registers32=0) then
-           p^.registers32:=1;
-         p^.location.loc:=LOC_REGISTER;
-      end;
-{$endif}
 
     procedure first_cstring_to_pchar(var p : ptree);
       begin
@@ -454,51 +444,29 @@ implementation
       end;
 
 
-{$ifdef OLDCNV}
-    procedure first_locmem(var p : ptree);
-      begin
-         p^.location.loc:=LOC_MEM;
-      end;
-{$endif}
-
-
     procedure first_bool_to_int(var p : ptree);
       begin
-{$ifndef OLDBOOL}
          { byte(boolean) or word(wordbool) or longint(longbool) must
          be accepted for var parameters }
          if (p^.explizit) and
             (p^.left^.resulttype^.size=p^.resulttype^.size) and
             (p^.left^.location.loc in [LOC_REFERENCE,LOC_MEM,LOC_CREGISTER]) then
            exit;
-{$endif ndef OLDBOOL}
          p^.location.loc:=LOC_REGISTER;
-         { Florian I think this is overestimated
-           but I still do not really understand how to get this right (PM) }
-         { Hmmm, I think we need only one reg to return the result of      }
-         { this node => so }
          if p^.registers32<1 then
            p^.registers32:=1;
-         {  should work (FK)
-         p^.registers32:=p^.left^.registers32+1;}
       end;
 
 
     procedure first_int_to_bool(var p : ptree);
       begin
-{$ifndef OLDBOOL}
          { byte(boolean) or word(wordbool) or longint(longbool) must
          be accepted for var parameters }
          if (p^.explizit) and
             (p^.left^.resulttype^.size=p^.resulttype^.size) and
             (p^.left^.location.loc in [LOC_REFERENCE,LOC_MEM,LOC_CREGISTER]) then
            exit;
-{$endif ndef OLDBOOL}
          p^.location.loc:=LOC_REGISTER;
-         { Florian I think this is overestimated
-           but I still do not really understand how to get this right (PM) }
-         { Hmmm, I think we need only one reg to return the result of      }
-         { this node => so }
          p^.left:=gentypeconvnode(p^.left,s32bitdef);
          { need if bool to bool !!
            not very nice !! }
@@ -506,9 +474,6 @@ implementation
          firstpass(p^.left);
          if p^.registers32<1 then
            p^.registers32:=1;
-{          p^.resulttype:=booldef; }
-         {  should work (FK)
-         p^.registers32:=p^.left^.registers32+1;}
       end;
 
 
@@ -570,7 +535,6 @@ implementation
       proctype : tdeftype;
     const
        firstconvert : array[tconverttype] of tfirstconvproc = (
-{$ifndef OLDCNV}
          first_nothing, {equal}
          first_nothing, {not_possible}
          first_string_to_string,
@@ -595,34 +559,6 @@ implementation
          first_arrayconstructor_to_set,
          first_load_smallset
        );
-{$else}
-                           first_nothing,first_nothing,
-                           first_bigger_smaller,first_nothing,first_bigger_smaller,
-                           first_bigger_smaller,first_bigger_smaller,
-                           first_bigger_smaller,first_bigger_smaller,
-                           first_bigger_smaller,first_string_to_string,
-                           first_cstring_to_pchar,first_string_to_chararray,
-                           first_array_to_pointer,first_pointer_to_array,
-                           first_char_to_string,first_bigger_smaller,
-                           first_bigger_smaller,first_bigger_smaller,
-                           first_bigger_smaller,first_bigger_smaller,
-                           first_bigger_smaller,first_bigger_smaller,
-                           first_bigger_smaller,first_bigger_smaller,
-                           first_bigger_smaller,first_bigger_smaller,
-                           first_bigger_smaller,first_bigger_smaller,
-                           first_bigger_smaller,first_bigger_smaller,
-                           first_bigger_smaller,first_bigger_smaller,
-                           first_bigger_smaller,first_bigger_smaller,
-                           first_bool_to_int,first_int_to_bool,
-                           first_int_to_real,first_real_to_fix,
-                           first_fix_to_real,first_int_to_fix,first_real_to_real,
-                           first_locmem,first_proc_to_procvar,
-                           first_cchar_to_pchar,
-                           first_load_smallset,
-                           first_ansistring_to_pchar,
-                           first_pchar_to_string,
-                           first_arrayconstructor_to_set);
-{$endif}
      begin
        aprocdef:=nil;
        { if explicite type cast, then run firstpass }
@@ -695,8 +631,7 @@ implementation
             exit;
          end;
 
-       if (not(isconvertable(p^.left^.resulttype,p^.resulttype,
-           p^.convtyp,p^.left^.treetype,p^.explizit))) then
+       if isconvertable(p^.left^.resulttype,p^.resulttype,p^.convtyp,p^.left^.treetype,p^.explizit)=0 then
          begin
            {Procedures have a resulttype of voiddef and functions of their
            own resulttype. They will therefore always be incompatible with
@@ -823,8 +758,7 @@ implementation
                             end
                           else
                             begin
-                               if not isconvertable(s32bitdef,p^.resulttype,p^.convtyp,
-                               ordconstn { only Dummy},false ) then
+                               if isconvertable(s32bitdef,p^.resulttype,p^.convtyp,ordconstn,false)=0 then
                                  CGMessage(cg_e_illegal_type_conversion);
                             end;
 
@@ -844,8 +778,7 @@ implementation
                               end
                             else
                               begin
-                                 if not isconvertable(p^.left^.resulttype,s32bitdef,p^.convtyp,
-                                   ordconstn { nur Dummy},false ) then
+                                 if IsConvertable(p^.left^.resulttype,s32bitdef,p^.convtyp,ordconstn,false)=0 then
                                    CGMessage(cg_e_illegal_type_conversion);
                               end;
                          end
@@ -866,8 +799,7 @@ implementation
                               begin
                                  { this is wrong because it converts to a 4 byte long var !!
                                    if not isconvertable(p^.left^.resulttype,s32bitdef,p^.convtyp,ordconstn  nur Dummy ) then }
-                                 if not isconvertable(p^.left^.resulttype,u8bitdef,
-                                   p^.convtyp,ordconstn { nur Dummy},false ) then
+                                 if IsConvertable(p^.left^.resulttype,u8bitdef,p^.convtyp,ordconstn,false)=0 then
                                    CGMessage(cg_e_illegal_type_conversion);
                               end;
                          end
@@ -979,7 +911,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  1999-02-22 02:15:46  peter
+  Revision 1.20  1999-03-02 18:24:23  peter
+    * fixed overloading of array of char
+
+  Revision 1.19  1999/02/22 02:15:46  peter
     * updates for ag386bin
 
   Revision 1.18  1999/01/27 14:56:57  pierre

@@ -381,11 +381,9 @@ implementation
          { range check only for arrays }
          if (p^.left^.resulttype^.deftype=arraydef) then
            begin
-              if not(isconvertable(p^.right^.resulttype,
-                parraydef(p^.left^.resulttype)^.rangedef,
-                ct,ordconstn,false)) and
-              not(is_equal(p^.right^.resulttype,
-                parraydef(p^.left^.resulttype)^.rangedef)) then
+              if (isconvertable(p^.right^.resulttype,parraydef(p^.left^.resulttype)^.rangedef,
+                    ct,ordconstn,false)=0) and
+                 not(is_equal(p^.right^.resulttype,parraydef(p^.left^.resulttype)^.rangedef)) then
                 CGMessage(type_e_mismatch);
            end;
          { Never convert a boolean or a char !}
@@ -557,7 +555,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  1999-02-22 02:15:54  peter
+  Revision 1.12  1999-03-02 18:24:24  peter
+    * fixed overloading of array of char
+
+  Revision 1.11  1999/02/22 02:15:54  peter
     * updates for ag386bin
 
   Revision 1.10  1999/02/04 11:44:47  florian

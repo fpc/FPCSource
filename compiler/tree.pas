@@ -131,7 +131,6 @@ unit tree;
           loadvmtn
        );
 
-{$ifndef OLDCNV}
        tconverttype = (
           tc_equal,
           tc_not_possible,
@@ -157,32 +156,6 @@ unit tree;
           tc_arrayconstructor_2_set,
           tc_load_smallset
        );
-{$else}
-       tconverttype = (tc_equal,tc_not_possible,tc_u8bit_2_s32bit,
-                      tc_only_rangechecks32bit,tc_s8bit_2_s32bit,
-                      tc_u16bit_2_s32bit,tc_s16bit_2_s32bit,
-                      tc_s32bit_2_s16bit,tc_s32bit_2_u8bit,
-                      tc_s32bit_2_u16bit,tc_string_2_string,
-                      tc_cstring_2_pchar,tc_string_2_chararray,
-                      tc_array_2_pointer,tc_pointer_2_array,
-                      tc_char_2_string,tc_u8bit_2_s16bit,
-                      tc_u8bit_2_u16bit,tc_s8bit_2_s16bit,
-                      tc_s16bit_2_s8bit,tc_s16bit_2_u8bit,
-                      tc_u16bit_2_s8bit,tc_u16bit_2_u8bit,
-                      tc_s8bit_2_u16bit,tc_s32bit_2_s8bit,
-                      tc_s32bit_2_u32bit,tc_s16bit_2_u32bit,
-                      tc_s8bit_2_u32bit,tc_u16bit_2_u32bit,
-                      tc_u8bit_2_u32bit,tc_u32bit_2_s32bit,
-                      tc_u32bit_2_s8bit,tc_u32bit_2_u8bit,
-                      tc_u32bit_2_s16bit,tc_u32bit_2_u16bit,
-                      tc_bool_2_int,tc_int_2_bool,
-                      tc_int_2_real,tc_real_2_fix,
-                      tc_fix_2_real,tc_int_2_fix,tc_real_2_real,
-                      tc_chararray_2_string,
-                      tc_proc_2_procvar,tc_cchar_2_pchar,tc_load_smallset,
-                      tc_ansistring_2_pchar,tc_pchar_2_string,
-                      tc_arrayconstructor_2_set);
-{$endif}
 
        { allows to determine which elementes are to be replaced }
        tdisposetyp = (dt_nothing,dt_leftright,dt_left,dt_leftrighthigh,
@@ -237,7 +210,8 @@ unit tree;
 {$endif extdebug}
           case treetype : ttreetyp of
              addn : (use_strconcat : boolean;string_typ : tstringtype);
-             callparan : (is_colon_para : boolean;exact_match_found : boolean;hightree:ptree);
+             callparan : (is_colon_para : boolean;exact_match_found,
+                          convlevel1found,convlevel2found:boolean;hightree:ptree);
              assignn : (assigntyp : tassigntyp;concat_string : boolean);
              loadn : (symtableentry : psym;symtable : psymtable;
                       is_absolute,is_first : boolean);
@@ -657,6 +631,8 @@ unit tree;
          p^.registersfpu:=0;
          p^.resulttype:=nil;
          p^.exact_match_found:=false;
+         p^.convlevel1found:=false;
+         p^.convlevel2found:=false;
          p^.is_colon_para:=false;
          p^.hightree:=nil;
          set_file_line(expr,p);
@@ -1669,7 +1645,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.67  1999-02-25 21:02:56  peter
+  Revision 1.68  1999-03-02 18:24:25  peter
+    * fixed overloading of array of char
+
+  Revision 1.67  1999/02/25 21:02:56  peter
     * ag386bin updates
     + coff writer
 

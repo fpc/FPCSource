@@ -517,37 +517,22 @@ implementation
                    pd:=aktcallprocsym^.definition;
                    while assigned(pd) do
                      begin
-                        { we should also check that the overloaded function
-                        has been declared in a unit that is in the uses !! }
-                        { pd^.owner should be in the symtablestack !! }
-                        { Laenge der deklarierten Parameterliste feststellen: }
-                        { not necessary why nextprocsym field }
-                        {st:=symtablestack;
-                        if (pd^.owner^.symtabletype<>objectsymtable) then
-                          while assigned(st) do
-                            begin
-                               if (st=pd^.owner) then break;
-                               st:=st^.next;
-                            end;
-                        if assigned(st) then }
+                        pdc:=pd^.para1;
+                        l:=0;
+                        while assigned(pdc) do
                           begin
-                             pdc:=pd^.para1;
-                             l:=0;
-                             while assigned(pdc) do
-                               begin
-                                  inc(l);
-                                  pdc:=pdc^.next;
-                               end;
-                             { only when the # of parameter are equal }
-                             if (l=paralength) then
-                               begin
-                                  new(hp);
-                                  hp^.data:=pd;
-                                  hp^.next:=procs;
-                                  hp^.nextpara:=pd^.para1;
-                                  hp^.firstpara:=pd^.para1;
-                                  procs:=hp;
-                               end;
+                             inc(l);
+                             pdc:=pdc^.next;
+                          end;
+                        { only when the # of parameter are equal }
+                        if (l=paralength) then
+                          begin
+                             new(hp);
+                             hp^.data:=pd;
+                             hp^.next:=procs;
+                             hp^.nextpara:=pd^.para1;
+                             hp^.firstpara:=pd^.para1;
+                             procs:=hp;
                           end;
                         pd:=pd^.nextoverloaded;
                      end;
@@ -570,7 +555,15 @@ implementation
                    while assigned(pt) do
                      begin
                         dec(l);
-                        { matches a parameter of one procedure exact ? }
+                        { walk all procedures and determine how this parameter matches and set:
+                           1. pt^.exact_match_found if one parameter has an exact match
+                           2. exactmatch if an equal or exact match is found
+
+                           3. para^.argconvtyp to exact,equal or convertable
+                                (when convertable then also convertlevel is set)
+                           4. pt^.convlevel1found if there is a convertlevel=1
+                           5. pt^.convlevel2found if there is a convertlevel=2
+                        }
                         exactmatch:=false;
                         hp:=procs;
                         while assigned(hp) do
@@ -587,61 +580,57 @@ implementation
                                   exactmatch:=true;
                                end
                              else
-                               hp^.nextpara^.argconvtyp:=act_convertable;
+                               begin
+                                 hp^.nextpara^.argconvtyp:=act_convertable;
+                                 hp^.nextpara^.convertlevel:=isconvertable(pt^.resulttype,hp^.nextpara^.data,
+                                     hcvt,pt^.left^.treetype,false);
+                                 case hp^.nextpara^.convertlevel of
+                                  1 : pt^.convlevel1found:=true;
+                                  2 : pt^.convlevel2found:=true;
+                                 end;
+                               end;
+
                              hp:=hp^.next;
                           end;
 
-                        { .... if yes, del all the other procedures }
+                        { If there was an exactmatch then delete all convertables }
                         if exactmatch then
                           begin
-                             { the first .... }
-                             while (assigned(procs)) and not(is_equal(pt,procs^.nextpara^.data)) do
-                               begin
-                                  hp:=procs^.next;
-                                  dispose(procs);
-                                  procs:=hp;
-                               end;
-                             { and the others }
-                             hp:=procs;
-                             while (assigned(hp)) and assigned(hp^.next) do
-                               begin
-                                  if not(is_equal(pt,hp^.next^.nextpara^.data)) then
-                                    begin
-                                       hp2:=hp^.next^.next;
-                                       dispose(hp^.next);
-                                       hp^.next:=hp2;
-                                    end
-                                  else
-                                    hp:=hp^.next;
-                               end;
+                            hp:=procs;
+                            procs:=nil;
+                            while assigned(hp) do
+                              begin
+                                 hp2:=hp^.next;
+                                 { keep if not convertable }
+                                 if (hp^.nextpara^.argconvtyp<>act_convertable) then
+                                  begin
+                                    hp^.next:=procs;
+                                    procs:=hp;
+                                  end
+                                 else
+                                  dispose(hp);
+                                 hp:=hp2;
+                              end;
                           end
-                        { when a parameter matches exact, remove all procs
-                          which need typeconvs }
                         else
+                        { No exact match was found, remove all procedures that are
+                          not convertable (convertlevel=0) }
                           begin
-                             { the first... }
-                             while (assigned(procs)) and
-                               not(isconvertable(pt^.resulttype,procs^.nextpara^.data,
-                                 hcvt,pt^.left^.treetype,false)) do
-                               begin
-                                  hp:=procs^.next;
-                                  dispose(procs);
-                                  procs:=hp;
-                               end;
-                             { and the others }
-                             hp:=procs;
-                             while (assigned(hp)) and assigned(hp^.next) do
-                               begin
-                                  if not(isconvertable(pt^.resulttype,hp^.next^.nextpara^.data,
-                                    hcvt,pt^.left^.treetype,false)) then
-                                    begin
-                                       hp2:=hp^.next^.next;
-                                       dispose(hp^.next);
-                                       hp^.next:=hp2;
-                                    end
-                                  else
-                                    hp:=hp^.next;
-                               end;
+                            hp:=procs;
+                            procs:=nil;
+                            while assigned(hp) do
+                              begin
+                                 hp2:=hp^.next;
+                                 { keep if not convertable }
+                                 if (hp^.nextpara^.convertlevel<>0) then
+                                  begin
+                                    hp^.next:=procs;
+                                    procs:=hp;
+                                  end
+                                 else
+                                  dispose(hp);
+                                 hp:=hp2;
+                              end;
                           end;
                         { update nextpara for all procedures }
                         hp:=procs;
@@ -657,6 +646,8 @@ implementation
                           pt:=nil;
                      end;
 
+                 { All parameters are checked, check if there are any
+                   procedures left }
                    if not assigned(procs) then
                     begin
                       { there is an error, must be wrong type, because
@@ -769,17 +760,18 @@ implementation
                           end;
                      end;
 
-                   { reset nextpara for all procs left }
-                   hp:=procs;
-                   while assigned(hp) do
-                    begin
-                      hp^.nextpara:=hp^.firstpara;
-                      hp:=hp^.next;
-                    end;
-
-                   { let's try to eliminate equal is exact is there }
-                   if assigned(procs^.next) then
+                   { let's try to eliminate equal if there is an exact match
+                     is there }
+                   if assigned(procs) and assigned(procs^.next) then
                      begin
+                        { reset nextpara for all procs left }
+                        hp:=procs;
+                        while assigned(hp) do
+                         begin
+                           hp^.nextpara:=hp^.firstpara;
+                           hp:=hp^.next;
+                         end;
+
                         pt:=p^.left;
                         while assigned(pt) do
                           begin
@@ -791,15 +783,13 @@ implementation
                                    begin
                                       hp2:=hp^.next;
                                       { keep the exact matches, dispose the others }
-                                      if (hp^.nextpara^.data=pt^.resulttype) then
+                                      if (hp^.nextpara^.argconvtyp=act_exact) then
                                        begin
                                          hp^.next:=procs;
                                          procs:=hp;
                                        end
                                       else
-                                       begin
-                                         dispose(hp);
-                                       end;
+                                       dispose(hp);
                                       hp:=hp2;
                                    end;
                                end;
@@ -814,10 +804,59 @@ implementation
                           end;
                      end;
 
-                   if assigned(procs^.next) then
+                   { Check if there are convertlevel 1 and 2 differences
+                     left for the parameters, then discard all convertlevel
+                     2 procedures. The value of convlevelXfound can still
+                     be used, because all convertables are still here or
+                     not }
+                   if assigned(procs) and assigned(procs^.next) then
+                     begin
+                        { reset nextpara for all procs left }
+                        hp:=procs;
+                        while assigned(hp) do
+                         begin
+                           hp^.nextpara:=hp^.firstpara;
+                           hp:=hp^.next;
+                         end;
+
+                        pt:=p^.left;
+                        while assigned(pt) do
+                          begin
+                             if pt^.convlevel1found and pt^.convlevel2found then
+                               begin
+                                 hp:=procs;
+                                 procs:=nil;
+                                 while assigned(hp) do
+                                   begin
+                                      hp2:=hp^.next;
+                                      { keep all not act_convertable and all convertlevels=1 }
+                                      if (hp^.nextpara^.argconvtyp<>act_convertable) or
+                                         (hp^.nextpara^.convertlevel=1) then
+                                       begin
+                                         hp^.next:=procs;
+                                         procs:=hp;
+                                       end
+                                      else
+                                       dispose(hp);
+                                      hp:=hp2;
+                                   end;
+                               end;
+                             { update nextpara for all procedures }
+                             hp:=procs;
+                             while assigned(hp) do
+                               begin
+                                  hp^.nextpara:=hp^.nextpara^.next;
+                                  hp:=hp^.next;
+                               end;
+                             pt:=pt^.right;
+                          end;
+                     end;
+
+                   if not(assigned(procs)) or assigned(procs^.next) then
                      begin
                         CGMessage(cg_e_cant_choose_overload_function);
                         aktcallprocsym^.write_parameter_lists;
+                        exit;
                      end;
 {$ifdef TEST_PROCSYMS}
                    if (procs=nil) and assigned(nextprocsym) then
@@ -1078,7 +1117,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  1999-02-22 15:09:44  florian
+  Revision 1.26  1999-03-02 18:24:22  peter
+    * fixed overloading of array of char
+
+  Revision 1.25  1999/02/22 15:09:44  florian
     * behaviaor of PROTECTED and PRIVATE fixed, works now like TP/Delphi
 
   Revision 1.24  1999/02/22 02:15:45  peter
