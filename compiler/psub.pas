@@ -959,39 +959,38 @@ implementation
          exitswitches:=aktlocalswitches;
          exitpos:=last_endtoken_filepos;
 
+         { the procedure is now defined }
+         procdef.forwarddef:=false;
+
+         { Check for unused labels, forwards, symbols for procedures. Static
+           symtable is checked in pmodules }
+         if (Errorcount=0) and
+            (tstoredsymtable(procdef.localst).symtabletype<>staticsymtable) then
+           begin
+             { check if forwards are resolved }
+             tstoredsymtable(procdef.localst).check_forwards;
+             { check if all labels are used }
+             tstoredsymtable(procdef.localst).checklabels;
+             { remove cross unit overloads }
+             tstoredsymtable(procdef.localst).unchain_overloaded;
+             { check for unused symbols, but only if there is no asm block }
+             if not(pi_uses_asm in flags) then
+               begin
+                 tstoredsymtable(procdef.localst).allsymbolsused;
+                 tstoredsymtable(procdef.parast).allsymbolsused;
+               end;
+           end;
+
          if assigned(code) then
            begin
              { get a better entry point }
              entrypos:=code.fileinfo;
 
-             { the procedure is now defined }
-             procdef.forwarddef:=false;
-
-             if (Errorcount=0) then
-               begin
-                 { add implicit entry and exit code }
-                 add_entry_exit_code;
-                 { check if forwards are resolved }
-                 tstoredsymtable(procdef.localst).check_forwards;
-                 { check if all labels are used }
-                 tstoredsymtable(procdef.localst).checklabels;
-                 { remove cross unit overloads }
-                 tstoredsymtable(procdef.localst).unchain_overloaded;
-               end;
-
-             { check for unused symbols, but only if there is no asm block }
-             if not(pi_uses_asm in flags) then
-               begin
-                  { not for unit init, becuase the var can be used in finalize,
-                    it will be done in proc_unit }
-                  if not(procdef.proctypeoption in [potype_proginit,potype_unitinit,potype_unitfinalize]) then
-                     tstoredsymtable(procdef.localst).allsymbolsused;
-                  tstoredsymtable(procdef.parast).allsymbolsused;
-               end;
+             { add implicit entry and exit code }
+             add_entry_exit_code;
 
              { Finish type checking pass }
              do_resulttypepass(code);
-
            end;
 
          { store a copy of the original tree for inline, for
@@ -1346,7 +1345,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.187  2004-04-11 12:37:30  peter
+  Revision 1.188  2004-05-16 13:29:21  peter
+    * fix checking for forwards in static symtable
+
+  Revision 1.187  2004/04/11 12:37:30  peter
     * fix tree printing
 
   Revision 1.186  2004/02/19 17:07:42  florian

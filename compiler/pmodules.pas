@@ -1016,7 +1016,7 @@ implementation
          { Parse the implementation section }
          if (m_mac in aktmodeswitches) and try_to_consume(_END) then
            has_impl:= false
-         else 
+         else
            begin
              consume(_IMPLEMENTATION);
              has_impl:= true;
@@ -1118,9 +1118,6 @@ implementation
          { the last char should always be a point }
          consume(_POINT);
 
-         { generate a list of threadvars }
-         InsertThreadvars;
-
          { Generate resoucestrings }
          If ResourceStrings.ResStrCount>0 then
           begin
@@ -1133,24 +1130,22 @@ implementation
 
          if (Errorcount=0) then
            begin
-             { test static symtable }
-             tstoredsymtable(st).allsymbolsused;
-             tstoredsymtable(st).allprivatesused;
-             current_module.allunitsused;
-           end;
-
-{$ifdef GDB}
-         write_gdb_info;
-{$endif GDB}
-
-         if (Errorcount=0) then
-           begin
              { tests, if all (interface) forwards are resolved }
              tstoredsymtable(symtablestack).check_forwards;
              { check if all private fields are used }
              tstoredsymtable(symtablestack).allprivatesused;
              { remove cross unit overloads }
              tstoredsymtable(symtablestack).unchain_overloaded;
+
+             { test static symtable }
+             tstoredsymtable(st).allsymbolsused;
+             tstoredsymtable(st).allprivatesused;
+             tstoredsymtable(st).check_forwards;
+             tstoredsymtable(st).checklabels;
+             tstoredsymtable(st).unchain_overloaded;
+
+             { used units }
+             current_module.allunitsused;
            end;
 
          { leave when we got an error }
@@ -1160,6 +1155,14 @@ implementation
             status.skip_error:=true;
             exit;
           end;
+
+         { generate debuginfo }
+{$ifdef GDB}
+         write_gdb_info;
+{$endif GDB}
+
+         { generate a list of threadvars }
+         InsertThreadvars;
 
          { generate imports }
          if current_module.uses_imports then
@@ -1388,25 +1391,29 @@ implementation
          { consume the last point }
          consume(_POINT);
 
-{$ifdef GDB}
-         write_gdb_info;
-{$endif GDB}
-
-         { leave when we got an error }
-         if (Errorcount>0) and not status.skip_error then
-          begin
-            Message1(unit_f_errors_in_unit,tostr(Errorcount));
-            status.skip_error:=true;
-            exit;
-          end;
-
          if (Errorcount=0) then
            begin
              { test static symtable }
              tstoredsymtable(st).allsymbolsused;
              tstoredsymtable(st).allprivatesused;
+             tstoredsymtable(st).check_forwards;
+             tstoredsymtable(st).checklabels;
+             tstoredsymtable(st).unchain_overloaded;
              current_module.allunitsused;
            end;
+
+         { leave when we got an error }
+         if (Errorcount>0) and not status.skip_error then
+           begin
+             Message1(unit_f_errors_in_unit,tostr(Errorcount));
+             status.skip_error:=true;
+             exit;
+           end;
+
+         { generate debuginfo }
+{$ifdef GDB}
+         write_gdb_info;
+{$endif GDB}
 
          { generate a list of threadvars }
          InsertThreadvars;
@@ -1473,7 +1480,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.151  2004-05-11 18:22:16  olle
+  Revision 1.152  2004-05-16 13:29:21  peter
+    * fix checking for forwards in static symtable
+
+  Revision 1.151  2004/05/11 18:22:16  olle
     * changed $mode mac to $mode macpas (macro defined should be FPC_MACPAS)
 
   Revision 1.150  2004/05/03 09:55:27  olle
