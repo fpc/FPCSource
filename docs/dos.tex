@@ -539,7 +539,6 @@ following constants :
 \item \var{VolumeId  = 08h}
 \item \var{Directory = 10h}
 \item \var{Archive   = 20h}
-\item \var{AnyFile   = 3fh}
 \end{itemize}
 Under \linux, supported attributes are:
 \begin{itemize}
@@ -630,7 +629,7 @@ Procedure Intr (IntNo: byte; var Regs: registers);
 returned, the processor registers are saved in \var{Regs}.
 \Errors
 Under \linux this call does nothing, because interrupts are managed by the
-kernel. The only allowed interrupt is 80h, the kernel entry interrupt.
+kernel. The only allowed interrupt is 80h, the Linux kernel entry interrupt.
 \SeeAlso
 \seep{MSDos}, see the \linux unit.
 \end{procedure}

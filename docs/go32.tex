@@ -3,14 +3,14 @@ This chapter of the documentation describe the GO32 unit for the Free Pascal
 compiler under \dos. It was donated by Thomas Schatzl
 (tom\_at\_work@geocities.com), for which my thanks.
 This unit was first written for \dos by Florian Klaempfl.
-This chapter is divided in three sections. The first section is an
-introduction to the GO32 unit. The second section lists the pre-defined
-constants, types and variables. The third section describes the functions
+This chapter is divided in four sections. The first two sections are an
+introduction to the GO32 unit. The third section lists the pre-defined
+constants, types and variables. The last section describes the functions
 which appear in the interface part of the GO32 unit.
 \section{Introduction}
 These docs contain information about the GO32 unit. Only the GO32V2 DPMI
 mode is discussed by me here due to the fact that new applications shouldn't
-be created with the older GO32V1 model. The former is much more advanced and
+be created with the older GO32V1 model. The go32v2 version is much more advanced and
 better. Additionally a lot of functions only work in DPMI mode anyway.
 I hope the following explanations and introductions aren't too confusing at
 all. If you notice an error or bug send it to the FPC mailing list or
@@ -103,8 +103,8 @@ Interrupts are program interruption requests, which in one or another way
 get to the processor; there's a distinction between software and hardware
 interrupts. The former are explicitely called by an 'int' instruction and
 are a bit comparable to normal functions. Hardware interrupts come from
-external devices like the keyboard or mouse. These functions are called
-handlers.
+external devices like the keyboard or mouse. Functions that handle hardware
+interrupts are called handlers.
 \subsection{Handling interrupts with DPMI}
 The interrupt functions are real-mode procedures; they normally can't be
 called in protected mode without the risk of an protection fault. So the
@@ -210,7 +210,7 @@ interrupt, a \dos memory block or any other convenient mechanism.
 When the real mode program calls the callback (via a far call), the DPMI
 host saves the registers contents in the supplied register data structure,
 switches into protected mode, and enters the callback routine with the
-following conditions:
+following settings:
 \begin{itemize}
 \item interrupts disabled
 \item \var{\%CS:\%EIP} = 48 bit pointer specified in the original call to 
@@ -403,9 +403,10 @@ Returned values: blockhandle - the memory handle to this memory block. Linear
 address of the requested memory.
 Notes: WARNING: According to my DPMI docs this function is not implemented
 correctly. Normally you should also get a blockhandle to this block after
-successful operation. This handle is used to free the memory block
-afterwards or use this handle for other purposes. So this block can't be
-deallocated and is henceforth unusuable !
+successful operation. This handle can then be used to free the memory block
+afterwards or use this handle for other purposes. Since the function isn't
+implemented correctly, and doesn't return a blockhandle, the block can't be
+deallocated and is hence unusuable !
 This function doesn't allocate any descriptors for this block, it's the
 applications resposibility to allocate and initialize for accessing this
 memory.
@@ -467,7 +468,7 @@ Creates a new descriptor that has the same base and limit as the specified
 descriptor.
 Parameters: 
 \begin{description}
-\item[seg:\ ] selector.
+\item[seg:\ ] Descriptor.
 \end{description}
 Return values: The data selector (alias).
 Notes: In effect, the function returns a copy of the descriptor. The
@@ -954,7 +955,7 @@ Function get\_segment\_base\_address
 specified segment.
 Parameters: 
 \begin{description}
-\item[d:\ ] selector of the descriptor you want the base address.
+\item[d:\ ] selector of the descriptor you want the base address of.
 \end{description}
 Return values: Linear base address of specified descriptor.
 
