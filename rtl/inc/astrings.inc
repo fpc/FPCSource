@@ -476,6 +476,8 @@ end;
 
 Function Pos (Const Substr : AnsiString; Const Source : AnsiString) : Longint;
 var
+  substrlen,
+  maxi,
   i,j : longint;
   e   : boolean;
   S   : AnsiString;
@@ -483,19 +485,24 @@ var
 begin
   i := 0;
   j := 0;
-  e := true;
-  if Length(SubStr)=0 then e := false;
-  while (e) and (i <= length (Source) - length (substr)) do
+  substrlen:=Length(SubStr);
+  maxi:=length(source)-substrlen;
+  e:=(substrlen>0);
+  while (e) and (i <= maxi) do
    begin
      inc (i);
-     S:=copy(Source,i,length(Substr));
-     Se:=pointer(SubStr);
-     if AnsiStr_Compare(se,Pointer(S))=0 then
+     if Source[i]=SubStr[1] then
       begin
-        j := i;
-        e := false;
+        S:=copy(Source,i,substrlen);
+        Se:=pointer(SubStr);
+        if AnsiStr_Compare(se,Pointer(S))=0 then
+         begin
+           j := i;
+           break;
+         end;
       end;
    end;
+
   pos := j;
 end;
 
@@ -619,7 +626,10 @@ end;
 
 {
   $Log$
-  Revision 1.30  1999-07-05 20:04:21  peter
+  Revision 1.31  1999-10-04 20:48:18  peter
+    * pos function speed up by a factor 40 :)
+
+  Revision 1.30  1999/07/05 20:04:21  peter
     * removed temp defines
 
   Revision 1.29  1999/06/14 00:47:33  peter
