@@ -179,15 +179,8 @@ interface
        end;
 
        twithsymtable = class(tsymtable)
-          direct_with : boolean;
-          { in fact it is a tnode }
-          withnode : pointer;
-          { tnode to load of direct with var }
-          { already usable before firstwith
-            needed for firstpass of function parameters PM }
-          withrefnode : pointer;
-          use_count : longint;
-          constructor create(aowner:tdef;asymsearch:TDictionary);
+          withrefnode : pointer; { tnode }
+          constructor create(aowner:tdef;asymsearch:TDictionary;refnode:pointer{tnode});
           destructor  destroy;override;
           procedure clear;override;
         end;
@@ -1874,14 +1867,11 @@ implementation
                               TWITHSYMTABLE
 ****************************************************************************}
 
-    constructor twithsymtable.create(aowner:tdef;asymsearch:TDictionary);
+    constructor twithsymtable.create(aowner:tdef;asymsearch:TDictionary;refnode:pointer{tnode});
       begin
          inherited create('');
          symtabletype:=withsymtable;
-         direct_with:=false;
-         withnode:=nil;
-         withrefnode:=nil;
-         use_count:=1;
+         withrefnode:=refnode;
          { we don't need the symsearch }
          symsearch.free;
          { set the defaults }
@@ -2428,7 +2418,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.97  2003-04-27 11:21:34  peter
+  Revision 1.98  2003-05-11 14:45:12  peter
+    * tloadnode does not support objectsymtable,withsymtable anymore
+    * withnode cleanup
+    * direct with rewritten to use temprefnode
+
+  Revision 1.97  2003/04/27 11:21:34  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be

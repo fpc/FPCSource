@@ -389,6 +389,12 @@ implementation
          withsymtable,symtab : tsymtable;
          obj : tobjectdef;
          hp : tnode;
+         newblock : tblocknode;
+         newstatement : tstatementnode;
+         loadp : ttempcreatenode;
+         refp : tnode;
+         htype : ttype;
+         hasimplicitderef : boolean;
       begin
          p:=comp_expr(true);
          do_resulttypepass(p);
@@ -397,26 +403,73 @@ implementation
          if (not codegenerror) and
             (p.resulttype.def.deftype in [objectdef,recorddef]) then
           begin
+            newblock:=nil;
+            { ignore nodes that don't add instructions in the tree }
+            hp:=p;
+            while { equal type conversions }
+                  (
+                   (hp.nodetype=typeconvn) and
+                   (ttypeconvnode(hp).convtype=tc_equal)
+                  ) or
+                  { constant array index }
+                  (
+                   (hp.nodetype=vecn) and
+                   (tvecnode(hp).right.nodetype=ordconstn)
+                  ) do
+              hp:=tunarynode(hp).left;
+            if (hp.nodetype=loadn) and
+               (
+                (tloadnode(hp).symtable=current_procdef.localst) or
+                (tloadnode(hp).symtable=current_procdef.parast) or
+                (tloadnode(hp).symtable.symtabletype in [staticsymtable,globalsymtable])
+               ) then
+             begin
+               { simple load, we can reference direct }
+               loadp:=nil;
+               refp:=p;
+             end
+            else
+             begin
+               { complex load, load in temp first }
+               newblock:=internalstatements(newstatement,false);
+               { classes and interfaces have implicit dereferencing }
+               hasimplicitderef:=is_class_or_interface(p.resulttype.def);
+               if hasimplicitderef then
+                 htype:=p.resulttype
+               else
+                 htype.setdef(tpointerdef.create(p.resulttype));
+               loadp:=ctempcreatenode.create(htype,POINTER_SIZE,true);
+               resulttypepass(loadp);
+               if hasimplicitderef then
+                begin
+                  hp:=p;
+                  refp:=ctemprefnode.create(loadp);
+                end
+               else
+                begin
+                  hp:=caddrnode.create(p);
+                  refp:=cderefnode.create(ctemprefnode.create(loadp));
+                end;
+               addstatement(newstatement,loadp);
+               addstatement(newstatement,cassignmentnode.create(
+                   ctemprefnode.create(loadp),
+                   hp));
+               resulttypepass(refp);
+             end;
+
             case p.resulttype.def.deftype of
               objectdef :
                 begin
                    obj:=tobjectdef(p.resulttype.def);
-                   symtab:=twithsymtable.Create(obj,obj.symtable.symsearch);
-                   withsymtable:=symtab;
-                   if (p.nodetype=loadn) and
-                      (tloadnode(p).symtable=current_procdef.localst) then
-                     twithsymtable(symtab).direct_with:=true;
-                   twithsymtable(symtab).withrefnode:=p;
+                   withsymtable:=twithsymtable.Create(obj,obj.symtable.symsearch,refp);
+                   { include also all parent symtables }
                    levelcount:=1;
                    obj:=obj.childof;
+                   symtab:=withsymtable;
                    while assigned(obj) do
                     begin
-                      symtab.next:=twithsymtable.create(obj,obj.symtable.symsearch);
+                      symtab.next:=twithsymtable.create(obj,obj.symtable.symsearch,refp);
                       symtab:=symtab.next;
-                      if (p.nodetype=loadn) and
-                         (tloadnode(p).symtable=current_procdef.localst) then
-                        twithsymtable(symtab).direct_with:=true;
-                      twithsymtable(symtab).withrefnode:=p;
                       obj:=obj.childof;
                       inc(levelcount);
                     end;
@@ -427,39 +480,40 @@ implementation
                 begin
                    symtab:=trecorddef(p.resulttype.def).symtable;
                    levelcount:=1;
-                   withsymtable:=twithsymtable.create(trecorddef(p.resulttype.def),symtab.symsearch);
-                   if (p.nodetype=loadn) and
-                      (tloadnode(p).symtable=current_procdef.localst) then
-                   twithsymtable(withsymtable).direct_with:=true;
-                   twithsymtable(withsymtable).withrefnode:=p;
+                   withsymtable:=twithsymtable.create(trecorddef(p.resulttype.def),symtab.symsearch,refp);
                    withsymtable.next:=symtablestack;
                    symtablestack:=withsymtable;
                 end;
             end;
-            if token=_COMMA then
-             begin
-               consume(_COMMA);
-               right:=_with_statement{$ifdef FPCPROCVAR}(){$endif};
-             end
+            if try_to_consume(_COMMA) then
+              right:=_with_statement{$ifdef FPCPROCVAR}(){$endif}
             else
-             begin
-               consume(_DO);
-               if token<>_SEMICOLON then
-                right:=statement
-               else
-                right:=cerrornode.create;
-             end;
+              begin
+                consume(_DO);
+                if token<>_SEMICOLON then
+                  right:=statement
+                else
+                  right:=cerrornode.create;
+              end;
+            { remove symtables from the stack }
             for i:=1 to levelcount do
-             symtablestack:=symtablestack.next;
-            _with_statement:=cwithnode.create(twithsymtable(withsymtable),p,right,levelcount);
+              symtablestack:=symtablestack.next;
+            p:=cwithnode.create(right,twithsymtable(withsymtable),levelcount,refp);
+            { Finalize complex withnode with destroy of temp }
+            if assigned(newblock) then
+             begin
+               addstatement(newstatement,p);
+               addstatement(newstatement,ctempdeletenode.create(loadp));
+               p:=newblock;
+             end;
+            _with_statement:=p;
           end
          else
           begin
             Message(parser_e_false_with_expr);
             { try to recover from error }
-            if token=_COMMA then
+            if try_to_consume(_COMMA) then
              begin
-               consume(_COMMA);
                hp:=_with_statement{$ifdef FPCPROCVAR}(){$endif};
                if (hp=nil) then; { remove warning about unused }
              end
@@ -1131,7 +1185,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.96  2003-05-09 17:47:03  peter
+  Revision 1.97  2003-05-11 14:45:12  peter
+    * tloadnode does not support objectsymtable,withsymtable anymore
+    * withnode cleanup
+    * direct with rewritten to use temprefnode
+
+  Revision 1.96  2003/05/09 17:47:03  peter
     * self moved to hidden parameter
     * removed hdisposen,hnewn,selfn
 

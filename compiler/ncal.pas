@@ -2087,7 +2087,7 @@ type
                if (procdefinition.proctypeoption in [potype_constructor,potype_destructor]) and
                   assigned(symtableproc) and
                   (symtableproc.symtabletype=withsymtable) and
-                  (not twithsymtable(symtableproc).direct_with) then
+                  (tnode(twithsymtable(symtableproc).withrefnode).nodetype=temprefn) then
                  CGmessage(cg_e_cannot_call_cons_dest_inside_with);
 
                { R.Init then R will be initialized by the constructor,
@@ -2503,7 +2503,12 @@ type
            (procdefinition.deftype=procdef) then
           writeln(t,printnodeindention,'proc = ',tprocdef(procdefinition).fullprocname(true))
         else
-          writeln(t,printnodeindention,'proc = ',symtableprocentry.name);
+          begin
+            if assigned(symtableprocentry) then
+              writeln(t,printnodeindention,'proc = ',symtableprocentry.name)
+            else
+              writeln(t,printnodeindention,'proc = <nil>');
+          end;
         printnode(t,methodpointer);
         printnode(t,right);
         printnode(t,left);
@@ -2677,7 +2682,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.149  2003-05-09 17:47:02  peter
+  Revision 1.150  2003-05-11 14:45:12  peter
+    * tloadnode does not support objectsymtable,withsymtable anymore
+    * withnode cleanup
+    * direct with rewritten to use temprefnode
+
+  Revision 1.149  2003/05/09 17:47:02  peter
     * self moved to hidden parameter
     * removed hdisposen,hnewn,selfn
 

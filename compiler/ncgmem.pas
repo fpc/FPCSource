@@ -337,151 +337,63 @@ implementation
 *****************************************************************************}
 
     procedure tcgwithnode.pass_2;
-      var
-        tmpreg: tregister;
-        usetemp,with_expr_in_temp : boolean;
-        symtable : tsymtable;
-        i : integer;
 {$ifdef GDB}
+      const
+        withlevel : longint = 0;
+      var
         withstartlabel,withendlabel : tasmlabel;
         pp : pchar;
         mangled_length  : longint;
-
-      const
-        withlevel : longint = 0;
 {$endif GDB}
       begin
-         location_reset(location,LOC_VOID,OS_NO);
+        location_reset(location,LOC_VOID,OS_NO);
 
-         if assigned(left) then
-            begin
-               secondpass(left);
-{$ifdef i386}
-               if (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and
-                  (left.location.reference.segment.number<>NR_NO) then
-                 message(parser_e_no_with_for_variable_in_other_segments);
-{$endif i386}
-
-               reference_reset(withreference);
-
-               usetemp:=false;
-               if (left.nodetype=loadn) and
-                  (tloadnode(left).symtable=current_procdef.localst) then
-                 begin
-                    { for locals use the local storage }
-                    withreference:=left.location.reference;
-                    include(flags,nf_islocal);
-                 end
-               else
-                { call can have happend with a property }
-                begin
-                  usetemp:=true;
-                  if is_class_or_interface(left.resulttype.def) then
-                    begin
-                    {$ifdef newra}
-                      tmpreg:=rg.getregisterint(exprasmlist,OS_INT);
-                    {$else}
-                      tmpreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
-                    {$endif}
-                      cg.a_load_loc_reg(exprasmlist,left.location,tmpreg)
-                    end
-                  else
-                    begin
-                    {$ifdef newra}
-                      tmpreg:=rg.getaddressregister(exprasmlist);
-                    {$else}
-                      tmpreg := cg.get_scratch_reg_address(exprasmlist);
-                    {$endif newra}
-                      cg.a_loadaddr_ref_reg(exprasmlist,
-                        left.location.reference,tmpreg);
-                    end;
-                end;
-
-               location_release(exprasmlist,left.location);
-
-               symtable:=withsymtable;
-               for i:=1 to tablecount do
-                begin
-                  if (left.nodetype=loadn) and
-                     (tloadnode(left).symtable=current_procdef.localst) then
-                    twithsymtable(symtable).direct_with:=true;
-                  twithsymtable(symtable).withnode:=self;
-                  symtable:=symtable.next;
-                end;
-
-               { if the with expression is stored in a temp    }
-               { area we must make it persistent and shouldn't }
-               { release it (FK)                               }
-               if (left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) and
-                  tg.istemp(left.location.reference) then
-                 with_expr_in_temp:=tg.ChangeTempType(exprasmlist,left.location.reference,tt_persistant)
-               else
-                 with_expr_in_temp:=false;
-
-               { if usetemp is set the value must be in tmpreg }
-               if usetemp then
-                begin
-                  tg.GetTemp(exprasmlist,pointer_size,tt_persistant,withreference);
-                  { move to temp reference }
-                  cg.a_load_reg_ref(exprasmlist,OS_ADDR,tmpreg,withreference);
-                {$ifdef newra}
-                  rg.ungetregisterint(exprasmlist,tmpreg);
-                {$else}
-                  cg.free_scratch_reg(exprasmlist,tmpreg);
-                {$endif}
 {$ifdef GDB}
-                  if (cs_debuginfo in aktmoduleswitches) then
-                    begin
-                      inc(withlevel);
-                      objectlibrary.getaddrlabel(withstartlabel);
-                      objectlibrary.getaddrlabel(withendlabel);
-                      cg.a_label(exprasmlist,withstartlabel);
-                      withdebugList.concat(Tai_stabs.Create(strpnew(
-                         '"with'+tostr(withlevel)+':'+tostr(symtablestack.getnewtypecount)+
-                         '=*'+tstoreddef(left.resulttype.def).numberstring+'",'+
-                         tostr(N_LSYM)+',0,0,'+tostr(withreference.offset))));
-                      mangled_length:=length(current_procdef.mangledname);
-                      getmem(pp,mangled_length+50);
-                      strpcopy(pp,'192,0,0,'+withstartlabel.name);
-                      if (target_info.use_function_relative_addresses) then
-                        begin
-                          strpcopy(strend(pp),'-');
-                          strpcopy(strend(pp),current_procdef.mangledname);
-                        end;
-                      withdebugList.concat(Tai_stabn.Create(strnew(pp)));
-                    end;
+        if (cs_debuginfo in aktmoduleswitches) then
+          begin
+            { load reference }
+            if (withrefnode.nodetype=derefn) and
+               (tderefnode(withrefnode).left.nodetype=temprefn) then
+              secondpass(withrefnode);
+
+            inc(withlevel);
+            objectlibrary.getaddrlabel(withstartlabel);
+            objectlibrary.getaddrlabel(withendlabel);
+            cg.a_label(exprasmlist,withstartlabel);
+            withdebugList.concat(Tai_stabs.Create(strpnew(
+               '"with'+tostr(withlevel)+':'+tostr(symtablestack.getnewtypecount)+
+               '=*'+tstoreddef(left.resulttype.def).numberstring+'",'+
+               tostr(N_LSYM)+',0,0,'+tostr(withrefnode.location.reference.offset))));
+            mangled_length:=length(current_procdef.mangledname);
+            getmem(pp,mangled_length+50);
+            strpcopy(pp,'192,0,0,'+withstartlabel.name);
+            if (target_info.use_function_relative_addresses) then
+              begin
+                strpcopy(strend(pp),'-');
+                strpcopy(strend(pp),current_procdef.mangledname);
+              end;
+            withdebugList.concat(Tai_stabn.Create(strnew(pp)));
+          end;
 {$endif GDB}
-                end;
 
-               { right can be optimize out !!! }
-               if assigned(right) then
-                 secondpass(right);
+        if assigned(left) then
+          secondpass(left);
 
-               if usetemp then
-                 begin
-                   tg.UnGetTemp(exprasmlist,withreference);
 {$ifdef GDB}
-                   if (cs_debuginfo in aktmoduleswitches) then
-                     begin
-                       cg.a_label(exprasmlist,withendlabel);
-                       strpcopy(pp,'224,0,0,'+withendlabel.name);
-                      if (target_info.use_function_relative_addresses) then
-                        begin
-                          strpcopy(strend(pp),'-');
-                          strpcopy(strend(pp),current_procdef.mangledname);
-                        end;
-                       withdebugList.concat(Tai_stabn.Create(strnew(pp)));
-                       freemem(pp,mangled_length+50);
-                       dec(withlevel);
-                     end;
+        if (cs_debuginfo in aktmoduleswitches) then
+          begin
+            cg.a_label(exprasmlist,withendlabel);
+            strpcopy(pp,'224,0,0,'+withendlabel.name);
+           if (target_info.use_function_relative_addresses) then
+             begin
+               strpcopy(strend(pp),'-');
+               strpcopy(strend(pp),current_procdef.mangledname);
+             end;
+            withdebugList.concat(Tai_stabn.Create(strnew(pp)));
+            freemem(pp,mangled_length+50);
+            dec(withlevel);
+          end;
 {$endif GDB}
-                 end;
-
-               if with_expr_in_temp then
-                 tg.UnGetTemp(exprasmlist,left.location.reference);
-
-               reference_reset(withreference);
-            end;
        end;
 
 
@@ -912,7 +824,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.51  2003-05-09 17:47:02  peter
+  Revision 1.52  2003-05-11 14:45:12  peter
+    * tloadnode does not support objectsymtable,withsymtable anymore
+    * withnode cleanup
+    * direct with rewritten to use temprefnode
+
+  Revision 1.51  2003/05/09 17:47:02  peter
     * self moved to hidden parameter
     * removed hdisposen,hnewn,selfn
 

@@ -89,11 +89,11 @@ interface
        end;
        tvecnodeclass = class of tvecnode;
 
-       twithnode = class(tbinarynode)
+       twithnode = class(tunarynode)
           withsymtable  : twithsymtable;
           tablecount    : longint;
-          withreference : treference;
-          constructor create(symtable : twithsymtable;l,r : tnode;count : longint);virtual;
+          withrefnode   : tnode;
+          constructor create(l:tnode;symtable:twithsymtable;count:longint;r:tnode);
           destructor destroy;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -767,13 +767,12 @@ implementation
                                TWITHNODE
 *****************************************************************************}
 
-    constructor twithnode.create(symtable : twithsymtable;l,r : tnode;count : longint);
-
+    constructor twithnode.create(l:tnode;symtable:twithsymtable;count:longint;r:tnode);
       begin
-         inherited create(withn,l,r);
+         inherited create(withn,l);
+         withrefnode:=r;
          withsymtable:=symtable;
          tablecount:=count;
-         FillChar(withreference,sizeof(withreference),0);
          set_file_line(l);
       end;
 
@@ -821,69 +820,58 @@ implementation
          p:=twithnode(inherited getcopy);
          p.withsymtable:=withsymtable;
          p.tablecount:=tablecount;
-         p.withreference:=withreference;
+         if assigned(p.withrefnode) then
+           p.withrefnode:=withrefnode.getcopy
+         else
+           p.withrefnode:=nil;
          result:=p;
       end;
 
+
     function twithnode.det_resulttype:tnode;
-      var
-         symtable : tsymtable;
-         i : longint;
       begin
-         result:=nil;
-         resulttype:=voidtype;
-         if assigned(left) and assigned(right) then
-          begin
-            resulttypepass(left);
-            unset_varstate(left);
-            set_varstate(left,true);
-            if codegenerror then
-             exit;
-
-            symtable:=withsymtable;
-            for i:=1 to tablecount do
-             begin
-               if (left.nodetype=loadn) and
-                  (tloadnode(left).symtable=current_procdef.localst) then
-                twithsymtable(symtable).direct_with:=true;
-               twithsymtable(symtable).withnode:=self;
-               symtable:=symtable.next;
-             end;
-
-            resulttypepass(right);
-            if codegenerror then
-             exit;
-          end;
+        result:=nil;
         resulttype:=voidtype;
+
+        resulttypepass(withrefnode);
+        unset_varstate(withrefnode);
+        set_varstate(withrefnode,true);
+        if codegenerror then
+         exit;
+
+        if (withrefnode.nodetype=vecn) and
+           (nf_memseg in withrefnode.flags) then
+          CGMessage(parser_e_no_with_for_variable_in_other_segments);
+
+        if assigned(left) then
+          resulttypepass(left);
       end;
 
 
     function twithnode.pass_1 : tnode;
       begin
-         result:=nil;
-         expectloc:=LOC_VOID;
-         if assigned(left) and assigned(right) then
-            begin
-               firstpass(left);
-               firstpass(right);
-               if codegenerror then
-                 exit;
+        result:=nil;
+        expectloc:=LOC_VOID;
 
-               left_right_max;
-            end
-         else
-           begin
-              { optimization }
-              result:=nil;
-           end;
+        if assigned(left) then
+         begin
+           firstpass(left);
+           registers32:=left.registers32;
+           registersfpu:=left.registersfpu;
+{$ifdef SUPPORT_MMX}
+           registersmmx:=left.registersmmx;
+{$endif SUPPORT_MMX}
+         end;
       end;
+
 
     function twithnode.docompare(p: tnode): boolean;
       begin
         docompare :=
           inherited docompare(p) and
           (withsymtable = twithnode(p).withsymtable) and
-          (tablecount = twithnode(p).tablecount);
+          (tablecount = twithnode(p).tablecount) and
+          (withrefnode.isequal(twithnode(p).withrefnode));
       end;
 
 begin
@@ -897,7 +885,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.53  2003-05-09 17:47:02  peter
+  Revision 1.54  2003-05-11 14:45:12  peter
+    * tloadnode does not support objectsymtable,withsymtable anymore
+    * withnode cleanup
+    * direct with rewritten to use temprefnode
+
+  Revision 1.53  2003/05/09 17:47:02  peter
     * self moved to hidden parameter
     * removed hdisposen,hnewn,selfn
 

@@ -243,29 +243,8 @@ implementation
                                    location.reference.base:=current_procinfo.framepointer;
                                    location.reference.offset:=tvarsym(symtableentry).address;
                                 end;
-                              objectsymtable:
-                                begin
-                                   if (sp_static in tvarsym(symtableentry).symoptions) then
-                                     location.reference.symbol:=objectlibrary.newasmsymboldata(tvarsym(symtableentry).mangledname)
-                                   else
-                                     begin
-                                        location.reference.base:=cg.g_load_self(exprasmlist);
-                                        location.reference.offset:=tvarsym(symtableentry).address;
-                                     end;
-                                end;
-                              withsymtable:
-                                begin
-                                   if nf_islocal in tnode(twithsymtable(symtable).withnode).flags then
-                                     location.reference:=twithnode(twithsymtable(symtable).withnode).withreference
-                                   else
-                                     begin
-                                       location.reference.base:=rg.getaddressregister(exprasmlist);
-                                       cg.a_load_ref_reg(exprasmlist,OS_ADDR,
-                                          twithnode(twithsymtable(symtable).withnode).withreference,
-                                          location.reference.base);
-                                     end;
-                                   inc(location.reference.offset,tvarsym(symtableentry).address);
-                                end;
+                              else
+                                internalerror(200305102);
                            end;
                          end;
                     end;
@@ -957,7 +936,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.55  2003-04-29 07:29:14  michael
+  Revision 1.56  2003-05-11 14:45:12  peter
+    * tloadnode does not support objectsymtable,withsymtable anymore
+    * withnode cleanup
+    * direct with rewritten to use temprefnode
+
+  Revision 1.55  2003/04/29 07:29:14  michael
   + Patch from peter to fix wrong pushing of ansistring function results in open array
 
   Revision 1.54  2003/04/27 11:21:33  peter

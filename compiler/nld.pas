@@ -237,6 +237,7 @@ implementation
          procdef:=nil;
       end;
 
+
     constructor tloadnode.create_procvar(v : tsym;d:tprocdef;st : tsymtable);
       begin
          inherited create(loadn,nil);
@@ -252,9 +253,6 @@ implementation
       begin
         inherited ppuload(t,ppufile);
         symtableentry:=tsym(ppufile.getderef);
-{$ifdef fpc}
-{$warning FIXME: No withsymtable support}
-{$endif}
         symtable:=nil;
         procdef:=tprocdef(ppufile.getderef);
       end;
@@ -299,21 +297,8 @@ implementation
 
 
     function tloadnode.det_resulttype:tnode;
-      var
-        p1 : tnode;
       begin
          result:=nil;
-         { optimize simple with loadings }
-         if (symtable.symtabletype=withsymtable) and
-            (twithsymtable(symtable).direct_with) and
-            (symtableentry.typ=varsym) then
-           begin
-              p1:=tnode(twithsymtable(symtable).withrefnode).getcopy;
-              p1:=csubscriptnode.create(tvarsym(symtableentry),p1);
-              left:=nil;
-              result:=p1;
-              exit;
-           end;
          { handle first absolute as it will replace the symtableentry }
          if symtableentry.typ=absolutesym then
            begin
@@ -342,25 +327,23 @@ implementation
               begin
                 { if it's refered by absolute then it's used }
                 if nf_absolute in flags then
-                  tvarsym(symtableentry).varstate:=vs_used
-                else
+                  tvarsym(symtableentry).varstate:=vs_used;
+
+                { fix self type which is declared as voidpointer in the
+                  definition }
+                if vo_is_self in tvarsym(symtableentry).varoptions then
                   begin
-                    { fix self type which is declared as voidpointer in the
-                      definition }
-                    if vo_is_self in tvarsym(symtableentry).varoptions then
+                    if (po_classmethod in tprocdef(symtableentry.owner.defowner).procoptions) or
+                       (po_staticmethod in tprocdef(symtableentry.owner.defowner).procoptions) then
                       begin
-                        if (po_classmethod in tprocdef(symtableentry.owner.defowner).procoptions) or
-                           (po_staticmethod in tprocdef(symtableentry.owner.defowner).procoptions) then
-                          begin
-                            resulttype.setdef(tprocdef(symtableentry.owner.defowner)._class);
-                            resulttype.setdef(tclassrefdef.create(resulttype));
-                          end
-                        else
-                          resulttype.setdef(tprocdef(symtableentry.owner.defowner)._class);
+                        resulttype.setdef(tprocdef(symtableentry.owner.defowner)._class);
+                        resulttype.setdef(tclassrefdef.create(resulttype));
                       end
                     else
-                      resulttype:=tvarsym(symtableentry).vartype;
-                  end;
+                      resulttype.setdef(tprocdef(symtableentry.owner.defowner)._class);
+                  end
+                else
+                  resulttype:=tvarsym(symtableentry).vartype;
               end;
             typedconstsym :
                 if not(nf_absolute in flags) then
@@ -439,8 +422,6 @@ implementation
                     { call by value open arrays are also indirect addressed }
                     is_open_array(tvarsym(symtableentry).vartype.def) then
                   registers32:=1;
-                if symtable.symtabletype in [withsymtable,objectsymtable] then
-                  inc(registers32);
 
                 if ([vo_is_thread_var,vo_is_dll_var]*tvarsym(symtableentry).varoptions)<>[] then
                   registers32:=1;
@@ -1167,7 +1148,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.91  2003-05-09 17:47:02  peter
+  Revision 1.92  2003-05-11 14:45:12  peter
+    * tloadnode does not support objectsymtable,withsymtable anymore
+    * withnode cleanup
+    * direct with rewritten to use temprefnode
+
+  Revision 1.91  2003/05/09 17:47:02  peter
     * self moved to hidden parameter
     * removed hdisposen,hnewn,selfn
 

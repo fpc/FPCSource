@@ -327,8 +327,10 @@ implementation
 
       begin
          inherited create(blockn,l);
+    {$ifndef newra}
          if releasetemp then
            include(flags,nf_releasetemps);
+    {$endif newra}
       end;
 
     function tblocknode.det_resulttype:tnode;
@@ -803,7 +805,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.48  2003-04-27 11:21:33  peter
+  Revision 1.49  2003-05-11 14:45:12  peter
+    * tloadnode does not support objectsymtable,withsymtable anymore
+    * withnode cleanup
+    * direct with rewritten to use temprefnode
+
+  Revision 1.48  2003/04/27 11:21:33  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be

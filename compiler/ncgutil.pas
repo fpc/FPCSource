@@ -1731,6 +1731,11 @@ implementation
                             { check VMT pointer if this is an inherited constructor }
                             reference_reset_base(href,current_procinfo.framepointer,current_procinfo.vmtpointer_offset);
                             cg.a_cmp_const_ref_label(list,OS_ADDR,OC_EQ,0,href,nodestroycall);
+{                            srsym:=pd.parast.searchsym('self');
+                            if not assigned(srsym) then
+                              internalerror(200305101);
+                            reference_reset_base(href,current_procinfo.framepointer,tvarsym(srsym).adjusted_address);
+                            cg.a_load_ref_reg( }
                             r:=cg.g_load_self(list);
                             if is_class(current_procdef._class) then
                              begin
@@ -2013,7 +2018,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.97  2003-05-10 13:20:23  jonas
+  Revision 1.98  2003-05-11 14:45:12  peter
+    * tloadnode does not support objectsymtable,withsymtable anymore
+    * withnode cleanup
+    * direct with rewritten to use temprefnode
+
+  Revision 1.97  2003/05/10 13:20:23  jonas
     * moved storing of register parameters to memory even earlier in the
       entry code to fix problems with constructors
 

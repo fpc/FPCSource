@@ -809,9 +809,17 @@ implementation
                sl_load :
                  begin
                    { p1 can already contain the loadnode of
-                     the class variable. Then we need to use a
-                     subscriptn. If no tree is found (with block), then
-                     generate a loadn }
+                     the class variable. When there is no tree yet we
+                     may need to load it for with or objects }
+                   if not assigned(p1) then
+                    begin
+                      case st.symtabletype of
+                        withsymtable :
+                          p1:=tnode(twithsymtable(st).withrefnode).getcopy;
+                        objectsymtable :
+                          p1:=load_self;
+                      end;
+                    end;
                    if assigned(p1) then
                     p1:=csubscriptnode.create(plist^.sym,p1)
                    else
@@ -1101,7 +1109,16 @@ implementation
                        searchsym(static_name,srsym,srsymtable);
                        check_hints(srsym);
                      end;
-                    p1:=cloadnode.create(srsym,srsymtable);
+
+                    case srsymtable.symtabletype of
+                      objectsymtable :
+                        p1:=csubscriptnode.create(srsym,load_self);
+                      withsymtable :
+                        p1:=csubscriptnode.create(srsym,tnode(twithsymtable(srsymtable).withrefnode).getcopy);
+                      else
+                        p1:=cloadnode.create(srsym,srsymtable);
+                    end;
+
                     if tvarsym(srsym).varstate=vs_declared then
                      begin
                        include(p1.flags,nf_first_use);
@@ -2322,7 +2339,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.115  2003-05-09 17:47:03  peter
+  Revision 1.116  2003-05-11 14:45:12  peter
+    * tloadnode does not support objectsymtable,withsymtable anymore
+    * withnode cleanup
+    * direct with rewritten to use temprefnode
+
+  Revision 1.115  2003/05/09 17:47:03  peter
     * self moved to hidden parameter
     * removed hdisposen,hnewn,selfn
 
