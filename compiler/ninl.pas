@@ -1515,6 +1515,17 @@ implementation
                          left:=nil;
                          result:=hp;
                        end;
+                     pointerdef :
+                       begin
+                         if m_mac in aktmodeswitches then
+                           begin
+                             hp:=ctypeconvnode.create_explicit(left,ptrinttype);
+                             left:=nil;
+                             result:=hp;
+                           end
+                         else
+                           CGMessage1(type_e_ordinal_expr_expected,left.resulttype.def.typename);
+                       end
                      else
                        CGMessage1(type_e_ordinal_expr_expected,left.resulttype.def.typename);
                    end;
@@ -2423,7 +2434,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.139  2004-07-14 14:38:35  jonas
+  Revision 1.140  2004-07-14 21:40:52  olle
+    + added Ord(pointer) for macpas
+
+  Revision 1.139  2004/07/14 14:38:35  jonas
     * fix for web bug 3210
 
   Revision 1.138  2004/06/20 08:55:29  florian
