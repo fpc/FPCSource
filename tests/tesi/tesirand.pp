@@ -37,20 +37,21 @@ var x : array[0..max-1] of longint;
 begin
 
 {$ifdef go32v2}
-   gm:=G640x400x256;
-   gd:=$ff;
+   gm:=m640x400x256;
+   gd:=vesa;
 {$else }
    gd:=detect;
 {$endif }
-   InitGraph(gd,gm,'\bp\bgi');
+   InitGraph(gd,gm,'\tp\bgi');
 {$ifdef FPC}
-   SetWriteMode(NormalPut or BackPut);
+   SetWriteMode(NormalPut);
 {$endif FPC}
    SetColor(red);
    color:=blue;
 
    mean:=maxint div max;
 
+   setfillstyle(solidfill,blue);
    for level:=0 to 10 do
      begin
 
@@ -66,6 +67,8 @@ begin
                inc(x[random(max*level) div (level)]);
              if i mod (maxint div 10) = 0 then
                begin
+                  bar(20+textwidth('iteration '),17,
+                    20+textwidth('iteration 0000000'),26);
                   st:='';
                   str(i,st);
                   st:='iteration '+st;
@@ -98,11 +101,15 @@ begin
 
         str(level,st);
         st:='Level '+st;
-        OutTextXY(30,GetMaxY-60,st);
+        bar(30,GetMaxY-65,
+         30+textwidth(st),getMaxY-52);
+        OutTextXY(30,GetMaxY-59,st);
         str(maximum,st);
         str(minimum,st2);
         st:='Maximum = '+st+' Minimum ='+st2;
-        OutTextXY(30,GetMaxY-30,st);
+        bar(30,GetMaxY-35,
+         30+Textwidth(st),getMaxY-22);
+        OutTextXY(30,GetMaxY-29,st);
 
         for i:=0 to max-1 do
           putpixel( (i*getmaxX) div max,
@@ -130,7 +137,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  1999-12-02 17:37:44  peter
+  Revision 1.2  2000-03-25 13:45:35  jonas
+    * works with new graph unit
+
+  Revision 1.1  1999/12/02 17:37:44  peter
     * moved *.pp into subdirs
     * fpcmaked
 
