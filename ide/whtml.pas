@@ -268,8 +268,14 @@ begin
         WasThereAnyText:=DocAddTextChar(C);
       if (LiteralCode=false) and InTag and (InString=false) and (CurTag='<!--') then
         InComment:=true;
+      { A comment can be longer than 255 chars
+        move the test to LineText string,
+        This is why the Previous, Next and Up Tags where not working ... PM
       if (LiteralCode=false) and InTag and InComment and (InString=false) and (length(CurTag)>=3) and
          (copy(CurTag,length(CurTag)-2,3)='-->') then
+           InComment:=false; }
+      if (LiteralCode=false) and InTag and InComment and (InString=false) and (LinePos>=3) and
+         (copy(LineText,LinePos-2,3)='-->') then
            InComment:=false;
 
       if (LiteralCode=false) and (C='"') and (InTag=true) and (InString=true) then
@@ -711,7 +717,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:25  peter
+  Revision 1.2  2001-09-06 23:19:47  pierre
+   * fix the title, up, next and previous links
+
+  Revision 1.1  2001/08/04 11:30:25  peter
     * ide works now with both compiler versions
 
   Revision 1.1  2000/07/13 09:48:37  michael
