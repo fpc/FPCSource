@@ -64,6 +64,7 @@ const
 
 type
      {$ifdef FPC}tregisters=registers;{$endif}
+     {$ifdef TP}tregisters=registers;{$endif}
 
      PtrRec16 = record
        Ofs,Seg: word;
@@ -237,7 +238,7 @@ type
     Regs.CX := 0;
     Regs.ES := Seg(DPMIRegs);
     Regs.DI := Ofs(DPMIRegs);
-    Intr(DPMI_INTR, Regs);
+    Dos.Intr(DPMI_INTR, Regs);
     r.ax := DPMIRegs.EAX;
     r.bx := DPMIRegs.EBX;
     r.cx := DPMIRegs.ECX;
@@ -432,7 +433,7 @@ var r: registers;
     OK: boolean;
 begin
   r.ah:=$4f; r.al:=$02; r.bx:=Mode;
-  intr($10,r);
+  dos.intr($10,r);
   OK:=(r.ax=$004f);
   VESASetMode:=OK;
 end;
@@ -442,7 +443,7 @@ var r : registers;
     OK: boolean;
 begin
   r.ah:=$4f; r.al:=$03;
-  intr($10,r);
+  dos.intr($10,r);
   OK:=(r.ax=$004f);
   if OK then Mode:=r.bx;
   VESAGetMode:=OK;
@@ -453,7 +454,7 @@ var r : registers;
     OK : boolean;
 begin
   r.ah:=$4f; r.al:=$05; r.bh:=0; r.bl:=Window; r.dx:=Position;
-  intr($10,r);
+  dos.intr($10,r);
   OK:=(r.ax=$004f);
   VESASelectMemoryWindow:=OK;
 end;
@@ -463,7 +464,7 @@ var r  : registers;
     OK : boolean;
 begin
   r.ah:=$4f; r.al:=$05; r.bh:=1; r.bl:=Window;
-  intr($10,r);
+  dos.intr($10,r);
   OK:=(r.ax=$004f);
   if OK then Position:=r.dx;
   VESAReturnMemoryWindow:=OK;
@@ -481,7 +482,13 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.3  1999-04-01 10:04:18  pierre
+  Revision 1.4  1999-04-07 21:55:58  peter
+    + object support for browser
+    * html help fixes
+    * more desktop saving things
+    * NODEBUG directive to exclude debugger
+
+  Revision 1.3  1999/04/01 10:04:18  pierre
    * uses typo errror fixed
 
   Revision 1.2  1999/03/26 19:09:44  peter

@@ -21,7 +21,10 @@ end;
 
 procedure TIDEApp.Objects;
 begin
-  NotImplemented;
+  if ObjectTree=nil then
+     begin ErrorBox('No debug info available.',nil); Exit; end;
+
+  OpenSymbolBrowser(0,0,'Objects','Global scope',nil,nil,nil,ObjectTree,nil);
 end;
 
 procedure TIDEApp.Globals;
@@ -62,7 +65,7 @@ begin
     WarningBox('Too many symbols. Can''t display all of them.',nil);
   Desktop^.GetExtent(R); R.A.X:=R.B.X-35;
   Desktop^.Insert(New(PBrowserWindow, Init(R,
-    'Browse: Globals',SearchFreeWindowNo,nil,'Global scope',S,nil)));
+    'Browse: Globals',SearchFreeWindowNo,nil,'Global scope',S,nil,nil,nil)));
 end;
 
 procedure TIDEApp.Modules;
@@ -77,16 +80,23 @@ begin
      begin ErrorBox('No debug info available.',nil); Exit; end;
   New(S, Init(500,500));
   BrowCol.Modules^.ForEach(@InsertInS);
-  OpenSymbolBrowser(0,0,'Units','Global scope',nil,S,nil);
+  OpenSymbolBrowser(0,0,'Units','Global scope',nil,S,nil,nil,nil);
 end;
 
 {
   $Log$
-  Revision 1.5  1999-03-01 15:41:59  peter
+  Revision 1.6  1999-04-07 21:55:51  peter
+    + object support for browser
+    * html help fixes
+    * more desktop saving things
+    * NODEBUG directive to exclude debugger
+
+  Revision 1.5  1999/03/01 15:41:59  peter
     + Added dummy entries for functions not yet implemented
     * MenuBar didn't update itself automatically on command-set changes
     * Fixed Debugging/Profiling options dialog
-    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is
+ set
     * efBackSpaceUnindents works correctly
     + 'Messages' window implemented
     + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros

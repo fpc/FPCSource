@@ -15,11 +15,7 @@
  **********************************************************************}
 program FP;
 
-{$ifndef LINUX}
-  {$ifndef FV20}
-    {$define VESA}
-  {$endif}
-{$endif}
+{$I globdir.inc}
 
 uses
 {$ifdef IDEHeapTrc}
@@ -27,10 +23,13 @@ uses
 {$endif IDEHeapTrc}
   Dos,Objects,
   BrowCol,
+  Views,App,Dialogs,ColorSel,Menus,StdDlg,Validate,
+  {$ifdef EDITORS}Editors{$else}WEditor{$endif},
+  ASCIITab,Calc,
   WViews,
-  FPIDE,
+  FPIDE,FPCalc,FPCompile,
   FPIni,FPViews,FPConst,FPVars,FPUtils,FPHelp,FPSwitch,FPUsrScr,
-  FPTools,FPDebug,FPTemplt,FPCatch,FPRedir,FPDesk
+  FPTools,{$ifndef NODEBUG}FPDebug,{$endif}FPTemplt,FPCatch,FPRedir,FPDesk
 {$ifdef TEMPHEAP}
   ,dpmiexcp
 {$endif TEMPHEAP}
@@ -76,6 +75,44 @@ begin
   end;
 end;
 
+Procedure MyStreamError(Var S: TStream); {$ifndef FPC}far;{$endif}
+var ErrS: string;
+begin
+  {$ifdef GABOR}{$ifdef TP}asm int 3;end;{$endif}{$endif}
+  case S.Status of
+    stGetError : ErrS:='Get of unregistered object type';
+    stPutError : ErrS:='Put of unregistered object type';
+  else ErrS:='';
+  end;
+  if Assigned(Application) then
+    ErrorBox('Stream error: '+#13+ErrS,nil)
+  else
+    writeln('Error: ',ErrS);
+end;
+
+procedure RegisterIDEObjects;
+begin
+  RegisterApp;
+  RegisterAsciiTab;
+  RegisterCalc;
+  RegisterColorSel;
+  RegisterDialogs;
+{$ifdef EDITORS}
+  RegisterEditors;
+{$else}
+  RegisterCodeEditors;
+{$endif}
+  RegisterFPCalc;
+  RegisterFPCompile;
+  RegisterFPTools;
+  RegisterFPViews;
+  RegisterMenus;
+  RegisterStdDlg;
+  RegisterObjects;
+  RegisterValidate;
+  RegisterViews;
+end;
+
 var CanExit : boolean;
 
 BEGIN
@@ -84,13 +121,18 @@ BEGIN
   StartupDir:=CompleteDir(FExpand('.'));
   IDEDir:=CompleteDir(DirOf(Paramstr(0)));
 
+  RegisterIDEObjects;
+  StreamError:=@MyStreamError;
+
   ProcessParams(true);
 
 {$ifdef VESA}
   InitVESAScreenModes;
 {$endif}
   InitRedir;
+{$ifndef NODEBUG}
   InitBreakpoints;
+{$endif}
   InitReservedWords;
   InitHelpFiles;
   InitSwitches;
@@ -140,12 +182,22 @@ BEGIN
   DoneHelpFiles;
   DoneReservedWords;
   DoneBrowserCol;
+{$ifndef NODEBUG}
   DoneDebugger;
   DoneBreakpoints;
+{$endif}
+
+  StreamError:=nil;
 END.
 {
   $Log$
-  Revision 1.20  1999-03-23 16:16:36  peter
+  Revision 1.21  1999-04-07 21:55:40  peter
+    + object support for browser
+    * html help fixes
+    * more desktop saving things
+    * NODEBUG directive to exclude debugger
+
+  Revision 1.20  1999/03/23 16:16:36  peter
     * linux fixes
 
   Revision 1.19  1999/03/23 15:11:26  peter

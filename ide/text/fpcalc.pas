@@ -68,20 +68,26 @@ type
   end;
 
 const
+  RCalcButton: TStreamRec = (
+     ObjType: 10139;
+     VmtLink: Ofs(TypeOf(TCalcButton)^);
+     Load:    @TCalcButton.Load;
+     Store:   @TCalcButton.Store
+  );
   RCalcDisplay: TStreamRec = (
-     ObjType: 10040;
+     ObjType: 10140;
      VmtLink: Ofs(TypeOf(TCalcDisplay)^);
      Load:    @TCalcDisplay.Load;
      Store:   @TCalcDisplay.Store
   );
   RCalculator: TStreamRec = (
-     ObjType: 10041;
+     ObjType: 10141;
      VmtLink: Ofs(TypeOf(TCalculator)^);
      Load:    @TCalculator.Load;
      Store:   @TCalculator.Store
   );
 
-procedure RegisterCalc;
+procedure RegisterFPCalc;
 
 implementation
 
@@ -415,8 +421,9 @@ begin
   Hide;
 end;
 
-procedure RegisterCalc;
+procedure RegisterFPCalc;
 begin
+  RegisterType(RCalcButton);
   RegisterType(RCalcDisplay);
   RegisterType(RCalculator);
 end;
@@ -424,11 +431,18 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  1999-03-01 15:41:49  peter
+  Revision 1.4  1999-04-07 21:55:41  peter
+    + object support for browser
+    * html help fixes
+    * more desktop saving things
+    * NODEBUG directive to exclude debugger
+
+  Revision 1.3  1999/03/01 15:41:49  peter
     + Added dummy entries for functions not yet implemented
     * MenuBar didn't update itself automatically on command-set changes
     * Fixed Debugging/Profiling options dialog
-    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is
+ set
     * efBackSpaceUnindents works correctly
     + 'Messages' window implemented
     + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros

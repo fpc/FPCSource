@@ -185,7 +185,7 @@ type
         function    LoadIndex: boolean; virtual;
         function    ReadTopic(T: PTopic): boolean; virtual;
       public { protected }
-        F: PBufStream;
+        F: PStream;
         TopicsRead     : boolean;
         IndexTableRead : boolean;
         CompressionRead: boolean;
@@ -224,7 +224,7 @@ type
 const TopicCacheSize    : sw_integer = 10;
       HelpStreamBufSize : sw_integer = 4096;
       HelpFacility      : PHelpFacility = nil;
-      MaxHelpTopicSize  : word = 65520;
+      MaxHelpTopicSize  : sw_word = 65520;
 
 function  NewTopic(FileID: byte; HelpCtx: THelpCtx; Pos: longint; Param: string): PTopic;
 procedure DisposeTopic(P: PTopic);
@@ -236,8 +236,22 @@ implementation
 
 uses
   Dos,
-  WUtils,WHTMLHlp,
-  Drivers;
+  WUtils,WHTMLHlp;
+
+Function GetDosTicks:longint; { returns ticks at 18.2 Hz, just like DOS }
+{$IFDEF OS_LINUX}
+  var
+    tv : TimeVal;
+    tz : TimeZone;
+  begin
+    GetTimeOfDay(tv,tz);
+    GetDosTicks:=((tv.Sec mod 86400) div 60)*1092+((tv.Sec mod 60)*1000000+tv.USec) div 54945;
+  end;
+{$ELSE}
+  begin
+    GetDosTicks:=MemL[$40:$6c];
+  end;
+{$endIF}
 
 procedure DisposeRecord(var R: TRecord);
 begin
@@ -440,7 +454,7 @@ var OK: boolean;
     R: TRecord;
 begin
   inherited Init(AID);
-  New(F, Init(AFileName, stOpenRead, HelpStreamBufSize));
+  F:=New(PBufStream, Init(AFileName, stOpenRead, HelpStreamBufSize));
   OK:=F<>nil;
   if OK then OK:=(F^.Status=stOK);
   if OK then
@@ -922,7 +936,13 @@ end;
 END.
 {
   $Log$
-  Revision 1.11  1999-03-16 12:38:16  peter
+  Revision 1.12  1999-04-07 21:56:00  peter
+    + object support for browser
+    * html help fixes
+    * more desktop saving things
+    * NODEBUG directive to exclude debugger
+
+  Revision 1.11  1999/03/16 12:38:16  peter
     * tools macro fixes
     + tph writer
     + first things for resource files

@@ -63,6 +63,8 @@ type
       procedure   SetCompileShow(b:boolean);
       procedure   StartCompilation;
       function    EndCompilation:boolean;
+      constructor Load(var S: TStream);
+      procedure   Store(var S: TStream);
     private
       CompileShowed : boolean;
       Mode   : TCompileMode;
@@ -94,6 +96,7 @@ const
 
 procedure DoCompile(Mode: TCompileMode);
 
+procedure RegisterFPCompile;
 
 implementation
 
@@ -101,11 +104,28 @@ uses
   Dos,Video,
   App,Commands,
   CompHook,
-  WEditor,
+  WUtils,WEditor,
 {$ifdef redircompiler}
   FPRedir,
 {$endif}
   FPConst,FPVars,FPUtils,FPIntf,FPSwitch;
+
+{$ifndef OLDCOMP}
+const
+  RCompilerMessageListBox: TStreamRec = (
+     ObjType: 1211;
+     VmtLink: Ofs(TypeOf(TCompilerMessageListBox)^);
+     Load:    @TCompilerMessageListBox.Load;
+     Store:   @TCompilerMessageListBox.Store
+  );
+  RCompilerMessageWindow: TStreamRec = (
+     ObjType: 1212;
+     VmtLink: Ofs(TypeOf(TCompilerMessageWindow)^);
+     Load:    @TCompilerMessageWindow.Load;
+     Store:   @TCompilerMessageWindow.Store
+  );
+{$else}
+{$endif}
 
 const
     LastStatusUpdate : longint = 0;
@@ -422,6 +442,34 @@ begin
   GetPalette:=@S;
 end;
 
+constructor TCompilerMessageWindow.Load(var S: TStream);
+begin
+  inherited Load(S);
+
+  S.Read(CompileShowed,SizeOf(CompileShowed));
+  S.Read(Mode,SizeOf(Mode));
+  GetSubViewPtr(S,MsgLB);
+  GetSubViewPtr(S,CurrST);
+  GetSubViewPtr(S,InfoST);
+  GetSubViewPtr(S,LineST);
+
+  UpdateInfo;
+end;
+
+procedure TCompilerMessageWindow.Store(var S: TStream);
+begin
+  if MsgLB^.List=nil then
+    MsgLB^.NewList(New(PCollection, Init(100,100)));
+  inherited Store(S);
+
+  S.Write(CompileShowed,SizeOf(CompileShowed));
+  S.Write(Mode,SizeOf(Mode));
+  PutSubViewPtr(S,MsgLB);
+  PutSubViewPtr(S,CurrST);
+  PutSubViewPtr(S,InfoST);
+  PutSubViewPtr(S,LineST);
+end;
+
 destructor TCompilerMessageWindow.Done;
 begin
   SetCompileShow(false);
@@ -438,6 +486,9 @@ function CompilerStatus: boolean; {$ifndef FPC}far;{$endif}
 begin
 { only display every 50 lines }
   if (status.currentline mod 50=0) then
+  { ^^^ I don't think this is a good idea, since it could eventually
+    come that we don't have a line number for seconds which is a multiple
+    of 50... What was the problem with the GetDosTicks() solution?  - BG }
    begin
      { update info messages }
      if assigned(CompilerMessageWindow) then
@@ -805,10 +856,25 @@ end;
 
 {$endif}
 
+procedure RegisterFPCompile;
+begin
+{$ifndef OLDCOMP}
+  RegisterType(RCompilerMessageListBox);
+  RegisterType(RCompilerMessageWindow);
+{$else}
+{$endif}
+end;
+
 end.
 {
   $Log$
-  Revision 1.22  1999-04-01 10:27:07  pierre
+  Revision 1.23  1999-04-07 21:55:43  peter
+    + object support for browser
+    * html help fixes
+    * more desktop saving things
+    * NODEBUG directive to exclude debugger
+
+  Revision 1.22  1999/04/01 10:27:07  pierre
    + file(line) in start of message added
 
   Revision 1.21  1999/04/01 10:15:17  pierre

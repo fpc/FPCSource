@@ -36,7 +36,7 @@ Var
 Implementation
 
 uses
-  commands,msgbox,
+  app,commands,msgbox,
   fpide,fpviews;
 
 
@@ -46,17 +46,22 @@ Procedure CatchSignal(Sig : Integer);cdecl;
 {$else}
 Function CatchSignal(Sig : longint):longint;
 {$endif}
+var CanQuit: boolean;
 begin
   case Sig of
    SIGSEGV : begin
-               MyApp.Done;
+               if Assigned(Application) then MyApp.Done;
                Writeln('Internal Error caught');
                Halt;
              end;
     SIGINT : begin
-               if MessageBox(#3'Do You really want to quit?',nil,mferror+mfyesbutton+mfnobutton)=cmYes then
+               if Assigned(Application) then
+                 CanQuit:=MessageBox(#3'Do You really want to quit?',nil,mferror+mfyesbutton+mfnobutton)=cmYes
+               else
+                 CanQuit:=true;
+               if CanQuit then
                 begin
-                  MyApp.Done;
+                  if Assigned(Application) then MyApp.Done;
                   Halt;
                 end;
              end;
@@ -82,7 +87,13 @@ end.
 
 {
   $Log$
-  Revision 1.1  1999-02-20 15:18:28  peter
+  Revision 1.2  1999-04-07 21:55:42  peter
+    + object support for browser
+    * html help fixes
+    * more desktop saving things
+    * NODEBUG directive to exclude debugger
+
+  Revision 1.1  1999/02/20 15:18:28  peter
     + ctrl-c capture with confirm dialog
     + ascii table in the tools menu
     + heapviewer

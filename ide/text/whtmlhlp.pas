@@ -8,14 +8,14 @@ const
      ListIndent = 2;
      DefIndent  = 4;
 
-     MaxTopicLinks = 100;
+     MaxTopicLinks = 500;
 
 type
     PTopicLinkCollection = ^TTopicLinkCollection;
     TTopicLinkCollection = object(TStringCollection)
-      procedure Insert(Item: Pointer); virtual;
-      function  At(Index: sw_Integer): PString;
-      function  AddItem(Item: string): integer;
+      procedure   Insert(Item: Pointer); virtual;
+      function    At(Index: sw_Integer): PString;
+      function    AddItem(Item: string): integer;
     end;
 
     TParagraphAlign = (paLeft,paCenter,paRight);
@@ -24,7 +24,7 @@ type
     THTMLTopicRenderer = object(THTMLParser)
       function  BuildTopic(P: PTopic; AURL: string; HTMLFile: PTextFile; ATopicLinks: PTopicLinkCollection): boolean;
     public
-      procedure DocAddTextChar(C: char); virtual;
+      function  DocAddTextChar(C: char): boolean; virtual;
       procedure DocSoftBreak; virtual;
       procedure DocTYPE; virtual;
       procedure DocHTML(Entered: boolean); virtual;
@@ -59,7 +59,7 @@ type
       URL: string;
       Topic: PTopic;
       TopicLinks: PTopicLinkCollection;
-      TextPtr: word;
+      TextPtr: sw_word;
       InTitle: boolean;
       InBody: boolean;
       InAnchor: boolean;
@@ -72,6 +72,7 @@ type
       PAlign: TParagraphAlign;
       LinkIndexes: array[0..MaxTopicLinks] of sw_integer;
       LinkPtr: sw_integer;
+      LastTextChar: char;
 {      Anchor: TAnchor;}
       procedure AddText(S: string);
       procedure AddChar(C: char);
@@ -95,7 +96,8 @@ type
 
 implementation
 
-uses Dos;
+uses WUtils,
+     Dos;
 
 const
 {$ifdef LINUX}
@@ -133,12 +135,21 @@ begin
   CompletePath:=Complete;
 end;
 
-function UpcaseStr(S: string): string;
-var I: integer;
+function CompleteURL(const Base, URLRef: string): string;
+var P: integer;
+    Drive: string[20];
+    IsComplete: boolean;
+    S: string;
 begin
-  for I:=1 to length(S) do
-      S[I]:=Upcase(S[I]);
-  UpcaseStr:=S;
+  IsComplete:=false;
+  P:=Pos(':',URLRef);
+  if P=0 then Drive:='' else Drive:=UpcaseStr(copy(URLRef,1,P-1));
+  if Drive<>'' then
+  if (Drive='MAILTO') or (Drive='FTP') or (Drive='HTTP') or (Drive='GOPHER') then
+    IsComplete:=true;
+  if IsComplete then S:=URLRef else
+    S:=CompletePath(Base,URLRef);
+  CompleteURL:=S;
 end;
 
 function EncodeHTMLCtx(FileID: integer; LinkNo: word): longint;
@@ -190,19 +201,37 @@ begin
   AddItem:=Idx;
 end;
 
-procedure THTMLTopicRenderer.DocAddTextChar(C: char);
+function THTMLTopicRenderer.DocAddTextChar(C: char): boolean;
+var Added: boolean;
 begin
-  if InTitle then TopicTitle:=TopicTitle+C else
+  Added:=false;
+  if InTitle then
+    begin
+      TopicTitle:=TopicTitle+C;
+      Added:=true;
+    end
+  else
   if InBody then
     begin
-      if (C<>#32) or (AnyCharsInLine=true) then AddChar(C);
+      if (InPreFormatted) or (C<>#32) or (LastTextChar<>C) then
+      if (C<>#32) or (AnyCharsInLine=true) then
+        begin
+          AddChar(C);
+          LastTextChar:=C;
+          Added:=true;
+        end;
     end;
+  DocAddTextChar:=Added;
 end;
 
 procedure THTMLTopicRenderer.DocSoftBreak;
 begin
   if InPreformatted then DocBreak else
-  if AnyCharsInLine then AddChar(' ');
+  if AnyCharsInLine then
+    begin
+      AddChar(' ');
+      LastTextChar:=' ';
+    end;
 end;
 
 procedure THTMLTopicRenderer.DocTYPE;
@@ -255,7 +284,7 @@ begin
         begin
           InAnchor:=true;
           AddChar(hscLink);
-          HRef:=CompletePath(URL,HRef);
+          HRef:=CompleteURL(URL,HRef);
           LinkIndexes[LinkPtr]:=TopicLinks^.AddItem(HRef);
           Inc(LinkPtr);
         end;
@@ -443,7 +472,7 @@ end;
 
 procedure THTMLTopicRenderer.AddChar(C: char);
 begin
-  if Topic=nil then Exit;
+  if (Topic=nil) or (TextPtr=MaxBytes) then Exit;
   Topic^.Text^[TextPtr]:=ord(C);
   Inc(TextPtr);
   if (C>#15) and (C<>' ') then
@@ -477,12 +506,13 @@ begin
       GetMem(Topic^.Text,Topic^.TextSize);
 
       TopicTitle:='';
-      InTitle:=false; InBody:=false; InAnchor:=false;
+      InTitle:=false; InBody:={false}true; InAnchor:=false;
       InParagraph:=false; InPreformatted:=false;
       Indent:=0; CurHeadLevel:=0;
       PAlign:=paLeft;
       TextPtr:=0; LinkPtr:=0;
       AnyCharsInLine:=false;
+      LastTextChar:=#0;
       OK:=Process(HTMLFile);
 
       if OK then
@@ -493,7 +523,7 @@ begin
               FreeMem(Topic^.Links,Topic^.LinkSize);
               Topic^.Links:=nil; Topic^.LinkCount:=0;
             end;
-          Topic^.LinkCount:=TopicLinks^.Count;
+          Topic^.LinkCount:=LinkPtr{TopicLinks^.Count}; { <- eeeeeek! }
           GetMem(Topic^.Links,Topic^.LinkSize);
           for I:=0 to Topic^.LinkCount-1 do
             begin
@@ -559,7 +589,7 @@ end;
 
 function THTMLHelpFile.ReadTopic(T: PTopic): boolean;
 var OK: boolean;
-    HTMLFile: PDOSTextFile;
+    HTMLFile: PMemoryTextFile;
     Name: string;
     Link: string;
     P: sw_integer;
@@ -576,7 +606,16 @@ begin
           Name:=CompletePath(CurFileName,Link);}
           Name:=Link;
         end;
-      New(HTMLFile, Init(Name));
+      HTMLFile:=New(PDOSTextFile, Init(Name));
+      if HTMLFile=nil then
+        begin
+          New(HTMLFile, Init);
+          HTMLFile^.AddLine('<HEAD><TITLE>Page not available</TITLE></HEAD>');
+          HTMLFile^.AddLine(
+            '<BODY>'+
+            'Sorry, can''t access the URL: '+Name+'... <br><br>'+
+            '</BODY>');
+        end;
       OK:=Renderer^.BuildTopic(T,Name,HTMLFile,TopicLinks);
       if OK then CurFileName:=Name;
       if HTMLFile<>nil then Dispose(HTMLFile, Done);

@@ -17,6 +17,7 @@
 
 procedure TIDEApp.DoStepOver;
 begin
+{$ifndef NODEBUG}
   if not assigned(Debugger) then
    begin
      InitDebugger;
@@ -35,11 +36,15 @@ begin
       Debugger^.TraceNext;
     end;
   Debugger^.AnnotateError;
+{$else NODEBUG}
+  NoDebugger;
+{$endif NODEBUG}
 end;
 
 
 procedure TIDEApp.DoTraceInto;
 begin
+{$ifndef NODEBUG}
   if not assigned(Debugger) then
    begin
      InitDebugger;
@@ -60,6 +65,9 @@ begin
       Debugger^.TraceNext;
     end;
   Debugger^.AnnotateError;
+{$else NODEBUG}
+  NoDebugger;
+{$endif NODEBUG}
 end;
 
 
@@ -81,13 +89,18 @@ begin
       Exit;
     end;
 
+{$ifndef NODEBUG}
   if not assigned(Debugger) then
+{$endif}
     begin
       DoExecute(ExeFile,GetRunParameters,'','',exNormal);
       LastExitCode:=DosExitCode;
     end
+{$ifndef NODEBUG}
   else
-    Debugger^.Continue;
+    Debugger^.Continue
+{$endif}
+  ;
 end;
 
 
@@ -119,9 +132,13 @@ end;
 
 procedure TIDEApp.DoResetDebugger;
 begin
+{$ifndef NODEBUG}
   if assigned(Debugger) then
      DoneDebugger;
   UpdateScreen(true);
+{$else NODEBUG}
+  NoDebugger;
+{$endif NODEBUG}
 end;
 
 procedure TIDEApp.DoContToCursor;
@@ -130,6 +147,7 @@ var
   FileName : string;
   LineNr : longint;
 begin
+{$ifndef NODEBUG}
   if (DeskTop^.First=nil) or
      (TypeOf(DeskTop^.First^)<>TypeOf(TSourceWindow)) then
     Begin
@@ -147,13 +165,20 @@ begin
       Debugger^.Command('tbreak '+NameAndExtOf(FileName)+':'+IntToStr(LineNr));
       Debugger^.Continue;
     end;
+{$else NODEBUG}
+  NoDebugger;
+{$endif NODEBUG}
 end;
 
 procedure TIDEApp.DoOpenGDBWindow;
 begin
+{$ifndef NODEBUG}
   InitGDBWindow;
   If assigned(GDBWindow) then
     GDBWindow^.MakeFirst;
+{$else NODEBUG}
+  NoDebugger;
+{$endif NODEBUG}
 end;
 
 procedure TIDEApp.DoToggleBreak;
@@ -163,6 +188,7 @@ var
   b : boolean;
   LineNr : longint;
 begin
+{$ifndef NODEBUG}
   if (DeskTop^.First=nil) or
      (TypeOf(DeskTop^.First^)<>TypeOf(TSourceWindow)) then
     Begin
@@ -178,15 +204,25 @@ begin
       b:=BreakpointCollection^.ToggleFileLine(FileName,LineNr);
       W^.Editor^.SetLineBreakState(LineNr,b);
     end;
+{$else NODEBUG}
+  NoDebugger;
+{$endif NODEBUG}
 end;
 
 {
   $Log$
-  Revision 1.14  1999-03-01 15:41:58  peter
+  Revision 1.15  1999-04-07 21:55:50  peter
+    + object support for browser
+    * html help fixes
+    * more desktop saving things
+    * NODEBUG directive to exclude debugger
+
+  Revision 1.14  1999/03/01 15:41:58  peter
     + Added dummy entries for functions not yet implemented
     * MenuBar didn't update itself automatically on command-set changes
     * Fixed Debugging/Profiling options dialog
-    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is
+ set
     * efBackSpaceUnindents works correctly
     + 'Messages' window implemented
     + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros

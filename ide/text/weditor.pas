@@ -145,10 +145,12 @@ type
       Location: TPoint;
       Modified: Boolean;
       constructor Init(var Bounds: TRect);
-      procedure Draw; virtual;
-      function GetPalette: PPalette; virtual;
-      procedure SetState(AState: Word; Enable: Boolean); virtual;
-      procedure SetValue(ALocation: TPoint; AModified: Boolean);
+      procedure   Draw; virtual;
+      function    GetPalette: PPalette; virtual;
+      procedure   SetState(AState: Word; Enable: Boolean); virtual;
+      procedure   SetValue(ALocation: TPoint; AModified: Boolean);
+      constructor Load(var S: TStream);
+      procedure   Store(var S: TStream);
     end;
 
     PEditorAction = ^TEditorAction;
@@ -212,6 +214,8 @@ type
       function    InsertText(const S: string): Boolean; virtual;
       function    GetPalette: PPalette; virtual;
       function    IsClipboard: Boolean;
+      constructor Load(var S: TStream);
+      procedure   Store(var S: TStream);
       destructor  Done; virtual;
     public
       { Text & info storage abstraction }
@@ -303,6 +307,8 @@ type
       function    Valid(Command: Word): Boolean; virtual;
       procedure   HandleEvent(var Event: TEvent); virtual;
       function    ShouldSave: boolean; virtual;
+      constructor Load(var S: TStream);
+      procedure   Store(var S: TStream);
     end;
 
     TCodeEditorDialog = function(Dialog: Integer; Info: Pointer): Word;
@@ -338,12 +344,34 @@ const
      UseSyntaxHighlight : function(Editor: PFileEditor): boolean = DefUseSyntaxHighlight;
      UseTabsPattern     : function(Editor: PFileEditor): boolean = DefUseTabsPattern;
 
+procedure RegisterCodeEditors;
+
 implementation
 
 uses
   Dos,
   MsgBox,Dialogs,App,StdDlg,HistList,Validate,
   WUtils,WViews;
+
+const
+  RIndicator: TStreamRec = (
+     ObjType: 1100;
+     VmtLink: Ofs(TypeOf(TIndicator)^);
+     Load:    @TIndicator.Load;
+     Store:   @TIndicator.Store
+  );
+  RCodeEditor: TStreamRec = (
+     ObjType: 1101;
+     VmtLink: Ofs(TypeOf(TCodeEditor)^);
+     Load:    @TCodeEditor.Load;
+     Store:   @TCodeEditor.Store
+  );
+  RFileEditor: TStreamRec = (
+     ObjType: 1102;
+     VmtLink: Ofs(TypeOf(TFileEditor)^);
+     Load:    @TFileEditor.Load;
+     Store:   @TFileEditor.Store
+  );
 
 type
      TFindDialogRec = packed record
@@ -499,21 +527,6 @@ var L: longint;
 begin
   Val(S,L,C); if C<>0 then L:=-1;
   StrToInt:=L;
-end;
-
-function CharStr(C: char; Count: byte): string;
-{$ifndef FPC}
-var S: string;
-{$endif}
-begin
-{$ifdef FPC}
-  CharStr[0]:=chr(Count);
-  FillChar(CharStr[1],Count,C);
-{$else}
-  S[0]:=chr(Count);
-  FillChar(S[1],Count,C);
-  CharStr:=S;
-{$endif}
 end;
 
 function RExpand(const S: string; MinLen: byte): string;
@@ -933,6 +946,20 @@ begin
     Modified := AModified;
     DrawView;
   end;
+end;
+
+constructor TIndicator.Load(var S: TStream);
+begin
+  inherited Load(S);
+  S.Read(Location,SizeOf(Location));
+  S.Read(Modified,SizeOf(Modified));
+end;
+
+procedure TIndicator.Store(var S: TStream);
+begin
+  inherited Store(S);
+  S.Write(Location,SizeOf(Location));
+  S.Write(Modified,SizeOf(Modified));
 end;
 
 
@@ -2978,6 +3005,46 @@ begin
   GetPalette:=@P;
 end;
 
+constructor TCodeEditor.Load(var S: TStream);
+begin
+  inherited Load(S);
+
+  New(Actions, Init(500,1000));
+  New(Lines, Init(500,1000));
+  { we have always need at least 1 line }
+  Lines^.Insert(NewLine(''));
+
+  GetPeerViewPtr(S,Indicator);
+  S.Read(SelStart,SizeOf(SelStart));
+  S.Read(SelEnd,SizeOf(SelEnd));
+  S.Read(Highlight,SizeOf(Highlight));
+  S.Read(CurPos,SizeOf(CurPos));
+  S.Read(StoreUndo,SizeOf(StoreUndo));
+  S.Read(IsReadOnly,SizeOf(IsReadOnly));
+  S.Read(NoSelect,SizeOf(NoSelect));
+  S.Read(Flags,SizeOf(Flags));
+  S.Read(TabSize,SizeOf(TabSize));
+  S.Read(HighlightRow,SizeOf(HighlightRow));
+
+  UpdateIndicator; LimitsChanged;
+end;
+
+procedure TCodeEditor.Store(var S: TStream);
+begin
+  inherited Store(S);
+  PutPeerViewPtr(S,Indicator);
+  S.Write(SelStart,SizeOf(SelStart));
+  S.Write(SelEnd,SizeOf(SelEnd));
+  S.Write(Highlight,SizeOf(Highlight));
+  S.Write(CurPos,SizeOf(CurPos));
+  S.Write(StoreUndo,SizeOf(StoreUndo));
+  S.Write(IsReadOnly,SizeOf(IsReadOnly));
+  S.Write(NoSelect,SizeOf(NoSelect));
+  S.Write(Flags,SizeOf(Flags));
+  S.Write(TabSize,SizeOf(TabSize));
+  S.Write(HighlightRow,SizeOf(HighlightRow));
+end;
+
 destructor TCodeEditor.Done;
 begin
   inherited Done;
@@ -3160,6 +3227,25 @@ begin
     OK:=SaveAsk;
   Valid:=OK;
 end;
+
+constructor TFileEditor.Load(var S: TStream);
+var P: PString;
+begin
+  inherited Load(S);
+  P:=S.ReadStr;
+  FileName:=GetStr(P);
+  if P<>nil then DisposeStr(P);
+
+  UpdateIndicator;
+  Message(@Self,evBroadcast,cmFileNameChanged,@Self);
+end;
+
+procedure TFileEditor.Store(var S: TStream);
+begin
+  inherited Store(S);
+  S.WriteStr(@FileName);
+end;
+
 
 function CreateFindDialog: PDialog;
 var R,R1,R2: TRect;
@@ -3406,10 +3492,23 @@ begin
   DefUseTabsPattern:=(Editor^.Flags and efUseTabCharacters)<>0;
 end;
 
+procedure RegisterCodeEditors;
+begin
+  RegisterType(RIndicator);
+  RegisterType(RCodeEditor);
+  RegisterType(RFileEditor);
+end;
+
 END.
 {
   $Log$
-  Revision 1.28  1999-03-23 15:11:39  peter
+  Revision 1.29  1999-04-07 21:55:59  peter
+    + object support for browser
+    * html help fixes
+    * more desktop saving things
+    * NODEBUG directive to exclude debugger
+
+  Revision 1.28  1999/03/23 15:11:39  peter
     * desktop saving things
     * vesa mode
     * preferences dialog
@@ -3544,6 +3643,7 @@ END.
   Revision 1.4  1998/12/27 12:01:23  gabor
     * efXXXX constants revised for BP compatibility
     * fixed column and row highlighting (needs to rewrite default palette in the INI)
+
   Revision 1.3  1998/12/22 10:39:54  peter
     + options are now written/read
     + find and replace routines

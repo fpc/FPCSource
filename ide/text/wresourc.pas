@@ -102,6 +102,8 @@ type
        constructor Init(var RS: TStream; ALoad: boolean);
        constructor Create(var RS: TStream);
        constructor Load(var RS: TStream);
+       constructor CreateFile(AFileName: string);
+       constructor LoadFile(AFileName: string);
        function    FirstThatResource(Func: pointer): PResource; virtual;
        procedure   ForEachResource(Func: pointer); virtual;
        procedure   ForEachResourceEntry(Func: pointer); virtual;
@@ -120,6 +122,7 @@ type
        function    FindResourceEntry(const ResName: string; ALangID: longint): PResourceEntry;
      private
        S         : PStream;
+       MyStream  : boolean;
        Resources : PResourceCollection;
        Entries   : PGlobalResourceEntryCollection;
        Header    : TResourceFileHeader;
@@ -136,12 +139,6 @@ type
        procedure  WriteResourceTable;
      end;
      PResourceFile = ^TResourceFile;
-
-     PSimpleResourceFile = ^TSimpleResourceFile;
-     TSimpleResourceFile = object(TResourceFile)
-       constructor Create(AFileName: string);
-       constructor Load(AFileName: string);
-     end;
 
 implementation
 
@@ -673,35 +670,44 @@ begin
   if Resources<>nil then Dispose(Resources, Done); Resources:=nil;
   if Entries<>nil then
     begin Entries^.DeleteAll; Dispose(Entries, Done); Entries:=nil; end;
+  if MyStream and Assigned(S) then
+    Dispose(S, Done);
 end;
 
-constructor TSimpleResourceFile.Create(AFileName: string);
+constructor TResourceFile.CreateFile(AFileName: string);
 var B: PBufStream;
 begin
   New(B, Init(AFileName, stCreate, 4096));
   if (B<>nil) and (B^.Status<>stOK) then
     begin Dispose(B, Done); B:=nil; end;
   if B=nil then Fail;
-  if inherited Create(B^)=false then
+  if Create(B^)=false then
     Fail;
+  MyStream:=true;
 end;
 
-constructor TSimpleResourceFile.Load(AFileName: string);
+constructor TResourceFile.LoadFile(AFileName: string);
 var B: PBufStream;
 begin
   New(B, Init(AFileName, stCreate, 4096));
   if (B<>nil) and (B^.Status<>stOK) then
     begin Dispose(B, Done); B:=nil; end;
   if B=nil then Fail;
-  if inherited Load(B^)=false then
+  if Load(B^)=false then
     Fail;
+  MyStream:=true;
 end;
-
 
 END.
 {
   $Log$
-  Revision 1.3  1999-03-23 16:16:43  peter
+  Revision 1.4  1999-04-07 21:56:05  peter
+    + object support for browser
+    * html help fixes
+    * more desktop saving things
+    * NODEBUG directive to exclude debugger
+
+  Revision 1.3  1999/03/23 16:16:43  peter
     * linux fixes
 
   Revision 1.2  1999/03/23 15:11:40  peter

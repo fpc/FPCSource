@@ -19,7 +19,7 @@ interface
 uses
   Objects,Drivers,Views,App,Gadgets,MsgBox,
   {$ifdef EDITORS}Editors,{$else}WEditor,{$endif}
-  Comphook,
+  Comphook,Browcol,
   FPViews,FPSymbol;
 
 type
@@ -126,10 +126,10 @@ uses
   Video,Mouse,Keyboard,
   Dos,Memory,Menus,Dialogs,StdDlg,ColorSel,Commands,HelpCtx,
   AsciiTab,
-  Systems,BrowCol,
+  Systems,
   WUtils,WHelp,WHlpView,WINI,WViews,
   FPConst,FPVars,FPUtils,FPSwitch,FPIni,FPIntf,FPCompile,FPHelp,
-  FPTemplt,FPCalc,FPUsrScr,FPTools,FPDebug,FPRedir;
+  FPTemplt,FPCalc,FPUsrScr,FPTools,{$ifndef NODEBUG}FPDebug,{$endif}FPRedir;
 
 
 function IDEUseSyntaxHighlight(Editor: PFileEditor): boolean; {$ifndef FPC}far;{$endif}
@@ -463,8 +463,10 @@ begin
                with PSourceWindow(Event.InfoPtr)^ do
                  if Editor^.FileName<>'' then
                    AddRecentFile(Editor^.FileName,Editor^.CurPos.X,Editor^.CurPos.Y);
+               {$ifndef NODEBUG}
                if assigned(Debugger) and (PView(Event.InfoPtr)=Debugger^.LastSource) then
                  Debugger^.LastSource:=nil;
+               {$endif}
              end;
 
          end;
@@ -552,7 +554,9 @@ begin
   SetCmdState([cmSaveAll],IsThereAnyEditor);
   SetCmdState([cmCloseAll,cmTile,cmCascade,cmWindowList],IsThereAnyWindow);
   SetCmdState([cmFindProcedure,cmObjects,cmModules,cmGlobals{,cmInformation}],IsSymbolInfoAvailable);
+{$ifndef NODEBUG}
   SetCmdState([cmResetDebugger],assigned(debugger) and debugger^.debugger_started);
+{$endif}
   SetCmdState([cmToolsMsgNext,cmToolsMsgPrev],MessagesWindow<>nil);
   UpdateTools;
   UpdateRecentFileList;
@@ -734,7 +738,13 @@ end;
 END.
 {
   $Log$
-  Revision 1.25  1999-03-23 15:11:29  peter
+  Revision 1.26  1999-04-07 21:55:47  peter
+    + object support for browser
+    * html help fixes
+    * more desktop saving things
+    * NODEBUG directive to exclude debugger
+
+  Revision 1.25  1999/03/23 15:11:29  peter
     * desktop saving things
     * vesa mode
     * preferences dialog

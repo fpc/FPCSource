@@ -17,6 +17,14 @@ unit FPDesk;
 
 interface
 
+const
+     ResHistory         = 'HISTORY';
+     ResClipboard       = 'CLIPBOARD';
+     ResWatches         = 'WATCHES';
+     ResBreakpoints     = 'BREAKPOINTS';
+     ResDesktop         = 'DESKTOP';
+     ResSymbols         = 'SYMBOLS';
+
 procedure InitDesktopFile;
 function  LoadDesktop: boolean;
 function  SaveDesktop: boolean;
@@ -25,6 +33,7 @@ procedure DoneDesktopFile;
 implementation
 
 uses Dos,
+     Objects,App,
      WResource,
      FPConst,FPVars,FPUtils;
 
@@ -61,7 +70,16 @@ begin
 end;
 
 function WriteOpenWindows(F: PResourceFile): boolean;
+var S: PMemoryStream;
 begin
+  {$ifndef DEV}Exit;{$endif}
+
+  New(S, Init(1024*1024,4096));
+  Desktop^.Store(S^);
+  S^.Seek(0);
+  F^.CreateResource(resDesktop,rcBinary,0);
+  F^.AddResourceEntryFromStream(resDesktop,langDefault,0,S^,S^.GetSize);
+  Dispose(S, Done);
   WriteOpenWindows:=true;
 end;
 
@@ -77,9 +95,9 @@ end;
 
 function SaveDesktop: boolean;
 var OK: boolean;
-    F: PSimpleResourceFile;
+    F: PResourceFile;
 begin
-  New(F, Create(DesktopPath));
+  New(F, CreateFile(DesktopPath));
   OK:=true;
   if OK and ((DesktopFileFlags and dfHistoryLists)<>0) then
     OK:=WriteHistory(F);
@@ -100,7 +118,13 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  1999-03-23 16:16:39  peter
+  Revision 1.3  1999-04-07 21:55:45  peter
+    + object support for browser
+    * html help fixes
+    * more desktop saving things
+    * NODEBUG directive to exclude debugger
+
+  Revision 1.2  1999/03/23 16:16:39  peter
     * linux fixes
 
   Revision 1.1  1999/03/23 15:11:28  peter

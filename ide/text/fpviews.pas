@@ -15,13 +15,9 @@
  **********************************************************************}
 unit FPViews;
 
-interface
+{$i globdir.inc}
 
-{$ifndef LINUX}
-  {$ifndef FV20}
-    {$define VESA}
-  {$endif}
-{$endif}
+interface
 
 uses
   Dos,Objects,Drivers,Commands,HelpCtx,Views,Menus,Dialogs,App,Gadgets,
@@ -63,8 +59,8 @@ type
 
     PFPHelpViewer = ^TFPHelpViewer;
     TFPHelpViewer = object(THelpViewer)
-      function  GetLocalMenu: PMenu; virtual;
-      function  GetCommandTarget: PView; virtual;
+      function    GetLocalMenu: PMenu; virtual;
+      function    GetCommandTarget: PView; virtual;
     end;
 
     PFPHelpWindow = ^TFPHelpWindow;
@@ -122,6 +118,8 @@ type
       procedure   Update; virtual;
       procedure   UpdateCommands; virtual;
       function    GetPalette: PPalette; virtual;
+      constructor Load(var S: TStream);
+      procedure   Store(var S: TStream);
       destructor  Done; virtual;
     end;
 
@@ -158,6 +156,8 @@ type
       procedure   Show; virtual;
       procedure   Hide; virtual;
       procedure   Close; virtual;
+      constructor Load(var S: TStream);
+      procedure   Store(var S: TStream);
       destructor  Done; virtual;
     end;
 
@@ -190,6 +190,8 @@ type
       procedure   Draw; virtual;
       procedure   HandleEvent(var Event: TEvent); virtual;
       function    GetLocalMenu: PMenu; virtual;
+      constructor Load(var S: TStream);
+      procedure   Store(var S: TStream);
       destructor  Done; virtual;
     end;
 
@@ -317,6 +319,8 @@ function StartEditor(Editor: PCodeEditor; FileName: string): boolean;
 procedure InitVESAScreenModes;
 {$endif}
 
+procedure NoDebugger;
+
 const
       SourceCmds  : TCommandSet =
         ([cmSave,cmSaveAs,cmCompile]);
@@ -338,6 +342,8 @@ var  MsgParms : array[1..10] of
              1 : (Long: longint);
          end;
 
+procedure RegisterFPViews;
+
 implementation
 
 uses
@@ -345,6 +351,45 @@ uses
   Tokens,Version,
   {$ifdef VESA}Vesa,{$endif}
   FPSwitch,FPSymbol,FPDebug,FPVars,FPUtils,FPCompile,FPHelp;
+
+const
+  RSourceEditor: TStreamRec = (
+     ObjType: 1500;
+     VmtLink: Ofs(TypeOf(TSourceEditor)^);
+     Load:    @TSourceEditor.Load;
+     Store:   @TSourceEditor.Store
+  );
+  RSourceWindow: TStreamRec = (
+     ObjType: 1501;
+     VmtLink: Ofs(TypeOf(TSourceWindow)^);
+     Load:    @TSourceWindow.Load;
+     Store:   @TSourceWindow.Store
+  );
+  RFPHelpViewer: TStreamRec = (
+     ObjType: 1502;
+     VmtLink: Ofs(TypeOf(TFPHelpViewer)^);
+     Load:    @TFPHelpViewer.Load;
+     Store:   @TFPHelpViewer.Store
+  );
+  RFPHelpWindow: TStreamRec = (
+     ObjType: 1503;
+     VmtLink: Ofs(TypeOf(TFPHelpWindow)^);
+     Load:    @TFPHelpWindow.Load;
+     Store:   @TFPHelpWindow.Store
+  );
+  RClipboardWindow: TStreamRec = (
+     ObjType: 1504;
+     VmtLink: Ofs(TypeOf(TClipboardWindow)^);
+     Load:    @TClipboardWindow.Load;
+     Store:   @TClipboardWindow.Store
+  );
+  RMessageListBox: TStreamRec = (
+     ObjType: 1505;
+     VmtLink: Ofs(TypeOf(TMessageListBox)^);
+     Load:    @TMessageListBox.Load;
+     Store:   @TMessageListBox.Store
+  );
+
 
 const
   NoNameCount    : integer = 0;
@@ -962,6 +1007,22 @@ begin
   GetPalette:=@P;
 end;
 
+constructor TSourceWindow.Load(var S: TStream);
+begin
+  inherited Load(S);
+
+  GetSubViewPtr(S,Indicator);
+  GetSubViewPtr(S,Editor);
+end;
+
+procedure TSourceWindow.Store(var S: TStream);
+begin
+  inherited Store(S);
+
+  PutSubViewPtr(S,Indicator);
+  PutSubViewPtr(S,Editor);
+end;
+
 destructor TSourceWindow.Done;
 begin
   Message(Application,evBroadcast,cmSourceWndClosing,@Self);
@@ -1166,6 +1227,18 @@ end;
 procedure TClipboardWindow.Close;
 begin
   Hide;
+end;
+
+constructor TClipboardWindow.Load(var S: TStream);
+begin
+  inherited Load(S);
+
+  Clipboard:=Editor;
+end;
+
+procedure TClipboardWindow.Store(var S: TStream);
+begin
+  inherited Store(S);
 end;
 
 destructor TClipboardWindow.Done;
@@ -1416,6 +1489,27 @@ begin
     end;
     WriteLine(0, I, Size.X, 1, B);
   end;
+end;
+
+constructor TMessageListBox.Load(var S: TStream);
+begin
+  inherited Load(S);
+end;
+
+procedure TMessageListBox.Store(var S: TStream);
+var OL: PCollection;
+begin
+  OL:=List;
+  New(List, Init(1,1));
+
+  inherited Store(S);
+
+  Dispose(List, Done);
+  List:=OL;
+  { ^^^ nasty trick - has anyone a better idea how to avoid storing the
+    collection? Pasting here a modified version of TListBox.Store+
+    TAdvancedListBox.Store isn't a better solution, since by eventually
+    changing the obj-hierarchy you'll always have to modify this, too - BG }
 end;
 
 destructor TMessageListBox.Done;
@@ -2493,10 +2587,32 @@ begin
 end;
 {$endif}
 
+procedure NoDebugger;
+begin
+  InformationBox('No debugger support available.',nil);
+end;
+
+procedure RegisterFPViews;
+begin
+  RegisterType(RSourceEditor);
+  RegisterType(RSourceWindow);
+  RegisterType(RFPHelpViewer);
+  RegisterType(RFPHelpWindow);
+  RegisterType(RClipboardWindow);
+  RegisterType(RMessageListBox);
+end;
+
+
 END.
 {
   $Log$
-  Revision 1.27  1999-04-01 10:27:06  pierre
+  Revision 1.28  1999-04-07 21:55:56  peter
+    + object support for browser
+    * html help fixes
+    * more desktop saving things
+    * NODEBUG directive to exclude debugger
+
+  Revision 1.27  1999/04/01 10:27:06  pierre
    + file(line) in start of message added
 
   Revision 1.26  1999/03/23 16:16:41  peter

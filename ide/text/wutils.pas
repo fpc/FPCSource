@@ -62,6 +62,8 @@ function Max(A,B: longint): longint;
 
 function CharStr(C: char; Count: byte): string;
 function UpcaseStr(const S: string): string;
+function LowCase(C: char): char;
+function LowcaseStr(S: string): string;
 function RExpand(const S: string; MinLen: byte): string;
 function LTrim(const S: string): string;
 function RTrim(const S: string): string;
@@ -70,9 +72,16 @@ function IntToStr(L: longint): string;
 function StrToInt(const S: string): longint;
 function GetStr(P: PString): string;
 
+function DirOf(const S: string): string;
+function ExtOf(const S: string): string;
+function NameOf(const S: string): string;
+function NameAndExtOf(const S: string): string;
+function DirAndNameOf(const S: string): string;
+
 function EatIO: integer;
 
 const LastStrToIntResult : integer = 0;
+      DirSep             : char    = {$ifdef Linux}'/'{$else}'\'{$endif};
 
 implementation
 
@@ -122,11 +131,18 @@ begin
 end;
 
 function CharStr(C: char; Count: byte): string;
+{$ifndef FPC}
 var S: string;
+{$endif}
 begin
+{$ifdef FPC}
+  CharStr[0]:=chr(Count);
+  FillChar(CharStr[1],Count,C);
+{$else}
   S[0]:=chr(Count);
   FillChar(S[1],Count,C);
   CharStr:=S;
+{$endif}
 end;
 
 function UpcaseStr(const S: string): string;
@@ -209,9 +225,66 @@ begin
 end;
 
 
+function DirOf(const S: string): string;
+var D: DirStr; E: ExtStr; N: NameStr;
+begin
+  FSplit(S,D,N,E);
+  if (D<>'') and (D[Length(D)]<>DirSep) then
+   DirOf:=D+DirSep
+  else
+   DirOf:=D;
+end;
+
+
+function ExtOf(const S: string): string;
+var D: DirStr; E: ExtStr; N: NameStr;
+begin
+  FSplit(S,D,N,E);
+  ExtOf:=E;
+end;
+
+
+function NameOf(const S: string): string;
+var D: DirStr; E: ExtStr; N: NameStr;
+begin
+  FSplit(S,D,N,E);
+  NameOf:=N;
+end;
+
+function NameAndExtOf(const S: string): string;
+var D: DirStr; E: ExtStr; N: NameStr;
+begin
+  FSplit(S,D,N,E);
+  NameAndExtOf:=N+E;
+end;
+
+function DirAndNameOf(const S: string): string;
+var D: DirStr; E: ExtStr; N: NameStr;
+begin
+  FSplit(S,D,N,E);
+  DirAndNameOf:=D+N;
+end;
+
+
 function EatIO: integer;
 begin
   EatIO:=IOResult;
+end;
+
+
+function LowCase(C: char): char;
+begin
+  if ('A'<=C) and (C<='Z') then C:=chr(ord(C)+32);
+  LowCase:=C;
+end;
+
+
+function LowcaseStr(S: string): string;
+var I: Longint;
+begin
+  for I:=1 to length(S) do
+      S[I]:=Lowcase(S[I]);
+  LowcaseStr:=S;
 end;
 
 
@@ -275,10 +348,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.3  1999-03-23 15:11:41  peter
-    * desktop saving things
-    * vesa mode
-    * preferences dialog
+  Revision 1.4  1999-04-07 21:56:06  peter
+    + object support for browser
+    * html help fixes
+    * more desktop saving things
+    * NODEBUG directive to exclude debugger
 
   Revision 1.2  1999/03/08 14:58:22  peter
     + prompt with dialogs for tools

@@ -64,8 +64,10 @@ type
     PAdvancedListBox = ^TAdvancedListBox;
     TAdvancedListBox = object(TListBox)
       Default: boolean;
-      procedure FocusItem(Item: sw_integer); virtual;
-      procedure HandleEvent(var Event: TEvent); virtual;
+      procedure   FocusItem(Item: sw_integer); virtual;
+      procedure   HandleEvent(var Event: TEvent); virtual;
+      constructor Load(var S: TStream);
+      procedure   Store(var S: TStream);
     end;
 
     TLocalMenuListBox = object(TAdvancedListBox)
@@ -84,6 +86,8 @@ type
       Delta: TPoint;
       constructor Init(var Bounds: TRect; AText: String; AColor: word);
       procedure   Draw; virtual;
+      constructor Load(var S: TStream);
+      procedure   Store(var S: TStream);
     end;
 
     PHSListBox = ^THSListBox;
@@ -99,10 +103,10 @@ type
     PAdvancedStatusLine = ^TAdvancedStatusLine;
     TAdvancedStatusLine = object(TStatusLine)
       StatusText: PString;
-      function  GetStatusText: string; virtual;
-      procedure SetStatusText(const S: string); virtual;
-      procedure ClearStatusText; virtual;
-      procedure Draw; virtual;
+      function    GetStatusText: string; virtual;
+      procedure   SetStatusText(const S: string); virtual;
+      procedure   ClearStatusText; virtual;
+      procedure   Draw; virtual;
     end;
 
     PDropDownListBox = ^TDropDownListBox;
@@ -186,11 +190,39 @@ function  GetMenuItemBefore(Menu:PMenu; BeforeOf: PMenuItem): PMenuItem;
 
 procedure NotImplemented;
 
+procedure RegistersWViews;
+
 implementation
 
 uses Mouse,
      Commands,App,MsgBox,
      WUtils;
+
+const
+  RAdvancedListBox: TStreamRec = (
+     ObjType: 1120;
+     VmtLink: Ofs(TypeOf(TAdvancedListBox)^);
+     Load:    @TAdvancedListBox.Load;
+     Store:   @TAdvancedListBox.Store
+  );
+  RColorStaticText: TStreamRec = (
+     ObjType: 1121;
+     VmtLink: Ofs(TypeOf(TColorStaticText)^);
+     Load:    @TColorStaticText.Load;
+     Store:   @TColorStaticText.Store
+  );
+  RHSListBox: TStreamRec = (
+     ObjType: 1122;
+     VmtLink: Ofs(TypeOf(THSListBox)^);
+     Load:    @THSListBox.Load;
+     Store:   @THSListBox.Store
+  );
+  RDlgWindow: TStreamRec = (
+     ObjType: 1123;
+     VmtLink: Ofs(TypeOf(TDlgWindow)^);
+     Load:    @TDlgWindow.Load;
+     Store:   @TDlgWindow.Store
+  );
 
 const
   MessageDialog  : PCenterDialog = nil;
@@ -1150,6 +1182,24 @@ begin
  end;
 end;
 
+constructor TColorStaticText.Load(var S: TStream);
+begin
+  inherited Load(S);
+
+  S.Read(Color,SizeOf(Color));
+  S.Read(DontWrap,SizeOf(DontWrap));
+  S.Read(Delta,SizeOf(Delta));
+end;
+
+procedure TColorStaticText.Store(var S: TStream);
+begin
+  inherited Store(S);
+
+  S.Write(Color,SizeOf(Color));
+  S.Write(DontWrap,SizeOf(DontWrap));
+  S.Write(Delta,SizeOf(Delta));
+end;
+
 constructor THSListBox.Init(var Bounds: TRect; ANumCols: Word; AHScrollBar, AVScrollBar: PScrollBar);
 begin
   inherited Init(Bounds,ANumCols,AVScrollBar);
@@ -1932,10 +1982,39 @@ begin
   GetPalette:=@P;
 end;
 
+constructor TAdvancedListBox.Load(var S: TStream);
+begin
+  inherited Load(S);
+
+  S.Read(Default,SizeOf(Default));
+end;
+
+procedure TAdvancedListBox.Store(var S: TStream);
+begin
+  inherited Store(S);
+
+  S.Write(Default,SizeOf(Default));
+end;
+
+procedure RegistersWViews;
+begin
+  RegisterType(RAdvancedListBox);
+  RegisterType(RColorStaticText);
+  RegisterType(RHSListBox);
+  RegisterType(RDlgWindow);
+end;
+
+
 END.
 {
   $Log$
-  Revision 1.5  1999-03-23 16:16:44  peter
+  Revision 1.6  1999-04-07 21:56:07  peter
+    + object support for browser
+    * html help fixes
+    * more desktop saving things
+    * NODEBUG directive to exclude debugger
+
+  Revision 1.5  1999/03/23 16:16:44  peter
     * linux fixes
 
   Revision 1.4  1999/03/23 15:11:42  peter

@@ -74,6 +74,11 @@ end;
 
 procedure TIDEApp.DoInformation;
 begin
+  if ProgramInfoWindow=nil then
+    begin
+      New(ProgramInfoWindow, Init);
+      Desktop^.Insert(ProgramInfoWindow);
+    end;
   with ProgramInfoWindow^ do
    begin
      if not GetState(sfVisible) then
@@ -92,7 +97,13 @@ end;
 
 {
   $Log$
-  Revision 1.4  1999-03-19 16:04:30  peter
+  Revision 1.5  1999-04-07 21:55:49  peter
+    + object support for browser
+    * html help fixes
+    * more desktop saving things
+    * NODEBUG directive to exclude debugger
+
+  Revision 1.4  1999/03/19 16:04:30  peter
     * new compiler dialog
 
   Revision 1.3  1999/03/12 01:13:59  peter

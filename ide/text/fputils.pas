@@ -41,7 +41,6 @@ function StrToInt(const S: string): longint;
 function IntToHex(L: longint): string;
 function IntToHexL(L: longint; MinLen: byte): string;
 function HexToInt(S: string): longint;
-function CharStr(C: char; Count: byte): string;
 function SmartPath(Path: string): string;
 Function FixPath(s:string;allowdot:boolean):string;
 function FixFileName(const s:string):string;
@@ -85,6 +84,7 @@ const LastStrToIntResult : integer = 0;
 implementation
 
 uses Dos,
+     WUtils,
      FPVars;
 
 function IntToStr(L: longint): string;
@@ -102,14 +102,6 @@ begin
   if C<>0 then L:=-1;
   LastStrToIntResult:=C;
   StrToInt:=L;
-end;
-
-function CharStr(C: char; Count: byte): string;
-var S: string;
-begin
-  S[0]:=chr(Count);
-  FillChar(S[1],Count,C);
-  CharStr:=S;
 end;
 
 function IntToStrZ(L: longint; MinLen: byte): string;
@@ -654,7 +646,13 @@ end;
 END.
 {
   $Log$
-  Revision 1.11  1999-03-19 16:04:31  peter
+  Revision 1.12  1999-04-07 21:55:55  peter
+    + object support for browser
+    * html help fixes
+    * more desktop saving things
+    * NODEBUG directive to exclude debugger
+
+  Revision 1.11  1999/03/19 16:04:31  peter
     * new compiler dialog
 
   Revision 1.10  1999/03/08 14:58:14  peter

@@ -36,7 +36,7 @@ implementation
 uses
   Dos,Objects,Drivers,App,
   WINI,{$ifndef EDITORS}WEditor{$else}Editors{$endif},
-  FPDebug,FPConst,FPVars,FPViews,
+  {$ifndef NODEBUG}FPDebug,{$endif}FPConst,FPVars,FPViews,
   FPIntf,FPTools,FPSwitch;
 
 const
@@ -143,6 +143,7 @@ begin
   StrToPalette:=C;
 end;
 
+{$ifndef NODEBUG}
 procedure WriteOneBreakPointEntry(I : longint;INIFile : PINIFile);
 var PB : PBreakpoint;
     S : String;
@@ -210,6 +211,7 @@ begin
        BreakpointCollection^.Insert(PB);
      end;
 end;
+{$endif NODEBUG}
 
 function ReadINIFile: boolean;
 var INIFile: PINIFile;
@@ -282,9 +284,11 @@ begin
   { Search }
   FindFlags:=INIFile^.GetIntEntry(secSearch,ieFindFlags,FindFlags);
   { Breakpoints }
+{$ifndef NODEBUG}
   BreakpointCount:=INIFile^.GetIntEntry(secBreakpoint,ieBreakpointCount,0);
   for i:=1 to BreakpointCount do
     ReadOneBreakPointEntry(i-1,INIFile);
+{$endif}
   { Tools }
   for I:=1 to MaxToolCount do
     begin
@@ -436,10 +440,12 @@ begin
   { Search }
   INIFile^.SetIntEntry(secSearch,ieFindFlags,FindFlags);
   { Breakpoints }
+{$ifndef NODEBUG}
   BreakPointCount:=BreakpointCollection^.Count;
   INIFile^.SetIntEntry(secBreakpoint,ieBreakpointCount,BreakpointCount);
   for i:=1 to BreakpointCount do
     WriteOneBreakPointEntry(I-1,INIFile);
+{$endif}
   { Tools }
   INIFile^.DeleteSection(secTools);
   for I:=1 to GetToolCount do
@@ -482,7 +488,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.18  1999-03-23 15:11:31  peter
+  Revision 1.19  1999-04-07 21:55:48  peter
+    + object support for browser
+    * html help fixes
+    * more desktop saving things
+    * NODEBUG directive to exclude debugger
+
+  Revision 1.18  1999/03/23 15:11:31  peter
     * desktop saving things
     * vesa mode
     * preferences dialog

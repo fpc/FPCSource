@@ -13,11 +13,9 @@
  **********************************************************************}
 unit WHTML;
 
-interface
+{$I globdir.inc}
 
-{$ifndef FPC}
-  {$define TPUNIXLF}
-{$endif}
+interface
 
 uses Objects;
 
@@ -27,13 +25,19 @@ type
       function GetLine(Idx: sw_integer; var S: string): boolean; virtual;
     end;
 
-    PDOSTextFile = ^TDOSTextFile;
-    TDOSTextFile = object(TTextFile)
-      constructor Init(AFileName: string);
+    PMemoryTextFile = ^TMemoryTextFile;
+    TMemoryTextFile = object(TTextFile)
+      constructor Init;
+      procedure   AddLine(const S: string); virtual;
       function    GetLine(Idx: sw_integer; var S: string): boolean; virtual;
       destructor  Done; virtual;
     private
       Lines : PUnsortedStrCollection;
+    end;
+
+    PDOSTextFile = ^TDOSTextFile;
+    TDOSTextFile = object(TMemoryTextFile)
+      constructor Init(AFileName: string);
     end;
 
     PSGMLParser = ^TSGMLParser;
@@ -45,7 +49,7 @@ type
     public
       Line,LinePos: sw_integer;
       procedure   DocSoftBreak; virtual;
-      procedure   DocAddTextChar(C: char); virtual;
+      function    DocAddTextChar(C: char): boolean; virtual;
       procedure   DocAddText(S: string); virtual;
       procedure   DocProcessTag(Tag: string); virtual;
       procedure   DocProcessComment(Comment: string); virtual;
@@ -58,7 +62,7 @@ type
     PHTMLParser = ^THTMLParser;
     THTMLParser = object(TSGMLParser)
       procedure   DocSoftBreak; virtual;
-      procedure   DocAddTextChar(C: char); virtual;
+      function    DocAddTextChar(C: char): boolean; virtual;
       procedure   DocProcessTag(Tag: string); virtual;
       function    DocGetTagParam(Name: string; var Value: string): boolean; virtual;
       procedure   DocProcessComment(Comment: string); virtual;
@@ -99,49 +103,42 @@ type
 
 implementation
 
-function UpcaseStr(S: string): string;
-var I: Longint;
-begin
-  for I:=1 to length(S) do
-      S[I]:=Upcase(S[I]);
-  UpcaseStr:=S;
-end;
-
-function LowCase(C: char): char;
-begin
-  if ('A'<=C) and (C<='Z') then C:=chr(ord(C)+32);
-  LowCase:=C;
-end;
-
-function LowcaseStr(S: string): string;
-var I: Longint;
-begin
-  for I:=1 to length(S) do
-      S[I]:=Lowcase(S[I]);
-  LowcaseStr:=S;
-end;
-
-function LTrim(S: string): string;
-begin
-  while copy(S,1,1)=' ' do Delete(S,1,1);
-  LTrim:=S;
-end;
-
-function RTrim(S: string): string;
-begin
-  while copy(S,length(S),1)=' ' do Delete(S,length(S),1);
-  RTrim:=S;
-end;
-
-function Trim(S: string): string;
-begin
-  Trim:=RTrim(LTrim(S));
-end;
+uses WUtils;
 
 function TTextFile.GetLine(Idx: sw_integer; var S: string): boolean;
 begin
   Abstract;
   GetLine:=false;
+end;
+
+constructor TMemoryTextFile.Init;
+begin
+  inherited Init;
+  New(Lines, Init(500,500));
+end;
+
+procedure TMemoryTextFile.AddLine(const S: string);
+begin
+  Lines^.Insert(NewStr(S));
+end;
+
+function TMemoryTextFile.GetLine(Idx: sw_integer; var S: string): boolean;
+var OK: boolean;
+    PS: PString;
+begin
+  OK:=(Lines<>nil) and (Idx<Lines^.Count);
+  if OK then
+    begin
+      PS:=Lines^.At(Idx);
+      if PS=nil then S:='' else S:=PS^;
+    end;
+  GetLine:=OK;
+end;
+
+destructor TMemoryTextFile.Done;
+begin
+  inherited Done;
+  if Lines<>nil then Dispose(Lines, Done); Lines:=nil;
 end;
 
 constructor TDOSTextFile.Init(AFileName: string);
@@ -179,29 +176,10 @@ begin
   while (Eof(f)=false) and (IOResult=0) do
     begin
       readln(f,S);
-      Lines^.Insert(NewStr(S));
+      AddLine(S);
     end;
   Close(f);
 {$I+}
-end;
-
-function TDOSTextFile.GetLine(Idx: sw_integer; var S: string): boolean;
-var OK: boolean;
-    PS: PString;
-begin
-  OK:=(Lines<>nil) and (Idx<Lines^.Count);
-  if OK then
-    begin
-      PS:=Lines^.At(Idx);
-      if PS=nil then S:='' else S:=PS^;
-    end;
-  GetLine:=OK;
-end;
-
-destructor TDOSTextFile.Done;
-begin
-  inherited Done;
-  if Lines<>nil then Dispose(Lines, Done); Lines:=nil;
 end;
 
 constructor TSGMLParser.Init;
@@ -236,11 +214,18 @@ var OK: boolean;
     Pos2: integer;
     Name,Entity: string;
     LiteralCode: boolean;
-    LiteralStart,LiteralEnd: integer;
+    LiteralStart,LiteralEnd,P: integer;
+const TabSize : integer = 8;
+      Tab = #9;
 begin
   WasThereAnyText:=false;
   OK:=true; LinePos:=1;
   LiteralStart:=0; LiteralEnd:=0;
+  repeat
+    P:=Pos(TAB,LineText);
+    if P>0 then
+      LineText:=copy(LineText,1,P-1)+CharStr(' ',TabSize)+copy(LineText,P+1,255);
+  until P=0;
   while (LinePos<=length(LineText)) and OK do
     begin
       LiteralCode:=false;
@@ -275,10 +260,7 @@ begin
         InTag:=true;
 
       if InTag then CurTag:=CurTag+C else
-        begin
-          DocAddTextChar(C);
-          WasThereAnyText:=true;
-        end;
+        WasThereAnyText:=DocAddTextChar(C);
       if (LiteralCode=false) and InTag and (InString=false) and (CurTag='<!--') then
         InComment:=true;
       if (LiteralCode=false) and InTag and InComment and (InString=false) and (length(CurTag)>=3) and
@@ -310,7 +292,7 @@ begin
   Abstract;
 end;
 
-procedure TSGMLParser.DocAddTextChar(C: char);
+function TSGMLParser.DocAddTextChar(C: char): boolean;
 begin
   Abstract;
 end;
@@ -346,7 +328,7 @@ procedure THTMLParser.DocSoftBreak;
 begin
 end;
 
-procedure THTMLParser.DocAddTextChar(C: char);
+function THTMLParser.DocAddTextChar(C: char): boolean;
 begin
 end;
 
@@ -700,7 +682,13 @@ end;
 END.
 {
   $Log$
-  Revision 1.3  1999-03-01 15:51:42  peter
+  Revision 1.4  1999-04-07 21:56:03  peter
+    + object support for browser
+    * html help fixes
+    * more desktop saving things
+    * NODEBUG directive to exclude debugger
+
+  Revision 1.3  1999/03/01 15:51:42  peter
     + Log
 
 }

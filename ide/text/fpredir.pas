@@ -101,7 +101,7 @@ Var
 {$endif TP}
 
 var
-  FIN,FOUT,FERR     : File;
+  FIN,FOUT,FERR     : ^File;
   RedirChangedOut,
   RedirChangedIn    : Boolean;
   RedirChangedError : Boolean;
@@ -156,6 +156,15 @@ end;
 
 {$endif def go32v2}
 
+{$ifdef TP}
+Function FdClose (Handle : Longint) : boolean;
+begin
+  { if executed as under GO32 this hangs the DOS-prompt }
+  FdClose:=true;
+end;
+
+{$endif}
+
 {$I-}
 function FileExist(const FileName : PathStr) : Boolean;
 var
@@ -174,12 +183,12 @@ function ChangeRedirOut(Const Redir : String; AppendToFile : Boolean) : Boolean;
   begin
     ChangeRedirOut:=False;
     If Redir = '' then Exit;
-    Assign (FOUT, Redir);
+    Assign (FOUT^, Redir);
     If AppendToFile and FileExist(Redir) then
       Begin
-      Reset(FOUT,1);
-      Seek(FOUT,FileSize(FOUT));
-      End else Rewrite (FOUT);
+      Reset(FOUT^,1);
+      Seek(FOUT^,FileSize(FOUT^));
+      End else Rewrite (FOUT^);
 
     RedirErrorOut:=IOResult;
     IOStatus:=RedirErrorOut;
@@ -187,11 +196,11 @@ function ChangeRedirOut(Const Redir : String; AppendToFile : Boolean) : Boolean;
 {$ifndef FPC}
     Handles:=Ptr (prefseg, PWord (Ptr (prefseg, $34))^);
     OldHandleOut:=Handles^[StdOutputHandle];
-    Handles^[StdOutputHandle]:=Handles^[FileRec (FOUT).Handle];
+    Handles^[StdOutputHandle]:=Handles^[FileRec (FOUT^).Handle];
     ChangeRedirOut:=True;
 {$else}
     if dup(StdOutputHandle,TempHOut) and
-       dup2(FileRec(FOUT).Handle,StdOutputHandle) then
+       dup2(FileRec(FOUT^).Handle,StdOutputHandle) then
       ChangeRedirOut:=True;
 {$endif def FPC}
      RedirChangedOut:=True;
@@ -201,8 +210,8 @@ function ChangeRedirIn(Const Redir : String) : Boolean;
   begin
     ChangeRedirIn:=False;
     If Redir = '' then Exit;
-    Assign (FIN, Redir);
-    Reset(FIN,1);
+    Assign (FIN^, Redir);
+    Reset(FIN^,1);
 
     RedirErrorIn:=IOResult;
     IOStatus:=RedirErrorIn;
@@ -210,11 +219,11 @@ function ChangeRedirIn(Const Redir : String) : Boolean;
 {$ifndef FPC}
     Handles:=Ptr (prefseg, PWord (Ptr (prefseg, $34))^);
     OldHandleIn:=Handles^[StdInputHandle];
-    Handles^[StdInputHandle]:=Handles^[FileRec (FIN).Handle];
+    Handles^[StdInputHandle]:=Handles^[FileRec (FIN^).Handle];
     ChangeRedirIn:=True;
 {$else}
     if dup(StdInputHandle,TempHIn) and
-       dup2(FileRec(FIN).Handle,StdInputHandle) then
+       dup2(FileRec(FIN^).Handle,StdInputHandle) then
       ChangeRedirIn:=True;
 {$endif def FPC}
      RedirChangedIn:=True;
@@ -224,12 +233,12 @@ function ChangeRedirError(Const Redir : String; AppendToFile : Boolean) : Boolea
   begin
     ChangeRedirError:=False;
     If Redir = '' then Exit;
-    Assign (FERR, Redir);
+    Assign (FERR^, Redir);
     If AppendToFile and FileExist(Redir) then
       Begin
-      Reset(FERR,1);
-      Seek(FERR,FileSize(FERR));
-      End else Rewrite (FERR);
+      Reset(FERR^,1);
+      Seek(FERR^,FileSize(FERR^));
+      End else Rewrite (FERR^);
 
     RedirErrorError:=IOResult;
     IOStatus:=RedirErrorError;
@@ -237,11 +246,11 @@ function ChangeRedirError(Const Redir : String; AppendToFile : Boolean) : Boolea
 {$ifndef FPC}
     Handles:=Ptr (prefseg, PWord (Ptr (prefseg, $34))^);
     OldHandleError:=Handles^[StdErrorHandle];
-    Handles^[StdErrorHandle]:=Handles^[FileRec (FERR).Handle];
+    Handles^[StdErrorHandle]:=Handles^[FileRec (FERR^).Handle];
     ChangeRedirError:=True;
 {$else}
     if dup(StdErrorHandle,TempHError) and
-       dup2(FileRec(FERR).Handle,StdErrorHandle) then
+       dup2(FileRec(FERR^).Handle,StdErrorHandle) then
       ChangeRedirError:=True;
 {$endif}
      RedirChangedError:=True;
@@ -292,7 +301,7 @@ end;
 {$else}
     dup2(TempHOut,StdOutputHandle);
 {$endif}
-    Close (FOUT);
+    Close (FOUT^);
     fdClose(TempHOut);
     RedirChangedOut:=false;
   end;
@@ -309,7 +318,7 @@ end;
 {$else}
     dup2(TempHIn,StdInputHandle);
 {$endif}
-    Close (FIn);
+    Close (FIn^);
     fdClose(TempHIn);
     RedirChangedIn:=false;
   end;
@@ -326,7 +335,7 @@ end;
 {$else}
     dup2(TempHError,StdErrorHandle);
 {$endif}
-    Close (FERR);
+    Close (FERR^);
     fdClose(TempHError);
     RedirChangedError:=false;
   end;
@@ -424,10 +433,18 @@ end;
                                   Initialize
 *****************************************************************************}
 
+Begin
+  New(FIn); New(FOut); New(FErr);
 End.
 {
   $Log$
-  Revision 1.14  1999-03-20 00:04:49  pierre
+  Revision 1.15  1999-04-07 21:55:52  peter
+    + object support for browser
+    * html help fixes
+    * more desktop saving things
+    * NODEBUG directive to exclude debugger
+
+  Revision 1.14  1999/03/20 00:04:49  pierre
    * handle loss fixed
 
   Revision 1.13  1999/03/09 01:34:35  peter

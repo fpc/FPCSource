@@ -146,6 +146,8 @@ type
         procedure   RenderTopic; virtual;
         procedure   Lookup(S: string); virtual;
         function    GetPalette: PPalette; virtual;
+        constructor Load(var S: TStream);
+        procedure   Store(var S: TStream);
         destructor  Done; virtual;
       private
         History    : array[0..HistorySize] of THelpHistoryEntry;
@@ -434,6 +436,7 @@ begin
                   if Topic^.Links<>nil then
                     begin
                       Inc(LastLink);
+                      if LinkNo<Topic^.LinkCount then
                       Links^.Insert(NewLink(Topic^.Links^[LinkNo].FileID,
                         Topic^.Links^[LinkNo].Context,LinkStart,LinkEnd));
                       Inc(LinkNo);
@@ -977,7 +980,7 @@ begin
           begin
             X:=DX;
             ScreenX:=X-(Delta.X);
-            if (ScreenX>0) then
+            if (ScreenX>0) and (ScreenX<=High(B)) then
             begin
 {              CurP.X:=X; CurP.Y:=Y;
               if LinkAreaContainsPoint(R,CurP) then}
@@ -999,7 +1002,7 @@ begin
           begin
             X:=DX;
             ScreenX:=X-(Delta.X);
-            if (ScreenX>=0) then
+            if (ScreenX>=0) and (ScreenX<=High(B)) then
             begin
               CurP.X:=X; CurP.Y:=Y;
               if LinkContainsPoint(R,CurP) then
@@ -1018,7 +1021,7 @@ begin
         begin
           X:=DX;
           ScreenX:=X-(Delta.X);
-          if (ScreenX>=0) and (ScreenX<MaxViewWidth) then
+          if (ScreenX>=0) and (ScreenX<High(B)) then
             B[ScreenX]:=(B[ScreenX] and $0fff) or ((SelectionColor and $f0) shl 8);
         end;
       end;
@@ -1034,6 +1037,16 @@ function THelpViewer.GetPalette: PPalette;
 const P: string[length(CHelpViewer)] = CHelpViewer;
 begin
   GetPalette:=@P;
+end;
+
+constructor THelpViewer.Load(var S: TStream);
+begin
+  inherited Load(S);
+end;
+
+procedure THelpViewer.Store(var S: TStream);
+begin
+  inherited Store(S);
 end;
 
 destructor THelpViewer.Done;
@@ -1125,7 +1138,13 @@ end;
 END.
 {
   $Log$
-  Revision 1.7  1999-03-08 14:58:20  peter
+  Revision 1.8  1999-04-07 21:56:02  peter
+    + object support for browser
+    * html help fixes
+    * more desktop saving things
+    * NODEBUG directive to exclude debugger
+
+  Revision 1.7  1999/03/08 14:58:20  peter
     + prompt with dialogs for tools
 
   Revision 1.6  1999/03/01 15:42:13  peter

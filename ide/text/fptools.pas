@@ -92,11 +92,13 @@ type
 
     PToolMessageListBox = ^TToolMessageListBox;
     TToolMessageListBox = object(TMessageListBox)
-      procedure  NewList(AList: PCollection); virtual;
-      procedure  Clear; virtual;
-      procedure  Update; virtual;
-      function   GetPalette: PPalette; virtual;
-      destructor Done; virtual;
+      procedure   NewList(AList: PCollection); virtual;
+      procedure   Clear; virtual;
+      procedure   Update; virtual;
+      function    GetPalette: PPalette; virtual;
+      constructor Load(var S: TStream);
+      procedure   Store(var S: TStream);
+      destructor  Done; virtual;
     end;
 
     PMessagesWindow = ^TMessagesWindow;
@@ -105,6 +107,8 @@ type
       procedure   Update; virtual;
       procedure   HandleEvent(var Event: TEvent); virtual;
       function    GetPalette: PPalette; virtual;
+      constructor Load(var S: TStream);
+      procedure   Store(var S: TStream);
       destructor  Done; virtual;
     private
       MsgLB : PToolMessageListBox;
@@ -136,12 +140,28 @@ const
      MessagesWindow : PMessagesWindow  = nil;
      LastToolMessageFocused : PToolMessage = nil;
 
+procedure RegisterFPTools;
+
 implementation
 
 uses Dos,
      Commands,App,MsgBox,
      WINI,WEditor,
      FPConst,FPVars,FPUtils;
+
+const
+  RToolMessageListBox: TStreamRec = (
+     ObjType: 1600;
+     VmtLink: Ofs(TypeOf(TToolMessageListBox)^);
+     Load:    @TToolMessageListBox.Load;
+     Store:   @TToolMessageListBox.Store
+  );
+  RMessagesWindow: TStreamRec = (
+     ObjType: 1601;
+     VmtLink: Ofs(TypeOf(TMessagesWindow)^);
+     Load:    @TMessagesWindow.Load;
+     Store:   @TMessagesWindow.Store
+  );
 
 type
     THotKeyDef = record
@@ -1363,6 +1383,23 @@ begin
   GetPalette:=@P;
 end;
 
+constructor TToolMessageListBox.Load(var S: TStream);
+begin
+  inherited Load(S);
+end;
+
+procedure TToolMessageListBox.Store(var S: TStream);
+var OL: PCollection;
+begin
+  OL:=List;
+  New(List, Init(1,1));
+
+  inherited Store(S);
+
+  Dispose(List, Done);
+  List:=OL;
+end;
+
 destructor TToolMessageListBox.Done;
 begin
   HScrollBar:=nil; VScrollBar:=nil;
@@ -1417,16 +1454,45 @@ begin
   GetPalette:=@S;
 end;
 
+constructor TMessagesWindow.Load(var S: TStream);
+begin
+  inherited Load(S);
+
+  GetSubViewPtr(S,MsgLB);
+
+  Update;
+  MessagesWindow:=@Self;
+end;
+
+procedure TMessagesWindow.Store(var S: TStream);
+begin
+  inherited Store(S);
+
+  PutSubViewPtr(S,MsgLB);
+end;
+
 destructor TMessagesWindow.Done;
 begin
   MessagesWindow:=nil;
   inherited Done;
 end;
 
+procedure RegisterFPTools;
+begin
+  RegisterType(RToolMessageListBox);
+  RegisterType(RMessagesWindow);
+end;
+
 END.
 {
   $Log$
-  Revision 1.7  1999-03-23 15:11:35  peter
+  Revision 1.8  1999-04-07 21:55:54  peter
+    + object support for browser
+    * html help fixes
+    * more desktop saving things
+    * NODEBUG directive to exclude debugger
+
+  Revision 1.7  1999/03/23 15:11:35  peter
     * desktop saving things
     * vesa mode
     * preferences dialog

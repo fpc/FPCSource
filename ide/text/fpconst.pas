@@ -303,6 +303,8 @@ const
      CBrowserTab =
         #6#12;
 
+     CBrowserOutline = #9#10#10#11;
+
      CGDBInputLine     = #9#9#10#11#12;
 
      CIDEAppColor = CAppColor +
@@ -323,7 +325,13 @@ implementation
 END.
 {
   $Log$
-  Revision 1.16  1999-03-23 15:11:27  peter
+  Revision 1.17  1999-04-07 21:55:44  peter
+    + object support for browser
+    * html help fixes
+    * more desktop saving things
+    * NODEBUG directive to exclude debugger
+
+  Revision 1.16  1999/03/23 15:11:27  peter
     * desktop saving things
     * vesa mode
     * preferences dialog

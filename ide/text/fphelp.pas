@@ -61,7 +61,7 @@ uses Objects,Views,App,MsgBox,
      FPConst,FPVars,FPUtils;
 
 const
-    MaxStatusLevel = {$ifdef FPC}10{$else}2{$endif};
+    MaxStatusLevel = {$ifdef FPC}10{$else}1{$endif};
 
 var StatusStack : array[0..MaxStatusLevel] of string[MaxViewWidth];
 
@@ -379,7 +379,13 @@ end;
 END.
 {
   $Log$
-  Revision 1.13  1999-03-23 15:11:28  peter
+  Revision 1.14  1999-04-07 21:55:46  peter
+    + object support for browser
+    * html help fixes
+    * more desktop saving things
+    * NODEBUG directive to exclude debugger
+
+  Revision 1.13  1999/03/23 15:11:28  peter
     * desktop saving things
     * vesa mode
     * preferences dialog

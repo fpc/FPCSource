@@ -11,6 +11,12 @@ uses
 
 const
     SymbolTypLen : integer=6;
+type
+    { possible types for symtable entries }
+    tsymtyp = (abstractsym,varsym,typesym,procsym,unitsym,programsym,
+               constsym,enumsym,typedconstsym,errorsym,syssym,
+               labelsym,absolutesym,propertysym,funcretsym,
+               macrosym);
 
 type
     TStoreCollection = object(TStringCollection)
@@ -25,26 +31,43 @@ type
     TTypeNameCollection = object(TStoreCollection)
     end;
 
-    PSymbol = ^TSymbol;
+    PSymbolCollection       = ^TSymbolCollection;
+    PSortedSymbolCollection = ^TSortedSymbolCollection;
+    PReferenceCollection    = ^TReferenceCollection;
 
     PReference = ^TReference;
     TReference = object(TObject)
       FileName  : PString;
       Position  : TPoint;
+      constructor Init(AFileName: PString; ALine, AColumn: Sw_integer);
       function    GetFileName: string;
+      destructor  Done; virtual;
     end;
 
-    PSymbolCollection = ^TSymbolCollection;
-    PSortedSymbolCollection = ^TSortedSymbolCollection;
-    PReferenceCollection = ^TReferenceCollection;
+    PSymbolMemInfo = ^TSymbolMemInfo;
+    TSymbolMemInfo = record
+      Addr      : longint;
+      LocalAddr : longint;
+      Size      : longint;
+      PushSize  : longint;
+    end;
 
+    PSymbol = ^TSymbol;
     TSymbol = object(TObject)
       Name       : PString;
-      ParamCount : Sw_integer;
-      Params     : PPointerArray;
+      Typ        : tsymtyp;
+      Params     : PString;
       References : PReferenceCollection;
       Items      : PSymbolCollection;
-      procedure   SetParams(AParamCount: Sw_integer; AParams: PPointerArray);
+      DType      : PString;
+      VType      : PString;
+      ObjectID   : longint;
+      AncestorID : longint;
+      Ancestor   : PSymbol;
+      Flags      : longint;
+      MemInfo    : PSymbolMemInfo;
+      constructor Init(const AName: string; ATyp: tsymtyp; AParams: string; AMemInfo: PSymbolMemInfo);
+      procedure   SetMemInfo(const AMemInfo: TSymbolMemInfo);
       function    GetReferenceCount: Sw_integer;
       function    GetReference(Index: Sw_integer): PReference;
       function    GetItemCount: Sw_integer;
@@ -52,6 +75,26 @@ type
       function    GetName: string;
       function    GetText: string;
       function    GetTypeName: string;
+      destructor  Done; virtual;
+    end;
+
+    PObjectSymbolCollection = ^TObjectSymbolCollection;
+
+    PObjectSymbol = ^TObjectSymbol;
+    TObjectSymbol = object(TObject)
+      Parent     : PObjectSymbol;
+      Symbol     : PSymbol;
+      Expanded   : boolean;
+      constructor Init(AParent: PObjectSymbol; ASymbol: PSymbol);
+      constructor InitName(const AName: string);
+      function    GetName: string;
+      function    GetDescendantCount: sw_integer;
+      function    GetDescendant(Index: sw_integer): PObjectSymbol;
+      procedure   AddDescendant(P: PObjectSymbol);
+      destructor  Done; virtual;
+    private
+      Name: PString;
+      Descendants: PObjectSymbolCollection;
     end;
 
     TSymbolCollection = object(TSortedCollection)
@@ -66,6 +109,19 @@ type
       function  LookUp(const S: string; var Idx: sw_integer): string; virtual;
     end;
 
+    PIDSortedSymbolCollection = ^TIDSortedSymbolCollection;
+    TIDSortedSymbolCollection = object(TSymbolCollection)
+      function  Compare(Key1, Key2: Pointer): Sw_Integer; virtual;
+      procedure Insert(Item: Pointer); virtual;
+      function  SearchSymbolByID(AID: longint): PSymbol;
+    end;
+
+    TObjectSymbolCollection = object(TSortedCollection)
+      function  Compare(Key1, Key2: Pointer): Sw_Integer; virtual;
+      function  LookUp(const S: string; var Idx: sw_integer): string; virtual;
+       function At(Index: Sw_Integer): PObjectSymbol;
+    end;
+
     TReferenceCollection = object(TCollection)
        function At(Index: Sw_Integer): PReference;
     end;
@@ -74,6 +130,9 @@ const
   Modules     : PSymbolCollection = nil;
   ModuleNames : PModuleNameCollection = nil;
   TypeNames   : PTypeNameCollection = nil;
+  ObjectTree  : PObjectSymbol = nil;
+
+function SearchObjectForSymbol(O: PSymbol): PObjectSymbol;
 
 procedure InitBrowserCol;
 procedure DoneBrowserCol;
@@ -142,12 +201,58 @@ end;
 
 
 {****************************************************************************
+                           TIDSortedSymbolCollection
+****************************************************************************}
+
+function TIDSortedSymbolCollection.Compare(Key1, Key2: Pointer): Sw_Integer;
+begin
+  Compare:=0;
+end;
+
+procedure TIDSortedSymbolCollection.Insert(Item: Pointer);
+begin
+end;
+
+function TIDSortedSymbolCollection.SearchSymbolByID(AID: longint): PSymbol;
+begin
+  SearchSymbolByID:=nil;
+end;
+
+
+{****************************************************************************
+                           TObjectSymbolCollection
+****************************************************************************}
+
+function TObjectSymbolCollection.At(Index: Sw_Integer): PObjectSymbol;
+begin
+end;
+
+function TObjectSymbolCollection.Compare(Key1, Key2: Pointer): Sw_Integer;
+begin
+  Compare:=0;
+end;
+
+function TObjectSymbolCollection.LookUp(const S: string; var Idx: sw_integer): string;
+begin
+  LookUp:='';
+end;
+
+
+{****************************************************************************
                                 TReference
 ****************************************************************************}
+
+constructor TReference.Init(AFileName: PString; ALine, AColumn: Sw_integer);
+begin
+end;
 
 function TReference.GetFileName: string;
 begin
   GetFileName:='';
+end;
+
+destructor TReference.Done;
+begin
 end;
 
 
@@ -155,7 +260,11 @@ end;
                                    TSymbol
 ****************************************************************************}
 
-procedure TSymbol.SetParams(AParamCount: Sw_integer; AParams: PPointerArray);
+constructor TSymbol.Init(const AName: string; ATyp: tsymtyp; AParams: string; AMemInfo: PSymbolMemInfo);
+begin
+end;
+
+procedure TSymbol.SetMemInfo(const AMemInfo: TSymbolMemInfo);
 begin
 end;
 
@@ -194,9 +303,60 @@ begin
   GetTypeName:='';
 end;
 
+destructor TSymbol.Done;
+begin
+end;
+
+
+{*****************************************************************************
+                                 TObjectSymbol
+*****************************************************************************}
+
+constructor TObjectSymbol.Init(AParent: PObjectSymbol; ASymbol: PSymbol);
+begin
+end;
+
+constructor TObjectSymbol.InitName(const AName: string);
+begin
+end;
+
+function TObjectSymbol.GetName: string;
+begin
+end;
+
+function TObjectSymbol.GetDescendantCount: sw_integer;
+begin
+  GetDescendantCount:=0;
+end;
+
+function TObjectSymbol.GetDescendant(Index: sw_integer): PObjectSymbol;
+begin
+  GetDescendant:=nil;
+end;
+
+procedure TObjectSymbol.AddDescendant(P: PObjectSymbol);
+begin
+end;
+
+destructor TObjectSymbol.Done;
+begin
+end;
+
+
+{*****************************************************************************
+                              Main Routines
+*****************************************************************************}
+
 procedure CreateBrowserCols;
 begin
 end;
+
+
+function SearchObjectForSymbol(O: PSymbol): PObjectSymbol;
+begin
+  SearchObjectForSymbol:=nil;
+end;
+
 
 
 {*****************************************************************************
@@ -247,7 +407,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  1999-01-28 19:56:12  peter
+  Revision 1.2  1999-04-07 21:55:39  peter
+    + object support for browser
+    * html help fixes
+    * more desktop saving things
+    * NODEBUG directive to exclude debugger
+
+  Revision 1.1  1999/01/28 19:56:12  peter
     * moved to include compiler/gdb independent of each other
 
   Revision 1.3  1999/01/22 10:24:16  peter
