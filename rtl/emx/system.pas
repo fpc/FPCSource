@@ -1216,7 +1216,7 @@ begin
     case os_mode of
         osDOS:
             begin
-                stackbottom:=cardinal(heap_brk);    {In DOS mode, heap_brk is
+                stackbottom:=pointer(heap_brk);     {In DOS mode, heap_brk is
                                                      also the stack bottom.}
                 ApplicationType := 1;   (* Running under DOS. *)
                 IsConsole := true;
@@ -1225,7 +1225,7 @@ begin
         osOS2:
             begin
                 DosGetInfoBlocks (@TIB, @PIB);
-                StackBottom := cardinal (TIB^.Stack);
+                StackBottom := pointer (TIB^.Stack);
                 Environment := pointer (PIB^.Env);
                 ApplicationType := PIB^.ProcType;
                 IsConsole := ApplicationType <> 3;
@@ -1266,7 +1266,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2003-11-01 19:25:50  hajny
+  Revision 1.20  2003-11-06 23:21:51  hajny
+    * cardinal2pointer changes
+
+  Revision 1.19  2003/11/01 19:25:50  hajny
     * fix of previous mistyping
 
   Revision 1.18  2003/10/25 22:45:37  hajny
