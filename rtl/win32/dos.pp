@@ -379,17 +379,30 @@ var
   l    : Longint;
   AppPath,
   AppParam : array[0..255] of char;
+  lpApplicationName : pchar;
 begin
   FillChar(SI, SizeOf(SI), 0);
   SI.cb:=SizeOf(SI);
   SI.wShowWindow:=1;
   Move(Path[1],AppPath,length(Path));
   AppPath[Length(Path)]:=#0;
-  AppParam[0]:='-';
+  { use the white token delimiter only if the program
+   name is not supplied in path, this means that the
+   program name is supplied after the - token. Windows accepts
+   - even if path <> '', but other shells (4nt) don't.
+  }
+  lpApplicationName := pchar(@Apppath);
+  if path = '' then
+     begin
+       AppParam[0]:='-';
+       lpApplicationName := nil; { must be null }
+     end
+  else
+     AppParam[0]:=' ';
   AppParam[1]:=' ';
   Move(ComLine[1],AppParam[2],length(Comline));
   AppParam[Length(ComLine)+2]:=#0;
-  if not CreateProcess(PChar(@AppPath), PChar(@AppParam),
+  if not CreateProcess(lpApplicationName, PChar(@AppParam),
            Nil, Nil, ExecInheritsHandles,$20, Nil, Nil, SI, PI) then
    begin
      DosError:=Last2DosError(GetLastError);
@@ -1018,7 +1031,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2002-09-07 16:01:28  peter
+  Revision 1.15  2002-12-03 20:39:14  carl
+     * fix for dos.exec with non-microsoft shells
+
+  Revision 1.14  2002/09/07 16:01:28  peter
     * old logs removed and tabs fixed
 
   Revision 1.13  2002/07/06 11:48:09  carl
