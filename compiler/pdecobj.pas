@@ -101,7 +101,7 @@ implementation
              get_procdef:=nil;
              while assigned(p) do
                begin
-                  if equal_paras(p^.para,propertyparas,cp_value_equal_const) then
+                  if equal_paras(p^.para,propertyparas,cp_value_equal_const) or convertable_paras(p^.para,propertyparas,cp_value_equal_const) then {MvdV: Ozerski 14.03.01}
                     break;
                   p:=p^.nextoverloaded;
                end;
@@ -124,7 +124,7 @@ implementation
 
         begin
            { check for a class }
-           if not(is_class_or_interface(aktclass)) then
+           if not((is_class_or_interface(aktclass)) or ((m_delphi in aktmodeswitches) and (is_object(aktclass)))) then {MvdV: Ozerski 14.03.01}
             Message(parser_e_syntax_error);
            consume(_PROPERTY);
            propertyparas:=TParaLinkedList.Create;
@@ -1165,7 +1165,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2001-03-11 22:58:49  peter
+  Revision 1.17  2001-03-16 14:56:38  marco
+   * Pavel's fixes commited (Peter asked). Cycled to test
+
+  Revision 1.16  2001/03/11 22:58:49  peter
     * getsym redesign, removed the globals srsym,srsymtable
 
   Revision 1.15  2000/12/25 00:07:27  peter
