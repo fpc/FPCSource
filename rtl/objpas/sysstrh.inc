@@ -30,7 +30,7 @@ type
 
    { For FloatToText }
    TFloatFormat = (ffGeneral, ffExponent, ffFixed, ffNumber, ffCurrency);
-   TFloatValue = (fvExtended, fvCurrency, fvSingle, fvReal, fvDouble, fvComp);  
+   TFloatValue = (fvExtended, fvCurrency, fvSingle, fvReal, fvDouble, fvComp);
    TReplaceFlags = set of (rfReplaceAll, rfIgnoreCase);
 
    TFloatRec = Record
@@ -104,6 +104,7 @@ Procedure FmtStr(Var Res: String; Const Fmt : String; Const args: Array of const
 Function FloatToStrF(Value: Extended; format: TFloatFormat; Precision, Digits: Integer): String;
 Function FloatToStr(Value: Extended): String;
 Function StrToFloat(Const S : String) : Extended;
+Function StrToFloatDef(Const S: String; Const Default: Extended): Extended;
 Function TextToFloat(Buffer: PChar; Var Value: Extended): Boolean;
 Function TextToFloat(Buffer: PChar; Var Value; ValueType: TFloatValue): Boolean;
 Function FloatToText(Buffer: PChar; Value: Extended; format: TFloatFormat; Precision, Digits: Integer): Longint;
@@ -148,7 +149,10 @@ function BCDToInt(Value: integer): integer;
 
 {
   $Log$
-  Revision 1.15  2002-12-23 23:12:34  florian
+  Revision 1.16  2002-12-24 23:33:37  peter
+    * export StrToFloatDef
+
+  Revision 1.15  2002/12/23 23:12:34  florian
     + TextToFloat: D6 compatibility added
 
   Revision 1.14  2002/11/28 22:26:30  michael
