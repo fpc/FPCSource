@@ -674,6 +674,11 @@ interface
                            (taicpu(hp).oper[0].typ=top_reg) and
                            ((taicpu(hp).oper[0].reg.enum in [firstsreg..lastsreg])) then
                          AsmWriteln(#9#9'DB'#9'066h');
+                       if (taicpu(hp).opsize=S_W) and
+                           (taicpu(hp).opcode=A_PUSH) and
+                           (taicpu(hp).oper[0].typ=top_const) then
+                        AsmWriteln(#9#9'DB'#9'066h');
+
                        { added prefix instructions, must be on same line as opcode }
                        if (taicpu(hp).ops = 0) and
                           ((taicpu(hp).opcode = A_REP) or
@@ -966,7 +971,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.35  2003-08-09 18:56:54  daniel
+  Revision 1.36  2003-08-18 11:52:57  marco
+   * fix for 2592, pushw imm
+
+  Revision 1.35  2003/08/09 18:56:54  daniel
     * cs_regalloc renamed to cs_regvars to avoid confusion with register
       allocator
     * Some preventive changes to i386 spillinh code
