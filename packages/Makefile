@@ -144,7 +144,7 @@ ifeq ($(OS_TARGET),freebsd)
 override TARGET_DIRS+=zlib ncurses x11 gtk syslog inet uncgi mysql ibase postgres oracle opengl forms svgalib ggi libpng libgd utmp paszlib gdbint cmem regexpr unzip
 endif
 ifeq ($(OS_TARGET),beos)
-override TARGET_DIRS+=uncgi paszlib regexpr
+override TARGET_DIRS+=paszlib regexpr
 endif
 ifeq ($(OS_TARGET),netbsd)
 override TARGET_DIRS+=zlib ncurses x11 gtk syslog inet uncgi mysql ibase postgres oracle opengl forms svgalib ggi libpng libgd utmp paszlib gdbint cmem regexpr unzip
@@ -869,7 +869,6 @@ TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_UNZIP=1
 endif
 ifeq ($(OS_TARGET),beos)
-TARGET_DIRS_UNCGI=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_REGEXPR=1
 endif
