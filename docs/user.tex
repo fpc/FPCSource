@@ -57,29 +57,24 @@ This is the user's manual for \fpc . It describes the installation and
 use of the \fpc compiler on the different supported platforms.
 It does not attempt to give an exhaustive list of all supported commands,
 nor a definition of the Pascal language. Look at the
-\refref for these things.
-For a description of the
-possibilities and the inner workings of the compiler, see the
+\refref for these things. For a description of the possibilities and the 
+inner workings of the compiler, see the
 \progref . In the appendices of this document you will find lists of
 reserved words and compiler error messages (with descriptions).
 
 This document describes the compiler as it is/functions at the time of
-writing. Since the compiler is under continuous development, some of the
-things described here may be outdated. In case of doubt, consult the
-\file{README} files, distributed with the compiler.
-The \file{README} files are, in case of conflict with this manual,
-authoritative.
+writing. First consult the \file{README} and \file{FAQ} files, distributed 
+with the compiler. The \file{README} and \file{FAQ} files are, in case of 
+conflict with this manual, authoritative.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % About the compiler
 \section{About the compiler}
-\fpc is a 32-bit compiler for the i386 and m68k processors\footnote{Work is being done
-on a port to ALPHA and PPC architectures}. Currently, it supports the following 
-operating systems:
+\fpc is a 32-bit compiler for the i386 and m68k processors. Currently, 
+it supports the following operating systems:
 \begin{itemize}
 \item \dos
 \item \linux
-\item \atari (version 0.99.5 only)
 \item \amiga (version 0.99.5 only)
 \item \windows
 \item \ostwo (using the EMX package, so it also works on DOS/Windows)
@@ -87,6 +82,7 @@ operating systems:
 \item \beos (under development)
 \item \solaris (under development)
 \item \palmos(under development)
+\item \netbsd (under development)
 \end{itemize}
 
 \fpc is designed to be, as much as possible, source compatible with
@@ -156,12 +152,11 @@ Let's get on with something useful.
 \subsection{System requirements}
 The compiler needs at least the following hardware:
 \begin{enumerate}
-\item An I386 or higher processor. A coprocessor is not required, although it
-will slow down your program's performance if you do floating point calculations
-without a coprocessor, since an emulation will be used.
-\item 4 Mb of free memory. Under \dos, if you use DPMI memory management,
-such as under Windows, you will need at least 16 Mb.
-\item At least 500 Kb. free disk space.
+\item An Intel 80386 or higher processor (for the intel version). A coprocessor 
+is not required, although it will slow down your program's performance if you do 
+floating point calculations without a coprocessor, since emulation will be used.
+\item 4 Megabytes of free memory. 
+\item At least 3 Megabytes free disk space.
 \end{enumerate}
 
 % Software requirements
@@ -171,15 +166,15 @@ such as under Windows, you will need at least 16 Mb.
 The \dos distribution contains all the files you need to run the compiler
 and compile pascal programs.
 
-\subsubsection{Under Linux}
-Under \linux you need to have the following programs installed :
+\subsubsection{Under UNIX}
+Under \unix systems (such as \linux) you need to have the following programs 
+installed :
 \begin{enumerate}
 \item \gnu \file{as}, the \gnu assembler.
 \item \gnu \file{ld}, the \gnu linker.
 \item Optionally (but highly recommended) : \gnu \file{make}. For easy
 recompiling of the compiler and Run-Time Library, this is needed.
 \end{enumerate}
-Other than that, \fpc should run on almost any I386 \linux system.
 
 \subsubsection{Under Windows}
 The \windows distribution contains all the files you need to run the compiler
@@ -223,7 +218,6 @@ The screen of the installation program looks like figure \ref{fig:install}.
 \label{fig:install}
 \ifpdf
 \epsfig{file=pics/install1.png,width=\textwidth}
-%\epsfig{file=pics/install.png,width=\textwidth}
 \end{figure}
 \begin{figure}
 \caption{The \dos install program screen.}
@@ -256,9 +250,6 @@ It should look something like this :
 \end{verbatim}
 (Again, assuming that you installed in the default location).
 
-If you want to use the graphic drivers you must modify the
-environment variable \var{GO32}. Instructions for doing this can be found
-in the documentation of the Graph unit, at the \var{InitGraph} procedure.
 
 \subsubsection{Optional Installation: The coprocessor emulation}
 For people who have an older CPU type, without math coprocessor (i387)
@@ -299,7 +290,7 @@ You need root access to install these packages. The \file{.tar} file
 allows you to do an installation if you don't have root permissions.
 
 When downloading the \var{.tar} file, or the separate files,
- installation is more interactive.
+installation is more interactive.
 
 In case you downloaded the \file{.tar} file, you should first untar
 the file, in some directory where
@@ -340,45 +331,54 @@ as it will attempt to create the directories you specify.
 In principle, you can install it wherever you want, though.
 
 At the end of installation, the installation program will generate a
-configuration file (\file{ppc386.cfg}) for the \fpc compiler which 
+configuration file (\file{ppc.cfg}) for the \fpc compiler which 
 reflects the settings that you chose. It will install this file in 
 the \file{/etc} directory or in your home directory (with name
-\file{.ppc386.cfg}) if you do not have write permission in the \file{/etc}
+\file{.ppc.cfg}) if you do not have write permission in the \file{/etc}
 directory. It will make a copy in the directory where you installed the 
 libraries.
 
-The compiler will first look for a file \file{.ppc386.cfg} in your home 
+The compiler will first look for a file \file{.ppc.cfg} in your home 
 directory before looking in the \file{/etc} directory.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Optional configuration
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Optional configuration steps}
 On any platform, after installing the compiler you may wish to set
-some environment variables. The \fpc compiler
-recognizes the following variables :
+some environment variables. The \fpc compiler recognizes the 
+following variables :
+
 \begin{itemize}
-\item \verb|PPC_EXEC_PATH| contains the directory where '\file{as}' and
-'\file{ld}' are. (default \file{/usr/bin})
-\item \verb|PPC_GCCLIB_PATH| contains the directory where \file{libgcc.a}
-is (no default). This if for \linux only.
-\item \verb|PPC_CONFIG_PATH| specifies an alternate path to find
-\file{ppc386.cfg} (default under \linux is \file{/etc})
+\item \verb|PPC_EXEC_PATH| contains the directory where support files for
+the compiler can be found.
+\item \verb|PPC_CONFIG_PATH| specifies an alternate path to find the \file{ppc.cfg}.
 \item \verb|PPC_ERROR_FILE|  specifies the path and name of the error-definition file.
-                  (default \file{/usr/lib/fpc/errorE.msg})
+\item \verb|FPCDIR| specifies the root directory of the \fpc installation.
+(e.g : \verb|C:\PP\BIN|)
 \end{itemize}
 
 These locations are, however, set in the sample configuration file which is
 built at the end of the installation process, except for the
 \verb|PPC_CONFIG_PATH| variable, which you must set if you didn't install
 things in the default places.
-\subsubsection{finally}
+
+\section{Before compiling}
+
 Also distributed in \fpc is a README file. It contains the latest
 instructions for installing \fpc, and should always be read first.
+
+Furthermore, platform-specific information and common questions
+are addressed in the \var{FAQ}. It should be read before reporting any 
+bug.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Testing the compiler
 \section{Testing the compiler}
-After the installation is completed and the environment variables are
-set as described above, your first program can be compiled.
+
+After the installation is completed and the optional environment variables 
+are set as described above, your first program can be compiled.
 
 Included in the \fpc distribution are some demonstration programs,
 showing what the compiler can do.
@@ -387,30 +387,30 @@ these programs.
 
 The compiler is called
 \begin{itemize}
-\item \file{ppc386} under \linux
-\item \file{PPC386.EXE} under other target systems.
+\item \file{fpc.exe} under \windows, \ostwo and \dos.
+\item \file{fpc} under most other operating systems.
 \end{itemize}
 To compile a program (e.g \verb|demo\hello.pp|) simply type :
 \begin{verbatim}
-  ppc386 hello
+  fpc hello
 \end{verbatim}
 at the command prompt. If you don't have a configuration file, then you may
 need to tell the compiler where it can find the units, for instance as
 follows:
 \begin{verbatim}
-ppc386 -Fuc:\pp\units\go32v2\rtl hello
+fpc -Fuc:\pp\units\go32v2\rtl hello
 \end{verbatim}
 under \dos, and under \linux you could type
 \begin{verbatim}
-ppc386 -Fu/usr/lib/fpc/NNN/units/linux/rtl hello
+fpc -Fu/usr/lib/fpc/NNN/units/linux/rtl hello
 \end{verbatim}
 (replace \var{NNN} with the version number of \fpc that you are using).
 This is, of course, assuming that you installed under \verb|C:\PP| or
 \file{/usr/lib/fpc/NNN}, respectively.
 
 If you got no error messages, the compiler has generated an executable
-called \file{hello} (no extension) under \linux, and a file \file{hello.exe}
-under \dos.
+called \file{hello.exe} under \dos, \ostwo or \windows, or \file{hello} 
+(no extension) under \unix and most other operating systems.
 
 To execute the program, simply type :
 \begin{verbatim}
@@ -428,12 +428,10 @@ Hello world
 \label{ch:Usage}
 
 Here we describe the essentials to compile a program and a unit.
-We also describe how to make a stand-alone executable of the
-compiled program under \dos. For more advanced uses of the compiler,
-see the section on configuring the compiler, and the
-\progref{}.
+For more advanced uses of the compiler, see the section on configuring 
+the compiler, and the \progref{}.
 
-The examples in this section suppose that you have a \file{ppc386.cfg} which
+The examples in this section suppose that you have a \file{ppc.cfg} which
 is set up correctly, and which contains at least the path setting for the
 RTL units. In principle this file is generated by the installation program.
 You may have to check that it is in the correct place (see section
@@ -451,25 +449,26 @@ this.
 The use of slashes (/) and backslashes (\verb+\+) as directory separators
 is irrelevant, the compiler will convert to whatever character is used on
 the current operating system. Examples will be given using slashes, since
-this avoids problems on \linux.
+this avoids problems on \unix systems (such as \linux).
 \end{remark}
 
 % Command-line files.
 \subsection{Command line files}
 The file that you specify on the command line, such as in
 \begin{verbatim}
-ppc386 foo.pp
+fpc foo.pp
 \end{verbatim}
 will be looked for ONLY in the current directory. If you specify a directory
 in the filename, then the compiler will look in that directory:
 \begin{verbatim}
-ppc386 subdir/foo.pp
+fpc subdir/foo.pp
 \end{verbatim}
 will look for \file{foo.pp} in the subdirectory \file{subdir} of the current
 directory.
 
-Under \linux, the name of this file is case sensitive, under other operating
-systems (\dos, \windowsnt, \ostwo) this is not the case.
+Under case sensitive file systems (such as \linux and \unix), the name of this 
+file is case sensitive, under other operating systems (such as \dos, \windowsnt, \ostwo) 
+this is not the case.
 
 % Unit files.
 \subsection{Unit files}
@@ -478,10 +477,11 @@ When you compile a unit or program that needs other units, the compiler will
 look for compiled versions of these units in the following way:
 \begin{enumerate}
 \item It will look in the current directory.
+\item It will look in the directory where the source file is being compiled.
 \item It will look in the directory where the compiler binary is.
-(not under \linux)
 \item It will look in all the directories specified in the unit search path.
 \end{enumerate}
+
 You can add a directory to the unit search path with the (\seeo{Fu})
 option. Every occurrence of one of this options will {\em insert}
 a directory to the unit search path. i.e. the last path on the command line
@@ -490,8 +490,8 @@ will be searched first.
 The compiler adds several paths to the unit search path:
 \begin{enumerate}
 \item The contents of the environment variable \var{XXUNITS}, where \var{XX}
-musrt be replaced with one of the supported targets: \var{GO32V2},
-\var{LINUX},\var{WIN32}, \var{OS2}.
+must be replaced with one of the supported targets: \var{GO32V2},
+\var{LINUX},\var{WIN32}, \var{OS2}, \var{BEOS}, \var{FREEBSD}, \var{NETBSD}.
 \item The standard unit directory. This directory is determined
 from the \var{FPCDIR} environment variable. If this variable is not set,
 then it is defaulted to the following:
@@ -517,10 +517,11 @@ Here target must be replaced by the name of the target you are compiling for.
 You can see what paths the compiler will search by giving the compiler
 the \var{-vu} option.
 
-On \linux, the compiler will first convert the filename of a unit to
-all-lowercase. This is necessary, since Pascal is case-independent, and
-the statements \var{Uses Unit1;} or \var{uses unit1;} should have the same
-effect.
+On systems where filenames to lower-case (such as \unix and \linux), the compiler 
+will first convert the filename of a unit to all-lowercase. This is necessary, 
+since Pascal is case-independent, and the statements \var{Uses Unit1;} or 
+\var{uses unit1;} should have the same effect.
+
 Also, unit names that are longer than 8 characters will first be looked for
 with their full length. If the unit is not found with this name, the name
 will be truncated to 8 characters, and the compiler will look again in the
@@ -529,7 +530,7 @@ same directories, but with the truncated name.
 For instance, suppose that the file \file{foo.pp} needs the unit
 \file{bar}. Then the command
 \begin{verbatim}
-ppc386 -Fu.. -Fuunits foo.pp
+fpc -Fu.. -Fuunits foo.pp
 \end{verbatim}
 will tell the compiler to look for the unit \file{bar} in the following
 places:
@@ -552,7 +553,7 @@ If the compiler doesn't find a compiled version of the unit, or when the
 manner for the unit source file, and attempt to recompile it.
 
 It is recommended to set the unit search path in the configuration file
-\file{ppc386.cfg}. If you do this, you don't need to specify the unit search
+\file{ppc.cfg}. If you do this, you don't need to specify the unit search
 path on the command-line every time you want to compile something.
 
 % Include files.
@@ -578,7 +579,7 @@ As an example, consider the following include statement in a file
 \end{verbatim}
 Then the following command :
 \begin{verbatim}
-ppc386 -Iincfiles units/foo.pp
+fpc -Iincfiles units/foo.pp
 \end{verbatim}
 will cause the compiler to look in the following directories for
 \file{bar.inc}:
@@ -604,14 +605,22 @@ You can add files to the object file search path with the \seeo{Fo} option.
 % Configuration file
 \subsection{Configuration file}
 \label{searchconfig}
+
+Starting from version 1.0.6 of the compiler, usage of the
+file \file{ppc386.cfg} is considered deprecated. The file
+should now be called \file{ppc.cfg} and will work for
+all processor targets. For compatibility, \file{ppc.cfg} will
+be searched first, and if not found, the file \file{ppc386.cfg}
+will be used.
+
 Unless you specify the \seeo{n} option, the compiler will look
-for a configuration file \file{ppc386.cfg} in the following places:
+for a configuration file \file{ppc.cfg} in the following places:
 
 \begin{itemize}
-\item Under \linux
+\item Under \unix (such as \linux)
 \begin{enumerate}
 \item The current directory.
-\item In your home directory, it looks for \file{.ppc386.cfg}.
+\item In your home directory, it looks for \file{.ppc.cfg}.
 \item The directory specified in the environment variable
 \var{PPC\_CONFIG\_PATH}, and if it's not set under \file{/etc}.
 \end{enumerate}
@@ -640,7 +649,7 @@ their names, since the linker doesn't understand such filenames.
 Compiling a program is very simple. Assuming that you have a program source
 in the file \file{prog.pp}, you can compile this with the following command:
 \begin{verbatim}
-  ppc386 [options] prog.pp
+  fpc [options] prog.pp
 \end{verbatim}
 The square brackets \var{[\ ]} indicate that what is between them is optional.
 
@@ -648,23 +657,17 @@ If your program file has the \file{.pp} or \file{.pas} extension,
 you can omit this on the command line, e.g. in the previous example you
 could have typed:
 \begin{verbatim}
-  ppc386 [options] prog
+  fpc [options] prog
 \end{verbatim}
 
-If all went well, the compiler will produce an executable, or, for version 1
-of the \dos extender, a file which can be converted to an executable.
-
-Unless you are using \dos and version 1 of the \dos extender,
-the file you obtained is the executable.
-You can execute it straight away, you don't need to do
-anything else. Under version 1 of the \dos extender,
-additional processing is required. See section \ref{go32v1} on how to
-create an executable in this case.
+If all went well, the compiler will produce an executable file. You can execute 
+it straight away, you don't need to do anything else. 
 
 You will notice that there is also another file in your directory, with
 extensions \file{.o}. This contains the object file for your program.
 If you compiled a program, you can delete the object file (\file{.o}),
 but not if you compiled a unit.
+
 Then the object file contains the code of the unit, and will be
 linked in any program that uses the unit you compiled, so you shouldn't
 remove it.
@@ -679,7 +682,7 @@ The difference is mainly that the linker isn't called in this case.
 
 To compile a unit in the file \file{foo.pp}, just type :
 \begin{verbatim}
-  ppc386  foo
+  fpc  foo
 \end{verbatim}
 Recall the remark about file extensions in the previous section.
 
@@ -696,7 +699,7 @@ provide both the \file{.ppu} and \file{.o} file. One is useless without the
 other.
 
 \begin{remark}
-Under \linux, a unit source file {\em must} have a lowercase filename.
+Under \linux and \unix, a unit source file {\em must} have a lowercase filename.
 Since Pascal is case independent, you can specify the names of units in the
 \var{uses} clause in either case. To get a unique filename, the \fpc compiler
 changes the name of the unit to all lowercase when looking for unit files.
@@ -812,9 +815,7 @@ When you created your program, it is possible to reduce its size. This
 is possible, because the compiler leaves a lot of information in the
 program which, strictly speaking, isn't required for the execution of
 it. The surplus of information can be removed with a small program
-called \file{strip}. It comes with the \var{GO32} development
-environment under \dos, and is standard on \linux machines where you can
-do development. The usage is simple. Just type
+called \file{strip}.The usage is simple. Just type
 \begin{verbatim}
 strip prog
 \end{verbatim}
@@ -896,7 +897,7 @@ The output of the compiler can be controlled in many ways. This can be done
 essentially in two distinct ways:
 \begin{itemize}
 \item Using command-line options.
-\item Using the configuration file: \file{ppc386.cfg}.
+\item Using the configuration file: \file{ppc.cfg}.
 \end{itemize}
 The compiler first reads the configuration file. Only then the command line
 options are checked. This creates the possibility to set some basic options
@@ -904,15 +905,14 @@ in the configuration file, and at the same time you can still set some
 specific options when compiling some unit or program. First we list the
 command line options, and then we explain how to specify the command
 line options in the configuration file. When reading this, keep in mind
-that the options are case sensitive. While this is customary for \linux, it
-isn't under \dos.
+that the options are case sensitive. 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Using the command-line options
 \section{Using the command-line options}
 
-The available options for version 0.99.10 of the compiler are listed by
+The available options for version 1.0.6 of the compiler are listed by
 category (see appendix A for a listing as generated by the compiler):
 
 %
@@ -1215,7 +1215,7 @@ compiler to define only some very basic types.
 % Using the configuration file
 \section{Using the configuration file}
 \label{se:configfile}
-Using the configuration file \file{ppc386.cfg} is an alternative to command
+Using the configuration file \file{ppc.cfg} is an alternative to command
 line options. When a configuration file is found, it is read, and the lines
 in it are treated like you typed them on the command line. They are treated
 before the options that you type on the command line.
@@ -1247,7 +1247,12 @@ following directives, which you should place on the first column of a line :
 \item [\#INCLUDE]
 \item [\#SECTION]
 \end{description}
-They work the same way as their \{\$...\}  counterparts in Pascal.
+They work the same way as their \{\$...\}  counterparts in Pascal. All the default
+defines used to compile source code are also defined while processing the configuration
+file. For example, if the target compiler is an intel 80x86 compatile linux platform,
+both \var{cpu86} and \var{linux} will be defined while interpreting the configuration
+file. For the possible default defines when compiling, consult Appendix G of the \progref.
+
 
 What follows is a description of the different directives.
 
@@ -1376,15 +1381,15 @@ have the global options that are set in a global configuration file.
 Example:
 \begin{verbatim}
 #IFDEF LINUX
-  #INCLUDE /etc/ppc386.cfg
+  #INCLUDE /etc/ppc.cfg
 #ELSE
   #IFDEF GO32V2
-    #INCLUDE c:\pp\bin\ppc386.cfg
+    #INCLUDE c:\pp\bin\ppc.cfg
   #ENDIF
 #ENDIF
 \end{verbatim}
-This will include \file{/etc/ppc386.cfg} if you're on a linux machine,
-and will include \verb+c:\pp\bin\ppc386.cfg+
+This will include \file{/etc/ppc.cfg} if you're on a linux machine,
+and will include \verb+c:\pp\bin\ppc.cfg+
 on a dos machine.
 
 \subsection{\#SECTION}
@@ -1408,7 +1413,7 @@ the paths that you feed to the compiler:
 \item[FPCTARGET] is replaced by the compiler's target CPU
 (deprecated).
 \item[FPCCPU] is also replaced by the compiler's target CPU.
-\item[TARGET] is replaced by the compiler's target OS.(deprecated)
+\item[TARGET] is replaced by the compiler's target OS (deprecated).
 \item[FPCOS] is replaced by the compiler's target OS.
 \end{description}
 To have these variables subsituted, just insert them with a \var{\$}
@@ -2107,7 +2112,6 @@ and supports writing custom drivers.
 \item [objects]  This unit provides basic routines for handling objects.
 \item [objpas] is used for Delphi compatibility; you should never load this
 unit explicitly; it is automatically loaded if you request Delphi mode.
-\item [ports] provides access to the PC hardware ports.
 \item [strings] This unit provides basic string handling routines for the
 \var{pchar} type, comparable to similar routines in standard \var{C}
 libraries.
@@ -2239,7 +2243,7 @@ trying to compile a program with debugging support.
 To compile a program with debugging support, just specify the \var{-g}
 option on the command-line, as follows:
 \begin{verbatim}
-ppc386 -g hello.pp
+fpc -g hello.pp
 \end{verbatim}
 This will generate debugging information in the executable from your
 program. You will notice that the size of the executable increases
@@ -2360,9 +2364,6 @@ type
 break MYFUNCTION
 \end{verbatim}
 
-\item Line numbers may be off by a little. This is a bug in \fpc and will be
-fixed as soon as possible.
-
 \item \var{gdb} does not know sets.
 
 \item \var{gdb} doesn't know strings. Strings are represented in \var{gdb}
@@ -2459,7 +2460,7 @@ You can find more information about the usage of the \file{heaptrc} unit
 in the \unitsref.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Verbos Run-time errors.
+% Verbose Run-time errors.
 \section{Line numbers in run-time error backtraces}
 \label{se:lineinfo}
 
@@ -2832,7 +2833,7 @@ generated by the compiler:
 \begin{verbatim}
 Free Pascal Compiler version 1.0.5 [2001/10/29] for i386
 Copyright (c) 1993-2000 by Florian Klaempfl
-/usr/local/lib/fpc/1.0.5/ppc386 [options] <inputfile> [options]
+/usr/local/lib/fpc/1.0.5/fpc [options] <inputfile> [options]
 put + after a boolean switch option to enable it, - to disable it
   -a     the compiler doesn't delete the generated assembler file
       -al        list sourcecode lines in assembler file
@@ -3259,58 +3260,100 @@ a slash.
 \item [68020+ mode required to assemble]
 \end{description}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Runtime errors listing
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Run time errors}
-The \fpc Run-time library generates the following errors at run-time
-\footnote{The \linux port will generate only a subset of these.}:
+
+Applications generated  by \fpc might generate
+Run time error when certain abnormal conditions are
+detected in the application. This appendix lists the possible run time
+errors and gives information on why they might be produced.
 
 \begin{description}
 \item [1  Invalid function number]
-You tried to call a \dos function which doesn't exist.
+An invalid operating system call was attempted.
+
 \item [2  File not found]
-You can get this error when you tried to do an operation on a file which
-doesn't exist.
+Reported when trying to erase, rename or open a non-existent
+file.
+
 \item [3  Path not found]
-You can get this error when you tried to do an operation on a file which
-doesn't exist, or when you try to change to, or remove a directory that doesn't exist,
-or try to make a subdirectory  of a subdirectory that doesn't exist.
+Reported by the directory handling routines when a path does not 
+exist or is invalid. Also reported when trying to access a 
+non-existent file.
+
 \item [4  Too many open files]
-When attempting to open a file for reading or writing, you can get this
-error when your program has too many open files.
+The maximum number of currently opened files by your process
+has been reached. Certain operating systems limit the number
+of files which can be opened concurrently, and this error
+can occur when this limit has been reached.
+
 \item [5  File access denied]
-You don't have access to the specified file.
+Permission accessing the file is denied. This error might
+be caused by several reasons:
+    \begin{itemize}
+       \item   Trying to open for writing a file which is
+           read only, or which is actually a directory.
+       \item   File is currently locked byanother process.
+       \item   Trying to create a new file, or directlry while a 
+               file or directory of the same name already exists.
+       \item   Trying to read from a file which was opened
+               in write only mode.
+       \item   Trying to write from a file which was opened
+               in read only mode.
+       \item   Trying to remove a directory or file while
+               it is not possible.
+       \item   No permission to access the file or directory.        
+    \end{itemize}
+
 \item [6  Invalid file handle]
 If this happens, the file variable you are using is trashed; it
 indicates that your memory is corrupted.
+
 \item [12  Invalid file access code]
-This will happen if you do a reset or rewrite of a file when \var{FileMode}
-is invalid.
+Reported when a reset or rewrite is called with an invalid \var{FileMode}
+value.
+
 \item [15  Invalid drive number]
-The number given to the Getdir function specifies a non-existent disk.
+The number given to the \var{Getdir} or \var{ChDir} function specifies a 
+non-existent disk.
+
 \item [16  Cannot remove current directory]
-You get this if you try to remove the current diirectory.
+Reported when trying to remove the currently active directory.
+
 \item [17  Cannot rename across drives]
 You cannot rename a file such that it would end up on another disk or
 partition.
+
 \item [100  Disk read error]
-\dos only. An error occurred when reading from disk. Typically when you try
+An error occurred when reading from disk. Typically when you try
 to read past the end of a file.
+
 \item [101  Disk write error]
 Reported when the disk is full, and you're trying to write to it.
+
 \item [102  File not assigned]
-This is reported by Reset, Rewrite, Append, Rename and Erase, if you call
-them with an unassigne function as a parameter.
+This is reported by \var{Reset}, \var{Rewrite}, \var{Append}, 
+\var{Rename} and var{Erase}, if you call
+them with an unassigned file as a parameter.
+
 \item [103  File not open]
 Reported by the following functions : Close , Read, Write, Seek,
-EOf, FilePos, FileSize, Flush, BlockRead, and BlockWrite if the file isn't
+EOf, FilePos, FileSize, Flush, BlockRead, and BlockWrite if the file is not
 open.
+
 \item [104  File not open for input]
 Reported by Read, BlockRead, Eof, Eoln, SeekEof or SeekEoln if the file
-isn't opened with Reset.
+is not opened with Reset.
+
 \item [105  File not open for output]
 Reported by write if a text file isn't opened with Rewrite.
+
 \item [106  Invalid numeric format]
-Reported when a non-numerice value is read from a text file, when a numeric
+Reported when a non-numeric value is read from a text file, when a numeric
 value was expected.
+
 \item [150  Disk is write-protected]
 (Critical error, \dos only.)
 \item [151  Bad drive request struct length]
@@ -3334,20 +3377,21 @@ value was expected.
 \item [162  Hardware failure]
 (Critical error, \dos only.)
 \item [200  Division by zero]
-You are dividing a number by zero.
+The application attempted to divide a number by zero.
 \item [201  Range check error]
 If you compiled your program with range checking on, then you can get this
 error in the following cases:
 \begin{enumerate}
 \item An array was accessed with an index outside its declared range.
-\item You're trying to assign a value to a variable outside its range (for
+\item Trying to assign a value to a variable outside its range (for
 instance a enumerated type).
 \end{enumerate}
 \item [202  Stack overflow error]
-The stack has grown beyond itss maximum size. This error can easily occur if
-you have recursive functions.
+The stack has grown beyond its maximum size (in which case the size of 
+local variables should be reduced to avoid this error), or the stack has 
+become corrupt. This error is only reported when stack checking is enabled.
 \item [203  Heap overflow error]
-The heap has grown beyond its boundaries, ad you are rying to get more
+The heap has grown beyond its boundaries, and you are trying to get more
 memory. Please note that \fpc provides a growing heap, i.e. the heap will
 try to allocate more memory if needed. However, if the heap has reached the
 maximum size allowed by the operating system or hardware, then you will get
@@ -3371,21 +3415,41 @@ should be overridden, and the overriding method should be called.
 \item [212  Stream registration error]
 This occurs when an invalid type is registered in the objects unit.
 \item [213  Collection index out of range]
-You are trying to access a collection item with an invalid index.
-(objects unit)
+You are trying to access a collection item with an invalid index
+(\var{objects} unit).
 \item [214  Collection overflow error]
 The collection has reached its maximal size, and you are trying to add
-another element. (objects unit)
+another element (\var{objects} unit).
+\item[215 Arithmetic overflow error]
+This error is reported when the result of an arithmetic operation
+is outside of its supported range. Contrary to Turbo Pascal, this error
+is only reported for 32-bit or 64-bit arithmetic overflows. This is due
+to the fact that everything is converted to 32-bit or 64-bit before
+doing the actual arithmetic operation.
 \item [216  General Protection fault]
-You are trying to access memory outside your appointed memory.
+The application tried to access invalid memory space. This can
+be caused by several problems:
+\begin{enumerate}
+ \item Deferencing a \var{nil} pointer
+ \item Trying to access memory which is out of bounds
+       (for example, calling \var{move} with an invalid length).
+\end{enumerate}
+
 \item [217 Unhandled exception occurred]
 An exception occurred, and there was no exception handler present.
 The \file{sysutils} unit installs a default exception handler which catches
 all excpetions and exits gracefully.
+
+\item [219 Invalid typecast]
+
+Thrown when an invalid typecast is attempted on a class using the \var{as}
+operator.
+
 \item [227 Assertion failed error]
 An assertion failed, and no AssertErrorProc procedural variable was installed.
 \end{description}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \chapter{The Floating Point Coprocessor emulator}
 
@@ -3463,7 +3527,8 @@ the installation section.
 {\em   A} : \ostwo installs an emulator for native \ostwo images, but does not
    provide FPU emulation for DOS sessions.
 
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  GDB Configuration file
 \chapter{A sample \file{gdb.ini} file}
 \label{ch:GdbIniFile}
 
@@ -3496,3 +3561,4 @@ end
 \end{verbatim}
 
 \end{document}
+
