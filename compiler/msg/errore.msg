@@ -201,7 +201,7 @@ scan_e_keyword_cant_be_a_macro=02028_E_Keyword redefined as macro has no effect
 % You cannot redefine keywords with macros.
 scan_f_macro_buffer_overflow=02029_F_Macro buffer overflow while reading or expanding a macro
 % Your macro or it's result  was too long for the compiler.
-scan_w_macro_deep_ten=02030_W_Expanding of macros exceeds a depth of 16.
+scan_w_macro_too_deep=02030_W_Expanding of macros exceeds a depth of 16.
 % When expanding a macro, macros have been nested to a level of 16.
 % The compiler will expand no further, since this may be a sign that
 % recursion is used.
@@ -300,13 +300,15 @@ scan_e_too_many_push=02063_F_Too many levels of PUSH
 % A maximum of 20 levels is allowed.  This error occur only in mode MacPas.
 scan_e_too_many_pop=02064_E_A POP without a preceding PUSH
 % This error occur only in mode MacPas.
-scan_e_error_macro_lacks_value=02065_E_Macro "$1" does not have any value
-% Thus the conditional compiling expression cannot be evaluated.
+scan_e_error_macro_lacks_value=02065_E_Macro or compile time variable "$1" does not have any value
+% Thus the conditional compile time expression cannot be evaluated.
 scan_e_wrong_switch_toggle_default=02066_E_Wrong switch toggle, use ON/OFF/DEFAULT or +/-/*
 % You need to use ON or OFF or DEFAULT or a + or - or * to toggle the switch
 scan_e_mode_switch_not_allowed=02067_E_Mode switch "$1" not allowed here
 % A mode switch has already been encountered, or, in case of option -Mmacpas,
 % a mode switch occur after UNIT.
+scan_e_error_macro_undefined=02068_E_Compile time variable "$1" is not defined.
+% Thus the conditional compile time expression cannot be evaluated.
 % \end{description}
 #
 # Parser

@@ -398,7 +398,7 @@ implementation
             inc(macrocount);
             if macrocount>max_macro_nesting then
               begin
-                Message(scan_w_macro_deep_ten);
+                Message(scan_w_macro_too_deep);
                 break;
               end;
 
@@ -423,7 +423,12 @@ implementation
                   break;
                 end
             else
-              break;
+              begin
+                if m_mac in aktmodeswitches then
+                  Message1(scan_e_error_macro_undefined, result)
+                else
+                  break;
+              end;
 
             if mac.is_compiler_var then
               break;
@@ -438,6 +443,7 @@ implementation
            srsymtable : tsymtable;
            l : longint;
            w : integer;
+           hasKlammer: Boolean;
 
         begin
            if current_scanner.preproc_token=_ID then
@@ -450,9 +456,13 @@ implementation
                       begin
                         preproc_consume(_LKLAMMER);
                         current_scanner.skipspace;
+                        hasKlammer:= true;
                       end
+                    else if (m_mac in aktmodeswitches) then
+                      hasKlammer:= false
                     else
                       Message(scan_e_error_in_preproc_expr);
+
                     if current_scanner.preproc_token =_ID then
                       begin
                         hs := current_scanner.preproc_pattern;
@@ -470,10 +480,12 @@ implementation
                       end
                     else
                       Message(scan_e_error_in_preproc_expr);
-                    if current_scanner.preproc_token =_RKLAMMER then
-                      preproc_consume(_RKLAMMER)
-                    else
-                      Message(scan_e_error_in_preproc_expr);
+
+                    if hasKlammer then
+                      if current_scanner.preproc_token =_RKLAMMER then
+                        preproc_consume(_RKLAMMER)
+                      else
+                        Message(scan_e_error_in_preproc_expr);
                   end
                 else
                 if (m_mac in aktmodeswitches) and (current_scanner.preproc_pattern='UNDEFINED') then
@@ -630,38 +642,39 @@ implementation
                     hs:=preproc_substitutedtoken;
                     { Default is to return the original symbol }
                     read_factor:=hs;
-                    if searchsym(current_scanner.preproc_pattern,srsym,srsymtable) then
-                      begin
-                        case srsym.typ of
-                          constsym :
-                            begin
-                              with tconstsym(srsym) do
-                                begin
-                                  case consttyp of
-                                    constord :
-                                      begin
-                                        case consttype.def.deftype of
-                                          orddef:
-                                            begin
-                                              if is_integer(consttype.def) or is_boolean(consttype.def) then
-                                                read_factor:=tostr(value.valueord)
-                                              else
-                                                if is_char(consttype.def) then
-                                                  read_factor:=chr(value.valueord);
-                                            end;
-                                          enumdef:
-                                            read_factor:=tostr(value.valueord)
+                    if (m_delphi in aktmodeswitches) then
+                      if searchsym(current_scanner.preproc_pattern,srsym,srsymtable) then
+                        begin
+                          case srsym.typ of
+                            constsym :
+                              begin
+                                with tconstsym(srsym) do
+                                  begin
+                                    case consttyp of
+                                      constord :
+                                        begin
+                                          case consttype.def.deftype of
+                                            orddef:
+                                              begin
+                                                if is_integer(consttype.def) or is_boolean(consttype.def) then
+                                                  read_factor:=tostr(value.valueord)
+                                                else
+                                                  if is_char(consttype.def) then
+                                                    read_factor:=chr(value.valueord);
+                                              end;
+                                            enumdef:
+                                              read_factor:=tostr(value.valueord)
+                                          end;
                                         end;
-                                      end;
-                                    conststring :
-                                      read_factor := upper(pchar(value.valueordptr))
+                                      conststring :
+                                        read_factor := upper(pchar(value.valueordptr))
+                                    end;
                                   end;
-                                end;
-                            end;
-                          enumsym :
-                            read_factor:=tostr(tenumsym(srsym).value);
+                              end;
+                            enumsym :
+                              read_factor:=tostr(tenumsym(srsym).value);
+                          end;
                         end;
-                      end;
 
                     preproc_consume(_ID);
                     current_scanner.skipspace;
@@ -2506,7 +2519,7 @@ implementation
                        exit;
                      end
                     else
-                     Message(scan_w_macro_deep_ten);
+                     Message(scan_w_macro_too_deep);
                   end;
                end;
             end;
@@ -3291,31 +3304,35 @@ exit_label:
         turbo_scannerdirectives:=TDictionary.Create;
         mac_scannerdirectives:=TDictionary.Create;
 
-        { Default directives and conditionals for all modes }
-        AddDirective('I',directive_all, @dir_include);
-
         { Common directives and conditionals }
-        AddDirective('DEFINE',directive_turbo, @dir_define);
-        AddDirective('UNDEF',directive_turbo, @dir_undef);
+        AddDirective('I',directive_all, @dir_include);
+        AddDirective('DEFINE',directive_all, @dir_define);
+        AddDirective('UNDEF',directive_all, @dir_undef);
+
+        AddConditional('IF',directive_all, @dir_if);
+        AddConditional('IFDEF',directive_all, @dir_ifdef);
+        AddConditional('IFNDEF',directive_all, @dir_ifndef);
+        AddConditional('ELSE',directive_all, @dir_else);
+        AddConditional('ELSEIF',directive_all, @dir_elseif);
+        AddConditional('ENDIF',directive_all, @dir_endif);
+
+        { Directives and conditionals for all modes except mode macpas}
         AddDirective('INCLUDE',directive_turbo, @dir_include);
         AddDirective('LIBPREFIX',directive_turbo, @dir_libprefix);
         AddDirective('LIBSUFFIX',directive_turbo, @dir_libsuffix);
         AddDirective('EXTENSION',directive_turbo, @dir_extension);
 
-        AddConditional('ELSE',directive_turbo, @dir_else);
-        AddConditional('ELSEIF',directive_turbo, @dir_elseif);
-        AddConditional('ENDIF',directive_turbo, @dir_endif);
         AddConditional('IFEND',directive_turbo, @dir_endif);
-        AddConditional('IF',directive_turbo, @dir_if);
-        AddConditional('IFDEF',directive_turbo, @dir_ifdef);
-        AddConditional('IFNDEF',directive_turbo, @dir_ifndef);
         AddConditional('IFOPT',directive_turbo, @dir_ifopt);
 
-        { Default Mac directives and conditionals: }
+        { Directives and conditionals for mode macpas: }
         AddDirective('SETC',directive_mac, @dir_setc);
         AddDirective('DEFINEC',directive_mac, @dir_define);
+        AddDirective('UNDEFC',directive_mac, @dir_undef);
+
         AddConditional('IFC',directive_mac, @dir_if);
         AddConditional('ELSEC',directive_mac, @dir_else);
+        AddConditional('ELIFC',directive_mac, @dir_elseif);
         AddConditional('ENDC',directive_mac, @dir_endif);
       end;
 
@@ -3331,7 +3348,13 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.101  2005-02-27 17:15:01  peter
+  Revision 1.102  2005-03-20 18:13:34  olle
+    * Support for pascal constant expr in compile time expr, is now only allowed in mode Delphi
+    + Warning for undefined compile time var in mode macpas
+    * Support for some turbo directives in mode macpas
+    * Support for Metrowerks style DEFINED xxx
+
+  Revision 1.101  2005/02/27 17:15:01  peter
   Support constants and IN operator in preprocessor patch by Christian Iversen
 
   Revision 1.100  2005/02/14 17:13:07  peter
