@@ -331,9 +331,9 @@ const
   fmOutput = $D7B2;
   fmInOut  = $D7B3;
   fmAppend = $D7B4;
+  ProcessID: SizeUInt = 1;
   Filemode : byte = 2;
   CmdLine : PChar = nil;
-  ProcessID: SizeUInt = 1;
 (* Value should be changed during system initialization as appropriate. *)
 
   { assume that this program will not spawn other threads, when the
@@ -656,7 +656,7 @@ Function  SeekEOLn:Boolean;
 Function  SeekEOF:Boolean;
 Procedure SetTextBuf(Var f:Text; Var Buf);
 Procedure SetTextBuf(Var f:Text; Var Buf; Size:Longint);
-
+Procedure SetTextLineEnding(Var f:Text; Ending:string);
 
 {****************************************************************************
                             Directory Management
@@ -670,7 +670,7 @@ Procedure getdir(drivenr:byte;Var dir:ansistring);
 
 
 {*****************************************************************************
-                             Miscelleaous
+                             Miscellaneous
 *****************************************************************************}
 
 { os independent calls to allow backtraces }
@@ -680,6 +680,7 @@ function get_caller_frame(framebp:pointer):pointer;{$ifdef SYSTEMINLINE}inline;{
 
 Function IOResult:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function Sptr:Pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function GetProcessID:SizeUInt;
 
 
 {*****************************************************************************
@@ -755,7 +756,10 @@ const
 
 {
   $Log$
-  Revision 1.100  2004-09-21 15:04:22  peter
+  Revision 1.101  2004-09-21 23:43:26  hajny
+    * SetTextLineEnding implemented, FileRec.Name position alignment for CPU64
+
+  Revision 1.100  2004/09/21 15:04:22  peter
     * AnsiChar is equivalent of Char, use only type renamings
 
   Revision 1.99  2004/08/29 10:23:12  peter
