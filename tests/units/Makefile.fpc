@@ -46,7 +46,11 @@ clean : cleanall
 else
 
 rtl:
-        $(COPY) $(USEUNITDIR)/* .
+#       Just copying everything doesn't work, because then the Makefile will be overwritten
+        -$(COPY) $(USEUNITDIR)/*$(PPUEXT) .
+        -$(COPY) $(USEUNITDIR)/*$(OEXT) .
+        -$(COPY) $(USEUNITDIR)/*$(ASMEXT) .
+        -$(COPY) $(USEUNITDIR)/*_ppas .
         $(ECHO) Copied > $(FPCMADE)
 
 ifdef FCL
