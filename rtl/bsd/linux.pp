@@ -1021,7 +1021,7 @@ Function WaitPid(Pid:longint;Status:pointer;Options:Integer):Longint;
 
 
 begin
- WaitPID:=do_syscall(syscall_nr_WaitPID,PID,longint(Status),options,0);
+WaitPID:=do_syscall(syscall_nr_WaitPID,PID,longint(Status),options,0);
  LinuxError:=ErrNo;
 end;
 
@@ -2069,7 +2069,7 @@ var
   res : longint;
 
 begin
-  do_syscall(6,Textrec(F).Handle);
+  do_syscall(syscall_nr_close,Textrec(F).Handle);
 { closed our side, Now wait for the other - this appears to be needed ?? }
   pl:=@(textrec(f).userdata[2]);
   waitpid(pl^,@res,0);
@@ -2594,7 +2594,7 @@ Procedure SigSuspend(Mask:Sigset);
 }
 
 begin
-  do_syscall(111,mask);
+  do_syscall(syscall_nr_sigsuspend,mask);
   LinuxError:=Errno;
 end;
 
@@ -2660,7 +2660,7 @@ Function IOCtl(Handle,Ndx: Longint;Data: Pointer):boolean;
 }
 
 begin
-  IOCtl:=Do_Syscall(54,handle,ndx,longint(data))=0;
+  IOCtl:=Do_Syscall(syscall_nr_ioctl,handle,ndx,longint(data))=0;
  LinuxError:=Errno;
 end;
 
@@ -3418,7 +3418,7 @@ function MMap(const m:tmmapargs):longint;
 
 begin
   {Last argument (offset) is actually 64-bit under BSD. Therefore extra 0}
- do_syscall(197,m.address,m.size,m.prot,m.flags,m.fd,m.offset,0);
+ do_syscall(syscall_nr_mmap,m.address,m.size,m.prot,m.flags,m.fd,m.offset,0);
  LinuxError:=Errno;
 end;
 
@@ -3644,7 +3644,10 @@ End.
 
 {
   $Log$
-  Revision 1.9  2000-04-05 13:07:03  marco
+  Revision 1.10  2000-04-05 13:46:22  marco
+   * rest of syscalls has constants now
+
+  Revision 1.9  2000/04/05 13:07:03  marco
    * replaced about half of the syscall nr's by symbols from sysnr.inc
 
   Revision 1.8  2000/03/17 12:58:57  marco
