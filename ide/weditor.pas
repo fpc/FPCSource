@@ -2306,7 +2306,9 @@ var
                   Dec(ClassStart,length(MatchingSymbol)-1);
                   { Remove (* from SymbolConcat to avoid problem with (*) PM }
                   { fixes part of bug 1617 }
-                  Delete(SymbolConcat,1,length(MatchingSymbol));
+                  { but removed proper directive prefix detection ... }
+                  if MatchingSymbol[length(MatchingSymbol)]=Editor^.GetSpecSymbol(ssCommentSuffix,SymbolIndex)[1] then
+                    Delete(SymbolConcat,1,length(MatchingSymbol));
                 end
               else
              if IsCommentSuffix and (InComment) then
@@ -7079,7 +7081,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.10  2001-09-25 11:59:20  pierre
+  Revision 1.11  2001-09-25 22:45:09  pierre
+   * fix recognition of directives broken by last patch
+
+  Revision 1.10  2001/09/25 11:59:20  pierre
    * fix comment highlight bugs from bug 1617
 
   Revision 1.9  2001/09/17 22:54:09  pierre
