@@ -77,6 +77,9 @@ USES
    {$ENDIF}
 
    video,
+{$IFDEF GRAPH_API}                                    { GRAPH CODE }
+  Graph,                                           { Standard unit }
+{$ENDIF}
    GFVGraph,                                          { GFV graphics unit }
    FVCommon, Objects;                                 { GFV standard units }
 
@@ -257,6 +260,12 @@ TYPE
             5: (InfoChar: Char));                     { Message character }
    END;
    PEvent = ^TEvent;
+
+{$ifdef USE_VIDEO_API}
+   TVideoMode = Video.TVideoMode;                     { Screen mode }
+{$else not USE_VIDEO_API}
+   TVideoMode = Sw_Word;                              { Screen mode }
+{$endif USE_VIDEO_API}
 
 {---------------------------------------------------------------------------}
 {                    ERROR HANDLER FUNCTION DEFINITION                      }
@@ -575,7 +584,8 @@ VAR
                                IMPLEMENTATION
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
 { API Units }
-  USES Keyboard,Mouse;
+  USES
+  Keyboard,Mouse;
 
 {***************************************************************************}
 {                        PRIVATE INTERNAL CONSTANTS                         }
@@ -735,7 +745,7 @@ END;
 {---------------------------------------------------------------------------}
 {  DetectVideo -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 19May98 LdB       }
 {---------------------------------------------------------------------------}
-{$ifdef Use_API}
+{$IFDEF Use_Video_API}
 
 procedure DetectVideo;
 VAR
@@ -745,7 +755,7 @@ begin
   GetVideoMode(CurrMode);
   ScreenMode:=CurrMode;
 end;
-{$else not Use_API}
+{$else not Use_Video_API}
 PROCEDURE DetectVideo;
 {$IFDEF OS_DOS}                                       { DOS/DPMI CODE }
 ASSEMBLER;
@@ -845,7 +855,7 @@ BEGIN
    WinReleasePS(Ps);                                  { Release desktop PS }
 END;
 {$ENDIF}
-{$endif not Use_API}
+{$endif not Use_Video_API}
 
 {---------------------------------------------------------------------------}
 {  DetectMouse -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 19May98 LdB       }
@@ -1205,9 +1215,9 @@ END;
 {  InitVideo -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 26Nov99 LdB         }
 {---------------------------------------------------------------------------}
 PROCEDURE InitVideo;
-VAR {$ifdef Use_API}I, J: Sw_Integer;
-    {$else not Use_API}
-    {$IFDEF OS_DOS} I, J: Sw_Integer;Ts: TextSettingsType;{$ENDIF}
+VAR {$ifdef Use_Video_API}I, J: Sw_Integer;
+    {$else not Use_Video_API}
+    {$IFDEF OS_DOS} I, J: Integer;Ts: TextSettingsType;{$ENDIF}
     {$IFDEF OS_WINDOWS} Dc, Mem: HDc; TempFont: TLogFont; Tm: TTextmetric; {$ENDIF}
     {$IFDEF OS_OS2} Ts, Fs: Sw_Integer; Ps: HPs; Tm: FontMetrics; {$ENDIF}
     {$ENDIF}
@@ -1216,10 +1226,10 @@ BEGIN
     I := Detect;                                   { Detect video card }
     J := 0;                                        { Zero select mode }
     InitGraph(I, J, '');                           { Initialize graphics }
-    I := GetMaxX;                                  { Fetch max x size }
-    J := GetMaxY;                                  { Fetch max y size }
+    I := Graph.GetMaxX;                            { Fetch max x size }
+    J := Graph.GetMaxY;                            { Fetch max y size }
        If (DefFontHeight = 0) Then                    { Font height not set }
-         J := (GetMaxY+1) DIV DefLineNum              { Approx font height }
+         J := (Graph.GetMaxY+1) DIV DefLineNum        { Approx font height }
          Else J := DefFontHeight;                     { Use set font height }
        I := J DIV (TextHeight('H')+4);                { Approx magnification }
        If (I < 1) Then I := 1;                        { Must be 1 or above }
@@ -1253,9 +1263,11 @@ PROCEDURE DoneVideo;
 BEGIN
    {$ifdef GRAPH_API}
     CloseGraph;
-   {$else not Use_API}
+   {$else not GRAPH_API}
+   {$ifdef USE_video_api}
    Video.DoneVideo;
-   {$endif not Use_API}
+   {$endif USE_video_api}
+   {$endif not GRAPH_API}
 END;
 
 {---------------------------------------------------------------------------}
@@ -1474,7 +1486,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.12  2001-08-05 02:03:13  peter
+ Revision 1.13  2001-10-02 16:35:50  pierre
+  * fix several problems, try to get the graph version to compile
+
+ Revision 1.12  2001/08/05 02:03:13  peter
    * view redrawing and small cursor updates
    * merged some more FV extensions
 

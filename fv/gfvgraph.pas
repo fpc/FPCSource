@@ -131,6 +131,8 @@ CONST
 {---------------------------------------------------------------------------}
 CONST
    SolidFill = Graph.SolidFill;
+   LowAscii : boolean = true;
+
 {$ELSE not GRAPH_API }
 CONST
    SolidFill = 0;
@@ -407,7 +409,10 @@ END;
 END.
 {
  $Log$
- Revision 1.9  2001-05-31 21:40:10  pierre
+ Revision 1.10  2001-10-02 16:35:51  pierre
+  * fix several problems, try to get the graph version to compile
+
+ Revision 1.9  2001/05/31 21:40:10  pierre
   * some debug stuff changed
 
  Revision 1.8  2001/05/10 16:46:28  pierre

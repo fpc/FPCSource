@@ -497,6 +497,7 @@ TYPE
       FUNCTION Valid (Command: Word): Boolean; Virtual;
       FUNCTION FocusNext (Forwards: Boolean): Boolean;
       PROCEDURE Draw; Virtual;
+      PROCEDURE DrawBackGround; Virtual;
       PROCEDURE Lock;
       PROCEDURE UnLock;
       PROCEDURE Awaken; Virtual;
@@ -621,6 +622,7 @@ TYPE
       FUNCTION IsSelected (Item: Sw_Integer): Boolean; Virtual;
       FUNCTION GetText (Item: Sw_Integer; MaxLen: Sw_Integer): String; Virtual;
       PROCEDURE DrawFocus; Virtual;
+      PROCEDURE DrawLoseFocus; Virtual;
       PROCEDURE DrawBackGround; Virtual;
       PROCEDURE FocusItem (Item: Sw_Integer); Virtual;
       PROCEDURE SetTopItem (Item: Sw_Integer);
@@ -844,10 +846,10 @@ CONST
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                              IMPLEMENTATION
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
-{$IFNDEF GRAPH_API}
+{$IFDEF USE_VIDEO_API}
 USES
   Video;
-{$ENDIF GRAPH_API}
+{$ENDIF USE_VIDEO_API}
 
 {***************************************************************************}
 {                       PRIVATE TYPE DEFINITIONS                            }
@@ -902,12 +904,14 @@ CONST
 
 procedure DrawScreenBuf;
 begin
-  if (LockUpdateScreen=0) then
+{$ifdef USE_VIDEO_API}
+  if (GetLockScreenCount=0) then
    begin
      HideMouse;
      UpdateScreen(false);
      ShowMouse;
    end;
+{$endif USE_VIDEO_API}
 end;
 
 {***************************************************************************}
@@ -1275,6 +1279,7 @@ var
 begin
   if (not TextModeGFV) then
    exit;
+{$ifdef USE_VIDEO_API}
   if ((state and sfV_CV_F) = sfV_CV_F) then
    begin
      p:=@Self;
@@ -1307,6 +1312,7 @@ begin
       end; { while }
    end; { if }
   Video.SetCursorType(crHidden);
+{$endif USE_VIDEO_API}
 end;
 
 
@@ -1353,7 +1359,9 @@ BEGIN
              End;
            Parent:=Parent^.Owner;
          End;
-         inc(LockUpdateScreen); { don't update the screen yet }
+{$ifdef USE_VIDEO_API}
+         LockScreenUpdate;                            { don't update the screen yet }
+{$endif USE_VIDEO_API}
          HideMouseCursor;                             { Hide mouse cursor }
          If (DrawMask = 0) OR (DrawMask = vdNoChild)  { No special masks set }
             { OR Assigned(LimitsLocked) }
@@ -1413,8 +1421,10 @@ BEGIN
              End;
 {$endif ndef NoShadow}
          End;
-         ShowMouseCursor;                             { Show mouse cursor }
-     dec(LockUpdateScreen);
+     ShowMouseCursor;                             { Show mouse cursor }
+{$ifdef USE_VIDEO_API}
+     UnlockScreenUpdate;
+{$endif USE_VIDEO_API}
      if TextModeGFV then
       begin
         DrawScreenBuf;
@@ -1817,6 +1827,8 @@ END;
 {  ReDrawArea -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 05May98 LdB        }
 {---------------------------------------------------------------------------}
 PROCEDURE TView.ReDrawArea (X1, Y1, X2, Y2: Sw_Integer);
+var
+  StoreDrawMask : Byte;
 VAR HLimit: PView; ViewPort: ViewPortType;
 BEGIN
 {$ifdef DEBUG}
@@ -1837,7 +1849,10 @@ BEGIN
    SetViewPort(X1, Y1, X2, Y2, ClipOn, TextModeGFV);  { Set new clip limits }
    HLimit := LimitsLocked;                            { Hold lock limits }
    LimitsLocked := @Self;                             { We are the lock view }
+   StoreDrawMask:=DrawMask;
+   DrawMask:=vdAll;
    DrawView;                                          { Redraw the area }
+   DrawMask:=StoreDrawMask;
    LimitsLocked := HLimit;                            { Release our lock }
    SetViewPort(ViewPort.X1, ViewPort.Y1,
      ViewPort.X2, ViewPort.Y2, ClipOn, TextModeGFV);  { Reset old limits }
@@ -2545,6 +2560,22 @@ BEGIN
      ReDraw
    else
      WriteBuf(0,0,Size.X,Size.Y,Buffer);
+END;
+
+{--TGroup-------------------------------------------------------------------}
+{  DrawBackground                                                           }
+{---------------------------------------------------------------------------}
+PROCEDURE TGroup.DrawBackground;
+var
+   P : PView;
+BEGIN
+   Inherited DrawBackground;
+   P:=Last;
+     While (P <> Nil) Do Begin
+       If P^.Exposed then
+         P^.SetDrawMask(vdAll);                       { Redraw each exposed subview }
+       P := P^.PrevView;                              { Move to prior view }
+     End;
 END;
 
 {--TGroup-------------------------------------------------------------------}
@@ -3791,8 +3822,60 @@ BEGIN
              WordRec(B[CurCol+ColWidth-2]).Lo := Byte(SpecialChars[SCOff+1]);
            end;
          end;
-         MoveChar(B[CurCol+ColWidth-1], #179, GetColor(5), 1);
-         WriteLine(CurCol, I, Min(Size.X-1,CurCol+ColWidth-1), 1, B[CurCol]);
+         { MoveChar(B[CurCol+ColWidth-1], #179, GetColor(5), 1);}
+         WriteLine(CurCol, I, Min(Size.X-1,CurCol+ColWidth-2), 1, B[CurCol]);
+       End;
+     End;
+   End;
+END;
+
+{--TListViewer--------------------------------------------------------------}
+{  DrawLoseFocus -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 27Oct99 LdB         }
+{---------------------------------------------------------------------------}
+PROCEDURE TListViewer.DrawLoseFocus;
+VAR DrawIt: Boolean; SCOff: Byte; I, J, Item, CurCol, ColWidth: Sw_Integer;
+    Color: Word;
+
+  Indent: Sw_Integer;
+  B: TDrawBuffer;
+  Text: String;
+BEGIN
+   ColWidth := Size.X DIV NumCols + 1;                { Calc column width }
+   If (HScrollBar = Nil) Then Indent := 0 Else        { Set indent to zero }
+     Indent := HScrollBar^.Value;                     { Fetch any indent }
+   For I := 0 To Size.Y - 1 Do Begin                  { For each line }
+     For J := 0 To NumCols-1 Do Begin                 { For each column }
+       Item := J*Size.Y + I + TopItem;                { Process this item }
+       CurCol := J*ColWidth;                          { Current column }
+       DrawIt := False;                               { Preset false }
+       If (State AND (sfSelected + sfActive) =
+       (sfSelected + sfActive)) AND (Focused = Item)  { Focused item }
+       AND (Range > 0) Then Begin
+         DrawIt := True;                              { Draw this item }
+         Color := GetColor(2);                        { Focused colour }
+         SetCursor(CurCol+1,I);                       { Set the cursor }
+         SCOff := 2;                                  { Zero colour offset }
+       End Else If (Item < Range) AND IsSelected(Item){ Selected item }
+       Then Begin
+         DrawIt := True;                              { Draw this item }
+         Color := GetColor(2);                        { Remove focus }
+         SCOff := 2;                                  { Colour offset=2 }
+       End;
+       If DrawIt Then Begin                           { We are drawing item }
+         ClearArea(CurCol*FontWidth, I*FontHeight, (CurCol+ColWidth-1)*FontWidth,
+           (I+1)*FontHeight-1, Color AND $F0 SHR 4);  { Draw the bar }
+         MoveChar(B[CurCol], ' ', Color, ColWidth);
+         if Item < Range then begin
+           Text := GetText(Item, ColWidth + Indent);
+           Text := Copy(Text,Indent,ColWidth);
+           MoveStr(B[CurCol+1], Text, Color);
+           if ShowMarkers then begin
+             WordRec(B[CurCol]).Lo := Byte(SpecialChars[SCOff]);
+             WordRec(B[CurCol+ColWidth-2]).Lo := Byte(SpecialChars[SCOff+1]);
+           end;
+         end;
+         { MoveChar(B[CurCol+ColWidth-1], #179, GetColor(5), 1);}
+         WriteLine(CurCol, I, Min(Size.X-1,CurCol+ColWidth-2), 1, B[CurCol]);
        End;
      End;
    End;
@@ -3804,6 +3887,8 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TListViewer.FocusItem (Item: Sw_Integer);
 BEGIN
+   If Focused<>Item then
+     DrawLoseFocus;
    Focused := Item;                                   { Set focus to item }
    If (VScrollBar <> Nil) Then
      VScrollBar^.SetValue(Item);                      { Scrollbar to value }
@@ -5436,7 +5521,10 @@ END.
 
 {
  $Log$
- Revision 1.17  2001-08-05 23:54:33  pierre
+ Revision 1.18  2001-10-02 16:35:51  pierre
+  * fix several problems, try to get the graph version to compile
+
+ Revision 1.17  2001/08/05 23:54:33  pierre
   * some improovements for TListViewer
 
  Revision 1.16  2001/08/05 02:03:14  peter

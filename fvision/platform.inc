@@ -164,14 +164,19 @@ FOR FPC THESE ARE THE TRANSLATIONS
   {$DEFINE ASM_FPC}
   {$UNDEF BP_VMTLink}
   {$DEFINE Use_API}
+  {$DEFINE Use_Video_API}
   {$DEFINE NO_WINDOW}
 {$ENDIF}
 
 {$IFDEF NoAPI}
 {$UNDEF Use_API}
+{$UNDEF Use_Video_API}
 {$UNDEF NO_WINDOW}
 {$ENDIF UseAPI}
 
+{$ifdef GRAPH_API}
+{$undef Use_Video_API}
+{$endif GRAPH_API}
 
 {---------------------------------------------------------------------------}
 {  FPC LINUX COMPILER changes operating system - Updated 27Aug98 LdB        }
@@ -369,7 +374,10 @@ FOR FPC THESE ARE THE TRANSLATIONS
 
 {
  $Log$
- Revision 1.5  2001-05-03 22:32:52  pierre
+ Revision 1.6  2001-10-02 16:35:51  pierre
+  * fix several problems, try to get the graph version to compile
+
+ Revision 1.5  2001/05/03 22:32:52  pierre
   new bunch of changes, displays something for dos at least
 
  Revision 1.4  2001/04/10 21:57:56  pierre

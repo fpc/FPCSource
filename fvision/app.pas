@@ -56,8 +56,10 @@ USES
      Os2Def, Os2Base, OS2PmApi,                       { Standard units }
    {$ENDIF}
    Dos,
+{$ifdef USE_VIDEO_API}
    Video,
-   GFVGraph,                                          { GFV standard unit }
+{$endif USE_VIDEO_API}
+   GFVGraph,                                            { GFV standard unit }
    FVCommon, Memory,                                    { GFV standard units }
    Objects, Drivers, Views, Menus, HistList, Dialogs,
    MsgBox;
@@ -682,9 +684,11 @@ END;
 DESTRUCTOR TProgram.Done;
 VAR I: Integer;
 BEGIN
+{$ifdef USE_VIDEO_API}
    { Do not free the Buffer of Video Unit }
    If Buffer = Views.PVideoBuf(VideoBuf) then
      Buffer:=nil;
+{$endif USE_VIDEO_API}
    If (Desktop <> Nil) Then Dispose(Desktop, Done);   { Destroy desktop }
    If (MenuBar <> Nil) Then Dispose(MenuBar, Done);   { Destroy menu bar }
    If (StatusLine <> Nil) Then
@@ -794,18 +798,28 @@ BEGIN
   { the orginal code can't be used here because of the limited
     video unit capabilities, the mono modus can't be handled
   }
+{$ifdef USE_VIDEO_API}
   if (ScreenMode.Col div ScreenMode.Row<2) then
+{$else not USE_VIDEO_API}
+  if (GetMaxX(true) div GetMaxY(true) <2) then
+{$endif USE_VIDEO_API}
     ShadowSize.X := 1
   else
     ShadowSize.X := 2;
 
   ShadowSize.Y := 1;
   ShowMarkers := False;
+{$ifdef USE_VIDEO_API}
   if ScreenMode.color then
+{$else not USE_VIDEO_API}
+  if ScreenMode<>smMono then
+{$endif USE_VIDEO_API}
     AppPalette := apColor
   else
     AppPalette := apBlackWhite;
+{$ifdef USE_VIDEO_API}
   Buffer := Views.PVideoBuf(VideoBuf);
+{$endif USE_VIDEO_API}
 END;
 
 
@@ -873,7 +887,9 @@ begin
      DoneMemory;
      InitMemory;
      InitScreen;
+{$ifdef USE_VIDEO_API}
      Buffer := Views.PVideoBuf(VideoBuf);
+{$endif USE_VIDEO_API}
      R.Assign(0, 0, ScreenWidth, ScreenHeight);
      ChangeBounds(R);
      ShowMouse;
@@ -887,11 +903,17 @@ begin
   DoneMouse;
   DoneMemory;
   ScreenMode:=Mode;
+{$ifdef USE_VIDEO_API}
   Video.SetVideoMode(Mode);
+{$else USE_VIDEO_API}
+  SetVideoMode(Mode);
+{$endif USE_VIDEO_API}
   InitMouse;
   InitMemory;
   InitScreen;
+{$ifdef USE_VIDEO_API}
   Buffer := Views.PVideoBuf(VideoBuf);
+{$endif USE_VIDEO_API}
   R.Assign(0, 0, ScreenWidth, ScreenHeight);
   ChangeBounds(R);
   ShowMouse;
@@ -978,7 +1000,9 @@ BEGIN
    if (TextModeGFV) then
     begin
       { init mouse and cursor }
+{$ifdef USE_VIDEO_API}
       Video.SetCursorType(crHidden);
+{$endif USE_VIDEO_API}
       Mouse.SetMouseXY(1,1);
     end;
 END;
@@ -1159,7 +1183,10 @@ END;
 END.
 {
  $Log$
- Revision 1.13  2001-08-05 02:03:13  peter
+ Revision 1.14  2001-10-02 16:35:50  pierre
+  * fix several problems, try to get the graph version to compile
+
+ Revision 1.13  2001/08/05 02:03:13  peter
    * view redrawing and small cursor updates
    * merged some more FV extensions
 
