@@ -388,7 +388,7 @@ Begin
        end;
   end;
   if (flags and $1000)=$1000 then
-   oflags:=oflags or (Open_CREAT or Open_TRUNC)
+   oflags:=oflags or (Open_CREATE or Open_TRUNC)
   else
    if (flags and $100)=$100 then
     oflags:=oflags or (Open_APPEND);
@@ -689,7 +689,10 @@ End.
 
 {
   $Log$
-  Revision 1.1  2000-03-01 20:23:07  marco
+  Revision 1.2  2000-03-16 16:21:10  marco
+   * changes to get ppc386 -h working
+
+  Revision 1.1  2000/03/01 20:23:07  marco
    * Initial version. Compiles (syscall.inc inclusion prob has to be solved
 
   Revision 1.37  2000/02/09 16:59:32  peter
