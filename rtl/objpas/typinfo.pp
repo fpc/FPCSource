@@ -52,7 +52,7 @@ unit typinfo;
                    tkWString,tkVariant,tkArray,tkRecord,tkInterface,
                    tkClass,tkObject,tkWChar,tkBool);
 
-       TTOrdType = (otSByte,otUByte,otSWord,otUWord,otSLong,otULong);
+       TTOrdType = (otSByte,otUByte,otChar,otSWord,otUWord,otWChar,otSLong,otULong);
 
        TFloatType = (ftSingle,ftDouble,ftExtended,ftComp,ftCurr,
                      ftFixed16,ftFixed32);
@@ -807,7 +807,10 @@ end.
 
 {
   $Log$
-  Revision 1.32  2000-01-05 18:59:56  sg
+  Revision 1.33  2000-01-06 00:23:24  pierre
+   * missing declarations for otChar andotWChar added
+
+  Revision 1.32  2000/01/05 18:59:56  sg
   * Fixed missing () in InsertProp which caused memory corruptions
   * GetOrdProp handles Char and WChar now. (there are still some
     property types missing!)
