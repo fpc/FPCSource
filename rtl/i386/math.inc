@@ -61,7 +61,7 @@
       begin
          asm
             fldl 8(%ebp)
-            fsqrtl
+            fsqrt
             leave
             ret $8
          end [];
@@ -300,7 +300,7 @@
       begin
          asm
             fldt 8(%ebp)
-            fsqrtl
+            fsqrt
             leave
             ret $10
          end [];
@@ -634,7 +634,10 @@
 
 {
   $Log$
-  Revision 1.10  1998-10-02 09:25:29  peter
+  Revision 1.11  1998-11-16 14:26:03  pierre
+   * changed fsqrtl to fsqrt (needed by as v2.9.4 for win32)
+
+  Revision 1.10  1998/10/02 09:25:29  peter
     * more constant expression evals
 
   Revision 1.9  1998/09/11 17:38:49  pierre
