@@ -21,6 +21,7 @@ var
     end;
 
 begin
+  l:=5;
 {$asmmode att}
  asm
    movl  l,%eax
