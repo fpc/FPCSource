@@ -79,6 +79,7 @@ unit cpupara;
         paraloc:=cgpara.add_location;
         with paraloc^ do
           begin
+            size:=OS_INT;
             { the four first parameters are passed into registers }
             if nr<=4 then
               begin
@@ -269,6 +270,10 @@ unit cpupara;
                end;
 
              paralen:=tcgsize2size[paracgsize];
+{$ifdef EXTDEBUG}
+             if paralen=0 then
+               internalerror(200410311);
+{$endif EXTDEBUG}
              while paralen>0 do
                begin
                  paraloc:=hp.paraloc[side].add_location;
@@ -395,24 +400,26 @@ unit cpupara;
           end
           { Return in register? }
         else if not ret_in_param(p.rettype.def,p.proccalloption) then
-            begin
-              paraloc^.loc:=LOC_REGISTER;
-              if paraloc^.size in [OS_64,OS_S64] then
-                begin
-                  { low }
-                  paraloc^.loc:=LOC_REGISTER;
-                  paraloc^.size:=OS_32;
-                  paraloc^.register:=NR_FUNCTION_RESULT64_LOW_REG;
+          begin
+            if retcgsize in [OS_64,OS_S64] then
+              begin
+                { low }
+                paraloc^.loc:=LOC_REGISTER;
+                paraloc^.size:=OS_32;
+                paraloc^.register:=NR_FUNCTION_RESULT64_LOW_REG;
 
-                  { high }
-                  paraloc:=p.funcret_paraloc[side].add_location;
-                  paraloc^.loc:=LOC_REGISTER;
-                  paraloc^.size:=OS_32;
-                  paraloc^.register:=NR_FUNCTION_RESULT64_HIGH_REG;
-                end
-              else
+                { high }
+                paraloc:=p.funcret_paraloc[side].add_location;
+                paraloc^.loc:=LOC_REGISTER;
+                paraloc^.size:=OS_32;
+                paraloc^.register:=NR_FUNCTION_RESULT64_HIGH_REG;
+              end
+            else
+              begin
+                paraloc^.loc:=LOC_REGISTER;
                 paraloc^.register:=NR_FUNCTION_RETURN_REG;
-            end
+              end;
+          end
         else
           begin
             paraloc^.loc:=LOC_REFERENCE;
@@ -463,7 +470,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2004-10-24 17:32:53  florian
+  Revision 1.23  2004-10-31 12:37:11  florian
+    * another couple of arm fixed
+
+  Revision 1.22  2004/10/24 17:32:53  florian
     * fixed several arm compiler bugs
 
   Revision 1.21  2004/10/24 07:54:25  florian

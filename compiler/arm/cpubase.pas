@@ -427,7 +427,8 @@ unit cpubase;
         This value can be deduced from the CALLED_USED_REGISTERS array in the
         GCC source.
       }
-      std_saved_registers = [RS_R4..RS_R10];
+      saved_standard_registers : array[0..6] of tsuperregister =
+        (RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,RS_R9,RS_R10);
       { Required parameter alignment when calling a routine declared as
         stdcall and cdecl. The alignment value should be the one defined
         by GCC or the target ABI.
@@ -564,7 +565,10 @@ unit cpubase;
 end.
 {
   $Log$
-  Revision 1.34  2004-10-24 17:32:53  florian
+  Revision 1.35  2004-10-31 12:37:11  florian
+    * another couple of arm fixed
+
+  Revision 1.34  2004/10/24 17:32:53  florian
     * fixed several arm compiler bugs
 
   Revision 1.33  2004/10/22 16:36:57  florian

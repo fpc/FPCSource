@@ -91,8 +91,6 @@ unit cgcpu;
 
         procedure g_save_standard_registers(list : taasmoutput);override;
         procedure g_restore_standard_registers(list : taasmoutput);override;
-        procedure g_save_all_registers(list : taasmoutput);override;
-        procedure g_restore_all_registers(list : taasmoutput;const funcretparaloc:TCGPara);override;
 
         procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel);
         procedure fixref(list : taasmoutput;var ref : treference);
@@ -110,7 +108,7 @@ unit cgcpu;
       OpCmp2AsmCond : Array[topcmp] of TAsmCond = (C_NONE,C_EQ,C_GT,
                            C_LT,C_GE,C_LE,C_NE,C_LS,C_CC,C_CS,C_HI);
 
-    function is_shifter_const(d : dword;var imm_shift : byte) : boolean;
+    function is_shifter_const(d : aint;var imm_shift : byte) : boolean;
 
     function get_fpu_postfix(def : tdef) : toppostfix;
 
@@ -297,7 +295,7 @@ unit cgcpu;
          so : tshifterop;
          l1 : longint;
        begin
-          if is_shifter_const(dword(-a),shift) then
+          if is_shifter_const(-a,shift) then
             case op of
               OP_ADD:
                 begin
@@ -445,13 +443,13 @@ unit cgcpu;
        end;
 
 
-     function is_shifter_const(d : dword;var imm_shift : byte) : boolean;
+     function is_shifter_const(d : aint;var imm_shift : byte) : boolean;
        var
           i : longint;
        begin
           for i:=0 to 15 do
             begin
-               if (d and not(rotl($ff,i*2)))=0 then
+               if (dword(d) and not(rotl($ff,i*2)))=0 then
                  begin
                     imm_shift:=i*2;
                     result:=true;
@@ -470,9 +468,9 @@ unit cgcpu;
        begin
           if not(size in [OS_8,OS_S8,OS_16,OS_S16,OS_32,OS_S32]) then
             internalerror(2002090902);
-          if is_shifter_const(dword(a),imm_shift) then
+          if is_shifter_const(a,imm_shift) then
             list.concat(taicpu.op_reg_const(A_MOV,reg,a))
-          else if is_shifter_const(dword(not(a)),imm_shift) then
+          else if is_shifter_const(not(a),imm_shift) then
             list.concat(taicpu.op_reg_const(A_MVN,reg,not(a)))
           else
             begin
@@ -779,7 +777,7 @@ unit cgcpu;
           list.concat(taicpu.op_reg_const(A_CMP,reg,a))
         { CMN reg,0 and CMN reg,$80000000 are different from CMP reg,$ffffffff
           and CMP reg,$7fffffff regarding the flags according to the ARM manual }
-        else if is_shifter_const(-a,b) and (a<>$7fffffff) and (a<>$ffffffff) then
+        else if (a<>$7fffffff) and (a<>-1) and is_shifter_const(-a,b) then
           list.concat(taicpu.op_reg_const(A_CMN,reg,-a))
         else
           begin
@@ -1144,25 +1142,13 @@ unit cgcpu;
 
     procedure tcgarm.g_save_standard_registers(list : taasmoutput);
       begin
-        { we support only ARM standard calling conventions so this procedure has no use on the ARM }
+        { this work is done in g_proc_entry }
       end;
 
 
     procedure tcgarm.g_restore_standard_registers(list : taasmoutput);
       begin
-        { we support only ARM standard calling conventions so this procedure has no use on the ARM }
-      end;
-
-
-    procedure tcgarm.g_save_all_registers(list : taasmoutput);
-      begin
-        { we support only ARM standard calling conventions so this procedure has no use on the ARM }
-      end;
-
-
-    procedure tcgarm.g_restore_all_registers(list : taasmoutput;const funcretparaloc:TCGPara);
-      begin
-        { we support only ARM standard calling conventions so this procedure has no use on the ARM }
+        { this work is done in g_proc_exit }
       end;
 
 
@@ -1291,7 +1277,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.58  2004-10-24 17:32:53  florian
+  Revision 1.59  2004-10-31 12:37:11  florian
+    * another couple of arm fixed
+
+  Revision 1.58  2004/10/24 17:32:53  florian
     * fixed several arm compiler bugs
 
   Revision 1.57  2004/10/24 11:53:45  peter
