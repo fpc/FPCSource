@@ -92,6 +92,7 @@ interface
          function  is_used:boolean;
          procedure increfs;
          procedure decrefs;
+         function getrefs: longint;
          procedure setaddress(_pass:byte;sec:TAsmSection;offset,len:aint);
        end;
 
@@ -312,6 +313,12 @@ implementation
         dec(refs);
         if refs<0 then
           internalerror(200211121);
+      end;
+
+
+    function tasmsymbol.getrefs: longint;
+      begin
+        getrefs := refs;
       end;
 
 
@@ -829,6 +836,7 @@ implementation
         if not assigned(p.altsymbol) then
          begin
            p.altsymbol:=tasmsymbol.create(name+'_'+tostr(nextaltnr),p.defbind,p.typ);
+           inc(nextaltnr);
            symbolsearch.insert(p.altsymbol);
            { add also the original sym to the usedasmsymbollist,
              that list is used to reset the altsymbol }
@@ -942,7 +950,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  2004-06-20 08:55:28  florian
+  Revision 1.20  2004-07-22 10:07:09  jonas
+    * fixed relabeling (nextaltnr was never increased)
+    * fixed inlining of case statements at the node level
+
+  Revision 1.19  2004/06/20 08:55:28  florian
     * logs truncated
 
   Revision 1.18  2004/06/16 20:07:06  florian

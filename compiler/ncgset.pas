@@ -768,14 +768,18 @@ implementation
          max_dist,
          dist : aword;
          hp : tstatementnode;
+         relabeling: boolean;
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
          { Relabel for inlining? }
-         if inlining_procedure and assigned(nodes) then
+         relabeling := false;
+         if assigned(nodes) and
+            (nodes^.statement.getrefs <> 0) then
           begin
             objectlibrary.CreateUsedAsmSymbolList;
             relabelcaserecord(nodes);
+            relabeling := true;
           end;
 
          objectlibrary.getlabel(endlabel);
@@ -926,7 +930,7 @@ implementation
          while assigned(hp) do
            begin
               { relabel when inlining }
-              if inlining_procedure then
+              if relabeling then
                 begin
                   if hp.left.nodetype<>labeln then
                     internalerror(200211261);
@@ -953,7 +957,7 @@ implementation
          cg.a_label(exprasmlist,endlabel);
 
          { Remove relabels for inlining }
-         if inlining_procedure and
+         if relabeling and
             assigned(nodes) then
           begin
              { restore used symbols }
@@ -970,7 +974,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.64  2004-07-04 12:38:55  jonas
+  Revision 1.65  2004-07-22 10:07:09  jonas
+    * fixed relabeling (nextaltnr was never increased)
+    * fixed inlining of case statements at the node level
+
+  Revision 1.64  2004/07/04 12:38:55  jonas
     * fixed regvar bug in tcginnode.pass_2
 
   Revision 1.63  2004/06/20 08:55:29  florian
