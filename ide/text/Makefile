@@ -969,14 +969,14 @@ gdb:
 	$(MAKE) all GDB=1
 
 full:
-	$(MAKE) all FULL=1
+        $(MAKE) all FULL=1 NEEDOPT=-Sg
 
 fullgdb:
-	$(MAKE) all FULL=1 GDB=1
+        $(MAKE) all FULL=1 GDB=1 NEEDOPT=-Sg
 
 # This is necessary because we don't have all units separate in the
 # units targets
-clean : testfpcmake fpc_cleanall
+clean : fpc_cleanall
 
 #
 # Installation
