@@ -23,11 +23,13 @@ it introduces a subtle incompatibility with Delphi.
 *)
 
 program fpc19;
+{ the same as tw2129.pp for cpu's were comp = int64 }
 var
   comp1 : comp;
   dbl1 : double;
   s : string;
 begin
+{$ifdef cpui386}
   dbl1 := -1e-128;
   comp1 := comp(dbl1);
   str(comp1,s);
@@ -36,4 +38,5 @@ begin
       writeln('error: ',s);
       halt(1);
     end;
+{$endif cpui386}
 end.
