@@ -25,3 +25,6 @@ fp.ini
 fp.cfg
 longlog*
 faillist*
+log*
+diff*
+digest*
