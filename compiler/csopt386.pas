@@ -61,12 +61,13 @@ Function CheckSequence(p: Pai; Reg: TRegister; Var Found: Longint; Var RegInfo: 
  is returned}
 Var hp2, hp3{, EndMod}: Pai;
     PrevNonRemovablePai: Pai;
+    Cnt, OldNrOfMods: Longint;
     OrgRegInfo, HighRegInfo: TRegInfo;
     HighFound, OrgRegFound: Byte;
     RegCounter: TRegister;
     OrgRegResult: Boolean;
     TmpResult: Boolean;
-    OldNrOfMods: Byte;
+    TmpState: Byte;
 Begin {CheckSequence}
   Reg := Reg32(Reg);
   TmpResult := False;
@@ -100,91 +101,21 @@ Begin {CheckSequence}
           GetNextInstruction(hp3, hp3);
           Inc(Found)
         End;
-      If (Found <> OldNrOfMods)
-        Then
-          Begin
-(*              If ((Found+1) = OldNrOfMods) And
-              Assigned(hp2) And
-              (Pai(hp2)^.typ = ait_instruction) And
-              ((Paicpu(hp2)^.opcode = A_MOV) or
-               (Paicpu(p1)^.opcode = A_MOVZX)) And
-              (Paicpu(hp2)^.oper[0].typ = top_ref) And
-              (Paicpu(hp2)^.optype[1] = top_reg) And
-              Assigned(hp3) And
-              (Pai(hp3)^.typ = ait_instruction) And
-              ((Paicpu(hp3)^.opcode = A_MOV) or
-               (Paicpu(hp3)^.opcode = A_MOVZX)) And
-              (Paicpu(hp3)^.oper[0].typ = top_ref) And
-              (Paicpu(hp3)^.optype[1] = top_reg) And
-               (Paicpu(hp2)^.opcode <> Paicpu(hp3)^.opcode) And
-              RefsEquivalent(TReference(Paicpu(hp2)^.oper[1]^),TReference(Paicpu(hp3)^.oper[1]^), RegInfo)
-             Then
-
-{hack to be able to optimize
-     mov (mem), reg
-     mov (reg), reg
-     mov (reg), reg [*]
-     test reg, reg       and the oposite (where the marked instructions are
-     jne l1              switched)
-     mov (mem), reg
-     mov (reg), reg
-     movzx (reg), reg [*]}
-
-               If (Paicpu(hp2)^.opcode = A_MOV)
-                 Then
-                   Begin
-                    If (Paicpu(hp2)^.opsize = S_B) And
-                       RegsEquivalent(Reg8toReg32(TRegister(Paicpu(hp2)^.oper[1])),
-                                      TRegister(Paicpu(hp3)^.oper[1]), RegInfo)
-                       Then
-                         Begin
-                           Paicpu(hp2)^.opcode := A_MOVZX;
-                           Paicpu(hp2)^.opsize := S_BL;
-                           Paicpu(hp2)^.loadoper(1,Paicpu(hp3)^.oper[1]);
-                           Inc(Found);
-                           TmpResult := True;
-                         End
-                       Else
-                         Begin
-                           TmpResult := False;
-                           If (Found > 0) Then
-                             Found := PPaiProp(Pai(p)^.OptInfo)^.Regs[Reg].NrOfMods
-                         End
-                   End
-                 Else
-                   Begin
-                     If (Paicpu(hp3)^.opsize = S_B) And
-                       RegsEquivalent(TRegister(Paicpu(hp2)^.oper[1]),
-                                      Reg8toReg32(TRegister(Paicpu(hp3)^.oper[1])),
-                                      RegInfo)
-                       Then
-                         Begin
-                           TmpResult := True;
-                           Inc(Found)
-                         End
-                       Else
-                         Begin
-                           TmpResult := False;
-                           If (Found > 0) Then
-                             Found := PPaiProp(Pai(p)^.OptInfo)^.Regs[Reg].NrOfMods
-                         End
-                   End
-             Else *)
-                Begin
-                  TmpResult := False;
-                  If (found > 0) then
- {this is correct because we only need to turn off the CanBeRemoved flag
-  when an instruction has already been processed by CheckSequence
-  (otherwise CanBeRemoved can't be true and thus can't have to be turned off).
-  If it has already been processed by CheckSequence and flagged to be
-  removed, it means that it has been checked against a previous sequence
-  and that it was equal (otherwise CheckSequence would have returned false
-  and the instruction wouldn't have been removed). If this "If found > 0"
-  check is left out, incorrect optimizations are performed.}
-                    Found := PPaiProp(Pai(p)^.OptInfo)^.Regs[Reg].NrOfMods
-                End
-          End
-        Else TmpResult := True;
+      If (Found <> OldNrOfMods) Then
+        Begin
+          TmpResult := False;
+          If (found > 0) then
+{this is correct because we only need to turn off the CanBeRemoved flag
+ when an instruction has already been processed by CheckSequence
+ (otherwise CanBeRemoved can't be true and thus can't have to be turned off).
+ If it has already been processed by CheckSequence and flagged to be
+ removed, it means that it has been checked against a previous sequence
+ and that it was equal (otherwise CheckSequence would have returned false
+ and the instruction wouldn't have been removed). If this "If found > 0"
+ check is left out, incorrect optimizations are performed.}
+            Found := PPaiProp(Pai(p)^.OptInfo)^.Regs[Reg].NrOfMods
+        End
+      Else TmpResult := True;
       If TmpResult And
          (Found > HighFound)
         Then
@@ -211,16 +142,70 @@ Begin {CheckSequence}
       (HighFound > OrgRegFound))
     Then
       Begin
+{$ifndef fpc}
+        TmpResult := True;
+{$else fpc}
         CheckSequence := True;
+{$endif fpc}
         RegInfo := HighRegInfo;
         Found := HighFound
       End
     Else
       Begin
+{$ifndef fpc}
+        TmpResult := OrgRegResult;
+{$else fpc}
         CheckSequence := OrgRegResult;
+{$endif fpc}
         Found := OrgRegFound;
         RegInfo := OrgRegInfo;
       End;
+{ sometimes, registers in RegsLoadedForRef (which normally aren't/shouldn't }
+{ be used anymore after the sequence, are still used nevertheless (when     }
+{ range checking is on for instance, because this is not "normal" generated }
+{ code, but more or less manually inserted)                                 }
+{$ifndef fpc}
+  If TmpResult Then
+{$else fpc}
+  If CheckSequence And (Found > 0) Then
+{$endif fpc}
+    For RegCounter := R_EAX to R_EDI Do
+      If (RegCounter in RegInfo.RegsLoadedForRef) And
+         (RegInfo.New2OldReg[RegCounter] <> RegCounter) Then
+        Begin
+          OldNrOfMods := PPaiProp(PrevNonRemovablePai^.OptInfo)^.
+            Regs[RegInfo.New2OldReg[RegCounter]].NrOfMods;
+          hp2 := p;
+          For Cnt := 1 to Pred(OldNrOfMods) Do
+            GetNextInstruction(hp2, hp2);
+{ hp2 now containts the last instruction of the sequence }
+{ get the writestate at this point of the register in TmpState }
+          TmpState := PPaiProp(hp2^.OptInfo)^.Regs[RegCounter].WState;
+{ hp3 := first instruction after the sequence }
+          GetNextInstruction(hp2, hp2);
+{ now, even though reg is in RegsLoadedForRef, sometimes it's still used  }
+{ afterwards. It is not if either it is not in usedregs anymore after the }
+{ sequence, or if it is loaded with a new value right after the sequence  }
+          If (TmpState = PPaiProp(hp2^.OptInfo)^.Regs[RegCounter].WState) And
+             (RegCounter in PPaiProp(hp2^.OptInfo)^.UsedRegs) Then
+{ it is still used, so remove it from RegsLoadedForRef }
+            Begin
+{$ifdef regrefdebug}
+              hp3 := new(pai_asm_comment,init(strpnew(att_reg2str[regcounter]+
+                         ' removed from regsloadedforref')));
+              hp3^.fileinfo := hp2^.fileinfo;
+              hp3^.next := hp2^.next;
+              hp3^.previous := hp2;
+              hp2^.next := hp3;
+              If assigned(hp3^.next) then
+                Pai(hp3^.next)^.previous := hp3;
+{$endif regrefdebug}
+              Exclude(RegInfo.RegsLoadedForRef,RegCounter);
+            End;
+        End;
+{$ifndef fpc}
+  CheckSequence := TmpResult;
+{$endif fpc}
 End; {CheckSequence}
 
 Procedure DoCSE(AsmL: PAasmOutput; First, Last: Pai);
@@ -252,11 +237,6 @@ Begin
               A_MOV, A_MOVZX, A_MOVSX:
                 Begin
                   Case Paicpu(p)^.oper[0].typ Of
-{                    Top_Reg:
-                      Case Paicpu(p)^.optype[1] Of
-                        Top_Reg:;
-                        Top_Ref:;
-                      End;}
                     Top_Ref:
                       Begin {destination is always a register in this case}
                         With PPaiProp(p^.OptInfo)^.Regs[Reg32(Paicpu(p)^.oper[1].reg)] Do
@@ -267,201 +247,167 @@ Begin
                               Then
 {so we don't try to check a sequence when p is the first instruction of the block}
                                If CheckSequence(p, Paicpu(p)^.oper[1].reg, Cnt, RegInfo) And
-                                  (Cnt > 0)
-                                 Then
-                                   Begin
-                                     hp1 := nil;
-   {although it's perfectly ok to remove an instruction which doesn't contain
-    the register that we've just checked (CheckSequence takes care of that),
-    the sequence containing this other register should also be completely
-    checked and removed, otherwise we may get situations like this:
+                                  (Cnt > 0) Then
+                                 Begin
+                                   hp1 := nil;
+{ although it's perfectly ok to remove an instruction which doesn't contain }
+{ the register that we've just checked (CheckSequence takes care of that),  }
+{ the sequence containing this other register should also be completely     }
+{ checked and removed, otherwise we may get situations like this:           }
+{                                                                           }
+{   movl 12(%ebp), %edx                       movl 12(%ebp), %edx           }
+{   movl 16(%ebp), %eax                       movl 16(%ebp), %eax           }
+{   movl 8(%edx), %edx                        movl 8(%edx), %edx            }
+{   movl (%eax), eax                          movl (%eax), eax              }
+{   cmpl %eax, %edx                           cmpl %eax, %edx               }
+{   jnz  l123           getting converted to  jnz  l123                     }
+{   movl 12(%ebp), %edx                       movl 4(%eax), eax             }
+{   movl 16(%ebp), %eax                                                     }
+{   movl 8(%edx), %edx                                                      }
+{   movl 4(%eax), eax                                                       }
+                                   hp2 := p;
+                                   Cnt2 := 1;
+                                   While Cnt2 <= Cnt Do
+                                     Begin
+                                       If (hp1 = nil) And
+                                          Not(RegInInstruction(Paicpu(hp2)^.oper[1].reg, p) Or
+                                              RegInInstruction(Reg32(Paicpu(hp2)^.oper[1].reg), p)) And
+                                          Not((p^.typ = ait_instruction) And
+                                              (paicpu(p)^.OpCode = A_MOV) And
+                                              (paicpu(p)^.Oper[0].typ = top_ref) And
+                                              (PPaiProp(p^.OptInfo)^.Regs[Reg32(paicpu(p)^.Oper[1].reg)].NrOfMods
+                                                 <= (Cnt - Cnt2 + 1)))
+                                         Then hp1 := p;
+{$ifndef noremove}
+                                       PPaiProp(p^.OptInfo)^.CanBeRemoved := True;
+{$endif noremove}
+                                       Inc(Cnt2);
+                                       GetNextInstruction(p, p);
+                                     End;
+                                   hp3 := New(Pai_Marker,Init(NoPropInfoStart));
+                                   InsertLLItem(AsmL, Pai(hp2^.Previous), hp2, hp3);
+ {hp4 is used to get the contents of the registers before the sequence}
+                                   GetLastInstruction(hp2, hp4);
+ { If some registers were different in the old and the new sequence, move }
+ { the contents of those old registers to the new ones                    }
+{$IfDef CSDebug}
+              For RegCounter := R_EAX To R_EDI Do
+                If (RegCounter in RegInfo.RegsLoadedForRef) Then
+                  Begin
+           hp5 := new(pai_asm_comment,init(strpnew('New: '+att_reg2str[RegCounter]+', Old: '+
+                                                  att_reg2str[RegInfo.New2OldReg[RegCounter]])));
+           InsertLLItem(AsmL, Pai(hp2^.previous), hp2, hp5);
+                  End;
+{$EndIf CSDebug}
+                                   For RegCounter := R_EAX To R_EDI Do
+                                     Begin
+                                       If (RegInfo.New2OldReg[RegCounter] <> R_NO) Then
+                                         If Not(RegCounter In RegInfo.RegsLoadedForRef) And
+                                                        {old reg              new reg}
+                                            (RegInfo.New2OldReg[RegCounter] <> RegCounter) Then
 
-      movl 12(%ebp), %edx                       movl 12(%ebp), %edx
-      movl 16(%ebp), %eax                       movl 16(%ebp), %eax
-      movl 8(%edx), %edx                        movl 8(%edx), %edx
-      movl (%eax), eax                          movl (%eax), eax
-      cmpl %eax, %edx                           cmpl %eax, %edx
-      jnz  l123           getting converted to  jnz  l123
-      movl 12(%ebp), %edx                       movl 4(%eax), eax
-      movl 16(%ebp), %eax
-      movl 8(%edx), %edx
-      movl 4(%eax), eax}
+                                           Begin
+                                             hp3 := New(Paicpu,Op_Reg_Reg(A_MOV, S_L,
+                                                                  {old reg          new reg}
+                                                    RegInfo.New2OldReg[RegCounter], RegCounter));
+                                             hp3^.fileinfo := hp2^.fileinfo;
+                                             InsertLLItem(AsmL, Pai(hp2^.previous), hp2, hp3);
+                                           End
+                                         Else
+{   imagine the following code:                                            }
+{        normal                    wrong optimized                         }
+{    movl 8(%ebp), %eax           movl 8(%ebp), %eax                       }
+{    movl (%eax), %eax            movl (%eax), %eax                        }
+{    cmpl 8(%ebp), %eax           cmpl 8(%ebp), %eax                       }
+{    jne l1                       jne l1                                   }
+{    movl 8(%ebp), %eax                                                    }
+{    movl (%eax), %edi            movl %eax, %edi                          }
+{    movl %edi, -4(%ebp)          movl %edi, -4(%ebp)                      }
+{    movl 8(%ebp), %eax                                                    }
+{    pushl 70(%eax)               pushl 70(%eax)                           }
+{                                                                          }
+{   The error is that at the moment that the last instruction is executed, }
+{   %eax doesn't contain 8(%ebp) anymore. Solution: the contents of        }
+{   registers that are completely removed from a sequence (= registers in  }
+{   RegLoadedForRef, have to be changed to their contents from before the  }
+{   sequence.                                                              }
+                                           Begin
+
+{load Cnt2 with the total number of instructions of this sequence}
+                                             Cnt2 := PPaiProp(hp4^.OptInfo)^.
+                                                     Regs[RegInfo.New2OldReg[RegCounter]].NrOfMods;
+
+                                             hp3 := hp2;
+                                             For Cnt := 1 to Pred(Cnt2) Do
+                                               GetNextInstruction(hp3, hp3);
+                                             TmpState := PPaiProp(hp3^.OptInfo)^.Regs[RegCounter].WState;
+                                             GetNextInstruction(hp3, hp3);
+{$ifdef csdebug}
+           Writeln('Cnt2: ',Cnt2);
+           hp5 := new(pai_asm_comment,init(strpnew('starting here...')));
+           InsertLLItem(AsmL, Pai(hp2^.previous), hp2, hp5);
+{$endif csdebug}
+                                                 hp3 := hp2;
+{first change the contents of the register inside the sequence}
+                                                 For Cnt := 1 to Cnt2 Do
+                                                   Begin
+{save the WState of the last pai object of the sequence for later use}
+                                                     TmpState := PPaiProp(hp3^.OptInfo)^.Regs[RegCounter].WState;
+{$ifdef csdebug}
+           hp5 := new(pai_asm_comment,init(strpnew('WState for '+att_reg2str[Regcounter]+': '
+                                                    +tostr(tmpstate))));
+           InsertLLItem(AsmL, hp3, pai(hp3^.next), hp5);
+{$endif csdebug}
+                                                     PPaiProp(hp3^.OptInfo)^.Regs[RegCounter] :=
+                                                       PPaiProp(hp4^.OptInfo)^.Regs[RegCounter];
+                                                     GetNextInstruction(hp3, hp3);
+                                                   End;
+{here, hp3 = p = Pai object right after the sequence, TmpState = WState of
+ RegCounter at the last Pai object of the sequence}
+                                                 GetLastInstruction(hp3, hp3);
+                                                 While GetNextInstruction(hp3, hp3) And
+                                                       (PPaiProp(hp3^.OptInfo)^.Regs[RegCounter].WState
+                                                        = TmpState) Do
+{$ifdef csdebug}
+      begin
+           hp5 := new(pai_asm_comment,init(strpnew('WState for '+att_reg2str[Regcounter]+': '+
+                                                    tostr(PPaiProp(hp3^.OptInfo)^.Regs[RegCounter].WState))));
+           InsertLLItem(AsmL, hp3, pai(hp3^.next), hp5);
+{$endif csdebug}
+                                                   PPaiProp(hp3^.OptInfo)^.Regs[RegCounter] :=
+                                                     PPaiProp(hp4^.OptInfo)^.Regs[RegCounter];
+{$ifdef csdebug}
+      end;
+{$endif csdebug}
+{$ifdef csdebug}
+           hp5 := new(pai_asm_comment,init(strpnew('stopping here...')));
+           InsertLLItem(AsmL, hp3, pai(hp3^.next), hp5);
+{$endif csdebug}
+                                           End;
+                                     End;
+                                   hp3 := New(Pai_Marker,Init(NoPropInfoEnd));
+                                   InsertLLItem(AsmL, Pai(hp2^.Previous), hp2, hp3);
+                                   If hp1 <> nil Then p := hp1;
+                                   Continue;
+                                 End
+                               Else
+                                 If (Cnt > 0) And
+                                    (PPaiProp(p^.OptInfo)^.
+                                      Regs[Reg32(Paicpu(p)^.oper[1].reg)].Typ = Con_Ref) And
+                                    (PPaiProp(p^.OptInfo)^.CanBeRemoved) Then
+                                   Begin
                                      hp2 := p;
                                      Cnt2 := 1;
                                      While Cnt2 <= Cnt Do
                                        Begin
-                                         If (hp1 = nil) And
-                                            Not(RegInInstruction(Paicpu(hp2)^.oper[1].reg, p) Or
-                                                RegInInstruction(Reg32(Paicpu(hp2)^.oper[1].reg), p)) And
-                                            Not((p^.typ = ait_instruction) And
-                                                (paicpu(p)^.OpCode = A_MOV) And
-                                                (paicpu(p)^.Oper[0].typ = top_ref) And
-                                                (PPaiProp(p^.OptInfo)^.Regs[Reg32(paicpu(p)^.Oper[1].reg)].NrOfMods
-                                                   <= (Cnt - Cnt2 + 1)))
-                                           Then hp1 := p;
-{$ifndef noremove}
-                                         PPaiProp(p^.OptInfo)^.CanBeRemoved := True;
-{$endif noremove}
+                                         If RegInInstruction(Paicpu(hp2)^.oper[1].reg, p) Or
+                                            RegInInstruction(Reg32(Paicpu(hp2)^.oper[1].reg), p) Then
+                                           PPaiProp(p^.OptInfo)^.CanBeRemoved := False;
                                          Inc(Cnt2);
                                          GetNextInstruction(p, p);
                                        End;
-                                     hp3 := New(Pai_Marker,Init(NoPropInfoStart));
-                                     InsertLLItem(AsmL, Pai(hp2^.Previous), hp2, hp3);
-   {imagine the following code:
-         normal                    wrong optimized
-     movl 8(%ebp), %eax           movl 8(%ebp), %eax
-     movl (%eax), %eax            movl (%eax), %eax
-     cmpl 8(%ebp), %eax           cmpl 8(%ebp), %eax
-     jne l1                       jne l1
-     movl 8(%ebp), %eax
-     movl (%eax), %edi            movl %eax, %edi
-     movl %edi, -4(%ebp)          movl %edi, -4(%ebp)
-     movl 8(%ebp), %eax
-     pushl 70(%eax)               pushl 70(%eax)
-
-    The error is that at the moment that the last instruction is executed,
-    %eax doesn't contain 8(%ebp) anymore. Solution: the contents of registers
-    that are completely removed from a sequence, have to be changed to their
-    contents from before the sequence.}
-
-   {hp4 is used to get the contents of the registers before the sequence}
-                                     GetLastInstruction(hp2, hp4);
-   {If some registers were different in the old and the new sequence, move
-    the contents of those old registers to the new ones}
-{$IfDef CSDebug}
-                For RegCounter := R_EAX To R_EDI Do
-                  If (RegCounter in RegInfo.RegsLoadedForRef) Then
-                    Begin
-             hp5 := new(pai_asm_comment,init(strpnew('New: '+att_reg2str[RegCounter]+', Old: '+
-                                                    att_reg2str[RegInfo.New2OldReg[RegCounter]])));
-             InsertLLItem(AsmL, Pai(hp2^.previous), hp2, hp5);
-                    End;
-{$EndIf CSDebug}
-                                     For RegCounter := R_EAX To R_EDI Do
-                                       Begin
-                                         If (RegInfo.New2OldReg[RegCounter] <> R_NO) Then
-                                           If Not(RegCounter In RegInfo.RegsLoadedForRef) And
-                                                          {old reg              new reg}
-                                              (RegInfo.New2OldReg[RegCounter] <> RegCounter) Then
-
-                                             Begin
-                                               hp3 := New(Paicpu,Op_Reg_Reg(A_MOV, S_L,
-                                                                    {old reg          new reg}
-                                                      RegInfo.New2OldReg[RegCounter], RegCounter));
-                                               hp3^.fileinfo := hp2^.fileinfo;
-                                               InsertLLItem(AsmL, Pai(hp2^.previous), hp2, hp3);
-                                             End
-                                           Else
-                                             If (RegCounter In RegInfo.RegsLoadedForRef) Then
- {change the contents of this register to the its contents before the
-  sequence (for all instructions in and after the sequence, until the register
-  is reloaded)}
-                                             Begin
- {load Cnt2 with the total number of instructions of this sequence}
-                                               Cnt2 := PPaiProp(hp4^.OptInfo)^.
-                                                       Regs[RegInfo.New2OldReg[RegCounter]].NrOfMods;
- {sometimes, a register can not be removed from a sequence, because it's
-  still used afterwards:
-
-  movl    -8(%ebp), %eax                        movl    -8(%ebp), %eax
-  movl    70(%eax), %eax                        movl    70(%eax), %eax
-  cmpl    74(%eax), %eax                        cmpl    74(%eax), %eax
-  jne     l1               can't be changed to  jne     l1
-  movl    -8(%ebp), %eax
-  movl    70(%eax), %edi                        movl    %eax, %edi
-  boundl  R_282, %edi                           boundl  R_282, %edi
-  pushl   70(%eax)                              pushl   70(%eax)
-
-  because eax now contains the wrong value when 70(%eax) is pushed}
-
-                                               hp3 := hp2;
-                                               For Cnt := 1 to Pred(Cnt2) Do
-                                                 GetNextInstruction(hp3, hp3);
-                                               TmpState := PPaiProp(hp3^.OptInfo)^.Regs[RegCounter].WState;
-                                               GetNextInstruction(hp3, hp3);
-                                               If (TmpState <> PPaiProp(hp3^.OptInfo)^.Regs[RegCounter].WState) Or
-                                                  Not(RegCounter in PPaiProp(hp3^.OptInfo)^.UsedRegs) Then
-                                                 Begin
-{$ifdef csdebug}
-             Writeln('Cnt2: ',Cnt2);
-             hp5 := new(pai_asm_comment,init(strpnew('starting here...')));
-             InsertLLItem(AsmL, Pai(hp2^.previous), hp2, hp5);
-{$endif csdebug}
-                                                   hp3 := hp2;
- {first change the contents of the register inside the sequence}
-                                                   For Cnt := 1 to Cnt2 Do
-                                                     Begin
- {save the WState of the last pai object of the sequence for later use}
-                                                       TmpState := PPaiProp(hp3^.OptInfo)^.Regs[RegCounter].WState;
-{$ifdef csdebug}
-             hp5 := new(pai_asm_comment,init(strpnew('WState for '+att_reg2str[Regcounter]+': '
-                                                      +tostr(tmpstate))));
-             InsertLLItem(AsmL, hp3, pai(hp3^.next), hp5);
-{$endif csdebug}
-                                                       PPaiProp(hp3^.OptInfo)^.Regs[RegCounter] :=
-                                                         PPaiProp(hp4^.OptInfo)^.Regs[RegCounter];
-                                                       GetNextInstruction(hp3, hp3);
-                                                     End;
- {here, hp3 = p = Pai object right after the sequence, TmpState = WState of
-  RegCounter at the last Pai object of the sequence}
-                                                   GetLastInstruction(hp3, hp3);
-                                                   While GetNextInstruction(hp3, hp3) And
-                                                         (PPaiProp(hp3^.OptInfo)^.Regs[RegCounter].WState
-                                                          = TmpState) Do
-{$ifdef csdebug}
-        begin
-             hp5 := new(pai_asm_comment,init(strpnew('WState for '+att_reg2str[Regcounter]+': '+
-                                                      tostr(PPaiProp(hp3^.OptInfo)^.Regs[RegCounter].WState))));
-             InsertLLItem(AsmL, hp3, pai(hp3^.next), hp5);
-{$endif csdebug}
-                                                     PPaiProp(hp3^.OptInfo)^.Regs[RegCounter] :=
-                                                       PPaiProp(hp4^.OptInfo)^.Regs[RegCounter];
-{$ifdef csdebug}
-        end;
-{$endif csdebug}
-                                                 End
-                                               Else
-                                                 Begin
-{$ifdef csdebug}
-                                                   Writeln('Got there for ',att_Reg2Str[RegCounter]);
-{$endif csdebug}
-                                                   hp3 := hp2;
-                                                   For Cnt := 1 to Cnt2 Do
-                                                     Begin
-                                                       If RegModifiedByInstruction(RegCounter, hp3)
-                                                         Then PPaiProp(hp3^.OptInfo)^.CanBeRemoved := False;
-                                                       GetNextInstruction(hp3, hp3);
-                                                     End;
-                                                 End;
-{$ifdef csdebug}
-             hp5 := new(pai_asm_comment,init(strpnew('stopping here...')));
-             InsertLLItem(AsmL, hp3, pai(hp3^.next), hp5);
-{$endif csdebug}
-                                             End;
-                                       End;
-                                     hp3 := New(Pai_Marker,Init(NoPropInfoEnd));
-                                     InsertLLItem(AsmL, Pai(hp2^.Previous), hp2, hp3);
-                                     If hp1 <> nil Then p := hp1;
                                      Continue;
-                                   End
-                                 Else
-                                   If (Cnt > 0) And
-                                      (PPaiProp(p^.OptInfo)^.
-                                        Regs[Reg32(Paicpu(p)^.oper[1].reg)].Typ = Con_Ref) And
-                                      (PPaiProp(p^.OptInfo)^.CanBeRemoved) Then
-                                     Begin
-                                       hp2 := p;
-                                       Cnt2 := 1;
-                                       While Cnt2 <= Cnt Do
-                                         Begin
-                                           If RegInInstruction(Paicpu(hp2)^.oper[1].reg, p) Or
-                                              RegInInstruction(Reg32(Paicpu(hp2)^.oper[1].reg), p) Then
-                                             PPaiProp(p^.OptInfo)^.CanBeRemoved := False;
-                                           Inc(Cnt2);
-                                           GetNextInstruction(p, p);
-                                         End;
-                                       Continue;
-                                     End;
+                                   End;
                           End;
                       End;
                     Top_Const:
@@ -553,7 +499,11 @@ End.
 
 {
  $Log$
- Revision 1.25  1999-09-27 23:44:50  peter
+ Revision 1.26  1999-09-30 14:43:13  jonas
+   * fixed small efficiency which caused some missed optimizations (saves 1
+     assembler instruction on the whole compiler/RTL source tree! :)
+
+ Revision 1.25  1999/09/27 23:44:50  peter
    * procinfo is now a pointer
    * support for result setting in sub procedure
 
