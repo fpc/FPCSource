@@ -35,7 +35,7 @@ asm
   beq .Lexit
 
   ldr r2,checkoverflow
-  cmp r2,r2
+  cmp r2,#0
   beq .Lexit
 
   mov r0,#215
@@ -47,7 +47,10 @@ end ['r4','r5','r6'];
 
 {
   $Log$
-  Revision 1.3  2004-03-23 21:03:11  florian
+  Revision 1.4  2005-01-04 12:57:52  florian
+    * fixed overflow checking for qword*qword
+
+  Revision 1.3  2004/03/23 21:03:11  florian
     + assembler implementation of fpc_mul_qword
     * fpu exceptions are now generated
 
