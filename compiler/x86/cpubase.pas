@@ -137,9 +137,9 @@ uses
 
       { Number of first imaginary register }
 {$ifdef x86_64}
-      first_sse_imreg     = $10;
+      first_mm_imreg     = $10;
 {$else x86_64}
-      first_sse_imreg     = $08;
+      first_mm_imreg     = $08;
 {$endif x86_64}
 
       { The subregister that specifies the entire register }
@@ -543,7 +543,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  2004-06-20 08:55:32  florian
+  Revision 1.45  2004-07-09 23:30:13  jonas
+    *  changed first_sse_imreg to first_mm_imreg
+
+  Revision 1.44  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.43  2004/06/16 20:07:11  florian

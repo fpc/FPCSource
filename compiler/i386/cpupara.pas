@@ -186,7 +186,7 @@ unit cpupara;
 
     function ti386paramanager.get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;
       begin
-        result:=[0..first_sse_imreg-1];
+        result:=[0..first_mm_imreg-1];
       end;
 
 
@@ -474,7 +474,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.53  2004-07-09 23:09:02  peter
+  Revision 1.54  2004-07-09 23:30:13  jonas
+    *  changed first_sse_imreg to first_mm_imreg
+
+  Revision 1.53  2004/07/09 23:09:02  peter
     * varargs calculation fixed, it's now the same as the other
       targets
 
