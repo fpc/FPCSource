@@ -1,7 +1,7 @@
 [Main]
 Title="CVS Update"
-Size=(56,10)
-CommandLine="%z% commit -m %msg" %filename%"
+Size=(56,9)
+CommandLine="commit -m %msg% %filename%"
 Default="filename"
 
 [filename]
@@ -27,11 +27,3 @@ Origin=(2,5)
 Size=(52,1)
 Text="~M~essage"
 Link="msg"
-
-[z]
-Type=CheckBox
-Name="~C~ompress (-z 3)"
-Origin=(2,8)
-Size=(25,1)
-Default=On
-On="-z 3"
