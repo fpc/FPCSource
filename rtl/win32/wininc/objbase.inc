@@ -25,7 +25,7 @@
 
   function CoRevokeMallocSpy:HRESULT;stdcall; external  'ole32.dll' name 'CoRevokeMallocSpy';
 
-  function CoCreateStandardMalloc(_para1:DWORD; out _para2:IMalloc):HRESULT;stdcall; external  'ole32.dll' name 'CoCreateStandardMalloc';
+  function CoCreateStandardMalloc(_para1:DWORD; out _para2:IMalloc):HRESULT;stdcall; external  'ole32.dll' name 'CoGetMalloc';
 
   function CoGetClassObject(const _para1:TCLSID; _para2:DWORD; _para3:PVOID; const _para4:TIID; out _para5):HRESULT;stdcall; external  'ole32.dll' name 'CoGetClassObject';
 
@@ -206,7 +206,10 @@
 
 {
   $Log$
-  Revision 1.2  2004-11-29 12:27:24  marco
+  Revision 1.3  2004-12-18 20:05:18  michael
+    * Aliased CoCreateStandardMalloc to CoGetMalloc as per bug 3447 (Alexey Barkovoy)
+
+  Revision 1.2  2004/11/29 12:27:24  marco
    * stdcall added. Thnx M.
 
   Revision 1.1  2002/10/10 16:10:33  florian
