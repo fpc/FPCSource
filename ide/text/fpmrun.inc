@@ -242,14 +242,14 @@ var
   LineNr : longint;
 begin
 {$ifndef NODEBUG}
-  if (DeskTop^.First=nil) or
-     (TypeOf(DeskTop^.First^)<>TypeOf(TSourceWindow)) then
+  if (DeskTop^.Current=nil) or
+     (TypeOf(DeskTop^.Current^)<>TypeOf(TSourceWindow)) then
     Begin
        ErrorBox('Impossible to set breakpoints here',nil);
        Exit;
     End;
 
-  W:=PSourceWindow(DeskTop^.First);
+  W:=PSourceWindow(DeskTop^.Current);
   If assigned(W) then
     begin
       FileName:=W^.Editor^.FileName;
@@ -264,7 +264,10 @@ end;
 
 {
   $Log$
-  Revision 1.25  2000-01-28 22:38:21  pierre
+  Revision 1.26  2000-01-31 16:02:08  pierre
+   * avoid the Impossible to set breakpoints here
+
+  Revision 1.25  2000/01/28 22:38:21  pierre
    * CrtlF9 starts debugger if there are active breakpoints
 
   Revision 1.24  2000/01/10 13:23:28  pierre
