@@ -7,13 +7,13 @@ main=fcl
 
 [target]
 dirs=sdf memds
-dirs_i386=dbase
-dirs_linux=mysql interbase sqlite
-dirs_freebsd=mysql interbase sqlite
+# dirs_i386=dbase
+dirs_linux=mysql interbase sqlite dbase
+dirs_freebsd=mysql interbase sqlite dbase
 dirs_darwin=mysql interbase sqlite
 dirs_netbsd=mysql interbase sqlite
 dirs_openbsd=mysql interbase sqlite
-dirs_win32=mysql interbase sqlite
+dirs_win32=mysql interbase sqlite dbase
 units=db ddg_ds ddg_rec dbwhtml
 exampledirs=tests
 rsts=dbwhtml

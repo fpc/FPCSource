@@ -6,8 +6,8 @@
 main=fcl
 
 [target]
-units=Dbf
-examples=testdbf
+units_i386=Dbf
+examples_i386=testdbf
 
 [compiler]
 options=-S2 -Sh
@@ -15,7 +15,7 @@ targetdir=../../$(OS_TARGET)
 
 [install]
 fpcpackage=y
-units=Dbf_Common Dbf_Cursor Dbf_DbfFile Dbf_Fields Dbf_IdxCur \
+units_i386=Dbf_Common Dbf_Cursor Dbf_DbfFile Dbf_Fields Dbf_IdxCur \
       Dbf_IdxFile Dbf_Lang Dbf_Memo Dbf_Parser Dbf_PgFile \
       Dbf_PrsCore Dbf_PrsDef Dbf_PrsSupp Dbf_Str Dbf_Wtil
 
