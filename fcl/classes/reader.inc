@@ -1026,9 +1026,8 @@ begin
     tkInteger:
       if FDriver.NextValue = vaIdent then
       begin
-        IdentToIntFn := FindIdentToInt(PPropInfo(PropInfo)^.PropType);
         Ident := ReadIdent;
-        if Assigned(IdentToIntFn) and IdentToIntFn(Ident, Value) then
+        if GlobalIdentToInt(Ident,Value) then
           SetOrdProp(Instance, PropInfo, Value)
         else
           raise EReadError.Create(SInvalidPropertyValue);
@@ -1305,10 +1304,14 @@ end;
 
 {
   $Log$
-  Revision 1.1  2003-10-06 20:33:58  peter
-    * classes moved to rtl for 1.1
-    * classes .inc and classes.pp files moved to fcl/classes for
-      backwards 1.0.x compatiblity to have it in the fcl
+  Revision 1.2  2003-12-15 08:57:24  michael
+  Patch from Darek Mazur for reading idents from property stream
+
+  Revision 1.2  2003/12/15 08:55:56  michael
+  Patch from Darek Mazur for reading idents from property stream
+
+  Revision 1.1  2003/10/06 21:01:06  peter
+    * moved classes unit to rtl
 
   Revision 1.8  2003/08/16 15:50:47  michael
   + Fix from Mattias gaertner for IDE support

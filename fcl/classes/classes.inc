@@ -60,6 +60,11 @@ var
 { TStrings and TStringList implementations }
 {$i stringl.inc}
 
+{$ifndef VER1_0}
+{ TThread implementation }
+{$i tthread.inc}
+{$endif}
+
 { TPersistent implementation }
 {$i persist.inc }
 
@@ -227,6 +232,20 @@ begin
   Result := False;
 end;
 
+function GlobalIdentToInt(const Ident: String; var Int: LongInt):boolean;
+var
+  i : Integer;
+begin
+  with IntConstList.LockList do
+    try
+      for i := 0 to Count - 1 do
+        if TIntConst(Items[I]).IdentToIntFn(Ident, Int) then
+          Exit(True);
+      Result := false;
+    finally
+      IntConstList.UnlockList;
+    end;
+end;
 
 { TPropFixup }
 
@@ -273,16 +292,16 @@ Type
     AHandler : TInitComponentHandler;
     AClass : TComponentClass;
   end;
-  
-Var  
+
+Var
   InitHandlerList : TList;
-   
+
 procedure RegisterInitComponentHandler(ComponentClass: TComponentClass;   Handler: TInitComponentHandler);
 
 Var
   I : Integer;
   H: TInitHandler;
-  
+
 begin
   If (InitHandlerList=Nil) then
     InitHandlerList:=TList.Create;
@@ -292,10 +311,10 @@ begin
   With InitHandlerList do
     begin
     I:=0;
-    While (I<Count) and not H.AClass.InheritsFrom(TInitHandler(Items[i]).AClass) do 
+    While (I<Count) and not H.AClass.InheritsFrom(TInitHandler(Items[i]).AClass) do
       Inc(I);
     InitHandlerList.Insert(I,H);
-    end;  
+    end;
 end;
 
 function InitInheritedComponent(Instance: TComponent; RootAncestor: TClass): Boolean;
@@ -312,11 +331,11 @@ begin
     // Instance is the normally the lowest one, so that one should be used when searching.
     While Not result and (I<Count) do
       begin
-      If (Instance.InheritsFrom(TInitHandler(Items[i]).AClass)) then 
-        Result:=TInitHandler(Items[i]).AHandler(Instance,RootAncestor);  
+      If (Instance.InheritsFrom(TInitHandler(Items[i]).AClass)) then
+        Result:=TInitHandler(Items[i]).AHandler(Instance,RootAncestor);
       Inc(I);
       end;
-    end;  
+    end;
 end;
 
 
@@ -1209,10 +1228,17 @@ end;
 
 {
   $Log$
-  Revision 1.1  2003-10-06 20:33:58  peter
-    * classes moved to rtl for 1.1
-    * classes .inc and classes.pp files moved to fcl/classes for
-      backwards 1.0.x compatiblity to have it in the fcl
+  Revision 1.2  2003-12-15 08:57:24  michael
+  Patch from Darek Mazur for reading idents from property stream
+
+  Revision 1.3  2003/12/15 08:55:56  michael
+  Patch from Darek Mazur for reading idents from property stream
+
+  Revision 1.2  2003/11/19 15:51:54  peter
+    * tthread disabled for 1.0.x
+
+  Revision 1.1  2003/10/06 21:01:06  peter
+    * moved classes unit to rtl
 
   Revision 1.14  2003/06/04 17:40:44  michael
   + Minor fix by Mattias Gaertner
