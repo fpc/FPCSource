@@ -607,9 +607,9 @@ implementation
             begin
                firstpass(p^.left);
                { is this correct ?  At least after is like if used }
-               inc(parsing_para_level);
                set_varstate(p^.left,false);
-               dec(parsing_para_level);
+               p^.varstateset:=false;
+               set_varstate(p^.left,true);
                if codegenerror then
                  exit;
                symtable:=p^.withsymtable;
@@ -640,7 +640,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  2000-01-07 01:14:46  peter
+  Revision 1.38  2000-01-07 09:36:24  pierre
+   * With argument is set as used to avoid unnecessary warnings
+
+  Revision 1.37  2000/01/07 01:14:46  peter
     * updated copyright to 2000
 
   Revision 1.36  1999/11/30 10:40:58  peter
