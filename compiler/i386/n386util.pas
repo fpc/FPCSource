@@ -60,7 +60,7 @@ implementation
     uses
        globtype,globals,systems,verbose,
        cutils,
-       aasm,cpubase,cpuasm,
+       aasm,cpubase,cpuasm,cpuinfo,
        symconst,symbase,symdef,symsym,symtable,
 {$ifdef GDB}
        gdb,
@@ -1115,7 +1115,7 @@ implementation
         op     : tasmop;
         fromdef : tdef;
         lto,hto,
-        lfrom,hfrom : longint;
+        lfrom,hfrom : TConstExprInt;
         is_reg : boolean;
       begin
         { range checking on and range checkable value? }
@@ -1544,7 +1544,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  2001-12-02 16:19:17  jonas
+  Revision 1.24  2001-12-03 21:48:43  peter
+    * freemem change to value parameter
+    * torddef low/high range changed to int64
+
+  Revision 1.23  2001/12/02 16:19:17  jonas
     * less unnecessary regvar loading with if-statements
 
   Revision 1.22  2001/10/12 13:51:52  jonas

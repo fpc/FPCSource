@@ -157,7 +157,7 @@ implementation
                      emit_push_loc(left.location);
                      emitcall('FPC_FINALIZE');
                   end;
-                emit_push_lea_loc(left.location,true);
+                emit_push_loc(left.location);
                 emitcall('FPC_FREEMEM');
              end;
            simplenewn:
@@ -701,7 +701,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2001-09-30 16:17:17  jonas
+  Revision 1.18  2001-12-03 21:48:43  peter
+    * freemem change to value parameter
+    * torddef low/high range changed to int64
+
+  Revision 1.17  2001/09/30 16:17:17  jonas
     * made most constant and mem handling processor independent
 
   Revision 1.16  2001/08/30 20:13:57  peter

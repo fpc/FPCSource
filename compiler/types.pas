@@ -231,7 +231,7 @@ interface
     procedure testrange(def : tdef;var l : tconstexprint;explicit:boolean);
 
     { returns the range of def }
-    procedure getrange(def : tdef;var l : longint;var h : longint);
+    procedure getrange(def : tdef;var l : TConstExprInt;var h : TConstExprInt);
 
     { some type helper routines for MMX support }
     function is_mmx_able_array(p : tdef) : boolean;
@@ -833,7 +833,7 @@ implementation
       the value is placed within the range }
     procedure testrange(def : tdef;var l : tconstexprint;explicit:boolean);
       var
-         lv,hv: longint;
+         lv,hv: TConstExprInt;
          error: boolean;
       begin
          error := false;
@@ -914,7 +914,7 @@ implementation
 
 
     { return the range from def in l and h }
-    procedure getrange(def : tdef;var l : longint;var h : longint);
+    procedure getrange(def : tdef;var l : TConstExprInt;var h : TConstExprInt);
       begin
         case def.deftype of
           orddef :
@@ -1869,7 +1869,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.57  2001-11-14 01:12:45  florian
+  Revision 1.58  2001-12-03 21:48:43  peter
+    * freemem change to value parameter
+    * torddef low/high range changed to int64
+
+  Revision 1.57  2001/11/14 01:12:45  florian
     * variant paramter passing and functions results fixed
 
   Revision 1.56  2001/11/02 23:24:12  jonas

@@ -853,8 +853,9 @@ implementation
         end;
 
       var
+         lv,hv,
          max_label: tconstexprint;
-         lv,hv,labels : longint;
+         labels : longint;
          max_linear_list : longint;
          otl, ofl: tasmlabel;
 {$ifdef Delphi}
@@ -1091,7 +1092,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2001-09-04 11:38:55  jonas
+  Revision 1.18  2001-12-03 21:48:43  peter
+    * freemem change to value parameter
+    * torddef low/high range changed to int64
+
+  Revision 1.17  2001/09/04 11:38:55  jonas
     + searchsystype() and searchsystype() functions in symtable
     * changed ninl and nadd to use these functions
     * i386 set comparison functions now return their results in al instead

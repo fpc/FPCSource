@@ -37,7 +37,7 @@ interface
        { node }
        node,
        { aasm }
-       aasm,cpubase
+       aasm,cpubase,cpuinfo
        ;
 
 
@@ -370,9 +370,9 @@ interface
 
        torddef = class(tstoreddef)
           rangenr  : longint;
-          low,high : longint;
+          low,high : TConstExprInt;
           typ      : tbasetype;
-          constructor create(t : tbasetype;v,b : longint);
+          constructor create(t : tbasetype;v,b : TConstExprInt);
           constructor load(ppufile:tcompilerppufile);
           procedure write(ppufile:tcompilerppufile);override;
           function  is_publishable : boolean;override;
@@ -720,7 +720,7 @@ implementation
        { global }
        verbose,
        { target }
-       systems,cpuinfo,
+       systems,
        { symtable }
        symsym,symtable,
        types,
@@ -1597,7 +1597,7 @@ implementation
                                  TORDDEF
 ****************************************************************************}
 
-    constructor torddef.create(t : tbasetype;v,b : longint);
+    constructor torddef.create(t : tbasetype;v,b : TConstExprInt);
       begin
          inherited create;
          deftype:=orddef;
@@ -1610,12 +1610,44 @@ implementation
 
 
     constructor torddef.load(ppufile:tcompilerppufile);
+      var
+        l1,l2 : longint;
       begin
          inherited loaddef(ppufile);
          deftype:=orddef;
          typ:=tbasetype(ppufile.getbyte);
-         low:=ppufile.getlongint;
-         high:=ppufile.getlongint;
+         if sizeof(TConstExprInt)=8 then
+          begin
+            l1:=ppufile.getlongint;
+            l2:=ppufile.getlongint;
+{$ifopt R+}
+  {$define Range_check_on}
+{$endif opt R+}
+{$R- needed here }
+            low:=qword(l1)+(int64(l2) shl 32);
+{$ifdef Range_check_on}
+  {$R+}
+  {$undef Range_check_on}
+{$endif Range_check_on}
+          end
+         else
+          low:=ppufile.getlongint;
+         if sizeof(TConstExprInt)=8 then
+          begin
+            l1:=ppufile.getlongint;
+            l2:=ppufile.getlongint;
+{$ifopt R+}
+  {$define Range_check_on}
+{$endif opt R+}
+{$R- needed here }
+            high:=qword(l1)+(int64(l2) shl 32);
+{$ifdef Range_check_on}
+  {$R+}
+  {$undef Range_check_on}
+{$endif Range_check_on}
+          end
+         else
+          high:=ppufile.getlongint;
          rangenr:=0;
          setsize;
       end;
@@ -1728,8 +1760,20 @@ implementation
       begin
          inherited writedef(ppufile);
          ppufile.putbyte(byte(typ));
-         ppufile.putlongint(low);
-         ppufile.putlongint(high);
+         if sizeof(TConstExprInt)=8 then
+          begin
+            ppufile.putlongint(longint(lo(low)));
+            ppufile.putlongint(longint(hi(low)));
+          end
+         else
+          ppufile.putlongint(low);
+         if sizeof(TConstExprInt)=8 then
+          begin
+            ppufile.putlongint(longint(lo(high)));
+            ppufile.putlongint(longint(hi(high)));
+          end
+         else
+          ppufile.putlongint(high);
          ppufile.writeentry(iborddef);
       end;
 
@@ -5458,7 +5502,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.58  2001-11-30 15:01:51  jonas
+  Revision 1.59  2001-12-03 21:48:42  peter
+    * freemem change to value parameter
+    * torddef low/high range changed to int64
+
+  Revision 1.58  2001/11/30 15:01:51  jonas
     * tarraydef.size returns target_info.size_of_pointer instead of 4 for
       dynamic arrays
 

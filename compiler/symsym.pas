@@ -1918,7 +1918,7 @@ implementation
 {$endif Range_check_on}
                  end
                else
-                 valueordptr:=ppufile.getlongint;
+                 valueordptr:=cardinal(ppufile.getlongint);
              end;
            conststring,
            constresourcestring :
@@ -2017,7 +2017,7 @@ implementation
                     ppufile.putlongint(longint(hi(valueordptr)));
                  end
                else
-                 ppufile.putlongint(valueordptr);
+                 ppufile.putlongint(longint(valueordptr));
              end;
            conststring,
            constresourcestring :
@@ -2440,7 +2440,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  2001-11-30 16:25:35  jonas
+  Revision 1.29  2001-12-03 21:48:42  peter
+    * freemem change to value parameter
+    * torddef low/high range changed to int64
+
+  Revision 1.28  2001/11/30 16:25:35  jonas
     * fixed web bug 1707:
        * tvarsym.getvaluesize doesn't return 0 anymore for dynarrays (found
          by Florian)

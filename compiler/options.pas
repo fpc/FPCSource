@@ -1346,6 +1346,7 @@ begin
   def_symbol('HAS_ADDR_STACK_ON_STACK');
   def_symbol('NOBOUNDCHECK');
   def_symbol('HASCOMPILERPROC');
+  def_symbol('VALUEFREEMEM');
 
 { some stuff for TP compatibility }
 {$ifdef i386}
@@ -1645,7 +1646,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.63  2001-11-24 02:09:54  carl
+  Revision 1.64  2001-12-03 21:48:42  peter
+    * freemem change to value parameter
+    * torddef low/high range changed to int64
+
+  Revision 1.63  2001/11/24 02:09:54  carl
   * Renamed ppc.cfg -> fpc.cfg
 
   Revision 1.62  2001/11/23 02:48:46  carl

@@ -219,8 +219,61 @@ implementation
 
 
     function tnewnode.pass_1 : tnode;
+{$ifdef NEW_COMPILERPROC}
+      var
+        temp          : ttempcreatenode;
+        newstatement  : tstatementnode;
+        newblock      : tblocknode;
+{$endif NEW_COMPILERPROC}
       begin
          result:=nil;
+{$ifdef NEW_COMPILERPROC}
+         { create the blocknode which will hold the generated statements + }
+         { an initial dummy statement                                      }
+         newstatement := cstatementnode.create(nil,cnothingnode.create);
+         newblock := cblocknode.create(newstatement);
+
+         { create temp for result }
+         temp := ctempcreatenode.create(resulttype,
+                                        resulttype.size,true);
+         newstatement.left := cstatementnode.create(nil,temp);
+
+         { create parameter }
+         sizepara := ccallparanode.create(cordconstnode.create
+             (tpointerdef(resulttype.def).pointertype.def.size,s32bittype),nil);
+
+         { create the call and assign the result to dest  }
+         { the assignment will take care of rangechecking }
+         newstatement.left := cstatementnode.create(nil,cassignmentnode.create(
+           ctemprefnode.create(tempcode),
+           ccallnode.createintern('fpc_getmem',sizepara)));
+         newstatement := tstatementnode(newstatement.left);
+
+         if tpointerdef(resulttype.def).pointertype.def.needs_inittable then
+          begin
+            para := ccallparanode.create(cloadnode.create
+                       (tpointerdef(resulttype.def).pointertype.def.size,s32bittype),
+                    ccallparanode.create(cordconstnode.create
+                       (tpointerdef(resulttype.def).pointertype.def.size,s32bittype),nil));
+            newstatement.left := cstatementnode.create(nil,cassignmentnode.create(
+              ctemprefnode.create(tempcode),
+              ccallnode.createintern('fpc_initialize',sizepara)));
+            newstatement := tstatementnode(newstatement.left);
+                   new(r);
+                   reset_reference(r^);
+                   r^.symbol:=tstoreddef(tpointerdef(resulttype.def).pointertype.def).get_rtti_label(initrtti);
+                   emitpushreferenceaddr(r^);
+                   dispose(r);
+                   { push pointer we just allocated, we need to initialize the
+                     data located at that pointer not the pointer self (PFV) }
+                   emit_push_loc(location);
+                   emitcall('FPC_INITIALIZE');
+          end;
+
+         { and return it }
+         result := newblock;
+{$endif NEW_COMPILERPROC}
+
          if assigned(left) then
           begin
             firstpass(left);
@@ -316,10 +369,6 @@ implementation
          firstpass(left);
          if codegenerror then
           exit;
-
-         if (left.location.loc<>LOC_REFERENCE) {and
-            (left.location.loc<>LOC_CREGISTER)} then
-           CGMessage(cg_e_illegal_expression);
 
          registers32:=left.registers32;
          registersfpu:=left.registersfpu;
@@ -985,7 +1034,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2001-11-02 22:58:02  peter
+  Revision 1.24  2001-12-03 21:48:42  peter
+    * freemem change to value parameter
+    * torddef low/high range changed to int64
+
+  Revision 1.23  2001/11/02 22:58:02  peter
     * procsym definition rewrite
 
   Revision 1.22  2001/10/28 17:22:25  peter

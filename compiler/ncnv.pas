@@ -229,8 +229,8 @@ implementation
         end;
 
       var
-        l : longint;
-        lr,hr : longint;
+        l : Longint;
+        lr,hr : TConstExprInt;
 
       begin
         new(constset);
@@ -1618,7 +1618,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2001-11-02 23:24:11  jonas
+  Revision 1.45  2001-12-03 21:48:41  peter
+    * freemem change to value parameter
+    * torddef low/high range changed to int64
+
+  Revision 1.44  2001/11/02 23:24:11  jonas
     * fixed web bug 1665 (allow char to chararray type conversion) ("merged")
 
   Revision 1.43  2001/11/02 22:58:02  peter
