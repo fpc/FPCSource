@@ -73,6 +73,12 @@ interface
        gpcmodeswitches    : tmodeswitches=
          [m_gpc,m_all];
 
+       { maximum number of locals in bytes before warning is emitted }
+       maxlocalsize = high(smallint);
+       { maximum number of paras in bytes before warning is emitted }
+       maxparasize = high(word);
+       
+
     type
        pfileposinfo = ^tfileposinfo;
        tfileposinfo = record
@@ -1515,7 +1521,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.75  2002-11-30 23:13:48  carl
+  Revision 1.76  2002-12-01 22:07:41  carl
+    * warning of portabilitiy problems with parasize / localsize
+    + some added documentation
+
+  Revision 1.75  2002/11/30 23:13:48  carl
     - cs_fp_emulation is no longer automatic for m68k target
 
   Revision 1.74  2002/11/30 11:08:46  carl

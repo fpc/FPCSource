@@ -39,9 +39,9 @@ interface
        tequaltype = (
          te_incompatible,
          te_convert_operator,
-         te_convert_l2,
-         te_convert_l1,
-         te_equal,
+         te_convert_l2,     { compatible conversion with possible loss of data }     
+         te_convert_l1,     { compatible conversion     }
+         te_equal,          { the definitions are equal }
          te_exact
        );
 
@@ -1149,7 +1149,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2002-11-27 15:33:46  peter
+  Revision 1.4  2002-12-01 22:07:41  carl
+    * warning of portabilitiy problems with parasize / localsize
+    + some added documentation
+
+  Revision 1.3  2002/11/27 15:33:46  peter
     * the never ending story of tp procvar hacks
 
   Revision 1.2  2002/11/27 02:32:14  peter
