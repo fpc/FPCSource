@@ -1,3 +1,14 @@
+
+{$ifdef fpc}
+  {$ifndef ver1_0}
+    {$define haswidestring}
+  {$endif}
+{$else}
+  {$ifndef ver70}
+    {$define haswidestring}
+  {$endif}
+{$endif}
+
 procedure test_shortstr;
 type
   tlocalstring = shortstring;
