@@ -49,6 +49,7 @@ type
     Module: TPasModule;
     ModuleName: String;
     FTableCount : Integer;
+    FInVerbatim : Boolean;
     TableRowStartFlag, TableCaptionWritten: Boolean;
 
     function GetLabel(AElement: TPasElement): String;
@@ -442,18 +443,23 @@ var
   i: Integer;
 
 begin
-  SetLength(Result, 0);
-  for i := 1 to Length(S) do
-    case S[i] of
-      '&','{','}','#','_','$','%':		// Escape these characters
-        Result := Result + '\' + S[i];
-      '~','^':
-        Result := Result + '\'+S[i]+' ';
-      '\': 
-        Result:=Result+'$\backslash$'  
-      else
-        Result := Result + S[i];
-    end;
+  if FInVerBatim=True then 
+    Result:=S
+  else  
+    begin    
+    SetLength(Result, 0);
+    for i := 1 to Length(S) do
+      case S[i] of
+        '&','{','}','#','_','$','%':		// Escape these characters
+          Result := Result + '\' + S[i];
+        '~','^':
+          Result := Result + '\'+S[i]+' ';
+        '\': 
+          Result:=Result+'$\backslash$'  
+        else
+          Result := Result + S[i];
+      end;
+    end;  
 end;
 
 Function TLatexWriter.StripTex(S : String) : String;
@@ -1348,8 +1354,12 @@ end;
 
 procedure TLaTeXWriter.StartListing(Frames: Boolean; const name: String);
 begin
+  FInVerbatim:=True;
   if Not LaTexHighLight then
-    Writeln('\begin{verbatim}')
+    begin
+    Writeln('');
+    Writeln('\begin{verbatim}');
+    end
   else  
     if Frames then
       Writelnf('\begin{lstlisting}{%s}',[StripTex(Name)])
@@ -1364,6 +1374,7 @@ end;
 
 procedure TLaTeXWriter.EndListing;
 begin
+  FInVerbatim:=False;
   If LaTexHighLight then
     Writeln('\end{lstlisting}')
   else  
@@ -1445,7 +1456,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2004-06-06 10:53:02  michael
+  Revision 1.6  2004-07-23 23:39:48  michael
+  + Some fixes in verbatim writing
+
+  Revision 1.5  2004/06/06 10:53:02  michael
   + Added Topic support
 
   Revision 1.4  2003/03/18 19:28:44  michael
