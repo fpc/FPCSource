@@ -188,8 +188,10 @@ end;
 function TList.First: Pointer;
 
 begin
-  // Wouldn't it be better to return Nil if count is zero ?
-  Result:=Items[0];
+  If FCount=0 then 
+    Result:=Nil
+  else
+    Result:=Items[0];
 end;
 
 
@@ -222,7 +224,10 @@ function TList.Last: Pointer;
 
 begin
   // Wouldn't it be better to return nil if the count is zero ?
-  Result:=Items[FCount-1];
+  If FCount=0 then 
+    Result:=Nil
+  else
+    Result:=Items[FCount-1];
 end;
 
 
@@ -390,7 +395,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  1999-04-08 10:18:52  peter
+  Revision 1.7  1999-04-13 12:46:16  michael
+  + Some bug fixes by Romio
+
+  Revision 1.6  1999/04/08 10:18:52  peter
     * makefile updates
 
 }

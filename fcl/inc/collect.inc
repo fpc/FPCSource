@@ -34,6 +34,7 @@ begin
     begin
     If FCollection<>Nil then FCollection.RemoveItem(Self);
     if Value<>Nil then Value.InsertItem(Self);
+    FCollection:=Value;
     end;  
 end;
 
@@ -161,7 +162,6 @@ begin
   If Not(Item Is FitemClass) then
     exit;
   FItems.add(Pointer(Item));
-  Item.Collection:=Self;
   Item.FID:=FNextID;
   inc(FNextID);
   SetItemName(Item);
@@ -198,7 +198,7 @@ function TCollection.GetItemAttr(Index, ItemIndex: Integer): string;
 
 
 begin
-   Result:=TCollectionItem(FItems[ItemIndex]).DisplayName;
+   Result:=TCollectionItem(FItems.Items[ItemIndex]).DisplayName;
 end;
 
 
@@ -238,7 +238,7 @@ end;
 procedure TCollection.SetItem(Index: Integer; Value: TCollectionItem);
 
 begin
-  TCollectionItem(FItems[Index]).Assign(Value);
+  TCollectionItem(FItems.items[Index]).Assign(Value);
 end;
 
 
@@ -260,6 +260,7 @@ end;
 constructor TCollection.Create(AItemClass: TCollectionItemClass);
 
 begin
+  inherited create;
   FItemClass:=AItemClass;
   FItems:=TList.Create;
 end;
@@ -333,14 +334,17 @@ begin
   Result:=Nil;
   For I:=0 to Fitems.Count-1 do
    begin
-   Result:=TCollectionItem(FItems[I]);
+   Result:=TCollectionItem(FItems.items[I]);
    If Result.Id=Id then exit;
    end;
 end;
 
 {
   $Log$
-  Revision 1.4  1999-04-05 09:56:04  michael
+  Revision 1.5  1999-04-13 12:46:15  michael
+  + Some bug fixes by Romio
+
+  Revision 1.4  1999/04/05 09:56:04  michael
   + Fixed bugs reported by Romio in TCollection
 
   Revision 1.3  1998/10/02 22:41:23  michael
