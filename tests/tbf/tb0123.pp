@@ -1,4 +1,5 @@
 { %fail }
+{%OPT=-Cr}
 
 type
    smallrange = 5..287;
