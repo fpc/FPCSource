@@ -28,7 +28,7 @@ var
 threadvar
    thri : longint;
 
-function f(p : pointer) : longint;
+function f(p : pointer) : ptrint;
   var
      s : ansistring;
   begin
@@ -45,7 +45,7 @@ function f(p : pointer) : longint;
   end;
 
 var
-   i : longint;
+   i : ptrint;
 begin
    finished:=0;
 
