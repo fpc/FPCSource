@@ -201,6 +201,28 @@ endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=gdbint
 override PACKAGE_VERSION=1.0.6
+ifdef inUnix
+CURRDIR=./
+else
+CURRDIR=
+endif
+ifdef GDBLIBDIR
+override LIBGDB:=$(firstword $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR))))
+endif
+ifeq ($(LIBGDB),)
+override GDBLIBDIR=libgdb/$(OS_TARGET)
+ifeq ($(OS_TARGET),go32v2)
+ifneq ($(DJDIR),)
+GDBLIBDIR+=$(DJDIR)/lib
+endif
+endif
+override LIBGDB:=$(firstword $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR))))
+endif
+ifeq ($(LIBGDB),)
+GDBFOUND=0
+else
+GDBFOUND=1
+endif
 override TARGET_UNITS+=gdbint gdbcon
 override TARGET_EXAMPLES+=testgdb symify
 override INSTALL_FPCPACKAGE=y
@@ -1326,28 +1348,6 @@ makefiles: fpc_makefiles
 .PHONY: all debug smart release examples shared install sourceinstall exampleinstall distinstall zipinstall zipsourceinstall zipexampleinstall zipdistinstall distclean cleanall info makefiles
 ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
-endif
-ifdef inUnix
-CURRDIR=./
-else
-CURRDIR=
-endif
-ifdef GDBLIBDIR
-override LIBGDB:=$(firstword $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR))))
-endif
-ifeq ($(LIBGDB),)
-override GDBLIBDIR=libgdb/$(OS_TARGET)
-ifeq ($(OS_TARGET),go32v2)
-ifneq ($(DJDIR),)
-GDBLIBDIR+=$(DJDIR)/lib
-endif
-endif
-override LIBGDB:=$(firstword $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR))))
-endif
-ifeq ($(LIBGDB),)
-GDBFOUND=0
-else
-GDBFOUND=1
 endif
 ifeq ($(GDBFOUND),1)
 $(CURRDIR)getver$(EXEEXT) : gdbver.pp

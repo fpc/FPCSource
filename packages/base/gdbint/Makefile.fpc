@@ -24,7 +24,7 @@ fpcpackage=y
 fpcdir=../../..
 
 
-[rules]
+[prerules]
 # For unix be sure to use the locally created gdbver
 ifdef inUnix
 CURRDIR=./
@@ -56,6 +56,8 @@ else
 GDBFOUND=1
 endif
 
+
+[rules]
 ifeq ($(GDBFOUND),1)
 # libgdb.a found
 
