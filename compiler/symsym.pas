@@ -2016,6 +2016,11 @@ implementation
                ppufile.getnormalset(ps^);
                valueptr:=ps;
              end;
+           constguid :
+             begin
+               new(pguid(valueptr));
+               ppufile.getdata(valueptr^,sizeof(tguid));
+             end;
            constnil : ;
            else
              Message1(unit_f_ppu_invalid_entry,tostr(ord(consttyp)));
@@ -2033,6 +2038,8 @@ implementation
             dispose(pbestreal(valueptr));
           constset :
             dispose(pnormalset(valueptr));
+          constguid :
+            dispose(pguid(valueptr));
         end;
         inherited destroy;
       end;
@@ -2087,6 +2094,8 @@ implementation
                ppufile.puttype(consttype);
                ppufile.putnormalset(valueptr^);
              end;
+           constguid :
+             ppufile.putdata(valueptr^,sizeof(tguid));
          else
            internalerror(13);
          end;
@@ -2497,7 +2506,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.66  2002-09-16 14:11:13  peter
+  Revision 1.67  2002-09-26 12:04:53  florian
+    + constsym with type=constguid can be written to ppu now,
+      fixes web bug 1820
+
+  Revision 1.66  2002/09/16 14:11:13  peter
     * add argument to equal_paras() to support default values or not
 
   Revision 1.65  2002/09/09 17:34:16  peter
