@@ -237,9 +237,9 @@ scan_t_back_in=T_Wieder zurÅck in $1
 % reading an include file.
 scan_w_unsupported_app_type=W_Nicht unterstÅtzter Anwendungs-Typ: $1
 % You get this warning, ff you specify an unknown application type
-% with the directive $APPTYPE
-scan_w_app_type_not_support=W_$APPTYPE wird nicht vom Ziel OS unterstÅtzt
-% The $APPTYPE directive is supported by win32 applications only
+% with the directive \var{\{\$APPTYPE\}}
+scan_w_app_type_not_support=W_APPTYPE wird nicht vom Ziel OS unterstÅtzt
+% The \var{\{\$APPTYPE\}} directive is supported by win32 applications only.
 scan_w_unsupported_asmmode_specifier=W_Nicht unterstÅtzte Assembler Varainte angegeben $1
 % When you specify an assembler mode with the \var{\{\$ASMMODE xxx\}}
 % the compiler didn't recognize the mode you specified.
@@ -281,7 +281,7 @@ parser_e_export_name_double=E_Doppelter Name fÅr exportierte Funktion $1
 parser_e_export_ordinal_double=E_Doppelter Index fÅr exportierte Funktion $1
 % Exported function names inside a specific DLL must all be different
 parser_e_export_invalid_index=E_Ungueltiger Index for exportierte Funktion
-% DLL function index must be in the range 1..$FFFF
+% DLL function index must be in the range \var{1..\$FFFF}
 parser_e_constructorname_must_be_init=E_Constructor Name muss INIT sein
 % You are declaring a constructor with a name which isn't \var{init}, and the
 % \var{-Ss} switch is in effect. See the \var{-Ss} switch (\seeo{Ss}).
@@ -321,7 +321,7 @@ parser_object_has_no_vmt=E_Das Objekt $1 hat keine VMT
 parser_e_illegal_parameter_list=E_UngÅltige Parameter List
 % You are calling a function with parameters that are of a different type than
 % the declared parameters of the function.
-parser_e_wrong_parameter_type=E_Falscher Parametertyp angegeben fÅr Argument #$1
+parser_e_wrong_parameter_type=E_Falscher Parametertyp angegeben fÅr Argument Nr. $1
 % There is an error in the parameter list of the function or procedure.
 % The compiler cannot determine the error more accurate than this.
 parser_e_wrong_parameter_size=E_Falsche Parameterzahl angegeben
@@ -386,7 +386,7 @@ parser_w_no_new_dispose_on_void_pointers=W_Verwendung von NEW oder DISPOSE mit u
 parser_e_no_new_dispose_on_void_pointers=E_Verwendung von NEW oder DISPOSE mit untypisierten Pointern ist nicht mîglich
 % You cannot use \var{new(p)} or \var{dispose(p)} if \var{p} is an untyped pointer
 % because no size is associated to an untyped pointer.
-% Accepted for compatibility in \var{tp} and \vat{delphi} modes.
+% Accepted for compatibility in \var{tp} and \var{delphi} modes.
 parser_e_class_id_expected=E_Klassen-bezeichner erwartet
 % This happens when the compiler scans a procedure declaration that contains
 % a dot,
@@ -734,7 +734,7 @@ parser_e_ill_msg_param=E_Message Handler akzeptieren nur einen "Call by Referenc
 % A method declared with the \var{message}-directive as message handler
 % can take only one parameter which must be declared as call by reference
 % Parameters are declared as call by reference using the \var{var}-directive
-parser_e_duplicate_message_label=E_Doppeltes Message Label: %1
+parser_e_duplicate_message_label=E_Doppeltes Message Label: $1
 % A label for a message is used twice in one object/class
 parser_e_self_in_non_message_handler=E_Self darf nur in Message Handlern ein expliziter Parameter sein
 % The self parameter can be passed only explicit if it is a method which
@@ -749,7 +749,8 @@ parser_f_direct_assembler_not_allowed=F_Direct Assembler wird als binÑres Ausgab
 % other outputformat or use an other assembler reader
 parser_w_no_objpas_use_mode=W_Laden sie die OBJPAS Unit nicht manuell, benutzen Sie statdessen {$mode objfpc} oder {$mode delphi}
 % You're trying to load the ObjPas unit manual from a uses clause. This is
-% not a good idea to do, you can better use the {$mode objfpc} or {$mode delphi}
+% not a good idea to do, you can better use the \var{\{\$mode objfpc\}} or
+% \var{\{\$mode delphi\}}
 % directives which load the unit automaticly
 parser_e_no_object_override=E_OVERRIDE darf in Objekten nicht verwendet werden
 % Override isn't support for objects, use VIRTUAL instead to override
@@ -857,7 +858,7 @@ type_e_integer_or_real_expr_expected=E_Integer oder real Ausdruck erwartet
 type_e_wrong_type_in_array_constructor=E_Falscher Typ im Array Constructor
 % You are trying to use a type in an array constructor which is not
 % allowed.
-type_e_wrong_parameter_type=E_Inkompatible Typen fÅr Argument #$1: erhalten $2, erwartet $3
+type_e_wrong_parameter_type=E_Inkompatible Typen fÅr Argument Nr. #$1: erhalten $2, erwartet $3
 % You are trying to pass an invalid type for the specified parameter. 
 type_e_no_method_and_procedure_not_compatible=E_Methode (Variable) und Prozedur (Variable) sind nicht Kompatibel
 % You can't assign a method to a procedure variable or a procedure to a
@@ -1005,6 +1006,9 @@ cg_e_parasize_too_big=E_Grîsse der Parameterliste Åbersteigt 65535 Bytes
 cg_e_illegal_type_conversion=E_UnzulÑssige Typumwandlung
 % When doing a type-cast, you must take care that the sizes of the variable and
 % the destination type are the same.
+cg_d_pointer_to_longint_conv_not_portable=D_Umwandlung zwischen ganzen Zahlen und Pointern ist nicht Portabel auf andere Platformen
+% If you typecast a pointer to a longint, this code will not compile
+% on a machine using 64bit for pointer storage.
 cg_e_file_must_call_by_reference=E_Filetypen mÅssen VAR Parameter sein
 % You cannot specify files as value parameters, i.e. they must always be
 % declared \var{var} parameters.
@@ -1096,7 +1100,6 @@ cg_e_cannot_call_message_direct=E_Kann Message Handler Methode nicht direkt aufr
 % explicit self argument
 % \end{description}
 # EndOfTeX
-
 #
 # Assembler reader
 #
@@ -1138,7 +1141,8 @@ asmr_e_error_converting_binary=E_Fehler beim Umwandeln in BinÑr $1
 asmr_e_error_converting_hexadecimal=E_Fehler beim Umwandeln in Hexadezimal $1
 asmr_h_direct_global_to_mangled=H_$1 Åbersetzt nach $2
 asmr_w_direct_global_is_overloaded_func=W_$1 ist einer overload Funktion zugeordnet
-asmr_e_cannot_use___OLDEBP_outside_nested_procedure=E_Kann OLDEBP ausserhalb einer verschachtelten Prozedur nicht verwednen
+asmr_e_cannot_use_SELF_outside_a_method=E_Cannot use SELF outside a method
+asmr_e_cannot_use_OLDEBP_outside_nested_procedure=E_Kann OLDEBP ausserhalb einer verschachtelten Prozedur nicht verwednen
 asmr_e_void_function=W_Prozeduren kînnen keinen Wert im asm Code zurÅckliefern
 asmr_e_SEG_not_supported=E_SEG nicht unterstÅtzt
 asmr_e_size_suffix_and_dest_dont_match=E_Grîssensuffix und Ziel- oder Quellgrîsse passen nicht zusammen
@@ -1173,7 +1177,6 @@ asmr_w_assembler_code_not_returned_to_text=E_Assembler Code kehrt nicht zum Text
 asmr_e_not_directive_or_local_symbol=E_Keine Directive oder lokales Symbol $1
 asmr_w_using_defined_as_local=E_Verwendung eines definierten Namens als lokales Label
 
-
 #
 # Assembler/binary writers
 #
@@ -1190,7 +1193,6 @@ asmw_e_invalid_effective_address=E_Asm: UngÅltige effektive Adresse
 asmw_e_immediate_or_reference_expected=E_Asm: Konstanter Ausdruck oder Referenz erwartet
 asmw_e_value_exceeds_bounds=E_Asm: $1 Wert Åberschreitet Grenzen $2
 asmw_e_short_jmp_out_of_range=E_Asm: "Short jump" ist ausserhalb der Bereichs $1
-
 
 #
 # Executing linker/assembler
@@ -1216,7 +1218,6 @@ exec_e_dll_not_supported=E_Dynamische Bibliotheken nicht unterstÅtzt
 exec_i_closing_script=I_Schliesse Skript $1
 exec_w_res_not_found=W_Resource Compiler nicht gefunden, schalte um auf externen Modus
 exec_i_compilingresource=I_Compiliere Resource $1
-
 #
 # Executable information
 #
@@ -1227,7 +1228,6 @@ execinfo_x_initdatasize=X_Grîsse der initialisierten Daten: $1 Bytes
 execinfo_x_uninitdatasize=X_Grîsse der nicht initialisierten Daten: $1 Bytes
 execinfo_x_stackreserve=X_Stack Bereich "reserved": $1 Bytes
 execinfo_x_stackcommit=X_Stack Bereich "commited": $1 Bytes
-
 #
 # Unit loading
 #
@@ -1351,7 +1351,7 @@ option_only_one_source_support=W_Nur eine Quelldatei unterstÅtzt
 option_def_only_for_os2=W_DEF Datei kann nur fÅr OS/2 erzeugt werden
 % This option can only be specified when you're compiling for OS/2
 option_no_nested_response_file=E_Verschachtelte Response-Dateien werden nicht unterstÅtzt
-% you cannot nest response files with the \var {@file} command-line option.
+% you cannot nest response files with the \var{@file} command-line option.
 option_no_source_found=F_Kein Name fuer Quelldatei auf der Kommandzeile
 % The compiler expects a source file name on the command line.
 option_illegal_para=E_UngÅltiger Parameter: $1
@@ -1399,13 +1399,13 @@ option_obsolete_switch_use_new=E_Sie benutzen den ehemaligen Schalter $1, bitte 
 option_switch_bin_to_src_assembler=N_Schalte Assembler auf den Standard Assembler Quellencodeschreiber
 % this notifies you that the assembler has been changed because you used the
 % -a switch which can't be used with a binary assembler writer.
+%\end{description}
 # EndOfTeX
 #
 # Logo (option -l)
 #
 option_logo_start=Free Pascal Compiler Version $FPCVER [$FPCDATE] fÅr $FPCTARGET
 option_logo_end=Copyright (c) 1993-99 by Florian Klaempfl
-
 #
 # Info (option -i)
 #
@@ -1419,7 +1419,6 @@ option_info6=FÅr weitere Information lesen Sie bitte COPYING.FPC
 option_info7=<lf>
 option_info8=Senden Sie Fehlerberichte, VorschlÑge usw. bitte an:
 option_info_end=                 fpc-devel@vekoll.saturnus.vein.hu
-
 #
 # Help pages (option -? and -h)
 #
@@ -1564,7 +1563,6 @@ ol135=6*2TLINUX_Linux-68k
 ol136=**1*_
 ol137=**1?_zeigt diese Hilfe an
 ol_end=**1h_zeigt diese Hilfe ohne Warten an
-
 #
 # The End...
 #
