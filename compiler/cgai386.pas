@@ -3417,7 +3417,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       inittempansistrings;
 
       { do we need an exception frame because of ansi/widestrings ? }
-      if ((procinfo^.flags and pi_needs_implicit_finally)<>0) and
+      if not inlined and
+         ((procinfo^.flags and pi_needs_implicit_finally)<>0) and
       { but it's useless in init/final code of units }
         not(aktprocsym^.definition^.proctypeoption in [potype_unitfinalize,potype_unitinit]) then
         begin
@@ -3631,7 +3632,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
         aktprocsym^.definition^.parast^.foreach({$ifndef TP}@{$endif}finalize_data);
 
       { do we need to handle exceptions because of ansi/widestrings ? }
-      if ((procinfo^.flags and pi_needs_implicit_finally)<>0) and
+      if not inlined and
+         ((procinfo^.flags and pi_needs_implicit_finally)<>0) and
       { but it's useless in init/final code of units }
         not(aktprocsym^.definition^.proctypeoption in [potype_unitfinalize,potype_unitinit]) then
         begin
@@ -3969,7 +3971,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.108  2000-06-10 17:31:42  jonas
+  Revision 1.109  2000-06-27 12:17:29  jonas
+    * fix for web bug 1011: no exception stack stuff is generated for
+      inlined procedures, the entry/exitcode of the parent will do that
+
+  Revision 1.108  2000/06/10 17:31:42  jonas
     * loadord2reg doesn't generate any "movl %reg1,%reg1" anymore
 
   Revision 1.107  2000/06/05 20:39:05  pierre
