@@ -1042,7 +1042,7 @@ begin
         if (WordS='$CONFIG') then
           begin
             if (Pass=1) then
-              I:=I+ReplacePart(LastWordStart,I-1,INIPath)-1;
+              I:=I+ReplacePart(LastWordStart,I-1,IniFileName)-1;
           end else
         if (WordS='$DIR') then
           begin
@@ -1507,7 +1507,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.15  2000-02-07 12:00:41  pierre
+  Revision 1.16  2000-03-13 20:31:54  pierre
+   * INIPath removed
+
+  Revision 1.15  2000/02/07 12:00:41  pierre
    Gabor's changes
 
   Revision 1.14  1999/10/27 10:43:06  pierre
