@@ -1,5 +1,7 @@
 unit tinline4;
 
+{$inline on}
+
 interface
 
 uses uinline4b;
