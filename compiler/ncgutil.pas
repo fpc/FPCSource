@@ -116,25 +116,30 @@ implementation
       begin
          { always calculate boolean AND and OR from left to right }
          if (p.nodetype in [orn,andn]) and
-            (p.left.resulttype.def.deftype=orddef) and
-            (torddef(p.left.resulttype.def).typ in [bool8bit,bool16bit,bool32bit]) then
+            is_boolean(p.left.resulttype.def) then
            begin
-             { p.swaped:=false}
              if nf_swaped in p.flags then
                internalerror(234234);
            end
          else
-           if (((p.location.loc=LOC_FPUREGISTER) and
-                (p.right.registersfpu > p.left.registersfpu)) or
-               ((((p.left.registersfpu = 0) and
-                  (p.right.registersfpu = 0)) or
-                 (p.location.loc<>LOC_FPUREGISTER)) and
-                (p.left.registers32<p.right.registers32))) and
-           { the following check is appropriate, because all }
-           { 4 registers are rarely used and it is thereby   }
-           { achieved that the extra code is being dropped   }
-           { by exchanging not commutative operators     }
-               (p.right.registers32<=c_countusableregsint) then
+           if (
+               (p.location.loc=LOC_FPUREGISTER) and
+               (p.right.registersfpu > p.left.registersfpu)
+              ) or
+              (
+               (
+                (
+                 ((p.left.registersfpu = 0) and (p.right.registersfpu = 0)) or
+                 (p.location.loc<>LOC_FPUREGISTER)
+                ) and
+                (p.left.registers32<p.right.registers32)
+               ) and
+               { the following check is appropriate, because all }
+               { 4 registers are rarely used and it is thereby   }
+               { achieved that the extra code is being dropped   }
+               { by exchanging not commutative operators     }
+               (p.right.registers32<=c_countusableregsint)
+              ) then
             begin
               hp:=p.left;
               p.left:=p.right;
@@ -764,7 +769,13 @@ implementation
                        if inlined then
                         begin
                           reference_reset_base(href,procinfo.framepointer,para_offset-pushedparasize);
-                          cg64.a_load64_loc_ref(exprasmlist,p.location,href);
+                          if p.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
+                            begin
+                              size:=align(p.resulttype.def.size,alignment);
+                              cg.g_concatcopy(exprasmlist,p.location.reference,href,size,false,false)
+                            end
+                          else
+                            cg64.a_load64_loc_ref(exprasmlist,p.location,href);
                         end
                        else
                         cg64.a_param64_loc(exprasmlist,p.location,locpara);
@@ -795,7 +806,13 @@ implementation
                        if inlined then
                         begin
                           reference_reset_base(href,procinfo.framepointer,para_offset-pushedparasize);
-                          cg.a_load_loc_ref(exprasmlist,p.location,href);
+                          if p.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
+                            begin
+                              size:=align(p.resulttype.def.size,alignment);
+                              cg.g_concatcopy(exprasmlist,p.location.reference,href,size,false,false)
+                            end
+                          else
+                            cg.a_load_loc_ref(exprasmlist,p.location,href);
                         end
                        else
                         cg.a_param_loc(exprasmlist,p.location,locpara);
@@ -853,6 +870,24 @@ implementation
               else
                cg.g_concatcopy(list,href1,href2,tvarsym(p).vartype.def.size,true,true);
             end;
+         end;
+      end;
+
+
+    procedure removevalueparas(p : tnamedindexitem;arg:pointer);
+      var
+        href1 : treference;
+        list : taasmoutput;
+      begin
+        list:=taasmoutput(arg);
+        if (tsym(p).typ=varsym) and
+           (tvarsym(p).varspez=vs_value) and
+           (is_open_array(tvarsym(p).vartype.def) or
+            is_array_of_const(tvarsym(p).vartype.def)) and
+           (paramanager.push_addr_param(tvarsym(p).vartype.def,false)) then
+         begin
+           reference_reset_base(href1,procinfo.framepointer,tvarsym(p).address+procinfo.para_offset);
+           cg.g_removevaluepara_openarray(list,href1,tarraydef(tvarsym(p).vartype.def).elesize);
          end;
       end;
 
@@ -1565,6 +1600,14 @@ implementation
           end;
 {$endif GDB}
 
+        { remove copies of call by value parameters when there are also
+          registers saved on the stack }
+        if ((po_saveregisters in aktprocdef.procoptions) or
+            (po_savestdregs in aktprocdef.procoptions)) and
+           not(po_assembler in aktprocdef.procoptions) and
+           not(aktprocdef.proccalloption in [pocall_cdecl,pocall_cppdecl,pocall_palmossyscall,pocall_system]) then
+          aktprocdef.parast.foreach_static({$ifndef TP}@{$endif}removevalueparas,list);
+
         { for the save all registers we can simply use a pusha,popa which
           push edi,esi,ebp,esp(ignored),ebx,edx,ecx,eax }
         if (po_saveregisters in aktprocdef.procoptions) then
@@ -1732,7 +1775,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  2002-08-25 19:25:18  peter
+  Revision 1.44  2002-09-01 14:42:41  peter
+    * removevaluepara added to fix the stackpointer so restoring of
+      saved registers works
+
+  Revision 1.43  2002/08/25 19:25:18  peter
     * sym.insert_in_data removed
     * symtable.insertvardata/insertconstdata added
     * removed insert_in_data call from symtable.insert, it needs to be

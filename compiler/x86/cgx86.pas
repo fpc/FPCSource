@@ -107,6 +107,7 @@ unit cgx86;
 
         { entry/exit code helpers }
         procedure g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;elesize:integer);override;
+        procedure g_removevaluepara_openarray(list : taasmoutput;const ref:treference;elesize:integer);override;
         procedure g_interrupt_stackframe_entry(list : taasmoutput);override;
         procedure g_interrupt_stackframe_exit(list : taasmoutput;selfused,accused,acchiused:boolean);override;
         procedure g_profilecode(list : taasmoutput);override;
@@ -1347,6 +1348,28 @@ unit cgx86;
       end;
 
 
+    procedure tcgx86.g_removevaluepara_openarray(list : taasmoutput;const ref:treference;elesize:integer);
+      var
+        lenref : treference;
+        power,len  : longint;
+      begin
+        lenref:=ref;
+        inc(lenref.offset,4);
+        { caluclate size and adjust stack space }
+        rg.getexplicitregisterint(list,R_EDI);
+        list.concat(Taicpu.op_ref_reg(A_MOV,S_L,lenref,R_EDI));
+        list.concat(Taicpu.op_reg(A_INC,S_L,R_EDI));
+        if (elesize<>1) then
+         begin
+           if ispowerof2(elesize, power) then
+             list.concat(Taicpu.op_const_reg(A_SHL,S_L,power,R_EDI))
+           else
+             list.concat(Taicpu.op_const_reg(A_IMUL,S_L,elesize,R_EDI));
+         end;
+        list.concat(Taicpu.op_reg_reg(A_ADD,S_L,R_EDI,R_ESP));
+      end;
+
+
     procedure tcgx86.g_interrupt_stackframe_entry(list : taasmoutput);
       begin
         { .... also the segment registers }
@@ -1651,7 +1674,11 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.13  2002-09-01 12:09:27  peter
+  Revision 1.14  2002-09-01 14:42:41  peter
+    * removevaluepara added to fix the stackpointer so restoring of
+      saved registers works
+
+  Revision 1.13  2002/09/01 12:09:27  peter
     + a_call_reg, a_call_loc added
     * removed exprasmlist references
 
