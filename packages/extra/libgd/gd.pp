@@ -82,11 +82,11 @@ type
   gdFontPtr = PgdFont;
 
 var
-  gdFontLarge      : gdFontPtr; cvar;
-  gdFontSmall      : gdFontPtr; cvar;
-  gdFontGiant      : gdFontPtr; cvar;
-  gdFontMediumBold : gdFontPtr; cvar;
-  gdFontTiny       : gdFontPtr; cvar;
+  gdFontLarge      : gdFontPtr; cvar; external;
+  gdFontSmall      : gdFontPtr; cvar; external;
+  gdFontGiant      : gdFontPtr; cvar; external;
+  gdFontMediumBold : gdFontPtr; cvar; external;
+  gdFontTiny       : gdFontPtr; cvar; external;
 
 const
   gdDashSize = 4;
