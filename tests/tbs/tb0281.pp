@@ -1,9 +1,9 @@
 { Old file: tbs0333.pp }
 {  }
 
-{$ifndef CPUI386}
+{$if not(defined(CPUI386)) and not(defined(CPUX86_64))}
   {$define COMP_IS_INT64}
-{$endif CPUI386}
+{$endif}
 
 
 var
