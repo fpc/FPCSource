@@ -578,7 +578,7 @@ begin
 end;
 
 
-procedure getinoutres;
+procedure getinoutres(def : word);
 var
   regs : trealregs;
 begin
@@ -590,6 +590,8 @@ begin
    19 : InOutRes:=150;
    21 : InOutRes:=152;
   end;
+  if InOutRes=0 then
+    InOutRes:=Def;
 end;
 
 
@@ -628,7 +630,9 @@ begin
   { halt is not allways called !! }
   { not on normal exit !! PM }
   set_pm_interrupt($00,old_int00);
+{$ifndef EXCEPTIONS_IN_SYSTEM}
   set_pm_interrupt($75,old_int75);
+{$endif EXCEPTIONS_IN_SYSTEM}
   ___exit(exitcode);
 end;
 
@@ -639,6 +643,7 @@ begin
 end;
 
 
+{$ifndef EXCEPTIONS_IN_SYSTEM}
 procedure new_int75;
 begin
   asm
@@ -650,6 +655,7 @@ begin
   end;
   HandleError(200);
 end;
+{$endif EXCEPTIONS_IN_SYSTEM}
 
 
 var
@@ -804,7 +810,7 @@ begin
   regs.realeax:=$3e00;
   sysrealintr($21,regs);
   if (regs.realflags and carryflag) <> 0 then
-   GetInOutRes;
+   GetInOutRes(lo(regs.realeax));
 end;
 
 
@@ -826,7 +832,7 @@ begin
   regs.realecx:=0;
   sysrealintr($21,regs);
   if (regs.realflags and carryflag) <> 0 then
-   GetInOutRes;
+   GetInOutRes(lo(regs.realeax));
 end;
 
 
@@ -853,7 +859,7 @@ begin
   regs.realecx:=$ff;            { attribute problem here ! }
   sysrealintr($21,regs);
   if (regs.realflags and carryflag) <> 0 then
-   GetInOutRes;
+   GetInOutRes(lo(regs.realeax));
 end;
 
 
@@ -879,7 +885,7 @@ begin
      sysrealintr($21,regs);
      if (regs.realflags and carryflag) <> 0 then
       begin
-        GetInOutRes;
+        GetInOutRes(lo(regs.realeax));
         exit(writesize);
       end;
      inc(writesize,lo(regs.realeax));
@@ -913,7 +919,7 @@ begin
      sysrealintr($21,regs);
      if (regs.realflags and carryflag) <> 0 then
       begin
-        GetInOutRes;
+        GetInOutRes(lo(regs.realeax));
         do_read:=0;
         exit;
       end;
@@ -939,7 +945,7 @@ begin
   sysrealintr($21,regs);
   if (regs.realflags and carryflag) <> 0 then
    Begin
-     GetInOutRes;
+     GetInOutRes(lo(regs.realeax));
      do_filepos:=0;
    end
   else
@@ -957,7 +963,7 @@ begin
   regs.realeax:=$4200;
   sysrealintr($21,regs);
   if (regs.realflags and carryflag) <> 0 then
-   GetInOutRes;
+   GetInOutRes(lo(regs.realeax));
 end;
 
 
@@ -973,7 +979,7 @@ begin
   sysrealintr($21,regs);
   if (regs.realflags and carryflag) <> 0 then
    Begin
-     GetInOutRes;
+     GetInOutRes(lo(regs.realeax));
      do_seekend:=0;
    end
   else
@@ -1004,7 +1010,7 @@ begin
   regs.realeax:=$4000;
   sysrealintr($21,regs);
   if (regs.realflags and carryflag) <> 0 then
-   GetInOutRes;
+   GetInOutRes(lo(regs.realeax));
 end;
 
 {$ifndef RTLLITE}
@@ -1114,7 +1120,7 @@ begin
 {$endif RTLLITE}
   if (regs.realflags and carryflag) <> 0 then
     begin
-      GetInOutRes;
+      GetInOutRes(lo(regs.realeax));
       exit;
     end
   else
@@ -1160,7 +1166,7 @@ begin
   sysrealintr($21,regs);
   do_isdevice:=(regs.realedx and $80)<>0;
   if (regs.realflags and carryflag) <> 0 then
-   GetInOutRes;
+   GetInOutRes(lo(regs.realeax));
 end;
 
 
@@ -1222,7 +1228,7 @@ begin
    regs.realeax:=func shl 8;
   sysrealintr($21,regs);
   if (regs.realflags and carryflag) <> 0 then
-   GetInOutRes;
+   GetInOutRes(lo(regs.realeax));
 end;
 
 
@@ -1289,7 +1295,7 @@ begin
   sysrealintr($21,regs);
   if (regs.realflags and carryflag) <> 0 then
    Begin
-     GetInOutRes;
+     GetInOutRes(lo(regs.realeax));
      exit;
    end
   else
@@ -1370,8 +1376,10 @@ Begin
   temp_int.segment:=get_cs;
   temp_int.offset:=@new_int00;
   set_pm_interrupt($00,temp_int);
-{  temp_int.offset:=@new_int75;
-  set_pm_interrupt($75,temp_int); }
+{$ifndef EXCEPTIONS_IN_SYSTEM}
+  temp_int.offset:=@new_int75;
+  set_pm_interrupt($75,temp_int);
+{$endif EXCEPTIONS_IN_SYSTEM}
 { to test stack depth }
   loweststack:=maxlongint;
 { Setup heap }
@@ -1406,7 +1414,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.37  2000-04-10 11:21:02  pierre
+  Revision 1.38  2000-05-18 07:18:28  pierre
+   * Added default error value to GetInoOutRes function
+
+  Revision 1.37  2000/04/10 11:21:02  pierre
    * use only low word of regs record after system calls
 
   Revision 1.36  2000/03/13 19:45:21  pierre
