@@ -1048,9 +1048,6 @@ unit pmodules;
               compile_proc_body(names,true,false);
               names.done;
               codegen_doneprocedure;
-
-              { avoid self recursive destructor call !! PM }
-              aktprocsym^.definition^.localst:=nil;
            end;
 
          { the last char should always be a point }
@@ -1344,7 +1341,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.121  1999-05-17 14:43:54  pierre
+  Revision 1.122  1999-05-18 22:36:29  pierre
+   * little redondant code removed
+
+  Revision 1.121  1999/05/17 14:43:54  pierre
    * reset current_ppu to nil when appropriate
 
   Revision 1.120  1999/05/13 21:59:35  peter
