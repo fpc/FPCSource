@@ -16,6 +16,7 @@
 
 { determine the type of the resource/form file }
 {$define Win16Res}
+
 unit Classes;
 
 interface
@@ -28,16 +29,16 @@ uses
 
 implementation
 
-{ OS-dependent file handling. }
-{$i osfile.inc}
-
 { OS - independent class implementations are in /inc directory. }
 {$i classes.inc}
 
 end.
 {
   $Log$
-  Revision 1.8  1998-11-04 10:46:43  peter
+  Revision 1.9  1999-02-02 21:32:02  michael
+  - removed osfile.inc. All in sysutils now
+
+  Revision 1.8  1998/11/04 10:46:43  peter
     * exceptions work
 
   Revision 1.7  1998/11/04 10:15:13  peter
