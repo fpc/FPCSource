@@ -820,8 +820,8 @@ implementation
                OldRegisterDef := RegisterDef;
                RegisterDef := False;
                Case PordDef(dest_para^.left^.resulttype)^.typ of
-                 u8bit,u16bit,u32bit: new(hdef,init(u32bit,0,$fffffff));
-                 s8bit,s16bit,s32bit: new(hdef,init(s32bit,$fffffff,$7ffffff));
+                 u8bit,u16bit,u32bit: new(hdef,init(u32bit,0,$ffffffff));
+                 s8bit,s16bit,s32bit: new(hdef,init(s32bit,$80000000,$7fffffff));
                end;
                hp^.resulttype := hdef;
                emitrangecheck(hp,dest_para^.left^.resulttype);
@@ -1277,7 +1277,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  1999-04-01 22:07:51  peter
+  Revision 1.38  1999-04-05 11:07:26  jonas
+    * fixed some typos in the constants of the range checking for Val
+
+  Revision 1.37  1999/04/01 22:07:51  peter
     * universal string names (ansistr instead of stransi) for val/str
 
   Revision 1.36  1999/04/01 06:21:04  jonas
