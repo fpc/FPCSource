@@ -298,6 +298,9 @@ TYPE
 { Get Dos counter ticks }
 Function GetDosTicks:longint; { returns ticks at 18.2 Hz, just like DOS }
 
+
+procedure GiveUpTimeSlice;
+
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                          BUFFER MOVE ROUTINES                             }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -742,6 +745,53 @@ var
     GetDosTicks := Nwserv.GetCurrentTicks;
   end;
 {$ENDIF}
+
+
+procedure GiveUpTimeSlice;
+{$ifdef GO32V2}{$define DOS}{$endif}
+{$ifdef TP}{$define DOS}{$endif}
+{$ifdef DOS}
+var r: registers;
+begin
+  Intr ($28, R); (* This is supported everywhere. *)
+  r.ax:=$1680;
+  intr($2f,r);
+end;
+{$endif}
+{$ifdef Unix}
+  var
+    req,rem : timespec;
+begin
+  req.tv_sec:=0;
+  req.tv_nsec:=10000000;{ 10 ms }
+  {$ifdef ver1_0}nanosleep(req,rem){$else}fpnanosleep(@req,@rem){$endif};
+end;
+{$endif}
+{$IFDEF OS2}
+begin
+ DosSleep (5);
+end;
+{$ENDIF}
+{$ifdef Win32}
+begin
+  { if the return value of this call is non zero then
+    it means that a ReadFileEx or WriteFileEx have completed
+    unused for now ! }
+  { wait for 10 ms }
+  if SleepEx(10,true)=WAIT_IO_COMPLETION then
+    begin
+      { here we should handle the completion of the routines
+        if we use them }
+    end;
+end;
+{$endif}
+{$undef DOS}
+{$ifdef netwlibc} {$define netware} {$endif}
+{$ifdef netware}
+begin
+  Delay (10);
+end;
+{$endif}
 
 
 {---------------------------------------------------------------------------}
@@ -1478,7 +1528,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.49  2004-12-18 16:18:47  peter
+ Revision 1.50  2004-12-22 15:27:30  peter
+   * call giveuptimeslice to prevent busy loop with idle
+
+ Revision 1.49  2004/12/18 16:18:47  peter
  win32 fixes
 
  Revision 1.48  2004/12/06 19:23:55  peter

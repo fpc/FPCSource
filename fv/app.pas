@@ -781,6 +781,7 @@ BEGIN
        Nil);                                          { Send message }
      CommandSetChanged := False;                      { Clear flag }
    End;
+  GiveUpTimeSlice;
 END;
 
 {--TProgram-----------------------------------------------------------------}
@@ -1137,6 +1138,7 @@ BEGIN
      Next)))))))));
 END;
 
+
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                           OBJECT REGISTER ROUTINES                        }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -1153,7 +1155,10 @@ END;
 END.
 {
  $Log$
- Revision 1.28  2004-12-19 20:20:48  hajny
+ Revision 1.29  2004-12-22 15:27:30  peter
+   * call giveuptimeslice to prevent busy loop with idle
+
+ Revision 1.28  2004/12/19 20:20:48  hajny
    * ObjType references constants from fvconsts
 
  Revision 1.27  2004/12/18 16:18:47  peter
