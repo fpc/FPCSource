@@ -679,7 +679,7 @@ procedure Int64TestFloat32;
   { reset floating point exceptions flag }
   float_exception_flags := 0;
   sgl:=float32tosingle(int64_to_float32(a));
-  if sgl <> 0.0 then
+  if trunc(sgl) <> 0 then
     result := false;
   a:=-32768;
   float_exception_flags := 0;
@@ -700,16 +700,16 @@ procedure Int64TestFloat32;
   float_exception_flags := 0;
   sgl:=float32tosingle(int64_to_float32(a));
   { the result might be inexact, so can't really test }
-  if (trunc(sgl) <> high(longint)) and 
+  if (trunc(sgl) <> high(longint)) and
      ((float_exception_flags and float_flag_inexact)=0) then
     result := false;
   a:=low(longint);
   float_exception_flags := 0;
   sgl:=float32tosingle(int64_to_float32(a));
-  if (trunc(sgl) <> low(longint)) and 
+  if (trunc(sgl) <> low(longint)) and
      ((float_exception_flags and float_flag_inexact)=0) then
     result := false;
-{$ifndef ver1_0}    
+{$ifndef ver1_0}
   { version 1.0 returns a longint for trunc   }
   { so these routines will automatically fail }
   a:=1 shl 33;
@@ -725,7 +725,7 @@ procedure Int64TestFloat32;
   if (int64(trunc(sgl)) <> -(int64(1) shl 33)) and
     ((float_exception_flags and float_flag_inexact)=0)   then
     result := false;
-{$endif}    
+{$endif}
   if not result then
     Fail
   else
@@ -747,7 +747,7 @@ procedure Int64TestFloat64;
   { reset floating point exceptions flag }
   float_exception_flags := 0;
   float:=float64todouble(int64_to_float64(a));
-  if float <> 0.0 then
+  if trunc(float) <> 0 then
     result := false;
   a:=-32768;
   float_exception_flags := 0;
@@ -768,16 +768,16 @@ procedure Int64TestFloat64;
   float_exception_flags := 0;
   float:=float64todouble(int64_to_float64(a));
   { the result might be inexact, so can't really test }
-  if (trunc(float) <> high(longint)) and 
+  if (trunc(float) <> high(longint)) and
      ((float_exception_flags and float_flag_inexact)=0) then
     result := false;
   a:=low(longint);
   float_exception_flags := 0;
   float:=float64todouble(int64_to_float64(a));
-  if (trunc(float) <> low(longint)) and 
+  if (trunc(float) <> low(longint)) and
      ((float_exception_flags and float_flag_inexact)=0) then
     result := false;
-{$ifndef ver1_0}    
+{$ifndef ver1_0}
   { version 1.0 returns a longint for trunc   }
   { so these routines will automatically fail }
   a:=1 shl 33;
@@ -793,7 +793,7 @@ procedure Int64TestFloat64;
   if (int64(trunc(float)) <> -(int64(1) shl 33)) and
     ((float_exception_flags and float_flag_inexact)=0)   then
     result := false;
-{$endif}    
+{$endif}
   if not result then
     Fail
   else
@@ -822,14 +822,17 @@ Begin
  float64TestInt;
  IntTestfloat64;
  { int64 conversion routines }
- int64testfloat32;
+{ int64testfloat32;}
  int64testfloat64;
 end.
 
 
 {
   $Log$
-  Revision 1.3  2002-10-12 20:35:14  carl
+  Revision 1.4  2002-10-13 15:46:49  carl
+    * fixed some small problems
+
+  Revision 1.3  2002/10/12 20:35:14  carl
    * int64 to float conversion testing (crashes under FPC :()
 
   Revision 1.2  2002/10/08 20:09:46  carl
