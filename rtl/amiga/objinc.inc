@@ -47,6 +47,7 @@
     _LVODupLock           =  -96;
     _LVOExamine           = -102;
     _LVOParentDir         = -210;
+    _LVOSetFileSize       = -456;
 
 
 
@@ -67,7 +68,7 @@ begin
 end;
 
 {---------------------------------------------------------------------------}
-{  FileOpen -> Platforms AmigaOS          - Never checked                   }
+{  FileOpen -> Platforms AmigaOS          - 08Jul98 CEC                     }
 {  Returns 0 on failure                                                     }
 {---------------------------------------------------------------------------}
 
@@ -109,7 +110,7 @@ end;
 
 
 {***************************************************************************}
-{  DosSetFilePtr -> Platforms AmigaOS      - Not Checked                    }
+{  DosSetFilePtr -> Platforms AmigaOS      - 08Jul98 CEC                    }
 {***************************************************************************}
 FUNCTION SetFilePos (Handle: THandle; Pos: LongInt; MoveType: Word;
 Var Actual: LongInt): Word;
@@ -126,8 +127,10 @@ BEGIN
   { Move from end of file              }
   If MoveType = 2 then
     Move_typ := 1;
+       { We have to seek TWO times, if we wish to get the actual absolute }
+       { file position normally.                                          }
        asm
-             move.l  a6,d6
+             move.l  a6,d6                { Save base pointer            }
 
              move.l  handle,d1
              move.l  d2,-(sp)
@@ -141,21 +144,42 @@ BEGIN
              move.l  (sp)+,d3              { restore registers }
              move.l  (sp)+,d2
              cmp.l   #-1,d0                { is there a file access error? }
+             bne     @noerr_one            { no, then seek a second time   }
+             jsr     _LVOIoErr(a6)         { yes ,get error in d0 and jmp  }
+             bra     @err
+      @noerr_one:                          { Seek a second time            }
+             move.l  d6,a6                 { Restore base pointer          }
+
+             move.l  handle,d1
+             move.l  d2,-(sp)
+             move.l  d3,-(sp)              { save registers                }
+
+             move.l  pos,d2
+             move.l  Move_typ,d3           { Setup correct move type     }
+             move.l  _DOSBase,a6
+             jsr    _LVOSeek(a6)
+
+             move.l  (sp)+,d3              { restore registers }
+             move.l  (sp)+,d2
+             cmp.l   #-1,d0                { is there a file access error? }
              bne     @noerr
              jsr     _LVOIoErr(a6)
+      @err:
              move.w  d0,DosStreamError
+             move.l  d6,a6                 { restore a6 }
              bra     @seekend
       @noerr:
-      @seekend:
              move.l  d6,a6                 { restore a6 }
+             move.l  Actual,a0             { Get address of variable }
+             move.l  d0,(a0)               { Set value of Actual     }
+      @seekend:
        end;
-   Actual := pos;
    SetFilePos := DosStreamError;                   { Return any error }
 END;
 
 
 {---------------------------------------------------------------------------}
-{  FileRead -> Platforms AmigaOS          - Not checked                     }
+{  FileRead -> Platforms AmigaOS          - 08Jul98 CEC                     }
 {---------------------------------------------------------------------------}
 FUNCTION FileRead (Handle: THandle; Var Buf; Count: Sw_Word;
 Var Actual: Sw_Word): Word;
@@ -186,25 +210,25 @@ BEGIN
             { we must of course first get back the}
             { base pointer!                       }
             move.l  d6,a6
-            move.l  d0,Actual
+            move.l  Actual,a0   { Actual is a pointer! }
+            move.l  d0,(a0)
             bra     @end
           @doswrend2:
             move.l  d6,a6
           @end:
   end;
-  Actual:=Count;
   FileRead:=DosStreamError;
 end;
 
 
 {---------------------------------------------------------------------------}
-{  FileWrite -> Platforms AmigAOS          - Not Checked                    }
+{  FileWrite -> Platforms AmigAOS          - 08Jul98 CEC                    }
 {---------------------------------------------------------------------------}
 FUNCTION FileWrite (Handle: THandle; Var Buf; Count: Sw_Word; Var Actual: Sw_Word): Word;
 BEGIN
   if Count <= 0 then
    Begin
-    FileWrite:=1;  { Reaturn a non zero error code }
+    FileWrite:=1;  { Return a non zero error code }
     exit;
    end;
   asm
@@ -226,7 +250,8 @@ BEGIN
           @doswrend:
             { we must restore the base pointer before setting the result }
             move.l  d6,a6
-            move.l  d0,Actual
+            move.l  Actual,a0   { Actual is a pointer! }
+            move.l  d0,(a0)
             bra     @end
           @doswrend2:
             move.l  d6,a6
@@ -238,28 +263,41 @@ end;
 
 
 {---------------------------------------------------------------------------}
-{  SetFileSize -> Platforms AmigaOS      - Not Checked                      }
+{  SetFileSize -> Platforms AmigaOS      - 08Jul98 CEC                      }
 {---------------------------------------------------------------------------}
 FUNCTION SetFileSize (Handle: THandle; FileSize: LongInt): Word;
-VAR Actual, Buf: LongInt;
 BEGIN
-   SetFilePos(Handle,FileSize,0,Actual);
-   If (Actual = FileSize) Then
-    Begin
-      Actual := FileWrite(Handle, Pointer(@Buf), 0,Actual);   { Truncate the file }
-      If (Actual <> -1) Then
-       SetFileSize := 0
-      Else
-       SetFileSize := 103;                            { File truncate error }
-    End
-   Else
-    SetFileSize := 103;                       { File truncate error }
+      { Point to the end of the file }
+      { with the new size            }
+      asm
+      @noerr_one:                          { Seek a second time            }
+             move.l  a6,d6                 { Save base pointer             }
+
+             move.l  handle,d1
+             move.l  d2,-(sp)
+             move.l  d3,-(sp)              { save registers                }
+
+             move.l  FileSize,d2
+             move.l  #-1,d3                { Setup correct move type     }
+             move.l  _DOSBase,a6           { from beginning of file      }
+             jsr    _LVOSetFileSize(a6)
+
+             move.l  (sp)+,d3              { restore registers }
+             move.l  (sp)+,d2
+             cmp.l   #-1,d0                { is there a file access error? }
+             bne     @noerr
+             jsr     _LVOIoErr(a6)
+             move.w  d0,DosStreamError
+      @noerr:
+             move.l  d6,a6                 { restore a6 }
+      end;
+      SetFileSize:=DosStreamError;
 END;
 
 {
   $Log$
-  Revision 1.1  1998-07-08 12:03:35  carl
-    + first version (not fully working yet)
+  Revision 1.2  1998-07-09 11:55:49  carl
+    + working revision
 
 
 }
