@@ -68,7 +68,7 @@ end;
 
 procedure tresourcefile.compile;
 var
-  respath : pathstr;
+  respath : dirstr;
   n       : namestr;
   e       : extstr;
   s,
@@ -142,7 +142,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2001-02-20 21:41:17  peter
+  Revision 1.8  2001-03-13 21:01:14  peter
+    * string fixes
+
+  Revision 1.7  2001/02/20 21:41:17  peter
     * new fixfilename, findfile for unix. Look first for lowercase, then
       NormalCase and last for UPPERCASE names.
 
