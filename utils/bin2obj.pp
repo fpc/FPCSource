@@ -33,7 +33,6 @@ var
   WriteAsciiData,
   CompressData,
   EnCodeData,
-  MakeUnit,
   CompileUnit : Boolean;
   Cryptkey : IDEAcryptKey;
   InStream,
@@ -264,7 +263,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-01-07 16:46:01  daniel
+  Revision 1.3  2000-02-07 13:42:39  peter
+    * fixed notes
+
+  Revision 1.2  2000/01/07 16:46:01  daniel
     * copyright 2000
 
   Revision 1.1  1999/12/08 23:11:20  michael

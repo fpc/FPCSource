@@ -145,8 +145,6 @@ end;
 type
   TConversionProc = procedure;
 var
-  InFile: Text;
-  OutFile: File;
   i: Integer;
   ConversionProc: TConversionProc;
 
@@ -207,7 +205,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2000-01-07 16:46:04  daniel
+  Revision 1.5  2000-02-07 13:42:39  peter
+    * fixed notes
+
+  Revision 1.4  2000/01/07 16:46:04  daniel
     * copyright 2000
 
   Revision 1.3  1999/07/24 18:35:10  michael
