@@ -6,7 +6,7 @@
 # implementation files.
 
 SYSNAMES=systemh heaph mathh filerec textrec system real2str sstrings innr \
-         file typefile text rtti heap astrings
+         file typefile text rtti heap astrings objpas objpash
 SYSINCNAMES=$(addsuffix .inc,$(SYSNAMES))
 
 # Other unit names which can be used for all systems
