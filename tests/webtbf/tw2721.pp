@@ -13,9 +13,17 @@ type
 
   t2 = class(Tintfpersistent)
     public
+     // Different calling convention 
      function _Release: Integer; override; stdcall;
     end;
 
+function TIntfPersistent._Release: Integer; 
+begin
+end;
+
+function t2._Release: Integer;
+begin
+end;
 
 begin
 end.

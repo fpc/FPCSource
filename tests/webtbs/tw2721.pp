@@ -14,6 +14,14 @@ type
      function _Release: Integer; override;
     end;
 
+function TIntfPersistent._Release: Integer; 
+begin
+end;
+
+function t2._Release: Integer;
+begin
+end;
+
 
 begin
 end.
