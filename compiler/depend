@@ -11,18 +11,15 @@ pp: pp.pas \
 	files.ppu \
 	verb_def.ppu \
 	verbose.ppu
-	ppc386 -dFPC -dGDB -dI386 pp.pas
+	$(COMPILER) pp
 
 cobjects.ppu: cobjects.pas
-	ppc386 -dFPC -dGDB -dI386 cobjects.pas
 
 globals.ppu: globals.pas \
 	cobjects.ppu \
 	systems.ppu
-	ppc386 -dFPC -dGDB -dI386 globals.pas
 
 systems.ppu: systems.pas
-	ppc386 -dFPC -dGDB -dI386 systems.pas
 
 parser.ppu: parser.pas \
 	systems.ppu \
@@ -43,15 +40,12 @@ parser.ppu: parser.pas \
 	pdecl.ppu \
 	psystem.ppu \
 	pmodules.ppu
-	ppc386 -dFPC -dGDB -dI386 parser.pas
 
 verbose.ppu: verbose.pas \
 	messages.ppu \
 	globals.ppu
-	ppc386 -dFPC -dGDB -dI386 verbose.pas
 
 messages.ppu: messages.pas
-	ppc386 -dFPC -dGDB -dI386 messages.pas
 
 symtable.ppu: symtable.pas \
 	cobjects.ppu \
@@ -64,7 +58,6 @@ symtable.ppu: symtable.pas \
 	i386.ppu \
 	gdb.ppu \
 	types.ppu
-	ppc386 -dFPC -dGDB -dI386 symtable.pas
 
 aasm.ppu: aasm.pas \
 	cobjects.ppu \
@@ -72,34 +65,29 @@ aasm.ppu: aasm.pas \
 	globals.ppu \
 	verbose.ppu \
 	systems.ppu
-	ppc386 -dFPC -dGDB -dI386 aasm.pas
 
 files.ppu: files.pas \
 	cobjects.ppu \
 	globals.ppu \
 	verbose.ppu \
 	systems.ppu
-	ppc386 -dFPC -dGDB -dI386 files.pas
 
 gendef.ppu: gendef.pas \
 	cobjects.ppu \
 	systems.ppu \
 	globals.ppu
-	ppc386 -dFPC -dGDB -dI386 gendef.pas
 
 i386.ppu: i386.pas \
 	cobjects.ppu \
 	aasm.ppu \
 	globals.ppu \
 	verbose.ppu
-	ppc386 -dFPC -dGDB -dI386 i386.pas
 
 gdb.ppu: gdb.pas \
 	i386.ppu \
 	cobjects.ppu \
 	globals.ppu \
 	aasm.ppu
-	ppc386 -dFPC -dGDB -dI386 gdb.pas
 
 types.ppu: types.pas \
 	cobjects.ppu \
@@ -108,7 +96,6 @@ types.ppu: types.pas \
 	tree.ppu \
 	verbose.ppu \
 	aasm.ppu
-	ppc386 -dFPC -dGDB -dI386 types.pas
 
 tree.ppu: tree.pas \
 	cobjects.ppu \
@@ -119,7 +106,6 @@ tree.ppu: tree.pas \
 	types.ppu \
 	verbose.ppu \
 	files.ppu
-	ppc386 -dFPC -dGDB -dI386 tree.pas
 
 hcodegen.ppu: hcodegen.pas \
 	aasm.ppu \
@@ -131,7 +117,6 @@ hcodegen.ppu: hcodegen.pas \
 	verbose.ppu \
 	globals.ppu \
 	files.ppu
-	ppc386 -dFPC -dGDB -dI386 hcodegen.pas
 
 import.ppu: import.pas \
 	cobjects.ppu \
@@ -139,14 +124,12 @@ import.ppu: import.pas \
 	verbose.ppu \
 	os2_targ.ppu \
 	win_targ.ppu
-	ppc386 -dFPC -dGDB -dI386 import.pas
 
 os2_targ.ppu: os2_targ.pas \
 	import.ppu \
 	globals.ppu \
 	link.ppu \
 	files.ppu
-	ppc386 -dFPC -dGDB -dI386 os2_targ.pas
 
 link.ppu: link.pas \
 	cobjects.ppu \
@@ -154,13 +137,11 @@ link.ppu: link.pas \
 	globals.ppu \
 	systems.ppu \
 	verbose.ppu
-	ppc386 -dFPC -dGDB -dI386 link.pas
 
 script.ppu: script.pas \
 	cobjects.ppu \
 	globals.ppu \
 	systems.ppu
-	ppc386 -dFPC -dGDB -dI386 script.pas
 
 win_targ.ppu: win_targ.pas \
 	import.ppu \
@@ -169,7 +150,6 @@ win_targ.ppu: win_targ.pas \
 	globals.ppu \
 	cobjects.ppu \
 	i386.ppu
-	ppc386 -dFPC -dGDB -dI386 win_targ.pas
 
 assemble.ppu: assemble.pas \
 	cobjects.ppu \
@@ -182,7 +162,6 @@ assemble.ppu: assemble.pas \
 	ag386att.ppu \
 	ag386int.ppu \
 	ag386nsm.ppu
-	ppc386 -dFPC -dGDB -dI386 assemble.pas
 
 ag386att.ppu: ag386att.pas \
 	aasm.ppu \
@@ -194,7 +173,6 @@ ag386att.ppu: ag386att.pas \
 	files.ppu \
 	verbose.ppu \
 	gdb.ppu
-	ppc386 -dFPC -dGDB -dI386 ag386att.pas
 
 ag386int.ppu: ag386int.pas \
 	aasm.ppu \
@@ -206,7 +184,6 @@ ag386int.ppu: ag386int.pas \
 	files.ppu \
 	verbose.ppu \
 	gdb.ppu
-	ppc386 -dFPC -dGDB -dI386 ag386int.pas
 
 ag386nsm.ppu: ag386nsm.pas \
 	aasm.ppu \
@@ -218,7 +195,6 @@ ag386nsm.ppu: ag386nsm.pas \
 	files.ppu \
 	verbose.ppu \
 	gdb.ppu
-	ppc386 -dFPC -dGDB -dI386 ag386nsm.pas
 
 scanner.ppu: scanner.pas \
 	cobjects.ppu \
@@ -228,14 +204,12 @@ scanner.ppu: scanner.pas \
 	systems.ppu \
 	symtable.ppu \
 	switches.ppu
-	ppc386 -dFPC -dGDB -dI386 scanner.pas
 
 switches.ppu: switches.pas \
 	globals.ppu \
 	verbose.ppu \
 	files.ppu \
 	systems.ppu
-	ppc386 -dFPC -dGDB -dI386 switches.pas
 
 pbase.ppu: pbase.pas \
 	cobjects.ppu \
@@ -245,7 +219,6 @@ pbase.ppu: pbase.pas \
 	scanner.ppu \
 	systems.ppu \
 	verbose.ppu
-	ppc386 -dFPC -dGDB -dI386 pbase.pas
 
 pdecl.ppu: pdecl.pas \
 	globals.ppu \
@@ -267,7 +240,6 @@ pdecl.ppu: pdecl.pas \
 	psub.ppu \
 	pexports.ppu \
 	i386.ppu
-	ppc386 -dFPC -dGDB -dI386 pdecl.pas
 
 pass_1.ppu: pass_1.pas \
 	tree.ppu \
@@ -283,7 +255,6 @@ pass_1.ppu: pass_1.pas \
 	files.ppu \
 	i386.ppu \
 	tgeni386.ppu
-	ppc386 -dFPC -dGDB -dI386 pass_1.pas
 
 tgeni386.ppu: tgeni386.pas \
 	cobjects.ppu \
@@ -294,7 +265,6 @@ tgeni386.ppu: tgeni386.pas \
 	files.ppu \
 	aasm.ppu \
 	i386.ppu
-	ppc386 -dFPC -dGDB -dI386 tgeni386.pas
 
 ptconst.ppu: ptconst.pas \
 	symtable.ppu \
@@ -310,7 +280,6 @@ ptconst.ppu: ptconst.pas \
 	pbase.ppu \
 	pexpr.ppu \
 	i386.ppu
-	ppc386 -dFPC -dGDB -dI386 ptconst.pas
 
 pexpr.ppu: pexpr.pas \
 	symtable.ppu \
@@ -327,7 +296,6 @@ pexpr.ppu: pexpr.pas \
 	pbase.ppu \
 	pdecl.ppu \
 	i386.ppu
-	ppc386 -dFPC -dGDB -dI386 pexpr.pas
 
 psub.ppu: psub.pas \
 	cobjects.ppu \
@@ -354,7 +322,6 @@ psub.ppu: psub.pas \
 	pdecl.ppu \
 	pexpr.ppu \
 	pstatmnt.ppu
-	ppc386 -dFPC -dGDB -dI386 psub.pas
 
 cgi386.ppu: cgi386.pas \
 	tree.ppu \
@@ -381,7 +348,6 @@ cgi386.ppu: cgi386.pas \
 	cg386cal.ppu \
 	cg386ld.ppu \
 	cg386flw.ppu
-	ppc386 -dFPC -dGDB -dI386 cgi386.pas
 
 cgai386.ppu: cgai386.pas \
 	cobjects.ppu \
@@ -398,7 +364,6 @@ cgai386.ppu: cgai386.pas \
 	tgeni386.ppu \
 	hcodegen.ppu \
 	gdb.ppu
-	ppc386 -dFPC -dGDB -dI386 cgai386.pas
 
 cg386con.ppu: cg386con.pas \
 	tree.ppu \
@@ -411,7 +376,6 @@ cg386con.ppu: cg386con.pas \
 	cgai386.ppu \
 	tgeni386.ppu \
 	cgi386.ppu
-	ppc386 -dFPC -dGDB -dI386 cg386con.pas
 
 cg386mat.ppu: cg386mat.pas \
 	tree.ppu \
@@ -426,7 +390,6 @@ cg386mat.ppu: cg386mat.pas \
 	cgai386.ppu \
 	tgeni386.ppu \
 	hcodegen.ppu
-	ppc386 -dFPC -dGDB -dI386 cg386mat.pas
 
 cg386cnv.ppu: cg386cnv.pas \
 	tree.ppu \
@@ -440,7 +403,6 @@ cg386cnv.ppu: cg386cnv.pas \
 	cgai386.ppu \
 	tgeni386.ppu \
 	hcodegen.ppu
-	ppc386 -dFPC -dGDB -dI386 cg386cnv.pas
 
 cg386set.ppu: cg386set.pas \
 	tree.ppu \
@@ -456,7 +418,6 @@ cg386set.ppu: cg386set.pas \
 	cgai386.ppu \
 	tgeni386.ppu \
 	hcodegen.ppu
-	ppc386 -dFPC -dGDB -dI386 cg386set.pas
 
 cg386add.ppu: cg386add.pas \
 	tree.ppu \
@@ -471,7 +432,6 @@ cg386add.ppu: cg386add.pas \
 	cgai386.ppu \
 	tgeni386.ppu \
 	hcodegen.ppu
-	ppc386 -dFPC -dGDB -dI386 cg386add.pas
 
 cg386mem.ppu: cg386mem.pas \
 	tree.ppu \
@@ -487,7 +447,6 @@ cg386mem.ppu: cg386mem.pas \
 	cgai386.ppu \
 	tgeni386.ppu \
 	hcodegen.ppu
-	ppc386 -dFPC -dGDB -dI386 cg386mem.pas
 
 cg386cal.ppu: cg386cal.pas \
 	symtable.ppu \
@@ -504,7 +463,6 @@ cg386cal.ppu: cg386cal.pas \
 	tgeni386.ppu \
 	hcodegen.ppu \
 	cg386ld.ppu
-	ppc386 -dFPC -dGDB -dI386 cg386cal.pas
 
 cg386ld.ppu: cg386ld.pas \
 	tree.ppu \
@@ -519,7 +477,6 @@ cg386ld.ppu: cg386ld.pas \
 	cgai386.ppu \
 	tgeni386.ppu \
 	hcodegen.ppu
-	ppc386 -dFPC -dGDB -dI386 cg386ld.pas
 
 cg386flw.ppu: cg386flw.pas \
 	tree.ppu \
@@ -535,7 +492,6 @@ cg386flw.ppu: cg386flw.pas \
 	cgai386.ppu \
 	tgeni386.ppu \
 	hcodegen.ppu
-	ppc386 -dFPC -dGDB -dI386 cg386flw.pas
 
 aopt386.ppu: aopt386.pas \
 	aasm.ppu \
@@ -547,7 +503,6 @@ aopt386.ppu: aopt386.pas \
 	hcodegen.ppu \
 	i386.ppu \
 	cgi386.ppu
-	ppc386 -dFPC -dGDB -dI386 aopt386.pas
 
 pstatmnt.ppu: pstatmnt.pas \
 	tree.ppu \
@@ -570,7 +525,6 @@ pstatmnt.ppu: pstatmnt.pas \
 	pbase.ppu \
 	pexpr.ppu \
 	pdecl.ppu
-	ppc386 -dFPC -dGDB -dI386 pstatmnt.pas
 
 rai386.ppu: rai386.pas \
 	tree.ppu \
@@ -585,7 +539,6 @@ rai386.ppu: rai386.pas \
 	cobjects.ppu \
 	verbose.ppu \
 	types.ppu
-	ppc386 -dFPC -dGDB -dI386 rai386.pas
 
 asmutils.ppu: asmutils.pas \
 	symtable.ppu \
@@ -597,7 +550,6 @@ asmutils.ppu: asmutils.pas \
 	files.ppu \
 	cobjects.ppu \
 	i386.ppu
-	ppc386 -dFPC -dGDB -dI386 asmutils.pas
 
 ratti386.ppu: ratti386.pas \
 	i386.ppu \
@@ -613,7 +565,6 @@ ratti386.ppu: ratti386.pas \
 	verbose.ppu \
 	symtable.ppu \
 	types.ppu
-	ppc386 -dFPC -dGDB -dI386 ratti386.pas
 
 radi386.ppu: radi386.pas \
 	tree.ppu \
@@ -628,7 +579,6 @@ radi386.ppu: radi386.pas \
 	types.ppu \
 	verbose.ppu \
 	asmutils.ppu
-	ppc386 -dFPC -dGDB -dI386 radi386.pas
 
 pexports.ppu: pexports.pas \
 	cobjects.ppu \
@@ -637,13 +587,11 @@ pexports.ppu: pexports.pas \
 	symtable.ppu \
 	pbase.ppu \
 	verbose.ppu
-	ppc386 -dFPC -dGDB -dI386 pexports.pas
 
 psystem.ppu: psystem.pas \
 	symtable.ppu \
 	globals.ppu \
 	tree.ppu
-	ppc386 -dFPC -dGDB -dI386 psystem.pas
 
 pmodules.ppu: pmodules.pas \
 	files.ppu \
@@ -663,7 +611,6 @@ pmodules.ppu: pmodules.pas \
 	pdecl.ppu \
 	psub.ppu \
 	parser.ppu
-	ppc386 -dFPC -dGDB -dI386 pmodules.pas
 
 options.ppu: options.pas \
 	cobjects.ppu \
@@ -676,17 +623,14 @@ options.ppu: options.pas \
 	messages.ppu \
 	gendef.ppu \
 	opts386.ppu
-	ppc386 -dFPC -dGDB -dI386 options.pas
 
 verb_def.ppu: verb_def.pas \
 	verbose.ppu \
 	globals.ppu \
 	files.ppu
-	ppc386 -dFPC -dGDB -dI386 verb_def.pas
 
 opts386.ppu: opts386.pas \
 	options.ppu \
 	systems.ppu \
 	globals.ppu
-	ppc386 -dFPC -dGDB -dI386 opts386.pas
 

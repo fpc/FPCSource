@@ -225,6 +225,7 @@ distclean: clean
 info :
 	@echo - Target is $(TARGET)
 	@echo - Basedir is $(BASEDIR)
+	@echo - Unitdir is $(UNITDIR)
 	@echo - Pascal files are $(PASFILES)
 	@echo - Inc files are $(INCFILES)
 	@echo - Msg files are $(MSGFILES)
@@ -259,7 +260,6 @@ msg: msgtxt.inc optmsg.inc
 # Make only the compiler
 ifdef inlinux
 $(EXENAME) : $(PPEXENAME)
-	$(COMPILER) pp.pas
 	$(REPLACE) $(PPEXENAME) $(EXENAME)
 else
 $(EXENAME) : $(PASFILES) $(INCFILES) $(MSGFILES)
@@ -417,7 +417,10 @@ rtlclean :
 # Test of log at the end
 # does CVS add # at start of each line ??
 # $Log$
-# Revision 1.16  1998-06-05 14:37:28  pierre
+# Revision 1.17  1998-06-08 09:22:02  michael
+# fixed dependcies and rules. Make would not run any more after peters changes.
+#
+# Revision 1.16  1998/06/05 14:37:28  pierre
 #   * fixes for inline for operators
 #   * inline procedure more correctly restricted
 #
