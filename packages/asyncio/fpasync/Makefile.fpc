@@ -21,3 +21,6 @@ unitdir=../libasync
 sourcedir_linux=unix
 sourcedir_freebsd=unix
 targetdir=.
+
+[default]
+fpcdir=../../../

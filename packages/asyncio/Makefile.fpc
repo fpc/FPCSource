@@ -4,5 +4,6 @@
 
 [target]
 dirs_linux=libasync fpasync
+dirs_freebsd=libasync fpasync
 exampledirs_linux=tests
 exampledirs_freebsd=tests
