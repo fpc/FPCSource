@@ -1,15 +1,3 @@
-{
-  $Id$
-
-  Linux TThread implementation
-}
-
-
-{ Thread management routines }
-
-const
-  Sig_Cancel = SIGUSR2;
-
 type
   PThreadRec=^TThreadRec;
   TThreadRec=record
@@ -19,7 +7,11 @@ type
 
 var
   ThreadRoot : PThreadRec;
-  ThreadsInited : boolean;
+   ThreadsInited : boolean;
+//  MainThreadID: longint;
+
+Const
+  ThreadCount: longint = 0;
 
 function ThreadSelf:TThread;
 var
@@ -42,22 +34,35 @@ begin
 end;
 
 
-procedure ThreadCancelHandler(Sig:integer);cdecl;
-var
-  p : TThread;
+//function SIGCHLDHandler(Sig: longint): longint; cdecl;//this is std linux C declaration as function
+procedure SIGCHLDHandler(Sig: longint); cdecl;
 begin
-  p:=ThreadSelf;
-  if assigned(p) and (p.FCallExitProcess) then
-   ExitProcess(p.FReturnValue);
+  waitpid(-1, nil, WNOHANG);
 end;
 
-
 procedure InitThreads;
+var
+  Act, OldAct: PSigActionRec;
 begin
   ThreadRoot:=nil;
   ThreadsInited:=true;
-  { Install sig_cancel handler }
-  Signal(Sig_Cancel,@ThreadCancelHandler);
+
+
+// This will install SIGCHLD signal handler
+// signal() installs "one-shot" handler,
+// so it is better to install and set up handler with sigaction()
+
+  GetMem(Act, SizeOf(SigActionRec));
+  GetMem(OldAct, SizeOf(SigActionRec));
+  
+  Act^.sa_handler := @SIGCHLDHandler;
+  Act^.sa_flags := SA_NOCLDSTOP {or SA_NOMASK or SA_RESTART};
+  Act^.sa_mask := 0; //Do not block all signals ??. Don't need if SA_NOMASK in flags
+  
+  SigAction(SIGCHLD, Act, OldAct);
+
+  FreeMem(Act, SizeOf(SigActionRec));
+  FreeMem(OldAct, SizeOf(SigActionRec));
 end;
 
 
@@ -83,11 +88,14 @@ begin
   { Need to initialize threads ? }
   if not ThreadsInited then
    InitThreads;
+
   { Put thread in the linked list }
   new(hp);
   hp^.Thread:=t;
   hp^.next:=ThreadRoot;
   ThreadRoot:=hp;
+  
+  inc(ThreadCount, 1);
 end;
 
 
@@ -111,6 +119,9 @@ begin
      lasthp:=hp;
      hp:=hp^.next;
    end;
+   
+  Dec(ThreadCount, 1);
+  if ThreadCount = 0 then DoneThreads; 
 end;
 
 
@@ -137,7 +148,7 @@ begin
   inherited Create;
   AddThread(self);
   FSuspended := CreateSuspended;
-  Flags:=CLONE_VM+CLONE_FS+CLONE_FILES+CLONE_SIGHAND;
+  Flags := CLONE_VM + CLONE_FS + CLONE_FILES + CLONE_SIGHAND + SIGCHLD;
   { Setup 16k of stack }
   FStackSize:=16384;
   Getmem(pointer(FStackPointer),FStackSize);
@@ -145,6 +156,7 @@ begin
   FCallExitProcess:=false;
   { Clone }
   FHandle:= Clone(@ThreadProc,pointer(FStackPointer),Flags,self);
+  if FSuspended then Suspend;
   FThreadID := FHandle;
 end;
 
@@ -156,7 +168,8 @@ begin
      Terminate;
      WaitFor;
    end;
-{ Remove stack }
+  if FHandle <> -1 then 
+    Kill(FHandle, SIGKILL);
   dec(FStackPointer,FStackSize);
   Freemem(pointer(FStackPointer),FStackSize);
   inherited Destroy;
@@ -223,27 +236,22 @@ end;
 
 procedure TThread.Suspend;
 begin
-  FSuspended := True;
-{  SuspendThread(FHandle); }
+  Kill(FHandle, SIGSTOP);
+  FSuspended := true;
 end;
 
 
 procedure TThread.Resume;
 begin
-{  if ResumeThread(FHandle) = 1 then }
-    FSuspended := False;
+  Kill(FHandle, SIGCONT);
+  FSuspended := False;
 end;
 
 
 procedure TThread.Terminate;
 begin
-  { Set the flag for this tthread, so the sighandler knows which tthread
-    needs termination }
-  FCallExitProcess:=true;
-  Kill(FHandle,Sig_Cancel);
   FTerminated := True;
 end;
-
 
 function TThread.WaitFor: Integer;
 var
@@ -255,13 +263,3 @@ begin
    WaitPid(FHandle,@status,0);
   Result:=status;
 end;
-
-{
-  $Log$
-  Revision 1.2  1999-05-31 12:47:59  peter
-    * classes unit to unitobjects
-
-  Revision 1.1  1999/05/30 10:46:42  peter
-    * start of tthread for linux,win32
-
-}
