@@ -1665,6 +1665,7 @@ begin
   def_symbol('HASWIDESTRING');
   def_symbol('HASOUT');
   def_symbol('HASGLOBALPROPERTY');
+  def_symbol('FPC_HASPREFETCH');
 {$ifdef i386}
   def_symbol('HASINTF');
   def_symbol('HASVARIANT');
@@ -1995,7 +1996,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.122  2004-01-24 18:12:40  florian
+  Revision 1.123  2004-02-03 00:42:08  florian
+    + FPC_PREFETCH defined
+
+  Revision 1.122  2004/01/24 18:12:40  florian
     * fixed several arm floating point issues
 
   Revision 1.121  2004/01/21 22:13:20  peter
