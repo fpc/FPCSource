@@ -275,8 +275,8 @@ implementation
                               b:=1;
                             end
                            else
-                            if isconvertable(parraydef(def_to)^.elementtype.def,
-                                             parraydef(def_from)^.elementtype.def,hct,nothingn,false)<>0 then
+                            if isconvertable(parraydef(def_from)^.elementtype.def,
+                                             parraydef(def_to)^.elementtype.def,hct,nothingn,false)<>0 then
                              begin
                                doconv:=hct;
                                b:=2;
@@ -901,7 +901,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.59  2000-02-18 16:13:29  florian
+  Revision 1.60  2000-05-16 16:01:03  florian
+    * fixed type conversion test for open arrays: the to and from fields where
+      exchanged which leads under certain circumstances to problems when
+      passing arrays of classes/class references as open array parameters
+
+  Revision 1.59  2000/02/18 16:13:29  florian
     * optimized ansistring compare with ''
     * fixed 852
 
