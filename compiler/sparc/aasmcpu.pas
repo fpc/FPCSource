@@ -764,7 +764,7 @@ procedure TAiCpu.SetCondition(const c:TAsmCond);
   const
     AsmCond2OpCode:array[TAsmCond]of TAsmOp=
       (A_BN,A_BNE,A_BE,A_BG,A_BLE,A_BGE,A_BI,A_BGU,A_BLEU,A_BCC,
-A_BCS,A_BPOS,A_NEG,A_BVC,A_BVS,A_BA,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE);
+A_BCS,A_BPOS,A_NEG,A_BVC,A_BVS,A_BA,A_BNE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE);
   begin
     inherited SetCondition(c);
     if Opcode=A_BA
@@ -1096,7 +1096,10 @@ procedure InitAsm;
 end.
 {
     $Log$
-    Revision 1.18  2003-03-10 21:59:54  mazen
+    Revision 1.19  2003-03-15 22:51:58  mazen
+    * remaking sparc rtl compile
+
+    Revision 1.18  2003/03/10 21:59:54  mazen
     * fixing index overflow in handling new registers arrays.
 
     Revision 1.17  2003/02/18 22:00:20  mazen

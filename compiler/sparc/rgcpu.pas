@@ -39,23 +39,21 @@ methods in this class overrides generic implementations in rgobj.pas.}
 implementation
 uses
   cgobj,verbose;
-
-function trgcpu.GetExplicitRegisterInt(list:taasmoutput;reg:Tnewregister):tregister;
-
-var r:Tregister;
-
+function TRgCpu.GetExplicitRegisterInt(list:TAasmOutput;reg:TNewRegister):TRegister;
+  var
+    r:TRegister;
   begin
-    if (reg=RS_O7) or (reg=NR_I7)
+    if(reg=RS_O7)or(reg=NR_I7)
     then
       begin
         r.enum:=R_INTREGISTER;
         r.number:=reg;
         cg.a_reg_alloc(list,r);
-        result := r;
+        result:=r;
       end
-    else result := inherited GetExplicitRegisterInt(list,reg);
+    else
+      result:=inherited GetExplicitRegisterInt(list,reg);
   end;
-
 procedure trgcpu.UngetRegisterInt(list:taasmoutput;reg:tregister);
   begin
     if reg.enum<>R_INTREGISTER
@@ -72,7 +70,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2003-03-10 21:59:54  mazen
+  Revision 1.8  2003-03-15 22:51:58  mazen
+  * remaking sparc rtl compile
+
+  Revision 1.7  2003/03/10 21:59:54  mazen
   * fixing index overflow in handling new registers arrays.
 
   Revision 1.6  2003/02/19 22:00:17  daniel

@@ -189,7 +189,7 @@ const
     needar:true;
     labelprefix_only_inside_procedure:false;
     labelprefix:'.L';
-    comment:'; ';
+    comment:'## ';
     secnames:({sec_none}'',           {no section}
               {sec_code}'.text',      {executable code}
               {sec_data}'.data',      {initialized R/W data}
@@ -209,7 +209,10 @@ initialization
 end.
 {
     $Log$
-    Revision 1.11  2003-01-08 18:43:58  daniel
+    Revision 1.12  2003-03-15 22:51:58  mazen
+    * remaking sparc rtl compile
+
+    Revision 1.11  2003/01/08 18:43:58  daniel
      * Tregister changed into a record
 
     Revision 1.10  2002/11/16 15:29:16  florian

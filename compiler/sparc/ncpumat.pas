@@ -253,8 +253,9 @@ procedure tSparcshlshrnode.pass_2;
                 location.registerhigh := location.registerlow;
                 location.registerlow := resultreg;
               end;
-            r.enum:=R_G0;
-            rg.getexplicitregisterint(exprasmlist,NR_G0);
+            //rg.getexplicitregisterint(exprasmlist,NR_O0);
+            r.enum:=R_INTREGISTER;
+            r.number:=NR_O0;
 {            exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBFIC,R_0,hregister1,32));
             exprasmlist.concat(taicpu.op_reg_reg_reg(asmop1,location.registerhigh,hregisterhigh,hregister1));
             exprasmlist.concat(taicpu.op_reg_reg_reg(asmop2,R_0,hregisterlow,R_0));
@@ -478,7 +479,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2003-03-10 21:59:54  mazen
+  Revision 1.7  2003-03-15 22:51:58  mazen
+  * remaking sparc rtl compile
+
+  Revision 1.6  2003/03/10 21:59:54  mazen
   * fixing index overflow in handling new registers arrays.
 
   Revision 1.5  2003/02/19 22:00:17  daniel
