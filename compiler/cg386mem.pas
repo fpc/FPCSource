@@ -318,8 +318,8 @@ implementation
             (cs_gdb_heaptrc in aktglobalswitches) and
             (cs_checkpointer in aktglobalswitches) then
               begin
-                 exprasmlist^.concat(new(pai386,op_ref(
-                   A_PUSH,S_L,newreference(p^.location.reference))));
+                 exprasmlist^.concat(new(pai386,op_reg(
+                   A_PUSH,S_L,p^.location.reference.base)));
                  emitcall('FPC_CHECKPOINTER',true);
               end;
       end;
@@ -884,7 +884,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  1999-05-18 21:58:29  florian
+  Revision 1.42  1999-05-18 22:11:52  pierre
+   * checkpointer code was wrong!
+
+  Revision 1.41  1999/05/18 21:58:29  florian
     * fixed some bugs related to temp. ansistrings and functions results
       which return records/objects/arrays which need init/final.
 
