@@ -199,6 +199,7 @@ interface
           is_far : boolean;
           constructor create(const tt : ttype);
           constructor createfar(const tt : ttype);
+          function getcopy : tstoreddef;override;
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
@@ -1380,11 +1381,11 @@ implementation
 
     function tstringdef.getcopy : tstoreddef;
       begin
-         result:=tstringdef.create;
-         result.deftype:=stringdef;
-         tstringdef(result).string_typ:=string_typ;
-         tstringdef(result).len:=len;
-         tstringdef(result).savesize:=savesize;
+        result:=tstringdef.create;
+        result.deftype:=stringdef;
+        tstringdef(result).string_typ:=string_typ;
+        tstringdef(result).len:=len;
+        tstringdef(result).savesize:=savesize;
       end;
 
 
@@ -2429,6 +2430,14 @@ implementation
          ppufile.gettype(pointertype);
          is_far:=(ppufile.getbyte<>0);
          savesize:=sizeof(aint);
+      end;
+
+
+    function tpointerdef.getcopy : tstoreddef;
+      begin
+        result:=tpointerdef.create(pointertype);
+        tpointerdef(result).is_far:=is_far;
+        tpointerdef(result).savesize:=savesize;
       end;
 
 
@@ -6137,7 +6146,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.248  2004-07-19 19:15:50  florian
+  Revision 1.249  2004-08-07 14:52:45  florian
+    * fixed web bug 3226: type p = type pointer;
+
+  Revision 1.248  2004/07/19 19:15:50  florian
     * fixed funcret_paraloc writing in units
 
   Revision 1.247  2004/07/14 21:37:41  olle
