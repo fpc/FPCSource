@@ -710,7 +710,7 @@ do_jmp:
 
          { what a hack ! }
          if assigned(p^.exceptsymtable) then
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
            pvarsym(p^.exceptsymtable^.symindex^.first)^.address:=ref.offset;
 {$else}
            pvarsym(p^.exceptsymtable^.searchroot)^.address:=ref.offset;
@@ -802,7 +802,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.33  1999-04-21 09:43:29  peter
+  Revision 1.34  1999-04-26 13:31:25  peter
+    * release storenumber,double_checksum
+
+  Revision 1.33  1999/04/21 09:43:29  peter
     * storenumber works
     * fixed some typos in double_checksum
     + incompatible types type1 and type2 message (with storenumber)

@@ -51,7 +51,7 @@ RTL=../rtl
 override LOCALOPT+=-Sg
 
 # set correct defines (-d$(CPU) is automaticly added in makefile.fpc)
-override LOCALDEF+=-dGDB
+override LOCALDEF+=-dGDB -dBROWSERLOG
 
 override LOCALOPT+=$(LOCALDEF)
 
@@ -383,7 +383,10 @@ $(M68KEXENAME): $(PASFILES) $(INCFILES)
 
 #
 # $Log$
-# Revision 1.26  1999-04-09 10:14:19  peter
+# Revision 1.27  1999-04-26 13:31:24  peter
+#   * release storenumber,double_checksum
+#
+# Revision 1.26  1999/04/09 10:14:19  peter
 #   * renamed language -> fpclang
 #
 # Revision 1.25  1999/04/07 15:26:50  pierre

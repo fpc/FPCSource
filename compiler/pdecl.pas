@@ -80,7 +80,7 @@ unit pdecl;
     function read_type(const name : stringid) : pdef;forward;
 
     { search in symtablestack used, but not defined type }
-    procedure testforward_type(p : {$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});{$ifndef FPC}far;{$endif}
+    procedure testforward_type(p : {$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});{$ifndef FPC}far;{$endif}
       var
         reaktvarsymtable : psymtable;
         oldaktfilepos : tfileposinfo;
@@ -1620,7 +1620,7 @@ unit pdecl;
               genvmt(aktclass);
            end;
 
-{$ifndef STORENUMBER}
+{$ifdef OLDPPU}
          { number symbols and defs }
          symtablestack^.number_defs;
          symtablestack^.number_symbols;
@@ -1660,7 +1660,7 @@ unit pdecl;
          consume(_END);
          typecanbeforward:=storetypeforwardsallowed;
 
-{$ifndef STORENUMBER}
+{$ifdef OLDPPU}
          { number symbols and defs }
          symtablestack^.number_defs;
          symtablestack^.number_symbols;
@@ -2096,7 +2096,7 @@ unit pdecl;
                 getsym(typename,false);
                 sym:=srsym;
                 newtype:=nil;
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
                 { found a symbol with this name? }
                 if assigned(sym) then
                  begin
@@ -2258,7 +2258,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.110  1999-04-25 22:42:16  pierre
+  Revision 1.111  1999-04-26 13:31:37  peter
+    * release storenumber,double_checksum
+
+  Revision 1.110  1999/04/25 22:42:16  pierre
    + code for initialized vars in Delphi mode
 
   Revision 1.109  1999/04/21 09:43:45  peter

@@ -34,7 +34,7 @@
 
        { this object is the base for all symbol objects }
        psym = ^tsym;
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
        tsym = object(tnamedindexobject)
 {$else}
        tsym = object
@@ -42,9 +42,7 @@
           _name      : pchar;
           left,right : psym;
           speedvalue : longint;
-{$ifndef nonextfield}
           nextsym    : psym;
-{$endif nextfield}
 {$endif}
           typ        : tsymtyp;
           properties : symprop;
@@ -62,7 +60,7 @@
           destructor done;virtual;
           procedure write;virtual;
           procedure deref;virtual;
-{$ifndef STORENUMBER}
+{$ifdef OLDPPU}
           function name : string;
           procedure setname(const s : string);
 {$endif}
@@ -346,7 +344,10 @@
 
 {
   $Log$
-  Revision 1.21  1999-04-25 22:38:40  pierre
+  Revision 1.22  1999-04-26 13:31:53  peter
+    * release storenumber,double_checksum
+
+  Revision 1.21  1999/04/25 22:38:40  pierre
     + added is_really_const booleanfield for typedconstsym
       for Delphi in $J- mode (not yet implemented !)
 

@@ -31,7 +31,7 @@
                    classrefdef,farpointerdef);
 
        pdef = ^tdef;
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
        tdef = object(tnamedindexobject)
 {$else}
        tdef = object
@@ -512,7 +512,10 @@
 
 {
   $Log$
-  Revision 1.21  1999-04-21 09:43:52  peter
+  Revision 1.22  1999-04-26 13:31:49  peter
+    * release storenumber,double_checksum
+
+  Revision 1.21  1999/04/21 09:43:52  peter
     * storenumber works
     * fixed some typos in double_checksum
     + incompatible types type1 and type2 message (with storenumber)

@@ -37,11 +37,11 @@ type
 {$endif Test_Double_checksum}
 
 const
-{$ifndef Double_checksum}
+{$ifdef OLDPPU}
   CurrentPPUVersion=15;
-{$else Double_checksum}
+{$else}
   CurrentPPUVersion=16;
-{$endif def Double_checksum}
+{$endif}
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -93,24 +93,24 @@ const
   ibfuncretsym    = 31;
   ibsyssym        = 32;
   {definitions}
-  iborddef        = 40;
-  ibpointerdef    = 41;
-  ibarraydef      = 42;
-  ibprocdef       = 43;
-  ibstringdef     = 44;
-  ibrecorddef     = 45;
-  ibfiledef       = 46;
-  ibformaldef     = 47;
-  ibobjectdef     = 48;
-  ibenumdef       = 49;
-  ibsetdef        = 50;
-  ibprocvardef    = 51;
-  ibfloatdef      = 52;
-  ibclassrefdef   = 53;
-  iblongstringdef = 54;
-  ibansistringdef = 55;
-  ibwidestringdef = 56;
-  ibfarpointerdef = 57;
+  iborddef         = 40;
+  ibpointerdef     = 41;
+  ibarraydef       = 42;
+  ibprocdef        = 43;
+  ibshortstringdef = 44;
+  ibrecorddef      = 45;
+  ibfiledef        = 46;
+  ibformaldef      = 47;
+  ibobjectdef      = 48;
+  ibenumdef        = 49;
+  ibsetdef         = 50;
+  ibprocvardef     = 51;
+  ibfloatdef       = 52;
+  ibclassrefdef    = 53;
+  iblongstringdef  = 54;
+  ibansistringdef  = 55;
+  ibwidestringdef  = 56;
+  ibfarpointerdef  = 57;
 
 { unit flags }
   uf_init          = $1;
@@ -143,10 +143,10 @@ type
     flags    : longint;
     size     : longint; { size of the ppufile without header }
     checksum : longint; { checksum for this ppufile }
-{$ifdef Double_checksum}
+{$ifndef OLDPPU}
     interface_checksum : longint;
     future   : array[0..2] of longint;
-{$endif def Double_checksum}
+{$endif}
   end;
 
   tppuentry=packed record
@@ -165,7 +165,6 @@ type
 
     header   : tppuheader;
     size,crc : longint;
-{$ifdef Double_checksum}
 {$ifdef Test_Double_checksum}
     crcindex : longint;
     crc_index : longint;
@@ -173,10 +172,7 @@ type
 {$endif def Test_Double_checksum}
     interface_crc : longint;
     do_interface_crc : boolean;
-    { used to calculate interface_crc
-      before implementation }
-    crc_only : boolean;
-{$endif def Double_checksum}
+    crc_only : boolean;    { used to calculate interface_crc before implementation }
     do_crc,
     change_endian : boolean;
 
@@ -232,8 +228,9 @@ implementation
 {$ifdef Test_Double_checksum}
   uses
     comphook;
-
 {$endif def Test_Double_checksum}
+
+
 {*****************************************************************************
                                    Crc 32
 *****************************************************************************}
@@ -317,9 +314,7 @@ constructor tppufile.init(fn:string);
 begin
   fname:=fn;
   change_endian:=false;
-{$ifdef Double_checksum}
   crc_only:=false;
-{$endif Double_checksum}
   Mode:=0;
   NewHeader;
   Error:=false;
@@ -386,11 +381,11 @@ begin
      Id[3]:='U';
      Ver[1]:='0';
      Ver[2]:='1';
-{$ifndef Double_checksum}
+{$ifdef OLDPPU}
      Ver[3]:='5';
-{$else Double_checksum}
+{$else}
      Ver[3]:='6';
-{$endif def Double_checksum}
+{$endif}
    end;
 end;
 
@@ -683,10 +678,8 @@ begin
   bufidx:=0;
 {reset}
   crc:=$ffffffff;
-{$ifdef Double_checksum}
   interface_crc:=$ffffffff;
   do_interface_crc:=true;
-{$endif def Double_checksum}
   Error:=false;
   do_crc:=true;
   size:=0;
@@ -800,7 +793,7 @@ begin
   if do_crc then
    begin
      crc:=UpdateCrc32(crc,b,len);
-{$ifdef Double_checksum}
+{$ifndef OLDPPU}
      if do_interface_crc then
        begin
          interface_crc:=UpdateCrc32(interface_crc,b,len);
@@ -828,9 +821,9 @@ begin
        end;
     end;
   if not crc_only then
-{$else not def Double_checksum}
+{$else}
     end;
-{$endif def Double_checksum}
+{$endif OLDPPU}
     writedata(b,len);
   inc(entryidx,len);
 end;
@@ -876,7 +869,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.28  1999-04-26 09:33:07  peter
+  Revision 1.29  1999-04-26 13:31:41  peter
+    * release storenumber,double_checksum
+
+  Revision 1.28  1999/04/26 09:33:07  peter
     * header extended to 40 bytes so there is room for future
 
   Revision 1.27  1999/04/17 13:16:20  peter

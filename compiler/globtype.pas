@@ -45,7 +45,7 @@ interface
          { support }
          cs_support_inline,cs_support_goto,cs_support_macro,
          cs_support_c_operators,cs_static_keyword,
-         cs_typed_const_not_changeable, 
+         cs_typed_const_not_changeable,
          { generation }
          cs_profile,cs_debuginfo,cs_browser,cs_local_browser,cs_compilesystem,
          { linking }
@@ -64,6 +64,8 @@ interface
          { optimizer }
          cs_regalloc,cs_uncertainopts,cs_littlesize,cs_optimize,
          cs_fastoptimize, cs_slowoptimize,
+         { browser }
+         cs_browser_log,
          { debugger }
          cs_gdb_dbx,cs_gdb_gsym,cs_gdb_heaptrc,
          { assembling }
@@ -110,7 +112,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  1999-04-25 22:34:58  pierre
+  Revision 1.8  1999-04-26 13:31:33  peter
+    * release storenumber,double_checksum
+
+  Revision 1.7  1999/04/25 22:34:58  pierre
    + cs_typed_const_not_changeable added but not implemented yet !
 
   Revision 1.6  1999/04/16 11:49:42  peter

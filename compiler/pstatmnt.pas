@@ -373,7 +373,7 @@ unit pstatmnt;
              objectdef : begin
                            obj:=pobjectdef(p^.resulttype);
                            withsymtable:=new(pwithsymtable,init);
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
                            withsymtable^.symsearch:=obj^.publicsyms^.symsearch;
 {$else}
                            withsymtable^.searchroot:=obj^.publicsyms^.searchroot;
@@ -393,7 +393,7 @@ unit pstatmnt;
                             begin
                               symtab^.next:=new(pwithsymtable,init);
                               symtab:=symtab^.next;
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
                               symtab^.symsearch:=obj^.publicsyms^.symsearch;
 {$else}
                               symtab^.searchroot:=obj^.publicsyms^.searchroot;
@@ -416,7 +416,7 @@ unit pstatmnt;
                            symtab:=precdef(p^.resulttype)^.symtable;
                            levelcount:=1;
                            withsymtable:=new(pwithsymtable,init);
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
                            withsymtable^.symsearch:=symtab^.symsearch;
 {$else}
                            withsymtable^.searchroot:=symtab^.searchroot;
@@ -1283,7 +1283,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.80  1999-04-21 09:43:48  peter
+  Revision 1.81  1999-04-26 13:31:42  peter
+    * release storenumber,double_checksum
+
+  Revision 1.80  1999/04/21 09:43:48  peter
     * storenumber works
     * fixed some typos in double_checksum
     + incompatible types type1 and type2 message (with storenumber)

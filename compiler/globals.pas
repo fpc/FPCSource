@@ -1061,10 +1061,10 @@ unit globals;
    end;
 
    procedure abstract;
-
      begin
         runerror(255);
      end;
+
 
  {****************************************************************************
                                     Init
@@ -1113,17 +1113,11 @@ unit globals;
         usewindowapi:=false;
         description:='Compiled by FPC '+version_string+' - '+target_cpu_string;
 
-{$ifdef BrowserCol}
-{$define BrowserDefault}
-{$endif BrowserCol}
-{$ifdef BrowserLog}
-{$define BrowserDefault}
-{$endif BrowserLog}
-        { Init values }
+      { Init values }
 {$ifdef i386}
         initoptprocessor:=Class386;
         initlocalswitches:=[];
-        initmoduleswitches:=[cs_extsyntax{$ifdef BrowserDefault},cs_browser{$endif}];
+        initmoduleswitches:=[cs_extsyntax{$ifndef OLDPPU},cs_browser{$endif}];
         initglobalswitches:=[cs_check_unit_name];
         initmodeswitches:=fpcmodeswitches;
         initpackenum:=4;
@@ -1135,7 +1129,7 @@ unit globals;
   {$ifdef m68k}
         initoptprocessor:=MC68000;
         initlocalswitches:=[];
-        initmoduleswitches:=[cs_extsyntax{$ifdef BrowserDefault},cs_browser{$endif},cs_fp_emulation];
+        initmoduleswitches:=[cs_extsyntax{$ifndef OLDPPU},cs_browser{$endif},cs_fp_emulation];
         initglobalswitches:=[cs_check_unit_name];
         initmodeswitches:=fpcmodeswitches;
         initpackenum:=4;
@@ -1165,7 +1159,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  1999-04-21 14:12:55  peter
+  Revision 1.4  1999-04-26 13:31:32  peter
+    * release storenumber,double_checksum
+
+  Revision 1.3  1999/04/21 14:12:55  peter
     * default asm changed to att
 
   Revision 1.2  1999/04/16 09:56:05  pierre

@@ -839,7 +839,7 @@ implementation
                        CGMessage(cg_e_illegal_type_conversion);
                 end
               else
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
                 CGMessage2(type_e_incompatible_types,p^.resulttype^.typename,p^.left^.resulttype^.typename);
 {$else}
                 CGMessage(type_e_mismatch);
@@ -940,7 +940,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  1999-04-22 10:49:09  peter
+  Revision 1.26  1999-04-26 13:31:58  peter
+    * release storenumber,double_checksum
+
+  Revision 1.25  1999/04/22 10:49:09  peter
     * fixed pchar to string location
 
   Revision 1.24  1999/04/21 09:44:01  peter

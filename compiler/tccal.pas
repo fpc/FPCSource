@@ -683,7 +683,7 @@ implementation
                       if ((parsing_para_level=0) or (p^.left<>nil)) and
                          (nextprocsym=nil) then
                        begin
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
                          if (not assigned(lastparatype)) and (not assigned(pt^.resulttype)) then
                           internalerror(39393)
                          else
@@ -1149,7 +1149,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  1999-04-26 09:30:46  peter
+  Revision 1.37  1999-04-26 13:31:57  peter
+    * release storenumber,double_checksum
+
+  Revision 1.36  1999/04/26 09:30:46  peter
     * small tp7 fix
     * fix void pointer with formaldef
 

@@ -37,3 +37,5 @@ Changes in the syntax or semantic of FPC:
   25/04/99:  initialized vars supported in Delphi mode (only $J+ mode)
              getting the address of an untyped const is now
              forbidden as in BP 
+  27/04/99   New unit format PPU016, you need to recompile all older units
+  

@@ -23,13 +23,13 @@
     const
        def_alignment = 4;
 
-       { different options }
-       sp_public     = 0;
-       sp_forwarddef = 1;
-       sp_protected  = 2;
-       sp_private    = 4;
-       sp_static     = 8;
-       sp_published  = 16;
+       { symbol options }
+       sp_public     = $1;
+       sp_private    = $2;
+       sp_published  = $4;
+       sp_protected  = $8;
+       sp_forwarddef = $10;
+       sp_static     = $20;
 
        { flags for a definition }
        df_needsrtti = $1;           { the definitions needs rtti }
@@ -83,21 +83,24 @@
        oo_hasvmt        = $200;
        oo_hasmsgstr     = $400;
        oo_hasmsgint     = $800;
-       
+
        { options for properties }
        ppo_indexed = $1;
        ppo_defaultproperty = $2;
        ppo_stored = $4;
 
        { options for variables }
-       vo_regable     = 1;
-       vo_is_C_var    = 2;
-       vo_is_external = 4;
-       vo_is_dll_var  = 8;
+       vo_regable     = $1;
+       vo_is_C_var    = $2;
+       vo_is_external = $4;
+       vo_is_dll_var  = $8;
 
 {
   $Log$
-  Revision 1.4  1999-04-16 10:28:26  pierre
+  Revision 1.5  1999-04-26 13:31:46  peter
+    * release storenumber,double_checksum
+
+  Revision 1.4  1999/04/16 10:28:26  pierre
     + added posavestdregs used for cdecl AND stdcall functions
       (saves ESI EDI and EBX for i386)
 

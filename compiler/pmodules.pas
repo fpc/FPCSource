@@ -22,10 +22,6 @@
 }
 unit pmodules;
 
-{ define TEST_IMPL does not work well }
-{ replaced by $define  Double_checksum}
-{ other way to get correct type info, in test (PM) }
-
 {$define New_GDB}
 
   interface
@@ -326,7 +322,7 @@ unit pmodules;
       { ok, now load the unit }
         current_module^.globalsymtable:=new(punitsymtable,loadasunit);
       { if this is the system unit insert the intern symbols }
-{$ifndef STORENUMBER}
+{$ifdef OLDPPU}
         if compile_system then
          begin
            make_ref:=false;
@@ -348,7 +344,7 @@ unit pmodules;
             { register unit in used units }
               pu^.u:=loaded_unit;
               pu^.loaded:=true;
-{$ifdef Double_checksum}
+{$ifndef OLDPPU}
             { need to recompile the current unit ? }
               if loaded_unit^.crc<>pu^.checksum then
 {              if (loaded_unit^.interface_crc<>pu^.interface_checksum) then }
@@ -359,7 +355,7 @@ unit pmodules;
                   current_module^.map:=nil;
                   exit;
                 end;
-{$endif def Double_checksum}
+{$endif OLDPPU}
             { setup the map entry for deref }
 {$ifndef NEWMAP}
               current_module^.map^[nextmapentry]:=loaded_unit^.globalsymtable;
@@ -459,8 +455,9 @@ unit pmodules;
            begin
               if hp^.modulename^=s then
                 begin
-{$ifdef Double_checksum}
-                   if hp^.do_reload_ppu then
+{$ifndef OLDPPU}
+                   { forced to reload ? }
+                   if hp^.do_reload then
                     break;
 {$endif}
                    { the unit is already registered   }
@@ -501,18 +498,18 @@ unit pmodules;
                loaded_units.remove(hp);
                scanner:=hp^.scanner;
                hp^.reset;
-{$ifdef Double_checksum}
-         hp2:=pmodule(loaded_units.first);
-         while assigned(hp2) do
-           begin
-            if hp2^.do_reload_ppu then
-             begin
-               hp2^.do_reload_ppu:=false;
-               loadunit(hp^.modulename^,false);
-             end;
-             hp2:=pmodule(hp2^.next);
-           end;
-{$endif Double_checksum}
+{$ifndef OLDPPU}
+               hp2:=pmodule(loaded_units.first);
+               while assigned(hp2) do
+                begin
+                  if hp2^.do_reload then
+                   begin
+                     hp2^.do_reload:=false;
+                     loadunit(hp^.modulename^,false);
+                   end;
+                  hp2:=pmodule(hp2^.next);
+                end;
+{$endif}
                hp^.scanner:=scanner;
                { try to reopen ppu }
                hp^.search_unit(s,false);
@@ -777,23 +774,23 @@ unit pmodules;
 
 
     procedure gen_main_procsym(const name:string;options:longint;st:psymtable);
-{$ifdef Double_checksum}
-    var
-      stt : psymtable;
-{$endif Double_checksum}
+{$ifndef OLDPPU}
+      var
+        stt : psymtable;
+{$endif}
       begin
         {Generate a procsym for main}
         make_ref:=false;
         aktprocsym:=new(Pprocsym,init(name));
-{$ifdef Double_checksum}
+{$ifndef OLDPPU}
         {Try to insert in in static symtable ! }
         stt:=symtablestack;
         symtablestack:=st;
-{$endif Double_checksum}
+{$endif}
         aktprocsym^.definition:=new(Pprocdef,init);
-{$ifdef Double_checksum}
+{$ifndef OLDPPU}
         symtablestack:=stt;
-{$endif Double_checksum}
+{$endif}
         aktprocsym^.definition^.options:=aktprocsym^.definition^.options or options;
         aktprocsym^.definition^.setmangledname(target_os.cprefix+name);
         aktprocsym^.definition^.forwarddef:=false;
@@ -837,9 +834,9 @@ unit pmodules;
 {$ifdef GDB}
          pu     : pused_unit;
 {$endif GDB}
-{$ifdef Double_checksum}
+{$ifdef Test_Double_checksum}
         store_crc : longint;
-{$endif def Double_checksum}
+{$endif}
          s1,s2  : ^string; {Saves stack space}
       begin
          consume(_UNIT);
@@ -980,12 +977,12 @@ unit pmodules;
          write_gdb_info;
 {$endIf Def New_GDB}
 
-{$ifdef Double_CheckSum}
-{$ifdef Test_Double_checksum}
+{$ifndef OLDPPU}
+  {$ifdef Test_Double_checksum}
          if (Errorcount=0) then
            writeunitas(current_module^.ppufilename^,punitsymtable(symtablestack),true);
-{$endif Test_Double_checksum}
-{$endif Double_CheckSum}
+  {$endif Test_Double_checksum}
+{$endif OLDPPU}
 
          { Parse the implementation section }
          consume(_IMPLEMENTATION);
@@ -1002,7 +999,7 @@ unit pmodules;
          { to reinsert it after loading the implementation units }
          symtablestack:=unitst^.next;
 
-{$ifndef STORENUMBER}
+{$ifdef OLDPPU}
          { number the definitions, so a deref from other units works }
          refsymtable^.number_defs;
          refsymtable^.number_symbols;
@@ -1020,11 +1017,8 @@ unit pmodules;
            end;
 
          { reset ranges/stabs in exported definitions }
-         { If I find who removed this line !!!!!!!
-           I AM TIRED OF THIS !!!!!!!!!!!
-           DONT TOUCH  WITHOUT ASKING ME Pierre Muller }
-
          reset_global_defs;
+
          { All units are read, now give them a number }
          numberunits;
 
@@ -1124,7 +1118,6 @@ unit pmodules;
           end;
 {$endif GDB}
 
-
          reset_global_defs;
 
          { tests, if all (interface) forwards are resolved }
@@ -1158,19 +1151,21 @@ unit pmodules;
          if cs_local_browser in aktmoduleswitches then
            current_module^.localsymtable:=refsymtable;
          { Write out the ppufile }
-{$ifdef Double_checksum}
+{$ifndef OLDPPU}
+  {$ifdef Test_Double_checksum}
         store_crc:=current_module^.interface_crc;
-{$endif def Double_checksum}
+  {$endif Test_Double_checksum}
+{$endif}
          if (Errorcount=0) then
            writeunitas(current_module^.ppufilename^,punitsymtable(symtablestack),false);
 
-{$ifdef Double_checksum}
-{$ifdef Test_Double_checksum}
+{$ifndef OLDPPU}
+  {$ifdef Test_Double_checksum}
         if store_crc<>current_module^.interface_crc then
           Def_comment(V_Warning,current_module^.ppufilename^+' CRC changed '+
            tostr(store_crc)+'<>'+tostr(current_module^.interface_crc));
-{$endif def TestDouble_checksum}
-{$endif def Double_checksum}
+  {$endif def Test_Double_checksum}
+{$endif OLDPPU}
           { must be done only after local symtable ref stores !! }
           closecurrentppu;
 {$ifdef GDB}
@@ -1362,7 +1357,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.113  1999-04-25 17:32:14  peter
+  Revision 1.114  1999-04-26 13:31:39  peter
+    * release storenumber,double_checksum
+
+  Revision 1.113  1999/04/25 17:32:14  peter
     * fixed double_checksum
 
   Revision 1.112  1999/04/25 15:08:38  peter

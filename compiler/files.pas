@@ -125,13 +125,11 @@ unit files;
        tmodule = object(tlinkedlist_item)
           ppufile       : pppufile; { the PPU file }
           crc,
-{$ifdef Double_checksum}
-          interface_crc : longint;
-          do_reload_ppu : boolean;
-{$endif def Double_checksum}
+          interface_crc,
           flags         : longint;  { the PPU flags }
 
           compiled,                 { unit is already compiled }
+          do_reload,                { force reloading of the unit }
           do_assemble,              { only assemble the object, don't recompile }
           do_compile,               { need to compile the sources }
           sources_avail,            { if all sources are reachable }
@@ -179,7 +177,6 @@ unit files;
           crc_array : pointer;
           crc_size : longint;
 {$endif def Test_Double_checksum}
-
           constructor init(const s:string;_is_unit:boolean);
           destructor done;virtual;
           procedure reset;
@@ -192,10 +189,8 @@ unit files;
        tused_unit = object(tlinkedlist_item)
           unitid          : word;
           name            : pstring;
-          checksum        : longint;
-{$ifdef Double_checksum}
+          checksum,
           interface_checksum : longint;
-{$endif def Double_checksum}
           loaded          : boolean;
           in_uses,
           in_interface,
@@ -226,9 +221,6 @@ unit files;
 implementation
 
 uses
-{$ifdef Double_checksum}
-  comphook,
-{$endif Double_checksum}
   dos,verbose,systems,
   symtable,scanner;
 
@@ -756,14 +748,14 @@ uses
       { Load values to be access easier }
         flags:=ppufile^.header.flags;
         crc:=ppufile^.header.checksum;
-{$ifdef Double_checksum}
+{$ifndef OLDPPU}
         interface_crc:=ppufile^.header.interface_checksum;
-{$endif def Double_checksum}
+{$endif}
       { Show Debug info }
         Message1(unit_u_ppu_time,filetimestring(ppufiletime));
         Message1(unit_u_ppu_flags,tostr(flags));
         Message1(unit_u_ppu_crc,tostr(ppufile^.header.checksum));
-{$ifdef Double_checksum}
+{$ifndef OLDPPU}
         Message1(unit_u_ppu_crc,tostr(ppufile^.header.interface_checksum)+' (intfc)');
 {$endif}
       { check the object and assembler file to see if we need only to
@@ -938,12 +930,10 @@ uses
 
 
     procedure tmodule.reset;
-
-{$ifdef Double_checksum}
+{$ifndef OLDPPU}
       var
          pm : pdependent_unit;
 {$endif}
-
       begin
         if assigned(scanner) then
           pscannerfile(scanner)^.invalid:=true;
@@ -976,23 +966,20 @@ uses
         used_units.done;
         used_units.init;
         { all units that depend on this one must be recompiled ! }
-{$ifdef Double_checksum}
+{$ifndef OLDPPU}
         pm:=pdependent_unit(dependent_units.first);
         while assigned(pm) do
           begin
             if pm^.u^.in_second_compile then
-             begin
-               writeln('No reload already in second compile: ',pm^.u^.modulename^);
-             end
+             Comment(v_debug,'No reload already in second compile: '+pm^.u^.modulename^)
             else
              begin
-               pm^.u^.do_reload_ppu:=true;
-               def_comment(v_warning,'Reloading '+pm^.u^.modulename^+' needed because '+
-                 modulename^+' is reloaded');
+               pm^.u^.do_reload:=true;
+               Comment(v_debug,'Reloading '+pm^.u^.modulename^+' needed because '+modulename^+' is reloaded');
              end;
             pm:=pdependent_unit(pm^.next);
           end;
-{$endif Double_checksum}
+{$endif OLDPPU}
         dependent_units.done;
         dependent_units.init;
         resourcefiles.done;
@@ -1016,9 +1003,7 @@ uses
         loaded_from:=nil;
         flags:=0;
         crc:=0;
-{$ifdef Double_checksum}
         interface_crc:=0;
-{$endif def Double_checksum}
         unitcount:=1;
       end;
 
@@ -1082,10 +1067,8 @@ uses
          loaded_from:=nil;
          flags:=0;
          crc:=0;
-{$ifdef Double_checksum}
-        interface_crc:=0;
-        do_reload_ppu:=false;
-{$endif def Double_checksum}
+         interface_crc:=0;
+         do_reload:=false;
          unitcount:=1;
          inc(global_unit_count);
          unit_index:=global_unit_count;
@@ -1170,9 +1153,7 @@ uses
         loaded:=true;
         name:=stringdup(_u^.modulename^);
         checksum:=_u^.crc;
-{$ifdef Double_checksum}
         interface_checksum:=_u^.interface_crc;
-{$endif def Double_checksum}
         unitid:=0;
       end;
 
@@ -1186,9 +1167,7 @@ uses
         loaded:=false;
         name:=stringdup(n);
         checksum:=c;
-{$ifdef Double_checksum}
         interface_checksum:=intfc;
-{$endif def Double_checksum}
         unitid:=0;
       end;
 
@@ -1198,6 +1177,7 @@ uses
         stringdispose(name);
         inherited done;
       end;
+
 
 {****************************************************************************
                             TDENPENDENT_UNIT
@@ -1211,7 +1191,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.92  1999-04-25 15:08:36  peter
+  Revision 1.93  1999-04-26 13:31:29  peter
+    * release storenumber,double_checksum
+
+  Revision 1.92  1999/04/25 15:08:36  peter
     * small fixes for double_checksum
 
   Revision 1.91  1999/04/21 09:43:36  peter

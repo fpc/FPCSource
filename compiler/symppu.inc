@@ -117,7 +117,7 @@
             current_ppu^.putword(p^.owner^.unitid)
            else
             current_ppu^.putword(p^.owner^.unitid);
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
            current_ppu^.putword(p^.indexnr);
 {$else}
            current_ppu^.putword(p^.indexnb);
@@ -140,7 +140,7 @@
             current_ppu^.putword(p^.owner^.unitid)
            else
             current_ppu^.putword(p^.owner^.unitid);
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
            current_ppu^.putword(p^.indexnr);
 {$else}
            current_ppu^.putword(p^.indexnb);
@@ -175,23 +175,19 @@
         hp:=pused_unit(current_module^.used_units.first);
         while assigned(hp) do
          begin
-{$ifdef Double_checksum}
            current_ppu^.do_interface_crc:=hp^.in_interface;
-{$endif Double_checksum}
            current_ppu^.putstring(hp^.name^);
            { the checksum should not affect the crc of this unit ! (PFV) }
            current_ppu^.do_crc:=false;
            current_ppu^.putlongint(hp^.checksum);
-{$ifdef Double_checksum}
+{$ifndef OLDPPU}
            current_ppu^.putlongint(hp^.interface_checksum);
-{$endif def Double_checksum}
+{$endif}
            current_ppu^.do_crc:=true;
            current_ppu^.putbyte(byte(hp^.in_interface));
            hp:=pused_unit(hp^.next);
          end;
-{$ifdef Double_checksum}
         current_ppu^.do_interface_crc:=true;
-{$endif Double_checksum}
         current_ppu^.writeentry(ibloadunit);
       end;
 
@@ -236,7 +232,6 @@
          if not current_ppu^.create then
           Message(unit_f_ppu_cannot_write);
 
-{$ifdef Double_checksum}
          current_ppu^.crc_only:=only_crc;
 {$ifdef Test_Double_checksum}
          if only_crc then
@@ -249,7 +244,6 @@
              current_ppu^.crc_index:=Current_Module^.crc_size;
            end;
 {$endif def Test_Double_checksum}
-{$endif Double_checksum}
 
          current_ppu^.change_endian:=source_os.endian<>target_os.endian;
        { write symbols and definitions }
@@ -260,9 +254,9 @@
        { create and write header }
          current_ppu^.header.size:=current_ppu^.size;
          current_ppu^.header.checksum:=current_ppu^.crc;
-{$ifdef Double_checksum}
+{$ifndef OLDPPU}
          current_ppu^.header.interface_checksum:=current_ppu^.interface_crc;
-{$endif def Double_checksum}
+{$endif}
          current_ppu^.header.compiler:=wordversion;
          current_ppu^.header.cpu:=word(target_cpu);
          current_ppu^.header.target:=word(target_info.target);
@@ -270,9 +264,8 @@
          current_ppu^.writeheader;
        { save crc in current_module also }
          current_module^.crc:=current_ppu^.crc;
-{$ifdef Double_checksum}
          current_module^.interface_crc:=current_ppu^.interface_crc;
-        if only_crc then
+         if only_crc then
           begin
 {$ifdef Test_Double_checksum}
             Current_Module^.crc_array:=current_ppu^.crc_test;
@@ -284,7 +277,6 @@
 {$ifdef Test_Double_checksum_write}
         close(CRCFile);
 {$endif Test_Double_checksum_write}
-{$endif def Double_checksum}
       end;
 
     procedure closecurrentppu;
@@ -480,7 +472,7 @@
          begin
            hs:=current_ppu^.getstring;
            checksum:=current_ppu^.getlongint;
-{$ifdef DOUBLE_CHECKSUM}
+{$ifndef OLDPPU}
            intfchecksum:=current_ppu^.getlongint;
 {$else}
            intfchecksum:=0;
@@ -518,7 +510,10 @@
 
 {
   $Log$
-  Revision 1.37  1999-04-21 09:43:53  peter
+  Revision 1.38  1999-04-26 13:31:51  peter
+    * release storenumber,double_checksum
+
+  Revision 1.37  1999/04/21 09:43:53  peter
     * storenumber works
     * fixed some typos in double_checksum
     + incompatible types type1 and type2 message (with storenumber)

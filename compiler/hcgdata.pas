@@ -93,7 +93,7 @@ implementation
          dispose(p);
       end;
 
-    procedure insertmsgstr(p : {$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});{$ifndef FPC}far;{$endif FPC}
+    procedure insertmsgstr(p : {$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});{$ifndef FPC}far;{$endif FPC}
 
       var
          hp : pprocdef;
@@ -141,7 +141,7 @@ implementation
            end;
       end;
 
-    procedure insertmsgint(p : {$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});{$ifndef FPC}far;{$endif FPC}
+    procedure insertmsgint(p : {$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});{$ifndef FPC}far;{$endif FPC}
 
       var
          hp : pprocdef;
@@ -288,7 +288,7 @@ implementation
        _c : pobjectdef;
        has_constructor,has_virtual_method : boolean;
 
-    procedure eachsym(sym : {$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});{$ifndef FPC}far;{$endif FPC}
+    procedure eachsym(sym : {$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});{$ifndef FPC}far;{$endif FPC}
 
       var
          procdefcoll : pprocdefcoll;
@@ -566,7 +566,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  1999-04-21 09:43:37  peter
+  Revision 1.3  1999-04-26 13:31:34  peter
+    * release storenumber,double_checksum
+
+  Revision 1.2  1999/04/21 09:43:37  peter
     * storenumber works
     * fixed some typos in double_checksum
     + incompatible types type1 and type2 message (with storenumber)

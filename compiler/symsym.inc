@@ -26,17 +26,17 @@
 
     constructor tsym.init(const n : string);
       begin
-{$ifdef STORENUMBER}
-         inherited init;
+{$ifndef OLDPPU}
+         inherited initname(n);
 {$else}
-         indexnb:=0;
-{$endif}
          left:=nil;
          right:=nil;
-{$ifdef nextfield}
-         nextsym:=nil;
-{$endif nextfield}
          setname(n);
+         indexnb:=0;
+  {$ifdef nextfield}
+         nextsym:=nil;
+  {$endif nextfield}
+{$endif}
          typ:=abstractsym;
          properties:=current_object_option;
 {$ifdef GDB}
@@ -54,22 +54,20 @@
          lastref:=defref;
       end;
 
-    constructor tsym.load;
 
+    constructor tsym.load;
       begin
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
          inherited init;
-         indexnr:=readlong;
-{$endif}
+         indexnr:=readword;
+{$else}
          left:=nil;
          right:=nil;
+{$endif}
          setname(readstring);
          typ:=abstractsym;
          fillchar(fileinfo,sizeof(fileinfo),0);
-         if object_options then
-           properties:=symprop(readbyte)
-         else
-           properties:=sp_public;
+         properties:=symprop(readbyte);
          lastref:=nil;
          defref:=nil;
          lastwritten:=nil;
@@ -163,12 +161,12 @@
       begin
          if assigned(defref) then
            dispose(defref,done);
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
         inherited done;
 {$else}
-{$ifdef tp}
+  {$ifdef tp}
          if not(use_big) then
-{$endif tp}
+  {$endif tp}
            strdispose(_name);
          if assigned(left) then
            dispose(left,done);
@@ -180,12 +178,11 @@
 
     procedure tsym.write;
       begin
-{$ifdef STORENUMBER}
-         writelong(indexnr);
+{$ifndef OLDPPU}
+         writeword(indexnr);
 {$endif}
          writestring(name);
-         if object_options then
-           writebyte(byte(properties));
+         writebyte(byte(properties));
       end;
 
 
@@ -194,15 +191,15 @@
       end;
 
 
-{$ifndef STORENUMBER}
+{$ifdef OLDPPU}
     function tsym.name : string;
-{$ifdef tp}
+  {$ifdef tp}
       var
          s : string;
          b : byte;
-{$endif}
+  {$endif}
       begin
-{$ifdef tp}
+  {$ifdef tp}
          if use_big then
            begin
               symbolstream.seek(longint(_name));
@@ -212,11 +209,16 @@
               name:=s;
            end
          else
-{$endif}
+  {$endif}
         if assigned(_name) then
          name:=strpas(_name)
         else
          name:='';
+      end;
+
+    procedure tsym.setname(const s : string);
+      begin
+         setstring(_name,s);
       end;
 {$endif}
 
@@ -224,13 +226,6 @@
       begin
          mangledname:=name;
       end;
-
-{$ifndef STORENUMBER}
-    procedure tsym.setname(const s : string);
-      begin
-         setstring(_name,s);
-      end;
-{$endif}
 
 
     { for most symbol types there is nothing to do at all }
@@ -261,6 +256,7 @@
           end;
     end;
 {$endif GDB}
+
 
 {****************************************************************************
                                  TLABELSYM
@@ -1740,11 +1736,9 @@
 {$ifdef GDB}
          isusedinstab := false;
 {$endif GDB}
-{$ifndef STORENUMBER}
          forwardpointer:=nil;
-{$endif}
-        if assigned(definition) and not(assigned(definition^.sym)) then
-          definition^.sym:=@self;
+         if assigned(definition) and not(assigned(definition^.sym)) then
+           definition^.sym:=@self;
       end;
 
     constructor ttypesym.load;
@@ -1752,9 +1746,7 @@
       begin
          tsym.load;
          typ:=typesym;
-{$ifndef STORENUMBER}
          forwardpointer:=nil;
-{$endif}
 {$ifdef GDB}
          isusedinstab := false;
 {$endif GDB}
@@ -1920,7 +1912,7 @@
 
     procedure tsyssym.write;
       begin
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
          tsym.write;
          writelong(number);
          current_ppu^.writeentry(ibsyssym);
@@ -1957,7 +1949,10 @@
 
 {
   $Log$
-  Revision 1.81  1999-04-25 22:38:39  pierre
+  Revision 1.82  1999-04-26 13:31:52  peter
+    * release storenumber,double_checksum
+
+  Revision 1.81  1999/04/25 22:38:39  pierre
     + added is_really_const booleanfield for typedconstsym
       for Delphi in $J- mode (not yet implemented !)
 

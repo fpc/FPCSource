@@ -420,7 +420,8 @@ unit parser;
 
 {$ifdef BrowserLog}
           { Write Browser Log }
-            if cs_browser in aktmoduleswitches then
+            if (cs_browser_log in aktglobalswitches) and
+               (cs_browser in aktmoduleswitches) then
              begin
                if browserlog.elements_to_list^.empty then
                 begin
@@ -459,7 +460,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.71  1999-03-26 00:05:33  peter
+  Revision 1.72  1999-04-26 13:31:36  peter
+    * release storenumber,double_checksum
+
+  Revision 1.71  1999/03/26 00:05:33  peter
     * released valintern
     + deffile is now removed when compiling is finished
     * ^( compiles now correct

@@ -67,7 +67,7 @@
 
     constructor tdef.init;
       begin
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
          inherited init;
 {$else}
          indexnb := 0;
@@ -124,8 +124,8 @@
          lastglobaldef := @self;
          nextglobal := nil;
       { load }
-{$ifdef STORENUMBER}
-         indexnr:=readlong;
+{$ifndef OLDPPU}
+         indexnr:=readword;
          sym:=ptypesym(readsymref);
 {$else}
          indexnb := 0;
@@ -170,7 +170,7 @@
          if assigned(owner) and
             (owner^.symtabletype in [recordsymtable,objectsymtable]) then
            begin
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
               owner^.defindex^.delete(@self);
 {$else}
               { no other definition
@@ -223,8 +223,8 @@
 
     procedure tdef.write;
       begin
-{$ifdef STORENUMBER}
-        writelong(indexnr);
+{$ifndef OLDPPU}
+        writeword(indexnr);
         writesymref(sym);
 {$endif}
 {$ifdef GDB}
@@ -582,7 +582,7 @@
          else
            writelong(len);
          case string_typ of
-           st_shortstring : current_ppu^.writeentry(ibstringdef);
+           st_shortstring : current_ppu^.writeentry(ibshortstringdef);
             st_longstring : current_ppu^.writeentry(iblongstringdef);
             st_ansistring : current_ppu^.writeentry(ibansistringdef);
             st_widestring : current_ppu^.writeentry(ibwidestringdef);
@@ -1781,7 +1781,7 @@
     var
        binittable : boolean;
 
-    procedure check_rec_inittable(s : {$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});
+    procedure check_rec_inittable(s : {$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});
 
       begin
          if (psym(s)^.typ=varsym) and
@@ -1809,7 +1809,7 @@
 
     procedure trecdef.deref;
       var
-{$ifndef STORENUMBER}
+{$ifdef OLDPPU}
          hp : pdef;
 {$endif}
          oldrecsyms : psymtable;
@@ -1817,7 +1817,7 @@
          oldrecsyms:=aktrecordsymtable;
          aktrecordsymtable:=symtable;
          { now dereference the definitions }
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
          symtable^.deref;
 {$else}
          hp:=symtable^.rootdef;
@@ -1854,7 +1854,7 @@
           StabRecSize : longint = 0;
           RecOffset : Longint = 0;
 
-    procedure addname(p : {$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});
+    procedure addname(p : {$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});
     var
       news, newrec : pchar;
       spec : string[2];
@@ -1898,7 +1898,7 @@
     function trecdef.stabstring : pchar;
       Var oldrec : pchar;
           oldsize : longint;
-{$ifndef STORENUMBER}
+{$ifdef OLDPPU}
           cur : psym;
 {$endif}
       begin
@@ -1908,16 +1908,16 @@
         stabrecsize:=memsizeinc;
         strpcopy(stabRecString,'s'+tostr(savesize));
         RecOffset := 0;
-{$ifdef nonextfield}
+{$ifndef OLDPPU}
         symtable^.foreach({$ifdef fpc}@{$endif}addname);
-{$else nonextfield}
+{$else}
          cur:=symtable^.searchroot;
          while assigned(cur) do
            begin
               addname(cur);
               cur:=cur^.nextsym;
            end;
-{$endif nonextfield}
+{$endif}
         { FPC doesn't want to convert a char to a pchar}
         { is this a bug ? }
         strpcopy(strend(StabRecString),';');
@@ -1939,7 +1939,7 @@
 
     var
        count : longint;
-    procedure count_inittable_fields(sym : {$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});{$ifndef fpc}far;{$endif}
+    procedure count_inittable_fields(sym : {$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});{$ifndef fpc}far;{$endif}
       begin
          if (psym(sym)^.typ=varsym) and
             (pvarsym(sym)^.definition^.needs_inittable) then
@@ -1947,13 +1947,13 @@
       end;
 
 
-    procedure count_fields(sym : {$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});{$ifndef fpc}far;{$endif}
+    procedure count_fields(sym : {$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});{$ifndef fpc}far;{$endif}
       begin
          inc(count);
       end;
 
 
-    procedure write_field_inittable(sym : {$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});{$ifndef fpc}far;{$endif}
+    procedure write_field_inittable(sym : {$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});{$ifndef fpc}far;{$endif}
       begin
          if (psym(sym)^.typ=varsym) and
             pvarsym(sym)^.definition^.needs_inittable then
@@ -1964,14 +1964,14 @@
       end;
 
 
-    procedure write_field_rtti(sym : {$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});{$ifndef fpc}far;{$endif}
+    procedure write_field_rtti(sym : {$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});{$ifndef fpc}far;{$endif}
       begin
          rttilist^.concat(new(pai_const_symbol,init(pvarsym(sym)^.definition^.get_rtti_label)));
          rttilist^.concat(new(pai_const,init_32bit(pvarsym(sym)^.address)));
       end;
 
 
-    procedure generate_child_inittable(sym:{$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});{$ifndef fpc}far;{$endif}
+    procedure generate_child_inittable(sym:{$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});{$ifndef fpc}far;{$endif}
       begin
          if (psym(sym)^.typ=varsym) and
             pvarsym(sym)^.definition^.needs_inittable then
@@ -1980,7 +1980,7 @@
       end;
 
 
-    procedure generate_child_rtti(sym : {$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});{$ifndef fpc}far;{$endif}
+    procedure generate_child_rtti(sym : {$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});{$ifndef fpc}far;{$endif}
       begin
          pvarsym(sym)^.definition^.get_rtti_label;
       end;
@@ -2152,14 +2152,14 @@
       begin
          inherited write;
          writedefref(retdef);
-{$ifdef Double_checksum}
-        current_ppu^.do_interface_crc:=false;
-{$endif def Double_checksum}
+{$ifndef OLDPPU}
+         current_ppu^.do_interface_crc:=false;
+{$endif}
          writebyte(fpu_used);
+{$ifdef OLDPPU}
+         current_ppu^.do_interface_crc:=true;
+{$endif}
          writelong(options);
-{$ifdef Double_checksum}
-        current_ppu^.do_interface_crc:=true;
-{$endif def Double_checksum}
          hp:=para1;
          count:=0;
          while assigned(hp) do
@@ -2290,8 +2290,6 @@
 
          s:=readstring;
          setstring(_mangledname,s);
-
-
 
          extnumber:=readlong;
          nextoverloaded:=pprocdef(readdefref);
@@ -2508,9 +2506,9 @@ Const local_symtable_index : longint = $8001;
     procedure tprocdef.write;
       begin
          inherited write;
-{$ifdef Double_checksum}
-        current_ppu^.do_interface_crc:=false;
-{$endif def Double_checksum}
+{$ifndef OLDPPU}
+         current_ppu^.do_interface_crc:=false;
+{$endif}
 {$ifdef i386}
          writebyte(usedregisters);
 {$endif i386}
@@ -2522,10 +2520,10 @@ Const local_symtable_index : longint = $8001;
          writelong(usedregisters_fpu);
 {$endif alpha}
          writestring(mangledname);
+{$ifndef OLDPPU}
+         current_ppu^.do_interface_crc:=true;
+{$endif}
          writelong(extnumber);
-{$ifdef Double_checksum}
-        current_ppu^.do_interface_crc:=true;
-{$endif def Double_checksum}
          if (options and pooperator) = 0 then
            writedefref(nextoverloaded)
          else
@@ -2882,9 +2880,7 @@ Const local_symtable_index : longint = $8001;
          options:=readlong;
          oldread_member:=read_member;
          read_member:=true;
-         object_options:=true;
          publicsyms:=new(psymtable,loadas(objectsymtable));
-         object_options:=false;
          read_member:=oldread_member;
          publicsyms^.defowner:=@self;
          { publicsyms^.datasize:=savesize; }
@@ -2937,11 +2933,6 @@ Const local_symtable_index : longint = $8001;
 
    destructor tobjectdef.done;
      begin
-{!!!!
-        if assigned(privatesyms) then
-          dispose(privatesyms,done);
-        if assigned(protectedsyms) then
-          dispose(protectedsyms,done); }
         if assigned(publicsyms) then
           dispose(publicsyms,done);
         if (options and oo_isforward)<>0 then
@@ -2982,7 +2973,7 @@ Const local_symtable_index : longint = $8001;
 
     procedure tobjectdef.deref;
       var
-{$ifndef STORENUMBER}
+{$ifdef OLDPPU}
          hp : pdef;
 {$endif}
          oldrecsyms : psymtable;
@@ -2991,7 +2982,7 @@ Const local_symtable_index : longint = $8001;
          oldrecsyms:=aktrecordsymtable;
          aktrecordsymtable:=publicsyms;
 
-{$ifdef STORENUMBER}
+{$ifndef OLDPPU}
          publicsyms^.deref;
 {$else}
          hp:=publicsyms^.rootdef;
@@ -3066,15 +3057,13 @@ Const local_symtable_index : longint = $8001;
 
          oldread_member:=read_member;
          read_member:=true;
-         object_options:=true;
          publicsyms^.writeas;
-         object_options:=false;
          read_member:=oldread_member;
       end;
 
 
 {$ifdef GDB}
-    procedure addprocname(p :{$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});
+    procedure addprocname(p :{$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});
     var virtualind,argnames : string;
         news, newrec : pchar;
         pd,ipd : pprocdef;
@@ -3166,9 +3155,9 @@ Const local_symtable_index : longint = $8001;
           oldrec : pchar;
           oldrecsize : longint;
           str_end : string;
-{$ifndef nonextfield}
+{$ifdef OLDPPU}
           cur : psym;
-{$endif nonextfield}
+{$endif}
       begin
         oldrec := stabrecstring;
         oldrecsize:=stabrecsize;
@@ -3181,40 +3170,40 @@ Const local_symtable_index : longint = $8001;
           strpcopy(strend(stabrecstring),'!1,020,'+childof^.numberstring+';');
         {virtual table to implement yet}
         RecOffset := 0;
-{$ifdef nonextfield}
+{$ifndef OLDPPU}
         {$ifdef tp}
           publicsyms^.foreach(addname);
         {$else}
           publicsyms^.foreach(@addname);
         {$endif}
-{$else nonextfield}
+{$else}
          cur:=publicsyms^.searchroot;
          while assigned(cur) do
            begin
               addname(cur);
               cur:=psym(cur)^.nextsym;
            end;
-{$endif nonextfield}
+{$endif}
       if (options and oo_hasvmt) <> 0 then
         if not assigned(childof) or ((childof^.options and oo_hasvmt) = 0) then
            begin
               strpcopy(strend(stabrecstring),'$vf'+numberstring+':'+typeglobalnumber('vtblarray')
                 +','+tostr(vmt_offset*8)+';');
            end;
-{$ifdef nonextfield}
+{$ifndef OLDPPU}
         {$ifdef tp}
           publicsyms^.foreach(addprocname);
         {$else}
           publicsyms^.foreach(@addprocname);
         {$endif tp }
-{$else nonextfield}
+{$else}
          cur:=publicsyms^.searchroot;
          while assigned(cur) do
            begin
               addprocname(cur);
               cur:=psym(cur)^.nextsym;
            end;
-{$endif nonextfield}
+{$endif}
         if (options and oo_hasvmt) <> 0  then
           begin
              anc := @self;
@@ -3273,7 +3262,7 @@ Const local_symtable_index : longint = $8001;
       end;
 
 
-    procedure count_published_properties(sym:{$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});
+    procedure count_published_properties(sym:{$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});
       {$ifndef fpc}far;{$endif}
       begin
          if (psym(sym)^.typ=propertysym) and ((psym(sym)^.properties and sp_published)<>0) then
@@ -3281,7 +3270,7 @@ Const local_symtable_index : longint = $8001;
       end;
 
 
-    procedure write_property_info(sym : {$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});{$ifndef fpc}far;{$endif}
+    procedure write_property_info(sym : {$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});{$ifndef fpc}far;{$endif}
       var
          proctypesinfo : byte;
 
@@ -3349,7 +3338,7 @@ Const local_symtable_index : longint = $8001;
       end;
 
 
-    procedure generate_published_child_rtti(sym : {$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});
+    procedure generate_published_child_rtti(sym : {$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});
       {$ifndef fpc}far;{$endif}
       begin
          if (psym(sym)^.typ=propertysym) and
@@ -3476,7 +3465,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.104  1999-04-21 09:43:50  peter
+  Revision 1.105  1999-04-26 13:31:47  peter
+    * release storenumber,double_checksum
+
+  Revision 1.104  1999/04/21 09:43:50  peter
     * storenumber works
     * fixed some typos in double_checksum
     + incompatible types type1 and type2 message (with storenumber)
