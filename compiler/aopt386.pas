@@ -785,53 +785,53 @@ Var LoLab, HiLab, LabDif: Longint;
                                           End;
                                       End
                                     Else
-                                                        Begin
-                                                          hp1 := pai(p^.next^.next);
-                                                          If (Pai386(p)^.op1t = top_ref) And
-                                                             (Pai386(p)^.op2t = top_reg) And
-                                                             (Pai386(p^.next)^.op1t = top_reg) And
-                                                             (Pai386(p^.next)^.op1 = Pai386(p)^.op2) And
-                                                             (Pai386(p^.next)^.op2t = top_ref) And
-                                                             Assigned(hp1) And
-                                                             (Pai(hp1)^.typ = ait_instruction) And
-                                                             (Pai386(hp1)^._operator = A_MOV) And
-                                                             (Pai386(hp1)^.op2t = top_reg) And
-                                                             (Pai386(hp1)^.op1t = top_ref) And
-                                                             RefsEqual(TReference(Pai386(hp1)^.op1^),
-                                                                       TReference(Pai386(p^.next)^.op2^))
-                                                            Then
-                                                       {   mov mem1, reg1
-                                                           mov reg1, mem2
-                                                           mov mem2, reg2
-                                                        to:
-                                                           mov mem1, reg2
-                                                           mov reg2, mem2}
-                                                              If (TRegister(Pai386(p)^.op2) <> R_ESI)
-                                                                Then
-                                                                  Begin
-                                                                    Pai386(p)^.op2 := Pai386(hp1)^.op2;
-                                                                    Pai386(p^.next)^.op1 := Pai386(hp1)^.op2;
-                                                                    AsmL^.Remove(hp1);
-                                                                    Dispose(hp1,Done);
-                                                                  End
-                                                                Else
-                                                       {   mov mem1, esi
-                                                           mov esi, mem2
-                                                           mov mem2, reg2
-                                                        to:
-                                                           mov mem1, esi
-                                                           mov mem1, reg2
-                                                           mov esi, mem2}
-                                                                  Begin
-                                                                    Pai386(p^.next)^.opxt := top_ref + top_reg shl 4;
-                                                                    Pai386(p^.next)^.op1 := Pai386(p)^.op2;
-                                                                    TReference(Pai386(p^.next)^.op1^) := TReference(Pai386(p)^.op1^);
-                                                                    Pai386(p^.next)^.op2 := Pai386(hp1)^.op2;
-                                                                    Pai386(hp1)^.opxt := top_reg + top_ref shl 4;
-                                                                    Pai386(hp1)^.op2 := Pai386(hp1)^.op1;
-                                                                    Pai386(hp1)^.op1 := Pointer(R_ESI)
-                                                                  End;
-                                                        End;
+                                      Begin
+                                        hp1 := pai(p^.next^.next);
+                                        If (Pai386(p)^.op1t = top_ref) And
+                                           (Pai386(p)^.op2t = top_reg) And
+                                           (Pai386(p^.next)^.op1t = top_reg) And
+                                           (Pai386(p^.next)^.op1 = Pai386(p)^.op2) And
+                                           (Pai386(p^.next)^.op2t = top_ref) And
+                                           Assigned(hp1) And
+                                           (Pai(hp1)^.typ = ait_instruction) And
+                                           (Pai386(hp1)^._operator = A_MOV) And
+                                           (Pai386(hp1)^.op2t = top_reg) And
+                                           (Pai386(hp1)^.op1t = top_ref) And
+                                           RefsEqual(TReference(Pai386(hp1)^.op1^),
+                                                     TReference(Pai386(p^.next)^.op2^))
+                                          Then
+                                     {   mov mem1, reg1
+                                         mov reg1, mem2
+                                         mov mem2, reg2
+                                      to:
+                                         mov mem1, reg2
+                                         mov reg2, mem2}
+                                            If (TRegister(Pai386(p)^.op2) <> R_ESI)
+                                              Then
+                                                Begin
+                                                  Pai386(p)^.op2 := Pai386(hp1)^.op2;
+                                                  Pai386(p^.next)^.op1 := Pai386(hp1)^.op2;
+                                                  AsmL^.Remove(hp1);
+                                                  Dispose(hp1,Done);
+                                                End
+                                              Else
+                                     {   mov mem1, esi
+                                         mov esi, mem2
+                                         mov mem2, reg2
+                                      to:
+                                         mov mem1, esi
+                                         mov mem1, reg2
+                                         mov esi, mem2}
+                                                Begin
+                                                  Pai386(p^.next)^.opxt := top_ref + top_reg shl 4;
+                                                  Pai386(p^.next)^.op1 := Pai386(p)^.op2;
+                                                  TReference(Pai386(p^.next)^.op1^) := TReference(Pai386(p)^.op1^);
+                                                  Pai386(p^.next)^.op2 := Pai386(hp1)^.op2;
+                                                  Pai386(hp1)^.opxt := top_reg + top_ref shl 4;
+                                                  Pai386(hp1)^.op2 := Pai386(hp1)^.op1;
+                                                  Pai386(hp1)^.op1 := Pointer(R_ESI)
+                                                End;
+                                      End;
                                 End
                                Else
 (*                               {   movl [mem1],reg1
@@ -1478,7 +1478,11 @@ end;
 End.
 {
   $Log$
-  Revision 1.2  1998-03-28 23:09:53  florian
+  Revision 1.3  1998-03-29 17:27:58  florian
+    * aopt386 compiles with TP
+    * correct line number is displayed, if a #0 is in the input
+
+  Revision 1.2  1998/03/28 23:09:53  florian
     * secondin bugfix (m68k and i386)
     * overflow checking bugfix (m68k and i386) -- pretty useless in
       secondadd, since everything is done using 32-bit

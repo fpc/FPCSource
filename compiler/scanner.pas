@@ -199,7 +199,7 @@ for the last instruction of an include file !}
 
       var
          readsize : word;
-         i : longint;
+         i,saveline,count : longint;
 
       begin
          if filehaschanged then
@@ -232,15 +232,29 @@ for the last instruction of an include file !}
               blockread(current_module^.current_inputfile^.f,inputbuffer^,
                 current_module^.current_inputfile^.bufsize-1,readsize);
               { check if non-empty file }
+
+              { this is an aweful hack FK }
               if readsize > 0 then
               begin
                 { check if null character before readsize }
                 { this mixed up the scanner..             }
-                for i:=0 to (readsize-1) do
-                begin
-                 if inputbuffer[i] = #0 then
-                  Message(scan_f_illegal_char);
-                end;
+
+                { force proper line counting }
+                saveline:=current_module^.current_inputfile^.line_no;
+                i:=0;
+                while i<readsize do
+                  begin
+                     if inputbuffer[i] in [#10,#13] then
+                       begin
+                          if (byte(inputbuffer[i+1])+byte(inputbuffer[i])=23) then
+                            inc(i);
+                          inc(current_module^.current_inputfile^.line_no);
+                       end;
+                     if inputbuffer[i] = #0 then
+                       Message(scan_f_illegal_char);
+                     inc(i);
+                  end;
+                current_module^.current_inputfile^.line_no:=saveline;
               end;
 
               inputbuffer[readsize]:=#0;
@@ -2073,7 +2087,11 @@ for the last instruction of an include file !}
 end.
 {
   $Log$
-  Revision 1.2  1998-03-28 23:09:57  florian
+  Revision 1.3  1998-03-29 17:27:59  florian
+    * aopt386 compiles with TP
+    * correct line number is displayed, if a #0 is in the input
+
+  Revision 1.2  1998/03/28 23:09:57  florian
     * secondin bugfix (m68k and i386)
     * overflow checking bugfix (m68k and i386) -- pretty useless in
       secondadd, since everything is done using 32-bit
