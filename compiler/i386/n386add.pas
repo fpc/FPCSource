@@ -560,6 +560,9 @@ interface
 
                      regstopush := $ff;
                      remove_non_regvars_from_loc(right.location,regstopush);
+                     if (right.nodetype = setelementn) and
+                        assigned(tsetelementnode(right).right) then
+                       remove_non_regvars_from_loc(tsetelementnode(right).right.location,regstopush);
                      remove_non_regvars_from_loc(left.location,regstopush);
                      pushusedregisters(pushedregs,regstopush);
                      { this is still right before the instruction that uses }
@@ -2273,7 +2276,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2001-04-13 01:22:18  peter
+  Revision 1.12  2001-05-06 17:12:14  jonas
+    * fixed an IE10 and another bug with [var1..var2] construct
+
+  Revision 1.11  2001/04/13 01:22:18  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

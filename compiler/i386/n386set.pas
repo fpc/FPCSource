@@ -60,6 +60,8 @@ implementation
 *****************************************************************************}
 
     procedure ti386setelementnode.pass_2;
+       var
+         pushed: boolean;
        begin
        { load first value in 32bit register }
          secondpass(left);
@@ -69,7 +71,12 @@ implementation
        { also a second value ? }
          if assigned(right) then
            begin
+             pushed:=maybe_push(right.registers32,left,false);
              secondpass(right);
+             if codegenerror then
+               exit;
+             if pushed then
+               restore(left,false);
              if right.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
               emit_to_reg32(right.location.register);
            end;
@@ -1065,7 +1072,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2001-04-13 01:22:19  peter
+  Revision 1.15  2001-05-06 17:12:14  jonas
+    * fixed an IE10 and another bug with [var1..var2] construct
+
+  Revision 1.14  2001/04/13 01:22:19  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed
