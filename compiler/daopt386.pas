@@ -33,61 +33,6 @@ Uses
   CObjects,Aasm,
   cpubase,cpuasm;
 
-Type
-  TRegArray = Array[R_EAX..R_BL] of TRegister;
-  TRegSet = Set of R_EAX..R_BL;
-  TRegInfo = Record
-                NewRegsEncountered, OldRegsEncountered: TRegSet;
-                RegsLoadedForRef: TRegSet;
-                regsStillUsedAfterSeq: TRegSet;
-                lastReload: array[R_EAX..R_EDI] of pai;
-                New2OldReg: TRegArray;
-              End;
-
-{possible actions on an operand: read, write or modify (= read & write)}
-  TOpAction = (OpAct_Read, OpAct_Write, OpAct_Modify, OpAct_Unknown);
-
-{*********************** Procedures and Functions ************************}
-
-Procedure InsertLLItem(AsmL: PAasmOutput; prev, foll, new_one: PLinkedList_Item);
-
-Function Reg32(Reg: TRegister): TRegister;
-Function RefsEquivalent(Const R1, R2: TReference; Var RegInfo: TRegInfo; OpAct: TOpAction): Boolean;
-Function RefsEqual(Const R1, R2: TReference): Boolean;
-Function IsGP32Reg(Reg: TRegister): Boolean;
-Function RegInRef(Reg: TRegister; Const Ref: TReference): Boolean;
-function RegReadByInstruction(reg: TRegister; hp: pai): boolean;
-function RegModifiedByInstruction(Reg: TRegister; p1: Pai): Boolean;
-function RegInInstruction(Reg: TRegister; p1: Pai): Boolean;
-function RegInOp(Reg: TRegister; const o:toper): Boolean;
-
-Function GetNextInstruction(Current: Pai; Var Next: Pai): Boolean;
-Function GetLastInstruction(Current: Pai; Var Last: Pai): Boolean;
-Procedure SkipHead(var P: Pai);
-function labelCanBeSkipped(p: pai_label): boolean;
-
-Procedure RemoveLastDeallocForFuncRes(asmL: PAasmOutput; p: pai);
-Function regLoadedWithNewValue(reg: tregister; canDependOnPrevValue: boolean;
-           hp: pai): boolean;
-Procedure UpdateUsedRegs(Var UsedRegs: TRegSet; p: Pai);
-Procedure AllocRegBetween(AsmL: PAasmOutput; Reg: TRegister; p1, p2: Pai);
-
-Function RegsEquivalent(OldReg, NewReg: TRegister; Var RegInfo: TRegInfo; OpAct: TopAction): Boolean;
-Function InstructionsEquivalent(p1, p2: Pai; Var RegInfo: TRegInfo): Boolean;
-Function OpsEqual(const o1,o2:toper): Boolean;
-
-Function DFAPass1(AsmL: PAasmOutput; BlockStart: Pai): Pai;
-Function DFAPass2(
-{$ifdef statedebug}
-                   AsmL: PAasmOutPut;
-{$endif statedebug}
-                                      BlockStart, BlockEnd: Pai): Boolean;
-Procedure ShutDownDFA;
-
-Function FindLabel(L: PasmLabel; Var hp: Pai): Boolean;
-
-Procedure IncState(Var S: Byte; amount: longint);
-
 {******************************* Constants *******************************}
 
 Const
@@ -108,6 +53,19 @@ Const
 {********************************* Types *********************************}
 
 type
+  TRegArray = Array[R_EAX..R_BL] of TRegister;
+  TRegSet = Set of R_EAX..R_BL;
+  TRegInfo = Record
+                NewRegsEncountered, OldRegsEncountered: TRegSet;
+                RegsLoadedForRef: TRegSet;
+                regsStillUsedAfterSeq: TRegSet;
+                lastReload: array[R_EAX..R_EDI] of pai;
+                New2OldReg: TRegArray;
+              End;
+
+{possible actions on an operand: read, write or modify (= read & write)}
+  TOpAction = (OpAct_Read, OpAct_Write, OpAct_Modify, OpAct_Unknown);
+
 {the possible states of a flag}
   TFlagContents = (F_Unknown, F_NotSet, F_Set);
 
@@ -191,6 +149,54 @@ type
                     End;
   TLabelTable = Array[0..2500000] Of TLabelTableItem;
   PLabelTable = ^TLabelTable;
+
+
+{*********************** Procedures and Functions ************************}
+
+Procedure InsertLLItem(AsmL: PAasmOutput; prev, foll, new_one: PLinkedList_Item);
+
+Function Reg32(Reg: TRegister): TRegister;
+Function RefsEquivalent(Const R1, R2: TReference; Var RegInfo: TRegInfo; OpAct: TOpAction): Boolean;
+Function RefsEqual(Const R1, R2: TReference): Boolean;
+Function IsGP32Reg(Reg: TRegister): Boolean;
+Function RegInRef(Reg: TRegister; Const Ref: TReference): Boolean;
+function RegReadByInstruction(reg: TRegister; hp: pai): boolean;
+function RegModifiedByInstruction(Reg: TRegister; p1: Pai): Boolean;
+function RegInInstruction(Reg: TRegister; p1: Pai): Boolean;
+function RegInOp(Reg: TRegister; const o:toper): Boolean;
+
+function writeToMemDestroysContents(regWritten: tregister; const ref: treference;
+  reg: tregister; const c: tcontent): boolean;
+function writeDestroysContents(const op: toper; reg: tregister;
+  const c: tcontent): boolean;
+
+
+Function GetNextInstruction(Current: Pai; Var Next: Pai): Boolean;
+Function GetLastInstruction(Current: Pai; Var Last: Pai): Boolean;
+Procedure SkipHead(var P: Pai);
+function labelCanBeSkipped(p: pai_label): boolean;
+
+Procedure RemoveLastDeallocForFuncRes(asmL: PAasmOutput; p: pai);
+Function regLoadedWithNewValue(reg: tregister; canDependOnPrevValue: boolean;
+           hp: pai): boolean;
+Procedure UpdateUsedRegs(Var UsedRegs: TRegSet; p: Pai);
+Procedure AllocRegBetween(AsmL: PAasmOutput; Reg: TRegister; p1, p2: Pai);
+
+Function RegsEquivalent(OldReg, NewReg: TRegister; Var RegInfo: TRegInfo; OpAct: TopAction): Boolean;
+Function InstructionsEquivalent(p1, p2: Pai; Var RegInfo: TRegInfo): Boolean;
+Function OpsEqual(const o1,o2:toper): Boolean;
+
+Function DFAPass1(AsmL: PAasmOutput; BlockStart: Pai): Pai;
+Function DFAPass2(
+{$ifdef statedebug}
+                   AsmL: PAasmOutPut;
+{$endif statedebug}
+                                      BlockStart, BlockEnd: Pai): Boolean;
+Procedure ShutDownDFA;
+
+Function FindLabel(L: PasmLabel; Var hp: Pai): Boolean;
+
+Procedure IncState(Var S: Byte; amount: longint);
 
 {******************************* Variables *******************************}
 
@@ -1261,7 +1267,10 @@ Begin
               typ := con_unknown;
             end
           else
-            typ := con_invalid;
+            if typ in [con_ref,con_invalid] then
+              typ := con_invalid
+            { con_invalid and con_noRemoveRef = con_unknown }
+            else typ := con_unknown;
         end;
       invalidateDepedingRegs(p1,reg);
     end;
@@ -1549,79 +1558,112 @@ Begin
 End;
 
 
-Procedure DestroyRefs(p: pai; Const Ref: TReference; WhichReg: TRegister);
-{destroys all registers which possibly contain a reference to Ref, WhichReg
- is the register whose contents are being written to memory (if this proc
- is called because of a "mov?? %reg, (mem)" instruction)}
-Var RefsEq: TRefCompare;
-    Counter: TRegister;
-Begin
-  WhichReg := Reg32(WhichReg);
-  If (Ref.base = procinfo^.FramePointer) or
-      Assigned(Ref.Symbol) Then
-    Begin
-      If (ref.index <> R_NO) or
+function writeToMemDestroysContents(regWritten: tregister; const ref: treference;
+  reg: tregister; const c: tcontent): boolean;
+{ returns whether the contents c of reg are invalid after regWritten is }
+{ is written to ref                                                     }
+var
+  refsEq: trefCompare;
+begin
+  if not(c.typ in [con_ref,con_noRemoveRef,con_invalid]) then
+    begin
+      writeToMemDestroysContents := false;
+      exit;
+    end;
+  reg := reg32(reg);
+  regWritten := reg32(regWritten);
+  if (ref.base = procinfo^.framePointer) or
+      assigned(ref.symbol) Then
+    begin
+      if (ref.index <> R_NO) or
          (assigned(ref.symbol) and
           (ref.base <> R_NO)) then
-  { local/global variable or parameter which is an array }
-        RefsEq := {$ifdef fpc}@{$endif}ArrayRefsEq
-      Else
-  { local/global variable or parameter which is not an array }
-        RefsEq := {$ifdef fpc}@{$endif}RefsEqual;
+        { local/global variable or parameter which is an array }
+        refsEq := {$ifdef fpc}@{$endif}arrayRefsEq
+      else
+        { local/global variable or parameter which is not an array }
+        refsEq := {$ifdef fpc}@{$endif}refsEqual;
 
-{write something to a parameter, a local or global variable, so
-   * with uncertain optimizations on:
-      - destroy the contents of registers whose contents have somewhere a
-        "mov?? (Ref), %reg". WhichReg (this is the register whose contents
-        are being written to memory) is not destroyed if it's StartMod is
-        of that form and NrOfMods = 1 (so if it holds ref, but is not a
-        pointer based on Ref)
-    * with uncertain optimizations off:
-       - also destroy registers that contain any pointer}
-      For Counter := R_EAX to R_EDI Do
-        With PPaiProp(p^.OptInfo)^.Regs[Counter] Do
-          Begin
-            if (typ in [con_ref,con_noRemoveRef]) and
-               ((Not(cs_UncertainOpts in aktglobalswitches) And
-                 (NrOfMods <> 1)
-                ) Or
-                (RefInSequence(Ref,PPaiProp(p^.OptInfo)^.Regs[Counter],RefsEq) And
-                 ((Counter <> WhichReg) Or
-                  ((NrOfMods <> 1) And
- {StarMod is always of the type ait_instruction}
-                   (Paicpu(StartMod)^.oper[0].typ = top_ref) And
-                   RefsEq(Paicpu(StartMod)^.oper[0].ref^, Ref)
-                  )
-                 )
-                )
-               )
-              Then
-                DestroyReg(PPaiProp(p^.OptInfo), Counter, false)
-          End
-    End
-  Else
-{write something to a pointer location, so
-   * with uncertain optimzations on:
-      - do not destroy registers which contain a local/global variable or a
-        parameter, except if DestroyRefs is called because of a "movsl"
-   * with uncertain optimzations off:
-      - destroy every register which contains a memory location
-      }
-    For Counter := R_EAX to R_EDI Do
-      With PPaiProp(p^.OptInfo)^.Regs[Counter] Do
-      if (typ in [con_ref,con_noRemoveRef]) And
-         (Not(cs_UncertainOpts in aktglobalswitches) Or
-      {for movsl}
-          (Ref.Base = R_EDI) Or
-      {don't destroy if reg contains a parameter, local or global variable}
-          Not((NrOfMods = 1) And
-              (Paicpu(StartMod)^.oper[0].typ = top_ref) And
-              ((Paicpu(StartMod)^.oper[0].ref^.base = procinfo^.FramePointer) Or
-                Assigned(Paicpu(StartMod)^.oper[0].ref^.Symbol)
-              )
+     { write something to a parameter, a local or global variable, so          }
+     {  * with uncertain optimizations on:                                     }
+     {    - destroy the contents of registers whose contents have somewhere a  }
+     {      "mov?? (Ref), %reg". WhichReg (this is the register whose contents }
+     {      are being written to memory) is not destroyed if it's StartMod is  }
+     {      of that form and NrOfMods = 1 (so if it holds ref, but is not a    }
+     {      pointer based on Ref)                                              }
+     {  * with uncertain optimizations off:                                    }
+     {    - also destroy registers that contain any pointer                    }
+      with c do
+        writeToMemDestroysContents := 
+          (typ in [con_ref,con_noRemoveRef]) and
+          ((not(cs_uncertainOpts in aktglobalswitches) and
+            (nrOfMods <> 1)
+           ) or
+           (refInSequence(ref,c,refsEq) and
+            ((reg <> regWritten) or
+             ((nrOfMods <> 1) and
+              {StarMod is always of the type ait_instruction}
+              (paicpu(StartMod)^.oper[0].typ = top_ref) and
+              refsEq(Paicpu(StartMod)^.oper[0].ref^, ref)
              )
-         )
-        Then DestroyReg(PPaiProp(p^.OptInfo), Counter, false)
+            )
+           )
+          )
+    end
+  else
+    { write something to a pointer location, so                               }
+    {   * with uncertain optimzations on:                                     }
+    {     - do not destroy registers which contain a local/global variable or }
+    {       a parameter, except if DestroyRefs is called because of a "movsl" }
+    {   * with uncertain optimzations off:                                    }
+    {     - destroy every register which contains a memory location           }
+    with c do
+      writeToMemDestroysContents := 
+        (typ in [con_ref,con_noRemoveRef]) and
+        (not(cs_UncertainOpts in aktglobalswitches) or
+       { for movsl }
+        ((ref.base = R_EDI) and (ref.index = R_EDI)) or
+       { don't destroy if reg contains a parameter, local or global variable }
+        not((nrOfMods = 1) and
+            (paicpu(startMod)^.oper[0].typ = top_ref) and
+            ((paicpu(startMod)^.oper[0].ref^.base = procinfo^.framePointer) or
+              assigned(paicpu(startMod)^.oper[0].ref^.symbol)
+            )
+           )
+       )
+end;
+
+
+function writeDestroysContents(const op: toper; reg: tregister;
+  const c: tcontent): boolean;
+{ returns whether the contents c of reg are invalid after regWritten is }
+{ is written to op                                                      }
+begin
+  reg := reg32(reg);
+  case op.typ of
+    top_reg:
+      writeDestroysContents :=
+        (c.typ <> con_unknown) and
+        sequenceDependsOnReg(c,reg,reg32(op.reg));
+    top_ref:
+      writeDestroysContents := 
+        writeToMemDestroysContents(R_NO,op.ref^,reg,c);
+  else
+    writeDestroysContents := false;
+  end;
+end;
+
+procedure destroyRefs(p: pai; const ref: treference; regWritten: tregister);
+{ destroys all registers which possibly contain a reference to Ref, regWritten }
+{ is the register whose contents are being written to memory (if this proc     }
+{ is called because of a "mov?? %reg, (mem)" instruction)                      }
+var
+  counter: TRegister;
+begin
+  for counter := R_EAX to R_EDI Do
+    if writeToMemDestroysContents(regWritten,ref,counter,
+         ppaiProp(p^.optInfo)^.regs[counter]) then
+      destroyReg(ppaiProp(p^.optInfo), counter, false)
 End;
 
 Procedure DestroyAllRegs(p: PPaiProp);
@@ -2184,6 +2226,7 @@ Begin
                             ReadReg(CurProp, R_EDI);
                             FillChar(TmpRef, SizeOf(TmpRef), 0);
                             TmpRef.Base := R_EDI;
+                            tmpRef.index := R_EDI;
                             DestroyRefs(p, TmpRef, R_NO)
                           End;
                         Ch_RFlags, Ch_WFlags, Ch_RWFlags, Ch_FPU:
@@ -2306,7 +2349,11 @@ End.
 
 {
   $Log$
-  Revision 1.13  2000-09-25 09:50:30  jonas
+  Revision 1.14  2000-09-29 23:14:11  jonas
+    + writeToMemDestroysContents() and writeDestroysContents() to support the
+      new features of the CSE
+
+  Revision 1.13  2000/09/25 09:50:30  jonas
     - removed TP conditional code
 
   Revision 1.12  2000/09/24 21:19:50  peter
