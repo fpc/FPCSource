@@ -1,0 +1,21 @@
+{
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2002 by the Free Pascal development team
+
+    Include file with set operations called by the compiler
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
+{
+  $Log$
+  Revision 1.1  2003-04-30 22:11:06  florian
+    + for a lot of x86-64 dependend files mostly dummies added
+}

@@ -123,7 +123,7 @@ small_alignment:
   end;
 
 {$define FPC_SYSTEM_HAS_FILLCHAR}
-Procedure FillChar(var x;count:longint;value:byte);
+Procedure FillChar(var x;count:longint;value:byte);assembler;
   asm
     { rdi   destination
       rsi   value (char)
@@ -194,6 +194,7 @@ bad_alignment:
      jmp after_bad_alignment
   end;
 
+{$define FPC_SYSTEM_HAS_DECLOCKED}
 { does a thread save inc/dec }
 function declocked(var l : longint) : boolean;assembler;
   asm
@@ -210,11 +211,12 @@ function declocked(var l : longint) : boolean;assembler;
      jmp        .Ldeclockedend
 .Ldeclockednolock:
 {$endif MT}
-     decl       (%rdi);
+     decl       (%rdi)
 .Ldeclockedend:
      setzb      %al
   end;
 
+{$define FPC_SYSTEM_HAS_INCLOCKED}
 procedure inclocked(var l : longint);assembler;
 
   asm
@@ -237,6 +239,9 @@ procedure inclocked(var l : longint);assembler;
 
 {
   $Log$
-  Revision 1.1  2003-01-06 19:40:18  florian
+  Revision 1.2  2003-04-30 22:11:06  florian
+    + for a lot of x86-64 dependend files mostly dummies added
+
+  Revision 1.1  2003/01/06 19:40:18  florian
     + initial revision
 }

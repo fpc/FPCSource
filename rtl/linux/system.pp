@@ -135,7 +135,10 @@ End.
 
 {
   $Log$
-  Revision 1.6  2002-12-27 18:36:16  peter
+  Revision 1.7  2003-04-30 22:11:06  florian
+    + for a lot of x86-64 dependend files mostly dummies added
+
+  Revision 1.6  2002/12/27 18:36:16  peter
     * Setup ExecPathStr for ParamStr(0)
 
   Revision 1.5  2002/12/18 20:42:29  peter
