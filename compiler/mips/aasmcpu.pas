@@ -2,7 +2,7 @@
     $Id$
     Copyright (c) 2003 by Florian Klaempfl
 
-    Contains the assembler object for the ARM
+    Contains the assembler object for MIPS
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -238,7 +238,7 @@ implementation
       begin
         { allow the register allocator to remove unnecessary moves }
         result:=(((opcode=A_MOVE) and (regtype = R_INTREGISTER)) or
-                 ((opcode=A_MVF) and (regtype = R_FPUREGISTER))
+                 ((opcode=A_MOVF) and (regtype = R_FPUREGISTER))
                 ) and
                 (condition=C_None) and
                 (ops=2) and
@@ -340,10 +340,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2005-02-14 17:13:10  peter
+  Revision 1.3  2005-03-24 13:30:17  florian
+    * small compilation fix
+
+  Revision 1.2  2005/02/14 17:13:10  peter
     * truncate log
 
   Revision 1.1  2005/02/13 18:56:44  florian
     + basic mips stuff
-
 }
