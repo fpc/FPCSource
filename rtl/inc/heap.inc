@@ -38,9 +38,15 @@
 {$endif SYSTEMDEBUG}
 
 const
+{$ifdef CPU64}
+  blocksize    = 32;  { at least size of freerecord }
+  blockshr     = 5;   { shr value for blocksize=2^blockshr}
+  maxblocksize = 512+blocksize; { 1024+8 needed for heaprecord }
+{$else}
   blocksize    = 16;  { at least size of freerecord }
   blockshr     = 4;   { shr value for blocksize=2^blockshr}
   maxblocksize = 512+blocksize; { 1024+8 needed for heaprecord }
+{$endif}
   maxblock     = maxblocksize div blocksize;
   maxreusebigger = 8; { max reuse bigger tries }
 
@@ -89,13 +95,13 @@ type
     size  : ptrint;
     next,
     prev  : pfreerecord;
-  end; { 12 bytes }
+  end; { 12/24 bytes }
 
   pheaprecord = ^theaprecord;
   theaprecord = record
   { this should overlap with tfreerecord }
     size  : ptrint;
-  end; { 4 bytes }
+  end; { 4/8 bytes }
 
   tfreelists   = array[0..maxblock] of pfreerecord;
 {$ifdef SYSTEMDEBUG}
@@ -1334,7 +1340,10 @@ end;
 
 {
   $Log$
-  Revision 1.28  2004-03-15 21:48:26  peter
+  Revision 1.29  2004-04-26 16:20:54  peter
+    * 64bit fixes
+
+  Revision 1.28  2004/03/15 21:48:26  peter
     * cmem moved to rtl
     * longint replaced with ptrint in heapmanagers
 
