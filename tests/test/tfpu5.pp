@@ -58,6 +58,16 @@ begin
   asm
     fldl y
     fldl x
+    fdiv %st,%st(1)
+    fstp %st
+    fstpl z
+  end;
+  Writeln('ATT result of 4/2=',z:0:2);
+  if z <> 2.0 then
+    Halt(1);
+  asm
+    fldl y
+    fldl x
     fadd
     fstpl z
   end;
