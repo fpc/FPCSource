@@ -365,6 +365,8 @@ Fixed bugs:
   bug0307.pp   "with object_type" doesn't work correctly!           OK 0.99.13 (?)
   bug0308a.pp  problem with objects that don't have VMT nor variable fields OK 0.99.13 (FK)
   bug0309.pp   problem with ATT assembler written by bin writer     OK 0.99.14 (PFV)
+bug0310.pp   local and para dup are not detected                    OK 0.99.15 (FK)
+bug0311.pp   No dup id checking in variant records                  OK 0.99.15 (FK)
 
 
 Unproducable bugs:
@@ -399,5 +401,3 @@ bug0262.pp   problems with virtual and overloaded methods
 bug0293.pp   no error with variable name = type name
 bug0299.pp   passing Array[0..1] of char by value to proc leads to problems
 bug0305.pp   Finally is not handled correctly after inputting 0
-bug0310.pp   local and para dup are not detected
-bug0311.pp   No dup id checking in variant records
