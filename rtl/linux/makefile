@@ -142,11 +142,12 @@ PRT=prt1
 endif
 
 LOADERAS=$(CPU)/$(PRT).as
+CLOADERAS=$(CPU)/c$(PRT).as
 GLOADERAS=$(CPU)/g$(PRT).as
 
 # Define Loaders
 ifeq ($(LINK_TO_C),NO)
-LOADERS=prt0 gprt0
+LOADERS=prt0 cprt0 gprt0
 else
 LOADERS=lprt
 endif
@@ -178,6 +179,9 @@ clean :
 
 prt0$(OEXT) : $(LOADERAS)
 	-as $(LOADERAS) -o prt0$(OEXT)
+
+cprt0$(OEXT) : $(CLOADERAS)
+	-as $(CLOADERAS) -o cprt0$(OEXT)
 
 gprt0$(OEXT) : $(GLOADERAS)
 	-as $(GLOADERAS) -o gprt0$(OEXT)
@@ -289,3 +293,10 @@ libsclean : clean
 #####################################################################
 
 include $(CFG)/makefile.def
+
+#
+# $Log$
+# Revision 1.17  1998-08-15 17:08:09  peter
+#   + support for cprt0.o
+#
+#
