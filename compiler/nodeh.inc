@@ -207,7 +207,10 @@
          nf_novariaallowed,
 
          { ttypeconvnode }
-         nf_explizit
+         nf_explizit,
+
+         { tinlinenode }
+         nf_inlineconst
        );
 
        tnodeflagset = set of tnodeflags;
@@ -323,7 +326,10 @@
 
 {
   $Log$
-  Revision 1.6  2000-09-25 15:37:14  florian
+  Revision 1.7  2000-09-26 14:59:34  florian
+    * more conversion work done
+
+  Revision 1.6  2000/09/25 15:37:14  florian
     * more fixes
 
   Revision 1.5  2000/09/25 15:05:25  florian

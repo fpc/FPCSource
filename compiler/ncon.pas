@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 2000 by Florian Klaempfl
 
     Type checking and register allocation for constants
 
@@ -27,65 +27,171 @@ unit ncon;
 interface
 
     uses
-      globtype,node,aasm,cpuinfo,symconst;
+      globtype,node,aasm,cpuinfo,symconst,symtable;
 
     type
        trealconstnode = class(tnode)
           value_real : bestreal;
           lab_real : pasmlabel;
-          // !!!!!!! needs at least create, getcopy
+          constructor create(v : bestreal;def : pdef);virtual;
+          function getcopy : tnode;override;
           function pass_1 : tnode;override;
        end;
 
        tfixconstnode = class(tnode)
           value_fix: longint;
-          // !!!!!!! needs at least create, getcopy
+          constructor create(v : longint;def : pdef);virtual;
+          function getcopy : tnode;override;
           function pass_1 : tnode;override;
        end;
 
        tordconstnode = class(tnode)
           value : TConstExprInt;
-          // !!!!!!! needs at least create, getcopy
+          constructor create(v : tconstexprint;def : pdef);virtual;
+          function getcopy : tnode;override;
           function pass_1 : tnode;override;
        end;
 
        tpointerconstnode = class(tnode)
           value : TPointerOrd;
-          // !!!!!!! needs at least create, getcopy
+          constructor create(v : tpointerord;def : pdef);virtual;
+          function getcopy : tnode;override;
           function pass_1 : tnode;override;
        end;
 
        tstringconstnode = class(tnode)
           value_str : pchar;
-          length : longint;
+          len : longint;
           lab_str : pasmlabel;
           stringtype : tstringtype;
-          // !!!!!!! needs at least create, getcopy, destroy
+          constructor createstr(const s : string;st:tstringtype);virtual;
+          constructor createpchar(s : pchar;l : longint);virtual;
+          function getcopy : tnode;override;
           function pass_1 : tnode;override;
+          function getpcharcopy : pchar;
        end;
 
-       tsetconstnode = class(tnode)
+       tsetconstnode = class(tunarynode)
           value_set : pconstset;
           lab_set : pasmlabel;
-          // !!!!!!! needs at least create,  getcopy
+          constructor create(s : pconstset;settype : psetdef);virtual;
+          function getcopy : tnode;override;
           function pass_1 : tnode;override;
        end;
 
        tnilnode = class(tnode)
-          // !!!!!!! needs at least create
+          constructor create;virtual;
           function pass_1 : tnode;override;
        end;
+
+    var
+       crealconstnode : class of trealconstnode;
+       cfixconstnode : class of tfixconstnode;
+       cordconstnode : class of tordconstnode;
+       cpointerconstnode : class of tpointerconstnode;
+       cstringconstnode : class of tstringconstnode;
+       csetconstnode : class of tsetconstnode;
+       cnilnode : class of tnilnode;
+
+    function genordinalconstnode(v : TConstExprInt;def : pdef) : tordconstnode;
+    { same as genordinalconstnode, but the resulttype }
+    { is determines automatically                     }
+    function genintconstnode(v : TConstExprInt) : tordconstnode;
+    function genpointerconstnode(v : tpointerord;def : pdef) : tpointerconstnode;
+    function genenumnode(v : penumsym) : tordconstnode;
+    function genfixconstnode(v : longint;def : pdef) : tfixconstnode;
+    function genrealconstnode(v : bestreal;def : pdef) : trealconstnode;
+    { allow pchar or string for defining a pchar node }
+    function genstringconstnode(const s : string;st:tstringtype) : tstringconstnode;
+    { length is required for ansistrings }
+    function genpcharconstnode(s : pchar;length : longint) : tstringconstnode;
+
+    function gensetconstnode(s : pconstset;settype : psetdef) : tsetconstnode;
 
 implementation
 
     uses
       cobjects,verbose,globals,systems,
-      symtable,types,
-      hcodegen,pass_1,cpubase;
+      types,hcodegen,pass_1,cpubase;
+
+    function genordinalconstnode(v : tconstexprint;def : pdef) : tordconstnode;
+      begin
+         genordinalconstnode:=cordconstnode.create(v,def);
+      end;
+
+    function genintconstnode(v : TConstExprInt) : tordconstnode;
+
+      var
+         i : TConstExprInt;
+
+      begin
+         { we need to bootstrap this code, so it's a little bit messy }
+         i:=2147483647;
+         if (v<=i) and (v>=-i-1) then
+           genintconstnode:=genordinalconstnode(v,s32bitdef)
+         else
+           genintconstnode:=genordinalconstnode(v,cs64bitdef);
+      end;
+
+    function genpointerconstnode(v : tpointerord;def : pdef) : tpointerconstnode;
+      begin
+         genpointerconstnode:=cpointerconstnode.create(v,def);
+      end;
+
+    function genenumnode(v : penumsym) : tordconstnode;
+      begin
+         genenumnode:=cordconstnode.create(v^.value,v^.definition);
+      end;
+
+    function gensetconstnode(s : pconstset;settype : psetdef) : tsetconstnode;
+      begin
+         gensetconstnode:=csetconstnode.create(s,settype);
+      end;
+
+    function genrealconstnode(v : bestreal;def : pdef) : trealconstnode;
+      begin
+         genrealconstnode:=crealconstnode.create(v,def);
+      end;
+
+    function genfixconstnode(v : longint;def : pdef) : tfixconstnode;
+      begin
+         genfixconstnode:=cfixconstnode.create(v,def);
+      end;
+
+    function genstringconstnode(const s : string;st:tstringtype) : tstringconstnode;
+      begin
+         genstringconstnode:=cstringconstnode.createstr(s,st);
+      end;
+
+    function genpcharconstnode(s : pchar;length : longint) : tstringconstnode;
+      begin
+         genpcharconstnode:=cstringconstnode.createpchar(s,length);
+      end;
 
 {*****************************************************************************
                              TREALCONSTNODE
 *****************************************************************************}
+
+    constructor trealconstnode.create(v : bestreal;def : pdef);
+
+      begin
+         inherited create(realconstn);
+         resulttype:=def;
+         value_real:=v;
+         lab_real:=nil;
+      end;
+
+    function trealconstnode.getcopy : tnode;
+
+      var
+         n : trealconstnode;
+
+      begin
+         n:=trealconstnode(inherited getcopy);
+         n.value_real:=value_real;
+         n.lab_real:=lab_real;
+         getcopy:=n;
+      end;
 
     function trealconstnode.pass_1 : tnode;
       begin
@@ -104,7 +210,27 @@ implementation
                              TFIXCONSTNODE
 *****************************************************************************}
 
+    constructor tfixconstnode.create(v : longint;def : pdef);
+
+      begin
+         inherited create(fixconstn);
+         resulttype:=def;
+         value_fix:=v;
+      end;
+
+    function tfixconstnode.getcopy : tnode;
+
+      var
+         n : tfixconstnode;
+
+      begin
+         n:=tfixconstnode(inherited getcopy);
+         n.value_fix:=value_fix;
+         getcopy:=n;
+      end;
+
     function tfixconstnode.pass_1 : tnode;
+
       begin
          pass_1:=nil;
          location.loc:=LOC_MEM;
@@ -114,6 +240,32 @@ implementation
 {*****************************************************************************
                               TORDCONSTNODE
 *****************************************************************************}
+
+    constructor tordconstnode.create(v : tconstexprint;def : pdef);
+
+      begin
+         inherited create(ordconstn);
+         value:=v;
+         resulttype:=def;
+{$ifdef NEWST}
+         if typeof(resulttype^)=typeof(Torddef) then
+          testrange(resulttype,value);
+{$else NEWST}
+         if resulttype^.deftype=orddef then
+          testrange(resulttype,value);
+{$endif ELSE}
+      end;
+
+    function tordconstnode.getcopy : tnode;
+
+      var
+         n : tordconstnode;
+
+      begin
+         n:=tordconstnode(inherited getcopy);
+         n.value:=value;
+         getcopy:=n;
+      end;
 
     function tordconstnode.pass_1 : tnode;
       begin
@@ -126,6 +278,25 @@ implementation
                             TPOINTERCONSTNODE
 *****************************************************************************}
 
+    constructor tpointerconstnode.create(v : tpointerord;def : pdef);
+
+      begin
+         inherited create(pointerconstn);
+         value:=v;
+         resulttype:=def;
+      end;
+
+    function tpointerconstnode.getcopy : tnode;
+
+      var
+         n : tpointerconstnode;
+
+      begin
+         n:=tpointerconstnode(inherited getcopy);
+         n.value:=value;
+         getcopy:=n;
+      end;
+
     function tpointerconstnode.pass_1 : tnode;
       begin
          pass_1:=nil;
@@ -136,6 +307,72 @@ implementation
 {*****************************************************************************
                              TSTRINGCONSTNODE
 *****************************************************************************}
+
+    constructor tstringconstnode.createstr(const s : string;st:tstringtype);
+
+      var
+         l : longint;
+
+      begin
+         inherited create(stringconstn);
+         l:=length(s);
+         len:=l;
+         { stringdup write even past a #0 }
+         getmem(value_str,l+1);
+         move(s[1],value_str^,l);
+         value_str[l]:=#0;
+         lab_str:=nil;
+         if st=st_default then
+          begin
+            if cs_ansistrings in aktlocalswitches then
+              stringtype:=st_ansistring
+            else
+              stringtype:=st_shortstring;
+          end
+         else
+          stringtype:=st;
+         case stringtype of
+           st_shortstring :
+             resulttype:=cshortstringdef;
+           st_ansistring :
+             resulttype:=cansistringdef;
+           else
+             internalerror(44990099);
+         end;
+      end;
+
+    constructor tstringconstnode.createpchar(s : pchar;l : longint);
+
+      begin
+         inherited create(stringconstn);
+         len:=l;
+         if (cs_ansistrings in aktlocalswitches) or
+            (len>255) then
+          begin
+             stringtype:=st_ansistring;
+             resulttype:=cansistringdef;
+          end
+         else
+          begin
+             stringtype:=st_shortstring;
+             resulttype:=cshortstringdef;
+          end;
+         value_str:=s;
+         lab_str:=nil;
+      end;
+
+    function tstringconstnode.getcopy : tnode;
+
+      var
+         n : tstringconstnode;
+
+      begin
+         n:=tstringconstnode(inherited getcopy);
+         n.stringtype:=stringtype;
+         n.len:=len;
+         n.value_str:=getpcharcopy;
+         n.lab_str:=lab_str;
+      end;
 
     function tstringconstnode.pass_1 : tnode;
       begin
@@ -157,10 +394,44 @@ implementation
         location.loc:=LOC_MEM;
       end;
 
+    function tstringconstnode.getpcharcopy : pchar;
+      var
+         pc : pchar;
+      begin
+         pc:=nil;
+         getmem(pc,len+1);
+         if pc=nil then
+           Message(general_f_no_memory_left);
+         move(value_str^,pc^,len+1);
+         getpcharcopy:=pc;
+      end;
+
 
 {*****************************************************************************
                              TSETCONSTNODE
 *****************************************************************************}
+
+    constructor tsetconstnode.create(s : pconstset;settype : psetdef);
+
+      begin
+         inherited create(setconstn,nil);
+         resulttype:=settype;
+         new(value_set);
+         value_set^:=s^;
+      end;
+
+    function tsetconstnode.getcopy : tnode;
+
+      var
+         n : tsetconstnode;
+
+      begin
+         n:=tsetconstnode(inherited getcopy);
+         new(n.value_set);
+         n.value_set^:=value_set^;
+         n.lab_set:=lab_set;
+         getcopy:=n;
+      end;
 
     function tsetconstnode.pass_1 : tnode;
       begin
@@ -172,6 +443,12 @@ implementation
                                TNILNODE
 *****************************************************************************}
 
+    constructor tnilnode.create;
+
+      begin
+         inherited create(niln);
+      end;
+
     function tnilnode.pass_1 : tnode;
       begin
         pass_1:=nil;
@@ -179,10 +456,21 @@ implementation
         location.loc:=LOC_MEM;
       end;
 
+begin
+   crealconstnode:=trealconstnode;
+   cfixconstnode:=tfixconstnode;
+   cordconstnode:=tordconstnode;
+   cpointerconstnode:=tpointerconstnode;
+   cstringconstnode:=tstringconstnode;
+   csetconstnode:=tsetconstnode;
+   cnilnode:=tnilnode;
 end.
 {
   $Log$
-  Revision 1.3  2000-09-24 21:15:34  florian
+  Revision 1.4  2000-09-26 14:59:34  florian
+    * more conversion work done
+
+  Revision 1.3  2000/09/24 21:15:34  florian
     * some errors fix to get more stuff compilable
 
   Revision 1.2  2000/09/24 15:06:19  peter
