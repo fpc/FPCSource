@@ -66,10 +66,11 @@ Procedure AddDisk(const path:string);
 Implementation
 
 Uses
-  Strings,Unix,BaseUnix,Syscall;
+  Strings,Unix,BaseUnix,{$ifdef FPC_USE_LIBC}initc{$ELSE}Syscall{$ENDIF};
 
-
+{$ifndef FPC_USE_LIBC}
 {$i sysnr.inc}
+{$endif}
 {$i settimeo.inc}
 
 {******************************************************************************
@@ -1044,7 +1045,10 @@ End.
 
 {
   $Log$
-  Revision 1.37  2004-10-31 16:20:58  peter
+  Revision 1.38  2004-10-31 17:11:52  marco
+   * FPC_USE_LIBC fixes
+
+  Revision 1.37  2004/10/31 16:20:58  peter
     * remove sysutils
 
   Revision 1.36  2004/10/30 20:55:54  marco
