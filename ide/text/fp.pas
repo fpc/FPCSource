@@ -19,7 +19,11 @@ uses
   Dos,
   BrowCol,
   FPIni,FPViews,FPConst,FPVars,FPUtils,FPIde,FPHelp,FPSwitch,FPUsrScr,
-  FPTools;
+  FPTools
+{$ifdef TEMPHEAP}
+  ,dpmiexcp
+{$endif TEMPHEAP}
+  ;
 
 
 procedure ProcessParams(BeforeINI: boolean);
@@ -98,7 +102,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.7  1999-02-05 13:51:38  peter
+  Revision 1.8  1999-02-08 09:30:59  florian
+    + some split heap stuff, in $ifdef TEMPHEAP
+
+  Revision 1.7  1999/02/05 13:51:38  peter
     * unit name of FPSwitches -> FPSwitch which is easier to use
     * some fixes for tp7 compiling
 

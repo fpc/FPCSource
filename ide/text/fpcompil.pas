@@ -72,6 +72,9 @@ const CtrlBS = 'Press Ctrl+Break to cancel';
       SuccessS = 'Compile successful: ~Press Enter~';
       FailS = 'Compile failed';
 begin
+{$ifdef TEMPHEAP}
+  switch_to_base_heap;
+{$endif TEMPHEAP}
   case CompilationPhase of
     cpCompiling :
       begin
@@ -104,6 +107,9 @@ begin
     'Total errors: '+IntToStrL(Status.ErrorCount,5)
   );
   KeyST^.SetText(^C+KeyS);
+{$ifdef TEMPHEAP}
+  switch_to_temp_heap;
+{$endif TEMPHEAP}
 end;
 
 
@@ -125,6 +131,9 @@ end;
 
 function CompilerComment(Level:Longint; const s:string):boolean; {$ifndef FPC}far;{$endif}
 begin
+{$ifdef TEMPHEAP}
+  switch_to_base_heap;
+{$endif TEMPHEAP}
   CompilerComment:=false;
 {$ifndef DEV}
   if (status.verbosity and Level)=Level then
@@ -134,6 +143,9 @@ begin
      if SD<>nil then
      SD^.MsgLB^.AddItem(New(PCompilerMessage, Init(Level, S, SmartPath(status.currentmodule),status.currentline)));
    end;
+{$ifdef TEMPHEAP}
+  switch_to_temp_heap;
+{$endif TEMPHEAP}
 end;
 
 function GetExePath: string;
@@ -215,7 +227,14 @@ begin
   ChangeRedir('fp$$$.out',false);
   ChangeErrorRedir('fp$$$.err',false);
 {$endif def go32v2}
+{$ifdef TEMPHEAP}
+  split_heap;
+  switch_to_temp_heap;
+{$endif TEMPHEAP}
   Compile(FileName);
+{$ifdef TEMPHEAP}
+  switch_to_base_heap;
+{$endif TEMPHEAP}
 {$ifdef go32v2}
   RestoreRedir;
   RestoreErrorRedir;
@@ -241,12 +260,19 @@ begin
 {  if (WasVisible=false) and (status.errorcount=0) then
    ProgramInfoWindow^.Hide;}
   Message(Application,evCommand,cmUpdate,nil);
+{$ifdef TEMPHEAP}
+  releasetempheap;
+  unsplit_heap;
+{$endif TEMPHEAP}
 end;
 
 end.
 {
   $Log$
-  Revision 1.10  1999-02-05 13:51:39  peter
+  Revision 1.11  1999-02-08 09:31:00  florian
+    + some split heap stuff, in $ifdef TEMPHEAP
+
+  Revision 1.10  1999/02/05 13:51:39  peter
     * unit name of FPSwitches -> FPSwitch which is easier to use
     * some fixes for tp7 compiling
 

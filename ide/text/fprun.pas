@@ -24,7 +24,9 @@ implementation
 uses
   Dos,Mouse,Video,
   FPViews,FPVars,FPUtils,FPIntf,
-  FPCompile,FPUsrScr;
+  FPCompile,FPUsrScr
+{
+  ;
 
 procedure TIDEApp.DoRun;
 var
@@ -62,7 +64,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  1999-01-12 14:29:38  peter
+  Revision 1.3  1999-02-08 09:31:01  florian
+    + some split heap stuff, in $ifdef TEMPHEAP
+
+  Revision 1.2  1999/01/12 14:29:38  peter
     + Implemented still missing 'switch' entries in Options menu
     + Pressing Ctrl-B sets ASCII mode in editor, after which keypresses (even
       ones with ASCII < 32 ; entered with Alt+<###>) are interpreted always as
