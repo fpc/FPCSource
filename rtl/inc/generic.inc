@@ -274,8 +274,8 @@ var
 begin
   if Len<>0 then
    begin
-     I:=IndexByte(Buf1,Len,0);
-     IndexChar0:=IndexByte(Buf1,I,0);
+     I:=IndexByte(Buf,Len,0);
+     IndexChar0:=IndexByte(Buf,I,0);
    end
   else
    IndexChar0:=0;
@@ -365,7 +365,8 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_FPC_NEW_CLASS}
-procedure int_new_class;assembler;[public,alias:'FPC_NEW_CLASS'];
+{$error No pascal version of Int_new_class}
+(* procedure int_new_class;assembler;[public,alias:'FPC_NEW_CLASS'];
 asm
         { to be sure in the future, we save also edit }
         pushl   %edi
@@ -392,13 +393,14 @@ asm
         movl    %esi,8(%ebp)
         orl     %eax,%eax
         popl   %edi
-end;
+end; *)
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_NEW_CLASS}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_DISPOSE_CLASS}
 
-procedure int_dispose_class;assembler;[public,alias:'FPC_DISPOSE_CLASS'];
+{$error No pascal version of Int_dispose_class}
+(* procedure int_dispose_class;assembler;[public,alias:'FPC_DISPOSE_CLASS'];
 asm
         { to be sure in the future, we save also edit }
         pushl   %edi
@@ -423,7 +425,7 @@ asm
         popl    %eax
 .LDISPOSE_CLASS1:
         popl   %edi
-end;
+end; *)
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_DISPOSE_CLASS}
 
@@ -748,7 +750,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2000-02-09 16:59:29  peter
+  Revision 1.8  2000-03-10 13:45:31  pierre
+   * small fixes
+
+  Revision 1.7  2000/02/09 16:59:29  peter
     * truncated log
 
   Revision 1.6  2000/01/10 09:54:30  peter
