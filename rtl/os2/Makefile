@@ -217,7 +217,7 @@ endif
 OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph
 override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings ports os2def doscalls moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg dive dos crt objects printer sysutils math typinfo varutils charset ucomplex cpu mmx getopts heaptrc lineinfo dynlibs video mouse keyboard variants types
-override TARGET_LOADERS+=prt0 prt1 code2 code3
+override TARGET_LOADERS+=prt0 prt1
 override TARGET_RSTS+=math varutils typinfo
 override INSTALL_FPCPACKAGE=y
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)

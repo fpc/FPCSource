@@ -6,7 +6,7 @@
 main=rtl
 
 [target]
-loaders=prt0 prt1 code2 code3
+loaders=prt0 prt1
 units=$(SYSTEMUNIT) objpas strings \
       ports os2def doscalls moncalls kbdcalls moucalls viocalls \
       pmbitmap pmwin pmgpi pmstddlg dive \
