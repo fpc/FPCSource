@@ -674,14 +674,14 @@ end;
 const
   LONGJMPCALLED = -1;
 
-procedure CompilerStop; {$ifndef FPC}far;{$endif}
+procedure CompilerStop(err: longint); {$ifndef FPC}far;{$endif}
 begin
 {$ifndef GABOR}
 {$ifdef HasSignal}
   if StopJmpValid then
     Longjmp(StopJmp,LONGJMPCALLED)
   else
-    Halt(1);
+    Halt(err);
 {$endif}
 {$endif}
 end;
@@ -1336,7 +1336,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.23  2003-11-14 17:29:38  marco
+  Revision 1.24  2004-09-09 20:33:00  jonas
+    * made CompilerStop declaration compliant to new tstopprocedure type in
+      compiler
+
+  Revision 1.23  2003/11/14 17:29:38  marco
    * linuxerrorcide
 
   Revision 1.22  2003/03/28 09:55:46  armin
