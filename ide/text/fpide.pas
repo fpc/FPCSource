@@ -31,7 +31,7 @@ type
       function    OpenSearch(FileName: string) : boolean;
       procedure   HandleEvent(var Event: TEvent); virtual;
       function    GetPalette: PPalette; virtual;
-      procedure   DosShell; virtual;
+      procedure   DosShell; {virtual;}
       destructor  Done; virtual;
     public
       procedure ShowUserScreen;
@@ -646,7 +646,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.8  1999-02-05 12:11:54  pierre
+  Revision 1.9  1999-02-05 13:03:54  pierre
+   * DosShell is not virtual in app !
+
+  Revision 1.8  1999/02/05 12:11:54  pierre
     + SourceDir that stores directories for sources that the
       compiler should not know about
       Automatically asked for addition when a new file that
