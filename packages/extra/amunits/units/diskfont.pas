@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
 
     A file in Amiga system run time library.
-    Copyright (c) 1998 by Nils Sjoholm
+    Copyright (c) 1998-2002 by Nils Sjoholm
     member of the Amiga RTL development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -112,6 +112,9 @@ Type
         afh_NumEntries  : Word;
     end;
 
+const
+    DISKFONTNAME : PChar = 'diskfont.library';
+
 VAR DiskfontBase : pLibrary;
 
 FUNCTION AvailFonts(buffer : pCHAR; bufBytes : LONGINT; flags : LONGINT) : LONGINT;
@@ -187,6 +190,12 @@ END;
 
 END. (* UNIT DISKFONT *)
 
+{
+  $Log$
+  Revision 1.2  2002-11-18 20:52:58  nils
+    * added diskfontname
 
+}
+  
 
 
