@@ -21,6 +21,11 @@
  ****************************************************************************
 }
 unit pmodules;
+            { close old_current_ppu on system that are
+              short on file handles like DOS PM }
+{$ifdef DOS}
+{$define SHORT_ON_FILE_HANDLES}
+{$endif DOS}
 
 {$define New_GDB}
 
@@ -549,6 +554,11 @@ unit pmodules;
                 second_time:=false;
              end;
             current_ppu:=current_module^.ppufile;
+            { close old_current_ppu on system that are
+              short on file handles like DOS PM }
+{$ifdef SHORT_ON_FILE_HANDLES}
+            old_current_ppu^.tempclose;
+{$endif SHORT_ON_FILE_HANDLES}
           { now we can register the unit }
             current_module^.loaded_from:=old_current_module;
             loaded_units.insert(current_module);
@@ -575,6 +585,9 @@ unit pmodules;
              usedunits.concat(new(pused_unit,init(current_module,true)));
           end;
          { set the old module }
+{$ifdef SHORT_ON_FILE_HANDLES}
+         old_current_ppu^.tempreopen;
+{$endif SHORT_ON_FILE_HANDLES}
          current_ppu:=old_current_ppu;
          current_module:=old_current_module;
          loadunit:=hp;
@@ -865,8 +878,8 @@ unit pmodules;
 {$ifdef GDB}
          pu     : pused_unit;
 {$endif GDB}
-{$ifdef Test_Double_checksum}
-        store_crc : longint;
+{$ifndef Dont_use_double_checksum}
+        store_crc,store_interface_crc : longint;
 {$endif}
          s1,s2  : ^string; {Saves stack space}
       begin
@@ -1013,9 +1026,10 @@ unit pmodules;
          write_gdb_info;
 {$endIf Def New_GDB}
 
-  {$ifdef Test_Double_checksum}
-         if (Errorcount=0) then
-           writeunitas(current_module^.ppufilename^,punitsymtable(symtablestack),true);
+  {$ifndef Dont_use_double_checksum}
+         if not(cs_compilesystem in aktmoduleswitches) then
+           if (Errorcount=0) then
+             writeunitas(current_module^.ppufilename^,punitsymtable(symtablestack),true);
   {$endif Test_Double_checksum}
 
          { Parse the implementation section }
@@ -1185,17 +1199,25 @@ unit pmodules;
          if cs_local_browser in aktmoduleswitches then
            current_module^.localsymtable:=refsymtable;
          { Write out the ppufile }
-  {$ifdef Test_Double_checksum}
-        store_crc:=current_module^.interface_crc;
+  {$ifndef Dont_use_double_checksum}
+        store_interface_crc:=current_module^.interface_crc;
+        store_crc:=current_module^.crc;
   {$endif Test_Double_checksum}
          if (Errorcount=0) then
            writeunitas(current_module^.ppufilename^,punitsymtable(symtablestack),false);
 
-  {$ifdef Test_Double_checksum}
-        if store_crc<>current_module^.interface_crc then
-          Def_comment(V_Warning,current_module^.ppufilename^+' CRC changed '+
-           tostr(store_crc)+'<>'+tostr(current_module^.interface_crc));
-  {$endif def Test_Double_checksum}
+  {$ifndef Dont_use_double_checksum}
+         if not(cs_compilesystem in aktmoduleswitches) then
+           if store_interface_crc<>current_module^.interface_crc then
+             Def_comment(V_Warning,current_module^.ppufilename^+' Interface CRC changed '+
+               tostr(store_crc)+'<>'+tostr(current_module^.interface_crc));
+  {$ifdef EXTDEBUG}
+         if not(cs_compilesystem in aktmoduleswitches) then
+           if (store_crc<>current_module^.crc) and simplify_ppu then
+             Def_comment(V_Warning,current_module^.ppufilename^+' implementation CRC changed '+
+               tostr(store_crc)+'<>'+tostr(current_module^.interface_crc));
+  {$endif EXTDEBUG}
+  {$endif ndef Dont_use_Double_checksum}
           { must be done only after local symtable ref stores !! }
           closecurrentppu;
 {$ifdef GDB}
@@ -1424,7 +1446,15 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.146  1999-08-26 21:16:21  peter
+  Revision 1.147  1999-08-27 10:57:56  pierre
+    + define SHORT_ON_FILE_HANDLES for DOS targets
+      causes tempclose of ppufiles
+    + double_checksum code released
+      (you can try with -dDONT_USE_DOUBLE_CHECKSUM to see the difference)
+      this allow second compilation of compiler without any
+      unit recompilation !!!!
+
+  Revision 1.146  1999/08/26 21:16:21  peter
     * write date of the compiler into the executable
 
   Revision 1.145  1999/08/26 20:24:44  michael
