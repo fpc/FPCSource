@@ -22,28 +22,9 @@
 {   ANY OTHER WARRANTIES WHETHER EXPRESSED OR IMPLIED.     }
 {                                                          }
 {*****************[ SUPPORTED PLATFORMS ]******************}
-{     16 and 32 Bit compilers                              }
-{        DOS      - Turbo Pascal 7.0 +      (16 Bit)       }
-{        DPMI     - Turbo Pascal 7.0 +      (16 Bit)       }
-{                 - FPC 0.9912+ (GO32V2)    (32 Bit)       }
-{        WINDOWS  - Turbo Pascal 7.0 +      (16 Bit)       }
-{                 - Delphi 1.0+             (16 Bit)       }
-{        WIN95/NT - Delphi 2.0+             (32 Bit)       }
-{                 - Virtual Pascal 2.0+     (32 Bit)       }
-{                 - FPC 0.9912+             (32 Bit)       }
-{        OS2      - Virtual Pascal 1.0+     (32 Bit)       }
 {                                                          }
-{******************[ REVISION HISTORY ]********************}
-{  Version  Date        Fix                                }
-{  -------  ---------   ---------------------------------  }
-{  1.00     12 Dec 96   First multi platform release       }
-{  1.10     12 Sep 97   FPK pascal 0.92 conversion added.  }
-{  1.20     29 Aug 97   Platform.inc sort added.           }
-{  1.30     05 May 98   Virtual pascal 2.0 code added.     }
-{  1.40     22 Oct 99   Object registration added.         }
-{  1.50     22 Oct 99   Complete recheck preformed         }
-{  1.51     03 Nov 99   FPC Windows support added          }
-{  1.60     26 Nov 99   Graphics stuff moved to GFVGraph   }
+{ Only Free Pascal Compiler supported                      }
+{                                                          }
 {**********************************************************}
 
 UNIT App;
@@ -58,17 +39,6 @@ UNIT App;
 
 {==== Compiler directives ===========================================}
 
-{$IFNDEF PPC_FPC}{ FPC doesn't support these switches }
-  {$F-} { Near calls are okay }
-  {$A+} { Word Align Data }
-  {$B-} { Allow short circuit boolean evaluations }
-  {$O+} { This unit may be overlaid }
-  {$G+} { 286 Code optimization - if you're on an 8088 get a real computer }
-  {$P-} { Normal string variables }
-  {$N-} { No 80x87 code generation }
-  {$E+} { Emulation is on }
-{$ENDIF}
-
 {$X+} { Extended syntax is ok }
 {$R-} { Disable range checking }
 {$S-} { Disable Stack Checking }
@@ -79,21 +49,7 @@ UNIT App;
 
 USES
    {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
-     {$IFNDEF PPC_SPEED}                              { NON SPEED COMPILER }
-       {$IFDEF PPC_FPC}                               { FPC WINDOWS COMPILER }
        Windows,                                       { Standard units }
-       {$ELSE}                                        { OTHER COMPILERS }
-       WinTypes,WinProcs,                             { Standard units }
-       {$ENDIF}
-       {$IFNDEF PPC_DELPHI}                           { NON DELPHI1 COMPILER }
-         {$IFDEF BIT_16} Win31, {$ENDIF}              { 16 BIT WIN 3.1 UNIT }
-       {$ENDIF}
-     {$ELSE}                                          { SPEEDSOFT COMPILER }
-       WinBase, WinDef,                               { Standard units }
-     {$ENDIF}
-     {$IFDEF PPC_DELPHI}                              { DELPHI COMPILERS }
-       Messages,                                      { Standard unit }
-     {$ENDIF}
    {$ENDIF}
 
    {$IFDEF OS_OS2}                                    { OS2 CODE }
@@ -162,8 +118,7 @@ CONST
    { Turbo Vision 2.0 Color Palettes }
 
    CAppColor =
-         {$IFDEF OS_WINDOWS}#$81+{$ELSE}#$71+{$ENDIF}
-         #$70#$78#$74#$20#$28#$24#$17#$1F#$1A#$31#$31#$1E#$71#$1F +
+         #$71#$70#$78#$74#$20#$28#$24#$17#$1F#$1A#$31#$31#$1E#$71#$1F +
      #$37#$3F#$3A#$13#$13#$3E#$21#$3F#$70#$7F#$7A#$13#$13#$70#$7F#$7E +
      #$70#$7F#$7A#$13#$13#$70#$70#$7F#$7E#$20#$2B#$2F#$78#$2E#$70#$30 +
      #$3F#$3E#$1F#$2F#$1A#$20#$72#$31#$31#$30#$2F#$3E#$31#$13#$38#$00 +
@@ -356,11 +311,7 @@ PROCEDURE RegisterApp;
 CONST
   RBackGround: TStreamRec = (
      ObjType: 30;                                     { Register id = 30 }
-     {$IFDEF BP_VMTLink}                              { BP style VMT link }
-     VmtLink: Ofs(TypeOf(TBackGround)^);
-     {$ELSE}                                          { Alt style VMT link }
      VmtLink: TypeOf(TBackGround);
-     {$ENDIF}
      Load:    @TBackGround.Load;                      { Object load method }
      Store:   @TBackGround.Store                      { Object store method }
   );
@@ -371,11 +322,7 @@ CONST
 CONST
   RDeskTop: TStreamRec = (
      ObjType: 31;                                     { Register id = 31 }
-     {$IFDEF BP_VMTLink}                              { BP style VMT link }
-     VmtLink: Ofs(TypeOf(TDeskTop)^);
-     {$ELSE}                                          { Alt style VMT link }
      VmtLink: TypeOf(TDeskTop);
-     {$ENDIF}
      Load:    @TDeskTop.Load;                         { Object load method }
      Store:   @TDeskTop.Store                         { Object store method }
   );
@@ -398,10 +345,8 @@ CONST
                                 IMPLEMENTATION
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
 
-{$ifdef Use_API}
   uses
     Video,Mouse;
-{$endif Use_API}
 
 {***************************************************************************}
 {                        PRIVATE DEFINED CONSTANTS                          }
@@ -415,80 +360,6 @@ CONST
 {                      INITIALIZED PRIVATE VARIABLES                        }
 {---------------------------------------------------------------------------}
 CONST Pending: TEvent = (What: evNothing);            { Pending event }
-
-{***************************************************************************}
-{                        PRIVATE INTERNAL ROUTINES                          }
-{***************************************************************************}
-{$IFDEF OS_WINDOWS}
-{---------------------------------------------------------------------------}
-{  AppMsgHandler -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 13May98 LdB     }
-{---------------------------------------------------------------------------}
-FUNCTION TvAppMsgHandler (Wnd: hWnd; iMessage, wParam: Sw_Word;
-lParam: LongInt): LongInt; {$IFDEF BIT_16} EXPORT; {$ELSE} STDCALL; {$ENDIF}
-VAR Event: TEvent; P: PView; Mm: ^TMinMaxInfo;
-BEGIN
-   {$IFDEF BIT_16}                                    { 16 BIT CODE }
-   PtrRec(P).Seg := GetProp(Wnd, ViewSeg);            { Fetch seg property }
-   PtrRec(P).Ofs := GetProp(Wnd, ViewOfs);            { Fetch ofs property }
-   {$ENDIF}
-   {$IFDEF BIT_32}                                    { 32 BIT CODE }
-   LongInt(P) := GetProp(Wnd, ViewPtr);               { Fetch view property }
-   {$ENDIF}
-   TvAppMsgHandler := 0;                              { Preset zero return }
-   Event.What := evNothing;                           { Preset no event }
-   Case iMessage Of
-     WM_Destroy:;                                     { Destroy window }
-     WM_Close: Begin
-       Event.What := evCommand;                       { Command event }
-       Event.Command := cmQuit;                       { Quit command }
-       Event.InfoPtr := Nil;                          { Clear info ptr }
-     End;
-     WM_GetMinMaxInfo: Begin                          { Get minmax info }
-       TvAppMsgHandler := DefWindowProc(Wnd,
-         iMessage, wParam, lParam);                   { Default handler }
-       Mm := Pointer(lParam);                         { Create pointer }
-       Mm^.ptMaxSize.X := SysScreenWidth;             { Max x size }
-       Mm^.ptMaxSize.Y := SysScreenHeight;            { Max y size }
-       Mm^.ptMinTrackSize.X := MinWinSize.X *
-         SysFontWidth;                                { Drag min x size }
-       Mm^.ptMinTrackSize.Y := MinWinSize.Y *
-         SysFontHeight;                               { Drag min y size }
-       Mm^.ptMaxTrackSize.X := SysScreenWidth;        { Drag max x size }
-       Mm^.ptMaxTrackSize.Y := SysScreenHeight;       { Drag max y size }
-     End;
-     Else Begin                                       { Unhandled message }
-       TvAppMsgHandler := DefWindowProc(Wnd,
-         iMessage, wParam, lParam);                   { Default handler }
-       Exit;                                          { Now exit }
-     End;
-   End;
-   If (Event.What <> evNothing) Then                  { Check any FV event }
-     PutEventInQueue(Event);                          { Put event in queue }
-END;
-{$ENDIF}
-{$IFDEF OS_OS2}                                       { OS2 CODE }
-FUNCTION TvAppMsgHandler(Wnd: HWnd; Msg: ULong; Mp1, Mp2: MParam): MResult; CDECL;
-VAR Event: TEvent; P: PView;
-BEGIN
-   Event.What := evNothing;                           { Preset no event }
-   TvAppMsgHandler := 0;                              { Preset zero return }
-   Case Msg Of
-     WM_Destroy:;                                     { Destroy window }
-     WM_Close: Begin
-       Event.What := evCommand;                       { Command event }
-       Event.Command := cmQuit;                       { Quit command }
-       Event.InfoPtr := Nil;                          { Clear info ptr }
-     End;
-     Else Begin                                       { Unhandled message }
-       TvAppMsgHandler := WinDefWindowProc(Wnd,
-         Msg, Mp1, Mp2);                              { Call std handler }
-       Exit;                                          { Now exit }
-     End;
-   End;
-   If (Event.What <> evNothing) Then                  { Check any FV event }
-     PutEventInQueue(Event);                          { Put event in queue }
-END;
-{$ENDIF}
 
 {---------------------------------------------------------------------------}
 {  Tileable -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 22Oct99 LdB          }
@@ -558,11 +429,7 @@ END;
 {  GetPalette -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB        }
 {---------------------------------------------------------------------------}
 FUNCTION TBackGround.GetPalette: PPalette;
-{$IFDEF PPC_DELPHI3}                                  { DELPHI3+ COMPILER }
-CONST P: String = CBackGround;                        { Possible huge string }
-{$ELSE}                                               { OTHER COMPILERS }
 CONST P: String[Length(CBackGround)] = CbackGround;   { Always normal string }
-{$ENDIF}
 BEGIN
    GetPalette := @P;                                  { Return palette }
 END;
@@ -776,7 +643,6 @@ END;
 {                          TProgram OBJECT METHODS                          }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 
-CONST TvProgramClassName = 'TVPROGRAM'+#0;            { TV program class }
 
 {--TProgram-----------------------------------------------------------------}
 {  Init -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 22Oct99 LdB              }
@@ -784,11 +650,11 @@ CONST TvProgramClassName = 'TVPROGRAM'+#0;            { TV program class }
 CONSTRUCTOR TProgram.Init;
 VAR I: Integer; R: TRect;
 BEGIN
-   Application := @Self;                              { Set application ptr }
-   InitScreen;                                        { Initialize screen }
    R.Assign(0, 0, -(GetMaxX(TextModeGFV)+1),
      -(GetMaxY(TextModeGFV)+1));                      { Full screen area }
    Inherited Init(R);                                 { Call ancestor }
+   Application := @Self;                              { Set application ptr }
+   InitScreen;                                        { Initialize screen }
    State := sfVisible + sfSelected + sfFocused +
       sfModal + sfExposed;                            { Deafult states }
    Options := 0;                                      { No options set }
@@ -810,6 +676,9 @@ END;
 DESTRUCTOR TProgram.Done;
 VAR I: Integer;
 BEGIN
+   { Do not free the Buffer of Video Unit }
+   If Buffer = Views.PVideoBuf(VideoBuf) then
+     Buffer:=nil;
    If (Desktop <> Nil) Then Dispose(Desktop, Done);   { Destroy desktop }
    If (MenuBar <> Nil) Then Dispose(MenuBar, Done);   { Destroy menu bar }
    If (StatusLine <> Nil) Then
@@ -916,22 +785,6 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TProgram.InitScreen;
 BEGIN
-{$ifndef Use_API}
-   If (Lo(ScreenMode) <> smMono) Then Begin           { Coloured mode }
-     If (ScreenMode AND smFont8x8 <> 0) Then
-       ShadowSize.X := 1 Else                         { Single bit shadow }
-       ShadowSize.X := 2;                             { Double size }
-     ShadowSize.Y := 1; ShowMarkers := False;         { Set variables }
-     If (Lo(ScreenMode) = smBW80) Then
-       AppPalette := apBlackWhite Else                { B & W palette }
-       AppPalette := apColor;                         { Coloured palette }
-   End Else Begin
-     ShadowSize.X := 0;                               { No x shadow size }
-     ShadowSize.Y := 0;                               { No y shadow size }
-     ShowMarkers := True;                             { Show markers }
-     AppPalette := apMonochrome;                      { Mono palette }
-   End;
-{$else Use_API}
   { the orginal code can't be used here because of the limited
     video unit capabilities, the mono modus can't be handled
   }
@@ -947,7 +800,6 @@ BEGIN
   else
     AppPalette := apBlackWhite;
   Buffer := Views.PVideoBuf(VideoBuf);
-{$endif Use_API}
 END;
 
 {--TProgram-----------------------------------------------------------------}
@@ -1023,6 +875,10 @@ BEGIN
        NextQueuedEvent(Event);                        { Next queued event }
        If (Event.What = evNothing) Then Begin
          GetKeyEvent(Event);                          { Fetch key event }
+{$ifdef DEBUG}
+         If (Event.What = evKeyDown) then
+           Writeln(stderr,'Key pressed scancode = ',hexstr(Event.Keycode,4));
+{$endif}
          If (Event.What = evNothing) Then Begin       { No mouse event }
            Drivers.GetMouseEvent(Event);                      { Load mouse event }
            If (Event.What = evNothing) Then Idle;     { Idle if no event }
@@ -1227,7 +1083,10 @@ END;
 END.
 {
  $Log$
- Revision 1.8  2001-05-07 22:22:03  pierre
+ Revision 1.9  2001-05-10 16:46:26  pierre
+  + some improovements made
+
+ Revision 1.8  2001/05/07 22:22:03  pierre
   * removed NO_WINDOW cond, added GRAPH_API
 
  Revision 1.7  2001/05/04 15:43:45  pierre
@@ -1247,8 +1106,17 @@ END.
 
  Revision 1.2  2000/08/24 11:43:13  marco
   * Added CVS log and ID entries.
-
-
 }
+{******************[ REVISION HISTORY ]********************}
+{  Version  Date        Fix                                }
+{  -------  ---------   ---------------------------------  }
+{  1.00     12 Dec 96   First multi platform release       }
+{  1.10     12 Sep 97   FPK pascal 0.92 conversion added.  }
+{  1.20     29 Aug 97   Platform.inc sort added.           }
+{  1.30     05 May 98   Virtual pascal 2.0 code added.     }
+{  1.40     22 Oct 99   Object registration added.         }
+{  1.50     22 Oct 99   Complete recheck preformed         }
+{  1.51     03 Nov 99   FPC Windows support added          }
+{  1.60     26 Nov 99   Graphics stuff moved to GFVGraph   }
 
 

@@ -293,25 +293,28 @@ END;
 PROCEDURE SetViewPort (X1, Y1, X2, Y2: Integer; Clip, TextMode: Boolean);
 BEGIN
 {$IFDEF GRAPH_API}
-   If TextMode Then Begin                    { TEXT MODE GFV }
+   If TextMode Then Begin                             { TEXT MODE GFV }
 {$ENDIF GRAPH_API}
      If (X1 < 0) Then X1 := 0;                        { X1 negative fix }
-     If (X1 > SysScreenWidth) Then
-       X1 := SysScreenWidth;                          { X1 off screen fix }
+     If (X1 >SysScreenWidth) Then
+       X1 := SysScreenWidth;                             { X1 off screen fix }
      If (Y1 < 0) Then Y1 := 0;                        { Y1 negative fix }
      If (Y1 > SysScreenHeight) Then
-       Y1 := SysScreenHeight;                         { Y1 off screen fix }
+       Y1 := SysScreenHeight;                            { Y1 off screen fix }
      If (X2 < 0) Then X2 := 0;                        { X2 negative fix }
      If (X2 > SysScreenWidth) Then
-       X2 := SysScreenWidth;                          { X2 off screen fix }
+       X2 := SysScreenWidth;                             { X2 off screen fix }
      If (Y2 < 0) Then Y2 := 0;                        { Y2 negative fix }
      If (Y2 > SysScreenHeight) Then
-       Y2 := SysScreenHeight;                         { Y2 off screen fix }
+       Y2 := SysScreenHeight;                            { Y2 off screen fix }
      ViewPort.X1 := X1;                               { Set X1 port value }
      ViewPort.Y1 := Y1;                               { Set Y1 port value }
      ViewPort.X2 := X2;                               { Set X2 port value }
      ViewPort.Y2 := Y2;                               { Set Y2 port value }
      ViewPort.Clip := Clip;                           { Set port clip value }
+{$ifdef DEBUG}
+     Writeln(stderr,'New ViewPort(',X1,',',Y1,',',X2,',',Y2,')');
+{$endif DEBUG}
      Cxp := X1;                                       { Set current x pos }
      Cyp := Y1;                                       { Set current y pos }
 {$IFDEF GRAPH_API}
@@ -333,7 +336,7 @@ BEGIN
 {$IFDEF GRAPH_API}
    If TextMode Then
 {$ENDIF GRAPH_API}
-     GetMaxX := SysScreenWidth-1                      { Screen width }
+     GetMaxX := SysScreenWidth-1                         { Screen width }
 {$IFDEF GRAPH_API}
      Else GetMaxX := Graph.GetMaxX;                   { Call graph func }
 {$ENDIF GRAPH_API}
@@ -398,7 +401,10 @@ END;
 END.
 {
  $Log$
- Revision 1.7  2001-05-07 23:36:35  pierre
+ Revision 1.8  2001-05-10 16:46:28  pierre
+  + some improovements made
+
+ Revision 1.7  2001/05/07 23:36:35  pierre
   NO_WINDOW cond removed
 
  Revision 1.6  2001/05/07 22:22:03  pierre

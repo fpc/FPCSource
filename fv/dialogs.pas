@@ -1,4 +1,4 @@
-{ $Id:							   }
+{ $Id$						   }
 {********[ SOURCE FILE OF GRAPHICAL FREE VISION ]**********}
 {                                                          }
 {   System independent GRAPHICAL clone of DIALOGS.PAS      }
@@ -21,29 +21,9 @@
 {   ANY OTHER WARRANTIES WHETHER EXPRESSED OR IMPLIED.     }
 {                                                          }
 {*****************[ SUPPORTED PLATFORMS ]******************}
-{     16 and 32 Bit compilers                              }
-{        DOS      - Turbo Pascal 7.0 +      (16 Bit)       }
-{        DPMI     - Turbo Pascal 7.0 +      (16 Bit)       }
-{                 - FPC 0.9912+ (GO32V2)    (32 Bit)       }
-{        WINDOWS  - Turbo Pascal 7.0 +      (16 Bit)       }
-{                 - Delphi 1.0+             (16 Bit)       }
-{        WIN95/NT - Delphi 2.0+             (32 Bit)       }
-{                 - Virtual Pascal 2.0+     (32 Bit)       }
-{                 - Speedsoft Sybil 2.0+    (32 Bit)       }
-{                 - FPC 0.9912+             (32 Bit)       }
-{        OS2      - Virtual Pascal 1.0+     (32 Bit)       }
 {                                                          }
-{******************[ REVISION HISTORY ]********************}
-{  Version  Date        Fix                                }
-{  -------  ---------   ---------------------------------  }
-{  1.00     11 Nov 96   First DOS/DPMI platform release.   }
-{  1.10     13 Jul 97   Windows platform code added.       }
-{  1.20     29 Aug 97   Platform.inc sort added.           }
-{  1.30     13 Oct 97   Delphi 2 32 bit code added.        }
-{  1.40     05 May 98   Virtual pascal 2.0 code added.     }
-{  1.50     27 Oct 99   All objects completed and checked  }
-{  1.51     03 Nov 99   FPC windows support added          }
-{  1.60     26 Nov 99   Graphics stuff moved to GFVGraph   }
+{ Only Free Pascal Compiler supported                      }
+{                                                          }
 {**********************************************************}
 
 UNIT Dialogs;
@@ -58,16 +38,6 @@ UNIT Dialogs;
 
 {==== Compiler directives ===========================================}
 
-{$IFNDEF PPC_FPC}{ FPC doesn't support these switches }
-  {$F-} { Short calls are okay }
-  {$A+} { Word Align Data }
-  {$B-} { Allow short circuit boolean evaluations }
-  {$O+} { This unit may be overlaid }
-  {$G+} { 286 Code optimization - if you're on an 8088 get a real computer }
-  {$P-} { Normal string variables }
-  {$N-} { No 80x87 code generation }
-  {$E+} { Emulation is on }
-{$ENDIF}
 
 {$X+} { Extended syntax is ok }
 {$R-} { Disable range checking }
@@ -79,18 +49,7 @@ UNIT Dialogs;
 
 USES
    {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
-     {$IFNDEF PPC_SPEED}                              { NON SPEED COMPILER }
-       {$IFDEF PPC_FPC}                               { FPC WINDOWS COMPILER }
        Windows,                                       { Standard units }
-       {$ELSE}                                        { OTHER COMPILERS }
-       WinTypes,WinProcs,                             { Standard units }
-       {$ENDIF}
-     {$ELSE}                                          { SPEEDSOFT COMPILER }
-       WinBase, WinDef, WinUser, WinGDI,              { Standard units }
-     {$ENDIF}
-     {$IFDEF PPC_DELPHI}                              { DELPHI COMPILERS }
-     Messages,                                        { Standard unit }
-     {$ENDIF}
    {$ENDIF}
 
    {$IFDEF OS_OS2}                                    { OS2 CODE }
@@ -126,14 +85,6 @@ CONST
 
    CDialog = CGrayDialog;                             { Default palette }
 
-
-{$IFNDEF OS_DOS}                                      { WIN/NT/OS2 CODE }
-{---------------------------------------------------------------------------}
-{                        NEW WIN/NT/OS2 COMMAND CODES                       }
-{---------------------------------------------------------------------------}
-CONST
-   cmTvClusterButton = $2001;                         { Cluster button cmd id }
-{$ENDIF}
 
 {---------------------------------------------------------------------------}
 {                     TDialog PALETTE COLOUR CONSTANTS                      }
@@ -492,11 +443,7 @@ PROCEDURE RegisterDialogs;
 CONST
    RDialog: TStreamRec = (
      ObjType: 10;                                     { Register id = 10 }
-     {$IFDEF BP_VMTLink}                              { BP style VMT link }
-     VmtLink: Ofs(TypeOf(TDialog)^);
-     {$ELSE}                                          { Alt style VMT link }
      VmtLink: TypeOf(TDialog);
-     {$ENDIF}
      Load:  @TDialog.Load;                            { Object load method }
      Store: @TDialog.Store                            { Object store method }
    );
@@ -507,11 +454,7 @@ CONST
 CONST
    RInputLine: TStreamRec = (
      ObjType: 11;                                     { Register id = 11 }
-     {$IFDEF BP_VMTLink}                              { BP style VMT link }
-     VmtLink: Ofs(TypeOf(TInputLine)^);
-     {$ELSE}                                          { Alt style VMT link }
      VmtLink: TypeOf(TInputLine);
-     {$ENDIF}
      Load:  @TInputLine.Load;                         { Object load method }
      Store: @TInputLine.Store                         { Object store method }
    );
@@ -522,11 +465,7 @@ CONST
 CONST
    RButton: TStreamRec = (
      ObjType: 12;                                     { Register id = 12 }
-     {$IFDEF BP_VMTLink}                              { BP style VMT link }
-     VmtLink: Ofs(TypeOf(TButton)^);
-     {$ELSE}                                          { Alt style VMT link }
      VmtLink: TypeOf(TButton);
-     {$ENDIF}
      Load:  @TButton.Load;                            { Object load method }
      Store: @TButton.Store                            { Object store method }
    );
@@ -537,11 +476,7 @@ CONST
 CONST
    RCluster: TStreamRec = (
      ObjType: 13;                                     { Register id = 13 }
-     {$IFDEF BP_VMTLink}                              { BP style VMT link }
-     VmtLink: Ofs(TypeOf(TCluster)^);
-     {$ELSE}                                          { Alt style VMT link }
      VmtLink: TypeOf(TCluster);
-     {$ENDIF}
      Load:  @TCluster.Load;                           { Object load method }
      Store: @TCluster.Store                           { Objects store method }
    );
@@ -552,11 +487,7 @@ CONST
 CONST
    RRadioButtons: TStreamRec = (
      ObjType: 14;                                     { Register id = 14 }
-     {$IFDEF BP_VMTLink}                              { BP style VMT link }
-     VmtLink: Ofs(TypeOf(TRadioButtons)^);
-     {$ELSE}                                          { Alt style VMT link }
      VmtLink: TypeOf(TRadioButtons);
-     {$ENDIF}
      Load:  @TRadioButtons.Load;                      { Object load method }
      Store: @TRadioButtons.Store                      { Object store method }
    );
@@ -567,11 +498,7 @@ CONST
 CONST
    RCheckBoxes: TStreamRec = (
      ObjType: 15;                                     { Register id = 15 }
-     {$IFDEF BP_VMTLink}                              { BP style VMT link }
-     VmtLink: Ofs(TypeOf(TCheckBoxes)^);
-     {$ELSE}                                          { Alt style VMT link }
      VmtLink: TypeOf(TCheckBoxes);
-     {$ENDIF}
      Load:  @TCheckBoxes.Load;                        { Object load method }
      Store: @TCheckBoxes.Store                        { Object store method }
    );
@@ -582,11 +509,7 @@ CONST
 CONST
    RMultiCheckBoxes: TStreamRec = (
      ObjType: 27;                                     { Register id = 27 }
-     {$IFDEF BP_VMTLink}                              { BP style VMT link }
-     VmtLink: Ofs(TypeOf(TMultiCheckBoxes)^);
-     {$ELSE}                                          { Alt style VMT link }
      VmtLink: TypeOf(TMultiCheckBoxes);
-     {$ENDIF}
      Load:  @TMultiCheckBoxes.Load;                   { Object load method }
      Store: @TMultiCheckBoxes.Store                   { Object store method }
    );
@@ -597,11 +520,7 @@ CONST
 CONST
    RListBox: TStreamRec = (
      ObjType: 16;                                     { Register id = 16 }
-     {$IFDEF BP_VMTLink}                              { BP style VMT link }
-     VmtLink: Ofs(TypeOf(TListBox)^);
-     {$ELSE}                                          { Alt style VMT link }
      VmtLink: TypeOf(TListBox);
-     {$ENDIF}
      Load:  @TListBox.Load;                           { Object load method }
      Store: @TListBox.Store                           { Object store method }
    );
@@ -612,11 +531,7 @@ CONST
 CONST
    RStaticText: TStreamRec = (
      ObjType: 17;                                     { Register id = 17 }
-     {$IFDEF BP_VMTLink}                              { BP style VMT link }
-     VmtLink: Ofs(TypeOf(TStaticText)^);
-     {$ELSE}                                          { Alt style VMT link }
      VmtLink: TypeOf(TStaticText);
-     {$ENDIF}
      Load:  @TStaticText.Load;                        { Object load method }
      Store: @TStaticText.Store                        { Object store method }
    );
@@ -627,11 +542,7 @@ CONST
 CONST
    RLabel: TStreamRec = (
      ObjType: 18;                                     { Register id = 18 }
-     {$IFDEF BP_VMTLink}                              { BP style VMT link }
-     VmtLink: Ofs(TypeOf(TLabel)^);
-     {$ELSE}                                          { Alt style VMT link }
      VmtLink: TypeOf(TLabel);
-     {$ENDIF}
      Load:  @TLabel.Load;                             { Object load method }
      Store: @TLabel.Store                             { Object store method }
    );
@@ -642,11 +553,7 @@ CONST
 CONST
    RHistory: TStreamRec = (
      ObjType: 19;                                     { Register id = 19 }
-     {$IFDEF BP_VMTLink}                              { BP style VMT link }
-     VmtLink: Ofs(TypeOf(THistory)^);
-     {$ELSE}                                          { Alt style VMT link }
      VmtLink: TypeOf(THistory);
-     {$ENDIF}
      Load:  @THistory.Load;                           { Object load method }
      Store: @THistory.Store                           { Object store method }
    );
@@ -657,11 +564,7 @@ CONST
 CONST
    RParamText: TStreamRec = (
      ObjType: 20;                                     { Register id = 20 }
-     {$IFDEF BP_VMTLink}                              { BP style VMT link }
-     VmtLink: Ofs(TypeOf(TParamText)^);
-     {$ELSE}                                          { Alt style VMT link }
      VmtLink: TypeOf(TParamText);
-     {$ENDIF}
      Load:  @TParamText.Load;                         { Object load method }
      Store: @TParamText.Store                         { Object store method }
    );
@@ -679,10 +582,7 @@ USES HistList;                                        { Standard GFV unit }
 {---------------------------------------------------------------------------}
 {                 LEFT AND RIGHT ARROW CHARACTER CONSTANTS                  }
 {---------------------------------------------------------------------------}
-{$IFDEF OS_DOS} CONST LeftArr = #17; RightArr = #16; {$ENDIF}
-{$IFDEF OS_LINUX} CONST LeftArr = #17; RightArr = #16; {$ENDIF}
-{$IFDEF OS_WINDOWS} CONST LeftArr = #$AB; RightArr = #$BB; {$ENDIF}
-{$IFDEF OS_OS2} CONST LeftArr = #17; RightArr = #16; {$ENDIF}
+CONST LeftArr = #17; RightArr = #16;
 
 {---------------------------------------------------------------------------}
 {                               TButton MESSAGES                            }
@@ -730,10 +630,6 @@ BEGIN
    GrowMode := 0;                                     { Clear grow mode }
    Flags := wfMove + wfClose;                         { Close/moveable flags }
    Palette := dpGrayDialog;                           { Default gray colours }
-   {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
-   GOptions := GOptions AND NOT goThickFramed;        { Turn thick frame off }
-   ExStyle := ws_Ex_DlgModalFrame;                    { Set extended style }
-   {$ENDIF}
 END;
 
 {--TDialog------------------------------------------------------------------}
@@ -752,13 +648,8 @@ END;
 {  GetPalette -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 25Apr98 LdB        }
 {---------------------------------------------------------------------------}
 FUNCTION TDialog.GetPalette: PPalette;
-{$IFDEF PPC_DELPHI3}                                  { DELPHI3+ COMPILER }
-CONST P: Array[dpBlueDialog..dpGrayDialog] Of String =
-    (CBlueDialog, CCyanDialog, CGrayDialog);          { Possible huge string }
-{$ELSE}                                               { OTHER COMPILERS }
 CONST P: Array[dpBlueDialog..dpGrayDialog] Of String[Length(CBlueDialog)] =
     (CBlueDialog, CCyanDialog, CGrayDialog);          { Always normal string }
-{$ENDIF}
 BEGIN
    GetPalette := @P[Palette];                         { Return palette }
 END;
@@ -844,11 +735,7 @@ BEGIN
    If (MaxAvail > MaxLen+1) Then Begin                { Check enough memory }
      GetMem(Data, MaxLen + 1);                        { Allocate memory }
      S.Read(Data^[1], Length(Data^));                 { Read string data }
-     {$IFDEF PPC_DELPHI3}                             { DELPHI 3+ COMPILER }
      SetLength(Data^, B);                             { Xfer string length }
-     {$ELSE}                                          { OTHER COMPILERS }
-     Data^[0] := Chr(B);                              { Set string length }
-     {$ENDIF}
    End Else S.Seek(S.GetPos + B);                     { Move to position }
    If (Options AND ofVersion >= ofVersion20) Then     { Version 2 or above }
      Validator := PValidator(S.Get);                  { Get any validator }
@@ -883,11 +770,7 @@ END;
 {  GetPalette -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 04Oct99 LdB        }
 {---------------------------------------------------------------------------}
 FUNCTION TInputLine.GetPalette: PPalette;
-{$IFDEF PPC_DELPHI3}                                  { DELPHI3+ COMPILER }
-CONST P: String = CInputLine;                         { Possible huge string }
-{$ELSE}                                               { OTHER COMPILERS }
 CONST P: String[Length(CInputLine)] = CInputLine;     { Always normal string }
-{$ENDIF}
 BEGIN
    GetPalette := @P;                                  { Return palette }
 END;
@@ -1048,18 +931,11 @@ END;
 {  SetData -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 04Oct99 LdB           }
 {---------------------------------------------------------------------------}
 PROCEDURE TInputLine.SetData (Var Rec);
-{$IFDEF PPC_DELPHI3} VAR Buf: Array [0..256] Of Char; {$ENDIF}
 BEGIN
    If (Data <> Nil) Then Begin                        { Data ptr valid }
      If (Validator = Nil) OR (Validator^.Transfer(
        Data^, @Rec, vtSetData) = 0) Then              { No validator/data }
-       {$IFDEF PPC_DELPHI3}                           { DELPHI3+ COMPILER }
-       Move(Rec, Buf, DataSize);                      { Fetch our data }
-       Move(Buf[1], Data^[1], Ord(Buf[0]));           { Tranfer string }
-       SetLength(Data^, Ord(Buf[0]));                 { Set string length }
-       {$ELSE}                                        { OTHER COMPILERS }
        Move(Rec, Data^[0], DataSize);                 { Set our data }
-       {$ENDIF}
    End;
    SelectAll(True);                                   { Now select all }
 END;
@@ -1169,11 +1045,7 @@ Delta, Anchor, OldCurPos, OldFirstPos, OldSelStart, OldSelEnd: Integer;
          If NOT Validator^.IsValidInput(NewData,
          NoAutoFill) Then RestoreState Else Begin
            If (Length(NewData) > MaxLen) Then         { Exceeds maximum }
-             {$IFDEF PPC_DELPHI3}                     { DELPHI 3+ COMPILER }
              SetLength(NewData, MaxLen);              { Set string length }
-             {$ELSE}                                  { OTHER COMPILERS }
-             NewData[0] := Chr(MaxLen);               { Set string length }
-             {$ENDIF}
            If (Data <> Nil) Then Data^ := NewData;    { Set data value }
            If (Data <> Nil) AND (CurPos >= OldLen)    { Cursor beyond end }
            AND (Length(Data^) > OldLen) Then          { Cursor beyond string }
@@ -1210,11 +1082,7 @@ BEGIN
            SelectAll(True) Else Begin                 { Select whole text }
              Anchor := MousePos;                      { Start of selection }
              Repeat
-               {$IFDEF OS_DOS}                        { DOS/DPMI CODE }
                If (Event.What = evMouseAuto)          { Mouse auto event }
-               {$ELSE}                                { WIN/NT/OS2 CODE }
-               If (Event.What = evMouseMove)          { Mouse move event }
-               {$ENDIF}
                Then Begin
                  Delta := MouseDelta;                 { New position }
                  If CanScroll(Delta) Then             { If can scroll }
@@ -1304,11 +1172,7 @@ BEGIN
          If (Data <> Nil) Then OldData := Copy(Data^,
            FirstPos+1, CurPos-FirstPos)               { Text area string }
            Else OldData := '';                        { Empty string }
-         {$IFDEF OS_DOS}                              { DOS/DPMI CODE }
          Delta := FontWidth;                          { Safety = 1 char }
-         {$ELSE}                                      { WIN/NT CODE }
-         Delta := 2*FontWidth;                        { Safety = 2 char }
-         {$ENDIF}
          While (TextWidth(OldData) > ((RawSize.X+1)-Delta)
          - TextWidth(LeftArr) - TextWidth(RightArr))  { Check text fits }
          Do Begin
@@ -1396,11 +1260,7 @@ END;
 {  GetPalette -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 25Apr98 LdB        }
 {---------------------------------------------------------------------------}
 FUNCTION TButton.GetPalette: PPalette;
-{$IFDEF PPC_DELPHI3}                                  { DELPHI3+ COMPILER }
-CONST P: String = CButton;                            { Possible huge string }
-{$ELSE}                                               { OTHER COMPILERS }
 CONST P: String[Length(CButton)] = CButton;           { Always normal string }
-{$ENDIF}
 BEGIN
    GetPalette := @P;                                  { Get button palette }
 END;
@@ -1455,15 +1315,15 @@ BEGIN
        I := (RawSize.X - I) DIV 2;                    { Centre in button }
      End Else I := FontWidth;                         { Left edge of button }
      MoveCStr(Db, Title^, Bc);                        { Move title to buffer }
-{$ifndef USE_API}
-     GOptions := GOptions OR goGraphView;             { Graphics co-ords mode }
-     WriteLine(I, FontHeight DIV 2, CStrLen(Title^),
-       1, Db);                                        { Write the title }
-     GOptions := GOptions AND NOT goGraphView;        { Return to normal mode }
-{$else USE_API}
-     WriteLine(I div SysFontWidth, 0, CStrLen(Title^),
-       1, Db);                                        { Write the title }
-{$endif USE_API}
+     If not TextModeGFV then Begin
+       GOptions := GOptions OR goGraphView;             { Graphics co-ords mode }
+       WriteLine(I, FontHeight DIV 2, CStrLen(Title^),
+         1, Db);                                        { Write the title }
+       GOptions := GOptions AND NOT goGraphView;        { Return to normal mode }
+     End Else Begin
+       WriteLine(I div SysFontWidth, 0, CStrLen(Title^),
+         1, Db);                                        { Write the title }
+     End;
    End;
 END;
 
@@ -1671,11 +1531,7 @@ END;
 {  GetPalette -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Apr98 LdB        }
 {---------------------------------------------------------------------------}
 FUNCTION TCluster.GetPalette: PPalette;
-{$IFDEF PPC_DELPHI3}                                  { DELPHI3+ COMPILER }
-CONST P: String = CCluster;                           { Possible huge string }
-{$ELSE}                                               { OTHER COMPILERS }
 CONST P: String[Length(CCluster)] = CCluster;         { Always normal string }
-{$ENDIF}
 BEGIN
    GetPalette := @P;                                  { Cluster palette }
 END;
@@ -1950,7 +1806,6 @@ BEGIN
              Exit;                                    { Now exit }
            End;
          End;
-         {$IFDEF OS_DOS}                              { DOS/DPMI CODE }
          If (Event.CharCode = ' ') AND                { Spacebar key }
          (State AND sfFocused <> 0) AND               { Check focused view }
          ButtonState(Sel) Then Begin                  { Check item enabled }
@@ -1959,7 +1814,6 @@ BEGIN
            DrawView;                                  { Now draw changes }
            ClearEvent(Event);                         { Event was handled }
          End;
-         {$ENDIF}
        End;
      End;
    End;
@@ -2275,7 +2129,6 @@ END;
 {  NewList -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 06Jun98 LdB           }
 {---------------------------------------------------------------------------}
 PROCEDURE TListBox.NewList (AList: PCollection);
-{$IFDEF OS_WINDOWS} VAR I: Integer; S: String; P: PString; {$ENDIF}
 BEGIN
    If (List <> Nil) Then Dispose(List, Done);         { Dispose old list }
    List := AList;                                     { Hold new list }
@@ -2348,11 +2201,7 @@ END;
 {  GetPalette -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 28Apr98 LdB        }
 {---------------------------------------------------------------------------}
 FUNCTION TStaticText.GetPalette: PPalette;
-{$IFDEF PPC_DELPHI3}                                  { DELPHI3+ COMPILER }
-CONST P: String = CStaticText;                        { Possible huge string }
-{$ELSE}                                               { OTHER COMPILERS }
 CONST P: String[Length(CStaticText)] = CStaticText;   { Always normal string }
-{$ENDIF}
 BEGIN
    GetPalette := @P;                                  { Return palette }
 END;
@@ -2509,11 +2358,7 @@ END;
 {  GetPalette -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 26Oct99 LdB        }
 {---------------------------------------------------------------------------}
 FUNCTION TLabel.GetPalette: PPalette;
-{$IFDEF PPC_DELPHI3}                                  { DELPHI3+ COMPILER }
-CONST P: String = CLabel;                             { Possible huge string }
-{$ELSE}                                               { OTHER COMPILERS }
 CONST P: String[Length(CLabel)] = CLabel;             { Always normal string }
-{$ENDIF}
 BEGIN
    GetPalette := @P;                                  { Return palette }
 END;
@@ -2620,11 +2465,7 @@ END;
 {  GetPalette -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 26Oct99 LdB        }
 {---------------------------------------------------------------------------}
 FUNCTION THistoryViewer.GetPalette: PPalette;
-{$IFDEF PPC_DELPHI3}                                  { DELPHI3+ COMPILER }
-CONST P: String = CHistoryViewer;                     { Possible huge string }
-{$ELSE}                                               { OTHER COMPILERS }
 CONST P: String[Length(CHistoryViewer)] = CHistoryViewer;{ Always normal string }
-{$ENDIF}
 BEGIN
    GetPalette := @P;                                  { Return palette }
 END;
@@ -2684,11 +2525,7 @@ END;
 {  GetPalette -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 26Oct99 LdB        }
 {---------------------------------------------------------------------------}
 FUNCTION THistoryWindow.GetPalette: PPalette;
-{$IFDEF PPC_DELPHI3}                                  { DELPHI3+ COMPILER }
-CONST P: String = CHistoryWindow;                     { Possible huge string }
-{$ELSE}                                               { OTHER COMPILERS }
 CONST P: String[Length(CHistoryWindow)] = CHistoryWindow;{ Always normal string }
-{$ENDIF}
 BEGIN
    GetPalette := @P;                                  { Return the palette }
 END;
@@ -2739,11 +2576,7 @@ END;
 {  GetPalette -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 26Oct99 LdB        }
 {---------------------------------------------------------------------------}
 FUNCTION THistory.GetPalette: PPalette;
-{$IFDEF PPC_DELPHI3}                                  { DELPHI3+ COMPILER }
-CONST P: String = CHistory;                           { Possible huge string }
-{$ELSE}                                               { OTHER COMPILERS }
 CONST P: String[Length(CHistory)] = CHistory;         { Always normal string }
-{$ENDIF}
 BEGIN
    GetPalette := @P;                                  { Return the palette }
 END;
@@ -2816,11 +2649,7 @@ BEGIN
        If (C = cmOk) Then Begin                       { Result was okay }
          Rslt := HistoryWindow^.GetSelection;         { Get history selection }
          If Length(Rslt) > Link^.MaxLen Then
-           {$IFDEF PPC_DELPHI3}                       { DELPHI 3+ COMPILER }
             SetLength(Rslt, Link^.MaxLen);            { Hold new length }
-           {$ELSE}
-            Rslt[0] := Char(Link^.MaxLen);            { Hold new length }
-           {$ENDIF}
          Link^.Data^ := Rslt;                         { Hold new selection }
          Link^.SelectAll(True);                       { Select all string }
          Link^.DrawView;                              { Redraw link view }
@@ -2881,7 +2710,10 @@ END;
 END.
 {
  $Log$
- Revision 1.7  2001-05-07 22:22:03  pierre
+ Revision 1.8  2001-05-10 16:46:27  pierre
+  + some improovements made
+
+ Revision 1.7  2001/05/07 22:22:03  pierre
   * removed NO_WINDOW cond, added GRAPH_API
 
  Revision 1.6  2001/05/04 10:46:01  pierre
@@ -2898,6 +2730,16 @@ END.
 
  Revision 1.2  2000/08/24 12:00:20  marco
   * CVS log and ID tags
-
-
 }
+{******************[ REVISION HISTORY ]********************}
+{  Version  Date        Fix                                }
+{  -------  ---------   ---------------------------------  }
+{  1.00     11 Nov 96   First DOS/DPMI platform release.   }
+{  1.10     13 Jul 97   Windows platform code added.       }
+{  1.20     29 Aug 97   Platform.inc sort added.           }
+{  1.30     13 Oct 97   Delphi 2 32 bit code added.        }
+{  1.40     05 May 98   Virtual pascal 2.0 code added.     }
+{  1.50     27 Oct 99   All objects completed and checked  }
+{  1.51     03 Nov 99   FPC windows support added          }
+{  1.60     26 Nov 99   Graphics stuff moved to GFVGraph   }
+{**********************************************************}

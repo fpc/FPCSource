@@ -27,43 +27,9 @@
 {   ANY OTHER WARRANTIES WHETHER EXPRESSED OR IMPLIED.     }
 {                                                          }
 {*****************[ SUPPORTED PLATFORMS ]******************}
-{     16 and 32 Bit compilers                              }
-{        DOS      - Turbo Pascal 7.0 +      (16 Bit)       }
-{        DPMI     - Turbo Pascal 7.0 +      (16 Bit)       }
-{                 - FPC 0.9912+ (GO32V2)    (32 Bit)       }
-{        WINDOWS  - Turbo Pascal 7.0 +      (16 Bit)       }
-{                 - Delphi 1.0+             (16 Bit)       }
-{        WIN95/NT - Delphi 2.0+             (32 Bit)       }
-{                 - Virtual Pascal 2.0+     (32 Bit)       }
-{                 - Speedsoft Sybil 2.0+    (32 Bit)       }
-{                 - FPC 0.9912+             (32 Bit)       }
-{        OS2      - Virtual Pascal 1.0+     (32 Bit)       }
-{                 - Speed Pascal 1.0+       (32 Bit)       }
 {                                                          }
-{******************[ REVISION HISTORY ]********************}
-{  Version  Date        Fix                                }
-{  -------  ---------   ---------------------------------  }
-{  1.00     26 Jul 96   First DOS/DPMI platform release    }
-{  1.10     18 Nov 97   Windows conversion added.          }
-{  1.20     29 Aug 97   Platform.inc sort added.           }
-{  1.30     10 Jun 98   Virtual pascal 2.0 code added.     }
-{  1.40     13 Jul 98   Added FormatStr by Marco Schmidt.  }
-{  1.50     14 Jul 98   Fixed width = 0 in FormatStr.      }
-{  1.60     13 Aug 98   Complete rewrite of FormatStr.     }
-{  1.70     10 Sep 98   Added mouse int hook for FPC.      }
-{  1.80     10 Sep 98   Checks run & commenting added.     }
-{  1.90     15 Oct 98   Fixed for FPC version 0.998        }
-{  1.91     18 Feb 99   Added PrintStr functions           }
-{  1.92     18 Feb 99   FormatStr literal '%' fix added    }
-{  1.93     10 Jul 99   Sybil 2.0 code added               }
-{  1.94     15 Jul 99   Fixed for FPC 0.9912 release       }
-{  1.95     26 Jul 99   Windows..Scales to GFV system font }
-{  1.96     30 Jul 99   Fixed Ctrl+F1..F10 in GetKeyEvent  }
-{  1.97     07 Sep 99   InitEvent, DoneEvent fixed for OS2 }
-{  1.98     09 Sep 99   GetMouseEvent fixed for OS2.       }
-{  1.99     03 Nov 99   FPC windows support added.         }
-{  2.00     26 Nov 99   Graphics stuff moved to GFVGraph   }
-{  2.01     21 May 00   DOS fixed to use std GRAPH unit    }
+{ Only Free Pascal Compiler supported                      }
+{                                                          }
 {**********************************************************}
 
 UNIT Drivers;
@@ -78,17 +44,6 @@ UNIT Drivers;
 
 {==== Compiler directives ===========================================}
 
-{$IFNDEF PPC_FPC} { FPC doesn't support these switches }
-  {$F+} { Force far calls - Used because of the ShowMouseProc etc... }
-  {$A+} { Word Align Data }
-  {$B-} { Allow short circuit boolean evaluations }
-  {$O-} { This unit may >>> NOT <<< be overlaid }
-  {$G+} { 286 Code optimization - if you're on an 8088 get a real computer }
-  {$P-} { Normal string variables }
-  {$N-} { No 80x87 code generation }
-  {$E+} { Emulation is on }
-{$ENDIF}
-
 {$X+} { Extended syntax is ok }
 {$R-} { Disable range checking }
 {$IFNDEF OS_LINUX}
@@ -101,21 +56,7 @@ UNIT Drivers;
 
 USES
    {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
-     {$IFNDEF PPC_SPEED}                              { NON SPEED COMPILER }
-       {$IFDEF PPC_FPC}                               { FPC WINDOWS COMPILER }
          Windows,                                     { Standard unit }
-       {$ELSE}                                        { OTHER COMPILERS }
-         WinTypes, WinProcs, Strings,                 { Standard units }
-         {$IFDEF BIT_16}                              { 16 BIT WINDOWS COMPILER }
-         Win31,                                       { Standard unit }
-         {$ENDIF}
-       {$ENDIF}
-       {$IFDEF PPC_DELPHI}                            { DELPHI3+ COMPILER }
-         SysUtils, Messages,                          { Standard unit }
-       {$ENDIF}
-     {$ELSE}                                          { SYBIL2+ COMPILER }
-       WinBase, WinDef, WinUser, WinGDI,              { Standard units }
-     {$ENDIF}
    {$ENDIF}
 
    {$IFDEF OS_OS2}                                    { OS2 CODE }
@@ -133,18 +74,10 @@ USES
      {$else}
        unix,
      {$endif}
-     {$DEFINE Use_API}
    {$ENDIF}
 
-   {$ifdef Use_API}
    video,
-   {$endif Use_API}
    GFVGraph,                                          { GFV graphics unit }
-   {$ifndef Use_API}
-   {$IFDEF OS_DOS}                                    { DOS/DPMI CODE }
-   Graph,                                             { Standard bp unit }
-   {$ENDIF}
-   {$endif not Use_API}
    Common, Objects;                                   { GFV standard units }
 
 {***************************************************************************}
@@ -582,50 +515,9 @@ PROCEDURE NextQueuedEvent(Var Event: TEvent);
 {                        INITIALIZED PUBLIC VARIABLES                       }
 {***************************************************************************}
 
-{---------------------------------------------------------------------------}
-{                     INITIALIZED DOS/DPMI VARIABLES                        }
-{---------------------------------------------------------------------------}
-{$IFDEF OS_DOS}                                       { DOS/DPMI CODE }
-{ ******************************* REMARK ****************************** }
-{    In Hi-Res graphics modes where the usual mouse handler will not    }
-{  work these can be set so the user can provide his own hide, show     }
-{  and redraw on move routines, otherwise leave them set as nil.        }
-{ ****************************** END REMARK *** Leon de Boer, 20Jul98 * }
-TYPE DrawProc = PROCEDURE;
-
-CONST
-   HideMouseProc: DrawProc = Nil;                     { Hide mouse procedure }
-   ShowMouseProc: DrawProc = Nil;                     { Show mouse procedure }
-   MouseMoveProc: DrawProc = Nil;                     { Mouse moved procedure }
-{$ENDIF}
-
 PROCEDURE HideMouseCursor;
 PROCEDURE ShowMouseCursor;
 
-{---------------------------------------------------------------------------}
-{                      INITIALIZED WIN/NT VARIABLES                         }
-{---------------------------------------------------------------------------}
-{$IFDEF OS_WINDOWS}                                   { WIN/NT CODE }
-CONST
-   RawHandler   : Boolean = False;
-   AppWindow    : HWnd = 0;                           { Application window }
-   DefGfvFont   : HFont = 0;                          { Default GFV font }
-   DefFontWeight: Integer = fw_Normal;                { Default font weight }
-   DefFontStyle : String = 'Times New Roman';         { Default font style }
-{$ENDIF}
-
-{---------------------------------------------------------------------------}
-{                        INITIALIZED OS2 VARIABLES                          }
-{---------------------------------------------------------------------------}
-{$IFDEF OS_OS2}                                       { OS2 CODE }
-CONST
-   AppWindow   : HWnd = 0;                            { Application window }
-   Anchor      : HAB = 0;                             { Anchor block }
-   MsgQue      : HMq = 0;                             { Message queue }
-   DefGFVFont  : LongInt = 0;                         { Default font style }
-   DefPointer  : HPointer = 0;                        { Default pointer }
-   DefFontStyle: String = 'Times';                    { Default font style }
-{$ENDIF}
 
 {---------------------------------------------------------------------------}
 {                INITIALIZED DOS/DPMI/WIN/NT/OS2 VARIABLES                  }
@@ -672,43 +564,27 @@ VAR
    MouseButtons: Byte;                                { Mouse button state }
    ScreenWidth : Byte;                                { Screen text width }
    ScreenHeight: Byte;                                { Screen text height }
-{$ifndef Use_API}
+{$ifdef GRAPH_API}
    ScreenMode  : Word;                                { Screen mode }
-{$else Use_API}
+{$else not GRAPH_API}
    ScreenMode  : TVideoMode;                         { Screen mode }
-{$endif Use_API}
+{$endif GRAPH_API}
    MouseWhere  : TPoint;                              { Mouse position }
 
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                                IMPLEMENTATION
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
-{$ifdef Use_API}
 { API Units }
   USES Keyboard,Mouse;
-{$else not Use_API}
-{$IFDEF OS_DOS}                                       { DOS/DPMI CODE }
-  {$IFDEF PPC_FPC}                                    { FPC DOS COMPILER }
-  USES Go32;                                          { Standard unit }
-  {$ENDIF}
-{$ENDIF}
-{$endif not Use_API}
 
 {***************************************************************************}
 {                        PRIVATE INTERNAL CONSTANTS                         }
 {***************************************************************************}
 
-{$IFDEF OS_DOS}                                       { DOS/DPMI/API CODE }
-{$define Has_vars}
-{$ENDIF OS_DOS}
-{$IFDEF Use_API}
-{$define Has_vars}
-{$ENDIF Use_API}
-{$IFDEF HAS_VARS}                                       { DOS/DPMI/API CODE }
 {---------------------------------------------------------------------------}
 {                 DOS/DPMI MOUSE INTERRUPT EVENT QUEUE SIZE                 }
 {---------------------------------------------------------------------------}
 CONST EventQSize = 16;                                { Default int bufsize }
-{$ENDIF}
 
 {---------------------------------------------------------------------------}
 {                DOS/DPMI/WIN/NT/OS2 NEW EVENT QUEUE MAX SIZE               }
@@ -719,78 +595,9 @@ CONST QueueMax = 64;                                  { Max new queue size }
 {                          PRIVATE INTERNAL TYPES                           }
 {***************************************************************************}
 
-{$IFDEF OS_WINDOWS}                                   { DOS/DPMI CODE }
-{---------------------------------------------------------------------------}
-{                   SYBIL2+ WIN/NT COMPILER TYPE FIX UPS                    }
-{---------------------------------------------------------------------------}
-   {$IFDEF PPC_SPEED}                                 { SYBIL2+ COMPILER }
-   TYPE TLogFont = LogFont;                           { Type fix up }
-   TYPE TMsg = Msg;                                   { Type fix up }
-   TYPE TTextMetric = TextMetric;                     { Type fix up }
-   {$ENDIF}
-{$ENDIF}
-
 {***************************************************************************}
 {                  PRIVATE INTERNAL INITIALIZED VARIABLES                   }
 {***************************************************************************}
-
-{$IFDEF OS_DOS}                                       { DOS/DPMI CODE }
-{---------------------------------------------------------------------------}
-{                       DOS/DPMI INITIALIZED VARIABLES                      }
-{---------------------------------------------------------------------------}
-   {$IFDEF GO32V2}                                    { GO32V2 needs these }
-   CONST
-     RealSeg: Word = 0;                               { Real mode segment }
-     RealOfs: Word = 0;                               { Real mode offset }
-     MouseCallback: Pointer = Nil;                    { Mouse call back ptr }
-   {$ENDIF}
-
-{$ENDIF}
-
-{$IFDEF OS_WINDOWS}                                   { WIN/NT CODE }
-{---------------------------------------------------------------------------}
-{           WIN/NT TABLE OF ALT + ASCII CODES FROM VIRTUAL CODES            }
-{---------------------------------------------------------------------------}
-CONST AltVirtualToAscii: Array [0..127] Of Word =
-     ($00, $00, $00, $00, $00, $00, $00, $00,
-      kbAltBack, kbAltTab, $00, $00, $00, kbEnter, $00, $00,
-{10H} $00, $00, $00, $00, $00, $00, $00, $00,
-      $00, $00, $00, kbEsc, $00, $00, $00, $00,
-{20H} kbAltSpace, kbAltPgUp, kbAltPgDn, kbAltEnd, kbAltHome,
-        kbAltLeft, kbAltUp, kbAltRight,
-      kbAltDown, $00, $00, $00, $00, kbAltIns, kbAltDel, $00,
-{30H} kbAlt0, kbAlt1, kbAlt2, kbAlt3, kbAlt4, kbAlt5, kbAlt6, kbAlt7,
-      kbAlt8, kbAlt9, $00, $00, $00, $00, $00, $00,
-{40H} $00, kbAltA, kbAltB, kbAltC, kbAltD, kbAltE, kbAltF, kbAltG,
-      kbAltH, kbAltI, kbAltJ, kbAltK, kbAltL, kbAltM, kbAltN, kbAltO,
-{50H} kbAltP, kbAltQ, kbAltR, kbAltS, kbAltT, kbAltU, kbAltV, kbAltW,
-      kbAltX, kbAltY, kbAltZ, $00, $00, $00, $00, $00,
-{60H} $00, $00, $00, $00, $00, $00, $00, $00,
-      $00, $00, $372A, $4E2B, $00, $4A2D, $00, $352F,
-{70H} kbAltF1, kbAltF2, kbAltF3, kbAltF4, kbAltF5, kbAltF6, kbAltF7, kbAltF8,
-      kbAltF9, kbAltF10, $00, $00, $00, $00, $00, $00);
-
-{---------------------------------------------------------------------------}
-{            WIN/NT TABLE OF WINDOWS ASCII TO INTERNATIONAL ASCII           }
-{---------------------------------------------------------------------------}
-CONST WinAsciiToIntAscii: Array [128..255] Of Byte = (
-{80H} $00, $00, $00, $00, $00, $00, $00, $00,
-      $00, $00, $00, $00, $00, $00, $00, $00,
-{90H} $00, $00, $00, $00, $00, $00, $00, $00,
-      $00, $00, $00, $00, $00, $00, $00, $00,
-{A0H} $00, $AD, $BD, $9C, $CF, $BE, $B3, $F5,
-      $00, $B8, $A6, $AE, $AA, $B0, $A9, $00,
-{B0H} $F8, $F1, $FD, $00, $EF, $E6, $F4, $00,
-      $3C, $3E, $A7, $AF, $AC, $AB, $F3, $A8,
-{C0H} $B7, $B5, $B6, $C7, $8E, $8F, $92, $80,
-      $D4, $90, $D2, $D3, $DE, $D6, $D7, $D8,
-{D0H} $D1, $A5, $E3, $E0, $E2, $E5, $99, $00,
-      $9D, $EB, $E9, $EA, $9A, $ED, $E7, $E1,
-{E0H} $85, $A0, $83, $C6, $84, $86, $91, $87,
-      $8A, $82, $88, $89, $8D, $A1, $8C, $8B,
-{F0H} $D0, $A4, $95, $A2, $93, $E4, $94, $F6,
-      $9B, $97, $A3, $96, $81, $EC, $E8, $98);
-{$ENDIF}
 
 {---------------------------------------------------------------------------}
 {          DOS/DPMI/WIN/NT/OS2 ALT KEY SCANCODES FROM KEYS (0-127)          }
@@ -830,7 +637,6 @@ CONST
 {                 PRIVATE INTERNAL UNINITIALIZED VARIABLES                  }
 {***************************************************************************}
 
-{$ifdef Has_vars}
 {---------------------------------------------------------------------------}
 {                     UNINITIALIZED DOS/DPMI/API VARIABLES                      }
 {---------------------------------------------------------------------------}
@@ -853,23 +659,6 @@ VAR
    EventQueue : Array [0..EventQSize - 1] Of TEvent;  { Event queue }
    EventQLast : RECORD END;                           { Simple end marker }
 
-{---------------------------------------------------------------------------}
-{                ABSOLUTE PRIVATE DOS/DPMI ADDRESS VARIABLES                }
-{---------------------------------------------------------------------------}
-   {$ifdef OS_DOS}
-   {$IFNDEF GO32V1}
-VAR
-   ShiftState: Byte Absolute $40:$17;                 { Shift state mask }
-   Ticks: Word Absolute $40:$6C;                      { DOS tick counter }
-   {$ENDIF}
-   {$endif OS_DOS}
-
-   {$IFDEF GO32V2}                                    { GO32V2 registers }
-VAR
-   ActionRegs: TRealRegs;                             { Real mode registers }
-   {$ENDIF}
-
-{$ENDIF Has_Vars}
 
 {---------------------------------------------------------------------------}
 {  GetDosTicks (18.2 Hz)                                                    }
@@ -917,422 +706,6 @@ VAR
 {                         PRIVATE INTERNAL ROUTINES                         }
 {***************************************************************************}
 
-{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
-{                  DOS/DPMI ONLY PRIVATE INTERNAL ROUTINES                  }
-{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
-{$IFDEF OS_DOS}                                       { DOS/DPMI CODE }
-
-{$IFDEF GO32V2}                                       { GO32V2 CODE }
-{---------------------------------------------------------------------------}
-{  MouseTrap -> Platforms GO32V2 - FPC COMPILER Updated 10Sep98 LdB         }
-{---------------------------------------------------------------------------}
-PROCEDURE Mouse_Trap; FAR; ASSEMBLER;
-ASM
-   PUSH %ES;                                          { Save ES register }
-   PUSH %DS;                                          { Save DS register }
-   PUSHL %EDI;                                        { Save register }
-   PUSHL %ESI;                                        { Save register }
-   ;{ caution : ds is not the selector for our data !! }
-   PUSH %ES;                                          { Push data seg }
-   POP %DS;                                           { Load data seg }
-   PUSHL %EDI;                                        { Actionregs address }
-   MOVL MOUSECALLBACK, %EAX;                          { Fetch callback addr }
-   CMPL $0, %EAX;                                     { Check for nil ptr }
-   JS .L_NoCallBack;                                  { Ignore if nil }
-   POPL %EAX;                                         { %EAX = @actionregs }
-   MOVL (%EAX), %EDI;                                 { EDI from actionregs }
-   MOVL 4(%EAX), %ESI;                                { ESI from actionregs }
-   MOVL 16(%EAX), %EBX;                               { EBX from actionregs }
-   MOVL 20(%EAX), %EDX;                               { EDX from actionregs }
-   MOVL 24(%EAX), %ECX;                               { ECX from actionregs }
-   MOVL 28(%EAX), %EAX;                               { EAX from actionregs }
-   CALL *MOUSECALLBACK;                               { Call callback proc }
-.L_NoCallBack:
-   POPL %ESI;                                         { Recover register }
-   POPL %EDI;                                         { Recover register }
-   POP %DS;                                           { Restore DS register }
-   POP %ES;                                           { Restore ES register }
-   MOVL (%ESI), %EAX;
-   MOVL %EAX, %ES:42(%EDI);                           { Set as return addr }
-   ADDW $4, %ES:46(%EDI);                             { adjust stack }
-   IRET;                                              { Interrupt return }
-END;
-{$ENDIF}
-
-{$IFDEF PPC_FPC}                                      { FPC COMPILER CODE }
-{$ifndef Use_API}
-{---------------------------------------------------------------------------}
-{  Mouse_Action -> Platforms DPMI - FPC COMPILER Updated 10Sep98 LdB        }
-{---------------------------------------------------------------------------}
-PROCEDURE Mouse_Action (Mask : Integer; P : Pointer);
-VAR Error: Word; ErrStr: String; {$IFDEF GO32V2} Rg: TRealRegs; {$ENDIF}
-BEGIN
-   {$IFDEF GO32V1}                                    { GO32V1 CODE }
-   ErrStr := 'GO32V1 mouse handler set failed !!';    { Set error string }
-   ASM
-     MOVL $0xFF, %EAX;                                { GO32v1 special id }
-     MOVL P, %ECX;                                    { Fuction to chain }
-     MOVL $0x20, %EBX;                                { Event queue size > 0 }
-     MOVL $0x12345678, %EDX;                          { Test for version ? }
-     INT $0x33;                                       { Call special wrapper }
-     CMPW $0xFF0, %AX;                                { AX=$FF0 if success }
-     JNZ .L_GO32V1Err;
-     MOVW $0, %AX;                                    { Zero register }
-     JMP .LGO32V1Ok;                                  { Now jump over }
-   .L_GO32V1Err:
-     MOVW $0xFFFF, %AX;                               { -1 to register }
-   .L_GO32V1Ok:
-     MOVW %AX, Error;                                 { Set error result }
-   END;
-   {$ENDIF}
-   {$IFDEF GO32V2}                                    { GO32V2 CODE }
-   Error := 0;                                        { Preset no error }
-   ErrStr := 'GO32V2 mouse handler set failed !!';    { Set error string }
-   If (P <> MouseCallBack) Then Begin                 { Check func different }
-     If (RealSeg <> 0) Then Begin                     { Remove old calback }
-       Rg.AX := 12;                                   { Function id }
-       Rg.CX := 0;                                    { Zero mask register }
-       Rg.ES := 0;                                    { Zero proc seg }
-       Rg.DX := 0;                                    { Zero proc ofs }
-       RealIntr($33, Rg);                             { Stop INT 33 callback }
-       ASM
-         MOVW $0x304, %AX;                            { Set function id }
-         MOVW REALSEG, %CX;                           { Bridged real seg }
-         MOVW REALOFS, %DX;                           { Bridged real ofs }
-         INT $0x31;                                   { Release bridge }
-       END;
-     End;
-     MouseCallback := P;                              { Set call back addr }
-     If (P <> Nil) Then Begin                         { Check non nil proc }
-       ASM
-         LEAL ACTIONREGS, %EDI;                       { Addr of actionregs }
-         LEAL MOUSE_TRAP, %ESI;                       { Procedure address }
-         PUSH %DS;                                    { Save DS segment }
-         PUSH %ES;                                    { Save ES segment }
-         PUSH %DS;
-         POP  %ES;                                    { ES now has dataseg }
-         PUSH %CS;
-         POP  %DS;                                    { DS now has codeseg }
-         MOVW $0x303, %AX;                            { Function id }
-         INT  $0x31;                                  { Call DPMI bridge }
-         POP  %ES;                                    { Restore ES segment }
-         POP  %DS;                                    { Restore DS segment }
-         MOVW %CX, REALSEG;                           { Transfer real seg }
-         MOVW %DX, REALOFS;                           { Transfer real ofs }
-         MOVW $0, %AX;                                { Preset zero error }
-         JNC .L_call_ok;                              { Branch if ok }
-         MOVW $0xFFFF, %AX;                           { Force a -1 error }
-       .L_call_ok:
-         MOVW %AX, ERROR;                             { Return error state }
-       END;
-       Rg.CX := Mask;                                 { Set mask register }
-     End Else Begin
-       Rg.EDI := 0;                                   { Zero proc register }
-       Rg.CX := 0;                                    { Zero mask register }
-     End;
-     If (Error = 0) Then Begin                        { If no error }
-       Rg.AX := 12;                                   { Set function id }
-       Rg.ES := RealSeg;                              { Real mode segment }
-       Rg.DX := RealOfs;                              { Real mode offset }
-       RealIntr($33, Rg);                             { Set interrupt 33 }
-     End Else Begin
-       RealSeg := 0;                                  { Zero real mode seg }
-       RealOfs := 0;                                  { Zero real mode ofs }
-     End;
-   End;
-   {$ENDIF}
-   If (Error <> 0) Then Begin                         { Error encountered }
-     WriteLn(ErrStr);                                 { Write error }
-     ReadLn;                                          { Wait for user to see }
-   End;
-END;
-
-{$ENDIF}
-
-{---------------------------------------------------------------------------}
-{  MouseInt -> Platforms DOS/DPMI - Updated 30Jun98 LdB                     }
-{---------------------------------------------------------------------------}
-PROCEDURE MouseInt; FAR; ASSEMBLER;
-{$IFDEF ASM_BP}                                       { BP COMPATABLE ASM }
-ASM
-   MOV SI, SEG @DATA;                                 { Fetch data segment }
-   MOV DS, SI;                                        { Fix data segment }
-   MOV SI, CX;                                        { Transfer x position }
-   MOV MouseButtons, BL;                              { Update mouse buttons }
-   MOV MouseWhere.X, SI;                              { Update x position }
-   MOV MouseWhere.Y, DX;                              { Update y position }
-   CMP EventCount, EventQSize;                        { Check if queue full }
-   JZ @@QueueFull;                                    { Queue is full exit }
-   MOV ES, Seg0040;                                   { Fetch DOS segment }
-   MOV AX, ES:Ticks;                                  { Fetch dos tick count }
-   MOV DI, WORD PTR EventQTail;                       { Address of tail }
-   PUSH DS;                                           { Push to stack }
-   POP ES;                                            { ES to data segment }
-   CLD;                                               { Store forward }
-   STOSW;                                             { Store tick count }
-   XCHG AX, BX;                                       { Transfer register }
-   STOSW;                                             { Store button state }
-   XCHG AX, SI;                                       { Transfer register }
-   STOSW;                                             { Store x position }
-   XCHG AX, DX;                                       { Transfer register }
-   STOSW;                                             { Store y position }
-   CMP DI, OFFSET EventQLast;                         { Roll if at queue end }
-   JNE @@NoRollNeeded;                                { Not at queue end }
-   MOV DI, OFFSET EventQueue;                         { Roll back to start }
-@@NoRollNeeded:
-   MOV WORD PTR EventQTail, DI;                       { Update queue tail }
-   INC EventCount;                                    { One message added }
-@@QueueFull:
-   MOV MouseIntFlag, 1;                               { Set interrupt flag }
-   MOV SI, WORD PTR MouseMoveProc;                    { Low address word }
-   OR SI, WORD PTR MouseMoveProc+2;                   { "OR" high word }
-   JZ @@Exit;                                         { No move call so exit }
-   DB $66; PUSH AX;                                   { Store EAX }
-   DB $66; PUSH BX;                                   { Store EBX }
-   DB $66; PUSH CX;                                   { Store ECX }
-   DB $66; PUSH DX;                                   { Store EDX }
-   DB $66; PUSH SI;                                   { Store ESI }
-   DB $66; PUSH DI;                                   { Store EDI }
-   DB $66; PUSH BP;                                   { Store EBP }
-   PUSH ES;                                           { Store ES }
-   PUSH BP;                                           { Standard BP push }
-   MOV BP, SP;                                        { Transfer stack ptr }
-   CALL MouseMoveProc;                                { Standard procedure }
-   POP BP;                                            { Standard BP recover }
-   POP ES;                                            { Recover ES }
-   DB $66; POP BP;                                    { Recover EBP }
-   DB $66; POP DI;                                    { Recover EDI }
-   DB $66; POP SI;                                    { Recover ESI }
-   DB $66; POP DX;                                    { Recover EDX }
-   DB $66; POP CX;                                    { Recover ECX }
-   DB $66; POP BX;                                    { Recover EBX }
-   DB $66; POP AX;                                    { Recover EAX }
-@@Exit:
-END;
-{$ENDIF}
-{$IFDEF ASM_FPC}                                      { FPC COMPATABLE ASM }
-ASM
-   MOVW %CX, %SI;                                     { Transfer x position }
-   MOVB %BL, MOUSEBUTTONS;                            { Update mouse buttons }
-   MOVW %SI, MOUSEWHERE;                              { Update x position }
-   MOVW %DX, MOUSEWHERE+2;                            { Update y position }
-   CMPW $16, EVENTCOUNT;                              { Check if queue full }
-   JZ .L_QueueFull;                                   { Queue is full exit }
-   PUSH %ES;                                          { Save segment }
-   MOVW $0x40, %AX;                                   { Fetch DOS segment }
-   MOVW %AX, %ES;                                     { Transfer to segment }
-   MOVL $0x6C, %EDI;                                  { Address of ticks }
-   MOVW %ES:(%EDI), %AX;                              { Fetch dos tick count }
-   POP %ES;                                           { Recover segment }
-   MOVL EVENTQTAIL, %EDI;                             { Queue tail address }
-   CLD;                                               { Store forward }
-   STOSW;                                             { Store tick count }
-   XCHGW %BX, %AX;                                    { Transfer register }
-   STOSW;                                             { Store button state }
-   XCHGW %SI, %AX;                                    { Transfer register }
-   STOSW;                                             { Store x position }
-   XCHGW %DX, %AX;                                    { Transfer register }
-   STOSW;                                             { Store y position }
-   LEAL EVENTQLAST, %EAX;                             { Roll point address }
-   CMPL %EAX, %EDI;                                   { Roll if at queue end }
-   JNE .L_NoRollNeeded;                               { Not at queue end }
-   LEAL EVENTQUEUE, %EDI;                             { Roll back to start }
-.L_NoRollNeeded:
-   MOVL %EDI, EVENTQTAIL;                             { Update queue tail }
-   INCW EVENTCOUNT;                                   { One message added }
-.L_QueueFull:
-   MOVB $1, MOUSEINTFLAG;                             { Set interrupt flag }
-   MOVL MOUSEMOVEPROC, %EAX;                          { Load proc address }
-   CMPL $0, %EAX;                                     { Check for nil ptr }
-   JZ .L_Exit;                                        { No move call so exit }
-   PUSHL %EAX;                                        { Store EAX }
-   PUSHL %EBX;                                        { Store EBX }
-   PUSHL %ECX;                                        { Store ECX }
-   PUSHL %EDX;                                        { Store EDX }
-   PUSHL %ESI;                                        { Store ESI }
-   PUSHL %EDI;                                        { Store EDI }
-   PUSHL %EBP;                                        { Store EBP }
-   PUSH %ES;                                          { Store ES }
-   CALL %EAX;                                         { Standard procedure }
-   POP %ES;                                           { Recover ES }
-   POPL %EBP;                                         { Recover EBP }
-   POPL %EDI;                                         { Recover EDI }
-   POPL %ESI;                                         { Recover ESI }
-   POPL %EDX;                                         { Recover EDX }
-   POPL %ECX;                                         { Recover ECX }
-   POPL %EBX;                                         { Recover EBX }
-   POPL %EAX;                                         { Recover EAX }
-.L_Exit:
-END;
-{$ENDIF}
-{$endif not Use_API}
-
-{---------------------------------------------------------------------------}
-{  HideMouseCursor -> Platforms DOS/DPMI - Updated 10Sep98 LdB              }
-{---------------------------------------------------------------------------}
-PROCEDURE HideMouseCursor; ASSEMBLER;
-{$IFDEF ASM_BP}                                       { BP COMPATABLE ASM }
-ASM
-   CMP MouseEvents, 0;                                { Check mouse system }
-   JZ @@Exit;                                         { Branch if not active }
-   MOV AX, WORD PTR [HideMouseProc];                  { Fetch offset of addr }
-   OR AX, WORD PTR [HideMouseProc+2];                 { Check for nil ptr }
-   JZ @@UseMouseInt;                                  { Branch if nil }
-   CALL FAR PTR [HideMouseProc];                      { Call hide mouse }
-   JMP @@Exit;                                        { Now exit }
-@@UseMouseInt:
-   MOV AX, $2;                                        { Load function id }
-   PUSH BP;                                           { Safety!! save reg }
-   INT $33;                                           { Hide the mouse }
-   POP BP;                                            { Restore register }
-@@Exit:
-END;
-{$ENDIF}
-{$IFDEF ASM_FPC}                                      { FPC COMPATABLE ASM }
-ASM
-   CMPB $0, MouseEvents;                              { Check mouse system }
-   JZ .L_Exit;                                        { Branch if not active }
-   MOVL HideMouseProc, %EAX;                          { Fetch address }
-   ORL %EAX, %EAX;                                    { Check for nil ptr }
-   JZ .L_UseMouseInt;                                 { Branch if nil }
-   CALL HideMouseProc;                                { Call show mouse }
-   JMP .L_Exit;                                       { Now exit }
-.L_UseMouseInt:
-   MOVW $2, %AX;                                      { Load function id }
-   PUSHL %EBP;                                        { Save regigister }
-   INT $0x33;                                         { Hide the mouse }
-   POPL %EBP;                                         { Restore register }
-.L_Exit:
-END;
-{$ENDIF}
-
-{---------------------------------------------------------------------------}
-{  ShowMouseCursor -> Platforms DOS/DPMI - Updated 10Sep98 LdB              }
-{---------------------------------------------------------------------------}
-PROCEDURE ShowMouseCursor; ASSEMBLER;
-{$IFDEF ASM_BP}                                       { BP COMPATABLE ASM }
-ASM
-   CMP MouseEvents, 0;                                { Check mouse system }
-   JZ @@Exit;                                         { Branch if not active }
-   MOV AX, WORD PTR [ShowMouseProc];                  { Fetch offset of addr }
-   OR AX, WORD PTR [ShowMouseProc+2];                 { Check for nil ptr }
-   JZ @@UseMouseInt;                                  { Branch if nil }
-   CALL FAR PTR [ShowMouseProc];                      { Call show mouse }
-   JMP @@Exit;                                        { Now exit }
-@@UseMouseInt:
-   MOV AX, $1;                                        { Load function id }
-   PUSH BP;                                           { Safety!! save reg }
-   INT $33;                                           { Show the mouse }
-   POP BP;                                            { Restore register }
-@@Exit:
-END;
-{$ENDIF}
-{$IFDEF ASM_FPC}                                      { FPC COMPATABLE ASM }
-ASM
-   CMPB $0, MouseEvents;                              { Check mouse system }
-   JZ .L_Exit;                                        { Branch if not active }
-   MOVL ShowMouseProc, %EAX;                          { Fetch address }
-   ORL %EAX, %EAX;                                    { Check for nil ptr }
-   JZ .L_UseMouseInt;                                 { Branch if nil }
-   CALL ShowMouseProc;                                { Call show mouse }
-   JMP .L_Exit;                                       { Now exit }
-.L_UseMouseInt:
-   MOVW $1, %AX;                                      { Load function id }
-   PUSHL %EBP;                                        { Save regigister }
-   INT $0x33;                                         { Hide the mouse }
-   POPL %EBP;                                         { Restore register }
-.L_Exit:
-END;
-{$ENDIF}
-
-
-{$ifndef Use_API}
-{---------------------------------------------------------------------------}
-{  HookMouse -> Platforms DOS/DPMI - Updated 27Aug98 LdB                    }
-{---------------------------------------------------------------------------}
-PROCEDURE HookMouse;
-BEGIN
-   {$IFDEF ASM_BP}                                    { BP COMPTABABLE ASM }
-   ASM
-     MOV AX, $000C;                                   { Set user interrupt }
-     MOV CX, $FFFF;                                   { For all event masks }
-     MOV DX, OFFSET CS:MouseInt;                      { Mouse int is hook }
-     PUSH CS;                                         { Push code segment }
-     POP ES;                                          { ES:DX -> MouseInt }
-     PUSH BP;                                         { Safety!! save reg }
-     INT $33;                                         { Hook the routine }
-     POP BP;                                          { Restore register }
-   END;
-   {$ENDIF}
-   {$IFDEF ASM_FPC}                                   { FPC COMPATABLE ASM }
-     {$IFDEF GO32V2}                                  { GO32V2 CODE }
-     Lock_Code(Pointer(@Mouse_Trap), 400);            { Lock trap code }
-     Lock_Data(ActionRegs, SizeOf(ActionRegs));       { Lock registers }
-     {$ENDIF}
-   Mouse_Action(-1, @MouseInt);                       { Set masks/interrupt }
-   {$ENDIF}
-END;
-
-
-{---------------------------------------------------------------------------}
-{  UnHookMouse -> Platforms DOS/DPMI - Updated 27Aug98 LdB                  }
-{---------------------------------------------------------------------------}
-PROCEDURE UnHookMouse;
-BEGIN
-   {$IFDEF ASM_BP}                                    { BP COMPATABLE ASM }
-   ASM
-     MOV AX, $000C;                                   { Set user interrupt }
-     XOR CX, CX;                                      { Clear all masks }
-     XOR DX, DX;                                      { Clear register }
-     MOV ES, CX;                                      { ES:DX -> Nil }
-     PUSH BP;                                         { Safety!! save reg }
-     INT $33;                                         { Release mouse hook }
-     POP BP;                                          { Restore register }
-   END;
-   {$ENDIF}
-   {$IFDEF ASM_FPC}                                   { FPC COMPATABLE ASM }
-   Mouse_Action(0, Nil);                              { Clear mask/interrupt }
-     {$IFDEF GO32V2}                                  { GO32V2 CODE }
-     Unlock_Code(Pointer(@Mouse_Trap), 400);          { Release trap code }
-     Unlock_Data(ActionRegs, SizeOf(TRealRegs));      { Release registers }
-     {$ENDIF}
-   {$ENDIF}
-END;
-
-{---------------------------------------------------------------------------}
-{  GetMousePosition -> Platforms DOS/DPMI - Updated 19May98 LdB             }
-{---------------------------------------------------------------------------}
-PROCEDURE GetMousePosition (Var X, Y: sw_Integer); ASSEMBLER;
-{$IFDEF ASM_BP}                                       { BP COMPATABLE ASM }
-ASM
-   MOV AX, $3;                                        { Set function id }
-   PUSH BP;                                           { Safety!! save reg }
-   INT $33;                                           { Get button data }
-   POP BP;                                            { Restore register }
-   LES DI, X;                                         { Adress of x }
-   MOV ES:[DI], CX;                                   { Return x position }
-   LES DI, Y;                                         { Adress of y }
-   MOV ES:[DI], DX;                                   { Return y position }
-END;
-{$ENDIF}
-{$IFDEF ASM_FPC}                                      { FPC COMPATABLE ASM }
-ASM
-   MOVW $3, %AX;                                      { Set function id }
-   PUSHL %EBP;                                        { Save register }
-   INT $0x33;                                         { Get button data }
-   POPL %EBP;                                         { Restore register }
-   MOVL X, %EDI;                                      { Adress of x }
-   MOVW %CX, (%EDI);                                  { Return x position }
-   MOVL Y, %EDI;                                      { Adress of y }
-   MOVW %DX, (%EDI);                                  { Return y position }
-END;
-{$ENDIF}
-{$endif not Use_API}
-
-{$ENDIF}
-
-{$IFDEF USE_API}
-{$IFNDEF OS_DOS}
 PROCEDURE ShowMouseCursor;
 BEGIN
   ShowMouse;
@@ -1342,9 +715,6 @@ PROCEDURE HideMouseCursor;
 BEGIN
   HideMouse;
 END;
-
-{$ENDIF not OS_DOS}
-{$ENDIF USE_API}
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {               DOS/DPMI/WIN/NT/OS2 PRIVATE INTERNAL ROUTINES               }
@@ -1357,10 +727,8 @@ PROCEDURE ExitDrivers; {$IFNDEF OS_LINUX} FAR; {$ENDIF}
 BEGIN
    DoneSysError;                                      { Relase error trap }
    DoneEvents;                                        { Close event driver }
-{$ifdef Use_API}
    DoneKeyboard;
    DoneVideo;
-{$endif Use_API}
    ExitProc := SaveExit;                              { Restore old exit }
 END;
 
@@ -1481,70 +849,10 @@ END;
 
 {---------------------------------------------------------------------------}
 {  DetectMouse -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 19May98 LdB       }
-{$ifdef Use_API}
 FUNCTION DetectMouse: Byte;
 begin
   DetectMouse:=Mouse.DetectMouse;
 end;
-{$else not Use_API}
-{---------------------------------------------------------------------------}
-FUNCTION DetectMouse: Byte;
-{$IFDEF OS_DOS}                                       { DOS/DPMI CODE }
-   {$IFDEF ASM_BP}                                    { BP COMPATABLE ASM }
-   ASSEMBLER;
-   ASM
-     MOV AX, $3533;                                   { Set function id }
-     PUSH BP;                                         { Safety!! save reg }
-     INT $21;                                         { Get mouse interrupt }
-     POP BP;                                          { Restore register }
-     MOV AX, ES;                                      { Transfer register }
-     OR AX, BX;                                       { Check for nil ptr }
-     JZ @@Exit2;                                      { Jump no mouse driver }
-     XOR AX, AX;                                      { Set function id }
-     PUSH BP;                                         { Safety!! save reg }
-     INT $33;                                         { Reset mouse }
-     POP BP;                                          { Restore register }
-     OR AX, AX;                                       { Check for success }
-     JZ @@Exit2;                                      { Reset mouse failed }
-     MOV AX, BX;                                      { Return button count }
-   @@Exit2:
-   END;
-   {$ENDIF}
-   {$IFDEF ASM_FPC}                                   { FPC COMPATABLE ASM }
-   ASSEMBLER;
-   ASM
-     MOVW $0x200, %AX;                                { Get real mode int }
-     MOVW $0x33, %BX;                                 { Vector 33H }
-     PUSHL %EBP;                                      { Save register }
-     INT $0x31;                                       { Get the address }
-     POPL %EBP;                                       { Restore register }
-     MOVW %CX, %AX;                                   { Transfer register }
-     ORW %DX, %AX;                                    { Check for nil ptr }
-     JZ .L_Exit2;                                     { Jump no mouse driver }
-     XORW %AX, %AX;                                   { Set function id }
-     PUSHL %EBP;                                      { Save register }
-     INT $0x33;                                       { Reset mouse driver }
-     POPL %EBP;                                       { Restore register }
-     ORW %AX, %AX;                                    { Check for success }
-     JZ .L_Exit2;                                     { Reset mouse failed }
-     MOVW %BX, %AX;                                   { Return button count }
-   .L_Exit2:
-   END;
-   {$ENDIF}
-{$ENDIF}
-{$IFDEF OS_WINDOWS}                                   { WIN/NT CODE }
-BEGIN
-   If (GetSystemMetrics(sm_MousePresent) <> 0) Then
-     DetectMouse := 2 Else DetectMouse := 0;          { Buttons present }
-END;
-{$ENDIF}
-{$IFDEF OS_OS2}                                       { OS2 CODE }
-BEGIN
-   DetectMouse := WinQuerySysValue(HWND_Desktop,
-     SV_CMouseButtons);                               { Buttons present }
-END;
-{$ENDIF}
-{$endif not Use_API}
 
 {***************************************************************************}
 {                            INTERFACE ROUTINES                             }
@@ -1703,7 +1011,6 @@ BEGIN
      End;
 END;
 
-{$ifdef Use_API}
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                        KEYBOARD CONTROL ROUTINES                          }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -1856,604 +1163,6 @@ begin
    FillChar(Event,sizeof(TEvent),0);
 end;
 
-{$else not Use_API}
-{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
-{                        KEYBOARD CONTROL ROUTINES                          }
-{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
-
-{---------------------------------------------------------------------------}
-{  GetShiftState -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 08Jul96 LdB     }
-{---------------------------------------------------------------------------}
-FUNCTION GetShiftState: Byte;
-{$IFDEF OS_DOS}                                       { DOS/DPMI CODE }
-   {$IFDEF ASM_BP}                                    { BP COMPATABLE ASM }
-   ASSEMBLER;
-   ASM
-     MOV ES, Seg0040;                                 { Load DOS segment }
-     XOR AX, AX;
-     MOV DX, AX;                                      { Clear registers }
-     MOV AL, ES:[$0017];                              { Read shift state }
-   END;
-   {$ENDIF}
-   {$IFDEF ASM_FPC}                                   { FPC COMPATABLE ASM }
-   BEGIN
-   ASM
-     MOVW $0x0200, %AX;                               { Set function id }
-     PUSHL %EBP;                                      { Save register }
-     INT $0x16;                                       { Get shift status }
-     POPL %EBP;                                       { Restore register }
-   END;
-   END;
-   {$ENDIF}
-{$ENDIF}
-{$IFDEF OS_WINDOWS}                                   { WIN/NT CODE }
-CONST vk_Scroll = $91;                                { Borland forgot this! }
-VAR B: Byte;
-BEGIN
-   B := 0;                                            { Clear all masks }
-   If (GetKeyState(vk_Shift) AND $80 <> 0) Then
-     B := B OR kbBothShifts;                          { Set both shifts }
-   If (GetKeyState(vk_Control) AND $80 <> 0) Then
-     B := B OR kbCtrlShift;                           { Set control mask }
-   If (GetKeyState(vk_Menu) AND $80 <> 0) Then
-     B := B OR kbAltShift;                            { Set alt mask }
-   If (GetKeyState(vk_Scroll) AND $81 <> 0) Then
-     B := B OR kbScrollState;                         { Set scroll lock mask }
-   If (GetKeyState(vk_NumLock) AND $81 <> 0) Then
-     B := B OR kbNumState;                            { Set number lock mask }
-   If (GetKeyState(vk_Capital) AND $81 <> 0) Then
-     B := B OR kbCapsState;                           { Set caps lock mask }
-   If (GetKeyState(vk_Insert) AND $81 <> 0) Then
-     B := B OR kbInsState;                            { Set insert mask }
-   GetShiftState := B;                                { Return masks }
-END;
-{$ENDIF}
-{$IFDEF OS_OS2}                                       { OS2 CODE }
-VAR Key: KbdInfo;
-BEGIN
-   Key.cb := SizeOf(Key);                             { Keyboard size }
-   If KbdGetStatus(Key, 0) = 0 Then                   { Get key status }
-     GetShiftState := Key.fsState Else                { Return shift state }
-     GetShiftState := 0;                              { Failed so return 0 }
-END;
-{$ENDIF}
-
-{---------------------------------------------------------------------------}
-{  GetKeyEvent -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Jul99 LdB       }
-{---------------------------------------------------------------------------}
-PROCEDURE GetKeyEvent (Var Event: TEvent);
-{$IFDEF OS_DOS}                                       { DOS/DPMI CODE }
-ASSEMBLER;
-   {$IFDEF ASM_BP}                                    { BP COMPATABLE ASM }
-   ASM
-     MOV AH, $1;                                      { Set function id }
-     PUSH BP;                                         { Safety!! save reg }
-     INT $16;                                         { Check for keypress }
-     POP BP;                                          { Restore register }
-     MOV AX, $0;                                      { Zero register AX }
-     MOV BX, AX;                                      { Zero register BX }
-     JZ @@Exit3;                                      { No keypress jump }
-     MOV AH, $00;                                     { Set function id }
-     PUSH BP;                                         { Safety!! save reg }
-     INT $16;                                         { Read the key }
-     POP BP;                                          { Restore register }
-     XCHG AX, BX;                                     { Exchange registers }
-     MOV AX, evKeyDown;                               { Set keydown event }
-   @@Exit3:
-     LES DI, Event;                                   { ES:DI -> Event }
-     MOV ES:[DI].TEvent.What, AX;                     { Store event mask }
-     MOV ES:[DI].TEvent.KeyCode, BX;                  { Store key code }
-   END;
-   {$ENDIF}
-   {$IFDEF ASM_FPC}                                   { FPC COMPATABLE ASM }
-   ASM
-     MOVB $1, %AH;                                    { Set function id }
-     PUSHL %EBP;                                      { Save register }
-     INT $0x16;                                       { Check for keypress }
-     POPL %EBP;                                       { Restore register }
-     MOVW $0x0, %AX;                                  { Zero register AX }
-     MOVW %AX, %BX;                                   { Zero register BX }
-     JZ .L_Exit3;                                     { No keypress jump }
-     MOVB $0, %AH;                                    { Set function id }
-     PUSHL %EBP;                                      { Save register }
-     INT $0x16;                                       { Read the key }
-     POPL %EBP;                                       { Restore register }
-     XCHGW %BX, %AX;                                  { Exchange registers }
-     MOVW $0x10, %AX;                                 { Set keydown event }
-   .L_Exit3:
-     MOVL Event, %EDI;                                { EDI -> Event }
-     CLD;
-     STOSW;                                           { Store event mask }
-     XCHGW %BX, %AX;                                  { Transfer key code }
-     STOSW;                                           { Store key code }
-   END;
-   {$ENDIF}
-{$ENDIF}
-{$IFDEF OS_WINDOWS}                                   { WIN/NT CODE }
-CONST NumPos: Byte = 0; Numeric: Byte = 0;
-VAR Handled: Boolean; B: Byte; Msg: TMsg;
-BEGIN
-   Event.What := evNothing;                           { Preset no event }
-   {$IFDEF PPC_FPC}                                   { FPC WINDOWS COMPILER }
-   If (PeekMessage(@Msg, 0, 0, WM_MouseFirst-1, pm_Remove)
-   OR PeekMessage(@Msg, 0, WM_MouseLast+1, $FFFF, pm_Remove))
-   {$ELSE}                                            { OTHER COMPILERS }
-   If (PeekMessage(Msg, 0, 0, WM_MouseFirst-1, pm_Remove)
-   OR PeekMessage(Msg, 0, WM_MouseLast+1, $FFFF, pm_Remove))
-   {$ENDIF}
-   Then Begin                                         { Non mouse message }
-     Handled := False;                                { Preset not handled }
-     Case Msg.Message Of
-       WM_Char: Begin                                 { CHARACTER KEY }
-         NumPos := 0;                                 { Zero number position }
-         Event.CharCode := Char(Msg.wParam);          { Transfer character }
-         If (Event.CharCode > #127) Then
-           Event.CharCode := Chr(WinAsciiToIntAscii[
-             Ord(Event.CharCode)]);                   { Convert to ascii }
-         Event.ScanCode := Lo(HiWord(Msg.lParam));    { Transfer scan code }
-         If (Event.CharCode <> #0) Then Begin         { If valid key then }
-           Event.What := evKeyDown;                   { Key down event }
-           Handled := True;                           { Message was handled }
-           If (Event.KeyCode = kbTab) AND             { Tab key is special }
-           (GetShiftState AND kbBothShifts <> 0) Then { Check shift state }
-             Event.KeyCode := kbShiftTab;             { If set make shifttab }
-         End;
-       End;
-       WM_SysKeyDown: Begin                           { SYSTEM KEY DOWN }
-         If (NumPos > 0) Then Begin                   { Numerics entry op }
-           Case Msg.wParam Of
-             VK_Insert: Begin                         { Insert key }
-               If (GetShiftState AND kbAltShift <> 0) { Alt key down }
-               Then Begin
-                 Event.What := evKeyDown;             { Key down event }
-                 Event.KeyCode := kbAltIns;           { Alt + Ins key }
-                 Handled := True;                     { Set key handled }
-                 Exit;                                { Now exit }
-               End;
-               B := 0;                                { Key value = 0 }
-             End;
-             VK_End: B := 1;                          { Key value = 1 }
-             VK_Down: B := 2;                         { Key value = 2 }
-             VK_Next: B := 3;                         { Key value = 3 }
-             VK_Left: B := 4;                         { Key value = 4 }
-             VK_Clear: B := 5;                        { Key value = 5 }
-             VK_Right: B := 6;                        { Key value = 6 }
-             VK_Home: B := 7;                         { Key value = 7 }
-             VK_Up: B := 8;                           { Key value = 8 }
-             VK_Prior: B := 9;                        { Key value = 9 }
-             VK_NumPad0..VK_NumPad9: B := Msg.wParam
-               - $60;                                 { Numbic key pad }
-             Else NumPos := 0;                        { Invalid key }
-           End;
-           If ((NumPos > 0) AND (NumPos < 4)) AND     { Valid position }
-           ((B >= $0) AND (B <= $9)) Then Begin       { Valid key }
-             Numeric := Numeric*10 + B;               { Adjust numeric }
-             Inc(NumPos);                             { Next position }
-             If (NumPos = 4) Then Begin               { We have three keys }
-               Event.What := evKeyDown;               { Set keydown event }
-               Event.CharCode := Chr(Numeric);        { Transfer code }
-               NumPos := 0;                           { Zero number position }
-             End;
-             Handled := True;                         { Message was handled }
-           End Else NumPos := 0;                      { Zero number position }
-         End;
-         If (Msg.WParam = vk_Menu) Then Begin         { ALT key down }
-           Numeric := 0;                              { Zero numeric }
-           NumPos := 1;                               { Set to start point }
-           Handled := True;                           { Message was handled }
-         End;
-         If NOT Handled Then Begin                    { Key press not handled }
-           If (Lo(Msg.wParam) < 128) Then Begin       { Ignore if above 128 }
-             If (Msg.wParam = vk_F10) Then Begin      { F10 reports oddly }
-               If (GetKeyState(vk_Shift) AND $80 <> 0)
-                 Then Event.KeyCode := kbShiftF10 Else{ Shift F10 }
-               If (GetKeyState(vk_Menu) AND $80 <> 0)
-                 Then Event.KeyCode := kbAltF10 Else  { Alt F10 }
-               If (GetKeyState(vk_Control) AND $80 <> 0)
-                 Then Event.KeyCode := kbCtrlF10      { Ctrl F10 }
-               Else Event.KeyCode := kbF10;           { Normal F10 }
-             End Else Event.KeyCode :=
-               AltVirtualToAscii[Lo(Msg.wParam)];     { Convert key code }
-           End Else Event.KeyCode := 0;               { Clear Event.keycode }
-           If (Event.KeyCode <> 0) Then Begin         { If valid key then }
-             Event.What := evKeyDown;                 { Key down event }
-             Handled := True;                         { Message was handled }
-           End;
-         End;
-       End;
-       WM_KeyDown: Begin                              { ARROWS/F1..F12 KEYS }
-         If (((Msg.WParam >= Vk_F1) AND (Msg.WParam <= Vk_F12)) OR
-        ((Msg.WParam >= Vk_Prior) AND (Msg.WParam <= Vk_Delete)))
-         Then Begin                                   { Special key press }
-           Event.CharCode := #0;                      { Clear char code }
-           Event.ScanCode := Lo(HiWord(Msg.LParam));  { Create scan code }
-           If (GetKeyState(vk_Shift) AND $80 <> 0)
-           Then Begin                                 { Shift key down }
-             Case Msg.wParam Of
-               vk_F1..vk_F9: Event.KeyCode :=
-                 Event.KeyCode + $1900;               { Shift F1..F9 keys }
-               vk_F11: Event.KeyCode := kbShiftF11;   { Shift F11 key }
-               vk_F12: Event.KeyCode := kbShiftF12;   { Shift F12 key }
-             End;
-           End Else If (GetKeyState(vk_Control) AND $80 <> 0)
-           Then Begin                                 { Control key down }
-             Case Msg.wParam Of
-               vk_F1..vk_F9: Event.KeyCode :=
-                 Event.KeyCode + $2300;               { Ctrl F1..F9 keys }
-               vk_F11: Event.KeyCode := kbCtrlF11;    { Ctrl F11 key }
-               vk_F12: Event.KeyCode := kbCtrlF12;    { Ctrl F12 key }
-             End;
-           End;
-           If (Event.KeyCode <> 0) Then Begin         { If valid key then }
-             Event.What := evKeyDown;                 { Key down event }
-             Handled := True;                         { Message was handled }
-           End;
-         End;
-         NumPos := 0;                                 { Zero number position }
-       End;
-     End;
-     If NOT Handled Then Begin                        { Check we did not handle }
-       TranslateMessage(Msg);                         { Translate message }
-       DispatchMessage(Msg);                          { Dispatch message }
-     End;
-   End;
-END;
-{$ENDIF}
-{$IFDEF OS_OS2}                                       { OS2 CODE }
-VAR Msg: QMsg;
-BEGIN
-   Event.What := evNothing;                           { Preset no event }
-   If (WinPeekMsg(Anchor, Msg, 0, 0, WM_MouseFirst-1, pm_Remove)
-   OR WinPeekMsg(Anchor, Msg, 0, WM_MouseLast+1, $FFFFFFFF, pm_Remove))
-   Then Begin                                         { Check for message }
-     If (Msg.Msg = WM_Char) AND                       { Character message }
-     (Msg.Mp1 AND KC_KeyUp <> 0) AND                  { Key released }
-     (Msg.Mp1 AND KC_Composite = 0)                   { Not composite key }
-     Then Begin
-       If (Short1FromMP(Msg.Mp1) AND KC_ScanCode <> 0 )
-       Then Begin
-         Event.ScanCode := Ord(Char4FromMP(Msg.Mp1)); { Return scan code }
-         Event.CharCode := Char1FromMP(Msg.Mp2);      { Return char code }
-         If (Event.CharCode = Chr($E0)) Then Begin
-           Event.CharCode := #0;
-           Event.ScanCode := Byte(Char2FromMP(Msg.Mp2));
-         End;
-         If (Event.KeyCode <> 0) Then
-           Event.What := evKeyDown;                   { Key down event }
-       End;
-     End;
-     If (Event.What = evNothing) Then                 { Event not handled }
-       WinDispatchMsg(Anchor, Msg);                   { Disptach message }
-   End;
-END;
-{$ENDIF}
-
-{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
-{                          MOUSE CONTROL ROUTINES                           }
-{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
-
-{---------------------------------------------------------------------------}
-{  HideMouse -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Jun98 LdB         }
-{---------------------------------------------------------------------------}
-PROCEDURE HideMouse;
-BEGIN
-   If (HideCount = 0) Then Begin                      { Is mouse hidden yet? }
-     {$IFDEF OS_DOS}                                  { DOS/DPMI CODE }
-     HideMouseCursor;                                 { Hide mouse cursor }
-     {$ENDIF}
-     {$IFDEF OS_WINDOWS}                              { WIN/NT CODE }
-     ShowCursor(False);                               { Hide mouse cursor }
-     {$ENDIF}
-     {$IFDEF OS_OS2}                                  { OS2 CODE }
-     If (AppWindow <> 0) Then                         { Window valid }
-       WinShowCursor(AppWindow, False);               { Hide mouse cursor }
-     {$ENDIF}
-   End;
-   Inc(HideCount);                                    { Inc hide count }
-END;
-
-{---------------------------------------------------------------------------}
-{  ShowMouse -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Jun98 LdB         }
-{---------------------------------------------------------------------------}
-PROCEDURE ShowMouse;
-BEGIN
-   Dec(HideCount);                                    { Dec hide count }
-   If (HideCount = 0) Then Begin                      { Is mouse visible? }
-     {$IFDEF OS_DOS}                                  { DOS/DPMI CODE }
-     ShowMouseCursor;                                 { Show mouse cursor }
-     {$ENDIF}
-     {$IFDEF OS_WINDOWS}                              { WIN/NT CODE }
-     ShowCursor(True);                                { Show mouse cursor }
-     {$ENDIF}
-     {$IFDEF OS_OS2}                                  { OS2 CODE }
-     If (AppWindow <> 0) Then                         { Window valid }
-       WinShowCursor(AppWindow, True);                { Show mouse cursor }
-     {$ENDIF}
-   End;
-END;
-
-{---------------------------------------------------------------------------}
-{  GetMouseEvent -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 09Sep98 LdB     }
-{---------------------------------------------------------------------------}
-PROCEDURE GetMouseEvent (Var Event: TEvent);
-{$IFDEF OS_DOS}                                       { DOS/DPMI CODE }
-ASSEMBLER;
-   {$IFDEF ASM_BP}                                    { BP COMPATABLE ASM }
-ASM
-   CMP MouseEvents, 0;                                { Any mouse events }
-   JNZ @@MouseOk;                                     { Check mouse active }
-   JMP @@NoEventExit;                                 { Mouse not active }
-@@MouseOk:
-   CLI;                                               { Disable interrupts }
-   CMP EventCount, 0;                                 { Check event count  }
-   JNE @@MouseEventInQueue;                           { If > 0 event avail }
-   MOV BL, MouseButtons;                              { Fetch mouse buttons }
-   MOV CX, MouseWhere.Word[0];                        { Fetch mouse where.x }
-   MOV DX, MouseWhere.Word[2];                        { Fetch mouse where.y }
-   MOV ES, Seg0040;                                   { DOS DAT SEG }
-   MOV DI, ES:Ticks;                                  { Fetch current time }
-   JMP @@NextMsgReady;                                { Now process }
-@@MouseEventInQueue:
-   MOV SI, WORD PTR EventQHead;                       { Event queue head }
-   CLD;                                               { Direction forward  }
-   LODSW;                                             { Fetch word 1 }
-   XCHG AX, DI;                                       { Set timer ticks }
-   LODSW;                                             { Fetch word 2 }
-   XCHG AX, BX;                                       { Set button masks }
-   LODSW;                                             { Fetch word 3 }
-   XCHG AX, CX;                                       { Set mouse x position }
-   LODSW;                                             { Fetch word 4 }
-   XCHG AX, DX;                                       { Set mouse y position }
-   CMP SI, OFFSET EventQLast;                         { Check if roll needed }
-   JNE @@NoRoll;
-   MOV SI, OFFSET EventQueue;                         { Roll back to start }
-@@NoRoll:
-   MOV WORD PTR EventQHead, SI;                       { Update queue head }
-   DEC EventCount;                                    { One event cleared }
-@@NextMsgReady:
-   STI;                                               { Enable interrupts }
-   CMP MouseReverse, 0;                               { Check mouse reversed }
-   JE @@MouseNormal;
-   MOV BH, BL;                                        { Transfer button mask }
-   AND BH, 3;                                         { Clear others masks }
-   JE @@MouseNormal;                                  { Neither set exit }
-   CMP BH, 3;                                         { Check not all set }
-   JE @@MouseNormal;                                  { Both set exit }
-   XOR BL, 3;                                         { Invert button masks }
-@@MouseNormal:
-   MOV BH, [LastDouble];                              { Load last double }
-   MOV AL, [LastButtons];                             { Load last buttons }
-   CMP AL, BL;                                        { Are buttons same? }
-   JE @@SameButtonsDown;
-   OR AL, AL;                                         { Any last buttons? }
-   JE @@ButtonsDown;
-   OR BL, BL;                                         { Any buttons down? }
-   JE @@MouseUp;
-   MOV BL, AL;                                        { Transfer new buttons }
-@@SameButtonsDown:
-   CMP CX, [LastWhereX];                              { Mouse moved from x }
-   JNE @@MouseMove;
-   CMP DX, [LastWhereY];                              { Mouse moved from y }
-   JNE @@MouseMove;
-   OR BL, BL;                                         { Any buttons pressed? }
-   JE @@NoButtonsDown;
-   MOV AX, DI;                                        { Current tick count }
-   SUB AX, [AutoTicks];                               { Subtract last count }
-   CMP AX, [AutoDelay];                               { Greater than delay? }
-   JAE @@MouseAuto;                                   { Mouse auto event }
-@@NoButtonsDown:
-   JMP @@NoEventExit;                                 { No event exit }
-@@ButtonsDown:
-   MOV BH, 0;                                         { Preset no dbl click  }
-   CMP BL, [DownButtons];                             { Check to last down }
-   JNE @@MouseDown;
-   CMP CX, [DownWhereX];                              { Check x position }
-   JNE @@MouseDown;
-   CMP DX, [DownWhereY];                              { Check y position }
-   JNE @@MouseDown;
-   MOV AX, DI;                                        { Transfer tick count }
-   SUB AX, [DownTicks];                               { Sub last down count }
-   CMP AX, [DoubleDelay];                             { Greater than delay? }
-   JAE @@MouseDown;
-   MOV BH, 1;                                         { Double click }
-@@MouseDown:
-   MOV [DownButtons], BL;                             { Hold down buttons }
-   MOV [DownWhereX], CX;                              { Hold x down point }
-   MOV [DownWhereY], DX;                              { Hold y down point }
-   MOV [DownTicks], DI;                               { Hold tick value }
-   MOV [AutoTicks], DI;                               { Hold tick value }
-   MOV AX, [RepeatDelay];                             { Load delay count }
-   MOV [AutoDelay], AX;                               { Set delay time }
-   MOV AX, evMouseDown;                               { Mouse down event }
-   JMP @@UpdateValues;                                { Update, svae & exit }
-@@MouseUp:
-   MOV AX, evMouseUp;                                 { Mouse button up }
-   JMP @@UpdateValues;                                { Update, save & exit }
-@@MouseMove:
-   MOV AX, evMouseMove;                               { Mouse has moved }
-   JMP @@UpdateValues;                                { Update, save & exit }
-@@MouseAuto:
-   MOV AX, evMouseAuto;                               { Mouse auto event }
-   MOV [AutoTicks], DI;                               { Reset auto ticks }
-   MOV [AutoDelay], 1;                                { Reset delay count }
-@@UpdateValues:
-   MOV [LastButtons], BL;                             { Save last buttons }
-   MOV [LastDouble], BH;                              { Save double state }
-   MOV [LastWhereX], CX;                              { Save x position }
-   MOV [LastWhereY], DX;                              { Save y position }
-   JMP @@StoreAndExit;                                { Now store and exit }
-@@NoEventExit:
-   XOR AX, AX;                                        { Clear register }
-   MOV BX, AX;                                        { Clear register }
-   MOV CX, AX;                                        { Clear register }
-   MOV DX, AX;                                        { Clear register }
-@@StoreAndExit:
-   LES DI, Event;                                     { Address of event }
-   CLD;                                               { Set direction fwd }
-   STOSW;                                             { Save 1st word }
-   XCHG AX, BX;                                       { Transfer register }
-   STOSW;                                             { Save 2nd word }
-   XCHG AX, CX;                                       { Transfer register }
-   STOSW;                                             { Save 3rd word }
-   XCHG AX, DX;                                       { Transfer register }
-   STOSW;                                             { Save 4th word }
-END;
-   {$ENDIF}
-   {$IFDEF ASM_FPC}                                   { FPC COMPATABLE ASM }
-ASM
-   CMPB $0, MOUSEEVENTS;                              { Any mouse events }
-   JNZ .L_MouseOk;                                    { Check mouse active }
-   JMP .L_NoEventExit;                                { Mouse not active }
-.L_MouseOk:
-   CLI;
-   CMPW $0, EVENTCOUNT;                               { Check event count  }
-   JNE .L_MouseEventInQueue;                          { If > 0 event avail }
-   MOVB MOUSEBUTTONS, %BL;                            { Fetch mouse buttons }
-   MOVW MOUSEWHERE, %CX;                              { Fetch mouse where.x }
-   MOVW MOUSEWHERE+2, %DX;                            { Fetch mouse where.y }
-   PUSH %ES;                                          { Save segment }
-   MOVW $0x40, %AX;                                   { Fetch DOS segment }
-   MOVW %AX, %ES;                                     { Transfer to segment }
-   MOVL $0x6C, %EDI;                                  { Tick address }
-   MOVW %ES:(%EDI), %DI;                              { Fetch dos tick count }
-   POP %ES;                                           { Recover segment }
-   JMP .L_NextMsgReady;                               { Now process }
-.L_MouseEventInQueue:
-   MOVL EVENTQHEAD, %ESI;                             { Event queue head }
-   CLD;                                               { Direction forward  }
-   LODSW;                                             { Fetch word 1 }
-   XCHGW %DI, %AX;                                    { Set timer ticks }
-   LODSW;                                             { Fetch word 2 }
-   XCHGW %BX, %AX;                                    { Set button masks }
-   LODSW;                                             { Fetch word 3 }
-   XCHGW %CX, %AX;                                    { Set mouse x position }
-   LODSW;                                             { Fetch word 4 }
-   XCHGW %DX, %AX;                                    { Set mouse y position }
-   LEAL EVENTQLAST, %EAX;                             { Address of roll pt }
-   CMPL %EAX, %ESI;                                   { Check if roll needed }
-   JNE .L_NoHeadRoll;
-   LEAL EVENTQUEUE, %ESI;                             { Roll back to start }
-.L_NoHeadRoll:
-   MOVL %ESI, EVENTQHEAD;                             { Update queue head }
-   DECW EVENTCOUNT;                                   { One event cleared }
-.L_NextMsgReady:
-   STI;                                               { Enable interrupts }
-   CMPB $0, MOUSEREVERSE;                             { Check mouse reversed }
-   JE .L_MouseNormal;
-   MOVB %BL, %BH;                                     { Transfer button mask }
-   ANDB $3, %BH;                                      { Clear others masks }
-   JE .L_MouseNormal;                                 { Neither set exit }
-   CMPB $3, %BH;                                      { Check not all set }
-   JE .L_MouseNormal;                                 { Both set exit }
-   XORB $3, %BL;                                      { Invert button masks }
-.L_MouseNormal:
-   MOVB LASTDOUBLE, %BH;                              { Load last double }
-   MOVB LASTBUTTONS, %AL;                             { Load last buttons }
-   CMPB %BL, %AL;                                     { Are buttons same? }
-   JE .L_SameButtonsDown;
-   ORB %AL, %AL;                                      { Any last buttons? }
-   JE .L_ButtonsDown;
-   ORB %BL, %BL;                                      { Any buttons down? }
-   JE .L_MouseUp;
-   MOVB %AL, %BL;                                     { Transfer new buttons }
-.L_SameButtonsDown:
-   CMPW LASTWHEREX, %CX;                              { Mouse moved from x }
-   JNE .L_MouseMove;
-   CMPW LASTWHEREY, %DX;                              { Mouse moved from y }
-   JNE .L_MouseMove;
-   ORB %BL, %BL;                                      { Any buttons pressed? }
-   JE .L_NoButtonsDown;
-   MOVW %DI, %AX;                                     { Current tick count }
-   SUBW AUTOTICKS, %AX;                               { Subtract last count }
-   CMPW AUTODELAY, %AX;                               { Greater than delay? }
-   JAE .L_MouseAuto;                                  { Mouse auto event }
-.L_NoButtonsDown:
-   JMP .L_NoEventExit;                                { No event exit }
-.L_ButtonsDown:
-   MOVB $0, %BH;                                      { Preset no dbl click  }
-   CMPB DOWNBUTTONS, %BL;                             { Check to last down }
-   JNE .L_MouseDown;
-   CMPW DOWNWHEREX, %CX;                              { Check x position }
-   JNE .L_MouseDown;
-   CMPW DOWNWHEREY, %DX;                              { Check y position }
-   JNE .L_MouseDown;
-   MOVW %DI, %AX;                                     { Transfer tick count }
-   SUBW DOWNTICKS, %AX;                               { Sub last down count }
-   CMPW DOUBLEDELAY, %AX;                             { Greater than delay? }
-   JAE .L_MouseDown;
-   MOVB $1, %BH;                                      { Double click }
-.L_MouseDown:
-   MOVB %BL, DOWNBUTTONS;                             { Hold down buttons }
-   MOVW %CX, DOWNWHEREX;                              { Hold x down point }
-   MOVW %DX, DOWNWHEREY;                              { Hold y down point }
-   MOVW %DI, DOWNTICKS;                               { Hold tick value }
-   MOVW %DI, AUTOTICKS;                               { Hold tick value }
-   MOVW REPEATDELAY, %AX;                             { Load delay count }
-   MOVW %AX, AUTODELAY;                               { Set delay time }
-   MOVW $1, %AX;                                      { Mouse down event }
-   JMP .L_UpdateValues;                               { Update, svae & exit }
-.L_MouseUp:
-   MOVW $2, %AX;                                      { Mouse button up }
-   JMP .L_UpdateValues;                               { Update, save & exit }
-.L_MouseMove:
-   MOVW $4, %AX;                                      { Mouse has moved }
-   JMP .L_UpdateValues;                               { Update, save & exit }
-.L_MouseAuto:
-   MOVW $8, %AX;                                      { Mouse auto event }
-   MOVW %DI, AUTOTICKS;                               { Reset auto ticks }
-   MOVW $1, AUTODELAY;                                { Reset delay count }
-.L_UpdateValues:
-   MOVB %BL, LASTBUTTONS;                             { Save last buttons }
-   MOVB %BH, LASTDOUBLE;                              { Save double state }
-   MOVW %CX, LASTWHEREX;                              { Save x position }
-   MOVW %DX, LASTWHEREY;                              { Save y position }
-   JMP .L_StoreAndExit;                               { Now store and exit }
-.L_NoEventExit:
-   XORW %AX, %AX;                                     { Clear register }
-   MOVW %AX, %BX;                                     { Clear register }
-   MOVW %AX, %CX;                                     { Clear register }
-   MOVW %AX, %DX;                                     { Clear register }
-.L_StoreAndExit:
-   MOVL Event, %EDI;                                  { Adress of event }
-   CLD;                                               { Set direction fwd }
-   STOSW;                                             { Save 1st word }
-   XCHGW %BX, %AX;                                    { Transfer register }
-   STOSW;                                             { Save 2nd word }
-   XCHGW %CX, %AX;                                    { Transfer register }
-   STOSW;                                             { Save 3rd word }
-   XCHGW %DX, %AX;                                    { Transfer register }
-   STOSW;                                             { Save 4th word }
-END;
-{$ENDIF}
-{$ENDIF}
-{$IFDEF OS_WINDOWS}                                   { WIN/NT CODE }
-VAR Msg: TMsg;
-BEGIN
-   Event.What := evNothing;                           { Preset no event }
-   {$IFDEF PPC_FPC}                                   { FPC WINDOWS COMPILER }
-   If PeekMessage(@Msg, 0, WM_MouseFirst,
-     WM_MouseLast, pm_Remove) Then Begin              { Fetch mouse message }
-   {$ELSE}                                            { OTHER COMPILERS }
-   If PeekMessage(Msg, 0, WM_MouseFirst,
-     WM_MouseLast, pm_Remove) Then Begin              { Fetch mouse message }
-   {$ENDIF}
-     TranslateMessage(Msg);                           { Translate message }
-     DispatchMessage(Msg);                            { Dispatch message }
-   End;
-END;
-{$ENDIF}
-{$IFDEF OS_OS2}                                       { OS2 CODE }
-VAR Msg: QMsg;
-BEGIN
-   Event.What := evNothing;                           { Preset no event }
-   If WinPeekMsg(Anchor, Msg, 0, WM_MouseFirst,
-   WM_MouseLast, pm_Remove) Then Begin                { Fetch mouse message }
-     WinDispatchMsg(Anchor, Msg);                     { Dispatch message }
-   End;
-END;
-{$ENDIF}
-{$endif not Use_API}
-
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                      EVENT HANDLER CONTROL ROUTINES                       }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -2463,7 +1172,6 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE InitEvents;
 BEGIN
-{$ifdef Use_API}
    If (ButtonCount <> 0) Then
     begin                   { Mouse is available }
      Mouse.InitMouse;                                 { Hook the mouse }
@@ -2480,33 +1188,6 @@ BEGIN
      LastWhereY:=MouseWhere.y;
      MouseEvents := True;                             { Set initialized flag }
    end;
-{$else not Use_API}
-   If (ButtonCount <> 0) Then Begin                   { Mouse is available }
-     {$IFDEF OS_DOS}                                  { DOS/DPMI CODE }
-     EventQHead := @EventQueue;                       { Initialize head }
-     EventQtail := @EventQueue;                       { Initialize tail }
-     LastDouble  := False;                            { Clear last double }
-     LastButtons := 0;                                { Clear last buttons }
-     DownButtons := 0;                                { Clear down buttons }
-     HookMouse;                                       { Hook the mouse }
-     GetMousePosition(MouseWhere.X, MouseWhere.Y);    { Get mouse position }
-     LastWhereX := MouseWhere.X;                      { Set last x position }
-     LastWhereY := MouseWhere.Y;                      { Set last y position }
-     MouseEvents := True;                             { Set initialized flag }
-     ShowMouseCursor;                                 { Show the mouse }
-     {$ENDIF}
-     {$IFDEF OS_WINDOWS}                              { WIN/NT CODE }
-     MouseEvents := True;                             { Set initialized flag }
-     {$ENDIF}
-     {$IFDEF OS_OS2}                                  { OS2 CODE }
-     If (Anchor=0) Then Anchor := WinInitialize(0);   { Create anchor block }
-     If (MsgQue = 0) AND (Anchor <> 0) Then
-       MsgQue := WinCreateMsgQueue(Anchor, 0);        { Initialize queue }
-     If (MsgQue = 0) Then Halt(254);                  { Check queue created }
-     MouseEvents := True;                             { Set initialized flag }
-     {$ENDIF}
-   End;
-{$endif not Use_API}
 END;
 
 {---------------------------------------------------------------------------}
@@ -2514,60 +1195,11 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE DoneEvents;
 BEGIN
-{$ifdef Use_API}
-{$else not Use_API}
-   If MouseEvents Then Begin                          { Initialized check }
-     {$IFDEF OS_DOS}                                  { DOS/DPMI CODE }
-     HideMouseCursor;                                 { Hide the mouse }
-     MouseEvents := False;                            { Clear event flag }
-     UnHookMouse;                                     { Unhook the mouse }
-     {$ENDIF}
-     {$IFDEF OS_WINDOWS}                              { WIN/NT CODE }
-     MouseEvents := False;                            { Clr initialized flag }
-     {$ENDIF}
-     {$IFDEF OS_OS2}                                  { OS2 CODE }
-     If (MsgQue <> 0) Then WinDestroyMsgQueue(MsgQue);{ Destroy msg queue }
-     If (Anchor <> 0) Then WinTerminate(Anchor);      { Destroy anchor block }
-     MsgQue := 0;                                     { Zero msg queue handle }
-     Anchor := 0;                                     { Zero anchor block }
-     MouseEvents := False;                            { Clr initialized flag }
-     {$ENDIF}
-   End;
-{$endif not Use_API}
 END;
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                           VIDEO CONTROL ROUTINES                          }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
-{$ifndef Use_API}
-{$IFDEF OS_DOS}                                       { DOS/DPMI CODE }
-{$IFDEF PPC_FPC}                                      { FPC COMPILER ONLY }
-{ ******************************* REMARK ****************************** }
-{   This is purely temporary for FPC because the Graph is SuperVGA you  }
-{  have no mouse pointer on screen because the mouse drivers don't go   }
-{  up to supporting SVGA modes. This simply makes a cross hair so you   }
-{  can see the mouse for now..will be fixed soon.                       }
-{ ****************************** END REMARK *** Leon de Boer, 04Nov99 * }
-VAR LastX, LastY: Integer;
-
-PROCEDURE ShowTheMouse; FAR;
-BEGIN
-   If (MouseEvents = True) AND (HideCount = 0)        { Mouse visible }
-   Then Begin
-     SetWriteMode(XORPut);                            { XOR write mode }
-     SetColor(15);                                    { Set color to white }
-     Line(LastX-5, LastY, LastX+5, LastY);            { Remove horz line  }
-     Line(LastX, LastY-5, LastX, LastY+5);            { Remove vert line }
-     LastX := MouseWhere.X;                           { Update x position }
-     LastY := MouseWHere.Y;                           { Update y position }
-     Line(LastX-5, LastY, LastX+5, LastY);            { Draw horz line }
-     Line(LastX, LastY-5, LastX, LastY+5);            { Draw vert line }
-     SetWriteMode(NormalPut);                         { Write mode to normal }
-   End;
-END;
-{$ENDIF}
-{$ENDIF}
-{$endif not Use_API}
 
 {---------------------------------------------------------------------------}
 {  InitVideo -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 26Nov99 LdB         }
@@ -2580,64 +1212,12 @@ VAR {$ifdef Use_API}I, J: Integer;
     {$IFDEF OS_OS2} Ts, Fs: Integer; Ps: HPs; Tm: FontMetrics; {$ENDIF}
     {$ENDIF}
 BEGIN
-   {$ifdef Use_API}
-   Video.InitVideo;
-   ScreenWidth:=Video.ScreenWidth;
-   ScreenHeight:=Video.ScreenHeight;
-   GetVideoMode(ScreenMode);
-   I := ScreenWidth*8 -1;                         { Mouse width }
-   J := ScreenHeight*8 -1;                        { Mouse height }
-   SysScreenWidth := I + 1;
-   SysScreenHeight := J + 1;
-   SysFontWidth := 8;                             { Font width }
-   SysFontHeight := 8;                            { Font height }
-   {$else not Use_API}
-   {$IFDEF OS_DOS}                                    { DOS/DPMI CODE }
-     If (TextModeGFV = True) Then Begin               { TEXT MODE GFV }
-       I := ScreenWidth*8 -1;                         { Mouse width }
-       J := ScreenHeight*8 -1;                        { Mouse height }
-       SysScreenWidth := I + 1;
-       SysScreenHeight := J + 1;
-     End Else Begin                                   { GRAPHICS MODE GFV }
-       I := Detect;                                   { Detect video card }
-       J := 0;                                        { Zero select mode }
-       InitGraph(I, J, '');                           { Initialize graphics }
-       I := GetMaxX;                                  { Fetch max x size }
-       J := GetMaxY;                                  { Fetch max y size }
-     End;
-     {$IFDEF PPC_FPC}                                 { FPC DOS COMPILER }
-     ASM
-       MOVW $7, %AX;                                  { Set function  id }
-       MOVW $0, %CX;                                  { Clear register }
-       MOVW I, %DX;                                   { Maximum x size }
-       INT $0x33;                                     { Set mouse x movement }
-       MOVW $8, %AX;                                  { Set function id }
-       MOVW $0, %CX;                                  { Clear register }
-       MOVW J, %DX;                                   { Maximum y size }
-       INT $0x33;                                     { Set mouse y movement }
-     END;
-     Lock_Code(Pointer(@ShowTheMouse), 400);          { Lock cursor code }
-     If (TextModeGFV <> True) Then Begin              { GRAPHICS MODE GFV }
-       MouseMoveProc := ShowTheMouse;                 { Set move function }
-       ShowMouseProc := ShowTheMouse;                 { Set show function }
-       HideMouseProc := ShowTheMouse;                 { Set hide function }
-     End;
-     {$ELSE}                                          { OTHER DOS COMPILERS }
-     ASM
-       MOV AX, 7;                                     { Set function  id }
-       XOR CX, CX;                                    { Clear register }
-       MOV DX, I;                                     { Maximum x size }
-       INT 33H;                                       { Set mouse x movement }
-       MOV AX, 8;                                     { Set function id }
-       XOR CX, CX;                                    { Clear register }
-       MOV DX, J;                                     { Maximum y size }
-       INT 33H;                                       { Set mouse y movement }
-     END;
-     {$ENDIF}
-     If (TextModeGFV = True) Then Begin               { TEXT MODE GFV }
-       SysFontWidth := 8;                             { Font width }
-       SysFontHeight := 8;                            { Font height }
-     End Else Begin                                   { GRAPHICS MODE GFV }
+{$ifdef GRAPH_API}
+    I := Detect;                                   { Detect video card }
+    J := 0;                                        { Zero select mode }
+    InitGraph(I, J, '');                           { Initialize graphics }
+    I := GetMaxX;                                  { Fetch max x size }
+    J := GetMaxY;                                  { Fetch max y size }
        If (DefFontHeight = 0) Then                    { Font height not set }
          J := (GetMaxY+1) DIV DefLineNum              { Approx font height }
          Else J := DefFontHeight;                     { Use set font height }
@@ -2651,110 +1231,19 @@ BEGIN
          SysFontWidth;                                { Calc screen width }
        ScreenHeight := (SysScreenHeight+1) DIV
          SysFontHeight;                               { Calc screen height }
-     End;
-   {$ENDIF}
-   {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
-     SysScreenWidth := GetSystemMetrics(
-       SM_CXFullScreen)-GetSystemMetrics(SM_CXFrame); { Max screen width }
-     SysScreenHeight := GetSystemMetrics(
-       SM_CYFullScreen);                              { Max screen height }
-     SystemParametersInfo(SPI_GETICONTITLELOGFONT,
-       SizeOf(TLogFont), @TempFont, 0);               { Get system font }
-     With TempFont Do Begin
-       If (DefFontHeight = 0) Then Begin              { Font height not set }
-         lfHeight := SysScreenHeight DIV DefLineNum;  { Best guess height }
-       End Else lfHeight := -DefFontHeight;           { Specific font height }
-       lfWidth         := 0;                          { No specific width }
-       lfEscapement    := 0;                          { No specifics }
-       lfOrientation   := 0;                          { Normal orientation }
-       lfWeight        := DefFontWeight;              { Default font weight }
-       lfItalic        := 0;                          { No italics }
-       lfUnderline     := 0;                          { No underlines }
-       lfStrikeOut     := 0;                          { No strikeouts }
-       lfCharSet       := ANSI_CharSet;               { ANSI font set }
-       lfOutPrecision  := Out_Default_Precis;         { Default precision out }
-       lfClipPrecision := Clip_Default_Precis;        { Default clip precision }
-       lfQuality       := Proof_Quality;              { Proof quality }
-       lfPitchAndFamily:= Variable_Pitch OR
-         Fixed_Pitch;                                 { Either fitch format }
-(*       {$IFDEF WESTERNS}
-       FillChar(lfFaceName, SizeOf(lfFaceName), #0);  { Clear memory area }
-       Move(DefFontStyle[1], lfFacename,
-         Length(DefFontStyle));                       { Transfer style name }
-       {$ELSE}
-       DefFontStyle[0] := Chr(StrLen(lfFacename));
-       Move(lfFacename, DefFontStyle[1], Ord(DefFontStyle[0]));
-       {$ENDIF}*)
-     End;
-     {$IFDEF PPC_FPC}                                 { FPC WINDOWS COMPILER }
-       DefGFVFont := CreateFontIndirect(@TempFont);   { Create a default font }
-     {$ELSE}
-       DefGFVFont := CreateFontIndirect(TempFont);    { Create a default font }
-     {$ENDIF}
-     Dc := GetDc(0);                                  { Get screen context }
-     Mem := CreateCompatibleDC(Dc);                   { Compatable context }
-     SelectObject(Mem, DefGFVFont);                   { Select the font }
-     {$IFDEF PPC_FPC}                                 { FPC WINDOWS COMPILER }
-       GetTextMetrics(Mem, @Tm);                      { Get text metrics }
-     {$ELSE}                                          { OTHER COMPILERS }
-       GetTextMetrics(Mem, Tm);                       { Get text metrics }
-     {$ENDIF}
-     SysFontWidth := Tm.tmaveCharWidth+1;             { Ave char font width }
-     SysFontHeight := Tm.tmHeight;                    { Ave char font height }
-     DeleteDc(Mem);                                   { Destroy context }
-     ReleaseDc(0, Dc);                                { Release context }
-   {$ENDIF}
-   {$IFDEF OS_OS2}                                    { OS2 CODE }
-     Ts := WinQuerySysValue(HWND_Desktop,
-       SV_CYTitleBar) + 2*WinQuerySysValue(HWND_Desktop,
-       SV_CYSizeBorder);                              { Title size }
-     Fs := 2*WinQuerySysValue(HWND_DeskTop,
-       SV_CXSizeBorder);                              { Frame size }
-     SysScreenWidth := WinQuerySysValue(HWND_Desktop,
-       SV_CXFullScreen) - Fs;                         { Max screen width }
-     SysScreenHeight := WinQuerySysValue(HWND_Desktop,
-       SV_CYFullScreen) - Ts;                         { Max screen height }
-     (*With DefGFVFont Do Begin
-       usRecordLength := SizeOf(fAttrs);              { Structure size }
-       fsSelection := $20;                              { Uses default selection }
-       lMatch := 0;                                   { Does not force match }
-       idRegistry := 0;                               { Uses default registry }
-       usCodePage := 850;                             { Code-page 850 }
-       If (DefFontHeight = 0) Then Begin              { Font height not set }
-         lMaxBaselineExt := SysScreenHeight DIV DefLineNum;  { Best guess height }
-       End Else lMaxBaselineExt := DefFontHeight;     { Specific font height }
-       lAveCharWidth := 0;                            { Req font default width }
-       fsType := 0;                                   { Uses default type }
-       fsFontUse := fAttr_FontUse_Nomix;              { Doesn't mix with graphics }
-       FillChar(szFaceName, SizeOf(szFaceName), #0);  { Clear memory area }
-       Move(DefFontStyle[1], szFacename,
-         Length(DefFontStyle));                       { Transfer style name }
-     End;*)
-     Ps := WinGetPS(HWND_Desktop);                    { Get desktop PS }
-     (*GpiCreateLogFont(Ps, Nil, 1, DefGFVFont);*)        { Create the font }
-     GpiQueryFontMetrics(Ps, SizeOf(Tm), Tm);         { Get text metrics }
-     SysFontWidth := Tm.lAveCharWidth+1;              { Transfer font width }
-     SysFontHeight := Tm.lMaxBaselineExt;             { Transfer font height }
-     WinReleasePS(Ps);                                { Release desktop PS }
-     DefPointer := WinQuerySysPointer(HWND_DESKTOP,
-       SPTR_ARROW, False);                            { Hold default pointer }
-   {$ENDIF}
-   {$IFNDEF OS_DOS}                                   { WIN/NT/OS2 ONLY }
-     ScreenWidth := SysScreenWidth DIV SysFontWidth;  { Calc screen width }
-     ScreenHeight := SysScreenHeight DIV SysFontHeight;{ Calc screen height }
-     SysScreenWidth := ScreenWidth * SysFontWidth;    { Actual width }
-     SysScreenHeight := ScreenHeight * SysFontHeight; { Actual height }
-     {$IFDEF OS_WINDOWS}                              { WIN/NT CODE }
-     Inc(SysScreenWidth, 2*GetSystemMetrics(SM_CXFrame));{ Max screen width }
-     Inc(SysScreenHeight, GetSystemMetrics(SM_CYCaption)
-       + GetSystemMetrics(SM_CYFrame));               { Max screen height }
-     {$ENDIF}
-     {$IFDEF OS_OS2}                                  { OS2 CODE }
-     Inc(SysScreenWidth, Fs);                         { Max screen width }
-     Inc(SysScreenHeight, Ts);                        { Max screen height }
-     {$ENDIF}
-   {$ENDIF}
-   {$endif not Use_API}
+{$else not GRAPH_API}
+   Video.InitVideo;
+   ScreenWidth:=Video.ScreenWidth;
+   ScreenHeight:=Video.ScreenHeight;
+   SetViewPort(0,0,ScreenWidth,ScreenHeight,true,true);
+   GetVideoMode(ScreenMode);
+   I := ScreenWidth*8 -1;                         { Mouse width }
+   J := ScreenHeight*8 -1;                        { Mouse height }
+   SysScreenWidth := I + 1;
+   SysScreenHeight := J + 1;
+   SysFontWidth := 8;                             { Font width }
+   SysFontHeight := 8;                            { Font height }
+{$endif not GRAPH_API}
 END;
 
 {---------------------------------------------------------------------------}
@@ -2762,39 +1251,10 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE DoneVideo;
 BEGIN
-   {$ifdef Use_API}
-    Video.DoneVideo;
+   {$ifdef GRAPH_API}
+    CloseGraph;
    {$else not Use_API}
-   {$IFDEF OS_DOS}                                    { DOS/DPMI CODE }
-     {$IFDEF PPC_FPC}
-     MouseMoveProc := Nil;                            { Clr mouse move ptr }
-     ShowMouseProc := Nil;                            { Clr show mouse ptr }
-     HideMouseProc := Nil;                            { Clr hide mouse ptr }
-     UnLock_Code(Pointer(@ShowTheMouse), 400);        { Unlock cursor code }
-     {$ENDIF}
-     If (TextModeGFV <> True) Then CloseGraph         { Close down graphics }
-     Else Begin                                       { Text mode gfv }
-       {$IFDEF PPC_FPC}                               { FPC DOS COMPILER }
-       ASM
-         MOVW SCREENMODE, %AX;                        { Original screen mode }
-         PUSH %EBP;                                   { Save register }
-         INT $0x10;                                   { Reset video }
-         POP %EBP;                                    { Restore register }
-       END;
-       {$ELSE}                                        { OTHER DOS COMPILERS }
-       ASM
-         MOV AX, ScreenMode;                          { Original screen mode }
-         PUSH BP;                                     { Save register }
-         INT 10H;                                     { Reset video }
-         POP BP;                                      { Restore register }
-       END;
-       {$ENDIF}
-     End;
-   {$ENDIF}
-   {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
-     If (DefGFVFont <> 0) Then                        { Check font created }
-       DeleteObject(DefGFVFont);                      { Delete the font }
-   {$ENDIF}
+   Video.DoneVideo;
    {$endif not Use_API}
 END;
 
@@ -2803,9 +1263,9 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE ClearScreen;
 BEGIN
-   {$ifdef Use_API}
+   {$ifndef GRAPH_API}
     Video.ClearScreen;
-   {$endif Use_API}
+   {$endif GRAPH_API}
 END;
 
 {---------------------------------------------------------------------------}
@@ -2855,29 +1315,8 @@ END;
 {  PrintStr -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 18Feb99 LdB          }
 {---------------------------------------------------------------------------}
 PROCEDURE PrintStr (CONST S: String);
-{$IFDEF OS_WINDOWS} VAR Ts: String; {$ENDIF}
-{$IFDEF OS_OS2}     VAR Ts: String; {$ENDIF}
 BEGIN
-   {$IFDEF OS_DOS}                                    { DOS/DPMI CODE }
    Write(S);                                          { Write to screen }
-   {$ENDIF}
-   {$IFDEF OS_LINUX}                                  { LINIX CODE }
-   Write(S);                                          { Write to screen }
-   {$ENDIF}
-   {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
-   Ts := S + #0;                                      { Make asciiz }
-     {$IFNDEF PPC_SPEED}                              { NON SPEED COMPILER }
-     MessageBox(0, @Ts[1], Nil, mb_Ok OR mb_IconStop);{ Display to screen }
-     {$ELSE}                                          { SYBIL 2+ COMPILER }
-     MessageBox(0, CString(@Ts[1]), Nil, mb_Ok OR
-       mb_IconStop);                                  { Display to screen }
-     {$ENDIF}
-   {$ENDIF}
-   {$IFDEF OS_OS2}                                    { OS2 CODE }
-   Ts := S + #0;                                      { Make asciiz }
-   WinMessageBox(0, 0, @Ts[1], Nil, mb_Ok OR
-     0, mb_IconHand);                                 { Display to screen }
-   {$ENDIF}
 END;
 
 {---------------------------------------------------------------------------}
@@ -2983,11 +1422,7 @@ BEGIN
    ResultLength := 0;                                 { Zero result length }
    FormatIndex := 1;                                  { Format index to 1 }
    HandleParameter(0);                                { Handle parameter }
-   {$IFDEF PPC_DELPHI3}                               { DELPHI 3+ COMPILER }
    SetLength(Result, ResultLength);                   { Set string length }
-   {$ELSE}                                            { OTHER COMPILERS }
-   Result[0] := Chr(ResultLength);                    { Set string length }
-   {$ENDIF}
 END;
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -3027,19 +1462,22 @@ END;
 BEGIN
    ButtonCount := DetectMouse;                        { Detect mouse }
    DetectVideo;                                       { Detect video }
-   {$ifdef Use_API}
+   { text mode is the default mode }
    TextModeGFV:=True;
    InitKeyboard;
-   {$endif Use_API}
    {$ifdef Graph_API}
    TextModeGFV:=false;
    {$endif Graph_API}
+
    SaveExit := ExitProc;                              { Save old exit }
    ExitProc := @ExitDrivers;                          { Set new exit }
 END.
 {
  $Log$
- Revision 1.9  2001-05-07 22:22:03  pierre
+ Revision 1.10  2001-05-10 16:46:27  pierre
+  + some improovements made
+
+ Revision 1.9  2001/05/07 22:22:03  pierre
   * removed NO_WINDOW cond, added GRAPH_API
 
  Revision 1.8  2001/05/04 15:43:45  pierre
@@ -3062,6 +1500,29 @@ END.
 
  Revision 1.2  2000/08/24 12:00:21  marco
   * CVS log and ID tags
-
-
 }
+{******************[ REVISION HISTORY ]********************}
+{  Version  Date        Fix                                }
+{  -------  ---------   ---------------------------------  }
+{  1.00     26 Jul 96   First DOS/DPMI platform release    }
+{  1.10     18 Nov 97   Windows conversion added.          }
+{  1.20     29 Aug 97   Platform.inc sort added.           }
+{  1.30     10 Jun 98   Virtual pascal 2.0 code added.     }
+{  1.40     13 Jul 98   Added FormatStr by Marco Schmidt.  }
+{  1.50     14 Jul 98   Fixed width = 0 in FormatStr.      }
+{  1.60     13 Aug 98   Complete rewrite of FormatStr.     }
+{  1.70     10 Sep 98   Added mouse int hook for FPC.      }
+{  1.80     10 Sep 98   Checks run & commenting added.     }
+{  1.90     15 Oct 98   Fixed for FPC version 0.998        }
+{  1.91     18 Feb 99   Added PrintStr functions           }
+{  1.92     18 Feb 99   FormatStr literal '%' fix added    }
+{  1.93     10 Jul 99   Sybil 2.0 code added               }
+{  1.94     15 Jul 99   Fixed for FPC 0.9912 release       }
+{  1.95     26 Jul 99   Windows..Scales to GFV system font }
+{  1.96     30 Jul 99   Fixed Ctrl+F1..F10 in GetKeyEvent  }
+{  1.97     07 Sep 99   InitEvent, DoneEvent fixed for OS2 }
+{  1.98     09 Sep 99   GetMouseEvent fixed for OS2.       }
+{  1.99     03 Nov 99   FPC windows support added.         }
+{  2.00     26 Nov 99   Graphics stuff moved to GFVGraph   }
+{  2.01     21 May 00   DOS fixed to use std GRAPH unit    }
+{**********************************************************}
