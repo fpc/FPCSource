@@ -121,7 +121,7 @@ end;
 
 Function FileSeek (Handle : Longint; FOffset,Origin : Int64) : Int64;
 begin
-  {$warning need to add 64bit call }
+  {$warning need to add 64bit FileSeek }
   FileSeek:=FileSeek(Handle,Longint(FOffset),Longint(Origin));
 end;
 
@@ -198,16 +198,16 @@ begin
     _SetReaddirAttribute (Rslt.FindData.DirP, attr);
   Rslt.FindData.Magic := $AD01;
   Rslt.FindData.EntryP := _readdir (Rslt.FindData.DirP);
-  IF Rslt.FindData.EntryP = NIL THEN
-  BEGIN
+  if Rslt.FindData.EntryP = nil then
+  begin
     _closedir (Rslt.FindData.DirP);
     Rslt.FindData.DirP := NIL;
-    exit (18);
-  END ELSE
-  BEGIN
+    result := 18;
+  end else
+  begin
     find_setfields (Rslt);
-    exit (0);
-  END;
+    result := 0;
+  end;
 end;
 
 
@@ -218,12 +218,9 @@ begin
     exit (18);
   Rslt.FindData.EntryP := _readdir (Rslt.FindData.DirP);
   IF Rslt.FindData.EntryP = NIL THEN
-    exit (18)
-  ELSE
-  BEGIN
-    find_setfields (Rslt);
-    exit (0);
-  END;
+    exit (18);
+  find_setfields (Rslt);
+  result := 0;
 end;
 
 
@@ -264,6 +261,7 @@ begin
     complete pathname of a filehandle, that would be needed for ChangeDirectoryEntry }
   FileSetDate:=-1;
   ConsolePrintf ('warning: fpc sysutils.FileSetDate not implemented'#13#10,0);
+  {$warning FileSetDate not implemented (i think is impossible) }
 end;
 
 
@@ -282,9 +280,9 @@ VAR MS : NWModifyStructure;
 begin
   FillChar (MS, SIZEOF (MS), 0);
   if _ChangeDirectoryEntry (PChar (Filename), MS, MFileAtrributesBit, 0) <> 0 then
-    exit (-1)
+    result := -1
   else
-    exit (0);
+    result := 0;
 end;
 
 
@@ -301,12 +299,6 @@ begin
   RenameFile:=(_rename(pchar(OldName),pchar(NewName)) = 0);
 end;
 
-{ ad: 27 Feb 2002: now implemented globaly ??
-Function FileSearch (Const Name, DirList : String) : String;
-begin
-  FileSearch:=Dos.FSearch(Name,Dirlist);
-end;
-}
 
 {****************************************************************************
                               Disk Functions
@@ -327,9 +319,9 @@ end;
 Const
   FixDriveStr : array[0..3] of pchar=(
     '.',
-    '/fd0/.',
-    '/fd1/.',
-    '/.'
+    'a:.',
+    'b:.',
+    'sys:/'
     );
 var
   Drives   : byte;
@@ -357,6 +349,7 @@ Begin
    Diskfree:=-1;}
   DiskFree := -1;
   ConsolePrintf ('warning: fpc sysutils.diskfree not implemented'#13#10,0);
+  {$warning DiskFree not implemented (does it make sense ?) }
 End;
 
 
@@ -371,6 +364,7 @@ Begin
    DiskSize:=-1;}
   DiskSize := -1;
   ConsolePrintf ('warning: fpc sysutils.disksize not implemented'#13#10,0);
+  {$warning DiskSize not implemented (does it make sense ?) }
 End;
 
 
@@ -487,7 +481,12 @@ end.
 {
 
   $Log$
-  Revision 1.5  2002-03-08 19:10:14  armin
+  Revision 1.6  2002-04-01 10:47:31  armin
+  makefile.fpc for netware
+  stderr to netware console
+  free all memory (threadvars and heap) to avoid error message while unloading nlm
+
+  Revision 1.5  2002/03/08 19:10:14  armin
   * added 64 bit fileseek (currently only 32 bit supported)
 
   Revision 1.4  2001/06/03 15:18:01  peter

@@ -130,15 +130,15 @@ procedure AllocateThreadVars;
   end;
 
 procedure ReleaseThreadVars;
-
-  var
-     threadvars : pointer;
-
-  begin
-     { release thread vars }
+var threadvars : pointer;
+begin
+   { release thread vars }
+   if threadvarblocksize > 0 then
+   begin
      threadvars:=_GetThreadDataAreaPtr;
-     _Free (threadvars);
+    _Free (threadvars);
   end;
+end;
 
 procedure InitThread;
 
@@ -161,7 +161,7 @@ procedure DoneThread;
      ReleaseThreadVars;
   end;
 
-function ThreadMain(param : pointer) : dword;stdcall;
+function ThreadMain(param : pointer) : dword; cdecl;
 
   var
      ti : tthreadinfo;
@@ -178,6 +178,7 @@ function ThreadMain(param : pointer) : dword;stdcall;
      writeln('Jumping to thread function');
 {$endif DEBUG_MT}
      ThreadMain:=ti.f(ti.p);
+     DoneThread;
   end;
 
 
@@ -355,7 +356,12 @@ end;
 
 {
   $Log$
-  Revision 1.2  2002-03-28 16:11:17  armin
+  Revision 1.3  2002-04-01 10:47:31  armin
+  makefile.fpc for netware
+  stderr to netware console
+  free all memory (threadvars and heap) to avoid error message while unloading nlm
+
+  Revision 1.2  2002/03/28 16:11:17  armin
   + initialize threadvars defined local in units
 
   Revision 1.1  2002/03/17 17:57:33  armin

@@ -17,6 +17,8 @@ unit system;
 
 interface
 
+{$define StdErrToConsole}
+
 {$ifdef SYSTEMDEBUG}
   {$define SYSTEMEXCEPTIONDEBUG}
 {$endif SYSTEMDEBUG}
@@ -29,13 +31,6 @@ interface
 { include system-independent routine headers }
 
 {$I systemh.inc}
-
-{ include heap support headers }
-{Why the hell do i have to define that ???
- otherwise FPC_FREEMEM expects 2 parameters but the compiler only
- puhes the address}
-{  DEFINE NEWMM}
-{  I heaph.inc}
 
 {Platform specific information}
 const
@@ -126,7 +121,7 @@ procedure fpc_do_exit;external name 'FPC_DO_EXIT';
 *****************************************************************************}
 
 
-PROCEDURE _nlm_main (_ArgC : LONGINT; _ArgV : ppchar); CDECL; [public,alias: '_nlm_main'];
+PROCEDURE nlm_main (_ArgC : LONGINT; _ArgV : ppchar); CDECL; [public,alias: '_nlm_main'];
 BEGIN
   ArgC := _ArgC;
   ArgV := _ArgV;
@@ -135,7 +130,8 @@ END;
 
 
 {$ifdef MT}
-PROCEDURE CloseAllRemainingSemaphores; FORWARD;
+procedure CloseAllRemainingSemaphores; FORWARD;
+procedure ReleaseThreadVars; FORWARD;
 {$endif}
 
 { if return-value is <> 0, netware shows the message
@@ -161,11 +157,20 @@ end;
 {*****************************************************************************
                          System Dependent Exit code
 *****************************************************************************}
+
+procedure FreeSbrkMem; forward;
+
 Procedure system_exit;
 begin
-  {$ifdef MT}
+{$ifdef MT}
   CloseAllRemainingSemaphores;
-  {$endif}
+  ReleaseThreadVars;
+{$endif}
+  FreeSbrkMem;            { free memory allocated by heapmanager }
+
+  if ExitCode <> 0 Then   { otherwise we dont see runtime-errors }
+    PressAnyKeyToContinue;
+  
   _exit (ExitCode);
 end;
 
@@ -229,18 +234,65 @@ asm
         movl    HEAPSIZE,%eax
 end ['EAX'];
 
+const HeapInitialMaxBlocks = 32;
+type THeapSbrkBlockList = array [1.. HeapInitialMaxBlocks] of pointer;
+var  HeapSbrkBlockList : ^THeapSbrkBlockList = nil;
+     HeapSbrkLastUsed  : dword = 0;
+     HeapSbrkAllocated : dword = 0;
+
 { function to allocate size bytes more for the program }
 { must return the first address of new data space or -1 if fail }
-FUNCTION Sbrk(size : longint):longint;
-VAR P : POINTER;
-BEGIN
+{ for netware all allocated blocks are saved to free them at }
+{ exit (to avoid message "Module did not release xx resources") }
+Function Sbrk(size : longint):longint;
+var P,P2 : POINTER;
+begin
   P := _malloc (size);
-  IF P = NIL THEN
+  if P = nil then
     Sbrk := -1
-  ELSE
+  else begin
     Sbrk := LONGINT (P);
-END;
+    if HeapSbrkBlockList = nil then
+    begin
+      Pointer (HeapSbrkBlockList) := _malloc (sizeof (HeapSbrkBlockList^));
+      if HeapSbrkBlockList = nil then
+      begin
+        _free (P);
+	Sbrk := -1;
+	exit;
+      end;
+      fillchar (HeapSbrkBlockList^,sizeof(HeapSbrkBlockList^),0);
+      HeapSbrkAllocated := HeapInitialMaxBlocks;
+    end;
+    if (HeapSbrkLastUsed = HeapSbrkAllocated) then
+    begin  { grow }
+      p2 := _realloc (HeapSbrkBlockList, HeapSbrkAllocated + HeapInitialMaxBlocks);
+      if p2 = nil then
+      begin
+        _free (P);
+	Sbrk := -1;
+	exit;
+      end;
+      inc (HeapSbrkAllocated, HeapInitialMaxBlocks);
+    end;
+    inc (HeapSbrkLastUsed);
+    HeapSbrkBlockList^[HeapSbrkLastUsed] := P;
+  end; 
+end;
 
+
+procedure FreeSbrkMem;
+var i : longint;
+begin
+  if HeapSbrkBlockList <> nil then
+  begin
+    for i := 1 to HeapSbrkLastUsed do
+      _free (HeapSbrkBlockList^[i]);
+    _free (HeapSbrkBlockList);
+    HeapSbrkAllocated := 0;
+    HeapSbrkLastUsed := 0;
+  end;    
+end;
 
 { include standard heap management }
 {$I heap.inc}
@@ -607,6 +659,51 @@ procedure InitFPU;assembler;
 { include threading stuff, this is os dependend part }
 {$I thread.inc}
 
+{$ifdef StdErrToConsole}
+var ConsoleBuff : array [0..512] of char;
+
+Function ConsoleWrite(Var F: TextRec): Integer;
+var
+  i : longint;
+Begin
+  if F.BufPos>0 then
+  begin
+     if F.BufPos>sizeof(ConsoleBuff)-1 then
+       i:=sizeof(ConsoleBuff)-1
+     else
+       i:=F.BufPos;
+     Move(F.BufPtr^,ConsoleBuff,i);
+     ConsoleBuff[i] := #0;
+     ConsolePrintf(@ConsoleBuff[0]);
+  end;
+  F.BufPos:=0;
+  ConsoleWrite := 0;
+End;
+
+
+Function ConsoleClose(Var F: TextRec): Integer;
+begin
+  ConsoleClose:=0;
+end;
+
+
+Function ConsoleOpen(Var F: TextRec): Integer;
+Begin
+  TextRec(F).InOutFunc:=@ConsoleWrite;
+  TextRec(F).FlushFunc:=@ConsoleWrite;
+  TextRec(F).CloseFunc:=@ConsoleClose;
+  ConsoleOpen:=0;
+End;
+
+
+procedure AssignStdErrConsole(Var T: Text);
+begin
+  Assign(T,'');
+  TextRec(T).OpenFunc:=@ConsoleOpen;
+  Rewrite(T);
+end;
+{$endif}
+
 
 
 {*****************************************************************************
@@ -634,7 +731,13 @@ Begin
   OpenStdIO(Input,fmInput,StdInputHandle);
   OpenStdIO(Output,fmOutput,StdOutputHandle);
   OpenStdIO(StdOut,fmOutput,StdOutputHandle);
+  
+  {$ifdef StdErrToConsole}
+  AssignStdErrConsole(StdErr);
+  {$else}
   OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+  {$endif}
+  
 { Setup environment and arguments }
   Setup_Environment;
   Setup_Arguments;
@@ -643,10 +746,16 @@ Begin
   {Delphi Compatible}
   IsLibrary := FALSE;
   IsConsole := TRUE;
+  ExitCode  := 0;
 End.
 {
   $Log$
-  Revision 1.8  2002-03-30 09:09:47  armin
+  Revision 1.9  2002-04-01 10:47:31  armin
+  makefile.fpc for netware
+  stderr to netware console
+  free all memory (threadvars and heap) to avoid error message while unloading nlm
+
+  Revision 1.8  2002/03/30 09:09:47  armin
   + support check-function for netware
 
   Revision 1.7  2002/03/17 17:57:33  armin
