@@ -123,6 +123,7 @@ unit systems;
           stackalignment : {longint this is a little overkill no ?? }byte;
           size_of_pointer : byte;
           size_of_longint : byte;
+          use_bound_instruction : boolean;
           use_function_relative_addresses : boolean;
        end;
 
@@ -139,12 +140,10 @@ unit systems;
        tlinkinfo = packed record
           id            : tlink;
           linkbin       : string[8];
-{* Changes made by Ozerski 23.10.1998}
           linkcmd       : string[127];
-          binders:word;
-          bindbin:array[1..2]of string[8];
-          bindcmd:array[1..2]of string[127];
-{* End changes}
+          binders       : word;
+          bindbin       : array[1..2]of string[8];
+          bindcmd       : array[1..2]of string[127];
           stripopt      : string[2];
           libpathprefix : string[13];
           libpathsuffix : string[2];
@@ -229,6 +228,7 @@ implementation
             stackalignment : 2;
             size_of_pointer : 4;
             size_of_longint : 4;
+            use_bound_instruction : false;
             use_function_relative_addresses : true
           ),
           (
@@ -247,6 +247,7 @@ implementation
             stackalignment : 2;
             size_of_pointer : 4;
             size_of_longint : 4;
+            use_bound_instruction : true;
             use_function_relative_addresses : true
           ),
           (
@@ -265,6 +266,7 @@ implementation
             stackalignment : 4;
             size_of_pointer : 4;
             size_of_longint : 4;
+            use_bound_instruction : false;
             use_function_relative_addresses : true
           ),
           (
@@ -283,6 +285,7 @@ implementation
             stackalignment : 2;
             size_of_pointer : 4;
             size_of_longint : 4;
+            use_bound_instruction : false;
             use_function_relative_addresses : false
           ),
           (
@@ -301,6 +304,7 @@ implementation
             stackalignment : 4;
             size_of_pointer : 4;
             size_of_longint : 4;
+            use_bound_instruction : true;
             use_function_relative_addresses : true
           ),
           (
@@ -319,6 +323,7 @@ implementation
             stackalignment : 2;
             size_of_pointer : 4;
             size_of_longint : 4;
+            use_bound_instruction : false;
             use_function_relative_addresses : false
           ),
           (
@@ -337,6 +342,7 @@ implementation
             stackalignment : 2;
             size_of_pointer : 4;
             size_of_longint : 4;
+            use_bound_instruction : false;
             use_function_relative_addresses : false
           ),
           (
@@ -355,6 +361,7 @@ implementation
             stackalignment : 2;
             size_of_pointer : 4;
             size_of_longint : 4;
+            use_bound_instruction : false;
             use_function_relative_addresses : false
           ),
           (
@@ -373,6 +380,7 @@ implementation
             stackalignment : 2;
             size_of_pointer : 4;
             size_of_longint : 4;
+            use_bound_instruction : false;
             use_function_relative_addresses : true
           ),
           (
@@ -391,6 +399,7 @@ implementation
             stackalignment : 2;
             size_of_pointer : 4;
             size_of_longint : 4;
+            use_bound_instruction : false;
             use_function_relative_addresses : false
           )
           );
@@ -1204,7 +1213,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.51  1998-11-30 09:43:23  pierre
+  Revision 1.52  1998-12-03 10:17:32  peter
+    * target_os.use_bound_instruction boolean
+
+  Revision 1.51  1998/11/30 09:43:23  pierre
     * some range check bugs fixed (still not working !)
     + added DLL writing support for win32 (also accepts variables)
     + TempAnsi for code that could be used for Temporary ansi strings
