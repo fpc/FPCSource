@@ -70,11 +70,11 @@ implementation
 
 uses
   widestr,
-{$ifdef Delphi}
-  dmisc,
-{$else Delphi}
+{$IFDEF USE_SYSUTILS}
+  SysUtils,
+{$ELSE USE_SYSUTILS}
   dos,
-{$endif Delphi}
+{$ENDIF USE_SYSUTILS}
   version,
   cutils,cmsgs
 {$ifdef BrowserLog}
@@ -177,7 +177,7 @@ end;
 procedure Toption.WriteInfo;
 var
   p : pchar;
-  hs,hs1,s : string;
+  hs,hs1,s : TCmdStr;
   target : tsystem;
 begin
   p:=MessagePchar(option_info);
@@ -847,7 +847,14 @@ begin
            'o' :
              begin
                if More<>'' then
+{$IFDEF USE_SYSUTILS}
+               begin
+                 d := SplitPath(More);
+                 OutputFile := SplitFileName(More);
+               end
+{$ELSE USE_SYSUTILS}
                  Fsplit(More,d,OutputFile,e)
+{$ENDIF USE_SYSUTILS}
                else
                  IllegalPara(opt);
              end;
@@ -1644,11 +1651,11 @@ begin
   foundfn:=fn;
   check_configfile:=true;
   { retrieve configpath }
-{$ifdef Delphi}
-  configpath:=FixPath(dmisc.getenv('PPC_CONFIG_PATH'),false);
-{$else Delphi}
+{$IFDEF USE_SYSUTILS}
+  configpath:=FixPath(GetEnvironmentVariable('PPC_CONFIG_PATH'),false);
+{$ELSE USE_SYSUTILS}
   configpath:=FixPath(dos.getenv('PPC_CONFIG_PATH'),false);
-{$endif Delphi}
+{$ENDIF USE_SYSUTILS}
 {$ifdef Unix}
   if configpath='' then
    configpath:='/etc/';
@@ -1663,8 +1670,13 @@ begin
   if not FileExists(fn) then
    begin
 {$ifdef Unix}
+{$IFDEF USE_SYSUTILS}
+     if (GetEnvironmentVariable('HOME')<>'') and CfgFileExists(FixPath(GetEnvironmentVariable('HOME'),false)+'.'+fn) then
+      foundfn:=FixPath(GetEnvironmentVariable('HOME'),false)+'.'+fn
+{$ELSE USE_SYSUTILS}
      if (dos.getenv('HOME')<>'') and CfgFileExists(FixPath(dos.getenv('HOME'),false)+'.'+fn) then
       foundfn:=FixPath(dos.getenv('HOME'),false)+'.'+fn
+{$ENDIF USE_SYSUTILS}
      else
 {$endif}
       if CfgFileExists(configpath+fn) then
@@ -1820,11 +1832,11 @@ begin
 {$endif arm}
 
 { get default messagefile }
-{$ifdef Delphi}
-  msgfilename:=dmisc.getenv('PPC_ERROR_FILE');
-{$else Delphi}
+{$IFDEF USE_SYSUTILS}
+  msgfilename:=GetEnvironmentVariable('PPC_ERROR_FILE');
+{$ELSE USE_SYSUTILS}
   msgfilename:=dos.getenv('PPC_ERROR_FILE');
-{$endif Delphi}
+{$ENDIF USE_SYSUTILS}
 
    { default configfile can be specified on the commandline,
      remove it first }
@@ -1936,7 +1948,13 @@ begin
 {$ifndef Unix}
   param_file:=FixFileName(param_file);
 {$endif}
+{$IFDEF USE_SYSUTILS}
+  inputdir := SplitPath(param_file);
+  inputfile := SplitName(param_file);
+  inputextension := SplitExtension(param_file);
+{$ELSE USE_SYSUTILS}
   fsplit(param_file,inputdir,inputfile,inputextension);
+{$ENDIF USE_SYSUTILS}
   if inputextension='' then
    begin
      if FileExists(inputdir+inputfile+target_info.sourceext) then
@@ -1966,15 +1984,19 @@ begin
    Unitsearchpath.AddPath(inputdir,true);
   if not disable_configfile then
    begin
-{$ifdef Delphi}
-     UnitSearchPath.AddPath(dmisc.getenv(target_info.unit_env),false);
-{$else}
+{$IFDEF USE_SYSUTILS}
+     UnitSearchPath.AddPath(GetEnvironmentVariable(target_info.unit_env),false);
+{$ELSE USE_SYSUTILS}
      UnitSearchPath.AddPath(dos.getenv(target_info.unit_env),false);
-{$endif Delphi}
+{$ENDIF USE_SYSUTILS}
    end;
 
 {$ifdef Unix}
+{$IFDEF USE_SYSUTILS}
+  fpcdir:=FixPath(GetEnvironmentVariable('FPCDIR'),false);
+{$ELSE USE_SYSUTILS}
   fpcdir:=FixPath(getenv('FPCDIR'),false);
+{$ENDIF USE_SYSUTILS}
   if fpcdir='' then
    begin
      if source_info.cpu<>target_info.cpu then
@@ -1993,7 +2015,11 @@ begin
        end;
    end;
 {$else}
+{$IFDEF USE_SYSUTILS}
+  fpcdir:=FixPath(GetEnvironmentVariable('FPCDIR'),false);
+{$ELSE USE_SYSUTILS}
   fpcdir:=FixPath(getenv('FPCDIR'),false);
+{$ENDIF USE_SYSUTILS}
   if fpcdir='' then
    begin
      fpcdir:=ExePath+'../';
@@ -2091,7 +2117,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.145  2004-10-05 20:21:02  florian
+  Revision 1.146  2004-10-14 14:03:02  mazen
+  * Merge is complete for this file, cycles !
+
+  Revision 1.145  2004/10/05 20:21:02  florian
     * bootstrapping with rtti alignment fixed
 
   Revision 1.144  2004/09/21 23:33:43  hajny
