@@ -518,7 +518,6 @@ end;
 procedure FindMatch(var f:searchrec);
 begin
   { Find file with correct attribute }
-  F.W32FindData.dwFileAttributes:=DosToWinAttr(f.attr);
   While (F.W32FindData.dwFileAttributes and cardinal(F.ExcludeAttr))<>0 do
    begin
      if not FindNextFile (F.FindHandle,F.W32FindData) then
@@ -529,8 +528,8 @@ begin
         exit;
       end;
    end;
-   
-  { Convert some attributes back }  
+
+  { Convert some attributes back }
   f.size:=F.W32FindData.NFileSizeLow;
   f.attr:=WinToDosAttr(F.W32FindData.dwFileAttributes);
   WinToDosTime(F.W32FindData.ftLastWriteTime,f.Time);
@@ -547,12 +546,11 @@ begin
   F.Attr:=attr;
   F.ExcludeAttr:=(not Attr) and ($1e); {hidden,sys,dir,volume}
   StringToPchar(f.name);
-  
+
   { FindFirstFile is a Win32 Call }
   F.W32FindData.dwFileAttributes:=DosToWinAttr(f.attr);
   F.FindHandle:=FindFirstFile (pchar(@f.Name),F.W32FindData);
-  f.attr:=WinToDosAttr(F.W32FindData.dwFileAttributes);
-  
+
   If longint(F.FindHandle)=Invalid_Handle_value then
    begin
      DosError:=Last2DosError(GetLastError);
@@ -961,7 +959,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2004-03-14 18:43:21  peter
+  Revision 1.28  2004-04-07 09:26:23  michael
+  + Patch for findfirst (bug 3042) from Peter Vreman
+
+  Revision 1.27  2004/03/14 18:43:21  peter
     * reset searchrec info in findfirst
 
   Revision 1.26  2004/02/17 17:37:26  daniel
