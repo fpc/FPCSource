@@ -44,7 +44,7 @@ implementation
 
     var
       localswitchesstack: array[0..localswitchesstackmax] of tlocalswitches;
-      localswitchesstackpos: Integer = 0;
+      localswitchesstackpos: Integer;
 
 {*****************************************************************************
                                     Helpers
@@ -1080,12 +1080,15 @@ implementation
         AddDirective('Z4',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_z4);
       end;
 
-
-
+begin
+  localswitchesstackpos:= 0;
 end.
 {
   $Log$
-  Revision 1.38  2004-07-05 21:49:43  olle
+  Revision 1.39  2004-07-06 09:41:46  olle
+    * fixes compilation on 1.0.*
+
+  Revision 1.38  2004/07/05 21:49:43  olle
     + macpas style: exit, cycle, leave
     + macpas compiler directive: PUSH POP
 
