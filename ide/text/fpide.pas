@@ -38,6 +38,7 @@ type
       function    AutoSave: boolean;
       procedure   Idle; virtual;
       procedure   Update;
+      procedure   UpdateMode;
       procedure   UpdateTarget;
       procedure   GetEvent(var Event: TEvent); virtual;
       procedure   HandleEvent(var Event: TEvent); virtual;
@@ -140,6 +141,9 @@ uses
 {$ifdef linux}
   linux,
 {$endif}
+{$ifdef HasSignal}
+  fpcatch,
+{$endif HasSignal}
 {$ifdef WinClipSupported}
   WinClip,
 {$endif WinClipSupported}
@@ -444,7 +448,22 @@ end;
 
 procedure TIDEApp.HandleEvent(var Event: TEvent);
 var DontClear: boolean;
+{$ifdef HasSignal}
+    CtrlCCatched : boolean;
+{$endif HasSignal}
 begin
+{$ifdef HasSignal}
+  if (Event.What=evKeyDown) and (Event.keyCode=kbCtrlC) and
+     (CtrlCPressed) then
+    begin
+      CtrlCCatched:=true;
+{$ifdef DEBUG}
+      Writeln(stderr,'One CtrlC caught');
+{$endif DEBUG}
+    end
+  else
+    CtrlCCatched:=false;
+{$endif HasSignal}
   case Event.What of
        evCommand :
          begin
@@ -570,6 +589,16 @@ begin
          end;
   end;
   inherited HandleEvent(Event);
+{$ifdef HasSignal}
+  { Reset flag if CrtlC was handled }
+  if CtrlCCatched and (Event.What=evNothing) then
+    begin
+      CtrlCPressed:=false;
+{$ifdef DEBUG}
+      Writeln(stderr,'One CtrlC handled');
+{$endif DEBUG}
+    end;
+{$endif HasSignal}
 end;
 
 
@@ -886,7 +915,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.53  2000-03-06 11:31:30  pierre
+  Revision 1.54  2000-03-07 21:57:59  pierre
+    + CtrlC handling
+    + UpdateMode method
+
+  Revision 1.53  2000/03/06 11:31:30  pierre
     * Do not use COMSPEC to Run files with .EXE suffix
       because Command.com at least does not return the errorcode
       of the program called
