@@ -22,11 +22,6 @@
 }
 unit pstatmnt;
 
-{$ifdef Ag386Bin}
-  {$define NoRA386ATT}
-  {$define NoRA386Int}
-{$endif}
-
   interface
 
     uses tree;
@@ -1290,7 +1285,11 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.68  1999-02-26 00:48:23  peter
+  Revision 1.69  1999-03-02 02:56:15  peter
+    + stabs support for binary writers
+    * more fixes and missing updates from the previous commit :(
+
+  Revision 1.68  1999/02/26 00:48:23  peter
     * assembler writers fixed for ag386bin
 
   Revision 1.67  1999/02/22 13:07:01  pierre

@@ -160,16 +160,17 @@ unit ag386nsm;
      end;
 
 {$ifdef AG386BIN}
+
     function getopstr(t : byte;o : pointer;s : topsize; opcode: tasmop;dest : boolean) : string;
     var
       hs : string;
     begin
-      if (t and OT_REGISTER)=OT_REGISTER then
+      if ((t and OT_REGISTER)=OT_REGISTER) or ((t and OT_FPUREG)=OT_FPUREG) then
         getopstr:=int_nasmreg2str[tregister(o)]
       else
        if (t and OT_SYMBOL)=OT_SYMBOL then
         begin
-          hs:='dword '+pasmsymbol(o)^.name;
+          hs:='dword '+preference(o)^.symbol^.name;
           if preference(o)^.offset>0 then
            hs:=hs+'+'+tostr(preference(o)^.offset)
           else
@@ -222,12 +223,12 @@ unit ag386nsm;
     var
       hs : string;
     begin
-      if (t and OT_REGISTER)=OT_REGISTER then
+      if ((t and OT_REGISTER)=OT_REGISTER) or ((t and OT_FPUREG)=OT_FPUREG) then
        getopstr_jmp:=int_nasmreg2str[tregister(o)]
       else
        if (t and OT_SYMBOL)=OT_SYMBOL then
         begin
-          hs:=pasmsymbol(o)^.name;
+          hs:=preference(o)^.symbol^.name;
           if preference(o)^.offset>0 then
            hs:=hs+'+'+tostr(preference(o)^.offset)
           else
@@ -340,7 +341,9 @@ unit ag386nsm;
         (#9'DD'#9,#9'DW'#9,#9'DB'#9);
 
       ait_section2nasmstr : array[tsection] of string[6]=
-       ('','.text','.data','.bss','.idata2','.idata4','.idata5','.idata6','.idata7','.edata');
+       ('','.text','.data','.bss',
+        '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
+        '.stab','.stabstr','');
 
     Function PadTabs(const p:string;addch:char):string;
     var
@@ -748,7 +751,11 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.21  1999-03-01 15:46:17  peter
+  Revision 1.22  1999-03-02 02:56:11  peter
+    + stabs support for binary writers
+    * more fixes and missing updates from the previous commit :(
+
+  Revision 1.21  1999/03/01 15:46:17  peter
     * ag386bin finally make cycles correct
     * prefixes are now also normal opcodes
 

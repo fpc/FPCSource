@@ -27,7 +27,11 @@ unit gdb;
     uses
       globtype,
 {$ifdef i386}
+   {$ifdef AG386BIN}
+       i386base,
+   {$else}
        i386,
+   {$endif}
 {$endif i386}
       strings,cobjects,globals,aasm;
 
@@ -80,26 +84,27 @@ Const
           destructor done; virtual;
        end;
 
-const          DBX_counter : plongint = nil;
-               do_count_dbx : boolean = false;
-           { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi",
-            "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
-           { this is the register order for GDB }
+    const
+       DBX_counter : plongint = nil;
+       do_count_dbx : boolean = false;
 
 {$ifdef i386}
-       {tregister = (R_NO,R_EAX,R_ECX,R_EDX,R_EBX,R_ESP,R_EBP,R_ESI,R_EDI,
-                    R_AX,R_CX,R_DX,R_BX,R_SP,R_BP,R_SI,R_DI,
-                    R_AL,R_CL,R_DL,R_BL,R_AH,R_CH,R_BH,R_DH,
-                     for an easier assembler generation
-                    R_DEFAULT_SEG,R_CS,R_DS,R_ES,R_FS,R_GS,R_SS,
-                    R_ST,R_ST0,R_ST1,R_ST2,R_ST3,R_ST4,R_ST5,R_ST6,R_ST7); }
-           GDB_i386index : array[tregister] of shortint =
-           (-1,0,1,2,3,4,5,6,7,0,1,2,3,4,5,7,0,1,2,3,0,1,2,3,
-           -1,10,12,13,14,15,11,
-           -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
-           { I think, GDB doesn't know MMX (FK) }
-           -1,-1,-1,-1,-1,-1,-1,-1,
-           -1,-1,-1,-1,-1,-1,-1,-1);
+           { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi",
+             "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
+           { this is the register order for GDB }
+        GDB_i386index : array[tregister] of shortint =(-1,
+          0,1,2,3,4,5,6,7,0,1,2,3,4,5,7,0,1,2,3,0,1,2,3,
+          -1,10,12,13,14,15,11,
+          -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+{$ifdef AG386BIN}
+          -1,-1,-1,-1,-1,-1,
+          -1,-1,-1,-1,
+          -1,-1,-1,-1,-1,
+{$endif}
+          { I think, GDB doesn't know MMX (FK) }
+          -1,-1,-1,-1,-1,-1,-1,-1,
+          -1,-1,-1,-1,-1,-1,-1,-1
+        );
 {$endif i386}
 
   implementation
@@ -258,7 +263,11 @@ end.
 
 {
   $Log$
-  Revision 1.6  1999-01-08 12:39:23  florian
+  Revision 1.7  1999-03-02 02:56:12  peter
+    + stabs support for binary writers
+    * more fixes and missing updates from the previous commit :(
+
+  Revision 1.6  1999/01/08 12:39:23  florian
     Changes of Alexander Stohr integrated:
       + added KNI opcodes
       + added KNI registers

@@ -72,7 +72,8 @@ unit aasm;
 
        tsection=(sec_none,
          sec_code,sec_data,sec_bss,
-         sec_idata2,sec_idata4,sec_idata5,sec_idata6,sec_idata7,sec_edata
+         sec_idata2,sec_idata4,sec_idata5,sec_idata6,sec_idata7,sec_edata,
+         sec_stab,sec_stabstr,sec_fake
        );
 
 
@@ -836,7 +837,7 @@ uses
         hpold:=pasmsymbol(asmsymbollist^.search(sold));
         if not assigned(hpold) then
           internalerror(405406);
-          
+
         hpnew:=new(pasmsymbol,init(sold));
         { replace the old one }
         { WARNING this heavily depends on the
@@ -970,7 +971,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.32  1999-03-01 13:31:59  pierre
+  Revision 1.33  1999-03-02 02:56:08  peter
+    + stabs support for binary writers
+    * more fixes and missing updates from the previous commit :(
+
+  Revision 1.32  1999/03/01 13:31:59  pierre
    * external used before implemented problem fixed
 
   Revision 1.31  1999/02/25 21:02:16  peter

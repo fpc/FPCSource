@@ -159,16 +159,17 @@ unit ag386int;
      end;
 
 {$ifdef AG386BIN}
+
     function getopstr(t : byte;o : pointer;s : topsize; _operator: tasmop;dest : boolean) : string;
     var
       hs : string;
     begin
-      if (t and OT_REGISTER)=OT_REGISTER then
+      if ((t and OT_REGISTER)=OT_REGISTER) or ((t and OT_FPUREG)=OT_FPUREG) then
         getopstr:=int_reg2str[tregister(o)]
       else
        if (t and OT_SYMBOL)=OT_SYMBOL then
         begin
-          hs:='offset '+pasmsymbol(o)^.name;
+          hs:='offset '+preference(o)^.symbol^.name;
           if preference(o)^.offset>0 then
            hs:=hs+'+'+tostr(preference(o)^.offset)
           else
@@ -220,12 +221,12 @@ unit ag386int;
     var
       hs : string;
     begin
-      if (t and OT_REGISTER)=OT_REGISTER then
+      if ((t and OT_REGISTER)=OT_REGISTER) or ((t and OT_FPUREG)=OT_FPUREG) then
        getopstr_jmp:=int_reg2str[tregister(o)]
       else
        if (t and OT_SYMBOL)=OT_SYMBOL then
         begin
-          hs:=pasmsymbol(o)^.name;
+          hs:=preference(o)^.symbol^.name;
           if preference(o)^.offset>0 then
            hs:=hs+'+'+tostr(preference(o)^.offset)
           else
@@ -336,7 +337,7 @@ unit ag386int;
         (#9'DD'#9,#9'DW'#9,#9'DB'#9);
 
       ait_section2masmstr : array[tsection] of string[6]=
-       ('','CODE','DATA','BSS','','','','','','');
+       ('','CODE','DATA','BSS','','','','','','','','','');
 
     Function PadTabs(const p:string;addch:char):string;
     var
@@ -786,7 +787,11 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.28  1999-03-01 15:46:16  peter
+  Revision 1.29  1999-03-02 02:56:10  peter
+    + stabs support for binary writers
+    * more fixes and missing updates from the previous commit :(
+
+  Revision 1.28  1999/03/01 15:46:16  peter
     * ag386bin finally make cycles correct
     * prefixes are now also normal opcodes
 

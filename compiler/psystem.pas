@@ -70,14 +70,12 @@ procedure insert_intern_types(p : psymtable);
 {
   all the types inserted into the system unit
 }
-{$ifdef GDB}
 var
   { several defs to simulate more or less C++ objects for GDB }
   vmtdef      : precdef;
   pvmtdef     : ppointerdef;
   vmtarraydef : parraydef;
   vmtsymtable : psymtable;
-{$endif GDB}
 begin
   p^.insert(new(ptypesym,init('longint',s32bitdef)));
   p^.insert(new(ptypesym,init('ulong',u32bitdef)));
@@ -147,7 +145,6 @@ begin
   p^.insert(new(ptypesym,init('INT64',cs64bitintdef)));
 {$endif INT64}
   p^.insert(new(ptypesym,init('TYPEDFILE',new(pfiledef,init(ft_typed,voiddef)))));
-{$ifdef GDB}
   { Add a type for virtual method tables in lowercase }
   { so it isn't reachable!                            }
   vmtsymtable:=new(psymtable,init(recordsymtable));
@@ -164,7 +161,6 @@ begin
   vmtarraydef:=new(parraydef,init(0,1,s32bitdef));
   vmtarraydef^.definition := pvmtdef;
   p^.insert(new(ptypesym,init('vtblarray',vmtarraydef)));
-{$endif GDB}
   insertinternsyms(p);
 end;
 
@@ -257,7 +253,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  1998-12-30 22:15:51  peter
+  Revision 1.16  1999-03-02 02:56:17  peter
+    + stabs support for binary writers
+    * more fixes and missing updates from the previous commit :(
+
+  Revision 1.15  1998/12/30 22:15:51  peter
     + farpointer type
     * absolutesym now also stores if its far
 
