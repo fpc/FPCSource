@@ -172,7 +172,10 @@ implementation
                           begin
                              same_string:=true;
 {$ifndef UseAnsiString}
-                             for i:=1 to length(p^.values^) do
+                             { weird error here !!!   }
+                             { pchar ' ' was found equal to string '' !!!! }
+                             { gave strange output in exceptions !! PM }
+                             for i:=0 to length(p^.values^) do
                                if pai_string(hp1)^.str[i]<>p^.values^[i] then
 {$else}
                              for i:=0 to p^.length do
@@ -362,7 +365,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  1998-07-20 18:40:10  florian
+  Revision 1.10  1998-08-04 13:22:46  pierre
+    * weird bug fixed :
+      a pchar ' ' (simple space or any other letter) was found to
+      be equal to a string of length zero !!!
+      thus printing out non sense
+      found that out while checking Control-C !!
+    + added column info also in RHIDE format as
+      it might be usefull later
+
+  Revision 1.9  1998/07/20 18:40:10  florian
     * handling of ansi string constants should now work
 
   Revision 1.8  1998/07/20 10:23:00  florian

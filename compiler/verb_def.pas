@@ -139,10 +139,14 @@ begin
           end;
         if (Level<=V_ShowFile) and (status.currentline>0) then
          begin
+           { Adding the column should not confuse RHIDE,
+           even if it does not yet use it PM }
            if Use_Rhide then
-             hs:=lower(bstoslash(status.currentsource))+':'+tostr(status.currentline)+': '+hs
+             hs:=lower(bstoslash(status.currentsource))+':'+tostr(status.currentline)
+                 +':'+tostr(status.currentcolumn)+': '+hs
            else
-             hs:=status.currentsource+'('+tostr(status.currentline)+','+tostr(status.currentcolumn)+') '+hs;
+             hs:=status.currentsource+'('+tostr(status.currentline)
+                 +','+tostr(status.currentcolumn)+') '+hs;
          end;
       { add the message to the text }
         hs:=hs+s;
@@ -185,7 +189,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  1998-07-14 14:47:12  peter
+  Revision 1.14  1998-08-04 13:22:48  pierre
+    * weird bug fixed :
+      a pchar ' ' (simple space or any other letter) was found to
+      be equal to a string of length zero !!!
+      thus printing out non sense
+      found that out while checking Control-C !!
+    + added column info also in RHIDE format as
+      it might be usefull later
+
+  Revision 1.13  1998/07/14 14:47:12  peter
     * released NEWINPUT
 
   Revision 1.12  1998/07/07 11:20:19  peter
