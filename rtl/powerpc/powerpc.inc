@@ -473,7 +473,7 @@ asm
         lfd       f0,0(r1)
 {$else FPC_ABI_AIX}
         stw       r5,temp
-        stw       r5,4+temp
+        stw       r5,temp+5
         lfd       f0,temp
 {$endif FPC_ABI_AIX}
         { make r3 point to address-8, so we're able to use fp double stores }
@@ -1006,7 +1006,10 @@ end;
 
 {
   $Log$
-  Revision 1.59  2003-12-09 20:08:30  jonas
+  Revision 1.60  2003-12-21 21:23:09  florian
+    * fixed compilation with sysv calling conventions
+
+  Revision 1.59  2003/12/09 20:08:30  jonas
     * fixed buffer overflow bug in fpc_shortstr_append_shortstr in case
       the result was already 255 characters long
 
