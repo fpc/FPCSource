@@ -1859,6 +1859,12 @@ begin
   def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
 {$endif arm}
 
+  if source_info.system<>target_info.system then
+    def_system_macro('FPC_CROSSCOMPILING');
+
+  if source_info.cpu<>target_info.cpu then
+    def_system_macro('FPC_CPUCROSSCOMPILING');
+
   { read configuration file }
   if (not disable_configfile) and
      (ppccfg<>'') then
@@ -2092,7 +2098,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.165  2005-02-14 17:13:06  peter
+  Revision 1.166  2005-02-19 18:10:57  florian
+    * cross compiliation defines
+
+  Revision 1.165  2005/02/14 17:13:06  peter
     * truncate log
 
   Revision 1.164  2005/02/06 21:33:28  peter
