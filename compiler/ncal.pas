@@ -1216,34 +1216,15 @@ type
         if not(procdefinition.proctypeoption in [potype_constructor,potype_destructor]) then
           internalerror(200305051);
 
-        { inherited call, no create/destroy }
-        if (cnf_inherited in callnodeflags) then
-          vmttree:=cpointerconstnode.create(0,voidpointertype)
-        else
-          { do not create/destroy when called from member function
-            without specifying self explicit }
-          if (cnf_member_call in callnodeflags) then
-            begin
-              if (methodpointer.resulttype.def.deftype=classrefdef) and
-                (procdefinition.proctypeoption=potype_constructor) then
-                vmttree:=methodpointer.getcopy
-              else
-                vmttree:=cpointerconstnode.create(0,voidpointertype);
-            end
-        else
-          { constructor with extended syntax called from new }
-          if (cnf_new_call in callnodeflags) then
-            vmttree:=cloadvmtaddrnode.create(ctypenode.create(methodpointer.resulttype))
-        else
-          { destructor with extended syntax called from dispose }
-          if (cnf_dispose_call in callnodeflags) then
-            vmttree:=cloadvmtaddrnode.create(methodpointer.getcopy)
-        else
-         if (methodpointer.resulttype.def.deftype=classrefdef) then
+        { Handle classes and legacy objects separate to make it
+          more maintainable }
+        if (methodpointer.resulttype.def.deftype=classrefdef) then
           begin
+            if not is_class(tclassrefdef(methodpointer.resulttype.def).pointertype.def) then
+              internalerror(200501041);
+
             { constructor call via classreference => allocate memory }
-            if (procdefinition.proctypeoption=potype_constructor) and
-               is_class(tclassrefdef(methodpointer.resulttype.def).pointertype.def) then
+            if (procdefinition.proctypeoption=potype_constructor) then
               begin
                 vmttree:=methodpointer.getcopy;
                 { Only a typenode can be passed when it is called with <class of xx>.create }
@@ -1251,33 +1232,102 @@ type
                   vmttree:=cloadvmtaddrnode.create(vmttree);
               end
             else
-              vmttree:=cpointerconstnode.create(0,voidpointertype);
+              begin
+                { Call afterconstruction }
+                vmttree:=cpointerconstnode.create(1,voidpointertype);
+              end;
           end
         else
-        { class }
+        { Class style objects }
          if is_class(methodpointer.resulttype.def) then
           begin
-            { destructor: release instance, flag(vmt)=1
-              constructor: direct call, do nothing, leave vmt=0 }
-            if (procdefinition.proctypeoption=potype_destructor) then
-             vmttree:=cpointerconstnode.create(1,voidpointertype)
+            { inherited call, no create/destroy }
+            if (cnf_inherited in callnodeflags) then
+              vmttree:=cpointerconstnode.create(0,voidpointertype)
             else
-             vmttree:=cpointerconstnode.create(0,voidpointertype);
+              { do not create/destroy when called from member function
+                without specifying self explicit }
+              if (cnf_member_call in callnodeflags) then
+                begin
+                  { destructor: don't release instance, vmt=0
+                    constructor:
+                      if called from a constructor in the same class then
+                        don't call afterconstruction, vmt=0
+                      else
+                        call afterconstrution, vmt=1 }
+                  if (procdefinition.proctypeoption=potype_destructor) then
+                    vmttree:=cpointerconstnode.create(0,voidpointertype)
+                  else
+                    begin
+                      if (current_procinfo.procdef.proctypeoption=potype_constructor) and
+                         (procdefinition.proctypeoption=potype_constructor) then
+                        vmttree:=cpointerconstnode.create(0,voidpointertype)
+                      else
+                        vmttree:=cpointerconstnode.create(1,voidpointertype);
+                    end;
+                end
+            else
+            { normal call to method like cl1.proc }
+              begin
+                { destructor: release instance, vmt=1
+                  constructor:
+                    if called from a constructor in the same class using self.create then
+                      don't call afterconstruction, vmt=0
+                    else
+                      call afterconstrution, vmt=1 }
+                if (procdefinition.proctypeoption=potype_destructor) then
+                  vmttree:=cpointerconstnode.create(1,voidpointertype)
+                else
+                  begin
+                    if (current_procinfo.procdef.proctypeoption=potype_constructor) and
+                       (procdefinition.proctypeoption=potype_constructor) and
+                       (nf_is_self in methodpointer.flags) then
+                      vmttree:=cpointerconstnode.create(0,voidpointertype)
+                    else
+                      vmttree:=cpointerconstnode.create(1,voidpointertype);
+                  end;
+              end;
           end
         else
-        { object }
-         begin
-           { destructor: direct call, no dispose, vmt=0
-             constructor: initialize object, load vmt }
-           if (procdefinition.proctypeoption=potype_constructor) then
-             { old styled inherited call? }
-             if (methodpointer.nodetype=typen) then
-               vmttree:=cpointerconstnode.create(0,voidpointertype)
-             else
-               vmttree:=cloadvmtaddrnode.create(ctypenode.create(methodpointer.resulttype))
-           else
-             vmttree:=cpointerconstnode.create(0,voidpointertype);
-         end;
+        { Old style object }
+          begin
+            { constructor with extended syntax called from new }
+            if (cnf_new_call in callnodeflags) then
+                vmttree:=cloadvmtaddrnode.create(ctypenode.create(methodpointer.resulttype))
+            else
+              { destructor with extended syntax called from dispose }
+              if (cnf_dispose_call in callnodeflags) then
+                vmttree:=cloadvmtaddrnode.create(methodpointer.getcopy)
+            else
+              { inherited call, no create/destroy }
+              if (cnf_inherited in callnodeflags) then
+                vmttree:=cpointerconstnode.create(0,voidpointertype)
+            else
+              { do not create/destroy when called from member function
+                without specifying self explicit }
+              if (cnf_member_call in callnodeflags) then
+                begin
+                  { destructor: don't release instance, vmt=0
+                    constructor: don't initialize instance, vmt=0 }
+                  vmttree:=cpointerconstnode.create(0,voidpointertype)
+                end
+            else
+            { normal object call like obj.proc }
+             begin
+               { destructor: direct call, no dispose, vmt=0
+                 constructor: initialize object, load vmt }
+               if (procdefinition.proctypeoption=potype_constructor) then
+                 begin
+                   { old styled inherited call? }
+                   if (methodpointer.nodetype=typen) then
+                     vmttree:=cpointerconstnode.create(0,voidpointertype)
+                   else
+                     vmttree:=cloadvmtaddrnode.create(ctypenode.create(methodpointer.resulttype))
+                 end
+               else
+                 vmttree:=cpointerconstnode.create(0,voidpointertype);
+             end;
+          end;
         result:=vmttree;
       end;
 
@@ -2445,7 +2495,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.274  2005-01-02 16:58:48  peter
+  Revision 1.275  2005-01-04 16:36:31  peter
+    * fix aftercosntruction calls, vmt=1 is used to indicate that
+      afterconstruction needs to be called
+    * only accept resourcestring when objpas is loaded
+
+  Revision 1.274  2005/01/02 16:58:48  peter
     * Don't release methodpointer. It is maybe still needed when we need to
      convert the calln to loadn
 

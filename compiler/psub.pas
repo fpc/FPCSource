@@ -272,11 +272,13 @@ implementation
                     if assigned(srsym) and
                        (srsym.typ=procsym) then
                       begin
-                        { if vmt<>0 then newinstance }
+                        { if vmt>1 then newinstance }
                         addstatement(newstatement,cifnode.create(
-                            caddnode.create(unequaln,
-                                load_vmt_pointer_node,
-                                cnilnode.create),
+                            caddnode.create(gtn,
+                                ctypeconvnode.create_internal(
+                                    load_vmt_pointer_node,
+                                    voidpointertype),
+                                cpointerconstnode.create(1,voidpointertype)),
                             cassignmentnode.create(
                                 ctypeconvnode.create_internal(
                                     load_self_pointer_node,
@@ -1393,7 +1395,14 @@ implementation
                 begin
                   case idtoken of
                     _RESOURCESTRING :
-                      resourcestring_dec;
+                      begin
+                        { m_class is needed, because the resourcestring
+                          loading is in the ObjPas unit }
+                        if (m_class in aktmodeswitches) then
+                          resourcestring_dec
+                        else
+                          break;
+                      end;
                     _PROPERTY:
                       begin
                         if (m_fpc in aktmodeswitches) then
@@ -1459,7 +1468,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.228  2005-01-03 22:27:56  peter
+  Revision 1.229  2005-01-04 16:36:31  peter
+    * fix aftercosntruction calls, vmt=1 is used to indicate that
+      afterconstruction needs to be called
+    * only accept resourcestring when objpas is loaded
+
+  Revision 1.228  2005/01/03 22:27:56  peter
     * insert stack_check helper call before doing register allocation
       so the used registers can't be reused when parameters are loaded
       into register variables
