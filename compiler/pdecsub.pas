@@ -717,9 +717,8 @@ implementation
                 (aprocsym.typ<>procsym) then
               begin
                 { when the other symbol is a unit symbol then hide the unit
-                  symbol. Only in tp mode because it's bad programming }
-                if (m_duplicate_names in aktmodeswitches) and
-                   (aprocsym.typ=unitsym) then
+                  symbol }
+                if (aprocsym.typ=unitsym) then
                  begin
                    aprocsym.owner.rename(aprocsym.name,'hidden'+aprocsym.name);
                    searchagain:=true;
@@ -2239,7 +2238,10 @@ const
 end.
 {
   $Log$
-  Revision 1.174  2004-05-09 12:49:14  peter
+  Revision 1.175  2004-05-11 06:59:35  michael
+  + Patch from peter to hide system unit as symbol
+
+  Revision 1.174  2004/05/09 12:49:14  peter
   C directive is mac only
 
   Revision 1.173  2004/05/03 20:02:42  jonas
