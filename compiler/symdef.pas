@@ -505,6 +505,21 @@ interface
        end;
        pinlininginfo = ^tinlininginfo;
 
+
+{$ifdef oldregvars}
+       { register variables }
+       pregvarinfo = ^tregvarinfo;
+       tregvarinfo = record
+          regvars : array[1..maxvarregs] of tsym;
+          regvars_para : array[1..maxvarregs] of boolean;
+          regvars_refs : array[1..maxvarregs] of longint;
+
+          fpuregvars : array[1..maxfpuvarregs] of tsym;
+          fpuregvars_para : array[1..maxfpuvarregs] of boolean;
+          fpuregvars_refs : array[1..maxfpuvarregs] of longint;
+       end;
+{$endif oldregvars}
+
        tprocdef = class(tabstractprocdef)
        private
           _mangledname : pstring;
@@ -554,6 +569,9 @@ interface
           { info for inlining the subroutine, if this pointer is nil,
             the procedure can't be inlined }
           inlininginfo : pinlininginfo;
+{$ifdef oldregvars}
+          regvarinfo: pregvarinfo;
+{$endif oldregvars}
           constructor create(level:byte);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
@@ -1253,7 +1271,8 @@ implementation
             case torddef(self).typ of
               bool8bit,bool16bit,bool32bit,
               u8bit,u16bit,u32bit,
-              s8bit,s16bit,s32bit:
+              s8bit,s16bit,s32bit,
+              uchar, uwidechar:
                 is_intregable:=true;
             end;
           objectdef:
@@ -6077,7 +6096,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.216  2004-02-06 22:37:00  daniel
+  Revision 1.217  2004-02-08 18:08:59  jonas
+    * fixed regvars support. Needs -doldregvars to activate. Only tested with
+      ppc, other processors should however only require maxregvars and
+      maxfpuregvars constants in cpubase.pas. Remember to take scratch-
+      registers into account when defining that value.
+
+  Revision 1.216  2004/02/06 22:37:00  daniel
     * Removed not very usefull nextglobal & previousglobal fields from
       Tstoreddef, saving 78 kb of memory
 

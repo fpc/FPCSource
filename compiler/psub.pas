@@ -664,6 +664,9 @@ implementation
               body is generated because the localloc is updated.
               Note: The generated code will be inserted after the code generation of
               the body is finished, because only then the position is known }
+{$ifdef oldregvars}
+            assign_regvars(code);
+{$endif oldreg}
             aktfilepos:=entrypos;
             gen_load_para_value(templist);
 
@@ -1342,7 +1345,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.184  2004-02-04 22:01:13  peter
+  Revision 1.185  2004-02-08 18:08:59  jonas
+    * fixed regvars support. Needs -doldregvars to activate. Only tested with
+      ppc, other processors should however only require maxregvars and
+      maxfpuregvars constants in cpubase.pas. Remember to take scratch-
+      registers into account when defining that value.
+
+  Revision 1.184  2004/02/04 22:01:13  peter
     * first try to get cpupara working for x86_64
 
   Revision 1.183  2004/02/03 22:32:54  peter

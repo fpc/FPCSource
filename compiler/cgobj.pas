@@ -903,7 +903,10 @@ implementation
                 begin
                   getexplicitregister(list,locpara.register);
                   ungetregister(list,locpara.register);
+{
+                  This is now a normal imaginary register, allocated the usual way (JM)
                   getexplicitregister(list,reg);
+}
                   a_load_reg_reg(list,locpara.size,locpara.size,locpara.register,reg)
                 end
               else
@@ -912,9 +915,13 @@ implementation
           LOC_CFPUREGISTER,
           LOC_FPUREGISTER:
             begin
+
               getexplicitregister(list,locpara.register);
               ungetregister(list,locpara.register);
+{ 
+              This is now a normal imaginary register, allocated the usual way (JM)
               getexplicitregister(list,reg);
+}
               a_loadfpu_reg_reg(list,locpara.size,locpara.register,reg);
             end;
           LOC_MMREGISTER,
@@ -922,14 +929,20 @@ implementation
             begin
               getexplicitregister(list,locpara.register);
               ungetregister(list,locpara.register);
+{ 
+              This is now a normal imaginary register, allocated the usual way (JM)
               getexplicitregister(list,reg);
+}
               a_loadmm_reg_reg(list,locpara.size,locpara.size,locpara.register,reg,shuffle);
             end;
           LOC_REFERENCE,
           LOC_CREFERENCE:
             begin
               reference_reset_base(href,locpara.reference.index,locpara.reference.offset);
+{
+              This is now a normal imaginary register, allocated the usual way (JM)
               getexplicitregister(list,reg);
+}
               a_load_ref_reg(list,locpara.size,locpara.size,href,reg);
             end;
           else
@@ -2138,7 +2151,13 @@ finalization
 end.
 {
   $Log$
-  Revision 1.155  2004-02-04 22:01:13  peter
+  Revision 1.156  2004-02-08 18:08:59  jonas
+    * fixed regvars support. Needs -doldregvars to activate. Only tested with
+      ppc, other processors should however only require maxregvars and
+      maxfpuregvars constants in cpubase.pas. Remember to take scratch-
+      registers into account when defining that value.
+
+  Revision 1.155  2004/02/04 22:01:13  peter
     * first try to get cpupara working for x86_64
 
   Revision 1.154  2004/02/03 22:32:53  peter

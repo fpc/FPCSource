@@ -106,6 +106,8 @@ uses
       totherregisterset = set of tregisterindex;
 
     const
+      maxvarregs = 32-6; { 32 int registers - r0 - stackpointer - r2 - 3 scratch registers }
+      maxfpuvarregs = 28; { 32 fpuregisters - some scratch registers (minimally 2) }
       { Available Superregisters }
       {$i rppcsup.inc}
 
@@ -629,7 +631,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.83  2004-01-30 13:42:03  florian
+  Revision 1.84  2004-02-08 18:08:59  jonas
+    * fixed regvars support. Needs -doldregvars to activate. Only tested with
+      ppc, other processors should however only require maxregvars and
+      maxfpuregvars constants in cpubase.pas. Remember to take scratch-
+      registers into account when defining that value.
+
+  Revision 1.83  2004/01/30 13:42:03  florian
     * fixed more alignment issues
 
   Revision 1.82  2004/01/10 00:16:21  jonas

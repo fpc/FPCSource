@@ -307,20 +307,6 @@ interface
           function  get_label:tasmsymbol;
        end;
 
-(*
-       { register variables }
-       pregvarinfo = ^tregvarinfo;
-       tregvarinfo = record
-          regvars : array[1..maxvarregs] of tvarsym;
-          regvars_para : array[1..maxvarregs] of boolean;
-          regvars_refs : array[1..maxvarregs] of longint;
-
-          fpuregvars : array[1..maxfpuvarregs] of tvarsym;
-          fpuregvars_para : array[1..maxfpuvarregs] of boolean;
-          fpuregvars_refs : array[1..maxfpuvarregs] of longint;
-       end;
-*)
-
     var
        generrorsym : tsym;
 
@@ -1615,110 +1601,116 @@ implementation
         threadvaroffset:string;
         regidx:Tregisterindex;
         c:char;
+        loc: tcgloc;
 
     begin
+      { set loc to LOC_REFERENCE to get somewhat usable debugging info for -Or }
+      { while stabs aren't adapted for regvars yet                             }
+      loc := localloc.loc;
       if (vo_is_self in varoptions) then
         begin
-          if localloc.loc<>LOC_REFERENCE then
-            internalerror(2003091815);
+          case loc of
+            LOC_REGISTER:
+              regidx:=findreg_by_number(localloc.register);
+            LOC_REFERENCE: ;
+            else
+              internalerror(2003091815);
+          end;
           if (po_classmethod in current_procinfo.procdef.procoptions) or
              (po_staticmethod in current_procinfo.procdef.procoptions) then
-            stabstring:=stabstr_evaluate('"pvmt:p$1",${N_TSYM},0,0,$2',
-                  [Tstoreddef(pvmttype.def).numberstring,tostr(localloc.reference.offset)])
+            if (loc=LOC_REFERENCE) then
+              stabstring:=stabstr_evaluate('"pvmt:p$1",${N_TSYM},0,0,$2',
+                [Tstoreddef(pvmttype.def).numberstring,tostr(localloc.reference.offset)])
+            else
+              stabstring:=stabstr_evaluate('"pvmt:r$1",${N_RSYM},0,0,$2',
+                [Tstoreddef(pvmttype.def).numberstring,tostr(regstabs_table[regidx])])
           else
             begin
               if not(is_class(current_procinfo.procdef._class)) then
                 c:='v'
               else
                 c:='p';
-              stabstring:=stabstr_evaluate('"$$t:$1",${N_TSYM},0,0,$2',
-                    [c+current_procinfo.procdef._class.numberstring,tostr(localloc.reference.offset)]);
+              if (loc=LOC_REFERENCE) then
+                stabstring:=stabstr_evaluate('"$$t:$1",${N_TSYM},0,0,$2',
+                      [c+current_procinfo.procdef._class.numberstring,tostr(localloc.reference.offset)])
+              else
+                stabstring:=stabstr_evaluate('"$$t:r$1",${N_RSYM},0,0,$2',
+                      [c+current_procinfo.procdef._class.numberstring,tostr(regstabs_table[regidx])]);
             end;
         end
       else
-      (*
-        if (localloc.loc=LOC_REGISTER) then
-          begin
-            regidx:=findreg_by_number(localloc.register);
-            { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
-            { this is the register order for GDB}
-            stabstring:=stabstr_evaluate('"${name}:r$1",${N_RSYM},0,${line},$2',
-                  [Tstoreddef(vartype.def).numberstring,tostr(regstabs_table[regidx])]);
-          end
-        else
-       *)
-          begin
-            stabstring:=nil;
-            st:=tstoreddef(vartype.def).numberstring;
-            if (vo_is_thread_var in varoptions) then
-              threadvaroffset:='+'+tostr(pointer_size)
-            else
-              threadvaroffset:='';
+        begin
+          stabstring:=nil;
+          st:=tstoreddef(vartype.def).numberstring;
+          if (vo_is_thread_var in varoptions) then
+            threadvaroffset:='+'+tostr(pointer_size)
+          else
+            threadvaroffset:='';
 
-            case owner.symtabletype of
-              objectsymtable:
-                if (sp_static in symoptions) then
-                  begin
-                    if (cs_gdb_gsym in aktglobalswitches) then
-                      st:='G'+st
-                    else
-                      st:='S'+st;
-                    stabstring:=stabstr_evaluate('"${ownername}__${name}:$1",${N_LCSYM},0,${line},${mangledname}$2',
-                                                 [st,threadvaroffset]);
-                  end;
-              globalsymtable:
+          case owner.symtabletype of
+            objectsymtable:
+              if (sp_static in symoptions) then
                 begin
-                  { Here we used S instead of
-                    because with G GDB doesn't look at the address field
-                    but searches the same name or with a leading underscore
-                    but these names don't exist in pascal !}
                   if (cs_gdb_gsym in aktglobalswitches) then
                     st:='G'+st
                   else
                     st:='S'+st;
-                  stabstring:=stabstr_evaluate('"${name}:$1",${N_LCSYM},0,${line},${mangledname}$2',[st,threadvaroffset]);
+                  stabstring:=stabstr_evaluate('"${ownername}__${name}:$1",${N_LCSYM},0,${line},${mangledname}$2',
+                                               [st,threadvaroffset]);
                 end;
-              staticsymtable :
-                stabstring:=stabstr_evaluate('"${name}:S$1",${N_LCSYM},0,${line},${mangledname}$2',[st,threadvaroffset]);
-              parasymtable,localsymtable:
-                begin
-                  { There is no space allocated for not referenced locals }
-                  if (owner.symtabletype=localsymtable) and (refs=0) then
-                    exit;
+            globalsymtable:
+              begin
+                { Here we used S instead of
+                  because with G GDB doesn't look at the address field
+                  but searches the same name or with a leading underscore
+                  but these names don't exist in pascal !}
+                if (cs_gdb_gsym in aktglobalswitches) then
+                  st:='G'+st
+                else
+                  st:='S'+st;
+                stabstring:=stabstr_evaluate('"${name}:$1",${N_LCSYM},0,${line},${mangledname}$2',[st,threadvaroffset]);
+              end;
+            staticsymtable :
+              stabstring:=stabstr_evaluate('"${name}:S$1",${N_LCSYM},0,${line},${mangledname}$2',[st,threadvaroffset]);
+            parasymtable,localsymtable:
+              begin
+                { There is no space allocated for not referenced locals }
+                if (owner.symtabletype=localsymtable) and (refs=0) then
+                  exit;
 
-                  if (vo_is_C_var in varoptions) then
-                    begin
-                      stabstring:=stabstr_evaluate('"${name}:S$1",${N_LCSYM},0,${line},${mangledname}',[st]);
-                      exit;
-                    end;
-                  if (owner.symtabletype=parasymtable) then
-                    begin
-                      if paramanager.push_addr_param(varspez,vartype.def,tprocdef(owner.defowner).proccalloption) and
-                         not(vo_has_local_copy in varoptions) then
-                        st := 'v'+st { should be 'i' but 'i' doesn't work }
-                      else
-                        st := 'p'+st;
-                    end;
-                  case localloc.loc of
-                    LOC_REGISTER, LOC_FPUREGISTER :
-                      begin
-                        regidx:=findreg_by_number(localloc.register);
-                        { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
-                        { this is the register order for GDB}
-                        stabstring:=stabstr_evaluate('"${name}:r$1",${N_RSYM},0,${line},$2',[st,tostr(regstabs_table[regidx])]);
-                      end;
-                    LOC_REFERENCE :
-                      { offset to ebp => will not work if the framepointer is esp
-                        so some optimizing will make things harder to debug }
-                      stabstring:=stabstr_evaluate('"${name}:$1",${N_TSYM},0,${line},$2',[st,tostr(localloc.reference.offset)])
-                    else
-                      internalerror(2003091814);
+                if (vo_is_C_var in varoptions) then
+                  begin
+                    stabstring:=stabstr_evaluate('"${name}:S$1",${N_LCSYM},0,${line},${mangledname}',[st]);
+                    exit;
                   end;
+                if (owner.symtabletype=parasymtable) then
+                  begin
+                    if paramanager.push_addr_param(varspez,vartype.def,tprocdef(owner.defowner).proccalloption) and
+                       not(vo_has_local_copy in varoptions) then
+                      st := 'v'+st { should be 'i' but 'i' doesn't work }
+                    else
+                      st := 'p'+st;
+                  end;
+                case loc of
+                  LOC_REGISTER, LOC_FPUREGISTER :
+                    begin
+                      regidx:=findreg_by_number(localloc.register);
+                      { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
+                      { this is the register order for GDB}
+                      stabstring:=stabstr_evaluate('"${name}:r$1",${N_RSYM},0,${line},$2',[st,tostr(regstabs_table[regidx])]);
+                    end;
+                  LOC_REFERENCE :
+                    { offset to ebp => will not work if the framepointer is esp
+                      so some optimizing will make things harder to debug }
+                    stabstring:=stabstr_evaluate('"${name}:$1",${N_TSYM},0,${line},$2',[st,tostr(localloc.reference.offset)])
+                  else
+                    internalerror(2003091814);
                 end;
-              else
-                stabstring := inherited stabstring;
-            end;
+              end;
+            else
+              stabstring := inherited stabstring;
           end;
+        end;
     end;
 {$endif GDB}
 
@@ -2363,7 +2355,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.155  2004-02-05 14:13:53  daniel
+  Revision 1.156  2004-02-08 18:08:59  jonas
+    * fixed regvars support. Needs -doldregvars to activate. Only tested with
+      ppc, other processors should however only require maxregvars and
+      maxfpuregvars constants in cpubase.pas. Remember to take scratch-
+      registers into account when defining that value.
+
+  Revision 1.155  2004/02/05 14:13:53  daniel
     *  Tvarsym.highvarsym removed
 
   Revision 1.154  2004/02/04 23:01:36  daniel
