@@ -64,8 +64,8 @@ const
 var
 { Mem[] support }
   mem  : array[0..$7fffffff] of byte absolute $0:$0;
-  memw : array[0..$7fffffff] of word absolute $0:$0;
-  meml : array[0..$7fffffff] of longint absolute $0:$0;
+  memw : array[0..$7fffffff div sizeof(word)] of word absolute $0:$0;
+  meml : array[0..$7fffffff div sizeof(longint)] of longint absolute $0:$0;
 { C-compatible arguments and environment }
   argc  : longint;
   argv  : ppchar;
@@ -94,8 +94,8 @@ Const
     end;
   function  do_write(h,addr,len : longint) : longint;
   function  do_read(h,addr,len : longint) : longint;
-  procedure syscopyfromdos(addr : longint; len : longint);
-  procedure syscopytodos(addr : longint; len : longint);
+  procedure syscopyfromdos(addr : sizeuint; len : longint);
+  procedure syscopytodos(addr : sizeuint; len : longint);
   procedure sysrealintr(intnr : word;var regs : trealregs);
 
   var tb:longint;
@@ -130,7 +130,7 @@ var
                              Watcom Helpers
 *****************************************************************************}
 
-function far_strlen(selector : word;linear_address : longint) : longint;assembler;
+function far_strlen(selector : word;linear_address : sizeuint) : longint;assembler;
 asm
         movl linear_address,%edx
         movl %edx,%ecx
@@ -177,7 +177,7 @@ asm
    popl %ebx
 end;
 
-procedure sysseg_move(sseg : word;source : longint;dseg : word;dest : longint;count : longint);
+procedure sysseg_move(sseg : word;source : sizeuint;dseg : word;dest : sizeuint;count : longint);
 begin
    if count=0 then
      exit;
@@ -252,16 +252,279 @@ begin
      end;
 end;
 
-
-var
-  _args : ppchar;//###########external name '_args';
+var psp_selector:word; external name 'PSP_SELECTOR';
 
 procedure setup_arguments;
+type
+  arrayword = array [0..255] of word;
+var
+  proxy_s  : string[50];
+  proxy_argc,proxy_seg,proxy_ofs,lin : longint;
+  rm_argv  : ^arrayword;
+  argv0len : longint;
+  useproxy : boolean;
+  hp       : ppchar;
+  doscmd   : string[129];  { Dos commandline copied from PSP, max is 128 chars +1 for terminating zero }
+  arglen,
+  count   : longint;
+  argstart,
+  pc,arg  : pchar;
+  quote   : char;
+  argvlen : longint;
+
+  function atohex(s : pchar) : longint;
+  var
+    rv : longint;
+    v  : byte;
+  begin
+    rv:=0;
+    while (s^<>#0) do
+     begin
+       v:=byte(s^)-byte('0');
+       if (v > 9) then
+         dec(v,7);
+       v:=v and 15; { in case it's lower case }
+       rv:=(rv shl 4) or v;
+       inc(longint(s));
+     end;
+    atohex:=rv;
+  end;
+
+  procedure allocarg(idx,len:longint);
+  var oldargvlen:longint;
+  begin
+    if idx>=argvlen then
+     begin
+       oldargvlen:=argvlen;
+       argvlen:=(idx+8) and (not 7);
+       sysreallocmem(argv,argvlen*sizeof(pointer));
+       fillchar(argv[oldargvlen],(argvlen-oldargvlen)*sizeof(pointer),0);
+       argv[idx]:=nil;
+     end;
+    { use realloc to reuse already existing memory }
+    if len<>0 then
+      sysreallocmem(argv[idx],len+1);
+  end;
+
 begin
- // ####################################
+  count:=0;
+  argc:=1;
+  argv:=nil;
+  argvlen:=0;
+  { load commandline from psp }
+  sysseg_move(psp_selector, 128, get_ds, longint(@doscmd), 128);
+  doscmd[length(doscmd)+1]:=#0;
+{$IfDef SYSTEM_DEBUG_STARTUP}
+  Writeln(stderr,'Dos command line is #',doscmd,'# size = ',length(doscmd));
+{$EndIf }
+  { create argv[0] }
+  argv0len:=strlen(dos_argv0);
+  allocarg(count,argv0len);
+  move(dos_argv0^,argv[count]^,argv0len);
+  inc(count);
+  { setup cmdline variable }
+  cmdline:=Getmem(argv0len+length(doscmd)+2);
+  move(dos_argv0^,cmdline^,argv0len);
+  cmdline[argv0len]:=' ';
+  inc(argv0len);
+  move(doscmd[1],cmdline[argv0len],length(doscmd));
+  cmdline[argv0len+length(doscmd)+1]:=#0;
+  { parse dos commandline }
+  pc:=@doscmd[1];
+  while pc^<>#0 do
+   begin
+     { skip leading spaces }
+     while pc^ in [#1..#32] do
+      inc(pc);
+     if pc^=#0 then
+      break;
+     { calc argument length }
+     quote:=' ';
+     argstart:=pc;
+     arglen:=0;
+     while (pc^<>#0) do
+      begin
+        case pc^ of
+          #1..#32 :
+            begin
+              if quote<>' ' then
+               inc(arglen)
+              else
+               break;
+            end;
+          '"' :
+            begin
+              if quote<>'''' then
+               begin
+                 if pchar(pc+1)^<>'"' then
+                  begin
+                    if quote='"' then
+                     quote:=' '
+                    else
+                     quote:='"';
+                  end
+                 else
+                  inc(pc);
+               end
+              else
+               inc(arglen);
+            end;
+          '''' :
+            begin
+              if quote<>'"' then
+               begin
+                 if pchar(pc+1)^<>'''' then
+                  begin
+                    if quote=''''  then
+                     quote:=' '
+                    else
+                     quote:='''';
+                  end
+                 else
+                  inc(pc);
+               end
+              else
+               inc(arglen);
+            end;
+          else
+            inc(arglen);
+        end;
+        inc(pc);
+      end;
+     { copy argument }
+     allocarg(count,arglen);
+     quote:=' ';
+     pc:=argstart;
+     arg:=argv[count];
+     while (pc^<>#0) do
+      begin
+        case pc^ of
+          #1..#32 :
+            begin
+              if quote<>' ' then
+               begin
+                 arg^:=pc^;
+                 inc(arg);
+               end
+              else
+               break;
+            end;
+          '"' :
+            begin
+              if quote<>'''' then
+               begin
+                 if pchar(pc+1)^<>'"' then
+                  begin
+                    if quote='"' then
+                     quote:=' '
+                    else
+                     quote:='"';
+                  end
+                 else
+                  inc(pc);
+               end
+              else
+               begin
+                 arg^:=pc^;
+                 inc(arg);
+               end;
+            end;
+          '''' :
+            begin
+              if quote<>'"' then
+               begin
+                 if pchar(pc+1)^<>'''' then
+                  begin
+                    if quote=''''  then
+                     quote:=' '
+                    else
+                     quote:='''';
+                  end
+                 else
+                  inc(pc);
+               end
+              else
+               begin
+                 arg^:=pc^;
+                 inc(arg);
+               end;
+            end;
+          else
+            begin
+              arg^:=pc^;
+              inc(arg);
+            end;
+        end;
+        inc(pc);
+      end;
+     arg^:=#0;
+ {$IfDef SYSTEM_DEBUG_STARTUP}
+     Writeln(stderr,'dos arg ',count,' #',arglen,'#',argv[count],'#');
+ {$EndIf SYSTEM_DEBUG_STARTUP}
+     inc(count);
+   end;
+  argc:=count;
+  { check for !proxy for long commandlines passed using environment }
+  hp:=envp;
+  useproxy:=false;
+  while assigned(hp^) do
+   begin
+     if (hp^[0]=' ') then
+      begin
+        proxy_s:=strpas(hp^);
+        if Copy(proxy_s,1,7)=' !proxy' then
+         begin
+           proxy_s[13]:=#0;
+           proxy_s[18]:=#0;
+           proxy_s[23]:=#0;
+           argv[2]:=@proxy_s[9];
+           argv[3]:=@proxy_s[14];
+           argv[4]:=@proxy_s[19];
+           useproxy:=true;
+           break;
+         end;
+      end;
+     inc(hp);
+   end;
+  { check for !proxy for long commandlines passed using commandline }
+  if (not useproxy) and
+     (argc > 1) and (far_strlen(get_ds,longint(argv[1])) = 6)  then
+   begin
+     move(argv[1]^,proxy_s[1],6);
+     proxy_s[0] := #6;
+     if (proxy_s = '!proxy') then
+      useproxy:=true;
+   end;
+  { use proxy when found }
+  if useproxy then
+   begin
+     proxy_argc:=atohex(argv[2]);
+     proxy_seg:=atohex(argv[3]);
+     proxy_ofs:=atohex(argv[4]);
+{$IfDef SYSTEM_DEBUG_STARTUP}
+     Writeln(stderr,'proxy command line found');
+     writeln(stderr,'argc: ',proxy_argc,' seg: ',proxy_seg,' ofs: ',proxy_ofs);
+{$EndIf SYSTEM_DEBUG_STARTUP}
+     rm_argv:=SysGetmem(proxy_argc*sizeof(word));
+     sysseg_move(dos_selector,proxy_seg*16+proxy_ofs, get_ds,longint(rm_argv),proxy_argc*sizeof(word));
+     for count:=0 to proxy_argc - 1 do
+      begin
+        lin:=proxy_seg*16+rm_argv^[count];
+        arglen:=far_strlen(dos_selector,lin);
+        allocarg(count,arglen);
+        sysseg_move(dos_selector,lin,get_ds,longint(argv[count]),arglen+1);
+{$IfDef SYSTEM_DEBUG_STARTUP}
+        Writeln(stderr,'arg ',count,' #',rm_argv^[count],'#',arglen,'#',argv[count],'#');
+{$EndIf SYSTEM_DEBUG_STARTUP}
+    end;
+     SysFreemem(rm_argv);
+     argc:=proxy_argc;
+   end;
+  { create an nil entry }
+  allocarg(argc,0);
+  { free unused memory }
+  sysreallocmem(argv,(argc+1)*sizeof(pointer));
 end;
-
-
 
 function strcopy(dest,source : pchar) : pchar;assembler;
 asm
@@ -290,12 +553,49 @@ asm
 end;
 
 
+var
+    env_selector:word; external name 'ENV_SELECTOR';
+    env_size:longint; external name 'ENV_SIZE';
+
 procedure setup_environment;
+var env_count : longint;
+    dos_env,cp : pchar;
 begin
- //#########################3
+  env_count:=0;
+  dos_env:=getmem(env_size);
+  sysseg_move(env_selector,$0, get_ds, longint(dos_env), env_size);
+  cp:=dos_env;
+  while cp ^ <> #0 do
+    begin
+    inc(env_count);
+    while (cp^ <> #0) do inc(longint(cp)); { skip to NUL }
+    inc(longint(cp)); { skip to next character }
+    end;
+  envp := sysgetmem((env_count+1) * sizeof(pchar));
+  if (envp = nil) then exit;
+  cp:=dos_env;
+  env_count:=0;
+  while cp^ <> #0 do
+   begin
+     envp[env_count] := sysgetmem(strlen(cp)+1);
+     strcopy(envp[env_count], cp);
+{$IfDef SYSTEM_DEBUG_STARTUP}
+     Writeln(stderr,'env ',env_count,' = "',envp[env_count],'"');
+{$EndIf SYSTEM_DEBUG_STARTUP}
+     inc(env_count);
+     while (cp^ <> #0) do
+      inc(longint(cp)); { skip to NUL }
+     inc(longint(cp)); { skip to next character }
+   end;
+  envp[env_count]:=nil;
+  longint(cp):=longint(cp)+3;
+  dos_argv0 := sysgetmem(strlen(cp)+1);
+  if (dos_argv0 = nil) then halt;
+  strcopy(dos_argv0, cp);
 end;
 
-procedure syscopytodos(addr : longint; len : longint);
+
+procedure syscopytodos(addr : sizeuint; len : longint);
 begin
    if len > tb_size then
      HandleError(217);
@@ -303,7 +603,7 @@ begin
 end;
 
 
-procedure syscopyfromdos(addr : longint; len : longint);
+procedure syscopyfromdos(addr : sizeuint; len : longint);
 begin
    if len > tb_size then
      HandleError(217);
@@ -482,11 +782,11 @@ end;
 *****************************************************************************}
 
 var int_heapsize:longint; external name 'HEAPSIZE';
-    int_heap:longint; external name 'HEAP';
+    int_heap:pointer; external name 'HEAP';
 
 function getheapstart:pointer;
 begin
-  getheapstart:=@int_heap;
+  getheapstart:=int_heap;
 end;
 
 
@@ -583,8 +883,8 @@ begin
   AllowSlash(p2);
   if strlen(p1)+strlen(p2)+3>tb_size then
    HandleError(217);
-  sysseg_move(get_ds,longint(p2),dos_selector,tb,strlen(p2)+1);
-  sysseg_move(get_ds,longint(p1),dos_selector,tb+strlen(p2)+2,strlen(p1)+1);
+  sysseg_move(get_ds,sizeuint(p2),dos_selector,tb,strlen(p2)+1);
+  sysseg_move(get_ds,sizeuint(p1),dos_selector,tb+strlen(p2)+2,strlen(p1)+1);
   regs.realedi:=tb_offset;
   regs.realedx:=tb_offset + strlen(p2)+2;
   regs.realds:=tb_segment;
@@ -1121,8 +1421,8 @@ Begin
 { Setup stdin, stdout and stderr }
   SysInitStdIO;
 { Setup environment and arguments }
-//  Setup_Environment;
-//  Setup_Arguments;
+  Setup_Environment;
+  Setup_Arguments;
 { Use LFNSupport LFN }
   LFNSupport:=CheckLFN;
   if LFNSupport then
@@ -1142,7 +1442,10 @@ END.
 
 {
   $Log$
-  Revision 1.6  2003-10-16 15:43:13  peter
+  Revision 1.7  2003-10-18 09:31:59  hajny
+    * Wiktor Sywula: environment and arguments support added
+
+  Revision 1.6  2003/10/16 15:43:13  peter
     * THandle is platform dependent
 
   Revision 1.5  2003/10/03 21:59:28  peter
