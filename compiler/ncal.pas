@@ -186,6 +186,10 @@ implementation
 {$endif def extdebug}
       begin
          inc(parsing_para_level);
+
+         if not assigned(defcoll) then
+           internalerror(200104261);
+
 {$ifdef extdebug}
          if do_count then
            begin
@@ -1606,7 +1610,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2001-04-21 12:03:11  peter
+  Revision 1.32  2001-04-26 21:55:05  peter
+    * defcoll must be assigned in insert_typeconv
+
+  Revision 1.31  2001/04/21 12:03:11  peter
     * m68k updates merged from fixes branch
 
   Revision 1.30  2001/04/18 22:01:54  peter
