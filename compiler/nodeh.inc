@@ -316,6 +316,7 @@
           procedure swapleftright;
           function isbinaryoverloaded(var t : tnode) : boolean;
           function getcopy : tnode;override;
+          procedure left_right_max;
        end;
 
        pbinopnode = ^tbinopnode;
@@ -326,7 +327,10 @@
 
 {
   $Log$
-  Revision 1.7  2000-09-26 14:59:34  florian
+  Revision 1.8  2000-09-26 20:06:13  florian
+    * hmm, still a lot of work to get things compilable
+
+  Revision 1.7  2000/09/26 14:59:34  florian
     * more conversion work done
 
   Revision 1.6  2000/09/25 15:37:14  florian

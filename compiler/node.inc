@@ -1,4 +1,4 @@
-7{
+{
     $Id$
     Copyright (c) 1999-2000 by Florian Klaempfl
 
@@ -597,6 +597,29 @@
            include(flags,nf_swaped);
       end;
 
+    procedure tbinarynode.left_right_max;
+      begin
+        if assigned(left) then
+         begin
+           if assigned(right) then
+            begin
+              registers32:=max(left.registers32,right.registers32);
+              registersfpu:=max(left.registersfpu,right.registersfpu);
+{$ifdef SUPPORT_MMX}
+              registersmmx:=max(left.registersmmx,right.registersmmx);
+{$endif SUPPORT_MMX}
+            end
+           else
+            begin
+              registers32:=left.registers32;
+              registersfpu:=left.registersfpu;
+{$ifdef SUPPORT_MMX}
+              registersmmx:=left.registersmmx;
+{$endif SUPPORT_MMX}
+            end;
+         end;
+      end;
+
 {****************************************************************************
                             TBINOPYNODE
  ****************************************************************************}
@@ -617,7 +640,10 @@
       end;
 {
   $Log$
-  Revision 1.3  2000-09-22 21:45:36  florian
+  Revision 1.4  2000-09-26 20:06:13  florian
+    * hmm, still a lot of work to get things compilable
+
+  Revision 1.3  2000/09/22 21:45:36  florian
     * some updates e.g. getcopy added
 
   Revision 1.2  2000/09/20 21:52:38  florian

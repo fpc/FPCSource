@@ -35,6 +35,31 @@ interface
           constructor create(node : tnode;t : pdef);virtual;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
+          function first_int_to_int : tnode;virtual;
+          function first_cstring_to_pchar : tnode;virtual;
+          function first_string_to_chararray : tnode;virtual;
+          function first_string_to_string : tnode;virtual;
+          function first_char_to_string : tnode;virtual;
+          function first_nothing : tnode;virtual;
+          function first_array_to_pointer : tnode;virtual;
+          function first_int_to_real : tnode;virtual;
+          function first_int_to_fix : tnode;virtual;
+          function first_real_to_fix : tnode;virtual;
+          function first_fix_to_real : tnode;virtual;
+          function first_real_to_real : tnode;virtual;
+          function first_pointer_to_array : tnode;virtual;
+          function first_chararray_to_string : tnode;virtual;
+          function first_cchar_to_pchar : tnode;virtual;
+          function first_bool_to_int : tnode;virtual;
+          function first_int_to_bool : tnode;virtual;
+          function first_bool_to_bool : tnode;virtual;
+          function first_proc_to_procvar : tnode;virtual;
+          function first_load_smallset : tnode;virtual;
+          function first_cord_to_pointer : tnode;virtual;
+          function first_pchar_to_string : tnode;virtual;
+          function first_ansistring_to_pchar : tnode;virtual;
+          function first_arrayconstructor_to_set : tnode;virtual;
+          function call_helper(c : tconverttype) : tnode;
        end;
 
        tasnode = class(tbinarynode)
@@ -54,14 +79,12 @@ interface
 
     function gentypeconvnode(node : tnode;t : pdef) : tnode;
 
-    procedure arrayconstructor_to_set(var p:ptree);
-
 implementation
 
    uses
       globtype,systems,tokens,
       cutils,cobjects,verbose,globals,
-      symconst,aasm,types,
+      symconst,aasm,types,ncon,ncal,nld,
 {$ifdef newcg}
       cgbase,
 {$else newcg}
@@ -74,11 +97,17 @@ implementation
                     Array constructor to Set Conversion
 *****************************************************************************}
 
-    procedure arrayconstructor_to_set(var p:ptree);
+    function arrayconstructor_to_set : tnode;
+
+      begin
+         {$warning FIX ME !!!!!!!}
+         internalerror(2609000);
+       end;
+{$ifdef dummy}
       var
-        constp,
+        constp : tsetconstnode;
         buildp,
-        p2,p3,p4    : ptree;
+        p2,p3,p4    : tnode;
         pd        : pdef;
         constset    : pconstset;
         constsetlo,
@@ -138,7 +167,7 @@ implementation
         pd:=nil;
         constsetlo:=0;
         constsethi:=0;
-        constp:=gensinglenode(setconstn,nil);
+        constp:=csetconstnode.create(nil);
         constvalue_set:=constset;
         buildp:=constp;
         if assigned(left) then
@@ -147,7 +176,7 @@ implementation
             begin
               p4:=nil; { will contain the tree to create the set }
             { split a range into p2 and p3 }
-              if left.treetype=arrayconstructrangen then
+              if left.nodetype=arrayconstructrangen then
                begin
                  p2:=left.left;
                  p3:=left.right;
@@ -190,7 +219,7 @@ implementation
                            end
                          else
                            begin
-                             if (p2^.treetype=ordconstn) and (p3^.treetype=ordconstn) then
+                             if (p2^.nodetype=ordconstn) and (p3^.nodetype=ordconstn) then
                               begin
                                  if not(is_integer(p3^.resulttype)) then
                                    pd:=p3^.resulttype
@@ -230,7 +259,7 @@ implementation
                       else
                        begin
                       { Single value }
-                         if p2^.treetype=ordconstn then
+                         if p2^.nodetype=ordconstn then
                           begin
                             if not(is_integer(p2^.resulttype)) then
                               update_constsethi(p2^.resulttype)
@@ -298,16 +327,15 @@ implementation
         p:=buildp;
       end;
 
+{$endif dummy}
 
 {*****************************************************************************
                            TTYPECONVNODE
 *****************************************************************************}
 
-    type
-       tfirstconvproc = procedure of object;
-
-    procedure first_int_to_int(var p : ptree);
+    function ttypeconvnode.first_int_to_int : tnode;
       begin
+        first_int_to_int:=nil;
         if (left.location.loc<>LOC_REGISTER) and
            (resulttype^.size>left.resulttype^.size) then
            location.loc:=LOC_REGISTER;
@@ -318,35 +346,37 @@ implementation
       end;
 
 
-    procedure first_cstring_to_pchar(var p : ptree);
+    function ttypeconvnode.first_cstring_to_pchar : tnode;
       begin
+         first_cstring_to_pchar:=nil;
          registers32:=1;
          location.loc:=LOC_REGISTER;
       end;
 
 
-    procedure first_string_to_chararray(var p : ptree);
+    function ttypeconvnode.first_string_to_chararray : tnode;
       begin
+         first_string_to_chararray:=nil;
          registers32:=1;
          location.loc:=LOC_REGISTER;
       end;
 
 
-    procedure first_string_to_string(var p : ptree);
+    function ttypeconvnode.first_string_to_string : tnode;
       var
-        hp : ptree;
+        t : tnode;
       begin
+         first_string_to_string:=nil;
          if pstringdef(resulttype)^.string_typ<>
             pstringdef(left.resulttype)^.string_typ then
            begin
-              if left.treetype=stringconstn then
+              if left.nodetype=stringconstn then
                 begin
-                   left.stringtype:=pstringdef(resulttype)^.string_typ;
-                   left.resulttype:=resulttype;
+                   tstringconstnode(left).stringtype:=pstringdef(resulttype)^.string_typ;
+                   tstringconstnode(left).resulttype:=resulttype;
                    { remove typeconv node }
-                   hp:=p;
-                   p:=left;
-                   putnode(hp);
+                   first_string_to_string:=left;
+                   left:=nil;
                    exit;
                 end
               else
@@ -361,47 +391,49 @@ implementation
       end;
 
 
-    procedure first_char_to_string(var p : ptree);
+    function ttypeconvnode.first_char_to_string : tnode;
       var
-         hp : ptree;
+         hp : tstringconstnode;
       begin
-         if left.treetype=ordconstn then
+         first_char_to_string:=nil;
+         if left.nodetype=ordconstn then
            begin
-              hp:=genstringconstnode(chr(left.value),st_default);
+              hp:=genstringconstnode(chr(tordconstnode(left).value),st_default);
               hp.stringtype:=pstringdef(resulttype)^.string_typ;
               firstpass(hp);
-              disposetree(p);
-              p:=hp;
+              first_char_to_string:=hp;
            end
          else
            location.loc:=LOC_MEM;
       end;
 
 
-    procedure first_nothing(var p : ptree);
+    function ttypeconvnode.first_nothing : tnode;
       begin
+         first_nothing:=nil;
          location.loc:=LOC_MEM;
       end;
 
 
-    procedure first_array_to_pointer(var p : ptree);
+    function ttypeconvnode.first_array_to_pointer : tnode;
       begin
+         first_array_to_pointer:=nil;
          if registers32<1 then
            registers32:=1;
          location.loc:=LOC_REGISTER;
       end;
 
 
-    procedure first_int_to_real(var p : ptree);
+    function ttypeconvnode.first_int_to_real : tnode;
       var
-        t : ptree;
+        t : trealconstnode;
       begin
-        if left.treetype=ordconstn then
+        first_int_to_real:=nil;
+        if left.nodetype=ordconstn then
          begin
-           t:=genrealconstnode(left.value,pfloatdef(resulttype));
+           t:=genrealconstnode(tordconstnode(left).value,pfloatdef(resulttype));
            firstpass(t);
-           disposetree(p);
-           p:=t;
+           first_int_to_real:=t;
            exit;
          end;
         if registersfpu<1 then
@@ -410,16 +442,16 @@ implementation
       end;
 
 
-    procedure first_int_to_fix(var p : ptree);
+    function ttypeconvnode.first_int_to_fix : tnode;
       var
-        t : ptree;
+        t : tnode;
       begin
-        if left.treetype=ordconstn then
+        first_int_to_fix:=nil;
+        if left.nodetype=ordconstn then
          begin
-           t:=genfixconstnode(left.value shl 16,resulttype);
+           t:=genfixconstnode(tordconstnode(left).value shl 16,resulttype);
            firstpass(t);
-           disposetree(p);
-           p:=t;
+           first_int_to_fix:=t;
            exit;
          end;
         if registers32<1 then
@@ -428,16 +460,16 @@ implementation
       end;
 
 
-    procedure first_real_to_fix(var p : ptree);
+    function ttypeconvnode.first_real_to_fix : tnode;
       var
-        t : ptree;
+        t : tnode;
       begin
-        if left.treetype=fixconstn then
+        first_real_to_fix:=nil;
+        if left.nodetype=realconstn then
          begin
-           t:=genfixconstnode(round(left.value_real*65536),resulttype);
+           t:=genfixconstnode(round(trealconstnode(left).value_real*65536),resulttype);
            firstpass(t);
-           disposetree(p);
-           p:=t;
+           first_real_to_fix:=t;
            exit;
          end;
         { at least one fpu and int register needed }
@@ -449,16 +481,16 @@ implementation
       end;
 
 
-    procedure first_fix_to_real(var p : ptree);
+    function ttypeconvnode.first_fix_to_real : tnode;
       var
-        t : ptree;
+        t : tnode;
       begin
-        if left.treetype=fixconstn then
+        first_fix_to_real:=nil;
+        if left.nodetype=fixconstn then
           begin
-            t:=genrealconstnode(round(left.value_fix/65536.0),resulttype);
+            t:=genrealconstnode(round(tfixconstnode(left).value_fix/65536.0),resulttype);
             firstpass(t);
-            disposetree(p);
-            p:=t;
+            first_fix_to_real:=t;
             exit;
           end;
         if registersfpu<1 then
@@ -467,23 +499,23 @@ implementation
       end;
 
 
-    procedure first_real_to_real(var p : ptree);
+    function ttypeconvnode.first_real_to_real : tnode;
       var
-        t : ptree;
+        t : tnode;
       begin
-         if left.treetype=realconstn then
+         first_real_to_real:=nil;
+         if left.nodetype=realconstn then
            begin
-             t:=genrealconstnode(left.value_real,resulttype);
+             t:=genrealconstnode(trealconstnode(left).value_real,resulttype);
              firstpass(t);
-             disposetree(p);
-             p:=t;
+             first_real_to_real:=t;
              exit;
            end;
         { comp isn't a floating type }
 {$ifdef i386}
          if (pfloatdef(resulttype)^.typ=s64comp) and
             (pfloatdef(left.resulttype)^.typ<>s64comp) and
-            not (explizit) then
+            not (nf_explizit in flags) then
            CGMessage(type_w_convert_real_2_comp);
 {$endif}
          if registersfpu<1 then
@@ -492,16 +524,18 @@ implementation
       end;
 
 
-    procedure first_pointer_to_array(var p : ptree);
+    function ttypeconvnode.first_pointer_to_array : tnode;
       begin
+         first_pointer_to_array:=nil;
          if registers32<1 then
            registers32:=1;
          location.loc:=LOC_REFERENCE;
       end;
 
 
-    procedure first_chararray_to_string(var p : ptree);
+    function ttypeconvnode.first_chararray_to_string : tnode;
       begin
+         first_chararray_to_string:=nil;
          { the only important information is the location of the }
          { result                                               }
          { other stuff is done by firsttypeconv           }
@@ -509,21 +543,23 @@ implementation
       end;
 
 
-    procedure first_cchar_to_pchar(var p : ptree);
+    function ttypeconvnode.first_cchar_to_pchar : tnode;
       begin
+         first_cchar_to_pchar:=nil;
          left:=gentypeconvnode(left,cshortstringdef);
          { convert constant char to constant string }
          firstpass(left);
          { evalute tree }
-         firstpass(p);
+         first_cchar_to_pchar:=pass_1;
       end;
 
 
-    procedure first_bool_to_int(var p : ptree);
+    function ttypeconvnode.first_bool_to_int : tnode;
       begin
+         first_bool_to_int:=nil;
          { byte(boolean) or word(wordbool) or longint(longbool) must
          be accepted for var parameters }
-         if (explizit) and
+         if (nf_explizit in flags) and
             (left.resulttype^.size=resulttype^.size) and
             (left.location.loc in [LOC_REFERENCE,LOC_MEM,LOC_CREGISTER]) then
            exit;
@@ -533,11 +569,12 @@ implementation
       end;
 
 
-    procedure first_int_to_bool(var p : ptree);
+    function ttypeconvnode.first_int_to_bool : tnode;
       begin
+         first_int_to_bool:=nil;
          { byte(boolean) or word(wordbool) or longint(longbool) must
          be accepted for var parameters }
-         if (explizit) and
+         if (nf_explizit in flags) and
             (left.resulttype^.size=resulttype^.size) and
             (left.location.loc in [LOC_REFERENCE,LOC_MEM,LOC_CREGISTER]) then
            exit;
@@ -552,16 +589,18 @@ implementation
       end;
 
 
-    procedure first_bool_to_bool(var p : ptree);
+    function ttypeconvnode.first_bool_to_bool : tnode;
       begin
+         first_bool_to_bool:=nil;
          location.loc:=LOC_REGISTER;
          if registers32<1 then
            registers32:=1;
       end;
 
 
-    procedure first_proc_to_procvar(var p : ptree);
+    function ttypeconvnode.first_proc_to_procvar : tnode;
       begin
+         first_proc_to_procvar:=nil;
          { hmmm, I'am not sure if that is necessary (FK) }
          firstpass(left);
          if codegenerror then
@@ -577,21 +616,22 @@ implementation
       end;
 
 
-    procedure first_load_smallset(var p : ptree);
+    function ttypeconvnode.first_load_smallset : tnode;
       begin
+         first_load_smallset:=nil;
       end;
 
 
-    procedure first_cord_to_pointer(var p : ptree);
+    function ttypeconvnode.first_cord_to_pointer : tnode;
       var
-        t : ptree;
+        t : tnode;
       begin
-        if left.treetype=ordconstn then
+        first_cord_to_pointer:=nil;
+        if left.nodetype=ordconstn then
           begin
-            t:=genpointerconstnode(left.value,resulttype);
+            t:=genpointerconstnode(tordconstnode(left).value,resulttype);
             firstpass(t);
-            disposetree(p);
-            p:=t;
+            first_cord_to_pointer:=t;
             exit;
           end
         else
@@ -599,75 +639,104 @@ implementation
       end;
 
 
-    procedure first_pchar_to_string(var p : ptree);
+    function ttypeconvnode.first_pchar_to_string : tnode;
       begin
+         first_pchar_to_string:=nil;
          location.loc:=LOC_REFERENCE;
       end;
 
 
-    procedure first_ansistring_to_pchar(var p : ptree);
+    function ttypeconvnode.first_ansistring_to_pchar : tnode;
       begin
+         first_ansistring_to_pchar:=nil;
          location.loc:=LOC_REGISTER;
          if registers32<1 then
            registers32:=1;
       end;
 
 
-    procedure first_arrayconstructor_to_set(var p:ptree);
+    function ttypeconvnode.first_arrayconstructor_to_set : tnode;
       var
-        hp : ptree;
+        hp : tnode;
       begin
-        if left.treetype<>arrayconstructn then
+        first_arrayconstructor_to_set:=nil;
+        if left.nodetype<>arrayconstructn then
          internalerror(5546);
       { remove typeconv node }
-        hp:=p;
-        p:=left;
-        putnode(hp);
+        hp:=left;
+        left:=nil;
       { create a set constructor tree }
-        arrayconstructor_to_set(p);
+        // !!!!!!!arrayconstructor_to_set(hp);
+        internalerror(2609001);
+        {$warning FIX ME !!!!!!!!}
       { now firstpass the set }
-        firstpass(p);
+        firstpass(hp);
+        first_arrayconstructor_to_set:=hp;
       end;
 
+    function ttypeconvnode.call_helper(c : tconverttype) : tnode;
 
-  procedure firsttypeconv(var p : ptree);
+      {$warning FIX ME !!!!!!!!!}
+      {
+      const
+         firstconvert : array[tconverttype] of pointer = (
+           @ttypeconvnode.first_nothing), {equal}
+           @ttypeconvnode.first_nothing, {not_possible}
+           @ttypeconvnode.first_string_to_string,
+           @ttypeconvnode.first_char_to_string,
+           @ttypeconvnode.first_pchar_to_string,
+           @ttypeconvnode.first_cchar_to_pchar,
+           @ttypeconvnode.first_cstring_to_pchar,
+           @ttypeconvnode.first_ansistring_to_pchar,
+           @ttypeconvnode.first_string_to_chararray,
+           @ttypeconvnode.first_chararray_to_string,
+           @ttypeconvnode.first_array_to_pointer,
+           @ttypeconvnode.first_pointer_to_array,
+           @ttypeconvnode.first_int_to_int,
+           @ttypeconvnode.first_int_to_bool,
+           @ttypeconvnode.first_bool_to_bool,
+           @ttypeconvnode.first_bool_to_int,
+           @ttypeconvnode.first_real_to_real,
+           @ttypeconvnode.first_int_to_real,
+           @ttypeconvnode.first_int_to_fix,
+           @ttypeconvnode.first_real_to_fix,
+           @ttypeconvnode.first_fix_to_real,
+           @ttypeconvnode.first_proc_to_procvar,
+           @ttypeconvnode.first_arrayconstructor_to_set,
+           @ttypeconvnode.first_load_smallset,
+           @ttypeconvnode.first_cord_to_pointer
+         );
+       }
+      type
+         tprocedureofobject = function : tnode of object;
+
+      var
+         r : packed record
+                proc : pointer;
+                obj : pointer;
+             end;
+
+      begin
+         { this is a little bit dirty but it works }
+         { and should be quite portable too        }
+         // !!!! r.proc:=firstconvert[c];
+         {$warning FIX ME !!!!!}
+         internalerror(2609002);
+         r.obj:=self;
+         call_helper:=tprocedureofobject(r){$ifdef FPC}();{$endif FPC}
+      end;
+
+    function ttypeconvnode.pass_1 : tnode;
     var
-      hp : ptree;
+      hp : tnode;
       aprocdef : pprocdef;
-    const
-       firstconvert : array[tconverttype] of tfirstconvproc = (
-         first_nothing, {equal}
-         first_nothing, {not_possible}
-         first_string_to_string,
-         first_char_to_string,
-         first_pchar_to_string,
-         first_cchar_to_pchar,
-         first_cstring_to_pchar,
-         first_ansistring_to_pchar,
-         first_string_to_chararray,
-         first_chararray_to_string,
-         first_array_to_pointer,
-         first_pointer_to_array,
-         first_int_to_int,
-         first_int_to_bool,
-         first_bool_to_bool,
-         first_bool_to_int,
-         first_real_to_real,
-         first_int_to_real,
-         first_int_to_fix,
-         first_real_to_fix,
-         first_fix_to_real,
-         first_proc_to_procvar,
-         first_arrayconstructor_to_set,
-         first_load_smallset,
-         first_cord_to_pointer
-       );
      begin
+       pass_1:=nil;
        aprocdef:=nil;
        { if explicite type cast, then run firstpass }
-       if (explizit) or not assigned(left.resulttype) then
+       if (nf_explizit in flags) or not assigned(left.resulttype) then
          firstpass(left);
-       if (left.treetype=typen) and (left.resulttype=generrordef) then
+       if (left.nodetype=typen) and (left.resulttype=generrordef) then
          begin
             codegenerror:=true;
             Message(parser_e_no_type_not_allowed_here);
@@ -704,7 +773,7 @@ implementation
               (psetdef(left.resulttype)^.settype=smallset) then
             begin
             { try to define the set as a normalset if it's a constant set }
-              if left.treetype=setconstn then
+              if left.nodetype=setconstn then
                begin
                  resulttype:=left.resulttype;
                  psetdef(resulttype)^.settype:=normset
@@ -715,10 +784,9 @@ implementation
             end
            else
             begin
-              hp:=p;
-              p:=left;
-              resulttype:=hp.resulttype;
-              putnode(hp);
+              pass_1:=left;
+              left.resulttype:=resulttype;
+              left:=nil;
               exit;
             end;
          end;
@@ -728,15 +796,15 @@ implementation
             procinfo^.flags:=procinfo^.flags or pi_do_call;
             hp:=gencallnode(overloaded_operators[_assignment],nil);
             { tell explicitly which def we must use !! (PM) }
-            hp.procdefinition:=aprocdef;
-            hp.left:=gencallparanode(left,nil);
-            putnode(p);
-            p:=hp;
-            firstpass(p);
+            tcallnode(hp).procdefinition:=aprocdef;
+            tcallnode(hp).left:=gencallparanode(left,nil);
+            left:=nil;
+            firstpass(hp);
+            pass_1:=hp;
             exit;
          end;
 
-       if isconvertable(left.resulttype,resulttype,convtyp,left.treetype,explizit)=0 then
+       if isconvertable(left.resulttype,resulttype,convtyp,left.nodetype,nf_explizit in flags)=0 then
          begin
            {Procedures have a resulttype of voiddef and functions of their
            own resulttype. They will therefore always be incompatible with
@@ -751,20 +819,22 @@ implementation
                   begin
                     {if left.right=nil then
                      begin}
-                       if (left.symtableprocentry^.owner^.symtabletype=objectsymtable){ and
+                       if (tcallnode(left).symtableprocentry^.owner^.symtabletype=objectsymtable){ and
                           (pobjectdef(left.symtableprocentry^.owner^.defowner)^.is_class) }then
-                        hp:=genloadmethodcallnode(pprocsym(left.symtableprocentry),left.symtableproc,
-                              getcopy(left.methodpointer))
+                        hp:=genloadmethodcallnode(pprocsym(tcallnode(left).symtableprocentry),
+                          tcallnode(left).symtableproc,
+                              tcallnode(left).methodpointer.getcopy)
                        else
-                        hp:=genloadcallnode(pprocsym(left.symtableprocentry),left.symtableproc);
-                       disposetree(left);
+                        hp:=genloadcallnode(pprocsym(tcallnode(left).symtableprocentry),
+                          tcallnode(left).symtableproc);
+                       left.free;
                        firstpass(hp);
                        left:=hp;
                        aprocdef:=pprocdef(left.resulttype);
                    (*  end
                     else
                      begin
-                       left.right.treetype:=loadn;
+                       left.right.nodetype:=loadn;
                        left.right.symtableentry:=left.right.symtableentry;
                        left.right.resulttype:=pvarsym(left.symtableentry)^.definition;
                        hp:=left.right;
@@ -789,8 +859,8 @@ implementation
                   end
                  else
                   begin
-                    if (left.treetype<>addrn) then
-                      aprocdef:=pprocsym(left.symtableentry)^.definition;
+                    if (left.nodetype<>addrn) then
+                      aprocdef:=pprocsym(tloadnode(left).symtableentry)^.definition;
                   end;
                  convtyp:=tc_proc_2_procvar;
                  { Now check if the procedure we are going to assign to
@@ -799,14 +869,14 @@ implementation
                   begin
                     if not proc_to_procvar_equal(aprocdef,pprocvardef(resulttype)) then
                      CGMessage2(type_e_incompatible_types,aprocdef^.typename,resulttype^.typename);
-                    firstconvert[convtyp](p);
+                    pass_1:=call_helper(convtyp);
                   end
                  else
                   CGMessage2(type_e_incompatible_types,left.resulttype^.typename,resulttype^.typename);
                  exit;
                end;
             end;
-           if explizit then
+           if nf_explizit in flags then
             begin
               { check if the result could be in a register }
               if not(resulttype^.is_intregable) and
@@ -819,7 +889,7 @@ implementation
                  is_boolean(left.resulttype) then
                begin
                   convtyp:=tc_bool_2_int;
-                  firstconvert[convtyp](p);
+                  pass_1:=call_helper(convtyp);
                   exit;
                end;
               { ansistring to pchar }
@@ -827,7 +897,7 @@ implementation
                  is_ansistring(left.resulttype) then
                begin
                  convtyp:=tc_ansistring_2_pchar;
-                 firstconvert[convtyp](p);
+                 pass_1:=call_helper(convtyp);
                  exit;
                end;
               { do common tc_equal cast }
@@ -837,12 +907,11 @@ implementation
               if (left.resulttype^.deftype=enumdef) and
                  is_ordinal(resulttype) then
                begin
-                 if left.treetype=ordconstn then
+                 if left.nodetype=ordconstn then
                   begin
-                    hp:=genordinalconstnode(left.value,resulttype);
-                    disposetree(p);
+                    hp:=genordinalconstnode(tordconstnode(left).value,resulttype);
                     firstpass(hp);
-                    p:=hp;
+                    pass_1:=hp;
                     exit;
                   end
                  else
@@ -857,12 +926,11 @@ implementation
                if (resulttype^.deftype=enumdef) and
                   is_ordinal(left.resulttype) then
                 begin
-                  if left.treetype=ordconstn then
+                  if left.nodetype=ordconstn then
                    begin
-                     hp:=genordinalconstnode(left.value,resulttype);
-                     disposetree(p);
+                     hp:=genordinalconstnode(tordconstnode(left).value,resulttype);
                      firstpass(hp);
-                     p:=hp;
+                     pass_1:=hp;
                      exit;
                    end
                   else
@@ -874,12 +942,11 @@ implementation
 
               { nil to ordinal node }
               else if is_ordinal(resulttype) and
-                (left.treetype=niln) then
+                (left.nodetype=niln) then
                 begin
                    hp:=genordinalconstnode(0,resulttype);
                    firstpass(hp);
-                   disposetree(p);
-                   p:=hp;
+                   pass_1:=hp;
                    exit;
                 end
 
@@ -888,12 +955,11 @@ implementation
                 if is_char(resulttype) and
                    is_ordinal(left.resulttype) then
                  begin
-                   if left.treetype=ordconstn then
+                   if left.nodetype=ordconstn then
                     begin
-                      hp:=genordinalconstnode(left.value,resulttype);
+                      hp:=genordinalconstnode(tordconstnode(left).value,resulttype);
                       firstpass(hp);
-                      disposetree(p);
-                      p:=hp;
+                      pass_1:=hp;
                       exit;
                     end
                    else
@@ -908,12 +974,11 @@ implementation
                 if is_char(left.resulttype) and
                    is_ordinal(resulttype) then
                  begin
-                   if left.treetype=ordconstn then
+                   if left.nodetype=ordconstn then
                     begin
-                      hp:=genordinalconstnode(left.value,resulttype);
+                      hp:=genordinalconstnode(tordconstnode(left).value,resulttype);
                       firstpass(hp);
-                      disposetree(p);
-                      p:=hp;
+                      pass_1:=hp;
                       exit;
                     end
                    else
@@ -931,7 +996,7 @@ implementation
                      (left.resulttype^.deftype=formaldef) or
                      (left.resulttype^.size=resulttype^.size) or
                      (is_equal(left.resulttype,voiddef)  and
-                     (left.treetype=derefn))
+                     (left.nodetype=derefn))
                      ) then
                     CGMessage(cg_e_illegal_type_conversion);
                   if ((left.resulttype^.deftype=orddef) and
@@ -963,10 +1028,10 @@ implementation
          if (m_tp_procvar in aktmodeswitches) and
             (resulttype^.deftype<>procvardef) and
             (left.resulttype^.deftype=procvardef) and
-            (left.treetype=loadn) then
+            (left.nodetype=loadn) then
           begin
             hp:=gencallnode(nil,nil);
-            hp.right:=left;
+            tcallnode(hp).right:=left;
             firstpass(hp);
             left:=hp;
           end;
@@ -974,18 +1039,17 @@ implementation
 
         { ordinal contants can be directly converted }
         { but not int64/qword                        }
-        if (left.treetype=ordconstn) and is_ordinal(resulttype) and
+        if (left.nodetype=ordconstn) and is_ordinal(resulttype) and
           not(is_64bitint(resulttype)) then
           begin
              { range checking is done in genordinalconstnode (PFV) }
-             hp:=genordinalconstnode(left.value,resulttype);
-             disposetree(p);
+             hp:=genordinalconstnode(tordconstnode(left).value,resulttype);
              firstpass(hp);
-             p:=hp;
+             pass_1:=hp;
              exit;
           end;
         if convtyp<>tc_equal then
-          firstconvert[convtyp](p);
+          pass_1:=call_helper(convtyp);
       end;
 
 
@@ -1003,16 +1067,16 @@ implementation
       begin
          pass_1:=nil;
          firstpass(left);
-         set_varstate(left,true);
+         left.set_varstate(true);
          firstpass(right);
-         set_varstate(right,true);
+         right.set_varstate(true);
          if codegenerror then
            exit;
 
          if (right.resulttype^.deftype<>classrefdef) then
            CGMessage(type_e_mismatch);
 
-         left_right_max(p);
+         left_right_max;
 
          { left must be a class }
          if (left.resulttype^.deftype<>objectdef) or
@@ -1054,7 +1118,7 @@ implementation
          if (right.resulttype^.deftype<>classrefdef) then
            CGMessage(type_e_mismatch);
 
-         left_right_max(p);
+         left_right_max;
 
          { left must be a class }
          if (left.resulttype^.deftype<>objectdef) or
@@ -1080,10 +1144,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-09-26 14:59:34  florian
+  Revision 1.3  2000-09-26 20:06:13  florian
+    * hmm, still a lot of work to get things compilable
+
+  Revision 1.2  2000/09/26 14:59:34  florian
     * more conversion work done
 
   Revision 1.1  2000/09/25 15:37:14  florian
     * more fixes
-
 }

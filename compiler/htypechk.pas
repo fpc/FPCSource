@@ -1135,7 +1135,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2000-09-24 15:06:17  peter
+  Revision 1.7  2000-09-26 20:06:13  florian
+    * hmm, still a lot of work to get things compilable
+
+  Revision 1.6  2000/09/24 15:06:17  peter
     * use defines.inc
 
   Revision 1.5  2000/08/27 16:11:51  peter
@@ -1155,5 +1158,4 @@ end.
 
   Revision 1.2  2000/07/13 11:32:41  michael
   + removed logs
-
 }

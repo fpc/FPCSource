@@ -673,6 +673,10 @@ const
 
     function is_calljmp(o:tasmop):boolean;
 
+    procedure clear_location(var loc : tlocation);
+    procedure set_location(var destloc,sourceloc : tlocation);
+    procedure swap_location(var destloc,sourceloc : tlocation);
+
 
 implementation
 
@@ -842,6 +846,31 @@ begin
   new_reference:=r;
 end;
 
+    procedure clear_location(var loc : tlocation);
+
+      begin
+        loc.loc:=LOC_INVALID;
+      end;
+
+    {This is needed if you want to be able to delete the string with the nodes !!}
+    procedure set_location(var destloc,sourceloc : tlocation);
+
+      begin
+        destloc:= sourceloc;
+      end;
+
+    procedure swap_location(var destloc,sourceloc : tlocation);
+
+      var
+         swapl : tlocation;
+
+      begin
+         swapl := destloc;
+         destloc := sourceloc;
+         sourceloc := swapl;
+      end;
+
+
 {*****************************************************************************
                               Instruction table
 *****************************************************************************}
@@ -887,7 +916,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2000-09-24 15:06:14  peter
+  Revision 1.7  2000-09-26 20:06:13  florian
+    * hmm, still a lot of work to get things compilable
+
+  Revision 1.6  2000/09/24 15:06:14  peter
     * use defines.inc
 
   Revision 1.5  2000/08/27 16:11:50  peter
