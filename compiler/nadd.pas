@@ -197,10 +197,26 @@ implementation
          rt:=right.nodetype;
          lt:=left.nodetype;
 
+       if (nodetype = slashn) and
+          (((rt = ordconstn) and
+            (tordconstnode(right).value = 0)) or
+           ((rt = realconstn) and
+            (trealconstnode(right).value_real = 0.0))) then
+         begin
+           Message(parser_e_division_by_zero);
+           case rt of
+             ordconstn:
+                tordconstnode(right).value := 1;  
+             realconstn:   
+                trealconstnode(right).value_real := 1.0;
+           end;
+         end;
+
+
          { both are int constants }
          if (((is_constintnode(left) and is_constintnode(right)) or
               (is_constboolnode(left) and is_constboolnode(right) and
-               (nodetype in [ltn,lten,gtn,gten,equaln,unequaln,andn,xorn,orn])))) or
+               (nodetype in [slashn,ltn,lten,gtn,gten,equaln,unequaln,andn,xorn,orn])))) or
             { support pointer arithmetics on constants (JM) }
             ((lt = pointerconstn) and is_constintnode(right) and
              (nodetype in [addn,subn])) or
@@ -299,13 +315,7 @@ implementation
                     { int/int becomes a real }
                     rvd:=rv;
                     lvd:=lv;
-                    if int(rvd)=0 then
-                     begin
-                       Message(parser_e_invalid_float_operation);
-                       t:=crealconstnode.create(0,pbestrealtype^);
-                     end
-                    else
-                     t:=crealconstnode.create(int(lvd)/int(rvd),pbestrealtype^);
+                    t:=crealconstnode.create(lvd/rvd,pbestrealtype^);
                   end;
                 else
                   CGMessage(type_e_mismatch);
@@ -341,13 +351,7 @@ implementation
                    end;
                  slashn :
                    begin
-                     if rvd=0 then
-                      begin
-                        Message(parser_e_invalid_float_operation);
-                        t:=crealconstnode.create(0,pbestrealtype^);
-                      end
-                     else
-                      t:=crealconstnode.create(lvd/rvd,pbestrealtype^);
+                     t:=crealconstnode.create(lvd/rvd,pbestrealtype^);
                    end;
                  ltn :
                    t:=cordconstnode.create(ord(lvd<rvd),booltype,true);
@@ -1814,7 +1818,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.65  2002-09-07 15:25:02  peter
+  Revision 1.66  2002-10-04 21:19:28  jonas
+    * fixed web bug 2139: checking for division by zero fixed
+
+  Revision 1.65  2002/09/07 15:25:02  peter
     * old logs removed and tabs fixed
 
   Revision 1.64  2002/09/07 12:16:05  carl

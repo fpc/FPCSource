@@ -106,29 +106,30 @@ implementation
          if codegenerror then
            exit;
 
-         { constant folding }
-         if is_constintnode(left) and is_constintnode(right) then
+         { check for division by zero }
+         if is_constintnode(right) then
            begin
-              rv:=tordconstnode(right).value;
-              lv:=tordconstnode(left).value;
-
-              { check for division by zero }
-              if (rv=0) then
+             rv:=tordconstnode(right).value;
+             if (rv=0) then
                begin
                  Message(parser_e_division_by_zero);
                  { recover }
                  rv:=1;
                end;
+             if is_constintnode(left) then
+               begin
+                 lv:=tordconstnode(left).value; 
 
-              case nodetype of
-                modn:
-                  t:=genintconstnode(lv mod rv);
-                divn:
-                  t:=genintconstnode(lv div rv);
+                  case nodetype of
+                   modn:
+                     t:=genintconstnode(lv mod rv);
+                   divn:
+                     t:=genintconstnode(lv div rv);
+                 end;
+                 result:=t;
+                 exit;
               end;
-              result:=t;
-              exit;
-           end;
+            end;
 
          { allow operator overloading }
          t:=self;
@@ -747,7 +748,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  2002-09-07 12:16:04  carl
+  Revision 1.43  2002-10-04 21:19:28  jonas
+    * fixed web bug 2139: checking for division by zero fixed
+
+  Revision 1.42  2002/09/07 12:16:04  carl
     * second part bug report 1996 fix, testrange in cordconstnode
       only called if option is set (also make parsing a tiny faster)
 
