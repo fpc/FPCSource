@@ -151,12 +151,16 @@ procedure int_stackcheck(stack_size:longint);[public,alias: 'STACKCHECK'];
   called when trying to get local stack if the compiler directive $S
   is set this function must preserve esi !!!! because esi is set by
   the calling proc for methods it must preserve all registers !!
+
+  With a 2048 byte safe area used to write to StdIo without crossing
+  the stack boundary
 }
 begin
   asm
         pushl   %eax
         pushl   %ebx
         movl    stack_size,%ebx
+        addl    $2048,%ebx
         movl    %esp,%eax
         subl    %ebx,%eax
 {$ifdef SYSTEMDEBUG}
@@ -1054,7 +1058,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.10  1998-07-02 12:29:20  carl
+  Revision 1.11  1998-07-07 12:33:08  carl
+    * added 2k buffer for stack checking for correct io on error
+
+  Revision 1.10  1998/07/02 12:29:20  carl
     * IOCheck for rmdir,chdir and mkdir as in TP
     NOTE: I'm pretty SURE this will not compile and link correctly with FPC
   0.99.5
