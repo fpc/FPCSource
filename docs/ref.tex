@@ -114,10 +114,10 @@ percent sign (\var{\%}). Thus, \var{255} can be specified in binary notation
 as \var{\%11111111}.
 
 \subsection{Real types}
-\fpc uses the math coprocessor (or an emulation) for al its floating-point 
-calculations. The Real native type for is processor dependant,
+\fpc uses the math coprocessor (or an emulation) for all its floating-point
+calculations. The Real native type is processor dependant,
 but it is either Single or Double. Only the IEEE floating point type are
-supported, and these depend on the target processor and emulation options .
+supported, and these depend on the target processor and emulation options.
 The true Turbo Pascal compatible types are listed in
 \seet{Reals}.
  \begin{FPCltable}{lccr}{Supported Real types}{Reals}
@@ -812,21 +812,6 @@ command-line switch.
 {\em Remark:} These constructions are just for typing convenience, they
 don't generate different code.
 
-\fpc also supports typed assignments. This means that an assignment
-statement has a definite type, and hence can be assigned to another
-variable. The type of the assignment \var{a:=b} is the type of \var{a}
-(or, in this case, of \var{b}), and this can be assigned to another
-variable : \var{c:=a:=b;}.
-To summarize: the construct
-\begin{verbatim}
- a:=b:=c;
-\end{verbatim}
-results in both \var{a} and \var{b} being assign the value of \var{c}, which
-may be an expression.
-
-For this construct to be allowed, it is necessary to specify the \var{-Sa4}
-switch on the command line.
-
 \subsection{The \var{Case} statement}
 \fpc supports the \var{case} statement. Its prototype is
 \begin{verbatim}
@@ -968,7 +953,11 @@ Be aware of the fact that the boolean expressions \var{Expression1} and
 will be stopped at the point where the outcome is known with certainty)
 
 \subsection{The \var{With} statement}
-The with statement serves to access the elements of a record, without
+
+The with statement serves to access the elements of a record\footnote{
+The \var{with} statement does not work correctly when used with 
+objects or classes until version 0.99.6}
+, without
 having to specify the name of the record. Given the declaration:
 \begin{verbatim}
 Type Passenger = Record
@@ -991,9 +980,9 @@ With TheCustomer do
   Flight:='PS901';
   end;
 \end{verbatim}
- 
+
 \subsection{Compound statements}
-Compound statements are a group of statements, separated by semicolons, 
+Compound statements are a group of statements, separated by semicolons,
 that are surrounded by the keywords \var{Begin} and \var{End}. The
 Last statement doesn't need to be followed by a semicolon, although it is
 allowed.
@@ -1058,15 +1047,17 @@ ProcedureFunction Func (... [Var|Const] Ident : Array of Type ...);
 The \var{[Var|Const]} means that open parameters can be passed by reference
 or as a constant parameter.
 
-In a function or procedure, you can pass open arrays only to functions which 
-are also declared with open arrays as parameters, {\em not} to functions or 
+In a function or procedure, you can pass open arrays only to functions which
+are also declared with open arrays as parameters, {\em not} to functions or
 procedures which accept arrays of fixed length.
 
 \section{Using assembler in your code}
+
 \fpc supports the use of assembler in your code, but not inline
-assembler macros. Assembly functions (i.e. functions declared with the
-\var{Assembler} keyword) are supported as of version 0.9.7. (see
-\progref for more information about this).
+assembler macros.  To have more information on the processor
+specific assembler syntax and its limitations, see the \progref.
+
+\subsection{ Assembler statements }
 
 The following is an example of assembler inclusion in your code.
 \begin{verbatim}
@@ -1090,10 +1081,38 @@ recognise it, and treat it as any other conditionals.
 \emph{ Remark: } Before version 0.99.1, \fpc did not support
 reference to variables by their names in the assembler parts of your code.
 
+\subsection{ Assembler procedures and functions }
+
+Assembler procedures and functions are declared using the
+\var{Assembler} directive. The \var{Assembler} keyword is supported
+as of version 0.9.7. This permits the code generator to make a number
+of code generation optimizations.
+
+The code generator does not generate any stack frame (entry and exit
+code for the routine) if it contains no local variables. In the case
+of functions, ordinal values must be returned in the accumulator. In
+the case of floating point values, these depend on the target processor
+and emulation options.
+
+\emph{ Remark: } Before version 0.99.1, \fpc did not support
+reference to variables by their names in the assembler parts of your code.
+
+\emph{ Remark: } Currently, the \var{Assembler} directive has not the
+same effect as in Turbo Pascal, so beware! In \fpc, parameters are
+treated normally, which is not the case in Turbo Pascal. Furthermore,
+the stack frame will be omitted if there are no local variables, in this
+case if the assembly routine has any parameters, they will be referenced
+directly via the stack pointer. This is \em{ NOT} like Turbo Pascal where
+the stack frame is only omitted if there are no parameters \em{ and } no
+local variables. Therefore, if your assembly routines will modify the stack
+pointer, such as when pushing or popping values on the stack, the
+\var{Assembler} keyword should not be used. Instead, use a normal procedure
+with \var{Asm} blocks.
+
 \section{Modifiers}
 \fpc doesn't support all Turbo Pascal modifiers, but
 does support a number of additional modifiers. They are used mainly for assembler and
-reference to C object files. 
+reference to C object files.
 
 \subsection{Public}
 The \var{Public} keyword is used to declare a function globally in a unit.
@@ -1207,7 +1226,6 @@ function must be exactly the same.
 The \var{external} modifier has also an extended syntax:
 \begin{enumerate}
 \item
-
 \begin{verbatim}
 external 'lname';
 \end{verbatim}
@@ -1219,7 +1237,7 @@ compiler will the automatically link this library to your program.
 external 'lname' name Fname;
 \end{verbatim}
 Tells the compiler that the function resides in library 'lname', but with
-name 'Fname'. The compiler will the automatically link this library to your 
+name 'Fname'. The compiler will the automatically link this library to your
 program, and use the correct name for the function.
 
 \item \windows and \ostwo only:
@@ -1227,7 +1245,7 @@ program, and use the correct name for the function.
 external 'lname' Index Ind;
 \end{verbatim}
 Tells the compiler that the function resides in library 'lname', but with
-indexname \var{Ind}. The compiler will the automatically link this library to your 
+indexname \var{Ind}. The compiler will the automatically link this library to your
 program, and use the correct index for the function.
 \end{enumerate}
 
