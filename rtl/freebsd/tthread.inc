@@ -414,7 +414,8 @@ begin
   try
     if LThread.FInitialSuspended then begin
       SemaphoreWait(LThread.FSem);
-      if not LThread.FInitialSuspended then begin
+      if not LThread.FSuspended then begin
+        LThread.FInitialSuspended := false;
         WRITE_DEBUG('going into LThread.Execute');
         LThread.Execute;
       end;
@@ -527,21 +528,12 @@ procedure TThread.Resume;
 begin
   if (not FSuspendedExternal) then begin
     if FSuspended then begin
-      SemaphorePost(FSem);
-      FInitialSuspended := false;
       FSuspended := False;
+      SemaphorePost(FSem);
     end;
   end else begin
-{$IFDEF LINUX}
-    // see .Suspend
-    if FPid <> GMainPID then begin
-      fpkill(FPid, SIGCONT);
-      FSuspended := False;
-    end;
-{$ELSE}
-    ResumeThread(FHandle);
-{$ENDIF}
     FSuspendedExternal := false;
+    ResumeThread(FHandle);
   end;
 end;
 
@@ -592,7 +584,17 @@ end;
 
 {
   $Log$
-  Revision 1.14  2005-02-25 21:41:09  florian
+  Revision 1.15  2005-03-01 20:38:49  jonas
+    * fixed web bug 3387: if one called resume right after creating a
+      suspended thread, it was possible that resume was executed before
+      that thread had completed its initialisation in BeginThread ->
+      FInitialSuspended was set to false in resume and nevertheless a
+      semafore was posted
+    * second problem fixed: set FSuspended to false before waking up the
+      thread, so that it doesn't get FSuspended = true right after waking
+      up. This should be done atomically to be completely correct though.
+
+  Revision 1.14  2005/02/25 21:41:09  florian
     * generic tthread.synchronize
     * delphi compatible wakemainthread
 
