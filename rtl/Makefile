@@ -224,6 +224,9 @@ endif
 ifeq ($(OS_TARGET),beos)
 override TARGET_DIRS+=beos
 endif
+ifeq ($(OS_TARGET),netbsd)
+override TARGET_DIRS+=netbsd
+endif
 ifeq ($(OS_TARGET),amiga)
 override TARGET_DIRS+=amiga
 endif
@@ -985,6 +988,16 @@ ifeq ($(CPU_TARGET),m68k)
 REQUIRE_PACKAGES_RTL=1
 endif
 endif
+ifeq ($(OS_TARGET),netbsd)
+ifeq ($(CPU_TARGET),powerpc)
+REQUIRE_PACKAGES_RTL=1
+endif
+endif
+ifeq ($(OS_TARGET),netbsd)
+ifeq ($(CPU_TARGET),sparc)
+REQUIRE_PACKAGES_RTL=1
+endif
+endif
 ifeq ($(OS_TARGET),amiga)
 ifeq ($(CPU_TARGET),m68k)
 REQUIRE_PACKAGES_RTL=1
@@ -1521,6 +1534,9 @@ endif
 ifeq ($(OS_TARGET),beos)
 TARGET_DIRS_BEOS=1
 endif
+ifeq ($(OS_TARGET),netbsd)
+TARGET_DIRS_NETBSD=1
+endif
 ifeq ($(OS_TARGET),amiga)
 TARGET_DIRS_AMIGA=1
 endif
@@ -1787,6 +1803,49 @@ beos_makefiles:
 beos:
 	$(MAKE) -C beos all
 .PHONY: beos_all beos_debug beos_smart beos_release beos_examples beos_shared beos_install beos_sourceinstall beos_exampleinstall beos_distinstall beos_zipinstall beos_zipsourceinstall beos_zipexampleinstall beos_zipdistinstall beos_clean beos_distclean beos_cleanall beos_info beos_makefiles beos
+endif
+ifdef TARGET_DIRS_NETBSD
+netbsd_all:
+	$(MAKE) -C netbsd all
+netbsd_debug:
+	$(MAKE) -C netbsd debug
+netbsd_smart:
+	$(MAKE) -C netbsd smart
+netbsd_release:
+	$(MAKE) -C netbsd release
+netbsd_examples:
+	$(MAKE) -C netbsd examples
+netbsd_shared:
+	$(MAKE) -C netbsd shared
+netbsd_install:
+	$(MAKE) -C netbsd install
+netbsd_sourceinstall:
+	$(MAKE) -C netbsd sourceinstall
+netbsd_exampleinstall:
+	$(MAKE) -C netbsd exampleinstall
+netbsd_distinstall:
+	$(MAKE) -C netbsd distinstall
+netbsd_zipinstall:
+	$(MAKE) -C netbsd zipinstall
+netbsd_zipsourceinstall:
+	$(MAKE) -C netbsd zipsourceinstall
+netbsd_zipexampleinstall:
+	$(MAKE) -C netbsd zipexampleinstall
+netbsd_zipdistinstall:
+	$(MAKE) -C netbsd zipdistinstall
+netbsd_clean:
+	$(MAKE) -C netbsd clean
+netbsd_distclean:
+	$(MAKE) -C netbsd distclean
+netbsd_cleanall:
+	$(MAKE) -C netbsd cleanall
+netbsd_info:
+	$(MAKE) -C netbsd info
+netbsd_makefiles:
+	$(MAKE) -C netbsd makefiles
+netbsd:
+	$(MAKE) -C netbsd all
+.PHONY: netbsd_all netbsd_debug netbsd_smart netbsd_release netbsd_examples netbsd_shared netbsd_install netbsd_sourceinstall netbsd_exampleinstall netbsd_distinstall netbsd_zipinstall netbsd_zipsourceinstall netbsd_zipexampleinstall netbsd_zipdistinstall netbsd_clean netbsd_distclean netbsd_cleanall netbsd_info netbsd_makefiles netbsd
 endif
 ifdef TARGET_DIRS_AMIGA
 amiga_all:
