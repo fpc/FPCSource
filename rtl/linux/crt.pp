@@ -1470,21 +1470,21 @@ Begin
 End;
 
 
+const
+  KIOCSOUND = $4B2F;	// start sound generation (0 for off)
 
 Procedure Sound(Hz: Word);
-{
-  Does nothing under linux
-}
 begin
+  if not OutputRedir then
+    ioctl(TextRec(Output).Handle, KIOCSOUND, Pointer(1193180 div Hz));
 end;
 
 
 
 Procedure NoSound;
-{
-  Does nothing under linux
-}
 begin
+  if not OutputRedir then
+    ioctl(TextRec(Output).Handle, KIOCSOUND, nil);
 end;
 
 
@@ -1662,7 +1662,12 @@ Begin
 End.
 {
   $Log$
-  Revision 1.27  2000-06-05 08:35:28  jonas
+  Revision 1.28  2000-06-06 08:22:41  sg
+  * Implemented "Sound" and "NoSound". Please notice that these normally only
+    work on Linux textmode console, as the sound is created using special
+    Linux terminal IOCTLs.
+
+  Revision 1.27  2000/06/05 08:35:28  jonas
     * in readkey, check if keypresses are waiting using sysKeyPressed instead
       of simply checking if there are keys left in the ttyRecvChar buffer
     * CrtRead supports the backspace key when reading from a TTY.
