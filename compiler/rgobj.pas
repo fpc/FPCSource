@@ -123,7 +123,7 @@ unit rgobj;
       end;
 
       Tmovelist=record
-        count:cardinal;
+        count,sorted_until:cardinal;
         data:array[0..$ffff] of Tlinkedlistitem;
       end;
       Pmovelist=^Tmovelist;
@@ -310,6 +310,42 @@ implementation
        systems,
        globals,verbose,tgobj,procinfo;
 
+
+    procedure sort_movelist(ml:Pmovelist);
+
+    {Ok, sorting pointers is silly, but it does the job to make Trgobj.combine
+     faster.}
+
+    var h,i,p:word;
+        t:Tlinkedlistitem;
+
+    begin
+      with ml^ do
+        begin
+          if count<2 then
+            exit;
+          p:=1;
+          while 2*p<count do
+            p:=2*p;
+          while p<>0 do
+            begin
+              for h:=p to count-1 do
+                begin
+                  i:=h;
+                  t:=data[i];
+                  repeat
+                    if ptrint(data[i-p])<=ptrint(t) then
+                      break;
+                    data[i]:=data[i-p];
+                    dec(i,p);
+                  until i<p;
+                  data[i]:=t;
+                end;
+              p:=p shr 1;
+            end;
+          sorted_until:=count-1;
+        end;
+    end;
 
 {******************************************************************************
                               tinterferencebitmap
@@ -664,11 +700,12 @@ implementation
             begin
               getmem(movelist,64);
               movelist^.count:=0;
+              movelist^.sorted_until:=0;
             end
           else
             begin
               cursize:=memsize(movelist);
-              if (4*(movelist^.count+1)=cursize) then
+              if (4*(movelist^.count+2)=cursize) then
                 reallocmem(movelist,cursize*2);
             end;
           movelist^.data[movelist^.count]:=data;
@@ -742,9 +779,9 @@ implementation
      registers in it cause. This allows simplify to execute in
      constant time.}
 
-    var p,h,i,j,leni,lenj:word;
+    var p,h,i,leni,lent:word;
         t:Tsuperregister;
-        adji,adjj:Psuperregisterworklist;
+        adji,adjt:Psuperregisterworklist;
 
     begin
       with simplifyworklist do
@@ -756,30 +793,25 @@ implementation
             p:=2*p;
           while p<>0 do
             begin
-              for h:=0 to length-p-1 do
+              for h:=p to length-1 do
                 begin
                   i:=h;
+                  t:=buf^[i];
+                  adjt:=reginfo[buf^[i]].adjlist;
+                  lent:=0;
+                  if adjt<>nil then
+                    lent:=adjt^.length;
                   repeat
-                    j:=i+p;
-                    adji:=reginfo[buf^[i]].adjlist;
-                    adjj:=reginfo[buf^[j]].adjlist;
-                    if adji=nil then
-                      leni:=0
-                    else
+                    adji:=reginfo[buf^[i-p]].adjlist;
+                    leni:=0;
+                    if adji<>nil then
                       leni:=adji^.length;
-                    if adjj=nil then
-                      lenj:=0
-                    else
-                      lenj:=adjj^.length;
-                    if lenj>=leni then
+                    if leni<=lent then
                       break;
-                    t:=buf^[i];
-                    buf^[i]:=buf^[j];
-                    buf^[j]:=t;
-                    if i<p then
-                      break;
+                    buf^[i]:=buf^[i-p];
                     dec(i,p)
-                  until false;
+                  until i<p;
+                  buf^[i]:=t;
                 end;
               p:=p shr 1;
             end;
@@ -1009,12 +1041,9 @@ implementation
     procedure trgobj.combine(u,v:Tsuperregister);
 
     var adj : Psuperregisterworklist;
-        i : word;
+        i,n,p,q:cardinal;
         t : tsuperregister;
-        n,o : cardinal;
-        decrement : boolean;
-{	moves:Tsuperregisterset;}
-        vm:Pmovelist;
+        searched:Tlinkedlistitem;
 
     label l1;
 
@@ -1028,50 +1057,53 @@ implementation
       {Combine both movelists. Since the movelists are sets, only add
        elements that are not already present. The movelists cannot be
        empty by definition; nodes are only coalesced if there is a move
-       between them.}
+       between them. To prevent quadratic time blowup (movelists of
+       especially machine registers can get very large because of moves
+       generated during calls) we need to go into disgusting complexity.
 
-{     Nice attempt; it didn't work.
-      supregset_reset(moves,false);
-      supregset_include(moves,u);
+       (See webtbs/tw2242 for an example that stresses this.)
+
+       We want to sort the movelist to be able to search logarithmically.
+       Unfortunately, sorting the movelist every time before searching
+       is counter-productive, since the movelist usually grows with a few
+       items at a time. Therefore, we split the movelist into a sorted
+       and an unsorted part and search through both. If the unsorted part
+       becomes too large, we sort.}
+
+      {We have to weigh the cost of sorting the list against searching
+       the cost of the unsorted part. I use factor of 8 here; if the
+       number of items is less than 8 times the numer of unsorted items,
+       we'll sort the list.}
       with reginfo[u].movelist^ do
-        for n:=0 to count-1 do
-	  begin
-	    if Tmoveins(data[n]).x=u then
-              supregset_include(moves,Tmoveins(data[n]).y)
-	    else
-              supregset_include(moves,Tmoveins(data[n]).x)
-          end;
-      with reginfo[v].movelist^ do
-        for n:=0 to count-1 do
-	  begin
-	    if Tmoveins(data[n]).x=v then
-	      begin
-	        if supregset_in(moves,Tmoveins(data[n]).y) then
-        	  add_to_movelist(u,data[n]);
-              end
-	    else
-	      begin
-	        if supregset_in(moves,Tmoveins(data[n]).x) then
-        	  add_to_movelist(u,data[n]);
+        if count<8*(count-sorted_until) then
+          sort_movelist(reginfo[u].movelist);
+      for n:=0 to reginfo[v].movelist^.count-1 do
+        begin
+          {Binary search the sorted part of the list.}
+          searched:=reginfo[v].movelist^.data[n];
+          p:=0;
+          q:=reginfo[u].movelist^.sorted_until;
+          i:=0;
+          if q<>0 then 
+            repeat
+              i:=(p+q) shr 1;
+              if ptrint(searched)>ptrint(reginfo[u].movelist^.data[i]) then
+                p:=i+1
+              else
+                q:=i;
+            until p=q;
+          with reginfo[u].movelist^ do
+            if searched<>data[i] then
+              begin
+                {Linear search the unsorted part of the list.}
+                for i:=sorted_until+1 to count-1 do
+                  if searched=data[i] then
+                    goto l1;
+                {Not found -> add}
+                add_to_movelist(u,searched);
+              l1:
               end;
-	  end;}
-
-      {This loop is a performance bottleneck for large procedures and therefore
-       optimized by hand as much as possible. This is because machine registers
-       generally collect large movelists (for example around procedure calls data
-       is moved into machine registers). The loop below is unfortunately quadratic,
-       and guess what this means when a procedure has collected several thousand
-       moves.... Test webtbs/tw2242 is a good example to illustrate this.}
-      vm:=reginfo[v].movelist;
-      for n:=0 to vm^.count-1 do
-        with reginfo[u].movelist^ do
-          begin
-            for o:=0 to count-1 do
-              if data[o]=vm^.data[n] then
-                goto l1; {Continue outer loop.}
-            add_to_movelist(u,vm^.data[n]);
-          l1:
-          end;
+        end;
 
       enable_moves(v);
 
@@ -1080,26 +1112,27 @@ implementation
         for i:=1 to adj^.length do
           begin
             t:=adj^.buf^[i-1];
-            if not(ri_coalesced in reginfo[t].flags) then
-              begin
-                {t has a connection to v. Since we are adding v to u, we
-                 need to connect t to u. However, beware if t was already
-                 connected to u...}
-                if (ibitmap[t,u]) and not (ri_selected in reginfo[t].flags) then
-                  {... because in that case, we are actually removing an edge
-                   and the degree of t decreases.}
-                  decrement_degree(t)
-                else
-                  begin
-                    add_edge(t,u);
-                    {We have added an edge to t and u. So their degree increases.
-                     However, v is added to u. That means its neighbours will
-                     no longer point to v, but to u instead. Therefore, only the
-                     degree of u increases.}
-                    if (u>=first_imaginary) and not (ri_selected in reginfo[t].flags) then
-                      inc(reginfo[u].degree);
-                  end;
-              end;
+            with reginfo[t] do
+              if not(ri_coalesced in flags) then
+                begin
+                  {t has a connection to v. Since we are adding v to u, we
+                   need to connect t to u. However, beware if t was already
+                   connected to u...}
+                  if (ibitmap[t,u]) and not (ri_selected in flags) then
+                    {... because in that case, we are actually removing an edge
+                     and the degree of t decreases.}
+                    decrement_degree(t)
+                  else
+                    begin
+                      add_edge(t,u);
+                      {We have added an edge to t and u. So their degree increases.
+                       However, v is added to u. That means its neighbours will
+                       no longer point to v, but to u instead. Therefore, only the
+                       degree of u increases.}
+                      if (u>=first_imaginary) and not (ri_selected in flags) then
+                        inc(reginfo[u].degree);
+                    end;
+                end;
           end;
       if (reginfo[u].degree>=usable_registers_cnt) and freezeworklist.delete(u) then
         spillworklist.add(u);
@@ -1968,7 +2001,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.118  2004-02-07 23:28:34  daniel
+  Revision 1.119  2004-02-08 14:26:28  daniel
+    * Register allocator speed boost
+
+  Revision 1.118  2004/02/07 23:28:34  daniel
     * Take advantage of our new with statement optimization
 
   Revision 1.117  2004/02/06 13:34:46  daniel
