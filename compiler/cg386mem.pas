@@ -397,14 +397,20 @@ implementation
 
       var
          extraoffset : longint;
+         { rl stores the resulttype of the left node, this is necessary }
+         { to detect if it is an ansistring                             }
+         { because in constant nodes which constant index               }
+         { the left tree is removed                                     }
+         rl : pdef;
          t   : ptree;
          hp  : preference;
          tai : Pai386;
          pushed : tpushed;
 
+
       begin
          secondpass(p^.left);
-
+         rl:=p^.left^.resulttype;
          { we load the array reference to p^.location }
 
          { an ansistring needs to be dereferenced }
@@ -729,15 +735,14 @@ implementation
                p^.location.reference.segment:=R_FS;
            end;
 
-         { have to remove a temp. wide/ansistring ?
+         { have we to remove a temp. wide/ansistring ?
            c:=(s1+s2)[i]
            for example
          }
          if (p^.location.loc=LOC_MEM) and
-            assigned(p^.left) and
-            (p^.left^.resulttype^.deftype=stringdef) then
+            (rl^.deftype=stringdef) then
            begin
-              case pstringdef(p^.left^.resulttype)^.string_typ of
+              case pstringdef(rl)^.string_typ of
                  st_ansistring:
                    begin
                       del_reference(p^.location.reference);
@@ -850,7 +855,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  1999-02-04 17:16:51  peter
+  Revision 1.29  1999-02-07 22:53:07  florian
+    * potential bug in secondvecn fixed
+
+  Revision 1.28  1999/02/04 17:16:51  peter
     * fixed crash with temp ansistring indexing
 
   Revision 1.27  1999/02/04 11:44:46  florian
