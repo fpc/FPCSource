@@ -43,7 +43,7 @@ function TRgCpu.GetExplicitRegisterInt(list:TAasmOutput;reg:TNewRegister):TRegis
   var
     r:TRegister;
   begin
-    if(reg=RS_O7)or(reg=NR_I7)
+    if(reg=NR_O7)or(reg=NR_I7)
     then
       begin
         r.enum:=R_INTREGISTER;
@@ -70,7 +70,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2003-04-22 10:09:35  daniel
+  Revision 1.10  2003-05-31 01:00:51  peter
+    * register fixes
+
+  Revision 1.9  2003/04/22 10:09:35  daniel
     + Implemented the actual register allocator
     + Scratch registers unavailable when new register allocator used
     + maybe_save/maybe_restore unavailable when new register allocator used

@@ -72,6 +72,7 @@ implementation
               reference.index.number:=NR_FRAME_POINTER_REG;
               reference.offset:=-68-nr*4;
             end;
+           size:=OS_INT;
          end;
       end;
 
@@ -303,7 +304,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2003-05-30 23:57:08  peter
+  Revision 1.18  2003-05-31 01:00:51  peter
+    * register fixes
+
+  Revision 1.17  2003/05/30 23:57:08  peter
     * more sparc cleanup
     * accumulator removed, splitted in function_return_reg (called) and
       function_result_reg (caller)

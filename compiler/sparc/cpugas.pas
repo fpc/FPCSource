@@ -48,8 +48,6 @@ unit cpugas;
           begin
             inc(offset,offsetfixup);
             offsetfixup:=0;
-            if (base.enum<>R_INTREGISTER) or (index.enum<>R_INTREGISTER) then
-              internalerror(200301081);
             if assigned(symbol) then
               begin
                  if (base.number<>NR_NO) or (index.number<>NR_NO) then
@@ -59,21 +57,34 @@ unit cpugas;
                    GetReferenceString:=GetReferenceString+'+'+ToStr(offset)
                  else if offset<0 then
                    GetReferenceString:=GetReferenceString+ToStr(offset);
-                 if symaddr=refs_hi then
-                   GetReferenceString:='%hi('+GetReferenceString+')'
-                 else if symaddr=refs_lo then
-                   GetReferenceString:='%lo('+GetReferenceString+')'
-                 else
-                   internalerror(2003052602);
+                 case symaddr of
+                   refs_hi :
+                     GetReferenceString:='%hi('+GetReferenceString+')';
+                   refs_lo :
+                     GetReferenceString:='%lo('+GetReferenceString+')';
+                 end;
               end
             else
               begin
+                GetReferenceString:='[';
                 if base.number<>NR_NO then
-                  GetReferenceString:=std_reg2str[base.enum]+'+';
+                  GetReferenceString:=GetReferenceString+std_reg2str[base.enum];
                 if index.number<>NR_NO then
-                  GetReferenceString:=GetReferenceString+std_reg2str[index.enum]+'+';
-                if Offset<>0 then
-                   internalerror(2003052603);
+                  begin
+                    if (Offset<-4096) or (Offset>4095) then
+                      internalerror(2003053008);
+                    if offset>0 then
+                      GetReferenceString:=GetReferenceString+'+'+ToStr(offset)
+                    else if offset<0 then
+                      GetReferenceString:=GetReferenceString+ToStr(offset);
+                  end
+                else
+                  begin
+                    if Offset<>0 then
+                      internalerror(2003052603);
+                    GetReferenceString:=GetReferenceString+std_reg2str[index.enum]+'+';
+                  end;
+                GetReferenceString:=GetReferenceString+']';
               end;
           end;
       end;
@@ -140,10 +151,10 @@ unit cpugas;
         end;*)
 
     procedure TGasSPARC.WriteInstruction(hp:Tai);
-    	var
-    		Op:TAsmOp;
-    		s:String;
-    		i:Integer;
+        var
+                Op:TAsmOp;
+                s:String;
+                i:Integer;
       begin
         if hp.typ<>ait_instruction then
           exit;
@@ -196,7 +207,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.16  2003-05-30 23:57:08  peter
+    Revision 1.17  2003-05-31 01:00:51  peter
+      * register fixes
+
+    Revision 1.16  2003/05/30 23:57:08  peter
       * more sparc cleanup
       * accumulator removed, splitted in function_return_reg (called) and
         function_result_reg (caller)

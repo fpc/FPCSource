@@ -37,14 +37,6 @@ interface
       private
         function IsSimpleRef(const ref:treference):boolean;
       public
-        { This method is used to pass a parameter, which is located in a register, to a
-          routine. It should give the parameter to the routine, as required by the
-          specific processor ABI. It is overriden for each CPU target.
-           Size    : is the size of the operand in the register
-           r       : is the register source of the operand
-           LocPara : is the location where the parameter will be stored }
-        procedure a_param_reg(list:TAasmOutput;sz:tcgsize;r:tregister;const LocPara:TParaLocation);override;
-        { passes a parameter which is a constant to a function }
         procedure a_param_const(list:TAasmOutput;size:tcgsize;a:aword;const LocPara:TParaLocation);override;
         procedure a_param_ref(list:TAasmOutput;sz:tcgsize;const r:TReference;const LocPara:TParaLocation);override;
         procedure a_paramaddr_ref(list:TAasmOutput;const r:TReference;const LocPara:TParaLocation);override;
@@ -141,40 +133,6 @@ implementation
       end;
 
 
-    procedure TCgSparc.a_param_reg(list:TAasmOutput;sz:tcgsize;r:tregister;const LocPara:TParaLocation);
-      var
-        zeroreg:Tregister;
-      begin
-        zeroreg.enum:=R_INTREGISTER;
-        zeroreg.number:=NR_G0;
-        with list,LocPara do
-          case Loc of
-            LOC_REGISTER:
-              begin
-                case Sz of
-                  OS_8,OS_S8:
-                    Concat(taicpu.op_Reg_Const_Reg(A_AND,r,$FF,Register));
-                  OS_16,OS_S16:
-                    begin
-                      Concat(taicpu.op_Reg_Reg_Reg(A_AND,r,zeroreg,Register));
-                      {This will put 00...00111 in the hiest 22 bits of the reg}
-                      Concat(taicpu.op_Reg_Const_Reg(A_SETHI,Register,$7,Register));
-                    end;
-                  OS_32,OS_S32:
-                    begin
-                      if r.number<>Register.number then
-                        Concat(taicpu.op_Reg_Reg_Reg(A_OR,r,zeroreg,Register));
-                    end;
-                   else
-                     InternalError(2002032212);
-                end;
-              end;
-            else
-              InternalError(2002101002);
-          end;
-      end;
-
-
     procedure TCgSparc.a_param_const(list:TAasmOutput;size:tcgsize;a:aword;const LocPara:TParaLocation);
       var
         Ref:TReference;
@@ -203,7 +161,7 @@ implementation
         tmpreg:TRegister;
       begin
         with LocPara do
-          case locpara.loc of
+          case loc of
             LOC_REGISTER,LOC_CREGISTER:
               a_load_ref_reg(list,sz,r,Register);
             LOC_REFERENCE:
@@ -374,14 +332,14 @@ implementation
 
     procedure TCgSparc.a_load_reg_reg(list:TAasmOutput;fromsize,tosize:tcgsize;reg1,reg2:tregister);
       var
-        r : Tregister;
+        zeroreg : Tregister;
       begin
         if(reg1.enum<>R_INTREGISTER)or(reg1.number=NR_NO) then
           InternalError(200303101);
         if(reg2.enum<>R_INTREGISTER)or(reg2.number=NR_NO) then
           InternalError(200303102);
-        r.enum:=R_INTREGISTER;
-        r.Number:=NR_G0;
+        zeroreg.enum:=R_INTREGISTER;
+        zeroreg.Number:=NR_G0;
         if (reg1.Number<>reg2.Number) or
            (tcgsize2size[tosize]<tcgsize2size[fromsize]) or
            (
@@ -391,8 +349,19 @@ implementation
            ) then
           begin
             case tosize of
-              OS_8,OS_S8,OS_16,OS_S16,OS_32,OS_S32:
-                list.concat(taicpu.op_reg_reg_reg(A_OR,r,reg1,reg2));
+              OS_8,OS_S8:
+                list.Concat(taicpu.op_Reg_Const_Reg(A_AND,reg1,$FF,reg2));
+              OS_16,OS_S16:
+                begin
+                  list.Concat(taicpu.op_Reg_Reg_Reg(A_AND,reg1,zeroreg,reg2));
+                  { This will put 00...00111 in the highest 22 bits of the reg }
+                  list.Concat(taicpu.op_Reg_Const_Reg(A_SETHI,reg2,$7,reg2));
+                end;
+              OS_32,OS_S32:
+                begin
+                  if reg1.number<>reg2.number then
+                    list.Concat(taicpu.op_Reg_Reg_Reg(A_OR,zeroreg,reg1,reg2));
+                end;
               else
                 internalerror(2002090901);
             end;
@@ -617,8 +586,8 @@ implementation
 
     procedure TCgSparc.g_flags2reg(list:TAasmOutput;Size:TCgSize;const f:tresflags;reg:TRegister);
       var
-        ai:taicpu;
-        r,hreg:tregister;
+        ai : taicpu;
+        r : tregister;
       begin
         r.enum:=R_PSR;
         ai:=Taicpu.Op_reg_reg(A_RDPSR,r,reg);
@@ -831,11 +800,10 @@ implementation
         begin
           case op of
             OP_AND,OP_OR,OP_XOR:
-              WITH cg DO
-                begin
-                  a_op_const_reg(list,op,Lo(Value),regdst.reglo);
-                  a_op_const_reg(list,op,Hi(Value),regdst.reghi);
-                end;
+              begin
+                cg.a_op_const_reg(list,op,Lo(Value),regdst.reglo);
+                cg.a_op_const_reg(list,op,Hi(Value),regdst.reghi);
+              end;
             OP_ADD, OP_SUB:
               begin
                 {can't use a_op_const_ref because this may use dec/inc}
@@ -856,12 +824,11 @@ implementation
     begin
       case op of
         OP_AND,OP_OR,OP_XOR:
-        with cg do
           begin
-            a_op_const_ref(list,op,OS_32,Lo(Value),ref);
+            cg.a_op_const_ref(list,op,OS_32,Lo(Value),ref);
             tempref:=ref;
             inc(tempref.offset,4);
-            a_op_const_ref(list,op,OS_32,Hi(Value),tempref);
+            cg.a_op_const_ref(list,op,OS_32,Hi(Value),tempref);
           end;
         OP_ADD, OP_SUB:
               begin
@@ -1053,7 +1020,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.53  2003-05-30 23:57:08  peter
+  Revision 1.54  2003-05-31 01:00:51  peter
+    * register fixes
+
+  Revision 1.53  2003/05/30 23:57:08  peter
     * more sparc cleanup
     * accumulator removed, splitted in function_return_reg (called) and
       function_result_reg (caller)

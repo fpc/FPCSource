@@ -324,38 +324,38 @@ uses
 
     {Super registers:}
       RS_NO=$00;
-      RS_O0=$01;
-      RS_O1=$02;
-      RS_O2=$03;
-      RS_O3=$04;
-      RS_O4=$05;
-      RS_O5=$06;
-      RS_O6=$07;
-      RS_O7=$08;
-      RS_L0=$09;
-      RS_L1=$0A;
-      RS_L2=$0B;
-      RS_L3=$0C;
-      RS_L4=$0D;
-      RS_L5=$0E;
-      RS_L6=$0F;
-      RS_L7=$10;
-      RS_I0=$11;
-      RS_I1=$12;
-      RS_I2=$13;
-      RS_I3=$14;
-      RS_I4=$15;
-      RS_I5=$16;
-      RS_I6=$17;
-      RS_I7=$18;
-      RS_G0=$19;
-      RS_G1=$1A;
-      RS_G2=$1B;
-      RS_G3=$1C;
-      RS_G4=$1D;
-      RS_G5=$1E;
-      RS_G6=$1F;
-      RS_G7=$20;
+      RS_G0=$01;
+      RS_G1=$02;
+      RS_G2=$03;
+      RS_G3=$04;
+      RS_G4=$05;
+      RS_G5=$06;
+      RS_G6=$07;
+      RS_G7=$08;
+      RS_O0=$09;
+      RS_O1=$0a;
+      RS_O2=$0b;
+      RS_O3=$0c;
+      RS_O4=$0d;
+      RS_O5=$0e;
+      RS_O6=$0f;
+      RS_O7=$10;
+      RS_L0=$11;
+      RS_L1=$12;
+      RS_L2=$13;
+      RS_L3=$14;
+      RS_L4=$15;
+      RS_L5=$16;
+      RS_L6=$17;
+      RS_L7=$18;
+      RS_I0=$19;
+      RS_I1=$1a;
+      RS_I2=$1b;
+      RS_I3=$1c;
+      RS_I4=$1d;
+      RS_I5=$1e;
+      RS_I6=$1f;
+      RS_I7=$20;
 
       first_supreg = $01;
       last_supreg = $20;
@@ -988,17 +988,12 @@ implementation
 
     procedure convert_register_to_enum(var r:Tregister);
       begin
-        with R do
-          if(enum=R_INTREGISTER) then
-            if(number<=RegEnum2Number[R_I7]) then
-              begin
-                enum:=Low(enum);
-                repeat
-                  Inc(enum);
-                until(number=RegEnum2Number[enum])or(enum=High(enum));
-              end
-            else
+        if (r.enum=R_INTREGISTER) then
+          begin
+            if r.number>NR_I7 then
               internalerror(200301082);
+            r.enum:=toldregister(r.number shr 8);
+          end;
       end;
 
 
@@ -1010,7 +1005,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  2003-05-30 23:57:08  peter
+  Revision 1.36  2003-05-31 01:00:51  peter
+    * register fixes
+
+  Revision 1.35  2003/05/30 23:57:08  peter
     * more sparc cleanup
     * accumulator removed, splitted in function_return_reg (called) and
       function_result_reg (caller)
