@@ -1024,7 +1024,7 @@ unit pdecl;
               storetokenpos:=tokenpos;
               tokenpos:=defpos;
               newtype:=new(ptypesym,init(typename,tt));
-              newtype:=ptypesym(symtablestack^.insert(newtype));
+              symtablestack^.insert(newtype);
               tokenpos:=storetokenpos;
             end;
            consume(_SEMICOLON);
@@ -1210,7 +1210,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.181  2000-04-17 18:44:22  peter
+  Revision 1.182  2000-06-01 19:14:09  peter
+    * symtable.insert changed to procedure
+
+  Revision 1.181  2000/04/17 18:44:22  peter
     * fixed forward resolving with redefined types
 
   Revision 1.180  2000/02/09 13:22:56  peter
