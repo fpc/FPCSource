@@ -1851,7 +1851,7 @@ END;
 {  DrawFocus -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Apr98 LdB         }
 {---------------------------------------------------------------------------}
 PROCEDURE TButton.DrawFocus;
-VAR B: Byte; I, Pos: Sw_Integer;
+VAR B: Byte; I, J, Pos: Sw_Integer;
     Bc: Word; Db: TDrawBuffer;
     C : char;
 BEGIN
@@ -1883,25 +1883,39 @@ BEGIN
        I := TextWidth(Title^);                        { Fetch title width }
        I := (RawSize.X - I) DIV 2;                    { Centre in button }
      End Else I := FontWidth;                         { Left edge of button }
-     If TextModeGFV and DownFlag then Begin
-       MoveChar(Db,' ',Bc,1);
-       Pos:=1;
-     end else Pos:=0;
-     MoveCStr(Db[Pos], Title^, Bc);                        { Move title to buffer }
      If not TextModeGFV then Begin
+       MoveCStr(Db[0], Title^, Bc);                        { Move title to buffer }
        GOptions := GOptions OR goGraphView;             { Graphics co-ords mode }
-       WriteLine(I, FontHeight DIV 2, CStrLen(Title^)+Pos,
+       WriteLine(I, FontHeight DIV 2, CStrLen(Title^),
          1, Db);                                        { Write the title }
        GOptions := GOptions AND NOT goGraphView;        { Return to normal mode }
      End Else Begin
-       WriteLine(I div SysFontWidth, 0, CStrLen(Title^),
+       I:=I div SysFontWidth;
+       If DownFlag then
+         begin
+           MoveChar(Db[0],' ',GetColor(8),1);
+           Pos:=1;
+         end
+       else
+         pos:=0;
+       For j:=0 to I-1 do
+         MoveChar(Db[pos+j],' ',Bc,1);
+       MoveCStr(Db[I+pos], Title^, Bc);                        { Move title to buffer }
+       For j:=pos+CStrLen(Title^)+I to size.X-2 do
+         MoveChar(Db[j],' ',Bc,1);
+       If not DownFlag then
+         Bc:=GetColor(8);
+       MoveChar(Db[Size.X-1],' ',Bc,1);
+       WriteLine(0, 0, Size.X,
          1, Db);                  { Write the title }
        If Size.Y>1 then Begin
-         Bc:={GetColor($0707)}$70;
-         if DownFlag then c:=' '
-         else c:='Ü';
-         MoveChar(Db,c,Bc,1);
-         WriteLine(Size.X-1, 0, 1, 1, Db);                                        { Write the title }
+         Bc:=GetColor(8);
+         if not DownFlag then
+           begin
+             c:='Ü';
+             MoveChar(Db,c,Bc,1);
+             WriteLine(Size.X-1, 0, 1, 1, Db);
+           end;
          MoveChar(Db,' ',Bc,1);
          if DownFlag then c:=' '
          else c:='ß';
@@ -4186,7 +4200,10 @@ END;
 END.
 {
  $Log$
- Revision 1.14  2002-05-23 09:06:53  pierre
+ Revision 1.15  2002-05-23 12:16:11  pierre
+  * fix textmode button to be displayed like in TV
+
+ Revision 1.14  2002/05/23 09:06:53  pierre
   * use normal cursor for textmode TInputLine
 
  Revision 1.13  2002/05/16 20:36:24  pierre
