@@ -32,8 +32,16 @@ var
       Process
 ********************}
 
+const
+  { cloning flags }
+  CSIGNAL       = $000000ff; // signal mask to be sent at exit
+  CLONE_VM      = $00000100; // set if VM shared between processes
+  CLONE_FS      = $00000200; // set if fs info shared between processes
+  CLONE_FILES   = $00000400; // set if open files shared between processes
+  CLONE_SIGHAND = $00000800; // set if signal handlers shared
+  CLONE_PID     = $00001000; // set if pid shared
 
-Const
+
   { For getting/setting priority }
   Prio_Process = 0;
   Prio_PGrp    = 1;
@@ -491,6 +499,7 @@ Procedure Execle(Todo:string;Ep:ppchar);
 Procedure Execlp(Todo:string;Ep:ppchar);
 Function  Shell(const Command:String):Longint;
 Function  Fork:longint;
+Function  Clone(sp,flags:LongInt):LongInt;
 Function  WaitPid(Pid:longint;Status:pointer;Options:Integer):Longint;
 Procedure Nice(N:integer);
 Function  GetPriority(Which,Who:Integer):integer;
@@ -732,6 +741,16 @@ begin
   LinuxError:=Errno;
 End;
 
+
+Function Clone(sp,flags:LongInt):LongInt;
+var
+  regs : SysCallRegs;
+begin
+  regs.reg2:=sp;
+  regs.reg3:=flags;
+  Clone:=SysCall(SysCall_nr_clone, regs);
+  LinuxError:=Errno;
+end;
 
 
 Procedure Execve(path:pathstr;args:ppchar;ep:ppchar);
@@ -3521,7 +3540,10 @@ End.
 
 {
   $Log$
-  Revision 1.33  1999-03-11 12:02:03  peter
+  Revision 1.34  1999-03-29 16:03:10  peter
+    + clone()
+
+  Revision 1.33  1999/03/11 12:02:03  peter
     * s_is<x> functions have now word para instead of integer
 
   Revision 1.32  1999/02/22 12:50:53  peter
