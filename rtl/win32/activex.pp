@@ -218,6 +218,10 @@ Const
     CLSCTX_DISABLE_AAA          = $08000;    // Disable EOAC_DISABLE_AAA capability for this activation only
     CLSCTX_ENABLE_AAA           = $10000;    // Enable EOAC_DISABLE_AAA capability for this activation only
     CLSCTX_FROM_DEFAULT_CONTEXT = $20000;    // Begin this activation from the default context of the current apartment
+    CLSCTX_INPROC               = (CLSCTX_INPROC_SERVER OR CLSCTX_INPROC_HANDLER);
+// With DCOM, CLSCTX_REMOTE_SERVER should be included
+    CLSCTX_ALL                  = (CLSCTX_INPROC_SERVER OR CLSCTX_INPROC_HANDLER OR CLSCTX_LOCAL_SERVER {$ifdef Remote} OR CLSCTX_REMOTE_SERVER {$endif});
+    CLSCTX_SERVER               = (CLSCTX_INPROC_SERVER OR CLSCTX_LOCAL_SERVER {$ifdef Remote} OR CLSCTX_REMOTE_SERVER {$endif});
 
 
 // marshaling flags; passed to CoMarshalInterface
@@ -413,8 +417,288 @@ Const
     COLE_DEFAULT_PRINCIPAL {: pOleStr?} = pOleStr(-1);
     COLE_DEFAULT_AUTHINFO  {: pointer?} = pointer(-1);
 
+// DISPID reserved to indicate an \"unknown\" name
+// only reserved for data members (properties); reused as a method dispid below
+
+    DISPID_UNKNOWN              = -1;
+
+// DISPID reserved for the \"value\" property
+
+    DISPID_VALUE                = 0;
+
+// The following DISPID is reserved to indicate the param")
+// that is the right-hand-side (or \"put\" value) of a PropertyPut")
+
+    DISPID_PROPERTYPUT          = -3;
+
+// DISPID reserved for the standard \"NewEnum\" method
+
+    DISPID_NEWENUM              = -4;
+
+// DISPID reserved for the standard \"Evaluate\" method
+
+    DISPID_EVALUATE             = -5;
+    DISPID_CONSTRUCTOR          = -6;
+    DISPID_DESTRUCTOR           = -7;
+    DISPID_COLLECT              = -8;
+
+// The range -500 through -999 is reserved for Controls
+// The range 0x80010000 through 0x8001FFFF is reserved for Controls
+// The range -5000 through -5499 is reserved for ActiveX Accessability
+// The range -2000 through -2499 is reserved for VB5
+// The range -3900 through -3999 is reserved for Forms
+// The range -5500 through -5550 is reserved for Forms
+// The remainder of the negative DISPIDs are reserved for future use
+
+
+    DESCKIND_NONE               = 0;
+    DESCKIND_FUNCDESC           = 1;
+    DESCKIND_VARDESC            = 2;
+    DESCKIND_TYPECOMP           = 3;
+    DESCKIND_IMPLICITAPPOBJ     = 4;
+    DESCKIND_MAX                = 5;
+
+
+    SYS_WIN16                   = 0;
+    SYS_WIN32                   = 1;
+    SYS_MAC                     = 2;
+    SYS_WIN64                   = 3;
+
+
+    LIBFLAG_FRESTRICTED         = $01;
+    LIBFLAG_FCONTROL            = $02;
+    LIBFLAG_FHIDDEN             = $04;
+    LIBFLAG_FHASDISKIMAGE       = $08;
+    TYPEFLAG_FAPPOBJECT         = $01;
+    TYPEFLAG_FCANCREATE         = $02;
+    TYPEFLAG_FLICENSED          = $04;
+    TYPEFLAG_FPREDECLID         = $08;
+    TYPEFLAG_FHIDDEN            = $10;
+    TYPEFLAG_FCONTROL           = $20;
+    TYPEFLAG_FDUAL              = $40;
+    TYPEFLAG_FNONEXTENSIBLE     = $80;
+    TYPEFLAG_FOLEAUTOMATION     = $100;
+    TYPEFLAG_FRESTRICTED        = $200;
+    TYPEFLAG_FAGGREGATABLE      = $400;
+    TYPEFLAG_FREPLACEABLE       = $800;
+    TYPEFLAG_FDISPATCHABLE      = $1000;
+    TYPEFLAG_FREVERSEBIND       = $2000;
+    TYPEFLAG_FPROXY             = $4000;
+
+    FUNCFLAG_FRESTRICTED        = $1;
+    FUNCFLAG_FSOURCE            = $2;
+    FUNCFLAG_FBINDABLE          = $4;
+    FUNCFLAG_FREQUESTEDIT       = $8;
+    FUNCFLAG_FDISPLAYBIND       = $10;
+    FUNCFLAG_FDEFAULTBIND       = $20;
+    FUNCFLAG_FHIDDEN            = $40;
+    FUNCFLAG_FUSESGETLASTERROR  = $80;
+    FUNCFLAG_FDEFAULTCOLLELEM   = $100;
+    FUNCFLAG_FUIDEFAULT         = $200;
+    FUNCFLAG_FNONBROWSABLE      = $400;
+    FUNCFLAG_FREPLACEABLE       = $800;
+    FUNCFLAG_FIMMEDIATEBIND     = $1000;
+
+    VARFLAG_FREADONLY           = $1;
+    VARFLAG_FSOURCE             = $2;
+    VARFLAG_FBINDABLE           = $4;
+    VARFLAG_FREQUESTEDIT        = $8;
+    VARFLAG_FDISPLAYBIND        = $10;
+    VARFLAG_FDEFAULTBIND        = $20;
+    VARFLAG_FHIDDEN             = $40;
+    VARFLAG_FRESTRICTED         = $80;
+    VARFLAG_FDEFAULTCOLLELEM    = $100;
+    VARFLAG_FUIDEFAULT          = $200;
+    VARFLAG_FNONBROWSABLE       = $400;
+    VARFLAG_FREPLACEABLE        = $800;
+    VARFLAG_FIMMEDIATEBIND      = $1000;
+
+    FADF_AUTO                   = USHORT($0001);  // array is allocated on the stack
+    FADF_STATIC                 = USHORT($0002);  // array is staticly allocated
+    FADF_EMBEDDED               = USHORT($0004);  // array is embedded in a structure
+    FADF_FIXEDSIZE              = USHORT($0010);  // may not be resized or reallocated
+    FADF_RECORD                 = USHORT($0020);  // an array of records
+    FADF_HAVEIID                = USHORT($0040);  // with FADF_DISPATCH, FADF_UNKNOWN
+                                                  // array has an IID for interfaces
+    FADF_HAVEVARTYPE            = USHORT($0080);  // array has a VT type
+    FADF_BSTR                   = USHORT($0100);  // an array of BSTRs
+    FADF_UNKNOWN                = USHORT($0200);  // an array of IUnknown*
+    FADF_DISPATCH               = USHORT($0400);  // an array of IDispatch*
+    FADF_VARIANT                = USHORT($0800);  // an array of VARIANTs
+    FADF_RESERVED               = USHORT($F008);  // reserved bits
+
+// IMPLTYPE Flags
+
+    IMPLTYPEFLAG_FDEFAULT       = USHORT($1);
+    IMPLTYPEFLAG_FSOURCE        = USHORT($2);
+    IMPLTYPEFLAG_FRESTRICTED    = USHORT($4);
+    IMPLTYPEFLAG_FDEFAULTVTABLE = USHORT($8);
+
+    PARAMFLAG_NONE              = USHORT($00);
+    PARAMFLAG_FIN               = USHORT($01);
+    PARAMFLAG_FOUT              = USHORT($02);
+    PARAMFLAG_FLCID             = USHORT($04);
+    PARAMFLAG_FRETVAL           = USHORT($08);
+    PARAMFLAG_FOPT              = USHORT($10);
+    PARAMFLAG_FHASDEFAULT       = USHORT($20);
+    PARAMFLAG_FHASCUSTDATA      = USHORT($40);
+
+    VAR_PERINSTANCE             = 0;
+    VAR_STATIC                  = 1;
+    VAR_CONST                   = 2;
+    VAR_DISPATCH                = 3;
+
+    // notification messages used by the dynamic typeinfo protocol.
+
+    CHANGEKIND_ADDMEMBER        = 0;
+    CHANGEKIND_DELETEMEMBER     = 1;
+    CHANGEKIND_SETNAMES         = 2;
+    CHANGEKIND_SETDOCUMENTATION = 3;
+    CHANGEKIND_GENERAL          = 4;
+    CHANGEKIND_INVALIDATE       = 5;
+    CHANGEKIND_CHANGEFAILED     = 6;
+    CHANGEKIND_MAX              = 7;
+
+    INVOKE_FUNC                 = 1;
+    INVOKE_PROPERTYGET          = 2;
+    INVOKE_PROPERTYPUT          = 4;
+    INVOKE_PROPERTYPUTREF       = 8;
+
+    TKIND_ENUM                  = 0;
+    TKIND_RECORD                = 1;
+    TKIND_MODULE                = 2;
+    TKIND_INTERFACE             = 3;
+    TKIND_DISPATCH              = 4;
+    TKIND_COCLASS               = 5;
+    TKIND_ALIAS                 = 6;
+    TKIND_UNION                 = 7;
+    TKIND_MAX                   = 8;                 // end of enum marker
+
+    SF_ERROR                    = VT_ERROR;
+    SF_I1                       = VT_I1;
+    SF_I2                       = VT_I2;
+    SF_I4                       = VT_I4;
+    SF_I8                       = VT_I8;
+    SF_BSTR                     = VT_BSTR;
+    SF_UNKNOWN                  = VT_UNKNOWN;
+    SF_DISPATCH                 = VT_DISPATCH;
+    SF_VARIANT                  = VT_VARIANT;
+    SF_RECORD                   = VT_RECORD;
+    SF_HAVEIID                  = VT_UNKNOWN OR VT_RESERVED;
+    IDLFLAG_NONE                = PARAMFLAG_NONE;
+    IDLFLAG_FIN                 = PARAMFLAG_FIN;
+    IDLFLAG_FOUT                = PARAMFLAG_FOUT;
+    IDLFLAG_FLCID               = PARAMFLAG_FLCID;
+    IDLFLAG_FRETVAL             = PARAMFLAG_FRETVAL;
+
+    CC_FASTCALL                 = 0;
+    CC_CDECL                    = 1;
+    CC_MSCPASCAL                = 2;
+    CC_PASCAL                   = CC_MSCPASCAL;
+    CC_MACPASCAL                = 3;
+    CC_STDCALL                  = 4;
+    CC_FPFASTCALL               = 5;
+    CC_SYSCALL                  = 6;
+    CC_MPWCDECL                 = 7;
+    CC_MPWPASCAL                = 8;
+    CC_MAX                      = 9;   // end of enum marker
+
+    FUNC_VIRTUAL                = 0;
+    FUNC_PUREVIRTUAL            = 1;
+    FUNC_NONVIRTUAL             = 2;
+    FUNC_STATIC                 = 3;
+    FUNC_DISPATCH               = 4;
+
+// objbase.h
+
+    MARSHALINTERFACE_MIN        = 500; // minimum number of bytes for interface marshl
+
+//
+// Common typedefs for paramaters used in Storage API's, gleamed from storage.h
+// Also contains Storage error codes, which should be moved into the storage
+// idl files.
+//
+
+
+    CWCSTORAGENAME              = 32;
+
+// Storage instantiation modes
+    STGM_DIRECT                 = $00000000;
+    STGM_TRANSACTED             = $00010000;
+    STGM_SIMPLE                 = $08000000;
+    STGM_READ                   = $00000000;
+    STGM_WRITE                  = $00000001;
+    STGM_READWRITE              = $00000002;
+    STGM_SHARE_DENY_NONE        = $00000040;
+    STGM_SHARE_DENY_READ        = $00000030;
+    STGM_SHARE_DENY_WRITE       = $00000020;
+    STGM_SHARE_EXCLUSIVE        = $00000010;
+    STGM_PRIORITY               = $00040000;
+    STGM_DELETEONRELEASE        = $04000000;
+    STGM_NOSCRATCH              = $00100000;   {WINNT+}
+    STGM_CREATE                 = $00001000;
+    STGM_CONVERT                = $00020000;
+    STGM_FAILIFTHERE            = $00000000;
+    STGM_NOSNAPSHOT             = $00200000;
+    STGM_DIRECT_SWMR            = $00400000;   { Win2000+}
+
+//  flags for internet asyncronous and layout docfile
+    ASYNC_MODE_COMPATIBILITY    = $00000001;
+    ASYNC_MODE_DEFAULT          = $00000000;
+
+    STGTY_REPEAT                = $00000100;
+    STG_TOEND                   = $FFFFFFFF;
+
+    STG_LAYOUT_SEQUENTIAL       = $00000000;
+    STG_LAYOUT_INTERLEAVED      = $00000001;
+
+    STGFMT_STORAGE              = 0;
+    STGFMT_NATIVE               = 1;
+    STGFMT_FILE                 = 3;
+    STGFMT_ANY                  = 4;
+    STGFMT_DOCFILE              = 5;
+
+// This is a legacy define to allow old component to builds
+    STGFMT_DOCUMENT             = 0;
+
+
+// COM initialization flags; passed to CoInitialize.
+    COINIT_APARTMENTTHREADED    = $2;      // Apartment model
+
+  // These constants are only valid on Windows NT 4.0
+
+    COINIT_MULTITHREADED        = $0;      // OLE calls objects on any thread.
+    COINIT_DISABLE_OLE1DDE      = $4;      // Don't use DDE for Ole1 support.
+    COINIT_SPEED_OVER_MEMORY    = $8;      // Trade memory for speed.
+
+    SMEXF_SERVER                = $01;     // server side aggregated std marshaler
+    SMEXF_HANDLER               = $02;     // client side (handler) agg std marshaler
+
+
+
+    COWAIT_WAITALL              = 1;
+    COWAIT_ALERTABLE            = 2;
+
 TYPE
-    VARTYPE     = USHORT;
+    VARTYPE             = USHORT;
+
+//TypeInfo stuff.
+
+    DISPID              = Long ;
+    SCODE               = Long;
+    pSCODE              = ^SCODE;
+    lpDISPID            = ^DISPID;
+    MEMBERID            = DispId;
+    HREFTYPE            = DWord;
+
+
+// Enums
+    VARKIND             = DWord;
+    DESCKIND            = DWord;
+    SYSKIND             = DWord;
+    FUNCKIND            = DWord;
+    CHANGEKIND          = DWord;
+    CALLCONV            = DWord;
 
     PCOAUTHIDENTITY    = ^TCOAUTHIDENTITY;
     _COAUTHIDENTITY    = Record
@@ -453,7 +737,7 @@ TYPE
    PMultiQI            = ^Multi_QI;
    tagMULTI_QI         = Record
                           iid: piid;                   // pass this one in
-                          itf: IUnknown;                // get these out (you must set to NULL before calling)
+                          itf: pointer {IUnknown};                // get these out (you must set to NULL before calling)
                           hr : Hresult;
                           END;
    MULTI_QI            = TagMULTI_QI;
@@ -945,9 +1229,39 @@ TYPE
    FLAG_STGMEDIUM               = _FLAG_STGMEDIUM;
 
 
+   VARIANTARG                   = VARIANT;
+   LPVARIANT                    = ^VARIANT;
+   LPVARIANTARG                 = ^VARIANT;
+
+// parameter description
+
+   tagPARAMDESCEX               = Record
+                                    cBytes         : ULong;      // size of this structure
+                                    varDefaultValue: VariantARG; // default value of this parameter
+                                    End;
+
+   PARAMDESCEX                  = tagPARAMDESCEX;
+   LPPARAMDESCEX                = ^PARAMDESCEX;
+
+   tagPARAMDESC                 = Record
+                                    pparamdescex: LPPARAMDESCEX ;  // valid if PARAMFLAG_FHASDEFAULT bit is set
+                                    wParamFlags : UShort ;         // IN, OUT, etc
+                                    End;
+
+   PARAMDESC                    = tagPARAMDESC;
+   LPPARAMDESC                  = ^PARAMDESC;
+
+
+   tagSAFEARRAYBOUND            = Record
+                                     cElements : ULong;
+                                     lLbound   : Long;
+                                     End;
+   SAFEARRAYBOUND               = tagSAFEARRAYBOUND;
+   LPSAFEARRAYBOUND             = ^SAFEARRAYBOUND;
+
 // additional interface information about the incoming call
    tagINTERFACEINFO             = Record
-                                    Unk     : IUnknown;   // the pointer to the object
+                                    Unk     : Pointer {IUnknown};   // the pointer to the object
                                     IID     : Tiid;       // interface id
                                     wMethod : WORD;        // interface method
                                     End;
@@ -987,6 +1301,177 @@ TYPE
    STATDATA                     = TagStatData;
    LPStatData                   = ^StatData;
 
+   pARRAYDESC                   = ^ARRAYDESC;
+   pTYPEDESC                    = ^TYPEDESC;
+   tagTYPEKIND                  = Dword;
+   TYPEKIND                     = tagTYPEKIND;
+   INVOKEKIND                   = Dword;
+   tagTYPEDESC                  = Record
+                                    Case Integer OF
+                                      VT_PTR,
+                                      VT_SAFEARRAY   :  (lptdesc : PTYPEDESC;vt : VARTYPE);
+                                      VT_CARRAY      :  (lpadesc : PARRAYDESC);
+                                      VT_USERDEFINED :  (hreftype : HREFTYPE);
+                                      End;
+   TYPEDESC                     = tagTYPEDESC;
+
+
+
+
+   tagARRAYDESC                 = Record
+                                     tdescElem   : TYPEDESC;                       // element type
+                                     cDims       : USHORT;
+                                     rgbounds    : ARRAY [0..0] OF SAFEARRAYBOUND; // dimension count
+                                     End;
+
+   ARRAYDESC                    = tagARRAYDESC;
+
+   tagIDLDESC                   = Record
+                                    dwReserved     : pULONG;
+                                    wIDLFlags      : USHORT;           // IN, OUT, etc
+                                    End;
+   IDLDESC                      = tagIDLDESC;
+   LPIDLDESC                    = ^IDLDESC;
+
+
+   tagELEMDESC                  = Record
+                                    tdesc : TYPEDESC;
+                                    case Integer Of
+                                      0 : (idldesc    : IDLDESC);
+                                      1 : (paramdesc  : PARAMDESC);
+                                      END;
+
+   ELEMDESC                     = tagELEMDESC;
+   LPELEMDESC                   = ^ELEMDESC;
+   tagVARDESC                   = Record
+                                    memId               : MEMBERID;
+                                    lpstrSchema         : pOleStr;
+                                    CASE Integer OF
+                                    VAR_PERINSTANCE,
+                                    VAR_DISPATCH,
+                                    VAR_STATIC       : (oInst   : ULong;                          // offset of variable within the instance
+                                                        ElemdescVar : ELEMDESC;
+                                                        wVarFlags   : WORD;
+                                                        varkind     : VARKIND);
+                                    VAR_CONST        : (lpvarValue : PVARIANT);                       // the value of the constant
+                                    End;
+  VARDESC                       = tagVARDESC;
+  LPVARDESC                     = ^VARDESC;
+  tagDISPPARAMS                 = Record
+                                   rgvarg            : lpVARIANTARG;
+                                   rgdispipNamedArgs : lpDISPID;
+                                   cArgs,
+                                   cNamedArgs        : UINT;
+                                   End;
+  DISPPARAMS                    = tagDISPPARAMS;
+  tagEXCEPINFO                  = Record
+                                    wCode,                         // An error code describing the error.
+                                    wReserved      : Word;
+                                    Source,                        // A source of the exception
+                                    Description,                   // A description of the error
+                                    HelpFile       : WideString;   // Fully qualified drive, path, and file name
+                                    dwHelpContext  : DWord;    // help context of topic within the help file
+                                                                   // We can use ULONG_PTR here, because EXCEPINFO is marshalled by RPC
+                                                                   // RPC will marshal pfnDeferredFillIn.
+                                    pvReserved,
+                                    pfnDeferredFillIn : pULONG;
+                                    SCODE          : scode;
+                                    End;
+
+  EXCEPINFO                     =  tagEXCEPINFO;
+
+  tagTYPEATTR                   = Record
+                                   GUID            : Tguid;       // the GUID of the TypeInfo
+                                   LCID            : lcid;        // locale of member names and doc strings
+                                   dwReserved      : DWord;
+                                   memidConstructor,              // ID of constructor, MEMBERID_NIL if none
+                                   memidDestructor : MemberID;    // ID of destructor, MEMBERID_NIL if none
+                                   lpstrSchema     : pOleStr;
+
+                                   cbSizeInstance  : ULong;       // the size of an instance of this type
+                                   typekind        : TYPEKIND;    // the kind of type this typeinfo describes
+                                   cFuncs,                        // number of functions
+                                   cVars,                         // number of variables / data members
+                                   cImplTypes,                    // number of implemented interfaces
+                                   cbSizeVft,                     // the size of this types virtual func table
+                                   cbAlignment,                   { specifies the alignment requirements for
+                                                                    an instance of this type,
+                                                                      0 = align on 64k boundary
+                                                                      1 = byte align
+                                                                      2 = word align
+                                                                      4 = dword align... }
+                                   wTypeFlags,
+                                   wMajorVerNum,                  // major version number
+                                   wMinorVerNum    : Word;        // minor version number
+                                   tdescAlias      : TYPEDESC;    { if typekind == TKIND_ALIAS this field
+                                                                    specifies the type for which this type
+                                                                    is an alias }
+                                   idldescType     : IDLDESC;     // IDL attributes of the described type
+                                   END;
+  TYPEATTR                       = tagTYPEATTR;
+
+  LPTYPEATTR                     = ^TYPEATTR;
+
+  tagTLIBATTR                    = Record
+                                     GUID        : guid;
+                                     LCID        : lcid;
+                                     SYSKIND     : syskind;
+                                     wMajorVerNum,
+                                     wMinorVerNum,
+                                     wLibFlags   : Word
+                                     End;
+
+  TLIBATTR                       = tagTLIBATTR;
+  LPTLIBATTR                     = ^tagTLIBATTR;
+
+  LPFUNCDESC                     = ^FUNCDESC;
+
+  tagFUNCDESC                    = Record
+                                     memid             : MEMBERID;
+                                     lprgscode         : pSCODE;
+                                     lprgelemdescParam : lpELEMDESC;    // array of param types
+                                     FUNCKIND          : funckind;
+                                     invkind           : INVOKEKIND;
+                                     callconv          : CALLCONV;
+                                     cParams,
+                                     cParamsOpt,
+                                     oVft,
+                                     cScodes           : SHORT;
+                                     elemdescFunc      : ELEMDESC;
+                                     wFuncFlags        : WORD;
+                                     End;
+  FUNCDESC                       = tagFUNCDESC;
+
+
+  tagBINDPTR                     = Record
+                                     case integer Of
+                                      0 : (lpfuncdesc : LPFUNCDESC);
+                                      1 : (lpvardesc  : LPVARDESC);
+                                      2 : (lptcomp    : Pointer {ITypeComp} );
+                                      End;
+  BINDPTR                        = tagBINDPTR;
+  LPBINDPTR                      = ^BINDPTR;
+
+  tagCUSTDATAITEM                = Record
+                                     GUID         : TGuid;           // guid identifying this custom data item
+                                     varValue     : VARIANTARG;      // value of this custom data item
+                                     End;
+
+  CUSTDATAITEM                   = tagCUSTDATAITEM;
+
+  LPCUSTDATAITEM                 = ^CUSTDATAITEM;
+
+  tagCUSTDATA                    = Record
+                                     cCustData   : DWord;             // number of custom data items in rgCustData
+                                     prgCustData : LPCUSTDATAITEM;    // array of custom data items
+                                     End;
+
+  CUSTDATA                       = tagCUSTDATA;
+  LPCUSTDATA                     = ^CUSTDATA;
+
+//  CURRENCY                       = CY;
+
+{$IFDEF HAS_INTF}
 
 // Forward interfaces.
 
@@ -1002,12 +1487,34 @@ TYPE
    IAsyncManager       = Interface;
    ICallFactory        = Interface;
    ISynchronize        = Interface;
+   ITypeLib            = Interface;
 
+// Unknwn.idl
+
+// IUnknown is in classesh.inc
+
+   AsyncIUnknown = Interface( IUnknown)
+      ['{000e0000-0000-0000-C000-000000000046}']
+        Function Begin_QueryInterface(Const riid : TIID): HResult; StdCall;
+        Function Finish_QueryInterface(Out ppvObject : Pointer):HResult;StdCall;
+        Function Begin_AddRef:HResult;StdCall;
+        Function Finish_AddRef:ULong;StdCall;
+        Function Begin_Release:HResult;StdCall;
+        Function Finish_Release:ULong;StdCall;
+        End;
+
+   IClassFactory = Interface(IUnknown)
+      ['{00000001-0000-0000-C000-000000000046}']
+      Function CreateInstance(Const unkOuter:IUnknown;Const riid : TIID;Out vObject : Pointer):HResult; StdCall;
+      Function LockServer(fLock : Bool):HResult;StdCall;
+      End;
+
+
+// objidl.idl
 
 {****************************************************************************
  *  Component Object Interfaces
  ****************************************************************************}
-
 
      IMarshal = Interface(IUnknown)
         ['{00000003-0000-0000-C000-000000000046}']
@@ -1192,31 +1699,28 @@ TYPE
        Function Clone(Out penum:IEnumString):HResult;StdCall;
        End;
 
-
-       ISequentialStream = interface(IUnknown)
-          ['{0c733a30-2a1c-11ce-ade5-00aa0044773d}']
-          function Read(pv : Pointer;cb : DWord;pcbRead : PDWord) : HRESULT;stdcall;
-          function Write(pv : Pointer;cb : DWord;pcbWritten : PDWord): HRESULT;stdcall;
+    ISequentialStream = interface(IUnknown)
+       ['{0c733a30-2a1c-11ce-ade5-00aa0044773d}']
+       function Read(pv : Pointer;cb : DWord;pcbRead : PDWord) : HRESULT;stdcall;
+       function Write(pv : Pointer;cb : DWord;pcbWritten : PDWord): HRESULT;stdcall;
        end;
 
-       IStream = interface(ISequentialStream)
-          ['{0000000C-0000-0000-C000-000000000046}']
-          function Seek(dlibMove : Large_integer; dwOrigin: Longint;
+    IStream = interface(ISequentialStream)
+       ['{0000000C-0000-0000-C000-000000000046}']
+       function Seek(dlibMove : Large_integer; dwOrigin: Longint;
             out libNewPosition : Large_Integer): HResult; stdcall;
-          function SetSize(libNewSize : Large_Integer) : HRESULT;stdcall;
-          function CopyTo(stm: IStream;cb : Large_Integer;out cbRead : Large_Integer;
+       function SetSize(libNewSize : Large_Integer) : HRESULT;stdcall;
+       function CopyTo(stm: IStream;cb : Large_Integer;out cbRead : Large_Integer;
             out cbWritten: Large_Integer) : HRESULT;stdcall;
-          function Commit(grfCommitFlags : Longint) : HRESULT; stdcall;
-          function Revert : HRESULT; stdcall;
-          function LockRegion(libOffset : Large_Integer;cb : Large_Integer;
+       function Commit(grfCommitFlags : Longint) : HRESULT; stdcall;
+       function Revert : HRESULT; stdcall;
+       function LockRegion(libOffset : Large_Integer;cb : Large_Integer;
             dwLockType: Longint) : HRESULT;stdcall;
-          function UnlockRegion(libOffset: Large_Integer;cb: Large_Integer;
+       function UnlockRegion(libOffset: Large_Integer;cb: Large_Integer;
             dwLockType: Longint) : HRESULT;stdcall;
-          function Stat(out statstg : TStatStg; grfStatFlag: Longint): HRESULT;stdcall;
-          function Clone(out stm : IStream) : HRESULT; stdcall;
+       Function Stat(out statstg : TStatStg; grfStatFlag: Longint): HRESULT;stdcall;
+       function Clone(out stm : IStream) : HRESULT; stdcall;
        end;
-
-
 
     IEnumSTATSTG = Interface (IUnknown)
        ['{0000000d-0000-0000-C000-000000000046}']
@@ -1764,12 +2268,361 @@ TYPE
        Function ResetInitializerTimeout(dwSecondsRemaining:DWord):HResult; StdCall;
        End;
 
+
+// Interfaces from OAIDL.IDL
+
+   ITypeInfo = Interface;
+
+   ICreateTypeInfo = Interface (IUnknown)
+     ['{00020405-0000-0000-C000-000000000046}']
+     Function  SetGuid(CONST guid: TGUID):HResult;StdCall;
+     Function  SetTypeFlags(uTypeFlags: UINT):HResult;StdCall;
+     Function  SetDocString(pStrDoc: pOleStr):HResult;StdCall;
+     Function  SetHelpContext(dwHelpContext: DWORD):HResult;StdCall;
+     Function  SetVersion(wMajorVerNum: WORD; wMinorVerNum: WORD):HResult;StdCall;
+     Function  AddRefTypeInfo(CONST pTInfo: ITypeInfo; CONST phRefType: HREFTYPE):HResult;StdCall;
+     Function  AddFuncDesc(index: UINT; CONST pFuncDesc: FUNCDESC):HResult;StdCall;
+     Function  AddImplType(index: UINT; hRefType: HREFTYPE):HResult;StdCall;
+     Function  SetImplTypeFlags(index: UINT; implTypeFlags: INT):HResult;StdCall;
+     Function  SetAlignment(cbAlignment: WORD):HResult;StdCall;
+     Function  SetSchema(pStrSchema: pOleStr):HResult;StdCall;
+     Function  AddVarDesc(index: UINT; CONST pVarDesc: VARDESC):HResult;StdCall;
+     Function  SetFuncAndParamNames(index: UINT; CONST rgszNames: pOleStr; cNames: UINT):HResult;StdCall;
+     Function  SetVarName(index: UINT; szName: pOleStr):HResult;StdCall;
+     Function  SetTypeDescAlias(CONST pTDescAlias: TYPEDESC):HResult;StdCall;
+     Function  DefineFuncAsDllEntry(index: UINT; szDllName: pOleStr; szProcName: pOleStr):HResult;StdCall;
+     Function  SetFuncDocString(index: UINT; szDocString: pOleStr):HResult;StdCall;
+     Function  SetVarDocString(index: UINT; szDocString: pOleStr):HResult;StdCall;
+     Function  SetFuncHelpContext(index: UINT; dwHelpContext: DWORD):HResult;StdCall;
+     Function  SetVarHelpContext(index: UINT; dwHelpContext: DWORD):HResult;StdCall;
+     Function  SetMops(index: UINT; Const bstrMops: WideString):HResult;StdCall;
+     Function  SetTypeIdldesc(CONST pIdlDesc: IDLDESC):HResult;StdCall;
+     Function  LayOut():HResult;StdCall;
+     End;
+
+   ICreateTypeInfo2 = Interface (ICreateTypeInfo)
+     ['{0002040E-0000-0000-C000-000000000046}']
+     Function  DeleteFuncDesc(index: UINT):HResult;StdCall;
+     Function  DeleteFuncDescByMemId(memid: MEMBERID; invKind: INVOKEKIND):HResult;StdCall;
+     Function  DeleteVarDesc(index: UINT):HResult;StdCall;
+     Function  DeleteVarDescByMemId(memid: MEMBERID):HResult;StdCall;
+     Function  DeleteImplType(index: UINT):HResult;StdCall;
+     Function  SetCustData(CONST guid: TGUID; CONST pVarVal: VARIANT):HResult;StdCall;
+     Function  SetFuncCustData(index: UINT; CONST guid: TGUID; CONST pVarVal: VARIANT):HResult;StdCall;
+     Function  SetParamCustData(indexFunc: UINT; indexParam: UINT; CONST guid: TGUID; CONST pVarVal: VARIANT):HResult;StdCall;
+     Function  SetVarCustData(index: UINT; CONST guid: TGUID; CONST pVarVal: VARIANT):HResult;StdCall;
+     Function  SetImplTypeCustData(index: UINT; CONST guid: TGUID; CONST pVarVal: VARIANT):HResult;StdCall;
+     Function  SetHelpStringContext(dwHelpStringContext: ULONG):HResult;StdCall;
+     Function  SetFuncHelpStringContext(index: UINT; dwHelpStringContext: ULONG):HResult;StdCall;
+     Function  SetVarHelpStringContext(index: UINT; dwHelpStringContext: ULONG):HResult;StdCall;
+     Function  Invalidate():HResult;StdCall;
+     Function  SetName(szName: pOleStr):HResult;StdCall;
+     End;
+
+   ICreateTypeLib = Interface (IUnknown)
+     ['{00020406-0000-0000-C000-000000000046}']
+     Function  CreateTypeInfo(szName: pOleStr; tkind: TYPEKIND; OUT ppCTInfo: ICreateTypeInfo):HResult;StdCall;
+     Function  SetName(szName: pOleStr):HResult;StdCall;
+     Function  SetVersion(wMajorVerNum: WORD; wMinorVerNum: WORD):HResult;StdCall;
+     Function  SetGuid(CONST guid: TGUID):HResult;StdCall;
+     Function  SetDocString(szDoc: pOleStr):HResult;StdCall;
+     Function  SetHelpFileName(szHelpFileName: pOleStr):HResult;StdCall;
+     Function  SetHelpContext(dwHelpContext: DWORD):HResult;StdCall;
+     Function  SetLcid(lcid: LCID):HResult;StdCall;
+     Function  SetLibFlags(uLibFlags: UINT):HResult;StdCall;
+     Function  SaveAllChanges():HResult;StdCall;
+     End;
+
+   ICreateTypeLib2 = Interface (ICreateTypeLib)
+    ['{0002040F-0000-0000-C000-000000000046}']
+     Function  DeleteTypeInfo(szName: pOleStr):HResult;StdCall;
+     Function  SetCustData(CONST guid: TGUID; CONST pVarVal: VARIANT):HResult;StdCall;
+     Function  SetHelpStringContext(dwHelpStringContext: ULONG):HResult;StdCall;
+     Function  SetHelpStringDll(szFileName: pOleStr):HResult;StdCall;
+     End;
+
+   IDispatch = Interface (IUnknown)
+     ['{00020400-0000-0000-C000-000000000046}']
+     Function  GetTypeInfoCount(OUT pctinfo: UINT):HResult;StdCall;
+     Function  GetTypeInfo(iTInfo: UINT; lcid: LCID; OUT ppTInfo: ITypeInfo):HResult;StdCall;
+     Function  GetIDsOfNames(CONST riid: TIID; CONST rgszNames: pOleStr; cNames: UINT; lcid: LCID; OUT rgDispId: DISPID):HResult;StdCall;
+     {$ifndef Call_as}
+     Function  Invoke(dispIdMember: DISPID; CONST riid: TIID; lcid: LCID; wFlags: WORD; VAR pDispParams: DISPPARAMS; OUT pVarResult: VARIANT; OUT pExcepInfo: EXCEPINFO; OUT puArgErr: UINT):HResult;StdCall;
+     {$else}
+     Function  Invoke(dispIdMember: DISPID; CONST riid: TIID; lcid: LCID; dwFlags: DWORD; CONST pDispParams: DISPPARAMS; OUT pVarResult: VARIANT; OUT pExcepInfo: EXCEPINFO; OUT pArgErr: UINT;
+                     cVarRef: UINT; CONST rgVarRefIdx: UINT; VAR rgVarRef: VARIANTARG):HResult;StdCall;
+     {$endif}
+     End;
+
+   IEnumVARIANT = Interface (IUnknown)
+     ['{00020404-0000-0000-C000-000000000046}']
+     {$ifndef Call_as}
+      Function  Next(celt: ULONG; OUT rgVar: VARIANT; OUT pCeltFetched: ULONG):HResult;StdCall;
+     {$else}
+      Function  Next(celt: ULONG; OUT rgVar: VARIANT; OUT pCeltFetched: ULONG):HResult;StdCall;
+     {$endif}
+     Function  Skip(celt: ULONG):HResult;StdCall;
+     Function  Reset():HResult;StdCall;
+     Function  Clone(OUT ppEnum: IEnumVARIANT):HResult;StdCall;
+     End;
+
+   ITypeComp = Interface (IUnknown)
+     ['{00020403-0000-0000-C000-000000000046}']
+     {$ifndef Call_as}
+      Function  Bind(szName: pOleStr; lHashVal: ULONG; wFlags: WORD; OUT ppTInfo: ITypeInfo; OUT pDescKind: DESCKIND; OUT pBindPtr: BINDPTR):HResult;StdCall;
+      Function  BindType(szName: pOleStr; lHashVal: ULONG; OUT ppTInfo: ITypeInfo; OUT ppTComp: ITypeComp):HResult;StdCall;
+     {$else}
+      Function  Bind(szName: pOleStr; lHashVal: ULONG; wFlags: WORD; OUT ppTInfo: ITypeInfo; OUT pDescKind: DESCKIND; OUT ppFuncDesc: LPFUNCDESC; OUT ppVarDesc: LPVARDESC; O
+      Function  BindType(szName: pOleStr; lHashVal: ULONG; OUT ppTInfo: ITypeInfo):HResult;StdCall;
+     {$endif}
+     End;
+
+   ITypeInfo = Interface (IUnknown)
+     ['{00020401-0000-0000-C000-000000000046}']
+     {$ifndef Call_as}
+      Function  GetTypeAttr(OUT ppTypeAttr: lpTYPEATTR):HResult;StdCall;
+     {$else}
+      Function  GetTypeAttr(OUT ppTypeAttr: LPTYPEATTR; OUT pDummy: CLEANLOCALSTORAGE):HResult;StdCall;
+     {$endif}
+      Function  GetTypeComp(OUT ppTComp: ITypeComp):HResult;StdCall;
+     {$ifndef Call_as}
+      Function  GetFuncDesc(index: UINT; OUT ppFuncDesc: lpFUNCDESC):HResult;StdCall;
+      Function  GetVarDesc(index: UINT; OUT ppVarDesc: lpVARDESC):HResult;StdCall;
+      Function  GetNames(memid: MEMBERID; OUT rgBstrNames: WideString; cMaxNames: UINT; OUT pcNames: UINT):HResult;StdCall;
+     {$else}
+      Function  GetFuncDesc(index: UINT; OUT ppFuncDesc: LPFUNCDESC; OUT pDummy: CLEANLOCALSTORAGE):HResult;StdCall;
+      Function  GetVarDesc(index: UINT; OUT ppVarDesc: LPVARDESC; OUT pDummy: CLEANLOCALSTORAGE):HResult;StdCall;
+      Function  GetNames(memid: MEMBERID; OUT rgBstrNames: WideString; cMaxNames: UINT; OUT pcNames: UINT):HResult;StdCall;
+     {$endif}
+     Function  GetRefTypeOfImplType(index: UINT; OUT pRefType: HREFTYPE):HResult;StdCall;
+     Function  GetImplTypeFlags(index: UINT; OUT pImplTypeFlags: INT):HResult;StdCall;
+     {$ifndef Call_as}
+      Function  GetIDsOfNames(CONST rgszNames: pOleStr; cNames: UINT; OUT pMemId: MEMBERID):HResult;StdCall;
+     {$else}
+      Function  LocalGetIDsOfNames():HResult;StdCall;
+     {$endif}
+     {$ifndef Call_as}
+     Function  Invoke(pvInstance: Pointer; memid: MEMBERID; wFlags: WORD; VAR pDispParams: DISPPARAMS; OUT pVarResult: VARIANT; OUT pExcepInfo: EXCEPINFO; OUT puArgErr: UINT):HResult;StdCall;
+     {$else}
+     Function  LocalInvoke ():HResult;StdCall;
+     {$endif}
+     {$ifndef Call_as}
+     Function  GetDocumentation(memid: MEMBERID; OUT pBstrName: WideString; OUT pBstrDocString: WideString; OUT pdwHelpContext: DWORD; OUT pBstrHelpFile: WideString):HResult;StdCall;
+     {$else}
+     Function  GetDocumentation(memid: MEMBERID; refPtrFlags: DWORD; OUT pBstrName: WideString; OUT pBstrDocString: WideString; OUT pdwHelpContext: DWORD; OUT pBstrHelpFile: WideString):HResult;StdCall;
+     {$endif}
+
+     {$ifndef Call_as}
+     Function  GetDllEntry(memid: MEMBERID; invKind: INVOKEKIND; OUT pBstrDllName: WideString; OUT pBstrName: WideString; OUT pwOrdinal: WORD):HResult;StdCall;
+     {$else}
+     Function  GetDllEntry(memid: MEMBERID; invKind: INVOKEKIND; refPtrFlags: DWORD; OUT pBstrDllName: WideString; OUT pBstrName: WideString; OUT pwOrdinal: WORD):HResult;StdCall;
+     {$endif}
+
+     Function  GetRefTypeInfo(hRefType: HREFTYPE; OUT ppTInfo: ITypeInfo):HResult;StdCall;
+
+     {$ifndef Call_as}
+      Function  AddressOfMember(memid: MEMBERID; invKind: INVOKEKIND; OUT ppv: Pointer):HResult;StdCall;
+     {$else}
+      Function  LocalAddressOfMember():HResult;StdCall;
+     {$endif}
+
+     {$ifndef Call_as}
+      Function  CreateInstance(CONST pUnkOuter: IUnknown; CONST riid: TIID; OUT ppvObj: Pointer):HResult;StdCall;
+     {$else}
+      Function  CreateInstance(CONST riid: TIID; OUT ppvObj: pIUnknown):HResult;StdCall;
+     {$endif}
+     Function  GetMops(memid: MEMBERID; OUT pBstrMops: WideString):HResult;StdCall;
+     {$ifndef Call_as}
+     Function  GetContainingTypeLib(OUT ppTLib: ITypeLib; OUT pIndex: UINT):HResult;StdCall;
+     {$else}
+     Function  GetContainingTypeLib(OUT ppTLib: ITypeLib; OUT pIndex: UINT):HResult;StdCall;
+     {$endif}
+     {$ifndef Call_as}
+      Procedure ReleaseTypeAttr(Const pTypeAttr: TypeAttr); StdCall;
+     {$else}
+      Function  ReleaseTypeAttr():HResult;StdCall;
+     {$endif}
+
+     {$ifndef Call_as}
+      Procedure ReleaseFuncDesc(const pFuncDesc : FUNCDESC); StdCall;
+     {$else}
+      Function  LocalReleaseFuncDesc():HResult;StdCall;
+     {$endif}
+     {$ifndef Call_as}
+      Procedure ReleaseVarDesc(Const pVarDesc : VarDesc);
+     {$else}
+      Function  LocalReleaseVarDesc():HResult;StdCall;
+     {$endif}
+     End;
+
+   ITypeInfo2 = Interface (ITypeInfo)
+     ['{00020412-0000-0000-C000-000000000046}']
+     Function  GetTypeKind(OUT xpTypeKind: TYPEKIND):HResult;StdCall;
+     Function  GetTypeFlags(OUT pTypeFlags: ULONG):HResult;StdCall;
+     Function  GetFuncIndexOfMemId(memid: MEMBERID; invKind: INVOKEKIND; OUT pFuncIndex: UINT):HResult;StdCall;
+     Function  GetVarIndexOfMemId(memid: MEMBERID; OUT pVarIndex: UINT):HResult;StdCall;
+     Function  GetCustData(CONST guid: TGUID; OUT pVarVal: VARIANT):HResult;StdCall;
+     Function  GetFuncCustData(index: UINT; CONST guid: TGUID; OUT pVarVal: VARIANT):HResult;StdCall;
+     Function  GetParamCustData(indexFunc: UINT; indexParam: UINT; CONST guid: TGUID; OUT pVarVal: VARIANT):HResult;StdCall;
+     Function  GetVarCustData(index: UINT; CONST guid: TGUID; OUT pVarVal: VARIANT):HResult;StdCall;
+     Function  GetImplTypeCustData(index: UINT; CONST guid: TGUID; OUT pVarVal: VARIANT):HResult;StdCall;
+     {$ifndef Call_as}
+      Function  GetDocumentation2(memid: MEMBERID; lcid: LCID; OUT pbstrHelpString: WideString; OUT pdwHelpStringContext: DWORD; OUT pbstrHelpStringDll: WideString):HResult;StdCall;
+     {$else}
+      Function  GetDocumentation2(memid: MEMBERID; lcid: LCID; refPtrFlags: DWORD; OUT pbstrHelpString: WideString; OUT pdwHelpStringContext: DWORD; OUT pbstrHelpStringDll: WideString):HResult;StdCall;
+     {$endif}
+     Function  GetAllCustData(OUT pCustData: CUSTDATA):HResult;StdCall;
+     Function  GetAllFuncCustData(index: UINT; OUT pCustData: CUSTDATA):HResult;StdCall;
+     Function  GetAllParamCustData(indexFunc: UINT; indexParam: UINT; OUT pCustData: CUSTDATA):HResult;StdCall;
+     Function  GetAllVarCustData(index: UINT; OUT pCustData: CUSTDATA):HResult;StdCall;
+     Function  GetAllImplTypeCustData(index: UINT; OUT pCustData: CUSTDATA):HResult;StdCall;
+     End;
+
+   ITypeLib = Interface (IUnknown)
+     ['{00020402-0000-0000-C000-000000000046}']
+     {$ifndef Call_as}
+      Function GetTypeInfoCount:UINT; StdCall;
+     {$else}
+      Function GetTypeInfoCount(OUT pcTInfo: UINT):HResult;StdCall;
+     {$endif}
+     Function  GetTypeInfo(index: UINT; OUT ppTInfo: ITypeInfo):HResult;StdCall;
+     Function  GetTypeInfoType(index: UINT; OUT pTKind: TYPEKIND):HResult;StdCall;
+     Function  GetTypeInfoOfGuid(CONST guid: TGUID; OUT ppTinfo: ITypeInfo):HResult;StdCall;
+     {$ifndef Call_as}
+     Function  GetLibAttr(OUT ppTLibAttr: lpTLIBATTR):HResult;StdCall;
+     {$else}
+     Function  GetLibAttr(OUT ppTLibAttr: LPTLIBATTR; OUT pDummy: CLEANLOCALSTORAGE):HResult;StdCall;
+     {$endif}
+
+     Function  GetTypeComp(OUT ppTComp: ITypeComp):HResult;StdCall;
+     {$ifndef Call_as}
+     Function  GetDocumentation(index: INT; OUT pBstrName: WideString; OUT pBstrDocString: WideString; OUT pdwHelpContext: DWORD; OUT pBstrHelpFile: WideString):HResult;StdCall;
+     {$else}
+     Function  GetDocumentation(index: INT; refPtrFlags: DWORD; OUT pBstrName: WideString; OUT pBstrDocString: WideString; OUT pdwHelpContext: DWORD; OUT pBstrHelpFile: WideString):HResult;StdCall;
+     {$endif}
+
+     {$ifndef Call_as}
+     Function  IsName(szNameBuf: pOleStr; lHashVal: ULONG; OUT pfName: BOOL):HResult;StdCall;
+     {$else}
+     Function  IsName(szNameBuf: pOleStr; lHashVal: ULONG; OUT pfName: BOOL; OUT pBstrLibName: WideString):HResult;StdCall;
+     {$endif}
+     {$ifndef Call_as}
+     Function  FindName(szNameBuf: pOleStr; lHashVal: ULONG; OUT ppTInfo: ITypeInfo; OUT rgMemId: MEMBERID; VAR pcFound: USHORT):HResult;StdCall;
+     {$else}
+     Function  FindName(szNameBuf: pOleStr; lHashVal: ULONG; OUT ppTInfo: ITypeInfo; OUT rgMemId: MEMBERID; VAR pcFound: USHORT; OUT pBstrLibName: WideString):HResult;StdCall;
+     {$endif}
+     {$ifndef Call_as}
+      Procedure ReleaseTLibAttr(Const pTLibAttr : TLIBATTR); StdCall;
+      {$else}
+     Function  LocalReleaseTLibAttr:HResult;StdCall;
+     {$endif}
+     End;
+
+   ITypeLib2 = Interface (ITypeLib)
+     ['{00020411-0000-0000-C000-000000000046}']
+     Function  GetCustData(CONST guid: TGUID; OUT pVarVal: VARIANT):HResult;StdCall;
+     {$ifndef Call_as}
+     Function  GetLibStatistics(OUT pcUniqueNames: ULONG; OUT pcchUniqueNames: ULONG):HResult;StdCall;
+     {$else}
+     Function  GetLibStatistics(OUT pcUniqueNames: ULONG; OUT pcchUniqueNames: ULONG):HResult;StdCall;
+     {$endif}
+     {$ifndef Call_as}
+     Function  GetDocumentation2(index: INT; lcid: LCID; OUT pbstrHelpString: WideString; OUT pdwHelpStringContext: DWORD; OUT pbstrHelpStringDll: WideString):HResult;StdCall;
+     {$else}
+     Function  GetDocumentation2(index: INT; lcid: LCID; refPtrFlags: DWORD; OUT pbstrHelpString: WideString; OUT pdwHelpStringContext: DWORD; OUT pbstrHelpStringDll: WideString):HResult;StdCall;
+     {$endif}
+     Function  GetAllCustData(OUT pCustData: CUSTDATA):HResult;StdCall;
+     End;
+
+   ITypeChangeEvents= Interface (IUnknown)
+     ['{00020410-0000-0000-C000-000000000046}']
+     Function  RequestTypeChange(changeKind: CHANGEKIND; CONST pTInfoBefore: ITypeInfo; pStrName: pOleStr; OUT pfCancel: INT):HResult;StdCall;
+     Function  AfterTypeChange(changeKind: CHANGEKIND; CONST pTInfoAfter: ITypeInfo; pStrName: pOleStr):HResult;StdCall;
+     End;
+
+   IErrorInfo= Interface (IUnknown)
+     ['{1CF2B120-547D-101B-8E65-08002B2BD119}']
+     Function  GetGUID(OUT pGUID: TGUID):HResult;StdCall;
+     Function  GetSource(OUT pBstrSource: WideString):HResult;StdCall;
+     Function  GetDescription(OUT pBstrDescription: WideString):HResult;StdCall;
+     Function  GetHelpFile(OUT pBstrHelpFile: WideString):HResult;StdCall;
+     Function  GetHelpContext(OUT pdwHelpContext: DWORD):HResult;StdCall;
+     End;
+
+   ICreateErrorInfo= Interface (IUnknown)
+     ['{22F03340-547D-101B-8E65-08002B2BD119}']
+     Function  SetGUID(CONST rguid: TGUID):HResult;StdCall;
+     Function  SetSource(szSource: pOleStr):HResult;StdCall;
+     Function  SetDescription(szDescription: pOleStr):HResult;StdCall;
+     Function  SetHelpFile(szHelpFile: pOleStr):HResult;StdCall;
+     Function  SetHelpContext(dwHelpContext: DWORD):HResult;StdCall;
+     End;
+
+   ISupportErrorInfo= Interface (IUnknown)
+     ['{DF0B3D60-548F-101B-8E65-08002B2BD119}']
+     Function  InterfaceSupportsErrorInfo(CONST riid: TIID):HResult;StdCall;
+     End;
+
+   ITypeFactory = Interface (IUnknown)
+     ['{0000002E-0000-0000-C000-000000000046}']
+     Function  CreateFromTypeInfo(CONST pTypeInfo: ITypeInfo; CONST riid: TIID; OUT ppv: IUnknown):HResult;StdCall;
+     End;
+
+   ITypeMarshal = Interface (IUnknown)
+     ['{0000002D-0000-0000-C000-000000000046}']
+     Function  Size(pvType: Pointer; dwDestContext: DWORD; pvDestContext: Pointer; OUT pSize: ULONG):HResult;StdCall;
+     Function  Marshal(pvType: Pointer; dwDestContext: DWORD; pvDestContext: Pointer; cbBufferLength: ULONG; OUT pBuffer: BYTE; OUT pcbWritten: ULONG):HResult;StdCall;
+     Function  Unmarshal(pvType: Pointer; dwFlags: DWORD; cbBufferLength: ULONG; CONST pBuffer: BYTE; OUT pcbRead: ULONG):HResult;StdCall;
+     Function  Free(pvType: Pointer):HResult;StdCall;
+     End;
+
+   IRecordInfo = Interface(IUnknown)
+     ['{0000002F-0000-0000-C000-000000000046}']
+     Function  RecordInit(pvNew: Pointer):HResult;StdCall;
+     Function  RecordClear(pvExisting: Pointer):HResult;StdCall;
+     Function  RecordCopy(pvExisting: Pointer; pvNew: Pointer):HResult;StdCall;
+     Function  GetGuid(OUT pguid: TGUID):HResult;StdCall;
+     Function  GetName(OUT pbstrName: WideString):HResult;StdCall;
+     Function  GetSize(OUT pcbSize: ULONG):HResult;StdCall;
+     Function  GetTypeInfo(OUT ppTypeInfo: ITypeInfo):HResult;StdCall;
+     Function  GetField(pvData: Pointer; szFieldName: pOleStr; OUT pvarField: VARIANT):HResult;StdCall;
+     Function  GetFieldNoCopy(pvData: Pointer; szFieldName: pOleStr; OUT pvarField: VARIANT; OUT ppvDataCArray: Pointer):HResult;StdCall;
+     Function  PutField(wFlags: ULONG; pvData: Pointer; szFieldName: pOleStr; CONST pvarField: VARIANT):HResult;StdCall;
+     Function  PutFieldNoCopy(wFlags: ULONG; pvData: Pointer; szFieldName: pOleStr; CONST pvarField: VARIANT):HResult;StdCall;
+     Function  GetFieldNames(VAR pcNames: ULONG; OUT rgBstrNames: WideString):HResult;StdCall;
+     Function  IsMatchingType(CONST pRecordInfo : IRecordInfo):Bool;StdCall;
+     Function  RecordCreate : Pointer; StdCall;
+     Function  RecordCreateCopy(pvSource: Pointer; OUT ppvDest: Pointer):HResult;StdCall;
+     Function  RecordDestroy(pvRecord: Pointer):HResult;StdCall;
+     End;
+
+   IErrorLog = Interface (IUnknown)
+     ['{3127CA40-446E-11CE-8135-00AA004BB851}']
+     Function  AddError(pszPropName: pOleStr; CONST pExcepInfo: EXCEPINFO):HResult;StdCall;
+     End;
+
+
+   IPropertyBag = Interface (IUnknown)
+     ['{55272A00-42CB-11CE-8135-00AA004BB851}']
+     {$ifndef Call_as}
+      Function  Read(pszPropName: pOleStr; VAR pVar: VARIANT; CONST pErrorLog: IErrorLog):HResult;StdCall;
+     {$else}
+      Function  Read(pszPropName: pOleStr; OUT pVar: VARIANT; CONST pErrorLog: IErrorLog; varType: DWORD; CONST pUnkObj: IUnknown):HResult;StdCall;
+     {$endif}
+     Function  Write(pszPropName: pOleStr; CONST pVar: VARIANT):HResult;StdCall;
+     End;
+
+{$ENDIF}
+
 implementation
 end.
 
 {
   $Log$
-  Revision 1.2  2002-02-26 10:30:01  marco
+  Revision 1.3  2002-02-28 13:52:59  marco
+   * has_intf and oaidl
+
+  Revision 1.2  2002/02/26 10:30:01  marco
    * Merged objidl.idl translation. Most of wtypes.idl also included. Size slightly 	increased.
 
   Revision 1.1  2001/08/19 21:02:02  florian
