@@ -14,15 +14,16 @@ type bla=class
 procedure bla.themethod;
         var i : longint;
         begin
-         i:=10;
+         i:=12;
          flastresponse:=copy(freceivebuffer,1,I-1);
-         writeln('point 1');
+         writeln('point 1: ',flastresponse);
         end;
 
 var x : bla;
 
 begin
   x:=bla.create;
+  x.freceivebuffer:='test string is wrong!';
   x.themethod;
   writeln('point 2');
 end.
