@@ -90,6 +90,8 @@ interface
           function  GetLast:TLinkedListItem;
           { inserts another List at the begin and make this List empty }
           procedure insertList(p : TLinkedList);
+          { inserts another List after the provided item and make this List empty }
+          procedure insertListAfter(Item:TLinkedListItem;p : TLinkedList);
           { concats another List at the end and make this List empty }
           procedure concatList(p : TLinkedList);
           { concats another List at the start and makes a copy
@@ -598,6 +600,33 @@ end;
          FFirst:=p.FFirst;
          if (FLast=nil) then
            Flast:=p.Flast;
+         { p becomes empty }
+         p.FFirst:=nil;
+         p.Flast:=nil;
+      end;
+
+
+    procedure TLinkedList.insertListAfter(Item:TLinkedListItem;p : TLinkedList);
+      begin
+         { empty List ? }
+         if (p.FFirst=nil) then
+           exit;
+         if (Item=nil) then
+           begin
+             { Insert at begin }
+             InsertList(p);
+             exit;
+           end
+         else
+           begin
+             p.FFirst.Previous:=Item;
+             p.FLast.Next:=Item.Next;
+             if assigned(Item.Next) then
+               Item.Next.Previous:=p.FLast
+             else
+               FLast:=p.FLast;
+             Item.Next:=p.FFirst;
+           end;
          { p becomes empty }
          p.FFirst:=nil;
          p.Flast:=nil;
@@ -1837,7 +1866,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.22  2002-12-15 19:34:31  florian
+  Revision 1.23  2003-06-09 12:19:34  peter
+    * insertlistafter added
+
+  Revision 1.22  2002/12/15 19:34:31  florian
     + some front end stuff for vs_hidden added
 
   Revision 1.21  2002/11/24 18:18:39  carl
