@@ -57,11 +57,13 @@ implementation
         opsize    : topsize;
         hregister : tregister;
       begin
+        { insert range check if not explicit conversion }
+        if not(pto^.explizit) then
+          emitrangecheck(pfrom,pto^.resulttype);
+
         { is the result size smaller ? }
         if pto^.resulttype^.size<pfrom^.resulttype^.size then
           begin
-            { insert range check if necessary }
-            emitrangecheck(pfrom,pto^.resulttype);
             { only need to set the new size of a register }
             if (pfrom^.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
              begin
@@ -76,8 +78,6 @@ implementation
         { is the result size bigger ? }
         else if pto^.resulttype^.size>pfrom^.resulttype^.size then
           begin
-            { insert range check if necessary }
-            emitrangecheck(pfrom,pto^.resulttype);
             { remove reference }
             if not(pfrom^.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
               begin
@@ -123,13 +123,6 @@ implementation
             else
               exprasmlist^.concat(new(pai386,op_ref_reg(op,opsize,
                 newreference(pfrom^.location.reference),pto^.location.register)));
-          end
-
-        { the result size is equal }
-        else
-          begin
-            { insert range check if necessary }
-            emitrangecheck(pfrom,pto^.resulttype);
           end;
       end;
 
@@ -1473,7 +1466,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  1998-11-30 09:43:02  pierre
+  Revision 1.41  1998-11-30 19:48:54  peter
+    * some more rangecheck fixes
+
+  Revision 1.40  1998/11/30 09:43:02  pierre
     * some range check bugs fixed (still not working !)
     + added DLL writing support for win32 (also accepts variables)
     + TempAnsi for code that could be used for Temporary ansi strings
