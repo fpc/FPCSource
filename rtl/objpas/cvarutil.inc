@@ -117,11 +117,7 @@ begin
       VarDouble  : Result:=Round(VDouble);
       VarCurrency: Result:=Round(VCurrency);
       VarDate    : Result:=Round(VDate);
-      VarOleStr  : begin
-                   Writeln('In VariantToLongint : "',Pchar(Pointer(vOleStr)),'"');
-                   Result:=StrToInt(WideCharToString(vOleStr));
-                   Writeln('Uit VariantToLongint');
-                   end;
+      VarOleStr  : Result:=StrToInt(WideCharToString(vOleStr));
       VarBoolean : Result:=Longint(VBoolean);
       VarByte    : Result:=VByte;
       VarWord    : Result:=VWord;
@@ -551,7 +547,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2003-11-04 22:27:43  michael
+  Revision 1.9  2003-11-04 22:53:55  michael
+  + Removed debug statements
+
+  Revision 1.8  2003/11/04 22:27:43  michael
   + Some fixes for string support
 
   Revision 1.7  2002/09/07 16:01:22  peter
