@@ -1,0 +1,7 @@
+These example were contributed by thomas schatzl.
+
+From each example there are 2 files, one with an extension .pas, and
+one with extension .pp. The .pas files are the original files. The .pp files
+have been stripped of comments to save some space and have been modified to
+fit more or less on a printed page.
+

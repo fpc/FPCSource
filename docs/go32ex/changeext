@@ -1,0 +1,12 @@
+#!/bin/csh
+set fromext = $1
+set toext = $2
+shift
+shift
+foreach f ( $* )
+ set fromname = `basename $f $fromext`$fromext
+ if ( $f == $fromname ) then
+   set toname = `basename $f $fromext`$toext
+   mv $f $toname
+ endif
+end

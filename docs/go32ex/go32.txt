@@ -1,0 +1,1361 @@
+The GO32 unit.
+
+This chapter of the documentation describe the GO32 unit for the Free Pascal compiler under DOS.
+
+This unit was first written for DOS by Florian Klämpfl.
+
+This chapter is divided in three sections.
+The first section is an introduction to the GO32 unit. The second section lists the pre-defined constants, types and variables.
+The third section describes the functions which appear in the interface part of the GO32 unit.
+
+A lot of function descriptions were made by Thomas Schatzl, for which my thanks.
+
+Introduction
+
+These docs contain information about the GO32 unit. Only the GO32V2 DPMI mode is discussed by me here due to the fact that new applications shouldn't be created with the older GO32V1 model. The former is much more advanced and better.
+Additionally a lot of functions only work in DPMI mode anyway.
+
+I hope the following explanations and introductions aren't too confusing at all. If you notice an error or bug send it to the FPC mailing list or directly to me.
+
+So let's get started and happy and error free coding I wish you....
+
+                                Thomas Schatzl, 25. August 1998
+
+
+Protected mode memory organization
+
+What is DPMI
+
+The DOS Protected Mode Interface helps you with various aspects of protected mode programming. These are roughly divided into descriptor handling, access to DOS memory, management of interrupts and exceptions, calls to real mode functions and other stuff. Additionally it automatically provides swapping to disk for memory intensive applications.
+
+A DPMI host (either a Windows DOS box or CWSDPMI.EXE) provides these functions for your programs.
+
+Selectors and descriptors
+
+Descriptors are a bit like real mode segments; they describe (as the name implies) a memory area in protected mode. A descriptor contains information about segment length, its base address and the attributes of it (i.e. type, access rights, ...).
+
+These descriptors are stored internally in a so-called descriptor table, which is basically an array of such descriptors.
+
+Selectors are roughly an index into this table.
+
+Because these 'segments' can be up to 4 GB in size, 32 bits aren't sufficient anymore to describe a single memory location like in real mode. 48 bits are now needed to do this, a 32 bit address and a 16 bit sized selector. The GO32 unit provides the tseginfo record to store such a pointer.
+
+But due to the fact that most of the time data is stored and accessed in the %ds selector, FPC assumes that all pointers point to a memory location of this selector. So a single pointer is still only 32 bits in size. This value represents the offset from the data segment base address to this memory location.
+
+FPC specialities (some collected tips and hints)
+
+The %ds and %es selector MUST always contain the same value or some system routines may crash when called.
+The %fs selector is preloaded with the DOSMEMSELECTOR variable at startup, and it MUST be restored after use, because again FPC relys on this for some functions.
+Luckily we asm programmers can still use the %gs selector for our own purposes, but for how long ?
+
+See also:
+tseginfo, dosmemselector, DOS memory access, get_cs(), get_ds(), get_ss()
+allocate_ldt_descriptors(), free_ldt_descriptors(), segment_to_descriptor()
+get_next_selector_increment_value(), get_segment_base_address(),
+set_segment_base_address(), set_segment_limit(),
+create_code_segment_alias_descriptor()
+
+DOS memory access
+
+
+DOS memory is accessed by the predefined DOSmemselector selector; the GO32 unit additionally provides some functions to help you with standard tasks, like copying memory from heap to DOS memory and the likes.
+Because of this it is strongly recommened to use them, but you are still free to use the provided standard memory accessing functions which use 48 bit pointers.
+The third, but only thought for compatibility purposes, is using the mem[]-arrays. These arrays map the whole 1 Mb DOS space. They shouldn't be used within new programs.
+
+To convert a segment:offset real mode address to a protected mode linear address you have to multiply the segment by 16 and add its offset. This linear address can be used in combination with the DOSMEMSELECTOR variable.
+
+See also:
+Selectors and descriptors, dosmemselector, dosmemget(), dosmemput(), dosmemmove(), dosmemfillchar(), dosmemfillword(), mem[]-arrays(), seg_move(), seg_fillchar(), seg_fillword()
+
+I/O port access
+
+The I/O port access is done via the various inport() and outport() functions which are available.
+Additionally Free Pascal supports the Turbo Pascal PORT[]-arrays but it is by no means recommened to use them, because they're only for compatibility purposes.
+
+See also:
+outport*(), inport*(), PORT[]-arrays
+
+Processor access
+
+These are some functions to access various segment registers (%cs, %ds, %ss) which makes your work a bit easier.
+
+See also:
+Selectors and descriptors, get_cs(), get_ds(), get_ss()
+
+Interrupt redirection
+
+Interrupts are program interruption requests, which in one or another way get to the processor; there's a distinction between software and hardware interrupts. The former are explicitely called by an 'int' instruction and are a bit comparable to normal functions. Hardware interrupts come from external devices like the keyboard or mouse. These functions are called handlers.
+
+Handling interrupts with DPMI
+
+The interrupt functions are real-mode procedures; they normally can't be called in protected mode without the risk of an protection fault. So the DPMI host creates an interrupt descriptor table for the application. Initially all software interrupts (except for int 31h, 2Fh and 21h function 4Ch) or external hardware interrupts are simply directed to a handler that reflects the interrupt in real-mode, i.e. the DPMI host's default handlers switch the CPU to real-mode, issue the interrupt and switch back to protected mode. The contents of general registers and flags are passed to the real mode handler and the modified registers and flags are returned to the protected mode handler. Segment registers and stack pointer are not passed between modes.
+
+Protected mode interrupts vs. Real mode interrupts
+
+As mentioned before, there's a distinction between real mode interrupts and protected mode interrupts; the latter are protected mode programs, while the former must be real mode programs.
+To call a protected mode interrupt handler, an assembly 'int' call must be issued, while the other is called via the realintr() or intr() function.
+Consequently, a real mode interrupt then must either reside in DOS memory (<1MB) or the application must allocate a real mode callback address via the get_rm_callback() function.
+
+Creating own interrupt handlers
+
+Interrupt redirection with FPC pascal is done via the set_pm_interrupt() for protected mode interrupts or via the set_rm_interrupt() for real mode
+interrupts.
+
+Disabling interrupts
+
+The GO32 unit provides the two procedures disable() and enable() to disable and enable all interrupts.
+
+Hardware interrupts
+
+Hardware interrupts are generated by hardware devices when something unusual happens; this could be a keypress or a mouse move or any other action. This is done to minimize CPU time, else the CPU would have to check all installed hardware for data in a big loop (this method is called 'polling') and this would take much time.
+
+A standard IBM-PC has two interrupt controllers, that are responsible for these hardware interrupts: both allow up to 8 different interrupt sources (IRQs, interrupt requests). The second controller is connected to the first through IRQ 2 for compatibility reasons, e.g. if controller 1 gets an IRQ 2, he hands the IRQ over to controller 2.
+Because of this up to 15 different hardware interrupt sources can be handled.
+
+IRQ 0 through IRQ 7 are mapped to interrupts 8h to Fh and the second controller (IRQ 8 to 15) is mapped to interrupt 70h to 77h.
+
+All of the code and data touched by these handlers MUST be locked (via the various locking functions) to avoid page faults at interrupt time. Because hardware interrupts are called (as in real mode) with interrupts disabled, the handler has to enable them before it returns to normal program execution.
+Additionally a hardware interrupt must send an EOI (end of interrupt) command to the responsible controller; this is acomplished by sending the value 20h to port 20h (for the first controller) or A0h (for the second controller).
+
+Software interrupts
+
+Ordinarily, a handler installed with set_pm_interrupt only services software interrupts that are executed in protected mode; real mode software interrupts can be redirected by set_rm_interrupt.
+
+See also
+set_rm_interrupt(), get_rm_interrupt(), set_pm_interrupt(), get_pm_interrupt(), lock_data(), lock_code(), enable(), disable(), outport*()
+
+Real mode callbacks
+
+The callback mechanism can be thought of as the converse of calling a real mode procedure (i.e. interrupt), which allows your program to pass information to a real mode program, or obtain services from it in a manner that's transparent to the real mode program.
+
+In order to make a real mode callback available, you must first get the real mode callback address of your procedure and the selector and offset of a register data structure. This real mode callback address (this is a segment:offset address) can be passed to a real mode program via a software interrupt, a DOS memory block or any other convenient mechanism.
+
+When the real mode program calls the callback (via a far call), the DPMI host saves the registers contents in the supplied register data structure, switches into protected mode, and enters the callback routine with the following conditions:
+
+* interrupts disabled
+* %CS:%EIP = 48 bit pointer specified in the original call to get_rm_callback()
+* %DS:%ESI = 48 bit pointer to to real mode SS:SP
+* %ES:%EDI = 48 bit pointer of real mode register data structure
+* %SS:%ESP = locked protected mode stack
+* All other registers undefined
+
+The callback procedure can then extract its parameters from the real mode register data structure and/or copy parameters from the real mode stack to the protected mode stack. Recall that the segment register fields of the real mode register data structure contain segment or paragraph addresses that are not valid in protected mode. Far pointers passed in the real mode register data structure must be translated to virtual addresses before they can be used with a protected mode program.
+
+The callback procedure exits by executing an IRET with the address of the real mode register data structure in %ES:%EDI, passing information back to the real mode caller by modifying the contents of the real mode register data structure and/or manipulating the contents of the real mode stack. The callback procedure is responsible for setting the proper address for resumption of real mode execution into the real mode register data structure; typically, this is accomplished by extracting the return address from the real mode stack and placing it into the %CS:%EIP fields of the real mode register data structure. After the IRET, the DPMI host switches the CPU back into real mode, loads ALL registers with the contents of the real mode register data structure, and finally returns control to the real mode program.
+
+All variables and code touched by the callback procedure MUST be locked to prevent page faults.
+
+See also:
+Segment and descriptors, tseginfo, trealregs, get_rm_callback(), free_rm_callback(), lock_code(), lock_data()
+
+Types, Variables and Constants
+
+Constants
+
+Constants returned by get_run_mode()
+
+Tells you under what memory environment (e.g. memory manager) the program currently runs.
+
+rm_unknown = 0; { unknown }
+rm_raw     = 1; { raw (without HIMEM) }
+rm_xms     = 2; { XMS (for example with HIMEM, without EMM386) }
+rm_vcpi    = 3; { VCPI (for example HIMEM and EMM386) }
+rm_dpmi    = 4; { DPMI (for example DOS box or 386Max) }
+
+Note: GO32V2 _always_ creates DPMI programs, so you need a suitable DPMI host like CWSDPMI.EXE or a Windows DOS box. So you don't need to check it, these constants are only useful in GO32V1 mode.
+
+Processor flags constants
+
+They are provided for a simple check with the flags identifier in the trealregs type. To check a single flag, simply do an AND operation with the flag you want to check. It's set if the result is the same as the flag value.
+
+const
+	carryflag     = $001;
+	parityflag    = $004;
+	auxcarryflag  = $010;
+	zeroflag      = $040;
+	signflag      = $080;
+	trapflag      = $100;
+	interruptflag = $200;
+	directionflag = $400;
+	overflowflag  = $800;
+
+Predefined types
+
+type
+   tmeminfo = record
+            available_memory : Longint;
+            available_pages : Longint;
+            available_lockable_pages : Longint;
+            linear_space : Longint;
+            unlocked_pages : Longint;
+            available_physical_pages : Longint;
+            total_physical_pages : Longint;
+            free_linear_space : Longint;
+            max_pages_in_paging_file : Longint;
+            reserved : array[0..2] of Longint;
+   end;
+
+Holds information about the memory allocation, etc.
+
+Record entry		     Description
+available_memory         Largest available free block in bytes
+available_pages			 Maximum unlocked page allocation in pages
+available_lockable_pages Maximum locked page allocation in pages
+linear_space			 Linear address space size in pages
+unlocked_pages			 Total number of unlocked pages
+available_physical_pages Total number of free pages
+total_physical_pages     Total number of physical pages
+free_linear_space        Free linear address space in pages
+max_pages_in_paging_file Size of paging file/partition in pages
+
+NOTE: The value of a field is -1 (0ffffffffh) if the value is unknown, it's only guaranteed, that available_memory contains a valid value.
+
+The size of the pages can be determined by the get_page_size() function.
+
+type
+    trealregs = record
+              case Integer of
+                   1: { 32-bit } (EDI, ESI, EBP, Res, EBX, EDX, ECX, EAX: Longint;
+                                  Flags, ES, DS, FS, GS, IP, CS, SP, SS: Word);
+                   2: { 16-bit } (DI, DI2, SI, SI2, BP, BP2, R1, R2: Word;
+                                  BX, BX2, DX, DX2, CX, CX2, AX, AX2: Word);
+                   3: { 8-bit }  (stuff: array[1..4] of Longint;
+                                  BL, BH, BL2, BH2, DL, DH, DL2, DH2,
+                                  CL, CH, CL2, CH2, AL, AH, AL2, AH2: Byte);
+                   4: { Compat } (RealEDI, RealESI, RealEBP, RealRES,
+                                  RealEBX, RealEDX, RealECX, RealEAX: Longint;
+                                  RealFlags,
+                                  RealES, RealDS, RealFS, RealGS,
+                                  RealIP, RealCS, RealSP, RealSS: Word);
+    end;
+
+    registers = trealregs;
+
+These two types contain the data structure to pass register values to a interrupt handler or real mode callback.
+
+type
+    tseginfo = record
+             offset : Pointer;
+             segment : Word;
+    end;
+
+This record is used to store a full 48-bit pointer. This may be either a protected mode selector:offset address or in real mode a segment:offset address, depending on application.
+
+See also:
+Selectors and descriptors, DOS memory access, Interrupt redirection
+
+Variables.
+
+var
+   dosmemselector : Word;
+
+Selector to the DOS memory. The whole DOS memory is automatically mapped to this single descriptor at startup. This selector is the recommened way to access DOS memory.
+
+var
+	int31error : Word;
+
+This variable holds the result of a DPMI interrupt call. Any nonzero value must be treated as a critical failure.
+
+Functions and Procedures
+
+Descriptor handling
+
+function allocate_ldt_descriptors (count : Word) : Word;
+
+Allocates a number of new descriptors.
+
+Parameters:
+count - specifies the number of requested unique descriptors
+
+Return value:
+Base selector
+
+Notes:
+The descriptors allocated must be initialized by the application with other function calls. This function returns descriptors with a limit and size value set to zero.
+If more than one descriptor was requested, the function returns a base selector referencing the first of a contiguous array of descriptors. The selector values for subsequent descriptors in the array can be calculated by adding the value returned by the get_next_selector_increment_value() function.
+
+Errors:
+Check int31error variable
+
+Example:
+(* not my job *)
+
+See also:
+Selectors and descriptors, int31error, free_ldt_descriptors(), get_next_selector_increment_value(), segment_to_descriptor(), create_code_segment_alias_descriptor(), set_segment_limit(), set_segment_base_address()
+
+function free_ldt_descriptor (des : Word) : boolean;
+
+Frees a previously allocated descriptor.
+
+Parameters:
+des - The descriptor to be freed
+
+Return value:
+True if successful, false otherwise
+
+Notes:
+After this call this selector is invalid and must not be used for any memory operations anymore. Each descriptor allocated with allocate_ltd_descriptor() must be freed individually with this function, even if it was previously allocated as a part of a contiguous array of descriptors.
+
+Errors:
+Check int31error variable
+
+Example:
+(* not my job *)
+
+See also:
+Selectors and descriptors, int31error, allocate_ldt_descriptors(), get_next_selector_increment_value()
+
+function segment_to_descriptor (seg : Word) : Word;
+
+Maps a real mode segment (paragraph) address onto an descriptor that can be used by a protected mode program to access the same memory.
+
+Parameters:
+seg - the real mode segment you want the descriptor to
+
+Return values:
+Descriptor to real mode segment address.
+
+Notes:
+The returned descriptors limit will be set to 64 kB. Multiple calls to this function with the same segment address will return the same selector.
+Descriptors created by this function can never be modified or freed. Programs which need to examine various real mode addresses using the same selector should use the function allocate_ldt_descriptors() and change the base address as necessary.
+
+Errors:
+Check int31error variable.
+
+Example:
+(* not my job *)
+
+See also:
+Selectors and descriptors, allocate_ldt_descriptors(), free_ldt_descriptor(), set_segment_base_address()
+
+function get_next_selector_increment_value : Word;
+
+Returns the selector increment value when allocating multiple subsequent descriptors via allocate_ldt_descriptors().
+
+Parameters:
+none
+
+Return value:
+Selector increment value
+
+Notes:
+Because allocate_ldt_descriptors() only returns the selector for the first descriptor and so the value returned by this function can be used to calculate the selectors for subsequent descriptors in the array.
+
+Errors:
+Check int31error variable
+
+Example:
+(* not my job *)
+
+See also:
+Selectors and descriptors, int31error, allocate_ldt_descriptors(), free_ldt_descriptor()
+
+function get_segment_base_address (d : Word) : Longint;
+
+Returns the 32-bit linear base address from the descriptor table for the specified segment.
+
+Parameters:
+d - selector of the descriptor you want the base address
+
+Return values:
+Linear base address of specified descriptor
+
+Errors:
+Check int31error variable.
+
+Example:
+(* not my job *)
+
+See also:
+Selectors and descriptors, int31error, allocate_ldt_descriptors(), set_segment_base_address(), allocate_ldt_descriptors(), set_segment_limit(), get_segment_limit()
+
+function set_segment_base_address (d : Word; s : Longint) : boolean;
+
+Sets the 32-bit linear base address of a descriptor.
+
+Parameters:
+d - selector
+s - new base address of the descriptor
+
+Notes:
+none
+
+Errors:
+Check int31error variable
+
+Example:
+(* not my job *)
+
+See also:
+Selectors and descriptors, int31error, allocate_ldt_descriptors(), get_segment_base_address(), allocate_ldt_descriptors(), set_segment_limit(), get_segment_base_address(), get_segment_limit()
+
+function get_segment_limit (d : Word) : Longint;
+
+Returns a descriptors segment limit
+
+Parameters
+d - selector
+
+Return value:
+Limit of the descriptor in bytes
+
+Notes:
+none
+
+Errors:
+Returns zero if descriptor is invalid
+
+Example:
+(* not my job *)
+
+See also:
+Selectors and descriptors, allocate_ldt_descriptors(), set_segment_limit(), set_segment_base_address(), get_segment_base_address()
+
+
+function set_segment_limit (d : Word; s : Longint) : boolean;
+
+Sets the limit of a descriptor.
+
+Parameters:
+d - selector
+s - new limit of the descriptor
+
+Return values:
+Returns true if successful, else false.
+
+Notes:
+The new limit specified must be the byte length of the segment - 1. Segment limits bigger than or equal to 1MB must be page aligned, they must have the lower 12 bits set.
+
+Errors:
+Check int31error variable
+
+Example:
+(* not my job *)
+
+See also:
+Selectors and descriptors, int31error, allocate_ldt_descriptors(), set_segment_base_address(), get_segment_limit(), set_segment_limit()
+
+function set_descriptor_access_right (d : Word; w : Word) : Longint;
+
+Sets the access rights of a descriptor
+
+Parameters:
+d - selector
+w - new descriptor access rights
+
+Return values:
+?? (* this is a bug. This function doesn't return anything useful *)
+
+Notes:
+none
+
+Errors:
+Check int31error variable
+
+See also:
+Selectors and descriptors, int31error, get_descriptor_access_rights()
+
+function get_descriptor_access_right (d : Word) : Longint;
+
+Gets the access rights of a descriptor
+
+Parameters:
+d - selector to descriptor
+
+Return value:
+Access rights bit field
+
+Errors:
+Check int31error variable
+
+Example:
+(* not my job *)
+
+See also:
+Selectors and descriptors, int31error, set_descriptor_access_rights()
+
+
+function create_code_segment_alias_descriptor (seg : Word) : Word;
+
+Creates a new descriptor that has the same base and limit as the specified descriptor.
+
+Parameters:
+seg - selector
+
+Return values:
+Data selector (alias)
+
+Notes:
+In effect, the function returns a copy of the descriptor. The descriptor alias returned by this function will not track changes to the original descriptor. In other words, if an alias is created with this function, and the base or limit of the original segment is then changed, the two descriptors will no longer map the same memory.
+
+Errors:
+Check int31error variable
+
+Example:
+(* not my job *)
+
+See also:
+Selectors and descriptors, int31error, allocate_ldt_descriptors(), set_segment_limit(), set_segment_base_address()
+
+Extended memory management services
+
+function get_meminfo (var meminfo : tmeminfo) : boolean;
+
+Returns information about the amount of available physical memory, linear address space, and disk space for page swapping.
+
+Parameters:
+meminfo - buffer to fill memory information into
+
+Return values:
+Due to an implementation bug this function always returns false, but it always succeeds.
+
+Notes:
+Only the first field of the returned structure is guaranteed to contain a valid value. Any fields that are not supported by the DPMI host will be set by the host to -1 (0FFFFFFFFH) to indicate that the information is not available. The size of the pages used by the DPMI host can be obtained with the get_page_size() function.
+
+Errors:
+Check the int31error variable
+
+Example:
+(* not my job *)
+
+See also:
+int31error, tmeminfo, get_page_size()
+
+
+function allocate_memory_block (size:Longint):Longint;
+
+Allocates a block of linear memory.
+
+Parameters:
+size - Size of requested linear memory block in bytes
+
+Returned values:
+?? blockhandle - the memory handle to this memory block
+Linear address of the requested memory.
+
+Notes:
+WARNING: According to my DPMI docs this function is not implemented correctly. Normally you should also get a blockhandle to this block after successful operation. This handle is used to free the memory block afterwards or use this handle for other purposes. So this block can't be deallocated and is henceforth unusuable !
+
+This function doesn't allocate any descriptors for this block, it's the applications resposibility to allocate and initialize for accessing this memory.
+
+Errors:
+Check int31error variable
+
+Example:
+(* not my job *)
+
+See also:
+free_memory_block()
+
+function free_memory_block (blockhandle : Longint) : boolean;
+
+Frees a previously allocated memory block
+
+Parameters:
+blockhandle - the handle to the memory area to free
+
+Return value:
+True if successful, false otherwise.
+
+Notes:
+Frees memory that was previously allocated with allocate_memory_block(). This function doesn't free any descriptors mapped to this block, it's the application's responsibility.
+
+Errors:
+Check int31error variable
+
+Example:
+(* not my job *)
+
+See also:
+allocate_memory_block()
+
+function request_linear_region (linearaddr, size : Longint; var blockhandle : Longint) : boolean;
+
+!!!!!! DOESN'T WORK AT ALL, AND WON'T IN THE FUTURE BECAUSE IT IS A DPMI 1.0 FUNCTION !!!!!!! (a good reason to skip this description)
+
+function map_device_in_memory_block (handle, offset, pagecount, device : Longint) : boolean;
+
+!!!!!! DOESN'T WORK AT ALL, AND WON'T IN THE FUTURE BECAUSE IT IS A DPMI 1.0 FUNCTION !!!!!!! (a good reason to skip this description)
+
+
+function get_linear_addr (phys_addr : Longint; size : Longint) : Longint;
+
+Converts a physical address into a linear address.
+
+Parameters:
+phys_addr - physical address of device
+size - size of region to map in bytes
+
+Return value:
+Linear address that can be used to access the physical memory.
+
+Notes:
+It's the applications resposibility to allocate and set up a descriptor for access to the memory. This function shouldn't be used to map real mode addresses.
+
+Errors:
+Check int31error variable.
+
+Example:
+
+See also:
+Selectors and descriptors, DOS memory access, int31error, allocate_ldt_descriptors(), set_segment_limit(), set_segment_base_address()
+
+
+DOS memory management
+
+function global_dos_alloc (bytes : Longint) : Longint;
+
+Allocates a block of DOS real mode memory
+
+Parameters:
+bytes - size of requested real mode memory
+
+Return values:
+The high word of the returned value contains the selector to the allocated DOS memory block, the low word the corresponding real mode segment value. The offset value is always zero.
+
+Notes:
+
+This function allocates memory from DOS memory pool, i.e. memory below the 1 MB boundary that is controlled by DOS. Such memory blocks are typically used to exchange data with real mode programs, TSRs, or device drivers.
+The function returns both the real mode segment base address of the block and one descriptor that can be used by protected mode applications to access the block.
+This function should only used for temporary buffers to get real mode information (e.g. interrupts that need a data structure in ES:(E)DI), because every single block needs an unique selector.
+The returned selector should only be freed by a global_dos_free() call.
+
+Errors:
+Check int31error variable
+
+Example:
+(* not my job *)
+
+See also:
+Selectors and descriptors, DOS memory access, int31error, global_dos_free()
+
+function global_dos_free (selector : Word) : boolean;
+
+Frees a previously allocated DOS memory block
+
+Parameters:
+selector - selector to the DOS memory block
+
+Return value:
+True if successful, false otherwise
+
+Notes:
+The descriptor allocated for the memory block is automatically freed and hence invalid for further use. This function should only be used for memory allocated by global_dos_alloc().
+
+Errors:
+Check int31error variable
+
+Example:
+(* not my job *)
+
+See also:
+Selectors and descriptors, DOS memory access, int31error, global_dos_alloc()
+
+procedure dosmemput (seg : Word; ofs : Word; var data; count : Longint);
+
+Copies heap data to DOS real mode memory.
+
+Parameters:
+seg - destination real mode segment
+ofs - destination real mode offset
+data - source
+count - number of bytes to copy
+
+Return value:
+none
+
+Notes:
+No range checking is performed.
+
+Errors:
+none
+
+Example:
+(* not my job *)
+
+See also:
+DOS memory access, dosmemget(), dosmemmove(), dosmemfillchar(), dosmemfillword(), seg_move(), seg_fillchar(), seg_fillword()
+
+procedure dosmemget (seg : Word; ofs : Word; var data; count : Longint);
+
+Copies data from the DOS memory onto the heap.
+
+Parameters:
+seg - source real mode segment
+ofs - source real mode offset
+data - destination
+count - number of bytes to copy
+
+Notes:
+No range checking is performed.
+
+Errors:
+none
+
+Example:
+(* not my job *)
+
+See also:
+DOS memory access, dosmemput(), dosmemmove(), dosmemfillchar(), dosmemfillword(), seg_move(), seg_fillchar(), seg_fillword()
+
+procedure dosmemmove (sseg, sofs, dseg, dofs : Word; count : Longint);
+
+Copies count bytes of data between two DOS real mode memory locations.
+
+Parameters:
+sseg - source real mode segment
+sofs - source real mode offset
+dseg - destination real mode segment
+dofs - destination real mode offset
+count - number of bytes to copy
+
+Return values:
+none
+
+Notes:
+No range check is performed in any way.
+
+Errors:
+none
+
+Example:
+(* not my job *)
+
+See also:
+Selectors and descriptors, DOS memory access, dosmemput(), dosmemget(), dosmemfillchar(), dosmemfillword(), seg_move(), seg_fillchar(), seg_fillword()
+
+procedure dosmemfillchar (seg, ofs : Word; count : Longint; c : char);
+
+Sets a region of DOS memory to a specific byte value
+
+Parameters:
+seg - real mode segment
+ofs - real mode offset
+count - number of bytes to set
+c - value to set memory to
+
+Return values:
+none
+
+Notes:
+No range check is performed.
+
+Errors:
+none
+
+Example:
+(* not my job *)
+
+See also:
+Selectors and descriptors, DOS memory access, dosmemput(), dosmemget(), dosmemmove(), dosmemfillword(), seg_move(), seg_fillchar(), seg_fillword()
+
+procedure dosmemfillword(seg, ofs : Word; count : Longint; w : Word);
+
+Sets a region of DOS memory to a specific word value
+
+Parameters:
+seg - real mode segment
+ofs - real mode offset
+count - number of words to set
+w - value to set memory to
+
+Return values:
+none
+
+Notes:
+No range check is performed.
+
+Errors:
+none
+
+Example:
+(* not my job *)
+
+See also:
+Selectors and descriptors, DOS memory access, dosmemput(), dosmemget(), dosmemmove(), dosmemfillchar(), seg_move(), seg_fillchar(), seg_fillword()
+
+
+Interrupt management services
+
+
+function get_rm_interrupt (vector : byte; var intaddr : tseginfo) : boolean;
+
+Returns the contents of the current machine's real mode interrupt vector for the specified interrupt.
+
+Parameters:
+vector - interrupt vector number
+intaddr - buffer to store real mode segment:offset address
+
+Return values:
+True if successful, false otherwise
+
+Notes:
+The returned address is a real mode segment address, which isn't valid in protected mode.
+
+Errors:
+Check int31error variable
+
+Example:
+(* not my job *)
+
+See also:
+Interrupt redirection, int31error, set_rm_interrupt(), set_pm_interrupt(), get_pm_interrupt()
+
+function set_rm_interrupt (vector : byte; const intaddr : tseginfo) : boolean;
+
+Sets a real mode interrupt handler
+
+Parameters:
+vector - the interrupt vector number to set
+intaddr - address of new interrupt vector
+
+Return values:
+True if successful, otherwise false.
+
+Notes:
+The address supplied MUST be a real mode segment address, not a selector:offset address. So the interrupt handler must either reside in DOS memory (below 1 Mb boundary) or the application must allocate a real mode callback address with get_rm_callback().
+
+Errors:
+Check int31error variable
+
+Example:
+(* not my job *)
+
+See also:
+Interrupt redirection, int31error, get_rm_interrupt(), set_pm_interrupt(), get_pm_interrupt(), get_rm_callback()
+
+function get_pm_interrupt (vector : byte; var intaddr : tseginfo) : boolean;
+
+Returns the address of a current protected mode interrupt handler
+
+Parameters:
+vector - interrupt handler number you want the address to
+intaddr - buffer to store address
+
+Return values:
+True if successful, false if not.
+
+Notes:
+The returned address is a protected mode selector:offset address.
+
+Errors:
+Check int31error variable
+
+Example:
+(* not my job *)
+
+See also:
+Interrupt redirection, int31error, set_pm_interrupt(), set_rm_interrupt(), get_rm_interrupt()
+
+function set_pm_interrupt (vector : byte; const intaddr : tseginfo) : boolean;
+
+Sets the address of the protected mode handler for an interrupt
+
+Parameters:
+vector - number of protected mode interrupt to set
+intaddr - selector:offset address to the interrupt vector
+
+Return values:
+True if successful, false otherwise.
+
+Notes:
+The address supplied must be a valid selector:offset protected mode address.
+
+Errors:
+Check int31error variable
+
+Example:
+(* not my job *)
+
+See also:
+Interrupt redirection, int31error, get_pm_interrupt(), set_rm_interrupt(), get_rm_interrupt()
+
+procedure disable;
+
+Disables all hardware interrupts by execution a CLI instruction.
+
+Parameters:
+none
+
+Return values:
+none
+
+Errors:
+none
+
+Example:
+(* not my job *)
+
+See also:
+Interrupt redirection, enable()
+
+procedure enable;
+
+Enables all hardware interrupts by executing a STI instruction.
+
+Parameters:
+none
+
+Return values:
+none
+
+Errors:
+none
+
+Example:
+(* not my job *)
+
+See also:
+Interrupt redirection, disable()
+
+
+
+Translation services
+
+
+function realintr(intnr : Word; var regs : trealregs) : boolean;
+
+Simulates an interrupt in real mode
+
+Parameters:
+intnr - interrupt number to issue in real mode
+regs - registers data structure
+
+Return values:
+The supplied registers data structure contains the values that were returned by the real mode interrupt.
+True if successful, false if not.
+
+Notes:
+The function transfers control to the address specified by the real mode interrupt vector of intnr. The real mode handler must return by executing an IRET.
+
+Errors:
+Check int31error variable
+
+Example:
+(* not my job *)
+
+See also:
+Interrupts, trealregs
+
+function get_rm_callback (pm_func : pointer; const reg : trealregs; var rmcb : tseginfo) : boolean;
+
+Returns a unique real mode segment:offset address, known as a "real mode callback," that will transfer control from real mode to a protected mode procedure.
+
+Parameters:
+pm_func - pointer to the protected mode callback function
+reg - supplied registers structure
+rmcb - buffer to real mode address of callback function
+
+Return values:
+True if successful, otherwise false.
+
+Notes:
+Callback addresses obtained with this function can be passed by a protected mode program for example to an interrupt handler, device driver, or TSR, so that the real mode program can call procedures within the
+protected mode program or notify the protected mode program of an event.
+The contents of the supplied regs structure is not valid after function call, but only at the time of the actual callback.
+
+Errors:
+Check int31error variable
+
+Example:
+(* not my job *)
+
+See also:
+Callbacks, int31error, free_rm_callback()
+
+
+function free_rm_callback (var intaddr : tseginfo) : boolean;
+
+Releases a real mode callback address that was previously allocated with the get_rm_callback() function.
+
+Parameters:
+intaddr - real mode address buffer returned by get_rm_callback()
+
+Return values:
+True if successful, false if not
+
+Notes:
+A callback should be released immediately when it is no longer used.
+
+Errors:
+Check int31error variable
+
+Example:
+(* not my job *)
+
+See also:
+Callbacks, int31error, set_rm_interrupt(), get_rm_callback()
+
+
+Page management
+
+
+function lock_linear_region (linearaddr, size : Longint) : boolean;
+
+Locks a memory region to prevent swapping of it
+
+Parameters:
+linearaddr - the linear address of the memory are to be locked
+size - size in bytes to be locked
+
+Return value:
+True if successful, false otherwise
+
+Notes:
+none
+
+Errors:
+Check int31error variable
+
+Example:
+(* not my job *)
+
+See also:
+DPMI, int31error, lock_data(), lock_code(), unlock_linear_region(), unlock_data(), unlock_code()
+
+function lock_data (var data; size : Longint) : boolean;
+
+Locks a memory range which resides in the data segment selector
+
+Parameters:
+data - address of data to be locked
+size - length of data to be locked
+
+Return values:
+True if successful, false otherwise
+
+Notes:
+none
+
+Errors:
+Check int31error variable
+
+Example:
+(* not my job *)
+
+See also:
+DPMI, int31error, lock_linear_region(), lock_code(), unlock_linear_region(), unlock_data(), unlock_code()
+
+function lock_code (functionaddr : pointer; size : Longint) : boolean;
+
+Locks a memory range which is in the code segment selector.
+
+Parameters:
+functionaddr - address of the function to be lockd
+size - size in bytes to be locked
+
+Return values:
+True if successful, false otherwise
+
+Errors:
+Check int31error variable
+
+Example:
+(* not my job *)
+
+See also:
+DPMI, int31error, lock_linear_region(), lock_data(), unlock_linear_region(), unlock_data(), unlock_code()
+
+
+function unlock_linear_region (linearaddr, size : Longint) : boolean;
+
+Unlocks a previously locked linear region range to allow it to be swapped out again if needed.
+
+Parameters:
+linearaddr - linear address of the memory to be unlocked
+size - size bytes to be unlocked
+
+Return values:
+True if successful, false otherwise
+
+Notes:
+none
+
+Errors:
+Check int31error variable
+
+Example:
+(* not my job *)
+
+See also:
+DPMI, int31error, unlock_data(), unlock_code(), lock_linear_region(), lock_data(), lock_code()
+
+
+function unlock_data (var data; size : Longint) : boolean;
+
+Unlocks a memory range which resides in the data segment selector.
+
+Paramters:
+data - address of memory to be unlocked
+size - size bytes to be unlocked
+
+Return values:
+True if successful, false otherwise
+
+Notes:
+none
+
+Errors:
+Check int31error variable
+
+Example:
+(* not my job *)
+
+See also:
+DPMI, int31error, unlock_linear_region(), unlock_code(), lock_linear_region(), lock_data(), lock_code()
+
+
+function unlock_code (functionaddr : pointer; size : Longint) : boolean;
+
+Unlocks a memory range which resides in the code segment selector.
+
+Parameters:
+functionaddr - address of function to be unlocked
+size - size bytes to be unlocked
+
+Return value:
+True if successful, false otherwise
+
+Notes:
+none
+
+Errors:
+Check int31error variable
+
+Example:
+(* not my job *)
+
+See also:
+DPMI, int31error, unlock_linear_region(), unlock_data(), lock_linear_region(), lock_data(), lock_code()
+
+function get_page_size : Longint;
+
+Returns the size of a single memory page
+
+Parameters:
+none
+
+Return value:
+Size of a single page in bytes
+
+Notes:
+The returned size is typically 4096 bytes.
+
+Errors:
+Check int31error variable
+
+Example:
+(* not my job *)
+
+See also:
+tmeminfo, get_meminfo()
+
+
+Miscellanous
+
+
+procedure seg_move (sseg : Word; source : Longint; dseg : Word; dest : Longint; count : Longint);
+
+Copies data between two memory locations
+
+Parameters:
+sseg - source selector
+source - source offset
+dseg - destination selector
+dest - destination offset
+count - size in bytes to copy
+
+Return values:
+none
+
+Notes:
+Overlapping is only checked if the source selector is equal to the destination selector. No range check is done.
+
+Errors:
+none
+
+Example:
+(* not my job *)
+
+See also:
+Selectors and descriptors, DOS memory access, seg_fillchar(), seg_fillword(), dosmemfillchar(), dosmemfillword(), dosmemget(), dosmemput(), dosmemmove()
+
+
+procedure seg_fillchar (seg : Word; ofs : Longint; count : Longint; c : char);
+
+Sets a memory area to a specific value.
+
+Parameters:
+seg - selector to memory area
+ofs - offset to memory
+count - number of bytes to set
+c - byte data which is set
+
+Return values:
+none
+
+Notes:
+No range check is done in any way.
+
+Errors:
+none
+
+Example:
+(* not my job *)
+
+See also:
+Selectors and descriptors, DOS memory access, seg_move(), seg_fillword(), dosmemfillchar(), dosmemfillword(), dosmemget(), dosmemput(), dosmemmove()
+
+procedure seg_fillword (seg : Word; ofs : Longint; count : Longint; w : Word);
+
+Sets a memory area to a specific value.
+
+Parameters:
+seg - selector to memory area
+ofs - offset to memory
+count - number of words to set
+w - word data which is set
+
+Return values:
+none
+
+Notes:
+No range check is done in any way.
+
+Errors:
+none
+
+Example:
+(* not my job *)
+
+See also:
+Selectors and descriptors, DOS memory access, seg_move(), seg_fillchar(), dosmemfillchar(), dosmemfillword(), dosmemget(), dosmemput(), dosmemmove()
+
+
+function get_cs : Word;
+
+Returns the cs selector
+
+Parameters:
+none
+
+Return values:
+The content of the cs segment register
+
+Errors:
+none
+
+Example:
+(* not my job *)
+
+See also:
+Selector and descriptors, Processor access, int31error, get_ds, get_ss
+
+function get_ds : Word;
+
+Returns the ds selector
+
+Parameters:
+none
+
+Return values:
+The content of the ds segment register
+
+Errors:
+none
+
+Example:
+(* not my job *)
+
+See also:
+Selector and descriptors, Processor access, int31error, get_cs, get_ss
+
+function get_ss : Word;
+
+Returns the ss selector
+
+Parameters:
+none
+
+Return values:
+The content of the ss segment register
+
+Errors:
+none
+
+Example:
+(* not my job *)
+
+See also:
+Selector and descriptors, Processor access, int31error, get_ds, get_cs
+
+function inportb (port : Word) : byte;
+function inportw (port : Word) : Word;
+function inportl (port : Word) : Longint;
+
+Reads data from the selected I/O port
+
+Parameters:
+port - the I/O port number which is read
+
+Return values:
+Current I/O port value
+
+Notes:
+The returned data is either be byte, word or longint sized, dependant of the function.
+
+Errors:
+none
+
+Example:
+(* not my job *)
+
+See also:
+I/O port access, outport*()
+
+procedure outportb (port : Word; data : byte);
+procedure outportw (port : Word; data : Word);
+procedure outportl (port : Word; data : Longint);
+
+Sends data to the specified I/O port
+
+Parameters:
+port - the I/O port number to send data to
+data - value sent to I/O port
+
+Return values:
+none
+
+Notes:
+The difference between these functions is the size of the sent data (either byte, word or longint sized)
+
+Errors:
+none
+
+Example:
+(* not my job *)
+
+See also:
+I/O port access, inport*()
+
+function get_run_mode : Word;
+
+Returns the current mode your application runs with
+
+Parameters:
+none
+
+Return values:
+One of the constants used by this function
+
+Notes:
+none
+
+Errors:
+none
+
+Example:
+(* not my job *)
+
+See also:
+DPMI, constants returned by get_run_mode

@@ -1,0 +1,31 @@
+{ no example for the following funcs, sorry : }
+
+{ I don't know a good reason why to allocate more than one descriptor at once }
+    function get_next_selector_increment_value : word;
+
+{ can't think of any suitable example }
+    function create_code_segment_alias_descriptor(seg : word) : word;
+
+{ too complicated, because a lot of code overhead is required to
+  demonstrate this (e.g. VBE 2 LFB requires too much of 'pre-explanations') }
+    function get_linear_addr(phys_addr : longint;size : longint) : longint;
+
+{ will come soon (I hope), needs some extra time }
+    function get_exception_handler( ... ) : boolean;
+    function set_exception_handler( ... ) : boolean;
+
+{ too much work for me ... :-)  and I don't know a good reason to change a
+  real mode interrupt vector }
+    function get_rm_interrupt(vector : byte;var intaddr : tseginfo) : boolean;
+    function set_rm_interrupt(vector : byte;const intaddr : tseginfo) : boolean;
+
+{ no example for these two because the first is buggy, and the second without
+  the first is useless }
+allocate_memory_block(), free_memory_block()
+
+{ these don't work at all, because they're DPMI 1.0 only, they will never work
+  because CWSDPMI is a 0.9 DPMI host }
+get_rm_exception_handler(), set_rm_exception_handler(),
+get_pm_exception_handler(), set_pm_exception_handler(),
+request_linear_region(), get_page_attributes(), set_page_attributes(),
+map_device_in_memory_block(), perhaps more
