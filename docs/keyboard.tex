@@ -27,8 +27,17 @@
 \FPCexampledir{kbdex}
 
 The \file{KeyBoard} unit implements a keyboard access layer which is system
-independent. It can be used to poll the keyboard state and wait for certaine
-events. 
+independent. It can be used to poll the keyboard state and wait for certain
+events. Waiting for a keyboard event can be done with the \seef{GetKeyEvent}
+function, which will return a driver-dependent key event. This key event can
+be translated to a interpretable event by the \seef{TranslateKeyEvent}
+function. The result of this function can be used in the other event
+examining functions.
+
+A custom keyboard driver can be installed using the \seef{SetKeyboardDriver}
+function. The current keyboard driver can be retrieved using the
+\seep{GetKeyboardDriver} function. The last section of this chapter
+demonstrates how to make a keyboard driver.
 
 \section{Constants, Type and variables }
 
@@ -67,7 +76,7 @@ const
   kbdF20       = $FF14;
 \end{verbatim}
 Constants  \$15 till \$1F are reserved for future function keys. The
-following constants denote the curso movement keys:
+following constants denote the cursor movement keys:
 \begin{verbatim}
   kbdHome      = $FF20;
   kbdUp        = $FF21;
@@ -82,7 +91,7 @@ following constants denote the curso movement keys:
   kbdInsert    = $FF29;
   kbdDelete    = $FF2A;
 \end{verbatim}
-Constants \$2B till \$2F are reserved for future keypad key.
+Constants \$2B till \$2F are reserved for future keypad keys.
 The following flags are also defined:
 \begin{verbatim}
   kbASCII       = $00;
@@ -91,7 +100,10 @@ The following flags are also defined:
   kbPhys        = $03;
   kbReleased    = $04;
 \end{verbatim}
-They can be used to check And the following shift-state flags:
+They can be used to check what kind of data a key event contains.
+The following shift-state flags can be used to determine the shift state of
+a key (i.e. which of the SHIFT, ALT and CTRL keys were pressed
+simultaneously with a key):
 \begin{verbatim}
   kbLeftShift   = 1;
   kbRightShift  = 2;
@@ -136,12 +148,12 @@ Field & Meaning \\ \hline
 KeyCode & Depending on \var{flags} either the physical representation of a key
          (under DOS scancode, ascii code pair), or the translated
            ASCII/unicode character.\\
-ShiftState & shift-state when this key was pressed (or shortly after) \\
-Flags & Determine how to interpret \var{KeyCode} \\ \hline.
+ShiftState & Shift-state when this key was pressed (or shortly after) \\
+Flags & Determine how to interpret \var{KeyCode} \\ \hline
 \end{FPCltable}
 The shift-state can be checked using the various shift-state constants, 
 and the flags in the last byte can be checked using one of the
-kbASCII,kbUniCode,kbFnKey,kbPhys, kbReleased constants.
+kbASCII, kbUniCode, kbFnKey, kbPhys, kbReleased constants.
 
 If there are two keys returning the same char-code, there's no way to find
 out which one was pressed (Gray+ and Simple+). If it needs to be known which
@@ -163,7 +175,7 @@ Type
     TranslateKeyEventUniCode: Function (KeyEvent: TKeyEvent): TKeyEvent;
   end;
 \end{verbatim}
-The various correspond to the different functions of the keyboard unit 
+The various fields correspond to the different functions of the keyboard unit 
 interface. For more information about this record see \sees{kbddriver}
 
 \section{Functions and Procedures}
@@ -233,10 +245,10 @@ function GetKeyEvent: TKeyEvent;
 A non-blocking version is available in \seef{PollKeyEvent}.
 
 The returned key is encoded as a \var{TKeyEvent} type variable, and
-is normally the physical key code, which can be translated with one
-of the translation functions \seef{TranslateKeyEvent} or
-\seef{TranslateKeyEventUniCode}. See the types section for a 
-description of how the key is described.
+is normally the physical key scan code, (the scan code is driver 
+dependent) which can be translated with one of the translation 
+functions \seef{TranslateKeyEvent} or \seef{TranslateKeyEventUniCode}. 
+See the types section for a description of how the key is described.
 \Errors
 If no key became available, 0 is returned.
 \SeeAlso
@@ -392,7 +404,7 @@ Function KeyEventToString(KeyEvent : TKeyEvent) : String;
 human-readable description of the pressed key. It will use the constants
 described in the constants section to do so.
 \Errors
-if an unknown key is passed, the scancode is returned, prefixed with the 
+If an unknown key is passed, the scancode is returned, prefixed with the 
 \var{SScanCode} string.
 \SeeAlso
 \seef{FunctionKeyName}, \seef{ShiftStateToString}
@@ -529,7 +541,7 @@ Code & Key & Code & Key & Code & Key\\ \hline
 \hline
 \end{FPCltable}
 A list of scan codes for special keys and combinations with the SHIFT, ALT
-and CTRl keys can be found in \seet{speckeys}; They are for quick reference
+and CTRL keys can be found in \seet{speckeys}; They are for quick reference
 only.
 \begin{FPCltable}{llccc}{Special keys scan codes}{speckeys}
 Key         & Code  & SHIFT-Key & CTRL-Key & Alt-Key \\ \hline
@@ -591,7 +603,7 @@ next key event. It should NOT store keys.
 event if there is one. Should not store keys. 
 \item[GetShiftState] Called by \seef{PollShiftStateEvent}.  Must return the current
 shift state.
-\item[TranslateKeyEvent] Should translate a raw key event to a currect
+\item[TranslateKeyEvent] Should translate a raw key event to a cOrrect
 key event, i.e. should fill in the shiftstate and convert function key
 scancodes to function key keycodes. If the
 \var{TranslateKeyEvent} is not filled in, a default translation function
@@ -612,3 +624,7 @@ should set the driver record in its initialization section.
 \FPCexample{logkeys}
 The following program demonstrates the use of the unit:
 \FPCexample{ex9}
+Note that with a simple extension of this unit could be used to make a
+driver that is capable of recording and storing a set of keyboard strokes,
+and replaying them at a later time, so a 'keyboard macro' capable driver.
+This driver could sit on top of any other driver.
