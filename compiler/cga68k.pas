@@ -312,7 +312,7 @@ unit cga68k;
      begin
         exprasmlist^.concat(new(pai68k,op_csymbol(A_JSR,S_NO,newcsymbol(routine,0))));
         if add_to_externals and
-           not (cs_compilesystem in aktswitches) then
+           not (cs_compilesystem in aktmoduleswitches) then
           concat_external(routine,EXT_NEAR);
      end;
 
@@ -364,7 +364,7 @@ unit cga68k;
          hl : plabel;
 
       begin
-         if cs_check_overflow in aktswitches  then
+         if cs_check_overflow in aktlocalswitches  then
            begin
               getlabel(hl);
               if not ((p^.resulttype^.deftype=pointerdef) or
@@ -389,7 +389,7 @@ unit cga68k;
           R_D6, R_SPPUSH)));
            end
          else
-         if not(cs_littlesize in aktswitches) and (l >= -128) and (l <= 127) then
+         if not(cs_littlesize in aktglobalswitches) and (l >= -128) and (l <= 127) then
            begin
            exprasmlist^.concat(new(pai68k,op_const_reg(A_MOVEQ,S_L,l,R_D6)));
            exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,R_D6,R_SPPUSH)));
@@ -465,7 +465,7 @@ begin
     if (aktprocsym^.definition^.options and poproginit<>0) then
         begin
             {Init the stack checking.}
-            if (cs_check_stack in aktswitches) and
+            if (cs_check_stack in aktlocalswitches) and
              (target_info.target=target_linux) then
                 begin
                     procinfo.aktentrycode^.insert(new(pai68k,
@@ -529,10 +529,10 @@ begin
             nostackframe:=false;
             if stackframe<>0 then
                 begin
-                    if cs_littlesize in aktswitches  then
+                    if cs_littlesize in aktglobalswitches  then
                         begin
-                            if (cs_check_stack in aktswitches) and
-                             (target_info.target<>target_linux) then
+                            if (cs_check_stack in aktlocalswitches) and
+                               (target_info.target<>target_linux) then
                                 begin
                                     procinfo.aktentrycode^.insert(new(pai68k,
                                      op_csymbol(A_JSR,S_NO,newcsymbol('STACKCHECK',0))));
@@ -554,7 +554,7 @@ begin
                           if (stackframe > -32767) and (stackframe < 32769) then
                             begin
                               procinfo.aktentrycode^.insert(new(pai68k,op_const_reg(A_SUB,S_L,stackframe,R_SP)));
-                              if (cs_check_stack in aktswitches) then
+                              if (cs_check_stack in aktlocalswitches) then
                                 begin
                                   procinfo.aktentrycode^.insert(new(pai68k,
                                    op_csymbol(A_JSR,S_NO,newcsymbol('STACKCHECK',0))));
@@ -588,7 +588,7 @@ begin
     hs:=proc_names.get;
 
 {$IfDef GDB}
-    if (cs_debuginfo in aktswitches) and target_os.use_function_relative_addresses then
+    if (cs_debuginfo in aktmoduleswitches) and target_os.use_function_relative_addresses then
         stab_function_name := new(pai_stab_function_name,init(strpnew(hs)));
       oldaktprocname:=aktprocsym^.name;
 {$EndIf GDB}
@@ -601,7 +601,7 @@ begin
               else
                 procinfo.aktentrycode^.insert(new(pai_symbol,init(hs)));
 {$ifdef GDB}
-            if (cs_debuginfo in aktswitches) and
+            if (cs_debuginfo in aktmoduleswitches) and
                target_os.use_function_relative_addresses then
             begin
             procinfo.aktentrycode^.insert(new(pai_stab_function_name,init(strpnew(hs))));
@@ -615,7 +615,7 @@ begin
 {$ifdef GDB}
       aktprocsym^.setname(oldaktprocname);
 
-    if (cs_debuginfo in aktswitches) then
+    if (cs_debuginfo in aktmoduleswitches) then
         begin
             if target_os.use_function_relative_addresses then
                 procinfo.aktentrycode^.insert(stab_function_name);
@@ -712,14 +712,14 @@ begin
                                              { how the return value is handled                          }
                                              { if in FPU mode, return in FP0                            }
                                              if (pfloatdef(procinfo.retdef)^.typ = s32real)
-                                              and (cs_fp_emulation in aktswitches) then
+                                              and (cs_fp_emulation in aktmoduleswitches) then
                                               begin
                                                 procinfo.aktexitcode^.concat(new(pai68k,op_ref_reg(A_MOVE,
                                                   S_L,hr,R_D0)))
                                               end
                                              else
                                               begin
-                                               if cs_fp_emulation in aktswitches then
+                                               if cs_fp_emulation in aktmoduleswitches then
                                                  procinfo.aktexitcode^.concat(new(pai68k,op_ref_reg(A_MOVE,
                                                     S_L,hr,R_D0)))
                                                else
@@ -787,7 +787,7 @@ begin
                       A_RTS,S_NO)))
                end;
 {$ifdef GDB}
-    if cs_debuginfo in aktswitches  then
+    if cs_debuginfo in aktmoduleswitches  then
         begin
             aktprocsym^.concatstabto(procinfo.aktexitcode);
             if assigned(procinfo._class) then
@@ -831,7 +831,7 @@ end;
            del_reference(source);
 
          { from 12 bytes movs is being used }
-         if (size<=8) or (not(cs_littlesize in aktswitches) and (size<=12)) then
+         if (size<=8) or (not(cs_littlesize in aktglobalswitches) and (size<=12)) then
            begin
               helpsize:=size div 4;
               { move a dword x times }
@@ -1086,7 +1086,7 @@ end;
            end;
         end; { end case }
         location.loc := LOC_FPU;
-        if not ((cs_fp_emulation) in aktswitches) then
+        if not ((cs_fp_emulation) in aktmoduleswitches) then
         begin
             location.fpureg := getfloatreg;
             exprasmlist^.concat(new(pai68k,op_ref_reg(A_FMOVE,s,newreference(ref),location.fpureg)))
@@ -1152,7 +1152,7 @@ end;
              Message(cg_f_unknown_float_type);
            end;
         end; { end case }
-        if not ((cs_fp_emulation) in aktswitches) then
+        if not ((cs_fp_emulation) in aktmoduleswitches) then
         begin
             exprasmlist^.concat(new(pai68k,op_reg_ref(A_FMOVE,s,location.fpureg,newreference(ref))));
             ungetregister(location.fpureg);
@@ -1220,7 +1220,10 @@ end;
   end.
 {
   $Log$
-  Revision 1.7  1998-07-10 10:51:01  peter
+  Revision 1.8  1998-08-10 14:43:16  peter
+    * string type st_ fixed
+
+  Revision 1.7  1998/07/10 10:51:01  peter
     * m68k updates
 
   Revision 1.6  1998/06/08 13:13:39  pierre

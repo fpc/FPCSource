@@ -38,7 +38,7 @@ unit cg68k;
 interface
 {***************************************************************************}
 
-uses    objects,verbose,cobjects,systems,globals,tree,
+uses    objects,verbose,cobjects,comphook,systems,globals,tree,
         symtable,types,strings,pass_1,hcodegen,temp_gen,
         aasm,m68k,tgen68k,files,cga68k,cg68k2,link
 {$ifdef GDB}
@@ -752,7 +752,7 @@ implementation
                                    { move to FPU }
                                    floatload(pfloatdef(p^.left^.resulttype)^.typ,
                                      p^.left^.location.reference,p^.location);
-                                   if (cs_fp_emulation) in aktswitches then
+                                   if (cs_fp_emulation) in aktmoduleswitches then
                                        { if in emulation mode change sign manually }
                                        exprasmlist^.concat(new(pai68k,op_const_reg(A_BCHG,S_L,31,
                                           p^.location.fpureg)))
@@ -772,7 +772,7 @@ implementation
             LOC_FPU : begin
                               p^.location.loc:=LOC_FPU;
                               p^.location.fpureg := p^.left^.location.fpureg;
-                              if (cs_fp_emulation) in aktswitches then
+                              if (cs_fp_emulation) in aktmoduleswitches then
                                   exprasmlist^.concat(new(pai68k,op_const_reg(A_BCHG,S_L,31,p^.location.fpureg)))
                               else
                                  exprasmlist^.concat(new(pai68k,op_reg(A_FNEG,S_FX,p^.location.fpureg)));
@@ -1259,7 +1259,7 @@ implementation
          else
            begin
               { quick hack, to overcome Delphi 2 }
-              if (cs_maxoptimieren in aktswitches) and
+              if (cs_maxoptimize in aktglobalswitches) and
                 (p^.left^.resulttype^.deftype=arraydef) then
                 begin
                    extraoffset:=0;
@@ -1359,7 +1359,7 @@ implementation
               end;
 
               { produce possible range check code: }
-              if cs_rangechecking in aktswitches  then
+              if cs_check_range in aktlocalswitches  then
                 begin
                    if p^.left^.resulttype^.deftype=arraydef then
                      begin
@@ -1469,9 +1469,9 @@ implementation
            exit;
            { range checking is different for u32bit }
            { lets try to generate it allways }
-           if (cs_rangechecking in aktswitches)  and
+           if (cs_check_range in aktlocalswitches)  and
              { with $R+ explicit type conversations in TP aren't range checked! }
-             (not(p^.explizit) or not(cs_tp_compatible in aktswitches)) and
+             (not(p^.explizit) or not(cs_tp_compatible in aktmoduleswitches)) and
              ((porddef(p1)^.low>porddef(p2)^.low) or
              (porddef(p1)^.high<porddef(p2)^.high) or
              (porddef(p1)^.typ=u32bit) or
@@ -1978,7 +1978,7 @@ implementation
 +           else}
           p^.location.loc := LOC_FPU;
           { get floating point register. }
-          if (cs_fp_emulation in aktswitches) then
+          if (cs_fp_emulation in aktmoduleswitches) then
           begin
             p^.location.fpureg := getregister32;
             exprasmlist^.concat(new(pai68k, op_ref_reg(A_MOVE, S_L, r, R_D0)));
@@ -2011,7 +2011,7 @@ implementation
          { instead of allocating reserved registers.              }
          if (p^.left^.location.loc<>LOC_FPU) then
          begin
-           if (cs_fp_emulation in aktswitches) then
+           if (cs_fp_emulation in aktmoduleswitches) then
            begin
              exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,newreference(p^.left^.location.reference),R_D0)));
              exprasmlist^.concat(new(pai68k,op_const_reg(A_MOVE,S_L,65536,R_D1)));
@@ -2027,7 +2027,7 @@ implementation
          end
          else
          begin
-           if (cs_fp_emulation in aktswitches) then
+           if (cs_fp_emulation in aktmoduleswitches) then
            begin
              exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,p^.left^.location.fpureg,R_D0)));
              exprasmlist^.concat(new(pai68k,op_const_reg(A_MOVE,S_L,65536,R_D1)));
@@ -2182,7 +2182,7 @@ implementation
          reset_reference(r);
          r.base:=R_SP;
 
-         if (cs_fp_emulation in aktswitches) then
+         if (cs_fp_emulation in aktmoduleswitches) then
          begin
            p^.location.loc:=LOC_FPU;
            p^.location.fpureg := getregister32;
@@ -2275,8 +2275,8 @@ implementation
            ((porddef(p^.resulttype)^.low>porddef(hp^.resulttype)^.low) or
            (porddef(p^.resulttype)^.high<porddef(hp^.resulttype)^.high)) then
            begin
-              if (cs_rangechecking in aktswitches) and
-                 (not(p^.explizit) or not(cs_tp_compatible in aktswitches)) then
+              if (cs_check_range in aktlocalswitches) and
+                 (not(p^.explizit) or not(cs_tp_compatible in aktmoduleswitches)) then
               porddef(p^.resulttype)^.genrangecheck;
               if porddef(hp^.resulttype)^.typ=s32bit then
                 begin
@@ -2316,8 +2316,8 @@ implementation
                 end
               else internalerror(6);
 
-              if (cs_rangechecking in aktswitches) and
-                 (not(p^.explizit) or not(cs_tp_compatible in aktswitches)) then
+              if (cs_check_range in aktlocalswitches) and
+                 (not(p^.explizit) or not(cs_tp_compatible in aktmoduleswitches)) then
               Begin
               new(hpp);
               reset_reference(hpp^);
@@ -2702,7 +2702,7 @@ implementation
                                         reset_reference(r^);
                                         r^.base:=R_SP;
                                         s:=getfloatsize(pfloatdef(p^.left^.resulttype)^.typ);
-                                        if (cs_fp_emulation in aktswitches) or (s=S_FS) then
+                                        if (cs_fp_emulation in aktmoduleswitches) or (s=S_FS) then
                                         begin
                                           { when in emulation mode... }
                                           { only single supported!!!  }
@@ -2930,7 +2930,7 @@ implementation
            ((p^.procdefinition^.options and povirtualmethod)=0) then
            begin
               if ((p^.procdefinition^.options and poiocheck)<>0)
-                and (cs_iocheck in aktswitches) then
+                and (cs_check_io in aktlocalswitches) then
                 begin
                        getlabel(iolabel);
                    emitl(A_LABEL,iolabel);
@@ -3302,7 +3302,7 @@ implementation
                   if p^.procdefinition^.extnumber=-1 then
                         internalerror($Da);
                   r^.offset:=p^.procdefinition^.extnumber*4+12;
-                  if (cs_rangechecking in aktswitches) then
+                  if (cs_check_range in aktlocalswitches) then
                     begin
                      { If the base is already A0, the no instruction will }
                      { be emitted!                                        }
@@ -3462,7 +3462,7 @@ implementation
                                    p^.location.fpureg:=hregister;
                                 end;
                      s64bit,s64real,s80real: begin
-                                              if cs_fp_emulation in aktswitches then
+                                              if cs_fp_emulation in aktmoduleswitches then
                                               begin
                                                 p^.location.loc:=LOC_FPU;
                                                       hregister:=getregister32;
@@ -3593,7 +3593,7 @@ implementation
               new(r);
               reset_reference(r^);
               r^.symbol:=stringdup('U_'+upper(target_info.system_unit)+io[byte(doread)]);
-              if not (cs_compilesystem in aktswitches) then
+              if not (cs_compilesystem in aktmoduleswitches) then
                  concat_external(r^.symbol^,EXT_NEAR);
 
               exprasmlist^.concat(new(pai68k,op_ref_reg(A_LEA,S_L,r,R_A0)))
@@ -3609,7 +3609,7 @@ implementation
 
         begin
            { I/O check }
-           if cs_iocheck in aktswitches then
+           if cs_check_io in aktlocalswitches then
              begin
                 getlabel(iolabel);
                 emitl(A_LABEL,iolabel);
@@ -3782,18 +3782,18 @@ implementation
                                        { push maximum string length }
                                        push_int(pstringdef(pararesult)^.len);
                                        case pstringdef(pararesult)^.string_typ of
-                                        shortstring: emitcall ('READ_TEXT_STRING',true);
-                                        ansistring : emitcall ('READ_TEXT_ANSISTRING',true);
-                                        longstring : emitcall ('READ_TEXT_LONGSTRING',true);
-                                        widestring : emitcall ('READ_TEXT_ANSISTRING',true);
+                                        st_shortstring: emitcall ('READ_TEXT_STRING',true);
+                                        st_ansistring : emitcall ('READ_TEXT_ANSISTRING',true);
+                                        st_longstring : emitcall ('READ_TEXT_LONGSTRING',true);
+                                        st_widestring : emitcall ('READ_TEXT_ANSISTRING',true);
                                         end
                                        end
                                      else
                                        Case pstringdef(Pararesult)^.string_typ of
-                                        shortstring: emitcall ('WRITE_TEXT_STRING',true);
-                                        ansistring : emitcall ('WRITE_TEXT_ANSISTRING',true);
-                                        longstring : emitcall ('WRITE_TEXT_LONGSTRING',true);
-                                        widestring : emitcall ('WRITE_TEXT_ANSISTRING',true);
+                                        st_shortstring: emitcall ('WRITE_TEXT_STRING',true);
+                                        st_ansistring : emitcall ('WRITE_TEXT_ANSISTRING',true);
+                                        st_longstring : emitcall ('WRITE_TEXT_LONGSTRING',true);
+                                        st_widestring : emitcall ('WRITE_TEXT_ANSISTRING',true);
                                         end;
                                    end;
                       pointerdef : begin
@@ -4620,7 +4620,7 @@ implementation
                       else
                       begin
                         { single values are in the floating point registers }
-                        if cs_fp_emulation in aktswitches then
+                        if cs_fp_emulation in aktmoduleswitches then
                           emit_reg_reg(A_MOVE,S_L,p^.left^.location.fpureg,R_D0)
                         else
                                         exprasmlist^.concat(new(pai68k,op_reg_reg(A_FMOVE,S_FS,
@@ -4878,14 +4878,14 @@ do_jmp:
            hr^.base:=getaddressreg;
            emit_reg_reg(A_MOVE,S_L,hregister,hr^.base);
            exprasmlist^.concat(new(pai68k,op_ref(A_JMP,S_NO,hr)));
-{          if not(cs_littlesize in aktswitches^ ) then
+{          if not(cs_littlesize in aktglobalswitches^ ) then
              datasegment^.concat(new(pai68k,op_const(A_ALIGN,S_NO,4))); }
            datasegment^.concat(new(pai_label,init(table)));
              last:=min_;
            genitem(hp);
            if hr^.base <> R_NO then ungetregister(hr^.base);
            { !!!!!!!
-           if not(cs_littlesize in aktswitches^ ) then
+           if not(cs_littlesize in aktglobalswitches^ ) then
              exprasmlist^.concat(new(pai68k,op_const(A_ALIGN,S_NO,4)));
            }
         end;
@@ -4929,7 +4929,7 @@ do_jmp:
             else internalerror(2002);
          end;
          { now generate the jumps }
-         if cs_optimize in aktswitches  then
+         if cs_optimize in aktglobalswitches  then
            begin
               { procedures are empirically passed on }
               { consumption can also be calculated   }
@@ -4946,7 +4946,7 @@ do_jmp:
               jumptable_no_range:=(lv=min_label) and (hv=max_label);
 
               { optimize for size ? }
-              if cs_littlesize in aktswitches  then
+              if cs_littlesize in aktglobalswitches  then
                 begin
                    if (labels<=2) or ((max_label-min_label)>3*labels) then
                      { a linear list is always smaller than a jump tree }
@@ -5034,6 +5034,47 @@ do_jmp:
          exprasmlist^.concat(new(pai68k,op_reg_ref(A_MOVE,S_L,R_A5,hp)));
          exprasmlist^.concat(new(pai_labeled,init(A_JMP,quickexitlabel)));
       end;
+
+    procedure secondon(var p : ptree);
+
+      var
+         nextonlabel,myendexceptlabel : plabel;
+         ref : treference;
+
+      begin
+{ !!!!!!!!!!!!!!! }
+(*         getlabel(nextonlabel);
+         { push the vmt }
+         exprasmlist^.concat(new(pai386,op_csymbol(A_PUSH,S_L,
+           newcsymbol(p^.excepttype^.vmt_mangledname,0))));
+         maybe_concat_external(p^.excepttype^.owner,
+           p^.excepttype^.vmt_mangledname);
+
+         emitcall('FPC_CATCHES',true);
+         exprasmlist^.concat(new(pai386,
+           op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
+         emitl(A_JE,nextonlabel);
+         ref.symbol:=nil;
+         gettempofsizereference(4,ref);
+
+         { what a hack ! }
+         if assigned(p^.exceptsymtable) then
+           pvarsym(p^.exceptsymtable^.root)^.address:=ref.offset;
+
+         exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
+           R_EAX,newreference(ref))));
+
+         if assigned(p^.right) then
+           secondpass(p^.right);
+         { clear some stuff }
+         ungetiftemp(ref);
+         emitl(A_JMP,endexceptlabel);
+         emitl(A_LABEL,nextonlabel);
+         { next on node }
+         if assigned(p^.left) then
+           secondpass(p^.left); *)
+      end;
+
 
     procedure secondas(var p : ptree);
 
@@ -5163,22 +5204,23 @@ end;
              secondstatement,secondnothing,secondifn,secondbreakn,
              secondcontinuen,second_while_repeatn,second_while_repeatn,secondfor,
              secondexitn,secondwith,secondcase,secondlabel,
-             secondgoto,secondsimplenewdispose,secondtryexcept,secondraise,
-             secondnothing,secondtryfinally,secondis,secondas,seconderror,
+             secondgoto,secondsimplenewdispose,secondtryexcept,
+             secondraise,
+             secondnothing,secondtryfinally,secondon,secondis,
+             secondas,seconderror,
              secondfail,secondadd,secondprocinline,
              secondnothing,secondloadvmt);
       var
-         oldcodegenerror : boolean;
-         oldswitches : Tcswitches;
-         oldpos : tfileposinfo;
-
+         oldcodegenerror  : boolean;
+         oldlocalswitches : tlocalswitches;
+         oldpos           : tfileposinfo;
       begin
          oldcodegenerror:=codegenerror;
-         oldswitches:=aktswitches;
+         oldlocalswitches:=aktlocalswitches;
          oldpos:=aktfilepos;
 
          aktfilepos:=p^.fileinfo;
-         aktswitches:=p^.pragmas;
+         aktlocalswitches:=p^.localswitches;
          if not(p^.error) then
            begin
               codegenerror:=false;
@@ -5188,19 +5230,20 @@ end;
            end
          else
            codegenerror:=true;
-         aktswitches:=oldswitches;
+
+         aktlocalswitches:=oldlocalswitches;
          aktfilepos:=oldpos;
       end;
 
 
     function do_secondpass(var p : ptree) : boolean;
-
       begin
          codegenerror:=false;
          if not(p^.error) then
            secondpass(p);
          do_secondpass:=codegenerror;
       end;
+
 
     var
        regvars : array[1..maxvarregs] of pvarsym;
@@ -5231,7 +5274,7 @@ end;
                    { parameter get a less value }
                    if parasym then
                      begin
-                        if cs_littlesize in aktswitches  then
+                        if cs_littlesize in aktglobalswitches  then
                           dec(j,1)
                         else
                           dec(j,100);
@@ -5266,7 +5309,7 @@ end;
       begin
          cleartempgen;
          { when size optimization only count occurrence }
-         if cs_littlesize in aktswitches then
+         if cs_littlesize in aktglobalswitches then
            t_times:=1
          else
          { reference for repetition is 100 }
@@ -5284,7 +5327,7 @@ end;
            begin
               { max. optimizations     }
               { only if no asm is used }
-              if (cs_maxoptimieren in aktswitches) and
+              if (cs_maxoptimize in aktglobalswitches) and
                 ((procinfo.flags and pi_uses_asm)=0) then
                 begin
                    { can we omit the stack frame ? }
@@ -5404,7 +5447,7 @@ end;
                                { dummy }
                                regsize:=S_W;
                           end;
-                        if (verbosity and v_debug)=v_debug then
+                        if (status.verbosity and v_debug)=v_debug then
                           begin
                              for i:=1 to maxvarregs do
                                begin
@@ -5432,7 +5475,10 @@ end.
 
 {
   $Log$
-  Revision 1.12  1998-07-15 16:41:01  jonas
+  Revision 1.13  1998-08-10 14:43:14  peter
+    * string type st_ fixed
+
+  Revision 1.12  1998/07/15 16:41:01  jonas
   * fixed bug that caused the stackframe never to be omitted
 
   Revision 1.11  1998/07/14 14:46:43  peter

@@ -746,7 +746,7 @@ Implementation
                           {  fpu_reg =  right(FP1) / fpu_reg }
                           {  fpu_reg = right(FP1) -  fpu_reg  }
                           begin
-                             if (cs_fp_emulation in aktswitches) then
+                             if (cs_fp_emulation in aktmoduleswitches) then
                               begin
                                { fpu_reg = right / D1 }
                                { fpu_reg = right - D1 }
@@ -814,7 +814,7 @@ Implementation
                            {  fpu_reg = fpu_reg / right }
                            {  fpu_reg = fpu_reg - right }
                            { + commutative ops }
-                           if cs_fp_emulation in aktswitches then
+                           if cs_fp_emulation in aktmoduleswitches then
                            begin
 
                              { load value into D7 }
@@ -1478,7 +1478,7 @@ Implementation
                  too much comparisions. 8 comparisions are, however, still
                  smalller than emitting the set.}
                 maxcompares:=5;
-                if cs_littlesize in aktswitches then
+                if cs_littlesize in aktglobalswitches then
                     maxcompares:=8;
                 for i:=0 to 255 do
                     if i in byteset(Aset^) then
@@ -1960,7 +1960,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.6  1998-07-10 10:51:00  peter
+  Revision 1.7  1998-08-10 14:43:17  peter
+    * string type st_ fixed
+
+  Revision 1.6  1998/07/10 10:51:00  peter
     * m68k updates
 
   Revision 1.5  1998/06/08 13:13:37  pierre
