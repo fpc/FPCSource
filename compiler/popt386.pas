@@ -80,7 +80,7 @@ Var
   Begin
     If (hp^.lab^.nb >= LoLab) and
        (hp^.lab^.nb <= HiLab) and   {range check, necessary?}
-       (Pointer(LTable^[hp^.lab^.nb-LoLab].PaiObj) <> Pointer(0)) Then
+       Assigned(LTable^[hp^.lab^.nb-LoLab].PaiObj) Then
       Begin
         p1 := LTable^[hp^.lab^.nb-LoLab].PaiObj; {the jump's destination}
         p1 := SkipLabels(p1);
@@ -159,11 +159,7 @@ Begin
                       end;
                       Dec(pai_label(hp2)^.l^.refcount);
                       If (pai_label(hp2)^.l^.refcount = 0) Then
-                        Begin
-                          pai_label(hp2)^.l^.is_used := False;
-{                          AsmL^.remove(hp2);
-                          Dispose(hp2, done);}
-                        End;
+                        pai_label(hp2)^.l^.is_used := False;
                       pai_labeled(p)^.lab:=pai_labeled(hp1)^.lab;
                       Inc(pai_labeled(p)^.lab^.refcount);
                       asml^.remove(hp1);
@@ -188,22 +184,24 @@ Begin
               With TReference(Pai386(p)^.op1^) Do
                 Begin
                   If (base = R_NO) And
+                     (index <> R_NO) And
                      (scalefactor = 1)
                     Then
                       Begin
                         base := index;
-                        index := r_no
+                        index := R_NO
                       End
                  End;
             If (Pai386(p)^.op2t = top_ref) Then
               With TReference(Pai386(p)^.op2^) Do
                 Begin
                   If (base = R_NO) And
+                     (index <> R_NO) And
                      (scalefactor = 1)
                     Then
                       Begin
                         base := index;
-                        index := r_no
+                        index := R_NO
                       End
                 End;
             Case Pai386(p)^._operator Of
@@ -1330,13 +1328,14 @@ Begin
                     End
                 End;
               A_SUB:
-                {change "subl $2, %esp; pushw x" to "pushl x"}
+                { * change "subl $2, %esp; pushw x" to "pushl x"}
+                { * change "sub/add const1, reg" or "dec reg" followed by
+                    "sub const2, reg" to one "sub ..., reg" }
                 Begin
                   If (Pai386(p)^.op1t = top_const) And
-                     (Longint(Pai386(p)^.op1) = 2) And
-                     (Pai386(p)^.op2t = top_reg) And
-                     (TRegister(Pai386(p)^.op2) = R_ESP)
-                    Then
+                     (Pai386(p)^.op2t = top_reg) Then
+                    If (Longint(Pai386(p)^.op1) = 2) And
+                       (TRegister(Pai386(p)^.op2) = R_ESP) Then
                       Begin
                         hp1 := Pai(p^.next);
                         While Assigned(hp1) And
@@ -1376,7 +1375,39 @@ Begin
                                   AsmL^.Remove(hp1);
                                   Dispose(hp1, Done);
                                 End;
-                      End;
+                      End
+                    Else
+                      If GetLastInstruction(p, hp1) And
+                         (hp1^.typ = ait_instruction) And
+                         (Pai386(hp1)^.Size = Pai386(p)^.Size) then
+                        Case Pai386(hp1)^._operator Of
+                          A_DEC:
+                            If (Pai386(hp1)^.Op1t = top_reg) And
+                               (Pai386(hp1)^.Op1 = Pai386(p)^.op2) Then
+                              Begin
+                                Inc(Longint(Pai386(p)^.Op1));
+                                AsmL^.Remove(hp1);
+                                Dispose(hp1, Done)
+                              End;
+                          A_SUB:
+                            If (Pai386(hp1)^.Op1t = top_const) And
+                               (Pai386(hp1)^.Op2t = top_reg) And
+                               (Pai386(hp1)^.Op2 = Pai386(p)^.Op2) Then
+                              Begin
+                                Inc(Longint(Pai386(p)^.Op1), Longint(Pai386(hp1)^.Op1));
+                                AsmL^.Remove(hp1);
+                                Dispose(hp1, Done)
+                              End;
+                          A_ADD:
+                            If (Pai386(hp1)^.Op1t = top_const) And
+                               (Pai386(hp1)^.Op2t = top_reg) And
+                               (Pai386(hp1)^.Op2 = Pai386(p)^.Op2) Then
+                              Begin
+                                Dec(Longint(Pai386(p)^.Op1), Longint(Pai386(hp1)^.Op1));
+                                AsmL^.Remove(hp1);
+                                Dispose(hp1, Done)
+                              End;
+                        End
                 End;
               A_TEST, A_OR:
                 {removes the line marked with (x) from the sequence
@@ -1546,7 +1577,12 @@ End.
 
 {
  $Log$
- Revision 1.30  1998-12-15 15:43:20  jonas
+ Revision 1.31  1998-12-15 22:30:39  jonas
+   + change "sub/add const1, reg" or "dec reg" followed by "sub const2, reg" to one
+     "sub const3, reg"
+   * some small cleaning up
+
+ Revision 1.30  1998/12/15 15:43:20  jonas
    * fixed bug in shr/shl optimization
 
  Revision 1.29  1998/12/15 11:53:54  peter
