@@ -251,7 +251,7 @@ Function GetDosTicks:longint; { returns ticks at 18.2 Hz, just like DOS }
     tv : TimeVal;
     tz : TimeZone;
   begin
-    GetTimeOfDay(tv,tz);
+    GetTimeOfDay(tv); {Timezone no longer used?}
     GetDosTicks:=((tv.Sec mod 86400) div 60)*1092+((tv.Sec mod 60)*1000000+tv.USec) div 54945;
   end;
 {$endif Linux}
@@ -954,7 +954,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.15  1999-08-16 18:25:29  peter
+  Revision 1.16  2000-01-03 14:59:03  marco
+   * Fixed Linux code that got time of day. Removed Timezone parameter
+
+  Revision 1.15  1999/08/16 18:25:29  peter
     * Adjusting the selection when the editor didn't contain any line.
     * Reserved word recognition redesigned, but this didn't affect the overall
       syntax highlight speed remarkably (at least not on my Amd-K6/350).
