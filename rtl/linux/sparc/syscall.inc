@@ -17,7 +17,8 @@
 {$IFDEF SYS_LINUX}
   {$UNDEF SYSCALL_DEBUG}
 {$ENDIF SYS_LINUX}
-
+{Use direct assembler, dumps directly assembler code in sources}
+{$ASMMODE DIRECT}
 {*****************************************************************************
                      --- Main:The System Call Self ---
 *****************************************************************************}
@@ -349,7 +350,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2003-07-06 22:08:05  peter
+  Revision 1.9  2003-08-11 13:19:08  mazen
+  + added assembler mode directive to use direct assembler reader
+
+  Revision 1.8  2003/07/06 22:08:05  peter
     * fix setting return value
 
   Revision 1.7  2003/07/06 20:40:10  peter
