@@ -513,7 +513,7 @@ var
   PageDoc: TXMLDocument;
   Filename: String;
 begin
-  Engine.output:=IncludeTrailingBackSlash(Engine.output);
+  Engine.Output := IncludeTrailingBackSlash(Engine.Output);
   for i := 0 to PageInfos.Count - 1 do
     with TPageInfo(PageInfos[i]) do
     begin
@@ -1276,10 +1276,9 @@ begin
   // Array
   if Element.ClassType = TPasArrayType then
   begin
-    AppendKw(CodeEl, 'array ');
-    AppendText(CreateWarning(CodeEl), '...');
-    AppendKw(CodeEl, ' of ');
-      Result := AppendType(CodeEl, TableEl, TPasArrayType(Element).ElType, False);
+    AppendPasSHFragment(CodeEl,
+      'array [' + TPasArrayType(Element).IndexRange + '] of ', 0);
+    Result := AppendType(CodeEl, TableEl, TPasArrayType(Element).ElType, False);
   end else
   // Procedure or funtion type
   if Element.InheritsFrom(TPasProcedureType) then
@@ -1702,6 +1701,7 @@ var
 begin
   AppendMenuBar(0);
   AppendTitle(Format(SDocPackageTitle, [Copy(Package.Name, 2, 256)]));
+WriteLn('Package Pathname: ', Package.PathName); // ###
   AppendShortDescr(CreatePara(BodyElement), Package);
 
   AppendText(CreateH2(BodyElement), SDocUnits);
@@ -2578,7 +2578,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-03-18 19:28:44  michael
+  Revision 1.3  2003-04-17 14:15:24  sg
+  * Added writing of array ranges
+
+  Revision 1.2  2003/03/18 19:28:44  michael
   + Some changes to output handling, more suitable for tex output
 
   Revision 1.1  2003/03/17 23:03:20  michael
