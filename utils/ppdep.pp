@@ -531,7 +531,7 @@ begin
   Outfile:='';
   AddCall:=0;
   Verbose:=False;
-{$IFDEF linux}
+{$IFDEF Unix}
   UnitExt:='ppu';
 {$ELSE}
   UnitExt:='PPU';
@@ -579,7 +579,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-02-27 16:32:50  carl
+  Revision 1.3  2002-06-01 18:39:14  marco
+   * Renamefest
+
+  Revision 1.2  2002/02/27 16:32:50  carl
   * ifdef linux -> ifdef unix
 
   Revision 1.1  2000/07/13 10:16:22  michael

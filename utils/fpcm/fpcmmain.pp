@@ -24,6 +24,9 @@ interface
   {$ifdef linux}
       linux,
   {$endif}
+  {$ifdef BSD}
+      Linux,
+  {$endif}
   {$else}
       unix,
   {$endif}
@@ -1478,7 +1481,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  2002-03-15 11:37:46  armin
+  Revision 1.24  2002-06-01 18:39:15  marco
+   * Renamefest
+
+  Revision 1.23  2002/03/15 11:37:46  armin
   + Added netware target
 
   Revision 1.22  2002/01/29 22:00:22  peter

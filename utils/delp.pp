@@ -121,7 +121,7 @@ var
   N1,N2 : NameStr;
   E1,E2 : Extstr;
 begin
-{$ifdef linux}
+{$ifdef Unix}
   FSplit(What,D1,N1,E1);
   FSplit(Mask,D2,N2,E2);
 {$else}
@@ -168,7 +168,7 @@ procedure usage;
 begin
   Writeln('Delp [options] <directory>');
   Writeln('Where options is one of:');
-  writeln('  -e    Delete executables also (Not on linux)');
+  writeln('  -e    Delete executables also (Not on Unix)');
   writeln('  -h    Display (this) help message.');
   writeln('  -q    Quietly perfoms deleting.');
   Halt(1);
@@ -266,7 +266,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2002-03-02 23:21:32  carl
+  Revision 1.6  2002-06-01 18:39:14  marco
+   * Renamefest
+
+  Revision 1.5  2002/03/02 23:21:32  carl
   * small bugfix, was never prepending path to files, so they were never actually deleted!
 
   Revision 1.4  2002/02/27 16:32:08  carl

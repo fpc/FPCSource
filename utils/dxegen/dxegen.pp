@@ -16,10 +16,6 @@ Uses Strings,DxeLoad,Coff,Dos;
 
 {$inline on}
 
-{$ifdef Linux}              {Fix for 1.0.x}
- {$Define Unix}
-{$endif}
-
 Const
 {$ifdef Unix}
   DirSep  = '/';
@@ -318,7 +314,10 @@ Begin
 End.
 {
  $Log$
- Revision 1.3  2001-08-02 12:50:46  jonas
+ Revision 1.4  2002-06-01 18:39:15  marco
+  * Renamefest
+
+ Revision 1.3  2001/08/02 12:50:46  jonas
    * added 'inline on' directive
 
  Revision 1.2  2001/08/02 10:41:50  marco

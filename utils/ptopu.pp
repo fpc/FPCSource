@@ -561,7 +561,7 @@ end;
 Procedure WriteCR (S: PStream);
 
 Const
-{$ifdef linux}
+{$ifdef Unix}
   Newline = #10;
 {$else}
   NewLine = #13#10;
@@ -1223,7 +1223,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-02-27 16:35:31  carl
+  Revision 1.3  2002-06-01 18:39:14  marco
+   * Renamefest
+
+  Revision 1.2  2002/02/27 16:35:31  carl
   * bugfix of stream errors - would always give error!
 
   Revision 1.1  2000/07/13 10:16:22  michael
