@@ -175,6 +175,7 @@ type
     function Expand: TList;
     function Extract(item: Pointer): Pointer;
     function First: Pointer;
+    procedure Assign(Obj:TList);
     function IndexOf(Item: Pointer): Integer;
     procedure Insert(Index: Integer; Item: Pointer);
     function Last: Pointer;
@@ -1468,7 +1469,10 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.1  2003-10-06 20:33:58  peter
+  Revision 1.2  2003-10-07 19:41:11  marco
+   * 1.0.x compability fix
+
+  Revision 1.1  2003/10/06 20:33:58  peter
     * classes moved to rtl for 1.1
     * classes .inc and classes.pp files moved to fcl/classes for
       backwards 1.0.x compatiblity to have it in the fcl
