@@ -44,6 +44,7 @@ Type
       Function Read (Var Buffer; Count : Longint) : longint; Override;
     end;
 
+Function CreatePipeHandles (Var Inhandle,OutHandle : Longint) : Boolean;
 Procedure CreatePipeStreams (Var InPipe : TInputPipeStream;
                              Var OutPipe : TOutputPipeStream);
 
@@ -123,7 +124,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2002-09-07 15:15:25  peter
+  Revision 1.4  2004-08-11 21:42:47  michael
+  + Added CreatePipeHandles call to interface
+
+  Revision 1.3  2002/09/07 15:15:25  peter
     * old logs removed and tabs fixed
 
 }
