@@ -623,7 +623,7 @@ implementation
                                { compare only if the definition is not hidden }
                                if not procdefcoll^.hidden then
                                 begin
-                                  { check that all methods have overload directive } 
+                                  { check that all methods have overload directive }
                                   if not(m_fpc in aktmodeswitches) and
                                      (_class=pd._class) and
                                      (procdefcoll^.data._class=pd._class) and
@@ -634,7 +634,7 @@ implementation
                                       include(procdefcoll^.data.procoptions,po_overload);
                                       include(pd.procoptions,po_overload);
                                     end;
-                                    
+
                                   { check if one of the two methods has virtual }
                                   if (po_virtualmethod in procdefcoll^.data.procoptions) or
                                      (po_virtualmethod in pd.procoptions) then
@@ -1340,6 +1340,7 @@ implementation
          dataSegment.concat(Tai_symbol_end.Createname(_class.vmt_mangledname));
       end;
 
+
   procedure tclassheader.adjustselfvalue(procdef: tprocdef;ioffset: aword);
     var
       hsym : tsym;
@@ -1349,7 +1350,7 @@ implementation
       { calculate the parameter info for the procdef }
       if not procdef.has_paraloc_info then
         begin
-          paramanager.create_paraloc_info(procdef,callerside);
+          procdef.requiredargarea:=paramanager.create_paraloc_info(procdef,callerside);
           procdef.has_paraloc_info:=true;
         end;
       hsym:=tsym(procdef.parast.search('self'));
@@ -1379,7 +1380,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.61  2004-02-13 15:41:24  peter
+  Revision 1.62  2004-02-19 17:07:42  florian
+    * fixed arg. area calculation
+
+  Revision 1.61  2004/02/13 15:41:24  peter
     * overload directive checking for methods is now done
       when the vmt is generated
 

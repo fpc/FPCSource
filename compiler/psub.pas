@@ -674,7 +674,7 @@ implementation
               code of the ppc (and possibly other processors)               }
             if not procdef.has_paraloc_info then
               begin
-                paramanager.create_paraloc_info(procdef,callerside);
+                procdef.requiredargarea:=paramanager.create_paraloc_info(procdef,callerside);
                 procdef.has_paraloc_info:=true;
               end;
 
@@ -1345,7 +1345,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.185  2004-02-08 18:08:59  jonas
+  Revision 1.186  2004-02-19 17:07:42  florian
+    * fixed arg. area calculation
+
+  Revision 1.185  2004/02/08 18:08:59  jonas
     * fixed regvars support. Needs -doldregvars to activate. Only tested with
       ppc, other processors should however only require maxregvars and
       maxfpuregvars constants in cpubase.pas. Remember to take scratch-

@@ -93,6 +93,9 @@ unit procinfo;
           { Data (like jump tables) that belongs to this routine }
           aktlocaldata : taasmoutput;
 
+          { max. of space need for parameters }
+          maxpushedparasize : aword;
+
           constructor create(aparent:tprocinfo);virtual;
           destructor destroy;override;
 
@@ -178,7 +181,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2003-12-26 14:02:30  peter
+  Revision 1.12  2004-02-19 17:07:42  florian
+    * fixed arg. area calculation
+
+  Revision 1.11  2003/12/26 14:02:30  peter
     * sparc updates
     * use registertype in spill_register
 

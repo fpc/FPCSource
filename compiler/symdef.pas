@@ -443,6 +443,7 @@ interface
           proctypeoption  : tproctypeoption;
           proccalloption  : tproccalloption;
           procoptions     : tprocoptions;
+          requiredargarea : aword;
           maxparacount,
           minparacount    : byte;
 {$ifdef i386}
@@ -5325,15 +5326,15 @@ implementation
                              internalerror(200402171);
                            inc(address,tvarsym(hp^.sym).fieldoffset);
                            def:=tvarsym(hp^.sym).vartype.def;
-                         end;  
+                         end;
                        sl_vec :
                          begin
                            if not(assigned(def) and (def.deftype=arraydef)) then
                              internalerror(200402172);
                            def:=tarraydef(def).elementtype.def;
                            inc(address,def.size*hp^.value);
-                         end;  
-                     end;      
+                         end;
+                     end;
                      hp:=hp^.next;
                   end;
                 rttiList.concat(Tai_const.Create_32bit(address));
@@ -6117,7 +6118,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.219  2004-02-17 15:57:49  peter
+  Revision 1.220  2004-02-19 17:07:42  florian
+    * fixed arg. area calculation
+
+  Revision 1.219  2004/02/17 15:57:49  peter
   - fix rtti generation for properties containing sl_vec
   - fix crash when overloaded operator is not available
   - fix record alignment for C style variant records

@@ -2439,13 +2439,16 @@ type
          { calculate the parameter info for the procdef }
          if not procdefinition.has_paraloc_info then
            begin
-             paramanager.create_paraloc_info(procdefinition,callerside);
+             procdefinition.requiredargarea:=paramanager.create_paraloc_info(procdefinition,callerside);
              procdefinition.has_paraloc_info:=true;
            end;
 
+         current_procinfo.maxpushedparasize:=max(current_procinfo.maxpushedparasize,procdefinition.requiredargarea);
+
          { calculate the parameter info for varargs }
          if assigned(varargsparas) then
-           paramanager.create_varargs_paraloc_info(procdefinition,varargsparas);
+           current_procinfo.maxpushedparasize:=max(current_procinfo.maxpushedparasize,
+             paramanager.create_varargs_paraloc_info(procdefinition,varargsparas));
 
          { work trough all parameters to get the register requirements }
          if assigned(left) then
@@ -2716,7 +2719,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.225  2004-02-13 15:42:21  peter
+  Revision 1.226  2004-02-19 17:07:42  florian
+    * fixed arg. area calculation
+
+  Revision 1.225  2004/02/13 15:42:21  peter
     * compare_defs_ext has now a options argument
     * fixes for variants
 

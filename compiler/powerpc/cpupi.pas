@@ -36,8 +36,6 @@ unit cpupi;
        tppcprocinfo = class(tcgprocinfo)
           { offset where the frame pointer from the outer procedure is stored. }
           parent_framepointer_offset : longint;
-          { max. of space need for parameters, currently used by the PowerPC port only }
-          maxpushedparasize : aword;
           constructor create(aparent:tprocinfo);override;
           procedure set_first_temp_offset;override;
           procedure allocate_push_parasize(size: longint);override;
@@ -75,6 +73,8 @@ unit cpupi;
                 ofs:=align(maxpushedparasize+LinkageAreaSizeAIX,16);
               abi_powerpc_sysv:
                 ofs:=align(maxpushedparasize+LinkageAreaSizeSYSV,16);
+              else
+                internalerror(200402191);
             end;
             tg.setfirsttemp(ofs);
           end
@@ -145,7 +145,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2003-12-29 14:17:50  jonas
+  Revision 1.34  2004-02-19 17:07:42  florian
+    * fixed arg. area calculation
+
+  Revision 1.33  2003/12/29 14:17:50  jonas
     * fixed saving/restoring of volatile fpu registers under sysv
     + better provisions for abi differences regarding fpu registers that have
       to be saved

@@ -406,6 +406,7 @@ unit cpupara;
          curfloatreg:=nextfloatreg;
          curmmreg:=nextmmreg;
          cur_stack_offset:=stack_offset;
+         result:=cur_stack_offset;
       end;
 
 
@@ -453,7 +454,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.58  2004-02-11 23:18:59  florian
+  Revision 1.59  2004-02-19 17:07:42  florian
+    * fixed arg. area calculation
+
+  Revision 1.58  2004/02/11 23:18:59  florian
     * fixed to compile the rtl again
 
   Revision 1.57  2004/01/17 15:55:11  jonas
