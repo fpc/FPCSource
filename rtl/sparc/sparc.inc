@@ -20,12 +20,12 @@
 {****************************************************************************
                            SPARC specific stuff
 ****************************************************************************}
-function get_fsr : dword;assembler;
+function get_fsr : dword;assembler;nostackframe;
   var
     fsr : dword;
   asm
     st %fsr,fsr
-    ld fsr,%i0
+    ld fsr,%o0
   end;
 
 
@@ -84,7 +84,10 @@ function Sptr:Pointer;assembler;nostackframe;
 
 {
   $Log$
-  Revision 1.8  2004-08-04 19:27:10  florian
+  Revision 1.9  2004-09-12 12:04:23  peter
+    * restore traps when returning with longjmp
+
+  Revision 1.8  2004/08/04 19:27:10  florian
     * fixed floating point and integer exception handling on sparc/linux
 
   Revision 1.7  2004/05/30 20:03:05  florian

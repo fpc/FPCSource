@@ -36,7 +36,12 @@ Guardian:/usr/local/src/glibc-2.2.3/sysdeps/sparc/sparc32# more __longjmp.S
 
 ******************************************************************************}
 {@Define the machine-dependent type `jmp_buf'.  SPARC version.}
+const
+  jmpbufsigmaskwords = 128 div 32;
+  
 type
+  tjmpsigset=array[0..jmpbufsigmaskwords-1] of longint;
+  pjmpsigset=^tjmpsigset;
   jmp_buf=packed record
     {stack pointer}
     JB_SP,
@@ -44,13 +49,18 @@ type
     JB_FP,
     {program counter}
     JB_PV:Pointer;
+    
+    sigmask : tjmpsigset;
   end;
   Pjmp_buf=^jmp_buf;
 function setjmp(var S:jmp_buf):longint;
 procedure longjmp(var S:jmp_buf;value:longint);
 {
   $Log$
-  Revision 1.4  2003-01-05 21:32:35  mazen
+  Revision 1.5  2004-09-12 12:04:23  peter
+    * restore traps when returning with longjmp
+
+  Revision 1.4  2003/01/05 21:32:35  mazen
   * fixing several bugs compiling the RTL
 
   Revision 1.3  2003/01/01 18:24:41  mazen

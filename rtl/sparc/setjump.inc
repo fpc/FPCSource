@@ -18,6 +18,31 @@
 #define ST_FLUSH_WINDOWS 3
 #define RW_FP [%fp + 0x48]
 }
+
+{$ifdef linux}
+  {$define needsigprocmask}
+{$endif}
+
+{$ifdef needsigprocmask}
+const
+  JMPSIG_BLOCK   = 1;
+  JMPSIG_SETMASK = 4;
+
+function JmpSigProcMask(how:longint;nset : pjmpsigset;oset : pjmpsigset):longint; external name 'FPC_SYSC_SIGPROCMASK';
+
+procedure savesigmask(var s:jmp_buf);
+begin
+  jmpsigprocmask(JMPSIG_BLOCK,nil,@s.sigmask);
+end;
+
+procedure restoresigmask(var s:jmp_buf);
+begin
+  jmpsigprocmask(JMPSIG_SETMASK,@s.sigmask,nil);
+end;
+{$endif needsigprocmask}
+
+
+
 procedure longjmp(var s : jmp_buf;value:longint);assembler;nostackframe;[Public,alias:'FPC_LONGJMP'];
   asm
     // Store our arguments in global registers so we can still
@@ -57,10 +82,20 @@ procedure longjmp(var s : jmp_buf;value:longint);assembler;nostackframe;[Public,
     }
 
     ta      3
-    ld      [%g1+8], %o7    // Set return PC.
-    ld      [%g1], %fp      // Set saved SP on restore below.
+    mov     %g1,%o1         // use %o1, since %g1 will be destroyed by the call below
+    
+    ld      [%o1], %fp      // Set saved SP on restore below.
     sub     %fp, 64, %sp    // Allocate a register frame.
     st      %g3, [%fp+48]   // Set saved FP on restore below.
+
+{$ifdef needsigprocmask}
+    mov   %o1,%o0
+    call  restoresigmask
+    nop
+{$endif needsigprocmask}
+
+    ld      [%o1+8], %o7    // Set return PC.
+    
     retl
     restore %g2, 0, %o0     // Restore values from above register frame.
 
@@ -81,12 +116,22 @@ function setjmp(var S:jmp_buf):longint;assembler;nostackframe;[Public,alias:'FPC
     st      %o7, [%o0+8]
     st      %sp, [%o0]
     st      %fp, [%o0+4]
+
+{$ifdef needsigprocmask}
+    call   savesigmask
+    nop
+{$endif needsigprocmask}
+            
+    ld      [%o0+8], %o7
     mov     %g0, %o0
   end;
 
 {
   $Log$
-  Revision 1.8  2004-05-31 10:43:00  peter
+  Revision 1.9  2004-09-12 12:04:22  peter
+    * restore traps when returning with longjmp
+
+  Revision 1.8  2004/05/31 10:43:00  peter
     * don't create stackframes so we can retrieve the info from
       the caller
 
