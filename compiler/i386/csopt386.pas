@@ -1958,6 +1958,7 @@ begin
                                   replaceoperandwithreg(asml,p,0,memreg);
                                   allocregbetween(asml,memreg,hp5,
                                     tai(p.next.next));
+                                  ClearRegContentsFrom(regcounter,hp5,p);
                                 end;
                             end;
                         Ch_ROp2:
@@ -2010,6 +2011,7 @@ begin
                                   replaceoperandwithreg(asml,p,1,memreg);
                                   allocregbetween(asml,memreg,hp5,
                                     tai(p.next.next));
+                                  ClearRegContentsFrom(regcounter,hp5,p);
                                 end;
                             end;
                       end;
@@ -2113,7 +2115,10 @@ end.
 
 {
   $Log$
-  Revision 1.59  2003-12-20 22:53:33  jonas
+  Revision 1.60  2004-02-25 20:39:58  jonas
+    * fixed bugs that caused pasjpeg crashes
+
+  Revision 1.59  2003/12/20 22:53:33  jonas
     * fixed some more optimizer bugs, make cycle now works with -O2p3,
       -O2p3u, -O3p3 and -O3p3u
 
