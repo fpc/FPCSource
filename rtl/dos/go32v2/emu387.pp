@@ -107,7 +107,7 @@ unit emu387;
     begin
        exitproc:=prev_exit;
        dpmi_set_coprocessor_emulation(1);
-       writeln('Coprocessor restored ');
+       { writeln('Coprocessor restored '); }
        {/* Enable Coprocessor, no exceptions */}
     end;
 
@@ -217,7 +217,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  1998-03-26 12:23:17  peter
+  Revision 1.3  1998-03-31 10:18:55  florian
+    * exit message removed
+
+  Revision 1.2  1998/03/26 12:23:17  peter
     * emu387 doesn't uses dos anymore (getenv copied local)
     * makefile compilation order changed
 
@@ -251,7 +254,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  1998-03-26 12:23:17  peter
+  Revision 1.3  1998-03-31 10:18:55  florian
+    * exit message removed
+
+  Revision 1.2  1998/03/26 12:23:17  peter
     * emu387 doesn't uses dos anymore (getenv copied local)
     * makefile compilation order changed
 
