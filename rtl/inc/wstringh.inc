@@ -62,7 +62,6 @@ Type
     CompUCS4 : function(p1,p2:PUC42Char) : shortint;
 }
     CompareWideStringProc : function(const s1, s2 : WideString) : PtrInt;
-    SameWideStringProc : function(const s1, s2 : WideString) : Boolean;
     CompareTextWideStringProc : function(const s1, s2 : WideString): PtrInt;
     CharLengthPCharProc : function(const Str: PChar): PtrInt;
   end;
@@ -86,7 +85,10 @@ Procedure SetWideStringManager (Const New : TWideStringManager; Var Old: TWideSt
 
 {
   $Log$
-  Revision 1.4  2005-02-26 10:21:17  florian
+  Revision 1.5  2005-02-26 15:00:14  florian
+    + WideSameStr
+
+  Revision 1.4  2005/02/26 10:21:17  florian
     + implemented WideFormat
     + some Widestring stuff implemented
     * some Widestring stuff fixed

@@ -1418,18 +1418,13 @@ function CompareWideString(const s1, s2 : WideString) : PtrInt;
   begin
     unimplementedwidestring;
   end;
-
-
-function SameWideString(const s1, s2 : WideString) : Boolean;
-  begin
-    unimplementedwidestring;
-  end;
-
+  
 
 function CompareTextWideString(const s1, s2 : WideString): PtrInt;
   begin
     unimplementedwidestring;
   end;
+
 
 function CharLengthPChar(const Str: PChar): PtrInt;
   begin
@@ -1443,8 +1438,7 @@ procedure initwidestringmanager;
     widestringmanager.Ansi2WideMoveProc:=@Ansi2WideMove;
     widestringmanager.UpperWideStringProc:=@GenericWideCase;
     widestringmanager.LowerWideStringProc:=@GenericWideCase;
-    widestringmanager.CompareWideStringProc:=@CompareWideString;
-    widestringmanager.SameWideStringProc:=@SameWideString;
+    widestringmanager.CompareWideStringProc:=@CompareWideString;    
     widestringmanager.CompareTextWideStringProc:=@CompareTextWideString;
     widestringmanager.CharLengthPCharProc:=@CharLengthPChar;
   end;
@@ -1452,7 +1446,10 @@ procedure initwidestringmanager;
 
 {
   $Log$
-  Revision 1.52  2005-02-26 10:21:17  florian
+  Revision 1.53  2005-02-26 15:00:14  florian
+    + WideSameStr
+
+  Revision 1.52  2005/02/26 10:21:17  florian
     + implemented WideFormat
     + some Widestring stuff implemented
     * some Widestring stuff fixed

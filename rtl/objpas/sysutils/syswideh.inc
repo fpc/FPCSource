@@ -24,11 +24,16 @@ function WideLowerCase(const s : WideString) : WideString;
 function WideCompareStr(const s1, s2 : WideString) : PtrInt;
 function WideSameStr(const s1, s2 : WideString) : Boolean;
 function WideCompareText(const s1, s2 : WideString) : PtrInt;
+function WideSameText(const s1, s2 : WideString) : Boolean;
+
 Function WideFormat (Const Fmt : WideString; const Args : Array of const) : WideString;
 
 {
   $Log$
-  Revision 1.3  2005-02-26 10:21:17  florian
+  Revision 1.4  2005-02-26 15:00:14  florian
+    + WideSameStr
+
+  Revision 1.3  2005/02/26 10:21:17  florian
     + implemented WideFormat
     + some Widestring stuff implemented
     * some Widestring stuff fixed

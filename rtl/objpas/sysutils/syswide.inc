@@ -40,7 +40,7 @@ function WideCompareStr(const s1, s2 : WideString) : PtrInt;
 
 function WideSameStr(const s1, s2 : WideString) : Boolean;
   begin
-    result:=widestringmanager.SameWideStringProc(s1,s2);
+    result:=widestringmanager.CompareWideStringProc(s1,s2)=0;
   end;
 
 
@@ -48,6 +48,13 @@ function WideCompareText(const s1, s2 : WideString) : PtrInt;
   begin
     result:=widestringmanager.CompareTextWideStringProc(s1,s2);
   end;
+  
+  
+function WideSameText(const s1, s2 : WideString) : Boolean;
+  begin
+    result:=widestringmanager.CompareTextWideStringProc(s1,s2)=0;
+  end;
+  
 
 { we've no templates, but with includes we can simulate this :) }
 {$macro on}
@@ -65,7 +72,10 @@ Function WideFormat (Const Fmt : WideString; const Args : Array of const) : Wide
 
 {
   $Log$
-  Revision 1.4  2005-02-26 10:21:17  florian
+  Revision 1.5  2005-02-26 15:00:14  florian
+    + WideSameStr
+
+  Revision 1.4  2005/02/26 10:21:17  florian
     + implemented WideFormat
     + some Widestring stuff implemented
     * some Widestring stuff fixed
