@@ -1407,7 +1407,7 @@ option_switch_bin_to_src_assembler=N_Cambi ndo a ensamblador de escritura de c¢d
 # Logo (option -l)
 #
 option_logo_start=Free Pascal Compiler versi¢n $FPCVER [$FPCDATE] para $FPCTARGET
-option_logo_end=Copyright (c) 1993-98 por Florian Klaempfl
+option_logo_end=Copyright (c) 1993-99 por Florian Klaempfl
 
 #
 # Info (option -i)

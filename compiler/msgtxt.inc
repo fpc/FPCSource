@@ -509,7 +509,7 @@ const msgtxt : array[0..000101,1..240] of char=(
   'E_You are using the obsolete switch $1, please use $2'#000+
   'N_Switching assembler to default source writing assembler'#000+
   'Free Pascal Compiler version $FPCVER [$FPCDATE] for $FPCTARGET'#000+
-  'Copyright (c) 1993-98 by Florian Klae','mpfl'#000+
+  'Copyright (c) 1993-99 by Florian Klae','mpfl'#000+
   'Free Pascal Compiler version $FPCVER'#000+
   #000+
   'Compiler Date  : $FPCDATE'#000+

@@ -732,7 +732,7 @@ option_switch_bin_to_src_assembler=N_Switching assembler to default source writi
 # Лого (опция -l)
 #
 option_logo_start=Free Pascal Compiler version $FPCVER [$FPCDATE] for $FPCTARGET [Russian]
-option_logo_end=Copyright (c) 1993-98 by Florian Klaempfl
+option_logo_end=Copyright (c) 1993-99 by Florian Klaempfl
 
 #
 # Инфоpмация (опция -i)
@@ -898,7 +898,14 @@ ol_end=**1h_показать этy справкy, без ожидания <enter>
 
 #
 # $Log$
-# Revision 1.6  1999-07-07 22:36:22  michael
+# Revision 1.7  1999-09-12 08:48:05  florian
+#   * bugs 593 and 607 fixed
+#   * some other potential bugs with array constructors fixed
+#   * for classes compiled in $M+ and it's childs, the default access method
+#     is now published
+#   * fixed copyright message (it is now 1993-99)
+#
+# Revision 1.6  1999/07/07 22:36:22  michael
 # + Added last message
 #
 # Revision 1.5  1999/07/05 20:25:31  peter

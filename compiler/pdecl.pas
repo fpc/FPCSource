@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1993-99 by Florian Klaempfl
 
     Does declaration parsing for Free Pascal
 
@@ -1556,6 +1556,9 @@ unit pdecl;
          else
            aktclass:=new(pobjectdef,init(n,nil));
 
+         { default access is public }
+         actmembertype:=[sp_public];
+
          { set the class attribute }
          if is_a_class then
            begin
@@ -1567,17 +1570,16 @@ unit pdecl;
               if (cs_generate_rtti in aktlocalswitches) or
                   (assigned(aktclass^.childof) and
                    (oo_can_have_published in aktclass^.childof^.objectoptions)) then
-{$ifdef INCLUDEOK}
-                include(aktclass^.objectoptions,oo_can_have_published);
-{$else}
-                aktclass^.objectoptions:=aktclass^.objectoptions+[oo_can_have_published];
-{$endif}
+                begin
+                   include(aktclass^.objectoptions,oo_can_have_published);
+                   { in "publishable" classes the default access type is published }
+                   actmembertype:=[sp_published];
+                   { don't know if this is necessary (FK) }
+                   current_object_option:=[sp_published];
+                end;
            end;
 
          aktobjectdef:=aktclass;
-
-         { default access is public }
-         actmembertype:=[sp_public];
          aktclass^.symtable^.next:=symtablestack;
          symtablestack:=aktclass^.symtable;
          procinfo._class:=aktclass;
@@ -2525,7 +2527,14 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.150  1999-09-10 20:57:33  florian
+  Revision 1.151  1999-09-12 08:48:09  florian
+    * bugs 593 and 607 fixed
+    * some other potential bugs with array constructors fixed
+    * for classes compiled in $M+ and it's childs, the default access method
+      is now published
+    * fixed copyright message (it is now 1993-99)
+
+  Revision 1.150  1999/09/10 20:57:33  florian
     * some more fixes for stored properties
 
   Revision 1.149  1999/09/10 18:48:07  florian

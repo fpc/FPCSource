@@ -1467,7 +1467,7 @@ option_switch_bin_to_src_assembler=N_Switching assembler to default source writi
 # Logo (option -l)
 #
 option_logo_start=Free Pascal Compiler version $FPCVER [$FPCDATE] for $FPCTARGET
-option_logo_end=Copyright (c) 1993-98 by Florian Klaempfl
+option_logo_end=Copyright (c) 1993-99 by Florian Klaempfl
 
 #
 # Info (option -i)

@@ -3583,7 +3583,6 @@ Const local_symtable_index : longint = $8001;
         end;
 
       begin
-
          if (psym(sym)^.typ=propertysym) and
             (ppo_indexed in ppropertysym(sym)^.propoptions) then
            proctypesinfo:=$40
@@ -3747,7 +3746,14 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.161  1999-09-10 18:48:09  florian
+  Revision 1.162  1999-09-12 08:48:09  florian
+    * bugs 593 and 607 fixed
+    * some other potential bugs with array constructors fixed
+    * for classes compiled in $M+ and it's childs, the default access method
+      is now published
+    * fixed copyright message (it is now 1993-99)
+
+  Revision 1.161  1999/09/10 18:48:09  florian
     * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
     * most things for stored properties fixed
 

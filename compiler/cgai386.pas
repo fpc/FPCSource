@@ -81,7 +81,7 @@ unit cgai386;
 
     procedure emit_pushw_loc(const t:tlocation);
     procedure emit_push_lea_loc(const t:tlocation;freetemp:boolean);
-    procedure emit_to_reference(var p:ptree);
+    procedure emit_to_mem(var p:ptree);
     procedure emit_to_reg16(var hr:tregister);
     procedure emit_to_reg32(var hr:tregister);
     procedure emit_mov_reg_loc(reg: TRegister; const t:tlocation);
@@ -411,7 +411,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
     procedure emit_mov_loc_ref(const t:tlocation;const ref:treference;siz:topsize);
       var
         hreg : tregister;
+        pushedeax : boolean;
+
       begin
+        pushedeax:=false;
         case t.loc of
           LOC_REGISTER,
          LOC_CREGISTER : begin
@@ -427,16 +430,33 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                            else
                              begin
                                case siz of
-                                 S_B : hreg:=reg32toreg8(getregister32);
-                                 S_W : hreg:=reg32toreg16(getregister32);
+                                 S_B : begin
+                                          { we can't do a getregister in the code generator }
+                                          { without problems!!!                             }
+                                          if usablereg32>0 then
+                                            hreg:=reg32toreg8(getregister32)
+                                          else
+                                            begin
+                                               emit_reg(A_PUSH,S_L,R_EAX);
+                                               pushedeax:=true;
+                                               hreg:=R_AL;
+                                            end;
+                                       end;
+                                 S_W : hreg:=R_DI;
                                  S_L : hreg:=R_EDI;
                                end;
                                emit_ref_reg(A_MOV,siz,
                                  newreference(t.reference),hreg);
+                               del_reference(t.reference);
                                exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,siz,
                                  hreg,newreference(ref))));
-                               if siz<>S_L then
-                                ungetregister(hreg);
+                               if siz=S_B then
+                                 begin
+                                    if pushedeax then
+                                      emit_reg(A_POP,S_L,R_EAX)
+                                    else
+                                      ungetregister(hreg);
+                                 end;
                                { we can release the registers }
                                { but only AFTER the MOV! Important for the optimizer!
                                  (JM)}
@@ -714,7 +734,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       end;
 
 
-    procedure emit_to_reference(var p:ptree);
+    procedure emit_to_mem(var p:ptree);
       begin
         case p^.location.loc of
                LOC_FPU : begin
@@ -723,7 +743,6 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                            floatstore(pfloatdef(p^.resulttype)^.typ,p^.location.reference);
                            {  This can't be never a l-value! (FK)
                               p^.location.loc:=LOC_REFERENCE; }
-                           p^.location.loc:=LOC_MEM;
                          end;
                LOC_MEM,
          LOC_REFERENCE : ;
@@ -735,10 +754,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                            floatstore(pfloatdef(p^.resulttype)^.typ,p^.location.reference);
                            {  This can't be never a l-value! (FK)
                               p^.location.loc:=LOC_REFERENCE; }
-                           p^.location.loc:=LOC_MEM;
                          end;
          else
          internalerror(333);
+         p^.location.loc:=LOC_MEM;
         end;
       end;
 
@@ -3331,7 +3350,14 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.40  1999-09-11 11:23:58  florian
+  Revision 1.41  1999-09-12 08:48:04  florian
+    * bugs 593 and 607 fixed
+    * some other potential bugs with array constructors fixed
+    * for classes compiled in $M+ and it's childs, the default access method
+      is now published
+    * fixed copyright message (it is now 1993-99)
+
+  Revision 1.40  1999/09/11 11:23:58  florian
     * bug 603 fixed
 
   Revision 1.39  1999/09/10 15:42:51  peter

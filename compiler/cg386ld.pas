@@ -936,8 +936,9 @@ implementation
                   begin
                     if vaddr then
                      begin
-                       emit_to_reference(hp^.left);
+                       emit_to_mem(hp^.left);
                        emit_push_lea_loc(hp^.left^.location,freetemp);
+                       del_reference(hp^.left^.location.reference);
                      end
                     else
                      emit_push_loc(hp^.left^.location);
@@ -951,7 +952,7 @@ implementation
                     { write changing field update href to the next element }
                     if vaddr then
                      begin
-                       emit_to_reference(hp^.left);
+                       emit_to_mem(hp^.left);
                        emit_lea_loc_ref(hp^.left^.location,href,freetemp);
                      end
                     else
@@ -984,7 +985,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.84  1999-09-11 09:08:31  florian
+  Revision 1.85  1999-09-12 08:48:03  florian
+    * bugs 593 and 607 fixed
+    * some other potential bugs with array constructors fixed
+    * for classes compiled in $M+ and it's childs, the default access method
+      is now published
+    * fixed copyright message (it is now 1993-99)
+
+  Revision 1.84  1999/09/11 09:08:31  florian
     * fixed bug 596
     * fixed some problems with procedure variables and procedures of object,
       especially in TP mode. Procedure of object doesn't apply only to classes,

@@ -1534,12 +1534,13 @@ implementation
            end;
          { check for duplicate id in para symtable of methods }
          if (symtabletype=parasymtable) and
-           assigned(next) and
+           assigned(procinfo._class) and
+         { but not in nested procedures !}
+            (not(assigned(procinfo.parent^._class))) and 
           { funcretsym is allowed !! }
-           (sym^.typ <> funcretsym) and
-           (next^.symtabletype=objectsymtable) then
+           (sym^.typ <> funcretsym) then
            begin
-              hsym:=search_class_member(pobjectdef(next^.defowner),sym^.name);
+              hsym:=search_class_member(procinfo._class,sym^.name);
               { but private ids can be reused }
               if assigned(hsym) and
                 (not(sp_private in hsym^.symoptions) or
@@ -2406,7 +2407,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  1999-09-10 18:48:10  florian
+  Revision 1.47  1999-09-12 08:48:09  florian
+    * bugs 593 and 607 fixed
+    * some other potential bugs with array constructors fixed
+    * for classes compiled in $M+ and it's childs, the default access method
+      is now published
+    * fixed copyright message (it is now 1993-99)
+
+  Revision 1.46  1999/09/10 18:48:10  florian
     * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
     * most things for stored properties fixed
 
