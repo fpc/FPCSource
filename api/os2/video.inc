@@ -250,16 +250,19 @@ begin
                 crHidden: Attr := word (-1);
                 crUnderline:
                     begin
+                        Attr := 0;
                         yStart := word (-90);
                         cEnd := word (-100);
                     end;
                 crHalfBlock:
                     begin
+                        Attr := 0;
                         yStart := word (-50);
                         cEnd := word (-100);
                     end;
                 crBlock:
                     begin
+                        Attr := 0;
                         yStart := 0;
                         cEnd := word (-100);
                     end;
@@ -405,7 +408,10 @@ end;
 {
 
   $Log$
-  Revision 1.6  2000-10-08 14:13:19  hajny
+  Revision 1.7  2000-10-08 18:40:58  hajny
+    * SetCursorType corrected
+
+  Revision 1.6  2000/10/08 14:13:19  hajny
     * ClearScreen correction, screen restored on exit
 
   Revision 1.5  2000/10/04 11:53:31  pierre
