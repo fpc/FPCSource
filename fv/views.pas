@@ -422,6 +422,7 @@ TYPE
       PROCEDURE DisplaceBy (Dx, Dy: Sw_Integer); Virtual;
       PROCEDURE SetCommands (Commands: TCommandSet);
       PROCEDURE ReDrawArea (X1, Y1, X2, Y2: Sw_Integer); Virtual;
+      PROCEDURE ReDrawAreaVisible (X1, Y1, X2, Y2: Sw_Integer;Cur,Last : PView);
       PROCEDURE EnableCommands (Commands: TCommandSet);
       PROCEDURE DisableCommands (Commands: TCommandSet);
       PROCEDURE SetState (AState: Word; Enable: Boolean); Virtual;
@@ -1363,6 +1364,7 @@ BEGIN
              Begin
                If (DrawMask = 0) OR (DrawMask = vdNoChild)  then
                  SetDrawMask(vdAll);
+               ReleaseViewLimits;
                exit;
              End;
            Parent:=Parent^.Owner;
@@ -1866,6 +1868,50 @@ BEGIN
    LimitsLocked := HLimit;                            { Release our lock }
    SetViewPort(ViewPort.X1, ViewPort.Y1,
      ViewPort.X2, ViewPort.Y2, ClipOn, TextModeGFV);  { Reset old limits }
+END;
+
+PROCEDURE TView.ReDrawAreaVisible (X1, Y1, X2, Y2: Sw_Integer;Cur,Last : PView);
+var
+  StoreDrawMask : Byte;
+VAR HLimit: PView; ViewPort: ViewPortType;
+   x3,x4,y3,y4 : sw_integer;
+BEGIN
+   if not assigned(Cur) or (Cur=Last) or (Cur=@self) then
+     Begin
+       TView.ReDrawArea(x1,y1,x2,y2);
+       exit;
+     End;
+
+   x3:=Cur^.RawOrigin.x;
+   x4:=x3+Cur^.RawSize.x;
+   y3:=Cur^.RawOrigin.Y;
+   y4:=y3+Cur^.RawSize.Y;
+   { depending on relative positions of x1,x2,x3,x4
+     we should only draw subrectangles }
+
+   { number of possible cases :
+      x3<x1, x1<=x3<x2, x3>=x2 : 3 possibilities
+      total : 3^4: 81... }
+   if ((x3>=x2) or (x4<=x1) or (y3>=y2) or (y4<=y1)) or
+      (assigned(Cur) and ((Cur^.State and sfvisible)=0)) then
+     ReDrawAreaVisible(x1,y1,x2,y2,cur^.next,last)
+   else
+     begin
+       if x3>x1 then
+         begin
+           ReDrawAreaVisible(x1,y1,x3,y2,cur^.next,last);
+           x1:=x3;
+         end;
+       if x4<x2 then
+         begin
+           ReDrawAreaVisible(x4,y1,x2,y2,cur^.next,last);
+           x2:=x4;
+         end;
+       if y3>y1 then
+         ReDrawAreaVisible(x1,y1,x2,y3,cur^.next,last);
+       if y4<y2 then
+         ReDrawAreaVisible(x1,y4,x2,y2,cur^.next,last);
+     end;
 END;
 
 {--TView--------------------------------------------------------------------}
@@ -2553,14 +2599,15 @@ PROCEDURE TGroup.ReDrawArea (X1, Y1, X2, Y2: Sw_Integer);
 VAR P: PView;
 BEGIN
    { redraw this }
-   inherited RedrawArea(X1,Y1,X2,Y2);
+   // inherited RedrawArea(X1,Y1,X2,Y2);
+   ReDrawAreaVisible(X1, Y1, X2, Y2,Last^.Next,Last); { Redraw each subview }
    { redraw group members }
    If (DrawMask AND vdNoChild = 0) and
       (X1<RawOrigin.X+RawSize.X) and                  { No need to parse childs for Shadows }
       (Y1<RawOrigin.Y+RawSize.Y) Then Begin           { No draw child clear }
      P := Last;                                       { Start on Last }
      While (P <> Nil) Do Begin
-       P^.ReDrawArea(X1, Y1, X2, Y2);                 { Redraw each subview }
+       P^.ReDrawAreaVisible(X1, Y1, X2, Y2,Last^.Next,P); { Redraw each subview }
        P := P^.PrevView;                              { Move to prior view }
      End;
    End;
@@ -3241,7 +3288,7 @@ BEGIN
    If (GOptions AND goNativeClass = 0) Then Begin     { Non natives draw }
      Inherited DrawBackGround;                        { Call ancestor }
      Bc := GetColor(1) AND $F0 SHR 4;                 { Background colour }
-     If TextModeGFV or UseFixedFont then
+     If TextModeGFV {or UseFixedFont} then
        Begin
          WriteChar(0,0,Chars[0],Bc,1);
          If (Size.X = 1) Then Begin                         { Vertical scrollbar }
@@ -4487,6 +4534,7 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TView.GraphLine (X1, Y1, X2, Y2: Sw_Integer; Colour: Byte);
 VAR ViewPort: ViewPortType;
+    x,y,i,j,pv : sw_integer;
 BEGIN
    GetViewSettings(ViewPort, TextModeGFV);            { Get viewport settings }
    If (TextModeGFV <> TRUE) Then Begin
@@ -4494,6 +4542,40 @@ BEGIN
      Line(RawOrigin.X + X1 - ViewPort.X1,
        RawOrigin.Y + Y1 - ViewPort.Y1, RawOrigin.X + X2
        - ViewPort.X1, RawOrigin.Y + Y2-ViewPort.Y1);  { Draw the line }
+       { mark the corresponding lines as without chars }
+     If UseFixedFont and assigned(OldVideoBuf) then
+       begin
+         pv:=-1;
+         if x1=x2 then
+           begin
+             x:=(RawOrigin.X + X1) div SysFontWidth;
+             for j:=y1 to y2 do
+               begin
+                 y:=(RawOrigin.y + j) div SysFontHeight;
+                 if y<>pv then
+                   begin
+                     i:=y*TextScreenWidth+x;
+                     OldVideoBuf^[i]:=0;
+                     pv:=y;
+                   end;
+               end;
+           end
+         else if y1=y2 then
+           begin
+             y:=(RawOrigin.y + y1) div SysFontHeight;
+             for j:=x1 to x2 do
+               begin
+                 x:=(RawOrigin.X + j) div SysFontWidth;
+                 if x<>pv then
+                   begin
+                     { mark the corresponding lines as without chars }
+                     i:=y*TextScreenWidth+x;
+                     OldVideoBuf^[i]:=0;
+                     pv:=x;
+                   end;
+               end;
+           end;
+       end;
    End Else Begin                                     { LEON???? }
    End;
 END;
@@ -4502,11 +4584,21 @@ PROCEDURE TView.GraphRectangle (X1, Y1, X2, Y2: Sw_Integer; Colour: Byte);
 VAR ViewPort: ViewPortType;
 BEGIN
    If (TextModeGFV <> TRUE) Then Begin                { GRAPHICS MODE GFV }
-     SetColor(Colour);                                { Set line colour }
-     GetViewSettings(ViewPort, TextModeGFV);
-     Rectangle(RawOrigin.X + X1 - ViewPort.X1, RawOrigin.Y + Y1
-       - ViewPort.Y1, RawOrigin.X + X2 - ViewPort.X1,
-       RawOrigin.Y+Y2-ViewPort.Y1);                   { Draw a rectangle }
+     If UseFixedFont then
+       begin
+         Graphline(x1,y1,x1,y2,colour);
+         Graphline(x1,y2,x2,y2,colour);
+         Graphline(x2,y2,x2,y1,colour);
+         Graphline(x2,y1,x1,y1,colour);
+       end
+     else
+       begin
+         SetColor(Colour);                                { Set line colour }
+         GetViewSettings(ViewPort, TextModeGFV);
+         Rectangle(RawOrigin.X + X1 - ViewPort.X1, RawOrigin.Y + Y1
+           - ViewPort.Y1, RawOrigin.X + X2 - ViewPort.X1,
+           RawOrigin.Y+Y2-ViewPort.Y1);                   { Draw a rectangle }
+       end;
    End Else Begin                                     { LEON???? }
    End;
 END;
@@ -4520,7 +4612,7 @@ VAR
     Buf : TDrawBuffer;
 BEGIN
    GetViewSettings(ViewPort, TextModeGFV);            { Get viewport }
-   If not TextModeGFV and not UseFixedFont Then Begin                { GRAPHICAL GFV MODE }
+   If not TextModeGFV {and not UseFixedFont} Then Begin                { GRAPHICAL GFV MODE }
      SetFillStyle(SolidFill, Colour);                 { Set colour up }
      Bar(RawOrigin.X+X1-ViewPort.X1, RawOrigin.Y+Y1-
        ViewPort.Y1, RawOrigin.X+X2-ViewPort.X1,
@@ -5042,6 +5134,7 @@ VAR
   PrevP,PP : PView;
   CurOrigin : TPoint;
   I,J : longint;
+  Col,OrigCol : byte;
   B : Word;
   ViewPort : ViewPortType;
   Skip : boolean;
@@ -5055,7 +5148,12 @@ BEGIN
          (I<ViewPort.X2) AND (J<ViewPort.Y2) Then }
         Begin
           B:=VideoBuf^[J*ScreenWidth+i];
-          VideoBuf^[J*ScreenWidth+i]:= (B and $7FF);
+          OrigCol:=B shr 8;
+          if OrigCol and $F >= 8 then
+            Col:=OrigCol and $7
+          else
+            Col:=0;
+          VideoBuf^[J*ScreenWidth+i]:= (col shl 8) or (B and $FF);
         End;
     End;
   End;
@@ -5103,7 +5201,12 @@ BEGIN
 
       If not Skip and Assigned(P^.Buffer) then Begin
         B:=P^.Buffer^[(J-P^.Origin.Y)*P^.size.X+(I-P^.Origin.X)];
-        P^.Buffer^[(J-P^.Origin.Y)*P^.size.X+(I-P^.Origin.X)]:= (B and $FFF);
+        OrigCol:=B shr 8;
+        if OrigCol and $F >= 8 then
+          Col:=OrigCol and $7
+        else
+          Col:=0;
+        P^.Buffer^[(J-P^.Origin.Y)*P^.size.X+(I-P^.Origin.X)]:=  (col shl 8) or (B and $FF);
       End;
       PrevP:=P;
       If Skip then
@@ -5434,15 +5537,15 @@ BEGIN
    End;
    If (Number>0) AND (Number<10) Then Begin           { Valid number }
      Str(Number, S);                                  { Make number string }
+     If (Flags and wfZoom)<>0 then
+       I:=7
+     else
+       I:=3;
      If (TextModeGFV <> True) Then Begin              { GRAPHICS MODE GFV }
        SetColor(GetColor(2) AND $0F);
-       OutTextXY(RawOrigin.X+RawSize.X-2*FontWidth-ViewPort.X1,
+       OutTextXY(RawOrigin.X+RawSize.X-I*FontWidth-ViewPort.X1,
          RawOrigin.Y+Y+1-ViewPort.Y1+2, S);           { Write number }
      End Else Begin                                   { LEON ????? }
-       If (Flags and wfZoom)<>0 then
-         I:=7
-       else
-         I:=3;
        WriteCStr(Size.X-I,0,S,1,Color);
      End;
    End;
@@ -5570,7 +5673,10 @@ END.
 
 {
  $Log$
- Revision 1.26  2002-05-29 19:36:52  pierre
+ Revision 1.27  2002-05-30 14:53:54  pierre
+  * try to follow TV better
+
+ Revision 1.26  2002/05/29 19:36:52  pierre
   * fix UseFixedFont related code
 
  Revision 1.25  2002/05/28 19:15:16  pierre
