@@ -389,6 +389,37 @@ type
   end;
   TIntegerField = TLongintField;
 
+{ TLargeintField }
+
+  TLargeintField = class(TNumericField)
+  private
+    FMinValue,
+    FMaxValue,
+    FMinRange,
+    FMAxRange  : Largeint;
+    Procedure SetMinValue (AValue : Largeint);
+    Procedure SetMaxValue (AValue : Largeint);
+  protected
+    function GetAsFloat: Double; override;
+    function GetAsLongint: Longint; override;
+    function GetAsLargeint: Largeint; virtual;
+    function GetAsString: string; override;
+    function GetDataSize: Word; override;
+    procedure GetText(var AText: string; ADisplayText: Boolean); override;
+    function GetValue(var AValue: Largeint): Boolean;
+    procedure SetAsFloat(AValue: Double); override;
+    procedure SetAsLongint(AValue: Longint); override;
+    procedure SetAsLargeint(AValue: Largeint); virtual;
+    procedure SetAsString(const AValue: string); override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    Function CheckRange(AValue : largeint) : Boolean;
+    property Value: Longint read GetAsLongint write SetAsLongint;
+  published
+    property MaxValue: Largeint read FMaxValue write SetMaxValue default 0;
+    property MinValue: Largeint read FMinValue write SetMinValue default 0;
+  end;
+
 { TSmallintField }
 
   TSmallintField = class(TLongintField)
@@ -833,9 +864,7 @@ type
     FOnFilterRecord: TFilterRecordEvent;
     FOnNewRecord: TDataSetNotifyEvent;
     FOnPostError: TDataSetErrorEvent;
-//    FRecNo: Longint;
     FRecordCount: Longint;
-//    FRecordSize: Word;
     FIsUniDirectional: Boolean;
     FState : TDataSetState;
     Procedure DoInsertAppend(DoAppend : Boolean);
@@ -1321,10 +1350,13 @@ type
     FPacketRecords  : integer;
     FRecordSize     : Integer;
     FNullmaskSize   : byte;
+    FOpen           : Boolean;
     procedure CalcRecordSize;
     function LoadBuffer(Buffer : PChar): TGetResult;
     function GetFieldSize(FieldDef : TFieldDef) : longint;
   protected
+    procedure SetRecNo(Value: Longint); override;
+    function  GetRecNo: Longint; override;
     function  AllocRecordBuffer: PChar; override;
     procedure FreeRecordBuffer(var Buffer: PChar); override;
     procedure InternalInitRecord(Buffer: PChar); override;
@@ -1334,6 +1366,7 @@ type
     procedure InternalClose; override;
     function getnextpacket : integer;
     function GetRecordSize: Word; override;
+    procedure InternalPost; override;
     procedure InternalFirst; override;
     procedure InternalLast; override;
     procedure InternalSetToRecord(Buffer: PChar); override;
@@ -1343,6 +1376,9 @@ type
     procedure GetBookmarkData(Buffer: PChar; Data: Pointer); override;
     function GetBookmarkFlag(Buffer: PChar): TBookmarkFlag; override;
     function GetFieldData(Field: TField; Buffer: Pointer): Boolean; override;
+    procedure SetFieldData(Field: TField; Buffer: Pointer); override;
+    function IsCursorOpen: Boolean; override;
+    function  GetRecordCount: Longint; override;
   {abstracts, must be overidden by descendents}
     function Fetch : boolean; virtual; abstract;
     function LoadField(FieldDef : TFieldDef;buffer : pointer) : boolean; virtual; abstract;
@@ -1610,7 +1646,13 @@ end.
 
 {
   $Log$
-  Revision 1.30  2004-12-05 00:05:38  michael
+  Revision 1.31  2004-12-13 19:20:12  michael
+    * Patch from Joost van der Sluis
+    - moved IsCursorOpen from TSQLQuery to tbufdataset
+    - moved SetFieldData from TSQLQuery to TBufDataset
+    - very first start for support of cached updates
+
+  Revision 1.30  2004/12/05 00:05:38  michael
   patch to enable RecNo and DisplayFormat
 
   Revision 1.29  2004/12/04 22:44:24  michael
