@@ -1,7 +1,7 @@
 uses
    sysutils;
 
-{ comment by submitter: 
+{ comment by submitter:
   The following statement (which works in Delphi)
     result:=Format('%10.n', [ival*1.0]);
   generated an unhandled exception (and said: Missing argument in format "").
@@ -23,8 +23,11 @@ var
    ival : integer;
 
 begin
+   ThousandSeparator:='.';
+   DecimalSeparator:=',';
    ival:=1234;
    s:=Format('%10.n', [ival*1.0]);
+   writeln('s: "',s,'"');
    if s<>'     1.234' then
      begin
         writeln('Problem with Format');
