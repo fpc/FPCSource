@@ -46,7 +46,7 @@ begin
 end;
 
 
-Procedure Int_Typed_Reset(var f : TypedFile;Size : Longint);[Public,IOCheck, Alias: {$ifdef FPCNAMES}'FPC_RESET_TYPED'{$else}'RESET_TYPED'{$endif}];
+Procedure Int_Typed_Reset(var f : TypedFile;Size : Longint);[Public,IOCheck, Alias:'FPC_RESET_TYPED'];
 Begin
   If InOutRes <> 0 then
    exit;
@@ -54,7 +54,7 @@ Begin
 End;
 
 
-Procedure Int_Typed_Rewrite(var f : TypedFile;Size : Longint);[Public,IOCheck, Alias: {$ifdef FPCNAMES}'FPC_REWRITE_TYPED'{$else}'REWRITE_TYPED'{$endif}];
+Procedure Int_Typed_Rewrite(var f : TypedFile;Size : Longint);[Public,IOCheck, Alias:'FPC_REWRITE_TYPED'];
 Begin
   If InOutRes <> 0 then
    exit;
@@ -62,7 +62,7 @@ Begin
 End;
 
 
-Procedure Int_Typed_Write(TypeSize : Longint;var f : TypedFile;var Buf);[IOCheck, Public, Alias : {$ifdef FPCNAMES}'FPC_TYPED_WRITE'{$else}'TYPED_WRITE'{$endif}];
+Procedure Int_Typed_Write(TypeSize : Longint;var f : TypedFile;var Buf);[IOCheck, Public, Alias :'FPC_TYPED_WRITE'];
 Begin
   If InOutRes <> 0 then
    exit;
@@ -70,7 +70,7 @@ Begin
 End;
 
 
-Procedure Int_Typed_Read(TypeSize : Longint;var f : TypedFile;var Buf);[IOCheck, Public, Alias : {$ifdef FPCNAMES}'FPC_TYPED_READ'{$else}'TYPED_READ'{$endif}];
+Procedure Int_Typed_Read(TypeSize : Longint;var f : TypedFile;var Buf);[IOCheck, Public, Alias :'FPC_TYPED_READ'];
 var
   Result : Longint;
 Begin
@@ -83,7 +83,10 @@ End;
 
 {
   $Log$
-  Revision 1.5  1998-09-14 10:48:26  peter
+  Revision 1.6  1998-12-16 00:22:27  peter
+    * more temp symbols removed
+
+  Revision 1.5  1998/09/14 10:48:26  peter
     * FPC_ names
     * Heap manager is now system independent
 

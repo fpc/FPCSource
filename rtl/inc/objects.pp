@@ -679,7 +679,6 @@ CONST
 {                        STREAM REGISTRATION RECORDS                        }
 {---------------------------------------------------------------------------}
 
-{$ifndef VER0_99_8}
 CONST
    RCollection: TStreamRec = (
      ObjType: 50;
@@ -710,7 +709,6 @@ CONST
      VmtLink: Ofs(TypeOf(TStrListMaker)^);
      Load: Nil;
      Store: @TStrListMaker.Store);
-{$endif VER0_99_8}
 
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                                 IMPLEMENTATION
@@ -2643,11 +2641,9 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE RegisterObjects;
 BEGIN
-{$ifndef VER0_99_8}
    RegisterType(RCollection);                         { Register object }
    RegisterType(RStringCollection);                   { Register object }
    RegisterType(RStrCollection);                      { Register object }
-{$endif}
 END;
 
 {---------------------------------------------------------------------------}
@@ -2688,7 +2684,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.16  1998-12-08 10:11:27  peter
+  Revision 1.17  1998-12-16 00:22:25  peter
+    * more temp symbols removed
+
+  Revision 1.16  1998/12/08 10:11:27  peter
     * tpoint contains now sw_integer (needed to support 64k files in the
       editor)
 

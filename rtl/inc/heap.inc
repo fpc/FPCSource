@@ -139,13 +139,13 @@ begin
 end;
 
 
-procedure GetMem(Var p:pointer;Size:Longint);[public,alias:{$ifdef FPCNAMES}'FPC_'+{$endif}'GETMEM'];
+procedure GetMem(Var p:pointer;Size:Longint);[public,alias:'FPC_GETMEM'];
 begin
   MemoryManager.GetMem(p,Size);
 end;
 
 
-procedure FreeMem(Var p:pointer;Size:Longint);[public,alias:{$ifdef FPCNAMES}'FPC_'+{$endif}'FREEMEM'];
+procedure FreeMem(Var p:pointer;Size:Longint);[public,alias:'FPC_FREEMEM'];
 begin
   MemoryManager.FreeMem(p,Size);
 end;
@@ -1086,7 +1086,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  1998-10-22 23:50:45  peter
+  Revision 1.4  1998-12-16 00:22:24  peter
+    * more temp symbols removed
+
+  Revision 1.3  1998/10/22 23:50:45  peter
     + check for < 0 which otherwise segfaulted
 
   Revision 1.2  1998/10/01 14:55:17  peter
