@@ -1,3 +1,5 @@
+{ %fail }
+
 { %version=1.1}
 {$mode delphi}
 var

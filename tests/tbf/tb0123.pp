@@ -1,3 +1,5 @@
+{ %fail }
+
 type
    smallrange = 5..287;
 const
