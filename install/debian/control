@@ -1,0 +1,15 @@
+Source: fpc
+Section: devel
+Priority: optional
+Maintainer: root <root@cooldown.demon.nl>
+Standards-Version: 2.4.1.2
+
+Package: fpc
+Architecture: i386
+Depends: 
+Description: Free Pascal Compiler
+ The Free Pascal Compiler is a Turbo Pascal 7.0 and Delphi II compatible
+ 32bit Pascal Compiler. It comes with fully TP 7.0 compatible run-time library.
+ Some extensions are added to the language, like function overloading. Shared
+ libraries can be linked and created.
+
