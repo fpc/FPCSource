@@ -59,6 +59,7 @@ type
     procedure InsertBreakpoints;
     procedure RemoveBreakpoints;
     procedure ReadWatches;
+    procedure RereadWatches;
     procedure ResetBreakpointsValues;
     procedure DoDebuggerScreen;virtual;
     procedure DoUserScreen;virtual;
@@ -192,6 +193,7 @@ type
       procedure   Store(var S: TStream);
       procedure rename(s : string);
       procedure Get_new_value;
+      procedure Force_new_value;
       destructor done;virtual;
       expr : pstring;
     private
@@ -720,6 +722,19 @@ procedure TDebugController.ReadWatches;
   procedure DoRead(PB : PWatch);
   begin
     PB^.Get_new_value;
+  end;
+
+begin
+  WatchesCollection^.ForEach(@DoRead);
+  If Assigned(WatchesWindow) then
+    WatchesWindow^.Update;
+end;
+
+procedure TDebugController.RereadWatches;
+
+  procedure DoRead(PB : PWatch);
+  begin
+    PB^.Force_new_value;
   end;
 
 begin
@@ -2560,7 +2575,11 @@ procedure TWatch.Get_new_value;
                inc(curframe);
                if not Debugger^.set_current_frame(curframe) then
                  loop_higher:=false;
+{$ifdef FrameNameKnown}
+               s2:='/x '+FrameName;
+{$else not  FrameNameKnown}
                s2:='/x $ebp';
+{$endif FrameNameKnown}
                getValue(s2);
                j:=pos('=',s2);
                if j>0 then
@@ -2624,6 +2643,12 @@ procedure TWatch.Get_new_value;
       q[i-1]:=last_removed;
     strdispose(p);
     GDBRunCount:=Debugger^.RunCount;
+  end;
+
+procedure TWatch.Force_new_value;
+  begin
+    GDBRunCount:=-1;
+    Get_new_value;
   end;
 
 destructor TWatch.Done;
@@ -3872,7 +3897,7 @@ end;
     {$ifndef NODEBUG}
       Debugger^.Command('f '+IntToStr(Focused));
       { for local vars }
-      Debugger^.ReadWatches;
+      Debugger^.RereadWatches;
    {$endif}
       { goto source }
       inherited GotoSource;
@@ -3886,7 +3911,7 @@ end;
     {$ifndef NODEBUG}
       Debugger^.Command('f '+IntToStr(Focused));
       { for local vars }
-      Debugger^.ReadWatches;
+      Debugger^.RereadWatches;
    {$endif}
       { goto source/assembly mixture }
       InitDisassemblyWindow;
@@ -4250,7 +4275,10 @@ end.
 
 {
   $Log$
-  Revision 1.34  2002-11-21 00:37:56  pierre
+  Revision 1.35  2002-11-21 15:48:39  pierre
+   * fix several problems related to remote cross debugging
+
+  Revision 1.34  2002/11/21 00:37:56  pierre
    + some cross gdb enhancements
 
   Revision 1.33  2002/09/21 22:23:49  pierre
