@@ -318,8 +318,11 @@ end;
 function NewIndexEntry(Tag: string; FileID: word; HelpCtx: THelpCtx): PIndexEntry;
 var P: PIndexEntry;
 begin
-  New(P); FillChar(P^,SizeOf(P^), 0);
-  P^.Tag:=NewStr(Tag); P^.FileID:=FileID; P^.HelpCtx:=HelpCtx;
+  New(P);
+  FillChar(P^,SizeOf(P^), 0);
+  P^.Tag:=NewStr(Tag);
+  P^.FileID:=FileID;
+  P^.HelpCtx:=HelpCtx;
   NewIndexEntry:=P;
 end;
 
@@ -463,7 +466,14 @@ begin
   New(F, Init(AFileName, stOpenRead, HelpStreamBufSize));
   OK:=F<>nil;
   if OK then OK:=(F^.Status=stOK);
-  if OK then begin FS:=F^.GetSize; OK:=ReadHeader; end;
+  if OK then
+    begin
+{$ifdef FPC}
+      F^.TPCompatible:=true;
+{$endif}
+      FS:=F^.GetSize;
+      OK:=ReadHeader;
+    end;
   while OK do
   begin
     L:=F^.GetPos;
@@ -560,8 +570,10 @@ begin
   for I:=0 to IndexCount-1 do
   begin
     LenCode:=PByteArray(@Entries)^[CurPtr];
-    AddLen:=LenCode and $1f; CopyCnt:=LenCode shr 5;
-    S[0]:=chr(AddLen); Move(PByteArray(@Entries)^[CurPtr+1],S[1],AddLen);
+    AddLen:=LenCode and $1f;
+    CopyCnt:=LenCode shr 5;
+    S[0]:=chr(AddLen);
+    Move(PByteArray(@Entries)^[CurPtr+1],S[1],AddLen);
     LastTag:=copy(LastTag,1,CopyCnt)+S;
     Move(PByteArray(@Entries)^[CurPtr+1+AddLen],HelpCtx,2);
     IndexEntries^.Insert(NewIndexEntry(LastTag,ID,HelpCtx));
@@ -642,7 +654,7 @@ begin
   case N of
     $00       : C:=#0;
     $01..$0D  : C:=chr(Compression.CharTable[N]);
-    ncRawChar : C:=chr(GetNextNibble*16+GetNextNibble);
+    ncRawChar : C:=chr(GetNextNibble+GetNextNibble shl 4);
     ncRepChar : begin
                   Cnt:=2+GetNextNibble;
                   C:=GetNextChar{$ifdef FPC}(){$endif};
@@ -809,10 +821,12 @@ begin
   TopicSearch:=HelpFiles^.FirstThat(@ScanHelpFile)<>nil;
 end;
 
+
 function THelpFacility.BuildIndexTopic: PTopic;
-var T: PTopic;
-    Keywords: PIndexEntryCollection;
-    Lines: PUnsortedStringCollection;
+var
+  T        : PTopic;
+  Keywords : PIndexEntryCollection;
+  Lines    : PUnsortedStringCollection;
 
   procedure InsertKeywordsOfFile(H: PHelpFile); {$ifndef FPC}far;{$endif}
 
@@ -821,12 +835,9 @@ var T: PTopic;
       Keywords^.Insert(P);
       InsertKeywords:=Keywords^.Count>=MaxCollectionSize;
     end;
-  var
-    l1,l2 : longint;
+
   begin
     H^.LoadIndex;
-    l1:=MaxCollectionSize;
-    l2:=Keywords^.count;
     if Keywords^.Count<MaxCollectionSize then
       H^.IndexEntries^.FirstThat(@InsertKeywords);
   end;
@@ -838,29 +849,44 @@ var T: PTopic;
   end;
 
 procedure RenderTopic;
-var Size,CurPtr,I: word;
+var
+  Size,CurPtr,I: word;
   S: string;
-function CountSize(P: PString): boolean; {$ifndef FPC}far;{$endif} begin Inc(Size, length(P^)+1); CountSize:=Size>65200; end;
+
+  function CountSize(P: PString): boolean; {$ifndef FPC}far;{$endif}
+  begin
+    Inc(Size, length(P^)+1);
+    CountSize:=Size>65200;
+  end;
+
 begin
-  Size:=0; Lines^.FirstThat(@CountSize);
-  T^.TextSize:=Size; GetMem(T^.Text,T^.TextSize);
+  Size:=0;
+  Lines^.FirstThat(@CountSize);
+  T^.TextSize:=Size;
+  GetMem(T^.Text,T^.TextSize);
   CurPtr:=0;
   for I:=0 to Lines^.Count-1 do
   begin
     S:=Lines^.At(I)^;
-    Size:=length(S)+1; S[Size]:=hscLineBreak;
+    Size:=length(S)+1;
+    S[Size]:=hscLineBreak;
     Move(S[1],PByteArray(T^.Text)^[CurPtr],Size);
     Inc(CurPtr,Size);
-    if CurPtr>=T^.TextSize then Break;
+    if CurPtr>=T^.TextSize then
+     Break;
   end;
 end;
+
 var Line: string;
 procedure FlushLine;
 begin
   if Line<>'' then AddLine(Line); Line:='';
 end;
-var KWCount,NLFlag: Sw_integer;
-    LastFirstChar: char;
+
+var
+  KWCount,NLFlag: Sw_integer;
+  LastFirstChar: char;
+
 procedure NewSection(FirstChar: char);
 begin
   if FirstChar<=#64 then FirstChar:=#32;
@@ -871,6 +897,7 @@ begin
   LastFirstChar:=FirstChar;
   NLFlag:=0;
 end;
+
 procedure AddKeyword(KWS: string);
 begin
   Inc(KWCount); if KWCount=1 then NLFlag:=0;
@@ -885,8 +912,10 @@ begin
           end;
   Inc(NLFlag);
 end;
-var KW: PIndexEntry;
-    I: Sw_integer;
+
+var
+  KW : PIndexEntry;
+  I  : Sw_integer;
 begin
   New(Keywords, Init(5000,1000));
   HelpFiles^.ForEach(@InsertKeywordsOfFile);
@@ -896,28 +925,31 @@ begin
     begin
       AddLine('');
       AddLine(' No help files installed.')
-    end else
-  begin
-    AddLine(' Help index');
-    KWCount:=0; Line:='';
-    T^.LinkCount:=Keywords^.Count;
-    T^.LinkSize:=T^.LinkCount*SizeOf(T^.Links^[0]);
-    GetMem(T^.Links,T^.LinkSize);
-
-    for I:=0 to Keywords^.Count-1 do
+    end
+  else
     begin
-      KW:=Keywords^.At(I);
-      AddKeyword(KW^.Tag^);
-      T^.Links^[I].Context:=KW^.HelpCtx; T^.Links^[I].FileID:=KW^.FileID;
+      AddLine(' Help index');
+      KWCount:=0; Line:='';
+      T^.LinkCount:=Keywords^.Count;
+      T^.LinkSize:=T^.LinkCount*SizeOf(T^.Links^[0]);
+      GetMem(T^.Links,T^.LinkSize);
+      for I:=0 to Keywords^.Count-1 do
+       begin
+         KW:=Keywords^.At(I);
+         AddKeyword(KW^.Tag^);
+         T^.Links^[I].Context:=KW^.HelpCtx;
+         T^.Links^[I].FileID:=KW^.FileID;
+       end;
+      FlushLine;
+      AddLine('');
     end;
-    FlushLine;
-    AddLine('');
-  end;
   RenderTopic;
   Dispose(Lines, Done);
-  Keywords^.DeleteAll; Dispose(Keywords, Done);
+  Keywords^.DeleteAll;
+  Dispose(Keywords, Done);
   BuildIndexTopic:=T;
 end;
+
 
 function THelpFacility.SearchFile(ID: byte): PHelpFile;
 function Match(P: PHelpFile): boolean; {$ifndef FPC}far;{$endif}
@@ -945,7 +977,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.6  1999-02-20 15:18:35  peter
+  Revision 1.7  1999-02-22 15:04:31  peter
+    * helpfiles fixed
+
+  Revision 1.6  1999/02/20 15:18:35  peter
     + ctrl-c capture with confirm dialog
     + ascii table in the tools menu
     + heapviewer

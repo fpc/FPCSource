@@ -15,7 +15,7 @@ type
     TTopicLinkCollection = object(TStringCollection)
       procedure Insert(Item: Pointer); virtual;
       function  At(Index: sw_Integer): PString;
-      function  AddItem(Item: string): integer;
+      function  AddItem(const Item: string): Sw_integer;
     end;
 
     TParagraphAlign = (paLeft,paCenter,paRight);
@@ -178,7 +178,7 @@ begin
   At:=inherited At(Index);
 end;
 
-function TTopicLinkCollection.AddItem(Item: string): integer;
+function TTopicLinkCollection.AddItem(const Item: string): Sw_integer;
 var Idx: sw_integer;
 begin
   if Item='' then Idx:=-1 else
@@ -563,14 +563,18 @@ var OK: boolean;
     HTMLFile: PDOSTextFile;
     Name: string;
     Link: string;
+    FileNo,LinkNo : word;
     P: sw_integer;
 begin
   OK:=T<>nil;
   if OK then
     begin
-      if T^.HelpCtx=0 then Name:=FileName else
+      if (T^.HelpCtx=0) then
+        Name:=FileName
+      else
         begin
-          Link:=TopicLinks^.At(T^.HelpCtx-1)^;
+          DecodeHTMLCtx(T^.HelpCtx-1,FileNo,LinkNo);
+          Link:=TopicLinks^.At(LinkNo)^;
           Link:=FormatPath(Link);
           P:=Pos('#',Link); if P>0 then Delete(Link,P,255);
 {          if CurFileName='' then Name:=Link else
