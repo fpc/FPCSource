@@ -1284,7 +1284,8 @@ BEGIN
    else
      Begin
        OldFileMode := FileMode;
-       FileMode := Mode and 3;
+       { Keep sharing modes! }
+       FileMode := Mode and $FF;
        System.Reset(FileInfo,1);
        FileMode := OldFileMode;
        { To use the correct mode we must reclose the file
@@ -2944,7 +2945,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.32  2004-06-20 09:24:40  peter
+  Revision 1.33  2004-08-26 22:58:01  carl
+    * bugfix with file sharing modes. They are now kept, as is the case in BP.
+
+  Revision 1.32  2004/06/20 09:24:40  peter
   fixed go32v2 compile
 
   Revision 1.31  2004/04/28 20:48:20  peter
