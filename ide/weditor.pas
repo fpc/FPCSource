@@ -2178,8 +2178,8 @@ var
     if C in WhiteSpaceChars then CC:=ccWhiteSpace else
     if C in TabChars then CC:=ccTab else
     if C in HashChars then CC:=ccHash else
-    if C in NumberChars then CC:=ccNumber else
     if (LastCC=ccHexNumber) and (C in HexNumberChars) then CC:=ccHexNumber else
+    if C in NumberChars then CC:=ccNumber else
     if (LastCC=ccNumber) and (C in RealNumberChars) then
       begin
         if (C='.') then
@@ -7086,7 +7086,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.12  2001-09-27 16:30:16  pierre
+  Revision 1.13  2001-10-01 09:08:21  pierre
+   * fix hexadecimal number highlighting
+
+  Revision 1.12  2001/09/27 16:30:16  pierre
    * fix Hexadecimal number highlighting
 
   Revision 1.11  2001/09/25 22:45:09  pierre
