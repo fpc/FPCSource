@@ -223,7 +223,9 @@ interface
     function convertable_paras(paralist1,paralist2 : tlinkedlist; acp : compare_type) : boolean;
 
     { true if a function can be assigned to a procvar }
-    function proc_to_procvar_equal(def1:tprocdef;def2:tprocvardef;exact:boolean) : boolean;
+    { changed first argument type to pabstractprocdef so that it can also be }
+    { used to test compatibility between two pprocvardefs (JM)               }
+    function proc_to_procvar_equal(def1:tabstractprocdef;def2:tprocvardef;exact:boolean) : boolean;
 
     function get_proc_2_procvar_def(p:tprocsym;d:tprocvardef):tprocdef;
 
@@ -415,7 +417,9 @@ implementation
 
 
     { true if a function can be assigned to a procvar }
-    function proc_to_procvar_equal(def1:tprocdef;def2:tprocvardef;exact:boolean) : boolean;
+    { changed first argument type to pabstractprocdef so that it can also be }
+    { used to test compatibility between two pprocvardefs (JM)               }
+    function proc_to_procvar_equal(def1:tabstractprocdef;def2:tprocvardef;exact:boolean) : boolean;
       const
         po_comp = po_compatibility_options-[po_methodpointer,po_classmethod];
       var
@@ -1706,6 +1710,14 @@ implementation
                   if proc_to_procvar_equal(tprocdef(def_from),tprocvardef(def_to),false) then
                    b:=1;
                 end
+               { procvar -> procvar }
+               else
+                 if (def_from.deftype=procvardef) and
+                    (proc_to_procvar_equal(tprocvardef(def_from),tprocvardef(def_to),false)) then
+                   begin
+                     doconv:=tc_equal;
+                     b := 2;
+                   end
                else
                 { for example delphi allows the assignement from pointers }
                 { to procedure variables                                  }
@@ -1885,7 +1897,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.59  2001-12-10 14:34:04  jonas
+  Revision 1.60  2001-12-17 12:49:08  jonas
+    * added type conversion from procvar to procvar (if their arguments are
+      convertable, two procvars are convertable too) ("merged")
+
+  Revision 1.59  2001/12/10 14:34:04  jonas
     * fixed type conversions from dynamic arrays to open arrays
 
   Revision 1.58  2001/12/03 21:48:43  peter
