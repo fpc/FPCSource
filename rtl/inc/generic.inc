@@ -39,7 +39,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FILLCHAR}
 Procedure FillChar(var x;count:longint;value:byte);
 type
-  longintarray = array [0..maxlongint] of longint;
+  longintarray = array [0..maxlongint div 4] of longint;
   bytearray    = array [0..maxlongint] of byte;
 var
   i,v : longint;
@@ -67,8 +67,8 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FILLWORD}
 procedure fillword(var x;count : longint;value : word);
 type
-  longintarray = array [0..maxlongint] of longint;
-  wordarray    = array [0..maxlongint] of word;
+  longintarray = array [0..maxlongint div 4] of longint;
+  wordarray    = array [0..maxlongint div 2] of word;
 var
   i,v : longint;
 begin
@@ -84,7 +84,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FILLDWORD}
 procedure FillDWord(var x;count : longint;value : DWord);
 type
-  longintarray = array [0..maxlongint] of longint;
+  longintarray = array [0..maxlongint div 4] of longint;
 var
   I : longint;
 begin
@@ -945,7 +945,10 @@ end;
 
 {
   $Log$
-  Revision 1.29  2002-07-28 21:39:28  florian
+  Revision 1.30  2002-07-29 09:23:11  jonas
+    * fixed some datastructures > 2GB
+
+  Revision 1.29  2002/07/28 21:39:28  florian
     * made abs a compiler proc if it is generic
 
   Revision 1.28  2002/07/28 20:43:47  florian
