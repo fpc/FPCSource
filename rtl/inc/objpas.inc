@@ -255,8 +255,14 @@
            vmt:=ClassType;
            while assigned(vmt) do
              begin
-                count:=pdword((pdword(vmt)+vmtMsgStrPtr)^)^;
-                msgstrtable:=pmsgstrtable((pdword(vmt)+vmtMsgStrPtr)^+4);
+                p:=(pdword(vmt)+vmtMsgStrPtr);
+                If (P<>Nil) and (PDWord(P)^<>0) then
+                  begin
+                  count:=pdword(pdword(p)^)^;
+                  msgstrtable:=pmsgstrtable(pdword(P)^+4);
+                  end
+                else
+                  Count:=0;
                 { later, we can implement a binary search here }
                 for i:=0 to count-1 do
                   begin
@@ -324,7 +330,10 @@
 
 {
   $Log$
-  Revision 1.6  1999-07-11 14:05:50  michael
+  Revision 1.7  1999-07-11 14:10:48  michael
+  + Adaptes Dispatch(STr) to cope with empty/non-existent message tables
+
+  Revision 1.6  1999/07/11 14:05:50  michael
   + Added
 
   Revision 1.5  1999/07/05 20:04:24  peter
