@@ -165,7 +165,7 @@ ggigraph$(PPUEXT) : $(UNIXINC)/ggigraph.pp linux$(PPUEXT) $(SYSTEMPPU) \
 #
 
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/*.inc) \
-                    objpas$(PPUEXT) linux$(PPUEXT)
+                    objpas$(PPUEXT) linux$(PPUEXT) errors$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(UNIXINC)/sysutils.pp $(REDIR)
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
