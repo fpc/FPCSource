@@ -1463,8 +1463,6 @@ BEGIN
    InitSystemMsg;
 {$ifdef win32}
    SetFileApisToOEM;
-   SetConsoleCP(437);
-   SetConsoleOutputCP(437);
 {$endif}
 
    SaveExit := ExitProc;                              { Save old exit }
@@ -1472,7 +1470,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.47  2004-12-04 23:06:52  peter
+ Revision 1.48  2004-12-06 19:23:55  peter
+ don't set CP 437
+
+ Revision 1.47  2004/12/04 23:06:52  peter
    * fix valgrind warning in formatstr
 
  Revision 1.46  2004/12/04 18:40:47  peter
