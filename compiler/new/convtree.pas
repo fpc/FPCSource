@@ -34,7 +34,7 @@ unit convtree;
   implementation
 
     uses
-       verbose,nstatmnt;
+       verbose,nstatmnt,nmem;
 
     function convtree2node(p : ptree) : pnode;
 
@@ -59,7 +59,10 @@ unit convtree;
 end.
 {
   $Log$
-  Revision 1.3  1999-01-23 23:29:47  florian
+  Revision 1.4  1999-01-24 22:32:35  florian
+    * well, more changes, especially parts of secondload ported
+
+  Revision 1.3  1999/01/23 23:29:47  florian
     * first running version of the new code generator
     * when compiling exceptions under Linux fixed
 

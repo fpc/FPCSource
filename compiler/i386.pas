@@ -349,6 +349,8 @@ unit i386;
 
        frame_pointer = R_EBP;
 
+       self_pointer = R_ESI;
+
        { This constant is an alias for the accumulator, as it's name may
          differ from processor to processor. }
        accumulator = R_EAX;
@@ -1975,7 +1977,10 @@ Begin
 end.
 {
   $Log$
-  Revision 1.31  1999-01-23 23:29:31  florian
+  Revision 1.32  1999-01-24 22:32:33  florian
+    * well, more changes, especially parts of secondload ported
+
+  Revision 1.31  1999/01/23 23:29:31  florian
     * first running version of the new code generator
     * when compiling exceptions under Linux fixed
 

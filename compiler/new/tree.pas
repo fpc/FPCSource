@@ -207,15 +207,6 @@ unit tree;
 {$endif EXTDEBUG}
        end;
 
-       ploadnode = ^tloadnode;
-       tloadnode = object(tnode)
-          symtableentry : psym;
-          symtable : psymtable;
-          is_absolute,is_first,is_methodpointer : boolean;
-          constructor init(v : pvarsym;st : psymtable);
-          destructor done;virtual;
-       end;
-
 {$ifndef nooldtree}
        { allows to determine which elementes are to be replaced }
        tdisposetyp = (dt_nothing,dt_leftright,dt_left,
@@ -569,36 +560,6 @@ unit tree;
          write(indention,'(',treetype2str[treetype]);
       end;
 {$endif EXTDEBUG}
-
-{****************************************************************************
-                                 TLOADNODE
- ****************************************************************************}
-
-    constructor tloadnode.init(v : pvarsym;st : psymtable);
-
-      var
-         p : ptree;
-
-      begin
-         inherited init;
-         p^.treetype:=loadn;
-         resulttype:=v^.definition;
-         symtableentry:=v;
-         symtable:=st;
-         p^.is_first := False;
-         p^.is_methodpointer:=false;
-
-         { method pointer load nodes can use the left subtree }
-         { !!!!! p^.left:=nil; }
-      end;
-
-    destructor tloadnode.done;
-
-      begin
-         inherited done;
-         { method pointer load nodes can use the left subtree }
-         { !!!!! dispose(left,done); }
-      end;
 
 {****************************************************************************
                                  TUNARYNODE
@@ -1935,7 +1896,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.5  1999-01-23 23:29:49  florian
+  Revision 1.6  1999-01-24 22:32:36  florian
+    * well, more changes, especially parts of secondload ported
+
+  Revision 1.5  1999/01/23 23:29:49  florian
     * first running version of the new code generator
     * when compiling exceptions under Linux fixed
 
