@@ -18,7 +18,7 @@ procedure SendEscapeSeqNdx(Ndx: Word);
 var
   P: PChar;
 begin
-  P:=cur_term^.ttype.Strings[Ndx];
+  P:=cur_term^.ttype.Strings^[Ndx];
   if assigned(p) then
    fdWrite(TTYFd, P^, StrLen(P));
 end;
@@ -478,7 +478,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-03-12 15:02:10  peter
+  Revision 1.3  2000-06-30 12:28:57  jonas
+    * fixed termtype structure
+
+  Revision 1.2  2000/03/12 15:02:10  peter
     * removed unused var
 
   Revision 1.1  2000/01/06 01:20:31  peter

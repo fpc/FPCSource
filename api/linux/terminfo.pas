@@ -28,6 +28,7 @@ interface
 
 {$linklib ncurses}
 {$linklib c}
+{$packrecords c}
 
 const
   { boolean values }
@@ -555,14 +556,16 @@ type
     Pad: word;
   end;
 
+  TT_BoolArray = array [0..BoolCount - 1] of Boolean;
+  TT_WordArray = array [0..NumCount - 1] of Word;
+  TT_PCharArray = array [0..StrCount - 1] of PChar;
 
   TermType = record
     Term_Names: PChar;
     Str_Table: PChar;
-    Booleans: array [0..BoolCount - 1] of Boolean;
-    Numbers: array [0..NumCount - 1] of Word;
-    Pad: Word;
-    Strings: array [0..StrCount - 1] of PChar;
+    Booleans: ^TT_BoolArray;
+    Numbers: ^TT_WordArray;
+    Strings: ^TT_PCharArray;
   end;
 
   Terminal_ptr = ^Terminal;
@@ -570,7 +573,7 @@ type
     TType: TermType;
     FileDes: Word;
     Ottyb, Nttyb: Termios;
-    Pad: Word;
+    Pad: longint;
   end;
 
   WriterFunc = function (P: PChar): Longint;
@@ -614,8 +617,8 @@ function putp(Ndx: Longint): Longint;
 var
   P: PChar;
 begin
-  P := cur_term^.ttype.Strings[Ndx];
-  putp := fdWrite(cur_term^.filedes, P, StrLen(P));
+  P := cur_term^.ttype.Strings^[Ndx];
+  putp := fdWrite(cur_term^.filedes, P^, StrLen(P));
 end;
 
 function tputs(Ndx: Word; L1: Longint; F: WriterFunc): Longint;
@@ -623,7 +626,7 @@ var
   P: PChar;
 begin
   L1 := L1;
-  P := cur_term^.ttype.Strings[Ndx];
+  P := cur_term^.ttype.Strings^[Ndx];
   tputs := F(P);
 end;
 
@@ -647,7 +650,10 @@ function tparam(const char *, char *, int, ...): PChar; cdecl; external;}
 end.
 {
   $Log$
-  Revision 1.1  2000-01-06 01:20:31  peter
+  Revision 1.2  2000-06-30 12:28:57  jonas
+    * fixed termtype structure
+
+  Revision 1.1  2000/01/06 01:20:31  peter
     * moved out of packages/ back to topdir
 
   Revision 1.1  1999/11/24 23:36:38  peter
