@@ -1,14 +1,13 @@
 {
    $Id$
-   System independent low-level video interface for win32
-
    Copyright (c) 1999 by Florian Klaempfl
+
+   System independent low-level video interface for win32
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-
 
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -52,6 +51,11 @@ begin
        {if ScreenHeight>Y then}
          ScreenHeight:=Y;
     end;
+
+  { TDrawBuffer only has FVMaxWidth elements
+    larger values lead to crashes }
+  if ScreenWidth> FVMaxWidth then
+    ScreenWidth:=FVMaxWidth;
 
   CursorX:=ConsoleInfo.dwCursorPosition.x;
   CursorY:=ConsoleInfo.dwCursorPosition.y;
@@ -349,10 +353,12 @@ end;
 
 {
   $Log$
-  Revision 1.3  2000-10-04 11:53:32  pierre
+  Revision 1.4  2000-10-15 09:21:28  peter
+    * FVMaxWidth (merged)
+
+  Revision 1.3  2000/10/04 11:53:32  pierre
    Add TargetEntry and TargetExit (merged)
 
   Revision 1.2  2000/07/13 11:32:27  michael
   + removed logs
-
 }
