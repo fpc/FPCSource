@@ -20,7 +20,7 @@ interface
 { don't redir under linux, because all stdout (also from the ide!) will
   then be redired (PFV) }
 { this should work now correctly because
-  DisableRedirAll and EnableRedirAll function are added in fpredir (PM) }
+  RedirDisableAll and RedirEnableAll function are added in fpredir (PM) }
 {$ifndef debug}
   {$ifndef linux}
     {$define redircompiler}
@@ -369,7 +369,7 @@ end;
 function CompilerStatus: boolean; {$ifndef FPC}far;{$endif}
 begin
 {$ifdef redircompiler}
-  DisableRedirAll;
+  RedirDisableAll;
 {$endif}
 { only display line info every 100 lines, ofcourse all other messages
   will be displayed directly }
@@ -383,7 +383,7 @@ begin
    end;
   CompilerStatus:=false;
 {$ifdef redircompiler}
-  EnableRedirAll;
+  RedirEnableAll;
 {$endif}
 end;
 
@@ -399,7 +399,7 @@ begin
   switch_to_base_heap;
 {$endif TEMPHEAP}
 {$ifdef redircompiler}
-  DisableRedirAll;
+  RedirDisableAll;
 {$endif}
   CompilerComment:=false;
 {$ifndef DEV}
@@ -415,7 +415,7 @@ begin
      { HeapView^.Update; }
    end;
 {$ifdef redircompiler}
-  EnableRedirAll;
+  RedirEnableAll;
 {$endif}
 {$ifdef TEMPHEAP}
   switch_to_temp_heap;
@@ -553,7 +553,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.25  1999-04-29 22:58:09  pierre
+  Revision 1.26  1999-05-02 14:29:35  peter
+    * fixed typo disableredir -> redirdisable
+
+  Revision 1.25  1999/04/29 22:58:09  pierre
    + disabling of redirction in compiler dialogs
 
   Revision 1.24  1999/04/29 09:36:11  peter
