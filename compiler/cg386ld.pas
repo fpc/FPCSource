@@ -113,14 +113,14 @@ implementation
                                    if (lexlevel>(p^.symtable^.symtablelevel)) then
                                      begin
                                         hregister:=getregister32;
-     
+
                                         { make a reference }
                                         hp:=new_reference(procinfo.framepointer,
                                           procinfo.framepointer_offset);
-     
-     
+
+
                                         exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,hp,hregister)));
-     
+
                                         simple_loadn:=false;
                                         i:=lexlevel-1;
                                         while i>(p^.symtable^.symtablelevel) do
@@ -146,7 +146,8 @@ implementation
                                                        if (pvarsym(p^.symtableentry)^.properties and sp_static)<>0 then
                                                          begin
                                                             stringdispose(p^.location.reference.symbol);
-                                                            p^.location.reference.symbol:=stringdup(p^.symtableentry^.mangledname);
+                                                            p^.location.reference.symbol:=
+                                                               stringdup(p^.symtableentry^.mangledname);
                                                             if p^.symtable^.defowner^.owner^.symtabletype=unitsymtable then
                                                               concat_external(p^.symtableentry^.mangledname,EXT_NEAR);
                                                          end
@@ -166,9 +167,9 @@ implementation
                                           stored }
                                         hp:=new_reference(procinfo.framepointer,
                                           p^.symtable^.datasize);
-     
+
                                         exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,hp,hregister)));
-     
+
                                         p^.location.reference.offset:=
                                           pvarsym(p^.symtableentry)^.address;
                                      end;
@@ -520,7 +521,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  1998-06-09 16:01:35  pierre
+  Revision 1.4  1998-06-11 13:58:45  peter
+    * fixed too long line
+
+  Revision 1.3  1998/06/09 16:01:35  pierre
     + added procedure directive parsing for procvars
       (accepted are popstack cdecl and pascal)
     + added C vars with the following syntax
