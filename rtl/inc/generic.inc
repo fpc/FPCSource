@@ -293,11 +293,11 @@ begin
   if (Len<>0) and (@Buf1<>@Buf2) then
    begin
      while (I<Len) And
-           ((Pbyte(@Buf1)[i]<>0) and (PByte(@buf2)[i]<>0)) and 
+           ((Pbyte(@Buf1)[i]<>0) and (PByte(@buf2)[i]<>0)) and
            (pbyte(@Buf1)[I]=pbyte(@Buf2)[I])  do
       inc(I);
-     if (I=Len) or 
-        (PByte(@Buf1)[i]=0) or 
+     if (I=Len) or
+        (PByte(@Buf1)[i]=0) or
         (PByte(@buf2)[I]=0) then  {No difference or 0 reached }
       I:=0
      else
@@ -756,6 +756,7 @@ end;
                                Bounds Check
 ****************************************************************************}
 
+{$ifndef NOBOUNDCHECK}
 {$ifndef FPC_SYSTEM_HAS_FPC_BOUNDCHECK}
 
 procedure int_boundcheck(l : longint; range : pointer);[public,alias: 'FPC_BOUNDCHECK'];
@@ -771,11 +772,15 @@ begin
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_BOUNDCHECK}
+{$endif NOBOUNDCHECK}
 
 
 {
   $Log$
-  Revision 1.5  2000-10-01 13:17:35  michael
+  Revision 1.6  2001-03-03 12:41:22  jonas
+    * simplified and optimized range checking code, FPC_BOUNDCHECK is no longer necessary
+
+  Revision 1.5  2000/10/01 13:17:35  michael
   + Merged from fixbranch
 
   Revision 1.4  2000/08/09 11:29:01  jonas
@@ -792,5 +797,5 @@ end;
 
   Revision 1.2  2000/07/13 11:33:43  michael
   + removed logs
- 
+
 }

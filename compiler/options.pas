@@ -1294,6 +1294,7 @@ begin
   def_symbol('INT64FUNCRESOK');
   def_symbol('PACKENUMFIXED');
   def_symbol('HAS_ADDR_STACK_ON_STACK');
+  def_symbol('NOBOPUNDCHECK');
 
 { some stuff for TP compatibility }
 {$ifdef i386}
@@ -1571,7 +1572,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.32  2001-02-26 19:44:53  peter
+  Revision 1.33  2001-03-03 12:41:22  jonas
+    * simplified and optimized range checking code, FPC_BOUNDCHECK is no longer necessary
+
+  Revision 1.32  2001/02/26 19:44:53  peter
     * merged generic m68k updates from fixes branch
 
   Revision 1.31  2001/02/26 12:47:46  jonas

@@ -1088,6 +1088,8 @@ end;
                                Bounds Check
 ****************************************************************************}
 
+{$ifndef NOBOUNDCHECK}
+
 {$define FPC_SYSTEM_HAS_FPC_BOUNDCHECK}
 
 {$ifdef SYSTEMDEBUG}
@@ -1117,6 +1119,9 @@ end;
 {$ifdef SYSTEMDEBUG}
 end;
 {$endif def SYSTEMDEBUG}
+
+{$endif NOBOUNDCHECK}
+
 { do a thread save inc/dec }
 
 procedure declocked(var l : longint);assembler;
@@ -1159,7 +1164,10 @@ procedure inclocked(var l : longint);assembler;
 
 {
   $Log$
-  Revision 1.5  2000-11-12 23:23:34  florian
+  Revision 1.6  2001-03-03 12:41:22  jonas
+    * simplified and optimized range checking code, FPC_BOUNDCHECK is no longer necessary
+
+  Revision 1.5  2000/11/12 23:23:34  florian
     * interfaces basically running
 
   Revision 1.4  2000/11/07 23:42:21  florian

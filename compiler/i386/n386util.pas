@@ -994,7 +994,7 @@ implementation
              if from_signed and to_signed then
                begin
                  getlabel(endlabel);
-                 emitjmp(C_NO,endlabel);
+                 emitjmp(C_None,endlabel);
                  { if the high dword = $ffffffff, then the low dword (when }
                  { considered as a longint) must be < 0                    }
                  emitlab(neglabel);
@@ -1135,29 +1135,6 @@ implementation
          end;
         { generate the rangecheck code for the def where we are going to
           store the result }
-        doublebound:=false;
-        case todef^.deftype of
-          orddef :
-            begin
-              porddef(todef)^.genrangecheck;
-              rstr:=porddef(todef)^.getrangecheckstring;
-              doublebound:=
-                ((porddef(todef)^.typ=u32bit) and (lto>hto)) or
-                (is_signed(todef) and (porddef(fromdef)^.typ=u32bit)) or
-                (is_signed(fromdef) and (porddef(todef)^.typ=u32bit));
-            end;
-          enumdef :
-            begin
-              penumdef(todef)^.genrangecheck;
-              rstr:=penumdef(todef)^.getrangecheckstring;
-            end;
-          arraydef :
-            begin
-              parraydef(todef)^.genrangecheck;
-              rstr:=parraydef(todef)^.getrangecheckstring;
-              doublebound:=(lto>hto);
-            end;
-        end;
       { get op and opsize }
         opsize:=def2def_opsize(fromdef,u32bitdef);
         if opsize in [S_B,S_W,S_L] then
@@ -1168,112 +1145,41 @@ implementation
          else
           op:=A_MOVZX;
         is_reg:=(p.location.loc in [LOC_REGISTER,LOC_CREGISTER]);
-        if is_reg then
-          hreg:=p.location.register;
-        if not target_os.use_bound_instruction then
-         begin
-           { FPC_BOUNDCHECK needs to be called with
-              %ecx - value
-              %edi - pointer to the ranges }
-           popecx:=false;
-           if not(is_reg) or
-              (p.location.register<>R_ECX) then
-            begin
-              if not(R_ECX in unused) then
-               begin
-                 exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,R_ECX));
-                 popecx:=true;
-               end
-                 else exprasmList.concat(Tairegalloc.Alloc(R_ECX));
-              if is_reg then
-               emit_reg_reg(op,opsize,p.location.register,R_ECX)
-              else
-               emit_ref_reg(op,opsize,newreference(p.location.reference),R_ECX);
-            end;
-           if doublebound then
-            begin
-              getlabel(neglabel);
-              getlabel(poslabel);
-              emit_reg_reg(A_OR,S_L,R_ECX,R_ECX);
-              emitjmp(C_L,neglabel);
-            end;
-           { insert bound instruction only }
-           getexplicitregister32(R_EDI);
-           exprasmList.concat(Taicpu.Op_sym_ofs_reg(A_MOV,S_L,newasmsymbol(rstr),0,R_EDI));
-           emitcall('FPC_BOUNDCHECK');
-           ungetregister32(R_EDI);
-           { u32bit needs 2 checks }
-           if doublebound then
-            begin
-              emitjmp(C_None,poslabel);
-              emitlab(neglabel);
-              { if a cardinal is > $7fffffff, this is an illegal longint }
-              { value (and vice versa)! (JM)                             }
-              if ((todef^.deftype = orddef) and
-                  ((is_signed(todef) and (porddef(fromdef)^.typ=u32bit)) or
-                   (is_signed(fromdef) and (porddef(todef)^.typ=u32bit)))) or
-                 { similar for array indexes (JM) }
-                 ((todef^.deftype = arraydef) and
-                  (((lto < 0) and (porddef(fromdef)^.typ=u32bit)) or
-                   ((lto >= 0) and is_signed(fromdef)))) then
-                emitcall('FPC_RANGEERROR')
-              else
-                begin
-                  getexplicitregister32(R_EDI);
-                  exprasmList.concat(Taicpu.Op_sym_ofs_reg(A_MOV,S_L,newasmsymbol(rstr),8,R_EDI));
-                  emitcall('FPC_BOUNDCHECK');
-                  ungetregister32(R_EDI);
-                end;
-              emitlab(poslabel);
-            end;
-           if popecx then
-            exprasmList.concat(Taicpu.Op_reg(A_POP,S_L,R_ECX))
-           else exprasmList.concat(Tairegalloc.DeAlloc(R_ECX));
-         end
+        getexplicitregister32(R_EDI);
+
+        { use the trick that                                                 }
+        { a <= x <= b <=> 0 <= x-a <= b-a <=> cardinal(x-a) <= cardinal(b-a) }
+
+        { To be able to do that, we have to make sure however that either    }
+        { fromdef and todef are both signed or unsigned, or that we leave    }
+        { the parts < 0 and > maxlongint out                                 }
+
+        { is_signed now also works for arrays (it checks the rangetype) (JM) }
+        if is_signed(fromdef) xor is_signed(todef) then
+          begin
+            lto := max(lto,0);
+            hto := hto and $7fffffff;
+          end;
+
+        if is_reg and
+           (opsize = S_L) then
+          emit_ref_reg(A_LEA,opsize,new_reference(p.location.register,-lto),
+            R_EDI)
         else
-         begin
-           reset_reference(href);
-           href.symbol:=newasmsymbol(rstr);
-           { load the value in a register }
-           if is_reg then
-            begin
-              { be sure that hreg is a 32 bit reg, if not load it in %edi }
-              if p.location.register in [R_EAX..R_EDI] then
-               hreg:=p.location.register
-              else
-               begin
-                 getexplicitregister32(R_EDI);
-                 emit_reg_reg(op,opsize,p.location.register,R_EDI);
-                 hreg:=R_EDI;
-               end;
-            end
-           else
-            begin
-              getexplicitregister32(R_EDI);
+          begin
+            if is_reg then
+              emit_reg_reg(op,opsize,p.location.register,R_EDI)
+            else
               emit_ref_reg(op,opsize,newreference(p.location.reference),R_EDI);
-              hreg:=R_EDI;
-            end;
-           if doublebound then
-            begin
-              getlabel(neglabel);
-              getlabel(poslabel);
-              emit_reg_reg(A_TEST,S_L,hreg,hreg);
-              emitjmp(C_L,neglabel);
-            end;
-           { insert bound instruction only }
-           exprasmList.concat(Taicpu.Op_reg_ref(A_BOUND,S_L,hreg,newreference(href)));
-           { u32bit needs 2 checks }
-           if doublebound then
-            begin
-              href.offset:=8;
-              emitjmp(C_None,poslabel);
-              emitlab(neglabel);
-              exprasmList.concat(Taicpu.Op_reg_ref(A_BOUND,S_L,hreg,newreference(href)));
-              emitlab(poslabel);
-            end;
-           if hreg = R_EDI then
-             ungetregister32(R_EDI);
-         end;
+            if lto <> 0 then
+              emit_const_reg(A_SUB,S_L,lto,R_EDI);
+          end;
+        emit_const_reg(A_CMP,S_L,hto-lto,R_EDI);
+        ungetregister32(R_EDI);
+        getlabel(neglabel);
+        emitjmp(C_BE,neglabel);
+        emitcall('FPC_RANGEERROR');
+        emitlab(neglabel);
       end;
 
 
@@ -1548,7 +1454,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2000-12-31 11:02:12  jonas
+  Revision 1.11  2001-03-03 12:41:22  jonas
+    * simplified and optimized range checking code, FPC_BOUNDCHECK is no longer necessary
+
+  Revision 1.10  2000/12/31 11:02:12  jonas
     * optimized loadshortstring a bit
 
   Revision 1.9  2000/12/25 00:07:33  peter
