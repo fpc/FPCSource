@@ -1509,6 +1509,10 @@ unit pdecl;
               genvmt(aktclass);
            end;
 
+         { number symbols and defs }
+         symtablestack^.number_defs;
+         symtablestack^.number_symbols;
+
          { restore old state }
          symtablestack:=symtablestack^.next;
          procinfo._class:=nil;
@@ -1542,6 +1546,11 @@ unit pdecl;
 
          consume(_END);
          typecanbeforward:=storetypeforwardsallowed;
+
+         { number symbols and defs }
+         symtablestack^.number_defs;
+         symtablestack^.number_symbols;
+
          symtablestack:=symtable^.next;
          record_dec:=new(precdef,init(symtable));
       end;
@@ -2140,7 +2149,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.95  1999-01-25 20:13:48  peter
+  Revision 1.96  1999-02-17 14:20:40  pierre
+   * Reference specific bug in recompiling unit solved
+
+  Revision 1.95  1999/01/25 20:13:48  peter
     * fixed crash with forward declared class of ...
 
   Revision 1.94  1999/01/19 12:17:00  peter
