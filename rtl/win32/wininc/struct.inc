@@ -406,6 +406,14 @@ unit struct;
      TBITMAPV4HEADER = BITMAPV4HEADER;
      PBITMAPV4HEADER = ^BITMAPV4HEADER;
 
+     BITMAPFILEHEADER = packed record
+       bfType : Word;
+       bfSize : DWord;
+       bfReserved1 : Word;
+       bfReserved2 : Word;
+       bfOffBits : DWord;
+     end;
+
      BLOB = record
           cbSize : ULONG;
           pBlobData : ^BYTE;
@@ -506,6 +514,12 @@ unit struct;
      _POINTL = POINTL;
      TPOINTL = POINTL;
      PPOINTL = ^POINTL;
+
+     TSmallPoint = record
+       X,
+       Y : SmallInt;
+       end;
+       
 
      POINTS = record
           x : SHORT;
@@ -6449,6 +6463,56 @@ unit struct;
      TIMAGEDOSHEADER = IMAGE_DOS_HEADER;
      PIMAGEDOSHEADER = ^IMAGE_DOS_HEADER;
 
+  { Variant support }
+  
+  TVarType = Word;
+  PVariant = ^TVariant;
+
+{ This variant type definition doesn't contain _all_ possible variant
+  types - some are not possible atm with FPC, e.g. VT_BSTR to mention
+  This is part of the variant definition used by Windows API not that Borland
+  TVarRec one which is already partially implemented.
+  Needed for some COM objects }
+  
+  TVariant = record
+    vt: TVarType;
+    wReserved1: Word;
+    wReserved2: Word;
+    wReserved3: Word;
+    case Integer of
+      VT_UI1:                  (bVal: Byte);
+      VT_I2:                   (iVal: Smallint);
+      VT_I4:                   (lVal: Longint);
+      VT_R4:                   (fltVal: Single);
+      VT_R8:                   (dblVal: Double);
+      VT_BOOL:                 (vbool: WordBool);
+      VT_ERROR:                (scode: HResult);
+      VT_BYREF or VT_UI1:      (pbVal: ^Byte);
+      VT_BYREF or VT_I2:       (piVal: ^Smallint);
+      VT_BYREF or VT_I4:       (plVal: ^Longint);
+      VT_BYREF or VT_R4:       (pfltVal: ^Single);
+      VT_BYREF or VT_R8:       (pdblVal: ^Double);
+      VT_BYREF or VT_BOOL:     (pbool: ^WordBool);
+      VT_BYREF or VT_ERROR:    (pscode: ^HResult);
+      VT_BYREF:                (byRef: Pointer);
+  end;
+
+ VARIANT = TVariant;
+
+ MMRESULT = Longint;
+
+type
+  PWaveFormatEx = ^TWaveFormatEx;
+  TWaveFormatEx = packed record
+    wFormatTag: Word;       { format type }
+    nChannels: Word;        { number of channels (i.e. mono, stereo, etc.) }
+    nSamplesPerSec: DWORD;  { sample rate }
+    nAvgBytesPerSec: DWORD; { for buffer estimation }
+    nBlockAlign: Word;      { block size of data }
+    wBitsPerSample: Word;   { number of bits per sample of mono data }
+    cbSize: Word;           { the count in bytes of the size of }
+  end;
+
 {$endif read_interface}
 
 
@@ -6927,7 +6991,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.4  2000-02-09 16:59:36  peter
+  Revision 1.5  2000-03-14 10:20:18  michael
+  + Added constants and types for Delphi compatibility
+
+  Revision 1.4  2000/02/09 16:59:36  peter
     * truncated log
 
   Revision 1.3  2000/01/07 16:41:56  daniel

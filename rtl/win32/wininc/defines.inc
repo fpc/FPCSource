@@ -2031,6 +2031,7 @@ unit defines;
      ILD_TRANSPARENT = 1;
      CLR_NONE = $ffffffff;
      CLR_DEFAULT = $ff000000;
+     CLR_INVALID = $FFFFFFFF;
   { ImageList_LoadImage  }
      {LR_DEFAULTCOLOR = 0;already above }
      LR_LOADFROMFILE = 16;
@@ -5113,6 +5114,42 @@ unit defines;
   { nt_signature field  }
      IMAGE_NT_SIGNATURE = $4550;
 
+
+  { Severity values }
+    SEVERITY_SUCCESS = 0;
+    SEVERITY_ERROR = 1;
+          
+ { Variant type codes (wtypes.h).
+    Some, not all though }
+    VT_EMPTY           = 0;
+    VT_NULL            = 1;
+    VT_I2              = 2;
+    VT_I4              = 3;
+    VT_R4              = 4;
+    VT_R8              = 5;
+    VT_BSTR            = 8;
+    VT_ERROR           = 10;
+    VT_BOOL            = 11;
+    VT_UI1             = 17;
+    VT_BYREF        = $4000;
+    VT_RESERVED     = $8000;
+
+{ Define the facility codes }
+
+const
+  FACILITY_WINDOWS                     = 8;
+  FACILITY_STORAGE                     = 3;
+  FACILITY_RPC                         = 1;
+  FACILITY_SSPI                        = 9;
+  FACILITY_WIN32                       = 7;
+  FACILITY_CONTROL                     = 10;
+  FACILITY_NULL                        = 0;
+  FACILITY_INTERNET                    = 12;
+  FACILITY_ITF                         = 4;
+  FACILITY_DISPATCH                    = 2;
+  FACILITY_CERT                        = 11;
+
+
 {$endif read_interface}
 
 
@@ -5718,7 +5755,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.4  2000-02-09 16:59:35  peter
+  Revision 1.5  2000-03-14 10:20:19  michael
+  + Added constants and types for Delphi compatibility
+
+  Revision 1.4  2000/02/09 16:59:35  peter
     * truncated log
 
   Revision 1.3  2000/01/07 16:41:54  daniel

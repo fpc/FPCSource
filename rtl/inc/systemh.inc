@@ -79,6 +79,11 @@ Type
 { Zero - terminated strings }
   PChar       = ^Char;
   PPChar      = ^PChar;
+{ Delphi types }  
+  TAnsiChar   = Char;
+  AnsiChar    = TAnsiChar;
+  PAnsiChar   = PChar;
+  
 {$ifdef HASWIDECHAR}
   PWideChar   = ^WideChar;
 {$endif HASWIDECHAR}
@@ -428,7 +433,10 @@ const
 
 {
   $Log$
-  Revision 1.78  2000-02-09 16:59:31  peter
+  Revision 1.79  2000-03-14 10:20:18  michael
+  + Added constants and types for Delphi compatibility
+
+  Revision 1.78  2000/02/09 16:59:31  peter
     * truncated log
 
   Revision 1.77  2000/02/06 17:19:22  peter
