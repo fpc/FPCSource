@@ -43,12 +43,15 @@ interface
        import,export,link,rgobj;
 
 
+  const
+     MAX_DEFAULT_EXTENSIONS = 3;
+     
   type
-     tStr4=array[1..1]of string[4];
+     tStr4=array[1..MAX_DEFAULT_EXTENSIONS]of string[4];
      pStr4=^tStr4;
 
     timportlibwin32=class(timportlib)
-      procedure GetDefExt(var N:longint;var P:pStr4);virtual; //PVO 26.03.02 !
+      procedure GetDefExt(var N:longint;var P:pStr4);virtual; 
       procedure preparelib(const s:string);override;
       procedure importprocedure(const func,module:string;index:longint;const name:string);override;
       procedure importvariable(const varname,module:string;const name:string);override;
@@ -83,16 +86,15 @@ interface
       cstring : array[0..127]of char;
       function DOSstubOK(var x:cardinal):boolean;
       function FindDLL(const s:string;var founddll:string):boolean;
-//PVO 26.03.02 !
+      function ExtractDllName(Const Name : string) : string;
     public
-      procedure GetDefExt(var N:longint;var P:pStr4);virtual; //PVO 26.03.02 !
+      procedure GetDefExt(var N:longint;var P:pStr4);virtual;
       function isSuitableFileType(x:cardinal):longbool;override;
       function GetEdata(HeaderEntry:cardinal):longbool;override;
       function Scan(const binname:string):longbool;override;
     end;
 implementation
 
-//PVO 26.03.02 <
     function DllName(Const Name : string;NdefExt:longint;DefExt:pStr4) : string;
       var n : string;
           i:longint;
@@ -109,7 +111,7 @@ implementation
       end;
 
 const
- DefaultDLLExtensions:array[1..3]of string[4]=('.DLL','.DRV','.EXE');
+ DefaultDLLExtensions:array[1..MAX_DEFAULT_EXTENSIONS]of string[4]=('.DLL','.DRV','.EXE');
 
 
 {*****************************************************************************
@@ -120,7 +122,6 @@ const
       N:=sizeof(DefaultDLLExtensions)div sizeof(DefaultDLLExtensions[1]);
       pointer(P):=@DefaultDLLExtensions;
      end;
-//PVO 26.03.02 >
 
     procedure timportlibwin32.preparelib(const s : string);
       begin
@@ -134,13 +135,13 @@ const
          hp1 : timportlist;
          hp2 : timported_item;
          hs  : string;
-         PP:pStr4;NN:longint;//PVO 26.03.02 !
+         PP:pStr4;NN:longint;
       begin
          { force the current mangledname }
          aktprocdef.has_mangledname:=true;
          { append extension if required }
-         GetDefExt(NN,PP);//PVO 26.03.02 !
-         hs:=DllName(module,NN,PP);//PVO 26.03.02 !
+         GetDefExt(NN,PP);
+         hs:=DllName(module,NN,PP);
          { search for the module }
          hp1:=timportlist(current_module.imports.first);
          while assigned(hp1) do
@@ -176,10 +177,10 @@ const
          hp1 : timportlist;
          hp2 : timported_item;
          hs  : string;
-         NN:longint;PP:pStr4;//PVO 26.03.02 !
+         NN:longint;PP:pStr4;
       begin
-         GetDefExt(NN,PP);//PVO 26.03.02 !
-         hs:=DllName(module,NN,PP);//PVO 26.03.02 !
+         GetDefExt(NN,PP);
+         hs:=DllName(module,NN,PP);
          { search for the module }
          hp1:=timportlist(current_module.imports.first);
          while assigned(hp1) do
@@ -240,7 +241,7 @@ const
          lidata4,lidata5 : tasmlabel;
          href : treference;
       begin
-         if not(aktoutputformat in MainAsmFormats)then //PVO 26.03.02 !
+         if not(aktoutputformat in MainAsmFormats)then 
           begin
             generatenasmlib;
             exit;
@@ -379,7 +380,7 @@ const
 {$endif GDB}
          href : treference;
       begin
-         if not(aktoutputformat in MainAsmFormats)then //PVO 26.03.02 !
+         if not(aktoutputformat in MainAsmFormats)then 
           begin
             generatenasmlib;
             exit;
@@ -595,7 +596,7 @@ const
          address_table,name_table_pointers,
          name_table,ordinal_table : TAAsmoutput;
       begin
-        if not (aktoutputformat in MainAsmFormats)then //PVO 26.03.02 !
+        if not (aktoutputformat in MainAsmFormats)then 
          begin
            generatenasmlib;
            exit;
@@ -1336,16 +1337,15 @@ end;
         FindDll:=Found;
       end;
 
-//PVO 26.03.02 !
 
-    function tDLLScannerWin32.DllName(Const Name : string) : string;
+    function tDLLScannerWin32.ExtractDllName(Const Name : string) : string;
       var n : string;
       begin
          n:=Upper(SplitExtension(Name));
          if (n='.DLL') or (n='.DRV') or (n='.EXE') then
-           DllName:=Name
+           ExtractDllName:=Name
          else
-           DllName:=Name+target_info.sharedlibext;
+           ExtractDllName:=Name+target_info.sharedlibext;
       end;
 
 
@@ -1511,14 +1511,14 @@ function tDLLScannerWin32.scan(const binname:string):longbool;
  var
   OldFileMode:longint;
   foundimp : string;
-  NN:longint;PP:pStr4;//PVO 26.03.02 !
+  NN:longint;PP:pStr4;
  begin
    Scan:=false;
   { is there already an import library the we will use that one }
   if FindLibraryFile(binname,target_info.staticClibprefix,target_info.staticClibext,foundimp) then
    exit;
   { check if we can find the dll }
-  GetDefExt(NN,PP);//PVO 26.03.02 !
+  GetDefExt(NN,PP);
   if not FindDll(DLLName(binname,NN,PP),impname) then
    exit;
   { read the dll file }
@@ -1636,7 +1636,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.26  2002-04-04 19:06:14  peter
+  Revision 1.27  2002-04-05 17:49:09  carl
+  * fix compilation problems
+  * fix range check error
+
+  Revision 1.26  2002/04/04 19:06:14  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 
