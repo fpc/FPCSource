@@ -195,7 +195,7 @@ unit agppcgas;
                s:=s+'r'+tostr(byte(base.number shr 8))+',r'+tostr(byte(index.number shr 8))
              else
                s:=s+gas_reg2str[base.enum]+','+gas_reg2str[index.enum]
-           else if ((index.enum<>R_NO) or (base.enum<>R_NO)) then
+           else if (not i) or (not b) then
              internalerror(19992);
         end;
       getreferencestring:=s;
@@ -371,7 +371,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2003-08-17 20:47:47  daniel
+  Revision 1.26  2003-08-17 21:11:00  daniel
+    * Now -sr works...
+
+  Revision 1.25  2003/08/17 20:47:47  daniel
     * Notranslation changed into -sr functionality
 
   Revision 1.24  2003/08/17 16:59:20  jonas

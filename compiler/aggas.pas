@@ -388,7 +388,7 @@ var
                if (cs_asm_regalloc in aktglobalswitches) then
                  begin
                    if Tai_Regalloc(hp).reg.enum=R_INTREGISTER then
-                     AsmWriteLn(target_asm.comment+'Register r'+tostr(byte(tai_regalloc(hp).reg.number shr 8)-1)+
+                     AsmWriteLn(target_asm.comment+'Register reg'+tostr(byte(tai_regalloc(hp).reg.number shr 8)-1)+
                        allocstr[tai_regalloc(hp).allocation])
                    else
                      AsmWriteLn(target_asm.comment+'Register '+std_reg2str[tai_regalloc(hp).reg.enum]+
@@ -822,7 +822,10 @@ var
 end.
 {
   $Log$
-  Revision 1.26  2003-08-17 20:47:47  daniel
+  Revision 1.27  2003-08-17 21:11:00  daniel
+    * Now -sr works...
+
+  Revision 1.26  2003/08/17 20:47:47  daniel
     * Notranslation changed into -sr functionality
 
   Revision 1.25  2003/08/17 16:59:20  jonas
