@@ -510,7 +510,22 @@ implementation
                 procinfo.flags:=procinfo.flags or pi_is_global;
                 aktobjectdef:=nil;
                 { we solve this below }
-                if not(assigned(aktprocsym)) then
+                if assigned(aktprocsym) then
+                  begin
+                    if aktprocsym.typ<>procsym then
+                     begin
+                       {  we use a different error message for tp7 so it looks more compatible }
+                       if (m_fpc in aktmodeswitches) then
+                         Message1(parser_e_overloaded_no_procedure,aktprocsym.realname)
+                       else
+                         Message(parser_e_methode_id_expected);
+                       { rename the name to an unique name to avoid an
+                         error when inserting the symbol in the symtable }
+                       orgsp:=orgsp+'$'+tostr(aktfilepos.line);
+                       aktprocsym:=nil;
+                     end;
+                  end
+                else
                   Message(parser_e_methode_id_expected);
              end;
          end
@@ -526,7 +541,11 @@ implementation
              akttokenpos:=procstartfilepos;
              aktprocsym:=tprocsym(symtablestack.search(sp));
 
-             if not(parse_only) then
+             if not(parse_only) and
+                not assigned(aktprocsym) and
+                (symtablestack.symtabletype=staticsymtable) and
+                assigned(symtablestack.next) and
+                (symtablestack.next.unitid=0) then
                begin
                  {The procedure we prepare for is in the implementation
                   part of the unit we compile. It is also possible that we
@@ -535,61 +554,31 @@ implementation
 
                   We need to find out if the procedure is global. If it is
                   global, it is in the global symtable.}
-                 if not assigned(aktprocsym) and
-                    (symtablestack.symtabletype=staticsymtable) and
-                    assigned(symtablestack.next) and
-                    (symtablestack.next.unitid=0) then
-                  begin
-                    {Search the procedure in the global symtable.}
-                    aktprocsym:=tprocsym(symtablestack.next.search(sp));
-                    if assigned(aktprocsym) then
-                     begin
-                       {Check if it is a procedure.}
-                       if aktprocsym.typ<>procsym then
-                        begin
-                          { when the other symbol is a unit symbol then hide the unit
-                            symbol. Only in tp mode because it's bad programming }
-                          if (m_duplicate_names in aktmodeswitches) and
-                             (aktprocsym.typ=unitsym) then
-                           begin
-                             aktprocsym.owner.rename(aktprocsym.name,'hidden'+aktprocsym.name);
-                             searchagain:=true;
-                           end
-                          else
-                           DuplicateSym(aktprocsym);
-                        end;
-                       {The procedure has been found. So it is
-                        a global one. Set the flags to mark this.}
-                       procinfo.flags:=procinfo.flags or pi_is_global;
-                     end;
-                  end;
+                 aktprocsym:=tprocsym(symtablestack.next.search(sp));
                end;
 
-             if (not searchagain) and
-                assigned(aktprocsym) then
+             { Check if overloaded is a procsym }
+             if assigned(aktprocsym) and
+                (aktprocsym.typ<>procsym) then
               begin
-                { Check if overloaded is a procsym }
-                if aktprocsym.typ<>procsym then
+                { when the other symbol is a unit symbol then hide the unit
+                  symbol. Only in tp mode because it's bad programming }
+                if (m_duplicate_names in aktmodeswitches) and
+                   (aktprocsym.typ=unitsym) then
                  begin
-                   { when the other symbol is a unit symbol then hide the unit
-                     symbol. Only in tp mode because it's bad programming }
-                   if (m_duplicate_names in aktmodeswitches) and
-                      (aktprocsym.typ=unitsym) then
-                    begin
-                      aktprocsym.owner.rename(aktprocsym.name,'hidden'+aktprocsym.name);
-                      searchagain:=true;
-                    end
+                   aktprocsym.owner.rename(aktprocsym.name,'hidden'+aktprocsym.name);
+                   searchagain:=true;
+                 end
+                else
+                 begin
+                   {  we use a different error message for tp7 so it looks more compatible }
+                   if (m_fpc in aktmodeswitches) then
+                    Message1(parser_e_overloaded_no_procedure,aktprocsym.realname)
                    else
-                    begin
-                      {  we use a different error message for tp7 so it looks more compatible }
-                      if (m_fpc in aktmodeswitches) then
-                       Message1(parser_e_overloaded_no_procedure,aktprocsym.realname)
-                      else
-                       DuplicateSym(aktprocsym);
-                      { rename the name to an unique name to avoid an
-                        error when inserting the symbol in the symtable }
-                      orgsp:=orgsp+'$'+tostr(aktfilepos.line);
-                    end;
+                    DuplicateSym(aktprocsym);
+                   { rename the name to an unique name to avoid an
+                     error when inserting the symbol in the symtable }
+                   orgsp:=orgsp+'$'+tostr(aktfilepos.line);
                    { generate a new aktprocsym }
                    aktprocsym:=nil;
                  end;
@@ -621,6 +610,13 @@ implementation
             else
              aktprocsym:=tprocsym.create(orgsp);
             symtablestack.insert(aktprocsym);
+         end
+        else
+         begin
+           { Set global flag when found in globalsytmable }
+           if (not parse_only) and
+              (aktprocsym.owner.symtabletype=globalsymtable) then
+             procinfo.flags:=procinfo.flags or pi_is_global;
          end;
 
         st:=symtablestack;
@@ -2120,7 +2116,10 @@ const
 end.
 {
   $Log$
-  Revision 1.102  2003-01-05 18:17:45  peter
+  Revision 1.103  2003-01-07 19:16:38  peter
+    * removed some duplicate code when creating aktprocsym
+
+  Revision 1.102  2003/01/05 18:17:45  peter
     * more conflicts for constructor/destructor types
 
   Revision 1.100  2003/01/02 19:49:00  peter
