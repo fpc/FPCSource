@@ -28,6 +28,7 @@ resourcestring
   SCmdLineHelp = 'See documentation for usage.';
   SCmdLineInvalidOption = 'Ignoring unknown option "%s"';
   SNoPackageNameProvided = 'Please specify a package name with --package=<name>';
+  SOutputMustNotBeDescr = 'Output file must be different from description filenames.';
   SDone = 'Done.';
 
 type
@@ -267,10 +268,16 @@ begin
     // Action is to create the XML skeleton
 
     if Length(PackageName) = 0 then
-    begin
+      begin
       WriteLn(SNoPackageNameProvided);
       Halt(2);
-    end;
+      end;
+
+    if DescrFiles.IndexOf(OutputName)<>-1 then
+      begin
+      Writeln(SOutputMustNotBeDescr);
+      Halt(3)
+      end;
 
     Assign(f, OutputName);
     Rewrite(f);
@@ -318,7 +325,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2004-08-28 18:04:06  michael
+  Revision 1.10  2004-08-28 18:15:14  michael
+  + Check whether outputfile not in inputfilenames
+
+  Revision 1.9  2004/08/28 18:04:06  michael
   + Added update mode
 
   Revision 1.8  2004/08/25 07:16:43  michael
