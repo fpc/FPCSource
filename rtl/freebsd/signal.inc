@@ -77,7 +77,7 @@ const
  * those in mcontext_t.
  }
 
-type sigset_t = cardinal;
+type sigset_t = array[0..15] of char;
 
     PSigContextRec = ^SigContextRec;
     SigContextRec = record
@@ -131,11 +131,12 @@ type sigset_t = cardinal;
   PSigSet = ^SigSet;
 
   SigActionRec = packed record
-    Handler  : record
+{    Handler  : record
       case byte of
         0: (Sh: SignalHandler);
         1: (Sa: TSigAction);
-      end;
+      end;}
+    sa_handler  : signalhandler;
     Sa_Flags    : Longint;
     Sa_Mask     : SigSet;
   end;
@@ -151,7 +152,10 @@ type sigset_t = cardinal;
 
 {
   $Log$
-  Revision 1.3  2002-09-07 16:01:17  peter
+  Revision 1.4  2002-10-16 18:50:22  marco
+   * sigset back at 16 bytes
+
+  Revision 1.3  2002/09/07 16:01:17  peter
     * old logs removed and tabs fixed
 
 }
