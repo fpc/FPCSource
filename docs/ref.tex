@@ -410,8 +410,8 @@ Just as in Turbo Pascal, \fpc supports both normal and typed constants.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Ordinary constants
 \section{Ordinary constants}
-Ordinary constants declarations are no different from the Turbo Pascal or
-Delphi  implementation.
+Ordinary constants declarations are not different from the Turbo Pascal or
+Delphi implementation.
 \input{syntax/const.syn}
 The compiler must be able to evaluate the expression in a constant
 declaration at compile time.  This means that most of the functions
@@ -3072,7 +3072,7 @@ Function overloading simply means that you can define the same function more
 than once, but each time with a different formal parameter list.
 The parameter lists must differ at least in one of it's elements type.
 When the compiler encounters a function call, it will look at the function
-parameters to decide which of the defined function
+parameters to decide which one of the defined functions it should call.
 This can be useful if you want to define the same function for different
 types. For example, in the RTL, the  \var{Dec} procedure is
 is defined as:
@@ -3084,7 +3084,7 @@ Dec(Var I : Byte;decrement : Longint);
 Dec(Var I : Byte);
 ...
 \end{verbatim}
-When the compiler encounters a call to the dec function, it wil first search
+When the compiler encounters a call to the dec function, it will first search
 which function it should use. It therefore checks the parameters in your
 function call, and looks if there is a function definition which matches the
 specified parameter list. If the compiler finds such a function, a call is
@@ -3092,7 +3092,7 @@ inserted to that function. If no such function is found, a compiler error is
 generated.
 You cannot have overloaded functions that have a \var{cdecl} or \var{export}
 modifier (Technically, because these two modifiers prevent the mangling of
-the function name by the compiler)
+the function name by the compiler).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % forward defined functions
