@@ -897,8 +897,14 @@ implementation
               hp:=tarrayconstructornode(hp.right);
             end;
          end;
-         if not assigned(htype.def) then
-          htype:=voidtype;
+         { Set the type of empty or varia arrays to void. Also
+           do this if the type is array of const/open array
+           because those can't be used with setelementtype }
+         if not assigned(htype.def) or
+            varia or
+            is_array_of_const(htype.def) or
+            is_open_array(htype.def) then
+           htype:=voidtype;
          resulttype.setdef(tarraydef.create(0,len-1,s32inttype));
          tarraydef(resulttype.def).setelementtype(htype);
          tarraydef(resulttype.def).IsConstructor:=true;
@@ -1181,7 +1187,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.143  2005-01-23 17:14:21  florian
+  Revision 1.144  2005-02-11 16:25:26  peter
+    * fix IE with array of const in array of conts
+
+  Revision 1.143  2005/01/23 17:14:21  florian
     + optimized code generation on sparc
     + some stuff for pic code on sparc added
 
