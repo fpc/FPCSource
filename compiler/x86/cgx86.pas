@@ -1273,9 +1273,9 @@ unit cgx86;
         { load destination }
         a_load_reg_reg(list,OS_INT,OS_INT,NR_ESP,r);
 
-        { don't destroy the registers! }
-        list.concat(Taicpu.op_reg(A_PUSH,S_L,NR_ECX));
-        list.concat(Taicpu.op_reg(A_PUSH,S_L,NR_ESI));
+        { Allocate other registers }
+        rg.getexplicitregisterint(list,NR_ECX);
+        rg.getexplicitregisterint(list,NR_ESI);
 
         { load count }
         a_load_ref_reg(list,OS_INT,OS_INT,lenref,NR_ECX);
@@ -1312,8 +1312,8 @@ unit cgx86;
           S_L : list.concat(Taicpu.Op_none(A_MOVSD,S_NO));
         end;
         rg.ungetregisterint(list,r);
-        list.concat(Taicpu.op_reg(A_POP,S_L,NR_ESI));
-        list.concat(Taicpu.op_reg(A_POP,S_L,NR_ECX));
+        rg.ungetregisterint(list,NR_ESI);
+        rg.ungetregisterint(list,NR_ECX);
 
         { patch the new address }
         a_load_reg_ref(list,OS_INT,OS_INT,NR_ESP,ref);
@@ -1607,7 +1607,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.65  2003-09-25 13:13:32  florian
+  Revision 1.66  2003-09-25 21:29:16  peter
+    * change push/pop in getreg/ungetreg
+
+  Revision 1.65  2003/09/25 13:13:32  florian
     * more x86-64 fixes
 
   Revision 1.64  2003/09/11 11:55:00  florian
