@@ -5327,6 +5327,10 @@ implementation
               enumdef  : tenumdef(def).rangenr:=0;
               arraydef : tarraydef(def).rangenr:=0;
             end;
+            if assigned(def.rttitablesym) then
+              trttisym(def.rttitablesym).lab := nil;
+            if assigned(def.inittablesym) then
+              trttisym(def.inittablesym).lab := nil;
             def.localrttilab[initrtti]:=nil;
             def.localrttilab[fullrtti]:=nil;
 {$ifdef debug}
@@ -5396,7 +5400,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  2001-09-02 21:18:28  peter
+  Revision 1.48  2001-09-03 15:18:38  jonas
+    * aded missing reset of labels of rttitablesym and inittablesym labels
+
+  Revision 1.47  2001/09/02 21:18:28  peter
     * split constsym.value in valueord,valueordptr,valueptr. The valueordptr
       is used for holding target platform pointer values. As those can be
       bigger than the source platform.
