@@ -1821,7 +1821,9 @@
         if highrange<lowrange then
             internalerror($99080501);
         If (highrange-lowrange = $7fffffff) or
-           (($7fffffff div elesize + elesize -1) < (highrange - lowrange)) Then
+           { () are needed around elesize-1 to avoid a possible
+             integer overflow for elesize=1 !! PM }
+           (($7fffffff div elesize + (elesize -1)) < (highrange - lowrange)) Then
           Begin
             Message(sym_e_segment_too_large);
             size := 4
@@ -3627,7 +3629,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.147  1999-08-09 22:19:55  peter
+  Revision 1.148  1999-08-10 12:32:13  pierre
+   * avoid overflow in tarraydef.size
+
+  Revision 1.147  1999/08/09 22:19:55  peter
     * classes vmt changed to only positive addresses
     * sharedlib creation is working
 
