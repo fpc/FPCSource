@@ -130,9 +130,9 @@
             jsr FPC_GETMEM
             { Restore all registers in the correct order }
             movem.l (sp)+,d0-a7
-            { Memory size to a5 }
+            { Memory position to a5 }
             move.l (a5),a5
-            add.l  #4,sp
+            addq.l  #4,sp
             { If no memory available : fail() }
             move.l a5,d0
             tst.l  d0         { set flags for a5 }
@@ -162,8 +162,14 @@
             { Restore all registers in the correct order }
             movem.l (sp)+,d0-a7
             { set the VMT address for the new created object }
+{$ifdef OBJECTVMTOFFSET}
+      { the offset is in %edi since the calling and has not been changed !! }
+            move.l 8(a6),d1
+            move.l d1,(a5,d0.l)
+{$else OBJECTVMTOFFSET}
             move.l 8(a6),d0
             move.l d0,(a5)
+{$endif OBJECTVMTOFFSET}
             or.l d0,d0
          @LHC_5:
             rts
@@ -676,7 +682,12 @@ end;
 
 {
   $Log$
-  Revision 1.12  1998-10-13 08:00:06  pierre
+  Revision 1.13  1998-10-15 11:35:03  pierre
+   + first step of variable vmt offset
+     offset is stored in R_EDI (R_D0)
+     if objectvmtoffset is defined
+
+  Revision 1.12  1998/10/13 08:00:06  pierre
     * some bugs related to FPC_ prefix fixed
     * problems with pbyte sometimes defined and sometimes not for rttip.inc solved
 

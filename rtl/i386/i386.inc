@@ -159,6 +159,7 @@ asm
      8 VMT-Address
      4 main programm-Addr
      0 %ebp
+     edi contains the vmt position
 }
       { eax isn't touched anywhere, so it doesn't have to reloaded }
         movl    8(%ebp),%eax
@@ -179,7 +180,7 @@ asm
         call    GETMEM
 {$endif}
         popal
-      { Memory size to %esi }
+      { Memory position to %esi }
         movl    (%esi),%esi
         addl    $4,%esp
       { If no memory available : fail() }
@@ -204,7 +205,12 @@ asm
         call    FPC_FILL_OBJECT
         popal
       { set the VMT address for the new created object }
+{$ifdef OBJECTVMTOFFSET}
+      { the offset is in %edi since the calling and has not been changed !! }
+        movl    %eax,(%esi,%edi,1)
+{$else OBJECTVMTOFFSET}
         movl    %eax,(%esi)
+{$endif OBJECTVMTOFFSET}
         orl     %eax,%eax
 .LHC_5:
 end;
@@ -690,7 +696,12 @@ end;
 
 {
   $Log$
-  Revision 1.25  1998-09-28 11:02:34  peter
+  Revision 1.26  1998-10-15 11:35:02  pierre
+   + first step of variable vmt offset
+     offset is stored in R_EDI (R_D0)
+     if objectvmtoffset is defined
+
+  Revision 1.25  1998/09/28 11:02:34  peter
     * added some more $ifdef FPCNAMES
 
   Revision 1.24  1998/09/28 10:23:43  florian
