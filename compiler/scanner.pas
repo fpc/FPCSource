@@ -1164,12 +1164,11 @@ unit scanner;
      begin
         fsplit(fn,d,n,e);
         current_module^.current_inputfile:=new(pinputfile,init(d,n,e));
-        current_module^.current_inputfile^.reset;
+        if not current_module^.current_inputfile^.reset then
+         Message(scan_f_cannot_open_input);
         current_module^.sourcefiles.register_file(current_module^.current_inputfile);
         current_module^.current_index:=current_module^.current_inputfile^.ref_index;
         status.currentsource:=current_module^.current_inputfile^.name^+current_module^.current_inputfile^.ext^;
-        if ioresult<>0 then
-         Message(scan_f_cannot_open_input);
         inputbuffer:=current_module^.current_inputfile^.buf;
         reload;
         preprocstack:=nil;
@@ -1267,7 +1266,10 @@ unit scanner;
 end.
 {
   $Log$
-  Revision 1.27  1998-06-25 08:48:19  florian
+  Revision 1.28  1998-07-01 15:26:57  peter
+    * better bufferfile.reset error handling
+
+  Revision 1.27  1998/06/25 08:48:19  florian
     * first version of rtti support
 
   Revision 1.26  1998/06/16 08:56:30  peter

@@ -102,8 +102,6 @@ unit cobjects;
           { it's not tested if p is in the list !      }
           procedure remove(p : plinkedlist_item);
 
-
-
           { is the linkedlist empty ? }
           function  empty:boolean;
        end;
@@ -133,12 +131,8 @@ unit cobjects;
           constructor init;
           destructor done;
 
-
-
           { true is the container empty }
           function empty:boolean;
-
-
 
           { inserts a string }
           procedure insert(const s : string);
@@ -183,7 +177,7 @@ unit cobjects;
            destructor done;virtual;
 
            { opens the file for input, other accesses are rejected }
-           procedure reset;
+           function  reset:boolean;
 
            { opens the file for output, other accesses are rejected }
            procedure rewrite;
@@ -831,7 +825,7 @@ end;
          buf:=p;
       end;
 
-    procedure tbufferedfile.reset;
+    function tbufferedfile.reset:boolean;
 
       var
          ofm : byte;
@@ -840,7 +834,10 @@ end;
          iomode:=1;
          getmem(buf,bufsize);
          filemode:=0;
-         system.reset(f,1);
+         {$I-}
+          system.reset(f,1);
+         {$I+}
+         reset:=(ioresult=0);
          filemode:=ofm;
       end;
 
@@ -1125,7 +1122,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  1998-06-03 23:40:37  peter
+  Revision 1.10  1998-07-01 15:26:59  peter
+    * better bufferfile.reset error handling
+
+  Revision 1.9  1998/06/03 23:40:37  peter
     + unlimited file support, release tempclose
 
   Revision 1.8  1998/05/20 09:42:33  pierre
