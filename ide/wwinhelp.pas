@@ -268,7 +268,7 @@ end;
 
 procedure TTopicBlock.Read(var Buf; Count: longint);
 begin
-  FillChar(Buf,Sizeof(Buf),Count);
+  {FillChar(Buf,Sizeof(Buf),Count);}
   if Count>(DataSize-CurOfs) then
   begin
     Count:=Max(0,DataSize-CurOfs);
@@ -1677,7 +1677,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.3  2002-09-07 15:40:50  peter
+  Revision 1.4  2002-11-27 20:07:03  peter
+    * removed wrong fillchar statement
+
+  Revision 1.3  2002/09/07 15:40:50  peter
     * old logs removed and tabs fixed
 
 }
