@@ -193,8 +193,11 @@ begin
     Procedure Freemem(Var p:pointer);
 
     begin
-      Dec(P,SizeOf(Longint));      
-      SysFreemem(P,Plongint(P)^);
+      If P<>Nil then
+        begin
+        Dec(P,SizeOf(Longint));      
+        SysFreemem(P,Plongint(P)^);
+        end;
     end;
 
 
@@ -333,7 +336,10 @@ end.
 
 {
   $Log$
-  Revision 1.32  1999-08-15 21:28:57  michael
+  Revision 1.33  1999-08-19 19:52:26  michael
+  * Fixed freemem bug; reported by Sebastian Guenther
+
+  Revision 1.32  1999/08/15 21:28:57  michael
   + Pass hash also for speed reasons.
 
   Revision 1.31  1999/08/15 21:02:56  michael
