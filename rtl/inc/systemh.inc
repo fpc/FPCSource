@@ -85,7 +85,7 @@ Type
 {$endif CPUI386}
 
 {$ifdef CPUX86_64}
-  StrLenInt = LongInt;
+  StrLenInt = Int64;
 
   {$define DEFAULT_EXTENDED}
 
@@ -666,7 +666,11 @@ const
 
 {
   $Log$
-  Revision 1.67  2003-04-25 21:09:44  peter
+  Revision 1.68  2003-04-30 16:36:39  florian
+    + support for generic pchar routines added
+    + some basic rtl stuff for x86-64 added
+
+  Revision 1.67  2003/04/25 21:09:44  peter
     * remove dos lf
 
   Revision 1.66  2003/04/23 22:46:41  florian

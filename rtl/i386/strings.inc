@@ -17,6 +17,7 @@
 
 {$ASMMODE ATT}
 
+{$define FPC_UNIT_HAS_STRCOPY}
 function strcopy(dest,source : pchar) : pchar;assembler;
 asm
         movl    source,%edi
@@ -74,6 +75,7 @@ asm
 end ['EAX','EDX','ECX','ESI','EDI'];
 
 
+{$define FPC_UNIT_HAS_STRECOPY}
 function strecopy(dest,source : pchar) : pchar;assembler;
 asm
         cld
@@ -99,6 +101,7 @@ asm
 end ['EAX','ECX','ESI','EDI'];
 
 
+{$define FPC_UNIT_HAS_STRLCOPY}
 function strlcopy(dest,source : pchar;maxlen : longint) : pchar;assembler;
 asm
         movl    source,%esi
@@ -123,10 +126,12 @@ asm
 end ['EAX','ECX','ESI','EDI'];
 
 
+{$define FPC_UNIT_HAS_STRLEN}
 function strlen(p : pchar) : longint;assembler;
 {$i strlen.inc}
 
 
+{$define FPC_UNIT_HAS_STREND}
 function strend(p : pchar) : pchar;assembler;
 asm
         cld
@@ -144,6 +149,8 @@ asm
 end ['EDI','ECX','EAX'];
 
 
+
+{$define FPC_UNIT_HAS_STRCOMP}
 function strcomp(str1,str2 : pchar) : longint;assembler;
 asm
         movl    str2,%edi
@@ -163,6 +170,8 @@ asm
 end ['EAX','ECX','ESI','EDI'];
 
 
+
+{$define FPC_UNIT_HAS_STRLCOMP}
 function strlcomp(str1,str2 : pchar;l : longint) : longint;assembler;
 asm
         movl    str2,%edi
@@ -186,6 +195,8 @@ asm
 end ['EAX','ECX','ESI','EDI'];
 
 
+
+{$define FPC_UNIT_HAS_STRICOMP}
 function stricomp(str1,str2 : pchar) : longint;assembler;
 asm
         movl    str2,%edi
@@ -221,6 +232,8 @@ asm
 end ['EAX','EBX','ECX','ESI','EDI'];
 
 
+
+{$define FPC_UNIT_HAS_STRLICOMP}
 function strlicomp(str1,str2 : pchar;l : longint) : longint;assembler;
 asm
         movl    str2,%edi
@@ -260,6 +273,8 @@ asm
 end ['EAX','EBX','ECX','ESI','EDI'];
 
 
+
+{$define FPC_UNIT_HAS_STRSCAN}
 function strscan(p : pchar;c : char) : pchar;assembler;
 asm
         movl    p,%eax
@@ -378,6 +393,7 @@ asm
 end ['EAX','ECX','ESI','EDI','EDX'];
 
 
+{$define FPC_UNIT_HAS_STRRSCAN}
 function strrscan(p : pchar;c : char) : pchar;assembler;
 asm
         xorl    %eax,%eax
@@ -406,6 +422,7 @@ asm
 end ['EAX','ECX','EDI'];
 
 
+{$define FPC_UNIT_HAS_STRUPPER}
 function strupper(p : pchar) : pchar;assembler;
 asm
         movl    p,%esi
@@ -428,6 +445,7 @@ asm
 end ['EAX','ESI','EDI'];
 
 
+{$define FPC_UNIT_HAS_STRLOWER}
 function strlower(p : pchar) : pchar;assembler;
 asm
         movl    p,%esi
@@ -451,7 +469,10 @@ end ['EAX','ESI','EDI'];
 
 {
   $Log$
-  Revision 1.7  2002-09-07 16:01:19  peter
-    * old logs removed and tabs fixed
+  Revision 1.8  2003-04-30 16:36:39  florian
+    + support for generic pchar routines added
+    + some basic rtl stuff for x86-64 added
 
+  Revision 1.7  2002/09/07 16:01:19  peter
+    * old logs removed and tabs fixed
 }
