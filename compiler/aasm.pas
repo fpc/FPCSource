@@ -282,7 +282,8 @@ type
       datasegment,codesegment,bsssegment,
       debuglist,consts,
       importssection,exportssection,
-      resourcesection,rttilist         : paasmoutput;
+      resourcesection,rttilist,
+      resourcestringlist         : paasmoutput;
     { asm symbol list }
       asmsymbollist : pasmsymbollist;
 
@@ -900,7 +901,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.52  1999-07-03 00:26:01  peter
+  Revision 1.53  1999-07-22 09:37:28  florian
+    + resourcestring implemented
+    + start of longstring support
+
+  Revision 1.52  1999/07/03 00:26:01  peter
     * ag386bin doesn't destroy the aasmoutput lists anymore
 
   Revision 1.51  1999/06/02 22:43:57  pierre

@@ -69,7 +69,6 @@ unit cgai386;
 
     procedure copyshortstring(const dref,sref : treference;len : byte;loadref:boolean);
     procedure loadansistring(p : ptree);
-    procedure loadshort2ansi(source,dest : ptree);
 
     procedure finalize(t : pdef;const ref : treference;is_already_ref : boolean);
     procedure decrstringref(t : pdef;const ref : treference);
@@ -665,11 +664,18 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          maybe_loadesi;
       end;
 
-
-    procedure loadshort2ansi(source,dest : ptree);
-
+    procedure copylongstring(const dref,sref : treference;len : longint;loadref:boolean);
       begin
+         emitpushreferenceaddr(dref);
+         if loadref then
+          emit_push_mem(sref)
+         else
+          emitpushreferenceaddr(sref);
+         push_int(len);
+         emitcall('FPC_LONGSTR_COPY');
+         maybe_loadesi;
       end;
+
 
     procedure decrstringref(t : pdef;const ref : treference);
 
@@ -3110,7 +3116,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.16  1999-07-18 10:41:59  florian
+  Revision 1.17  1999-07-22 09:37:38  florian
+    + resourcestring implemented
+    + start of longstring support
+
+  Revision 1.16  1999/07/18 10:41:59  florian
     * fix of my previous commit nevertheless it doesn't work completly
 
   Revision 1.15  1999/07/18 10:19:44  florian

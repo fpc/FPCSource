@@ -36,7 +36,8 @@ unit pmodules;
        globtype,version,systems,tokens,
        cobjects,comphook,globals,verbose,files,
        symtable,aasm,hcodegen,
-       link,assemble,import,export,gendef,ppu,comprsrc
+       link,assemble,import,export,gendef,ppu,comprsrc,
+       cresstr
 {$ifdef i386}
        ,i386base,i386asm
 {$endif}
@@ -108,6 +109,8 @@ unit pmodules;
       { .rdata is a read only data section (PM) }
         fixseg(rttilist,sec_data);
         fixseg(consts,sec_data);
+        if assigned(resourcestringlist) then
+          fixseg(resourcestringlist,sec_data);
 {$ifdef GDB}
         if assigned(debuglist) then
           fixseg(debuglist,sec_code);
@@ -797,7 +800,8 @@ unit pmodules;
           datasegment^.empty and
           bsssegment^.empty and
           ((importssection=nil) or importssection^.empty) and
-          ((resourcesection=nil) or resourcesection^.empty)
+          ((resourcesection=nil) or resourcesection^.empty) and
+          ((resourcestringlist=nil) or resourcestringlist^.empty)
         );
       end;
 
@@ -1294,6 +1298,7 @@ unit pmodules;
            exportlib^.generatelib;
 
          { insert heap }
+         insertresourcestrings;
          insertinitfinaltable;
          insertheap;
          inserttargetspecific;
@@ -1339,7 +1344,11 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.130  1999-07-14 21:19:11  florian
+  Revision 1.131  1999-07-22 09:37:54  florian
+    + resourcestring implemented
+    + start of longstring support
+
+  Revision 1.130  1999/07/14 21:19:11  florian
     + implemented a better error message if a PPU file isn't found as suggested
       by Lee John
 

@@ -40,7 +40,7 @@ implementation
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
       i386base,i386asm,
-      cgai386,tgeni386,cg386cnv;
+      cgai386,tgeni386,cg386cnv,cresstr;
 
 {*****************************************************************************
                              SecondLoad
@@ -54,6 +54,8 @@ implementation
          hp : preference;
          s : pasmsymbol;
          popeax : boolean;
+         pushed : tpushed;
+         hr : treference;
 
       begin
          simple_loadn:=true;
@@ -72,6 +74,31 @@ implementation
                     else
                      p^.location.reference.symbol:=newasmsymbol(p^.symtableentry^.mangledname);
                  end;
+              constsym:
+                begin
+                   if pconstsym(p^.symtableentry)^.consttype=constresourcestring then
+                     begin
+                         pushusedregisters(pushed,$ff);
+                         exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,
+                         calc_resstring_hashvalue(pchar(pconstsym(p)^.value),
+                           pconstsym(p)^.len))));
+                         emitcall('FPC_GETRESOURCESTRING');
+
+                         hregister:=getexplicitregister32(R_EAX);
+                         emit_reg_reg(A_MOV,S_L,R_EAX,hregister);
+                         if gettempansistringreference(hr) then
+                           decrstringref(p^.resulttype,hr);
+                         exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,hregister,
+                           newreference(hr))));
+                        ungetregister32(hregister);
+                        popusedregisters(pushed);
+
+                        p^.location.loc:=LOC_MEM;
+                        p^.location.reference:=hr;
+                     end
+                   else
+                     internalerror(22798);
+                end;
               varsym :
                  begin
                     hregister:=R_NO;
@@ -437,6 +464,9 @@ implementation
                        loadshortstring(p);
                        ungetiftemp(p^.right^.location.reference);
                     end;
+                end
+              else if is_longstring(p^.left^.resulttype) then
+                begin
                 end
               else
                 begin
@@ -834,7 +864,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.63  1999-07-05 20:13:12  peter
+  Revision 1.64  1999-07-22 09:37:37  florian
+    + resourcestring implemented
+    + start of longstring support
+
+  Revision 1.63  1999/07/05 20:13:12  peter
     * removed temp defines
 
   Revision 1.62  1999/06/30 15:43:18  florian

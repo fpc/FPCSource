@@ -277,6 +277,8 @@ implementation
           dispose(exportssection,done);
          if assigned(resourcesection) then
           dispose(resourcesection,done);
+         if assigned(resourcestringlist) then
+          dispose(resourcestringlist,done);
          dispose(asmsymbollist,done);
       end;
 
@@ -296,7 +298,11 @@ end.
 
 {
   $Log$
-  Revision 1.33  1999-05-27 19:44:31  peter
+  Revision 1.34  1999-07-22 09:37:42  florian
+    + resourcestring implemented
+    + start of longstring support
+
+  Revision 1.33  1999/05/27 19:44:31  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly

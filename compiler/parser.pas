@@ -169,6 +169,7 @@ unit parser;
          oldexports,
          oldresource,
          oldrttilist,
+         oldresourcestringlist,
          oldbsssegment,
          olddatasegment,
          oldcodesegment,
@@ -227,6 +228,7 @@ unit parser;
          oldimports:=importssection;
          oldexports:=exportssection;
          oldresource:=resourcesection;
+         oldresourcestringlist:=resourcestringlist;
          oldasmsymbollist:=asmsymbollist;
        { save akt... state }
          oldaktlocalswitches:=aktlocalswitches;
@@ -386,6 +388,8 @@ unit parser;
               exportssection:=oldexports;
               resourcesection:=oldresource;
               rttilist:=oldrttilist;
+              resourcestringlist:=oldresourcestringlist;
+
               asmsymbollist:=oldasmsymbollist;
               { restore symtable state }
               refsymtable:=oldrefsymtable;
@@ -462,7 +466,11 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.75  1999-06-15 13:23:48  pierre
+  Revision 1.76  1999-07-22 09:37:49  florian
+    + resourcestring implemented
+    + start of longstring support
+
+  Revision 1.75  1999/06/15 13:23:48  pierre
    * don't generate browser if errors during compilation
 
   Revision 1.74  1999/05/27 19:44:41  peter

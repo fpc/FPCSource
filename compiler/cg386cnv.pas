@@ -30,6 +30,7 @@ interface
       tree;
 
     procedure loadshortstring(p:ptree);
+    procedure loadlongstring(p:ptree);
     procedure loadansi2short(source,dest : ptree);
 
     procedure secondtypeconv(var p : ptree);
@@ -113,6 +114,75 @@ implementation
                       exprasmlist^.concat(new(pai386,op_const_reg(A_OR,S_L,1,R_EDI)));
                       exprasmlist^.concat(new(pai386,op_reg_ref(
                          A_MOV,S_W,R_DI,newreference(p^.left^.location.reference))));
+                   end;
+              end;
+         else
+           CGMessage(type_e_mismatch);
+         end;
+      end;
+
+    procedure loadlongstring(p:ptree);
+    {
+      Load a string, handles stringdef and orddef (char) types
+    }
+      var
+         r : preference;
+
+      begin
+         case p^.right^.resulttype^.deftype of
+            stringdef:
+              begin
+                 if (p^.right^.treetype=stringconstn) and
+                   (str_length(p^.right)=0) then
+                   exprasmlist^.concat(new(pai386,op_const_ref(
+                      A_MOV,S_L,0,newreference(p^.left^.location.reference))))
+                 else
+                   begin
+                     emitpushreferenceaddr(p^.left^.location.reference);
+                     emitpushreferenceaddr(p^.right^.location.reference);
+                     push_shortstring_length(p^.left);
+                     emitcall('FPC_LONGSTR_COPY');
+                     maybe_loadesi;
+                   end;
+              end;
+            orddef:
+              begin
+                 exprasmlist^.concat(new(pai386,op_const_ref(
+                    A_MOV,S_L,1,newreference(p^.left^.location.reference))));
+
+                 r:=newreference(p^.left^.location.reference);
+                 inc(r^.offset,4);
+
+                 if p^.right^.treetype=ordconstn then
+                   exprasmlist^.concat(new(pai386,op_const_ref(
+                      A_MOV,S_B,p^.right^.value,r)))
+                 else
+                   begin
+                      case p^.right^.location.loc of
+                         LOC_REGISTER,LOC_CREGISTER:
+                           begin
+                              exprasmlist^.concat(new(pai386,op_reg_ref(
+                                 A_MOV,S_B,p^.right^.location.register,r)));
+                              ungetregister(p^.right^.location.register);
+                           end;
+                         LOC_MEM,LOC_REFERENCE:
+                           begin
+                              if not(R_EAX in unused) then
+                                exprasmlist^.concat(new(pai386,op_reg(
+                                  A_PUSH,S_L,R_EAX)));
+                              exprasmlist^.concat(new(pai386,op_ref_reg(
+                                A_MOV,S_B,newreference(p^.right^.location.reference),R_AL)));
+                              exprasmlist^.concat(new(pai386,op_reg_ref(
+                                A_MOV,S_B,R_AL,r)));
+
+                              if not(R_EAX in unused) then
+                                exprasmlist^.concat(new(pai386,op_reg(
+                                   A_POP,S_L,R_EAX)));
+                              del_reference(p^.right^.location.reference);
+                           end
+                         else
+                           internalerror(20799);
+                        end;
                    end;
               end;
          else
@@ -1392,7 +1462,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.78  1999-07-05 20:13:07  peter
+  Revision 1.79  1999-07-22 09:37:34  florian
+    + resourcestring implemented
+    + start of longstring support
+
+  Revision 1.78  1999/07/05 20:13:07  peter
     * removed temp defines
 
   Revision 1.77  1999/07/04 16:37:08  florian

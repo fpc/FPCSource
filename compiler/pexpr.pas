@@ -1112,6 +1112,11 @@ unit pexpr;
                                         pconstsym(srsym)^.definition);
                                 constnil :
                                   p1:=genzeronode(niln);
+                                constresourcestring:
+                                  begin
+                                     p1:=genloadnode(pvarsym(srsym),srsymtable);
+                                     pd:=cansistringdef;
+                                  end;
                               end;
                               pd:=p1^.resulttype;
                             end;
@@ -2046,7 +2051,11 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.121  1999-07-16 10:04:35  peter
+  Revision 1.122  1999-07-22 09:37:52  florian
+    + resourcestring implemented
+    + start of longstring support
+
+  Revision 1.121  1999/07/16 10:04:35  peter
     * merged
 
   Revision 1.120  1999/07/06 22:38:11  florian

@@ -196,7 +196,8 @@ type
     _SHORTSTRING,
     _FINALIZATION,
     _IMPLEMENTATION,
-    _INITIALIZATION
+    _INITIALIZATION,
+    _RESOURCESTRING
   );
 
   tokenrec=record
@@ -375,7 +376,8 @@ const
       (str:'SHORTSTRING'   ;special:false;keyword:m_none),
       (str:'FINALIZATION'  ;special:false;keyword:m_initfinal),
       (str:'IMPLEMENTATION';special:false;keyword:m_all),
-      (str:'INITIALIZATION';special:false;keyword:m_initfinal)
+      (str:'INITIALIZATION';special:false;keyword:m_initfinal),
+      (str:'RESOURCESTRING';special:false;keyword:m_class)
   );
 
 implementation
@@ -383,7 +385,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  1999-07-10 10:26:21  peter
+  Revision 1.9  1999-07-22 09:38:01  florian
+    + resourcestring implemented
+    + start of longstring support
+
+  Revision 1.8  1999/07/10 10:26:21  peter
     * merged
 
   Revision 1.7.2.1  1999/07/10 10:03:18  peter

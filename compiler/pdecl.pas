@@ -2037,6 +2037,65 @@ unit pdecl;
         read_var_decs(false,false,true);
       end;
 
+    procedure resourcestring_dec;
+
+      var
+         name : stringid;
+         p : ptree;
+         storetokenpos,filepos : tfileposinfo;
+         old_block_type : tblock_type;
+         sp : pchar;
+
+      begin
+         consume(_RESOURCESTRING);
+         if not(symtablestack^.symtabletype in [staticsymtable,globalsymtable]) then
+           message(parser_e_resourcestring_only_sg);
+         old_block_type:=block_type;
+         block_type:=bt_const;
+         repeat
+           name:=pattern;
+           filepos:=tokenpos;
+           consume(ID);
+           case token of
+              EQUAL:
+                begin
+                   consume(EQUAL);
+                   p:=comp_expr(true);
+                   do_firstpass(p);
+                   storetokenpos:=tokenpos;
+                   tokenpos:=filepos;
+                   case p^.treetype of
+                      ordconstn:
+                        begin
+                           if is_constcharnode(p) then
+                             begin
+                                getmem(sp,2);
+                                sp[0]:=chr(p^.value);
+                                sp[1]:=#0;
+                                symtablestack^.insert(new(pconstsym,init_string(name,constresourcestring,sp,1)));
+                             end
+                           else
+                             Message(cg_e_illegal_expression);
+                        end;
+                      stringconstn:
+                        begin
+                           getmem(sp,p^.length+1);
+                           move(p^.value_str^,sp^,p^.length+1);
+                           symtablestack^.insert(new(pconstsym,init_string(name,constresourcestring,sp,p^.length)));
+                        end;
+                      else
+                        Message(cg_e_illegal_expression);
+                   end;
+                   tokenpos:=storetokenpos;
+                   consume(SEMICOLON);
+                   disposetree(p);
+                end;
+              else consume(EQUAL);
+           end;
+         until token<>ID;
+         block_type:=old_block_type;
+
+      end;
 
     procedure Not_supported_for_inline(t : ttoken);
 
@@ -2081,6 +2140,8 @@ unit pdecl;
                    Not_supported_for_inline(token);
                    read_proc;
                 end;
+              _RESOURCESTRING:
+                resourcestring_dec;
               _EXPORTS:
                 begin
                    Not_supported_for_inline(token);
@@ -2111,6 +2172,8 @@ unit pdecl;
              _TYPE : type_dec;
               _VAR : var_dec;
               _THREADVAR : threadvar_dec;
+              _RESOURCESTRING:
+                resourcestring_dec;
          _FUNCTION,
         _PROCEDURE,
          _OPERATOR : read_proc;
@@ -2124,7 +2187,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.133  1999-07-16 10:04:34  peter
+  Revision 1.134  1999-07-22 09:37:50  florian
+    + resourcestring implemented
+    + start of longstring support
+
+  Revision 1.133  1999/07/16 10:04:34  peter
     * merged
 
   Revision 1.132  1999/07/11 21:24:31  michael

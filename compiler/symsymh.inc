@@ -276,7 +276,8 @@
        end;
 
        tconsttype = (constord,conststring,constreal,constbool,
-                     constint,constchar,constset,constnil);
+                     constint,constchar,constset,constnil,
+                     constresourcestring);
 
        pconstsym = ^tconstsym;
        tconstsym = object(tsym)
@@ -331,7 +332,11 @@
 
 {
   $Log$
-  Revision 1.26  1999-05-27 19:45:07  peter
+  Revision 1.27  1999-07-22 09:37:57  florian
+    + resourcestring implemented
+    + start of longstring support
+
+  Revision 1.26  1999/05/27 19:45:07  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly

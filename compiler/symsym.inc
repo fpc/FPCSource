@@ -1550,8 +1550,9 @@
          value:=longint(str);
          definition:=nil;
          len:=l;
+         if t=constresourcestring then
+           registerresourcestring(pchar(value),len);
       end;
-
 
     constructor tconstsym.load;
       var
@@ -1575,6 +1576,7 @@
                len:=readlong;
                getmem(pchar(value),len+1);
                current_ppu^.getdata(pchar(value)^,len);
+               registerresourcestring(pchar(value),len);
              end;
            constreal :
              begin
@@ -2038,7 +2040,11 @@
 
 {
   $Log$
-  Revision 1.97  1999-07-05 12:13:25  florian
+  Revision 1.98  1999-07-22 09:37:55  florian
+    + resourcestring implemented
+    + start of longstring support
+
+  Revision 1.97  1999/07/05 12:13:25  florian
     * property reading from PPU fixed (new PPU format), it uses now writesym...
 
   Revision 1.96  1999/06/28 10:49:48  pierre

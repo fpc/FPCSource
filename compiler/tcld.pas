@@ -97,6 +97,16 @@ implementation
            end;
          case p^.symtableentry^.typ of
             absolutesym :;
+            constsym:
+              begin
+                 if pconstsym(p^.symtableentry)^.consttype=constresourcestring then
+                   begin
+                      p^.resulttype:=cansistringdef;
+                      p^.location.loc:=LOC_MEM;
+                   end
+                 else
+                   internalerror(22799);
+              end;
             varsym :
                 begin
                    if not(p^.is_absolute) and (p^.resulttype=nil) then
@@ -460,7 +470,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  1999-06-17 13:19:59  pierre
+  Revision 1.36  1999-07-22 09:38:00  florian
+    + resourcestring implemented
+    + start of longstring support
+
+  Revision 1.35  1999/06/17 13:19:59  pierre
    * merged from 0_99_12 branch
 
   Revision 1.34.2.1  1999/06/17 12:33:39  pierre

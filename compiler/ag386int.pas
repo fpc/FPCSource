@@ -612,6 +612,7 @@ ait_stab_function_name : ;
       WriteTree(datasegment);
       WriteTree(consts);
       WriteTree(rttilist);
+      WriteTree(resourcestringlist);
       WriteTree(bsssegment);
       countlabelref:=true;
 
@@ -627,7 +628,11 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.49  1999-07-18 14:47:19  florian
+  Revision 1.50  1999-07-22 09:37:31  florian
+    + resourcestring implemented
+    + start of longstring support
+
+  Revision 1.49  1999/07/18 14:47:19  florian
     * bug 487 fixed, (inc(<property>) isn't allowed)
     * more fixes to compile with Delphi
 

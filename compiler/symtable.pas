@@ -434,6 +434,7 @@ implementation
      types,ppu,
      gendef,files
      ,tree
+     ,cresstr
 {$ifdef newcg}
      ,cgbase
 {$else}
@@ -2323,7 +2324,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  1999-07-18 14:47:34  florian
+  Revision 1.26  1999-07-22 09:37:58  florian
+    + resourcestring implemented
+    + start of longstring support
+
+  Revision 1.25  1999/07/18 14:47:34  florian
     * bug 487 fixed, (inc(<property>) isn't allowed)
     * more fixes to compile with Delphi
 

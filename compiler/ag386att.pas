@@ -799,6 +799,7 @@ unit ag386att;
       WriteTree(datasegment);
       WriteTree(consts);
       WriteTree(rttilist);
+      Writetree(resourcestringlist);
       WriteTree(bsssegment);
       Writetree(importssection);
       Writetree(exportssection);
@@ -816,7 +817,11 @@ unit ag386att;
 end.
 {
   $Log$
-  Revision 1.4  1999-07-18 10:19:38  florian
+  Revision 1.5  1999-07-22 09:37:29  florian
+    + resourcestring implemented
+    + start of longstring support
+
+  Revision 1.4  1999/07/18 10:19:38  florian
     * made it compilable with Dlephi 4 again
     + fixed problem with large stack allocations on win32
 

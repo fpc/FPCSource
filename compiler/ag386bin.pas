@@ -862,6 +862,8 @@ unit ag386bin;
         addlist(datasegment);
         addlist(consts);
         addlist(rttilist);
+        if assigned(resourcestringlist) then
+          addlist(resourcestringlist);
         addlist(bsssegment);
         if assigned(importssection) then
           addlist(importssection);
@@ -906,7 +908,11 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.18  1999-07-03 00:26:02  peter
+  Revision 1.19  1999-07-22 09:37:30  florian
+    + resourcestring implemented
+    + start of longstring support
+
+  Revision 1.18  1999/07/03 00:26:02  peter
     * ag386bin doesn't destroy the aasmoutput lists anymore
 
   Revision 1.17  1999/06/10 23:52:34  pierre
