@@ -699,7 +699,7 @@ const
 type
 
 
-  tinttable = array[0..8192] of integer;
+  tinttable = array[0..16383] of integer;
   pinttable = ^tinttable;
 
   WordArray = Array [0..StdbufferSize] Of word;
@@ -927,7 +927,8 @@ var
      {******************************************}
      {  SLOPED SOLID LINES                      }
      {******************************************}
-           oldCurrentColor := CurrentColor;
+           oldCurrentColor :=
+           CurrentColor;
            { Calculate deltax and deltay for initialisation }
            deltax := abs(x2 - x1);
            deltay := abs(y2 - y1);
@@ -1294,6 +1295,10 @@ var
     TmpAngle: word;
     DeltaAngle: word;
   Begin
+   If xradius = 0 then inc(x);
+   if yradius = 0 then inc(y);
+   inc(xradius);
+   inc(yradius);
    { check if valid angles }
    stangle := stAngle mod 361;
    EndAngle := EndAngle mod 361;
@@ -1311,7 +1316,7 @@ var
      Begin
        { approximate the number of pixels required by using the circumference }
        { equation of an ellipse.                                              }
-       NumOfPixels:=8*Round(2*sqrt((sqr(XRadius)+sqr(YRadius)) div 2));
+       NumOfPixels:=8*Round(2.5*sqrt((sqr(XRadius)+sqr(YRadius)) div 2));
        GetMem(xpt,NumOfpixels*sizeof(word));
        GetMem(ypt,NumOfPixels*sizeof(word));
        { Calculate the angle precision required }
@@ -1339,9 +1344,9 @@ var
    {  CIRCLE OR ELLIPSE WITH THICKNESS=3      }
    {******************************************}
     Begin
-      NumOfPix[1]:=8*Round(2*sqrt((sqr(XRadius)+sqr(YRadius)) div 2));
-      NumOfPix[0]:=8*Round(2*sqrt((sqr(XRadius-1)+sqr(YRadius-1)) div 2));
-      NumOfPix[2]:=8*Round(2*sqrt((sqr(XRadius+1)+sqr(YRadius+1)) div 2));
+      NumOfPix[1]:=8*Round(2.5*sqrt((sqr(XRadius)+sqr(YRadius)) div 2));
+      NumOfPix[0]:=8*Round(2.5*sqrt((sqr(XRadius-1)+sqr(YRadius-1)) div 2));
+      NumOfPix[2]:=8*Round(2.5*sqrt((sqr(XRadius+1)+sqr(YRadius+1)) div 2));
       GetMem(xpt,(NumOfPix[1]+NumOfPix[2]+NumOfPix[0])*sizeof(word));
       GetMem(ypt,(NumOfPix[1]+NumOfPix[2]+NumOfPix[0])*sizeof(word));
       { removed from inner loop to make faster }
@@ -1551,7 +1556,7 @@ End;
      CurrentWriteMode := NormalPut;
 
      { number of times to go throuh the 8x8 pattern }
-     NrIterations := abs(x2 - x1) div 8;
+     NrIterations := abs(x2 - x1+1) div 8;
      Inc(NrIterations);
 
 
@@ -1564,13 +1569,15 @@ End;
        begin
          OldCurrentColor := CurrentColor;
          CurrentColor := CurrentBkColor;
-         HLine(x1,x2,y);
+{ hline converts the coordinates to global ones, but that has been done }
+{ already here!!! Convert them bak to local ones... (JM)                }
+         HLine(x1-StartXViewPort,x2-StartXViewPort,y-StartYViewPort);
          CurrentColor := OldCurrentColor;
        end
      else
      if  FillSettings.Pattern = SolidFill then
        begin
-         HLine(x1,x2,y);
+         HLine(x1-StartXViewPort,x2-StartXViewPort,y-StartYViewPort);
        end
      else
        begin
@@ -1665,15 +1672,15 @@ End;
             CenterLn: LineInfo.Pattern :=  $FC78;   { -- - -- }
        end; { end case }
        { setup pattern styles }
-       j:=15;
+       j:=16;
        for i:=0 to 15 do
         Begin
+         dec(j);
          { bitwise mask for each bit in the word }
          if (word($01 shl i) AND LineInfo.Pattern) <> 0 then
                LinePatterns[j]:=TRUE
              else
                LinePatterns[j]:=FALSE;
-             Dec(j);
         end;
       end;
    end;
@@ -1787,19 +1794,21 @@ end;
 
 
   Procedure GetScanlineDefault (Y : Integer; Var Data); far;
-  {********************************************************}
-  { Procedure GetScanLine()                                }
-  {--------------------------------------------------------}
-  { Returns the full scanline of the video line of the Y   }
-  { coordinate. The values are returned in a WORD array    }
-  { each WORD representing a pixel of the specified scanline}
-  {********************************************************}
+  {**********************************************************}
+  { Procedure GetScanLine()                                  }
+  {----------------------------------------------------------}
+  { Returns the full scanline of the video line of the Y     }
+  { coordinate. The values are returned in a WORD array      }
+  { each WORD representing a pixel of the specified scanline }
+  { note: we only need the pixels inside the ViewPort! (JM)  }
+  {**********************************************************}
+
 
   Var
-    Offset, x : Integer;
+    x : Integer;
   Begin
-     For x:=0 to MaxX Do Begin
-            WordArray(Data)[x]:=GetPixel(x, y);
+     For x:=0 to ViewWidth Do Begin
+       WordArray(Data)[x]:=GetPixel(x, y);
      End;
   End;
 
@@ -2062,7 +2071,8 @@ end;
     OldWriteMode := CurrentWriteMode;
     CurrentWriteMode := NormalPut;
     InternalEllipse(X,Y,XRadius,YRadius,0,360);
-    FloodFill(X,Y,CurrentColor);
+    if (XRadius > 0) and (YRadius > 0) then
+      FloodFill(X,Y,CurrentColor);
     { restore old write mode }
     CurrentWriteMode := OldWriteMode;
   end;
@@ -2680,7 +2690,17 @@ DetectGraph
 
 {
   $Log$
-  Revision 1.18  1999-07-26 09:38:41  florian
+  Revision 1.19  1999-09-11 19:43:01  jonas
+    * FloodFill: did not take into account current viewport settings
+    * GetScanLine: only get line inside viewport, data outside of it
+      is not used anyway
+    * InternalEllipseDefault: fix for when xradius or yradius = 0 and
+      increase xradius and yradius always by one (TP does this too)
+    * fixed conlict in vesa.inc from last update
+    * some conditionals to avoid range check and overflow errors in
+      places where it doesn't matter
+
+  Revision 1.18  1999/07/26 09:38:41  florian
     * bar: y2 can be less y1, fixed
     * settextstyle: charsize can be 0, must be changed into 1
 

@@ -418,20 +418,24 @@ var
    BackupColor : Word;
    x1, x2: integer;
    Index : Integer;
+{ !!! }
+   allocated: longint;
   Begin
     { Save current drawing color }
     BackupColor := CurrentColor;
     CurrentColor := FillSettings.Color;
     { MaxX is based on zero index }
-    GetMem (s1,(MaxX+1)*2);  { A pixel color represents a word }
-    GetMem (s2,(MaxX+1)*2);  { A pixel color represents a word }
-    GetMem (s3,(MaxX+1)*2);  { A pixel color represents a word }
+    allocated := (ViewWidth+1)*2;
+    GetMem (s1,(ViewWidth+1)*2);  { A pixel color represents a word }
+    GetMem (s2,(ViewWidth+1)*2);  { A pixel color represents a word }
+    GetMem (s3,(ViewWidth+1)*2);  { A pixel color represents a word }
     if (not assigned(s1)) or (not assigned(s2)) or (not assigned(s3)) then
       begin
         _GraphResult := grNoFloodMem;
         exit;
       end;
-    If (x<0) Or (y<0) Or (x>MaxX) Or (y>MaxY) then Exit;
+    If (x<0) Or (y<0) Or
+       (x>ViewWidth) Or (y>ViewHeight) then Exit;
     { Some internal variables }
     Index := 0;
     { Index of segments to draw }
@@ -448,14 +452,14 @@ var
        GetScanline (y+1,s3^);
 
        { check the current scan line }
-       While (s1^[x]<>Border) And (x<=MaxX) Do Inc (x);
+       While (s1^[x]<>Border) And (x<ViewWidth) Do Inc (x);
        d:=0;
        e:=0;
-       Dec (x);
+       dec(x);
        Beginx:=x;
        REPEAT
          { check the above line }
-         If y<MaxY then
+         If y<ViewHeight then
            Begin
               Cont:=(s3^[x]<>Border) and (not AlreadyDrawn(x,y+1));
               If (e=0) And Cont then
@@ -494,15 +498,25 @@ var
        PatternLine (x1,x2,y);
      End; { end while }
 
-    FreeMem (s1,(MaxX+1)*2);
-    FreeMem (s2,(MaxX+1)*2);
-    FreeMem (s3,(MaxX+1)*2);
+    FreeMem (s1,(ViewWidth+1)*2);
+    FreeMem (s2,(ViewWidth+1)*2);
+    FreeMem (s3,(ViewWidth+1)*2);
     CurrentColor := BackUpColor;
   End;
 
 {
 $Log$
-Revision 1.4  1999-07-12 14:52:52  jonas
+Revision 1.5  1999-09-11 19:43:00  jonas
+  * FloodFill: did not take into account current viewport settings
+  * GetScanLine: only get line inside viewport, data outside of it
+    is not used anyway
+  * InternalEllipseDefault: fix for when xradius or yradius = 0 and
+    increase xradius and yradius always by one (TP does this too)
+  * fixed conlict in vesa.inc from last update
+  * some conditionals to avoid range check and overflow errors in
+    places where it doesn't matter
+
+Revision 1.4  1999/07/12 14:52:52  jonas
   * fixed procvar syntax error and ceil and floor functions
 
 Revision 1.3  1999/07/12 13:27:11  jonas

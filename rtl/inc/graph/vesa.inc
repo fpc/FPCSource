@@ -481,7 +481,6 @@ end;
   begin
      offs := longint(y) * BytesPerLine + x;
      SetWriteBank(integer(offs shr 16));
-<<<<<<< vesa.inc
      Case CurrentWriteMode of
        XorPut:
          Begin
@@ -502,28 +501,6 @@ end;
          mem[WinWriteSeg : word(offs)] := byte(currentcolor)
       else mem[WinWriteSeg : word(offs)] := byte(CurrentColor);
    End;
-=======
-     Case CurrentWriteMode of
-       XorPut:
-         Begin
-           SetReadBank(integer(offs shr 16));
-           mem[WinWriteSeg : word(offs)] := mem[WinReadSeg : word(offs)] xor byte(CurrentColor);
-         End;
-       AndPut:
-         Begin
-           SetReadBank(integer(offs shr 16));
-           mem[WinWriteSeg : word(offs)] := mem[WinReadSeg : word(offs)] And byte(CurrentColor);
-         End;
-       OrPut:
-         Begin
-           SetReadBank(integer(offs shr 16));
-           mem[WinWriteSeg : word(offs)] := mem[WinReadSeg : word(offs)] or byte(CurrentColor);
-         End;
-       NormalPut:
-         mem[WinWriteSeg : word(offs)] := byte(CurrentColor)
-     Else mem[WinWriteSeg : word(offs)] := byte(CurrentColor);
-   End;
->>>>>>> 1.8
   end;
 
   function GetPixVESA256(x, y : integer): word; far;
@@ -1484,7 +1461,17 @@ end;
 
 {
 $Log$
-Revision 1.9  1999-08-01 14:51:07  jonas
+Revision 1.10  1999-09-11 19:43:02  jonas
+  * FloodFill: did not take into account current viewport settings
+  * GetScanLine: only get line inside viewport, data outside of it
+    is not used anyway
+  * InternalEllipseDefault: fix for when xradius or yradius = 0 and
+    increase xradius and yradius always by one (TP does this too)
+  * fixed conlict in vesa.inc from last update
+  * some conditionals to avoid range check and overflow errors in
+    places where it doesn't matter
+
+Revision 1.9  1999/08/01 14:51:07  jonas
   * removed and/or/xorput support from vesaputpix256 (not in TP either)
   * added notput support to directputpix256
 

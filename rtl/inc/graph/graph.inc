@@ -119,7 +119,7 @@ CONST
   var
      ScrWidth : word absolute $40:$4a;
 
-
+{$ifndef tp}
   procedure seg_bytemove(sseg : word;source : longint;dseg : word;dest : longint;count : longint);
 
     begin
@@ -139,6 +139,7 @@ CONST
           pop es
        end ['ESI','EDI','ECX','EAX']
     end;
+{$endif tp}
 
  {************************************************************************}
  {*                     4-bit planar VGA mode routines                   *}
@@ -587,6 +588,7 @@ CONST
 {$endif asmgraph}
  end;
 
+{$ifndef tp}
   procedure HLine16(x,x2,y: integer); far;
 
    var
@@ -641,8 +643,23 @@ CONST
 
     port[$3ce]:=8;
     port[$3cf]:=LMask;
+{$ifopt r+}
+{$define rangeOn}
+{$r-}
+{$endif}
+{$ifopt q+}
+{$define overflowOn}
+{$q-}
+{$endif}
     Mem[$a000:ScrOfs]:=Mem[$a000:ScrOfs]+1;
-
+{$ifdef rangeOn}
+{$undef rangeOn}
+{$r+}
+{$endif}
+{$ifdef overflowOn}
+{$undef overflowOn}
+{$q+}
+{$endif}
     port[$3ce]:=8;
     if HLength>0 then
       begin
@@ -655,7 +672,23 @@ CONST
               ScrOfs:=ScrOfs+HLength;
            end;
          port[$3cf]:=RMask;
+{$ifopt r+}
+{$define rangeOn}
+{$r-}
+{$endif}
+{$ifopt q+}
+{$define overflowOn}
+{$q-}
+{$endif}
          Mem[$a000:ScrOfs]:=Mem[$a000:ScrOfs]+1;
+{$ifdef rangeOn}
+{$undef rangeOn}
+{$r+}
+{$endif}
+{$ifdef overflowOn}
+{$undef overflowOn}
+{$q+}
+{$endif}
       end;
     // clean up
     port[$3cf]:=0;
@@ -717,7 +750,23 @@ CONST
     end;
     for i:=y to y2 do
       begin
+{$ifopt r+}
+{$define rangeOn}
+{$r-}
+{$endif}
+{$ifopt q+}
+{$define overflowOn}
+{$q-}
+{$endif}
          Mem[$a000:ScrOfs]:=Mem[$a000:ScrOfs]+1;
+{$ifdef rangeOn}
+{$undef rangeOn}
+{$r+}
+{$endif}
+{$ifdef overflowOn}
+{$undef overflowOn}
+{$q+}
+{$endif}
          ScrOfs:=ScrOfs+ScrWidth;
       end;
     // clean up
@@ -729,6 +778,7 @@ CONST
     port[$3ce]:=3;
     port[$3cf]:=0;
   End;
+{$endif tp}
 
 
  procedure SetVisual480(page: word); far;
@@ -1741,8 +1791,6 @@ const CrtAddress: word = 0;
          mode.SetVisualPage := SetVisual200;
          mode.SetActivePage := SetActive200;
          mode.InitMode := Init640x200x16;
-         mode.HLine := HLine16;
-         mode.VLine := VLine16;
 {$else fpc}
          mode.DirectPutPixel:=@DirectPutPixel16;
          mode.PutPixel:=@PutPixel16;
@@ -1778,8 +1826,6 @@ const CrtAddress: word = 0;
          mode.GetRGBPalette := GetVGARGBPalette;
          mode.SetVisualPage := SetVisual350;
          mode.SetActivePage := SetActive350;
-         mode.HLine := HLine16;
-         mode.VLine := VLine16;
 {$else fpc}
          mode.DirectPutPixel:=@DirectPutPixel16;
          mode.PutPixel:=@PutPixel16;
@@ -1815,8 +1861,6 @@ const CrtAddress: word = 0;
          mode.InitMode := Init640x480x16;
          mode.SetVisualPage := SetVisual480;
          mode.SetActivePage := SetActive480;
-         mode.HLine := HLine16;
-         mode.VLine := VLine16;
 {$else fpc}
          mode.DirectPutPixel:=@DirectPutPixel16;
          mode.PutPixel:=@PutPixel16;
@@ -2519,7 +2563,17 @@ const CrtAddress: word = 0;
 
 {
 $Log$
-Revision 1.9  1999-08-01 14:50:51  jonas
+Revision 1.10  1999-09-11 19:43:01  jonas
+  * FloodFill: did not take into account current viewport settings
+  * GetScanLine: only get line inside viewport, data outside of it
+    is not used anyway
+  * InternalEllipseDefault: fix for when xradius or yradius = 0 and
+    increase xradius and yradius always by one (TP does this too)
+  * fixed conlict in vesa.inc from last update
+  * some conditionals to avoid range check and overflow errors in
+    places where it doesn't matter
+
+Revision 1.9  1999/08/01 14:50:51  jonas
   * fixed hline16 and vline16 for notput (also TP supports copy, and, or, xor and
     notput for lines!!)
   * fixed directputpixel16 to support all the different put types
