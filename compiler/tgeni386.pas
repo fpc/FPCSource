@@ -39,9 +39,13 @@ unit tgeni386;
        tregisterset = set of tregister;
 
        tpushed = array[R_EAX..R_MM6] of boolean;
+       tsaved = array[R_EAX..R_MM6] of longint;
 
     const
        usablereg32 : byte = 4;
+
+       { this value is used in tsaved, if the register isn't saved }
+       reg_not_saved = $7fffffff;
 {$ifdef SUPPORT_MMX}
        usableregmmx : byte = 8;
 {$endif SUPPORT_MMX}
@@ -61,10 +65,13 @@ unit tgeni386;
     procedure del_reference(const ref : treference);
     procedure del_locref(const location : tlocation);
 
-
     { pushs and restores registers }
     procedure pushusedregisters(list : paasmoutput;var pushed : tpushed;b : byte);
     procedure popusedregisters(list : paasmoutput;const pushed : tpushed);
+
+    { saves and restores used registers to temp. values }
+    procedure saveusedregisters(list : paasmoutput;var saved : tsaved;b : byte);
+    procedure restoreusedregisters(list : paasmoutput;const saved : tsaved);
 
     procedure clearregistercount;
     procedure resetusableregisters;
@@ -90,15 +97,13 @@ unit tgeni386;
 implementation
 
     uses
-      globtype;
+      globtype,temp_gen;
 
     procedure pushusedregisters(list : paasmoutput;var pushed : tpushed;b : byte);
 
       var
          r : tregister;
-{$ifdef SUPPORT_MMX}
          hr : preference;
-{$endif SUPPORT_MMX}
 
       begin
          usedinproc:=usedinproc or b;
@@ -113,6 +118,7 @@ implementation
                      begin
                         { then save it }
                         list^.concat(new(pai386,op_reg(A_PUSH,S_L,r)));
+
                         { here was a big problem  !!!!!}
                         { you cannot do that for a register that is
                         globally assigned to a var
@@ -142,6 +148,56 @@ implementation
                    if not(is_reg_var[r]) then
                      unused:=unused+[r];
                    pushed[r]:=true;
+                end;
+           end;
+{$endif SUPPORT_MMX}
+      end;
+
+    procedure saveusedregisters(list : paasmoutput;var saved : tsaved;b : byte);
+
+      var
+         r : tregister;
+         hr : treference;
+
+      begin
+         usedinproc:=usedinproc or b;
+         for r:=R_EAX to R_EBX do
+           begin
+              saved[r]:=reg_not_saved;
+              { if the register is used by the calling subroutine    }
+              if ((b and ($80 shr byte(r)))<>0) then
+                begin
+                   { and is present in use }
+                   if not(r in unused) then
+                     begin
+                        { then save it }
+                        gettempofsizereference(4,hr);
+                        saved[r]:=hr.offset;
+                        list^.concat(new(pai386,op_reg_ref(A_MOV,S_L,r,newreference(hr))));
+                        { here was a big problem  !!!!!}
+                        { you cannot do that for a register that is
+                        globally assigned to a var
+                        this also means that you must push it much more
+                        often, but there must be a better way
+                        maybe by putting the value back to the stack !! }
+                        if not(is_reg_var[r]) then
+                          unused:=unused+[r];
+                     end;
+                end;
+           end;
+{$ifdef SUPPORT_MMX}
+         for r:=R_MM0 to R_MM6 do
+           begin
+              saved[r]:=reg_not_saved;
+              { if the mmx register is in use, save it }
+              if not(r in unused) then
+                begin
+                   gettempofsizereference(8,hr);
+                   list^.concat(new(pai386,op_reg_ref(
+                     A_MOVQ,S_NO,r,newreference(hr))));
+                   if not(is_reg_var[r]) then
+                     unused:=unused+[r];
+                   saved[r]:=hr.offset;
                 end;
            end;
 {$endif SUPPORT_MMX}
@@ -177,6 +233,40 @@ implementation
              begin
                 list^.concat(new(pai386,op_reg(A_POP,S_L,r)));
                 unused:=unused-[r];
+             end;
+      end;
+
+    procedure restoreusedregisters(list : paasmoutput;const saved : tsaved);
+      var
+         r : tregister;
+         hr : treference;
+
+      begin
+         { restore in reverse order: }
+{$ifdef SUPPORT_MMX}
+         for r:=R_MM6 downto R_MM0 do
+           begin
+              if saved[r]<>reg_not_saved then
+                begin
+                   reset_reference(hr);
+                   hr.base:=frame_pointer;
+                   hr.offset:=saved[r];
+                   list^.concat(new(pai386,op_ref_reg(
+                     A_MOVQ,S_NO,newreference(hr),r)));
+                   unused:=unused-[r];
+                   ungetiftemp(hr);
+                end;
+           end;
+{$endif SUPPORT_MMX}
+         for r:=R_EBX downto R_EAX do
+           if saved[r]<>reg_not_saved then
+             begin
+                reset_reference(hr);
+                hr.base:=frame_pointer;
+                hr.offset:=saved[r];
+                list^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(hr),r)));
+                unused:=unused-[r];
+                ungetiftemp(hr);
              end;
       end;
 
@@ -373,7 +463,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  1999-05-18 21:58:34  florian
+  Revision 1.25  1999-05-19 22:00:48  florian
+    * some new routines for register management:
+       maybe_savetotemp,restorefromtemp, saveusedregisters,
+       restoreusedregisters
+
+  Revision 1.24  1999/05/18 21:58:34  florian
     * fixed some bugs related to temp. ansistrings and functions results
       which return records/objects/arrays which need init/final.
 
