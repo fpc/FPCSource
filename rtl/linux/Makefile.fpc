@@ -6,7 +6,7 @@
 main=rtl
 
 [target]
-loaders=prt0 dllprt0 cprt0 gprt0 cprt21 gprt21
+loaders=prt0 dllprt0 cprt0 gprt0 $(CRT21)
 units=$(SYSTEMUNIT) unixtype baseunix strings systhrds  objpas syscall unixutil \
       heaptrc lineinfo \
       $(LINUXUNIT1) termio unix $(LINUXUNIT2) initc $(CPU_UNITS) \
@@ -54,6 +54,7 @@ PROCINC=$(RTL)/$(CPU_TARGET)
 UNIXINC=$(RTL)/unix
 
 ifeq ($(CPU_TARGET),i386)
+CRT21=cprt21 gprt21
 CPU_UNITS=x86 ports cpu mmx graph
 else
 CPU_UNITS=
@@ -133,9 +134,8 @@ cprt0$(OEXT) : $(CPU_TARGET)/cprt0.as
 cprt21$(OEXT) : $(CPU_TARGET)/cprt21.as
         $(AS) -o cprt21$(OEXT) $(CPU_TARGET)/cprt21.as
 
-# still need to use gprt1, because gprt21 crashes
-gprt21$(OEXT) : $(CPU_TARGET)/gprt0.as
-        $(AS) -o gprt21$(OEXT) $(CPU_TARGET)/gprt0.as
+gprt21$(OEXT) : $(CPU_TARGET)/gprt21.as
+        $(AS) -o gprt21$(OEXT) $(CPU_TARGET)/gprt21.as
 
 
 #

@@ -45,13 +45,11 @@ _start:
         pushl   $_init_dummy
         pushl   %ebx
         pushl   %esi
-        pushl   $main
+        pushl   $cmain
         call    __libc_start_main
         hlt
 
 /* fake main routine which will be run from libc */
-        .globl  cmain
-        .type   cmain,@object
 cmain:
         /* save return address */
         popl    %eax
@@ -60,6 +58,8 @@ cmain:
         movl    %esi,___fpc_ret_esi
         movl    %edi,___fpc_ret_edi
         pushl   %eax
+
+	call    __gmon_start__
 
         /* start the program */
         call    PASCALMAIN
@@ -81,7 +81,7 @@ _fini_dummy:
         ret
 
         .globl  __gmon_start__
-        .type   __gmon_start__,@object
+        .type   __gmon_start__,@function
 __gmon_start__:
         pushl   %ebp
         movl    __monstarted,%eax
@@ -125,6 +125,9 @@ ___fpc_ret_edi:
 
 #
 # $Log$
-# Revision 1.4  2002-09-07 16:01:20  peter
+# Revision 1.5  2004-03-10 20:38:59  peter
+#   * only i386 needs cprt21 to link with glibc 2.1+
+#
+# Revision 1.4  2002/09/07 16:01:20  peter
 #   * old logs removed and tabs fixed
 #
