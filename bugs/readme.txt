@@ -157,9 +157,7 @@ Fixed bugs:
   bug0121.pp   cardinal -> byte conversion not work (and crashes)    OK 0.99.6 (FK)
   bug0122.pp   exit() gives a warning that the result is not set     OK 0.99.6 (FK)
   bug0123.pp   Asm, problem with intel assembler (shrd)              OK 0.99.11 (PM)
-  bug0124.pp   Asm, problem with -Rintel switch and indexing
-               (whatever the order) fixed
-               variable must still be the first inside bracket       OK 0.99.11 (PM)
+  bug0124.pp   Asm, problem with -Rintel switch and indexing         OK 0.99.11 (PM/PFV)
   bug0125.pp   wrong colors with DOS CRT unit                        OK 0.99.6 (PFV)
   bug0126.pp   packed array isn't allowed                            OK 0.99.6 (FK)
   bug0127.pp   problem with cdecl in implementation part             OK 0.99.7 (PFV)
@@ -333,8 +331,6 @@ bug0193.pp   overflow checking for 8 and 16 bit operations wrong
              as all operations are done on 32 bit integers in FPC
              overflow checking will only trap 32 bit overflow
              you have to use range checks for byte or 16 bit integers
-bug0124.pp   Asm, problem with -Rintel switch and indexing (whatever the order)
-             Partial fix only see above
 bug0243.pp   Arguments of functions are computed from right to left this
              is against pascal convention
              but only BP respects this convention Delphi and GPC also
