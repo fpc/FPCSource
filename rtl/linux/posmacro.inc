@@ -24,12 +24,12 @@
 }
 
 CONST 
-       _S_IFDIR = &040000;
-       _S_IFCHR = &020000;
-       _S_IFBLK = &060000;
-       _S_IFREG = &100000;
-       _S_IFMT  = &170000;
-       _S_IFIFO = &010000;
+       _S_IFDIR = $4000;
+       _S_IFCHR = $2000;
+       _S_IFBLK = $6000;
+       _S_IFREG = $8000;
+       _S_IFMT  = $f000;
+       _S_IFIFO = $1000;
 
 function S_ISDIR(m : mode_t): boolean;
 
@@ -72,22 +72,25 @@ begin
  wstopsig:=(status and $FF00) shr 8;
 end;
 
-const wstopped=&177;
+const wstopped=127;
 
 function wifsignaled(status : cint): cint;
 begin
- wifsignaled:=cint(((status and $FF)<>wstopped) and ((status and &177)<>0));
+ wifsignaled:=cint(((status and $FF)<>wstopped) and ((status and 127)<>0));
 end;
 
 function wtermsig(status : cint):cint;
 
 begin
- wtermsig:=cint(status and &177);
+ wtermsig:=cint(status and 127);
 end;
 
 {
   $Log$
-  Revision 1.1  2002-11-12 14:37:59  marco
+  Revision 1.2  2002-11-12 15:31:33  marco
+   * Killed octal codes for 1.0.x compilability.
+
+  Revision 1.1  2002/11/12 14:37:59  marco
    * Parts of new unix rtl
 
 
