@@ -173,10 +173,8 @@ Function POpen       (var F:file;const Prog:String;rw:char):cint;
 function AssignStream(Var StreamIn,Streamout:text;Const Prog:String) : cint;
 function AssignStream(var StreamIn, StreamOut, StreamErr: Text; const prog: String): cint;
 
-{$ifndef BSD}
 Function  GetDomainName:String;
 Function  GetHostName:String;
-{$endif}
 
 
 {**************************
@@ -1477,7 +1475,7 @@ end;
                         General information calls
 ******************************************************************************}
 
-{$ifndef BSD}
+{$ifdef Linux}
 Function GetDomainName:String;  { linux only!}
 // domainname is a glibc extension.
 
@@ -1493,6 +1491,26 @@ begin
    getdomainname:=strpas(@Sysn.domain[0]);
 end;
 {$endif}
+
+{$ifdef BSD}
+
+function intGetDomainName(Name:PChar; NameLen:Cint):cint; external name 'FPC_SYSC_GETDOMAINNAME';
+
+Function GetDomainName:String;  { linux only!}
+// domainname is a glibc extension.
+
+{
+  Get machines domain name. Returns empty string if not set.
+}
+
+begin
+  if intGetDomainName(@getdomainname[1],255)=-1 then
+   getdomainname:=''
+  else
+   getdomainname[0]:=chr(strlen(@getdomainname[1])); 
+end;
+{$endif}
+
 
 Function GetHostName:String;
 {
@@ -1754,7 +1772,10 @@ End.
 
 {
   $Log$
-  Revision 1.72  2004-07-03 13:18:06  daniel
+  Revision 1.73  2004-07-18 11:27:54  marco
+   * small fix for BSD getdomainname. BSD version is based on Sysctl
+
+  Revision 1.72  2004/07/03 13:18:06  daniel
     * Better fix.
 
   Revision 1.71  2004/07/03 13:15:51  daniel
