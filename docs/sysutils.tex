@@ -32,6 +32,27 @@ that are defined, followed by an overview of functions grouped by
 functionality, and lastly the complete explanation of each function.
 
 \section{Constants and types}
+The following general-purpose types are defined:
+\begin{verbatim}
+tfilename = string;
+
+tsyscharset = set of char;
+tintegerset = set of 0..sizeof(integer)*8-1;
+    
+longrec = packed record
+   lo,hi : word;
+end;
+
+wordrec = packed record   
+   lo,hi : byte;
+end;
+
+TMethod = packed record
+  Code, Data: Pointer;
+end;
+\end{verbatim}
+The use and meaning of these types should be clear, so no extra information
+will be provided here.
 
 The following general-purpose constants are defined:
 \begin{verbatim}
