@@ -52,13 +52,13 @@ function TSparcCallNode.pass_1:TNode;
       exit;
     if ProcDefinition is TProcDef
     then
-      begin
-        if TProcDef(procdefinition).parast.datasize>TSparcProcInfo(procinfo).maxpushedparasize
+      with TProcDef(procdefinition).parast do
+        if datasize>TSparcProcInfo(procinfo).maxpushedparasize
         then
-          TSparcProcInfo(procinfo).maxpushedparasize:=TProcdef(procdefinition).parast.datasize
-     end
-   else
-     InternalError(2002101001);
+          TSparcProcInfo(procinfo).maxpushedparasize:=datasize
+        else
+    else
+      InternalError(2002101001);
   end;
 procedure TSparcCallNode.load_framepointer;
   begin
@@ -69,7 +69,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2002-11-14 21:42:08  mazen
+  Revision 1.6  2003-01-22 22:30:03  mazen
+  - internal errors rmoved from a_loar_reg_reg when reg sizes differs from 32
+
+  Revision 1.5  2002/11/14 21:42:08  mazen
   * fixing return value variable address
 
   Revision 1.4  2002/10/10 19:57:52  mazen

@@ -373,15 +373,7 @@ procedure TCgSparc.a_load_reg_reg(list:TAasmOutput;fromsize,tosize:tcgsize;reg1,
     then
       with list do
         case fromsize of
-          OS_8:
-            InternalError(2002100800);{concat(taicpu.op_reg_reg_const_const_const(A_RLWINM,reg2,reg1,0,31-8+1,31));}
-          OS_S8:
-            InternalError(2002100801);{concat(taicpu.op_reg_reg(A_EXTSB,reg2,reg1));}
-          OS_16:
-            InternalError(2002100802);{concat(taicpu.op_reg_reg_const_const_const(A_RLWINM,reg2,reg1,0,31-16+1,31));}
-          OS_S16:
-            InternalError(2002100803);{concat(taicpu.op_reg_reg(A_EXTSH,reg2,reg1));}
-          OS_32,OS_S32:
+          OS_8,OS_S8,OS_16,OS_S16,OS_32,OS_S32:
             concat(taicpu.op_reg_reg_reg(A_OR,r,reg1,reg2));
           else internalerror(2002090901);
         end;
@@ -1418,7 +1410,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.35  2003-01-20 22:21:36  mazen
+  Revision 1.36  2003-01-22 22:30:03  mazen
+  - internal errors rmoved from a_loar_reg_reg when reg sizes differs from 32
+
+  Revision 1.35  2003/01/20 22:21:36  mazen
   * many stuff related to RTL fixed
 
   Revision 1.34  2003/01/08 18:43:58  daniel
