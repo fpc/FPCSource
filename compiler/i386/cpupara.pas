@@ -86,28 +86,31 @@ unit cpupara;
                 recorddef :
                   begin
                     if (calloption=pocall_stdcall) and (def.size<=8) then
-                     begin  
+                     begin
                        result:=false;
                        exit;
-                     end;  
+                     end;
                   end;
                 arraydef :
                   begin
                     if (tarraydef(def).highrange>=tarraydef(def).lowrange) and
                        (calloption in [pocall_cdecl,pocall_cppdecl]) then
-                     begin  
+                     begin
                        result:=false;
                        exit;
-                     end;  
-                  end;     
-              end;    
+                     end;
+                  end;
+              end;
             end;
-        end;   
+        end;
         result:=inherited push_addr_param(def,calloption);
       end;
 
     function ti386paramanager.getintparaloc(nr : longint) : tparalocation;
       begin
+         getintparaloc.loc:=LOC_REFERENCE;
+         getintparaloc.reference.index.enum:=R_EBP;
+         getintparaloc.reference.offset:=4*nr;
       end;
 
     procedure ti386paramanager.create_param_loc_info(p : tabstractprocdef);
@@ -130,7 +133,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2003-01-08 18:43:57  daniel
+  Revision 1.9  2003-04-22 14:33:38  peter
+    * removed some notes/hints
+
+  Revision 1.8  2003/01/08 18:43:57  daniel
    * Tregister changed into a record
 
   Revision 1.7  2002/12/24 15:56:50  peter

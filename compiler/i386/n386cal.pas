@@ -58,7 +58,7 @@ implementation
       cpubase,paramgr,
       aasmbase,aasmtai,aasmcpu,
       node,ncal,nbas,nmem,nld,ncnv,
-      ncgutil,cga,cgobj,tgobj,regvars,rgobj,rgcpu,cg64f32,cgcpu,cpuinfo;
+      ncgutil,cga,cgobj,tgobj,rgobj,rgcpu,cgcpu,cpuinfo;
 
 
 {*****************************************************************************
@@ -201,7 +201,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.88  2003-04-22 10:09:35  daniel
+  Revision 1.89  2003-04-22 14:33:38  peter
+    * removed some notes/hints
+
+  Revision 1.88  2003/04/22 10:09:35  daniel
     + Implemented the actual register allocator
     + Scratch registers unavailable when new register allocator used
     + maybe_save/maybe_restore unavailable when new register allocator used

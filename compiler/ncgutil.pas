@@ -1165,37 +1165,29 @@ implementation
             CGMessage(sym_w_function_result_not_set);
            reference_reset_base(href,procinfo.framepointer,procinfo.return_offset);
            cgsize:=def_cgsize(aktprocdef.rettype.def);
+           { Here, we return the function result. In most architectures, the value is
+             passed into the accumulator, but in a windowed architecure like sparc a
+             function returns in a register and the caller receives it in an other one }
            case aktprocdef.rettype.def.deftype of
              orddef,
              enumdef :
                begin
                  uses_acc:=true;
-{$WARNING accumulator was replaced by return_result_reg}
-{Here, we return the function result. In most architectures, the value is
-passed into the accumulator, but in a windowed architecure like sparc a
-function returns in a register and the caller receives it in an other one}
-                  r.enum:=R_INTREGISTER;
-                  r.number:=NR_RETURN_RESULT_REG;
-                  cg.a_reg_alloc(list,r);
+                 r.enum:=R_INTREGISTER;
+                 r.number:=NR_RETURN_RESULT_REG;
+                 cg.a_reg_alloc(list,r);
 {$ifndef cpu64bit}
                  if cgsize in [OS_64,OS_S64] then
                   begin
                     uses_acchi:=true;
-                    r.enum:=accumulatorhigh;
-                    cg.a_reg_alloc(list,r);
-                    r.enum:=R_INTREGISTER;
-                    r.number:=NR_ACCUMULATOR;
                     r2.enum:=R_INTREGISTER;
                     r2.number:=NR_ACCUMULATORHIGH;
+                    cg.a_reg_alloc(list,r2);
                     cg64.a_load64_ref_reg(list,href,joinreg64(r,r2));
                   end
                  else
 {$endif cpu64bit}
                   begin
-{$WARNING accumulator was replaced by return_result_reg}
-{Here, we return the function result. In most architectures, the value is
-passed into the accumulator, but in a windowed architecure like sparc a
-function returns in a register and the caller receives it in an other one}
                     hreg.enum:=R_INTREGISTER;
                     hreg.number:=RS_RETURN_RESULT_REG shl 8 or cgsize2subreg(cgsize);
                     cg.a_load_ref_reg(list,cgsize,href,hreg);
@@ -1225,19 +1217,18 @@ function returns in a register and the caller receives it in an other one}
                     if cgsize in [OS_64,OS_S64] then
                      begin
                        uses_acchi:=true;
-                       r.enum:=accumulatorhigh;
-                       cg.a_reg_alloc(list,r);
-                       r.enum:=R_INTREGISTER;
-                       r.number:=NR_ACCUMULATOR;
                        r2.enum:=R_INTREGISTER;
                        r2.number:=NR_ACCUMULATORHIGH;
+                       cg.a_reg_alloc(list,r2);
                        cg64.a_load64_ref_reg(list,href,joinreg64(r,r2));
                      end
                     else
 {$endif cpu64bit}
-                     r.enum:=R_INTREGISTER;
-                     r.number:=NR_ACCUMULATOR;
-                     cg.a_load_ref_reg(list,cgsize,href,r);
+                     begin
+                       hreg.enum:=R_INTREGISTER;
+                       hreg.number:=RS_RETURN_RESULT_REG shl 8 or cgsize2subreg(cgsize);
+                       cg.a_load_ref_reg(list,cgsize,href,hreg);
+                     end;
                    end
                end;
            end;
@@ -2048,7 +2039,10 @@ function returns in a register and the caller receives it in an other one}
 end.
 {
   $Log$
-  Revision 1.86  2003-04-22 13:47:08  peter
+  Revision 1.87  2003-04-22 14:33:38  peter
+    * removed some notes/hints
+
+  Revision 1.86  2003/04/22 13:47:08  peter
     * fixed C style array of const
     * fixed C array passing
     * fixed left to right with high parameters

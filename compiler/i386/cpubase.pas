@@ -230,7 +230,6 @@ uses
       }
       { don't change the order }
       { it's used by the register size conversions        }
-      {$packenum 1}
       Toldregister = (R_NO,
         R_EAX,R_ECX,R_EDX,R_EBX,R_ESP,R_EBP,R_ESI,R_EDI,
         R_AX,R_CX,R_DX,R_BX,R_SP,R_BP,R_SI,R_DI,
@@ -255,7 +254,6 @@ uses
 
             Tsuperregister=byte;
             Tsubregister=byte;
-      {$packenum normal}
 
       { A type to store register locations for 64 Bit values. }
       tregister64 = packed record
@@ -764,7 +762,7 @@ implementation
          end;
       end;
 
-
+{$ifdef unused}
     function supreg_name(r:Tsuperregister):string;
 
     var s:string[4];
@@ -783,6 +781,7 @@ implementation
           supreg_name:='reg'+s;
         end;
     end;
+{$endif unused}
 
     function is_calljmp(o:tasmop):boolean;
       begin
@@ -816,7 +815,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  2003-04-22 10:09:35  daniel
+  Revision 1.48  2003-04-22 14:33:38  peter
+    * removed some notes/hints
+
+  Revision 1.47  2003/04/22 10:09:35  daniel
     + Implemented the actual register allocator
     + Scratch registers unavailable when new register allocator used
     + maybe_save/maybe_restore unavailable when new register allocator used

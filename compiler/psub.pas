@@ -226,8 +226,6 @@ implementation
          code:tnode;
          { true when no stackframe is required }
          nostackframe:boolean;
-         { offset where the stackpointer is saved, -1 when not saved }
-         savedstackoffset:longint;
          { number of bytes which have to be cleared by RET }
          parasize:longint;
          { filepositions }
@@ -886,7 +884,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.100  2003-04-22 13:47:08  peter
+  Revision 1.101  2003-04-22 14:33:38  peter
+    * removed some notes/hints
+
+  Revision 1.100  2003/04/22 13:47:08  peter
     * fixed C style array of const
     * fixed C array passing
     * fixed left to right with high parameters

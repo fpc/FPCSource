@@ -92,8 +92,8 @@ interface
        end;
 
        TSearchPathList = class(TStringList)
-         procedure AddPath(s:string;addfirst:boolean);
-         procedure AddPath(SrcPath,s:string;addfirst:boolean);
+         procedure AddPath(s:string;addfirst:boolean);overload;
+         procedure AddPath(SrcPath,s:string;addfirst:boolean);overload;
          procedure AddList(list:TSearchPathList;addfirst:boolean);
          function  FindFile(const f : string;var foundfile:string):boolean;
        end;
@@ -1527,7 +1527,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.84  2003-03-23 23:21:42  hajny
+  Revision 1.85  2003-04-22 14:33:38  peter
+    * removed some notes/hints
+
+  Revision 1.84  2003/03/23 23:21:42  hajny
     + emx target added
 
   Revision 1.83  2003/01/30 21:45:53  peter

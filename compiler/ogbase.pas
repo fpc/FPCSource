@@ -295,7 +295,6 @@ implementation
         s   : TAsmSection;
         alignedpos : longint;
         objdata : TAsmObjectData;
-        hsym : tasmsymbol;
       begin
         { calculate offsets of each objdata }
         for sec:=low(TSection) to high(TSection) do
@@ -624,7 +623,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2002-07-01 18:46:24  peter
+  Revision 1.13  2003-04-22 14:33:38  peter
+    * removed some notes/hints
+
+  Revision 1.12  2002/07/01 18:46:24  peter
     * internal linker
     * reorganized aasm layer
 

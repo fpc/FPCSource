@@ -32,7 +32,7 @@ implementation
 uses
   systems,
   verbose,globals,globtype,
-  aasmbase,aasmtai,aasmcpu,
+  aasmbase,aasmtai,
   symconst,symtype,symdef,symsym,
   fmodule,
   nobj,
@@ -247,7 +247,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.17  2003-01-13 14:54:34  daniel
+  Revision 1.18  2003-04-22 14:33:38  peter
+    * removed some notes/hints
+
+  Revision 1.17  2003/01/13 14:54:34  daniel
     * Further work to convert codegenerator register convention;
       internalerror bug fixed.
 

@@ -54,7 +54,7 @@ implementation
       cginfo,cgbase,pass_2,
       ncon,
       cpubase,cpuinfo,
-      cga,cgx86,cgobj,tgobj,ncgutil,regvars,rgobj;
+      cga,cgx86,cgobj,tgobj,ncgutil,rgobj;
 
 
 {*****************************************************************************
@@ -724,7 +724,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.52  2003-04-22 10:09:35  daniel
+  Revision 1.53  2003-04-22 14:33:38  peter
+    * removed some notes/hints
+
+  Revision 1.52  2003/04/22 10:09:35  daniel
     + Implemented the actual register allocator
     + Scratch registers unavailable when new register allocator used
     + maybe_save/maybe_restore unavailable when new register allocator used

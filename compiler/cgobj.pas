@@ -502,7 +502,7 @@ unit cgobj;
 
     uses
        globals,globtype,options,systems,cgbase,
-       verbose,defutil,tgobj,paramgr,
+       verbose,defutil,paramgr,
        rgobj,cutils;
 
     const
@@ -1838,7 +1838,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.83  2003-04-22 13:47:08  peter
+  Revision 1.84  2003-04-22 14:33:38  peter
+    * removed some notes/hints
+
+  Revision 1.83  2003/04/22 13:47:08  peter
     * fixed C style array of const
     * fixed C array passing
     * fixed left to right with high parameters

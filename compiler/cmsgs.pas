@@ -68,7 +68,6 @@ implementation
 
 uses
   cutils,
-  globals,
 {$ifdef DELPHI}
   sysutils;
 {$else DELPHI}
@@ -462,7 +461,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2002-05-18 13:34:06  peter
+  Revision 1.7  2003-04-22 14:33:38  peter
+    * removed some notes/hints
+
+  Revision 1.6  2002/05/18 13:34:06  peter
     * readded missing revisions
 
   Revision 1.5  2002/05/16 19:46:35  carl

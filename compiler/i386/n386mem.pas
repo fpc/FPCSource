@@ -50,13 +50,13 @@ implementation
 {$ifdef delphi}
       sysutils,
 {$endif}
-      globtype,systems,
-      cutils,verbose,globals,
-      symconst,symtype,symdef,symsym,symtable,defutil,paramgr,
-      aasmbase,aasmtai,aasmcpu,
-      cginfo,cgbase,pass_2,
-      pass_1,nld,ncon,nadd,
-      cgobj,cga,tgobj,rgobj,ncgutil;
+      systems,
+      cutils,verbose,
+      symdef,paramgr,
+      aasmtai,
+      cginfo,
+      nld,ncon,nadd,
+      cgobj,tgobj,rgobj;
 
 {*****************************************************************************
                              TI386ADDRNODE
@@ -154,7 +154,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.51  2003-03-28 19:16:57  peter
+  Revision 1.52  2003-04-22 14:33:38  peter
+    * removed some notes/hints
+
+  Revision 1.51  2003/03/28 19:16:57  peter
     * generic constructor working for i386
     * remove fixed self register
     * esi added as address register for i386

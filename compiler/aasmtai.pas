@@ -485,8 +485,7 @@ uses
 {$else}
   strings,
 {$endif}
-  verbose,
-  ppu;
+  verbose;
 
     const
       pputaimarker = 254;
@@ -1815,7 +1814,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.22  2003-04-22 10:09:34  daniel
+  Revision 1.23  2003-04-22 14:33:38  peter
+    * removed some notes/hints
+
+  Revision 1.22  2003/04/22 10:09:34  daniel
     + Implemented the actual register allocator
     + Scratch registers unavailable when new register allocator used
     + maybe_save/maybe_restore unavailable when new register allocator used

@@ -166,7 +166,6 @@ implementation
          ranges     : boolean;
          hr,hr2,hr3,
          pleftreg   : tregister;
-         href       : treference;
          opsize     : tcgsize;
          setparts   : array[1..8] of Tsetpart;
          i,numparts : byte;
@@ -1114,7 +1113,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2003-04-22 12:45:58  florian
+  Revision 1.29  2003-04-22 14:33:38  peter
+    * removed some notes/hints
+
+  Revision 1.28  2003/04/22 12:45:58  florian
     * fixed generic in operator code
     + added debug code to check if all scratch registers are released
 

@@ -60,14 +60,13 @@ interface
 implementation
 
     uses
-      globtype,systems,
-      cutils,verbose,globals,fmodule,
-      symconst,symdef,defutil,
-      aasmbase,aasmtai,aasmcpu,
-      cginfo,cgbase,pass_1,pass_2,
+      systems,
+      cutils,verbose,
+      aasmtai,
+      cginfo,cgbase,pass_2,
       cpubase,paramgr,
       nbas,ncon,ncal,ncnv,nld,
-      cga,tgobj,ncgutil,cgobj,cg64f32,rgobj,rgcpu;
+      cga,tgobj,ncgutil,cgobj,rgobj,rgcpu;
 
 
 {*****************************************************************************
@@ -209,9 +208,9 @@ implementation
        end;
 
      procedure ti386inlinenode.second_sqr_real;
-     
+
      var r:Tregister;
-     
+
        begin
          load_fpu_location;
          r.enum:=R_ST0;
@@ -347,7 +346,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.57  2003-04-22 10:09:35  daniel
+  Revision 1.58  2003-04-22 14:33:38  peter
+    * removed some notes/hints
+
+  Revision 1.57  2003/04/22 10:09:35  daniel
     + Implemented the actual register allocator
     + Scratch registers unavailable when new register allocator used
     + maybe_save/maybe_restore unavailable when new register allocator used

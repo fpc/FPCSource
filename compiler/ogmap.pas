@@ -56,7 +56,7 @@ interface
 implementation
 
     uses
-      cutils,globtype,globals,verbose,fmodule;
+      cutils,globals,verbose;
 
 
 {****************************************************************************
@@ -138,7 +138,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2002-07-01 18:46:24  peter
+  Revision 1.2  2003-04-22 14:33:38  peter
+    * removed some notes/hints
+
+  Revision 1.1  2002/07/01 18:46:24  peter
     * internal linker
     * reorganized aasm layer
 

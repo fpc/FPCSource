@@ -195,7 +195,7 @@ Implementation
       finput,
       gdb,
 {$endif GDB}
-      cpubase,cpuinfo,aasmcpu
+      cpubase,aasmcpu
       ;
 
     var
@@ -1614,7 +1614,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.50  2003-03-10 18:16:00  olle
+  Revision 1.51  2003-04-22 14:33:38  peter
+    * removed some notes/hints
+
+  Revision 1.50  2003/03/10 18:16:00  olle
     * niceified comments
 
   Revision 1.49  2003/01/10 21:49:00  marco

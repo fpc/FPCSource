@@ -517,8 +517,7 @@ implementation
       var
         elfsym : telf32symbol;
         sec : TSection;
-        locals,
-        i : longint;
+        locals : longint;
         sym : tasmsymbol;
       begin
         with elf32data do
@@ -852,7 +851,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.18  2002-08-12 15:08:39  carl
+  Revision 1.19  2003-04-22 14:33:38  peter
+    * removed some notes/hints
+
+  Revision 1.18  2002/08/12 15:08:39  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
     + tprocessor enumeration moved to cpuinfo
     + linker in target_info is now a class

@@ -13,11 +13,11 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
- **********************************************************************}
-{$ifndef delphi}
-{$mode objfpc}
-{$endif}
+ **********************************************************************
+}
 unit charset;
+
+{$i fpcdefs.inc}
 
   interface
 
@@ -267,7 +267,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.3  2002-10-05 12:43:24  carl
+  Revision 1.4  2003-04-22 14:33:38  peter
+    * removed some notes/hints
+
+  Revision 1.3  2002/10/05 12:43:24  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 

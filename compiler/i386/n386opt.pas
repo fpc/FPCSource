@@ -44,7 +44,7 @@ implementation
 uses
   pass_1,defutil,htypechk,
   symdef,paramgr,
-  aasmbase,aasmtai,aasmcpu,
+  aasmbase,aasmtai,
   ncnv, ncon, pass_2,
   cginfo, cgbase, cpubase,
   tgobj, rgobj, cgobj, ncgutil;
@@ -249,7 +249,10 @@ end.
 
 {
   $Log$
-  Revision 1.29  2003-03-28 19:16:57  peter
+  Revision 1.30  2003-04-22 14:33:38  peter
+    * removed some notes/hints
+
+  Revision 1.29  2003/03/28 19:16:57  peter
     * generic constructor working for i386
     * remove fixed self register
     * esi added as address register for i386

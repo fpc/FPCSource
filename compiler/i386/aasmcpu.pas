@@ -242,9 +242,9 @@ implementation
        { SSE2 instructions  }
        IF_SSE2   = $00020000;
        { the mask for processor types  }
-       IF_PMASK  = longint($FF000000);
+       {IF_PMASK  = longint($FF000000);}
        { the mask for disassembly "prefer"  }
-       IF_PFMASK = longint($F001FF00);
+       {IF_PFMASK = longint($F001FF00);}
        IF_8086   = $00000000;  { 8086 instruction  }
        IF_186    = $01000000;  { 186+ instruction  }
        IF_286    = $02000000;  { 286+ instruction  }
@@ -1959,7 +1959,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2003-04-22 10:09:35  daniel
+  Revision 1.17  2003-04-22 14:33:38  peter
+    * removed some notes/hints
+
+  Revision 1.16  2003/04/22 10:09:35  daniel
     + Implemented the actual register allocator
     + Scratch registers unavailable when new register allocator used
     + maybe_save/maybe_restore unavailable when new register allocator used

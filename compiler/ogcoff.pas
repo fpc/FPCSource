@@ -706,7 +706,7 @@ const go32v2stub : array[0..2047] of byte=(
     procedure tcoffobjectdata.fixuprelocs;
       var
         r : TAsmRelocation;
-        address,i,
+        address,
         relocval : longint;
         sec : TSection;
       begin
@@ -804,10 +804,9 @@ const go32v2stub : array[0..2047] of byte=(
         filename  : string[18];
         sec       : TSection;
         namestr   : string[8];
-        nameidx,
+        nameidx   : longint;
         value,
         sectionval,
-        i         : longint;
         globalval : byte;
         secrec    : coffsectionrec;
         p         : tasmsymbol;
@@ -924,11 +923,6 @@ const go32v2stub : array[0..2047] of byte=(
         sympos,i : longint;
         hstab    : coffstab;
         gotreloc : boolean;
-        namestr   : string[8];
-        nameidx,
-        value,
-        sectionval : longint;
-        globalval : byte;
         sec      : TSection;
         header   : coffheader;
         sechdr   : coffsechdr;
@@ -1097,15 +1091,11 @@ const go32v2stub : array[0..2047] of byte=(
 
     procedure tcoffexeoutput.write_symbols;
       var
-        filename  : string[18];
-        sec       : TSection;
         namestr   : string[8];
-        nameidx,
+        nameidx   : longint;
         value,
         sectionval,
-        i         : longint;
         globalval : byte;
-        secrec    : coffsectionrec;
         objdata   : TAsmObjectData;
         p         : tasmsymbol;
         s         : string;
@@ -1162,8 +1152,6 @@ const go32v2stub : array[0..2047] of byte=(
         mempos,
         datapos : longint;
         sec     : TSection;
-        sym     : tasmsymbol;
-        s       : TAsmSection;
       begin
         { retrieve amount of sections }
         nsects:=0;
@@ -1206,16 +1194,11 @@ const go32v2stub : array[0..2047] of byte=(
 
     function tcoffexeoutput.writedata:boolean;
       var
-        datapos,
-        secsymidx,
         i         : longint;
-        hstab     : coffstab;
-        gotreloc  : boolean;
         sec       : TSection;
         header    : coffheader;
         optheader : coffoptheader;
         sechdr    : coffsechdr;
-        empty     : array[0..15] of byte;
         hp        : pdynamicblock;
         objdata   : TAsmObjectData;
         hsym      : tasmsymbol;
@@ -1734,7 +1717,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.25  2002-12-07 14:08:11  carl
+  Revision 1.26  2003-04-22 14:33:38  peter
+    * removed some notes/hints
+
+  Revision 1.25  2002/12/07 14:08:11  carl
     * fix warning
 
   Revision 1.24  2002/08/12 15:08:39  carl

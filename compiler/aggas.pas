@@ -194,12 +194,6 @@ var
       t[3]:= b;
     end;
 
-   procedure swap80bitarray(var t: t80bitarray);
-    begin
-     {!!!!!!!!!!!!}
-    end;
-
-
 
     const
       ait_const2str : array[ait_const_32bit..ait_const_8bit] of string[8]=
@@ -818,7 +812,10 @@ var
 end.
 {
   $Log$
-  Revision 1.20  2003-01-09 21:52:37  peter
+  Revision 1.21  2003-04-22 14:33:38  peter
+    * removed some notes/hints
+
+  Revision 1.20  2003/01/09 21:52:37  peter
     * merged some verbosity options.
     * V_LineInfo is a verbosity flag to include line info
 

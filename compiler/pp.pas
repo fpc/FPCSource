@@ -31,7 +31,7 @@ program pp;
   M68K                generate a compiler for the M68000
   SPARC               generate a compiler for SPARC
   POWERPC             generate a compiler for the PowerPC
-  VIS                 generate a compile for the VIS  
+  VIS                 generate a compile for the VIS
   DEBUG               version with debug code is generated
   EXTDEBUG            some extra debug code is executed
   SUPPORT_MMX         only i386: releases the compiler switch
@@ -49,7 +49,7 @@ program pp;
   cpuflags            The target processor has status flags (on by default)
   cpufpemu            The target compiler will also support emitting software
                        floating point operations
-  cpu64bit            The target is a 64-bit processor           
+  cpu64bit            The target is a 64-bit processor
   -----------------------------------------------------------------
 
   Required switches for a i386 compiler be compiled by Free Pascal Compiler:
@@ -190,7 +190,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2003-02-15 22:25:50  carl
+  Revision 1.22  2003-04-22 14:33:38  peter
+    * removed some notes/hints
+
+  Revision 1.21  2003/02/15 22:25:50  carl
    + give more information on some new defines
 
   Revision 1.20  2003/02/02 19:25:54  carl

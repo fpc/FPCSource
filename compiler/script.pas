@@ -20,7 +20,7 @@
 
  ****************************************************************************
 }
-unit Script;
+unit script;
 
 {$i fpcdefs.inc}
 
@@ -419,7 +419,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.20  2003-02-07 21:21:39  marco
+  Revision 1.21  2003-04-22 14:33:38  peter
+    * removed some notes/hints
+
+  Revision 1.20  2003/02/07 21:21:39  marco
    * Some small fix
 
   Revision 1.19  2003/01/10 21:49:00  marco

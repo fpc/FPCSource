@@ -691,13 +691,18 @@ var
         DoneRedirectFile;
       end;
 
+
+initialization
 finalization
   { Be sure to close the redirect files to flush all data }
   DoneRedirectFile;
 end.
 {
   $Log$
-  Revision 1.24  2003-01-09 21:52:38  peter
+  Revision 1.25  2003-04-22 14:33:38  peter
+    * removed some notes/hints
+
+  Revision 1.24  2003/01/09 21:52:38  peter
     * merged some verbosity options.
     * V_LineInfo is a verbosity flag to include line info
 

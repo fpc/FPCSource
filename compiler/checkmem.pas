@@ -29,9 +29,6 @@ Implementation
 
 Const
   EntryMemUsed : longint = 0;
-  SaveExit : pointer = nil;
-
-
 
   Procedure CheckMemory(LostMemory : longint);
     var
@@ -54,7 +51,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-11-15 12:23:49  peter
+  Revision 1.3  2003-04-22 14:33:38  peter
+    * removed some notes/hints
+
+  Revision 1.2  2002/11/15 12:23:49  peter
     * new unit
 
 }
