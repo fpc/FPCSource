@@ -6,89 +6,45 @@
 %%
 %% lstdrvrs.dtx  (with options: `install')
 %% 
-%% (w)(c) 1996-1998 Carsten Heinz
-%% 
-%% Please read the software license in listings.dtx or listings.dvi.
-%% 
-%% This file is distributed freely. You are not allowed to take money for
-%% the distribution of this file, except for a nominal charge for copying
-%% etc..
-%% 
-%% This file is free for any non-commercial use. Commercial use needs (i)
-%% explicit permission of the author of this package and (ii) the payment
-%% of a license fee. This fee is to be determined in each instance by the
-%% commercial user and the package author and is to be payed as donation
-%% to the LaTeX3 project.
-%% 
-%% This file is distributed without any warranty, express or implied, as
-%% to merchantability or fitness for any particular purpose.
-%% 
-%% Permission is granted to change this file. You are not allowed to
-%% distribute any changed version this file, neither under the same name
-%% nor under a different one.
-%% 
-\ifx\keepsilent\undefined %
-    \input{docstrip}
-    \keepsilent
-    \askforoverwritefalse
-\fi
-\def\batchfile{lstdrvrs.ins}
-
+%% (w)(c) 1996/1997/1998/1999/2000/2001/2002 Carsten Heinz and/or any
+%% other author listed elsewhere in this file.
+%%
+%% This file is distributed under the terms of the LaTeX Project Public
+%% License from CTAN archives in directory  macros/latex/base/lppl.txt.
+%% Either version 1.0 or, at your option, any later version.
+%%
+%% This file is completely free and comes without any warranty.
+%%
+%% Send comments and ideas on the package, error reports and additional
+%% programming languages to <cheinz@gmx.de>.
+%%
+\input docstrip
 \preamble
-
-(w)(c) 1996,1997,1998 Carsten Heinz and/or any other author mentioned
-elsewhere in this file.
-
-This file is distributed freely. You are not allowed to take money for
-the use or distribution of this file, except for a nominal charge for
-copying etc..
-
-This file is distributed without any warranty, express or implied, as
-to merchantability or fitness for any particular purpose.
-
-Permission is granted to change this file. You are not allowed to
-distribute any changed version this file, neither under the same name
-nor under a different one.
-
 \endpreamble
 
-\generate{
-    \file{lstalgol.sty}   {\from{listings.dtx}{keywordcomments}
-                           \from{lstdrvrs.dtx}{algol}}
-    \file{lstc.sty}       {\from{listings.dtx}{c}
-                           \from{lstdrvrs.dtx}{c,objective-c,c++}}
-    \file{lstperl.sty}    {\from{listings.dtx}{perl}
-                           \from{lstdrvrs.dtx}{perl}}
-    \file{lstsimula.sty}  {\from{listings.dtx}{keywordcomments}
-                           \from{lstdrvrs.dtx}{simula}}
-    \file{lsttex.sty}     {\from{listings.dtx}{tex}
-                           \from{lstdrvrs.dtx}{tex}}
-    \file{lstada.sty}     {\from{lstdrvrs.dtx}{ada}}
-    \file{lstcobol.sty}   {\from{lstdrvrs.dtx}{cobol}}
-    \file{lstedu.sty}     {\from{lstdrvrs.dtx}{comal,elan,logo}}
-    \file{lstcsh.sty}     {\from{lstdrvrs.dtx}{csh}}
-    \file{lstdelphi.sty}  {\from{lstdrvrs.dtx}{delphi}}
-    \file{lsteiffel.sty}  {\from{lstdrvrs.dtx}{eiffel}}
-    \file{lsteuphoria.sty}{\from{lstdrvrs.dtx}{euphoria}}
-    \file{lstfortran.sty} {\from{lstdrvrs.dtx}{fortran}}
-    \file{lsthtml.sty}    {\from{lstdrvrs.dtx}{html}}
-    \file{lstidl.sty}     {\from{lstdrvrs.dtx}{idl}}
-    \file{lstjava.sty}    {\from{lstdrvrs.dtx}{java}}
+\ifToplevel{
+\usedir{tex/latex/listings}
+\keepsilent
+\askonceonly
 }
 
 \generate{
-    \file{lstlisp.sty}    {\from{lstdrvrs.dtx}{lisp}}
-    \file{lstmatlab.sty}  {\from{lstdrvrs.dtx}{matlab}}
-    \file{lstmercury.sty} {\from{lstdrvrs.dtx}{mercury}}
-    \file{lstmodula.sty}  {\from{lstdrvrs.dtx}{modula}}
-    \file{lstoberon.sty}  {\from{lstdrvrs.dtx}{oberon}}
-    \file{lstpascal.sty}  {\from{lstdrvrs.dtx}{pascal}}
-    \file{lstpli.sty}     {\from{lstdrvrs.dtx}{pli}}
-    \file{lstprolog.sty}  {\from{lstdrvrs.dtx}{prolog}}
-    \file{lstsql.sty}     {\from{lstdrvrs.dtx}{sql}}
-    \file{lstvhdl.sty}    {\from{lstdrvrs.dtx}{vhdl}}
+    \file{lstlang1.sty}{\from{lstdrvrs.dtx}{lang1}}
+    \file{lstlang2.sty}{\from{lstdrvrs.dtx}{lang2}}
+    \file{lstlang3.sty}{\from{lstdrvrs.dtx}{lang3}}
 }
-\end
+
+\ifToplevel{
+\Msg{*}
+\Msg{* You probably need to move all created `.sty' and `.cfg'}
+\Msg{* files into a directory searched by TeX.}
+\Msg{*}
+\Msg{* Run `lstdrvrs.dtx' through LaTeX2e to get the documentation.}
+\Msg{*}
+}
+
+\endbatchfile
+    [2002/07/31 v1.0d listings language file]
 \endinput
 %%
 %% End of file `lstdrvrs.ins'.

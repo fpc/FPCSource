@@ -1,77 +1,95 @@
 %%
-%% Installation file: Listings package for LaTeX2e
-%% (w)(c) 1996-1998 Carsten Heinz
+%% This file generates files required to use the listings package.
+%% At your command prompt write
 %%
-\def\batchfile{listings.ins}
-%
-% just do these things
-%
-\input{docstrip}
+%%     tex listings.ins
+%%
+%%
+%% (w)(c) 1996--1999,2002 Carsten Heinz
+%%
+%% This file is distributed under the terms of the LaTeX Project Public
+%% License from CTAN archives in directory  macros/latex/base/lppl.txt.
+%% Either version 1.0 or, at your option, any later version.
+%%
+%% This file is completely free and comes without any warranty.
+%%
+%% Permission is granted to change this file. You are not allowed to
+%% distribute any changed version of this file unless you rename it.
+%%
+\input docstrip
+\preamble
+\endpreamble
+
+\usedir{tex/latex/listings}
 \keepsilent
 \askforoverwritefalse
 
 
 %
-% define the preamble
-%
-\preamble
-
-(w)(c) 1996-1998 Carsten Heinz
-
-Please read the software license in listings.dtx or listings.dvi.
-
-This file is distributed freely. You are not allowed to take money for
-the distribution of this file, except for a nominal charge for copying
-etc..
-
-This file is free for any non-commercial use. Commercial use needs (i)
-explicit permission of the author of this package and (ii) the payment
-of a license fee. This fee is to be determined in each instance by the
-commercial user and the package author and is to be payed as donation
-to the LaTeX3 project.
-
-This file is distributed without any warranty, express or implied, as
-to merchantability or fitness for any particular purpose.
-
-Permission is granted to change this file. You are not allowed to
-distribute any changed version this file, neither under the same name
-nor under a different one.
-
-\endpreamble
-
-
-%
-% unpack the listings package
+% generate base package
 %
 \generate{
-    \file{listings.sty} {\from{listings.dtx}{kernel}}
-    \file{lst017.sty}  {\from{listings.dtx}{0.17}}
-    \file{lstfvrb.sty} {\from{listings.dtx}{fancyvrb}}
-}
-
-
-%
-% create installation and configuration file if lstdrvrs.dtx exists
-%
-\IfFileExists{lstdrvrs.dtx}{\generate{
+    \file{listings.sty}{\from{listings.dtx}{kernel}}
+    \file{lstmisc.sty}{\from{listings.dtx}{misc,0.21}}
+    \file{lstdoc.sty}{\from{listings.dtx}{doc}}
     \file{lstdrvrs.ins}{\from{lstdrvrs.dtx}{install}}
     \file{listings.cfg}{\from{lstdrvrs.dtx}{config}}
-}}
-
-
-%
-% unpack drivers if possible
-%
-\InputIfFileExists{lstdrvrs.ins}{}{}
-
+}
 
 %
-% print user's advice
+% generate dummy patch if necessary
 %
+\newif\ifdummypatch
+\def\lstinsIfFileExists#1#2#3{% <filename><pre-input><post-input>
+    \openin\inputcheck #1\relax
+    \ifeof\inputcheck\else
+        \closein\inputcheck
+        #2%
+        \@@input #1
+        #3%
+    \fi}
+\def\ProvidesFile#1[#2]{\def\lstpatch{#2}\endinput}
+\def\lstinsCheckVersion#1 #2{%
+    \ifx #2v\dummypatchtrue \expandafter\lstinsGobbleNil \fi
+    \afterassignment\lstinsCheckVersion@ \count\z@#2}
+\def\lstinsCheckVersion@.{%
+    \afterassignment\lstinsGobbleNil \count\tw@}
+\def\lstinsGobbleNil#1\@nil{%
+    \ifdummypatch\else
+        \edef\patchversion{\the\count\z@.\the\count\tw@}%
+        \ifx\lstversion\patchversion\else
+            \dummypatchtrue
+        \fi
+    \fi}
+
+\Msg{checking listings version ...}
+\lstinsIfFileExists{listings.sty}
+    {\def\NeedsTeXFormat#1{\endinput}}
+    {\let\lstversion\fileversion
+     \lstinsIfFileExists{lstpatch.sty}%
+         {\let\fileversion\@undefined}%
+         {\ifx\fileversion\@undefined
+              \expandafter\lstinsCheckVersion\lstpatch\@nil
+          \fi}%
+    }
+
+\ifdummypatch
+    \generate{\file{lstpatch.sty}{\from{listings.dtx}{patch}}}
+\fi
+
+%
+% generate language driver files
+%
+\batchinput{lstdrvrs.ins}
+
+
 \Msg{*}
-\Msg{* Move all `.sty' and `.cfg' files into a folder searched by TeX.}
+\Msg{* You probably need to move all created `.sty' and `.cfg'}
+\Msg{* files into a directory searched by TeX.}
 \Msg{*}
-\Msg{* Run the `.dtx' file through LaTeX2e to get the documentation.}
+\Msg{* And don't forget to refresh your filename database}
+\Msg{* if your TeX distribution uses such a database.}
 \Msg{*}
 
-\endinput
+\endbatchfile
+
