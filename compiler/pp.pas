@@ -119,15 +119,14 @@ uses
   {$ifdef heaptrc}
     ppheap,
   {$endif heaptrc}
-  {$ifdef Unix}
-    catch,
-  {$endif}
-  {$ifdef go32v2}
-    {$ifdef DEBUG}
-      {$define NOCATCH}
-    {$endif DEBUG}
-    catch,
-  {$endif}
+  {$ifndef NOCATCH}
+    {$ifdef Unix}
+      catch,
+    {$endif}
+    {$ifdef go32v2}
+      catch,
+    {$endif}
+  {$endif NOCATCH}
 {$endif FPC}
   globals,compiler;
 
@@ -177,7 +176,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2002-10-15 18:16:44  peter
+  Revision 1.18  2002-10-30 21:45:02  peter
+    * do not include catch unit when compiling with NOCATCH
+
+  Revision 1.17  2002/10/15 18:16:44  peter
     * GDB switch is not required
 
   Revision 1.16  2002/08/23 13:17:59  mazen
