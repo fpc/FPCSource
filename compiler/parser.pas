@@ -197,6 +197,12 @@ unit parser;
             current_module^.sourcefiles.init;
             current_module^.used_units.done;
             current_module^.used_units.init;
+            current_module^.linkofiles.done;
+            current_module^.linkofiles.init;
+            current_module^.linkstaticlibs.done;
+            current_module^.linkstaticlibs.init;
+            current_module^.linksharedlibs.done;
+            current_module^.linksharedlibs.init;
           end
          else
           begin
@@ -303,9 +309,9 @@ done:
 {$endif Splitheap}
 
          { restore old state, close trees }
-{$ifdef VER0_99_5}	 
+{$ifdef VER0_99_5}      
          if dispose_asm_lists then
-{$else}	 
+{$else} 
   {$ifndef go32v2}
     {$ifndef linux}
          if dispose_asm_lists then
@@ -399,7 +405,10 @@ done:
 end.
 {
   $Log$
-  Revision 1.34  1998-08-10 23:58:56  peter
+  Revision 1.35  1998-08-12 19:22:09  peter
+    * reset also the link* lists when recompiling an existing unit
+
+  Revision 1.34  1998/08/10 23:58:56  peter
     * fixed asmlist dispose for 0.99.5
 
   Revision 1.33  1998/08/10 14:50:07  peter
