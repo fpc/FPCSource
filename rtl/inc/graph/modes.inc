@@ -208,7 +208,9 @@ end;
   {********************************************************}
     var
      list, lastModeInfo: PModeInfo;
+{$ifdef newmodes}
      x,y: longint;
+{$endif}
     begin
 {$ifdef logging}
       LogLn('Searching for driver '+strf(reqdriver)+' and mode '+strf(reqmode));
@@ -264,7 +266,7 @@ end;
                       list := list^.next;
                     searchMode := list;
                   end;
-                  
+
               end;
           end;
           exit;
@@ -557,7 +559,10 @@ end;
 
 {
 $Log$
-Revision 1.25  2000-06-19 01:18:49  carl
+Revision 1.26  2000-06-22 18:36:19  peter
+  * removed notes
+
+Revision 1.25  2000/06/19 01:18:49  carl
   + added modes for Atari/Amiga and bit depth also
 
 Revision 1.24  2000/06/18 14:59:39  jonas

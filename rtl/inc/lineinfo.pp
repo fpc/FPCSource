@@ -22,7 +22,9 @@ interface
 
 { This is very important as this code can be called
   from inside the RTE 202 error PM }
-{$S-}
+{$ifndef linux}
+  {$S-}
+{$endif}
 
 procedure GetLineInfo(addr:longint;var func,source:string;var line:longint);
 
@@ -638,7 +640,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.11  2000-06-05 13:04:11  pierre
+  Revision 1.12  2000-06-22 18:36:18  peter
+    * removed notes
+
+  Revision 1.11  2000/06/05 13:04:11  pierre
    * StabOfs for OS2 changed, hopefully correct now
 
   Revision 1.10  2000/05/08 13:23:46  peter
