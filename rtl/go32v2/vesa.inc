@@ -527,7 +527,7 @@ end;
               pixels := pixels shr 8;
               WordArray(Data)[index+l*4+2] := pixels and $ff;
               pixels := pixels shr 8;
-              WordArray(Data)[index+l*4+3] := pixels and $ff;
+              WordArray(Data)[index+l*4+3] := pixels{ and $ff};
             end;
           inc(index,l*4+4);
           inc(offs,l*4+4);
@@ -572,19 +572,19 @@ end;
                 StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
             exit;
       end;
-    {$ifdef logging}
+    {$ifdef logging2}
     LogLn('hline '+strf(x)+' - '+strf(x2)+' on '+strf(y)+' in mode '+strf(currentwritemode));
-    {$endif logging}
+    {$endif logging2}
     HLength := x2 - x + 1;
-    {$ifdef logging}
+    {$ifdef logging2}
     LogLn('length: '+strf(hlength));
-    {$endif logging}
+    {$endif logging2}
     if HLength>0 then
       begin
          Offs:=(Longint(y)+YOffset)*bytesperline+x;
-         {$ifdef logging}
+         {$ifdef logging2}
          LogLn('Offs: '+strf(offs)+' -- '+hexstr(offs,8));
-         {$endif logging}
+         {$endif logging2}
          Mask := byte(CurrentColor)+byte(CurrentColor) shl 8;
          Mask := Mask + Mask shl 16;
          Case CurrentWriteMode of
@@ -594,27 +594,27 @@ end;
                  curbank := integer(offs shr 16);
                  SetWriteBank(curbank);
                  SetReadBank(curbank);
-                 {$ifdef logging}
+                 {$ifdef logging2}
                  LogLn('set bank '+strf(curbank)+' for offset '+hexstr(offs,8));
-                 {$endif logging}
+                 {$endif logging2}
                  If HLength > 3 Then
-                 { allign target }
+                 { align target }
                    Begin
                      l := 0;
                      If (offs and 3) <> 0 then
                      { this cannot go past a window boundary bacause the }
                      { size of a window is always a multiple of 4        }
                        Begin
-                         {$ifdef logging}
+                         {$ifdef logging2}
                          LogLn('Alligning by drawing '+strf(4-(offs and 3))+' pixels');
-                         {$endif logging}
+                         {$endif logging2}
                          for l := 1 to 4-(offs and 3) do
                            Mem[WinWriteSeg:word(offs)+l-1] :=
                              Mem[WinReadSeg:word(offs)+l-1] And Byte(CurrentColor);
                        End;
                      Dec(HLength, l);
                      inc(offs, l);
-                     {$ifdef logging}
+                     {$ifdef logging2}
                      LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(hlength));
                      {$endif logging}
                      { offs is now 4-bytes alligned }
@@ -622,7 +622,7 @@ end;
                         bankrest := HLength
                      else {the rest won't fit anymore in the current window }
                        bankrest := $10000 - (Offs and $ffff);
-                     {$ifdef logging}
+                     {$ifdef logging2}
                      LogLn('Rest to be drawn in this window: '+strf(bankrest));
                      {$endif logging}
                      For l := 0 to (Bankrest div 4)-1 Do
@@ -630,13 +630,13 @@ end;
                          MemL[WinReadSeg:word(offs)+l*4] And Mask;
                      inc(offs,l*4+4);
                      dec(hlength,l*4+4);
-                     {$ifdef logging}
+                     {$ifdef logging2}
                      LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(hlength));
                      {$endif logging}
                    End
                  Else
                    Begin
-                     {$ifdef logging}
+                     {$ifdef logging2}
                      LogLn('Drawing leftover: '+strf(HLength)+' at offset '+hexstr(offs,8));
                      {$endif logging}
                      x := offs mod bytesperline;
@@ -652,7 +652,7 @@ end;
                  curbank := integer(offs shr 16);
                  SetWriteBank(curbank);
                  SetReadBank(curbank);
-                 {$ifdef logging}
+                 {$ifdef logging2}
                  LogLn('set bank '+strf(curbank)+' for offset '+hexstr(offs,8));
                  {$endif logging}
                  If HLength > 3 Then
@@ -663,7 +663,7 @@ end;
                      { this cannot go past a window boundary bacause the }
                      { size of a window is always a multiple of 4        }
                        Begin
-                         {$ifdef logging}
+                         {$ifdef logging2}
                          LogLn('Alligning by drawing '+strf(4-(offs and 3))+' pixels');
                          {$endif logging}
                          for l := 1 to 4-(offs and 3) do
@@ -672,7 +672,7 @@ end;
                        End;
                      Dec(HLength, l);
                      inc(offs, l);
-                     {$ifdef logging}
+                     {$ifdef logging2}
                      LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(hlength));
                      {$endif logging}
                      { offs is now 4-bytes alligned }
@@ -680,7 +680,7 @@ end;
                         bankrest := HLength
                      else {the rest won't fit anymore in the current window }
                        bankrest := $10000 - (Offs and $ffff);
-                     {$ifdef logging}
+                     {$ifdef logging2}
                      LogLn('Rest to be drawn in this window: '+strf(bankrest));
                      {$endif logging}
                      For l := 0 to (Bankrest div 4)-1 Do
@@ -688,13 +688,13 @@ end;
                          MemL[WinReadSeg:word(offs)+l*4] Xor Mask;
                      inc(offs,l*4+4);
                      dec(hlength,l*4+4);
-                     {$ifdef logging}
+                     {$ifdef logging2}
                      LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(hlength));
                      {$endif logging}
                    End
                  Else
                    Begin
-                     {$ifdef logging}
+                     {$ifdef logging2}
                      LogLn('Drawing leftover: '+strf(HLength)+' at offset '+hexstr(offs,8));
                      {$endif logging}
                      x := offs mod bytesperline;
@@ -710,7 +710,7 @@ end;
                  curbank := integer(offs shr 16);
                  SetWriteBank(curbank);
                  SetReadBank(curbank);
-                 {$ifdef logging}
+                 {$ifdef logging2}
                  LogLn('set bank '+strf(curbank)+' for offset '+hexstr(offs,8));
                  {$endif logging}
                  If HLength > 3 Then
@@ -721,7 +721,7 @@ end;
                      { this cannot go past a window boundary bacause the }
                      { size of a window is always a multiple of 4        }
                        Begin
-                         {$ifdef logging}
+                         {$ifdef logging2}
                          LogLn('Alligning by drawing '+strf(4-(offs and 3))+' pixels');
                          {$endif logging}
                          for l := 1 to 4-(offs and 3) do
@@ -730,7 +730,7 @@ end;
                        End;
                      Dec(HLength, l);
                      inc(offs, l);
-                     {$ifdef logging}
+                     {$ifdef logging2}
                      LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(hlength));
                      {$endif logging}
                      { offs is now 4-bytes alligned }
@@ -738,7 +738,7 @@ end;
                         bankrest := HLength
                      else {the rest won't fit anymore in the current window }
                        bankrest := $10000 - (Offs and $ffff);
-                     {$ifdef logging}
+                     {$ifdef logging2}
                      LogLn('Rest to be drawn in this window: '+strf(bankrest));
                      {$endif logging}
                      For l := 0 to (Bankrest div 4)-1 Do
@@ -746,13 +746,13 @@ end;
                          MemL[WinReadSeg:word(offs)+l*4] Or Mask;
                      inc(offs,l*4+4);
                      dec(hlength,l*4+4);
-                     {$ifdef logging}
+                     {$ifdef logging2}
                      LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(hlength));
                      {$endif logging}
                    End
                  Else
                    Begin
-                     {$ifdef logging}
+                     {$ifdef logging2}
                      LogLn('Drawing leftover: '+strf(HLength)+' at offset '+hexstr(offs,8));
                      {$endif logging}
                      x := offs mod bytesperline;
@@ -769,7 +769,7 @@ end;
                Repeat
                  curbank := integer(offs shr 16);
                  SetWriteBank(curbank);
-                 {$ifdef logging}
+                 {$ifdef logging2}
                  LogLn('set bank '+strf(curbank)+' for offset '+hexstr(offs,8)+' -- '+strf(offs));
                  {$endif logging}
                  If HLength > 3 Then
@@ -780,7 +780,7 @@ end;
                      { this cannot go past a window boundary bacause the }
                      { size of a window is always a multiple of 4        }
                        Begin
-                         {$ifdef logging}
+                         {$ifdef logging2}
                          LogLn('Alligning by drawing '+strf(4-(offs and 3))+' pixels');
                          {$endif logging}
                          for l := 1 to 4-(offs and 3) do
@@ -788,7 +788,7 @@ end;
                        End;
                      Dec(HLength, l);
                      inc(offs, l);
-                     {$ifdef logging}
+                     {$ifdef logging2}
                      LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(hlength));
                      {$endif logging}
                      { offs is now 4-bytes alligned }
@@ -796,20 +796,20 @@ end;
                         bankrest := HLength
                      else {the rest won't fit anymore in the current window }
                        bankrest := $10000 - (Offs and $ffff);
-                     {$ifdef logging}
+                     {$ifdef logging2}
                      LogLn('Rest to be drawn in this window: '+strf(bankrest)+' -- '+hexstr(bankrest,8));
                      {$endif logging}
                      For l := 0 to (Bankrest div 4)-1 Do
                        MemL[WinWriteSeg:word(offs)+l*4] := Mask;
                      inc(offs,l*4+4);
                      dec(hlength,l*4+4);
-                     {$ifdef logging}
+                     {$ifdef logging2}
                      LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(hlength));
                      {$endif logging}
                    End
                  Else
                    Begin
-                     {$ifdef logging}
+                     {$ifdef logging2}
                      LogLn('Drawing leftover: '+strf(HLength)+' at offset '+hexstr(offs,8));
                      {$endif logging}
                      x := offs mod bytesperline;
@@ -848,17 +848,17 @@ end;
             exit;
       end;
     Col := Byte(CurrentColor);
-    {$ifdef logging}
+    {$ifdef logging2}
     LogLn('vline '+strf(y)+' - '+strf(y2)+' on '+strf(x)+' in mode '+strf(currentwritemode));
     {$endif logging}
     VLength := y2 - y + 1;
-    {$ifdef logging}
+    {$ifdef logging2}
     LogLn('length: '+strf(vlength));
     {$endif logging}
     if VLength>0 then
       begin
          Offs:=(Longint(y)+YOffset)*bytesperline+x;
-         {$ifdef logging}
+         {$ifdef logging2}
          LogLn('Offs: '+strf(offs)+' -- '+hexstr(offs,8));
          {$endif logging}
          Case CurrentWriteMode of
@@ -868,14 +868,14 @@ end;
                  curbank := integer(offs shr 16);
                  SetWriteBank(curbank);
                  SetReadBank(curbank);
-                 {$ifdef logging}
+                 {$ifdef logging2}
                  LogLn('set bank '+strf(curbank)+' for offset '+hexstr(offs,8));
                  {$endif logging}
                  If (VLength-1)*bytesperline <= ($10000-(Offs and $ffff)) Then
                    bankrest := VLength
                  else {the rest won't fit anymore in the current window }
                    bankrest := (($10000 - (Offs and $ffff)) div bytesperline)+1;
-                 {$ifdef logging}
+                 {$ifdef logging2}
                  LogLn('Rest to be drawn in this window: '+strf(bankrest));
                  {$endif logging}
                  For l := 0 to Bankrest-1 Do
@@ -885,7 +885,7 @@ end;
                      inc(offs,bytesperline);
                    end;
                  dec(VLength,l+1);
-                 {$ifdef logging}
+                 {$ifdef logging2}
                  LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(vlength));
                  {$endif logging}
                Until VLength = 0;
@@ -896,14 +896,14 @@ end;
                  curbank := integer(offs shr 16);
                  SetWriteBank(curbank);
                  SetReadBank(curbank);
-                 {$ifdef logging}
+                 {$ifdef logging2}
                  LogLn('set bank '+strf(curbank)+' for offset '+hexstr(offs,8));
                  {$endif logging}
                  If (VLength-1)*bytesperline <= ($10000-(Offs and $ffff)) Then
                    bankrest := VLength
                  else {the rest won't fit anymore in the current window }
                    bankrest := (($10000 - (Offs and $ffff)) div bytesperline)+1;
-                 {$ifdef logging}
+                 {$ifdef logging2}
                  LogLn('Rest to be drawn in this window: '+strf(bankrest));
                  {$endif logging}
                  For l := 0 to Bankrest-1 Do
@@ -913,7 +913,7 @@ end;
                      inc(offs,bytesperline);
                    end;
                  dec(VLength,l+1);
-                 {$ifdef logging}
+                 {$ifdef logging2}
                  LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(vlength));
                  {$endif logging}
                Until VLength = 0;
@@ -924,14 +924,14 @@ end;
                  curbank := integer(offs shr 16);
                  SetWriteBank(curbank);
                  SetReadBank(curbank);
-                 {$ifdef logging}
+                 {$ifdef logging2}
                  LogLn('set bank '+strf(curbank)+' for offset '+hexstr(offs,8));
                  {$endif logging}
                  If (VLength-1)*bytesperline <= ($10000-(Offs and $ffff)) Then
                    bankrest := VLength
                  else {the rest won't fit anymore in the current window }
                    bankrest := (($10000 - (Offs and $ffff)) div bytesperline)+1;
-                 {$ifdef logging}
+                 {$ifdef logging2}
                  LogLn('Rest to be drawn in this window: '+strf(bankrest));
                  {$endif logging}
                  For l := 0 to Bankrest-1 Do
@@ -941,7 +941,7 @@ end;
                      inc(offs,bytesperline);
                    end;
                  dec(VLength,l+1);
-                 {$ifdef logging}
+                 {$ifdef logging2}
                  LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(vlength));
                  {$endif logging}
                Until VLength = 0;
@@ -953,14 +953,14 @@ end;
                Repeat
                  curbank := integer(offs shr 16);
                  SetWriteBank(curbank);
-                 {$ifdef logging}
+                 {$ifdef logging2}
                  LogLn('set bank '+strf(curbank)+' for offset '+hexstr(offs,8));
                  {$endif logging}
                  If (VLength-1)*bytesperline <= ($10000-(Offs and $ffff)) Then
                    bankrest := VLength
                  else {the rest won't fit anymore in the current window }
                    bankrest := (($10000 - (Offs and $ffff)) div bytesperline)+1;
-                 {$ifdef logging}
+                 {$ifdef logging2}
                  LogLn('Rest to be drawn in this window: '+strf(bankrest));
                  {$endif logging}
                  For l := 0 to Bankrest-1 Do
@@ -969,7 +969,7 @@ end;
                      inc(offs,bytesperline);
                    end;
                  dec(VLength,l+1);
-                 {$ifdef logging}
+                 {$ifdef logging2}
                  LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(vlength));
                  {$endif logging}
                Until VLength = 0;
@@ -977,6 +977,151 @@ end;
          End;
        end;
    end;
+
+  procedure PatternLineVESA256(x1,x2,y: smallint); {$ifndef fpc}far;{$endif fpc}
+  {********************************************************}
+  { Draws a horizontal patterned line according to the     }
+  { current Fill Settings.                                 }
+  {********************************************************}
+  { Important notes:                                       }
+  {  - CurrentColor must be set correctly before entering  }
+  {    this routine.                                       }
+  {********************************************************}
+   type
+     TVESA256Fill = Record
+       case byte of
+         0: (data1, data2: longint);
+         1: (pat: array[0..7] of byte);
+     end;
+
+   var
+    fill: TVESA256Fill;
+    bankrest, l : longint;
+    offs, amount: longint;
+    i           : smallint;
+    j           : smallint;
+    OldWriteMode : word;
+    OldCurrentColor : word;
+    TmpFillPattern, patternPos : byte;
+   begin
+     OldWriteMode := CurrentWriteMode;
+     CurrentWriteMode := NormalPut;
+     { Get the current pattern }
+     TmpFillPattern := FillPatternTable
+       [FillSettings.Pattern][((y + startYViewPort) and $7)+1];
+     Case TmpFillPattern Of
+       0:
+         begin
+           OldCurrentColor := CurrentColor;
+           CurrentColor := CurrentBkColor;
+           HLineVESA256(x1,x2,y);
+           CurrentColor := OldCurrentColor;
+         end;
+       $ff: HLineVESA256(x1,x2,y);
+       else
+         begin
+           { convert to global coordinates ... }
+           x1 := x1 + StartXViewPort;
+           x2 := x2 + StartXViewPort;
+           y  := y + StartYViewPort;
+           { if line was fully clipped then exit...}
+           if LineClipped(x1,y,x2,y,StartXViewPort,StartYViewPort,
+              StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
+               exit;
+           {$ifdef logging}
+           LogLn('patternline '+strf(x1)+' - '+strf(x2)+' on '+strf(y));
+           {$endif logging}
+           { how long is the line }
+           amount := x2 - x1 + 1;
+           { offset to start at }
+           offs := (longint(y)+yoffset)*bytesperline+x1;
+           { convert the pattern data into the actual color sequence }
+           j := 1;
+           FillChar(fill,sizeOf(fill),byte(currentBkColor));
+           for i := 0 to 7 do
+             begin
+               if TmpFillPattern and j <> 0 then
+                 fill.pat[7-i] := currentColor;
+{$ifopt q+}
+{$q-}
+{$define overflowOn}
+{$endif}
+               j := j shl 1;
+{$ifdef overflowOn}
+{$q+}
+{$undef overflowOn}
+{$endif}
+             end;
+           Repeat
+             SetWriteBank(integer(offs shr 16));
+             If (amount > 7) and
+                (((offs and 7) = 0) or
+                 (amount > 7+8-(offs and 7))) Then
+               Begin
+                 { align target }
+                 l := 0;
+                 If (offs and 7) <> 0 then
+                 { this cannot go past a window boundary bacause the }
+                 { size of a window is always a multiple of 8        }
+                   Begin
+                     { position in the pattern where to start }
+                     patternPos := offs and 7;
+                     {$ifdef logging}
+                     LogLn('Aligning by drawing '+strf(8-(offs and 7))+' pixels');
+                     {$endif logging}
+                     for l := 1 to 8-(offs and 7) do
+                       begin
+                         Mem[WinWriteSeg:word(offs)+l-1] := fill.pat[patternPos and 7];
+                         inc(patternPos)
+                       end;
+                   End;
+                 Dec(amount, l);
+                 inc(offs, l);
+                 {$ifdef logging}
+                 LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(amount));
+                 {$endif logging}
+                 { offs is now 8-bytes alligned }
+                 If amount <= ($10000-(Offs and $ffff)) Then
+                    bankrest := amount
+                 else {the rest won't fit anymore in the current window }
+                   bankrest := $10000 - (Offs and $ffff);
+                 {$ifdef logging}
+                 LogLn('Rest to be drawn in this window: '+strf(bankrest));
+                 {$endif logging}
+                 for l := 0 to (bankrest div 8)-1 Do
+                   begin
+                     MemL[WinWriteSeg:word(offs)+l*8] := fill.data1;
+                     MemL[WinWriteSeg:word(offs)+l*8+4] := fill.data2;
+                   end;
+                 inc(offs,l*8+8);
+                 dec(amount,l*8+8);
+                 {$ifdef logging}
+                 LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(amount));
+                 {$endif logging}
+               End
+             Else
+               Begin
+                 {$ifdef logging}
+                 LogLn('Drawing leftover: '+strf(amount)+' at offset '+hexstr(offs,8));
+                 {$endif logging}
+                 i := offs mod bytesperline;
+                 patternPos := i and 7;
+                 oldCurrentColor := currentColor;
+                 For l := 0 to amount - 1 do
+                   begin
+                     currentColor := fill.pat[patternPos and 7];
+                     DirectPutPixVESA256(i+l,y);
+                     inc(patternPos);
+                   end;
+                 amount := 0;
+                 currentColor := oldCurrentColor;
+               End
+           Until amount = 0;
+         end;
+     end;
+     currentWriteMode := oldWriteMode;
+   end;
+
 
  {************************************************************************}
  {*                    256 colors VESA mode routines  Linear mode        *}
@@ -2369,7 +2514,13 @@ end;
 
 {
 $Log$
-Revision 1.10  1999-12-21 17:42:17  jonas
+Revision 1.11  1999-12-25 22:31:09  jonas
+  + patternlineVESA256, not yet used because I'm not yet sure it's
+    already working 100%
+  * changed {$ifdef logging} to {$ifdef logging2} for vlineVESA256 and
+     hlineVESA256 (they're used a lot a working properly afaik)
+
+Revision 1.10  1999/12/21 17:42:17  jonas
   * changed vesa.inc do it doesn't try to use linear modes anymore (doesn't work
     yet!!)
   * fixed mode detection so the low modenumber of a driver doesn't have to be zero
