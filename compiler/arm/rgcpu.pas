@@ -36,7 +36,6 @@ unit rgcpu;
 
      type
        trgcpu = class(trgobj)
-         procedure add_cpu_interferences(p : tai);override;
          procedure do_spill_read(list : taasmoutput;instr : taicpu;pos: tai; regidx: word;
           const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);override;
          procedure do_spill_written(list : taasmoutput;instr : taicpu;pos: tai; regidx: word;
@@ -45,22 +44,16 @@ unit rgcpu;
           const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);override;
        end;
 
+       trgintcpu = class(trgcpu)
+         procedure add_cpu_interferences(p : tai);override;
+       end;
+
   implementation
 
     uses
       verbose, cutils,
       cgutils,cgobj,
       procinfo;
-
-
-    procedure trgcpu.add_cpu_interferences(p : tai);
-      begin
-        if p.typ=ait_instruction then
-          begin
-            if (taicpu(p).opcode=A_MUL) then
-              add_edge(getsupreg(taicpu(p).oper[0]^.reg),getsupreg(taicpu(p).oper[1]^.reg));
-          end;
-      end;
 
 
     procedure trgcpu.do_spill_read(list : taasmoutput;instr : taicpu;pos: tai; regidx: word;
@@ -223,11 +216,25 @@ unit rgcpu;
           inherited do_spill_readwritten(list,instr,pos,regidx,spilltemplist,regs);
       end;
 
+
+    procedure trgintcpu.add_cpu_interferences(p : tai);
+      begin
+        if p.typ=ait_instruction then
+          begin
+            if (taicpu(p).opcode=A_MUL) then
+              add_edge(getsupreg(taicpu(p).oper[0]^.reg),getsupreg(taicpu(p).oper[1]^.reg));
+          end;
+      end;
+
+
 end.
 
 {
   $Log$
-  Revision 1.12  2004-06-20 08:55:31  florian
+  Revision 1.13  2004-07-03 19:29:14  florian
+    * fixed problem with cpu interferences
+
+  Revision 1.12  2004/06/20 08:55:31  florian
     * logs truncated
 
   Revision 1.11  2004/06/16 20:07:10  florian
