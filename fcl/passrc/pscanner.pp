@@ -51,7 +51,9 @@ type
     tkDivision,		// '/'
     tkColon,		// ':'
     tkSemicolon,	// ';'
+    tkLessThan,         // '<'
     tkEqual,		// '='
+    tkGreaterThan,      // '>'
     tkAt,		// '@'
     tkSquaredBraceOpen,	// '['
     tkSquaredBraceClose,// ']'
@@ -59,6 +61,7 @@ type
     // Two-character tokens
     tkDotDot,		// '..'
     tkAssign,		// ':='
+    tkNotEqual,         // '<>'
     // Reserved words
     tkabsolute,
     tkand,
@@ -230,13 +233,16 @@ const
     '/',
     ':',
     ';',
+    '<',
     '=',
+    '>',
     '@',
     '[',
     ']',
     '^',
     '..',
     ':=',
+    '<>',
     // Reserved words
     'absolute',
     'and',
@@ -726,10 +732,25 @@ begin
         Inc(TokenStr);
         Result := tkSemicolon;
       end;
+    '<':
+      begin
+        Inc(TokenStr);
+	if TokenStr[0] = '>' then
+	begin
+	  Inc(TokenStr);
+	  Result := tkNotEqual;
+	end else
+          Result := tkLessThan;
+      end;
     '=':
       begin
         Inc(TokenStr);
         Result := tkEqual;
+      end;
+    '>':
+      begin
+        Inc(TokenStr);
+        Result := tkGreaterThan;
       end;
     '@':
       begin
@@ -975,7 +996,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-03-27 16:32:48  sg
+  Revision 1.3  2003-04-04 08:01:55  michael
+  + Patch from Jeff Pohlmeyer to read less than and larger than
+
+  Revision 1.2  2003/03/27 16:32:48  sg
   * Added $IFxxx support
   * Lots of small fixes
 
