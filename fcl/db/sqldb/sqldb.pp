@@ -60,6 +60,7 @@ type
     
     procedure SetTransaction(Value : TSQLTransaction);
   protected
+    function StrToStatementType(s : string) : TStatementType; virtual;
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
     function GetAsSQLText(Field : TField) : string; virtual;
@@ -218,6 +219,17 @@ implementation
 uses dbconst;
 
 { TSQLConnection }
+
+function TSQLConnection.StrToStatementType(s : string) : TStatementType;
+
+var T : TStatementType;
+
+begin
+  S:=Lowercase(s);
+  For t:=stselect to strollback do
+    if (S=StatementTokens[t]) then
+      Exit(t);
+end;
 
 procedure TSQLConnection.SetTransaction(Value : TSQLTransaction);
 begin
@@ -655,7 +667,6 @@ Var
   cmt     : boolean;
   P,PE,PP : PChar;
   S       : string;
-  T       : TStatementType;
 
 begin
   Result:=stNone;
@@ -691,10 +702,11 @@ begin
    Inc(PE);
   Setlength(S,PE-P);
   Move(P^,S[1],(PE-P));
-  S:=Lowercase(s);
+  result := (DataBase as TSQLConnection).StrToStatementType(s);
+{  S:=Lowercase(s);
   For t:=stselect to strollback do
     if (S=StatementTokens[t]) then
-      Exit(t);
+      Exit(t);}
 end;
 
 procedure TSQLQuery.SetReadOnly(AValue : Boolean);
@@ -808,7 +820,11 @@ end.
 
 {
   $Log$
-  Revision 1.11  2005-01-12 10:30:33  michael
+  Revision 1.12  2005-01-24 10:52:43  michael
+    * Patch from Joost van der Sluis
+    - Made it possible to run 'show' queries for MySQL
+
+  Revision 1.11  2005/01/12 10:30:33  michael
    * Patch from Joost Van der Sluis:
      - implemented TSQLQuery.UpdateIndexDefs
      - implemented TSQLQuery.ReadOnly
