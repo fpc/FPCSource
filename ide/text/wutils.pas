@@ -172,6 +172,9 @@ uses
 {$ifdef win32}
   windows,
 {$endif win32}
+{$IFDEF OS2}
+  DosCalls,
+{$ENDIF OS2}
   Strings;
 
 {$ifndef NOOBJREG}
@@ -1116,6 +1119,7 @@ end;
 {$endif}
 {$IFDEF OS2}
 begin
+ DosSleep (5);
 end;
 {$ENDIF}
 {$ifdef Win32}
@@ -1136,7 +1140,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.3  2000-10-11 20:07:23  hajny
+  Revision 1.4  2000-10-28 17:20:42  hajny
+    * lower the CPU use on OS/2
+
+  Revision 1.3  2000/10/11 20:07:23  hajny
     * compilable for the OS/2 target now
 
   Revision 1.2  2000/08/22 09:41:42  pierre
