@@ -407,6 +407,11 @@ begin
 end;
 
 
+function DirectoryExists (const Directory: string): boolean;
+begin
+end;
+
+
 {****************************************************************************
                               Misc Functions
 ****************************************************************************}
@@ -487,7 +492,10 @@ end.
 {
 
   $Log$
-  Revision 1.8  2003-02-15 19:12:54  armin
+  Revision 1.9  2003-03-29 15:16:26  hajny
+    * dummy DirectoryExists added
+
+  Revision 1.8  2003/02/15 19:12:54  armin
   * changes for new threadvar support
 
   Revision 1.7  2002/09/07 16:01:21  peter

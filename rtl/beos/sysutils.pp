@@ -184,6 +184,11 @@ begin
 end;
 
 
+function DirectoryExists (const Directory: string): boolean;
+begin
+end;
+
+
 {****************************************************************************
                               Misc Functions
 ****************************************************************************}
@@ -260,7 +265,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.4  2003-01-08 21:56:54  marco
+  Revision 1.5  2003-03-29 15:16:26  hajny
+    * dummy DirectoryExists added
+
+  Revision 1.4  2003/01/08 21:56:54  marco
    * small fixes to prototypes to compile it
 
   Revision 1.3  2002/09/07 16:01:17  peter
