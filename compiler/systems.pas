@@ -211,7 +211,7 @@ implementation
             newline      : #13#10;
             endian       : endian_little;
             use_function_relative_addresses : true
-                  ),
+          ),
           (
             name         : 'GO32 V2 DOS extender';
             sharedlibext : '.dll';
@@ -257,7 +257,7 @@ implementation
           (
             name         : 'Win32';
             sharedlibext : '.dll';
-            staticlibext : '.a';
+            staticlibext : '.aw';
             sourceext    : '.pp';
             pasext       : '.pas';
             exeext       : '.exe';
@@ -665,11 +665,11 @@ implementation
             short_name  : 'WIN32';
             unit_env    : 'WIN32UNITS';
             system_unit : 'SYSWIN32';
-            smartext    : '.sl';
+            smartext    : '.slw';
             unitext     : '.ppw';
             unitlibext  : '.ppl';
-            asmext      : '.s';
-            objext      : '.o';
+            asmext      : '.sw';
+            objext      : '.ow';
             exeext      : '.exe';
             os          : os_Win32;
             link        : link_ldw;
@@ -918,11 +918,20 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  1998-09-11 17:35:33  peter
+  Revision 1.36  1998-09-16 16:41:50  peter
+    * merged fixes
+
+  Revision 1.33.2.3  1998/09/16 16:13:13  peter
+    * win32 .o -> .ow and .a -> .aw
+
+  Revision 1.35  1998/09/11 17:35:33  peter
     * fixed tabs
 
   Revision 1.34  1998/09/11 12:27:55  pierre
     * restored m68k part
+    
+  Revision 1.33.2.2  1998/09/11 17:29:20  peter
+    * fixed tabs
 
   Revision 1.33.2.1  1998/09/11 12:06:00  pierre
     * m68k part restored

@@ -14,172 +14,66 @@
 #
 
 #####################################################################
-# Try to determine Operating System
+# Configuration section
 #####################################################################
-
-BASEDIR=$(shell pwd)
-
-# in linux no : in pathes
-ifeq ($(findstring :,$(BASEDIR)),)
-inlinux=1
-endif
-
-# in case pwd is not present on the DOS-OS
-ifeq ($(strip $(BASEDIR)),'')
-inlinux=
-BASEDIR:=.
-endif
-
-# What compiler to use
-ifndef PP
-PP=ppc386
-endif
-
-# first try go32v2 specific gdate
-DATE=$(strip $(wildcard $(addsuffix /gdate.exe,$(subst ;, ,$(PATH)))))
-
-# try generic date.exe
-ifeq ($(DATE),)
-DATE=$(strip $(wildcard $(addsuffix /date.exe,$(subst :, ,$(PATH)))))
-endif
-
-# finally try for linux
-ifeq ($(DATE),)
-DATE=$(strip $(wildcard $(addsuffix /date,$(subst :, ,$(PATH)))))
-endif
-
-#####################################################################
-# Setup Targets
-#####################################################################
-
-# what target do we use
-# currently dos go32v2 os2 and linux are available
-ifndef TARGET
-ifdef inlinux
-TARGET=linux
-else
-TARGET=go32v2
-endif
-endif
-
-# What processor do you want to compile for : i386 m68k (case sensitive !!)
-ifndef CPU
-CPU= i386
-# CPU= m68k
-endif
 
 ifndef LANGUAGE
 LANGUAGE=e
 endif
 
-# Release version ?
-ifdef RELEASE
-OPT=-Xs -OG2p2
+ifndef CPU
+CPU=i386
 endif
 
-#####################################################################
-# Setup Files Directories
-#####################################################################
-
-# Set os-dependent files and extensions
-ifdef inlinux
-EXEEXT=
-else
-EXEEXT=.exe
+# Local defines for the compiler only
+ifndef LOCALDEF
+LOCALDEF=
 endif
 
-REPLACE=mv -f
-REMOVE=rm
-CP=cp -f
+# Local options for the compiler only
+ifndef LOCALOPT
+LOCALOPT=
+endif
+
+# Options for the RTL only when cycling
+ifndef RTLOPTS
+RTLOPTS=
+endif
+
+
+#####################################################################
+# Defaults
+#####################################################################
+
+# Where is the makefile.cfg ?
+CFG=../rtl/cfg
+
+# At least set -Sg
+LOCALOPT+=-Sg
+
+# set correct defines (-d$(CPU) is automaticly added in makefile.cfg)
+LOCALDEF+=-dGDB -dFPC
+
+# for i386 also insert MMX support
+ifdef i386
+LOCALDEF+=-dSUPPORT_MMX
+endif
+
+LOCALOPT+=$(LOCALDEF)
+
+
+#####################################################################
+# Include default makefile
+#####################################################################
+
+include $(CFG)/makefile.cfg
+
+
+#####################################################################
+# Setup Targets
+#####################################################################
 
 MSGFILE=error$(LANGUAGE).msg
-
-COMPILERDIR=$(BASEDIR)
-RTLDIR:=$(BASEDIR)/../rtl
-
-# specify where units are.
-# This needs to be set correctly for the 'remake' target to work !
-ifndef UNITDIR
-UNITDIR=$(RTLDIR)/$(TARGET)
-ifeq ($(TARGET),go32v1)
-UNITDIR=$(RTLDIR)/dos/go32v1
-endif
-ifeq ($(TARGET),go32v2)
-UNITDIR=$(RTLDIR)/dos/go32v2
-endif
-endif
-# not def UNITDIR
-
-# Where to install the executable program/link
-ifndef PROGINSTALLDIR
-ifdef inlinux
-PROGINSTALLDIR = /usr/bin
-else
-PROGINSTALLDIR = c:\pp\bin
-endif
-endif
-
-# !!! Linux only
-# Where to install the _real_executable and support files
-ifndef LIBINSTALLDIR
-ifdef inlinux
-LIBINSTALLDIR=/usr/lib/fpc/0.99.8
-# for a.out
-# LIBINSTALLDIR=/usr/lib/ppc/aout/0.99.8
-else
-LIBINSTALLDIR=$(PROGINSTALLDIR)
-endif
-endif
-
-# Where the .msg files will be stored
-ifndef MSGINSTALLDIR
-MSGINSTALLDIR=$(LIBINSTALLDIR)/msg
-endif
-
-ifndef UNITINSTALLDIR
-ifdef inlinux
-UNITINSTALLDIR=$(LIBINSTALLDIR)
-else
-UNITINSTALLDIR=$(UNITDIR)
-endif
-endif
-
-# !!! Linux only
-# GCCLIBPATH is wat is it on my PC... it MUST be set in the main Makefile
-ifndef GCCLIBPATH
-GCCLIBPATH=/usr/lib/gcc-lib/i486-linux/2.6.3
-endif
-
-#####################################################################
-# When making diffs of the sources
-#####################################################################
-
-# Diff program
-DIFF = diff
-
-# Diff3 program
-DIFF3 = diff3
-
-# Options to diff.
-DIFFOPTS = -b -c
-
-# Directory where files are to make diffs with..
-ifdef inlinux
-DIFDIR = /usr/local/fpk/work/new/compiler
-else
-DIFDIR = h:/cvs/compiler
-endif
-
-# Directory where reference files are for diff3
-ifdef inlinux
-REFDIR = /usr/local/fpk/dist/source/compiler
-else
-REFDIR = h:/myref/compiler
-endif
-
-#####################################################################
-# End of configurable section. Do not edit after this line.
-#####################################################################
 
 DIFFEXIST:=$(shell $(DIFF) --help)
 
@@ -194,32 +88,6 @@ else
 DIFFRESULT=No diff program
 endif
 
-# set correct defines (also needed by mkdep)
-PPDEFS:=-d$(CPU) -dGDB -dFPC
-
-# for i386 also insert MMX support
-ifdef i386
-PPDEFS:=$(PPDEFS) -dSUPPORT_MMX
-endif
-
-# Set the needed compiler options
-PPOPTS:=$(OPT) $(LOCALOPT) $(PPDEFS) -Sg -T$(TARGET)
-
-# Unitdir specified ?
-ifneq ("$(UNITDIR)", "")
-PPOPTS:=$(PPOPTS) -Up$(UNITDIR)
-endif
-
-# Do we need the GCC library ?
-ifeq ($(LINK_TO_C),YES)
-PPOPTS:=$(PPOPTS) -Fg$(GCCLIBPATH)
-endif
-
-# Create the whole compiler commandline
-COMPILER=$(PP) $(PPOPTS)
-
-# RTL options
-RTLOPTS=$(OPT) $(RTLOPT)
 
 #####################################################################
 # Setup os-independent filenames
@@ -235,9 +103,6 @@ TEMPNAME3=ppc3$(EXEEXT)
 MAKEDEP=mkdep$(EXEEXT)
 MSG2INC=msg2inc$(EXEEXT)
 
-PASFILES:=$(wildcard *.pas)
-INCFILES:=$(wildcard *.inc)
-MSGFILES:=$(wildcard *.msg)
 
 #####################################################################
 # Default makefile
@@ -248,22 +113,22 @@ MSGFILES:=$(wildcard *.msg)
 .PHONY : all clean info \
 	 cycle remake remake3 \
 	 install next \
-	 diff diff3 patch rtl toflor replacediff3 restorediff3 \
-	 test rtlzip rtlclean \
+	 diff diff3 patch replacediff3 restorediff3 \
+	 test rtl rtlclean \
 
 # also call ppas if with command option -s
 ifeq (,$(findstring -s ,$(COMPILER)))
 EXECPPAS=
 else
-EXECPPAS=@ppas
+EXECPPAS=@$(PPAS)
 endif
 
-.pas.ppu:
-	$(COMPILER) $<
+.pas$(PPUEXT):
+	$(COMPILER) $(LOCALOPT) $<
 	$(EXECPPAS)
 
 .pas$(EXEEXT):
-	$(COMPILER) $<
+	$(COMPILER) $(LOCALOPT) $<
 	$(EXECPPAS)
 
 
@@ -271,7 +136,7 @@ all : $(EXENAME)
 #	@echo Start $(STARTTIME) now $(ENDTIME)
 # does not work because $(ENDTIME) is expanded
 # before execution !!
-	$(MAKE) echotime
+	make echotime
 
 ifeq ($(MAKELEVEL),0)
 ifndef STARTTIME
@@ -289,39 +154,27 @@ echotime:
 ifndef DIFFRESULT
 next :
 	@echo $(OLDPP) and $(PP) are equal
-	$(CP) $(PP) $(EXENAME)
+	$(COPY) $(PP) $(EXENAME)
 else
 next :
-	$(MAKE) execlean
-	$(MAKE) -C $(UNITDIR) libsclean
-	$(MAKE) -C $(UNITDIR) 'PP=$(COMPILERDIR)/$(PP)' 'OPT=$(RTLOPTS)' all
-	$(MAKE) clean
-	$(MAKE) all
+	make execlean
+	make -C $(UNITDIR) libsclean
+	make -C $(UNITDIR) 'PP=$(COMPILERDIR)/$(PP)' 'OPT=$(RTLOPTS)' all
+	make clean
+	make all
 endif
 
+
 clean :
-	-rm -rf *.sl
-	-rm -f *.a *.o *.ppu *.ppw *.s $(EXENAME)
+	-$(DEL) *$(OEXT) *$(PPUEXT) *$(ASMEXT) *$(STATICLIBEXT) $(EXENAME)
+	-$(DELTREE) $(SMARTEXT)
 
 execlean :
-	-rm -f $(EXENAME)
+	-$(DEL) $(EXENAME)
 
 distclean: clean
-	-rm -f $(TEMPNAME) $(TEMPNAME1) $(TEMPNAME2) $(TEMPNAME3)
+	-$(DEL) $(TEMPNAME) $(TEMPNAME1) $(TEMPNAME2) $(TEMPNAME3)
 
-#####################################################################
-# Info
-#####################################################################
-
-info :
-	@echo Target is $(TARGET)
-	@echo Basedir is $(BASEDIR)
-	@echo Unitdir is $(UNITDIR)
-	@echo Compiler is $(COMPILER)
-	@echo Execppas is $(EXECPPAS)
-	@echo Pascal files are $(PASFILES)
-	@echo Inc files are $(INCFILES)
-	@echo Msg files are $(MSGFILES)
 
 #####################################################################
 # Include depencies (linux only)
@@ -330,14 +183,15 @@ info :
 ifdef inlinux
 $(MAKEDEP) : $(RTLDIR)/utils/mkdep.pp
 	$(COMPILER) $(RTLDIR)/utils/mkdep.pp
-	$(CP) $(RTLDIR)/utils/$(MAKEDEP) $(MAKEDEP)
+	$(COPY) $(RTLDIR)/utils/$(MAKEDEP) $(MAKEDEP)
 
 dependencies : $(MAKEDEP)
-	$(MAKEDEP) pp.pas $(PPDEFS) '-F$$(COMPILER)' > depend
+	$(MAKEDEP) pp.pas $(PPOPTDEF) $(LOCALDEF) '-F$$(COMPILER) $$(LOCALOPT)' > depend
 
 include depend
 
 endif
+
 
 #####################################################################
 # Make targets
@@ -345,7 +199,7 @@ endif
 
 $(MSG2INC): $(RTLDIR)/utils/msg2inc.pp
 	$(COMPILER) $(RTLDIR)/utils/msg2inc.pp
-	$(CP) $(RTLDIR)/utils/$(MSG2INC) $(MSG2INC)
+	$(COPY) $(RTLDIR)/utils/$(MSG2INC) $(MSG2INC)
 
 msgtxt.inc: $(MSGFILE) $(MSG2INC)
 	$(RTLDIR)/utils/$(MSG2INC) $(MSGFILE) msg msg
@@ -356,175 +210,108 @@ msg: msgtxt.inc
 ifdef inlinux
 $(EXENAME) : $(PPEXENAME)
 	$(EXECPPAS)
-	$(REPLACE) $(PPEXENAME) $(EXENAME)
+	$(MOVE) $(PPEXENAME) $(EXENAME)
 else
 $(EXENAME) : $(PASFILES) $(INCFILES) $(MSGFILES)
-	$(COMPILER) pp.pas
+	$(COMPILER) $(LOCALOPT) pp.pas
 	$(EXECPPAS)
-	$(REPLACE) $(PPEXENAME) $(EXENAME)
+	$(MOVE) $(PPEXENAME) $(EXENAME)
 endif
 
 # This target remakes the units with the currently made version
 remake: $(EXENAME)
-	$(REPLACE) $(EXENAME) $(TEMPNAME)
-	$(MAKE) execlean
-	$(MAKE) -C $(UNITDIR) libsclean
-	$(MAKE) -C $(UNITDIR) 'PP=$(COMPILERDIR)/$(TEMPNAME)' 'OPT=$(RTLOPTS)' all
-	$(MAKE) clean
-	$(MAKE) 'PP=./$(TEMPNAME)' all
+	$(MOVE) $(EXENAME) $(TEMPNAME)
+	make execlean
+	make -C $(UNITDIR) libsclean
+	make -C $(UNITDIR) 'PP=$(COMPILERDIR)/$(TEMPNAME)' 'OPT=$(RTLOPTS)' all
+	make clean
+	make 'PP=./$(TEMPNAME)' all
 
 remake3: $(TEMPNAME3)
-	$(MAKE) 'PP=./$(TEMPNAME3)' 'OLDPP=./$(TEMPNAME2)' next
-	diff $(TEMPNAME3) $(EXENAME)
+	make 'PP=./$(TEMPNAME3)' 'OLDPP=./$(TEMPNAME2)' next
+	$(DIFF) $(TEMPNAME3) $(EXENAME)
 
 $(TEMPNAME1) : $(EXENAME)
-	-$(REMOVE) $(TEMPNAME1)
-	$(REPLACE) $(EXENAME) $(TEMPNAME1)
+	-$(DEL) $(TEMPNAME1)
+	$(MOVE) $(EXENAME) $(TEMPNAME1)
 
 $(TEMPNAME2) : $(TEMPNAME1)
-	$(MAKE) 'PP=./$(TEMPNAME1)' 'OLDPP=' next
-	-$(REMOVE) $(TEMPNAME2)
-	$(REPLACE) $(EXENAME) $(TEMPNAME2)
+	make 'PP=./$(TEMPNAME1)' 'OLDPP=' next
+	-$(DEL) $(TEMPNAME2)
+	$(MOVE) $(EXENAME) $(TEMPNAME2)
 
 $(TEMPNAME3) : $(TEMPNAME2)
-	$(MAKE) 'PP=./$(TEMPNAME2)' 'OLDPP=./$(TEMPNAME1)' next
-	-$(REMOVE) $(TEMPNAME3)
-	$(REPLACE) $(EXENAME) $(TEMPNAME3)
+	make 'PP=./$(TEMPNAME2)' 'OLDPP=./$(TEMPNAME1)' next
+	-$(DEL) $(TEMPNAME3)
+	$(MOVE) $(EXENAME) $(TEMPNAME3)
 
 cycle:
-	$(MAKE) clean
-	$(MAKE) -C $(UNITDIR) libsclean
-	$(MAKE) -C $(UNITDIR)
-	$(MAKE) remake3
-	$(MAKE) echotime
+	make clean
+	make -C $(UNITDIR) libsclean
+	make -C $(UNITDIR)
+	make remake3
+	make echotime
 
-ansirtl:
-	$(MAKE) -C $(UNITDIR) libsclean
-	$(MAKE) -C $(UNITDIR) PP=$(COMPILERDIR)/ppc386 \
-	 OPT='-g -dUSeAnsiStrings' all
 
 #####################################################################
 # Installation
 #####################################################################
 
 install:
+ifdef inlinux
 	umask 022
 	strip ppc386
-	install -m 755 -d $(LIBINSTALLDIR)
-	install -m 755 ppc386 $(LIBINSTALLDIR)
-	ln -sf $(LIBINSTALLDIR)/ppc386 $(PROGINSTALLDIR)/ppc386
+	$(MKDIR) $(LIBINSTALLDIR)
+	$(INSTALLEXE) ppc386 $(LIBINSTALLDIR)
+	ln -sf $(LIBINSTALLDIR)/ppc386 $(BININSTALLDIR)/ppc386
 	-makecfg $(LIBINSTALLDIR)/samplecfg $(UNITINSTALLDIR) $(MSGINSTALLDIR) $(GCCLIBPATH)
-	install -m 755 -d $(MSGINSTALLDIR)
-	install -m 666 errore.msg $(MSGINSTALLDIR)
-	install -m 666 errorn.msg $(MSGINSTALLDIR)
+else
+	$(MKDIR) $(BININSTALLDIR)
+	$(INSTALLEXE) ppc386$(EXEEXT) $(BININSTALLDIR)
+endif
+	$(MKDIR) $(MSGINSTALLDIR)
+	$(INSTALL) errore.msg errorn.msg $(MSGINSTALLDIR)
+
 
 #####################################################################
-# Diffs
+# Misc
 #####################################################################
-
-SOURCEFILES = $(PASFILES) $(INCFILES) $(MSGFILES) Makefile
-
-DIFFFILES = $(patsubst %.pas,%.dif,$(PASFILES)) \
-	$(patsubst %.inc,%.dif,$(INCFILES)) \
-	$(patsubst %.msg,%.dif,$(MSGFILES)) \
-	Makefile.dif
-
-DIFF3FILES = $(patsubst %.pas,%.d3p,$(PASFILES)) \
-	$(patsubst %.inc,%.d3i,$(INCFILES)) \
-	$(patsubst %.msg,%.d3m,$(MSGFILES)) \
-	Makefile.di3
-
-PATCHFILES = $(patsubst %.pas,%.new,$(PASFILES)) \
-	$(patsubst %.inc,%.new,$(INCFILES)) \
-	$(patsubst %.msg,%.new,$(MSGFILES)) \
-	Makefile.new
-
-%.dif : %.pas
-	-$(DIFF) $(DIFFOPTS) $*.pas $(DIFDIR)/$*.pas   > $*.dif
-
-%.dif : %.msg
-	-$(DIFF) $(DIFFOPTS) $*.msg $(DIFDIR)/$*.msg   > $*.dif
-
-%.dif : %.inc
-	-$(DIFF) $(DIFFOPTS) $*.inc $(DIFDIR)/$*.inc   > $*.dif
-
-Makefile.dif : Makefile
-	-$(DIFF) $(DIFFOPTS) Makefile $(DIFDIR)/Makefile   > Makefile.dif
-
-%.new : %.pas %.dif
-	-copy /y $*.pas $*.new
-	-patch $*.new $*.dif
-
-%.new : %.msg %.dif
-	-copy /y $*.msg $*.new
-	-patch $*.new $*.dif
-
-%.new : %.inc %.dif
-	-copy /y $*.inc $*.new
-	-patch $*.new $*.dif
-
-Makefile.new : Makefile Makefile.dif
-	-copy /y Makefile Makefile.new
-	-patch Makefile.new Makefile.dif
-
-%.d3p : %.pas
-	-$(DIFF3) -m -E $*.pas $(REFDIR)/$*.pas $(DIFDIR)/$*.pas > $*.d3p
-
-%.d3m : %.msg
-	-$(DIFF3) -m -E $*.msg $(REFDIR)/$*.msg $(DIFDIR)/$*.msg > $*.d3m
-
-%.d3i : %.inc
-	-diff3 -m -E $*.inc $(REFDIR)/$*.inc $(DIFDIR)/$*.inc > $*.d3i
-
-Makefile.di3: Makefile
-	-diff3 -m -E Makefile $(REFDIR)/Makefile $(DIFDIR)/Makefile > Makefile.di3
-
-diff : $(DIFFFILES)
-
-diff3 : $(DIFF3FILES)
-
-replacediff3 : diff3
-	copy /y *.pas *.bkp
-	copy /y *.inc *.bki
-	copy /y *.msg *.bkm
-	copy /y Makefile Makefile.old
-	copy /y *.d3p *.pas
-	copy /y *.d3i *.inc
-	copy /y *.d3m *.msg
-	copy /y Makefile.di3 Makefile
-
-restorediff3 :
-	copy /y *.bkp *.pas
-	copy /y *.bki *.inc
-	copy /y *.bkm *.msg
-	copy /y Makefile.old Makefile
-
-
-patch : $(PATCHFILES)
-
-diffclean :
-	-del *.dif
-	-del *.d3*
-	-del *.new
 
 rtl :
-	$(MAKE) -C $(UNITDIR) all
+	make -C $(UNITDIR) all
 
 rtlclean :
-	$(MAKE) -C $(UNITDIR) libsclean
+	make -C $(UNITDIR) libsclean
 
 # just a quick way to get ppc68k
 $(M68KEXENAME):
-	$(MAKE) clean
+	make clean
 	$(PP) -uI386 -uSUPPORT_MMX -dm68k -o$(M68KEXENAME) pp
-	$(MAKE) clean
+	make clean
+
+ansirtl:
+	make -C $(UNITDIR) libsclean
+	make -C $(UNITDIR) PP=$(COMPILERDIR)/ppc386 OPT='-g -dUSeAnsiStrings' all
 
 test:
 	@echo time is $(STARTTIME) date.exe is $(DATE)
 
+
+#####################################################################
+# Default targets
+#####################################################################
+
+include $(CFG)/makefile.def
+
 #
 # $Log$
-# Revision 1.3  1998-09-11 13:12:45  michael
+# Revision 1.4  1998-09-16 16:41:38  peter
+#   * merged fixes
+#
+# Revision 1.1.2.2  1998/09/16 16:12:43  peter
+#   * uses makefile.cfg
+#
+# Revision 1.3  1998/09/11 13:12:45  michael
 # + makecfg has support for different kinds of units
 #
 # Revision 1.2  1998/09/11 12:27:04  pierre
@@ -533,7 +320,7 @@ test:
 # Revision 1.1.2.1  1998/09/11 12:07:51  pierre
 #   + added execlean to be able to keep last *.s files
 #
-# Revision 1.1  1998/09/10 13:53:54  peter
+# Revision 1.1	1998/09/10 13:53:54  peter
 #   * msg2inc compile works
 #
 # Revision 1.31  1998/09/09 18:26:25  michael

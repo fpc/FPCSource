@@ -188,6 +188,7 @@ unit scanner;
           function  readid:string;
           function  readval:longint;
           function  readcomment:string;
+          function  readstate:char;
           procedure skipspace;
           procedure skipuntildirective;
           procedure skipcomment;
@@ -776,6 +777,29 @@ implementation
            linebreak;
         until false;
         readcomment[0]:=chr(i);
+      end;
+
+
+    function tscannerfile.readstate:char;
+      var
+        state : char;
+      begin
+        state:=' ';
+        if c=' ' then
+         begin
+           current_scanner^.skipspace;
+           current_scanner^.readid;
+           if pattern='ON' then
+            state:='+'
+           else
+            if pattern='OFF' then
+             state:='-';
+         end
+        else
+         state:=c;
+        if not (state in ['+','-']) then
+         Message(scan_e_wrong_switch_toggle);
+        readstate:=state;
       end;
 
 
@@ -1486,7 +1510,13 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.50  1998-09-04 08:36:06  peter
+  Revision 1.51  1998-09-16 16:41:49  peter
+    * merged fixes
+
+  Revision 1.50.2.1  1998/09/16 16:09:49  peter
+    * on/off support also for the local/module switches
+
+  Revision 1.50  1998/09/04 08:36:06  peter
     + (. and .) which are equal to [ and ]
 
   Revision 1.49  1998/09/03 11:24:03  peter

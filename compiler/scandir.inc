@@ -275,6 +275,7 @@ const
         hs    : string;
         mac   : pmacrosym;
         found : boolean;
+        state : char;
       begin
         while true do
          begin
@@ -294,13 +295,14 @@ const
    _DIR_IFOPT : begin
                   current_scanner^.skipspace;
                   hs:=current_scanner^.readid;
-                  if (length(hs)=1) and (c in ['-','+']) then
-                   begin
-                     found:=CheckSwitch(hs[1],c);
-                     current_scanner^.readchar; {read + or -}
-                   end
+                  if (length(hs)>1) then
+                   Message(scan_w_illegal_switch)
                   else
-                   Message(scan_w_illegal_switch);
+                   begin
+                     state:=current_scanner^.ReadState;
+                     if state in ['-','+'] then
+                      found:=CheckSwitch(hs[1],state);
+                   end;
                   current_scanner^.addpreprocstack(found,hs,scan_c_ifopt_found);
                 end;
       _DIR_IF : begin
@@ -458,15 +460,16 @@ const
     procedure dir_moduleswitch(t:tdirectivetoken);
       var
         sw : tmoduleswitch;
+        state : char;
       begin
         sw:=cs_modulenone;
         case t of
            _DIR_SMARTLINK : sw:=cs_smartlink;
         end;
-        current_scanner^.skipspace;
-        if sw<>cs_modulenone then
+        state:=current_scanner^.readstate;
+        if (sw<>cs_modulenone) and (state in ['-','+']) then
          begin
-           if c='-' then
+           if state='-' then
             aktmoduleswitches:=aktmoduleswitches-[sw]
            else
             aktmoduleswitches:=aktmoduleswitches+[sw];
@@ -477,6 +480,7 @@ const
     procedure dir_localswitch(t:tdirectivetoken);
       var
         sw : tlocalswitch;
+        state : char;
       begin
         sw:=cs_localnone;
 {$ifdef SUPPORT_MMX}
@@ -485,10 +489,10 @@ const
           _DIR_SATURATION : sw:=cs_mmx_saturation;
         end;
 {$endif}
-        current_scanner^.skipspace;
-        if sw<>cs_localnone then
+        state:=current_scanner^.readstate;
+        if (sw<>cs_localnone) and (state in ['-','+']) then
          begin
-           if c='-' then
+           if state='-' then
             aktlocalswitches:=aktlocalswitches-[sw]
            else
             aktlocalswitches:=aktlocalswitches+[sw];
@@ -712,21 +716,10 @@ const
         else
          exit;
         end;
-      { support ON/OFF }
-        if c=' ' then
-         begin
-           current_scanner^.skipspace;
-           current_scanner^.readid;
-           if pattern='ON' then
-            state:='+'
-           else
-            if pattern='OFF' then
-             state:='-';
-         end
-        else
-         state:=c;
       { c contains the next char, a + or - would be fine }
-        HandleSwitch(sw,state);
+        state:=current_scanner^.readstate;
+        if state in ['-','+'] then
+          HandleSwitch(sw,state);
       end;
 
 
@@ -773,18 +766,7 @@ const
          exit;
         end;
       { support ON/OFF }
-        if c=' ' then
-         begin
-           current_scanner^.skipspace;
-           current_scanner^.readid;
-           if pattern='ON' then
-            state:='+'
-           else
-            if pattern='OFF' then
-             state:='-';
-         end
-        else
-         state:=c;
+        state:=current_scanner^.ReadState;
         SetVerbosity(flag+state);
       end;
 
@@ -921,7 +903,13 @@ const
 
 {
   $Log$
-  Revision 1.29  1998-09-11 09:19:53  daniel
+  Revision 1.30  1998-09-16 16:41:47  peter
+    * merged fixes
+
+  Revision 1.28.2.1  1998/09/16 16:09:51  peter
+    * on/off support also for the local/module switches
+
+  Revision 1.29  1998/09/11 09:19:53  daniel
   * Removed tabs.
 
   Revision 1.28  1998/09/10 15:25:36  daniel

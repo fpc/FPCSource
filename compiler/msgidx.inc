@@ -54,6 +54,7 @@ type tmsgconst=(
   scan_w_illegal_directive,
   scan_d_back_in,
   scan_w_unsupported_asmmode_specifier,
+  scan_e_wrong_switch_toggle,
   parser_e_syntax_error,
   parser_w_proc_far_ignored,
   parser_w_proc_near_ignored,

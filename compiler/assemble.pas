@@ -372,12 +372,12 @@ var
   i : word;
 begin
 { load start values }
-
   asmfile:=current_module^.asmfilename^;
   objfile:=current_module^.objfilename^;
   name:=FixFileName(current_module^.modulename^);
   OutCnt:=0;
   SmartLinkFilesCnt:=0;
+  IsEndFile:=false;
 { Which path will be used ? }
   if (cs_smartlink in aktmoduleswitches) then
    begin
@@ -456,7 +456,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.21  1998-09-07 18:33:32  peter
+  Revision 1.22  1998-09-16 16:41:39  peter
+    * merged fixes
+
+  Revision 1.21.2.1  1998/09/16 16:11:38  peter
+    * missing isendfile reset in .init
+
+  Revision 1.21  1998/09/07 18:33:32  peter
     + smartlinking for win95 imports
 
   Revision 1.20  1998/09/04 17:34:20  pierre

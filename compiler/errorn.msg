@@ -103,6 +103,7 @@ scan_w_unsupported_switch=W_Niet ondersteunde schakelaar $1
 scan_w_illegal_directive=W_Illegale compiler schakelaar $1
 scan_d_back_in=D_Terug in $1
 scan_w_unsupported_asmmode_specifier=W_Niet ondersteunde assembler soort gegeven $1
+scan_e_wrong_switch_toggle=E_Verkeerde switch schakelaar, gebruik ON/OFF of +/-
 
 #
 # Parser

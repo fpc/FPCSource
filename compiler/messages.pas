@@ -58,6 +58,30 @@ end;
 
 
 constructor TMessage.InitExtern(const fn:string;n:longint);
+
+{$ifndef FPC}
+  procedure readln(var t:text;var s:string);
+  var
+    c : char;
+    i : longint;
+  begin
+    c:=#0;
+    i:=0;
+    while (not eof(t)) and (c<>#10) do
+     begin
+       read(t,c);
+       if c<>#10 then
+        begin
+          inc(i);
+          s[i]:=c;
+        end;
+     end;
+    if (i>0) and (s[i]=#13) then
+     dec(i);
+    s[0]:=chr(i);
+  end;
+{$endif}
+
 const
   bufsize=8192;
 var
@@ -224,7 +248,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  1998-09-14 10:44:08  peter
+  Revision 1.5  1998-09-16 16:41:42  peter
+    * merged fixes
+
+  Revision 1.3.2.1  1998/09/16 16:11:04  peter
+    * unix lf support for messagefile for not FPC compiled compiler
+
+  Revision 1.4  1998/09/14 10:44:08  peter
     * all internal RTL functions start with FPC_
 
   Revision 1.3  1998/08/29 13:52:31  peter
