@@ -337,7 +337,7 @@ const
 
      CBrowserOutline = #9#10#10#11;
 
-     CGDBInputLine     = #9#9#10#11#12;
+     CGDBInputLine   = #9#9#10#11#12;
 
      CFPClockView = #0#227;
 
@@ -354,14 +354,17 @@ const
          { CBrowserWindow }
 {215-226}#$31#$3F#$3A#$31#$31#$31#$71#$1F#$31#$2F#$3E#$3F +
          { CFPClockView }
-{227-   }#$0E;
+{227-   }#$70;
 
 implementation
 
 END.
 {
   $Log$
-  Revision 1.27  1999-09-13 16:24:43  peter
+  Revision 1.28  1999-10-14 10:23:44  pierre
+   ClockView Black on Gray by default
+
+  Revision 1.27  1999/09/13 16:24:43  peter
     + clock
     * backspace unident like tp7
 
