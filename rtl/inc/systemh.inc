@@ -120,7 +120,7 @@ var
 Const
   ErrorProc   : Pointer = nil;
   AbstractErrorHandler : Pointer = Nil;
-  
+
 {****************************************************************************
                         Processor specific routines
 ****************************************************************************}
@@ -339,8 +339,8 @@ Function  EOF(Var t:Text):Boolean;
 Function  EOF:Boolean;
 Function  EOLn(Var t:Text):Boolean;
 Function  EOLn:Boolean;
-Function  SeekEOLn (Var F:Text):Boolean;
-Function  SeekEOF (Var F:Text):Boolean;
+Function  SeekEOLn (Var t:Text):Boolean;
+Function  SeekEOF (Var t:Text):Boolean;
 Function  SeekEOLn:Boolean;
 Function  SeekEOF:Boolean;
 Procedure SetTextBuf(Var f:Text; Var Buf);
@@ -387,7 +387,12 @@ Procedure halt;
 
 {
   $Log$
-  Revision 1.29  1998-09-16 13:08:04  michael
+  Revision 1.30  1998-09-17 16:34:17  peter
+    * new eof,eoln,seekeoln,seekeof
+    * speed upgrade for read_string
+    * inoutres 104/105 updates for read_* and write_*
+
+  Revision 1.29  1998/09/16 13:08:04  michael
   Added AbstractErrorHandler
 
   Revision 1.28  1998/09/14 10:48:22  peter

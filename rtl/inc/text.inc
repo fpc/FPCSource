@@ -15,13 +15,10 @@
 {
   Possible Defines:
 
-  EXTENDED_EOF    Use extended EOF checking for textfile, necessary for
-                  Pipes and Sockets under Linux
   EOF_CTRLZ       Is Ctrl-Z (#26) a EOF mark for textfiles
   SHORT_LINEBREAK Use short Linebreaks #10 instead of #10#13
 
-  Both EXTENDED_EOF and SHORT_LINEBREAK are defined in the Linux system
-  unit (syslinux.pp)
+  SHORT_LINEBREAK is defined in the Linux system unit (syslinux.pp)
 }
 
 {****************************************************************************
@@ -48,7 +45,6 @@ Begin
   Do_Write(t.Handle,Longint(t.Bufptr),t.BufPos);
   t.BufPos:=0;
 End;
-
 
 
 Procedure FileOpenFunc(var t:TextRec);
@@ -104,7 +100,8 @@ end;
 
 Procedure Close(var t : Text);[IOCheck];
 Begin
-  if InOutRes <> 0 then Exit;
+  if InOutRes<>0 then
+   Exit;
   If (TextRec(t).mode<>fmClosed) Then
    Begin
    { Write pending buffer }
@@ -116,9 +113,9 @@ Begin
          (TextRec(t).Handle<>StdOutputHandle) and
          (TextRec(t).Handle<>StdErrorHandle)) Then
       FileFunc(TextRec(t).CloseFunc)(TextRec(t));
-      { this was missing !!! PM }
-      TextRec(t).BufPos:=0;
-      TextRec(t).BufEnd:=0;
+   { Reset buffer for safety }
+     TextRec(t).BufPos:=0;
+     TextRec(t).BufEnd:=0;
    End;
 End;
 
@@ -134,7 +131,7 @@ Begin
      exit;
    End;
   End;
-  TextRec(t).mode:=word(mode);
+  TextRec(t).mode:=mode;
   TextRec(t).bufpos:=0;
   TextRec(t).bufend:=0;
   FileFunc(TextRec(t).OpenFunc)(TextRec(t))
@@ -143,30 +140,37 @@ End;
 
 Procedure Rewrite(var t : Text);[IOCheck];
 Begin
-  If InOutRes <> 0 then exit;
+  If InOutRes<>0 then
+   exit;
   OpenText(t,fmOutput,1);
 End;
 
 
 Procedure Reset(var t : Text);[IOCheck];
 Begin
-  If InOutRes <> 0 then exit;
+  If InOutRes<>0 then
+   exit;
   OpenText(t,fmInput,0);
 End;
 
 
 Procedure Append(var t : Text);[IOCheck];
 Begin
-  If InOutRes <> 0 then exit;
+  If InOutRes<>0 then
+   exit;
   OpenText(t,fmAppend,1);
 End;
 
 
 Procedure Flush(var t : Text);[IOCheck];
 Begin
-  If InOutRes <> 0 then exit;
-  If TextRec(t).mode<>fmOutput Then
+  If InOutRes<>0 then
    exit;
+  If TextRec(t).mode<>fmOutput Then
+   begin
+     InOutres:=105;
+     exit;
+   end;
 { Not the flushfunc but the inoutfunc should be used, becuase that
   writes the data, flushfunc doesn't need to be assigned }
   FileFunc(TextRec(t).InOutFunc)(TextRec(t));
@@ -175,7 +179,8 @@ End;
 
 Procedure Erase(var t:Text);[IOCheck];
 Begin
-  If InOutRes <> 0 then exit;
+  If InOutRes <> 0 then
+   exit;
   If TextRec(t).mode=fmClosed Then
    Do_Erase(PChar(@TextRec(t).Name));
 End;
@@ -183,7 +188,8 @@ End;
 
 Procedure Rename(var t : text;p:pchar);[IOCheck];
 Begin
-  If InOutRes <> 0 then exit;
+  If InOutRes <> 0 then
+   exit;
   If TextRec(t).mode=fmClosed Then
    Begin
      Do_Rename(PChar(@TextRec(t).Name),p);
@@ -196,7 +202,8 @@ Procedure Rename(var t : Text;const s : string);[IOCheck];
 var
   p : array[0..255] Of Char;
 Begin
-  If InOutRes <> 0 then exit;
+  If InOutRes <> 0 then
+   exit;
   Move(s[1],p,Length(s));
   p[Length(s)]:=#0;
   Rename(t,Pchar(@p));
@@ -207,7 +214,8 @@ Procedure Rename(var t : Text;c : char);[IOCheck];
 var
   p : array[0..1] Of Char;
 Begin
-  If InOutRes <> 0 then exit;
+  If InOutRes <> 0 then
+   exit;
   p[0]:=c;
   p[1]:=#0;
   Rename(t,Pchar(@p));
@@ -216,39 +224,25 @@ End;
 
 Function Eof(Var t: Text): Boolean;[IOCheck];
 Begin
-  If InOutRes <> 0 then exit;
-{$IFNDEF EXTENDED_EOF}
-  {$IFDEF EOF_CTRLZ}
-    Eof:=TextRec(t).Buffer[TextRec(t).BufPos]=#26;
-    If Eof Then
-     Exit;
-  {$ENDIF EOL_CTRLZ}
-  Eof:=(Do_FileSize(TextRec(t).Handle)<=Do_FilePos(TextRec(t).Handle));
-  If Eof Then
-   Eof:=TextRec(t).BufEnd <= TextRec(t).BufPos;
-{$ELSE EXTENDED_EOF}
-  { The previous method will NOT work on stdin and pipes or sockets.
-    So how to do it ?
-     1) Check if characters in buffer - Yes ? Eof=false;
-     2) Read buffer full. If 0 Chars Read : Eof !
-    Michael.}
-  If TextRec(T).mode=fmClosed Then  { Sanity Check }
-   Begin
-     Eof:=True;
-     Exit;
-   End;
-  If (TextRec(T).BufPos < TextRec(T).BufEnd) Then
-   Begin
-     Eof:=False;
-     Exit
-   End;
-  TextRec(T).BufPos:=0;
-  TextRec(T).BufEnd:=Do_Read(TextRec(T).Handle,Longint(TextRec(T).BufPtr),TextRec(T).BufSize);
-  If TextRec(T).BufEnd<0 Then
-   TextRec(T).BufEnd:=0;
-  Eof:=(TextRec(T).BufEnd=0);
-{$ENDIF EXTENDED_EOF}
-End;
+  If (InOutRes<>0) then
+   exit(true);
+  if (TextRec(t).mode<>fmInput) Then
+   begin
+     InOutRes:=104;
+     exit(true);
+   end;
+  If TextRec(t).BufPos>=TextRec(t).BufEnd Then
+   begin
+     FileFunc(TextRec(t).InOutFunc)(TextRec(t));
+     If TextRec(t).BufPos>=TextRec(t).BufEnd Then
+      exit(true);
+   end;
+{$ifdef EOF_CTRLZ}
+  Eof:=(TextRec(t).Bufptr^[TextRec(t).BufPos]=#26);
+{$else}
+  Eof:=false;
+{$endif EOL_CTRLZ}
+end;
 
 
 Function Eof:Boolean;
@@ -257,35 +251,31 @@ Begin
 End;
 
 
-Function SeekEof (Var F : Text) : Boolean;
-Var
-  TR   : ^TextRec;
-  Temp : Longint;
+Function SeekEof (Var t : Text) : Boolean;
 Begin
-  TR:=@TextRec(f);
-  If TR^.mode<>fmInput Then exit (true);
-  SeekEof:=True;
-  {No data in buffer ? Fill it }
-  If TR^.BufPos>=TR^.BufEnd Then
-   FileFunc(TR^.InOutFunc)(TR^);
-
-  Temp:=TR^.BufPos;
-  while (TR^.BufPos<TR^.BufEnd) Do
-   Begin
-     If (TR^.Bufptr^[Temp] In [#9,#10,#13,' ']) Then
-      Inc(Temp)
-     else
-      Begin
-        SeekEof:=False;
-        TR^.BufPos:=Temp;
-        exit;
-      End;
-     If Temp>=TR^.BufEnd Then
-      Begin
-        FileFunc(TR^.InOutFunc)(TR^);
-        Temp:=TR^.BufPos+1;
-      End;
-   End;
+  If (InOutRes<>0) then
+   exit(true);
+  if (TextRec(t).mode<>fmInput) Then
+   begin
+     InOutRes:=104;
+     exit(true);
+   end;
+  repeat
+    If TextRec(t).BufPos>=TextRec(t).BufEnd Then
+     begin
+       FileFunc(TextRec(t).InOutFunc)(TextRec(t));
+       If TextRec(t).BufPos>=TextRec(t).BufEnd Then
+        exit(true);
+     end;
+    case TextRec(t).Bufptr^[TextRec(t).BufPos] of
+         #26 : exit(true);
+     #10,#13,
+      #9,' ' : ;
+    else
+     exit(false);
+    end;
+    inc(TextRec(t).BufPos);
+  until false;
 End;
 
 
@@ -297,10 +287,20 @@ End;
 
 Function Eoln(var t:Text) : Boolean;
 Begin
-{ maybe we need new data }
+  If (InOutRes<>0) then
+   exit(true);
+  if (TextRec(t).mode<>fmInput) Then
+   begin
+     InOutRes:=104;
+     exit(true);
+   end;
   If TextRec(t).BufPos>=TextRec(t).BufEnd Then
-   FileFunc(TextRec(t).InOutFunc)(TextRec(t));
-  Eoln:=Eof(t) or (TextRec(t).Bufptr^[TextRec(t).BufPos] In [#10,#13]);
+   begin
+     FileFunc(TextRec(t).InOutFunc)(TextRec(t));
+     If TextRec(t).BufPos>=TextRec(t).BufEnd Then
+      exit(true);
+   end;
+  Eoln:=(TextRec(t).Bufptr^[TextRec(t).BufPos] in [#10,#13]);
 End;
 
 
@@ -310,37 +310,31 @@ Begin
 End;
 
 
-Function SeekEoln (Var F : Text) : Boolean;
-Var
-  TR   : ^TextRec;
-  Temp : Longint;
+Function SeekEoln (Var t : Text) : Boolean;
 Begin
-  TR:=@TextRec(f);
-  If TR^.mode<>fmInput Then
-   exit (true);
-  SeekEoln:=True;
-  {No data in buffer ? Fill it }
-  If TR^.BufPos>=TR^.BufEnd Then
-   FileFunc(TR^.InOutFunc)(TR^);
-  Temp:=TR^.BufPos;
-  while (TR^.BufPos<TR^.BufEnd) Do
-   Begin
-     Case (TR^.Bufptr^[Temp]) Of
-      #10 : Exit;
-   #9,' ' : Inc(Temp)
-     else
-      Begin
-        SeekEoln:=False;
-        TR^.BufPos:=Temp;
-        exit;
-      End;
-     End;
-     If Temp>=TR^.BufEnd Then
-      Begin
-        FileFunc(TR^.InOutFunc)(TR^);
-        Temp:=TR^.BufPos+1;
-      End;
-   End;
+  If (InOutRes<>0) then
+   exit(true);
+  if (TextRec(t).mode<>fmInput) Then
+   begin
+     InOutRes:=104;
+     exit(true);
+   end;
+  repeat
+    If TextRec(t).BufPos>=TextRec(t).BufEnd Then
+     begin
+       FileFunc(TextRec(t).InOutFunc)(TextRec(t));
+       If TextRec(t).BufPos>=TextRec(t).BufEnd Then
+        exit(true);
+     end;
+    case TextRec(t).Bufptr^[TextRec(t).BufPos] of
+         #26,
+     #10,#13 : exit(true);
+      #9,' ' : ;
+    else
+     exit(false);
+    end;
+    inc(TextRec(t).BufPos);
+  until false;
 End;
 
 
@@ -435,9 +429,13 @@ end;
 
 Procedure Write_Str(Len : Longint;var f : TextRec;const s : String);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'WRITE_TEXT_STRING'];
 Begin
-  If InOutRes <> 0 then exit;
-  If f.mode<>fmOutput Then
+  If (InOutRes<>0) then
    exit;
+  if (f.mode<>fmOutput) Then
+   begin
+     InOutRes:=105;
+     exit;
+   end;
   If Len>Length(s) Then
    WriteBlanks(f,Len-Length(s));
   WriteBuffer(f,s[1],Length(s));
@@ -450,9 +448,13 @@ Procedure Write_Array(Len : Longint;var f : TextRec;const p : array00);[Public,A
 var
   ArrayLen : longint;
 Begin
-  If InOutRes <> 0 then exit;
-  If f.mode<>fmOutput Then
+  If (InOutRes<>0) then
    exit;
+  if (f.mode<>fmOutput) Then
+   begin
+     InOutRes:=105;
+     exit;
+   end;
   ArrayLen:=StrLen(p);
   If Len>ArrayLen Then
    WriteBlanks(f,Len-ArrayLen);
@@ -464,9 +466,13 @@ Procedure Write_PChar(Len : Longint;var f : TextRec;p : PChar);[Public,Alias: {$
 var
   PCharLen : longint;
 Begin
-  If InOutRes <> 0 then exit;
-  If f.mode<>fmOutput Then
+  If (InOutRes<>0) then
    exit;
+  if (f.mode<>fmOutput) Then
+   begin
+     InOutRes:=105;
+     exit;
+   end;
   PCharLen:=StrLen(p);
   If Len>PCharLen Then
    WriteBlanks(f,Len-PCharLen);
@@ -479,11 +485,12 @@ Procedure Write_Text_AnsiString (Len : Longint; Var T : TextRec; Var S : AnsiStr
  Writes a AnsiString to the Text file T
 }
 
-Var Temp : Pointer;
-
+Var
+  Temp : Pointer;
 begin
   Temp:=Pointer(S);
-  If Temp=Nil then exit;
+  If Temp=Nil then
+   exit;
   Write_pchar (Len,t,PChar(Temp));
 end;
 
@@ -494,7 +501,8 @@ Procedure Write_LongInt(Len : Longint;var t : TextRec;l : Longint);[Public,Alias
 var
   s : String;
 Begin
-  If InOutRes <> 0 then exit;
+  If (InOutRes<>0) then
+   exit;
   Str(l,s);
   Write_Str(Len,t,s);
 End;
@@ -504,7 +512,8 @@ Procedure Write_Real(fixkomma,Len : Longint;var t : TextRec;r : real);[Public,Al
 var
    s : String;
 Begin
-  If InOutRes <> 0 then exit;
+  If (InOutRes<>0) then
+   exit;
 {$ifdef i386}
    Str_real(Len,fixkomma,r,rt_s64real,s);
 {$else}
@@ -518,17 +527,20 @@ Procedure Write_Cardinal(Len : Longint;var t : TextRec;l : cardinal);[Public,Ali
 var
   s : String;
 Begin
-  If InOutRes <> 0 then exit;
+  If (InOutRes<>0) then
+   exit;
   Str(L,s);
   Write_Str(Len,t,s);
 End;
+
 
 {$ifdef SUPPORT_SINGLE}
 Procedure Write_Single(fixkomma,Len : Longint;var t : TextRec;r : single);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'WRITE_TEXT_SINGLE'];
 var
   s : String;
 Begin
-  If InOutRes <> 0 then exit;
+  If (InOutRes<>0) then
+   exit;
   Str_real(Len,fixkomma,r,rt_s32real,s);
   Write_Str(Len,t,s);
 End;
@@ -540,7 +552,8 @@ Procedure Write_Extended(fixkomma,Len : Longint;var t : TextRec;r : extended);[P
 var
   s : String;
 Begin
-  If InOutRes <> 0 then exit;
+  If (InOutRes<>0) then
+   exit;
   Str_real(Len,fixkomma,r,rt_s80real,s);
   Write_Str(Len,t,s);
 End;
@@ -552,7 +565,8 @@ Procedure Write_Comp(fixkomma,Len : Longint;var t : TextRec;r : comp);[Public,Al
 var
   s : String;
 Begin
-  If InOutRes <> 0 then exit;
+  If (InOutRes<>0) then
+   exit;
   Str_real(Len,fixkomma,r,rt_s64bit,s);
   Write_Str(Len,t,s);
 End;
@@ -564,7 +578,8 @@ Procedure Write_Fixed(fixkomma,Len : Longint;var t : TextRec;r : fixed);[Public,
 var
   s : String;
 Begin
-  If InOutRes <> 0 then exit;
+  If (InOutRes<>0) then
+   exit;
   Str_real(Len,fixkomma,r,rt_f32bit,s);
   Write_Str(Len,t,s);
 End;
@@ -573,7 +588,8 @@ End;
 
 Procedure Write_Boolean(Len : Longint;var t : TextRec;b : Boolean);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'WRITE_TEXT_BOOLEAN'];
 Begin
-  If InOutRes <> 0 then exit;
+  If (InOutRes<>0) then
+   exit;
 { Can't use array[boolean] because b can be >0 ! }
   if b then
     Write_Str(Len,t,'TRUE')
@@ -584,9 +600,13 @@ End;
 
 Procedure Write_Char(Len : Longint;var t : TextRec;c : Char);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'WRITE_TEXT_CHAR'];
 Begin
-  If InOutRes <> 0 then exit;
-  If t.mode<>fmOutput Then
+  If (InOutRes<>0) then
    exit;
+  if (TextRec(t).mode<>fmOutput) Then
+   begin
+     InOutRes:=105;
+     exit;
+   end;
   If Len>1 Then
    WriteBlanks(t,Len-1);
   If t.BufPos+1>=t.BufSize Then
@@ -599,21 +619,6 @@ End;
 {*****************************************************************************
                                 Read(Ln)
 *****************************************************************************}
-
-Function OpenInput(var f:TextRec):boolean;
-begin
-  If f.mode=fmInput Then
-   begin
-   { No characters in the buffer? Load them ! }
-     If f.BufPos>=f.BufEnd Then
-      FileFunc(f.InOutFunc)(f);
-     OpenInput:=true;
-   end
-  else
-   OpenInput:=false;
-end;
-
-
 
 Function NextChar(var f:TextRec;var s:string):Boolean;
 begin
@@ -702,18 +707,25 @@ end;
 
 Procedure ReadLn_End(var f : TextRec);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'READLN_END'];
 Begin
-  If InOutRes <> 0 then exit;
-  if not OpenInput(f) then
+{ Check error and if file is open and load buf if empty }
+  If (InOutRes<>0) then
    exit;
-{ Read until a linebreak }
-  while (f.BufPos<f.BufEnd) do
+  if (f.mode<>fmInput) Then
    begin
-     inc(f.BufPos);
-     if (f.BufPtr^[f.BufPos-1]=#10) then
-      exit;
-     If f.BufPos>=f.BufEnd Then
-      FileFunc(f.InOutFunc)(f);
+     InOutRes:=104;
+     exit;
    end;
+  repeat
+    If f.BufPos>=f.BufEnd Then
+     begin
+       FileFunc(f.InOutFunc)(f);
+       if f.BufPos>=f.BufEnd then
+        break;
+     end;
+    inc(f.BufPos);
+    if (f.BufPtr^[f.BufPos-1]=#10) then
+     exit;
+  until false;
 { Flush if set }
   if f.FlushFunc<>nil then
    FileFunc(f.FlushFunc)(f);
@@ -722,170 +734,239 @@ End;
 
 Procedure Read_String(Maxlen : Longint;var f : TextRec;var s : String);[Public,Alias:{$ifdef FPCNAMES}'FPC_'+{$endif}'READ_TEXT_STRING'];
 var
-  Temp,sPos,nrread : Word;
+  sPos,len : Longint;
+  p,startp,maxp : pchar;
 Begin
-  { Delete the string }
+{ Delete the string }
   s:='';
-  If InOutRes <> 0 then exit;
-  if not OpenInput(f) then
+{ Check error and if file is open }
+  If (InOutRes<>0) then
    exit;
-  Temp:=f.BufPos;
-  sPos:=1;
-  NrRead:=0;
-  while (f.BufPos<f.BufEnd) and ((f.Bufptr^[Temp]<>#10) and (NrRead<Maxlen)) Do
-   Begin
-   { search linefeed or length of string }
-     while ((f.Bufptr^[Temp]<>#10) and (NrRead<Maxlen)) and (Temp<f.BufEnd) Do
-      begin
-      Temp:=Temp+1;
-      NrRead:=NrRead+1;
-      end;
-   { copy String. Take 255 char limit in account.}
-     If sPos+Temp-f.BufPos<=255 Then
-      Begin
-        Move (f.Bufptr^[f.BufPos],s[sPos],Temp-f.BufPos);
-        sPos:=sPos+Temp-f.BufPos;
-      { Remove #13 from a #13#10 break }
-        If s[sPos-1]=#13 Then
-         dec(sPos);
-      End
-     else
-      Begin
-        If (sPos<=255) Then
-         Move(f.Bufptr^[f.BufPos],s[sPos],256-sPos);
-        sPos:=256
-      End;
-   { update f.BufPos }
-     f.BufPos:=Temp;
-     If Temp>=f.BufEnd Then
-      Begin
-        FileFunc(f.InOutFunc)(f);
-        Temp:=f.BufPos;
-      End
-   End;
-  s[0]:=chr(sPos-1);
+  if (f.mode<>fmInput) Then
+   begin
+     InOutRes:=104;
+     exit;
+   end;
+{ Read maximal until Maxlen is reached }
+  sPos:=0;
+  repeat
+    If f.BufPos>=f.BufEnd Then
+     begin
+       FileFunc(f.InOutFunc)(f);
+       If f.BufPos>=f.BufEnd Then
+        break;
+     end;
+    p:=@f.Bufptr^[f.BufPos];
+    maxp:=@f.Bufptr^[f.BufEnd];
+    startp:=p;
+  { search linefeed }
+    while (p<=maxp) and (P^<>#10) do
+     inc(p);
+  { calculate read bytes }
+    len:=p-startp;
+    inc(f.BufPos,Len);
+  { update output string, take MaxLen into count }
+    if SPos+Len>MaxLen then
+     Len:=MaxLen-Spos;
+    Move(startp^,s[sPos+1],Len);
+    inc(sPos,Len);
+  { was it a LF? then leave }
+    if p^=#10 then
+     begin
+       if (spos>1) and (s[spos]=#13) then
+        dec(sPos);
+       break;
+     end;
+  { Maxlen reached ? }
+    if spos=MaxLen then
+     break;
+  until false;
+{ Set final length }
+  s[0]:=chr(sPos);
 End;
 
 
 Procedure Read_Char(var f : TextRec;var c : Char);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'READ_TEXT_CHAR'];
 Begin
   c:=#0;
-  If InOutRes <> 0 then exit;
-  if not OpenInput(f) then
+{ Check error and if file is open }
+  If (InOutRes<>0) then
    exit;
+  if (f.mode<>fmInput) Then
+   begin
+     InOutRes:=104;
+     exit;
+   end;
+{ Read next char or EOF }
   If f.BufPos>=f.BufEnd Then
-   c:=#26
+   begin
+     FileFunc(f.InOutFunc)(f);
+     If f.BufPos>=f.BufEnd Then
+      c:=#26;
+   end
   else
-   c:=f.Bufptr^[f.BufPos];
-  Inc(f.BufPos);
+   begin
+     c:=f.Bufptr^[f.BufPos];
+     Inc(f.BufPos);
+   end;
 End;
 
 
 Procedure Read_PChar(var f : TextRec;var s : PChar);[Public,Alias:{$ifdef FPCNAMES}'FPC_'+{$endif}'READ_TEXT_PCHAR_AS_POINTER'];
 var
-  p    : PChar;
-  Temp : byte;
+  p,maxp,startp,sidx : PChar;
+  len : longint;
 Begin
 { Delete the string }
   s^:=#0;
-  If InOutRes <> 0 then exit;
-  p:=s;
-  if not OpenInput(f) then
+{ Check error and if file is open }
+  If (InOutRes<>0) then
    exit;
-  Temp:=f.BufPos;
-  while (f.BufPos<f.BufEnd) and (f.Bufptr^[Temp]<>#10) Do
-   Begin
-     { search linefeed }
-     while (f.Bufptr^[Temp]<>#10) and (Temp<f.BufEnd) Do
-      inc(Temp);
-     { copy string. }
-     Move (f.Bufptr^[f.BufPos],p^,Temp-f.BufPos);
-     Inc(Longint(p),Temp-f.BufPos);
-     If pchar(p-1)^=#13 Then
-      dec(p);
-     { update f.BufPos }
-     f.BufPos:=Temp;
-     If Temp>=f.BufEnd Then
-      Begin
-        FileFunc(f.InOutFunc)(f);
-        Temp:=f.BufPos;
-      End
-   End;
-  p^:=#0;
+  if (f.mode<>fmInput) Then
+   begin
+     InOutRes:=104;
+     exit;
+   end;
+{ Read until #10 is found }
+  sidx:=s;
+  repeat
+    If f.BufPos>=f.BufEnd Then
+     begin
+       FileFunc(f.InOutFunc)(f);
+       If f.BufPos>=f.BufEnd Then
+        break;
+     end;
+    p:=@f.Bufptr^[f.BufPos];
+    maxp:=@f.Bufptr^[f.BufEnd];
+    startp:=p;
+  { search linefeed }
+    while (p<=maxp) and (P^<>#10) do
+     inc(p);
+  { calculate read bytes }
+    len:=p-startp;
+    inc(f.BufPos,Len);
+  { update output string, take MaxLen into count }
+    Move(startp^,sidx^,Len);
+    inc(sidx,len);
+  { was it a LF? then leave }
+    if p^=#10 then
+     begin
+       If pchar(p-1)^=#13 Then
+        dec(p);
+       break;
+     end;
+  until false;
+  sidx^:=#0;
 End;
 
 
 Procedure Read_Array(var f : TextRec;var s : array00);[Public,Alias:{$ifdef FPCNAMES}'FPC_'+{$endif}'READ_TEXT_PCHAR_AS_ARRAY'];
 var
-  p    : PChar;
-  Temp : byte;
+  p,maxp,startp,sidx : PChar;
+  len : longint;
 Begin
 { Delete the string }
   s[0]:=#0;
-  If InOutRes <> 0 then exit;
-  p:=pchar(@s);
-  if not OpenInput(f) then
+{ Check error and if file is open }
+  If (InOutRes<>0) then
    exit;
-  Temp:=f.BufPos;
-  while (f.BufPos<f.BufEnd) and (f.Bufptr^[Temp]<>#10) Do
-   Begin
-     { search linefeed }
-     while (f.Bufptr^[Temp]<>#10) and (Temp<f.BufEnd) Do
-      inc(Temp);
-     { copy string. }
-     Move (f.Bufptr^[f.BufPos],p^,Temp-f.BufPos);
-     Inc(Longint(p),Temp-f.BufPos);
-     If pchar(p-1)^=#13 Then
-      dec(p);
-     { update f.BufPos }
-     f.BufPos:=Temp;
-     If Temp>=f.BufEnd Then
-      Begin
-        FileFunc(f.InOutFunc)(f);
-        Temp:=f.BufPos;
-      End
-   End;
-  p^:=#0;
+  if (f.mode<>fmInput) Then
+   begin
+     InOutRes:=104;
+     exit;
+   end;
+{ Read until #10 is found }
+  sidx:=pchar(@s);
+  repeat
+    If f.BufPos>=f.BufEnd Then
+     begin
+       FileFunc(f.InOutFunc)(f);
+       If f.BufPos>=f.BufEnd Then
+        break;
+     end;
+    p:=@f.Bufptr^[f.BufPos];
+    maxp:=@f.Bufptr^[f.BufEnd];
+    startp:=p;
+  { search linefeed }
+    while (p<=maxp) and (P^<>#10) do
+     inc(p);
+  { calculate read bytes }
+    len:=p-startp;
+    inc(f.BufPos,Len);
+  { update output string, take MaxLen into count }
+    Move(startp^,sidx^,Len);
+    inc(sidx,len);
+  { was it a LF? then leave }
+    if p^=#10 then
+     begin
+       If pchar(p-1)^=#13 Then
+        dec(p);
+       break;
+     end;
+  until false;
+  sidx^:=#0;
 End;
 
 
 {$ifdef useansistrings}
 Procedure Read_String(Maxlen : Longint;var f : TextRec;var s : AnsiString);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'READ_TEXT_ANSISTRING'];
 var
-  p    : PChar;
-  Temp : byte;
-  len  : Longint;
+  p,maxp,startp,sidx : PChar;
+  spos,len : longint;
 Begin
 { Delete the string }
   Decr_ansi_ref (S);
-  // We assign room for 1024 characters totally at random....
+  { We assign room for 1024 characters totally at random.... }
   Pointer(s):=Pointer(NewAnsiString(1024));
-  If InOutRes <> 0 then exit;
-  p:=pointer(s);
-  if not OpenInput(f) then
+{ Check error and if file is open }
+  If (InOutRes<>0) then
    exit;
-  Temp:=f.BufPos;
-  while (f.BufPos<f.BufEnd) and (f.Bufptr^[Temp]<>#10) Do
-   Begin
-     { search linefeed }
-     while (f.Bufptr^[Temp]<>#10) and (Temp<f.BufEnd) Do
-      inc(Temp);
-     { copy string. }
-     Move (f.Bufptr^[f.BufPos],p^,Temp-f.BufPos);
-     Inc(Longint(p),Temp-f.BufPos);
-     Inc(len,Temp-f.bufpos);
-     If pchar(p-1)^=#13 Then
-      dec(p);
-     { update f.BufPos }
-     f.BufPos:=Temp;
-     If Temp>=f.BufEnd Then
-      Begin
-        FileFunc(f.InOutFunc)(f);
-        Temp:=f.BufPos;
-      End
-   End;
-  p^:=#0;
-  PAnsiRec(Pointer(S)-FirstOff)^.Len:=len
+  if (f.mode<>fmInput) Then
+   begin
+     InOutRes:=104;
+     exit;
+   end;
+{ Read until #10 is found }
+  sidx:=pchar(@s);
+  spos:=0;
+  repeat
+    If f.BufPos>=f.BufEnd Then
+     begin
+       FileFunc(f.InOutFunc)(f);
+       If f.BufPos>=f.BufEnd Then
+        break;
+     end;
+    p:=@f.Bufptr^[f.BufPos];
+    maxp:=@f.Bufptr^[f.BufEnd];
+    startp:=p;
+  { search linefeed }
+    while (p<=maxp) and (P^<>#10) do
+     inc(p);
+  { calculate read bytes }
+    len:=p-startp;
+    inc(f.BufPos,Len);
+  { update output string, take MaxLen into count }
+    if SPos+Len>MaxLen then
+     Len:=MaxLen-Spos;
+    Move(startp^,sidx^,Len);
+    inc(sidx,len);
+    inc(spos,len);
+  { was it a LF? then leave }
+    if p^=#10 then
+     begin
+       If pchar(sidx-1)^=#13 Then
+        begin
+          dec(sidx);
+          dec(spos);
+        end;
+       break;
+     end;
+  { Maxlen reached ? }
+    if spos=MaxLen then
+     break;
+  until false;
+  sidx^:=#0;
+  PAnsiRec(Pointer(S)-FirstOff)^.Len:=spos;
 End;
 {$endif}
 
@@ -897,10 +978,17 @@ var
   base : longint;
 Begin
   l:=0;
-  If InOutRes <> 0 then exit;
-  hs:='';
-  if not OpenInput(f) then
+{ Leave if error or not open file, else check for empty buf }
+  If (InOutRes<>0) then
    exit;
+  if (f.mode<>fmInput) Then
+   begin
+     InOutRes:=104;
+     exit;
+   end;
+  If f.BufPos>=f.BufEnd Then
+   FileFunc(f.InOutFunc)(f);
+  hs:='';
   if IgnoreSpaces(f) and ReadSign(f,hs) and ReadBase(f,hs,Base) then
    ReadNumeric(f,hs,Base);
   Val(hs,l,code);
@@ -914,7 +1002,8 @@ var
   ll : Longint;
 Begin
   l:=0;
-  If InOutRes <> 0 then exit;
+  If InOutRes <> 0 then
+   exit;
   Read_Longint(f,ll);
   If (ll<-32768) or (ll>32767) Then
    HandleError(106);
@@ -927,7 +1016,8 @@ var
   ll : Longint;
 Begin
   l:=0;
-  If InOutRes <> 0 then exit;
+  If InOutRes <> 0 then
+   exit;
   Read_Longint(f,ll);
   If (ll<0) or (ll>$ffff) Then
    HandleError(106);
@@ -940,7 +1030,8 @@ var
   ll : Longint;
 Begin
   l:=0;
-  If InOutRes <> 0 then exit;
+  If InOutRes <> 0 then
+   exit;
   Read_Longint(f,ll);
   If (ll<0) or (ll>255) Then
    HandleError(106);
@@ -953,7 +1044,8 @@ var
    ll : Longint;
 Begin
   l:=0;
-  If InOutRes <> 0 then exit;
+  If InOutRes <> 0 then
+   exit;
   Read_Longint(f,ll);
   If (ll<-128) or (ll>127) Then
    HandleError(106);
@@ -968,10 +1060,17 @@ var
   base : longint;
 Begin
   l:=0;
-  If InOutRes <> 0 then exit;
-  hs:='';
-  if not OpenInput(f) then
+{ Leave if error or not open file, else check for empty buf }
+  If (InOutRes<>0) then
    exit;
+  if (f.mode<>fmInput) Then
+   begin
+     InOutRes:=104;
+     exit;
+   end;
+  If f.BufPos>=f.BufEnd Then
+   FileFunc(f.InOutFunc)(f);
+  hs:='';
   if IgnoreSpaces(f) and ReadSign(f,hs) and ReadBase(f,hs,Base) then
    ReadNumeric(f,hs,Base);
   val(hs,l,code);
@@ -986,10 +1085,17 @@ var
   code : Word;
 Begin
   d:=0.0;
-  If InOutRes <> 0 then exit;
-  hs:='';
-  if not OpenInput(f) then
+{ Leave if error or not open file, else check for empty buf }
+  If (InOutRes<>0) then
    exit;
+  if (f.mode<>fmInput) Then
+   begin
+     InOutRes:=104;
+     exit;
+   end;
+  If f.BufPos>=f.BufEnd Then
+   FileFunc(f.InOutFunc)(f);
+  hs:='';
   if IgnoreSpaces(f) and ReadSign(f,hs) and ReadNumeric(f,hs,10) then
    begin
    { First check for a . }
@@ -1025,10 +1131,17 @@ var
   code : Word;
 Begin
   d:=0.0;
-  If InOutRes <> 0 then exit;
-  hs:='';
-  if not OpenInput(f) then
+{ Leave if error or not open file, else check for empty buf }
+  If (InOutRes<>0) then
    exit;
+  if (f.mode<>fmInput) Then
+   begin
+     InOutRes:=104;
+     exit;
+   end;
+  If f.BufPos>=f.BufEnd Then
+   FileFunc(f.InOutFunc)(f);
+  hs:='';
   if IgnoreSpaces(f) and ReadSign(f,hs) and ReadNumeric(f,hs,10) then
    begin
    { First check for a . }
@@ -1065,10 +1178,17 @@ var
   code : Word;
 Begin
   d:=comp(0.0);
-  If InOutRes <> 0 then exit;
-  hs:='';
-  if not OpenInput(f) then
+{ Leave if error or not open file, else check for empty buf }
+  If (InOutRes<>0) then
    exit;
+  if (f.mode<>fmInput) Then
+   begin
+     InOutRes:=104;
+     exit;
+   end;
+  If f.BufPos>=f.BufEnd Then
+   FileFunc(f.InOutFunc)(f);
+  hs:='';
   if IgnoreSpaces(f) and ReadSign(f,hs) and ReadNumeric(f,hs,10) then
    begin
    { First check for a . }
@@ -1102,7 +1222,7 @@ End;
                                Initializing
 *****************************************************************************}
 
-procedure OpenStdIO(var f:text;mode:word;hdl:longint);
+procedure OpenStdIO(var f:text;mode,hdl:longint);
 begin
   Assign(f,'');
   TextRec(f).Handle:=hdl;
@@ -1122,7 +1242,12 @@ end;
 
 {
   $Log$
-  Revision 1.25  1998-09-14 10:48:23  peter
+  Revision 1.26  1998-09-17 16:34:18  peter
+    * new eof,eoln,seekeoln,seekeof
+    * speed upgrade for read_string
+    * inoutres 104/105 updates for read_* and write_*
+
+  Revision 1.25  1998/09/14 10:48:23  peter
     * FPC_ names
     * Heap manager is now system independent
 

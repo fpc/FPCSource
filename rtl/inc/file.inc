@@ -54,7 +54,8 @@ Procedure Rewrite(var f:File;l:Longint);[IOCheck];
   Create file f with recordsize of l
 }
 Begin
-  If InOutRes <> 0 then exit;
+  If InOutRes <> 0 then
+   exit;
   If l=0 Then
    InOutRes:=2
   else
@@ -70,7 +71,8 @@ Procedure Reset(var f:File;l:Longint);[IOCheck];
   Open file f with recordsize of l and filemode
 }
 Begin
-  If InOutRes <> 0 then Exit;
+  If InOutRes <> 0 then
+   Exit;
   If l=0 Then
    InOutRes:=2
   else
@@ -86,7 +88,8 @@ Procedure Rewrite(Var f:File);[IOCheck];
   Create file with (default) 128 byte records
 }
 Begin
-  If InOutRes <> 0 then exit;
+  If InOutRes <> 0 then
+   exit;
   Rewrite(f,128);
 End;
 
@@ -96,7 +99,8 @@ Procedure Reset(Var f:File);[IOCheck];
   Open file with (default) 128 byte records
 }
 Begin
-  If InOutRes <> 0 then exit;
+  If InOutRes <> 0 then
+   exit;
   Reset(f,128);
 End;
 
@@ -118,7 +122,8 @@ Procedure BlockWrite(Var f:File;Var Buf;Count:Word;var Result:Word);[IOCheck];
 var
   l : longint;
 Begin
-  If InOutRes <> 0 then exit;
+  If InOutRes <> 0 then
+   exit;
   BlockWrite(f,Buf,Count,l);
   Result:=l;
 End;
@@ -131,7 +136,8 @@ Procedure BlockWrite(Var f:File;Var Buf;Count:Word;var Result:Integer);[IOCheck]
 var
   l : longint;
 Begin
-  If InOutRes <> 0 then exit;
+  If InOutRes <> 0 then
+   exit;
   BlockWrite(f,Buf,Count,l);
   Result:=l;
 End;
@@ -145,7 +151,8 @@ Procedure BlockWrite(Var f:File;Var Buf;Count:Longint);[IOCheck];
 var
   Result : Longint;
 Begin
-  If InOutRes <> 0 then exit;
+  If InOutRes <> 0 then
+   exit;
   BlockWrite(f,Buf,Count,Result);
   If (Result=0) and (Count>0) Then
    InOutRes:=101;
@@ -158,8 +165,11 @@ Procedure BlockRead(var f:File;var Buf;Count:Longint;var Result:Longint);[IOChec
   Result
 }
 Begin
-  Result:=0;
-  If InOutRes <> 0 then exit;
+  If InOutRes <> 0 then
+   begin
+     Result:=0;
+     exit;
+   end;
   Result:=Do_Read(FileRec(f).Handle,Longint(@Buf),count*FileRec(f).RecSize) div FileRec(f).RecSize;
 End;
 
@@ -172,8 +182,11 @@ Procedure BlockRead(var f:File;var Buf;count:Word;var Result:Word);[IOCheck];
 var
   l : longint;
 Begin
-  Result:=0;
-  If InOutRes <> 0 then exit;
+  If InOutRes <> 0 then
+   begin
+     Result:=0;
+     exit;
+   end;
   BlockRead(f,Buf,Count,l);
   Result:=l;
 End;
@@ -187,8 +200,11 @@ Procedure BlockRead(var f:File;var Buf;count:Word;var Result:Integer);[IOCheck];
 var
   l : longint;
 Begin
-  Result:=0;
-  If InOutRes <> 0 then exit;
+  If InOutRes <> 0 then
+   begin
+     Result:=0;
+     exit;
+   end;
   BlockRead(f,Buf,Count,l);
   Result:=l;
 End;
@@ -202,7 +218,8 @@ Procedure BlockRead(Var f:File;Var Buf;Count:Longint);[IOCheck];
 var
   Result : Longint;
 Begin
-  If InOutRes <> 0 then exit;
+  If InOutRes <> 0 then
+   exit;
   BlockRead(f,Buf,Count,Result);
   If (Result=0) and (Count>0) Then
    InOutRes:=100;
@@ -214,8 +231,10 @@ Function FilePos(var f:File):Longint;[IOCheck];
   Return current Position In file f in records
 }
 Begin
-  If InOutRes <> 0 then exit;
-  FilePos:=Do_FilePos(FileRec(f).Handle) div FileRec(f).RecSize;
+  If InOutRes <> 0 then
+   FilePos:=0
+  else
+   FilePos:=Do_FilePos(FileRec(f).Handle) div FileRec(f).RecSize;
 End;
 
 
@@ -224,8 +243,7 @@ Function FileSize(var f:File):Longint;[IOCheck];
   Return the size of file f in records
 }
 Begin
-  If InOutRes <> 0 then exit;
-  if FileRec(f).RecSize=0 then
+  if (InOutRes<>0) or (FileRec(f).RecSize=0) then
    FileSize:=0
   else
    FileSize:=Do_FileSize(FileRec(f).Handle) div FileRec(f).RecSize;
@@ -319,7 +337,12 @@ End;
 
 {
   $Log$
-  Revision 1.7  1998-09-04 18:16:12  peter
+  Revision 1.8  1998-09-17 16:34:16  peter
+    * new eof,eoln,seekeoln,seekeof
+    * speed upgrade for read_string
+    * inoutres 104/105 updates for read_* and write_*
+
+  Revision 1.7  1998/09/04 18:16:12  peter
     * uniform filerec/textrec (with recsize:longint and name:0..255)
 
   Revision 1.6  1998/07/19 19:55:32  michael
