@@ -7,17 +7,14 @@
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
+    Syscalls for NetBSD/macppc. Merged from an initial version, 
+	Jonas' linux version and some testing checking.
+
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-
-{No debugging for syslinux include !}
-{$IFDEF SYS_LINUX}
-  {$UNDEF SYSCALL_DEBUG}
-{$ENDIF SYS_LINUX}
-
 
 {*****************************************************************************
                      --- Main:The System Call Self ---
@@ -31,10 +28,9 @@ function FpSysCall(sysnr:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYS
 asm
   mr  r0,r3
   sc
-  blr
-  neg   r3, r3
-  lis   r4,(Errno+4)@ha
-  stw   r3,(Errno+4)@l(r4)
+  bnslr
+  lis   r4,Errno@ha
+  stw   r3,Errno@l(r4)
   li    r3,-1
 end;
 
@@ -47,10 +43,9 @@ asm
   mr  r0,r3
   mr  r3,r4
   sc
-  blr
-  neg   r3, r3
-  lis   r4,(Errno+4)@ha
-  stw   r3,(Errno+4)@l(r4)
+  bnslr
+  lis   r4,Errno@ha
+  stw   r3,Errno@l(r4)
   li    r3,-1
 end;
 
@@ -65,10 +60,9 @@ asm
   mr  r3,r4
   mr  r4,r5
   sc
-  blr
-  neg   r3, r3
-  lis   r4,(Errno+4)@ha
-  stw   r3,(Errno+4)@l(r4)
+  bnslr
+  lis   r4,Errno@ha
+  stw   r3,Errno@l(r4)
   li    r3,-1
 end;
 
@@ -83,11 +77,11 @@ asm
   mr  r4,r5
   mr  r5,r6
   sc
-  blr
-  neg   r3, r3
-  lis   r4,(Errno+4)@ha
-  stw   r3,(Errno+4)@l(r4)
+  bnslr
+  lis   r4,Errno@ha
+  stw   r3,Errno@l(r4)
   li    r3,-1
+
 end;
 
 
@@ -103,10 +97,9 @@ asm
   mr  r5,r6
   mr  r6,r7
   sc
-  blr
-  neg   r3, r3
-  lis   r4,(Errno+4)@ha
-  stw   r3,(Errno+4)@l(r4)
+  bnslr
+  lis   r4,Errno@ha
+  stw   r3,Errno@l(r4)
   li    r3,-1
 end;
 
@@ -123,10 +116,9 @@ asm
   mr  r6,r7
   mr  r7,r8
   sc
-  blr
-  neg   r3, r3
-  lis   r4,(Errno+4)@ha
-  stw   r3,(Errno+4)@l(r4)
+  bnslr
+  lis   r4,Errno@ha
+  stw   r3,Errno@l(r4)
   li    r3,-1
 end;
 
@@ -145,15 +137,13 @@ asm
   mr  r7,r8
   mr  r8,r9
   sc
-  blr
-  neg   r3, r3
-  lis   r4,(Errno+4)@ha
-  stw   r3,(Errno+4)@l(r4)
+  bnslr
+  lis   r4,Errno@ha
+  stw   r3,Errno@l(r4)
   li    r3,-1
 end;
 
-
-function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6,param7:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL7'];
+function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL7'];
 {
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
@@ -168,21 +158,17 @@ asm
   mr  r8,r9
   mr  r9,r10
   sc
-  blr
-  neg   r3, r3
-  lis   r4,(Errno+4)@ha
-  stw   r3,(Errno+4)@l(r4)
+  bnslr
+  lis   r4,Errno@ha
+  stw   r3,Errno@l(r4)
   li    r3,-1
 end;
 
+
 {
   $Log$
-  Revision 1.2  2003-05-25 13:51:58  jonas
-    * several fixes, addition of Mach trap numbers (thye are simply syscalls
-      with a negative number)
-
-  Revision 1.6  2003/05/23 21:58:30  jonas
-    * fixed storing to errno for single threaded programs
+  Revision 1.3  2003-05-29 13:14:07  marco
+   * 7 parameter syscall added. *BSD has calls with more params due to __syscall etc
 
   Revision 1.5  2003/05/11 16:07:55  jonas
     * fixed mmap for non-i386 non-m68k architectures (not sure about
