@@ -1,3 +1,4 @@
+{ %VERSION=1.1 }
 type
   dummyrec = record
     i : int64;
