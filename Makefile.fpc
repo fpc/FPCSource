@@ -512,6 +512,10 @@ endif
 
 ifdef inUnix
 
+# rpm available?
+RPM:=$(strip $(wildcard $(addsuffix /rpm$(SRCEXEEXT),$(SEARCHPATH))))
+ifneq ($(RPM),)
+
 ifneq ($(wildcard $(CVSINSTALL)/fpc.spec),)
 
 .PHONY: rpmcopy rpm
@@ -572,4 +576,6 @@ rpm: checkfpcdir rpmcopy
 
 endif   # spec found
 
-endif
+endif   # rpm available
+
+endif   # inUnix
