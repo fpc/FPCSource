@@ -175,11 +175,11 @@ implementation
        if not assigned(srsym) then
          exit;
        if sp_hint_deprecated in srsym.symoptions then
-         Message1(sym_w_deprecated_symbol,lower(srsym.name));
+         Message1(sym_w_deprecated_symbol,srsym.realname);
        if sp_hint_platform in srsym.symoptions then
-         Message1(sym_w_non_portable_symbol,lower(srsym.name));
+         Message1(sym_w_non_portable_symbol,srsym.realname);
        if sp_hint_unimplemented in srsym.symoptions then
-         Message1(sym_w_non_implemented_symbol,lower(srsym.name));
+         Message1(sym_w_non_implemented_symbol,srsym.realname);
      end;
 
 
@@ -263,7 +263,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  2002-11-30 11:12:48  carl
+  Revision 1.22  2002-12-05 19:28:05  carl
+    - remove lower in hint
+
+  Revision 1.21  2002/11/30 11:12:48  carl
     + checking for symbols used with hint directives is done mostly in pexpr
       only now
 
