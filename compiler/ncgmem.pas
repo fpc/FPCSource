@@ -364,7 +364,7 @@ implementation
       var
         tmpreg: tregister;
         usetemp,with_expr_in_temp : boolean;
-        symtable : twithsymtable;
+        symtable : tsymtable;
         i : integer;
 {$ifdef GDB}
         withstartlabel,withendlabel : tasmlabel;
@@ -418,9 +418,9 @@ implementation
                 begin
                   if (left.nodetype=loadn) and
                      (tloadnode(left).symtable=aktprocdef.localst) then
-                    symtable.direct_with:=true;
-                  symtable.withnode:=self;
-                  symtable:=twithsymtable(symtable.next);
+                    twithsymtable(symtable).direct_with:=true;
+                  twithsymtable(symtable).withnode:=self;
+                  symtable:=symtable.next;
                 end;
 
                { if the with expression is stored in a temp    }
@@ -915,7 +915,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2002-11-25 17:43:18  peter
+  Revision 1.36  2002-12-07 14:14:19  carl
+    * bugfix on invalid typecast
+
+  Revision 1.35  2002/11/25 17:43:18  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once
