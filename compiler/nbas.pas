@@ -668,7 +668,8 @@ implementation
         create(_restype,_size,_temptype);
         tempinfo^.may_be_in_reg:=
           { temp must fit a single register }
-          (_size<=sizeof(aint)) and
+          ((_restype.def.deftype = floatdef) or
+           (_size<=TCGSize2Size[OS_INT])) and
           { size of register operations must be known }
           (def_cgsize(_restype.def)<>OS_NO) and
           { no init/final needed }
@@ -1017,7 +1018,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.85  2004-06-20 08:55:29  florian
+  Revision 1.86  2004-07-16 19:45:15  jonas
+    + temps can now also hold fpu values in registers (take care with use,
+      bacause of the x86 fpu stack)
+    * fpu parameters to node-inlined procedures can now also be put in
+      a register
+
+  Revision 1.85  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.84  2004/06/16 20:07:07  florian

@@ -69,7 +69,7 @@ interface
     uses
       globtype,systems,
       cutils,verbose,cpuinfo,
-      aasmbase,aasmtai,aasmcpu,symsym,
+      aasmbase,aasmtai,aasmcpu,symsym,symconst,
       defutil,
       nflw,pass_2,
       cgbase,
@@ -369,16 +369,27 @@ interface
         else if tempinfo^.may_be_in_reg then
           begin
             cgsize := def_cgsize(tempinfo^.restype.def);
-            if (TCGSize2Size[cgsize]>TCGSize2Size[OS_INT]) then
-              internalerror(2004020202);
-            tempinfo^.loc.reg := cg.getintregister(exprasmlist,cgsize);
-            if (tempinfo^.temptype = tt_persistent) then
+            if tempinfo^.restype.def.deftype <> floatdef then
               begin
-                { !!tell rgobj this register is now a regvar, so it can't be freed!! }
-                tempinfo^.loc.loc := LOC_CREGISTER
+                if (TCGSize2Size[cgsize]>TCGSize2Size[OS_INT]) then
+                  internalerror(2004020202);
+                tempinfo^.loc.reg := cg.getintregister(exprasmlist,cgsize);
+                if (tempinfo^.temptype = tt_persistent) then
+                  begin
+                    { !!tell rgobj this register is now a regvar, so it can't be freed!! }
+                    tempinfo^.loc.loc := LOC_CREGISTER
+                  end
+                else
+                  tempinfo^.loc.loc := LOC_REGISTER;
               end
             else
-              tempinfo^.loc.loc := LOC_REGISTER;
+              begin
+                tempinfo^.loc.reg := cg.getfpuregister(exprasmlist,cgsize);
+                if (tempinfo^.temptype = tt_persistent) then
+                  tempinfo^.loc.loc := LOC_CFPUREGISTER
+                else
+                  tempinfo^.loc.loc := LOC_FPUREGISTER;
+              end;
           end
         else
           begin
@@ -407,7 +418,9 @@ interface
               inc(location.reference.offset,offset);
             end;
           LOC_REGISTER,
-          LOC_CREGISTER:
+          LOC_CREGISTER,
+          LOC_FPUREGISTER,
+          LOC_CFPUREGISTER:
             begin
               if offset <> 0 then
                 internalerror(2004020205);
@@ -483,7 +496,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.64  2004-06-20 08:55:29  florian
+  Revision 1.65  2004-07-16 19:45:15  jonas
+    + temps can now also hold fpu values in registers (take care with use,
+      bacause of the x86 fpu stack)
+    * fpu parameters to node-inlined procedures can now also be put in
+      a register
+
+  Revision 1.64  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.63  2004/06/16 20:07:08  florian

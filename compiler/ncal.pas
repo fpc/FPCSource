@@ -1883,7 +1883,7 @@ type
                 not paramanager.push_addr_param(vs_const,para.left.resulttype.def,procdefinition.proccalloption)) then
               begin
                 if (cs_regvars in aktglobalswitches) and
-                   (vo_regable in tvarsym(para.paraitem.parasym).varoptions) and
+                   (([vo_regable,vo_fpuregable] * tvarsym(para.paraitem.parasym).varoptions) <> []) and
                    (not tvarsym(para.paraitem.parasym).vartype.def.needs_inittable) then
                   tempnode := ctempcreatenode.create_reg(para.left.resulttype,para.left.resulttype.def.size,tt_persistent)
                 else
@@ -2258,7 +2258,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.242  2004-07-15 21:02:05  jonas
+  Revision 1.243  2004-07-16 19:45:15  jonas
+    + temps can now also hold fpu values in registers (take care with use,
+      bacause of the x86 fpu stack)
+    * fpu parameters to node-inlined procedures can now also be put in
+      a register
+
+  Revision 1.242  2004/07/15 21:02:05  jonas
     * the condition for when to use a temp in case of reference var/const
       parameters was inverse
 
