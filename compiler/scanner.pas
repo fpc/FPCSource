@@ -1164,6 +1164,11 @@ implementation
       label
          exit_label;
       begin
+        if localswitcheschanged then
+          begin
+            aktlocalswitches:=nextaktlocalswitches;
+            localswitcheschanged:=false;
+          end;
       { was there already a token read, then return that token }
         if nexttoken<>NOTOKEN then
          begin
@@ -1811,7 +1816,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.110  2000-04-08 20:18:53  michael
+  Revision 1.111  2000-05-03 14:36:58  pierre
+   * fix for tests/test/testrang.pp bug
+
+  Revision 1.110  2000/04/08 20:18:53  michael
   * Fixed bug in readcomment that was dropping * characters
 
   Revision 1.109  2000/03/13 21:21:57  peter

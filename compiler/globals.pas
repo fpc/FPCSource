@@ -163,6 +163,8 @@ unit globals;
        aktglobalswitches : tglobalswitches;
        aktmoduleswitches : tmoduleswitches;
        aktlocalswitches  : tlocalswitches;
+       nextaktlocalswitches : tlocalswitches;
+       localswitcheschanged : boolean;
        aktmodeswitches   : tmodeswitches;
        {$IFDEF testvarsets}
         aktsetalloc,
@@ -1566,7 +1568,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.58  2000-04-14 12:27:57  pierre
+  Revision 1.59  2000-05-03 14:36:57  pierre
+   * fix for tests/test/testrang.pp bug
+
+  Revision 1.58  2000/04/14 12:27:57  pierre
    * setfiletime to both files in synchronize
 
   Revision 1.57  2000/03/23 15:35:47  peter

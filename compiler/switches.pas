@@ -90,9 +90,10 @@ begin
  unsupportedsw : Message1(scan_w_unsupported_switch,'$'+switch);
        localsw : begin
                    if state='+' then
-                    aktlocalswitches:=aktlocalswitches+[tlocalswitch(setsw)]
+                    nextaktlocalswitches:=aktlocalswitches+[tlocalswitch(setsw)]
                    else
-                    aktlocalswitches:=aktlocalswitches-[tlocalswitch(setsw)];
+                    nextaktlocalswitches:=aktlocalswitches-[tlocalswitch(setsw)];
+                   localswitcheschanged:=true;
                  { Message for linux which has global checking only }
                    if (switch='S') and (
 {$ifdef i386}
@@ -171,7 +172,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.26  2000-02-09 13:23:04  peter
+  Revision 1.27  2000-05-03 14:36:58  pierre
+   * fix for tests/test/testrang.pp bug
+
+  Revision 1.26  2000/02/09 13:23:04  peter
     * log truncated
 
   Revision 1.25  2000/01/07 01:14:39  peter

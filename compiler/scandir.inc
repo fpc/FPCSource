@@ -588,9 +588,10 @@ const
         if (sw<>cs_localnone) and (state in ['-','+']) then
          begin
            if state='-' then
-            aktlocalswitches:=aktlocalswitches-[sw]
+            nextaktlocalswitches:=aktlocalswitches-[sw]
            else
-            aktlocalswitches:=aktlocalswitches+[sw];
+            nextaktlocalswitches:=aktlocalswitches+[sw];
+           localswitcheschanged:=true;
          end;
       end;
 
@@ -1332,7 +1333,10 @@ const
 
 {
   $Log$
-  Revision 1.78  2000-04-14 11:16:10  pierre
+  Revision 1.79  2000-05-03 14:36:58  pierre
+   * fix for tests/test/testrang.pp bug
+
+  Revision 1.78  2000/04/14 11:16:10  pierre
     * partial linklib change
       I could not use Pavel's code because it broke the current way
       linklib is used, which is messy :(
