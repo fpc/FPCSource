@@ -186,7 +186,7 @@ constructor TAiCpu.op_ref_reg(Op:TAsmOp;const Ref:TReference;Reg:TRegister);
   begin
     if not(Op in [A_JMPL,A_FLUSH,A_LDSB..A_LDDC,A_RETT,A_SWAP])
     then
-      fail;
+      InternalError(2003042900);
     inherited Create(Op);
     Init(S_SW);
     Ops:=2;
@@ -1096,7 +1096,10 @@ procedure InitAsm;
 end.
 {
     $Log$
-    Revision 1.20  2003-04-28 09:40:47  mazen
+    Revision 1.21  2003-04-29 11:06:15  mazen
+    * test of invalid opcode/operand combination gives internal error
+
+    Revision 1.20  2003/04/28 09:40:47  mazen
     * Debug message in SetCondition more explicit.
 
     Revision 1.19  2003/03/15 22:51:58  mazen
