@@ -36,7 +36,7 @@ the main makefile.
 The main makefile understands the following targets :
 - all      (compiles RTL for all target OSes)
 - native   (compiles RTL for the system you're working on)
-- rtldos, rtllinux, rtlgo32v2, rtlos2 (compiles RTL for specific OS)
+- rtlgo32v1, rtllinux, rtlgo32v2, rtlos2 (compiles RTL for specific OS)
 
 - clean    (cleans all directories )
 - native_clean (cleans native directory only)
