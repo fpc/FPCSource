@@ -333,121 +333,122 @@ const msgtxt : array[0..000100,1..240] of char=(
   'W_O','verride operator not supported'#000+
   'E_Error building record offset'#000+
   'E_OFFSET used without identifier'#000+
+  'E_TYPE used without identifier'#000+
   'E_Cannot use local variable or parameters here'#000+
   'E_need to use OFFSET here'#000+
-  'E_Cannot use multiple relocatable symbols'#000+
-  'E_Relocatable symbol can only ','be added'#000+
+  'E_Cannot use multiple relocatable symbols',#000+
+  'E_Relocatable symbol can only be added'#000+
   'E_Invalid constant expression'#000+
   'E_Relocatable symbol is not allowed'#000+
   'E_Invalid reference syntax'#000+
   'E_Local symbols not allowed as references'#000+
   'E_Invalid base and index register usage'#000+
-  'E_Wrong scale factor specified'#000+
-  'E_Multiple index register',' usage'#000+
+  'E_Wrong scale factor spec','ified'#000+
+  'E_Multiple index register usage'#000+
   'E_Invalid operand type'#000+
   'E_Invalid string as opcode operand: $1'#000+
   'W_@CODE and @DATA not supported'#000+
   'E_Null label references are not allowed'#000+
   'F_Divide by zero in asm evaluator'#000+
   'F_Evaluator stack overflow'#000+
-  'F_Evaluator stack underflow'#000+
-  'F_Invalid ','numeric format in asm evaluator'#000+
+  'F_Evalu','ator stack underflow'#000+
+  'F_Invalid numeric format in asm evaluator'#000+
   'F_Invalid Operator in asm evaluator'#000+
   'E_escape sequence ignored: $1'#000+
   'E_Invalid symbol reference'#000+
   'W_Fwait can cause emulation problems with emu387'#000+
-  'W_Calling an overload function in assembler'#000+
-  'E_Unsupported symbol t','ype for operand'#000+
+  'W_Calling an overload function in a','ssembler'#000+
+  'E_Unsupported symbol type for operand'#000+
   'E_Constant value out of bounds'#000+
   'E_Error converting decimal $1'#000+
   'E_Error converting octal $1'#000+
   'E_Error converting binary $1'#000+
   'E_Error converting hexadecimal $1'#000+
   'H_$1 translated to $2'#000+
-  'W_$1 is associated to an overloaded function'#000+
-  'E_Can','not use SELF outside a method'#000+
+  'W_$1 is associated ','to an overloaded function'#000+
+  'E_Cannot use SELF outside a method'#000+
   'E_Cannot use OLDEBP outside a nested procedure'#000+
   'W_Functions with void return value can'#039't return any value in asm c'+
   'ode'#000+
   'E_SEG not supported'#000+
-  'E_Size suffix and destination or source size do not match'#000+
-  'W_Size suffix a','nd destination or source size do not match'#000+
+  'E_Size suffix and destination or source si','ze do not match'#000+
+  'W_Size suffix and destination or source size do not match'#000+
   'E_Assembler syntax error'#000+
   'E_Invalid combination of opcode and operands'#000+
   'E_Assemler syntax error in operand'#000+
   'E_Assemler syntax error in constant'#000+
-  'E_Invalid String expression'#000+
-  '32bit constant created for a','ddress'#000+
+  'E_Invalid String expressi','on'#000+
+  '32bit constant created for address'#000+
   'E_Invalid or missing opcode'#000+
   'E_Invalid combination of prefix and opcode: $1'#000+
   'E_Invalid combination of override and opcode: $1'#000+
   'E_Too many operands on line'#000+
   'W_NEAR ignored'#000+
   'W_FAR ignored'#000+
-  'E_Duplicate local symbol $1'#000+
-  'E_Undefined local symbol',' $1'#000+
+  'E_Duplicate local sym','bol $1'#000+
+  'E_Undefined local symbol $1'#000+
   'E_Unknown label identifier $1'#000+
   'E_Invalid floating point register name'#000+
   'E_NOR not supported'#000+
   'W_Modulo not supported'#000+
   'E_Invalid floating point constant $1'#000+
   'E_Invalid floating point expression'#000+
-  'E_Wrong symbol type'#000+
-  'E_Cannot index a local var or p','arameter with a register'#000+
+  'E_Wrong symbol type'#000,
+  'E_Cannot index a local var or parameter with a register'#000+
   'E_Invalid segment override expression'#000+
   'W_Identifier $1 supposed external'#000+
   'E_Strings not allowed as constants'#000+
   'No type of variable specified'#000+
   'E_assembler code not returned to text section'#000+
-  'E_Not a directive or local symbo','l $1'#000+
+  'E','_Not a directive or local symbol $1'#000+
   'E_Using a defined name as a local label'#000+
   'E_Dollar token is used without an identifier'#000+
   'W_32bit constant created for address'#000+
   'N_.align is target specific, use .balign or .p2align'#000+
   'F_Too many assembler files'#000+
-  'F_Selected assembler output not s','upported'#000+
+  'F_','Selected assembler output not supported'#000+
   'F_Comp not supported'#000+
   'F_Direct not support for binary writers'#000+
   'E_Allocating of data is only allowed in bss section'#000+
   'F_No binary writer selected'#000+
   'E_Asm: Opcode $1 not in table'#000+
-  'E_Asm: $1 invalid combination of opcode and operands'#000+
-  'E_Asm: ','16 Bit references not supported'#000+
+  'E_Asm: $1 invalid combination',' of opcode and operands'#000+
+  'E_Asm: 16 Bit references not supported'#000+
   'E_Asm: Invalid effective address'#000+
   'E_Asm: Immediate or reference expected'#000+
   'E_Asm: $1 value exceeds bounds $2'#000+
   'E_Asm: Short jump is out of range $1'#000+
-  'W_Source operating system redefined'#000+
+  'W_Source operating system redefine','d'#000+
   'I_Assembling (pipe) $1'#000+
-  'E_Can'#039,'t create assember file $1'#000+
+  'E_Can'#039't create assember file $1'#000+
   'W_Assembler $1 not found, switching to external assembling'#000+
   'T_Using assembler: $1'#000+
   'W_Error while assembling exitcode $1'#000+
-  'W_Can'#039't call the assembler, error $1 switching to external assembl'+
-  'ing'#000+
+  'W_Can'#039't call the assembler, error $1 switching to external assemb',
+  'ling'#000+
   'I_Assembling $1'#000+
-  'I_Assembli','ng smartlink $1'#000+
+  'I_Assembling smartlink $1'#000+
   'W_Linker $1 not found, switching to external linking'#000+
   'T_Using linker: $1'#000+
   'W_Object $1 not found, Linking may fail !'#000+
   'W_Library $1 not found, Linking may fail !'#000+
   'W_Error while linking'#000+
-  'W_Can'#039't call the linker, switching to externa','l linking'#000+
+  'W_Can'#039't call t','he linker, switching to external linking'#000+
   'I_Linking $1'#000+
   'W_binder not found, switching to external binding'#000+
   'W_ar not found, switching to external ar'#000+
   'E_Dynamic Libraries not supported'#000+
   'I_Closing script $1'#000+
-  'W_resource compiler not found, switching to external mode'#000+
-  'I_Compiling re','source $1'#000+
+  'W_resource compiler not found, switching ','to external mode'#000+
+  'I_Compiling resource $1'#000+
   'F_Can'#039't post process executable $1'#000+
   'F_Can'#039't open executable $1'#000+
   'X_Size of Code: $1 bytes'#000+
   'X_Size of initialized data: $1 bytes'#000+
   'X_Size of uninitialized data: $1 bytes'#000+
   'X_Stack space reserved: $1 bytes'#000+
-  'X_Stack space commited: $1 bytes'#000+
-  'T','_Unitsearch: $1'#000+
+  'X_S','tack space commited: $1 bytes'#000+
+  'T_Unitsearch: $1'#000+
   'T_PPU Loading $1'#000+
   'U_PPU Name: $1'#000+
   'U_PPU Flags: $1'#000+
@@ -456,8 +457,8 @@ const msgtxt : array[0..000100,1..240] of char=(
   'U_PPU File too short'#000+
   'U_PPU Invalid Header (no PPU at the begin)'#000+
   'U_PPU Invalid Version $1'#000+
-  'U_PPU is compiled for an other processor'#000+
-  'U_PPU is compiled',' for an other target'#000+
+  'U_PPU is compiled for an ot','her processor'#000+
+  'U_PPU is compiled for an other target'#000+
   'U_PPU Source: $1'#000+
   'U_Writing $1'#000+
   'F_Can'#039't Write PPU-File'#000+
@@ -466,74 +467,74 @@ const msgtxt : array[0..000100,1..240] of char=(
   'F_Invalid PPU-File entry: $1'#000+
   'F_PPU Dbx count problem'#000+
   'E_Illegal unit name: $1'#000+
-  'F_Too much units'#000+
-  'F_Circular unit referenc','e between $1 and $2'#000+
+  'F_Too much',' units'#000+
+  'F_Circular unit reference between $1 and $2'#000+
   'F_Can'#039't compile unit $1, no sources available'#000+
   'F_Can'#039't find unit $1'#000+
   'W_Compiling the system unit requires the -Us switch'#000+
   'F_There were $1 errors compiling module, stopping'#000+
-  'U_Load from $1 ($2) unit $3'#000+
-  'U_Recompiling $1, check','sum changed for $2'#000+
+  'U_Load from $1 ($2) ','unit $3'#000+
+  'U_Recompiling $1, checksum changed for $2'#000+
   'U_Recompiling $1, source found only'#000+
   'U_Recompiling unit, static lib is older than ppufile'#000+
   'U_Recompiling unit, shared lib is older than ppufile'#000+
-  'U_Recompiling unit, obj and asm are older than ppufile'#000+
-  'U_Recompiling unit, obj ','is older than asm'#000+
+  'U_Recompiling unit, obj and asm are older than p','pufile'#000+
+  'U_Recompiling unit, obj is older than asm'#000+
   'U_Parsing interface of $1'#000+
   'U_Parsing implementation of $1'#000+
   'U_Second load for unit $1'#000+
   'U_PPU Check file $1 time $2'#000+
   '$1 [options] <inputfile> [options]'#000+
   'W_Only one source file supported'#000+
-  'W_DEF file can be created only for OS/2'#000+
-  'E_n','ested response files are not supported'#000+
+  'W_DEF file c','an be created only for OS/2'#000+
+  'E_nested response files are not supported'#000+
   'F_No source file name in command line'#000+
   'E_Illegal parameter: $1'#000+
   'H_-? writes help pages'#000+
   'F_Too many config files nested'#000+
   'F_Unable to open file $1'#000+
-  'N_Reading further options from $1'#000+
-  'W_Target is already set to',': $1'#000+
+  'N_Reading further options fro','m $1'#000+
+  'W_Target is already set to: $1'#000+
   'W_Shared libs not supported on DOS platform, reverting to static'#000+
   'F_too many IF(N)DEFs'#000+
   'F_too many ENDIFs'#000+
   'F_open conditional at the end of the file'#000+
-  'W_Debug information generation is not supported by this executable'#000+
-  'H_Try recompiling with',' -dGDB'#000+
+  'W_Debug information generation is not supported by this ex','ecutable'#000+
+  'H_Try recompiling with -dGDB'#000+
   'E_You are using the obsolete switch $1'#000+
   'E_You are using the obsolete switch $1, please use $2'#000+
   'N_Switching assembler to default source writing assembler'#000+
-  'Free Pascal Compiler version $FPCVER [$FPCDATE] for $FPCTARGET'#000+
-  'Copyright (c) 1993-','98 by Florian Klaempfl'#000+
+  'Free Pascal Compiler version $FPCVER [$FPCDATE] for',' $FPCTARGET'#000+
+  'Copyright (c) 1993-98 by Florian Klaempfl'#000+
   'Free Pascal Compiler version $FPCVER'#000+
   #000+
   'Compiler Date  : $FPCDATE'#000+
   'Compiler Target: $FPCTARGET'#000+
   #000+
   'This program comes under the GNU General Public Licence'#000+
-  'For more information read COPYING.FPC'#000+
+  'For more information read COPYING.FPC',#000+
   #000+
-  'Report bugs,suggestions etc t','o:'#000+
+  'Report bugs,suggestions etc to:'#000+
   '                 fpc-devel@vekoll.saturnus.vein.hu'#000+
   '**0*_put + after a boolean switch option to enable it, - to disable it'+
   #000+
   '**1a_the compiler doesn'#039't delete the generated assembler file'#000+
-  '**2al_list sourcecode lines in assembler file'#000+
-  '**2ar_l','ist register allocation/release info in assembler file'#000+
+  '**2al_list sourcecode ','lines in assembler file'#000+
+  '**2ar_list register allocation/release info in assembler file'#000+
   '**2at_list temp allocation/release info in assembler file'#000+
   '**1b_generate browser info'#000+
   '**2bl_generate local symbol info'#000+
   '**1B_build all modules'#000+
-  '**1C<x>_code generation options:'#000+
-  '3*2CD_creat','e dynamic library'#000+
+  '**1C<x>_code ','generation options:'#000+
+  '3*2CD_create dynamic library'#000+
   '**2Ch<n>_<n> bytes heap (between 1023 and 67107840)'#000+
   '**2Ci_IO-checking'#000+
   '**2Cn_omit linking stage'#000+
   '**2Co_check overflow of integer operations'#000+
   '**2Cr_range checking'#000+
   '**2Cs<n>_set stack size to <n>'#000+
-  '**2Ct_stack checking'#000+
-  '3*2CS_creat','e static library'#000+
+  '*','*2Ct_stack checking'#000+
+  '3*2CS_create static library'#000+
   '3*2Cx_use smartlinking'#000+
   '**1d<x>_defines the symbol <x>'#000+
   '*O1D_generate a DEF file'#000+
@@ -541,21 +542,21 @@ const msgtxt : array[0..000100,1..240] of char=(
   '*O2Dw_PM application'#000+
   '**1e<x>_set path to executable'#000+
   '**1E_same as -Cn'#000+
-  '**1F<x>_set file names and paths:'#000+
-  '**2FD<x>_','sets the directory where to search for compiler utilities'#000+
+  '**1F<x>_set ','file names and paths:'#000+
+  '**2FD<x>_sets the directory where to search for compiler utilities'#000+
   '**2Fe<x>_redirect error output to <x>'#000+
   '**2FE<x>_set exe/unit output path to <x>'#000+
   '**2Fi<x>_adds <x> to include path'#000+
   '**2Fl<x>_adds <x> to library path'#000+
-  '*L2FL<x>_uses <x> as dynamic linker',#000+
+  '*L2F','L<x>_uses <x> as dynamic linker'#000+
   '**2Fo<x>_adds <x> to object path'#000+
   '**2Fr<x>_load error message file <x>'#000+
   '**2Fu<x>_adds <x> to unit path'#000+
   '**2FU<x>_set unit output path to <x>, overrides -FE'#000+
   '*g1g<x>_generate debugger information:'#000+
   '*g2gg_use gsym'#000+
-  '*g2gd_use dbx'#000+
-  '*g2gh_use heap tra','ce unit'#000+
+  '*','g2gd_use dbx'#000+
+  '*g2gh_use heap trace unit'#000+
   '*g2gc_generate checks for pointers'#000+
   '**1i_information'#000+
   '**2iD_return compiler date'#000+
@@ -563,83 +564,83 @@ const msgtxt : array[0..000100,1..240] of char=(
   '**2iSO_return compiler OS'#000+
   '**2iSP_return compiler processor'#000+
   '**2iTO_return target OS'#000+
-  '**2iTP_return target processor'#000+
-  '**1I<x>_a','dds <x> to include path'#000+
+  '**2iTP_re','turn target processor'#000+
+  '**1I<x>_adds <x> to include path'#000+
   '**1k<x>_Pass <x> to the linker'#000+
   '**1l_write logo'#000+
   '**1n_don'#039't read the default config file'#000+
   '**1o<x>_change the name of the executable produced to <x>'#000+
   '**1pg_generate profile code for gprof'#000+
-  '*L1P_use pipes instead of creatin','g temporary assembler files'#000+
+  '*L','1P_use pipes instead of creating temporary assembler files'#000+
   '**1S<x>_syntax options:'#000+
   '**2S2_switch some Delphi 2 extensions on'#000+
   '**2Sc_supports operators like C (*=,+=,/= and -=)'#000+
   '**2Sd_tries to be Delphi compatible'#000+
-  '**2Se<x>_compiler stops after the <x> errors (default is 1)'#000+
-  '*','*2Sg_allow LABEL and GOTO'#000+
+  '**2Se<x>_compiler stops after ','the <x> errors (default is 1)'#000+
+  '**2Sg_allow LABEL and GOTO'#000+
   '**2Sh_Use ansistrings'#000+
   '**2Si_support C++ styled INLINE'#000+
   '**2Sm_support macros like C (global)'#000+
   '**2So_tries to be TP/BP 7.0 compatible'#000+
   '**2Sp_tries to be gpc compatible'#000+
-  '**2Ss_constructor name must be init (destructor mus','t be done)'#000+
+  '**2Ss_constructor na','me must be init (destructor must be done)'#000+
   '**2St_allow static keyword in objects'#000+
   '**1s_don'#039't call assembler and linker (only with -a)'#000+
   '**1u<x>_undefines the symbol <x>'#000+
   '**1U_unit options:'#000+
   '**2Un_don'#039't check the unit name'#000+
-  '**2Us_compile a system unit'#000+
-  '**1v<x>_Be verbose. <x> is ','a combination of the following letters:'#000+
+  '**2Us_compile a system u','nit'#000+
+  '**1v<x>_Be verbose. <x> is a combination of the following letters:'#000+
   '**2*_e : Show errors (default)       d : Show debug info'#000+
   '**2*_w : Show warnings               u : Show unit info'#000+
-  '**2*_n : Show notes                  t : Show tried/used files'#000+
-  '**2*_h : Show hints     ','             m : Show defined macros'#000+
+  '**2*_n : Show notes                  t : Show tried/used',' files'#000+
+  '**2*_h : Show hints                  m : Show defined macros'#000+
   '**2*_i : Show general info           p : Show compiled procedures'#000+
   '**2*_l : Show linenumbers            c : Show conditionals'#000+
-  '**2*_a : Show everything             0 : Show nothing (except errors)'#000+
-  '**2*_b :',' Show all procedure          r : Rhide/GCC compatibility mod'+
-  'e'#000+
+  '**2*_a : Show everything             0 : Show n','othing (except errors'+
+  ')'#000+
+  '**2*_b : Show all procedure          r : Rhide/GCC compatibility mode'#000+
   '**2*_    declarations if an error    x : Executable info (Win32 only)'#000+
   '**2*_    occurs'#000+
   '**1X_executable options:'#000+
   '*L2Xc_link with the c library'#000+
-  '**2XD_link with dynamic libraries (de','fines FPC_LINK_DYNAMIC)'#000+
+  '**2XD_','link with dynamic libraries (defines FPC_LINK_DYNAMIC)'#000+
   '**2Xs_strip all symbols from executable'#000+
   '**2XS_link with static libraries (defines FPC_LINK_STATIC)'#000+
   '**0*_Processor specific options:'#000+
   '3*1A<x>_output format:'#000+
   '3*2Aas_assemble using GNU AS'#000+
-  '3*2Aasaout_assemble using GNU AS',' for aout (Go32v1)'#000+
+  '3','*2Aasaout_assemble using GNU AS for aout (Go32v1)'#000+
   '3*2Anasmcoff_coff (Go32v2) file using Nasm'#000+
   '3*2Anasmelf_elf32 (Linux) file using Nasm'#000+
   '3*2Anasmobj_obj file using Nasm'#000+
   '3*2Amasm_obj file using Masm (Microsoft)'#000+
-  '3*2Atasm_obj file using Tasm (Borland)'#000+
-  '3*2Acoff_coff (Go32v2) u','sing internal writer'#000+
+  '3*2Atasm_obj file using Tasm (Bo','rland)'#000+
+  '3*2Acoff_coff (Go32v2) using internal writer'#000+
   '3*2Apecoff_pecoff (Win32) using internal writer'#000+
   '3*1R<x>_assembler reading style:'#000+
   '3*2Ratt_read AT&T style assembler'#000+
   '3*2Rintel_read Intel style assembler'#000+
-  '3*2Rdirect_copy assembler text directly to assembler file'#000+
-  '3*1O<x>_o','ptimizations:'#000+
+  '3*2Rdirect_copy assembler text direc','tly to assembler file'#000+
+  '3*1O<x>_optimizations:'#000+
   '3*2Og_generate smaller code'#000+
   '3*2OG_generate faster code (default)'#000+
   '3*2Or_keep certain variables in registers (still BUGGY!!!)'#000+
   '3*2Ou_enable uncertain optimizations (see docs)'#000+
-  '3*2O1_level 1 optimizations (quick optimizations)'#000+
-  '3*2O','2_level 2 optimizations (-O1 + slower optimizations)'#000+
+  '3*2O1_level 1 optimizat','ions (quick optimizations)'#000+
+  '3*2O2_level 2 optimizations (-O1 + slower optimizations)'#000+
   '3*2O3_level 3 optimizations (same as -O2u)'#000+
   '3*2Op<x>_target processor:'#000+
   '3*3Op1_set target processor to 386/486'#000+
-  '3*3Op2_set target processor to Pentium/PentiumMMX (tm)'#000+
-  '3*3Op3_set target proce','ssor to PPro/PII/c6x86/K6 (tm)'#000+
+  '3*3Op2_set target processor to Pentium/PentiumM','MX (tm)'#000+
+  '3*3Op3_set target processor to PPro/PII/c6x86/K6 (tm)'#000+
   '3*1T<x>_Target operating system:'#000+
   '3*2TGO32V1_version 1 of DJ Delorie DOS extender'#000+
   '3*2TGO32V2_version 2 of DJ Delorie DOS extender'#000+
   '3*2TLINUX_Linux'#000+
   '3*2TOS2_OS/2 2.x'#000+
-  '3*2TWin32_Windows 32 Bit'#000+
-  '6*1A<x>_output format'#000,
+  '3*2TWin32_Window','s 32 Bit'#000+
+  '6*1A<x>_output format'#000+
   '6*2Aas_Unix o-file using GNU AS'#000+
   '6*2Agas_GNU Motorola assembler'#000+
   '6*2Amit_MIT Syntax (old GAS)'#000+
@@ -647,15 +648,15 @@ const msgtxt : array[0..000100,1..240] of char=(
   '6*1O_optimizations:'#000+
   '6*2Oa_turn on the optimizer'#000+
   '6*2Og_generate smaller code'#000+
-  '6*2OG_generate faster code (default)',#000+
+  '6*2OG','_generate faster code (default)'#000+
   '6*2Ox_optimize maximum (still BUGGY!!!)'#000+
   '6*2O2_set target processor to a MC68020+'#000+
   '6*1R<x>_assembler reading style:'#000+
   '6*2RMOT_read motorola style assembler'#000+
   '6*1T<x>_Target operating system:'#000+
-  '6*2TAMIGA_Commodore Amiga'#000+
+  '6*2TAMIGA_Commodore Ami','ga'#000+
   '6*2TATARI_Atari ST/STe/TT'#000+
-  '6*','2TMACOS_Macintosh m68k'#000+
+  '6*2TMACOS_Macintosh m68k'#000+
   '6*2TLINUX_Linux-68k'#000+
   '**1*_'#000+
   '**1?_shows this help'#000+

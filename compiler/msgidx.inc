@@ -312,6 +312,7 @@ type tmsgconst=(
   asmr_w_override_op_not_supported,
   asmr_e_building_record_offset,
   asmr_e_offset_without_identifier,
+  asmr_e_type_without_identifier,
   asmr_e_no_local_or_para_allowed,
   asmr_e_need_offset,
   asmr_e_cant_have_multiple_relocatable_symbols,

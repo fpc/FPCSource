@@ -1148,6 +1148,7 @@ asmr_e_none_label_contain_at=E_Non-label pattern contains @
 asmr_w_override_op_not_supported=W_Override operator not supported
 asmr_e_building_record_offset=E_Error building record offset
 asmr_e_offset_without_identifier=E_OFFSET used without identifier
+asmr_e_type_without_identifier=E_TYPE used without identifier
 asmr_e_no_local_or_para_allowed=E_Cannot use local variable or parameters here
 asmr_e_need_offset=E_need to use OFFSET here
 asmr_e_cant_have_multiple_relocatable_symbols=E_Cannot use multiple relocatable symbols

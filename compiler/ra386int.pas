@@ -775,6 +775,39 @@ Begin
           if actasmtoken<>AS_ID then
            Message(asmr_e_offset_without_identifier);
         end;
+      AS_TYPE:
+        begin
+          Consume(AS_TYPE);
+          if actasmtoken<>AS_ID then
+           Message(asmr_e_type_without_identifier)
+          else
+           begin
+
+             getsym(actasmpattern,false);
+             Consume(AS_ID);
+             if assigned(srsym) then
+              begin
+                l:=0;
+                case srsym^.typ of
+                  varsym :
+                    l:=pvarsym(srsym)^.getsize;
+                  typedconstsym :
+                    l:=ptypedconstsym(srsym)^.getsize;
+                  typesym :
+                    l:=ptypesym(srsym)^.definition^.size;
+                  else
+
+                    Message(asmr_e_wrong_sym_type);
+                end;
+
+                str(l,tempstr);
+                expr:=expr+tempstr;
+              end
+             else
+              Message1(sym_e_unknown_id,actasmpattern);
+           end;
+
+        end;
       AS_STRING:
         Begin
           l:=0;
@@ -1079,6 +1112,7 @@ Begin
           GotStar:=false;
         end;
 
+      AS_TYPE,
       AS_NOT,
       AS_INTNUM,
       AS_LPAREN : { Constant reference expression }
@@ -1209,6 +1243,7 @@ Begin
   case actasmtoken of
 
     AS_OFFSET,
+    AS_TYPE,
     AS_INTNUM,
     AS_PLUS,
     AS_MINUS,
@@ -1700,7 +1735,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  1999-08-13 21:28:36  peter
+  Revision 1.44  1999-09-07 07:45:41  peter
+    * TYPE support
+
+  Revision 1.43  1999/08/13 21:28:36  peter
     * more reference types support
     * arraydef size returns elementsize, also for multiple indexing array
 
