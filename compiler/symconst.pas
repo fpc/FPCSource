@@ -278,7 +278,7 @@ type
     vs_set_but_first_not_passed,vs_assigned,vs_used
   );
 
-  tvarspez = (vs_value,vs_const,vs_var,vs_out);
+  tvarspez = (vs_value,vs_const,vs_var,vs_out,vs_hidden);
 
   targconvtyp = (act_convertable,act_equal,act_exact);
 
@@ -339,7 +339,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  2002-12-05 14:44:38  florian
+  Revision 1.39  2002-12-15 11:26:02  peter
+    * ignore vs_hidden parameters when choosing overloaded proc
+
+  Revision 1.38  2002/12/05 14:44:38  florian
     + oo_dispinterface added
 
   Revision 1.37  2002/11/29 22:31:20  carl

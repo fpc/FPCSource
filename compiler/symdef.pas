@@ -522,7 +522,7 @@ interface
           procedure setmangledname(const s : string);
           procedure load_references(ppufile:tcompilerppufile;locals:boolean);
           function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;
-          { inserts the local symbol table, if this is not 
+          { inserts the local symbol table, if this is not
             no local symbol table is built. Should be called only
             when we are sure that a local symbol table will be required.
           }
@@ -3045,9 +3045,13 @@ implementation
         hp.paratype:=tt;
         hp.defaultvalue:=defval;
         Para.insert(hp);
-        if not assigned(defval) then
-         inc(minparacount);
-        inc(maxparacount);
+        { Don't count hidden parameters }
+        if (vsp<>vs_hidden) then
+         begin
+           if not assigned(defval) then
+            inc(minparacount);
+           inc(maxparacount);
+         end;
       end;
 
 
@@ -3109,9 +3113,13 @@ implementation
             hp.parasym:=tsym(ppufile.getderef);
             { later, we'll gerate this on the fly (FK) }
             ppufile.getdata(hp.paraloc,sizeof(tparalocation));
-            if not assigned(hp.defaultvalue) then
-             inc(minparacount);
-            inc(maxparacount);
+            { Don't count hidden parameters }
+            if (hp.paratyp<>vs_hidden) then
+             begin
+               if not assigned(hp.defaultvalue) then
+                inc(minparacount);
+               inc(maxparacount);
+             end;
             Para.concat(hp);
           end;
       end;
@@ -5514,7 +5522,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.115  2002-12-07 14:27:09  carl
+  Revision 1.116  2002-12-15 11:26:02  peter
+    * ignore vs_hidden parameters when choosing overloaded proc
+
+  Revision 1.115  2002/12/07 14:27:09  carl
     * 3% memory optimization
     * changed some types
     + added type checking with different size for call node and for

@@ -1248,15 +1248,17 @@ type
         hp:=procs;
         while assigned(hp) do
          begin
+           { Setup first parameter to compare }
            currparanr:=paralength;
            currpara:=hp^.firstpara;
+           while assigned(currpara) and (currpara.paratyp=vs_hidden) do
+             currpara:=tparaitem(currpara.next);
            pt:=tcallparanode(left);
-           while assigned(pt) do
+           while assigned(pt) and assigned(currpara) do
             begin
               { retrieve current parameter definitions to compares }
               def_from:=pt.resulttype.def;
               def_to:=currpara.paratype.def;
-{$ifdef extdebug}
               if not(assigned(def_from)) then
                internalerror(200212091);
               if not(
@@ -1265,7 +1267,6 @@ type
                       (currparanr>hp^.data.minparacount))
                     ) then
                internalerror(200212092);
-{$endif extdebug}
 
               { varargs are always equal, but not exact }
               if (po_varargs in hp^.data.procoptions) and
@@ -1289,9 +1290,9 @@ type
                  begin
                    inc(hp^.equal_count);
                    hp^.ordinal_distance:=hp^.ordinal_distance+
-                     abs(bestreal(torddef(def_from).low-torddef(def_to).low));
+                     abs(bestreal(torddef(def_from).low)-bestreal(torddef(def_to).low));
                    hp^.ordinal_distance:=hp^.ordinal_distance+
-                     abs(bestreal(torddef(def_to).high-torddef(def_from).high));
+                     abs(bestreal(torddef(def_to).high)-bestreal(torddef(def_from).high));
                  end
               else
               { generic type comparision }
@@ -1350,10 +1351,17 @@ type
                 if we're out of the varargs }
               if not(po_varargs in hp^.data.procoptions) or
                  (currparanr<=hp^.data.maxparacount) then
-                currpara:=tparaitem(currpara.next);
+               begin
+                 { Ignore vs_hidden parameters }
+                 repeat
+                   currpara:=tparaitem(currpara.next);
+                 until (not assigned(currpara)) or (currpara.paratyp<>vs_hidden);
+               end;
               dec(currparanr);
             end;
-
+           if not(hp^.invalid) and
+              (assigned(pt) or assigned(currpara) or (currparanr<>0)) then
+             internalerror(200212141);
            { next candidate }
            hp:=hp^.next;
          end;
@@ -1497,6 +1505,8 @@ type
 
               { check the amount of parameters }
               pdc:=tparaitem(procdefinition.Para.first);
+              while assigned(pdc) and (pdc.paratyp=vs_hidden) do
+                pdc:=tparaitem(pdc.next);
               pt:=tcallparanode(left);
               lastpara:=paralength;
               while assigned(pdc) and assigned(pt) do
@@ -1504,7 +1514,11 @@ type
                   { only goto next para if we're out of the varargs }
                   if not(po_varargs in procdefinition.procoptions) or
                      (lastpara<=procdefinition.maxparacount) then
-                    pdc:=tparaitem(pdc.next);
+                   begin
+                     repeat
+                       pdc:=tparaitem(pdc.next);
+                     until (not assigned(pdc)) or (pdc.paratyp<>vs_hidden);
+                   end;
                   pt:=tcallparanode(pt.right);
                   dec(lastpara);
                 end;
@@ -1633,7 +1647,7 @@ type
                  while assigned(pdc) do
                   begin
                     if not assigned(pdc.defaultvalue) then
-                     internalerror(751349858);
+                     internalerror(200212142);
                     left:=ccallparanode.create(genconstsymtree(tconstsym(pdc.defaultvalue)),left);
                     pdc:=tparaitem(pdc.previous);
                   end;
@@ -2178,7 +2192,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.117  2002-12-11 22:42:28  peter
+  Revision 1.118  2002-12-15 11:26:02  peter
+    * ignore vs_hidden parameters when choosing overloaded proc
+
+  Revision 1.117  2002/12/11 22:42:28  peter
     * tcallnode.det_resulttype rewrite, merged code from nice_ncal and
       the old code. The new code collects the information about possible
       candidates only once resultting in much less calls to type compare
