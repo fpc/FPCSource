@@ -139,6 +139,21 @@ function Min(a, b: Extended): Extended;
 function Max(a, b: Extended): Extended;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
+function InRange(const AValue, AMin, AMax: Integer): Boolean; 
+function InRange(const AValue, AMin, AMax: Int64): Boolean; 
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function InRange(const AValue, AMin, AMax: Double): Boolean; 
+{$endif FPC_HAS_TYPE_DOUBLE}
+
+function EnsureRange(const AValue, AMin, AMax: Integer): Integer; 
+function EnsureRange(const AValue, AMin, AMax: Int64): Int64; 
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function EnsureRange(const AValue, AMin, AMax: Double): Double; 
+{$endif FPC_HAS_TYPE_DOUBLE}
+
+
+ 
+
 
 // Sign functions
 Type
@@ -149,9 +164,20 @@ const
   ZeroValue = 0;
   PositiveValue = High(TValueSign);
       
-function Sign(const AValue: Integer): TValueSign; overload;
-function Sign(const AValue: Int64): TValueSign; overload;
-function Sign(const AValue: Double): TValueSign; overload;
+function Sign(const AValue: Integer): TValueSign; 
+function Sign(const AValue: Int64): TValueSign; 
+function Sign(const AValue: Double): TValueSign; 
+
+function IsZero(const A: Single; Epsilon: Single): Boolean; 
+function IsZero(const A: Single): Boolean; 
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function IsZero(const A: Double; Epsilon: Double): Boolean; 
+function IsZero(const A: Double): Boolean; 
+{$endif FPC_HAS_TYPE_DOUBLE}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function IsZero(const A: Extended; Epsilon: Extended): Boolean; 
+function IsZero(const A: Extended): Boolean; 
+{$endif FPC_HAS_TYPE_EXTENDED}
         
 { angle conversion }
 
@@ -1061,10 +1087,117 @@ begin
 end;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
+function InRange(const AValue, AMin, AMax: Integer): Boolean; 
+
+begin
+  Result:=(AValue>=AMin) and (AValue<=AMax);
+end;
+
+function InRange(const AValue, AMin, AMax: Int64): Boolean; 
+begin
+  Result:=(AValue>=AMin) and (AValue<=AMax);
+end;
+
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function InRange(const AValue, AMin, AMax: Double): Boolean; 
+
+begin
+  Result:=(AValue>=AMin) and (AValue<=AMax);
+end;
+{$endif FPC_HAS_TYPE_DOUBLE}
+
+function EnsureRange(const AValue, AMin, AMax: Integer): Integer; 
+
+begin
+  Result:=AValue;
+  If Result<AMin then
+    Result:=AMin
+  else if Result>AMax then  
+    Result:=AMax;
+end;
+
+function EnsureRange(const AValue, AMin, AMax: Int64): Int64; 
+
+begin
+  Result:=AValue;
+  If Result<AMin then
+    Result:=AMin
+  else if Result>AMax then  
+    Result:=AMax;
+end;
+
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function EnsureRange(const AValue, AMin, AMax: Double): Double; 
+
+begin
+  Result:=AValue;
+  If Result<AMin then
+    Result:=AMin
+  else if Result>AMax then  
+    Result:=AMax;
+end;
+{$endif FPC_HAS_TYPE_DOUBLE}
+
+Const 
+  EZeroResolution = 1E-16;
+  DZeroResolution = 1E-12;
+  SZeroResolution = 1E-4;
+
+
+function IsZero(const A: Single; Epsilon: Single): Boolean; 
+
+begin
+  if (Epsilon=0) then
+    Epsilon:=SZeroResolution;
+  Result:=Abs(A)<=Epsilon;
+end;
+
+function IsZero(const A: Single): Boolean; 
+
+begin
+  Result:=IsZero(A,SZeroResolution);
+end;
+
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function IsZero(const A: Double; Epsilon: Double): Boolean; 
+
+begin
+  if (Epsilon=0) then
+    Epsilon:=DZeroResolution;
+  Result:=Abs(A)<=Epsilon;
+end;
+
+function IsZero(const A: Double): Boolean; 
+
+begin
+  Result:=IsZero(A,DZeroResolution);
+end;
+{$endif FPC_HAS_TYPE_DOUBLE}
+
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function IsZero(const A: Extended; Epsilon: Extended): Boolean; 
+
+begin
+  if (Epsilon=0) then
+    Epsilon:=EZeroResolution;
+  Result:=Abs(A)<=Epsilon;
+end;
+
+function IsZero(const A: Extended): Boolean; 
+
+begin
+  Result:=IsZero(A,EZeroResolution);
+end;
+{$endif FPC_HAS_TYPE_EXTENDED}
+
+
 end.
 {
   $Log$
-  Revision 1.15  2003-11-09 21:52:54  michael
+  Revision 1.16  2004-02-09 08:55:45  michael
+  + Missing functions IsZero,InRange,EnsureRange implemented
+
+  Revision 1.15  2003/11/09 21:52:54  michael
   + Added missing sign functions
 
   Revision 1.14  2003/10/29 19:10:07  jonas
