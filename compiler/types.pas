@@ -981,6 +981,10 @@ implementation
 
 
     function is_subequal(def1, def2: pdef): boolean;
+
+      var
+         basedef1,basedef2 : penumdef;
+
       Begin
         is_subequal := false;
         if assigned(def1) and assigned(def2) then
@@ -1003,10 +1007,23 @@ implementation
             Begin
               { I assume that both enumerations are equal when the first }
               { pointers are equal.                                      }
-              if (def1^.deftype = enumdef) and (def2^.deftype =enumdef) then
+
+              { I changed this to assume that the enums are equal }
+              { if the basedefs are equal (FK)                    }
+              if (def1^.deftype=enumdef) and (def2^.deftype=enumdef) then
                 Begin
-                  if penumdef(def1)^.firstenum = penumdef(def2)^.firstenum then
-                     is_subequal := TRUE;
+                   { get both basedefs }
+                   basedef1:=penumdef(def1);
+                   while assigned(basedef1^.basedef) do
+                     basedef1:=basedef1^.basedef;
+                   basedef2:=penumdef(def2);
+                   while assigned(basedef2^.basedef) do
+                     basedef2:=basedef2^.basedef;
+                   is_subequal:=basedef1=basedef2;
+                   {
+                   if penumdef(def1)^.firstenum = penumdef(def2)^.firstenum then
+                      is_subequal := TRUE;
+                   }
                 end;
             end;
         end; { endif assigned ... }
@@ -1041,7 +1058,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.99  2000-03-01 15:36:12  florian
+  Revision 1.100  2000-05-28 15:22:54  florian
+    * fixed a problem with subrange enumerations in case statements
+
+  Revision 1.99  2000/03/01 15:36:12  florian
     * some new stuff for the new cg
 
   Revision 1.98  2000/02/28 17:23:57  daniel
