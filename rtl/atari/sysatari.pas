@@ -55,8 +55,6 @@ const
 
     var
       errno : integer;
-    type
-       plongint = ^longint;
 
 {$S-}
     procedure Stack_Check; assembler;
@@ -66,10 +64,11 @@ const
           XDEF STACKCHECK
            move.l  sp,d1            { get value of stack pointer            }
            sub.l   d0,d1            {  sp - stack_size                      }
-           cmp.l    __BREAK,d1
-           bgt      @st1nosweat
-           move.l   #202,d0
-           jsr      HALT_ERROR
+           sub.l   #2048,d1
+           cmp.l   __BREAK,d1
+           bgt     @st1nosweat
+           move.l  #202,d0
+           jsr     HALT_ERROR
          @st1nosweat:
          end;
 
@@ -210,6 +209,10 @@ const
          else paramstr:='';
       end;
 
+      function paramcount : longint;
+      Begin
+        paramcount := argc;
+      end;
 
 
 
@@ -716,8 +719,8 @@ end.
 
 {
   $Log$
-  Revision 1.7  1998-07-14 12:12:05  carl
-    + paramstr and paramcount implemented
+  Revision 1.8  1998-07-15 12:11:59  carl
+    * hmmm... can't remember! :(...
 
   Revision 1.5  1998/07/13 12:34:13  carl
     + Error2InoutRes implemented
