@@ -128,6 +128,7 @@ const
   uf_has_resources = $800; { unit has resource section }
   uf_little_endian = $1000;
   uf_release       = $2000;{ unit was compiled with -Ur option }
+  uf_local_threadvars = $4000;  { unit has local threadvars }
 
 type
   ppureal=extended;
@@ -986,7 +987,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  2001-12-06 17:57:37  florian
+  Revision 1.15  2002-03-28 16:07:52  armin
+  + initialize threadvars defined local in units
+
+  Revision 1.14  2001/12/06 17:57:37  florian
     + parasym to tparaitem added
 
   Revision 1.13  2001/09/22 04:51:58  carl

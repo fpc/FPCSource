@@ -2115,12 +2115,9 @@ implementation
        exprasmlist:=alist;
        if (not inlined) and (aktprocdef.proctypeoption=potype_proginit) then
            begin
-              emitinsertcall('FPC_INITIALIZEUNITS');
-              { initialize profiling for win32 }
-              if (target_info.target=target_I386_WIN32) and
-                 (cs_profile in aktmoduleswitches) then
-                emitinsertcall('__monstartup');
-              { add threadvars }
+	      emitinsertcall('FPC_INITIALIZEUNITS');
+	      
+	      { add global threadvars }
               oldlist:=exprasmlist;
               exprasmlist:=TAAsmoutput.Create;
               p:=symtablestack;
@@ -2132,6 +2129,16 @@ implementation
               oldList.insertlist(exprasmlist);
               exprasmlist.free;
               exprasmlist:=oldlist;
+	      
+	      { add local threadvars in units (only if needed because not all platforms
+	        have threadvar support) }
+	      if have_local_threadvars then
+	        emitinsertcall('FPC_INITIALIZELOCALTHREADVARS');
+              
+              { initialize profiling for win32 }
+              if (target_info.target=target_I386_WIN32) and
+                 (cs_profile in aktmoduleswitches) then
+                emitinsertcall('__monstartup');
            end;
 
 {$ifdef GDB}
@@ -2987,7 +2994,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2002-03-04 19:10:12  peter
+  Revision 1.17  2002-03-28 16:07:52  armin
+  + initialize threadvars defined local in units
+
+  Revision 1.16  2002/03/04 19:10:12  peter
     * removed compiler warnings
 
   Revision 1.15  2002/01/24 18:25:53  peter

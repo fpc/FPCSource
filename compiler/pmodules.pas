@@ -214,7 +214,10 @@ implementation
         dataSegment.concatlist(ResourceStringTables);
         ResourceStringTables.free;
       end;
-
+      
+      
+      
+      
 
     procedure InsertInitFinalTable;
       var
@@ -672,6 +675,67 @@ implementation
            procdef:=aktprocdef;
          end;
       end;
+      
+    procedure insertLocalThreadvarsTablesTable;
+      var
+        hp : tused_unit;
+        ltvTables : taasmoutput;
+        count : longint;
+      begin
+        ltvTables:=TAAsmOutput.Create;
+        count:=0;
+        hp:=tused_unit(usedunits.first);
+        while assigned(hp) do
+         begin
+           If (hp.u.flags and uf_local_threadvars)=uf_local_threadvars then
+            begin
+              ltvTables.concat(Tai_const_symbol.Createname(hp.u.modulename^+'_$LOCALTHREADVARLIST'));
+              inc(count);
+            end;
+           hp:=tused_unit(hp.next);
+         end;
+        { TableCount }
+        ltvTables.insert(Tai_const.Create_32bit(count));
+        ltvTables.insert(Tai_symbol.Createdataname_global('FPC_LOCALTHREADVARTABLES',0));
+        ltvTables.concat(Tai_symbol_end.Createname('FPC_LOCALTHREADVARTABLES'));
+        { insert in data segment }
+        if (cs_create_smart in aktmoduleswitches) then
+          dataSegment.concat(Tai_cut.Create);
+        dataSegment.concatlist(ltvTables);
+        ltvTables.free;
+	if count > 0 then
+  	  have_local_threadvars := true;
+      end;
+      
+      
+      
+    var ltvTable : taasmoutput;
+      
+    procedure addToLocalThreadvarTab(p:tnamedindexitem);
+      var
+        vs   : tvarsym;
+        s    : string;
+	asym : tasmsymbol;
+      begin
+        with tvarsym(p) do
+         begin
+	   if (typ=varsym) and (vo_is_thread_var IN varoptions) then
+	   begin
+	     if ltvTable = nil then
+	     begin   { first threadvar }
+	       ltvTable := TAAsmOutput.Create;
+	       ltvTable.insert(tai_symbol.createdataname_global(current_module.modulename^+'_$LOCALTHREADVARLIST',0));
+	     end;
+	     asym := getasmsymbol('_' + name);
+	     if asym <> nil then
+	     begin
+	       ltvTable.concat(tai_const_symbol.create(asym));    { address of threadvar }
+	       ltvTable.concat(tai_const.create_32bit(getsize));  { size of threadvar }
+	     end;
+	   end;
+         end;
+      end;
+      
 
 
     procedure proc_unit;
@@ -688,7 +752,7 @@ implementation
           ((resourcestringlist=nil) or resourcestringList.empty)
         );
       end;
-
+      
       var
          main_file: tinputfile;
          st     : tsymtable;
@@ -949,6 +1013,18 @@ implementation
                 codeSegment.concat(Tai_cut.Create);
               genimplicitunitfinal(codesegment);
            end;
+	 
+	 { generate a list of local threadvars }  
+	 ltvTable := nil;
+	 st.foreach_static (@addToLocalThreadvarTab);
+	 if ltvTable <> nil then
+	 begin
+	   ltvTable.concat(tai_const.create_32bit(0));  { end of list marker }
+	   ltvTable.concat(tai_symbol_end.createname(current_module.modulename^+'_$LOCALTHREADVARLIST'));
+	   dataSegment.concatlist(ltvTable);
+	   ltvTable.Free;
+	   current_module.flags:=current_module.flags or uf_local_threadvars;
+	 end;
 
          { the last char should always be a point }
          consume(_POINT);
@@ -1223,7 +1299,10 @@ implementation
             aktprocdef.aliasnames.insert('PASCALMAIN');
             aktprocdef.aliasnames.insert(target_info.cprefix+'main');
           end;
+	  writeLn ('1');
+	 insertLocalThreadvarsTablesTable;
          compile_proc_body(true,false);
+	  writeln ('2');
 
          { Add symbol to the exports section for win32 so smartlinking a
            DLL will include the edata section }
@@ -1299,6 +1378,7 @@ implementation
 
          { insert heap }
          insertResourceTablesTable;
+	 
          insertinitfinaltable;
          insertheap;
          inserttargetspecific;
@@ -1349,7 +1429,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  2002-01-24 18:25:49  peter
+  Revision 1.52  2002-03-28 16:07:52  armin
+  + initialize threadvars defined local in units
+
+  Revision 1.51  2002/01/24 18:25:49  peter
    * implicit result variable generation for assembler routines
    * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
 

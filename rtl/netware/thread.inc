@@ -1,5 +1,5 @@
 {
-    $Id: 
+    $Id$
     This file is part of the Free Pascal run time library.
     Copyright (c) 2001-2002 by the Free Pascal development team.
 
@@ -52,6 +52,44 @@ begin
   {$endif DEBUG_MT}
 end;
 
+type ltvInitEntry = 
+  record
+    varaddr : pdword;
+    size    : longint;
+  end;
+  pltvInitEntry = ^ltvInitEntry;
+
+procedure init_unit_threadvars (tableEntry : pltvInitEntry);
+begin
+  while tableEntry^.varaddr <> nil do
+  begin
+    {$ifdef DEBUG_MT}
+    ConsolePrintf3(#13'init_unit_threadvars, size: %d, addr: %d'#13#10,tableEntry^.size,dword(tableEntry^.varaddr),0);
+    {$endif}
+    init_threadvar (tableEntry^.varaddr^, tableEntry^.size);
+    inc (pchar (tableEntry), sizeof (tableEntry^));
+  end;
+end;
+
+type TltvInitTablesTable =
+  record
+    count : dword;
+    tables: array [1..32767] of pltvInitEntry;
+  end;
+  
+var
+  ThreadvarTablesTable : TltvInitTablesTable; external name 'FPC_LOCALTHREADVARTABLES';
+  
+procedure init_all_unit_threadvars; [public,alias: 'FPC_INITIALIZELOCALTHREADVARS'];
+var i : integer;
+begin
+  {$ifdef DEBUG_MT}
+  ConsolePrintf(#13'init_all_unit_threadvars (%d) units'#13#10,ThreadvarTablesTable.count);
+  {$endif}
+  for i := 1 to ThreadvarTablesTable.count do
+    init_unit_threadvars (ThreadvarTablesTable.tables[i]);
+  
+end;
 
 {$ifdef DEBUG_MT}
 var dummy_buff : array [0..255] of char;  // to avoid abends (for current compiler error that not all threadvars are initialized)
@@ -275,8 +313,15 @@ end;
 procedure InitCriticalSection(var cs : TRTLCriticalSection);
 begin
   cs.SemaHandle := _OpenLocalSemaphore (1);
-  cs.SemaIsOpen := true;
-  SaveSema (cs.SemaHandle);
+  if cs.SemaHandle <> 0 then
+  begin
+    cs.SemaIsOpen := true;
+    SaveSema (cs.SemaHandle);
+  end else
+  begin
+    cs.SemaIsOpen := false;
+    ConsolePrintf (#13'fpc-rtl: InitCriticalsection, OpenLocalSemaphore returned error'#13#10,0);
+  end;
 end;
 
 procedure DoneCriticalsection(var cs : TRTLCriticalSection);
@@ -310,7 +355,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2002-03-17 17:57:33  armin
+  Revision 1.2  2002-03-28 16:11:17  armin
+  + initialize threadvars defined local in units
+
+  Revision 1.1  2002/03/17 17:57:33  armin
   + threads and winsock2 implemented
 
 }

@@ -143,6 +143,7 @@ interface
        statement_level : integer;
        exceptblockcounter    : integer;  { each except block gets a unique number check gotos      }
        aktexceptblock        : integer;  { the exceptblock number of the current block (0 if none) }
+       have_local_threadvars : boolean;  { set if a table of local threadvars-tables is present and has to be initialized }
 
      { commandline values }
        initdefines        : tstringlist;
@@ -1442,6 +1443,8 @@ implementation
         not_unit_proc:=true;
 
         apptype:=app_cui;
+	
+	have_local_threadvars := false;
      end;
 
 {$ifdef EXTDEBUG}
@@ -1453,7 +1456,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.51  2002-01-24 18:25:48  peter
+  Revision 1.52  2002-03-28 16:07:52  armin
+  + initialize threadvars defined local in units
+
+  Revision 1.51  2002/01/24 18:25:48  peter
    * implicit result variable generation for assembler routines
    * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
 
