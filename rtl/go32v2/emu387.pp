@@ -134,7 +134,7 @@ begin
         getenv:=copy(hs,eqpos+1,255);
         exit;
       end;
-     hp:=hp+4;
+     inc(hp);
    end;
 end;
 
@@ -217,7 +217,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  1999-04-28 00:27:43  pierre
+  Revision 1.5  1999-09-08 18:55:50  peter
+    * pointer fixes
+
+  Revision 1.4  1999/04/28 00:27:43  pierre
    * bug0230 fixed OVERFLOW and DIVZ cause FPU exception
 
   Revision 1.3  1999/04/08 12:22:59  peter

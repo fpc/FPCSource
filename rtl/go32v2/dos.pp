@@ -956,7 +956,7 @@ begin
   while assigned(hp^) do
    begin
      inc(envcount);
-     hp:=hp+4;
+     inc(hp);
    end;
 end;
 
@@ -968,7 +968,7 @@ begin
      envstr:='';
      exit;
    end;
-  envstr:=strpas(ppchar(envp+4*(index-1))^);
+  envstr:=strpas(ppchar(pointer(envp)+4*(index-1))^);
 end;
 
 
@@ -990,7 +990,7 @@ begin
         getenv:=copy(hs,eqpos+1,255);
         exit;
       end;
-     hp:=hp+4;
+     inc(hp);
    end;
 end;
 
@@ -1015,7 +1015,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.10  1999-08-13 21:23:15  peter
+  Revision 1.11  1999-09-08 18:55:49  peter
+    * pointer fixes
+
+  Revision 1.10  1999/08/13 21:23:15  peter
     * fsearch checks first if the specified file exists and returns that
       if it was found
 
