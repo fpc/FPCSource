@@ -100,6 +100,7 @@ implementation
          s : stringid;
          old_block_type : tblock_type;
          declarepos,storetokenpos : tfileposinfo;
+         oldsymtablestack : psymtable;
          symdone : boolean;
          { to handle absolute }
          abssym : pabsolutesym;
@@ -162,7 +163,17 @@ implementation
              { this is needed for Delphi mode at least
                but should be OK for all modes !! (PM) }
              ignore_equal:=true;
-             read_type(tt,'');
+             if is_record then
+              begin
+                { for records, don't search the recordsymtable for
+                  the symbols of the types }
+   	            oldsymtablestack:=symtablestack;
+	            symtablestack:=symtablestack^.next;
+                read_type(tt,'');
+	            symtablestack:=oldsymtablestack;
+	          end
+	         else
+	          read_type(tt,'');   
              if (variantrecordlevel>0) and tt.def^.needs_inittable then
                Message(parser_e_cant_use_inittable_here);
              ignore_equal:=false;
@@ -436,12 +447,24 @@ implementation
               getsym(s,false);
               { may be only a type: }
               if assigned(srsym) and (srsym^.typ in [typesym,unitsym]) then
-                read_type(casetype,'')
+               begin
+                 { for records, don't search the recordsymtable for
+                   the symbols of the types }
+                 oldsymtablestack:=symtablestack;
+	             symtablestack:=symtablestack^.next;
+                 read_type(casetype,'');
+	             symtablestack:=oldsymtablestack;
+	           end
               else
                 begin
                   consume(_ID);
                   consume(_COLON);
+                  { for records, don't search the recordsymtable for
+                    the symbols of the types }
+                  oldsymtablestack:=symtablestack;
+	              symtablestack:=symtablestack^.next;
                   read_type(casetype,'');
+  	              symtablestack:=oldsymtablestack;
                   symtablestack^.insert(new(pvarsym,init(s,casetype)));
                 end;
               if not(is_ordinal(casetype.def)) or is_64bitint(casetype.def)  then
@@ -515,7 +538,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2000-12-25 00:07:27  peter
+  Revision 1.7  2001-02-20 11:19:45  marco
+   * Fix passing tvarrec to array of const
+
+  Revision 1.6  2000/12/25 00:07:27  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 
