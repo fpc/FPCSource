@@ -128,7 +128,7 @@ ASMEXT=.asm
 
 # Define Linux Units
 SYSTEMPPU=sysamiga$(PPUEXT)
-OBJECTS=strings
+OBJECTS=strings exec dos crt printer objects objpas
 
 PRT=prt0
 LOADERAS=$(PRT).as
@@ -179,13 +179,16 @@ strings$(PPUEXT) : ../template/strings.pp $(SYSTEMPPU)
 	$(PP) $(OPT) strings $(REDIR)
 	$(DEL) strings.pp
 
+exec$(PPUEXT) : exec.pp exec.inc $(SYSTEMPPU)
+	$(PP) $(OPT) exec $(REDIR)
+
 #
 # Delphi Object Model
 #
 
 objpas$(PPUEXT) : $(OBJPASDIR)/objpas.pp $(SYSTEMPPU)
 	$(COPY) $(OBJPASDIR)/objpas.pp .
-	$(PP) $(OPT) objpas $(REDIR)
+	$(PP) $(OPT) -I$(INC) objpas $(REDIR)
 	$(DEL) objpas.pp
 
 #
@@ -196,15 +199,18 @@ objpas$(PPUEXT) : $(OBJPASDIR)/objpas.pp $(SYSTEMPPU)
 # TP7 Compatible RTL Units
 #
 
-#dos$(PPUEXT) : $(DOSDEPS) $(SYSTEMPPU)
-#	$(PP) $(OPT) dos $(REDIR)
+dos$(PPUEXT) : $(DOSDEPS) $(SYSTEMPPU)
+	$(PP) $(OPT) -I$(INC) dos $(REDIR)
 
 crt$(PPUEXT) : crt.pp $(INC)/textrec.inc $(SYSTEMPPU)
-	$(PP) $(OPT) crt $(REDIR)
+	$(PP) $(OPT) -I$(INC) crt $(REDIR)
 
+printer$(PPUEXT) : printer.pp $(SYSTEMPPU)
+	$(PP) $(OPT) printer $(REDIR)
+	
 objects$(PPUEXT) : $(INC)/objects.pp objinc.inc $(SYSTEMPPU)
 	$(COPY) $(INC)/objects.pp .
-	$(PP) $(OPT) objects $(REDIR)
+	$(PP) $(OPT) -I$(INC) objects $(REDIR)
 	$(DEL) objects.pp
 
 #
@@ -250,7 +256,12 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.4  1998-10-13 16:31:14  pierre
+# Revision 1.5  1998-10-14 10:49:46  pierre
+#   * added some include directory command lines necessary
+#   * added some missing units
+#   + now compiles completely  with cross-compiler
+#
+# Revision 1.4  1998/10/13 16:31:14  pierre
 #  + added -AGAS for crosscompilers
 #
 # Revision 1.3  1998/10/13 08:07:01  pierre
