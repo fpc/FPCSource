@@ -2042,7 +2042,6 @@ const
 
     procedure tcgppc.g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:integer);
       var
-        lenref : treference;
         power,len  : longint;
 {$ifndef __NOWINPECOFF__}
         again,ok : tasmlabel;
@@ -2566,7 +2565,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.105  2003-06-07 18:57:04  jonas
+  Revision 1.106  2003-06-08 18:19:27  jonas
+    - removed duplicate identifier
+
+  Revision 1.105  2003/06/07 18:57:04  jonas
     + added freeintparaloc
     * ppc get/freeintparaloc now check whether the parameter regs are
       properly allocated/deallocated (and get an extra list para)
