@@ -114,7 +114,7 @@ type
       procedure   SetContent(ALines: PUnsortedStringCollection); virtual;
    public
      { Undo info storage }
-      procedure   AddAction(AAction: byte; AStartPos, AEndPos: TPoint; AText: string); virtual;
+      procedure   AddAction(AAction: byte; AStartPos, AEndPos: TPoint; AText: string;AFlags : longint); virtual;
       procedure   AddGroupedAction(AAction : byte); virtual;
       procedure   CloseGroupedAction(AAction : byte); virtual;
       function    GetUndoActionCount: sw_integer; virtual;
@@ -206,7 +206,7 @@ type
    {a}function    UpdateAttrsRange(FromLine, ToLine: sw_integer; Attrs: byte): sw_integer; virtual;
    public
      { Undo info storage }
-      procedure   AddAction(AAction: byte; AStartPos, AEndPos: TPoint; AText: string); virtual;
+      procedure   AddAction(AAction: byte; AStartPos, AEndPos: TPoint; AText: string;AFlags : longint); virtual;
       procedure   AddGroupedAction(AAction : byte); virtual;
       procedure   CloseGroupedAction(AAction : byte); virtual;
       function    GetUndoActionCount: sw_integer; virtual;
@@ -655,7 +655,7 @@ begin
       if StoreUndo then
         begin
           CP.X:=0;CP.Y:=I;
-          AddAction(eaDeleteLine,CP,CP,GetLineText(I));
+          AddAction(eaDeleteLine,CP,CP,GetLineText(I),0);
        end;
       Lines^.AtFree(I);
     end;
@@ -674,7 +674,7 @@ begin
   LinesInsert(-1,New(PLine, Init(@Self,S,0)));
 end;
 
-procedure TCodeEditorCore.AddAction(AAction: byte; AStartPos, AEndPos: TPoint; AText: string);
+procedure TCodeEditorCore.AddAction(AAction: byte; AStartPos, AEndPos: TPoint; AText: string;AFlags : longint);
 var
   ActionIntegrated : boolean;
   pa : PEditorAction;
@@ -712,7 +712,7 @@ begin
     end;
   if not ActionIntegrated then
     begin
-      UndoList^.Insert(New(PEditorAction,Init(AAction,AStartPos,AEndPos,AText)));
+      UndoList^.Insert(New(PEditorAction,Init(AAction,AStartPos,AEndPos,AText,AFlags)));
       if assigned(UndoList^.CurrentGroupedAction) then
         Inc(UndoList^.CurrentGroupedAction^.actionCount);
       UpdateUndoRedo(cmUndo,AAction);
@@ -1275,7 +1275,8 @@ end;
 procedure TCodeEditor.Undo;
 var
   Temp,Idx,Last,Count : Longint;
-  WasInserting,Is_grouped,Had_efNoIndent : boolean;
+  StoredFlags : longint;
+  WasInserting,IsGrouped,HadefNoIndent : boolean;
   MaxY,MinY : sw_integer;
   Line : String;
 
@@ -1302,12 +1303,12 @@ begin
       begin
         Count:=Core^.UndoList^.At(Last)^.ActionCount;
         Dec(Last);
-        Is_grouped:=true;
+        IsGrouped:=true;
       end
     else
       begin
         Count:=1;
-        Is_grouped:=false;
+        IsGrouped:=false;
       end;
     for Idx:=Last downto Last-Count+1 do
       with Core^.UndoList^.At(Idx)^ do
@@ -1358,10 +1359,13 @@ begin
             eaInsertLine :
               begin
                 SetCurPtr(EndPos.X,EndPos.Y);
-                SetDisplayText(EndPos.Y,Copy(GetDisplayText(EndPos.Y),EndPos.X+1,255));
+                Line:=Copy(GetDisplayText(StartPos.Y),1,StartPos.X);
+                If Length(Line)<StartPos.X then
+                  Line:=Line+CharStr(' ',StartPos.X-length(Line))+GetStr(Text);
+                SetDisplayText(StartPos.Y,Line+Copy(GetDisplayText(EndPos.Y),EndPos.X+1,255));
                 SetMinMax(EndPos.Y);
                 SetCurPtr(0,EndPos.Y);
-                BackSpace;
+                DeleteLine(EndPos.Y);
                 SetCurPtr(StartPos.X,StartPos.Y);
                 SetMinMax(StartPos.Y);
               end;
@@ -1369,13 +1373,13 @@ begin
               begin
                 SetCurPtr(EndPos.X,EndPos.Y);
                 SetMinMax(EndPos.Y);
-                Had_efNoIndent:=(GetFlags and efNoIndent)<>0;
+                HadefNoIndent:=(GetFlags and efNoIndent)<>0;
                 WasInserting:=GetInsertMode;
                 SetInsertMode(true);
                 SetFlags(GetFlags or efNoIndent);
                 InsertNewLine;
                 SetInsertMode(WasInserting);
-                if not Had_efNoIndent then
+                if not HadefNoIndent then
                   SetFlags(GetFlags and not efNoIndent);
                 {DelEnd; wrong for eaCut at least }
                 SetCurPtr(StartPos.X,StartPos.Y);
@@ -1399,7 +1403,7 @@ begin
           else
             UpdateUndoRedo(cmUndo,0);
         end;{Idx loop for grouped actions }
-      if is_grouped then
+      if IsGrouped then
         begin
           Idx:=Core^.UndoList^.Count-1;
           Core^.RedoList^.Insert(Core^.UndoList^.At(Idx));
@@ -1424,8 +1428,9 @@ end;
 
 procedure TCodeEditor.Redo;
 var
-  Temp,Idx,Last,Count : Longint;
-  WasInserting,Is_grouped,Had_efNoIndent : boolean;
+  Temp,Idx,i,Last,Count : Longint;
+  StoredFlags : longint;
+  WasInserting,IsGrouped,ShouldInsertText : boolean;
   Line : String;
   MaxY,MinY : sw_integer;
   procedure SetMinMax(y : sw_integer);
@@ -1451,12 +1456,12 @@ begin
       begin
         Count:=Core^.RedoList^.At(Last)^.ActionCount;
         Dec(Last);
-        Is_grouped:=true;
+        IsGrouped:=true;
       end
     else
       begin
         Count:=1;
-        Is_grouped:=false;
+        IsGrouped:=false;
       end;
     for Idx:=Last downto Last-Count+1 do
     with Core^.RedoList^.At(Idx)^ do
@@ -1502,16 +1507,18 @@ begin
         eaInsertLine :
           begin
             SetCurPtr(StartPos.X,StartPos.Y);
-            Had_efNoIndent:=(GetFlags and efNoIndent)<>0;
-            SetFlags(GetFlags or efNoIndent);
-            WasInserting:=GetInsertMode;
-            SetInsertMode(false);
+            StoredFlags:=GetFlags;
+            SetFlags(Flags);
             InsertNewLine;
-            SetInsertMode(WasInserting);
-            SetCurPtr(StartPos.X,StartPos.Y);
-            InsertText(GetStr(Text));
-            if not Had_efNoIndent then
-              SetFlags(GetFlags and not efNoIndent);
+            SetCurPtr(0,EndPos.Y);
+            Line:=GetStr(Text);
+            ShouldInsertText:=false;
+            for I:=1 to Length(Line) do
+              if Line[I]<>' ' then
+                ShouldInsertText:=true;
+            If ShouldInsertText then
+              InsertText(Line);
+            SetFlags(StoredFlags);
             SetCurPtr(EndPos.X,EndPos.Y);
             SetMinMax(StartPos.Y);
           end;
@@ -1545,7 +1552,7 @@ begin
         UpdateUndoRedo(cmRedo,0);
       Core^.RedoList^.atDelete(Idx);
       end;{ Idx loop for grouped action }
-      If is_grouped then
+      If IsGrouped then
         begin
           Idx:=Core^.RedoList^.count-1;
           Core^.UndoList^.Insert(Core^.RedoList^.At(Idx));
@@ -1688,9 +1695,9 @@ begin
   UpdateAttrsRange:=Core^.UpdateAttrsRange(FromLine,ToLine,Attrs);
 end;
 
-procedure TCodeEditor.AddAction(AAction: byte; AStartPos, AEndPos: TPoint; AText: string);
+procedure TCodeEditor.AddAction(AAction: byte; AStartPos, AEndPos: TPoint; AText: string;AFlags : longint);
 begin
-  Core^.AddAction(AAction,AStartPos,AEndPos,AText);
+  Core^.AddAction(AAction,AStartPos,AEndPos,AText,AFlags);
 end;
 
 procedure TCodeEditor.AddGroupedAction(AAction : byte);
@@ -2037,7 +2044,10 @@ end;
 END.
 {
  $Log$
- Revision 1.7  2002-01-25 14:15:35  pierre
+ Revision 1.8  2002-04-16 08:27:01  pierre
+  * fix for bug report 1869
+
+ Revision 1.7  2002/01/25 14:15:35  pierre
   * fix bug 1774
 
  Revision 1.6  2001/10/10 23:34:54  pierre

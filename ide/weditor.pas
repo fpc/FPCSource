@@ -300,6 +300,7 @@ type
       EndPos    : TPoint;
       Text      : PString;
       ActionCount : longint;
+      Flags : longint;
       Action    : byte;
       IsGrouped : boolean;
       TimeStamp : longint; { this is needed to keep track of line number &
@@ -311,7 +312,7 @@ type
                              the (probably) changed line & position information,
                              so, we can still jump to the right position in the
                              editor even when it is heavily modified - Gabor }
-      constructor init(act:byte; StartP,EndP:TPoint;Txt:String);
+      constructor init(act:byte; StartP,EndP:TPoint;Txt:String;AFlags : longint);
       constructor init_group(act:byte);
       function is_grouped_action : boolean;
       destructor done; virtual;
@@ -444,7 +445,7 @@ type
                   Attrs: byte): sw_integer; virtual;
    public
      { Undo info storage }
-   {a}procedure   AddAction(AAction: byte; AStartPos, AEndPos: TPoint; AText: string); virtual;
+   {a}procedure   AddAction(AAction: byte; AStartPos, AEndPos: TPoint; AText: string;AFlags : longint); virtual;
    {a}procedure   AddGroupedAction(AAction : byte); virtual;
    {a}procedure   CloseGroupedAction(AAction : byte); virtual;
    {a}function    GetUndoActionCount: sw_integer; virtual;
@@ -600,7 +601,7 @@ type
    {a}function    UpdateAttrsRange(FromLine, ToLine: sw_integer; Attrs: byte): sw_integer; virtual;
     public
      { Undo info storage }
-   {a}procedure   AddAction(AAction: byte; AStartPos, AEndPos: TPoint; AText: string); virtual;
+   {a}procedure   AddAction(AAction: byte; AStartPos, AEndPos: TPoint; AText: string;AFlags : longint); virtual;
    {a}procedure   AddGroupedAction(AAction : byte); virtual;
    {a}procedure   CloseGroupedAction(AAction : byte); virtual;
    {a}function    GetUndoActionCount: sw_integer; virtual;
@@ -2479,7 +2480,7 @@ begin
   Unlock(Editor);
 end;
 
-procedure TCustomCodeEditorCore.AddAction(AAction: byte; AStartPos, AEndPos: TPoint; AText: string);
+procedure TCustomCodeEditorCore.AddAction(AAction: byte; AStartPos, AEndPos: TPoint; AText: string;AFlags : longint);
 begin
   Abstract;
 end;
@@ -2901,7 +2902,7 @@ begin
         begin
           InsertLine(DestPos.Y,'');
           EPOS.X:=0;EPos.Y:=DestPos.Y;
-          AddAction(eaInsertLine,BPos,EPos,'');
+          AddAction(eaInsertLine,BPos,EPos,'',GetFlags);
           LimitsChanged;
         end;
 
@@ -2947,14 +2948,14 @@ begin
               SetLineText(DestPos.Y,DS+AfterS);
               BPos.X:=DestPos.X;BPos.Y:=DestPos.Y;
               EPOS.X:=DestPos.X+RX-RSX;EPos.Y:=DestPos.Y;
-              AddAction(eaInsertText,BPos,EPos,S);
+              AddAction(eaInsertText,BPos,EPos,S,GetFlags);
             end
           else
             begin
               SetLineText(DestPos.Y,DS);
               BPos.X:=DestPos.X;BPos.Y:=DestPos.Y;
               EPOS.X:=DestPos.X+RX-RSX;EPos.Y:=DestPos.Y;
-              AddAction(eaInsertText,BPos,EPos,S);
+              AddAction(eaInsertText,BPos,EPos,S,GetFlags);
             end;
           BPos.X:=EPos.X;
           if LineDelta=LineCount-1 then
@@ -3009,7 +3010,7 @@ begin
     AddChar(S[I]);
   InsertText:=true;
   SetStoreUndo(HoldUndo);
-  AddAction(eaInsertText,OldPos,CurPos,S);
+  AddAction(eaInsertText,OldPos,CurPos,S,GetFlags);
   UnLock;
 end;
 
@@ -3966,7 +3967,7 @@ begin
   UpdateAttrsRange:=-1;
 end;
 
-procedure TCustomCodeEditor.AddAction(AAction: byte; AStartPos, AEndPos: TPoint; AText: string);
+procedure TCustomCodeEditor.AddAction(AAction: byte; AStartPos, AEndPos: TPoint; AText: string;AFlags : longint);
 begin
   { Abstract }
 end;
@@ -4458,7 +4459,7 @@ begin
     { the only drawback is that we keep
       the original text even if Toggle where
       it is not really necessary PM }
-    Addaction(eaOverwriteText,StartPos,StartPos,Copy(S,X1+1,X2-X1+1));
+    Addaction(eaOverwriteText,StartPos,StartPos,Copy(S,X1+1,X2-X1+1),GetFlags);
     SetStoreUndo(false);
     for X:=X1 to X2 do
     begin
@@ -4478,7 +4479,7 @@ begin
   UpdateAttrsRange(StartP.Y,EndP.Y,attrAll);
   DrawLines(CurPos.Y);
   SetModified(true);
-  Addaction(eaMoveCursor,StartPos,CurPos,'');
+  Addaction(eaMoveCursor,StartPos,CurPos,'',GetFlags);
   SetStoreUndo(HoldUndo);
   UnLock;
 end;
@@ -4750,10 +4751,8 @@ begin
           EI^.Fold^.Collapse(false);
     end;
      SetStoreUndo(HoldUndo);
-     if not overwrite then
-       Addaction(eaInsertLine,SCP,CurPos,IndentStr)
-     else
-       AddAction(eaMoveCursor,SCP,CurPos,'');
+     { obsolete IndentStr is taken care of by the Flags PM }
+     Addaction(eaInsertLine,SCP,CurPos,CharStr(' ',i-1){IndentStr},GetFlags);
      SetStoreUndo(false);
     AdjustSelection(CurPos.X-SCP.X,CurPos.Y-SCP.Y);
   end else
@@ -4767,7 +4766,8 @@ begin
       SetStoreUndo(HoldUndo);
       UpdateAttrs(CurPos.Y,attrAll);
       SetCurPtr(Ind,CurPos.Y+1);
-      Addaction(eaInsertLine,SCP,CurPos,IndentStr);
+      { obsolete IndentStr is taken care of by the Flags PM }
+      Addaction(eaInsertLine,SCP,CurPos,''{IndentStr},GetFlags);
       SetStoreUndo(false);
     end
     else
@@ -4775,6 +4775,7 @@ begin
       UpdateAttrs(CurPos.Y,attrAll);
       SetStoreUndo(HoldUndo);
       SetCurPtr(Ind,CurPos.Y+1);
+      AddAction(eaMoveCursor,SCP,CurPos,'',GetFlags);
       SetStoreUndo(false);
     end;
   end;
@@ -4808,7 +4809,7 @@ begin
         SetLineText(CurPos.Y-1,S+GetLineText(CurPos.Y));
         SC1.X:=Length(S);SC1.Y:=CurPOS.Y-1;
         SetStoreUndo(HoldUndo);
-        AddAction(eaDeleteLine,SCP,SC1,GetLineText(CurPos.Y));
+        AddAction(eaDeleteLine,SCP,SC1,GetLineText(CurPos.Y),GetFlags);
         SetStoreUndo(false);
         DeleteLine(CurPos.Y);
         LimitsChanged;
@@ -4847,7 +4848,7 @@ begin
      SetLineText(CurPos.Y,copy(S,1,CI-1)+copy(S,OI,High(S)));
      SetCurPtr(CP,CurPos.Y);
      SetStoreUndo(HoldUndo);
-     Addaction(eaDeleteText,SCP,CurPos,Copy(S,CI,OI-CI));
+     Addaction(eaDeleteText,SCP,CurPos,Copy(S,CI,OI-CI),GetFlags);
      SetStoreUndo(false);
    end;
   UpdateAttrs(CurPos.Y,attrAll);
@@ -4877,8 +4878,8 @@ begin
         SetStoreUndo(HoldUndo);
         SCP.X:=0;SCP.Y:=CurPos.Y+1;
         AddGroupedAction(eaDelChar);
-        AddAction(eaMoveCursor,CurPos,SCP,'');
-        AddAction(eaDeleteLine,SCP,CurPos,GetLineText(CurPos.Y+1));
+        AddAction(eaMoveCursor,CurPos,SCP,'',GetFlags);
+        AddAction(eaDeleteLine,SCP,CurPos,GetLineText(CurPos.Y+1),GetFlags);
         CloseGroupedAction(eaDelChar);
         SetStoreUndo(false);
         DeleteLine(CurPos.Y+1);
@@ -4901,13 +4902,13 @@ begin
          else
           S:=Copy(S,1,CI-1)+CharStr(' ',GetTabSize-1)+Copy(S,CI+1,High(S));
          SetStoreUndo(HoldUndo);
-         Addaction(eaDeleteText,CurPos,CurPos,#9);
+         Addaction(eaDeleteText,CurPos,CurPos,#9,GetFlags);
          SetStoreUndo(false);
        end
      else
        begin
          SetStoreUndo(HoldUndo);
-         Addaction(eaDeleteText,CurPos,CurPos,S[CI]);
+         Addaction(eaDeleteText,CurPos,CurPos,S[CI],GetFlags);
          SetStoreUndo(false);
          Delete(S,CI,1);
        end;
@@ -5039,7 +5040,7 @@ begin
     UpdateAttrs(Max(0,CurPos.Y-1),attrAll);
     DrawLines(CurPos.Y);
     SetStoreUndo(HoldUndo);
-    AddAction(eaDeleteLine,SP,CurPos,S);
+    AddAction(eaDeleteLine,SP,CurPos,S,GetFlags);
     SetModified(true);
   end;
   Unlock;
@@ -5143,7 +5144,7 @@ begin
         begin
           SPos.X:=StartX;
           SPos.Y:=CurLine;
-          AddAction(eaDeleteText,SPos,SPos,Copy(S,StartX+1,EndX-StartX));
+          AddAction(eaDeleteText,SPos,SPos,Copy(S,StartX+1,EndX-StartX),GetFlags);
         end;
       Inc(CurLine);
       LastX:=SelStart.X;
@@ -5160,7 +5161,7 @@ begin
         begin
           SPos.X:=StartX;
           SPos.Y:=CurLine;
-          AddAction(eaDeleteText,SPos,SPos,Copy(S,StartX+1,High(S)));
+          AddAction(eaDeleteText,SPos,SPos,Copy(S,StartX+1,High(S)),GetFlags);
           S:=GetDisplayText(CurLine+LineCount-1);
         end;
       Inc(CurLine);
@@ -5174,7 +5175,7 @@ begin
         end;
       if GetStoreUndo then
         begin
-          AddAction(eaInsertText,SPos,SPos,Copy(S,EndX+1,High(S)));
+          AddAction(eaInsertText,SPos,SPos,Copy(S,EndX+1,High(S)),GetFlags);
         end;
     end;
   HideSelect;
@@ -5290,11 +5291,11 @@ begin
      S:=GetLineText(i);
      SetLineText(i,Ind+S);
      Pos.X:=0;Pos.Y:=i;
-     AddAction(eaInsertText,Pos,Pos,Ind);
+     AddAction(eaInsertText,Pos,Pos,Ind,GetFlags);
    end;
   SetCurPtr(CurPos.X,CurPos.Y);
   { must be added manually here PM }
-  AddAction(eaMoveCursor,Pos,CurPos,'');
+  AddAction(eaMoveCursor,Pos,CurPos,'',GetFlags);
   UpdateAttrsRange(SelStart.Y,SelEnd.Y,attrAll);
   DrawLines(CurPos.Y);
   SetModified(true);
@@ -5365,7 +5366,7 @@ begin
        begin
          Pos.Y:=i;
          Pos.X:=0;
-         AddAction(eaDeleteText,Pos,Pos,CharStr(' ',k));
+         AddAction(eaDeleteText,Pos,Pos,CharStr(' ',k),GetFlags);
        end;
    end;
   SetCurPtr(CurPos.X,CurPos.Y);
@@ -5630,9 +5631,9 @@ begin
  { must be before CloseBrackets !! }
   SetStoreUndo(HoldUndo);
   if Overwrite then
-    Addaction(eaOverwriteText,SP,CurPos,Copy(S,CI,length(SC)))
+    Addaction(eaOverwriteText,SP,CurPos,Copy(S,CI,length(SC)),GetFlags)
   else
-    Addaction(eaInsertText,SP,CurPos,SC);
+    Addaction(eaInsertText,SP,CurPos,SC,GetFlags);
   SetStoreUndo(false);
   if IsFlagSet(efAutoBrackets) then
     begin
@@ -5705,7 +5706,7 @@ begin
                   InsertLine(i,s);
                   BPos.X:=0;BPos.Y:=i;
                   EPOS.X:=Length(s);EPos.Y:=i;
-                  AddAction(eaInsertLine,BPos,EPos,GetDisplayText(i));
+                  AddAction(eaInsertLine,BPos,EPos,GetDisplayText(i),GetFlags);
                 end;
               if p13+1=p10 then
                 p13[0]:=#13
@@ -6388,7 +6389,7 @@ begin
 {  if ((CurPos.X<>OldPos.X) or (CurPos.Y<>OldPos.Y)) and (HighlightRow<>-1) then
     SetHighlightRow(-1);}
   if ((CurPos.X<>OldPos.X) or (CurPos.Y<>OldPos.Y)) then
-    AddAction(eaMoveCursor,OldPos,CurPos,'');
+    AddAction(eaMoveCursor,OldPos,CurPos,'',GetFlags);
   if ((CurPos.X<>OldPos.X) or (CurPos.Y<>OldPos.Y)) then
     PositionChanged;{UpdateIndicator;}
   UnLock;
@@ -6680,13 +6681,14 @@ begin
 end;
 
 
-constructor TEditorAction.init(act:byte; StartP,EndP:TPoint;Txt:String);
+constructor TEditorAction.init(act:byte; StartP,EndP:TPoint;Txt:String;AFlags : longint);
 begin
   Action:=act;
   StartPos:=StartP;
   EndPos:=EndP;
   Text:=NewStr(txt);
   ActionCount:=0;
+  Flags:=AFlags;
   IsGrouped:=false;
 end;
 
@@ -6694,6 +6696,7 @@ constructor TEditorAction.init_group(act:byte);
 begin
   Action:=act;
   ActionCount:=0;
+  Flags:=0;
   IsGrouped:=true;
 end;
 
@@ -7096,7 +7099,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.17  2002-01-25 14:15:35  pierre
+  Revision 1.18  2002-04-16 08:27:01  pierre
+   * fix for bug report 1869
+
+  Revision 1.17  2002/01/25 14:15:35  pierre
    * fix bug 1774
 
   Revision 1.16  2001/11/07 00:18:00  pierre
