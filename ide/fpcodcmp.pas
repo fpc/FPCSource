@@ -2,7 +2,7 @@ unit FPCodCmp; { CodeComplete }
 
 interface
 
-uses Objects,Drivers,
+uses Objects,Drivers,Dialogs,
      WUtils,WViews;
 
 type
@@ -17,6 +17,7 @@ type
       procedure   HandleEvent(var Event: TEvent); virtual;
     private
       CodeCompleteLB : PAdvancedListBox;
+      RB : PRadioButtons;
       procedure Add;
       procedure Edit;
       procedure Delete;
@@ -30,12 +31,16 @@ function  StoreCodeComplete(var S: TStream): boolean;
 procedure DoneCodeComplete;
 
 const CodeCompleteWords : PCodeCompleteWordList = nil;
+type
+      TCodeCompleteCase = (ccc_unchanged, ccc_lower, ccc_upper, ccc_mixed);
+const
+     CodeCompleteCase : TCodeCompleteCase = ccc_unchanged;
 
 procedure RegisterCodeComplete;
 
 implementation
 
-uses Views,Dialogs,MsgBox,
+uses Views,MsgBox,
 {$ifdef FVISION}
      FVConsts,
 {$else}
@@ -64,7 +69,12 @@ begin
     Text:=CodeCompleteWords^.Lookup(WordS,Index);
     OK:=(Index<>-1) and (length(Text)<>length(WordS));
   end;
-  if OK=false then Text:='';
+  if OK=false then Text:=''
+  else case CodeCompleteCase of
+    ccc_upper : Text:=UpcaseStr(Text);
+    ccc_lower : Text:=LowcaseStr(Text);
+    ccc_mixed : Text:=UpCase(Text[1])+LowCaseStr(Copy(Text,2,High(Text)));
+  end;
   FPCompleteCodeWord:=OK;
 end;
 
@@ -97,6 +107,7 @@ begin
     begin
       if Assigned(CodeCompleteWords) then Dispose(CodeCompleteWords, Done);
       CodeCompleteWords:=C;
+      S.Read(CodeCompleteCase,Sizeof(TCodeCompleteCase));
     end
   else
     if Assigned(C) then
@@ -111,6 +122,7 @@ begin
   if OK then
   begin
     CodeCompleteWords^.Store(S);
+    S.Write(CodeCompleteCase,Sizeof(TCodeCompleteCase));
     OK:=OK and (S.Status=stOK);
   end;
   StoreCodeComplete:=OK;
@@ -124,18 +136,31 @@ end;
 
 constructor TCodeCompleteDialog.Init;
 var R,R2,R3: TRect;
+    Items: PSItem;
     SB: PScrollBar;
 begin
-  R.Assign(0,0,46,16);
+  R.Assign(0,0,46,20);
   inherited Init(R,dialog_codecomplete);
   HelpCtx:=hcCodeCompleteOptions;
   GetExtent(R); R.Grow(-3,-2); Inc(R.A.Y); R3.Copy(R); Dec(R.B.X,12);
+  Dec(R.B.Y,5);
   R2.Copy(R); R2.Move(1,0); R2.A.X:=R2.B.X-1;
   New(SB, Init(R2)); Insert(SB);
   New(CodeCompleteLB, Init(R,1,SB));
   Insert(CodeCompleteLB);
   R2.Copy(R); R2.Move(0,-1); R2.B.Y:=R2.A.Y+1; Dec(R2.A.X);
   Insert(New(PLabel, Init(R2, label_codecomplete_keywords, CodeCompleteLB)));
+
+  R.Copy(R3); R.A.Y:=R.B.Y-4; Dec(R.B.X,14); Inc(R.A.X);
+  Items:=NewSItem('Unc~h~anged',
+           NewSItem('~L~ower',
+           NewSItem('~U~pper',
+           NewSItem('~M~ixed',nil))));
+  RB:=New(PRadioButtons,Init(R,Items));
+  RB^.SetData(ord(CodeCompleteCase));
+  R2.Copy(R); R2.Move(0,-1); R2.B.Y:=R2.A.Y+1; Dec(R2.A.X);
+  Insert(New(PLabel, Init(R2, 'Case handling', RB)));
+  Insert(RB);
 
   R.Copy(R3); R.A.X:=R.B.X-10; R.B.Y:=R.A.Y+2;
   Insert(New(PButton, Init(R, button_OK, cmOK, bfNormal)));
@@ -202,6 +227,7 @@ begin
     begin
       if Assigned(CodeCompleteWords) then Dispose(CodeCompleteWords, Done);
       CodeCompleteWords:=C;
+      CodeCompleteCase:=TCodeCompleteCase(RB^.Value);
     end
   else
     Dispose(C, Done);
