@@ -27,14 +27,14 @@ interface
     uses
       cpubase,cgbase,
       aasmtai,globtype,
-      symconst,symbase,symtype,symdef,paramgr;
+      symconst,symtype,symdef,paramgr;
 
     type
       TSparcParaManager=class(TParaManager)
         function  copy_value_on_stack(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
         function  push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
-        function  get_volatile_registers_int(calloption : tproccalloption):tsuperregisterset;override;
-        function  get_volatile_registers_fpu(calloption : tproccalloption):tsuperregisterset;override;
+        function  get_volatile_registers_int(calloption : tproccalloption):TCpuRegisterSet;override;
+        function  get_volatile_registers_fpu(calloption : tproccalloption):TCpuRegisterSet;override;
         {Returns a structure giving the information on the storage of the parameter
         (which must be an integer parameter)
         @param(nr Parameter number of routine, starting from 1)}
@@ -50,8 +50,7 @@ implementation
 
     uses
       verbose,
-      cpuinfo,
-      defutil,rgobj;
+      defutil,cgobj;
 
     function tsparcparamanager.copy_value_on_stack(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
       begin
@@ -87,13 +86,13 @@ implementation
       end;
 
 
-    function tsparcparamanager.get_volatile_registers_int(calloption : tproccalloption):tsuperregisterset;
+    function tsparcparamanager.get_volatile_registers_int(calloption : tproccalloption):TCpuRegisterSet;
       begin
         result:=[RS_G1];
       end;
 
 
-    function tsparcparamanager.get_volatile_registers_fpu(calloption : tproccalloption):tsuperregisterset;
+    function tsparcparamanager.get_volatile_registers_fpu(calloption : tproccalloption):TCpuRegisterSet;
       begin
         result:=[first_fpu_supreg..last_fpu_supreg];;
       end;
@@ -129,7 +128,7 @@ implementation
       begin
         if (loc.loc=LOC_REFERENCE) and
            (loc.low_in_reg) then
-          rg.getexplicitregisterint(list,loc.lowreg);
+          cg.GetExplicitRegister(list,loc.lowreg);
         inherited allocparaloc(list,loc);
       end;
 
@@ -138,7 +137,7 @@ implementation
       begin
         if (loc.loc=LOC_REFERENCE) and
            (loc.low_in_reg) then
-          rg.ungetregisterint(list,loc.lowreg);
+          cg.UnGetRegister(list,loc.lowreg);
         inherited freeparaloc(list,loc);
       end;
 
@@ -295,7 +294,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2003-10-08 21:16:27  olle
+  Revision 1.34  2003-10-24 11:25:32  mazen
+  -unused units removed from uses clause
+  *fix related to rg which was removed
+
+  Revision 1.33  2003/10/08 21:16:27  olle
     * changed to symbolic const for alignment
     + alignment set for function result
 
