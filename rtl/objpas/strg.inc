@@ -36,7 +36,9 @@ Const
    
 {
   $Log$
-  Revision 1.1  1998-10-01 16:26:06  florian
-    * Initial revision
+  Revision 1.2  1999-07-02 17:03:23  florian
+    + added some runtime->excpetin wrappers: eintoverflow, eoverflow, eunderflow, einvalidop
 
+  Revision 1.1  1998/10/01 16:26:06  florian
+    * Initial revision
 }   

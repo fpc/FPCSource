@@ -50,9 +50,16 @@ Const
    SInvalidCast = 'Invalid type cast';
    STooManyOpenFiles = 'Too many open files';
    SUnKnownRunTimeError = 'Unknown Run-Time error : %3.3d';
+   SOverflow = 'Floating point overflow';
+   SUnderflow = 'Floating point underflow';
+   SIntOverflow = 'Arithmetic overflow';
+   SInvalidOp = 'Invalid floating point operation';
 {
   $Log$
-  Revision 1.6  1999-06-19 07:39:46  michael
+  Revision 1.7  1999-07-02 17:03:22  florian
+    + added some runtime->excpetin wrappers: eintoverflow, eoverflow, eunderflow, einvalidop
+
+  Revision 1.6  1999/06/19 07:39:46  michael
   Implemented strtofloat
 
   Revision 1.5  1998/10/10 09:53:09  michael

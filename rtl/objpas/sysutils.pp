@@ -238,7 +238,11 @@ begin
   // Unless the use sets another handler we'll get here anyway...
   200 : E:=EDivByZero.Create(SDivByZero);
   201 : E:=ERangeError.Create(SRangeError);
+  205 : E:=EOverflow.Create(SOverflow);
+  206 : E:=EOverflow.Create(SUnderflow);
+  207 : E:=EInvalidOp.Create(SInvalidOp);
   211 : E:=EAbstractError.Create(SAbstractError);
+  215 : E:=EIntOverflow.Create(SIntOverflow);
   216 : E:=EAccessViolation.Create(SAccessViolation);
   219 : E:=EInvalidCast.Create(SInvalidCast);
   227 : E:=EAssertionFailed.Create(SAssertionFailed);
@@ -338,7 +342,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.26  1999-04-09 08:40:46  michael
+    Revision 1.27  1999-07-02 17:03:24  florian
+      + added some runtime->excpetin wrappers: eintoverflow, eoverflow, eunderflow, einvalidop
+
+    Revision 1.26  1999/04/09 08:40:46  michael
     + Fixed tfiletime problem
 
     Revision 1.25  1999/04/08 16:26:31  michael
