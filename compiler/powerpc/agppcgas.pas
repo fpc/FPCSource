@@ -228,7 +228,7 @@ unit agppcgas;
               else
                 internalerror(2003112901);
             end;
-            cond2str:=cond2str++#9+tostr(c.bo)+','+tostr(c.bi)+',';
+            cond2str:=cond2str+#9+tostr(c.bo)+','+tostr(c.bi)+',';
           end;
         true:
           if (op >= A_B) and (op <= A_BCLRL) then
@@ -253,9 +253,9 @@ unit agppcgas;
                   end;
                   case c.cond of
                     C_LT..C_NU:
-                      cond2str := tempstr+gas_regname(newreg(R_SPECIALREGISTER,c.cr,R_SUBWHOLE))+',';
+                      cond2str := tempstr+gas_regname(newreg(R_SPECIALREGISTER,c.cr,R_SUBWHOLE));
                     C_T,C_F,C_DNZT,C_DNZF,C_DZT,C_DZF:
-                      cond2str := tempstr+tostr(c.crbit)+',';
+                      cond2str := tempstr+tostr(c.crbit);
                     else
                       cond2str := tempstr;
                   end;
@@ -287,7 +287,12 @@ unit agppcgas;
              A_BCTR,A_BCTRL,A_BLR,A_BLRL:
                s:=#9+gas_op2str[op]
              else
-               s:=cond2str(op,taicpu(hp).condition);
+               begin
+                 s:=cond2str(op,taicpu(hp).condition);
+                 if (s[length(s)] <> #9) and 
+                    (taicpu(hp).ops>0) then
+                   s := s + ',';
+               end;
           end;
 
           if (taicpu(hp).ops>0) and (taicpu(hp).oper[0]^.typ<>top_none) then
@@ -323,7 +328,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2003-11-29 18:17:26  jonas
+  Revision 1.37  2003-11-29 22:54:32  jonas
+    * more ppc fixes, hello world works again under linuxppc
+
+  Revision 1.36  2003/11/29 18:17:26  jonas
     * fixed writing of conditional branches which only depend on the value
       of ctr
 

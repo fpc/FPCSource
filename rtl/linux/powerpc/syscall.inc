@@ -31,11 +31,12 @@ function FpSysCall(sysnr:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYS
 asm
   mr  r0,r3
   sc
-  bnslr
+  bns   .LDone
   neg   r3, r3
   lis   r4,(Errno+4)@ha
   stw   r3,(Errno+4)@l(r4)
   li    r3,-1
+.LDone:
 end;
 
 function FpSysCall(sysnr,param1:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL1'];
@@ -47,11 +48,12 @@ asm
   mr  r0,r3
   mr  r3,r4
   sc
-  bnslr
+  bns   .LDone
   neg   r3, r3
   lis   r4,(Errno+4)@ha
   stw   r3,(Errno+4)@l(r4)
   li    r3,-1
+.LDone:
 end;
 
 
@@ -65,11 +67,12 @@ asm
   mr  r3,r4
   mr  r4,r5
   sc
-   bnslr
+   bns   .LDone
    neg   r3, r3
    lis   r4,(Errno+4)@ha
    stw   r3,(Errno+4)@l(r4)
    li    r3,-1
+.LDone:
 end;
 
 function FpSysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL3'];
@@ -83,12 +86,12 @@ asm
   mr  r4,r5
   mr  r5,r6
   sc
-   bnslr
+   bns   .LDone
    neg   r3, r3
    lis   r4,(Errno+4)@ha
    stw   r3,(Errno+4)@l(r4)
    li    r3,-1
-
+.LDone:
 end;
 
 
@@ -104,11 +107,12 @@ asm
   mr  r5,r6
   mr  r6,r7
   sc
-   bnslr
+   bns   .LDone
    neg   r3, r3
    lis   r4,(Errno+4)@ha
    stw   r3,(Errno+4)@l(r4)
    li    r3,-1
+.LDone:
 end;
 
 function FpSysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL5'];
@@ -124,11 +128,12 @@ asm
   mr  r6,r7
   mr  r7,r8
   sc
-   bnslr
+   bns   .LDone
    neg   r3, r3
    lis   r4,(Errno+4)@ha
    stw   r3,(Errno+4)@l(r4)
    li    r3,-1
+.LDone:
 end;
 
 
@@ -146,11 +151,12 @@ asm
   mr  r7,r8
   mr  r8,r9
   sc
-   bnslr
+   bns   .LDone
    neg   r3, r3
    lis   r4,(Errno+4)@ha
    stw   r3,(Errno+4)@l(r4)
    li    r3,-1
+.LDone:
 end;
 
 // Old style syscall:
@@ -235,8 +241,8 @@ end;
 
 {
   $Log$
-  Revision 1.9  2003-11-29 18:18:11  jonas
-    * fixed syscacll for new assembler reader
+  Revision 1.10  2003-11-29 22:54:32  jonas
+    * more ppc fixes, hello world works again under linuxppc
 
   Revision 1.8  2003/11/15 19:01:27  florian
     * fixed rtl to work with the integrated fpc ppc assembler reader

@@ -669,10 +669,21 @@ Unit rappcgas;
           begin
             { we can search here without an extra table which is sorted by string length
               because we take the whole remaining string without the leading B }
+            if copy(hs,length(s)-1,2)='LR' then
+              begin
+                actopcode := A_BCLR;
+                setlength(hs,length(hs)-2)
+              end
+            else if copy(hs,length(s)-2,3)='CTR' then
+              begin
+                actopcode := A_BCCTR;
+                setlength(hs,length(hs)-3)
+              end
+            else
+              actopcode := A_BC;
             for cond:=low(TAsmCondFlag) to high(TAsmCondFlag) do
               if copy(hs,2,length(s)-1)=UpperAsmCondFlag2Str[cond] then
                 begin
-                  actopcode:=A_BC;
                   actcondition.simple:=true;
                   actcondition.cond:=cond;
                   if (cond in [C_LT,C_LE,C_EQ,C_GE,C_GT,C_NL,C_NE,C_NG,C_SO,C_NS,C_UN,C_NU]) then
@@ -681,19 +692,6 @@ Unit rappcgas;
                   is_asmopcode:=true;
                   exit;
                 end;
-            if copy(hs,length(s)-1,2)='LR' then
-              for cond:=C_LT to C_NU do
-                if copy(hs,2,length(s)-3)=UpperAsmCondFlag2Str[cond] then
-                  begin
-                    actopcode:=A_BCLR;
-                    actcondition.simple:=false;
-                    actcondition.bo:=AsmCondFlag2BOLT_NU[cond];
-                    actcondition.bo:=AsmCondFlag2BI[cond];
-                    actcondition.cr := RS_CR0;
-                    actasmtoken:=AS_OPCODE;
-                    is_asmopcode:=true;
-                    exit;
-                  end;
           end;
       end;
 
@@ -760,7 +758,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.7  2003-11-29 16:27:19  jonas
+  Revision 1.8  2003-11-29 22:54:32  jonas
+    * more ppc fixes, hello world works again under linuxppc
+
+  Revision 1.7  2003/11/29 16:27:19  jonas
     * fixed several ppc assembler reader related problems
     * local vars in assembler procedures now start at offset 4
     * fixed second_int_to_bool (apparently an integer can be in  LOC_JUMP??)

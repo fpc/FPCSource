@@ -77,8 +77,9 @@ unit cpupi;
             tg.setfirsttemp(ofs);
           end
         else
-          { at 0(r1), the previous value of r1 will be stored }
-          tg.setfirsttemp(4);
+          if assigned(procdef.localst) then
+            { at 0(r1), the previous value of r1 will be stored }
+            tg.setfirsttemp(4);
       end;
 
 
@@ -127,7 +128,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2003-11-29 16:27:19  jonas
+  Revision 1.31  2003-11-29 22:54:32  jonas
+    * more ppc fixes, hello world works again under linuxppc
+
+  Revision 1.30  2003/11/29 16:27:19  jonas
     * fixed several ppc assembler reader related problems
     * local vars in assembler procedures now start at offset 4
     * fixed second_int_to_bool (apparently an integer can be in  LOC_JUMP??)
