@@ -1,5 +1,3 @@
-# converted to unix by root on mail.armin.d at Mon Apr 16 00:36:06 CEST 2001
-#
 #
 # Symbols exported from the TCP/IP NLM
 #
@@ -11,38 +9,32 @@
 	htons,
 	ntohl,
 	ntohs,
-
 	NWgethostent,
 	NWgethostbyname,
 	NWgethostbyaddr,
 	NWsethostent,
 	NWendhostent,
-
 	NetDBgethostent,
 	NetDBgethostbyname,
 	NetDBgethostbyaddr,
 	NetDBsethostent,
 	NetDBendhostent,
 	NetDBgethostname,
-
 	NWgetnetent,
 	NWgetnetbyname,
 	NWgetnetbyaddr,
 	NWsetnetent,
 	NWendnetent,
-
 	NWgetprotoent,
 	NWgetprotobyname,
 	NWgetprotobynumber,
 	NWsetprotoent,
 	NWendprotoent,
-
 	NWgetservent,
 	NWgetservbyname,
 	NWgetservbyport,
 	NWsetservent,
 	NWendservent,
-
 	inet_addr,
 	inet_network,
 	NWinet_ntoa,
@@ -51,6 +43,6 @@
 	inet_netof,
 	inet_netent,
 	inet_hostent,
-
 	gethostid,
 	gethostname
+

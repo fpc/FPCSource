@@ -467,3 +467,4 @@
   NWGetObjectNamesBeginW,
   NWGetObjectNamesNextW,
   NWGetObjectNamesEndW
+

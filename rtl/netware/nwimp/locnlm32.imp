@@ -105,3 +105,4 @@
   NWLUTF8ToUnicodeSize,
   NWLUnicodeToUTF8Size,
   NWLstrtok_r
+

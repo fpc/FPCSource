@@ -48,7 +48,7 @@
  WSASendTo,
  WSASetEvent,
  WSASetLastError,
- WSASocketA,	
+ WSASocketA,
  WSASocketW,
  WSAStartup,
  WSAWaitForMultipleEvents,
@@ -84,4 +84,4 @@
  WS2_32_inet_addr,
  WS2_32_inet_ntoa,
  __WSAFDIsSet
- 
+
