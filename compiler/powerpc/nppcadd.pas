@@ -831,6 +831,9 @@ interface
             internalerror(2002072705);
         end;
 
+        if not cmpop then
+          location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
+
         load_left_right(cmpop,(cs_check_overflow in aktlocalswitches) and
             (nodetype in [addn,subn]));
 
@@ -916,9 +919,7 @@ interface
         { set result location }
         { (emit_compare sets it to LOC_FLAGS for compares, so set the }
         {  real location only now) (JM)                               }
-        if not cmpop then
-          location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def))
-         else
+        if cmpop then
           location_reset(location,LOC_JUMP,OS_NO);
 
         clear_left_right(cmpop);
@@ -1303,7 +1304,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2002-08-31 19:26:20  jonas
+  Revision 1.15  2002-08-31 21:30:46  florian
+    * fixed several problems caused by Jonas' commit :)
+
+  Revision 1.14  2002/08/31 19:26:20  jonas
     * fixed 64bit comparisons
 
   Revision 1.13  2002/08/17 22:09:47  florian
