@@ -965,12 +965,12 @@ implementation
         for i:=1 to adj^.length do
           begin
             t:=adj^.buf^[i-1];
-            if reginfo[t].flags*[ri_coalesced,ri_selected]=[] then
+            if not(ri_coalesced in reginfo[t].flags) then
               begin
                 {t has a connection to v. Since we are adding v to u, we
                  need to connect t to u. However, beware if t was already
                  connected to u...}
-                if ibitmap[t,u] then
+                if (ibitmap[t,u]) and not (ri_selected in reginfo[t].flags) then
                   {... because in that case, we are actually removing an edge
                    and the degree of t decreases.}
                   decrement_degree(t)
@@ -981,7 +981,7 @@ implementation
                      However, v is added to u. That means its neighbours will
                      no longer point to v, but to u instead. Therefore, only the
                      degree of u increases.}
-                    if u>=first_imaginary then
+                    if (u>=first_imaginary) and not (ri_selected in reginfo[t].flags) then
                       inc(reginfo[u].degree);
                   end;
               end;
@@ -1594,7 +1594,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.110  2004-01-09 22:02:29  daniel
+  Revision 1.111  2004-01-11 13:21:35  daniel
+    * Register allocation bug fixed
+
+  Revision 1.110  2004/01/09 22:02:29  daniel
     * Degree=0 problem fixed
     * Degree to high problem fixed
 
