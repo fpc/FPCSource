@@ -86,10 +86,10 @@ type    Tos=(osDOS,osOS2,osDPMI);
 var     os_mode:Tos;
         first_meg:pointer;
 
-type    PSysThreadIB=^TSysThreadIB;
-        PThreadInfoBlock=^Tthreadinfoblock;
+type    Psysthreadib=^Tsysthreadib;
+        Pthreadinfoblock=^Tthreadinfoblock;
         PPThreadInfoBlock=^PThreadInfoBlock;
-        PProcessInfoBlock=^TProcessInfoBlock;
+        Pprocessinfoblock=^Tprocessinfoblock;
         PPProcessInfoBlock=^PProcessInfoBlock;
 
         Tbytearray=array[0..$ffff] of byte;
@@ -170,6 +170,8 @@ procedure syscall; external name '___SYSCALL';
 
 {$S-}
 procedure st1(stack_size:longint); assembler; [public,alias: 'FPC_STACKCHECK'];
+{ called when trying to get local stack }
+{ if the compiler directive $S is set   }
 
 asm
     movl stack_size,%ebx
@@ -691,8 +693,8 @@ end;
 procedure MkDir (const S: string);
 
 begin
-    If (s='') or (InOutRes <> 0) then
-     exit;
+  If (s='') or (InOutRes <> 0) then
+   exit;
         DosDir ($39, S);
 end;
 
@@ -700,8 +702,8 @@ end;
 procedure rmdir(const s : string);
 
 begin
-    If (s='') or (InOutRes <> 0) then
-     exit;
+  If (s='') or (InOutRes <> 0) then
+   exit;
         DosDir ($3A, S);
 end;
 
@@ -713,8 +715,8 @@ var RC: longint;
     Buffer: array [0..255] of char;
 
 begin
-    If (s='') or (InOutRes <> 0) then
-     exit;
+  If (s='') or (InOutRes <> 0) then
+   exit;
 (* According to EMX documentation, EMX has only one current directory
    for all processes, so we'll use native calls under OS/2. *)
             if os_Mode = osOS2 then
@@ -868,41 +870,41 @@ var tib:Pthreadinfoblock;
 
 begin
     {Determine the operating system we are running on.}
+{$ASMMODE INTEL}
     asm
-        movl $0,os_mode
-        movw $0x7f0a,%ax
+        mov os_mode, 0
+        mov ax, 7F0Ah
         call syscall
-        testw $512,%bx         {Bit 9 is OS/2 flag.}
-        setnzb os_mode
-        testw $4096,%bx
-        jz .LnoRSX
-        movl $2,os_mode
-    .LnoRSX:
-{    end;}
+        test bx, 512         {Bit 9 is OS/2 flag.}
+        setne byte ptr os_mode
+        test bx, 4096
+        jz @noRSX
+        mov os_mode, 2
+    @noRSX:
 
     {Enable the brk area by initializing it with the initial heap size.}
-{    asm}
-        movw $0x7f01,%ax
-        movl HeapSize,%edx
-        addl heap_base,%edx
+
+        mov ax, 7F01h
+        mov edx, HeapSize
+        add edx, heap_base
         call syscall
-        cmpl $-1,%eax
-        jnz .Lheapok
-        pushl $204
+        cmp eax, -1
+        jnz @heapok
+        push dword 204
         call HandleError
-    .Lheapok:
+    @heapok:
     end;
 
     {Now request, if we are running under DOS,
      read-access to the first meg. of memory.}
     if os_mode in [osDOS,osDPMI] then
         asm
-            movw $0x7f13,%ax
-            xorl %ebx,%ebx
-            movl $0xfff,%ecx
-            xorl %edx,%edx
+            mov ax, 7F13h
+            xor ebx, ebx
+            mov ecx, 0FFFh
+            xor edx, edx
             call syscall
-            movl %eax,first_meg
+            mov first_meg, eax
         end
     else
         begin
@@ -956,7 +958,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2001-03-21 23:29:40  florian
+  Revision 1.12  2001-04-20 19:05:11  hajny
+    * setne operand size fixed
+
+  Revision 1.11  2001/03/21 23:29:40  florian
     + sLineBreak and misc. stuff for Kylix compatiblity
 
   Revision 1.10  2001/03/21 21:08:20  hajny
