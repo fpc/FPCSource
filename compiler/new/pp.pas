@@ -55,18 +55,34 @@
       { people can try to compile without GDB }
       { $error The compiler switch GDB must be defined}
    {$endif GDB}
-   { but I386 or M68K must be defined }
-   { and only one of the two }
-   {$ifndef I386}
-      {$ifndef M68K}
-        {$fatal One of the switches I386 or M68K must be defined}
-      {$endif M68K}
-   {$endif I386}
+   
+   { One of Alpha, I386 or M68K must be defined }
+   {$UNDEFINE CPUOK}
+   
    {$ifdef I386}
-      {$ifdef M68K}
-        {$fatal ONLY one of the switches I386 or M68K must be defined}
-      {$endif M68K}
-   {$endif I386}
+   {$define CPUOK}
+   {$endif}
+   
+   {$ifdef M68K}
+   {$ifndef CPUOK}
+   {$DEFINE CPUOK}
+   {$else}
+     {$fatal cannot define two CPU switches}
+   {$endif}
+   {$endif}
+
+   {$ifdef alpha}
+   {$ifndef CPUOK}
+   {$DEFINE CPUOK}
+   {$else}
+     {$fatal cannot define two CPU switches}
+   {$endif}
+   {$endif}
+   
+   {$ifndef CPUOK}
+   {$fatal One of the switches I386,Alpha or M68K must be defined}
+   {$endif}
+   
    {$ifdef support_mmx}
      {$ifndef i386}
        {$fatal I386 switch must be on for MMX support}
@@ -254,7 +270,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  1999-08-02 17:14:10  florian
+  Revision 1.4  1999-08-02 17:15:03  michael
+  + CPU check better
+
+  Revision 1.3  1999/08/02 17:14:10  florian
     + changed the temp. generator to an object
 
   Revision 1.2  1999/08/01 18:22:37  florian
