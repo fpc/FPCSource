@@ -822,14 +822,14 @@ implementation
                   { process address (in case it contains a call) }
                   secondpass(right);
                   if codegenerror then
-                   exit;
+                    exit;
 {$endif callparatemp}
                   { push frame }
                   if assigned(frametree) then
                     begin
                       secondpass(frametree);
                       if codegenerror then
-                       exit;
+                        exit;
                       cg.a_param_loc(exprasmlist,frametree.location,paramanager.getintparaloc(exprasmlist,3));
                     end
                   else
@@ -838,7 +838,7 @@ implementation
                   { push address }
                   secondpass(right);
                   if codegenerror then
-                   exit;
+                    exit;
 {$endif not callparatemp}
                   cg.a_param_loc(exprasmlist,right.location,paramanager.getintparaloc(exprasmlist,2));
                 end
@@ -853,7 +853,10 @@ implementation
                    r.number:=NR_FRAME_POINTER_REG;
                    cg.a_param_reg(exprasmlist,OS_ADDR,r,paramanager.getintparaloc(exprasmlist,3));
                    { push current address }
-                   cg.a_paramaddr_ref(exprasmlist,href2,paramanager.getintparaloc(exprasmlist,2));
+                   if target_info.system <> system_powerpc_macos then
+                     cg.a_paramaddr_ref(exprasmlist,href2,paramanager.getintparaloc(exprasmlist,2))
+                   else
+                     cg.a_param_const(exprasmlist,OS_INT,0,paramanager.getintparaloc(exprasmlist,2));
                 end;
 {$ifndef callparatemp}
               { push object }
@@ -1541,7 +1544,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.75  2003-08-10 17:25:23  peter
+  Revision 1.76  2003-08-24 21:38:43  olle
+    * made FPC_RAISEEXCEPTION compatible with MacOS
+
+  Revision 1.75  2003/08/10 17:25:23  peter
     * fixed some reported bugs
 
   Revision 1.74  2003/08/09 18:56:54  daniel
