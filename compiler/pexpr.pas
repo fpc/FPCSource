@@ -526,6 +526,11 @@ unit pexpr;
               p1^.left:=nil;
               { forget pd }
               pd:=nil;
+              if (p1^.symtableproc^.symtabletype=withsymtable) and
+                (p1^.symtableproc^.defowner^.deftype=objectdef) then
+                begin
+                   p1^.methodpointer:=getcopy(pwithsymtable(p1^.symtableproc)^.withrefnode);
+                end;
               { no postfix operators }
               again:=false;
            end;
@@ -1982,7 +1987,11 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.103  1999-05-06 21:40:16  peter
+  Revision 1.104  1999-05-07 10:35:23  florian
+    * first fix for a problem with method pointer properties, still doesn't work
+      with WITH
+
+  Revision 1.103  1999/05/06 21:40:16  peter
     * fixed crash
 
   Revision 1.101  1999/05/06 09:05:21  peter
