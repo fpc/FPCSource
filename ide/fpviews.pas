@@ -3957,6 +3957,10 @@ begin
     {$ifdef FVISION}+' FV'{$endif}
     )));
   R2.Move(0,1);
+{$ifdef USE_GRAPH_SWITCH}
+  Insert(New(PStaticText, Init(R2, ^C'With Graphic Support')));
+  R2.Move(0,1);
+{$endif USE_GRAPH_SWITCH}
   Insert(New(PStaticText, Init(R2, FormatStrStr2(^C'(%s %s)',label_about_compilerversion,Version_String))));
 {$ifndef NODEBUG}
   if pos('Fake',GDBVersion)=0 then
@@ -4360,7 +4364,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.33  2002-09-12 08:49:10  pierre
+  Revision 1.34  2002-09-12 22:07:46  pierre
+   * Enable go32v2 graph support in fixes branchfpusrscr.pas
+
+  Revision 1.33  2002/09/12 08:49:10  pierre
    * fix typo bug in last commit
 
   Revision 1.32  2002/09/12 08:42:07  pierre

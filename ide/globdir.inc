@@ -34,8 +34,11 @@
   {$define FSCaseInsensitive}
   {$define HasSysMsgUnit}
   {$ifdef DEBUG}
-    {$define TEST_GRAPH_SWITCH}
+    {$define USE_GRAPH_SWITCH}
   {$endif DEBUG}
+  {$ifdef COMPILER_1_0}
+    {$define USE_GRAPH_SWITCH}
+  {$endif COMPILER_1_0}
 {$endif}
 
 {$ifdef Linux}
