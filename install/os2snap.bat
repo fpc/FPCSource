@@ -371,8 +371,8 @@ del %FPCSNAPRTL%\ppas.cmd >& nul >> %FPCERRLOG%
 del %FPCSNAPRTL%\link.res >& nul >> %FPCERRLOG%
 :ContClRTL
 if %PARAMS% == rtl goto Branches
-if .%CONT% == .1 goto ContClComp
 :CleanCompiler
+if .%CONT% == .1 goto ContClComp
 if %@EVAL[0] == 0 goto JPCleanComp
 echo *Cleaning up the compiler (error messages are OK here) ... >> %FPCERRLOG%
 del %OS2OPTF% >> %FPCERRLOG%
@@ -415,8 +415,8 @@ del %FPCSNAPBIN%\link.res >& nul >> %FPCERRLOG%
 :ContClComp
 if %PARAMS% == compiler goto Branches
 if %PARAMS% == both goto Branches
-if .%CONT% == .1 goto ContClSnap
 :CleanSnapshot
+if .%CONT% == .1 goto ContClSnap
 if %@EVAL[0] == 0 goto JPCleanSnap
 echo *Deleting the old snapshot (error messages are OK here) ... >> %FPCERRLOG%
 del %FPCSNAPDOC%\*.txt >> %FPCERRLOG%
@@ -727,7 +727,10 @@ goto End
 
 
   $Log$
-  Revision 1.3  2000-10-08 18:44:36  hajny
+  Revision 1.4  2000-10-14 19:46:58  hajny
+    * fix for continue parameter
+
+  Revision 1.3  2000/10/08 18:44:36  hajny
     + DynLibs added
 
   Revision 1.2  2000/10/07 11:47:54  hajny
