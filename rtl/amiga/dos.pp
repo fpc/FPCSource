@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by Nils Sjoholm and Carl Eric Codere
+    Copyright (c) 1998-2001 by Nils Sjoholm and Carl Eric Codere
     members of the Free Pascal development team
       Date conversion routine taken from SWAG
 
@@ -103,14 +103,20 @@ Type
     Sec: word;
   End;
 
+  registers = packed record
+    case i : integer of
+     0 : (ax,f1,bx,f2,cx,f3,dx,f4,bp,f5,si,f51,di,f6,ds,f7,es,f8,flags,fs,gs : word);
+     1 : (al,ah,f9,f10,bl,bh,f11,f12,cl,ch,f13,f14,dl,dh : byte);
+     2 : (eax,  ebx,  ecx,  edx,  ebp,  esi,  edi : longint);
+    end;
 
 
 Var
   DosError : integer;
 
 {Interrupt}
-{Procedure Intr(intno: byte; var regs: registers);
-Procedure MSDos(var regs: registers);}
+Procedure Intr(intno: byte; var regs: registers);
+Procedure MSDos(var regs: registers);
 
 {Info/Date/Time}
 Function  DosVersion: Word;
@@ -244,10 +250,10 @@ Type
         tc_State        : Byte;
         tc_IDNestCnt    : Shortint;         { intr disabled nesting         }
         tc_TDNestCnt    : Shortint;         { task disabled nesting         }
-        tc_SigAlloc     : Cardinal;        { sigs allocated                }
-        tc_SigWait      : Cardinal;        { sigs we are waiting for       }
-        tc_SigRecvd     : Cardinal;        { sigs we have received         }
-        tc_SigExcept    : Cardinal;        { sigs we will take excepts for }
+        tc_SigAlloc     : longint;        { sigs allocated                }
+        tc_SigWait      : longint;        { sigs we are waiting for       }
+        tc_SigRecvd     : longint;        { sigs we have received         }
+        tc_SigExcept    : longint;        { sigs we will take excepts for }
         tc_TrapAlloc    : Word;        { traps allocated               }
         tc_TrapAble     : Word;        { traps enabled                 }
         tc_ExceptData   : Pointer;      { points to except data         }
@@ -328,38 +334,29 @@ Type
         lib_OpenCnt  : Word;    {  number of current opens  }
     end;                {  * Warning: size is not a longword multiple ! * }
 
-       pAChain = ^tAChain;
-       tAChain = packed record
-        an_Child,
-        an_Parent   : pAChain;
-        an_Lock     : BPTR;
-        an_Info     : tFileInfoBlock;
-        an_Flags    : Shortint;
-        an_String   : Array[0..0] of Char;   { FIX!! }
-       END;
+    PChain = ^TChain;
+    TChain = packed record
+      an_Child : PChain;
+      an_Parent: PChain;
+      an_Lock  : BPTR;
+      an_info  : TFileInfoBlock;
+      an_Flags : shortint;
+      an_string: Array[0..0] of char;
+    end;
 
 
-       pAnchorPath = ^tAnchorPath;
-       tAnchorPath = packed record
-        case integer of
-        0 : (
-        ap_First      : pAChain;
-        ap_Last       : pAChain;
-        );
-        1 : (
-        ap_Base,                    { pointer to first anchor }
-        ap_Current    : pAChain;    { pointer to last anchor }
-        ap_BreakBits,               { Bits we want to break on }
-        ap_FoundBreak : Longint;    { Bits we broke on. Also returns ERROR_BREAK }
-        ap_Flags      : Shortint;       { New use for extra Integer. }
-        ap_Reserved   : Shortint;
-        ap_Strlen     : Integer;       { This is what ap_Length used to be }
-        ap_Info       : tFileInfoBlock;
-        ap_Buf        : Array[0..0] of Char;     { Buffer for path name, allocated by user !! }
-        { FIX! }
-        );
-       END;
-
+    PAnchorPath = ^TAnchorPath;
+    TAnchorPath = packed record
+       ap_Base      : PChain;     {* pointer to first anchor *}
+       ap_First     : PChain;     {* pointer to last anchor *}
+       ap_BreakBits : LONGINT;    {* Bits we want to break on *}
+       ap_FondBreak : LONGINT;    {* Bits we broke on. Also returns ERROR_BREAK *}
+       ap_Flags     : shortint;   {* New use for extra word. *}
+       ap_reserved  : BYTE;
+       ap_StrLen    : WORD;
+       ap_Info      : TFileInfoBlock;
+       ap_Buf       : Array[0..0] of Char; {* Buffer for path name, allocated by user *}
+    END;
 
     pCommandLineInterface = ^TCommandLineInterface;
     TCommandLineInterface = packed record
@@ -381,49 +378,15 @@ Type
       cli_Module       : BPTR;      {* SegList of currently loaded command*}
     END;
 
-    {    structure used for multi-directory assigns. AllocVec()ed. }
-
-       pAssignList = ^tAssignList;
-       tAssignList = packed record
-        al_Next : pAssignList;
-        al_Lock : BPTR;
-       END;
-
-   pDosList = ^tDosList;
+  pDosList = ^tDosList;
    tDosList = packed record
     dol_Next            : BPTR;           {    bptr to next device on list }
     dol_Type            : Longint;        {    see DLT below }
-    dol_Task            : pMsgPort;       {    ptr to handler task }
+    dol_Task            : Pointer;        {    ptr to handler task }
     dol_Lock            : BPTR;
-    case integer of
-    0 : (
-        dol_Handler : record
-          dol_Handler    : BSTR;      {    file name to load IF seglist is null }
-          dol_StackSize,              {    stacksize to use when starting process }
-          dol_Priority,               {    task priority when starting process }
-          dol_Startup    : Longint;   {    startup msg: FileSysStartupMsg for disks }
-          dol_SegList,                {    already loaded code for new task }
-          dol_GlobVec    : BPTR;      {    BCPL global vector to use when starting
-                                 * a process. -1 indicates a C/Assembler
-                                 * program. }
-        end;
-    );
-    1 : (
-        dol_Volume       : record
-          dol_VolumeDate : tDateStamp; {    creation date }
-          dol_LockList   : BPTR;       {    outstanding locks }
-          dol_DiskType   : Longint;    {    'DOS', etc }
-        END;
-    );
-    2 : (
-        dol_assign       :  record
-          dol_AssignName : PChar;         {    name for non-OR-late-binding assign }
-          dol_List       : pAssignList;   {    for multi-directory assigns (regular) }
-         END;
+    dol_Misc            : Array[0..23] of Shortint;
     dol_Name            : BSTR;           {    bptr to bcpl name }
-    );
    END;
-
 
     TProcess = packed record
         pr_Task         : TTask;
@@ -695,7 +658,7 @@ Function _Execute(p: pchar): longint;
    end;
 end;
 
-FUNCTION LockDosList(flags : CARDINAL) : pDosList;
+FUNCTION LockDosList(flags : longint) : pDosList;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -708,7 +671,7 @@ BEGIN
 END;
 
 
-PROCEDURE UnLockDosList(flags : CARDINAL);
+PROCEDURE UnLockDosList(flags : longint);
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -720,7 +683,7 @@ BEGIN
 END;
 
 
-FUNCTION NextDosEntry(dlist : pDosList; flags : CARDINAL) : pDosList;
+FUNCTION NextDosEntry(dlist : pDosList; flags : longint) : pDosList;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -898,10 +861,10 @@ End;
                            --- Dos Interrupt ---
 ******************************************************************************}
 
-(*Procedure Intr (intno: byte; var regs: registers);
+Procedure Intr (intno: byte; var regs: registers);
   Begin
   { Does not apply to Linux - not implemented }
-  End;*)
+  End;
 
 
 Procedure SwapVectors;
@@ -910,10 +873,10 @@ Procedure SwapVectors;
   End;
 
 
-(*Procedure msdos(var regs : registers);
+Procedure msdos(var regs : registers);
   Begin
   { ! Not implemented in Linux ! }
-  End;*)
+  End;
 
 
 Procedure getintvec(intno : byte;var vector : pointer);
@@ -1000,8 +963,6 @@ end;
 
 Var
   LastDosExitCode: word;
-  breakflag : Boolean;
-  ver: Boolean;
 
 
 Procedure Exec (Const Path: PathStr; Const ComLine: ComStr);
@@ -1051,25 +1012,24 @@ Function DosExitCode: Word;
 
   Procedure GetCBreak(Var BreakValue: Boolean);
   Begin
-   breakvalue:=breakflag;
+   breakvalue := system.BreakOn;
   End;
 
 
  Procedure SetCBreak(BreakValue: Boolean);
   Begin
-   breakflag:=BreakValue;
+   system.Breakon := BreakValue;
   End;
 
 
   Procedure GetVerify(Var Verify: Boolean);
    Begin
-     verify:=ver;
+     verify:=true;
    End;
 
 
  Procedure SetVerify(Verify: Boolean);
   Begin
-    ver:=Verify;
   End;
 
 {******************************************************************************
@@ -1285,7 +1245,7 @@ Begin
    Begin
      MatchEnd(f.AnchorPtr);
      if assigned(f.AnchorPtr) then
-       Dispose(f.AnchorPtr);
+       {Dispose}FreeMem(f.AnchorPtr);
    end
  else
  { Fill up the Searchrec information     }
@@ -1331,42 +1291,32 @@ End;
 
 Procedure FSplit(path: pathstr; var dir: dirstr; var name: namestr; var ext: extstr);
 var
-   p1,i : longint;
+  I: Word;
 begin
-  { allow slash as backslash }
+  { allow backslash as slash }
   for i:=1 to length(path) do
-   if path[i]='\' then path[i]:='/';
-  { get drive name }
-  p1:=pos(':',path);
-  if p1>0 then
-    begin
-       dir:=copy(path,1,p1);
-       delete(path,1,p1);
-    end
-  else
-    dir:='';
-  { split the path and the name, there are no more path informtions }
-  { if path contains no backslashes                                 }
-  while true do
-    begin
-       p1:=pos('/',path);
-       if p1=0 then
-         break;
-       dir:=dir+copy(path,1,p1);
-       delete(path,1,p1);
-    end;
-  { try to find out a extension }
-  p1:=pos('.',path);
-  if p1>0 then
-    begin
-       ext:=copy(path,p1,4);
-       delete(path,p1,length(path)-p1+1);
-    end
-  else
-    ext:='';
-  name:=path;
-end;
+    if path[i]='\' then path[i]:='/';
 
+  I := Length(Path);
+  while (I > 0) and not ((Path[I] = '/') or (Path[I] = ':'))
+     do Dec(I);
+  if Path[I] = '/' then
+     dir := Copy(Path, 0, I)
+  else dir := Copy(Path,0,I);
+
+  if Length(Path) > Length(dir) then
+      name := Copy(Path, I + 1, Length(Path)-I)
+  else
+      name := '';
+  { Remove extension }
+  if pos('.',name) <> 0 then
+     delete(name,pos('.',name),length(name));
+
+  I := Pos('.',Path);
+  if I > 0 then
+     ext := Copy(Path,I,Length(Path)-(I-1))
+     else ext := '';
+end;
 
 Function FExpand(Path: PathStr): PathStr;
 var
@@ -1609,6 +1559,45 @@ Procedure setfattr (var f;attr : word);
                              --- Environment ---
 ******************************************************************************}
 
+var
+StrofPaths : string[255];
+
+function getpathstring: string;
+var
+   f : text;
+   s : string;
+   found : boolean;
+   temp : string[255];
+begin
+   found := true;
+   temp := '';
+   assign(f,'ram:makepathstr');
+   rewrite(f);
+   writeln(f,'path >ram:temp.lst');
+   close(f);
+   exec('c:protect','ram:makepathstr sarwed');
+   exec('C:execute','ram:makepathstr');
+   exec('c:delete','ram:makepathstr quiet');
+   assign(f,'ram:temp.lst');
+   reset(f);
+   { skip the first line, garbage }
+   if not eof(f) then readln(f,s);
+   while not eof(f) do begin
+      readln(f,s);
+      if found then begin
+         temp := s;
+         found := false;
+      end else begin;
+         if (length(s) + length(temp)) < 255 then
+            temp := temp + ';' + s;
+      end;
+   end;
+   close(f);
+   exec('C:delete','ram:temp.lst quiet');
+   getpathstring := temp;
+end;
+
+
  Function EnvCount: Longint;
  { HOW TO GET THIS VALUE:                                }
  {   Each time this function is called, we look at the   }
@@ -1627,18 +1616,21 @@ Procedure setfattr (var f;attr : word);
 
 function GetEnv(envvar : String): String;
 var
-   buffer : Pchar;
    bufarr : array[0..255] of char;
    strbuffer : array[0..255] of char;
    temp : Longint;
 begin
-   move(envvar[1],strbuffer,length(envvar));
-   strbuffer[length(envvar)] := #0;
-   buffer := @bufarr;
-   temp := GetVar(strbuffer,buffer,255,$100);
-   if temp = -1 then
-      GetEnv := ''
-   else GetEnv := StrPas(buffer);
+   if UpCase(envvar) = 'PATH' then begin
+       if StrOfpaths = '' then StrOfPaths := GetPathString;
+       GetEnv := StrofPaths;
+   end else begin
+      move(envvar,strbuffer,length(envvar));
+      strbuffer[length(envvar)] := #0;
+      temp := GetVar(strbuffer,bufarr,255,$100);
+      if temp = -1 then
+        GetEnv := ''
+      else GetEnv := StrPas(bufarr);
+   end;
 end;
 
 
@@ -1710,9 +1702,8 @@ end;
 
 Begin
  DosError:=0;
- ver:=TRUE;
- breakflag:=TRUE;
  numberofdevices := 0;
+ StrOfPaths := '';
  AddDevice('DF0:');
  AddDevice('DF1:');
  AddDevice('DF2:');
@@ -1722,7 +1713,66 @@ End.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:35  michael
-  + removed logs
- 
+  Revision 1.3  2001-11-23 00:25:39  carl
+  * updated behavior of some routines to conform to docs
+
+  Revision 1.1.2.2  2001/07/24 07:32:25  pierre
+   * Use FreeMem on untyped pointer instead of dispose
+
+  Revision 1.1.2.1  2001/03/27 03:12:57  carl
+  + more routines are implemented (from Nils - thanks!)
+  ? Is the problem with illegal memory read fixed?
+
+  Revision 1.8  1998/08/19 14:52:52  carl
+    * SearchRec was not aligned!! so BOUM!...
+
+  Revision 1.7  1998/08/17 12:30:42  carl
+    * FExpand removes dot characters
+    * Findfirst single/double dot expansion
+    + SetFtime implemented
+
+  Revision 1.6  1998/08/13 13:18:45  carl
+    * FSearch bugfix
+    * FSplit bugfix
+    + GetFAttr,SetFAttr and GetFTime accept dos dir separators
+
+  Revision 1.5  1998/08/04 13:37:10  carl
+    * bugfix of findfirst, was not convberting correctl backslahes
+
+       History (Nils Sjoholm):
+       10.02.1998  First version for Amiga.
+                   Just GetDate and GetTime.
+
+       11.02.1998  Added AmigaToDt and DtToAmiga
+                   Changed GetDate and GetTime to
+                   use AmigaToDt and DtToAmiga.
+
+                   Added DiskSize and DiskFree.
+                   They are using a string as arg
+                   have to try to fix that.
+
+       12.02.1998  Added Fsplit and FExpand.
+                   Cleaned up the unit and removed
+                   stuff that was not used yet.
+
+       13.02.1998  Added CToPas and PasToC and removed
+                   the uses of strings.
+
+       14.02.1998  Removed AmigaToDt and DtToAmiga
+                   from public area.
+                   Added deviceids and devicenames
+                   arrays so now diskfree and disksize
+                   is compatible with dos.
+
+
+
 }
+
+
+
+
+
+
+
+
+

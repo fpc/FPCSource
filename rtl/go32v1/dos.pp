@@ -256,7 +256,6 @@ begin
    dosregs.dl:=day;
    dosregs.ah:=$2b;
    msdos(dosregs);
-   DosError:=0;
 end;
 
 
@@ -268,7 +267,6 @@ begin
   minute:=dosregs.cl;
   second:=dosregs.dh;
   sec100:=dosregs.dl;
-  DosError:=0;
 end;
 
 
@@ -344,7 +342,6 @@ end;
 
 procedure getcbreak(var breakvalue : boolean);
 begin
-  DosError:=0;
   dosregs.ax:=$3300;
   msdos(dosregs);
   breakvalue:=dosregs.dl<>0;
@@ -353,7 +350,6 @@ end;
 
 procedure setcbreak(breakvalue : boolean);
 begin
-  DosError:=0;
   dosregs.ax:=$3301;
   dosregs.dl:=ord(breakvalue);
   msdos(dosregs);
@@ -362,7 +358,6 @@ end;
 
 procedure getverify(var verify : boolean);
 begin
-  DosError:=0;
   dosregs.ah:=$54;
   msdos(dosregs);
   verify:=dosregs.al<>0;
@@ -371,7 +366,6 @@ end;
 
 procedure setverify(verify : boolean);
 begin
-  DosError:=0;
   dosregs.ah:=$2e;
   dosregs.al:=ord(verify);
   msdos(dosregs);
@@ -384,7 +378,6 @@ end;
 
 function diskfree(drive : byte) : longint;
 begin
-  DosError:=0;
   dosregs.dl:=drive;
   dosregs.ah:=$36;
   msdos(dosregs);
@@ -397,7 +390,6 @@ end;
 
 function disksize(drive : byte) : longint;
 begin
-  DosError:=0;
   dosregs.dl:=drive;
   dosregs.ah:=$36;
   msdos(dosregs);
@@ -709,7 +701,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.3  2001-03-10 09:57:51  hajny
+  Revision 1.4  2001-11-23 00:27:22  carl
+  * updated behavior of some routines to conform to docs
+
+  Revision 1.3  2001/03/10 09:57:51  hajny
     * FExpand without IOResult change, remaining direct asm removed
 
   Revision 1.2  2000/07/13 11:33:38  michael
