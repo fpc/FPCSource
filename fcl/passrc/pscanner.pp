@@ -164,7 +164,8 @@ type
     function FindIncludeFile(const AName: String): TLineReader;
   end;
 
-  EScannerError = class(Exception);
+  EScannerError       = class(Exception);
+  EFileNotFoundError  = class(Exception);
 
   TPascalScannerPPSkipMode = (ppSkipNone, ppSkipIfBranch, ppSkipElseBranch,
     ppSkipAll);
@@ -379,7 +380,7 @@ end;
 function TFileResolver.FindSourceFile(const AName: String): TLineReader;
 begin
   if not FileExists(AName) then
-    Result := nil
+    Raise EFileNotFoundError.create(Aname)
   else
     try
       Result := TFileLineReader.Create(AName);
@@ -1026,7 +1027,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2003-10-25 16:24:29  michael
+  Revision 1.6  2004-05-01 20:08:51  marco
+   * Exception on file not found
+
+  Revision 1.5  2003/10/25 16:24:29  michael
   + FPC also accepts binary numbers starting with %
 
   Revision 1.4  2003/09/02 13:26:06  mattias
