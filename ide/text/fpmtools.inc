@@ -227,9 +227,10 @@ begin
            MessagesWindow^.FocusItem(ToFocus);
          showmsg:=true;
          Messages;
-
+         PushStatus('Running Grep '+' -n '+GrepArgs);
          if not ExecuteRedir(GrepExe,'-n '+GrepArgs,'',GrepOutName,GrepErrName) then
            Begin
+              PopStatus;
               { 2 as exit code just means that
                 some file vwere not found ! }
               if (IOStatus<>0) or (ExecuteResult<>2) then
@@ -238,7 +239,9 @@ begin
                   Params[1]:=ExecuteResult;
                   WarningBox(#3'Error running Grep'#13#3'DosError = %d'#13#3'Exit code = %d',@Params);
                 end;
-           End;
+           End
+         else
+           PopStatus;
          {$I-}
          Assign(GrepOut,GrepOutName);
          Reset(GrepOut);
@@ -291,7 +294,10 @@ end;
 
 {
   $Log$
-  Revision 1.18  2000-03-02 22:33:36  pierre
+  Revision 1.19  2000-03-13 20:32:56  pierre
+   + Grep running also in Status line
+
+  Revision 1.18  2000/03/02 22:33:36  pierre
    * Grep improoved
 
   Revision 1.17  2000/02/10 00:48:02  pierre
