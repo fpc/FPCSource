@@ -3222,7 +3222,7 @@ Here some general tips for getting better code are presented. They are
 mainly concerned with coding style.
 
 \begin{itemize}
-\item Find a better algorithm. No matter how muck you and the compiler 
+\item Find a better algorithm. No matter how much you and the compiler 
 tweak the code, a quicksort will (almost) always outperform a bubble 
 sort, for example.
 
@@ -3233,7 +3233,8 @@ using longint and cardinal variables.
 \item Turn on the optimizer.
 
 \item If you are allocating and disposing a lot of small memory blocks, 
-check out the heapblocks variable. (\refref)
+check out the heapblocks variable. (heapblocks are on by default from
+release 0.99.8 on)
 
 \item Profile your code (see the -pg switch) to find out where the 
 bottlenecks are. If you want, you can rewrite those parts in assembler. 
