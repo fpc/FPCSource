@@ -2824,6 +2824,197 @@ function DosAllocThreadLocalMemory (Count: cardinal; var P: pointer): longint;
 {Deallocate a previously allocated space in the thread local memory area.}
 function DosFreeThreadLocalMemory (P: pointer): longint; cdecl;
 
+const
+{ Values for DosQueryRASInfo Index parameter }
+  sis_MMIOAddr = 0;
+  sis_MEC_Table = 1;
+  sis_Sys_Log = 2;
+{ The following one for compatibility only }
+  SPU_SIS_MEC_TABLE = sis_MEC_Table;
+
+{ Bit flags for the SYSLOG status word. }
+  lf_LogEnable = 1;     { Logging enabled }
+  lf_LogAvailable = 2;  { Logging available }
+
+{ DosQueryRASInfo returns information about active trace event recording
+  and System Logging facility from the Global Information Segment (InfoSegGDT)
+  dump.}
+{ Parameters
+  * Index - one of the sis_* values:
+    sis_MEC_Table - return the address of the table of actively traced major
+      event codes in the InfoSegGDT. The table is 32 bytes long, each bit
+      represents each major event code from 0 to 255.
+    sis_Sys_Log - return the address of the SYSLOG status word from
+      the InfoSegGDT. The status may contain a combination of lf_Log* flags
+      defined above.}
+{ Possible return codes:
+   0 - No_Error
+   5 - Error_Access_Denied
+  87 - Error_Invalid_Parameter}
+function DosQueryRASInfo (Index: cardinal; var PBuffer: pointer): longint;
+                                                                         cdecl;
+
+const
+{ Logging constants }
+  ErrLog_Service = 1;
+  ErrLog_Version = 1;
+ 
+{ LogRecord status bits }
+  lf_Bit_ProcName = 1;    {used to indicate whether the current error log}
+                          {entry packet contains space in which the error}
+                          {logging facility can place a long process name}
+                          {("on" indicates YES, "off" indicates NO)      }
+  lf_Bit_Origin_256 = 2;  {used to indicate whether the current error log }
+                          {entry packet contains an 8 byte originator name}
+                          {or a 256 byte originator name ("on" indicates  }
+                          {a 256 byte originator name, "off" indicates an }
+                          {8 byte originator name)                        }
+  lf_Bit_DateTime = 4;    {used to indicate that the caller has placed time}
+                          {and date values in the Error Log entry packet   }
+                          {and does not wish to have those values modified }
+                          {during the logging process ("on" indicates that }
+                          {the error log entry packet already contains time}
+                          {and date values, "off" indicates the packet does}
+                          {not already contain time and date values)       }
+  lf_Bit_Suspend = 8;
+  lf_Bit_Resume = 16;
+  lf_Bit_Redirect = 32;
+  lf_Bit_GetStatus = 64;
+  lf_Bit_Register = 128;
+  lf_Bit_Remote_Fail = 256;
+ 
+type
+{ Log entry record header for OS/2 2.x and above used    }
+{ by 32-bit device drivers and callers of LogAddEntries. }
+  TLogRecord = record
+    Len: word;          { length of this record (including the Len field) }
+    Rec_ID: word;       { record ID }
+    Status: cardinal;   { record status bits (see lf_Bit_* constants) }
+    Qualifier: array [1..4] of char;    { qualifier tag }
+    Reserved: cardinal;
+    Time: cardinal;     { hours, minutes, seconds, hundreds }
+    Date: cardinal;     { day, month, year (stored as word) }
+    case byte of
+     0: (Data: array [1..3400] of char); { variable data (up to 3400 bytes); }
+                                         { beginning of this area must match }
+                                         { one of the following patterns     }
+     1: (Originator256: array [0..255] of char;     {Originator - if the flag }
+                                                    {lf_Bit_Origin_256 is set }
+         ProcessName_O256: array [1..260] of char;  {if lf_Bit_ProcName is set}
+         FormatDLLName_O256_ProcName: array [1..12] of char;  {ASCIIZ DLL name}
+         Data_O256_ProcName: array [1..3400] of char);        {Variable data  }
+     2: (Originator256b: array [0..255] of char;
+         FormatDLLName_O256: array [1..12] of char;
+         Data_O256: array [1..3400] of char);
+     3: (Originator8: array [0..7] of char;      {Originator - if flag     }
+                                                 {lf_Bit_Origin_256 clear  }
+         ProcessName_O8: array [1..260] of char; {if lf_Bit_ProcName is set}
+         FormatDLLName_O8_ProcName: array [1..12] of char;
+         Data_O8_ProcName: array [1..3400] of char);
+     4: (Originator8b: array [0..7] of char;
+         FormatDLLName_O8: array [1..12] of char;
+         Data_O8: array [1..3400] of char);
+  end;
+  LogRecord = TLogRecord;
+  PLogRecord = ^TLogRecord;
+ 
+{ Format of buffer sent to LogAddEntries }
+  TLogEntryRec = record
+    Version: word;                      {this version is 1}
+    Count: word;                        {number of log records in this buffer}
+    LogRec: array [0..0] of TLogRecord; {repeated count times}
+  end;
+  LogEntryRec = TLogEntryRec;
+  PLogEntryRec = ^TLogEntryRec;
+ 
+{ Logging facility functions }
+{ Open a connection to the system error logging facility (through the system
+  logging service device driver). }
+{ Possible return codes:
+  0 .......... success
+  non-zero ... facility not available }
+function LogOpen (var Handle: cardinal): longint; cdecl;
+
+{ Close the connection to the to the system error logging facility. }
+{ Possible return codes:
+  0 .......... success
+  non-zero ... failure (possible reason - facility not open)}
+function LogClose (Handle: cardinal): longint; cdecl;
+
+{ Add error log entries to the internal error log buffer maintained by
+  the system logging service device driver.}
+{ Parameters:
+  Handle - handle returned by previous LogOpen
+  Service - specifies the class of logging facility:
+    0 ........... reserved 
+    1 ........... error logging
+    2 - $FFFF ... reserved 
+  LogEntries - buffer containing a variable length error log entry. The first
+    word of the buffer contains the number of packets in the error log entry.
+    Multiple error log packets (LogRec structure) can be included within
+    a single error log entry buffer. If multiple packets are included within
+    a buffer, each individual packet should be aligned on a double word
+    boundary.
+
+    Version - packet revision number. Can be used to distinguish error logging
+              packets that are intended to be handled by different revisions
+              of the LogAddEntries API. For the initial version of the API
+              (all OS/2 versions from OS/2 v2.0 up to WSeB and eComStation),
+              this field should be set to a value of 1. This field is included
+              in the packet to support future backward compatibility.
+    Count - number of separate error log entry packets contained within
+            the user's buffer
+    Len - length of this error log entry packet (LogRec) within the user's
+          error log entry buffer in bytes (this length includes the length
+          of all the error log entry packet control fields and the size
+          of the error log entry text). To support efficient logging execution,
+          this length should be a multiple of 4 bytes (i.e. if necessary
+          the user should pad the error log entry packet).
+    Rec_ID - error log record ID for the current error log entry
+             (ID registration will be statically registered by the OS/2
+             development organization)
+    Status - status flags (two byte flag holder containing three single bit
+             flags lf_Bit_* - all the other 29 bits in status flags
+             are considered reserved at this time and will be zeroed by
+             the LogAddEntries API)
+    Qualifier - qualifier name is a secondary name field that is provided
+                by the caller
+    Reserved - four byte reserved field
+    Time - time of logging, filled in by the system error logging facility
+           (unless lf_Bit_DateTime status flag is set to "on", indicating
+           that the caller has preset a time value)
+    Date - date of logging, filled in by the system error logging facility
+           (unless lf_Bit_DateTime status flag is set to "on", indicating
+           that the caller has preset a date value)
+    Originator* - originator name (8 or 256 characters depending on Status),
+                  a primary name field provided by the caller
+    ProcName* - process name (0 or 260 characters), an optional long process
+                name field that will be filled in by the error logging facility
+                if the field is provided by the caller in the error log entry
+                packet
+    FormatDLLName* - formatting DLL module name (optional); the optional name
+                     of a DLL module that houses a formatting routine that
+                     recognizes this type of error log entry and can format it
+                     for display by the SYSLOG utility. The name is specified
+                     as an ASCIIZ string that can be up to eight characters
+                     in length. If no module name is specified in this field,
+                     then SYSLOG will display the data portion of the error log
+                     entry as a hexadecimal dump.
+    Data* - error log entry data (up to 3400 characters / bytes); an optional
+            variable length set of data that can be supplied by the caller
+            (the format of the string is under the control of the caller)
+}
+{ Possible return codes:
+    0        - success
+    non-zero - failure (invalid log type, facility unavailable, facility
+               suspended, facility not open, error log buffer temporarily full)
+}
+function LogAddEntries (Handle: cardinal; Service: cardinal;
+                                     LogEntries: PLogEntryRec): longint; cdecl;
+
+function LogAddEntries (Handle: cardinal; Service: cardinal;
+                                 var LogEntries: TLogEntryRec): longint; cdecl;
+
 {***************************************************************************}
 implementation
 {***************************************************************************}
@@ -4467,6 +4658,21 @@ function DosFreeThreadLocalMemory (P: pointer): longint; cdecl;
 
 external 'DOSCALLS' index 455;
 
+function DosQueryRASInfo (Index: cardinal; var PBuffer: pointer): longint;
+                                          cdecl; external 'DOSCALLS' index 112;
+
+function LogOpen (var Handle: cardinal): longint; cdecl;
+                                                 external 'DOSCALLS' index 430;
+
+function LogClose (Handle: cardinal): longint; cdecl;
+                                                 external 'DOSCALLS' index 431;
+
+function LogAddEntries (Handle: cardinal; Service: cardinal;
+      LogEntries: PLogEntryRec): longint; cdecl; external 'DOSCALLS' index 432;
+
+function LogAddEntries (Handle: cardinal; Service: cardinal;
+  var LogEntries: TLogEntryRec): longint; cdecl; external 'DOSCALLS' index 432;
+
 (* Todo:
 
 function DosRawReadNPipe ...; cdecl;
@@ -4535,7 +4741,10 @@ external 'DOSCALLS' index 582;
 end.
 {
   $Log$
-  Revision 1.20  2003-02-20 17:09:49  hajny
+  Revision 1.21  2003-02-22 22:58:26  hajny
+    + logging facility API calls added
+
+  Revision 1.20  2003/02/20 17:09:49  hajny
     * fixes for OS/2 v2.1 incompatibility
 
   Revision 1.19  2003/01/05 16:37:22  hajny
