@@ -201,7 +201,7 @@ const
                              if mac^.buflen>255 then
                                begin
                                   len:=255;
-                                  Message(scan_w_marco_cut_after_255_chars);
+                                  Message(scan_w_macro_cut_after_255_chars);
                                end
                              else
                                len:=mac^.buflen;
@@ -779,7 +779,11 @@ const
             end;
         s:=AddExtension(FixFileName(s),target_info.resext);
         if target_info.res<>res_none then
-          current_module^.resourcefiles.insert(FixFileName(s))
+          if (target_info.res = res_i386_emx) and
+                                 not (Current_Module^.ResourceFiles.Empty) then
+            Message(scan_w_only_one_resourcefile_supported)
+          else
+            current_module^.resourcefiles.insert(FixFileName(s))
         else
           Message(scan_e_resourcefiles_not_supported);
       end;
@@ -1415,7 +1419,10 @@ const
 
 {
   $Log$
-  Revision 1.81  2000-05-23 20:18:25  pierre
+  Revision 1.82  2000-06-25 19:08:27  hajny
+    + $R support for OS/2 (EMX) added
+
+  Revision 1.81  2000/05/23 20:18:25  pierre
     + pavel's code integrated, but onyl inside
       ifdef pavel_linklib !
 

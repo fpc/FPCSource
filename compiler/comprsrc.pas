@@ -117,24 +117,29 @@ procedure CompileResourceFiles;
 var
   hr : presourcefile;
 begin
-  While not Current_module^.ResourceFiles.Empty do
-   begin
-     case target_info.target of
-       target_i386_win32 :
-         hr:=new(presourcefile,init(Current_module^.ResourceFiles.get));
-       else
-         Message(scan_e_resourcefiles_not_supported);
-     end;
-     hr^.compile;
-     dispose(hr,done);
-   end;
+(* OS/2 (EMX) must be processed elsewhere (in the linking/binding stage). *)
+  if target_info.target <> target_i386_os2 then
+   While not Current_module^.ResourceFiles.Empty do
+    begin
+      case target_info.target of
+        target_i386_win32:
+          hr:=new(presourcefile,init(Current_module^.ResourceFiles.get));
+        else
+          Message(scan_e_resourcefiles_not_supported);
+      end;
+      hr^.compile;
+      dispose(hr,done);
+    end;
 end;
 
 
 end.
 {
   $Log$
-  Revision 1.11  2000-06-23 20:11:05  peter
+  Revision 1.12  2000-06-25 19:08:28  hajny
+    + $R support for OS/2 (EMX) added
+
+  Revision 1.11  2000/06/23 20:11:05  peter
     * made resourcecompiling object so it can be inherited and replaced
       for other targets if needed
 

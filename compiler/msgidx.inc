@@ -31,7 +31,7 @@ type tmsgconst=(
   scan_e_endif_expected,
   scan_e_preproc_syntax_error,
   scan_e_error_in_preproc_expr,
-  scan_w_marco_cut_after_255_chars,
+  scan_w_macro_cut_after_255_chars,
   scan_e_endif_without_if,
   scan_f_user_defined,
   scan_e_user_defined,
@@ -67,6 +67,7 @@ type tmsgconst=(
   scan_e_resourcefiles_not_supported,
   scan_w_include_env_not_found,
   scan_e_invalid_maxfpureg_value,
+  scan_w_only_one_resourcefile_supported,
   parser_e_syntax_error,
   parser_w_proc_far_ignored,
   parser_w_proc_near_ignored,
@@ -699,4 +700,4 @@ type tmsgconst=(
 endmsgconst
 );
 const
-  MsgCRCValue : longint = -90958003;
+  MsgCRCValue : longint = 1376339778;

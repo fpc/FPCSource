@@ -32,7 +32,7 @@ unit t_os2;
 
 interface
 uses
-  import,link;
+  import,link,comprsrc;
 
 type
   pimportlibos2=^timportlibos2;
@@ -365,8 +365,8 @@ procedure TLinkeros2.SetDefaultInfo;
 begin
   with Info do
    begin
-     ExeCmd[1]:='ld -o $EXE @$RES';
-     ExeCmd[2]:='emxbind -b $STRIP $PM -k$STACKKB -h$HEAPMB -o $EXE.exe $EXE -aim -s$DOSHEAPKB';
+     ExeCmd[1]:='ld $OPT -o $EXE @$RES';
+     ExeCmd[2]:='emxbind -b $STRIP $PM $RSRC -k$STACKKB -h$HEAPMB -o $EXE.exe $EXE -aim -s$DOSHEAPKB';
    end;
 end;
 
@@ -445,6 +445,7 @@ var
   i       : longint;
   PMStr,
   StripStr : string[40];
+  RsrcStr: string;
 begin
   if not(cs_link_extern in aktglobalswitches) then
    Message1(exec_i_linking,current_module^.exefilename^);
@@ -456,31 +457,38 @@ begin
    StripStr:='-s';
   if usewindowapi then
    PMStr:='-p';
-
+  if not (Current_Module^.ResourceFiles.Empty) then
+   RsrcStr := '-r ' + Current_Module^.ResourceFiles.Get;
+(* Only one resource file supported, discard everything else
+   (should be already empty anyway, however. *)
+  Current_Module^.ResourceFiles.Clear;
 { Write used files and libraries }
   WriteResponseFile(false);
 
 { Call linker }
   success:=false;
-  for i:=1to 2 do
+  for i:=1 to 2 do
    begin
      SplitBinCmd(Info.ExeCmd[i],binstr,cmdstr);
      if binstr<>'' then
       begin
-        Replace(cmdstr,'$EXE',current_module^.exefilename^);
-        Replace(cmdstr,'$OPT',Info.ExtraOptions);
-        Replace(cmdstr,'$RES',outputexedir+Info.ResName);
-        Replace(cmdstr,'$STRIP',StripStr);
         Replace(cmdstr,'$HEAPMB',tostr((maxheapsize+1048575) shr 20));
         {Size of the stack when an EMX program runs in OS/2.}
         Replace(cmdstr,'$STACKKB',tostr((stacksize+1023) shr 10));
         {When an EMX program runs in DOS, the heap and stack share the
          same memory pool. The heap grows upwards, the stack grows downwards.}
         Replace(cmdstr,'$DOSHEAPKB',tostr((stacksize+maxheapsize+1023) shr 10));
+        Replace(cmdstr,'$STRIP',StripStr);
         Replace(cmdstr,'$PM',PMStr);
+        Replace(cmdstr,'$RES',outputexedir+Info.ResName);
+        Replace(cmdstr,'$OPT',Info.ExtraOptions);
+        Replace(cmdstr,'$RSRC',RsrcStr);
+        Replace(cmdstr,'$EXE',current_module^.exefilename^);
         success:=DoExec(FindUtil(binstr),cmdstr,(i=1),false);
+(* We still want to have the PPAS script complete, right?
         if not success then
          break;
+*)
       end;
    end;
 
@@ -495,7 +503,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  2000-04-01 10:45:14  hajny
+  Revision 1.12  2000-06-25 19:08:28  hajny
+    + $R support for OS/2 (EMX) added
+
+  Revision 1.11  2000/04/01 10:45:14  hajny
     * .ao2 bug fixed
 
   Revision 1.10  2000/02/28 17:23:57  daniel

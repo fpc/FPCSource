@@ -114,10 +114,10 @@ unit systems;
 
      type
        tres = (res_none
-            ,res_i386_windres,res_m68k_mpw,res_powerpc_mpw
+            ,res_i386_windres,res_m68k_mpw,res_powerpc_mpw, res_i386_emx
        );
      const
-       {$ifdef i386} i386rescnt=1; {$else} i386rescnt=0; {$endif}
+       {$ifdef i386} i386rescnt=2; {$else} i386rescnt=0; {$endif}
        {$ifdef m68k} m68krescnt=1; {$else} m68krescnt=0; {$endif}
        {$ifdef alpha} alpharescnt=0; {$else} alpharescnt=0; {$endif}
        {$ifdef powerpc} powerpcrescnt=1; {$else} powerpcrescnt=0; {$endif}
@@ -934,6 +934,12 @@ implementation
             resbin : 'windres';
             rescmd : '--include $INC -O coff -o $OBJ $RES'
           )
+          ,(
+            id     : res_i386_emx;
+            resbin : 'emxbind';
+            rescmd : '-b -r $RES $OBJ'
+(* Not really used - see TLinkeros2.SetDefaultInfo in t_os2.pas. *)
+          )
 {$endif i386}
 {$ifdef m68k}
           ,(
@@ -1054,7 +1060,7 @@ implementation
             assem       : as_i386_as_aout;
             assemsrc    : as_i386_as_aout;
             ar          : ar_i386_ar;
-            res         : res_none;
+            res         : res_i386_emx;
             heapsize    : 256*1024;
             maxheapsize : 32768*1024;
             stacksize   : 32768
@@ -1638,7 +1644,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.105  2000-06-23 21:31:18  pierre
+  Revision 1.106  2000-06-25 19:08:28  hajny
+    + $R support for OS/2 (EMX) added
+
+  Revision 1.105  2000/06/23 21:31:18  pierre
    + new target_os field: maxCstructalignment
 
   Revision 1.104  2000/05/23 21:26:52  pierre
