@@ -468,6 +468,24 @@ implementation
               pd:=voiddef;
             end;
 
+          in_finalize_x:
+            begin
+              consume(_LKLAMMER);
+              in_args:=true;
+              p1:=comp_expr(true);
+              if token=_COMMA then
+               begin
+                 consume(_COMMA);
+                 p2:=gencallparanode(comp_expr(true),nil);
+               end
+              else
+               p2:=nil;
+              p2:=gencallparanode(p1,p2);
+              statement_syssym:=geninlinenode(in_finalize_x,false,p2);
+              consume(_RKLAMMER);
+              pd:=voiddef;
+            end;
+
           in_concat_x :
             begin
               consume(_LKLAMMER);
@@ -2372,7 +2390,12 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.16  2000-11-06 20:30:55  peter
+  Revision 1.17  2000-11-09 17:46:55  florian
+    * System.TypeInfo fixed
+    + System.Finalize implemented
+    + some new keywords for interface support added
+
+  Revision 1.16  2000/11/06 20:30:55  peter
     * more fixes to get make cycle working
 
   Revision 1.15  2000/11/04 14:25:20  florian

@@ -74,6 +74,7 @@ begin
   p^.insert(new(psyssym,init('Addr',in_addr_x)));
   p^.insert(new(psyssym,init('TypeInfo',in_typeinfo_x)));
   p^.insert(new(psyssym,init('SetLength',in_setlength_x)));
+  p^.insert(new(psyssym,init('Finalize',in_finalize_x)));
 end;
 
 
@@ -258,7 +259,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2000-10-31 22:02:51  peter
+  Revision 1.9  2000-11-09 17:46:56  florian
+    * System.TypeInfo fixed
+    + System.Finalize implemented
+    + some new keywords for interface support added
+
+  Revision 1.8  2000/10/31 22:02:51  peter
     * symtable splitted, no real code changes
 
   Revision 1.7  2000/10/21 18:16:12  florian

@@ -54,6 +54,7 @@ const
    in_addr_x            = 42;
    in_typeinfo_x        = 43;
    in_setlength_x       = 44;
+   in_finalize_x        = 45;
 
 { Internal constant functions }
    in_const_trunc      = 100;
@@ -101,7 +102,12 @@ const
 
 {
   $Log$
-  Revision 1.1  2000-11-04 16:48:32  florian
+  Revision 1.2  2000-11-09 17:46:54  florian
+    * System.TypeInfo fixed
+    + System.Finalize implemented
+    + some new keywords for interface support added
+
+  Revision 1.1  2000/11/04 16:48:32  florian
     * innr.inc renamed to make compiler compilation easier because the rtl contains
       a file of the same name
 

@@ -148,6 +148,7 @@ type
     _UNTIL,
     _WHILE,
     _WRITE,
+    _DISPID,
     _DOWNTO,
     _EXCEPT,
     _EXPORT,
@@ -204,6 +205,7 @@ type
     _PUBLISHED,
     _THREADVAR,
     _DESTRUCTOR,
+    _IMPLEMENTS,
     _INTERNPROC,
     _OPENSTRING,
     _CONSTRUCTOR,
@@ -211,6 +213,7 @@ type
     _REINTRODUCE,
     _SHORTSTRING,
     _FINALIZATION,
+    _DISPINTERFACE,
     _SAVEREGISTERS,
     _IMPLEMENTATION,
     _INITIALIZATION,
@@ -353,6 +356,7 @@ const
       (str:'UNTIL'         ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'WHILE'         ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'WRITE'         ;special:false;keyword:m_none;op:NOTOKEN),
+      (str:'DISPID'        ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'DOWNTO'        ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'EXCEPT'        ;special:false;keyword:m_class;op:NOTOKEN),
       (str:'EXPORT'        ;special:false;keyword:m_none;op:NOTOKEN),
@@ -409,6 +413,7 @@ const
       (str:'PUBLISHED'     ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'THREADVAR'     ;special:false;keyword:m_class;op:NOTOKEN),
       (str:'DESTRUCTOR'    ;special:false;keyword:m_all;op:NOTOKEN),
+      (str:'IMPLEMENTS'    ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'INTERNPROC'    ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'OPENSTRING'    ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'CONSTRUCTOR'   ;special:false;keyword:m_all;op:NOTOKEN),
@@ -416,6 +421,7 @@ const
       (str:'REINTRODUCE'   ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'SHORTSTRING'   ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'FINALIZATION'  ;special:false;keyword:m_initfinal;op:NOTOKEN),
+      (str:'DISPINTERFACE' ;special:false;keyword:m_class;op:NOTOKEN),
       (str:'SAVEREGISTERS' ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'IMPLEMENTATION';special:false;keyword:m_all;op:NOTOKEN),
       (str:'INITIALIZATION';special:false;keyword:m_initfinal;op:NOTOKEN),
@@ -468,7 +474,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2000-10-14 10:14:56  peter
+  Revision 1.6  2000-11-09 17:46:56  florian
+    * System.TypeInfo fixed
+    + System.Finalize implemented
+    + some new keywords for interface support added
+
+  Revision 1.5  2000/10/14 10:14:56  peter
     * moehrendorf oct 2000 rewrite
 
   Revision 1.4  2000/09/24 15:06:32  peter

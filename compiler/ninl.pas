@@ -711,6 +711,33 @@ implementation
                     CGMessage(type_e_mismatch);
                end;
 
+             in_finalize_x:
+               begin
+                  resulttype:=voiddef;
+                  if assigned(left) and assigned(tcallparanode(left).left) then
+                    begin
+                       firstpass(tcallparanode(left).left);
+                       if codegenerror then
+                        exit;
+                       { first param must be var }
+                       valid_for_assign(tcallparanode(left).left,false);
+                       set_varstate(tcallparanode(left).left,true);
+
+                       { two parameters? }
+                       if assigned(tcallparanode(left).right) then
+                         begin
+                            { the last parameter must be a longint }
+                            tcallparanode(tcallparanode(left).right).left:=
+                              gentypeconvnode(tcallparanode(tcallparanode(left).right).left,s32bitdef);
+                            firstpass(tcallparanode(tcallparanode(left).right).left);
+                            if codegenerror then
+                             exit;
+                         end;
+                    end
+                  else
+                    CGMessage(type_e_mismatch);
+               end;
+
              in_inc_x,
              in_dec_x:
                begin
@@ -1464,7 +1491,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2000-11-04 16:48:32  florian
+  Revision 1.14  2000-11-09 17:46:54  florian
+    * System.TypeInfo fixed
+    + System.Finalize implemented
+    + some new keywords for interface support added
+
+  Revision 1.13  2000/11/04 16:48:32  florian
     * innr.inc renamed to make compiler compilation easier because the rtl contains
       a file of the same name
 

@@ -1305,6 +1305,7 @@ implementation
                 emitoverflowcheck(tcallparanode(left).left);
                 emitrangecheck(tcallparanode(left).left,tcallparanode(left).left.resulttype);
               end;
+
             in_typeinfo_x:
                begin
                   pstoreddef(ttypenode(tcallparanode(left).left).typenodetype)^.generate_rtti;
@@ -1312,8 +1313,41 @@ implementation
                   new(r);
                   reset_reference(r^);
                   r^.symbol:=pstoreddef(ttypenode(tcallparanode(left).left).typenodetype)^.rtti_label;
-                  emit_ref_reg(A_MOV,S_L,r,location.register);
+                  emit_ref_reg(A_LEA,S_L,r,location.register);
                end;
+
+             in_finalize_x:
+               begin
+                  pushusedregisters(pushed,$ff);
+                  { force rtti generation }
+                  pstoreddef(ttypenode(tcallparanode(left).left).resulttype)^.generate_rtti;
+                  { if a count is passed, push size, typeinfo and count }
+                  if assigned(tcallparanode(left).right) then
+                    begin
+                       secondpass(tcallparanode(tcallparanode(left).right).left);
+                       push_int(tcallparanode(left).left.resulttype^.size);
+                       if codegenerror then
+                        exit;
+                       emit_push_loc(tcallparanode(tcallparanode(left).right).left.location);
+                    end;
+
+                  { generate a reference }
+                  reset_reference(hr);
+                  hr.symbol:=pstoreddef(ttypenode(tcallparanode(left).left).resulttype)^.rtti_label;
+                  emitpushreferenceaddr(hr);
+
+                  { data to finalize }
+                  secondpass(tcallparanode(left).left);
+                  if codegenerror then
+                    exit;
+                  emitpushreferenceaddr(tcallparanode(left).left.location.reference);
+                  if assigned(tcallparanode(left).right) then
+                    emitcall('FPC_FINALIZEARRAY')
+                  else
+                    emitcall('FPC_FINALIZE');
+                  popusedregisters(pushed);
+               end;
+
             in_assigned_x :
               begin
                  secondpass(tcallparanode(left).left);
@@ -1629,7 +1663,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-10-31 22:02:56  peter
+  Revision 1.5  2000-11-09 17:46:56  florian
+    * System.TypeInfo fixed
+    + System.Finalize implemented
+    + some new keywords for interface support added
+
+  Revision 1.4  2000/10/31 22:02:56  peter
     * symtable splitted, no real code changes
 
   Revision 1.3  2000/10/26 14:15:07  jonas
