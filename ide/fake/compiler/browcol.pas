@@ -247,7 +247,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  1999-01-22 10:24:16  peter
+  Revision 1.1  1999-01-28 19:56:12  peter
+    * moved to include compiler/gdb independent of each other
+
+  Revision 1.3  1999/01/22 10:24:16  peter
     + gdbcon fake unit
 
   Revision 1.2  1999/01/21 11:54:08  peter

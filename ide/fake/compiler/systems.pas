@@ -1225,7 +1225,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  1998-12-22 14:27:54  peter
+  Revision 1.1  1999-01-28 19:56:12  peter
+    * moved to include compiler/gdb independent of each other
+
+  Revision 1.1  1998/12/22 14:27:54  peter
     * moved
 
   Revision 1.2  1998/12/18 17:17:05  peter

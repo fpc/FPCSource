@@ -24,7 +24,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  1999-01-04 11:49:39  peter
+  Revision 1.1  1999-01-28 19:56:12  peter
+    * moved to include compiler/gdb independent of each other
+
+  Revision 1.3  1999/01/04 11:49:39  peter
    * 'Use tab characters' now works correctly
    + Syntax highlight now acts on File|Save As...
    + Added a new class to syntax highlight: 'hex numbers'.
