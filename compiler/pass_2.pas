@@ -275,6 +275,9 @@ implementation
               { assign parameter locations }
               current_procinfo.after_pass1;
 
+              { paraloc register info is necessary for regvars }
+              paramanager.create_paraloc_info(current_procinfo.procdef,calleeside);
+
               { process register variable stuff (JM) }
               assign_regvars(p);
 //              load_regvars(current_procinfo.aktentrycode,p);
@@ -300,7 +303,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.57  2003-06-13 21:19:30  peter
+  Revision 1.58  2003-07-05 20:13:03  jonas
+     * create_paraloc_info() is now called separately for the caller and
+       callee info
+     * fixed ppc cycle
+
+  Revision 1.57  2003/06/13 21:19:30  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.56  2003/06/12 16:43:07  peter
