@@ -841,7 +841,9 @@ implementation
       var
         s,
         prefix : string;
+        i   : longint;
         crc : dword;
+        hp  : tparavarsym;
       begin
         prefix:='';
         if not assigned(st) then
@@ -851,8 +853,22 @@ implementation
          begin
            if st.defowner.deftype<>procdef then
             internalerror(200204173);
+           { Add the full mangledname of procedure to prevent
+             conflicts with 2 overloads having both a nested procedure
+             with the same name, see tb0314 (PFV) }
            s:=tprocdef(st.defowner).procsym.name;
-           prefix:=s+'$'+prefix;
+           for i:=0 to tprocdef(st.defowner).paras.count-1 do
+            begin
+              hp:=tparavarsym(tprocdef(st.defowner).paras[i]);
+              if not(vo_is_hidden_para in hp.varoptions) then
+                s:=s+'$'+hp.vartype.def.mangledparaname;
+            end;
+           if not is_void(tprocdef(st.defowner).rettype.def) then
+             s:=s+'$$'+tprocdef(st.defowner).rettype.def.mangledparaname;
+           if prefix<>'' then
+             prefix:=s+'_'+prefix
+           else
+             prefix:=s;
            st:=st.defowner.owner;
          end;
         { object/classes symtable }
@@ -6129,7 +6145,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.277  2004-11-21 17:54:59  peter
+  Revision 1.278  2004-11-21 21:51:31  peter
+    * manglednames for nested procedures include full parameters from
+      the parents to prevent double manglednames
+
+  Revision 1.277  2004/11/21 17:54:59  peter
     * ttempcreatenode.create_reg merged into .create with parameter
       whether a register is allowed
     * funcret_paraloc renamed to funcretloc
