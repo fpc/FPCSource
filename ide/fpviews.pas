@@ -830,7 +830,7 @@ begin
   Count:=0;
   for I:=ord(Low(tToken)) to ord(High(tToken)) do
   with TokenInfo^[TToken(I)] do
-     if (str<>'') and (str[1] in['A'..'Z']) and (keyword=m_all) then
+     if (str<>'') and (str[1] in['A'..'Z']) {and (keyword=m_all)} then
        Inc(Count);
   GetReservedWordCount:=Count;
 end;
@@ -846,7 +846,7 @@ begin
   while (I<=ord(High(tToken))) and (Idx=-1) do
    with TokenInfo^[TToken(I)] do
     begin
-      if (str<>'') and (str[1] in['A'..'Z']) and (keyword=m_all) then
+      if (str<>'') and (str[1] in['A'..'Z']) { and (keyword=m_all)} then
         begin
           Inc(Count);
           if Count=Index then
@@ -4490,7 +4490,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.53  2004-12-22 15:24:07  peter
+  Revision 1.54  2005-01-07 19:09:28  florian
+    * highlight keywords of all language modes
+
+  Revision 1.53  2004/12/22 15:24:07  peter
     * fixed NODEBUG
     * set default target to the default target of the compiler
 
