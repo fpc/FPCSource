@@ -572,9 +572,9 @@ function  ggiFlushRegion(vis: TGGIVisual; x, y, w, h: Integer): Integer; cdecl; 
 
 // Graphics context
 
-function  ggiSetGCForeground(vis: TGGIVisual; var Color: TGGIPixel): Integer; cdecl; external libggi;
+function  ggiSetGCForeground(vis: TGGIVisual; const Color: TGGIPixel): Integer; cdecl; external libggi;
 function  ggiGetGCForeground(vis: TGGIVisual; var Color: TGGIPixel): Integer; cdecl; external libggi;
-function  ggiSetGCBackground(vis: TGGIVisual; var Color: TGGIPixel): Integer; cdecl; external libggi;
+function  ggiSetGCBackground(vis: TGGIVisual; const Color: TGGIPixel): Integer; cdecl; external libggi;
 function  ggiGetGCBackground(vis: TGGIVisual; var Color: TGGIPixel): Integer; cdecl; external libggi;
 function  ggiSetGCClipping(vis: TGGIVisual; left, top, right, bottom: Integer): Integer; cdecl; external libggi;
 function  ggiGetGCClipping(vis: TGGIVisual; var left, top, right, bottom: Integer): Integer; cdecl; external libggi;
@@ -788,7 +788,11 @@ end.
 
 {
   $Log$
-  Revision 1.3  2000-04-14 16:57:58  sg
+  Revision 1.4  2000-04-15 11:13:30  sg
+  * Hopefully the final fix for the second argument of ggiSetGCForeground
+    and ggiSetGCBackground... :-)
+
+  Revision 1.3  2000/04/14 16:57:58  sg
   * Fixed some wrong argument lists
 
   Revision 1.2  1999/11/12 18:47:34  sg
