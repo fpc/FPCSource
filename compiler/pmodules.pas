@@ -780,7 +780,7 @@ implementation
         usesacchi:=false;
         gen_load_return_value(list,usesacc,usesacchi,usesfpu);
         gen_exit_code(list,false,usesacc,usesacchi,usesfpu);
-        list.convert_registers;
+{        list.convert_registers;}
         release_main_proc(pd);
       end;
 
@@ -1453,7 +1453,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.116  2003-07-23 11:04:15  jonas
+  Revision 1.117  2003-08-20 09:07:00  daniel
+    * New register coding now mandatory, some more convert_registers calls
+      removed.
+
+  Revision 1.116  2003/07/23 11:04:15  jonas
     * split en_exit_code into a part that may allocate a register and a part
       that doesn't, so the former can be done before the register colouring
       has been performed

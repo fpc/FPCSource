@@ -1449,51 +1449,59 @@ implementation
         );
       var
         j     : longint;
-        i,b   : Toldregister;
+{        i,b   : Toldregister;}
         sym   : tasmsymbol;
-        md,s  : byte;
+        md,s,rv  : byte;
         base,index,scalefactor,
         o     : longint;
         ireg  : Tregister;
-        ir,br : Tregister;
+        ir,br : Tnewregister;
       begin
         process_ea:=false;
       { register ? }
         if (input.typ=top_reg) then
          begin
            ireg:=input.reg;
-           convert_register_to_enum(ireg);
-           j:=0;
-           while (j<=high(regs)) do
-            begin
-              if ireg.enum=regs[j] then
-               break;
-              inc(j);
-            end;
-           if j<=high(regs) then
+           if ireg.enum=R_INTREGISTER then
+             rv:=regval_new(ireg.number)
+           else
+             begin
+               j:=0;
+               while (j<=high(regs)) do
+                 begin
+                   if ireg.enum=regs[j] then
+                     break;
+                   inc(j);
+                 end;
+               if j<=high(regs) then
+                 rv:=j shr 3
+               else
+                 rv:=255;
+             end;
+           if rv<>255 then
             begin
               output.sib_present:=false;
               output.bytes:=0;
-              output.modrm:=$c0 or (rfield shl 3) or (j shr 3);
+              output.modrm:=$c0 or (rfield shl 3) or rv;
               output.size:=1;
               process_ea:=true;
             end;
            exit;
          end;
       { memory reference }
-        ir:=input.ref^.index;
-        br:=input.ref^.base;
-        convert_register_to_enum(ir);
+        if (input.ref^.index.enum<>R_INTREGISTER) or (input.ref^.base.enum<>R_INTREGISTER) then
+          internalerror(200301081);
+        ir:=input.ref^.index.number;
+        br:=input.ref^.base.number;
+{        convert_register_to_enum(ir);
         convert_register_to_enum(br);
         i:=ir.enum;
-        b:=br.enum;
-        if (i>lastreg) or (b>lastreg) then
-          internalerror(200301081);
+        b:=br.enum;}
         s:=input.ref^.scalefactor;
         o:=input.ref^.offset+input.ref^.offsetfixup;
         sym:=input.ref^.symbol;
       { it's direct address }
-        if (b=R_NO) and (i=R_NO) then
+        if (br=NR_NO) and (ir=NR_NO) then
          begin
            { it's a pure offset }
            output.sib_present:=false;
@@ -1504,58 +1512,57 @@ implementation
         { it's an indirection }
          begin
            { 16 bit address? }
-           if not((i in [R_NO,R_EAX,R_EBX,R_ECX,R_EDX,R_EBP,R_ESP,R_ESI,R_EDI]) and
-                  (b in [R_NO,R_EAX,R_EBX,R_ECX,R_EDX,R_EBP,R_ESP,R_ESI,R_EDI])) then
-            Message(asmw_e_16bit_not_supported);
+           if ((ir<>NR_NO) and (ir and $ff<>R_SUBD)) or ((br<>NR_NO) and (br and $ff<>R_SUBD)) then
+             message(asmw_e_16bit_not_supported);
 {$ifdef OPTEA}
            { make single reg base }
-           if (b=R_NO) and (s=1) then
+           if (br=NR_NO) and (s=1) then
             begin
-              b:=i;
-              i:=R_NO;
+              br:=ir;
+              ir:=NR_NO;
             end;
            { convert [3,5,9]*EAX to EAX+[2,4,8]*EAX }
-           if (b=R_NO) and
-              (((s=2) and (i<>R_ESP)) or
+           if (br=NR_NO) and
+              (((s=2) and (ir<>NR_ESP)) or
                 (s=3) or (s=5) or (s=9)) then
             begin
-              b:=i;
+              br:=ir;
               dec(s);
             end;
            { swap ESP into base if scalefactor is 1 }
-           if (s=1) and (i=R_ESP) then
+           if (s=1) and (ir=NR_ESP) then
             begin
-              i:=b;
-              b:=R_ESP;
+              ir:=br;
+              br:=NR_ESP;
             end;
 {$endif OPTEA}
            { wrong, for various reasons }
-           if (i=R_ESP) or ((s<>1) and (s<>2) and (s<>4) and (s<>8) and (i<>R_NO)) then
+           if (ir=NR_ESP) or ((s<>1) and (s<>2) and (s<>4) and (s<>8) and (ir<>NR_NO)) then
             exit;
            { base }
-           case b of
-             R_EAX : base:=0;
-             R_ECX : base:=1;
-             R_EDX : base:=2;
-             R_EBX : base:=3;
-             R_ESP : base:=4;
-             R_NO,
-             R_EBP : base:=5;
-             R_ESI : base:=6;
-             R_EDI : base:=7;
+           case br of
+             NR_EAX : base:=0;
+             NR_ECX : base:=1;
+             NR_EDX : base:=2;
+             NR_EBX : base:=3;
+             NR_ESP : base:=4;
+             NR_NO,
+             NR_EBP : base:=5;
+             NR_ESI : base:=6;
+             NR_EDI : base:=7;
            else
              exit;
            end;
            { index }
-           case i of
-             R_EAX : index:=0;
-             R_ECX : index:=1;
-             R_EDX : index:=2;
-             R_EBX : index:=3;
-             R_NO  : index:=4;
-             R_EBP : index:=5;
-             R_ESI : index:=6;
-             R_EDI : index:=7;
+           case ir of
+             NR_EAX : index:=0;
+             NR_ECX : index:=1;
+             NR_EDX : index:=2;
+             NR_EBX : index:=3;
+             NR_NO  : index:=4;
+             NR_EBP : index:=5;
+             NR_ESI : index:=6;
+             NR_EDI : index:=7;
            else
              exit;
            end;
@@ -1568,20 +1575,20 @@ implementation
            else
             exit;
            end;
-           if (b=R_NO) or
-              ((b<>R_EBP) and (o=0) and (sym=nil)) then
+           if (br=NR_NO) or
+              ((br<>NR_EBP) and (o=0) and (sym=nil)) then
             md:=0
            else
             if ((o>=-128) and (o<=127) and (sym=nil)) then
              md:=1
             else
              md:=2;
-           if (b=R_NO) or (md=2) then
+           if (br=NR_NO) or (md=2) then
             output.bytes:=4
            else
             output.bytes:=md;
            { SIB needed ? }
-           if (i=R_NO) and (b<>R_ESP) then
+           if (ir=NR_NO) and (br<>NR_ESP) then
             begin
               output.sib_present:=false;
               output.modrm:=(md shl 6) or (rfield shl 3) or base;
@@ -2449,7 +2456,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2003-08-20 07:48:04  daniel
+  Revision 1.13  2003-08-20 09:07:00  daniel
+    * New register coding now mandatory, some more convert_registers calls
+      removed.
+
+  Revision 1.12  2003/08/20 07:48:04  daniel
     * Made internal assembler use new register coding
 
   Revision 1.11  2003/08/19 13:58:33  daniel

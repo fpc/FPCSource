@@ -340,7 +340,8 @@ unit rgcpu;
              { and is present in use }
              not(r in unusedregsmm) then
             begin
-              r2.enum:=R_ESP;
+              r2.enum:=R_INTREGISTER;
+              r2.number:=NR_ESP;
               list.concat(Taicpu.Op_const_reg(A_SUB,S_L,8,r2));
               reference_reset_base(hr,r2,0);
               r2.enum:=r;
@@ -400,7 +401,8 @@ unit rgcpu;
       for r:=R_MM6 downto R_MM0 do
         if pushed[r].pushed then
           begin
-            r2.enum:=R_ESP;
+            r2.enum:=R_INTREGISTER;
+            r2.number:=NR_ESP;
             reference_reset_base(hr,r2,0);
             r3.enum:=r;
             list.concat(Taicpu.op_ref_reg(A_MOVQ,S_NO,hr,r3));
@@ -506,7 +508,11 @@ end.
 
 {
   $Log$
-  Revision 1.30  2003-08-17 08:48:02  daniel
+  Revision 1.31  2003-08-20 09:07:00  daniel
+    * New register coding now mandatory, some more convert_registers calls
+      removed.
+
+  Revision 1.30  2003/08/17 08:48:02  daniel
    * Another register allocator bug fixed.
    * cpu_registers set to 6 for i386
 

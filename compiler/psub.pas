@@ -698,12 +698,12 @@ implementation
 {$endif newra}
         stackalloccode:=Taasmoutput.create;
         gen_stackalloc_code(stackalloccode);
-        stackalloccode.convert_registers;
+{        stackalloccode.convert_registers;}
         aktproccode.insertlist(stackalloccode);
         stackalloccode.free;
 
         gen_exit_code(templist,false,usesacc,usesacchi,usesfpu);
-        templist.convert_registers;
+{        templist.convert_registers;}
         aktproccode.concatlist(templist);
 
         { now all the registers used are known }
@@ -1300,7 +1300,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.135  2003-08-20 07:48:03  daniel
+  Revision 1.136  2003-08-20 09:07:00  daniel
+    * New register coding now mandatory, some more convert_registers calls
+      removed.
+
+  Revision 1.135  2003/08/20 07:48:03  daniel
     * Made internal assembler use new register coding
 
   Revision 1.134  2003/08/17 16:59:20  jonas
