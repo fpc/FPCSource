@@ -67,12 +67,31 @@ type
          A_CPRESTORE,A_CPSAVE,
          A_FRESTORE,A_FSAVE,A_PFLUSH,A_PFLUSHA,A_PLOAD,A_PMOVE,A_PTEST,
          A_LABEL,A_NONE);
+      
+     { this is also a normal set } 
+     tregister = (R_NO,
+        R_EAX,R_ECX,R_EDX,R_EBX,R_ESP,R_EBP,R_ESI,R_EDI,
+        R_AX,R_CX,R_DX,R_BX,R_SP,R_BP,R_SI,R_DI,
+        R_AL,R_CL,R_DL,R_BL,R_AH,R_CH,R_BH,R_DH,
+        R_CS,R_DS,R_ES,R_SS,R_FS,R_GS,
+        R_ST,R_ST0,R_ST1,R_ST2,R_ST3,R_ST4,R_ST5,R_ST6,R_ST7,
+        R_DR0,R_DR1,R_DR2,R_DR3,R_DR6,R_DR7,
+        R_CR0,R_CR2,R_CR3,R_CR4,
+        R_TR3,R_TR4,R_TR5,R_TR6,R_TR7,
+        R_MM0,R_MM1,R_MM2,R_MM3,R_MM4,R_MM5,R_MM6,R_MM7,
+        R_XMM0,R_XMM1,R_XMM2,R_XMM3,R_XMM4,R_XMM5,R_XMM6,R_XMM7
+      );
+const      
+      LoReg = R_EAX;
+      HiReg = R_DH;
 
-
+      
 
 type
   tnormalset = set of tbigenum;
   tsmallset = set of tsmallenum;
+  tregset = set of LoReg..HiReg;
+
   
   
   procedure checkpassed(passed : boolean);
@@ -85,11 +104,25 @@ type
         Halt(1);
       end;
    end;
+   
+   
+var
+  NewRegsEncountered : TRegSet;
 
+
+
+  function Reg32 : tregister;
+   begin
+     Reg32:=R_EAX;  
+   end;
+   
+   
+{*******************************************************************}
 { The following cases are possible                                  }
 {     jump table usage                                              }
 {     small set or normal set                                       }
 {     source location : REFERENCE,MEMORY,CONSTANT or REGISTER       }
+{*******************************************************************}
 
   { NO GENERATION OF JUMP TABLE }
   { SMALL SET                   }
@@ -103,6 +136,7 @@ type
    begin
      passed := true;
      Write('Small set in operator test (without case table)...');
+
      { LEFT : LOC_REFERENCE (not a constant node)  }
      { RIGHT : LOC_REFERENCE                       }
      op1 := [DI];
@@ -110,6 +144,7 @@ type
      op := DI;
      if not (op in op1) then
       passed := false;
+
      { LEFT : LOC_REFERENCE (a constant node) }
      { RIGHT: LOC_REFERENCE                   }
      op1 := [DL];
@@ -117,7 +152,6 @@ type
      if not (DL in op1) then
       passed := false;
      { LEFT : LOC_REFERENCE (a constant node) }
-     { RIGHT: LOC_REFERENCE (a constant set)  }
      { THIS CAN NEVER HAPPEN - EVALUATED AT COMPILE TIME BY COMPILER }
      op1 := [DB];
      op := DB;
@@ -130,6 +164,7 @@ type
      op3 := [DF];
      if not (op in (op2+op3)) then
        passed := false;
+
      { LEFT : LOC_REGISTER  (a constant node)     }
      { RIGHT : LOC_REGISTER,LOC_CREGISTER         }
      op2 := [DB];
@@ -139,15 +174,46 @@ type
      checkpassed(passed);  
    end;
 
-
+  
   { returns result in register }
    function getsmallop : tsmallenum;
      begin
        getsmallop := DQ;
      end;
-
-  { GENERATION OF JUMP TABLE }
+    
+  { NO GENERATION OF JUMP TABLE }
   { SMALL SET                   }
+  procedure smallsettestthree;
+   var
+     op1 : tsmallset;
+     op2 : tsmallset;
+     op3 : tsmallset;
+     op  : tsmallenum;
+     passed : boolean;
+   begin
+     passed := true;
+     Write('Small set in operator test (without case table)...');
+
+     { LEFT : LOC_REGISTER (not a constant node)  }
+     { RIGHT : LOC_REFERENCE                      }
+     op1 := [DQ];
+     op2 := [DQ];
+     if not (getsmallop in op1) then
+      passed := false;
+
+     { LEFT : LOC_REGISTER (not a constant node) }
+     { RIGHT : LOC_REGISTER                      }
+     op := DF;
+     op2 := [DB,DQ];
+     op3 := [DF];
+     if not (getsmallop in (op2+op3)) then
+       passed := false;
+
+     checkpassed(passed);  
+   end;
+   
+  { GENERATION OF JUMP TABLE }
+  { SMALL SET                }
   procedure smallsettesttwo;
    var
      op1 : tsmallset;
@@ -167,16 +233,25 @@ type
      op := DH;
      if not (op in [DB,DH,DP]) then
       passed := false;
+     { LEFT : LOC_REFERENCE                       }
+     { RIGHT : range constant set with full set   }
+     op:=DK;
+     if not (op in [dA,dB,dC,dd,de,df,dg,dh,di,dj,dk,dl,dm,dn,dop,dp,dq,dr]) then
+       passed := false;
+     
      { LEFT : LOC_REGISTER                        }
      { RIGHT : NOT range constant set (zero flag) }
      op := DH;
      if not (getsmallop in [DA,DB..DN,DQ]) then
       passed := false;
      { LEFT : LOC_REGISTER                        }
-     { RIGHT : range constant set (carry flag)    }
+     { RIGHT : range constant set with full set   }
+     if not (getsmallop in [dA,dB,dC,dd,de,df,dg,dh,di,dj,dk,dl,dm,dn,dop,dp,dq,dr]) then
+       passed := false;
      checkpassed(passed);  
    end;
-
+  
+   
   { returns result in register }
   function getop : tbigenum;
     begin
@@ -212,7 +287,7 @@ type
      op1 := [A_MOVE,A_TRAP];
      if not (A_MOVE in op1) then
        passed := false;
-
+       
      checkpassed(passed);  
    end;
 
@@ -237,6 +312,17 @@ type
 
      if not (getop in [A_BFSET,A_MOVE]) then
        passed := false;
+       
+     { Left : LOC_REGISTER               }
+     { right : no set at all             }
+     if getop in [] then
+       passed:=false;
+
+     { Left : LOC_REGISTER               }
+     { right : complete set definition   }
+     if not (getop in [A_ABCD..A_NONE]) then
+       passed:=false;
+
 
      op := A_MOVE;
      { Left : LOC_REFERENCE              }
@@ -244,21 +330,56 @@ type
      if not (getop in [A_BFSET,A_MOVE,A_ASL..A_BCC]) then
        passed := false;
 
+     op:= A_MOVE;
+     if not (getop in [A_BFSET,A_MOVE]) then
+       passed := false;
+       
+     { Left : LOC_REFERENCE              }
+     { right : no set at all             }
+     op := A_MOVE;
+     if op in [] then
+       passed:=false;
+
+     { Left : LOC_REFERENCE              }
+     { right : complete set definition   }
+     op:=A_MOVE;
+     if not (op in [A_ABCD..A_NONE]) then
+       passed:=false;
+
      checkpassed(passed);  
    end;
 
+   { WITH JUMP TABLE }
+   { NORMAL SETS   }
+   procedure settestthree;
+     var
+      passed : boolean;
+     begin
+       Write('Normal set in operator test II (without case table)...');
+       passed := false;
+       NewRegsEncountered := [R_EAX..R_EDX];
+       If (Reg32 in NewRegsEncountered) Then
+         passed := true;  
+       checkpassed(passed);  
+     end;
 
 Begin
   smallsettestone;
   smallsettesttwo;
+  smallsettestthree;
+  
   settestone;
   settesttwo;
+  settestthree;
 end.
 
 {
 
   $Log$
-  Revision 1.2  2002-03-05 21:56:02  carl
+  Revision 1.3  2002-06-16 08:28:11  carl
+  + added several missing tests (adapted to both v1.1 and v1.0)
+
+  Revision 1.2  2002/03/05 21:56:02  carl
   * Adapted for automated testing
 
   Revision 1.1  2001/06/25 01:34:03  carl
