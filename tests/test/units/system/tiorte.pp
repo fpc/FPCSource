@@ -5,13 +5,15 @@
 
 const
  TMP_DIRECTORY = 'temp2';
+ has_fails : boolean = false;
 
 procedure test(value, required: longint);
 begin
   if value <> required then
     begin
       writeln('Got ',value,' instead of ',required);
-      halt(1);
+      has_fails:=true;
+      {halt(1);}
     end;
 end;
 
@@ -389,12 +391,17 @@ begin
   test_close_untyped;
   test_directory;
   test_fileroutines;
+  if has_fails then
+    halt(1);
 end.
 
 
 {
  $Log$
- Revision 1.5  2002-09-07 15:40:56  peter
+ Revision 1.6  2002-10-15 12:05:49  pierre
+ - * changed so that all tests are done even after a failure
+
+ Revision 1.5  2002/09/07 15:40:56  peter
    * old logs removed and tabs fixed
 
  Revision 1.4  2002/03/09 23:17:35  carl
