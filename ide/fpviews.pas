@@ -145,6 +145,7 @@ type
       function    SelectCodeTemplate(var ShortCut: string): boolean; virtual;
       { CodeComplete }
       function    CompleteCodeWord(const WordS: string; var Text: string): boolean; virtual;
+      procedure   FindMatchingDelimiter(ScanForward: boolean); virtual;
       procedure   SetCodeCompleteWord(const S: string); virtual;
       procedure   AlignCodeCompleteTip;
       procedure   HandleEvent(var Event: TEvent); virtual;
@@ -1199,6 +1200,132 @@ end;
 function TSourceEditor.CompleteCodeWord(const WordS: string; var Text: string): boolean;
 begin
   CompleteCodeWord:=FPCompleteCodeWord(WordS,Text);
+end;
+
+procedure TSourceEditor.FindMatchingDelimiter(ScanForward: boolean);
+var
+  St,nextResWord : String;
+  LineText,LineAttr: string;
+  Res,found,addit : boolean;
+  JumpPos: TPoint;
+  X,Y,lexchange,curlevel,linecount : sw_integer;
+
+   function GetLexChange(const S : string) : sw_integer;
+   begin
+     if (S='END') or (S='THEN') or (S='UNTIL') then
+       GetLexChange:=-1
+     else if (S='ASM') or (S='BEGIN') or (S='CASE') or (S='CLASS') or
+        (S='IF') or (S='OBJECT') or (S='RECORD') or (S='REPEAT') then
+       GetLexChange:=+1
+     else
+       GetLexChange:=0;
+   end;
+
+begin
+  st:=UpcaseStr(GetCurrentWord);
+  if st<>'' then
+    Res:=IsReservedWord(St)
+  else
+    Res:=false;
+  LexChange:=GetLexChange(St);
+  if not res or (LexChange=0) or not
+     IsFlagSet(efSyntaxHighlight) then
+    Inherited FindMatchingDelimiter(ScanForward)
+  else
+    begin
+      JumpPos.X:=-1; JumpPos.Y:=-1;
+      Y:=CurPos.Y; X:=CurPos.X;
+      found:=false;
+      LineCount:=0;
+      curlevel:=lexchange;
+      if LexChange>0 then
+        begin
+          repeat
+            Inc(LineCount);
+            NextResWord:='';
+            GetDisplayTextFormat(Y,LineText,LineAttr);
+            if LineCount<>1 then X:=-1
+            else if ord(LineAttr[X])<>coReservedWordColor then
+              exit;
+            repeat
+              Inc(X);
+              if X<length(LineText) then
+               begin
+                 AddIt:=ord(LineAttr[X+1])=coReservedWordColor;
+                 if AddIt then
+                   NextResWord:=NextResWord+UpCase(LineText[X+1]);
+               end;
+              if ((X=length(LineText)) or (Not AddIt)) and
+                 (NextResWord<>'') and
+                 IsReservedWord(NextResWord) then
+                begin
+                  LexChange:=GetLexChange(NextResWord);
+                  CurLevel:=CurLevel+LexChange;
+                  if CurLevel=0 then
+                    begin
+                      JumpPos.X:=X-Length(NextResWord);
+                      JumpPos.Y:=Y;
+                    end;
+                  NextResWord:='';
+                end;
+            until (X>=length(LineText)) or (JumpPos.X<>-1);
+            Inc(Y);
+          until (Y>=GetLineCount) or (JumpPos.X<>-1);
+          if (Y=GetLineCount) and (JumpPos.X=-1) then
+            begin
+              ErrorBox('No match',nil);
+              exit;
+            end;
+        end
+      else if (LexChange<0) then
+        begin
+          repeat
+            Inc(LineCount);
+            NextResWord:='';
+            GetDisplayTextFormat(Y,LineText,LineAttr);
+            if LineCount<>1 then
+              X:=Length(LineText)
+            else if ord(LineAttr[X])<>coReservedWordColor then
+              exit;
+            repeat
+              Dec(X);
+              if X>=0 then
+               begin
+                 AddIt:=ord(LineAttr[X+1])=coReservedWordColor;
+                 if AddIt then
+                   NextResWord:=UpCase(LineText[X+1])+NextResWord;
+               end;
+              if ((X=0) or (Not AddIt)) and
+                 (NextResWord<>'') and
+                 IsReservedWord(NextResWord) then
+                begin
+                  LexChange:=GetLexChange(NextResWord);
+                  CurLevel:=CurLevel+LexChange;
+                  if CurLevel=0 then
+                    begin
+                      if AddIt then
+                        JumpPos.X:=X
+                      else
+                        JumpPos.X:=X+1;
+                      JumpPos.Y:=Y;
+                    end;
+                  NextResWord:='';
+                end;
+            until (X<=0) or (JumpPos.X<>-1);
+            Dec(Y);
+          until (Y<0) or (JumpPos.X<>-1);
+          if (Y<0) and (JumpPos.X=-1) then
+            begin
+              ErrorBox('No match',nil);
+              exit;
+            end;
+        end;
+      if JumpPos.X<>-1 then
+      begin
+        SetCurPtr(JumpPos.X,JumpPos.Y);
+        TrackCursor(true);
+      end;
+    end;
 end;
 
 procedure TSourceEditor.SetCodeCompleteWord(const S: string);
@@ -4230,7 +4357,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.26  2002-09-05 05:58:58  pierre
+  Revision 1.27  2002-09-05 10:49:48  pierre
+   + FindMatchingDelimiter for pascal keywords with level counting
+
+  Revision 1.26  2002/09/05 05:58:58  pierre
    + use '*' as special name for noload and also no 'nonamexx.pas title
 
   Revision 1.25  2002/09/04 08:50:59  pierre
