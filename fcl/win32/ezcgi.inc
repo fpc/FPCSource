@@ -32,8 +32,12 @@ begin
      end;
    FreeEnvironmentStrings(p);
 end;
+{
   $Log$
-  Revision 1.2  2000-07-13 11:33:07  michael
+  Revision 1.3  2000-07-25 11:27:34  jonas
+    * fixed missing comment openers for log section
+
+  Revision 1.2  2000/07/13 11:33:07  michael
   + removed logs
  
 }
