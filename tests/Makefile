@@ -341,14 +341,23 @@ endif
 
 .PHONY: all units tests cont_tests
 
+# Unix like OS ?
+ifeq ($(OS_TARGET),linux)
+INUNIX=1
+endif
+ifeq ($(OS_TARGET),freebsd)
+INUNIX=1
+endif
+
 # For linux by default no graph tests
-ifdef inlinux
+ifdef INUNIX
 NOGRAPH=1
 endif
 
 DIRS=tf ts tbs tbf test tesi to webtbs webtbf
 
-# defining NOGRAPH excludes tests using the graph unit, defining
+# defining 
+# NOGRAPH excludes tests using the graph unit, defining
 # GRAPH includes those tests.
 ifdef NOGRAPH
 include graph.lst
@@ -377,7 +386,7 @@ getret$(EXEEXT) : getret.pp
 	$(FPC) getret
 
 getreturncode : getret$(EXEEXT)
-ifndef inlinux
+ifndef INUNIX
 	redir -ea $(FILE).log -oa $(FILE).log getret $(COMMAND)
 	cp retcode $(FILE).$(RESEXT)
 else
@@ -504,7 +513,7 @@ ifdef POSTPROCESS
 	-$(POSTPROCESS)
 endif
 else
-ifndef inlinux
+ifndef INUNIX
 	redir -e $(FILE).elg -o $(FILE).elg getret $(FILE)$(EXEEXT) $(RUNARGS)
 	@echo CFGFILE is $(CFGFILE)
 ifdef POSTPROCESS
@@ -709,7 +718,7 @@ clean:
 	-rm -f $(addsuffix /*.log,$(DIRS))
 	-rm -f $(addsuffix /*.elg,$(DIRS))
 	-rm -f $(addsuffix /*.exc,$(DIRS))
-ifdef inlinux
+ifdef INUNIX
 	-rm -f $(patsubst %.pp,%$(EXEEXT),$(wildcard $(addsuffix /t*.pp,$(DIRS))))
 else
 	-rm -f $(addsuffix /*$(EXEEXT),$(DIRS))
