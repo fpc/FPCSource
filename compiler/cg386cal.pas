@@ -672,7 +672,8 @@ implementation
                                              { constructor call via classreference => allocate memory }
                                              if (p^.procdefinition^.proctypeoption=potype_constructor) and
                                                 (p^.methodpointer^.resulttype^.deftype=classrefdef) and
-                                                (pobjectdef(pclassrefdef(p^.methodpointer^.resulttype)^.pointertype.def)^.is_class) then
+                                                (pobjectdef(pclassrefdef(p^.methodpointer^.resulttype)^.
+                                                   pointertype.def)^.is_class) then
                                                 emit_const(A_PUSH,S_L,1);
                                              emit_reg(A_PUSH,S_L,R_ESI);
                                           end;
@@ -1408,7 +1409,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.128  2000-03-16 15:18:13  pierre
+  Revision 1.129  2000-03-19 08:17:36  peter
+    * tp7 fix
+
+  Revision 1.128  2000/03/16 15:18:13  pierre
    * avoid wrong ungetpersistanttemp
 
   Revision 1.127  2000/03/01 00:03:11  pierre

@@ -155,7 +155,7 @@ implementation
                   ait_label :
                      begin
                        { regenerate the labels by setting altsymbol }
-                       ReLabel(pai_label(hp2)^.l);
+                       ReLabel(pasmsymbol(pai_label(hp2)^.l));
                      end;
                   ait_const_rva,
                   ait_const_symbol :
@@ -835,7 +835,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.59  2000-03-01 00:01:14  pierre
+  Revision 1.60  2000-03-19 08:17:36  peter
+    * tp7 fix
+
+  Revision 1.59  2000/03/01 00:01:14  pierre
    Use $GOTO ON
 
   Revision 1.58  2000/02/20 20:49:45  florian

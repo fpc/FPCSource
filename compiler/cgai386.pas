@@ -95,6 +95,7 @@ unit cgai386;
     procedure loadansistring(p : ptree);
 
     procedure finalize(t : pdef;const ref : treference;is_already_ref : boolean);
+    procedure incrstringref(t : pdef;const ref : treference);
     procedure decrstringref(t : pdef;const ref : treference);
 
     function maybe_push(needed : byte;p : ptree;isint64 : boolean) : boolean;
@@ -908,6 +909,27 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          push_int(len);
          emitcall('FPC_LONGSTR_COPY');
          maybe_loadesi;
+      end;
+
+
+    procedure incrstringref(t : pdef;const ref : treference);
+
+      var
+         pushedregs : tpushed;
+
+      begin
+         pushusedregisters(pushedregs,$ff);
+         emitpushreferenceaddr(ref);
+         if is_ansistring(t) then
+           begin
+              emitcall('FPC_ANSISTR_INCR_REF');
+           end
+         else if is_widestring(t) then
+           begin
+              emitcall('FPC_WIDESTR_INCR_REF');
+           end
+         else internalerror(1859);
+         popusedregisters(pushedregs);
       end;
 
 
@@ -3811,7 +3833,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.86  2000-03-01 15:36:11  florian
+  Revision 1.87  2000-03-19 08:17:36  peter
+    * tp7 fix
+
+  Revision 1.86  2000/03/01 15:36:11  florian
     * some new stuff for the new cg
 
   Revision 1.85  2000/03/01 12:35:44  pierre
