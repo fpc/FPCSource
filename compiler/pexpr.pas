@@ -1494,7 +1494,11 @@ implementation
                              message(parser_e_no_default_property_available);
                           end
                         else
-                          handle_propertysym(protsym,protsym.owner,p1,getaddr);
+                          begin
+                            { The property symbol is referenced indirect }
+                            inc(protsym.refs);
+                            handle_propertysym(protsym,protsym.owner,p1,getaddr);
+                          end;
                       end
                     else
                       begin
@@ -2347,7 +2351,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.106  2003-04-11 14:50:08  peter
+  Revision 1.107  2003-04-11 15:49:01  peter
+    * default property also increased the reference count for the
+      property symbol
+
+  Revision 1.106  2003/04/11 14:50:08  peter
     * fix tw2454
 
   Revision 1.105  2003/03/27 17:44:13  peter
