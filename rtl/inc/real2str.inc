@@ -24,6 +24,43 @@ const
    i2  : longint = 2;
    i1  : longint = 1;
 
+   { we can use this conditional if the Inf const is defined
+     in processor specific code PM }
+{$ifdef FPC_HAS_INFINITY_CONST}
+   {$define FPC_INFINITY_FOR_REAL2STR}
+{$else not  FPC_HAS_INFINITY_CONST}
+   { To avoid problems with infinity just
+     issue it in byte representation to be endianness independant PM }
+{$ifndef FPC_INFINITY_FOR_REAL2STR}
+{$ifdef SUPPORT_EXTENDED}
+   { extended is not IEEE so its processor specific
+     so I only allow it for i386 PM }
+{$ifdef i386}
+   {$define FPC_INFINITY_FOR_REAL2STR}
+   InfArray : {extended} array[0..9] of byte = ($0,$0,$0,$0,$0,$0,$0,$80,$ff,$7f);
+{$endif i386}
+{$endif SUPPORT_EXTENDED}
+{$endif not FPC_INFINITY_FOR_REAL2STR}
+
+{$ifndef FPC_INFINITY_FOR_REAL2STR}
+{$ifdef SUPPORT_DOUBLE}
+   {$define FPC_INFINITY_FOR_REAL2STR}
+   InfArray : {double} array[0..9] of byte = ($0,$0,$0,$0,$0,$0,$f0,$7f);
+{$endif SUPPORT_DOUBLE}
+{$endif not FPC_INFINITY_FOR_REAL2STR}
+
+{$ifndef FPC_INFINITY_FOR_REAL2STR}
+{$ifdef SUPPORT_SINGLE}
+   {$define FPC_INFINITY_FOR_REAL2STR}
+   InfArray : {single} array[0..3] of byte = ($0,$0,$80,$7f);
+{$endif SUPPORT_SINGLE}
+{$endif not FPC_INFINITY_FOR_REAL2STR}
+
+{$ifndef FPC_INFINITY_FOR_REAL2STR}
+    {$warning don't know Infinity values }
+{$endif not FPC_INFINITY_FOR_REAL2STR}
+{$endif not FPC_HAS_INFINITY_CONST}
+
 Procedure str_real (len,f : longint; d : ValReal; real_type :treal_type; var s : string);
 {
   These numbers are for the double type...
@@ -103,6 +140,21 @@ begin
   { for the same reason I converted d:=frac(d) to d:=d-int(d); (PM) }
   if sign then
     d:=-d;
+
+{$ifdef FPC_INFINITY_FOR_REAL2STR}
+{$ifndef FPC_HAS_INFINITY_CONST}
+    if d=ValReal(InfArray) then
+{$else FPC_HAS_INFINITY_CONST}
+    if d=Inf then
+{$endif FPC_HAS_INFINITY_CONST}
+      begin
+        if sign then
+          s:='-Inf'
+        else
+          s:='Inf';
+        exit;
+      end;
+{$endif FPC_INFINITY_FOR_REAL2STR}
   { determine precision : maximal precision is : }
   currprec:=maxlen-explen-3;
   { this is also the maximal number of decimals !!}
@@ -234,7 +286,10 @@ end;
 
 {
   $Log$
-  Revision 1.17  1999-11-03 09:54:24  peter
+  Revision 1.18  1999-11-28 23:57:23  pierre
+   * Infinite loop for infinite value problem fixed
+
+  Revision 1.17  1999/11/03 09:54:24  peter
     * another fix for precision
 
   Revision 1.16  1999/11/03 00:55:09  pierre
