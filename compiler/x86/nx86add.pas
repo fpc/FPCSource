@@ -43,6 +43,7 @@ unit nx86add;
         procedure emit_op_right_left(op:TAsmOp;opsize:TOpSize);
         procedure emit_generic_code(op:TAsmOp;opsize:TCgSize;unsigned,extra_not,mboverflow:boolean);
 
+        procedure second_cmpfloatsse;
         procedure second_addfloatsse;
         procedure second_mul;virtual;abstract;
       public
@@ -487,6 +488,67 @@ unit nx86add;
       end;
 
 
+    procedure tx86addnode.second_cmpfloatsse;
+      var
+        op : tasmop;
+      begin
+        if is_single(left.resulttype.def) then
+          op:=A_COMISS
+        else if is_double(left.resulttype.def) then
+          op:=A_COMISD
+        else
+          internalerror(200402222);
+        pass_left_right;
+
+        location_reset(location,LOC_FLAGS,def_cgsize(resulttype.def));
+        { we can use only right as left operand if the operation is commutative }
+        if (right.location.loc=LOC_MMREGISTER) then
+          begin
+            { force floating point reg. location to be written to memory,
+              we don't force it to mm register because writing to memory
+              allows probably shorter code because there is no direct fpu->mm register
+              copy instruction
+            }
+            if left.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER] then
+              location_force_mem(exprasmlist,left.location);
+            case left.location.loc of
+              LOC_REFERENCE,LOC_CREFERENCE:
+                exprasmlist.concat(taicpu.op_ref_reg(op,S_NO,left.location.reference,right.location.register));
+              LOC_MMREGISTER,LOC_CMMREGISTER:
+                exprasmlist.concat(taicpu.op_reg_reg(op,S_NO,left.location.register,right.location.register));
+              else
+                internalerror(200402221);
+            end;
+            if nf_swaped in flags then
+              exclude(flags,nf_swaped)
+            else
+              include(flags,nf_swaped)
+          end
+        else
+          begin
+            location_force_mmregscalar(exprasmlist,left.location,false);
+            { force floating point reg. location to be written to memory,
+              we don't force it to mm register because writing to memory
+              allows probably shorter code because there is no direct fpu->mm register
+              copy instruction
+            }
+            if right.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER] then
+              location_force_mem(exprasmlist,right.location);
+            case right.location.loc of
+              LOC_REFERENCE,LOC_CREFERENCE:
+                exprasmlist.concat(taicpu.op_ref_reg(op,S_NO,right.location.reference,left.location.register));
+              LOC_MMREGISTER,LOC_CMMREGISTER:
+                exprasmlist.concat(taicpu.op_reg_reg(op,S_NO,right.location.register,left.location.register));
+              else
+                internalerror(200402223);
+            end;
+          end;
+        location_release(exprasmlist,right.location);
+        location_release(exprasmlist,left.location);
+        location.resflags:=getresflags(true);
+      end;
+
+
     procedure tx86addnode.second_addfloat;
       var
         op : TAsmOp;
@@ -539,9 +601,9 @@ unit nx86add;
       var
         resflags   : tresflags;
       begin
-        if use_sse(resulttype.def) then
+        if use_sse(left.resulttype.def) or use_sse(right.resulttype.def) then
           begin
-            second_addfloatsse;
+            second_cmpfloatsse;
             exit;
           end;
 
@@ -851,7 +913,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2004-02-06 16:44:42  florian
+  Revision 1.9  2004-02-22 16:30:37  florian
+    * fixed
+    + second_cmpfloatsse
+
+  Revision 1.8  2004/02/06 16:44:42  florian
     + improved floating point compares for x86-64 and Pentium2 and above
 
   Revision 1.7  2004/02/04 19:22:27  peter

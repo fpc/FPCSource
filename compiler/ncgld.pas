@@ -277,6 +277,8 @@ implementation
                       }
                       if (sizeof(aword) = 4) then
                          location_reset(location,LOC_CREFERENCE,OS_64)
+                      else if (sizeof(aword) = 8) then
+                         location_reset(location,LOC_CREFERENCE,OS_128)
                       else
                          internalerror(20020520);
                       tg.GetTemp(exprasmlist,2*POINTER_SIZE,tt_normal,location.reference);
@@ -903,7 +905,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.109  2004-02-20 19:49:21  daniel
+  Revision 1.110  2004-02-22 16:30:37  florian
+    * fixed
+    + second_cmpfloatsse
+
+  Revision 1.109  2004/02/20 19:49:21  daniel
     * Message system uses open arrays internally
     * Bugfix for string handling in array constructor node
     * Micro code reductions in pdecl.pas
