@@ -17,6 +17,10 @@
 unit syswin32;
 interface
 
+{$ifdef SYSTEMDEBUG}
+  {$define SYSTEMEXCEPTIONDEBUG}
+{$endif SYSTEMDEBUG}
+
 {$ifdef i386}
   {$define Set_i386_Exception_handler}
 {$endif i386}
@@ -792,6 +796,9 @@ var
     to check if the call stack can be written on exceptions }
   _SS : longint;
 
+const
+  fpucw : word = $1332;
+
 procedure Exe_entry;[public, alias : '_FPC_EXE_Entry'];
   begin
      IsLibrary:=false;
@@ -807,6 +814,8 @@ procedure Exe_entry;[public, alias : '_FPC_EXE_Entry'];
         movl %eax,Win32StackTop
         movw %ss,%bp
         movl %ebp,_SS
+        fninit
+        fldcw   fpucw
         xorl %ebp,%ebp
         call PASCALMAIN
         popl %ebp
@@ -910,8 +919,9 @@ const
      EXCEPTION_ILLEGAL_INSTRUCTION = $C000001D;
      EXCEPTION_IN_PAGE_ERROR = $C0000006;
 
-     ExceptionContinueExecution = 0;
-     ExceptionContinueSearch = 1;
+     EXCEPTION_EXECUTE_HANDLER = 1;
+     EXCEPTION_CONTINUE_EXECUTION = -(1);
+     EXCEPTION_CONTINUE_SEARCH = 0;
   type
 
      FLOATING_SAVE_AREA = record
@@ -984,55 +994,189 @@ type pexception_record = ^exception_record;
        : LPTOP_LEVEL_EXCEPTION_FILTER;
        external 'kernel32' name 'SetUnhandledExceptionFilter';
 
-  function syswin32_i386_exception_handler(excep :PEXCEPTION_POINTERS) : longint;
-    var frame : longint;
+const
+  MAX_Level = 16;
+  except_level : byte = 0;
+var
+  except_eip   : array[0..Max_level-1] of longint;
+  except_error : array[0..Max_level-1] of byte;
+  reset_fpu    : array[0..max_level-1] of boolean;
+
+{$ifdef SYSTEMEXCEPTIONDEBUG}
+  procedure DebugHandleErrorAddrFrame(error, addr, frame : longint);
     begin
-       { default : unhandled !}
+      if IsConsole then
+        begin
+          write(stderr,'call to HandleErrorAddrFrame(error=',error);
+          write(stderr,',addr=',hexstr(addr,8));
+          writeln(stderr,',frame=',hexstr(frame,8),')');
+        end;
+      HandleErrorAddrFrame(error,addr,frame);
+    end;
+{$endif SYSTEMEXCEPTIONDEBUG}
+
+  procedure JumpToHandleErrorFrame;
+    var
+      eip,ebp,error : longint;
+    begin
+      asm
+        movl (%ebp),%eax
+        movl %eax,ebp
+      end;
+      if except_level>0 then
+        dec(except_level);
+      eip:=except_eip[except_level];
+      error:=except_error[except_level];
+{$ifdef SYSTEMEXCEPTIONDEBUG}
+      if IsConsole then
+        begin
+          writeln(stderr,'In JumpToHandleErrorFrame error=',error);
+        end;
+{$endif SYSTEMEXCEPTIONDEBUG}
+      if reset_fpu[except_level] then
+        asm
+          fninit
+          fldcw   fpucw
+        end;
+      { build a fake stack }
+      asm
+        movl   ebp,%eax
+        pushl  %eax
+        movl   eip,%eax
+        pushl  %eax
+        movl   error,%eax
+        pushl  %eax
+        movl   eip,%eax
+        pushl  %eax
+        movl   ebp,%ebp // Change frame pointer
+{$ifdef SYSTEMEXCEPTIONDEBUG}
+        jmpl   DebugHandleErrorAddrFrame
+{$else not SYSTEMEXCEPTIONDEBUG}
+        jmpl   HandleErrorAddrFrame
+{$endif SYSTEMEXCEPTIONDEBUG}
+      end;
+
+    end;
+
+  function syswin32_i386_exception_handler(excep :PEXCEPTION_POINTERS) : longint;
+    var frame,res  : longint;
+        function SysHandleErrorFrame(error,frame : longint;must_reset_fpu : boolean) : longint;
+          begin
+            if frame=0 then
+              SysHandleErrorFrame:=Exception_Continue_Search
+            else
+              begin
+                 if except_level >= Max_level then
+                   exit;
+                 except_eip[except_level]:=excep^.ContextRecord^.Eip;
+                 except_error[except_level]:=error;
+                 reset_fpu[except_level]:=must_reset_fpu;
+                 inc(except_level);
+                 excep^.ContextRecord^.Eip:=longint(@JumpToHandleErrorFrame);
+                 excep^.ExceptionRecord^.ExceptionCode:=0;
+                 SysHandleErrorFrame:=Exception_Continue_Execution;
+{$ifdef SYSTEMEXCEPTIONDEBUG}
+                 if IsConsole then
+                   begin
+                     writeln(stderr,'Exception Continue Exception set at ',
+                       hexstr(except_eip[except_level],8));
+                     writeln(stderr,'Eip changed to ',
+                       hexstr(longint(@JumpToHandleErrorFrame),8), ' error=',error);
+                   end;
+{$endif SYSTEMEXCEPTIONDEBUG}
+              end;
+          end;
+
+    begin
        if excep^.ContextRecord^.SegSs=_SS then
          frame:=excep^.ContextRecord^.Ebp
        else
          frame:=0;
-       syswin32_i386_exception_handler:=ExceptionContinueSearch;
+       { default : unhandled !}
+       res:=Exception_Continue_Search;
+{$ifdef SYSTEMEXCEPTIONDEBUG}
+       if IsConsole then
+         writeln(stderr,'Exception  ',
+           hexstr(excep^.ExceptionRecord^.ExceptionCode,8));
+{$endif SYSTEMEXCEPTIONDEBUG}
        case excep^.ExceptionRecord^.ExceptionCode of
          EXCEPTION_ACCESS_VIOLATION :
-           HandleErrorFrame(216,frame);
+           res:=SysHandleErrorFrame(216,frame,false);
          { EXCEPTION_BREAKPOINT = $80000003;
          EXCEPTION_DATATYPE_MISALIGNMENT = $80000002;
          EXCEPTION_SINGLE_STEP = $80000004; }
          EXCEPTION_ARRAY_BOUNDS_EXCEEDED :
-           HandleErrorFrame(201,frame);
-         { EXCEPTION_FLT_DENORMAL_OPERAND = $c000008d; }
+           res:=SysHandleErrorFrame(201,frame,false);
+         EXCEPTION_FLT_DENORMAL_OPERAND :
+           begin
+             res:=SysHandleErrorFrame(216,frame,true);
+           end;
          EXCEPTION_FLT_DIVIDE_BY_ZERO :
-           HandleErrorFrame(200,frame);
-         {EXCEPTION_FLT_INEXACT_RESULT = $c000008f;
-         EXCEPTION_FLT_INVALID_OPERATION = $c0000090;}
+           begin
+             res:=SysHandleErrorFrame(200,frame,true);
+             {excep^.ContextRecord^.FloatSave.StatusWord:=excep^.ContextRecord^.FloatSave.StatusWord and $ffffff00;}
+           end;
+         {EXCEPTION_FLT_INEXACT_RESULT = $c000008f; }
+         EXCEPTION_FLT_INVALID_OPERATION :
+           begin
+             res:=SysHandleErrorFrame(207,frame,true);
+           end;
          EXCEPTION_FLT_OVERFLOW :
-           HandleErrorFrame(205,frame);
+           begin
+             res:=SysHandleErrorFrame(205,frame,true);
+           end;
          EXCEPTION_FLT_STACK_CHECK :
-           HandleErrorFrame(207,frame);
-         { EXCEPTION_FLT_UNDERFLOW :
-           HandleErrorFrame(206,frame); should be accepted as zero !! }
+           begin
+             res:=SysHandleErrorFrame(207,frame,true);
+           end;
+         EXCEPTION_FLT_UNDERFLOW :
+           begin
+             res:=SysHandleErrorFrame(206,frame,true); { should be accepted as zero !! }
+           end;
          EXCEPTION_INT_DIVIDE_BY_ZERO :
-           HandleErrorFrame(200,frame);
+           res:=SysHandleErrorFrame(200,frame,false);
          EXCEPTION_INT_OVERFLOW :
-           HandleErrorFrame(215,frame);
+           res:=SysHandleErrorFrame(215,frame,false);
          {EXCEPTION_INVALID_HANDLE = $c0000008;
          EXCEPTION_PRIV_INSTRUCTION = $c0000096;
          EXCEPTION_NONCONTINUABLE_EXCEPTION = $c0000025;
          EXCEPTION_NONCONTINUABLE = $1;}
          EXCEPTION_STACK_OVERFLOW :
-           HandleErrorFrame(202,frame);
+           res:=SysHandleErrorFrame(202,frame,false);
          {EXCEPTION_INVALID_DISPOSITION = $c0000026;}
          EXCEPTION_ILLEGAL_INSTRUCTION,
+         EXCEPTION_PRIV_INSTRUCTION,
          EXCEPTION_IN_PAGE_ERROR,
-         EXCEPTION_SINGLE_STEP : HandleErrorFrame(217,frame)
+         EXCEPTION_SINGLE_STEP : res:=SysHandleErrorFrame(217,frame,false);
          end;
+       syswin32_i386_exception_handler:=res;
     end;
 
 
   procedure install_exception_handlers;
+{$ifdef SYSTEMEXCEPTIONDEBUG}
+    var
+      oldexceptaddr,newexceptaddr : longint;
+{$endif SYSTEMEXCEPTIONDEBUG}
     begin
+{$ifdef SYSTEMEXCEPTIONDEBUG}
+      asm
+        movl $0,%eax
+        movl %fs:(%eax),%eax
+        movl %eax,oldexceptaddr
+      end;
+{$endif SYSTEMEXCEPTIONDEBUG}
       SetUnhandledExceptionFilter(@syswin32_i386_exception_handler);
+{$ifdef SYSTEMEXCEPTIONDEBUG}
+      asm
+        movl $0,%eax
+        movl %fs:(%eax),%eax
+        movl %eax,newexceptaddr
+      end;
+      if IsConsole then
+        writeln(stderr,'Old exception  ',hexstr(oldexceptaddr,8),
+          ' new exception  ',hexstr(newexceptaddr,8));
+{$endif SYSTEMEXCEPTIONDEBUG}
     end;
 
   procedure remove_exception_handlers;
@@ -1186,7 +1330,11 @@ end.
 
 {
   $Log$
-  Revision 1.62  2000-03-16 20:42:26  michael
+  Revision 1.63  2000-03-31 23:21:19  pierre
+    * multiple exception handling works
+      (for linux only if syslinux is compiled with -dnewsignal)
+
+  Revision 1.62  2000/03/16 20:42:26  michael
   + Added more system exception handling afte T. Schatzl remark
 
   Revision 1.61  2000/03/10 09:21:11  pierre

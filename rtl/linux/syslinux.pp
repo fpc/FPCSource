@@ -625,11 +625,40 @@ end;
                          SystemUnit Initialization
 *****************************************************************************}
 
+{$ifdef I386}
+{ this should be defined in i386 directory !! PM }
+const
+  fpucw : word = $1332;
+  FPU_Invalid = 1;
+  FPU_Denormal = 2;
+  FPU_DivisionByZero = 4;
+  FPU_Overflow = 8;
+  FPU_Underflow = $10;
+  FPU_StackUnderflow = $20;
+  FPU_StackOverflow = $40;
+
+{$endif I386}
+
+Procedure ResetFPU;
+begin
+{$ifdef I386}
+  asm
+    fninit
+    fldcw   fpucw
+  end;
+{$endif I386}
+end;
+
 {$ifndef newSignal}
 Procedure SignalToRunError(Sig:longint);
 begin
   case sig of
-    8 : HandleError(200);
+    8 : begin
+    { this is not allways necessary but I don't know yet
+      how to tell if it is or not PM }
+          ResetFPU;
+          HandleError(200);
+        end;
    11 : HandleError(216);
   end;
 end;
@@ -650,20 +679,52 @@ end;
 
 {$i i386/signal.inc}
 
-procedure SignalToRunerror(Sig: longint); cdecl;
+procedure SignalToRunerror(Sig: longint; SigContext: SigContextRec); cdecl;
+var
+  res,fpustate : word;
 begin
   case sig of
-    8 : HandleError(200);
+    8 : begin
+    { this is not allways necessary but I don't know yet
+      how to tell if it is or not PM }
+{$ifdef I386}
+          fpustate:=0;
+          res:=200;
+          if assigned(SigContext.fpstate) then
+            fpuState:=SigContext.fpstate^.sw;
+{$ifdef SYSTEMDEBUG}
+          Writeln(stderr,'FpuState = ',Hexstr(FpuState,4));
+{$endif SYSTEMDEBUG}
+          if (FpuState and $7f) <> 0 then
+            begin
+              if (FpuState and FPU_Invalid)<>0 then
+                res:=216
+              else if (FpuState and FPU_Denormal)<>0 then
+                res:=216
+              else if (FpuState and FPU_DivisionByZero)<>0 then
+                res:=200
+              else if (FpuState and FPU_Overflow)<>0 then
+                res:=205
+              else if (FpuState and FPU_Underflow)<>0 then
+                res:=206
+              else
+                res:=207;  {'Coprocessor Error'}
+              ResetFPU;
+            end;
+{$endif I386}
+          HandleError(res);
+        end;
    11 : HandleError(216);
   end;
 end;
 
 Procedure InstallSignals;
 const
-  act: SigActionRec = (handler:(Sh:@SignalToRunError);sa_mask:0;sa_flags:$40000000 or $10000000;
+  act: SigActionRec = (handler:(Sa:@SignalToRunError);sa_mask:0;sa_flags:0;
                        Sa_restorer: NIL);
   oldact: PSigActionRec = Nil;
 begin
+  ResetFPU;
   SigAction(8,@act,oldact);
   SigAction(11,@act,oldact);
 end;
@@ -747,7 +808,11 @@ End.
 
 {
   $Log$
-  Revision 1.40  2000-03-31 13:24:28  jonas
+  Revision 1.41  2000-03-31 23:21:19  pierre
+    * multiple exception handling works
+      (for linux only if syslinux is compiled with -dnewsignal)
+
+  Revision 1.40  2000/03/31 13:24:28  jonas
     * signal handling using sigaction when compiled with -dnewsignal
       (allows multiple signals to be received in one run)
 
