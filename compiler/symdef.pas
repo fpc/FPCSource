@@ -640,6 +640,7 @@ interface
           function  stabstring : pchar;override;
           procedure concatstabto(asmlist : taasmoutput);override;
 {$endif GDB}
+          function alignment : longint;override;
           { init/final }
           function  needs_inittable : boolean;override;
           { rtti }
@@ -1552,6 +1553,21 @@ implementation
       end;
 
 
+    function tstringdef.alignment : longint;
+      begin
+        case string_typ of
+          st_widestring,
+          st_ansistring:
+            alignment:=size_2_align(savesize);
+          st_longstring,
+          st_shortstring:
+            alignment:=size_2_align(1);
+          else
+            internalerror(200412301);
+        end;
+      end;
+
+
     procedure tstringdef.write_rtti_data(rt:trttitype);
       begin
          case string_typ of
@@ -1809,6 +1825,9 @@ implementation
             4:
               rttiList.concat(Tai_const.Create_8bit(otULong));
          end;
+{$ifdef cpurequiresproperalignment}
+         rttilist.concat(Tai_align.Create(4));
+{$endif cpurequiresproperalignment}          
          rttiList.concat(Tai_const.Create_32bit(min));
          rttiList.concat(Tai_const.Create_32bit(max));
          if assigned(basedef) then
@@ -1975,6 +1994,9 @@ implementation
         begin
           write_rtti_name;
           rttiList.concat(Tai_const.Create_8bit(byte(trans[typ])));
+{$ifdef cpurequiresproperalignment}
+         rttilist.concat(Tai_align.Create(4));
+{$endif cpurequiresproperalignment}          
           rttiList.concat(Tai_const.Create_32bit(longint(low)));
           rttiList.concat(Tai_const.Create_32bit(longint(high)));
         end;
@@ -2692,6 +2714,9 @@ implementation
          rttiList.concat(Tai_const.Create_8bit(tkSet));
          write_rtti_name;
          rttiList.concat(Tai_const.Create_8bit(otULong));
+{$ifdef cpurequiresproperalignment}
+         rttilist.concat(Tai_align.Create(sizeof(TConstPtrUInt)));
+{$endif cpurequiresproperalignment}
          rttiList.concat(Tai_const.Create_sym(tstoreddef(elementtype.def).get_rtti_label(rt)));
       end;
 
@@ -6164,7 +6189,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.285  2004-12-27 15:54:54  florian
+  Revision 1.286  2004-12-30 14:36:29  florian
+    * alignment fixes for sparc
+
+  Revision 1.285  2004/12/27 15:54:54  florian
     * fixed class field info alignment
 
   Revision 1.284  2004/12/07 15:41:11  peter
