@@ -1713,7 +1713,10 @@ var
   begin
     New(DirEntry);
     DirEntry^.DisplayText := NewStr(DisplayText);
-    DirEntry^.Directory := NewStr(Directory);
+    If Directory='' then
+      DirEntry^.Directory := NewStr(DirSeparator)
+    else
+      DirEntry^.Directory := NewStr(Directory);
     NewDirEntry := DirEntry;
   end;
 
