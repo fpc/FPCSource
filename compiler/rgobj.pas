@@ -676,6 +676,9 @@ unit rgobj;
 {$ifndef newra}
       if not(supreg in usableregs) then
         exit;
+{$else}
+      if supreg in is_reg_var_int then
+        exit;
 {$endif}
 {$ifdef TEMPREGDEBUG}
          if (supreg in unusedregs) then
@@ -1310,13 +1313,13 @@ unit rgobj;
     procedure trgobj.makeregvarint(reg:Tsuperregister);
       begin
         dec(countusableregsint);
+        include(is_reg_var_int,reg);
       {$ifndef newra}
         dec(countunusedregsint);
-      {$endif}
         exclude(usableregsint,reg);
         exclude(unusedregsint,reg);
-        include(is_reg_var_int,reg);
         include(used_in_proc_int,reg);
+      {$endif}
       end;
 
     procedure trgobj.makeregvarother(reg: tregister);
@@ -2560,7 +2563,15 @@ end.
 
 {
   $Log$
-  Revision 1.65  2003-08-17 14:32:48  daniel
+  Revision 1.66  2003-08-17 16:59:20  jonas
+    * fixed regvars so they work with newra (at least for ppc)
+    * fixed some volatile register bugs
+    + -dnotranslation option for -dnewra, which causes the registers not to
+      be translated from virtual to normal registers. Requires support in
+      the assembler writer as well, which is only implemented in aggas/
+      agppcgas currently
+
+  Revision 1.65  2003/08/17 14:32:48  daniel
     * Precoloured nodes now have an infinite degree approached with 255,
       like they should.
 

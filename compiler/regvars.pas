@@ -39,6 +39,10 @@ interface
     procedure load_regvar(asml: TAAsmoutput; vsym: tvarsym);
     procedure load_regvar_reg(asml: TAAsmoutput; reg: tregister);
     procedure load_all_regvars(asml: TAAsmoutput);
+{$ifdef newra}
+   procedure free_regvars(list: taasmoutput);
+   procedure translate_regvars(list: taasmoutput; const table:Ttranstable);
+{$endif newra}
 
 {$ifdef i386}
     procedure sync_regvars_other(list1, list2: taasmoutput; const regvarsloaded1,
@@ -150,7 +154,6 @@ implementation
       r : Tregister;
       siz : tcgsize;
     begin
-{$ifndef newra}
       { max. optimizations     }
       { only if no asm is used }
       { and no try statement   }
@@ -171,12 +174,15 @@ implementation
               symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}searchregvars,@parasym);
               { copy parameter into a register ? }
               parasym:=true;
+{$ifndef newra}
 {$ifndef i386}
               if (pi_do_call in current_procinfo.flags) then
-{$endif i386}
+{$endif not i386}
+{$endif not newra}
                 begin
                   symtablestack.next.foreach_static({$ifdef FPCPROCVAR}@{$endif}searchregvars,@parasym);
                 end
+{$ifndef newra}
 {$ifndef i386}
               else
                 begin
@@ -202,24 +208,35 @@ implementation
                   end;
                 end
 {$endif not i386}
+{$endif not newra}
               ;
               { hold needed registers free }
-              for i:=maxvarregs downto maxvarregs-p.registers32+1 do
+              for i:=maxvarregs downto maxvarregs-p.registers32+1{$ifdef newra}-maxintscratchregs{$endif newra} do
                 begin
                   regvarinfo^.regvars[i]:=nil;
                   regvarinfo^.regvars_para[i] := false;
                 end;
               { now assign register }
-              for i:=1 to maxvarregs-p.registers32 do
+              for i:=1 to maxvarregs-p.registers32{$ifdef newra}-maxintscratchregs{$endif newra} do
                 begin
                   if assigned(regvarinfo^.regvars[i]) and
+{$ifdef newra}
+                    { currently we assume we can use volatile registers for all }
+                    { regvars if procedure does no call                         }
+                     (not(pi_do_call in current_procinfo.flags) or
+                    { otherwise, demand some (arbitrary) minimum usage }
+                      (regvarinfo^.regvars[i].refs > 100)) then
+{$else newra}
                      (rg.reg_pushes_int[varregs[i]] < regvarinfo^.regvars[i].refs) then
+{$endif newra}
                     begin
                       { register is no longer available for }
                       { expressions                          }
                       { search the register which is the most }
                       { unused                                }
+{$ifndef newra}
                       rg.makeregvarint(varregs[i]);
+{$endif newra}
 
                       { call by reference/const ? }
                       if (regvarinfo^.regvars[i].varspez in [vs_var,vs_out]) or
@@ -237,12 +254,19 @@ implementation
                       else
                         siz:=OS_32;
 
+{$ifdef newra}
+                      { allocate a register for this regvar }
+                      regvarinfo^.regvars[i].reg:=rg.getregisterint(exprasmlist,siz);
+                      { and make sure it can't be freed }
+                      rg.makeregvarint(regvarinfo^.regvars[i].reg.number shr 8);
+{$else newra}
                       regvarinfo^.regvars[i].reg.enum:=R_INTREGISTER;
                       regvarinfo^.regvars[i].reg.number:=(varregs[i] shl 8) or cgsize2subreg(siz);
 {$ifdef i386}
                       { procedure uses this register }
                       include(rg.used_in_proc_int,varregs[i]);
 {$endif i386}
+{$endif newra}
                     end
                   else
                     begin
@@ -304,7 +328,6 @@ implementation
                   end;
               end;
         end;
-{$endif}
      end;
 
 
@@ -476,6 +499,7 @@ implementation
           { can happen when inlining assembler procedures (JM) }
           if not assigned(regvarinfo) then
             exit;
+{$ifndef newra}
           for i:=1 to maxvarregs do
             begin
              if assigned(regvarinfo^.regvars[i]) then
@@ -490,6 +514,7 @@ implementation
                   tostr(regvarinfo^.regvars[i].refs),regvarinfo^.regvars[i].name);
                end;
             end;
+{$endif newra}
           for i:=1 to maxfpuvarregs do
             begin
               if assigned(regvarinfo^.fpuregvars[i]) then
@@ -594,29 +619,90 @@ implementation
                   reg:=regvars[i].reg;
                   if reg.enum=R_INTREGISTER then
                     begin
+{$ifndef newra}
                       if (reg.number shr 8 in rg.regvar_loaded_int) then
                        asml.concat(tai_regalloc.dealloc(reg));
+{$endif newra}
                     end
                   else
                     begin
                       reg.number:=(reg.number and not $ff) or cgsize2subreg(OS_INT);
                       r:=reg;
                       convert_register_to_enum(r);
+{$ifndef notranslation}
                       if r.enum>lastreg then
                         internalerror(200201081);
                       if (rg.regvar_loaded_other[r.enum]) then
                        asml.concat(tai_regalloc.dealloc(reg));
+{$endif notranslation}
                     end;
                 end;
              end;
           end;
     end;
 
+
+{$ifdef newra}
+    procedure free_regvars(list: taasmoutput);
+      var
+        i: longint;
+      begin
+        if not assigned(current_procinfo.procdef.regvarinfo) then
+          exit;
+        with pregvarinfo(current_procinfo.procdef.regvarinfo)^ do
+          for i := 1 to maxvarregs do
+            if assigned(regvars[i]) { and
+              (regvars[i] <> tvarsym(current_procinfo.procdef.funcretsym))} then
+              begin
+                { make sure the unget isn't just a nop }
+                exclude(rg.is_reg_var_int,regvars[i].reg.number shr 8);
+                rg.ungetregisterint(list,regvars[i].reg);
+              end;
+      end;
+
+
+    procedure translate_regvars(list: taasmoutput; const table:Ttranstable);
+      var
+        i: longint;
+        r: tregister;
+      begin
+{$ifndef notranslation}
+        if not assigned(current_procinfo.procdef.regvarinfo) then
+          exit;
+        with pregvarinfo(current_procinfo.procdef.regvarinfo)^ do
+          for i := 1 to maxvarregs do
+            if assigned(regvars[i]) { and
+              (regvars[i] <> tvarsym(current_procinfo.procdef.funcretsym))} then
+              begin
+                regvars[i].reg.number :=
+                  (regvars[i].reg.number and $ff) or
+                  (table[regvars[i].reg.number shr 8] shl 8);
+                r:=regvars[i].reg;
+                convert_register_to_enum(r);
+                if cs_asm_source in aktglobalswitches then
+                 list.insert(tai_comment.Create(strpnew(regvars[i].name+
+                  ' with weight '+tostr(regvars[i].refs)+' assigned to register '+
+                  std_reg2str[r.enum])));
+                Message3(cg_d_register_weight,std_reg2str[r.enum],
+                  tostr(regvars[i].refs),regvars[i].name);
+              end;
+{$endif notranslation}
+      end;
+{$endif newra}
+
 end.
 
 {
   $Log$
-  Revision 1.60  2003-08-11 21:18:20  peter
+  Revision 1.61  2003-08-17 16:59:20  jonas
+    * fixed regvars so they work with newra (at least for ppc)
+    * fixed some volatile register bugs
+    + -dnotranslation option for -dnewra, which causes the registers not to
+      be translated from virtual to normal registers. Requires support in
+      the assembler writer as well, which is only implemented in aggas/
+      agppcgas currently
+
+  Revision 1.60  2003/08/11 21:18:20  peter
     * start of sparc support for newra
 
   Revision 1.59  2003/08/09 18:56:54  daniel

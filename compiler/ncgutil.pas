@@ -1351,6 +1351,9 @@ implementation
             if not assigned(ressym) then
               internalerror(200305058);
             reference_reset_base(href,current_procinfo.framepointer,tvarsym(ressym).adjusted_address);
+{$ifdef newra}
+            rg.ungetregisterint(list,r);
+{$endif newra}
             cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,r);
             uses_acc:=true;
             exit;
@@ -1396,6 +1399,10 @@ implementation
                  r2.number:=NR_FUNCTION_RETURN64_HIGH_REG;
                  cg.a_reg_alloc(list,r2);
 {$endif}
+{$ifdef newra}
+                 rg.ungetregisterint(list,r);
+                 rg.ungetregisterint(list,r2);
+{$endif newra}
                  cg64.a_load64_loc_reg(list,resloc,joinreg64(r,r2){$ifdef newra},false{$endif});
                end
               else
@@ -1409,6 +1416,9 @@ implementation
                  cg.a_reg_alloc(list,hreg);
 {$endif}
                  hreg:=rg.makeregsize(hreg,resloc.size);
+{$ifdef newra}
+                 rg.ungetregisterint(list,hreg);
+{$endif newra}
                  cg.a_load_loc_reg(list,resloc.size,resloc,hreg);
                end;
             end;
@@ -1444,6 +1454,10 @@ implementation
                     r2.number:=NR_FUNCTION_RETURN64_HIGH_REG;
                     cg.a_reg_alloc(list,r2);
 {$endif}
+{$ifdef newra}
+                    rg.ungetregisterint(list,r);
+                    rg.ungetregisterint(list,r2);
+{$endif newra}
                     cg64.a_load64_loc_reg(list,resloc,joinreg64(r,r2){$ifdef newra},false{$endif});
                   end
                  else
@@ -1457,6 +1471,9 @@ implementation
                     cg.a_reg_alloc(list,hreg);
 {$endif}
                     hreg:=rg.makeregsize(hreg,resloc.size);
+{$ifdef newra}
+                    rg.ungetregisterint(list,hreg);
+{$endif newra}
                     cg.a_load_loc_reg(list,resloc.size,resloc,hreg);
                   end;
                 end
@@ -1613,6 +1630,9 @@ implementation
         href : treference;
         hp : tparaitem;
         rsp : tregister;
+{$ifdef newra}
+        gotregvarparas: boolean;
+{$endif newra}
       begin
         { the actual stack allocation code, symbol entry point and
           gdb stabs information is generated AFTER the rest of this
@@ -1630,12 +1650,21 @@ implementation
             { we do this before init_paras because that one calls routines which may overwrite these  }
             { registers and it also expects the values to be in memory                                }
             hp:=tparaitem(current_procinfo.procdef.para.first);
+{$ifdef newra}
+            gotregvarparas := false;
+{$endif newra}
             while assigned(hp) do
               begin
                 if Tvarsym(hp.parasym).reg.enum>R_INTREGISTER then
                   internalerror(200301081);
                 if (tvarsym(hp.parasym).reg.enum<>R_NO) then
                   begin
+{$ifdef newra}
+                    gotregvarparas := true;
+                    { cg.a_load_param_reg will first allocate and then deallocate paraloc }
+                    { register (if the parameter resides in a register) and then allocate }
+                    { the regvar (which is currently not allocated)                       }
+{$endif newra}
                     cg.a_load_param_reg(list,hp.paraloc[calleeside],tvarsym(hp.parasym).reg);
                   end
                 else if (hp.paraloc[calleeside].loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER,
@@ -1647,6 +1676,19 @@ implementation
                   end;
                 hp:=tparaitem(hp.next);
               end;
+{$ifdef newra}
+            if gotregvarparas then
+              begin
+                { deallocate all register variables again }
+                hp:=tparaitem(current_procinfo.procdef.para.first);
+                while assigned(hp) do
+                  begin
+                    if (tvarsym(hp.parasym).reg.enum<>R_NO) then
+                      rg.ungetregisterint(list,tvarsym(hp.parasym).reg);
+                    hp:=tparaitem(hp.next);
+                  end;
+              end;
+{$endif newra}
           end;
 
         { for the save all registers we can simply use a pusha,popa which
@@ -2030,7 +2072,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.134  2003-08-11 21:18:20  peter
+  Revision 1.135  2003-08-17 16:59:20  jonas
+    * fixed regvars so they work with newra (at least for ppc)
+    * fixed some volatile register bugs
+    + -dnotranslation option for -dnewra, which causes the registers not to
+      be translated from virtual to normal registers. Requires support in
+      the assembler writer as well, which is only implemented in aggas/
+      agppcgas currently
+
+  Revision 1.134  2003/08/11 21:18:20  peter
     * start of sparc support for newra
 
   Revision 1.133  2003/08/09 18:56:54  daniel

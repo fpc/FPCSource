@@ -175,8 +175,11 @@ uses
       last_supreg     = $10;
 
 {$warning FIXME!!!}
-      { registers which may be destroyed by calls }
+      { integer registers which may be destroyed by calls }
       VOLATILE_INTREGISTERS = [first_supreg..last_supreg];
+{$warning FIXME!!!}
+      { fpu registers which may be destroyed by calls }
+      VOLATILE_FPUREGISTERS = [first_supreg..last_supreg];
 
       first_imreg     = $11;
       last_imreg      = $ff;
@@ -396,6 +399,8 @@ uses
        c_countusableregsxxx = amount of registers in the usableregsxxx set    }
 
       maxintregs = 8;
+      { to determine how many registers to use for regvars }
+      maxintscratchregs = 1;
       intregs    = [R_D0..R_D7];
       usableregsint = [RS_D2..RS_D7];
       c_countusableregsint = 6;
@@ -709,7 +714,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  2003-06-17 16:34:44  jonas
+  Revision 1.23  2003-08-17 16:59:20  jonas
+    * fixed regvars so they work with newra (at least for ppc)
+    * fixed some volatile register bugs
+    + -dnotranslation option for -dnewra, which causes the registers not to
+      be translated from virtual to normal registers. Requires support in
+      the assembler writer as well, which is only implemented in aggas/
+      agppcgas currently
+
+  Revision 1.22  2003/06/17 16:34:44  jonas
     * lots of newra fixes (need getfuncretparaloc implementation for i386)!
     * renamed all_intregisters to volatile_intregisters and made it
       processor dependent

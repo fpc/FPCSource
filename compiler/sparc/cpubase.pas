@@ -363,7 +363,8 @@ uses
 {$warning FIXME!!}
       { registers which may be destroyed by calls }
       VOLATILE_INTREGISTERS = [first_supreg..last_supreg];
-
+{$warning FIXME!!}
+      VOLATILE_FPUREGISTERS = [];
 
       first_imreg = $21;
       last_imreg = $ff;
@@ -766,6 +767,8 @@ type
       { c_countusableregsxxx = amount of registers in the usableregsxxx set    }
 
       maxintregs = 8;
+      { to determine how many registers to use for regvars }
+      maxintscratchregs = 3;      
       intregs = [R_G0..R_I7];
       usableregsint = [RS_L0..RS_L7];
       c_countusableregsint = 8;
@@ -1054,7 +1057,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  2003-07-06 17:58:22  peter
+  Revision 1.46  2003-08-17 16:59:20  jonas
+    * fixed regvars so they work with newra (at least for ppc)
+    * fixed some volatile register bugs
+    + -dnotranslation option for -dnewra, which causes the registers not to
+      be translated from virtual to normal registers. Requires support in
+      the assembler writer as well, which is only implemented in aggas/
+      agppcgas currently
+
+  Revision 1.45  2003/07/06 17:58:22  peter
     * framepointer fixes for sparc
     * parent framepointer code more generic
 

@@ -173,10 +173,12 @@ unit agppcgas;
            if (symaddr <> refs_full) then
              s := s+')'+symaddr2str[symaddr];
 
+{$ifndef notranslation}
            if (index.enum < firstreg) or (index.enum > lastreg) then
              internalerror(20030312);
            if (base.enum < firstreg) or (base.enum > lastreg) then
              internalerror(200303123);
+{$endif notranslation}
            if (index.enum=R_NO) and (base.enum<>R_NO) then
              begin
                 if offset=0 then
@@ -186,12 +188,20 @@ unit agppcgas;
                      else
                        s:=s+'0';
                   end;
+{$ifndef notranslation}
                 s:=s+'('+gas_reg2str[base.enum]+')'
+{$else not notranslation}
+                s:=s+'(r'+tostr(ord(base.enum)-1)+')'
+{$endif notranslation}
              end
            else if (index.enum<>R_NO) and (base.enum<>R_NO) and (offset=0) then
+{$ifndef notranslation}
              s:=s+gas_reg2str[base.enum]+','+gas_reg2str[index.enum]
            else if ((index.enum<>R_NO) or (base.enum<>R_NO)) then
              internalerror(19992);
+{$else not notranslation}
+             s:=s+'r'+tostr(ord(base.enum)-1)+',r'+tostr(ord(index.enum)-1);
+{$endif notranslation}
         end;
       getreferencestring:=s;
     end;
@@ -224,14 +234,7 @@ unit agppcgas;
         top_none:
           getopstr_jmp:='';
         else
-{$ifndef testing}
           internalerror(2002070603);
-{$else testing}
-          begin
-            writeln('internalerror 10001');
-            halt(1);
-          end;
-{$endif testing}
       end;
     end;
 
@@ -242,9 +245,13 @@ unit agppcgas;
       case o.typ of
         top_reg:
           begin
+{$ifndef notranslation}
             if (o.reg.enum < R_0) or (o.reg.enum > lastreg) then
               internalerror(200303125);
             getopstr:=gas_reg2str[o.reg.enum];
+{$else not notranslation}
+            getopstr:='r'+tostr(ord(o.reg.enum)-1);
+{$endif not notranslation}
           end;
         top_const:
           getopstr:=tostr(longint(o.val));
@@ -261,14 +268,7 @@ unit agppcgas;
             getopstr:=hs;
           end;
         else
-{$ifndef testing}
           internalerror(2002070604);
-{$else testing}
-          begin
-            writeln('internalerror 10001');
-            halt(1);
-          end;
-{$endif testing}
       end;
     end;
 
@@ -379,7 +379,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2003-04-24 22:29:58  florian
+  Revision 1.24  2003-08-17 16:59:20  jonas
+    * fixed regvars so they work with newra (at least for ppc)
+    * fixed some volatile register bugs
+    + -dnotranslation option for -dnewra, which causes the registers not to
+      be translated from virtual to normal registers. Requires support in
+      the assembler writer as well, which is only implemented in aggas/
+      agppcgas currently
+
+  Revision 1.23  2003/04/24 22:29:58  florian
     * fixed a lot of PowerPC related stuff
 
   Revision 1.22  2003/04/23 12:35:35  florian

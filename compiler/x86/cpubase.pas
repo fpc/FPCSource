@@ -178,6 +178,7 @@ uses
 
       { registers which may be destroyed by calls }
       VOLATILE_INTREGISTERS = [first_supreg..last_supreg]-[RS_EBP,RS_ESP];
+      VOLATILE_FPUREGISTERS = [];
 
       {Number of first and last imaginary register.}
       first_imreg     = $12;
@@ -522,6 +523,8 @@ uses
 
       maxintregs = 4;
       intregs = [R_EAX..R_BL]-[R_ESI,R_SI];
+      { to determine how many registers to use for regvars }
+      maxintscratchregs = 1;
 
       maxfpuregs = 8;
       fpuregs = [R_ST0..R_ST7];
@@ -732,7 +735,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2003-07-06 21:50:33  jonas
+  Revision 1.12  2003-08-17 16:59:20  jonas
+    * fixed regvars so they work with newra (at least for ppc)
+    * fixed some volatile register bugs
+    + -dnotranslation option for -dnewra, which causes the registers not to
+      be translated from virtual to normal registers. Requires support in
+      the assembler writer as well, which is only implemented in aggas/
+      agppcgas currently
+
+  Revision 1.11  2003/07/06 21:50:33  jonas
     * fixed ppc compilation problems and changed VOLATILE_REGISTERS for x86
       so that it doesn't include ebp and esp anymore
 

@@ -239,6 +239,10 @@ uses
 
       { registers which may be destroyed by calls }
       VOLATILE_INTREGISTERS = [RS_R3..RS_R12];
+{$warning FIXME!!}
+      { FIXME: only R_F1..R_F8 under the SYSV ABI -> has to become a }
+      {   typed const (JM) 																					 }
+      VOLATILE_FPUREGISTERS = [R_F3..R_F13];
       {Number of first and last imaginary register.}
       first_imreg     = $21;
       last_imreg      = $ff;
@@ -508,6 +512,8 @@ uses
       { c_countusableregsxxx = amount of registers in the usableregsxxx set    }
 
       maxintregs = 18;
+      { to determine how many registers to use for regvars }
+      maxintscratchregs = 3;
       intregs    = [R_0..R_31];
       usableregsint = [RS_R13..RS_R27];
       c_countusableregsint = 18;
@@ -835,48 +841,15 @@ implementation
     procedure convert_register_to_enum(var r:Tregister);
       begin
         if r.enum = R_INTREGISTER then
+{$ifndef notranslation}
          if (r.number >= NR_NO) and
             (r.number <= NR_R31) then
+{$endif not notranslation}
            r.enum := toldregister(r.number shr 8)
+{$ifndef notranslation}
          else
-{        case r.number of
-            NR_NO: r.enum:= R_NO;
-
-            NR_R0: r.enum:= R_0;
-            NR_R1: r.enum:= R_1;
-            NR_R2: r.enum:= R_2;
-            NR_R3: r.enum:= R_3;
-            NR_R4: r.enum:= R_4;
-            NR_R5: r.enum:= R_5;
-            NR_R6: r.enum:= R_6;
-            NR_R7: r.enum:= R_7;
-            NR_R8: r.enum:= R_8;
-            NR_R9: r.enum:= R_9;
-            NR_R10: r.enum:= R_10;
-            NR_R11: r.enum:= R_11;
-            NR_R12: r.enum:= R_12;
-            NR_R13: r.enum:= R_13;
-            NR_R14: r.enum:= R_14;
-            NR_R15: r.enum:= R_15;
-            NR_R16: r.enum:= R_16;
-            NR_R17: r.enum:= R_17;
-            NR_R18: r.enum:= R_18;
-            NR_R19: r.enum:= R_19;
-            NR_R20: r.enum:= R_20;
-            NR_R21: r.enum:= R_21;
-            NR_R22: r.enum:= R_22;
-            NR_R23: r.enum:= R_23;
-            NR_R24: r.enum:= R_24;
-            NR_R25: r.enum:= R_25;
-            NR_R26: r.enum:= R_26;
-            NR_R27: r.enum:= R_27;
-            NR_R28: r.enum:= R_28;
-            NR_R29: r.enum:= R_29;
-            NR_R30: r.enum:= R_30;
-            NR_R31: r.enum:= R_31;
-        else}
-            internalerror(200301082);
-{        end;}
+           internalerror(200301082);
+{$endif notranslation}
       end;
 
 
@@ -888,7 +861,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.63  2003-08-08 15:51:16  olle
+  Revision 1.64  2003-08-17 16:59:20  jonas
+    * fixed regvars so they work with newra (at least for ppc)
+    * fixed some volatile register bugs
+    + -dnotranslation option for -dnewra, which causes the registers not to
+      be translated from virtual to normal registers. Requires support in
+      the assembler writer as well, which is only implemented in aggas/
+      agppcgas currently
+
+  Revision 1.63  2003/08/08 15:51:16  olle
     * merged macos entry/exit code generation into the general one.
 
   Revision 1.62  2003/07/23 11:00:09  jonas

@@ -88,7 +88,7 @@ implementation
        pbase,pstatmnt,pdecl,pdecsub,pexports,
        { codegen }
        tgobj,rgobj,
-       ncgutil
+       ncgutil,regvars
        {$ifndef NOOPT}
          {$ifdef i386}
            ,aopt386
@@ -569,7 +569,7 @@ implementation
         oldprocinfo : tprocinfo;
         oldaktmaxfpuregisters : longint;
         oldfilepos : tfileposinfo;
-        templist,
+        templist, templist2,
         stackalloccode : Taasmoutput;
         usesacc,
         usesfpu,
@@ -592,15 +592,33 @@ implementation
         aktbreaklabel:=nil;
         aktcontinuelabel:=nil;
         templist:=Taasmoutput.create;
+        templist2:=Taasmoutput.create;
 
         { add parast/localst to symtablestack }
         add_to_symtablestack;
 
         { reset the temporary memory }
         rg.cleartempgen;
-{        exclude(rg.unusedregsint,RS_STACK_POINTER_REG);}
-        rg.used_in_proc_int:=[{RS_STACK_POINTER_REG}];
-        rg.used_in_proc_other:=[];
+
+{$warning FIXME!!}
+        { FIXME!! If a procedure contains assembler blocks (or is pure assembler), }
+        { then rg.used_in_proc_int already contains info because of that. However, }
+        { adding that info happened before initialisation of rg.used_in_proc_int,  }
+        { so this info cannot be valid! Currently only changing this for entire    }
+        { assembler procedures... For non-i386, the changed registers are even     }
+        { always all volatile registers (JM)                                       }
+{$ifdef i386}
+        if not(po_assembler in current_procinfo.procdef.procoptions) then
+          begin
+            rg.used_in_proc_int:=[{RS_STACK_POINTER_REG}];
+            rg.used_in_proc_other:=[];
+          end
+        else
+{$endif i386}
+          begin
+            rg.used_in_proc_int:={$ifdef i386}[]{$else}VOLATILE_INTREGISTERS{$endif};
+            rg.used_in_proc_other:=VOLATILE_FPUREGISTERS;
+          end;
 
         { set the start offset to the start of the temp area in the stack }
         tg.setfirsttemp(firsttemp_offset);
@@ -613,8 +631,6 @@ implementation
         aktlocalswitches:=entryswitches;
         gen_initialize_code(templist,false);
         aktproccode.insertlistafter(tasmnode(initasmnode).currenttai,templist);
-        gen_entry_code(templist,false);
-        aktproccode.insertlist(templist);
 
         { now generate finalize and exit code with the correct position
           and switches }
@@ -629,13 +645,29 @@ implementation
         else
           aktproccode.concatlist(templist);
 
+{$ifdef newra}
+        { note: this must be done only after as much code as possible has  }
+        {   been generated. The result is that when you ungetregister() a  }
+        {   regvar, it will actually free the regvar (and alse free the    }
+        {   the regvars at the same time). Doing this too early will       }
+        {   confuse the register allocator, as the regvars will still be   }
+        {   used. It should be done before loading the result regs (so     }
+        {   they don't conflict with the regvars) and before               }
+        {   gen_entry_code (that one has to be able to allocate the        }
+        {   regvars again) (JM)                                            }
+        free_regvars(aktproccode);
+{$endif newra}
         { handle return value, this is not done for assembler routines when
           they didn't reference the result variable }
         usesacc:=false;
         usesfpu:=false;
         usesacchi:=false;
-        gen_load_return_value(aktproccode,usesacc,usesacchi,usesfpu);
+        gen_load_return_value(templist2,usesacc,usesacchi,usesfpu);
 
+        gen_entry_code(templist,false);
+        aktproccode.insertlist(templist);
+
+        aktproccode.concatlist(templist2);
 {$ifdef newra}
 {$ifdef ra_debug2}
         rg.writegraph;
@@ -663,6 +695,9 @@ implementation
 {$endif newra}
           end;
 
+{$ifdef newra}
+        translate_regvars(aktproccode,rg.colour);
+{$endif newra}
         stackalloccode:=Taasmoutput.create;
         gen_stackalloc_code(stackalloccode);
         stackalloccode.convert_registers;
@@ -706,6 +741,7 @@ implementation
 
         { restore }
         templist.free;
+        templist2.free;
         aktmaxfpuregisters:=oldaktmaxfpuregisters;
         aktfilepos:=oldfilepos;
         current_procinfo:=oldprocinfo;
@@ -1266,7 +1302,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.133  2003-07-23 11:04:15  jonas
+  Revision 1.134  2003-08-17 16:59:20  jonas
+    * fixed regvars so they work with newra (at least for ppc)
+    * fixed some volatile register bugs
+    + -dnotranslation option for -dnewra, which causes the registers not to
+      be translated from virtual to normal registers. Requires support in
+      the assembler writer as well, which is only implemented in aggas/
+      agppcgas currently
+
+  Revision 1.133  2003/07/23 11:04:15  jonas
     * split en_exit_code into a part that may allocate a register and a part
       that doesn't, so the former can be done before the register colouring
       has been performed

@@ -719,9 +719,27 @@ unit cgobj;
           LOC_REGISTER:
             begin
               if (locpara.size in [OS_S64,OS_64]) then
-                cg64.a_load64_reg_ref(list,locpara.register64,ref)
+                begin
+{$ifdef newra}
+{$ifdef cpu64bit} 
+                  rg.ungetregisterint(list,locpara.register64);
+{$else cpu64bit}
+                  rg.getexplicitregisterint(list,locpara.registerlow.number);
+                  rg.getexplicitregisterint(list,locpara.registerhigh.number);
+                  rg.ungetregisterint(list,locpara.registerlow);
+                  rg.ungetregisterint(list,locpara.registerhigh);
+{$endif cpu64bit}
+{$endif newra}
+                  cg64.a_load64_reg_ref(list,locpara.register64,ref)
+                end
               else
-                cg.a_load_reg_ref(list,locpara.size,locpara.size,locpara.register,ref);
+                begin
+{$ifdef newra}
+                  rg.getexplicitregisterint(list,locpara.register.number);
+                  rg.ungetregisterint(list,locpara.register);
+{$endif newra}
+                  cg.a_load_reg_ref(list,locpara.size,locpara.size,locpara.register,ref);
+                end;
             end;
           LOC_FPUREGISTER,
           LOC_CFPUREGISTER:
@@ -741,7 +759,14 @@ unit cgobj;
           LOC_REGISTER:
             begin
               if not(locpara.size in [OS_S64,OS_64]) then
-                cg.a_load_reg_reg(list,locpara.size,locpara.size,locpara.register,reg)
+                begin
+{$ifdef newra}
+                  rg.getexplicitregisterint(list,locpara.register.number);
+                  rg.ungetregisterint(list,locpara.register);
+                  rg.getexplicitregisterint(list,reg.number);
+{$endif newra}
+                  cg.a_load_reg_reg(list,locpara.size,locpara.size,locpara.register,reg)
+                end
               else
                 internalerror(2003053011);
             end;
@@ -752,6 +777,9 @@ unit cgobj;
           LOC_CREFERENCE:
             begin
               reference_reset_base(href,locpara.reference.index,locpara.reference.offset);
+{$ifdef newra}
+              rg.getexplicitregisterint(list,reg.number);
+{$endif newra}
               cg.a_load_ref_reg(list,locpara.size,locpara.size,href,reg);
             end;
           else
@@ -1851,7 +1879,15 @@ finalization
 end.
 {
   $Log$
-  Revision 1.115  2003-07-23 11:01:14  jonas
+  Revision 1.116  2003-08-17 16:59:20  jonas
+    * fixed regvars so they work with newra (at least for ppc)
+    * fixed some volatile register bugs
+    + -dnotranslation option for -dnewra, which causes the registers not to
+      be translated from virtual to normal registers. Requires support in
+      the assembler writer as well, which is only implemented in aggas/
+      agppcgas currently
+
+  Revision 1.115  2003/07/23 11:01:14  jonas
     * several rg.allocexplicitregistersint/rg.deallocexplicitregistersint
       pairs round calls to helpers
 

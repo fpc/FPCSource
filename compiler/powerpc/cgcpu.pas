@@ -1034,6 +1034,8 @@ const
 
         usesfpr:=false;
         if not (po_assembler in current_procinfo.procdef.procoptions) then
+{$warning FIXME!!}
+          { FIXME: has to be R_F8 instad of R_F14 for SYSV abi }
           for regcounter.enum:=R_F14 to R_F31 do
             if regcounter.enum in rg.used_in_proc_other then
               begin
@@ -1217,7 +1219,14 @@ const
                         reference_reset_base(href,current_procinfo.framepointer,tvarsym(hp.parasym).adjusted_address);
                         reference_reset_base(href2,r,hp.paraloc[callerside].reference.offset);
                         cg.a_load_ref_ref(list,hp.paraloc[calleeside].size,hp.paraloc[calleeside].size,href2,href);
-                      end;
+                      end
+{$ifdef newra2}
+                    else if (hp.calleeparaloc.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+                      begin
+                        rg.getexplicitregisterint(list,hp.calleeparaloc.register.number);
+                      end
+{$endif newra}
+                      ;
                     hp := tparaitem(hp.next);
                   end;
               end;
@@ -2672,7 +2681,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.119  2003-08-11 21:18:20  peter
+  Revision 1.120  2003-08-17 16:59:20  jonas
+    * fixed regvars so they work with newra (at least for ppc)
+    * fixed some volatile register bugs
+    + -dnotranslation option for -dnewra, which causes the registers not to
+      be translated from virtual to normal registers. Requires support in
+      the assembler writer as well, which is only implemented in aggas/
+      agppcgas currently
+
+  Revision 1.119  2003/08/11 21:18:20  peter
     * start of sparc support for newra
 
   Revision 1.118  2003/08/08 15:50:45  olle

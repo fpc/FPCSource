@@ -1860,6 +1860,9 @@ implementation
         r:Preference;
 
     begin
+{$ifdef notranslation}
+      exit;
+{$endif notranslation}  
       p:=Tai(first);
       while assigned(p) do
         begin
@@ -1899,7 +1902,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  2003-08-11 21:18:20  peter
+  Revision 1.32  2003-08-17 16:59:20  jonas
+    * fixed regvars so they work with newra (at least for ppc)
+    * fixed some volatile register bugs
+    + -dnotranslation option for -dnewra, which causes the registers not to
+      be translated from virtual to normal registers. Requires support in
+      the assembler writer as well, which is only implemented in aggas/
+      agppcgas currently
+
+  Revision 1.31  2003/08/11 21:18:20  peter
     * start of sparc support for newra
 
   Revision 1.30  2003/07/02 16:43:48  jonas

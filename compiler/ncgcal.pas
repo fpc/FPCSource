@@ -806,7 +806,7 @@ implementation
 {$ifdef i386}
               regs_to_push_other := tprocdef(procdefinition).usedotherregisters;
 {$else i386}
-              regs_to_push_other := [];
+              regs_to_push_other := VOLATILE_FPUREGISTERS;
 {$endif i386}
               { on the ppc, ever procedure saves the non-volatile registers it uses itself }
               { and must make sure it saves its volatile registers before doing a call     }
@@ -826,7 +826,7 @@ implementation
 {$ifdef i386}
               regs_to_push_other := all_registers;
 {$else i386}
-              regs_to_push_other := [];
+              regs_to_push_other := VOLATILE_FPUREGISTERS;
 {$endif i386}
 {$ifdef i386}
               rg.used_in_proc_int:=VOLATILE_INTREGISTERS;
@@ -1043,11 +1043,10 @@ implementation
                       cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,
                                         right.location.reference.base,helpref.base);
                     end;
-	          reference_release(exprasmlist,helpref);
+                  reference_release(exprasmlist,helpref);
                 end
               else
                 rg.ungetregisterint(exprasmlist,right.location.register);
-
 
               location_freetemp(exprasmlist,right.location);
 {$endif newra}
@@ -1584,7 +1583,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.106  2003-08-16 18:56:40  marco
+  Revision 1.107  2003-08-17 16:59:20  jonas
+    * fixed regvars so they work with newra (at least for ppc)
+    * fixed some volatile register bugs
+    + -dnotranslation option for -dnewra, which causes the registers not to
+      be translated from virtual to normal registers. Requires support in
+      the assembler writer as well, which is only implemented in aggas/
+      agppcgas currently
+
+  Revision 1.106  2003/08/16 18:56:40  marco
    * fix from Jonas.
 
   Revision 1.105  2003/08/11 21:18:20  peter
