@@ -85,6 +85,7 @@ const
 var
   option     : poption;
   read_configfile,        { read config file, set when a cfgfile is found }
+  disable_configfile,
   target_is_set : boolean;  { do not allow contradictory target settings }
   asm_is_set  : boolean; { -T also change initoutputformat if not set idrectly }
   fpcdir,
@@ -579,7 +580,11 @@ begin
                     end;
               'g' : begin
                       if UnsetBool(More, 0) then
-                        initmoduleswitches:=initmoduleswitches-[cs_debuginfo]
+                        begin
+                          initmoduleswitches:=initmoduleswitches-[cs_debuginfo];
+                          if (length(More)>1) and (More[1]='l') then
+                            initglobalswitches:=initglobalswitches+[cs_gdb_lineinfo];
+                        end
                       else
                        begin
 {$ifdef GDB}
@@ -651,7 +656,10 @@ begin
                       IllegalPara(opt);
               'm' : parapreprocess:=true;
               'n' : if More='' then
-                     read_configfile:=false
+                     begin
+                       read_configfile:=false;
+                       disable_configfile:=true;
+                     end
                     else
                      IllegalPara(opt);
               'o' : if More<>'' then
@@ -1185,6 +1193,7 @@ begin
   if (cmd='') and (paramcount=0) then
    Option^.WriteHelpPages;
 
+  disable_configfile:=false;
 { default defines }
   def_symbol(target_info.short_name);
   def_symbol('FPK');
@@ -1322,9 +1331,9 @@ begin
      option^.firstpass:=false;
      if read_configfile then
       begin
-{$ifdef EXTDEBUG}
+{$ifdef DEBUG}
         Comment(V_Debug,'read config file: '+ppccfg);
-{$endif EXTDEBUG}
+{$endif DEBUG}
         option^.interpret_file(ppccfg);
       end;
    end;
@@ -1369,6 +1378,7 @@ begin
 { add unit environment and exepath to the unit search path }
   if inputdir<>'' then
    Unitsearchpath.AddPath(inputdir,true);
+  if not disable_configfile then
 {$ifdef Delphi}
   UnitSearchPath.AddPath(dmisc.getenv(target_info.unit_env),false);
 {$else}
@@ -1394,13 +1404,16 @@ begin
    end;
 {$endif}
   { first try development RTL, else use the default installation path }
-  if PathExists(FpcDir+'rtl/'+lower(target_info.short_name)) then
-   UnitSearchPath.AddPath(FpcDir+'rtl/'+lower(target_info.short_name),false)
-  else
-   begin
-     UnitSearchPath.AddPath(FpcDir+'units/'+lower(target_info.short_name),false);
-     UnitSearchPath.AddPath(FpcDir+'units/'+lower(target_info.short_name)+'/rtl',false);
-   end;
+  if not disable_configfile then
+    begin
+      if PathExists(FpcDir+'rtl/'+lower(target_info.short_name)) then
+       UnitSearchPath.AddPath(FpcDir+'rtl/'+lower(target_info.short_name),false)
+      else
+       begin
+         UnitSearchPath.AddPath(FpcDir+'units/'+lower(target_info.short_name),false);
+         UnitSearchPath.AddPath(FpcDir+'units/'+lower(target_info.short_name)+'/rtl',false);
+       end;
+    end;
   { Add exepath if the exe is not in the current dir, because that is always searched already }
   if ExePath<>GetCurrentDir then
    UnitSearchPath.AddPath(ExePath,false);
@@ -1436,7 +1449,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.62  2000-03-13 20:06:59  michael
+  Revision 1.63  2000-04-05 21:57:34  pierre
+   * no unitdir automatically added if -n option present
+
+  Revision 1.62  2000/03/13 20:06:59  michael
   + Added switch to swicth on assertions.
 
   Revision 1.61  2000/02/15 14:36:45  florian
