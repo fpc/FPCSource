@@ -232,7 +232,7 @@ type
         f : record
              create_image : function (para1:PXDisplay; para2:PVisual; para3:dword; para4:longint; para5:longint;
                           para6:Pchar; para7:dword; para8:dword; para9:longint; para10:longint):PXImage;cdecl;
-             destroy_image : function (para1:PXImage):longint;
+             destroy_image : function (para1:PXImage):longint;cdecl;
              get_pixel : function (para1:PXImage; para2:longint; para3:longint):dword;cdecl;
              put_pixel : function (para1:PXImage; para2:longint; para3:longint; para4:dword):longint;cdecl;
              sub_image : function (para1:PXImage; para2:longint; para3:longint; para4:dword; para5:dword):PXImage;cdecl;
