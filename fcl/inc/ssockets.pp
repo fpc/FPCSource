@@ -49,6 +49,7 @@ type
     Constructor Create (AHandle : Longint);virtual;
     function Seek(Offset: Longint; Origin: Word): Longint; override;
     Property SocketOptions : TSocketOptions Read FSocketOptions
+    destructor Destroy; override;
                                             Write SetSocketOptions;
   end;
 
@@ -99,10 +100,10 @@ type
     FAddr : TINetSockAddr;
     Function  SockToStream (ASocket : Longint) : TSocketStream;Override;
     Function Accept : Longint;override;
-  Public
     FPort : Word;
-    Constructor Create(APort: Word);
+  Public
     Procedure Bind; Override;
+    Constructor Create(APort: Word);
     Property Port : Word Read FPort;
   end;
 
@@ -111,12 +112,12 @@ type
     FUnixAddr : TUnixSockAddr;
     FFileName : String;
   Protected
+    Procedure Bind; Override;
     Function Accept : Longint;override;
     Function SockToStream (ASocket : Longint) : TSocketStream;Override;
     Procedure Close; override;
   Public
     Constructor Create(AFileName : String);
-    Procedure Bind; Override;
     Property FileName : String Read FFileName;
   end;
 
@@ -208,6 +209,12 @@ Constructor TSocketStream.Create (AHandle : Longint);
 begin
   Inherited Create(AHandle);
   GetSockOptions;
+end;
+
+destructor TSocketStream.Destroy;
+begin
+  FileClose(Handle);
+  inherited Destroy;
 end;
 
 Procedure TSocketStream.GetSockOptions;
@@ -517,7 +524,11 @@ end.
 
 {
   $Log$
-  Revision 1.8  2001-11-24 20:59:13  carl
+  Revision 1.9  2001-12-17 20:21:35  sg
+  * Some cosmetic improvements (fixed wrong method visibilities etc.)
+  * TSocketStream now closes the underlying file handle upon destruction
+
+  Revision 1.8  2001/11/24 20:59:13  carl
   * fix compilation problems for version 1.0.x branch
 
   Revision 1.7  2001/11/20 18:53:29  peter
