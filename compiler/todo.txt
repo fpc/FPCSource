@@ -50,11 +50,24 @@ compiler version and your short cut.
   - andn optimization
   - muladdn optimization
   - comparisations
+  - KNI
+  - 3DNow
 * Delphi 4 support
   - overloaded directive
   - default parameters
   - dynamic arrays
   - 64 bit int
+* QWord
+  - constants
+  - case
+  - for
+  - inc/dec
+  - read/write
+  - val/str
+  - range checking
+  - type cast QWord -> real
+  - lo/hi testing
+  - overflow checking test
 * Misc
         - array of const as subroutine parameter ................ 0.99.9 (PFV)
         - open array with call by value ......................... 0.99.6 (FK)

@@ -943,6 +943,47 @@ implementation
                    exprasmlist^.concat(new(pai386,op_const_reg(A_SHR,S_L,16,p^.location.register)));
                  p^.location.register:=reg32toreg16(p^.location.register);
               end;
+            in_lo_qword,
+            in_hi_qword:
+              begin
+                 secondpass(p^.left);
+                 p^.location.loc:=LOC_REGISTER;
+                 case p^.left^.location.loc of
+                    LOC_CREGISTER:
+                      begin
+                         p^.location.register:=getregister32;
+                         if p^.inlinenumber=in_hi_qword then
+                           emit_reg_reg(A_MOV,S_L,p^.left^.location.registerhigh,
+                             p^.location.register)
+                         else
+                           emit_reg_reg(A_MOV,S_L,p^.left^.location.registerlow,
+                             p^.location.register)
+                      end;
+                    LOC_MEM,LOC_REFERENCE:
+                      begin
+                         del_reference(p^.left^.location.reference);
+                         p^.location.register:=getregister32;
+                         r:=newreference(p^.left^.location.reference);
+                         if p^.inlinenumber=in_hi_qword then
+                           inc(r^.offset,4);
+                         exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                           r,p^.location.register)));
+                      end;
+                    LOC_REGISTER:
+                      begin
+                         if p^.inlinenumber=in_hi_qword then
+                           begin
+                              p^.location.register:=p^.left^.location.registerhigh;
+                              ungetregister32(p^.left^.location.registerlow);
+                           end
+                         else
+                           begin
+                              p^.location.register:=p^.left^.location.registerlow;
+                              ungetregister32(p^.left^.location.registerhigh);
+                           end;
+                      end;
+                 end;
+              end;
             in_length_string :
               begin
                  secondpass(p^.left);
@@ -1097,9 +1138,10 @@ implementation
                       it should be converted to 16 or 8 bit depending on op_size  PM }
                     { still not perfect :
                       if hregister is already a 16 bit reg ?? PM }
+                    { makeregXX is the solution (FK) }
                     case opsize of
-                      S_B : hregister:=reg32toreg8(hregister);
-                      S_W : hregister:=reg32toreg16(hregister);
+                      S_B : hregister:=makereg8(hregister);
+                      S_W : hregister:=makereg16(hregister);
                     end;
                     if p^.left^.left^.location.loc=LOC_CREGISTER then
                       exprasmlist^.concat(new(pai386,op_reg_reg(addsubop[p^.inlinenumber],opsize,
@@ -1251,7 +1293,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.59  1999-06-21 16:33:27  jonas
+  Revision 1.60  1999-07-01 15:49:09  florian
+    * int64/qword type release
+    + lo/hi for int64/qword
+
+  Revision 1.59  1999/06/21 16:33:27  jonas
     * fixed include() with smallsets
 
   Revision 1.58  1999/06/11 11:44:56  peter

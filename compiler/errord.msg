@@ -847,8 +847,8 @@ type_e_cant_read_write_type=E_Kann Variablen dieses Typs weder lesen noch schrei
 type_e_typeconflict_in_set=E_Typkonflikt zwischen den Elementen des Sets
 % There is at least one set element which is of the wrong type, i.e. not of
 % the set type.
-type_w_maybe_wrong_hi_lo=W_lo/hi(longint/dword) gibt oberes/unteres Word zurÅck
-% \fpc supports an overloaded version of \var{lo/hi} for \var{longint/dword}
+type_w_maybe_wrong_hi_lo=W_lo/hi(dword/qword) gibt oberes/unteres Word/DWord zurÅck
+% \fpc supports an overloaded version of \var{lo/hi} for \var{longint/dword/int64/qword}
 % which returns the lower/upper word of the argument. TP always uses
 % a 16 bit \var{lo/hi} which returns always bits 0..7 for \var{lo} and the
 % bits 8..15 for \var{hi}. If you want the TP behavior you have

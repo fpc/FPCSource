@@ -804,7 +804,6 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
            begin
               if (p^.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
                 begin
-{$ifdef INT64}
                    if isint64 then
                      begin
 {$ifdef TEMPS_NOT_PUSH}
@@ -826,7 +825,6 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                      end
 {$endif TEMPS_NOT_PUSH}
                      ;
-{$endif INT64}
                    pushed:=true;
 {$ifdef TEMPS_NOT_PUSH}
                    exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,p^.location.register,href)));
@@ -870,7 +868,6 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
            begin
               if (p^.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
                 begin
-{$ifdef INT64}
                    if isint64(p^.resulttype) then
                      begin
                         gettempofsizereference(href,8);
@@ -881,7 +878,6 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                         ungetregister32(p^.location.registerhigh);
                      end
                    else
-{$endif INT64}
                      begin
                         gettempofsizereference(href,4);
                         p^.temp_offset:=href.offset;
@@ -1061,7 +1057,6 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          if (p^.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
            begin
               p^.location.register:=hregister;
-{$ifdef INT64}
               if isint64 then
                 begin
                    p^.location.registerhigh:=getregister32;
@@ -1074,7 +1069,6 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                    exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,p^.location.registerhigh)));
 {$endif TEMPS_NOT_PUSH}
                 end;
-{$endif INT64}
            end
          else
            begin
@@ -1102,7 +1096,6 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          if (p^.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
            begin
               p^.location.register:=hregister;
-{$ifdef INT64}
               if isint64 then
                 begin
                    p^.location.registerhigh:=getregister32;
@@ -1111,7 +1104,6 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                    { set correctly for release ! }
                    href.offset:=p^.temp_offset;
                 end;
-{$endif INT64}
            end
          else
            begin
@@ -1674,7 +1666,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          getlabel(hl);
          if not ((p^.resulttype^.deftype=pointerdef) or
                 ((p^.resulttype^.deftype=orddef) and
-                 (porddef(p^.resulttype)^.typ in [u16bit,u32bit,u8bit,uchar,
+                 (porddef(p^.resulttype)^.typ in [u64bit,u16bit,u32bit,u8bit,uchar,
                                                   bool8bit,bool16bit,bool32bit]))) then
            emitjmp(C_NO,hl)
          else
@@ -3103,7 +3095,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.8  1999-06-28 22:29:15  florian
+  Revision 1.9  1999-07-01 15:49:11  florian
+    * int64/qword type release
+    + lo/hi for int64/qword
+
+  Revision 1.8  1999/06/28 22:29:15  florian
     * qword division fixed
     + code for qword/int64 type casting added:
       range checking isn't implemented yet

@@ -316,16 +316,25 @@ implementation
          else
           begin
             case p^.inlinenumber of
-
+             in_lo_qword,
+             in_hi_qword,
              in_lo_long,
              in_hi_long,
              in_lo_word,
              in_hi_word:
+
                begin
                   if p^.registers32<1 then
                     p^.registers32:=1;
                   if p^.inlinenumber in [in_lo_word,in_hi_word] then
                     p^.resulttype:=u8bitdef
+                  else if p^.inlinenumber in [in_lo_qword,in_hi_qword] then
+                    begin
+                       p^.resulttype:=u32bitdef;
+                       if (m_tp in aktmodeswitches) or
+                          (m_delphi in aktmodeswitches) then
+                         CGMessage(type_w_maybe_wrong_hi_lo);
+                    end
                   else
                     begin
                        p^.resulttype:=u16bitdef;
@@ -345,6 +354,8 @@ implementation
                           in_hi_word : hp:=genordinalconstnode(p^.left^.value shr 8,p^.left^.resulttype);
                           in_lo_long : hp:=genordinalconstnode(p^.left^.value and $ffff,p^.left^.resulttype);
                           in_hi_long : hp:=genordinalconstnode(p^.left^.value shr 16,p^.left^.resulttype);
+                          in_lo_qword : hp:=genordinalconstnode(p^.left^.value and $ffffffff,p^.left^.resulttype);
+                          in_hi_qword : hp:=genordinalconstnode(p^.left^.value shr 32,p^.left^.resulttype);
                          end;
                          disposetree(p);
                          firstpass(hp);
@@ -1107,7 +1118,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  1999-06-25 10:02:56  florian
+  Revision 1.38  1999-07-01 15:49:22  florian
+    * int64/qword type release
+    + lo/hi for int64/qword
+
+  Revision 1.37  1999/06/25 10:02:56  florian
     * bug 459 fixed
 
   Revision 1.36  1999/06/15 18:58:36  peter

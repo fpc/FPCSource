@@ -1011,7 +1011,7 @@ begin
   def_symbol('INTERNALADDR');
   def_symbol('NEWWRITEARRAY');
   def_symbol('INTERNDOUBLE');
-
+  def_symbol('INT64');
 { some stuff for TP compatibility }
 {$ifdef i386}
   def_symbol('CPU86');
@@ -1167,7 +1167,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1999-06-11 13:28:40  peter
+  Revision 1.2  1999-07-01 15:49:19  florian
+    * int64/qword type release
+    + lo/hi for int64/qword
+
+  Revision 1.1  1999/06/11 13:28:40  peter
     * reinserted
 
   Revision 1.111  1999/06/10 23:52:31  pierre

@@ -314,7 +314,8 @@ implementation
     function is_integer(def : pdef) : boolean;
       begin
         is_integer:=(def^.deftype=orddef) and
-                    (porddef(def)^.typ in [uauto,u8bit,u16bit,u32bit,s8bit,s16bit,s32bit]);
+                    (porddef(def)^.typ in [uauto,u8bit,u16bit,u32bit,s8bit,
+                                           s16bit,s32bit,u64bit,s64bitint]);
       end;
 
 
@@ -947,7 +948,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.73  1999-06-28 22:29:22  florian
+  Revision 1.74  1999-07-01 15:49:24  florian
+    * int64/qword type release
+    + lo/hi for int64/qword
+
+  Revision 1.73  1999/06/28 22:29:22  florian
     * qword division fixed
     + code for qword/int64 type casting added:
       range checking isn't implemented yet

@@ -71,9 +71,15 @@ const
    in_const_exp        = 114;
    in_const_ln         = 115;
    in_const_sin        = 116;
+   in_lo_qword         = 117;
+   in_hi_qword         = 118;
 {
   $Log$
-  Revision 1.11  1999-04-17 13:12:19  peter
+  Revision 1.12  1999-07-01 15:49:14  florian
+    * int64/qword type release
+    + lo/hi for int64/qword
+
+  Revision 1.11  1999/04/17 13:12:19  peter
     * addr() internal
 
   Revision 1.10  1998/10/05 12:32:45  peter
