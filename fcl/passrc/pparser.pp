@@ -631,7 +631,7 @@ var
   TypeEl: TPasType;
   ClassEl: TPasClassType;
   List: TList;
-  i: Integer;
+  i,j: Integer;
   VarEl: TPasVariable;
 begin
   Module := nil;
@@ -716,11 +716,11 @@ begin
                       if CompareText(ClassEl.Name, TypeEl.Name) = 0 then
                       begin
                         Section.Classes.Delete(i);
-                        for i := 0 to Section.Declarations.Count - 1 do
+                        for j := 0 to Section.Declarations.Count - 1 do
                           if CompareText(TypeEl.Name,
-                            TPasElement(Section.Declarations[i]).Name) = 0 then
+                            TPasElement(Section.Declarations[j]).Name) = 0 then
                           begin
-                            Section.Declarations.Delete(i);
+                            Section.Declarations.Delete(j);
                             break;
                           end;
                         ClassEl.Release;
@@ -1822,7 +1822,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2004-07-23 23:40:35  michael
+  Revision 1.8  2004-09-13 16:02:36  peter
+    * fix nested for-loop with same index
+
+  Revision 1.7  2004/07/23 23:40:35  michael
   + Fixed value of constant strings (added quotes)
 
   Revision 1.6  2004/05/16 13:24:59  peter

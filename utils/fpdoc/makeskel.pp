@@ -276,7 +276,7 @@ end;
 
 
 var
-  i: Integer;
+  i,j: Integer;
   Module: TPasModule;
   
 begin
@@ -318,8 +318,8 @@ begin
        try
          Engine.SetPackageName(PackageName);
          if UpdateMode then
-           For I:=0 to DescrFiles.Count-1 do
-             Engine.AddDocFile(DescrFiles[i]);
+           For j:=0 to DescrFiles.Count-1 do
+             Engine.AddDocFile(DescrFiles[j]);
          Module := ParseSource(Engine, InputFiles[i], OSTarget, CPUTarget);
    	 WriteLn(f, '</module> <!-- ', Module.Name, ' -->');
        except
@@ -349,7 +349,10 @@ end.
 
 {
   $Log$
-  Revision 1.12  2004-08-29 15:32:41  michael
+  Revision 1.13  2004-09-13 16:04:52  peter
+    * fix nested for-loop with same index
+
+  Revision 1.12  2004/08/29 15:32:41  michael
   + More intelligent handling of nodes. Do not write unused nodes.
 
   Revision 1.11  2004/08/28 18:18:59  michael
