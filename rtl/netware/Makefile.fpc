@@ -186,6 +186,12 @@ convutils$(PPUEXT) : $(OBJPASDIR)/convutils.pp
 strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/strutils.pp
 
+#
+# Mac Pascal Model
+#
+
+macpas$(PPUEXT) : $(INC)/macpas.pp system$(PPUEXT)
+        $(COMPILER) $(INC)/macpas.pp $(REDIR)
 
 #
 # Other system-independent RTL Units
