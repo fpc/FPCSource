@@ -15,8 +15,6 @@
 
 {$packrecords C}
 
-
-
 {********************
       Signal
 ********************}
@@ -90,8 +88,8 @@ type
            status: cardinal;
   end;
 
- SigSet  =  array[0..wordsinsigset-1] of Longint;
-  sigset_t= SigSet;  
+  SigSet  =  array[0..wordsinsigset-1] of Longint;
+  sigset_t= SigSet;
   PSigSet = ^SigSet;
   psigset_t=psigset;
   TSigSet = SigSet;
@@ -248,7 +246,27 @@ type
 {$ifdef cpuarm}
   PSigContextRec = ^SigContextRec;
   SigContextRec = record
-    { dummy for now PM }
+    trap_no : dword;
+    error_code : dword;
+    oldmask : dword;
+    arm_r0 : dword;
+    arm_r1 : dword;
+    arm_r2 : dword;
+    arm_r3 : dword;
+    arm_r4 : dword;
+    arm_r5 : dword;
+    arm_r6 : dword;
+    arm_r7 : dword;
+    arm_r8 : dword;
+    arm_r9 : dword;
+    arm_r10 : dword;
+    arm_fp : dword;
+    arm_ip : dword;
+    arm_sp : dword;
+    arm_lr : dword;
+    arm_pc : dword;
+    arm_cpsr : dword;
+    fault_address : dword;
   end;
 {$endif cpuarm}
 (*
@@ -324,7 +342,10 @@ type
 
 {
   $Log$
-  Revision 1.13  2003-11-02 14:53:06  jonas
+  Revision 1.14  2003-11-21 00:40:06  florian
+    * some arm issues fixed
+
+  Revision 1.13  2003/11/02 14:53:06  jonas
     + sighand and associated record definitions for ppc. Untested.
 
   Revision 1.12  2003/09/14 20:15:01  marco

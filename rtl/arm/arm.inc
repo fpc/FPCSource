@@ -16,6 +16,7 @@
 
  **********************************************************************}
 
+{$asmmode gas}
 
 {****************************************************************************
                        stack frame related stuff
@@ -55,7 +56,7 @@ end ['R0'];
 
 
 {$define FPC_SYSTEM_HAS_SPTR}
-Function Sptr : Longint;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Sptr : pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
         mov    r0,sp
 end ['R0'];
@@ -118,7 +119,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2003-09-03 14:09:37  florian
+  Revision 1.3  2003-11-21 00:40:06  florian
+    * some arm issues fixed
+
+  Revision 1.2  2003/09/03 14:09:37  florian
     * arm fixes to the common rtl code
     * some generic math code fixed
     * ...
