@@ -615,7 +615,7 @@ Procedure FindLoHiLabels(AsmL: PAasmOutput; Var LowLabel, HighLabel, LabelDif: L
 {Walks through the paasmlist to find the lowest and highest label number;
  Since 0.9.3: also removes unused labels}
 Var LabelFound: Boolean;
-    P, hp1: Pai;
+    P{, hp1}: Pai;
 Begin
   LabelFound := False;
   LowLabel := MaxLongint;
@@ -1079,7 +1079,6 @@ End;
 
 Procedure UpdateUsedRegs(Var UsedRegs: TRegSet; p: Pai);
 {updates UsedRegs with the RegAlloc Information coming after P}
-Var hp: Pai;
 Begin
   Repeat
     While Assigned(p) And
@@ -1325,9 +1324,9 @@ Begin {checks whether two Pai386 instructions are equal}
 {$ifdef csdebug}
                     Begin
 {$endif csdebug}
-                    RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef + [Base];
+                      RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef + [Base];
 {$ifdef csdebug}
-                    Writeln(att_reg2str[base], ' added');
+                      Writeln(att_reg2str[base], ' added');
                     end;
 {$endif csdebug}
                 If Not(Index in [ProcInfo.FramePointer,
@@ -1336,9 +1335,9 @@ Begin {checks whether two Pai386 instructions are equal}
 {$ifdef csdebug}
                     Begin
 {$endif csdebug}
-                    RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef + [Index];
+                      RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef + [Index];
 {$ifdef csdebug}
-                    Writeln(att_reg2str[index], ' added');
+                      Writeln(att_reg2str[index], ' added');
                     end;
 {$endif csdebug}
 
@@ -1347,18 +1346,27 @@ Begin {checks whether two Pai386 instructions are equal}
                                                          R_NO,R_ESP])
               Then
 {$ifdef csdebug}
-                    Begin
+                Begin
 {$endif csdebug}
 
-                RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef -
+                  RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef -
                                                  [Reg32(TRegister(Pai386(p2)^.op2))];
 {$ifdef csdebug}
-                    Writeln(att_reg2str[Reg32(TRegister(Pai386(p2)^.op2))], ' removed');
-                    end;
+                  Writeln(att_reg2str[Reg32(TRegister(Pai386(p2)^.op2))], ' removed');
+                end;
 {$endif csdebug}
-            InstructionsEquivalent :=
-               OpsEquivalent(Pai386(p1)^.op1t, Pai386(p1)^.op1, Pai386(p2)^.op1, RegInfo) And
-               OpsEquivalent(Pai386(p1)^.op2t, Pai386(p1)^.op2, Pai386(p2)^.op2, RegInfo)
+            If (TRegister(Pai386(p1)^.op2) In RegInfo.RegsEncountered) Or
+               Not(RegInRef(TRegister(Pai386(p1)^.op2), TReference(Pai386(p2)^.op1^))) Then
+
+  { To avoid
+       movl  48(%esi), %esi                         movl  48(%esi), %esi
+       pushl %esi             getting changed to    pushl %esi
+       movl  48(%esi), %edi                         movl %esi, %edi }
+
+              InstructionsEquivalent :=
+                 OpsEquivalent(Pai386(p1)^.op1t, Pai386(p1)^.op1, Pai386(p2)^.op1, RegInfo) And
+                 OpsEquivalent(Pai386(p1)^.op2t, Pai386(p1)^.op2, Pai386(p2)^.op2, RegInfo)
+            Else InstructionsEquivalent := False
           End
       Else
  {an instruction <> mov, movzx, movsx}
@@ -1991,7 +1999,13 @@ End.
 
 {
  $Log$
- Revision 1.18  1998-10-07 16:27:02  jonas
+ Revision 1.19  1998-10-20 09:29:24  peter
+   * bugfix so that code like
+      movl  48(%esi),%esi                            movl  48(%esi),%esi
+      pushl %esi            doesn't get changed to   pushl %esi
+      movl 48(%esi),%edi                             movl  %esi,%edi
+
+ Revision 1.18  1998/10/07 16:27:02  jonas
    * changed state to WState (WriteState), added RState for future use in
       instruction scheduling
    * RegAlloc data from the CG is now completely being patched and corrected (I
