@@ -577,6 +577,7 @@ const
   unit_h_cond_set_in_last_compile=10039;
   unit_w_cant_compile_unit_with_changed_incfile=10040;
   unit_h_source_modified=10041;
+  unit_u_ppu_invalid_fpumode=10042;
   option_usage=11000;
   option_only_one_source_support=11001;
   option_def_only_for_os2=11002;
@@ -609,9 +610,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 34184;
+  MsgTxtSize = 34250;
 
   MsgIdxMax : array[1..20] of longint=(
-    17,62,184,42,42,41,98,17,35,42,
+    17,62,184,42,42,41,98,17,35,43,
     31,1,1,1,1,1,1,1,1,1
   );

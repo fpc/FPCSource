@@ -1768,6 +1768,10 @@ unit_h_source_modified=10041_H_File $1 is newer than Release PPU file $2
 % A modified source file for a unit was found that was compiled with the
 % release flag (-Ur). The unit will not implicitly be recompiled because
 % this release flag is set.
+unit_u_ppu_invalid_fpumode=10042_U_Using a unit which was not compiled with correct FPU mode
+% Trying to compile code while using units which were not compiled with
+% the same floating point format mode. Either all code should be compiled
+% with FPU emulation on, or with FPU emulation off.
 % \end{description}
 # EndOfTeX
 
