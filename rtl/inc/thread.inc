@@ -326,7 +326,9 @@ procedure NoCriticalSection(var CS);
 
 begin
   if IsMultiThread then
-    NoThreadError;
+    NoThreadError
+  else
+    ThreadingAlreadyUsed:=true;
 end;
 
 procedure NoInitThreadvar(var offset : dword;size : dword);
@@ -388,14 +390,18 @@ function  NORTLEventCreate :PRTLEvent;
 
 begin
   if IsMultiThread then
-    NoThreadError;
+    NoThreadError
+  else
+    ThreadingAlreadyUsed:=true
 end;
 
 procedure NORTLeventdestroy(state:pRTLEvent);
 
 begin
   if IsMultiThread then
-    NoThreadError;
+    NoThreadError
+  else
+    ThreadingAlreadyUsed:=true
 end;
 
 procedure NORTLeventSetEvent(state:pRTLEvent);
@@ -469,7 +475,11 @@ end;
 
 {
   $Log$
-  Revision 1.24  2005-02-26 11:40:38  florian
+  Revision 1.25  2005-04-03 19:29:28  florian
+    * proper error message if the cthreads unit is included too late
+      uses clause
+
+  Revision 1.24  2005/02/26 11:40:38  florian
     * rtl event init/destroy throws only an error if it's used in a mult threaded program
 
   Revision 1.23  2005/02/25 22:02:46  florian

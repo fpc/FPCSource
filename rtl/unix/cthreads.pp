@@ -623,12 +623,22 @@ end;
 
 
 initialization
+  if ThreadingAlreadyUsed then
+    begin
+      writeln('Threading has been used before cthreads was initialized.');
+      writeln('Make cthreads one of the first units in your uses clause.');
+      runerror(211);
+    end;
   SetCThreadManager;
 finalization
 end.
 {
   $Log$
-  Revision 1.24  2005-02-25 22:10:27  florian
+  Revision 1.25  2005-04-03 19:29:28  florian
+    * proper error message if the cthreads unit is included too late
+      uses clause
+
+  Revision 1.24  2005/02/25 22:10:27  florian
     * final fix for linux (hopefully)
 
   Revision 1.23  2005/02/25 22:02:48  florian

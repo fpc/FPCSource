@@ -361,6 +361,9 @@ const
   { assume that this program will not spawn other threads, when the
     first thread is started the following constants need to be filled }
   IsMultiThread : boolean = FALSE;
+  { set to true, if a threading helper is used before a thread
+    manager has been installed }
+  ThreadingAlreadyUsed : boolean = FALSE;
   { Indicates if there was an error }
   StackError : boolean = FALSE;
   InitProc : Pointer = nil;
@@ -769,7 +772,11 @@ const
 
 {
   $Log$
-  Revision 1.121  2005-02-25 12:34:46  peter
+  Revision 1.122  2005-04-03 19:29:28  florian
+    * proper error message if the cthreads unit is included too late
+      uses clause
+
+  Revision 1.121  2005/02/25 12:34:46  peter
     * added HexStr(Pointer)
 
   Revision 1.120  2005/02/14 17:13:29  peter
