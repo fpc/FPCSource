@@ -350,51 +350,43 @@ unit cpupara;
             hp.paraloc[side].size:=paracgsize;
             hp.paraloc[side].intsize:=paralen;
             hp.paraloc[side].Alignment:=paraalign;
-            if paralen>0 then
+            { Copy to stack? }
+            if paracgsize=OS_NO then
               begin
-                { Copy to stack? }
-                if paracgsize=OS_NO then
+                paraloc:=hp.paraloc[side].add_location;
+                paraloc^.loc:=LOC_REFERENCE;
+                paraloc^.size:=paracgsize;
+                if side=callerside then
+                  paraloc^.reference.index:=NR_STACK_POINTER_REG
+                else
+                  paraloc^.reference.index:=NR_FRAME_POINTER_REG;
+                varalign:=used_align(size_2_align(paralen),paraalign,paraalign);
+                paraloc^.reference.offset:=parasize;
+                parasize:=align(parasize+paralen,varalign);
+              end
+            else
+              begin
+                if paralen=0 then
+                  internalerror(200501163);
+                while (paralen>0) do
                   begin
+                    { We can allocate at maximum 32 bits per location }
+                    if paralen>sizeof(aint) then
+                      l:=sizeof(aint)
+                    else
+                      l:=paralen;
                     paraloc:=hp.paraloc[side].add_location;
                     paraloc^.loc:=LOC_REFERENCE;
-                    paraloc^.size:=paracgsize;
+                    paraloc^.size:=int_cgsize(l);
                     if side=callerside then
                       paraloc^.reference.index:=NR_STACK_POINTER_REG
                     else
                       paraloc^.reference.index:=NR_FRAME_POINTER_REG;
-                    varalign:=used_align(size_2_align(paralen),paraalign,paraalign);
+                    varalign:=used_align(size_2_align(l),paraalign,paraalign);
                     paraloc^.reference.offset:=parasize;
-                    parasize:=align(parasize+paralen,varalign);
-                  end
-                else
-                  begin
-                    if paralen=0 then
-                      internalerror(200501163);
-                    while (paralen>0) do
-                      begin
-                        { We can allocate at maximum 32 bits per location }
-                        if paralen>sizeof(aint) then
-                          l:=sizeof(aint)
-                        else
-                          l:=paralen;
-                        paraloc:=hp.paraloc[side].add_location;
-                        paraloc^.loc:=LOC_REFERENCE;
-                        paraloc^.size:=int_cgsize(l);
-                        if side=callerside then
-                          paraloc^.reference.index:=NR_STACK_POINTER_REG
-                        else
-                          paraloc^.reference.index:=NR_FRAME_POINTER_REG;
-                        varalign:=used_align(size_2_align(l),paraalign,paraalign);
-                        paraloc^.reference.offset:=parasize;
-                        parasize:=align(parasize+l,varalign);
-                        dec(paralen,l);
-                      end;
+                    parasize:=align(parasize+l,varalign);
+                    dec(paralen,l);
                   end;
-              end
-            else
-              begin
-                paraloc:=hp.paraloc[side].add_location;
-                paraloc^.loc:=LOC_VOID;
               end;
           end;
         { Adapt offsets for left-to-right calling }
@@ -610,8 +602,8 @@ begin
 end.
 {
   $Log$
-  Revision 1.63  2005-01-29 11:36:52  peter
-    * update x86_64 with new cpupara
+  Revision 1.64  2005-01-30 11:03:22  peter
+    * revert last commit
 
   Revision 1.62  2005/01/18 22:19:20  peter
     * multiple location support for i386 a_param_ref
