@@ -166,7 +166,7 @@ function floor(x : float) : longint;
 { misc. functions }
 
 { splits x into mantissa and exponent (to base 2) }
-procedure frexp(x : float;var mantissa,exponent : float);
+procedure Frexp(X: float; var Mantissa: float; var Exponent: integer);
 { returns x*(2^p) }
 function ldexp(x : float;p : longint) : float;
 
@@ -517,10 +517,23 @@ function floor(x : float) : longint;
        Floor := Floor-1;
   end;
 
-procedure frexp(x : float;var mantissa,exponent : float);
+procedure Frexp(X: float; var Mantissa: float; var Exponent: integer);
 
   begin
-
+      Exponent :=0;
+      if (abs(x)<0.5) then
+       While (abs(x)<0.5) do
+       begin
+         x := x*2;
+         Dec(Exponent);
+       end
+      else
+       While (abs(x)>1) do
+       begin
+         x := x/2;
+         Inc(Exponent);
+       end;
+      mantissa := x;
   end;
 
 function ldexp(x : float;p : longint) : float;
@@ -960,7 +973,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2001-06-04 18:45:58  peter
+  Revision 1.6  2001-12-20 03:51:44  carl
+  * Corrected prototype of frexp() and added routine (taken fron genmath.inc)
+    tested against Delphi 3
+
+  Revision 1.5  2001/06/04 18:45:58  peter
     * added constant
 
   Revision 1.4  2000/07/30 10:01:04  sg
