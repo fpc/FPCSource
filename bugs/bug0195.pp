@@ -14,8 +14,12 @@ begin
    getmem(p, w);
 
    {---runtime-error!------}
-   getimage(0,0,111,111, p);
+   { getimage(0,0,111,111, p); }
    {-----------------------}
+   
+   { This is the correct usage (PFV) }
+   getimage(0,0,111,111, p^);
+   
 
    freemem(p, w);
    closegraph;
