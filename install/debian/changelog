@@ -1,14 +1,53 @@
-fpc (1.9.5-0) unstable; urgency=low
+fpc (1.9.5-20040817) unstable; urgency=low
 
   * Snapshot build
 
- -- Peter Vreman <peter@freepascal.org>  Thu, 30 May 2004 12:00:00 +0100
+ -- Peter Vreman <peter@freepascal.org>  Thu, 30 Aug 2004 12:00:00 +0100
 
-fpc (1.9.4-0.1) unstable; urgency=low
+fpc (1.9.4-5) unstable; urgency=low
 
-  * New release
+  * fp-compiler: needs ld, adding dependency on binutils.  (Closes: #265265)
 
- -- Peter Vreman <peter@freepascal.org>  Thu, 30 May 2004 12:00:00 +0100
+ -- Carlos Laviola <claviola@debian.org>  Thu, 12 Aug 2004 16:29:37 -0300
+
+fpc (1.9.4-4) unstable; urgency=low
+
+  * debian/control.in: Oops, forgot to update the Build-Deps for this file,
+    which generates debian/control per se.  (Closes: #263942)
+
+ -- Carlos Laviola <claviola@debian.org>  Sun,  8 Aug 2004 22:12:41 -0300
+
+fpc (1.9.4-3) unstable; urgency=low
+
+  * Package needs fpcmake to build pretty much everything, so we need to
+    build-dep on fp-utils.  Thanks to Daniel Schepler for finding the bug
+    and for Jurij Smakov's aid.  (Closes: #263942)
+  * debian/README.Debian: removes mentions to old problems with tetex, fixes
+    spelling mistakes and other minor issues.
+
+ -- Carlos Laviola <claviola@debian.org>  Fri,  6 Aug 2004 19:46:51 -0300
+
+fpc (1.9.4-2) unstable; urgency=low
+
+  * The following fixes are the work of Marco van de Voort from CVS HEAD:
+    - man/man1/ppc386.1: typo fix.  (Closes: #255960)
+    - rtl/unix/crt.pp: gotoxy/XY2Ansi fixes from.
+      (Closes: #216057, #216060)
+    - docs/linuxex, docs/dosex, docs/refex: various examples ported to
+      fpc 1.9.x's new API.
+
+ -- Carlos Laviola <claviola@debian.org>  Tue, 20 Jul 2004 15:12:05 -0300
+
+fpc (1.9.4-1) unstable; urgency=low
+
+  * This release is partly the work of Peter Vreman <peter@freepascal.org>.
+  * Acknowledging NMU.  (Closes: #221316)
+  * Made the description for the units packages more informative.
+    (Closes: #209518, #209581, #209613)
+  * Applied some patches from Marco van de Voort to CVS HEAD that fixed
+    compiling the documentation on powerpc with some adaptations of mine.
+
+ -- Carlos Laviola <claviola@debian.org>  Sat, 17 Jul 2004 21:53:03 -0300
 
 fpc (1.0.10-1.2) unstable; urgency=low
 

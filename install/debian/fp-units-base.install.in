@@ -5,3 +5,4 @@
 /usr/lib/fpc/%{fpcversion}/units/linux/ncurses
 /usr/lib/fpc/%{fpcversion}/units/linux/x11
 /usr/lib/fpc/%{fpcversion}/units/linux/regexpr
+/usr/lib/fpc/%{fpcversion}/units/linux/md5

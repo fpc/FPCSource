@@ -4,9 +4,10 @@
 # Documentation type to use pdf/html
 DOCTYPE=pdf
 
-# Detect name of new compiler
-CPU_SOURCE=$(shell dpkg-architecture -qDEB_BUILD_ARCH)
-CPU_TARGET=$(shell dpkg-architecture -qDEB_HOST_ARCH)
+# Detect name of new compiler, take care that debian uses amd64 instead of x86_64
+CPU_SOURCE=$(subst amd64,x86_64,$(shell dpkg-architecture -qDEB_BUILD_ARCH))
+CPU_TARGET=$(subst amd64,x86_64,$(shell dpkg-architecture -qDEB_HOST_ARCH))
+
 ifeq ($(CPU_TARGET),m68k)
 PPSUF=68k
 endif

@@ -3,25 +3,27 @@ Section: devel
 Priority: optional
 Maintainer: Carlos Laviola <claviola@debian.org>
 Standards-Version: 3.6.1
-Build-Depends: fp-compiler, debhelper >= 4.2, tetex-bin, tetex-extra, awk, dvipdf
+Build-Depends: fp-compiler, fp-utils, debhelper (>= 4.2), tetex-bin, tetex-extra, awk, gs-common
 
 Package: fp-compiler
-Architecture: i386 powerpc
-Depends: fp-units-rtl (= 1.9.4-0.1)
-Suggests: fp-utils, fp-docs (>= 1.9.4)
-Description: Free Pascal Compiler
- The Free Pascal Compiler is a Turbo Pascal 7.0 and Delphi compatible 32bit
- Pascal Compiler. It comes with fully TP 7.0 compatible run-time library.
+Architecture: i386 powerpc amd64
+Depends: fp-units-rtl (= 1.9.5-20040817)
+Suggests: fp-utils, fp-docs (>= 1.9.5)
+Description: Free Pascal -- Compiler
+ The Free Pascal Compiler is a Turbo Pascal 7.0 and Delphi compatible 32-bit
+ Pascal Compiler. It comes with a fully compatible TP 7.0 runtime library.
  Some extensions are added to the language, like function overloading. Shared
  libraries can be linked and created. Basic Delphi support is already
- implemented (classes,exceptions,ansistrings). This package contains
- the commandline compiler. You need at least the RTL package before you
- can start compiling anything.
+ implemented (classes, exceptions, ansistrings). This package contains the
+ command line compiler. You need at least the RTL package before you can start
+ compiling anything.
 
 Package: fp-utils
-Architecture: i386 powerpc
-Recommends: fp-compiler (= 1.9.4-0.1)
-Description: Free Pascal Utils
+Architecture: i386 powerpc amd64
+Recommends: fp-compiler (= 1.9.5-20040817)
+Description: Free Pascal -- Utils
+ The Free Pascal Compiler is a Turbo Pascal 7.0 and Delphi compatible 32-bit
+ Pascal Compiler. It comes with a fully compatible TP 7.0 runtime library.
  This package contains some handy utils for usage with the Free Pascal
  Compiler:
    - ppumove     Place multiple units in a shared library
@@ -35,80 +37,103 @@ Description: Free Pascal Utils
    - plex/pyacc  Pascal Lex/Yacc implementation
 
 Package: fp-docs
+Section: doc
 Architecture: all
-Description: Free Pascal Documentation
- Documentation for the Free Pascal Compiler. The documentation is
- only available in PDF format.
+Description: Free Pascal -- Documentation
+ The Free Pascal Compiler is a Turbo Pascal 7.0 and Delphi compatible 32-bit
+ Pascal Compiler. It comes with a fully compatible TP 7.0 runtime library.
+ This package contains the documentation for the Free Pascal Compiler.
+ The documentation is available in HTML and in PDF.
 
 Package: fp-units-rtl
-Architecture: i386 powerpc
-Recommends: fp-compiler (= 1.9.4-0.1)
-Description: Free Pascal Runtime Library
- Runtime Libraries for the Free Pascal Compiler.
+Architecture: i386 powerpc amd64
+Recommends: fp-compiler (= 1.9.5-20040817)
+Description: Free Pascal -- Runtime Library
+ The Free Pascal Compiler is a Turbo Pascal 7.0 and Delphi compatible 32-bit
+ Pascal Compiler. It comes with a fully compatible TP 7.0 runtime library.
+ This package contains the Runtime Libraries for the Free Pascal Compiler.
 
 Package: fp-units-base
-Architecture: i386 powerpc
-Depends: fp-units-rtl (= 1.9.4-0.1)
-Description: Free Pascal base units
- Free Pascal units for common libraries, some of these units are also
- required by the Free Component Library :
+Architecture: i386 powerpc amd64
+Depends: fp-units-rtl (= 1.9.5-20040817)
+Description: Free Pascal -- base units
+ The Free Pascal Compiler is a Turbo Pascal 7.0 and Delphi compatible 32-bit
+ Pascal Compiler. It comes with a fully compatible TP 7.0 runtime library.
+ This package contains Free Pascal units for common libraries.  Some of these
+ units are also required by the Free Component Library:
   - X11 (Xlib, Xutil)
   - NCurses
   - ZLib
 
 Package: fp-units-fcl
-Architecture: i386 powerpc
-Depends: fp-units-rtl (= 1.9.4-0.1), fp-units-base (= 1.9.4-0.1)
-Description: Free Pascal Free Component Library
- Free Component Library for the Free Pascal Compiler.
+Architecture: i386 powerpc amd64
+Depends: fp-units-rtl (= 1.9.5-20040817), fp-units-base (= 1.9.5-20040817)
+Description: Free Pascal -- Free Component Library
+ The Free Pascal Compiler is a Turbo Pascal 7.0 and Delphi compatible 32-bit
+ Pascal Compiler. It comes with a fully compatible TP 7.0 runtime library.
+ This package contains the Free Component Library for the Free Pascal Compiler.
 
 Package: fp-units-gtk
-Architecture: i386 powerpc
-Depends: fp-units-rtl (= 1.9.4-0.1), fp-units-fcl (= 1.9.4-0.1)
-Description: Free Pascal units for GTK 1.2.x
- Free Pascal units and examples to create programs with GTK 1.2.x
+Architecture: i386 powerpc amd64
+Depends: fp-units-rtl (= 1.9.5-20040817), fp-units-fcl (= 1.9.5-20040817)
+Description: Free Pascal -- GTK 1.2 units 
+ The Free Pascal Compiler is a Turbo Pascal 7.0 and Delphi compatible 32-bit
+ Pascal Compiler. It comes with a fully compatible TP 7.0 runtime library.
+ This package contains Free Pascal units and examples to create
+ programs with GTK 1.2.
 
 Package: fp-units-gnome1
-Architecture: i386 powerpc
-Depends: fp-units-rtl (= 1.9.4-0.1), fp-units-gtk (= 1.9.4-0.1)
-Description: Free Pascal units for GNOME 1
- Free Pascal units and examples to create programs for GNOME 1
+Architecture: i386 powerpc amd64
+Depends: fp-units-rtl (= 1.9.5-20040817), fp-units-gtk (= 1.9.5-20040817)
+Description: Free Pascal -- GNOME 1 units 
+ The Free Pascal Compiler is a Turbo Pascal 7.0 and Delphi compatible 32-bit
+ Pascal Compiler. It comes with a fully compatible TP 7.0 runtime library.
+ This package contains Free Pascal units and examples to create
+ programs for GNOME 1.
 
 Package: fp-units-db
-Architecture: i386 powerpc
-Depends: fp-units-rtl (= 1.9.4-0.1)
-Description: Free Pascal units for some database libraries
- Free Pascal units with bindings for:
-  - Mysql
+Architecture: i386 powerpc amd64
+Depends: fp-units-rtl (= 1.9.5-20040817)
+Description: Free Pascal -- database libraries units 
+ The Free Pascal Compiler is a Turbo Pascal 7.0 and Delphi compatible 32-bit
+ Pascal Compiler. It comes with a fully compatible TP 7.0 runtime library.
+ This package contains Free Pascal units with bindings for:
+  - MySQL
   - Interbase
-  - Postgres
+  - PostgreSQL
   - Oracle
-  - Odbc
+  - ODBC
   - GDBM
-  - Sqlite
+  - SQLite
   
 Package: fp-units-gfx
-Architecture: i386 powerpc
-Depends: fp-units-rtl (= 1.9.4-0.1), fp-units-base (= 1.9.4-0.1)
-Description: Free Pascal units for some graphics libraries
- Free Pascal units with bindings for:
+Architecture: i386 powerpc amd64
+Depends: fp-units-rtl (= 1.9.5-20040817), fp-units-base (= 1.9.5-20040817)
+Description: Free Pascal -- graphics libraries units
+ The Free Pascal Compiler is a Turbo Pascal 7.0 and Delphi compatible 32-bit
+ Pascal Compiler. It comes with a fully compatible TP 7.0 runtime library.
+ This package contains Free Pascal units with bindings for:
   - Forms 0.88
   - Svgalib
   - GGI
   - OpenGL
 
 Package: fp-units-net
-Architecture: i386 powerpc
-Depends: fp-units-rtl (= 1.9.4-0.1)
-Description: Free Pascal units for networking
- Free Pascal units for creating network tools:
-  - Inet unit for easier tcp/ip handling
-  - UnCGI unit for easy cgi handling
+Architecture: i386 powerpc amd64
+Depends: fp-units-rtl (= 1.9.5-20040817)
+Description: Free Pascal -- networking units 
+ The Free Pascal Compiler is a Turbo Pascal 7.0 and Delphi compatible 32-bit
+ Pascal Compiler. It comes with a fully compatible TP 7.0 runtime library.
+ This package contains Free Pascal units for creating network tools:
+  - Inet unit for easier TCP/IP handling
+  - UnCGI unit for easy CGI handling
 
 Package: fp-units-misc
-Architecture: i386 powerpc
-Depends: fp-units-rtl (= 1.9.4-0.1)
-Description: Free Pascal miscellaneous units
+Architecture: i386 powerpc amd64
+Depends: fp-units-rtl (= 1.9.5-20040817)
+Description: Free Pascal -- miscellaneous units
+ The Free Pascal Compiler is a Turbo Pascal 7.0 and Delphi compatible 32-bit
+ Pascal Compiler. It comes with a fully compatible TP 7.0 runtime library.
  Free Pascal miscellaneous units for:
   - Utmp
-  - PasZLib (pascal only zlib implementation)
+  - PasZLib (Pascal-only zlib implementation)

@@ -1,4 +1,7 @@
 debian/tmp/usr/share/doc/fpc/%{fpcversion}/user.pdf
-debian/tmp/usr/share/doc/fpc/%{fpcversion}/prog.pdf
-debian/tmp/usr/share/doc/fpc/%{fpcversion}/ref.pdf
 debian/tmp/usr/share/doc/fpc/%{fpcversion}/units.pdf
+debian/tmp/usr/share/doc/fpc/%{fpcversion}/ref.pdf
+debian/tmp/usr/share/doc/fpc/%{fpcversion}/prog.pdf
+debian/tmp/usr/share/doc/fpc/%{fpcversion}/fpdoc.pdf
+debian/tmp/usr/share/doc/fpc/%{fpcversion}/fcl.pdf
+debian/tmp/usr/share/doc/fpc/%{fpcversion}/chart.pdf

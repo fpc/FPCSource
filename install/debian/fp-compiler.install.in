@@ -1,6 +1,6 @@
 /etc/fpc.cfg
 /usr/bin/fpc
-/usr/lib/fpc/%{fpcversion}/ppc386
+/usr/lib/fpc/%{fpcversion}/ppc*
 /usr/lib/fpc/%{fpcversion}/samplecfg
 /usr/lib/fpc/%{fpcversion}/msg
 /usr/share/doc/fp-compiler

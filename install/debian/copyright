@@ -1,8 +1,12 @@
-The package was originally put together by:
+The packages were originally put together by:
   Peter Vreman <peter@freepascal.org>
 
+Debian maintainer:
+  Carlos Laviola <claviola@debian.org>
+
 From sources obtained from:
-  ftp://ftp.freepascal.org/pub/fpc/dist/linux/fpc-1.9.3.tar.gz
+  'cvs -d :pserver:cvs@cvs.freepascal.org:/FPC/CVS -z3 co -r RELEASE_1_9_4 fpc'
+  (password: 'cvs')
 
 The files and libraries are released under the terms of the GNU Library
 General Public License, which can be found in the file
