@@ -31,7 +31,7 @@ interface
 
        version_nr = '0';
        release_nr = '99';
-       patch_nr   = '14';
+       patch_nr   = '15';
 {$ifdef newcg}
        minorpatch = ' NCG';
 {$else newcg}
@@ -76,7 +76,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2000-01-14 13:05:54  peter
+  Revision 1.15  2000-01-28 20:47:26  michael
+  + Changed patch number to 15
+
+  Revision 1.14  2000/01/14 13:05:54  peter
     * version 0.99.14
 
   Revision 1.13  2000/01/07 01:14:49  peter
