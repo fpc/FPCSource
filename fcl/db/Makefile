@@ -204,7 +204,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=fcl
-override TARGET_DIRS+=dbase sdf
+override TARGET_DIRS+=dbase sdf memds
 ifeq ($(OS_TARGET),linux)
 override TARGET_DIRS+=mysql interbase sqlite
 endif
@@ -1571,6 +1571,7 @@ fpc_makefile_dirs: fpc_makefile_sub1 fpc_makefile_sub2
 fpc_makefiles: fpc_makefile fpc_makefile_dirs
 TARGET_DIRS_DBASE=1
 TARGET_DIRS_SDF=1
+TARGET_DIRS_MEMDS=1
 ifeq ($(OS_TARGET),linux)
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_INTERBASE=1
@@ -1686,6 +1687,49 @@ sdf_makefiles:
 sdf:
 	$(MAKE) -C sdf all
 .PHONY: sdf_all sdf_debug sdf_smart sdf_release sdf_examples sdf_shared sdf_install sdf_sourceinstall sdf_exampleinstall sdf_distinstall sdf_zipinstall sdf_zipsourceinstall sdf_zipexampleinstall sdf_zipdistinstall sdf_clean sdf_distclean sdf_cleanall sdf_info sdf_makefiles sdf
+endif
+ifdef TARGET_DIRS_MEMDS
+memds_all:
+	$(MAKE) -C memds all
+memds_debug:
+	$(MAKE) -C memds debug
+memds_smart:
+	$(MAKE) -C memds smart
+memds_release:
+	$(MAKE) -C memds release
+memds_examples:
+	$(MAKE) -C memds examples
+memds_shared:
+	$(MAKE) -C memds shared
+memds_install:
+	$(MAKE) -C memds install
+memds_sourceinstall:
+	$(MAKE) -C memds sourceinstall
+memds_exampleinstall:
+	$(MAKE) -C memds exampleinstall
+memds_distinstall:
+	$(MAKE) -C memds distinstall
+memds_zipinstall:
+	$(MAKE) -C memds zipinstall
+memds_zipsourceinstall:
+	$(MAKE) -C memds zipsourceinstall
+memds_zipexampleinstall:
+	$(MAKE) -C memds zipexampleinstall
+memds_zipdistinstall:
+	$(MAKE) -C memds zipdistinstall
+memds_clean:
+	$(MAKE) -C memds clean
+memds_distclean:
+	$(MAKE) -C memds distclean
+memds_cleanall:
+	$(MAKE) -C memds cleanall
+memds_info:
+	$(MAKE) -C memds info
+memds_makefiles:
+	$(MAKE) -C memds makefiles
+memds:
+	$(MAKE) -C memds all
+.PHONY: memds_all memds_debug memds_smart memds_release memds_examples memds_shared memds_install memds_sourceinstall memds_exampleinstall memds_distinstall memds_zipinstall memds_zipsourceinstall memds_zipexampleinstall memds_zipdistinstall memds_clean memds_distclean memds_cleanall memds_info memds_makefiles memds
 endif
 ifdef TARGET_DIRS_MYSQL
 mysql_all:
