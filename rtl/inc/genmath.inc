@@ -541,7 +541,7 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
 
 
 {$ifndef FPC_SYSTEM_HAS_ROUND}
-    function Round(d: Real): longint;[internconst:in_const_round];
+    function Round(d: Real): int64;[internconst:in_const_round];
      var
       fr: Real;
       tr: Real;
@@ -1020,7 +1020,10 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
 
 {
   $Log$
-  Revision 1.8  2002-10-07 15:15:02  florian
+  Revision 1.9  2002-10-12 20:28:49  carl
+    * round returns int64
+
+  Revision 1.8  2002/10/07 15:15:02  florian
     * fixed wrong commit
 
   Revision 1.7  2002/10/07 15:10:45  florian
