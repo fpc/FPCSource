@@ -407,8 +407,10 @@ begin
      { when we have -static for the linker the we also need libgcc }
      if (cs_link_staticflag in aktglobalswitches) then
       LinkRes.Add('-lgcc');
+     { the dyn. linker should be passed only with -dynamic-linker to ld
      if linkdynamic and (Info.DynamicLinker<>'') then
       LinkRes.AddFileName(Info.DynamicLinker);
+     }
      LinkRes.Add(')');
    end;
 
@@ -590,7 +592,10 @@ end.
 
 {
   $Log$
-  Revision 1.27  2004-11-05 11:04:23  florian
+  Revision 1.28  2004-11-05 12:27:27  florian
+    * fixed dyn. linker handling
+
+  Revision 1.27  2004/11/05 11:04:23  florian
     * path of dyn. linker on arm for linux fixed
 
   Revision 1.26  2004/10/24 13:36:26  peter
