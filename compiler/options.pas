@@ -700,14 +700,8 @@ begin
                         'c' : initmoduleswitches:=initmoduleswitches+[cs_support_c_operators];
                         'd' : initmodeswitches:=delphimodeswitches;
                         'e' : begin
-                                val(copy(more,j+1,length(more)-j),l,code);
-                                if (code<>0) then
-                                 SetMaxErrorCount(1)
-                                else
-                                 begin
-                                   SetMaxErrorCount(l);
-                                   break;
-                                 end;
+                                SetErrorFlags(more);
+                                break;
                               end;
                         'g' : initmoduleswitches:=initmoduleswitches+[cs_support_goto];
                         'h' : initlocalswitches:=initlocalswitches+[cs_ansistrings];
@@ -1451,7 +1445,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.66  2000-04-24 13:34:29  peter
+  Revision 1.67  2000-05-10 13:40:19  peter
+    * -Se<x> option extended to increase errorcount for
+      warning,notes or hints
+
+  Revision 1.66  2000/04/24 13:34:29  peter
     * added enhancedraise define
 
   Revision 1.65  2000/04/10 11:36:19  pierre

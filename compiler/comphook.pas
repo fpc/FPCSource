@@ -62,6 +62,9 @@ type
   { Settings for the output }
     verbosity     : longint;
     maxerrorcount : longint;
+    errorwarning,
+    errornote,
+    errorhint,
     skip_error,
     use_stderr,
     use_redir,
@@ -295,7 +298,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.21  2000-02-09 13:22:50  peter
+  Revision 1.22  2000-05-10 13:40:19  peter
+    * -Se<x> option extended to increase errorcount for
+      warning,notes or hints
+
+  Revision 1.21  2000/02/09 13:22:50  peter
     * log truncated
 
   Revision 1.20  2000/01/07 01:14:23  peter

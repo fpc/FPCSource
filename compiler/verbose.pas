@@ -71,7 +71,7 @@ procedure LoadMsgFile(const fn:string);
 procedure Stop;
 procedure ShowStatus;
 function  ErrorCount:longint;
-procedure SetMaxErrorCount(count:longint);
+procedure SetErrorFlags(const s:string);
 procedure GenerateError;
 procedure Internalerror(i:longint);
 procedure Comment(l:longint;s:string);
@@ -313,9 +313,41 @@ begin
 end;
 
 
-procedure SetMaxErrorCount(count:longint);
+procedure SetErrorFlags(const s:string);
+var
+  code : word;
+  i,j,l : longint;
 begin
-  status.maxerrorcount:=count;
+{ empty string means error count = 1 for backward compatibility (PFV) }
+  if s='' then
+   begin
+     status.maxerrorcount:=1;
+     exit;
+   end;
+  i:=0;
+  while (i<length(s)) do
+   begin
+     inc(i);
+     case s[i] of
+       '0'..'9' :
+          begin
+            j:=i;
+            while (j<=length(s)) and (s[j] in ['0'..'9']) do
+             inc(j);
+            val(copy(s,i,j-i),l,code);
+            if code<>0 then
+             l:=1;
+            status.maxerrorcount:=l;
+            i:=j;
+          end;
+        'w','W' :
+          status.errorwarning:=true;
+        'n','N' :
+          status.errornote:=true;
+        'h','H' :
+          status.errorhint:=true;
+     end;
+   end;
 end;
 
 
@@ -339,7 +371,10 @@ var
   dostop : boolean;
 begin
   dostop:=((l and V_Fatal)<>0);
-  if (l and V_Error)<>0 then
+  if ((l and V_Error)<>0) or
+     (status.errorwarning and ((l and V_Warning)<>0)) or
+     (status.errornote and ((l and V_Note)<>0)) or
+     (status.errorhint and ((l and V_Hint)<>0)) then
    inc(status.errorcount);
 { Create status info }
   UpdateStatus;
@@ -375,34 +410,61 @@ begin
       for i:=1 to idx do
        begin
          case upcase(s[i]) of
-          'F' : begin
-                  v:=v or V_Fatal;
-                  inc(status.errorcount);
-                  dostop:=true;
-                end;
-          'E' : begin
-                  v:=v or V_Error;
-                  inc(status.errorcount);
-                end;
-          'O' : v:=v or V_Normal;
-
+          'F' :
+            begin
+              v:=v or V_Fatal;
+              inc(status.errorcount);
+              dostop:=true;
+            end;
+          'E' :
+            begin
+              v:=v or V_Error;
+              inc(status.errorcount);
+            end;
+          'O' :
+            v:=v or V_Normal;
           'W':
-            v:=v or V_Warning;
-
-          'N' : v:=v or V_Note;
-          'H' : v:=v or V_Hint;
-          'I' : v:=v or V_Info;
-          'L' : v:=v or V_Status;
-          'U' : v:=v or V_Used;
-          'T' : v:=v or V_Tried;
-          'M' : v:=v or V_Macro;
-          'P' : v:=v or V_Procedure;
-          'C' : v:=v or V_Conditional;
-          'D' : v:=v or V_Debug;
-          'B' : v:=v or V_Declarations;
-          'X' : v:=v or V_Executable;
-          'Z' : v:=v or V_Assem;
-          'S' : dostop:=true;
+            begin
+              v:=v or V_Warning;
+              if status.errorwarning then
+               inc(status.errorcount);
+            end;
+          'N' :
+            begin
+              v:=v or V_Note;
+              if status.errornote then
+               inc(status.errorcount);
+            end;
+          'H' :
+            begin
+              v:=v or V_Hint;
+              if status.errorhint then
+               inc(status.errorcount);
+            end;
+          'I' :
+            v:=v or V_Info;
+          'L' :
+            v:=v or V_Status;
+          'U' :
+            v:=v or V_Used;
+          'T' :
+            v:=v or V_Tried;
+          'M' :
+            v:=v or V_Macro;
+          'P' :
+            v:=v or V_Procedure;
+          'C' :
+            v:=v or V_Conditional;
+          'D' :
+            v:=v or V_Debug;
+          'B' :
+            v:=v or V_Declarations;
+          'X' :
+            v:=v or V_Executable;
+          'Z' :
+            v:=v or V_Assem;
+          'S' :
+            dostop:=true;
           '_' : ;
          end;
        end;
@@ -518,7 +580,11 @@ end.
 
 {
   $Log$
-  Revision 1.50  2000-04-01 10:46:29  hajny
+  Revision 1.51  2000-05-10 13:40:19  peter
+    * -Se<x> option extended to increase errorcount for
+      warning,notes or hints
+
+  Revision 1.50  2000/04/01 10:46:29  hajny
     * logfile appended if exists
 
   Revision 1.49  2000/03/12 08:24:45  daniel
