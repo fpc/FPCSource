@@ -90,7 +90,7 @@ Procedure Finalize (Data,TypeInfo: Pointer);forward;
              D:=tmpi;
           end
         else
-          intf_decr_ref(D);
+          int_intf_decr_ref(D);
       end;
 {$endif HASINTF}
 
@@ -524,7 +524,7 @@ Procedure Finalize (Data,TypeInfo: Pointer);forward;
           IEntry:=getinterfaceentry(iid);
           if Assigned(IEntry) then begin
             PDWORD(@obj)^:=DWORD(PDWORD(Self))+IEntry^.IOffset;
-            int_do_intf_incr_ref(pointer(obj)); { it must be an com interface }
+            int_intf_incr_ref(pointer(obj)); { it must be an com interface }
             getinterface:=True;
           end
           else begin
@@ -541,7 +541,7 @@ Procedure Finalize (Data,TypeInfo: Pointer);forward;
           if Assigned(IEntry) then begin
             PDWORD(@obj)^:=DWORD(PDWORD(Self))+IEntry^.IOffset;
             if Assigned(IEntry^.iid) then { for Com interfaces }
-              int_do_intf_incr_ref(pointer(obj));
+              int_intf_incr_ref(pointer(obj));
             getinterfacebystr:=True;
           end
           else begin
@@ -609,7 +609,10 @@ Procedure Finalize (Data,TypeInfo: Pointer);forward;
 
 {
   $Log$
-  Revision 1.8  2000-11-06 21:53:38  florian
+  Revision 1.9  2000-11-06 22:03:12  florian
+    * another fix
+
+  Revision 1.8  2000/11/06 21:53:38  florian
     * another fix for interfaces
 
   Revision 1.7  2000/11/06 21:35:59  peter
