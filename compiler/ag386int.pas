@@ -685,7 +685,7 @@ ait_labeled_instruction : AsmWriteLn(#9#9+int_op2str[pai386_labeled(hp)^.opcode]
                           s:='';
                         end;
                        AsmWriteLn(#9#9+prefix+int_op2str[pai386(hp)^.opcode]+suffix+s);
-{$endif AG386BIN}
+{$endif OLDASM}
                      end;
 {$ifdef GDB}
              ait_stabn,
@@ -773,7 +773,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.37  1999-05-06 09:05:09  peter
+  Revision 1.38  1999-05-07 00:08:49  pierre
+   * AG386BIN cond -> OLDASM, only cosmetic
+
+  Revision 1.37  1999/05/06 09:05:09  peter
     * generic write_float and str_float
     * fixed constant float conversions
 
