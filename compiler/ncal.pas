@@ -275,7 +275,7 @@ implementation
             if is_array_of_const(defcoll.paratype.def) then
              begin
                if assigned(aktcallprocsym) and
-                  (([pocall_cppdecl,pocall_cdecl]*aktcallprocsym.definition.proccalloptions)<>[]) and
+                  (aktcallprocsym.definition.proccalloption in [pocall_cppdecl,pocall_cdecl]) and
                   (po_external in aktcallprocsym.definition.procoptions) then
                  include(left.flags,nf_cargs);
                { force variant array }
@@ -296,7 +296,7 @@ implementation
 
          { generate the high() value tree }
          if not(assigned(aktcallprocsym) and
-                (([pocall_cppdecl,pocall_cdecl]*aktcallprocsym.definition.proccalloptions)<>[]) and
+                (aktcallprocsym.definition.proccalloption in [pocall_cppdecl,pocall_cdecl]) and
                 (po_external in aktcallprocsym.definition.procoptions)) and
             push_high_param(defcoll.paratype.def) then
            gen_high_tree(is_open_string(defcoll.paratype.def));
@@ -1339,10 +1339,10 @@ implementation
            end;
 
           { handle predefined procedures }
-          is_const:=(pocall_internconst in procdefinition.proccalloptions) and
+          is_const:=(procdefinition.proccalloption=pocall_internconst) and
                     ((block_type in [bt_const,bt_type]) or
                      (assigned(left) and (tcallparanode(left).left.nodetype in [realconstn,ordconstn])));
-          if (pocall_internproc in procdefinition.proccalloptions) or is_const then
+          if (procdefinition.proccalloption=pocall_internproc) or is_const then
            begin
              if assigned(left) then
               begin
@@ -1445,7 +1445,7 @@ implementation
            tcallparanode(left).det_registers;
 
          if assigned(procdefinition) and
-            (pocall_inline in procdefinition.proccalloptions) then
+            (procdefinition.proccalloption=pocall_inline) then
            begin
               inlinecode:=right;
               if assigned(inlinecode) then
@@ -1477,7 +1477,7 @@ implementation
 
               { calc the correture value for the register }
               { handle predefined procedures }
-              if (pocall_inline in procdefinition.proccalloptions) then
+              if (procdefinition.proccalloption=pocall_inline) then
                 begin
                    if assigned(methodpointer) then
                      CGMessage(cg_e_unable_inline_object_methods);
@@ -1494,7 +1494,7 @@ implementation
                           begin
                              { consider it has not inlined if called
                                again inside the args }
-                             exclude(procdefinition.proccalloptions,pocall_inline);
+                             procdefinition.proccalloption:=pocall_fpccall;
                              firstpass(inlinecode);
                              inlined:=true;
                           end;
@@ -1646,7 +1646,7 @@ implementation
            end;
       errorexit:
          if inlined then
-           include(procdefinition.proccalloptions,pocall_inline);
+           procdefinition.proccalloption:=pocall_inline;
       end;
 
 
@@ -1743,7 +1743,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.51  2001-10-13 09:01:14  jonas
+  Revision 1.52  2001-10-25 21:22:33  peter
+    * calling convention rewrite
+
+  Revision 1.51  2001/10/13 09:01:14  jonas
     * fixed bug with using procedures as procvar parameters in TP/Delphi mode
 
   Revision 1.50  2001/10/12 16:04:32  peter

@@ -410,7 +410,7 @@ interface
           { saves a definition to the return type }
           rettype         : ttype;
           proctypeoption  : tproctypeoption;
-          proccalloptions : tproccalloptions;
+          proccalloption  : tproccalloption;
           procoptions     : tprocoptions;
           para            : tparalinkedlist;
           maxparacount,
@@ -425,7 +425,6 @@ interface
           procedure concatpara(const tt:ttype;vsp : tvarspez;defval:tsym);
           function  para_size(alignsize:longint) : longint;
           function  demangled_paras : string;
-          function  proccalloption2str : string;
           procedure test_if_fpu_result;
           { debug }
 {$ifdef GDB}
@@ -502,6 +501,7 @@ interface
           { check the problems of manglednames }
           count      : boolean;
           is_used    : boolean;
+          has_mangledname : boolean;
           { small set which contains the modified registers }
 {$ifdef i386}
           usedregisters : longint;
@@ -2972,7 +2972,7 @@ implementation
          minparacount:=0;
          maxparacount:=0;
          proctypeoption:=potype_none;
-         proccalloptions:=[];
+         proccalloption:=pocall_none;
          procoptions:=[];
          rettype:=voidtype;
          symtablelevel:=0;
@@ -3047,8 +3047,8 @@ implementation
          maxparacount:=0;
          ppufile.gettype(rettype);
          fpu_used:=ppufile.getbyte;
-         proctypeoption:=tproctypeoption(ppufile.getlongint);
-         ppufile.getsmallset(proccalloptions);
+         proctypeoption:=tproctypeoption(ppufile.getbyte);
+         proccalloption:=tproccalloption(ppufile.getbyte);
          ppufile.getsmallset(procoptions);
          count:=ppufile.getword;
          savesize:=target_info.size_of_pointer;
@@ -3080,8 +3080,8 @@ implementation
          if simplify_ppu then
           fpu_used:=0;
          ppufile.putbyte(fpu_used);
-         ppufile.putlongint(ord(proctypeoption));
-         ppufile.putsmallset(proccalloptions);
+         ppufile.putbyte(ord(proctypeoption));
+         ppufile.putbyte(ord(proccalloption));
          ppufile.putsmallset(procoptions);
          ppufile.do_interface_crc:=oldintfcrc;
          ppufile.putword(maxparacount);
@@ -3192,49 +3192,6 @@ implementation
       end;
 
 
-    function tabstractprocdef.proccalloption2str : string;
-      type
-        tproccallopt=record
-          mask : tproccalloption;
-          str  : string[30];
-        end;
-      const
-        proccallopts=13;
-        proccallopt : array[1..proccallopts] of tproccallopt=(
-           (mask:pocall_none;         str:''),
-           (mask:pocall_clearstack;   str:'ClearStack'),
-           (mask:pocall_leftright;    str:'LeftRight'),
-           (mask:pocall_cdecl;        str:'CDecl'),
-           (mask:pocall_register;     str:'Register'),
-           (mask:pocall_stdcall;      str:'StdCall'),
-           (mask:pocall_safecall;     str:'SafeCall'),
-           (mask:pocall_palmossyscall;str:'PalmOSSysCall'),
-           (mask:pocall_system;       str:'System'),
-           (mask:pocall_inline;       str:'Inline'),
-           (mask:pocall_internproc;   str:'InternProc'),
-           (mask:pocall_internconst;  str:'InternConst'),
-           (mask:pocall_cppdecl;      str:'CPPDecl')
-        );
-      var
-        s : string;
-        i : longint;
-        first : boolean;
-      begin
-        s:='';
-        first:=true;
-        for i:=1 to proccallopts do
-         if (proccallopt[i].mask in proccalloptions) then
-          begin
-            if first then
-              first:=false
-            else
-              s:=s+';';
-            s:=s+proccallopt[i].str;
-          end;
-        proccalloption2str:=s;
-      end;
-
-
 {$ifdef GDB}
     function tabstractprocdef.stabstring : pchar;
       begin
@@ -3262,6 +3219,7 @@ implementation
       begin
          inherited create;
          deftype:=procdef;
+         has_mangledname:=false;
          _mangledname:=nil;
          nextoverloaded:=nil;
          fileinfo:=aktfilepos;
@@ -3329,6 +3287,7 @@ implementation
 {$endif POWERPC}
 {$endif}
 {$endif newcg}
+         has_mangledname:=true;
          _mangledname:=stringdup(ppufile.getstring);
 
          extnumber:=ppufile.getlongint;
@@ -3336,7 +3295,7 @@ implementation
          _class := tobjectdef(ppufile.getderef);
          ppufile.getposinfo(fileinfo);
          { inline stuff }
-         if (pocall_inline in proccalloptions) then
+         if proccalloption=pocall_inline then
            funcretsym:=tsym(ppufile.getderef)
          else
            funcretsym:=nil;
@@ -3344,7 +3303,7 @@ implementation
          parast:=tparasymtable.create;
          tparasymtable(parast).load(ppufile);
          parast.defowner:=self;
-         if (pocall_inline in proccalloptions) or
+         if (proccalloption=pocall_inline) or
             ((current_module.flags and uf_local_browser)<>0) then
           begin
             localst:=tlocalsymtable.create;
@@ -3385,7 +3344,7 @@ implementation
            parast.free;
          if assigned(localst) and (localst.symtabletype<>staticsymtable) then
            localst.free;
-         if (pocall_inline in proccalloptions) and assigned(code) then
+         if (proccalloption=pocall_inline) and assigned(code) then
            tnode(code).free;
          if assigned(regvarinfo) then
            dispose(pregvarinfo(regvarinfo));
@@ -3459,7 +3418,7 @@ implementation
            on the crc }
          oldintfcrc:=ppufile.do_crc;
          ppufile.do_crc:=false;
-         if (pocall_inline in proccalloptions) then
+         if (proccalloption=pocall_inline) then
            ppufile.putderef(funcretsym);
          ppufile.do_crc:=oldintfcrc;
 
@@ -3476,7 +3435,7 @@ implementation
 
          { save localsymtable for inline procedures or when local
            browser info is requested, this has no influence on the crc }
-         if (pocall_inline in proccalloptions) or
+         if (proccalloption=pocall_inline) or
             ((current_module.flags and uf_local_browser)<>0) then
           begin
             oldintfcrc:=ppufile.do_crc;
@@ -3947,7 +3906,7 @@ implementation
 
              { write parameter info. The parameters must be written in reverse order
                if this method uses right to left parameter pushing! }
-             if (pocall_leftright in proccalloptions) then
+             if (po_leftright in procoptions) then
               pdc:=TParaItem(Para.last)
              else
               pdc:=TParaItem(Para.first);
@@ -3967,7 +3926,7 @@ implementation
                  { write name of type of current parameter }
                  tstoreddef(pdc.paratype.def).write_rtti_name;
 
-                 if (pocall_leftright in proccalloptions) then
+                 if (po_leftright in procoptions) then
                   pdc:=TParaItem(pdc.previous)
                  else
                   pdc:=TParaItem(pdc.next);
@@ -3997,7 +3956,7 @@ implementation
            s:='<procedure variable type of procedure'+demangled_paras;
          if po_methodpointer in procoptions then
            s := s+' of object';
-         gettypename := s+';'+proccalloption2str+'>';
+         gettypename := s+';'+ProcCallOptionStr[proccalloption]+'>';
       end;
 
 
@@ -5435,7 +5394,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.53  2001-10-20 17:21:54  peter
+  Revision 1.54  2001-10-25 21:22:37  peter
+    * calling convention rewrite
+
+  Revision 1.53  2001/10/20 17:21:54  peter
     * fixed size of constset when change from small to normalset
 
   Revision 1.52  2001/10/15 13:16:26  jonas

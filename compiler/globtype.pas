@@ -163,20 +163,42 @@ interface
          bt_general,bt_type,bt_const,bt_except
        );
 
-       { Default calling convention }
-       TDefProcCall = (
-         dpc_cdecl,
-         dpc_cppdecl,
-         dpc_far16,
-         dpc_fpccall,
-         dpc_inline,
-         dpc_pascal,
-         dpc_popstack,
-         dpc_register,
-         dpc_safecall,
-         dpc_stdcall,
-         dpc_system
+       { calling convention for tprocdef and tprocvardef }
+       tproccalloption=(pocall_none,
+         pocall_cdecl,         { procedure uses C styled calling }
+         pocall_cppdecl,       { C++ calling conventions }
+         pocall_compilerproc,  { Procedure is used for internal compiler calls }
+         pocall_far16,         { Far16 for OS/2 }
+         pocall_fpccall,       { FPC default calling }
+         pocall_inline,        { Procedure is an assembler macro }
+         pocall_internconst,   { procedure has constant evaluator intern }
+         pocall_internproc,    { Procedure has compiler magic}
+         pocall_palmossyscall, { procedure is a PalmOS system call }
+         pocall_pascal,        { pascal standard left to right }
+         pocall_register,      { procedure uses register (fastcall) calling }
+         pocall_safecall,      { safe call calling conventions }
+         pocall_stdcall,       { procedure uses stdcall call }
+         pocall_system         { system call }
        );
+       tproccalloptions = set of tproccalloption;
+
+     const
+       proccalloptionStr : array[tproccalloption] of string[14]=('',
+           'CDecl',
+           'CPPDecl',
+           'CompilerProc',
+           'Far16',
+           'FPCCall',
+           'Inline',
+           'InternConst',
+           'InternProc',
+           'PalmOSSysCall',
+           'Pascal',
+           'Register',
+           'SafeCall',
+           'StdCall',
+           'System'
+         );
 
     type
        stringid = string[maxidlen];
@@ -223,7 +245,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  2001-10-24 11:46:06  marco
+  Revision 1.19  2001-10-25 21:22:32  peter
+    * calling convention rewrite
+
+  Revision 1.18  2001/10/24 11:46:06  marco
    * Opt Align fix.
 
   Revision 1.17  2001/10/23 21:49:42  peter

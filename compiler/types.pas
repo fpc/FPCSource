@@ -1102,7 +1102,7 @@ implementation
                 { if a method is assigned to a methodpointer    }
                 { is checked before                             }
                 b:=(tprocvardef(def1).proctypeoption=tprocvardef(def2).proctypeoption) and
-                   (tprocvardef(def1).proccalloptions=tprocvardef(def2).proccalloptions) and
+                   (tprocvardef(def1).proccalloption=tprocvardef(def2).proccalloption) and
                    ((tprocvardef(def1).procoptions * po_compatibility_options)=
                     (tprocvardef(def2).procoptions * po_compatibility_options)) and
                    is_equal(tprocvardef(def1).rettype.def,tprocvardef(def2).rettype.def) and
@@ -1808,7 +1808,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.52  2001-10-22 21:21:09  peter
+  Revision 1.53  2001-10-25 21:22:40  peter
+    * calling convention rewrite
+
+  Revision 1.52  2001/10/22 21:21:09  peter
     * allow enum(enum)
 
   Revision 1.51  2001/10/22 15:13:49  jonas

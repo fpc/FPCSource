@@ -155,26 +155,6 @@ type
     normset,smallset,varset
   );
 
-  { calling convention for tprocdef and tprocvardef }
-  tproccalloption=(pocall_none,
-    pocall_clearstack,    { Use IBM flat calling convention. (Used by GCC.) }
-    pocall_leftright,     { Push parameters from left to right }
-    pocall_cdecl,         { procedure uses C styled calling }
-    pocall_register,      { procedure uses register (fastcall) calling }
-    pocall_stdcall,       { procedure uses stdcall call }
-    pocall_safecall,      { safe call calling conventions }
-    pocall_palmossyscall, { procedure is a PalmOS system call }
-    pocall_system,
-    pocall_inline,        { Procedure is an assembler macro }
-    pocall_internproc,    { Procedure has compiler magic}
-    pocall_internconst,   { procedure has constant evaluator intern }
-    pocall_cppdecl,       { C++ calling conventions }
-    pocall_compilerproc,  { Procedure is used for internal compiler calls }
-    pocall_far16,         { Far16 for OS/2 }
-    pocall_fpccall        { FPC default calling }
-  );
-  tproccalloptions=set of tproccalloption;
-
   { basic type for tprocdef and tprocvardef }
   tproctypeoption=(potype_none,
     potype_proginit,     { Program initialization }
@@ -205,7 +185,9 @@ type
     po_savestdregs,       { save std regs cdecl and stdcall need that ! }
     po_saveregisters,     { save all registers }
     po_overload,          { procedure is declared with overload directive }
-    po_varargs            { printf like arguments }
+    po_varargs,           { printf like arguments }
+    po_leftright,         { push arguments from left to right }
+    po_clearstack         { caller clears the stack }
   );
   tprocoptions=set of tprocoption;
 
@@ -344,7 +326,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  2001-10-23 21:49:43  peter
+  Revision 1.27  2001-10-25 21:22:37  peter
+    * calling convention rewrite
+
+  Revision 1.26  2001/10/23 21:49:43  peter
     * $calling directive and -Cc commandline patch added
       from Pavel Ozerski
 

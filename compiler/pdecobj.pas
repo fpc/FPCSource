@@ -877,7 +877,7 @@ implementation
         begin
            if is_cppclass(aktclass) then
              begin
-                include(aktprocsym.definition.proccalloptions,pocall_cppdecl);
+                aktprocsym.definition.proccalloption:=pocall_cppdecl;
                 aktprocsym.definition.setmangledname(
                   target_info.Cprefix+aktprocsym.definition.cplusplusmangledname);
              end;
@@ -1094,7 +1094,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  2001-10-21 13:10:50  peter
+  Revision 1.32  2001-10-25 21:22:35  peter
+    * calling convention rewrite
+
+  Revision 1.31  2001/10/21 13:10:50  peter
     * better support for indexed properties
 
   Revision 1.30  2001/10/21 12:33:06  peter

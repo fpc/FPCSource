@@ -636,7 +636,7 @@ implementation
                                        { the flags have to match      }
                                        { except abstract and override }
                                        { only if both are virtual !!  }
-                                       if (procdefcoll^.data.proccalloptions<>hp.proccalloptions) or
+                                       if (procdefcoll^.data.proccalloption<>hp.proccalloption) or
                                           (procdefcoll^.data.proctypeoption<>hp.proctypeoption) or
                                           ((procdefcoll^.data.procoptions-
                                               [po_abstractmethod,po_overridingmethod,po_assembler,po_overload])<>
@@ -988,7 +988,7 @@ implementation
           begin
             implprocdef:=sym.definition;
             while assigned(implprocdef) and not equal_paras(proc.para,implprocdef.para,cp_none) and
-              (proc.proccalloptions<>implprocdef.proccalloptions) do
+              (proc.proccalloption<>implprocdef.proccalloption) do
               implprocdef:=implprocdef.nextoverloaded;
           end;
         gintfgetcprocdef:=implprocdef;
@@ -1275,7 +1275,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.6  2001-10-20 19:28:38  peter
+  Revision 1.7  2001-10-25 21:22:35  peter
+    * calling convention rewrite
+
+  Revision 1.6  2001/10/20 19:28:38  peter
     * interface 2 guid support
     * guid constants support
 

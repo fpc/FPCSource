@@ -895,7 +895,7 @@ implementation
 
     procedure tprocsym.concatstabto(asmlist : taasmoutput);
     begin
-      if (pocall_internproc in definition.proccalloptions) then exit;
+      if (definition.proccalloption=pocall_internproc) then exit;
       if not isstabwritten then
         asmList.concat(Tai_stabs.Create(stabstring));
       isstabwritten := true;
@@ -2490,7 +2490,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  2001-10-23 21:49:43  peter
+  Revision 1.25  2001-10-25 21:22:40  peter
+    * calling convention rewrite
+
+  Revision 1.24  2001/10/23 21:49:43  peter
     * $calling directive and -Cc commandline patch added
       from Pavel Ozerski
 

@@ -213,6 +213,8 @@ implementation
                          if is_proc_directive(token) then
                           parse_var_proc_directives(sym);
                        end;
+                      { add default calling convention }
+                      handle_calling_convention(nil,tabstractprocdef(tt.def));
                     end;
                    if not skipequal then
                     begin
@@ -603,7 +605,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  2001-10-24 10:26:53  marco
+  Revision 1.39  2001-10-25 21:22:35  peter
+    * calling convention rewrite
+
+  Revision 1.38  2001/10/24 10:26:53  marco
    * Don't parse proc directives after type renaming of procvars
 
   Revision 1.37  2001/10/20 20:30:21  peter

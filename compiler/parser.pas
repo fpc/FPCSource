@@ -275,7 +275,7 @@ implementation
          oldaktinterfacetype: tinterfacetypes;
          oldaktmodeswitches : tmodeswitches;
          old_compiled_module : tmodule;
-         oldaktdefproccall : tdefproccall;
+         oldaktdefproccall : tproccalloption;
 {        will only be increased once we start parsing blocks in the }
 {         implementation, so doesn't need to be saved/restored (JM) }
 {          oldexceptblockcounter  : integer;                        }
@@ -625,7 +625,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  2001-10-23 21:49:42  peter
+  Revision 1.25  2001-10-25 21:22:35  peter
+    * calling convention rewrite
+
+  Revision 1.24  2001/10/23 21:49:42  peter
     * $calling directive and -Cc commandline patch added
       from Pavel Ozerski
 

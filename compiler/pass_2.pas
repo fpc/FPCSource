@@ -291,7 +291,7 @@ implementation
               cleanup_regvars(procinfo^.aktexitcode);
 
               if assigned(aktprocsym) and
-                 (pocall_inline in aktprocsym.definition.proccalloptions) then
+                 (aktprocsym.definition.proccalloption=pocall_inline) then
                 make_const_global:=true;
               do_secondpass(p);
 
@@ -306,7 +306,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  2001-08-26 13:36:44  florian
+  Revision 1.19  2001-10-25 21:22:35  peter
+    * calling convention rewrite
+
+  Revision 1.18  2001/08/26 13:36:44  florian
     * some cg reorganisation
     * some PPC updates
 

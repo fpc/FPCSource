@@ -309,7 +309,7 @@ implementation
          unusedregisters:=unused;
          usablecount:=usablereg32;
 
-         if ([pocall_cdecl,pocall_cppdecl,pocall_stdcall]*procdefinition.proccalloptions)<>[] then
+         if (procdefinition.proccalloption in [pocall_cdecl,pocall_cppdecl,pocall_stdcall]) then
           para_alignment:=4
          else
           para_alignment:=aktalignment.paraalign;
@@ -322,7 +322,7 @@ implementation
            params:=left.getcopy
          else params := nil;
 
-         if (pocall_inline in procdefinition.proccalloptions) then
+         if (procdefinition.proccalloption=pocall_inline) then
            begin
               inlined:=true;
               inlinecode:=tprocinlinenode(right);
@@ -481,13 +481,13 @@ implementation
               if not(inlined) and
                  assigned(right) then
                 tcallparanode(params).secondcallparan(TParaItem(tabstractprocdef(right.resulttype.def).Para.first),
-                  (pocall_leftright in procdefinition.proccalloptions),inlined,
-                  (([pocall_cdecl,pocall_cppdecl]*procdefinition.proccalloptions)<>[]),
+                  (po_leftright in procdefinition.procoptions),inlined,
+                  (procdefinition.proccalloption in [pocall_cdecl,pocall_cppdecl]),
                   para_alignment,para_offset)
               else
                 tcallparanode(params).secondcallparan(TParaItem(procdefinition.Para.first),
-                  (pocall_leftright in procdefinition.proccalloptions),inlined,
-                  (([pocall_cdecl,pocall_cppdecl]*procdefinition.proccalloptions)<>[]),
+                  (po_leftright in procdefinition.procoptions),inlined,
+                  (procdefinition.proccalloption in [pocall_cdecl,pocall_cppdecl]),
                   para_alignment,para_offset);
            end;
          if inlined then
@@ -1073,7 +1073,7 @@ implementation
            { this was only for normal functions
              displaced here so we also get
              it to work for procvars PM }
-           if (not inlined) and (pocall_clearstack in procdefinition.proccalloptions) then
+           if (not inlined) and (po_clearstack in procdefinition.procoptions) then
              begin
                 { we also add the pop_size which is included in pushedparasize }
                 pop_size:=0;
@@ -1597,7 +1597,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2001-10-21 12:33:07  peter
+  Revision 1.35  2001-10-25 21:22:41  peter
+    * calling convention rewrite
+
+  Revision 1.34  2001/10/21 12:33:07  peter
     * array access for properties added
 
   Revision 1.33  2001/09/09 08:50:15  jonas

@@ -171,7 +171,7 @@ begin
   adjustselfvalue(ioffset);
 
   { case 1  or 2 }
-  if (pocall_clearstack in procdef.proccalloptions) then
+  if (po_clearstack in procdef.procoptions) then
     begin
       if po_virtualmethod in procdef.procoptions then
         begin { case 2 }
@@ -223,7 +223,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2001-09-19 11:04:41  michael
+  Revision 1.4  2001-10-25 21:22:41  peter
+    * calling convention rewrite
+
+  Revision 1.3  2001/09/19 11:04:41  michael
   * Smartlinking with interfaces fixed
   * Better smartlinking for rtti and init tables
 

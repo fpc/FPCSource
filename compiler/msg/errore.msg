@@ -938,6 +938,9 @@ parser_e_interface_has_no_guid=03180_E_Interface "$1" has no interface identific
 % must have a GUID value set.
 parser_e_illegal_field_or_method=03181_E_Unknown class field or method identifier "$1"
 % Properties must refer to a field or method in the same class.
+parser_w_proc_overriding_calling=03182_W_Overriding calling convention "$1" with "$2"
+% There are two directives in the procedure declaration that specify a calling
+% convention. Only the last directive will be used
 % \end{description}
 #
 # Type Checking

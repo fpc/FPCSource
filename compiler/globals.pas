@@ -159,7 +159,7 @@ interface
        initasmmode        : tasmmode;
        initinterfacetype  : tinterfacetypes;
        initoutputformat   : tasm;
-       initdefproccall    : TDefProcCall;
+       initdefproccall    : tproccalloption;
 
      { current state values }
        aktglobalswitches  : tglobalswitches;
@@ -179,7 +179,7 @@ interface
        aktasmmode         : tasmmode;
        aktinterfacetype   : tinterfacetypes;
        aktoutputformat    : tasm;
-       aktdefproccall     : TDefProcCall;
+       aktdefproccall     : tproccalloption;
 
      { Memory sizes }
        heapsize,
@@ -1148,24 +1148,27 @@ implementation
 
     function SetAktProcCall(const s:string; changeInit:boolean):boolean;
       const
-        DefProcCallName : array[TDefProcCall] of string[12] = (
+        DefProcCallName : array[tproccalloption] of string[12] = ('',
          'CDECL',
          'CPPDECL',
+         '', { compilerproc }
          'FAR16',
          'FPCCALL',
          'INLINE',
+         '', { internconst }
+         '', { internproc }
+         '', { palmossyscall }
          'PASCAL',
-         'POPSTACK',
          'REGISTER',
          'SAFECALL',
          'STDCALL',
          'SYSTEM'
         );
       var
-        t : TDefProcCall;
+        t : tproccalloption;
       begin
         SetAktProcCall:=false;
-        for t:=low(TDefProcCall) to high(TDefProcCall) do
+        for t:=low(tproccalloption) to high(tproccalloption) do
          if DefProcCallName[t]=s then
           begin
             AktDefProcCall:=t;
@@ -1423,7 +1426,7 @@ implementation
   {$endif m68k}
 {$endif i386}
         initinterfacetype:=it_interfacecom;
-        initdefproccall:=dpc_fpccall;
+        initdefproccall:=pocall_none;
         initdefines:=TStringList.Create;
 
       { memory sizes, will be overriden by parameter or default for target
@@ -1449,7 +1452,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.48  2001-10-23 21:49:42  peter
+  Revision 1.49  2001-10-25 21:22:32  peter
+    * calling convention rewrite
+
+  Revision 1.48  2001/10/23 21:49:42  peter
     * $calling directive and -Cc commandline patch added
       from Pavel Ozerski
 

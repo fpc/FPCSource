@@ -418,7 +418,7 @@ implementation
                  { create procvardef }
                  resulttype.setdef(tprocvardef.create);
                  tprocvardef(resulttype.def).proctypeoption:=hp3.proctypeoption;
-                 tprocvardef(resulttype.def).proccalloptions:=hp3.proccalloptions;
+                 tprocvardef(resulttype.def).proccalloption:=hp3.proccalloption;
                  tprocvardef(resulttype.def).procoptions:=hp3.procoptions;
                  tprocvardef(resulttype.def).rettype:=hp3.rettype;
                  tprocvardef(resulttype.def).symtablelevel:=hp3.symtablelevel;
@@ -982,7 +982,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2001-09-02 21:12:07  peter
+  Revision 1.21  2001-10-25 21:22:35  peter
+    * calling convention rewrite
+
+  Revision 1.20  2001/09/02 21:12:07  peter
     * move class of definitions into type section for delphi
 
   Revision 1.19  2001/08/26 13:36:42  florian

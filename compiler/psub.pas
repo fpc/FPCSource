@@ -460,7 +460,7 @@ implementation
          { so no dispose here !!                              }
          if assigned(code) and
             not(cs_browser in aktmoduleswitches) and
-            not(pocall_inline in aktprocsym.definition.proccalloptions) then
+            (aktprocsym.definition.proccalloption<>pocall_inline) then
            begin
              if lexlevel>=normal_function_level then
                aktprocsym.definition.localst.free;
@@ -480,7 +480,7 @@ implementation
 {$endif newcg}
 
          { remove code tree, if not inline procedure }
-         if assigned(code) and not(pocall_inline in aktprocsym.definition.proccalloptions) then
+         if assigned(code) and (aktprocsym.definition.proccalloption<>pocall_inline) then
            code.free;
 
          { remove class member symbol tables }
@@ -622,14 +622,14 @@ implementation
              begin
                { if external is available, then cdecl must also be available }
                if (po_external in aktprocsym.definition.procoptions) and
-                  not(pocall_cdecl in aktprocsym.definition.proccalloptions) then
+                  not(aktprocsym.definition.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
                 Message(parser_e_varargs_need_cdecl_and_external);
              end
             else
              begin
                { both must be defined now }
                if not(po_external in aktprocsym.definition.procoptions) or
-                  not(pocall_cdecl in aktprocsym.definition.proccalloptions) then
+                  not(aktprocsym.definition.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
                 Message(parser_e_varargs_need_cdecl_and_external);
              end;
           end;
@@ -754,11 +754,11 @@ implementation
         procedure Not_supported_for_inline(t : ttoken);
         begin
            if assigned(aktprocsym) and
-              (pocall_inline in aktprocsym.definition.proccalloptions) then
+              (aktprocsym.definition.proccalloption=pocall_inline) then
              Begin
                 Message1(parser_w_not_supported_for_inline,tokenstring(t));
                 Message(parser_w_inlining_disabled);
-                exclude(aktprocsym.definition.proccalloptions,pocall_inline);
+                aktprocsym.definition.proccalloption:=pocall_fpccall;
              End;
         end;
 
@@ -843,7 +843,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  2001-10-22 21:20:46  peter
+  Revision 1.40  2001-10-25 21:22:37  peter
+    * calling convention rewrite
+
+  Revision 1.39  2001/10/22 21:20:46  peter
     * overloaded functions don't need to be global in kylix
 
   Revision 1.38  2001/10/01 13:38:45  jonas

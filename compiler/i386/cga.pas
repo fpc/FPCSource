@@ -2300,7 +2300,7 @@ implementation
 
       { generate copies of call by value parameters }
       if not(po_assembler in aktprocsym.definition.procoptions) and
-         (([pocall_cdecl,pocall_cppdecl]*aktprocsym.definition.proccalloptions)=[]) then
+         not(aktprocsym.definition.proccalloption in [pocall_cdecl,pocall_cppdecl,pocall_palmossyscall,pocall_system]) then
         aktprocsym.definition.parast.foreach_static({$ifndef TP}@{$endif}copyvalueparas);
 
       if assigned( aktprocsym.definition.parast) then
@@ -2769,7 +2769,7 @@ implementation
 
       { parameters are limited to 65535 bytes because }
       { ret allows only imm16                    }
-      if (parasize>65535) and not(pocall_clearstack in aktprocsym.definition.proccalloptions) then
+      if (parasize>65535) and not(po_clearstack in aktprocsym.definition.procoptions) then
        CGMessage(cg_e_parasize_too_big);
 
       { at last, the return is generated }
@@ -2795,7 +2795,7 @@ implementation
        begin
        {Routines with the poclearstack flag set use only a ret.}
        { also routines with parasize=0     }
-         if (pocall_clearstack in aktprocsym.definition.proccalloptions) then
+         if (po_clearstack in aktprocsym.definition.procoptions) then
            begin
 {$ifndef OLD_C_STACK}
              { complex return values are removed from stack in C code PM }
@@ -2974,7 +2974,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2001-10-20 17:22:57  peter
+  Revision 1.8  2001-10-25 21:22:41  peter
+    * calling convention rewrite
+
+  Revision 1.7  2001/10/20 17:22:57  peter
     * concatcopy could release a wrong reference because the offset was
       increased without restoring the original before the release of
       a temp

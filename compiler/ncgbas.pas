@@ -204,7 +204,7 @@ interface
            begin
              { if the routine is an inline routine, then we must hold a copy
                because it can be necessary for inlining later }
-             if (pocall_inline in aktprocsym.definition.proccalloptions) then
+             if (aktprocsym.definition.proccalloption=pocall_inline) then
                exprasmList.concatlistcopy(p_asm)
              else
                exprasmList.concatlist(p_asm);
@@ -279,7 +279,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2001-08-26 13:36:39  florian
+  Revision 1.8  2001-10-25 21:22:35  peter
+    * calling convention rewrite
+
+  Revision 1.7  2001/08/26 13:36:39  florian
     * some cg reorganisation
     * some PPC updates
 

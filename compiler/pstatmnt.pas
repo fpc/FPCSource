@@ -757,11 +757,11 @@ implementation
              begin
                if not target_asm.allowdirect then
                  Message(parser_f_direct_assembler_not_allowed);
-               if (pocall_inline in aktprocsym.definition.proccalloptions) then
+               if (aktprocsym.definition.proccalloption=pocall_inline) then
                  Begin
                     Message1(parser_w_not_supported_for_inline,'direct asm');
                     Message(parser_w_inlining_disabled);
-                    exclude(aktprocsym.definition.proccalloptions,pocall_inline);
+                    aktprocsym.definition.proccalloption:=pocall_fpccall;
                  End;
                asmstat:=tasmnode(ra386dir.assemble);
              end;
@@ -1115,7 +1115,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  2001-10-24 11:51:39  marco
+  Revision 1.41  2001-10-25 21:22:37  peter
+    * calling convention rewrite
+
+  Revision 1.40  2001/10/24 11:51:39  marco
    * Make new/dispose system functions instead of keywords
 
   Revision 1.39  2001/10/17 22:41:04  florian
