@@ -625,7 +625,7 @@ begin
 {$endif CPUI386}
   { check for tty }
   ThisTTY:=TTYName(stdinputhandle);
-  if IsATTY(stdinputhandle) then
+  if (IsATTY(stdinputhandle)<>-1) then
    begin
      { save current terminal characteristics and remove rawness }
      prepareInitVideo;
@@ -641,7 +641,7 @@ begin
         Case ThisTTY[9] of
          '0'..'9' : begin { running Linux on native console or native-emulation }
                      FName:='/dev/vcsa' + ThisTTY[9];
-                     TTYFd:=fpOpen(FName, Octal(666), Open_RdWr); { open console }
+                     TTYFd:=fpOpen(FName, &666, Open_RdWr); { open console }
                      IF TTYFd <>-1 Then
                        Console:=ttyLinux;
                     end;
@@ -898,7 +898,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.18  2003-10-26 15:32:25  marco
+  Revision 1.19  2003-11-17 10:05:51  marco
+   * threads for FreeBSD. Not working tho
+
+  Revision 1.18  2003/10/26 15:32:25  marco
    * partial fix for bug 2212.
 
   Revision 1.17  2003/10/25 22:48:52  marco

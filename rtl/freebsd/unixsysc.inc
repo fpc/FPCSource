@@ -75,20 +75,19 @@ begin
  do_syscall(syscall_nr_gettimeofday,longint(@tv),longint(@tz));
 end;
 }
-Function  fdFlush (fd : Longint) : Boolean;
+Function  fdFlush (fd : cint) : cint;
 
 begin
-  fdflush:=do_syscall(syscall_nr_fsync,fd)=0;
+  fdflush:=do_syscall(syscall_nr_fsync,fd);
 end;
 
-Function  Flock (fd,mode : longint) : boolean;
+Function  Flock (fd,mode : longint) : cint;
 
 begin
- Flock:=do_syscall(syscall_nr_flock,fd,mode)=0;
+ Flock:=do_syscall(syscall_nr_flock,fd,mode);
 end;
 
-
-Function StatFS(Path:Pathstr;Var Info:Tstatfs):Boolean;
+Function StatFS(Path:Pathstr;Var Info:Tstatfs):cint;
 
 {
   Get all information on a fileSystem, and return it in Info.
@@ -98,10 +97,10 @@ Function StatFS(Path:Pathstr;Var Info:Tstatfs):Boolean;
 
 begin
   path:=path+#0;
-  StatFS:=Do_Syscall(syscall_nr_statfs,longint(@path[1]),longint(@info))=0;
+  StatFS:=Do_Syscall(syscall_nr_statfs,longint(@path[1]),longint(@info));
 end;
 
-Function StatFS(Fd:Longint;Var Info:tstatfs):Boolean;
+Function fStatFS(Fd:Longint;Var Info:tstatfs):cint;
 {
   Get all information on a fileSystem, and return it in Info.
   Fd is the file descriptor of a file/directory on the fileSystem
@@ -109,7 +108,7 @@ Function StatFS(Fd:Longint;Var Info:tstatfs):Boolean;
 }
 
 begin
- StatFS:=do_syscall(syscall_nr_fstatfs,fd,longint(@info))=0;
+ fStatFS:=do_syscall(syscall_nr_fstatfs,fd,longint(@info));
 end;
 
 // needs oldfpccall;
@@ -142,7 +141,7 @@ begin
 end;
 
 // can't have oldfpccall here, linux doesn't need it.
-Function AssignPipe(var pipe_in,pipe_out:longint):cint; [public, alias : 'FPC_SYSC_ASSIGNPIPE'];
+Function AssignPipe(var pipe_in,pipe_out:cint):cint; [public, alias : 'FPC_SYSC_ASSIGNPIPE'];
 {
   Sets up a pair of file variables, which act as a pipe. The first one can
   be read from, the second one can be written to.
@@ -244,7 +243,10 @@ end;
 
 {
   $Log$
-  Revision 1.13  2003-11-14 16:21:59  marco
+  Revision 1.14  2003-11-17 10:05:51  marco
+   * threads for FreeBSD. Not working tho
+
+  Revision 1.13  2003/11/14 16:21:59  marco
    * linuxerror elimination
 
   Revision 1.12  2003/11/09 12:00:16  marco

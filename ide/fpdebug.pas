@@ -774,7 +774,7 @@ begin
       Assign(Debuggeefile,DebuggeeTTY);
       system.Reset(Debuggeefile);
       ResetOK:=IOResult=0;
-      If ResetOK and IsATTY(textrec(Debuggeefile).handle) then
+      If ResetOK and (IsATTY(textrec(Debuggeefile).handle)<>-1) then
         begin
           Command('tty '+DebuggeeTTY);
           TTYUsed:=true;
@@ -3603,7 +3603,10 @@ end.
 
 {
   $Log$
-  Revision 1.46  2003-03-30 12:12:12  armin
+  Revision 1.47  2003-11-17 10:05:51  marco
+   * threads for FreeBSD. Not working tho
+
+  Revision 1.46  2003/03/30 12:12:12  armin
   * allow local and remote debugging if SUPPORT_REMOTE is given
 
   Revision 1.45  2003/03/27 14:10:55  pierre

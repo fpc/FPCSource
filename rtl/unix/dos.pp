@@ -402,8 +402,8 @@ Function DiskFree(Drive: Byte): int64;
 var
   fs : tstatfs;
 Begin
-  if ((Drive<4) and (not (fixdrivestr[Drive]=nil)) and StatFS(StrPas(fixdrivestr[drive]),fs)) or
-     ((not (drivestr[Drive]=nil)) and StatFS(StrPas(drivestr[drive]),fs)) then
+  if ((Drive<4) and (not (fixdrivestr[Drive]=nil)) and (StatFS(StrPas(fixdrivestr[drive]),fs)<>-1)) or
+     ((not (drivestr[Drive]=nil)) and (StatFS(StrPas(drivestr[drive]),fs)<>-1)) then
    Diskfree:=int64(fs.bavail)*int64(fs.bsize)
   else
    Diskfree:=-1;
@@ -415,8 +415,8 @@ Function DiskSize(Drive: Byte): int64;
 var
   fs : tstatfs;
 Begin
-  if ((Drive<4) and (not (fixdrivestr[Drive]=nil)) and StatFS(StrPas(fixdrivestr[drive]),fs)) or
-     ((not (drivestr[Drive]=nil)) and StatFS(StrPas(drivestr[drive]),fs)) then
+  if ((Drive<4) and (not (fixdrivestr[Drive]=nil)) and (StatFS(StrPas(fixdrivestr[drive]),fs)<>-1)) or
+     ((not (drivestr[Drive]=nil)) and (StatFS(StrPas(drivestr[drive]),fs)<>-1)) then
    DiskSize:=int64(fs.blocks)*int64(fs.bsize)
   else
    DiskSize:=-1;
@@ -903,7 +903,10 @@ End.
 
 {
   $Log$
-  Revision 1.19  2003-10-17 22:13:30  olle
+  Revision 1.20  2003-11-17 10:05:51  marco
+   * threads for FreeBSD. Not working tho
+
+  Revision 1.19  2003/10/17 22:13:30  olle
     * changed i386 to cpui386
 
   Revision 1.18  2003/09/27 12:51:33  peter

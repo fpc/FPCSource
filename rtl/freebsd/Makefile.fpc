@@ -13,10 +13,10 @@ loaders=prt0 cprt0 gprt0
 units=$(SYSTEMUNIT) objpas strings baseunix syscall unixutil \
       $(LINUXUNIT) unix initc  \
       dos dl crt objects printer \
-      sysutils typinfo classes math varutils \
+      sysutils typinfo systhrds classes math varutils \
       cpu mmx charset ucomplex getopts heaptrc lineinfo \
       errors sockets gpm ipc terminfo \
-      video mouse keyboard console serial variants types systhrds sysctl
+      video mouse keyboard console serial variants types sysctl
 rsts=math varutils typinfo classes variants
 
 [require]

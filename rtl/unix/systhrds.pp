@@ -91,7 +91,9 @@ function  pthread_mutex_init (p:ppthread_mutex_t;o:ppthread_mutex_attr_t):cint; 
 function  pthread_mutex_destroy (p:ppthread_mutex_attr_t):cint; cdecl;external;
 function  pthread_mutex_lock    (p:ppthread_mutex_attr_t):cint; cdecl;external;
 function  pthread_mutex_unlock  (p:ppthread_mutex_attr_t):cint; cdecl;external;
-
+function  pthread_cancel(_para1:pthread_t):cint;cdecl;external;
+function  pthread_detach(_para1:pthread_t):cint;cdecl;external;
+function  pthread_join(_para1:pthread_t; _para2:Ppointer):cint;cdecl;external;
 {$endif}
 
 {*****************************************************************************
@@ -230,7 +232,7 @@ CONST
 {$endif DEBUG_MT}
         ThreadMain:=pointer(ti.f(ti.p));
         DoneThread;
-        pthread_detach(pthread_self);
+	pthread_detach(pointer(pthread_self));
       end;
 
 
@@ -286,7 +288,7 @@ CONST
     procedure EndThread(ExitCode : DWord);
       begin
         DoneThread;
-        pthread_detach(pthread_self);
+        pthread_detach(pointer(pthread_self));
         pthread_exit(pointer(ExitCode));
       end;
 
@@ -418,7 +420,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.16  2003-11-17 08:27:50  marco
+  Revision 1.17  2003-11-17 10:05:51  marco
+   * threads for FreeBSD. Not working tho
+
+  Revision 1.16  2003/11/17 08:27:50  marco
    * pthreads based ttread from Johannes Berg
 
   Revision 1.15  2003/10/01 21:00:09  peter

@@ -1329,7 +1329,7 @@ var
   c : char;
   i : longint;
 Begin
-  if isATTY(F.Handle) then
+  if isATTY(F.Handle)<>-1 then
     begin
       F.BufPos := 0;
       i := 0;
@@ -1636,10 +1636,10 @@ Initialization
   Reset(Input);
   TextRec(Input).Handle:=StdInputHandle;
 { Are we redirected to a file ? }
-  OutputRedir:= not IsAtty(TextRec(Output).Handle);
+  OutputRedir:= IsAtty(TextRec(Output).Handle)=-1;
 { does the input come from another console or from a file? }
   InputRedir :=
-   not IsAtty(TextRec(Input).Handle) or
+   (IsAtty(TextRec(Input).Handle)=-1) or
    (not OutputRedir and
     (TTYName(TextRec(Input).Handle) <> TTYName(TextRec(Output).Handle)));
 { Get Size of terminal and set WindMax to the window }
@@ -1681,7 +1681,10 @@ Finalization
 End.
 {
   $Log$
-  Revision 1.13  2003-09-16 20:52:24  marco
+  Revision 1.14  2003-11-17 10:05:51  marco
+   * threads for FreeBSD. Not working tho
+
+  Revision 1.13  2003/09/16 20:52:24  marco
    * small cleanups. Mostly killing of already commented code in unix etc
 
   Revision 1.12  2003/09/16 16:13:56  marco

@@ -774,7 +774,7 @@ begin
   TTYFd:=-1;
   IsXterm:=getenv('TERM')='xterm';
   ThisTTY:=TTYName(stdinputhandle);
-  if Not IsXterm and IsATTY(stdinputhandle) then
+  if Not IsXterm and (IsATTY(stdinputhandle)<>-1) then
     begin
       Console:=TTyNetwork;  {Default: Network or other vtxxx tty}
       if (Copy(ThisTTY, 1, 8) = '/dev/tty') and (ThisTTY[9]<>'p') Then
@@ -910,7 +910,7 @@ begin
       ConsCursorY:=0;
       ConsVideoBuf:=nil;
     end;
-  ConsTioValid:=TCGetAttr(1,ConsTio);
+  ConsTioValid:=(TCGetAttr(1,ConsTio)<>-1);
 end;
 
 
@@ -1441,7 +1441,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.29  2003-11-14 21:52:58  marco
+  Revision 1.30  2003-11-17 10:05:51  marco
+   * threads for FreeBSD. Not working tho
+
+  Revision 1.29  2003/11/14 21:52:58  marco
    * octal() is not necessary anymore. Use &xxx
 
   Revision 1.28  2003/09/27 14:03:45  peter

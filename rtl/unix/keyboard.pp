@@ -307,7 +307,7 @@ var
 begin
   IsConsole:=false;
   { check for tty }
-  if IsATTY(stdinputhandle) then
+  if (IsATTY(stdinputhandle)<>-1) then
    begin
      { running on a tty, find out whether locally or remotely }
      ThisTTY:=TTYName(stdinputhandle);
@@ -1532,7 +1532,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2003-09-16 16:13:56  marco
+  Revision 1.16  2003-11-17 10:05:51  marco
+   * threads for FreeBSD. Not working tho
+
+  Revision 1.15  2003/09/16 16:13:56  marco
    * fdset functions renamed to fp<posix name>
 
   Revision 1.14  2003/09/14 20:15:01  marco

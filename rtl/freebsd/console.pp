@@ -1828,7 +1828,7 @@ function physicalconsole(fd:longint) : boolean;
 var name:string;
 
 begin
- if isatty(fd) then
+ if (isatty(fd)<>-1) then
   begin
    name:=ttyname(fd);
    if Copy(name,1,8)<>'/dev/tty' then

@@ -62,7 +62,7 @@ Const
   LOCK_NB = 4;
 
 Type
-  Tpipe = array[1..2] of longint;
+  Tpipe = array[1..2] of cint;
 
   pglob = ^tglob;
   tglob = record
@@ -115,12 +115,12 @@ var
   tzname     : array[boolean] of pchar;
 
 { timezone support }
-procedure GetLocalTimezone(timer:longint;var leap_correct,leap_hit:longint);
-procedure GetLocalTimezone(timer:longint);
+procedure GetLocalTimezone(timer:cint;var leap_correct,leap_hit:cint);
+procedure GetLocalTimezone(timer:cint);
 procedure ReadTimezoneFile(fn:string);
 function  GetTimezoneFile:string;
 
-Function  GetEpochTime: longint;
+Function  GetEpochTime: cint;
 procedure GetTime(var hour,min,sec,msec,usec:word);
 procedure GetTime(var hour,min,sec,sec100:word);
 procedure GetTime(var hour,min,sec:word);
@@ -150,12 +150,12 @@ Function Execle(Todo: AnsiString;Ep:ppchar):cint;
 Function Execlp(Todo: string;Ep:ppchar):cint;
 Function Execlp(Todo: Ansistring;Ep:ppchar):cint;
 
-Function  Shell(const Command:String):Longint;
-Function  Shell(const Command:AnsiString):Longint;
+Function  Shell(const Command:String):cint;
+Function  Shell(const Command:AnsiString):cint;
 
 {Clone for FreeBSD is copied from the LinuxThread port, and rfork based}
-function  Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint;
-Function  WaitProcess(Pid:longint):cint; { like WaitPid(PID,@result,0) Handling of Signal interrupts (errno=EINTR), returning the Exitcode of Process (>=0) or -Status if terminated}
+function  Clone(func:TCloneFunc;sp:pointer;flags:cint;args:pointer):cint;
+Function  WaitProcess(Pid:cint):cint; { like WaitPid(PID,@result,0) Handling of Signal interrupts (errno=EINTR), returning the Exitcode of Process (>=0) or -Status if terminated}
 
 Function WIFSTOPPED(Status: Integer): Boolean;
 Function W_EXITCODE(ReturnCode, Signal: Integer): Integer;
@@ -165,30 +165,30 @@ Function W_STOPCODE(Signal: Integer): Integer;
      File Handling
 ***************************}
 
-Function  fdFlush (fd : Longint) : Boolean;
+Function  fdFlush (fd : cint) : cint;
 
-Function  Flock (fd,mode : longint) : boolean;
-Function  Flock (var T : text;mode : longint) : boolean;
-Function  Flock (var F : File;mode : longint) : boolean;
+Function  Flock (fd,mode : cint)   : cint ;
+Function  Flock (var T : text;mode : cint) : cint;
+Function  Flock (var F : File;mode : cint) : cint;
 
-Function  StatFS(Path:Pathstr;Var Info:tstatfs):Boolean;
-Function  StatFS(Fd: Longint;Var Info:tstatfs):Boolean;
+Function  StatFS(Path:Pathstr;Var Info:tstatfs):cint;
+Function  fStatFS(Fd: cint;Var Info:tstatfs):cint;
 
-Function  SelectText(var T:Text;TimeOut :PTimeVal):Longint;
-Function  SelectText(var T:Text;TimeOut :Longint):Longint;
+Function  SelectText(var T:Text;TimeOut :PTimeVal):cint;
+Function  SelectText(var T:Text;TimeOut :cint):cint;
 
 {**************************
    Directory Handling
 ***************************}
 
-procedure SeekDir(p:pdir;off:longint);
-function  TellDir(p:pdir):longint;
+procedure SeekDir(p:pdir;loc:clong);
+function  TellDir(p:pdir):clong;
 
 {**************************
     Pipe/Fifo/Stream
 ***************************}
 
-Function  AssignPipe(var pipe_in,pipe_out:longint):cint;
+Function  AssignPipe(var pipe_in,pipe_out:cint):cint;
 Function  AssignPipe(var pipe_in,pipe_out:text):cint;
 Function  AssignPipe(var pipe_in,pipe_out:file):cint;
 Function  PClose(Var F:text) : cint;
@@ -208,21 +208,21 @@ Function  GetHostName:String;
   IOCtl/Termios Functions
 ***************************}
 
-Function  TCGetAttr(fd:longint;var tios:TermIOS):boolean;
-Function  TCSetAttr(fd:longint;OptAct:longint;const tios:TermIOS):boolean;
-Procedure CFSetISpeed(var tios:TermIOS;speed:Cardinal);
-Procedure CFSetOSpeed(var tios:TermIOS;speed:Cardinal);
-Procedure CFMakeRaw(var tios:TermIOS);
-Function  TCSendBreak(fd,duration:longint):boolean;
-Function  TCSetPGrp(fd,id:longint):boolean;
-Function  TCGetPGrp(fd:longint;var id:longint):boolean;
-Function  TCFlush(fd,qsel:longint):boolean;
-Function  TCDrain(fd:longint):boolean;
-Function  TCFlow(fd,act:longint):boolean;
-Function  IsATTY(Handle:Longint):Boolean;
-Function  IsATTY(var f:text):Boolean;
-function  TTYname(Handle:Longint):string;
-function  TTYname(var F:Text):string;
+Function  TCGetAttr (fd:cint;var tios:TermIOS):cint;
+Function  TCSetAttr (fd:cint;OptAct:cint;const tios:TermIOS):cint;
+Procedure CFSetISpeed (var tios:TermIOS;speed:Cardinal);
+Procedure CFSetOSpeed (var tios:TermIOS;speed:Cardinal);
+Procedure CFMakeRaw   (var tios:TermIOS);
+Function  TCSendBreak (fd,duration:cint):cint;
+Function  TCSetPGrp   (fd,id:cint)  :cint;
+Function  TCGetPGrp   (fd:cint;var id:cint):cint;
+Function  TCFlush     (fd,qsel:cint):cint;
+Function  TCDrain     (fd:cint)     :cint;
+Function  TCFlow      (fd,act:cint) :cint;
+Function  IsATTY      (Handle:cint) :cint;
+Function  IsATTY      (var f:text)  :cint;
+function  TTYname     (Handle:cint):string;
+function  TTYname     (var F:Text) :string;
 
 {**************************
      Memory functions
@@ -250,7 +250,6 @@ const
     Utility functions
 ***************************}
 
-Function  Octal(l:longint):longint;
 Function  FExpand(Const Path: PathStr):PathStr;
 Function  FSearch(const path:pathstr;dirlist:string):pathstr;
 Function  Glob(Const path:pathstr):pglob;
@@ -294,8 +293,8 @@ Function getenv(name:string):Pchar; external name 'FPC_SYSC_FPGETENV';
 ******************************************************************************}
 
 { Most calls of WaitPID do not handle the result correctly, this funktion treats errors more correctly }
-Function  WaitProcess(Pid:longint):cint; { like WaitPid(PID,@result,0) Handling of Signal interrupts (errno=EINTR), returning the Exitcode of Process (>=0) or -Status if terminated}
-var     ret,r,s     : LongInt;
+Function  WaitProcess(Pid:cint):cint; { like WaitPid(PID,@result,0) Handling of Signal interrupts (errno=EINTR), returning the Exitcode of Process (>=0) or -Status if terminated}
+var     ret,r,s     : cint;
 begin
   s:=$7F00;
 
@@ -322,7 +321,7 @@ begin
    end;
 end;
 
-function InternalCreateShellArgV(cmd:pChar; len:longint):ppchar;
+function InternalCreateShellArgV(cmd:pChar; len:cint):ppchar;
 {
   Create an argv which executes a command in a shell using /bin/sh -c
 }
@@ -546,7 +545,7 @@ Function Shell(const Command:String):cint;
 }
 var
   p      : ppchar;
-  pid    : longint;
+  pid    : cint;
 begin
   p:=CreateShellArgv(command);
   pid:=fpfork;
@@ -569,7 +568,7 @@ Function Shell(const Command:AnsiString):cint;
 }
 var
   p     : ppchar;
-  pid   : longint;
+  pid   : cint;
 begin { Changes as above }
   p:=CreateShellArgv(command);
   pid:=fpfork;
@@ -606,7 +605,7 @@ end;
                        Date and Time related calls
 ******************************************************************************}
 
-Function GetEpochTime: longint;
+Function GetEpochTime: cint;
 {
   Get the number of seconds since 00:00, January 1 1970, GMT
   the time NOT corrected any way
@@ -670,15 +669,15 @@ End;
 
 {$ifndef BSD}
 {$ifdef linux}
-Function stime (t : longint) : Boolean;
+Function stime (t : cint) : Boolean;
 begin
-  stime:=do_SysCall(Syscall_nr_stime,longint(@t))=0;
+  stime:=do_SysCall(Syscall_nr_stime,cint(@t))=0;
 end;
 {$endif}
 {$endif}
 
 {$ifdef BSD}
-Function stime (t : longint) : Boolean;
+Function stime (t : cint) : Boolean;
 begin
 end;
 {$endif}
@@ -722,18 +721,18 @@ begin
   Execl:=ExecLE(ToDo,EnvP);
 end;
 
-Function Flock (var T : text;mode : longint) : boolean;
+Function Flock (var T : text;mode : cint) : cint;
 begin
   Flock:=Flock(TextRec(T).Handle,mode);
 end;
 
 
-Function  Flock (var F : File;mode : longint) : boolean;
+Function  Flock (var F : File;mode : cint) :cint;
 begin
   Flock:=Flock(FileRec(F).Handle,mode);
 end;
 
-Function SelectText(var T:Text;TimeOut :PTimeval):Longint;
+Function SelectText(var T:Text;TimeOut :PTimeval):cint;
 Var
   F:TfdSet;
 begin
@@ -750,7 +749,7 @@ begin
    SelectText:=fpselect(textrec(T).handle+1,nil,@f,nil,TimeOut);
 end;
 
-Function SelectText(var T:Text;TimeOut :Longint):Longint;
+Function SelectText(var T:Text;TimeOut :cint):cint;
 var
   p  : PTimeVal;
   tv : TimeVal;
@@ -770,7 +769,7 @@ end;
                                Directory
 ******************************************************************************}
 
-procedure SeekDir(p:pdir;off:longint);
+procedure SeekDir(p:pdir;loc:clong);
 begin
   if p=nil then
    begin
@@ -778,13 +777,13 @@ begin
      exit;
    end;
  {$ifndef bsd}
-  p^.dd_nextoff:=fplseek(p^.dd_fd,off,seek_set);
+  p^.dd_nextoff:=fplseek(p^.dd_fd,loc,seek_set);
  {$endif}
   p^.dd_size:=0;
   p^.dd_loc:=0;
 end;
 
-function TellDir(p:pdir):longint;
+function TellDir(p:pdir):clong;
 begin
   if p=nil then
    begin
@@ -857,7 +856,7 @@ Function AssignPipe(var pipe_in,pipe_out:text):cint;
   be read from, the second one can be written to.
 }
 var
-  f_in,f_out : longint;
+  f_in,f_out : cint;
 begin
   if AssignPipe(f_in,f_out)=-1 then
      exit(-1);
@@ -889,7 +888,7 @@ Function AssignPipe(var pipe_in,pipe_out:file):cint;
   If the operation was unsuccesful, 
 }
 var
-  f_in,f_out : longint;
+  f_in,f_out : cint;
 begin
   if AssignPipe(f_in,f_out)=-1 then
      exit(-1);
@@ -1006,8 +1005,8 @@ Function POpen(var F:file;const Prog:String;rw:char):cint;
 var
   pipi,
   pipo : file;
-  pid  : longint;
-  pl   : ^longint;
+  pid  : cint;
+  pl   : ^cint;
   p,pp : ppchar;
   temp : string[255];
   ret  : cint;
@@ -1095,8 +1094,8 @@ Function AssignStream(Var StreamIn,Streamout:text;Const Prog:String) : cint;
 var
   pipi,
   pipo : text;
-  pid  : longint;
-  pl   : ^Longint;
+  pid  : cint;
+  pl   : ^cint;
 begin
   AssignStream:=-1;
   if AssignPipe(streamin,pipo)=-1 Then
@@ -1144,7 +1143,7 @@ begin
    end;
 end;
 
-function AssignStream(var StreamIn, StreamOut, StreamErr: Text; const prog: String): LongInt;
+function AssignStream(var StreamIn, StreamOut, StreamErr: Text; const prog: String):cint;
 {
   Starts the program in 'prog' and makes its input, output and error output the
   other end of three pipes, which are the stdin, stdout and stderr of a program
@@ -1159,8 +1158,8 @@ function AssignStream(var StreamIn, StreamOut, StreamErr: Text; const prog: Stri
 }
 var
   PipeIn, PipeOut, PipeErr: text;
-  pid: LongInt;
-  pl: ^LongInt;
+  pid: cint;
+  pl: ^cint;
 begin
   AssignStream := -1;
 
@@ -1284,19 +1283,19 @@ end;
                          IOCtl and Termios calls
 ******************************************************************************}
 
-Function TCGetAttr(fd:longint;var tios:TermIOS):boolean;
+Function TCGetAttr(fd:cint;var tios:TermIOS):cint;
 begin
  {$ifndef BSD}
-  TCGetAttr:=fpIOCtl(fd,TCGETS,@tios)=0;
+  TCGetAttr:=fpIOCtl(fd,TCGETS,@tios);
  {$else}
-  TCGETAttr:=fpIoCtl(Fd,TIOCGETA,@tios)=0;
+  TCGETAttr:=fpIoCtl(Fd,TIOCGETA,@tios);
  {$endif}
 end;
 
 
-Function TCSetAttr(fd:longint;OptAct:longint;const tios:TermIOS):boolean;
+Function TCSetAttr(fd:cint;OptAct:cint;const tios:TermIOS):cint;
 var
-  nr:longint;
+  nr:cint;
 begin
  {$ifndef BSD}
   case OptAct of
@@ -1312,11 +1311,11 @@ begin
   else
    begin
      fpsetErrNo(ESysEINVAL);
-     TCSetAttr:=false;
+     TCSetAttr:=-1;
      exit;
    end;
   end;
-  TCSetAttr:=fpIOCtl(fd,nr,@Tios)=0;
+  TCSetAttr:=fpIOCtl(fd,nr,@Tios);
 end;
 
 
@@ -1369,60 +1368,60 @@ begin
  {$endif}
 end;
 
-Function TCSendBreak(fd,duration:longint):boolean;
+Function TCSendBreak(fd,duration:cint):cint;
 begin
   {$ifndef BSD}
-  TCSendBreak:=fpIOCtl(fd,TCSBRK,pointer(duration))=0;
+  TCSendBreak:=fpIOCtl(fd,TCSBRK,pointer(duration));
   {$else}
-  TCSendBreak:=fpIOCtl(fd,TIOCSBRK,0)=0;
+  TCSendBreak:=fpIOCtl(fd,TIOCSBRK,0);
   {$endif}
 end;
 
 
-Function TCSetPGrp(fd,id:longint):boolean;
+Function TCSetPGrp(fd,id:cint):cint;
 begin
-  TCSetPGrp:=fpIOCtl(fd,TIOCSPGRP,pointer(id))=0;
+  TCSetPGrp:=fpIOCtl(fd,TIOCSPGRP,pointer(id));
 end;
 
 
-Function TCGetPGrp(fd:longint;var id:longint):boolean;
+Function TCGetPGrp(fd:cint;var id:cint):cint;
 begin
-  TCGetPGrp:=fpIOCtl(fd,TIOCGPGRP,@id)=0;
+  TCGetPGrp:=fpIOCtl(fd,TIOCGPGRP,@id);
 end;
 
-Function TCDrain(fd:longint):boolean;
+Function TCDrain(fd:cint):cint;
 begin
  {$ifndef BSD}
-  TCDrain:=fpIOCtl(fd,TCSBRK,pointer(1))=0;
+  TCDrain:=fpIOCtl(fd,TCSBRK,pointer(1));
  {$else}
-  TCDrain:=fpIOCtl(fd,TIOCDRAIN,0)=0; {Should set timeout to 1 first?}
+  TCDrain:=fpIOCtl(fd,TIOCDRAIN,0); {Should set timeout to 1 first?}
  {$endif}
 end;
 
 
-Function TCFlow(fd,act:longint):boolean;
+Function TCFlow(fd,act:cint):cint;
 begin
   {$ifndef BSD}
-   TCFlow:=fpIOCtl(fd,TCXONC,pointer(act))=0;
+   TCFlow:=fpIOCtl(fd,TCXONC,pointer(act));
   {$else}
     case act OF
-     TCOOFF :  TCFlow:=fpIoctl(fd,TIOCSTOP,0)=0;
-     TCOOn  :  TCFlow:=fpIOctl(Fd,TIOCStart,0)=0;
+     TCOOFF :  TCFlow:=fpIoctl(fd,TIOCSTOP,0);
+     TCOOn  :  TCFlow:=fpIOctl(Fd,TIOCStart,0);
      TCIOFF :  {N/I}
     end;
   {$endif}
 end;
 
-Function TCFlush(fd,qsel:longint):boolean;
+Function TCFlush(fd,qsel:cint):cint;
 begin
  {$ifndef BSD}
-  TCFlush:=fpIOCtl(fd,TCFLSH,pointer(qsel))=0;
+  TCFlush:=fpIOCtl(fd,TCFLSH,pointer(qsel));
  {$else}
-  TCFlush:=fpIOCtl(fd,TIOCFLUSH,pointer(qsel))=0;
+  TCFlush:=fpIOCtl(fd,TIOCFLUSH,pointer(qsel));
  {$endif}
 end;
 
-Function IsATTY (Handle:Longint):Boolean;
+Function IsATTY (Handle:cint):cint;
 {
   Check if the filehandle described by 'handle' is a TTY (Terminal)
 }
@@ -1433,7 +1432,7 @@ begin
 end;
 
 
-Function IsATTY(var f: text):Boolean;
+Function IsATTY(var f: text):cint;
 {
   Idem as previous, only now for text variables.
 }
@@ -1442,7 +1441,7 @@ begin
 end;
 
 
-function TTYName(Handle:Longint):string;
+function TTYName(Handle:cint):string;
 {
   Return the name of the current tty described by handle f.
   returns empty string in case of an error.
@@ -1499,8 +1498,7 @@ var
 
 begin
   TTYName:='';
-  fpfstat(handle,st);
-  if (fpgeterrno<>0) and isatty (handle) then
+  if (fpfstat(handle,st)=-1) and (isatty (handle)<>-1) then
    exit;
   mydev:=st.st_dev;
   myino:=st.st_ino;
@@ -1521,13 +1519,14 @@ end;
                              Utility calls
 ******************************************************************************}
 
-Function Octal(l:longint):longint;
+{
+Function Octal(l:cint):cint;
 {
   Convert an octal specified number to decimal;
 }
 var
   octnr,
-  oct : longint;
+  oct : cint;
 begin
   octnr:=0;
   oct:=0;
@@ -1539,7 +1538,7 @@ begin
    end;
   Octal:=oct;
 end;
-
+}
 
 {$DEFINE FPC_FEXPAND_TILDE} { Tilde is expanded to home }
 {$DEFINE FPC_FEXPAND_GETENVPCHAR} { GetEnv result is a PChar }
@@ -1557,7 +1556,7 @@ Function FSearch(const path:pathstr;dirlist:string):pathstr;
 }
 Var
   NewDir : PathStr;
-  p1     : Longint;
+  p1     : cint;
   Info   : Stat;
 Begin
 {Replace ':' with ';'}
@@ -1677,7 +1676,7 @@ begin
   glob:=root;
 end;
 
-Function GetFS (var T:Text):longint;
+Function GetFS (var T:Text):cint;
 {
   Get File Descriptor of a text file.
 }
@@ -1689,7 +1688,7 @@ begin
 end;
 
 
-Function GetFS(Var F:File):longint;
+Function GetFS(Var F:File):cint;
 {
   Get File Descriptor of an unTyped file.
 }
@@ -1705,7 +1704,6 @@ end;
       Stat.Mode Macro's
 --------------------------------}
 
-
 Initialization
   InitLocalTime;
 
@@ -1715,7 +1713,10 @@ End.
 
 {
   $Log$
-  Revision 1.47  2003-11-14 17:30:14  marco
+  Revision 1.48  2003-11-17 10:05:51  marco
+   * threads for FreeBSD. Not working tho
+
+  Revision 1.47  2003/11/14 17:30:14  marco
    * weeehoo linuxerror is no more :-)
 
   Revision 1.46  2003/11/14 16:44:48  marco
