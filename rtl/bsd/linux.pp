@@ -825,15 +825,8 @@ Function Fork:longint;
   LinuxError.
 }
 
-var retval: LONGINT;
-
 Begin
- asm 
-   movl  $2,%eax
-   int   $0x80
-   mov   %eax,retval
-  end;
- fork:=checkreturnvalue(retval,retval);
+ fork:=Do_syscall(2)
  LinuxError:=ErrNo;
 End;
 
@@ -892,23 +885,9 @@ Procedure Execve(path:pathstr;args:ppchar;ep:ppchar);
   environment specified in ep is passed on.
 }
 
-var retval: LONGINT;
-
 Begin
   path:=path+#0;
- asm 
-   lea   %ebx,path
-   inc   %ebx
-   pushl ep
-   pushl args
-   pushl %ebx
-   movl  $59,%eax
-   int   $0x80
-   addl  $12,%esp
-   mov   %eax,retval
-  end;
- checkreturnvalue(retval,retval);
-{ This only gets set when the call fails, otherwise we don't get here ? }
+  execve:=do_syscall(59,longint(@path[1]),Args,ep);
  LinuxError:=ErrNo;
 End;
 
@@ -925,20 +904,8 @@ Procedure Execve(path:pchar;args:ppchar;ep:ppchar);
   environment specified in ep is passed on.
 }
 
-var retval: LONGINT;
-
 Begin
- asm 
-   pushl ep
-   pushl args
-   pushl path
-   movl  $59,%eax
-   int   $0x80
-   addl  $12,%esp
-   mov   %eax,retval
-  end;
- checkreturnvalue(retval,retval);
-{ This only gets set when the call fails, otherwise we don't get here ? }
+   execve:=do_syscall(59,path,Args,ep);
  LinuxError:=ErrNo;
 End;
 
@@ -1033,17 +1000,10 @@ end;
 
 Procedure ExitProcess(val:longint);
 
-var retval : longint;
 
 begin
- asm
-    pushl Val
-    mov   $1,%eax
-    int   $0x80
-    addl  $4,%eax
-    mov   %eax,retval
-  end;   
- checkreturnvalue(retval,retval);
+  ExitProcess:=do_syscall(1,val);
+ LinuxError:=ErrNo;
 end;
 
 Function WaitPid(Pid:longint;Status:pointer;Options:Integer):Longint;
@@ -1054,21 +1014,10 @@ Function WaitPid(Pid:longint;Status:pointer;Options:Integer):Longint;
   be a longint.
 }
 
-var retval : longint;
 
 begin
- asm
-   pushl $0		 // BSD wait4 call has extra parameter
-   push Options
-   push Status
-   push Pid
-   mov   $7,%eax
-   int   $0x80
-   addl  $16,%eax
-   mov   %eax,retval
- end;   
-  WaitPID:=checkreturnvalue(retval,retval);
-  LinuxError:=errno;
+ WaitPID:=do_syscall(7,PID,Status,options,0);
+ LinuxError:=ErrNo;
 end;
 
 Function Shell(const Command:String):Longint;
@@ -1135,8 +1084,6 @@ Function GetPriority(Which,Who:longint):longint;
               Process Group id
    Errors are reported in linuxerror _only_. (priority can be negative)
 }
-var
-  retval : longint;
 begin
   errno:=0;
   if (which<prio_process) or (which>prio_user) then
@@ -1147,15 +1094,8 @@ begin
    end
   else
    begin
-     asm 
-       pushl who
-       pushl which
-       int   $0x80   
-       addl  $8,%eax
-       mov   %eax,retval
-     end;   
-    Getpriority:=checkreturnvalue(retval,retval);
-    LinuxError:=errno;
+     GetPriority:=do_syscall(100,which,who);
+     LinuxError:=ErrNo;
    end;
 end;
 
@@ -1174,25 +1114,14 @@ Procedure SetPriority(Which,Who,What:longint);
    what : A number between -20 and 20. -20 is most favorable, 20 least.
           0 is the default.
 }
-var
-  retval : longint;
 begin
   errno:=0;
   if ((which<prio_process) or (which>prio_user)) or ((what<-20) or (what>20)) then
    linuxerror:=Sys_einval  { We can save an interrupt here }
   else
    begin
-     asm 
-        pushl what
-        pushl who
-        pushl which
-	mov   $96,%eax
-        int   $0x80
-        addl  $12,%eax
-        mov   %eax,retval
-     end;   
-    checkreturnvalue(retval,retval);
-    LinuxError:=errno;
+     do_syscall(96,which,who,what);
+     LinuxError:=ErrNo;
    end;
 end;
 
@@ -1213,16 +1142,10 @@ Function GetPid:LongInt;
 {
   Get Process ID.
 }
-var retval : longint;
 
 begin
- asm
-   mov   $20,%eax
-   int   $0x80
-   mov   %eax,retval
- end;   
-  GetPID:=checkreturnvalue(retval,retval);
-  LinuxError:=errno;
+ GetPID:=do_syscall(20);
+ LinuxError:=errno;
 end;
 
 Function GetPPid:LongInt;
@@ -1230,15 +1153,9 @@ Function GetPPid:LongInt;
   Get Process ID of parent process.
 }
 
-var retval : longint;
 
 begin
- asm
-   mov   $39,%eax
-   int   $0x80
-   mov   %eax,retval
- end;  
-  GetpPID:=checkreturnvalue(retval,retval);
+  GetPPid:=do_syscall(39);
   LinuxError:=errno;
 end;
 
@@ -1247,16 +1164,10 @@ Function GetUid:Longint;
   Get User ID.
 }
 
-var retval : longint;
 
 begin
- asm
-   mov   $24,%eax
-   int   $0x80
-   mov   %eax,retval
- end;  
-  GetUID:=checkreturnvalue(retval,retval);
-  LinuxError:=errno;
+  GetUID:=do_syscall(24);
+  LinuxError:=ErrNo;
 end;
 
 
@@ -1266,16 +1177,10 @@ Function GetEUid:Longint;
   Get _effective_ User ID.
 }
 
-var retval : longint;
 
 begin
- asm
-   mov   $25,%eax
-   int   $0x80
-   mov   %eax,retval
- end;  
-  GetEUID:=checkreturnvalue(retval,retval);
-  LinuxError:=errno;
+  GetEUID:=do_syscall(25);
+  LinuxError:=ErrNo;
 end;
 
 
@@ -1284,16 +1189,9 @@ Function GetGid:Longint;
   Get Group ID.
 }
 
-var retval : longint;
-
 begin
- asm
-   mov   $47,%eax
-   int   $0x80
-   mov   %eax,retval
- end;  
-  GetGID:=checkreturnvalue(retval,retval);
-  LinuxError:=errno;
+  GetEUID:=do_syscall(47);
+  LinuxError:=ErrNo;
 end;
 
 
@@ -1301,16 +1199,10 @@ Function GetEGid:Longint;
 {
   Get _effective_ Group ID.
 }
-var retval : longint;
 
 begin
- asm
-   mov   $43,%eax
-   int   $0x80
-   mov   %eax,retval
- end;  
-  GetEGID:=checkreturnvalue(retval,retval);
-  LinuxError:=errno;
+ GetEGID:=do_syscall(43);
+ LinuxError:=ErrNo;
 end;
 
 {******************************************************************************
@@ -1369,21 +1261,10 @@ Procedure GetTimeOfDay(var tv:timeval);
 }
 
 var  tz : timezone;
-     retval : longint;
 
 begin
-  asm
-   lea   tz,%ebx
-   pushl %ebx
-   lea   tv,%ecx
-   pushl %ecx
-   mov   $116,%eax
-   int   $0x80
-   add   $8,%esp
-   mov   %eax,retval
-  end;
-  checkreturnvalue(retval,retval);
-  LinuxError:=Errno;
+ do_syscall(116,@tv,@tz);
+ LinuxError:=Errno;
 end;
 
 Function GetTimeOfDay: longint;
@@ -1551,22 +1432,10 @@ end;
 
 Function fdTruncate(fd,size:longint):boolean;
 
-Var Retval : LONGINT;
-
 begin
-  asm
-      push size
-      push fd
-      mov  $201,%eax
-      int  $0x80
-      addl $8,%esp
-      mov  %eax,retval
-  end;
-  fdtruncate:=checkreturnvalue(retval,retval)=0;
-  LinuxError:=Errno;
+ fdtruncate:=do_syscall(201,fd,size);
+ LinuxError:=Errno;
 end;
-
-
 
 Function  fdSeek (fd,pos,seektype :longint): longint;
 {
@@ -1578,39 +1447,19 @@ begin
    LinuxError:=Errno;
 end;
 
-
-
 Function  fdFlush (fd : Longint) : Boolean;
 
 Var Retval : LONGINT;
 
 begin
-  asm
-      push fd
-      mov  $95,%eax
-      int  $0x80
-      addl $4,%esp
-      mov  %eax,retval
-  end;
-  fdflush:=checkreturnvalue(retval,retval)=0;
+  fdflush:=do_syscall(95,fd);
   LinuxError:=Errno;
 end;
 
 function sys_fcntl(Fd:longint;Cmd:Integer;Arg:Longint):longint;
 
-var retval : LONGINT;
-
 begin
- asm
-    push arg
-    push cmd
-    push fd
-    mov  $92,%eax
-    int  $0x80
-    addl $12,%esp
-    mov %eax,retval
- end;
- sys_fcntl:=checkreturnvalue(retval,retval);
+ sys_fcntl:=do_syscall(92,fd,cmd,arg)
  LinuxError:=Errno;
 end;
 
@@ -1685,18 +1534,8 @@ var
   retval : longint;
 begin
   path:=path+#0;
- asm
-    lea %ebx,path
-    inc %ebx
-    push newmode
-    push %ebx
-    mov  $15,%eax
-    int  $0x80
-    addl $8,%esp
-    mov %eax,retval
- end;
- ChMod:=checkreturnvalue(retval,retval)=0;
- LinuxError:=Errno;
+  chmod:=do_syscall(15,longint(@path[1]),newmode);
+  LinuxError:=Errno;
 end;
 
 Function Chown(path:pathstr;NewUid,NewGid:longint):boolean;
@@ -1706,57 +1545,23 @@ Function Chown(path:pathstr;NewUid,NewGid:longint):boolean;
   The super-user can change uid and gid of any file.
 }
 
-var retval : longint;
-
 begin
   path:=path+#0;
- asm
-    lea %ebx,path
-    inc %ebx
-    push newgid
-    push newuid
-    push %ebx
-    mov  $16,%eax
-    int  $0x80
-    addl $12,%esp
-    mov %eax,retval
- end;
- Chown:=checkreturnvalue(retval,retval)=0;
+  ChOwn:=do_syscall(16,longint(@path[1],newuid,newgid);
  LinuxError:=Errno;
 end;
 
 Function Utime(path:pathstr;utim:utimebuf):boolean;
-var
-  Retval : longint;
+
 begin
- asm
-    lea %ebx,path
-    inc %ebx
-    push utim
-    push %ebx
-    mov  $138,%eax
-    int  $0x80
-    addl $12,%esp
-    mov %eax,retval
- end;
- utime:=checkreturnvalue(retval,retval)=0;
- LinuxError:=Errno;
+  UTime:=do_syscall(138,longint(@path[1],utim);
+  LinuxError:=Errno;
 end;
 
 Function  Flock (fd,mode : longint) : boolean;
 
-var
-  Retval : longint;
 begin
- asm
-    push mode
-    push fd
-    mov  $131,%eax
-    int  $0x80
-    addl $8,%esp
-    mov %eax,retval
- end;
- flock:=checkreturnvalue(retval,retval)=0;
+ Flock:=do_syscall(131,fd,mode)=0;
  LinuxError:=Errno;
 end;
 
@@ -1786,21 +1591,10 @@ Function Fstat(Fd:Longint;var Info:stat):Boolean;
   Get all information on a file descriptor, and return it in info.
 }
 
-var
-  Retval : longint;
 begin
- asm
-    push info
-    push fd
-    mov  $189,%eax
-    int  $0x80
-    addl $8,%esp
-    mov %eax,retval
- end;
- FStat:=checkreturnvalue(retval,retval)=0;
+ FStat:=do_syscall(189,fd,info)=0;
  LinuxError:=Errno;
 end;
-
 
 Function  FStat(var F:Text;Var Info:stat):Boolean;
 {
@@ -1808,9 +1602,8 @@ Function  FStat(var F:Text;Var Info:stat):Boolean;
 }
 begin
   FStat:=Fstat(TextRec(F).Handle,INfo);
+
 end;
-
-
 
 Function  FStat(var F:File;Var Info:stat):Boolean;
 {
@@ -1828,43 +1621,22 @@ var
   Retval : longint;
 begin
  FileName:=FileName+#0;
-  asm
-    lea filename,%ebx
-    inc  %ebx
-    push info
-    push %ebx
-    mov  $189,%eax
-    int  $0x80
-    addl $8,%esp
-    mov %eax,retval
- end;
- LStat:=checkreturnvalue(retval,retval)=0;
+ LStat:=Do_syscall(189,info,longint(@filename[1]))=0;
  LinuxError:=Errno;
 end;
 
 Function FSStat(Path:Pathstr;Var Info:statfs):Boolean;
+
 {
   Get all information on a fileSystem, and return it in Info.
   Path is the name of a file/directory on the fileSystem you wish to
   investigate.
 }
 
-var
-  Retval : longint;
 begin
   path:=path+#0;
-  asm
-    lea path,%ebx
-    inc  %ebx
-    push info
-    push %ebx
-    mov  $157,%eax
-    int  $0x80
-    addl $8,%esp
-    mov %eax,retval
- end;
- FSStat:=checkreturnvalue(retval,retval)=0;
- LinuxError:=Errno;
+  FSStat:=DoSyscall(157,longint(@path[1]),info);
+  LinuxError:=Errno;
 end;
 
 Function FSStat(Fd:Longint;Var Info:statfs):Boolean;
@@ -1874,18 +1646,8 @@ Function FSStat(Fd:Longint;Var Info:statfs):Boolean;
   you wish to investigate.
 }
 
-var
-  Retval : longint;
 begin
-  asm
-    push info
-    push fd
-    mov  $158,%eax
-    int  $0x80
-    addl $8,%esp
-    mov %eax,retval
- end;
- FSStat:=checkreturnvalue(retval,retval)=0;
+ FSStat:=do_syscall(158,fd,info);
  LinuxError:=Errno;
 end;
 
@@ -1894,24 +1656,10 @@ Function Link(OldPath,NewPath:pathstr):boolean;
   Proceduces a hard link from new to old.
   In effect, new will be the same file as old.
 }
-var
-  retval : longint;
 begin
   oldpath:=oldpath+#0;
   newpath:=newpath+#0;
- asm
-    lea oldpath,%ebx
-    lea newpath,%ecx
-    inc  %ebx
-    inc  %ecx   
-    push %ecx
-    push %ebx
-    mov  $9,%eax
-    int  $0x80
-    addl $8,%esp
-    mov %eax,retval
- end;
- Link:=checkreturnvalue(retval,retval)=0;
+  Link:=DoSyscall(9,longint(@oldpath[1]),longint(@newpath[1]))=0;
  LinuxError:=Errno;
 end;
 
@@ -1920,25 +1668,11 @@ Function SymLink(OldPath,newPath:pathstr):boolean;
   Proceduces a soft link from new to old.
 }
 
-var
-  retval : longint;
-begin
+bwgin
   oldpath:=oldpath+#0;
   newpath:=newpath+#0;
- asm
-    lea oldpath,%ebx
-    lea newpath,%ecx
-    inc  %ebx
-    inc  %ecx   
-    push %ecx
-    push %ebx
-    mov  $57,%eax
-    int  $0x80
-    addl $8,%esp
-    mov %eax,retval
- end;
- SymLink:=checkreturnvalue(retval,retval)=0;
- LinuxError:=Errno;
+  SymLink:=DoSyscall(57,longint(@oldpath[1]),longint(@newpath[1]))=0;
+  LinuxError:=Errno;
 end;
 
 Function UnLink(Path:pathstr):boolean;
@@ -1983,17 +1717,8 @@ Function Umask(Mask:Integer):integer;
   Sets file creation mask to (Mask and 0777 (octal) ), and returns the
   previous value.
 }
-var
-  retval : longint;
 begin
- asm
-    pushw mask
-    mov  $60,%eax
-    int  $0x80
-    addl $2,%esp
-    mov %eax,retval
- end;
- Umask:=checkreturnvalue(retval,retval);
+ UMask:=Do_syscall(60,mask);
  LinuxError:=0;
 end;
 
@@ -2011,21 +1736,9 @@ Function Access(Path:Pathstr ;mode:longint):boolean;
   Errors other than no access,are reported in linuxerror.
 }
 
-var
-  retval : longint;
 begin
   path:=path+#0;
- asm
-    lea path,%ebx
-    inc  %ebx
-    push mode
-    push %ebx
-    mov  $33,%eax
-    int  $0x80
-    addl $8,%esp
-    mov %eax,retval
- end;
- Access:=checkreturnvalue(retval,retval)=0;
+ Access:=do_syscall(33,mode,longint(@path[1]));
  LinuxError:=Errno;
 end;
 
@@ -2034,17 +1747,8 @@ Function  Dup(oldfile:longint;var newfile:longint):Boolean;
   Copies the filedescriptor oldfile to newfile
 }
 
-var
-  retval : longint;
 begin
- asm
-    push oldfile
-    mov  $41,%eax
-    int  $0x80
-    addl $4,%esp
-    mov %eax,retval
- end;
- NewFile:=checkreturnvalue(retval,retval);
+ newfile:=Do_syscall($41,oldfile);
  LinuxError:=Errno;
  Dup:=(LinuxError=0);
 end;
@@ -2079,18 +1783,9 @@ Function Dup2(oldfile,newfile:longint):Boolean;
 {
   Copies the filedescriptor oldfile to newfile
 }
-var
-  retval : longint;
+
 begin
- asm
-    push newfile
-    push oldfile
-    mov  $90,%eax
-    int  $0x80
-    addl $8,%esp
-    mov %eax,retval
- end;
- checkreturnvalue(retval,retval);
+ do_syscall(90,oldfile,newfile);
  LinuxError:=Errno;
  Dup2:=(LinuxError=0);
 end;
@@ -2306,7 +2001,7 @@ Function AssignPipe(var pipe_in,pipe_out:longint):boolean;
 var
   pip  : tpipe;
   retval  : LONGINT;
- 
+
 begin
  asm
     lea pip,%ebx
@@ -2393,7 +2088,7 @@ Function PClose(Var F:text) :longint;
 var
   pl  : ^longint;
   res : longint;
- 
+
 begin
   res:=Textrec(F).Handle;
   asm
@@ -2413,7 +2108,7 @@ Function PClose(Var F:file) : longint;
 var
   pl : ^longint;
   res : longint;
- 
+
 begin
   res:=filerec(F).Handle;
   asm
@@ -2902,7 +2597,7 @@ begin
  end;
  Kill:=checkreturnvalue(retval,retval);
  if kill<0 THEN
-  Kill:=0; 
+  Kill:=0;
  LinuxError:=Errno;
 end;
 
@@ -4063,7 +3758,10 @@ End.
 
 {
   $Log$
-  Revision 1.3  2000-02-04 16:53:26  marco
+  Revision 1.4  2000-03-01 17:27:46  marco
+   * Fixed first half of linux unit to portable syscall struct.
+
+  Revision 1.3  2000/02/04 16:53:26  marco
    * Finished Linux (and rest syscalls) roughly. Some things still need to be
     tested, and checked (off_t calls specially)
 
