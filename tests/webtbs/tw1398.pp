@@ -10,5 +10,5 @@ end;
 var dwThread:DWORD;
 begin
   dwThread := GetCurrentThreadId;
-  EnumTaskWindows (dwThread, @Enum_FindTaskWindow, LPARAM(NULL));
+  EnumTaskWindows (dwThread, @Enum_FindTaskWindow, LPARAM(nil));
 end.
