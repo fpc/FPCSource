@@ -42,7 +42,7 @@ paste to and AS source). Ultimately I hope to design something like this}
 procedure actualsyscall; cdecl; EXTERNAL NAME '_actualsyscall';
 }
 
-procedure actualsyscall; assembler;
+procedure actualsyscall; assembler; {inline requires a dummy push IIRC}
     asm
          int $0x80
          jb .LErrorcode
@@ -52,7 +52,6 @@ procedure actualsyscall; assembler;
 	 mov %eax,%ebx
          mov $-1,%eax
    end;
-
 
 function Do_SysCall(sysnr:LONGINT):longint; assembler;
 
@@ -301,6 +300,7 @@ begin
  sys_rmdir:=do_syscall(syscall_nr_rmdir,longint(filename));
 end;
 
+{$ifndef NewReaddir}
 
 const DIRBLKSIZ=1024;
 
@@ -373,41 +373,45 @@ begin
 end;
 
 var
-    l              : pdirent;
+    FinalEntry     : pdirent;
     novalid        : boolean;
-
+    Reclen	   : Longint;
+    CurEntry	   : PDirent;
 begin
  if (p^.buf=nil) or (p^.loc=0) THEN
   exit(nil);
- if p^.loc=-1 then         {First readdir on this pdir. Initial fill of buffer}
-  begin
-   if readbuffer()=0 Then    {nothing to be read}
-    exit(nil)
-  end;
- l:=nil;
+ if (p^.loc=-1)   OR     {First readdir on this pdir. Initial fill of buffer}
+   (p^.rewind>=(longint(p^.buf)+dirblksiz)) then  {no more entries left?}
+  Begin
+    if readbuffer=0 then        {succesful read?}
+     Exit(NIL);			{No more data}
+  End;
+ FinalEntry:=NIL;
+ CurEntry:=nil;
  repeat
   novalid:=false;
-  if (pdirent(p^.rewind)^.reclen<>0) then
+  CurEntry:=pdirent(p^.rewind);
+  RecLen:=CurEntry^.reclen;
+  if RecLen<>0 Then
    begin {valid direntry?}
-    if pdirent(P^.rewind)^.ino<>0 then
-     l:=pdirent(p^.rewind);       
-    inc(p^.rewind,pdirent(p^.rewind)^.reclen);
-    if p^.rewind>=(longint(p^.buf)+dirblksiz) then
-     novalid:=true;
+    if CurEntry^.ino<>0 then
+     FinalEntry:=CurEntry;
+    inc(p^.rewind,Reclen);
    end
   else
-   novalid:=true;
-  if novalid then
    begin {block entirely searched or reclen=0}
+    Novalid:=True;
     if p^.loc<>0 THEN             {blocks left?}
      if readbuffer()<>0 then        {succesful read?}
       novalid:=false;
    end;
- until (l<>nil) or novalid;
+ until (FinalEntry<>nil) or novalid;
  If novalid then
-  l:=nil;
- Sys_ReadDir:=l;
+  FinalEntry:=nil;
+ Sys_ReadDir:=FinalEntry;
 end;
+
+{$endif}
 
 
 {*****************************************************************************
@@ -510,7 +514,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2001-08-27 09:35:07  marco
+  Revision 1.8  2002-05-06 07:27:39  marco
+   * Fixed a readdir bug, already fixed in januari in 1.0.x
+
+  Revision 1.7  2001/08/27 09:35:07  marco
    * Ftruncate intermediate fix.
 
   Revision 1.6  2001/06/19 08:34:16  marco
