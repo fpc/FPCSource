@@ -376,6 +376,7 @@ unit symtable;
 
 {*** Misc ***}
     function  globaldef(const s : string) : pdef;
+    function  findunitsymtable(st:psymtable):psymtable;
     procedure duplicatesym(sym:psym);
 
 {*** Search ***}
@@ -547,6 +548,33 @@ implementation
       end;
 
 
+    function findunitsymtable(st:psymtable):psymtable;
+      begin
+        findunitsymtable:=nil;
+        repeat
+          if not assigned(st) then
+           internalerror(5566561);
+          case st^.symtabletype of
+            localsymtable,
+            parasymtable,
+            staticsymtable :
+              break;
+            globalsymtable,
+            unitsymtable :
+              begin
+                findunitsymtable:=st;
+                break;
+              end;
+            objectsymtable,
+            recordsymtable :
+              st:=st^.defowner^.owner;
+            else
+              internalerror(5566562);
+          end;
+        until false;
+      end;
+
+
    procedure setstring(var p : pchar;const s : string);
      begin
 {$ifndef Delphi}
@@ -566,10 +594,21 @@ implementation
 
 
      procedure duplicatesym(sym:psym);
+       var
+         st : psymtable;
        begin
          Message1(sym_e_duplicate_id,sym^.name);
-         with sym^.fileinfo do
-          Message2(sym_h_duplicate_id_where,current_module^.sourcefiles^.get_file_name(fileindex),tostr(line));
+         st:=findunitsymtable(sym^.owner);
+         if assigned(st) then
+          begin
+            with sym^.fileinfo do
+             begin
+               if st^.unitid=0 then
+                Message2(sym_h_duplicate_id_where,current_module^.sourcefiles^.get_file_name(fileindex),tostr(line))
+               else
+                Message2(sym_h_duplicate_id_where,'unit '+st^.name^,tostr(line));
+             end;
+          end;
        end;
 
 
@@ -1901,7 +1940,7 @@ implementation
 
         writesourcefiles;
         writeusedmacros;
-        
+
         writeusedunit;
 
       { write the objectfiles and libraries that come for this unit,
@@ -2353,7 +2392,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  1999-08-31 15:46:21  pierre
+  Revision 1.45  1999-09-08 08:05:44  peter
+    * fixed bug 248
+
+  Revision 1.44  1999/08/31 15:46:21  pierre
     * do_crc must be false for all browser stuff
     + tmacrosym defined_at_startup set in def_macro and set_macro
 
