@@ -421,9 +421,11 @@
 
 
     procedure tprocsym.deref;
+{$ifdef DONOTCHAINOPERATORS}
       var
         t    : ttoken;
         last,pd : pprocdef;
+{$endif DONOTCHAINOPERATORS}
       begin
          resolvedef(pdef(definition));
 {$ifdef DONOTCHAINOPERATORS}
@@ -1117,13 +1119,22 @@
 
     function tvarsym.getsize : longint;
       begin
+        if assigned(vartype.def) then
+          getsize:=vartype.def^.size
+        else
+          getsize:=0;
+      end;
+
+
+    function tvarsym.getvaluesize : longint;
+      begin
         if assigned(vartype.def) and
            (varspez=vs_value) and
            ((vartype.def^.deftype<>arraydef) or
             (Parraydef(vartype.def)^.highrange>=Parraydef(vartype.def)^.lowrange)) then
-          getsize:=vartype.def^.size
+          getvaluesize:=vartype.def^.size
         else
-          getsize:=0;
+          getvaluesize:=0;
       end;
 
 
@@ -1205,7 +1216,7 @@
              if (vo_is_thread_var in varoptions) then
                l:=4
              else
-               l:=getsize;
+               l:=getvaluesize;
              case owner^.symtabletype of
                stt_exceptsymtable:
                  { can contain only one symbol, address calculated later }
@@ -2151,7 +2162,10 @@
 
 {
   $Log$
-  Revision 1.145  2000-05-03 14:34:05  pierre
+  Revision 1.146  2000-05-18 17:05:17  peter
+    * fixed size of const parameters in asm readers
+
+  Revision 1.145  2000/05/03 14:34:05  pierre
    * fix the unitsym chain
 
   Revision 1.144  2000/04/27 10:06:04  pierre

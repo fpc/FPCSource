@@ -1833,7 +1833,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.69  2000-05-12 21:57:02  pierre
+  Revision 1.70  2000-05-18 17:05:16  peter
+    * fixed size of const parameters in asm readers
+
+  Revision 1.69  2000/05/12 21:57:02  pierre
     + use of a dictionary object
       for faster opcode searching in assembler readers
       implemented by Kovacs Attila Zoltan

@@ -3127,8 +3127,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 
     begin
        if (psym(p)^.typ=varsym) and
-         (pvarsym(p)^.getsize>ls) then
-         ls:=pvarsym(p)^.getsize;
+         (pvarsym(p)^.getvaluesize>ls) then
+         ls:=pvarsym(p)^.getvaluesize;
     end;
 
   procedure alignstack(alist : paasmoutput);
@@ -3968,7 +3968,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.103  2000-05-17 11:06:11  pierre
+  Revision 1.104  2000-05-18 17:05:15  peter
+    * fixed size of const parameters in asm readers
+
+  Revision 1.103  2000/05/17 11:06:11  pierre
    add a comment about ENTER and linux
 
   Revision 1.102  2000/05/14 18:49:04  florian

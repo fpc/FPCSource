@@ -1512,7 +1512,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.42  2000-05-11 09:56:22  pierre
+  Revision 1.43  2000-05-18 17:05:16  peter
+    * fixed size of const parameters in asm readers
+
+  Revision 1.42  2000/05/11 09:56:22  pierre
     * fixed several compare problems between longints and
       const > $80000000 that are treated as int64 constanst
       by Delphi reported by Kovacs Attila Zoltan

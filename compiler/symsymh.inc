@@ -178,6 +178,7 @@
           function  mangledname : string;virtual;
           procedure insert_in_data;virtual;
           function  getsize : longint;
+          function  getvaluesize : longint;
           function  getpushsize : longint;
 {$ifdef GDB}
           function  stabstring : pchar;virtual;
@@ -318,7 +319,10 @@
 
 {
   $Log$
-  Revision 1.49  2000-05-03 14:34:05  pierre
+  Revision 1.50  2000-05-18 17:05:17  peter
+    * fixed size of const parameters in asm readers
+
+  Revision 1.49  2000/05/03 14:34:05  pierre
    * fix the unitsym chain
 
   Revision 1.48  2000/04/27 10:06:04  pierre

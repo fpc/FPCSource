@@ -178,7 +178,7 @@ implementation
                                      begin
                                         if use_esp_stackframe then
                                           dec(p^.location.reference.offset,
-                                            pvarsym(p^.symtableentry)^.getsize)
+                                            pvarsym(p^.symtableentry)^.getvaluesize)
                                         else
                                           p^.location.reference.offset:=-p^.location.reference.offset;
                                      end;
@@ -1000,7 +1000,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.107  2000-05-14 18:50:35  florian
+  Revision 1.108  2000-05-18 17:05:15  peter
+    * fixed size of const parameters in asm readers
+
+  Revision 1.107  2000/05/14 18:50:35  florian
     + Int64/QWord stuff for array of const added
 
   Revision 1.106  2000/04/03 12:23:02  pierre

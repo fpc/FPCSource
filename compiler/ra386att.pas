@@ -144,7 +144,6 @@ const
   );
 var
   str2opentry: pstr2opentry;
-  i    : tasmop;
   cond : string[4];
   cnd  : tasmcond;
   len,
@@ -2001,7 +2000,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.78  2000-05-12 21:57:02  pierre
+  Revision 1.79  2000-05-18 17:05:16  peter
+    * fixed size of const parameters in asm readers
+
+  Revision 1.78  2000/05/12 21:57:02  pierre
     + use of a dictionary object
       for faster opcode searching in assembler readers
       implemented by Kovacs Attila Zoltan
