@@ -2623,7 +2623,7 @@ implementation
       begin
         if IsDynamicArray then
           begin
-            size:=4;
+            size:=target_info.size_of_pointer;
             exit;
           end;
         {Tarraydef.size may never be called for an open array!}
@@ -5458,7 +5458,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.57  2001-11-18 18:43:14  peter
+  Revision 1.58  2001-11-30 15:01:51  jonas
+    * tarraydef.size returns target_info.size_of_pointer instead of 4 for
+      dynamic arrays
+
+  Revision 1.57  2001/11/18 18:43:14  peter
     * overloading supported in child classes
     * fixed parsing of classes with private and virtual and overloaded
       so it is compatible with delphi
