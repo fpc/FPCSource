@@ -43,6 +43,20 @@ const
   v_all            = $ff;
 
 type
+  tprocinfoflag=(
+    {# procedure uses asm }
+    pi_uses_asm,
+    {# procedure does a call }
+    pi_do_call,
+    {# procedure has a try statement = no register optimization }
+    pi_uses_exceptions,
+    {# procedure is declared as @var(assembler), don't optimize}
+    pi_is_assembler,
+    {# procedure contains data which needs to be finalized }
+    pi_needs_implicit_finally
+  );
+  tprocinfoflags=set of tprocinfoflag;
+
   { Copied from systems.pas }
   ttargetcpu=
   (
@@ -1219,6 +1233,8 @@ var
   totaldefs,l,j,
   defcnt : longint;
   calloption : tproccalloption;
+  procinfooptions : tprocinfoflag;
+
 begin
   defcnt:=0;
   with ppufile do
@@ -1330,7 +1346,11 @@ begin
               end;
              { code }
              if (calloption=pocall_inline) then
-               readnodetree;
+               begin
+                 readnodetree;
+                 ppufile.getsmallset(procinfooptions);
+                 writeln(space,'  ProcInfoOptions : ',dword(procinfooptions));
+               end;
              delete(space,1,4);
            end;
 
@@ -1929,7 +1949,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.49  2003-12-08 21:04:08  peter
+  Revision 1.50  2003-12-16 21:29:25  florian
+    + inlined procedures inherit procinfo flags
+
+  Revision 1.49  2003/12/08 21:04:08  peter
     * line break in uses unit
 
   Revision 1.48  2003/11/10 22:02:52  peter

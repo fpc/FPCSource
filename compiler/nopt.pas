@@ -86,7 +86,7 @@ var
 implementation
 
 uses cutils, htypechk, defutil, defcmp, globtype, globals, cpubase, ncnv, ncon,ncal,
-     verbose, symdef, cgbase, procinfo;
+     verbose, symconst,symdef, cgbase, procinfo;
 
 
 {*****************************************************************************
@@ -290,7 +290,10 @@ end.
 
 {
   $Log$
-  Revision 1.17  2003-10-01 20:34:49  peter
+  Revision 1.18  2003-12-16 21:29:24  florian
+    + inlined procedures inherit procinfo flags
+
+  Revision 1.17  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

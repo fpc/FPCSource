@@ -319,6 +319,20 @@ type
     te_exact
   );
 
+  tprocinfoflag=(
+    {# procedure uses asm }
+    pi_uses_asm,
+    {# procedure does a call }
+    pi_do_call,
+    {# procedure has a try statement = no register optimization }
+    pi_uses_exceptions,
+    {# procedure is declared as @var(assembler), don't optimize}
+    pi_is_assembler,
+    {# procedure contains data which needs to be finalized }
+    pi_needs_implicit_finally
+  );
+  tprocinfoflags=set of tprocinfoflag;
+
 {$ifdef GDB}
 type
   tdefstabstatus = (
@@ -379,7 +393,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.71  2003-11-23 17:05:16  peter
+  Revision 1.72  2003-12-16 21:29:24  florian
+    + inlined procedures inherit procinfo flags
+
+  Revision 1.71  2003/11/23 17:05:16  peter
     * register calling is left-right
     * parameter ordering
     * left-right calling inserts result parameter last

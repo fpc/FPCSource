@@ -38,21 +38,9 @@ unit procinfo;
       aasmbase,aasmtai
       ;
 
+    const
+      inherited_inlining_flags : tprocinfoflags = [pi_do_call];
 
-    type
-      tprocinfoflag=(
-        {# procedure uses asm }
-        pi_uses_asm,
-        {# procedure does a call }
-        pi_do_call,
-        {# procedure has a try statement = no register optimization }
-        pi_uses_exceptions,
-        {# procedure is declared as @var(assembler), don't optimize}
-        pi_is_assembler,
-        {# procedure contains data which needs to be finalized }
-        pi_needs_implicit_finally
-      );
-      tprocinfoflags=set of tprocinfoflag;
 
     type
        {# This object gives information on the current routine being
@@ -211,7 +199,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2003-12-03 23:13:20  peter
+  Revision 1.10  2003-12-16 21:29:24  florian
+    + inlined procedures inherit procinfo flags
+
+  Revision 1.9  2003/12/03 23:13:20  peter
     * delayed paraloc allocation, a_param_*() gets extra parameter
       if it needs to allocate temp or real paralocation
     * optimized/simplified int-real loading

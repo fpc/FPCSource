@@ -494,6 +494,13 @@ interface
            1 : (i : longint);
        end;
 
+       tinlininginfo = record
+         { node tree }
+          code : tnode;
+          flags : tprocinfoflags;
+       end;
+       pinlininginfo = ^tinlininginfo;
+
        tprocdef = class(tabstractprocdef)
        private
           _mangledname : pstring;
@@ -528,13 +535,11 @@ interface
           refcount : longint;
           _class : tobjectdef;
           _classderef : tderef;
-          { it's a tree, but this not easy to handle }
-          { used for inlined procs                   }
-          code : tnode;
+
           { name of the result variable to insert in the localsymtable }
           resultname : stringid;
-          { true, if the procedure is only declared }
-          { (forward procedure) }
+          { true, if the procedure is only declared
+            (forward procedure) }
           forwarddef,
           { true if the procedure is declared in the interface }
           interfacedef : boolean;
@@ -542,6 +547,9 @@ interface
           hasforward : boolean;
           { check the problems of manglednames }
           has_mangledname : boolean;
+          { info for inlining the subroutine, if this pointer is nil,
+            the procedure can't be inlined }
+          inlininginfo : pinlininginfo;
           constructor create(level:byte);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
@@ -3597,7 +3605,11 @@ implementation
          interfacedef:=false;
          hasforward:=false;
          _class := nil;
-         code:=nil;
+         { only for non inlined procedures loaded from a unit
+           we don't need this info
+         }
+         new(inlininginfo);
+         fillchar(inlininginfo^,sizeof(tinlininginfo),0);
          overloadnumber:=0;
 {$ifdef GDB}
          isstabwritten := false;
@@ -3647,9 +3659,13 @@ implementation
 
          { inline stuff }
          if proccalloption=pocall_inline then
-           code:=ppuloadnodetree(ppufile)
+           begin
+             new(inlininginfo);
+             inlininginfo^.code:=ppuloadnodetree(ppufile);
+             ppufile.getsmallset(inlininginfo^.flags);
+           end
          else
-           code := nil;
+           inlininginfo := nil;
 
          { default values for no persistent data }
          if (cs_link_deffile in aktglobalswitches) and
@@ -3688,16 +3704,18 @@ implementation
             memproclocalst.start;
 {$endif MEMDEBUG}
           end;
-         if (proccalloption=pocall_inline) and assigned(code) then
+         if (proccalloption=pocall_inline) and assigned(inlininginfo) then
           begin
 {$ifdef MEMDEBUG}
             memprocnodetree.start;
 {$endif MEMDEBUG}
-            tnode(code).free;
+            tnode(inlininginfo^.code).free;
 {$ifdef MEMDEBUG}
             memprocnodetree.start;
 {$endif MEMDEBUG}
           end;
+         if assigned(inlininginfo) then
+           dispose(inlininginfo);
          if (po_msgstr in procoptions) then
            strdispose(messageinf.str);
          if assigned(_mangledname) then
@@ -3774,7 +3792,11 @@ implementation
          oldintfcrc:=ppufile.do_crc;
          ppufile.do_crc:=false;
          if proccalloption=pocall_inline then
-           ppuwritenodetree(ppufile,code);
+           begin
+             ppuwritenodetree(ppufile,inlininginfo^.code);
+             ppufile.putsmallset(inlininginfo^.flags);
+           end;
+
          ppufile.do_crc:=oldintfcrc;
 
          aktparasymtable:=oldparasymtable;
@@ -3790,7 +3812,6 @@ implementation
            to check same names in parast and localst }
          localst.next:=parast;
      end;
-
 
 
     function tprocdef.fullprocname(showhidden:boolean):string;
@@ -4169,7 +4190,7 @@ implementation
 
          { inline tree }
          if (proccalloption=pocall_inline) then
-           code.buildderefimpl;
+           inlininginfo^.code.buildderefimpl;
 
          aktparasymtable:=oldparasymtable;
          aktlocalsymtable:=oldlocalsymtable;
@@ -4229,7 +4250,7 @@ implementation
 
         { inline tree }
         if (proccalloption=pocall_inline) then
-          code.derefimpl;
+          inlininginfo^.code.derefimpl;
 
         aktparasymtable:=oldparasymtable;
         aktlocalsymtable:=oldlocalsymtable;
@@ -6118,7 +6139,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.192  2003-12-12 12:09:40  marco
+  Revision 1.193  2003-12-16 21:29:24  florian
+    + inlined procedures inherit procinfo flags
+
+  Revision 1.192  2003/12/12 12:09:40  marco
    * always generate RTTI patch from peter
 
   Revision 1.191  2003/12/08 22:34:24  peter

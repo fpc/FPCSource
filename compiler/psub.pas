@@ -249,7 +249,7 @@ implementation
         writeln(printnodefile,'*******************************************************************************');
         writeln(printnodefile,current_procinfo.procdef.fullprocname(false));
         writeln(printnodefile,'*******************************************************************************');
-        printnode(printnodefile,pd.code);
+        printnode(printnodefile,pd.inlininginfo^.code);
         close(printnodefile);
       end;
 
@@ -895,7 +895,7 @@ implementation
             code.free;
             code:=nil;
             if (procdef.proccalloption<>pocall_inline) then
-              procdef.code:=nil;
+              procdef.inlininginfo^.code:=nil;
           end;
        end;
 
@@ -985,13 +985,14 @@ implementation
                printnode_procdef(procdef);
            end;
 
+         new(procdef.inlininginfo);
          { store a copy of the original tree for inline, for
            normal procedures only store a reference to the
            current tree }
          if (procdef.proccalloption=pocall_inline) then
-           procdef.code:=code.getcopy
+           procdef.inlininginfo^.code:=code.getcopy
          else
-           procdef.code:=code;
+           procdef.inlininginfo^.code:=code;
 
          { ... remove symbol tables }
          remove_from_symtablestack;
@@ -1330,7 +1331,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.177  2003-12-15 21:25:48  peter
+  Revision 1.178  2003-12-16 21:29:24  florian
+    + inlined procedures inherit procinfo flags
+
+  Revision 1.177  2003/12/15 21:25:48  peter
     * reg allocations for imaginary register are now inserted just
       before reg allocation
     * tregister changed to enum to allow compile time check

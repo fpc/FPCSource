@@ -2465,8 +2465,8 @@ type
                      CGMessage(cg_e_unable_inline_procvar);
                    if not assigned(inlinecode) then
                      begin
-                       if assigned(tprocdef(procdefinition).code) then
-                         inlinecode:=tprocdef(procdefinition).code.getcopy
+                       if assigned(tprocdef(procdefinition).inlininginfo^.code) then
+                         inlinecode:=tprocdef(procdefinition).inlininginfo^.code.getcopy
                        else
                          CGMessage(cg_e_no_code_for_inline_stored);
                        if assigned(inlinecode) then
@@ -2612,7 +2612,10 @@ type
            end;
       errorexit:
          if assigned(inlinecode) then
-           procdefinition.proccalloption:=pocall_inline;
+           begin
+             procdefinition.proccalloption:=pocall_inline;
+             current_procinfo.flags:=current_procinfo.flags+((procdefinition as tprocdef).inlininginfo^.flags*inherited_inlining_flags);
+           end;
       end;
 
 {$ifdef state_tracking}
@@ -2698,7 +2701,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.212  2003-12-08 22:37:28  peter
+  Revision 1.213  2003-12-16 21:29:24  florian
+    + inlined procedures inherit procinfo flags
+
+  Revision 1.212  2003/12/08 22:37:28  peter
     * paralength is private again
 
   Revision 1.211  2003/12/08 16:34:23  peter
