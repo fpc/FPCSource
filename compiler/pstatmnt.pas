@@ -851,7 +851,7 @@ implementation
                 until false;
               consume(_RECKKLAMMER);
            end
-         else rg.usedinproc := [firstreg..lastreg];
+         else rg.usedinproc := ALL_REGISTERS;
 
          { mark the start and the end of the assembler block
            this is needed for the optimizer }
@@ -1202,7 +1202,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  2002-03-31 20:26:36  jonas
+  Revision 1.50  2002-04-14 16:53:54  carl
+  + asm statement uses ALL_REGISTERS
+
+  Revision 1.49  2002/03/31 20:26:36  jonas
     + a_loadfpu_* and a_loadmm_* methods in tcg
     * register allocation is now handled by a class and is mostly processor
       independent (+rgobj.pas and i386/rgcpu.pas)
