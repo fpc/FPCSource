@@ -46,6 +46,9 @@ implementation
                              FirstInLine
 *****************************************************************************}
 
+{$ifdef fpc}
+{$maxfpuregisters 0}
+{$endif fpc}
     procedure firstinline(var p : ptree);
       var
          vl,vl2  : longint;
@@ -1275,12 +1278,18 @@ implementation
              p^.resulttype:=generrordef;
          dec(parsing_para_level);
        end;
-
+{$ifdef fpc}
+{$maxfpuregisters default}
+{$endif fpc}
 
 end.
 {
   $Log$
-  Revision 1.65  2000-02-09 13:23:07  peter
+  Revision 1.66  2000-02-13 14:21:51  jonas
+    * modifications to make the compiler functional when compiled with
+      -Or
+
+  Revision 1.65  2000/02/09 13:23:07  peter
     * log truncated
 
   Revision 1.64  2000/01/07 01:14:45  peter

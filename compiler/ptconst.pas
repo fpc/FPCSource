@@ -51,6 +51,9 @@ unit ptconst;
        hcgdata;
 
 
+{$ifdef fpc}
+{$maxfpuregisters 0}
+{$endif fpc}
     { this procedure reads typed constants }
     procedure readtypedconst(def : pdef;sym : ptypedconstsym;no_change_allowed : boolean);
 
@@ -765,11 +768,18 @@ unit ptconst;
          else Message(parser_e_type_const_not_possible);
          end;
       end;
+{$ifdef fpc}
+{$maxfpuregisters default}
+{$endif fpc}
 
 end.
 {
   $Log$
-  Revision 1.62  2000-02-09 13:23:01  peter
+  Revision 1.63  2000-02-13 14:21:51  jonas
+    * modifications to make the compiler functional when compiled with
+      -Or
+
+  Revision 1.62  2000/02/09 13:23:01  peter
     * log truncated
 
   Revision 1.61  2000/01/07 01:14:33  peter

@@ -841,7 +841,9 @@ unit pexpr;
 {****************************************************************************
                                Factor
 ****************************************************************************}
-
+{$ifdef fpc}
+{$maxfpuregisters 0}
+{$endif fpc}
     function factor(getaddr : boolean) : ptree;
       var
          l      : longint;
@@ -1897,7 +1899,9 @@ _LECKKLAMMER : begin
         factor:=p1;
         check_tokenpos;
       end;
-
+{$ifdef fpc}
+{$maxfpuregisters default}
+{$endif fpc}
 
 {****************************************************************************
                              Sub_Expr
@@ -2124,7 +2128,11 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.168  2000-02-09 13:22:56  peter
+  Revision 1.169  2000-02-13 14:21:50  jonas
+    * modifications to make the compiler functional when compiled with
+      -Or
+
+  Revision 1.168  2000/02/09 13:22:56  peter
     * log truncated
 
   Revision 1.167  2000/01/19 22:41:58  florian

@@ -44,7 +44,7 @@ Uses
 {$ifdef finaldestdebug}
   cobjects,
 {$endif finaldestdebug}
-  cpubase,cpuasm,DAOpt386,cobjects;
+  cpubase,cpuasm,DAOpt386;
 
 Function RegUsedAfterInstruction(Reg: TRegister; p: Pai; Var UsedRegs: TRegSet): Boolean;
 Begin
@@ -1890,7 +1890,11 @@ End.
 
 {
  $Log$
- Revision 1.86  2000-02-12 19:28:56  jonas
+ Revision 1.87  2000-02-13 14:21:50  jonas
+   * modifications to make the compiler functional when compiled with
+     -Or
+
+ Revision 1.86  2000/02/12 19:28:56  jonas
    * fix for imul optimization in popt386 (exclude top_ref as first
      argument)
    * in csopt386: change "mov reg1,reg2; <several operations on reg2>;

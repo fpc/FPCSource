@@ -172,6 +172,10 @@ implementation
           end;
       end;
 
+{$ifdef fpc}
+{$maxfpuregisters 0}
+{$endif fpc}
+
       var
          t,hp    : ptree;
          ot,
@@ -1254,7 +1258,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.65  2000-02-09 13:23:06  peter
+  Revision 1.66  2000-02-13 14:21:51  jonas
+    * modifications to make the compiler functional when compiled with
+      -Or
+
+  Revision 1.65  2000/02/09 13:23:06  peter
     * log truncated
 
   Revision 1.64  2000/02/04 08:47:10  florian
