@@ -87,12 +87,38 @@ Uses
 {$endif unix}
   dos;
 
+Const
+{$ifdef UNIX}
+  DirSep='/';
+{$else UNIX}
+  DirSep='\';
+{$endif UNIX}
+
 var
   FIN,FOUT,FERR     : ^File;
   RedirChangedOut,
   RedirChangedIn    : Boolean;
   RedirChangedError : Boolean;
   InRedirDisabled,OutRedirDisabled,ErrorRedirDisabled : Boolean;
+
+
+{*****************************************************************************
+                                     Helpers
+*****************************************************************************}
+
+function FixPath(const s:string):string;
+var
+  i : longint;
+begin
+  { Fix separator }
+  for i:=1 to length(s) do
+   if s[i] in ['/','\'] then
+    fixpath[i]:=DirSep
+   else
+    fixpath[i]:=s[i];
+  fixpath[0]:=s[0];
+end;
+
 
 {*****************************************************************************
                                      Dos
@@ -686,7 +712,7 @@ end;
     { Must use shell() for linux for the wildcard expansion (PFV) }
 {$ifdef UNIX}
     IOStatus:=0;
-    ExecuteResult:=Shell(Progname+' '+Comline);
+    ExecuteResult:=Shell(FixPath(Progname)+' '+Comline);
     { Signal that causes the stop of the shell }
     IOStatus:=ExecuteResult and $7F;
     { Exit Code seems to be in the second byte,
@@ -699,7 +725,7 @@ end;
     ExecInheritsHandles:=true;
   {$endif win32}
     DosError:=0;
-    Dos.Exec (Getenv('COMSPEC'),'/C '+progname+' '+Comline);
+    Dos.Exec (Getenv('COMSPEC'),'/C '+FixPath(progname)+' '+Comline);
   {$ifdef win32}
     ExecInheritsHandles:=StoreInherit;
   {$endif win32}
@@ -731,7 +757,10 @@ finalization
 End.
 {
   $Log$
-  Revision 1.5  2001-02-03 00:13:34  peter
+  Revision 1.6  2001-07-01 20:13:50  peter
+    * udpated for dos
+
+  Revision 1.5  2001/02/03 00:13:34  peter
     * linux -> unix for not 1.0.x compilers
 
   Revision 1.4  2000/12/10 12:08:11  peter
