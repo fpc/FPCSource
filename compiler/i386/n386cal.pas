@@ -77,17 +77,12 @@ implementation
            { open array ? }
            { defcoll.data can be nil for read/write }
            if assigned(defcoll.paratype.def) and
-              push_high_param(defcoll.paratype.def) then
-             begin
-               if assigned(hightree) then
-                begin
-                  secondpass(hightree);
-                  { this is a longint anyway ! }
-                  push_value_para(hightree,inlined,false,para_offset,4);
-                end
-               else
-                internalerror(432645);
-             end;
+              assigned(hightree) then
+            begin
+              secondpass(hightree);
+              { this is a longint anyway ! }
+              push_value_para(hightree,inlined,false,para_offset,4);
+            end;
         end;
 
       var
@@ -1590,7 +1585,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2000-12-25 00:07:32  peter
+  Revision 1.17  2001-01-08 21:46:46  peter
+    * don't push high value for open array with cdecl;external;
+
+  Revision 1.16  2000/12/25 00:07:32  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

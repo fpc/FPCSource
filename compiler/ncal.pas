@@ -287,7 +287,10 @@ interface
                  (nf_isproperty in left.flags) then
                 CGMessagePos(left.fileinfo,type_e_argument_cant_be_assigned);
               { generate the high() value tree }
-              if push_high_param(defcoll.paratype.def) then
+              if not(assigned(aktcallprocsym) and
+                     (([pocall_cppdecl,pocall_cdecl]*aktcallprocsym^.definition^.proccalloptions)<>[]) and
+                     (po_external in aktcallprocsym^.definition^.procoptions)) and
+                 push_high_param(defcoll.paratype.def) then
                 gen_high_tree(is_open_string(defcoll.paratype.def));
               if not(is_shortstring(left.resulttype) and
                      is_shortstring(defcoll.paratype.def)) and
@@ -1565,7 +1568,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2000-12-31 11:14:10  jonas
+  Revision 1.22  2001-01-08 21:46:46  peter
+    * don't push high value for open array with cdecl;external;
+
+  Revision 1.21  2000/12/31 11:14:10  jonas
     + implemented/fixed docompare() mathods for all nodes (not tested)
     + nopt.pas, nadd.pas, i386/n386opt.pas: optimized nodes for adding strings
       and constant strings/chars together
