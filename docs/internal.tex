@@ -56,7 +56,7 @@ writing. Since the compiler is under continuous development, some of the
 things described here may be outdated. In case of doubt, consult the
 \file{README} files distributed with the compiler.
 The \file{README} files are, in case of conflict with this manual,
- authoritative.
+authoritative.
 
 I hope, my poor english is quite understandable. Feel free to correct
 spelling mistakes.
@@ -71,7 +71,7 @@ spelling mistakes.
 
 The ultimate source for information about compiler internals is
 the compiler source, though it isn't very well documented. If you
-need more infomration you should join the developers mailing
+need more information you should join the developers mailing
 list or you can contact the developers.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -79,15 +79,46 @@ list or you can contact the developers.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Overview}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% History
+\section{History}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The compiler passes
+\section{The compiler passes}
+
+It isn't easy to divide the compilation process of \fpc into passes
+how it is described by many thesis about compiler building,
+but I would say \fpc does the compilation in five passes:
+
+\begin{enumerate}
+\item Scanning and Parsing. The compiler reads the input file,
+does preprocessing (i. e.
+reading include files, expanding macros ...) (\ref{ch:scanner})
+and the parser (\ref{ch:parser}) creates a parse tree (\ref{ch:parse_tree}).
+While this pass the compiler builds also the symbol tables
+(\ref{ch:symbol_tables}).
+\item Semantic analysis. This pass checks if semantic of
+the code is correct, i.e. if the types of expressions matches
+to the operators (\ref{ch:semantical_analysis}). This pass determines
+also how many registers are needed to evalute an expression, this
+information is used by the code generator later.
+\item Code generation
+\item Optimizing of the assembler
+\item Assembler writing
+\end{enumerate}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The scanner
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% \chapter{The scanner}
+\label{ch:scanner}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The symbol tables
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{The symbol tables}
+\label{ch:symbol_tables}
 
 The symbol table is used to store information about all
 symbols, declarations and definitions in a program.
@@ -130,37 +161,42 @@ To make it more clear let's have a look at the fields of tdef:
 % The parse tree
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% \chapter{The parse tree}
+\label{ch:parse_tree}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The parser
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% \chapter{The parser}
+\label{ch:parser}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The semantical analysis
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% \chapter{The semantical analysis}
+\label{ch:semantical_analysis}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The code generation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% \chapter{The code generation}
+\label{ch:code_generation}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The assembler writers
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{The assembler writers}
+\label{ch:assembler_writers}
 
 \fpc doesn't generate machine language, it generates
 assembler which must be assembled and linked.
 
 The assembler output is configurable, \fpc can create
-assembler for the GNU AS, the NASM (Netwide assembler) and
+assembler for the \file{GNU AS}, the \file{NASM} (Netwide assembler) and
 the assemblers of Borland and Microsoft. The default assembler
-is the GNU AS, because it is fast and and available on
-many platforms. Why don't we use the NASM? It is 2-4 times
-slower than the GNU AS and it is created for
-hand-written assembler, while the GNU AS is designed
+is the \file{GNU AS}, because it is fast and and available on
+many platforms. Why don't we use the \file{NASM}? It is 2-4 times
+slower than the \file{GNU AS} and it is created for
+hand-written assembler, while the \file{GNU AS} is designed
 as back end for a compiler.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -366,7 +402,7 @@ procedure test;
 \section{Future plans}
 \label{se:future_plans}
 
-\Appendix
+\appendix
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Coding style guide
