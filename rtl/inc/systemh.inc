@@ -210,7 +210,6 @@ Type
   UCS4String          = array of UCS4Char;
 {$endif VER1_0}
 
-
   UTF8String          = type ansistring;
   PUTF8String         = ^UTF8String;
 
@@ -270,6 +269,8 @@ Type
   {$else}
   WChar               = Word;
   {$endif}
+  UCS2Char            = WideChar;
+  PUCS2Char           = PWideChar;
 {$else}
   WChar               = Word;
 {$endif HASWIDECHAR}
@@ -551,9 +552,21 @@ Type
   TWide2AnsiMove=procedure(source:pwidechar;dest:pchar;len:SizeInt);
   TAnsi2WideMove=procedure(source:pchar;dest:pwidechar;len:SizeInt);
 
+
   TWideStringManager = record
     Wide2AnsiMove : TWide2AnsiMove;
     Ansi2WideMove : TAnsi2WideMove;
+
+    UpperUTF8 : procedure(p:PUTF8String);
+    UpperUCS2 : procedure(p:PUCS2Char);
+    UpperUCS4 : procedure(p:PUCS4Char);
+    LowerUTF8 : procedure(p:PUTF8String);
+    LowerUCS2 : procedure(p:PUCS2Char);
+    LowerUCS4 : procedure(p:PUCS4Char);
+
+    CompUTF8 : function(p1,p2:PUTF8String) : shortint;
+    CompUCS2 : function(p1,p2:PUCS2Char) : shortint;
+    CompUCS4 : function(p1,p2:PUC42Char) : shortint;
   end;
 
 Procedure GetWideStringManager (Var Manager : TWideStringManager);
@@ -732,7 +745,10 @@ const
 
 {
   $Log$
-  Revision 1.93  2004-05-30 16:51:38  peter
+  Revision 1.94  2004-06-11 13:45:33  florian
+    * fixed arm system unit compilation
+
+  Revision 1.93  2004/05/30 16:51:38  peter
     * sparc need software shl shr
 
   Revision 1.92  2004/05/05 21:26:34  florian
