@@ -20,33 +20,44 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
- ****************************************************************************
-}
+ ****************************************************************************}
 
 function FPISDIR(m : TMode): boolean;
 
 begin
- FPISDIR:=((m and %001111000000000000) = %100000000000000);
+ FPISDIR:=((m and S_IFMT) = S_IFDIR);
 end;
 
 function FPISCHR(m : TMode): boolean;
 begin
- FPISCHR:=((m and %001111000000000000) = %10000000000000);
+ FPISCHR:=((m and S_IFMT) = S_IFCHR);
 end;
 
 function FPISBLK(m : TMode): boolean;
 begin
- FPISBLK:=((m and %001111000000000000) = %110000000000000);
+ FPISBLK:=((m and S_IFMT) = S_IFBLK);
 end;
 
 function FPISREG(m : TMode): boolean;
 begin
- FPISREG:=((m and %001111000000000000) = %1000000000000000);
+ FPISREG:=((m and S_IFMT) = S_IFREG);
 end;
 
 function FPISFIFO(m : TMode): boolean;
 begin
- FPISFIFO:=((m and %001111000000000000) = %1000000000000);
+ FPISFIFO:=((m and S_IFMT) = S_IFIFO);
+end;
+
+Function FPISLNK(m:TMode):boolean;
+
+begin
+ FPISLNK:=((m and S_IFMT) = S_IFLNK);
+end;
+
+Function FPISSOCK(m:TMode):boolean;
+
+begin
+ FPISSOCK:=((m and S_IFMT) = S_IFSOCK);
 end;
 
 function wifexited(status : cint): cint;
@@ -79,7 +90,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2003-09-14 20:15:01  marco
+  Revision 1.4  2003-09-17 11:52:05  marco
+   * stat macro fixes voor BSD
+
+  Revision 1.3  2003/09/14 20:15:01  marco
    * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
   Revision 1.2  2003/01/21 15:34:59  marco
