@@ -80,12 +80,12 @@ begin
   OpenIt:=FileName<>'';
   if not OpenIt then
    begin
-     New(D, Init(OpenFileLastExt,'Open a file','File to open',fdOpenButton,0));
+     New(D, Init(OpenExts,'Open a file','File to open',fdOpenButton,0));
      OpenIt:=Desktop^.ExecView(D)<>cmCancel;
      if OpenIt then
        Begin
          D^.GetFileName(FileName);
-         OpenFileLastExt:=D^.WildCard;
+         OpenExts:=D^.WildCard;
        End;
      Dispose(D, Done);
    end;
@@ -122,7 +122,7 @@ begin
        if ConfirmBox(#3'Directory %s is not in list'#13#3+
             'Should we add it ?',@P,false)=cmYes then
           SourceDirs:=SourceDirs+';'+Dir;
-       
+
      OpenEditorWindow(nil,FileName,0,0);
    end;
   OpenSearch:=OpenIt;
@@ -156,7 +156,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  1999-02-05 12:11:57  pierre
+  Revision 1.9  1999-02-19 18:43:47  peter
+    + open dialog supports mask list
+
+  Revision 1.8  1999/02/05 12:11:57  pierre
     + SourceDir that stores directories for sources that the
       compiler should not know about
       Automatically asked for addition when a new file that

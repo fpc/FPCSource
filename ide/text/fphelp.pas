@@ -34,9 +34,9 @@ type
     end;
 
 procedure Help(FileID, Context: word; Modal: boolean);
-procedure HelpIndex(Keyword: string);
+procedure HelpIndex(const Keyword: string);
 procedure HelpTopicSearch(Editor: PEditor);
-procedure HelpTopic(S: string);
+procedure HelpTopic(const S: string);
 
 procedure InitHelpSystem;
 procedure DoneHelpSystem;
@@ -44,8 +44,8 @@ procedure DoneHelpSystem;
 procedure InitHelpFiles;
 procedure DoneHelpFiles;
 
-procedure PushStatus(S: string);
-procedure SetStatus(S: string);
+procedure PushStatus(const S: string);
+procedure SetStatus(const S: string);
 procedure ClearStatus;
 procedure PopStatus;
 
@@ -200,20 +200,24 @@ begin
 end;
 
 procedure InitHelpSystem;
-procedure AddOAFile(HelpFile: string);
-begin
-  {$IFDEF DEBUG}SetStatus(strLoadingHelp+' ('+SmartPath(HelpFile)+')');{$ENDIF}
-  HelpFacility^.AddOAHelpFile(HelpFile);
-  {$IFDEF DEBUG}SetStatus(strLoadingHelp);{$ENDIF}
-end;
-procedure AddHTMLFile(TOCEntry,HelpFile: string);
-begin
-  {$IFDEF DEBUG}SetStatus(strLoadingHelp+' ('+SmartPath(HelpFile)+')');{$ENDIF}
-  HelpFacility^.AddHTMLHelpFile(HelpFile, TOCEntry);
-  {$IFDEF DEBUG}SetStatus(strLoadingHelp);{$ENDIF}
-end;
-var I: integer;
-    S: string;
+
+  procedure AddOAFile(HelpFile: string);
+  begin
+    {$IFDEF DEBUG}SetStatus(strLoadingHelp+' ('+SmartPath(HelpFile)+')');{$ENDIF}
+    HelpFacility^.AddOAHelpFile(HelpFile);
+    {$IFDEF DEBUG}SetStatus(strLoadingHelp);{$ENDIF}
+  end;
+
+  procedure AddHTMLFile(TOCEntry,HelpFile: string);
+  begin
+    {$IFDEF DEBUG}SetStatus(strLoadingHelp+' ('+SmartPath(HelpFile)+')');{$ENDIF}
+    HelpFacility^.AddHTMLHelpFile(HelpFile, TOCEntry);
+    {$IFDEF DEBUG}SetStatus(strLoadingHelp);{$ENDIF}
+  end;
+
+var
+  I: Sw_integer;
+  S: string;
 begin
   New(HelpFacility, Init);
   PushStatus(strLoadingHelp);
@@ -221,7 +225,7 @@ begin
   for I:=0 to HelpFiles^.Count-1 do
     begin
       S:=HelpFiles^.At(I)^;
-      if copy(UpcaseStr(ExtOf(S)),1,4)='.HTM' then
+      if (copy(UpcaseStr(ExtOf(S)),1,4)='.HTM') then
         AddHTMLFile(S,S)
       else
         AddOAFile(S);
@@ -238,7 +242,11 @@ end;
 
 procedure DoneHelpSystem;
 begin
-  if HelpFacility<>nil then Dispose(HelpFacility, Done); HelpFacility:=nil;
+  if assigned(HelpFacility) then
+   begin
+     Dispose(HelpFacility, Done);
+     HelpFacility:=nil;
+   end;
   HelpInited:=false;
 end;
 
@@ -282,20 +290,22 @@ begin
   HelpTopic(S);
 end;
 
-procedure HelpTopic(S: string);
-var FileID, Ctx: word;
-var Found: boolean;
+procedure HelpTopic(const S: string);
+var
+  FileID, Ctx: word;
+  Found: boolean;
 begin
   CheckHelpSystem;
   PushStatus(strLocatingTopic);
   Found:=HelpFacility^.TopicSearch(S,FileID,Ctx);
   PopStatus;
   if Found then
-     Help(FileID,Ctx,false) else
-     HelpIndex(S);
+    Help(FileID,Ctx,false)
+  else
+    HelpIndex(S);
 end;
 
-procedure HelpIndex(Keyword: string);
+procedure HelpIndex(const Keyword: string);
 begin
   HelpCreateWindow;
   with HelpWindow^ do
@@ -311,9 +321,10 @@ begin
   Message(Application,evCommand,cmUpdate,nil);
 end;
 
-procedure PushStatus(S: string);
+procedure PushStatus(const S: string);
 begin
-  if StatusLine=nil then Exit;
+  if StatusLine=nil then
+    Exit;
   If StatusStackPtr<=MaxStatusLevel then
     StatusStack[StatusStackPtr]:=PAdvancedStatusLine(StatusLine)^.GetStatusText
   else
@@ -324,7 +335,8 @@ end;
 
 procedure PopStatus;
 begin
-  if StatusLine=nil then Exit;
+  if StatusLine=nil then
+    Exit;
   Dec(StatusStackPtr);
   If StatusStackPtr<=MaxStatusLevel then
     SetStatus(StatusStack[StatusStackPtr])
@@ -332,9 +344,10 @@ begin
     SetStatus(StatusStack[MaxStatusLevel]);
 end;
 
-procedure SetStatus(S: string);
+procedure SetStatus(const S: string);
 begin
-  if StatusLine=nil then Exit;
+  if StatusLine=nil then
+    Exit;
   PAdvancedStatusLine(StatusLine)^.SetStatusText(S);
 end;
 
@@ -350,13 +363,17 @@ end;
 
 procedure DoneHelpFiles;
 begin
-  if HelpFiles<>nil then Dispose(HelpFiles, Done);
+  if assigned(HelpFiles) then
+    Dispose(HelpFiles, Done);
 end;
 
 END.
 {
   $Log$
-  Revision 1.8  1999-02-11 19:07:21  pierre
+  Revision 1.9  1999-02-19 18:43:45  peter
+    + open dialog supports mask list
+
+  Revision 1.8  1999/02/11 19:07:21  pierre
     * GDBWindow redesigned :
       normal editor apart from
       that any kbEnter will send the line (for begin to cursor)

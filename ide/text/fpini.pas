@@ -63,6 +63,7 @@ const
   ieHelpFiles        = 'Files';
   ieDefaultTabSize   = 'DefaultTabSize';
   ieDefaultEditorFlags='DefaultFlags';
+  ieOpenExts         = 'OpenExts';
   ieHighlightExts    = 'Exts';
   ieTabsPattern      = 'NeedsTabs';
   ieDoubleClickDelay = 'DoubleDelay';
@@ -206,14 +207,15 @@ var INIFile: PINIFile;
     S,PS,S1,S2,S3: string;
     I,P: integer;
     BreakPointCount:longint;
-    OK: boolean;
     ts : TSwitchMode;
     W: word;
 begin
-  OK:=ExistsFile(INIPath);
-  if OK then
- begin
+  ReadINIFile:=false;
+  if not ExistsFile(INIPath) then
+   exit;
   New(INIFile, Init(INIPath));
+{ Files }
+  OpenExts:=INIFile^.GetEntry(secFiles,ieOpenExts,OpenExts);
   RecentFileCount:=High(RecentFiles);
   for I:=Low(RecentFiles) to High(RecentFiles) do
     begin
@@ -229,18 +231,15 @@ begin
         LastPos.Y:=Max(0,StrToInt(copy(S,1,P-1))); Delete(S,1,P);
       end;
     end;
+{ Run }
   SetRunParameters(INIFile^.GetEntry(secRun,ieRunParameters,GetRunParameters));
+{ Compile }
   PrimaryFile:=INIFile^.GetEntry(secCompile,iePrimaryFile,PrimaryFile);
- {   SwitchesModeStr : array[TSwitchMode] of string[8]=
-      ('NORMAL','DEBUG','RELEASE');}
   S:=INIFile^.GetEntry(secCompile,ieCompileMode,'');
   for ts:=low(TSwitchMode) to high(TSwitchMode) do
-    begin
-      if SwitchesModeStr[ts]=S then
-        begin
-          SwitchesMode:=ts;
-        end;
-    end;
+   if SwitchesModeStr[ts]=S then
+     SwitchesMode:=ts;
+{ Help }
   S:=INIFile^.GetEntry(secHelp,ieHelpFiles,'');
   repeat
     P:=Pos(';',S); if P=0 then P:=length(S)+1;
@@ -248,23 +247,28 @@ begin
     if PS<>'' then HelpFiles^.Insert(NewStr(PS));
     Delete(S,1,P);
   until S='';
+{ Editor }
 {$ifndef EDITORS}
   DefaultTabSize:=INIFile^.GetIntEntry(secEditor,ieDefaultTabSize,DefaultTabSize);
   DefaultCodeEditorFlags:=INIFile^.GetIntEntry(secEditor,ieDefaultEditorFlags,DefaultCodeEditorFlags);
 {$endif}
+{ Highlight }
   HighlightExts:=INIFile^.GetEntry(secHighlight,ieHighlightExts,HighlightExts);
   TabsPattern:=INIFile^.GetEntry(secHighlight,ieTabsPattern,TabsPattern);
+{ SourcePath }
   SourceDirs:=INIFile^.GetEntry(secSourcePath,ieSourceList,SourceDirs);
+{ Mouse }
   DoubleDelay:=INIFile^.GetIntEntry(secMouse,ieDoubleClickDelay,DoubleDelay);
   MouseReverse:=boolean(INIFile^.GetIntEntry(secMouse,ieReverseButtons,byte(MouseReverse)));
   AltMouseAction:=INIFile^.GetIntEntry(secMouse,ieAltClickAction,AltMouseAction);
   CtrlMouseAction:=INIFile^.GetIntEntry(secMouse,ieCtrlClickAction,CtrlMouseAction);
+{ Search }
   FindFlags:=INIFile^.GetIntEntry(secSearch,ieFindFlags,FindFlags);
-  { Breakpoints }
+{ Breakpoints }
   BreakpointCount:=INIFile^.GetIntEntry(secBreakpoint,ieBreakpointCount,0);
   for i:=1 to BreakpointCount do
     ReadOneBreakPointEntry(i-1,INIFile);
-
+{ Tools }
   for I:=1 to MaxToolCount do
     begin
       S:=IntToStr(I);
@@ -275,6 +279,7 @@ begin
       W:=Max(0,Min(65535,INIFile^.GetIntEntry(secTools,ieToolHotKey+S,0)));
       AddTool(S1,S2,S3,W);
     end;
+{ Colors }
   S:=AppPalette;
   PS:=StrToPalette(INIFile^.GetEntry(secColors,iePalette+'_1_40',PaletteToStr(copy(S,1,40))));
   PS:=PS+StrToPalette(INIFile^.GetEntry(secColors,iePalette+'_41_80',PaletteToStr(copy(S,41,40))));
@@ -284,8 +289,7 @@ begin
   PS:=PS+StrToPalette(INIFile^.GetEntry(secColors,iePalette+'_201_240',PaletteToStr(copy(S,201,40))));
   AppPalette:=PS;
   Dispose(INIFile, Done);
- end;
-  ReadINIFile:=OK;
+  ReadINIFile:=true;
 end;
 
 function WriteINIFile: boolean;
@@ -303,6 +307,8 @@ begin
 end;
 begin
   New(INIFile, Init(INIPath));
+{ Files }
+  INIFile^.SetEntry(secFiles,ieOpenExts,'"'+OpenExts+'"');
   for I:=1 to High(RecentFiles) do
     begin
       if I<=RecentFileCount then
@@ -311,29 +317,38 @@ begin
          S:='';
       INIFile^.SetEntry(secFiles,ieRecentFile+IntToStr(I),S);
     end;
+{ Run }
   INIFile^.SetEntry(secRun,ieRunParameters,GetRunParameters);
+{ Compile }
   INIFile^.SetEntry(secCompile,iePrimaryFile,PrimaryFile);
   INIFile^.SetEntry(secCompile,ieCompileMode,SwitchesModeStr[SwitchesMode]);
+{ Help }
   S:='';
   HelpFiles^.ForEach(@ConcatName);
   INIFile^.SetEntry(secHelp,ieHelpFiles,'"'+S+'"');
+{ Editor }
 {$ifndef EDITORS}
   INIFile^.SetIntEntry(secEditor,ieDefaultTabSize,DefaultTabSize);
   INIFile^.SetIntEntry(secEditor,ieDefaultEditorFlags,DefaultCodeEditorFlags);
 {$endif}
+{ Highlight }
   INIFile^.SetEntry(secHighlight,ieHighlightExts,'"'+HighlightExts+'"');
   INIFile^.SetEntry(secHighlight,ieTabsPattern,'"'+TabsPattern+'"');
+{ SourcePath }
   INIFile^.SetEntry(secSourcePath,ieSourceList,'"'+SourceDirs+'"');
+{ Mouse }
   INIFile^.SetIntEntry(secMouse,ieDoubleClickDelay,DoubleDelay);
   INIFile^.SetIntEntry(secMouse,ieReverseButtons,byte(MouseReverse));
   INIFile^.SetIntEntry(secMouse,ieAltClickAction,AltMouseAction);
   INIFile^.SetIntEntry(secMouse,ieCtrlClickAction,CtrlMouseAction);
+{ Search }
   INIFile^.SetIntEntry(secSearch,ieFindFlags,FindFlags);
-  { Breakpoints }
+{ Breakpoints }
   BreakPointCount:=BreakpointCollection^.Count;
   INIFile^.SetIntEntry(secBreakpoint,ieBreakpointCount,BreakpointCount);
   for i:=1 to BreakpointCount do
     WriteOneBreakPointEntry(I-1,INIFile);
+{ Tools }
   INIFile^.DeleteSection(secTools);
   for I:=1 to GetToolCount do
     begin
@@ -347,6 +362,7 @@ begin
       INIFile^.SetEntry(secTools,ieToolParams+S,S3);
       INIFile^.SetIntEntry(secTools,ieToolHotKey+S,W);
     end;
+{ Colors }
   if AppPalette<>CIDEAppColor then
   begin
     { this has a bug. if a different palette has been read on startup, and
@@ -368,7 +384,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  1999-02-10 09:53:14  pierre
+  Revision 1.12  1999-02-19 18:43:46  peter
+    + open dialog supports mask list
+
+  Revision 1.11  1999/02/10 09:53:14  pierre
   * better storing of breakpoints
 
   Revision 1.10  1999/02/05 13:08:42  pierre

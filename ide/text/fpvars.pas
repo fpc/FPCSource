@@ -31,6 +31,7 @@ type
 const ClipboardWindow  : PClipboardWindow = nil;
       CalcWindow       : PCalculator = nil;
       RecentFileCount  : integer = 0;
+      OpenExts         : string[80] = '*.pas;*.pp;*.inc';
       HighlightExts    : string[80] = '*.pas;*.pp;*.inc';
       TabsPattern      : string = 'make*;make*.*';
       SourceDirs       : string = '';
@@ -66,7 +67,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.8  1999-02-11 13:10:04  pierre
+  Revision 1.9  1999-02-19 18:43:48  peter
+    + open dialog supports mask list
+
+  Revision 1.8  1999/02/11 13:10:04  pierre
    + GDBWindow only with -dGDBWindow for now : still buggy !!
 
   Revision 1.7  1999/02/05 12:07:55  pierre

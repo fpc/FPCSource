@@ -94,7 +94,7 @@ type
       IgnoreStringAtEnd : boolean;
       LastCommand : String;
       end;
-      
+
     PGDBWindow = ^TGDBWindow;
     TGDBWindow = object(TFPWindow)
       Editor    : PGDBSourceEditor;
@@ -119,14 +119,14 @@ type
     PAdvancedMenuBox = ^TAdvancedMenuBox;
     TAdvancedMenuBox = object(TMenuBox)
       function NewSubView(var Bounds: TRect; AMenu: PMenu;
-		 AParentMenu: PMenuView): PMenuView; virtual;
+                 AParentMenu: PMenuView): PMenuView; virtual;
       function Execute: Word; virtual;
     end;
 
     PAdvancedMenuPopUp = ^TAdvancedMenuPopup;
     TAdvancedMenuPopUp = object(TMenuPopup)
       function NewSubView(var Bounds: TRect; AMenu: PMenu;
-		 AParentMenu: PMenuView): PMenuView; virtual;
+                 AParentMenu: PMenuView): PMenuView; virtual;
       function Execute: Word; virtual;
     end;
 
@@ -134,7 +134,7 @@ type
     TAdvancedMenuBar = object(TMenuBar)
       constructor Init(var Bounds: TRect; AMenu: PMenu);
       function  NewSubView(var Bounds: TRect; AMenu: PMenu;
-		  AParentMenu: PMenuView): PMenuView; virtual;
+                  AParentMenu: PMenuView): PMenuView; virtual;
       procedure Update; virtual;
       procedure HandleEvent(var Event: TEvent); virtual;
       function  Execute: Word; virtual;
@@ -189,7 +189,7 @@ type
     TAdvancedStatusLine = object(TStatusLine)
       StatusText: PString;
       function  GetStatusText: string; virtual;
-      procedure SetStatusText(S: string); virtual;
+      procedure SetStatusText(const S: string); virtual;
       procedure ClearStatusText; virtual;
       procedure Draw; virtual;
     end;
@@ -199,7 +199,7 @@ type
       TClass    : longint;
       Text      : PString;
       Module    : PString;
-      ID	: longint;
+      ID        : longint;
       constructor Init(AClass: longint; AText, AModule: string; AID: longint);
       function    GetText(MaxLen: integer): string; virtual;
       procedure   Selected; virtual;
@@ -282,7 +282,7 @@ type
     TScreenView = object(TScroller)
       Screen: PScreen;
       constructor Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar;
-		    AScreen: PScreen);
+                    AScreen: PScreen);
       procedure   Draw; virtual;
       procedure   Update; virtual;
       procedure   HandleEvent(var Event: TEvent); virtual;
@@ -337,24 +337,23 @@ function TryToOpenFile(Bounds: PRect; FileName: string; CurX,CurY: integer): PSo
 
 const
       SourceCmds  : TCommandSet =
-	([cmSave,cmSaveAs,cmCompile]);
+        ([cmSave,cmSaveAs,cmCompile]);
       EditorCmds  : TCommandSet =
-	([cmFind,cmReplace,cmSearchAgain,cmJumpLine,cmHelpTopicSearch]);
+        ([cmFind,cmReplace,cmSearchAgain,cmJumpLine,cmHelpTopicSearch]);
       CompileCmds : TCommandSet =
-	([cmMake,cmBuild,cmRun]);
+        ([cmMake,cmBuild,cmRun]);
 
       CalcClipboard  : extended = 0;
 
       OpenFileName   : string = '';
-      OpenFileLastExt : string = '*.pas';
       NewEditorOpened: boolean = false;
 
 var  MsgParms : array[1..10] of
-	 record
-	   case byte of
-	     0 : (Ptr : pointer);
-	     1 : (Long: longint);
-	 end;
+         record
+           case byte of
+             0 : (Ptr : pointer);
+             1 : (Long: longint);
+         end;
 
 implementation
 
@@ -402,7 +401,7 @@ function EditorWindowFile(const Name : String): PSourceWindow;
 function EditorWindow(P: PView): boolean; {$ifndef FPC}far;{$endif}
 begin
   EditorWindow:=(TypeOf(P^)=TypeOf(TSourceWindow)) and
-		 (PSourceWindow(P)^.Editor^.FileName=Name);
+                 (PSourceWindow(P)^.Editor^.FileName=Name);
 end;
 begin
   EditorWindowFile:=pointer(Desktop^.FirstThat(@EditorWindow));
@@ -473,7 +472,7 @@ end;
 
 
 {*****************************************************************************
-				   Tab
+                                   Tab
 *****************************************************************************}
 
 function NewTabItem(AView: PView; ANext: PTabItem): PTabItem;
@@ -501,7 +500,7 @@ begin
   P^.Next:=ANext; P^.Name:=NewStr(AName); P^.Items:=AItems;
   x:=pos('~',AName);
   if (x<>0) and (x<length(AName)) then P^.ShortCut:=Upcase(AName[x+1])
-				  else P^.ShortCut:=#0;
+                                  else P^.ShortCut:=#0;
   P^.DefItem:=ADefItem;
   NewTabDef:=P;
 end;
@@ -522,7 +521,7 @@ end;
 
 
 {*****************************************************************************
-			       Reserved Words
+                               Reserved Words
 *****************************************************************************}
 
 function GetReservedWordCount: integer;
@@ -549,11 +548,11 @@ begin
    with TokenInfo[TToken(I)] do
     begin
       if (str<>'') and (str[1] in['A'..'Z']) then
-	begin
-	  Inc(Count);
-	  if Count=Index then
-	   Idx:=I;
-	end;
+        begin
+          Inc(Count);
+          if Count=Index then
+           Idx:=I;
+        end;
       Inc(I);
     end;
   if Idx=-1 then
@@ -572,7 +571,7 @@ begin
     begin
       WordS:=GetReservedWord(I-1); Idx:=length(WordS);
       while ReservedWords^.Count<Idx do
-	ReservedWords^.Insert(NewStr(#0));
+        ReservedWords^.Insert(NewStr(#0));
       S:=ReservedWords^.At(Idx-1)^;
       ReservedWords^.AtFree(Idx-1);
       ReservedWords^.AtInsert(Idx-1,NewStr(S+WordS+#0));
@@ -602,7 +601,7 @@ end;
 
 
 {*****************************************************************************
-			       SearchWindow
+                               SearchWindow
 *****************************************************************************}
 
 function SearchWindowWithNo(No: integer): PWindow;
@@ -625,7 +624,7 @@ end;
 
 
 {*****************************************************************************
-			      TCenterDialog
+                              TCenterDialog
 *****************************************************************************}
 
 constructor TCenterDialog.Init(var Bounds: TRect; ATitle: TTitleStr);
@@ -636,7 +635,7 @@ end;
 
 
 {*****************************************************************************
-			      TIntegerLine
+                              TIntegerLine
 *****************************************************************************}
 
 constructor TIntegerLine.Init(var Bounds: TRect; AMin, AMax: longint);
@@ -647,7 +646,7 @@ end;
 
 
 {*****************************************************************************
-			       SourceEditor
+                               SourceEditor
 *****************************************************************************}
 
 {$ifndef EDITORS}
@@ -674,18 +673,18 @@ begin
   case SpecClass of
     ssCommentPrefix :
       case Index of
-	0 : S:='{';
-	1 : S:='(*';
-	2 : S:='//';
+        0 : S:='{';
+        1 : S:='(*';
+        2 : S:='//';
       end;
     ssCommentSingleLinePrefix :
       case Index of
-	0 : S:='//';
+        0 : S:='//';
       end;
     ssCommentSuffix :
       case Index of
-	0 : S:='}';
-	1 : S:='*)';
+        0 : S:='}';
+        1 : S:='*)';
       end;
     ssStringPrefix :
       S:='''';
@@ -762,51 +761,51 @@ begin
   case Event.What of
     evMouseDown :
       if MouseInView(Event.Where) and (Event.Buttons=mbRightButton) then
-	begin
-	  MakeLocal(Event.Where,P); Inc(P.X); Inc(P.Y);
-	  LocalMenu(P);
-	  ClearEvent(Event);
-	end;
+        begin
+          MakeLocal(Event.Where,P); Inc(P.X); Inc(P.Y);
+          LocalMenu(P);
+          ClearEvent(Event);
+        end;
     evKeyDown :
       begin
-	DontClear:=false;
-	case Event.KeyCode of
-	  kbAltF10 : Message(@Self,evCommand,cmLocalMenu,@Self);
-	else DontClear:=true;
-	end;
-	if DontClear=false then ClearEvent(Event);
+        DontClear:=false;
+        case Event.KeyCode of
+          kbAltF10 : Message(@Self,evCommand,cmLocalMenu,@Self);
+        else DontClear:=true;
+        end;
+        if DontClear=false then ClearEvent(Event);
       end;
     evCommand :
       begin
-	DontClear:=false;
-	case Event.Command of
-	  cmLocalMenu :
-	    begin
-	      P:=CurPos; Inc(P.X); Inc(P.Y);
-	      LocalMenu(P);
-	    end;
-	  cmBrowseAtCursor:
-	    begin
-	      S:=LowerCaseStr(GetEditorCurWord(@Self));
-	      OpenOneSymbolBrowser(S);
-	    end;
-	  cmOpenAtCursor :
-	    begin
-	      S:=LowerCaseStr(GetEditorCurWord(@Self));
-	      OpenFileName:=S+'.pp'+ListSeparator+
-			    S+'.pas'+ListSeparator+
-			    S+'.inc';
-	      Message(Application,evCommand,cmOpen,nil);
-	    end;
-	  cmEditorOptions :
-	    Message(Application,evCommand,cmEditorOptions,@Self);
-	  cmHelp :
-	    Message(@Self,evCommand,cmHelpTopicSearch,@Self);
-	  cmHelpTopicSearch :
-	    HelpTopicSearch(@Self);
-	else DontClear:=true;
-	end;
-	if not DontClear then ClearEvent(Event);
+        DontClear:=false;
+        case Event.Command of
+          cmLocalMenu :
+            begin
+              P:=CurPos; Inc(P.X); Inc(P.Y);
+              LocalMenu(P);
+            end;
+          cmBrowseAtCursor:
+            begin
+              S:=LowerCaseStr(GetEditorCurWord(@Self));
+              OpenOneSymbolBrowser(S);
+            end;
+          cmOpenAtCursor :
+            begin
+              S:=LowerCaseStr(GetEditorCurWord(@Self));
+              OpenFileName:=S+'.pp'+ListSeparator+
+                            S+'.pas'+ListSeparator+
+                            S+'.inc';
+              Message(Application,evCommand,cmOpen,nil);
+            end;
+          cmEditorOptions :
+            Message(Application,evCommand,cmEditorOptions,@Self);
+          cmHelp :
+            Message(@Self,evCommand,cmHelpTopicSearch,@Self);
+          cmHelpTopicSearch :
+            HelpTopicSearch(@Self);
+        else DontClear:=true;
+        end;
+        if not DontClear then ClearEvent(Event);
       end;
   end;
   inherited HandleEvent(Event);
@@ -817,11 +816,11 @@ begin
   case Event.What of
     evBroadcast :
       case Event.Command of
-	cmUpdate :
-	  ReDraw;
-	cmSearchWindow+1..cmSearchWindow+99 :
-	  if (Event.Command-cmSearchWindow=Number) then
-	      ClearEvent(Event);
+        cmUpdate :
+          ReDraw;
+        cmSearchWindow+1..cmSearchWindow+99 :
+          if (Event.Command-cmSearchWindow=Number) then
+              ClearEvent(Event);
       end;
   end;
   inherited HandleEvent(Event);
@@ -881,27 +880,27 @@ begin
   case Event.What of
     evBroadcast :
       case Event.Command of
-	cmUpdate :
-	  Update;
-	cmUpdateTitle :
-	  UpdateTitle;
-	cmSearchWindow :
-	  if @Self<>ClipboardWindow then
-	    ClearEvent(Event);
+        cmUpdate :
+          Update;
+        cmUpdateTitle :
+          UpdateTitle;
+        cmSearchWindow :
+          if @Self<>ClipboardWindow then
+            ClearEvent(Event);
       end;
     evCommand :
       begin
-	DontClear:=false;
-	case Event.Command of
-	  cmSave :
-	    if Editor^.IsClipboard=false then
-	    Editor^.Save;
-	  cmSaveAs :
-	    if Editor^.IsClipboard=false then
-	    Editor^.SaveAs;
-	else DontClear:=true;
-	end;
-	if DontClear=false then ClearEvent(Event);
+        DontClear:=false;
+        case Event.Command of
+          cmSave :
+            if Editor^.IsClipboard=false then
+            Editor^.Save;
+          cmSaveAs :
+            if Editor^.IsClipboard=false then
+            Editor^.SaveAs;
+        else DontClear:=true;
+        end;
+        if DontClear=false then ClearEvent(Event);
       end;
   end;
   inherited HandleEvent(Event);
@@ -977,7 +976,7 @@ end;
 function TGDBSourceEditor.InsertLine: Sw_integer;
 Var
   S : string;
-  
+
 begin
   if IsReadOnly then begin InsertLine:=-1; Exit; end;
   if CurPos.Y<GetLineCount then S:=GetLineText(CurPos.Y) else S:='';
@@ -985,11 +984,11 @@ begin
   if assigned(Debugger) then
     if S<>'' then
       begin
-	LastCommand:=S;
-	{ should be true only if we are at the end ! }
-	IgnoreStringAtEnd:=(CurPos.Y=GetLineCount-1) and (CurPos.X=length(GetDisplayText(GetLineCount-1)));
-	Debugger^.Command(S);
-	IgnoreStringAtEnd:=false;
+        LastCommand:=S;
+        { should be true only if we are at the end ! }
+        IgnoreStringAtEnd:=(CurPos.Y=GetLineCount-1) and (CurPos.X=length(GetDisplayText(GetLineCount-1)));
+        Debugger^.Command(S);
+        IgnoreStringAtEnd:=false;
       end
     else if AutoRepeat then
       Debugger^.Command(LastCommand);
@@ -1017,7 +1016,7 @@ begin
   if ExistsFile(GDBOutputFile) then
     begin
       if Editor^.LoadFile=false then
-	ErrorBox(#3'Error reading file.',nil);
+        ErrorBox(#3'Error reading file.',nil);
     end
   else
   { Empty files are buggy !! }
@@ -1074,22 +1073,22 @@ begin
     begin
        pe:=strscan(p,#10);
        if pe<>nil then
-	 pe^:=#0;
+         pe^:=#0;
        s:=strpas(p);
        If IsError then
-	 Editor^.AddErrorLine(S)
+         Editor^.AddErrorLine(S)
        else
-	 Editor^.AddLine(S);
+         Editor^.AddLine(S);
        { restore for dispose }
        if pe<>nil then
-	 pe^:=#10;
+         pe^:=#10;
        if pe=nil then
-	 p:=nil
+         p:=nil
        else
-	 begin
-	   p:=pe;
-	   inc(p);
-	 end;
+         begin
+           p:=pe;
+           inc(p);
+         end;
     end;
   DeskTop^.Unlock;
   Editor^.Draw;
@@ -1235,7 +1234,7 @@ var
 begin
   P := ParentMenu;
   while (P <> nil) and (P^.MouseInView(E.Where)=false) do
-	P := P^.ParentMenu;
+        P := P^.ParentMenu;
   MouseInMenus := P <> nil;
 end;
 
@@ -1264,91 +1263,91 @@ begin
     GetEvent(E);
     case E.What of
       evMouseDown:
-	if MouseInView(E.Where) or MouseInOwner then
-	begin
-	  TrackMouse;
-	  if Size.Y = 1 then AutoSelect := True;
-	end else Action := DoReturn;
+        if MouseInView(E.Where) or MouseInOwner then
+        begin
+          TrackMouse;
+          if Size.Y = 1 then AutoSelect := True;
+        end else Action := DoReturn;
       evMouseUp:
-	begin
-	  TrackMouse;
-	  if MouseInOwner then
-	    Current := Menu^.Default
-	  else
-	    if (Current <> nil) and (Current^.Name <> nil) then
-	      Action := DoSelect
-	    else
-	      if MouseActive or MouseInView(E.Where) then Action := DoReturn
-	      else
-	      begin
-		Current := Menu^.Default;
-		if Current = nil then Current := Menu^.Items;
-		Action := DoNothing;
-	      end;
-	end;
+        begin
+          TrackMouse;
+          if MouseInOwner then
+            Current := Menu^.Default
+          else
+            if (Current <> nil) and (Current^.Name <> nil) then
+              Action := DoSelect
+            else
+              if MouseActive or MouseInView(E.Where) then Action := DoReturn
+              else
+              begin
+                Current := Menu^.Default;
+                if Current = nil then Current := Menu^.Items;
+                Action := DoNothing;
+              end;
+        end;
       evMouseMove:
-	if E.Buttons <> 0 then
-	begin
-	  TrackMouse;
-	  if not (MouseInView(E.Where) or MouseInOwner) and
-	    MouseInMenus then Action := DoReturn;
-	end;
+        if E.Buttons <> 0 then
+        begin
+          TrackMouse;
+          if not (MouseInView(E.Where) or MouseInOwner) and
+            MouseInMenus then Action := DoReturn;
+        end;
       evKeyDown:
-	case CtrlToArrow(E.KeyCode) of
-	  kbUp, kbDown:
-	    if Size.Y <> 1 then
-	      TrackKey(CtrlToArrow(E.KeyCode) = kbDown) else
-	      if E.KeyCode = kbDown then AutoSelect := True;
-	  kbLeft, kbRight:
-	    if ParentMenu = nil then
-	      TrackKey(CtrlToArrow(E.KeyCode) = kbRight) else
-	      Action := DoReturn;
-	  kbHome, kbEnd:
-	    if Size.Y <> 1 then
-	    begin
-	      Current := Menu^.Items;
-	      if E.KeyCode = kbEnd then TrackKey(False);
-	    end;
-	  kbEnter:
-	    begin
-	      if Size.Y = 1 then AutoSelect := True;
-	      Action := DoSelect;
-	    end;
-	  kbEsc:
-	    begin
-	      Action := DoReturn;
-	      if (ParentMenu = nil) or (ParentMenu^.Size.Y <> 1) then
-		ClearEvent(E);
-	    end;
-	else
-	  Target := @Self;
-	  Ch := GetAltChar(E.KeyCode);
-	  if Ch = #0 then Ch := E.CharCode else Target := TopMenu;
-	  P := Target^.FindItem(Ch);
-	  if P = nil then
-	  begin
-	    P := TopMenu^.HotKey(E.KeyCode);
-	    if (P <> nil) and CommandEnabled(P^.Command) then
-	    begin
-	      Result := P^.Command;
-	      Action := DoReturn;
-	    end
-	  end else
-	    if Target = @Self then
-	    begin
-	      if Size.Y = 1 then AutoSelect := True;
-	      Action := DoSelect;
-	      Current := P;
-	    end else
-	      if (ParentMenu <> Target) or (ParentMenu^.Current <> P) then
-		Action := DoReturn;
-	end;
+        case CtrlToArrow(E.KeyCode) of
+          kbUp, kbDown:
+            if Size.Y <> 1 then
+              TrackKey(CtrlToArrow(E.KeyCode) = kbDown) else
+              if E.KeyCode = kbDown then AutoSelect := True;
+          kbLeft, kbRight:
+            if ParentMenu = nil then
+              TrackKey(CtrlToArrow(E.KeyCode) = kbRight) else
+              Action := DoReturn;
+          kbHome, kbEnd:
+            if Size.Y <> 1 then
+            begin
+              Current := Menu^.Items;
+              if E.KeyCode = kbEnd then TrackKey(False);
+            end;
+          kbEnter:
+            begin
+              if Size.Y = 1 then AutoSelect := True;
+              Action := DoSelect;
+            end;
+          kbEsc:
+            begin
+              Action := DoReturn;
+              if (ParentMenu = nil) or (ParentMenu^.Size.Y <> 1) then
+                ClearEvent(E);
+            end;
+        else
+          Target := @Self;
+          Ch := GetAltChar(E.KeyCode);
+          if Ch = #0 then Ch := E.CharCode else Target := TopMenu;
+          P := Target^.FindItem(Ch);
+          if P = nil then
+          begin
+            P := TopMenu^.HotKey(E.KeyCode);
+            if (P <> nil) and CommandEnabled(P^.Command) then
+            begin
+              Result := P^.Command;
+              Action := DoReturn;
+            end
+          end else
+            if Target = @Self then
+            begin
+              if Size.Y = 1 then AutoSelect := True;
+              Action := DoSelect;
+              Current := P;
+            end else
+              if (ParentMenu <> Target) or (ParentMenu^.Current <> P) then
+                Action := DoReturn;
+        end;
       evCommand:
-	if E.Command = cmMenu then
-	begin
-	  AutoSelect := False;
-	  if ParentMenu <> nil then Action := DoReturn;
-	end else Action := DoReturn;
+        if E.Command = cmMenu then
+        begin
+          AutoSelect := False;
+          if ParentMenu <> nil then Action := DoReturn;
+        end else Action := DoReturn;
     end;
     if ItemShown <> Current then
     begin
@@ -1357,18 +1356,18 @@ begin
     end;
     if (Action = DoSelect) or ((Action = DoNothing) and AutoSelect) then
       if Current <> nil then with Current^ do if Name <> nil then
-	if Command = 0 then
-	begin
-	  if E.What and (evMouseDown + evMouseMove) <> 0 then PutEvent(E);
-	  GetItemRect(Current, R);
-	  R.A.X := R.A.X + Origin.X;
-	  R.A.Y := R.B.Y + Origin.Y;
-	  R.B := Owner^.Size;
-	  if Size.Y = 1 then Dec(R.A.X);
-	  Target := TopMenu^.NewSubView(R, SubMenu, @Self);
-	  Result := Owner^.ExecView(Target);
-	  Dispose(Target, Done);
-	end else if Action = DoSelect then Result := Command;
+        if Command = 0 then
+        begin
+          if E.What and (evMouseDown + evMouseMove) <> 0 then PutEvent(E);
+          GetItemRect(Current, R);
+          R.A.X := R.A.X + Origin.X;
+          R.A.Y := R.B.Y + Origin.Y;
+          R.B := Owner^.Size;
+          if Size.Y = 1 then Dec(R.A.X);
+          Target := TopMenu^.NewSubView(R, SubMenu, @Self);
+          Result := Owner^.ExecView(Target);
+          Dispose(Target, Done);
+        end else if Action = DoSelect then Result := Command;
     if (Result <> 0) and CommandEnabled(Result) then
     begin
       Action := DoReturn;
@@ -1487,7 +1486,7 @@ var
 begin
   P := ParentMenu;
   while (P <> nil) and (P^.MouseInView(E.Where)=false) do
-	P := P^.ParentMenu;
+        P := P^.ParentMenu;
   MouseInMenus := P <> nil;
 end;
 
@@ -1516,91 +1515,91 @@ begin
     GetEvent(E);
     case E.What of
       evMouseDown:
-	if MouseInView(E.Where) or MouseInOwner then
-	begin
-	  TrackMouse;
-	  if Size.Y = 1 then AutoSelect := True;
-	end else Action := DoReturn;
+        if MouseInView(E.Where) or MouseInOwner then
+        begin
+          TrackMouse;
+          if Size.Y = 1 then AutoSelect := True;
+        end else Action := DoReturn;
       evMouseUp:
-	begin
-	  TrackMouse;
-	  if MouseInOwner then
-	    Current := Menu^.Default
-	  else
-	    if (Current <> nil) and (Current^.Name <> nil) then
-	      Action := DoSelect
-	    else
-	      if MouseActive or MouseInView(E.Where) then Action := DoReturn
-	      else
-	      begin
-		Current := Menu^.Default;
-		if Current = nil then Current := Menu^.Items;
-		Action := DoNothing;
-	      end;
-	end;
+        begin
+          TrackMouse;
+          if MouseInOwner then
+            Current := Menu^.Default
+          else
+            if (Current <> nil) and (Current^.Name <> nil) then
+              Action := DoSelect
+            else
+              if MouseActive or MouseInView(E.Where) then Action := DoReturn
+              else
+              begin
+                Current := Menu^.Default;
+                if Current = nil then Current := Menu^.Items;
+                Action := DoNothing;
+              end;
+        end;
       evMouseMove:
-	if E.Buttons <> 0 then
-	begin
-	  TrackMouse;
-	  if not (MouseInView(E.Where) or MouseInOwner) and
-	    MouseInMenus then Action := DoReturn;
-	end;
+        if E.Buttons <> 0 then
+        begin
+          TrackMouse;
+          if not (MouseInView(E.Where) or MouseInOwner) and
+            MouseInMenus then Action := DoReturn;
+        end;
       evKeyDown:
-	case CtrlToArrow(E.KeyCode) of
-	  kbUp, kbDown:
-	    if Size.Y <> 1 then
-	      TrackKey(CtrlToArrow(E.KeyCode) = kbDown) else
-	      if E.KeyCode = kbDown then AutoSelect := True;
-	  kbLeft, kbRight:
-	    if ParentMenu = nil then
-	      TrackKey(CtrlToArrow(E.KeyCode) = kbRight) else
-	      Action := DoReturn;
-	  kbHome, kbEnd:
-	    if Size.Y <> 1 then
-	    begin
-	      Current := Menu^.Items;
-	      if E.KeyCode = kbEnd then TrackKey(False);
-	    end;
-	  kbEnter:
-	    begin
-	      if Size.Y = 1 then AutoSelect := True;
-	      Action := DoSelect;
-	    end;
-	  kbEsc:
-	    begin
-	      Action := DoReturn;
-	      if (ParentMenu = nil) or (ParentMenu^.Size.Y <> 1) then
-		ClearEvent(E);
-	    end;
-	else
-	  Target := @Self;
-	  Ch := GetAltChar(E.KeyCode);
-	  if Ch = #0 then Ch := E.CharCode else Target := TopMenu;
-	  P := Target^.FindItem(Ch);
-	  if P = nil then
-	  begin
-	    P := TopMenu^.HotKey(E.KeyCode);
-	    if (P <> nil) and CommandEnabled(P^.Command) then
-	    begin
-	      Result := P^.Command;
-	      Action := DoReturn;
-	    end
-	  end else
-	    if Target = @Self then
-	    begin
-	      if Size.Y = 1 then AutoSelect := True;
-	      Action := DoSelect;
-	      Current := P;
-	    end else
-	      if (ParentMenu <> Target) or (ParentMenu^.Current <> P) then
-		Action := DoReturn;
-	end;
+        case CtrlToArrow(E.KeyCode) of
+          kbUp, kbDown:
+            if Size.Y <> 1 then
+              TrackKey(CtrlToArrow(E.KeyCode) = kbDown) else
+              if E.KeyCode = kbDown then AutoSelect := True;
+          kbLeft, kbRight:
+            if ParentMenu = nil then
+              TrackKey(CtrlToArrow(E.KeyCode) = kbRight) else
+              Action := DoReturn;
+          kbHome, kbEnd:
+            if Size.Y <> 1 then
+            begin
+              Current := Menu^.Items;
+              if E.KeyCode = kbEnd then TrackKey(False);
+            end;
+          kbEnter:
+            begin
+              if Size.Y = 1 then AutoSelect := True;
+              Action := DoSelect;
+            end;
+          kbEsc:
+            begin
+              Action := DoReturn;
+              if (ParentMenu = nil) or (ParentMenu^.Size.Y <> 1) then
+                ClearEvent(E);
+            end;
+        else
+          Target := @Self;
+          Ch := GetAltChar(E.KeyCode);
+          if Ch = #0 then Ch := E.CharCode else Target := TopMenu;
+          P := Target^.FindItem(Ch);
+          if P = nil then
+          begin
+            P := TopMenu^.HotKey(E.KeyCode);
+            if (P <> nil) and CommandEnabled(P^.Command) then
+            begin
+              Result := P^.Command;
+              Action := DoReturn;
+            end
+          end else
+            if Target = @Self then
+            begin
+              if Size.Y = 1 then AutoSelect := True;
+              Action := DoSelect;
+              Current := P;
+            end else
+              if (ParentMenu <> Target) or (ParentMenu^.Current <> P) then
+                Action := DoReturn;
+        end;
       evCommand:
-	if E.Command = cmMenu then
-	begin
-	  AutoSelect := False;
-	  if ParentMenu <> nil then Action := DoReturn;
-	end else Action := DoReturn;
+        if E.Command = cmMenu then
+        begin
+          AutoSelect := False;
+          if ParentMenu <> nil then Action := DoReturn;
+        end else Action := DoReturn;
     end;
     if ItemShown <> Current then
     begin
@@ -1609,18 +1608,18 @@ begin
     end;
     if (Action = DoSelect) or ((Action = DoNothing) and AutoSelect) then
       if Current <> nil then with Current^ do if Name <> nil then
-	if Command = 0 then
-	begin
-	  if E.What and (evMouseDown + evMouseMove) <> 0 then PutEvent(E);
-	  GetItemRect(Current, R);
-	  R.A.X := R.A.X + Origin.X;
-	  R.A.Y := R.B.Y + Origin.Y;
-	  R.B := Owner^.Size;
-	  if Size.Y = 1 then Dec(R.A.X);
-	  Target := TopMenu^.NewSubView(R, SubMenu, @Self);
-	  Result := Owner^.ExecView(Target);
-	  Dispose(Target, Done);
-	end else if Action = DoSelect then Result := Command;
+        if Command = 0 then
+        begin
+          if E.What and (evMouseDown + evMouseMove) <> 0 then PutEvent(E);
+          GetItemRect(Current, R);
+          R.A.X := R.A.X + Origin.X;
+          R.A.Y := R.B.Y + Origin.Y;
+          R.B := Owner^.Size;
+          if Size.Y = 1 then Dec(R.A.X);
+          Target := TopMenu^.NewSubView(R, SubMenu, @Self);
+          Result := Owner^.ExecView(Target);
+          Dispose(Target, Done);
+        end else if Action = DoSelect then Result := Command;
     if (Result <> 0) and CommandEnabled(Result) then
     begin
       Action := DoReturn;
@@ -1664,7 +1663,7 @@ begin
   case Event.What of
     evBroadcast :
       case Event.Command of
-	cmUpdate   : Update;
+        cmUpdate   : Update;
       end;
   end;
   inherited HandleEvent(Event);
@@ -1787,91 +1786,91 @@ begin
     GetEvent(E);
     case E.What of
       evMouseDown:
-	if MouseInView(E.Where) or MouseInOwner then
-	begin
-	  TrackMouse;
-	  if Size.Y = 1 then AutoSelect := True;
-	end else Action := DoReturn;
+        if MouseInView(E.Where) or MouseInOwner then
+        begin
+          TrackMouse;
+          if Size.Y = 1 then AutoSelect := True;
+        end else Action := DoReturn;
       evMouseUp:
-	begin
-	  TrackMouse;
-	  if MouseInOwner then
-	    Current := Menu^.Default
-	  else
-	    if (Current <> nil) and (Current^.Name <> nil) then
-	      Action := DoSelect
-	    else
-	      if MouseActive or MouseInView(E.Where) then Action := DoReturn
-	      else
-	      begin
-		Current := Menu^.Default;
-		if Current = nil then Current := Menu^.Items;
-		Action := DoNothing;
-	      end;
-	end;
+        begin
+          TrackMouse;
+          if MouseInOwner then
+            Current := Menu^.Default
+          else
+            if (Current <> nil) and (Current^.Name <> nil) then
+              Action := DoSelect
+            else
+              if MouseActive or MouseInView(E.Where) then Action := DoReturn
+              else
+              begin
+                Current := Menu^.Default;
+                if Current = nil then Current := Menu^.Items;
+                Action := DoNothing;
+              end;
+        end;
       evMouseMove:
-	if E.Buttons <> 0 then
-	begin
-	  TrackMouse;
-	  if not (MouseInView(E.Where) or MouseInOwner) and
-	    MouseInMenus then Action := DoReturn;
-	end;
+        if E.Buttons <> 0 then
+        begin
+          TrackMouse;
+          if not (MouseInView(E.Where) or MouseInOwner) and
+            MouseInMenus then Action := DoReturn;
+        end;
       evKeyDown:
-	case CtrlToArrow(E.KeyCode) of
-	  kbUp, kbDown:
-	    if Size.Y <> 1 then
-	      TrackKey(CtrlToArrow(E.KeyCode) = kbDown) else
-	      if E.KeyCode = kbDown then AutoSelect := True;
-	  kbLeft, kbRight:
-	    if ParentMenu = nil then
-	      TrackKey(CtrlToArrow(E.KeyCode) = kbRight) else
-	      Action := DoReturn;
-	  kbHome, kbEnd:
-	    if Size.Y <> 1 then
-	    begin
-	      Current := Menu^.Items;
-	      if E.KeyCode = kbEnd then TrackKey(False);
-	    end;
-	  kbEnter:
-	    begin
-	      if Size.Y = 1 then AutoSelect := True;
-	      Action := DoSelect;
-	    end;
-	  kbEsc:
-	    begin
-	      Action := DoReturn;
-	      if (ParentMenu = nil) or (ParentMenu^.Size.Y <> 1) then
-		ClearEvent(E);
-	    end;
-	else
-	  Target := @Self;
-	  Ch := GetAltChar(E.KeyCode);
-	  if Ch = #0 then Ch := E.CharCode else Target := TopMenu;
-	  P := Target^.FindItem(Ch);
-	  if P = nil then
-	  begin
-	    P := TopMenu^.HotKey(E.KeyCode);
-	    if (P <> nil) and CommandEnabled(P^.Command) then
-	    begin
-	      Result := P^.Command;
-	      Action := DoReturn;
-	    end
-	  end else
-	    if Target = @Self then
-	    begin
-	      if Size.Y = 1 then AutoSelect := True;
-	      Action := DoSelect;
-	      Current := P;
-	    end else
-	      if (ParentMenu <> Target) or (ParentMenu^.Current <> P) then
-		Action := DoReturn;
-	end;
+        case CtrlToArrow(E.KeyCode) of
+          kbUp, kbDown:
+            if Size.Y <> 1 then
+              TrackKey(CtrlToArrow(E.KeyCode) = kbDown) else
+              if E.KeyCode = kbDown then AutoSelect := True;
+          kbLeft, kbRight:
+            if ParentMenu = nil then
+              TrackKey(CtrlToArrow(E.KeyCode) = kbRight) else
+              Action := DoReturn;
+          kbHome, kbEnd:
+            if Size.Y <> 1 then
+            begin
+              Current := Menu^.Items;
+              if E.KeyCode = kbEnd then TrackKey(False);
+            end;
+          kbEnter:
+            begin
+              if Size.Y = 1 then AutoSelect := True;
+              Action := DoSelect;
+            end;
+          kbEsc:
+            begin
+              Action := DoReturn;
+              if (ParentMenu = nil) or (ParentMenu^.Size.Y <> 1) then
+                ClearEvent(E);
+            end;
+        else
+          Target := @Self;
+          Ch := GetAltChar(E.KeyCode);
+          if Ch = #0 then Ch := E.CharCode else Target := TopMenu;
+          P := Target^.FindItem(Ch);
+          if P = nil then
+          begin
+            P := TopMenu^.HotKey(E.KeyCode);
+            if (P <> nil) and CommandEnabled(P^.Command) then
+            begin
+              Result := P^.Command;
+              Action := DoReturn;
+            end
+          end else
+            if Target = @Self then
+            begin
+              if Size.Y = 1 then AutoSelect := True;
+              Action := DoSelect;
+              Current := P;
+            end else
+              if (ParentMenu <> Target) or (ParentMenu^.Current <> P) then
+                Action := DoReturn;
+        end;
       evCommand:
-	if E.Command = cmMenu then
-	begin
-	  AutoSelect := False;
-	  if ParentMenu <> nil then Action := DoReturn;
-	end else Action := DoReturn;
+        if E.Command = cmMenu then
+        begin
+          AutoSelect := False;
+          if ParentMenu <> nil then Action := DoReturn;
+        end else Action := DoReturn;
     end;
     if ItemShown <> Current then
     begin
@@ -1880,18 +1879,18 @@ begin
     end;
     if (Action = DoSelect) or ((Action = DoNothing) and AutoSelect) then
       if Current <> nil then with Current^ do if Name <> nil then
-	if Command = 0 then
-	begin
-	  if E.What and (evMouseDown + evMouseMove) <> 0 then PutEvent(E);
-	  GetItemRect(Current, R);
-	  R.A.X := R.A.X + Origin.X;
-	  R.A.Y := R.B.Y + Origin.Y;
-	  R.B := Owner^.Size;
-	  if Size.Y = 1 then Dec(R.A.X);
-	  Target := TopMenu^.NewSubView(R, SubMenu, @Self);
-	  Result := Owner^.ExecView(Target);
-	  Dispose(Target, Done);
-	end else if Action = DoSelect then Result := Command;
+        if Command = 0 then
+        begin
+          if E.What and (evMouseDown + evMouseMove) <> 0 then PutEvent(E);
+          GetItemRect(Current, R);
+          R.A.X := R.A.X + Origin.X;
+          R.A.Y := R.B.Y + Origin.Y;
+          R.B := Owner^.Size;
+          if Size.Y = 1 then Dec(R.A.X);
+          Target := TopMenu^.NewSubView(R, SubMenu, @Self);
+          Result := Owner^.ExecView(Target);
+          Dispose(Target, Done);
+        end else if Action = DoSelect then Result := Command;
     if (Result <> 0) and CommandEnabled(Result) then
     begin
       Action := DoReturn;
@@ -2034,10 +2033,10 @@ begin
   begin
     if P=I then
       begin
-	if Menu^.Items<>I then PrevP^.Next:=P^.Next
-			  else Menu^.Items:=P^.Next;
-	DisposeMenuItem(P);
-	Break;
+        if Menu^.Items<>I then PrevP^.Next:=P^.Next
+                          else Menu^.Items:=P^.Next;
+        DisposeMenuItem(P);
+        Break;
       end;
     PrevP:=P; P:=P^.Next;
   end;
@@ -2069,13 +2068,13 @@ begin
     evMouseDown :
       if MouseInView(Event.Where) and (Event.Double) then
       begin
-	inherited HandleEvent(Event);
-	if Range>Focused then SelectItem(Focused);
+        inherited HandleEvent(Event);
+        if Range>Focused then SelectItem(Focused);
       end;
     evBroadcast :
       case Event.Command of
-	cmListItemSelected :
-	  Message(Owner,evBroadcast,cmDefault,nil);
+        cmListItemSelected :
+          Message(Owner,evBroadcast,cmDefault,nil);
       end;
   end;
   inherited HandleEvent(Event);
@@ -2115,31 +2114,31 @@ begin
     begin
       if S[P] = #3 then
       begin
-	Center := True;
-	Inc(P);
+        Center := True;
+        Inc(P);
       end;
       I := P;
       repeat
-	J := P;
-	while (P <= L) and (S[P] = ' ') do Inc(P);
-	while (P <= L) and (S[P] <> ' ') and (S[P] <> #13) do Inc(P);
+        J := P;
+        while (P <= L) and (S[P] = ' ') do Inc(P);
+        while (P <= L) and (S[P] <> ' ') and (S[P] <> #13) do Inc(P);
       until (P > L) or (P >= I + Size.X) or (S[P] = #13);
       TildeCount:=0; TempS:=copy(S,I,P-I);
       repeat
-	Po:=Pos('~',TempS);
-	if Po>0 then begin Inc(TildeCount); Delete(TempS,1,Po); end;
+        Po:=Pos('~',TempS);
+        if Po>0 then begin Inc(TildeCount); Delete(TempS,1,Po); end;
       until Po=0;
       if P > I + Size.X + TildeCount then
-	if J > I then P := J else P := I + Size.X;
+        if J > I then P := J else P := I + Size.X;
       T:=copy(S,I,P-I);
       if Center then J := (Size.X - {P + I}CStrLen(T)) div 2 else J := 0;
       MoveCStr(B[J],T,C);
       while (P <= L) and (S[P] = ' ') do Inc(P);
       if (P <= L) and (S[P] = #13) then
       begin
-	Center := False;
-	Inc(P);
-	if (P <= L) and (S[P] = #10) then Inc(P);
+        Center := False;
+        Inc(P);
+        if (P <= L) and (S[P] = #10) then Inc(P);
       end;
     end;
     WriteLine(0, Y, Size.X, 1, B);
@@ -2231,32 +2230,32 @@ begin
   case Event.What of
     evMouseDown :
       if MouseInView(Event.Where) and (Event.Buttons=mbRightButton) then
-	begin
-	  MakeLocal(Event.Where,P); Inc(P.X); Inc(P.Y);
-	  LocalMenu(P);
-	  ClearEvent(Event);
-	end;
+        begin
+          MakeLocal(Event.Where,P); Inc(P.X); Inc(P.Y);
+          LocalMenu(P);
+          ClearEvent(Event);
+        end;
     evKeyDown :
       begin
-	DontClear:=false;
-	case Event.KeyCode of
-	  kbAltF10 : Message(@Self,evCommand,cmLocalMenu,@Self);
-	else DontClear:=true;
-	end;
-	if DontClear=false then ClearEvent(Event);
+        DontClear:=false;
+        case Event.KeyCode of
+          kbAltF10 : Message(@Self,evCommand,cmLocalMenu,@Self);
+        else DontClear:=true;
+        end;
+        if DontClear=false then ClearEvent(Event);
       end;
     evCommand :
       begin
-	DontClear:=false;
-	case Event.Command of
-	  cmLocalMenu :
-	    begin
-	      P:=Cursor; Inc(P.X); Inc(P.Y);
-	      LocalMenu(P);
-	    end;
-	else DontClear:=true;
-	end;
-	if not DontClear then ClearEvent(Event);
+        DontClear:=false;
+        case Event.Command of
+          cmLocalMenu :
+            begin
+              P:=Cursor; Inc(P.X); Inc(P.Y);
+              LocalMenu(P);
+            end;
+        else DontClear:=true;
+        end;
+        if not DontClear then ClearEvent(Event);
       end;
   end;
   inherited HandleEvent(Event);
@@ -2288,36 +2287,36 @@ begin
   case Event.What of
     evKeyDown :
       begin
-	DontClear:=false;
-	case Event.KeyCode of
-	  kbEnter :
-	    if Owner<>pointer(SD) then
-	      Message(@Self,evCommand,cmMsgGotoSource,nil);
-	else DontClear:=true;
-	end;
-	if DontClear=false then ClearEvent(Event);
+        DontClear:=false;
+        case Event.KeyCode of
+          kbEnter :
+            if Owner<>pointer(SD) then
+              Message(@Self,evCommand,cmMsgGotoSource,nil);
+        else DontClear:=true;
+        end;
+        if DontClear=false then ClearEvent(Event);
       end;
     evBroadcast :
       case Event.Command of
-	cmListItemSelected :
-	  if Event.InfoPtr=@Self then
-	    Message(@Self,evCommand,cmMsgTrackSource,nil);
+        cmListItemSelected :
+          if Event.InfoPtr=@Self then
+            Message(@Self,evCommand,cmMsgTrackSource,nil);
       end;
     evCommand :
       begin
-	DontClear:=false;
-	case Event.Command of
-	  cmMsgGotoSource :
-	    if Range>0 then
-	    GotoSource;
-	  cmMsgTrackSource :
-	    if Range>0 then
-	    TrackSource;
-	  cmMsgClear :
-	    Clear;
-	else DontClear:=true;
-	end;
-	if DontClear=false then ClearEvent(Event);
+        DontClear:=false;
+        case Event.Command of
+          cmMsgGotoSource :
+            if Range>0 then
+            GotoSource;
+          cmMsgTrackSource :
+            if Range>0 then
+            TrackSource;
+          cmMsgClear :
+            Clear;
+        else DontClear:=true;
+        end;
+        if DontClear=false then ClearEvent(Event);
       end;
   end;
   inherited HandleEvent(Event);
@@ -2428,33 +2427,33 @@ begin
       Item := J*Size.Y + I + TopItem;
       CurCol := J*ColWidth;
       if (State and (sfSelected + sfActive) = (sfSelected + sfActive)) and
-	(Focused = Item) and (Range > 0) then
+        (Focused = Item) and (Range > 0) then
       begin
-	Color := FocusedColor;
-	SetCursor(CurCol+1,I);
-	SCOff := 0;
+        Color := FocusedColor;
+        SetCursor(CurCol+1,I);
+        SCOff := 0;
       end
       else if (Item < Range) and IsSelected(Item) then
       begin
-	Color := SelectedColor;
-	SCOff := 2;
+        Color := SelectedColor;
+        SCOff := 2;
       end
       else
       begin
-	Color := NormalColor;
-	SCOff := 4;
+        Color := NormalColor;
+        SCOff := 4;
       end;
       MoveChar(B[CurCol], ' ', Color, ColWidth);
       if Item < Range then
       begin
-	Text := GetText(Item, ColWidth + Indent);
-	Text := Copy(Text,Indent,ColWidth);
-	MoveStr(B[CurCol+1], Text, Color);
-	if ShowMarkers then
-	begin
-	  WordRec(B[CurCol]).Lo := Byte(SpecialChars[SCOff]);
-	  WordRec(B[CurCol+ColWidth-2]).Lo := Byte(SpecialChars[SCOff+1]);
-	end;
+        Text := GetText(Item, ColWidth + Indent);
+        Text := Copy(Text,Indent,ColWidth);
+        MoveStr(B[CurCol+1], Text, Color);
+        if ShowMarkers then
+        begin
+          WordRec(B[CurCol]).Lo := Byte(SpecialChars[SCOff]);
+          WordRec(B[CurCol+ColWidth-2]).Lo := Byte(SpecialChars[SCOff+1]);
+        end;
       end;
       MoveChar(B[CurCol+ColWidth-1], #179, GetColor(5), 1);
     end;
@@ -2508,16 +2507,16 @@ begin
   if TClass=
     V_Fatal       then ClassS:='Fatal'       else if TClass =
     V_Error       then ClassS:='Error'       else if TClass =
-    V_Normal      then ClassS:=''	    else if TClass =
+    V_Normal      then ClassS:=''           else if TClass =
     V_Warning     then ClassS:='Warning'     else if TClass =
-    V_Note	then ClassS:='Note'	else if TClass =
-    V_Hint	then ClassS:='Hint'	else if TClass =
+    V_Note      then ClassS:='Note'     else if TClass =
+    V_Hint      then ClassS:='Hint'     else if TClass =
     V_Macro       then ClassS:='Macro'       else if TClass =
     V_Procedure   then ClassS:='Procedure'   else if TClass =
     V_Conditional then ClassS:='Conditional' else if TClass =
-    V_Info	then ClassS:='Info'	else if TClass =
+    V_Info      then ClassS:='Info'     else if TClass =
     V_Status      then ClassS:='Status'      else if TClass =
-    V_Used	then ClassS:='Used'	else if TClass =
+    V_Used      then ClassS:='Used'     else if TClass =
     V_Tried       then ClassS:='Tried'       else if TClass =
     V_Debug       then ClassS:='Debug'
   else
@@ -2585,8 +2584,8 @@ begin
   case Event.What of
     evBroadcast :
       case Event.Command of
-	cmUpdate :
-	  Update;
+        cmUpdate :
+          Update;
       end;
   end;
   inherited HandleEvent(Event);
@@ -2616,7 +2615,7 @@ begin
   GetStatusText:=S;
 end;
 
-procedure TAdvancedStatusLine.SetStatusText(S: string);
+procedure TAdvancedStatusLine.SetStatusText(const S: string);
 begin
   if StatusText<>nil then DisposeStr(StatusText);
   StatusText:=NewStr(S);
@@ -2692,25 +2691,25 @@ begin
     { --- Update --- }
     if TabDefs<>nil then
        begin
-	 DefCount:=1;
-	 while AtTab(DefCount-1)^.Next<>nil do Inc(DefCount);
+         DefCount:=1;
+         while AtTab(DefCount-1)^.Next<>nil do Inc(DefCount);
        end
        else DefCount:=0;
     if ActiveDef<>-1 then
     begin
       P:=AtTab(ActiveDef)^.Items;
       while P<>nil do
-	begin
-	  if P^.View<>nil then Delete(P^.View);
-	  P:=P^.Next;
-	end;
+        begin
+          if P^.View<>nil then Delete(P^.View);
+          P:=P^.Next;
+        end;
     end;
     ActiveDef:=Index;
     P:=AtTab(ActiveDef)^.Items;
     while P<>nil do
       begin
-	if P^.View<>nil then Insert(P^.View);
-	P:=P^.Next;
+        if P^.View<>nil then Insert(P^.View);
+        P:=P^.Next;
       end;
     V:=AtTab(ActiveDef)^.DefItem;
     if V<>nil then V^.Select;
@@ -2744,10 +2743,10 @@ begin
     begin
       P:=AtTab(I)^.Items;
       while P<>nil do
-	begin
-	  if P^.View<>nil then DoCalcChange(P^.View);
-	  P:=P^.Next;
-	end;
+        begin
+          if P^.View<>nil then DoCalcChange(P^.View);
+          P:=P^.Next;
+        end;
     end;
 end;
 
@@ -2767,7 +2766,7 @@ var
 begin
   FV := First;
   while (FV<>nil) and ((FV^.Options and ofSelectable)=0) and (FV<>Last) do
-	FV:=FV^.Next;
+        FV:=FV^.Next;
   if FV<>nil then
     if (FV^.Options and ofSelectable)=0 then FV:=nil;
   FirstSelectable:=FV;
@@ -2778,7 +2777,7 @@ var
 begin
   LV := Last;
   while (LV<>nil) and ((LV^.Options and ofSelectable)=0) and (LV<>First) do
-	LV:=LV^.Prev;
+        LV:=LV^.Prev;
   if LV<>nil then
     if (LV^.Options and ofSelectable)=0 then LV:=nil;
   LastSelectable:=LV;
@@ -2788,67 +2787,67 @@ begin
      begin
        MakeLocal(Event.Where,P);
        if P.Y<3 then
-	  begin
-	    Index:=-1; X:=1;
-	    for i:=0 to DefCount-1 do
-		begin
-		  Len:=CStrLen(AtTab(i)^.Name^);
-		  if (P.X>=X) and (P.X<=X+Len+1) then Index:=i;
-		  X:=X+Len+3;
-		end;
-	    if Index<>-1 then
-	       SelectTab(Index);
-	  end;
+          begin
+            Index:=-1; X:=1;
+            for i:=0 to DefCount-1 do
+                begin
+                  Len:=CStrLen(AtTab(i)^.Name^);
+                  if (P.X>=X) and (P.X<=X+Len+1) then Index:=i;
+                  X:=X+Len+3;
+                end;
+            if Index<>-1 then
+               SelectTab(Index);
+          end;
      end;
   if Event.What=evKeyDown then
      begin
        Index:=-1;
        case Event.KeyCode of
-	    kbTab,kbShiftTab  :
-	      if GetState(sfSelected) then
-		 begin
-		   if Current<>nil then
-		   begin
-		   LastV:=LastSelectable; FirstV:=FirstSelectable;
-		   if ((Current=LastV) or (Current=PLabel(LastV)^.Link)) and (Event.KeyCode=kbShiftTab) then
-		      begin
-			if Owner<>nil then Owner^.SelectNext(true);
-		      end else
-		   if ((Current=FirstV) or (Current=PLabel(FirstV)^.Link)) and (Event.KeyCode=kbTab) then
-		      begin
-			Lock;
-			if Owner<>nil then Owner^.SelectNext(false);
-			UnLock;
-		      end else
-		   SelectNext(Event.KeyCode=kbShiftTab);
-		   ClearEvent(Event);
-		   end;
-		 end;
+            kbTab,kbShiftTab  :
+              if GetState(sfSelected) then
+                 begin
+                   if Current<>nil then
+                   begin
+                   LastV:=LastSelectable; FirstV:=FirstSelectable;
+                   if ((Current=LastV) or (Current=PLabel(LastV)^.Link)) and (Event.KeyCode=kbShiftTab) then
+                      begin
+                        if Owner<>nil then Owner^.SelectNext(true);
+                      end else
+                   if ((Current=FirstV) or (Current=PLabel(FirstV)^.Link)) and (Event.KeyCode=kbTab) then
+                      begin
+                        Lock;
+                        if Owner<>nil then Owner^.SelectNext(false);
+                        UnLock;
+                      end else
+                   SelectNext(Event.KeyCode=kbShiftTab);
+                   ClearEvent(Event);
+                   end;
+                 end;
        else
        for I:=0 to DefCount-1 do
-	   begin
-	     if Upcase(GetAltChar(Event.KeyCode))=AtTab(I)^.ShortCut
-		then begin
-		       Index:=I;
-		       ClearEvent(Event);
-		       Break;
-		     end;
-	   end;
+           begin
+             if Upcase(GetAltChar(Event.KeyCode))=AtTab(I)^.ShortCut
+                then begin
+                       Index:=I;
+                       ClearEvent(Event);
+                       Break;
+                     end;
+           end;
        end;
        if Index<>-1 then
-	  begin
-	    Select;
-	    SelectTab(Index);
-	    V:=AtTab(ActiveDef)^.DefItem;
-	    if V<>nil then V^.Focus;
-	  end;
+          begin
+            Select;
+            SelectTab(Index);
+            V:=AtTab(ActiveDef)^.DefItem;
+            if V<>nil then V^.Focus;
+          end;
      end;
   CallOrig:=true;
   if Event.What=evKeyDown then
      begin
      if ((Owner<>nil) and (Owner^.Phase=phPostProcess) and (GetAltChar(Event.KeyCode)<>#0)) or GetState(sfFocused)
-	then
-	else CallOrig:=false;
+        then
+        else CallOrig:=false;
      end;
   if CallOrig then inherited HandleEvent(Event);
 end;
@@ -2859,15 +2858,15 @@ begin
 end;
 
 procedure TTab.Draw;
-var B	  : TDrawBuffer;
-    i	  : integer;
+var B     : TDrawBuffer;
+    i     : integer;
     C1,C2,C3,C : word;
     HeaderLen  : integer;
     X,X2       : integer;
     Name       : PString;
     ActiveKPos : integer;
     ActiveVPos : integer;
-    FC	 : char;
+    FC   : char;
     ClipR      : TRect;
 procedure SWriteBuf(X,Y,W,H: integer; var Buf);
 var i: integer;
@@ -2875,8 +2874,8 @@ begin
   if Y+H>Size.Y then H:=Size.Y-Y;
   if X+W>Size.X then W:=Size.X-X;
   if Buffer=nil then WriteBuf(X,Y,W,H,Buf)
-		else for i:=1 to H do
-			 Move(Buf,Buffer^[X+(Y+i-1)*Size.X],W*2);
+                else for i:=1 to H do
+                         Move(Buf,Buffer^[X+(Y+i-1)*Size.X],W*2);
 end;
 procedure ClearBuf;
 begin
@@ -2901,16 +2900,16 @@ begin
   X:=1;
   for i:=0 to DefCount-1 do
       begin
-	Name:=AtTab(i)^.Name; X2:=CStrLen(Name^);
-	if i=ActiveDef
-	   then begin
-		  ActiveKPos:=X-1;
-		  ActiveVPos:=X+X2+2;
-		  if GetState(sfFocused) then C:=C3 else C:=C2;
-		end
-	   else C:=C2;
-	MoveCStr(B[X],' '+Name^+' ',C); X:=X+X2+3;
-	MoveChar(B[X-1],'³',C1,1);
+        Name:=AtTab(i)^.Name; X2:=CStrLen(Name^);
+        if i=ActiveDef
+           then begin
+                  ActiveKPos:=X-1;
+                  ActiveVPos:=X+X2+2;
+                  if GetState(sfFocused) then C:=C3 else C:=C2;
+                end
+           else C:=C2;
+        MoveCStr(B[X],' '+Name^+' ',C); X:=X+X2+3;
+        MoveChar(B[X-1],'³',C1,1);
       end;
   SWriteBuf(0,1,Size.X,1,B);
 
@@ -2919,14 +2918,14 @@ begin
   X:=1;
   for i:=0 to DefCount-1 do
       begin
-	if I<ActiveDef then FC:='Ú'
-		       else FC:='¿';
-	X2:=CStrLen(AtTab(i)^.Name^)+2;
-	MoveChar(B[X+X2],{'Â'}FC,C1,1);
-	if i=DefCount-1 then X2:=X2+1;
-	if X2>0 then
-	MoveChar(B[X],'Ä',C1,X2);
-	X:=X+X2+1;
+        if I<ActiveDef then FC:='Ú'
+                       else FC:='¿';
+        X2:=CStrLen(AtTab(i)^.Name^)+2;
+        MoveChar(B[X+X2],{'Â'}FC,C1,1);
+        if i=DefCount-1 then X2:=X2+1;
+        if X2>0 then
+        MoveChar(B[X],'Ä',C1,X2);
+        X:=X+X2+1;
       end;
   MoveChar(B[HeaderLen+1],'¿',C1,1);
   MoveChar(B[ActiveKPos],'Ú',C1,1); MoveChar(B[ActiveVPos],'¿',C1,1);
@@ -2937,7 +2936,7 @@ begin
   MoveChar(B[Size.X-1],'¿',C1,1);
   MoveChar(B[ActiveKPos],'Ù',C1,1);
   if ActiveDef=0 then MoveChar(B[0],'³',C1,1)
-		 else MoveChar(B[0],{'Ã'}'Ú',C1,1);
+                 else MoveChar(B[0],{'Ã'}'Ú',C1,1);
   MoveChar(B[HeaderLen+1],'Ä'{'Á'},C1,1); MoveChar(B[ActiveVPos],'À',C1,1);
   MoveChar(B[ActiveKPos+1],' ',C1,Max(ActiveVPos-ActiveKPos-1,0));
   SWriteBuf(0,2,Size.X,1,B);
@@ -2975,15 +2974,15 @@ begin
   OK:=true;
   PT:=TabDefs;
   while (PT<>nil) and (OK=true) do
-	begin
-	  PI:=PT^.Items;
-	  while (PI<>nil) and (OK=true) do
-		begin
-		  if PI^.View<>nil then OK:=OK and PI^.View^.Valid(Command);
-		  PI:=PI^.Next;
-		end;
-	  PT:=PT^.Next;
-	end;
+        begin
+          PI:=PT^.Items;
+          while (PI<>nil) and (OK=true) do
+                begin
+                  if PI^.View<>nil then OK:=OK and PI^.View^.Valid(Command);
+                  PI:=PI^.Next;
+                end;
+          PT:=PT^.Next;
+        end;
   Valid:=OK;
 end;
 
@@ -3004,15 +3003,15 @@ begin
   inherited Done;
   P:=TabDefs;
   while P<>nil do
-	begin
-	  X:=P^.Next;
-	  DisposeTabDef(P);
-	  P:=X;
-	end;
+        begin
+          X:=P^.Next;
+          DisposeTabDef(P);
+          P:=X;
+        end;
 end;
 
 constructor TScreenView.Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar;
-	      AScreen: PScreen);
+              AScreen: PScreen);
 begin
   inherited Init(Bounds,AHScrollBar,AVScrollBar);
   Screen:=AScreen;
@@ -3033,7 +3032,7 @@ begin
   case Event.What of
     evBroadcast :
       case Event.Command of
-	cmUpdate  : Update;
+        cmUpdate  : Update;
       end;
   end;
   inherited HandleEvent(Event);
@@ -3109,9 +3108,9 @@ begin
   case Event.What of
     evMouseDown :
       if (GetShiftState and kbAlt)<>0 then
-	TranslateAction(AltMouseAction) else
+        TranslateAction(AltMouseAction) else
       if (GetShiftState and kbCtrl)<>0 then
-	TranslateAction(CtrlMouseAction);
+        TranslateAction(CtrlMouseAction);
   end;
   InTranslate:=false;
 end;
@@ -3146,8 +3145,8 @@ begin
     if (CurX<>0) or (CurY<>0) then
        with W^.Editor^ do
        begin
-	 SetCurPtr(CurX,CurY);
-	 TrackCursor(true);
+         SetCurPtr(CurX,CurY);
+         TrackCursor(true);
        end;
     W^.HelpCtx:=hcSourceWindow;
     Desktop^.Insert(W);
@@ -3164,7 +3163,7 @@ var D : DirStr;
     N : NameStr;
     E : ExtStr;
     DrStr : String;
-    
+
 function CheckDir(NewDir: DirStr; NewName: NameStr; NewExt: ExtStr): boolean;
 var OK: boolean;
 begin
@@ -3191,8 +3190,8 @@ begin
   if E<>'' then Found:=CheckExt(E) else
     if CheckExt('.pp') then Found:=true else
       if CheckExt('.pas') then Found:=true else
-	if CheckExt('.inc')=false then
-	  Found:=false;
+        if CheckExt('.inc')=false then
+          Found:=false;
   if Found=false then W:=nil else
     begin
       FileName:=FExpand(D+N+E);
@@ -3211,26 +3210,26 @@ begin
     W:=SearchWindowWithNo(I);
     if (W<>nil) and (W^.HelpCtx=hcSourceWindow) then
       begin
-	if (D='') then
-	  SName:=NameAndExtOf(PSourceWindow(W)^.Editor^.FileName)
-	else
-	  SName:=PSourceWindow(W)^.Editor^.FileName;
-	SName:=UpcaseStr(SName);
+        if (D='') then
+          SName:=NameAndExtOf(PSourceWindow(W)^.Editor^.FileName)
+        else
+          SName:=PSourceWindow(W)^.Editor^.FileName;
+        SName:=UpcaseStr(SName);
 
-	if E<>'' then
-	  begin
-	    if D<>'' then
-	      Found:=SName=UpcaseStr(D+N+E)
-	    else
-	      Found:=SName=UpcaseStr(N+E);
-	  end
-	else
-	  begin
-	    Found:=SName=UpcaseStr(N+'.pp');
-	    if Found=false then
-	      Found:=SName=UpcaseStr(N+'.pas');
-	  end;
-	if Found then Break;
+        if E<>'' then
+          begin
+            if D<>'' then
+              Found:=SName=UpcaseStr(D+N+E)
+            else
+              Found:=SName=UpcaseStr(N+E);
+          end
+        else
+          begin
+            Found:=SName=UpcaseStr(N+'.pp');
+            if Found=false then
+              Found:=SName=UpcaseStr(N+'.pas');
+          end;
+        if Found then Break;
       end;
   end;
   if Found=false then W:=nil;
@@ -3244,24 +3243,24 @@ begin
     begin
       NewEditorOpened:=false;
       if assigned(Bounds) then
-	W^.ChangeBounds(Bounds^);
+        W^.ChangeBounds(Bounds^);
       W^.Editor^.SetCurPtr(CurX,CurY);
     end
   else
     begin
       DrStr:=GetSourceDirectories;
       While pos(';',DrStr)>0 do
-	Begin
-	   W:=TryToOpen(Copy(DrStr,1,pos(';',DrStr)-1));
-	   if assigned(W) then
-	     break;
-	   DrStr:=Copy(DrStr,pos(';',DrStr)+1,255);
-	End;
+        Begin
+           W:=TryToOpen(Copy(DrStr,1,pos(';',DrStr)-1));
+           if assigned(W) then
+             break;
+           DrStr:=Copy(DrStr,pos(';',DrStr)+1,255);
+        End;
       if not assigned(W) then
-	W:=TryToOpen(DrStr);
+        W:=TryToOpen(DrStr);
       NewEditorOpened:=W<>nil;
       if assigned(W) then
-	W^.Editor^.SetCurPtr(CurX,CurY);
+        W^.Editor^.SetCurPtr(CurX,CurY);
     end;
   TryToOpenFile:=W;
 end;
@@ -3270,7 +3269,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.15  1999-02-17 15:04:02  pierre
+  Revision 1.16  1999-02-19 18:43:49  peter
+    + open dialog supports mask list
+
+  Revision 1.15  1999/02/17 15:04:02  pierre
    + file(line) added in TProgramInfo message list
 
   Revision 1.14  1999/02/16 12:45:18  pierre
