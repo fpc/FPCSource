@@ -1,12 +1,15 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2004 by Karoly Balogh for Genesi Sarl
+    Copyright (c) 2004 by Karoly Balogh for Genesi S.a.r.l.
 
     System unit for MorphOS/PowerPC
   
-    Uses parts of the Amiga/68k port by Carl Eric Codere 
+    Uses parts of the Commodore Amiga/68k port by Carl Eric Codere 
     and Nils Sjoholm
+
+    MorphOS port was done on a free Pegasos II/G4 machine 
+    provided by Genesi S.a.r.l. <www.genesi.lu>
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -408,12 +411,16 @@ function dos_SetProtection(name: PChar location 'd1';
 function dos_SetFileDate(name: PChar location 'd1';
                          date: PDateStamp location 'd2'): Boolean; SysCall MOS_DOSBase 396;
 
+function dos_GetProgramDir: LongInt; SysCall MOS_DOSBase 600;
+function dos_GetProgramName(buf: PChar location 'd1';
+                            len: LongInt location 'd2'): Boolean; SysCall MOS_DOSBase 576;
+
 
 { utility.library functions }
 
 function util_Date2Amiga(date: PClockData location 'a0'): LongInt; SysCall MOS_UtilityBase 126;
 procedure util_Amiga2Date(amigatime: LongInt location 'd0';
-                         resultat: PClockData location 'a0'); SysCall MOS_UtilityBase 120;
+                          resultat: PClockData location 'a0'); SysCall MOS_UtilityBase 120;
 
 
 implementation
@@ -749,6 +756,51 @@ begin
   argc:=localindex;
 end;
 
+function GetProgramDir: String;
+var
+  s1     : String;
+  alock  : LongInt;
+  counter: Byte;
+begin
+  GetProgramDir:='';
+  FillChar(s1,255,#0);
+  { GetLock of program directory }
+  alock:=dos_GetProgramDir;
+  if alock<>0 then begin
+    if dos_NameFromLock(alock,@s1[1],255) then begin
+      counter:=1;
+      while (s1[counter]<>#0) and (counter<>0) do Inc(counter);
+      s1[0]:=Char(counter-1);
+      GetProgramDir:=s1;
+    end;
+  end;
+end;
+
+function GetProgramName: String;
+{ Returns ONLY the program name }
+var
+  s1     : String;
+  counter: Byte;
+begin
+  GetProgramName:='';
+  FillChar(s1,255,#0);
+  if dos_GetProgramName(@s1[1],255) then begin
+
+      { now check out and assign the length of the string }
+      counter := 1;
+      while (s1[counter]<>#0) and (counter<>0) do Inc(counter);
+      s1[0]:=Char(counter-1);
+
+      { now remove any component path which should not be there }
+      for counter:=length(s1) downto 1 do
+          if (s1[counter] = '/') or (s1[counter] = ':') then break;
+      { readjust counterv to point to character }
+      if counter<>1 then Inc(counter);
+
+      GetProgramName:=copy(s1,counter,length(s1));
+  end;
+end;
+
 
 {*****************************************************************************
                              ParamStr/Randomize
@@ -765,11 +817,19 @@ end;
 
 { argument number l }
 function paramstr(l : longint) : string;
+var
+  s1: String;
 begin
-  if (l>=0) and (l+1<=argc) then
-    paramstr:=strpas(argv[l])
-  else
-    paramstr:='';
+  paramstr:='';  
+  if MOS_ambMsg<>nil then exit;
+
+  if l=0 then begin
+    s1:=GetProgramDir;
+    if s1[length(s1)]=':' then paramstr:=s1+GetProgramName
+                          else paramstr:=s1+'/'+GetProgramName;
+  end else begin
+    if (l>0) and (l+1<=argc) then paramstr:=strpas(argv[l]);
+  end;
 end;
 
 { set randseed to a new pseudo random value }
@@ -1275,7 +1335,10 @@ End.
 
 {
   $Log$
-  Revision 1.10  2004-06-05 19:49:19  karoly
+  Revision 1.11  2004-06-06 19:18:05  karoly
+    + added support for paramstr(0)
+
+  Revision 1.10  2004/06/05 19:49:19  karoly
     + added console I/O support when running from Ambient
 
   Revision 1.9  2004/05/12 23:18:54  karoly
