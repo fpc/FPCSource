@@ -194,12 +194,13 @@ begin
      if (Level<=V_ShowFile) and (status.currentsource<>'') and (status.currentline>0) then
       begin
         { Adding the column should not confuse RHIDE,
-        even if it does not yet use it PM }
+        even if it does not yet use it PM
+        but only if it is after error or warning !! PM }
         if status.currentcolumn>0 then
          begin
            if status.use_gccoutput then
-             hs:=gccfilename(status.currentsource)+':'+tostr(status.currentline)
-                 +':'+tostr(status.currentcolumn)+': '+hs
+             hs:=gccfilename(status.currentsource)+':'+tostr(status.currentline)+': '+hs
+                 +tostr(status.currentcolumn)+': ' 
            else
              hs:=status.currentsource+'('+tostr(status.currentline)
                  +','+tostr(status.currentcolumn)+') '+hs;
@@ -207,7 +208,7 @@ begin
         else
          begin
            if status.use_gccoutput then
-             hs:=gccfilename(status.currentsource)+':'+tostr(status.currentline)+': '+hs
+             hs:=gccfilename(status.currentsource)+': '+hs+tostr(status.currentline)+': '
            else
              hs:=status.currentsource+'('+tostr(status.currentline)+') '+hs;
          end;
@@ -244,7 +245,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  1998-09-04 17:34:21  pierre
+  Revision 1.8  1998-09-15 10:49:32  pierre
+  merged from fixes branch
+
+  Revision 1.7.2.1  1998/09/15 10:30:17  pierre
+  RHIDE output corrected
+
+  Revision 1.7  1998/09/04 17:34:21  pierre
     * bug with datalabel corrected
     + assembler errors better commented
     * one nested record crash removed
