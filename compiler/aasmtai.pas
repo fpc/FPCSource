@@ -173,7 +173,7 @@ interface
 
        TMarker = (NoPropInfoStart,NoPropInfoEnd,
                   AsmBlockStart,AsmBlockEnd,
-                  InlineStart,InlineEnd);
+                  InlineStart,InlineEnd,marker_blockstart);
 
        { Buffer type used for alignment }
        tfillbuffer = array[0..63] of char;
@@ -468,6 +468,7 @@ interface
        Ttranstable=array[Tsuperregister] of Tsuperregister;
 
        taasmoutput = class(tlinkedlist)
+          constructor create;
           function getlasttaifilepos : pfileposinfo;
           procedure convert_registers;
           procedure translate_registers(const table:Ttranstable);
@@ -1719,6 +1720,13 @@ uses
                                  TAAsmOutput
 *****************************************************************************}
 
+    constructor taasmoutput.create;
+      begin
+        inherited create;
+        // make sure the optimizer won't remove the first tai of this list
+        insert(tai_marker.create(marker_blockstart));
+      end;
+
     function taasmoutput.getlasttaifilepos : pfileposinfo;
       var
        hp : tlinkedlistitem;
@@ -1830,7 +1838,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.29  2003-06-03 13:01:59  daniel
+  Revision 1.30  2003-07-02 16:43:48  jonas
+    * always add dummy marker object at the start of an assembler list, so
+      the optimizer can't remove the first object
+
+  Revision 1.29  2003/06/03 13:01:59  daniel
     * Register allocator finished
 
   Revision 1.28  2003/05/12 18:13:57  peter
