@@ -1,0 +1,13 @@
+#
+#   Makefile.fpc for auto generation of OpenGL units
+#
+
+[targets]
+units=buildgl
+programs=c_linuxd
+
+[packages]
+fcl=1
+
+[dirs]
+fpcdir=../../..

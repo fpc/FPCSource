@@ -1,0 +1,20 @@
+#
+#   Makefile.fpc for OpenGL for FPC
+#
+
+[targets]
+dirs=linux examples build
+
+[sections]
+none=1
+
+[defaults]
+defaultbuilddir=$(OS_TARGET)
+defaultinstalldir=$(OS_TARGET)
+
+[rules]
+.PHONY: examples
+
+examples:
+        $(MAKE) examples_all
+

@@ -1,0 +1,13 @@
+#
+#   Makefile.fpc for GL demos
+#
+
+[targets]
+programs=glutdemo
+
+[dirs]
+fpcdir=../../..
+unitdir=../$(OS_TARGET)
+
+[libs]
+libother=1
