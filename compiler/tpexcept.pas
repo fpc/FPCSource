@@ -26,9 +26,19 @@ unit tpexcept;
 
 interface
 
+{$ifdef VER1_0}
+  {$define HASNOLONGJMP}
+{$else}
+  {$ifdef DELPHI}
+    {$define HASNOLONGJMP}
+  {$endif}  
+{$endif}
+  
 {$ifndef UNIX}
   {$S-}
 {$endif}
+
+{$ifdef HASNOLONGJMP}
 
 type
    jmp_buf = record
@@ -45,12 +55,15 @@ type
   function setjmp(var rec : jmp_buf) : longint;{$ifdef Delphi}stdcall;{$else}{$ifndef ver1_0}oldfpccall;{$endif}{$endif}
   procedure longjmp(const rec : jmp_buf;return_value : longint);{$ifdef Delphi}stdcall;{$else}{$ifndef ver1_0}oldfpccall;{$endif}{$endif}
 
+{$endif HASNOLONGJMP}
+
   const
      recoverpospointer : pjmp_buf = nil;
      longjump_used : boolean = false;
 
 implementation
 
+{$ifdef HASNOLONGJMP}
 
 {*****************************************************************************
                              Exception Helpers
@@ -240,10 +253,15 @@ implementation
 
 {$endif DELPHI}
 
+{$endif HASNOLONGJMP}
+
 end.
 {
   $Log$
-  Revision 1.9  2003-11-23 17:03:05  peter
+  Revision 1.10  2004-02-12 16:00:39  peter
+    * don't use the local longjmp for 1.9.x
+
+  Revision 1.9  2003/11/23 17:03:05  peter
     * use oldfpccall
 
   Revision 1.8  2002/05/18 13:34:21  peter
