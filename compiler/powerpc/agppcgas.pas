@@ -55,6 +55,52 @@ unit agppcgas;
         'xer','lr','ctr','fpscr'
       );
 
+      op2str : array[tasmop] of string[14] = ('<none>',
+        'add','add.','addo','addo.','addc','addc.','addco','addco.',
+        'adde','adde.','addeo','addeo.','addi','addic','addic.','addis',
+        'addme','addme.','addmeo','addmeo.','addze','addze.','addzeo',
+        'addzeo.','and','and.','andc','andc.','andi.','andis.','b',
+        'ba','bl','bla','bc','bca','bcl','bcla','bcctr','bcctrl','bclr',
+        'bclrl','cmp','cmpi','cmpl','cmpli','cntlzw','cntlzw.','crand',
+        'crandc','creqv','crnand','crnor','cror','crorc','crxor','dcba',
+        'dcbf','dcbi','dcbst','dcbt','divw','divw.','divwo','divwo.',
+        'divwu','divwu.','divwuo','divwuo.','eciwx','ecowx','eieio','eqv',
+        'eqv.','extsb','extsb.','extsh','extsh.','fabs','fabs.','fadd',
+        'fadd.','fadds','fadds.','fcmpo','fcmpu','fctiw','fctw.','fctwz',
+        'fctwz.','fdiv','fdiv.','fdivs','fdivs.','fmadd','fmadd.','fmadds',
+        'fmadds.','fmr','fmsub','fmsub.','fmsubs','fmsubs.','fmul','fmul.',
+        'fmuls','fmuls.','fnabs','fnabs.','fneg','fneg.','fnmadd',
+        'fnmadd.','fnmadds','fnmadds.','fnmsub','fnmsub.','fnmsubs',
+        'fnmsubs.','fres','fres.','frsp','frsp.','frsqrte','frsqrte.',
+        'fsel','fsel.','fsqrt','fsqrt.','fsqrts','fsqrts.','fsub','fsub.',
+        'fsubs','fsubs.','icbi','isync','lbz','lbzu','lbzux','lbzx',
+        'lfd','lfdu','lfdux','lfdx','lfs','lfsu','lfsux','lfsx','lha',
+        'lhau','lhaux','lhax','hbrx','lhz','lhzu','lhzux','lhzx','lmw',
+        'lswi','lswx','lwarx','lwbrx','lwz','lwzu','lwzux','lwzx','mcrf',
+        'mcrfs','mcrxr','lcrxe','mfcr','mffs','maffs.','mfmsr','mfspr','mfsr',
+        'mfsrin','mftb','mtfcrf','mtfd0','mtfsb1','mtfsf','mtfsf.',
+        'mtfsfi','mtfsfi.','mtmsr','mtspr','mtsr','mtsrin','mulhw',
+        'mulhw.','mulhwu','mulhwu.','mulli','mullw','mullw.','mullwo',
+        'mullwo.','nand','nand.','neg','neg.','nego','nego.','nor','nor.',
+        'or','or.','orc','orc.','ori','oris', 'rfi', 'rlwimi', 'rlwimi.',
+        'rlwinm', 'rlwinm.','rlwnm','sc','slw', 'slw.', 'sraw', 'sraw.',
+        'srawi', 'srawi.','srw', 'srw.', 'stb', 'stbu', 'stbux','stbx','stfd',
+        'stfdu', 'stfdux', 'stfdx', 'stfiwx', 'stfs', 'stfsu', 'stfsux', 'stfsx',
+        'sth', 'sthbrx', 'sthu', 'sthux', 'sthx', 'stmw', 'stswi', 'stswx', 'stw',
+        'stwbrx', 'stwx.', 'stwu', 'stwux', 'stwx', 'subf', 'subf.', 'subfo',
+        'subfo.', 'subfc', 'subc.', 'subfco', 'subfco.', 'subfe', 'subfe.',
+        'subfeo', 'subfeo.', 'subfic', 'subfme', 'subfme.', 'subfmeo', 'subfmeo.',
+        'subfze', 'subfze.', 'subfzeo', 'subfzeo.', 'sync', 'tlbia', 'tlbie',
+        'tlbsync', 'tw', 'twi', 'xor', 'xor.', 'xori', 'xoris',
+        { some simplified mnemonics }
+        'subi', 'subis', 'subic', 'subic.', 'sub', 'sub.', 'subo', 'subo.',
+        'subc', 'subc.', 'subco', 'subco.', 'cmpwi', 'cmpw', 'cmplwi', 'cmplw',
+        'extlwi', 'extlwi.', 'extrwi', 'extrwi.', 'inslwi', 'inslwi.', 'insrwi',
+        'insrwi.', 'rotlwi', 'rotlwi.', 'rotlw', 'rotlw.', 'slwi', 'slwi.',
+        'srwi', 'srwi.', 'clrlwi', 'clrlwi.', 'clrrwi', 'clrrwi.', 'clrslwi',
+        'clrslwi.', 'blr', 'bctr', 'blrl', 'bctrl', 'crset', 'crclr', 'crmove',
+        'crnot', 'mt', 'mf','nop', 'li', 'lis', 'la', 'mr','mr.','not', 'mtcr', 'mtlr', 'mflr',
+        'mtctr', 'mfctr');
 
   implementation
 
@@ -94,53 +140,6 @@ unit agppcgas;
               '','','','','','',
               '.stab','.stabstr','COMMON')
           );
-
-       op2str : array[tasmop] of string[14] = ('<none>',
-         'add','add.','addo','addo.','addc','addc.','addco','addco.',
-         'adde','adde.','addeo','addeo.','addi','addic','addic.','addis',
-         'addme','addme.','addmeo','addmeo.','addze','addze.','addzeo',
-         'addzeo.','and','and.','andc','andc.','andi.','andis.','b',
-         'ba','bl','bla','bc','bca','bcl','bcla','bcctr','bcctrl','bclr',
-         'bclrl','cmp','cmpi','cmpl','cmpli','cntlzw','cntlzw.','crand',
-         'crandc','creqv','crnand','crnor','cror','crorc','crxor','dcba',
-         'dcbf','dcbi','dcbst','dcbt','divw','divw.','divwo','divwo.',
-         'divwu','divwu.','divwuo','divwuo.','eciwx','ecowx','eieio','eqv',
-         'eqv.','extsb','extsb.','extsh','extsh.','fabs','fabs.','fadd',
-         'fadd.','fadds','fadds.','fcmpo','fcmpu','fctiw','fctw.','fctwz',
-         'fctwz.','fdiv','fdiv.','fdivs','fdivs.','fmadd','fmadd.','fmadds',
-         'fmadds.','fmr','fmsub','fmsub.','fmsubs','fmsubs.','fmul','fmul.',
-         'fmuls','fmuls.','fnabs','fnabs.','fneg','fneg.','fnmadd',
-         'fnmadd.','fnmadds','fnmadds.','fnmsub','fnmsub.','fnmsubs',
-         'fnmsubs.','fres','fres.','frsp','frsp.','frsqrte','frsqrte.',
-         'fsel','fsel.','fsqrt','fsqrt.','fsqrts','fsqrts.','fsub','fsub.',
-         'fsubs','fsubs.','icbi','isync','lbz','lbzu','lbzux','lbzx',
-         'lfd','lfdu','lfdux','lfdx','lfs','lfsu','lfsux','lfsx','lha',
-         'lhau','lhaux','lhax','hbrx','lhz','lhzu','lhzux','lhzx','lmw',
-         'lswi','lswx','lwarx','lwbrx','lwz','lwzu','lwzux','lwzx','mcrf',
-         'mcrfs','mcrxr','lcrxe','mfcr','mffs','maffs.','mfmsr','mfspr','mfsr',
-         'mfsrin','mftb','mtfcrf','mtfd0','mtfsb1','mtfsf','mtfsf.',
-         'mtfsfi','mtfsfi.','mtmsr','mtspr','mtsr','mtsrin','mulhw',
-         'mulhw.','mulhwu','mulhwu.','mulli','mullw','mullw.','mullwo',
-         'mullwo.','nand','nand.','neg','neg.','nego','nego.','nor','nor.',
-         'or','or.','orc','orc.','ori','oris', 'rfi', 'rlwimi', 'rlwimi.',
-         'rlwinm', 'rlwinm.','rlwnm','sc','slw', 'slw.', 'sraw', 'sraw.',
-         'srawi', 'srawi.','srw', 'srw.', 'stb', 'stbu', 'stbux','stbx','stfd',
-         'stfdu', 'stfdux', 'stfdx', 'stfiwx', 'stfs', 'stfsu', 'stfsux', 'stfsx',
-         'sth', 'sthbrx', 'sthu', 'sthux', 'sthx', 'stmw', 'stswi', 'stswx', 'stw',
-         'stwbrx', 'stwx.', 'stwu', 'stwux', 'stwx', 'subf', 'subf.', 'subfo',
-         'subfo.', 'subfc', 'subc.', 'subfco', 'subfco.', 'subfe', 'subfe.',
-         'subfeo', 'subfeo.', 'subfic', 'subfme', 'subfme.', 'subfmeo', 'subfmeo.',
-         'subfze', 'subfze.', 'subfzeo', 'subfzeo.', 'sync', 'tlbia', 'tlbie',
-         'tlbsync', 'tw', 'twi', 'xor', 'xor.', 'xori', 'xoris',
-         { some simplified mnemonics }
-         'subi', 'subis', 'subic', 'subic.', 'sub', 'sub.', 'subo', 'subo.',
-         'subc', 'subc.', 'subco', 'subco.', 'cmpwi', 'cmpw', 'cmplwi', 'cmplw',
-         'extlwi', 'extlwi.', 'extrwi', 'extrwi.', 'inslwi', 'inslwi.', 'insrwi',
-         'insrwi.', 'rotlwi', 'rotlwi.', 'rotlw', 'rotlw.', 'slwi', 'slwi.',
-         'srwi', 'srwi.', 'clrlwi', 'clrlwi.', 'clrrwi', 'clrrwi.', 'clrslwi',
-         'clrslwi.', 'blr', 'bctr', 'blrl', 'bctrl', 'crset', 'crclr', 'crmove',
-         'crnot', 'mt', 'mf','nop', 'li', 'lis', 'la', 'mr','mr.','not', 'mtcr', 'mtlr', 'mflr',
-         'mtctr', 'mfctr');
 
      symaddr2str: array[trefsymaddr] of string[3] = ('','@ha','@l');
 
@@ -380,7 +379,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2003-04-23 12:35:35  florian
+  Revision 1.23  2003-04-24 22:29:58  florian
+    * fixed a lot of PowerPC related stuff
+
+  Revision 1.22  2003/04/23 12:35:35  florian
     * fixed several issues with powerpc
     + applied a patch from Jonas for nested function calls (PowerPC only)
     * ...

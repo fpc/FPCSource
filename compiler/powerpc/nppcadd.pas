@@ -232,8 +232,8 @@ interface
         // constant in a register first?
         if (right.location.loc = LOC_CONSTANT) then
           begin
-{$ifdef extdebug}
-            if (right.location.size in [OS_64,OS_S64]) and (hi(right.location.valueqword)<>0) and ((hi(right.location.valueqword)<>cardinal(-1)) or unsigned) then
+{$ifdef dummy}
+            if (right.location.size in [OS_64,OS_S64]) and (hi(right.location.valueqword)<>0) and ((hi(right.location.valueqword)<>$ffffffff) or unsigned) then
               internalerror(2002080301);
 {$endif extdebug}
             if (nodetype in [equaln,unequaln]) then
@@ -1479,7 +1479,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2003-04-23 22:18:01  peter
+  Revision 1.27  2003-04-24 22:29:58  florian
+    * fixed a lot of PowerPC related stuff
+
+  Revision 1.26  2003/04/23 22:18:01  peter
     * fixes to get rtl compiled
 
   Revision 1.25  2003/04/23 12:35:35  florian

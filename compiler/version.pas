@@ -48,15 +48,27 @@ interface
 {$ifdef cpu86}
         source_cpu_string = 'i386';
 {$endif}
-{$ifdef cpu68}
-        source_cpu_string = 'm68k';
+{$ifdef cpupowerpc}
+        source_cpu_string = 'powerpc';
 {$endif}
+{$ifdef cpum68k}
+        source_cpu_string = 'm68k';
+{$endif cpum68k}
 {$ifdef cpuia64}
        target_cpu_string = 'ia64';
 {$endif}
 {$ifdef cpu86_64}
         source_cpu_string = 'x86_64';
 {$endif}
+{$ifdef cpusparc}
+        source_cpu_string = 'sparc';
+{$endif cpusparc}
+{$ifdef cpusalpha}
+        source_cpu_string = 'alpha';
+{$endif cpualpha}
+{$ifdef cpuvis}
+        source_cpu_string = 'vis';
+{$endif cpuvis}
 
 function version_string:string;
 function full_version_string:string;
@@ -84,7 +96,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  2002-09-07 15:25:10  peter
+  Revision 1.17  2003-04-24 22:29:58  florian
+    * fixed a lot of PowerPC related stuff
+
+  Revision 1.16  2002/09/07 15:25:10  peter
     * old logs removed and tabs fixed
 
   Revision 1.15  2002/08/10 14:46:31  carl

@@ -617,13 +617,33 @@ implementation
 
 {$ifdef EXTDEBUG}
     procedure tnode._dowrite;
+      const
+         loc2str : array[TCGLoc] of string[18] = (
+           'LOC_INVALID',
+           'LOC_VOID',
+           'LOC_CONSTANT',
+           'LOC_JUMP',
+           'LOC_FLAGS',
+           'LOC_CREFERENCE',
+           'LOC_REFERENCE',
+           'LOC_REGISTER',
+           'LOC_CREGISTER',
+           'LOC_FPUREGISTER',
+           'LOC_CFPUREGISTER',
+           'LOC_MMXREGISTER',
+           'LOC_CMMXREGISTER',
+           'LOC_SSEREGISTER',
+           'LOC_CSSEREGISTER',
+           'LOC_MMREGISTER',
+           'LOC_CMMREGISTER');
+
       begin
         dowritenodetype;
         if assigned(resulttype.def) then
           write(',resulttype = "',resulttype.def.gettypename,'"')
         else
           write(',resulttype = <nil>');
-        write(',location.loc = ',ord(location.loc));
+        write(',location.loc = ',loc2str[location.loc]);
         write(',registersint = ',registers32);
         write(',registersfpu = ',registersfpu);
       end;
@@ -983,7 +1003,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.55  2003-04-23 10:12:14  peter
+  Revision 1.56  2003-04-24 22:29:58  florian
+    * fixed a lot of PowerPC related stuff
+
+  Revision 1.55  2003/04/23 10:12:14  peter
     * allow multi pass2 changed to global boolean instead of node flag
 
   Revision 1.54  2003/04/22 23:50:23  peter

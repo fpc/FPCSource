@@ -41,17 +41,22 @@
   {$define oldset}
   {$endif}
   {$define x86}
+  {$define cpuextended}
 {$else}
   {$define oldset}
 {$endif i386}
+
 {$ifdef x86_64}
   {$define x86}
   {$define cpu64bit}
+  {$define cpuextended}
 {$endif x86_64}
+
 {$ifdef alpha}
   {$define cpu64bit}
   {$undef cpuflags}
 {$endif alpha}
+
 {$ifdef powerpc}
   {$define callparatemp}
 {$endif powerpc}
@@ -68,7 +73,10 @@
 
 {
   $Log$
-  Revision 1.16  2003-04-23 13:47:41  peter
+  Revision 1.17  2003-04-24 22:29:57  florian
+    * fixed a lot of PowerPC related stuff
+
+  Revision 1.16  2003/04/23 13:47:41  peter
     * optimizer is x86
 
   Revision 1.15  2003/04/23 12:35:34  florian

@@ -533,6 +533,7 @@ implementation
                      cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,
                        tcallparanode(tcallparanode(left).right).left.location.register,hregister);
                    end;
+                 LOC_CREFERENCE,
                  LOC_REFERENCE:
                    begin
                      cgsize := def_cgsize(tcallparanode(tcallparanode(left).right).left.resulttype.def);
@@ -670,7 +671,10 @@ end.
 
 {
   $Log$
-  Revision 1.25  2003-04-22 23:50:22  peter
+  Revision 1.26  2003-04-24 22:29:57  florian
+    * fixed a lot of PowerPC related stuff
+
+  Revision 1.25  2003/04/22 23:50:22  peter
     * firstpass uses expectloc
     * checks if there are differences between the expectloc and
       location.loc from secondpass in EXTDEBUG

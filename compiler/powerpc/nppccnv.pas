@@ -267,6 +267,7 @@ implementation
       var
         hreg1,
         hreg2    : tregister;
+        href     : treference;
         resflags : tresflags;
         opsize   : tcgsize;
       begin
@@ -288,11 +289,37 @@ implementation
                   begin
                     reference_release(exprasmlist,left.location.reference);
                     hreg2:=rg.getregisterint(exprasmlist,OS_INT);
-                    cg.a_load_ref_reg(exprasmlist,opsize,
-                      left.location.reference,hreg2);
+                     if left.location.size in [OS_64,OS_S64] then
+                       begin
+                         cg.a_load_ref_reg(exprasmlist,OS_INT,
+                          left.location.reference,hreg2);
+                         hreg1:=rg.getregisterint(exprasmlist,OS_INT);
+                         href:=left.location.reference;
+                         inc(href.offset,4);
+                         cg.a_load_ref_reg(exprasmlist,OS_INT,
+                           href,hreg1);
+                         cg.a_op_reg_reg_reg(exprasmlist,OP_OR,OS_32,hreg2,hreg2,hreg1);
+                         rg.ungetregisterint(exprasmlist,hreg1);
+                          { it's shrunk down to 32 bit }
+                         location.size:=OS_32;
+                      end
+                     else
+                      cg.a_load_ref_reg(exprasmlist,opsize,
+                        left.location.reference,hreg2);
                   end
                 else
-                  hreg2 := left.location.register;
+                  begin
+                     if left.location.size in [OS_64,OS_S64] then
+                       begin
+                          hreg2:=rg.getregisterint(exprasmlist,OS_32);
+                          cg.a_op_reg_reg_reg(exprasmlist,OP_OR,OS_32,hreg2,left.location.registerhigh,left.location.registerlow);
+                          location_release(exprasmlist,left.location);
+                          { it's shrunk down to 32 bit }
+                          location.size:=OS_32;
+                       end
+                     else
+                       hreg2 := left.location.register;
+                  end;
                 hreg1 := rg.getregisterint(exprasmlist,OS_INT);
                 exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBIC,hreg1,
                   hreg2,1));
@@ -395,7 +422,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2003-04-23 21:10:54  peter
+  Revision 1.33  2003-04-24 22:29:58  florian
+    * fixed a lot of PowerPC related stuff
+
+  Revision 1.32  2003/04/23 21:10:54  peter
     * fix compile for ppc,sparc,m68k
 
   Revision 1.31  2003/04/23 12:35:35  florian

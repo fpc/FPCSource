@@ -138,8 +138,14 @@ implementation
                       Consts.concat(Tai_real_64bit.Create(ts64real(value_real)));
                     ait_real_80bit :
                       Consts.concat(Tai_real_80bit.Create(value_real));
+{$ifdef ver1_0}
                     ait_comp_64bit :
                       Consts.concat(Tai_comp_64bit.Create(value_real));
+{$else ver1_0}
+                    { the round is necessary for native compilers where comp isn't a float }
+                    ait_comp_64bit :
+                      Consts.concat(Tai_comp_64bit.Create(round(value_real)));
+{$endif ver1_0}
                   else
                     internalerror(10120);
                   end;
@@ -533,7 +539,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2003-01-05 13:36:53  florian
+  Revision 1.27  2003-04-24 22:29:57  florian
+    * fixed a lot of PowerPC related stuff
+
+  Revision 1.26  2003/01/05 13:36:53  florian
     * x86-64 compiles
     + very basic support for float128 type (x86-64 only)
 

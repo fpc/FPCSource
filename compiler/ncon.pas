@@ -165,6 +165,7 @@ interface
     function is_constcharnode(p : tnode) : boolean;
     function is_constrealnode(p : tnode) : boolean;
     function is_constboolnode(p : tnode) : boolean;
+    function is_constenumnode(p : tnode) : boolean;
     function is_constresourcestringnode(p : tnode) : boolean;
     function is_constwidecharnode(p : tnode) : boolean;
     function str_length(p : tnode) : longint;
@@ -258,6 +259,13 @@ implementation
 
       begin
          is_constboolnode:=(p.nodetype=ordconstn) and is_boolean(p.resulttype.def);
+      end;
+
+
+    function is_constenumnode(p : tnode) : boolean;
+
+      begin
+         is_constenumnode:=(p.nodetype=ordconstn) and (p.resulttype.def.deftype=enumdef);
       end;
 
 
@@ -938,7 +946,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  2003-04-23 20:16:04  peter
+  Revision 1.48  2003-04-24 22:29:57  florian
+    * fixed a lot of PowerPC related stuff
+
+  Revision 1.47  2003/04/23 20:16:04  peter
     + added currency support based on int64
     + is_64bit for use in cg units instead of is_64bitint
     * removed cgmessage from n386add, replace with internalerrors

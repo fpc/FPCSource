@@ -243,9 +243,11 @@ implementation
 
 
          { both are int constants }
-         if (((is_constintnode(left) and is_constintnode(right)) or
+         if ((is_constintnode(left) and is_constintnode(right)) or
               (is_constboolnode(left) and is_constboolnode(right) and
-               (nodetype in [slashn,ltn,lten,gtn,gten,equaln,unequaln,andn,xorn,orn])))) or
+               (nodetype in [slashn,ltn,lten,gtn,gten,equaln,unequaln,andn,xorn,orn])) or
+              (is_constenumnode(left) and is_constenumnode(right) and
+               (nodetype in [equaln,unequaln,ltn,lten,gtn,gten]))) or
             { support pointer arithmetics on constants (JM) }
             ((lt = pointerconstn) and is_constintnode(right) and
              (nodetype in [addn,subn])) or
@@ -270,6 +272,11 @@ implementation
                    else if not(equal_defs(ld,rd)) then
                      CGMessage2(type_e_incompatible_types,ld.typename,rd.typename);
                 end
+              else if (ld.deftype=enumdef) and (rd.deftype=enumdef) then
+               begin
+                 if not(equal_defs(ld,rd)) then
+                   inserttypeconv(right,left.resulttype);
+               end
               else if (lt=ordconstn) and (rt=ordconstn) then
                 begin
                   { make left const type the biggest (u32bit is bigger than
@@ -1217,9 +1224,9 @@ implementation
          else if (ld.deftype=enumdef) and (rd.deftype=enumdef) then
           begin
             if not(equal_defs(ld,rd)) then
-             inserttypeconv(right,left.resulttype);
+              inserttypeconv(right,left.resulttype);
             if not(nodetype in [equaln,unequaln,ltn,lten,gtn,gten]) then
-             CGMessage(type_e_mismatch);
+              CGMessage(type_e_mismatch);
           end
 
          { generic conversion, this is for error recovery }
@@ -1950,7 +1957,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.84  2003-04-23 20:16:04  peter
+  Revision 1.85  2003-04-24 22:29:57  florian
+    * fixed a lot of PowerPC related stuff
+
+  Revision 1.84  2003/04/23 20:16:04  peter
     + added currency support based on int64
     + is_64bit for use in cg units instead of is_64bitint
     * removed cgmessage from n386add, replace with internalerrors

@@ -220,8 +220,14 @@ implementation
                    curconstSegment.concat(Tai_real_64bit.Create(ts64real(value)));
                  s80real :
                    curconstSegment.concat(Tai_real_80bit.Create(value));
+{$ifdef ver1_0}
                  s64comp :
                    curconstSegment.concat(Tai_comp_64bit.Create(value));
+{$else ver1_0}
+                 { the round is necessary for native compilers where comp isn't a float }
+                 s64comp :
+                   curconstSegment.concat(Tai_comp_64bit.Create(round(value)));
+{$endif ver1_0}
                  else
                    internalerror(18);
               end;
@@ -995,7 +1001,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.66  2003-04-06 21:11:23  olle
+  Revision 1.67  2003-04-24 22:29:58  florian
+    * fixed a lot of PowerPC related stuff
+
+  Revision 1.66  2003/04/06 21:11:23  olle
     * changed newasmsymbol to newasmsymboldata for data symbols
 
   Revision 1.65  2003/03/17 21:42:32  peter

@@ -475,7 +475,7 @@ var
                AsmWrite(#9'.rva'#9);
                AsmWriteLn(tai_const_symbol(hp).sym.name);
              end;
-
+{$ifdef cpuextended}
            ait_real_80bit :
              begin
                if do_line then
@@ -492,6 +492,7 @@ var
                 end;
                AsmLn;
              end;
+{$endif cpuextended}
 
            ait_real_64bit :
              begin
@@ -812,7 +813,10 @@ var
 end.
 {
   $Log$
-  Revision 1.21  2003-04-22 14:33:38  peter
+  Revision 1.22  2003-04-24 22:29:57  florian
+    * fixed a lot of PowerPC related stuff
+
+  Revision 1.21  2003/04/22 14:33:38  peter
     * removed some notes/hints
 
   Revision 1.20  2003/01/09 21:52:37  peter
