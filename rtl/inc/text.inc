@@ -467,6 +467,22 @@ Begin
   WriteBuffer(f,p^,PCharLen);
 End;
 
+{$ifdef UseAnsiStrings}
+Procedure Write_Text_AnsiString (Len : Longint; Var T : TextRec; Var S : AnsiString);[Public, alias: 'WRITE_TEXT_ANSISTRING'];
+{
+ Writes a AnsiString to the Text file T
+}
+
+Var Temp : Pointer;
+
+begin
+  Temp:=Pointer(S);
+  If Temp=Nil then exit;
+  Write_pchar (Len,t,PChar(Temp));
+end;
+
+{$endif}
+
 
 Procedure Write_LongInt(Len : Longint;var t : TextRec;l : Longint);[Public,Alias: 'WRITE_TEXT_LONGINT'];
 var
@@ -756,7 +772,7 @@ Begin
   s[0]:=chr(sPos-1);
 End;
 {$ELSE}
-Procedure Read_String(Maxlen : Longint;var f : TextRec;var s : String);[Public,Alias: 'READ_TEXT_STRING'];
+Procedure Read_String(Maxlen : Longint;var f : TextRec;var s : String);[Public,Alias:'READ_TEXT_STRING'];
 var
   Temp,sPos,nrread : Word;
 Begin
@@ -884,6 +900,47 @@ Begin
   p^:=#0;
 End;
 
+{$ifdef useansistrings}
+Procedure Read_String(Maxlen : Longint;var f : TextRec;var s : AnsiString);[Public,Alias: 'READ_TEXT_ANSISTRING'];
+
+var
+  p    : PChar;
+  Temp : byte;
+  len  : Longint;
+
+Begin
+{ Delete the string }
+  Decr_ansi_ref (S);
+  // We assign room for 1024 characters totally at random....
+  Pointer(s):=Pointer(NewAnsiString(1024));
+  If InOutRes <> 0 then exit;
+  p:=pointer(s);
+  if not OpenInput(f) then
+   exit;
+  Temp:=f.BufPos;
+  while (f.BufPos<f.BufEnd) and (f.Bufptr^[Temp]<>#10) Do
+   Begin
+     { search linefeed }
+     while (f.Bufptr^[Temp]<>#10) and (Temp<f.BufEnd) Do
+      inc(Temp);
+     { copy string. }
+     Move (f.Bufptr^[f.BufPos],p^,Temp-f.BufPos);
+     Inc(Longint(p),Temp-f.BufPos);
+     Inc(len,Temp-f.bufpos);
+     If pchar(p-1)^=#13 Then
+      dec(p);
+     { update f.BufPos }
+     f.BufPos:=Temp;
+     If Temp>=f.BufEnd Then
+      Begin
+        FileFunc(f.InOutFunc)(f);
+        Temp:=f.BufPos;
+      End
+   End;
+  p^:=#0;
+  PAnsiRec(Pointer(S)-FirstOff)^.Len:=len
+End;
+{$endif}
 
 Procedure Read_Longint(var f : TextRec;var l : Longint);[Public,Alias: 'READ_TEXT_LONGINT'];
 var
@@ -1135,7 +1192,10 @@ end;
 
 {
   $Log$
-  Revision 1.17  1998-07-19 19:55:33  michael
+  Revision 1.18  1998-07-29 21:44:35  michael
+  + Implemented reading/writing of ansistrings
+
+  Revision 1.17  1998/07/19 19:55:33  michael
   + fixed rename. Changed p to p^
 
   Revision 1.16  1998/07/10 11:02:40  peter

@@ -110,7 +110,7 @@ Procedure DisposeAnsiString (Var S : AnsiString);
   Deallocates a AnsiString From the heap.
 }
 begin
-  Writeln ('In disposeAnsiSTring');
+//  Writeln ('In disposeAnsiSTring');
   If Pointer(S)=Nil then exit;
   Dec (Longint(S),FirstOff);
   FreeMem (Pointer(S),PAnsiRec(Pointer(S))^.Maxlen+AnsiRecLen);
@@ -129,18 +129,18 @@ Var l : plongint;
      
 
 Begin
-  dumpansirec(s);
+//  dumpansirec(s);
   If Pointer(S)=Nil then exit; { Zero string }
   
   { check for constant strings ...}
   l:=Pointer(S)-FirstOff+8;
   If l^<0 then exit;
   l^:=l^-1;
-  dumpansirec(s);
+//  dumpansirec(s);
   If l^=0 then 
     { Ref count dropped to zero }
     begin
-    Writeln ('CAlling disposestring'); 
+//    Writeln ('CAlling disposestring'); 
     DisposeAnsiString (S);        { Remove...}
     end
 end;
@@ -336,13 +336,6 @@ end;
 
 
 
-Procedure Write_Text_AnsiString (Len : Longint; T : TextRec; Var S : AnsiString);[Public, alias: 'WRITE_TEXT_ANSISTRING'];
-{
- Writes a AnsiString to the Text file T
-}
-begin
-end;
-
 Procedure SetCharAtIndex (Var S : AnsiString; Index : Longint; C : CHar);
 
 begin
@@ -397,7 +390,7 @@ begin
       if Length(S)>0 then
         Move (Pointer(S)^,Temp^,Length(S)+1);
       Decr_Ansi_ref (S);
-      S:=AnsiString(Temp);
+      Pointer(S):=Temp;
       end;
     PAnsiRec(Pointer(S)-FirstOff)^.Len:=l
     end 
@@ -683,7 +676,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  1998-07-20 23:36:56  michael
+  Revision 1.10  1998-07-29 21:44:34  michael
+  + Implemented reading/writing of ansistrings
+
+  Revision 1.9  1998/07/20 23:36:56  michael
   changes for ansistrings
 
   Revision 1.8  1998/07/13 21:19:09  florian
