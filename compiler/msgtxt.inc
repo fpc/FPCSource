@@ -334,7 +334,7 @@ const msgtxt : array[0..000142,1..240] of char=(
   '04032_E_Can'#039't assign values to const variable'#000+
   '04033_E_Array type required'#000+
   '04034_E_interface type expected, but got "$1"'#000+
-  '04035_W_Mixing signed expressions and cardinals g','ives a 64bit result'+
+  '04035_W_Mixing signed expressions and longwords g','ives a 64bit result'+
   #000+
   '04036_W_Mixing signed expressions and cardinals here may cause a range'+
   ' check error'#000+
