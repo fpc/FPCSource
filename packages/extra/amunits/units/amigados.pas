@@ -1582,7 +1582,7 @@ FUNCTION CreateNewProc(tags : pTagItem) : pProcess;
 FUNCTION CreateNewProcTagList(tags : pTagItem) : pProcess;
 FUNCTION CreateProc(name : pCHAR; pri : LONGINT; segList : LONGINT; stackSize : LONGINT) : pMsgPort;
 FUNCTION CurrentDir(lock : LONGINT) : LONGINT;
-PROCEDURE DateStamp(VAR date : pDateStamp);
+PROCEDURE DateStamp(date : pDateStamp);
 FUNCTION DateToStr(datetime : pDateTime) : BOOLEAN;
 FUNCTION DeleteFile(name : pCHAR) : BOOLEAN;
 FUNCTION DeleteVar(name : pCHAR; flags : ULONG) : BOOLEAN;
@@ -2141,7 +2141,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE DateStamp(VAR date : pDateStamp);
+PROCEDURE DateStamp(date : pDateStamp);
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4502,7 +4502,10 @@ END. (* UNIT DOS *)
 
 {
    $Log$
-   Revision 1.3  2002-11-17 20:31:24  nils
+   Revision 1.4  2002-11-28 19:39:30  nils
+     * removed var in datestamp
+   
+   Revision 1.3  2002/11/17 20:31:24  nils
    
    * added log
    
