@@ -97,7 +97,7 @@ implementation
     procedure timportlibdarwin.importprocedure(aprocdef:tprocdef;const module : string;index : longint;const name : string);
       begin
         { insert sharedlibrary }
-        current_module.linkothersharedlibs.add(SplitName(module),link_allways);
+{        current_module.linkothersharedlibs.add(SplitName(module),link_allways); }
         { force the mangledname }
         if assigned(aprocdef) then
           begin
@@ -112,7 +112,7 @@ implementation
     procedure timportlibdarwin.importvariable(vs:tvarsym;const name,module:string);
       begin
         { insert sharedlibrary }
-        current_module.linkothersharedlibs.add(SplitName(module),link_allways);
+{        current_module.linkothersharedlibs.add(SplitName(module),link_allways); }
         { the rest is handled in the nppcld.pas tppcloadnode }
         vs.set_mangledname(name);
       end;
@@ -618,7 +618,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.15  2004-05-31 18:08:41  jonas
+  Revision 1.16  2004-06-02 07:03:49  jonas
+    - disabled automatic adding of libraries from "external lib name 'xxx'"
+      for now (until we have proper framework support)
+
+  Revision 1.15  2004/05/31 18:08:41  jonas
     * changed calling of external procedures to be the same as under gcc
       (don't worry about all the generated stubs, they're optimized away
        by the linker)
