@@ -1,0 +1,22 @@
+#
+#   Makefile.fpc for FPC OS/2 demos (part of FPC demo package)
+#
+
+[targets]
+programs_os2=basicpm pmdemo1 getctry
+
+basicpm: basicpm.pas
+        $(COMPILER) -Dw -Ch8096 -Cs8096 basicpm.pas
+
+pmdemo1: pmdemo1.pp pmdemo1.res
+        $(COMPILER) -Dw -Ch8096 -Cs8096 pmdemo1.pp
+
+pmdemo1.res: pmdemo1.rc pmdemo1.h
+        $(RC) -r pmdemo1
+
+[tools]
+toolrc=1
+
+[dirs]
+fpcdir=../..
+targetdir=.
