@@ -174,7 +174,7 @@ begin
   Writeln(stdout,'An unhandled exception occurred at 0x',HexStr(Longint(Addr),8),' :');
   if Obj is exception then
    begin
-     Message:=Exception(Obj).Message;
+     Message:=Exception(Obj).ClassName+' : '+Exception(Obj).Message;
      Writeln(stdout,Message);
    end
   else
@@ -375,7 +375,10 @@ end;
 
 {
   $Log$
-  Revision 1.15  2003-03-18 08:28:23  michael
+  Revision 1.16  2003-04-06 11:06:39  michael
+  + Added exception classname to output of unhandled exception for better identification
+
+  Revision 1.15  2003/03/18 08:28:23  michael
   Patch from peter for Abort routine
 
   Revision 1.14  2003/03/17 15:11:51  armin
