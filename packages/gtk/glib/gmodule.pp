@@ -24,6 +24,12 @@ interface
 
 {$mode objfpc}
 
+{ Always use smartlinking for win32, this solves some undefined functions
+  in the development gtk versions which change often (PFV) }
+{$ifdef win32}
+  {$smartlink on}
+{$endif}
+
 uses
   glib;
 
@@ -68,7 +74,9 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:20  michael
+  Revision 1.3  2000-08-06 10:46:23  peter
+    * force smartlink (merged)
+
+  Revision 1.2  2000/07/13 11:33:20  michael
   + removed logs
- 
 }
