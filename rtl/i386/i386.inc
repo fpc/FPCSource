@@ -183,6 +183,7 @@ asm
         pushl   (%eax)
         pushl   %esi
         call    GetMem
+        movl    $-1,8(%ebp)
         popal
       { Memory position to %esi }
         movl    (%esi),%esi
@@ -832,7 +833,10 @@ end;
 
 {
   $Log$
-  Revision 1.51  1999-08-09 22:20:02  peter
+  Revision 1.52  1999-08-18 10:43:31  pierre
+   + VMT reset to -1 if getmem called, neede for fail
+
+  Revision 1.51  1999/08/09 22:20:02  peter
     * classes vmt changed to only positive addresses
     * sharedlib creation is working
 
