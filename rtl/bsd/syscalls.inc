@@ -307,8 +307,11 @@ end;
 
 Function Sys_Lseek(F:longint;Off:longint;Whence:longint):longint;
 
-begin
- sys_lseek:=do_syscall(syscall_nr_lseek,F,Off,Whence);
+var returnvalue64 : array[0..1] of longint;
+
+begin {Lseek's offset is 64-bit, the highword  is the 0}
+ do_syscall(syscall_nr_lseek,@returnvalue64,F,Off,0,Whence);
+ sys_lseek:=returnvalue64[0];
 end;
 
 Function Sys_Read(f:longint;buffer:pchar;count:longint):longint;
@@ -427,10 +430,20 @@ end;
 
 
 Function Sys_ReadDir(p:pdir):pdirent;
+{Different from Linux, Readdir on BSD is based on Getdents, due to the
+missing of the readdir syscall.
+Getdents requires the buffer to be larger than the blocksize. 
+This usually the sectorsize =512 bytes, but maybe tapedrives and harddisks
+with blockmode have this higher?}
+
 var
-    retval : longint;
+    retval 	   : longint;
+    getdentsbuffer : array[0..4095] of byte; 
+       
 begin
-  retval:=do_syscall(syscall_nr_getdents,longint(p^.fd),longint(p^.buf),sizeof(dirent));
+
+ retval:=do_syscall(syscall_nr_getdents,longint(p^.fd),longint(@getdentsbuffer),512 {sizeof(getdentsbuffer)});
+ move(getdentsbuffer,p^.buf^,sizeof(dirent)); 
   if retval=0 then
    sys_readdir:=nil
   else
@@ -459,8 +472,8 @@ end;
 
 {
   $Log$
-  Revision 1.12  2000-04-07 20:51:17  marco
-   * updates.
+  Revision 1.13  2000-04-10 15:46:52  marco
+   * worked all day. probably a lot changed
 
   Revision 1.11  2000/04/05 13:58:40  marco
    * syscall variablenames reintroduced.

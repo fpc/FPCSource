@@ -139,8 +139,8 @@ type
 
 {
   $Log$
-  Revision 1.6  2000-04-07 20:51:17  marco
-   * updates.
+  Revision 1.7  2000-04-10 15:46:52  marco
+   * worked all day. probably a lot changed
 
   Revision 1.5  2000/03/17 12:58:57  marco
    * some changes to ftruncate based procs. Added a "0" as extra parameter

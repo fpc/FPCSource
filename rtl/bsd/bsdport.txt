@@ -102,7 +102,7 @@ for i in *.s; do
 
 {
 $Log$
-Revision 1.1  2000-04-07 20:51:16  marco
- * updates.
+Revision 1.2  2000-04-10 15:46:51  marco
+ * worked all day. probably a lot changed
 
 }

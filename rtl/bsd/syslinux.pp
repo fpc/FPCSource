@@ -173,8 +173,12 @@ end ['D0'];
 
 
 Function sbrk(size : longint) : Longint;
+
+CONST MAP_PRIVATE   =2;
+      MAP_ANONYMOUS =$1000;		{$20 under linux}
+
 begin
-  Sbrk:=do_syscall(syscall_nr_mmap,0,size,3,$22,-1,0,0);
+  Sbrk:=do_syscall(syscall_nr_mmap,0,size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0,0);
   if ErrNo<>0 then
    Sbrk:=0;
 end;
@@ -689,8 +693,8 @@ End.
 
 {
   $Log$
-  Revision 1.4  2000-04-07 20:51:17  marco
-   * updates.
+  Revision 1.5  2000-04-10 15:46:52  marco
+   * worked all day. probably a lot changed
 
   Revision 1.3  2000/03/17 12:58:57  marco
    * some changes to ftruncate based procs. Added a "0" as extra parameter

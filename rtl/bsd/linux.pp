@@ -3644,8 +3644,8 @@ End.
 
 {
   $Log$
-  Revision 1.11  2000-04-07 20:51:16  marco
-   * updates.
+  Revision 1.12  2000-04-10 15:46:51  marco
+   * worked all day. probably a lot changed
 
   Revision 1.10  2000/04/05 13:46:22  marco
    * rest of syscalls has constants now

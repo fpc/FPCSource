@@ -367,8 +367,8 @@ const
 {$ENDIF}
 {
   $Log$
-  Revision 1.3  2000-04-07 20:51:17  marco
-   * updates.
+  Revision 1.4  2000-04-10 15:46:52  marco
+   * worked all day. probably a lot changed
 
   Revision 1.2  2000/04/05 13:59:10  marco
    * added constants for syscall.inc
