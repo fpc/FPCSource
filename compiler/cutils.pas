@@ -447,17 +447,49 @@ uses
       var
         i : longint;
       begin
+        GetToken:='';
         s:=TrimSpace(s);
-        i:=pos(EndChar,s);
-        if i=0 then
+        if s[1]='''' then
          begin
+           i:=1;
+           while (i<length(s)) do
+            begin
+              inc(i);
+              if s[i]='''' then
+               begin
+                 { Remove double quote }
+                 if (i<length(s)) and
+                    (s[i+1]='''') then
+                  begin
+                    Delete(s,i,1);
+                    inc(i);
+                  end
+                 else
+                  begin
+                    GetToken:=Copy(s,2,i-2);
+                    Delete(s,1,i);
+                    exit;
+                  end;
+               end;
+            end;
            GetToken:=s;
            s:='';
          end
         else
          begin
-           GetToken:=Copy(s,1,i-1);
-           Delete(s,1,i);
+           i:=pos(EndChar,s);
+           if i=0 then
+            begin
+              GetToken:=s;
+              s:='';
+              exit;
+            end
+           else
+            begin
+              GetToken:=Copy(s,1,i-1);
+              Delete(s,1,i);
+              exit;
+            end;
          end;
       end;
 
@@ -466,8 +498,6 @@ uses
    {
      return string of value i
    }
-     var
-        hs : string;
      begin
         str(i,result);
      end;
@@ -820,7 +850,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.23  2002-10-05 12:43:24  carl
+  Revision 1.24  2002-12-27 18:05:27  peter
+    * support quotes in gettoken
+
+  Revision 1.23  2002/10/05 12:43:24  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 
