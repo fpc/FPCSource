@@ -924,10 +924,20 @@ end;
 Function TLongintField.CheckRange(AValue : longint) : Boolean;
 
 begin
-  if FMaxValue=0 Then
-    Result:=(AValue<=FMaxRange) and (AValue>=FMinRange)
+  result := true;
+  if (FMaxValue=0) then
+    begin
+    if (AValue>FMaxRange) Then result := false;
+    end
   else
-    Result:=(AValue<=FMaxValue) and (AValue>=FMinValue);
+    if AValue>FMaxValue then result := false;
+
+  if (FMinValue=0) then
+    begin
+    if (AValue<FMinRange) Then result := false;
+    end
+  else
+    if AValue<FMinValue then result := false;
 end;
 
 Procedure TLongintField.SetMaxValue (AValue : longint);
@@ -1401,86 +1411,141 @@ begin
   Size:=16;
 end;
 
-
-
 { TBCDField }
 
 class procedure TBCDField.CheckTypeSize(AValue: Longint);
 
 begin
-  //!! To be implemented
+  If not (AValue in [1..4]) then
+    DatabaseErrorfmt(SInvalidFieldSize,[Avalue]);
 end;
 
+function TBCDField.GetAsCurrency: Currency;
+
+Var C : system.Currency;
+
+begin
+  if GetData(@C) then
+    result := C;
+end;
 
 function TBCDField.GetAsFloat: Double;
 
 begin
-  //!! To be implemented
+  result := GetAsCurrency;
 end;
 
 
 function TBCDField.GetAsLongint: Longint;
 
 begin
-  //!! To be implemented
+  result := round(GetAsCurrency);
 end;
 
 
 function TBCDField.GetAsString: string;
 
-begin
-  //!! To be implemented
-end;
+var c : system.currency;
 
+begin
+  If GetData(@C) then
+    Result:=CurrToStr(C)
+  else
+    Result:='';
+end;
 
 function TBCDField.GetDataSize: Word;
 
 begin
-  //!! To be implemented
+  result := sizeof(currency);
 end;
-
 
 function TBCDField.GetDefaultWidth: Longint;
 
 begin
-  //!! To be implemented
+  if precision > 0 then result := precision
+    else result := 10;
 end;
-
 
 procedure TBCDField.GetText(var TheText: string; ADisplayText: Boolean);
 
+var c : system.currency;
+
 begin
-  //!! To be implemented
+  If GetData(@C) then
+    begin
+    if ADisplayText then
+      begin
+      if Displayformat='' then
+        begin
+        if Fcurrency then TheText := FloatToStrF(C,ffcurrency,FPrecision,0)
+          else TheText := FloatToStrF(C,ffgeneral,FPrecision,0);
+        end
+      else
+        TheText := CurrToStr(C); // ToDo: Displayformat is ignored
+      end
+    else
+      begin
+      if (Displayformat='') and (Editformat='') then
+        begin
+        if Fcurrency then TheText := FloatToStrF(C,ffcurrency,FPrecision,0)
+          else TheText := FloatToStrF(C,ffFixed,FPrecision,0);
+        end
+      else
+        TheText := CurrToStr(C); // ToDo: Displayformat is ignored
+      end;
+    end
+  else
+    TheText:='';
 end;
 
+procedure TBCDField.SetAsCurrency(AValue: Currency);
+
+begin
+  If CheckRange(AValue) then
+    setdata(@AValue)
+  else
+    RangeError(AValue,FMinValue,FMaxvalue);
+end;
+
+Function TBCDField.CheckRange(AValue : Currency) : Boolean;
+
+begin
+  If (FMinValue<>0) or (FmaxValue<>0) then
+    Result:=(AValue>=FMinValue) and (AVAlue<=FMaxValue)
+  else
+    Result:=True;
+end;
 
 procedure TBCDField.SetAsFloat(AValue: Double);
 
 begin
-  //!! To be implemented
+  SetAsCurrency(AValue);
 end;
 
 
 procedure TBCDField.SetAsLongint(AValue: Longint);
 
 begin
-  //!! To be implemented
+  SetAsCurrency(AValue);
 end;
 
 
 procedure TBCDField.SetAsString(const AValue: string);
 
 begin
-  //!! To be implemented
+  SetAsCurrency(strtocurr(AValue));
 end;
-
 
 constructor TBCDField.Create(AOwner: TComponent);
 
 begin
-  DatabaseError('BCD fields not supported yet. Sorry !');
+  Inherited Create(AOwner);
+  FMaxvalue := 0;
+  FMinvalue := 0;
+  SetDataType(ftBCD);
+  Size:=4;
 end;
-
 
 
 { TBlobField }
@@ -1865,7 +1930,10 @@ end;
 
 {
   $Log$
-  Revision 1.16  2004-11-30 21:18:34  michael
+  Revision 1.17  2004-12-04 22:43:56  michael
+    - implemented TBCDFields
+
+  Revision 1.16  2004/11/30 21:18:34  michael
   + Fix from Jesus Reyes to fix TfieldDefs.Assign
 
   Revision 1.15  2004/08/21 21:10:00  michael
