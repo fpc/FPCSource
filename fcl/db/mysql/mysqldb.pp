@@ -37,7 +37,7 @@ type
     FServerInfo: string;
     FHostInfo: string;
 
-    FAffectedRows: Integer;
+    FAffectedRows: QWord;
     FLastInsertID: Integer;
     FLoadingFieldDefs: Boolean;
 
@@ -112,7 +112,7 @@ type
     property ServerInfo: string read FServerInfo;
     property ClientInfo: string read GetClientInfo;
     property HostInfo: string read FHostInfo;
-    property AffectedRows: Integer read FAffectedRows;
+    property AffectedRows: QWord read FAffectedRows;
     property LastInsertID: Integer read FLastInsertID;
     property ServerStatus: string read GetServerStatus;
   published
@@ -216,8 +216,12 @@ begin
                Move(CurBuf^, PChar(Buffer)^, MySQLDataSize(fld.ftype, fld.length));
 
                if Field.DataType in [ftString{, ftWideString}] then
-                  Result := PChar(buffer)^ <> #0
-               else
+	       begin
+                  Result := PChar(buffer)^ <> #0;
+		  if Result then
+		    // Terminate string (necessary for enum fields)
+		    PChar(buffer)[fld.length] := #0;
+               end else
                    Result := True;
                break;
           end
@@ -758,11 +762,15 @@ end;
 
 procedure TMySQLDataset.DoQuery;
 var
-  Query: string;
+  Query: PChar;
 begin
      Query := FSQL.GetText;
-     if mysql_query(FMYSQL, PChar(Query)) <> 0 then
-        DatabaseError(mysql_error(FMYSQL));
+     try
+       if mysql_query(FMYSQL, Query) <> 0 then
+          DatabaseError(mysql_error(FMYSQL));
+     finally
+       StrDispose(Query);
+     end;
 
      FAffectedRows := mysql_affected_rows(FMYSQL);
      FLastInsertID := mysql_insert_id(FMYSQL);
@@ -789,8 +797,16 @@ begin
 end;
 
 end.
+
+
+{
   $Log$
-  Revision 1.2  2002-09-07 15:15:23  peter
+  Revision 1.3  2002-11-07 14:27:59  sg
+  * AffectedRows now is a QWord (to match recent MySQL versions)
+  * Result strings for enums etc. are now correctly terminated
+  * Fixed a memory leak in DoQuery: The query string didn't get released
+
+  Revision 1.2  2002/09/07 15:15:23  peter
     * old logs removed and tabs fixed
 
 }
