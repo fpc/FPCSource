@@ -1,3 +1,35 @@
+fpc (0.99.13-19991013-4) unstable; urgency=low
+
+  * Fixed bashism in samplecfg (Closes: Bug#50636)
+  * Changed source-arch to 'i386' (Closes: Bug#50438)
+
+ -- Mika Fischer <mf@debian.org>  Sat, 20 Nov 1999 22:18:11 +0100
+
+fpc (0.99.13-19991013-3) unstable; urgency=low
+
+  * Fixed bug which overwrote existing config files during an update
+    (Closes: Bug#50278)
+
+ -- Mika Fischer <mf@debian.org>  Tue, 16 Nov 1999 23:57:36 +0100
+
+fpc (0.99.13-19991013-2) unstable; urgency=low
+
+  * Fixed bug in debian/rules (Fixes: #50096)
+
+ -- Mika Fischer <mf@debian.org>  Sat, 13 Nov 1999 20:31:20 +0100
+
+fpc (0.99.13-19991013-1) unstable; urgency=low
+
+  * Removed fp-fv due to licensing issues.
+
+ -- Mika Fischer <mf@debian.org>  Wed, 13 Oct 1999 19:33:30 +0200
+
+fpc (0.99.13-19991005-1) unstable; urgency=low
+
+  * New maintainer
+
+ -- Mika Fischer <mf@debian.org>  Wed, 13 Oct 1999 19:33:13 +0200
+
 fpc (0.99.13-19991001-1) unstable; urgency=low
 
   * New maintainer
@@ -19,5 +51,5 @@ fpc (0.99.12a-1) unstable; urgency=low
 
 Local variables:
 mode: debian-changelog
-add-log-mailing-address: "pfv@cooldown.demon.nl"
+add-log-mailing-address: "mf@debian.org"
 End:

@@ -1,26 +1,28 @@
 #!/usr/bin/make -f
 # debian/rules for Free Pascal
 
-# Don't load the system makefile.fpc
-export FPCMAKE=
+# Don't use the system FPCDIR
 export FPCDIR=
 
 # Documentation type to use pdf/html
 DOCTYPE=pdf
 
 # Get Package version and FPC version out of changelog file
-PACKAGEVERSION=$(shell head -n 1 debian/changelog | awk '{ print $$2 }' | tr -d '[()]')
-FPCVERSION=$(shell echo $(PACKAGEVERSION) | awk -F '-' '{ print $$1 }')
+PACKAGEVERSION:=$(shell head -n 1 debian/changelog | awk '{ print $$2 }' | tr -d '[()]')
+FPCVERSION:=$(shell echo $(PACKAGEVERSION) | awk -F '-' '{ print $$1 }')
 
 # Get directories	
-PWD=$(shell pwd)
+PWD:=$(shell pwd)
 BUILD_DIR=$(PWD)/debian/build
 INSTALL_DIR=$(PWD)/debian/tmp
 NEWPP=$(PWD)/compiler/ppc386
+NEWPPUFILES=$(PWD)/utils/ppufiles
+
+BUILDOPTS=PP=$(NEWPP)
+INSTALLOPTS=PP=$(NEWPP) PPUFILES=$(NEWPPUFILES) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr
 
 export DH_COMPAT=2
-#export DH_VERBOSE=1
-
+# export DH_VERBOSE=1
 
 ###################
 # Clean
@@ -35,20 +37,19 @@ clean:
 
 	rm -f debian-files-stamp
 	rm -f debian/*.files debian/*.docs debian/*.examples debian/*.postinst
-	
+
 	$(MAKE) compiler_clean
 	$(MAKE) rtl_clean
-	$(MAKE) utils_clean
 	$(MAKE) fcl_clean
-	$(MAKE) gtk_clean
-	$(MAKE) api_clean
-	$(MAKE) fv_clean
-	$(MAKE) -C packages clean
+	$(MAKE) utils_clean
+	$(MAKE) packages_clean
+
 	$(MAKE) -C docs clean
 
 	dh_clean
 
-	rm -f debian/control
+# Cannot do that because the control-file is often needed afetr a cleanup
+#	rm -f debian/control
 
 
 ###################
@@ -58,7 +59,7 @@ clean:
 debian-files: debian-files-stamp
 debian-files-stamp:
 	@echo "--- Creating debian files"
-	debian/fixdeb debian
+	bash debian/fixdeb debian
 
 	touch debian-files-stamp
 
@@ -68,53 +69,46 @@ debian-files-stamp:
 #
 
 build-arch: build-arch-stamp
-build-arch-stamp: debian-files
+build-arch-stamp: debian-files-stamp
 	@echo "--- Building"
 	dh_testdir
 
 # First make a new Compiler and RTL using a make cycle
 	$(MAKE) compiler_cycle
-	$(MAKE) utils_all PP=$(NEWPP)
-
-	$(MAKE) fcl_all PP=$(NEWPP)
-	$(MAKE) gtk_all PP=$(NEWPP)
-	$(MAKE) api_all PP=$(NEWPP)
-	$(MAKE) fv_all PP=$(NEWPP)
-	$(MAKE) -C packages all PP=$(NEWPP) RELEASE=1
+	$(MAKE) fcl_all $(BUILDOPTS)
+	$(MAKE) packages_all $(BUILDOPTS)
+	$(MAKE) utils_all $(BUILDOPTS)
 
 	touch build-arch-stamp
 
 
 install-arch: install-arch-stamp
-install-arch-stamp: build-arch debian-files
+install-arch-stamp: build-arch-stamp debian-files-stamp
 	@echo "--- Installing"
 	dh_testdir
 	dh_testroot
-	dh_clean
+	dh_clean -k
 
-# Specify the compiler to use so installing will do correctly
-	$(MAKE) compiler_install PP=$(NEWPP) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr
-	$(MAKE) rtl_install PP=$(NEWPP) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr
-	$(MAKE) utils_install PP=$(NEWPP) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr
+# Specify the compiler to use so installing will use the correct versioned dir
+	$(MAKE) compiler_install $(INSTALLOPTS)
+	$(MAKE) rtl_install $(INSTALLOPTS)
+	$(MAKE) fcl_install $(INSTALLOPTS)
+	$(MAKE) utils_install $(INSTALLOPTS)
+	$(MAKE) packages install $(INSTALLOPTS)
 
-	$(MAKE) base_install PP=$(NEWPP) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr
-	$(MAKE) man_install PP=$(NEWPP) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr/share
-	$(MAKE) demo_install PP=$(NEWPP) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr
-
-	$(MAKE) fcl_install PP=$(NEWPP) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr
-	$(MAKE) gtk_install PP=$(NEWPP) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr
-	$(MAKE) api_install PP=$(NEWPP) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr
-	$(MAKE) fv_install PP=$(NEWPP) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr
-	$(MAKE) -C packages install PP=$(NEWPP) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr
+	$(MAKE) base_install $(INSTALLOPTS)
+	$(MAKE) man_install $(INSTALLOPTS) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr/share
+	$(MAKE) demo_install $(INSTALLOPTS)
 
 	touch install-arch-stamp
+
 
 ###################
 # Documentation
 #
 
 build-indep: build-indep-stamp
-build-indep-stamp: debian-files
+build-indep-stamp: debian-files-stamp
 	@echo "--- Building Documentation"
 	dh_testdir
 
@@ -127,7 +121,7 @@ install-indep-stamp: debian-files build-indep
 	@echo "--- Installing Documentation"
 	dh_testdir
 	dh_testroot
-	dh_clean
+	dh_clean -k
 
 	$(MAKE) -C docs $(DOCTYPE)install DOCINSTALLDIR=$(INSTALL_DIR)/usr/share/doc/fpc/$(FPCVERSION)/
 
@@ -183,5 +177,6 @@ binary-arch: build-arch install-arch debian-files
 	dh_builddeb -a
 
 
-binary: binary-indep binary-arch
-.PHONY: build clean binary-indep binary-arch binary
+.PHONY: build clean binary debian-files \
+        build-arch install-arch binary-arch \
+        binary-indep

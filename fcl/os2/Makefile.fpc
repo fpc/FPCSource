@@ -4,7 +4,6 @@
 
 [defaults]
 defaulttarget=os2
-defaultcpu=i386
 defaultoptions=-S2
 
 [dirs]

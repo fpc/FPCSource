@@ -1,14 +1,14 @@
 Source: fpc
 Section: devel
 Priority: optional
-Maintainer: Joseph Carter <knghtbrd@debian.org>
-Standards-Version: 3.0.1
+Architecture: i386
+Maintainer: Mika Fischer <mf@debian.org>
+Standards-Version: 3.1.1
 
 Package: fp-compiler
 Architecture: i386
 Depends: fp-rtl (= #PACKAGEVERSION#)
-Recommends: fp-docs (= #PACKAGEVERSION#)
-Suggests: fp-utils
+Suggests: fp-utils, fp-docs (>= #FPCVERSION#)
 Replaces: fpc
 Description: Free Pascal Compiler
  The Free Pascal Compiler is a Turbo Pascal 7.0 and Delphi compatible 32bit
@@ -26,6 +26,12 @@ Replaces: fpc
 Description: Free Pascal Runtime Library
  Runtime Libraries for the Free Pascal Compiler.
 
+Package: fp-fcl
+Architecture: i386
+Depends: fp-compiler (= #PACKAGEVERSION#), fp-rtl (= #PACKAGEVERSION#)
+Description: Free Pascal Free Component Library
+ Free Component Library for the Free Pascal Compiler.
+
 Package: fp-utils
 Architecture: i386
 Recommends: fp-compiler (= #PACKAGEVERSION#)
@@ -33,55 +39,41 @@ Replaces: fpc
 Description: Free Pascal Utils
  This package contains some handy utils for usage with the Free Pascal
  Compiler:
-   - h2pas : Convert .h files to pascal units
-   - ppdep : Create a dependency file which can be used with Makefiles
-   - ptop  : Source beautifier
-   - ppudump : Dump the information stored in a .ppu (unit) file
-   - ppumove : Place multiple units in a shared library
+   - ppumove   Place multiple units in a shared library
+   - ppufiles  Show needed files for units
+   - ppudump   Dump the information stored in a .ppu (unit) file
+   - fpcmake   Create Makefile from Makefile.fpc
+   - h2pas     Convert .h files to pascal units
+   - ppdep     Create a dependency file which can be used with Makefiles
+   - ptop      Source beautifier
 
 Package: fp-docs
 Architecture: all
 Replaces: fpc
 Description: Free Pascal Documentation
- Documentation for the Free Pascal Compiler.
+ Documentation for the Free Pascal Compiler. The documentation is
+ only available in PDF format.
 
-Package: fp-fcl
-Architecture: i386
-Depends: fp-compiler (= #PACKAGEVERSION#), fp-rtl (= #PACKAGEVERSION#)
-Description: Free Pascal Free Component Library
- Free Component Library for the Free Pascal Compiler.
-
-Package: fp-gtk
-Architecture: i386
-Depends: fp-compiler (= #PACKAGEVERSION#), fp-rtl (= #PACKAGEVERSION#)
-Description: Free Pascal GTK Bindings
- GTK 1.2.x bindings for the Free Pascal Compiler.
-
-Package: fp-api
-Architecture: i386
-Depends: fp-compiler (= #PACKAGEVERSION#), fp-rtl (= #PACKAGEVERSION#)
-Description: Free Pascal API Units
- API Units needed by Free Vision.
-
-Package: fp-fv
-Architecture: i386
-Depends: fp-compiler (= #PACKAGEVERSION#), fp-rtl (= #PACKAGEVERSION#), fp-api (= #PACKAGEVERSION#)
-Description: Free Pascal Free Vision
- Free Turbo Vision clone for the Free Pascal Compiler.
-
-Package: fp-extra
+Package: fp-packages
 Architecture: i386
 Depends: fp-compiler (= #PACKAGEVERSION#), fp-rtl (= #PACKAGEVERSION#)
 Description: Free Pascal Extra Packages
  Some different packages for the Free Pascal Compiler
- Bindings to libraries:
+ Graphics:
+   - Ncurses bindings
+   - Svgalib bindings
+   - GGI bindings
+   - OpenGL bindings
+ X11:
+   - GTK 1.2.x bindings
+   - Forms 0.88 bindings
+ Database:
    - MySql bindings
    - InterBase bindings
    - Postgres bindings
-   - Ncurses bindings
-   - Forms 0.88/0.86 bindings
-   - Svgalib bindings
  Other units:
    - Inet unit for easier tcp/ip handling
+   - API units for os independent keyboard/mouse/console handling
+     (used by Free Vision)
    - Uncgi unit
    - Utmp unit
