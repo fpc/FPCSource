@@ -492,7 +492,7 @@ const msgtxt : array[0..00088,1..240] of char=(+
   '**1E_same as -Cn'#000+
   '**1F_se','t file names and paths'#000+
   '**2Fe<x>_redirect error output to <x>'#000+
-  '**2FU<x>_set exe/unit output path to <x>'#000+
+  '**2FE<x>_set exe/unit output path to <x>'#000+
   '*L2Fg<x>_same as -Fl'#000+
   '**2Fi<x>_adds <x> to include path'#000+
   '**2Fl<x>_adds <x> to library path'#000+
@@ -526,74 +526,77 @@ const msgtxt : array[0..00088,1..240] of char=(+
   '**2St_allow static keyword in objects'#000+
   '**2S','v_allow variable directives (cvar,external,public,export)'#000+
   '**1s_don'#039't call assembler and linker (only with -a)'#000+
-  '**1T<x>_Target operating system'#000+
-  '3*2TGO32V1_version 1 of DJ Delorie DOS extender'#000+
-  '3*2TGO32V2_version 2 of DJ Delorie DOS extender'#000+
-  '3*','2TLINUX_Linux'#000+
-  '3*2TOS2_OS/2 2.x'#000+
-  '3*2TWin32_Windows 32 Bit'#000+
-  '6*2TAMIGA_Commodore Amiga'#000+
-  '6*2TATARI_Atari ST/STe/TT'#000+
-  '6*2TMACOS_Macintosh m68k'#000+
-  '6*2TLINUX_Linux-68k'#000+
   '**1u<x>_undefines the symbol <x>'#000+
   '**1U_unit options'#000+
   '**2Un_don'#039't check the unit name'#000+
-  '**2U','p<x>_same as -Fu<x>'#000+
-  '**2Us_compile a system unit'#000+
+  '**2Up<x>_same as -Fu<x>'#000+
+  '**2Us_compile a system ','unit'#000+
   '**1v<x>_Be verbose. <x> is a combination of the following letters :'#000+
   '**2*_e : Show errors (default)       d : Show debug info'#000+
   '**2*_w : Show warnings               u : Show used files'#000+
-  '**2*_n : S','how notes                  t : Show tried files'#000+
+  '**2*_n : Show notes                  t : Show tried f','iles'#000+
   '**2*_h : Show hints                  m : Show defined macros'#000+
   '**2*_i : Show general info           p : Show compiled procedures'#000+
   '**2*_l : Show linenumbers            c : Show conditionals'#000+
-  '**2*_a',' : Show everything             0 : Show nothing (except errors'+
+  '**2*_a : Show everything             0 : Show not','hing (except errors'+
   ')'#000+
   '**2*_b : Show all procedure'#000+
   '**2*_    declarations if an error'#000+
   '**2*_    occurs'#000+
   '**1X_executable options'#000+
   '*L2Xc_link with the c library'#000+
-  '**2XD_link with dynamic libraries (defines F','PC_LINK_DYNAMIC)'#000+
-  '**2Xs_strip all symbols from executable'#000+
+  '**2XD_link with dynamic libraries (defines FPC_LINK_DYNAMIC)'#000+
+  '**2Xs_strip all symbols fr','om executable'#000+
   '**2XS_link with static libraries (defines FPC_LINK_STATIC)'#000+
   '**0*_Processor specific options:'#000+
-  '3*1A_output format'#000+
+  '3*1A<x>_output format'#000+
   '3*2Ao_coff file using GNU AS'#000+
   '3*2Anasmcoff_coff file using Nasm'#000+
-  '3*2Anasme','lf_elf32 (linux) file using Nasm'#000+
-  '3*2Anasmobj_obj file using Nasm'#000+
+  '3*2Anasmelf_elf32 (linux) file using Nasm'#000+
+  '3*2Anas','mobj_obj file using Nasm'#000+
   '3*2Amasm_obj using Masm (Mircosoft)'#000+
   '3*2Atasm_obj using Tasm (Borland)'#000+
-  '3*1R_assembler reading style'#000+
+  '3*1R<x>_assembler reading style'#000+
   '3*2Ratt_read AT&T style assembler'#000+
   '3*2Rintel_read Intel style assembler'#000+
-  '3*2Rd','irect_copy assembler text directly to assembler file'#000+
+  '3*2Rdirect_copy assembler text directly to',' assembler file'#000+
   '3*1O<x>_optimizations'#000+
   '3*2Og_generate smaller code'#000+
   '3*2OG_generate faster code (default)'#000+
   '3*2Or_keep certain variables in registers (still BUGGY!!!)'#000+
-  '3*2Ou_enable uncertain optimizations (see',' docs)'#000+
-  '3*2O1_level 1 optimizations (quick optimizations)'#000+
+  '3*2Ou_enable uncertain optimizations (see docs)'#000+
+  '3*2O1_level 1 optimizations (q','uick optimizations)'#000+
   '3*2O2_level 2 optimizations (-O1 + slower optimizations)'#000+
   '3*2O3_level 3 optimizations (same as -O2u)'#000+
   '3*2Op_target processor'#000+
   '3*3Op1_set target processor to 386/486'#000+
-  '3*3Op2_set target pro','cessor to Pentium/PentiumMMX (tm)'#000+
-  '3*3Op3_set target processor to PPro/PII/c6x86/K6 (tm)'#000+
-  '6*1A_output format'#000+
+  '3*3Op2_set target processor to Pentium/PentiumMMX (tm)'#000+
+  '3*3','Op3_set target processor to PPro/PII/c6x86/K6 (tm)'#000+
+  '3*1T<x>_Target operating system'#000+
+  '3*2TGO32V1_version 1 of DJ Delorie DOS extender'#000+
+  '3*2TGO32V2_version 2 of DJ Delorie DOS extender'#000+
+  '3*2TLINUX_Linux'#000+
+  '3*2TOS2_OS/2 2.x'#000+
+  '3*2TWin32_Windows 32 Bit'#000+
+  '6*1','A<x>_output format'#000+
   '6*2Ao_Unix o-file using GNU AS'#000+
   '6*2Agas_GNU Motorola assembler'#000+
   '6*2Amit_MIT Syntax (old GAS)'#000+
   '6*2Amot_Standard Motorola assembler'#000+
-  '6*1O_o','ptimizations'#000+
+  '6*1O_optimizations'#000+
   '6*2Oa_turn on the optimizer'#000+
   '6*2Og_generate smaller code'#000+
-  '6*2OG_generate faster code (default)'#000+
+  '6*2OG_generate fast','er code (default)'#000+
   '6*2Ox_optimize maximum (still BUGGY!!!)'#000+
   '6*2O2_set target processor to a MC68020+'#000+
+  '6*1R<x>_assembler reading style'#000+
+  '6*2RMOT_read motorola style assembler'#000+
+  '6*1T<x>_Target operating system'#000+
+  '6*2TAMIGA_Commodore Amiga'#000+
+  '6*2TATARI_Ata','ri ST/STe/TT'#000+
+  '6*2TMACOS_Macintosh m68k'#000+
+  '6*2TLINUX_Linux-68k'#000+
   '**1*_'#000+
   '**1?_shows this help'#000+
-  '**1h_shows this help witho','ut waiting'#000
+  '**1h_shows this help without waiting'#000
 );
