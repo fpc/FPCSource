@@ -453,7 +453,7 @@ unit ag68kgas;
                      end;
          ait_label : begin
                        if assigned(hp^.next) and (pai(hp^.next)^.typ in
-                          [ait_const_32bit,ait_const_16bit,ait_const_symbol,
+                          [ait_const_32bit,ait_const_16bit,ait_const_8bit,ait_const_symbol,
                            ait_real_64bit,ait_real_32bit,ait_string]) then
                         begin
                           if not(cs_littlesize in aktglobalswitches) then
@@ -479,7 +479,7 @@ ait_labeled_instruction : begin
                        { ------------- REQUIREMENT FOR 680x0 ------------------- }
                        { ------------------------------------------------------- }
                        if assigned(hp^.next) and (pai(hp^.next)^.typ in
-                          [ait_const_32bit,ait_const_16bit,ait_const_symbol,
+                          [ait_const_32bit,ait_const_16bit,ait_const_symbol,ait_const_8bit,
                            ait_real_64bit,ait_real_32bit,ait_string]) then
                         begin
                           if not(cs_littlesize in aktglobalswitches) then
@@ -663,7 +663,10 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 end.
 {
   $Log$
-  Revision 1.10  1998-09-01 09:07:08  peter
+  Revision 1.11  1998-09-16 01:07:13  carl
+    * alignment fix for bytes
+
+  Revision 1.10  1998/09/01 09:07:08  peter
     * m68k fixes, splitted cg68k like cgi386
 
   Revision 1.9  1998/08/31 12:26:20  peter
