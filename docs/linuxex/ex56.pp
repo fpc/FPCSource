@@ -4,7 +4,10 @@ uses linux;
 
 { Program to demonstrate the Shell function }
 
+Var S : Longint;
+
 begin
-  writeln ('Output of ls -l *.pp');
-  Shell ('ls -l *.pp');
+  Writeln ('Output of ls -l *.pp');
+  S:=Shell ('ls -l *.pp');
+  Writeln ('Command exited wwith status : ',S);
 end.
