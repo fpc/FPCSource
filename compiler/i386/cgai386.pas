@@ -977,15 +977,15 @@ implementation
 
       var
          pushedregs : tpushed;
+         r : treference;
 
       begin
          pushusedregisters(pushedregs,$ff);
-         emitpushreferenceaddr(ref);
+         emit_ref(A_PUSH,S_L,newreference(ref));
          if is_interfacecom(t) then
-           begin
-              emitcall('FPC_INTF_INCR_REF');
-           end
-         else internalerror(1859);
+           emitcall('FPC_INTF_INCR_REF')
+         else
+           internalerror(1859);
          popusedregisters(pushedregs);
       end;
 
@@ -2936,7 +2936,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2000-11-07 23:40:48  florian
+  Revision 1.11  2000-11-17 10:30:24  florian
+    * passing interfaces as parameters fixed
+
+  Revision 1.10  2000/11/07 23:40:48  florian
     + AfterConstruction and BeforeDestruction impemented
 
   Revision 1.9  2000/11/06 23:49:20  florian
