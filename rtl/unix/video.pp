@@ -158,7 +158,7 @@ begin
      pdelay:=strpos(p,'$<');
      if assigned(pdelay) then
        pdelay^:=#0;
-     fpWrite(TTYFd, P^, StrLen(P));
+     fpWrite(stdoutputhandle, P^, StrLen(P));
      SendEscapeSeqNdx:=true;
      if assigned(pdelay) then
        pdelay^:='$';
@@ -168,7 +168,7 @@ end;
 
 procedure SendEscapeSeq(const S: String);
 begin
-  fpWrite(TTYFd, S[1], Length(S));
+  fpWrite(stdoutputhandle, S[1], Length(S));
 end;
 
 
@@ -372,7 +372,7 @@ end;
        blockwrite(f,outbuf,outptr);
        blockwrite(f,nl,1);
 {$endif logging}
-       fpWrite(TTYFd,outbuf,outptr);
+       fpWrite(stdoutputhandle,outbuf,outptr);
        outptr:=0;
      end;
     end;
@@ -526,7 +526,7 @@ begin
   blockwrite(f,outbuf,outptr);
   blockwrite(f,nl,1);
 {$endif logging}
-  fpWrite(TTYFd,outbuf,outptr);
+  fpWrite(stdoutputhandle,outbuf,outptr);
   if InACS then
     SendEscapeSeqNdx(exit_alt_charset_mode);
  {turn autowrap on}
@@ -898,7 +898,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.16  2003-10-24 17:51:39  marco
+  Revision 1.17  2003-10-25 22:48:52  marco
+   * small after merge fixes
+
+  Revision 1.16  2003/10/24 17:51:39  marco
    * merged some fixes from 1.0.x
 
   Revision 1.15  2003/10/17 22:13:30  olle
