@@ -1692,7 +1692,9 @@ unit cgx86;
         r : Tregister;
       begin
         case target_info.system of
+        {$ifndef NOTARGETWIN32}
            system_i386_win32,
+        {$endif}
            system_i386_freebsd,
            system_i386_wdosx,
            system_i386_linux:
@@ -1932,7 +1934,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.57  2003-07-03 18:59:25  peter
+  Revision 1.58  2003-08-20 19:28:21  daniel
+    * Small NOTARGETWIN32 conditional tweak
+
+  Revision 1.57  2003/07/03 18:59:25  peter
     * loadfpu_reg_reg size specifier
 
   Revision 1.56  2003/06/14 14:53:50  jonas
