@@ -1438,6 +1438,8 @@ function TMessageItem.GetText(MaxLen: Sw_integer): string;
 var S: string;
 begin
   if Text=nil then S:='' else S:=Text^;
+  if (Module<>nil) then
+     S:=NameAndExtOf(Module^)+'('+IntToStr(Row)+') '+S;
   if length(S)>MaxLen then S:=copy(S,1,MaxLen-2)+'..';
   GetText:=S;
 end;
@@ -1485,8 +1487,8 @@ begin
    ClassS:=RExpand(ClassS,0)+': ';
   S:=ClassS;
   if (Module<>nil) {and (ID<>0)} then
-     S:=S+Module^+' ('+IntToStr(Row)+'): ';
-  if Text<>nil then S:=ClassS+Text^;
+     S:=S+NameAndExtOf(Module^)+'('+IntToStr(Row)+') ';
+  if Text<>nil then S:=S+Text^;
   if length(S)>MaxLen then S:=copy(S,1,MaxLen-2)+'..';
   GetText:=S;
 end;
@@ -2494,7 +2496,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.26  1999-03-23 16:16:41  peter
+  Revision 1.27  1999-04-01 10:27:06  pierre
+   + file(line) in start of message added
+
+  Revision 1.26  1999/03/23 16:16:41  peter
     * linux fixes
 
   Revision 1.25  1999/03/23 15:11:37  peter

@@ -152,12 +152,12 @@ begin
       if Row>0 then
        begin
          if Col>0 then
-          S:=Module^+'('+IntToStr(Row)+','+IntToStr(Col)+') '+ClassS
+          S:=NameAndExtOf(Module^)+'('+IntToStr(Row)+','+IntToStr(Col)+') '+ClassS
          else
-          S:=Module^+'('+IntToStr(Row)+') '+ClassS;
+          S:=NameAndExtOf(Module^)+'('+IntToStr(Row)+') '+ClassS;
        end
       else
-       S:=Module^+'('+IntToStr(Row)+') '+ClassS
+       S:=NameAndExtOf(Module^)+'('+IntToStr(Row)+') '+ClassS
     end
   else
     S:=ClassS;
@@ -808,7 +808,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.21  1999-04-01 10:15:17  pierre
+  Revision 1.22  1999-04-01 10:27:07  pierre
+   + file(line) in start of message added
+
+  Revision 1.21  1999/04/01 10:15:17  pierre
     * CurrSt,InfoSt and LineSt were not disposed correctly in done
     * TComiplerMessage destructor first calls SetCompileShow(false)
       to get proper cleaning up
