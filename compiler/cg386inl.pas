@@ -73,7 +73,7 @@ implementation
                              SecondInLine
 *****************************************************************************}
 
-    procedure StoreDirectFuncResult(dest:ptree);
+    procedure StoreDirectFuncResult(var dest:ptree);
       var
         hp : ptree;
         hdef : porddef;
@@ -194,7 +194,6 @@ implementation
         const
            rdwrprefix:array[boolean] of string[15]=('FPC_WRITE_TEXT_','FPC_READ_TEXT_');
         var
-           destpara,
            node,hp    : ptree;
            typedtyp,
            pararesult : pdef;
@@ -308,7 +307,8 @@ implementation
                      if doread and
                         (ft<>ft_typed) and
                         (hp^.resulttype^.deftype in [orddef,floatdef]) then
-                      destpara:=hp^.left
+                      begin
+                      end
                      else
                       begin
                         if ft=ft_typed then
@@ -415,7 +415,7 @@ implementation
                               begin
                                 emitcall(rdwrprefix[doread]+'FLOAT');
                                 if doread then
-                                  StoreDirectFuncResult(destpara);
+                                  StoreDirectFuncResult(hp^.left);
                               end;
                             orddef :
                               begin
@@ -434,8 +434,9 @@ implementation
                                   bool16bit,
                                   bool32bit :
                                     emitcall(rdwrprefix[doread]+'BOOLEAN');
-                                end;                                                                 if doread then
-                                 StoreDirectFuncResult(destpara);
+                                end;
+                                if doread then
+                                  StoreDirectFuncResult(hp^.left);
                               end;
                           end;
                        end;
@@ -1250,7 +1251,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.57  1999-06-02 10:11:43  florian
+  Revision 1.58  1999-06-11 11:44:56  peter
+  *** empty log message ***
+
+  Revision 1.57  1999/06/02 10:11:43  florian
     * make cycle fixed i.e. compilation with 0.99.10
     * some fixes for qword
     * start of register calling conventions
