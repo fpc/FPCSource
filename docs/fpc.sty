@@ -95,12 +95,13 @@
 %
 \newenvironment{remark}{\par\makebox[0pt][r]{\bfseries{}Remark:\hspace{.25em}}}{\par}
 % For Tables.
-\newenvironment{FPCtable}[2]{\begin{table}\caption{#2}\begin{center}\begin{tabular}{#1}}{\end{tabular}\end{center}\end{table}}
+\newenvironment{FPCtable}[2]{\begin{table}[ht]\caption{#2}\begin{center}\begin{tabular}{#1}}{\end{tabular}\end{center}\end{table}}
 % The same, but with label in third argument (tab:#3)
-\newenvironment{FPCltable}[3]{\begin{table}\caption{#2}\label{tab:#3}\begin{center}\begin{tabular}{#1}}{\end{tabular}\end{center}\end{table}}
+\newenvironment{FPCltable}[3]{\begin{table}[ht]\caption{#2}\label{tab:#3}\begin{center}\begin{tabular}{#1}}{\end{tabular}\end{center}\end{table}}
 %
 % Refs
 %
+\newcommand{\seefig}[1]{figure (\ref{fig:#1})\xspace}
 \newcommand{\seefl}[2]{\textsf{#1} (\pageref{fu:#2})}
 \newcommand{\seepl}[2]{\textsf{#1} (\pageref{pro:#2})}
 \newcommand{\seetypel}[2]{\textsf{#1} (\pageref{ty:#2})}
@@ -145,6 +146,7 @@
 \newcommand{\var}[1]{\texttt {#1}}
 \newcommand{\file}[1]{\textsf {#1}}
 \newcommand{\key}[1]{\textsc{#1}}
+\newcommand{\menu}[1]{\textbf{"#1"}}
 %
 % Useful references.
 %
@@ -173,7 +175,7 @@
 \newcommand{\dos}  {\textsc{dos}\xspace}
 \newcommand{\msdos}{\textsc{ms-dos}\xspace}
 \newcommand{\ostwo}{\textsc{os/2}\xspace}
-\newcommand{\windows}{\textsc{Windows 32-bit}\xspace}
+\newcommand{\windows}{\textsc{Windows}\xspace}
 \newcommand{\windowsnt}{\textsc{Windows NT}\xspace}
 \newcommand{\fpc}{Free Pascal\xspace}
 \newcommand{\gnu}{\textsc{gnu}\xspace}
