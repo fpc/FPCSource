@@ -1475,6 +1475,7 @@ const CrtAddress: word = 0;
  {************************************************************************}
  var
   SavePtr : pointer;    { pointer to video state                 }
+  CrtSavePtr: pointer;  { pointer to video state when CrtMode gets called }
   StateSize: word;      { size in 64 byte blocks for video state }
   VideoMode: byte;      { old video mode before graph mode       }
   SaveSupPorted : Boolean;    { Save/Restore video state supPorted? }
@@ -1800,7 +1801,7 @@ const CrtAddress: word = 0;
   function QueryAdapterInfo:PModeInfo;
   { This routine returns the head pointer to the list }
   { of supPorted graphics modes.                      }
-  { Returns nil if no graphics mode supPorted.        }
+  { Returns nil if no graphics mode supported.        }
   { This list is READ ONLY!                           }
    var
     EGADetected : Boolean;
@@ -2139,7 +2140,7 @@ const CrtAddress: word = 0;
              InitMode(mode);
              mode.ModeNumber:=m640x480x32k;
              mode.DriverNumber := VESA;
-             mode.ModeName:='640 x 400 VESA';
+             mode.ModeName:='640 x 480 VESA';
              mode.MaxColor := 32768;
              { the ModeInfo is automatically set if the mode is supPorted }
              { by the call to SearchVESAMode.                             }
@@ -2147,7 +2148,7 @@ const CrtAddress: word = 0;
              mode.PaletteSize := mode.MaxColor;
              mode.DirectColor := TRUE;
              mode.MaxX := 639;
-             mode.MaxY := 399;
+             mode.MaxY := 479;
              mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixVESA32k;
              mode.PutPixel:={$ifdef fpc}@{$endif}PutPixVESA32k;
              mode.GetPixel:={$ifdef fpc}@{$endif}GetPixVESA32k;
@@ -2512,7 +2513,10 @@ const CrtAddress: word = 0;
 
 {
 $Log$
-Revision 1.7  1999-12-12 13:34:19  jonas
+Revision 1.8  1999-12-25 08:25:20  jonas
+  * screen dimensions for g640x480x32k were set to 640x400, changed
+
+Revision 1.7  1999/12/12 13:34:19  jonas
   * putimage now performs the lipping itself and uses directputpixel
     (note: this REQUIRES or/and/notput support in directputpixel,
     this is not yet the case in the assembler versions!)
@@ -2632,7 +2636,7 @@ Revision 1.10  1999/09/11 19:43:01  jonas
     places where it doesn't matter
 
 Revision 1.9  1999/08/01 14:50:51  jonas
-  * fixed hline16 and vline16 for notput (also TP supPorts copy, and, or, xor and
+  * fixed hline16 and vline16 for notput (also TP supports copy, and, or, xor and
     notput for lines!!)
   * fixed directputpixel16 to support all the different put types
 
