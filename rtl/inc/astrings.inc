@@ -89,7 +89,7 @@ Procedure DisposeAnsiString(Var S : Pointer);
 begin
   If S=Nil then
     exit;
-  Dec (Longint(S),FirstOff);
+  Dec (S,FirstOff);
   FreeMem (S);
   S:=Nil;
 end;
@@ -833,7 +833,10 @@ end;
 
 {
   $Log$
-  Revision 1.36  2003-02-26 19:16:55  jonas
+  Revision 1.37  2003-05-01 08:05:23  florian
+    * started to make the rtl 64 bit save by introducing SizeInt and SizeUInt (similar to size_t of C)
+
+  Revision 1.36  2003/02/26 19:16:55  jonas
     * fixed setstring (+- like suggested by Dimitry Sibiryakov)
 
   Revision 1.35  2002/12/09 08:33:31  michael

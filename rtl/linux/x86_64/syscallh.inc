@@ -24,7 +24,7 @@
 
 Type
 
-  TSysResult = longint; // all platforms, cint=32-bit.
+  TSysResult = int64;   // all platforms, cint=32-bit.
                         // On platforms with off_t =64-bit, people should
                         // use int64, and typecast all calls that don't
                         // return off_t to cint.
@@ -32,7 +32,7 @@ Type
 // I don't think this is going to work on several platforms
 // 64-bit machines don't have only 64-bit params.
 
-  TSysParam  = Longint;
+  TSysParam  = int64;
 
 function Do_SysCall(sysnr:TSysParam):TSysResult;  external name 'FPC_SYSCALL0';
 function Do_SysCall(sysnr,param1:TSysParam):TSysResult; external name 'FPC_SYSCALL1';
@@ -46,7 +46,10 @@ function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):T
 
 {
   $Log$
-  Revision 1.1  2003-04-30 22:11:06  florian
+  Revision 1.2  2003-05-01 08:05:23  florian
+    * started to make the rtl 64 bit save by introducing SizeInt and SizeUInt (similar to size_t of C)
+
+  Revision 1.1  2003/04/30 22:11:06  florian
     + for a lot of x86-64 dependend files mostly dummies added
 
   Revision 1.3  2002/12/18 20:41:33  peter

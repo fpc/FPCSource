@@ -70,7 +70,8 @@ Type
   Integer  = SmallInt;
 
 {$ifdef CPUI386}
-  StrLenInt = LongInt;
+  { for bootstrapping with 1.0.x }
+  {$define CPU32}
 
   {$define DEFAULT_EXTENDED}
 
@@ -85,8 +86,6 @@ Type
 {$endif CPUI386}
 
 {$ifdef CPUX86_64}
-  StrLenInt = Int64;
-
   {$define DEFAULT_EXTENDED}
 
   {$define SUPPORT_SINGLE}
@@ -100,8 +99,6 @@ Type
 {$endif CPUX86_64}
 
 {$ifdef CPUM68K}
-  StrLenInt = Longint;
-
   ValSInt = Longint;
   ValUInt = Cardinal;
   ValReal = Real;
@@ -121,8 +118,6 @@ Type
 {$endif CPUM68K}
 
 {$ifdef CPUPOWERPC}
-  StrLenInt = LongInt;
-
   {$define DEFAULT_DOUBLE}
 
   {$define SUPPORT_SINGLE}
@@ -138,8 +133,6 @@ Type
 {$endif CPUPOWERPC}
 
 {$ifdef CPUSPARC}
-  StrLenInt = LongInt;
-
   {$define DEFAULT_DOUBLE}
 
   {$define SUPPORT_SINGLE}
@@ -152,6 +145,18 @@ Type
   { map comp to int64, but this doesn't mean to compile the comp support in! }
   Comp = Int64;
 {$endif CPUSPARC}
+
+{$ifdef CPU64}
+  StrLenInt = Int64;
+  SizeInt = Int64;
+  SizeUInt = QWord;
+{$endif CPU64}
+
+{$ifdef CPU32}
+  StrLenInt = Longint;
+  SizeInt = Longint;
+  SizeUInt = DWord;
+{$endif CPU32}
 
 { Zero - terminated strings }
   PChar               = ^Char;
@@ -666,7 +671,10 @@ const
 
 {
   $Log$
-  Revision 1.68  2003-04-30 16:36:39  florian
+  Revision 1.69  2003-05-01 08:05:23  florian
+    * started to make the rtl 64 bit save by introducing SizeInt and SizeUInt (similar to size_t of C)
+
+  Revision 1.68  2003/04/30 16:36:39  florian
     + support for generic pchar routines added
     + some basic rtl stuff for x86-64 added
 

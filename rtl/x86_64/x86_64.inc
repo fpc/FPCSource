@@ -132,12 +132,12 @@ Procedure FillChar(var x;count:longint;value:byte);assembler;
     movq %rdi,%r10
     movq %rdx,%r11
 
-    /* expand byte value  */
+    { expand byte value  }
     movzbl %sil,%ecx
     movabs $0x0101010101010101,%rax
-    mul    %rcx		/* with rax, clobbers rdx */
+    mul    %rcx		{ with rax, clobbers rdx }
 
-    /* align dst */
+    { align dst }
     movl  %edi,%r9d
     andl  $7,%r9d
     jnz  bad_alignment
@@ -239,7 +239,10 @@ procedure inclocked(var l : longint);assembler;
 
 {
   $Log$
-  Revision 1.2  2003-04-30 22:11:06  florian
+  Revision 1.3  2003-05-01 08:05:23  florian
+    * started to make the rtl 64 bit save by introducing SizeInt and SizeUInt (similar to size_t of C)
+
+  Revision 1.2  2003/04/30 22:11:06  florian
     + for a lot of x86-64 dependend files mostly dummies added
 
   Revision 1.1  2003/01/06 19:40:18  florian

@@ -208,7 +208,7 @@ Begin
 End;
 
 
-Function Do_Write(Handle,Addr,Len:Longint):longint;
+Function Do_Write(Handle,Addr,Len:SizeInt):longint;
 Begin
   repeat
     Do_Write:=Fpwrite(Handle,pchar(addr),len);
@@ -223,7 +223,7 @@ Begin
 End;
 
 
-Function Do_Read(Handle,Addr,Len:Longint):Longint;
+Function Do_Read(Handle,Addr,Len:SizeInt):Longint;
 Begin
   repeat
     Do_Read:=Fpread(Handle,pchar(addr),len);
@@ -616,7 +616,10 @@ End.
 *)
 {
  $Log$
- Revision 1.4  2002-12-24 19:45:40  peter
+ Revision 1.5  2003-05-01 08:05:23  florian
+   * started to make the rtl 64 bit save by introducing SizeInt and SizeUInt (similar to size_t of C)
+
+ Revision 1.4  2002/12/24 19:45:40  peter
    * Fix do_erase which was wrong with inoutres setting
 
  Revision 1.3  2002/12/23 22:23:43  peter

@@ -414,7 +414,7 @@
 
            pmsgtable = ^tmsgtable;
 
-           pdword = ^dword;
+           PSizeUInt = ^SizeUInt;
 
         var
            index : dword;
@@ -433,8 +433,8 @@
                 p:=pointer(vmt)+vmtDynamicTable;
                 If Assigned(p) and (Pdword(p)^<>0) then
                   begin
-                  msgtable:=pmsgtable(pdword(P)^+4);
-                  count:=pdword(pdword(P)^)^;
+                     msgtable:=pmsgtable(PSizeUInt(P)^+4);
+                     count:=pdword(PSizeUInt(P)^)^;
                   end
                 else
                   Count:=0;
@@ -458,7 +458,7 @@
       procedure TObject.DispatchStr(var message);
 
         type
-           pdword = ^dword;
+           PSizeUInt = ^SizeUInt;
 
         var
            name : shortstring;
@@ -476,8 +476,8 @@
                 p:=(pointer(vmt)+vmtMsgStrPtr);
                 If (P<>Nil) and (PDWord(P)^<>0) then
                   begin
-                  count:=pdword(pdword(p)^)^;
-                  msgstrtable:=pmsgstrtable(pdword(P)^+4);
+                  count:=pdword(PSizeUInt(p)^)^;
+                  msgstrtable:=pmsgstrtable(PSizeUInt(P)^+4);
                   end
                 else
                   Count:=0;
@@ -691,7 +691,10 @@
 
 {
   $Log$
-  Revision 1.31  2003-03-17 20:55:58  peter
+  Revision 1.32  2003-05-01 08:05:23  florian
+    * started to make the rtl 64 bit save by introducing SizeInt and SizeUInt (similar to size_t of C)
+
+  Revision 1.31  2003/03/17 20:55:58  peter
     * ClassType changed to class method
 
   Revision 1.30  2002/10/19 15:53:20  peter

@@ -1130,10 +1130,10 @@ end;
                                 Grow Heap
 *****************************************************************************}
 
-function growheap(size :longint) : integer;
+function growheap(size : SizeInt) : integer;
 var
   sizeleft,s1,
-  NewPos    : longint;
+  NewPos    : SizeInt;
   pcurr     : pfreerecord;
 begin
 {$ifdef DUMPGROW}
@@ -1265,7 +1265,10 @@ end;
 
 {
   $Log$
-  Revision 1.19  2002-11-01 17:38:04  peter
+  Revision 1.20  2003-05-01 08:05:23  florian
+    * started to make the rtl 64 bit save by introducing SizeInt and SizeUInt (similar to size_t of C)
+
+  Revision 1.19  2002/11/01 17:38:04  peter
     * fix setmemorymutexmanager to call mutexdone on the already
       installed manager instead of the passed manager
 

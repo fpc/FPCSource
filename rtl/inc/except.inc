@@ -38,7 +38,7 @@ Type
   TExceptObjectClass = Class of TObject;
 
 Const
-  CatchAllExceptions = -1;
+  CatchAllExceptions = SizeInt(-1);
 {$ifdef SUPPORT_THREADVAR}
 ThreadVar
 {$else SUPPORT_THREADVAR}
@@ -281,7 +281,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.9  2002-10-14 19:39:17  peter
+  Revision 1.10  2003-05-01 08:05:23  florian
+    * started to make the rtl 64 bit save by introducing SizeInt and SizeUInt (similar to size_t of C)
+
+  Revision 1.9  2002/10/14 19:39:17  peter
     * threads unit added for thread support
 
   Revision 1.8  2002/09/07 15:07:45  peter

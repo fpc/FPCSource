@@ -157,7 +157,7 @@ Procedure DisposeWideString(Var S : Pointer);
 begin
   If S=Nil then
     exit;
-  Dec (Longint(S),WideFirstOff);
+  Dec (S,WideFirstOff);
   FreeMem (S);
   S:=Nil;
 end;
@@ -990,7 +990,10 @@ end;
 
 {
   $Log$
-  Revision 1.28  2002-12-29 16:59:17  peter
+  Revision 1.29  2003-05-01 08:05:23  florian
+    * started to make the rtl 64 bit save by introducing SizeInt and SizeUInt (similar to size_t of C)
+
+  Revision 1.28  2002/12/29 16:59:17  peter
     * implemented some more conversions
 
   Revision 1.27  2002/12/15 22:33:12  peter
