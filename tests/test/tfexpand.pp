@@ -98,7 +98,12 @@ begin
                                #13#10'(preferably not on a C: drive)' +
 {$ENDIF}
                                                                  ' expected.');
-  WriteLn ('Trying to use the current directory instead (not quite ideal).');
+  WriteLn ('Trying to use the current directory instead ' +
+{$IFDEF UNIX}
+                                                         '(not quite ideal).');
+{$ELSE UNIX}
+                                                    '(problems might arise).');
+{$ENDIF UNIX}
   GetDir (0, TestDir);
  end else TestDir := ParamStr (1);
  if TestDir [Length (TestDir)] <> DirSep then TestDir := TestDir + DirSep;
@@ -166,10 +171,13 @@ begin
 {$IFDEF UNIX}
  S := GetEnv ('HOME');
  Check ('~', S);
+ Check ('~' + DirSep + '.', S);
  if (Length (S) > 0) and (S [Length (S)] <> DirSep) then S := S + DirSep;
- Check ('~NobodyWithThisNameShouldEverExist.test/nothing', '~NobodyWithThisNameShouldEverExist.test/nothing');
+ Check ('~NobodyWithThisNameShouldEverExist.test/nothing', CurDir + DirSep +
+                            '~NobodyWithThisNameShouldEverExist.test/nothing');
+ Check ('/tmp/~NoSuchUserAgain', '/tmp/~NoSuchUserAgain');
  Check ('~' + DirSep, S);
- Check ('~' + DirSep + '.', S + '.');
+ Check ('~' + DirSep + '.' + DirSep, S);
  Check ('~' + DirSep + 'directory' + DirSep + 'another',
                                          S + 'directory' + DirSep + 'another');
 {$ELSE UNIX}
