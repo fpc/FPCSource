@@ -523,6 +523,31 @@ implementation
       var
         procdefcoll : pprocdefcoll;
       begin
+        if (_class=pd._class) then
+          begin
+            { new entry is needed, override was not possible }
+            if (po_overridingmethod in pd.procoptions) then
+              MessagePos1(pd.fileinfo,parser_e_nothing_to_be_overridden,pd.fullprocname(false));
+
+            { check that all methods have overload directive }
+            if not(m_fpc in aktmodeswitches) then
+              begin
+                procdefcoll:=vmtentry^.firstprocdef;
+                while assigned(procdefcoll) do
+                  begin
+                    if (procdefcoll^.data._class=pd._class) and
+                       ((po_overload in pd.procoptions)<>(po_overload in procdefcoll^.data.procoptions)) then
+                      begin
+                        MessagePos1(pd.fileinfo,parser_e_no_overload_for_all_procs,pd.procsym.realname);
+                        { recover }
+                        include(procdefcoll^.data.procoptions,po_overload);
+                        include(pd.procoptions,po_overload);
+                      end;
+                    procdefcoll:=procdefcoll^.next;
+                  end;
+              end;
+          end;
+
         { generate new entry }
         new(procdefcoll);
         procdefcoll^.data:=pd;
@@ -613,18 +638,6 @@ implementation
                          { compare only if the definition is not hidden }
                          if not procdefcoll^.hidden then
                           begin
-                            { check that all methods have overload directive }
-                            if not(m_fpc in aktmodeswitches) and
-                               (_class=pd._class) and
-                               (procdefcoll^.data._class=pd._class) and
-                               ((po_overload in pd.procoptions)<>(po_overload in procdefcoll^.data.procoptions)) then
-                              begin
-                                MessagePos1(pd.fileinfo,parser_e_no_overload_for_all_procs,pd.procsym.realname);
-                                { recover }
-                                include(procdefcoll^.data.procoptions,po_overload);
-                                include(pd.procoptions,po_overload);
-                              end;
-
                             { check if one of the two methods has virtual }
                             if (po_virtualmethod in procdefcoll^.data.procoptions) or
                                (po_virtualmethod in pd.procoptions) then
@@ -756,11 +769,6 @@ implementation
                          procdefcoll:=procdefcoll^.next;
                       end;
 
-                    { new entry is needed, override was not possible }
-                    if (_class=pd._class) and
-                       (po_overridingmethod in pd.procoptions) then
-                      MessagePos1(pd.fileinfo,parser_e_nothing_to_be_overridden,pd.fullprocname(false));
-
                     { if it isn't saved in the list we create a new entry }
                     newdefentry(vmtentry,pd,is_visible);
                   end;
@@ -778,10 +786,6 @@ implementation
         for i:=1 to Tprocsym(sym).procdef_count do
           begin
             pd:=Tprocsym(sym).procdef[i];
-            { new entry is needed, override was not possible }
-            if (_class=pd._class) and
-               (po_overridingmethod in pd.procoptions) then
-              MessagePos1(pd.fileinfo,parser_e_nothing_to_be_overridden,pd.fullprocname(false));
             newdefentry(vmtentry,pd,pd.is_visible_for_object(_class));
           end;
       end;
@@ -1358,7 +1362,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.91  2005-02-14 17:13:06  peter
+  Revision 1.92  2005-03-17 09:08:54  michael
+  + Patch from peter to fix overload directive cheking in delphi mode
+
+  Revision 1.91  2005/02/14 17:13:06  peter
     * truncate log
 
   Revision 1.90  2005/02/10 22:08:03  peter
