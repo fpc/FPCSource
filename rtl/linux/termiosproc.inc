@@ -151,7 +151,10 @@ Function IsATTY (Handle:cint):cint;
 var
   t : Termios;
 begin
- IsAtty:=TCGetAttr(Handle,t);
+  if TCGetAttr(Handle,t)=0 then
+    IsAtty:=1
+  else
+    IsAtty:=0;
 end;
 
 
@@ -165,7 +168,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2004-07-09 19:03:35  peter
+  Revision 1.5  2004-11-03 10:03:39  peter
+    * fix isatty, ioctl returns 0 on success, but isatty needs to return 1
+
+  Revision 1.4  2004/07/09 19:03:35  peter
     * isatty return cint again
 
 }
