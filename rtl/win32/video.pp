@@ -149,6 +149,7 @@ end;
 
 function DefaultVideoModeSelector(const VideoMode: TVideoMode; Params: Longint): Boolean;
 begin
+  DefaultVideoModeSelector:=true;
 end;
 
 
@@ -180,7 +181,7 @@ var
    LineCounter,
    ColCounter  : Longint;
    smallforce  : boolean;
-{
+(*
 begin
   if LockUpdateScreen<>0 then
    exit;
@@ -230,7 +231,7 @@ begin
       move(VideoBuf^,OldVideoBuf^,VideoBufSize);
    end;
 end;
-}
+*)
 var
    x1,y1,x2,y2 : longint;
 
@@ -351,7 +352,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.1  2001-01-13 11:03:59  peter
+  Revision 1.2  2001-04-10 21:28:36  peter
+    * removed warnigns
+
+  Revision 1.1  2001/01/13 11:03:59  peter
     * API 2 RTL commit
 
 }

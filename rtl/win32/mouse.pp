@@ -35,8 +35,6 @@ Const
 procedure MouseEventHandler(var ir:INPUT_RECORD);
 
   var
-     dwRead : DWord;
-     i: longint;
      e : TMouseEvent;
 
   begin
@@ -219,7 +217,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2001-01-14 22:20:00  peter
+  Revision 1.3  2001-04-10 21:28:36  peter
+    * removed warnigns
+
+  Revision 1.2  2001/01/14 22:20:00  peter
     * slightly optimized event handling (merged)
 
   Revision 1.1  2001/01/13 11:03:59  peter

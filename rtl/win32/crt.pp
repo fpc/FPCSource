@@ -542,7 +542,7 @@ end;
 
 function KeyPressed : boolean;
 var
-  nevents, nread, i: longint;
+  nevents, nread: longint;
   buf : TINPUTRECORD;
   AltKey: Boolean;
 begin
@@ -1006,7 +1006,10 @@ end. { unit Crt }
 
 {
   $Log$
-  Revision 1.6  2001-01-03 21:01:50  florian
+  Revision 1.7  2001-04-10 21:28:36  peter
+    * removed warnigns
+
+  Revision 1.6  2001/01/03 21:01:50  florian
     * fixed the repeat key bug introduced by my last patch
 
   Revision 1.5  2000/12/15 13:16:30  jonas
