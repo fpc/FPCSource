@@ -413,7 +413,7 @@ implementation
                                    { increment source reference counter }
                                    new(r);
                                    reset_reference(r^);
-                                   r^.symbol:=stringdup(p^.right^.resulttype^.get_rtti_label);
+                                   r^.symbol:=stringdup(lab2str(p^.right^.resulttype^.get_inittable_label));
                                    emitpushreferenceaddr(exprasmlist,r^);
 
                                    emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
@@ -426,7 +426,7 @@ implementation
                                    { decrement destination reference counter }
                                    new(r);
                                    reset_reference(r^);
-                                   r^.symbol:=stringdup(p^.left^.resulttype^.get_rtti_label);
+                                   r^.symbol:=stringdup(lab2str(p^.left^.resulttype^.get_inittable_label));
                                    emitpushreferenceaddr(exprasmlist,r^);
 
                                    emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
@@ -689,7 +689,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  1998-11-20 15:35:54  florian
+  Revision 1.32  1998-11-26 09:53:36  florian
+    * for classes no init/final. code is necessary, fixed
+
+  Revision 1.31  1998/11/20 15:35:54  florian
     * problems with rtti fixed, hope it works
 
   Revision 1.30  1998/11/18 17:45:24  peter
