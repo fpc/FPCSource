@@ -830,7 +830,7 @@ Function Fork:longint;
 }
 
 Begin
- fork:=Do_syscall(2);
+ fork:=Do_syscall(SysCall_nr_fork);
  LinuxError:=ErrNo;
 End;
 
@@ -892,7 +892,7 @@ Procedure Execve(path:pathstr;args:ppchar;ep:ppchar);
 
 Begin
   path:=path+#0;
-  do_syscall(59,longint(@path[1]),longint(Args),longint(ep));
+  do_syscall(syscall_nr_Execve,longint(@path[1]),longint(Args),longint(ep));
  LinuxError:=ErrNo;
 End;
 
@@ -910,7 +910,7 @@ Procedure Execve(path:pchar;args:ppchar;ep:ppchar);
 }
 
 Begin
-  do_syscall(59,longint(path),longint(Args),longint(ep));
+  do_syscall(syscall_nr_Execve,longint(path),longint(Args),longint(ep));
  LinuxError:=ErrNo;
 End;
 
@@ -1007,7 +1007,7 @@ Procedure ExitProcess(val:longint);
 
 
 begin
- do_syscall(1,val);
+ do_syscall(Syscall_nr_exit,val);
  LinuxError:=ErrNo;
 end;
 
@@ -1021,7 +1021,7 @@ Function WaitPid(Pid:longint;Status:pointer;Options:Integer):Longint;
 
 
 begin
- WaitPID:=do_syscall(7,PID,longint(Status),options,0);
+ WaitPID:=do_syscall(syscall_nr_WaitPID,PID,longint(Status),options,0);
  LinuxError:=ErrNo;
 end;
 
@@ -1099,7 +1099,7 @@ begin
    end
   else
    begin
-     GetPriority:=do_syscall(100,which,who);
+     GetPriority:=do_syscall(syscall_nr_GetPriority,which,who);
      LinuxError:=ErrNo;
    end;
 end;
@@ -1125,7 +1125,7 @@ begin
    linuxerror:=Sys_einval  { We can save an interrupt here }
   else
    begin
-     do_syscall(96,which,who,what);
+     do_syscall(Syscall_nr_Setpriority,which,who,what);
      LinuxError:=ErrNo;
    end;
 end;
@@ -1149,7 +1149,7 @@ Function GetPid:LongInt;
 }
 
 begin
- GetPID:=do_syscall(20);
+ GetPID:=do_syscall(Syscall_nr_GetPID);
  LinuxError:=errno;
 end;
 
@@ -1160,7 +1160,7 @@ Function GetPPid:LongInt;
 
 
 begin
-  GetPPid:=do_syscall(39);
+  GetPPid:=do_syscall(Syscall_nr_GetPPid);
   LinuxError:=errno;
 end;
 
@@ -1169,9 +1169,8 @@ Function GetUid:Longint;
   Get User ID.
 }
 
-
 begin
-  GetUID:=do_syscall(24);
+  GetUID:=do_syscall(Syscall_nr_GetUID);
   LinuxError:=ErrNo;
 end;
 
@@ -1184,7 +1183,7 @@ Function GetEUid:Longint;
 
 
 begin
-  GetEUID:=do_syscall(25);
+  GetEUID:=do_syscall(Syscall_nr_GetEUID);
   LinuxError:=ErrNo;
 end;
 
@@ -1195,7 +1194,7 @@ Function GetGid:Longint;
 }
 
 begin
-  GetGID:=do_syscall(47);
+  GetGID:=do_syscall(Syscall_nr_getgid);
   LinuxError:=ErrNo;
 end;
 
@@ -1206,7 +1205,7 @@ Function GetEGid:Longint;
 }
 
 begin
- GetEGID:=do_syscall(43);
+ GetEGID:=do_syscall(syscall_nr_getegid);
  LinuxError:=ErrNo;
 end;
 
@@ -1268,7 +1267,7 @@ Procedure GetTimeOfDay(var tv:timeval);
 var  tz : timezone;
 
 begin
- do_syscall(116,longint(@tv),longint(@tz));
+ do_syscall(syscall_nr_gettimeofday,longint(@tv),longint(@tz));
  LinuxError:=Errno;
 end;
 
@@ -1438,7 +1437,7 @@ end;
 Function fdTruncate(fd,size:longint):boolean;
 
 begin
- fdtruncate:=do_syscall(201,fd,size,0)=0;
+ fdtruncate:=do_syscall(syscall_nr_ftruncate,fd,size,0)=0;
  LinuxError:=Errno;
 end;
 
@@ -1455,14 +1454,14 @@ end;
 Function  fdFlush (fd : Longint) : Boolean;
 
 begin
-  fdflush:=do_syscall(95,fd)=0;
+  fdflush:=do_syscall(syscall_nr_fsync,fd)=0;
   LinuxError:=Errno;
 end;
 
 function sys_fcntl(Fd:longint;Cmd:longint;Arg:Longint):longint;
 
 begin
- sys_fcntl:=do_syscall(92,fd,cmd,arg);
+ sys_fcntl:=do_syscall(syscall_nr_fcntl,fd,cmd,arg);
  LinuxError:=Errno;
 end;
 
@@ -1536,7 +1535,7 @@ Function Chmod(path:pathstr;Newmode:longint):Boolean;
 
 begin
   path:=path+#0;
-  chmod:=do_syscall(15,longint(@path[1]),newmode)=0;
+  chmod:=do_syscall(syscall_nr_chmod,longint(@path[1]),newmode)=0;
   LinuxError:=Errno;
 end;
 
@@ -1549,21 +1548,21 @@ Function Chown(path:pathstr;NewUid,NewGid:longint):boolean;
 
 begin
   path:=path+#0;
-  ChOwn:=do_syscall(16,longint(@path[1]),newuid,newgid)=0;
+  ChOwn:=do_syscall(syscall_nr_chown,longint(@path[1]),newuid,newgid)=0;
  LinuxError:=Errno;
 end;
 
 Function Utime(path:pathstr;utim:utimebuf):boolean;
 
 begin
-  UTime:=do_syscall(138,longint(@path[1]),longint(@utim))=0;
+  UTime:=do_syscall(syscall_nr_utimes,longint(@path[1]),longint(@utim))=0;
   LinuxError:=Errno;
 end;
 
 Function  Flock (fd,mode : longint) : boolean;
 
 begin
- Flock:=do_syscall(131,fd,mode)=0;
+ Flock:=do_syscall(syscall_nr_flock,fd,mode)=0;
  LinuxError:=Errno;
 end;
 
@@ -1594,7 +1593,7 @@ Function Fstat(Fd:Longint;var Info:stat):Boolean;
 }
 
 begin
- FStat:=do_syscall(189,fd,longint(@info))=0;
+ FStat:=do_syscall(syscall_nr_fstat,fd,longint(@info))=0;
  LinuxError:=Errno;
 end;
 
@@ -1621,7 +1620,7 @@ Function Lstat(Filename: PathStr;var Info:stat):Boolean;
 
 begin
  FileName:=FileName+#0;
- LStat:=Do_syscall(189,longint(@filename[1]),longint(@info))=0;
+ LStat:=Do_syscall(syscall_nr_lstat,longint(@filename[1]),longint(@info))=0;
  LinuxError:=Errno;
 end;
 
@@ -1635,7 +1634,7 @@ Function FSStat(Path:Pathstr;Var Info:statfs):Boolean;
 
 begin
   path:=path+#0;
-  FSStat:=Do_Syscall(157,longint(@path[1]),longint(@info))=0;
+  FSStat:=Do_Syscall(syscall_nr_statfs,longint(@path[1]),longint(@info))=0;
   LinuxError:=Errno;
 end;
 
@@ -1647,7 +1646,7 @@ Function FSStat(Fd:Longint;Var Info:statfs):Boolean;
 }
 
 begin
- FSStat:=do_syscall(158,fd,longint(@info))=0;
+ FSStat:=do_syscall(syscall_nr_fstatfs,fd,longint(@info))=0;
  LinuxError:=Errno;
 end;
 
@@ -1659,7 +1658,7 @@ Function Link(OldPath,NewPath:pathstr):boolean;
 begin
   oldpath:=oldpath+#0;
   newpath:=newpath+#0;
-  Link:=Do_Syscall(9,longint(@oldpath[1]),longint(@newpath[1]))=0;
+  Link:=Do_Syscall(syscall_nr_link,longint(@oldpath[1]),longint(@newpath[1]))=0;
  LinuxError:=Errno;
 end;
 
@@ -1671,7 +1670,7 @@ Function SymLink(OldPath,newPath:pathstr):boolean;
 begin
   oldpath:=oldpath+#0;
   newpath:=newpath+#0;
-  SymLink:=Do_Syscall(57,longint(@oldpath[1]),longint(@newpath[1]))=0;
+  SymLink:=Do_Syscall(syscall_nr_symlink,longint(@oldpath[1]),longint(@newpath[1]))=0;
   LinuxError:=Errno;
 end;
 
@@ -1718,7 +1717,7 @@ Function Umask(Mask:Integer):integer;
   previous value.
 }
 begin
- UMask:=Do_syscall(60,mask);
+ UMask:=Do_syscall(syscall_nr_umask,mask);
  LinuxError:=0;
 end;
 
@@ -1738,7 +1737,7 @@ Function Access(Path:Pathstr ;mode:longint):boolean;
 
 begin
   path:=path+#0;
- Access:=do_syscall(33,mode,longint(@path[1]))=0;
+ Access:=do_syscall(syscall_nr_access,mode,longint(@path[1]))=0;
  LinuxError:=Errno;
 end;
 
@@ -1748,7 +1747,7 @@ Function  Dup(oldfile:longint;var newfile:longint):Boolean;
 }
 
 begin
- newfile:=Do_syscall($41,oldfile);
+ newfile:=Do_syscall(syscall_nr_dup,oldfile);
  LinuxError:=Errno;
  Dup:=(LinuxError=0);
 end;
@@ -1785,7 +1784,7 @@ Function Dup2(oldfile,newfile:longint):Boolean;
 }
 
 begin
- do_syscall(90,oldfile,newfile);
+ do_syscall(syscall_nr_dup2,oldfile,newfile);
  LinuxError:=Errno;
  Dup2:=(LinuxError=0);
 end;
@@ -1834,7 +1833,7 @@ Function Select(N:longint;readfds,writefds,exceptfds:PFDSet;TimeOut:PTimeVal):lo
 }
 
 begin
- Select:=do_syscall(93,n,longint(readfds),longint(writefds),longint(exceptfds),longint(timeout));
+ Select:=do_syscall(syscall_nr_select,n,longint(readfds),longint(writefds),longint(exceptfds),longint(timeout));
  LinuxError:=Errno;
 end;
 
@@ -1991,7 +1990,7 @@ var
   pip  : tpipe;
 
 begin
- do_syscall(42,longint(@pip));
+ do_syscall(syscall_nr_pipe,longint(@pip));
  LinuxError:=Errno;
  pipe_in:=pip[1];
  pipe_out:=pip[2];
@@ -2083,7 +2082,7 @@ var
   res : longint;
 
 begin
-  do_syscall(6,filerec(F).Handle);
+  do_syscall(syscall_nr_close,filerec(F).Handle);
 { closed our side, Now wait for the other - this appears to be needed ?? }
   pl:=@(filerec(f).userdata[2]);
   waitpid(pl^,@res,0);
@@ -2265,7 +2264,7 @@ Function mkFifo(pathname:string;mode:longint):boolean;
 
 begin
   pathname:=pathname+#0;
-  mkfifo:=do_syscall(14,longint(@pathname[1]),mode or STAT_IFIFO,0)=0;
+  mkfifo:=do_syscall(syscall_nr_mknod,longint(@pathname[1]),mode or STAT_IFIFO,0)=0;
   LinuxError:=Errno;
 end;
 
@@ -2541,7 +2540,7 @@ Function Kill(Pid:longint;Sig:integer):integer;
 }
 
 begin
- kill:=do_syscall(37,pid,sig);
+ kill:=do_syscall(syscall_nr_kill,pid,sig);
  if kill<0 THEN
   Kill:=0;
  LinuxError:=Errno;
@@ -2556,7 +2555,7 @@ Procedure SigAction(Signum:Integer;Var Act,OldAct:PSigActionRec );
 }
 
 begin
- do_syscall(46,longint(signum),longint(act),longint(oldact));
+ do_syscall(syscall_nr_sigaction,longint(signum),longint(act),longint(oldact));
  LinuxError:=Errno;
 end;
 
@@ -2571,7 +2570,7 @@ Procedure SigProcMask(How:Integer;SSet,OldSSet:PSigSet);
 }
 
 begin
-  do_syscall(48,longint(how),longint(sset),longint(oldsset));
+  do_syscall(syscall_nr_sigprocmask,longint(how),longint(sset),longint(oldsset));
  LinuxError:=Errno;
 end;
 
@@ -2583,7 +2582,7 @@ Function SigPending:SigSet;
 Var
   dummy : Sigset;
 begin
-  do_syscall(52,longint(@dummy));
+  do_syscall(syscall_nr_sigpending,longint(@dummy));
   LinuxError:=Errno;
   sigpending:=dummy;
 end;
@@ -3645,7 +3644,10 @@ End.
 
 {
   $Log$
-  Revision 1.8  2000-03-17 12:58:57  marco
+  Revision 1.9  2000-04-05 13:07:03  marco
+   * replaced about half of the syscall nr's by symbols from sysnr.inc
+
+  Revision 1.8  2000/03/17 12:58:57  marco
    * some changes to ftruncate based procs. Added a "0" as extra parameter
 
   Revision 1.7  2000/03/16 16:19:28  marco
