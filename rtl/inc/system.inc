@@ -35,7 +35,6 @@ const
 { Random / Randomize constants }
   OldRandSeed : Longint = 0;
   InitialSeed : Boolean = TRUE;
-  Seed1 : Longint = 0;
   Seed2 : Cardinal = 0;
   Seed3 : Cardinal = 0;
 
@@ -180,24 +179,25 @@ Function Random : Real;
 var
     ReturnValue : Real;
 begin
-    if (InitialSeed) OR ((RandSeed <> OldRandSeed) AND NOT InitialSeed) then
+    if (InitialSeed) OR ((RandSeed <> OldRandSeed) AND (NOT InitialSeed)) then
     Begin
-       OldRandSeed:=RandSeed;
     { This is a pretty complicated affair                             }
     {  Initially we must call UseSeed when RandSeed is initalized     }
     {  We must also call UseSeed each time RandSeed is reinitialized  }
     {  DO NOT CHANGE THE ORDER OF DECLARATIONS IN THIS BLOCK          }
     {  UNLESS YOU WANT RANDON TO CRASH OF COURSE (CEC)                }
       InitialSeed:=FALSE;
-      UseSeed(Randseed);
+      OldRandSeed:=RandSeed;
+      UseSeed(RandSeed);
     end;
-    Inc(Seed1);
-    Seed1 := (Seed1 * 706) mod 500009;
+    Inc(RandSeed);
+    RandSeed := (RandSeed * 706) mod 500009;
+    OldRandSeed:=RandSeed;
     INC(Seed2);
     Seed2 := (Seed2 * 774) MOD 600011;
     INC(Seed3);
     Seed3 := (Seed3 * 871) MOD 765241;
-    ReturnValue := Seed1/500009.0 +
+    ReturnValue := RandSeed/500009.0 +
             Seed2/600011.0 +
            Seed3/765241.0;
     Random := frac(ReturnValue);
@@ -206,26 +206,27 @@ end;
 
 Function Random(l : Longint) : Longint;
 begin
-    if (InitialSeed) OR ((RandSeed <> OldRandSeed) AND NOT InitialSeed) then
+    if (InitialSeed) OR ((RandSeed <> OldRandSeed) AND (NOT InitialSeed)) then
     Begin
-       OldRandSeed:=RandSeed;
     { This is a pretty complicated affair                             }
     {  Initially we must call UseSeed when RandSeed is initalized     }
     {  We must also call UseSeed each time RandSeed is reinitialized  }
     {  DO NOT CHANGE THE ORDER OF DECLARATIONS IN THIS BLOCK          }
     {  UNLESS YOU WANT RANDON TO CRASH OF COURSE (CEC)                }
       InitialSeed:=FALSE;
+      OldRandSeed:=RandSeed;
       UseSeed(Randseed);
     end;
-    Inc(Seed1);
-    Seed1 := (Seed1 * 998) mod 1000003;
-    Random := Seed1 mod l;
+    Inc(RandSeed);
+    RandSeed := (RandSeed * 998) mod 1000003;
+    OldRandSeed:=RandSeed;
+    Random := RandSeed mod l;
 end;
 
 
 Procedure UseSeed(seed : Longint);
 begin
-    Seed1 := seed mod 1000003;
+    randseed := seed mod 1000003;
     Seed2 := (Random(65000) * Random(65000)) mod 600011;
     Seed3 := (Random(65000) * Random(65000)) mod 765241;
 end;
@@ -475,11 +476,15 @@ end;
 
 {
   $Log$
-  Revision 1.38  1998-10-12 12:43:37  florian
+  Revision 1.39  1998-10-12 22:11:28  jonas
+    * fixed RandSeed bug
+
+  Revision 1.38  1998/10/12 12:43:37  florian
     * made FPC_HANDLEERROR public
 
   Revision 1.37  1998/10/07 11:40:08  jonas
     * changed seed2 and seed3 to cardinal to prevent overflow
+
 
   Revision 1.36  1998/10/05 12:32:51  peter
     + assert() support
