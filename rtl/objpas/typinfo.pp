@@ -727,8 +727,9 @@ unit typinfo;
           PT : PTypeData;
 
       begin
-       PT:=GetTypeData(GetTypeData(TypeInfo)^.BaseType);
-       If PT^.MinValue<0 then Value:=Ord(Value<>0); {map to 0/1}
+       PT:=GetTypeData(TypeInfo);
+       // ^.BaseType);
+       //      If PT^.MinValue<0 then Value:=Ord(Value<>0); {map to 0/1}
        PS:=@PT^.NameList;
        While Value>0 Do
          begin
@@ -746,7 +747,7 @@ unit typinfo;
 
       begin
         If Length(Name)=0 then exit(-1);
-        PT:=GetTypeData(GetTypeData(TypeInfo)^.BaseType);
+        PT:=GetTypeData(TypeInfo);
         Count:=0;
         Result:=-1;
         PS:=@PT^.NameList;
@@ -763,7 +764,10 @@ end.
 
 {
   $Log$
-  Revision 1.19  1999-04-08 11:31:04  peter
+  Revision 1.20  1999-05-03 07:30:07  michael
+  * Fixes in getenum*
+
+  Revision 1.19  1999/04/08 11:31:04  peter
     * removed warnings
 
   Revision 1.18  1999/01/19 16:08:12  pierre
