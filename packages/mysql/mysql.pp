@@ -19,11 +19,7 @@ Const mysqllib = 'mysqlclient';
 {$ifndef win32}
 {$linklib c}
 {$linklib m}
-{ You need to specify the path to libgcc on the command line. }
-{ On my machine this is '-k-L/usr/lib/gcc-lib/i486-linux/2.7.2.1' }
-{$linklib gcc}
 {$endif}
-
 
 { All is 4-byte aligned on my machine. }
 {$packrecords 4}
@@ -39,7 +35,6 @@ Var
   mysql_port : cardinal; external name 'mysql_port';
   mysql_unix_port : pchar; external name 'mysql_unix_port';
 {$endif}
-
 
 {
 #define IS_PRI_KEY(n)	((n) & PRI_KEY_FLAG)
@@ -64,6 +59,12 @@ PMYSQL_FIELD = ^TMYSQL_FIELD;
 TMYSQL_ROW = PPchar;		 { return data as array of strings }
 TMYSQL_FIELD_OFFSET = cardinal;  { offset to current field }
 
+{$ifndef oldmysql}
+  my_ulonglong=qword;
+{$else}
+  my_longlong=cardinal;
+{$endif}
+
 PST_MYSQL_Rows = ^st_mysql_rows;
 st_mysql_rows = Record
   next : pst_mysql_rows;		{ list of rows }
@@ -76,7 +77,8 @@ PMYSQL_ROWS = ^TMYSQL_ROWS;
 TMYSQL_ROW_OFFSET = PMYSQL_ROWS;	{ offset to current row }
 
 st_mysql_data  = record
-  rows, fields : cardinal;
+  rows   : my_ulonglong; 
+  fields : cardinal;
   data : PMYSQL_ROWS;
   alloc : TMEM_ROOT;
 end;
@@ -84,33 +86,44 @@ end;
 TMYSQL_DATA = st_mysql_data;
 PMYSQL_DATA = ^TMYSQL_DATA;
 
+st_mysql_options = record 
+  connect_timeout,client_flag : cardinal;
+  compress,named_pipe : my_bool;
+  port : cardinal;
+  host,init_command,user,password,unix_socket,db : pchar;
+  my_cnf_file,my_cnf_group : pchar;
+end;  
+
 mysql_status = (MYSQL_STATUS_READY,
                 MYSQL_STATUS_GET_RESULT,
                 MYSQL_STATUS_USE_RESULT);
 
 
 st_mysql = Record
-  net : TNET;			{ Communication parameters }
-  host,user,passwd,unix_socket,server_version,host_info, info,db : pchar;
+  NET : TNET;			{ Communication parameters }
+  host,user,passwd,unix_socket,server_version,host_info,
+  info,db : pchar;
   port,client_flag,server_capabilities : cardinal;
   protocol_version : cardinal;
   field_count : cardinal;
   thread_id : cardinal;		{ Id for connection in server }
-  affected_rows : cardinal;
-  insert_id : cardinal;		{ id if insert on table with NEXTNR }
-  extra_info : cardinal;		{ Used by mysqlshow }
+  affected_rows : my_ulonglong;
+  insert_id : my_ulonglong;		{ id if insert on table with NEXTNR }
+  extra_info : my_ulonglong;    	{ Used by mysqlshow }
+  packet_length : cardinal; 
   status : mysql_status;
   fields : PMYSQL_FIELD;
   field_alloc : TMEM_ROOT;
   free_me : my_bool;		{ If free in mysql_close }
   reconnect : my_bool;		{ set to 1 if automatic reconnect }
+  options : st_mysql_options;   
 end;
 TMYSQL = st_mysql;
 PMYSQL = ^TMYSQL;
 
 
 st_mysql_res = record
-  row_count : cardinal;
+  row_count : my_ulonglong; 
   field_count, current_field : cardinal;
   fields :         PMYSQL_FIELD;
   data :           PMYSQL_DATA;
@@ -128,15 +141,15 @@ PMYSQL_RES  = ^TMYSQL_RES;
 
 { Translated Macros }
 
-Function mysql_num_rows (res : PMYSQL_RES) : Cardinal;
+Function mysql_num_rows (res : PMYSQL_RES) : my_ulonglong;
 Function mysql_num_fields(res : PMYSQL_RES) : Cardinal;
 Function mysql_eof(res : PMYSQL_RES) : my_bool; 
 Function mysql_fetch_field_direct(res : PMYSQL_RES; fieldnr : Cardinal) : TMYSQL_FIELD; 
 Function mysql_fetch_fields(res : PMYSQL_RES) : PMYSQL_FIELD; 
 Function mysql_row_tell(res : PMYSQL_RES) : PMYSQL_ROWS;
 Function mysql_field_tell(res : PMYSQL_RES) : Cardinal;
-Function mysql_affected_rows(mysql : PMYSQL): Cardinal; 
-Function mysql_insert_id(mysql : PMYSQL): Cardinal; 
+Function mysql_affected_rows(mysql : PMYSQL): my_ulonglong;  
+Function mysql_insert_id(mysql : PMYSQL): my_ulonglong;  
 Function mysql_errno(mysql : PMYSQL) : Cardinal;
 Function mysql_info(mysql : PMYSQL): Pchar;
 Function mysql_reload(mysql : PMYSQL) : Longint; 
@@ -228,7 +241,7 @@ begin
  mysql_error:=mysql^.net.last_error
 end;
 
-Function mysql_num_rows (res : PMYSQL_RES) : Cardinal;
+Function mysql_num_rows (res : PMYSQL_RES) : my_ulonglong;  
 
 begin
   mysql_num_rows:=res^.row_count
@@ -272,11 +285,15 @@ end;
 
 Function mysql_affected_rows(mysql : PMYSQL): Cardinal;
 
+<<<<<<< mysql.pp
+=======
+Function mysql_affected_rows(mysql : PMYSQL): my_ulonglong; 
+>>>>>>> 1.1.2.1
 begin
   mysql_affected_rows:=mysql^.affected_rows
 end;
 
-Function mysql_insert_id(mysql : PMYSQL): Cardinal;
+Function mysql_insert_id(mysql : PMYSQL): my_ulonglong; 
 
 begin
   mysql_insert_id:=mysql^.insert_id
@@ -306,8 +323,11 @@ begin
   mysql_thread_id:=mysql^.thread_id
 end;
 
-end.  $Log$
-end.  Revision 1.2  2000-07-13 11:33:26  michael
-end.  + removed logs
-end. 
+end.
+
+{
+  $Log$
+  Revision 1.3  2000-12-02 15:24:37  michael
+  + Merged changes from fixbranch
+
 }
