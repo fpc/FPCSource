@@ -4226,11 +4226,20 @@ In the following sections we discuss how to create a library, and how
 to use these libraries in programs.
 
 \section{Creating a library}
+
+Creation of libraries is supported in any mode of the \fpc compiler,
+but it may be that the arguments or return values differ if the library is
+compiled in 2 different modes.
+
 A library can be created just as a program, only it uses the \var{library}
-keyword, and it has a \var{exports} section. The following program
+keyword, and it has an \var{exports} section. The following listing
 demonstrates a simple library:
 
 \FPCexample{subs}
+
+The function \var{SubStr} does not have to be declared in the library file 
+itself. It can also be declared in the interface section of a unit that
+is used by the library.
 
 Compilation of this source will result in the creation of a library called
 \file{libsubs.so} on \linux, or \file{subs.dll} on \windows. The compiler
@@ -4241,19 +4250,41 @@ The library exports one function: \var{SubStr}. The case is important. The
 case as it appears in the \var{exports} clause is used to export the
 function.
 
-If you want your libraru to be called from C programs, it is important to
-specify the C calling convention for the exported functions  with the
+Creation of libraries is supported in any mode of the \fpc compiler,
+but it may be that the arguments or return values differ if the library is
+compiled in 2 different modes.  E.g. if your function expects an
+\var{Integer} argument, then the library will expect different integer
+sizes if you compile it in Delphi mode or in TP mode.
+
+If you want your library to be called from C programs, it is important to
+specify the C calling convention for the exported functions, with the
 \var{cdecl} modifier. Since a C compiler doesn't know about the \fpc
 calling conventions, your functions would be called incorrectly, resulting
 in a corrupted stack.
 
+On \windows, most libraries use the \var{stdcall} convention, so it may be
+better to use that one if your library is to be used on \windows systems.
+
 \section{Using a library in a pascal program}
-To use this library from a pascal program, you can use the following 
-pascal program:
+
+In order to use a function that resides in a library, it is sufficient to
+declare the function as it exists in the library as an \var{external}
+function, with correct arguments and return type. The calling convention 
+used by the function should be declared correctly as well. The compiler 
+will then link the library as specified in the \var{external} statement
+to your program\footnote{If you omit the library name in the \var{external}
+modifier, then you can still tell the compiler to link to that library using
+the \var{\{\$Linklib \}} directive.}.
+
+For example, to use the library as defined above from a pascal program, you can use 
+the following pascal program:
 \FPCexample{psubs}
 As is shown in the example, you must declare the function as \var{external}.
-Here also, it is necessary to specify the correct calling convention, and
-to use the correct casing for your declaration.
+Here also, it is necessary to specify the correct calling convention (it
+should always match the convention as used by the function in the library), 
+and to use the correct casing for your declaration.
+
+
 
 This program can be compiled without any additional command-switches,
 and should run just like that, provided the library is placed where
@@ -4280,12 +4311,37 @@ variable to access the function in the library.
 
 The following example demonstrates this technique:
 \FPCexample{plsubs}
+As in the case of compile-time linking, the crucial thing in this 
+listing is the declaration of the \var{TSubStrFunc} type. 
+It should match the declaration of the function you're trying to use.
+Failure to specify a correct definition will result in a faulty stack or,
+worse still, may cause your program to crash with an access violation.
 
 \section{Using a pascal library from a C program}
 
-You can also call this library from a C program:
-%\selectlisting{c}
-%\FPCexample{csubs.c}
+\begin{remark}
+The examples in this section assume a \linux system; similar commands
+as the ones below exist for \windows, though.
+\end{remark}
+
+You can also call a \fpc generated library from a C program:
+\Cexample{ctest}
+To compile this example, the following command can be used:
+\begin{verbatim}
+gcc -o ctest ctest.c -lsubs
+\end{verbatim}
+provided the code is in \file{ctest.c}. 
+
+The library can also be loaded dynamically from C, as shown in the following
+example: 
+\Cexample{ctest2}
+This can be compiled using the following command:
+\begin{verbatim}
+gcc -o ctest2 ctest2.c -ldl
+\end{verbatim}
+\lstset{language=delphi}
+The \var{-ldl} tells gcc that the program needs the \file{libdl.so} library 
+to load dynamical libraries.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
