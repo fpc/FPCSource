@@ -1126,11 +1126,18 @@ Function GetNextInstruction(Current: Pai; Var Next: Pai): Boolean;
  next pai object in Next. Returns false if there isn't any}
 Begin
   Repeat
+    If (Current^.typ = ait_marker) And
+       (Pai_Marker(Current)^.Kind = AsmBlockStart) Then
+      Begin
+        GetNextInstruction := False;
+        Next := Nil;
+        Exit
+      End;
     Current := Pai(Current^.Next);
     While Assigned(Current) And
-          ((Current^.typ In SkipInstr) or
-           ((Current^.typ = ait_label) And
-            Not(Pai_Label(Current)^.l^.is_used))) Do
+           ((Current^.typ In SkipInstr) or
+            ((Current^.typ = ait_label) And
+             Not(Pai_Label(Current)^.l^.is_used))) Do
       Current := Pai(Current^.Next);
     If Assigned(Current) And
        (Current^.typ = ait_Marker) And
@@ -1152,8 +1159,8 @@ Begin
     Then GetNextInstruction := True
     Else
       Begin
-        Next := Nil;
         GetNextInstruction := False;
+        Next := Nil;
       End;
 End;
 
@@ -2385,7 +2392,12 @@ End.
 
 {
  $Log$
- Revision 1.63  1999-10-14 14:57:52  florian
+ Revision 1.64  1999-10-23 14:44:24  jonas
+   * finally got around making GetNextInstruction return false when
+     the current pai object is a AsmBlockStart marker
+   * changed a loop in aopt386 which was incompatible with this change
+
+ Revision 1.63  1999/10/14 14:57:52  florian
    - removed the hcodegen use in the new cg, use cgbase instead
 
  Revision 1.62  1999/10/07 16:07:35  jonas

@@ -73,9 +73,10 @@ Begin
             (Pai_Marker(BlockStart)^.Kind = AsmBlockStart) Do
         Begin
          {we stopped at an assembler block, so skip it}
-          While GetNextInstruction(BlockStart, BlockStart) And
-                ((BlockStart^.Typ <> Ait_Marker) Or
-                 (Pai_Marker(Blockstart)^.Kind <> AsmBlockEnd)) Do;
+         Repeat
+           BlockStart := Pai(BlockStart^.Next);
+         Until (BlockStart^.Typ = Ait_Marker) And
+               (Pai_Marker(Blockstart)^.Kind = AsmBlockEnd);
          {blockstart now contains a pai_marker(asmblockend)}
           If GetNextInstruction(BlockStart, HP) And
              ((HP^.typ <> ait_Marker) Or
@@ -93,7 +94,12 @@ End.
 
 {
  $Log$
- Revision 1.28  1999-05-08 20:39:02  jonas
+ Revision 1.29  1999-10-23 14:44:24  jonas
+   * finally got around making GetNextInstruction return false when
+     the current pai object is a AsmBlockStart marker
+   * changed a loop in aopt386 which was incompatible with this change
+
+ Revision 1.28  1999/05/08 20:39:02  jonas
    + some comments
 
  Revision 1.27  1999/04/18 17:57:17  jonas
