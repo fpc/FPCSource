@@ -1469,14 +1469,12 @@ unit cgobj;
       var
         OKLabel : tasmlabel;
         dummyloc : tparalocation;
-        spr : Tregister;
       begin
         if (cs_check_object in aktlocalswitches) or
            (cs_check_range in aktlocalswitches) then
          begin
-           spr.enum:=SELF_POINTER_REG;
            objectlibrary.getlabel(oklabel);
-           a_cmp_const_reg_label(list,OS_ADDR,OC_NE,0,spr,oklabel);
+           a_cmp_const_reg_label(list,OS_ADDR,OC_NE,0,reg,oklabel);
            a_param_const(list,OS_INT,210,dummyloc);
            a_call_name(list,'FPC_HANDLEERROR');
            a_label(list,oklabel);
@@ -1726,7 +1724,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.75  2003-01-30 21:46:35  peter
+  Revision 1.76  2003-01-31 22:47:48  peter
+    * maybe_testself now really uses the passed register
+
+  Revision 1.75  2003/01/30 21:46:35  peter
     * maybe_testvmt added
 
   Revision 1.74  2003/01/17 12:45:40  daniel
