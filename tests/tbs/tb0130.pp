@@ -1,3 +1,4 @@
+{ %RESULT=227 }
 { Old file: tbs0150.pp }
 { Shows that the assert() macro is missing under Delphi OK 0.99.9 (PFV) }
 
