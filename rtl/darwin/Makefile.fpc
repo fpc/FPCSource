@@ -8,7 +8,7 @@ main=rtl
 # disabled units: serial ipc
 [target]
 loaders=
-units=$(SYSTEMUNIT) objpas macpas strings sysctl baseunix unixtype unixutil \
+units=$(SYSTEMUNIT) unixtype ctypes objpas macpas strings sysctl baseunix unixutil \
       unix initc cmem matrix \
       dos dl objects printer sockets \
       sysutils typinfo systhrds classes math varutils \
@@ -260,3 +260,4 @@ initc$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
 
 console$(PPUEXT) : baseunix$(PPUEXT) termio$(PPUEXT)
 
+ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)

@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=prt0 dllprt0 cprt0 gprt0 $(CRT21)
-units=$(SYSTEMUNIT) unixtype baseunix strings systhrds  objpas macpas syscall unixutil \
+units=$(SYSTEMUNIT) unixtype ctypes baseunix strings systhrds  objpas macpas syscall unixutil \
       heaptrc lineinfo \
       $(LINUXUNIT1) termio unix $(LINUXUNIT2) initc cmem $(CPU_UNITS) \
        crt  printer ggigraph \
@@ -291,3 +291,5 @@ cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp $(SYSTEMUNIT)$(PPUEXT) systhrds$(PPUE
 
 gpm$(PPUEXT): $(UNIXINC)/gpm.pp unix$(PPUEXT) baseunix$(PPUEXT) sockets$(PPUEXT)
         $(COMPILER) -Sg $(UNIXINC)/gpm.pp
+
+ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
