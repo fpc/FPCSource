@@ -435,6 +435,22 @@ the \seef{FLock} call uses the following mode constants :
   LOCK_UN = 8;
   LOCK_NB = 4;
 \end{verbatim}
+The \seef{MMap} function uses the following constants to specify access to
+mapped memory:
+\begin{verbatim}
+  PROT_READ  = $1;   { page can be read }
+  PROT_WRITE = $2;   { page can be written } 
+  PROT_EXEC  = $4;   { page can be executed }
+  PROT_NONE  = $0;   { page can not be accessed }
+\end{verbatim}
+and the following constants to specify the type of mapping.
+\begin{verbatim}
+  MAP_SHARED    = $1;  { Share changes }
+  MAP_PRIVATE   = $2;  { Changes are private }
+  MAP_TYPE      = $f;  { Mask for type of mapping }
+  MAP_FIXED     = $10; { Interpret addr exactly }
+  MAP_ANONYMOUS = $20; { don't use a file }
+\end{verbatim}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Functions and procedures
@@ -2200,13 +2216,72 @@ Function MMap(const m:tmmapargs):longint;
 \var{MMap} maps or unmaps files or devices into memory. The different fields
 of the argument \var{m} determine what and how the \var{mmap} maps this:
 \begin{description}
-\item[address] Address where to mmap the device. This address is a hint
-\item[size]
-\item[prot]
-\item[flags]
-\item[fd]
-\item[offset]
+\item[address] Address where to mmap the device. This address is a hint, 
+and may not be followed.
+\item[size] Size (in bytes) of area to be mapped.
+\item[prot] Protection of mapped memory. This is a OR-ed combination of the
+following constants:
+\begin{description}
+\item[PROT\_EXEC] The memory can be executed.
+\item[PROT\_READ] The memory can be read.
+\item[PROT\_WRITE] The memory can be written.
+\item[PROT\_NONE] The memory can not be accessed.
 \end{description}
+\item[flags] Contains some options for the mmap call. It is an OR-ed
+combination of the following constants:
+\begin{description}
+\item[MAP\_FIXED] Do not map at another address than the given address. If the
+address cannot be used, \var{MMap} will fail.
+\item[MAP\_SHARED] Share this map with other processes that map this object.
+\item[MAP\_PRIVATE] Create a private map with copy-on-write semantics.
+\item[MAP\_ANONYMOUS] \var{fd} does not have to be a file descriptor.
+\end{description}
+One of the options \var{MAP\_SHARED} and \var{MAP\_PRIVATE} must be present,
+but not both at the same time.
+\item[fd] File descriptor from which to map.
+\item[offset] Offset to be used in file descriptor fd.
+\end{description}
+
+The function returns a pointer to the mapped memory, or a -1 in case of en
+error.
+\Errors
+On error, -1 is returned and LinuxError is set to the error code:
+\begin{description}
+\item[Sys\_EBADF] \var{fd} is not a valid file descriptor and 
+\var{MAP\_ANONYMOUS} was not specified.
+\item[Sys\_EACCES] \var{MAP\_PRIVATE} was specified, but fd is not open for 
+reading. Or \var{MAP\_SHARED} was asked and \var{PROT\_WRITE} is  set, fd 
+is not open for writing
+\item[Sys\_EINVAL] One of the record fields \var{Start}, \var{length} or 
+\var{offset} is invalid.
+\item[Sys\_ETXTBUSY] \var{MAP\_DENYWRITE} was set but the object specified  
+by fd is open for writing.
+\item[Sys\_EAGAIN] \var{fd} is locked, or too much memory is locked.
+\item[Sys\_ENOMEM] Not enough memory for this operation.
+\end{description}
+\SeeAlso
+\seef{MUnMap}, \seem{mmap}{2}
+\end{function}
+
+\FPCexample{ex66}
+
+\begin{function}{MUnMap}
+\Declaration
+function MUnMap (P : Pointer; Size : Longint) : Boolean;
+\Description
+\var{MUnMap} unmaps the memory block of size \var{Size}, pointed to by 
+\var{P}, which was previously allocated with \seef{MMap}.
+
+The function returns \var{True} if successful, \var{False} otherwise.
+\Errors
+In case of error the function returns \var{False} and \var{LinuxError}
+is set to an error value. See \seef{MMap} for possible error values.
+\SeeAlso
+\seef{MMap}, \seem{munmap}{2}
+\end{function}
+
+For an example, see \seef{MMap}.
+
 \begin{procedure}{Nice}
 \Declaration
 Procedure Nice ( N : Integer);
