@@ -1,10 +1,10 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    FPC Pascal system unit for the Win32 API.
-
     Copyright (c) 1993-98 by Florian Klaempfl and Pavel Ozerski
     member of the Free Pascal development team.
+
+    FPC Pascal system unit for the Win32 API.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -14,245 +14,309 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$S-}
 unit syswin32;
 
 {$I os.inc}
 
-  interface
+interface
 
-    {$I systemh.inc}
+{ include system-independent routine headers }
 
-    var
-       hprevinst,hinstance,cmdshow : longint;
-       heaperror : pointer;
+{$I systemh.inc}
 
-    { $I heaph.inc}
+const
+{ Default filehandles }
+   UnusedHandle    : longint = -1;
+   StdInputHandle  : longint = 0;
+   StdOutputHandle : longint = 0;
+   StdErrorHandle  : longint = 0;
 
-    const
-       UnusedHandle    : longint = -1;
-       StdInputHandle  : longint = 0;
-       StdOutputHandle : longint = 0;
-       StdErrorHandle  : longint = 0;
+type
+  TStartupInfo=packed record
+    cb : longint;
+    lpReserved : Pointer;
+    lpDesktop : Pointer;
+    lpTitle : Pointer;
+    dwX : longint;
+    dwY : longint;
+    dwXSize : longint;
+    dwYSize : longint;
+    dwXCountChars : longint;
+    dwYCountChars : longint;
+    dwFillAttribute : longint;
+    dwFlags : longint;
+    wShowWindow : Word;
+    cbReserved2 : Word;
+    lpReserved2 : Pointer;
+    hStdInput : longint;
+    hStdOutput : longint;
+    hStdError : longint;
+  end;
 
-  implementation
+var
+  startupinfo : tstartupinfo;
+  hprevinst,
+  hinstance,
+  cmdshow     : longint;
+  heaperror   : pointer;
 
-    { some declarations for Win32 API calls }
-    {$I Win32.inc}
-    {$I system.inc}
+implementation
 
-    type
-       plongint = ^longint;
+{ include system independent routines }
+
+{$I system.inc}
+
+{ some declarations for Win32 API calls }
+{$I win32.inc}
+
+type
+  plongint = ^longint;
+
+   { misc. functions }
+   function GetLastError : DWORD;
+     external 'kernel32' name 'GetLastError';
+   function MessageBox(w1:longint;l1,l2:pointer;w2:longint):longint;
+     external 'user32' name 'MessageBoxA';
+
+   { command line/enviroment functions }
+   function GetCommandLine : LPTSTR;
+     external 'kernel32' name 'GetCommandLineA';
+   { time and date functions }
+   function GetTickCount : longint;
+     external 'kernel32' name 'GetTickCount';
+   { process functions }
+   procedure ExitProcess(uExitCode : UINT);
+     external 'kernel32' name 'ExitProcess';
+
 
 {$ifdef dummy}
-{$S-}
-    procedure st1(stack_size : longint);[public,alias: 'STACKCHECK'];
-
-      begin
-         { called when trying to get local stack }
-         { if the compiler directive $S is set   }
-         { this function must preserve esi !!!!  }
-         { because esi is set by the calling     }
-         { proc for methods                      }
-         { it must preserve all registers !!     }
-
-         asm
-            pushl %eax
-            pushl %ebx
-            movl stack_size,%ebx
-            movl %esp,%eax
-            subl %ebx,%eax
+procedure int_stackcheck(stack_size:longint);[public,alias: 'STACKCHECK'];
+{
+  called when trying to get local stack if the compiler directive $S
+  is set this function must preserve esi !!!! because esi is set by
+  the calling proc for methods it must preserve all registers !!
+}
+begin
+  asm
+        pushl   %eax
+        pushl   %ebx
+        movl    stack_size,%ebx
+        movl    %esp,%eax
+        subl    %ebx,%eax
 {$ifdef SYSTEMDEBUG}
-            movl U_SYSTEM_LOWESTSTACK,%ebx
-            cmpl %eax,%ebx
-            jb   _is_not_lowest
-            movl %eax,U_SYSTEM_LOWESTSTACK
-            _is_not_lowest:
+        movl    U_SYSTEM_LOWESTSTACK,%ebx
+        cmpl    %eax,%ebx
+        jb      _is_not_lowest
+        movl    %eax,U_SYSTEM_LOWESTSTACK
+_is_not_lowest:
 {$endif SYSTEMDEBUG}
-            movl __stkbottom,%ebx
-            cmpl %eax,%ebx
-            jae  __short_on_stack
-            popl %ebx
-            popl %eax
-            leave
-            ret  $4
-            __short_on_stack:
-            { can be usefull for error recovery !! }
-            popl %ebx
-            popl %eax
-         end['EAX','EBX'];
-         RunError(202);
-         { this needs a local variable }
-         { so the function called itself !! }
-         { Writeln('low in stack ');
-         RunError(202);             }
-      end;
+        movl    __stkbottom,%ebx
+        cmpl    %eax,%ebx
+        jae     __short_on_stack
+        popl    %ebx
+        popl    %eax
+        leave
+        ret     $4
+__short_on_stack:
+        { can be usefull for error recovery !! }
+        popl    %ebx
+        popl    %eax
+  end['EAX','EBX'];
+  RunError(202);
+end;
 {$endif dummy}
 
-    procedure halt(errnum : byte);
 
-      begin
-         do_exit;
-         flush(stderr);
-         ExitProcess(errnum);
-      end;
+procedure halt(errnum : byte);
+begin
+  do_exit;
+  flush(stderr);
+  ExitProcess(errnum);
+end;
 
-    function paramcount : longint;
 
-      var
-         count : longint;
-         cmdline : pchar;
-         quote : set of char;
-
-      begin
-         cmdline:=GetCommandLine;
-         count:=0;
-         while true do
-           begin
-              { skip leading spaces }
-              while cmdline^ in [' ',#9] do
-                cmdline:=cmdline+1;
-              if cmdline^='"' then
-                begin
-                   quote:=['"'];
-                   cmdline:=cmdline+1;
-                end
-              else
-                quote:=[' ',#9];
-              if cmdline^=#0 then
-                break;
-              inc(count);
-              while (cmdline^<>#0) and not(cmdline^ in quote) do
-                cmdline:=cmdline+1;
-              { skip quote }
-              if cmdline^ in quote then
-                cmdline:=cmdline+1;
-           end;
-         paramcount:=count-1;
-      end;
-
-    function paramstr(l : longint) : string;
-
-      var
-         s : string;
-         count : longint;
-         cmdline : pchar;
-         quote : set of char;
-
-      begin
-         s:='';
-         if (l>=0) and (l<=paramcount) then
-           begin
-              cmdline:=GetCommandLine;
-              count:=0;
-              while true do
-                begin
-                   { skip leading spaces }
-                   while cmdline^ in [' ',#9] do
-                     cmdline:=cmdline+1;
-                   if cmdline^='"' then
-                     begin
-                        quote:=['"'];
-                        cmdline:=cmdline+1;
-                     end
-                   else
-                     quote:=[' ',#9];
-                   if cmdline^=#0 then
-                     break;
-                   if count=l then
-                     begin
-                        while (cmdline^<>#0) and not(cmdline^ in quote) do
-                          begin
-                             s:=s+cmdline^;
-                             cmdline:=cmdline+1;
-                          end;
-                        break;
-                     end
-                   else
-                     begin
-                        while (cmdline^<>#0) and not(cmdline^ in quote) do
-                          cmdline:=cmdline+1;
-                     end;
-                   { skip quote }
-                   if cmdline^ in quote then
-                     cmdline:=cmdline+1;
-                   inc(count);
-                end;
-
-           end;
-         paramstr:=s;
-      end;
-
-    procedure randomize;
-
-      begin
-         randseed:=GetTickCount;
-      end;
-
-{$i winheap.inc}
-{ $I heap.inc}
-
-{****************************************************************************
-                          Low Level File Routines
- ****************************************************************************}
-
-    procedure AllowSlash(p:pchar);
-
-      var
-         i : longint;
-
-      begin
-         { allow slash as backslash }
-         for i:=0 to strlen(p) do
-           if p[i]='/' then p[i]:='\';
-      end;
-
-    procedure do_close(h : longint);
-
-      begin
-         closehandle(h);
-      end;
-
-    procedure do_erase(p : pchar);
-
-      begin
-         AllowSlash(p);
-         if DeleteFile(p)=0 then
-            inoutres:=GetLastError;
-      end;
-
-     procedure do_rename(p1,p2 : pchar);
-
+function paramcount : longint;
+var
+  count   : longint;
+  cmdline : pchar;
+  quote   : set of char;
+begin
+  cmdline:=GetCommandLine;
+  count:=0;
+  while true do
+   begin
+     { skip leading spaces }
+     while cmdline^ in [' ',#9] do
+       cmdline:=cmdline+1;
+     if cmdline^='"' then
        begin
-          AllowSlash(p1);
-          AllowSlash(p2);
-          if MoveFile(p1,p2)=0 then
-            inoutres:=GetLastError;
-       end;
+          quote:=['"'];
+          cmdline:=cmdline+1;
+       end
+     else
+       quote:=[' ',#9];
+     if cmdline^=#0 then
+       break;
+     inc(count);
+     while (cmdline^<>#0) and not(cmdline^ in quote) do
+       cmdline:=cmdline+1;
+     { skip quote }
+     if cmdline^ in quote then
+       cmdline:=cmdline+1;
+   end;
+  paramcount:=count-1;
+end;
 
-    function do_write(h,addr,len : longint) : longint;
 
-      var
-         size:longint;
+function paramstr(l : longint) : string;
+var
+  s       : string;
+  count   : longint;
+  cmdline : pchar;
+  quote   : set of char;
+begin
+  s:='';
+  if (l>=0) and (l<=paramcount) then
+    begin
+       cmdline:=GetCommandLine;
+       count:=0;
+       while true do
+         begin
+            { skip leading spaces }
+            while cmdline^ in [' ',#9] do
+              cmdline:=cmdline+1;
+            if cmdline^='"' then
+              begin
+                 quote:=['"'];
+                 cmdline:=cmdline+1;
+              end
+            else
+              quote:=[' ',#9];
+            if cmdline^=#0 then
+              break;
+            if count=l then
+              begin
+                 while (cmdline^<>#0) and not(cmdline^ in quote) do
+                   begin
+                      s:=s+cmdline^;
+                      cmdline:=cmdline+1;
+                   end;
+                 break;
+              end
+            else
+              begin
+                 while (cmdline^<>#0) and not(cmdline^ in quote) do
+                   cmdline:=cmdline+1;
+              end;
+            { skip quote }
+            if cmdline^ in quote then
+              cmdline:=cmdline+1;
+            inc(count);
+         end;
 
-      begin
-         if writefile(h,pointer(addr),len,size,nil)=0 then
-           inoutres:=GetLastError;
-         do_write:=size;
-      end;
+    end;
+  paramstr:=s;
+end;
+
+
+procedure randomize;
+begin
+  randseed:=GetTickCount;
+end;
+
+
+{*****************************************************************************
+                              Heap Management
+*****************************************************************************}
+
+{ Include Windows Heap manager }
+{$I winheap.inc}
+
+{*****************************************************************************
+                          Low Level File Routines
+*****************************************************************************}
+
+   function WriteFile(fh:longint;buf:pointer;len:longint;var loaded:longint;
+     overlap:pointer):longint;
+     external 'kernel32' name 'WriteFile';
+   function ReadFile(fh:longint;buf:pointer;len:longint;var loaded:longint;
+     overlap:pointer):longint;
+     external 'kernel32' name 'ReadFile';
+   function CloseHandle(h : longint) : longint;
+     external 'kernel32' name 'CloseHandle';
+   function DeleteFile(p : pchar) : longint;
+     external 'kernel32' name 'DeleteFileA';
+   function MoveFile(old,_new : pchar) : longint;
+     external 'kernel32' name 'MoveFileA';
+   function SetFilePointer(l1,l2 : longint;l3 : pointer;l4 : longint) : longint;
+     external 'kernel32' name 'SetFilePointer';
+   function GetFileSize(h:longint;p:pointer) : longint;
+     external 'kernel32' name 'GetFileSize';
+   function CreateFile(name : pointer;access,sharing : longint;
+     security : pointer;how,attr,template : longint) : longint;
+     external 'kernel32' name 'CreateFileA';
+   function SetEndOfFile(h : longint) : boolean;
+     external 'kernel32' name 'SetEndOfFile';
+
+
+procedure AllowSlash(p:pchar);
+var
+   i : longint;
+begin
+{ allow slash as backslash }
+   for i:=0 to strlen(p) do
+     if p[i]='/' then p[i]:='\';
+end;
+
+
+procedure do_close(h : longint);
+begin
+   closehandle(h);
+end;
+
+
+procedure do_erase(p : pchar);
+begin
+   AllowSlash(p);
+   if DeleteFile(p)=0 then
+      inoutres:=GetLastError;
+end;
+
+
+procedure do_rename(p1,p2 : pchar);
+begin
+  AllowSlash(p1);
+  AllowSlash(p2);
+  if MoveFile(p1,p2)=0 then
+   inoutres:=GetLastError;
+end;
+
+
+function do_write(h,addr,len : longint) : longint;
+var
+   size:longint;
+begin
+   if writefile(h,pointer(addr),len,size,nil)=0 then
+     inoutres:=GetLastError;
+   do_write:=size;
+end;
+
 
 function do_read(h,addr,len : longint) : longint;
- var
+var
   result:longint;
- begin
+begin
   if readfile(h,pointer(addr),len,result,nil)=0 then
    inoutres:=GetLastError;
   do_read:=result;
- end;
+end;
+
 
 function do_filepos(handle : longint) : longint;
- var
+var
   l:longint;
- begin
+begin
   l:=SetFilePointer(handle,0,nil,FILE_CURRENT);
   if l=-1 then
    begin
@@ -260,7 +324,8 @@ function do_filepos(handle : longint) : longint;
     inoutres:=GetLastError;
    end;
   do_filepos:=l;
- end;
+end;
+
 
 procedure do_seek(handle,pos : longint);
 begin
@@ -268,8 +333,8 @@ begin
    inoutres:=GetLastError;
 end;
 
-function do_seekend(handle:longint):longint;
 
+function do_seekend(handle:longint):longint;
 begin
   do_seekend:=SetFilePointer(handle,0,nil,FILE_END);
   if do_seekend=-1 then
@@ -282,14 +347,14 @@ end;
 
 function do_filesize(handle : longint) : longint;
 var
-   aktfilepos : longint;
+  aktfilepos : longint;
 begin
-   aktfilepos:=do_filepos(handle);
-   do_filesize:=do_seekend(handle);
-   do_seek(handle,aktfilepos);
+  aktfilepos:=do_filepos(handle);
+  do_filesize:=do_seekend(handle);
+  do_seek(handle,aktfilepos);
 end;
 
-{ truncate at a given position }
+
 procedure do_truncate (handle,pos:longint);
 begin
    do_seek(handle,pos);
@@ -297,94 +362,85 @@ begin
      inoutres:=GetLastError;
 end;
 
+
 procedure do_open(var f;p : pchar;flags:longint);
 
-  {
-    filerec and textrec have both handle and mode as the first items so
-    they could use the same routine for opening/creating.
-    when (flags and $10)   the file will be append
-    when (flags and $100)  the file will be truncate/rewritten
-    when (flags and $1000) there is no check for close (needed for textfiles)
-  }
+{
+  filerec and textrec have both handle and mode as the first items so
+  they could use the same routine for opening/creating.
+  when (flags and $10)   the file will be append
+  when (flags and $100)  the file will be truncate/rewritten
+  when (flags and $1000) there is no check for close (needed for textfiles)
+}
 
-  var
-     oflags,cd : longint;
-
-  begin
-    AllowSlash(p);
-    { close first if opened }
-    if ((flags and $1000)=0) then
-     begin
-       case filerec(f).mode of
-          fminput,fmoutput,fminout:
-            Do_Close(filerec(f).handle);
-          fmclosed:
-            ;
-       else
-        begin
-          {not assigned}
-          inoutres:=102;
-          exit;
-        end;
-       end;
-     end;
-    { reset file handle }
-    filerec(f).handle:=UnusedHandle;
-    { convert filemode to filerec modes }
-    case (flags and 3) of
-       0:
-         begin
-            filerec(f).mode:=fminput;
-            oflags:=GENERIC_READ;
-         end;
-       1:
-         begin
-            filerec(f).mode:=fmoutput;
-            oflags:=GENERIC_WRITE;
-         end;
-       2:
-         begin
-            filerec(f).mode:=fminout;
-            oflags:=GENERIC_WRITE or GENERIC_READ;
-         end;
-    end;
-    { standard is opening and existing file }
-    cd:=OPEN_EXISTING;
-
-    { create it ? }
-    if (flags and $100)<>0 then
-       cd:=CREATE_ALWAYS
-
-    { or append ? }
-    else if (flags and $10)<>0 then
-       cd:=OPEN_ALWAYS;
-
-    { empty name is special }
-    if p[0]=#0 then
-     begin
-        case filerec(f).mode of
-           fminput:
-             filerec(f).handle:=StdInputHandle;
-           fmappend,
-           fmoutput:
-             begin
-                filerec(f).handle:=StdOutputHandle;
-                filerec(f).mode:=fmoutput; {fool fmappend}
-             end;
-        end;
+var
+  oflags,cd : longint;
+begin
+  AllowSlash(p);
+{ close first if opened }
+  if ((flags and $1000)=0) then
+   begin
+     case filerec(f).mode of
+       fminput,fmoutput,fminout : Do_Close(filerec(f).handle);
+       fmclosed : ;
+     else
+      begin
+        {not assigned}
+        inoutres:=102;
         exit;
+      end;
      end;
-    filerec(f).handle:=CreateFile(p,oflags,0,nil,cd,FILE_ATTRIBUTE_NORMAL,0);
-
-    { append mode }
-    if (flags and $10)<>0 then
-     begin
-       do_seekend(filerec(f).handle);
-       filerec(f).mode:=fmoutput; {fool fmappend}
-     end;
-     if filerec(f).handle=0 then
-       inoutres:=GetLastError;
+   end;
+{ reset file handle }
+  filerec(f).handle:=UnusedHandle;
+{ convert filemode to filerec modes }
+  case (flags and 3) of
+   0 : begin
+         filerec(f).mode:=fminput;
+         oflags:=GENERIC_READ;
+       end;
+   1 : begin
+         filerec(f).mode:=fmoutput;
+         oflags:=GENERIC_WRITE;
+       end;
+   2 : begin
+         filerec(f).mode:=fminout;
+         oflags:=GENERIC_WRITE or GENERIC_READ;
+       end;
   end;
+{ standard is opening and existing file }
+  cd:=OPEN_EXISTING;
+{ create it ? }
+  if (flags and $100)<>0 then
+   cd:=CREATE_ALWAYS
+{ or append ? }
+  else
+   if (flags and $10)<>0 then
+    cd:=OPEN_ALWAYS;
+{ empty name is special }
+  if p[0]=#0 then
+   begin
+     case filerec(f).mode of
+       fminput : filerec(f).handle:=StdInputHandle;
+      fmappend,
+      fmoutput : begin
+                   filerec(f).handle:=StdOutputHandle;
+                   filerec(f).mode:=fmoutput; {fool fmappend}
+                 end;
+     end;
+     exit;
+   end;
+  filerec(f).handle:=CreateFile(p,oflags,0,nil,cd,FILE_ATTRIBUTE_NORMAL,0);
+{ append mode }
+  if (flags and $10)<>0 then
+   begin
+     do_seekend(filerec(f).handle);
+     filerec(f).mode:=fmoutput; {fool fmappend}
+   end;
+{ get errors }
+  if filerec(f).handle=0 then
+   inoutres:=GetLastError;
+end;
 
 {*****************************************************************************
                            UnTyped File Handling
@@ -409,6 +465,15 @@ procedure do_open(var f;p : pchar;flags:longint);
 {*****************************************************************************
                            Directory Handling
 *****************************************************************************}
+
+   function CreateDirectory(name : pointer;sec : pointer) : longint;
+     external 'kernel32' name 'CreateDirectoryA';
+   function RemoveDirectory(name:pointer):longint;
+     external 'kernel32' name 'RemoveDirectoryA';
+   function SetCurrentDirectory(name : pointer) : longint;
+     external 'kernel32' name 'SetCurrentDirectoryA';
+   function GetCurrentDirectory(bufsize : longint;name : pchar) : longint;
+     external 'kernel32' name 'GetCurrentDirectoryA';
 
 type
  TDirFnType=function(name:pointer):word;
@@ -468,6 +533,19 @@ procedure getdir(drivenr:byte;var dir:string);
                          SystemUnit Initialization
 *****************************************************************************}
 
+   { Startup }
+   procedure GetStartupInfo(p : pointer);
+     external 'kernel32' name 'GetStartupInfoA';
+   function GetStdHandle(nStdHandle:DWORD):THANDLE;
+     external 'kernel32' name 'GetStdHandle';
+
+   { module functions }
+   function GetModuleFileName(l1:longint;p:pointer;l2:longint):longint;
+     external 'kernel32' name 'GetModuleFileNameA';
+   function GetModuleHandle(p : pointer) : longint;
+     external 'kernel32' name 'GetModuleHandleA';
+
+
 {$ASMMODE DIRECT}
 
 procedure Entry;[public,alias: '_mainCRTStartup'];
@@ -493,32 +571,9 @@ begin
   TextRec(f).Closefunc:=@fileclosefunc;
 end;
 
-{$PACKRECORDS 1}
+
 var
- s : string;
- StartupInfo : record
-    cb : longint;
-    lpReserved : Pointer;
-    lpDesktop : Pointer;
-    lpTitle : Pointer;
-    dwX : longint;
-    dwY : longint;
-    dwXSize : longint;
-    dwYSize : longint;
-    dwXCountChars : longint;
-    dwYCountChars : longint;
-    dwFillAttribute : longint;
-    dwFlags : longint;
-    wShowWindow : Word;
-    cbReserved2 : Word;
-    lpReserved2 : Pointer;
-    hStdInput : longint;
-    hStdOutput : longint;
-    hStdError : longint;
- end;
-
-{$PACKRECORDS NORMAL}
-
+  s : string;
 begin
 { get some helpful informations }
   GetStartupInfo(@startupinfo);
@@ -546,7 +601,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  1998-06-08 23:07:47  peter
+  Revision 1.9  1998-06-10 10:39:17  peter
+    * working w32 rtl
+
+  Revision 1.8  1998/06/08 23:07:47  peter
     * dos interface is now 100% compatible
     * fixed call PASCALMAIN which must be direct asm
 
@@ -564,10 +622,4 @@ end.
 
   Revision 1.3  1998/04/26 21:49:57  florian
     + more stuff added (??dir procedures etc.)
-
-  Revision 1.2  1998/03/27 00:50:22  peter
-    * small fixes so it compiles
-
-  Revision 1.1.1.1  1998/03/25 11:18:47  root
-  * Restored version
 }

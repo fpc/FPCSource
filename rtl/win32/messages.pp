@@ -244,7 +244,7 @@ unit messages;
        HDM_GETITEM = HDM_GETITEMA;
        HDM_INSERTITEM = HDM_INSERTITEMA;
        HDM_SETITEM = HDM_SETITEMA;
-{$endifUNICODE}
+{$endif UNICODE}
        HDM_GETITEMCOUNT = 4608;
        HDM_HITTEST = 4614;
     { Header control notifications }
@@ -371,6 +371,8 @@ unit messages;
        LVM_INSERTCOLUMNA = 4123;
        LVM_INSERTITEMA = 4103;
        LVM_SETCOLUMNA = 4122;
+       LVM_SETITEMA = 4102;
+       LVM_SETITEMTEXTA = 4242;
 {$ifdef UNICODE}
        LVM_SETITEMA = 4102;
        LVM_SETITEMTEXTA = 4142;
@@ -1048,9 +1050,7 @@ end.
 
 {
   $Log$
-  Revision 1.2  1998-05-06 12:36:50  michael
-  + Removed log from before restored version.
+  Revision 1.3  1998-06-10 10:39:15  peter
+    * working w32 rtl
 
-  Revision 1.1.1.1  1998/03/25 11:18:46  root
-  * Restored version
 }

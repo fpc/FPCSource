@@ -105,14 +105,16 @@ unit base;
        CALTYPE = cardinal;
        CALID = cardinal;
        CCHAR = char;
+       WCHAR = word;
        COLORREF = cardinal;
        DWORD = cardinal;
+       THandle = cardinal;
 
        DWORDLONG = double;
        PDWORDLONG = ^DWORDLONG;
        FLOAT = single;
 
-       HANDLE = pointer;
+       HANDLE = THandle;
        HACCEL = HANDLE;
        HBITMAP = HANDLE;
        HBRUSH = HANDLE;
@@ -514,12 +516,7 @@ end.
 
 {
   $Log$
-  Revision 1.3  1998-05-06 12:36:50  michael
-  + Removed log from before restored version.
+  Revision 1.4  1998-06-10 10:39:11  peter
+    * working w32 rtl
 
-  Revision 1.2  1998/03/27 00:50:22  peter
-    * small fixes so it compiles
-
-  Revision 1.1.1.1  1998/03/25 11:18:46  root
-  * Restored version
 }

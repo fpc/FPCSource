@@ -13,16 +13,14 @@
  **********************************************************************}
 
 {$define win32}
+{$undef go32v1}
 {$undef go32v2}
 {$undef os2}
 {$undef linux}
-{$undef dos}
 
 {
   $Log$
-  Revision 1.2  1998-05-06 12:37:22  michael
-  + Removed log from before restored version.
+  Revision 1.3  1998-06-10 10:39:16  peter
+    * working w32 rtl
 
-  Revision 1.1.1.1  1998/03/25 11:18:47  root
-  * Restored version
 }

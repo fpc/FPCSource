@@ -19,7 +19,12 @@ unit dos;
 
 interface
 
+{ Include Win32 Consts,Types }
+{$I win32.inc}
+
 Const
+  Max_Path = 255;
+
   {Bitmasks for CPU Flags}
   fcarry     = $0001;
   fparity    = $0004;
@@ -70,12 +75,29 @@ Type
     Sec   : word;
   End;
 
-  searchrec = packed record
-     time : longint;
-     size : longint;
-     attr : longint;
-     name : string;
+  PWin32FindData = ^TWin32FindData;
+  TWin32FindData = packed record
+    dwFileAttributes: Cardinal;
+    ftCreationTime: TFileTime;
+    ftLastAccessTime: TFileTime;
+    ftLastWriteTime: TFileTime;
+    nFileSizeHigh: Cardinal;
+    nFileSizeLow: Cardinal;
+    dwReserved0: Cardinal;
+    dwReserved1: Cardinal;
+    cFileName: array[0..MAX_PATH - 1] of Char;
+    cAlternateFileName: array[0..13] of Char;
   end;
+
+  Searchrec = Packed Record
+    FindHandle  : THandle;
+    W32FindData : TWin32FindData;
+    time : longint;
+    size : longint;
+    attr : longint;
+    name : string;
+  end;
+
 
   registers = packed record
     case i : integer of
@@ -140,7 +162,61 @@ Procedure Keep(exitcode: word);
 implementation
 uses strings;
 
-{$I win32.inc}
+{******************************************************************************
+                           --- Conversion ---
+******************************************************************************}
+
+   function GetLastError : DWORD;
+     external 'kernel32' name 'GetLastError';
+   function FileTimeToDosDateTime(const ft :TFileTime;var data,time : word) : boolean;
+     external 'kernel32' name 'FileTimeToDosDateTime';
+   function DosDateTimeToFileTime(date,time : word;var ft :TFileTime) : boolean;
+     external 'kernel32' name 'DosDateTimeToFileTime';
+   function FileTimeToLocalFileTime(const ft : TFileTime;var lft : TFileTime) : boolean;
+     external 'kernel32' name 'FileTimeToLocalFileTime';
+   function LocalFileTimeToFileTime(const lft : TFileTime;var ft : TFileTime) : boolean;
+     external 'kernel32' name 'LocalFileTimeToFileTime';
+
+type
+  Longrec=packed record
+    lo,hi : word;
+  end;
+
+function Last2DosError(d:dword):integer;
+begin
+  Last2DosError:=d;
+end;
+
+
+Function DosToWinAttr (Const Attr : Longint) : longint;
+begin
+  DosToWinAttr:=Attr;
+end;
+
+
+Function WinToDosAttr (Const Attr : Longint) : longint;
+begin
+  WinToDosAttr:=Attr;
+end;
+
+
+Function DosToWinTime (DTime:longint;Var Wtime : TFileTime):boolean;
+var
+  lft : TFileTime;
+begin
+  DosToWinTime:=DosDateTimeToFileTime(longrec(dtime).hi,longrec(dtime).lo,lft) and
+                LocalFileTimeToFileTime(lft,Wtime);
+end;
+
+
+Function WinToDosTime (Const Wtime : TFileTime;var DTime:longint):boolean;
+var
+  lft : TFileTime;
+begin
+  WinToDosTime:=FileTimeToLocalFileTime(WTime,lft) and
+                FileTimeToDosDateTime(lft,longrec(dtime).hi,longrec(dtime).lo);
+end;
+
 
 {******************************************************************************
                            --- Dos Interrupt ---
@@ -153,13 +229,20 @@ end;
 
 procedure msdos(var regs : registers);
 begin
-  intr($21,regs);
+  { !!!!!!!! }
 end;
 
 
 {******************************************************************************
                         --- Info / Date / Time ---
 ******************************************************************************}
+
+   function GetVersion : longint;
+     external 'kernel32' name 'GetVersion';
+   procedure GetLocalTime(var t : TSystemTime);
+     external 'kernel32' name 'GetLocalTime';
+   function SetLocalTime(const t : TSystemTime) : boolean;
+     external 'kernel32' name 'SetLocalTime';
 
 function dosversion : word;
 begin
@@ -169,7 +252,7 @@ end;
 
 procedure getdate(var year,month,mday,wday : word);
 var
-  t : SYSTEMTIME;
+  t : TSystemTime;
 begin
   GetLocalTime(t);
   year:=t.wYear;
@@ -181,7 +264,7 @@ end;
 
 procedure setdate(year,month,day : word);
 var
-  t : SYSTEMTIME;
+  t : TSystemTime;
 begin
   { we need the time set privilege   }
   { so this function crash currently }
@@ -197,7 +280,7 @@ end;
 
 procedure gettime(var hour,minute,second,sec100 : word);
 var
-  t : SYSTEMTIME;
+  t : TSystemTime;
 begin
    GetLocalTime(t);
    hour:=t.wHour;
@@ -209,7 +292,7 @@ end;
 
 procedure settime(hour,minute,second,sec100 : word);
 var
-   t : SYSTEMTIME;
+   t : TSystemTime;
 begin
    { we need the time set privilege   }
    { so this function crash currently }
@@ -247,12 +330,53 @@ End;
                                --- Exec ---
 ******************************************************************************}
 
+   function CreateProcess(lpApplicationName: PChar; lpCommandLine: PChar;
+               lpProcessAttributes, lpThreadAttributes: PSecurityAttributes;
+               bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer;
+               lpCurrentDirectory: PChar; const lpStartupInfo: TStartupInfo;
+               var lpProcessInformation: TProcessInformation): boolean;
+     external 'kernel32' name 'CreateProcessA';
+   function getExitCodeProcess(h:THandle;var code:longint):boolean;
+     external 'kernel32' name 'GetExitCodeProcess';
+   function WaitForSingleObject(hHandle: THandle; dwMilliseconds: DWORD): DWORD;
+     external 'kernel32' name 'WaitForSingleObject';
+   function CloseHandle(h : THandle) : longint;
+     external 'kernel32' name 'CloseHandle';
+
 var
   lastdosexitcode : word;
 
 procedure exec(const path : pathstr;const comline : comstr);
+var
+  SI: TStartupInfo;
+  PI: TProcessInformation;
+  Proc : THandle;
+  l    : Longint;
+  AppPath,
+  AppParam : array[0..255] of char;
 begin
-  { !!!!!!!! }
+  FillChar(SI, SizeOf(SI), 0);
+  SI.cb:=SizeOf(SI);
+  SI.wShowWindow:=1;
+  Move(Path[1],AppPath,length(Path));
+  AppPath[Length(Path)]:=#0;
+  AppParam[0]:='-';
+  AppParam[1]:=' ';
+  Move(ComLine[1],AppParam[2],length(Comline));
+  AppParam[Length(ComLine)+2]:=#0;
+  if not CreateProcess(PChar(@AppPath), PChar(@AppParam), Nil, Nil, False,$20, Nil, Nil, SI, PI) then
+   begin
+     DosError:=Last2DosError(GetLastError);
+     exit;
+   end;
+  Proc:=PI.hProcess;
+  CloseHandle(PI.hThread);
+  if WaitForSingleObject(Proc, Infinite) <> $ffffffff then
+    GetExitCodeProcess(Proc,l)
+  else
+    l:=-1;
+  CloseHandle(Proc);
+  LastDosExitCode:=l;
 end;
 
 
@@ -290,17 +414,57 @@ end;
                                --- Disk ---
 ******************************************************************************}
 
+   function GetDiskFreeSpace(drive:pchar;var sector_cluster,bytes_sector,
+                             freeclusters,totalclusters:longint):boolean;
+     external 'kernel32' name 'GetDiskFreeSpaceA';
+
 function diskfree(drive : byte) : longint;
+var
+  disk : array[1..4] of char;
+  secs,bytes,
+  free,total : longint;
 begin
-{ !!!!!!!!! }
-  diskfree:=-1;
+  if drive=0 then
+   begin
+     disk[1]:='\';
+     disk[2]:=#0;
+   end
+  else
+   begin
+     disk[1]:=chr(drive+64);
+     disk[2]:=':';
+     disk[3]:='\';
+     disk[4]:=#0;
+   end;
+  if GetDiskFreeSpace(@disk,secs,bytes,free,total) then
+   diskfree:=free*secs*bytes
+  else
+   diskfree:=-1;
 end;
 
 
 function disksize(drive : byte) : longint;
+var
+  disk : array[1..4] of char;
+  secs,bytes,
+  free,total : longint;
 begin
-{ !!!!!!!!! }
-  disksize:=-1;
+  if drive=0 then
+   begin
+     disk[1]:='\';
+     disk[2]:=#0;
+   end
+  else
+   begin
+     disk[1]:=chr(drive+64);
+     disk[2]:=':';
+     disk[3]:='\';
+     disk[4]:=#0;
+   end;
+  if GetDiskFreeSpace(@disk,secs,bytes,free,total) then
+   disksize:=total*secs*bytes
+  else
+   disksize:=-1;
 end;
 
 
@@ -308,76 +472,103 @@ end;
                          --- Findfirst FindNext ---
 ******************************************************************************}
 
-    procedure searchrec2dossearchrec(var f : searchrec);
-      var
-         l,i : longint;
+{ Needed kernel calls }
+
+   function FindFirstFile (lpFileName: PChar; var lpFindFileData: TWIN32FindData): THandle;
+     external 'kernel32' name 'FindFirstFileA';
+   function FindNextFile  (hFindFile: THandle; var lpFindFileData: TWIN32FindData): Boolean;
+     external 'kernel32' name 'FindNextFileA';
+   function FindCloseFile (hFindFile: THandle): Boolean;
+     external 'kernel32' name 'FindClose';
+
+Procedure StringToPchar (Var S : String);
+Var L : Longint;
+begin
+  L:=ord(S[0]);
+  Move (S[1],S[0],L);
+  S[L]:=#0;
+end;
+
+
+procedure FindMatch(var f:searchrec);
+Var
+  TheAttr : Longint;
+begin
+  TheAttr:=DosToWinAttr(F.Attr);
+{ Find file with correct attribute }
+  While (F.W32FindData.dwFileAttributes and TheAttr)=0 do
+   begin
+     if not FindNextFile (F.FindHandle,F.W32FindData) then
       begin
-         l:=length(f.name);
-         for i:=1 to 12 do
-           f.name[i-1]:=f.name[i];
-         f.name[l]:=#0;
+        DosError:=Last2DosError(GetLastError);
+        exit;
       end;
-
-    procedure dossearchrec2searchrec(var f : searchrec);
-      var
-         l,i : longint;
-      begin
-         l:=12;
-         for i:=0 to 12 do
-           if f.name[i]=#0 then
-             begin
-                l:=i;
-                break;
-             end;
-         for i:=11 downto 0 do
-           f.name[i+1]:=f.name[i];
-         f.name[0]:=chr(l);
-      end;
-
-    procedure findfirst(const path : pathstr;attr : word;var f : searchRec);
-
-      procedure _findfirst(path : pchar;attr : word;var f : searchrec);
-        begin
-          {!!!!!!!!!!!!!!}
-        end;
-
-      var
-         path0 : array[0..80] of char;
-      begin
-         { no error }
-         doserror:=0;
-         strpcopy(path0,path);
-         _findfirst(path0,attr,f);
-         dossearchrec2searchrec(f);
-      end;
-
-    procedure findnext(var f : searchRec);
-
-      procedure _findnext(var f : searchrec);
-        begin
-          {!!!!!!!!!!!!!!}
-        end;
-
-      begin
-         { no error }
-         doserror:=0;
-         searchrec2dossearchrec(f);
-         _findnext(f);
-         dossearchrec2searchrec(f);
-      end;
-
-    procedure swapvectors;
-      begin
-      end;
+   end;
+{ Convert some attributes back }
+  f.size:=F.W32FindData.NFileSizeLow;
+  f.attr:=WinToDosAttr(F.W32FindData.dwFileAttributes);
+  WinToDosTime(F.W32FindData.ftLastWriteTime,f.Time);
+  f.Name:=StrPas(@F.W32FindData.cFileName);
+end;
 
 
-    Procedure FindClose(Var f: SearchRec);
-      begin
-      end;
+procedure findfirst(const path : pathstr;attr : word;var f : searchRec);
+begin
+{ no error }
+  doserror:=0;
+  F.Name:=Path;
+  F.Attr:=attr;
+  StringToPchar(f.name);
+{ FindFirstFile is a Win32 Call. }
+  F.FindHandle:=FindFirstFile (pchar(@f.Name),F.W32FindData);
+  If longint(F.FindHandle)=Invalid_Handle_value then
+   begin
+     DosError:=Last2DosError(GetLastError);
+     exit;
+   end;
+{ Find file with correct attribute }
+  FindMatch(f);
+end;
+
+
+procedure findnext(var f : searchRec);
+begin
+{ no error }
+  doserror:=0;
+  if not FindNextFile (F.FindHandle,F.W32FindData) then
+   begin
+     DosError:=Last2DosError(GetLastError);
+     exit;
+   end;
+{ Find file with correct attribute }
+  FindMatch(f);
+end;
+
+
+procedure swapvectors;
+begin
+end;
+
+
+Procedure FindClose(Var f: SearchRec);
+begin
+  If longint(F.FindHandle)<>Invalid_Handle_value then
+   FindCloseFile(F.FindHandle);
+end;
+
 
 {******************************************************************************
                                --- File ---
 ******************************************************************************}
+
+   function GetFileTime(h : longint;creation,lastaccess,lastwrite : PFileTime) : boolean;
+     external 'kernel32' name 'GetFileTime';
+   function SetFileTime(h : longint;creation,lastaccess,lastwrite : PFileTime) : boolean;
+     external 'kernel32' name 'SetFileTime';
+   function SetFileAttributes(lpFileName : pchar;dwFileAttributes : longint) : boolean;
+     external 'kernel32' name 'SetFileAttributesA';
+   function GetFileAttributes(lpFileName : pchar) : longint;
+     external 'kernel32' name 'GetFileAttributesA';
 
 procedure fsplit(path : pathstr;var dir : dirstr;var name : namestr;var ext : extstr);
 var
@@ -431,13 +622,13 @@ begin
      pa[i]:='\';
    if (length(pa)>1) and (pa[1] in ['A'..'Z']) and (pa[2]=':') then
      begin
-        { we must get the right directory }
-        getdir(ord(pa[1])-ord('A')+1,s);
-        if (ord(pa[0])>2) and (pa[3]<>'\') then
-          if pa[1]=s[1] then
-            pa:=s+'\'+copy (pa,3,length(pa))
-          else
-            pa:=pa[1]+':\'+copy (pa,3,length(pa))
+       { we must get the right directory }
+       getdir(ord(pa[1])-ord('A')+1,s);
+       if (ord(pa[0])>2) and (pa[3]<>'\') then
+         if pa[1]=s[1] then
+           pa:=s+'\'+copy (pa,3,length(pa))
+         else
+           pa:=pa[1]+':\'+copy (pa,3,length(pa))
      end
    else
      if pa[1]='\' then
@@ -509,25 +700,23 @@ end;
 
 
 procedure getftime(var f;var time : longint);
-type
-   lr = record
-      lo,hi : word;
-   end;
 var
-   ft,lft : FILETIME;
+   ft : TFileTime;
 begin
-   if GetFileTime(filerec(f).handle,nil,nil,@ft) and
-      FileTimeToLocalFileTime(ft,lft) and
-      FileTimeToDosDateTime(lft,lr(time).hi,lr(time).lo) then
-     exit
-   else
-     time:=0;
+  if GetFileTime(filerec(f).Handle,nil,nil,@ft) and
+     WinToDosTime(ft,time) then
+    exit
+  else
+    time:=0;
 end;
 
 
 procedure setftime(var f;time : longint);
+var
+  ft : TFileTime;
 begin
-   { !!!!!!!!!!!!! }
+  if DosToWinTime(time,ft) then
+   SetFileTime(filerec(f).Handle,nil,nil,@ft);
 end;
 
 
@@ -558,6 +747,11 @@ end;
   The environment is a block of zero terminated strings
   terminated by a #0
 }
+
+   function GetEnvironmentStrings : pchar;
+     external 'kernel32' name 'GetEnvironmentStringsA';
+   function FreeEnvironmentStrings(p : pchar) : boolean;
+     external 'kernel32' name 'FreeEnvironmentStringsA';
 
 function envcount : longint;
 var
@@ -649,7 +843,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.6  1998-06-08 23:07:45  peter
+  Revision 1.7  1998-06-10 10:39:13  peter
+    * working w32 rtl
+
+  Revision 1.6  1998/06/08 23:07:45  peter
     * dos interface is now 100% compatible
     * fixed call PASCALMAIN which must be direct asm
 

@@ -37,43 +37,43 @@
 
   Unimplemented:
      /* EnumResLangProc */
-     #define RT_ACCELERATOR	(MAKEINTRESOURCE(9))
-     #define RT_BITMAP	(MAKEINTRESOURCE(2))
-     #define RT_DIALOG	(MAKEINTRESOURCE(5))
-     #define RT_FONT	(MAKEINTRESOURCE(8))
-     #define RT_FONTDIR	(MAKEINTRESOURCE(7))
-     #define RT_MENU	(MAKEINTRESOURCE(4))
-     #define RT_RCDATA	(MAKEINTRESOURCE(10))
-     #define RT_STRING	(MAKEINTRESOURCE(6))
-     #define RT_MESSAGETABLE	(MAKEINTRESOURCE(11))
-     #define RT_CURSOR	(MAKEINTRESOURCE(1))
-     #define RT_GROUP_CURSOR	(MAKEINTRESOURCE(12))
-     #define RT_ICON	(MAKEINTRESOURCE(3))
-     #define RT_GROUP_ICON	(MAKEINTRESOURCE(13))
-     #define RT_VERSION	(MAKEINTRESOURCE(16))
+     #define RT_ACCELERATOR     (MAKEINTRESOURCE(9))
+     #define RT_BITMAP  (MAKEINTRESOURCE(2))
+     #define RT_DIALOG  (MAKEINTRESOURCE(5))
+     #define RT_FONT    (MAKEINTRESOURCE(8))
+     #define RT_FONTDIR (MAKEINTRESOURCE(7))
+     #define RT_MENU    (MAKEINTRESOURCE(4))
+     #define RT_RCDATA  (MAKEINTRESOURCE(10))
+     #define RT_STRING  (MAKEINTRESOURCE(6))
+     #define RT_MESSAGETABLE    (MAKEINTRESOURCE(11))
+     #define RT_CURSOR  (MAKEINTRESOURCE(1))
+     #define RT_GROUP_CURSOR    (MAKEINTRESOURCE(12))
+     #define RT_ICON    (MAKEINTRESOURCE(3))
+     #define RT_GROUP_ICON      (MAKEINTRESOURCE(13))
+     #define RT_VERSION (MAKEINTRESOURCE(16))
 
      /* GetIconInfo */
-     #define IDC_ARROW	(MAKEINTRESOURCE(32512))
-     #define IDC_IBEAM	(MAKEINTRESOURCE(32513))
-     #define IDC_WAIT	(MAKEINTRESOURCE(32514))
-     #define IDC_CROSS	(MAKEINTRESOURCE(32515))
-     #define IDC_UPARROW	(MAKEINTRESOURCE(32516))
-     #define IDC_SIZENWSE	(MAKEINTRESOURCE(32642))
-     #define IDC_SIZENESW	(MAKEINTRESOURCE(32643))
-     #define IDC_SIZEWE	(MAKEINTRESOURCE(32644))
-     #define IDC_SIZENS	(MAKEINTRESOURCE(32645))
-     #define IDC_SIZEALL	(MAKEINTRESOURCE(32646))
-     #define IDC_NO	(MAKEINTRESOURCE(32648))
-     #define IDC_APPSTARTING	(MAKEINTRESOURCE(32650))
-     #define IDC_HELP	(MAKEINTRESOURCE(32651))
-     #define IDI_APPLICATION	(MAKEINTRESOURCE(32512))
-     #define IDI_HAND	(MAKEINTRESOURCE(32513))
-     #define IDI_QUESTION	(MAKEINTRESOURCE(32514))
-     #define IDI_EXCLAMATION	(MAKEINTRESOURCE(32515))
-     #define IDI_ASTERISK	(MAKEINTRESOURCE(32516))
-     #define IDI_WINLOGO	(MAKEINTRESOURCE(32517))
+     #define IDC_ARROW  (MAKEINTRESOURCE(32512))
+     #define IDC_IBEAM  (MAKEINTRESOURCE(32513))
+     #define IDC_WAIT   (MAKEINTRESOURCE(32514))
+     #define IDC_CROSS  (MAKEINTRESOURCE(32515))
+     #define IDC_UPARROW        (MAKEINTRESOURCE(32516))
+     #define IDC_SIZENWSE       (MAKEINTRESOURCE(32642))
+     #define IDC_SIZENESW       (MAKEINTRESOURCE(32643))
+     #define IDC_SIZEWE (MAKEINTRESOURCE(32644))
+     #define IDC_SIZENS (MAKEINTRESOURCE(32645))
+     #define IDC_SIZEALL        (MAKEINTRESOURCE(32646))
+     #define IDC_NO     (MAKEINTRESOURCE(32648))
+     #define IDC_APPSTARTING    (MAKEINTRESOURCE(32650))
+     #define IDC_HELP   (MAKEINTRESOURCE(32651))
+     #define IDI_APPLICATION    (MAKEINTRESOURCE(32512))
+     #define IDI_HAND   (MAKEINTRESOURCE(32513))
+     #define IDI_QUESTION       (MAKEINTRESOURCE(32514))
+     #define IDI_EXCLAMATION    (MAKEINTRESOURCE(32515))
+     #define IDI_ASTERISK       (MAKEINTRESOURCE(32516))
+     #define IDI_WINLOGO        (MAKEINTRESOURCE(32517))
 
-     #define VS_FILE_INFO	(MAKEINTRESOURCE(16))
+     #define VS_FILE_INFO       (MAKEINTRESOURCE(16))
      #ifdef UNICODE
      #define LPSTR_TEXTCALLBACK LPSTR_TEXTCALLBACKW
      #else
@@ -81,10 +81,10 @@
      #endif /* UNICODE */
 
      /* TV_INSERTSTRUCT structure */
-     #define TVI_ROOT	((HTREEITEM)0xFFFF0000)
-     #define TVI_FIRST	((HTREEITEM)0xFFFF0001)
-     #define TVI_LAST	((HTREEITEM)0xFFFF0002)
-     #define TVI_SORT	((HTREEITEM)0xFFFF0003)
+     #define TVI_ROOT   ((HTREEITEM)0xFFFF0000)
+     #define TVI_FIRST  ((HTREEITEM)0xFFFF0001)
+     #define TVI_LAST   ((HTREEITEM)0xFFFF0002)
+     #define TVI_SORT   ((HTREEITEM)0xFFFF0003)
 
      #ifdef UNICODE
      #define COLOROKSTRING COLOROKSTRINGW
@@ -105,7 +105,7 @@
      #endif
 
      /* MapWindowPoints */
-     #define HWND_DESKTOP	((HWND)0)
+     #define HWND_DESKTOP       ((HWND)0)
 
      #ifdef UNICODE
      #define ANIMATE_CLASS ANIMATE_CLASSW
@@ -329,8 +329,8 @@ unit defines;
        BST_PUSHED = 4;
        MF_BYCOMMAND = 0;
        MF_BYPOSITION = $400;
-       MF_CHECKED = $8;
-       MF_UNCHECKED = 0;
+//       MF_CHECKED = $8;
+//       MF_UNCHECKED = 0;
        MF_HILITE = $80;
     { ChildWindowFromPointEx }
        MF_UNHILITE = 0;
@@ -456,9 +456,6 @@ unit defines;
        SEC_IMAGE = 16777216;
        SEC_NOCACHE = 268435456;
        SEC_RESERVE = 67108864;
-       MEM_COMMIT = 4096;
-       MEM_RESERVE = 8192;
-       MEM_TOP_DOWN = 1048576;
        PAGE_EXECUTE = 16;
        PAGE_EXECUTE_READ = 32;
        PAGE_EXECUTE_READWRITE = 64;
@@ -468,6 +465,7 @@ unit defines;
        MEM_COMMIT = 4096;
        MEM_FREE = 65536;
        MEM_RESERVE = 8192;
+       MEM_TOP_DOWN = 1048576;
        MEM_IMAGE = 16777216;
        MEM_MAPPED = 262144;
        MEM_PRIVATE = 131072;
@@ -546,7 +544,7 @@ unit defines;
        LR_DEFAULTCOLOR = 0;
        LR_LOADREALSIZE = 128;
     { CreateMailslot, GetMailslotInfo }
-       LR_MONOCHROME = 1;
+//       LR_MONOCHROME = 1;
        MAILSLOT_WAIT_FOREVER = $ffffffff;
     { CreateMappedBitmap }
        MAILSLOT_NO_MESSAGE = $ffffffff;
@@ -616,16 +614,16 @@ unit defines;
        DELETE = $10000;
        READ_CONTROL = $20000;
        GENERIC_EXECUTE = $20000000;
-       SERVICE_WIN32_OWN_PROCESS = 16;
-       SERVICE_WIN32_SHARE_PROCESS = 32;
-       SERVICE_KERNEL_DRIVER = 1;
-       SERVICE_FILE_SYSTEM_DRIVER = 2;
-       SERVICE_INTERACTIVE_PROCESS = 256;
-       SERVICE_BOOT_START = 0;
-       SERVICE_SYSTEM_START = 1;
-       SERVICE_AUTO_START = 2;
-       SERVICE_DEMAND_START = 3;
-       SERVICE_DISABLED = 4;
+//       SERVICE_WIN32_OWN_PROCESS = 16;
+//       SERVICE_WIN32_SHARE_PROCESS = 32;
+//       SERVICE_KERNEL_DRIVER = 1;
+//       SERVICE_FILE_SYSTEM_DRIVER = 2;
+//       SERVICE_INTERACTIVE_PROCESS = 256;
+//       SERVICE_BOOT_START = 0;
+//       SERVICE_SYSTEM_START = 1;
+//       SERVICE_AUTO_START = 2;
+//       SERVICE_DEMAND_START = 3;
+//       SERVICE_DISABLED = 4;
        SERVICE_ERROR_IGNORE = 0;
        SERVICE_ERROR_NORMAL = 1;
        SERVICE_ERROR_SEVERE = 2;
@@ -835,7 +833,7 @@ unit defines;
        WH_MSGFILTER = -1;
        WH_SHELL = 10;
        WH_SYSMSGFILTER = 6;
-       WH_MSGFILTER = -1;
+  //     WH_MSGFILTER = -1;
     { DefineDosDevice }
        WH_FOREGROUNDIDLE = 11;
        DDD_RAW_TARGET_PATH = 1;
@@ -866,10 +864,10 @@ unit defines;
        DCTT_SUBDEV = $4;
        DC_VERSION = 10;
        DC_BINADJUST = 19;
-       DC_EMF_COMPLIANT = 20;
+//       DC_EMF_COMPLIANT = 20;
     { DeviceIoControl }
     { DlgDirList }
-       DC_DATATYPE_PRODUCED = 21;
+//       DC_DATATYPE_PRODUCED = 21;
        DDL_ARCHIVE = 32;
        DDL_DIRECTORY = 16;
        DDL_DRIVES = 16384;
@@ -1317,8 +1315,8 @@ unit defines;
        CP_MACCP = 2;
     { GetDateFormat }
        CP_OEMCP = 1;
-       DATE_SHORTDATE = 1;
-       DATE_LONGDATE = 2;
+//       DATE_SHORTDATE = 1;
+//       DATE_LONGDATE = 2;
     { GetDCEx }
        DATE_USE_ALT_CALENDAR = 4;
        DCX_WINDOW = $1;
@@ -1361,12 +1359,12 @@ unit defines;
        SIZEPALETTE = 104;
        NUMRESERVED = 106;
        COLORRES = 108;
-       PHYSICALWIDTH = 110;
-       PHYSICALHEIGHT = 111;
-       PHYSICALOFFSETX = 112;
-       PHYSICALOFFSETY = 113;
-       SCALINGFACTORX = 114;
-       SCALINGFACTORY = 115;
+//       PHYSICALWIDTH = 110;
+//       PHYSICALHEIGHT = 111;
+//       PHYSICALOFFSETX = 112;
+//       PHYSICALOFFSETY = 113;
+//       SCALINGFACTORX = 114;
+//       SCALINGFACTORY = 115;
        VREFRESH = 116;
        DESKTOPHORZRES = 118;
        DESKTOPVERTRES = 117;
@@ -1496,13 +1494,13 @@ unit defines;
        PM_REMOVE = 1;
     { GetNamedPipeHandleState }
        PM_NOYIELD = 2;
-       PIPE_NOWAIT = 1;
+//       PIPE_NOWAIT = 1;
     { GetNamedPipeInfo }
-       PIPE_READMODE_MESSAGE = 2;
+//       PIPE_READMODE_MESSAGE = 2;
        PIPE_CLIENT_END = 0;
        PIPE_SERVER_END = 1;
     { GetNextWindow, GetWindow }
-       PIPE_TYPE_MESSAGE = 4;
+//       PIPE_TYPE_MESSAGE = 4;
        GW_HWNDNEXT = 2;
        GW_HWNDPREV = 3;
        GW_CHILD = 5;
@@ -1683,9 +1681,9 @@ unit defines;
        SM_CXSMSIZE = 52;
        SM_CYSMSIZE = 53;
        SM_CXVSCROLL = 2;
-       SM_CYHSCROLL = 3;
-       SM_CXHSCROLL = 21;
-       SM_CYVSCROLL = 20;
+//       SM_CYHSCROLL = 3;
+//       SM_CXHSCROLL = 21;
+//       SM_CYVSCROLL = 20;
        SM_CYVTHUMB = 9;
        SM_CYCAPTION = 4;
        SM_CYKANJIWINDOW = 18;
@@ -1822,12 +1820,12 @@ unit defines;
        CLR_NONE = $ffffffff;
     { ImageList_LoadImage }
        CLR_DEFAULT = $ff000000;
-       LR_DEFAULTCOLOR = 0;
+//       LR_DEFAULTCOLOR = 0;
        LR_LOADFROMFILE = 16;
        LR_LOADMAP3DCOLORS = 4096;
        LR_LOADTRANSPARENT = 32;
     { ImmConfigureIME }
-       LR_MONOCHROME = 1;
+//       LR_MONOCHROME = 1;
        IME_CONFIG_GENERAL = 1;
        IME_CONFIG_REGISTERWORD = 2;
     { ImmGetConversionList }
@@ -2944,11 +2942,11 @@ unit defines;
        DM_COLLATE = $8000;
        DM_FORMNAME = $10000;
        DM_LOGPIXELS = $20000;
-       DM_BITSPERPEL = $40000;
-       DM_PELSWIDTH = $80000;
-       DM_PELSHEIGHT = $100000;
-       DM_DISPLAYFLAGS = $200000;
-       DM_DISPLAYFREQUENCY = $400000;
+//       DM_BITSPERPEL = $40000;
+//       DM_PELSWIDTH = $80000;
+//       DM_PELSHEIGHT = $100000;
+//       DM_DISPLAYFLAGS = $200000;
+//       DM_DISPLAYFREQUENCY = $400000;
        DM_ICMMETHOD = $800000;
        DM_ICMINTENT = $1000000;
        DM_MEDIATYPE = $2000000;
@@ -3125,15 +3123,15 @@ unit defines;
     { EM_FINDWORDBREAK message }
        SFF_PLAINRTF = 16384;
        WB_CLASSIFY = 3;
-       WB_ISDELIMITER = 2;
-       WB_LEFT = 0;
+//       WB_ISDELIMITER = 2;
+//       WB_LEFT = 0;
        WB_LEFTBREAK = 6;
        WB_PREVBREAK = 6;
        WB_MOVEWORDLEFT = 4;
        WB_MOVEWORDPREV = 4;
        WB_MOVEWORDRIGHT = 5;
        WB_MOVEWORDNEXT = 5;
-       WB_RIGHT = 1;
+//       WB_RIGHT = 1;
        WB_RIGHTBREAK = 7;
     { EM_GETPUNCTUATION message }
        WB_NEXTBREAK = 7;
@@ -3301,7 +3299,7 @@ unit defines;
        TTDT_RESHOW = 1;
        SBARS_SIZEGRIP = 256;
     { DL_DRAGGING message }
-       SBARS_SIZEGRIP = 256;
+//       SBARS_SIZEGRIP = 256;
        DL_MOVECURSOR = 3;
        DL_COPYCURSOR = 2;
     { Up-down control styles }
@@ -3726,7 +3724,7 @@ unit defines;
        SE_GROUP_OWNER = $8;
     { SECURITY_DESCRIPTOR_CONTROL }
        SE_GROUP_LOGON_ID = $c0000000;
-       SECURITY_DESCRIPTOR_REVISION = 1;
+//       SECURITY_DESCRIPTOR_REVISION = 1;
        SECURITY_DESCRIPTOR_MIN_LENGTH = 20;
        SE_OWNER_DEFAULTED = 1;
        SE_GROUP_DEFAULTED = 2;
@@ -4348,50 +4346,50 @@ unit defines;
        PFD_SWAP_EXCHANGE = $200;
 
     { Common control window classes }
-       ANIMATE_CLASSW	 = 'SysAnimate32';
-       HOTKEY_CLASSW	 = 'msctls_hotkey32';
-       PROGRESS_CLASSW	 = 'msctls_progress32';
-       STATUSCLASSNAMEW	 = 'msctls_statusbar32';
+       ANIMATE_CLASSW    = 'SysAnimate32';
+       HOTKEY_CLASSW     = 'msctls_hotkey32';
+       PROGRESS_CLASSW   = 'msctls_progress32';
+       STATUSCLASSNAMEW  = 'msctls_statusbar32';
        TOOLBARCLASSNAMEW = 'ToolbarWindow32';
-       TOOLTIPS_CLASSW	 = 'tooltips_class32';
-       TRACKBAR_CLASSW	 = 'msctls_trackbar32';
-       UPDOWN_CLASSW	 = 'msctls_updown32';
-       WC_HEADERW	 = 'SysHeader32';
-       WC_LISTVIEWW	 = 'SysListView32';
-       WC_TABCONTROLW	 = 'SysTabControl32';
-       WC_TREEVIEWW	 = 'SysTreeView32';
+       TOOLTIPS_CLASSW   = 'tooltips_class32';
+       TRACKBAR_CLASSW   = 'msctls_trackbar32';
+       UPDOWN_CLASSW     = 'msctls_updown32';
+       WC_HEADERW        = 'SysHeader32';
+       WC_LISTVIEWW      = 'SysListView32';
+       WC_TABCONTROLW    = 'SysTabControl32';
+       WC_TREEVIEWW      = 'SysTreeView32';
 
-       ANIMATE_CLASSA	 = 'SysAnimate32';
-       HOTKEY_CLASSA	 = 'msctls_hotkey32';
-       PROGRESS_CLASSA	 = 'msctls_progress32';
-       STATUSCLASSNAMEA	 = 'msctls_statusbar32';
+       ANIMATE_CLASSA    = 'SysAnimate32';
+       HOTKEY_CLASSA     = 'msctls_hotkey32';
+       PROGRESS_CLASSA   = 'msctls_progress32';
+       STATUSCLASSNAMEA  = 'msctls_statusbar32';
        TOOLBARCLASSNAMEA = 'ToolbarWindow32';
-       TOOLTIPS_CLASSA	 = 'tooltips_class32';
-       TRACKBAR_CLASSA	 = 'msctls_trackbar32';
-       UPDOWN_CLASSA	 = 'msctls_updown32';
-       WC_HEADERA	 = 'SysHeader32';
-       WC_LISTVIEWA	 = 'SysListView32';
-       WC_TABCONTROLA	 = 'SysTabControl32';
-       WC_TREEVIEWA	 = 'SysTreeView32';
+       TOOLTIPS_CLASSA   = 'tooltips_class32';
+       TRACKBAR_CLASSA   = 'msctls_trackbar32';
+       UPDOWN_CLASSA     = 'msctls_updown32';
+       WC_HEADERA        = 'SysHeader32';
+       WC_LISTVIEWA      = 'SysListView32';
+       WC_TABCONTROLA    = 'SysTabControl32';
+       WC_TREEVIEWA      = 'SysTreeView32';
 
     { Common dialog messages }
-       COLOROKSTRINGW	 = 'commdlg_ColorOK';
-       FILEOKSTRINGW	 = 'commdlg_FileNameOK';
-       FINDMSGSTRINGW	 = 'commdlg_FindReplace';
-       HELPMSGSTRINGW	 = 'commdlg_help';
-       LBSELCHSTRINGW	 = 'commdlg_LBSelChangedNotify';
-       SETRGBSTRINGW	 = 'commdlg_SetRGBColor';
-       SHAREVISTRINGW	 = 'commdlg_ShareViolation';
-       COLOROKSTRINGA	 = 'commdlg_ColorOK';
-       FILEOKSTRINGA	 = 'commdlg_FileNameOK';
-       FINDMSGSTRINGA	 = 'commdlg_FindReplace';
-       HELPMSGSTRINGA	 = 'commdlg_help';
-       LBSELCHSTRINGA	 = 'commdlg_LBSelChangedNotify';
-       SETRGBSTRINGA	 = 'commdlg_SetRGBColor';
-       SHAREVISTRINGA	 = 'commdlg_ShareViolation';
+       COLOROKSTRINGW    = 'commdlg_ColorOK';
+       FILEOKSTRINGW     = 'commdlg_FileNameOK';
+       FINDMSGSTRINGW    = 'commdlg_FindReplace';
+       HELPMSGSTRINGW    = 'commdlg_help';
+       LBSELCHSTRINGW    = 'commdlg_LBSelChangedNotify';
+       SETRGBSTRINGW     = 'commdlg_SetRGBColor';
+       SHAREVISTRINGW    = 'commdlg_ShareViolation';
+       COLOROKSTRINGA    = 'commdlg_ColorOK';
+       FILEOKSTRINGA     = 'commdlg_FileNameOK';
+       FINDMSGSTRINGA    = 'commdlg_FindReplace';
+       HELPMSGSTRINGA    = 'commdlg_help';
+       LBSELCHSTRINGA    = 'commdlg_LBSelChangedNotify';
+       SETRGBSTRINGA     = 'commdlg_SetRGBColor';
+       SHAREVISTRINGA    = 'commdlg_ShareViolation';
 
        UNICODE_NULL : WCHAR = 0;
-       INVALID_HANDLE_VALUE : HANDLE = -1;
+       INVALID_HANDLE_VALUE : THANDLE = -1;
        { PostMessage }
        HWND_BROADCAST : HWND = $FFFF;
        { RegCreateKey }
@@ -4404,13 +4402,13 @@ unit defines;
 
        HWND_BOTTOM : HWND = 1;
        HWND_NOTOPMOST : HWND = -2;
-       HWND_TOP	: HWND = 0;
+       HWND_TOP : HWND = 0;
        HWND_TOPMOST : HWND = -1;
 
        HINST_COMMCTRL : HINSTANCE = -1;
 
-       LPSTR_TEXTCALLBACKW : LPWSTR = -1;
-       LPSTR_TEXTCALLBACKA : LPSTR = -1;
+       LPSTR_TEXTCALLBACKW : LPWSTR = nil;
+       LPSTR_TEXTCALLBACKA : LPSTR = nil;
 
   implementation
 
@@ -4418,9 +4416,7 @@ end.
 
 {
   $Log$
-  Revision 1.2  1998-05-06 12:36:50  michael
-  + Removed log from before restored version.
+  Revision 1.3  1998-06-10 10:39:12  peter
+    * working w32 rtl
 
-  Revision 1.1.1.1  1998/03/25 11:18:46  root
-  * Restored version
 }
