@@ -84,9 +84,11 @@ Begin {CheckSequence}
   While (RegCounter <= R_EDI) Do
     Begin
       FillChar(RegInfo, SizeOf(RegInfo), 0);
-      RegInfo.RegsEncountered := [ProcInfo.FramePointer, R_ESP];
-      RegInfo.SubstRegs[ProcInfo.FramePointer] := ProcInfo.FramePointer;
-      RegInfo.SubstRegs[R_ESP] := R_ESP;
+      RegInfo.NewRegsEncountered := [ProcInfo.FramePointer, R_ESP];
+      RegInfo.OldRegsEncountered := RegInfo.NewRegsEncountered;
+      RegInfo.New2OldReg[ProcInfo.FramePointer] := ProcInfo.FramePointer;
+      RegInfo.New2OldReg[R_ESP] := R_ESP;
+      RegInfo.Old2NewReg := RegInfo.New2OldReg;
       Found := 0;
       hp2 := PPaiProp(PrevNonRemovablePai^.fileinfo.line)^.Regs[RegCounter].StartMod;
       If (PrevNonRemovablePai <> PPaiProp(PrevNonRemovablePai^.fileinfo.line)^.Regs[RegCounter].StartMod)
@@ -339,21 +341,21 @@ Begin
                   If (RegCounter in RegInfo.RegsLoadedForRef) Then
                     Begin
              hp5 := new(pai_asm_comment,init(strpnew('New: '+att_reg2str[RegCounter]+', Old: '+
-                                                    att_reg2str[RegInfo.SubstRegs[RegCounter]])));
+                                                    att_reg2str[RegInfo.New2OldReg[RegCounter]])));
              InsertLLItem(AsmL, Pai(hp2^.previous), hp2, hp5);
                     End;
 {$EndIf CSDebug}
                                      For RegCounter := R_EAX To R_EDI Do
                                        Begin
-                                         If (RegInfo.SubstRegs[RegCounter] <> R_NO) Then
+                                         If (RegInfo.New2OldReg[RegCounter] <> R_NO) Then
                                            If Not(RegCounter In RegInfo.RegsLoadedForRef) And
-                                                          {new reg              old reg}
-                                              (RegInfo.SubstRegs[RegCounter] <> RegCounter) Then
+                                                          {old reg              new reg}
+                                              (RegInfo.New2OldReg[RegCounter] <> RegCounter) Then
 
                                              Begin
                                                hp3 := New(Pai386,Op_Reg_Reg(A_MOV, S_L,
                                                                     {old reg          new reg}
-                                                      RegInfo.SubstRegs[RegCounter], RegCounter));
+                                                      RegInfo.New2OldReg[RegCounter], RegCounter));
                                                hp3^.fileinfo := hp2^.fileinfo;
                                                hp3^.fileinfo.line := PPaiProp(hp2^.fileinfo.line)^.LineSave;
                                                InsertLLItem(AsmL, Pai(hp2^.previous), hp2, hp3);
@@ -366,7 +368,7 @@ Begin
                                              Begin
  {load Cnt2 with the total number of instructions of this sequence}
                                                Cnt2 := PPaiProp(hp4^.fileinfo.line)^.
-                                                       Regs[RegInfo.SubstRegs[RegCounter]].NrOfMods;
+                                                       Regs[RegInfo.New2OldReg[RegCounter]].NrOfMods;
  {sometimes, a register can not be removed from a sequence, because it's
   still used afterwards:
 
@@ -564,7 +566,14 @@ End.
 
 {
  $Log$
- Revision 1.12  1998-10-20 09:32:54  peter
+ Revision 1.13  1998-11-09 19:33:39  jonas
+   * changed specific bugfix (which was actually wrong implemented, but did the
+     right thing in most cases nevertheless) to general bugfix
+   * fixed bug that caused
+     mov (ebp), edx                                    mov (ebp), edx
+     mov (edx), edx
+
+ Revision 1.12  1998/10/20 09:32:54  peter
    * removed some unused vars
 
  Revision 1.11  1998/10/07 16:24:52  jonas

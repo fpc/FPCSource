@@ -42,9 +42,9 @@ Type
   TRegArray = Array[R_EAX..R_BL] of TRegister;
   TRegSet = Set of R_EAX..R_BL;
   TRegInfo = Record
-                RegsEncountered: TRegSet;
+                NewRegsEncountered, OldRegsEncountered: TRegSet;
                 RegsLoadedForRef: TRegSet;
-                SubstRegs: TRegArray;
+                Old2NewReg, New2OldReg: TRegArray;
               End;
 
 {*********************** Procedures and Functions ************************}
@@ -824,43 +824,55 @@ Begin
 End;
 
 Procedure AddReg2RegInfo(OldReg, NewReg: TRegister; Var RegInfo: TRegInfo);
-{updates the RegsEncountered and SubstRegs fields of RegInfo. Assumes that
+{updates the ???RegsEncountered and ???2???Reg fields of RegInfo. Assumes that
  OldReg and NewReg have the same size (has to be chcked in advance with
  RegsSameSize) and that neither equals R_NO}
 Begin
   With RegInfo Do
     Begin
-      RegsEncountered := RegsEncountered + [NewReg];
-      SubstRegs[NewReg] := OldReg;
+      NewRegsEncountered := NewRegsEncountered + [NewReg];
+      OldRegsEncountered := OldRegsEncountered + [OldReg];
+      New2OldReg[NewReg] := OldReg;
+      Old2NewReg[OldReg] := NewReg;
       Case OldReg Of
         R_EAX..R_EDI:
           Begin
-            RegsEncountered := RegsEncountered + [Reg32toReg16(NewReg)];
-            SubstRegs[Reg32toReg16(NewReg)] := Reg32toReg16(OldReg);
+            NewRegsEncountered := NewRegsEncountered + [Reg32toReg16(NewReg)];
+            OldRegsEncountered := OldRegsEncountered + [Reg32toReg16(OldReg)];
+            New2OldReg[Reg32toReg16(NewReg)] := Reg32toReg16(OldReg);
+            Old2NewReg[Reg32toReg16(OldReg)] := Reg32toReg16(NewReg);
             If (NewReg in [R_EAX..R_EBX]) And
                (OldReg in [R_EAX..R_EBX]) Then
               Begin
-                RegsEncountered := RegsEncountered + [Reg32toReg8(NewReg)];
-                SubstRegs[Reg32toReg8(NewReg)] := Reg32toReg8(OldReg);
+                NewRegsEncountered := NewRegsEncountered + [Reg32toReg8(NewReg)];
+                OldRegsEncountered := OldRegsEncountered + [Reg32toReg8(OldReg)];
+                New2OldReg[Reg32toReg8(NewReg)] := Reg32toReg8(OldReg);
+                Old2NewReg[Reg32toReg8(OldReg)] := Reg32toReg8(NewReg);
               End;
           End;
         R_AX..R_DI:
           Begin
-            RegsEncountered := RegsEncountered + [Reg16toReg32(NewReg)];
-            SubstRegs[Reg16toReg32(NewReg)] := Reg16toReg32(OldReg);
+            NewRegsEncountered := NewRegsEncountered + [Reg16toReg32(NewReg)];
+            OldRegsEncountered := OldRegsEncountered + [Reg16toReg32(OldReg)];
+            New2OldReg[Reg16toReg32(NewReg)] := Reg16toReg32(OldReg);
+            Old2NewReg[Reg16toReg32(OldReg)] := Reg16toReg32(NewReg);
             If (NewReg in [R_AX..R_BX]) And
                (OldReg in [R_AX..R_BX]) Then
               Begin
-                RegsEncountered := RegsEncountered + [Reg16toReg8(NewReg)];
-                SubstRegs[Reg16toReg8(NewReg)] := Reg16toReg8(OldReg);
+                NewRegsEncountered := NewRegsEncountered + [Reg16toReg8(NewReg)];
+                OldRegsEncountered := OldRegsEncountered + [Reg16toReg8(OldReg)];
+                New2OldReg[Reg16toReg8(NewReg)] := Reg16toReg8(OldReg);
+                Old2NewReg[Reg16toReg8(OldReg)] := Reg16toReg8(NewReg);
               End;
           End;
         R_AL..R_BL:
           Begin
-            RegsEncountered := RegsEncountered + [Reg8toReg32(NewReg)]
+            NewRegsEncountered := NewRegsEncountered + [Reg8toReg32(NewReg)]
                                + [Reg8toReg16(NewReg)];
-            SubstRegs[Reg8toReg32(NewReg)] := Reg8toReg32(OldReg);
-            SubstRegs[Reg8toReg16(NewReg)] := Reg8toReg16(OldReg);
+            OldRegsEncountered := OldRegsEncountered + [Reg8toReg32(OldReg)]
+                               + [Reg8toReg16(OldReg)];
+            New2OldReg[Reg8toReg32(NewReg)] := Reg8toReg32(OldReg);
+            Old2NewReg[Reg8toReg16(OldReg)] := Reg8toReg16(NewReg);
           End;
       End;
     End;
@@ -893,12 +905,16 @@ Begin
  processed. This happens if it has been compared with a register that doesn't
  have an 8 bit component (such as EDI). In that case the 8 bit component is
  still set to R_NO and the comparison in the Else-part will fail}
-        If Not(Reg32(NewReg) in RegsEncountered) Then
+        If Not((Reg32(NewReg) in NewRegsEncountered) Or
+               (Reg32(OldReg) in OldRegsEncountered)) Then
           Begin
             AddReg2RegInfo(OldReg, NewReg, RegInfo);
             RegsEquivalent := True
           End
-        Else RegsEquivalent := OldReg = SubstRegs[NewReg]
+        Else RegsEquivalent :=
+               (Reg32(NewReg) in NewRegsEncountered) And
+               (Reg32(OldReg) in OldRegsEncountered) And
+               (OldReg = New2OldReg[NewReg])
     Else RegsEquivalent := False
   Else RegsEquivalent := OldReg = NewReg
 End;
@@ -1355,18 +1371,9 @@ Begin {checks whether two Pai386 instructions are equal}
                   Writeln(att_reg2str[Reg32(TRegister(Pai386(p2)^.op2))], ' removed');
                 end;
 {$endif csdebug}
-            If (TRegister(Pai386(p1)^.op2) In RegInfo.RegsEncountered) Or
-               Not(RegInRef(TRegister(Pai386(p1)^.op2), TReference(Pai386(p2)^.op1^))) Then
-
-  { To avoid
-       movl  48(%esi), %esi                         movl  48(%esi), %esi
-       pushl %esi             getting changed to    pushl %esi
-       movl  48(%esi), %edi                         movl %esi, %edi }
-
               InstructionsEquivalent :=
                  OpsEquivalent(Pai386(p1)^.op1t, Pai386(p1)^.op1, Pai386(p2)^.op1, RegInfo) And
                  OpsEquivalent(Pai386(p1)^.op2t, Pai386(p1)^.op2, Pai386(p2)^.op2, RegInfo)
-            Else InstructionsEquivalent := False
           End
       Else
  {an instruction <> mov, movzx, movsx}
@@ -2000,7 +2007,14 @@ End.
 
 {
  $Log$
- Revision 1.21  1998-11-02 23:17:49  jonas
+ Revision 1.22  1998-11-09 19:33:40  jonas
+   * changed specific bugfix (which was actually wrong implemented, but did the
+     right thing in most cases nevertheless) to general bugfix
+   * fixed bug that caused
+     mov (ebp), edx                                    mov (ebp), edx
+     mov (edx), edx
+
+ Revision 1.21  1998/11/02 23:17:49  jonas
    * fixed bug shown in sortbug program from fpc-devel list
 
  Revision 1.20  1998/10/22 13:24:51  jonas
