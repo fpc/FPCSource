@@ -101,7 +101,7 @@ procedure _exit (__status : longint); cdecl; external clib name '_exit';
 function pathconf(__path:Pchar; __name:longint):longint;cdecl;external clib name 'pathconf';
 function fpathconf(__fd:longint; __name:longint):longint;cdecl;external clib name 'fpathconf';
 
-function sysconf (__name : longint) : longint; cdecl; external clib name 'syconf';
+function sysconf (__name : longint) : longint; cdecl; external clib name 'sysconf';
 function confstr(__name:longint; __buf:Pchar; __len:size_t):size_t;cdecl;external clib name 'confstr';
 
 function getpid:__pid_t;cdecl;external clib name 'getpid';

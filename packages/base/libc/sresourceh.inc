@@ -18,4 +18,6 @@ function setpriority(__which:__priority_which_t; __who:id_t; __prio:longint):lon
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type 
+
+Function setrlimit (__resource: __rlimit_resource_t; const __rlimits: TRLimit): longint; cdecl; external clib name 'setrlimit';

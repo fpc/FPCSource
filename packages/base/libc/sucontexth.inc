@@ -82,5 +82,6 @@ type
 
 Type  
   TUserContext = ucontext_t;
+  PUserContext = ^TUserContext;
   
   

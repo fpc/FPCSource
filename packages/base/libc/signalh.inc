@@ -52,6 +52,7 @@ function sighold(__sig:longint):longint;cdecl;external clib name 'sighold';
 function sigrelse(__sig:longint):longint;cdecl;external clib name 'sigrelse';
 function sigignore(__sig:longint):longint;cdecl;external clib name 'sigignore';
 function sigset(__sig:longint; __disp:__sighandler_t):__sighandler_t;cdecl;external clib name 'sigset';
+function sigaction(__sig: longint; Action: PSigAction; OldAction: PSigAction): Integer; external clib name 'sigaction';
 
 function __libc_current_sigrtmin:longint;cdecl;external clib name '__libc_current_sigrtmin';
 function __libc_current_sigrtmax:longint;cdecl;external clib name '__libc_current_sigrtmax';
