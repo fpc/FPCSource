@@ -306,6 +306,7 @@ const
   type_w_classes_not_related=04040;
   type_e_class_or_interface_type_expected=04041;
   type_e_type_is_not_completly_defined=04042;
+  type_w_string_too_long=04043;
   sym_e_id_not_found=05000;
   sym_f_internal_error_in_symtablestack=05001;
   sym_e_duplicate_id=05002;
@@ -613,9 +614,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 34397;
+  MsgTxtSize = 34465;
 
   MsgIdxMax : array[1..20] of longint=(
-    17,62,186,43,42,41,98,17,35,43,
+    17,62,186,44,42,41,98,17,35,43,
     31,1,1,1,1,1,1,1,1,1
   );

@@ -251,7 +251,7 @@ implementation
              resulttype:=tabsolutesym(symtableentry).vartype;
              { replace the symtableentry when it points to a var, else
                we are finished }
-             if tabsolutesym(symtableentry).abstyp=tovar then
+             if (tabsolutesym(symtableentry).abstyp=tovar) then
               begin
                 symtableentry:=tabsolutesym(symtableentry).ref;
                 symtable:=symtableentry.owner;
@@ -516,6 +516,7 @@ implementation
       var
         hp : tnode;
         useshelper : boolean;
+        l : longint;
       begin
         result:=nil;
         resulttype:=voidtype;
@@ -600,6 +601,13 @@ implementation
                 in secondpass }
               if (right.nodetype=stringconstn) then
                begin
+                 { verify if range fits within shortstring }
+                 { just emit a warning, delphi gives an    }
+                 { error, only if the type definition of   }
+                 { of the string is less  < 255 characters }
+                 if (tstringconstnode(right).len
+                  > tstringdef(left.resulttype.def).len) then
+                    cgmessage(type_w_string_too_long);
                  inserttypeconv(right,left.resulttype);
                  if (tstringconstnode(right).len=0) then
                   useshelper:=false;
@@ -1144,7 +1152,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.60  2002-09-27 21:13:28  carl
+  Revision 1.61  2002-10-03 21:26:08  carl
+    + compile-time range checking for strings
+
+  Revision 1.60  2002/09/27 21:13:28  carl
     * low-highval always checked if limit ober 2GB is reached (to avoid overflow)
 
   Revision 1.59  2002/09/26 15:02:05  florian
