@@ -19,9 +19,9 @@ in /etc/texmf/texmf.cnf to use (at least) the specified values:
 As shipped, only the .pdf docs are built. You may want to make the HTML
 files with latex2html by yourself, and eventually adapt the doc-base file.
      
-To create a new config file for fpc (/etc/ppc.cfg) use the command:
+To create a new config file for fpc (/etc/fpc.cfg) use the command:
  /usr/lib/fpc/1.0.4/samplecfg /usr/lib/fpc/1.0.4
-However, you should be aware, that said file /etc/ppc.cfg is
+However, you should be aware, that said file /etc/fpc.cfg is
 declared as a conffile since version 1.0.2.
 
 Free Vision (fp-fv) had to be removed due to licesing issues.
