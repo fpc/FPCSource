@@ -1,11 +1,11 @@
-program                TestProgram;
+program TestProgram;
 
 
 uses
 {$ifdef go32v2}
   dpmiexcp,
 {$endif}
-    Test2;
+    test1, Test2;
 
 const A =  1234;
       C =  #1#2#3#4;
