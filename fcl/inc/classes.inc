@@ -939,15 +939,23 @@ var
     stream: TMemoryStream;
   begin
     case parser.Token of
-      toInteger: WriteInteger(parser.TokenInt);
-      toFloat: begin
+      toInteger:
+        begin
+	  WriteInteger(parser.TokenInt);
+	  parser.NextToken;
+	end;
+      toFloat:
+        begin
           Output.WriteByte(Ord(vaExtended));
           flt := Parser.TokenFloat;
           Output.Write(flt, SizeOf(flt));
+	  parser.NextToken;
         end;
-      toString: begin
+      toString:
+        begin
           s := parser.TokenString;
-          while parser.NextToken = '+' do begin
+          while parser.NextToken = '+' do
+	  begin
             parser.NextToken;   // Get next string fragment
             parser.CheckToken(toString);
             s := s + parser.TokenString;
@@ -956,55 +964,71 @@ var
           WriteString(s);
         end;
       toSymbol:
+        begin
           if CompareText(parser.TokenString, 'True') = 0 then
             Output.WriteByte(Ord(vaTrue))
           else if CompareText(parser.TokenString, 'False') = 0 then
             Output.WriteByte(Ord(vaFalse))
           else if CompareText(parser.TokenString, 'nil') = 0 then
             Output.WriteByte(Ord(vaNil))
-          else begin
+          else
+	  begin
             Output.WriteByte(Ord(vaIdent));
             WriteString(parser.TokenString);
           end;
+	  Parser.NextToken;
+	end;
       // Set
-      '[': begin
+      '[':
+        begin
           parser.NextToken;
           Output.WriteByte(Ord(vaSet));
           if parser.Token <> ']' then
-            while True do begin
+            while True do
+	    begin
               parser.CheckToken(toSymbol);
               WriteString(parser.TokenString);
               parser.NextToken;
-              if parser.Token = ']' then break;
+              if parser.Token = ']' then
+	        break;
               parser.CheckToken(',');
               parser.NextToken;
             end;
           Output.WriteByte(0);
+	  parser.NextToken;
         end;
       // List
-      '(': begin
+      '(':
+        begin
           parser.NextToken;
           Output.WriteByte(Ord(vaList));
-          while parser.Token <> ')' do ProcessValue;
+          while parser.Token <> ')' do
+	    ProcessValue;
           Output.WriteByte(0);
+	  parser.NextToken;
         end;
       // Collection
-      '<': begin
+      '<':
+        begin
           parser.NextToken;
           Output.WriteByte(Ord(vaCollection));
-          while parser.Token <> '>' do begin
+          while parser.Token <> '>' do
+	  begin
             parser.CheckTokenSymbol('item');
             parser.NextToken;
             // ConvertOrder
             Output.WriteByte(Ord(vaList));
-            while not parser.TokenSymbolIs('end') do ProcessProperty;
+            while not parser.TokenSymbolIs('end') do
+	      ProcessProperty;
             parser.NextToken;   // Skip 'end'
             Output.WriteByte(0);
           end;
           Output.WriteByte(0);
+	  parser.NextToken;
         end;
       // Binary data
-      '{': begin
+      '{':
+        begin
           Output.WriteByte(Ord(vaBinary));
           stream := TMemoryStream.Create;
           try
@@ -1014,10 +1038,11 @@ var
           finally
             stream.Free;
           end;
+	  parser.NextToken;
         end;
-    else WriteLn('Token: "', parser.Token, '" ', Ord(parser.Token));
+      else
+        parser.Error(SInvalidProperty);
     end;
-    parser.NextToken;
   end;
 
   procedure ProcessProperty;
@@ -1034,7 +1059,6 @@ var
       parser.CheckToken(toSymbol);
       name := name + '.' + parser.TokenString;
     end;
-    // WriteLn(name);
     WriteString(name);
     parser.CheckToken('=');
     parser.NextToken;
@@ -1198,7 +1222,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:59  michael
+  Revision 1.3  2000-07-22 14:55:56  sg
+  * Fixed some DFM parser bugs
+
+  Revision 1.2  2000/07/13 11:32:59  michael
   + removed logs
  
 }
