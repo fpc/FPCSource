@@ -13,5 +13,8 @@ libc=y
 units=gd
 examples=gdtest
 
+[install]
+fpcpackage=y
+
 [default]
 fpcdir=../..

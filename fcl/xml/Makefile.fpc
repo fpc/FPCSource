@@ -12,5 +12,8 @@ units=dom htmldoc xmlcfg xmlread xmlstreaming xmlwrite xhtml htmwrite
 options=-S2
 targetdir=../$(OS_TARGET)
 
+[install]
+fpcpackage=y
+
 [default]
 fpcdir=../..

@@ -13,6 +13,9 @@ targetdir=.
 unitdir=..
 sourcedir=..
 
+[install]
+fpcpackage=y
+
 [default]
 fpcdir=../..
 

@@ -6,6 +6,9 @@
 [target]
 units=erroru
 
+[install]
+fpcpackage=y
+
 [default]
 fpcdir=../..
 

@@ -7,3 +7,11 @@ programs=glutdemo morph3d bounce
 
 [require]
 packages=opengl
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
+
+

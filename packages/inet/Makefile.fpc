@@ -10,5 +10,8 @@ version=1.0.5
 units=inet
 examples=testinet pfinger
 
+[install]
+fpcpackage=y
+
 [default]
 fpcdir=../..

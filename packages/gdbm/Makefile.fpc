@@ -12,6 +12,9 @@ examplesubdir=gdbm
 [dirs]
 fpcdir=../..
 
+[install]
+fpcpackage=y
+
 [rules]
 testgdbm$(EXEEXT): testgdbm.pp gdbm$(PPUEXT)
 

@@ -13,6 +13,9 @@ units=lexbase lexopt lexdfa lexpos lexlist lexrules lexmsgs lextable \
 [compiler]
 options=-Sg
 
+[install]
+fpcpackage=y
+
 [default]
 fpcdir=../..
 

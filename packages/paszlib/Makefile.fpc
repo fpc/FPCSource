@@ -10,5 +10,8 @@ version=1.0.5
 units=paszlib adler gzcrc gzcrcasm gzio infblock infcodes inffast inftrees infutil strutils trees zcompres zdeflate zinflate zbase zuncompr zutil
 examples=example minigzip
 
+[install]
+fpcpackage=y
+
 [default]
 fpcdir=../..

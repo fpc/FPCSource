@@ -9,6 +9,9 @@ examples=test01
 [require]
 packages=oracle fcl
 
+[install]
+fpcpackage=y
+
 [default]
 fpcdir=../../..
 

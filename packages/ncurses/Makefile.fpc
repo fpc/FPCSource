@@ -13,5 +13,8 @@ examples=firework testn ocrt_demo edit_demo db_demo screen_demo
 [require]
 libc=y
 
+[install]
+fpcpackage=y
+
 [default]
 fpcdir=../..

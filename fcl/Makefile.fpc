@@ -17,7 +17,7 @@ units_freebsd=process asyncio ssockets http
 units_linux=process asyncio ssockets http
 units_win32=process fileinfo
 rsts=classes ssockets cachecls
-exampledirs=tests db/tests shedit/gtk
+exampledirs=tests
 
 [compiler]
 options=-S2
@@ -29,6 +29,9 @@ sourcedir=$(OS_TARGET) inc
 
 [libs]
 libname=fpfcl
+
+[install]
+fpcpackage=y
 
 [default]
 fpcdir=..

@@ -12,6 +12,11 @@ packages=fcl
 [default]
 rule=all_units
 
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
 
 [rules]
 .PHONY: all_units linux win32 w32d w32s

@@ -22,6 +22,9 @@ targetdir=.
 libname=libfpgtk.so
 libversion=1.0
 
+[install]
+fpcpackage=y
+
 [default]
 fpcdir=../..
 

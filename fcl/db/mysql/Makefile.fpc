@@ -16,5 +16,8 @@ packages=mysql
 options=-S2 
 targetdir=../../$(OS_TARGET)
 
+[install]
+fpcpackage=y
+
 [default]
 fpcdir=../../..

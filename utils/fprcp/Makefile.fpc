@@ -8,6 +8,9 @@ programs=fprcp
 [clean]
 units=comments expr pasprep
 
+[install]
+fpcpackage=y
+
 [default]
 fpcdir=../..
 

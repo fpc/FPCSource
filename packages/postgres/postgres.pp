@@ -7,8 +7,8 @@ uses dllist;
 {$linklib pq}
 {$linklib c}
 
-{ Not always needed. If you have problems linking, try to remove this  }
-{$linklib crypt}
+{ Not always needed. If you have problems linking, try to add this  }
+{ $linklib crypt}
 
 { $include "libpq/pqcomm.h"}
 
@@ -328,7 +328,10 @@ end;
 {$endif}
 
 end.  $Log$
-end.  Revision 1.2  2000-07-13 11:33:30  michael
+end.  Revision 1.3  2001-05-03 21:35:09  peter
+end.    * Makefile fixes
+end.
+end.  Revision 1.2  2000/07/13 11:33:30  michael
 end.  + removed logs
 end. 
 }

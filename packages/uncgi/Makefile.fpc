@@ -10,6 +10,9 @@ version=1.0.5
 units=uncgi
 examples=testcgi
 
+[install]
+fpcpackage=y
+
 [default]
 fpcdir=../..
 

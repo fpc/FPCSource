@@ -8,5 +8,8 @@ programs=alphasim
 [clean]
 units=mm64 fastmm64 simlib simbase
 
+[install]
+fpcpackage=y
+
 [default]
 fpcdir=../..

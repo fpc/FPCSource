@@ -18,6 +18,9 @@ includedir=$(CPU_TARGET)
 packages=rtl
 tools=diff cmp
 
+[install]
+fpcpackage=y
+
 [default]
 fpcdir=..
 

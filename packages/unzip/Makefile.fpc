@@ -10,5 +10,8 @@ version=1.0.5
 units=ziptypes unzip
 units_os2=unzipdll
 
+[install]
+fpcpackage=y
+
 [default]
 fpcdir=../..

@@ -14,6 +14,9 @@ targetdir=.
 unitdir=$(FPCDIR)/compiler $(FPCDIR)/compiler/$(CPU_TARGET) $(FPCDIR)/compiler/targets
 includedir=$(FPCDIR)/compiler $(FPCDIR)/compiler/$(CPU_TARGET)
 
+[install]
+fpcpackage=y
+
 [default]
 fpcdir=../../..
 
@@ -26,3 +29,6 @@ endif
 all: fpc_all
 
 clean: cleanall
+
+# Nothing to install
+install:

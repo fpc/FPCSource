@@ -10,5 +10,8 @@ version=1.0.5
 units=cmem
 examples=testcmem
 
+[install]
+fpcpackage=y
+
 [default]
 fpcdir=../..

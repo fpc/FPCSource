@@ -13,5 +13,8 @@ examples=testvga vgatest
 [require]
 libc=y
 
+[install]
+fpcpackage=y
+
 [default]
 fpcdir=../..

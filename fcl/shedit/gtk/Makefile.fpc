@@ -8,3 +8,10 @@ programs=gtkdemo
 
 [require]
 packages=fcl gtk
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
+

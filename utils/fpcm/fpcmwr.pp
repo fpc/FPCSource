@@ -703,6 +703,7 @@ implementation
            AddVariable('install_prefixdir');
            AddVariable('install_basedir');
            AddVariable('install_datadir');
+           AddVariable('install_fpcpackage');
            { Dist }
            AddVariable('dist_zipname');
            AddVariable('dist_ziptarget');
@@ -774,7 +775,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2001-02-24 10:44:33  peter
+  Revision 1.7  2001-05-03 21:35:10  peter
+    * Makefile fixes
+
+  Revision 1.6  2001/02/24 10:44:33  peter
     * another fix for internal variable checking
 
   Revision 1.5  2001/02/22 21:11:24  peter

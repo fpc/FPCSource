@@ -17,5 +17,8 @@ packages=fcl
 [compiler]
 options=-S2
 
+[install]
+fpcpackage=y
+
 [default]
 fpcdir=../..

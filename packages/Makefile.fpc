@@ -17,5 +17,8 @@ dirs_freebsd=zlib ncurses x11 gtk syslog \
            opengl forms svgalib ggi \
            utmp paszlib gdbint cmem regexpr unzip
 
+[install]
+fpcpackage=y
+
 [default]
 fpcdir=..

@@ -19,6 +19,9 @@ rsts=math varutils
 [require]
 nortl=y
 
+[install]
+fpcpackage=y
+
 [default]
 fpcdir=../..
 target=os2

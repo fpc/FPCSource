@@ -7,10 +7,14 @@ main=fcl
 
 [target]
 units=doc_text shedit sh_xml sh_pas
+exampledirs=gtk
 
 [compiler]
 options=-S2
 targetdir=../$(OS_TARGET)
+
+[install]
+fpcpackage=y
 
 [default]
 fpcdir=../..

@@ -12,5 +12,8 @@ units=zlib
 [require]
 libc=y
 
+[install]
+fpcpackage=y
+
 [default]
 fpcdir=../..

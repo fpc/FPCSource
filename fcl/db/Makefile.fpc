@@ -16,6 +16,9 @@ exampledirs=tests
 options=-S2
 targetdir=../$(OS_TARGET)
 
+[install]
+fpcpackage=y
+
 [default]
 fpcdir=../..
 

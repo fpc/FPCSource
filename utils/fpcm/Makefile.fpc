@@ -13,6 +13,9 @@ units=fpcmmain fpcmdic fpcmwr
 packages=fcl
 tools=data2inc
 
+[install]
+fpcpackage=y
+
 [default]
 fpcdir=../..
 

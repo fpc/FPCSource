@@ -20,5 +20,8 @@ exampledirs=examples
 sourcedir=$(OS_TARGET)
 targetdir=$(OS_TARGET)
 
+[install]
+fpcpackage=y
+
 [default]
 fpcdir=../..

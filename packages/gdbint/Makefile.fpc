@@ -17,6 +17,9 @@ librarydir=libgdb/$(OS_TARGET)
 [require]
 libc=y
 
+[install]
+fpcpackage=y
+
 [default]
 fpcdir=../..
 

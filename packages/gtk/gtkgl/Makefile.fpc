@@ -15,5 +15,8 @@ packages=opengl
 [compiler]
 targetdir=..
 
+[install]
+fpcpackage=y
+
 [default]
 fpcdir=../../..

@@ -22,6 +22,9 @@ nortl=y
 [clean]
 units=syslinux linux
 
+[install]
+fpcpackage=y
+
 [default]
 fpcdir=../..
 target=linux

@@ -12,5 +12,8 @@ packages=gtk
 [clean]
 units=tictactoe
 
+[install]
+fpcpackage=y
+
 [default]
 fpcdir=../../..

@@ -9,6 +9,9 @@ version=1.0.5
 [target]
 dirs=linux win32 go32v2 go32v1 os2 freebsd
 
+[install]
+fpcpackage=y
+
 [default]
 fpcdir=..
 dir=$(OS_TARGET)

@@ -11,6 +11,9 @@ units=options lexlib scan yacclib converu
 [compiler]
 options=-Sg
 
+[install]
+fpcpackage=y
+
 [default]
 fpcdir=../..
 

@@ -16,6 +16,9 @@ packages=fcl
 [clean]
 units=ptopu
 
+[install]
+fpcpackage=y
+
 [default]
 fpcdir=..
 

@@ -2,6 +2,9 @@
 # Makefile.fpc for Free Pascal Tests directory
 #
 
+[install]
+fpcpackage=y
+
 [default]
 fpcdir=..
 rule=allexectests

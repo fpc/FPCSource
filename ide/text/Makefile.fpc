@@ -10,6 +10,7 @@ rst=fpstrings
 
 [install]
 datadir=$(INSTALL_BASEDIR)/ide
+fpcpackage=y
 
 [compiler]
 options=-Sg
@@ -18,9 +19,6 @@ unitdir=$(COMPILERDIR)
 
 [require]
 packages=fv gdbint
-
-[libs]
-libgcc=1
 
 [default]
 fpcdir=../..
@@ -39,11 +37,11 @@ endif
 endif
 
 # Compiler dir
-ifdef FAKE
-COMPILERDIR=../fake/compiler
-else
+#ifdef FAKE
+#COMPILERDIR=../fake/compiler
+#else
 COMPILERDIR=compiler
-endif
+#endif
 
 # when including debugger include the gdbinterface
 ifndef GDBINT
@@ -157,14 +155,14 @@ clean: cleanall
 #
 
 ifndef UNIXINSTALLDIR
-override DATAINSTALLDIR=$(BININSTALLDIR)
+override INSTALL_DATADIR=$(INSTALL_BINDIR)
 endif
 
 install: fpc_install
-        $(MKDIR) $(DATAINSTALLDIR)
-        $(MKDIR) $(DOCINSTALLDIR)
-        $(INSTALL) fp.ans $(wildcard *.pt) $(wildcard *.tdf) $(DATAINSTALLDIR)
-        $(INSTALL) readme.ide $(DOCINSTALLDIR)
+        $(MKDIR) $(INSTALL_DATADIR)
+        $(MKDIR) $(INSTALL_DOCDIR)
+        $(INSTALL) fp.ans $(wildcard *.pt) $(wildcard *.tdf) $(INSTALL_DATADIR)
+        $(INSTALL) readme.ide $(INSTALL_DOCDIR)
 
 
 #
