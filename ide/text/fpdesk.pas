@@ -58,7 +58,7 @@ begin
   if DesktopLocation=dlCurrentDir then
     DesktopPath:=FExpand(DesktopName)
   else
-    DesktopPath:=FExpand(DirOf(INIPath)+DesktopName);
+    DesktopPath:=FExpand(DirOf(IniFileName)+DesktopName);
 end;
 
 procedure DoneDesktopFile;
@@ -544,10 +544,10 @@ begin
       OK:=OK and ReadHistory(F);
     if ((DesktopFileFlags and dfWatches)<>0) then
       OK:=OK and ReadWatches(F);
-    if ((DesktopFileFlags and dfOpenWindows)<>0) then
-      OK:=OK and ReadOpenWindows(F);
     if ((DesktopFileFlags and dfBreakpoints)<>0) then
       OK:=OK and ReadBreakpoints(F);
+    if ((DesktopFileFlags and dfOpenWindows)<>0) then
+      OK:=OK and ReadOpenWindows(F);
     { no errors if no browser info available PM }
     if ((DesktopFileFlags and dfSymbolInformation)<>0) then
       OK:=OK and ReadSymbols(F);
@@ -586,10 +586,10 @@ begin
         OK:=OK and WriteHistory(F);
       if ((DesktopFileFlags and dfWatches)<>0) then
         OK:=OK and WriteWatches(F);
-      if ((DesktopFileFlags and dfOpenWindows)<>0) then
-        OK:=OK and WriteOpenWindows(F);
       if ((DesktopFileFlags and dfBreakpoints)<>0) then
         OK:=OK and WriteBreakpoints(F);
+      if ((DesktopFileFlags and dfOpenWindows)<>0) then
+        OK:=OK and WriteOpenWindows(F);
       { no errors if no browser info available PM }
       if ((DesktopFileFlags and dfSymbolInformation)<>0) then
         OK:=OK and (WriteSymbols(F) or not Assigned(Modules));
@@ -647,7 +647,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.22  2000-02-07 12:03:48  pierre
+  Revision 1.23  2000-03-13 20:36:52  pierre
+   * Breakpoints saved and loaded before sources
+
+  Revision 1.22  2000/02/07 12:03:48  pierre
    Last commit is from Gabor's changes!
 
   Revision 1.21  2000/02/07 11:55:27  pierre
