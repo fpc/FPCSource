@@ -600,7 +600,7 @@ Var
   BestMatch,i : Longint;
   Found       : Boolean;
 Begin
-  BestMatch:=0;
+  BestMatch:=1;
   i:=1;
   Found:=False;
   While (i <= RtlFindSize) And (Not Found) Do
@@ -1044,7 +1044,10 @@ End.
 
 {
   $Log$
-  Revision 1.8  1999-01-28 12:54:13  michael
+  Revision 1.9  1999-02-22 11:45:19  peter
+    * fixed findlastused (from mailinglist)
+
+  Revision 1.8  1999/01/28 12:54:13  michael
   + Fixed memory leak in findfirst/findnext
 
   Revision 1.7  1999/01/28 12:10:42  michael
