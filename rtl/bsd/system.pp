@@ -190,6 +190,7 @@ end;
 Begin
   IsConsole := TRUE;
   IsLibrary := FALSE;
+  StackLength := InitialStkLen;
   StackBottom := Sptr - StackLength;
 { Set up signals handlers }
   InstallSignals;
@@ -212,7 +213,11 @@ End.
 
 {
   $Log$
-  Revision 1.18  2004-07-03 22:49:34  daniel
+  Revision 1.19  2004-07-17 15:31:03  jonas
+    * initialise StackLength (fixes stack checking in general, and tw2897 in
+      particular)
+
+  Revision 1.18  2004/07/03 22:49:34  daniel
     * Moved declarations downwards
 
   Revision 1.17  2004/07/03 22:44:37  daniel
