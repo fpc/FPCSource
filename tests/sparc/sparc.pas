@@ -1,20 +1,12 @@
+{ $Id$ }
 {$UNITPATH ../../rtl/linux}
 {$INCLUDEPATH ../../rtl/unix;../../rtl/inc;../../rtl/unix;../../rtl/sparc}
 PROGRAM SparcTest;
-VAR
-  x,y:Cardinal; 
-  z:0..255;
-FUNCTION CopyMe(x:Cardinal):Cardinal;
-  BEGIN
-    CopyMe:=x;
-  END;
-FUNCTION Add(a,b:Cardinal):Cardinal;
-  BEGIN
-    Add:=a+b;
-  END;
 BEGIN
-  y:=0;
-  z:=0;
-  x:=1+y;
-  x:=Add(x,y);
 END.
+{
+  $Log$
+  Revision 1.5  2002-12-06 08:35:50  mazen
+  + added just to test RTL compilation
+
+}
