@@ -502,14 +502,18 @@ end;
 
 Function TStrings.IndexOfName(const Name: string): Integer;
 
-Var len : longint;
-
+Var 
+  len : longint;
+  S : String;
+  
 begin
   Result:=0;
   while (Result<Count) do
     begin
-    len:=pos('=',Strings[Result])-1;
-    if (len>0) and (Name=Copy(Strings[Result],1,Len)) then exit;
+    S:=Strings[Result];
+    len:=pos('=',S)-1;
+    if (len>0) and (CompareText(Name,Copy(S,1,Len))=0) then 
+      exit;
     inc(result);
     end;
   result:=-1;
@@ -1040,7 +1044,10 @@ end;
 
 {
   $Log$
-  Revision 1.13  2002-10-10 12:50:40  michael
+  Revision 1.14  2002-12-10 21:05:44  michael
+  + IndexOfName is case insensitive
+
+  Revision 1.13  2002/10/10 12:50:40  michael
   + Fix for handling of double quotes in getquotedstring from Luk Vandelaer (luk.vandelaer@wisa.be)
 
   Revision 1.12  2002/09/07 15:15:25  peter
