@@ -1,7 +1,7 @@
 
                             Free Pascal Compiler
 
-                               Version 1.0.4
+                               Version 1.0.6
 
 
 ****************************************************************************
@@ -17,7 +17,11 @@ Free Pascal is currently available for the following platforms:
 - DOS, via the DJ Delorie's GO32V2 Dos extenders
 - Linux (i386), both aout and elf
 - OS/2 & DOS, via the EMX extender
-- Win32 (Win32s, Win95/98 and WinNT)
+- Win32 (Win32s, Win95/98/Me/XP/2000 and WinNT)
+- Sun Solaris i386
+- BeOS i386
+- QNX i386
+- FreeBSD i386
 
 Older version of the compiler (0.99.5) is also available on:
 - Commodore Amiga
@@ -54,13 +58,12 @@ More platforms will be supported in the future.
 - can call external C code
 - smartlinking
 - support for the GNU debugger
-- cross-platform API
 - IDE (currently for GO32v2 and Win32 only, in beta testing phase)
 - can create binaries running natively under both DOS and OS/2 (EMX version)
 
 
 ****************************************************************************
-* Requirements
+* Requirements (Intel version)
 ****************************************************************************
 
 386 processor
@@ -68,24 +71,27 @@ DOS (extender GO32v2):
  - DOS 3.3
  - 4 MB RAM (8+ MB recommended)
  - hard disk with free space of 8 MB
- - DMPI server (CWSDPMI is delivered in the go32v2 distribution)
+ - DPMI server (CWSDPMI is delivered in the go32v2 distribution)
 Win32:
- - Win95/98 or WinNT
+ - Win95/98/Me/2000/XP or WinNT
  - 8 MB RAM (16+ MB recommended)
 OS/2 and DOS (extender EMX):
  - either DOS 5.0 and above
- or OS/2 v2.x and above
+  or OS/2 v2.x and above
  - 3 MB RAM (8+ MB recommended) for DOS
- or 8 MB (12 or more MB recommended depending on OS version) for OS/2
+  or 8 MB (12 or more MB recommended depending on OS version) for OS/2
  - EMX or RSX (for DPMI) runtime package (part of OS/2 distribution)
+BeOS:
+ - GNU Utilities and development tools pre-installed (as and ld)
+ - BeOS 4.5 or later
 
 
 ****************************************************************************
 * Quick start
 ****************************************************************************
 
-Download dos104.zip (version for DOS) or w32104.zip (version for
-Win9x/NT) or os2104.zip (EMX version - for OS/2 and DOS) and unzip it
+Download dos106.zip (version for DOS) or w32106.zip (version for
+Win9x/NT) or os2106.zip (EMX version - for OS/2 and DOS) and unzip it
 into a temporary directory.
 
 Start the install program INSTALL.EXE and follow the instructions.
@@ -106,7 +112,7 @@ All standard packages contain a part that is specific for the target platform
 and a few files which are target independent. All files are also available
 as separate files to reduce file size if the default file is too big.
 
-dos104.zip specific:
+dos106.zip specific:
 ----------------------
   basego32.zip    contains a DOS (Go32V2) compiler, runtime library and
                   additional files
@@ -115,9 +121,9 @@ dos104.zip specific:
       LD 2.9.1 for Go32V2
       AR 2.8.1 for Go32V2
       Strip 2.8.1 for Go32V2
-  utilgo32.zip    contains additional GNU utilities which might be useful to
+  makego32.zip    contains additional GNU utilities which might be useful to
                   compile the run time library:
-      Make 3.76.1
+      Make 3.79.1
       RM 3.16
       CP 3.16
       MV 3.16
@@ -125,10 +131,10 @@ dos104.zip specific:
       GInstall 3.16
       GDate 3.16
       GEcho 3.16
-      UPX 1.01
+      UPX 1.20
   gdbgo32.zip     contains the GNU Debugger 4.18 with pascal support for Go32V2
 
-w32104.zip specific:
+w32106.zip specific:
 ----------------------
   basew32.zip     contains a Win32 compiler, runtime library and
                   additional files
@@ -140,9 +146,9 @@ w32104.zip specific:
       Strip 2.9.5 for Win32
       WindRes 2.9.5 for Win32
       DLLTool 2.9.5 for Win32
-  utilw32.zip     contains additional GNU utilities which might be useful to
+  makew32.zip     contains additional GNU utilities which might be useful to
                   compile the run time library:
-      Make 3.76.1
+      Make 3.79.1
       RM 3.16
       CP 3.16
       MV 3.16
@@ -150,10 +156,10 @@ w32104.zip specific:
       GInstall 3.16
       GDate 3.16
       GEcho 3.16
-      UPX 1.01
+      UPX 1.20
   gdbw32.zip      contains the GNU Debugger 4.18 with pascal support for Win32
 
-os2104.zip specific:
+os2106.zip specific:
 ----------------------
   baseemx.zip     contains an EMX (OS/2 and DOS) compiler, runtime library and
                   additional files
@@ -182,22 +188,22 @@ os2104.zip specific:
   gdbemx.zip      contains the GNU Debugger 4.16 for EMX,
                   PMGDB (Presentation Manager add-on for GDB) and GPROF 2.9.1
 
-common files in dos104.zip, w32104.zip and os2104.zip:
+common files in dos106.zip, w32106.zip and os2106.zip:
 ------------------------------------------------------------
   demo.zip        contains some demo files
   doc-pdf.zip     contains the documentation in PDF format
+  doc-html.zip    contains the documentation in HTML format
   install.exe     installation program
   install.dat     installation data
   readme.txt      this readme file
   whatsnew.txt    what's been changed
 
-Optional source package src104.zip:
+Optional source package src106.zip:
 -------------------------------------
   basesrc.zip     contains the basic Makefiles needed for the source tree
   compsrc.zip     contains the compiler sources
   rtlsrc.zip      contains the runtime library sources
   fclsrc.zip      contains the Free Component Library sources
-  apisrc.zip      contains the API sources
   pkgssrc         contains the packages (various units) sources
   utilssrc.zip    contains the Utilities sources
   instsrc.zip     contains the installer sources
@@ -233,7 +239,7 @@ Information about available lists and subscription can be found
 on http://lists.freepascal.org/mailman/listinfo
 
 www: http://www.freepascal.org
-ftp: ftp.freepascal.org/fpc
+ftp: ftp://ftp.freepascal.org/fpc
 (several mirrors exist, see website for links)
 
 Additional information about mailing lists, news, future plans etc.
@@ -249,7 +255,7 @@ utils for GO32v2 and Win32. The latest snapshots are in: ftp... /fpc/snapshot/
 in appropriately named .zip/tar files.
 
 You will also normally find in the snapshot archive file a readme, with
-a note about the latest included changes. It is quite common, tho' doesn't
+a note about the latest included changes. It is quite common, though it doesn't
 always happen, that when a bug is reported it is fixed and a fixed version
 can be obtained the NEXT day in the appropriate snapshot.... yes really!
 
@@ -290,12 +296,22 @@ not be willing/able to fix it.
 * License
 ****************************************************************************
 
-The programs and sources come under the GPL, for more informations read
-the file COPYING. Additional informations about the runtime library license
-are found in COPYING.FPC. Some utilities and programs come under the license
-described in COPYING.DJ or COPYING.EMX
+The compiler and most utilities and executables distributed in this package
+fall under the GPL, for more information read the file COPYING.GPL. 
+
+Some specific utilities and programs come under the license described in 
+COPYING.DJ or COPYING.EMX.
+
+The documentation, unless otherwise noted, is distributed as free 
+text, and is distributed under the GNU Library General Public
+License.
+
+The runtime library, package libraries, free component library, and 
+other libraries which are used to create executables by the compiler 
+come under a modified GNU Library General Public license. Additional 
+informations about the library licenses are found in COPYING.FPC. 
 
 NOTE: OS/2 version of the installer uses the library UNZIP32.DLL from
       Info-ZIP. Info-ZIP's software (Zip, UnZip and related utilities)
       is free and can be obtained as source code or executables from
-      Internet/WWW sites, including http://www.cdrom.com/pub/infozip/ .
+      Internet/WWW sites, including http://www.info-zip.org.
