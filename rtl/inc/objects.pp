@@ -636,7 +636,6 @@ CONST
 {              INITIALIZED DOS/DPMI/WIN/OS2 PUBLIC VARIABLES                }
 {---------------------------------------------------------------------------}
    StreamError: Pointer = Nil;                        { Stream error ptr }
-   DosStreamError: Word = $0;                      { Dos stream error }
    DefaultTPCompatible: Boolean = false;
 
 {---------------------------------------------------------------------------}
@@ -1224,6 +1223,7 @@ END;
 {---------------------------------------------------------------------------}
 CONSTRUCTOR TDosStream.Init (FileName: FNameStr; Mode: Word);
 VAR OldFileMode : Byte;
+    DosStreamError : Word;
 BEGIN
    Inherited Init;                                    { Call ancestor }
    FileName := FileName+#0;                           { Make asciiz }
@@ -1254,14 +1254,17 @@ BEGIN
    If DosStreamError = 0 then
        DosStreamError := IOResult;
    If (DosStreamError <> 0) Then 
-     Error(stInitError, DosStreamError);              { Call stream error }
-   Status := StOK;  
+     Error(stInitError, DosStreamError)              { Call stream error }
+   else  
+     Status := StOK;  
 END;
 
 {--TDosStream---------------------------------------------------------------}
 {  Done -> Platforms DOS/DPMI/WIN/OS2 - Checked 16May96 LdB                 }
 {---------------------------------------------------------------------------}
 DESTRUCTOR TDosStream.Done;
+var
+  DosStreamError : Word;
 BEGIN
    if Handle <> InvalidHandle then
      Begin
@@ -1281,6 +1284,8 @@ END;
 {  Close -> Platforms DOS/DPMI/WIN/OS2 - Checked 16May96 LdB                }
 {---------------------------------------------------------------------------}
 PROCEDURE TDosStream.Close;
+var
+  DosStreamError : Word;
 BEGIN
    if Handle <> InvalidHandle then                    { Is file closed ?   }
      Begin
@@ -1299,13 +1304,16 @@ END;
 {  Truncate -> Platforms DOS/DPMI/WIN/OS2 - Checked 16May96 LdB             }
 {---------------------------------------------------------------------------}
 PROCEDURE TDosStream.Truncate;
+ var
+  DosStreamError : Word;
 BEGIN
    If Status = stOk then
      Begin
        System.Truncate(FileInfo);
        DosStreamError := IOResult;
        If DosStreamError = 0 then
-         StreamSize := Position
+           { Status is already = stOK }
+           StreamSize := Position
        else
          Error(stError, DosStreamError);
      end;
@@ -1315,6 +1323,8 @@ END;
 {  Seek -> Platforms DOS/DPMI/WIN/OS2 - Checked 16May96 LdB                 }
 {---------------------------------------------------------------------------}
 PROCEDURE TDosStream.Seek (Pos: Longint);
+var
+ DosStreamError : Word;
 BEGIN
    If (Status=stOk) Then 
      Begin                                  { Check status okay }
@@ -1325,6 +1335,7 @@ BEGIN
        if DosStreamError <> 0 then
           Error(stSeekError, DosStreamError){ Specific seek error }
        Else Position := Pos;                 { Adjust position     }
+       { Status is already = stOK }
     End;
 END;
 
@@ -1333,6 +1344,7 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TDosStream.Open (OpenMode: Word);
 VAR OldFileMode : Byte;
+    DosStreamError : Word;
 BEGIN
    If (Status=stOk) Then 
      Begin                        { Check status okay }
@@ -1361,8 +1373,9 @@ BEGIN
            If DosStreamError = 0 then
               DosStreamError := IOResult;
            If (DosStreamError <> 0) Then 
-              Error(stOpenError, DosStreamError);              { Call stream error }
-           Status := StOK;  
+              Error(stOpenError, DosStreamError)              { Call stream error }
+           else   
+              Status := StOK;  
            Position := 0;
          end  
       Else 
@@ -1375,7 +1388,10 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TDosStream.Read (Var Buf; Count: Sw_Word);
 VAR BytesMoved: Sw_Word; 
+    DosStreamError : Word;
 BEGIN
+   { Assume status is StOK }
+   Status := StOk;
    If (Position + Count > StreamSize) Then            { Insufficient data }
      Error(stReadError, 0);                           { Read beyond end!!! }
    If (Handle = InvalidHandle) Then 
@@ -1398,7 +1414,10 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TDosStream.Write (Var Buf; Count: Sw_Word);
 VAR BytesMoved: Sw_Word; 
+    DosStreamError : Word;
 BEGIN
+   { Assume status is StOk }
+   Status := StOK;
    If (Handle = InvalidHandle) Then 
     Error(stWriteError, 103);                    { File not open }
    BlockWrite(FileInfo, Buf, Count, BytesMoved); { Write to file }
@@ -1457,7 +1476,10 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TBufStream.Flush;
 VAR W: Sw_Word;
+    DosStreamError : Word;
 BEGIN
+   { Assume status is StOK }
+   Status := StOK;
    If (LastMode=2) AND (BufPtr<>0) Then Begin         { Must update file }
      If (Handle = InvalidHandle) Then DosStreamError := 103  { File is not open }
        Else 
@@ -1512,7 +1534,10 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TBufStream.Read (Var Buf; Count: Sw_Word);
 VAR Success: Integer; W, Bw: Sw_Word; P: PByteArray;
+    DosStreamError : Word;
 BEGIN
+   { Assume status is StOK }
+   Status := StOK;
    If (Position + Count > StreamSize) Then            { Read pas stream end }
      Error(stReadError, 0);                           { Call stream error }
    If (Handle = InvalidHandle) Then Error(stReadError, 103);     { File not open }
@@ -1554,7 +1579,10 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TBufStream.Write (Var Buf; Count: Sw_Word);
 VAR Success: Integer; W: Sw_Word; P: PByteArray;
+    DosStreamError : Word;
 BEGIN
+   { Assume status is StOK }
+   Status := StOK;
    If (Handle = InvalidHandle) Then Error(stWriteError, 103);    { File not open }
    If (LastMode=1) Then Flush;                        { Flush read buffer }
    LastMode := 2;                                     { Now set write mode }
@@ -2860,7 +2888,11 @@ END;
 END.
 {
   $Log$
-  Revision 1.13  2002-10-09 16:10:14  carl
+  Revision 1.14  2002-10-30 22:44:44  carl
+    * Bugfix for error checking
+    - DosStreamError is no longer global (bugfix 2043)
+
+  Revision 1.13  2002/10/09 16:10:14  carl
     - removed OS depedencies
 
   Revision 1.12  2002/09/07 21:15:25  carl
