@@ -124,7 +124,8 @@ begin
 
   if (FCursorX >= x) and (FCursorY >= y) and
     (FCursorX <= x2) and (FCursorY <= y2) then
-    HideCursor;
+    //HideCursor;
+    Dec(CursorVisible);
 
   if (FDoc = nil) or (FDoc.LineCount <= y) then begin
     PostprocessOutput(y);
@@ -258,7 +259,10 @@ end;
 
 {
   $Log$
-  Revision 1.11  2000-02-10 18:20:23  sg
+  Revision 1.12  2000-02-19 19:05:43  sg
+  * Improved cursor drawing
+
+  Revision 1.11  2000/02/10 18:20:23  sg
   * Really fixed the bug in "ChangeInLine" now: Not only width and height
     were swapped before, but x and y too...
 
