@@ -58,17 +58,6 @@ FULLSOURCE=$SOURCECPU-$SOURCEOS
 echo "FPC Source: $FULLSOURCE"
 echo "FPC Target: $FULLTARGET"
 
-# Check for libgdb.a
-if [ "$CHECKLIBGDB" = "yes" ]; then
-  if [ "$GDBLIBDIR" = "" ]; then
-    GDBLIBDIR=libgdb/$TARGETOS/$TARGETCPU
-  fi
-  if [ ! -e "$GDBLIBDIR/libgdb.a" ]; then
-    echo "Libgdb ($GDBLIBDIR/libgdb.a) not found, aborting"
-    exit 1
-  fi
-fi
-
 # Cross building
 #  - add prefix
 #  - no IDE
@@ -81,6 +70,21 @@ else
    CROSSPREFIX=
    IDE=ide
 fi
+
+
+# Check for libgdb.a
+if [ ! "$CROSS" = "cross" ]; then
+  if [ "$CHECKLIBGDB" = "yes" ]; then
+    if [ "$GDBLIBDIR" = "" ]; then
+      GDBLIBDIR=libgdb/$TARGETOS/$TARGETCPU
+    fi
+    if [ ! -e "$GDBLIBDIR/libgdb.a" ]; then
+      echo "Libgdb ($GDBLIBDIR/libgdb.a) not found, aborting"
+      exit 1
+    fi
+  fi
+fi
+
 
 # Build everything using the makefiles
 ${MAKE} distclean CPU_TARGET=$TARGETCPU OS_TARGET=$TARGETOS
