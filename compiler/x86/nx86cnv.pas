@@ -63,13 +63,13 @@ implementation
       cginfo,cgbase,pass_2,
       ncon,ncal,ncnv,
       cpubase,
-      cgobj,cga,tgobj,rgobj,ncgutil;
+      cgobj,tgobj,rgobj,ncgutil;
 
 
     procedure tx86typeconvnode.second_int_to_bool;
       var
         hregister : tregister;
-        pref      : treference;
+        href      : treference;
         resflags  : tresflags;
         hlabel,oldtruelabel,oldfalselabel : tasmlabel;
       begin
@@ -94,24 +94,26 @@ implementation
 
          { Load left node into flag F_NE/F_E }
          resflags:=F_NE;
-         location_release(exprasmlist,left.location);
          case left.location.loc of
             LOC_CREFERENCE,
             LOC_REFERENCE :
               begin
-{$ifdef i386}
+{$ifndef cpu64bit}
                 if left.location.size in [OS_64,OS_S64] then
                  begin
+                   location_release(exprasmlist,left.location);
                    hregister:=rg.getregisterint(exprasmlist,OS_INT);
-                   emit_ref_reg(A_MOV,S_L,left.location.reference,hregister);
-                   pref:=left.location.reference;
-                   inc(pref.offset,4);
-                   emit_ref_reg(A_OR,S_L,pref,hregister);
+                   cg.a_load_ref_reg(exprasmlist,OS_32,OS_32,left.location.reference,hregister);
+                   href:=left.location.reference;
+                   inc(href.offset,4);
+                   rg.ungetregisterint(exprasmlist,hregister);
+                   cg.a_op_ref_reg(exprasmlist,OP_OR,OS_32,href,hregister);
                  end
                 else
-{$endif i386}
+{$endif cpu64bit}
                  begin
                    location_force_reg(exprasmlist,left.location,left.location.size,true);
+                   location_release(exprasmlist,left.location);
                    cg.a_op_reg_reg(exprasmlist,OP_OR,left.location.size,left.location.register,left.location.register);
                  end;
               end;
@@ -121,17 +123,21 @@ implementation
               end;
             LOC_REGISTER,LOC_CREGISTER :
               begin
-{$ifdef i386}
+{$ifndef cpu64bit}
                 if left.location.size in [OS_64,OS_S64] then
                  begin
                    hregister:=rg.getregisterint(exprasmlist,OS_32);
                    cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,left.location.registerlow,hregister);
-                   cg.a_op_reg_reg(exprasmlist,OP_OR,OS_32,left.location.registerhigh,hregister);
                    rg.ungetregisterint(exprasmlist,hregister);
+                   location_release(exprasmlist,left.location);
+                   cg.a_op_reg_reg(exprasmlist,OP_OR,OS_32,left.location.registerhigh,hregister);
                  end
                 else
-{$endif i386}
-                 cg.a_op_reg_reg(exprasmlist,OP_OR,left.location.size,left.location.register,left.location.register);
+{$endif cpu64bit}
+                 begin
+                   location_release(exprasmlist,left.location);
+                   cg.a_op_reg_reg(exprasmlist,OP_OR,left.location.size,left.location.register,left.location.register);
+                 end;
               end;
             LOC_JUMP :
               begin
@@ -143,6 +149,7 @@ implementation
                 cg.a_label(exprasmlist,falselabel);
                 cg.a_load_const_reg(exprasmlist,OS_INT,0,hregister);
                 cg.a_label(exprasmlist,hlabel);
+                rg.ungetregisterint(exprasmlist,hregister);
                 cg.a_op_reg_reg(exprasmlist,OP_OR,OS_INT,hregister,hregister);
               end;
             else
@@ -150,7 +157,7 @@ implementation
          end;
          { load flags to register }
          location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
-         location.register:=def_getreg(resulttype.def);
+         location.register:=rg.getregisterint(exprasmlist,location.size);
          cg.g_flags2reg(exprasmlist,location.size,resflags,location.register);
          truelabel:=oldtruelabel;
          falselabel:=oldfalselabel;
@@ -159,7 +166,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2003-09-03 15:55:02  peter
+  Revision 1.4  2003-09-28 21:48:57  peter
+    * fix register leak
+
+  Revision 1.3  2003/09/03 15:55:02  peter
     * NEWRA branch merged
 
   Revision 1.2.2.1  2003/08/31 15:46:26  peter
