@@ -21,7 +21,8 @@
     { the reverse order of the parameters make code generation easier }
     function int_do_is(aclass : tclass;aobject : tobject) : boolean;[public,alias: 'FPC_DO_IS'];
       begin
-         int_do_is:=aobject.inheritsfrom(aclass);
+         int_do_is:=assigned(aobject) and assigned(aclass) and
+           aobject.inheritsfrom(aclass);
       end;
 
 
@@ -677,7 +678,10 @@
 
 {
   $Log$
-  Revision 1.12  2000-11-12 23:23:34  florian
+  Revision 1.13  2000-12-20 21:38:23  florian
+    * is-operator fixed
+
+  Revision 1.12  2000/11/12 23:23:34  florian
     * interfaces basically running
 
   Revision 1.11  2000/11/09 17:50:12  florian
