@@ -1,0 +1,81 @@
+{
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1999-2000 by the Free Pascal development team
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
+procedure GetVideoMode(var Mode: TVideoMode);
+begin
+  Mode.Col := ScreenWidth;
+  Mode.Row := ScreenHeight;
+  Mode.Color := ScreenColor;
+end;
+
+procedure SetVideoMode(Mode: TVideoMode);
+var
+  P: PVideoModeList;
+begin
+  P := Modes;
+  while (P<>Nil) and ((P^.Row <> Mode.Row) or (P^.Col <> Mode.Col) or (P^.Color<>Mode.Color)) do
+    P := P^.Next;
+  if P <> nil then begin
+    DoneVideo;
+    ScreenWidth:=$ffff;
+    ScreenHeight:=$ffff;
+    P^.VideoModeSelector(PVideoMode(P)^, P^.Params);
+    InitVideo;
+   end
+   else begin
+    ErrorHandler(errVioNoSuchMode, @Mode);
+  end;
+end;
+
+procedure RegisterVideoMode(Col, Row: Word; Color: Boolean; VideoModeSelector: TVideoModeSelector; Params: Longint);
+var
+  P: PVideoModeList;
+begin
+  New(P);
+  P^.Col := Col;
+  P^.Row := Row;
+  P^.Color := Color;
+  P^.VideoModeSelector := VideoModeSelector;
+  P^.Params := Params;
+  P^.Next := Modes;
+  Modes := P;
+end;
+
+
+procedure UnRegisterVideoModes;
+var
+  P: PVideoModeList;
+begin
+  while assigned(modes) do
+   begin
+     p:=modes;
+     modes:=modes^.next;
+     dispose(p);
+   end;
+end;
+
+function DefaultErrorHandler(AErrorCode: Longint; AErrorInfo: Pointer): TErrorHandlerReturnValue;
+begin
+  ErrorCode := AErrorCode;
+  ErrorInfo := AErrorInfo;
+  DefaultErrorHandler := errAbort; { return error code }
+end;
+
+{
+  $Log$
+  Revision 1.1  2001-01-13 11:13:12  peter
+    * API 2 RTL
+
+}
+
