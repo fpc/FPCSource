@@ -832,7 +832,17 @@ begin
          current_module^.uses_imports:=true;
          importlib^.preparelib(current_module^.modulename^);
        end;
-      importlib^.importprocedure(aktprocsym^.mangledname,import_dll,import_nr,import_name)
+      if not(m_repeat_forward in aktmodeswitches) then
+        begin
+          { we can only have one overloaded here ! }
+          if assigned(aktprocsym^.definition^.nextoverloaded) then
+            importlib^.importprocedure(aktprocsym^.definition^.nextoverloaded^.mangledname,
+              import_dll,import_nr,import_name)
+          else
+            importlib^.importprocedure(aktprocsym^.mangledname,import_dll,import_nr,import_name);
+        end
+      else
+        importlib^.importprocedure(aktprocsym^.mangledname,import_dll,import_nr,import_name);
     end
   else
     begin
@@ -1226,7 +1236,7 @@ begin
                          { this is also wrong (PM)
                          aktprocsym^.definition^.setmangledname(hd^.mangledname);}
                        end
-                     else
+                      else
                        begin
                        { If mangled names are equal, therefore    }
                        { they have the same number of parameters  }
@@ -1825,7 +1835,10 @@ end.
 
 {
   $Log$
-  Revision 1.1.2.2  1999-07-02 12:59:52  peter
+  Revision 1.1.2.3  1999-07-11 20:04:05  pierre
+   * fix for problem with external without parameters in Delphi mode
+
+  Revision 1.1.2.2  1999/07/02 12:59:52  peter
     * fixed parsing of message directive
 
   Revision 1.1.2.1  1999/06/17 12:44:47  pierre
