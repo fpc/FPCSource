@@ -126,9 +126,9 @@ begin
       if apptype = app_cui then
           Add('"{PPCLibraries}PPCSIOW.o" '#182);
 
-      if (apptype = app_tool) or (apptype = app_cui) then
-          Add('"{PPCLibraries}PPCToolLibs.o" '#182);
-
+      {Even GUI apps must link to PPCToolLibs, because of the System unit 
+       which can be used by MPW tools as well as by GUI apps.}
+      Add('"{PPCLibraries}PPCToolLibs.o" '#182);
       Add('"{SharedLibraries}InterfaceLib" '#182);
       Add('"{SharedLibraries}StdCLib" '#182);
       Add('"{SharedLibraries}MathLib" '#182);
@@ -160,6 +160,17 @@ begin
           Add('Rez -append "{RIncludes}"SIOW.r -o ' + ScriptFixFileName(current_module.exefilename^));
           Add('Exit If "{Status}" != 0');
         end;
+
+      while not (current_module.ResourceFiles.Empty) do
+        begin
+          s := Current_module.ResourceFiles.GetFirst;
+          if Copy(s,Length(s)-1,Length(s)) = '.r' then
+            Add('Rez -append ' + s + ' -o ' + ScriptFixFileName(current_module.exefilename^))
+          else
+            Add('DeRez ' + s + ' | Rez -append -o ' + ScriptFixFileName(current_module.exefilename^));
+          Add('Exit If "{Status}" != 0');
+        end;
+
     end;
 
   { Write and Close response }
@@ -247,7 +258,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.18  2005-01-09 16:35:41  olle
+  Revision 1.19  2005-01-24 17:53:12  olle
+    + Mac style resource files can now be included in MacOS
+
+  Revision 1.18  2005/01/09 16:35:41  olle
     + linker response file is now removed after linking
 
   Revision 1.17  2004/12/28 22:00:15  olle
