@@ -360,7 +360,7 @@ Begin
     Begin
       If IsLoadMemReg(p) Then
         With PInstr(p)^.oper[LoadSrc].ref^ Do
-          If (Base = ProcInfo^.FramePointer)
+          If (Base = ProcInfo.FramePointer)
 {$ifdef RefsHaveIndexReg}
              And (Index = R_NO)
 {$endif RefsHaveIndexReg} Then
@@ -434,7 +434,7 @@ Var RefsEq: TRefCompare;
     Counter: TRegister;
 Begin
   WhichReg := RegMaxSize(WhichReg);
-  If (Ref.base = procinfo^.FramePointer) or
+  If (Ref.base = procinfo.FramePointer) or
       Assigned(Ref.Symbol) Then
     Begin
       If
@@ -497,7 +497,7 @@ Begin
         {don't destroy if reg contains a parameter, local or global variable}
               Not((NrOfMods = 1) And
                   (PInstr(StartMod)^.oper[0].typ = top_ref) And
-                  ((PInstr(StartMod)^.oper[0].ref^.base = ProcInfo^.FramePointer) Or
+                  ((PInstr(StartMod)^.oper[0].ref^.base = ProcInfo.FramePointer) Or
                     Assigned(PInstr(StartMod)^.oper[0].ref^.Symbol)
                   )
                  )
@@ -788,7 +788,10 @@ End.
 
 {
  $Log$
- Revision 1.6  2002-07-07 09:52:32  florian
+ Revision 1.7  2002-08-18 18:16:55  florian
+   * fixed compilation error
+
+ Revision 1.6  2002/07/07 09:52:32  florian
    * powerpc target fixed, very simple units can be compiled
    * some basic stuff for better callparanode handling, far from being finished
 
