@@ -34,17 +34,6 @@ interface
        symconst,symbase,symtype,symdef;
 
      type
-       { The order is from low priority to high priority,
-         Note: the operators > and < are used on this list }
-       tequaltype = (
-         te_incompatible,
-         te_convert_operator,
-         te_convert_l2,     { compatible conversion with possible loss of data }
-         te_convert_l1,     { compatible conversion     }
-         te_equal,          { the definitions are equal }
-         te_exact
-       );
-
        { if acp is cp_all the var const or nothing are considered equal }
        compare_type = ( cp_none, cp_value_equal_const, cp_all,cp_procvar);
 
@@ -286,10 +275,15 @@ implementation
                            doconv:=tc_string_2_string;
                            { Don't prefer conversions from widestring to a
                              normal string as we can loose information }
-                           if is_widestring(def_from) then
-                            eq:=te_convert_l1
+                           if tstringdef(def_from).string_typ=st_widestring then
+                             eq:=te_convert_l1
                            else
-                            eq:=te_convert_l2;
+                             begin
+                               if tstringdef(def_to).string_typ=st_widestring then
+                                 eq:=te_convert_l1
+                               else
+                                 eq:=te_equal; { we can change the stringconst node }
+                             end;
                          end;
                       end
                      else
@@ -958,6 +952,7 @@ implementation
 
            formaldef :
              begin
+               doconv:=tc_equal;
                if (def_from.deftype=formaldef) then
                  eq:=te_equal
                else
@@ -978,6 +973,12 @@ implementation
             if assigned(operatorpd) then
              eq:=te_convert_operator;
           end;
+
+        { update convtype for te_equal when it is not yet set }
+        if (eq=te_equal) and
+           (doconv=tc_not_possible) then
+          doconv:=tc_equal;
+
         compare_defs_ext:=eq;
       end;
 
@@ -1187,7 +1188,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2003-01-05 22:42:13  peter
+  Revision 1.17  2003-01-09 21:43:39  peter
+    * constant string conversion fixed, it's now equal to both
+      shortstring, ansistring and the typeconvnode will return
+      te_equal but still return convtype to change the constnode
+
+  Revision 1.16  2003/01/05 22:42:13  peter
     * use int_to_int conversion for pointer/procvar/classref to int
 
   Revision 1.15  2003/01/05 15:54:15  florian

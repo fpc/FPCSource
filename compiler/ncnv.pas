@@ -1054,10 +1054,16 @@ implementation
                 end
               else
                begin
-                 left.resulttype:=resulttype;
-                 result:=left;
-                 left:=nil;
-                 exit;
+                 { Only leave when there is no conversion to do.
+                   We can still need to call a conversion routine,
+                   like the routine to convert a stringconstnode }
+                 if convtype in [tc_equal,tc_not_possible] then
+                  begin
+                    left.resulttype:=resulttype;
+                    result:=left;
+                    left:=nil;
+                    exit;
+                  end;
                end;
             end;
 
@@ -2018,7 +2024,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.98  2003-01-05 22:41:40  peter
+  Revision 1.99  2003-01-09 21:43:39  peter
+    * constant string conversion fixed, it's now equal to both
+      shortstring, ansistring and the typeconvnode will return
+      te_equal but still return convtype to change the constnode
+
+  Revision 1.98  2003/01/05 22:41:40  peter
     * move code that checks for longint-pointer conversion hint
 
   Revision 1.97  2003/01/03 12:15:56  daniel
