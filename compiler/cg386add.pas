@@ -935,11 +935,11 @@ implementation
                                   op:=A_AND;
                                   mboverflow:=false;
                                   unsigned:=false;
-{$IfDef setConstNot}
+{$IfNDef NoSetConstNot}
                                   If (p^.right^.treetype = setconstn) then
                                     p^.right^.location.reference.offset := not(p^.right^.location.reference.offset)
                                   Else
-{$EndIf setConstNot}
+{$EndIf NoNosetConstNot}
                                     extra_not:=true;
                                 end
                                else
@@ -1017,7 +1017,7 @@ implementation
                        clear_location(p^.location);
                        p^.location.register:=getregister32;
                        p^.location.loc:=LOC_REGISTER;
-{$IfDef ShlMul}
+{$IfNDef NoShlMul}
                        if p^.right^.treetype=ordconstn then
                         swaptree(p);
                        If (p^.left^.treetype = ordconstn) and
@@ -1029,7 +1029,7 @@ implementation
                          End
                        Else
                         Begin
-{$EndIf ShlMul}
+{$EndIf NoShlMul}
                          if not(R_EAX in unused) and (p^.location.register<>R_EAX) then
                           begin
                            exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EAX)));
@@ -1049,9 +1049,9 @@ implementation
                           exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EDX)));
                          if popeax then
                           exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EAX)));
-{$IfDef ShlMul}
+{$IfNDef NoShlMul}
                         End;
-{$endif ShlMul}
+{$endif NoShlMul}
                        SetResultLocation(false,true,p);
                        exit;
                      end;
@@ -2091,7 +2091,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.67  1999-06-14 17:47:45  peter
+  Revision 1.68  1999-07-02 12:18:46  jonas
+    * released setconstnot (changed to {$ifndef nosetconstnot})
+    * released shlmul (changed to {$ifndef no shlmul})
+
+  Revision 1.67  1999/06/14 17:47:45  peter
     * merged
 
   Revision 1.66.2.1  1999/06/14 17:24:40  peter
