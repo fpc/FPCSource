@@ -1265,6 +1265,9 @@ uses
                  ImplIntf[old_current_module.in_interface],
                  modulename^);
 
+        { Update loaded_from to detect cycles }
+        loaded_from:=old_current_module;
+
         { check if the globalsymtable is already available, but
           we must reload when the do_reload flag is set }
         if (not do_reload) and
@@ -1508,7 +1511,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.45  2003-10-29 21:55:10  peter
+  Revision 1.46  2003-11-03 12:32:48  marco
+   * cycle detection patch from peter
+
+  Revision 1.45  2003/10/29 21:55:10  peter
     * don't set second_load when second_compile was already set
 
   Revision 1.44  2003/10/29 21:02:51  peter
