@@ -938,9 +938,10 @@ const
      { generated the entry code of a procedure/function. Note: localsize is the }
      { sum of the size necessary for local variables and the maximum possible   }
      { combined size of ALL the parameters of a procedure called by the current }
-     { one.                                                                      }
-     { This procedure may be called before, as well as after
-       g_return_from_proc is called.}
+     { one.                                                                     }
+     { This procedure may be called before, as well as after g_return_from_proc }
+     { is called. NOTE registers are not to be allocated through the register   }
+     { allocator here, because the register colouring has already occured !!    }
 
 
      var regcounter,firstregfpu,firstreggpr: TSuperRegister;
@@ -1177,8 +1178,9 @@ const
       end;
 
     procedure tcgppc.g_return_from_proc(list : taasmoutput;parasize : aword);
-     { This procedure may be called before, as well as after
-       g_stackframe_entry is called.}
+     { This procedure may be called before, as well as after g_stackframe_entry }
+     { is called. NOTE registers are not to be allocated through the register   }
+     { allocator here, because the register colouring has already occured !!    }
 
       var
          regcounter,firstregfpu,firstreggpr: TsuperRegister;
@@ -2083,7 +2085,6 @@ const
 
       var
         tmpreg: tregister;
-        tmpregUsed: Boolean;
         tmpref: treference;
         largeOffset: Boolean;
 
@@ -2095,41 +2096,42 @@ const
             largeOffset:= (cardinal(ref.offset-low(smallint)) >
                   high(smallint)-low(smallint));
 
-            tmpreg := rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
-            tmpregUsed:= false;
-
             if assigned(ref.symbol) then
-              begin //Load symbol's value
+              begin {Load symbol's value}
+                tmpreg := rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
+
                 reference_reset(tmpref);
                 tmpref.symbol := ref.symbol;
                 tmpref.base := NR_RTOC;
+
                 if macos_direct_globals then
                   list.concat(taicpu.op_reg_ref(A_LA,tmpreg,tmpref))
                 else
                   list.concat(taicpu.op_reg_ref(A_LWZ,tmpreg,tmpref));
-                tmpregUsed:= true;
               end;
 
             if largeOffset then
-              begin //Add hi part of offset
+              begin {Add hi part of offset}
                 reference_reset(tmpref);
                 tmpref.offset := Hi(ref.offset);
-                if tmpregUsed then
-                  list.concat(taicpu.op_reg_reg_ref(A_ADDIS,tmpreg,
-                    tmpreg,tmpref))
+
+                if (tmpreg <> NR_NO) then
+                  list.concat(taicpu.op_reg_reg_ref(A_ADDIS,tmpreg, tmpreg,tmpref))
                 else
-                  list.concat(taicpu.op_reg_ref(A_LIS,tmpreg,tmpref));
-                tmpregUsed:= true;
+                  begin
+                    tmpreg := rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
+                    list.concat(taicpu.op_reg_ref(A_LIS,tmpreg,tmpref));
+                  end;
               end;
 
-            if tmpregUsed then
+            if (tmpreg <> NR_NO) then
               begin
-                //Add content of base register
+                {Add content of base register}
                 if ref.base <> NR_NO then
                   list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,
                     ref.base,tmpreg));
 
-                //Make ref ready to be used by op
+                {Make ref ready to be used by op}
                 ref.symbol:= nil;
                 ref.base:= tmpreg;
                 if largeOffset then
@@ -2296,7 +2298,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.161  2004-02-08 20:15:42  jonas
+  Revision 1.162  2004-02-09 20:44:40  olle
+    * macos: a_load_store fixed to only allocat temp reg if needed, side effect is compiler work for macos again.
+
+  Revision 1.161  2004/02/08 20:15:42  jonas
     - removed taicpu.is_reg_move because it's not used anymore
     + support tracking fpu register moves by rgobj for the ppc
 
