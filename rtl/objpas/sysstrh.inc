@@ -27,7 +27,11 @@
 
 type
    PString = ^String;
+   
+   { For FloatToText } 
+   TFloatFormat = (ffGeneral, ffExponent, ffFixed, ffNumber, ffCurrency);
 
+   
 function NewStr(const S: string): PString;
 procedure DisposeStr(S: PString);
 procedure AssignStr(var P: PString; const S: string);
@@ -70,6 +74,12 @@ function StrToIntDef(const S: string; Default: integer): integer;
 function LoadStr(Ident: integer): string;
 // function FmtLoadStr(Ident: integer; const Args: array of const): string;
 Function Format (Const Fmt : String; const Args : Array of const) : String;
+Function FormatBuf (Var Buffer; BufLen : Cardinal; Const Fmt; fmtLen : Cardinal; Const Args : Array of const) : Cardinal;
+Function StrFmt(Buffer,Fmt : PChar; Const args: Array of const) : Pchar;
+Function StrLFmt(Buffer : PCHar; Maxlen : Cardinal;Fmt : PChar; Const args: Array of const) : Pchar;
+Procedure FmtStr(Var Res: String; Const Fmt : String; Const args: Array of const);
+Function FloatToStrF(Value: Extended; format: TFloatFormat; Precision, Digits: Integer): String;
+Function FloatToStr(Value: Extended): String;
 
 {==============================================================================}
 {   extra functions                                                            }
@@ -81,7 +91,10 @@ function BCDToInt(Value: integer): integer;
 
 {
   $Log$
-  Revision 1.5  1998-12-15 22:43:11  peter
+  Revision 1.6  1999-02-28 13:17:36  michael
+  + Added internationalization support and more format functions
+
+  Revision 1.5  1998/12/15 22:43:11  peter
     * removed temp symbols
 
   Revision 1.4  1998/11/04 10:20:53  peter

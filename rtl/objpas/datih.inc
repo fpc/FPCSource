@@ -27,20 +27,7 @@ const
    MSecsPerDay = SecsPerDay * 1000;
 
    DateDelta = 693594;        // Days between 1/1/0001 and 12/31/1899
-   DateSeparator: char = '-';
-   TimeSeparator: char = ':';
-   TimeAMString: string = 'am';
-   TimePMString: string = 'pm';
-   ShortMonthNames: array[1..12] of string =
-     ('Jan','Feb','Mar','Apr','May','Jun',
-      'Jul','Aug','Sep','Oct','Nov','Dec');
-   LongMonthNames: array[1..12] of string =
-     ('January','February','March','April','May','June',
-      'July','August','September','October','November','December');
-   ShortDayNames: array[1..7] of string =
-     ('Sun','Mon','Tue','Wen','Thu','Fri','Sat');
-   LongDayNames: array[1..7] of string =
-     ('Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday');
+
 
    {  date time formatting characters:
       c      : shortdateformat + ' ' + shorttimeformat
@@ -73,10 +60,6 @@ const
       'xx'   : literal text
    }
 
-   ShortDateFormat: string = 'd/m/y';
-   LongDateFormat: string = 'dd" "mmmm" "yyyy';
-   ShortTimeFormat: string = 'hh:nn';
-   LongTimeFormat: string = 'hh:nn:ss';
 
    Eoln = #10;
 
@@ -123,7 +106,10 @@ Function FileDateToDateTime (Filedate : Longint) : TDateTime;
 {
 
   $Log$
-  Revision 1.4  1998-10-11 13:40:53  michael
+  Revision 1.5  1999-02-28 13:17:34  michael
+  + Added internationalization support and more format functions
+
+  Revision 1.4  1998/10/11 13:40:53  michael
   + Added Conversion TDateTime <-> file date and time
 
   Revision 1.3  1998/10/08 14:07:45  florian

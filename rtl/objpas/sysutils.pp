@@ -18,6 +18,7 @@ interface
 {$MODE objfpc}
 { force ansistrings }
 {$H+}
+
     uses
     {$ifdef linux}
        linux
@@ -26,76 +27,79 @@ interface
        dos,windows
       {$else}
         {$ifdef go32v2}
-       dos,go32
+        dos,go32
         {$endif go32v2}
       {$endif win32}
     {$endif linux}
-       ;
+    ;
 
 
-    type
-       { some helpful data types }
+type
+   { some helpful data types }
 
-       tprocedure = procedure;
+   tprocedure = procedure;
 
-       tfilename = string;
+   tfilename = string;
 
-       longrec = packed record
-          lo,hi : word;
-       end;
+   longrec = packed record
+      lo,hi : word;
+   end;
 
-       wordrec = packed record
-          lo,hi : byte;
-       end;
+   wordrec = packed record
+      lo,hi : byte;
+   end;
 
-       { exceptions }
-       exception = class(TObject)
-        private
-          fmessage : string;
-          fhelpcontext : longint;
-        public
-          constructor create(const msg : string);
-          constructor createfmt(const msg : string; const args : array of const);
-          constructor createres(ident : longint);
-          { !!!! }
-          property helpcontext : longint read fhelpcontext write fhelpcontext;
-          property message : string read fmessage write fmessage;
-       end;
+   { exceptions }
+   exception = class(TObject)
+    private
+      fmessage : string;
+      fhelpcontext : longint;
+    public
+      constructor create(const msg : string);
+      constructor createfmt(const msg : string; const args : array of const);
+      constructor createres(ident : longint);
+      { !!!! }
+      property helpcontext : longint read fhelpcontext write fhelpcontext;
+      property message : string read fmessage write fmessage;
+   end;
 
-       exceptclass = class of exception;
+   exceptclass = class of exception;
 
-       { integer math exceptions }
-       EInterror    = Class(Exception);
-       EDivByZero   = Class(EIntError);
-       ERangeError  = Class(EIntError);
-       EIntOverflow = Class(EIntError);
+   { integer math exceptions }
+   EInterror    = Class(Exception);
+   EDivByZero   = Class(EIntError);
+   ERangeError  = Class(EIntError);
+   EIntOverflow = Class(EIntError);
 
-       { General math errors }
-       EMathError  = Class(Exception);
-       EInvalidOp  = Class(EMathError);
-       EZeroDivide = Class(EMathError);
-       EOverflow   = Class(EMathError);
-       EUnderflow  = Class(EMathError);
+   { General math errors }
+   EMathError  = Class(Exception);
+   EInvalidOp  = Class(EMathError);
+   EZeroDivide = Class(EMathError);
+   EOverflow   = Class(EMathError);
+   EUnderflow  = Class(EMathError);
 
-       { Run-time and I/O Errors }
-       EInOutError = class(Exception)
-         public
-         ErrorCode : Longint;
-         end;
-       EInvalidPointer  = Class(Exception);
-       EOutOfMemory     = Class(Exception);
-       EAccessViolation = Class(Exception);
-       EInvalidCast = Class(Exception);
+   { Run-time and I/O Errors }
+   EInOutError = class(Exception)
+     public
+     ErrorCode : Longint;
+     end;
+   EInvalidPointer  = Class(Exception);
+   EOutOfMemory     = Class(Exception);
+   EAccessViolation = Class(Exception);
+   EInvalidCast = Class(Exception);
 
 
-       { String conversion errors }
-       EConvertError = class(Exception);
+   { String conversion errors }
+   EConvertError = class(Exception);
 
-       { Other errors }
-       EAbort           = Class(Exception);
-       EAbstractError   = Class(Exception);
-       EAssertionFailed = Class(Exception);
+   { Other errors }
+   EAbort           = Class(Exception);
+   EAbstractError   = Class(Exception);
+   EAssertionFailed = Class(Exception);
 
+  { Read internationalization settings }
+  {$i sysinth.inc}
+ 
   { Read date & Time function declarations }
   {$i datih.inc}
 
@@ -131,6 +135,9 @@ interface
   { Read filename handling functions implementation }
   {$i fina.inc}
 
+  { Read String Handling functions implementation }
+  {$i sysstr.inc}
+
   { Read other file handling function implementations }
   {$i filutil.inc}
 
@@ -139,9 +146,6 @@ interface
 
   { Read date & Time function implementations }
   {$i dati.inc}
-
-  { Read String Handling functions implementation }
-  {$i sysstr.inc}
 
   { Read pchar handling functions implementation }
   {$i syspch.inc}
@@ -266,13 +270,18 @@ begin
 end;
 
 
-{Initialization code.}
+{  Initialization code. }
+
 begin
-  InitExceptions;
+  InitExceptions;       { Initialize exceptions. OS independent }
+  InitInternational;    { Initialize internationalization settings }
 end.
 {
     $Log$
-    Revision 1.22  1999-02-10 22:15:13  michael
+    Revision 1.23  1999-02-28 13:17:37  michael
+    + Added internationalization support and more format functions
+
+    Revision 1.22  1999/02/10 22:15:13  michael
     + Changed to ansistrings
 
     Revision 1.21  1999/02/09 14:24:50  pierre

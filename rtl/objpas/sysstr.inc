@@ -163,12 +163,6 @@ end ;
 {   these functions rely on the character set loaded by the OS                 }
 {==============================================================================}
 
-type
-   TCaseTranslationTable = array[0..255] of char;
-
-var
-   UpperCaseTable: TCaseTranslationTable;
-   LowerCaseTable: TCaseTranslationTable;
 
 function AnsiUpperCase(const s: string): string;
 var len, i: integer;
@@ -698,23 +692,196 @@ begin
     end;
 end;
 
+Function FormatBuf (Var Buffer; BufLen : Cardinal; 
+                     Const Fmt; fmtLen : Cardinal; 
+                     Const Args : Array of const) : Cardinal;
+
+Var S,F : String;
+
+begin
+  Setlength(F,fmtlen);
+  Move(fmt,F[1],fmtlen);
+  S:=Format (F,Args);
+  If Length(S)>Buflen then
+    Result:=Length(S)
+  else
+    Result:=Buflen;
+  Move(S[1],Buffer,Result);
+end;                     
+
+Procedure FmtStr(Var Res: String; Const Fmt : String; Const args: Array of const);
+
+begin
+  Res:=Format(fmt,Args);
+end;
+
+Function StrFmt(Buffer,Fmt : PChar; Const args: Array of const) : Pchar;
+
+begin
+  Buffer[FormatBuf(Buffer^,Maxint,Fmt^,strlen(fmt),args)]:=#0;
+  Result:=Buffer;
+end;
+
+Function StrLFmt(Buffer : PCHar; Maxlen : Cardinal;Fmt : PChar; Const args: Array of const) : Pchar;
+
+begin
+  Buffer[FormatBuf(Buffer^,MaxLen,Fmt^,strlen(fmt),args)]:=#0;
+  Result:=Buffer;
+end;
+
+Function FloatToStr(Value: Extended): String;
+Begin
+  Result := FloatToStrF(Value, ffGeneral, 15, 0);
+End;
+
+Function FloatToStrF(Value: Extended; format: TFloatFormat; Precision, Digits: Integer): String;
+Var
+  P: Integer;
+  Negative, TooSmall, TooLarge: Boolean;
+Begin
+  Case format Of
+
+    ffGeneral:
+
+      Begin
+        If (Precision = -1) Or (Precision > 15) Then Precision := 15;
+        TooSmall := Abs(Value) < 0.00001;
+        If Not TooSmall Then
+        Begin
+          Str(Value:0:999, Result);
+          P := Pos('.', Result);
+          Result[P] := DecimalSeparator;
+          TooLarge := P > Precision + 1;
+        End;
+
+        If TooSmall Or TooLarge Then
+          Result := FloatToStrF(Value, ffExponent, Precision, Digits);
+
+        P := Length(Result);
+        While Result[P] = '0' Do Dec(P);
+        If Result[P] = DecimalSeparator Then Dec(P);
+        SetLength(Result, P);
+      End;
+
+    ffExponent:
+
+      Begin
+        If (Precision = -1) Or (Precision > 15) Then Precision := 15;
+        Str(Value:Precision + 8, Result);
+        Result[3] := DecimalSeparator;
+        If (Digits < 4) And (Result[Precision + 5] = '0') Then
+        Begin
+          Delete(Result, Precision + 5, 1);
+          If (Digits < 3) And (Result[Precision + 5] = '0') Then
+          Begin
+            Delete(Result, Precision + 5, 1);
+            If (Digits < 2) And (Result[Precision + 5] = '0') Then
+            Begin
+              Delete(Result, Precision + 5, 1);
+              If (Digits < 1) And (Result[Precision + 5] = '0') Then Delete(Result, Precision + 3, 3);
+            End;
+          End;
+        End;
+        If Result[1] = ' ' Then Delete(Result, 1, 1);
+      End;
+
+    ffFixed:
+
+      Begin
+        If Digits = -1 Then Digits := 2
+        Else If Digits > 15 Then Digits := 15;
+        Str(Value:0:Digits, Result);
+        If Result[1] = ' ' Then Delete(Result, 1, 1);
+        P := Pos('.', Result);
+        If P <> 0 Then Result[P] := DecimalSeparator;
+      End;
+
+    ffNumber:
+
+      Begin
+        If Digits = -1 Then Digits := 2
+        Else If Digits > 15 Then Digits := 15;
+        Str(Value:0:Digits, Result);
+        If Result[1] = ' ' Then Delete(Result, 1, 1);
+        P := Pos('.', Result);
+        If P <> 0 Then Result[P] := DecimalSeparator;
+        Dec(P, 3);
+        While (P > 1) Do
+        Begin
+          If Result[P - 1] <> '-' Then Insert(ThousandSeparator, Result, P);
+          Dec(P, 3);
+        End;
+      End;
+
+    ffCurrency:
+
+      Begin
+        If Value < 0 Then
+        Begin
+          Negative := True;
+          Value := -Value;
+        End
+        Else Negative := False;
+
+        If Digits = -1 Then Digits := CurrencyDecimals
+        Else If Digits > 15 Then Digits := 15;
+        Str(Value:0:Digits, Result);
+        If Result[1] = ' ' Then Delete(Result, 1, 1);
+        P := Pos('.', Result);
+        If P <> 0 Then Result[P] := DecimalSeparator;
+        Dec(P, 3);
+        While (P > 1) Do
+        Begin
+          Insert(ThousandSeparator, Result, P);
+          Dec(P, 3);
+        End;
+
+        If Not Negative Then
+        Begin
+          Case CurrencyFormat Of
+            0: Result := CurrencyString + Result;
+            1: Result := Result + CurrencyString;
+            2: Result := CurrencyString + ' ' + Result;
+            3: Result := Result + ' ' + CurrencyString;
+          End
+        End
+        Else
+        Begin
+          Case NegCurrFormat Of
+            0: Result := '(' + CurrencyString + Result + ')';
+            1: Result := '-' + CurrencyString + Result;
+            2: Result := CurrencyString + '-' + Result;
+            3: Result := CurrencyString + Result + '-';
+            4: Result := '(' + Result + CurrencyString + ')';
+            5: Result := '-' + Result + CurrencyString;
+            6: Result := Result + '-' + CurrencyString;
+            7: Result := Result + CurrencyString + '-';
+            8: Result := '-' + Result + ' ' + CurrencyString;
+            9: Result := '-' + CurrencyString + ' ' + Result;
+            10: Result := CurrencyString + ' ' + Result + '-';
+          End;
+        End;
+      End;
+  End;
+End;
+
 {==============================================================================}
 {   extra functions                                                            }
 {==============================================================================}
 
-{   LeftStr returns Count left-most characters from S   }
+{   LeftStr returns Count left-most characters from S }
 
 function LeftStr(const S: string; Count: integer): string;
 begin
-result := Copy(S, 1, Count);
+  result := Copy(S, 1, Count);
 end ;
 
-{    RightStr returns Count right-most characters from S   }
+{ RightStr returns Count right-most characters from S }
 
 function RightStr(const S: string; Count: integer): string;
 begin
-result := Copy(S, 1 + Length(S) - Count, Count);
-end ;
+   result := Copy(S, 1 + Length(S) - Count, Count);
+end;
 
 {    BCDToInt converts the BCD value Value to an integer   }
 
@@ -730,14 +897,16 @@ for i := 0 to SizeOf(Value) shr 1 - 1 do begin
    end ;
 end ;
 
-{  Case Translation Tables  }
-
-   {  Although these tables can be obtained through system calls  }
-   {  it is better to not use those, since most implementation are not 100%  }
-
-   {  WARNING:  }
-   {  before modifying a translation table make sure that the current codepage  }
-   {  of the OS corresponds to the one you make changes to  }
+{
+   Case Translation Tables  
+   Can be used in internationalization support. 
+   
+   Although these tables can be obtained through system calls  
+   it is better to not use those, since most implementation are not 100%  
+   WARNING:  
+   before modifying a translation table make sure that the current codepage  
+   of the OS corresponds to the one you make changes to  
+}
 
 const
    { upper case translation table for character set 850 }
@@ -784,100 +953,12 @@ const
      #240, #241, #242, #243, #244, #245, #246, #247,
      #248, #249, #250, #251, #252, #253, #254, #255 );
 
-{$IFDEF GO32V2}
-
-{  Codepage constants  }
-
-const
-   CP_US = 437;
-   CP_MultiLingual = 850;
-   CP_SlavicLatin2 = 852;
-   CP_Turkish = 857;
-   CP_Portugal = 860;
-   CP_IceLand = 861;
-   CP_Canada = 863;
-   CP_NorwayDenmark = 865;
-
-{  CountryInfo   }
-type
-   TCountryInfo = packed record
-      InfoId: byte;
-      case integer of
-         1: ( Size: word;
-              CountryId: word;
-              CodePage: word;
-              CountryInfo: array[0..33] of byte );
-         2: ( UpperCaseTable: longint );
-         4: ( FilenameUpperCaseTable: longint );
-         5: ( FilecharacterTable: longint );
-         6: ( CollatingTable: longint );
-         7: ( DBCSLeadByteTable: longint );
-   end ;
-
-
-procedure GetExtendedCountryInfo(InfoId: integer; CodePage, CountryId: word; var CountryInfo: TCountryInfo);
-var Regs: Registers;
-begin
-Regs.AH := $65;
-Regs.AL := InfoId;
-Regs.BX := CodePage;
-Regs.DX := CountryId;
-Regs.ES := transfer_buffer div 16;
-Regs.DI := transfer_buffer and 15;
-Regs.CX := SizeOf(TCountryInfo);
-RealIntr($21, Regs);
-DosMemGet(transfer_buffer shr 16, transfer_buffer and 65535, CountryInfo, Regs.CX );
-end ;
-
-procedure InitAnsi;
-var CountryInfo: TCountryInfo; i: integer;
-begin
-{  Fill table entries 0 to 127  }
-for i := 0 to 96 do
-   UpperCaseTable[i] := chr(i);
-for i := 97 to 122 do
-   UpperCaseTable[i] := chr(i - 32);
-for i := 123 to 127 do
-   UpperCaseTable[i] := chr(i);
-for i := 0 to 64 do
-   LowerCaseTable[i] := chr(i);
-for i := 65 to 90 do
-   LowerCaseTable[i] := chr(i + 32);
-for i := 91 to 255 do
-   LowerCaseTable[i] := chr(i);
-{  Get country and codepage info  }
-GetExtendedCountryInfo(1, $FFFF, $FFFF, CountryInfo);
-if CountryInfo.CodePage = 850 then begin
-   Move(CP850UCT, UpperCaseTable[128], 128);
-   Move(CP850LCT, LowerCaseTable[128], 128);
-   end
-else begin
-{ this needs to be checked !!
-  this is correct only if UpperCaseTable is
-  and Offset:Segment word record (PM) }
-   {  get the uppercase table from dosmemory  }
-   GetExtendedCountryInfo(2, $FFFF, $FFFF, CountryInfo);
-   DosMemGet(CountryInfo.UpperCaseTable shr 16, 2 + CountryInfo.UpperCaseTable and 65535, UpperCaseTable[128], 128);
-   for i := 128 to 255 do begin
-      if UpperCaseTable[i] <> chr(i) then
-         LowerCaseTable[ord(UpperCaseTable[i])] := chr(i);
-      end ;
-   end ;
-end ;
-
-{$ELSE}
-// {$IFDEF LINUX}
-
-procedure InitAnsi;
-begin
-end ;
-
-// {$ENDIF}
-{$ENDIF}
-
 {
   $Log$
-  Revision 1.12  1999-02-24 15:56:29  michael
+  Revision 1.13  1999-02-28 13:17:35  michael
+  + Added internationalization support and more format functions
+
+  Revision 1.12  1999/02/24 15:56:29  michael
   + Small fixes. Moved getlocaltime to system-dependent files
 
   Revision 1.11  1999/02/10 22:15:12  michael
