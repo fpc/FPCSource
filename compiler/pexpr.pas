@@ -194,8 +194,9 @@ unit pexpr;
                       begin
                         Must_be_valid:=false;
                         do_firstpass(p1);
-                        if (p1^.resulttype^.deftype=objectdef) or
-                           is_open_array(p1^.resulttype) then
+                        if ((p1^.resulttype^.deftype=objectdef) and
+                           ((pobjectdef(p1^.resulttype)^.options and oo_hasvirtual)<>0))
+                          or is_open_array(p1^.resulttype) then
                          statement_syssym:=geninlinenode(in_sizeof_x,false,p1)
                         else
                          begin
@@ -1855,7 +1856,13 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.49  1998-09-09 11:50:53  pierre
+  Revision 1.50  1998-09-17 13:41:18  pierre
+  sizeof(TPOINT) problem
+
+  Revision 1.49.2.1  1998/09/17 08:42:31  pierre
+  TPOINT sizeof fix
+
+  Revision 1.49  1998/09/09 11:50:53  pierre
     * forward def are not put in record or objects
     + added check for forwards also in record and objects
     * dummy parasymtable for unit initialization removed from

@@ -2415,6 +2415,13 @@
         deftype:=objectdef;
         childof:=c;
         options:=0;
+        { some options are inherited !! }
+        if assigned(c) then
+          options:= c^.options and
+                    (oo_hasvirtual or oo_hasprivate or
+                     oo_hasprotected
+                     {or oo_can_have_published treated in pdecl }
+                     );
         { privatesyms:=new(psymtable,init(objectsymtable));
       protectedsyms:=new(psymtable,init(objectsymtable)); }
         publicsyms:=new(psymtable,init(objectsymtable));
@@ -2956,7 +2963,13 @@
 
 {
   $Log$
-  Revision 1.41  1998-09-15 17:39:30  jonas
+  Revision 1.42  1998-09-17 13:41:20  pierre
+  sizeof(TPOINT) problem
+
+  Revision 1.40.2.2  1998/09/17 08:42:33  pierre
+  TPOINT sizeof fix
+
+  Revision 1.41  1998/09/15 17:39:30  jonas
     + bugfix from bugfix branch
 
   Revision 1.40.2.1  1998/09/15 17:35:32  jonas

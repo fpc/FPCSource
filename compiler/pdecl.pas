@@ -1327,6 +1327,7 @@ unit pdecl;
                             consume(ID);
                             consume(SEMICOLON);
                             aktprocsym^.definition^.options:=aktprocsym^.definition^.options or povirtualmethod;
+                            aktclass^.options:=aktclass^.options or oo_hasvirtual;
                           end
                          else
                           if (pattern='OVERRIDE') then
@@ -2036,7 +2037,15 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.53  1998-09-09 11:50:52  pierre
+  Revision 1.54  1998-09-17 13:41:16  pierre
+  sizeof(TPOINT) problem
+
+  Revision 1.53.2.1  1998/09/17 13:12:09  pierre
+    * virtual destructor did not set oo_hasvirtual
+      (detected with the sizeof(TPoint) problem
+    * genloadcallnode was missing
+
+  Revision 1.53  1998/09/09 11:50:52  pierre
     * forward def are not put in record or objects
     + added check for forwards also in record and objects
     * dummy parasymtable for unit initialization removed from
