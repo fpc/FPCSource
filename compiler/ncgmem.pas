@@ -855,7 +855,8 @@ implementation
                               paramanager.allocparaloc(exprasmlist,paraloc2);
                               cg.a_param_reg(exprasmlist,OS_INT,right.location.register,paraloc2);
                               href:=location.reference;
-                              dec(href.offset,7);
+                              dec(href.offset,sizeof(aint)-offsetdec);
+                              //dec(href.offset,7);
                               paramanager.allocparaloc(exprasmlist,paraloc1);
                               cg.a_param_ref(exprasmlist,OS_INT,href,paraloc1);
                               paramanager.freeparaloc(exprasmlist,paraloc1);
@@ -896,7 +897,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.94  2004-07-12 17:58:19  peter
+  Revision 1.95  2004-08-02 09:15:03  michael
+  + Fixed range check for non-constant indexes in strings
+
+  Revision 1.94  2004/07/12 17:58:19  peter
     * remove maxlen field from ansistring/widestrings
 
   Revision 1.93  2004/06/20 08:55:29  florian
