@@ -909,6 +909,7 @@ implementation
          l : longint;
          ispushed : boolean;
          hregister : tregister;
+         lengthlab,
          otlabel,oflabel{,l1}   : tasmlabel;
          oldpushedparasize : longint;
          def : tdef;
@@ -1079,21 +1080,33 @@ implementation
                       end;
                  end;
               end;
-            in_length_string :
+            in_length_x :
               begin
                  secondpass(left);
                  set_location(location,left.location);
                  { length in ansi strings is at offset -8 }
-                 if is_ansistring(left.resulttype.def) then
-                   dec(location.reference.offset,8)
-                 { char is always 1, so make it a constant value }
-                 else if is_char(left.resulttype.def) then
-                   begin
-                     clear_location(location);
-                     location.loc:=LOC_MEM;
-                     location.reference.is_immediate:=true;
-                     location.reference.offset:=1;
-                   end;
+                 if is_ansistring(left.resulttype.def) or
+                    is_widestring(left.resulttype.def) then
+                  begin
+                    if left.location.loc<>LOC_REGISTER then
+                     begin
+                       del_location(left.location);
+                       hregister:=getregister32;
+                       emit_mov_loc_reg(left.location,hregister);
+                     end
+                    else
+                     hregister:=left.location.register;
+                    reset_reference(hr);
+                    hr.base:=hregister;
+                    hr.offset:=-8;
+                    getlabel(lengthlab);
+                    emit_reg_reg(A_OR,S_L,hregister,hregister);
+                    emitjmp(C_Z,lengthlab);
+                    emit_ref_reg(A_MOV,S_L,newreference(hr),hregister);
+                    emitlab(lengthlab);
+                    location.loc:=LOC_REGISTER;
+                    location.register:=hregister;
+                  end;
               end;
             in_pred_x,
             in_succ_x:
@@ -1680,7 +1693,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2001-07-08 21:00:18  peter
+  Revision 1.16  2001-07-10 18:01:08  peter
+    * internal length for ansistring and widestrings
+
+  Revision 1.15  2001/07/08 21:00:18  peter
     * various widestring updates, it works now mostly without charset
       mapping supported
 
