@@ -769,6 +769,7 @@ implementation
              else
                internalerror(200204243);
            end;
+           location_release(exprasmlist,p.location);
          end
         else
          begin
@@ -1875,7 +1876,10 @@ function returns in a register and the caller receives it in an other one}
 end.
 {
   $Log$
-  Revision 1.64  2002-11-27 02:33:19  peter
+  Revision 1.65  2002-11-28 23:28:14  florian
+    * push_value_para didn't release floatdef locations, fixes tw2045
+
+  Revision 1.64  2002/11/27 02:33:19  peter
     * copy_value_on_stack method added for cdecl record passing
 
   Revision 1.63  2002/11/25 17:43:18  peter
