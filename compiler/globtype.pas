@@ -68,7 +68,7 @@ interface
          cs_load_objpas_unit,
          cs_load_gpc_unit,
          { optimizer }
-         cs_regalloc,cs_no_regalloc,cs_uncertainopts,cs_littlesize,
+         cs_regvars,cs_no_regalloc,cs_uncertainopts,cs_littlesize,
          cs_optimize,cs_fastoptimize,cs_slowoptimize,cs_align,
          { browser }
          cs_browser_log,
@@ -208,7 +208,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  2003-04-27 11:21:32  peter
+  Revision 1.39  2003-08-09 18:56:54  daniel
+    * cs_regalloc renamed to cs_regvars to avoid confusion with register
+      allocator
+    * Some preventive changes to i386 spillinh code
+
+  Revision 1.38  2003/04/27 11:21:32  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be

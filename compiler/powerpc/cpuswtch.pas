@@ -54,7 +54,7 @@ begin
                  '-' :
                    begin
                      initglobalswitches:=initglobalswitches-[cs_optimize,cs_fastoptimize,cs_slowoptimize,cs_littlesize,
-                       cs_regalloc,cs_uncertainopts];
+                       cs_regvars,cs_uncertainopts];
                      FillChar(ParaAlignment,sizeof(ParaAlignment),0);
                    end;
                  'a' :
@@ -66,7 +66,7 @@ begin
                  'G' : initglobalswitches:=initglobalswitches-[cs_littlesize];
                  'r' :
                    begin
-                     initglobalswitches:=initglobalswitches+[cs_regalloc];
+                     initglobalswitches:=initglobalswitches+[cs_regvars];
                      Simplify_ppu:=false;
                    end;
                  'u' : initglobalswitches:=initglobalswitches+[cs_uncertainopts];
@@ -119,7 +119,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.8  2002-09-07 17:54:59  florian
+  Revision 1.9  2003-08-09 18:56:54  daniel
+    * cs_regalloc renamed to cs_regvars to avoid confusion with register
+      allocator
+    * Some preventive changes to i386 spillinh code
+
+  Revision 1.8  2002/09/07 17:54:59  florian
     * first part of PowerPC fixes
 
   Revision 1.7  2002/09/04 16:03:53  jonas

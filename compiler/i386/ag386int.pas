@@ -48,7 +48,7 @@ interface
 
     const
       regname_count=45;
-      regname_count_bsstart=32;
+      regname_count_bsstart=32;   {Largest power of 2 out of regname_count.}
      
       intel_regname2regnum:array[0..regname_count-1] of regname2regnumrec=(
         (name:'ah';     number:NR_AH),
@@ -966,7 +966,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.34  2003-03-08 08:59:07  daniel
+  Revision 1.35  2003-08-09 18:56:54  daniel
+    * cs_regalloc renamed to cs_regvars to avoid confusion with register
+      allocator
+    * Some preventive changes to i386 spillinh code
+
+  Revision 1.34  2003/03/08 08:59:07  daniel
     + $define newra will enable new register allocator
     + getregisterint will return imaginary registers with $newra
     + -sr switch added, will skip register allocation so you can see

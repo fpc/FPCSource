@@ -2009,7 +2009,7 @@ implementation
      of the huge amount of situations you can have. The irregularity of the i386
      instruction set doesn't help either. (DM)}
 
-
+    
       function get_insert_pos(p:Tai;huntfor1,huntfor2,huntfor3:Tsuperregister):Tai;
 
       var back:Tsupregset;
@@ -2017,30 +2017,33 @@ implementation
       begin
         back:=unusedregsint;
         get_insert_pos:=p;
-        while (p<>nil) and (p.typ=ait_regalloc) do
+        while (p<>nil) and not (p.typ in [ait_instruction,ait_label]) do
           begin
-            {Rewind the register allocation.}
-            if Tai_regalloc(p).allocation then
-              include(unusedregsint,Tai_regalloc(p).reg.number shr 8)
-            else
+            if p.typ=ait_regalloc then
               begin
-                exclude(unusedregsint,Tai_regalloc(p).reg.number shr 8);
-                if Tai_regalloc(p).reg.number shr 8=huntfor1 then
+                {Rewind the register allocation.}
+                if Tai_regalloc(p).allocation then
+                  include(unusedregsint,Tai_regalloc(p).reg.number shr 8)
+                else
                   begin
-                    get_insert_pos:=Tai(p.previous);
-                    back:=unusedregsint;
-                  end;
-                if Tai_regalloc(p).reg.number shr 8=huntfor2 then
-                  begin
-                    get_insert_pos:=Tai(p.previous);
-                    back:=unusedregsint;
-                  end;
-                if Tai_regalloc(p).reg.number shr 8=huntfor3 then
-                  begin
-                    get_insert_pos:=Tai(p.previous);
-                    back:=unusedregsint;
-                  end;
-              end;
+                    exclude(unusedregsint,Tai_regalloc(p).reg.number shr 8);
+                    if Tai_regalloc(p).reg.number shr 8=huntfor1 then
+                      begin
+                        get_insert_pos:=Tai(p.previous);
+                        back:=unusedregsint;
+                      end;
+                    if Tai_regalloc(p).reg.number shr 8=huntfor2 then
+                      begin
+                        get_insert_pos:=Tai(p.previous);
+                        back:=unusedregsint;
+                      end;
+                    if Tai_regalloc(p).reg.number shr 8=huntfor3 then
+                      begin
+                        get_insert_pos:=Tai(p.previous);
+                        back:=unusedregsint;
+                      end;
+                end;
+            end {else writeln('!!!!'^g,byte(p.typ))};
             p:=Tai(p.previous);
           end;
         unusedregsint:=back;
@@ -2052,12 +2055,15 @@ implementation
         {Forward the register allocation again.}
         while (p<>self) do
           begin
-            if p.typ<>ait_regalloc then
+            if p.typ in [ait_instruction,ait_label] then
               internalerror(200305311);
-            if Tai_regalloc(p).allocation then
-              exclude(unusedregsint,Tai_regalloc(p).reg.number shr 8)
-            else
-              include(unusedregsint,Tai_regalloc(p).reg.number shr 8);
+            if p.typ=ait_regalloc then
+              begin
+              if Tai_regalloc(p).allocation then
+                exclude(unusedregsint,Tai_regalloc(p).reg.number shr 8)
+              else
+                include(unusedregsint,Tai_regalloc(p).reg.number shr 8);
+              end;
             p:=Tai(p.next);
           end;
       end;
@@ -2413,7 +2419,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2003-07-06 15:31:21  daniel
+  Revision 1.8  2003-08-09 18:56:54  daniel
+    * cs_regalloc renamed to cs_regvars to avoid confusion with register
+      allocator
+    * Some preventive changes to i386 spillinh code
+
+  Revision 1.7  2003/07/06 15:31:21  daniel
     * Fixed register allocator. *Lots* of fixes.
 
   Revision 1.6  2003/06/14 14:53:50  jonas

@@ -287,7 +287,11 @@ interface
               if o.reg.enum=R_INTREGISTER then
                 asmwrite(intel_regname(o.reg.number))
               else
-                asmwrite(int_nasmreg2str[o.reg.enum]);
+                begin
+                  if o.reg.enum>high(Toldregister) then
+                    internalerror(01010101);
+                  asmwrite(int_nasmreg2str[o.reg.enum]);
+                end;
             end;
           top_const :
             begin
@@ -925,7 +929,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.36  2003-07-06 15:31:21  daniel
+  Revision 1.37  2003-08-09 18:56:54  daniel
+    * cs_regalloc renamed to cs_regvars to avoid confusion with register
+      allocator
+    * Some preventive changes to i386 spillinh code
+
+  Revision 1.36  2003/07/06 15:31:21  daniel
     * Fixed register allocator. *Lots* of fixes.
 
   Revision 1.35  2003/06/03 13:01:59  daniel

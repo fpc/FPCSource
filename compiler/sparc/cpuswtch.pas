@@ -54,7 +54,7 @@ begin
                  '-' :
                    begin
                      initglobalswitches:=initglobalswitches-[cs_optimize,cs_fastoptimize,cs_slowoptimize,cs_littlesize,
-                       cs_regalloc,cs_uncertainopts];
+                       cs_regvars,cs_uncertainopts];
                      FillChar(ParaAlignment,sizeof(ParaAlignment),0);
                    end;
                  'a' :
@@ -66,7 +66,7 @@ begin
                  'G' : initglobalswitches:=initglobalswitches-[cs_littlesize];
                  'r' :
                    begin
-                     initglobalswitches:=initglobalswitches+[cs_regalloc];
+                     initglobalswitches:=initglobalswitches+[cs_regvars];
                      Simplify_ppu:=false;
                    end;
                  'u' : initglobalswitches:=initglobalswitches+[cs_uncertainopts];
@@ -129,7 +129,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2002-09-07 15:25:14  peter
+  Revision 1.4  2003-08-09 18:56:54  daniel
+    * cs_regalloc renamed to cs_regvars to avoid confusion with register
+      allocator
+    * Some preventive changes to i386 spillinh code
+
+  Revision 1.3  2002/09/07 15:25:14  peter
     * old logs removed and tabs fixed
 
   Revision 1.2  2002/08/23 10:08:28  mazen

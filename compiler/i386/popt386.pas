@@ -1952,7 +1952,7 @@ See test/tgadint64 in the test suite.
                 {   "cmpl $3,%eax; movzbl 8(%ebp),%ebx; je .Lxxx"           }
                 { so we can't safely replace the movzx then with xor/mov,   }
                 { since that would change the flags (JM)                    }
-                if not(cs_regalloc in aktglobalswitches) then
+                if not(cs_regvars in aktglobalswitches) then
                  Begin
                   If (Taicpu(p).oper[1].typ = top_reg) Then
                     If (Taicpu(p).oper[0].typ = top_reg)
@@ -2058,7 +2058,12 @@ End.
 
 {
   $Log$
-  Revision 1.47  2003-06-08 18:48:03  jonas
+  Revision 1.48  2003-08-09 18:56:54  daniel
+    * cs_regalloc renamed to cs_regvars to avoid confusion with register
+      allocator
+    * Some preventive changes to i386 spillinh code
+
+  Revision 1.47  2003/06/08 18:48:03  jonas
     * first small steps towards an oop optimizer
 
   Revision 1.46  2003/06/03 21:09:05  peter

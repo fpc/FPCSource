@@ -384,7 +384,7 @@ implementation
          while assigned(hp) do
            begin
 (*
-              if cs_regalloc in aktglobalswitches then
+              if cs_regvars in aktglobalswitches then
                 begin
                    { node transformations }
 
@@ -852,7 +852,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.58  2003-06-13 21:19:30  peter
+  Revision 1.59  2003-08-09 18:56:54  daniel
+    * cs_regalloc renamed to cs_regvars to avoid confusion with register
+      allocator
+    * Some preventive changes to i386 spillinh code
+
+  Revision 1.58  2003/06/13 21:19:30  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.57  2003/06/10 09:10:47  jonas

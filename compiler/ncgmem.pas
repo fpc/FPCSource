@@ -739,7 +739,7 @@ implementation
          else
          { not nodetype=ordconstn }
            begin
-              if (cs_regalloc in aktglobalswitches) and
+              if (cs_regvars in aktglobalswitches) and
                  { if we do range checking, we don't }
                  { need that fancy code (it would be }
                  { buggy)                            }
@@ -898,7 +898,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.67  2003-07-23 11:01:14  jonas
+  Revision 1.68  2003-08-09 18:56:54  daniel
+    * cs_regalloc renamed to cs_regvars to avoid confusion with register
+      allocator
+    * Some preventive changes to i386 spillinh code
+
+  Revision 1.67  2003/07/23 11:01:14  jonas
     * several rg.allocexplicitregistersint/rg.deallocexplicitregistersint
       pairs round calls to helpers
 

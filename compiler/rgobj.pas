@@ -992,7 +992,7 @@ unit rgobj;
     var r:Tsuperregister;
         hr: tregister;
     begin
-      if not(cs_regalloc in aktglobalswitches) then
+      if not(cs_regvars in aktglobalswitches) then
         exit;
       for r:=firstsaveintreg to lastsaveintreg do
         if (r in is_reg_var_int) and
@@ -1009,7 +1009,7 @@ unit rgobj;
       var
         r: Tregister;
       begin
-        if not(cs_regalloc in aktglobalswitches) then
+        if not(cs_regvars in aktglobalswitches) then
           exit;
         if firstsavefpureg <> R_NO then
           for r.enum := firstsavefpureg to lastsavefpureg do
@@ -2542,7 +2542,12 @@ end.
 
 {
   $Log$
-  Revision 1.62  2003-08-03 14:09:50  daniel
+  Revision 1.63  2003-08-09 18:56:54  daniel
+    * cs_regalloc renamed to cs_regvars to avoid confusion with register
+      allocator
+    * Some preventive changes to i386 spillinh code
+
+  Revision 1.62  2003/08/03 14:09:50  daniel
     * Fixed a register allocator bug
     * Figured out why -dnewra generates superfluous "mov reg1,reg2"
       statements: changes in location_force. These moves are now no longer

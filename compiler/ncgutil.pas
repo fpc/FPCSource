@@ -250,10 +250,10 @@ implementation
                 internalerror(200301154);
               if t.reference.index.enum<>R_INTREGISTER then
                 internalerror(200301154);
-              if not(cs_regalloc in aktglobalswitches) or
+              if not(cs_regvars in aktglobalswitches) or
                  ((t.reference.base.number shr 8) in rg.usableregsint) then
                 exclude(regs,t.reference.base.number shr 8);
-              if not(cs_regalloc in aktglobalswitches) or
+              if not(cs_regvars in aktglobalswitches) or
                  ((t.reference.index.number shr 8) in rg.usableregsint) then
                 exclude(regs,t.reference.index.number shr 8);
             end;
@@ -2030,7 +2030,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.132  2003-08-03 14:09:50  daniel
+  Revision 1.133  2003-08-09 18:56:54  daniel
+    * cs_regalloc renamed to cs_regvars to avoid confusion with register
+      allocator
+    * Some preventive changes to i386 spillinh code
+
+  Revision 1.132  2003/08/03 14:09:50  daniel
     * Fixed a register allocator bug
     * Figured out why -dnewra generates superfluous "mov reg1,reg2"
       statements: changes in location_force. These moves are now no longer

@@ -154,7 +154,7 @@ implementation
       { max. optimizations     }
       { only if no asm is used }
       { and no try statement   }
-      if (cs_regalloc in aktglobalswitches) and
+      if (cs_regvars in aktglobalswitches) and
 {$ifndef i386}
          { we have to store regvars back to memory in this case! }
          (tcgprocinfo(current_procinfo).nestedprocs.count = 0) and
@@ -468,7 +468,7 @@ implementation
       regvarinfo: pregvarinfo;
       r:Tregister;
     begin
-      if (cs_regalloc in aktglobalswitches) and
+      if (cs_regvars in aktglobalswitches) and
          not(pi_uses_asm in current_procinfo.flags) and
          not(pi_uses_exceptions in current_procinfo.flags) then
         begin
@@ -575,7 +575,7 @@ implementation
       { can happen when inlining assembler procedures (JM) }
       if not assigned(current_procinfo.procdef.regvarinfo) then
         exit;
-      if (cs_regalloc in aktglobalswitches) and
+      if (cs_regvars in aktglobalswitches) and
          not(pi_uses_asm in current_procinfo.flags) and
          not(pi_uses_exceptions in current_procinfo.flags) then
         with pregvarinfo(current_procinfo.procdef.regvarinfo)^ do
@@ -616,7 +616,12 @@ end.
 
 {
   $Log$
-  Revision 1.58  2003-07-02 22:18:04  peter
+  Revision 1.59  2003-08-09 18:56:54  daniel
+    * cs_regalloc renamed to cs_regvars to avoid confusion with register
+      allocator
+    * Some preventive changes to i386 spillinh code
+
+  Revision 1.58  2003/07/02 22:18:04  peter
     * paraloc splitted in callerparaloc,calleeparaloc
     * sparc calling convention updates
 

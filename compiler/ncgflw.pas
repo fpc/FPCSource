@@ -207,7 +207,7 @@ implementation
 {$ifdef i386}
          { save regvars loaded in the beginning so that we can restore them }
          { when processing the else-block                                   }
-         if cs_regalloc in aktglobalswitches then
+         if cs_regvars in aktglobalswitches then
            begin
              org_list := exprasmlist;
              exprasmlist := taasmoutput.create;
@@ -216,7 +216,7 @@ implementation
          maketojumpbool(exprasmlist,left,lr_dont_load_regvars);
 
 {$ifdef i386}
-         if cs_regalloc in aktglobalswitches then
+         if cs_regvars in aktglobalswitches then
            begin
              org_regvar_loaded_int := rg.regvar_loaded_int;
              org_regvar_loaded_other := rg.regvar_loaded_other;
@@ -235,7 +235,7 @@ implementation
 {$ifdef i386}
          { save current asmlist (previous instructions + then-block) and }
          { loaded regvar state and create new clean ones                 }
-         if cs_regalloc in aktglobalswitches then
+         if cs_regvars in aktglobalswitches then
            begin
              then_regvar_loaded_int := rg.regvar_loaded_int;
              then_regvar_loaded_other := rg.regvar_loaded_other;
@@ -253,7 +253,7 @@ implementation
                    objectlibrary.getlabel(hl);
                    { do go back to if line !! }
 {$ifdef i386}
-                   if not(cs_regalloc in aktglobalswitches) then
+                   if not(cs_regvars in aktglobalswitches) then
 {$endif i386}
                      aktfilepos:=exprasmList.getlasttaifilepos^
 {$ifdef i386}
@@ -271,7 +271,7 @@ implementation
 {$ifdef i386}
               { save current asmlist (previous instructions + else-block) }
               { and loaded regvar state and create a new clean list       }
-              if cs_regalloc in aktglobalswitches then
+              if cs_regvars in aktglobalswitches then
                 begin
                   else_regvar_loaded_int := rg.regvar_loaded_int;
                   else_regvar_loaded_other := rg.regvar_loaded_other;
@@ -285,7 +285,7 @@ implementation
          else
            begin
 {$ifdef i386}
-              if cs_regalloc in aktglobalswitches then
+              if cs_regvars in aktglobalswitches then
                 begin
                   else_regvar_loaded_int := rg.regvar_loaded_int;
                   else_regvar_loaded_other := rg.regvar_loaded_other;
@@ -301,7 +301,7 @@ implementation
            end;
 
 {$ifdef i386}
-         if cs_regalloc in aktglobalswitches then
+         if cs_regvars in aktglobalswitches then
            begin
              { add loads of regvars at the end of the then- and else-blocks  }
              { so that at the end of both blocks the same regvars are loaded }
@@ -1539,7 +1539,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.73  2003-07-23 11:01:14  jonas
+  Revision 1.74  2003-08-09 18:56:54  daniel
+    * cs_regalloc renamed to cs_regvars to avoid confusion with register
+      allocator
+    * Some preventive changes to i386 spillinh code
+
+  Revision 1.73  2003/07/23 11:01:14  jonas
     * several rg.allocexplicitregistersint/rg.deallocexplicitregistersint
       pairs round calls to helpers
 
