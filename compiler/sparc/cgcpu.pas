@@ -373,8 +373,15 @@ procedure TCgSparc.a_load_reg_reg(list:TAasmOutput;fromsize,tosize:tcgsize;reg1,
     s:topsize;
     r:Tregister;
   begin
+    if(reg1.enum<>R_INTREGISTER)or(reg1.number=0)
+    then
+      InternalError(200303101);
+    if(reg2.enum<>R_INTREGISTER)or(reg2.number=0)
+    then
+      InternalError(200303102);
     r.enum:=R_G0;
-    if(reg1.enum<>reg2.enum)or
+    r.Number:=NR_G0;
+    if(reg1.Number<>reg2.Number)or
       (tcgsize2size[tosize]<tcgsize2size[fromsize])or
       ((tcgsize2size[tosize] = tcgsize2size[fromsize])and
         (tosize <> fromsize)and
@@ -384,6 +391,21 @@ procedure TCgSparc.a_load_reg_reg(list:TAasmOutput;fromsize,tosize:tcgsize;reg1,
         case fromsize of
           OS_8,OS_S8,OS_16,OS_S16,OS_32,OS_S32:
             concat(taicpu.op_reg_reg_reg(A_OR,r,reg1,reg2));
+          OS_64,OS_S64:
+            begin
+              concat(taicpu.op_reg_reg_reg(A_OR,r,reg1,reg2));
+              with reg1 do
+                begin
+                  enum:=Succ(enum);
+                  Number:=RegEnum2Number[enum];
+                end;
+              with reg2 do
+                begin
+                  enum:=Succ(enum);
+                  Number:=RegEnum2Number[enum];
+                end;
+              concat(taicpu.op_reg_reg_reg(A_OR,r,reg1,reg2));
+            end;
           else internalerror(2002090901);
         end;
   end;
@@ -1461,7 +1483,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.50  2003-05-23 22:33:48  florian
+  Revision 1.51  2003-05-26 22:04:57  mazen
+  * added 64 bit value support to fix a problem in RTL
+
+  Revision 1.50  2003/05/23 22:33:48  florian
     * fix some small flaws which prevent sparc linux system unit from compiling
     * some reformatting done
 
