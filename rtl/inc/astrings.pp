@@ -650,6 +650,7 @@ end;
 Procedure Delete (Var S : AnsiString; Index,Size: Longint);
 
 begin
+  Writeln (Index,' ',Size);
   if index<=0 then
     begin
     Size:=Size+index-1;
@@ -662,38 +663,41 @@ begin
       Size:=Length(s)-Index+1;
     Setlength(s,Length(s)-Size);
     if Index<=Length(s) then
-      Move(Pointer(Pointer(S)+Index+Size-1)^,
-           Pointer(Pointer(s)+Index-1)^,Length(s)-Index+2)
+      Move(PByte(Pointer(S))[Index+Size],
+           PByte(Pointer(s))[Index],Length(s)-Index+2)
      else
        Pbyte(Pointer(S)+Length(S))^:=0;
     end;
+   Writeln ('Delete : Returning ',S);
 end;
 
 Procedure Insert (Const Source : AnsiString; Var S : AnsiString; Index : Longint);
 
-var s3,s4,s5 : Pointer;
-
+var Temp : AnsiString;
+    LS : Longint;
+    
 begin
   If Length(Source)=0 then exit;
   if index <= 0 then index := 1;
-  s3 := Pointer(copy(s,index,length(s)));
-  if index > Length(s) then
-    index := Length(S)+1;
-  SetLength(s,index - 1);
-  s4 := Pointer ( NewAnsiString(PansiRec(Pointer(Source)-Firstoff)^.len) );
-  S5:=Pointer(Source);
-  Ansi_String_Concat(s4,s5);
-  if S4<>Nil then
-    Ansi_String_Concat(S4,s3);
-  Ansi_String_Concat(Pointer(S),S4);
-  Decr_ansi_ref (S3);
-  Decr_ansi_ref (S4);
+  Ls:=Length(S);
+  if index > LS then index := LS+1;
+  Dec(Index);
+  Pointer(Temp) := NewAnsiString(Length(Source)+LS);
+  If Index>0 then
+    move (Pointer(S)^,Pointer(Temp)^,Index);
+  Move (Pointer(Source)^,PByte(Temp)[Index],Length(Source));
+  If (LS-Index)>1 then  
+    Move(PByte(Pointer(S))[Index],PByte(temp)[Length(Source)+index],LS-Index);
+  S:=Temp;
 end;
 
 
 {
   $Log$
-  Revision 1.30  1998-11-05 14:20:36  peter
+  Revision 1.31  1998-11-13 14:37:11  michael
+  + Insert procedure corrected
+
+  Revision 1.30  1998/11/05 14:20:36  peter
     * removed warnings
 
   Revision 1.29  1998/11/04 20:34:04  michael
