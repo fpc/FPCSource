@@ -31,19 +31,15 @@ INTERFACE
 USES globals,cutils,cclasses,aasmbase,cpuinfo,cginfo;
 CONST
 {Size of the instruction table converted by nasmconv.pas}
-  maxinfolen    = 8;
+  maxinfolen=8;
 {Defines the default address size for a processor}
-  OS_ADDR=OS_32;{$WARNING "OS_ADDR" was set to "OS_32" but not verified!}
+  OS_ADDR=OS_32;
 {the natural int size for a processor}
-  OS_INT=OS_32;{$WARNING "OS_INT" was set to "OS_32" but not verified!}
+  OS_INT=OS_32;
 {the maximum float size for a processor}
   OS_FLOAT=OS_F80;{$WARNING "OS_FLOAT" was set to "OS_F80" but not verified!}
 {the size of a vector register for a processor}
   OS_VECTOR=OS_M64;{$WARNING "OS_VECTOR" was set to "OS_M64" but not verified!}
-{By default we want everything}
-{$DEFINE ATTOP}
-{$DEFINE ATTREG}
-{$DEFINE ATTSUF}
 CONST
 {Operand types}
   OT_NONE      = $00000000;
@@ -131,39 +127,21 @@ CONST
   IF_MMX    = $00004000;  { it's an MMX instruction  }
   IF_3DNOW  = $00008000;  { it's a 3DNow! instruction  }
   IF_SSE    = $00010000;  { it's a SSE (KNI, MMX2) instruction  }
-  IF_PMASK  =
-     LongInt($FF000000);  { the mask for processor types  }
-  IF_PFMASK =
-     LongInt($F001FF00);  { the mask for disassembly "prefer"  }
-  IF_8086   = $00000000;  { 8086 instruction  }
-  IF_186    = $01000000;  { 186+ instruction  }
-  IF_286    = $02000000;  { 286+ instruction  }
-  IF_386    = $03000000;  { 386+ instruction  }
-  IF_486    = $04000000;  { 486+ instruction  }
-  IF_PENT   = $05000000;  { Pentium instruction  }
-  IF_P6     = $06000000;  { P6 instruction  }
-  IF_KATMAI = $07000000;  { Katmai instructions  }
-  IF_CYRIX  = $10000000;  { Cyrix-specific instruction  }
-  IF_AMD    = $20000000;  { AMD-specific instruction  }
+  IF_PMASK  = LongInt($FF000000);  { the mask for processor types  }
+  IF_PFMASK = LongInt($F001FF00);  { the mask for disassembly "prefer"  }
+  IF_V7			= $00000000;  { SPARC V7 instruction only (not supported)}
+  IF_V8			= $01000000;  { SPARC V8 instruction (the default)}
+  IF_V9			= $02000000;  { SPARC V9 instruction (not yet	supported)}
   { added flags }
   IF_PRE    = $40000000;  { it's a prefix instruction }
-  IF_PASS2 =LongInt($80000000);{if the instruction can change in a second pass}
+  IF_PASS2 	=	LongInt($80000000);{instruction can change in a second pass?}
 TYPE
-  TAttSuffix=(
-    AttSufNONE, {No suffix is needed}
-    AttSufINT,  {Integer operation suffix is needed}
-    AttSufFPU,  {}
-    AttSufFPUint{}
-  );
 {$WARNING CPU32 opcodes do not fully include the Ultra SPRAC instruction set.}
   TAsmOp=({$INCLUDE opcode.inc});
   op2strtable=ARRAY[TAsmOp]OF STRING[11];
 CONST
   FirstOp=Low(TAsmOp);
   LastOp=High(TAsmOp);
-{$IFDEF ATTSUF}
-  att_needsuffix:ARRAY[tasmop]OF TAttSuffix=({$INCLUDE sparcatts.inc});
-{$ENDIF ATTSUF}
   std_op2str:op2strtable=({$INCLUDE attinstr.inc});
 {*****************************************************************************
                                 Operand Sizes
@@ -275,9 +253,7 @@ TYPE
 CONST
   firstreg = low(tregister);
   lastreg  = high(tregister);
-{$ifdef ATTREG}
   std_reg2str:reg2strtable=({$INCLUDE strregs.inc});
-{$ENDif ATTREG}
 {*****************************************************************************
                                    Flags
 *****************************************************************************}
@@ -604,3 +580,9 @@ FUNCTION flags_to_cond(CONST f:TResFlags):TAsmCond;
     result:=flags_2_cond[f];
   END;
 END.
+{
+  $Log$
+  Revision 1.6  2002-09-24 03:57:53  mazen
+  * some cleanup  was made
+
+}

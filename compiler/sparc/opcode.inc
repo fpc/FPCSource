@@ -7,6 +7,9 @@
 { Licence                : GPL                                                }
 { Bug report             : mazen.neifer.01@supaero.org                        }
 {*****************************************************************************}
+{
+	$Id$
+}
 A_NONE,
 A_ABCD,
 A_ADD,A_ADDcc,A_ADDX,A_ADDXcc,
@@ -70,3 +73,6 @@ A_not,
 A_set,
 A_skipz,A_skipnz,
 A_tst
+{
+	$Log:
+}
