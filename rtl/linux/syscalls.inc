@@ -97,14 +97,14 @@ asm
   lwz  r4, 8(r4)
 { Go ! }
   sc
+  nop
 { Put back the registers... }
   lwz    r8, regs
   stw    r3, 0(r8)
-  stw    r3, 4(r8)
-  stw    r4, 8(r8)
-  stw    r5, 12(r8)
-  stw    r6, 16(r8)
-  stw    r7, 20(r8)
+  stw    r4, 4(r8)
+  stw    r5, 8(r8)
+  stw    r6, 12(r8)
+  stw    r7, 16(r8)
 end;
 {$endif powerpc}
 {$ifndef fpc_syscall_ok}
@@ -581,7 +581,11 @@ end;
 
 {
   $Log$
-  Revision 1.13  2002-09-07 16:01:19  peter
+  Revision 1.14  2002-09-10 21:32:14  jonas
+    + added "nop" after sc instruction, since normally in case of success,
+      sc returns to the second instruction after itself
+
+  Revision 1.13  2002/09/07 16:01:19  peter
     * old logs removed and tabs fixed
 
   Revision 1.12  2002/09/07 13:14:04  florian
