@@ -45,7 +45,7 @@ Const
 
 type
   TRTTIProc=procedure(Data,TypeInfo:Pointer);
-  
+
 procedure RecordRTTI(Data,TypeInfo:Pointer;rttiproc:TRTTIProc);
 {
   A record is designed as follows :
@@ -73,27 +73,15 @@ begin
   temp:=aligntoptr(temp);
   { Skip size }
   inc(Temp,4);
-  { Element count }  
-{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
-  move(Temp^,Count,sizeof(Count));
-{$else FPC_REQUIRES_PROPER_ALIGNMENT}
-  Count:=PLongint(Temp)^; 
-{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+  { Element count }
+  Count:=PLongint(Temp)^;
   inc(Temp,sizeof(Count));
   { Process elements }
   for i:=1 to count Do
     begin
-{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
-      move(Temp^,Info,sizeof(Info));
-{$else FPC_REQUIRES_PROPER_ALIGNMENT}
-      Info:=PPointer(Temp)^; 
-{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      Info:=PPointer(Temp)^;
       inc(Temp,sizeof(Info));
-{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
-      move(Temp^,Offset,sizeof(Offset));
-{$else FPC_REQUIRES_PROPER_ALIGNMENT}
       Offset:=PLongint(Temp)^;
-{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       inc(Temp,sizeof(Offset));
       rttiproc (Data+Offset,Info);
     end;
@@ -125,24 +113,12 @@ begin
   inc(temp,namelen+1);
   temp:=aligntoptr(temp);
   { Element size }
-{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
-  move(Temp^,size,sizeof(size));
-{$else FPC_REQUIRES_PROPER_ALIGNMENT}
   size:=PLongint(Temp)^;
-{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
   inc(Temp,sizeof(Size));
-  { Element count }  
-{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
-  move(Temp^,Count,sizeof(Count));
-{$else FPC_REQUIRES_PROPER_ALIGNMENT}
-  Count:=PLongint(Temp)^; 
-{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+  { Element count }
+  Count:=PLongint(Temp)^;
   inc(Temp,sizeof(Count));
-{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
-  move(Temp^,Info,sizeof(Info));
-{$else FPC_REQUIRES_PROPER_ALIGNMENT}
-  Info:=PPointer(Temp)^; 
-{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+  Info:=PPointer(Temp)^;
   inc(Temp,sizeof(Info));
   { Process elements }
   for I:=0 to Count-1 do
@@ -271,7 +247,10 @@ procedure fpc_finalize_array(data,typeinfo : pointer;count,size : longint); [Pub
 
 {
   $Log$
-  Revision 1.17  2004-10-24 21:39:42  peter
+  Revision 1.18  2004-10-26 15:02:51  peter
+    * rtti is always aligned, remove move() workarounds
+
+  Revision 1.17  2004/10/24 21:39:42  peter
     * record and array parsing moved to procedure and handle like
       a data stream instead of using records
 
