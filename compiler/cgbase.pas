@@ -257,7 +257,7 @@ interface
     {# From a constant numeric value, return the abstract code generator
        size.
     }
-    function int_cgsize(const a: aword): tcgsize;
+    function int_cgsize(const a: aword): tcgsize;{$ifdef USEINLINE}inline;{$endif}
 
     { return the inverse condition of opcmp }
     function inverse_opcmp(opcmp: topcmp): topcmp;{$ifdef USEINLINE}inline;{$endif}
@@ -391,23 +391,16 @@ implementation
       end;
 
 
-    function int_cgsize(const a: aword): tcgsize;
+    function int_cgsize(const a: aword): tcgsize;{$ifdef USEINLINE}inline;{$endif}
+      const
+        size2cgsize : array[0..8] of tcgsize = (
+          OS_NO,OS_8,OS_16,OS_32,OS_32,OS_64,OS_64,OS_64,OS_64
+        );
       begin
-        if a > 8 then
-          begin
-            int_cgsize := OS_NO;
-            exit;
-          end;
-        case byte(a) of
-          1 :
-            result := OS_8;
-          2 :
-            result := OS_16;
-          3,4 :
-            result := OS_32;
-          5..8 :
-            result := OS_64;
-        end;
+        if a>8 then
+          result:=OS_NO
+        else
+          result:=size2cgsize[a];
       end;
 
 
@@ -469,7 +462,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.75  2003-10-31 15:51:11  peter
+  Revision 1.76  2003-11-03 17:48:04  peter
+    * int_cgsize returned garbage for a=0
+
+  Revision 1.75  2003/10/31 15:51:11  peter
     * USEINLINE directive added (not enabled yet)
 
   Revision 1.74  2003/10/30 14:56:40  mazen
