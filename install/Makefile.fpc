@@ -146,7 +146,7 @@ installbase: build-stamp
         $(MKDIR) $(DOCINSTALLDIR)
         $(MKDIR) $(BININSTALLDIR)
 # readme & whatsnew and docs
-        $(COPY) doc/*.txt doc/copying* $(DOCINSTALLDIR)
+        $(COPY) doc/*.txt doc/copying* doc/faq.html $(DOCINSTALLDIR)
 # bingo32 (cwsdpmi,wmemu387.dxe)
 ifeq ($(OS_TARGET),go32v2)
         $(COPY) bingo32/* $(BININSTALLDIR)
