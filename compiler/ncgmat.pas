@@ -29,7 +29,7 @@ interface
     uses
       node,nmat,cpubase,cgbase;
 
-type
+    type
       tcgunaryminusnode = class(tunaryminusnode)
       protected
          { This routine is called to change the sign of the
@@ -46,7 +46,9 @@ type
 {$ifdef SUPPORT_MMX}
          procedure second_mmx;virtual;abstract;
 {$endif SUPPORT_MMX}
+{$ifndef cpu64bit}
          procedure second_64bit;virtual;
+{$endif cpu64bit}
          procedure second_integer;virtual;
          procedure second_float;virtual;
       public
@@ -97,7 +99,9 @@ type
       end;
 
       tcgshlshrnode = class(tshlshrnode)
+{$ifndef cpu64bit}
          procedure second_64bit;virtual;
+{$endif cpu64bit}
          procedure second_integer;virtual;
          procedure pass_2;override;
       end;
@@ -108,7 +112,9 @@ type
 {$ifdef SUPPORT_MMX}
          procedure second_mmx;virtual;abstract;
 {$endif SUPPORT_MMX}
+{$ifndef cpu64bit}
          procedure second_64bit;virtual;
+{$endif cpu64bit}
          procedure second_integer;virtual;
       public
          procedure pass_2;override;
@@ -124,7 +130,11 @@ implementation
       pass_1,pass_2,
       ncon,
       cpuinfo,
-      tgobj,ncgutil,cgobj,paramgr,cg64f32;
+      tgobj,ncgutil,cgobj,paramgr
+{$ifndef cpu64bit}
+      ,cg64f32
+{$endif cpu64bit}
+      ;
 
 {*****************************************************************************
                           TCGUNARYMINUSNODE
@@ -176,6 +186,7 @@ implementation
       end;
 
 
+{$ifndef cpu64bit}
     procedure tcgunaryminusnode.second_64bit;
       begin
         secondpass(left);
@@ -185,7 +196,7 @@ implementation
         cg64.a_op64_loc_reg(exprasmlist,OP_NEG,
            location,joinreg64(location.registerlow,location.registerhigh));
       end;
-
+{$endif cpu64bit}
 
     procedure tcgunaryminusnode.second_float;
       begin
@@ -231,14 +242,16 @@ implementation
 
     procedure tcgunaryminusnode.pass_2;
       begin
+{$ifndef cpu64bit}
          if is_64bit(left.resulttype.def) then
            second_64bit
-{$ifdef SUPPORT_MMX}
          else
+{$endif cpu64bit}
+{$ifdef SUPPORT_MMX}
            if (cs_mmx in aktlocalswitches) and is_mmx_able_array(left.resulttype.def) then
              second_mmx
-{$endif SUPPORT_MMX}
          else
+{$endif SUPPORT_MMX}
            if (left.resulttype.def.deftype=floatdef) then
              second_float
          else
@@ -276,6 +289,7 @@ implementation
           exit;
          location_copy(location,left.location);
 
+{$ifndef cpu64bit}
          if is_64bit(resulttype.def) then
            begin
              { this code valid for 64-bit cpu's only ,
@@ -289,6 +303,7 @@ implementation
                joinreg64(location.registerlow,location.registerhigh));
            end
          else
+{$endif cpu64bit}
            begin
               { put numerator in register }
               location_force_reg(exprasmlist,left.location,OS_INT,false);
@@ -353,6 +368,7 @@ implementation
 *****************************************************************************}
 
 
+{$ifndef cpu64bit}
     procedure tcgshlshrnode.second_64bit;
       var
          freescratch : boolean;
@@ -389,6 +405,7 @@ implementation
          internalerror(2002081501);
 {$endif cpu64bit}
       end;
+{$endif cpu64bit}
 
 
     procedure tcgshlshrnode.second_integer;
@@ -448,10 +465,11 @@ implementation
       begin
          secondpass(left);
          secondpass(right);
-
+{$ifndef cpu64bit}
          if is_64bit(left.resulttype.def) then
            second_64bit
          else
+{$endif cpu64bit}
            second_integer;
       end;
 
@@ -460,6 +478,7 @@ implementation
                                TCGNOTNODE
 *****************************************************************************}
 
+{$ifndef cpu64bit}
     procedure tcgnotnode.second_64bit;
       begin
         secondpass(left);
@@ -468,6 +487,7 @@ implementation
         { perform the NOT operation }
         cg64.a_op64_reg_reg(exprasmlist,OP_NOT,left.location.register64,location.register64);
       end;
+{$endif cpu64bit}
 
 
     procedure tcgnotnode.second_integer;
@@ -488,8 +508,10 @@ implementation
         else if (cs_mmx in aktlocalswitches) and is_mmx_able_array(left.resulttype.def) then
           second_mmx
 {$endif SUPPORT_MMX}
+{$ifndef cpu64bit}
         else if is_64bit(left.resulttype.def) then
           second_64bit
+{$endif cpu64bit}
         else
           second_integer;
       end;
@@ -502,7 +524,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2003-12-06 01:15:22  florian
+  Revision 1.24  2004-01-20 12:59:37  florian
+    * common addnode code for x86-64 and i386
+
+  Revision 1.23  2003/12/06 01:15:22  florian
     * reverted Peter's alloctemp patch; hopefully properly
 
   Revision 1.22  2003/12/03 23:13:20  peter

@@ -281,6 +281,11 @@ implementation
         ordpointertype:=u32bittype;
         defaultordconsttype:=s32bittype;
 {$endif arm}
+{$ifdef cpu64bit}
+        inttype:=cs64bittype;
+{$else cpu64bit}
+        inttype:=s32bittype;
+{$endif cpu64bit}
       end;
 
 
@@ -360,6 +365,12 @@ implementation
         s80floattype.setdef(tfloatdef.create(s80real));
         s64currencytype.setdef(torddef.create(scurrency,low(int64),high(int64)));
 {$endif arm}
+{$ifdef cpu64bit}
+        inttype:=cs64bittype;
+{$else cpu64bit}
+        inttype:=s32bittype;
+{$endif cpu64bit}
+
         { some other definitions }
         voidpointertype.setdef(tpointerdef.create(voidtype));
         charpointertype.setdef(tpointerdef.create(cchartype));
@@ -510,7 +521,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.58  2003-11-29 16:19:54  peter
+  Revision 1.59  2004-01-20 12:59:37  florian
+    * common addnode code for x86-64 and i386
+
+  Revision 1.58  2003/11/29 16:19:54  peter
     * Initialize() added
 
   Revision 1.57  2003/10/06 22:23:41  florian

@@ -43,11 +43,7 @@ interface
       ti386unaryminusnode = class(tx86unaryminusnode)
       end;
 
-      ti386notnode = class(tcgnotnode)
-         procedure second_boolean;override;
-{$ifdef SUPPORT_MMX}
-         procedure second_mmx;override;
-{$endif SUPPORT_MMX}
+      ti386notnode = class(tx86notnode)
       end;
 
 
@@ -350,103 +346,6 @@ implementation
     end;
 
 
-{*****************************************************************************
-                               TI386NOTNODE
-*****************************************************************************}
-
-    procedure ti386notnode.second_boolean;
-      var
-         hl : tasmlabel;
-         opsize : topsize;
-      begin
-        opsize:=def_opsize(resulttype.def);
-
-        if left.expectloc=LOC_JUMP then
-         begin
-           location_reset(location,LOC_JUMP,OS_NO);
-           hl:=truelabel;
-           truelabel:=falselabel;
-           falselabel:=hl;
-           secondpass(left);
-           maketojumpbool(exprasmlist,left,lr_load_regvars);
-           hl:=truelabel;
-           truelabel:=falselabel;
-           falselabel:=hl;
-         end
-        else
-         begin
-           { the second pass could change the location of left }
-           { if it is a register variable, so we've to do      }
-           { this before the case statement                    }
-           secondpass(left);
-           case left.expectloc of
-             LOC_FLAGS :
-               begin
-                 location_release(exprasmlist,left.location);
-                 location_reset(location,LOC_FLAGS,OS_NO);
-                 location.resflags:=left.location.resflags;
-                 inverse_flags(location.resflags);
-               end;
-             LOC_CONSTANT,
-             LOC_REGISTER,
-             LOC_CREGISTER,
-             LOC_REFERENCE,
-             LOC_CREFERENCE :
-               begin
-                 location_force_reg(exprasmlist,left.location,def_cgsize(resulttype.def),true);
-                 location_release(exprasmlist,left.location);
-                 emit_reg_reg(A_TEST,opsize,left.location.register,left.location.register);
-                 location_reset(location,LOC_FLAGS,OS_NO);
-                 location.resflags:=F_E;
-               end;
-            else
-               internalerror(200203224);
-           end;
-         end;
-      end;
-
-
-{$ifdef SUPPORT_MMX}
-    procedure ti386notnode.second_mmx;
-
-    var hreg,r:Tregister;
-
-    begin
-      secondpass(left);
-      location_reset(location,LOC_MMXREGISTER,OS_NO);
-      r:=cg.getintregister(exprasmlist,OS_INT);
-      emit_const_reg(A_MOV,S_L,longint($ffffffff),r);
-      { load operand }
-      case left.location.loc of
-        LOC_MMXREGISTER:
-          location_copy(location,left.location);
-        LOC_CMMXREGISTER:
-          begin
-            location.register:=cg.getmmxregister(exprasmlist,OS_M64);
-            emit_reg_reg(A_MOVQ,S_NO,left.location.register,location.register);
-          end;
-        LOC_REFERENCE,
-        LOC_CREFERENCE:
-          begin
-            location_release(exprasmlist,left.location);
-            location.register:=cg.getmmxregister(exprasmlist,OS_M64);
-            emit_ref_reg(A_MOVQ,S_NO,left.location.reference,location.register);
-          end;
-      end;
-      { load mask }
-      hreg:=cg.getmmxregister(exprasmlist,OS_M64);
-      emit_reg_reg(A_MOVD,S_NO,r,hreg);
-      cg.ungetregister(exprasmlist,r);
-      { lower 32 bit }
-      emit_reg_reg(A_PXOR,S_D,hreg,location.register);
-      { shift mask }
-      emit_const_reg(A_PSLLQ,S_NO,32,hreg);
-      { higher 32 bit }
-      cg.ungetregister(exprasmlist,hreg);
-      emit_reg_reg(A_PXOR,S_D,hreg,location.register);
-    end;
-{$endif SUPPORT_MMX}
-
 begin
    cunaryminusnode:=ti386unaryminusnode;
    cmoddivnode:=ti386moddivnode;
@@ -455,7 +354,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.68  2003-12-26 13:19:16  florian
+  Revision 1.69  2004-01-20 12:59:37  florian
+    * common addnode code for x86-64 and i386
+
+  Revision 1.68  2003/12/26 13:19:16  florian
     * rtl and compiler compile with -Cfsse2
 
   Revision 1.67  2003/12/25 01:07:09  florian

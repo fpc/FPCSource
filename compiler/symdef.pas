@@ -723,7 +723,10 @@ interface
        colevarianttype,
        { unsigned ord type with the same size as a pointer }
        ordpointertype,
-       defaultordconsttype,       { pointer to type of ordinal constants }
+       { pointer to type of ordinal constants }
+       defaultordconsttype,
+       { default integer type s32bittype on 32 bit systems, s64bittype on 64 bit systems }
+       inttype,
        pvmttype      : ttype;     { type of classrefs, used for stabs }
 
        { pointer to the anchestor of all classes }
@@ -6164,7 +6167,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.199  2004-01-15 15:16:18  daniel
+  Revision 1.200  2004-01-20 12:59:37  florian
+    * common addnode code for x86-64 and i386
+
+  Revision 1.199  2004/01/15 15:16:18  daniel
     * Some minor stuff
     * Managed to eliminate speed effects of string compression
 

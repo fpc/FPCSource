@@ -167,7 +167,7 @@ implementation
                (right.resulttype.def.deftype=orddef) then
              begin
                { insert explicit typecast to s32bit }
-               left:=ctypeconvnode.create_explicit(left,s32bittype);
+               left:=ctypeconvnode.create_explicit(left,inttype);
                resulttypepass(left);
              end
             else
@@ -175,7 +175,7 @@ implementation
                 (right.resulttype.def.deftype=enumdef) then
               begin
                 { insert explicit typecast to s32bit }
-                right:=ctypeconvnode.create_explicit(right,s32bittype);
+                right:=ctypeconvnode.create_explicit(right,inttype);
                 resulttypepass(right);
               end;
           end;
@@ -846,8 +846,8 @@ implementation
                          CGMessage(type_w_signed_unsigned_always_false);
                     end;
 
-                 inserttypeconv(right,s32bittype);
-                 inserttypeconv(left,s32bittype);
+                 inserttypeconv(right,inttype);
+                 inserttypeconv(left,inttype);
                end;
            end
 
@@ -956,7 +956,7 @@ implementation
                      end
                     else
                      CGMessage(type_e_mismatch);
-                    resulttype:=s32bittype;
+                    resulttype:=inttype;
                     exit;
                  end;
                addn:
@@ -972,7 +972,7 @@ implementation
                      end
                     else
                      CGMessage(type_e_mismatch);
-                    resulttype:=s32bittype;
+                    resulttype:=inttype;
                     exit;
                  end;
                else
@@ -1113,7 +1113,7 @@ implementation
                 resulttype.setdef(tpointerdef.create(tarraydef(rd).elementtype));
                 inserttypeconv(right,resulttype);
               end;
-            inserttypeconv(left,s32bittype);
+            inserttypeconv(left,inttype);
             if nodetype=addn then
               begin
                 if not(cs_extsyntax in aktmoduleswitches) or
@@ -1122,7 +1122,7 @@ implementation
                 if (rd.deftype=pointerdef) and
                    (tpointerdef(rd).pointertype.def.size>1) then
                   left:=caddnode.create(muln,left,
-                      cordconstnode.create(tpointerdef(rd).pointertype.def.size,s32bittype,true));
+                      cordconstnode.create(tpointerdef(rd).pointertype.def.size,inttype,true));
               end
             else
               CGMessage(type_e_mismatch);
@@ -1135,7 +1135,7 @@ implementation
                  resulttype.setdef(tpointerdef.create(tarraydef(ld).elementtype));
                  inserttypeconv(left,resulttype);
               end;
-            inserttypeconv(right,s32bittype);
+            inserttypeconv(right,inttype);
             if nodetype in [addn,subn] then
               begin
                 if not(cs_extsyntax in aktmoduleswitches) or
@@ -1144,7 +1144,7 @@ implementation
                 if (ld.deftype=pointerdef) and
                    (tpointerdef(ld).pointertype.def.size>1) then
                   right:=caddnode.create(muln,right,
-                    cordconstnode.create(tpointerdef(ld).pointertype.def.size,s32bittype,true));
+                    cordconstnode.create(tpointerdef(ld).pointertype.def.size,inttype,true));
               end
             else
               CGMessage(type_e_mismatch);
@@ -1174,8 +1174,8 @@ implementation
          { generic conversion, this is for error recovery }
          else
           begin
-            inserttypeconv(left,s32bittype);
-            inserttypeconv(right,s32bittype);
+            inserttypeconv(left,inttype);
+            inserttypeconv(right,inttype);
           end;
 
          { set resulttype if not already done }
@@ -1906,7 +1906,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.106  2004-01-14 17:19:04  peter
+  Revision 1.107  2004-01-20 12:59:36  florian
+    * common addnode code for x86-64 and i386
+
+  Revision 1.106  2004/01/14 17:19:04  peter
     * disable addmmxset
 
   Revision 1.105  2004/01/02 17:19:04  jonas

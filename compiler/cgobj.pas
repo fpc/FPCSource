@@ -2092,8 +2092,10 @@ implementation
           LOC_REGISTER,LOC_CREGISTER :
             begin
               cg.ungetregister(list,l.register);
+{$ifndef cpu64bit}
               if l.size in [OS_64,OS_S64] then
                cg.ungetregister(list,l.registerhigh);
+{$endif cpu64bit}
             end;
           LOC_FPUREGISTER,LOC_CFPUREGISTER :
             cg.ungetregister(list,l.register);
@@ -2135,7 +2137,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.148  2004-01-12 22:11:38  peter
+  Revision 1.149  2004-01-20 12:59:36  florian
+    * common addnode code for x86-64 and i386
+
+  Revision 1.148  2004/01/12 22:11:38  peter
     * use localalign info for alignment for locals and temps
     * sparc fpu flags branching added
     * moved powerpc copy_valye_openarray to generic

@@ -46,13 +46,18 @@ unit cpunode;
        // n386obj
        { the cpu specific node units must be used after the generic ones to
          get the correct class pointer }
-       nx64cnv
+       nx64add,
+       nx64cnv,
+       nx64mat
        ;
 
 end.
 {
   $Log$
-  Revision 1.4  2003-04-30 22:15:59  florian
+  Revision 1.5  2004-01-20 12:59:37  florian
+    * common addnode code for x86-64 and i386
+
+  Revision 1.4  2003/04/30 22:15:59  florian
     * some 64 bit adaptions in ncgadd
     * x86-64 now uses ncgadd
     * tparamanager.ret_in_acc doesn't return true anymore for a void-def
