@@ -355,7 +355,7 @@ void                  \2\xD9\xF0                      8086,FPU
 (Ch_FPU, Ch_None, Ch_None)
 void                  \2\xD9\xE1                      8086,FPU
 
-[FADD,faddX]
+[FADD,faddF]
 (Ch_FPU, Ch_None, Ch_None)
 mem32                 \300\1\xD8\200                  8086,FPU
 mem64                 \300\1\xDC\200                  8086,FPU
@@ -365,18 +365,18 @@ fpureg,fpu0           \1\xDC\10\xC0                   8086,FPU
 fpureg                \1\xD8\10\xC0                   8086,FPU
 fpu0,fpureg           \1\xD8\11\xC0                   8086,FPU
 
-[FADDP,faddpX]
+[FADDP,faddpF]
 (Ch_FPU, Ch_None, Ch_None)
 void                  \2\xDE\xC1                      8086,FPU
 fpureg                \1\xDE\10\xC0                   8086,FPU
 fpureg,fpu0           \1\xDE\10\xC0                   8086,FPU
 
-[FBLD,fbldX]
+[FBLD,fbldF]
 (Ch_Rop1, Ch_FPU, Ch_None)
 mem80                 \300\1\xDF\204                  8086,FPU
 mem                   \300\1\xDF\204                  8086,FPU
 
-[FBSTP,fbstpX]
+[FBSTP,fbstpF]
 (Ch_Wop1, Ch_FPU, Ch_None)
 mem80                 \300\1\xDF\206                  8086,FPU
 mem                   \300\1\xDF\206                  8086,FPU
@@ -389,55 +389,55 @@ void                  \2\xD9\xE0                      8086,FPU
 (Ch_FPU, Ch_None, Ch_None)
 void                  \3\x9B\xDB\xE2                  8086,FPU
 
-[FCMOVB,fcmovbX]
+[FCMOVB,fcmovbF]
 (Ch_FPU, Ch_RFLAGS, Ch_None)
 void                  \2\xDA\xC1                      P6,FPU
 fpureg                \1\xDA\10\xC0                   P6,FPU
 fpu0,fpureg           \1\xDA\11\xC0                   P6,FPU
 
-[FCMOVBE,fcmovbeX]
+[FCMOVBE,fcmovbeF]
 (Ch_FPU, Ch_RFLAGS, Ch_None)
 void                  \2\xDA\xD1                      P6,FPU
 fpureg                \1\xDA\10\xD0                   P6,FPU
 fpu0,fpureg           \1\xDA\11\xD0                   P6,FPU
 
-[FCMOVE,fcmoveX]
+[FCMOVE,fcmoveF]
 (Ch_FPU, Ch_RFLAGS, Ch_None)
 void                  \2\xDA\xC9                      P6,FPU
 fpureg                \1\xDA\10\xC8                   P6,FPU
 fpu0,fpureg           \1\xDA\11\xC8                   P6,FPU
 
-[FCMOVNB,fcmovnbX]
+[FCMOVNB,fcmovnbF]
 (Ch_FPU, Ch_RFLAGS, Ch_None)
 void                  \2\xDB\xC1                      P6,FPU
 fpureg                \1\xDB\10\xC0                   P6,FPU
 fpu0,fpureg           \1\xDB\11\xC0                   P6,FPU
 
-[FCMOVNBE,fcmovnbeX]
+[FCMOVNBE,fcmovnbeF]
 (Ch_FPU, Ch_RFLAGS, Ch_None)
 void                  \2\xDB\xD1                      P6,FPU
 fpureg                \1\xDB\10\xD0                   P6,FPU
 fpu0,fpureg           \1\xDB\11\xD0                   P6,FPU
 
-[FCMOVNE,fcmovneX]
+[FCMOVNE,fcmovneF]
 (Ch_FPU, Ch_RFLAGS, Ch_None)
 void                  \2\xDB\xC9                      P6,FPU
 fpureg                \1\xDB\10\xC8                   P6,FPU
 fpu0,fpureg           \1\xDB\11\xC8                   P6,FPU
 
-[FCMOVNU,fcmovnuX]
+[FCMOVNU,fcmovnuF]
 (Ch_FPU, Ch_RFLAGS, Ch_None)
 void                  \2\xDB\xD9                      P6,FPU
 fpureg                \1\xDB\10\xD8                   P6,FPU
 fpu0,fpureg           \1\xDB\11\xD8                   P6,FPU
 
-[FCMOVU,fcmovuX]
+[FCMOVU,fcmovuF]
 (Ch_FPU, Ch_RFLAGS, Ch_None)
 void                  \2\xDA\xD9                      P6,FPU
 fpureg                \1\xDA\10\xD8                   P6,FPU
 fpu0,fpureg           \1\xDA\11\xD8                   P6,FPU
 
-[FCOM,fcomX]
+[FCOM,fcomF]
 (Ch_FPU, Ch_None, Ch_None)
 mem32                 \300\1\xD8\202                  8086,FPU
 mem64                 \300\1\xDC\202                  8086,FPU
@@ -445,19 +445,19 @@ void                  \2\xD8\xD1                      8086,FPU
 fpureg                \1\xD8\10\xD0                   8086,FPU
 fpu0,fpureg           \1\xD8\11\xD0                   8086,FPU
 
-[FCOMI,fcomiX]
+[FCOMI,fcomiF]
 (Ch_WFLAGS, Ch_None, Ch_None)
 void                  \2\xDB\xF1                      P6,FPU
 fpureg                \1\xDB\10\xF0                   P6,FPU
 fpu0,fpureg           \1\xDB\11\xF0                   P6,FPU
 
-[FCOMIP,fcomipX]
+[FCOMIP,fcomipF]
 (Ch_FPU, Ch_WFLAGS, Ch_None)
 void                  \2\xDF\xF1                      P6,FPU
 fpureg                \1\xDF\10\xF0                   P6,FPU
 fpu0,fpureg           \1\xDF\11\xF0                   P6,FPU
 
-[FCOMP,fcompX]
+[FCOMP,fcompF]
 (Ch_FPU, Ch_None, Ch_None)
 mem32                 \300\1\xD8\203                  8086,FPU
 mem64                 \300\1\xDC\203                  8086,FPU
@@ -481,7 +481,7 @@ void                  \2\xD9\xF6                      8086,FPU
 (Ch_FPU, Ch_None, Ch_None)
 void                  \3\x9B\xDB\xE1                  8086,FPU
 
-[FDIV,fdivX]
+[FDIV,fdivF]
 (Ch_FPU, Ch_None, Ch_None)
 mem32                 \300\1\xD8\206                  8086,FPU
 mem64                 \300\1\xDC\206                  8086,FPU
@@ -491,13 +491,13 @@ fpureg,fpu0           \1\xDC\10\xF0                   8086,FPU
 fpureg                \1\xD8\10\xF0                   8086,FPU
 fpu0,fpureg           \1\xD8\11\xF0                   8086,FPU
 
-[FDIVP,fdivpX]
+[FDIVP,fdivpF]
 (Ch_FPU, Ch_None, Ch_None)
 void                  \2\xDE\xF1                      8086,FPU
 fpureg,fpu0           \1\xDE\10\xF0                   8086,FPU
 fpureg                \1\xDE\10\xF0                   8086,FPU
 
-[FDIVR,fdivrX]
+[FDIVR,fdivrF]
 (Ch_FPU, Ch_None, Ch_None)
 mem32                 \300\1\xD8\207                  8086,FPU
 mem64                 \300\1\xDC\207                  8086,FPU
@@ -507,7 +507,7 @@ fpureg,fpu0           \1\xDC\10\xF8                   8086,FPU
 fpureg                \1\xD8\10\xF8                   8086,FPU
 fpu0,fpureg           \1\xD8\11\xF8                   8086,FPU
 
-[FDIVRP,fdivrpX]
+[FDIVRP,fdivrpF]
 (Ch_FPU, Ch_None, Ch_None)
 void                  \2\xDE\xF9                      8086,FPU
 fpureg                \1\xDE\10\xF8                   8086,FPU
@@ -525,41 +525,41 @@ void                  \3\x9B\xDB\xE0                  8086,FPU
 (Ch_FPU, Ch_None, Ch_None)
 fpureg                \1\xDD\10\xC0                   8086,FPU
 
-[FIADD,fiaddX]
+[FIADD,fiaddF]
 (Ch_FPU, Ch_None, Ch_None)
-mem32                 \300\1\xDA\200                  8086,FPU
-mem16                 \300\1\xDE\200                  8086,FPU
+mem32                 \300\1\xDE\200                  8086,FPU
+mem64                 \300\1\xDA\200                  8086,FPU
 
-[FICOM,ficomX]
+[FICOM,ficomF]
 (Ch_FPU, Ch_None, Ch_None)
-mem32                 \300\1\xDA\202                  8086,FPU
-mem16                 \300\1\xDE\202                  8086,FPU
+mem32                 \300\1\xDE\202                  8086,FPU
+mem64                 \300\1\xDA\202                  8086,FPU
 
-[FICOMP,ficompX]
+[FICOMP,ficompF]
 (Ch_FPU, Ch_None, Ch_None)
-mem32                 \300\1\xDA\203                  8086,FPU
-mem16                 \300\1\xDE\203                  8086,FPU
+mem32                 \300\1\xDE\203                  8086,FPU
+mem64                 \300\1\xDA\203                  8086,FPU
 
-[FIDIV,fidivX]
+[FIDIV,fidivF]
 (Ch_FPU, Ch_None, Ch_None)
-mem32                 \300\1\xDA\206                  8086,FPU
-mem16                 \300\1\xDE\206                  8086,FPU
+mem32                 \300\1\xDE\206                  8086,FPU
+mem64                 \300\1\xDA\206                  8086,FPU
 
-[FIDIVR,fidivrX]
+[FIDIVR,fidivrF]
 (Ch_FPU, Ch_None, Ch_None)
-mem32                 \300\1\xDA\207                  8086,FPU
-mem16                 \300\1\xDE\207                  8086,FPU
+mem32                 \300\1\xDE\207                  8086,FPU
+mem64                 \300\1\xDA\207                  8086,FPU
 
 [FILD,fildX]
 (Ch_FPU, Ch_None, Ch_None)
 mem32                 \300\1\xDB\200                  8086,FPU
-mem16                 \300\1\xDF\200                  8086,FPU
+mem16                 \320\300\1\xDF\200              8086,FPU
 mem64                 \300\1\xDF\205                  8086,FPU
 
-[FIMUL,fimulX]
+[FIMUL,fimulF]
 (Ch_FPU, Ch_None, Ch_None)
-mem32                 \300\1\xDA\201                  8086,FPU
-mem16                 \300\1\xDE\201                  8086,FPU
+mem32                 \300\1\xDE\201                  8086,FPU
+mem64                 \300\1\xDA\201                  8086,FPU
 
 [FINCSTP]
 (Ch_FPU, Ch_None, Ch_None)
@@ -572,25 +572,25 @@ void                  \3\x9B\xDB\xE3                  8086,FPU
 [FIST,fistX]
 (Ch_Wop1, Ch_None, Ch_None)
 mem32                 \300\1\xDB\202                  8086,FPU
-mem16                 \300\1\xDF\202                  8086,FPU
+mem16                 \320\300\1\xDF\202              8086,FPU
 
 [FISTP,fistpX]
 (Ch_Wop1, Ch_None, Ch_None)
 mem32                 \300\1\xDB\203                  8086,FPU
-mem16                 \300\1\xDF\203                  8086,FPU
+mem16                 \320\300\1\xDF\203              8086,FPU
 mem64                 \300\1\xDF\207                  8086,FPU
 
-[FISUB,fisubX]
+[FISUB,fisubF]
 (Ch_FPU, Ch_None, Ch_None)
-mem32                 \300\1\xDA\204                  8086,FPU
-mem16                 \300\1\xDE\204                  8086,FPU
+mem32                 \300\1\xDE\204                  8086,FPU
+mem64                 \300\1\xDA\204                  8086,FPU
 
-[FISUBR,fisubrX]
+[FISUBR,fisubrF]
 (Ch_FPU, Ch_None, Ch_None)
-mem32                 \300\1\xDA\205                  8086,FPU
-mem16                 \300\1\xDE\205                  8086,FPU
+mem32                 \300\1\xDE\205                  8086,FPU
+mem64                 \300\1\xDA\205                  8086,FPU
 
-[FLD,fldX]
+[FLD,fldF]
 (Ch_Rop1, Ch_FPU, Ch_None)
 mem32                 \300\1\xD9\200                  8086,FPU
 mem64                 \300\1\xDD\200                  8086,FPU
@@ -633,7 +633,7 @@ void                  \2\xD9\xEB                      8086,FPU
 (Ch_FPU, Ch_None, Ch_None)
 void                  \2\xD9\xEE                      8086,FPU
 
-[FMUL,fmulX]
+[FMUL,fmulF]
 (Ch_ROp1, Ch_FPU, Ch_None)
 mem32                 \300\1\xD8\201                  8086,FPU
 mem64                 \300\1\xDC\201                  8086,FPU
@@ -643,7 +643,7 @@ fpureg,fpu0           \1\xDC\10\xC8                   8086,FPU
 fpureg                \1\xD8\10\xC8                   8086,FPU
 fpu0,fpureg           \1\xD8\11\xC8                   8086,FPU
 
-[FMULP,fmulpX]
+[FMULP,fmulpF]
 (Ch_ROp1, Ch_FPU, Ch_None)
 void                  \2\xDE\xC9                      8086,FPU
 fpureg                \1\xDE\10\xC8                   8086,FPU
@@ -738,7 +738,7 @@ void                  \2\xD9\xFB                      386,FPU
 (Ch_FPU, Ch_None, Ch_None)
 void                  \2\xD9\xFA                      8086,FPU
 
-[FST,fstX]
+[FST,fstF]
 (Ch_Wop1, Ch_None, Ch_None)
 mem32                 \300\1\xD9\202                  8086,FPU
 mem64                 \300\1\xDD\202                  8086,FPU
@@ -752,7 +752,7 @@ mem                   \300\2\x9B\xD9\207              8086,FPU,SW
 (Ch_Wop1, Ch_None, Ch_None)
 mem                   \300\2\x9B\xD9\206              8086,FPU
 
-[FSTP,fstpX]
+[FSTP,fstpF]
 (Ch_Wop1, Ch_FPU, Ch_None)
 mem32                 \300\1\xD9\203                  8086,FPU
 mem64                 \300\1\xDD\203                  8086,FPU
@@ -765,7 +765,7 @@ mem                   \300\2\x9B\xDD\207              8086,FPU,SW
 void                  \3\x9B\xDF\xE0                  286,FPU
 reg_ax                \3\x9B\xDF\xE0                  286,FPU
 
-[FSUB,fsubX]
+[FSUB,fsubF]
 (Ch_ROp1, Ch_FPU, Ch_None)
 mem32                 \300\1\xD8\204                  8086,FPU
 mem64                 \300\1\xDC\204                  8086,FPU
@@ -775,13 +775,13 @@ fpureg,fpu0           \1\xDC\10\xE0                   8086,FPU
 fpureg                \1\xD8\10\xE0                   8086,FPU
 fpu0,fpureg           \1\xD8\11\xE0                   8086,FPU
 
-[FSUBP,fsubpX]
+[FSUBP,fsubpF]
 (Ch_ROp1, Ch_FPU, Ch_None)
 void                  \2\xDE\xE1                      8086,FPU
 fpureg                \1\xDE\10\xE0                   8086,FPU
 fpureg,fpu0           \1\xDE\10\xE0                   8086,FPU
 
-[FSUBR,fsubrX]
+[FSUBR,fsubrF]
 (Ch_ROp1, Ch_FPU, Ch_None)
 mem32                 \300\1\xD8\205                  8086,FPU
 mem64                 \300\1\xDC\205                  8086,FPU
@@ -791,7 +791,7 @@ fpureg,fpu0           \1\xDC\10\xE8                   8086,FPU
 fpureg                \1\xD8\10\xE8                   8086,FPU
 fpu0,fpureg           \1\xD8\11\xE8                   8086,FPU
 
-[FSUBRP,fsubrpX]
+[FSUBRP,fsubrpF]
 (Ch_ROp1, Ch_FPU, Ch_None)
 void                  \2\xDE\xE9                      8086,FPU
 fpureg                \1\xDE\10\xE8                   8086,FPU
@@ -801,25 +801,25 @@ fpureg,fpu0           \1\xDE\10\xE8                   8086,FPU
 (Ch_FPU, Ch_None, Ch_None)
 void                  \2\xD9\xE4                      8086,FPU
 
-[FUCOM,fucomX]
+[FUCOM,fucomF]
 (Ch_None, Ch_None, Ch_None)
 void                  \2\xDD\xE1                      386,FPU
 fpureg                \1\xDD\10\xE0                   386,FPU
 fpu0,fpureg           \1\xDD\11\xE0                   386,FPU
 
-[FUCOMI,fucomiX]
+[FUCOMI,fucomiF]
 (Ch_WFLAGS, Ch_None, Ch_None)
 void                  \2\xDB\xE9                      P6,FPU
 fpureg                \1\xDB\10\xE8                   P6,FPU
 fpu0,fpureg           \1\xDB\11\xE8                   P6,FPU
 
-[FUCOMIP,fucomipX]
+[FUCOMIP,fucomipF]
 (Ch_FPU, Ch_WFLAGS, Ch_None)
 void                  \2\xDF\xE9                      P6,FPU
 fpureg                \1\xDF\10\xE8                   P6,FPU
 fpu0,fpureg           \1\xDF\11\xE8                   P6,FPU
 
-[FUCOMP,fucompX]
+[FUCOMP,fucompF]
 (Ch_FPU, Ch_None, Ch_None)
 void                  \2\xDD\xE9                      386,FPU
 fpureg                \1\xDD\10\xE8                   386,FPU
@@ -837,7 +837,7 @@ void                  \1\x9B                          8086,FPU
 (Ch_FPU, Ch_None, Ch_None)
 void                  \2\xD9\xE5                      8086,FPU
 
-[FXCH,fxchX]
+[FXCH,fxchF]
 (Ch_FPU, Ch_None, Ch_None)
 void                  \2\xD9\xC9                      8086,FPU
 fpureg                \1\xD9\10\xC8                   8086,FPU

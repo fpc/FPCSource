@@ -699,7 +699,7 @@ unit ag386att;
              { call maybe not translated to call }
                s:=#9+att_op2str[op]+cond2str[paicpu(hp)^.condition];
                if (not calljmp) and
-                  (att_needsuffix[op]) and
+                  (att_needsuffix[op]<>AttSufNONE) and
                   not(
                    (paicpu(hp)^.oper[0].typ=top_reg) and
                    (paicpu(hp)^.oper[0].reg in [R_ST..R_ST7])
@@ -871,7 +871,10 @@ unit ag386att;
 end.
 {
   $Log$
-  Revision 1.23  2000-01-07 01:14:18  peter
+  Revision 1.24  2000-01-28 09:41:39  peter
+    * fixed fpu suffix parsing for att reader
+
+  Revision 1.23  2000/01/07 01:14:18  peter
     * updated copyright to 2000
 
   Revision 1.22  1999/12/18 20:00:33  florian

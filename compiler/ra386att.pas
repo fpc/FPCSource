@@ -121,21 +121,6 @@ end;
   {                    Routines for the tokenizing                     }
   {---------------------------------------------------------------------}
 
-function is_fpuopcode(op:tasmop):boolean;
-{$ifndef NOAG386BIN}
-var
-  i : longint;
-{$endif}
-begin
-  is_fpuopcode:=false;
-{$ifdef NOAG386BINFAKE}
-  i:=InsTabCache^[ActOpcode];
-  if i<>-1 then
-   is_fpuopcode:=((instab[i].flags and IF_FPU)=IF_FPU);
-{$endif}
-end;
-
-
 function is_asmopcode(const s: string):boolean;
 const
   { We need first to check the long prefixes, else we get probs
@@ -176,7 +161,7 @@ Begin
          if (length(hid) > 0) and (hid=iasmops^[i]) then
           begin
             actopcode:=i;
-            if is_fpuopcode(actopcode) then
+            if att_needsuffix[actopcode]=attsufFPU then
              actopsize:=att_sizefpusuffix[sufidx]
             else
              actopsize:=att_sizesuffix[sufidx];
@@ -197,7 +182,7 @@ Begin
                   if Cond=Upper(cond2str[cnd]) then
                    begin
                      actopcode:=CondASmOp[j];
-                     if is_fpuopcode(actopcode) then
+                     if att_needsuffix[actopcode]=attsufFPU then
                       actopsize:=att_sizefpusuffix[sufidx]
                      else
                       actopsize:=att_sizesuffix[sufidx];
@@ -2000,7 +1985,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.69  2000-01-21 10:10:25  daniel
+  Revision 1.70  2000-01-28 09:41:39  peter
+    * fixed fpu suffix parsing for att reader
+
+  Revision 1.69  2000/01/21 10:10:25  daniel
     * should work on linux also
 
   Revision 1.68  2000/01/21 00:46:47  peter

@@ -195,9 +195,10 @@ end;
 
 
 var
+   attsuffix,
    hs : string;
    j : longint;
-   firstopcode,attsuffix,
+   firstopcode,
    first : boolean;
    maxinfolen,
    code : byte;
@@ -251,7 +252,7 @@ begin
                  (intopcode[length(intopcode)-1]='c') then
                 dec(byte(intopcode[0]),2);
               attopcode:=intopcode;
-              attsuffix:=false;
+              attsuffix:='attsufNONE';
             end
            else
             begin
@@ -263,13 +264,20 @@ begin
                 dec(byte(intopcode[0]),2);
               attopcode:=Copy(s,i+1,j-i-1);
               { att Suffix }
-              if attopcode[length(attopcode)]='X' then
-               begin
-                 dec(attopcode[0]);
-                 attsuffix:=true;
-               end
-              else
-               attsuffix:=false;
+              case attopcode[length(attopcode)] of
+                'X' :
+                  begin
+                    dec(attopcode[0]);
+                    attsuffix:='attsufINT';
+                  end;
+                'F' :
+                  begin
+                    dec(attopcode[0]);
+                    attsuffix:='attsufFPU';
+                  end;
+                else
+                  attsuffix:='attsufNONE';
+              end;
               { att Conditional }
               if (attopcode[length(attopcode)]='C') and
                  (attopcode[length(attopcode)-1]='C') then
@@ -290,10 +298,7 @@ begin
            write(opfile,opcode);
            write(intfile,'''',intopcode,'''');
            write(attfile,'''',attopcode,'''');
-           if attsuffix then
-            write(attsuffile,'true')
-           else
-            write(attsuffile,'false');
+           write(attsuffile,attsuffix);
            { read the next line which contains the Change options }
            repeat
              readln(infile,s);
@@ -413,7 +418,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2000-01-07 01:15:01  peter
+  Revision 1.7  2000-01-28 09:41:39  peter
+    * fixed fpu suffix parsing for att reader
+
+  Revision 1.6  2000/01/07 01:15:01  peter
     * updated copyright to 2000
 
   Revision 1.5  1999/10/28 09:47:45  peter

@@ -189,6 +189,8 @@ const
   IF_PASS2  = $80000000;  { if the instruction can change in a second pass }
 
 type
+  TAttSuffix = (AttSufNONE,AttSufINT,AttSufFPU);
+
   TAsmOp=
 {$i i386op.inc}
 
@@ -218,7 +220,7 @@ const
   att_op2str:op2strtable=
 {$i i386att.inc}
 
-  att_needsuffix:array[tasmop] of boolean=
+  att_needsuffix:array[tasmop] of TAttSuffix=
 {$i i386atts.inc}
 {$endif ATTOP}
 
@@ -899,7 +901,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.20  2000-01-07 01:14:23  peter
+  Revision 1.21  2000-01-28 09:41:39  peter
+    * fixed fpu suffix parsing for att reader
+
+  Revision 1.20  2000/01/07 01:14:23  peter
     * updated copyright to 2000
 
   Revision 1.19  1999/12/02 19:28:29  peter
