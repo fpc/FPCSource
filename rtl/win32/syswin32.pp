@@ -209,13 +209,24 @@ begin
   paramcount := argc - 1;
 end;
 
+   { module functions }
+   function GetModuleFileName(l1:longint;p:pointer;l2:longint):longint;
+     external 'kernel32' name 'GetModuleFileNameA';
+   function GetModuleHandle(p : pointer) : longint;
+     external 'kernel32' name 'GetModuleHandleA';
+   function GetCommandFile:pchar;forward;
 
 function paramstr(l : longint) : string;
+
 begin
-  if (l>=0) and (l+1<=argc) then
+
+  if (l>0) and (l+1<=argc) then
    paramstr:=strpas(argv[l])
   else
-   paramstr:='';
+    if l=0 then
+      paramstr:=strpas(GetCommandFile)
+    else
+      paramstr:='';
 end;
 
 
@@ -651,11 +662,6 @@ end;
    function GetCommandLine : pchar;
      external 'kernel32' name 'GetCommandLineA';
 
-   { module functions }
-   function GetModuleFileName(l1:longint;p:pointer;l2:longint):longint;
-     external 'kernel32' name 'GetModuleFileNameA';
-   function GetModuleHandle(p : pointer) : longint;
-     external 'kernel32' name 'GetModuleHandleA';
 
 var
   ModuleName : array[0..255] of char;
@@ -1016,7 +1022,13 @@ end.
 
 {
   $Log$
-  Revision 1.39  1999-05-17 21:52:47  florian
+  Revision 1.39.2.1  1999-06-11 16:51:18  peter
+    * michaels paramstr(0) patch
+
+  Revision 1.40  1999/06/11 16:26:40  michael
+  + Fixed paramstr(0)
+
+  Revision 1.39  1999/05/17 21:52:47  florian
     * most of the Object Pascal stuff moved to the system unit
 
   Revision 1.38  1999/04/28 11:42:53  peter
