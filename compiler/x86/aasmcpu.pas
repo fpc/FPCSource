@@ -2145,7 +2145,7 @@ implementation
                     {The i386 instruction set never gets boring... IMUL does
                      not support a memory location as destination. Check if
                      the opcode is IMUL and fix it. (DM)}
-                    if opcode=A_IMUL then
+                    if (opcode=A_IMUL) or (opcode=A_BTS) then
                       begin
                         {Yikes! We just changed the destination register into
                          a memory location above here.
@@ -2233,7 +2233,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  2003-09-09 12:54:45  florian
+  Revision 1.20  2003-09-10 11:23:09  marco
+   * fix from peter for bts reg32,mem32 problem
+
+  Revision 1.19  2003/09/09 12:54:45  florian
     * x86 instruction table updated to nasm 0.98.37:
         - sse3 aka prescott support
         - small fixes
