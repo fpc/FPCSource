@@ -278,7 +278,7 @@ procedure TFreeTypeFont.DrawChar (x,y:integer; data:PByteArray; pitch, width, he
         g := ((green * a) + (c.green * t)) div 255;
         b := ((blue * a) + (c.blue * t)) div 255;
         end;
-      canv.colors[x,y] := FPcolor(r,g,b,alphaOpaque);
+      canv.colors[x,y] := FPImage.FPColor(r,g,b,alphaOpaque);
       end;
   end;
 
@@ -288,7 +288,7 @@ begin
   for ry := 0 to height-1 do
     begin
     for rx := 0 to width-1 do
-      combine (canvas, x+rx, y+ry, color, data^[b+rx]);
+      combine (canvas, x+rx, y+ry, FPColor, data^[b+rx]);
     inc (b, pitch);
     end;
 end;
@@ -305,7 +305,7 @@ begin
       begin
       rb := rx mod 8;
       if (data^[b+l] and bits[rb]) <> 0 then
-        canvas.colors[x+rx,y+ry] := color;
+        canvas.colors[x+rx,y+ry] := FPColor;
       if rb = 7 then
         inc (l);
       end;

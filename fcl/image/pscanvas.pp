@@ -274,12 +274,12 @@ begin
   end;
   FPen := TPSPen.Create;
   FPen.Width := 1;
-  FPen.Color := 0;
+  FPen.FPColor := 0;
   FPen.OnChange := @PenChanged;
      
   FBrush := TPSPen.Create;
   FBrush.Width := 1;
-  FBrush.Color := -1;
+  FBrush.FPColor := -1;
   // don't notify us that the brush changed...
   }
 end;
@@ -815,13 +815,13 @@ begin
       Result:='/Pattern setcolorspace '+FPattern.Name+' setcolor '
     else 
       begin
-      Result:='[/Pattern /DeviceRGB] setcolorspace '+inttostr(Color.Red)+' '+inttostr(Color.Green)+' '+
-       inttostr(Color.Blue)+' '+FPattern.Name+' setcolor ';
+      Result:='[/Pattern /DeviceRGB] setcolorspace '+inttostr(FPColor.Red)+' '+inttostr(FPColor.Green)+' '+
+       inttostr(FPColor.Blue)+' '+FPattern.Name+' setcolor ';
       end;
     end 
   else // no pattern do this:
-    Result:=inttostr(Color.Red)+' '+inttostr(Color.Green)+' '+
-           inttostr(Color.Blue)+' setrgbcolor ';
+    Result:=inttostr(FPColor.Red)+' '+inttostr(FPColor.Green)+' '+
+           inttostr(FPColor.Blue)+' setrgbcolor ';
   Result := Result + format('%f',[Width])+' setlinewidth ';
 end;
 

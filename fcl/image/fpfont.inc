@@ -31,7 +31,7 @@ begin
     begin
     self.FName := FName;
     self.FSize := FSize;
-    self.FColor := FColor;
+    self.FFPColor := FFPColor;
     self.FFlags := FFlags;
     end;
 end;

@@ -34,7 +34,7 @@ type
 
   TFPCanvasHelper = class(TPersistent)
   private
-    FColor : TFPColor;
+    FFPColor : TFPColor;
     FAllocated,
     FFixedCanvas : boolean;
     FCanvas : TFPCustomCanvas;
@@ -52,7 +52,7 @@ type
     procedure DoAllocateResources; virtual;
     procedure DoDeAllocateResources; virtual;
     procedure DoCopyProps (From:TFPCanvasHelper); virtual;
-    procedure SetColor (AValue:TFPColor); virtual;
+    procedure SetFPColor (AValue:TFPColor); virtual;
     procedure Changing; dynamic;
     procedure Changed; dynamic;
     Procedure Lock;
@@ -70,7 +70,7 @@ type
     // Canvas for which the helper is allocated
     property Canvas : TFPCustomCanvas read FCanvas;
     // color of the helper
-    property Color : TFPColor read FColor Write SetColor;
+    property FPColor : TFPColor read FFPColor Write SetFPColor;
     property OnChanging: TNotifyEvent read FOnChanging write FOnChanging;
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
   end;

@@ -65,7 +65,7 @@ uses clipping, ellipses;
 
 procedure FillRectangleColor (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer);
 begin
-  FillRectangleColor (Canv, x1,y1, x2,y2, canv.brush.color);
+  FillRectangleColor (Canv, x1,y1, x2,y2, Canv.Brush.FPColor);
 end;
 
 procedure FillRectangleColor (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; const color:TFPColor);
@@ -128,7 +128,7 @@ end;
 
 procedure DrawSolidLine (Canv : TFPCustomCanvas; x1,y1, x2,y2:integer);
 begin
-  DrawSolidLine (Canv, x1,y1, x2,y2, Canv.pen.color);
+  DrawSolidLine (Canv, x1,y1, x2,y2, Canv.Pen.FPColor);
 end;
 
 procedure DrawSolidLine (Canv : TFPCustomCanvas; x1,y1, x2,y2:integer; const color:TFPColor);
@@ -248,7 +248,7 @@ end;
 
 procedure DrawPatternLine (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; Pattern:TPenPattern);
 begin
-  DrawPatternLine (Canv, x1,y1, x2,y2, pattern, canv.pen.color);
+  DrawPatternLine (Canv, x1,y1, x2,y2, pattern, Canv.Pen.FPColor);
 end;
 
 procedure DrawPatternLine (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; Pattern:TPenPattern; const color:TFPColor);
@@ -357,7 +357,7 @@ end;
 
 procedure FillRectangleHashHorizontal (Canv:TFPCustomCanvas; const rect:TRect; width:integer);
 begin
-  FillRectangleHashHorizontal (Canv, rect, width, canv.brush.color);
+  FillRectangleHashHorizontal (Canv, rect, width, Canv.Brush.FPColor);
 end;
 
 procedure FillRectangleHashHorizontal (Canv:TFPCustomCanvas; const rect:TRect; width:integer; const c:TFPColor);
@@ -376,7 +376,7 @@ end;
 
 procedure FillRectangleHashVertical (Canv:TFPCustomCanvas; const rect:TRect; width:integer);
 begin
-  FillRectangleHashVertical (Canv, rect, width, canv.brush.color);
+  FillRectangleHashVertical (Canv, rect, width, Canv.Brush.FPColor);
 end;
 
 procedure FillRectangleHashVertical (Canv:TFPCustomCanvas; const rect:TRect; width:integer; const c:TFPColor);
@@ -395,7 +395,7 @@ end;
 
 procedure FillRectangleHashDiagonal (Canv:TFPCustomCanvas; const rect:TRect; width:integer);
 begin
-  FillRectangleHashDiagonal (Canv, rect, width, canv.brush.color);
+  FillRectangleHashDiagonal (Canv, rect, width, Canv.Brush.FPColor);
 end;
 
 procedure FillRectangleHashDiagonal (Canv:TFPCustomCanvas; const rect:TRect; width:integer; const c:TFPColor);
@@ -465,7 +465,7 @@ end;
 
 procedure FillRectangleHashBackDiagonal (Canv:TFPCustomCanvas; const rect:TRect; width:integer);
 begin
-  FillRectangleHashBackDiagonal (Canv, rect, width, canv.brush.color);
+  FillRectangleHashBackDiagonal (Canv, rect, width, Canv.Brush.FPColor);
 end;
 
 procedure FillRectangleHashBackDiagonal (Canv:TFPCustomCanvas; const rect:TRect; width:integer; const c:TFPColor);
@@ -542,7 +542,7 @@ end;
 
 procedure FillRectanglePattern (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; const pattern:TBrushPattern);
 begin
-  FillRectanglePattern (Canv, x1,y1, x2,y2, pattern, canv.brush.color);
+  FillRectanglePattern (Canv, x1,y1, x2,y2, pattern, Canv.Brush.FPColor);
 end;
 
 procedure FillRectanglePattern (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; const pattern:TBrushPattern; const color:TFPColor);
@@ -906,7 +906,7 @@ end;
 
 procedure FillFloodColor (Canv:TFPCustomCanvas; x,y:integer);
 begin
-  FillFloodColor (Canv, x, y, canv.brush.color);
+  FillFloodColor (Canv, x, y, Canv.Brush.FPColor);
 end;
 
 type
@@ -953,7 +953,7 @@ end;
 
 procedure FillFloodPattern (Canv:TFPCustomCanvas; x,y:integer; const pattern:TBrushPattern);
 begin
-  FillFloodPattern (Canv, x, y, pattern, Canv.Brush.color);
+  FillFloodPattern (Canv, x, y, pattern, Canv.Brush.FPColor);
 end;
 
 type
@@ -1045,7 +1045,7 @@ end;
 
 procedure FillFloodHashHorizontal (Canv:TFPCustomCanvas; x,y:integer; width:integer);
 begin
-  FillFloodHashHorizontal (Canv, x, y, width, Canv.Brush.color);
+  FillFloodHashHorizontal (Canv, x, y, width, Canv.Brush.FPColor);
 end;
 
 procedure FillFloodHashVertical (Canv:TFPCustomCanvas; x,y:integer; width:integer; const c:TFPColor);
@@ -1055,7 +1055,7 @@ end;
 
 procedure FillFloodHashVertical (Canv:TFPCustomCanvas; x,y:integer; width:integer);
 begin
-  FillFloodHashVertical (Canv, x, y, width, Canv.Brush.color);
+  FillFloodHashVertical (Canv, x, y, width, Canv.Brush.FPColor);
 end;
 
 procedure FillFloodHashDiagonal (Canv:TFPCustomCanvas; x,y:integer; width:integer; const c:TFPColor);
@@ -1065,7 +1065,7 @@ end;
 
 procedure FillFloodHashDiagonal (Canv:TFPCustomCanvas; x,y:integer; width:integer);
 begin
-  FillFloodHashDiagonal (Canv, x, y, width, Canv.Brush.color);
+  FillFloodHashDiagonal (Canv, x, y, width, Canv.Brush.FPColor);
 end;
 
 procedure FillFloodHashBackDiagonal (Canv:TFPCustomCanvas; x,y:integer; width:integer; const c:TFPColor);
@@ -1075,7 +1075,7 @@ end;
 
 procedure FillFloodHashBackDiagonal (Canv:TFPCustomCanvas; x,y:integer; width:integer);
 begin
-  FillFloodHashBackDiagonal (Canv, x, y, width, Canv.Brush.color);
+  FillFloodHashBackDiagonal (Canv, x, y, width, Canv.Brush.FPColor);
 end;
 
 procedure FillFloodHashDiagCross (Canv:TFPCustomCanvas; x,y:integer; width:integer; const c:TFPColor);
@@ -1085,7 +1085,7 @@ end;
 
 procedure FillFloodHashDiagCross (Canv:TFPCustomCanvas; x,y:integer; width:integer);
 begin
-  FillFloodHashDiagCross (Canv, x, y, width, Canv.Brush.color);
+  FillFloodHashDiagCross (Canv, x, y, width, Canv.Brush.FPColor);
 end;
 
 procedure FillFloodHashCross (Canv:TFPCustomCanvas; x,y:integer; width:integer; const c:TFPColor);
@@ -1095,7 +1095,7 @@ end;
 
 procedure FillFloodHashCross (Canv:TFPCustomCanvas; x,y:integer; width:integer);
 begin
-  FillFloodHashCross (Canv, x, y, width, Canv.Brush.color);
+  FillFloodHashCross (Canv, x, y, width, Canv.Brush.FPColor);
 end;
 
 type

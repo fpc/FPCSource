@@ -86,7 +86,7 @@ begin
   with result do
     begin
     Size := 10;
-    Color := colBlack;
+    FPColor := colBlack;
     end;
 end;
 
@@ -95,7 +95,7 @@ begin
   result := TFPEmptyPen.Create;
   with result do
     begin
-    Color := colBlack;
+    FPColor := colBlack;
     width := 1;
     pattern := 0;
     Style := psSolid;
@@ -142,7 +142,7 @@ var pattern : longword;
     if clipping then
       CheckLineClipping (ClipRect, x1,y1, x2,y2);
     if x1 >= 0 then
-      DrawSolidLine (self, x1,y1, x2,y2, pen.color)
+      DrawSolidLine (self, x1,y1, x2,y2, Pen.FPColor)
   end;
 
   procedure CheckPLine (x1,y1, x2,y2 : integer);
@@ -150,7 +150,7 @@ var pattern : longword;
     if clipping then
       CheckLineClipping (ClipRect, x1,y1, x2,y2);
     if x1 >= 0 then
-      DrawPatternLine (self, x1,y1, x2,y2, pattern, pen.color)
+      DrawPatternLine (self, x1,y1, x2,y2, pattern, Pen.FPColor)
   end;
 
 var b : TRect;
@@ -225,8 +225,8 @@ end;
 procedure TFPPixelCanvas.DoEllipseFill (const Bounds:TRect);
 begin
   case Brush.style of
-    bsSolid : FillEllipseColor (self, Bounds, brush.color);
-    bsPattern : FillEllipsePattern (self, Bounds, brush.pattern, brush.color);
+    bsSolid : FillEllipseColor (self, Bounds, Brush.FPColor);
+    bsPattern : FillEllipsePattern (self, Bounds, brush.pattern, Brush.FPColor);
     bsImage :
       if assigned (brush.image) then
         if FRelativeBI then
@@ -235,12 +235,12 @@ begin
           FillEllipseImage (self, Bounds, brush.image)
       else
         raise PixelCanvasException.Create (sErrNoImage);
-    bsBDiagonal : FillEllipseHashDiagonal (self, Bounds, FHashWidth, brush.color);
-    bsFDiagonal : FillEllipseHashBackDiagonal (self, Bounds, FHashWidth, brush.color);
-    bsCross : FillEllipseHashCross (self, Bounds, FHashWidth, brush.color);
-    bsDiagCross : FillEllipseHashDiagCross (self, Bounds, FHashWidth, brush.color);
-    bsHorizontal : FillEllipseHashHorizontal (self, Bounds, FHashWidth, brush.color);
-    bsVertical : FillEllipseHashVertical (self, Bounds, FHashWidth, brush.color);
+    bsBDiagonal : FillEllipseHashDiagonal (self, Bounds, FHashWidth, Brush.FPColor);
+    bsFDiagonal : FillEllipseHashBackDiagonal (self, Bounds, FHashWidth, Brush.FPColor);
+    bsCross : FillEllipseHashCross (self, Bounds, FHashWidth, Brush.FPColor);
+    bsDiagCross : FillEllipseHashDiagCross (self, Bounds, FHashWidth, Brush.FPColor);
+    bsHorizontal : FillEllipseHashHorizontal (self, Bounds, FHashWidth, Brush.FPColor);
+    bsVertical : FillEllipseHashVertical (self, Bounds, FHashWidth, Brush.FPColor);
   end;
 end;
 
@@ -250,13 +250,13 @@ begin
     case style of
       psSolid :
         if pen.width > 1 then
-          DrawSolidEllipse (self, Bounds, width, color)
+          DrawSolidEllipse (self, Bounds, width, FPColor)
         else
-          DrawSolidEllipse (self, Bounds, color);
+          DrawSolidEllipse (self, Bounds, FPColor);
       psPattern:
-        DrawPatternEllipse (self, Bounds, pattern, color);
+        DrawPatternEllipse (self, Bounds, pattern, FPColor);
       psDash, psDot, psDashDot, psDashDotDot :
-        DrawPatternEllipse (self, Bounds, PenPatterns[Style], color);
+        DrawPatternEllipse (self, Bounds, PenPatterns[Style], FPColor);
     end;
 end;
 
@@ -321,7 +321,7 @@ procedure TFPPixelCanvas.DoLine (x1,y1,x2,y2:integer);
   begin
     if Clipping then
       CheckLineClipping (ClipRect, xx1,yy1, xx2,yy2);
-    DrawSolidLine (self, xx1,yy1, xx2,yy2, pen.color);
+    DrawSolidLine (self, xx1,yy1, xx2,yy2, Pen.FPColor);
   end;
 
   procedure SolidThickLine;
@@ -357,7 +357,7 @@ begin
   case Pen.style of
     psSolid :
       begin
-      DrawSolidLine (self, x1,y1, x2,y2, pen.color);
+      DrawSolidLine (self, x1,y1, x2,y2, Pen.FPColor);
       if pen.width > 1 then
         SolidThickLine;
       end;

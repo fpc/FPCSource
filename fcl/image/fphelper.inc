@@ -46,9 +46,9 @@ begin
     Raise TFPFontException.CreateFmt (ErrAllocation, [EFont, ErrAlloc[ValueNeeded]]);
 end;
 
-procedure TFPCanvasHelper.SetColor (AValue:TFPColor);
+procedure TFPCanvasHelper.SetFPColor (AValue:TFPColor);
 begin
-  FColor := AValue;
+  FFPColor := AValue;
 end;
 
 procedure TFPCanvasHelper.Changing;
@@ -121,7 +121,7 @@ end;
 procedure TFPCanvasHelper.DoCopyProps (From:TFPCanvasHelper);
 begin
   FCanvas := nil;
-  color := from.color;
+  FPColor := from.FPColor;
 end;
 
 procedure TFPCanvasHelper.DoAllocateResources;
