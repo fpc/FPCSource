@@ -533,25 +533,32 @@ end;
 {*****************************************************************************
                                  SysReAllocMem
 *****************************************************************************}
-
-function SysReAllocMem(var p:pointer;size : longint):pointer;
+function internSysReAllocMem(var p:pointer;size : longint; var doMove: boolean):pointer;
+{ On entry, doMove determines if a new block has to be allocated, whether this is   }
+{ done and the data is moved from the old to the new block                          }
+{ If doMove was false on entry, it is set to true on exit if a move has to be done  }
+{ which then has to be carried out by the caller, otherwise it remains false        }
+{ This functionality is required if you install you own heap manager (e.g. heaptrc) }
 var
   orgsize,
   currsize,
   foundsize,
   sizeleft,
   s     : longint;
-  wasbeforeheapend : boolean;
+  wasbeforeheapend, canDoMove : boolean;
   p2    : pointer;
   hp,
   pnew,
   pcurr : pfreerecord;
 begin
+  canDoMove := doMove;
+  { assume no move is necessary }
+  doMove := false;
 { Allocate a new block? }
   if p=nil then
    begin
      p:=MemoryManager.GetMem(size);
-     SysReallocmem:=P;
+     internSysReallocmem:=P;
      exit;
    end;
 { fix needed size }
@@ -564,7 +571,7 @@ begin
 { is the allocated block still correct? }
   if currsize=size then
    begin
-     SysReAllocMem:=p;
+     internSysReAllocMem:=p;
      exit;
    end;
 { do we need to allocate more memory ? }
@@ -632,12 +639,16 @@ begin
      else
       begin
         { we need to call getmem/move/freemem }
-        p2:=MemoryManager.GetMem(orgsize);
-        if p2<>nil then
-         Move(p^,p2^,orgsize);
-        MemoryManager.Freemem(p);
-        p:=p2;
-        SysReAllocMem:=p;
+        If canDoMove then
+          begin
+            p2:= MemoryManager.GetMem(orgsize);
+            if p2<>nil then
+              Move(p^,p2^,orgsize);
+            MemoryManager.FreeMem(p);
+            p:=p2;
+          end
+        else doMove := true;
+        internSysReAllocMem:=p;
         exit;
       end;
      currsize:=pcurr^.size and sizemask;
@@ -670,7 +681,13 @@ begin
         pcurr^.size:=size or usedmask or (pcurr^.size and beforeheapendmask);
       end;
    end;
-  SysReAllocMem:=p;
+  internSysReAllocMem:=p;
+end;
+
+function SysReAllocMem(var p:pointer;size : longint):pointer;
+const doMove: boolean = true;
+begin
+  SysReAllocMem := internSysReallocMem(p,size,doMove);
 end;
 
 
@@ -783,7 +800,10 @@ end;
 
 {
   $Log$
-  Revision 1.29  2000-01-07 16:41:34  daniel
+  Revision 1.30  2000-01-20 12:35:35  jonas
+    * fixed problem with reallocmem and heaptrc
+
+  Revision 1.29  2000/01/07 16:41:34  daniel
     * copyright 2000
 
   Revision 1.28  2000/01/07 16:32:24  daniel

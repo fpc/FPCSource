@@ -759,9 +759,11 @@ end;
 
 function TraceReAllocMem(var p:pointer;size:longint):Pointer;
 var
+  newP: pointer;
   i,bp : longint;
   pl : plongint;
   pp : pheap_mem_info;
+  mustMove: boolean;
 begin
   if not assigned(p) then
    begin
@@ -770,19 +772,37 @@ begin
      exit;
    end;
    dec(p,sizeof(theap_mem_info)+extra_info_size);
-   { remove heap_mem_info for linked list }
-   pp:=pheap_mem_info(p);
-   if pp^.next<>nil then
-    pp^.next^.previous:=pp^.previous;
-   if pp^.previous<>nil then
-    pp^.previous^.next:=pp^.next;
-   if pp=heap_mem_root then
-    heap_mem_root:=heap_mem_root^.previous;
+  { remove heap_mem_info from linked list }
+  pp:=pheap_mem_info(p);
+  if pp^.next<>nil then
+   pp^.next^.previous:=pp^.previous;
+  if pp^.previous<>nil then
+   pp^.previous^.next:=pp^.next;
+  if pp=heap_mem_root then
+   heap_mem_root:=heap_mem_root^.previous;
 { Do the real ReAllocMem, but alloc also for the info block }
-     bp:=size+sizeof(theap_mem_info)+extra_info_size;
+   bp:=size+sizeof(theap_mem_info)+extra_info_size;
    if add_tail then
      inc(bp,sizeof(longint));
-  p:=SysReAllocMem(p,bp);
+  { the internal ReAllocMem is not allowed to move any data }
+  mustMove := false;
+  p:=internSysReAllocMem(p,bp,mustMove);
+  { a new block is needed? }
+  if mustMove then
+    begin
+      { restore p }
+      inc(p,sizeof(theap_mem_info)+extra_info_size);
+      { get a new block }
+      newP := TraceGetMem(size);
+      { move the data }
+      if newP <> nil then
+        move(p^,newP^,pp^.size);
+      { release p }
+      traceFreeMem(p);
+      p := newP;
+      traceReAllocMem := p;
+      exit;
+    end;
 { Create the info block }
   pheap_mem_info(p)^.sig:=$DEADBEEF;
   pheap_mem_info(p)^.size:=size;
@@ -945,7 +965,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.33  2000-01-07 16:41:34  daniel
+  Revision 1.34  2000-01-20 12:35:35  jonas
+    * fixed problem with reallocmem and heaptrc
+
+  Revision 1.33  2000/01/07 16:41:34  daniel
     * copyright 2000
 
   Revision 1.32  2000/01/07 16:32:24  daniel
