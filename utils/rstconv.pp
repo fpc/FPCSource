@@ -2,7 +2,7 @@
     $Id$
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Sebastian Guenther
-    Added OS/2 support in 2002 by Yuri Prokushev
+    Added .rc and OS/2 MSG support in 2002 by Yuri Prokushev
 
     .rst resource string table file converter.
 
@@ -30,11 +30,16 @@ resourcestring
     '  -o file        Write output to specified file (REQUIRED)'+LineEnding+
     '  -f format      Specifies the output format:'+LineEnding+
     '                 po    GNU gettext .po (portable) format (DEFAULT)'+LineEnding+
-    '                 msg   IBM OS/2 MSG file format'+LineEnding+LineEnding+
+    '                 msg   IBM OS/2 MSG file format'+LineEnding+
+    '                 rc    Resource compiler .rc format'+LineEnding+LineEnding+
     'OS/2 MSG file only options are:'+LineEnding+
     '  -c identifier  Specifies the component identifier (REQUIRED).'+LineEnding+
     '                 Identifier is any three chars in upper case.'+LineEnding+
-    '  -n number      Specifies the first message number [1-9999] (OPTIONAL).'+LineEnding;
+    '  -n number      Specifies the first message number [1-9999] (OPTIONAL).'+LineEnding+LineEnding+
+    'Resource compiler script only options are:'+LineEnding+
+    '  -s             Use STRINGTABLE instead of MESSAGETABLE'+LineEnding+
+    '  -c identifier  Use identifier as ID base (ID+n) (OPTIONAL)'+LineEnding+
+    '  -n number      Specifies the first ID number (OPTIONAL)'+LineEnding;
 
 
   InvalidOption = 'Invalid option - ';
@@ -56,8 +61,9 @@ type
 var
   InFilename, OutFilename: String;
   ConstItems: TCollection;
-  Identifier: String[3];
+  Identifier: String;
   FirstMessage: Word;
+  MessageTable: Boolean;
 
 procedure ReadRSTFile;
 var
@@ -158,6 +164,68 @@ begin
   Close(f);
 end;
 
+// This routine stores rst file in rc format. Can be written as MESSAGETABLE
+// as STRINGTABLE. Beware! OS/2 RC doesn't support lines longer whan 255 chars.
+procedure ConvertToRC;
+var
+  i, j: Integer;
+  f: Text;
+  item: TConstItem;
+  s: String;
+  c: Char;
+
+begin
+  Assign(f, OutFilename);
+  Rewrite(f);
+
+  If MessageTable then
+    WriteLn(F, 'MESSAGETABLE')
+  else
+    WriteLn(F, 'STRINGTABLE');
+    
+  WriteLn(F, 'BEGIN');
+  If Identifier<>'' then WriteLn(F, '#define ', Identifier);
+  
+  for i := 0 to ConstItems.Count - 1 do begin
+    item := TConstItem(ConstItems.items[i]);
+
+    // Convert string to C-style syntax
+    s := '';
+    for j := 1 to Length(item.Value) do begin
+      c := item.Value[j];
+      case c of
+        #9:  s := s + '\t';
+        #10: s := s + '\n"'#13#10'"';
+{$IFNDEF UNIX}        
+        #13: ;
+        #1..#8, #11..#12, #14..#31, #128..#255:
+{$ELSE}
+        #1..#8, #11..#31, #128..#255:
+{$ENDIF}
+          s := s + '\' +
+            Chr(Ord(c) shr 6 + 48) +
+            Chr((Ord(c) shr 3) and 7 + 48) +
+            Chr(Ord(c) and 7 + 48);
+        '\': s := s + '\\';
+        '"': s := s + '\"';
+      else s := s + c;
+      end;
+    end;
+
+    // Write msg entry
+    WriteLn(f, '/* ', item.ModuleName, ':', item.ConstName, '*/');
+    WriteLn(f, '/* ', s, ' */');
+    If Identifier<>'' then Write(F, Identifier, '+');
+    WriteLn(f, I+FirstMessage,' "', s, '"');
+    WriteLn(f);
+  end;
+
+  WriteLn(F, 'END');
+  Close(f);
+end;
+
+// This routine stores rst file in OS/2 msg format. This format is preffered
+// for help screens, messages, etc.
 procedure ConvertToOS2MSG;
 var
   i, j: Integer;
@@ -170,6 +238,8 @@ begin
     WriteLn(MessageNumberTooBig);
     Halt(1);
   end;
+  
+  Identifier:=Copy(UpperCase(Identifier), 1, 3);
   
   Assign(f, OutFilename);
   Rewrite(f);
@@ -200,13 +270,12 @@ begin
 
     // Write msg entry
     WriteLn(f, ';', item.ModuleName, '.', item.ConstName);
-    WriteLn(f, Format(';%s%.4d: %s %%0',[Identifier, i+FirstMessage, s]));
+    WriteLn(f, Format(';%s%.4dP: %s %%0',[Identifier, i+FirstMessage, s]));
     WriteLn(f, Format('%s%.4dP: %s %%0',[Identifier, i+FirstMessage, Item.Value]));
   end;
 
   Close(f);
 end;
-
 
 type
   TConversionProc = procedure;
@@ -225,6 +294,7 @@ begin
   OutputFormat:='';
   Identifier:='';
   FirstMessage:=0;
+  MessageTable:=True;
 
   i := 1;
   while i <= ParamCount do begin
@@ -252,6 +322,9 @@ begin
       else if ParamStr(i + 1) = 'msg' then begin
         OutputFormat:='msg';
         ConversionProc := @ConvertToOS2MSG;
+      end else if ParamStr(i + 1) = 'rc' then begin
+        OutputFormat:='rc';
+        ConversionProc := @ConvertToRC;
       end else begin
         WriteLn(StdErr, InvalidOutputFormat, ParamStr(i + 1));
         Halt(1);
@@ -262,8 +335,15 @@ begin
         WriteLn(StdErr, OptionAlreadySpecified, '-c');
         Halt(1);
       end;
-      Identifier:=Copy(UpperCase(ParamStr(i+1)), 1, 3);
+      Identifier:=ParamStr(i+1);
       Inc(i, 2);
+    end else if ParamStr(i) = '-s' then begin
+      if not MessageTable then begin
+        WriteLn(StdErr, OptionAlreadySpecified, '-s');
+        Halt(1);
+      end;
+      MessageTable:=False;
+      Inc(i);
     end else if ParamStr(i) = '-n' then begin
       if FirstMessage <> 0 then begin
         WriteLn(StdErr, OptionAlreadySpecified, '-n');
@@ -271,7 +351,7 @@ begin
       end;
       try
         FirstMessage := StrToInt(ParamStr(i + 1));
-        If (FirstMessage<1) or (FirstMessage>9999) then raise EConvertError.Create(InvalidRange+' '+ParamStr(i+1));
+        If (FirstMessage<1) then raise EConvertError.Create(InvalidRange+' '+ParamStr(i+1));
       except
         on EConvertError do
         begin
@@ -286,7 +366,7 @@ begin
     end;
   end;
   
-  If (OutputFormat<>'msg') and ((Identifier<>'') or (FirstMessage<>0)) then begin
+  If ((OutputFormat<>'msg') and (OutputFormat<>'rc')) and ((Identifier<>'') or (FirstMessage<>0)) then begin
     WriteLn(StdErr, InvalidOption, '');
     Halt(1);
   end;
@@ -311,7 +391,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2002-09-22 10:58:25  hajny
+  Revision 1.5  2002-09-30 21:01:37  hajny
+    + .rc support added by Yuri Prokushev
+
+  Revision 1.4  2002/09/22 10:58:25  hajny
     + support of IBM MSG files added by Yuri Prokushev
 
   Revision 1.3  2002/09/07 15:40:31  peter
