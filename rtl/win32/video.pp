@@ -157,11 +157,25 @@ begin
         begin
           Top := 0;
           Left := 0;
-          Right := Pred (VideoMode.Col);
-          Bottom := Pred (VideoMode.Row);
+(* First, we need to make sure we reach the minimum window size *)
+(* to always fit in the new buffer after changing buffer size.  *)
+          Right := MI.srWindow.Right - MI.srWindow.Left;
+          if VideoMode.Col <= Right then
+            Right := Pred (VideoMode.Col);
+          Bottom := MI.srWindow.Bottom - MI.srWindow.Top;
+          if VideoMode.Row <= Bottom then
+            Bottom := Pred (VideoMode.Row);
         end;
+      if SetConsoleWindowInfo (cardinal (TextRec (Output).Handle), true, SR) then
       if SetConsoleScreenBufferSize (TextRec (Output).Handle, C) then
-        if SetConsoleWindowInfo (cardinal (TextRec (Output).Handle), false, SR) then
+          begin
+            with SR do
+              begin
+(* Now, we can resize the window to the final size. *)
+                Right := Pred (VideoMode.Col);
+                Bottom := Pred (VideoMode.Row);
+              end;
+            if SetConsoleWindowInfo (cardinal (TextRec (Output).Handle), true, SR) then
           begin
             SysVideoModeSelector := true;
             SetCursorType (LastCursorType);
@@ -171,6 +185,14 @@ begin
           begin
             SysVideoModeSelector := false;
             SetConsoleScreenBufferSize (TextRec (Output).Handle, MI.dwSize);
+                SetConsoleWindowInfo (cardinal (TextRec (Output).Handle), true, MI.srWindow);
+                SetCursorType (LastCursorType);
+              end
+          end
+        else
+          begin
+            SysVideoModeSelector := false;
+            SetConsoleWindowInfo (cardinal (TextRec (Output).Handle), true, MI.srWindow);
             SetCursorType (LastCursorType);
           end
       else
@@ -208,7 +230,7 @@ begin
   If SysSetVideoMode then
     begin
     if SysVideoModeSelector(Mode) then
-      begin;
+      begin
       ScreenWidth:=SysVMD[I].Col;
       ScreenHeight:=SysVMD[I].Row;
       ScreenColor:=SysVMD[I].Color;
@@ -421,7 +443,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.13  2004-09-13 20:58:57  hajny
+  Revision 1.14  2004-09-15 18:59:40  hajny
+    + resolution switching fully works now
+
+  Revision 1.13  2004/09/13 20:58:57  hajny
     * SysSetVideoMode corrected to reflect SysVideoModeSelector result
 
   Revision 1.12  2004/09/11 21:45:13  hajny
