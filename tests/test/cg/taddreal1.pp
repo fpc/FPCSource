@@ -176,6 +176,10 @@ end;
   Write('Real = Real test...');
   i := 1000.0;
   j := 1000.0;
+  if not (i=j) then
+    result := false;
+  if not (i=1000.0) then
+    result := false;
   if not (trunc(i) = trunc(j)) then
     result := false;
   if not (trunc(i) = trunc(1000.0)) then
@@ -196,6 +200,9 @@ end;
   Write('Real <> Real test...');
   i := 1000.0;
   j := 1000.0;
+  if (i <> j) then
+    result := false;
+  if (i <> 1000.0) then
   if (trunc(i) <> trunc(j)) then
     result := false;
   if (trunc(i) <> trunc(1000.0)) then
@@ -217,6 +224,10 @@ end;
   Write('Real <= Real test...');
   i := 1000.0;
   j := 1000.0;
+  if not (i <= j) then
+    result := false;
+  if not (i <= 1000.0) then
+    result := false;
   if not (trunc(i) <= trunc(j)) then
     result := false;
   if not (trunc(i) <= trunc(1000.0)) then
@@ -243,12 +254,20 @@ end;
   Write('Real >= Real test...');
   i := 1000.0;
   j := 1000.0;
+  if not (i >= j) then
+    result := false;
+  if not (i >= 1000.0) then
+    result := false;
   if not (trunc(i) >= trunc(j)) then
     result := false;
   if not (trunc(i) >= trunc(1000.0)) then
     result := false;
   i := 999.0;
   j := 1000.0;
+  if i > j then
+    result := false;
+  if i > 999.0 then
+    result := false;
   if trunc(i) > trunc(j) then
     result := false;
   if trunc(i) > trunc(999.0) then
@@ -275,7 +294,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2003-04-26 16:44:10  florian
+  Revision 1.5  2004-03-13 11:07:50  florian
+    * improved test, previously it mainly tested integer comparisations
+
+  Revision 1.4  2003/04/26 16:44:10  florian
     * released the code for all cpus, at least with i386, it works fine
 
   Revision 1.3  2002/12/06 15:49:36  peter
