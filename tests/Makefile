@@ -268,15 +268,18 @@ tests : clean all_compilations
 
 cont_tests : all_compilations
 
+getret$(EXTEXT) : getret.pp
+	$(COMPILER) getret
+	
 ifndef inlinux
 
-getreturncode : 
+getreturncode : getret$(EXEEXT)
 	redir -ea $(FILE).log -oa $(FILE).log getret $(COMMAND)
 	cp retcode $(FILE).$(RESEXT)
 
 else
 
-getreturncode : 
+getreturncode : getret$(EXEEXT)
 	getret $(COMMAND) > $(FILE).log 2>$(FILE).log
 	cp retcode $(FILE).$(RESEXT)
 	@echo "Return code of $(FILE) is $(cat retcode)"
@@ -413,6 +416,7 @@ alltbs : $(patsubst %.pp,%.res,$(wildcard tbs/tbs*.pp))
 tbs0to99 : $(patsubst %.pp,%.res,$(wildcard tbs00*.pp))
 tbs100to199 : $(patsubst %.pp,%.res,$(wildcard tbs/tbs01*.pp))
 tbs200to299 : $(patsubst %.pp,%.res,$(wildcard tbs/tbs02*.pp))
+tbs300to399 : $(patsubst %.pp,%.res,$(wildcard tbs/tbs03*.pp))
 
 alltest : $(patsubst %.pp,%.res,$(wildcard test/test*.pp))
 
@@ -467,6 +471,7 @@ alltbsexec: $(patsubst %.pp,%.elg,$(wildcard tbs/tbs*.pp))
 tbsexec0to99 : $(patsubst %.pp,%.elg,$(wildcard tbs/tbs00*.pp)) 
 tbsexec100to199 : $(patsubst %.pp,%.elg,$(wildcard tbs/tbs01*.pp)) 
 tbsexec200to299 : $(patsubst %.pp,%.elg,$(wildcard tbs/tbs02*.pp)) 
+tbsexec300to399 : $(patsubst %.pp,%.elg,$(wildcard tbs/tbs03*.pp)) 
 
 alltisexec: $(patsubst %.pp,%.eli,$(wildcard tis/tis*.pp)) 
 
