@@ -166,7 +166,7 @@ function SearchObjectForSymbol(O: PSymbol): PObjectSymbol;
 implementation
 
 uses
-  Verbose,Drivers,Views,App,
+  Verbose,
   aasm,globtype,globals,files,comphook;
 
 {****************************************************************************
@@ -1258,7 +1258,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  1999-06-25 00:27:41  pierre
+  Revision 1.19  1999-07-15 08:42:22  michael
+  + Removed TV stuff from brwosercol
+
+  Revision 1.18  1999/06/25 00:27:41  pierre
    merged from fixes-0_99_12
 
   Revision 1.16.2.1  1999/06/25 00:22:23  pierre
