@@ -26,6 +26,19 @@ endif
 override FPC:=$(subst $(SRCEXEEXT),,$(FPC))
 override FPC:=$(subst \,/,$(FPC))$(SRCEXEEXT)
 
+EXEEXT=
+
+ifeq ($(OS_TARGET),go32v2)
+override EXEEXT:=.exe
+endif
+
+ifeq ($(OS_TARGET),win32)
+override EXEEXT:=.exe
+endif
+
+ifeq ($(OS_TARGET),os2)
+override EXEEXT:=.exe
+endif
 
 # Unit directory
 # UNITDIR=/usr/lib/ppc/0.99.0/linuxunits
@@ -77,9 +90,8 @@ clean :
 $(OBJECTS): %: %.pp
 	$(FPC) $(PPOPTS) $*
 	
-$(LOGFILE): %.log: %.exe 
+$(LOGFILE): %.log: %$(EXEEXT)
 	$* > $*.log
 	
-
 $(TEXOBJECTS): %.tex: %.pp head.tex foot.tex
 	$(PP2TEX) $*
