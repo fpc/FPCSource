@@ -41,11 +41,12 @@
           constructor load;
           destructor done;virtual;
           procedure write;virtual;
+          procedure prederef;virtual; { needed for ttypesym to be deref'd first }
           procedure deref;virtual;
-          function mangledname : string;virtual;
+          function  mangledname : string;virtual;
           procedure insert_in_data;virtual;
 {$ifdef GDB}
-          function stabstring : pchar;virtual;
+          function  stabstring : pchar;virtual;
           procedure concatstabto(asmlist : paasmoutput);virtual;
 {$endif GDB}
           procedure load_references;virtual;
@@ -130,16 +131,20 @@
 
        ttypesym = object(tsym)
           restype    : ttype;
+{$ifdef SYNONYM}
           synonym    : ptypesym;
+{$endif}
 {$ifdef GDB}
           isusedinstab : boolean;
 {$endif GDB}
           constructor init(const n : string;const tt : ttype);
           constructor initdef(const n : string;d : pdef);
           constructor load;
+{$ifdef SYNONYM}
           destructor done;virtual;
+{$endif}
           procedure write;virtual;
-          procedure deref;virtual;
+          procedure prederef;virtual;
           procedure load_references;virtual;
           function  write_references : boolean;virtual;
 {$ifdef BrowserLog}
@@ -312,7 +317,11 @@
 
 {
   $Log$
-  Revision 1.43  1999-12-14 09:58:42  florian
+  Revision 1.44  2000-01-03 19:26:04  peter
+    * fixed resolving of ttypesym which are reference from object/record
+      fields.
+
+  Revision 1.43  1999/12/14 09:58:42  florian
     + compiler checks now if a goto leaves an exception block
 
   Revision 1.42  1999/11/30 10:40:56  peter

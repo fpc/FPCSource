@@ -46,7 +46,6 @@
           constructor load;
           destructor  done;virtual;
           procedure deref;virtual;
-          procedure symderef;virtual;
           function  typename:string;
           procedure write;virtual;
           function  size:longint;virtual;
@@ -529,7 +528,11 @@
 
 {
   $Log$
-  Revision 1.48  1999-11-30 10:40:55  peter
+  Revision 1.49  2000-01-03 19:26:04  peter
+    * fixed resolving of ttypesym which are reference from object/record
+      fields.
+
+  Revision 1.48  1999/11/30 10:40:55  peter
     + ttype, tsymlist
 
   Revision 1.47  1999/11/17 17:05:04  pierre

@@ -163,12 +163,13 @@
            nextglobal^.previousglobal:=previousglobal;
          previousglobal:=nil;
          nextglobal:=nil;
+{$ifdef SYNONYM}
          while assigned(typesym) do
            begin
               typesym^.restype.setdef(nil);
               typesym:=typesym^.synonym;
            end;
-
+{$endif}
       end;
 
     { used for enumdef because the symbols are
@@ -387,11 +388,6 @@
 
 
     procedure tdef.deref;
-      begin
-      end;
-
-
-    procedure tdef.symderef;
       begin
         resolvesym(psym(typesym));
       end;
@@ -822,6 +818,7 @@
 
     procedure tenumdef.deref;
       begin
+        inherited deref;
         resolvedef(pdef(basedef));
       end;
 
@@ -1320,6 +1317,7 @@
 
     procedure tfiledef.deref;
       begin
+        inherited deref;
         if filetyp=ft_typed then
           typedfiletype.resolve;
       end;
@@ -1479,6 +1477,7 @@
 
     procedure tpointerdef.deref;
       begin
+        inherited deref;
         pointertype.resolve;
       end;
 
@@ -1709,6 +1708,7 @@
 
     procedure tsetdef.deref;
       begin
+        inherited deref;
         elementtype.resolve;
       end;
 
@@ -1859,6 +1859,7 @@
 
     procedure tarraydef.deref;
       begin
+        inherited deref;
         elementtype.resolve;
         rangetype.resolve;
       end;
@@ -2050,6 +2051,7 @@
       var
          oldrecsyms : psymtable;
       begin
+         inherited deref;
          oldrecsyms:=aktrecordsymtable;
          aktrecordsymtable:=symtable;
          { now dereference the definitions }
@@ -2105,6 +2107,8 @@
          else
            spec:='';
          { class fields are pointers PM }
+         if not assigned(pvarsym(p)^.vartype.def) then
+          writeln(pvarsym(p)^.name);
          if (pvarsym(p)^.vartype.def^.deftype=objectdef) and
             pobjectdef(pvarsym(p)^.vartype.def)^.is_class then
             spec:=spec+'*';
@@ -3227,6 +3231,7 @@ Const local_symtable_index : longint = $8001;
       var
          oldrecsyms : psymtable;
       begin
+         inherited deref;
          resolvedef(pdef(childof));
          oldrecsyms:=aktrecordsymtable;
          aktrecordsymtable:=symtable;
@@ -3849,7 +3854,11 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.184  1999-12-31 14:24:34  peter
+  Revision 1.185  2000-01-03 19:26:03  peter
+    * fixed resolving of ttypesym which are reference from object/record
+      fields.
+
+  Revision 1.184  1999/12/31 14:24:34  peter
     * fixed rtti generation for classes with no published section
 
   Revision 1.183  1999/12/23 12:19:42  peter

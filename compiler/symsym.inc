@@ -161,6 +161,11 @@
       end;
 
 
+    procedure tsym.prederef;
+      begin
+      end;
+
+
     procedure tsym.deref;
       begin
       end;
@@ -1889,6 +1894,7 @@
 {$ifdef GDB}
          isusedinstab := false;
 {$endif GDB}
+{$ifdef SYNONYM}
          if assigned(restype.def) then
           begin
              if not(assigned(restype.def^.typesym)) then
@@ -1907,6 +1913,12 @@
                   restype.def^.typesym^.synonym:=@self;
                end;
           end;
+{$else}
+        { register the typesym for the definition }
+        if assigned(restype.def) and
+           not(assigned(restype.def^.typesym)) then
+         restype.def^.typesym:=@self;
+{$endif}
       end;
 
     constructor ttypesym.initdef(const n : string;d : pdef);
@@ -1921,13 +1933,16 @@
       begin
          tsym.load;
          typ:=typesym;
+{$ifdef SYNONYM}
          synonym:=nil;
+{$endif}
 {$ifdef GDB}
          isusedinstab := false;
 {$endif GDB}
          restype.load;
       end;
 
+{$ifdef SYNONYM}
     destructor ttypesym.done;
       var
         prevsym : ptypesym;
@@ -1950,12 +1965,13 @@
          synonym:=nil;
          inherited done;
       end;
+{$endif}
 
 
-    procedure ttypesym.deref;
-
+    procedure ttypesym.prederef;
       begin
          restype.resolve;
+{$ifdef SYNONYM}
          if assigned(restype.def) then
           begin
             if (sp_primary_typesym in symoptions) then
@@ -1979,11 +1995,11 @@
                (restype.def^.typesym=@self) then
               precorddef(restype.def)^.symtable^.name:=stringdup('record '+name);
           end;
+{$endif}
       end;
 
 
     procedure ttypesym.write;
-
       begin
          tsym.write;
          restype.write;
@@ -2122,7 +2138,11 @@
 
 {
   $Log$
-  Revision 1.134  1999-12-20 21:42:37  pierre
+  Revision 1.135  2000-01-03 19:26:04  peter
+    * fixed resolving of ttypesym which are reference from object/record
+      fields.
+
+  Revision 1.134  1999/12/20 21:42:37  pierre
     + dllversion global variable
     * FPC_USE_CPREFIX code removed, not necessary anymore
       as we use .edata direct writing by default now.

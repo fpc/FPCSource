@@ -192,8 +192,6 @@ unit symtable;
           function getdefnr(l : longint) : pdef;
           function getsymnr(l : longint) : psym;
           { load/write }
-          constructor load;
-          procedure write;
           constructor loadas(typ : tsymtabletype);
           procedure writeas;
           procedure loaddefs;
@@ -1056,12 +1054,6 @@ implementation
          psym(p)^.deref;
       end;
 
-    procedure derefsymsdelayed(p : pnamedindexobject);
-      begin
-         if psym(p)^.typ in [absolutesym,propertysym] then
-           psym(p)^.deref;
-      end;
-
     procedure check_forward(sym : pnamedindexobject);
       begin
          if psym(sym)^.typ=procsym then
@@ -1536,78 +1528,27 @@ implementation
         hp : pdef;
         hs : psym;
       begin
+        { first deref the ttypesyms }
+        hs:=psym(symindex^.first);
+        while assigned(hs) do
+         begin
+           hs^.prederef;
+           hs:=psym(hs^.next);
+         end;
+        { deref the definitions }
         hp:=pdef(defindex^.first);
         while assigned(hp) do
          begin
            hp^.deref;
-           hp^.symderef;
            hp:=pdef(hp^.next);
          end;
-
+        { deref the symbols }
         hs:=psym(symindex^.first);
         while assigned(hs) do
          begin
            hs^.deref;
            hs:=psym(hs^.next);
          end;
-      end;
-
-
-    constructor tsymtable.load;
-      var
-         st_loading : boolean;
-      begin
-        st_loading:=in_loading;
-        in_loading:=true;
-{$ifndef NEWMAP}
-        current_module^.map^[0]:=@self;
-{$else NEWMAP}
-        current_module^.globalsymtable:=@self;
-{$endif NEWMAP}
-
-        symtabletype:=unitsymtable;
-        symtablelevel:=0;
-
-        { unused for units }
-        address_fixup:=0;
-
-        datasize:=0;
-        defowner:=nil;
-        name:=nil;
-        unitid:=0;
-        defowner:=nil;
-        new(symindex,init(indexgrowsize));
-        new(defindex,init(indexgrowsize));
-        new(symsearch,init);
-        symsearch^.usehash;
-        symsearch^.noclear:=true;
-        alignment:=def_alignment;
-
-      { load definitions }
-        loaddefs;
-
-      { load symbols }
-        loadsyms;
-
-      { Now we can deref the symbols and definitions }
-        if not(symtabletype in [objectsymtable,recordsymtable]) then
-          deref;
-
-{$ifdef NEWMAP}
-        { necessary for dependencies }
-        current_module^.globalsymtable:=nil;
-{$endif NEWMAP}
-        in_loading:=st_loading;
-      end;
-
-
-    procedure tsymtable.write;
-      begin
-      { write definitions }
-         foreach({$ifndef TP}@{$endif}Order_overloads);
-         writedefs;
-      { write symbols }
-         writesyms;
       end;
 
 
@@ -1623,32 +1564,44 @@ implementation
          new(defindex,init(indexgrowsize));
          new(symsearch,init);
          symsearch^.noclear:=true;
+       { reset }
          defowner:=nil;
-         if typ in [recordsymtable,objectsymtable] then
-           begin
-             storesymtable:=aktrecordsymtable;
-             aktrecordsymtable:=@self;
-           end;
-         if typ in [parasymtable,localsymtable] then
-           begin
-             storesymtable:=aktlocalsymtable;
-             aktlocalsymtable:=@self;
-           end;
-         { used for local browser }
-         if typ=staticppusymtable then
-           begin
-              aktstaticsymtable:=@self;
-              symsearch^.usehash;
-           end;
          name:=nil;
          alignment:=def_alignment;
-         { isn't used there }
          datasize:=0;
          address_fixup:= 0;
-         { also unused }
          unitid:=0;
+       { setup symtabletype specific things }
+         case typ of
+           unitsymtable :
+             begin
+               symtablelevel:=0;
+{$ifndef NEWMAP}
+               current_module^.map^[0]:=@self;
+{$else NEWMAP}
+               current_module^.globalsymtable:=@self;
+{$endif NEWMAP}
+             end;
+           recordsymtable,
+           objectsymtable :
+             begin
+               storesymtable:=aktrecordsymtable;
+               aktrecordsymtable:=@self;
+             end;
+           parasymtable,
+           localsymtable :
+             begin
+               storesymtable:=aktlocalsymtable;
+               aktlocalsymtable:=@self;
+             end;
+         { used for local browser }
+           staticppusymtable :
+             begin
+               aktstaticsymtable:=@self;
+               symsearch^.usehash;
+             end;
+         end;
 
-      { load definitions }
       { we need the correct symtable for registering }
          if not (typ in [localsymtable,parasymtable,recordsymtable,objectsymtable]) then
            begin
@@ -1662,19 +1615,30 @@ implementation
       { load symbols }
          loadsyms;
 
-      { now we can deref the syms and defs }
-         if not (typ in [localsymtable,parasymtable,
-                         recordsymtable,objectsymtable]) then
-           deref;
-
-         if typ in [recordsymtable,objectsymtable] then
-           aktrecordsymtable:=storesymtable;
-         if typ in [localsymtable,parasymtable] then
-           aktlocalsymtable:=storesymtable;
          if not (typ in [localsymtable,parasymtable,recordsymtable,objectsymtable]) then
-           begin
-             symtablestack:=next;
-           end;
+          begin
+            { now we can deref the syms and defs }
+            deref;
+            { restore symtablestack }
+            symtablestack:=next;
+          end;
+
+         case typ of
+           unitsymtable :
+             begin
+{$ifdef NEWMAP}
+               { necessary for dependencies }
+               current_module^.globalsymtable:=nil;
+{$endif NEWMAP}
+             end;
+           recordsymtable,
+           objectsymtable :
+             aktrecordsymtable:=storesymtable;
+           localsymtable,
+           parasymtable :
+             aktlocalsymtable:=storesymtable;
+         end;
+
         in_loading:=st_loading;
       end;
 
@@ -1684,31 +1648,40 @@ implementation
          oldtyp : byte;
          storesymtable : psymtable;
       begin
-         oldtyp:=current_ppu^.entrytyp;
          storesymtable:=aktrecordsymtable;
-         if symtabletype in [recordsymtable,objectsymtable] then
-           begin
-             storesymtable:=aktrecordsymtable;
-             aktrecordsymtable:=@self;
-           end;
-         if symtabletype in [parasymtable,localsymtable] then
-           begin
-             storesymtable:=aktlocalsymtable;
-             aktlocalsymtable:=@self;
-           end;
-         if (symtabletype in [recordsymtable,objectsymtable]) then
-         current_ppu^.entrytyp:=subentryid;
+         case symtabletype of
+           recordsymtable,
+           objectsymtable :
+             begin
+               storesymtable:=aktrecordsymtable;
+               aktrecordsymtable:=@self;
+               oldtyp:=current_ppu^.entrytyp;
+               current_ppu^.entrytyp:=subentryid;
+             end;
+           parasymtable,
+           localsymtable :
+             begin
+               storesymtable:=aktlocalsymtable;
+               aktlocalsymtable:=@self;
+             end;
+         end;
       { order procsym overloads }
          foreach({$ifndef TP}@{$endif}Order_overloads);
          { write definitions }
          writedefs;
          { write symbols }
          writesyms;
-         current_ppu^.entrytyp:=oldtyp;
-         if symtabletype in [recordsymtable,objectsymtable] then
-           aktrecordsymtable:=storesymtable;
-         if symtabletype in [localsymtable,parasymtable] then
-           aktlocalsymtable:=storesymtable;
+         case symtabletype of
+           recordsymtable,
+           objectsymtable :
+             begin
+               current_ppu^.entrytyp:=oldtyp;
+               aktrecordsymtable:=storesymtable;
+             end;
+           localsymtable,
+           parasymtable :
+             aktlocalsymtable:=storesymtable;
+         end;
       end;
 
 
@@ -2192,7 +2165,8 @@ implementation
 {$endif GDB}
 
        { load symtables }
-         inherited load;
+         inherited loadas(unitsymtable);
+
        { set the name after because it is set to nil in tsymtable.load !! }
          name:=stringdup(current_module^.modulename^);
 
@@ -2303,7 +2277,7 @@ implementation
         current_ppu^.writeentry(ibendinterface);
 
       { write the symtable entries }
-        inherited write;
+        inherited writeas;
 
       { all after doesn't affect crc }
         current_ppu^.do_crc:=false;
@@ -2326,7 +2300,7 @@ implementation
            needed for local debugging of unit functions }
         if ((current_module^.flags and uf_local_browser)<>0) and
            assigned(current_module^.localsymtable) then
-          psymtable(current_module^.localsymtable)^.write;
+          psymtable(current_module^.localsymtable)^.writeas;
       { write all browser section }
         if (current_module^.flags and uf_has_browser)<>0 then
          begin
@@ -2792,7 +2766,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.71  1999-12-18 14:55:21  florian
+  Revision 1.72  2000-01-03 19:26:04  peter
+    * fixed resolving of ttypesym which are reference from object/record
+      fields.
+
+  Revision 1.71  1999/12/18 14:55:21  florian
     * very basic widestring support
 
   Revision 1.70  1999/12/02 11:28:27  peter
