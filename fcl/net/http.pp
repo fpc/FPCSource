@@ -26,6 +26,7 @@ const
   fieldAcceptEncoding = 'Accept-Encoding';
   fieldAcceptLanguage = 'Accept-Language';
   fieldAuthorization = 'Authorization';
+  fieldConnection = 'Connection';
   fieldContentEncoding = 'Content-Encoding';
   fieldContentLanguage = 'Content-Language';
   fieldContentLength = 'Content-Length';
@@ -58,11 +59,13 @@ type
     FReader: TAsyncStreamLineReader;
     FWriter: TAsyncWriteStream;
     FOnCompleted: TNotifyEvent;
+    FOnEOF: TNotifyEvent;
     FFields: TList;
-    CmdReceived: Boolean;
+    DataReceived, CmdReceived: Boolean;
 
     procedure ParseFirstHeaderLine(const line: String); virtual; abstract;
     procedure LineReceived(const ALine: String);
+    procedure ReaderEOF(Sender: TObject);
     function GetFirstHeaderLine: String; virtual; abstract;
     procedure WriterCompleted(ASender: TObject);
 
@@ -84,6 +87,8 @@ type
     procedure SetAcceptLanguage(const AValue: String);
     function  GetAuthorization: String;
     procedure SetAuthorization(const AValue: String);
+    function  GetConnection: String;
+    procedure SetConnection(const AValue: String);
     function  GetContentEncoding: String;
     procedure SetContentEncoding(const AValue: String);
     function  GetContentLanguage: String;
@@ -140,12 +145,14 @@ type
     property FieldValues[AIndex: Integer]: String read GetFieldValues write SetFieldValues;
 
     property OnCompleted: TNotifyEvent read FOnCompleted write FOnCompleted;
+    property OnEOF: TNotifyEvent read FOnEOF write FOnEOF;
 
     property Accept: String read GetAccept write SetAccept;
     property AcceptCharset: String read GetAcceptCharset write SetAcceptCharset;
     property AcceptEncoding: String read GetAcceptEncoding write SetAcceptEncoding;
     property AcceptLanguage: String read GetAcceptLanguage write SetAcceptLanguage;
     property Authorization: String read GetAuthorization write SetAuthorization;
+    property Connection: String read GetConnection write SetConnection;
     property ContentEncoding: String read GetContentEncoding write SetContentEncoding;
     property ContentLanguage: String read GetContentLanguage write SetContentLanguage;
     property ContentLength: Integer read GetContentLength write SetContentLength;
@@ -179,7 +186,7 @@ type
   end;
 
 
-  THttpAnswerHeader = class(THttpHeader)
+  THttpResponseHeader = class(THttpHeader)
   protected
     procedure ParseFirstHeaderLine(const line: String); override;
     function  GetFirstHeaderLine: String; override;
@@ -195,19 +202,28 @@ type
     FManager: TEventLoop;
     FSocket: TInetSocket;
     SendBuffer: TAsyncWriteStream;
-    FOnHeaderSent, FOnStreamSent, FOnHeaderReceived, FOnStreamReceived: TNotifyEvent;
+    FOnPrepareSending: TNotifyEvent;
+    FOnHeaderSent: TNotifyEvent;
+    FOnStreamSent: TNotifyEvent;
+    FOnPrepareReceiving: TNotifyEvent;
+    FOnHeaderReceived: TNotifyEvent;
+    FOnStreamReceived: TNotifyEvent;
     FOnDestroy: TNotifyEvent;
     RecvSize: Integer;	// How many bytes are still to be read. -1 if unknown.
     DataAvailableNotifyHandle: Pointer;
+    ReceivedHTTPVersion: String;
 
     procedure HeaderToSendCompleted(Sender: TObject);
     procedure StreamToSendCompleted(Sender: TObject);
     procedure ReceivedHeaderCompleted(Sender: TObject);
+    procedure ReceivedHeaderEOF(Sender: TObject);
     procedure DataAvailable(Sender: TObject);
     procedure ReceivedStreamCompleted(Sender: TObject);
 
+    property OnPrepareSending: TNotifyEvent read FOnPrepareSending write FOnPrepareSending;
     property OnHeaderSent: TNotifyEvent read FOnHeaderSent write FOnHeaderSent;
     property OnStreamSent: TNotifyEvent read FOnStreamSent write FOnStreamSent;
+    property OnPrepareReceiving: TNotifyEvent read FOnPrepareReceiving write FOnPrepareReceiving;
     property OnHeaderReceived: TNotifyEvent read FOnHeaderReceived write FOnHeaderReceived;
     property OnStreamReceived: TNotifyEvent read FOnStreamReceived write FOnStreamReceived;
     property OnDestroy: TNotifyEvent read FOnDestroy write FOnDestroy;
@@ -227,12 +243,58 @@ type
 
   THttpConnection = class(TCustomHttpConnection)
   public
+    property OnPrepareSending;
     property OnHeaderSent;
     property OnStreamSent;
+    property OnPrepareReceiving;
     property OnHeaderReceived;
     property OnStreamReceived;
     property OnDestroy;
   end;
+
+  {TCustomHTTPClient = class
+  protected
+    FEventLoop: TEventLoop;
+    FSocket: TInetSocket;
+    SendBuffer: TAsyncWriteStream;
+    FOnPrepareSending: TNotifyEvent;
+    FOnHeaderSent: TNotifyEvent;
+    FOnStreamSent: TNotifyEvent;
+    FOnPrepareReceiving: TNotifyEvent;
+    FOnHeaderReceived: TNotifyEvent;
+    FOnStreamReceived: TNotifyEvent;
+    FOnDestroy: TNotifyEvent;
+    RecvSize: Integer;	// How many bytes are still to be read. -1 if unknown.
+    DataAvailableNotifyHandle: Pointer;
+    ReceivedHTTPVersion: String;
+
+    procedure HeaderToSendCompleted(Sender: TObject);
+    procedure StreamToSendCompleted(Sender: TObject);
+    procedure ReceivedHeaderCompleted(Sender: TObject);
+    procedure ReceivedHeaderEOF(Sender: TObject);
+    procedure DataAvailable(Sender: TObject);
+    procedure ReceivedStreamCompleted(Sender: TObject);
+
+    property OnPrepareSending: TNotifyEvent read FOnPrepareSending write FOnPrepareSending;
+    property OnHeaderSent: TNotifyEvent read FOnHeaderSent write FOnHeaderSent;
+    property OnStreamSent: TNotifyEvent read FOnStreamSent write FOnStreamSent;
+    property OnPrepareReceiving: TNotifyEvent read FOnPrepareReceiving write FOnPrepareReceiving;
+    property OnHeaderReceived: TNotifyEvent read FOnHeaderReceived write FOnHeaderReceived;
+    property OnStreamReceived: TNotifyEvent read FOnStreamReceived write FOnStreamReceived;
+    property OnDestroy: TNotifyEvent read FOnDestroy write FOnDestroy;
+
+  public
+    HeaderToSend: THttpHeader;
+    StreamToSend: TStream;
+    ReceivedHeader: THttpHeader;
+    ReceivedStream: TStream;
+    DoDestroy: Boolean;
+
+    constructor Create(AEventLoop: TEventLoop; ASocket: TInetSocket);
+    destructor Destroy; override;
+    procedure Receive;
+    procedure Send;
+  end;}
 
 
 // ===================================================================
@@ -259,6 +321,7 @@ begin
       FOnCompleted(Self);
     FReader := nil;
   end else
+    DataReceived := True;
     if not CmdReceived then
     begin
       CmdReceived := True;
@@ -269,6 +332,12 @@ begin
       SetFieldByName(Trim(Copy(ALine, 1, i - 1)),
         Trim(Copy(ALine, i + 1, Length(ALine))));
     end;
+end;
+
+procedure THttpHeader.ReaderEOF(Sender: TObject);
+begin
+  if Assigned(OnEOF) then
+    OnEOF(Self);
 end;
 
 procedure THttpHeader.WriterCompleted(ASender: TObject);
@@ -318,6 +387,8 @@ function  THttpHeader.GetAcceptLanguage: String; begin Result := GetFieldByName(
 procedure THttpHeader.SetAcceptLanguage(const AValue: String); begin SetFieldByName(fieldAcceptLanguage, AValue) end;
 function  THttpHeader.GetAuthorization: String; begin Result := GetFieldByName(fieldAuthorization) end;
 procedure THttpHeader.SetAuthorization(const AValue: String); begin SetFieldByName(fieldAuthorization, AValue) end;
+function  THttpHeader.GetConnection: String; begin Result := GetFieldByName(fieldConnection) end;
+procedure THttpHeader.SetConnection(const AValue: String); begin SetFieldByName(fieldConnection, AValue) end;
 function  THttpHeader.GetContentEncoding: String; begin Result := GetFieldByName(fieldContentEncoding) end;
 procedure THttpHeader.SetContentEncoding(const AValue: String); begin SetFieldByName(fieldContentEncoding, AValue) end;
 function  THttpHeader.GetContentLanguage: String; begin Result := GetFieldByName(fieldContentLanguage) end;
@@ -359,7 +430,7 @@ constructor THttpHeader.Create;
 begin
   inherited Create;
   FFields := TList.Create;
-  HttpVersion := '1.0';
+  HttpVersion := '1.1';
 end;
 
 destructor THttpHeader.Destroy;
@@ -425,7 +496,7 @@ begin
   if Assigned(FWriter) then
     FWriter.StopAndFree;
   FWriter := TAsyncWriteStream.Create(AManager, AStream);
-  FWriter.OnBufferEmpty := @WriterCompleted;
+  FWriter.OnBufferSent := @WriterCompleted;
   FWriter.EndOfLineMarker := #13#10;
   FWriter.WriteLine(GetFirstHeaderLine);
   for i := 0 to FFields.Count - 1 do
@@ -439,6 +510,7 @@ begin
   FReader.Free;
   FReader := TAsyncStreamLineReader.Create(AManager, AStream);
   FReader.OnLine := @LineReceived;
+  FReader.OnEOF := @ReaderEOF;
 end;
 
 
@@ -482,10 +554,10 @@ end;
 
 
 // -------------------------------------------------------------------
-//   THttpAnswerHeader
+//   THttpResponseHeader
 // -------------------------------------------------------------------
 
-procedure THttpAnswerHeader.ParseFirstHeaderLine(const line: String);
+procedure THttpResponseHeader.ParseFirstHeaderLine(const line: String);
 var
   i: Integer;
   s: String;
@@ -503,12 +575,12 @@ begin
   Code := StrToInt(s);
 end;
 
-function THttpAnswerHeader.GetFirstHeaderLine: String;
+function THttpResponseHeader.GetFirstHeaderLine: String;
 begin
   Result := Format('HTTP/%s %d %s', [HttpVersion, Code, CodeText]);
 end;
 
-constructor THttpAnswerHeader.Create;
+constructor THttpResponseHeader.Create;
 begin
   inherited Create;
   Code := 200;
@@ -522,14 +594,14 @@ end;
 
 procedure TCustomHttpConnection.HeaderToSendCompleted(Sender: TObject);
 begin
-  //WriteLn('TCustomHttpConnection.HeaderToSendCompleted');
+  // WriteLn('TCustomHttpConnection.HeaderToSendCompleted');
   if Assigned(FOnHeaderSent) then
     FOnHeaderSent(Self);
   if Assigned(StreamToSend) then
   begin
     SendBuffer := TAsyncWriteStream.Create(FManager, FSocket);
     SendBuffer.CopyFrom(StreamToSend, StreamToSend.Size);
-    SendBuffer.OnBufferEmpty := @StreamToSendCompleted;
+    SendBuffer.OnBufferSent := @StreamToSendCompleted;
   end else
   begin
     StreamToSendCompleted(nil);
@@ -540,19 +612,24 @@ end;
 
 procedure TCustomHttpConnection.StreamToSendCompleted(Sender: TObject);
 begin
+  // WriteLn('TCustomHttpConnection.StreamToSendCompleted');
   if Assigned(FOnStreamSent) then
     FOnStreamSent(Self);
-  //WriteLn('TCustomHttpConnection.StreamToSendCompleted');
   FreeAndNil(SendBuffer);
   if DoDestroy then
-    Self.Free;
+    Self.Free
+  else
+    Receive;
 end;
 
 procedure TCustomHttpConnection.ReceivedHeaderCompleted(Sender: TObject);
 var
   BytesInBuffer: Integer;
+  NeedMoreData: Boolean;
 begin
-  //WriteLn('TCustomHttpConnection.ReceivedHeaderCompleted');
+  // WriteLn('TCustomHttpConnection.ReceivedHeaderCompleted');
+  ReceivedHeader.DataReceived := False;
+  ReceivedHTTPVersion := ReceivedHeader.HttpVersion;
   BytesInBuffer := ReceivedHeader.Reader.BytesInBuffer;
   //WriteLn('BytesInBuffer: ', BytesInBuffer, ', Content length: ', ReceivedHeader.ContentLength);
   if Assigned(FOnHeaderReceived) then
@@ -561,23 +638,35 @@ begin
   RecvSize := ReceivedHeader.ContentLength;
   if Assigned(ReceivedStream) then
   begin
-    if BytesInBuffer > 0 then
+    if BytesInBuffer = 0 then
+      NeedMoreData := True
+    else
     begin
       ReceivedStream.Write(ReceivedHeader.Reader.Buffer^, BytesInBuffer);
       if RecvSize > 0 then
         Dec(RecvSize, BytesInBuffer);
       if BytesInBuffer = ReceivedHeader.ContentLength then
-      begin
-        ReceivedStreamCompleted(nil);
-	exit;
-      end;
+	NeedMoreData := False
+      else
+        NeedMoreData := (not ReceivedHeader.InheritsFrom(THttpRequestHeader)) or
+	  (THttpRequestHeader(ReceivedHeader).Command <> 'GET');
     end;
-    DataAvailableNotifyHandle :=
-      FManager.SetDataAvailableNotify(FSocket.Handle, @DataAvailable, FSocket);
   end else
+    NeedMoreData := False;
+
+  if NeedMoreData then
+    DataAvailableNotifyHandle :=
+      FManager.SetDataAvailableNotify(FSocket.Handle, @DataAvailable, FSocket)
+  else
     ReceivedStreamCompleted(nil);
+
   if DoDestroy then
     Self.Free;
+end;
+
+procedure TCustomHttpConnection.ReceivedHeaderEOF(Sender: TObject);
+begin
+  Self.Free;
 end;
 
 procedure TCustomHttpConnection.DataAvailable(Sender: TObject);
@@ -597,7 +686,7 @@ begin
     end else
       ReadNow := 1024;
     BytesRead := FSocket.Read(buf, ReadNow);
-    //WriteLn('TCustomHttpConnection.DataAvailable: Read ', BytesRead, ' bytes; RecvSize=', RecvSize);
+    // WriteLn('TCustomHttpConnection.DataAvailable: Read ', BytesRead, ' bytes; RecvSize=', RecvSize);
     if BytesRead <= 0 then
     begin
       if FirstRun then
@@ -620,7 +709,7 @@ end;
 
 procedure TCustomHttpConnection.ReceivedStreamCompleted(Sender: TObject);
 begin
-  //WriteLn('TCustomHttpConnection.ReceivedStreamCompleted');
+  // WriteLn('TCustomHttpConnection.ReceivedStreamCompleted');
   if Assigned(DataAvailableNotifyHandle) then
   begin
     FManager.ClearDataAvailableNotify(DataAvailableNotifyHandle);
@@ -629,7 +718,9 @@ begin
   if Assigned(FOnStreamReceived) then
     FOnStreamReceived(Self);
   if DoDestroy then
-    Self.Free;
+    Self.Free
+  else
+    Send;
 end;
 
 constructor TCustomHttpConnection.Create(AManager: TEventLoop; ASocket: TInetSocket);
@@ -652,9 +743,13 @@ end;
 procedure TCustomHttpConnection.Receive;
 begin
   // Start receiver
+  ReceivedHttpVersion := '';
+  if Assigned(OnPrepareReceiving) then
+    OnPrepareReceiving(Self);
   if Assigned(ReceivedHeader) then
   begin
     ReceivedHeader.OnCompleted := @ReceivedHeaderCompleted;
+    ReceivedHeader.OnEOF := @ReceivedHeaderEOF;
     ReceivedHeader.AsyncReceive(FManager, FSocket);
   end;
 end;
@@ -662,8 +757,15 @@ end;
 procedure TCustomHttpConnection.Send;
 begin
   // Start sender
+  if Assigned(OnPrepareSending) then
+    OnPrepareSending(Self);
   if Assigned(HeaderToSend) then
   begin
+    if ReceivedHttpVersion <> '' then
+    begin
+      HeaderToSend.HttpVersion := ReceivedHttpVersion;
+      ReceivedHttpVersion := '';
+    end;
     HeaderToSend.OnCompleted := @HeaderToSendCompleted;
     HeaderToSend.AsyncSend(FManager, FSocket);
   end;
@@ -675,7 +777,12 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-06-18 19:13:04  sg
+  Revision 1.3  2003-11-22 11:59:19  sg
+  * Many many changes to prepare a shift to using the servlet classes for
+    HTTP servers; this unit will then contain basic HTTP definitions and a
+    client-only class
+
+  Revision 1.2  2003/06/18 19:13:04  sg
   * Fixed silly typo in THttpHeader.SetHeaderValues
 
   Revision 1.1  2002/04/25 19:30:29  sg
