@@ -198,6 +198,7 @@ unit globals;
     const
        RelocSection : boolean = true;
        RelocSectionSetExplicitly : boolean = false;
+       LinkTypeSetExplicitly : boolean = false;
        DLLsource : boolean = false;
        DLLImageBase : pstring = nil;
        UseDeffileForExport : boolean = true;
@@ -1586,7 +1587,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.66  2000-06-18 18:05:54  peter
+  Revision 1.67  2000-06-19 19:57:19  pierre
+   * smart link is default on win32
+
+  Revision 1.66  2000/06/18 18:05:54  peter
     * no binary value reading with % if not fpc mode
     * extended illegal char message with the char itself (Delphi like)
 

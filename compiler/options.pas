@@ -814,6 +814,7 @@ begin
                                 undef_symbol('FPC_LINK_STATIC');
                                 initglobalswitches:=initglobalswitches+[cs_link_shared];
                                 initglobalswitches:=initglobalswitches-[cs_link_static,cs_link_smart];
+                                LinkTypeSetExplicitly:=true;
                               end;
                         'S' : begin
                                 def_symbol('FPC_LINK_STATIC');
@@ -821,6 +822,7 @@ begin
                                 undef_symbol('FPC_LINK_DYNAMIC');
                                 initglobalswitches:=initglobalswitches+[cs_link_static];
                                 initglobalswitches:=initglobalswitches-[cs_link_shared,cs_link_smart];
+                                LinkTypeSetExplicitly:=true;
                               end;
                         'X' : begin
                                 def_symbol('FPC_LINK_SMART');
@@ -828,6 +830,7 @@ begin
                                 undef_symbol('FPC_LINK_DYNAMIC');
                                 initglobalswitches:=initglobalswitches+[cs_link_smart];
                                 initglobalswitches:=initglobalswitches-[cs_link_shared,cs_link_static];
+                                LinkTypeSetExplicitly:=true;
                               end;
                        else
                          IllegalPara(opt);
@@ -1449,6 +1452,25 @@ begin
      (cs_profile in initmoduleswitches) then
     initglobalswitches:=initglobalswitches-[cs_link_strip];
 
+  if not LinkTypeSetExplicitly then
+    begin
+      if (target_os.id=os_i386_win32) then
+        begin
+          def_symbol('FPC_LINK_SMART');
+          undef_symbol('FPC_LINK_STATIC');
+          undef_symbol('FPC_LINK_DYNAMIC');
+          initglobalswitches:=initglobalswitches+[cs_link_smart];
+          initglobalswitches:=initglobalswitches-[cs_link_shared,cs_link_static];
+        end
+      else
+        begin
+          undef_symbol('FPC_LINK_SMART');
+          def_symbol('FPC_LINK_STATIC');
+          undef_symbol('FPC_LINK_DYNAMIC');
+          initglobalswitches:=initglobalswitches+[cs_link_static];
+          initglobalswitches:=initglobalswitches-[cs_link_shared,cs_link_smart];
+        end;
+    end;
 { Set defines depending on the target }
   if (target_info.target in [target_i386_GO32V1,target_i386_GO32V2]) then
    def_symbol('DPMI'); { MSDOS is not defined in BP when target is DPMI }
@@ -1463,7 +1485,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.69  2000-05-23 21:28:22  pierre
+  Revision 1.70  2000-06-19 19:57:19  pierre
+   * smart link is default on win32
+
+  Revision 1.69  2000/05/23 21:28:22  pierre
     + check of compatibility between selected assembler
       output and target OS
 
