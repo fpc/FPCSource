@@ -42,7 +42,7 @@ unit i_macos;
             defext       : '';
             scriptext    : '';
             smartext     : '.sl';
-            unitext      : '.ppt';
+            unitext      : '.pput';
             unitlibext   : '.ppl';
             asmext       : '.a';
             objext       : '.o';
@@ -102,7 +102,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2002-09-11 19:59:14  florian
+  Revision 1.3  2002-10-02 21:29:34  florian
+    * ppus have the extension ppu on macos as well now
+
+  Revision 1.2  2002/09/11 19:59:14  florian
     * renamed target macosppc to macppc
 
   Revision 1.1  2002/09/06 15:03:51  carl
