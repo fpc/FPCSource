@@ -552,6 +552,7 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
 {FIDIVRS}(Ch: (C_FPU, C_None, C_None)),
   {REPE} (Ch: (C_RWECX, C_RFlags, C_None)),
  {REPNE} (Ch: (C_RWECX, C_RFlags, C_None)),
+ {CPUID} (Ch: (C_All, C_None, C_none)),
  {FADDS} (Ch: (C_FPU, C_None, C_None)),
  {POPFD} (Ch: (C_RWESP, C_WFlags, C_None)),
 {below are the MMX instructions}
@@ -2007,7 +2008,10 @@ End.
 
 {
  $Log$
- Revision 1.23  1998-11-09 19:40:46  jonas
+ Revision 1.24  1998-11-13 10:13:44  peter
+   + cpuid,emms support for asm readers
+
+ Revision 1.23  1998/11/09 19:40:46  jonas
    * fixed comments from last commit (apparently there's still a 255 char limit :( )
 
  Revision 1.22  1998/11/09 19:33:40  jonas

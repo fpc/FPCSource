@@ -76,7 +76,7 @@ unit i386;
          A_FISUBL,A_FSUBL,A_FISUBS,A_FSUBS,A_FSUBR,A_FSUBRS,A_FISUBRL,
          A_FSUBRL,A_FISUBRS,A_FMULS,A_FIMULL,A_FMULL,A_FIMULS,A_FDIVS,A_FIDIVL,
          A_FDIVL,A_FIDIVS,A_FDIVRS,A_FIDIVRL,A_FDIVRL,A_FIDIVRS,
-         A_REPE,A_REPNE,A_FADDS,A_POPFD,
+         A_REPE,A_REPNE,A_CPUID,A_FADDS,A_POPFD,
          { MMX instructions: }
          A_EMMS,A_MOVD,A_MOVQ,A_PACKSSDW,A_PACKSSWB,A_PACKUSWB,
          A_PADDB,A_PADDD,A_PADDSB,A_PADDSW,A_PADDUSB,A_PADDUSW,
@@ -443,7 +443,7 @@ unit i386;
        ins_cache : tins_cache;
 
     const
-       it : array[0..440] of ttemplate = (
+       it : array[0..442] of ttemplate = (
          (i : A_MOV;ops : 2;oc : $a0;eb : ao_none;m : af_dw or NoModrm;o1 : ao_disp32;o2 : ao_acc;o3 : 0 ),
          (i : A_MOV;ops : 2;oc : $88;eb : ao_none;m : af_dw or Modrm;o1 : ao_reg;o2 : ao_reg or ao_mem;o3 : 0 ),
          (i : A_MOV;ops : 2;oc : $b0;eb : ao_none;m : ShortFormW;o1 : ao_imm;o2 : ao_reg;o3 : 0 ),
@@ -905,6 +905,8 @@ unit i386;
          (i : A_REP;ops : 0;oc : $f3;eb : ao_none;m : NoModrm;o1 : 0;o2 : 0;o3 : 0),
          (i : A_REPE;ops : 0;oc : $f3;eb : ao_none;m : NoModrm;o1 : 0;o2 : 0;o3 : 0),
          (i : A_REPNE;ops : 0;oc : $f2;eb : ao_none;m : NoModrm;o1 : 0;o2 : 0;o3 : 0),
+         (i : A_CPUID;ops : 0;oc : $0fa2;eb : ao_none;m : NoModrm;o1 : 0;o2 : 0;o3 : 0),
+         (i : A_EMMS;ops : 0;oc : $0f77;eb : ao_none;m : NoModrm;o1 : 0;o2 : 0;o3 : 0),
          (i : A_NONE));
 
 {****************************************************************************
@@ -955,7 +957,7 @@ unit i386;
         'fiaddl','faddl','fiadds','fisubl','fsubl','fisubs','fsubs',
         'fsubr','fsubrs','fisubrl','fsubrl','fisubrs','fmuls','fimull',
         'fmull','fimuls','fdivs','fidivl','fdivl','fidivs','fdivrs',
-        'fidivrl','fdivrl','fidivrs','repe','repne','fadds','popfl',
+        'fidivrl','fdivrl','fidivrs','repe','repne','cpuid','fadds','popfl',
         { mmx instructions supported by GNU AS v281 }
         'emms','movd','movq','packssdw','packsswb','packuswb',
         'paddb','paddd','paddsb','paddsw','paddusb','paddusw',
@@ -989,7 +991,7 @@ unit i386;
         'fild','cmp','jz','inc','dec','sete','setne','setl',
         'setg','setle','setge','je','jne','jl','jg','jle','jge',
         'or','fld','fadd','fmul','fsub','fdiv','fchs','fld1',
-        'fidiv','cdq','jnz','fstp','and','jno','','',
+        'fidiv','cltd','jnz','fstp','and','jno','','',
         'enter','leave','cld','movs','rep','shl','shr','bound',
         'jns','js','jo','sar','test',
         'fcom','fcomp','fcompp','fxch','faddp','fmulp','fsubrp','fdivp',
@@ -1026,7 +1028,7 @@ unit i386;
         'fiadd','fadd','fiadd','fisub','fsub','fisub','fsub',
         'fsubr','fsubr','fisubr','fsubr','fisubr','fmul','fimul',
         'fmul','fimul','fdiv','fidiv','fdiv','fidiv','fdivr',
-        'fidivr','fdivr','fidivr','repe','repne','fadd','popfd',
+        'fidivr','fdivr','fidivr','repe','repne','cpuid','fadd','popfd',
         { mmx instructions }
         'emms','movd','movq','packssdw','packsswb','packuswb',
         'paddb','paddd','paddsb','paddsw','paddusb','paddusw',
@@ -1725,7 +1727,10 @@ unit i386;
 end.
 {
   $Log$
-  Revision 1.15  1998-11-05 23:48:20  peter
+  Revision 1.16  1998-11-13 10:13:46  peter
+    + cpuid,emms support for asm readers
+
+  Revision 1.15  1998/11/05 23:48:20  peter
     * recordtype.field support in constant expressions
     * fixed imul for oa_imm8 which was not allowed
     * fixed reading of local typed constants
