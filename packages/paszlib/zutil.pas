@@ -27,16 +27,18 @@ type
   uInt   = Word;
 {$ELSE}
   {$IFDEF FPC}
-    uInt   = longint;     { 16 bits or more }
-    {$INFO Cardinal}
-  {$ELSE}
-    uInt   = cardinal;     { 16 bits or more }
+    uInt = Longint;     { 16 bits or more }
+    { Should be cardinal, but that crashes }
   {$ENDIF}
 {$ENDIF}
   uIntf  = uInt;
 
   Long   = longint;
+{$ifdef FPC}
+  uLong  = Longint;
+{$else}
   uLong  = LongInt;      { 32 bits or more }
+{$endif}
   uLongf = uLong;
 
   voidp  = pointer;
@@ -405,10 +407,6 @@ procedure zcfree(opaque : voidpf; ptr : voidpf);
 var
   Handle : THandle;
 {$endif}
-{$IFDEF FPC}
-var
-  memsize : uint;
-{$ENDIF}
 begin
   {$IFDEF DPMI}
   {h :=} GlobalFreePtr(ptr);
@@ -424,18 +422,7 @@ begin
         GlobalUnLock(Handle);
         GlobalFree(Handle);
         {$else}
-          {$IFDEF FPC}
-           ASM
-            mov ptr,%edi
-            subl $4,%edi
-            mov (%edi),%eax
-            mov %eax,memsize
-            mov %edi,ptr
-           END ['EAX','EDI'];
-          FreeMem(ptr,memsize);  { Delphi 2,3,4 }
-          {$ELSE}
           FreeMem(ptr);  { Delphi 2,3,4 }
-          {$ENDIF}
         {$endif}
       {$endif}
     {$ENDIF}
@@ -464,18 +451,7 @@ begin
         Handle := GlobalAlloc(HeapAllocFlags, memsize);
         p := GlobalLock(Handle);
         {$else}
-          {$IFDEF FPC}
-           inc(memsize,4);
-           GetMem(p, memsize);  { Delphi: p := AllocMem(memsize); }
-           ASM
-            mov memsize,%eax
-            mov p,%edi
-            stosl
-            mov %edi,p
-           END ['EAX','EDI'];
-          {$ELSE}
           GetMem(p, memsize);  { Delphi: p := AllocMem(memsize); }
-          {$ENDIF}
         {$endif}
       {$endif}
     {$ENDIF}

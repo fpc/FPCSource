@@ -5,11 +5,15 @@ interface
 uses
   zbase;
 
+const
+  ZLIB_VERSION = '1.1.2';
+
 type
   { Compatibility types }
-  Uint = cardinal;
-  Ulong = Cardinal;
-  Ulongf = Cardinal;
+  PByte   = ^Byte;
+  Uint    = Cardinal;
+  Ulong   = Longint;
+  Ulongf  = ULong;
   Pulongf = ^Ulongf;
   z_off_t = longint;
 
