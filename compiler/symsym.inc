@@ -416,7 +416,7 @@
     procedure tprocsym.deref;
       var
         t    : ttoken;
-        last : pprocdef;
+        last,pd : pprocdef;
       begin
          resolvedef(pdef(definition));
          if (definition^.proctypeoption=potype_operator) then
@@ -428,8 +428,20 @@
               if (name=overloaded_names[t]) then
                 begin
                    if assigned(overloaded_operators[t]) then
-                     last^.nextoverloaded:=overloaded_operators[t]^.definition;
+                     begin
+                       pd:=overloaded_operators[t]^.definition;
+                       { test if not already in list, bug report by KC Wong PM }
+                       while assigned(pd) do
+                         if pd=last then
+                           break
+                         else
+                           pd:=pd^.nextoverloaded;
+                       if pd=last then
+                         break;
+                       last^.nextoverloaded:=overloaded_operators[t]^.definition;
+                     end;
                    overloaded_operators[t]:=@self;
+                   break;
                 end;
            end;
       end;
@@ -2125,7 +2137,10 @@
 
 {
   $Log$
-  Revision 1.140  2000-03-01 00:03:10  pierre
+  Revision 1.141  2000-04-03 14:50:05  pierre
+   * avoid cyclic overloaded list for operators
+
+  Revision 1.140  2000/03/01 00:03:10  pierre
     * fixes for locals in inlined procedures
       fix for bug797
     + stabs generation for inlined paras and locals
