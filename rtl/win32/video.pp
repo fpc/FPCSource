@@ -27,11 +27,8 @@ uses
 {$i video.inc}
 
 var
-  OldVideoBuf : PVideoBuf;
   ConsoleInfo : TConsoleScreenBufferInfo;
   ConsoleCursorInfo : TConsoleCursorInfo;
-  MaxVideoBufSize : DWord;
-
 
 procedure SysInitVideo;
 
@@ -39,52 +36,37 @@ begin
   ScreenColor:=true;
   GetConsoleScreenBufferInfo(TextRec(Output).Handle, ConsoleInfo);
   GetConsoleCursorInfo(TextRec(Output).Handle, ConsoleCursorInfo);
-
-  with ConsoleInfo.srWindow do
-    begin
-       ScreenWidth:=right-left+1;
-       ScreenHeight:=bottom-top+1;
-    end;
-
-  { srWindow is sometimes bigger then dwMaximumWindowSize
-    this led to wrong ScreenWidth and ScreenHeight values PM }
-  { damned: its also sometimes less !! PM }
+  {
+    About the ConsoleCursorInfo record: There are 3 possible
+    structures in it that can be regarded as the 'screen':
+    - dwsize   : contains the cols & row in current screen buffer.
+    - srwindow : Coordinates (relative to buffer) of upper left 
+                 & lower right corners of visible console.
+    - dmMaximumWindowSize : Maximal size of Screen buffer.
+    The first implementation of video used srWindow. After some
+    bug-reports, this was switched to dwMaximumWindowSize.
+  }
   with ConsoleInfo.dwMaximumWindowSize do
     begin
-       {if ScreenWidth>X then}
-         ScreenWidth:=X;
-       {if ScreenHeight>Y then}
-         ScreenHeight:=Y;
+    ScreenWidth:=X;
+    ScreenHeight:=Y;
     end;
-
   { TDrawBuffer only has FVMaxWidth elements
     larger values lead to crashes }
   if ScreenWidth> FVMaxWidth then
     ScreenWidth:=FVMaxWidth;
-
   CursorX:=ConsoleInfo.dwCursorPosition.x;
   CursorY:=ConsoleInfo.dwCursorPosition.y;
   if not ConsoleCursorInfo.bvisible then
     CursorLines:=0
   else
     CursorLines:=ConsoleCursorInfo.dwSize;
-
-  { allocate back buffer }
-  MaxVideoBufSize:= ScreenWidth * ScreenHeight * 2;
-  VideoBufSize:=ScreenWidth*ScreenHeight*2;
-
-  GetMem(VideoBuf,MaxVideoBufSize);
-  GetMem(OldVideoBuf,MaxVideoBufSize);
 end;
 
 
 procedure SysDoneVideo;
 begin
   SetCursorType(crUnderLine);
-  FreeMem(VideoBuf,MaxVideoBufSize);
-  FreeMem(OldVideoBuf,MaxVideoBufSize);
-  VideoBufSize:=0;
-  VideoInitialized:=false;
 end;
 
 
@@ -145,16 +127,8 @@ begin
    SetConsoleCursorInfo(TextRec(Output).Handle,ConsoleCursorInfo);
 end;
 
-
-function DefaultVideoModeSelector(const VideoMode: TVideoMode; Params: Longint): Boolean;
-begin
-  DefaultVideoModeSelector:=true;
-end;
-
-
 procedure SysClearScreen;
 begin
-  FillWord(VideoBuf^,VideoBufSize div 2,$0720);
   UpdateScreen(true);
 end;
 
@@ -182,8 +156,6 @@ var
    smallforce  : boolean;
 (*
 begin
-  if LockUpdateScreen<>0 then
-   exit;
   if not force then
    begin
      asm
@@ -342,12 +314,6 @@ begin
    end;
 end;
 
-procedure RegisterVideoModes;
-begin
-  { don't know what to do for win32 (FK) }
-  RegisterVideoMode(80, 25, True, @DefaultVideoModeSelector, $00000003);
-end;
-
 Const
   SysVideoDriver : TVideoDriver = (
     InitDriver : @SysInitVideo;
@@ -355,7 +321,8 @@ Const
     UpdateScreen : @SysUpdateScreen;
     ClearScreen : @SysClearScreen;
     SetVideoMode : Nil;
-    HasVideoMode : Nil;
+    GetVideoModeCount : Nil;
+    GetVideoModeData : Nil;
     SetCursorPos : @SysSetCursorPos;
     GetCursorType : @SysGetCursorType;
     SetCursorType : @SysSetCursorType;
@@ -365,14 +332,13 @@ Const
 
 initialization
   SetVideoDriver(SysVideoDriver);
-  RegisterVideoModes;
-
-finalization
-  UnRegisterVideoModes;
 end.
 {
   $Log$
-  Revision 1.6  2001-09-21 19:50:19  michael
+  Revision 1.7  2001-10-06 22:28:24  michael
+  + Merged video mode selection/setting system
+
+  Revision 1.6  2001/09/21 19:50:19  michael
   + Merged driver support from fixbranch
 
   Revision 1.5  2001/08/01 18:01:20  peter
@@ -386,6 +352,9 @@ end.
 
   Revision 1.2  2001/04/10 21:28:36  peter
     * removed warnigns
+
+  Revision 1.1.2.6  2001/10/06 22:23:41  michael
+  + Better video mode selection/setting system
 
   Revision 1.1.2.5  2001/09/21 18:42:09  michael
   + Implemented support for custom video drivers.

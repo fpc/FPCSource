@@ -1,6 +1,5 @@
 {
     $Id$
-
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Florian Klaempfl
     member of the Free Pascal development team
@@ -32,7 +31,6 @@ var
   LastCursorType : byte;
   TtyFd: Longint;
   Console: Boolean;
-  OldVideoBuf: PVideoBuf;
 {$ifdef logging}
   f: file;
 
@@ -571,18 +569,6 @@ begin
 {$ifndef CPUI386}
   LowAscii:=false;
 {$endif CPUI386}
-  if VideoBufSize<>0 then
-   begin
-     clearscreen;
-     if Console then
-      SetCursorPos(1,1)
-     else
-      begin
-        if not SendEscapeSeqNdx(cursor_home) then
-          SendEscapeSeq(#27'[H');
-      end;
-     exit;
-   end;
   { check for tty }
   ThisTTY:=TTYName(stdinputhandle);
   if IsATTY(stdinputhandle) then
@@ -624,10 +610,6 @@ begin
      CursorX:=1;
      CursorY:=1;
      ScreenColor:=True;
-     { allocate pmode memory buffer }
-     VideoBufSize:=ScreenWidth*ScreenHeight*2;
-     GetMem(VideoBuf,VideoBufSize);
-     GetMem(OldVideoBuf,VideoBufSize);
      { Start with a clear screen }
      if not Console then
       begin
@@ -661,7 +643,6 @@ begin
          ACSIn:='';
          ACSOut:='';
        end;
-     ClearScreen;
 {$ifdef logging}
      assign(f,'video.log');
      rewrite(f,1);
@@ -675,10 +656,7 @@ end;
 
 procedure SysDoneVideo;
 begin
-  if VideoBufSize=0 then
-   exit;
   prepareDoneVideo;
-  ClearScreen;
   if Console then
    SetCursorPos(1,1)
   else
@@ -690,9 +668,6 @@ begin
      SetCursorType(crUnderLine);
      SendEscapeSeq(#27'[H');
    end;
-  FreeMem(VideoBuf,VideoBufSize);
-  FreeMem(OldVideoBuf,VideoBufSize);
-  VideoBufSize:=0;
   ACSIn:='';
   ACSOut:='';
   doneVideoDone;
@@ -709,14 +684,13 @@ end;
 
 procedure SysClearScreen;
 begin
-  FillWord(VideoBuf^,VideoBufSize shr 1,$0720);
   if Console then
-   UpdateScreen(true)
+    UpdateScreen(true)
   else
-   begin
-     SendEscapeSeq(#27'[0m');
-     SendEscapeSeqNdx(clear_screen);
-   end;
+    begin
+    SendEscapeSeq(#27'[0m');
+    SendEscapeSeqNdx(clear_screen);
+    end;
 end;
 
 
@@ -828,41 +802,37 @@ begin
   end;
 end;
 
-
-function DefaultVideoModeSelector(const VideoMode: TVideoMode; Params: Longint): Boolean;
-begin
-  DefaultVideoModeSelector:=false;
-end;
-
-
-procedure RegisterVideoModes;
-begin
-end;
-
 Const
+  SysVideoMode : TVideoMode = (
+    Col   : 80;
+    Row   : 25;
+    Color : True;
+  );
+
   SysVideoDriver : TVideoDriver = (
     InitDriver : @SysInitVideo;
     DoneDriver : @SysDoneVideo;
     UpdateScreen : @SysUpdateScreen;
     ClearScreen : @SysClearScreen;
     SetVideoMode : Nil;
-    HasVideoMode : Nil;
+    GetVideoModeCount : Nil;
+    GetVideoModeData : Nil;
     SetCursorPos : @SysSetCursorPos;
     GetCursorType : @SysGetCursorType;
     SetCursorType : @SysSetCursorType;
-    GetCapabilities : @SysGetCapabilities
+    GetCapabilities : @SysGetCapabilities;
+    DefaultVideoMode : (Col : 80; Row : 25;Color : True);
   );
 
 initialization
   SetVideoDriver(SysVideoDriver);
-  RegisterVideoModes;
-
-finalization
-  UnRegisterVideoModes;
 end.
 {
   $Log$
-  Revision 1.8  2001-09-21 19:50:19  michael
+  Revision 1.9  2001-10-06 22:28:25  michael
+  + Merged video mode selection/setting system
+
+  Revision 1.8  2001/09/21 19:50:19  michael
   + Merged driver support from fixbranch
 
   Revision 1.7  2001/08/30 20:55:08  peter
@@ -876,6 +846,9 @@ end.
 
   Revision 1.4  2001/07/30 21:38:55  peter
     * m68k updates merged
+
+  Revision 1.2.2.9  2001/10/06 22:23:41  michael
+  + Better video mode selection/setting system
 
   Revision 1.2.2.8  2001/09/21 18:42:09  michael
   + Implemented support for custom video drivers.

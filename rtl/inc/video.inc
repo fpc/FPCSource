@@ -57,6 +57,52 @@ end;
   External functions that use the video driver.
   ---------------------------------------------------------------------}
 
+Procedure FreeVideoBuf;
+
+begin
+  if (VideoBuf<>Nil) then
+    begin
+    FreeMem(VideoBuf);
+    FreeMem(OldVideoBuf);
+    VideoBuf:=Nil;
+    OldVideoBuf:=Nil;
+    VideoBufSize:=0;
+    end;
+end;
+
+Procedure AssignVideoBuf (OldCols, OldRows : Word);
+
+Var NewVideoBuf,NewOldVideoBuf : PVideoBuf;
+    S,I,C,R,NewVideoBufSize : Integer;
+
+begin
+  S:=SizeOf(TVideoCell);
+  NewVideoBufSize:=ScreenWidth*ScreenHeight*S;
+  GetMem(NewVideoBuf,NewVideoBufSize);
+  GetMem(NewOldVideoBuf,NewVideoBufSize);
+  // Move contents of old videobuffers to new if there are any.
+  if (VideoBuf<>Nil) then
+    begin
+    If (ScreenWidth<OldCols) then
+      C:=ScreenWidth
+    else
+      C:=OldCols;  
+    If (ScreenHeight<OldRows) then
+      R:=ScreenHeight
+    else
+      R:=OldRows;  
+    For I:=0 to R-1 do
+      begin
+      Move(VideoBuf[I*S*OldCols],NewVideoBuf[I*S*ScreenWidth],S*C);
+      Move(OldVideoBuf[I*S*OldCols],NewOldVideoBuf[I*S*ScreenWidth],S*C);
+      end;
+    end;  
+  FreeVideoBuf;
+  VideoBufSize:=NewVideoBufSize;
+  VideoBuf:=NewVideoBuf;
+  OldVideoBuf:=NewOldVideoBuf;
+end;
+
 Procedure InitVideo;
 
 begin
@@ -64,9 +110,11 @@ begin
     begin
     If Assigned(CurrentVideoDriver.InitDriver) then
       CurrentVideoDriver.InitDriver;
-    VideoInitialized:=True;
+    AssignVideoBuf(0,0);
+    ClearScreen;
     end;
 end;
+
 
 Procedure DoneVideo;
 
@@ -75,6 +123,7 @@ begin
     begin
     If Assigned(CurrentVideoDriver.DoneDriver) then
       CurrentVideoDriver.DoneDriver;
+    FreeVideoBuf;  
     VideoInitialized:=False;
     end;
 end;
@@ -90,18 +139,12 @@ end;
 Procedure ClearScreen;
 
 begin
+  // Should this not be the current color ?
+  FillWord(VideoBuf^,VideoBufSize shr 1,$0720);
   If Assigned(CurrentVideoDriver.ClearScreen) then
     CurrentVideoDriver.ClearScreen
   else
-    begin
-    FillWord(VideoBuf^,VideoBufSize shr 1,$0720);
     UpdateScreen(True);
-    // Is this needed ?
-    {
-    CurrentX:=1;
-    CurrentY:=1;
-    }
-    end;
 end;
 
 Procedure SetCursorType (NewType : Word);
@@ -148,52 +191,44 @@ begin
   Mode.Color := ScreenColor;
 end;
 
+Function SetVideoMode(Const Mode: TVideoMode) : Boolean;
 
+Var
+  OldR,OldC: Word;
 
-procedure SetVideoMode(Mode: TVideoMode);
-var
-  P: PVideoModeList;
 begin
-  P := Modes;
-  while (P<>Nil) and ((P^.Row <> Mode.Row) or (P^.Col <> Mode.Col) or (P^.Color<>Mode.Color)) do
-    P := P^.Next;
-  if P <> nil then begin
-    DoneVideo;
-    ScreenWidth:=$ffff;
-    ScreenHeight:=$ffff;
-    P^.VideoModeSelector(PVideoMode(P)^, P^.Params);
-    InitVideo;
-   end
-   else begin
-    ErrorHandler(errVioNoSuchMode, @Mode);
-  end;
-end;
-
-procedure RegisterVideoMode(Col, Row: Word; Color: Boolean; VideoModeSelector: TVideoModeSelector; Params: Longint);
-var
-  P: PVideoModeList;
-begin
-  New(P);
-  P^.Col := Col;
-  P^.Row := Row;
-  P^.Color := Color;
-  P^.VideoModeSelector := VideoModeSelector;
-  P^.Params := Params;
-  P^.Next := Modes;
-  Modes := P;
+  OldC:=ScreenWidth;
+  OldR:=ScreenHeight;
+  If Assigned(CurrentVideoDriver.SetVideoMode) then
+    SetVideoMode:=CurrentVideoDriver.SetVideoMode(Mode)
+  else
+    SetVideoMode:=False;
+  // Assign buffer
+  If SetVideoMode then
+    AssignVideoBuf(OldC,Oldr);
 end;
 
 
-procedure UnRegisterVideoModes;
-var
-  P: PVideoModeList;
+Function GetVideoModeCount : Word;
+
 begin
-  while assigned(modes) do
-   begin
-     p:=modes;
-     modes:=modes^.next;
-     dispose(p);
-   end;
+  If Assigned(CurrentVideoDriver.GetVideoModeCount) then
+    GetVideoModeCount:=GetVideoModeCount()
+  else
+    GetVideoModeCount:=1;
+end;
+
+Function GetVideoModeData(Index : Word; Var Data: TVideoMode) : Boolean;
+
+begin
+  If Assigned(CurrentVideoDriver.GetVideoModeData) then
+    GetVideoModeData:=CurrentVideoDriver.GetVideoModeData(Index,Data)
+  else
+    begin
+    GetVideoModeData:=(Index=0);
+    If GetVideoModeData then
+      GetVideoMode(Data);
+    end
 end;
 
 function DefaultErrorHandler(AErrorCode: Longint; AErrorInfo: Pointer): TErrorHandlerReturnValue;
@@ -207,11 +242,17 @@ end;
 
 {
   $Log$
-  Revision 1.3  2001-10-04 20:51:56  michael
+  Revision 1.4  2001-10-06 22:28:24  michael
+  + Merged video mode selection/setting system
+
+  Revision 1.3  2001/10/04 20:51:56  michael
   + merged function setvideodriver
 
   Revision 1.2  2001/09/21 19:50:18  michael
   + Merged driver support from fixbranch
+
+  Revision 1.1.2.5  2001/10/06 22:23:40  michael
+  + Better video mode selection/setting system
 
   Revision 1.1.2.4  2001/10/04 18:59:11  michael
   + Made setVideoDriver a function

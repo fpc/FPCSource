@@ -34,12 +34,8 @@ uses
 
 {$ASMMODE ATT}
 
-var
-  OldVideoBuf : PVideoBuf;
-
   { used to know if LastCursorType is valid }
 const
-  InitVideoCalled : boolean = false;
   LastCursorType : word = crUnderline;
 
 { allways set blink state again }
@@ -115,19 +111,8 @@ begin
   CursorLines:=regs.cl;
   CursorX:=regs.dl;
   CursorY:=regs.dh;
-  If InitVideoCalled then
-    Begin
-      FreeMem(VideoBuf,VideoBufSize);
-      FreeMem(OldVideoBuf,VideoBufSize);
-    End;
-{ allocate pmode memory buffer }
-  VideoBufSize:=ScreenWidth*ScreenHeight*2;
-  GetMem(VideoBuf,VideoBufSize);
-  GetMem(OldVideoBuf,VideoBufSize);
   SetHighBitBlink;
   SetCursorType(LastCursorType);
-  { ClearScreen; removed here
-    to be able to catch the content of the monitor }
 end;
 
 
@@ -137,11 +122,6 @@ begin
   ClearScreen;
   SetCursorType(crUnderLine);
   SetCursorPos(0,0);
-  FreeMem(VideoBuf,VideoBufSize);
-  VideoBuf:=nil;
-  FreeMem(OldVideoBuf,VideoBufSize);
-  OldVideoBuf:=nil;
-  VideoBufSize:=0;
 end;
 
 
@@ -214,54 +194,8 @@ begin
   realintr($10,regs);
 end;
 
-
-function DefaultVideoModeSelector(const VideoMode: TVideoMode; Params: Longint): Boolean;
-type
-  wordrec=packed record
-    lo,hi : word;
-  end;
-var
-  regs : trealregs;
-begin
-  regs.ax:=wordrec(Params).lo;
-  regs.bx:=wordrec(Params).hi;
-  realintr($10,regs);
-  defaultvideomodeselector:=true;
-  DoCustomMouse(false);
-end;
-
-function VideoModeSelector8x8(const VideoMode: TVideoMode; Params: Longint): Boolean;
-type
-  wordrec=packed record
-    lo,hi : word;
-  end;
-var
-  regs : trealregs;
-begin
-  regs.ax:=3;
-  regs.bx:=0;
-  realintr($10,regs);
-  regs.ax:=$1112;
-  regs.bx:=$0;
-  realintr($10,regs);
-  videomodeselector8x8:=true;
-  ScreenColor:=true;
-  ScreenWidth:=80;
-  ScreenHeight:=50;
-  DoCustomMouse(false);
-end;
-
-procedure SysClearScreen;
-begin
-  FillWord(VideoBuf^,VideoBufSize shr 1,$0720);
-  UpdateScreen(true);
-end;
-
-
 procedure SysUpdateScreen(Force: Boolean);
 begin
-  if LockUpdateScreen<>0 then
-   exit;
   if not force then
    begin
      asm
@@ -281,45 +215,121 @@ begin
    end;
 end;
 
+Procedure DoSetVideoMode(Params: Longint);
 
-procedure RegisterVideoModes;
+type
+  wordrec=packed record
+    lo,hi : word;
+  end;
+var
+  regs : trealregs;
 begin
-  RegisterVideoMode(40, 25, False,@DefaultVideoModeSelector, $00000000);
-  RegisterVideoMode(40, 25, True, @DefaultVideoModeSelector, $00000001);
-  RegisterVideoMode(80, 25, False,@DefaultVideoModeSelector, $00000002);
-  RegisterVideoMode(80, 25, True, @DefaultVideoModeSelector, $00000003);
-  RegisterVideoMode(80, 50, True, @VideoModeSelector8x8, 0);
+  regs.ax:=wordrec(Params).lo;
+  regs.bx:=wordrec(Params).hi;
+  realintr($10,regs);
+end;
+
+Procedure SetVideo8x8;
+
+type
+  wordrec=packed record
+    lo,hi : word;
+  end;
+var
+  regs : trealregs;
+begin
+  regs.ax:=3;
+  regs.bx:=0;
+  realintr($10,regs);
+  regs.ax:=$1112;
+  regs.bx:=$0;
+  realintr($10,regs);
+end;
+
+Const 
+  SysVideoModeCount = 5;
+  SysVMD : Array[0..SysVideoModeCount-1] of TVideoMode = (
+   (Col: 40; Row : 25;  Color : False),
+   (Col: 40; Row : 25;  Color : True),
+   (Col: 80; Row : 25;  Color : False),
+   (Col: 80; Row : 25;  Color : True),
+   (Col: 80; Row : 50;  Color : True)
+  );
+  
+Function SysSetVideoMode (Const Mode : TVideoMode) : Boolean;
+
+Var
+  I : Integer;
+
+begin
+  I:=SysVideoModeCount-1;
+  SysSetVideoMode:=False;
+  While (I>=0) and Not SysSetVideoMode do
+    If (Mode.col=SysVMD[i].col) and
+       (Mode.Row=SysVMD[i].Row) and
+       (Mode.Color=SysVMD[i].Color) then
+      SysSetVideoMode:=True
+    else
+      Dec(I);  
+  If SysSetVideoMode then
+    begin
+    If (I<SysVideoModeCount-1) then
+      DoSetVideoMode(I)
+    else
+      SetVideo8x8;  
+    ScreenWidth:=SysVMD[I].Col;
+    ScreenHeight:=SysVMD[I].Row;
+    ScreenColor:=SysVMD[I].Color;
+    DoCustomMouse(false);
+    end;
+end;
+  
+Function SysGetVideoModeData (Index : Word; Var Data : TVideoMode) : boolean;
+
+begin
+  SysGetVideoModeData:=(Index<=SysVideoModeCount);
+  If SysGetVideoModeData then
+    Data:=SysVMD[Index];
+end;
+
+Function SysGetVideoModeCount : Word;
+
+begin
+  SysGetVideoModeCount:=SysVideoModeCount;
 end;
 
 Const
   SysVideoDriver : TVideoDriver = (
-    InitDriver : @SysInitVideo;
-    DoneDriver : @SysDoneVideo;
-    UpdateScreen : @SysUpdateScreen;
-    ClearScreen : @SysClearScreen;
-    SetVideoMode : Nil;
-    HasVideoMode : Nil;
-    SetCursorPos : @SysSetCursorPos;
-    GetCursorType : @SysGetCursorType;
-    SetCursorType : @SysSetCursorType;
+    InitDriver      : @SysInitVideo;
+    DoneDriver      : @SysDoneVideo;
+    UpdateScreen    : @SysUpdateScreen;
+    ClearScreen     : Nil;
+    SetVideoMode    : @SysSetVideoMode;
+    GetVideoModeCount : @SysGetVideoModeCount;
+    GetVideoModeData : @SysGetVideoModedata;
+    SetCursorPos    : @SysSetCursorPos;
+    GetCursorType   : @SysGetCursorType;
+    SetCursorType   : @SysSetCursorType;
     GetCapabilities : @SysGetCapabilities
   );
 
 initialization
   SetVideoDriver(SysVideoDriver);
-  RegisterVideoModes;
-
-finalization
-  UnRegisterVideoModes;
 end.
 {
   $Log$
-  Revision 1.3  2001-09-21 19:50:18  michael
+  Revision 1.4  2001-10-06 22:28:24  michael
+  + Merged video mode selection/setting system
+
+  Revision 1.3  2001/09/21 19:50:18  michael
   + Merged driver support from fixbranch
 
 
   Revision 1.2  2001/05/09 19:53:28  peter
     * removed asm for copy, use dosmemput (merged)
+
+  Revision 1.1.2.5  2001/10/06 22:23:40  michael
+  + Better video mode selection/setting system
 
   Revision 1.1.2.4  2001/09/21 18:42:08  michael
   + Implemented support for custom video drivers.

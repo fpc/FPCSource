@@ -27,16 +27,18 @@ type
   PVideoBuf = ^TVideoBuf;
 
   TVideoDriver = Record
-    InitDriver      : Procedure;
-    DoneDriver      : Procedure;
-    UpdateScreen    : Procedure(Force : Boolean);
-    ClearScreen     : Procedure;
-    SetVideoMode    : Procedure (Const Mode : TVideoMode; Params : Longint);
-    HasVideoMode    : Function (Const Mode : TVideoMode; Params : Longint) : Boolean;
-    SetCursorPos    : procedure (NewCursorX, NewCursorY: Word);
-    GetCursorType   : function : Word;
-    SetCursorType   : procedure (NewType: Word);
-    GetCapabilities : Function : Word;
+    InitDriver        : Procedure;
+    DoneDriver        : Procedure;
+    UpdateScreen      : Procedure(Force : Boolean);
+    ClearScreen       : Procedure;
+    SetVideoMode      : Function (Const Mode : TVideoMode) : Boolean;
+    GetVideoModeCount : Function : Word;
+    GetVideoModeData  : Function(Index : Word; Var Data : TVideoMode) : Boolean;
+    SetCursorPos      : procedure (NewCursorX, NewCursorY: Word);
+    GetCursorType     : function : Word;
+    SetCursorType     : procedure (NewType: Word);
+    GetCapabilities   : Function : Word;
+    DefaultVideoMode  : TVideoMode;
   end;
 
 const
@@ -93,7 +95,8 @@ var
   ScreenColor  : Boolean;
   CursorX,
   CursorY      : Word;
-  VideoBuf     : PVideoBuf;
+  VideoBuf,
+  OldVideoBuf  : PVideoBuf;
   VideoBufSize : Longint;
   CursorLines  : Byte;
 
@@ -130,29 +133,15 @@ function GetCursorType: Word;
 { Return the cursor type: Hidden, UnderLine or Block }
 procedure SetCursorType(NewType: Word);
 { Set the cursor to the given type }
-function DefaultVideoModeSelector(const VideoMode: TVideoMode; Params: Longint): Boolean;
 
 procedure GetVideoMode(var Mode: TVideoMode);
 { Return dimensions of the current video mode }
-procedure SetVideoMode(Mode: TVideoMode);
+Function SetVideoMode(Const Mode: TVideoMode) : Boolean;
 { Set video-mode to have Mode dimensions, may return errVioNoSuchMode }
-procedure RegisterVideoMode(Col, Row: Word; Color: Boolean; VideoModeSelector: TVideoModeSelector; Params: Longint);
-{ Registers a video mode to be selectable by SetVideoMode }
-
-{ moved to interface because we need a way to retrieve the modes }
-{ System independent part }
-type
-  PVideoModeList = ^TVideoModeList;
-  TVideoModeList = record
-    Col, Row: Word;
-    Color: Boolean;
-    VideoModeSelector: TVideoModeSelector;
-    Params: Longint;
-    Next: PVideoModeList;
-  end;
-
-const
-  Modes: PVideoModeList = nil;
+Function GetVideoModeCount : Word;
+{ Get the number of video modes supported by this driver }
+Function GetVideoModeData(Index : Word; Var Data: TVideoMode) : Boolean;
+{ Get the data for Video mode Index. Index is zero based. }
 
 type
   TErrorHandlerReturnValue = (errRetry, errAbort, errContinue);
@@ -176,13 +165,19 @@ const
 
 {
   $Log$
-  Revision 1.4  2001-10-04 20:51:56  michael
+  Revision 1.5  2001-10-06 22:28:24  michael
+  + Merged video mode selection/setting system
+
+  Revision 1.4  2001/10/04 20:51:56  michael
   + merged function setvideodriver
 
   Revision 1.3  2001/09/21 19:50:18  michael
   + Merged driver support from fixbranch
 
   Revision 1.2  2001/06/06 17:20:22  jonas
+
+  Revision 1.1.2.6  2001/10/06 22:23:40  michael
+  + Better video mode selection/setting system
 
   Revision 1.1.2.5  2001/10/04 18:59:11  michael
   + Made setVideoDriver a function
