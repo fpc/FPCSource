@@ -1503,7 +1503,8 @@ implementation
         inittempvariables(list);
 
         { initialize ansi/widesstring para's }
-        current_procinfo.procdef.parast.foreach_static({$ifndef TP}@{$endif}init_paras,list);
+        if not(po_assembler in current_procinfo.procdef.procoptions) then
+          current_procinfo.procdef.parast.foreach_static({$ifndef TP}@{$endif}init_paras,list);
 
 {$ifdef OLDREGVARS}
         load_regvars(list,nil);
@@ -1539,7 +1540,8 @@ implementation
         end;
 
         { finalize paras data }
-        if assigned(current_procinfo.procdef.parast) then
+        if assigned(current_procinfo.procdef.parast) and
+           not(po_assembler in current_procinfo.procdef.procoptions) then
           current_procinfo.procdef.parast.foreach_static({$ifndef TP}@{$endif}final_paras,list);
       end;
 
@@ -2066,7 +2068,8 @@ implementation
                               staticsymtable :
                                 begin
                                   { PIC, DLL and Threadvar need extra code and are handled in ncgld }
-                                  if not(cs_create_pic in aktmoduleswitches) and
+                                  if not((target_info.system=system_powerpc_darwin) and
+                                    (cs_create_pic in aktmoduleswitches)) and
                                      not(vo_is_dll_var in varoptions) and
                                      not(vo_is_thread_var in varoptions) then
                                     reference_reset_symbol(localloc.reference,objectlibrary.newasmsymbol(mangledname,AB_EXTERNAL,AT_DATA),0);
@@ -2354,7 +2357,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.254  2005-01-18 22:19:20  peter
+  Revision 1.255  2005-01-19 20:04:46  florian
+    * init./final code isn't created for pure assembler procedures anymore
+
+  Revision 1.254  2005/01/18 22:19:20  peter
     * multiple location support for i386 a_param_ref
     * remove a_param_copy_ref for i386
 
