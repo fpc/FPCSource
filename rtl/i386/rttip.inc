@@ -17,8 +17,8 @@
 { I think we should use the pascal version, this code isn't     }
 { much faster                                                   }
 
-{$define FPC_SYSTEM_HAS_FPC_INITIALIZE}
-
+{ $define FPC_SYSTEM_HAS_FPC_INITIALIZE}
+{
 Procedure fpc_Initialize (Data,TypeInfo : pointer);[Public,Alias:'FPC_INITIALIZE']; {$ifdef hascompilerproc} compilerproc; {$endif}
 assembler;
 asm
@@ -60,6 +60,9 @@ asm
         jmp     .LExitInitialize
         // Variants
 .LDoVariantInit:
+        movl    Data,%eax
+        pushl   %eax
+        call    FPC_VARIANT_INIT
         jmp     .LExitInitialize
         // dynamic Array
 .LDoDynArrayInit:
@@ -132,10 +135,10 @@ asm
         pop     %ebx
         pop     %eax
 end;
+}
 
-
-{$define FPC_SYSTEM_HAS_FPC_FINALIZE}
-
+{$ define FPC_SYSTEM_HAS_FPC_FINALIZE}
+{
 Procedure fpc_finalize (Data,TypeInfo: Pointer);[Public,Alias:'FPC_FINALIZE']; {$ifdef hascompilerproc} compilerproc; {$endif}
 assembler;
 asm
@@ -248,7 +251,7 @@ asm
         pop     %ebx
         pop     %eax
 end;
-
+}
 
 {$define FPC_SYSTEM_HAS_FPC_ADDREF}
 
@@ -480,7 +483,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  2001-08-01 15:00:10  jonas
+  Revision 1.11  2001-11-14 22:59:11  michael
+  + Initial variant support
+
+  Revision 1.10  2001/08/01 15:00:10  jonas
     + "compproc" helpers
     * renamed several helpers so that their name is the same as their
       "public alias", which should facilitate the conversion of processor

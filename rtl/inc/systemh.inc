@@ -117,6 +117,7 @@ Type
 {$endif SUPPORT_EXTENDED}
 
   PSmallInt           = ^Smallint;
+  PShortInt           = ^Shortint;
   PInteger            = ^Longint;
   PByte               = ^Byte;
   PWord               = ^word;
@@ -554,7 +555,10 @@ const
 
 {
   $Log$
-  Revision 1.38  2001-11-07 14:59:20  michael
+  Revision 1.39  2001-11-14 22:59:11  michael
+  + Initial variant support
+
+  Revision 1.38  2001/11/07 14:59:20  michael
   + Moved PathDelim,DriveDelim,PathSep to sysutilh
 
   Revision 1.37  2001/11/07 13:52:37  michael

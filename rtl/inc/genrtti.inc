@@ -23,6 +23,7 @@ Procedure fpc_Initialize (Data,TypeInfo : pointer);saveregisters;[Public,Alias :
   already defined or not so define it locally to avoid problems PM }
 Type
     Pbyte = ^Byte;
+    
 Var Temp       : PByte;
     I          : longint;
     Size,Count : longint;
@@ -54,6 +55,8 @@ begin
         With PRecRec(Temp)^.elements[I] do
           int_Initialize (Data+Offset,Info);
       end;
+    tkVariant:
+      variant_init(Variant(PVarData(Data)^))
   end;
 end;
 {$endif}
@@ -74,7 +77,7 @@ Var Temp       : PByte;
 begin
   Temp:=PByte(TypeInfo);
   case temp^ of
-    tkAstring,tkWstring : AnsiStr_Decr_Ref(Data);
+    tkAstring,tkWstring : fpc_AnsiStr_Decr_Ref(Data);
     tkArray :
       begin
       Temp:=Temp+1;
@@ -97,6 +100,8 @@ begin
         With PRecRec(Temp)^.elements[I] do
           int_Finalize (Data+Offset,Info);
       end;
+    tkVariant:
+      variant_clear(Variant(PVarData(Data)^))
   end;
 end;
 {$endif}
@@ -207,7 +212,10 @@ procedure fpc_FinalizeArray(data,typeinfo : pointer;count,size : longint); [Publ
 
 {
  $Log$
- Revision 1.5  2001-08-01 15:00:10  jonas
+ Revision 1.6  2001-11-14 22:59:11  michael
+ + Initial variant support
+
+ Revision 1.5  2001/08/01 15:00:10  jonas
    + "compproc" helpers
    * renamed several helpers so that their name is the same as their
      "public alias", which should facilitate the conversion of processor
