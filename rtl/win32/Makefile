@@ -137,6 +137,10 @@ clean :
 #
 # Base Units (System, strings, os-dependent-base-unit)
 #
+ifneq ($(OS_SOURCE),win32)
+override AS=asw
+endif
+
 
 wprt0$(OEXT) : wprt0.as
 	$(AS) -o wprt0$(OEXT) wprt0.as
@@ -393,7 +397,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.13  1998-11-30 09:16:57  pierre
+# Revision 1.14  1998-11-30 13:13:40  pierre
+#  * needs asw to link correctly wprt0 or wdllprt0 file
+#
+# Revision 1.13  1998/11/30 09:16:57  pierre
 #   + added the changes from Pavel Ozerski after several modifications
 #     to be able to create DLLs
 #

@@ -4,11 +4,11 @@
      .text
      .globl _mainCRTStartup
 _mainCRTStartup:
-     movl $1,U_SYSWIN32_ISCONSOLE
+     movb $1,U_SYSWIN32_ISCONSOLE
      jmp .LDLL_Entry
      .globl _WinMainCRTStartup
 _WinMainCRTStartup:
-     movl $0,U_SYSWIN32_ISCONSOLE
+     movb $0,U_SYSWIN32_ISCONSOLE
 .LDLL_Entry:
      pushl    %ebp
      movl     %esp,%ebp
@@ -21,7 +21,7 @@ _WinMainCRTStartup:
      movl     %edi,U_SYSWIN32_DLLREASON
      movl     16(%ebp),%edi
      movl     %edi,U_SYSWIN32_DLLPARAM
-     call     FPC_DLL_Entry
+     call     _FPC_DLL_Entry
      popl     %edi
      popl     %esi
      popl     %ebx

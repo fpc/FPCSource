@@ -3,12 +3,12 @@
 //1998
 // modified by Pierre Muller
      .text
-     .GLOBL _mainCRTStartup
+     .globl _mainCRTStartup
 _mainCRTStartup:
-     movl   $1,U_SYSWIN32_ISCONSOLE
-     jmp    FPC_EXE_Entry
-.GLOBL _WinMainCRTStartup
+     movb   $1,U_SYSWIN32_ISCONSOLE
+     call   _FPC_EXE_Entry
+     .globl _WinMainCRTStartup
 _WinMainCRTStartup:
-     movl   $0,U_SYSWIN32_ISCONSOLE
-     jmp    FPC_EXE_Entry
+     movb   $0,U_SYSWIN32_ISCONSOLE
+     call   _FPC_EXE_Entry
  

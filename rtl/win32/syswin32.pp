@@ -731,9 +731,9 @@ begin
   end;
 end;
 {$endif}
-{$ASMMODE ATT}
 
-procedure Exe_entry;[public, alias : 'FPC_EXE_Entry'];
+{$ASMMODE DIRECT}
+procedure Exe_entry;[public, alias : '_FPC_EXE_Entry'];
   begin
      IsLibrary:=false;
      asm
@@ -743,7 +743,7 @@ procedure Exe_entry;[public, alias : 'FPC_EXE_Entry'];
      ExitProcess(0);
   end;
   
-procedure Dll_entry;[public, alias : 'FPC_DLL_Entry'];
+procedure Dll_entry;[public, alias : '_FPC_DLL_Entry'];
   begin
      IsLibrary:=true;
      case DLLreason of
@@ -756,8 +756,15 @@ procedure Dll_entry;[public, alias : 'FPC_DLL_Entry'];
           end;
      end;
   end;
+
+  const
+     Exe_entry_code : pointer = @Exe_entry;
+     Dll_entry_code : pointer = @Dll_entry;
+     
 {$endif def FPC_WIN32_DLL_SUPPORT}
   
+{$ASMMODE ATT}
+
 begin
 { get some helpful informations }
   GetStartupInfo(@startupinfo);
@@ -792,7 +799,10 @@ end.
 
 {
   $Log$
-  Revision 1.25  1998-11-30 09:16:58  pierre
+  Revision 1.26  1998-11-30 13:13:41  pierre
+   * needs asw to link correctly wprt0 or wdllprt0 file
+
+  Revision 1.25  1998/11/30 09:16:58  pierre
     + added the changes from Pavel Ozerski after several modifications
       to be able to create DLLs
 
