@@ -255,12 +255,12 @@ implementation
                       symdone:=true;
                     end;
                    { address }
-                   if (not symdone) and
-                      ((target_info.target=target_i386_go32v2) or
-                       (m_objfpc in aktmodeswitches) or
-                       (m_delphi in aktmodeswitches)) then
+                   if (not symdone) then
                     begin
-                      if is_constintnode(pt) then
+                      if is_constintnode(pt) and
+                         ((target_info.target=target_i386_go32v2) or
+                          (m_objfpc in aktmodeswitches) or
+                          (m_delphi in aktmodeswitches)) then
                        begin
                          storetokenpos:=akttokenpos;
                          akttokenpos:=declarepos;
@@ -284,15 +284,21 @@ implementation
                           end;
                          symtablestack.insert(abssym);
                          akttokenpos:=storetokenpos;
+                         symdone := true;
                        end
                       else
                        Message(parser_e_absolute_only_to_var_or_const);
-                    end;
+                    end
                  end
                 else
                   Message(parser_e_absolute_only_to_var_or_const);
+                if not symdone then
+                  begin
+                    tt := generrortype;
+                    symtablestack.insert(tvarsym.create(s,tt));
+                    symdone:=true;
+                  end;
                 pt.free;
-                symdone:=true;
               end;
              { Handling of Delphi typed const = initialized vars ! }
              { When should this be rejected ?
@@ -577,7 +583,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  2002-05-18 13:34:12  peter
+  Revision 1.27  2002-06-10 13:41:26  jonas
+    * fixed bug 1985
+
+  Revision 1.26  2002/05/18 13:34:12  peter
     * readded missing revisions
 
   Revision 1.25  2002/05/16 19:46:43  carl
