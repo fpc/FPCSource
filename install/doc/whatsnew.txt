@@ -25,6 +25,7 @@ Compiler:
   * Removed {$THREADING ON} directive, threading support is always available
   * Improved code generation on Sparc
   * Lot of small bugs and compatibility fixes
+  + On target Mac OS, resource files is supported
 
 RTL:
   + arm Linux support
@@ -32,6 +33,7 @@ RTL:
   * Operator ** moved to math unit; system.power removed
   * Improved variant support
   * Lot of small bugs and compatibility fixes
+  + The unit MacOS (api to Mac OS) for target MacOS
 
 FCL:
   + Support for Interbase/Firebird, PostgreSQL and MySQL 4.0 under windows
@@ -53,6 +55,7 @@ IDE:
 Misc:
   + txt output to fpdoc added
   * some fpdoc bugs fixes
+  + demo for macos
   
 
                         Version 1.9.6 aka 2.0.0-Rc1
