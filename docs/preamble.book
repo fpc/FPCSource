@@ -1,0 +1,14 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Preamble for book output
+
+%
+\documentclass{book}
+
+%
+\usepackage{fpcbook}
+
+% Use times for PDF
+\ifx\pdfoutput\undefined
+\else
+  \usepackage{times}
+\fi

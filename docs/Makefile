@@ -24,6 +24,9 @@
 # Which docs are made when 'html' is specified
 HTML = user units ref prog
 
+# Can be 'report','book' or 'html'
+PREAMBLETYPE = report
+
 # Where do you want the html files to be put ?
 ifndef PREFIXINSTALLDIR
 PREFIXINSTALLDIR=/usr
@@ -168,6 +171,7 @@ help:
 	@echo ' pdfdist       : pdf, and archive result.'
 
 clean:
+	-rm -f preamble.inc date.inc
 	-rm -f *.htex
 	-rm -rf $(HTML) onechap
 	-rm -f $(TOC) $(LOG) $(DVI) $(PDF) $(AUX) $(OUT) $(PS) *.i* $(LOT) $(TXT) $(CHK)
@@ -234,26 +238,39 @@ endif
 messages: 
 	msg2inc -TE ../compiler/errore.msg messages.tex
 
+#
+# Include files
+#
+
 date.inc:
 	@echo \\date\{`date +'%B %Y'`\} > date.inc
 
+preamble.inc:
+	cp -f preamble.$(PREAMBLETYPE) preamble.inc
+
+includes: date.inc preamble.inc
+
+#
+# DVI files
+#
+
 onechap: onechap.dvi
 
-units.dvi: units.tex date.inc $(CHAPTERS)
+units.dvi: units.tex includes $(CHAPTERS)
 
-ref.dvi: ref.tex date.inc
+ref.dvi: ref.tex includes
 
-prog.dvi: prog.tex date.inc
+prog.dvi: prog.tex includes
 
-user.dvi: user.tex date.inc
+user.dvi: user.tex includes
 
-units.pdf: units.tex date.inc $(CHAPTERS)
+units.pdf: units.tex includes $(CHAPTERS)
 
-ref.pdf: ref.tex date.inc
+ref.pdf: ref.tex includes
 
-user.pdf: user.tex date.inc
+user.pdf: user.tex includes
 
-prog.pdf: prog.tex date.inc
+prog.pdf: prog.tex includes
 
 dvi : $(DVI)
 
@@ -275,11 +292,12 @@ htex.chk: $(wildcard *.tex)
 	touch htex.chk
 
 user: user.chk
-user.chk: htex.chk date.inc
+user.chk: htex.chk includes
 ifdef INSTALLDEBUG
 	mkdir user
 	cp user.tex user/index.html
 else
+	cp -f preamble.html preamble.inc
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 2 -link 2\
 	-t "User's guide for Free Pascal" user.htex
 	-sed -f foot.sed <user/footnode.html >user/footnote.html
@@ -290,11 +308,12 @@ endif
 	touch user.chk
 
 units: units.chk
-units.chk: unitex.chk htex.chk date.inc
+units.chk: unitex.chk htex.chk includes
 ifdef INSTALLDEBUG
 	mkdir units
 	cp units.tex units/index.html
 else
+	cp -f preamble.html preamble.inc
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 3 -link 2\
 	-t "Unit reference for Free Pascal" units.htex
 	-sed -f foot.sed <units/footnode.html >units/footnote.html
@@ -307,11 +326,12 @@ endif
 	touch units.chk
 
 ref: ref.chk
-ref.chk: refex.chk htex.chk date.inc
+ref.chk: refex.chk htex.chk includes
 ifdef INSTALLDEBUG
 	mkdir ref
 	cp ref.tex ref/index.html
 else
+	cp -f preamble.html preamble.inc
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 4 -link 2\
 	-t "Free Pascal reference guide" ref.htex
 	-sed -f foot.sed <ref/footnode.html >ref/footnote.html
@@ -324,11 +344,12 @@ endif
 	touch ref.chk	
 
 prog: prog.chk
-prog.chk: progex.chk htex.chk date.inc
+prog.chk: progex.chk htex.chk includes
 ifdef INSTALLDEBUG
 	mkdir prog
 	cp prog.tex prog/index.html
 else
+	cp -f preamble.html preamble.inc
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 2 -link 2\
 	-t "Free Pascal programmers guide" prog.htex
 	-sed -f foot.sed <prog/footnode.html >prog/footnote.html
@@ -341,11 +362,12 @@ endif
 	touch prog.chk
 
 internal: internal.chk
-internal.chk: htex.chk date.inc
+internal.chk: htex.chk 
 ifdef INSTALLDEBUG
 	mkdir internal
 	cp internal.tex internal/index.html
 else
+	cp -f preamble.html preamble.inc
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 4 -link 2\
 	-t "Free Pascal Compiler Documentation" internal.htex
 	-sed -f foot.sed <internal/footnode.html >internal/footnote.html
@@ -358,11 +380,12 @@ endif
 	touch internal.chk	
 
 onechap: onechap.chk
-onechap.chk: unitex.chk htex.chk date.inc
+onechap.chk: unitex.chk htex.chk includes
 ifdef INSTALLDEBUG
 	mkdir onechap
 	cp onechap.tex onechap/index.html
 else
+	cp -f preamble.html preamble.inc
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 4 -link 2\
 	-t "Free Pascal reference guide" onechap.htex
 	-sed -f foot.sed <onechap/footnode.html >onechap/footnote.html
@@ -375,6 +398,11 @@ endif
 	touch onechap.chk	
 
 html: $(HTML)
+
+
+#####################################################################
+# GTK Articles
+#####################################################################
 
 gtk: $(GTKPDF)
 
@@ -502,7 +530,11 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.5  2001-07-10 22:01:15  michael
+# Revision 1.6  2001-07-29 20:28:00  peter
+#   * move preamble to separate include file so changes only need to
+#     be done to this file.
+#
+# Revision 1.5  2001/07/10 22:01:15  michael
 # + Some cleaning up
 #
 # Revision 1.4  2000/10/12 10:41:58  peter

@@ -20,25 +20,7 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Preamble.
-% Uncomment the one you need here. The book version is for the published
-% book version.
-%\documentclass{report}
-\documentclass{book}
-%
-% Preamble
-%
-\ifx\pdfoutput\undefined
-  \usepackage{html}
-  \usepackage{htmllist}
-%  \latex{\usepackage{fpc}}
-  \latex{\usepackage{fpcbook}}
-  \html{\input{fpc-html.tex}}
-\else
-% Uncomment the fpc or fpcbook version, depending on the output format
-% you want.
-%  \usepackage{fpc}
-  \usepackage{fpcbook}
-\fi
+\input{preamble.inc}
 \latex{%
   \ifpdf
   \pdfinfo{/Author(Michael Van Canneyt)

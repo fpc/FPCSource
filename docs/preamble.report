@@ -1,0 +1,14 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Preamble for report output
+
+%
+\documentclass{report}
+
+%
+\usepackage{fpc}
+
+% Use times for PDF
+\ifx\pdfoutput\undefined
+\else
+  \usepackage{times}
+\fi

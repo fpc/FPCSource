@@ -18,27 +18,10 @@
 %   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 %   Boston, MA 02111-1307, USA.
 %
-%\documentclass{book}
-\documentclass{report}
-%
-% Preamble
-%
-% Don't know why it's needed, but latex2html will else core dump
-% when trying to create an image
-\usepackage{epsfig}
-\usepackage{multicol}
-\ifx\pdfoutput\undefined
-  \usepackage{html}
-  \usepackage{htmllist}
-  \latex{\usepackage{fpc}}
-%  \latex{\usepackage{fpcbook}}
-  \html{\input{fpc-html.tex}}
-\else
-  \usepackage{fpc}
-%  \usepackage{fpcbook}
-\fi
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Preamble.
+\input{preamble.inc}
 \latex{%
-  \usepackage{times}
   \ifpdf
   \pdfinfo{/Author(Michael Van Canneyt)
            /Title(Users' Guide)
@@ -866,7 +849,7 @@ full in the programmers guide.
 \item \textbf{IO-error -2 at ...} : Under \linux you can get this message at
 compiler startup. It means typically that the compiler doesn't find the
 error definitions file. You can correct this mistake with the \seeo{Fr}
-option under \linux. 
+option under \linux.
 \item \textbf {Error : File not found : xxx} or \textbf{Error: couldn't compile
 unit xxx}: This typically happens when
 your unit path isn't set correctly. Remember that the compiler looks for
@@ -1513,9 +1496,9 @@ which were possible in Turbo Pascal are no longer possible in Free Pascal.
 \item A file is opened for output only (using \var{fmOutput}) when it is
 opened with \var{Rewrite}. In order to be able to read from it, it should
 be reset with \var{Reset}.
-\item Destructors cannot have parameters. This restriction can be solved by 
+\item Destructors cannot have parameters. This restriction can be solved by
 using the \var{-So} switch.
-\item There can be only one destructor. This restriction can also be 
+\item There can be only one destructor. This restriction can also be
 solved by using the \var{-So} switch.
 \item The order in which expressions are evaluated is not necessarily the
 same. In the following expression:
