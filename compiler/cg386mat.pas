@@ -822,6 +822,12 @@ implementation
          if is_boolean(p^.resulttype) then
           begin
             opsize:=def_opsize(p^.resulttype);
+            { the second pass could change the location of left }
+            { if it is a register variable, so we've to do      }
+            { this before the case statement                    }
+            if p^.left^.location.loc in [LOC_REFERENCE,LOC_MEM,
+              LOC_FLAGS,LOC_REGISTER,LOC_CREGISTER] then
+              secondpass(p^.left);
             case p^.left^.location.loc of
               LOC_JUMP :
                 begin
@@ -835,13 +841,9 @@ implementation
                   falselabel:=hl;
                 end;
               LOC_FLAGS :
-                begin
-                  secondpass(p^.left);
-                  p^.location.resflags:=flagsinvers[p^.left^.location.resflags];
-                end;
+                p^.location.resflags:=flagsinvers[p^.left^.location.resflags];
               LOC_REGISTER :
                 begin
-                  secondpass(p^.left);
                   {p^.location.register:=p^.left^.location.register;
                   emit_const_reg(A_XOR,opsize,1,p^.location.register);}
                   p^.location.loc:=LOC_FLAGS;
@@ -852,7 +854,6 @@ implementation
                 end;
               LOC_CREGISTER :
                 begin
-                  secondpass(p^.left);
                   clear_location(p^.location);
                   p^.location.loc:=LOC_REGISTER;
                   p^.location.register:=def_getreg(p^.resulttype);
@@ -865,7 +866,6 @@ implementation
               LOC_REFERENCE,
               LOC_MEM :
                 begin
-                  secondpass(p^.left);
                   clear_location(p^.location);
                   p^.location.loc:=LOC_REGISTER;
                   del_reference(p^.left^.location.reference);
@@ -990,7 +990,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  2000-02-24 18:41:38  peter
+  Revision 1.45  2000-03-19 15:20:22  florian
+    * not(b) if b is a register variable, didn't work, fixed
+
+  Revision 1.44  2000/02/24 18:41:38  peter
     * removed warnings/notes
 
   Revision 1.43  2000/02/18 21:25:48  florian
