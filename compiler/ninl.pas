@@ -253,14 +253,10 @@ implementation
               procname := procname + 'longint';
           end;
 
-        { create the call node, }
-        newnode := ccallnode.createintern(procname,newparas);
-        { resulttypepass it }
-        resulttypepass(newnode);
-
-        { and return it (but first free the errornode we generated in the beginning) }
+        { free the errornode we generated in the beginning }
         result.free;
-        result := newnode;
+        { create the call node, }
+        result := ccallnode.createintern(procname,newparas);
       end;
 
 
@@ -281,7 +277,6 @@ implementation
           result := ccallnode.createintern('fpc_reset_typed',left)
         else
           result := ccallnode.createintern('fpc_rewrite_typed',left);
-        firstpass(result);
         { make sure left doesn't get disposed, since we use it in the new call }
         left := nil;
       end;
@@ -2363,7 +2358,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.117  2003-09-23 17:56:05  peter
+  Revision 1.118  2003-09-23 21:10:11  peter
+    * don't call firstpass in resulttypepass
+
+  Revision 1.117  2003/09/23 17:56:05  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure
