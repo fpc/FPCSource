@@ -119,6 +119,13 @@ begin
   findobjectfile:='';
   if s='' then
    exit;
+
+  {When linking on target, there is no object files to look for at
+   the host. Look for the corresponding assembler file instead,
+   because it will be assembled to object file on the target.}
+  if cs_link_on_target in aktglobalswitches then
+	s:= ForceExtension(s,target_info.asmext);
+
   { when it does not belong to the unit then check if
     the specified file exists without searching any paths }
   if not isunit then
@@ -153,6 +160,11 @@ begin
    found:=FindFile(s,exepath,foundfile);
   if not(cs_link_extern in aktglobalswitches) and (not found) then
    Message1(exec_w_objfile_not_found,s);
+
+  {Restore file extension}
+  if cs_link_on_target in aktglobalswitches then
+	foundfile:= ForceExtension(foundfile,target_info.objext);
+
   findobjectfile:=ScriptFixFileName(foundfile);
 end;
 
@@ -664,7 +676,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.39  2003-12-11 17:53:03  florian
+  Revision 1.40  2004-02-19 20:40:15  olle
+    + Support for Link on target especially for MacOS
+    + TLinkerMPW
+    + TAsmScriptMPW
+
+  Revision 1.39  2003/12/11 17:53:03  florian
     * fixed external smartlinking
 
   Revision 1.38  2003/09/14 21:33:11  peter

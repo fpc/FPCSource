@@ -78,6 +78,15 @@ type
     Procedure WriteToDisk;override;
   end;
 
+  TAsmScriptMPW = class (TAsmScript)
+    Constructor Create (Const ScriptName : String); override;
+    Procedure AddAsmCommand (Const Command, Options,FileName : String);override;
+    Procedure AddLinkCommand (Const Command, Options, FileName : String);override;
+    Procedure AddDeleteCommand (Const FileName : String);override;
+    Procedure AddDeleteDirCommand (Const FileName : String);override;
+    Procedure WriteToDisk;override;
+  end;
+
   TLinkRes = Class (TScript)
     procedure Add(const s:string);
     procedure AddFileName(const s:string);
@@ -101,7 +110,7 @@ uses
   {$endif}
 {$endif}
   cutils,
-  globtype,globals,systems;
+  globtype,globals,systems,verbose;
 
 
 {****************************************************************************
@@ -154,7 +163,7 @@ end;
 
 procedure TScript.Add(const s:string);
 begin
-  data.Concat(s);
+   data.Concat(s);
 end;
 
 
@@ -163,6 +172,35 @@ begin
   Empty:=Data.Empty;
 end;
 
+(*
+procedure TScript.WriteToDisk;
+var
+  t : file;
+  s : string;
+  le: string[2];
+begin
+  if cs_link_on_target in aktglobalswitches then
+    le:= target_info.newline
+  else
+    le:= source_info.newline;
+
+  Assign(t,fn);
+  Rewrite(t,1);
+
+  while not data.Empty do
+    begin
+      s:= data.GetFirst;
+      BlockWrite(t, s[1] ,Length(s));
+      BlockWrite(t, le[1], Length(le));
+    end;
+
+  Close(t);
+{$ifdef hasUnix}
+  if executable then
+   {$ifdef VER1_0}ChMod{$else}fpchmod{$endif}(fn,493);
+{$endif}
+end;
+*)
 
 procedure TScript.WriteToDisk;
 var
@@ -193,7 +231,6 @@ begin
 {$endif}
 end;
 
-
 {****************************************************************************
                                   Asm Response
 ****************************************************************************}
@@ -205,7 +242,7 @@ end;
 
 
 {****************************************************************************
-                                  Asm Response
+                                  DOS Asm Response
 ****************************************************************************}
 
 Constructor TAsmScriptDos.Create (Const ScriptName : String);
@@ -386,6 +423,57 @@ Begin
 end;
 
 
+{****************************************************************************
+                                  MPW (MacOS) Asm Response
+****************************************************************************}
+
+Constructor TAsmScriptMPW.Create (Const ScriptName : String);
+begin
+  Inherited Create(ScriptName);
+end;
+
+
+Procedure TAsmScriptMPW.AddAsmCommand (Const Command, Options,FileName : String);
+begin
+  if FileName<>'' then
+    Add('Echo Assembling '+ScriptFixFileName(FileName));
+  Add(maybequoted(command)+' '+Options);
+end;
+
+
+Procedure TAsmScriptMPW.AddLinkCommand (Const Command, Options, FileName : String);
+begin
+  if FileName<>'' then
+    Add('Echo Linking '+ScriptFixFileName(FileName));
+  Add(maybequoted(command)+' '+Options);
+
+  {Add resources}
+  if true then {If SIOW}
+    Add('Rez -append "{RIncludes}"SIOW.r -o '+ ScriptFixFileName(FileName));
+end;
+
+
+Procedure TAsmScriptMPW.AddDeleteCommand (Const FileName : String);
+begin
+ Add('Delete '+ScriptFixFileName(FileName));
+end;
+
+
+Procedure TAsmScriptMPW.AddDeleteDirCommand (Const FileName : String);
+begin
+ Add('Delete '+FileName);
+end;
+
+
+Procedure TAsmScriptMPW.WriteToDisk;
+Begin
+  AddStart('# Script for assembling and linking a FreePascal program on MPW (MacOS)');
+  Add('Echo Done');
+  inherited WriteToDisk;
+end;
+
+
+
 Procedure GenerateAsmRes(const st : string);
 var
   scripttyp : tscripttype;
@@ -401,6 +489,8 @@ begin
       AsmRes:=TAsmScriptDos.Create(st);
     script_amiga :
       AsmRes:=TAsmScriptAmiga.Create(st);
+    script_mpw :
+      AsmRes:=TAsmScriptMPW.Create(st);
   end;
 end;
 
@@ -434,7 +524,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.25  2003-11-10 17:22:28  marco
+  Revision 1.26  2004-02-19 20:40:15  olle
+    + Support for Link on target especially for MacOS
+    + TLinkerMPW
+    + TAsmScriptMPW
+
+  Revision 1.25  2003/11/10 17:22:28  marco
    * havelinuxrtl10 fixes
 
   Revision 1.24  2003/09/30 19:54:23  peter

@@ -151,7 +151,8 @@ interface
        );
 
        tscripttype = (script_none
-            ,script_dos,script_unix,script_amiga
+            ,script_dos,script_unix,script_amiga,
+            script_mpw
        );
 
        tabi = (abi_default
@@ -688,7 +689,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.84  2004-02-13 15:56:11  marco
+  Revision 1.85  2004-02-19 20:40:15  olle
+    + Support for Link on target especially for MacOS
+    + TLinkerMPW
+    + TAsmScriptMPW
+
+  Revision 1.84  2004/02/13 15:56:11  marco
    * getosreldate
 
   Revision 1.83  2004/02/13 05:42:16  karoly

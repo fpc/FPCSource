@@ -66,7 +66,7 @@ unit i_macos;
             linkextern   : nil;
             ar           : ar_mpw_ar;
             res          : res_powerpc_mpw;
-            script       : script_unix;
+            script       : script_mpw;
             endian       : endian_big;
             alignment    :
               (
@@ -102,7 +102,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.12  2003-10-03 22:09:49  peter
+  Revision 1.13  2004-02-19 20:40:20  olle
+    + Support for Link on target especially for MacOS
+    + TLinkerMPW
+    + TAsmScriptMPW
+
+  Revision 1.12  2003/10/03 22:09:49  peter
     * removed paraalign
 
   Revision 1.11  2003/08/08 15:54:01  olle

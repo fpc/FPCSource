@@ -708,6 +708,97 @@ implementation
        FixFileName[0]:=s[0];
      end;
 
+   {Translates a unix or dos path to a mac path for use in MPW. 
+   If already a mac path, it does nothing. The origin of this 
+   algorithm will be put in macos/dos.pp, please update this
+   from that, because there is some flaws in the algo below.}
+    procedure TranslatePathToMac (var path: string);
+  
+      var
+        slashPos, oldpos, newpos, oldlen: Integer;
+        inname: Boolean;
+  
+    begin
+      slashPos := Pos('/', path);
+      if (slashPos <> 0) then   {its a unix path}
+        begin
+          if slashPos = 1 then  {its a full path}
+            begin
+              Delete(path,1,1);
+              Insert('{Boot}', path, 1);
+            end 
+          else {its a partial path}
+            Insert('/', path, 1);
+        end
+      else
+        begin
+          slashPos := Pos('\', path);
+          if (slashPos <> 0) then   {its a dos path}
+            begin
+              if slashPos = 1 then {its a full path, without drive letter}
+                begin
+                  Delete(path,1,1);
+                  Insert('{Boot}', path, 1);
+                end 
+              else if (Length(path) >= 2) and (path[2] = ':') then {its a full path, with drive letter}
+                begin
+                  Delete(path, 1, 2);
+                  Insert('{Boot}', path, 1)
+                end
+              else {its a partial path}
+                Insert('/', path, 1);
+            end;
+        end;
+  
+      if (slashPos <> 0) then   {its a unix or dos path}
+        begin
+          {Translate "/../" to "::" , "/./" to ":" and "/" to ":" ) in place. }
+          oldlen := Length(path);
+          newpos := 0;
+          oldpos := 0;
+          inname := false;
+          while oldpos < oldlen do
+            begin
+              oldpos := oldpos + 1;
+              case path[oldpos] of
+                '.': 
+                  if (((oldpos < oldlen) and (path[oldpos + 1] in ['.', '/', '\'])) or (oldpos = oldlen)) and not inname then
+                    begin {its really a lonely ".." or "."}
+                        {Skip two chars in any case. }
+                         {For ".." then ".." is skiped and for "." then "./" is skiped, this}
+                        {reqires the next char is a "/". Thats why a "/" was }
+                        {appended on the end above.}
+                      oldpos := oldpos + 1;
+                    end
+                  else  {its part of a filename (hidden unix file, e g ".nisse")}
+                    begin
+                      inname := true;
+                      newpos := newpos + 1;
+                      path[newpos] := path[oldpos];
+                    end;
+                '/', '\': 
+                  begin
+                    inname := false;
+                    newpos := newpos + 1;
+                    path[newpos] := ':';  {Exchange to mac dir separator.}
+                  end;
+                'A'..'Z' :
+                  begin
+                    inname := true;
+                    newpos := newpos + 1;
+                    path[newpos] :=char(byte(path[oldpos])+32);
+                  end;
+                else
+                  begin
+                    inname := true;
+                    newpos := newpos + 1;
+                    path[newpos] := path[oldpos];
+                  end;
+              end;
+            end;
+          SetLength(path,newpos);
+        end;
+    end;
 
     Function TargetFixPath(s:string;allowdot:boolean):string;
       var
@@ -734,11 +825,16 @@ implementation
 
    function TargetFixFileName(const s:string):string;
      var
-       i      : longint;
+       i : longint;
      begin
-       if target_info.files_case_relevent then
-        begin
-          for i:=1 to length(s) do
+       if target_info.system = system_powerpc_MACOS then
+         begin
+           TargetFixFileName:= s;
+           TranslatePathToMac(TargetFixFileName);
+         end
+       else if target_info.files_case_relevent then
+         begin
+           for i:=1 to length(s) do
            begin
              case s[i] of
                '/','\' :
@@ -747,10 +843,11 @@ implementation
                  TargetFixFileName[i]:=s[i];
              end;
            end;
-        end
+           TargetFixFileName[0]:=s[0];
+         end
        else
-        begin
-          for i:=1 to length(s) do
+         begin
+           for i:=1 to length(s) do
            begin
              case s[i] of
                '/','\' :
@@ -761,8 +858,8 @@ implementation
                   TargetFixFileName[i]:=s[i];
              end;
            end;
-        end;
-       TargetFixFileName[0]:=s[0];
+           TargetFixFileName[0]:=s[0];
+         end;
      end;
 
 
@@ -1807,7 +1904,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.124  2004-02-08 16:38:51  florian
+  Revision 1.125  2004-02-19 20:40:15  olle
+    + Support for Link on target especially for MacOS
+    + TLinkerMPW
+    + TAsmScriptMPW
+
+  Revision 1.124  2004/02/08 16:38:51  florian
     + PtrInt declared if VER1_0
 
   Revision 1.123  2004/01/28 22:16:31  peter

@@ -27,7 +27,7 @@ unit t_macos;
 interface
 
   uses
-     import,symsym,symdef;
+     import,symsym,symdef,link;
 
   type
     timportlibmacos=class(timportlib)
@@ -37,10 +37,18 @@ interface
       procedure generatelib;override;
     end;
 
+    tlinkermpw=class(texternallinker)
+    private
+      Function  WriteResponseFile(isdll:boolean) : Boolean;
+    public
+      constructor Create;override;
+      procedure SetDefaultInfo;override;
+      function  MakeExecutable:boolean;override;
+    end;
+
 implementation
 
     uses
-       link,
        cutils,cclasses,
        globtype,globals,systems,verbose,script,fmodule,i_macos,
        symconst;
@@ -82,6 +90,119 @@ procedure timportlibmacos.generatelib;
 begin
 end;
 
+{*****************************************************************************
+                                  TLINKERMPW
+*****************************************************************************}
+
+Constructor TLinkerMPW.Create;
+begin
+  Inherited Create;
+  //LibrarySearchPath.AddPath('/lib;/usr/lib;/usr/X11R6/lib',true);
+end;
+
+
+procedure TLinkerMPW.SetDefaultInfo;
+
+begin
+  with Info do
+   begin
+     ExeCmd[1]:='PPCLink $OPT $DYNLINK $STATIC $STRIP -tocdataref off -dead on -o $EXE -@filelist $RES';
+     DllCmd[1]:='PPCLink $OPT $INIT $FINI $SONAME -shared -o $EXE -@filelist $RES';
+   end;
+end;
+
+
+Function TLinkerMPW.WriteResponseFile(isdll:boolean) : Boolean;
+
+begin
+  WriteResponseFile:=False;
+end;
+
+
+function TLinkerMPW.MakeExecutable:boolean;
+var
+  binstr,
+  cmdstr  : string;
+  success : boolean;
+  DynLinkStr : string[60];
+  StaticStr,
+  StripStr   : string[40];
+
+  s: string;
+
+begin
+  //TODO Only external link in MPW is possible, otherwise yell.
+
+  if not(cs_link_extern in aktglobalswitches) then
+    Message1(exec_i_linking,current_module.exefilename^);
+
+{ Create some replacements }
+(*
+  StaticStr:='';
+  StripStr:='';
+  DynLinkStr:='';
+  if (cs_link_staticflag in aktglobalswitches) then
+   StaticStr:='-static';
+  if (cs_link_strip in aktglobalswitches) then
+   StripStr:='-s';
+  If (cs_profile in aktmoduleswitches) or
+     ((Info.DynamicLinker<>'') and (not SharedLibFiles.Empty)) then
+   DynLinkStr:='-dynamic-linker='+Info.DynamicLinker;
+*)
+
+{ Call linker }
+  SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
+  Replace(cmdstr,'$EXE',current_module.exefilename^);
+  Replace(cmdstr,'$OPT',Info.ExtraOptions);
+  Replace(cmdstr,'$RES',outputexedir+Info.ResName);
+  Replace(cmdstr,'$STATIC',StaticStr);
+  Replace(cmdstr,'$STRIP',StripStr);
+  Replace(cmdstr,'$DYNLINK',DynLinkStr);
+
+  with AsmRes do
+    begin
+      {#182 is escape char in MPW (analog to backslash in unix). The space}
+      {ensures there is whitespace separating items.}
+      Add('PPCLink '#182);
+
+      { Add MPW standard libraries}
+      if true then // if not MPWTool
+        begin
+          Add('"{PPCLibraries}PPCSIOW.o" '#182);
+          Add('"{PPCLibraries}PPCToolLibs.o" '#182);
+        end;
+
+      Add('"{SharedLibraries}InterfaceLib" '#182);
+      Add('"{SharedLibraries}StdCLib" '#182);
+      Add('"{SharedLibraries}MathLib" '#182);
+      Add('"{PPCLibraries}StdCRuntime.o" '#182);
+      Add('"{PPCLibraries}PPCCRuntime.o" '#182);
+
+      {Add main objectfiles}
+      while not ObjectFiles.Empty do
+        begin
+          s:=ObjectFiles.GetFirst;
+          if s<>'' then
+            Add(s+' '#182);
+        end;
+
+	  {Add last lines of the link command}
+      if true then //If SIOW, to avoid some warnings.
+        Add('-ignoredups __start -ignoredups .__start -ignoredups main -ignoredups .main '#182); 
+
+      Add('-tocdataref off -sym on -dead on -o '+ current_module.exefilename^); 
+
+      {Add mac resources}
+      if true then //If SIOW
+        Add('Rez -append "{RIncludes}"SIOW.r -o ' + current_module.exefilename^);
+
+      success:= true;
+    end;
+
+  MakeExecutable:=success;   { otherwise a recursive call to link method }
+end;
+
+
 
 {*****************************************************************************
                                   Initialize
@@ -93,13 +214,19 @@ initialization
   RegisterImport(system_m68k_macos,timportlibmacos);
 {$endif m68k}
 {$ifdef powerpc}
+  RegisterExternalLinker(system_powerpc_macos_info,TLinkerMPW);
   RegisterTarget(system_powerpc_macos_info);
   RegisterImport(system_powerpc_macos,timportlibmacos);
 {$endif powerpc}
 end.
 {
   $Log$
-  Revision 1.6  2003-04-27 08:52:00  florian
+  Revision 1.7  2004-02-19 20:40:20  olle
+    + Support for Link on target especially for MacOS
+    + TLinkerMPW
+    + TAsmScriptMPW
+
+  Revision 1.6  2003/04/27 08:52:00  florian
     * another compile fix
 
   Revision 1.5  2003/04/27 08:50:45  peter
