@@ -209,13 +209,10 @@ override TARGET_UNITS+=cdrom discid
 ifeq ($(OS_TARGET),linux)
 override TARGET_IMPLICITUNITS+=major lincd
 endif
-override TARGET_EXAMPLES+=showcds getdiscid
-ifeq ($(OS_TARGET),linux)
-override INSTALL_UNITS+=lincd major
-endif
 ifeq ($(OS_TARGET),win32)
-override INSTALL_UNITS+=scsidefs wnaspi32 cdromioctl wincd
+override TARGET_IMPLICITUNITS+=scsidefs wnaspi32 cdromioctl wincd
 endif
+override TARGET_EXAMPLES+=showcds getdiscid
 override INSTALL_FPCPACKAGE=y
 ifdef REQUIRE_UNITSDIR
 override UNITSDIR+=$(REQUIRE_UNITSDIR)

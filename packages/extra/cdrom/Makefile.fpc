@@ -8,13 +8,12 @@ version=1.0.8
 
 [target]
 units=cdrom discid
+implicitunits_win32=scsidefs wnaspi32 cdromioctl wincd
 implicitunits_linux=major lincd
 examples=showcds getdiscid
 
 [install]
 fpcpackage=y
-units_win32=scsidefs wnaspi32 cdromioctl wincd
-units_linux=lincd major
 
 [default]
 fpcdir=../../..
