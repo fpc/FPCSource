@@ -217,6 +217,8 @@ unit files;
 {$ifdef Test_Double_checksum}
           crc_array : pointer;
           crc_size : longint;
+          crc_array2 : pointer;
+          crc_size2 : longint;
 {$endif def Test_Double_checksum}
           constructor init(const s:string;_is_unit:boolean);
           destructor done;virtual;
@@ -1324,7 +1326,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.100  1999-08-24 13:14:01  peter
+  Revision 1.101  1999-08-27 10:43:20  pierre
+   + interface CRC check with ifdef Test_double_checksum added
+
+  Revision 1.100  1999/08/24 13:14:01  peter
     * MEMDEBUG to see the sizes of asmlist,asmsymbols,symtables
 
   Revision 1.99  1999/07/18 14:47:26  florian
