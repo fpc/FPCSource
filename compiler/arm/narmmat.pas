@@ -31,8 +31,14 @@ interface
 
     type
       tarmnotnode = class(tcgnotnode)
-         procedure second_boolean;override;
+        procedure second_boolean;override;
       end;
+
+
+      tarmunaryminusnode = class(tcgunaryminusnode)
+        procedure second_float;override;
+      end;
+
 
 implementation
 
@@ -94,13 +100,33 @@ implementation
           end;
       end;
 
+{*****************************************************************************
+                               TARMUNARYMINUSNODE
+*****************************************************************************}
+
+    procedure tarmunaryminusnode.second_float;
+      begin
+        secondpass(left);
+        location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+        location_force_fpureg(exprasmlist,left.location,false);
+        location:=left.location;
+        exprasmlist.concat(setoppostfix(taicpu.op_reg_reg_const(A_RSF,
+          location.register,left.location.register,0),
+          cgsize2fpuoppostfix[def_cgsize(resulttype.def)]));
+      end;
+
 
 begin
    cnotnode:=tarmnotnode;
+   cunaryminusnode:=tarmunaryminusnode;
 end.
 {
   $Log$
-  Revision 1.5  2004-01-28 15:36:47  florian
+  Revision 1.6  2004-03-13 18:45:40  florian
+    * floating compares fixed
+    * unary minus for floats fixed
+
+  Revision 1.5  2004/01/28 15:36:47  florian
     * fixed another couple of arm bugs
 
   Revision 1.4  2003/11/02 14:30:03  florian

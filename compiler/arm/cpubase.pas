@@ -62,7 +62,7 @@ unit cpubase;
               A_ADF,A_DVF,A_FDV,A_FML,A_FRD,A_MUF,A_POL,A_PW,A_RDF,
               A_RMF,A_RPW,A_RSF,A_SUF,A_ABS,A_ACS,A_ASN,A_ATN,A_COS,
               A_EXP,A_LOG,A_LGN,A_MVF,A_MNF,A_NRM,A_RND,A_SIN,A_SQT,A_TAN,A_URD,
-              A_CMF,A_CNF
+              A_CMF,A_CMFE,A_CNF
               { VPA coprocessor codes }
               );
 
@@ -570,7 +570,11 @@ unit cpubase;
 end.
 {
   $Log$
-  Revision 1.27  2004-03-06 20:35:19  florian
+  Revision 1.28  2004-03-13 18:45:40  florian
+    * floating compares fixed
+    * unary minus for floats fixed
+
+  Revision 1.27  2004/03/06 20:35:19  florian
     * fixed arm compilation
     * cleaned up code generation for exported linux procedures
 

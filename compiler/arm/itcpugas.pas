@@ -51,7 +51,7 @@ interface
             'adf','dvf','fdv','fml','frd','muf','pol','pw','rdf',
             'rmf','rpw','rsf','suf','abs','acs','asn','atn','cos',
             'exp','log','lgn','mvf','mnf','nrm','rnd','sin','sqt','tan','urd',
-            'cmf','cnf'
+            'cmf','cmfe','cnf'
             { VPA coprocessor codes }
             );
 
@@ -113,7 +113,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2003-11-17 23:23:47  florian
+  Revision 1.3  2004-03-13 18:45:40  florian
+    * floating compares fixed
+    * unary minus for floats fixed
+
+  Revision 1.2  2003/11/17 23:23:47  florian
     + first part of arm assembler reader
 
   Revision 1.1  2003/11/12 16:05:39  florian

@@ -122,7 +122,6 @@ interface
     procedure tarmaddnode.second_addfloat;
       var
         op : TAsmOp;
-        instr : taicpu;
       begin
         case aktfputype of
           fpu_fpa,
@@ -157,10 +156,9 @@ interface
               else
                 location.register:=right.location.register;
 
-              instr:=taicpu.op_reg_reg_reg(op,
-                 location.register,left.location.register,right.location.register);
-              instr.oppostfix:=cgsize2fpuoppostfix[def_cgsize(resulttype.def)];
-              exprasmlist.concat(instr);
+              exprasmlist.concat(setoppostfix(taicpu.op_reg_reg_reg(op,
+                 location.register,left.location.register,right.location.register),
+                 cgsize2fpuoppostfix[def_cgsize(resulttype.def)]));
 
               release_reg_left_right;
 
@@ -189,12 +187,18 @@ interface
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=getresflags(true);
 
-        exprasmlist.concat(taicpu.op_reg_reg(A_CMF,
-           left.location.register,right.location.register));
+        if nodetype in [equaln,unequaln] then
+          exprasmlist.concat(setoppostfix(taicpu.op_reg_reg(A_CMF,
+             left.location.register,right.location.register),
+             cgsize2fpuoppostfix[def_cgsize(resulttype.def)]))
+        else
+          exprasmlist.concat(setoppostfix(taicpu.op_reg_reg(A_CMFE,
+             left.location.register,right.location.register),
+             cgsize2fpuoppostfix[def_cgsize(resulttype.def)]));
 
         release_reg_left_right;
         location_reset(location,LOC_FLAGS,OS_NO);
-        location.resflags:=getresflags(true);
+        location.resflags:=getresflags(false);
       end;
 
 
@@ -339,7 +343,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2004-03-11 22:41:37  florian
+  Revision 1.13  2004-03-13 18:45:40  florian
+    * floating compares fixed
+    * unary minus for floats fixed
+
+  Revision 1.12  2004/03/11 22:41:37  florian
     + second_cmpfloat implemented, needs probably to be fixed
 
   Revision 1.11  2004/01/26 19:05:56  florian
