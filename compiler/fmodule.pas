@@ -101,7 +101,7 @@ interface
 
           islibrary     : boolean;  { if it is a library (win32 dll) }
           map           : punitmap; { mapping of all used units }
-          unitcount     : word;     { local unit counter }
+          unitcount     : longint;  { local unit counter }
           globalsymtable,           { pointer to the local/static symtable of this unit }
           localsymtable : pointer;  { pointer to the psymtable of this unit }
           scanner       : pointer;  { scanner object used }
@@ -144,7 +144,7 @@ interface
 
        pused_unit = ^tused_unit;
        tused_unit = object(tlinkedlist_item)
-          unitid          : word;
+          unitid          : longint;
           name            : pstring;
           checksum,
           interface_checksum : longint;
@@ -173,7 +173,7 @@ interface
        SmartLinkOFiles   : TStringContainer; { List of .o files which are generated,
                                                used to delete them after linking }
 
-function get_source_file(moduleindex,fileindex : word) : pinputfile;
+function get_source_file(moduleindex,fileindex : longint) : pinputfile;
 
 
 implementation
@@ -193,27 +193,17 @@ uses
                              Global Functions
 *****************************************************************************}
 
-    function get_source_file(moduleindex,fileindex : word) : pinputfile;
+    function get_source_file(moduleindex,fileindex : longint) : pinputfile;
       var
          hp : pmodule;
-         f : pinputfile;
       begin
          hp:=pmodule(loaded_units.first);
          while assigned(hp) and (hp^.unit_index<>moduleindex) do
            hp:=pmodule(hp^.next);
-         get_source_file:=nil;
-         if not assigned(hp) then
-           exit;
-         f:=pinputfile(hp^.sourcefiles^.files);
-         while assigned(f) do
-           begin
-              if f^.ref_index=fileindex then
-                begin
-                   get_source_file:=f;
-                   exit;
-                end;
-              f:=pinputfile(f^.ref_next);
-           end;
+         if assigned(hp) then
+          get_source_file:=hp^.sourcefiles^.get_file(fileindex)
+         else
+          get_source_file:=nil;
       end;
 
 
@@ -898,7 +888,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-10-31 22:02:46  peter
+  Revision 1.5  2000-11-07 20:48:33  peter
+    * removed ref_count from pinputfile it's not used
+
+  Revision 1.4  2000/10/31 22:02:46  peter
     * symtable splitted, no real code changes
 
   Revision 1.3  2000/10/15 07:47:51  peter

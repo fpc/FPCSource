@@ -58,8 +58,7 @@ interface
          linebuf    : plongintarr;  { line buffer to retrieve lines }
          maxlinebuf : longint;
 
-         ref_count  : longint;      { to handle the browser refs }
-         ref_index  : longint;
+         ref_index  : longint;      { to handle the browser refs }
          ref_next   : pinputfile;
 
          constructor init(const fn:string);
@@ -116,7 +115,7 @@ interface
        pmodulebase = ^tmodulebase;
        tmodulebase = object(tlinkedlist_item)
           { index }
-          unit_index    : word;     { global counter for browser }
+          unit_index    : longint;  { global counter for browser }
           { sources }
           sourcefiles   : pinputfilemanager;
           { paths and filenames }
@@ -135,8 +134,6 @@ interface
           destructor done;virtual;
           procedure setfilename(const fn:string;allowoutput:boolean);
        end;
-
-
 
 
 implementation
@@ -178,7 +175,6 @@ uses
         savelastlinepos:=0;
       { indexing refs }
         ref_next:=nil;
-        ref_count:=0;
         ref_index:=0;
       { line buffer }
         linebuf:=nil;
@@ -688,7 +684,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.4  2000-10-31 22:02:46  peter
+  Revision 1.5  2000-11-07 20:48:33  peter
+    * removed ref_count from pinputfile it's not used
+
+  Revision 1.4  2000/10/31 22:02:46  peter
     * symtable splitted, no real code changes
 
   Revision 1.3  2000/10/14 21:52:54  peter

@@ -50,7 +50,7 @@ interface
       tref = object
         nextref     : pref;
         posinfo     : tfileposinfo;
-        moduleindex : word;
+        moduleindex : longint;
         is_written  : boolean;
         constructor init(ref:pref;pos:pfileposinfo);
         procedure   freechain;
@@ -271,12 +271,7 @@ implementation
       end;
 
     destructor tref.done;
-      var
-         inputfile : pinputfile;
       begin
-         inputfile:=get_source_file(moduleindex,posinfo.fileindex);
-         if inputfile<>nil then
-           dec(inputfile^.ref_count);
          nextref:=nil;
       end;
 
@@ -572,7 +567,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2000-10-31 22:02:53  peter
+  Revision 1.2  2000-11-07 20:48:33  peter
+    * removed ref_count from pinputfile it's not used
+
+  Revision 1.1  2000/10/31 22:02:53  peter
     * symtable splitted, no real code changes
 
 }
