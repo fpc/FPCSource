@@ -1334,8 +1334,11 @@ unit pmodules;
          IsExe:=true;
          parse_only:=false;
          { relocation works only without stabs under win32 !! PM }
+         { internal assembler uses rva for stabs info
+           so it should work with relocated DLLs }
          if RelocSection and
-            (target_info.target=target_i386_win32) then
+            (target_info.target=target_i386_win32) and
+            (target_info.assem<>as_i386_pecoff) then
            begin
               aktglobalswitches:=aktglobalswitches+[cs_link_strip];
               { Warning stabs info does not work with reloc section !! }
@@ -1558,7 +1561,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.176  1999-12-10 10:02:53  peter
+  Revision 1.177  1999-12-20 22:29:26  pierre
+    * relocation with debug info in rva (only with internal compiler)
+
+  Revision 1.176  1999/12/10 10:02:53  peter
     * only check relocsection for win32
 
   Revision 1.175  1999/11/30 10:40:44  peter

@@ -606,7 +606,10 @@ unit og386cff;
         { when the offset is not 0 then write a relocation, take also the
           hdrstab into account with the offset }
         if reloc then
-          sects[sec_stab]^.addsectionreloc(sects[sec_stab]^.len-4,s,relative_false);
+          if DLLSource then
+            sects[sec_stab]^.addsectionreloc(sects[sec_stab]^.len-4,s,relative_rva)
+          else
+            sects[sec_stab]^.addsectionreloc(sects[sec_stab]^.len-4,s,relative_false);
       end;
 
 
@@ -653,7 +656,10 @@ unit og386cff;
         { when the offset is not 0 then write a relocation, take also the
           hdrstab into account with the offset }
         if reloc then
-          sects[sec_stab]^.addsymreloc(sects[sec_stab]^.len-4,ps,relative_false);
+          if DLLSource then
+            sects[sec_stab]^.addsymreloc(sects[sec_stab]^.len-4,ps,relative_rva)
+          else
+            sects[sec_stab]^.addsymreloc(sects[sec_stab]^.len-4,ps,relative_false);
       end;
 
 
@@ -976,7 +982,10 @@ unit og386cff;
 end.
 {
   $Log$
-  Revision 1.15  1999-11-30 10:40:43  peter
+  Revision 1.16  1999-12-20 22:29:26  pierre
+    * relocation with debug info in rva (only with internal compiler)
+
+  Revision 1.15  1999/11/30 10:40:43  peter
     + ttype, tsymlist
 
   Revision 1.14  1999/11/06 14:34:21  peter
