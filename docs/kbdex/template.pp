@@ -2,7 +2,7 @@ Program Example;
 
 { Program to demonstrate the *** function. }
 
-Uses keyboard,KeybUtil;
+Uses keyboard;
 
 begin
   InitKeyboard;
