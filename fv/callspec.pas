@@ -131,6 +131,7 @@ type
 
 function CallVoidConstructor(Ctor: pointer; Obj: pointer; VMT: pointer): pointer;
 begin
+{$ifdef VER1_0}
   { load the object pointer }
 {$ifdef CPUI386}
   asm
@@ -142,6 +143,7 @@ begin
         move.l Obj, a5
   end;
 {$endif CPU68K}
+{$endif VER1_0}
 
   CallVoidConstructor := VoidConstructor(Ctor)(VMT, Obj)
 end;
@@ -149,7 +151,8 @@ end;
 
 function CallPointerConstructor(Ctor: pointer; Obj: pointer; VMT: pointer; Param1: pointer): pointer;
 begin
-  { load the object pointer }
+{$ifdef VER1_0}
+{ load the object pointer }
 {$ifdef CPUI386}
   asm
         movl Obj, %esi
@@ -160,12 +163,14 @@ begin
         move.l Obj, a5
   end;
 {$endif CPU68K}
+{$endif VER1_0}
   CallPointerConstructor := PointerConstructor(Ctor)(VMT, Obj, Param1)
 end;
 
 
 function CallVoidMethod(Method: pointer; Obj: pointer): pointer;
 begin
+{$ifdef VER1_0}
   { load the object pointer }
 {$ifdef CPUI386}
   asm
@@ -177,12 +182,14 @@ begin
         move.l Obj, a5
   end;
 {$endif CPU68K}
+{$endif VER1_0}
   CallVoidMethod := VoidMethod(Method)(Obj)
 end;
 
 
 function CallPointerMethod(Method: pointer; Obj: pointer; Param1: pointer): pointer;
 begin
+{$ifdef VER1_0}
   { load the object pointer }
 {$ifdef CPUI386}
   asm
@@ -194,6 +201,7 @@ begin
         move.l Obj, a5
   end;
 {$endif CPU68K}
+{$endif VER1_0}
   CallPointerMethod := PointerMethod(Method)(Obj, Param1)
 end;
 
@@ -212,6 +220,7 @@ end;
 
 function CallVoidMethodLocal(Func: pointer; Frame: FramePointer; Obj: pointer): pointer;
 begin
+{$ifdef VER1_0}
   { load the object pointer }
 {$ifdef CPUI386}
   asm
@@ -223,12 +232,14 @@ begin
         move.l Obj, a5
   end;
 {$endif CPU68K}
+{$endif VER1_0}
   CallVoidMethodLocal := VoidMethodLocal(Func)(Frame)
 end;
 
 
 function CallPointerMethodLocal(Func: pointer; Frame: FramePointer; Obj: pointer; Param1: pointer): pointer;
 begin
+{$ifdef VER1_0}
   { load the object pointer }
 {$ifdef CPUI386}
   asm
@@ -240,6 +251,7 @@ begin
         move.l Obj, a5
   end;
 {$endif CPU68K}
+{$endif VER1_0}
   CallPointerMethodLocal := PointerMethodLocal(Func)(Frame, Param1)
 end;
 
@@ -380,7 +392,56 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2002-09-07 15:06:36  peter
-    * old logs removed and tabs fixed
+  Revision 1.3  2004-02-06 20:08:58  jonas
+    * version from FV
 
+  Revision 1.4  2003/11/12 15:49:59  peter
+    * fix crash with 1.9
+
+  Revision 1.3  2001/07/30 08:27:58  pierre
+   * fix I386 compilation problem
+
+  Revision 1.2  2001/07/29 20:23:18  pierre
+   * support for m68k cpu
+
+  Revision 1.1  2001/01/29 21:56:04  peter
+    * updates for new fpcmake
+
+  Revision 1.1  2001/01/29 11:31:26  marco
+   * added from API. callspec renamed to .pp
+
+  Revision 1.1  2000/07/13 06:29:38  michael
+  + Initial import
+
+  Revision 1.1  2000/01/06 01:20:30  peter
+    * moved out of packages/ back to topdir
+
+  Revision 1.1  1999/12/23 19:36:47  peter
+    * place unitfiles in target dirs
+
+  Revision 1.1  1999/11/24 23:36:37  peter
+    * moved to packages dir
+
+  Revision 1.2  1998/12/16 21:57:16  peter
+    * fixed currentframe,previousframe
+    + testcall to test the callspec unit
+
+  Revision 1.1  1998/12/04 12:48:24  peter
+    * moved some dirs
+
+  Revision 1.5  1998/12/04 09:53:44  peter
+    * removed objtemp global var
+
+  Revision 1.4  1998/11/24 17:14:24  peter
+    * fixed esi loading
+
+
+  Date       Version  Who     Comments
+  ---------- -------- ------- -------------------------------------
+  19-Sep-97  0.1      mkoeppe Initial version.
+  22-Sep-97  0.11     fk      0.9.3 support added, self isn't expected
+                              on the stack in local procedures of methods
+  23-Sep-97  0.12     mkoeppe Cleaned up 0.9.3 conditionals.
+  03-Oct-97  0.13     mkoeppe Fixed esi load in FPC 0.9
+  22-Oct-98  0.14     pfv     0.99.8 support for FPC
 }
