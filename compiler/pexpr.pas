@@ -314,7 +314,13 @@ implementation
               consume(_RKLAMMER);
               if p1.nodetype=typen then
                 ttypenode(p1).allowed:=true;
-              if (p1.resulttype.def.deftype = objectdef) then
+              { Allow classrefdef, which is required for
+                Typeof(self) in static class methods }
+              if (p1.resulttype.def.deftype = objectdef) or
+                 (assigned(current_procinfo) and
+                  ((po_classmethod in current_procinfo.procdef.procoptions) or
+                   (po_staticmethod in current_procinfo.procdef.procoptions)) and
+                  (p1.resulttype.def.deftype=classrefdef)) then
                statement_syssym:=geninlinenode(in_typeof_x,false,p1)
               else
                begin
@@ -2413,7 +2419,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.124  2003-08-10 17:25:23  peter
+  Revision 1.125  2003-08-23 18:41:52  peter
+    * allow typeof(self) in class methods
+
+  Revision 1.124  2003/08/10 17:25:23  peter
     * fixed some reported bugs
 
   Revision 1.123  2003/06/13 21:19:31  peter
