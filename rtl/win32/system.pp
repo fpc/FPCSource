@@ -1597,6 +1597,7 @@ begin
   setup_arguments;
   { Reset IO Error }
   InOutRes:=0;
+  ProcessID := GetCurrentProcess;
   ThreadID := GetCurrentThread;
   { Reset internal error variable }
   errno:=0;
@@ -1607,7 +1608,10 @@ end.
 
 {
   $Log$
-  Revision 1.53  2004-02-02 17:01:47  florian
+  Revision 1.54  2004-02-15 21:37:18  hajny
+    * ProcessID initialization added
+
+  Revision 1.53  2004/02/02 17:01:47  florian
     * workaround for AMD prefetch bug
 
   Revision 1.52  2004/01/20 23:12:49  hajny
