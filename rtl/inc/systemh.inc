@@ -67,7 +67,7 @@ const
 {$endif}
 
 { max level in dumping on error }
-  Max_Frame_Dump : Word = 20;
+  Max_Frame_Dump : Word = 8;
 { Exit Procedure handling consts and types  }
   ExitProc : pointer=nil;
   Erroraddr: pointer = nil;
@@ -386,7 +386,10 @@ Procedure halt;
 
 {
   $Log$
-  Revision 1.14  1998-06-25 14:04:26  peter
+  Revision 1.15  1998-07-01 14:43:46  carl
+    - max_frame_dump reduced to 8, 20 is too much!
+
+  Revision 1.14  1998/06/25 14:04:26  peter
     + internal inc/dec
 
   Revision 1.13  1998/06/25 09:44:21  daniel
