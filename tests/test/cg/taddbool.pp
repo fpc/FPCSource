@@ -336,7 +336,9 @@ var
  wb1, wb2, wb3: wordbool;
  lb1, lb2, lb3: longbool;
  result : boolean;
+ values : longint;
 Begin
+ values := $02020202;
  { BOOLEAN = BOOLEAN }
  result := true;
  Write('boolean = boolean test...');
@@ -385,6 +387,15 @@ Begin
   end
  else
    WriteLn('Failure.');
+ Write('wordbool conversion to boolean...');
+ result := TRUE;
+ move(values,lb1,sizeof(lb1));
+ if lb1 <> TRUE then
+    result := false;
+ if result then
+    WriteLn('Success.')
+ else
+    WriteLn('Failure.');
  { LONGBOOL = LONGBOOL }
  result := true;
  Write('longbool = longbool test...');
@@ -409,6 +420,15 @@ Begin
   end
  else
    WriteLn('Failure.');
+ Write('longbool conversion to boolean...');
+ result := TRUE;
+ move(values,lb1,sizeof(lb1));
+ if lb1 <> TRUE then
+    result := false;
+ if result then
+    WriteLn('Success.')
+ else
+    WriteLn('Failure.');
 end;
 
 
@@ -543,7 +563,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2001-05-19 11:51:50  peter
+  Revision 1.2  2001-07-27 02:55:35  carl
+  + more complex testing
+
+  Revision 1.1  2001/05/19 11:51:50  peter
     * renamed to .pp
 
   Revision 1.1  2001/05/09 18:11:21  carl
